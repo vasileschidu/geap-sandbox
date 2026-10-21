@@ -32,6 +32,8 @@
     ".pagination__item",
     ".breadcrumbs__item",
     ".breadcrumbs a",
+    ".breadcrumbs button",
+    ".breadcrumbs__link",
     ".accordion__trigger",
     ".date-picker",
     ".date-picker__field",
@@ -52,7 +54,7 @@
     ".cookie-banner",
     ".avatar"
   ],
-  "_product": "product component roots that wrap native controls (documented in components.md; listed so ancestor matching works). A native <input>/<button> inside one of these, up to `ancestorDepth` levels, is the product component.",
+  "_product": "product component roots that wrap native controls (documented in components.md; listed so ancestor matching works). A native <input>/<button> inside one of these, up to `ancestorDepth` levels, is the product component. `.sm-table` removed 2026-10-21 (its inventory row is struck through — the table was replaced by the request rows).",
   "product": [
     ".e-permits-fo-input",
     ".e-permits-fo-phone",
@@ -86,29 +88,77 @@
     ".e-permits-page-header",
     ".e-permits-empty",
     ".e-permits-timeline",
-    ".sm-table",
     ".sm-tacit",
     ".cab-pager",
     ".cab-menu",
     ".rap-act-subtitle",
     ".e-permits-doc-peek",
-    ".e-permits-act-row"
+    ".e-permits-act-row",
+    ".e-permits-workplace__status-tab",
+    ".e-permits-shell__nav-link",
+    ".e-permits-shell__user-trigger",
+    ".e-permits-fo-auth__role-item",
+    ".e-permits-shell__role-card",
+    ".e-permits-fo-intent-new",
+    ".e-permits-fo-radio--option",
+    ".rap-header__menu-item",
+    ".rap-header__languages button",
+    ".rap-header .rap-icon-button",
+    ".e-permits-cfg2__nav-link",
+    ".e-permits-ntpl-editor__tool"
   ],
   "ancestorDepth": 3,
   "_copy": "Copy value — ONE component (2026-10-20, user: „the copy code is different, use the same everywhere as a component”; 2026-10-21: „tables or stacked lists: no copy icon, but the behaviour is the same”). copy-variant (major): any copy markup that is not .copy-value (legacy classes / data hooks, or an icon-only button labelled „Copiază…”). copy-in-list (major): a DEFAULT .copy-value (with its icon) inside a list view — lists use .copy-value--compact; listExempt = documented exceptions. missing-copy (major): a plain-text copy candidate (candidates) inside a list view.",
   "copy": {
     "component": ".copy-value",
     "button": ".copy-value__button",
-    "legacy": [".e-permits-workplace__copy-code", ".e-permits-dosar-profil__copy-code", ".e-permits-fo-copy-value", ".rap-copy", ".rap-profile__copy", ".permits-table__id", ".permits-profile__copy-id", "[data-shell-copy-value]", "[data-fo-copy-value]", "[data-rap-copy]", "[data-copy-id]", "[data-cell-copy]"],
+    "legacy": [
+      ".e-permits-workplace__copy-code",
+      ".e-permits-dosar-profil__copy-code",
+      ".e-permits-fo-copy-value",
+      ".rap-copy",
+      ".rap-profile__copy",
+      ".permits-table__id",
+      ".permits-profile__copy-id",
+      "[data-shell-copy-value]",
+      "[data-fo-copy-value]",
+      "[data-rap-copy]",
+      "[data-copy-id]",
+      "[data-cell-copy]"
+    ],
     "labelPattern": "^\\s*Copiaz",
-    "listContexts": ["td", "[role=row]", ".e-permits-stack__item", ".e-permits-fo-lib-item", ".e-permits-fo-intent-act", ".cab-card", ".cab-request-row", ".e-permits-act-row"],
-    "listExempt": [".e-permits-fee-summary__value"],
+    "listContexts": [
+      "td",
+      "[role=row]",
+      ".e-permits-stack__item",
+      ".e-permits-fo-lib-item",
+      ".e-permits-fo-intent-act",
+      ".cab-card",
+      ".cab-request-row",
+      ".e-permits-act-row"
+    ],
+    "listExempt": [
+      ".e-permits-fee-summary__value"
+    ],
     "compact": ".copy-value--compact",
     "_candidates": "plain-text numbers that must be the compact copy value in a list view (whole text node): dossier / act / request / session numbers (D-2026-004575, GEAP-2026-009-04588, LIC-2024-1876, P-8991/2026, KYC-48192) and 13-digit IDNO / IDNP. Masked values (•) never match.",
-    "candidates": ["^(?:[A-Z]{1,6}-)+\\d{2,6}(?:[-/]\\d{2,6})+$", "^\\d{13}$"],
-    "candidateExempt": ["th", "h1", "h2", "h3", "[role=dialog] h2", ".tooltip", "option", "[role=option]", "label"]
+    "candidates": [
+      "^(?:[A-Z]{1,6}-)+\\d{2,6}(?:[-/]\\d{2,6})+$",
+      "^\\d{13}$"
+    ],
+    "candidateExempt": [
+      "th",
+      "h1",
+      "h2",
+      "h3",
+      "[role=dialog] h2",
+      ".tooltip",
+      "option",
+      "[role=option]",
+      "label"
+    ]
   },
-  "_ignoreWithin": "prototype-only tools and third-party widgets — never audited",
+  "_ignoreWithin": "prototype-only tools and third-party widgets — never audited `[class*='__scrim']` = drawer backdrops (click-to-close layer, not a control — report 2026-10-21 R016).",
   "ignoreWithin": [
     ".e-permits-fo-testcfg",
     ".msup-bubble",
@@ -116,7 +166,8 @@
     ".msup-widget",
     "[class^='msup']",
     "[data-demo-only]",
-    ".u-visually-hidden"
+    ".u-visually-hidden",
+    "[class*='__scrim']"
   ],
   "_fieldBoxes": "elements whose rendered box IS a form field (height / text / icons are measured on it). Native fields are measured on their first painted box (themselves or a wrapper up to 3 levels).",
   "fieldBoxes": [
@@ -181,19 +232,34 @@
     "trail": "[class*='crumb'], nav[aria-label*='readcrumb' i]",
     "backText": "^\\s*(‹|←|Înapoi la\\b)",
     "backHook": "(^|[-_])back(-shell|-link)?$|shell-back",
-    "exempt": [".e-permits-fo-back-button", "[data-fo-back-choice]", ".modal-buttons", "[class*='__footer']", "[class*='__buttons']", "[class*='-buttons']", "[data-tariff-buttons]", ".e-permits-fo-form__actions", ".e-permits-empty", ".rap-header", ".mpass-test", "[data-gh-close-sheet]"]
+    "exempt": [
+      ".e-permits-fo-back-button",
+      "[data-fo-back-choice]",
+      ".modal-buttons",
+      "[class*='__footer']",
+      "[class*='__buttons']",
+      "[class*='-buttons']",
+      "[data-tariff-buttons]",
+      ".e-permits-fo-form__actions",
+      ".e-permits-empty",
+      ".rap-header",
+      ".mpass-test",
+      "[data-gh-close-sheet]"
+    ]
   },
-  "fixHints": {
-    "crumb-trail": "Render the trail with the ONE library breadcrumb: GEAPBreadcrumbs.html(crumbs, { trailing }) (js/breadcrumbs.js) — shell renderBreadcrumbs / renderPageHeaderTop, CabEvo.pageHeader({ back }); delete the private markup and its CSS (components.md › Breadcrumb).",
-    "back-link": "The way back is the page header breadcrumb (desktop trail; phones the library .breadcrumbs--mobile „‹ parent”), never a custom „← Înapoi la …” link / button: give the parent crumb the existing back handler as `attr` (GEAPBreadcrumbs.html / renderBreadcrumbs) and delete the button and its CSS.",
-    "copy-variant": "Use GEAPCopyValue.html(value, { label }) (js/copy-value.js) — shell renderCopyCode / FO copyValueHtml / CabEvo.copyValueHtml already return it; delete the private markup and its CSS.",
   "_actionIcons": "Action icons (rule 6, 2026-10-21, user: „didn't we discuss that every Editează has an edit icon, and Elimină a trash icon?”). action-icon (major): a visible action — or an item of a closed menu whose trigger is visible — labelled „Editează…” without icon-edit, or „Elimină… / Șterge…” without icon-delete (another icon counts as missing). action-icon-colour (major): that icon in another colour than the label. Exceptions: confirmation-dialog footers (library modal / FO confirm dialog have no footer icons), clear / dismiss controls that delete nothing (search ×, chip ×, file-item × = detach an attachment, the filter popover „Șterge” = clear the selection, „Șterge filtrele / căutarea / formatarea”).",
   "actionIcons": {
     "controls": "button, a[href], [role=button], [role=menuitem]",
     "menus": "[role=menu], menu, [data-stack-menu], [data-cab-menu], .e-permits-fo-intent-menu",
     "rules": [
-      { "label": "^Editează", "icon": "icon-edit" },
-      { "label": "^(Elimină|Șterge)", "icon": "icon-delete" }
+      {
+        "label": "^Editează",
+        "icon": "icon-edit"
+      },
+      {
+        "label": "^(Elimină|Șterge)",
+        "icon": "icon-delete"
+      }
     ],
     "clearLabels": "^Șterge (filtrele|filtrul|căutarea|adresa căutată|codul cadastral|formatarea)",
     "exempt": [
@@ -208,16 +274,481 @@
       "[data-sf-reset]"
     ]
   },
-    "copy-in-list": "List views use the COMPACT copy value (no icon, the number itself copies, same wrap / tooltip / „Copiat”): shell renderListCode, act-row metaParts, GEAPCopyValue.html(value, { compact: true }). The icon variant belongs on profiles / headers / detail rows / dialogs.",
-    "missing-copy": "A number / code / IDNO in a list view is a compact copy value (user 2026-10-21: „in tables or stacked lists, no copy icon, but the behaviour is the same”): render it with shell renderListCode, act-row metaParts (number slot) or GEAPCopyValue.html(value, { compact: true, label }).",
+  "_partAllow": "v2 (2026-10-21, user: „use only our components”): a BEM part of a documented block is NOT accepted on its own any more (25,745 controls passed that way). A part passes when the part class itself is documented in the Component Inventory (short `__part` names resolve against the block of the same cell), when it is internal anatomy of a `product` root it sits in, or when it is listed here (selector + reason). Everything else = non-library-control.",
+  "partAllow": [],
+  "_buttonPaint": "v2 rule button-paint (major): a control (button, link, role=button, input type=button/submit, or a [tabindex=0] / [onclick] element) that paints like a button — a fill that differs from its background, a border on ≥ 3 sides or an inset ring, at a button size (20–64 high, ≤ 480 wide) with a radius ≥ 4 or side padding ≥ 8 — without the library `.btn`. Library primitives (spec.library) and form fields are never checked. Documented exceptions go in `allow` WITH a reason; a documented component is not an exception by itself (its button must be a `.btn`). `allowFamilies` = families whose canonical members paint by design (menu-item: the ONE dropdown item's hover / active fill); `stateSkip` = selected / current / open / focused controls (a state fill is not a button look — they are still checked by non-library-control).",
+  "buttonPaint": {
+    "minHeight": 20,
+    "maxHeight": 64,
+    "minWidth": 16,
+    "maxWidth": 480,
+    "minRadius": 4,
+    "minPaddingX": 8,
+    "allow": [
+      {
+        "selector": ".e-permits-builder__library-item",
+        "reason": "Form Builder / Process Designer palette tile = a drag source (inventory row „Form Builder”: `__library-item`), not a button"
+      },
+      {
+        "selector": ".e-permits-fo-stepper__row",
+        "reason": "the canonical FO stepper's step row (inventory „Stepper”); its fill marks the current step"
+      },
+      {
+        "selector": ".e-permits-workplace__status-tab",
+        "reason": "kept product component (2026-10-21): BO status filter tabs with counts (Dosare registries)"
+      },
+      {
+        "selector": ".e-permits-shell__nav-link",
+        "reason": "kept product component (2026-10-21): BO side navigation link"
+      },
+      {
+        "selector": ".e-permits-shell__user-trigger",
+        "reason": "kept product component (2026-10-21): BO header user trigger (avatar + name)"
+      },
+      {
+        "selector": ".e-permits-fo-auth__role-item",
+        "reason": "kept product component (2026-10-21): selectable card — FO identity / role choice"
+      },
+      {
+        "selector": ".e-permits-shell__role-card",
+        "reason": "kept product component (2026-10-21): selectable card — BO role picker"
+      },
+      {
+        "selector": ".e-permits-fo-intent-new",
+        "reason": "kept product component (2026-10-21): selectable card — „Solicitare nouă”"
+      },
+      {
+        "selector": ".e-permits-fo-radio--option",
+        "reason": "kept product component (2026-10-21): selectable card — radio option row"
+      },
+      {
+        "selector": ".e-permits-fo-delivery-option",
+        "reason": "kept product component (2026-10-21): selectable card — delivery option"
+      },
+      {
+        "selector": ".rap-header__menu-item",
+        "reason": "kept product component (2026-10-21): RAP gov.md public header — menu item"
+      },
+      {
+        "selector": ".rap-header__languages button",
+        "reason": "kept product component (2026-10-21): RAP gov.md public header — Ro / Ru"
+      },
+      {
+        "selector": ".rap-header .rap-icon-button",
+        "reason": "kept product component (2026-10-21): RAP gov.md public header — search / help icons"
+      },
+      {
+        "selector": ".e-permits-cfg2__nav-link",
+        "reason": "kept product component (2026-10-21): Setări section nav (in-page section list)"
+      },
+      {
+        "selector": ".e-permits-ntpl-editor__tool",
+        "reason": "kept product component (2026-10-21): editor toolbar (rich-text tools)"
+      }
+    ],
+    "allowFamilies": [
+      "menu-item"
+    ],
+    "stateSkip": "[aria-current]:not([aria-current=false]), [aria-selected=true], [aria-pressed=true], [aria-expanded=true], .is-active, .is-selected, .active, :focus",
+    "_allowReasons": {},
+    "allowWithin": []
+  },
+  "_buttons": "v2 rule button-size / button-icon-size (major): every visible `.btn` is 32 (Small), 40 (Medium) or 48 (Large) high; its own leading / trailing icon follows css/button-icons.css: 32 → 16, 40 / 48 → 20. `exempt` = library buttons with their own size; `iconExempt` = documented larger icons (phone pills / sheet ×). iconExempt: the phone facet-filter sort pill (48, icon 24 — css/facet-filter.css › phone toolbar, components.md „Facet filter · phone toolbar + sheets”).",
+  "buttons": {
+    "selector": ".btn",
+    "exempt": [
+      ".btn-search",
+      ".btn-badge",
+      ".e-permits-pd__world *"
+    ],
+    "heights": [
+      32,
+      40,
+      48
+    ],
+    "icon": {
+      "32": 16,
+      "40": 20,
+      "48": 20
+    },
+    "iconExempt": [
+      ".e-permits-workplace__filters.is-sheets .e-permits-workplace__filter-sort .btn"
+    ]
+  },
+  "_tags": "v2 rule tag-size (major): tags are Small everywhere (user 2026-10-09 / 2026-10-15: 20 high, 12/16) — the library `.status-tag` and the BO Tag · Small `.e-permits-workplace__tag` (renderTag). exempt: `.e-permits-pd__world *` = the Process Designer canvas, drawn at the canvas zoom (one transform).",
+  "tags": {
+    "selector": ".status-tag, .e-permits-workplace__tag",
+    "height": 20,
+    "exempt": [
+      ".e-permits-pd__world *"
+    ]
+  },
+  "_desktopOnly": "v2: states that only exist on desktop are SKIPPED on phone viewports (recorded as skipped, not as a demo error): Ghișeu (memory „Ghișeu desktop-only”: counter staff work on desktop), and the BO click paths whose nav target is hidden ≤ 960 (srv-, svc-10…, trf-) and the Process Designer canvas (pd-).",
+  "desktopOnly": {
+    "patterns": [
+      "^gh-",
+      "^srv-",
+      "^svc-10",
+      "^trf-",
+      "^pd-"
+    ]
+  },
+  "_pages": "v2: pages without demo states, audited with no ?state= in --all / --pages (key `page:<file>`).",
+  "pages": [
+    "clasificatoare.html",
+    "e-permits-shell.html",
+    "index.html"
+  ],
+  "_interactions": "v2 step „interactions”: per state the auditor clicks up to `maxTriggers` visible, distinct menu / drawer / disclosure triggers (and, on desktop, hovers `maxTooltips` tooltip triggers), finds the surface that opened (newly visible `surfaces`, or the trigger's aria-controls target), audits it with every rule, closes it (Escape, trigger again, else reloads the state). Findings carry `interaction`. --no-interactions turns it off.",
+  "interactions": {
+    "triggers": "[aria-haspopup]:not([aria-haspopup=false]), [aria-expanded=false], [data-stack-menu-trigger], [data-cab-menu-trigger]",
+    "tooltips": "[data-tooltip-label], [data-tooltip-text], [data-cell-tooltip], [data-sm-tip]",
+    "surfaces": "[role=menu], [role=listbox], [role=dialog], [role=tooltip], [role=region], menu, .tooltip, .modal-overlay, .bottom-sheet, .dropdown, [data-stack-menu], .e-permits-fo-intent-menu, .cab-menu, .e-permits-dropdown, [class*='popover'], [class*='__menu'], [class*='-menu'], [class*='drawer'], [class*='sheet'], [class*='tooltip'], [class*='__panel']",
+    "skipWithin": ".e-permits-shell__nav, .e-permits-fo-testcfg",
+    "maxTriggers": 8,
+    "maxTooltips": 3,
+    "openWait": 350,
+    "hoverWait": 450
+  },
+  "_families": "v2 rule converge (minor): ONE canonical implementation per pattern family. Runtime: every visible element of the family (`selector` and / or own class matching `classPattern`, restricted to `tags`) that is not inside a `canonical` (or an `allow` with its reason) is reported once per distinct class signature. Static (--static): every class defined in product CSS matching `static.pattern` that does not start with a canonical class. `menu-item` canonical also takes the item list of css/dropdown.css (the ONE dropdown item).",
+  "families": {
+    "pager": {
+      "classPattern": "(^|[-_])(pagination|pager)($|[-_])",
+      "canonical": [
+        ".cab-pager",
+        ".pagination"
+      ],
+      "allow": [],
+      "fix": "List pager: CabEvo.pagerHtml → `.cab-pager` + library `.pagination` (+ per-page `.cab-pager__size` menu)",
+      "static": {
+        "pattern": "(^|[-_])(pagination|pager)",
+        "canonical": [
+          "cab-pager",
+          "pagination"
+        ]
+      },
+      "excludePattern": "(tag|badge|pill|notice|alert|callout|banner|pagination|pager|steps?)s?-(list|row|group|wrap|tools|layer|peek|more)$"
+    },
+    "stepper": {
+      "classPattern": "(^|[-_])(stepper|steps-strip|steps)($|[-_])",
+      "canonical": [
+        ".e-permits-fo-stepper",
+        ".progress-tracker",
+        ".e-permits-trajectory"
+      ],
+      "allow": [],
+      "fix": "wizard steps = `.e-permits-fo-stepper` (Figma „Stepper · drawer”); a process path = `.e-permits-trajectory`",
+      "static": {
+        "pattern": "(^|[-_])(stepper|steps)",
+        "canonical": [
+          "e-permits-fo-stepper",
+          "progress-tracker",
+          "e-permits-trajectory"
+        ]
+      },
+      "excludePattern": "(tag|badge|pill|notice|alert|callout|banner|pagination|pager|steps?)s?-(list|row|group|wrap|tools|layer|peek|more)$"
+    },
+    "close": {
+      "selector": "button[class*='close'], a[class*='close'], [role=button][class*='close'], button[aria-label^='Închide']",
+      "canonical": [
+        ".modal-close",
+        ".banner__close",
+        ".toast__close",
+        ".bottom-sheet__close",
+        ".chip",
+        ".btn",
+        ".btn-icon",
+        ".copy-value"
+      ],
+      "allow": [],
+      "fix": "dialogs / drawers = `.modal-close`; banners = `.banner__close`; else `btn btn-strict btn-md btn-icon-only` + icon-cross",
+      "static": {
+        "pattern": "(^|[-_])close$",
+        "canonical": [
+          "modal-close",
+          "banner__close",
+          "toast__close",
+          "bottom-sheet__close",
+          "chip__close"
+        ]
+      }
+    },
+    "notice": {
+      "classPattern": "(^|[-_])(notice|callout|banner|alert)s?($|[-_])",
+      "canonical": [
+        ".message",
+        ".banner",
+        ".info-box",
+        ".inline-message",
+        ".e-permits-callout",
+        ".toast",
+        ".cookie-banner"
+      ],
+      "allow": [],
+      "fix": "notices = library `.message` (renderNotice / renderInfoNote); titled callouts = `.e-permits-callout--{tone}`",
+      "static": {
+        "pattern": "(^|[-_])(notice|callout|banner|alert)",
+        "canonical": [
+          "message",
+          "banner",
+          "info-box",
+          "inline-message",
+          "e-permits-callout",
+          "toast",
+          "cookie-banner"
+        ]
+      },
+      "excludePattern": "(tag|badge|pill|notice|alert|callout|banner|pagination|pager|steps?)s?-(list|row|group|wrap|tools|layer|peek|more)$"
+    },
+    "tag": {
+      "classPattern": "(^|[-_])(tag|badge|pill)s?($|[-_])",
+      "canonical": [
+        ".status-tag",
+        ".badge",
+        ".btn-badge",
+        ".chip",
+        ".btn"
+      ],
+      "allow": [],
+      "fix": "Tag · Small = library `status-tag status-tag--{tone} is-subtle status-tag--small` (renderTag should emit it)",
+      "static": {
+        "pattern": "(^|[-_])(tag|badge|pill)($|[-_])",
+        "canonical": [
+          "status-tag",
+          "badge",
+          "btn-badge"
+        ]
+      },
+      "excludePattern": "(tag|badge|pill|notice|alert|callout|banner|pagination|pager|steps?)s?-(list|row|group|wrap|tools|layer|peek|more)$"
+    },
+    "switch": {
+      "selector": "[role=switch], input[type=checkbox][class*='toggle']",
+      "canonical": [
+        ".switch"
+      ],
+      "allow": [],
+      "fix": "library `.switch > .switch-wrapper` (or the PO makes `.e-permits-toggle` THE documented switch)",
+      "static": {
+        "pattern": "(^|[-_])(toggle__control|toggle__input|toggle__knob|switch-track)",
+        "canonical": [
+          "switch"
+        ]
+      }
+    },
+    "back": {
+      "classPattern": "(^|[-_])back($|[-_]|-button|-link)",
+      "tags": "a, button, [role=button], [role=link]",
+      "canonical": [
+        ".breadcrumbs",
+        ".btn"
+      ],
+      "allow": [],
+      "fix": "the page header breadcrumb (GEAPBreadcrumbs.html; phones `.breadcrumbs--mobile`); a wizard step back = `btn btn-neutral btn-lg`",
+      "static": {
+        "pattern": "(^|[-_])back($|-button|-link|-shell)",
+        "canonical": [
+          "breadcrumbs"
+        ]
+      }
+    },
+    "menu-item": {
+      "selector": "[role=menuitem], [role=menuitemradio], [role=menuitemcheckbox]",
+      "canonical": [
+        ".e-permits-fo-intent-menu__item"
+      ],
+      "canonicalFrom": {
+        "file": "css/dropdown.css",
+        "contains": ".e-permits-fo-intent-menu__item"
+      },
+      "allow": [
+        ".e-permits-shell__role-card",
+        ".e-permits-fo-auth__role-item"
+      ],
+      "fix": "the ONE dropdown item `.e-permits-fo-intent-menu__item` (32 · 6 12 6 8 · 14/20 medium · icon 20) — or add the item class to the css/dropdown.css item list",
+      "static": {
+        "pattern": "(^|[-_])menu__(item|link|option)",
+        "canonical": [
+          "e-permits-fo-intent-menu__item"
+        ]
+      }
+    },
+    "dialog": {
+      "selector": "[role=dialog], [aria-modal=true], [role=alertdialog]",
+      "canonical": [
+        ".modal",
+        ".modal-overlay",
+        ".bottom-sheet",
+        ".date-picker-panel"
+      ],
+      "allow": [],
+      "fix": "library `.modal-overlay > .modal` (+ the phone sheet rule, css/modal-phone.css); phone pickers = `.bottom-sheet` / GEAPSheet",
+      "static": {
+        "pattern": "(^|[-_])(modal|drawer|sheet|dialog)($|-overlay)",
+        "canonical": [
+          "modal",
+          "modal-overlay",
+          "bottom-sheet"
+        ]
+      }
+    },
+    "key-value": {
+      "selector": "dl, [class*='facts'], [class*='summary-row'], [class*='__metrics']",
+      "canonical": [
+        ".e-permits-dosar-profil__card",
+        ".e-permits-dosar-profil__row",
+        ".e-permits-dosar-profil__section"
+      ],
+      "allow": [],
+      "fix": "BO section rows `.e-permits-dosar-profil__section / __card / __row` (already reused by RAP + Cabinet)",
+      "static": {
+        "pattern": "(^|[-_])(facts|summary-row|metrics|kv)($|[-_])",
+        "canonical": [
+          "e-permits-dosar-profil"
+        ]
+      }
+    }
+  },
+  "_static": "v2 --static mode: reads product sources (js/, css/, cabinet-evo/, rap-evo/, the root HTML pages; never Components/* or css/main.css; demo-state files are tooling). Rules: library-restyle (a product CSS rule that restyles a library class: global = major, scoped = minor; allow-list = restyleAllowFiles / restyleAllow with reasons), hardcoded-colour (a hex / rgb / hsl literal outside a var() fallback: major when a Foundations token has exactly that value, else minor), private-token (product CSS redefines a token of css/main.css: major), private-palette (a product custom property holding a raw colour: minor), inline-svg-icon (an icon drawn with <path>/<circle>… instead of the sprite <use>: minor), role-button (role=button on a non-button element: major), native-title (title= on a button / link / role=button: minor), monospace (major, except monoAllow), converge (families › static). `internal` pages report every finding as minor.",
+  "static": {
+    "exclude": [
+      "^Components/",
+      "^css/main\\.css",
+      "^js/demo-states\\.js$",
+      "^js/demo-links\\.js$"
+    ],
+    "internal": [
+      "^geap-sitemap\\.html$",
+      "^table-cells\\.html$"
+    ],
+    "libraryClasses": [
+      "btn",
+      "btn-sm",
+      "btn-md",
+      "btn-lg",
+      "btn-icon",
+      "btn-icon-only",
+      "btn-primary",
+      "btn-neutral",
+      "btn-strict",
+      "btn-secondary",
+      "btn-text-primary",
+      "btn-text-destructive",
+      "btn-destructive",
+      "btn-pill",
+      "btn-rounded",
+      "btn-search",
+      "btn-badge",
+      "chip",
+      "status-tag",
+      "badge",
+      "tag-item",
+      "input",
+      "input-wrapper",
+      "search-input",
+      "select",
+      "textarea",
+      "checkbox",
+      "checkbox-custom",
+      "checkbox-input",
+      "radio",
+      "radio-custom",
+      "radio-group",
+      "switch",
+      "switch-wrapper",
+      "tab-button",
+      "tab-buttons",
+      "tabs",
+      "segment-item",
+      "segmented-control",
+      "modal",
+      "modal-overlay",
+      "modal-close",
+      "modal-content",
+      "modal-buttons",
+      "pagination",
+      "pagination__link",
+      "pagination__item",
+      "link",
+      "avatar",
+      "toast",
+      "tooltip",
+      "tooltip-inner",
+      "message",
+      "banner",
+      "banner__close",
+      "info-box",
+      "inline-message",
+      "spinner",
+      "separator",
+      "breadcrumbs",
+      "breadcrumbs__item",
+      "accordion__trigger",
+      "bottom-sheet",
+      "date-picker",
+      "date-picker-panel",
+      "progress-tracker",
+      "table",
+      "dropdown",
+      "custom-select"
+    ],
+    "restyleProps": "^(height|min-height|max-height|padding|padding-[a-z-]+|border-radius|border-[a-z-]*radius|background|background-color|color|font-size|line-height|font-weight|font-family|border|border-[a-z-]+|gap|box-shadow|outline|outline-[a-z-]+|fill|width|min-width)$",
+    "restyleAllowFiles": {
+      "css/button-icons.css": "the ONE button-icon contract (button-icons-v1, components.md › Button)",
+      "css/dropdown.css": "the ONE dropdown item / surface size (rule 2026-10-20)",
+      "css/modal-phone.css": "Modals on phones — the documented phone sheet for every dialog family (2026-10-19)",
+      "css/field-sizes.css": "Field sizes rule 2026-10-18: desktop 40, phones 48 · 16/24",
+      "css/breadcrumbs.css": "Breadcrumb = the library component everywhere (breadcrumb-v1) — the shared wrapper"
+    },
+    "restyleAllow": [
+      {
+        "selector": "^\\.btn\\.btn-sm",
+        "file": "^css/e-permits-acte-permisive\\.css$",
+        "reason": "„ONE back-office button” = Figma Small (components.md › Button) — KEPT by the user 2026-10-21"
+      },
+      {
+        "selector": "^\\.btn(\\.btn-sm\\.btn-[a-z]+)?\\[aria-(expanded|pressed)",
+        "reason": "Open button keeps the focus ring / pressed fill (memory „Open button focus”, components.md › Hover rules)"
+      },
+      {
+        "selector": "^\\.(chip|segment-item)\\.is-selected:hover|^\\.link:visited:hover",
+        "reason": "Hover rules per component class (components.md › „Hover — shared rules per component class”, memory „Hover everywhere”)"
+      },
+      {
+        "selector": "^\\.segmented-control\\.is-animated|^\\.segment-item:has\\(> \\.icon\\)",
+        "reason": "Animated segmented control (components.md inventory row „Animated segmented control”)"
+      }
+    ],
+    "monoAllow": "e-permits-doc-kw|e-permits-cfg-num-token|e-permits-doc-kwselect",
+    "tokenAllow": []
+  },
+  "fixHints": {
     "action-icon": "„Editează…” carries the pen (icon-edit), every removal „Elimină… / Șterge…” the trash (icon-delete), before the label, in the button's colour: shell actionLabelHtml(label) / renderRowActions / renderStackMenu (they pick the icon from the label — actionIconFor), GEAPActRow / Cabinet menu items { icon: \"icon-delete\" }; hand-written buttons add <svg class=\"icon small\"><use href=\"…#icon-delete\"></use></svg><span>Elimină</span> (components.md › Action icons).",
     "action-icon-colour": "the icon of a button / menu item is the label colour (fill: currentColor); never give the svg its own colour (components.md › Button).",
+    "crumb-trail": "Render the trail with the ONE library breadcrumb: GEAPBreadcrumbs.html(crumbs, { trailing }) (js/breadcrumbs.js) — shell renderBreadcrumbs / renderPageHeaderTop, CabEvo.pageHeader({ back }); delete the private markup and its CSS (components.md › Breadcrumb).",
+    "back-link": "The way back is the page header breadcrumb (desktop trail; phones the library .breadcrumbs--mobile „‹ parent”), never a custom „← Înapoi la …” link / button: give the parent crumb the existing back handler as `attr` (GEAPBreadcrumbs.html / renderBreadcrumbs) and delete the button and its CSS.",
+    "copy-variant": "Use GEAPCopyValue.html(value, { label }) (js/copy-value.js) — shell renderCopyCode / FO copyValueHtml / CabEvo.copyValueHtml already return it; delete the private markup and its CSS.",
+    "copy-in-list": "List views use the COMPACT copy value (no icon, the number itself copies, same wrap / tooltip / „Copiat”): shell renderListCode, act-row metaParts, GEAPCopyValue.html(value, { compact: true }). The icon variant belongs on profiles / headers / detail rows / dialogs.",
+    "missing-copy": "A number / code / IDNO in a list view is a compact copy value (user 2026-10-21: „in tables or stacked lists, no copy icon, but the behaviour is the same”): render it with shell renderListCode, act-row metaParts (number slot) or GEAPCopyValue.html(value, { compact: true, label }).",
     "non-library-control": "use the library component (components.md › Component Inventory): .btn + variant + size, .chip, .checkbox, .radio, .switch, .search-input, .input / .e-permits-fo-input; a genuinely new control is first documented in components.md (inventory row + section) — ask the PO before inventing one",
     "field-height-phone": "phones (≤760) use the library default field size = 48 (`.input` / `.search-input` default, FO fields via the ≤720 FO block that sets 48 + 16/24); never a fixed 40",
     "field-height-desktop": "desktop uses the library medium size = 40 (`.input--medium`, `.search-input.medium`, FO fields 40)",
     "field-text-phone": "phone field text = 16/24 (`--font-size-fs-16` / `--line-height-lh-24`; below 16 iOS zooms the page)",
     "field-icon-size": "icons inside a field follow the library size for the field: 48 → 24 (`--icon-size-default`), 40 → 20 (`--icon-size-medium`), 32 → 16 (`--icon-size-small`)",
-    "look-alike": "styled like a control but not one: make it the library component (button.btn, a.link, .chip) or drop the control look"
+    "look-alike": "styled like a control but not one: make it the library component (button.btn, a.link, .chip) or drop the control look",
+    "button-paint": "a control painted like a button is the library button: `<button class=\"btn btn-{primary|neutral|strict|secondary} btn-{sm|md|lg}\">` (icon from css/button-icons.css); keep the product class only as a layout hook. A genuinely different control is first documented (components.md inventory row) AND listed with its reason in spec buttonPaint.allow — ask the PO first.",
+    "button-size": "library buttons are 32 (`.btn-sm`), 40 (`.btn-md`) or 48 (`.btn-lg` / no size class); never set a product height / padding on `.btn` — pick the size class.",
+    "button-icon-size": "the icon of a button comes from its size (css/button-icons.css): Small 16, Medium / Large 20 — drop `width` / `height` attributes and private icon sizes; documented larger icons go in spec buttons.iconExempt.",
+    "tag-size": "tags are Small everywhere: `status-tag status-tag--{tone} is-subtle status-tag--small` / renderTag (20 high, 12/16).",
+    "clickable-non-control": "a focusable / clickable element without a control role: put a real `<a>` / `<button>` inside (the documented stacked-row pattern: `.e-permits-stack__item.is-clickable` + a link / button) or give it the right role + keyboard handling.",
+    "converge": "one canonical implementation per pattern family (spec families): use the canonical component named in the finding and delete the private markup + CSS; if the private one is better, ask the PO to make it THE component (inventory row + spec canonical).",
+    "library-restyle": "do not restyle library classes in product CSS: use the library variant / size class; a deliberate product-wide rule lives in a documented contract file (spec static.restyleAllowFiles) or in restyleAllow with its reason.",
+    "hardcoded-colour": "colours are tokens: `var(--color-…, <fallback>)` (design-system.md); a value without a Foundations token is a PO question, shadows = `var(--shadow-…)`.",
+    "private-token": "never redefine a Foundations token in product CSS — use the token as is (or a product alias with another name that points to it).",
+    "private-palette": "no private colour palettes: point the variable at the Foundations token (`--x: var(--color-…)`) or use the token directly.",
+    "inline-svg-icon": "icons come from the sprite: `<svg class=\"icon\"><use href=\"…#icon-name\"></use></svg>`; a missing glyph is added to the sprite once.",
+    "role-button": "a clickable thing is a `<button type=\"button\">` (or a link) — never `role=button` on a div / span / li.",
+    "native-title": "no native `title=` tooltips on controls: the library tooltip (`data-tooltip-label` + js/icon-tooltip.js) or a visible label.",
+    "monospace": "no monospace (memory „No monospace”): Onest everywhere; codes = neutral tag / copy value. Only rule-builder keywords `code.e-permits-doc-kw` are mono."
   },
   "libraryStatic": [
     ".status-tag",
@@ -234,5 +765,21 @@
     ".separator",
     ".e-permits-callout",
     ".e-permits-empty"
-  ]
+  ],
+  "_productKept": "Product components the user decided to KEEP after the 2026-10-21 audit (coordinator, 2026-10-21; documented in components.md by the doc agent): accepted as controls, allowed to paint (buttonPaint.allow) and not reported as duplicates of their family. The `.btn.btn-sm` re-skin is kept through static.restyleAllow.",
+  "productKept": {
+    ".e-permits-workplace__status-tab": "BO status filter tabs with counts (Dosare registries)",
+    ".e-permits-shell__nav-link": "BO side navigation link",
+    ".e-permits-shell__user-trigger": "BO header user trigger (avatar + name)",
+    ".e-permits-fo-auth__role-item": "selectable card — FO identity / role choice",
+    ".e-permits-shell__role-card": "selectable card — BO role picker",
+    ".e-permits-fo-intent-new": "selectable card — „Solicitare nouă”",
+    ".e-permits-fo-radio--option": "selectable card — radio option row",
+    ".e-permits-fo-delivery-option": "selectable card — delivery option",
+    ".rap-header__menu-item": "RAP gov.md public header — menu item",
+    ".rap-header__languages button": "RAP gov.md public header — Ro / Ru",
+    ".rap-header .rap-icon-button": "RAP gov.md public header — search / help icons",
+    ".e-permits-cfg2__nav-link": "Setări section nav (in-page section list)",
+    ".e-permits-ntpl-editor__tool": "editor toolbar (rich-text tools)"
+  }
 }

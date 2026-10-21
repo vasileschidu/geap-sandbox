@@ -7412,6 +7412,29 @@ the Figma variables returned so far.
 9. **Record every new pattern.** When something new is built that could repeat (a layout,
    a tray, a box, a Figma page format), add it to this file — inventory row + a short
    section with markup, helper, geometry in tokens and where it is used — in the same change.
+10. **Only our components — checked by the component audit (QA, v2 2026-10-21; user: „use only our
+    components … so we don't get back to this again”).** `tools/ui-qa/component-audit.mjs` (agent
+    `component-auditor`, spec `tools/ui-qa/specs/component-audit.json`) fails a change when:
+    - a control is not a library / documented component — a BEM part of a documented block counts only when the
+      PART is written in the inventory (short `__part` names resolve against the cell's block; ~~struck~~ /
+      „removed” rows document nothing), is internal anatomy of a listed product root, or is in `partAllow`;
+    - anything clickable **paints like a button** without `.btn` (`button-paint`) — the exception list
+      (`buttonPaint.allow`) needs a reason and a documented component;
+    - a `.btn` is not 32 / 40 / 48 high or its icon is not 16 (Small) / 20 (Medium, Large) — `css/button-icons.css`;
+      a tag is not Small (20); a field is not 40 on desktop / 48 · 16/24 on phones;
+    - a second implementation of a pattern family appears (`converge`: pager, stepper, close ×, notice, tag,
+      switch, back, menu item, dialog shell, key-value list → the canonical in spec `families`);
+    - menus / drawers / tooltips that a state leaves closed are opened by the audit (`interactions`) and checked too;
+    - in the sources (`--static`): a library class restyled outside the documented contract files, a hex / rgb where
+      a token exists, a redefined Foundations colour token, an inline `<path>` icon, `role=button` on a non-button,
+      a native `title=` tooltip on a control, monospace.
+    Run on the changed states: `node --experimental-websocket --no-warnings tools/ui-qa/component-audit.mjs --states <ids>`.
+    **Full project sweep** (resumable — a restart loses nothing): `node --experimental-websocket --no-warnings
+    tools/ui-qa/component-audit.mjs --all --resume --workers 4 --out tools/ui-qa/out/components/sweep` +
+    `node tools/ui-qa/component-audit.mjs --static --out tools/ui-qa/out/components/sweep`. Desktop-only states
+    (Ghișeu, `srv-`, `svc-10…`, `trf-`, `pd-`) are skipped on phones. Product components the user decided to keep
+    (2026-10-21) are listed in spec `productKept` with their reason. A new component = inventory row here first;
+    an exception = spec entry with its reason — never a looser rule.
 
 ---
 

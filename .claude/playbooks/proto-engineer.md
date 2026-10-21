@@ -1852,3 +1852,25 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   mid-job: my v2 edits survived in the tree mixed with two agents' hunks in the shell / solicitari / components.md →
   kept every edit as asserted (old → new) pairs in scratch scripts and staged HEAD + those pairs. code-audit flagged a hex
   inside a CSS COMMENT (`hex-outside-token`) — write colour names / tokens in comments too.
+- 2026-10-21 · Component auditor v2 (tools only; user: „use only our components, and add it in skills / agents so we don't
+  get back to this again”). (1) The big hole was the allow-list, not a missing rule: „any BEM part of a documented block
+  passes” let 25 745 controls through (builder top bar, BO pager, doc-modal buttons, FO wizard buttons). Parts now pass
+  only when the PART is documented / internal to a listed product root / in `partAllow`, and a paint test (`button-paint`:
+  fill ≠ background or a box border or an inset ring + radius / side padding at 20–64 high, no `.btn`) catches a hand-rolled
+  button whatever its class — documented components are NOT exempt by themselves; exceptions = spec entries with a reason
+  (`buttonPaint.allow`), and selected / current / open / focused fills are skipped (a state fill is not a button look).
+  (2) Inventory parser: an `.is-rail` in a cell reset the „current block”, so short `__pool-select` names resolved to
+  nothing — never take a block from `is-` / `has-` classes (575 documented classes instead of 526); ~~struck~~ rows document
+  nothing. (3) Wait loop bug (old tool too): reading `data-demo-state` without matching the id read the PREVIOUS page, so a
+  record could describe another state — the tell was srv-01 and rap-01 with identical counts. Load through `about:blank` and
+  wait for the exact id / `id:error`. (4) Interaction finder: `[class*='sheet']` matched `<html>` (a sheet-open state
+  class) and audited the whole page as „opened” — exclude html / body and wrappers of the trigger. (5) Results are
+  appended per state × viewport to ndjson (`--resume`, `--workers`, `--summary`): my own `pkill -n` on a shared pattern
+  killed the sample sweep and the resume lost nothing — never pkill by a pattern another agent's run can match (another
+  agent was running the same tool). After the session restart a second run wrote into the same `--out` and the ndjson mixed two spec versions (duplicate keys, different numbers) → the tool now takes `<out>/.lock` (exit 5 while another live run holds it); always give a run its own `--out`. (6) Proving rules: inject known-bad / known-good fixtures into a clean state and run
+  the tool's own page code extracted from the source (scratch selftest.mjs) — a flex container stretched my „good” fixtures
+  (align-items: flex-start). The report's „known-good” states (fb-*, adr-01) were known-BAD ones hidden by the part
+  loophole: judge each finding, don't trust a 0 from the old tool. (7) Static rules: suggest the token by property family
+  (`color` → text token, `background` → background token) or `#fff` reads „--color-background-base-default” in a color
+  declaration; component API variables (`--search-input-height`) are not Foundations tokens — private-token = redefined
+  COLOUR tokens only. No sub-agent tool → validated directly (fixtures + report states + a 1/8 sample sweep).

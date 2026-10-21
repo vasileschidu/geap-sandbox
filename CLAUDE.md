@@ -51,6 +51,7 @@ Every UI change is checked by a QA agent before it is reported as done:
   change (`tools/ui-qa/component-audit.mjs`, allow-list `tools/ui-qa/specs/component-audit.json`): every control
   is a library / documented component, fields are 40 on desktop and 48 with 16/24 text on phones (≤760), icons
   inside fields at the library size. Non-library controls and wrong phone sizes are major findings.
+  Full project sweep (2026-10-21, resumable): `node --experimental-websocket --no-warnings tools/ui-qa/component-audit.mjs --all --resume --workers 4 --out tools/ui-qa/out/components/sweep` + `node tools/ui-qa/component-audit.mjs --static --out tools/ui-qa/out/components/sweep`.
 Fix the major findings, re-run the agent, then report. Code first, then Figma.
 
 **Figma quality gate (2026-10-16) — every Figma screen, no exceptions:** only component instances (no invented /
