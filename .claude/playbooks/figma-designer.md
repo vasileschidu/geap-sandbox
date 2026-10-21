@@ -2622,8 +2622,13 @@ For any „research how other products do it” step, search Mobbin (mcp__mobbin
   Routine tools/figma/phone-toolbar-v2/toolbar.js (stored per file in figma.root „ptv2”/„run”). Done: EVO Cabinet 29 phone rows
   (My requests 20 incl. sm-01o / sm-01q active, Permits 9 incl. pp-01h active; archive untouched), both boards restacked to 240,
   jump markers moved with their block, 31 connectors re-routed, 2 notes + Start-here sentence rewritten; RAP 15 phone toolbars
-  (rap-01c 3, 01h 1, 01d 1, 04d 3 active), columns 01 / 02 restacked, 13 connectors re-routed. Not done (Figma MCP sign-in
-  expired mid-job): RAP note check, eKYC list phones, GEAP BO registry phones. Lessons:
+  (rap-01c 3, 01h 1, 01d 1, 04d 3 active), columns 01 / 02 restacked, 13 connectors re-routed, 4 notes + 1 contents line
+  rewritten. eKYC: the ONLY phone list is S02e1 (ek-06g, 10829:146246) — EVO DS chip (State=Selected, kept) moved into the
+  Toolbar, icon swapped to „filter-2, sort”, 8 facet chips + „Chips · scroll” removed, badge 2, export 32 kept; geometry = code
+  (247 / 271 / 327, badge 304,3). GEAP: the ONLY BO registry phone is W01 Workflows (11524:1000) — code pd-35 shows no Filtre
+  (nothing to filter) → search Large FILL + export 32 in one row, „Creează proces” on its own line 8 below, field count and the
+  disabled „Filtrare avansată” removed. (Session resumed after a sign-in expiry: re-census first, everything already done held.)
+  Lessons:
   - **The library filter-chip has no icon-only variant** → keep the chip instance and override only: Counter Badge off, `Label` +
     `Badge` layers hidden, padding L/R 0 + primaryAxisAlign CENTER, **`minWidth = null` (the main carries 60 — resize(48) silently
     stayed 60)**, FIXED 48 × 48. Node id unchanged → connectors stay attached.
@@ -2779,3 +2784,12 @@ For any „research how other products do it” step, search Mobbin (mcp__mobbin
   - Left: the `Act post-process sheet` family (GEAP 12183:2634 / 2574 / 2573) has 0 instances now — kept for the FOD / Cabinet copies'
     parity; FOD Requestor (own file) still has the v1 act row (892:11656). Code delta reported: FO / Ghișeu trigger 127 vs library 129
     (padding-right 12 vs the code's chevron side 8).
+  - **Census phone frames by width, not by name**: eKYC / GEAP phones are named „Screen · … · phone”, „W01 · … · mobile”,
+    „C02s · Phone 375” — walk for 375-wide top frames ≥ 600 high, then look for a search instance inside.
+  - **Captured BO phone headers are GRIDs**: growing a row needs the parent grid's row size changed too (FIXED 96 → 144); a HUG
+    grid row on the PARENT collapsed to 1 px and put the table over the header — set FIXED track sizes explicitly and shrink the
+    table viewport row by the same amount so the pager stays inside the fixed 845 screen. Screenshot after every grid change.
+  - eKYC had no stored audit → stored a lite gate audit as „qsweep”/„audit-lite” (same rules as Cabinet's „qsweep/audit”).
+  - Code bug seen, reported: pd-35 at 375 the wrapped „Creează proces” sits at y 160 under the tab strip (toolbar box 56 high
+    does not grow) — Figma draws the intent (own line, 8 below the row).
+
