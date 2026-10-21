@@ -730,10 +730,9 @@ html.is-filter-sheet-open .e-permits-fo-testcfg {
   outline-offset: var(--border-width-2, 2px);
 }
 
-/* keep the hidden radio inside its row (the library positions it absolutely) */
+/* the ONE radio, control-only Small (css/radio.css keeps the hidden input inside it) */
 .e-permits-workplace__filter-option .radio {
   flex: 0 0 auto;
-  position: relative;
 }
 
 /* „Interval personalizat”: De la · Până la side by side, 8 between, 12 to the popover edges */

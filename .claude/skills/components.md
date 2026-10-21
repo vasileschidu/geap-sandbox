@@ -213,7 +213,7 @@ but this doc previously described it wrongly, see the entry.
 | Select — native | `.select` | `dropdown.html` | library |
 | Select — custom | `.custom-select[data-select]` | `dropdown.html` | app (menu primitive only) |
 | Checkbox | `.checkbox .checkbox-input .checkbox-custom` | `checkbox.html` | library |
-| Radio | `.radio-group .radio .radio-custom` | `radio-buttons.html` | library |
+| **Radio — the ONE radio** (radio-v1, 2026-10-21; user: „this is our radio component from now on”, Figma Components 13:34 / 13:41) | `label.radio.radio--{medium\|small}` > `input.radio-input[type=radio]` + `span.radio-custom` (+ `span.radio-texts` > `.radio-label` + `.radio-description`); control-only `span.radio` > input + custom inside a row label; decorative `span.radio[aria-hidden]` > `.radio-custom` (selected by the owner's `[aria-checked=true]` / `.is-selected`, or `.is-checked`). Medium 24 · dot 12 · 16/24 500; Small 20 · dot 10 · 14/20 500; ring 2, gap 12 | `css/radio.css` (loaded right after main.css on every page) — section „Radio — the ONE radio component”; component-audit rule 11 | library |
 | Switch — THE switch in every product (library-adopt-v1, 2026-10-21, user: „for the switch use the components as in the library”) | library `div.switch(.switch--disabled) > label.switch-wrapper > input.switch-input[type=checkbox][role=switch] + .switch-track > .switch-thumb` + `.switch-text > .switch-label + .switch-description` (default size 48×28, thumb 24 = Figma Switch) — emitted ONLY by `renderToggle({ label, description, checked, attrs, disabled, ariaLabel })` (`GEAPUi.renderToggle`); name = `aria-labelledby` → the label, description = `aria-describedby`; bare switches (permission rows: `aria-labelledby` the row title; eKYC veto table: `ariaLabel`). Product placement (`:is(.e-permits-front-office-page, .e-permits-shell-page)` in css/e-permits-shell.css): gap 12, label 14/20 medium default, description 14/20 tertiary, no gap, wrapper `margin: 0` (the library global `label` margin), ON + hover = brand hover; track centred on the whole text block (shipped 2026-10-01 layout). ~~`.e-permits-toggle*` (44×24 track, 20 knob)~~, ~~`.e-permits-builder__switch`~~ (dead) removed | `switch.html` | library + app |
 | Checkbox option (grey container) | `renderCheckOption()` → `label.checkbox.checkbox--medium.e-permits-check-option` in `.e-permits-check-options` | Figma `10507:125565` | app |
 | Long multi-select (100+ options) | summary `.e-permits-cfg-picks` + picker modal `#cfg-subdiv-modal` (`.e-permits-subdiv*`) | `cfgSubdivPicks` / `openCfgSubdiv` | app |
@@ -307,9 +307,9 @@ but this doc previously described it wrongly, see the entry.
 | Bottom Sheet | `.bottom-sheet` + `__overlay/__panel/__handle/__header/__content` | `bottom-sheet.html` | library |
 | Filter trigger = library chip with button radius (2026-10-21, filter-chip-v1) | `button.chip.e-permits-filter-trigger` (+ `--sm` = 36 / r6 in the GEAP BO registries) > `.chip__icon` (filter icon, rest AND active) + `.chip__label` + `.chip__badge` (the chip's numbered badge, 16); `.is-selected` = black when ≥ 1 value is applied; `aria-expanded` + `aria-controls`, name „Filtre, 3 aplicate”. Radius = the library Button of that size at EVERY width (8 · 6 `--sm`; 8 on phones = Large 48 — never round, phone-toolbar-v2). Phones (≤760): the same element as an ICON-ONLY square 48 `.e-permits-filter-trigger--icon` (label hidden, name „Filtre” / „Filtre, N aplicate”, badge on the top-right corner). Every „Filtre” / „Filtru” / „Filtrare avansată” trigger: Cabinet acts + requests, RAP, eKYC, BO registries, passport lists | `css/facet-filter.css` („Filter trigger”), `js/facet-filter.js` (`markTrigger`); demo sm-01 (rest) · sm-01v / 01x / 01y (1 / 3 / 7 applied, bar closed) · ek-04o (12) · sm-01a / dos-05d / rap-01d (active + open); section „Advanced filter › Filter trigger” | app |
 | Facet filter · phone toolbar + sheets (2026-10-17; icon-only in the search row 2026-10-21, phone-toolbar-v2) | `GEAPFacetFilter.create({ preview, sort })` ≤760 on EVERY list (phone mode on by default; the GEAP BO registries too): the page's toolbar gets `.e-permits-filter-row` = ONE row: search (fills, min 0) · the toolbar trigger as an icon-only square 48 `.chip.e-permits-filter-trigger.e-permits-filter-trigger--icon[data-filter-all]` (filter icon 24, radius 8, black + `.chip__badge` on the top-right corner when applied, 20 with a 2px black ring) · the page's sort as an icon-only square 48 `.btn.e-permits-filter-icon-only` (`icon-sort` 24 inserted by the module, label + chevron hidden, its `aria-label` „Sortează: …”) · page tools (export), gap 8 — NO facet chips; the bar `.e-permits-workplace__filters.is-sheets` = only „N de rezultate · Șterge filtrele” `[data-filter-phone-meta]` when applied; desktop list toolbars (Cabinet, RAP, eKYC): search 40 · „Filtre” 40 · sort `btn-md` 40 (one height); sheet `.bottom-sheet.e-permits-filter-sheet` (`is-all` = all filters, accordion `.e-permits-filter-sheet__section/__section-trigger/__section-label/__section-summary/__section-panel`), `__search`, `__list`, `__footer` + `__apply` | `js/facet-filter.js`, `css/facet-filter.css`; demo `rap-04…04d`, eKYC `ek-04c / 04c1 / 04j / 04l / 04m` at 375 (2026-10-19), Cabinet `sm-01 / 01f (sort sheet) / 01m / 01n / 01o / 01p`, `pp-01h / 01s`; section „Advanced filter › Phone mode” | app |
-| Facet filter · date range facet (2026-10-20) | a facet `{ key, label, type: "date", get(row) → ISO day, presets?, today? }` of `GEAPFacetFilter`: chip with a period = library chip „with close” as a group `div.chip.is-selected.e-permits-workplace__filter-chip.e-permits-workplace__filter-chip--date[role=group]` > `button.chip__label[data-filter-facet]` (`__filter-chip-text` „Data depunerii: 1–10 oct. 2026” + caret) + `button.chip__close[data-filter-date-clear]` (clears at once); no period = the normal facet chip. Popover `.e-permits-workplace__filter-pop--date` (320, not clipped): `.e-permits-workplace__filter-list.e-permits-workplace__filter-dates[role=radiogroup]` of `label.e-permits-workplace__filter-option` + library `.radio.radio--medium` (`[data-filter-date-preset]`) · `.e-permits-workplace__filter-range[data-filter-range]` (De la / Până la = library date picker in the FO field `.e-permits-fo-field.e-permits-workplace__filter-date-field`, inputs `[data-filter-date-input][data-filter-date-part]`) + `.e-permits-workplace__filter-range-errors` · the popover footer Confirmă / Șterge. Phones: the same body in the facet sheet (44 rows, 48 fields; the sheet drops its resting transform so the library phone calendar covers the screen) | `js/facet-filter.js` (`DATE_PRESETS`, `GEAPFacetFilter.dateMatch / dateText`), `css/facet-filter.css` „Date range facet”; Cabinet `FACETS` depunere / finalizare, eKYC `PERIOD_FACET`; demo sm-01g / 01h / 01o / 01p / 01q, ek-06b / 06g; section „Advanced filter › Date range facet” | app |
+| Facet filter · date range facet (2026-10-20) | a facet `{ key, label, type: "date", get(row) → ISO day, presets?, today? }` of `GEAPFacetFilter`: chip with a period = library chip „with close” as a group `div.chip.is-selected.e-permits-workplace__filter-chip.e-permits-workplace__filter-chip--date[role=group]` > `button.chip__label[data-filter-facet]` (`__filter-chip-text` „Data depunerii: 1–10 oct. 2026” + caret) + `button.chip__close[data-filter-date-clear]` (clears at once); no period = the normal facet chip. Popover `.e-permits-workplace__filter-pop--date` (320, not clipped): `.e-permits-workplace__filter-list.e-permits-workplace__filter-dates[role=radiogroup]` of `label.e-permits-workplace__filter-option` + the ONE radio control-only `.radio.radio--small` (`[data-filter-date-preset]`) · `.e-permits-workplace__filter-range[data-filter-range]` (De la / Până la = library date picker in the FO field `.e-permits-fo-field.e-permits-workplace__filter-date-field`, inputs `[data-filter-date-input][data-filter-date-part]`) + `.e-permits-workplace__filter-range-errors` · the popover footer Confirmă / Șterge. Phones: the same body in the facet sheet (44 rows, 48 fields; the sheet drops its resting transform so the library phone calendar covers the screen) | `js/facet-filter.js` (`DATE_PRESETS`, `GEAPFacetFilter.dateMatch / dateText`), `css/facet-filter.css` „Date range facet”; Cabinet `FACETS` depunere / finalizare, eKYC `PERIOD_FACET`; demo sm-01g / 01h / 01o / 01p / 01q, ek-06b / 06g; section „Advanced filter › Date range facet” | app |
 | Row action menu on phones — anchored popover, touch item size (2026-10-20, action-menu-v1; replaced the act action sheet) | Every menu of an action wrapper `.e-permits-fo-intent-act__action` — act rows „Postprocese ⌄” (FO #intent, Ghișeu, Cabinet), the Cabinet act profile header, the Cabinet request rows' ⋮ (row-kebab-v1) — is the SAME anchored dropdown at every width (no bottom sheet; user ref Telegram iOS). Phones ≤760: right-aligned to its button, upwards when no room below, 16 from the screen edges (`js/act-row.js` fitMenu → `.is-fit-end` / `.is-fit-start` / `.is-open-up` + `--act-menu-max`; Cabinet request menus `CabEvo.fitMenu`); surface padding 8 · radius 16 · dropdown-effect; items 48 · 12 16 · gap 12 · icon 24 · 16/24 regular · r8; unavailable item = grey + `__reason` 14/20 tertiary second line (desktop: tooltip); danger (Retragere, Anulare, Elimină) red, last, after `__separator`; icons from ONE map (`GEAPActRow.ppIcon`, one optical footprint, § „Row action menu — icon map”, act-icons-v1). Keyboard (Cabinet): Enter / Space / ↓ open on the first item, ↑ on the last, ↑ ↓ Home End, Esc → trigger, Tab closes | `js/act-row.js` (`menuItemsHtml`, `isDanger`, fitMenu), `css/e-permits-acte-permisive.css` „Row action menu on phones”, `cabinet-evo/cabinet-evo.js` (fitMenu flip-up, menu keys); demo pp-01a, pp-01q, pp-02a, gh-02j (reasons), sm-01u, sm-01w (opens up), sm-02 (danger) at 375 / 320; section „Row action menu on phones” | app |
-| Sort control — desktop menu + phone sort sheet (2026-10-20) | `js/sort-sheet.js` (`GEAPSortSheet.menuHtml({ id, keys, orders, current, keyAttr, orderAttr })` / `.bind(trigger, { title, sprite, keys, orders(key), current(), apply })`) + `css/sort-sheet.css`. Desktop: the page's `ul.e-permits-fo-intent-menu.e-permits-stack__menu.e-permits-sort-menu` — `li.e-permits-sort-menu__label` (12/16 medium secondary) · `ul.e-permits-sort-menu__group` of `button.e-permits-fo-intent-menu__item.e-permits-sort-menu__item[role=menuitemradio][aria-checked]` (library `span.radio.radio--medium > span.radio-custom` leading, checked look from `aria-checked`) · `li.e-permits-sort-menu__separator`. Phones (≤760): `GEAPSheet` `.e-permits-filter-sheet.e-permits-sort-sheet` — `h3.e-permits-sort-sheet__label` (14/20 medium secondary) + library `.radio-group.e-permits-sort-sheet__keys[role=radiogroup]` of `label.radio.radio--medium.e-permits-sort-sheet__key` (48 rows, 16/24, checked medium) · label + a second library `.radio-group.e-permits-sort-sheet__keys.e-permits-sort-sheet__order[role=radiogroup]` of the same rows (order, labels follow the key; v2 — the segmented control of v1 was removed, user 2026-10-20) · footer `btn btn-primary btn-lg e-permits-filter-sheet__apply` „Aplică” | section „Sort sheet on phones”; Cabinet „Solicitările mele” (sm-01f, sm-01t, sm-01m) | app |
+| Sort control — desktop menu + phone sort sheet (2026-10-20) | `js/sort-sheet.js` (`GEAPSortSheet.menuHtml({ id, keys, orders, current, keyAttr, orderAttr })` / `.bind(trigger, { title, sprite, keys, orders(key), current(), apply })`) + `css/sort-sheet.css`. Desktop: the page's `ul.e-permits-fo-intent-menu.e-permits-stack__menu.e-permits-sort-menu` — `li.e-permits-sort-menu__label` (12/16 medium secondary) · `ul.e-permits-sort-menu__group` of `button.e-permits-fo-intent-menu__item.e-permits-sort-menu__item[role=menuitemradio][aria-checked]` (the ONE radio, decorative Small `span.radio.radio--small > span.radio-custom` leading, selected through `aria-checked`) · `li.e-permits-sort-menu__separator`. Phones (≤760): `GEAPSheet` `.e-permits-filter-sheet.e-permits-sort-sheet` — `h3.e-permits-sort-sheet__label` (14/20 medium secondary) + library `.radio-group.e-permits-sort-sheet__keys[role=radiogroup]` of `label.radio.radio--medium.e-permits-sort-sheet__key` (48 rows, the ONE radio Medium: 24, label 16/24 500) · label + a second library `.radio-group.e-permits-sort-sheet__keys.e-permits-sort-sheet__order[role=radiogroup]` of the same rows (order, labels follow the key; v2 — the segmented control of v1 was removed, user 2026-10-20) · footer `btn btn-primary btn-lg e-permits-filter-sheet__apply` „Aplică” | section „Sort sheet on phones”; Cabinet „Solicitările mele” (sm-01f, sm-01t, sm-01m) and „Actele mele permisive” (acts-sort-v1: pp-01s1, pp-01s2) | app |
 | Cookie Banner | `.cookie-banner` (**shell only**) | `cookie-banner.html` | library (partial) |
 | Date Picker | `.date-picker`, `.date-picker-panel`, `__weekday/__day` | `input-date-picker.html` | library |
 | Address by cadastral code (FO „Caută adresa sau cod cadastral” + editable „Cod cadastral” + SRRE fill, read-only parts) | cascade address: product search input (`.search-input` + `.e-permits-fo-cascade-address__search`, × clear) + „Cod cadastral” = library search input with submit (`.search-input.e-permits-fo-cadastral-search` + `.btn-group`: spinner / `.btn-icon.clear` / `.btn.btn-primary.btn-search`; `.loading` while SRRE answers) + the search list's action row „Caută codul cadastral «…»” + one message slot per field `[data-fo-cadastral-search-hint]` / `[data-fo-cadastral-code-hint]` (hint → `message--inline e-permits-fo-field__error` + `__success` / `__warning` / `__loading`) + SRRE skeleton (`.is-srre-loading` + `.e-permits-fo-skeleton--input`) + fill highlight `.is-srre-new` | `cascadeAddressHtml` / `initCadastralLookup` / `foAddressDemo` (e-permits-acte-permisive.js), demo `adr-*` | app |
@@ -1501,9 +1501,12 @@ grid column, so the hover box has **the same left / right edges as the fields** 
 (measured: = phone / e-mail / input edges, desktop and 375); radio + text sit inside with
 padding 12 / 16. `::before` (inset 0, radius 12, `--color-background-base-tertiary`) goes from
 opacity 0 / scale .97 to 1 / 1 on hover — 180ms `--motion-easing-decelerate`; reduced motion →
-opacity only. Keyboard: the standard 2px white + 4px focus ring moves from the dot to the row.
-Checked = the radio only (no fill); disabled rows get no hover. Used by „Pentru cine” and
-„Persoana de contact” (`contactPersonHtml` + the static fallback).
+opacity only. Keyboard: ~~the 2px white + 4px ring moves from the dot to the row~~ — since radio-v1 (2026-10-21)
+the row is `label.radio.radio--medium.e-permits-fo-radio.e-permits-fo-radio--option` and the keyboard ring is the ONE
+radio's Focus Ring/Small on the circle (§ „Radio — the ONE radio component”); „Pentru cine” = `.radio-label` +
+`.radio-description` (16/24 500 + 14/20 tertiary, 2 apart — was a `strong` + secondary text 4 apart).
+Checked = the radio only (no fill); disabled rows get no hover. Used by „Pentru cine”,
+„Persoana de contact” (`contactPersonHtml` + the static fallback) and the FO „Butoane radio” field (`radioFieldHtml`).
 
 ##### Boxed doc field — `.e-permits-fo-doc-field--boxed` (2026-10-13)
 
@@ -1713,7 +1716,72 @@ decide the intent before relying on them.
 
 ---
 
-### Radio
+### Radio — the ONE radio component (radio-v1, 2026-10-21)
+
+User (Vasile, 2026-10-21): „Make sure the radio is the component as in Figma
+(Components doJ7tDY0PlQ0PqMgbpFVIC, node 13:34). This is our radio component from now on.” Source of truth = Figma
+`radio-button` 13:34 (the circle: Mode Unselected / Selected × State Default / Focus / Disabled / Error × Size Medium /
+Small) + `radio-label` 13:41 (circle + label + optional Supporting Text, error inline message hidden by default), page
+RadioButton 13:3. Painted ONLY by `css/radio.css` (loaded right after `main.css` / `button-icons.css` on all 10 pages);
+product CSS only PLACES a radio (row padding, hover band, flex, margin) — component-audit rule 11 (`radio-private`,
+`radio-size`, `radio-colour`, `radio-text`, static `radio-restyle`) makes any other radio a major.
+
+| Figma spec (REST, 2026-10-21) | Medium (`.radio--medium`, also a bare `.radio`) | Small (`.radio--small`) |
+|---|---|---|
+| circle | 24 × 24, ring 2 inside, radius full | 20 × 20, ring 2 |
+| dot (selected) | 12, centred | 10, centred |
+| circle → text | 12 | 12 |
+| label | 16/24 500 `--color-text-base-default` (Desktop/Body/Default 500) | 14/20 500 (Desktop/Body/Small 500) |
+| supporting text | 14/20 400 `--color-text-base-tertiary` (Desktop/Body/Small), 2 under the label | 12/16 400 (Desktop/Caption/Medium) |
+| alignment | centred on the label; with supporting text the circle sits on the label line (top) | same |
+
+| State | ring | fill | dot | text |
+|---|---|---|---|---|
+| Default | `--color-border-base-secondary` b2b2b2 | none | — | default |
+| Selected | `--color-border-brand-default` 0058d2 | none | brand | default |
+| Focus (keyboard only, `:focus-visible`) | the state's ring + Figma „Focus Ring/Small” = `0 0 0 1px white, 0 0 0 3px blue-sky-500` | — | — | — |
+| Disabled (+ selected) | `--color-border-disabled-default` d9d9d9 | `--color-background-disabled-default` f1f1f1 | d9d9d9 | `--color-text-disabled-default` b2b2b2 (label + supporting) |
+| Error (`.radio--error` or `aria-invalid="true"`) | `--color-border-danger-default` d92d20 | none | none (Figma draws no dot) | default (the message = the inline message under the label) |
+| Hover — **not in Figma**, product rule „visible hover everywhere” = the checkbox's hover | unselected `--color-border-base-strong`; selected ring + dot `--color-background-brand-default-hover` | — | — | — |
+
+Code vs library: `main.css` sized `--medium` 20 / `--small` 16 (the 16 is not designed), ring `--gray-400` (757575),
+dot 12 at both 20 and 24, gap 8, label weight 400, description 12 (undefined token), label 6 px bottom margin, a
+`:focus` outline after every tap — all replaced in css/radio.css. **Which size where:** 14/20 contexts (dropdown items,
+BO drawers / forms, the facet date presets, delivery option cards) = Small; 16/24 contexts (FO forms and option rows,
+the phone sort sheet rows) = Medium.
+
+```html
+<!-- interactive (FO / BO forms, sort sheet rows) -->
+<div class="radio-group" role="radiogroup" aria-labelledby="…">
+  <label class="radio radio--medium">
+    <input class="radio-input" type="radio" name="g" value="a">
+    <span class="radio-custom" aria-hidden="true"></span>
+    <span class="radio-texts">
+      <span class="radio-label">Label</span>
+      <span class="radio-description">Supporting text</span>   <!-- optional -->
+    </span>
+  </label>
+</div>
+<!-- control-only (a row label carries the text: facet date presets) -->
+<label class="e-permits-workplace__filter-option">
+  <span class="radio radio--small"><input class="radio-input" type="radio" name="p" value="azi"><span class="radio-custom" aria-hidden="true"></span></span>
+  <span class="e-permits-workplace__filter-option-label">Azi</span>
+</label>
+<!-- decorative (the owner holds the state: menuitemradio, option card with its own input) -->
+<button role="menuitemradio" aria-checked="true">…<span class="radio radio--small" aria-hidden="true"><span class="radio-custom"></span></span>…</button>
+```
+
+Users (2026-10-21): sort menu (Small, decorative) + sort sheet (Medium rows) — Cabinet Solicitări / Acte; facet date
+presets (Small, control-only); FO „Pentru cine” (Medium + supporting text), „Persoana de contact”, „Butoane radio”
+(`radioFieldHtml`, also the Form Builder canvas / Preview and Ghișeu), delivery option cards (Small, decorative via
+`.is-selected`); BO classifier „Valori inițiale” (Small + supporting text — rendered as a 4 px dot before, no size
+class). Removed private paints: `.e-permits-fo-radio__control` (24 own circle, white fill, opacity dot, own ring),
+`.e-permits-fo-radio__copy*`, `.e-permits-fo-delivery-option__radio` sizes / dot, the sort sheet / menu radio repaints
+(label 400 / checked 500, `aria-checked` checked look), the dead `.e-permits-builder__radio-stack` native radios.
+Demo states: sm-01f / sm-01t / pp-01s1 (menu + sheet), sm-01g (date presets), fo-g1 (supporting text), fo-03 (contact),
+fo-06 + paper (delivery), fb-07 (builder field), clf-02d (classifier).
+
+#### Library markup before radio-v1 (superseded — kept for history)
 
 ```html
 <div class="radio-group">
@@ -1730,7 +1798,7 @@ decide the intent before relying on them.
 
 `.radio` is the label/wrapper; `.radio-label` is the **text span inside `.radio-texts`**
 (the previous version of this doc used the class in both places). Checked dot animates
-`scale(0)→scale(1)` over `.2s`. Sizes `--small` 16 / `--medium` 20; `--error`.
+`scale(0)→scale(1)` over `.2s`. ~~Sizes `--small` 16 / `--medium` 20~~ (radio-v1: Small 20 / Medium 24); `--error`.
 
 ---
 
@@ -2438,7 +2506,7 @@ the page's delegated dropdown never opens; the trigger says `aria-haspopup="dial
 | Header | title „Sortează” 20/32 semibold (the one phone title rule, 2026-10-21) + library `.modal-close` |
 | Body | padding 8 16 24, groups 24 apart |
 | Section label | `h3.e-permits-sort-sheet__label` 14/20 medium `--color-text-base-secondary`, 8 above its control |
-| Key | library `.radio-group` (`role=radiogroup`, `aria-labelledby` the label, gap 0) of library `label.radio.radio--medium` rows: 48 high · padding 12 8 · gap 12 (Figma radio-label gap) · radius 8 · full width (the layer bleeds 8 into the side padding, radio + text stay on the 16 inset); radio 20; label 16/24 regular default, the checked one medium; hover `--color-background-base-tertiary`, pressed `--color-background-base-tertiary-hover`; native radios = arrows move the choice, one tab stop; library focus ring on the radio for the keyboard only (a tap leaves none) |
+| Key | library `.radio-group` (`role=radiogroup`, `aria-labelledby` the label, gap 0) of library `label.radio.radio--medium` rows: 48 high · padding 12 8 · gap 12 (Figma radio-label gap) · radius 8 · full width (the layer bleeds 8 into the side padding, radio + text stay on the 16 inset); ~~radio 20; label 16/24 regular default, the checked one medium~~ radio-v1: the ONE radio Medium (24, label 16/24 500 in every state); hover `--color-background-base-tertiary`, pressed `--color-background-base-tertiary-hover`; native radios = arrows move the choice, one tab stop; library focus ring on the radio for the keyboard only (a tap leaves none) |
 | Order | a second library `.radio-group` (`role=radiogroup` named by „Ordine”, class `e-permits-sort-sheet__keys e-permits-sort-sheet__order`) of the SAME rows as the key (48 · 12 8 · gap 12 · r8, 16/24, checked medium, same hover / pressed); labels follow the key, natural order first: dates „Cele mai noi” / „Cele mai vechi”, estimated date „Cele mai apropiate” / „Cele mai îndepărtate”, number „Crescător” / „Descrescător”, texts „A → Z” / „Z → A” (input `aria-label` „De la A la Z”), status „Ordinea etapelor” / „Ordinea inversă”. A new key redraws only this group (labels); an order pick does not redraw (arrow keys keep focus) |
 | Footer | the filter sheet's sticky footer: `btn btn-primary btn-lg e-permits-filter-sheet__apply` „Aplică”, full width |
 | Behaviour | the choice is a DRAFT until „Aplică” (as the filter sheet's „Arată N rezultate”; a sort has two parts — applying on the key tap would close before the order is chosen). A new key starts in its natural order unless the order was reversed in this sheet (then it stays reversed). „Aplică” → the page applies (page 1, announced in the live region „Lista este sortată după …”), focus back on the trigger; ×, scrim, Escape (window capture, the sheet only) cancel and return focus; Tab trapped; crossing 760 closes it |
@@ -2452,16 +2520,29 @@ from `aria-checked`, no trailing check), the same order labels. A pick applies a
 take the trigger on phones) — it anchors its own menu (`position: relative`, `fitMenu` `.is-end` / `.is-start`). One
 `applySort()` in cabinet-evo/solicitari.js serves the menu and the sheet. Demo: sm-01f (open: phones = sheet, desktop =
 menu), sm-01t (key „Serviciul solicitat” picked: phones = draft with A → Z / Z → A, desktop = menu reopened), sm-01m
-(applied: Serviciul solicitat, Z → A). Other phone sort sheets: none — RAP / eKYC / BO sort by table headers, the
-Cabinet acts list has no sort; „N pe pagină” stays a radio menu (act-row sheet not involved: it is no act action).
+(applied: Serviciul solicitat, Z → A). Other phone sort sheets: none — RAP / eKYC / BO sort by table headers;
+„N pe pagină” stays a radio menu (act-row sheet not involved: it is no act action).
+
+**Actele mele permisive (acts-sort-v1, 2026-10-21; user: „the same Data depunerii sort for Actele permisive too”):** the
+same control in the acts toolbar (`[data-cab-sort].cab-sort` after „Filtre”, the toolbar chip trigger
+`chip e-permits-filter-trigger e-permits-sort-trigger cab-sort__trigger`, menu `#cab-sort-menu`, live region
+`[data-cab-sort-status]`, phones: the facet filter's `sort` option makes it the icon-only square in the search row → the
+sort sheet). cabinet-evo.js `SORT_KEYS` / `sortedPermits()` / `syncSort()` / `applySort()`: **Data emiterii** (default,
+„Cele mai noi” / „Cele mai vechi”), **Valabil până la** („Cele mai apropiate” first — running acts (Valabil / Suspendat)
+before acts that no longer run, an act without an end date is the farthest / „Cele mai îndepărtate”), **Denumirea actului**
+(A → Z / Z → A, title + location), **Autoritatea emitentă** (A → Z / Z → A, the facet's authority name), **Stare**
+(„Valabile întâi” Valabil · Suspendat · Expirat · Retras · Anulat / „Nevalabile întâi”). Ties: newest issue first. Every
+sort → page 1 + „Lista este sortată după …”. The default order moved Bistro (2021) and Cofetăria (2019) to page 2 (pp-01f /
+pp-01i now page to them). Demo: pp-01s1 (menu / sheet open), pp-01s2 (Valabil până la, cele mai apropiate).
 
 **Figma spec (phone 375, Sort sheet):** Bottom sheet instance (radius 16 top, 16 from the top or hug), auto-layout
 vertical: header (title 20/32 semibold + Modal close) · body padding 8 16 24, gap 24: [group: label 14/20 medium
-text/secondary, gap 8, Radio-label instances ×6 (Size Small = 20, label 16/24 regular, selected medium, row 48, padding
-12 8, radius 8, fill none / hover tertiary)] · [group: label „Ordine” 14/20 medium text/secondary, gap 8, Radio-label instances ×2 — identical to the key rows (Size Small = 20, 16/24 regular, selected medium, row 48, padding 12 8, radius 8, Fill container)] · footer (border-top 1 default, padding 16, Button Primary Large „Aplică” fill). States to draw: default
+text/secondary, gap 8, Radio-label instances ×6 (radio-v1: Size **Medium** = 24, label 16/24 500 — no regular / medium
+switch, the library label is 500; row 48, padding 12 8, radius 8, fill none / hover tertiary)] · [group: label „Ordine” 14/20 medium text/secondary, gap 8, Radio-label instances ×2 — identical to the key rows (Medium 24, 16/24 500, row 48, padding 12 8, radius 8, Fill container)] · footer (border-top 1 default, padding 16, Button Primary Large „Aplică” fill). States to draw: default
 (Data depunerii · Cele mai noi), text key (Serviciul solicitat · A → Z), 320 scrolled body. **Desktop (1440):** dropdown
 (dropdown-effect, radius 12, padding 4, gap 2): label 12/16 medium secondary · 6 items (Radio Small leading + label 14/20
-medium, 32) · divider · label „Ordine” · 2 items.
+medium, 32) · divider · label „Ordine” · 2 items. **Acts (pp-01s1 / pp-01s2):** the same blocks with 5 keys „Data emiterii ·
+Valabil până la · Denumirea actului · Autoritatea emitentă · Stare”; trigger chip „Data emiterii ⌄” after „Filtre”.
 
 ### Segmented Controls
 
@@ -3492,7 +3573,7 @@ small `padding: 2px 6px` exact; `neutral.is-subtle` `#f1f1f1`/`#121212` and
 | Combobox | `e-permits-fo-caem` + `__menu/__search/__list/__option/__empty` | | `data-fo-caem*`, `data-code`, `data-label` |
 | Multi-select | `e-permits-fo-subgen-select` + `__checkbox/__footer/__confirm` | | `data-fo-subgen*` |
 | Phone | `e-permits-fo-phone` + `--editable/--readonly`, `__prefix`, `__code-list` | `is-filled` `is-selected` | `data-fo-phone-*`, `data-code`, `data-flag` |
-| Radio | `e-permits-fo-radio-group` + `--contact`, `e-permits-fo-radio`, `__control` | | `data-fo-contact-person` |
+| Radio | `e-permits-fo-radio-group` + `--contact`, `e-permits-fo-radio` (placement of the ONE radio `label.radio.radio--medium`, radio-v1; ~~`__control`, `__copy`~~ removed) | | `data-fo-contact-person` |
 | Consent checkbox | `e-permits-fo-consent`, `__box` | | `data-fo-consent` |
 | Stepper | `e-permits-fo-stepper`, `__item`, `__connector`, `__number`, `__label` — step 48 = Figma „FO stepper · step (vertical)” 11849:7107: connector 16 under the previous circle · 8 · row 24 (circle 24, gap 12, label 14/20), steps stack with gap 0, first step 24 (6 steps = 264); active pill = row + 8 brand-secondary spread, r4 (lib-align-v1, 2026-10-21) | `is-active` `is-completed` | `data-fo-step`, `data-fo-step-panel` |
 | Documents | `e-permits-fo-doc-field`, `e-permits-fo-doc-modal` + `__drop-zone/__list/__panel`, `e-permits-fo-file-item` | `is-uploaded` `is-uploading` `is-empty` | `data-fo-doc-*` |
@@ -5262,7 +5343,7 @@ User (2026-10-20): „why is Perioadă not also in Filtre on Solicitările mele?
   applies at once (as „Șterge filtrele”), focus back to the chip. Hover: the whole chip `inverse-default-hover`, ×
   `inverse-default-active`. `max-width: 100%` (the 320 cap of value chips would cut the range).
 - **Popover** (desktop, `role=dialog` „Filtru: <label>”): 320 wide (the library calendar), presets + „Interval
-  personalizat” as radio rows (`label.e-permits-workplace__filter-option` + library `.radio.radio--medium`, the
+  personalizat” as radio rows (`label.e-permits-workplace__filter-option` + the ONE radio `.radio.radio--small` (radio-v1), the
   dropdown item size: 32 · 6 12 6 8 · 14/20 medium · gap 8), arrows move inside the radiogroup (native). „Interval
   personalizat” reveals `.e-permits-workplace__filter-range`: De la · Până la side by side (8 apart, 4 / 12 / 12
   inset), each the library date picker in the FO field shell (40 high on desktop; typed ZZ/LL/AAAA accepted);
@@ -5974,7 +6055,8 @@ one-shot `dosarDetailAfterClose`) lands on **Taxe și plăți**.
 
 `.e-permits-fo-field label` (the field caption: 4px gap, 20px height) was also styling
 library `label.checkbox` / `label.radio` inside fields, so the box sat 4px from its text.
-They now keep the library anatomy: checkbox gap 12 (top-aligned), radio gap 8 (centred).
+They now keep the library anatomy: checkbox gap 12 (top-aligned), radio ~~gap 8 (centred)~~ = the ONE radio
+(radio-v1: gap 12, centred / top-aligned with supporting text — css/radio.css).
 
 ### Șablon nou — notification template create drawer (added 2026-10-02)
 
@@ -8918,7 +9000,7 @@ so the bug is invisible until someone compares against Figma.
 | `--black-1000`, `--white-1000` | 12 core semantic tokens | body text + page background broken (above) |
 | `--brand-600` | `.breadcrumbs__link:hover` | no fallback → hover colour never changes |
 | `--danger-500` | `.progress-step--blocked` | renders `#da1e28`, design says `#d92d20` |
-| `--text-body-xs-font-size` | `.radio-description` | renders **12px**, design says **14px** |
+| `--text-body-xs-font-size` | `.radio-description` | renders **12px**, design says **14px** — resolved for the product by css/radio.css (radio-v1, 2026-10-21) |
 | `--font-size-12`, `--font-size-16` | `.segmented-control--small/--large` | silent fallback |
 | `--color-danger-500`, `--color-danger-600` | `.custom-select` destructive | renders `#ef4444`, design says `#d92d20` |
 
@@ -8945,7 +9027,7 @@ from Figma and unblock 12 tokens at once.
   Switch (32/40px), Chip, and Tabs (`--sm` renders ~34-36px against a stated 40px
   minimum). **`.link-target-pointer` / `.link-target-touch` is the only implementation —
   copy that pattern.**
-- **Size-name drift.** Checkbox and Radio are shifted a full step (Figma Medium 24 →
+- **Size-name drift.** (Radio resolved 2026-10-21, radio-v1: css/radio.css maps `--medium` = Figma Medium 24, `--small` = Small 20.) Checkbox and Radio are shifted a full step (Figma Medium 24 →
   CSS `--medium` 20); Tag's ladder is off by one; Spinner is undersized at every step.
 - **`Medium` is the systemic hole in the input family** — designed for date, time,
   numeric and phone; implemented only for `.input` and `.search-input`.

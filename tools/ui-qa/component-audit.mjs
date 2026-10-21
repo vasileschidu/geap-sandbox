@@ -22,6 +22,9 @@
 //   8. tooltips — tooltip-private / tooltip-title (spec.tooltip): ONE runtime, js/icon-tooltip.js (tooltip-one-v1).
 //   9. drawers — drawer-private (spec.drawer): ONE drawer, .drawer-overlay > aside.drawer (drawer-v1).
 //   10. skeletons — skeleton-private (spec.skeleton): ONE .skeleton + --text / --input / --block / --circle (skeleton-v1).
+//   11. radios — radio-private / radio-size / radio-colour / radio-text (spec.radio): ONE radio = Figma Components 13:34
+//      / 13:41 (css/radio.css, radio-v1): label.radio.radio--{medium|small} > input.radio-input + span.radio-custom
+//      (+ .radio-texts), Medium 24 · dot 12 · 16/24 500, Small 20 · dot 10 · 14/20 500, ring 2, gap 12, state colours.
 //   7. converge (v2, minor) — a non-canonical implementation of a pattern family (spec.families: pager, stepper,
 //      close ×, notice, tag, switch, back, menu item, dialog shell, key-value list).
 //   + interactions (v2): per state, opens up to N visible menu / drawer / disclosure triggers (aria-haspopup,
@@ -30,7 +33,9 @@
 //
 // STATIC (--static): product sources (js/, css/, cabinet-evo/, rap-evo/, the root HTML pages; never Components/* or
 //   css/main.css): library-restyle, hardcoded-colour, private-token, private-palette, inline-svg-icon, role-button,
-//   native-title, monospace, converge (spec.static + spec.families › static).
+//   native-title, monospace, converge (spec.static + spec.families › static), radio-restyle (major, rule 11: a rule
+//   outside css/radio.css that repaints .radio-custom / .radio-label / .radio-description or a private radio circle).
+
 //
 // Output (incremental, resumable): <out>/report*.ndjson (one line per state × viewport, appended as measured) →
 //   aggregated into <out>/report.json + <out>/summary.md; static → <out>/static.json + <out>/static.md.
@@ -197,6 +202,13 @@ const runStatic = () => {
       for (const sel of sels) {
         if (sel.startsWith(":where")) continue;
         const comps = sel.split(/\s*[>+~\s]\s*(?![^(]*\))/).filter(Boolean); const last = comps[comps.length - 1] || "";
+        /* 11. radio-restyle (radio-v1): the ONE radio is painted only by css/radio.css — a product rule may place it
+           (flex, margin, cursor, position) but never repaint the circle, the dot or the text */
+        const RS = spec.radio?.static;
+        if (RS && !new RegExp(RS.files).test(file) && new RegExp(RS.selector).test(last.replace(/:(?:is|not|has|where)\([^)]*\)/g, ""))) {
+          const paint = props.filter((p) => new RegExp(RS.props).test(p));
+          if (paint.length) { add("radio-restyle", "major", file, line, `${sel.slice(0, 140)} { ${[...new Set(paint)].join(", ")} }`, "only css/radio.css paints the radio (components.md › Radio — the ONE radio component)", { selector: sel }); continue; }
+        }
         const classes = [...last.replace(/:(?:is|not|has|where)\([^)]*\)/g, "").matchAll(/\.([\w-]+)/g)].map((x) => x[1]);
         const lib = classes.filter((c) => LIBC.has(c)); if (!lib.length) continue;
         const prod = classes.filter((c) => !LIBC.has(c) && !/^(is|has)-/.test(c));
@@ -267,7 +279,7 @@ const runStatic = () => {
     L.push("", `## ${rule} (${list.length})`, "", "| sev | where | what | expected |", "|---|---|---|---|", ...list.slice(0, 150).map((f) => `| ${f.severity} | ${f.file}:${f.line} | ${String(f.what).replace(/\|/g, "/").replace(/`/g, "'")} | ${String(f.expected).replace(/\|/g, "/")} |`));
     if (list.length > 150) L.push(`| … | ${list.length - 150} more in static.json | | |`);
   }
-  L.push("", "## Fix hints", "", ...["library-restyle", "hardcoded-colour", "private-token", "private-palette", "inline-svg-icon", "role-button", "native-title", "monospace", "converge"].map((r) => `- **${r}** — ${spec.fixHints[r] || ""}`));
+  L.push("", "## Fix hints", "", ...["library-restyle", "radio-restyle", "hardcoded-colour", "private-token", "private-palette", "inline-svg-icon", "role-button", "native-title", "monospace", "converge"].map((r) => `- **${r}** — ${spec.fixHints[r] || ""}`));
   fs.writeFileSync(path.join(OUT, "static.md"), L.join("\n") + "\n");
   console.log(`static: ${findings.length} findings (${Object.entries(byRule).map(([k, n]) => `${k.replace("|", " ")} ${n}`).join(" · ")})`);
   console.log("→", path.join(OUT, "static.json"), "+ static.md");
@@ -562,6 +574,76 @@ const PAGE_LIB = (spec, documentedList) => {
         const cs = getComputedStyle(el);
         if (!/gradient/.test(cs.backgroundImage) && cs.animationName === "none") continue;
         add("major", "skeleton-private", el, ownClasses(el).filter((c) => nameRe.test(c)).join("."), `${SK.canonical} + --text / --input / --block / --circle (components.md › Skeleton)`);
+      }
+    }
+    /* 11. radios (radio-v1): ONE radio = Figma Components 13:34 (circle) / 13:41 (label), painted by css/radio.css.
+       radio-private (major): a radio input that paints natively (a browser radio on screen) and is not
+       `input.radio-input` + `span.radio-custom` inside `.radio`, or a round bordered circle whose class names a radio
+       outside `.radio-custom` (a hidden input in a selectable card without any circle — the delivery „check” card — is
+       a card, not a radio). radio-size (major): no size class, circle ≠ 24 / 20, ring ≠ 2, dot ≠ 12 / 10. radio-colour
+       (major): ring / fill not the state's token (default, selected, disabled, error; hovered radios are skipped).
+       radio-text (major): label / supporting text not 16/24 / 14/20 500 (Medium) or 14/20 / 12/16 (Small), gap ≠ 12.
+       Decorative radios are aria-hidden by design → visible = painted. */
+    const RD = spec.radio;
+    if (RD) {
+      counts.radios = 0;
+      const allowRd = (RD.allow || []).join(", ");
+      const paintedEl = (el) => el.getClientRects().length && el.checkVisibility({ checkOpacity: true, checkVisibilityCSS: true });
+      const near = (a, b) => Math.abs(a - b) <= 0.6;
+      const px = (v) => parseFloat(v) || 0;
+      for (const inp of qsa('input[type="radio"]')) {
+        if (ignored(inp) || (allowRd && inp.closest(allowRd))) continue;
+        const host = inp.closest("label") || inp.parentElement;
+        if (!host || !paintedEl(host)) continue;
+        const canonical = inp.matches(".radio-input") && inp.parentElement?.matches(".radio") && inp.nextElementSibling?.matches(".radio-custom");
+        if (canonical) continue;
+        const ics = getComputedStyle(inp), ir = inp.getBoundingClientRect();
+        const native = ics.appearance !== "none" && parseFloat(ics.opacity) > 0.1 && ir.width >= 8 && ir.height >= 8 && ics.visibility !== "hidden";
+        if (native) add("major", "radio-private", host, `native radio in .${ownClasses(host).join(".") || host.tagName.toLowerCase()} (${Math.round(ir.width)}×${Math.round(ir.height)}) — not the ONE radio`, RD.markup);
+      }
+      for (const el of qsa(RD.privateCandidates)) {
+        if (ignored(el) || el.matches(".radio, .radio-custom, .radio-input, .radio-group, .radio-texts, .radio-label, .radio-description") || (allowRd && el.closest(allowRd)) || !paintedEl(el)) continue;
+        if (!ownClasses(el).some((c) => /radio/i.test(c))) continue;
+        const cs = getComputedStyle(el), r = el.getBoundingClientRect();
+        if (r.width >= 12 && r.width <= 32 && near(r.width, r.height) && px(cs.borderTopLeftRadius) >= r.width / 2 - 1 && px(cs.borderTopWidth) > 0) add("major", "radio-private", el, `private radio circle .${ownClasses(el).join(".")} ${Math.round(r.width)}×${Math.round(r.height)}`, RD.markup);
+      }
+      for (const c of qsa(".radio-custom")) {
+        if (ignored(c) || !paintedEl(c)) continue;
+        counts.radios++;
+        const radio = c.closest(".radio");
+        if (!radio) { add("major", "radio-private", c, ".radio-custom outside .radio", RD.markup); continue; }
+        const small = radio.classList.contains("radio--small");
+        const S = small ? RD.sizes.small : RD.sizes.medium;
+        const cs = getComputedStyle(c), as = getComputedStyle(c, "::after"), r = c.getBoundingClientRect();
+        const issues = [];
+        if (!radio.matches(".radio--medium, .radio--small")) issues.push("no size class (.radio--medium / .radio--small)");
+        if (!near(r.width, S.circle) || !near(r.height, S.circle)) issues.push(`circle ${Math.round(r.width * 10) / 10}×${Math.round(r.height * 10) / 10} (expected ${S.circle})`);
+        if (!near(px(cs.borderTopWidth), RD.ring)) issues.push(`ring ${cs.borderTopWidth} (expected ${RD.ring})`);
+        if (!near(px(as.width), S.dot) || !near(px(as.height), S.dot)) issues.push(`dot ${as.width}×${as.height} (expected ${S.dot})`);
+        if (issues.length) add("major", "radio-size", c, issues.join(" · "), `${small ? "Small" : "Medium"}: ${S.circle} circle, ring ${RD.ring}, dot ${S.dot} (css/radio.css)`);
+        const inp = radio.querySelector(".radio-input");
+        const owner = radio.parentElement;
+        const hovered = c.matches(":hover") || radio.matches(":hover") || owner?.matches(":hover");
+        if (!hovered) {
+          const checked = inp ? inp.checked : radio.classList.contains("is-checked") || owner?.matches('[aria-checked="true"], .is-selected');
+          const disabled = inp ? inp.disabled : radio.classList.contains("is-disabled");
+          const error = radio.classList.contains("radio--error") || inp?.getAttribute("aria-invalid") === "true";
+          const st = error ? "error" : disabled ? "disabled" : checked ? "selected" : "default";
+          const want = RD.colours[st];
+          const fill = cs.backgroundColor === "rgba(0, 0, 0, 0)" ? "transparent" : cs.backgroundColor;
+          if (cs.borderTopColor !== want.ring || fill !== want.fill) add("major", "radio-colour", c, `${st}: ring ${cs.borderTopColor} · fill ${fill}`, `ring ${want.ring} · fill ${want.fill} (${want.token})`);
+        }
+        const texts = radio.querySelector(":scope > .radio-texts");
+        if (texts) {
+          const label = texts.querySelector(".radio-label"), desc = texts.querySelector(".radio-description");
+          const tIssues = [];
+          const gap = texts.getBoundingClientRect().left - r.right;
+          if (!near(gap, RD.gap)) tIssues.push(`gap ${Math.round(gap * 10) / 10} (expected ${RD.gap})`);
+          const font = (el, w) => { const s = getComputedStyle(el); return `${s.fontSize}/${s.lineHeight} ${s.fontWeight}` === w ? "" : `${el.className} ${s.fontSize}/${s.lineHeight} ${s.fontWeight} (expected ${w})`; };
+          if (label) { const f = font(label, S.label); if (f) tIssues.push(f); }
+          if (desc) { const f = font(desc, S.description); if (f) tIssues.push(f); }
+          if (tIssues.length) add("major", "radio-text", radio, tIssues.join(" · "), `Figma radio-label ${small ? "Small" : "Medium"}`);
+        }
       }
     }
     /* 6. action icons: „Editează…” = icon-edit, „Elimină… / Șterge…” = icon-delete, icon = label colour */

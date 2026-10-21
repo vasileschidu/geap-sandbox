@@ -264,6 +264,59 @@
     "canonical": ".skeleton",
     "namePattern": "skeleton|shimmer|placeholder-shape"
   },
+  "_radio": "Radio (rule 11, radio-v1, 2026-10-21; user: „Make sure the radio is the component as in Figma … this is our radio component from now on”): ONE radio = Figma Components doJ7tDY0PlQ0PqMgbpFVIC 13:34 (radio-button) / 13:41 (radio-label), painted only by css/radio.css. Markup: label.radio.radio--{medium|small} > input.radio-input + span.radio-custom [+ span.radio-texts > .radio-label (+ .radio-description)]; control-only span.radio > input + custom inside a row label; decorative span.radio[aria-hidden] > .radio-custom selected by the owner's [aria-checked=true] / .is-selected or .is-checked. radio-private / radio-size / radio-colour / radio-text = major; static radio-restyle = major. allow = segmented controls / tool groups (role=radio buttons, not radio inputs).",
+  "radio": {
+    "markup": "label.radio.radio--{medium|small} > input.radio-input + span.radio-custom (+ span.radio-texts > .radio-label / .radio-description) — components.md › Radio — the ONE radio component",
+    "allow": [
+      ".segmented-control",
+      ".e-permits-builder__width-picker",
+      ".e-permits-pd__toolgroup"
+    ],
+    "privateCandidates": "[class*='radio']",
+    "ring": 2,
+    "gap": 12,
+    "sizes": {
+      "medium": {
+        "circle": 24,
+        "dot": 12,
+        "label": "16px/24px 500",
+        "description": "14px/20px 400"
+      },
+      "small": {
+        "circle": 20,
+        "dot": 10,
+        "label": "14px/20px 500",
+        "description": "12px/16px 400"
+      }
+    },
+    "colours": {
+      "default": {
+        "ring": "rgb(178, 178, 178)",
+        "fill": "transparent",
+        "token": "--color-border-base-secondary, no fill"
+      },
+      "selected": {
+        "ring": "rgb(0, 88, 210)",
+        "fill": "transparent",
+        "token": "--color-border-brand-default"
+      },
+      "disabled": {
+        "ring": "rgb(217, 217, 217)",
+        "fill": "rgb(241, 241, 241)",
+        "token": "--color-border-disabled-default / --color-background-disabled-default"
+      },
+      "error": {
+        "ring": "rgb(217, 45, 32)",
+        "fill": "transparent",
+        "token": "--color-border-danger-default"
+      }
+    },
+    "static": {
+      "files": "^css/radio\\.css$",
+      "selector": "\\.radio-(custom|label|description)\\b|radio__control\\b|__radio\\b",
+      "props": "^(width|height|min-width|min-height|border|border-[a-z-]+|background|background-color|box-shadow|outline|outline-[a-z-]+|color|font-size|line-height|font-weight|transform|opacity)$"
+    }
+  },
   "_actionIcons": "Action icons (rule 6, 2026-10-21, user: „didn't we discuss that every Editează has an edit icon, and Elimină a trash icon?”). action-icon (major): a visible action — or an item of a closed menu whose trigger is visible — labelled „Editează…” without icon-edit, or „Elimină… / Șterge…” without icon-delete (another icon counts as missing). action-icon-colour (major): that icon in another colour than the label. Exceptions: confirmation-dialog footers (library modal / FO confirm dialog have no footer icons), clear / dismiss controls that delete nothing (search ×, chip ×, file-item × = detach an attachment, the filter popover „Șterge” = clear the selection, „Șterge filtrele / căutarea / formatarea”).",
   "actionIcons": {
     "controls": "button, a[href], [role=button], [role=menuitem]",
@@ -749,7 +802,8 @@
       "css/dropdown.css": "the ONE dropdown item / surface size (rule 2026-10-20)",
       "css/modal-phone.css": "Modals on phones — the documented phone sheet for every dialog family (2026-10-19)",
       "css/field-sizes.css": "Field sizes rule 2026-10-18: desktop 40, phones 48 · 16/24",
-      "css/breadcrumbs.css": "Breadcrumb = the library component everywhere (breadcrumb-v1) — the shared wrapper"
+      "css/breadcrumbs.css": "Breadcrumb = the library component everywhere (breadcrumb-v1) — the shared wrapper",
+      "css/radio.css": "the ONE radio (radio-v1, Figma Components 13:34 / 13:41, components.md › Radio)"
     },
     "restyleAllow": [
       {
@@ -774,6 +828,11 @@
     "tokenAllow": ["--color-background-base-inverse-on-color"], "_tokenAllow": "css/token-fix.css defines the one base token main.css leaves undefined in the light theme (library-adopt-v4)"
   },
   "fixHints": {
+    "radio-private": "Build it from the ONE radio: label.radio.radio--{medium|small} > input.radio-input + span.radio-custom (+ .radio-texts); decorative = span.radio[aria-hidden] > .radio-custom in an owner with aria-checked / .is-selected (components.md › Radio).",
+    "radio-size": "Add .radio--medium (24, dot 12, 16/24 text) or .radio--small (20, dot 10, 14/20 text) and delete the product width / height / dot overrides — css/radio.css sizes it.",
+    "radio-colour": "Delete the product repaint; css/radio.css paints default b2b2b2 · selected brand · disabled d9d9d9 on f1f1f1 · error danger.",
+    "radio-text": "Use .radio-texts > .radio-label / .radio-description and delete the product font / gap overrides (Figma radio-label: gap 12, Medium 16/24 500 + 14/20, Small 14/20 500 + 12/16).",
+    "radio-restyle": "Only css/radio.css paints .radio-custom / .radio-label / .radio-description; product CSS keeps placement only (flex, margin, cursor).",
     "action-icon": "„Editează…” carries the pen (icon-edit), every removal „Elimină… / Șterge…” the trash (icon-delete), before the label, in the button's colour: shell actionLabelHtml(label) / renderRowActions / renderStackMenu (they pick the icon from the label — actionIconFor), GEAPActRow / Cabinet menu items { icon: \"icon-delete\" }; hand-written buttons add <svg class=\"icon small\"><use href=\"…#icon-delete\"></use></svg><span>Elimină</span> (components.md › Action icons).",
     "action-icon-colour": "the icon of a button / menu item is the label colour (fill: currentColor); never give the svg its own colour (components.md › Button).",
     "crumb-trail": "Render the trail with the ONE library breadcrumb: GEAPBreadcrumbs.html(crumbs, { trailing }) (js/breadcrumbs.js) — shell renderBreadcrumbs / renderPageHeaderTop, CabEvo.pageHeader({ back }); delete the private markup and its CSS (components.md › Breadcrumb).",

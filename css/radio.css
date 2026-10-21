@@ -1,0 +1,179 @@
+/* ==========================================================================================================
+   Radio — the ONE radio component (radio-v1, 2026-10-21; user: „Make sure the radio is the component as in Figma …
+   this is our radio component from now on”). Source of truth: Figma Components doJ7tDY0PlQ0PqMgbpFVIC
+   `radio-button` 13:34 (the circle) + `radio-label` 13:41 (circle + label + supporting text), page RadioButton 13:3.
+
+     Size (Figma)   circle  ring  dot   label            supporting text    circle → text   label → text
+     Medium         24      2     12    16/24 500        14/20 400          12              2
+     Small          20      2     10    14/20 500        12/16 400          12              2
+
+     State      ring                                  fill                               dot                  text
+     Default    --color-border-base-secondary b2b2b2  none                               —                    --color-text-base-default
+     Selected   --color-border-brand-default 0058d2   none                               brand 0058d2         default
+     Focus      the state's ring + Focus Ring/Small (0 0 0 1 white, 0 0 0 3 blue-sky-500), keyboard only
+     Disabled   --color-border-disabled-default d9d9  --color-background-disabled-default  d9d9d9 when selected  --color-text-disabled-default b2b2b2
+     Error      --color-border-danger-default d92d20  none                               — (Figma draws no dot)  default (the message is the inline message)
+     Hover      NOT in Figma — product rule „visible hover everywhere”, the checkbox's: unselected ring
+                --color-border-base-strong, selected ring + dot --color-background-brand-default-hover
+
+   Code: `.radio--medium` = Figma Medium (24), `.radio--small` = Figma Small (20). The library's own sizes (main.css:
+   medium 20 / small 16, the 16 is not designed) are replaced here — a bare `.radio` reads as Medium. Loaded right
+   after main.css (+ button-icons.css) on every page; product CSS only PLACES the radio (rows, menus, cards) and never
+   repaints it (component-audit rule „radio”).
+
+   Canonical markup (components.md › „Radio — the ONE radio component”):
+     interactive  label.radio.radio--{medium|small} > input.radio-input[type=radio] + span.radio-custom[aria-hidden]
+                  [+ span.radio-texts > span.radio-label (+ span.radio-description)]
+     control only span.radio.radio--{size} > input.radio-input + span.radio-custom   (the row label carries the text)
+     decorative   span.radio.radio--{size}[aria-hidden] > span.radio-custom — selected when the owner is
+                  [aria-checked="true"] / .is-selected, or the radio has .is-checked (menu items, option cards)
+   ========================================================================================================== */
+
+.radio {
+  --radio-size: var(--spacing-24, 24px);
+  --radio-dot: var(--spacing-12, 12px);
+  align-items: center;
+  gap: var(--spacing-12, 12px);
+  position: relative; /* the library hides the input with position: absolute — keep it inside its radio */
+}
+
+label.radio {
+  margin-bottom: 0; /* the library global `label { margin-bottom: 6px }` */
+}
+
+.radio.radio--small {
+  --radio-size: var(--spacing-20, 20px);
+  --radio-dot: var(--spacing-10, 10px);
+}
+
+/* with supporting text the circle sits on the label's line (Figma: top-aligned, 24 / 20 = the label line) */
+.radio:has(.radio-description) {
+  align-items: flex-start;
+}
+
+/* ---- the circle ---- */
+.radio .radio-custom {
+  background-color: transparent;
+  border: var(--border-width-2, 2px) solid var(--color-border-base-secondary, #b2b2b2);
+  box-sizing: border-box;
+  flex: 0 0 var(--radio-size);
+  height: var(--radio-size);
+  width: var(--radio-size);
+}
+
+.radio .radio-custom::after {
+  background-color: var(--color-border-brand-default, #0058d2);
+  height: var(--radio-dot);
+  width: var(--radio-dot);
+}
+
+/* selected: the native input, or the owner of a decorative radio */
+.radio .radio-input:checked + .radio-custom,
+:is([aria-checked="true"], .is-selected) > .radio:not(:has(.radio-input)) > .radio-custom,
+.radio.is-checked > .radio-custom {
+  border-color: var(--color-border-brand-default, #0058d2);
+}
+
+.radio .radio-input:checked + .radio-custom::after,
+:is([aria-checked="true"], .is-selected) > .radio:not(:has(.radio-input)) > .radio-custom::after,
+.radio.is-checked > .radio-custom::after {
+  transform: translate(-50%, -50%) scale(1);
+}
+
+/* focus: Figma „Focus Ring/Small” around the circle, keyboard only (the library outline showed after a tap too) */
+.radio .radio-input:focus + .radio-custom {
+  outline: none;
+}
+
+.radio .radio-input:focus-visible + .radio-custom {
+  box-shadow: 0 0 0 var(--border-width-1, 1px) var(--white, #ffffff), 0 0 0 calc(var(--border-width-1, 1px) * 3) var(--blue-sky-500, #3379db);
+}
+
+/* error: red ring, no dot (Figma radio-button „State=Error”); the text stays default */
+.radio.radio--error .radio-custom,
+.radio .radio-input[aria-invalid="true"] + .radio-custom {
+  border-color: var(--color-border-danger-default, #d92d20) !important; /* the library error rule is !important */
+}
+
+.radio.radio--error .radio-custom::after,
+.radio .radio-input[aria-invalid="true"] + .radio-custom::after {
+  transform: translate(-50%, -50%) scale(0);
+}
+
+.radio.radio--error .radio-label {
+  color: var(--color-text-base-default, #121212);
+}
+
+/* disabled (also `.is-disabled` on a decorative radio) */
+.radio .radio-input:disabled + .radio-custom,
+.radio.is-disabled > .radio-custom {
+  background-color: var(--color-background-disabled-default, #f1f1f1);
+  border-color: var(--color-border-disabled-default, #d9d9d9);
+  cursor: not-allowed;
+}
+
+.radio .radio-input:disabled + .radio-custom::after,
+.radio.is-disabled > .radio-custom::after {
+  background-color: var(--color-border-disabled-default, #d9d9d9);
+}
+
+.radio:has(.radio-input:disabled) {
+  cursor: not-allowed;
+}
+
+.radio:has(.radio-input:disabled) :is(.radio-label, .radio-description) {
+  color: var(--color-text-disabled-default, #b2b2b2);
+}
+
+/* hover (product rule, the checkbox's look): the radio itself or the row label that holds it */
+:is(.radio, label:has(> .radio)):hover .radio-input:not(:checked, :disabled, [aria-invalid="true"]) + .radio-custom,
+[role="menuitemradio"]:not([aria-checked="true"], :disabled):hover > .radio > .radio-custom {
+  border-color: var(--color-border-base-strong, #1e1e1e);
+}
+
+:is(.radio, label:has(> .radio)):hover .radio-input:checked:not(:disabled, [aria-invalid="true"]) + .radio-custom,
+[role="menuitemradio"][aria-checked="true"]:not(:disabled):hover > .radio > .radio-custom {
+  border-color: var(--color-background-brand-default-hover, #0046a8);
+}
+
+:is(.radio, label:has(> .radio)):hover .radio-input:checked:not(:disabled, [aria-invalid="true"]) + .radio-custom::after,
+[role="menuitemradio"][aria-checked="true"]:not(:disabled):hover > .radio > .radio-custom::after {
+  background-color: var(--color-background-brand-default-hover, #0046a8);
+}
+
+/* ---- the text (Figma radio-label) ---- */
+.radio .radio-texts {
+  gap: var(--spacing-2, 2px);
+  min-width: 0;
+}
+
+.radio .radio-label {
+  color: var(--color-text-base-default, #121212);
+  font-size: var(--font-size-fs-16, 16px);
+  font-weight: var(--font-weight-fw-medium, 500);
+  line-height: var(--line-height-lh-24, 24px);
+}
+
+.radio .radio-description {
+  color: var(--color-text-base-tertiary, #757575);
+  font-size: var(--font-size-fs-14, 14px);
+  font-weight: var(--font-weight-fw-regular, 400);
+  line-height: var(--line-height-lh-20, 20px);
+}
+
+.radio.radio--small .radio-label {
+  font-size: var(--font-size-fs-14, 14px);
+  line-height: var(--line-height-lh-20, 20px);
+}
+
+.radio.radio--small .radio-description {
+  font-size: var(--font-size-fs-12, 12px);
+  line-height: var(--line-height-lh-16, 16px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .radio .radio-custom,
+  .radio .radio-custom::after {
+    transition: none;
+  }
+}

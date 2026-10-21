@@ -64,6 +64,14 @@ Runtime (each state at 1440 and 375 with touch; desktop-only states — spec `de
 - copy (rule 4): `copy-variant`, `copy-in-list`, `missing-copy` (**major**) — the ONE `.copy-value`, compact in lists.
 - back navigation (rule 5): `crumb-trail`, `back-link` (**major**) — only the library `.breadcrumbs`.
 - action icons (rule 6): `action-icon`, `action-icon-colour` (**major**) — Editează = pen, Elimină / Șterge = trash.
+- radios (rule 11, radio-v1, user 2026-10-21: „this is our radio component from now on”): the ONE radio = Figma
+  Components 13:34 / 13:41, painted only by `css/radio.css` (spec `radio`). `radio-private` (**major**) — a radio input
+  not built as `.radio > input.radio-input + span.radio-custom` (a label holding a decorative `.radio` passes), or a
+  private round bordered circle whose class names a radio; `radio-size` (**major**) — no `.radio--medium` /
+  `.radio--small`, circle ≠ 24 / 20, ring ≠ 2, dot ≠ 12 / 10; `radio-colour` (**major**) — ring / fill not the state's
+  token (default b2b2b2 no fill · selected brand · disabled d9d9d9 on f1f1f1 · error danger; hovered radios skipped);
+  `radio-text` (**major**) — gap ≠ 12, label ≠ 16/24 500 (Medium) / 14/20 500 (Small), supporting text ≠ 14/20 /
+  12/16. Segmented controls and tool groups (`role=radio` buttons) are not radios (`radio.allow`).
 - `converge` (minor) — a non-canonical implementation of a pattern family (`families`: pager, stepper, close ×,
   notice, tag, switch, back, menu item, dialog shell, key-value list), once per class signature with ×count.
 - interactions — per state up to `interactions.maxTriggers` distinct menu / drawer / disclosure triggers are
@@ -77,7 +85,9 @@ minor): `library-restyle` (GLOBAL restyle of a library class = **major**, scoped
 token has exactly that value — the finding names it; otherwise minor = PO question), `private-token` (**major**,
 a Foundations colour token redefined), `private-palette` (minor), `inline-svg-icon` (minor), `role-button`
 (**major**), `native-title` (minor), `monospace` (**major** except `static.monoAllow`), `converge` (minor,
-`families › static`).
+`families › static`), `radio-restyle` (**major**, rule 11 — a rule outside `css/radio.css` that repaints `.radio-custom`
+/ `.radio-label` / `.radio-description` or a private `…radio__control` / `…__radio` circle; placement — flex, margin,
+cursor — is fine).
 
 ## Judge
 1. Open `report.json` / `summary.md` (Distinct findings) and `static.md`; look at the element in a capture or with

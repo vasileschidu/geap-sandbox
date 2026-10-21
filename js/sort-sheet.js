@@ -15,7 +15,7 @@
 
   /* ---- desktop: the dropdown body (the page's <ul role=menu> gets it as innerHTML) ---- */
   function menuHtml({ id = "geap-sort", keys, orders, current, keyAttr, orderAttr, keyLabel = "Sortează după", orderLabel = "Ordine" }) {
-    const item = (attr, label, name, on) => `<li role="none"><button class="e-permits-fo-intent-menu__item e-permits-sort-menu__item" type="button" role="menuitemradio" aria-checked="${on}" ${attr}${name ? ` aria-label="${esc(name)}"` : ""}><span class="radio radio--medium" aria-hidden="true"><span class="radio-custom"></span></span><span>${esc(label)}</span></button></li>`;
+    const item = (attr, label, name, on) => `<li role="none"><button class="e-permits-fo-intent-menu__item e-permits-sort-menu__item" type="button" role="menuitemradio" aria-checked="${on}" ${attr}${name ? ` aria-label="${esc(name)}"` : ""}><span class="radio radio--small" aria-hidden="true"><span class="radio-custom"></span></span><span>${esc(label)}</span></button></li>`;
     return `
       <li role="presentation" class="e-permits-sort-menu__label" id="${id}-by">${esc(keyLabel)}</li>
       <li role="none"><ul class="e-permits-sort-menu__group" role="group" aria-labelledby="${id}-by">${keys.map((k) => item(`${keyAttr}="${esc(k.value)}"`, k.label, "", k.value === current.key)).join("")}</ul></li>

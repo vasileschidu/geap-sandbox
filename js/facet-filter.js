@@ -322,7 +322,7 @@
       const name = `geap-filter-date-${where}-${key.replace(/[^a-z0-9_-]/gi, "")}`;
       const row = (id, label) => `
           <label class="e-permits-workplace__filter-option">
-            <span class="radio radio--medium"><input class="radio-input" type="radio" name="${name}" value="${id}"${d.preset === id ? " checked" : ""} data-filter-date-preset="${escapeHtml(key)}"><span class="radio-custom" aria-hidden="true"></span></span>
+            <span class="radio radio--small"><input class="radio-input" type="radio" name="${name}" value="${id}"${d.preset === id ? " checked" : ""} data-filter-date-preset="${escapeHtml(key)}"><span class="radio-custom" aria-hidden="true"></span></span>
             <span class="e-permits-workplace__filter-option-label">${escapeHtml(label)}</span>
           </label>`;
       return `

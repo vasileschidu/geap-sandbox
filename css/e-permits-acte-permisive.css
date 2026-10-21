@@ -6026,64 +6026,11 @@
   grid-column: span 6;
 }
 
+/* FO radios = the ONE radio (css/radio.css, radio-v1 2026-10-21: `label.radio.radio--medium` + `.radio-input` +
+   `.radio-custom` + `.radio-texts`); this class only places it (inline in a row, never shrinking its grid cell) */
 .e-permits-fo-radio {
-  align-items: flex-start;
-  color: var(--color-text-base-default, #121212);
-  cursor: pointer;
   display: inline-flex;
-  gap: var(--spacing-12, 12px);
-  font-size: var(--font-size-fs-16, 16px);
-  font-weight: var(--font-weight-fw-medium, 500);
-  line-height: var(--line-height-lh-24, 24px);
   min-width: 0;
-}
-
-.e-permits-fo-radio input {
-  appearance: none;
-  height: 1px;
-  margin: 0;
-  opacity: 0;
-  position: absolute;
-  width: 1px;
-}
-
-.e-permits-fo-radio__control {
-  align-items: center;
-  background: var(--color-background-base-default, #fff);
-  border: var(--border-width-2, 2px) solid var(--color-border-base-secondary, #b2b2b2);
-  border-radius: var(--border-radius-full, 999px);
-  box-sizing: border-box;
-  display: inline-flex;
-  flex: 0 0 24px;
-  height: 24px;
-  justify-content: center;
-  width: 24px;
-}
-
-.e-permits-fo-radio__control::after {
-  background: var(--color-background-brand-default, #0058d2);
-  border-radius: inherit;
-  content: "";
-  display: block;
-  height: 12px;
-  opacity: 0;
-  transform: scale(0.7);
-  transition: opacity 140ms ease, transform 140ms ease;
-  width: 12px;
-}
-
-.e-permits-fo-radio input:checked + .e-permits-fo-radio__control {
-  border-color: var(--color-border-brand-default, #0058d2);
-}
-
-.e-permits-fo-radio input:checked + .e-permits-fo-radio__control::after {
-  opacity: 1;
-  transform: scale(1);
-}
-
-.e-permits-fo-radio input:focus-visible + .e-permits-fo-radio__control {
-  outline: var(--border-width-2, 2px) solid var(--white, #fff);
-  box-shadow: 0 0 0 4px var(--focus-ring, var(--blue-sky-500, #3379db));
 }
 
 /* Radio option row (2026-10-13): the whole row (radio + title + description) is the hover
@@ -6095,6 +6042,7 @@
 .e-permits-fo-radio--option {
   box-sizing: border-box;
   isolation: isolate;
+  width: auto; /* the library `.radio` is fit-content: the row fills its grid column */
   /* the row fills its grid column (= the fields' edges); radio + text sit 12 / 16 inside */
   padding: var(--spacing-12, 12px) var(--spacing-16, 16px);
   position: relative;
@@ -6118,22 +6066,7 @@
   transform: scale(1);
 }
 
-/* keyboard: the ring moves from the dot to the row */
-.e-permits-fo-radio--option:has(input:focus-visible)::before {
-  background: transparent;
-  box-shadow: 0 0 0 2px var(--white, #fff), 0 0 0 4px var(--focus-ring, var(--blue-sky-500, #3379db));
-  opacity: 1;
-  transform: scale(1);
-}
-
-.e-permits-fo-radio--option:hover:has(input:focus-visible)::before {
-  background: var(--color-background-base-tertiary, #f1f1f1);
-}
-
-.e-permits-fo-radio--option input:focus-visible + .e-permits-fo-radio__control {
-  box-shadow: none;
-  outline: none;
-}
+/* keyboard: the radio's own Focus Ring/Small (css/radio.css, radio-v1) — the row ring is gone */
 
 .e-permits-fo-radio--option:has(input:disabled) {
   cursor: default;
@@ -6162,21 +6095,7 @@
   }
 }
 
-/* Title + description composition for a radio's trailing copy, used where a
-   choice needs a one-line explanation ("Pentru cine este acest serviciu?").
-   Token values match .e-permits-fo-selected-role__copy's identical role. */
-.e-permits-fo-radio__copy {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-4, 4px);
-}
-
-.e-permits-fo-radio__copy-desc {
-  color: var(--color-text-base-secondary, #383838);
-  font-size: var(--font-size-fs-14, 14px);
-  font-weight: var(--font-weight-fw-regular, 400);
-  line-height: var(--line-height-lh-20, 20px);
-}
+/* „Pentru cine este acest serviciu?” = the radio's label + supporting text (`.radio-texts`, radio-v1) */
 
 .e-permits-fo-radio--span-6 {
   grid-column: span 6;
@@ -9400,32 +9319,9 @@
   width: 20px;
 }
 
-/* the design-system radio, at the 20px size the row uses */
+/* the indicator = the ONE radio, decorative Small (css/radio.css: selected through the option's .is-selected) */
 .e-permits-fo-delivery-option__radio {
-  flex: 0 0 20px;
-  height: 20px;
-  width: 20px;
-}
-
-.e-permits-fo-delivery-option__radio::after {
-  background: var(--color-background-brand-default, #0058d2);
-  border-radius: inherit;
-  content: "";
-  display: block;
-  height: 10px;
-  opacity: 0;
-  transform: scale(0.7);
-  transition: opacity 140ms ease, transform 140ms ease;
-  width: 10px;
-}
-
-.e-permits-fo-delivery-option--radio.is-selected .e-permits-fo-delivery-option__radio {
-  border-color: var(--color-border-brand-default, #0058d2);
-}
-
-.e-permits-fo-delivery-option--radio.is-selected .e-permits-fo-delivery-option__radio::after {
-  opacity: 1;
-  transform: scale(1);
+  flex: none;
 }
 
 .e-permits-fo-delivery-option.is-selected .e-permits-fo-delivery-option__check {
@@ -13299,19 +13195,13 @@
   padding: var(--spacing-12, 12px) var(--spacing-16, 16px);
 }
 
-.e-permits-builder__mini-check,
-.e-permits-builder__radio-stack label {
+.e-permits-builder__mini-check {
   align-items: center;
   color: var(--color-text-base-default, #121212);
   display: flex;
   font-size: var(--font-size-fs-14, 14px);
   gap: var(--spacing-8, 8px);
   line-height: var(--line-height-lh-20, 20px);
-}
-
-.e-permits-builder__radio-stack input {
-  accent-color: var(--color-background-brand-default, #0058d2);
-  flex: 0 0 auto;
 }
 
 .e-permits-builder__conditional-settings {
@@ -13407,12 +13297,6 @@
     border-width: var(--spacing-12, 12px);
     padding: var(--spacing-12, 12px);
   }
-}
-
-.e-permits-builder__radio-stack {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-8, 8px);
 }
 
 .e-permits-builder__static-summary {
@@ -20585,10 +20469,8 @@ button.e-permits-steps-strip__cell:focus-visible {
 }
 
 .e-permits-fo-field label.radio {
-  align-items: center;
   cursor: pointer;
-  gap: var(--spacing-8, 8px);
-  height: auto;
+  height: auto; /* gap / alignment = the ONE radio (css/radio.css) */
 }
 
 /* Traiectoria dosarului → css/trajectory.css (one component, 2026-10-20) */

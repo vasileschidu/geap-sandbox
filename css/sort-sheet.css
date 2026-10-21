@@ -33,18 +33,10 @@
   justify-content: flex-start;
 }
 
+/* the ONE radio, decorative Small (css/radio.css: selected through the item's aria-checked) */
 .e-permits-sort-menu__item > .radio {
   cursor: inherit;
   flex: none;
-}
-
-/* the library radio's checked look, driven by the item's aria-checked (the radio is decorative here) */
-.e-permits-sort-menu__item[aria-checked="true"] > .radio > .radio-custom {
-  border-color: var(--blue-sky-600, #0058d2);
-}
-
-.e-permits-sort-menu__item[aria-checked="true"] > .radio > .radio-custom::after {
-  transform: translate(-50%, -50%) scale(1);
 }
 
 /* Cabinet: the sort wrapper anchors its menu (it is not an act action, so the act-row phone sheet never takes it) */
@@ -95,8 +87,6 @@
 
 .radio.e-permits-sort-sheet__key {
   border-radius: var(--border-radius-8, 8px);
-  gap: var(--spacing-12, 12px);
-  margin: 0; /* the library label's 6px bottom margin */
   min-height: var(--spacing-48, 48px);
   padding: var(--spacing-12, 12px) var(--spacing-8, 8px);
   transition: background-color 0.15s ease;
@@ -111,25 +101,7 @@
   background: var(--color-background-base-tertiary-hover, #d9d9d9);
 }
 
-.e-permits-sort-sheet__key .radio-custom {
-  flex: none;
-}
-
-.e-permits-sort-sheet__key .radio-label {
-  color: var(--color-text-base-default, #121212);
-  font-size: var(--font-size-fs-16, 16px);
-  font-weight: var(--font-weight-fw-regular, 400);
-  line-height: var(--line-height-lh-24, 24px);
-}
-
-.e-permits-sort-sheet__key:has(.radio-input:checked) .radio-label {
-  font-weight: var(--font-weight-fw-medium, 500);
-}
-
-/* the library focus ring stays for the keyboard; a tap does not leave it on */
-.e-permits-sort-sheet__key .radio-input:focus:not(:focus-visible) + .radio-custom {
-  outline: none;
-}
+/* radio, label 16/24 500, focus ring = the ONE radio Medium (css/radio.css, radio-v1) */
 
 @media (prefers-reduced-motion: reduce) {
   .radio.e-permits-sort-sheet__key {

@@ -2307,3 +2307,31 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   surface, clip / out-of-surface flags) over 205 dialog states × 1440 / 320 gave the family table and the regression check in
   one run. Removing a footer action („Dezactivează în schimb”) = remove its action handler and its entry in the click
   router's keep-open list too; check the action still exists elsewhere (row ⋮ „Dezactivează”) and say where.
+- 2026-10-21 · Acts sort + the ONE radio (acts-sort-v1 / radio-v1; user: „the same Data depunerii sort for Actele permisive
+  too” + „make sure the radio is the component as in Figma 13:34 … this is our radio component from now on”). (1) Reusing
+  the sort = the shared `GEAPSortSheet.menuHtml / bind` + the page's `applySort` (page 1, live region, focus back) + the
+  facet filter's `sort:` option for the phone square — ~100 lines, no CSS; build the trigger with the markup the other
+  agent was introducing at that moment (sort-chip) instead of the old `.btn`. A new DEFAULT order moves rows between
+  pages: grep the demo states / parity specs that address rows by position or by an id on page 1 (pp-01f / pp-01i, the
+  act-row spec's `:nth-child(1)` + act-bistro) and pin them by id / page to them with `cabFind`. „Soonest expiry first”
+  must put acts that no longer run (Retras / Anulat / Expirat) after the running ones — a withdrawn act with a 2027 date
+  came first in the literal date order (caught by printing the order, not by the screenshot). Announcement casing:
+  lower-case only the first letter of „De la A la Z”.
+  (2) Figma component spec without get_design_context: REST `/v1/files/<key>/nodes?ids=13:34,13:41` (strokes / fills +
+  boundVariables, child „Circle” sizes, effect style „Focus Ring/Small”, text styles) + `/v1/images?scale=8` for the
+  side-by-side. The component set had a sibling `radio-label` 13:41 with the label / supporting-text spec — search the
+  file's components (`/components`) for the name before concluding „no label spec”. Figma's „Selected, Error” has no dot.
+  (3) Three radios lived in the product: library `.radio` (20, ring 757575, dot 12 at both sizes, gap 8, 6 px label
+  margin, `:focus` outline after every tap), the FO private `__control` circle (24, white fill, opacity dot), and a BO
+  classifier `label.radio` WITHOUT a size class = a 4 × 4 dot on screen (nobody had noticed). A measuring probe over every
+  `.radio-custom` / private circle per family (box · ring · fill · dot · text font · gap) on HEAD vs tree is the before /
+  after table; use `checkVisibility({ checkOpacity: true })` — the closed Form Builder overlay at opacity 0 leaked „Da”
+  radios into every FO state. ONE `css/radio.css` after main.css (button-icons pattern: library classes at (0,2,0) + later
+  order), Figma size names (`--medium` 24, `--small` 20), decorative radios selected by the OWNER (`[aria-checked]`,
+  `.is-selected`) so menus / cards need no JS; product files only place the radio. A library `.radio` is `width:
+  fit-content` → FO rows that became `.radio` needed `width: auto` to keep filling their grid column (measured equal).
+  (4) Audit rule 11 proved on a HEAD worktree (:8994): runtime 133 radio majors → 0, static radio-restyle 12 → 0; the
+  first version flagged the delivery „check” card (a hidden input, no circle) → count only NATIVE-painted inputs + private
+  circles. zsh `for f in $LIST` / `set -- $s` did not word-split AGAIN (twice in this job) — every multi-arg loop goes in
+  a bash script file. No sub-agent tool → component-audit, hover-audit (1440 + a 700 temp copy), code-audit (HEAD vs
+  tree: identical), compare-styles 0 run directly.

@@ -2111,8 +2111,8 @@
       const html = `
         <fieldset class="e-permits-fo-radio-group e-permits-fo-radio-group--contact" data-fo-contact-person>
           ${legend}
-          <label class="e-permits-fo-radio e-permits-fo-radio--option"><input type="radio" name="${name}" value="self" ${field.default !== "other" ? "checked" : ""}><span class="e-permits-fo-radio__control" aria-hidden="true"></span><span>Eu sunt persoana de contact</span></label>
-          <label class="e-permits-fo-radio e-permits-fo-radio--option"><input type="radio" name="${name}" value="other" ${field.default === "other" ? "checked" : ""}><span class="e-permits-fo-radio__control" aria-hidden="true"></span><span>Altă persoană</span></label>
+          <label class="radio radio--medium e-permits-fo-radio e-permits-fo-radio--option"><input class="radio-input" type="radio" name="${name}" value="self" ${field.default !== "other" ? "checked" : ""}><span class="radio-custom" aria-hidden="true"></span><span class="radio-texts"><span class="radio-label">Eu sunt persoana de contact</span></span></label>
+          <label class="radio radio--medium e-permits-fo-radio e-permits-fo-radio--option"><input class="radio-input" type="radio" name="${name}" value="other" ${field.default === "other" ? "checked" : ""}><span class="radio-custom" aria-hidden="true"></span><span class="radio-texts"><span class="radio-label">Altă persoană</span></span></label>
         </fieldset>
         <div class="e-permits-fo-detail-card e-permits-fo-contact-card e-permits-fo-contact-card--self" data-fo-contact-self>
           <div class="e-permits-fo-contact-card__grid">${shown("phone") ? phoneFieldHtml(phoneField, { readonly: true }) : ""}${selfEmail}</div>
@@ -2312,10 +2312,10 @@
           ${choiceLegendHtml(field)}
           <div class="e-permits-fo-choice__group${inline ? " e-permits-fo-choice__group--inline" : ""}">
             ${options.map((option) => `
-              <label class="e-permits-fo-radio e-permits-fo-radio--option">
-                <input type="radio" name="${escapeFrontOfficeHtml(id)}" value="${escapeFrontOfficeHtml(option.value)}"${option.value === field.value ? " checked" : ""}${field.readOnly ? " disabled" : ""}>
-                <span class="e-permits-fo-radio__control" aria-hidden="true"></span>
-                <span>${escapeFrontOfficeHtml(option.label)}</span>
+              <label class="radio radio--medium e-permits-fo-radio e-permits-fo-radio--option">
+                <input class="radio-input" type="radio" name="${escapeFrontOfficeHtml(id)}" value="${escapeFrontOfficeHtml(option.value)}"${option.value === field.value ? " checked" : ""}${field.readOnly ? " disabled" : ""}>
+                <span class="radio-custom" aria-hidden="true"></span>
+                <span class="radio-texts"><span class="radio-label">${escapeFrontOfficeHtml(option.label)}</span></span>
               </label>`).join("")}
           </div>
           ${fieldHintHtml(id, field)}
@@ -2816,7 +2816,7 @@
         : "";
       const indicatorHtml =
         indicator === "radio"
-          ? `<span class="e-permits-fo-radio__control e-permits-fo-delivery-option__radio" aria-hidden="true"></span>`
+          ? `<span class="radio radio--small e-permits-fo-delivery-option__radio" aria-hidden="true"><span class="radio-custom"></span></span>`
           : `<svg class="icon e-permits-fo-delivery-option__check" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-circle-checkmark-filled"></use></svg>`;
       return `
         <label class="e-permits-fo-delivery-option e-permits-fo-delivery-option--${escapeFrontOfficeHtml(indicator)}${selected ? " is-selected" : ""}">

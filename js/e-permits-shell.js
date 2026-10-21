@@ -10519,7 +10519,7 @@ document.addEventListener("DOMContentLoaded", () => {
       return `${clasCreateSection("Sursa", source)}
         ${clasCreateSection("Valori inițiale", `
           <div class="e-permits-clas-choice" role="radiogroup" aria-label="Valori inițiale">
-            ${[["empty", "Fără valori acum", "Le adaugi din tab-ul Valori, după creare."], ["csv", "Import din fișier CSV", "Fișierul se verifică pe coloanele definite la pasul Structură."]].map(([v, l, h]) => `<label class="radio"><input class="radio-input" type="radio" name="clas-c-values" value="${v}"${d.valoriStart === v ? " checked" : ""} data-clas-create-values><span class="radio-custom" aria-hidden="true"></span><span class="radio-label">${l}<span class="e-permits-clas-create__muted"> — ${h}</span></span></label>`).join("")}
+            ${[["empty", "Fără valori acum", "Le adaugi din tab-ul Valori, după creare."], ["csv", "Import din fișier CSV", "Fișierul se verifică pe coloanele definite la pasul Structură."]].map(([v, l, h]) => `<label class="radio radio--small"><input class="radio-input" type="radio" name="clas-c-values" value="${v}"${d.valoriStart === v ? " checked" : ""} data-clas-create-values><span class="radio-custom" aria-hidden="true"></span><span class="radio-texts"><span class="radio-label">${l}</span><span class="radio-description">${h}</span></span></label>`).join("")}
           </div>
           ${d.valoriStart === "csv" ? `
             <div class="e-permits-clas-import__keys"><span>Coloane acceptate:</span> ${cols.map((k) => renderTag(k, "neutral")).join(" ")}</div>
