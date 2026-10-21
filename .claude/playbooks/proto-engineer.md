@@ -2049,3 +2049,9 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   same literal → write it with border-width tokens. Process trap of the same hour: the figma-designer agent's commit
   38bf437a swept my staged batch 7 (shared index) while I was checking the stat — my own commit then held only the one
   file still unstaged. Stage + check + commit in ONE command, nothing in between (lesson 2026-10-20, again).
+- 2026-10-21 · Kept product components documented (user decisions: status filter tabs, BO side nav, user trigger, five
+  selectable cards, the `.btn-sm` re-skin, RAP header, Setări section nav, editor toolbar). The auditor agent had
+  already allow-listed them (`product` in the spec) — before writing allow-list entries, grep the spec: a second agent
+  owns it. Inventory rows carry MEASURED numbers (one probe over the states that show each: box, padding, type,
+  colours, radius, border) instead of numbers copied from old prose; the measurements also surfaced a PO item (the BO
+  role card padding 9 13 is off-scale).
