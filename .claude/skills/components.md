@@ -233,7 +233,7 @@ but this doc previously described it wrongly, see the entry.
 | Next step | `.e-permits-next-step` > `__label` + `__box` (icon + target); JS `renderNextStep(target, { label, icon })` | Figma 9721:9920 | app |
 | Toast | `.toast-container > .toast.toast--{info\|success\|warning\|error}` via `GEAPToast.show()` (`js/toast.js`) | `messaget-toast.html` | library |
 | Request statuses (Solicitările mele, status matrix 2026-10-20) | one table per status / variant: row tag · alert · meta date, profile status card + timeline, notification kind — drafts (pending note, signed + paid, removed automatically, Continuă / Elimină errors), În derulare after suplinire / after an expired suplinire, refused + appeal countdown, duplicate / suspendare / reluare, paper delivery, filed by a representative | `REQUEST_UI` / `normalize` / `autoRemoved` / `statusNow` / `timelineEvents` (solicitari.js), `eventsOf` (notificari.js); section „Request statuses — Solicitările mele”; demo sm-03d…03h, sm-04i…04l, sm-05o…05s, nt-01d…01g | page-app |
-| Request row (Solicitările mele, 2026-10-20) | the shared act row: `ul.e-permits-fo-intent__list.cab-act-list.cab-request-list > li.e-permits-fo-lib-item.e-permits-fo-intent-act.cab-request-row[data-sm-card](.is-new/.is-static)` — NO lead icon (grid `1fr | auto`), title = object + Small status tag (+ Aprobat / Respins, `.sm-tacit`), meta = the shared slots (§ „List rows — act + request”), right `.cab-doc__actions.cab-card__actions` = ⋮ only (`btn btn-neutral btn-sm btn-icon-only cab-card__more` (grey at rest), row-kebab-v1) or the lone „👁 Detalii” — phones: either one absolute in the top-right corner (shared act-trigger-fixed-v1 rule); the row (click / Enter) ALWAYS opens the details — every status, drafts included, never the FO form (2026-10-20), ACTION-ONLY alert in the act row notice slot (`noticeHtml`, warning / error) with one `.cab-alert-link` | `cabinet-evo/solicitari.js` `cardHtml` + ONE status map `REQUEST_UI` (tag tone · alert · date slot); demo sm-01*, sm-04h1 (alert link), sm-03i (draft row → details) | page-app |
+| Request row (Solicitările mele, 2026-10-20) | the shared act row: `ul.e-permits-fo-intent__list.cab-act-list.cab-request-list > li.e-permits-fo-lib-item.e-permits-fo-intent-act.cab-request-row[data-sm-card](.is-new/.is-static)` — NO lead icon (the ONE row anatomy, no grid / action column since trigger-corner-v1), title = object + Small status tag (+ Aprobat / Respins, `.sm-tacit`), meta = the shared slots (§ „List rows — act + request”), right `.cab-doc__actions.cab-card__actions` = ⋮ only (`btn btn-neutral btn-sm btn-icon-only cab-card__more` (grey at rest), row-kebab-v1) or the lone „👁 Detalii” — either one absolute in the card's top-right corner at EVERY width (shared rule, act-trigger-fixed-v1 phones → trigger-corner-v1 all widths); the row (click / Enter) ALWAYS opens the details — every status, drafts included, never the FO form (2026-10-20), ACTION-ONLY alert in the act row notice slot (`noticeHtml`, warning / error) with one `.cab-alert-link` | `cabinet-evo/solicitari.js` `cardHtml` + ONE status map `REQUEST_UI` (tag tone · alert · date slot); demo sm-01*, sm-04h1 (alert link), sm-03i (draft row → details) | page-app |
 | Key facts row | `dl.cab-facts > .cab-facts__item > dt + dd` (vertical dividers; stacks ≤600) | `factsHtml` (solicitari.js), catalog service page | page-app |
 | Callout tones | `.e-permits-callout--{info\|warning\|neutral\|success\|danger}` | `calloutHtml` (solicitari.js) | app |
 | **Trajectory (traiectoria dosarului) — one component** (2026-10-20; every process path: BO dossier, eKYC Plan de verificare / Traseul reviziei, FO finish tracker + „Statutul dosarului” incl. post-process, Cabinet „Stadiul solicitării”) | `.e-permits-trajectory(--vertical\|--bare)(.is-stacked)` › `ol.e-permits-trajectory__steps` › `li.__step.is-{done\|current\|paused\|attention\|rejected\|skipped\|todo}` › `__body` (`__marker` 24 icon / `__dot` ring · `__title` > `__label` (+ Small tag) · `__meta`); current label on the soft pill | `GEAPTrajectory.html({ steps, layout, bare, label, className })` (`js/trajectory.js`, `css/trajectory.css`); section „Trajectory (traiectoria dosarului) — one component”; demo dos-01 / 01b / 01g / 01h, ek-05g, ek-05d, ek-07e, fo-08, pp-10f, sm-04b | app |
@@ -2070,7 +2070,7 @@ down modal”. Result: the phone **action sheet for act / request menus is gone*
 
 | Part | Desktop (> 760) | Phones (≤ 760) |
 |---|---|---|
-| Trigger | acts „Postprocese ⌄” = `btn btn-neutral btn-sm` (32, radius 6 — square, not a pill) + 16 chevron (rotates when open); requests = the icon-only ⋮ `btn btn-neutral btn-sm btn-icon-only cab-card__more` (grey at rest) (32 square, radius 6, gray-100 fill, tooltip „Mai multe acțiuni”, `aria-label` „Acțiuni pentru <name>”; row-kebab-v1 — user: „Acțiuni is too ambiguous”); lone view action = „👁 Detalii” (no one-item menu); open = pressed + focus ring (`aria-expanded`) | same button, absolute in the card's top-right corner (10 / 10), centred on the tag line, row 1 reserves its width + 8 (§ „List rows — act + request” › Phone row anatomy, act-trigger-fixed-v1) |
+| Trigger (in the card's top-right corner at every width, trigger-corner-v1: desktop top = right = 12 on the 24 title line, phones 10 / 10 on the 20 tag line) | acts „Postprocese ⌄” = `btn btn-neutral btn-sm` (32, radius 6 — square, not a pill) + 16 chevron (rotates when open); requests = the icon-only ⋮ `btn btn-neutral btn-sm btn-icon-only cab-card__more` (grey at rest) (32 square, radius 6, gray-100 fill, tooltip „Mai multe acțiuni”, `aria-label` „Acțiuni pentru <name>”; row-kebab-v1 — user: „Acțiuni is too ambiguous”); lone view action = „👁 Detalii” (no one-item menu); open = pressed + focus ring (`aria-expanded`) | same button (§ „List rows — act + request” › Row anatomy) |
 | Position | under the button, right-aligned (`right: 0`) | right-aligned to the button; upwards (`.is-open-up`) when the screen has no room below and there is room above; never wider than the room on its side (`--act-menu-max`, 16 from the edges); left-aligned (`.is-fit-start`) when a button sits on the left |
 | Surface | the „Dropdown surface”: padding 4 · gap 2 · radius 12 · dropdown-effect · clip | padding 8 · gap 0 · **radius 16** · dropdown-effect · clip |
 | Item | the one dropdown item: 32 · 6 12 6 8 · 14/20 medium · icon 20 · gap 8 · r6 | **48** · padding 12 16 · gap 12 · **16/24 regular** · **icon 24** (label colour) · r8 |
@@ -6360,33 +6360,34 @@ Cabinet „Actele mele permisive”) and the Cabinet request rows („Solicităr
   Phones: title ≤ 2 lines (line-clamp), meta wraps.
 - **Title 16/24 medium at EVERY width** (2026-10-20, user: „make the card title 16 px on desktop too”): one line +
   ellipsis + tooltip on desktop, ≤ 2 lines on phones; act + request rows only (other document cards keep 14/20).
-- **Phone row anatomy (≤ 760, 2026-10-20; action-menu-v1 + act-trigger-fixed-v1 the same day)** — acts AND requests,
-  one CSS block („PHONE ROW ANATOMY” in e-permits-acte-permisive.css), no markup change: the row is a **flex-wrap box
-  (row gap 8, column gap 4, `align-items: flex-start`)** and the content block + the title row are `display: contents`,
-  so icon, tags, title, meta and notice are its items, placed by `order`: **row 1** [the 24 document icon (acts)] · the
-  Small tags (4 apart by the column gap, `margin-left: 0` — a wrapped tag starts at the padding) · **8** · **row 2** the
-  title 16/24, ≤ 2 lines, full width · **8** · **row 3** the meta 14/20 tertiary, wrapping (box `100% + 18` for the dot
-  clip) · any notice / alert full width 12 below.
-  **The row trigger — ONE rule for ⋮, the lone „👁 Detalii” and „Postprocese ⌄”** (act-trigger-fixed-v1, user: „the
-  Postprocese button with the same fixed placement on mobile as the 3 dots” + „when we have the straight Detalii, do the
-  same”): the action wrapper is `position: absolute` in the card's top-right corner (the card `position: relative`) —
-  top = right = 16 − (32 − 20) / 2 = **10** inside the border, so the button's centre = the centre of the 20 tag line
-  (**26** from the top). Row 1 reserves **`--row-trigger-w` + 8** through the row's `padding-right` (16 + R);
-  `--row-trigger-w` = the button's rendered width, written once per render by js/act-row.js `syncTriggerWidth` (all
-  widths read first, then written only when changed — a geometry custom property like `--act-menu-max`; CSS fallback 32 =
-  the ⋮). Measured: ⋮ 32 → R 40, „👁 Detalii” 87 → R 95, „Postprocese ⌄” 132 → R 140. Every full-width line under row 1
-  (title, meta, notice, retry) takes R back (`flex-basis: 100% + R`, meta `100% + 18 + R`, `margin-right: −R`) = full
-  card width. Tags wrap inside the reserved width, never under the button (stress-tested with 2 / 3 tags at 375 / 320).
-  No trigger (paper / expired acts with `hideEmptyAction`) = no reservation. The open menu stays anchored to the button
-  (the wrapper is its containing block; the card does not clip), pressed + focus ring through `aria-expanded`.
-  **The act row's document icon** stays: 24 on the 20 tag line, `margin-top: (20 − 24) / 2` + `align-self: flex-start`
-  → icon 14…38, centre 26 = the tags' and the trigger's centre, tags start 16 from the top and 48 from the left (icon 24
-  + 4 margin + 4 gap), the title starts at 46 (icon line box 22 + 8) vs 44 on the icon-less request rows.
-  Removed: the action-menu-v1 „move under the meta” fallback (`syncActionFit` / `.is-action-below`) — never needed now;
-  desktop (> 760) unchanged (geometry identical to HEAD at 1440 / 761). Card unchanged: padding 16, radius 16, stroke 1.5.
-  Parity `cabinet-request-row-vs-act-row.json` = 0 at 1440 / 375 / 320; act vs request differ ONLY by R (padding-right,
-  flex-basis, margin-right `expected`), incl. the „(Detalii)” pairs (request d-fresh). Known limit: Ghișeu (desktop-only)
-  forced to 320 has a 256 card → the status tag does not fit beside the icon and wraps under it.
+- **Row anatomy — ONE at every width (trigger-corner-v1, 2026-10-21; user: „on desktop let's also put the action for
+  cards fixed in the corner — for both Solicitări and Acte” + „if there is enough space on desktop, keep the status badge
+  as it was, next to the title”; phones since action-menu-v1 / act-trigger-fixed-v1, 2026-10-20)** — acts AND requests,
+  one CSS block („ROW ANATOMY” in e-permits-acte-permisive.css), no markup change: the row is a **flex-wrap box (row gap
+  8, column gap 4, `align-items: flex-start`)** and the content block + the title row are `display: contents`, so icon,
+  title, tags, meta and notice are its items, placed by `order`. The desktop grid with the right action column is gone.
+  | | Desktop (> 760) | Phones (≤ 760) |
+  |---|---|---|
+  | Line 1 | [24 document icon (acts), on the 24 title line] · **title 16/24 + tags INLINE** (title → tag 8, tags 4), tags centred on the title line | [24 icon, 2 above the 20 tag line] · **tags only** (4 apart), from 16 / 16 |
+  | Title | on line 1, ONE line + ellipsis + tooltip (js/act-row.js syncCut); shrinks before the tags (`flex: 1 1 0`, `min-width: 0`, `max-width: max-content`); a CUT title under 200 gets `.is-title-tight` (js/act-row.js syncTitleRoom) → `min-width: 200`, the tags that no longer fit wrap to line 2 (761–1023) | line 2, full card width, ≤ 2 lines (line-clamp) |
+  | Meta | own line, full width, ONE line — slot 2 shrinks first, then slot 3 (ellipsis + tooltip); `min-width: 0` keeps it inside the card | own line, full width, wrapping |
+  | Notice / alert | full width, 12 above | same |
+  | Trigger | absolute, **top = right = 16 − (32 − 24) / 2 = 12** inside the border = centred on the title line (centre 28) | absolute, **top = right = 16 − (32 − 20) / 2 = 10** = centred on the tag line (centre 26) |
+  **The row trigger — ONE rule for ⋮, the lone „👁 Detalii” and „Postprocese ⌄”**: the action wrapper is `position:
+  absolute` in the card's top-right corner (the card `position: relative`). Line 1 reserves **`--row-trigger-w` + 8**
+  through the row's `padding-right` (16 + R); `--row-trigger-w` = the button's rendered width, written by js/act-row.js
+  `syncTriggerWidth` (read all, then write if changed; CSS fallback 32 = the ⋮). Measured: ⋮ 32 → R 40, „👁 Detalii” 87
+  → R 95, „Postprocese ⌄” 132 → R 140. Every full-width line below line 1 (meta, notice, retry; phones also the title)
+  takes R back (`flex-basis: 100% + R`, meta `100% + 18 + R`, `margin-right: −R`) = full card width. No trigger (paper /
+  expired acts with `hideEmptyAction`) = no reservation. Menus: anchored under the trigger, right-aligned, flipped up
+  when the screen has no room below (desktop: js/act-row.js fitMenu; Ghișeu its own, against its scrolling window;
+  Cabinet requests CabEvo.fitMenu); pressed + focus ring through `aria-expanded`; the card never clips them.
+  **Verified** with a row-bounds assertion (every painted descendant inside the card's inner box — the meta's 18 dot-clip
+  strip excluded; title inside the 16 padding; a cut title has its tooltip; the trigger overlaps nothing) at 1440 / 1024 /
+  761 / 375 / 320 on sm-01, sm-01u, sm-01f, sm-02, pp-01, pp-01a, pp-01r (hover), pp-01t, pp-02, pp-02a, gh-02j, plus
+  2 / 3 / 4 cloned tags and long titles. Parity `cabinet-request-row-vs-act-row.json` = 0 at 1440 / 1024 / 375 / 320 — act
+  vs request differ only by R. Known limit: Ghișeu (desktop-only) forced to 320 has a 256 card → the status tag wraps
+  under the icon. Card: padding 16, radius 16, stroke 1.5.
 - **Phone list rhythm (≤ 760, 2026-10-20)** — Cabinet list pages (Solicitările mele, Actele mele permisive,
   Catalog, Notificări): ONE 16 step page title (or its description) → search → „Filtre” / sort row (Catalog: the
   category chips) → first card; the applied line „N rezultate · Șterge filtrele” = 8 under the pills, then 16 to
@@ -6399,13 +6400,13 @@ Cabinet „Actele mele permisive”) and the Cabinet request rows („Solicităr
   `aria-expanded`), `aria-label` „Acțiuni pentru <name>” (name = the row title), `data-tooltip-label` „Mai multe
   acțiuni”, `aria-haspopup="menu"` + `aria-controls`, opening the anchored menu (every action of the request, no
   downloads, danger last). A row whose only action is „Detalii” gets the lone „👁 Detalii” (`aria-label` „Detalii
-  despre <name>”). **Desktop**: the ⋮ in the right column, centred on title + meta (unchanged). **Phones (≤ 760)**: the
-  ⋮ is `position: absolute` in the card's top-right corner — top = right = 16 − (32 − 20) / 2 = 10 inside the border, so
+  despre <name>”). **Every width** (trigger-corner-v1; desktop was the right column until 2026-10-21): the
+  ⋮ is `position: absolute` in the card's top-right corner (desktop 12 / 12 on the title line; phones as follows) — top = right = 16 − (32 − 20) / 2 = 10 inside the border, so
   its centre = the centre of the 20 tag line (26 from the top) and the tags start at 16 / 16; row 1 (the tags, 4 apart by
   column-gap, wrapping) reserves 32 + 8 on the right (row padding-right 56); title / meta / alert take the 40 back
   (`flex-basis: 100% + 40`, `margin-right: −40`) = full card width. Every request row has a status tag, so row 1 always
   exists. Since act-trigger-fixed-v1 the lone „👁 Detalii” and the acts' „Postprocese ⌄” sit in the same corner through
-  the same shared rule (Phone row anatomy above; the Cabinet-only block in cabinet-evo.css is gone).
+  the same shared rule (Row anatomy above; the Cabinet-only block in cabinet-evo.css is gone).
   **The row** (click / Enter / Space) ALWAYS opens the request's details — every status, drafts included (user
   2026-10-20: „clicking on the entire card should always show the details, not redirect to the full flow”); the flow
   actions stay explicit: ⋮ (Continuă schița, Suplinire informații, Achită, Depune contestație), the alert's inline

@@ -154,7 +154,18 @@
   function fitMenu(trigger) {
     const menu = document.getElementById(trigger.getAttribute("aria-controls") || "");
     if (!menu || menu.classList.contains("cab-menu")) return; /* Cabinet request menus: CabEvo fitMenu */
-    if (!PHONE.matches) { menu.classList.remove("is-fit-end", "is-fit-start"); menu.style.removeProperty("--act-menu-max"); return; } /* desktop: as it was */
+    if (!PHONE.matches) {
+      /* desktop: right-aligned under the trigger (CSS `right: 0`); upwards when the screen has no room below
+         (trigger-corner-v1: the trigger now sits at the card's top, so a low card can push the menu off-screen) */
+      menu.classList.remove("is-fit-end", "is-fit-start");
+      menu.style.removeProperty("--act-menu-max");
+      /* Ghișeu flips its menus itself against its scrolling window body (js/ghiseu.js toggleIntentMenu) */
+      if (menu.hidden || trigger.closest(".modal-content, [data-gh-body]")) return;
+      menu.classList.remove("is-open-up");
+      const rect = menu.getBoundingClientRect();
+      if (rect.bottom > window.innerHeight - EDGE && trigger.getBoundingClientRect().top - rect.height - EDGE >= EDGE) menu.classList.add("is-open-up");
+      return;
+    }
     menu.classList.remove("is-fit-end", "is-fit-start", "is-open-up");
     menu.style.removeProperty("--act-menu-max");
     if (menu.hidden) return;
@@ -182,14 +193,13 @@
      Phones: title up to 2 lines, meta wraps — nothing to name. Re-measured on resize / new rows / fonts. ---- */
   const DESKTOP = window.matchMedia("(min-width: 761px)");
   const textOf = (el) => el.textContent.replace(/\s+/g, " ").trim();
-  /* phones (act-trigger-fixed-v1, 2026-10-20): the row's trigger (⋮ / „👁 Detalii” / „Postprocese ⌄”) sits in the
+  /* every width (act-trigger-fixed-v1 phones 2026-10-20 → trigger-corner-v1 all widths 2026-10-21): the row's trigger (⋮ / „👁 Detalii” / „Postprocese ⌄”) sits in the
      card's top-right corner (CSS „PHONE ROW ANATOMY”) and row 1 reserves its width + 8 through `--row-trigger-w`
      — a geometry custom property (like `--act-menu-max`), written only when it changes. All widths are READ
      first, then written, in one pass (no read / write interleaving). Hidden rows (width 0) keep their value.
      (Replaces the action-menu-v1 `is-action-below` fallback: the button no longer wraps under the meta.) */
   const TRIGGER_BTN = ":scope > :is(.e-permits-fo-intent-act__action, .cab-doc__actions) .btn";
   function syncTriggerWidth(rows) {
-    if (DESKTOP.matches) return;
     const widths = rows.map((row) => Math.ceil(row.querySelector(TRIGGER_BTN)?.getBoundingClientRect().width || 0));
     rows.forEach((row, i) => {
       const value = widths[i] ? `${widths[i]}px` : "";
@@ -197,9 +207,22 @@
       row.style.setProperty("--row-trigger-w", value);
     });
   }
+  /* desktop (trigger-corner-v1): title + tags inline; a CUT title narrower than 200 (= the CSS floor) gets
+     `.is-title-tight` → the tags that no longer fit wrap to line 2. Class off for all rows, read all, then write. */
+  const TITLE_MIN = 200;
+  function syncTitleRoom(rows) {
+    rows.forEach((row) => row.classList.remove("is-title-tight"));
+    if (!DESKTOP.matches) return;
+    const tight = rows.map((row) => {
+      const title = row.querySelector(".e-permits-fo-lib-item__title");
+      return Boolean(title && title.clientWidth && title.clientWidth < TITLE_MIN && title.scrollWidth > title.clientWidth + 1);
+    });
+    rows.forEach((row, i) => { if (tight[i]) row.classList.add("is-title-tight"); });
+  }
   function syncCut() {
     const rows = [...document.querySelectorAll(".e-permits-fo-intent-act")];
     syncTriggerWidth(rows);
+    syncTitleRoom(rows);
     rows.forEach((row) => {
       const title = row.querySelector(".e-permits-fo-lib-item__title");
       const meta = row.querySelector(".e-permits-fo-doc-meta");

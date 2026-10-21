@@ -1664,3 +1664,21 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   window's sticky header (fitMenu measures the viewport, not the scroll box). No sub-agent tool → component-audit (only
   pre-existing header / shell majors), hover-audit 0 / 0 at 1440 + 700 (FO / Ghișeu need `--scope body`: `main` = 0
   interactive), code-audit (meta 18 FP only), compare-styles 0 with the „(Detalii)” pairs added.
+- 2026-10-21 · Corner trigger at EVERY width + desktop title / tags inline (trigger-corner-v1; user: „on desktop also put the
+  action fixed in the corner”, mid-job „make sure it's right here” with a screenshot of the META running out of the
+  card, then „keep the status badge next to the title if there is space”). (1) Unscoping a phone flex anatomy to desktop
+  broke what the GRID used to cap: a `nowrap` one-line meta as a flex item has `min-width: auto` = its min-content →
+  1 230 px wide in a 976 card. A grid column (`minmax(0, …)`) had hidden that; in flex add `min-width: 0` to every
+  nowrap / ellipsis item. `scrollWidth > clientWidth` on the page caught it, but only after I had already looked at
+  numbers that „seemed right” — so (2) a ROW-BOUNDS assertion is now the gate: every painted descendant inside the
+  card's inner box (exclude open menus; measure the PAINTED box — the meta's 18 dot-clip strip starts outside by
+  design), title inside the 16 padding, a cut title has its tooltip, the trigger overlaps nothing — at 1440 / 1024 /
+  761 / 375 / 320 incl. a hover state and cloned 2–4 tags + long titles (scratch rowcheck.js / stress.js). (3) „Title
+  floor of 200, but only when the title is long”: CSS can't — `min-width` beats `max-width: max-content`, so a short
+  title got an empty 200 box before its tag (seen in the 1440 crop, not in the numbers). Measured class instead
+  (`.is-title-tight` when a CUT title < 200; class off → read all → write). (4) The desktop `fitMenu` flip must not
+  clear a flip the page computed itself (Ghișeu flips against its scrolling window) — skip those containers.
+  (5) Another agent committed icon changes on top of my previous commit mid-job (circle-x): re-read `git log` before
+  staging, rebuild the playbook blob from the NEW HEAD. Dead grid rules (Cabinet request grid, action column) removed in
+  the same change. No sub-agent tool → component-audit (rows 0), hover-audit 0 / 0 (1440 + 700), code-audit (meta 18
+  FP), compare-styles 0 at 1440 / 1024 / 375 / 320.

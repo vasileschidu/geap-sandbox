@@ -1537,27 +1537,9 @@
   margin-top: var(--spacing-24, 24px);
 }
 
-/* no lead icon (user 2026-10-20): the act-row grid WITHOUT its icon column — [title + tags | actions] /
-   [meta | actions] / [notice across]; the actions stay centred on title + meta (their 1 / -1 ends at the two
-   explicit rows, the notice sits in the act row's row 3). Selectors carry the list + both row classes: the
-   shared document-card grid rules (e-permits-acte-permisive.css) are (0,3,0)–(0,4,0) and must lose. */
-.cab-request-list > .cab-request-row.e-permits-fo-lib-item:has(> .e-permits-fo-lib-item__content) {
-  grid-template-columns: minmax(0, 1fr) auto;
-  grid-template-rows: auto auto;
-}
-
-.cab-request-list > .cab-request-row.e-permits-fo-lib-item > .e-permits-fo-lib-item__content > :is(.e-permits-fo-doc-title-row, .e-permits-fo-doc-meta) {
-  grid-column: 1;
-}
-
-.cab-request-list > .cab-request-row.e-permits-fo-lib-item > .cab-doc__actions {
-  grid-column: 2;
-  grid-row: 1 / span 2;
-}
-
-.cab-request-list > .cab-request-row.e-permits-fo-lib-item.is-static:has(> .e-permits-fo-lib-item__content) {
-  grid-template-columns: minmax(0, 1fr);
-}
+/* no lead icon (user 2026-10-20): request rows are the shared act row without the icon — the ONE row anatomy at
+   every width (e-permits-acte-permisive.css „ROW ANATOMY”, trigger-corner-v1 2026-10-21: the desktop grid with the
+   right action column is gone, the trigger sits in the card's corner). */
 
 /* the action wrapper inside .cab-doc__actions lays its button out like the act row's (flex item → same box,
    action-menu-v1 parity: tools/ui-qa/specs/cabinet-request-row-vs-act-row.json) */

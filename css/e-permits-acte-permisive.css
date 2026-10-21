@@ -17326,17 +17326,20 @@
   line-height: var(--line-height-lh-24, 24px);
 }
 
-/* PHONE ROW ANATOMY (≤760, 2026-10-20, user: „title 16 on mobile; the badge on top in the same row with the
+/* ROW ANATOMY — ONE at every width (trigger-corner-v1, 2026-10-21, user: „on desktop let's also put the action for
+   cards fixed in the corner — for both Solicitări and Acte”; was PHONE ROW ANATOMY ≤760, 2026-10-20, user: „title 16 on
+   mobile; the badge on top in the same row with the
    dots”; action-menu-v1 same day: „Actele mele permisive … badge up, in the same row as the action button,
    buttons square, similar to Solicitările mele”) — FO #intent, Ghișeu, Cabinet acts AND requests (one row
    component, js/act-row.js), ONE anatomy:
      row 1  [the 24 document icon (act rows)] · the Small tags (status, „Aprobare tacită”, „Semnat electronic”);
             the row's trigger (⋮ / „👁 Detalii” / „Postprocese ⌄”) in the top-right corner (below)
-     row 2  the title 16/24 medium, ≤ 2 lines + ellipsis, full card width
-     row 3  the meta 14/20 tertiary, wrapping, full width
+     row 2  the title 16/24 medium, full card width — desktop ONE line + ellipsis + tooltip, phones ≤ 2 lines
+     row 3  the meta 14/20 tertiary, full width — desktop one line (slots shrink, „long names”), phones wrapping
      then   any alert / notice full width (12 above)
    How: the row is a flex-wrap box (gap 8) and the content block + the title row are `display: contents`, so
-   tags, title, meta and notice are its items, placed by `order` — no markup change, desktop (> 760) untouched.
+   tags, title, meta and notice are its items, placed by `order` — no markup change; the desktop grid with the
+   right action column is gone (the shared document-card grid rules are inert on a flex box).
    Card spec unchanged: padding 16, radius 16, 1.5 stroke.
    THE ROW TRIGGER (act-trigger-fixed-v1, 2026-10-20, user: „the Postprocese button with the same fixed placement on
    mobile as the 3 dots” + „when we have the straight Detalii, do the same”): ONE rule for the ⋮, the lone
@@ -17348,83 +17351,135 @@
    (title, meta, notice, retry) takes the reservation back (`flex-basis: 100% + R`, `margin-right: −R`). The act
    row's 24 document icon sits on the 20 tag line (2 above it, centre 26) so the tags start 16 / 16 on every row.
    A row with no trigger (paper / expired acts) reserves nothing. */
-@media (max-width: 760px) {
-  /* row 1 holds only [icon ·] tags → tags 4 apart through the column gap, not the shared −4 margin (a tag that
-     wraps to a second line would start 4 left of the card padding); the icon keeps 8 to the first tag */
-  .e-permits-fo-lib-item.e-permits-fo-intent-act:has(> .e-permits-fo-lib-item__content) {
-    align-items: flex-start;
-    column-gap: var(--spacing-4, 4px);
-    display: flex;
-    flex-wrap: wrap;
-    row-gap: var(--spacing-8, 8px);
+/* row 1 holds only [icon ·] tags → tags 4 apart through the column gap, not the shared −4 margin (a tag that
+   wraps to a second line would start 4 left of the card padding); the icon keeps 8 to the first tag */
+.e-permits-fo-lib-item.e-permits-fo-intent-act:has(> .e-permits-fo-lib-item__content) {
+  align-items: flex-start;
+  column-gap: var(--spacing-4, 4px);
+  display: flex;
+  flex-wrap: wrap;
+  row-gap: var(--spacing-8, 8px);
+}
+
+.e-permits-fo-lib-item.e-permits-fo-intent-act > .e-permits-fo-lib-item__content > .e-permits-fo-doc-title-row {
+  display: contents;
+}
+
+.e-permits-fo-lib-item.e-permits-fo-intent-act > .e-permits-fo-lib-item__content > .e-permits-fo-doc-title-row > :not(.e-permits-fo-lib-item__title) {
+  margin-left: 0;
+}
+
+/* the 24 icon on the 20 tag line: 2 above it → centre 26 = the tags' and the trigger's centre; its line box
+   is 22, so the title starts 8 under the icon */
+.e-permits-fo-lib-item.e-permits-fo-intent-act > .e-permits-fo-lib-item__icon {
+  align-self: flex-start;
+  flex: 0 0 var(--spacing-24, 24px);
+  margin-right: var(--spacing-4, 4px);
+  margin-top: calc((var(--spacing-20, 20px) - var(--spacing-24, 24px)) / 2);
+}
+
+/* THE ROW TRIGGER (see the header): the card's top-right corner, row 1 reserves its width + 8 */
+.e-permits-fo-lib-item.e-permits-fo-intent-act:has(> .e-permits-fo-lib-item__content):has(> :is(.e-permits-fo-intent-act__action, .cab-doc__actions) .btn) {
+  --row-trigger-reserve: calc(var(--row-trigger-w, var(--spacing-32, 32px)) + var(--spacing-8, 8px));
+  padding-right: calc(var(--spacing-16, 16px) + var(--row-trigger-reserve));
+  position: relative;
+}
+
+.e-permits-fo-lib-item.e-permits-fo-intent-act > :is(.e-permits-fo-intent-act__action, .cab-doc__actions):has(.btn) {
+  margin: 0;
+  position: absolute;
+  right: calc(var(--spacing-16, 16px) - (var(--spacing-32, 32px) - var(--spacing-20, 20px)) / 2);
+  top: calc(var(--spacing-16, 16px) - (var(--spacing-32, 32px) - var(--spacing-20, 20px)) / 2);
+}
+
+/* the title on its own line, full width: ONE line + ellipsis + tooltip on desktop (the shared title rule +
+   js/act-row.js syncCut), ≤ 2 lines on phones (below) */
+.e-permits-fo-lib-item.e-permits-fo-intent-act > .e-permits-fo-lib-item__content > .e-permits-fo-doc-title-row > .e-permits-fo-lib-item__title {
+  flex: 0 0 100%;
+  max-width: none;
+  order: 2;
+}
+
+/* the meta box starts 18 left of its text (the dot-clip strip, see „document meta”) → 100% + 18 wide; min-width 0
+   so the desktop ONE-line meta (nowrap parts) shrinks its slots instead of growing to its min-content (the old grid
+   column capped it) */
+.e-permits-fo-lib-item.e-permits-fo-intent-act > .e-permits-fo-lib-item__content > .e-permits-fo-doc-meta {
+  flex: 0 0 calc(100% + var(--fo-doc-meta-sep));
+  min-width: 0;
+  order: 3;
+}
+
+.e-permits-fo-lib-item.e-permits-fo-intent-act > .e-permits-fo-lib-item__content > .e-permits-fo-intent-act__pending,
+.e-permits-fo-lib-item.e-permits-fo-intent-act > :is(.cab-request-row__notice, .cab-retry) {
+  flex: 0 0 100%;
+  margin-top: var(--spacing-4, 4px);
+  order: 5;
+}
+
+/* with a trigger: the full-width lines under row 1 take the reservation back */
+.e-permits-fo-lib-item.e-permits-fo-intent-act:has(> :is(.e-permits-fo-intent-act__action, .cab-doc__actions) .btn) > .e-permits-fo-lib-item__content > .e-permits-fo-doc-title-row > .e-permits-fo-lib-item__title,
+.e-permits-fo-lib-item.e-permits-fo-intent-act:has(> :is(.e-permits-fo-intent-act__action, .cab-doc__actions) .btn) > .e-permits-fo-lib-item__content > .e-permits-fo-intent-act__pending,
+.e-permits-fo-lib-item.e-permits-fo-intent-act:has(> :is(.e-permits-fo-intent-act__action, .cab-doc__actions) .btn) > :is(.cab-request-row__notice, .cab-retry) {
+  flex-basis: calc(100% + var(--row-trigger-reserve));
+  margin-right: calc(var(--row-trigger-reserve) * -1);
+}
+
+.e-permits-fo-lib-item.e-permits-fo-intent-act:has(> :is(.e-permits-fo-intent-act__action, .cab-doc__actions) .btn) > .e-permits-fo-lib-item__content > .e-permits-fo-doc-meta {
+  flex-basis: calc(100% + var(--fo-doc-meta-sep) + var(--row-trigger-reserve));
+  margin-right: calc(var(--row-trigger-reserve) * -1);
+}
+
+/* DESKTOP (> 760, trigger-corner-v1, user 2026-10-21: „if there is enough space on desktop, keep the status badge as
+   it was, next to the title”): row 1 = [icon ·] title · tags INLINE (no tag row), all centred on the 24 title line;
+   the trigger stays in the corner, centred on that line: top = right = 16 − (32 − 24) / 2 = 12; the line reserves
+   `--row-trigger-w` + 8 (the same padding-right). The title (ONE line, ellipsis + tooltip) shrinks before the tags,
+   which never shrink (title `flex: 1 1 0`, `min-width: 0`, `max-width: max-content` → the tags sit right after it).
+   Below 200 (761–1023 with long tags) the tags wrap to a second line instead of squeezing it: js/act-row.js
+   syncTitleRoom measures (a cut title narrower than 200) and sets `.is-title-tight` → the title gets `min-width: 200`,
+   which moves the tags that no longer fit to line 2 (a CSS-only floor would also widen SHORT titles and leave a gap
+   before the tag). Title → first tag 8, tags 4 apart. Meta (one line, slots shrink) and alerts use the full width. */
+@media (min-width: 761px) {
+  .e-permits-fo-lib-item.e-permits-fo-intent-act > .e-permits-fo-lib-item__content > .e-permits-fo-doc-title-row > .e-permits-fo-lib-item__title {
+    flex: 1 1 0;
+    max-width: max-content;
+    min-width: 0;
+    order: 0;
   }
 
-  .e-permits-fo-lib-item.e-permits-fo-intent-act > .e-permits-fo-lib-item__content > .e-permits-fo-doc-title-row {
-    display: contents;
+  .e-permits-fo-lib-item.e-permits-fo-intent-act.is-title-tight > .e-permits-fo-lib-item__content > .e-permits-fo-doc-title-row > .e-permits-fo-lib-item__title {
+    min-width: min(calc(var(--spacing-40, 40px) * 5), 100%);
+  }
+
+  .e-permits-fo-lib-item.e-permits-fo-intent-act:has(> :is(.e-permits-fo-intent-act__action, .cab-doc__actions) .btn) > .e-permits-fo-lib-item__content > .e-permits-fo-doc-title-row > .e-permits-fo-lib-item__title {
+    flex-basis: 0;
+    margin-right: 0;
   }
 
   .e-permits-fo-lib-item.e-permits-fo-intent-act > .e-permits-fo-lib-item__content > .e-permits-fo-doc-title-row > :not(.e-permits-fo-lib-item__title) {
-    margin-left: 0;
+    align-self: center;
   }
 
-  /* the 24 icon on the 20 tag line: 2 above it → centre 26 = the tags' and the trigger's centre; its line box
-     is 22, so the title starts 8 under the icon */
+  .e-permits-fo-lib-item.e-permits-fo-intent-act > .e-permits-fo-lib-item__content > .e-permits-fo-doc-title-row > .e-permits-fo-lib-item__title + :not(.e-permits-fo-lib-item__title) {
+    margin-left: var(--spacing-4, 4px);
+  }
+
   .e-permits-fo-lib-item.e-permits-fo-intent-act > .e-permits-fo-lib-item__icon {
-    align-self: flex-start;
-    flex: 0 0 var(--spacing-24, 24px);
-    margin-right: var(--spacing-4, 4px);
-    margin-top: calc((var(--spacing-20, 20px) - var(--spacing-24, 24px)) / 2);
-  }
-
-  /* THE ROW TRIGGER (see the header): the card's top-right corner, row 1 reserves its width + 8 */
-  .e-permits-fo-lib-item.e-permits-fo-intent-act:has(> .e-permits-fo-lib-item__content):has(> :is(.e-permits-fo-intent-act__action, .cab-doc__actions) .btn) {
-    --row-trigger-reserve: calc(var(--row-trigger-w, var(--spacing-32, 32px)) + var(--spacing-8, 8px));
-    padding-right: calc(var(--spacing-16, 16px) + var(--row-trigger-reserve));
-    position: relative;
+    margin-top: 0;
   }
 
   .e-permits-fo-lib-item.e-permits-fo-intent-act > :is(.e-permits-fo-intent-act__action, .cab-doc__actions):has(.btn) {
-    margin: 0;
-    position: absolute;
-    right: calc(var(--spacing-16, 16px) - (var(--spacing-32, 32px) - var(--spacing-20, 20px)) / 2);
-    top: calc(var(--spacing-16, 16px) - (var(--spacing-32, 32px) - var(--spacing-20, 20px)) / 2);
+    right: calc(var(--spacing-16, 16px) - (var(--spacing-32, 32px) - var(--spacing-24, 24px)) / 2);
+    top: calc(var(--spacing-16, 16px) - (var(--spacing-32, 32px) - var(--spacing-24, 24px)) / 2);
   }
+}
 
+@media (max-width: 760px) {
   .e-permits-fo-lib-item.e-permits-fo-intent-act > .e-permits-fo-lib-item__content > .e-permits-fo-doc-title-row > .e-permits-fo-lib-item__title {
     -webkit-box-orient: vertical;
     display: -webkit-box;
-    flex: 0 0 100%;
     -webkit-line-clamp: 2;
     line-clamp: 2;
-    max-width: none;
-    order: 2;
     white-space: normal;
-  }
-
-  /* the meta box starts 18 left of its text (the dot-clip strip, see „document meta”) → 100% + 18 wide */
-  .e-permits-fo-lib-item.e-permits-fo-intent-act > .e-permits-fo-lib-item__content > .e-permits-fo-doc-meta {
-    flex: 0 0 calc(100% + var(--fo-doc-meta-sep));
-    order: 3;
-  }
-
-  .e-permits-fo-lib-item.e-permits-fo-intent-act > .e-permits-fo-lib-item__content > .e-permits-fo-intent-act__pending,
-  .e-permits-fo-lib-item.e-permits-fo-intent-act > :is(.cab-request-row__notice, .cab-retry) {
-    flex: 0 0 100%;
-    margin-top: var(--spacing-4, 4px);
-    order: 5;
-  }
-
-  /* with a trigger: the full-width lines under row 1 take the reservation back */
-  .e-permits-fo-lib-item.e-permits-fo-intent-act:has(> :is(.e-permits-fo-intent-act__action, .cab-doc__actions) .btn) > .e-permits-fo-lib-item__content > .e-permits-fo-doc-title-row > .e-permits-fo-lib-item__title,
-  .e-permits-fo-lib-item.e-permits-fo-intent-act:has(> :is(.e-permits-fo-intent-act__action, .cab-doc__actions) .btn) > .e-permits-fo-lib-item__content > .e-permits-fo-intent-act__pending,
-  .e-permits-fo-lib-item.e-permits-fo-intent-act:has(> :is(.e-permits-fo-intent-act__action, .cab-doc__actions) .btn) > :is(.cab-request-row__notice, .cab-retry) {
-    flex-basis: calc(100% + var(--row-trigger-reserve));
-    margin-right: calc(var(--row-trigger-reserve) * -1);
-  }
-
-  .e-permits-fo-lib-item.e-permits-fo-intent-act:has(> :is(.e-permits-fo-intent-act__action, .cab-doc__actions) .btn) > .e-permits-fo-lib-item__content > .e-permits-fo-doc-meta {
-    flex-basis: calc(100% + var(--fo-doc-meta-sep) + var(--row-trigger-reserve));
-    margin-right: calc(var(--row-trigger-reserve) * -1);
   }
 }
 
