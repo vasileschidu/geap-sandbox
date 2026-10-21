@@ -2844,3 +2844,29 @@ For any „research how other products do it” step, search Mobbin (mcp__mobbin
     (section-over-card gap 0, profile behind a modal cut at the viewport).
   - Left: the RAP desktop breadcrumb still ends with a trailing „›” (code breadcrumb-v2 in the same commit ends on the act name,
     Active Level on, 30-char cut) — not asked here; modal rows 200 vs code 163.
+
+- 2026-10-21 · Breadcrumb never repeats the page title (code 9dcee919 breadcrumb-v3; user: „the breadcrumb should not repeat the
+  page title, it's already there”). Every library breadcrumb (232:5282, set cafee05e…) above an H1 → `👁️ Active Level#5159:7` =
+  false; the trail ends on the last parent with its own chevron (each Level item carries it — no other change needed). Counts
+  (desktop instances with Active Level ON, before → after): GEAP 319 → 1 (Services 185, Classifiers 23, Dossiers 50, User Management
+  39, Notification templates 19, Application Shell 3; done through the mains `Main Navigation` 9442:44686, Dossiers 9706:6955, the
+  4 `Profile / Header` variants 10133:184435 / 184551 / 184617 / 184693, notification header 10008:1624 + 61 own instances; 0
+  nested overrides needed); kept ON = Process Designer sub-process trail 5740:27424 (replaces the title). EVO Cabinet 26 → 0 (My
+  requests 18, My Permits 8; 17 of them are empty archive instances „Request profile / …”); eKYC 125 → 0 (8 BO pages);
+  EVO-WEB RAP 0 → 0 (36 desktop instances already parents-only = code rap-01 / rap-02d). Mobile („‹ parent”) untouched.
+  Probed code at 1440 (svc-01, dos-01, sm-05, rap-01, rap-02d): trails equal Figma. Lessons:
+  - **Census by component property, not by name**: `findAllWithCriteria({types:["INSTANCE"]})` (descends into instances), keep
+    nodes whose `componentProperties` has the property key, then confirm the set key with `getMainComponentAsync`. Group ON ones by
+    `D` (own) / `C:<main id>` (inside a local main) / `N:<last id segment>` (nested in another instance) → set the own + main ones
+    first, then re-scan nested ones (only overridden ones stay ON). Group keys must include the page ID — two pages named
+    „Configuration · …” overwrote each other's counts.
+  - The record code goes with the Active Level (D-2026-…, IDNP, KYC-…, GEAP-…, CJ-…). A code that is a PARENT level stays — the
+    classifier opened from a service (Services 08a / 08a1 / 08a2 / 08b: „Administrare › Configurări servicii › 003000023 ›”) is the
+    code's `fromService` crumb, kept by parentsOnly too. Check the caller's crumb array before deleting a level.
+  - Out of scope, left ON and reported: FO form headers (Post-processes, FOD Address, FO 09 — `Solicitările mele` drawn as the Active
+    Level, no H1 repetition; the FO header in code was not changed) and the EVO-WEB catalog main 3151:5786 („Servicii publice › Acte
+    de identitate” over „Acte de identitate și …”).
+  - A walk over a page another agent is editing can hit „node does not exist” mid-loop (rolled back) → guard every node with
+    `removed` + try / catch and retry.
+  - Stored `ghs/audit` is an `async (ROOTS) => {…}` source — run it with `eval(src)(ids)`, not the AsyncFunction constructor
+    (that returns undefined). 0 findings on 5 changed headers.
