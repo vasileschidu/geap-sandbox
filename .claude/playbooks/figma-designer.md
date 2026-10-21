@@ -2703,3 +2703,23 @@ For any „research how other products do it” step, search Mobbin (mcp__mobbin
     Use keys like „figqacad”.
   - With a rate limit already hit that day, store the audit in a separate first call and run each block in its own small
     call. A dropped transport then loses one block's work, not the whole lane.
+- 2026-10-21 · Same job, DONE after reconnect (coordinator: build it with the recommendations). New block **C01c 12280:361263** „Address
+  parts → sample address” under C01b (x 160, 240 gap) on GEAP ↳ FOD Pattern -> Address, section 11224:39519: left = an unclipped clone of
+  C01b's own captured „Componentele adresei” list (all 11 rows; the 710 px scroll view can never show them all), right = one segment chip per
+  row (Desktop/Body/Small 500, brand-subtle / base-secondary for empty or default parts, p 4/8, radius-6) aligned with its row, then the
+  composed address card next to „Cod cadastral”. 11 connectors cloned from 11254:13336 (Țară → Republica Moldova „default value, not shown”,
+  Raion → mun. Chișinău, Oraș → MD-2001 „derives the postcode”, Sector → sec. Buiucani „only for Chișinău”, Stradă / Casă / Bloc / Ap. →
+  their chips, Etaj / Scară → „left out (empty)”, Cod cadastral → the composed card „fills all parts from the registry”). Lane 11251:14282
+  grown, the two skeleton components moved 280 below it, Contents column 11280:15130 got the C01c line (5 → 6 ecrane). Lessons:
+  - **Straight mapping arrows = mirror the source rows**: a target column of FIXED-height rows (height = the source row pitch, chip at
+    paddingTop 12) + connector start `position {x: row width, y: label centre}` and end magnet LEFT → every arrow is a straight horizontal
+    line, no crossings, labels fit in a 240 gap.
+  - **Connectors whose two ends are in one block are re-parented by Figma into the ends' common ancestor** (here the block's auto-layout
+    content frame; they are not laid out). Keep them there: they travel with the block and show in its screenshot; moved to the section,
+    `get_screenshot` of the block no longer draws them.
+  - **Label pill**: a connector cloned with an empty label and given text later lost the pill (`textBackground` is read-only) → set
+    `text.characters` right after `clone()`, or re-clone.
+  - A cloned captured list inside a new card collapsed to ~74 px (the margin frame came out FILL inside a HUG card, clip on) → FIXED to
+    the source width (357, the section inside sits at −12), clip off, card paddingBottom 24 for the −12 overflow.
+  - Stored `qsweep/audit` on C01c: 0 findings in the new pieces; 22 raw „Button” + 22 image-fill icons inside the cloned rows = the same
+    captured debt as C01 / C01a / C01b (whole-column fix, not done here). No Agent tool → no ui-qa-figma run.
