@@ -2291,3 +2291,19 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   re-grep every cache key right before committing. (4) My scratch crop script measured before the paint of long lists
   (blank crops for nt-01 / cat-01) — the full-page capture.mjs PNGs were the reliable evidence. Audits: hover 0 / 0,
   code-audit / component-audit only standing findings (headers, avatar menu, copy, a visually-hidden tag span).
+- 2026-10-21 · Dialog footer = the library size (dialog-footer-v1; user: „for gaps, do as in the Figma components buttons”, „do
+  just Șterge”). Measured the library with REST `/v1/files/<key>/nodes?ids=…&depth=4` (token in `~/.figma_token_agile`; the
+  MCP had no create_session / get_design_context here): Modal › `.modal-footer` Size = Medium (the one the `modal` component
+  uses) = footer 12 · 20 · 24 · 20, gap 8, right-aligned, Large 48 pill · 16/24 · sides 20; Small = 40 · 14/20 · 12 · 20 · 20;
+  the secondary is OUTLINED there (code keeps the documented grey neutral → PO question, not silently changed). ONE file
+  `css/dialog-footer.css` linked right BEFORE `css/modal-phone.css` (phones keep their halves / padding by order) covering
+  every footer family: library `.modal--footer > .modal-buttons` (+ drawers' buttons), the FO confirm card, the FO dialog
+  shell footer (incl. its private `__cancel / __submit` and their icon, which button-icons.css never reaches). Traps:
+  (1) the TREE already showed 48 because another agent's uncommitted `button-label-v1` gives the bare `.btn` a
+  `min-height: 48` that leaks into the 40 footer pill (text stayed 14/20) — the „before” must come from a HEAD worktree
+  (:8996), never from the shared tree; (2) at 375 a 16px pair („Anulează” + „Confirm și continui”) no longer fits two halves →
+  it wraps one per line, primary on top, by the existing rule (expected, reported). A footer probe (scratch df/measure.js:
+  topmost dialog by elementFromPoint, innermost button group, button h / padding / font / radius / border / icon, edges to the
+  surface, clip / out-of-surface flags) over 205 dialog states × 1440 / 320 gave the family table and the regression check in
+  one run. Removing a footer action („Dezactivează în schimb”) = remove its action handler and its entry in the click
+  router's keep-open list too; check the action still exists elsewhere (row ⋮ „Dezactivează”) and say where.

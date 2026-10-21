@@ -1223,16 +1223,16 @@
         refreshList(); flashRow(key);
       });
     },
-    /* US-UI-11: impact warning + deactivation offered as the alternative (the page modal: 3 buttons) */
+    /* US-UI-11: impact warning + the library dialog footer (2 buttons, dialog-footer-v1, user 2026-10-21: „do just
+       Șterge”) — deactivation stays in the row ⋮ („Dezactivează”, param-toggle) */
     "param-delete": (key) => {
       const p = findParam(key);
       S.openModal({
         title: `Ștergi parametrul ${p.key}?`, subtitle: p.name, kind: "ekcfg-delete",
-        body: `<div class="e-permits-case-form">${A.renderNotice("warning", `<strong>Parametrul poate fi referit din cod.</strong> Dacă îl ștergi, platforma folosește valoarea implicită sau poate eșua la citirea lui — de exemplu ${esc(p.category === "Sesiuni" ? "la expirarea sesiunilor" : "în funcționalitatea care îl citește")}.`)}<p class="e-permits-ekcfg-text">${p.active ? "Recomandat: <strong>dezactivează-l</strong> — efectul e același, dar valoarea rămâne salvată și îl poți reactiva oricând." : "Parametrul este deja inactiv. Ștergerea nu poate fi anulată."}</p></div>`,
-        footer: `<div class="modal-buttons"><button class="btn btn-neutral btn-rounded" type="button" data-case-close>Anulează</button>${p.active ? `<button class="btn btn-outline-destructive btn-rounded" type="button" ${act("param-deactivate", key)}>Dezactivează în schimb</button>` : ""}<button class="btn btn-destructive btn-rounded" type="button" ${act("param-delete-confirm", key)}>Șterge parametrul</button></div>`
+        body: `<div class="e-permits-case-form">${A.renderNotice("warning", `<strong>Parametrul poate fi referit din cod.</strong> Dacă îl ștergi, platforma folosește valoarea implicită sau poate eșua la citirea lui — de exemplu ${esc(p.category === "Sesiuni" ? "la expirarea sesiunilor" : "în funcționalitatea care îl citește")}.`)}<p class="e-permits-ekcfg-text">Ștergerea nu poate fi anulată.</p></div>`,
+        footer: `<div class="modal-buttons"><button class="btn btn-neutral btn-rounded" type="button" data-case-close>Anulează</button><button class="btn btn-destructive btn-rounded" type="button" ${act("param-delete-confirm", key)}>${icon("delete")}<span>Șterge</span></button></div>`
       });
     },
-    "param-deactivate": (key) => { const p = findParam(key); p.active = false; p.updatedAt = nowIso(); p.updatedBy = me(); S.closeModal(); refreshList(); flashRow(key); toast(`${p.key} este inactiv; valoarea a rămas salvată.`, "Parametru dezactivat"); },
     "param-delete-confirm": (key) => { cfg.parameters = cfg.parameters.filter((p) => p.key !== key); S.closeModal(); refreshList(); toast(`${key} a fost șters.`, "Parametru șters"); }
   };
 
@@ -2099,7 +2099,7 @@
       const fn = ACTIONS[el.dataset.ekcfg];
       if (!fn || el.getAttribute("aria-disabled") === "true" || el.matches("input[type=checkbox]")) return;
       event.preventDefault();
-      if (el.closest("#case-action-modal") && !el.hasAttribute("data-case-close") && !["provider-test", "param-deactivate", "param-delete-confirm"].includes(el.dataset.ekcfg)) S.closeModal();
+      if (el.closest("#case-action-modal") && !el.hasAttribute("data-case-close") && !["provider-test", "param-delete-confirm"].includes(el.dataset.ekcfg)) S.closeModal();
       fn(el.dataset.id, el);
       return;
     }

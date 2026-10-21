@@ -1,0 +1,57 @@
+/* ==========================================================================================================
+   Dialog footer — ONE size for every dialog (dialog-footer-v1, 2026-10-21)
+   User: „for gaps, do as in the Figma components buttons” — the code footers were 40 (14/20, gap 12, footer 20 all
+   round) while the library dialog footer is Large. Source of truth: Figma Components doJ7tDY0PlQ0PqMgbpFVIC,
+   Modal › `.modal-footer` 109:1964, Size = Medium (the size the `modal` component 111:2565 uses):
+
+     footer      padding 12 · 20 · 24 · 20, buttons right-aligned, gap 8
+     buttons     Large 48, pill, sides 20 (16 on the icon side, button-icons-v1), label 16/24 medium
+     phones      Figma stacks them (Vertical Stack, gap 12); the product keeps its phone rule (css/modal-phone.css § 4:
+                 two equal halves that wrap, primary on top, footer 12 · 16 · max(16, safe area)) — same 48 / 16/24
+
+   Covers: the library `.modal--footer > .modal-buttons` (BO askConfirm, passport / case / detail modals incl. the
+   dossier document viewer, eKYC `openModal`, Ghișeu, Process Designer leave, RAP / Cabinet „Vizualizare act”, FO
+   certificate), drawer footers (`.drawer__footer > .modal-buttons`: buttons only, the drawer bar keeps its 12 · 20),
+   the FO confirm card (`.e-permits-fo-instance-switch-modal__actions`, already 12 · 20 · 24) and the FO dialog shell
+   footer (`.e-permits-fo-doc-modal__footer`: document picker, Cabinet document viewer, the act A4 viewer).
+   Not covered: the full-screen editors' own bars (Form Builder / Process Designer `.e-permits-pd__footer`, 0,2,0).
+   Loaded right before css/modal-phone.css on every page with dialogs, so the phone rules still win by order.
+   Secondary style: the Figma footer's secondary is OUTLINED (1.5 black); the code keeps the documented neutral grey
+   fill of the library `.modal-buttons` (EVO WEB 3.0 20612:37263) — open PO question, not changed here.
+   ========================================================================================================== */
+
+/* ---- footer box (desktop; phones: modal-phone.css) ---- */
+.modal--footer,
+.e-permits-fo-doc-modal__footer {
+  padding: var(--spacing-12, 12px) var(--spacing-20, 20px) var(--spacing-24, 24px);
+}
+
+/* ---- the button group: gap 8 (the library `.modal--sm` column keeps its 12 at 0,2,0) ---- */
+.modal-buttons {
+  gap: var(--spacing-8, 8px);
+}
+
+/* ---- buttons: Large 48 · 16/24 · sides 20 (main.css `.modal-buttons .btn` = 40 · 14/20, same specificity, earlier) ---- */
+.modal-buttons .btn,
+.e-permits-fo-doc-modal__footer > :is(.btn, .e-permits-fo-doc-modal__cancel, .e-permits-fo-doc-modal__submit) {
+  box-sizing: border-box;
+  font-size: var(--font-size-fs-16, 16px);
+  height: var(--spacing-48, 48px);
+  line-height: var(--line-height-lh-24, 24px);
+  padding: var(--spacing-0, 0px) var(--spacing-20, 20px);
+}
+
+/* leading icon: 16 on the icon side (Large, Figma 39:177); ties main.css `.modal-buttons .btn:has(> .icon:first-child)` */
+.modal-buttons .btn:has(> .icon:first-child),
+.e-permits-fo-doc-modal__footer > :is(.btn, .e-permits-fo-doc-modal__cancel, .e-permits-fo-doc-modal__submit):has(> .icon:first-child) {
+  gap: var(--spacing-6, 6px);
+  padding: var(--spacing-0, 0px) var(--spacing-20, 20px) var(--spacing-0, 0px) var(--spacing-16, 16px);
+}
+
+/* the FO dialog shell's own two buttons are not `.btn` (button-icons.css does not reach them): Large icon 20 */
+.e-permits-fo-doc-modal__footer > :is(.e-permits-fo-doc-modal__cancel, .e-permits-fo-doc-modal__submit) > svg.icon {
+  display: block;
+  flex: 0 0 var(--icon-size-medium, 20px);
+  height: var(--icon-size-medium, 20px);
+  width: var(--icon-size-medium, 20px);
+}

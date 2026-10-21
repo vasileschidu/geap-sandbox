@@ -234,6 +234,7 @@ but this doc previously described it wrongly, see the entry.
 | Separator | `.separator` + orientation + thickness + style | — | library |
 | Link | `.link` + `.link-primary/-strict/-white` + `.link-xs/-sm/-md/-lg` | `link.html` | library |
 | **Skeleton — ONE loading placeholder** (skeleton-v1; FO lookups, registry / SRRE fills, grid source, subject switch, page reveal auth / choice / step, BO sync summary) | `span.skeleton` + `--text` (1lh, r4, short line) / `--input` (40, phones 48, r8) / `--block` (r12, height from the slot) / `--circle` (24, round); `css/skeleton.css` loaded right after the library CSS; size = placement rules of the owner; containers `aria-hidden` + `aria-busy` region | section „Skeleton — ONE loading placeholder” | app |
+| **Dialog footer — ONE size, the library Modal › Footer** (dialog-footer-v1, 2026-10-21; every dialog: library `.modal`, drawer, FO confirm card, FO dialog shell) | footer 12 · 20 · 24 · 20 (phones 12 · 16 · max(16, safe area)), right-aligned, gap 8; buttons **Large 48 pill, 16/24 medium, sides 20 (16 on the icon side), icon 20**; secondary `btn-neutral` (grey), main `btn-primary` / `btn-destructive`; phones = two equal halves that wrap, primary on top; markup unchanged (`.modal--footer > .modal-buttons > .btn.btn-rounded`) | `css/dialog-footer.css` (loaded right before `css/modal-phone.css`); section „Dialog footer — the library size” | app |
 | **Drawer — ONE right-hand panel** (drawer-v1; every BO / eKYC / Process Designer side panel) | `.drawer-overlay[hidden]` > `button.drawer-overlay__scrim` + `aside.drawer(.drawer--lg)[role=dialog][aria-modal][tabindex=-1]` > `header.drawer__header` (`.drawer__heading` > `h2.drawer__title` + `p.drawer__subtitle`, library `.modal-close`) · [strips] · `.drawer__body` (the only scroller) · `footer.drawer__footer` > `.modal-buttons`; `css/drawer.css` + `js/drawer.js` (`GEAPDrawer`: focus trap, Escape → the drawer's own ×, focus return); inner form vocabulary stays `.e-permits-user-create__section / __grid / __field` | section „Drawer — ONE right-hand panel” | app |
 | **Tooltip — ONE runtime** (plain + hint; every tooltip in the product, tooltip-one-v1) | library `.tooltip.tooltip--small.tooltip--plain` / `.tooltip--{top\|bottom}-center` + arrow, ONE node `#icon-tooltip` placed by `js/icon-tooltip.js` (`GEAPTooltip`); opt-in `data-tooltip-label / -text / -reason / -hint`, `data-cell-tooltip` (cut text), `data-tooltip-placement`; never `title=` | section „Tooltip — ONE runtime” · `tooltip.html` | app |
 | Header | `.header .header__wrapper` | `header.html` | library (partial) |
@@ -266,7 +267,7 @@ but this doc previously described it wrongly, see the entry.
 | **Editor toolbar** (notification template rich text) — product component, kept | `.e-permits-ntpl-editor__toolbar.e-permits-dtpl__toolbar[role=toolbar]` > `button.e-permits-ntpl-editor__tool[aria-pressed]` — 32 high, padding 0 6, radius 6, transparent → tertiary hover, pressed = tertiary-active; icons 20 (Aldin, Italic, liste, link, „Șterge formatarea”) + `.separator--vertical` groups | `js/e-permits-shell.js` (ntpl editor) | app |
 | **Destructive actions — red** (destructive-red-v1, 2026-10-21, user: „ALL destructive actions should be red”) | page / header / row / card button = library `btn btn-outline-destructive` (size of its context: `btn-sm` BO, `btn-md btn-rounded` Cabinet); icon-only next to grey icon buttons = `btn btn-outline-destructive btn-sm btn-icon-only`; inline / transparent remove (rule builders, grid rows, FO cards) = `btn btn-text-destructive btn-sm` (+ `btn-icon-only`); confirm button of a confirmation dialog = `btn btn-destructive` (cancel `btn-neutral`); a secondary destructive in a dialog footer = `btn-outline-destructive btn-rounded` (border restated, the library footer is fill-only); ⋮ item = `.is-danger`; icon = label colour (trash for Elimină / Șterge) | `isDestructiveLabel(label)` in `js/e-permits-shell.js` (exported on `GEAPUi` / `GEAPShellApi`) drives `renderRowActions` primary, `renderStackItem` action, `renderStackMenu` items, `clasIconAction`, eKYC `btn()`; `askConfirm({ destructive })`, `openConfirm({ danger })`; section „Destructive actions — red” | app |
 | Destructive confirm (FO) | `.e-permits-fo-instance-switch-modal__icon--danger` + confirm `btn btn-destructive` (`__primary--danger` = hook only) | `openConfirm({ danger: true })` (solicitari.js) | app |
-| FO confirm dialog footer (G8 leave, instance switch, post-process, grid row delete, Cabinet confirms; audit-fix-v2, 2026-10-21) | `div.modal-buttons.e-permits-fo-instance-switch-modal__actions` > `button.btn.btn-neutral.__secondary` (cancel) + `button.btn.btn-primary.__primary` / `btn btn-destructive` (danger; JS swaps `btn-primary` → `btn-destructive`) = the library modal footer (40 pills, 14/20, gap 12); the card keeps only its 12 20 24 inset. ~~Private pill buttons (48, black 1.5 outline, hover `#004ab3`)~~ removed | `e-permits-acte-permisive.html` dialogs, `CabEvo` pp confirm, `openConfirm` | app |
+| FO confirm dialog footer (G8 leave, instance switch, post-process, grid row delete, Cabinet confirms; audit-fix-v2, 2026-10-21) | `div.modal-buttons.e-permits-fo-instance-switch-modal__actions` > `button.btn.btn-neutral.__secondary` (cancel) + `button.btn.btn-primary.__primary` / `btn btn-destructive` (danger; JS swaps `btn-primary` → `btn-destructive`) = the library modal footer (dialog-footer-v1: 48 pills, 16/24, gap 8); the card keeps only its 12 20 24 inset. ~~Private pill buttons (48, black 1.5 outline, hover `#004ab3`)~~ removed | `e-permits-acte-permisive.html` dialogs, `CabEvo` pp confirm, `openConfirm` | app |
 | Warning confirm (FO, data loss) | `.e-permits-fo-instance-switch-modal__icon--warning` (amber `--color-icon-warning-default`, warning-filled icon); primary stays brand (the safe action) | G8 guest leave dialog | app |
 | FO step footer (audit-fix-v2, 2026-10-21) | `.e-permits-fo-form__actions` › „Salvează ca schiță” `button.btn.btn-text-neutral.e-permits-fo-draft-button` (icon-cloud-upload-draft) · back `button.btn.btn-neutral.btn-icon-only.e-permits-fo-back-button` (arrow-left, 48 square) · „Înainte” `button.btn.btn-primary.e-permits-fo-next` (mirrored arrow) = Figma Button Large (48 · 16/24 · icon 20) at every width (`.e-permits-fo-form__footer` pins `--text-body-md-500-font-size` 16; the library drops it to 14 ≤720); phones: draft label one line, the step navigation wraps to its own right-aligned row (gap 12) when both do not fit. The old classes are layout / JS hooks only — ~~private paint~~ removed | `stepFooterHtml` (FO + Ghișeu), static steps in `e-permits-acte-permisive.html` | app |
 | Add / upload document button — ONE pattern (audit-fix-v2, 2026-10-21) | `button.btn.btn-secondary.btn-md` + 20 leading icon: „Adaugă fișier” (`.e-permits-fo-doc-field__add`, icon-plus-large; also Ghișeu „Generează cererea pe hârtie”), „Adaugă document” (`.e-permits-fo-add-doc-button`, was a 32 brand outline), „Încarcă fișier” in the phone drop zone (`.e-permits-fo-upload-button`, was black; shown ≤720 only). Hook classes keep placement only. Open: the boxed doc field still uses `btn btn-strict btn-md` + icon-upload (row „Boxed doc field”) | `documentItemHtml`, other-docs block, `fileDropHtml` (js/e-permits-acte-permisive.js), js/ghiseu.js | app |
@@ -393,7 +394,7 @@ every page (BO, shell, Cabinet, RAP, clasificatoare, login, index, mpass-test, s
 | Figma size | Code | Height | Sides (icon side) | Gap | Icon box | Label | Icon only |
 |---|---|---|---|---|---|---|---|
 | Small | `.btn-sm` | 32 | 12 (8) | 6 | **16** | 14/20 500 | 32 square, icon at 8 |
-| Medium | `.btn-md`, the 40 modal-footer pill | 40 | 16 (12) | 6 | **20** | Figma 14/20 · code 16/22 (open) | 40 square, icon at 10 |
+| Medium | `.btn-md` (the modal-footer pill was 40 until dialog-footer-v1 → Large) | 40 | 16 (12) | 6 | **20** | Figma 14/20 · code 16/22 (open) | 40 square, icon at 10 |
 | Large | `.btn` with no size class (48), `.btn-lg` | 48 | 20 (16) | 6 | **20** | 16/24 500 | 48 square, icon at 14 |
 
 - The icon size comes from the BUTTON size (`--btn-icon-size` on `.btn`; rule `.btn > svg.icon`, (0,2,1) — it beats
@@ -997,6 +998,37 @@ scroller inside the body, no stacked drawers (park the first: „Action from ins
 Open size question for the PO: the audit proposed md 480 / lg 720; the shipped drawers are 800 / 960 (user decisions
 2026-10-08) — kept, no geometry change.
 
+### Dialog footer — the library size (dialog-footer-v1, 2026-10-21)
+
+User (2026-10-21, on the gaps found while making destructive buttons red): „for gaps, do as in the Figma components
+buttons”. Measured in Figma Components `doJ7tDY0PlQ0PqMgbpFVIC`, Modal › `.modal-footer` (109:1964; REST
+`/v1/files/<key>/nodes`): the `modal` component (111:2565, Desktop · Medium) uses the footer **Size = Medium**:
+
+| Part | Figma (Size = Medium) | Code before | Code now (`css/dialog-footer.css`) |
+|---|---|---|---|
+| Footer padding | 12 · 20 · 24 · 20, horizontal, right-aligned (`MAX`) | `.modal--footer` 20 all round; FO dialog shell 16 · 20 · 24; FO confirm card 12 · 20 · 24 | **12 · 20 · 24 · 20** for `.modal--footer` and `.e-permits-fo-doc-modal__footer` (the confirm card already had it) |
+| Gap | 8 | 12 (`.modal-buttons`), 8 (FO dialog shell) | **8** |
+| Buttons | 48, pill (radius 999), sides 20, label 16/24 medium (Large) | 40 · 14/20 (`.modal-buttons .btn`); FO dialog shell 48 · 16/24; act viewer 48 · 16/22 (46 · 14/19 on phones) | **48 · 16/24, sides 20, icon side 16, icon 20, gap icon–label 6** at every width |
+| Secondary | outlined 1.5 `#121212`, no fill | grey neutral fill (EVO WEB 3.0 20612:37263 decision) | **unchanged — open PO question** |
+| Phones | Vertical stack, full width, gap 12, primary on top | two equal halves that wrap (`css/modal-phone.css` § 4) | **unchanged rule**, buttons 48 · 16/24; long pairs wrap one per line (pp-02b, gh-02o at 375) |
+| Small size | 40 · 14/20, footer 12 · 20 · 20 | — | not used (no small dialogs in the product) |
+
+Families (before → after, desktop): library `.modal-buttons` — BO askConfirm (svc-08k), passport / case / detail modals
+incl. the dossier document viewer (dos-04s), eKYC `openModal` (ek-27k, ek-30c), Ghișeu leave (gh-02o), Process Designer
+leave (pd-27), RAP / Cabinet „Vizualizare act” data (rap-03), FO certificate (fo-08d): 40 · 14/20 · gap 12 · footer 20 →
+48 · 16/24 · gap 8 · footer 12 20 24. FO confirm card (pp-02b, pp-01g, sm-03a): 40 · 14/20 · gap 12 → 48 · 16/24 · gap 8.
+FO dialog shell (fo-04d picker, sm-05h Cabinet document viewer, rap-03l act A4 viewer): 48 already (act viewer 16/22 →
+16/24, phones 46 → 48), footer 16 → 12 on top, Cabinet „Descarcă” icon 16 → 20. Drawers (`.drawer__footer >
+.modal-buttons`, trf-02): buttons 40 → 48, the bar keeps 12 · 20. The document viewer footer IS the same component in
+the BO (library `.modal-buttons`); the Cabinet / FO / act viewers use the FO dialog shell footer — different markup, now
+the same sizes. Not covered: the full-screen editors' own bars (Form Builder, `.e-permits-pd__footer`).
+
+- Markup does not change: `div.modal--footer > div.modal-buttons > button.btn.btn-neutral.btn-rounded` + `btn-primary` /
+  `btn-destructive`; no size class (the footer sets the size). Destructive confirm = 2 buttons („Anulează” + the verb,
+  filled destructive with the trash for Șterge / Elimină) — the library footer holds 1–2 actions; a third secondary
+  destructive („Închide fără salvare”) stays only where the choice is real (leave dialogs).
+- Do not size footer buttons per dialog again; do not add `btn-sm` / `btn-md` inside a footer.
+
 ### Modals on phones — maximum content space (2026-10-19)
 
 User (2026-10-19): „all modals on mobile have the minimum padding for the scrim and for the modal itself,
@@ -1015,7 +1047,7 @@ query (proved: 14 modal states at 1440, geometry identical with / without the fi
 | × (close) on phones | the library `.modal-close` (sheets, library modals) / the FO dialog close `.e-permits-fo-doc-modal__close` (same look): **40 × 40, icon 24** (`--icon-size-default`; the markup's `icon small` 16 is resized in CSS), tertiary → hover `tertiary-hover` → pressed `tertiary-active`, focus-visible = the canonical ring 2 white + 3 `blue-sky-500`. Desktop (> 760) unchanged: library `.modal-close` 32 / icon 16 at 20 / 20, FO dialog close 32 / 16 at 24 / 24 | section 9 of `css/modal-phone.css` |
 | Body | the only scroller: `flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain`; 16 padding | |
 | Footer | 12 above the buttons, `max(16, env(safe-area-inset-bottom))` below; buttons side by side in two equal halves (`flex: 1 1 calc((100% − 8) / 2)`, `min-width: fit-content`); a label that does not fit its half wraps the pair → one button per line, **primary on top** (`flex-wrap: wrap-reverse`) | `--modal-phone-foot` |
-| Button size | library `.modal-buttons` = 40 pill (unchanged); FO dialogs keep their 48 FO buttons (touch) | |
+| Button size | every dialog footer = the library Large 48 pill, 16/24 (dialog-footer-v1, 2026-10-21; was 40 · 14/20 in `.modal-buttons`) | |
 | A4 viewer | the page takes the full width: body padding 0, grey canvas edge to edge with 8 around the page (`GEAPDocPreview.fit` zooms to canvas width − computed padding) | |
 
 Families covered (selectors in the file): library `.modal-overlay > .modal` (all sizes, `--sm`/`--md`/`--lg`,
@@ -1228,14 +1260,15 @@ The act row's „Postprocese ⌄” button follows it too: `btn btn-neutral btn-
 one dropdown item size (§ „Dropdown item — one size everywhere”; the larger 40 / 48 act-menu rows were rejected
 on 2026-10-20).
 
-**Modal AND drawer footers** (Figma EVO WEB 3.0 `20612:37263`): buttons sit in the
-library `.modal-buttons` group → **40px pill**, 14/20 medium, 20px sides (12/16 with a
-leading icon), fill only, 12px gap; secondary = `btn-neutral` (grey), main action =
+**Modal AND drawer footers** (Figma EVO WEB 3.0 `20612:37263`; sizes since 2026-10-21 = the Figma Components
+library footer, § „Dialog footer — the library size”): buttons sit in the
+library `.modal-buttons` group → **48 pill**, 16/24 medium, 20px sides (16 on the icon
+side), fill only, 8px gap; secondary = `btn-neutral` (grey), main action =
 `btn-primary`; markup `btn btn-neutral btn-rounded` / `btn btn-primary btn-rounded`, no size
 class. **One 20px inset** for modals and drawers: header 20 (title starts 20 in and 20
 down), close button 20 from the top and 20 from the right, content 20 on the sides
-(`.modal-content` 16 / 20 / 4), footer 20 on **all four sides** so the buttons sit
-exactly as far from the right edge as from the bottom (16 on phones for drawers).
+(`.modal-content` 16 / 20 / 4), footer ~~20 on all four sides~~ **12 · 20 · 24 · 20** (library footer,
+2026-10-21; drawers keep their bordered 12 · 20 bar, 16 on phones).
 Titles are 20px semibold on a 32px line, level with the 32px close button. A lone "Închide" is primary. `main.css` now
 renders `.btn.btn-sm` at the Figma Small 32px (it was 29.25px); rounded/pill
 variants keep their radius. The full flow keeps its own sizes.
@@ -5761,7 +5794,7 @@ Arhivează, Închide fără salvare. Library variants only (Components/buttons.h
 | Icon-only among grey icon buttons | `btn btn-outline-destructive btn-sm btn-icon-only` | classifier value grid „Dezactivează” / „Șterge”, notification recipient „Elimină destinatarul” (`clasIconAction`) |
 | Inline remove (transparent) | `btn btn-text-destructive btn-sm` (+ `btn-icon-only`) | rule builders „Elimină” / condition ×, FO grid „Șterge rândul”, FO repeat / activity / „Alt document” cards, Process Designer „Elimină atribuirea”, user combination card |
 | Confirm button of a confirmation dialog | `btn btn-destructive` (filled), cancel = `btn-neutral` | every `askConfirm({ destructive: true })`, `openConfirm({ danger: true })`, eKYC C01e „Dezactivează organizația” |
-| Secondary destructive in a dialog footer (next to a filled primary / destructive) | `btn btn-outline-destructive btn-rounded` — the library footer is fill-only (`.modal-buttons .btn { border-color: transparent }`), so `css/e-permits-acte-permisive.css` restates the variant's own `--red-600` border inside `.modal-buttons` | „Închide fără salvare” (Ghișeu gh-02o, Process Designer pd-27), eKYC „Dezactivează în schimb” (ek-27k) |
+| Secondary destructive in a dialog footer (next to a filled primary / destructive) | `btn btn-outline-destructive btn-rounded` — the library footer is fill-only (`.modal-buttons .btn { border-color: transparent }`), so `css/e-permits-acte-permisive.css` restates the variant's own `--red-600` border inside `.modal-buttons` | „Închide fără salvare” (Ghișeu gh-02o, Process Designer pd-27) |
 | ⋮ menu item | `.e-permits-fo-intent-menu__item.is-danger` (red label + icon), last | every `renderStackMenu` item whose label is destructive, even without `danger: true` |
 
 - ONE predicate: `isDestructiveLabel(label)` (shell; `GEAPUi` / `GEAPShellApi`) — the shared renderers apply it by default,
@@ -7527,7 +7560,8 @@ reference skipped). Administrator platformă only (menu in `data/ekyc-roles.json
 - **Parametri** (`#ek-parameters`): grouped by category; value per type (boolean Da/Nu tag, number right
   aligned, JSON shortened + tooltip, text); drawer: Cheie locked on edit, Tip date switches the value control
   (input · numeric input · toggle Da/Nu · JSON textarea with syntax check on save); delete = page modal with
-  the impact warning + „Dezactivează în schimb” (secondary) + „Șterge parametrul” (destructive); search
+  the impact warning + „Ștergerea nu poate fi anulată.” + the 2-button library footer „Anulează” · „Șterge” (filled
+  destructive, trash; 2026-10-21, user: „do just Șterge” — deactivation lives in the row ⋮ „Dezactivează”); search
   without results ≠ empty list.
 - **Configurări scoring** (`#ek-scoring/<id>/reguli|jurnal`): detail = decision band (above) + rules table
   (#, Tip pas or „toți pașii”, ±value, condition truncated, Activată Da/Nu) + rule drawer; edit drawer has
