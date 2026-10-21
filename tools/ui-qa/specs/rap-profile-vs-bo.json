@@ -385,6 +385,60 @@
    "name": "meta divider",
    "prop": "transform",
    "why": "user 2026-10-17: on phones the RAP header meta is 2 equal columns WITHOUT separators (the ::before is content: none)"
+  },
+  {
+   "viewport": 1440,
+   "name": "section",
+   "prop": "rect.width",
+   "why": "full container (user 2026-10-21: „RAP profile: let's do full length, as the table container”): the RAP act profile takes the list / table width (1280 at 1440), the BO profile keeps its 1024 column"
+  },
+  {
+   "viewport": 1440,
+   "name": "card",
+   "prop": "rect.width",
+   "why": "full container (user 2026-10-21: „RAP profile: let's do full length, as the table container”): the RAP act profile takes the list / table width (1280 at 1440), the BO profile keeps its 1024 column"
+  },
+  {
+   "viewport": 1440,
+   "name": "card (passport)",
+   "prop": "rect.width",
+   "why": "full container (user 2026-10-21: „RAP profile: let's do full length, as the table container”): the RAP act profile takes the list / table width (1280 at 1440), the BO profile keeps its 1024 column"
+  },
+  {
+   "viewport": 1440,
+   "name": "row",
+   "prop": "rect.width",
+   "why": "full container (user 2026-10-21: „RAP profile: let's do full length, as the table container”): the RAP act profile takes the list / table width (1280 at 1440), the BO profile keeps its 1024 column"
+  },
+  {
+   "viewport": 1440,
+   "name": "row (last)",
+   "prop": "rect.width",
+   "why": "full container (user 2026-10-21: „RAP profile: let's do full length, as the table container”): the RAP act profile takes the list / table width (1280 at 1440), the BO profile keeps its 1024 column"
+  },
+  {
+   "viewport": 1440,
+   "name": "row label",
+   "prop": "flex-basis",
+   "why": "RAP full container (2026-10-21): on the wide card the label column is clamp(120, 30%, 200) and wraps; the value fills the rest (the BO keeps 256 nowrap)"
+  },
+  {
+   "viewport": 1440,
+   "name": "row label",
+   "prop": "white-space",
+   "why": "RAP full container (2026-10-21): on the wide card the label column is clamp(120, 30%, 200) and wraps; the value fills the rest (the BO keeps 256 nowrap)"
+  },
+  {
+   "viewport": 1440,
+   "name": "row label",
+   "prop": "overflow-x",
+   "why": "RAP full container (2026-10-21): on the wide card the label column is clamp(120, 30%, 200) and wraps; the value fills the rest (the BO keeps 256 nowrap)"
+  },
+  {
+   "viewport": 1440,
+   "name": "row value",
+   "prop": "rect.x",
+   "why": "RAP full container (2026-10-21): on the wide card the label column is clamp(120, 30%, 200) and wraps; the value fills the rest (the BO keeps 256 nowrap)"
   }
  ]
 }

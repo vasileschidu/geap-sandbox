@@ -776,10 +776,30 @@ a {
   flex: 0 0 auto;
 }
 
+/* full container (user 2026-10-21: „RAP profile: let's do full length, as the table container”; was the 1024 reading
+   column of 2026-10-17): the act profile takes the list / table width (--rap-content-width, same page padding as
+   .rap-main) → header box and section cards on the table's left / right edges at every desktop width (the header
+   text keeps the BO 12 inset, over the cards as the section titles); phones unchanged (16 gutters) */
 .rap-profile__container {
   margin: 0 auto;
-  max-width: 1024px; /* fixed 1024 reading width; fills below it (user 2026-10-17) */
+  max-width: var(--rap-content-width);
   width: 100%;
+}
+
+/* the label column is a clamp (120 – 200: 200 from the 761 tablet width up, narrower only below it) and the value
+   fills the rest; a label longer than its column wraps (never cut) — desktop only, phones stack label over value
+   (bo-profile-parts) */
+@media (min-width: 761px) {
+  .rap-profile .e-permits-dosar-profil__row-label {
+    flex-basis: clamp(calc(var(--spacing-40, 40px) * 3), 30%, calc(var(--spacing-40, 40px) * 5));
+    overflow: visible;
+    white-space: normal;
+  }
+}
+
+/* long text inside a card keeps a readable line (~75 characters) */
+.rap-profile .e-permits-dosar-profil__card :is(p, .banner__content > p) {
+  max-width: 75ch;
 }
 
 .rap-profile__title-row {

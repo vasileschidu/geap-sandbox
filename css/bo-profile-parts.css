@@ -332,8 +332,8 @@
    rap-evo.css (user 2026-10-17: breadcrumb → title 16 „as on the list page”, the full name wraps,
    the primary action = the library btn-primary btn-md, hugging, under the meta). Markup:
    header.e-permits-page-header.e-permits-page-header--public > __body > __top > __heading
-   (nav.breadcrumbs.breadcrumbs--trailing [desktop trail] + nav.breadcrumbs.breadcrumbs--mobile
-   [‹ parent], h1.__title) · __meta · .btn.btn-primary.btn-md.__action. ---- */
+   (nav.breadcrumbs [desktop trail ending in the current page, aria-current — breadcrumb-v2] +
+   nav.breadcrumbs.breadcrumbs--mobile [‹ parent], h1.__title) · __meta · .btn.btn-primary.btn-md.__action. ---- */
 .e-permits-page-header--public .e-permits-page-header__body {
   padding-inline: var(--spacing-12, 12px);
 }

@@ -25,12 +25,15 @@
     companyFilter: null
   };
 
-  /* the trail above the list title and the act profile title (Figma Components 232:5282): the ONE breadcrumb renderer
-     (../js/breadcrumbs.js — desktop trail with a trailing chevron, phones = „‹ parent”); .rap-breadcrumbs = reveal hook */
+  /* the trail above the list title and the act profile title = the library breadcrumb as Figma Components 232:5282
+     (breadcrumb-v2, user 2026-10-21: „as we discussed” — the component everywhere): the ONE renderer
+     (../js/breadcrumbs.js) — desktop trail ending in the CURRENT page (medium, not a link, aria-current="page"; the
+     list = „Registrul actelor permisive”, the profile = the act's name, cut at 30 characters with a tooltip),
+     phones = „‹ parent”. No trailing-chevron variant any more. .rap-breadcrumbs = reveal hook */
   const RAP_CRUMBS = [{ label: "Acasă", href: "../index.html" }, { label: "Resurse utile", href: "#" }];
-  const crumbsHtml = (profile = false) => window.GEAPBreadcrumbs?.html(profile
-    ? [...RAP_CRUMBS, { label: "Registrul actelor permisive", button: true, attr: "data-rap-profile-back" }]
-    : RAP_CRUMBS, { trailing: true, className: "rap-breadcrumbs" }) || "";
+  const crumbsHtml = (current = null) => window.GEAPBreadcrumbs?.html(current
+    ? [...RAP_CRUMBS, { label: "Registrul actelor permisive", button: true, attr: "data-rap-profile-back" }, { label: current }]
+    : [...RAP_CRUMBS, { label: "Registrul actelor permisive" }], { className: "rap-breadcrumbs" }) || "";
   const listCrumbs = document.querySelector("[data-rap-list-crumbs]");
   if (listCrumbs) listCrumbs.outerHTML = crumbsHtml();
 
@@ -240,7 +243,7 @@
           <div class="e-permits-page-header__body">
             <div class="e-permits-page-header__top">
               <div class="e-permits-page-header__heading">
-                ${crumbsHtml(true)}
+                ${crumbsHtml(record.permit.name)}
                 <div class="rap-profile__title-row">
                   <h1 class="e-permits-page-header__title" id="rap-profile-title" data-cell-tooltip>${escapeHtml(record.permit.name)}</h1>
                 </div>

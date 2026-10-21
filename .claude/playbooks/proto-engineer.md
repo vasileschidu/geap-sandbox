@@ -2093,3 +2093,23 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   mid-job on the same file → rebuilt my edits as ONE asserted script applied to HEAD in a temp root, compared to the
   tree (SAME except other agents' hunks), committed the blobs. No sub-agent tool → component-audit (0 in rows; standing
   header / avatar / sheet findings), hover-audit 0 / 0, code-audit standing FPs only, captures 18 × 2 clean.
+- 2026-10-21 · RAP breadcrumb + full container + vector gov mark (breadcrumb-v2; user: „Breadcrumbs were changed in code as
+  we discussed. I'm looking in RAP and it is not”). Nothing was broken or stale (sandbox files = HEAD by md5, the renderer
+  ran): the mismatch was a DOCUMENTED exception — RAP / Cabinet headers called `GEAPBreadcrumbs.html(…, { trailing: true })`
+  (no current level, a dangling chevron, 2026-10-17 decision) while the BO and Figma 232:5282 end on the bold current page.
+  When the user says „as we discussed” about a component, grep every caller for opt-out options (`trailing`, `compact`…)
+  and every „exception” paragraph in components.md — an exception is exactly what the user sees as „not done”. Read the
+  Figma component's properties over REST (`/v1/files/<key>/nodes?ids=…` → `componentPropertyDefinitions`) instead of
+  guessing from a screenshot: „👁️ Active Level” is a boolean defaulting to ON. Fix = RAP list ends on „Registrul actelor
+  permisive”, the act profile on the act name (cut at 30 + tooltip, checked by probe), `CabEvo.pageHeader` passes
+  `[back, { label: title }]`; the remaining `trailing` callers (form builder lines, ntpl back) are not page headers.
+  Full container (coordinator, same job): `.rap-profile__container` → `--rap-content-width` puts header box + cards on the
+  table edges at 1440 / 1024 / 761 with zero other change because `.rap-profile` already had `.rap-main`'s side padding —
+  measure container x / right of list vs profile per width before touching padding. A label clamp of 20 % wrapped 4 of 8
+  labels at 761 (look at the 761 capture, not only 1440) → `clamp(120, 30%, 200)` = 200 at every desktop width; wrap, never
+  ellipsis. Update the parity spec's `expected` (with the user's words) when a deliberate change moves a compared box.
+  Gov mark: the 18 × 21 PNG at DPR 2 was the blur; the vector is the `government-logo` instance inside EVO-WEB
+  `.top-section` (instances are opaque in get_metadata — call it on the instance id `I…;…` to see children), exported with
+  REST `format=svg&svg_include_id=false`; dropped the full-frame clipPath, rounded path numbers to 3 decimals (84 → 68 KB),
+  kept the brand fill (an `<img>` cannot inherit currentColor). Same `<img>` swap in all 5 top bars; CSS sizes untouched.
+  No montage tool on the machine (no PIL / ImageMagick) → an HTML page of before / after PNGs shot by headless Chrome.
