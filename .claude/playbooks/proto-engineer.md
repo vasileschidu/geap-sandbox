@@ -2113,3 +2113,7 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   REST `format=svg&svg_include_id=false`; dropped the full-frame clipPath, rounded path numbers to 3 decimals (84 → 68 KB),
   kept the brand fill (an `<img>` cannot inherit currentColor). Same `<img>` swap in all 5 top bars; CSS sizes untouched.
   No montage tool on the machine (no PIL / ImageMagick) → an HTML page of before / after PNGs shot by headless Chrome.
+- 2026-10-21 · Same job, process: another agent's commit (no-lone-detalii-v1) landed between my edit and my commit and its
+  regex bump REPLACED my `cabinet-evo.js?v=breadcrumb-v2` with its own key — my hunk filter then found nothing to stage on
+  that line. After committing, `git show HEAD -- <html>` and check every key the brief asked for is in the commit; re-bump
+  in a follow-up commit if not (b7839140).
