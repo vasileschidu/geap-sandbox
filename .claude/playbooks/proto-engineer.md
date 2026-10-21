@@ -2374,3 +2374,15 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   (8.0 everywhere); crops of a profile section need sticky / fixed set to static + scrollTo(0); profile section ids sit on
   the h2 (`section[aria-labelledby=sm-sec-<id>]`); `addDays(undefined)` threw inside render for drafts and the profile
   silently failed (crop „NO ELEMENT”, no console error captured across the redirect) — guard date helpers for drafts.
+- 2026-10-21 · Card radius 24 (radius-24-v1; user: „list cards get more rounded corners → 24”, + the document viewer). The token
+  was „missing” only in main.css: the Foundations Figma library has `border-radius/radius-24` (key 79848dbe…, already bound by
+  tools/figma/trajectory/trajectory-set.js; REST `/variables/*` is 403 with our token, so the source = the key the Figma
+  tools import) → `--border-radius-24` in css/token-fix.css. Inventory by a RUNTIME probe, not by grepping CSS (the Cabinet
+  file is full of dead „sm-list” card rules): every visible painted element with radius ≥ 10 and ≥ 160 × 40, grouped by class
+  signature + radius, over the 10 named states × 1440 / 375 (scratch r24/probe.mjs) — the before / after diff of that table
+  IS the proof (only the intended cards moved 16/12 → 24; inner notices stayed 12; phones same). The Cabinet document card
+  sat on the shared FO doc-card surface (r12, 0,2,0) → scoped 0,3,0 override, the FO form cards keep 12 (one-surface rule of
+  2026-10-15 → reported as a PO question, not silently widened). The status notice lives in another agent's uncommitted
+  markup: added ONLY a radius rule in its own block (harmless on HEAD, no match). Parity spec request ↔ act = 0 (both cards
+  moved together); code-audit's radius scale already had 24. No sub-agent tool → code-audit (static 0, no radius finding),
+  component-audit (standing header / missing-copy / doc-modal × only), hover-audit 0 / 0 run directly.

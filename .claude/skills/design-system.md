@@ -380,6 +380,7 @@ A linear scale based on a 4px base unit. Use `--spacing-{n}` custom properties i
 | `--border-radius-8` | 8px | Default cards, buttons |
 | `--border-radius-12` | 12px | Large cards, modals |
 | `--border-radius-16` | 16px | Panels, drawers |
+| `--border-radius-24` | 24px | **List cards** (act / request rows, Cabinet document cards, notifications, catalog cards), the request status notice, the BO profile cards, the document viewer canvas + signature card. NOT in main.css: defined in `css/token-fix.css` (radius-24-v1, 2026-10-21, user decision) from the Foundations Figma variable `border-radius/radius-24` = 24 (collection „3. Sizes”, key `79848dbe4107a9babdbb8d1861d66890fc200d53`) |
 | `--border-radius-32` | 32px | main.css only — not used by the product yet |
 | `--border-radius-full` | 9999px (main.css; old fallbacks say 999px, same render) | Pills, avatars, circular buttons |
 

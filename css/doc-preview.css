@@ -161,14 +161,15 @@
 }
 
 /* ---- Signature card (doc-viewer-v2, 2026-10-21; GEAP 2.0 11366:6892 „Modal content / Document · details”, updated):
-   the document viewer = the canvas + this grey card 12 under it, as wide as the canvas, radius 16 on every corner,
+   the document viewer = the canvas + this grey card 12 under it, as wide as the canvas, radius 24 on every corner
+   (radius-24-v1, 2026-10-21, was 16),
    12 16 padding; the Small „Semnat electronic” badge ABOVE one meta line 14/20 tertiary („MSign · <signer> ·
    <date, time>”), 2 apart. (v1 was a tray hanging flush under the canvas, inset to the page.) ---- */
 .e-permits-doc-signature {
   --doc-signature-inset: var(--spacing-0, 0px);
   align-items: flex-start;
   background: var(--color-background-base-secondary, #f5f5f5);
-  border-radius: var(--border-radius-16, 16px);
+  border-radius: var(--border-radius-24, 24px);
   display: flex;
   flex: 0 0 auto;
   flex-direction: column;
@@ -203,11 +204,11 @@
 }
 
 /* the document window = one rounded unit with the card (user 2026-10-21: „the document window should be the same round
-   as the wrap”; Figma 11366:6892 draws the canvas at 24 + a 1px border-default line — 24 has no token in main.css, so the
-   canvas takes the card's --border-radius-16; the line is an inset ring, so the fitted page keeps its geometry).
+   as the wrap”; Figma 11366:6892 draws the canvas at 24 + a 1px border-default line; radius-24-v1 (2026-10-21): canvas
+   AND card = --border-radius-24 (css/token-fix.css); the line is an inset ring, so the fitted page keeps its geometry).
    Phones keep the edge-to-edge canvas (css/modal-phone.css § 7, radius 0). */
 .e-permits-doc-peek__canvas:is(.e-permits-detail-modal__preview, .cab-doc-modal__preview, .rap-act-modal__canvas) {
-  border-radius: var(--border-radius-16, 16px);
+  border-radius: var(--border-radius-24, 24px);
   box-shadow: inset 0 0 0 var(--border-width-1, 1px) var(--color-border-base-default, #d9d9d9);
 }
 

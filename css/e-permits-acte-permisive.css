@@ -16611,13 +16611,14 @@
 }
 
 /* act row card (2026-10-20, user — FO #intent, Ghișeu, Cabinet acts AND requests, so they stay identical):
-   padding 16, radius 16, 1.5 stroke in the default border colour; title 14/20 medium (the shared lib-item
+   padding 16, radius 24 (radius-24-v1, 2026-10-21: list cards = 24 at every width; was 16), 1.5 stroke in the
+   default border colour; title 14/20 medium (the shared lib-item
    title), 8 between the title line and the meta; the Small tags (20) sit on the 20 title line; one line +
    ellipsis + title tooltip on desktop, wrapping on phones (touch has no tooltip). The phone action row keeps
-   its 12 (gap 8 + 4). Notices run across the card inside the 16 padding. */
+   its 12 (gap 8 + 4). Notices run across the card inside the 16 padding (they keep radius 12). */
 .e-permits-fo-lib-item.e-permits-fo-intent-act {
   border: var(--border-width-1-5, 1.5px) solid var(--color-border-base-default, #d9d9d9);
-  border-radius: var(--border-radius-16, 16px);
+  border-radius: var(--border-radius-24, 24px);
   padding: var(--spacing-16, 16px);
 }
 
