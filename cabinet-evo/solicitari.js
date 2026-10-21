@@ -278,15 +278,12 @@
        icon-only ⋮ (library Neutral · Icon Only · Small: `btn btn-neutral btn-sm btn-icon-only` (grey at rest, user 2026-10-20), 32 square, radius 6 —
        the height / radius family of the acts' „Postprocese ⌄”), tooltip „Mai multe acțiuni”, opening the same
        anchored menu (phones: touch item size, never the action sheet); open = tertiary-active + focus ring
-       (aria-expanded). A row whose only action is „Detalii” gets the lone „👁 Detalii” button (row-actions rule),
-       not a one-item menu. (The labelled „Acțiuni ⌄” of action-menu-v1 is gone, with its ?actiuni=kebab demo.) */
+       (aria-expanded). (The labelled „Acțiuni ⌄” of action-menu-v1 is gone, with its ?actiuni=kebab demo.)
+       no-lone-detalii-v1 (2026-10-21, user: „if it does the same as clicking the entire card, remove Detalii”): a row
+       whose only action is „Detalii” has NO trigger — the whole card is the action (click / Enter / Space), no
+       right-hand space is reserved; returns "" (cardHtml then emits no action block). */
     const name = dosar.object || serviceOf(dosar).title || dosar.nr;
-    if (items.length === 1 && items[0].action === "open") {
-      return `
-      <div class="e-permits-fo-intent-act__action cab-card__actions">
-        <button class="btn btn-neutral btn-sm e-permits-fo-intent-act__trigger" type="button" aria-label="Detalii despre ${escape(name)}" data-sm-action="open" data-sm-id="${escape(dosar.id)}">${icon(items[0].icon)}<span>${escape(items[0].label)}</span></button>
-      </div>`;
-    }
+    if (items.length === 1 && items[0].action === "open") return "";
     return `
       <div class="e-permits-fo-intent-act__action cab-card__actions">
         <button class="btn btn-neutral btn-sm btn-icon-only cab-card__more" type="button" aria-label="Acțiuni pentru ${escape(name)}" data-tooltip-label="Mai multe acțiuni" aria-haspopup="menu" aria-expanded="false" aria-controls="${menuId}" data-cab-menu-trigger>${icon("icon-more-vertical")}</button>
@@ -377,17 +374,19 @@
     }
     const name = dosar.object || service.title || "";
     const alert = rowAlert(dosar);
+    const actions = actionsHtml(dosar);
     return window.GEAPActRow.html({ ...base, name }, {
       ...common,
-      attrs: `tabindex="0" data-sm-card="${escape(dosar.id)}" aria-label="${escape(`${name} — ${statusLabel(dosar)}${outcomeOf(dosar) ? " (finalizată)" : ""}`)}"`,
+      attrs: `tabindex="0" data-sm-card="${escape(dosar.id)}" aria-label="${escape(`${name} — ${statusLabel(dosar)}${outcomeOf(dosar) ? " (finalizată)" : ""}, deschide detaliile`)}"`,
       extraTagsHtml: `${tacitListMark(dosar)}${dosar.status === "schita" && dosar.signed ? C.signedTagHtml() : ""}`,
       /* the shared meta slots (js/act-row.js metaParts): number (the compact copy value) · type · service ·
          authority · subdivision · date */
       metaSlots: { number: dosar.nr, numberLabel: `Copiază numărul dosarului ${dosar.nr}`, what: [dosar.tip, service.title].filter(Boolean).join(" · "), authority: service.authority, subdivision: dosar.subdivision, date: rowDate(dosar) },
       ...(alert ? { noticeHtml: alert.html, noticeTone: alert.tone === "danger" ? "error" : alert.tone, noticeIcon: alert.icon, noticeLocks: false } : {}),
-      /* only the ⋮ (every action of the request, no downloads — no-row-download rule) */
-      actionHtml: `
-          <div class="cab-doc__actions cab-card__actions">${actionsHtml(dosar).replace("e-permits-fo-intent-act__action cab-card__actions", "e-permits-fo-intent-act__action")}</div>`,
+      /* only the ⋮ (every action of the request, no downloads — no-row-download rule); nothing when the only
+         action was „Detalii” (no-lone-detalii-v1: the card itself opens the details) */
+      actionHtml: actions ? `
+          <div class="cab-doc__actions cab-card__actions">${actions.replace("e-permits-fo-intent-act__action cab-card__actions", "e-permits-fo-intent-act__action")}</div>` : "",
       rowClass: `cab-request-row${dosar.justAdded ? " is-new" : ""}`,
     });
   }
@@ -1374,7 +1373,7 @@
       if (target.closest("[data-sm-back]")) { event.preventDefault(); history.pushState(null, "", window.location.pathname + window.location.search); route(); return; }
       if (target.closest("[data-tooltip-hint]")) { event.stopPropagation(); window.GEAPTooltip?.show(target.closest("[data-tooltip-hint]")); return; }
 
-      /* documents: „Detalii” or the card itself → the document modal (not from the ⋮ menu) */
+      /* documents: the card itself → the document modal (no „Detalii” button since no-lone-detalii-v1) */
       const docOpen = target.closest("[data-cab-doc-open]") || (!target.closest("button, a, .cab-card__actions, [data-copy-value]") && target.closest(".cab-doc[data-cab-doc]"));
       if (docOpen) { C.closeMenus(); openDosarDoc(docOpen.dataset.cabDocOpen || docOpen.dataset.cabDoc); return; }
 
@@ -1415,6 +1414,14 @@
         const next = event.key === "Home" ? 0 : event.key === "End" ? all.length - 1 : (index + (event.key === "ArrowRight" ? 1 : -1) + all.length) % all.length;
         event.preventDefault();
         selectTab(all[next].dataset.smTab, { focus: true });
+        return;
+      }
+      /* no-lone-detalii-v1: a document card is the control (no „Detalii” button) → Enter / Space opens the modal */
+      const docCard = event.target.matches?.(".cab-doc[data-cab-doc]") ? event.target : null;
+      if (docCard && (event.key === "Enter" || event.key === " ")) {
+        event.preventDefault();
+        C.closeMenus();
+        openDosarDoc(docCard.dataset.cabDoc);
         return;
       }
       const card = event.target.matches?.("[data-sm-card]") ? event.target : null;

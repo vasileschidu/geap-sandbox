@@ -1215,7 +1215,8 @@
      doc = { sursa: upload | mdocs | generat (none = a document TYPE), tip, nr?, fisier?, size?, verb?, at?,
      de?, semnat?, tags?: [[label, tone]], note? }. Card = the FO summary row (.e-permits-fo-confirm-file--doc)
      with the shared content (icon by source, type + source tag, meta number · file · size · „<Verb> <date>” ·
-     „de …” · „Semnat electronic”); with a key: „Detalii” (eye), the whole card opens the document modal
+     „de …” · „Semnat electronic”); with a key the whole card opens the document modal (no „Detalii” button since
+     no-lone-detalii-v1)
      (page preview + details) whose footer has „Descarcă”. No download from the card and no ⋮ (user
      2026-10-20: documents are downloaded only from the document modal). */
   const DOC_SOURCES = {
@@ -1254,17 +1255,15 @@
         ${lines.length ? `<div class="e-permits-fo-lib-item__meta e-permits-fo-doc-meta">${lines.map((line) => `<span class="e-permits-fo-doc-meta__line">${line.join("")}</span>`).join("")}</div>` : ""}
       </div>`;
   }
-  /* key: opens it (data-cab-doc…) */
+  /* key: the whole card opens it (data-cab-doc…). no-lone-detalii-v1 (2026-10-21, user: „if it does the same as
+     clicking the entire card, remove Detalii”): no „👁 Detalii” button — the card is the control (tabindex 0, name
+     „<tip>, deschide detaliile”, Enter / Space in solicitari.js), its hover band + focus ring */
   function docRowHtml(doc, { key = "" } = {}) {
     const source = DOC_SOURCES[doc.sursa] || DOC_SOURCES.upload;
     return `
-      <div class="e-permits-fo-confirm-file e-permits-fo-confirm-file--doc cab-doc${key ? " is-clickable" : ""}"${key ? ` data-cab-doc="${escape(key)}"` : ""}>
+      <div class="e-permits-fo-confirm-file e-permits-fo-confirm-file--doc cab-doc${key ? " is-clickable" : ""}"${key ? ` data-cab-doc="${escape(key)}" tabindex="0" aria-label="${escape(`${doc.tip}, deschide detaliile`)}"` : ""}>
         <img class="e-permits-fo-confirm-file__icon" width="24" height="24" src="../assets/icons/${source.icon}" alt="">
         ${docContentHtml(doc)}
-        ${key ? `
-        <div class="cab-doc__actions">
-          <button class="btn btn-neutral btn-sm" type="button" aria-haspopup="dialog" aria-label="Detalii: ${escape(doc.tip)}" data-cab-doc-open="${escape(key)}">${icon("icon-eye-open")}<span>Detalii</span></button>
-        </div>` : ""}
       </div>`;
   }
   /* the document modal: FO doc-modal shell, the A4 page preview (grey canvas, zoomed to the width),

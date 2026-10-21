@@ -639,8 +639,8 @@
   gap: var(--spacing-8, 8px);
 }
 
-/* document card (C.docRowHtml, 2026-10-14): the FO summary row + „Detalii” (no ⋮ / download on the card since
-   2026-10-20 — „Descarcă” lives in the modal); the whole card opens the document modal. Grey card on white → hover one step darker (hover rule) */
+/* document card (C.docRowHtml, 2026-10-14): the FO summary row (no ⋮ / download on the card since 2026-10-20 —
+   „Descarcă” lives in the modal; no „Detalii” since no-lone-detalii-v1); the whole card opens the document modal. Grey card on white → hover one step darker (hover rule) */
 .cab-doc .e-permits-fo-lib-item__content {
   flex: 1 1 auto;
 }
@@ -659,8 +659,14 @@
   transition: background-color 140ms var(--motion-easing-standard, cubic-bezier(0.4, 0, 0.2, 1));
 }
 
-.cab-doc.is-clickable:is(:hover, :has([aria-expanded="true"]), :has(:focus-visible)) {
+.cab-doc.is-clickable:is(:hover, :focus-visible, :has([aria-expanded="true"]), :has(:focus-visible)) {
   background: var(--color-background-base-tertiary-hover, #e8e8e8);
+}
+
+/* the card is the control (no „Detalii” button, no-lone-detalii-v1): the row focus ring inside the card */
+.cab-doc.is-clickable:focus-visible {
+  outline: var(--border-width-2, 2px) solid var(--focus-ring, var(--blue-sky-500, #3379db));
+  outline-offset: calc(var(--border-width-2, 2px) * -1);
 }
 
 /* a grey button on the grey card would not read as a button → white until hovered */
@@ -1497,7 +1503,8 @@
 }
 
 /* phones (≤760): the shared act-row anatomy (e-permits-acte-permisive.css „PHONE ROW ANATOMY”) — tags on row 1,
-   title, meta, alert; the row's trigger (⋮ / lone „👁 Detalii”, the acts' „Postprocese ⌄”) in the card's top-right
+   title, meta, alert; the row's trigger (⋮, the acts' „Postprocese ⌄”; none when „Detalii” was the only action —
+   no-lone-detalii-v1) in the card's top-right
    corner through ONE shared rule there (row-kebab-v1 → act-trigger-fixed-v1, 2026-10-20). Nothing Cabinet-specific
    is left here. */
 

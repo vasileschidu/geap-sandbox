@@ -2075,3 +2075,21 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   Audits: hover 0 / 0, code-audit only standing FPs (the hidden „ (finalizată)” span = clipped-text FP), component-audit
   only the standing header / sheet-trigger / „Arată” findings, compare-styles pp-01 ↔ sm-01: tag pair 0, the one diff =
   „Detalii” MISSING from the parallel no-lone-detalii change.
+- 2026-10-21 · No lone „Detalii” on a clickable card / row (no-lone-detalii-v1; user: „the Detalii button looks kind of weird.
+  If it does the same as clicking the entire card, remove it”, then via the coordinator: everywhere, code + Figma). Inventory
+  = grep every producer of a „Detalii” / eye button (`eye-open`, `label: "Detalii"`, `renderRowActions` preview-only) and
+  for each check (a) is the row / card itself clickable, (b) does the click open the SAME thing, (c) is there anything else
+  (⋮ / primary). Removed: Cabinet request rows (d-fresh / d-lab / d-prut), Cabinet document cards, BO dossier Taxe / Avize /
+  documents, Serviciu › Documente / Tarife / Clasificatoare for read-only roles. Kept: data tables (`tr` is not focusable —
+  the column button is the keyboard / SR path; a focusable-tr pattern would be a separate change), non-clickable cards
+  (FO previous act, Ghișeu documents, passport forms). Removing the button REMOVES THE KEYBOARD PATH: a row that was
+  only a mouse shortcut (BO dossier rows, Cabinet doc cards had no tabindex) must become the control — tabindex 0, an
+  accessible name („<title> — <tags>, deschide detaliile”), Enter / Space, a :focus-visible ring (outline 2 inset; the
+  stack card clips box-shadows) — done once in `renderStackItem` (`rowOpens` in `renderRowActions`), not per list. A
+  programmatic `.focus()` in headless does NOT match :focus-visible — prove the ring with a real CDP Tab / Shift+Tab
+  (probe FOCUS=… pattern). Demo states that clicked the removed buttons (docEye, docOpen, sm-05f / h) became the KEYBOARD
+  path, so the demo set now proves Enter / Space. compare-styles: the „(Detalii)” pairs became „(no trigger)” against the
+  act row that has no trigger either (act-bistro) = 0 at 1440 / 1024 / 375 / 320. Another agent committed outcome-tag-v1
+  mid-job on the same file → rebuilt my edits as ONE asserted script applied to HEAD in a temp root, compared to the
+  tree (SAME except other agents' hunks), committed the blobs. No sub-agent tool → component-audit (0 in rows; standing
+  header / avatar / sheet findings), hover-audit 0 / 0, code-audit standing FPs only, captures 18 × 2 clean.

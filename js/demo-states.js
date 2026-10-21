@@ -16,11 +16,12 @@
   const dos = (as, stare, tab = "general", extra = {}, run) => ({ flow: "back-office", as, params: { stare, ...extra }, hash: `#dosar/${DOS}/${tab}`, ready: ".e-permits-trajectory, .e-permits-dosar-profil__section", run });
   /* another dossier, in its own seeded status (no ?stare=) */
   const dosOf = (id, as, tab = "general") => ({ flow: "back-office", as, hash: `#dosar/${id}/${tab}`, ready: ".e-permits-trajectory, .e-permits-dosar-profil__section" });
-  /* any dossier document list (insotitoare | documente | acte): „👁 Detalii” of the row whose title
-     contains `text`; docRow clicks the row itself (→ the same modal) */
+  /* any dossier document list (insotitoare | documente | acte): the KEYBOARD path of the row whose title contains
+     `text` (no „👁 Detalii” button since no-lone-detalii-v1 — the focused row + Enter); docRow clicks the row itself
+     (→ the same modal) */
   const docEye = (text, kind = "insotitoare") => async (h) => {
     const row = await h.scroll(`.e-permits-stack__item[data-dosar-detail-row^="${kind}"]`, text);
-    row.querySelector(`[data-dosar-detail^="${kind}"]`).click(); await h.wait(500);
+    row.focus(); row.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true, cancelable: true })); await h.wait(500);
   };
   /* docRow: the whole row opens the document modal (no ⋮ on document rows since 2026-10-20) */
   const docRow = (text, kind) => async (h) => {
@@ -34,7 +35,8 @@
   /* Tipuri solicitări: a request type's drawer on the Avizare tab */
   const rtAviz = (id) => async (h) => { await h.click(`[data-passport-configure-rt="${id}"]`); await h.click('[data-rt-tab="avizare"]'); };
   /* Documente: open a document; a row's ⋮ action */
-  const docOpen = (id) => async (h) => { await h.click(`[data-doc-open="${id}"]`); await h.wait(300); };
+  /* the row (first in DOM order) — read-only rows have no button since no-lone-detalii-v1; the row opens the same drawer */
+  const docOpen = (id) => async (h) => { await h.click(`[data-doc-row="${id}"], [data-doc-open="${id}"]`); await h.wait(300); };
   const docMenu = (id, action) => async (h) => {
     /* the menu item is hidden until ⋮ opens: find the row by its visible „Editează” */
     const open = await h.find(`[data-doc-open="${id}"]`);
@@ -297,7 +299,7 @@
     if (order) await h.click(`.e-permits-sort-sheet__key:has(input[name="geap-sort-sheet-order"][value="${order}"])`);
     document.activeElement?.blur?.(); /* a tap leaves no focus ring (the demo's programmatic click would) */
   };
-  /* a row whose only action is „Detalii” has no menu (action-menu-v1) → the state shows that button */
+  /* a row whose only action is „Detalii” has no trigger at all (no-lone-detalii-v1) → the state shows the plain card */
   const smMenu = (id) => async (h) => { await smFind(h, id); const sel = `[data-sm-card="${id}"] [data-cab-menu-trigger]`; if (document.querySelector(sel)) await h.click(sel); };
   const ntAt = (kind) => ({ page: CAB, params: { view: "notificari" }, ready: ".nt-item, .cab-state", run: async (h) => { await h.scroll(`[data-nt-kind="${kind}"]`); } });
   /* „Filtre” (US-158 AC-04 / 05) = the shared facet filter: desktop toggle → chip → option → Confirmă → Aplică;
@@ -974,7 +976,7 @@
     "dos-04e": dos(SPEC, "semnat", "documente", {}, async (h) => { await docEye("Extras MPower", "documente")(h); }),
     "dos-04f": dos(SPEC, "inExaminare", "jurnal"),
     /* 04g–04m Detalii solicitare › Documente însoțitoare (2026-10-14): the story dossier is a Duplicat
-       (post-process) → the previous act from MDocs first; eye → the document modal (page preview +
+       (post-process) → the previous act from MDocs first; the row (Enter = docEye) → the document modal (page preview +
        details; „Descarcă” only in its footer — no ⋮ on document rows since 2026-10-20); the row click → the same
        modal; a first issue (Eliberare) dossier; the empty state (&documente=0) */
     "dos-04g": dos(SPEC, "inExaminare", "solicitare", {}, async (h) => { await h.scroll(".e-permits-stack-section"); }),
@@ -985,7 +987,7 @@
     "dos-04l": { ...dosOf("D-2026-004559", SPEC, "solicitare"), run: async (h) => { await docEye("Extras din Registrul")(h); } },
     "dos-04m": dos(SPEC, "inExaminare", "solicitare", { documente: "0" }, async (h) => { await h.scroll(".e-permits-dosar-profil__section", "Documente însoțitoare"); }),
     /* 04n–04t Documente generate + Act/Decizie = the însoțitoare pattern (2026-10-14): grouped by flow step,
-       blue icon + „Generat”, number · file · size · Generat … · de … · Semnat electronic de …; „👁 Detalii” →
+       blue icon + „Generat”, number · file · size · Generat … · de … · Semnat electronic de …; the row (Enter) →
        the same document modal with the page preview (its footer has „Descarcă”); the row click → the modal; a
        signed act; a draft („Proiect”) */
     "dos-04n": dos(SPEC, "eliberat", "documente"),
@@ -2183,13 +2185,14 @@
     "sm-05a": smDosar("d-nota"),
     "sm-05b": smDosar("d-cantina-retragere"),
     "sm-05c": smDosar("d-izvoras", async (h) => { await h.click('[data-sm-profile] [data-sm-status] [data-sm-action="download"]'); }, { descarcare: "eroare" }),
-    /* 2026-10-14 · Documente însoțitoare = the shared document cards: „Detalii” / the card → document modal (its
-       footer has „Descarcă”; no ⋮ on the card since 2026-10-20 — sm-05g = the card click) */
+    /* 2026-10-14 · Documente însoțitoare = the shared document cards: the card → document modal (its footer has
+       „Descarcă”; no ⋮ since 2026-10-20, no „Detalii” since no-lone-detalii-v1 — sm-05g = the card click, sm-05f /
+       sm-05h = the keyboard: the focused card + Enter / Space) */
     /* US-161 tabs (2026-10-17): documents live in „Date solicitare” */
     "sm-05e": smDosar("d-izvoras", async (h) => { await h.click('[data-sm-tab="solicitare"]'); await h.scroll(".cab-docs"); }),
-    "sm-05f": smDosar("d-izvoras", async (h) => { await h.click('[data-sm-tab="solicitare"]'); await h.scroll(".cab-docs"); await h.click(".cab-doc [data-cab-doc-open]"); }),
+    "sm-05f": smDosar("d-izvoras", async (h) => { await h.click('[data-sm-tab="solicitare"]'); await h.scroll(".cab-docs"); const card = document.querySelector(".cab-doc[data-cab-doc]"); card.focus(); card.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true, cancelable: true })); }),
     "sm-05g": smDosar("d-izvoras", async (h) => { await h.click('[data-sm-tab="solicitare"]'); await h.scroll(".cab-docs"); await h.click(".cab-doc:nth-child(2)"); }),
-    "sm-05h": smDosar("d-izvoras", async (h) => { await h.click('[data-sm-tab="solicitare"]'); await h.scroll(".cab-docs"); await h.click(".cab-doc:nth-child(2) [data-cab-doc-open]"); }),
+    "sm-05h": smDosar("d-izvoras", async (h) => { await h.click('[data-sm-tab="solicitare"]'); await h.scroll(".cab-docs"); const card = document.querySelector(".cab-doc:nth-child(2)"); card.focus(); card.dispatchEvent(new KeyboardEvent("keydown", { key: " ", bubbles: true, cancelable: true })); }),
     /* US-161 tabs: Date solicitare (applicant, request data, documents, delivery, the initial fee — AC-15),
        Taxe (AC-18…20), Act (+ the service-specific fields, AC-29), Decizie (AC-31…34) */
     "sm-05j": smDosar("d-izvoras", async (h) => { await h.click('[data-sm-tab="solicitare"]'); }),

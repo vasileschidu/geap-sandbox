@@ -3159,8 +3159,8 @@ document.addEventListener("DOMContentLoaded", () => {
             ? `Termen ${escapeHtml(formatDate(taxa.termen))}${renderDeadlineMeta(taxa.termen)}`
             : `Achitată ${escapeHtml(formatDate(taxa.achitare || taxa.termen))}`
         ],
-        rowAttrs: `data-dosar-detail-row="taxe|${escapeHtml(taxa.id)}"`,
-        action: { label: "Detalii", attrs: `data-dosar-detail="taxe|${escapeHtml(taxa.id)}" aria-label="Detalii: ${escapeHtml(taxa.denumire)}"` }
+        /* the row opens the payment note — no lone „Detalii” (no-lone-detalii-v1) */
+        rowAttrs: `data-dosar-detail-row="taxe|${escapeHtml(taxa.id)}"`
       };
     });
 
@@ -3191,8 +3191,8 @@ document.addEventListener("DOMContentLoaded", () => {
           `Termen ${escapeHtml(aviz.termen)}`,
           `Rezultat: ${escapeHtml(aviz.rezultat)}`
         ],
-        rowAttrs: `data-dosar-detail-row="avize|${escapeHtml(aviz.id)}"`,
-        action: { label: "Detalii", attrs: `data-dosar-detail="avize|${escapeHtml(aviz.id)}" aria-label="Detalii: ${escapeHtml(aviz.institutie)}"` }
+        /* the row opens the approval — no lone „Detalii” (no-lone-detalii-v1) */
+        rowAttrs: `data-dosar-detail-row="avize|${escapeHtml(aviz.id)}"`
       };
     });
 
@@ -3258,7 +3258,8 @@ document.addEventListener("DOMContentLoaded", () => {
       rowAttrs: `data-dosar-detail-row="${escapeHtml(key)}"`,
       actionsHtml: renderRowActions({
         preview: `data-dosar-detail="${escapeHtml(key)}" aria-haspopup="dialog"`,
-        label: doc.tip
+        label: doc.tip,
+        rowOpens: true
       })
     };
   };
@@ -6936,7 +6937,7 @@ document.addEventListener("DOMContentLoaded", () => {
         actionsHtml: renderRowActions({
           preview: admin ? null : `data-doc-open="${doc.id}"`,
           primary: admin ? { label: "Editează", attrs: `data-doc-open="${doc.id}"` } : null,
-          menu, label: doc.title
+          menu, label: doc.title, rowOpens: true
         })
       };
     };
@@ -7101,8 +7102,17 @@ document.addEventListener("DOMContentLoaded", () => {
     `;
   };
 
+  /* a clickable row with no visible action (no-lone-detalii-v1) is itself the control: tabindex 0, an accessible
+     name „<title> — <tags>, deschide detaliile”, Enter / Space = click (stackRowKeydown below) */
+  const stackRowHasActions = (item) => Boolean(String(item.actionsHtml || "").trim() || item.action || item.menu?.length);
+  const stackRowOpenAttrs = (item) => {
+    if (!item.rowAttrs || stackRowHasActions(item)) return "";
+    const tags = (item.badges || []).map((badge) => String(badge).replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim()).filter(Boolean).join(", ");
+    const name = `${item.plainTitle || String(item.title || "").replace(/<[^>]*>/g, "")}${tags ? ` — ${tags}` : ""}, deschide detaliile`;
+    return `${/\btabindex=/.test(item.rowAttrs) ? "" : ' tabindex="0"'} data-stack-row-open aria-label="${escapeHtml(name)}"`;
+  };
   const renderStackItem = (item) => `
-    <li class="e-permits-stack__item${item.rowAttrs ? " is-clickable" : ""}${item.leadHtml ? " has-lead" : ""}"${item.rowAttrs ? ` ${item.rowAttrs}` : ""}>
+    <li class="e-permits-stack__item${item.rowAttrs ? " is-clickable" : ""}${item.leadHtml ? " has-lead" : ""}"${item.rowAttrs ? ` ${item.rowAttrs}` : ""}${stackRowOpenAttrs(item)}>
       ${item.leadHtml || ""}
       <div class="e-permits-stack__main">
         <div class="e-permits-stack__title-row">
@@ -7159,7 +7169,10 @@ document.addEventListener("DOMContentLoaded", () => {
      labelled grey „Previzualizează” (icon + label, btn-neutral, like Editează / Configurează) */
   /* the lone view action is ALWAYS „Detalii” with the eye (user 2026-10-14: „eye and Detalii as
      here … change everywhere”) — never „Previzualizează” / „Vez …” labels */
-  const renderRowActions = ({ preview = null, primary = null, menu = [], label = "" }) => !primary && preview ? `
+  /* no-lone-detalii-v1 (2026-10-21, user: „if it does the same as clicking the entire card, remove Detalii”): when the
+     ROW itself opens the same details (`rowOpens`, a stacked row with rowAttrs) and „Detalii” would be its only
+     action, there is no button at all — the whole row is the action (renderStackItem makes it focusable) */
+  const renderRowActions = ({ preview = null, primary = null, menu = [], label = "", rowOpens = false }) => rowOpens && !primary && preview && !menu.length ? "" : !primary && preview ? `
     <button class="btn btn-neutral btn-sm e-permits-stack__action" type="button" aria-label="Detalii: ${escapeHtml(label)}" ${preview}>${actionLabelHtml("Detalii")}</button>
     ${menu.length ? renderStackMenu(menu, label) : ""}` : `
     ${preview ? `<button class="btn btn-strict btn-sm btn-icon-only" type="button" aria-label="Previzualizează: ${escapeHtml(label)}" data-tooltip-label="Previzualizează" ${preview}><svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-eye-open"></use></svg></button>` : ""}
@@ -8097,6 +8110,16 @@ document.addEventListener("DOMContentLoaded", () => {
     if (row && event.key === "Enter" && event.target === row) { event.preventDefault(); openTariffView(row.dataset.tariffRow); }
   });
 
+  /* no-lone-detalii-v1: a stacked row that is itself the control (no button, renderStackItem `data-stack-row-open`) opens
+     with Enter / Space like a button — the row's own click handler runs (after the specific handlers above) */
+  document.addEventListener("keydown", (event) => {
+    if (event.defaultPrevented || (event.key !== "Enter" && event.key !== " ")) return;
+    const row = event.target.matches?.("[data-stack-row-open]") ? event.target : null;
+    if (!row) return;
+    event.preventDefault();
+    row.click();
+  });
+
   /* ---- Tarife (US-203, Azure 94768) — the service's own tariffs, stacked like the taxes:
      grouped by request type; title = name, tags Stare · Sursă; meta = Sumă și valută · Tip
      tarif · Tip persoană · Subdiviziune · vN · Modificat. Chips Toate · Active · Schiță ·
@@ -8140,7 +8163,8 @@ document.addEventListener("DOMContentLoaded", () => {
         actionsHtml: renderRowActions({
           preview: `data-tariff-view="${escapeHtml(t.id)}"`,
           primary: admin ? { label: "Editează", attrs: `data-tariff-edit="${escapeHtml(t.id)}" aria-label="Editează tariful ${escapeHtml(t.name)}"` } : null,
-          label: t.name
+          label: t.name,
+          rowOpens: true
         })
       };
     });
@@ -8274,7 +8298,7 @@ document.addEventListener("DOMContentLoaded", () => {
         `Editat ${escapeHtml(formatLongDate(r.editedAt))}${r.editedBy ? ` · ${escapeHtml(r.editedBy)}` : ""}`].filter(Boolean),
       actionsHtml: r.id ? renderRowActions(r.editable
         ? { primary: { label: "Editează", attrs: `data-svc-clas-open="${escapeHtml(r.id)}"` }, label: r.name }
-        : { preview: `data-svc-clas-open="${escapeHtml(r.id)}"`, label: r.name }) : ""
+        : { preview: `data-svc-clas-open="${escapeHtml(r.id)}"`, label: r.name, rowOpens: true }) : ""
     });
     const groups = SVC_CLAS_GROUPS.map(([key, label]) => ({ label, items: rows.filter((r) => r.category === key).map(item) })).filter((g) => g.items.length);
     return renderStackedList("Clasificatoare", groups, {
