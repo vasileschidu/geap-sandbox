@@ -215,7 +215,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     const isCollapsed = shell.classList.contains("is-collapsed");
-    toggle.setAttribute("aria-pressed", String(isCollapsed));
+    toggle.setAttribute("aria-expanded", String(!isCollapsed));
     toggle.setAttribute("aria-label", isCollapsed ? "Extinde meniul" : "Colapsează meniul");
 
     /* its tooltip = the aria-label, shown to the right by the ONE tooltip runtime (js/icon-tooltip.js) */

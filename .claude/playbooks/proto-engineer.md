@@ -2040,3 +2040,12 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   Proof that no audit finding was mine: the same code-audit / component-audit on a COPY of the tree with only my three
   CSS files reset to HEAD (python http.server :8982) — identical per-state counts. hover-audit is hard-wired to 1440:
   a sed copy at 375 for phone-only changes (delete it before staging).
+- 2026-10-21 · Library adoption — sidebar collapse button (library-adopt-v3; the rest of the side nav stays ours by user
+  decision). `btn btn-strict btn-sm btn-icon-only` + `aria-expanded` (brief) instead of `aria-pressed`: the product's
+  „open button keeps the ring” rule and the strict-Small `[aria-expanded=true]` pressed fill would paint the button as
+  pressed + ringed at REST (the nav is open by default) — a disclosure that is not a popup needs those rules switched
+  off for itself (strict Small states restated: transparent → tertiary-hover → tertiary-active, ring on focus-visible
+  only). A copied focus-ring literal (`0 0 0 2px … 5px`) is a static code-audit finding even when the global rule has the
+  same literal → write it with border-width tokens. Process trap of the same hour: the figma-designer agent's commit
+  38bf437a swept my staged batch 7 (shared index) while I was checking the stat — my own commit then held only the one
+  file still unstaged. Stage + check + commit in ONE command, nothing in between (lesson 2026-10-20, again).

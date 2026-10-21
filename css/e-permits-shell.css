@@ -1446,26 +1446,30 @@ body {
   line-height: var(--line-height-lh-16, 16px);
 }
 
+/* „Colapsează / Extinde meniul” = the library icon-only button `btn btn-strict btn-sm btn-icon-only` (32, icon 16,
+   library-adopt-v3); only its place is ours. It is a disclosure (aria-expanded = the nav is open), not a popup:
+   the „open button keeps the focus ring” rule does not apply — the ring is the keyboard focus only */
 .e-permits-shell__sidebar-toggle {
-  width: 32px;
-  height: 32px;
-  flex: 0 0 32px;
   position: relative;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border: 0;
-  border-radius: var(--border-radius-8, 8px);
-  background: transparent;
-  color: var(--color-icon-base-secondary, #444);
-  cursor: pointer;
-  transition: background-color 120ms ease, color 120ms ease;
 }
 
-.e-permits-shell__sidebar-toggle:hover,
-.e-permits-shell__sidebar-toggle:focus-visible {
-  background: var(--color-background-base-tertiary, #f1f1f1);
-  color: var(--color-icon-base-default, #121212);
+/* the „open” look of `.btn-sm.btn-strict[aria-expanded=true]` (pressed fill + ring) is for menus — here the strict
+   Small states stay: transparent → tertiary-hover → tertiary-active, ring on keyboard focus only */
+.btn.btn-sm.btn-strict.e-permits-shell__sidebar-toggle[aria-expanded] {
+  background: transparent;
+  box-shadow: none;
+}
+
+.btn.btn-sm.btn-strict.e-permits-shell__sidebar-toggle[aria-expanded]:hover:not(:disabled) {
+  background: var(--color-background-base-tertiary-hover, #e0e0e0);
+}
+
+.btn.btn-sm.btn-strict.e-permits-shell__sidebar-toggle[aria-expanded]:active:not(:disabled) {
+  background: var(--color-background-base-tertiary-active, #d9d9d9);
+}
+
+.btn.btn-sm.btn-strict.e-permits-shell__sidebar-toggle[aria-expanded]:focus-visible {
+  box-shadow: 0 0 0 var(--border-width-2, 2px) var(--color-background-base-default, #fff), 0 0 0 calc(var(--border-width-2, 2px) + var(--border-width-3, 3px)) var(--focus-ring, var(--blue-sky-500, #3379db));
 }
 
 .e-permits-shell__nav--legacy,
@@ -1924,24 +1928,6 @@ body {
   line-height: var(--line-height-lh-16, 16px);
   white-space: nowrap;
   word-break: normal;
-}
-
-.e-permits-shell__sidebar-toggle {
-  width: 30px;
-  height: 30px;
-  flex: 0 0 30px;
-  border-radius: var(--border-radius-6, 6px);
-  background: var(--color-background-base-tertiary, #f1f1f1);
-}
-
-.e-permits-shell__sidebar-toggle .icon {
-  width: 16px;
-  height: 16px;
-}
-
-.e-permits-shell__sidebar-toggle:hover,
-.e-permits-shell__sidebar-toggle:focus-visible {
-  background: var(--color-background-base-tertiary, #f1f1f1);
 }
 
 .e-permits-shell__nav--specialist {
