@@ -5127,7 +5127,7 @@
           <p class="e-permits-fo-intent__acts-title" id="${esc(actsId)}">${esc(actsTitle)}</p>
           ${rowsHtml
             ? `<ul class="e-permits-fo-intent__list">${rowsHtml}</ul>`
-            : `<div ${emptyAttrs}>${window.GEAPEmptyState.render({ title: String(emptyTitle).replace(/\.$/, ""), text: "Un act apare aici după ce este emis. Pentru un act nou, alegeți „Solicitare nouă”.", icon: "page-text" })}</div>`}
+            : `<div ${emptyAttrs}>${window.GEAPEmptyState.render({ title: String(emptyTitle).replace(/\.$/, ""), text: "Un act apare aici după ce este emis. Pentru un act nou, alegeți „Solicitare nouă”.", icon: "permission" })}</div>`}
         </section>`;
     }
 

@@ -2278,3 +2278,16 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   `.object` reader when data may lack it. Parity spec: the act meta lost its „what” slot, so part 2 compares authority vs
   type of request — documented as `expected`, new pairs „location line / pin” = 0. My probe hung twice with no output
   (CDP call never answered) → every `send` now has a 20 s timeout + a global exit, and prints progress.
+- 2026-10-21 · Permit icon (permission-icon-v1; user: „for permission let's use this icon” GEAP 12323:151003, then mid-job
+  „In Actele mele permisive they're all permits, so there's no need [for an icon], right?” → yes). (1) The sprite ALREADY
+  had an `icon-permission` (viewBox 25 24, shifted 0.4, used by the index.html role picker) — my first insert made a
+  DUPLICATE id; `grep -c 'id="icon-X"'` BEFORE adding a symbol, then REPLACE the old one (REST `/v1/images?format=svg`
+  gives the exact 24 paths; `/v1/files/<Foundations>/components` showed only 24/permission — no 20 / 16 / filled).
+  (2) Final rule: an icon that says „this is a permit” is noise in a list of permits → act-only lists (GEAPActRow default)
+  have NO lead icon, like the request rows; the permit icon goes only where acts sit among other things (role picker,
+  „Actul permisiv a fost emis” notification, catalog act-type meta, acts empty states). The existing request-row CSS
+  already handled a row without a lead → zero CSS; the compare-styles spec got its `rect.x` ignores removed (0 diffs at
+  1440 / 1024 / 375 / 320). (3) Another agent rewrote the HTML pages mid-job and silently reset two of my `?v=` keys —
+  re-grep every cache key right before committing. (4) My scratch crop script measured before the paint of long lists
+  (blank crops for nt-01 / cat-01) — the full-page capture.mjs PNGs were the reliable evidence. Audits: hover 0 / 0,
+  code-audit / component-audit only standing findings (headers, avatar menu, copy, a visually-hidden tag span).

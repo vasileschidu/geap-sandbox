@@ -35,7 +35,8 @@
               noticeTone = "warning", noticeIcon = "icon-time", noticeLocks = true   the notice under the row
               hideEmptyAction = false       no pill when there is nothing to start (Cabinet: expired / paper acts)
               // added for the Cabinet „Solicitările mele” rows (2026-10-20, same row look for requests):
-              iconSrc = null                the lead icon (null = the blue System Generated document, "" = no icon)
+              iconSrc = null                the lead icon: none by default (permission-icon-v1, 2026-10-21, user: in an act-only list „they're
+                                            all permits, so there's no need” → no lead icon, like the request cards); a src = that image
               metaSlots = null              { number, what, authority, subdivision, date } → metaParts()
               noticeHtml = ""               the notice text as ready HTML (live parts, <strong>), instead of pendingTitle / -Text
               actionHtml = null             the right-hand actions, replaces the post-process pill block

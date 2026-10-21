@@ -68,7 +68,7 @@
             <div class="cab-card__tags">${onlineTag(service)}</div>
           </div>
           <div class="cab-card__meta">
-            <span class="cab-card__meta-item">${icon("icon-page-text", "medium")}${escape(service.actType)}</span>
+            <span class="cab-card__meta-item">${icon("icon-permission", "medium")}${escape(service.actType)}</span>
             <span class="cab-card__dot" aria-hidden="true"></span>
             <span class="cab-card__meta-item">${icon("icon-time", "medium")}${escape(service.term)}</span>
             <span class="cab-card__dot" aria-hidden="true"></span>
