@@ -2635,3 +2635,17 @@ For any „research how other products do it” step, search Mobbin (mcp__mobbin
     (68 on RAP, where the old row sat in its own padded frame) → restack whole columns; RAP „Filter chips (phone)” keeps only
     the meta with paddingTop = the toolbar's bound gap 8 (or is removed when there is no meta → table 16 under the row = code).
   - Take „before” screenshots before the first write of each file (Cabinet's had to come from a second, untouched block).
+
+- 2026-10-21 · Address builder → sample address arrows (user: „an arrow from each builder part to a sample address”) — BLOCKED: the
+  figma-a MCP server disconnected after the read-only survey; nothing was written. Findings so the next run starts building straight away:
+  - **The Address board is in GEAP, not FOD**: page ↳ FOD Pattern -> Address 3164:28119, section 11224:39519 (US-54). FOD
+    pvDAJPXKyUuJgz3P921Ye8 has no Address page. Builder blocks: C01 11249:15035 / C01a 11249:15248 / C01b 11249:15461 (x 160, 1440 wide,
+    stacked 1200 / 2564 / 3908) inside „Lane · Back office” 11251:14282 (80..3360 × 1000..5120); Preview C12 / C12a at x 1840. The
+    builder parts are the rows of the right panel „Address pattern › Data” (captured, so rows are frames and can be connector ends).
+    The C01 capture is scrolled: it shows Stradă → Cod cadastral only, so Țară / Raion / Orașul / Sector need anchors or a fuller capture.
+  - **Parts come from code** (js/form-builder.js ADDRESS_PARTS): Țară, Raion/Municipiu, Orașul/Comuna, Sector (only for Chișinău),
+    Stradă, Casă, Etaj, Bloc, Scară, Apartament/Oficiu, Cod cadastral. „Cod poștal” is NOT a builder part: the FO derives it from the
+    locality (read-only), and „Cod cadastral” fills the other parts from SRRE. Use a code sample, not an invented one: SRRE 0101213.045
+    (data/srre-cadastral.json) = Chișinău · sec. Buiucani · str. Calea Ieșilor 10 · bl. 2 · ap. 47 · MD-2001.
+  - Placement to check first: the C01 → C12 gap (x 1600–1840) already carries 4 connectors; the free space is under C01b (lane bottom
+    5120 → grow the lane and move „FO / Field · skeleton” / „FO / Context · skeleton” at y 5400) or left of the lane.
