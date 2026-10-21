@@ -1919,3 +1919,15 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   committed a line I had converted (its HEAD blob kept `title=`) → build staging edits against the NEW HEAD every time.
   component-audit rule 8 (`tooltip-private` / `tooltip-title`) proved on a HEAD worktree (:8981, rap-01 „Filtru”) vs
   the tree (0 on 18 states × 2). RAP header Ro / Ru / En have no hover — pre-existing (same on HEAD), reported.
+- 2026-10-21 · Tacit approval = ONE tag (tacit-tag-v1; user: „if it's Aprobare tacită use only this, it's already clear it's
+  valabil”). Inventory by `grep -rn -i tacit js cabinet-evo rap-evo css data` (zsh: no `--include=*.js` unquoted — the glob
+  fails the whole command): 6 places drew „Valabil” + the badge (Cabinet act row + profile facts, RAP header + Stare row +
+  date row badge, the shared act dialog's Stare + date row); RAP's list already showed the badge alone. Fix = one status
+  helper per product that RETURNS the tacit tag instead of the status (`actStatusTagHtml`, RAP `statusTags`, act-view
+  `statusTag` on `tacitBadge`, `GEAPActRow` default tag on `act.tacit`), the date rows keep only the date. Traps: (1) the
+  library `status-tag--info.is-subtle` is GREY text on blue — the FO blue Small tag is `--brand` („Semnat electronic”);
+  look at the crop, the probe said „ok”; (2) `innerText` includes `.u-visually-hidden` text (it is clipped, not
+  display:none) — judge SR text vs pixels separately; (3) code-audit flags the hidden span as clipped-text — standing FP.
+  FO / Ghișeu data has no tacit act → a demo param read in the shared row (`?tacit=<id>[,…]`, pp-02t / gh-02y) instead
+  of seed data that Cabinet also reads. compare-styles pp-01 ↔ sm-01 = 1 / viewport, byte-identical on a HEAD worktree
+  (:8990, „Detalii” padding-right from another commit) — not mine; always run the HEAD baseline before reporting „0”.

@@ -1255,7 +1255,7 @@
     const allowed = postprocessesOf(d, act);
     const items = serviceTypes(d).map((t) => ({ id: t, label: t, icon: PP_ICON[t], disabled: !allowed.includes(t), reason: allowed.includes(t) ? "" : ineligibleReason(d, act, t) }));
     return R().actRowHtml?.({
-      id: act.id, name: act.name, number: act.nr, status: act.status, statusLabel: (ACT_TONE[act.status] || [act.status])[0],
+      id: act.id, name: act.name, number: act.nr, status: act.status, statusLabel: (ACT_TONE[act.status] || [act.status])[0], tacit: act.tacit,
       validUntil: act.valabilPana, subdivision: act.subdiviziune,
       /* the shared meta slots order (js/act-row.js): number · subdivision · the key date */
       meta: act.kind === "decizie" ? [act.nr, { text: act.subdiviziune, long: true }, `${act.decizie} · emisă acum ${plural(act.emisZileInUrma, "zi", "zile")}`] : undefined

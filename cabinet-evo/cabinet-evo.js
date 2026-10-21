@@ -18,8 +18,10 @@
   /* the BO renderTag markup (Tag · Small) — every status / result tag in the Cabinet */
   const tagHtml = (label, tone = "neutral", extra = "") =>
     `<span class="e-permits-workplace__tag e-permits-workplace__tag--${tone}"${extra}>${String(label).replace(/[&<>"']/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[ch])}</span>`;
-  /* „Aprobare tacită” (RAP / US-139): the blue Small tag beside the status */
-  const tacitTagHtml = () => tagHtml("Aprobare tacită", "info");
+  /* „Aprobare tacită” (RAP / US-139) = the status tag of a VALABIL act approved tacitly — ONE tag, it replaces
+     „Valabil” (tacit-tag-v1, user 2026-10-21); other statuses show their own tag only, the tacit date stays in Detalii */
+  const tacitTagHtml = () => '<span class="e-permits-workplace__tag e-permits-workplace__tag--info">Aprobare tacită<span class="u-visually-hidden"> (valabil)</span></span>';
+  const actStatusTagHtml = (act, tacit) => (tacit && act.status === "valabil" ? tacitTagHtml() : tagHtml(act.statusLabel, ACT_TONE[act.status]));
 
   /* Feature 90818 / 89533 — GEAP acts come from the same data the front
      office uses (acte-permisive.json → intent): status × post-process
@@ -210,14 +212,14 @@
 
   /* the acts list = the FO „Ce vrei să soliciți?” act rows (user 2026-10-17: „as we show for the cum vrei să
      soliciți flow screen”) — the SAME renderer as FO #intent and the Ghișeu (js/act-row.js, GEAPActRow.html):
-     blue document icon · title + the Cabinet Small tag (+ „Aprobare tacită”) · meta number · validity ·
+     blue document icon · title + the Cabinet Small tag („Aprobare tacită” instead of „Valabil”) · meta number · validity ·
      authority · subdivision (text, no institution icon) · the „Postprocese ⌄” pill when a
      post-process is available. Cabinet extras: the whole row opens the act profile (row hook + keyboard); a
      locked act = the FO locked notice (pill disabled); a paper act = the same notice slot in the info tone; no
      pill when nothing can be started (expired / withdrawn / paper). The old ⋮ („Detalii” = the row click,
      „Descarcă actul (MDocs)” = the profile's „Vezi act permisiv” → Descarcă) is gone. */
   function cardMarkup(permit) {
-    const tacit = (permit.tacit || state.actProfiles[permit.id]?.tacitApprovalDate) && permit.status === "valabil" ? tacitTagHtml() : "";
+    const tacit = Boolean(permit.tacit || state.actProfiles[permit.id]?.tacitApprovalDate) && permit.status === "valabil";
     const validity = permit.status === "expirat" ? `expirat la ${longDate(permit.validUntil)}` : `valabil până la ${longDate(permit.validUntil)}`;
     const pending = permit.pending ? { title: `${permit.pendingLabel} în curs`, text: `· dosar ${permit.pending.dossier}. Poți iniția un alt postproces după finalizarea acestuia.` } : null;
     return window.GEAPActRow.html({
@@ -238,9 +240,8 @@
       menuId: `cab-menu-${permit.id}`,
       items: permit.postProcesses,
       assets: "../assets/",
-      attrs: `tabindex="0" data-cab-card="${escape(permit.id)}" aria-label="${escape(`${permit.title} — ${permit.statusLabel}`)}"`,
-      tagHtml: tagHtml(permit.statusLabel, ACT_TONE[permit.status]),
-      extraTagsHtml: tacit,
+      attrs: `tabindex="0" data-cab-card="${escape(permit.id)}" aria-label="${escape(`${permit.title} — ${tacit ? "Aprobare tacită (valabil)" : permit.statusLabel}`)}"`,
+      tagHtml: actStatusTagHtml(permit, tacit),
       triggerAttrs: "data-cab-menu-trigger",
       itemAttrs: (pp) => `data-cab-pp="${escape(pp.id)}" data-cab-act="${escape(permit.id)}"`,
       pendingTitle: pending ? pending.title : "",
@@ -648,7 +649,7 @@
                  the title, one line: „Vezi act permisiv” (the one primary, every status) · „Postprocese ⌄” (only when
                  eligible; disabled + the notice while one is in progress) · „Vezi solicitarea” (the issuing request);
                  what does not fit goes into a trailing „⋯” (fitActActions) · the key-facts card (grey, r16): Nr.
-                 (copy) · Stare (+ „Aprobare tacită”) · ONE status date (actHeaderDate) on one line, the status notice
+                 (copy) · Stare („Aprobare tacită” instead of „Valabil”) · ONE status date (actHeaderDate) on one line, the status notice
                  (actNotice, only when useful), „Vezi toate detaliile”. Look and feel from the user's YouTube reference
                  (grouped grey buttons, a compact facts card), NOT its structure — no „channel” identity row (user
                  2026-10-21: „screenshots are look and feel; research before copying a layout”).
@@ -966,7 +967,7 @@
     /* the key facts on one line (wraps by whole parts, no separators to orphan): number · status · status date */
     const facts = [
       `<span class="cab-act-header__fact"><span>Nr.</span>${copyValueHtml(act.number, `Copiază numărul actului ${act.number}`)}</span>`,
-      `<span class="cab-act-header__fact cab-act-header__fact--tags">${tagHtml(act.statusLabel, ACT_TONE[act.status])}${tacit && act.status === "valabil" ? tacitTagHtml() : ""}</span>`,
+      `<span class="cab-act-header__fact cab-act-header__fact--tags">${actStatusTagHtml(act, tacit)}</span>`,
       statusDate ? `<span class="cab-act-header__fact">${escape(statusDate[0])} ${statusDate[1]}</span>` : "",
     ].filter(Boolean).join("");
     const factsHtml = `

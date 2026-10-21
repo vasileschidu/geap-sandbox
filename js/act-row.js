@@ -25,7 +25,11 @@
               assets = "assets/"            base of the icon / sprite paths (sub-pages: "../assets/")
               attrs = ""                    extra attributes on the <li> (row hooks, tabindex, aria-label)
               tagHtml = null                the status tag markup (null = the FO Small subtle tag)
-              extraTagsHtml = ""            tags after the status (e.g. „Aprobare tacită”)
+              extraTagsHtml = ""            tags after the status (e.g. „Semnat electronic”)
+              act.tacit = true              a Valabil act approved tacitly → ONE info tag „Aprobare tacită” instead of
+                                            „Valabil” (tacit-tag-v1, user 2026-10-21: it implies valid; screen readers hear
+                                            „Aprobare tacită (valabil)”); other statuses keep their own tag only.
+                                            Demo: `?tacit=<act id>[,<act id>]` marks FO / Ghișeu acts.
               triggerAttrs = "data-fo-intent-trigger"   the pill's hook
               itemAttrs = null              (pp) → the menu item's hook (null = data-fo-intent-postprocess)
               noticeTone = "warning", noticeIcon = "icon-time", noticeLocks = true   the notice under the row
@@ -54,6 +58,12 @@
     .replace(/"/g, "&quot;");
 
   const ACT_ROW_TONE = { valabil: "success", suspendat: "accent", expirat: "neutral", anulat: "danger", retras: "danger", respins: "danger" };
+
+  /* „Aprobare tacită” = the status tag of a VALABIL act approved tacitly (tacit-tag-v1): one tag, never „Valabil” +
+     „Aprobare tacită”; any other status shows its own tag only (the tacit approval stays in the details / Istoric) */
+  const DEMO_TACIT = (new URLSearchParams(window.location.search).get("tacit") || "").split(",").filter(Boolean);
+  const isTacitValid = (act) => Boolean(act.tacit || DEMO_TACIT.includes(act.id)) && act.status === "valabil";
+  const TACIT_LABEL_HTML = 'Aprobare tacită<span class="u-visually-hidden"> (valabil)</span>';
 
   function longDate(value) {
     const m = String(value || "").match(/^(\d{1,2})\.(\d{1,2})\.(\d{4})$/);
@@ -124,7 +134,9 @@
           : metaParts({ number: act.number, numberLabel: act.number ? `Copiază numărul actului ${act.number}` : "", subdivision: act.subdivision, date: validText(act.validUntil) });
     const hasNotice = Boolean(pendingTitle || pendingText || noticeHtml);
     const locked = hasNotice && noticeLocks;
-    const tag = tagHtml ?? `<span class="status-tag status-tag--${tone} is-subtle status-tag--small e-permits-fo-doc-tag">${esc(act.statusLabel || act.status)}</span>`;
+    const tag = tagHtml ?? (isTacitValid(act)
+      ? `<span class="status-tag status-tag--brand is-subtle status-tag--small e-permits-fo-doc-tag">${TACIT_LABEL_HTML}</span>` /* blue = the FO „Semnat electronic” tone (library info-subtle has grey text) */
+      : `<span class="status-tag status-tag--${tone} is-subtle status-tag--small e-permits-fo-doc-tag">${esc(act.statusLabel || act.status)}</span>`);
     const itemHook = itemAttrs || ((pp) => `data-fo-intent-postprocess="${esc(pp.id)}"`);
     const action = actionHtml !== null ? actionHtml : hideEmptyAction && !items.length ? "" : `
           <div class="cab-doc__actions e-permits-fo-intent-act__action">
@@ -254,5 +266,5 @@
   document.addEventListener("pointerover", (event) => { if (event.target.closest?.(".e-permits-fo-intent-act")) queueCut(); }, true);
   document.addEventListener("focusin", (event) => { if (event.target.closest?.(".e-permits-fo-intent-act")) syncCut(); }, true);
 
-  window.GEAPActRow = { html, validText, TONE: ACT_ROW_TONE, syncCut, metaParts, isDanger, menuItemsHtml, ppIcon };
+  window.GEAPActRow = { html, validText, TONE: ACT_ROW_TONE, syncCut, metaParts, isDanger, menuItemsHtml, ppIcon, isTacitValid, TACIT_LABEL_HTML };
 })();

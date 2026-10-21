@@ -192,11 +192,12 @@
     const icon = (name, className = "icon") => `
     <svg class="${className}" aria-hidden="true"><use href="${sprite}#icon-${name}"></use></svg>
   `;
-    const statusTag = (act) => `<span class="e-permits-workplace__tag e-permits-workplace__tag--${act.tone}">${escapeHtml(act.status)}</span>`;
-    const tacitTag = () => '<span class="e-permits-workplace__tag e-permits-workplace__tag--info">Aprobare tacită</span>';
-    const tacitDateRow = (act) => (act.tacitDate
-      ? [["Data aprobării tacite", `<span>${escapeHtml(act.tacitDate)}</span>${act.tacitBadge ? tacitTag() : ""}`]]
-      : []);
+    /* a Valabil act approved tacitly (`tacitBadge`) shows ONE tag, „Aprobare tacită” (it implies valid; screen readers
+       hear „(valabil)”) — tacit-tag-v1; the date row keeps only the date */
+    const statusTag = (act) => (act.tacitBadge
+      ? '<span class="e-permits-workplace__tag e-permits-workplace__tag--info">Aprobare tacită<span class="u-visually-hidden"> (valabil)</span></span>'
+      : `<span class="e-permits-workplace__tag e-permits-workplace__tag--${act.tone}">${escapeHtml(act.status)}</span>`);
+    const tacitDateRow = (act) => (act.tacitDate ? [["Data aprobării tacite", escapeHtml(act.tacitDate)]] : []);
 
     const actModal = { overlay: null, opener: null, run: 0, record: null };
     const actData = { overlay: null, record: null, opener: null, parked: false };

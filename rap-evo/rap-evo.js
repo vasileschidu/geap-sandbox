@@ -96,22 +96,20 @@
   /* the BO renderTag markup (Tag · Small, css/bo-profile-parts.css) */
   const statusTag = (status) => `<span class="e-permits-workplace__tag e-permits-workplace__tag--${statusTone(status)}">${escapeHtml(status)}</span>`;
   /* tacit approval (Figma comment G. 1868591457; US-139 AC-02, US-142 / US-162 AC-08): an act with
-     Aprobare tacită = true (the RAP marking „Aprobat tacit”) shows the blue Small badge „Aprobare
-     tacită” beside its status tag — only while it is Valabil (US-139) — and the field „Data aprobării
-     tacite” right above „Data eliberării” wherever the act's details are listed */
+     Aprobare tacită = true (the RAP marking „Aprobat tacit”) that is Valabil shows ONE blue Small tag
+     „Aprobare tacită” INSTEAD of „Valabil” (tacit-tag-v1, user 2026-10-21: it implies valid; screen
+     readers hear „Aprobare tacită (valabil)”) — in the list, the header and the Stare row alike; any
+     other status shows its own tag only. The field „Data aprobării tacite” (date only) stays right above
+     „Data eliberării” wherever the act's details are listed (AC-08: badge + date) */
   const TACIT_MARK = "Aprobat tacit";
   const isTacit = (record) => (record.markings || []).includes(TACIT_MARK);
   const showTacitBadge = (record) => isTacit(record) && record.status === "Valabil";
-  const tacitTag = () => '<span class="e-permits-workplace__tag e-permits-workplace__tag--info">Aprobare tacită</span>';
-  const statusTags = (record) => `${statusTag(record.status)}${showTacitBadge(record) ? tacitTag() : ""}`;
-  /* the LIST shows only the blue badge for a tacitly approved act (user 2026-10-17, to save space: the
-     badge exists only for Valabil acts, so it implies the status); screen readers hear „Valabil, Aprobare
-     tacită”. Deviation from US-139 AC-02 („alături de Status”) — to confirm with the PO */
-  const listTacitTag = () => '<span class="e-permits-workplace__tag e-permits-workplace__tag--info"><span class="visually-hidden">Valabil, </span>Aprobare tacită</span>';
-  /* details (user 2026-10-17): ONE row, in date order before „Data eliberării” — the date of the tacit
-     approval with the badge after it; the Stare row keeps the status only */
+  const tacitTag = () => '<span class="e-permits-workplace__tag e-permits-workplace__tag--info">Aprobare tacită<span class="u-visually-hidden"> (valabil)</span></span>';
+  /* deviation from US-139 AC-02 („alături de Status”), user decision — to confirm with the PO */
+  const statusTags = (record) => (showTacitBadge(record) ? tacitTag() : statusTag(record.status));
+  /* details (user 2026-10-17): ONE row, in date order before „Data eliberării” — the date only */
   const tacitDateRow = (record, profile) => (isTacit(record) && profile.tacitDate
-    ? [["Data aprobării tacite", `<span>${escapeHtml(profile.tacitDate)}</span>${showTacitBadge(record) ? tacitTag() : ""}`]]
+    ? [["Data aprobării tacite", escapeHtml(profile.tacitDate)]]
     : []);
 
   /* US-162 AC-17: status-dependent dates — „Data suspendării actului permisiv” (the suspension decision
@@ -212,7 +210,7 @@
     const beneficiaryIcon = record.beneficiary.type === "person" ? "person-filled" : "business-filled";
     const details = [
       ["Denumire act permisiv", record.permit.name],
-      ["Stare", statusTag(record.status), false, true],
+      ["Stare", statusTags(record), false, true],
       ["Numărul actului permisiv", record.permit.number, true],
       ["Numărul dosarului electronic", record.permit.paperNumber, true],
       ["Seria și nr. documentului tipărit", profile.printedDocumentNumber, true],
@@ -411,7 +409,7 @@
           <span class="rap-cell-stack__secondary">${escapeHtml(record.permit.issuedAt)}</span>
         </span>
       </td>
-      <td>${showTacitBadge(record) ? listTacitTag() : statusTag(record.status)}</td>
+      <td>${statusTags(record)}</td>
       <td>
         <span class="rap-row-action" aria-hidden="true">
           <svg class="icon"><use href="../assets/icons/sprite.svg#icon-chevron-right"></use></svg>

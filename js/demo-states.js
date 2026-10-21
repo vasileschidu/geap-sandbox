@@ -1295,6 +1295,9 @@
     "pp-02b": ppIntent(async (h) => { await h.click("[data-fo-intent-act='act-izvoras'] [data-fo-intent-trigger]"); await actMenuPick("[data-fo-intent-act='act-izvoras'] [data-fo-intent-postprocess='retragere']")(h); }),
     /* a locked act row (post-process in progress): the full-width subtle warning notice under the row */
     "pp-02d": { ...ppIntent(), params: { incurs: "act-izvoras" } },
+    /* tacit-tag-v1 (user 2026-10-21): a Valabil act approved tacitly = ONE „Aprobare tacită” tag; a tacit act in another
+       status (Suspendat) keeps its status tag only */
+    "pp-02t": { ...ppIntent(), params: { tacit: "act-izvoras,act-piata-mare" } },
     "pp-02c": ppIntent(async (h) => {
       await h.click("[data-fo-avatar-trigger]");
       await h.click("[data-fo-avatar-proxy-toggle]");
@@ -2794,6 +2797,8 @@
          row „în curs”), a menu open with a disabled reason, no acts (code starting with 0), a generated identity,
          the holder changed after a choice (notice), a draft saved before the process (resumed on this screen) */
       "gh-02i": gh("#ghiseu/nou", seq(service("003000118"), pjAdmin, cont)),
+      /* tacit-tag-v1: Izvoraș (Valabil, tacit) = „Aprobare tacită” only; Piața Mare (Suspendat, tacit) = „Suspendat” only */
+      "gh-02y": gh("#ghiseu/nou", seq(service("003000118"), pjAdmin, cont), { tacit: "act-izvoras,act-piata-mare" }),
       "gh-02j": gh("#ghiseu/nou", seq(service("003000118"), pjAdmin, cont, openActMenu("act-piata-mare"), async (h) => { if (window.matchMedia("(max-width: 760px)").matches) return; /* phones: the reason is a line in the item */ await h.hover('[data-fo-intent-act="act-piata-mare"] [data-fo-intent-postprocess="Prelungire"]'); await h.wait(600); })),
       "gh-02t": gh("#ghiseu/nou", seq(service("003000118"), pjAdmin, cont, async (h) => { await h.scroll('[data-fo-intent-act="act-depozit"]'); await h.hover('[data-fo-intent-act="act-depozit"] [data-fo-intent-trigger]'); await h.wait(600); })),
       "gh-02l": gh("#ghiseu/nou", seq(service("003000118"), pf("0990001234567"), cont)),
