@@ -2118,3 +2118,20 @@ For any „research how other products do it” step, search Mobbin (mcp__mobbin
   every block updates with no rebuild and no lost arrow. Patch the stored builder + repo copy + the DOM extractor selectors in
   the same pass (keys / orders split by input name). Measure the code once with CDP (`node --experimental-websocket` on Node 20
   for cdp.mjs) before declaring a height delta: 676 vs 672 = library sheet action 88 vs code footer 84.
+
+- 2026-10-21 · Alignment on Classifiers 03c (user: „resolve here the alignment”, node 10547:213285 = `svc/switch-label` „Stare finală”
+  in the „Valoare nouă” drawer, demo clf-03c). Cause: the MAIN `svc/switch-label` 9563:18803 had counterAxisAlignItems MIN → the 20 px
+  label sat on the top edge of the 28 px switch (label-only rows) and the switch sat on the top of the 42 px label + description (474
+  rows on Services 454 / Tariffs 6 / NT 6 / Local components 2). Code = `.e-permits-toggle { align-items: center }` (measured clf-03c:
+  toggle 24 at y 678, text 20 at y 680). Fix = main CENTER → all 476 instances follow (label-only: label y 0 → 4; with description:
+  switch y 0 → 7), 0 fractions, 0 alignment overrides left (the 4 Recipient-rule modal rows already carried a CENTER override). Same
+  column: 03b 10547:213279 follows. Lessons:
+  - **Fix alignment in the main when the row is a component**: census instances first (`getInstancesAsync`, per page, overrides on
+    counterAxisAlignItems), check the code has no contextual override (grep the class across css/), then one property on the main.
+  - **get_screenshot can render a STALE layout for instances whose visible children differ from the main** (main shows the
+    description, instance hides it): after the main change, the label-only instances rendered the switch at the main's y 7 (box 35
+    high) although the plugin read y 0 / h 28. Toggling the instance's own BOOLEAN on → off (`setProperties`) forced the relayout and
+    the render matched. Re-screenshot after any main-level layout change and nudge the instances that differ from the main.
+  - Left (reported, not changed): Text gap 2 between label and description vs code 0; library switch 48×28 vs code toggle 44×24.
+  - No Agent tool in this session → stored `ghs/audit` on main + instance + 03c section + Tariff / Recipient-rule samples, and
+    `qsweep/audit` on the 03c drawer: 0 findings.
