@@ -3015,3 +3015,39 @@ For any „research how other products do it” step, search Mobbin (mcp__mobbin
   - No Agent tool in this session → stored audits on samples (GEAP `ghs/audit`: only the classifier table's pre-existing .5 cell
     centring; eKYC `qsweep/audit-lite` 0; Cabinet `qsweep/audit` 0) + screenshots vs the code captures (trf-03, clf-03, sm-03, ek-21a,
     ek-27k, gh-02o, pp-02b): match.
+
+- 2026-10-21 · **Destructive leftovers drawn as blocks** (user: „Do it in Figma then, super accurate”). eKYC C06g (ek-27k, code 3da8938b): library
+  `modal` footer → Style=Destructive · 2 actions · Medium, „Anulează” kept on the file's Neutral Large, „Șterge” Leading 20/delete; content
+  component rebuilt in place (new eKYC local `Message · subtle` 10924:1789 Warning + „Ștergerea nu poate fi anulată.”); phone screen added
+  (S02e1 phone base cloned, parameters toolbar / tabs / table swapped in, library modal Breakpoint=Mobile 375 docked, header → new eKYC
+  `Modal header · phone` 10925:2435, content `Modal content / scr · ek-27k · Mobile` 10925:2468, halves 167.5) — block widened 1920 → 2415,
+  4 neighbours shifted +495. GEAP Process Designer: new section `Process Designer · editor states (2026-10)` 12356:3761 with E01 12356:3762
+  (pd-33, „Elimină atribuirea” red trash) and E02 12356:5326 (pd-27, „Închide fără salvare” outlined destructive pill in the 3-button
+  footer), connector „× Închide”. New local components on 🧩 Local components › `Process Designer · canvas components` (Edge label
+  12342:7451, Event node 12342:8326, Decision node 12342:8335, Activity node set 12343:8389, Validation status 12351:7470, Top bar
+  12351:8346, Footer 12351:8387) and `FO dialogs · components` (FO confirm dialog 12367:7498). Local `Modal` 10136:657: footer = code
+  dialog-footer-v1 (12 · 20 · 24 · 20, gap 8) on Confirmation / Content / Selection + BOOLEAN `Show middle button#12355:0` (third footer
+  slot). Form Builder: section 12358:363882 with G01–G04 (fb-55 / 56b / 59b / 59d), arrows from the trash buttons. Lessons:
+  - **Resolve library variables by EXACT name.** My first resolver matched by suffix (`/default` + prefix) and bound
+    background/base/default → background/danger/default, text/base/default → text/positive/default … (12 wrong). A „fix” by
+    old-id → new-id map collided (several names shared one wrong id) and painted everything brand blue. Recovery = rebind by ROLE in
+    the mains, then delete and recreate the screen instances (overrides written by the walk). Always `v.name === wanted`, and screenshot
+    the first component before using it.
+  - **Captures of a canvas editor**: rebuild the canvas from a code SPEC (node type / rect / name / icon / caption / badge / edge labels
+    per state, CDP probe) with small local components placed at the code's coordinates; keep only the captured edge vectors (diagram
+    lines). The capture alone showed hidden „Pas curent” tags, lost the event icons and flipped the rotated lane titles (abs transform
+    −1 → re-set `relativeTransform` to rotation 90 in the 40 rail).
+  - **Captured BO / builder roots are GRIDs**: a replaced header / footer lands in a NEW grid row (top bar at y 900, footer at 0).
+    After every swap of a grid child: raise gridRowCount, park, place with `setGridChildPosition`, then set the count back.
+  - **Sticky columns in captures**: the FO preview stepper is captured inside the scrolled content beside a „Sticky placeholder”.
+    Removing the nav collapses the column and slides the form left. Put the replacement in a flow column frame (width 280) with
+    paddingTop = sticky y − column y (declared off-scale spacer), delete the placeholder, form FILL.
+  - FO stepper · step 11849:7107: `Show connector` draws the line ABOVE the circle → first step off, the others on (24 + 5 × 48 = code 264).
+  - Library gaps (declared): outlined button has no Success style (local Validation status), tag-filled has no violet (Sub-proces = Strong
+    Brand + purple/600 fill), numbered-badge min 16 (code 14), toast with link is 72 (code 84), no 16/24 or 14/20 600 text styles.
+  - Code bugs seen at 8935 (reported): in Process Designer edit mode every node shows „Eroare” and a „Pas curent” tag that peeks out
+    beside event circles (`.e-permits-pd__error-tag` / `__current-tag` display:none lost) — Figma draws the intent (id chip, no tags).
+  - Not drawn, no demo state (proto-engineer): the FO „Alt document” card (fo-04 + „Adaugă document”), the user-create drawer with one
+    role combination (Users registry → „Adaugă utilizator” → IDNP → combination), the eKYC SDK row menu with „Retrage din suport” (ek-31 ⋮
+    open). No Agent tool → stored gate audits: remaining = canvas diagram overlaps / clips (absolute by nature), capture centring fractions,
+    raw 40 % scrims, minimap image (code <canvas>), chip × and below-the-fold empty-state glyphs.
