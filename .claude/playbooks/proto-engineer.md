@@ -2586,3 +2586,8 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   had another agent's uncommitted hunks → HEAD export + the same asserted edit / bump scripts → hash-object / update-index.
   No sub-agent tool → component-audit (only the standing avatar menu / doc-modal × / shell header / RAP „Vezi toate”),
   hover-audit 0 / 0 at 1440 + 375 copy on the header scope, code-audit static 0 (svc-01 BO tab arrows = standing).
+- 2026-10-22 · filter-bar-v3 (user decision: bar radius 24, not the concentric 32 — 32 made a one-line bar a capsule; a
+  „concentric” argument does not beat the user's eye, offer both next time). DATA-LOSS TRAP I caused: in Python
+  `open(f, 'w').write(bump(open(f).read()))` TRUNCATES the file before the inner read runs → e-permits-acte-permisive.html
+  went to 0 bytes; restored from HEAD (committed by another agent one minute before), any uncommitted hunks of other agents
+  in it were lost. Always `cur = open(f).read()` in its own statement, assert it is non-empty, then write.

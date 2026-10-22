@@ -169,8 +169,8 @@
    possible on one line, and Aplică on the next one; even padding on all sides, more round, so it fits the rounder
    chips”). ONE rule for every product and width (phones of a facet-filter list =
    only the applied line, `.is-sheets`, unchanged; the Taxe / Tarife bar has no phone mode, so it keeps the box):
-   - container: 1px border-default, padding 12 on all four sides, radius 32 = the pill chip's radius (20 = 40 / 2)
-     + the 12 padding → the corners are concentric with the chips (an even 12 gap round the corner too);
+   - container: 1px border-default, padding 12 on all four sides, radius 24 (user decision 2026-10-22, filter-bar-v3:
+     24, not the concentric 32 = 20 pill radius + 12 — 32 turned a one-line bar into a capsule);
    - wrap order: the chips group and the action group („N rezultate · Șterge filtrele” / „Filtre neaplicate ·
      Renunță · Aplică filtrele” / the hint) share line 1 while both fit; when they don't, the ACTION GROUP moves to
      the next line first, right-aligned (the primary keeps the right edge, as in the dialog footer and on the wide
@@ -181,7 +181,7 @@
    ========================================================================== */
 .e-permits-workplace__filters:not(.is-sheets) {
   border: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
-  border-radius: var(--border-radius-32, 32px);
+  border-radius: var(--border-radius-24, 24px);
   flex-wrap: wrap;
   gap: var(--spacing-8, 8px) var(--spacing-12, 12px);
   padding: var(--spacing-12, 12px);

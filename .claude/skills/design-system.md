@@ -380,7 +380,7 @@ A linear scale based on a 4px base unit. Use `--spacing-{n}` custom properties i
 | `--border-radius-8` | 8px | Default cards, buttons |
 | `--border-radius-12` | 12px | Large cards, modals |
 | `--border-radius-16` | 16px | Panels, drawers, **list cards** (act / request rows, notifications, catalog cards), the request status notice, the document viewer canvas + signature card (radius-16-v1, 2026-10-21) |
-| `--border-radius-24` | 24px | The BO profile cards, the trajectory / status tracker card. **Not for list cards** (tried in radius-24-v1, 2026-10-21, rejected by the user → 16; Foundations has no 20). NOT in main.css: defined in `css/token-fix.css` (radius-24-v1, 2026-10-21, user decision) from the Foundations Figma variable `border-radius/radius-24` = 24 (collection „3. Sizes”, key `79848dbe4107a9babdbb8d1861d66890fc200d53`) |
+| `--border-radius-24` | 24px | The BO profile cards, the trajectory / status tracker card, the facet filter bar box (filter-bar-v3, 2026-10-22). **Not for list cards** (tried in radius-24-v1, 2026-10-21, rejected by the user → 16; Foundations has no 20). NOT in main.css: defined in `css/token-fix.css` (radius-24-v1, 2026-10-21, user decision) from the Foundations Figma variable `border-radius/radius-24` = 24 (collection „3. Sizes”, key `79848dbe4107a9babdbb8d1861d66890fc200d53`) |
 | `--border-radius-32` | 32px | main.css only — not used by the product yet |
 | `--border-radius-full` | 9999px (main.css; old fallbacks say 999px, same render) | Pills, avatars, circular buttons |
 
