@@ -853,7 +853,13 @@
     return done.find((dosar) => dosar.actNr === act.number) || done.find((dosar) => dosar.id === state.dosarByAct[act.id]) || null;
   }
   const requestHref = (id) => cabUrl("solicitari", {}, `#dosar/${id}`);
+  /* a link to ANOTHER page that opens in a new tab (external-link-v1, user 2026-10-22: „Vezi solicitarea” — no leading
+     icon, the external glyph AFTER the label, new tab): target _blank + rel noopener + the name says „filă nouă” */
+  const NEW_TAB = "se deschide într-o filă nouă";
+  const newTabAttrs = (label) => ` target="_blank" rel="noopener" aria-label="${escape(`${label} (${NEW_TAB})`)}"`;
   const alertLinkHtml = (href, label) => ` <a class="link link-primary link-sm cab-alert-link" href="${escape(href)}">${escape(label)}&nbsp;→</a>`;
+  /* the request of an act (status notice): label + trailing external icon 16, new tab */
+  const requestLinkHtml = (id, label = "Vezi solicitarea") => ` <a class="link link-primary link-sm cab-alert-link cab-external-link" href="${escape(requestHref(id))}"${newTabAttrs(label)}><span>${escape(label)}</span>${icon("icon-external-link")}</a>`;
   const alertPpHtml = (act, ppId, label) => (act.postProcesses.some((pp) => pp.id === ppId)
     ? ` <button class="link link-primary link-sm cab-alert-link" type="button" data-cab-pp="${escape(ppId)}" data-cab-act="${escape(act.id)}">${escape(label)}&nbsp;→</button>`
     : "");
@@ -874,12 +880,12 @@
     const appealUntil = byAuthority && statusDate ? addDaysIso(isoOf(statusDate), state.appealDays) : "";
     const appealOpen = Boolean(appealUntil) && appealUntil >= state.today;
     const appeal = appealOpen ? ` Poți depune o contestație până la ${escape(longDate(appealUntil))}, din solicitarea care conține decizia.` : "";
-    const requestLink = change.dosarId ? alertLinkHtml(requestHref(change.dosarId), "Vezi solicitarea") : "";
+    const requestLink = change.dosarId ? requestLinkHtml(change.dosarId) : "";
     const info = (html) => ({ tone: "info", icon: "icon-circle-info-filled", html });
     const warning = (html, iconId = "icon-warning-filled") => ({ tone: "warning", icon: iconId, html });
     if (act.pending) {
       const id = state.dosarIdByNr[act.pending.dossier];
-      return warning(`<strong>${escape(act.pendingLabel)} în curs.</strong> Poți iniția un alt postproces după finalizarea solicitării ${escape(act.pending.dossier)}.${id ? alertLinkHtml(requestHref(id), "Vezi solicitarea") : ""}`, "icon-time");
+      return warning(`<strong>${escape(act.pendingLabel)} în curs.</strong> Poți iniția un alt postproces după finalizarea solicitării ${escape(act.pending.dossier)}.${id ? requestLinkHtml(id) : ""}`, "icon-time");
     }
     if (act.paper) return info(escape(PAPER_TEXT));
     if (act.status === "suspendat") {
@@ -925,7 +931,7 @@
     const code = act.service?.authority || "";
     const where = [code, act.subdivision].filter(Boolean).join(" · ");
     const ref = (dosar) => (dosar?.id
-      ? `<a class="e-permits-dosar-profil__link" href="${escape(requestHref(dosar.id))}">${escape(dosar.nr)}</a>`
+      ? `<a class="e-permits-dosar-profil__link cab-external-link" href="${escape(requestHref(dosar.id))}"${newTabAttrs(`Solicitarea ${dosar.nr}`)}><span>${escape(dosar.nr)}</span>${icon("icon-external-link")}</a>`
       : dosar?.nr ? escape(dosar.nr) : "");
     const meta = (...parts) => parts.filter(Boolean).join(" · ");
     const whoOf = (initiator) => (initiator === "autoritate" ? `din inițiativa ${escape(code || "autorității")}` : "la cererea titularului");
@@ -1013,7 +1019,7 @@
             ${window.GEAPActRow.menuItemsHtml(act.postProcesses, (pp) => `data-cab-pp="${escape(pp.id)}" data-cab-act="${escape(act.id)}"`, "../assets/") /* the act rows' items: danger last + separator (action-menu-v1) */}
           </ul>
         </div>` : "",
-      issuing ? `<a class="btn btn-neutral btn-md" href="${escape(requestHref(issuing.id))}" data-cab-see-dosar data-cab-act-action="request">${icon("icon-page-text")}<span>Vezi solicitarea</span></a>` : "",
+      issuing ? `<a class="btn btn-neutral btn-md" href="${escape(requestHref(issuing.id))}"${newTabAttrs("Vezi solicitarea")} data-cab-see-dosar data-cab-act-action="request"><span>Vezi solicitarea</span>${icon("icon-external-link")}</a>` : "",
       act.postProcesses.length || issuing ? `
         <div class="e-permits-fo-intent-act__action cab-act-header__overflow" hidden>
           <button class="btn btn-neutral btn-md btn-icon-only" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="cab-detail-more" aria-label="Mai multe acțiuni" data-cab-menu-trigger>${icon("icon-more-horizontal")}</button>
@@ -1158,7 +1164,7 @@
         ? act.postProcesses.map((pp) => (act.pending ? { ...pp, disabled: true, reason: `Postprocesul „${act.pendingLabel}” este în curs` } : pp))
         : [];
       menu.innerHTML = [
-        request ? `<li role="none"><a class="e-permits-fo-intent-menu__item" role="menuitem" href="${escape(request.getAttribute("href"))}">${icon("icon-page-text", "medium")}<span>Vezi solicitarea</span></a></li>` : "",
+        request ? `<li role="none"><a class="e-permits-fo-intent-menu__item" role="menuitem" href="${escape(request.getAttribute("href"))}"${newTabAttrs("Vezi solicitarea")}><span>Vezi solicitarea</span>${icon("icon-external-link", "medium")}</a></li>` : "",
         request && pps.length ? '<li role="separator" class="e-permits-fo-intent-menu__separator"></li>' : "",
         pps.length ? `<li class="cab-menu__label" role="presentation">Postprocese</li>${window.GEAPActRow.menuItemsHtml(pps, (pp) => `data-cab-pp="${escape(pp.id)}" data-cab-act="${escape(act.id)}"`, "../assets/")}` : "",
       ].join("");
@@ -1265,6 +1271,8 @@
         if (act?.geap) renderDetail(act);
         return;
       }
+      /* a menu link that opens another page in a new tab (Vezi solicitarea): the menu closes behind it */
+      if (event.target.closest(".cab-menu a[target='_blank']")) { closeMenus(); return; }
       if (!event.target.closest(".cab-menu")) closeMenus();
     });
     document.addEventListener("keydown", (event) => {

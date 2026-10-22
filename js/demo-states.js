@@ -1333,6 +1333,14 @@
     "pp-01z": ppCab(async (h) => { await h.scroll("[data-cab-card='act-depozit-10']"); await h.click("[data-cab-card='act-depozit-10'] .e-permits-fo-lib-item__title"); await h.click("[data-cab-view-act]"); await h.find("[data-rap-act-modal]:not([hidden]) [data-rap-act-canvas]"); }),
     "pp-01p": ppCab(async (h) => { await cabFind(h, "act-licenta-demo"); await h.click("[data-cab-card='act-licenta-demo'] [data-cab-menu-trigger]"); }),
     /* the profile's visible menu trigger: „Postprocese ⌄” on desktop, the overflow „⋯” on phones (act-profile-v1) */
+    /* external-link-v1 (2026-10-22): „Vezi solicitarea” = label + trailing external icon, new tab; on phones it sits in the
+       header „⋯” (opened here), on desktop it is the header button */
+    "pp-01r": ppCab(async (h) => {
+      await h.click("[data-cab-card='act-izvoras'] .e-permits-fo-lib-item__title");
+      await h.wait(300);
+      const more = [...document.querySelectorAll("[data-cab-detail] .cab-act-header__overflow [data-cab-menu-trigger]")].find((el) => el.getClientRects().length);
+      if (more) await h.click("[data-cab-detail] .cab-act-header__overflow [data-cab-menu-trigger]");
+    }),
     "pp-01q": ppCab(async (h) => { await cabFind(h, "act-licenta-susp"); await h.click("[data-cab-card='act-licenta-susp'] .e-permits-fo-lib-item__title"); await h.wait(150); await h.click("[data-cab-detail] .e-permits-page-header__actions > :not([hidden]) > [data-cab-menu-trigger]"); }),
     /* the act with a post-process in progress: every item disabled with its reason (US-55 AC-14) */
     "pp-01r": ppCab(async (h) => { await h.scroll("[data-cab-card='act-lab-10']"); await h.hover("[data-cab-card='act-lab-10']"); }),

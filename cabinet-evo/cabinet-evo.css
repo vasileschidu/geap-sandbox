@@ -1453,6 +1453,23 @@ button.cab-alert-link {
   white-space: nowrap;
 }
 
+/* a link to another page that opens in a new tab (external-link-v1, 2026-10-22): label + trailing external icon 16
+   in the label colour, never wraps between the two — the status-notice „Vezi solicitarea” (library .link is already
+   inline-flex · gap 4) and the Istoric request number (a detail-row link); the header button uses the library button */
+.cab-external-link {
+  align-items: center;
+  display: inline-flex;
+  gap: var(--spacing-4, 4px);
+  white-space: nowrap;
+}
+
+.cab-external-link > .icon {
+  color: currentColor;
+  flex: 0 0 var(--icon-size-small, 16px);
+  height: var(--icon-size-small, 16px);
+  width: var(--icon-size-small, 16px);
+}
+
 /* „Sortează” (desktop + phones): the key group, a divider, the direction group — radio items in nested groups */
 .cab-menu__group {
   display: flex;

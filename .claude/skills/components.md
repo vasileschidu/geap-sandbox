@@ -199,6 +199,7 @@ but this doc previously described it wrongly, see the entry.
 | Clickable card / row = the action, no lone „Detalii” (user rule 2026-10-21, no-lone-detalii-v1) | a card / row that already opens its details on click has NO „👁 Detalii” button when that would be its only action: Cabinet request row (`actionsHtml` → "" → no `.cab-doc__actions`, no `--row-trigger-w` reservation), Cabinet document card (`CabEvo.docRowHtml(doc, { key })`: `.cab-doc.is-clickable[tabindex=0][aria-label="<tip>, deschide detaliile"]`), BO stacked rows (`renderRowActions({ …, rowOpens: true })` → "" when only the preview is left; `renderStackItem` gives a row with `rowAttrs` and no action `tabindex="0"` + `data-stack-row-open` + `aria-label` „<title> — <tags>, deschide detaliile”, Enter / Space = click through one shell keydown). Focus = the row ring (2 px `--focus-ring` outline, offset −2) + the hover band. Kept: rows / cards that are NOT clickable (FO previous act card, Ghișeu document cards, passport forms) and data tables (`tr` is not focusable — the column button is the keyboard path). With other actions the ⋮ stays | § „Row actions” rule 5; demo sm-01 (d-fresh, d-lab, d-prut), sm-05e…h, dos-03a, dos-04g…o, svc-06j, svc-07 | app |
 | Registry row = the action (no-continue-btn-v1, user 2026-10-21 GEAP 11862:24338 / 11914:29753) | product registry hook `rowLabel(row)` → `tr[data-workplace-row][tabindex="0"][data-workplace-row-open][aria-label="<name> — <what the click does>"]` (shell `workplaceRowOpenAttrs`); Enter / Space = click (shared keydown with `[data-stack-row-open]`); `:focus-visible` = hover band + inset `--focus-ring` box-shadows on the cells (`css/e-permits-shell.css`); the action cell keeps only the grey ⋮ (`btn btn-neutral btn-sm btn-icon-only e-permits-stack__menu-trigger`, white on the band) — no „Continuă” / „Detalii” that repeats the click | § „Row actions” rules 6–7; Ghișeu demo gh-01, gh-01d, gh-01f, gh-13 (Enter), gh-13a (click), gh-13b (Space, submitted) | app |
 | Action icons — „Editează” = pen, „Elimină / Șterge” = trash (user rule 2026-10-21) | shell `actionIconFor(label)` → `actionLabelHtml` / `renderRowActions` / `renderStackMenu` (the label picks the icon); `icon-edit` / `icon-delete` before the label in the label colour; exceptions + audit rule 6 in „Action icons” (§ after „Row actions”) | — | app |
+| Link to another page in a new tab — label + TRAILING external icon (user rule 2026-10-22, external-link-v1) | `<a class="btn btn-neutral btn-md" href="…" target="_blank" rel="noopener" aria-label="<label> (se deschide într-o filă nouă)"><span>Vezi solicitarea</span><svg class="icon small"><use href="#icon-external-link"/></svg></a>` — NO leading icon, the glyph after the label at the button size (css/button-icons.css trailing padding, 20 Medium / 16 Small), label colour; ⋯ menu item = the same `<a role="menuitem" … target="_blank">` with label then icon (closes the menu); text links (`.link` / detail-row links + `.cab-external-link`, icon 16) | § „Action icons” › „Links that open another page”; Cabinet `newTabAttrs` / `requestLinkHtml`; demo pp-01d, pp-01r (phone ⋯), pp-03 (notice), pp-03d (Istoric) | app |
 | Unsaved-changes status → review (every draft page, user rule 2026-10-21) | `renderHeaderStatus(changesCountLabel(n), "warning", changesStatusAttrs("<source>"))` → `button.e-permits-page-header__status.e-permits-page-header__status--button[data-profile-changes][aria-haspopup=dialog]` (page header caption, Setări save bar `.e-permits-cfg2__bar`, dtpl sheet head) → ONE modal `#profile-changes-modal` fed by `registerChangeSource(key, build)`; never a plain `<span>` status for a count of unsaved edits | — (§ Profile tabs › „The status is a button”); demo svc-10x…10x3, clf-04d/e, ntpl-04d/e, svc-08n/n1, ek-24h, usr-u05f, rol-01b | app |
 | Button — badge/CTA | `.btn-badge` + `--mpass/--msign/--mpay/--mpower/--mdelivery/--primary/--neutral` | — | app |
 | Icon button | `.btn-icon`, `.btn-icon.clear` | — | app |
@@ -6695,6 +6696,24 @@ kind of weird here.” One rule for every product (BO, eKYC, FO, Cabinet, Ghișe
      Input close action), „Șterge filtrele”, the filter popover „Șterge” (`data-filter-reset` / `data-sf-reset` — clears
      the selection), the editor tool „Șterge formatarea” (eraser).
 - Enforced by `tools/ui-qa/component-audit.mjs` rule 6 (`action-icon` / `action-icon-colour`, spec `actionIcons`).
+
+#### Links that open another page in a new tab — trailing external icon (rule, 2026-10-22, external-link-v1)
+
+User (2026-10-22, EVO Cabinet act profile): „„Vezi solicitarea”: remove the icon, and put an external icon AFTER the
+label, so it's clear it takes you to another page. And open it in a new tab / window.”
+
+- An action that navigates to ANOTHER page / object (the act → its request) and opens it in a new tab: **no leading
+  icon**, `icon-external-link` **after** the label, label colour, size from the control (Medium / Large button 20,
+  Small 16 — css/button-icons.css already pads the trailing side; menu items 20, 24 in phone row menus; text links 16).
+- Markup: a real link `<a … href target="_blank" rel="noopener">`, never a button with `window.open`; the accessible
+  name says it: `aria-label="<visible label> (se deschide într-o filă nouă)"` (keeps the visible label first —
+  label-in-name). Number links name the object: „Solicitarea GEAP-… (se deschide într-o filă nouă)”.
+- Everywhere the action appears: the header button, its copy in the priority+ „⋯” menu (the item closes the menu on
+  click), the status-notice link (`.link … .cab-external-link`, replaces the „→”), the Istoric request number
+  (`.e-permits-dosar-profil__link.cab-external-link`). `.cab-external-link` = inline-flex · gap 4 · nowrap · icon 16.
+- Not for in-page navigation (open a drawer / modal / the next step) and not for „Depune o solicitare nouă” style
+  flows that continue in the same tab — those keep their own icon / „→”.
+- Cabinet code: `newTabAttrs(label)`, `requestLinkHtml(id)` in cabinet-evo/cabinet-evo.js.
 
   too round; grey boxes inside 8; the section title / description get 20 side padding to line
   up with the card content). **Inside the card: grey filled boxes are fine,

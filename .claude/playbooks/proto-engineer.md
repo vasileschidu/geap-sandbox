@@ -2498,3 +2498,18 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   the sheet mid-page (and the probe's clip shot can be blank for sm-05f) — trust the measurements. code-audit must be run
   with a dialog `--scope` (default `main` misses the dialog); findings were only the standing A4 page padding / FO-shell
   private buttons. Hover 0 / 0 at 1440 + a 375 copy of hover-audit.
+- 2026-10-22 · „Vezi solicitarea” = label + TRAILING external icon, new tab (external-link-v1; user: „remove the icon, put an
+  external icon AFTER the label … open it in a new tab”). (1) One Cabinet helper `newTabAttrs(label)` (target _blank · rel
+  noopener · aria-label „<label> (se deschide într-o filă nouă)”) fed every place the act sends you to its request: header
+  button (`<span>` then `icon-external-link` — css/button-icons.css already pads the trailing side 12, icon 20), the
+  priority+ „⋯” item (label then icon; a `.cab-menu a[target=_blank]` click closes the menu, else it stayed open behind the
+  new tab), the status-notice link (`requestLinkHtml`, replaces „→”) and the Istoric request number (`.cab-external-link`,
+  inline-flex · gap 4 · nowrap · icon 16). Keep the svg the LAST child: a visually hidden span after it would break the
+  `:has(> * + svg:last-child)` trailing padding — so the hint went into aria-label. (2) Proving „opens a new tab with the
+  right request”: a browser-level CDP socket with `Target.setDiscoverTargets` + a real mouse click → `targetCreated` URL
+  (`?view=solicitari[&as=…]#dosar/<id>`), the original tab stays put; then load that URL alone and read the profile H1 /
+  number. (3) Another agent was rewriting the Istoric in the same file (istoric-jurnal-v1) while I edited one line inside
+  it — the commit blob = HEAD + my replacements applied by script (assert count == 1 on HEAD), never `git add` of the file.
+  (4) code-audit with 3 states stalled at 0 % CPU → one state per run with `--page cabinet-evo/index.html`. Demo pp-01r
+  (phone „⋯” open). Hover 0 / 0 at 1440 + 375 (copy with the 375 viewport), component-audit only the standing avatar menu /
+  filter-sheet trigger / doc-modal close, code-audit only spacing-off-scale on untouched parts, static 0.
