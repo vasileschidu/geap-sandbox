@@ -2591,3 +2591,14 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   `open(f, 'w').write(bump(open(f).read()))` TRUNCATES the file before the inner read runs → e-permits-acte-permisive.html
   went to 0 bytes; restored from HEAD (committed by another agent one minute before), any uncommitted hunks of other agents
   in it were lost. Always `cur = open(f).read()` in its own statement, assert it is non-empty, then write.
+- 2026-10-22 · Desktop modal footers = Medium 40 (modal-footer-medium-v1; user on RAP Figma 22087:27612: „for modals desktop let's
+  also use medium buttons, these are huge”). ONE file again: `css/dialog-footer.css` base rule → Medium 40 · 14/20 · sides 16
+  (12 icon side), an `@media (max-width: 760px)` block restating the old Large 48 so phones stay byte-identical, and a (0,3,0)
+  `:is(.drawer__footer, .e-permits-ntpl-sheet) .modal-buttons .btn` rule keeping side panels at 48 (brief: drawers only if
+  they are modals — they are aria-modal SIDE panels → kept, asked). modal-phone.css § 7b (viewers 40 on phones) still wins by
+  order. Proof = the dialog-footer-v1 scratch probe (df/probe.mjs + measure.js, copied to mf/) on 24 states × 1440 / 375:
+  every desktop modal 48 → 40, every 375 row SAME, drawers / sheet SAME; plus 760 / 761. Process: another agent truncated and
+  restored e-permits-acte-permisive.html from HEAD mid-job and my `?v=` bump vanished — re-grep every cache key right before
+  staging. code-audit with a footer-only scope returned `{}` with no measured elements — widen the scope to the whole open
+  dialog once to prove the tool sees it (standing BO 11 / 7, A4 mm padding came back = it ran). No sub-agent tool →
+  code-audit, component-audit (only standing header / page-behind / FO dialog-shell `__cancel / __submit` paint), hover 0 / 0.

@@ -1,13 +1,19 @@
 /* ==========================================================================================================
-   Dialog footer — ONE size for every dialog (dialog-footer-v1, 2026-10-21)
+   Dialog footer — ONE size for every dialog (dialog-footer-v1, 2026-10-21; desktop buttons Medium since
+   modal-footer-medium-v1, 2026-10-22 — user on RAP Figma 22087:27612: „for modals desktop let's also use medium
+   buttons, these are huge”)
    User: „for gaps, do as in the Figma components buttons” — the code footers were 40 (14/20, gap 12, footer 20 all
    round) while the library dialog footer is Large. Source of truth: Figma Components doJ7tDY0PlQ0PqMgbpFVIC,
    Modal › `.modal-footer` 109:1964, Size = Medium (the size the `modal` component 111:2565 uses):
 
      footer      padding 12 · 20 · 24 · 20, buttons right-aligned, gap 8
-     buttons     Large 48, pill, sides 20 (16 on the icon side, button-icons-v1), label 16/24 medium
+     buttons     desktop (> 760): Medium 40, pill, sides 16 (12 on the icon side), icon 20, gap 6, label 14/20 medium
+                 (= the library `.btn-md`, button-icons-v1); was Large 48 · 16/24 until modal-footer-medium-v1
      phones      Figma stacks them (Vertical Stack, gap 12); the product keeps its phone rule (css/modal-phone.css § 4:
-                 two equal halves that wrap, primary on top, footer 12 · 16 · max(16, safe area)) — same 48 / 16/24
+                 two equal halves that wrap, primary on top, footer 12 · 16 · max(16, safe area)) — Large 48 / 16/24
+                 (the viewers 40, modal-phone.css § 7b)
+     side panels drawers (`.drawer__footer`) and the template sheet (`.e-permits-ntpl-sheet`) are not modals: Large 48
+                 at every width (open question to the user, modal-footer-medium-v1)
 
    Covers: the library `.modal--footer > .modal-buttons` (BO askConfirm, passport / case / detail modals incl. the
    dossier document viewer, eKYC `openModal`, Ghișeu, Process Designer leave, RAP / Cabinet „Vizualizare act”, FO
@@ -31,27 +37,57 @@
   gap: var(--spacing-8, 8px);
 }
 
-/* ---- buttons: Large 48 · 16/24 · sides 20 (main.css `.modal-buttons .btn` = 40 · 14/20, same specificity, earlier) ---- */
+/* ---- buttons: Medium 40 · 14/20 · sides 16 on desktop (modal-footer-medium-v1; main.css `.modal-buttons .btn` = 40 ·
+   14/20 with sides 20, same specificity, earlier — the Medium button has 16) ---- */
 .modal-buttons .btn,
 .e-permits-fo-doc-modal__footer > :is(.btn, .e-permits-fo-doc-modal__cancel, .e-permits-fo-doc-modal__submit) {
   box-sizing: border-box;
+  font-size: var(--font-size-fs-14, 14px);
+  height: var(--spacing-40, 40px);
+  line-height: var(--line-height-lh-20, 20px);
+  padding: var(--spacing-0, 0px) var(--spacing-16, 16px);
+}
+
+/* leading icon: 12 on the icon side (Medium, Figma 39:177); ties main.css `.modal-buttons .btn:has(> .icon:first-child)` */
+.modal-buttons .btn:has(> .icon:first-child),
+.e-permits-fo-doc-modal__footer > :is(.btn, .e-permits-fo-doc-modal__cancel, .e-permits-fo-doc-modal__submit):has(> .icon:first-child) {
+  gap: var(--spacing-6, 6px);
+  padding: var(--spacing-0, 0px) var(--spacing-16, 16px) var(--spacing-0, 0px) var(--spacing-12, 12px);
+}
+
+/* the FO dialog shell's own two buttons are not `.btn` (button-icons.css does not reach them): icon 20 (Medium and Large) */
+.e-permits-fo-doc-modal__footer > :is(.e-permits-fo-doc-modal__cancel, .e-permits-fo-doc-modal__submit) > svg.icon {
+  display: block;
+  flex: 0 0 var(--icon-size-medium, 20px);
+  height: var(--icon-size-medium, 20px);
+  width: var(--icon-size-medium, 20px);
+}
+
+/* ---- side panels (drawers, the template sheet) keep Large 48 · 16/24 · sides 20 at every width (0,3,0) ---- */
+:is(.drawer__footer, .e-permits-ntpl-sheet) .modal-buttons .btn {
   font-size: var(--font-size-fs-16, 16px);
   height: var(--spacing-48, 48px);
   line-height: var(--line-height-lh-24, 24px);
   padding: var(--spacing-0, 0px) var(--spacing-20, 20px);
 }
 
-/* leading icon: 16 on the icon side (Large, Figma 39:177); ties main.css `.modal-buttons .btn:has(> .icon:first-child)` */
-.modal-buttons .btn:has(> .icon:first-child),
-.e-permits-fo-doc-modal__footer > :is(.btn, .e-permits-fo-doc-modal__cancel, .e-permits-fo-doc-modal__submit):has(> .icon:first-child) {
-  gap: var(--spacing-6, 6px);
+:is(.drawer__footer, .e-permits-ntpl-sheet) .modal-buttons .btn:has(> .icon:first-child) {
   padding: var(--spacing-0, 0px) var(--spacing-20, 20px) var(--spacing-0, 0px) var(--spacing-16, 16px);
 }
 
-/* the FO dialog shell's own two buttons are not `.btn` (button-icons.css does not reach them): Large icon 20 */
-.e-permits-fo-doc-modal__footer > :is(.e-permits-fo-doc-modal__cancel, .e-permits-fo-doc-modal__submit) > svg.icon {
-  display: block;
-  flex: 0 0 var(--icon-size-medium, 20px);
-  height: var(--icon-size-medium, 20px);
-  width: var(--icon-size-medium, 20px);
+/* ---- phones (≤760): every footer stays Large 48 · 16/24 · sides 20 (16 on the icon side), as before
+   modal-footer-medium-v1; the document / act viewers are Medium 40 by css/modal-phone.css § 7b (loaded later) ---- */
+@media (max-width: 760px) {
+  .modal-buttons .btn,
+  .e-permits-fo-doc-modal__footer > :is(.btn, .e-permits-fo-doc-modal__cancel, .e-permits-fo-doc-modal__submit) {
+    font-size: var(--font-size-fs-16, 16px);
+    height: var(--spacing-48, 48px);
+    line-height: var(--line-height-lh-24, 24px);
+    padding: var(--spacing-0, 0px) var(--spacing-20, 20px);
+  }
+
+  .modal-buttons .btn:has(> .icon:first-child),
+  .e-permits-fo-doc-modal__footer > :is(.btn, .e-permits-fo-doc-modal__cancel, .e-permits-fo-doc-modal__submit):has(> .icon:first-child) {
+    padding: var(--spacing-0, 0px) var(--spacing-20, 20px) var(--spacing-0, 0px) var(--spacing-16, 16px);
+  }
 }

@@ -176,8 +176,8 @@
      mobile act permisiv modal, make the footer buttons smaller”): 40 · 14/20 · sides 16 (12 on the icon side) · gap 6 ·
      icon 20, pill, still two equal halves (§ 4) with the footer padding 12 · 16 · max(16, safe area). Only the viewers:
      BO / Ghișeu `.e-permits-detail-modal--doc`, the act dialog `.rap-act-modal__dialog` (Cabinet „Vizualizare act”, RAP
-     „Forma de tipar”), the Cabinet document dialog `.cab-doc-modal`. Every other dialog footer keeps Large 48
-     (css/dialog-footer.css); desktop keeps 48 too. ---- */
+     „Forma de tipar”), the Cabinet document dialog `.cab-doc-modal`. Every other dialog footer keeps Large 48 on
+     phones (css/dialog-footer.css); desktop modal footers are Medium 40 everywhere since modal-footer-medium-v1. ---- */
   .modal-overlay > .modal.e-permits-detail-modal--doc .modal-buttons > .btn,
   .e-permits-fo-doc-modal-overlay > .e-permits-fo-doc-modal.rap-act-modal__dialog > .e-permits-fo-doc-modal__footer > :is(.btn, .e-permits-fo-doc-modal__cancel, .e-permits-fo-doc-modal__submit),
   .e-permits-fo-doc-modal-overlay.cab-doc-modal > .e-permits-fo-doc-modal > .e-permits-fo-doc-modal__footer > :is(.btn, .e-permits-fo-doc-modal__cancel, .e-permits-fo-doc-modal__submit) {

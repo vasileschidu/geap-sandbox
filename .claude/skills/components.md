@@ -235,7 +235,7 @@ but this doc previously described it wrongly, see the entry.
 | Separator | `.separator` + orientation + thickness + style | — | library |
 | Link | `.link` + `.link-primary/-strict/-white` + `.link-xs/-sm/-md/-lg` | `link.html` | library |
 | **Skeleton — ONE loading placeholder** (skeleton-v1; FO lookups, registry / SRRE fills, grid source, subject switch, page reveal auth / choice / step, BO sync summary) | `span.skeleton` + `--text` (1lh, r4, short line) / `--input` (40, phones 48, r8) / `--block` (r12, height from the slot) / `--circle` (24, round); `css/skeleton.css` loaded right after the library CSS; size = placement rules of the owner; containers `aria-hidden` + `aria-busy` region | section „Skeleton — ONE loading placeholder” | app |
-| **Dialog footer — ONE size, the library Modal › Footer** (dialog-footer-v1, 2026-10-21; every dialog: library `.modal`, drawer, FO confirm card, FO dialog shell) | footer 12 · 20 · 24 · 20 (phones 12 · 16 · max(16, safe area)), right-aligned, gap 8; buttons **Large 48 pill, 16/24 medium, sides 20 (16 on the icon side), icon 20**; secondary `btn-neutral` (grey), main `btn-primary` / `btn-destructive`; phones = two equal halves that wrap, primary on top; **document / act viewers on phones = Medium 40 · 14/20** (viewer-footer-phone-v1, `css/modal-phone.css` § 7b); markup unchanged (`.modal--footer > .modal-buttons > .btn.btn-rounded`) | `css/dialog-footer.css` (loaded right before `css/modal-phone.css`); section „Dialog footer — the library size” | app |
+| **Dialog footer — ONE size, the library Modal › Footer** (dialog-footer-v1, 2026-10-21; modal-footer-medium-v1, 2026-10-22; every dialog: library `.modal`, drawer, FO confirm card, FO dialog shell) | footer 12 · 20 · 24 · 20 (phones 12 · 16 · max(16, safe area)), right-aligned, gap 8; buttons on **desktop modals (> 760) = Medium 40 pill, 14/20 medium, sides 16 (12 on the icon side), icon 20** (user: „for modals desktop let's also use medium buttons, these are huge”); **phones = Large 48 pill, 16/24, sides 20 (16 on the icon side)**; **drawers + the template sheet = Large 48 at every width** (side panels, not modals — open question); secondary `btn-neutral` (grey), main `btn-primary` / `btn-destructive`; phones = two equal halves that wrap, primary on top; **document / act viewers on phones = Medium 40 · 14/20** (viewer-footer-phone-v1, `css/modal-phone.css` § 7b); markup unchanged (`.modal--footer > .modal-buttons > .btn.btn-rounded`) | `css/dialog-footer.css` (loaded right before `css/modal-phone.css`); section „Dialog footer — the library size” | app |
 | **Drawer — ONE right-hand panel** (drawer-v1; every BO / eKYC / Process Designer side panel) | `.drawer-overlay[hidden]` > `button.drawer-overlay__scrim` + `aside.drawer(.drawer--lg)[role=dialog][aria-modal][tabindex=-1]` > `header.drawer__header` (`.drawer__heading` > `h2.drawer__title` + `p.drawer__subtitle`, library `.modal-close`) · [strips] · `.drawer__body` (the only scroller) · `footer.drawer__footer` > `.modal-buttons`; `css/drawer.css` + `js/drawer.js` (`GEAPDrawer`: focus trap, Escape → the drawer's own ×, focus return); inner form vocabulary stays `.e-permits-user-create__section / __grid / __field` | section „Drawer — ONE right-hand panel” | app |
 | **Tooltip — ONE runtime** (plain + hint; every tooltip in the product, tooltip-one-v1) | library `.tooltip.tooltip--small.tooltip--plain` / `.tooltip--{top\|bottom}-center` + arrow, ONE node `#icon-tooltip` placed by `js/icon-tooltip.js` (`GEAPTooltip`); opt-in `data-tooltip-label / -text / -reason / -hint`, `data-cell-tooltip` (cut text), `data-tooltip-placement`; never `title=` | section „Tooltip — ONE runtime” · `tooltip.html` | app |
 | Header | `.header .header__wrapper` | `header.html` | library (partial) |
@@ -400,7 +400,7 @@ every page (BO, shell, Cabinet, RAP, clasificatoare, login, index, mpass-test, s
 | Figma size | Code | Height | Sides (icon side) | Gap | Icon box | Label | Icon only |
 |---|---|---|---|---|---|---|---|
 | Small | `.btn-sm` | 32 | 12 (8) | 6 | **16** | 14/20 500 | 32 square, icon at 8 |
-| Medium | `.btn-md` (the modal-footer pill was 40 until dialog-footer-v1 → Large) | 40 | 16 (12) | 6 | **20** | 14/20 500 (button-label-v1; was 16/22) | 40 square, icon at 10 |
+| Medium | `.btn-md` (the modal-footer pill: 40 → Large 48 in dialog-footer-v1 → Medium 40 again on desktop in modal-footer-medium-v1) | 40 | 16 (12) | 6 | **20** | 14/20 500 (button-label-v1; was 16/22) | 40 square, icon at 10 |
 | Large | `.btn` with no size class (48), `.btn-lg` | 48 | 20 (16) | 6 | **20** | 16/24 500 at every width (button-label-v1; was 16/22, 14/19.25 on phones, `.btn-lg` 18) | 48 square, icon at 14 |
 
 - The icon size comes from the BUTTON size (`--btn-icon-size` on `.btn`; rule `.btn > svg.icon`, (0,2,1) — it beats
@@ -433,7 +433,7 @@ button 16/22. Decision (library first): the label follows the button size like t
 | Large | `.btn` (no size class) | **16/22 desktop, 14/19.25 phones (46 high) → 16/24** | 48 | padding-block `calc(--spacing-12 − --border-width-1)` = 11 (11 + 24 + 11 + 2 border = 48; Figma's stroke is inside, visible inset 12). No min-height: it beat a placement's own smaller height (RAP header 40 pills grew to 48). code-audit lists the 11 as „spacing-off-scale” — expected |
 | Large | `.btn.btn-lg` | **18/24.75, 51 high → 16/24, 48** | 48 | padding 11 / 20 (Figma sides 20; library 12 / 24) |
 
-- Not touched: the modal-footer pill (`.modal-buttons .btn` — since dialog-footer-v1 the library Large 48 · 16/24, `css/dialog-footer.css`), library search submit
+- Not touched: the modal-footer pill (`.modal-buttons .btn` — sized by `css/dialog-footer.css`: desktop Medium 40 · 14/20, phones / drawers Large 48 · 16/24), library search submit
   (`.btn-search`), MPass / MSign `.btn-badge`, and every product rule with a more specific selector. A Medium button
   that a product grows to 48 on phones takes the Large label 16/24 in that rule (page-header actions did until
   2026-10-22; since profile-header-phone-medium-v1 they stay Medium 40 · 14/20 on phones). A two-line label still grows the button (min-height / padding, never height).
@@ -1054,6 +1054,18 @@ the same sizes. Not covered: the full-screen editors' own bars (Form Builder, `.
   filled destructive with the trash for Șterge / Elimină) — the library footer holds 1–2 actions; a third secondary
   destructive („Închide fără salvare”) stays only where the choice is real (leave dialogs).
 - Do not size footer buttons per dialog again; do not add `btn-sm` / `btn-md` inside a footer.
+- **Desktop modals = Medium 40** (modal-footer-medium-v1, 2026-10-22; user on RAP Figma 22087:27612: „for modals desktop
+  let's also use medium buttons, these are huge”): above 760 every modal footer — library `.modal-buttons` (confirmations,
+  passport / case / detail modals, the BO / Ghișeu document viewer, eKYC, Ghișeu picker + leave, Process Designer leave, RAP /
+  Cabinet „Vizualizare act”, FO certificate), the FO confirm card and the FO dialog shell (picker, Cabinet document viewer,
+  act A4 viewer) — takes **40 · 14/20 medium · sides 16 (12 on the icon side) · icon 20 · gap icon–label 6**, pill; footer
+  padding 12 · 20 · 24 · 20 and gap 8 unchanged; variants unchanged (filled destructive in confirmations). Phones keep
+  everything as it was (`@media (max-width: 760px)` block in `css/dialog-footer.css` restates Large 48; viewers 40 by
+  `css/modal-phone.css` § 7b). **Side panels keep Large 48 at every width**: drawers (`.drawer__footer`, aria-modal side
+  panels — trf-02, svc-06b) and the document-template sheet (`.e-permits-ntpl-sheet`, svc-08b1), (0,3,0) rule — open
+  question to the user. Measured 1440 before → after: svc-08k, usr-u03e, gh-02o, gh-02a, ek-27k, ek-30c, pd-27, svc-10l3,
+  dos-04s, gh-10d, rap-03, rap-03a, rap-03l, pp-01m, sm-05f, sm-05h, fo-08d, fo-04d, pp-02b, pp-01g, sm-03a: 48 · 16/24 →
+  40 · 14/20; 375 identical; 761 = 40, 760 = 48.
 - **Exception — the document / act viewer on phones = Medium 40** (viewer-footer-phone-v1, 2026-10-22; user: „for the
   mobile act permisiv modal, make the footer buttons smaller”): at ≤760 the viewer footers (BO / Ghișeu
   `.e-permits-detail-modal--doc`, the act dialog `.rap-act-modal__dialog` = Cabinet „Vizualizare act” + RAP „Forma de
@@ -1081,7 +1093,7 @@ query (proved: 14 modal states at 1440, geometry identical with / without the fi
 | × (close) on phones | the library `.modal-close` (sheets, library modals) / the FO dialog close `.e-permits-fo-doc-modal__close` (same look): **40 × 40, icon 24** (`--icon-size-default`; the markup's `icon small` 16 is resized in CSS), tertiary → hover `tertiary-hover` → pressed `tertiary-active`, focus-visible = the canonical ring 2 white + 3 `blue-sky-500`. Desktop (> 760) unchanged: library `.modal-close` 32 / icon 16 at 20 / 20, FO dialog close 32 / 16 at 24 / 24 | section 9 of `css/modal-phone.css` |
 | Body | the only scroller: `flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain`; 16 padding | |
 | Footer | 12 above the buttons, `max(16, env(safe-area-inset-bottom))` below; buttons side by side in two equal halves (`flex: 1 1 calc((100% − 8) / 2)`, `min-width: fit-content`); a label that does not fit its half wraps the pair → one button per line, **primary on top** (`flex-wrap: wrap-reverse`) | `--modal-phone-foot` |
-| Button size | every dialog footer = the library Large 48 pill, 16/24 (dialog-footer-v1, 2026-10-21; was 40 · 14/20 in `.modal-buttons`) | |
+| Button size | every phone dialog footer = the library Large 48 pill, 16/24 (dialog-footer-v1, 2026-10-21); document / act viewers 40 (§ 7b); desktop modals = Medium 40 (modal-footer-medium-v1) | |
 | A4 viewer | the page takes the full width: body padding 0, grey canvas edge to edge with 8 around the page (`GEAPDocPreview.fit` zooms to canvas width − computed padding) | |
 
 Families covered (selectors in the file): library `.modal-overlay > .modal` (all sizes, `--sm`/`--md`/`--lg`,
