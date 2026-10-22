@@ -32,8 +32,20 @@
      (list „Registrul actelor permisive”, profile = the act's name), so the trail never repeats it. Phones = „‹ parent”.
      .rap-breadcrumbs = reveal hook */
   const RAP_CRUMBS = [{ label: "Acasă", href: "../index.html" }, { label: "Resurse utile", href: "#" }];
+  /* act-profile-url-v1 (2026-10-22, user: „act permisiv profile should have a unique URL”): every profile is
+     ?act=<record id> on this page (static hosting: a query parameter, no server rewrite). The list's address = the
+     current one without `act` (and without the demo `state`); the profile's = the list's + `act`. The breadcrumb parent
+     and the act name in the table are real links to these addresses (middle-click, new tab, copy link). */
+  const pageUrl = (recordId = null) => {
+    const url = new URL(window.location.href);
+    url.searchParams.delete("state");
+    if (recordId) url.searchParams.set("act", recordId); else url.searchParams.delete("act");
+    url.hash = "";
+    return `${url.pathname}${url.search}`;
+  };
+  const listCrumb = () => ({ label: "Registrul actelor permisive", href: pageUrl(), attr: "data-rap-profile-back" });
   const crumbsHtml = (current = null) => window.GEAPBreadcrumbs?.html(current
-    ? [...RAP_CRUMBS, { label: "Registrul actelor permisive", button: true, attr: "data-rap-profile-back" }, { label: current }]
+    ? [...RAP_CRUMBS, listCrumb(), { label: current }]
     : [...RAP_CRUMBS, { label: "Registrul actelor permisive" }], { parentsOnly: true, className: "rap-breadcrumbs" }) || "";
   const listCrumbs = document.querySelector("[data-rap-list-crumbs]");
   if (listCrumbs) listCrumbs.outerHTML = crumbsHtml();
@@ -251,7 +263,7 @@
         <header class="e-permits-page-header rap-profile__header" data-rap-profile-header>
           <div class="e-permits-page-header__body">
             <div class="e-permits-page-header__top">${window.GEAPPageHeader.top({
-              crumbs: [...RAP_CRUMBS, { label: "Registrul actelor permisive", button: true, attr: "data-rap-profile-back" }, { label: record.permit.name }],
+              crumbs: [...RAP_CRUMBS, listCrumb(), { label: record.permit.name }],
               title: record.permit.name,
               titleId: "rap-profile-title",
               wrap: true,
@@ -322,11 +334,22 @@
     metaObserver?.observe(meta);
   };
 
-  /* US-142 AC-16: an unknown ?act= says so, with a way back to the list */
+  /* US-142 AC-16: an unknown ?act= says so, with the way back = the breadcrumb (act-profile-url-v1: the profile's
+     header with the parent levels only, then the library empty state; no second „Înapoi” button) */
+  const NOT_FOUND = "Actul permisiv nu a fost găsit";
   const renderProfileNotFound = () => {
     elements.profileView.innerHTML = `
-      <div class="rap-profile__container rap-state">
-        ${window.GEAPEmptyState.render({ title: "Actul nu a fost găsit", text: "Linkul nu mai este valabil sau actul nu există în registru.", icon: "search", actionHtml: '<a class="btn btn-neutral btn-sm" href="?">Înapoi la registru</a>' })}
+      <div class="rap-profile__container">
+        <header class="e-permits-page-header rap-profile__header" data-rap-profile-header>
+          <div class="e-permits-page-header__body">
+            <div class="e-permits-page-header__top">
+              <div class="e-permits-page-header__heading">${window.GEAPBreadcrumbs?.html([...RAP_CRUMBS, listCrumb(), { label: NOT_FOUND }], { truncate: true, parentsOnly: true }) || ""}</div>
+            </div>
+          </div>
+        </header>
+        <div class="rap-state">
+          ${window.GEAPEmptyState.render({ title: NOT_FOUND, text: "Linkul nu mai este valabil sau actul nu există în registru.", icon: "search" })}
+        </div>
       </div>
     `;
   };
@@ -397,7 +420,7 @@
     <tr tabindex="0" data-record-id="${escapeHtml(record.id)}" aria-label="Deschide ${escapeHtml(record.permit.name)} pentru ${escapeHtml(record.beneficiary.name)}">
       <td>${renderBeneficiary(record)}</td>
       <td>
-        <a class="rap-ellipsis rap-act-link" href="?act=${encodeURIComponent(record.id)}" tabindex="-1" data-cell-tooltip="${escapeHtml(record.permit.name)}">${escapeHtml(record.permit.name)}</a>
+        <a class="rap-ellipsis rap-act-link" href="${escapeHtml(pageUrl(record.id))}" tabindex="-1" data-cell-tooltip="${escapeHtml(record.permit.name)}">${escapeHtml(record.permit.name)}</a>
       </td>
       <td>
         <span class="rap-cell-stack">
@@ -611,15 +634,15 @@
     elements.search.focus();
   };
 
+  /* opening a profile from the list: the list's history entry first remembers what the list showed (search, company,
+     page, page size, scroll), then the profile is PUSHED — Back (browser or breadcrumb) pops it and the list comes
+     back as it was; the facet filters live in the page state (and its session key) anyway */
   const updateProfileUrl = (recordId, { replace = false } = {}) => {
-    const url = new URL(window.location.href);
-    if (recordId) {
-      url.searchParams.set("act", recordId);
-    } else {
-      url.searchParams.delete("act");
+    if (recordId && !replace && !state.activeRecord) {
+      window.history.replaceState({ ...(window.history.state || {}), rapList: { search: state.search, company: state.companyFilter, page: state.page, pageSize: state.pageSize, scrollY: window.scrollY } }, "", pageUrl());
     }
     const method = replace ? "replaceState" : "pushState";
-    window.history[method]({ rapRecordId: recordId || null }, "", url);
+    window.history[method]({ rapRecordId: recordId || null, rapFromList: Boolean(recordId && !state.activeRecord) }, "", pageUrl(recordId));
   };
 
   const showCompanyPermits = (record) => {
@@ -646,6 +669,9 @@
 
     actViewInstance?.closeDocument({ toData: false });
     actViewInstance?.closeData({ restoreFocus: false });
+    if (updateHistory) {
+      updateProfileUrl(record.id);
+    }
     state.activeRecord = record;
     renderProfile(record);
     elements.listView.hidden = true;
@@ -654,14 +680,11 @@
     document.title = `${record.permit.name} · EVO`;
     facetFilter?.close(false);
     hideTooltip();
-    if (updateHistory) {
-      updateProfileUrl(record.id);
-    }
     window.scrollTo({ top: 0, behavior: "auto" });
     return true;
   };
 
-  const closeProfile = ({ updateHistory = true } = {}) => {
+  const closeProfile = ({ updateHistory = true, scroll = true } = {}) => {
     actViewInstance?.closeDocument({ toData: false });
     actViewInstance?.closeData({ restoreFocus: false });
     state.activeRecord = null;
@@ -673,7 +696,7 @@
     if (updateHistory) {
       updateProfileUrl(null);
     }
-    window.scrollTo({ top: 0, behavior: "auto" });
+    if (scroll) window.scrollTo({ top: 0, behavior: "auto" });
   };
 
   const syncViewFromUrl = () => {
@@ -688,7 +711,22 @@
       elements.listView.hidden = true;
       elements.profileView.hidden = false;
       document.body.classList.add("rap-page--profile");
-      document.title = "Actul nu a fost găsit · EVO";
+      document.title = `${NOT_FOUND} · EVO`;
+      window.scrollTo({ top: 0, behavior: "auto" });
+      return;
+    }
+    /* back on the list entry the profile was opened from: the list as it was (search, company, page, scroll) */
+    const saved = window.history.state?.rapList;
+    if (saved) {
+      state.companyFilter = saved.company || null;
+      state.search = saved.search || "";
+      state.page = saved.page || 1;
+      state.pageSize = saved.pageSize || state.pageSize;
+      elements.search.value = state.search;
+      syncSearchState();
+      closeProfile({ updateHistory: false, scroll: false });
+      applyFilters();
+      window.scrollTo({ top: saved.scrollY || 0, behavior: "auto" });
       return;
     }
     const companyIdno = params.get("idno");
@@ -766,7 +804,14 @@
     elements.profileView.addEventListener("click", async (event) => {
       const backButton = event.target.closest("[data-rap-profile-back]");
       if (backButton) {
-        closeProfile();
+        if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || event.button !== 0) return;
+        event.preventDefault();
+        if (window.history.state?.rapFromList) {
+          window.history.back();
+          return;
+        }
+        if (state.activeRecord) closeProfile();
+        else { window.history.pushState({ rapRecordId: null }, "", pageUrl()); syncViewFromUrl(); }
         return;
       }
 
@@ -783,6 +828,7 @@
     });
 
     window.addEventListener("popstate", syncViewFromUrl);
+    if ("scrollRestoration" in window.history) window.history.scrollRestoration = "manual";
 
     let paginationResizeTimer;
     window.addEventListener("resize", () => {

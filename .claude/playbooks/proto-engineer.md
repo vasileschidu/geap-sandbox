@@ -2712,3 +2712,25 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   before 198–200 px gaps under „Evenimente de viață” in every non-open state, after 0 (only the 5 px focus-ring sides and the
   open item's brand). Lesson: a bar divider drawn as an inset shadow / border on the parent is under its children — any
   full-height child with a background breaks it; draw dividers that must stay continuous as a pseudo-element layer.
+- 2026-10-22 · Act / request profiles = URLs (act-profile-url-v1; user: „act permisiv profile should have a unique URL”). Read
+  the routing first: RAP ALREADY had `?act=` (pushState, popstate, a not-found) — the real gaps were Back (`syncViewFromUrl`
+  reset search / page and scrolled to the top), the breadcrumb parent was a `<button>`, the not-found had no breadcrumb;
+  Cabinet acts read `?act=` only on load (no push / popstate / title / not-found); requests already had `#dosar/<id>`. Pattern
+  now on all three: build addresses from the CURRENT URL (keeps `as`, `view`, demo params; drops `?state=`), list entry
+  `replaceState`s its scroll (+ RAP search / company / page) right before `pushState` of the profile with a `…FromList` flag,
+  `popstate` re-renders from the address (`scrollRestoration = "manual"`), breadcrumb = `<a href>` whose plain click is
+  `history.back()` when the profile came from the list (else a new list entry) and whose modified click is the browser's,
+  row titles = real links out of the tab order (`GEAPActRow` `titleHref`) with the span's look proved identical to HEAD
+  (computed style + rects at rest / row hover, 1440 / 375, HEAD worktree :8991). Traps: (1) my apply script's „already
+  applied” test (`new in cur and old not in cur`) is FALSE for insertions (new contains old) → the second run inserted
+  every insertion twice (`actUrl` redeclared) — test `new in cur` first (insertion lesson of 2026-10-21, again); (2) the
+  request profile's tab title was overwritten by cabinet-evo `applyView`, which runs after its own data load (solicitari
+  routes first) → guard by DOM („a profile view is on screen”); (3) request tabs did `replaceState(null, …)`, which wiped
+  the FromList flag → `replaceState(history.state, …)`; (4) flow-test artefacts, not bugs: a click helper that
+  `scrollIntoView`s re-centres the page (saved scroll 0), and a meta-click on a table link scrolls the table's x-scroller
+  so the next real click lands at x −173 — pick rows already in view, reset scrollers; on macOS headless Ctrl-click does
+  not open a tab, Meta (modifiers 4) does — prove it with a browser-level `Target.setDiscoverTargets` → `targetCreated`
+  URL. code-audit `{}` on the not-found states was real (scoped rerun: `tokens: 100`, 0 findings). No sub-agent tool →
+  hover-audit 0 / 0, component-audit (standing RAP „Vezi toate” button, minor `li[tabindex]` rows), code-audit (standing
+  visually-hidden FP; static 0), captures 13 states × 2 clean, flow test (open → URL, Back, Forward, reload, direct URL,
+  not-found, new tab) at 1440 + 375 (scratch apu/flow.mjs).

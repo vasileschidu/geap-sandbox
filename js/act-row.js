@@ -133,7 +133,7 @@
     menuId = `fo-act-menu-${act.id}`, actionLabel = "Postprocese", items = [], pendingTitle = "", pendingText = "", menuClass = "",
     assets = "assets/", attrs = "", tagHtml = null, extraTagsHtml = "", triggerAttrs = "data-fo-intent-trigger", itemAttrs = null,
     noticeTone = "warning", noticeIcon = "icon-time", noticeLocks = true, hideEmptyAction = false,
-    iconSrc = null, metaSlots = null, actionHtml = null, rowClass = "", noticeHtml = "", place = ""
+    iconSrc = null, metaSlots = null, actionHtml = null, rowClass = "", noticeHtml = "", place = "", titleHref = ""
   } = {}) {
     /* accessible names of the trigger / menu: the type alone repeats on every row → „<type> — <place>” */
     const label = place ? `${act.name} — ${place}` : act.name;
@@ -163,7 +163,9 @@
           ${iconSrc ? `<img class="e-permits-fo-lib-item__icon" src="${iconSrc}" width="24" height="24" alt="">` : ""}
           <div class="e-permits-fo-lib-item__content">
             <div class="e-permits-fo-lib-item__title-row e-permits-fo-doc-title-row">
-              <span class="e-permits-fo-lib-item__title" data-full-name="${esc(act.name)}">${esc(act.name)}</span>
+              ${titleHref /* act-profile-url-v1: the title = a real link to the row's own page (new tab, copy link); out of the tab order — the row is the control */
+                ? `<a class="e-permits-fo-lib-item__title" href="${esc(titleHref)}" tabindex="-1" data-full-name="${esc(act.name)}">${esc(act.name)}</a>`
+                : `<span class="e-permits-fo-lib-item__title" data-full-name="${esc(act.name)}">${esc(act.name)}</span>`}
               ${tag}${extraTagsHtml}
             </div>${place ? `
             <p class="e-permits-fo-intent-act__place"><svg class="icon small e-permits-fo-intent-act__place-icon" aria-hidden="true"><use href="${assets}icons/sprite.svg#icon-map-pin-filled"></use></svg><span class="e-permits-fo-intent-act__place-text" data-full-name="${esc(place)}">${esc(place)}</span></p>` : ""}

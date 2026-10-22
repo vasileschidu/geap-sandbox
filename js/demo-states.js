@@ -1379,6 +1379,10 @@
     "pp-03b": { page: "cabinet-evo/index.html", params: { act: "act-licenta-susp" }, ready: "[data-cab-detail]:not([hidden]) #cab-act-title", run: null },
     "pp-03c": { page: "cabinet-evo/index.html", params: { as: "pj-vita-plant", act: "act-vita-farm" }, ready: "[data-cab-detail]:not([hidden]) #cab-act-title", run: null },
     "pp-03d": { page: "cabinet-evo/index.html", params: { act: "act-izvoras" }, ready: "[data-cab-detail]:not([hidden]) #cab-act-title", run: async (h) => { await h.scroll("#cab-act-history"); } },
+    /* act-profile-url-v1 (2026-10-22, user: „act permisiv profile should have a unique URL”): every act profile is
+       ?act=<id> (pp-03…: opened straight from the address); an unknown id = the not-found state: the breadcrumb back to
+       „Actele mele permisive” + the library empty state */
+    "pp-03x": { page: "cabinet-evo/index.html", params: { act: "act-nu-exista" }, ready: "[data-cab-detail]:not([hidden]) .e-permits-empty", run: null },
     /* type-first-v1 (2026-10-21, user: „first the name of the act, then the location, if any”): 03e an act WITHOUT a
        location (transport licence: H1 = the type, no subtitle) · 03f another act type for the same place (Izvoraș
        alcohol licence: H1 = the type, subtitle = the place) · 04 the list searched by the place — 3 act types, one place */
@@ -2299,6 +2303,9 @@
     "sm-05u": smDosar("d-bistro", null, { "tacit-dosar": "d-bistro" }),
     /* cabinet-header-v1: a VERY long service name (221 characters) in the BO header and in the list row */
     "sm-05w": smDosar("d-izvoras", null, { "titlu-lung": "d-izvoras" }),
+    /* act-profile-url-v1: a request address (?view=solicitari#dosar/<id>) that matches no request = the not-found state
+       (breadcrumb back to „Solicitările mele” + the library empty state) */
+    "sm-05y": { ...smDosar("d-nu-exista"), ready: "[data-sm-profile-view]:not([hidden]) .e-permits-empty" },
     /* header-actions-below-v1: the same long name on a phone (≤760) with the 4-line H1 expanded („Mai puțin ⌃”); desktop
        shows the full name and no toggle, so nothing to click there */
     "sm-05x": smDosar("d-izvoras", async (h) => { await h.wait(300); if (document.querySelector("#sm-profile-title [data-name-expand-toggle]")) await h.click("#sm-profile-title [data-name-expand-toggle]"); }, { "titlu-lung": "d-izvoras" }),
@@ -2453,7 +2460,8 @@
            actului permisiv” (rap-02h) */
         "rap-02b": { page: RAP, params: { act: "rap-0003" }, ready: "[data-rap-profile-view]:not([hidden]) h1" },
         "rap-02h": { page: RAP, params: { act: "rap-0005" }, ready: "[data-rap-profile-view]:not([hidden]) h1" },
-        /* US-142 AC-16: unknown act */
+        /* US-142 AC-16: unknown act (act-profile-url-v1: the breadcrumb back to the registry + the library empty state
+           „Actul permisiv nu a fost găsit”; every profile is ?act=<record id>) */
         "rap-02c": { page: RAP, params: { act: "rap-9999" }, ready: "[data-rap-profile-view]:not([hidden]) .e-permits-empty" },
         /* the long ozone-substances act (title wraps); tacit approval: tag next to Stare + the
            „Aprobare tacită” row above „Data eliberării” */

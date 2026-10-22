@@ -7048,6 +7048,13 @@
   white-space: nowrap;
 }
 
+/* act-profile-url-v1: the title of a Cabinet act / request row is a real link to the profile's address (new tab, copy
+   link) and keeps the title look — no library link underline; the row's hover / focus ring is the feedback (the link is
+   out of the tab order, the row is the control) */
+a.e-permits-fo-lib-item__title:is(:hover, :focus) {
+  text-decoration: none;
+}
+
 .e-permits-fo-lib-item__badge {
   align-items: center;
   background: transparent;

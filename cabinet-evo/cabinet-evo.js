@@ -133,7 +133,8 @@
       document.querySelector("[data-cab-login]")?.removeAttribute("hidden");
       document.querySelector("[data-cab-login]")?.setAttribute("href", `?view=catalog${window.location.hash}`);
     }
-    setHeaderTitle(VIEWS[VIEW].title);
+    /* act-profile-url-v1: a request profile / not-found state already on screen has named the tab — keep it */
+    if (!document.querySelector("[data-sm-profile-view]:not([hidden])")) setHeaderTitle(VIEWS[VIEW].title);
   }
 
   function setHeaderTitle(title) {
@@ -249,6 +250,7 @@
         date: validity,
       },
       menuId: `cab-menu-${permit.id}`,
+      titleHref: actUrl(permit.id),
       items: permit.postProcesses,
       assets: "../assets/",
       attrs: `tabindex="0" data-cab-card="${escape(permit.id)}" aria-label="${escape(`${permit.label} — ${tacit ? "Aprobare tacită (valabil)" : permit.statusLabel}`)}"`,
@@ -854,6 +856,21 @@
     return done.find((dosar) => dosar.actNr === act.number) || done.find((dosar) => dosar.id === state.dosarByAct[act.id]) || null;
   }
   const requestHref = (id) => cabUrl("solicitari", {}, `#dosar/${id}`);
+  /* act-profile-url-v1 (2026-10-22, user: „act permisiv profile should have a unique URL”): an act profile =
+     ?act=<act id> on the current address (view, perspective ?as= and demo parameters kept, the demo ?state= dropped)
+     — static hosting, no server rewrite. Opening from the list PUSHES it, Back pops it (the list keeps its search /
+     filters / sort / page in the page state and gets its scroll back), a reload / shared link opens it directly, an
+     unknown id = the not-found state (notFoundHtml). Requests already have theirs: ?view=solicitari#dosar/<id>. */
+  function pageAddress(set = {}, hash = "") {
+    const next = new URL(window.location.href);
+    next.searchParams.delete("state");
+    Object.entries(set).forEach(([key, value]) => { if (value) next.searchParams.set(key, value); else next.searchParams.delete(key); });
+    return `${next.pathname}${next.search}${hash}`;
+  }
+  const actUrl = (id) => pageAddress({ act: id });
+  const actsListUrl = () => pageAddress({ act: null });
+  /* a modified click on a link (new tab / window, download) is the browser's */
+  const modifiedClick = (event) => event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || (event.button ?? 0) !== 0;
   /* a link to ANOTHER page that opens in a new tab (external-link-v1, user 2026-10-22: „Vezi solicitarea” — no leading
      icon, the external glyph AFTER the label, new tab): target _blank + rel noopener + the name says „filă nouă” */
   const NEW_TAB = "se deschide într-o filă nouă";
@@ -977,25 +994,33 @@
     return window.GEAPEventTimeline?.html("Istoric", events, { titleId: "cab-act-history", sectionAttrs: 'aria-labelledby="cab-act-history"' }) || "";
   }
 
-  function renderDetail(act) {
+  function detailPanel() {
     let panel = document.querySelector("[data-cab-detail]");
     if (!panel) {
       panel = document.createElement("article");
       panel.className = "cab-profile cab-act-profile";
       panel.dataset.cabDetail = "";
-      panel.setAttribute("aria-labelledby", "cab-act-title");
       els.list.insertAdjacentElement("afterend", panel);
     }
-    const listParts = [document.querySelector(".cab-intro"), els.toolbar, els.filterBar, els.list, els.pager, els.empty];
+    return panel;
+  }
+  const actListParts = () => [document.querySelector(".cab-intro"), els.toolbar, els.filterBar, els.list, els.pager, els.empty];
+
+  function renderDetail(act) {
+    const panel = detailPanel();
+    const listParts = actListParts();
     if (!act) {
       actViewInstance?.closeDocument({ toData: false });
       actViewInstance?.closeData({ restoreFocus: false });
       panel.hidden = true;
       document.querySelector(".cab-intro").hidden = false;
       state.detail = null;
+      setHeaderTitle(VIEWS[VIEW].title);
       return; /* the caller re-renders the list (render() sets the list parts' visibility) */
     }
     state.detail = act.id;
+    panel.removeAttribute("aria-label");
+    panel.setAttribute("aria-labelledby", "cab-act-title");
     listParts.forEach((el) => { if (el) el.hidden = true; });
     const profile = actProfileOf(act);
     const tacit = isTacitAct(act);
@@ -1084,9 +1109,68 @@
         ${representative ? "" : beneficiary}
         ${actHistory(act)}
       </div>`;
+    /* the tab names the act (act-profile-url-v1): the H1 + its location, as the row's accessible name */
+    document.title = `${[act.service.title || act.title, act.place].filter(Boolean).join(" — ")} · EVO Cabinet`;
     syncHeaderMeta();
     watchHeaderActions();
     window.scrollTo(0, 0);
+  }
+
+  /* an act / request address that matches nothing (act-profile-url-v1): the profile's header with the breadcrumb back to
+     the list (parents only) + the library empty state — no second „back” button. Shared with Solicitările mele. */
+  function notFoundHtml({ back, title, text }) {
+    return `
+      <header class="e-permits-page-header cab-page-header cab-profile-header" data-cab-profile-header>
+        <div class="e-permits-page-header__body">
+          <div class="e-permits-page-header__top">
+            <div class="e-permits-page-header__heading">${window.GEAPBreadcrumbs?.html([back, { label: title }], { truncate: true, parentsOnly: true }) || ""}</div>
+          </div>
+        </div>
+      </header>
+      <div class="e-permits-dosar-profil__panel cab-not-found">${window.GEAPEmptyState.render({ title, text, icon: "search" })}</div>`;
+  }
+
+  const ACT_NOT_FOUND = "Actul permisiv nu a fost găsit";
+  function renderActNotFound() {
+    const panel = detailPanel();
+    actViewInstance?.closeDocument({ toData: false });
+    actViewInstance?.closeData({ restoreFocus: false });
+    state.detail = null;
+    actListParts().forEach((el) => { if (el) el.hidden = true; });
+    panel.hidden = false;
+    panel.removeAttribute("aria-labelledby");
+    panel.setAttribute("aria-label", ACT_NOT_FOUND);
+    panel.innerHTML = notFoundHtml({
+      back: { label: "Actele mele permisive", href: actsListUrl(), attr: "data-cab-back" },
+      title: ACT_NOT_FOUND,
+      text: "Linkul nu mai este valabil sau actul nu figurează printre actele dvs.",
+    });
+    document.title = `${ACT_NOT_FOUND} · EVO Cabinet`;
+    window.scrollTo(0, 0);
+  }
+
+  /* the profile named by the address (load, Back / Forward): ?act=<id> → the profile or the not-found state; none → the
+     list as it was, scrolled back to where the profile was opened from */
+  function syncActFromUrl({ restoreScroll = false } = {}) {
+    if (state.restriction) return; /* a restricted perspective sees only the restriction notice */
+    const id = new URLSearchParams(window.location.search).get("act");
+    if (id) {
+      const act = state.permits.find((permit) => permit.id === id && permit.geap);
+      if (act) renderDetail(act); else renderActNotFound();
+      return;
+    }
+    if (!document.querySelector("[data-cab-detail]:not([hidden])")) return;
+    renderDetail(null);
+    render();
+    if (restoreScroll) window.scrollTo(0, window.history.state?.cabList?.scrollY || 0);
+  }
+
+  /* from the list: the list's entry remembers its scroll, then the profile is pushed */
+  function openAct(act) {
+    if (!act?.geap) return;
+    if (!state.detail) window.history.replaceState({ ...(window.history.state || {}), cabList: { scrollY: window.scrollY } }, "", actsListUrl());
+    window.history.pushState({ cabAct: act.id, cabFromList: !state.detail }, "", actUrl(act.id));
+    renderDetail(act);
   }
 
   /* the action row never wraps: measure every action at its natural width (all reads first), keep the primary,
@@ -1231,7 +1315,14 @@
       const cancel = event.target.closest("[data-cab-pp-cancel]");
       const card = event.target.closest("[data-cab-card]");
       if (cancel) { document.querySelector("[data-cab-pp-modal]").hidden = true; return; }
-      if (back) { event.preventDefault(); renderDetail(null); render(); return; }
+      if (back) {
+        if (modifiedClick(event)) return;
+        event.preventDefault();
+        if (window.history.state?.cabFromList) { window.history.back(); return; }
+        window.history.pushState({}, "", actsListUrl());
+        renderDetail(null); render(); window.scrollTo(0, 0);
+        return;
+      }
       /* „Descarcă actul (MDocs)” → the printable form (the RAP „Forma de tipar a actului”) */
       if (download) {
         event.stopPropagation();
@@ -1261,10 +1352,12 @@
         if (act && pp) confirmPostprocess(act, pp);
         return;
       }
-      if (openBtn) { closeMenus(); renderDetail(state.permits.find((p) => p.id === openBtn.dataset.cabOpen)); return; }
+      if (openBtn) { closeMenus(); openAct(state.permits.find((p) => p.id === openBtn.dataset.cabOpen)); return; }
       if (card && !event.target.closest(".cab-card__actions, .e-permits-fo-intent-act__action, [data-copy-value]")) {
-        const act = state.permits.find((p) => p.id === card.dataset.cabCard);
-        if (act?.geap) renderDetail(act);
+        /* the title link: a modified click opens the profile in a new tab / window (the browser's); else in place */
+        if (event.target.closest("a[href]") && modifiedClick(event)) return;
+        event.preventDefault();
+        openAct(state.permits.find((p) => p.id === card.dataset.cabCard));
         return;
       }
       /* a menu link that opens another page in a new tab (Vezi solicitarea): the menu closes behind it */
@@ -1275,8 +1368,7 @@
       const row = event.target.matches?.("[data-cab-card]") ? event.target : null;
       if (row && (event.key === "Enter" || event.key === " ")) {
         event.preventDefault();
-        const act = state.permits.find((p) => p.id === row.dataset.cabCard);
-        if (act?.geap) renderDetail(act);
+        openAct(state.permits.find((p) => p.id === row.dataset.cabCard));
         return;
       }
       onMenuKey(event);
@@ -1524,7 +1616,7 @@
     VIEW, AUTH, SUBJECT, SPRITE, params,
     icon, escape, copyValueHtml, closeMenus, cabUrl, longDate, longDateTime, setHeaderTitle, restrictionHtml, pagerHtml,
     docRowHtml, docContentHtml, openDocModal, closeDocModal, signedTagHtml,
-    actGroups, pageHeader, profileHeader, syncHeaderMeta, watchHeaderActions, identityCardHtml, tagHtml, tacitTagHtml, ACT_TONE, detailRow, detailCard, profileSection,
+    actGroups, pageHeader, profileHeader, notFoundHtml, pageAddress, modifiedClick, syncHeaderMeta, watchHeaderActions, identityCardHtml, tagHtml, tacitTagHtml, ACT_TONE, detailRow, detailCard, profileSection,
     els,
   };
 
@@ -1581,9 +1673,13 @@
     bindGeap();
     initFacetFilter();
     render();
-    /* ?act=<id> opens the act profile (from a dosar's „Vezi actul”) */
-    const deepAct = VIEW === "acte" && state.permits.find((permit) => permit.id === params.get("act"));
-    if (deepAct?.geap) renderDetail(deepAct);
+    /* ?act=<id> opens the act profile (a reload, a shared link, a dosar's „Vezi actul”); Back / Forward follow the
+       address (act-profile-url-v1) */
+    if (VIEW === "acte") {
+      syncActFromUrl();
+      window.addEventListener("popstate", () => syncActFromUrl({ restoreScroll: true }));
+      if ("scrollRestoration" in window.history) window.history.scrollRestoration = "manual";
+    }
     document.documentElement.dataset.cabReady = "true";
   }
 

@@ -382,6 +382,8 @@
     const actions = actionsHtml(dosar);
     return window.GEAPActRow.html({ ...base, name }, {
       ...common,
+      /* act-profile-url-v1: the title links to the request's own address (new tab, copy link) */
+      titleHref: requestUrl(dosar.id),
       place: service.title ? place : "",
       attrs: `tabindex="0" data-sm-card="${escape(dosar.id)}" aria-label="${escape(`${requestLabel(dosar)} — ${statusLabel(dosar)}${outcomeOf(dosar) ? " (finalizată)" : ""}, deschide detaliile`)}"`,
       extraTagsHtml: `${tacitListMark(dosar)}${dosar.status === "schita" && dosar.signed ? C.signedTagHtml() : ""}`,
@@ -1104,12 +1106,14 @@
     });
     box.querySelectorAll("[data-sm-panel]").forEach((panel) => { panel.hidden = panel.dataset.smPanel !== id; });
     const dosarId = root.querySelector("[data-sm-profile]")?.dataset.smProfile;
-    if (dosarId) history.replaceState(null, "", `${window.location.pathname}${window.location.search}#dosar/${dosarId}${id === "general" ? "" : `/${id}`}`);
+    if (dosarId) history.replaceState(history.state, "", `${window.location.pathname}${window.location.search}#dosar/${dosarId}${id === "general" ? "" : `/${id}`}`);
   }
 
   function renderProfile(dosar) {
     const service = serviceOf(dosar);
     C.setHeaderTitle("Solicitările mele");
+    /* the tab names the request (act-profile-url-v1): the H1 + its object, as the row */
+    document.title = `${[service.title || dosar.object || dosar.nr, service.title ? dosar.object : ""].filter(Boolean).join(" — ")} · EVO Cabinet`;
     const subject = state.subject;
     const user = state.user;
     const beneficiary = subject ? { ...subject } : null;
@@ -1210,7 +1214,7 @@
     profileView.innerHTML = `
       <article class="cab-profile sm-profile" aria-labelledby="sm-profile-title" data-sm-profile="${escape(dosar.id)}">
         ${C.profileHeader({
-          back: { label: "Solicitările mele", href: cabUrl("solicitari"), attr: "data-sm-back" },
+          back: { label: "Solicitările mele", href: C.pageAddress({}, ""), attr: "data-sm-back" },
           /* type-first-v1: H1 = the service / act name, subtitle = the object / location (only when present) */
           title: service.title || dosar.object || dosar.nr,
           titleId: "sm-profile-title",
@@ -1239,7 +1243,7 @@
 
   /* ---------- routing ---------- */
 
-  function route() {
+  function route(event) {
     window.GEAPTooltip?.hide();
     const match = /^#dosar\/([\w-]+)(?:\/(\w+))?$/.exec(window.location.hash);
     /* US-29 AC-02: a draft removed automatically has no profile any more — the list says why (link from the notification) */
@@ -1251,7 +1255,32 @@
     const dosar = match && !readOnly() && state.dosare.find((item) => item.id === match[1]);
     state.tab = match?.[2] || "general";
     if (dosar) renderProfile(dosar);
-    else renderList();
+    /* act-profile-url-v1: an address that matches no request = the not-found state (breadcrumb back to the list) */
+    else if (match && !removed && !readOnly()) renderNotFound();
+    else {
+      const fromProfile = !root.querySelector("[data-sm-profile-view]")?.hidden;
+      renderList();
+      /* Back to the list the request was opened from: where it was (search / filters / sort / page are page state) */
+      if (fromProfile && event?.type) window.scrollTo(0, window.history.state?.smList?.scrollY || 0);
+    }
+  }
+
+  const REQUEST_NOT_FOUND = "Solicitarea nu a fost găsită";
+  function renderNotFound() {
+    C.setHeaderTitle("Solicitările mele");
+    document.title = `${REQUEST_NOT_FOUND} · EVO Cabinet`;
+    ensureListShell().hidden = true;
+    const profileView = root.querySelector("[data-sm-profile-view]");
+    profileView.hidden = false;
+    profileView.innerHTML = `
+      <article class="cab-profile sm-profile" aria-label="${REQUEST_NOT_FOUND}">
+        ${C.notFoundHtml({
+          back: { label: "Solicitările mele", href: C.pageAddress({}, ""), attr: "data-sm-back" },
+          title: REQUEST_NOT_FOUND,
+          text: "Linkul nu mai este valabil sau solicitarea nu figurează printre solicitările dvs.",
+        })}
+      </article>`;
+    window.scrollTo(0, 0);
   }
 
   /* ---------- modals ---------- */
@@ -1408,8 +1437,14 @@
      2026-10-20: „clicking on the entire card should always show the details, not redirect to the full flow”).
      The flow actions (Continuă schița, Trimite informațiile, Achită, Depune contestație) stay explicit: ⋮ menu,
      the alert's inline link, the details page. */
+  /* act-profile-url-v1: a request's own address = ?view=solicitari[&as=…]#dosar/<id> (the current address, demo ?state=
+     dropped); from the list the list's entry first remembers its scroll, then the profile is pushed */
+  const requestUrl = (id) => C.pageAddress({}, `#dosar/${id}`);
   function openRow(id) {
-    window.location.hash = `#dosar/${id}`;
+    const fromList = root.querySelector("[data-sm-profile-view]")?.hidden !== false;
+    if (fromList) history.replaceState({ ...(history.state || {}), smList: { scrollY: window.scrollY } }, "", C.pageAddress({}, ""));
+    history.pushState({ smFromList: fromList }, "", requestUrl(id));
+    route();
   }
 
   function bind() {
@@ -1450,7 +1485,12 @@
       if (page && !page.disabled) { state.page = Number(page.dataset.smPage); renderList(); root.querySelector("#sm-title")?.scrollIntoView({ block: "start" }); return; }
       const tab = target.closest("[data-sm-tab]");
       if (tab) { selectTab(tab.dataset.smTab); return; }
-      if (target.closest("[data-sm-back]")) { event.preventDefault(); history.pushState(null, "", window.location.pathname + window.location.search); route(); return; }
+      if (target.closest("[data-sm-back]")) {
+        if (C.modifiedClick(event)) return;
+        event.preventDefault();
+        if (history.state?.smFromList) { history.back(); return; }
+        history.pushState(null, "", C.pageAddress({}, "")); route(); window.scrollTo(0, 0); return;
+      }
       if (target.closest("[data-tooltip-hint]")) { event.stopPropagation(); window.GEAPTooltip?.show(target.closest("[data-tooltip-hint]")); return; }
 
       /* documents: the card itself → the document modal (no „Detalii” button since no-lone-detalii-v1) */
@@ -1480,7 +1520,11 @@
       }
 
       const card = target.closest("[data-sm-card]");
-      if (card && !card.classList.contains("is-static") && !target.closest(".cab-card__actions, [data-copy-value], .cab-mark, .sm-tacit, a, button")) {
+      /* the title link (act-profile-url-v1): a modified click = the browser's new tab / window; a plain one opens in place */
+      const titleLink = target.closest("a.e-permits-fo-lib-item__title");
+      if (titleLink && C.modifiedClick(event)) return;
+      if (card && !card.classList.contains("is-static") && (titleLink || !target.closest(".cab-card__actions, [data-copy-value], .cab-mark, .sm-tacit, a, button"))) {
+        event.preventDefault();
         openRow(card.dataset.smCard);
       }
     });
@@ -1518,6 +1562,7 @@
 
     window.addEventListener("hashchange", route);
     window.addEventListener("popstate", route);
+    if ("scrollRestoration" in history) history.scrollRestoration = "manual";
   }
 
   /* ---------- boot ---------- */
