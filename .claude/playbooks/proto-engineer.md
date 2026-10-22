@@ -2734,3 +2734,24 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   hover-audit 0 / 0, component-audit (standing RAP „Vezi toate” button, minor `li[tabindex]` rows), code-audit (standing
   visually-hidden FP; static 0), captures 13 states × 2 clean, flow test (open → URL, Back, Forward, reload, direct URL,
   not-found, new tab) at 1440 + 375 (scratch apu/flow.mjs).
+- 2026-10-22 · Alert card (act-alert-card-v1; user: „the acte permisive profile alert nicer — round corners, grey background,
+  coloured icon, nice title and description and actions, as the Google one”). The brief moved FIVE times mid-job (radius 24,
+  request notice separate → then ABOVE the trajectory, Achită / Completează informația into the card, pill buttons, buttons in
+  the same row, phones hugging not full width, plus the trajectory pill hug) — what made it cheap: ONE renderer
+  (`GEAPAlertCard.html`, js/alert-card.js) + ONE css file (css/alert-card.css) as a documented MODIFIER of the product Callout
+  (`.e-permits-callout--card`), page placement only in cabinet-evo.css, and each status's copy / buttons in one data object
+  (`actNotice` → { tone, icon, title, text, actions }, `statusNow(..., actions)`). Every change was 1–10 lines. Techniques:
+  (1) „buttons in the row, drop under the text when it can't fit” = the card as its own size container
+  (`container: alert-card / inline-size`) + `@container (max-width: 599px)` moving `__actions` to `grid-column: 1 / -1`; a
+  different threshold for two buttons via `.card:has(.btn + .btn) …` INSIDE the container query (the subject must be a
+  descendant of the container). (2) right-aligned hugging buttons with the primary on top when they wrap =
+  `flex-wrap: wrap-reverse` + `justify-content: flex-end`, primary LAST in the markup. (3) A tint that must hug WRAPPED text
+  cannot be a block (a wrapped block keeps its column width; `text-wrap: balance` / `fit-content` don't shrink it) → make the
+  label `display: inline` + `box-decoration-break: clone` inside a block parent; the inline background is the font's content
+  area (18 for 14/20), not the line height — measure with `getClientRects()`. Scope it to where wrapping happens (phones,
+  stacked), so desktop single-line labels keep their flex item + ellipsis. (4) CDP clip = document coordinates: after
+  `scrollIntoView` add `scrollY` (blank crops again). (5) zsh: a string of specs in `$specs` is ONE word — use an array
+  `specs+=(…)` + `"${specs[@]}"`. Tone decision reported, not silently changed: suspended = amber (the status tag tone) though
+  the brief said red. Request refused + appeal keeps „Depune contestație” in the header (only pay / supplement moved).
+  No sub-agent tool → hover-audit 0 / 0 on `.cab-alert-card`, code-audit 0 findings in the card (static 0), component-audit
+  0 non-library in the panels (majors = the standing avatar menu / doc-modal ×), capture 16 states × 2 0 errors.

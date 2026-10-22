@@ -30,12 +30,6 @@
   const GEAP_URL = "../data/acte-permisive.json?v=type-first-v1";
   const FO_URL = "../e-permits-acte-permisive.html";
 
-  /* notice tone → library banner variant (subtle tint, per Figma) */
-  const NOTICE_CLASS = {
-    warning: "banner--warning",
-    danger: "banner--error",
-  };
-
   const els = {
     list: document.querySelector("[data-cab-list]"),
     pager: document.querySelector("[data-cab-pager]"),
@@ -875,22 +869,23 @@
      icon, the external glyph AFTER the label, new tab): target _blank + rel noopener + the name says „filă nouă” */
   const NEW_TAB = "se deschide într-o filă nouă";
   const newTabAttrs = (label) => ` target="_blank" rel="noopener" aria-label="${escape(`${label} (${NEW_TAB})`)}"`;
-  const alertLinkHtml = (href, label) => ` <a class="link link-primary link-sm cab-alert-link" href="${escape(href)}">${escape(label)}&nbsp;→</a>`;
-  /* the request of an act (status notice): label + trailing external icon 16, new tab */
-  const requestLinkHtml = (id, label = "Vezi solicitarea") => ` <a class="link link-primary link-sm cab-alert-link cab-external-link" href="${escape(requestHref(id))}"${newTabAttrs(label)}><span>${escape(label)}</span>${icon("icon-external-link")}</a>`;
-  const alertPpHtml = (act, ppId, label) => (act.postProcesses.some((pp) => pp.id === ppId)
-    ? ` <button class="link link-primary link-sm cab-alert-link" type="button" data-cab-pp="${escape(ppId)}" data-cab-act="${escape(act.id)}">${escape(label)}&nbsp;→</button>`
-    : "");
 
-  /* the status notice — only when it says something the header does not: what happens next, who decided and
-     why, the deadline of a right (contestație), the action that solves it. One link at most. */
+  /* the status alert (act-alert-card-v1, 2026-10-22; user: „the alert nicer: round corners, grey background with a coloured
+     icon, a nice title and description and actions, as the Google one”) — only when it says something the header does
+     not: what happens next, who decided and why, the deadline of a right (contestație), the action that solves it.
+     { tone, icon?, title, text, actions } → GEAPAlertCard (js/alert-card.js) right under the header. Tone = the act's
+     status tag tone (ACT_TONE: suspended amber, expired / withdrawn / annulled red). Actions = library Medium 40: the
+     action that solves it = primary (last → bottom-right); „Vezi solicitarea” = quiet text button next to a primary,
+     secondary when it is the only one; every card button is the library pill `btn-rounded` (user: „do Achită as round
+     buttons”). The decision number lives in Istoric (the alert keeps to 2–3 lines). */
+  const alertBtn = (variant, inner, attrs) => `<button class="btn ${variant} btn-md btn-rounded" type="button" ${attrs}>${inner}</button>`;
+  const alertLinkBtn = (variant, href, label, extra = "") => `<a class="btn ${variant} btn-md btn-rounded" href="${escape(href)}"${extra}><span>${escape(label)}</span>${extra.includes("_blank") ? icon("icon-external-link") : ""}</a>`;
   function actNotice(act) {
     const profile = actProfileOf(act);
     const change = profile.statusChange || {};
     const byAuthority = change.initiator === "autoritate";
     const authority = authorityNameOf(act);
-    const decided = byAuthority ? `de ${authority}` : "la cererea titularului";
-    const decision = change.decision ? ` Decizia ${escape(change.decision)}.` : "";
+    const decided = byAuthority ? `de ${escape(authority)}` : "la cererea titularului";
     const reason = change.reason ? ` Motivul: ${escape(change.reason)}.` : "";
     const statusDate = statusDateOf(act);
     /* Feature 90818: a status changed by the AUTHORITY can be contested — on its request (the dossier), within
@@ -898,33 +893,67 @@
     const appealUntil = byAuthority && statusDate ? addDaysIso(isoOf(statusDate), state.appealDays) : "";
     const appealOpen = Boolean(appealUntil) && appealUntil >= state.today;
     const appeal = appealOpen ? ` Poți depune o contestație până la ${escape(longDate(appealUntil))}, din solicitarea care conține decizia.` : "";
-    const requestLink = change.dosarId ? requestLinkHtml(change.dosarId) : "";
-    const info = (html) => ({ tone: "info", icon: "icon-circle-info-filled", html });
-    const warning = (html, iconId = "icon-warning-filled") => ({ tone: "warning", icon: iconId, html });
+    const seeRequest = (id, variant) => (id ? alertLinkBtn(variant, requestHref(id), "Vezi solicitarea", ` data-cab-alert-request${newTabAttrs("Vezi solicitarea")}`) : "");
+    const ppButton = (ppId, label) => (act.postProcesses.some((pp) => pp.id === ppId)
+      ? alertBtn("btn-primary", `<span>${escape(label)}</span>`, `data-cab-pp="${escape(ppId)}" data-cab-act="${escape(act.id)}"`)
+      : "");
+    const newRequest = () => alertLinkBtn("btn-primary", cabUrl("catalog", {}, `#serviciu/${act.serviceCode}`), "Depune o solicitare nouă");
+    /* a primary + „Vezi solicitarea” (quiet), or „Vezi solicitarea” alone (secondary) */
+    const pair = (primary, requestId) => (primary ? `${seeRequest(requestId, "btn-text-neutral")}${primary}` : seeRequest(requestId, "btn-secondary"));
     if (act.pending) {
       const id = state.dosarIdByNr[act.pending.dossier];
-      return warning(`<strong>${escape(act.pendingLabel)} în curs.</strong> Poți iniția un alt postproces după finalizarea solicitării ${escape(act.pending.dossier)}.${id ? requestLinkHtml(id) : ""}`, "icon-time");
+      const since = act.pending.since ? `, depusă pe ${escape(longDate(isoOf(act.pending.since)))}` : "";
+      return {
+        tone: "warning", icon: "icon-time-filled",
+        title: "Ai o solicitare în examinare",
+        text: `${escape(act.pendingLabel)}${since}. Poți iniția alt postproces după ce solicitarea este finalizată.`,
+        actions: pair("", id),
+      };
     }
-    if (act.paper) return info(escape(PAPER_TEXT));
+    if (act.paper) {
+      return { tone: "info", title: "Act emis pe hârtie", text: "A fost emis în afara GEAP. Postprocesele se depun doar la ghișeul autorității emitente." };
+    }
     if (act.status === "suspendat") {
-      const resume = alertPpHtml(act, "reluare", "Cere reluarea valabilității");
-      const next = appealOpen ? appeal + requestLink
-        : resume ? ` Poți cere reluarea valabilității înainte de această dată.${resume}`
-          : ` Valabilitatea se reia automat la această dată.${requestLink}`;
-      return warning(`<strong>Activitatea autorizată nu poate fi desfășurată pe durata suspendării.</strong> Suspendarea a fost decisă ${decided}.${decision}${reason}${next}`);
+      const until = profile.suspendedUntil ? ` până la ${escape(longDate(profile.suspendedUntil))}` : "";
+      const resume = appealOpen ? "" : ppButton("reluare", "Cere reluarea valabilității");
+      const next = appealOpen ? appeal
+        : resume ? " Poți cere reluarea valabilității mai devreme."
+          : until ? " Valabilitatea se reia automat la această dată." : "";
+      return {
+        tone: ACT_TONE.suspendat,
+        title: `Actul este suspendat${until}`,
+        text: `Nu poți desfășura activitatea în această perioadă. Suspendarea a fost decisă ${decided}.${reason}${next}`,
+        actions: pair(resume, change.dosarId),
+      };
     }
     if (act.status === "retras" || act.status === "anulat") {
-      const verb = act.status === "retras" ? "retras" : "anulat";
+      const withdrawn = act.status === "retras";
+      const on = statusDate ? ` pe ${escape(longDate(statusDate))}` : "";
       const next = appealOpen ? appeal : " Pentru a desfășura din nou activitatea, depune o solicitare nouă.";
-      return (appealOpen ? warning : info)(`<strong>Actul nu mai este valabil.</strong> A fost ${verb} ${decided}.${decision}${reason}${next}${requestLink}`);
+      return {
+        tone: ACT_TONE[act.status],
+        title: `Actul a fost ${withdrawn ? "retras" : "anulat"}${on}`,
+        text: `${withdrawn ? "Retragerea" : "Anularea"} a fost decisă ${decided}.${reason}${next}`,
+        actions: pair(appealOpen ? "" : newRequest(), change.dosarId),
+      };
     }
     if (act.status === "expirat") {
-      return info(`<strong>Actul nu mai este valabil.</strong> Pentru a desfășura din nou activitatea, depune o solicitare nouă.${alertLinkHtml(cabUrl("catalog", {}, `#serviciu/${act.serviceCode}`), "Depune o solicitare nouă")}`);
+      return {
+        tone: ACT_TONE.expirat,
+        title: act.validUntil ? `Actul a expirat pe ${escape(longDate(act.validUntil))}` : "Actul a expirat",
+        text: "Pentru a desfășura din nou activitatea, depune o solicitare nouă.",
+        actions: newRequest(),
+      };
     }
     const left = daysLeftOf(act);
     if (act.status === "valabil" && left !== null && left <= EXPIRY_PROMPT_DAYS) {
-      const extend = alertPpHtml(act, "prelungire", "Inițiază prelungirea");
-      return warning(`<strong>Termenul de valabilitate se apropie de sfârșit.</strong> ${extend ? "Depune cererea de prelungire din timp, ca activitatea să nu fie întreruptă." : "Pentru a continua activitatea după această dată, depune o solicitare nouă."}${extend || alertLinkHtml(cabUrl("catalog", {}, `#serviciu/${act.serviceCode}`), "Depune o solicitare nouă")}`);
+      const extend = ppButton("prelungire", "Inițiază prelungirea");
+      return {
+        tone: "warning",
+        title: left > 0 ? `Actul expiră în ${daysText(left)}` : "Actul expiră astăzi",
+        text: `Este valabil până la ${escape(longDate(act.validUntil))}. ${extend ? "Cere prelungirea din timp, ca activitatea să nu fie întreruptă." : "Pentru a continua activitatea după această dată, depune o solicitare nouă."}`,
+        actions: extend || newRequest(),
+      };
     }
     return null;
   }
@@ -1082,7 +1111,8 @@
       statusDate ? [statusDate[0], statusDate[1]] : null,
       ["Autoritatea emitentă", escape(act.service?.authority || authorityNameOf(act))],
     ];
-    const noticeHtml = notice ? `<div class="message message--subtle ${NOTICE_CLASS[notice.tone] || "banner--info"} message--small cab-message cab-profile-notice" id="cab-act-notice"><span class="banner__icon">${icon(notice.icon, "medium")}</span><div class="banner__content"><p>${notice.html}</p></div></div>` : "";
+    /* the status alert card right under the header (act-alert-card-v1) */
+    const noticeHtml = notice ? window.GEAPAlertCard.html({ ...notice, id: "cab-act-notice", className: "cab-alert-card", sprite: SPRITE }) : "";
     panel.hidden = false;
     panel.innerHTML = `
       ${profileHeader({

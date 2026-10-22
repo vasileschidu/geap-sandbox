@@ -1654,6 +1654,41 @@ button.cab-alert-link {
   max-width: 75ch;
 }
 
+/* the status alert card (act-alert-card-v1, css/alert-card.css) opens the act / request panel, right under the header:
+   24 above on desktop / 16 on phones (instead of the BO panel's 20); under it 16 before a titled section (its 48 heading
+   row adds its own ~12, so it reads as the section rhythm) and 24 before the request trajectory card (16 on phones) */
+.e-permits-dosar-profil__panel:has(> .cab-alert-card:first-child) {
+  padding-top: var(--spacing-24, 24px);
+}
+
+.e-permits-dosar-profil__panel > .cab-alert-card {
+  margin-bottom: var(--spacing-16, 16px);
+}
+
+.e-permits-dosar-profil__panel > .cab-alert-card:has(+ .cab-status) {
+  margin-bottom: var(--spacing-24, 24px);
+}
+
+/* an error of the card's button (sm-04h) sits 8 under the card, then the same gap */
+.e-permits-dosar-profil__panel > .cab-alert-card:has(+ .cab-alert-card__retry) {
+  margin-bottom: var(--spacing-8, 8px);
+}
+
+.e-permits-dosar-profil__panel > .cab-alert-card + .cab-alert-card__retry {
+  margin-bottom: var(--spacing-24, 24px);
+}
+
+@media (max-width: 760px) {
+  .e-permits-dosar-profil__panel:has(> .cab-alert-card:first-child) {
+    padding-top: var(--spacing-16, 16px);
+  }
+
+  .e-permits-dosar-profil__panel > .cab-alert-card:has(+ .cab-status),
+  .e-permits-dosar-profil__panel > .cab-alert-card + .cab-alert-card__retry {
+    margin-bottom: var(--spacing-16, 16px);
+  }
+}
+
 /* the „⋯” sits at the row's right edge: its menu always opens leftwards from it and never runs past the left
    screen edge (16) — on phones the trigger's right edge is the page gutter (16; profile-phone-v1) */
 .cab-act-header__overflow .cab-menu.e-permits-fo-intent-menu,

@@ -2264,7 +2264,7 @@
     "sm-04g": smDosar("d-sud", null, { nota: "expirata" }),
     "sm-04g1": sm(async (h) => { await h.scroll('[data-sm-card="d-sud"]'); }, { nota: "expirata" }),
     /* US-24 AC-04: the redirect to the suplinire form fails (demo ?redirectionare=eroare) → error + „Reîncercați” */
-    "sm-04h": smDosar("d-nistru", async (h) => { await h.click('[data-sm-profile] [data-cab-profile-header] [data-sm-action="supplement"]'); }, { redirectionare: "eroare" }),
+    "sm-04h": smDosar("d-nistru", async (h) => { await h.click('[data-sm-profile] [data-sm-alert] [data-sm-action="supplement"]'); }, { redirectionare: "eroare" }),
     "sm-04h1": sm(async (h) => { await h.scroll('[data-sm-card="d-nistru"]'); await h.click('[data-sm-card="d-nistru"] .e-permits-fo-intent-act__pending [data-sm-action="supplement"]'); }, { redirectionare: "eroare" }),
     /* 04i the suplinire term passed → back „În derulare” (US-24 AC-03) · 04j suplinire sent → examination resumed
        (US-24 AC-20) · 04k a Prelungire in examination · 04l paper delivery by MDelivery (US-161 AC-16, Livrare) */

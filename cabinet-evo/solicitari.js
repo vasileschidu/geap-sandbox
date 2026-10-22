@@ -673,7 +673,7 @@
      component): amber / red when the applicant must act or can no longer act, green for an issued act / decision,
      blue for the rest. The long texts moved: the suspension reason → Date generale „Motivul suspendării”, the full
      story → „Istoric”. */
-  const notice = (tone, iconId, lead, text = "") => ({ tone, icon: iconId, lead, text });
+  const notice = (tone, iconId, lead, text = "", actions = "") => ({ tone, icon: iconId, lead, text, actions });
   const live = (dosar) => (deadlineOf(dosar) ? ` · <span data-sm-countdown="${escape(isoDay(deadlineOf(dosar)))}">${escape(countdownText(deadlineOf(dosar)))}</span>` : "");
   function statusNow(dosar) {
     const service = serviceOf(dosar);
@@ -686,11 +686,14 @@
         /* US-21 AC-03: the retention sentence */
         return notice("info", "icon-circle-info-filled", "Solicitarea nu a fost depusă", escape(draftKeptText(dosar)));
       case "info":
-        return notice("warning", "icon-warning-filled", `Trimiteți informațiile cerute până la ${date(dosar.info?.until)}`, `Examinarea este suspendată până atunci${live(dosar)}.`);
+        /* act-alert-card-v1: the action that solves it lives in the alert card (no longer in the header) */
+        return notice("warning", "icon-warning-filled", `Trimiteți informațiile cerute până la ${date(dosar.info?.until)}`, `Examinarea este suspendată până atunci${live(dosar)}.`,
+          dosar.info?.until >= TODAY ? `<a class="btn btn-primary btn-md btn-rounded" href="${escape(foUrl(dosar, "supplement"))}" data-sm-action="supplement">${icon("icon-page-upload")}<span>Completează informația</span></a>` : "");
       case "achitare":
         return paymentExpired(dosar)
           ? notice("danger", "icon-circle-error-filled", `Taxa a expirat pe ${date(dosar.payment?.due)}`, "Achitarea nu mai este posibilă.")
-          : notice("warning", "icon-credit-card", `Achitați ${escape(money(dosar.payment?.amount))} până la ${date(dosar.payment?.due)}`, `După achitare, examinarea continuă automat${live(dosar)}.`);
+          : notice("warning", "icon-warning-filled", `Achitați ${escape(money(dosar.payment?.amount))} până la ${date(dosar.payment?.due)}`, `După achitare, examinarea continuă automat${live(dosar)}.`,
+            `<button class="btn btn-primary btn-md btn-rounded" type="button" data-sm-action="pay" data-sm-id="${escape(dosar.id)}">${icon("icon-credit-card")}<span>Achită ${escape(money(dosar.payment?.amount))}</span></button>`);
       case "derulare": {
         if (dosar.tacit) return notice("info", "icon-circle-info-filled", `Termenul de examinare a expirat pe ${date(dosar.examTerm)}`, "Solicitarea se consideră aprobată tacit; puteți desfășura activitatea conform legii.");
         const lead = dosar.examTerm ? `Răspuns până la ${date(dosar.examTerm)}` : "Solicitarea este în examinare";
@@ -847,21 +850,27 @@
     return window.GEAPEventTimeline?.html("Istoric", historyEvents(dosar), { titleId: "sm-sec-istoric", sectionAttrs: 'aria-labelledby="sm-sec-istoric"' }) || "";
   }
 
-  /* The BO dossier's element itself (cabinet-header-v1; user: „bring back the integrated notification exactly as in
-     BO … the timeline + the notification integrated, and the buttons on top”): GEAPTrajectory.html({ steps, callout })
-     — the trajectory card with its callout hanging from it, the renderer and markup of dos-01. No visible title
-     (user, twice: „remove the Stadiul solicitării title”): the BO section title is not part of the element, the
-     region keeps the name for screen readers. No button in it: every action is in the header (headerActions). */
+  /* The BO dossier's trajectory (cabinet-header-v1; user: „the header as in … Dosarele”): GEAPTrajectory.html({ steps }) —
+     the renderer and markup of dos-01. No visible title (user, twice: „remove the Stadiul solicitării title”): the region
+     keeps the name for screen readers. Since act-alert-card-v1 (2026-10-22, user: „do not use the integrated notice any
+     more … the alert is a separate card”, then „directly under the profile header, above the timeline”) the status
+     notice is NOT hung from the trajectory: it is the alert card (alertCardHtml) above it. */
   function statusCardHtml(dosar) {
-    const now = statusNow(dosar);
     return `
       <section class="e-permits-dosar-profil__section cab-section cab-status" aria-label="Stadiul solicitării" data-sm-status>
         ${window.GEAPTrajectory?.html({
           label: "Etapele solicitării",
           steps: trackerSteps(dosar).map((step) => ({ ...step, sr: step.sr || STEP_STATE_TEXT[step.state] })),
-          callout: { tone: now.tone, icon: now.icon.replace(/^icon-/, ""), titleHtml: now.lead, textHtml: now.text },
         }) || ""}
       </section>`;
+  }
+
+  /* the status alert card (act-alert-card-v1) right under the header — ONE per request (statusNow = the highest-priority
+     fact of the status): title = the key fact + its date, text = ≤ 1 sentence (+ the live countdown), the action that
+     solves it (pay / send the information) = the primary INSIDE the card; GEAPAlertCard (js/alert-card.js). */
+  function alertCardHtml(dosar) {
+    const now = statusNow(dosar);
+    return window.GEAPAlertCard?.html({ tone: now.tone, icon: now.icon, title: now.lead, text: now.text, actions: now.actions, id: "sm-alert", className: "cab-alert-card", attrs: "data-sm-alert", sprite: C.SPRITE }) || "";
   }
 
   /* cabinet-header-v1 (user: „the header as in Configurări servicii and Dosarele, with the actions on top”, then „all
@@ -878,13 +887,8 @@
         buttons.push(`<a class="btn btn-primary btn-md" href="${escape(foUrl(dosar, "draft"))}" data-sm-action="continue">${icon("icon-edit")}<span>Continuă schița</span></a>`);
         buttons.push(`<button class="btn btn-outline-destructive btn-md" type="button" data-sm-action="delete" data-sm-id="${escape(dosar.id)}">${icon("icon-delete")}<span>Elimină schița</span></button>`);
         break;
-      case "info":
-        if (dosar.info?.until >= TODAY) buttons.push(`<a class="btn btn-primary btn-md" href="${escape(foUrl(dosar, "supplement"))}" data-sm-action="supplement">${icon("icon-page-upload")}<span>Suplinește informații</span></a>`);
-        break;
-      case "achitare":
-        /* US-135 AC-14: no redirect to MPay for an expired note — no button; the notice says why */
-        if (!paymentExpired(dosar)) buttons.push(`<button class="btn btn-primary btn-md" type="button" data-sm-action="pay" data-sm-id="${escape(dosar.id)}">${icon("icon-credit-card")}<span>Achită ${escape(money(dosar.payment?.amount))}</span></button>`);
-        break;
+      /* „Informații suplimentare” / „Spre achitare”: the action („Completează informația” / „Achită …”) is the primary of
+         the alert card under the header (act-alert-card-v1), never twice. US-135 AC-14: an expired note has no button. */
       case "finalizat":
         if (dosar.result === "respins") {
           if (canAppeal(dosar)) buttons.push(appeal("btn-primary"));
@@ -1224,6 +1228,7 @@
           actions: headerActions(dosar),
         })}
         <div class="e-permits-dosar-profil__panel">
+          ${alertCardHtml(dosar)}
           ${statusCardHtml(dosar)}
           ${profileTabsHtml(dosar, {
             general: `${general}${historyHtml(dosar)}`,
@@ -1421,7 +1426,10 @@
       </div>`;
     const item = action.closest(".cab-request-row");
     const panel = action.closest(".e-permits-page-header__actions") ? action.closest("[data-sm-profile]")?.querySelector(".e-permits-dosar-profil__panel") : null;
+    const card = action.closest("[data-sm-alert]");
     if (item) item.insertAdjacentHTML("beforeend", html.replace('class="cab-retry"', 'class="cab-retry cab-request-row__notice"'));
+    /* the alert card's button (act-alert-card-v1): the error notice right under the card */
+    else if (card) card.insertAdjacentHTML("afterend", html.replace('class="cab-retry"', 'class="cab-retry cab-alert-card__retry"'));
     /* the header's action row (cabinet-header-v1): the message opens the panel under the header */
     else if (panel) panel.insertAdjacentHTML("afterbegin", html.replace('class="cab-retry"', 'class="cab-retry cab-profile-notice"'));
     else (action.closest(".cab-status__actions") || action).insertAdjacentHTML("afterend", html);
