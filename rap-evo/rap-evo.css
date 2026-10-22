@@ -1299,11 +1299,9 @@ a {
 }
 
 /* ---- „Filtru” = the BO advanced filter (css/facet-filter.css, js/facet-filter.js) ----
-   Placement only: outside a table card the bar is its own bordered block (as the BO
-   stacked lists' bar, .e-permits-pay__filters), 16 under the toolbar. */
+   Placement only: 16 under the toolbar; the box (border, padding 12, radius 32) = the shared
+   „Filter bar container” rule in css/facet-filter.css (filter-bar-v2). */
 .rap-filters.e-permits-workplace__filters {
-  border: var(--border-width-1, 1px) solid var(--rap-border);
-  border-radius: var(--border-radius-12, 12px);
   margin-top: var(--spacing-16, 16px);
 }
 

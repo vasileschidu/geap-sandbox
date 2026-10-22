@@ -19948,6 +19948,26 @@
   grid-row: 2;
 }
 
+/* filter-bar-v2: the open bar is the shared box (css/facet-filter.css › Filter bar container), inset in the table
+   card — 8 under the toolbar row (= 16 under the search, as on Cabinet / RAP), 16 at the sides (the search's
+   edge), 16 above the line. The toolbar + the box read as one group: the toolbar's line moves under the box
+   (the header's own bottom line, which the status tabs' border covers when they show). */
+.e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-workplace__header > .e-permits-workplace__filters:not(.is-sheets) {
+  margin: var(--spacing-8, 8px) var(--spacing-16, 16px) var(--spacing-16, 16px);
+}
+
+.e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-workplace__header:has(> .e-permits-workplace__filters:not([hidden]):not(.is-sheets)) {
+  box-shadow: inset 0 calc(var(--border-width-1, 1px) * -1) 0 var(--color-border-base-default, #d9d9d9);
+}
+
+.e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-workplace__header:has(> .e-permits-workplace__filters:not([hidden]):not(.is-sheets)) > .e-permits-workplace__toolbar {
+  box-shadow: none;
+}
+
+.e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-workplace__header > .e-permits-workplace__filters:not([hidden]):not(.is-sheets) ~ .e-permits-workplace__status-tabs:not([hidden]):not(:empty) {
+  box-shadow: inset 0 var(--border-width-1, 1px) 0 var(--color-border-base-default, #d9d9d9);
+}
+
 .e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-workplace__status-tabs {
   grid-row: 3;
 }
@@ -22572,10 +22592,9 @@ body[data-fo-postprocess] .e-permits-fo-form__roles .e-permits-fo-selected-role_
   margin: 0;
 }
 
-/* the registry's filter bar above a stacked list: its own bordered strip */
+/* the registry's filter bar above a stacked list: 16 above the list; the box (border, padding 12, radius 32) =
+   the shared „Filter bar container” rule in css/facet-filter.css (filter-bar-v2) */
 .e-permits-pay__filters {
-  border: var(--border-width-1, 1px) solid var(--color-border-base-default);
-  border-radius: var(--border-radius-12, 12px);
   margin-bottom: var(--spacing-16, 16px);
 }
 

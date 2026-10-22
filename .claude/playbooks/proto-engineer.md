@@ -2530,3 +2530,23 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   matched `Components/`, `msupport/`, `acte-permisive/` (grep -rl prints paths WITHOUT „./”, so `grep -v "^./Components"`
   filtered nothing) → reverted; filter with `grep -v "^\(Components\|msupport\|acte-permisive\)/"`. No sub-agent tool →
   component-audit 0, hover-audit 0 / 0, code-audit only the standing BO 11 / 11 title padding.
+- 2026-10-22 · Filter bar container + wrap order (filter-bar-v2; user: „keep the chips on one line as long as possible,
+  Aplică on the next one; even padding, more round to fit the rounder chips”). (1) „Actions wrap first, chips stay
+  together” is pure flexbox, no JS: the bar `flex-wrap: wrap`, the chips group `flex: 0 1 auto` (its basis = all chips
+  on one line, so the LINE BREAK decides before any shrinking; once alone on its line it shrinks and wraps inside) and
+  the action group `margin-left: auto` (right-aligned on line 1 and on its own line). (2) Concentric radius = inner
+  radius + padding: pill chips 40 → 20 + 12 = 32, and `--border-radius-32` already exists in main.css (design-system
+  said „not used yet”) — check main.css before saying „not on the scale”. (3) One shared rule means page CSS keeps only
+  PLACEMENT: removed border / radius from `.cab-filters`, `.rap-filters`, `.e-permits-pay__filters`, else a later
+  (0,2,0) page rule silently wins. Scope the box to `:not(.is-sheets)` so the phone applied line stays as it was
+  (proved: HEAD worktree :8971 vs tree, bar geometry at 375 / 320 identical on Cabinet / RAP / BO / eKYC; the Cabinet
+  31px shift was the parallel EVO-header agent's h1, found by probing h1 / toolbar y on both). (4) BO in-card bar →
+  the box inset 8 · 16 · 16 and the toolbar's line MOVES under it (header inset line + tabs `inset 0 1px` top line),
+  so toolbar + box read as one group as on Cabinet. (5) The Taxe / Tarife bar has no phone mode — at 375 the hint
+  overlapped the first chip before (chips squeezed into a 93-wide column); the wrap rule fixed it for free. (6) Probe
+  tooling: crops via a scratch CDP script (state → optional `--eval` → bar box / padding / radius / chip rows / meta
+  rows / overlap / scroll → clip PNG at 1440 / 1280 / 1024 / 900 / 761); popovers need a viewport shot
+  (`captureBeyondViewport` resizes and closes them) — measure popover vs chip rect instead. Hover-audit `--scope` uses
+  the FIRST match: on Cabinet / the service profile the first `.e-permits-workplace__filters` is a hidden bar → „0
+  interactive”; scope `#sm-filters` / `.e-permits-pay__filters`. No sub-agent tool → hover 0 / 0, code-audit 0
+  (scoped to the bar), component-audit bar controls 0 (standing: avatar menu, EVO header, sheet section trigger).

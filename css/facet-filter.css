@@ -164,6 +164,39 @@
   min-width: 0;
 }
 
+/* ==========================================================================
+   Filter bar container (filter-bar-v2, 2026-10-22; user: „when there is no space, keep all the chips as much as
+   possible on one line, and Aplică on the next one; even padding on all sides, more round, so it fits the rounder
+   chips”). ONE rule for every product and width (phones of a facet-filter list =
+   only the applied line, `.is-sheets`, unchanged; the Taxe / Tarife bar has no phone mode, so it keeps the box):
+   - container: 1px border-default, padding 12 on all four sides, radius 32 = the pill chip's radius (20 = 40 / 2)
+     + the 12 padding → the corners are concentric with the chips (an even 12 gap round the corner too);
+   - wrap order: the chips group and the action group („N rezultate · Șterge filtrele” / „Filtre neaplicate ·
+     Renunță · Aplică filtrele” / the hint) share line 1 while both fit; when they don't, the ACTION GROUP moves to
+     the next line first, right-aligned (the primary keeps the right edge, as in the dialog footer and on the wide
+     bar, so „Aplică filtrele” never jumps sides); only when the chips alone overflow one line do they wrap, as a
+     group, left-aligned, 8 apart. Lines 8 apart. No horizontal scroll.
+   Placement stays with the page (16 under the toolbar on Cabinet / RAP / the Taxe-Tarife lists; inset 8 · 16 · 16
+   in the BO table card, css/e-permits-acte-permisive.css).
+   ========================================================================== */
+.e-permits-workplace__filters:not(.is-sheets) {
+  border: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
+  border-radius: var(--border-radius-32, 32px);
+  flex-wrap: wrap;
+  gap: var(--spacing-8, 8px) var(--spacing-12, 12px);
+  padding: var(--spacing-12, 12px);
+}
+
+/* basis = the chips on one line: the group shrinks (and wraps inside) only once it is alone on its line */
+.e-permits-workplace__filters:not(.is-sheets) > .e-permits-workplace__filter-chips {
+  flex: 0 1 auto;
+}
+
+.e-permits-workplace__filters:not(.is-sheets) > .e-permits-workplace__filter-meta {
+  justify-content: flex-end;
+  margin-left: auto;
+}
+
 /* Figma filter-chip (GEAP 244:14334): library .chip at 40px, 14/20 medium (user),
    16 left / 12 right, 6 between label, numbered badge and the 20px chevron */
 .chip.e-permits-workplace__filter-chip {
