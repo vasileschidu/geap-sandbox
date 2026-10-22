@@ -1017,9 +1017,11 @@ a {
     gap: var(--spacing-4, 4px);
   }
 
+  /* Mobile/Heading/H2 (type-mobile-v1) */
   .rap-intro h1 {
-    font-size: 28px;
-    line-height: 36px;
+    font-size: var(--text-mobile-heading-h2-font-size, 28px);
+    letter-spacing: var(--text-mobile-heading-h2-letter-spacing, -0.56px);
+    line-height: var(--text-mobile-heading-h2-line-height, 36px);
   }
 
   .rap-toolbar {

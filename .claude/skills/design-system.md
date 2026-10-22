@@ -62,17 +62,56 @@ All styles are defined as `Desktop/{Category}/{Variant}`.
 
 | Token | Family | Weight | Size | Line Height | Letter Spacing |
 |---|---|---|---|---|---|
-| `Desktop/Display/Large` | Onest | SemiBold (600) | 56px | 64px | −2px |
+| `Desktop/Display/Large` | Onest | SemiBold (600) | 56px | 64px | −2 % (−1.12px) |
+| `Desktop/Display/Medium` | Onest | SemiBold (600) | 48px | 56px | −2 % (−0.96px) |
 
 #### Headings
 
 | Token | Family | Weight | Size | Line Height | Letter Spacing |
 |---|---|---|---|---|---|
-| `Desktop/Heading/H2` | Onest | SemiBold (600) | 32px | 40px | −2px ᶠ |
-| `Desktop/Heading/H3` | Onest | SemiBold (600) | 24px | 32px | −1px |
-| `Desktop/Heading/H5` | Onest | SemiBold (600) | 18px | 26px | −1px |
+| `Desktop/Heading/H1` | Onest | SemiBold (600) | 40px | 48px | −2 % (−0.8px) |
+| `Desktop/Heading/H2` | Onest | SemiBold (600) | 32px | 40px | −2 % (−0.64px) |
+| `Desktop/Heading/H3` | Onest | SemiBold (600) | 24px | 32px | −1 % (−0.24px) |
+| `Desktop/Heading/H4` | Onest | SemiBold (600) | 20px | 28px | −1 % (−0.2px) |
+| `Desktop/Heading/H5` | Onest | SemiBold (600) | 18px | 26px | −1 % (−0.18px) |
 
-> Headings use negative letter-spacing to tighten large type. All heading variants share SemiBold weight.
+> Headings use negative letter-spacing to tighten large type (Figma stores it as a percentage of the size).
+> All heading variants share SemiBold weight. Values read from the Foundations styles on 2026-10-22 (the earlier
+> „−2px / −1px” were the percentages misread as px).
+
+#### Mobile alternatives (type-mobile-v1, 2026-10-22)
+
+Every Foundations style has a `Mobile/…` twin. They are **separate styles over the same primitive variables**
+(no variable mode). Only Display and Heading differ; `Mobile/Body/*` and `Mobile/Caption/*` = the Desktop values.
+Phones (≤760) use the Mobile style of a heading — code: `css/type-mobile.css` (loaded right after main.css +
+token-fix.css on every page).
+
+| Desktop style | Desktop | Mobile style | Mobile | Fixed tokens | Responsive token (Desktop > 760 · Mobile ≤ 760) |
+|---|---|---|---|---|---|
+| Display/Large | 56/64 · −2 % | Mobile/Display/Large | 48/56 · −2 % (−0.96px) | `--text-{desktop,mobile}-display-large-*` | `--type-display-large-*` |
+| Display/Medium | 48/56 · −2 % | Mobile/Display/Medium | 40/48 · −2 % (−0.8px) | `--text-{desktop,mobile}-display-medium-*` | `--type-display-medium-*` |
+| Heading/H1 | 40/48 · −2 % | Mobile/Heading/H1 | 32/40 · −2 % (−0.64px) | `--text-{desktop,mobile}-heading-h1-*` | `--type-heading-h1-*` |
+| Heading/H2 | 32/40 · −2 % | Mobile/Heading/H2 | 28/36 · −2 % (−0.56px) | `--text-{desktop,mobile}-heading-h2-*` | `--type-heading-h2-*` |
+| Heading/H3 | 24/32 · −1 % | Mobile/Heading/H3 | 22/30 · −1 % (−0.22px) | `--text-{desktop,mobile}-heading-h3-*` | `--type-heading-h3-*` |
+| Heading/H4 | 20/28 · −1 % | Mobile/Heading/H4 | 18/26 · −1 % (−0.18px) | `--text-{desktop,mobile}-heading-h4-*` | `--type-heading-h4-*` |
+| Heading/H5 | 18/26 · −1 % | Mobile/Heading/H5 | 16/24 · −1 % (−0.16px) | `--text-{desktop,mobile}-heading-h5-*` | `--type-heading-h5-*` |
+| Body / Caption (all) | — | Mobile/Body/*, Mobile/Caption/* | same as Desktop | — | — |
+
+`*` = `font-size` · `line-height` · `letter-spacing` (em: −0.01em / −0.02em = the Figma percentage). All 600.
+
+Rules:
+- A heading rule reads the **responsive** token with the desktop value as fallback:
+  `font-size: var(--type-heading-h5-font-size, 18px); line-height: var(--type-heading-h5-line-height, 26px);
+  letter-spacing: var(--type-heading-h5-letter-spacing, -0.18px)` — desktop stays identical, phones get Mobile H5.
+  Never hand-set a phone font-size for a heading again.
+- A phone rule that deliberately picks ANOTHER Mobile style uses the fixed token (`--text-mobile-heading-h2-*`).
+- Kept user decisions (not the Mobile alternative): profile title `--compact` 20/28 + 4-line clamp on phones (Desktop
+  H3 → Mobile H3 would be 22/30); phone dialog / sheet / drawer titles 20/32 (modal-phone.css § 9); sheet / menu titles 16.
+- The library h1–h5 / `.text-heading-*` tokens are NOT remapped (main.css already gives them the Mobile sizes on ≤768,
+  with 150 % line height): remapping their line height / tracking leaked onto product titles that only set their size.
+- Open: main.css drops the library Body / Caption tokens on ≤768 (16→14, 14→12, 12→10) — the Foundations Mobile
+  Body / Caption styles do NOT shrink. Product text uses `--font-size-fs-*` and is unaffected; library components that
+  read `--text-body-*` / `--text-caption-*` shrink on phones (pinned case by case so far).
 
 #### Body
 

@@ -50,9 +50,11 @@
 }
 
 @media (max-width: 760px) {
+  /* Mobile/Heading/H2 (type-mobile-v1; the desktop −0.32 tracking is the list-title look, Figma H2 says −0.64) */
   .cab-main h1.text-heading-h2 {
-    font-size: 28px;
-    line-height: 36px;
+    font-size: var(--text-mobile-heading-h2-font-size, 28px);
+    letter-spacing: var(--text-mobile-heading-h2-letter-spacing, -0.56px);
+    line-height: var(--text-mobile-heading-h2-line-height, 36px);
   }
 }
 
@@ -276,10 +278,10 @@
 .cab-card__title {
   color: var(--color-text-base-default, #121212);
   flex-grow: 1;
-  font-size: var(--font-size-fs-18, 18px);
+  font-size: var(--type-heading-h5-font-size, 18px);
   font-weight: var(--font-weight-fw-semibold, 600);
-  letter-spacing: -0.01em;
-  line-height: var(--line-height-lh-26, 26px);
+  letter-spacing: var(--type-heading-h5-letter-spacing, -0.01em);
+  line-height: var(--type-heading-h5-line-height, 26px);
   margin: 0;
   min-width: 0;
 }
@@ -908,8 +910,8 @@
 }
 
 .cab-roles .e-permits-fo-form__role-group h2 {
-  font: var(--font-weight-fw-semibold, 600) var(--font-size-fs-18, 18px) / var(--line-height-lh-26, 26px) var(--font-family-primary-font, Onest), sans-serif;
-  letter-spacing: -0.18px;
+  font: var(--font-weight-fw-semibold, 600) var(--type-heading-h5-font-size, 18px) / var(--type-heading-h5-line-height, 26px) var(--font-family-primary-font, Onest), sans-serif;
+  letter-spacing: var(--type-heading-h5-letter-spacing, -0.18px);
 }
 
 .cab-roles.e-permits-fo-form__roles {

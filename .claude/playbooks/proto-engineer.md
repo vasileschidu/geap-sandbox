@@ -2602,3 +2602,22 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   staging. code-audit with a footer-only scope returned `{}` with no measured elements — widen the scope to the whole open
   dialog once to prove the tool sees it (standing BO 11 / 7, A4 mm padding came back = it ran). No sub-agent tool →
   code-audit, component-audit (only standing header / page-behind / FO dialog-shell `__cancel / __submit` paint), hover 0 / 0.
+- 2026-10-22 · Headings on phones = the Foundations Mobile style (type-mobile-v1; user on RAP 22083:24865: „if it's mobile use H5
+  mobile … we have for each style its mobile alternative”). (1) Figma values without get_design_context / variables (MCP had
+  only get_metadata / get_screenshot; REST `/nodes` and `/styles/:key` were 429 / 403 with retry-after ~4 days): the FILES
+  endpoint still answered — `GET /v1/files/<key>?ids=<page ids>` returns every text node's `style` (size, lineHeightPx,
+  letterSpacing, weight) + the doc-level `styles` map (name, key) + `boundVariables`; group text nodes by style name →
+  exact values of every style the file uses (RAP pages had all 7 Mobile heading styles). Mobile styles are separate
+  styles over the same primitives (no mode); letter spacing is a percentage (−1 % / −2 %) → em tokens. design-system.md
+  had „−2px / −1px” (the percentages misread) and lacked H1 / H4 / Display Medium. (2) ONE file `css/type-mobile.css`
+  (after token-fix) with fixed `--text-{desktop,mobile}-…` + RESPONSIVE `--type-heading-hN-*` tokens; product heading
+  rules swapped to `var(--type-…, <old desktop value>)` by an asserted script that picks rules by header + body content
+  (`tokenize(file, header, level)`), so desktop is identical by construction — proven by a heading probe (every h1–h6 /
+  role=heading / own text ≥16 @600: tag+class, size / lh / tracking / top / height) over 35 states at 1440 before vs after
+  = 0 differences. Phone overrides that only repeated a Mobile style were deleted (FO 720 → the 760 token switch).
+  (3) REJECTED by measurement: remapping the LIBRARY `--text-heading-*` line-height / letter-spacing tokens at ≤760 leaked
+  onto ~6 product titles that set only their size (notification row −0.32, A4 document h1 −0.36, sheet section head) —
+  the probe's phone diff showed it; product rules read the --type tokens instead, the library keeps main.css's sizes.
+  (4) code-audit's font scale lacked 22 / 56 (Mobile H3 / Display L) → added. (5) Another agent truncated + restored an HTML
+  page from HEAD mid-job and wiped my `<link>` / `?v=` there: the link script is idempotent — re-run it, and re-probe the
+  states that ran in that window (three probe runs had a blank demoState = not ready, not „no headings”).

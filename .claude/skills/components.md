@@ -173,6 +173,8 @@ cache-busting `?v=`, then page JS:
 ```html
 <link rel="stylesheet" href="assets/fonts/Onest.css">
 <link rel="stylesheet" href="css/main.css">
+<link rel="stylesheet" href="css/token-fix.css?v=…">
+<link rel="stylesheet" href="css/type-mobile.css?v=…">   <!-- Mobile heading styles on ≤760 (type-mobile-v1) -->
 <link rel="stylesheet" href="css/e-permits-acte-permisive.css?v=…">
 <link rel="stylesheet" href="css/page-reveal.css?v=soft-reveal-v3">
 <script src="js/page-reveal.js?v=soft-reveal-v3" defer></script>
@@ -2332,6 +2334,26 @@ diverges on nearly every value:
 
 **Gaps** — no contextual menu, no Leading Element axis (checkbox / radio / icon), no
 Hover/Active/Focus/Disabled item states, no mobile bottom-sheet.
+
+### Headings on phones = the Foundations Mobile style (type-mobile-v1, 2026-10-22, user rule)
+
+User (RAP 22083:24865, section title „Beneficiar”): „if it's mobile use H5 mobile as font style — we have for each style
+its mobile alternative”. Every heading rule reads the RESPONSIVE token of its Desktop style (design-system.md › Mobile
+alternatives): `var(--type-heading-h5-font-size, 18px)` / `-line-height` / `-letter-spacing` — Desktop above 760,
+Mobile at ≤760 (`css/type-mobile.css`). Never add a phone `font-size` for a heading; never copy the desktop px.
+
+| Element | Desktop | Phone (≤760) |
+|---|---|---|
+| Section title `.e-permits-dosar-profil__section-title` (BO, Cabinet, RAP, Setări cfg2), `.cab-card__title`, `.cab-roles … h2`, FO section `h2` / summary / delivery / other-docs / finish headings, FO service name `__service-title-row h1`, `.e-permits-user-profile__section h2`, drawer `.e-permits-user-create__section-title`, builder panel / section heads | H5 18/26 | Mobile H5 16/24 (row height 48 kept — the title is centred in it) |
+| BO registry `.e-permits-workplace__title` (shell title row) · builder confirm h3 | H4 20/28 | Mobile H4 18/26 |
+| Page header `.e-permits-page-header__title` (BO profiles, ekyc, ntpl) · `.e-permits-workplace__title` · builder service title / form title input / registry head | H3 24/32 | Mobile H3 22/30 |
+| FO step `__form-header h1`, FO intent `h1` | H2 32/40 | Mobile H2 28/36 (was ≤720, now ≤760) |
+| RAP / Cabinet list titles (`.rap-intro h1`, `.cab-main h1.text-heading-h2`) | 32/40 · −0.32 | Mobile H2 28/36 · −0.56 (fixed token in the phone rule; desktop −0.32 ≠ Figma H2 −0.64 — PO question) |
+| Builder `__form-header h1` | H1 40/48 | Mobile H1 32/40 |
+
+Kept (decisions, not the Mobile twin): profile title `--compact` 20/28 + 4-line clamp; phone dialog / sheet / drawer
+titles 20/32 (modal-phone.css § 9); FO sign-in title `__title-group h1` Desktop H1 → Mobile H2 28/36 (Figma phone
+screen); A4 document headings (`.e-permits-dtpl__surface h1`, `.e-permits-fo-cert__title`) are document content, not UI.
 
 ### Card radius — list cards + document viewer = 16 (radius-16-v1, 2026-10-21, user decision)
 

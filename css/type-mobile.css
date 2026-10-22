@@ -1,0 +1,127 @@
+/* ==========================================================================================================
+   Mobile type — ONE shared file, loaded right after css/main.css + css/token-fix.css on every page
+   (type-mobile-v1, 2026-10-22; user on RAP 22083:24865: „if it's mobile use H5 mobile as font style — we have for
+   each style its mobile alternative in Figma tokens, do in code accordingly”).
+
+   Source: Foundations text styles (library „Foundations”, read from the styles applied in the Components file
+   doJ7tDY0PlQ0PqMgbpFVIC and the RAP file YrIzksVgFqtPqDd5z9zY5h). The Mobile styles are SEPARATE styles over the
+   same primitive variables (no variable mode), so the names below mirror the style names:
+   „Desktop/Heading/H5” → --text-desktop-heading-h5-*, „Mobile/Heading/H5” → --text-mobile-heading-h5-*.
+   Letter spacing is a percentage in Figma (−1 % / −2 %) → em here (−0.01em at 18 = the −0.18px the code had).
+   All seven styles are Onest SemiBold 600 at both sizes; the weight never changes, so there is no weight token.
+
+   Only Display + Heading styles differ on phones. Mobile Body / Caption = the Desktop values (16/24, 14/20, 12/16,
+   10/12) — no token here (main.css drops the library body / caption tokens on ≤768; that is NOT the Foundations
+   Mobile style — open question, see design-system.md › Mobile alternatives).
+
+   Use:
+   - a heading rule reads the RESPONSIVE token: `font-size: var(--type-heading-h5-font-size, 18px)` — Desktop value
+     above 760, Mobile value at ≤760 (desktop stays identical by construction);
+   - a rule that already lives inside a phone query may read the fixed Mobile token.
+   ========================================================================================================== */
+
+:root {
+  /* Desktop/Display + Desktop/Heading */
+  --text-desktop-display-large-font-size: var(--font-size-fs-56, 56px);
+  --text-desktop-display-large-line-height: var(--line-height-lh-64, 64px);
+  --text-desktop-display-large-letter-spacing: -0.02em;
+  --text-desktop-display-medium-font-size: var(--font-size-fs-48, 48px);
+  --text-desktop-display-medium-line-height: var(--line-height-lh-56, 56px);
+  --text-desktop-display-medium-letter-spacing: -0.02em;
+  --text-desktop-heading-h1-font-size: var(--font-size-fs-40, 40px);
+  --text-desktop-heading-h1-line-height: var(--line-height-lh-48, 48px);
+  --text-desktop-heading-h1-letter-spacing: -0.02em;
+  --text-desktop-heading-h2-font-size: var(--font-size-fs-32, 32px);
+  --text-desktop-heading-h2-line-height: var(--line-height-lh-40, 40px);
+  --text-desktop-heading-h2-letter-spacing: -0.02em;
+  --text-desktop-heading-h3-font-size: var(--font-size-fs-24, 24px);
+  --text-desktop-heading-h3-line-height: var(--line-height-lh-32, 32px);
+  --text-desktop-heading-h3-letter-spacing: -0.01em;
+  --text-desktop-heading-h4-font-size: var(--font-size-fs-20, 20px);
+  --text-desktop-heading-h4-line-height: var(--line-height-lh-28, 28px);
+  --text-desktop-heading-h4-letter-spacing: -0.01em;
+  --text-desktop-heading-h5-font-size: var(--font-size-fs-18, 18px);
+  --text-desktop-heading-h5-line-height: var(--line-height-lh-26, 26px);
+  --text-desktop-heading-h5-letter-spacing: -0.01em;
+
+  /* Mobile/Display + Mobile/Heading */
+  --text-mobile-display-large-font-size: var(--font-size-fs-48, 48px);
+  --text-mobile-display-large-line-height: var(--line-height-lh-56, 56px);
+  --text-mobile-display-large-letter-spacing: -0.02em;
+  --text-mobile-display-medium-font-size: var(--font-size-fs-40, 40px);
+  --text-mobile-display-medium-line-height: var(--line-height-lh-48, 48px);
+  --text-mobile-display-medium-letter-spacing: -0.02em;
+  --text-mobile-heading-h1-font-size: var(--font-size-fs-32, 32px);
+  --text-mobile-heading-h1-line-height: var(--line-height-lh-40, 40px);
+  --text-mobile-heading-h1-letter-spacing: -0.02em;
+  --text-mobile-heading-h2-font-size: var(--font-size-fs-28, 28px);
+  --text-mobile-heading-h2-line-height: var(--line-height-lh-36, 36px);
+  --text-mobile-heading-h2-letter-spacing: -0.02em;
+  --text-mobile-heading-h3-font-size: var(--font-size-fs-22, 22px);
+  --text-mobile-heading-h3-line-height: var(--line-height-lh-30, 30px);
+  --text-mobile-heading-h3-letter-spacing: -0.01em;
+  --text-mobile-heading-h4-font-size: var(--font-size-fs-18, 18px);
+  --text-mobile-heading-h4-line-height: var(--line-height-lh-26, 26px);
+  --text-mobile-heading-h4-letter-spacing: -0.01em;
+  --text-mobile-heading-h5-font-size: var(--font-size-fs-16, 16px);
+  --text-mobile-heading-h5-line-height: var(--line-height-lh-24, 24px);
+  --text-mobile-heading-h5-letter-spacing: -0.01em;
+}
+
+/* Responsive tokens: the Desktop style above 760, its Mobile alternative at ≤760 */
+:root {
+  --type-display-large-font-size: var(--text-desktop-display-large-font-size);
+  --type-display-large-line-height: var(--text-desktop-display-large-line-height);
+  --type-display-large-letter-spacing: var(--text-desktop-display-large-letter-spacing);
+  --type-display-medium-font-size: var(--text-desktop-display-medium-font-size);
+  --type-display-medium-line-height: var(--text-desktop-display-medium-line-height);
+  --type-display-medium-letter-spacing: var(--text-desktop-display-medium-letter-spacing);
+  --type-heading-h1-font-size: var(--text-desktop-heading-h1-font-size);
+  --type-heading-h1-line-height: var(--text-desktop-heading-h1-line-height);
+  --type-heading-h1-letter-spacing: var(--text-desktop-heading-h1-letter-spacing);
+  --type-heading-h2-font-size: var(--text-desktop-heading-h2-font-size);
+  --type-heading-h2-line-height: var(--text-desktop-heading-h2-line-height);
+  --type-heading-h2-letter-spacing: var(--text-desktop-heading-h2-letter-spacing);
+  --type-heading-h3-font-size: var(--text-desktop-heading-h3-font-size);
+  --type-heading-h3-line-height: var(--text-desktop-heading-h3-line-height);
+  --type-heading-h3-letter-spacing: var(--text-desktop-heading-h3-letter-spacing);
+  --type-heading-h4-font-size: var(--text-desktop-heading-h4-font-size);
+  --type-heading-h4-line-height: var(--text-desktop-heading-h4-line-height);
+  --type-heading-h4-letter-spacing: var(--text-desktop-heading-h4-letter-spacing);
+  --type-heading-h5-font-size: var(--text-desktop-heading-h5-font-size);
+  --type-heading-h5-line-height: var(--text-desktop-heading-h5-line-height);
+  --type-heading-h5-letter-spacing: var(--text-desktop-heading-h5-letter-spacing);
+}
+
+@media (max-width: 760px) {
+  :root {
+    --type-display-large-font-size: var(--text-mobile-display-large-font-size);
+    --type-display-large-line-height: var(--text-mobile-display-large-line-height);
+    --type-display-large-letter-spacing: var(--text-mobile-display-large-letter-spacing);
+    --type-display-medium-font-size: var(--text-mobile-display-medium-font-size);
+    --type-display-medium-line-height: var(--text-mobile-display-medium-line-height);
+    --type-display-medium-letter-spacing: var(--text-mobile-display-medium-letter-spacing);
+    --type-heading-h1-font-size: var(--text-mobile-heading-h1-font-size);
+    --type-heading-h1-line-height: var(--text-mobile-heading-h1-line-height);
+    --type-heading-h1-letter-spacing: var(--text-mobile-heading-h1-letter-spacing);
+    --type-heading-h2-font-size: var(--text-mobile-heading-h2-font-size);
+    --type-heading-h2-line-height: var(--text-mobile-heading-h2-line-height);
+    --type-heading-h2-letter-spacing: var(--text-mobile-heading-h2-letter-spacing);
+    --type-heading-h3-font-size: var(--text-mobile-heading-h3-font-size);
+    --type-heading-h3-line-height: var(--text-mobile-heading-h3-line-height);
+    --type-heading-h3-letter-spacing: var(--text-mobile-heading-h3-letter-spacing);
+    --type-heading-h4-font-size: var(--text-mobile-heading-h4-font-size);
+    --type-heading-h4-line-height: var(--text-mobile-heading-h4-line-height);
+    --type-heading-h4-letter-spacing: var(--text-mobile-heading-h4-letter-spacing);
+    --type-heading-h5-font-size: var(--text-mobile-heading-h5-font-size);
+    --type-heading-h5-line-height: var(--text-mobile-heading-h5-line-height);
+    --type-heading-h5-letter-spacing: var(--text-mobile-heading-h5-letter-spacing);
+  }
+}
+
+/* The library (main.css, never edited): h1–h5 and the `.text-display-* / .text-heading-*` utility classes read the
+   `--text-{display|heading}-*` tokens. main.css already gives them the Mobile SIZES on ≤768 (48 · 40 · 32 · 28 · 22 ·
+   18 · 16 = Mobile Display L / M, H1–H5), with a 140 / 150 % line height and no letter spacing. Those tokens are NOT
+   remapped here: product headings set their own size but inherit the h-tag line height / tracking, so a remap leaked
+   −0.02em / px line heights onto ~6 unrelated titles (notification rows, A4 documents, sheet sections — measured
+   2026-10-22). Product headings read the --type-* tokens above instead. */

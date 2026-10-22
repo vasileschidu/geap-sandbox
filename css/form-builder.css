@@ -626,9 +626,9 @@
 }
 
 .e-permits-builder__section-heading strong {
-  font-size: var(--font-size-fs-18, 18px);
+  font-size: var(--type-heading-h5-font-size, 18px);
   font-weight: var(--font-weight-fw-semibold, 600);
-  line-height: var(--line-height-lh-26, 26px);
+  line-height: var(--type-heading-h5-line-height, 26px);
 }
 
 .e-permits-builder__section-heading strong.is-muted {
@@ -1304,9 +1304,9 @@
 
 .e-permits-builder__panel-title-row h2 {
   color: var(--color-text-base-default, #121212);
-  font-size: var(--font-size-fs-18, 18px);
+  font-size: var(--type-heading-h5-font-size, 18px);
   font-weight: var(--font-weight-fw-semibold, 600);
-  line-height: var(--line-height-lh-26, 26px);
+  line-height: var(--type-heading-h5-line-height, 26px);
   margin: 0;
   min-width: 0;
   overflow-wrap: anywhere;

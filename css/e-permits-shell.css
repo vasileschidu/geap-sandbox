@@ -2315,10 +2315,10 @@ body {
 }
 
 .e-permits-workplace__title {
-  font-size: var(--font-size-fs-24, 24px);
+  font-size: var(--type-heading-h3-font-size, 24px);
   font-weight: var(--font-weight-fw-semibold, 600);
-  line-height: var(--line-height-lh-32, 32px);
-  letter-spacing: -0.24px;
+  line-height: var(--type-heading-h3-line-height, 32px);
+  letter-spacing: var(--type-heading-h3-letter-spacing, -0.24px);
   margin: 0;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -3275,10 +3275,10 @@ td .e-permits-workplace__date-stack > .e-permits-workplace__date-meta:not(:has(.
   border-bottom: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
   color: var(--color-text-base-default, #121212);
   font-family: var(--font-family-primary-font, Onest);
-  font-size: var(--font-size-fs-18, 18px);
+  font-size: var(--type-heading-h5-font-size, 18px);
   font-weight: var(--font-weight-fw-semibold, 600);
-  line-height: var(--line-height-lh-26, 26px);
-  letter-spacing: -0.18px;
+  line-height: var(--type-heading-h5-line-height, 26px);
+  letter-spacing: var(--type-heading-h5-letter-spacing, -0.18px);
 }
 
 .e-permits-user-create__section-content {

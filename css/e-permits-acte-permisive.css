@@ -1202,10 +1202,10 @@
 
 .e-permits-dosar-profil__section-title {
   color: var(--color-text-base-default, #121212);
-  font-size: var(--font-size-fs-18, 18px);
+  font-size: var(--type-heading-h5-font-size, 18px);
   font-weight: var(--font-weight-fw-semibold, 600);
-  letter-spacing: -0.18px;
-  line-height: var(--line-height-lh-26, 26px);
+  letter-spacing: var(--type-heading-h5-letter-spacing, -0.18px);
+  line-height: var(--type-heading-h5-line-height, 26px);
   padding: 0 0 var(--spacing-12, 12px);
 }
 
@@ -1474,11 +1474,11 @@
   color: var(--color-text-base-default, #121212);
   display: flex;
   font-family: var(--font-family-primary-font, Onest), sans-serif;
-  font-size: var(--font-size-fs-18, 18px);
+  font-size: var(--type-heading-h5-font-size, 18px);
   font-style: normal;
   font-weight: var(--font-weight-fw-semibold, 600);
-  letter-spacing: -0.18px;
-  line-height: var(--line-height-lh-26, 26px);
+  letter-spacing: var(--type-heading-h5-letter-spacing, -0.18px);
+  line-height: var(--type-heading-h5-line-height, 26px);
   margin: 0;
   padding: var(--spacing-12, 12px) 0;
 }
@@ -1984,12 +1984,12 @@
 .e-permits-fo-auth__service-title-row h1 {
   color: var(--color-text-base-default, #121212);
   font-family: var(--font-family-primary-font, Onest), var(--font-family-base, "Onest", sans-serif);
-  font-size: var(--font-size-fs-18, 18px);
+  font-size: var(--type-heading-h5-font-size, 18px);
   font-style: normal;
   font-weight: var(--font-weight-fw-semibold, 600);
   height: auto;
-  letter-spacing: -0.18px;
-  line-height: var(--line-height-lh-26, 26px);
+  letter-spacing: var(--type-heading-h5-letter-spacing, -0.18px);
+  line-height: var(--type-heading-h5-line-height, 26px);
   margin: 0;
   min-width: 0;
   overflow: hidden;
@@ -4045,10 +4045,10 @@
 
 .e-permits-fo-form__header h1 {
   color: var(--color-text-base-default, #121212);
-  font-size: var(--font-size-fs-32, 32px);
+  font-size: var(--type-heading-h2-font-size, 32px);
   font-weight: var(--font-weight-fw-semibold, 600);
-  letter-spacing: -0.64px;
-  line-height: var(--line-height-lh-40, 40px);
+  letter-spacing: var(--type-heading-h2-letter-spacing, -0.64px);
+  line-height: var(--type-heading-h2-line-height, 40px);
   margin: 0;
 }
 
@@ -4712,10 +4712,10 @@
 .e-permits-fo-form__section > h2 {
   border-bottom: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
   color: var(--color-text-base-default, #121212);
-  font-size: var(--font-size-fs-18, 18px);
+  font-size: var(--type-heading-h5-font-size, 18px);
   font-weight: var(--font-weight-fw-semibold, 600);
-  letter-spacing: -0.18px;
-  line-height: var(--line-height-lh-26, 26px);
+  letter-spacing: var(--type-heading-h5-letter-spacing, -0.18px);
+  line-height: var(--type-heading-h5-line-height, 26px);
   margin: 0;
   padding: var(--spacing-12, 12px) 0;
   width: 100%;
@@ -4737,10 +4737,10 @@
 
 .e-permits-fo-section-header h2 {
   color: var(--color-text-base-default, #121212);
-  font-size: var(--font-size-fs-18, 18px);
+  font-size: var(--type-heading-h5-font-size, 18px);
   font-weight: var(--font-weight-fw-semibold, 600);
-  letter-spacing: -0.18px;
-  line-height: var(--line-height-lh-26, 26px);
+  letter-spacing: var(--type-heading-h5-letter-spacing, -0.18px);
+  line-height: var(--type-heading-h5-line-height, 26px);
   margin: 0;
 }
 
@@ -7336,10 +7336,10 @@
 
 .e-permits-fo-other-docs__heading {
   color: var(--color-text-base-default, #121212);
-  font-size: var(--font-size-fs-18, 18px);
+  font-size: var(--type-heading-h5-font-size, 18px);
   font-weight: var(--font-weight-fw-semibold, 600);
-  letter-spacing: -0.18px;
-  line-height: var(--line-height-lh-26, 26px);
+  letter-spacing: var(--type-heading-h5-letter-spacing, -0.18px);
+  line-height: var(--type-heading-h5-line-height, 26px);
   margin: 0;
 }
 
@@ -8155,10 +8155,10 @@
 
 .e-permits-fo-summary-section__heading {
   color: var(--color-text-base-default, #121212);
-  font-size: var(--font-size-fs-18, 18px);
+  font-size: var(--type-heading-h5-font-size, 18px);
   font-weight: var(--font-weight-fw-semibold, 600);
-  letter-spacing: -0.18px;
-  line-height: var(--line-height-lh-26, 26px);
+  letter-spacing: var(--type-heading-h5-letter-spacing, -0.18px);
+  line-height: var(--type-heading-h5-line-height, 26px);
   margin: 0;
   padding: var(--spacing-12, 12px) 0;
 }
@@ -8567,10 +8567,10 @@
 }
 
 .e-permits-fo-summary-section__heading {
-  font-size: var(--font-size-fs-18, 18px);
+  font-size: var(--type-heading-h5-font-size, 18px);
   font-weight: var(--font-weight-fw-semibold, 600);
-  letter-spacing: -0.18px;
-  line-height: var(--line-height-lh-26, 26px);
+  letter-spacing: var(--type-heading-h5-letter-spacing, -0.18px);
+  line-height: var(--type-heading-h5-line-height, 26px);
   padding: var(--spacing-11, 11px) 0;
 }
 
@@ -9135,10 +9135,10 @@
   align-items: center;
   color: var(--color-text-base-default, #121212);
   display: flex;
-  font-size: var(--font-size-fs-18, 18px);
+  font-size: var(--type-heading-h5-font-size, 18px);
   font-weight: var(--font-weight-fw-semibold, 600);
-  letter-spacing: -0.18px;
-  line-height: var(--line-height-lh-26, 26px);
+  letter-spacing: var(--type-heading-h5-letter-spacing, -0.18px);
+  line-height: var(--type-heading-h5-line-height, 26px);
   margin: 0;
   min-height: 48px;
   padding: var(--spacing-11, 11px) var(--spacing-8, 8px);
@@ -10410,10 +10410,10 @@
 .e-permits-builder__panel-head h2 {
   color: var(--color-text-base-secondary, #383838);
   font-family: var(--font-family-primary-font, Onest);
-  font-size: var(--font-size-fs-18, 18px);
+  font-size: var(--type-heading-h5-font-size, 18px);
   font-weight: var(--font-weight-fw-semibold, 600);
-  letter-spacing: -0.18px;
-  line-height: var(--line-height-lh-26, 26px);
+  letter-spacing: var(--type-heading-h5-letter-spacing, -0.18px);
+  line-height: var(--type-heading-h5-line-height, 26px);
   margin: 0;
   min-width: 0;
   overflow: hidden;
@@ -10521,10 +10521,10 @@
 .e-permits-builder__general-fieldset-head h3 {
   color: var(--color-text-base-secondary, #383838);
   font-family: var(--font-family-primary-font, Onest);
-  font-size: var(--font-size-fs-18, 18px);
+  font-size: var(--type-heading-h5-font-size, 18px);
   font-weight: var(--font-weight-fw-semibold, 600);
-  letter-spacing: -0.18px;
-  line-height: var(--line-height-lh-26, 26px);
+  letter-spacing: var(--type-heading-h5-letter-spacing, -0.18px);
+  line-height: var(--type-heading-h5-line-height, 26px);
   margin: 0;
 }
 
@@ -10755,10 +10755,10 @@
 
 .e-permits-builder__service-title-row h2 {
   color: var(--color-text-base-secondary, #383838);
-  font-size: var(--font-size-fs-24, 24px);
+  font-size: var(--type-heading-h3-font-size, 24px);
   font-weight: var(--font-weight-fw-semibold, 600);
-  letter-spacing: -0.24px;
-  line-height: var(--line-height-lh-32, 32px);
+  letter-spacing: var(--type-heading-h3-letter-spacing, -0.24px);
+  line-height: var(--type-heading-h3-line-height, 32px);
   margin: 0;
   min-width: 0;
   white-space: nowrap;
@@ -11050,9 +11050,9 @@
 }
 
 .e-permits-builder__form-header input {
-  font-size: var(--font-size-fs-24, 24px);
+  font-size: var(--type-heading-h3-font-size, 24px);
   font-weight: var(--font-weight-fw-semibold, 600);
-  line-height: var(--line-height-lh-32, 32px);
+  line-height: var(--type-heading-h3-line-height, 32px);
 }
 
 .e-permits-builder__form-header textarea {
@@ -11227,10 +11227,10 @@
 .e-permits-builder__form-header h1 {
   color: var(--color-text-base-default, #121212);
   font-family: var(--font-family-primary-font, Onest);
-  font-size: var(--font-size-fs-40, 40px);
+  font-size: var(--type-heading-h1-font-size, 40px);
   font-weight: var(--font-weight-fw-semibold, 600);
-  letter-spacing: -0.8px;
-  line-height: var(--line-height-lh-48, 48px);
+  letter-spacing: var(--type-heading-h1-letter-spacing, -0.8px);
+  line-height: var(--type-heading-h1-line-height, 48px);
   margin: 0;
   width: 100%;
 }
@@ -11301,10 +11301,10 @@
   color: var(--color-text-base-default, #121212);
   cursor: text;
   font-family: var(--font-family-primary-font, Onest);
-  font-size: var(--font-size-fs-18, 18px);
+  font-size: var(--type-heading-h5-font-size, 18px);
   font-weight: var(--font-weight-fw-semibold, 600);
-  letter-spacing: -0.18px;
-  line-height: var(--line-height-lh-26, 26px);
+  letter-spacing: var(--type-heading-h5-letter-spacing, -0.18px);
+  line-height: var(--type-heading-h5-line-height, 26px);
   margin: 0;
   min-width: 240px;
   outline: none;
@@ -12087,10 +12087,10 @@
 .e-permits-builder__field-general-title h3 {
   color: var(--color-text-base-secondary, #383838);
   font-family: var(--font-family-primary-font, Onest);
-  font-size: var(--font-size-fs-18, 18px) !important;
+  font-size: var(--type-heading-h5-font-size, 18px) !important;
   font-weight: var(--font-weight-fw-semibold, 600) !important;
-  letter-spacing: -0.18px;
-  line-height: var(--line-height-lh-26, 26px) !important;
+  letter-spacing: var(--type-heading-h5-letter-spacing, -0.18px);
+  line-height: var(--type-heading-h5-line-height, 26px) !important;
   margin: 0;
 }
 
@@ -13358,10 +13358,10 @@
 
 .e-permits-builder__confirm-dialog h3 {
   color: var(--color-text-base-default, #121212);
-  font-size: var(--font-size-fs-20, 20px);
+  font-size: var(--type-heading-h4-font-size, 20px);
   font-weight: var(--font-weight-fw-semibold, 600);
-  letter-spacing: -0.2px;
-  line-height: var(--line-height-lh-28, 28px);
+  letter-spacing: var(--type-heading-h4-letter-spacing, -0.2px);
+  line-height: var(--type-heading-h4-line-height, 28px);
   margin: 0 0 var(--spacing-8, 8px);
 }
 
@@ -13695,10 +13695,10 @@
 
 .e-permits-builder-registry__head h2 {
   color: var(--color-text-base-default, #121212);
-  font-size: var(--font-size-fs-24, 24px);
+  font-size: var(--type-heading-h3-font-size, 24px);
   font-weight: var(--font-weight-fw-semibold, 600);
-  letter-spacing: -0.24px;
-  line-height: var(--line-height-lh-32, 32px);
+  letter-spacing: var(--type-heading-h3-letter-spacing, -0.24px);
+  line-height: var(--type-heading-h3-line-height, 32px);
   margin: 0;
 }
 
@@ -14437,10 +14437,6 @@
 
   .e-permits-fo-auth__service-title-row h1 {
     flex: 1 1 auto;
-    font-size: var(--font-size-fs-16, 16px);
-    font-weight: var(--font-weight-fw-semibold, 600);
-    letter-spacing: -0.16px;
-    line-height: var(--line-height-lh-24, 24px);
     max-width: 100%;
     overflow-wrap: anywhere;
     white-space: normal;
@@ -14517,9 +14513,10 @@
   }
 
   .e-permits-fo-auth__title-group h1 {
-    font-size: var(--font-size-fs-28, 28px);
-    letter-spacing: -0.56px;
-    line-height: var(--line-height-lh-36, 36px);
+    /* Mobile/Heading/H2 (the Figma phone screen's choice for this Desktop H1 title; type-mobile-v1) */
+    font-size: var(--text-mobile-heading-h2-font-size, 28px);
+    letter-spacing: var(--text-mobile-heading-h2-letter-spacing, -0.56px);
+    line-height: var(--text-mobile-heading-h2-line-height, 36px);
     max-width: 100%;
     min-width: 0;
     overflow-wrap: anywhere;
@@ -14883,12 +14880,6 @@
     width: 32px;
   }
 
-  .e-permits-fo-form__header h1 {
-    font-size: var(--font-size-fs-28, 28px);
-    letter-spacing: -0.56px;
-    line-height: var(--line-height-lh-36, 36px);
-  }
-
   .e-permits-fo-form__roles {
     gap: var(--spacing-20, 20px);
     padding-bottom: var(--spacing-32, 32px);
@@ -14960,13 +14951,6 @@
     font-size: var(--font-size-fs-14, 14px);
     font-weight: var(--font-weight-fw-medium, 500);
     line-height: var(--line-height-lh-20, 20px);
-  }
-
-  .e-permits-fo-form__section > h2,
-  .e-permits-fo-section-header h2 {
-    font-size: var(--font-size-fs-16, 16px);
-    letter-spacing: -0.16px;
-    line-height: var(--line-height-lh-24, 24px);
   }
 
   .e-permits-fo-form__section > h2 {
@@ -15189,8 +15173,6 @@
   }
 
   .e-permits-fo-summary-section__heading {
-    font-size: var(--font-size-fs-16, 16px);
-    line-height: var(--line-height-lh-24, 24px);
     padding: var(--spacing-8, 8px) var(--spacing-12, 12px);
   }
 
@@ -15264,11 +15246,11 @@
   white-space: nowrap;
   color: var(--color-text-base-default, #121212);
   font-family: var(--font-family-primary-font, Onest);
-  font-size: var(--font-size-fs-24, 24px);
+  font-size: var(--type-heading-h3-font-size, 24px);
   font-style: normal;
   font-weight: var(--font-weight-fw-semibold, 600);
-  line-height: var(--line-height-lh-32, 32px);
-  letter-spacing: -0.24px;
+  line-height: var(--type-heading-h3-line-height, 32px);
+  letter-spacing: var(--type-heading-h3-letter-spacing, -0.24px);
 }
 
 /* "Actualizează" is the button component (btn-strict btn-sm btn-rounded); only its
@@ -15468,10 +15450,10 @@
 }
 
 .e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-workplace__title-row--shell .e-permits-workplace__title {
-  font-size: var(--font-size-fs-20, 20px);
+  font-size: var(--type-heading-h4-font-size, 20px);
   font-weight: var(--font-weight-fw-semibold, 600);
-  line-height: var(--line-height-lh-28, 28px);
-  letter-spacing: -0.2px;
+  line-height: var(--type-heading-h4-line-height, 28px);
+  letter-spacing: var(--type-heading-h4-letter-spacing, -0.2px);
 }
 
 .e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-workplace__header {
@@ -15622,9 +15604,9 @@
   box-sizing: border-box;
   color: var(--color-text-base-default, #121212);
   display: flex;
-  font: 600 18px/26px var(--font-family-primary-font, Onest), sans-serif;
+  font: 600 var(--type-heading-h5-font-size, 18px) / var(--type-heading-h5-line-height, 26px) var(--font-family-primary-font, Onest), sans-serif;
   height: 48px;
-  letter-spacing: -0.18px;
+  letter-spacing: var(--type-heading-h5-letter-spacing, -0.18px);
   margin: 0;
   padding: 11px var(--spacing-12, 12px);
 }
@@ -16358,10 +16340,10 @@
    1.5px brand blue; every other connector is 1px grey. */
 .e-permits-fo-finish__section-title {
   color: var(--color-text-base-default, #121212);
-  font-size: var(--font-size-fs-18, 18px);
+  font-size: var(--type-heading-h5-font-size, 18px);
   font-weight: var(--font-weight-fw-semibold, 600);
-  letter-spacing: -0.18px;
-  line-height: var(--line-height-lh-26, 26px);
+  letter-spacing: var(--type-heading-h5-letter-spacing, -0.18px);
+  line-height: var(--type-heading-h5-line-height, 26px);
   margin: 0;
   padding: var(--spacing-12, 12px);
 }
@@ -16442,10 +16424,10 @@
 
 .e-permits-fo-intent__header h1 {
   color: var(--color-text-base-default, #121212);
-  font-size: var(--font-size-fs-32, 32px);
+  font-size: var(--type-heading-h2-font-size, 32px);
   font-weight: var(--font-weight-fw-semibold, 600);
-  letter-spacing: -0.64px;
-  line-height: var(--line-height-lh-40, 40px);
+  letter-spacing: var(--type-heading-h2-letter-spacing, -0.64px);
+  line-height: var(--type-heading-h2-line-height, 40px);
   margin: 0;
 }
 
@@ -17049,10 +17031,10 @@
 .e-permits-page-header__title {
   color: var(--color-text-base-secondary, #383838);
   font-family: var(--font-family-primary-font, Onest), sans-serif;
-  font-size: var(--font-size-fs-24, 24px);
+  font-size: var(--type-heading-h3-font-size, 24px);
   font-weight: var(--font-weight-fw-semibold, 600);
-  letter-spacing: -0.24px;
-  line-height: var(--line-height-lh-32, 32px);
+  letter-spacing: var(--type-heading-h3-letter-spacing, -0.24px);
+  line-height: var(--type-heading-h3-line-height, 32px);
   margin: 0;
   overflow: hidden;
   text-overflow: ellipsis;

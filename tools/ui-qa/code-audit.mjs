@@ -25,7 +25,7 @@ fs.mkdirSync(OUT, { recursive: true });
 /* the token scales (design-system.md); anything else is a finding */
 const SPACING = [0, 1, 2, 4, 6, 8, 10, 12, 14, 16, 20, 24, 28, 32, 36, 40, 48, 56, 64, 72, 80, 96];
 const RADIUS = [0, 2, 4, 6, 8, 12, 16, 20, 24, 32, 999, 9999];
-const FONT = [10, 12, 14, 16, 18, 20, 24, 28, 32, 40, 48];
+const FONT = [10, 12, 14, 16, 18, 20, 22, 24, 28, 32, 40, 48, 56]; // + 22 / 56: Foundations Mobile H3 / Display Large (type-mobile-v1)
 
 // ---- static scan --------------------------------------------------------------------------
 const staticFindings = [];
