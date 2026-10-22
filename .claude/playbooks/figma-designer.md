@@ -68,7 +68,7 @@ gets better; never delete a lesson, rewrite it if it was wrong.
 | selection-menu | main of `10571:216146` | open dropdown list; items `.menu-item-selection` `9625:34931` (`Option Label#400:63`) |
 | Modal „Tip=Selecție” | `10704:158854` | close pinned right |
 | RAP row (Câmp / Coloană / Titlu tabel) | `10949:277452` | |
-| header-evo-desktop / -mobile (lib sets) | `11077:1058` / `11153:1253` | imported; mobile used inside `Cabinet / Antet mobil` |
+| header-evo-desktop / -mobile (lib sets) | `11077:1058` / `11153:1253` | imported; mobile used inside `Cabinet / Antet mobil`. **EVO site header = Components doJ7tDY0PlQ0PqMgbpFVIC 912:18991 (desktop set ef41893a…: 1248px Anonymous 2977f6f3… / Authenticated 28bbd8f8…) + 1210:5257 (mobile set e0e8b836…: Default Anonymous aa2d4163… / Authenticated 1dd7a663…)** — RAP = Anonymous, Cabinet = Authenticated, phones show search + ☰ (2026-10-22) |
 | search-input-rectangular | `9285:37474` | State Default/Filled/Focus…, `👁️ Clear Button`, `⌨️ Placeholder` |
 | filter-chip | `1244:34029` | Mono Selection; `👁️ Counter Badge` + „Badge label” text; Filtre = Icon Leading + 20/filter (key d7ef1839…) |
 | contextual-menu / selection-menu | `9646:4478` / `9625:34945` | ≤ 6 options each; items `.menu-item-action` `62:4943` (Leading Element=Icon for icons) |
@@ -3103,3 +3103,25 @@ For any „research how other products do it” step, search Mobbin (mcp__mobbin
     the code; Cabinet phone header bar is 64 (code 65) → phone crumb 88 vs 89.
   - No Agent tool in this session → stored `qsweep`/`audit` on sm-05, sm-04b, pp-01q (desktop + phone) + the callout set: only
     baseline (padded sections gap 0, the 812 pp-01q phone viewport); connectors 31, unattached 0.
+
+- 2026-10-22 · EVO site header = the library component everywhere (user: „make the burger menu and the search visible in the
+  header component on mobile” on EVO-WEB 22081:17802; then „exactly this header from Components” 912:18991). EVO-WEB ↳ Registrul
+  actelor permisive: headers were already library instances (37 desktop 1248px Anonymous + 42 header-evo-mobile Anonymous) but 41
+  phones carried a hidden-layer override on the nested `Container/Actions` frame (search + ☰) — there is NO component property for
+  it, so `Actions.visible = true` per instance (the library main shows it). EVO Cabinet: the local `Cabinet / Header` set 1051:3967
+  (gov bar + logo + Instance switcher / phone: switcher avatar + ☰) → every live screen instance `swapComponent` to the library
+  Authenticated variant (142: My requests 51 + 51, My Permits 20 desktop + 1 at 1920 + 1 at 1280 + 18 phones), renamed
+  header-evo-desktop / -mobile, FILL in the screen stack, avatar 🎚️ Type=Initials „AC”; local set marked DEPRECATED (0 instances).
+  Archive sections („Archive · before 2026-10”) left as they were. Lessons:
+  - **Hidden layers without a property**: check a library instance against its main with skipInvisibleInstanceChildren=false and a
+    path-wise visibility diff (instance vs main) — that found the 41 `Actions=false` overrides in one read-only call.
+  - **`swapComponent` keeps the node id** → connectors / anchors on the header survive; check `getInstancesAsync()` on the old set = 0.
+  - **Avatar Image → Initials inside the library header** keeps the Image variant's HUG / MIN-align overrides from the header main:
+    the 40 avatar rendered 20 wide with „AC” in the corner. After `setProperties({"🎚️ Type":"Initials"})`: sizing FIXED, resize to
+    the variant main (40 desktop / 32 phone), copy the main's primary / counter alignment. Screenshot one before the batch.
+  - Code drift (reported, code agent on evo-header-v1): at 375 the Cabinet code still shows logo + switcher, RAP logo + „Intră în
+    cabinet” only (rap-evo.css hides `.rap-header__actions` ≤ 1100); Cabinet desktop loses the switcher name / role („SRL Global
+    Trader”) — the library header has avatar only.
+  - No Agent tool → stored `qsweep`/`audit` (Cabinet: header-evo-desktop / -mobile + sm-01 desktop / phone = only the old Pager
+    paddingRight 1) and EVO-WEB stored audit (rap-01a = only the known table-scroll clip / Register gap 0 / mixed „Results”).
+
