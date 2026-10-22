@@ -3185,3 +3185,16 @@ For any „research how other products do it” step, search Mobbin (mcp__mobbin
   - Not changed / reported: RAP phone PJ avatar still a suitcase glyph (rap-02 Beneficiar card); Ghișeu / FO wizard footers stay
     Large (not dialogs); drawer footers that reuse `modal-buttons` (Services user-create, Template preview) went Medium with the
     class — tell the code agent if drawers should differ.
+- 2026-10-22 · Follow-up (code a32c66d3 / a02fa7d1 / f39e1079): **exceptions to the Mobile type + Medium footer rules.**
+  - Phone sheet / dialog / drawer titles keep Desktop/Heading/H4 in the 32 title line (sheet-header rule, code 20/32) and the
+    phone profile title keeps Desktop H4 20/28 — reverted: RAP 26 titles + 9 library modal headers + 6 phone-only mains, Cabinet
+    33 titles + 2 modal headers + 7 mains + Confirm modal Mobile ×2 (was H2 → now H4), GEAP FO 09 7 modal titles. Only SECTION
+    headings (H5 → Mobile H5) and content headings stay on Mobile styles.
+  - **Drawers stay Large 48 at every width; only centred modals are Medium.** Reverted to fresh Large instances: GEAP Services 87
+    (user-create drawers + Template preview), Tariffs 39, Classifiers 21, User Management 22 (old „modal” frames that are right-
+    docked full-height = drawers), `Process Designer / Footer` main (full-screen editor dialog) + 4 instance overrides, Local
+    `Components · Preview` (Template preview). Tell a drawer from a modal by geometry, not name: docked to the right edge, y 0,
+    full parent height, or inside `user-create__*` / `Drawer` / `ntpl-sheet`. Only revert nodes this job created (id ≥ the job's
+    first new id) so pre-existing Medium buttons stay.
+  - RAP „Beneficiar” avatar is already `RAP / Beneficiary avatar` Type=Company = 24/business-filled c477fc69 (the glyph just reads
+    as a case); the only suitcase / luggage glyphs on the page are home-page service categories, not companies — left.
