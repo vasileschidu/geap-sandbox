@@ -82,15 +82,17 @@ button.e-permits-name-expand[aria-expanded="true"] {
   display: block;
 }
 
+/* the 8 before „Mai puțin” is the END padding of the name (name-expand-align-v1): when the label wraps to a new line
+   it starts on the name's left edge (a margin on the label indented it by 8) */
 button.e-permits-name-expand[aria-expanded="true"] .e-permits-name-expand__text {
   display: inline;
   overflow: visible;
   overflow-wrap: anywhere;
+  padding-inline-end: var(--spacing-8, 8px);
   white-space: normal;
 }
 
 button.e-permits-name-expand[aria-expanded="true"] .e-permits-name-expand__more {
-  margin-left: var(--spacing-8, 8px);
   vertical-align: baseline;
 }
 
@@ -106,7 +108,10 @@ button.e-permits-name-expand[aria-expanded="true"] .e-permits-name-expand__more 
 
 /* ---- Multi-line mode (header-actions-below-v1, 2026-10-22): host [data-name-expand-lines] ----
    The name wraps and stops at --name-expand-lines lines (set by the placement; unset = no limit, so no
-   toggle); collapsed, „Mai mult ⌄” sits on its own line under the clamped name, 4 below it. */
+   toggle); „Mai mult ⌄” sits on its own line under the clamped name, 4 below it, on the name's left edge — and
+   „Mai puțin ⌃” stays in that SAME place once expanded (name-expand-align-v1, 2026-10-22, user: „RAP, long name in
+   profile — Mai mult and Mai puțin buttons are misaligned”: expanded, the label jumped after the last word, and when
+   it wrapped it sat 8 to the right of the name; the gap to the location / actions grew 3). */
 [data-name-expand-lines] > .e-permits-name-expand {
   display: block;
 }
@@ -121,10 +126,19 @@ button.e-permits-name-expand[aria-expanded="true"] .e-permits-name-expand__more 
   white-space: normal;
 }
 
-[data-name-expand-lines] > button.e-permits-name-expand[aria-expanded="false"] > .e-permits-name-expand__more {
+[data-name-expand-lines] > button.e-permits-name-expand[aria-expanded] > .e-permits-name-expand__more {
   display: flex;
-  margin-top: var(--spacing-4, 4px);
+  margin: var(--spacing-4, 4px) 0 0;
   width: max-content;
+}
+
+/* expanded: the whole name as a block (no clamp), the label on its own line under it */
+[data-name-expand-lines] > button.e-permits-name-expand[aria-expanded="true"] > .e-permits-name-expand__text {
+  -webkit-line-clamp: none;
+  line-clamp: none;
+  display: block;
+  overflow: visible;
+  padding-inline-end: 0;
 }
 
 [data-name-expand-lines] > .e-permits-name-expand.is-measuring > .e-permits-name-expand__more {

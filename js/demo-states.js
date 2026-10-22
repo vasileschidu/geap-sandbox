@@ -2458,6 +2458,9 @@
         /* the long ozone-substances act (title wraps); tacit approval: tag next to Stare + the
            „Aprobare tacită” row above „Data eliberării” */
         "rap-02d": { page: RAP, params: { act: "rap-0015" }, ready: "[data-rap-profile-view]:not([hidden]) h1" },
+        /* name-expand-align-v1: the same long name on a phone (≤760) with the 4-line H1 expanded — „Mai puțin ⌃” on its own
+           line under the full name, where „Mai mult ⌄” was (rap-02d = collapsed); desktop shows the full name, no toggle */
+        "rap-02x": { page: RAP, params: { act: "rap-0015" }, ready: "[data-rap-profile-view]:not([hidden]) h1", run: async (h) => { await h.wait(300); if (document.querySelector("[data-rap-profile-view] h1 [data-name-expand-toggle]")) await h.click("[data-rap-profile-view] h1 [data-name-expand-toggle]"); } },
         "rap-02g": { page: RAP, params: { act: "rap-0001" }, ready: "[data-rap-profile-view]:not([hidden]) h1", run: async (h) => { await h.scroll("#rap-details-title"); } },
         /* „Vizualizare act” (US-162 AC-12, Figma 20607:34846): the data modal — Date generale +
            Câmpuri specifice actului + note; Descarcă → the MDocs A4 form (US-143): loading,

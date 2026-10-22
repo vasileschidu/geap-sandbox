@@ -2668,3 +2668,17 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   code; after the fix the circle is at 0 / label 36 again. A 1px offset in Figma next to a stroke = suspect the stroke alignment.
   (3) Updated GEAP 5848:67680 (parent shot, so the outside band shows): band 298 × 40 = row + 8 each side, the next connector
   starts exactly at the band edge = code. Kept the v1 connectors + the focus ring (now outside the band, 8 · 2 white · 2 ring).
+- 2026-10-22 · „Mai mult / Mai puțin” misaligned on the RAP long-name profile (name-expand-align-v1). Cause = my own multi-line
+  mode (header-actions-below-v1), not today's type / actions commits: only the COLLAPSED state had a multi-line rule; expanded
+  fell back to the one-line mode's inline look → „Mai puțin” jumped from its own line (x 16) to after the last word, the h1
+  grew +3 to the next line, and when the label wrapped it sat at x 24 (its `margin-left: 8` stays at the start of a new line).
+  Fix in css/name-expand.css only: multi-line keeps the label in the SAME place in both states (own line, 4 under, left
+  edge; expanded text = block, clamp none) and the one-line mode's 8 became the text's `padding-inline-end` (a trailing
+  inline padding stays on the previous line, so a wrapped label starts on the left edge — FO pp-18 at 320 had the same 24).
+  Proof = a scratch probe (h1 / first glyph / label / next-line boxes, collapsed + clicked) at 1440 / 1024 / 761 / 375 / 320
+  on rap-02d + sm-05w before / after, and HEAD worktree (python http.server :8977) vs tree on FO pp-18: every unrelated row
+  identical. Lessons: (1) a mode that adds a state-specific rule (`[aria-expanded="false"]`) must check the OTHER state —
+  measure both states of every toggle; (2) never space an inline atomic box with a leading margin when it can wrap — use the
+  previous element's end padding; (3) zsh `for b in "x y"; set -- $b` does NOT split → pass args explicitly. New demo
+  rap-02x (RAP long name expanded on a phone). Hover 0 / 0 (375 copy) on RAP + Cabinet headers, component-audit 0 major
+  (evo-header panel converge minors = standing), code-audit 0 (Cabinet: the standing `.u-visually-hidden` FP).
