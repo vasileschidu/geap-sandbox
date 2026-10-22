@@ -1867,7 +1867,7 @@ document.addEventListener("DOMContentLoaded", () => {
     users: [
       { key: "status", label: "Statut", get: (r) => r.status },
       { key: "roluri", label: "Roluri", get: (r) => r.roluri },
-      { key: "autoritate", label: "Autoritate", get: (r) => r.autoritateScurta || r.autoritate },
+      { key: "autoritate", label: "Autoritate", search: true, get: (r) => r.autoritateScurta || r.autoritate },
       { key: "subdiviziune", label: "Subdiviziune", get: (r) => r.subdiviziune }
     ],
     roles: [
@@ -1878,7 +1878,7 @@ document.addEventListener("DOMContentLoaded", () => {
       /* the same names as the column headers */
       { key: "statutRssp", label: "Statut în registru", get: (r) => r.statutRssp },
       { key: "statut", label: "Statut în GEAP", get: (r) => r.statut },
-      { key: "institutie", label: "Instituția", get: (r) => r.institutie },
+      { key: "institutie", label: "Instituția", search: true, get: (r) => r.institutie },
       { key: "sursa", label: "Sursă", get: (r) => r.sursa }
     ],
     authorities: [
@@ -1902,7 +1902,7 @@ document.addEventListener("DOMContentLoaded", () => {
       { key: "domeniu", label: "Domeniu", get: (r) => r.domeniu },
       { key: "familie", label: "Familie", get: (r) => r.familie },
       { key: "sursa", label: "Sursă", get: (r) => r.sursa },
-      { key: "autoritate", label: "Autoritate", get: (r) => r.autoritate },
+      { key: "autoritate", label: "Autoritate", search: true, get: (r) => r.autoritate },
       { key: "utilizare", label: "Utilizare", get: (r) => r.utilizare }
     ]
   };

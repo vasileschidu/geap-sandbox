@@ -2621,3 +2621,24 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   (4) code-audit's font scale lacked 22 / 56 (Mobile H3 / Display L) → added. (5) Another agent truncated + restored an HTML
   page from HEAD mid-job and wiped my `<link>` / `?v=` there: the link script is idempotent — re-run it, and re-probe the
   states that ran in that window (three probe runs had a blank demoState = not ready, not „no headings”).
+- 2026-10-22 · Facet popover v2 (facet-popover-v2; user: „for Denumire act and Autoritate do the dropdown wider if we have
+  space, also add a search? and the checkbox with text kinda too close — the checkbox is our component?”). Read the shared
+  module before planning: the popover search ALREADY existed (> 7 values) — the job was a `search: true` facet flag (RAP +
+  Cabinet Denumire act / Autoritate, Solicitările mele Autoritatea emitentă, BO Autoritate / Instituția), diacritics-insensitive
+  matching (`normalize("NFD").replace(/\p{M}/gu, "")` — also folds ţ / ț, ş / ș, so „licenta” finds both RAP spellings), ↓ / ↑
+  between search and values, and the one empty state title-only „Niciun rezultat”. Width without jumps: `width: max-content`
+  + `min-width: max(270px, var(--filter-pop-lock))` + `max-width: min(440px, 100vw − 32)`; JS measures once with every value
+  listed and holds it in the custom property (geometry, like `--act-menu-max`) — otherwise the popover shrinks as you type.
+  `place()`: right-align with the chip when it would pass the 16 gutter, flip above when there is no room below (tested by
+  padding the persistent bar element — the chips are re-rendered on every click, so styling a chip does nothing). Gap: the
+  rows put the library box OUTSIDE the text, so the dropdown item gap 8 applied, while the library `.checkbox` has 12 → ONE
+  rule in css/dropdown.css `:is(filter-option, subgen-select__option):has(> :is(.checkbox, .radio))` (0,2,0) — grep of
+  `<span class="checkbox` inside option rows found the facet filter (both copies share the row class), the FO subgenre
+  multi-select; `label.checkbox` users get 12 from the library already; `renderCheckOption` (Figma 10507:125565, gap 8 in a
+  grey container) left as Figma defines it and reported. Found on the way: between 761 and 768 the desktop popover search
+  rendered 12px (library body-sm breakpoint is 768, phone mode 760) → pinned 14 in the popover. The standing component-audit
+  major on `.e-permits-filter-sheet__section-trigger` was a DOC problem: the inventory row wrote the parts as one slash code
+  span (`.x__a/__b/__c`), which the auditor cannot resolve — write each part as its own code span. No sub-agent tool → ran
+  hover-audit (0 / 0 on 7 popover states), component-audit (0 major after the doc fix; minor converge = popover is not a
+  modal, standing), code-audit (standing: search × over the input, sheet „Arată” 11, violet tag), capture 12 states × 2
+  (RAP mobile overflow 15 is on plain rap-01 too).

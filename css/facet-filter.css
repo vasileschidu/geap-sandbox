@@ -249,18 +249,25 @@
   white-space: nowrap;
 }
 
-/* popover: Figma contextual-menu (GEAP 244:15994) — 270 wide, options
-   16/24 left-right padding, 12 vertical, checkbox + value (status values as tags),
+/* popover: Figma contextual-menu (GEAP 244:15994) — checkbox + value (status values as tags),
    footer with a top border: Confirmă · Șterge, right-aligned. Surface (radius 12, shadow,
-   clip) = the „Dropdown surface” rule. */
+   clip) = the „Dropdown surface” rule.
+   Width (facet-popover-v2, 2026-10-22, user: „do the dropdown wider if we have space”): hugs its
+   longest value on one line — at least 270 (the Figma contextual-menu), at most 440 and never
+   wider than the viewport minus the 16 gutters; longer values wrap. js/facet-filter.js measures it
+   once with every value listed and holds that width (`--filter-pop-lock`), so filtering with the
+   search never makes it jump narrower; `place()` keeps it anchored to its chip inside the gutters.
+   Layout sizes are not tokenised (design-system.md § 5). The date popover keeps 320 (below). */
 .e-permits-fo-intent-menu.e-permits-workplace__filter-pop {
   gap: 0;
   max-height: min(440px, calc(100vh - 120px));
+  max-width: min(440px, calc(100vw - var(--spacing-32, 32px)));
+  min-width: max(270px, var(--filter-pop-lock, 0px));
   padding: 0;
   position: fixed;
   right: auto;
   top: 0;
-  width: 270px;
+  width: max-content;
   z-index: 1000;
 }
 
@@ -272,8 +279,9 @@
   padding: var(--spacing-8, 8px) var(--spacing-8, 8px) 0;
 }
 
-/* list 4 / 2 and rows 32 · 6 12 6 8 · 14/20 medium · gap 8 · radius 6 = „Dropdown item”
-   (css/dropdown.css, 2026-10-20); the checkbox stays the row's lead */
+/* list 4 / 2 and rows 32 · 6 12 6 8 · 14/20 medium · radius 6 = „Dropdown item”
+   (css/dropdown.css, 2026-10-20); the checkbox / radio stays the row's lead, 12 before the value
+   (the library .checkbox / .radio gap — css/dropdown.css „Control → value gap”) */
 .e-permits-workplace__filter-list {
   list-style: none;
   margin: 0;
@@ -488,11 +496,12 @@ html.is-filter-sheet-open {
 }
 
 /* 44px rows (touch), the value on the sheet's 16 inset — a sheet, not a dropdown: it keeps its own rows
-   (gap 10, regular 14/20, radius 8), the dropdown item size does not apply */
+   (regular 14/20, radius 8), the dropdown item size does not apply; box → value 12 = the library
+   checkbox / radio gap (was 10 until facet-popover-v2) */
 .e-permits-filter-sheet__list .e-permits-workplace__filter-option {
   border-radius: var(--border-radius-8, 8px);
   font-weight: var(--font-weight-fw-regular, 400);
-  gap: var(--spacing-10, 10px);
+  gap: var(--spacing-12, 12px);
   margin: var(--spacing-0, 0px); /* the library label's 6px bottom margin */
   min-height: calc(var(--spacing-40, 40px) + var(--spacing-4, 4px));
   padding: var(--spacing-12, 12px) var(--spacing-8, 8px);
@@ -663,6 +672,12 @@ html.is-filter-sheet-open .e-permits-fo-testcfg {
 :is(.e-permits-workplace__filter-pop, .e-permits-filter-sheet) .e-permits-workplace__search.search-input:has(.icon-search) .input {
   padding-left: var(--spacing-40, 40px);
   padding-right: var(--spacing-12, 12px);
+}
+
+/* the desktop popover's search = Medium 40 · 14/20 at every desktop width — the library body-sm drops to 12 below
+   768, which reached the popover between 761 and 768 (facet-popover-v2); phones use the sheet (48 · 16/24) */
+.e-permits-workplace__filter-pop .e-permits-workplace__search.search-input .input {
+  font-size: var(--font-size-fs-14, 14px);
 }
 
 /* with a value the library clear (×) shows at the right: keep the text clear of it */

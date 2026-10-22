@@ -1355,6 +1355,9 @@
     "pp-01r": ppCab(async (h) => { await h.scroll("[data-cab-card='act-lab-10']"); await h.hover("[data-cab-card='act-lab-10']"); }),
     /* „Filtre”: the bar / popover (desktop) — the chip row + Statut sheet (phones) */
     "pp-01s": ppCab(async (h) => { await cabOpen(h); await ffFacet(h, "status"); }),
+    /* facet-popover-v2: Denumire act (s3) / Autoritate with „agentia” typed (s4) — wider popover + the search on top */
+    "pp-01s3": ppCab(async (h) => { await cabOpen(h); await ffFacet(h, "denumire"); await h.wait(200); }),
+    "pp-01s4": ppCab(async (h) => { await cabOpen(h); await ffFacet(h, "autoritate"); await h.fill("[data-filter-search]", "agentia", { leave: false }); await h.wait(600); }),
     /* „Sortează” (acts-sort-v1, the Solicitările mele control): s1 the menu open (phones: the sort sheet) · s2 sorted by
        „Valabil până la”, cele mai apropiate (desktop: the key pick; phones: the sheet → „Aplică”) — trigger + announcement */
     "pp-01s1": ppCab(async (h) => { await h.click(".cab-sort__trigger"); if (cabPhone()) await h.wait(350); }),
@@ -2193,6 +2196,8 @@
     "sm-01t": sm(async (h) => { if (cabPhone()) { await smSortSheet("service")(h); return; } await h.click(".cab-sort__trigger"); await h.click('[data-sm-sort-key="service"]'); await h.wait(300); await h.click(".cab-sort__trigger"); }),
     /* the facet bar open (desktop) / the Statut sheet (phones) */
     "sm-01n": sm(async (h) => { if (!smPhone()) await h.click("[data-sm-filter-toggle]"); await ffFacet(h, "status"); }),
+    /* facet-popover-v2: „Autoritatea emitentă” — the popover hugs the authority names, search on top (always) */
+    "sm-01aa": sm(async (h) => { if (!smPhone()) await h.click("[data-sm-filter-toggle]"); await ffFacet(h, "autoritate"); await h.wait(200); }),
     /* US-158 AC-06 / 07 / 11 — the dates are date range facets of „Filtre” (2026-10-20; the „Perioadă” dialog is gone):
        01g the Data depunerii popover (phones: its sheet) · 01h „Până la” before „De la” → error · 01o a custom range
        applied (chip „Data depunerii: 1–10 oct. 2026” + ×) · 01p the custom range being picked (phones: the sheet)
@@ -2364,6 +2369,18 @@
           await open(h); await pick("status", ["Valabil"])(h); await pick("denumire", ["Notificare unitate comercială"])(h);
           await pick("beneficiar", ["Persoană juridică"])(h); await commit(h);
         }),
+        /* facet-popover-v2 (2026-10-22): the long-name facets — the popover hugs its longest value (270 … 440), the library
+           search on top (always for Denumire act / Autoritate), diacritics-insensitive, box → value 12. 01r Denumire act open
+           (focus in the search) · 01s „licenta” finds both „Licență” spellings (ț / ţ) · 01t Autoritate „agentia” (→ Agenția)
+           with one value ticked · 01u nothing matches → „Niciun rezultat”. Phones: the same in the all-filters sheet section */
+        "rap-01r": rap(async (h) => { await open(h); await ffFacet(h, "denumire"); await h.wait(200); }),
+        "rap-01s": rap(async (h) => { await open(h); await ffFacet(h, "denumire"); await h.fill("[data-filter-search]", "licenta", { leave: false }); await h.wait(600); }),
+        "rap-01t": rap(async (h) => {
+          await open(h); await ffFacet(h, "autoritate");
+          await h.click('[data-filter-option][value="Agenția Servicii Publice"]');
+          await h.fill("[data-filter-search]", "agentia", { leave: false }); await h.wait(600);
+        }),
+        "rap-01u": rap(async (h) => { await open(h); await ffFacet(h, "autoritate"); await h.fill("[data-filter-search]", "zzz", { leave: false }); await h.wait(600); }),
         /* search results („alcool”) — Figma EVO-WEB block rap-01q */
         "rap-01q": rap(async (h) => { await h.fill("[data-rap-search]", "alcool"); await h.wait(500); }),
         "rap-01g": rap(async (h) => { await h.click('[data-record-id="rap-0002"] a'); await h.wait(300); await h.click("[data-rap-company-permits]"); await h.wait(300); }),

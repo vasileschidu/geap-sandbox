@@ -166,8 +166,8 @@
      facets and with the search. Values come from the acts themselves (no new data). */
   const FACETS = [
     { key: "status", label: "Statut", get: (permit) => permit.statusLabel },
-    { key: "denumire", label: "Denumire act", get: (permit) => permit.serviceTitle },
-    { key: "autoritate", label: "Autoritate", get: (permit) => state.help[permit.service?.authority]?.name || permit.service?.authority },
+    { key: "denumire", label: "Denumire act", search: true, get: (permit) => permit.serviceTitle },
+    { key: "autoritate", label: "Autoritate", search: true, get: (permit) => state.help[permit.service?.authority]?.name || permit.service?.authority },
     { key: "subdiviziune", label: "Subdiviziunea autorității", get: (permit) => permit.subdivision },
   ];
   const facetValues = (facet, permit) => [].concat(facet.get(permit) ?? []).filter(Boolean);

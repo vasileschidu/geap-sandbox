@@ -408,7 +408,7 @@
   const FACETS = [
     /* Statut = the labels of the tags (outcome-tag-v1): a finalized request is filtered by its outcome */
     { key: "status", label: "Statut", get: statusLabel },
-    { key: "autoritate", label: "Autoritatea emitentă", get: authorityValue },
+    { key: "autoritate", label: "Autoritatea emitentă", search: true, get: authorityValue },
     { key: "depunere", label: "Data depunerii", type: "date", get: (dosar) => isoDay(dosar.submitted), today: () => TODAY },
     { key: "finalizare", label: "Data estimată de finalizare", type: "date", presets: ["azi", "u7z", "u30z", "an"], get: (dosar) => isoDay(estimatedEnd(dosar)), today: () => TODAY },
   ];

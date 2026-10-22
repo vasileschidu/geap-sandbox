@@ -64,6 +64,15 @@
   padding: var(--spacing-6, 6px) var(--spacing-12, 12px) var(--spacing-6, 6px) var(--spacing-8, 8px);
 }
 
+/* Control → value gap (facet-popover-v2, 2026-10-22, user: „the checkbox with text kinda too close — the
+   checkbox is our component?”): option rows that put the library box OUTSIDE its text got the item gap 8; the
+   library .checkbox / .radio put 12 between box and label → an item led by a checkbox or radio keeps 12: the
+   facet filter popovers + phone sheets (js/facet-filter.js and the passport lists' `data-sf-*` copy — date
+   presets too) and the FO subgenre multi-select. (0,2,0) beats the item rule above. */
+:is(.e-permits-workplace__filter-option, .e-permits-fo-subgen-select__option):has(> :is(.checkbox, .radio)) {
+  gap: var(--spacing-12, 12px);
+}
+
 /* the leading / trailing icon of an item = 20 (Figma 20/… glyphs) */
 :is(
   .e-permits-fo-intent-menu__item,

@@ -9,8 +9,8 @@
      whatever their status */
   const FACETS = [
     { key: "status", label: "Statut", get: (record) => [record.status, ...((record.markings || []).includes("Aprobat tacit") ? ["Aprobat tacit"] : [])] },
-    { key: "denumire", label: "Denumire act", get: (record) => record.permit.name },
-    { key: "autoritate", label: "Autoritate", get: (record) => record.authority.name },
+    { key: "denumire", label: "Denumire act", search: true, get: (record) => record.permit.name },
+    { key: "autoritate", label: "Autoritate", search: true, get: (record) => record.authority.name },
     { key: "beneficiar", label: "Tip beneficiar", get: beneficiaryType }
   ];
   const state = {

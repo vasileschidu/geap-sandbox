@@ -11,6 +11,9 @@
 
    GEAPFacetFilter.create({
      bar, toggle, count,            elements: the bar container, the button, its badge
+                                   (a facet may set `search: true` = the search field at the top of its popover /
+                                   sheet section whatever its size — long names: Denumire act, Autoritate; otherwise
+                                   the search shows from 8 values; facet-popover-v2)
      state()                        → { open, applied: { key: [values] }, draft } (kept by the page)
      save()                         persist the state (optional)
      facets()                       facets offered now (≥ 2 values, or a value applied)
@@ -68,6 +71,14 @@
       .replace(/'/g, "&#039;");
 
   const INLINE_MAX = 4;
+
+  /* facet search (facet-popover-v2): case- and diacritics-insensitive („agentia” finds „Agenția”, ş / ș / s alike);
+     the field shows from 8 values, or always on a facet with `search: true` */
+  const fold = (text) => String(text ?? "").normalize("NFD").replace(/\p{M}/gu, "").toLocaleLowerCase("ro").trim();
+  const SEARCH_MIN = 8;
+  const wantsSearch = (facet, n) => facet?.search === true || n >= SEARCH_MIN;
+  /* nothing matches the typed text: the one empty state, its menu / popover size (bare + compact), one short line */
+  const noMatchHtml = () => `<li>${window.GEAPEmptyState.noResults("Niciun rezultat", { text: "", bare: true, compact: true })}</li>`;
 
   /* ---- date range facet: presets, tokens, the compact range text ---- */
   const pad2 = (n) => String(n).padStart(2, "0");
@@ -449,7 +460,6 @@
     /* ---- phone mode: icon-only trigger in the search row + bottom sheets ---- */
     const phoneQuery = phoneMode ? window.matchMedia("(max-width: 760px)") : null;
     const isPhone = () => !!phoneQuery?.matches;
-    const SHEET_SEARCH_MIN = 8; /* search inside a facet with 8+ values (the popover's rule: > 7) */
     let sheetEl = null;
     let sheet = null; /* { kind: "facet" | "all", key, sel: { key: [values] }, query: { key }, expanded: Set, opener } */
     let sheetTimer = 0;
@@ -494,11 +504,11 @@
 
     const sheetOptionsHtml = (facet) => {
       const values = new Set(sheet.sel[facet.key] || []);
-      const q = (sheet.query[facet.key] || "").trim().toLocaleLowerCase("ro");
+      const q = fold(sheet.query[facet.key]);
       const all = cfg.options(facet, sheet.sel);
       /* values ticked in the sheet stay listed even when the other facets leave them no rows */
       values.forEach((v) => { if (!all.some((o) => o.value === v)) all.push({ value: v, count: 0 }); });
-      const options = all.filter((o) => !q || o.value.toLocaleLowerCase("ro").includes(q));
+      const options = all.filter((o) => !q || fold(o.value).includes(q));
       return options.length ? options.map((o) => {
         const tag = tagOf(o.value, facet);
         return `
@@ -508,12 +518,12 @@
             ${tag || `<span class="e-permits-workplace__filter-option-label">${escapeHtml(o.value)}</span>`}
           </label>
         </li>`;
-      }).join("") : `<li>${window.GEAPEmptyState.noResults("Nicio valoare nu corespunde", { text: "Încearcă alți termeni.", bare: true, compact: true })}</li>`;
+      }).join("") : noMatchHtml();
     };
 
     const sheetFacetHtml = (facet) => {
       if (isDate(facet)) return dateBodyHtml(facet, sheet.dates[facet.key] || dateEditOf(facet, sheet.sel[facet.key]?.[0]), "sheet");
-      const many = cfg.options(facet, sheet.sel).length >= SHEET_SEARCH_MIN;
+      const many = wantsSearch(facet, cfg.options(facet, sheet.sel).length);
       return `
       ${many ? `
         <div class="e-permits-filter-sheet__search">
@@ -734,11 +744,27 @@
       wirePopover();
     };
 
+    /* 8 under the chip, left edges aligned; a popover that would run past the right gutter (16) is
+       right-aligned with its chip instead, then clamped inside the gutters; no room below but room
+       above → it opens above the chip (facet-popover-v2) */
+    const GUTTER = 16;
     const place = (anchor) => {
       const r = anchor.getBoundingClientRect();
       const width = popover.offsetWidth;
-      popover.style.left = `${Math.max(8, Math.min(r.left, window.innerWidth - width - 8))}px`;
-      popover.style.top = `${r.bottom + 8}px`;
+      const height = popover.offsetHeight;
+      let left = r.left;
+      if (left + width > window.innerWidth - GUTTER) left = r.right - width;
+      popover.style.left = `${Math.max(GUTTER, Math.min(left, window.innerWidth - width - GUTTER))}px`;
+      const below = window.innerHeight - r.bottom - 8 - GUTTER;
+      const above = r.top - 8 - GUTTER;
+      const up = height > below && height <= above;
+      popover.style.top = `${up ? r.top - 8 - height : r.bottom + 8}px`;
+    };
+    /* a checklist popover hugs its longest value (270 … 440, css) — measured once with every value listed,
+       then held, so typing in its search never makes it jump narrower */
+    const lockWidth = (on) => {
+      popover.style.removeProperty("--filter-pop-lock");
+      if (on) popover.style.setProperty("--filter-pop-lock", `${Math.ceil(popover.getBoundingClientRect().width)}px`);
     };
 
     const close = (restoreFocus = true) => {
@@ -757,8 +783,8 @@
 
     const renderOptions = () => {
       const facet = cfg.allFacets().find((f) => f.key === edit.key);
-      const q = edit.query.trim().toLocaleLowerCase("ro");
-      const options = cfg.options(facet).filter((o) => !q || o.value.toLocaleLowerCase("ro").includes(q));
+      const q = fold(edit.query);
+      const options = cfg.options(facet).filter((o) => !q || fold(o.value).includes(q));
       return options.length ? options.map((o) => {
         const tag = tagOf(o.value, facet);
         return `
@@ -769,7 +795,7 @@
           </label>
         </li>
       `;
-      }).join("") : `<li>${window.GEAPEmptyState.noResults("Nicio valoare nu corespunde", { text: "Încearcă alți termeni.", bare: true, compact: true })}</li>`;
+      }).join("") : noMatchHtml();
     };
 
     /* the date popover: presets + „Interval personalizat” (wider: two pickers side by side); its calendar
@@ -789,6 +815,7 @@
         </button>
       </div>
     `;
+      lockWidth(false);
       popover.hidden = false;
       initPickers(popover);
       render();
@@ -804,7 +831,7 @@
       if (isDate(facet)) { openDateFacet(facet, anchor); return; }
       popover.classList.remove("e-permits-workplace__filter-pop--date");
       edit = { key, values: new Set(draftOf()[key] || []), query: "", anchor };
-      const many = cfg.options(facet).length > 7;
+      const many = wantsSearch(facet, cfg.options(facet).length);
       popover.setAttribute("role", "dialog");
       popover.setAttribute("aria-label", `Filtru: ${facet.label}`);
       popover.innerHTML = `
@@ -825,8 +852,10 @@
         </button>
       </div>
     `;
+      lockWidth(false);
       popover.hidden = false;
       render();
+      lockWidth(true);
       place(bar.querySelector(`[data-filter-facet="${CSS.escape(key)}"]`) || bar.querySelector("[data-filter-more]") || anchor);
       requestAnimationFrame(() => (popover.querySelector("[data-filter-search]") || popover.querySelector("[data-filter-option]") || popover.querySelector("[data-filter-confirm]"))?.focus());
     };
@@ -843,6 +872,7 @@
       popover.setAttribute("aria-label", "Mai multe filtre");
       popover.innerHTML = `<div class="e-permits-workplace__filter-list">${facets.filter((f) => !inline.includes(f)).map((f) => `
       <button class="e-permits-workplace__filter-more-item" type="button" role="menuitem" data-filter-more-facet="${escapeHtml(f.key)}">${escapeHtml(f.label)}</button>`).join("")}</div>`;
+      lockWidth(false);
       popover.hidden = false;
       render();
       place(bar.querySelector("[data-filter-more]") || anchor);
@@ -935,6 +965,16 @@
         /* Esc in an open calendar closes only the calendar (js/input-date-picker.js, on the document) */
         if (event.key === "Escape" && pickerOpen(popover)) return;
         if (event.key === "Escape") { event.preventDefault(); close(); return; }
+        /* ↓ / ↑ walk search → values (→ back up to the search); the date facet keeps its native radio arrows */
+        if ((event.key === "ArrowDown" || event.key === "ArrowUp") && edit && !edit.date) {
+          const stops = [...popover.querySelectorAll("[data-filter-search], [data-filter-option]")];
+          const at = stops.indexOf(event.target);
+          if (at < 0) return;
+          const next = stops[at + (event.key === "ArrowDown" ? 1 : -1)];
+          event.preventDefault();
+          next?.focus();
+          return;
+        }
         if (event.key === "Enter" && edit && !event.target.closest("button")) { event.preventDefault(); confirmFacet(); }
       });
     }
