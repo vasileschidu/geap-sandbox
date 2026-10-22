@@ -3664,7 +3664,7 @@ small `padding: 2px 6px` exact; `neutral.is-subtle` `#f1f1f1`/`#121212` and
 | Phone | `e-permits-fo-phone` + `--editable/--readonly`, `__prefix`, `__code-list` | `is-filled` `is-selected` | `data-fo-phone-*`, `data-code`, `data-flag` |
 | Radio | `e-permits-fo-radio-group` + `--contact`, `e-permits-fo-radio` (placement of the ONE radio `label.radio.radio--medium`, radio-v1; ~~`__control`, `__copy`~~ removed) | | `data-fo-contact-person` |
 | Consent checkbox | `e-permits-fo-consent`, `__box` | | `data-fo-consent` |
-| Stepper | `e-permits-fo-stepper`, `__item`, `__connector`, `__number`, `__label` — = Figma „Step indicator” (GEAP 2.0 5848:67682 = FOD 756:24789; stepper-current-stroke-v1, 2026-10-22, replaces the lib-align-v1 48 step): steps 8 apart, each step after the first 46.5 = connector 16 at the top · 6.5 · row 24 (first = row 24; 7 steps = 351, 6 = 296.5). Row: circle 24 at 1 from the edge, gap 12, label 14/20 at 37. Connector = 2 wide, square ends, centred under the circle (left 12), `--color-border-base-default` / `--color-border-brand-default` (into the current / a completed step) at opacity 0.75 (renders #e2e2e2 / #4082dd as Figma). Current step = the 24 row only (no spread): `brand-secondary` fill, r4, 1px `--color-border-brand-default` stroke OUTSIDE (box-shadow, never an inside border); hover = `brand-secondary-hover` + the same stroke; keyboard focus = 2 white + 2 focus ring, outside the stroke on the current step (1 stroke · 2 white · 2 ring) | `is-active` `is-completed` | `data-fo-step`, `data-fo-step-panel` |
+| Stepper | `e-permits-fo-stepper`, `__item`, `__connector`, `__number`, `__label` — = Figma „Step indicator” (GEAP 2.0 5848:67682 = FOD 756:24789; stepper-current-stroke-v1, 2026-10-22, replaces the lib-align-v1 48 step): steps 8 apart, each step after the first 46.5 = connector 16 at the top · 6.5 · row 24 (first = row 24; 7 steps = 351, 6 = 296.5). Row: circle 24 at 0, gap 12, label 14/20 at 36. Connector = 2 wide, square ends, centred under the circle (left 11), `--color-border-base-default` / `--color-border-brand-default` (into the current / a completed step) at opacity 0.75 (renders #e2e2e2 / #4082dd as Figma). Current step = the 24 row, `brand-secondary` fill, r4, padding 0 + an 8 OUTSIDE stroke in the same light blue (Figma; code `box-shadow: 0 0 0 8px` — never an inside border); the band ends exactly where the next connector starts; hover = `brand-secondary-hover` fill + band; keyboard focus = 2 white + 2 focus ring (on the current step outside the band: 8 band · 2 white · 2 ring) (stepper-current-stroke-v2) | `is-active` `is-completed` | `data-fo-step`, `data-fo-step-panel` |
 | Documents | `e-permits-fo-doc-field`, `e-permits-fo-doc-modal` + `__drop-zone/__list/__panel`, `e-permits-fo-file-item` | `is-uploaded` `is-uploading` `is-empty` | `data-fo-doc-*` |
 | Copy value | removed 2026-10-20 → the shared `.copy-value` („Copy value — one component”); `copyValueHtml` returns it | `is-copied` (1500 ms) | `data-copy-value` |
 | Avatar menu | `e-permits-fo-avatar-menu__*` (~25 classes) | `is-open` `is-closing` `has-scroll` `is-scrolled` `is-selected` `is-expanded` | `data-fo-avatar-*` |
@@ -7196,8 +7196,7 @@ content in its 20px gutter. Under the header, the **step strip**
 24px numbered circle + 14/20 label side by side, 36px × 1.5px line between steps, padding
 16/20, bottom border. Current = brand ring + medium label; completed = brand-filled circle
 with `checkmark-small` + underlined label, a `button` (`data-clas-create-goto`) to go back;
-incomplete = grey ring, secondary label. The current cell = the brand-secondary band (8 spread) + a 1px
-`--color-border-brand-default` stroke outside the band (stepper-current-stroke-v1, 2026-10-22, as the vertical stepper).
+incomplete = grey ring, secondary label. The current cell = the brand-secondary band (8 spread, as the vertical stepper).
 Reusable for any multi-step drawer. Footer: "Pasul n din 4 · …" · Anulează/Înapoi ·
 Continuă / Creează ciorna. Each step validates before moving on; closing with data asks
 first (`askConfirm`, destructive).
@@ -8800,7 +8799,7 @@ screen. `main.css` / `Components/*` stay untouched; override there, scoped to th
 | Sortable table header (`th.is-sortable`) | secondary | `…-secondary-hover` fill + label `--color-text-base-default` |
 | Text link (`.link-primary`, plain `a` in copy, inside a checkbox / radio label) | underline | `blue-sky-700` / brand + `text-decoration-thickness: 2px` |
 | Current language (Ro / Ru / En) | underlined | 2px underline |
-| FO stepper row (reachable) / current | label secondary / brand tint + 1px brand stroke outside | label brand / `brand-secondary-hover` (stroke kept); not-yet-reachable rows (`aria-disabled`) = no pointer, no hover |
+| FO stepper row (reachable) / current | label secondary / brand tint + 8 band | label brand / `brand-secondary-hover` (band too); not-yet-reachable rows (`aria-disabled`) = no pointer, no hover |
 | Option card (`.e-permits-fo-delivery-option`, radio option rows) | white / brand tint (selected) | tertiary / `brand-secondary-hover` |
 | Checkbox / checkbox in error | library | border strong · checked brand-hover / inset 1px danger (the FO error-field hover) |
 | Focusable tooltip trigger in a cell (`[data-cell-tooltip-always][tabindex="0"]`: „+N” roles, JSON) | text | underline |

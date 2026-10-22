@@ -2660,3 +2660,11 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   :focus-visible and NO ring at all — added the library ring outside the stroke. No sub-agent tool → hover-audit 0 / 0
   (scope `[data-fo-screen='request'] .e-permits-fo-stepper` / `#gh-request-modal .e-permits-fo-stepper`; the generic scope hit a
   hidden copy again), code-audit 0 on the stepper (static 0), component-audit 0 on the stepper (standing avatar-menu majors).
+- 2026-10-22 · stepper-current-stroke-v2 (coordinator after the Figma root-cause check): the „outer blue stroke” = an 8 OUTSIDE
+  stroke in the SAME light blue as the fill (= the old `box-shadow 0 0 0 8px` band), not a 1px brand outline — v1 shipped a
+  guessed 1px brand stroke and was reverted the same hour. Lessons: (1) when a value cannot be read from Figma, do NOT ship the
+  guess — ask / wait for the Figma fix; „stroke” in the user's words can be a same-colour stroke that only widens the fill.
+  (2) Figma had the stroke set INSIDE by mistake, which pushed the circle to x 1 / label 37 — I copied that 1px inset into the
+  code; after the fix the circle is at 0 / label 36 again. A 1px offset in Figma next to a stroke = suspect the stroke alignment.
+  (3) Updated GEAP 5848:67680 (parent shot, so the outside band shows): band 298 × 40 = row + 8 each side, the next connector
+  starts exactly at the band edge = code. Kept the v1 connectors + the focus ring (now outside the band, 8 · 2 white · 2 ring).

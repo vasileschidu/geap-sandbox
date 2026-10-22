@@ -3839,8 +3839,7 @@
   gap: var(--spacing-12, 12px);
   height: 24px;
   margin: 0;
-  /* the circle sits 1 in from the row edge (Figma Step x 1, label x 37), so it never touches the current step's stroke */
-  padding: 0 0 0 var(--border-width-1, 1px);
+  padding: 0;
   text-align: left;
   width: 100%;
 }
@@ -3850,8 +3849,8 @@
   outline: none;
 }
 
-/* keyboard focus = the library ring (2 white + 2 focus blue), outside the current step's 1px stroke so the two
-   never merge (stepper-current-stroke-v1; the row had no visible focus before) */
+/* keyboard focus = the library ring (2 white + 2 focus blue); on the current step it sits outside the 8 band
+   (stepper-current-stroke-v1 / v2; the row had no visible focus before) */
 .e-permits-fo-stepper__row:focus-visible {
   border-radius: var(--border-radius-4, 4px);
   box-shadow: 0 0 0 var(--border-width-2, 2px) var(--white, #fff),
@@ -3860,9 +3859,9 @@
 
 .e-permits-fo-stepper__item.is-active .e-permits-fo-stepper__row:focus-visible,
 .e-permits-fo-stepper__item.is-active .e-permits-fo-stepper__row:focus-visible:hover {
-  box-shadow: 0 0 0 var(--border-width-1, 1px) var(--color-border-brand-default, #0058d2),
-    0 0 0 var(--border-width-3, 3px) var(--white, #fff),
-    0 0 0 calc(var(--border-width-1, 1px) + var(--border-width-4, 4px)) var(--focus-ring, var(--blue-sky-500, #3379db));
+  box-shadow: 0 0 0 var(--spacing-8, 8px) var(--color-background-brand-secondary, #e8f0fb),
+    0 0 0 calc(var(--spacing-8, 8px) + var(--border-width-2, 2px)) var(--white, #fff),
+    0 0 0 calc(var(--spacing-8, 8px) + var(--border-width-4, 4px)) var(--focus-ring, var(--blue-sky-500, #3379db));
 }
 
 .e-permits-fo-stepper__item.is-active .e-permits-fo-stepper__row {
@@ -3870,13 +3869,13 @@
   background: var(--color-background-brand-secondary, #e8f0fb);
   border: 0;
   border-radius: var(--border-radius-4, 4px);
-  /* the current step = the 24 row only (Figma): light-blue fill + a 1px blue stroke OUTSIDE it (a shadow, so it
-     never eats the row; stepper-current-stroke-v1) */
-  box-shadow: 0 0 0 var(--border-width-1, 1px) var(--color-border-brand-default, #0058d2);
+  /* current step = Figma: the 24 row filled light blue + an 8 OUTSIDE stroke in the same light blue, padding 0
+     (a shadow, so it never eats the row; stepper-current-stroke-v2) — the band ends where the next connector starts */
+  box-shadow: 0 0 0 var(--spacing-8, 8px) var(--color-background-brand-secondary, #e8f0fb);
   box-sizing: border-box;
   flex-shrink: 0;
   height: 24px;
-  padding: 0 0 0 var(--border-width-1, 1px);
+  padding: var(--spacing-0, 0);
 }
 
 /* connector = the Figma line: 2 wide, square ends, centred under the circle, border default / brand at 75 %
@@ -3887,7 +3886,7 @@
   display: block;
   flex: 0 0 auto;
   height: 16px;
-  margin-left: var(--spacing-12, 12px);
+  margin-left: calc(var(--spacing-12, 12px) - var(--border-width-1, 1px)); /* 11: centred under the 24 circle */
   opacity: 0.75;
   width: var(--border-width-2, 2px);
 }
@@ -6413,7 +6412,7 @@
    button, the phone prefix, a checkbox row, the selects inside the rule builder's value group */
 .e-permits-fo-stepper__item.is-active .e-permits-fo-stepper__row:hover {
   background: var(--color-background-brand-secondary-hover, #d1e1f8);
-  box-shadow: 0 0 0 var(--border-width-1, 1px) var(--color-border-brand-default, #0058d2);
+  box-shadow: 0 0 0 var(--spacing-8, 8px) var(--color-background-brand-secondary-hover, #d1e1f8);
 }
 
 .e-permits-fo-input__icon-button:hover {
@@ -20660,9 +20659,7 @@ button.e-permits-steps-strip__cell:focus-visible {
    (.e-permits-fo-stepper__item.is-active .e-permits-fo-stepper__row) */
 .e-permits-steps-strip__step.is-current .e-permits-steps-strip__cell {
   background: var(--color-background-brand-secondary, #e8f0fb);
-  /* + the 1px blue stroke outside the band (stepper-current-stroke-v1, as the vertical stepper) */
-  box-shadow: 0 0 0 var(--spacing-8, 8px) var(--color-background-brand-secondary, #e8f0fb),
-    0 0 0 calc(var(--spacing-8, 8px) + var(--border-width-1, 1px)) var(--color-border-brand-default, #0058d2);
+  box-shadow: 0 0 0 var(--spacing-8, 8px) var(--color-background-brand-secondary, #e8f0fb);
 }
 
 .e-permits-steps-strip__step.is-current .e-permits-steps-strip__circle {
