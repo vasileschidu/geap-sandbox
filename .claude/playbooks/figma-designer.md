@@ -3147,3 +3147,41 @@ For any „research how other products do it” step, search Mobbin (mcp__mobbin
   - Library variables found from a sample screen's bound variables (collection key → `getVariablesInLibraryCollectionAsync`, exact
     names `spacings/spacing-N`, `border-radius/radius-N`) — same builder works in both files without hard-coded keys.
   - No Agent tool in this session → figma-audit rules run inline on the 2 components + 9 instances: 0 findings; block gaps re-read.
+
+- 2026-10-22 · profile-header-phone-medium-v1 (user on EVO-WEB 22083:24857: „use medium button not large — everywhere”; + coordinator
+  scope: phone headings → Foundations „Mobile/…” styles, desktop modal / dialog footers → Medium). Done:
+  - **Phone page-header actions Large → Medium** (fresh `variant.createInstance()` per button, props copied, FIXED 40, primary FILL
+    kept, ⋯ icon-only FIXED 40 × 40, connectors re-pointed): RAP 26 (rap-02…, rap-03…), Cabinet 47 (My requests 34, My Permits 13);
+    GEAP has no phone page header with actions (FO wizard / Requestor footers are not headers — left Large). pp-01q phone row menu
+    moved up 8 to stay anchored to the 40 trigger.
+  - **Phone headings** (`setTextStyleIdAsync`, Foundations lk-e9e8 keys: Mobile/Heading/H1 67a58071… 32/40 · H2 5f403565… 28/36 ·
+    H3 922cb277… 22/30 · H4 47680a7a… 18/26 · H5 27560715… 16/24; no H6 in use): local mains used ONLY on phones edited in the main
+    (RAP Modal header · phone, Document modal Mobile, 4 filter sheets; Cabinet Confirm modal Mobile ×2, 5 sort / filter sheets,
+    Modal header · phone; GEAP 3), shared mains (Profile / Section title, library .modal-header, section header) overridden per phone
+    instance. Counts: RAP 162 texts, Cabinet 44, GEAP FO 09 29 (11 hidden skipped). Values change vs code: H4 20/28 → 18/26,
+    H5 18/26 → 16/24, H2 32/40 → 28/36 (Cabinet Confirm modal Mobile) — code must follow.
+  - **Desktop modal footers Large → Medium**: library `.modal-footer` = footer `Size=Small` + swapComponent each button to the
+    Medium variant of ITS OWN set, re-set props (see 2026-10-19); local mains edited in place (`setProperties` Size keeps ids so
+    instance overrides survive): RAP `Document modal (MDocs act)` Desktop, Cabinet `Confirm modal` Desktop ×2, GEAP `Modal`
+    10136:657 (Confirmation / Content / Selection), `Process Designer / Footer`, `FO confirm dialog`. Raw captured
+    `modal-buttons` rows recreated as Medium. Totals: RAP 10 footers + doc-modal main; Cabinet 7 + Confirm main; GEAP Services 121,
+    Classifiers 34, Tariffs 39, User Mgmt 22 + 2 lib, PD 6 + 2 lib, Form Builder 2 + 35 lib, Editable Grid 13 lib, Incidents 3 lib,
+    FO 09 1 + 3 lib, Post-processes 1, FOD Requestor 2; eKYC 32 lib footers / 62 buttons; FOD file 2 + 3 lib.
+  Lessons:
+  - **Never find „modal” by an ancestor name** — screen names carry it („F4a · Add file — modal”, Ghișeu `Dialog` = the whole desk
+    form) and 109 wizard / form footer buttons went Medium by mistake (reverted to fresh Large instances). Require a real modal
+    structure: a `.modal-footer` instance, a `modal-buttons` row, a `Footer` whose parent is named `modal` / `Modal · …`, or a known
+    local modal main; exclude names starting with Desktop / Mobile / Block / Screen. Dry-run with labels + parent chains first —
+    „Înainte”, „Salvează schiță”, „Solicită” in the list = not a dialog.
+  - Shrinking footers / headers changes block heights: restack every touched column from an ordered list (RAP 03, Cabinet 02–06 +
+    04 Permit profile drifted 2–16 px); on GEAP FO 09 only gaps 380–399 were normalised to the 400 rhythm (552 / 288 / 476 are
+    deliberate) — check the column's own rhythm before restacking.
+  - A cross-set swap inside a library footer can keep the old icon colour (eKYC Destructive „Șterge”): compare with a fresh
+    instance's vector fills and copy them — 1 of 62 needed it.
+  - No Agent tool in this session → inline audit (raw controls, spacing / radius scale, clipping, fractions, unbound colours, text
+    styles, icon = label colour, phone-header Large, desktop heading on phone) on RAP 22083:24817 / 22083:24612 / 22087:27918,
+    Cabinet 1236:48359 / 1126:3637 / 1069:12065 / 1211:44763 / 1066:966 / 1066:1011, GEAP 9977:173106 / 10998:103943: 0 findings
+    from this job (baseline only: pp-01m 1280 × 720 viewport clip, GEAP 01f tab content under the scrim).
+  - Not changed / reported: RAP phone PJ avatar still a suitcase glyph (rap-02 Beneficiar card); Ghișeu / FO wizard footers stay
+    Large (not dialogs); drawer footers that reuse `modal-buttons` (Services user-create, Template preview) went Medium with the
+    class — tell the code agent if drawers should differ.
