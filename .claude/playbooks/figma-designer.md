@@ -3237,3 +3237,47 @@ For any „research how other products do it” step, search Mobbin (mcp__mobbin
   padding 1, INSIDE ring): FO 09 (562), Post-processes, Address, Requestor clean; the 2 px INSIDE rings on stacked avatars
   (switcher „Arată mai multe” 11532:8017, App Shell 9822:3971) match the library `.avatar-stack` (border 2 px = inside) — left.
   Lesson: when the user names an area without a link and the first scans are clean, ask for the node link before changing more.
+
+- 2026-10-22 · filter-figma-sync-v1 (code filter-bar-v2/v3 1e6f9e54 / 4e6d9ea2, facet-popover-v2 855cba8a, filter-sheet-height-v1
+  e2fea8e8) in four files. **Filter bar** = one box, padding 12 all sides (spacing-12), radius-24, border INSIDE + strokesIncludedInLayout
+  (66 = code), WRAP with counterAxisSpacing 8 / itemSpacing 12, and the wrap order done in auto-layout: Chips HUG + `Meta` **FILL with
+  minWidth = its hug width and primaryAxisAlign MAX** → one line while both fit, otherwise Meta drops to line 2 right-aligned (tested
+  at 1280 / 900 / 700). RAP 5 raw bars; Cabinet `Facet filter · bar` set 1056:2150 (3 variants → 7 instances); GEAP BO
+  `advanced-filter/bar` 9645:1949 restructured IN PLACE to the table-card inset: root VERTICAL 8 / 16 / 16 / 16, no root stroke in
+  layout, keeps its bottom line (= the tabs' top line), child `Box` holds Chips + Meta (moving nodes inside the main kept every chip
+  override on ~40 instances); visible instances → HUG and the toolbar frame above loses its bottom stroke; 4 raw GEAP bars (Advanced
+  filtering 02 / 02a / 02b, Services 02, Ghișeu gh-01c) restyled the same way; Fees / Tariffs stacked lists (`.e-permits-pay__filters`)
+  = root inset 0 + no outer stroke (3 instances in the Local components content set). eKYC `Advanced filter · bar` 10819:2467 same
+  change (16 instances) + 9 blocks shifted +26. **Facet popover**: RAP `Facet filter · popover` 22068:187098 and Cabinet 1056:1397
+  upgraded in place — BOOLEAN `Show search` on a `Search head` (8 / 8 / 0 / 8, library search-input Medium, exposed), `Options` =
+  native SLOT (createSlot, options moved in, overrides of the one existing instance survived), minWidth 270 / maxWidth 440 on the
+  main, width per instance (440 / 408 / 424 measured), list clipped at 440 for long lists (instance FIXED 440 + slot FILL). Option
+  sets: checkbox → value 12 (spacing-12) on every variant (RAP 22064:6908, Cabinet 1056:333, eKYC 10819:1399, GEAP raw popover rows).
+  New blocks: RAP rap-01r 22338:161898 / 01s 22338:163565 / 01t 22338:165188 / 01u 22338:166822 (desktop popover + phone „Filtre” sheet
+  with the section open and the search on top; heights = code 440 / 271 / 239 / 217), Cabinet pp-01s3 1252:47814 (307 = code) and
+  sm-01aa 1252:48916 (225 = code). **Phone sheets** (filter-sheet-height-v1): RAP 04a / 04b / 01b contents were single-facet sheets the
+  code no longer has → rebuilt IN PLACE as the all-filters sheet; hugging sheets = sheet + Content Slot HUG (655 vs code 656); searching
+  states are held at the max (796, slot FILL) like GEAPSheet.hold; section rows 56 + 1 px top border in layout and body bottom 16 = the
+  code's 519 body. Cabinet pp-01s rebuilt as the all-filters sheet; sm-01f / 01t / 01g / 01h / 01p already hugged; eKYC sheet contents
+  already hug (0 instances). Lessons:
+  - **Check `componentPropertyDefinitions` before `addComponentProperty`**: Cabinet's popover already had an UNBOUND „Show search”
+    property — I created „Show search2”; fixed by binding the old key and deleting the duplicate.
+  - **`editComponentProperty` can't rename a SLOT property** (throws, whole call rolled back); `createSlot()` on a frame named
+    „Options” gets the property name from the slot name anyway.
+  - **Switching a frame's layoutMode HORIZONTAL → VERTICAL flips its children's sizing** (the new Box went FILL vertically, 39 px):
+    re-set both sizings on every child right after (known rule, hit again).
+  - **New frames clip by default** (`createFrame()` clipsContent true): the Box cut the absolute popovers that live inside chip
+    „Dropdown wrap”s — set clipsContent false on wrappers that host open menus.
+  - **Bars in GRID parents** (Ghișeu header, eKYC registries): growing a child does not grow a FIXED grid row — set the row HUG / the
+    new height and take the delta from the table row of the parent grid, or the tabs slide under the bar.
+  - **`clone()` of a component in a section lands on the PAGE** — append it to the section and place it below the section's lowest
+    child, or it overlaps other components (both files).
+  - Library search-input: `Focus` renders the placeholder text dark with a caret (= typed value) → empty focused field = `Default`;
+    typed value = `Focus` + Clear Button (one ring per screen).
+  - Code states can need longer waits in the CDP probe (typing demo states filled the field ~12 s after load); `offsetParent` is null
+    for position:fixed popovers — test visibility with `getClientRects().length`.
+  - Variant values containing „Popover” / „Sheet” trip the dropdown-effect audit → RAP option sizes renamed Desktop / Touch
+    (tools/figma/rap/screens.js patched).
+  - No Agent tool in this session → stored audits (`rap/audit`, Cabinet `qsweep/audit`, GEAP `ghs/audit`, eKYC `qsweep/audit-lite`) on
+    every changed block / component: only board baseline left (phone viewport clips, table scroll, pager 1 px, padded Register gap 0,
+    pre-existing Fees list title padding 11); fixed 1 unbound option label fill (Advanced filtering 02b).
