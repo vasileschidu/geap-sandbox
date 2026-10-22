@@ -2486,3 +2486,15 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   with fewer states (alarm 300–500 s each). BO proof: svc-01 / dos-01 header outerHTML identical before / after at 1440
   and 375. Audits: hover 0 / 0 at 1440 + 375, component-audit header clean (avatar menu / act viewer close = standing),
   code-audit only the 11 Large padding + `.u-visually-hidden` FPs, capture 12 × 2 clean.
+- 2026-10-22 · Viewer footer on phones = Medium 40 (viewer-footer-phone-v1; user: „for the mobile act permisiv modal, make
+  the footer buttons smaller”). A size exception for ONE dialog family goes in css/modal-phone.css (loaded last, inside
+  the ≤760 query) scoped by the viewer markers, never in css/dialog-footer.css (that one is every dialog, every width):
+  `.e-permits-detail-modal--doc` (BO / Ghișeu), `.rap-act-modal__dialog` (Cabinet + RAP act), `.cab-doc-modal` overlay
+  (Cabinet documents — the bare `.e-permits-fo-doc-modal` is shared with the FO document PICKER, so scope by the overlay
+  class). Set height AND min-height 40 + font 14/20 + sides 16 / icon side 12 + gap 6 (the FO-shell `__cancel` had gap 8
+  from cabinet-evo.css). Reused the dialog-footer-v1 scratch probe (scratchpad df/probe.mjs + measure.js: footer pad,
+  button h / pad / font / x / y / icon / clip) for before / after at 375 / 320 / 1440 — desktop JSON byte-identical, a
+  confirmation (usr-u03e) still 48, 320 halves 140 + 140 on one row. Full-page capture of a sheet over a long page puts
+  the sheet mid-page (and the probe's clip shot can be blank for sm-05f) — trust the measurements. code-audit must be run
+  with a dialog `--scope` (default `main` misses the dialog); findings were only the standing A4 page padding / FO-shell
+  private buttons. Hover 0 / 0 at 1440 + a 375 copy of hover-audit.

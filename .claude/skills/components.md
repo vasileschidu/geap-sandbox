@@ -234,7 +234,7 @@ but this doc previously described it wrongly, see the entry.
 | Separator | `.separator` + orientation + thickness + style | — | library |
 | Link | `.link` + `.link-primary/-strict/-white` + `.link-xs/-sm/-md/-lg` | `link.html` | library |
 | **Skeleton — ONE loading placeholder** (skeleton-v1; FO lookups, registry / SRRE fills, grid source, subject switch, page reveal auth / choice / step, BO sync summary) | `span.skeleton` + `--text` (1lh, r4, short line) / `--input` (40, phones 48, r8) / `--block` (r12, height from the slot) / `--circle` (24, round); `css/skeleton.css` loaded right after the library CSS; size = placement rules of the owner; containers `aria-hidden` + `aria-busy` region | section „Skeleton — ONE loading placeholder” | app |
-| **Dialog footer — ONE size, the library Modal › Footer** (dialog-footer-v1, 2026-10-21; every dialog: library `.modal`, drawer, FO confirm card, FO dialog shell) | footer 12 · 20 · 24 · 20 (phones 12 · 16 · max(16, safe area)), right-aligned, gap 8; buttons **Large 48 pill, 16/24 medium, sides 20 (16 on the icon side), icon 20**; secondary `btn-neutral` (grey), main `btn-primary` / `btn-destructive`; phones = two equal halves that wrap, primary on top; markup unchanged (`.modal--footer > .modal-buttons > .btn.btn-rounded`) | `css/dialog-footer.css` (loaded right before `css/modal-phone.css`); section „Dialog footer — the library size” | app |
+| **Dialog footer — ONE size, the library Modal › Footer** (dialog-footer-v1, 2026-10-21; every dialog: library `.modal`, drawer, FO confirm card, FO dialog shell) | footer 12 · 20 · 24 · 20 (phones 12 · 16 · max(16, safe area)), right-aligned, gap 8; buttons **Large 48 pill, 16/24 medium, sides 20 (16 on the icon side), icon 20**; secondary `btn-neutral` (grey), main `btn-primary` / `btn-destructive`; phones = two equal halves that wrap, primary on top; **document / act viewers on phones = Medium 40 · 14/20** (viewer-footer-phone-v1, `css/modal-phone.css` § 7b); markup unchanged (`.modal--footer > .modal-buttons > .btn.btn-rounded`) | `css/dialog-footer.css` (loaded right before `css/modal-phone.css`); section „Dialog footer — the library size” | app |
 | **Drawer — ONE right-hand panel** (drawer-v1; every BO / eKYC / Process Designer side panel) | `.drawer-overlay[hidden]` > `button.drawer-overlay__scrim` + `aside.drawer(.drawer--lg)[role=dialog][aria-modal][tabindex=-1]` > `header.drawer__header` (`.drawer__heading` > `h2.drawer__title` + `p.drawer__subtitle`, library `.modal-close`) · [strips] · `.drawer__body` (the only scroller) · `footer.drawer__footer` > `.modal-buttons`; `css/drawer.css` + `js/drawer.js` (`GEAPDrawer`: focus trap, Escape → the drawer's own ×, focus return); inner form vocabulary stays `.e-permits-user-create__section / __grid / __field` | section „Drawer — ONE right-hand panel” | app |
 | **Tooltip — ONE runtime** (plain + hint; every tooltip in the product, tooltip-one-v1) | library `.tooltip.tooltip--small.tooltip--plain` / `.tooltip--{top\|bottom}-center` + arrow, ONE node `#icon-tooltip` placed by `js/icon-tooltip.js` (`GEAPTooltip`); opt-in `data-tooltip-label / -text / -reason / -hint`, `data-cell-tooltip` (cut text), `data-tooltip-placement`; never `title=` | section „Tooltip — ONE runtime” · `tooltip.html` | app |
 | Header | `.header .header__wrapper` | `header.html` | library (partial) |
@@ -1051,6 +1051,14 @@ the same sizes. Not covered: the full-screen editors' own bars (Form Builder, `.
   filled destructive with the trash for Șterge / Elimină) — the library footer holds 1–2 actions; a third secondary
   destructive („Închide fără salvare”) stays only where the choice is real (leave dialogs).
 - Do not size footer buttons per dialog again; do not add `btn-sm` / `btn-md` inside a footer.
+- **Exception — the document / act viewer on phones = Medium 40** (viewer-footer-phone-v1, 2026-10-22; user: „for the
+  mobile act permisiv modal, make the footer buttons smaller”): at ≤760 the viewer footers (BO / Ghișeu
+  `.e-permits-detail-modal--doc`, the act dialog `.rap-act-modal__dialog` = Cabinet „Vizualizare act” + RAP „Forma de
+  tipar”, the Cabinet document dialog `.cab-doc-modal`) take **40 · 14/20 medium · sides 16 (12 on the icon side) · gap
+  icon–label 6 · icon 20**, pill, still two equal halves (gap 8) with the footer 12 · 16 · max(16, safe area) — CSS in
+  `css/modal-phone.css` § 7b, markup unchanged. At 320 „Descarcă” + „Închide” fit 140 + 140 on one line. Every other
+  dialog footer (confirmations, forms, drawers) keeps Large 48 on phones; desktop viewers keep 48. Measured: pp-01m,
+  rap-03l, dos-04s, sm-05f, gh-10d at 375 / 320 = 40 · 14/20; 1440 identical before / after; usr-u03e confirm still 48.
 
 ### Modals on phones — maximum content space (2026-10-19)
 
