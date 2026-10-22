@@ -243,7 +243,7 @@
         <!-- the shared page header (rap-header-v1, 2026-10-22, user: „the same changes with the header [as the Cabinet
              profiles]: remove the padding, and the same with the actions”): js/page-header.js (GEAPPageHeader, the BO
              renderer) — breadcrumb (parents only) · H1 (wraps) · the action row UNDER the title (actionsPlacement
-             "below": long names are never squeezed beside it; one primary, Medium 40 / phones 48) · the details.
+             "below": long names are never squeezed beside it; one primary, Medium 40 — phones too) · the details.
              Phones: phoneTitle "compact" = H1 20/28, a long name stops at 4 lines with „Mai mult / Mai puțin”
              (js/name-expand.js multi-line mode, scanned after the render).
              The public registry has no location line: the object's address is a specific field, behind „Vezi act

@@ -456,7 +456,8 @@
    actionsPlacement "below" (user: „put the actions down too … for long names, being on the side is not okay”): the
    action row sits under the title / location — 16 under them (the heading's 8 gap + 8), left-aligned, 8 apart —
    and the details row follows 16 under it. Order title → location → actions → details = the BO header's own phone
-   order; the buttons keep the page's size (Cabinet: library Medium 40, the touch 48 on phones). */
+   order; the buttons keep the page's size (Cabinet + RAP: library Medium 40, phones too —
+   profile-header-phone-medium-v1). */
 .e-permits-page-header__actions--below {
   align-items: center;
   display: flex;

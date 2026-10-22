@@ -1330,7 +1330,7 @@
      H1 (wraps: never truncated on its own page) + the location line with the filled tertiary pin (type-first-v1) ·
      the action row · the meta row. header-actions-below-v1 (2026-10-22, user: „put the actions down too … for long
      names, being on the side is not okay”): the action row sits UNDER the title / location at every width
-     (actionsPlacement "below": left-aligned, library Medium 40 — 48 on phones —, one primary, neutral secondaries, ⋯),
+     (actionsPlacement "below": left-aligned, library Medium 40 — phones too —, one primary, neutral secondaries, ⋯),
      then the details; on phones the H1 is 20/28 and stops at 4 lines with „Mai mult” (phoneTitle "compact", user:
      „on mobile the title smaller, too big now”). Immediate actions (pay, send information, appeal, continue a draft) stay in the request's status
      notice. The catalog service keeps pageHeader (the public header, as RAP). */

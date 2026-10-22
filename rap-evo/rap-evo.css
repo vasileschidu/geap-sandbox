@@ -610,23 +610,24 @@ a {
 }
 
 @media (max-width: 760px) {
-  /* the touch size = the library Large (Figma 39:177): 48 · 16/24 · icon 20 · radius 8, 16 on the icon side; the
-     primary fills the row (= the BO / Cabinet phone header actions, e-permits-acte-permisive.css profile-phone-v1) */
+  /* the library Medium (Figma 39:177): 40 · 14/20 · icon 20 · radius 8, 12 on the icon side
+     (profile-header-phone-medium-v1, 2026-10-22, user on Figma 22083:24857: „use medium button not large”; was Large
+     48); the primary fills the row (= the BO / Cabinet phone header actions, e-permits-acte-permisive.css profile-phone-v1) */
   .rap-profile__header .e-permits-page-header__actions--below > .btn {
     --btn-icon-size: var(--icon-size-medium, 20px);
     border-radius: var(--border-radius-8, 8px);
     flex: 1 1 auto;
-    font-size: var(--font-size-fs-16, 16px);
+    font-size: var(--font-size-fs-14, 14px);
     height: auto;
-    line-height: var(--line-height-lh-24, 24px);
+    line-height: var(--line-height-lh-20, 20px);
     max-width: 100%;
-    min-height: var(--spacing-48, 48px);
-    padding: calc(var(--spacing-12, 12px) - var(--border-width-1, 1px)) var(--spacing-20, 20px);
+    min-height: var(--spacing-40, 40px);
+    padding: var(--spacing-8, 8px) var(--spacing-16, 16px);
     white-space: normal;
   }
 
   .rap-profile__header .e-permits-page-header__actions--below > .btn:not(.btn-icon-only):has(> svg.icon:first-child) {
-    padding-left: var(--spacing-16, 16px);
+    padding-left: var(--spacing-12, 12px);
   }
 }
 

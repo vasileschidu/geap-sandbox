@@ -1342,8 +1342,9 @@
     "pp-01p": ppCab(async (h) => { await cabFind(h, "act-licenta-demo"); await h.click("[data-cab-card='act-licenta-demo'] [data-cab-menu-trigger]"); }),
     /* the profile's visible menu trigger: „Postprocese ⌄” on desktop, the overflow „⋯” on phones (act-profile-v1) */
     /* external-link-v1 (2026-10-22): „Vezi solicitarea” = label + trailing external icon, new tab; on phones it sits in the
-       header „⋯” (opened here), on desktop it is the header button */
-    "pp-01r": ppCab(async (h) => {
+       header „⋯” (opened here; 320 — at 375 both buttons fit since profile-header-phone-medium-v1), on desktop it is the
+       header button. Was a second "pp-01r" key, silently overridden by the hover state below → pp-03h */
+    "pp-03h": ppCab(async (h) => {
       await h.click("[data-cab-card='act-izvoras'] .e-permits-fo-lib-item__title");
       await h.wait(300);
       const more = [...document.querySelectorAll("[data-cab-detail] .cab-act-header__overflow [data-cab-menu-trigger]")].find((el) => el.getClientRects().length);
@@ -2224,8 +2225,9 @@
        and on the details page */
     "sm-03i": sm(async (h) => { await smFind(h, "d-spicul"); await h.click('[data-sm-card="d-spicul"] .e-permits-fo-lib-item__title'); await h.wait(300); }),
     "sm-03a": smDosar("d-spicul", async (h) => { await smHeadAct(h, "delete"); }),
-    /* profile-phone-v1: the draft's header on phones — „Continuă schița” (48, fills the row) + „⋯” open with „Elimină
-       schița” (red, priority+); desktop shows both buttons, nothing to open */
+    /* profile-phone-v1: the draft's header on phones — „Continuă schița” (fills the row) + „⋯” open with „Elimină
+       schița” (red, priority+) at 320; at 375 and on desktop both buttons fit (Medium 40, profile-header-phone-medium-v1),
+       nothing to open */
     "sm-03p": smDosar("d-spicul", async (h) => {
       await h.wait(400);
       if ([...document.querySelectorAll("[data-sm-profile] .cab-act-header__overflow [data-cab-menu-trigger]")].some((el) => el.getClientRects().length)) await h.click("[data-sm-profile] .cab-act-header__overflow [data-cab-menu-trigger]");

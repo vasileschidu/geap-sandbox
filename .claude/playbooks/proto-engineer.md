@@ -2570,3 +2570,19 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   avatar trigger is the library `.avatar.avatar--md.avatar--initials` as the button itself. Left: the instance-switcher panel
   internals (standing) and the filter-sheet section trigger. (5) Another agent re-bumped my `?v=` keys mid-job → every edit
   kept as an asserted script and the commit blobs built from HEAD + those scripts (hash-object / update-index).
+- 2026-10-22 · Page-header actions on phones = Medium 40, not Large 48 (profile-header-phone-medium-v1; user on RAP Figma
+  22083:24857: „use medium button not large — update everywhere, code and figma”). Two rules carried the phone size: the
+  shared ≤760 `.e-permits-page-header__actions .btn:is(.btn-sm, .btn-md)` block in e-permits-acte-permisive.css (BO +
+  Cabinet; RAP does NOT load that file) and RAP's restated `.rap-profile__header … __actions--below > .btn` in rap-evo.css
+  → both now 14/20 · padding 8 16 · min-height 40 (height auto: a wrapped BO label still grows it) · 12 on the icon side ·
+  icon-only „⋯” 40 square; bo-profile-parts / JS only had comments. Proof = a header-action probe (scratchpad phm/
+  probe.mjs + measure.js: per button x, w × h, padding, font, radius, icon) over 11 states × 375 / 320 / 1440 before /
+  after: every 1440 row byte-identical, every phone button 40. Side effect to REPORT, not hide: priority+ now fits more
+  at 375 (pp-03 „Vezi solicitarea”, sm-03 „Elimină schița” leave the „⋯”), so the phone „⋯ open” demos only open at 320
+  — their comments + components.md say so. Found while checking those demos: js/demo-states.js had TWO "pp-01r" keys
+  (external-link-v1 added the „⋯ open” one, the later hover state silently overrode it — an object literal keeps the last
+  key, no error) → renamed the first to pp-03h. Lesson: after adding a demo id, `grep -c '"<id>"' js/demo-states.js` must
+  be 1. rap-03* are the act MODALS over the profile; the RAP profile header itself = rap-02 / 02a / 02d. Every touched file
+  had another agent's uncommitted hunks → HEAD export + the same asserted edit / bump scripts → hash-object / update-index.
+  No sub-agent tool → component-audit (only the standing avatar menu / doc-modal × / shell header / RAP „Vezi toate”),
+  hover-audit 0 / 0 at 1440 + 375 copy on the header scope, code-audit static 0 (svc-01 BO tab arrows = standing).

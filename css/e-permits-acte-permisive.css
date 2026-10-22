@@ -17518,9 +17518,10 @@
     white-space: normal;
   }
 
-  /* header actions on phones = the touch size (profile-phone-v1, 2026-10-21, user: „the action buttons are too
-     small”): the library Large 48 (Figma 39:177 — sides 20, 16 on the icon side, icon 20, gap 6, label 16/24, radius 8;
-     icon-only 48 square) instead of the BO Small 32; the row spans the header and its buttons share the width. Pages with a priority+ „⋯” (EVO Cabinet act + request, fitActActions) keep ONE row; elsewhere (BO) the
+  /* header actions on phones (profile-phone-v1, 2026-10-21, user: „the action buttons are too small” → Large 48;
+     profile-header-phone-medium-v1, 2026-10-22, user on RAP Figma 22083:24857: „use medium button not large — update
+     everywhere”): the library Medium 40 (Figma 39:177 — sides 16, 12 on the icon side, icon 20, gap 6, label 14/20,
+     radius 8; icon-only 40 square) instead of the BO Small 32; the row spans the header and its buttons share the width. Pages with a priority+ „⋯” (EVO Cabinet act + request, fitActActions) keep ONE row; elsewhere (BO) the
      row wraps instead of running off the screen (svc-01 „Publică” sat at x 386 on a 375 screen). */
   .e-permits-page-header__aside {
     align-items: stretch;
@@ -17543,31 +17544,31 @@
   .e-permits-page-header__actions .btn:is(.btn-sm, .btn-md):not(.btn-rounded):not(.btn-pill) {
     --btn-icon-size: var(--icon-size-medium, 20px);
     border-radius: var(--border-radius-8, 8px);
-    font-size: var(--font-size-fs-16, 16px);
+    font-size: var(--font-size-fs-14, 14px);
     height: auto;
-    line-height: var(--line-height-lh-24, 24px);
+    line-height: var(--line-height-lh-20, 20px);
     max-width: 100%;
-    min-height: var(--spacing-48, 48px);
-    padding: calc(var(--spacing-12, 12px) - var(--border-width-1, 1px)) var(--spacing-20, 20px);
+    min-height: var(--spacing-40, 40px);
+    padding: var(--spacing-8, 8px) var(--spacing-16, 16px);
     /* a label longer than the row (BO „Distribuirea dosarului (manuală)” at 320) wraps inside the button, never past
        the gutter */
     white-space: normal;
   }
 
   .e-permits-page-header__actions .btn:is(.btn-sm, .btn-md):not(.btn-rounded):not(.btn-pill, .btn-icon-only):has(> svg.icon:first-child) {
-    padding-left: var(--spacing-16, 16px);
+    padding-left: var(--spacing-12, 12px);
   }
 
   .e-permits-page-header__actions .btn:is(.btn-sm, .btn-md):not(.btn-rounded):not(.btn-pill, .btn-icon-only):has(> * + svg.icon:last-child) {
-    padding-right: var(--spacing-16, 16px);
+    padding-right: var(--spacing-12, 12px);
   }
 
   .e-permits-page-header__actions .btn.btn-icon-only:is(.btn-sm, .btn-md):not(.btn-rounded):not(.btn-pill) {
-    flex: 0 0 var(--spacing-48, 48px);
-    height: var(--spacing-48, 48px);
+    flex: 0 0 var(--spacing-40, 40px);
+    height: var(--spacing-40, 40px);
     min-width: 0;
     padding: 0;
-    width: var(--spacing-48, 48px);
+    width: var(--spacing-40, 40px);
   }
 }
 
