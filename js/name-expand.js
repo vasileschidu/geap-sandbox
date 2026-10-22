@@ -10,7 +10,12 @@
    Host contract: any element with `data-name-expand` (an h1 keeps its heading role; the button sits
    inside it). Set its text with GEAPNameExpand.set(host, text) — never with textContent, which
    would also read / wipe the toggle. Hosts are picked up on load; set() / scan(root) add later ones.
-   Same vocabulary as the RAP act dialog subtitle („Mai mult” / „Mai puțin”, js/act-view.js). */
+   Same vocabulary as the RAP act dialog subtitle („Mai mult” / „Mai puțin”, js/act-view.js).
+
+   Multi-line mode (header-actions-below-v1, 2026-10-22; the profile H1 on phones): a host with
+   `data-name-expand-lines` wraps instead of one line and stops at `--name-expand-lines` lines (CSS,
+   unset = no limit → never a toggle); „cut” = the clamped text is taller than its box, and „Mai mult ⌄”
+   sits on its own line under the clamped name. Same toggle, same expand in place. */
 (() => {
   if (window.GEAPNameExpand) return;
 
@@ -47,7 +52,9 @@
     if (!box || !text) { host.innerHTML = html(textOf(host), false); sync(host); return; }
     if (!text.clientWidth) return; /* hidden: the ResizeObserver runs again once it shows */
     box.classList.add("is-measuring");
-    const cut = text.scrollWidth > text.clientWidth + 1;
+    const cut = host.hasAttribute("data-name-expand-lines")
+      ? text.scrollHeight > text.clientHeight + 1
+      : text.scrollWidth > text.clientWidth + 1;
     box.classList.remove("is-measuring");
     if (cut === !!toggle) return;
     const hadFocus = toggle && toggle === document.activeElement;

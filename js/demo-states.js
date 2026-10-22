@@ -2266,6 +2266,9 @@
     "sm-05u": smDosar("d-bistro", null, { "tacit-dosar": "d-bistro" }),
     /* cabinet-header-v1: a VERY long service name (221 characters) in the BO header and in the list row */
     "sm-05w": smDosar("d-izvoras", null, { "titlu-lung": "d-izvoras" }),
+    /* header-actions-below-v1: the same long name on a phone (≤760) with the 4-line H1 expanded („Mai puțin ⌃”); desktop
+       shows the full name and no toggle, so nothing to click there */
+    "sm-05x": smDosar("d-izvoras", async (h) => { await h.wait(300); if (document.querySelector("#sm-profile-title [data-name-expand-toggle]")) await h.click("#sm-profile-title [data-name-expand-toggle]"); }, { "titlu-lung": "d-izvoras" }),
     "sm-01r": sm(async (h) => { await smFind(h, "d-izvoras"); }, { "titlu-lung": "d-izvoras" }),
     "sm-05p": smDosar("d-izvoras-dup", async (h) => { await h.click('[data-sm-tab="act"]'); }),
     "sm-05q": smDosar("d-piata-susp", async (h) => { await h.click('[data-sm-tab="act"]'); }),

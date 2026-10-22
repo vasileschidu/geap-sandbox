@@ -876,32 +876,32 @@
   }
 
   /* cabinet-header-v1 (user: „the header as in Configurări servicii and Dosarele, with the actions on top”, then „all
-     actions should be in the header, as in BO”): EVERY action of the request is the BO header's right-aligned action
-     row (BO Small buttons). The immediate one — continue the draft, send the information, pay, appeal a refusal — is
+     actions should be in the header, as in BO”): EVERY action of the request is the header's action
+     row (under the title since header-actions-below-v1, library Medium 40 / 48 on phones). The immediate one — continue the draft, send the information, pay, appeal a refusal — is
      THE primary; see the act is the primary of an approved request; the rest are neutral; removing a draft is red.
      The status notice in the trajectory card only explains. Never the same action twice. */
   function headerActions(dosar) {
     const buttons = [];
-    const download = (kind, label) => `<button class="btn btn-neutral btn-sm" type="button" data-sm-action="download" data-sm-kind="${kind}" data-sm-id="${escape(dosar.id)}">${icon("icon-export")}<span>${escape(label)}</span></button>`;
-    const appeal = (variant) => `<a class="btn ${variant} btn-sm" href="${escape(foUrl(dosar, "appeal"))}" data-sm-action="appeal">${icon("icon-judge-gavel")}<span>Depune contestație</span></a>`;
+    const download = (kind, label) => `<button class="btn btn-neutral btn-md" type="button" data-sm-action="download" data-sm-kind="${kind}" data-sm-id="${escape(dosar.id)}">${icon("icon-export")}<span>${escape(label)}</span></button>`;
+    const appeal = (variant) => `<a class="btn ${variant} btn-md" href="${escape(foUrl(dosar, "appeal"))}" data-sm-action="appeal">${icon("icon-judge-gavel")}<span>Depune contestație</span></a>`;
     switch (dosar.status) {
       case "schita":
-        buttons.push(`<a class="btn btn-primary btn-sm" href="${escape(foUrl(dosar, "draft"))}" data-sm-action="continue">${icon("icon-edit")}<span>Continuă schița</span></a>`);
-        buttons.push(`<button class="btn btn-outline-destructive btn-sm" type="button" data-sm-action="delete" data-sm-id="${escape(dosar.id)}">${icon("icon-delete")}<span>Elimină schița</span></button>`);
+        buttons.push(`<a class="btn btn-primary btn-md" href="${escape(foUrl(dosar, "draft"))}" data-sm-action="continue">${icon("icon-edit")}<span>Continuă schița</span></a>`);
+        buttons.push(`<button class="btn btn-outline-destructive btn-md" type="button" data-sm-action="delete" data-sm-id="${escape(dosar.id)}">${icon("icon-delete")}<span>Elimină schița</span></button>`);
         break;
       case "info":
-        if (dosar.info?.until >= TODAY) buttons.push(`<a class="btn btn-primary btn-sm" href="${escape(foUrl(dosar, "supplement"))}" data-sm-action="supplement">${icon("icon-page-upload")}<span>Suplinește informații</span></a>`);
+        if (dosar.info?.until >= TODAY) buttons.push(`<a class="btn btn-primary btn-md" href="${escape(foUrl(dosar, "supplement"))}" data-sm-action="supplement">${icon("icon-page-upload")}<span>Suplinește informații</span></a>`);
         break;
       case "achitare":
         /* US-135 AC-14: no redirect to MPay for an expired note — no button; the notice says why */
-        if (!paymentExpired(dosar)) buttons.push(`<button class="btn btn-primary btn-sm" type="button" data-sm-action="pay" data-sm-id="${escape(dosar.id)}">${icon("icon-credit-card")}<span>Achită ${escape(money(dosar.payment?.amount))}</span></button>`);
+        if (!paymentExpired(dosar)) buttons.push(`<button class="btn btn-primary btn-md" type="button" data-sm-action="pay" data-sm-id="${escape(dosar.id)}">${icon("icon-credit-card")}<span>Achită ${escape(money(dosar.payment?.amount))}</span></button>`);
         break;
       case "finalizat":
         if (dosar.result === "respins") {
           if (canAppeal(dosar)) buttons.push(appeal("btn-primary"));
           buttons.push(download("decizie", "Descarcă decizia"));
         } else if (dosar.actId) {
-          buttons.push(`<a class="btn btn-primary btn-sm" href="${escape(cabUrl("acte", { act: dosar.actId }))}" data-sm-action="act">${icon("icon-page-text")}<span>Vezi actul</span></a>`);
+          buttons.push(`<a class="btn btn-primary btn-md" href="${escape(cabUrl("acte", { act: dosar.actId }))}" data-sm-action="act">${icon("icon-page-text")}<span>Vezi actul</span></a>`);
           buttons.push(download(dosar.decisionOnly ? "decizie" : "act", dosar.decisionOnly ? "Descarcă decizia" : "Descarcă actul"));
           if (canAppeal(dosar)) buttons.push(appeal("btn-neutral"));
         }
@@ -915,7 +915,7 @@
     if (!secondaries.length) return buttons.join("");
     return `${buttons.map((html) => (html.includes("btn-primary") ? html : html.replace(/^<(a|button) /, "<$1 data-cab-header-item "))).join("")}
         <div class="e-permits-fo-intent-act__action cab-act-header__overflow" hidden>
-          <button class="btn btn-neutral btn-sm btn-icon-only" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="sm-header-more" aria-label="Mai multe acțiuni" data-cab-menu-trigger>${icon("icon-more-horizontal")}</button>
+          <button class="btn btn-neutral btn-md btn-icon-only" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="sm-header-more" aria-label="Mai multe acțiuni" data-cab-menu-trigger>${icon("icon-more-horizontal")}</button>
           <ul class="e-permits-fo-intent-menu e-permits-stack__menu cab-menu" id="sm-header-more" role="menu" aria-label="Mai multe acțiuni" hidden></ul>
         </div>`;
   }

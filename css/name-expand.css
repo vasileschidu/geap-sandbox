@@ -104,6 +104,33 @@ button.e-permits-name-expand[aria-expanded="true"] .e-permits-name-expand__more 
   }
 }
 
+/* ---- Multi-line mode (header-actions-below-v1, 2026-10-22): host [data-name-expand-lines] ----
+   The name wraps and stops at --name-expand-lines lines (set by the placement; unset = no limit, so no
+   toggle); collapsed, „Mai mult ⌄” sits on its own line under the clamped name, 4 below it. */
+[data-name-expand-lines] > .e-permits-name-expand {
+  display: block;
+}
+
+[data-name-expand-lines] > .e-permits-name-expand > .e-permits-name-expand__text {
+  -webkit-box-orient: vertical;
+  display: -webkit-box;
+  -webkit-line-clamp: var(--name-expand-lines, none);
+  line-clamp: var(--name-expand-lines, none);
+  overflow: hidden;
+  overflow-wrap: break-word;
+  white-space: normal;
+}
+
+[data-name-expand-lines] > button.e-permits-name-expand[aria-expanded="false"] > .e-permits-name-expand__more {
+  display: flex;
+  margin-top: var(--spacing-4, 4px);
+  width: max-content;
+}
+
+[data-name-expand-lines] > .e-permits-name-expand.is-measuring > .e-permits-name-expand__more {
+  display: none;
+}
+
 /* ---- FO request header (top bar service title): the h1 hosts the toggle ---- */
 .e-permits-fo-auth__service-title-row h1[data-name-expand] {
   overflow: visible;

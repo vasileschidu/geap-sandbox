@@ -2466,3 +2466,23 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   (below row, compact phone title, the 16 beneficiary card) in `expected`. No sub-agent tool → hover (0 / 0), code-audit
   (BO 11 / 7, Large 11, visually hidden — standing), component-audit (header clean; „Vezi toate” link + filter-sheet section
   trigger = pre-existing) run directly.
+- 2026-10-22 · Header actions below the title + compact phone H1 + one start with the list (header-actions-below-v1; user:
+  „put the actions down too, for the profiles of acts and requests — for long names, being on the side is not okay”,
+  „on mobile make the title in the profile smaller, too big now”, „breadcrumb / title in the same place on lists and
+  profiles”). (1) A parallel agent (RAP header job) had ALREADY added `actionsPlacement: "below"` to js/page-header.js
+  in the working tree when I opened the file → I adopted its markup (actions = last child of `__heading`, no `__aside`)
+  instead of a second option, and added only `phoneTitle: "compact"`; the option CSS went into css/bo-profile-parts.css
+  (loaded by Cabinet AND RAP) so both pages share it. Lesson: `git diff` every shared file right before editing it, and
+  ask „is someone building the same option right now?” — one option, one name. (2) Order title → location → actions →
+  details was proven, not argued: the BO header's own phone layout (svc-01 / dos-01 at 375) is already title → actions
+  → details. (3) The 4-line clamp reused js/name-expand.js with a MULTI-LINE mode (`[data-name-expand-lines]` +
+  `--name-expand-lines`, cut = scrollHeight > clientHeight) — the same toggle, the same expand in place; the clamp
+  var is set only ≤760 so desktop measures „not cut” and never shows a toggle (ResizeObserver flips it on resize).
+  The FO one-line mode (pp-18 / 18a) captured clean. (4) Priority+ room: when the row moves under the title, measure
+  the heading width (the old „half the title row” would have hidden secondaries at 1440). (5) Same-place check = a tiny
+  CDP probe of breadcrumb / h1 boxes on list vs profile at 4 widths: (120,136)/172 at 1440, (24,136)/172 at 1024,
+  (16,89)/125 at 375 / 320 — list title y = profile breadcrumb y. (6) Long-running audits started in ONE background
+  shell with `wait` died together when the shell was moved to the background — run audits per tool in the foreground
+  with fewer states (alarm 300–500 s each). BO proof: svc-01 / dos-01 header outerHTML identical before / after at 1440
+  and 375. Audits: hover 0 / 0 at 1440 + 375, component-audit header clean (avatar menu / act viewer close = standing),
+  code-audit only the 11 Large padding + `.u-visually-hidden` FPs, capture 12 × 2 clean.

@@ -431,3 +431,32 @@
     max-width: none;
   }
 }
+
+/* ---- Page header options (header-actions-below-v1, 2026-10-22; js/page-header.js, components.md › „Page header —
+   one renderer”). Shared by the pages that load this file (EVO Cabinet act + request profiles, RAP act profile); the
+   BO keeps the default (actions right-aligned on the title row, BO title size). ----
+   actionsPlacement "below" (user: „put the actions down too … for long names, being on the side is not okay”): the
+   action row sits under the title / location — 16 under them (the heading's 8 gap + 8), left-aligned, 8 apart —
+   and the details row follows 16 under it. Order title → location → actions → details = the BO header's own phone
+   order; the buttons keep the page's size (Cabinet: library Medium 40, the touch 48 on phones). */
+.e-permits-page-header__actions--below {
+  align-items: center;
+  display: flex;
+  gap: var(--spacing-8, 8px);
+  margin-top: var(--spacing-8, 8px);
+}
+
+.e-permits-page-header__top:has(.e-permits-page-header__actions--below) + .e-permits-page-header__meta {
+  padding-top: var(--spacing-16, 16px);
+}
+
+/* phoneTitle "compact" (user: „on mobile the title in the profile smaller, too big now”): phones get the H4 step
+   20/28 (desktop keeps 24/32) and a long name stops at 4 lines with the name-expand toggle (css/name-expand.css
+   multi-line mode) */
+@media (max-width: 760px) {
+  .e-permits-page-header__title.e-permits-page-header__title--compact {
+    --name-expand-lines: 4;
+    font-size: var(--font-size-fs-20, 20px);
+    line-height: var(--line-height-lh-28, 28px);
+  }
+}

@@ -1579,6 +1579,29 @@ button.cab-alert-link {
   align-items: flex-start;
 }
 
+/* one start with the list (header-actions-below-v1, 2026-10-22, user: „the breadcrumb / title in the same place on the
+   lists and the profiles”, = RAP rap-header-v1): the act / request profile keeps the list's page padding (32 · 24;
+   phones 24 · 16 — the 0 top of the catalog service's public header does not apply), the header adds NO inset, and
+   breadcrumb → title is 16 (the heading's 8 + 8) → the breadcrumb sits where the list title sits and the H1 one
+   breadcrumb row + 16 lower, at the same x */
+.cab-main:has(.cab-profile-header:not([hidden] *)) {
+  padding-top: var(--spacing-32, 32px);
+}
+
+.cab-profile-header .e-permits-page-header__body {
+  padding: 0;
+}
+
+.cab-profile-header .e-permits-page-header__heading > .breadcrumbs {
+  margin-bottom: var(--spacing-8, 8px);
+}
+
+@media (max-width: 760px) {
+  .cab-main:has(.cab-profile-header:not([hidden] *)) {
+    padding-top: var(--spacing-24, 24px);
+  }
+}
+
 /* phones: a value with a muted remark („15 septembrie 2028 (704 zile rămase)”) flows as text in its half column —
    the date never breaks word by word beside the remark */
 @media (max-width: 760px) {

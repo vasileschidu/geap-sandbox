@@ -1002,21 +1002,21 @@
     const issuing = issuingDossierOf(act);
     const notice = actNotice(act);
     const statusDate = actHeaderDate(act);
-    /* the BO header's action row (cabinet-header-v1): right-aligned on the title row, BO Small buttons, in priority
-       order (primary · Postprocese · Vezi solicitarea); what does not fit goes into a trailing „⋯” (fitActActions) */
+    /* the header's action row (cabinet-header-v1; under the title since header-actions-below-v1, library Medium 40), in
+       priority order (primary · Postprocese · Vezi solicitarea); what does not fit goes into a trailing „⋯” (fitActActions) */
     const actions = [
-      `<button class="btn btn-primary btn-sm" type="button" aria-haspopup="dialog" data-cab-view-act="${escape(act.id)}">${icon("icon-eye-open")}<span>Vezi act permisiv</span></button>`,
+      `<button class="btn btn-primary btn-md" type="button" aria-haspopup="dialog" data-cab-view-act="${escape(act.id)}">${icon("icon-eye-open")}<span>Vezi act permisiv</span></button>`,
       act.postProcesses.length ? `
         <div class="e-permits-fo-intent-act__action" data-cab-act-action="postprocese">
-          <button class="btn btn-neutral btn-sm" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="cab-detail-menu" aria-label="Postprocese pentru ${escape(act.label || "")}" data-cab-menu-trigger ${act.pending ? 'disabled aria-describedby="cab-act-notice"' : ""}><span>Postprocese</span>${icon("icon-chevron-bottom")}</button>
+          <button class="btn btn-neutral btn-md" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="cab-detail-menu" aria-label="Postprocese pentru ${escape(act.label || "")}" data-cab-menu-trigger ${act.pending ? 'disabled aria-describedby="cab-act-notice"' : ""}><span>Postprocese</span>${icon("icon-chevron-bottom")}</button>
           <ul class="e-permits-fo-intent-menu e-permits-stack__menu cab-menu" id="cab-detail-menu" role="menu" aria-label="Postprocese" hidden>
             ${window.GEAPActRow.menuItemsHtml(act.postProcesses, (pp) => `data-cab-pp="${escape(pp.id)}" data-cab-act="${escape(act.id)}"`, "../assets/") /* the act rows' items: danger last + separator (action-menu-v1) */}
           </ul>
         </div>` : "",
-      issuing ? `<a class="btn btn-neutral btn-sm" href="${escape(requestHref(issuing.id))}" data-cab-see-dosar data-cab-act-action="request">${icon("icon-page-text")}<span>Vezi solicitarea</span></a>` : "",
+      issuing ? `<a class="btn btn-neutral btn-md" href="${escape(requestHref(issuing.id))}" data-cab-see-dosar data-cab-act-action="request">${icon("icon-page-text")}<span>Vezi solicitarea</span></a>` : "",
       act.postProcesses.length || issuing ? `
         <div class="e-permits-fo-intent-act__action cab-act-header__overflow" hidden>
-          <button class="btn btn-neutral btn-sm btn-icon-only" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="cab-detail-more" aria-label="Mai multe acțiuni" data-cab-menu-trigger>${icon("icon-more-horizontal")}</button>
+          <button class="btn btn-neutral btn-md btn-icon-only" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="cab-detail-more" aria-label="Mai multe acțiuni" data-cab-menu-trigger>${icon("icon-more-horizontal")}</button>
           <ul class="e-permits-fo-intent-menu e-permits-stack__menu cab-menu" id="cab-detail-more" role="menu" aria-label="Mai multe acțiuni" hidden></ul>
         </div>` : "",
     ].filter(Boolean).join("");
@@ -1092,7 +1092,8 @@
      order) and listed in the „⋯” menu — act: Vezi solicitarea, then „Postprocese” as a labelled group (danger last);
      request (profile-phone-v1, 2026-10-21: „the action buttons are too small” → 48 on phones, priority+ instead of a
      wrap): each hidden button as a menu item with the SAME data hooks / href (the page's delegated handlers run
-     unchanged), danger last after a separator. Room (cabinet-header-v1, the BO header): the whole row when the header
+     unchanged), danger last after a separator. Room (cabinet-header-v1, the BO header; the heading width when the row sits under the title,
+     header-actions-below-v1): the whole row when the header
      stacks (phones), else half of the title row — the title keeps the other half and wraps. */
   function fitActActions() {
     const box = [...document.querySelectorAll("[data-cab-profile-header] .e-permits-page-header__actions")].find((el) => el.getClientRects().length);
@@ -1108,7 +1109,9 @@
     if (more) more.hidden = false;
     const top = box.closest(".e-permits-page-header__top");
     const stacked = getComputedStyle(top).flexDirection === "column";
-    const room = stacked ? top.clientWidth : Math.floor(top.clientWidth / 2);
+    /* under the title (header-actions-below-v1): the whole heading width */
+    const below = box.classList.contains("e-permits-page-header__actions--below");
+    const room = below ? box.parentElement.clientWidth : stacked ? top.clientWidth : Math.floor(top.clientWidth / 2);
     const gap = parseFloat(getComputedStyle(box).columnGap) || 0;
     const width = (el) => el.getBoundingClientRect().width;
     const primaryW = primary ? width(primary) : -gap;
@@ -1164,6 +1167,8 @@
   const actActionsObserver = "ResizeObserver" in window ? new ResizeObserver(() => fitActActions()) : null;
   /* after a profile render (act + request): fit now, after the web fonts, and whenever the title row resizes */
   function watchHeaderActions() {
+    /* the phone H1 clamp (phoneTitle "compact"): the name-expand toggle appears only when the name is cut */
+    document.querySelectorAll("[data-cab-profile-header]").forEach((header) => window.GEAPNameExpand?.scan(header));
     fitActActions();
     document.fonts?.ready.then(fitActActions);
     /* every profile title row, also one rendered while its view is still hidden (it fits once it gets a size) */
@@ -1319,8 +1324,11 @@
      as in Administrare › Configurări servicii › 003000023 and Dosarele, with the actions on top, for
      uniformisation”): js/page-header.js (GEAPPageHeader — the renderer the BO uses) — breadcrumb (parents only) ·
      H1 (wraps: never truncated on its own page) + the location line with the filled tertiary pin (type-first-v1) ·
-     the action row right-aligned on the title row (BO Small buttons: one primary, neutral secondaries, ⋯) · the
-     meta row. Immediate actions (pay, send information, appeal, continue a draft) stay in the request's status
+     the action row · the meta row. header-actions-below-v1 (2026-10-22, user: „put the actions down too … for long
+     names, being on the side is not okay”): the action row sits UNDER the title / location at every width
+     (actionsPlacement "below": left-aligned, library Medium 40 — 48 on phones —, one primary, neutral secondaries, ⋯),
+     then the details; on phones the H1 is 20/28 and stops at 4 lines with „Mai mult” (phoneTitle "compact", user:
+     „on mobile the title smaller, too big now”). Immediate actions (pay, send information, appeal, continue a draft) stay in the request's status
      notice. The catalog service keeps pageHeader (the public header, as RAP). */
   function profileHeader({ back, title = "", titleId = "", subtitle = "", subtitleIcon = "", meta = [], actions = "" }) {
     const subtitleHtml = subtitle
@@ -1329,7 +1337,7 @@
     return `
       <header class="e-permits-page-header cab-page-header cab-profile-header" data-cab-profile-header>
         <div class="e-permits-page-header__body">
-          <div class="e-permits-page-header__top">${window.GEAPPageHeader.top({ crumbs: [back, { label: title }], title, titleId, subtitleHtml, wrap: true, actions })}</div>
+          <div class="e-permits-page-header__top">${window.GEAPPageHeader.top({ crumbs: [back, { label: title }], title, titleId, subtitleHtml, wrap: true, actions, actionsPlacement: "below", phoneTitle: "compact" })}</div>
           ${meta.filter(Boolean).length ? `<div class="e-permits-page-header__meta" data-cab-header-meta>${window.GEAPPageHeader.meta(meta)}</div>` : ""}
         </div>
       </header>`;
