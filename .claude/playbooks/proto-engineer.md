@@ -2642,3 +2642,21 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   hover-audit (0 / 0 on 7 popover states), component-audit (0 major after the doc fix; minor converge = popover is not a
   modal, standing), code-audit (standing: search × over the input, sheet „Arată” 11, violet tag), capture 12 states × 2
   (RAP mobile overflow 15 is on plain rap-01 too).
+- 2026-10-22 · Stepper = Figma „Step indicator” + current-step stroke (stepper-current-stroke-v1; user on FOD 756:24789: „all
+  stepper need update with the outer blue stroke for bg”, then „the vertical stepper line connectors — bring it as it was”,
+  „see in Figma”, „wider, round caps, colour different”). (1) The connector „break” was MY lib-align-v1 (57e5da71, 2026-10-21):
+  I re-measured to the GEAP local component „FO stepper · step (vertical)” 11849:7107 (connector touching the previous circle,
+  ol gap 0, item 48) instead of the screen's Step indicator; before it the code had ol gap 8 + item 46.5 (closer). Lesson: when
+  a local component and the screen instances disagree, the SCREEN the user points to wins — and say which one you followed.
+  (2) Figma values without REST (429, retry-after ~4 days) and without get_design_context: MCP get_screenshot at 1x + the zlib
+  PNG reader (scratch sc/pr2.py) on columns / rows gave every number: pill = the 24 row (282 wide, r4, circle at x 1), step pitch
+  54.5 (instances 46.5 + gap 8), line 2 wide at x 11–12, 16 long, 8 under the circle / 6.5 above the next, colour e2e2e2 =
+  #d9d9d9 at 75 % (library vertical .step-desktop: 4082dd = #0058d2 at 75 % for current / completed, ececec incomplete).
+  Decode an off-palette pixel as token × opacity over white before calling it „no token”; in CSS use `opacity: .75` on the
+  token colour (color-mix() reads as „background-not-token” to code-audit). (3) The stroke was NOT in any Figma render (FOD
+  instance, GEAP component, library) — screenshots crop to the node box so an outside stroke is invisible on the node itself:
+  shoot the PARENT and scan the row above the pill. Implemented as the user described (1px `--color-border-brand-default`
+  OUTSIDE = box-shadow) and reported the colour / width as unverified. (4) The FO stepper row had `outline: none` on
+  :focus-visible and NO ring at all — added the library ring outside the stroke. No sub-agent tool → hover-audit 0 / 0
+  (scope `[data-fo-screen='request'] .e-permits-fo-stepper` / `#gh-request-modal .e-permits-fo-stepper`; the generic scope hit a
+  hidden copy again), code-audit 0 on the stepper (static 0), component-audit 0 on the stepper (standing avatar-menu majors).

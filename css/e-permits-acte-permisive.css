@@ -3793,12 +3793,13 @@
   width: 100%;
 }
 
-/* step = 48 as Figma „FO stepper · step (vertical)” 11849:7107 (lib-align-v1, user 2026-10-21): connector 16 right
-   under the previous circle, 8, row 24 — steps stack with no gap (first step = the row only, 24) */
+/* step = Figma „Step indicator” (GEAP 2.0 5848:67682 = FOD 756:24789, stepper-current-stroke-v1, user 2026-10-22):
+   steps 8 apart; each step after the first = 46.5 (connector 16 at the top, 6.5, row 24 at the bottom), so the line
+   keeps 8 below the previous circle and 6.5 above its own — first step = the row only (24); 7 steps = 351 */
 .e-permits-fo-stepper ol {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-0, 0);
+  gap: var(--spacing-8, 8px);
   list-style: none;
   margin: 0;
   padding: 0;
@@ -3808,8 +3809,9 @@
   align-items: flex-start;
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-8, 8px);
-  min-height: var(--spacing-48, 48px);
+  gap: var(--spacing-0, 0);
+  justify-content: space-between;
+  min-height: calc(var(--spacing-48, 48px) - var(--border-width-1-5, 1.5px)); /* 46.5 = Figma step */
   width: 100%;
 }
 
@@ -3837,7 +3839,8 @@
   gap: var(--spacing-12, 12px);
   height: 24px;
   margin: 0;
-  padding: 0;
+  /* the circle sits 1 in from the row edge (Figma Step x 1, label x 37), so it never touches the current step's stroke */
+  padding: 0 0 0 var(--border-width-1, 1px);
   text-align: left;
   width: 100%;
 }
@@ -3847,30 +3850,51 @@
   outline: none;
 }
 
+/* keyboard focus = the library ring (2 white + 2 focus blue), outside the current step's 1px stroke so the two
+   never merge (stepper-current-stroke-v1; the row had no visible focus before) */
+.e-permits-fo-stepper__row:focus-visible {
+  border-radius: var(--border-radius-4, 4px);
+  box-shadow: 0 0 0 var(--border-width-2, 2px) var(--white, #fff),
+    0 0 0 var(--border-width-4, 4px) var(--focus-ring, var(--blue-sky-500, #3379db));
+}
+
+.e-permits-fo-stepper__item.is-active .e-permits-fo-stepper__row:focus-visible,
+.e-permits-fo-stepper__item.is-active .e-permits-fo-stepper__row:focus-visible:hover {
+  box-shadow: 0 0 0 var(--border-width-1, 1px) var(--color-border-brand-default, #0058d2),
+    0 0 0 var(--border-width-3, 3px) var(--white, #fff),
+    0 0 0 calc(var(--border-width-1, 1px) + var(--border-width-4, 4px)) var(--focus-ring, var(--blue-sky-500, #3379db));
+}
+
 .e-permits-fo-stepper__item.is-active .e-permits-fo-stepper__row {
   align-self: stretch;
   background: var(--color-background-brand-secondary, #e8f0fb);
   border: 0;
   border-radius: var(--border-radius-4, 4px);
-  box-shadow: 0 0 0 var(--spacing-8, 8px) var(--color-background-brand-secondary, #e8f0fb);
+  /* the current step = the 24 row only (Figma): light-blue fill + a 1px blue stroke OUTSIDE it (a shadow, so it
+     never eats the row; stepper-current-stroke-v1) */
+  box-shadow: 0 0 0 var(--border-width-1, 1px) var(--color-border-brand-default, #0058d2);
   box-sizing: border-box;
   flex-shrink: 0;
   height: 24px;
-  padding: var(--spacing-0, 0);
+  padding: 0 0 0 var(--border-width-1, 1px);
 }
 
+/* connector = the Figma line: 2 wide, square ends, centred under the circle, border default / brand at 75 %
+   layer opacity (as Figma renders it); the line into the current / a completed step is brand (library .step-desktop) */
 .e-permits-fo-stepper__connector {
-  background: var(--color-border-base-secondary, #b2b2b2);
+  background: var(--color-border-base-default, #d9d9d9);
+  border-radius: 0;
   display: block;
+  flex: 0 0 auto;
   height: 16px;
-  margin-left: 11.5px;
-  width: 1px;
+  margin-left: var(--spacing-12, 12px);
+  opacity: 0.75;
+  width: var(--border-width-2, 2px);
 }
 
 .e-permits-fo-stepper__item.is-active .e-permits-fo-stepper__connector,
 .e-permits-fo-stepper__item.is-completed .e-permits-fo-stepper__connector {
   background: var(--color-border-brand-default, #0058d2);
-  width: 1.5px;
 }
 
 .e-permits-fo-stepper__number {
@@ -6389,7 +6413,7 @@
    button, the phone prefix, a checkbox row, the selects inside the rule builder's value group */
 .e-permits-fo-stepper__item.is-active .e-permits-fo-stepper__row:hover {
   background: var(--color-background-brand-secondary-hover, #d1e1f8);
-  box-shadow: 0 0 0 var(--spacing-8, 8px) var(--color-background-brand-secondary-hover, #d1e1f8);
+  box-shadow: 0 0 0 var(--border-width-1, 1px) var(--color-border-brand-default, #0058d2);
 }
 
 .e-permits-fo-input__icon-button:hover {
@@ -20636,7 +20660,9 @@ button.e-permits-steps-strip__cell:focus-visible {
    (.e-permits-fo-stepper__item.is-active .e-permits-fo-stepper__row) */
 .e-permits-steps-strip__step.is-current .e-permits-steps-strip__cell {
   background: var(--color-background-brand-secondary, #e8f0fb);
-  box-shadow: 0 0 0 var(--spacing-8, 8px) var(--color-background-brand-secondary, #e8f0fb);
+  /* + the 1px blue stroke outside the band (stepper-current-stroke-v1, as the vertical stepper) */
+  box-shadow: 0 0 0 var(--spacing-8, 8px) var(--color-background-brand-secondary, #e8f0fb),
+    0 0 0 calc(var(--spacing-8, 8px) + var(--border-width-1, 1px)) var(--color-border-brand-default, #0058d2);
 }
 
 .e-permits-steps-strip__step.is-current .e-permits-steps-strip__circle {
