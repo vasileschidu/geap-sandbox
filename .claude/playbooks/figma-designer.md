@@ -3228,3 +3228,12 @@ For any „research how other products do it” step, search Mobbin (mcp__mobbin
     the OTHER files' imports of the same component key — each import is a frozen copy of the library at that time.
   - GEAP must publish the `.step-desktop` + `FO stepper · step` change; FOD / Cabinet then accept the update (their newer imports
     would otherwise stay on the INSIDE version).
+- 2026-10-22 · Follow-up „icon containers on the flow page main” (user via coordinator, no node link). Searched for other 2026-10-04
+  sweep casualties: FOD (247 remote mains) and EVO Cabinet (215) hold pre-sweep imports of GEAP components — the ONLY OUTSIDE stroke
+  in any of them is the step band, so no other imported GEAP component lost an OUTSIDE stroke. The intact sweep signature (INSIDE
+  stroke + padding bound to border-width/border-1) is left on one GEAP main: `Flow · annotation` 9796:901 (24 numbered dot, 2 px
+  border/base/subtle ring) → restored OUTSIDE, padding spacing-0, strokesIncludedInLayout off (24 × 24 kept), 19 instances
+  (Workplace 11, App Shell 8). Icon-container scan of every GEAP / FOD page (single icon child ≤ 72: off-centre, overflow,
+  padding 1, INSIDE ring): FO 09 (562), Post-processes, Address, Requestor clean; the 2 px INSIDE rings on stacked avatars
+  (switcher „Arată mai multe” 11532:8017, App Shell 9822:3971) match the library `.avatar-stack` (border 2 px = inside) — left.
+  Lesson: when the user names an area without a link and the first scans are clean, ask for the node link before changing more.
