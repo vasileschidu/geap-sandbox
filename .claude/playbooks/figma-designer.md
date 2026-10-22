@@ -3075,3 +3075,31 @@ For any „research how other products do it” step, search Mobbin (mcp__mobbin
     (72) → phone search 208 vs 244; RAP profile sample data differs from the code (rap-02d number / dates).
   - No Agent tool in this session → stored `rap`/`audit` (run as `new AsyncFunction("R", src)(ids)`): only baseline (phone table
     horizontal-scroll clip, Register gap 0 = padded pager, mixed font in „Results”); connectors 14, unattached 0.
+
+- 2026-10-22 · EVO Cabinet act + request profile headers = code 7ac4e3ff header-actions-below-v1 (file iitScYOwMYjDayuyrm3750; resumed
+  once after an API drop — the first call re-counted rebuilt headers by their `Title block` child, so nothing ran twice). All 68 old
+  `Page header` frames (25 request + 7 act blocks; pp-01m's five size frames) rebuilt by the stored pass „hdr”/„cab” (repo
+  tools/figma/profile-header/cabinet-pass.js, payload = the CDP probe per state, phone = diff from desktop): breadcrumb → title 16 →
+  location 8 (16/map-pin-filled tertiary in a 16 × 24 `Pin`, 16/24 secondary) → actions 16 (fresh library instances: Medium 40 /
+  Large 48, primary FILL on phones, ⋯ = filled-rect Neutral Icon=Only FIXED 48, „Elimină schița” = outlined Destructive) → details
+  16 / 8 (desktop separators = new local `Profile / Header meta separator` 1234:4284, phones copy item full width + 163 / 164);
+  Main top 32 / 24, header inset 0, Container 1200 → breadcrumb (120, 136) / (16, 88) = the list title spot. Requests: `Section ·
+  Stadiul solicitării` → `Section · Status` = traj/lib card + new `Trajectory · callout` set 1234:4319 (Tone Info / Warning / Success /
+  Danger / Neutral, 12 / 16, r 0 0 24 24) in a 0 / 24 `Callout wrap`; phones card 375 edge to edge, p12, no side border, r0. Permits
+  list containers 1024 → 1200 (11 screens; pp-01s popover −88), pp-01q menus re-anchored to the new triggers (Focus state), new block
+  sm-05w 1237:44581 (long name; phone 4-line clamp + `Profile / Title toggle` 1234:4285), 4 notes rewritten, Start here 06 count +
+  line. Lessons:
+  - **An INSTANCE_SWAP property that no layer references does nothing** — `setProperties({Icon})` silently kept the variant glyph
+    (callouts showed ⚠ instead of the card / clock). Swap the nested instance directly and re-colour it, or bind the ref — binding
+    rewrites the default for every variant (see 2026-10-21), so for tone sets with different glyphs swap per instance.
+  - **Library icon-only buttons collapse to the 20 icon when HUG** → FIXED 48 × 48 (40 desktop) right after placing.
+  - **Phone trajectory = the code's widths, not connectors**: 4 steps with „Informații suplimentare” overflow 351 (negative connector
+    width → the whole call rolled back). Probe the step rects at 375, remove the connector instances, FIX each step to its code width
+    (last FILL), text + label pill FILL / centred / HEIGHT; the rail halves draw the line. Steps stacked in code (sm-04j, 5 steps) →
+    the Vertical card.
+  - The traj/lib stored in a file can be older than the repo (Cabinet's has no `snapRow`) — check `Object.keys(TRAJ)` before calling.
+  - Storing a 22 KB builder: `(() => {…}).toString()` inside the call is smaller and safer than a JSON-escaped string; `eval("(" + src + ")()")`.
+  - Not changed (reported): act profile bodies under the header (pp-01j…y: suspension notice, „Ce permite actul”) still pre-date
+    the code; Cabinet phone header bar is 64 (code 65) → phone crumb 88 vs 89.
+  - No Agent tool in this session → stored `qsweep`/`audit` on sm-05, sm-04b, pp-01q (desktop + phone) + the callout set: only
+    baseline (padded sections gap 0, the 812 pp-01q phone viewport); connectors 31, unattached 0.
