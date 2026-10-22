@@ -3125,3 +3125,25 @@ For any „research how other products do it” step, search Mobbin (mcp__mobbin
   - No Agent tool → stored `qsweep`/`audit` (Cabinet: header-evo-desktop / -mobile + sm-01 desktop / phone = only the old Pager
     paddingRight 1) and EVO-WEB stored audit (rap-01a = only the known table-scroll clip / Register gap 0 / mixed „Results”).
 
+
+- 2026-10-22 · „Mobile only” desktop placeholder (job mobile-only-placeholder-v1; user: „a very simple skeleton with a nice text in
+  the centre … as the screen for desktop as well, so we always have alignment”). Local component **`Placeholder / Mobile only
+  (desktop)`** = EVO-WEB RAP `22319:14063` (section „🧩 Mobile only placeholder (2026-10-22)” 22319:11448 on 🧱 Local Components) ·
+  GEAP `12373:364231` (section 12373:364230 on 🧩 Local components). 1440 × 900 (RAP) / 1024 (GEAP), screen-frame rule (clip,
+  radius-16, 4 px OUTSIDE border/base/default), skeleton = header bar + breadcrumb / title / toolbar bars + 5 rows in
+  background/base/secondary on spacing / radius tokens, ABSOLUTE `Message` card (CENTER / CENTER constraints, p 32/40, gap 8,
+  1 px border, r16) with TEXT props `Title` (Desktop/Heading/H5) + `Text` (Desktop/Body/Default, text/base/secondary). The
+  instance goes FIRST in the block's `Screens · desktop + mobile` row and is resized to the column's desktop size (FO 09 1080).
+  Placed: RAP rap-04 / 04a / 04b / 04c / 04d (column 02 restacked at 240, section refit, 14 connectors re-routed, Start here line);
+  GEAP FO 09 F3s / F3t (gap 392 kept), Post-processes 11c (gap 200 kept, 6 blocks below +192). EVO Cabinet: 0 phone-only blocks
+  (all 69 have desktop + phone) → no component built there. Builder + census: tools/figma/mobile-only-placeholder/. Lessons:
+  - **Find phone-only rows by geometry**, not by title: every `Screens…` wrapper with a visible child < 500 wide and none ≥ 1000
+    (skip archive / drafts). A 328 BO side panel (Address C11) matched < 500 — check what the narrow frame is before placing.
+  - **Restack with the column's OWN gaps** (snapshot gaps before inserting, then re-apply): RAP uses 240, FO 09 392, Post-processes
+    200 — a blanket 240 would have pulled two boards out of rhythm. Adding a 1440 desktop also widens the note (FILL), so a block can
+    get SHORTER (rap-04: 1546 → 1526) — always restack, even when the phone is taller than the placeholder.
+  - Absolute centred card in a component: set x / y to whole pixels for the default size and constraints CENTER / CENTER; instance
+    resizes (900 → 1024 / 1080) keep it centred on whole pixels when the card height is even.
+  - Library variables found from a sample screen's bound variables (collection key → `getVariablesInLibraryCollectionAsync`, exact
+    names `spacings/spacing-N`, `border-radius/radius-N`) — same builder works in both files without hard-coded keys.
+  - No Agent tool in this session → figma-audit rules run inline on the 2 components + 9 instances: 0 findings; block gaps re-read.
