@@ -3051,3 +3051,27 @@ For any „research how other products do it” step, search Mobbin (mcp__mobbin
     role combination (Users registry → „Adaugă utilizator” → IDNP → combination), the eKYC SDK row menu with „Retrage din suport” (ek-31 ⋮
     open). No Agent tool → stored gate audits: remaining = canvas diagram overlaps / clips (absolute by nature), capture centring fractions,
     raw 40 % scrims, minimap image (code <canvas>), chip × and below-the-fold empty-state glyphs.
+
+- 2026-10-22 · RAP act profile header + list rhythm = code a26f8bff rap-header-v1 (user: „remove the left / right padding from the
+  header part of the profiles”, EVO-WEB 22083:24817; coordinator: breadcrumb on the same spot on list and profile, actions below the
+  title, even list gaps). EVO-WEB ↳ Registrul actelor permisive: the 52 raw `Page header` frames (26 states × desktop + phone, no
+  component) → stored pass „hdr”/„rap” (repo tools/figma/profile-header/rap-pass.js): padding L/R 0, top 32 / 24 (= the list's
+  breadcrumb spot: (80, 136) / (16, 120)), crumb → title 16, order Heading · Action · Meta, action row 16 under the title (Medium 40 /
+  phones Large 48 FILL), details 16 / 8, phone details = 2 columns 163 + FILL; phone title 20/28 (Desktop/Heading/H4), names over 4
+  lines (11 phones) clamped with ENDING + new local `Profile / Title toggle` 22302:46097 („Mai mult” 14/20 medium brand + 16 chevron,
+  4 under the title, in a `Title block`). List screens (rap-01*, rap-04*): desktop Main gap 0 + per-block top padding 16 · 24 · 16 ·
+  24 · 16, bordered / instance blocks wrapped in transparent „… inset” frames, Pagination 16 all round, stale list subtitle removed
+  (tools/figma/profile-header/rap-list-rhythm.js); rap-01b popover and rap-01e tooltip moved with their anchors. Columns 01 / 02 / 03
+  restacked at 240. Geometry now = code at 1440 / 375 (crumb, title, action, details, search, filter bar, table, pager). Lessons:
+  - **Changing `🎚️ Size` on a placed library button leaves its swapped icon in the ICON token** (dark eye on the blue Large
+    button; `resetOverrides` + re-setting props did not help). Recreate: `main.createInstance()` of the target variant, copy the
+    non-variant props, insert at the index, re-point connectors whose start / end is the old id, remove the old one — the fresh
+    instance resolves icon/base-inverse/on-color. The stored audit's `icon-colour-override` caught it; screenshots at 343 did not.
+  - **Text clamp order**: `textAutoResize = "HEIGHT"` AFTER `textTruncation` / `maxLines` silently resets them → set auto-resize first,
+    then truncation, then maxLines (re-read in a later call — the same call still reports the old height).
+  - „Same breadcrumb spot” = give the profile header the list's page top padding (32 / 24) instead of an inset of its own; check the
+    list and the profile numerically side by side (x / y of crumb + title).
+  - Not changed (reported): the phone list title „Registrul actelor permisive” fits one line in Figma (36) but wraps to two in code
+    (72) → phone search 208 vs 244; RAP profile sample data differs from the code (rap-02d number / dates).
+  - No Agent tool in this session → stored `rap`/`audit` (run as `new AsyncFunction("R", src)(ids)`): only baseline (phone table
+    horizontal-scroll clip, Register gap 0 = padded pager, mixed font in „Results”); connectors 14, unattached 0.
