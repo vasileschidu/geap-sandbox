@@ -2682,3 +2682,21 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   previous element's end padding; (3) zsh `for b in "x y"; set -- $b` does NOT split → pass args explicitly. New demo
   rap-02x (RAP long name expanded on a phone). Hover 0 / 0 (375 copy) on RAP + Cabinet headers, component-audit 0 major
   (evo-header panel converge minors = standing), code-audit 0 (Cabinet: the standing `.u-visually-hidden` FP).
+- 2026-10-22 · Phone sheets = content height (filter-sheet-height-v1; user: „the Filtre on mobile — why so big modal? make it dynamic
+  by height?”). Cause: `.e-permits-filter-sheet.is-all` had a FIXED height (90dvh in facet-filter.css + `100% − gap` in modal-phone.css
+  § 8, „so opening a section does not move the sheet”); the facet / sort sheets already hugged. Fix in the shared GEAPSheet only
+  (js/facet-filter.js + css): both `.is-all` heights deleted; `max-height: calc(100% − var(--modal-phone-gap))` of the sheet box (90vh
+  fallback — % of the fixed `inset: 0` box, not dvh, per the 2026-10-19 lesson); the „don't move” need is met by MOTION instead of a fixed
+  size: `GEAPSheet.morph(el, fn)` (measure → change → measure → `panel.animate` height 200 ms, nothing inline, none with reduced motion)
+  around section toggle / custom-period range / Resetează, and `GEAPSheet.hold(el, true)` on facet-search input (`--geap-sheet-hold` →
+  `min-height: min(hold, 100% − gap)` — plain `min-height` would beat `max-height`) released by the next morph / hide. Keyboard: no
+  visualViewport code existed → ~20 lines: while open, the sheet box's top / bottom follow `visualViewport` (custom props), focused input
+  scrolled into view. Proof without a real keyboard: override `window.visualViewport` with a fake EventTarget (height − 300, getters
+  `configurable: true` or the redefine throws) BEFORE opening → panel bottom 300 above the screen edge, back to 0 on „resize”, props gone
+  on hide. Glide proof = per-rAF height samples in the page (384 → 410 → 492 … 651). Measured 375 × 667 / 812 / 320 × 568 (scratch
+  fs/probe.mjs: topmost open `.bottom-sheet`, panel top / height, body client vs scroll height): before every „Filtre” = full height
+  (651 / 796 / 552); after: eKYC folded 494, Utilizatori 507, Parametri 582, Cabinet acts 564, Autoritate 620, BO dossiers / eKYC
+  sessions still max and scroll. Process: my „before” probe was still running when I edited the files (no-cache server) → the rows after
+  my first edit were AFTER rows; killed it and took the rest from a HEAD worktree on :8977. Take the before table first, or from HEAD.
+  QA: hover 0 / 0 (700 copy), component-audit 0 in the sheets (majors = header avatar / profile menus the tool opened, standing),
+  code-audit standing only (footer „Arată” 11, section trigger, search ×, violet tag), capture 7 × 2 0 errors.

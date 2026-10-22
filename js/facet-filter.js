@@ -165,16 +165,63 @@
     document.body.appendChild(el);
     return el;
   };
+  /* Height = the content (filter-sheet-height-v1, 2026-10-22, user: „why so big? make it dynamic by height”): the
+     panel hugs header + body + footer up to the visible screen minus the top gap; only the body scrolls.
+     - `sheetMorph(el, fn)`: a change that alters the content height (a section opens, a period range shows) glides
+       from the old height to the new one (`el.animate`, nothing left inline; none with reduced motion);
+     - `sheetHold(el, true)`: typing in a facet search keeps the current height (`--geap-sheet-hold`, geometry
+       only) so the sheet does not shrink / grow per keystroke; released by the next morph and on hide;
+     - the on-screen keyboard: while a sheet is open the sheet box follows `visualViewport` (`--geap-sheet-top` /
+       `--geap-sheet-bottom`), so the panel stays above the keyboard and the focused field stays in view. */
+  const sheetPanel = (el) => el.querySelector(".bottom-sheet__panel");
+  const sheetHold = (el, on) => {
+    const panel = sheetPanel(el);
+    if (!on) { panel.style.removeProperty("--geap-sheet-hold"); return; }
+    if (!panel.style.getPropertyValue("--geap-sheet-hold")) panel.style.setProperty("--geap-sheet-hold", `${panel.offsetHeight}px`);
+  };
+  const sheetMorph = (el, fn) => {
+    const panel = sheetPanel(el);
+    const from = panel.offsetHeight;
+    sheetHold(el, false);
+    fn();
+    const to = panel.offsetHeight;
+    if (from === to || el.getAttribute("aria-hidden") !== "false" || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    panel.getAnimations().forEach((a) => { if (a.id === "geap-sheet-morph") a.cancel(); });
+    panel.animate([{ height: `${from}px` }, { height: `${to}px` }], { id: "geap-sheet-morph", duration: 200, easing: "cubic-bezier(.2, 0, 0, 1)" });
+  };
+  let sheetViewportEl = null;
+  const sheetViewportSync = () => {
+    const vv = window.visualViewport;
+    if (!sheetViewportEl || !vv) return;
+    const top = Math.max(0, Math.round(vv.offsetTop));
+    const bottom = Math.max(0, Math.round(window.innerHeight - vv.height - vv.offsetTop));
+    sheetViewportEl.style.setProperty("--geap-sheet-top", `${top}px`);
+    sheetViewportEl.style.setProperty("--geap-sheet-bottom", `${bottom}px`);
+    const active = document.activeElement;
+    if (bottom && active?.matches?.("input") && sheetViewportEl.contains(active)) active.scrollIntoView({ block: "nearest" });
+  };
+  const sheetViewport = (el) => {
+    const vv = window.visualViewport;
+    if (!vv) return;
+    if (sheetViewportEl && sheetViewportEl !== el) { sheetViewportEl.style.removeProperty("--geap-sheet-top"); sheetViewportEl.style.removeProperty("--geap-sheet-bottom"); }
+    if (el && !sheetViewportEl) { vv.addEventListener("resize", sheetViewportSync); vv.addEventListener("scroll", sheetViewportSync); }
+    if (!el && sheetViewportEl) { vv.removeEventListener("resize", sheetViewportSync); vv.removeEventListener("scroll", sheetViewportSync); }
+    sheetViewportEl = el;
+    sheetViewportSync();
+  };
   const sheetShow = (el) => {
     el.hidden = false;
+    sheetHold(el, false);
     void el.offsetHeight; /* the slide-in starts from the closed position */
     el.setAttribute("aria-hidden", "false");
     document.documentElement.classList.add("is-filter-sheet-open");
+    sheetViewport(el);
   };
   /* → the timer that sets `hidden` after the slide-out (isOpen() true again = reopened meanwhile) */
   const sheetHide = (el, isOpen) => {
     el.setAttribute("aria-hidden", "true");
     document.documentElement.classList.remove("is-filter-sheet-open");
+    if (sheetViewportEl === el) { el.style.removeProperty("--geap-sheet-top"); el.style.removeProperty("--geap-sheet-bottom"); sheetViewport(null); }
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     return window.setTimeout(() => { if (!isOpen()) el.hidden = true; }, reduce ? 0 : 300);
   };
@@ -663,7 +710,7 @@
           if (sheet.kind === "facet") delete sheet.sel[sheet.key]; else sheet.sel = {};
           Object.keys(sheet.dates).forEach((key) => { if (sheet.kind !== "facet" || key === sheet.key) sheet.dates[key] = { preset: "", from: "", to: "" }; });
           sheetEl.querySelectorAll("[data-filter-option], [data-filter-date-preset]").forEach((box) => { box.checked = false; });
-          sheetEl.querySelectorAll("[data-filter-range]").forEach((range) => { clearFieldErrors(range); range.hidden = true; range.querySelectorAll("[data-filter-date-input]").forEach((input) => { input.value = ""; input.closest("[data-date-picker]").dataset.selected = ""; }); });
+          sheetMorph(sheetEl, () => sheetEl.querySelectorAll("[data-filter-range]").forEach((range) => { clearFieldErrors(range); range.hidden = true; range.querySelectorAll("[data-filter-date-input]").forEach((input) => { input.value = ""; input.closest("[data-date-picker]").dataset.selected = ""; }); }));
           sheetEl.querySelectorAll("[data-sheet-summary]").forEach((el) => { el.textContent = ""; el.hidden = true; });
           syncSheetFooter();
           sheetEl.querySelector("[data-sheet-apply]").focus();
@@ -678,8 +725,11 @@
           if (open) sheet.expanded.add(key); else sheet.expanded.delete(key);
           toggleBtn.setAttribute("aria-expanded", String(open));
           toggleBtn.querySelector(".e-permits-workplace__filter-caret use").setAttribute("href", `${sprite}#icon-chevron-${open ? "top" : "bottom"}`);
-          panel.innerHTML = open ? sheetFacetHtml(facet) : "";
-          panel.hidden = !open;
+          /* the sheet glides to its new content height (filter-sheet-height-v1) */
+          sheetMorph(sheetEl, () => {
+            panel.innerHTML = open ? sheetFacetHtml(facet) : "";
+            panel.hidden = !open;
+          });
           if (open) initPickers(panel);
         }
       });
@@ -693,7 +743,7 @@
           if (preset) {
             d.preset = preset.value;
             const range = sheetEl.querySelector(`[data-filter-range="${CSS.escape(key)}"]`);
-            if (range) { range.hidden = d.preset !== CUSTOM; if (range.hidden) clearFieldErrors(range); }
+            if (range) sheetMorph(sheetEl, () => { range.hidden = d.preset !== CUSTOM; if (range.hidden) clearFieldErrors(range); });
           } else {
             const iso = typedDay(dayInput.value);
             if (iso !== null) d[dayInput.dataset.filterDatePart] = iso;
@@ -717,6 +767,7 @@
         const key = field.dataset.sheetFacet;
         sheet.query[key] = field.value;
         const facet = cfg.allFacets().find((f) => f.key === key);
+        sheetHold(sheetEl, true); /* the sheet keeps its height while the list filters (no jump per keystroke) */
         sheetEl.querySelector(`[data-sheet-list="${CSS.escape(key)}"]`).innerHTML = sheetOptionsHtml(facet);
       });
       /* Esc closes without applying; Tab stays inside the sheet (aria-modal) */
@@ -1042,5 +1093,5 @@
 
   window.GEAPFacetFilter = { create, dateMatch, dateText, DATE_PRESETS };
   /* the shared phone sheet (used by js/act-row.js) */
-  window.GEAPSheet = { create: sheetCreate, show: sheetShow, hide: sheetHide, trapTab: sheetTrapTab };
+  window.GEAPSheet = { create: sheetCreate, show: sheetShow, hide: sheetHide, trapTab: sheetTrapTab, morph: sheetMorph, hold: sheetHold };
 })();

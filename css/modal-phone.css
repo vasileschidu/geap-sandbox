@@ -208,9 +208,8 @@
     max-height: calc(100% - var(--modal-phone-gap)); /* the panel is absolute in the full-screen sheet */
   }
 
-  .e-permits-filter-sheet.is-all .bottom-sheet__panel {
-    height: calc(100% - var(--modal-phone-gap));
-  }
+  /* „Filtre” (all filters) hugs its content like every other sheet (filter-sheet-height-v1, 2026-10-22; it was a
+     fixed full height) — css/facet-filter.css: hold while searching, keyboard via visualViewport */
 
   .e-permits-ntpl-sheet,
   .modal-overlay.e-permits-gh-sheet-overlay {

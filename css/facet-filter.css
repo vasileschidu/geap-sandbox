@@ -445,9 +445,14 @@
   }
 }
 
-/* the sheet = the library .bottom-sheet (scrim, handle, header, content, footer); here only:
-   height hugs the content up to 90dvh (the library's 45vh minimum left empty space), top
-   corners 24 on every width (the library squares them ≤768), × = the library modal close */
+/* the sheet = the library .bottom-sheet (scrim, header, content, footer — no handle); here only:
+   height = the content (header + body + footer) up to the visible screen minus the top gap, every sheet incl.
+   „Filtre” (filter-sheet-height-v1, 2026-10-22, user: „why so big modal? make it dynamic by height” — „Filtre” was
+   a fixed 90dvh / full height); the body is the only scroller. 100% = the sheet box: the library box is fixed
+   `inset: 0` (= the dynamic viewport, also under a mobile toolbar), and while a sheet is open its top / bottom follow
+   `visualViewport` (GEAPSheet → `--geap-sheet-top` / `--geap-sheet-bottom`), so the keyboard never covers the panel.
+   `--geap-sheet-hold` = the height kept while a facet search filters its list. Phones: css/modal-phone.css § 8
+   (radius 16, same max). The library's 45vh minimum left empty space. × = the library modal close. */
 html.is-filter-sheet-open {
   overflow: hidden;
 }
@@ -456,16 +461,17 @@ html.is-filter-sheet-open {
   display: none;
 }
 
-.e-permits-filter-sheet .bottom-sheet__panel {
-  border-radius: var(--border-radius-24, 24px) var(--border-radius-24, 24px) 0 0;
-  max-height: 90dvh;
-  min-height: 0;
-  overflow: clip;
+.e-permits-filter-sheet {
+  bottom: var(--geap-sheet-bottom, 0px);
+  top: var(--geap-sheet-top, 0px);
 }
 
-/* all filters: full height, so opening a section does not move the sheet */
-.e-permits-filter-sheet.is-all .bottom-sheet__panel {
-  height: 90dvh;
+.e-permits-filter-sheet .bottom-sheet__panel {
+  border-radius: var(--border-radius-24, 24px) var(--border-radius-24, 24px) 0 0;
+  max-height: 90vh; /* fallback */
+  max-height: calc(100% - var(--modal-phone-gap, 16px));
+  min-height: min(var(--geap-sheet-hold, 0px), 100% - var(--modal-phone-gap, 16px));
+  overflow: clip;
 }
 
 .e-permits-filter-sheet .bottom-sheet__header {
