@@ -101,9 +101,7 @@
     ".e-permits-shell__role-card",
     ".e-permits-fo-intent-new",
     ".e-permits-fo-radio--option",
-    ".rap-header__menu-item",
-    ".rap-header__languages button",
-    ".rap-header .rap-icon-button",
+    ".evo-header",
     ".e-permits-cfg2__nav-link",
     ".e-permits-ntpl-editor__tool"
   ],
@@ -242,7 +240,7 @@
       "[data-tariff-buttons]",
       ".e-permits-fo-form__actions",
       ".e-permits-empty",
-      ".rap-header",
+      ".evo-header",
       ".mpass-test",
       "[data-gh-close-sheet]"
     ]
@@ -394,18 +392,6 @@
       {
         "selector": ".e-permits-fo-delivery-option",
         "reason": "kept product component (2026-10-21): selectable card — delivery option"
-      },
-      {
-        "selector": ".rap-header__menu-item",
-        "reason": "kept product component (2026-10-21): RAP gov.md public header — menu item"
-      },
-      {
-        "selector": ".rap-header__languages button",
-        "reason": "kept product component (2026-10-21): RAP gov.md public header — Ro / Ru"
-      },
-      {
-        "selector": ".rap-header .rap-icon-button",
-        "reason": "kept product component (2026-10-21): RAP gov.md public header — search / help icons"
       },
       {
         "selector": ".e-permits-cfg2__nav-link",
@@ -887,9 +873,6 @@
     ".e-permits-fo-intent-new": "selectable card — „Solicitare nouă”",
     ".e-permits-fo-radio--option": "selectable card — radio option row",
     ".e-permits-fo-delivery-option": "selectable card — delivery option",
-    ".rap-header__menu-item": "RAP gov.md public header — menu item",
-    ".rap-header__languages button": "RAP gov.md public header — Ro / Ru",
-    ".rap-header .rap-icon-button": "RAP gov.md public header — search / help icons",
     ".e-permits-cfg2__nav-link": "Setări section nav (in-page section list)",
     ".e-permits-ntpl-editor__tool": "editor toolbar (rich-text tools)"
   }

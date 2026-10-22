@@ -263,7 +263,7 @@ but this doc previously described it wrongly, see the entry.
 | **BO user trigger** — product component, kept (user decision 2026-10-21) | `button.e-permits-shell__user-trigger[aria-expanded]` (256 × 54, padding 6 8, radius 12, white; open = the canonical ring + chevron up) > `.e-permits-shell__user-avatar` (40 initials circle — stays, part of the trigger) + name 14/20 medium + role 12/16 tertiary + chevron 20 → `.e-permits-shell__profile-menu` (dropdown surface; profile avatar = library `.avatar` 48) | `js/e-permits-shell.js` | app |
 | **Selectable cards** — five product components, kept (user decision 2026-10-21; no library card) | (1) FO identity choice `button.e-permits-fo-auth__role-item(.--dashed for „Am procură notarială”)` 70 high · padding 16 24 16 16 · radius 12 · 1px default border · avatar `.avatar--sm` + name 14/20 medium + ID meta + chevron; (2) BO role picker `button.e-permits-shell__role-card[role=menuitemradio]` 58 high · radius 12 · 1px border · icon circle + role + subdivision (padding 9 13 = off-scale, PO); (3) „Solicitare nouă” `.e-permits-fo-intent-new` 78 · padding 16 · gap 16 · radius 12 · brand-secondary fill · avatar `.avatar--sm` icon; (4) option rows `.e-permits-fo-radio--option` (library radio inside a bordered row); (5) delivery `.e-permits-fo-delivery-option` 71 · padding 12 16 · gap 16 · radius 12 · brand-secondary when chosen. Hover / selected / focus per „Hover — shared rules”. In the component-audit allow-list | `js/e-permits-acte-permisive.js`, `js/e-permits-shell.js` | app |
 | **Button · Small — the product re-skin** (= Figma Small, documented, kept) | every `.btn.btn-sm` (+ variant) in the product is 32 high, radius 6, fill-only with a transparent 1px border, 14/20 medium, icon 16 (css/button-icons.css); `btn-strict btn-sm` = the no-fill text button, `btn-neutral btn-sm` = the grey one; defined ONCE in css/e-permits-acte-permisive.css („ONE back-office button”, § Button). It differs from Components/buttons.html (29.25 high, library border) by design — a PO question for the library, not a product bug | — | app |
-| **RAP public header** (gov.md style) — product component, kept | `.rap-header` › `nav.rap-header__menu > button.rap-header__menu-item` (72 high · padding 0 16 · 16/24 · gap 6, current underline) · `nav.rap-header__languages > button` (Ro / Ru, 14/20 medium, current underlined) · `.rap-header__actions > button.rap-icon-button` (40 round, search / help icons 20) · the government mark in the top bar = `assets/logos/egov.svg` (vector from EVO-WEB `government-logo`, 18 × 21; also the FO / Cabinet / BO login / shell top bars — never the old `government-logo.png` raster) | `rap-evo/index.html`, `rap-evo/rap-evo.js` | page-app |
+| **EVO header** — ONE shared site header (evo-header-v1, 2026-10-22; user: „make sure the code has exactly this header from Components”; Figma Components 912:18991 desktop 1248 / 1024 × Anonymous / Authenticated, 1210:5257 mobile Default / Active; replaces the kept RAP gov.md header and the FO-style Cabinet top bar) | `header.evo-header[data-evo-header]` filled by `GEAPEvoHeader.mount` (`js/evo-header.js`): `.evo-header__top` (gov bar 32: `.evo-header__gov` + `nav.evo-header__languages > button.evo-header__language`) · `.evo-header__main` (72; phones 64) › `.evo-header__start` (`a.evo-header__logo` > `.evo-header__logo-full` 52 / `.evo-header__logo-mark` 40 on phones; `nav.evo-header__nav` › `.evo-header__nav-full` / `.evo-header__nav-compact` › `.evo-header__nav-item` 72 · 0 8 0 16 · 16/24 medium, `.evo-header__soon` + `.evo-header__soon-tag`) · `.evo-header__end` (`.evo-header__actions > .evo-header__action` 40 round · icon 24 · `--desktop`; `.evo-header__buttons > a.btn.btn-pill.btn-md.evo-header__button` (+ `--sign`); logged in `.evo-header__account > button.avatar.avatar--md.avatar--initials.evo-header__avatar`; `.evo-header__burger`) · mega menu `.evo-header__mega` (`__mega-inner`, `__mega-heading`, `__mega-title`, `__mega-text`, `__mega-body`, `__mega-tabs > .evo-header__mega-tab[role=tab]`, `__mega-cols`, `__mega-col`, `__mega-link`, `__mega-icon`, `__mega-more`, `__mega-soon`) · phone menu `.evo-header__panel[role=dialog]` (`__panel-top`, `__panel-tools`, `.evo-header__lang` > `.evo-header__lang-trigger` + `.e-permits-fo-intent-menu.evo-header__lang-menu > .evo-header__lang-item`, `__panel-scroll`, `__panel-search` > `.search-input.large.circular.evo-header__search`, `__panel-nav`, `__panel-section`, `__panel-heading`, `__panel-title`, `__panel-text`, `__panel-groups`, `.evo-header__panel-item` (accordion), `__panel-sub`, `.evo-header__panel-sub-link`, `__panel-links`, `.evo-header__panel-link`, `__panel-foot`) | `js/evo-header.js`, `css/evo-header.css`; RAP `rap-evo/index.html` (logged out), EVO Cabinet `cabinet-evo/index.html` (logged in; `?auth=0` → logged out); section „EVO header”; demo rap-01 / rap-01m / rap-01n / rap-01o, sm-01 / sm-01s / sm-hdr-01 / sm-hdr-02 / sm-hdr-03 | page-app |
 | **Setări section nav** — product component, kept | `.e-permits-cfg2__nav` (sticky, 220 wide, `--cfg2-stick`) > `a.e-permits-cfg2__nav-link(.is-active[aria-current])` — 36 high, padding 8 12, gap 8, radius 8, 14/20 medium secondary; hover tertiary; current = brand-secondary fill + brand text; trailing dot warning (changed) / danger (errors); follows the scroll (scroll spy) | `renderServiceSettingsV2` (Servicii › Setări), eKYC config pages | app |
 | **Editor toolbar** (notification template rich text) — product component, kept | `.e-permits-ntpl-editor__toolbar.e-permits-dtpl__toolbar[role=toolbar]` > `button.e-permits-ntpl-editor__tool[aria-pressed]` — 32 high, padding 0 6, radius 6, transparent → tertiary hover, pressed = tertiary-active; icons 20 (Aldin, Italic, liste, link, „Șterge formatarea”) + `.separator--vertical` groups | `js/e-permits-shell.js` (ntpl editor) | app |
 | **Destructive actions — red** (destructive-red-v1, 2026-10-21, user: „ALL destructive actions should be red”) | page / header / row / card button = library `btn btn-outline-destructive` (size of its context: `btn-sm` BO, `btn-md btn-rounded` Cabinet); icon-only next to grey icon buttons = `btn btn-outline-destructive btn-sm btn-icon-only`; inline / transparent remove (rule builders, grid rows, FO cards) = `btn btn-text-destructive btn-sm` (+ `btn-icon-only`); confirm button of a confirmation dialog = `btn btn-destructive` (cancel `btn-neutral`); a secondary destructive in a dialog footer = `btn-outline-destructive btn-rounded` (border restated, the library footer is fill-only); ⋮ item = `.is-danger`; icon = label colour (trash for Elimină / Șterge) | `isDestructiveLabel(label)` in `js/e-permits-shell.js` (exported on `GEAPUi` / `GEAPShellApi`) drives `renderRowActions` primary, `renderStackItem` action, `renderStackMenu` items, `clasIconAction`, eKYC `btn()`; `askConfirm({ destructive })`, `openConfirm({ danger })`; section „Destructive actions — red” | app |
@@ -2431,7 +2431,7 @@ the phone code list, the MDocs picker list, the facet-filter popover options (BO
 Not dropdown items (they keep their own rows): the phone bottom sheets (facet-filter sheet rows 44 · 12 8 · gap 10 ·
 regular; the FO / Cabinet instance-switcher sheet), the identity cards of the account menus (FO avatar menu role
 cards 64–68, BO role cards 58, „Ieșire” 40 button), the date-picker day grid (40 cells), header navigation
-(`.rap-header__menu-item`).
+(`.evo-header__nav-item`, the EVO header mega menu / phone menu rows). The EVO header phone language menu IS a dropdown (`.evo-header__lang-menu`).
 
 History: 2026-10-18 the act post-process menu was enlarged after research (40 rows · 8 16 8 12 · 16/24 · gap 12 ·
 radius 8, surface 8 / 4, 48 rows on `pointer: coarse`) — rejected by the user on 2026-10-20 („big and chunky”).
@@ -7330,6 +7330,70 @@ Cabinet „Actele mele permisive”) and the Cabinet request rows („Solicităr
   menu), pp-17 / pp-17a (FO).
 - Act profile — rebuilt 2026-10-21 (act-profile-v1): see **„Act profile — EVO Cabinet (act-profile-v1)”** right below
   (the 2026-10-17 version with the meta row, the „Vizualizare act” data dialog and „Data eliberării” is gone).
+
+### EVO header — one shared site header (evo-header-v1, 2026-10-22)
+
+User (Vasile, 2026-10-22): „make sure the code, and also Figma, has exactly this header from Components” → Figma Components
+`doJ7tDY0PlQ0PqMgbpFVIC` › **header-evo-desktop** `912:18991` (Breakpoints 1248 / 1024 × User State Anonymous /
+Authenticated), **header-evo-mobile** `1210:5257` (State Default / Active × Anonymous / Authenticated), parts `.top-section`
+`1144:15205`, `navigation-item` `209:32`, `.header-action` `933:30352`, mega menu `header-menu-evo` `912:26673`, `.menu-item`
+`912:26795`, `.navigation-item-mobile` `1114:9933`. Coordinator (user decision, same day): „For Cabinet, let's use it as in the
+Figma components” = avatar only, no acting-person name / role text in the bar; the instance switcher stays inside the avatar menu.
+
+**One renderer, two pages.** `js/evo-header.js` (`window.GEAPEvoHeader = { html, mount }`) fills every
+`header.evo-header[data-evo-header]` on load; `css/evo-header.css` styles it. Load the script `defer` BEFORE the page script
+(deferred scripts run in order), so the page finds the rendered parts. Configuration = data attributes on the header:
+
+| attribute | meaning |
+|---|---|
+| `data-evo-auth="out\|in"` | Anonymous (Intră în cabinet + Obține semnătura) / Authenticated (bell + avatar) |
+| `data-evo-guest-param="auth"` | `?auth=0` on the page forces Anonymous (the Cabinet public catalog visitor) |
+| `data-evo-id` | id prefix of the menus |
+| `data-evo-home / -gov / -cabinet / -signature / -catalog / -providers / -platforms / -help / -notifications` | link targets |
+| `data-evo-notifications-nav="notificari"` | the bell also carries `data-cab-nav-item` (Cabinet keeps `?as`, `aria-current`) |
+| `data-evo-initials / -user / -user-role` | the avatar initials; the avatar's accessible name „Cont: <user>, acționezi ca <data-cab-name>” |
+| `data-evo-sticky` | sticky top bar (Cabinet) |
+| `data-evo-phone-gov="off"` | no gov bar on phones (Cabinet; RAP keeps it, as in the Figma RAP phones) |
+| child `[data-evo-slot="account-menu"]` | moved into `.evo-header__account` (the Cabinet instance switcher panel `#fo-avatar-menu`, driven by cabinet-evo.js as before) |
+
+**Variants / breakpoints**
+
+| width | bar | Anonymous (RAP) | Authenticated (Cabinet) |
+|---|---|---|---|
+| > 1100 (Figma 1248) | gov 32 + main 72 = 104 | logo 52 · Servicii ⌄ · Evenimente de viață ⌄ (Disabled, „În curând” on hover / focus) · Prestatori servicii … search · help · apps (gap 8) · 24 · Intră în cabinet (Primary) + Obține semnătura (Secondary), pill Medium 40 · 0 20, gap 12 | … search · help · apps · bell · 24 · avatar 40 |
+| 761–1100 (Figma 1024) | same | the nav = „Meniu ⌄” (opens the mega menu + „Evenimente de viață · În curând” + „Prestatori servicii”) | same |
+| ≤ 760 (header-evo-mobile) | gov 32 (RAP only) + 64 | logo-mark 40 · Intră în cabinet (40) 16 · search 8 ☰ | logo-mark 40 · search 8 bell · 16 · avatar 32 · 16 · ☰ |
+
+Measured (probe at 1440 / 1280 / 1024 / 761 / 375 / 320, = Figma ± 1 px of font rendering): logo y 10 in the bar, nav from
+logo + 16, items 72 high, actions 40 at y 16, phone button x 116 / search 271 / ☰ 319 at 375.
+
+**States** (tokens): nav item hover = `--color-background-base-secondary` + 1 px `--color-border-base-default` bottom; Expanded
+(menu open) = same ground + brand label + 3 px brand bottom + chevron up; Active (`aria-current="page"`) = brand label + 3 px;
+Disabled = secondary ground + tertiary label. Header action (`.evo-header__action`, 40 round, icon 24 in the label colour): hover
+`--color-background-base-tertiary-hover` (#d9d9d9), pressed / open `-tertiary-active` (#b2b2b2), focus = Focus Ring/Medium (2 white
++ 3 blue-sky-500, PNG-probed on 933:30352). Avatar (library `.avatar.avatar--md.avatar--initials` as the button, brand ground):
+hover / pressed = brand hover / active, keyboard focus and open menu = the focus ring (open button keeps it). Languages: current
+underlined, others secondary + underline on hover. Mega menu links (`.menu-item`): 14/20 regular secondary → hover brand medium.
+
+**Mega menu** (`header-menu-evo`): full width under the bar, white, `--drop-shadow-200` (the Figma effect = shadow-200; NOT the
+„dropdown-effect” of floating menus — it is a panel attached to the bar, no radius), padding 32 24 40, heading „Serviciile Publice ›”
+24/32 semibold + text 14/20 tertiary (gap 12), 40, tabs column 176 + 1 px line (Pentru tine / Pentru afacerea ta, 16/24, the active
+one brand + a 2 px brand mark on the line, arrow keys), 56, three columns (gap 48, rows 14 — Figma, off the 4-step scale). Content:
+the Figma „Pentru tine” categories de-duplicated (the Figma columns repeat placeholders); „Pentru afacerea ta” has no Figma
+content → 6 demo categories (PO question). Every link → the Cabinet catalog. Esc / outside click close; ↓ on the trigger opens
+on the first tab.
+
+**Phone menu** (header-evo-mobile State=Active): full screen (`role=dialog`, focus trapped, page scroll locked), top row 64
+(logo 40 · „🌐 Ro” neutral pill Medium → a language dropdown with the dropdown-effect surface and the one item size · × 40),
+search `search-input large circular` 48 (the Figma uses the circular search here — the header is the documented exception to
+the „rectangular only” search rule), „Serviciile Publice ›” 18/26 + text, accordion rows Pentru tine / Pentru afacerea ta (48 ·
+16/24 medium · chevron 20, open = grey ground, sub-links 48 · 16/24 regular with the 20 category icon, indented 28), separator,
+„Prestatori servicii ›”, separator, Platforme utile / Asistență (48 · icon 20), Anonymous foot: Intră în cabinet + Obține
+semnătura Large 48 full width. The search icon in the bar opens this menu with the search focused.
+
+**Deviations from the Figma (reported):** the „În curând” tag is the project Tag · Small (rule „tags Small everywhere”; Figma
+Medium 24); the avatar shows initials (no photo in the prototype); the RAP header content box follows the RAP table width
+(`--evo-header-width: var(--rap-content-width)` = 1280, Figma 1200); search / help / apps have no destination in the prototype.
 
 ### Page header — one renderer (cabinet-header-v1, 2026-10-21)
 

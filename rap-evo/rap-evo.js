@@ -790,12 +790,7 @@
       paginationResizeTimer = window.setTimeout(renderPagination, 100);
     });
 
-    document.querySelectorAll(".rap-header__languages button").forEach((button) => {
-      button.addEventListener("click", () => {
-        document.querySelectorAll(".rap-header__languages button").forEach((item) => item.classList.remove("is-active"));
-        button.classList.add("is-active");
-      });
-    });
+    /* the language switch lives in the shared EVO header (js/evo-header.js, evo-header-v1) */
   };
 
   const init = async () => {

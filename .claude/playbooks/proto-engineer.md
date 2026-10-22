@@ -2550,3 +2550,23 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   the FIRST match: on Cabinet / the service profile the first `.e-permits-workplace__filters` is a hidden bar → „0
   interactive”; scope `#sm-filters` / `.e-permits-pay__filters`. No sub-agent tool → hover 0 / 0, code-audit 0
   (scoped to the bar), component-audit bar controls 0 (standing: avatar menu, EVO header, sheet section trigger).
+- 2026-10-22 · EVO header = ONE shared renderer for RAP + Cabinet (evo-header-v1; user: „make sure the code, and also Figma, has
+  exactly this header from Components” 912:18991; coordinator mid-job: „For Cabinet, use it as in the Figma components” = avatar
+  only, no name / role in the bar, Cabinet phones without the gov bar). (1) Measuring: REST `/nodes` walk of the variant set AND
+  of each part set (navigation-item 209:32, .header-action 933:30352, .menu-item, .navigation-item-mobile, header-menu-evo)
+  gave sizes / paddings / fills; the hover / pressed / focus colours of `.header-action` came from a PNG pixel probe of the
+  MCP screenshot (d9d9d9 / b2b2b2 / 2 white + 3 blue-sky-500) — REST hit 429 after ~6 calls, so keep MCP get_metadata /
+  get_screenshot as the fallback and export assets with `/images?format=svg` on INSTANCE ids (the logo came with its 104 safe
+  zone → crop the viewBox to 26 26 52 52). Geometry proof = one probe (boxes of every part) at 1440 / 1280 / 1024 / 761 / 375 /
+  320 vs the Figma x / y: equal within 1 px except the button padding (library btn-md 16 vs Figma circular 20 → fixed).
+  (2) Shared header before the page script: `defer` + listed BEFORE the page script; page-specific parts ride in as
+  `[data-evo-slot]` children moved into the rendered box (the Cabinet instance switcher panel) and the old data hooks live on
+  inside the new markup (`data-fo-avatar-trigger`, visually hidden `data-cab-name`) → the page JS needed only 3 null guards.
+  (3) Traps: `.x img { display: block }` (0,1,1) beat `.x__logo-mark { display: none }` (0,1,0) — both logos painted; a new demo
+  id `sm-01h` already existed (duplicate object key, the later one silently wins — the capture showed a filter popover) →
+  namespaced ids (`sm-hdr-NN`) and `grep -c '"<id>"'` before adding; `h.hover` does not trigger CSS :hover in a demo state →
+  show hover-only parts on `:focus-within` too and focus them. (4) component-audit: 75 non-library majors → 0 by documenting the
+  classes in the inventory row (+ `.evo-header` in the spec's product roots, the three kept RAP header entries removed); the
+  avatar trigger is the library `.avatar.avatar--md.avatar--initials` as the button itself. Left: the instance-switcher panel
+  internals (standing) and the filter-sheet section trigger. (5) Another agent re-bumped my `?v=` keys mid-job → every edit
+  kept as an asserted script and the commit blobs built from HEAD + those scripts (hash-object / update-index).

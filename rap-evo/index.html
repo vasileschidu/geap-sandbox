@@ -16,7 +16,8 @@
   <link rel="stylesheet" href="../css/doc-modal-parts.css?v=act-doc-v1">
   <link rel="stylesheet" href="../css/doc-preview.css?v=radius-16-v1">
   <link rel="stylesheet" href="../css/act-view.css?v=button-icons-v1">
-  <link rel="stylesheet" href="rap-evo.css?v=filter-bar-v2">
+  <link rel="stylesheet" href="../css/evo-header.css?v=evo-header-v1">
+  <link rel="stylesheet" href="rap-evo.css?v=evo-header-v1">
   <link rel="stylesheet" href="../css/dropdown.css?v=dd-item-v1">
   <link rel="stylesheet" href="../css/copy-value.css?v=copy-wrap-v1">
   <link rel="stylesheet" href="../css/name-expand.css?v=header-actions-below-v1">
@@ -28,7 +29,7 @@
   <link rel="stylesheet" href="../css/modal-phone.css?v=viewer-footer-phone-v1">
   <link rel="stylesheet" href="../css/page-reveal.css?v=skeleton-v1">
   <!-- ?state=<id> opens the screen a Figma frame shows (js/demo-states.js) -->
-  <script src="../js/demo-states.js?v=external-link-v1"></script>
+  <script src="../js/demo-states.js?v=evo-header-v1"></script>
   <script src="../js/demo-links.js?v=links-v4"></script>
   <script src="../js/toast.js?v=toast-v2" defer></script>
   <script src="../js/tag.js?v=audit-fix-v5"></script>
@@ -42,64 +43,15 @@
   <script src="../js/act-view.js?v=audit-fix-v5" defer></script>
   <script src="../js/name-expand.js?v=header-actions-below-v1"></script>
   <script src="../js/page-header.js?v=header-actions-below-v1"></script>
-  <script src="rap-evo.js?v=rap-header-v1" defer></script>
+  <script src="../js/evo-header.js?v=evo-header-v1" defer></script>
+  <script src="rap-evo.js?v=evo-header-v1" defer></script>
   <script src="../js/page-reveal.js?v=skeleton-v1" defer></script>
 </head>
 <body class="rap-page">
-  <header class="rap-header">
-    <div class="rap-header__top">
-      <div class="rap-header__container">
-        <a class="rap-header__government" href="../index.html" aria-label="Înapoi la selectorul demo">
-          <img src="../assets/logos/egov.svg" width="18" height="21" alt="">
-          <span>Guvernul Republicii Moldova</span>
-        </a>
-        <nav class="rap-header__languages" aria-label="Selectează limba">
-          <button class="is-active" type="button" lang="ro">Ro</button>
-          <button type="button" lang="ru">Ru</button>
-          <button type="button" lang="en">En</button>
-        </nav>
-      </div>
-    </div>
-
-    <div class="rap-header__navigation">
-      <div class="rap-header__container">
-        <div class="rap-header__navigation-start">
-          <a class="rap-header__logo" href="../index.html" aria-label="EVO">
-            <img src="../assets/logos/evo-logo.svg" alt="">
-          </a>
-          <nav class="rap-header__menu" aria-label="Navigare principală">
-            <button class="rap-header__menu-item" type="button">
-              <span>Servicii</span>
-              <svg class="icon" aria-hidden="true"><use href="../assets/icons/sprite.svg#icon-chevron-bottom-small"></use></svg>
-            </button>
-            <button class="rap-header__menu-item is-disabled" type="button" disabled>
-              <span>Evenimente de viață</span>
-              <svg class="icon" aria-hidden="true"><use href="../assets/icons/sprite.svg#icon-chevron-bottom-small"></use></svg>
-            </button>
-            <a class="rap-header__menu-item" href="#">Prestatori servicii</a>
-          </nav>
-        </div>
-
-        <div class="rap-header__navigation-end">
-          <div class="rap-header__actions" aria-label="Acțiuni rapide">
-            <button class="rap-icon-button" type="button" aria-label="Caută">
-              <svg class="icon" aria-hidden="true"><use href="../assets/icons/sprite.svg#icon-search"></use></svg>
-            </button>
-            <button class="rap-icon-button" type="button" aria-label="Ajutor">
-              <svg class="icon" aria-hidden="true"><use href="../assets/icons/sprite.svg#icon-bubble-question"></use></svg>
-            </button>
-            <button class="rap-icon-button" type="button" aria-label="Aplicații">
-              <svg class="icon" aria-hidden="true"><use href="../assets/icons/sprite.svg#icon-dot-grid"></use></svg>
-            </button>
-          </div>
-          <div class="rap-header__buttons">
-            <button class="btn btn-primary btn-pill rap-header__button" type="button">Intră în cabinet</button>
-            <button class="btn btn-secondary btn-pill rap-header__button" type="button">Obține semnătura</button>
-          </div>
-        </div>
-      </div>
-    </div>
-  </header>
+  <!-- the shared EVO site header (evo-header-v1, js/evo-header.js + css/evo-header.css; Figma Components 912:18991) — logged out -->
+  <header class="evo-header" data-evo-header data-evo-id="rap-evo-header" data-evo-auth="out"
+          data-evo-home="../index.html" data-evo-gov="../index.html"
+          data-evo-cabinet="../cabinet-evo/index.html" data-evo-catalog="../cabinet-evo/index.html?view=catalog"></header>
 
   <main class="rap-main" data-rap-list-view>
     <div class="rap-main__container">

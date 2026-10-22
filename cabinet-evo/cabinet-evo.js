@@ -137,7 +137,8 @@
   }
 
   function setHeaderTitle(title) {
-    els.headerTitle.textContent = title;
+    /* the EVO header (evo-header-v1) has no section title — the tab title names the view */
+    if (els.headerTitle) els.headerTitle.textContent = title;
     document.title = `${title} · EVO Cabinet`;
   }
 
@@ -1561,7 +1562,7 @@
     } catch { /* the act profile simply has no link */ }
     if (state.restriction) state.permits = [];
 
-    if (data.user) {
+    if (data.user && els.name && els.role) {
       els.name.textContent = data.user.name;
       els.role.textContent = data.user.role;
     }
@@ -1572,8 +1573,8 @@
         role.classList.toggle("is-selected", own);
         role.setAttribute("aria-checked", String(own));
       });
-      els.name.textContent = state.geap.subject.name;
-      els.role.textContent = state.geap.subject.roleLabel || (state.geap.subject.type === "PJ" ? "Persoană juridică" : "Persoană fizică");
+      if (els.name) els.name.textContent = state.geap.subject.name;
+      if (els.role) els.role.textContent = state.geap.subject.roleLabel || (state.geap.subject.type === "PJ" ? "Persoană juridică" : "Persoană fizică");
     }
 
     bind();

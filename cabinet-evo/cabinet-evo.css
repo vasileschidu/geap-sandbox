@@ -15,7 +15,7 @@
   /* the base colour tokens come from main.css + css/token-fix.css (the page-scoped copy was removed, library-adopt-v4) */
   --cab-shell-width: 1248px;
   /* list pages (2026-10-20, user: „full container width, edge to edge with the header, like RAP”) = the
-     header's content box (.e-permits-fo-auth__brandbar-inner: page width − 2 gutters = 1200; 24 / 16 page
+     header's content box (.evo-header__container: page width − 2 gutters = 1200; 24 / 16 page
      padding below it = the header's) → EVO logo left edge … account menu right edge at every width */
   --cab-list-width: calc(var(--fo-page-width, 1248px) - 2 * var(--fo-page-gutter, 24px));
   /* profiles = the RAP profile column (user 2026-10-17): 1024 fixed, fills below it */
@@ -1362,19 +1362,11 @@
   right: auto;
 }
 
-/* no section name in the top bar (user 2026-10-18: „repetition with the one in the header, hide in header”):
-   list pages carry it as their own h1, profiles in the breadcrumb (‹ Actele mele permisive). Only the logo stays;
-   setHeaderTitle() still names the tab (document.title). On phones this also removes the extra title row. */
-.e-permits-fo-auth__service-title-wrap:has([data-cab-header-title]) {
-  display: none;
-}
-
-/* phones: the top bar's bottom line lived on the (now hidden) title row → it goes on the bar itself (user 2026-10-18,
-   „add the border down for menu”); the search types at 16/24 like RAP (no iOS zoom) */
-@media (max-width: 720px) {
-  .e-permits-fo-auth__brandbar:has([data-cab-header-title]) {
-    border-bottom: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
-  }
+/* the top bar = the shared EVO header (evo-header-v1, css/evo-header.css): no section name in it (user 2026-10-18,
+   „repetition with the one in the header”) — list pages carry their own h1, profiles the breadcrumb; setHeaderTitle()
+   names the tab (document.title). Its content box = the list width (1200). */
+.cab-page .evo-header {
+  --evo-header-width: var(--cab-list-width);
 }
 
 /* phones: the search is 48 · 16/24 · icon 24 — the shared rule in css/field-sizes.css (audit-fix-v1) */

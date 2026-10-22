@@ -1,0 +1,963 @@
+/* ==========================================================================================================
+   EVO site header (evo-header-v1, 2026-10-22) — the markup comes from js/evo-header.js (GEAPEvoHeader).
+   Figma Components doJ7tDY0PlQ0PqMgbpFVIC: header-evo-desktop 912:18991 (Breakpoints 1248 / 1024 × User State
+   Anonymous / Authenticated), header-evo-mobile 1210:5257 (Default / Active), parts: .top-section 1144:15205,
+   navigation-item 209:32, .header-action 933:30352, header-menu-evo 912:26673, .menu-item 912:26795,
+   .navigation-item-mobile 1114:9933. Measured over REST (sizes, fills, strokes) + PNG pixel probes (states).
+
+   Breakpoints (components.md › „EVO header”):
+   - > 1100      full nav (Servicii ⌄ · Evenimente de viață ⌄ [În curând] · Prestatori servicii) = Figma 1248
+   - 761 – 1100  „Meniu ⌄” = Figma 1024 (the full nav needs ~1018 + 48 gutters)
+   - ≤ 760       phone = header-evo-mobile under the .top-section Mobile bar (logo 40 · [Intră în cabinet] ·
+                 search · ☰ / search · bell · avatar 32 · ☰); ☰ opens the full-screen menu (State=Active)
+   Heights: gov bar 32 (its bottom line inside), main bar 72 (phones 64), the header line inside the main bar.
+   Tokens only; the container width is a property so a page can align the bar with its content
+   (`--evo-header-width`, default 1200 = the Figma 1248 frame − 2 × 24).
+   ========================================================================================================== */
+
+.evo-header {
+  --evo-header-width: 1200px;
+  --evo-header-line: var(--color-border-base-default, #d9d9d9);
+  --evo-header-focus:
+    0 0 0 var(--border-width-2, 2px) var(--color-background-base-default, #fff),
+    0 0 0 calc(var(--border-width-2, 2px) + var(--border-width-3, 3px)) var(--blue-sky-500, #3379db);
+  background: var(--color-background-base-default, #fff);
+  color: var(--color-text-base-default, #121212);
+  display: block;
+  font-family: "Onest", sans-serif;
+  /* before the renderer runs (deferred script) the box already has its final height — no jump */
+  min-height: calc(var(--spacing-32, 32px) + var(--spacing-72, 72px));
+  position: relative;
+  z-index: 20;
+}
+
+.evo-header[data-evo-sticky] {
+  position: sticky;
+  top: 0;
+}
+
+.evo-header a {
+  text-decoration: none;
+}
+
+.evo-header .icon {
+  flex: none;
+}
+
+.evo-header__container {
+  align-items: center;
+  box-sizing: border-box;
+  display: flex;
+  gap: var(--spacing-16, 16px);
+  height: 100%;
+  justify-content: space-between;
+  margin: 0 auto;
+  max-width: var(--evo-header-width);
+  min-width: 0;
+  width: 100%;
+}
+
+/* ---------- gov bar (.top-section) ---------- */
+.evo-header__top {
+  background: var(--color-background-base-tertiary, #f1f1f1);
+  border-bottom: var(--border-width-1, 1px) solid var(--evo-header-line);
+  box-sizing: border-box;
+  height: var(--spacing-32, 32px);
+  padding: 0 var(--spacing-24, 24px);
+}
+
+.evo-header__gov {
+  align-items: center;
+  border-radius: var(--border-radius-4, 4px);
+  color: var(--color-text-base-default, #121212);
+  display: inline-flex;
+  font-size: var(--font-size-fs-12, 12px);
+  font-weight: var(--font-weight-fw-medium, 500);
+  gap: var(--spacing-4, 4px);
+  line-height: var(--line-height-lh-16, 16px);
+  min-width: 0;
+}
+
+/* the 18 × 21 mark sits in Figma's 24 box (3 on each side) */
+.evo-header__gov img {
+  display: block;
+  height: calc(var(--spacing-20, 20px) + var(--border-width-1, 1px));
+  margin-inline: calc(var(--spacing-2, 2px) + var(--border-width-1, 1px));
+  width: calc(var(--spacing-16, 16px) + var(--spacing-2, 2px));
+}
+
+.evo-header__gov span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.evo-header__gov:hover span {
+  text-decoration: underline;
+}
+
+.evo-header__languages {
+  align-items: center;
+  display: flex;
+  flex: none;
+  gap: var(--spacing-12, 12px);
+}
+
+.evo-header__language {
+  appearance: none;
+  background: transparent;
+  border: 0;
+  border-radius: var(--border-radius-4, 4px);
+  color: var(--color-text-base-secondary, #383838);
+  cursor: pointer;
+  font: inherit;
+  font-size: var(--font-size-fs-14, 14px);
+  font-weight: var(--font-weight-fw-medium, 500);
+  line-height: var(--line-height-lh-20, 20px);
+  padding: 0;
+  text-underline-offset: var(--spacing-2, 2px);
+}
+
+.evo-header__language:hover {
+  color: var(--color-text-base-default, #121212);
+  text-decoration: underline;
+}
+
+.evo-header__language.is-active {
+  color: var(--color-text-base-default, #121212);
+  text-decoration: underline;
+}
+
+/* ---------- main bar ---------- */
+.evo-header__main {
+  box-shadow: inset 0 calc(var(--border-width-1, 1px) * -1) 0 var(--evo-header-line);
+  box-sizing: border-box;
+  height: var(--spacing-72, 72px);
+  padding: 0 var(--spacing-24, 24px);
+}
+
+.evo-header__start,
+.evo-header__end,
+.evo-header__actions,
+.evo-header__buttons,
+.evo-header__nav,
+.evo-header__nav-full,
+.evo-header__nav-compact {
+  align-items: center;
+  display: flex;
+  min-width: 0;
+}
+
+.evo-header__start {
+  align-self: stretch;
+  gap: var(--spacing-16, 16px);
+}
+
+.evo-header__end {
+  flex: none;
+  gap: var(--spacing-24, 24px);
+}
+
+.evo-header__logo {
+  border-radius: var(--border-radius-12, 12px);
+  display: flex;
+  flex: none;
+}
+
+.evo-header__logo-full {
+  display: block;
+  height: calc(var(--spacing-48, 48px) + var(--spacing-4, 4px));
+  width: calc(var(--spacing-48, 48px) + var(--spacing-4, 4px));
+}
+
+.evo-header__logo-mark {
+  display: none;
+  height: var(--spacing-40, 40px);
+  width: var(--spacing-40, 40px);
+}
+
+.evo-header__nav,
+.evo-header__nav-full,
+.evo-header__nav-compact {
+  align-self: stretch;
+  gap: var(--spacing-6, 6px);
+}
+
+.evo-header__nav-compact {
+  display: none;
+}
+
+/* navigation-item 209:32: 72 · 0 8 0 16 (with the chevron, gap 6) / 0 16 · 16/24 medium */
+.evo-header__nav-item {
+  align-items: center;
+  align-self: stretch;
+  appearance: none;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  box-sizing: border-box;
+  color: var(--color-text-base-default, #121212);
+  cursor: pointer;
+  display: inline-flex;
+  font: inherit;
+  font-size: var(--font-size-fs-16, 16px);
+  font-weight: var(--font-weight-fw-medium, 500);
+  gap: var(--spacing-6, 6px);
+  height: var(--spacing-72, 72px);
+  line-height: var(--line-height-lh-24, 24px);
+  padding: 0 var(--spacing-16, 16px);
+  position: relative;
+  white-space: nowrap;
+}
+
+.evo-header__nav-item:has(> svg) {
+  padding-right: var(--spacing-8, 8px);
+}
+
+.evo-header__nav-item > svg {
+  height: var(--icon-size-small, 16px);
+  transition: transform 160ms ease;
+  width: var(--icon-size-small, 16px);
+}
+
+.evo-header__nav-item:hover {
+  background: var(--color-background-base-secondary, #f5f5f5);
+  box-shadow: inset 0 calc(var(--border-width-1, 1px) * -1) 0 var(--evo-header-line);
+}
+
+.evo-header__nav-item:active {
+  background: var(--color-background-base-tertiary, #f1f1f1);
+}
+
+/* Expanded (the mega menu is open) / Active (the current section) */
+.evo-header__nav-item[aria-expanded="true"],
+.evo-header__nav-item[aria-current="page"] {
+  box-shadow: inset 0 calc(var(--border-width-3, 3px) * -1) 0 var(--color-background-brand-default, #0058d2);
+  color: var(--color-text-brand-default, #0058d2);
+}
+
+.evo-header__nav-item[aria-expanded="true"] {
+  background: var(--color-background-base-secondary, #f5f5f5);
+}
+
+.evo-header__nav-item[aria-expanded="true"] > svg {
+  transform: rotate(180deg);
+}
+
+.evo-header__nav-item:focus-visible {
+  box-shadow: var(--evo-header-focus);
+  outline: none;
+  z-index: 2;
+}
+
+/* Disabled („Evenimente de viață”, not live yet): grey ground, tertiary label; hover / focus show „În curând” */
+.evo-header__soon {
+  align-self: stretch;
+  display: flex;
+  position: relative;
+}
+
+.evo-header__nav-item.is-disabled {
+  background: var(--color-background-base-secondary, #f5f5f5);
+  box-shadow: none;
+  color: var(--color-text-base-tertiary, #757575);
+  cursor: not-allowed;
+}
+
+.evo-header__nav-item.is-disabled:focus-visible {
+  box-shadow: var(--evo-header-focus);
+}
+
+.evo-header__soon-tag {
+  left: 50%;
+  opacity: 0;
+  pointer-events: none;
+  position: absolute;
+  top: calc(var(--spacing-2, 2px) * -1);
+  transform: translateX(-50%);
+  transition: opacity 120ms ease;
+  z-index: 3;
+}
+
+.evo-header__soon:hover .evo-header__soon-tag,
+.evo-header__soon:focus-within .evo-header__soon-tag {
+  opacity: 1;
+}
+
+/* .header-action 933:30352: 40 round, icon 24 in the label colour; hover gray 250 · pressed gray 300 · focus ring */
+.evo-header__actions {
+  gap: var(--spacing-8, 8px);
+}
+
+.evo-header__action {
+  align-items: center;
+  appearance: none;
+  background: transparent;
+  border: 0;
+  border-radius: var(--border-radius-full, 999px);
+  color: var(--color-icon-base-default, #121212);
+  cursor: pointer;
+  display: inline-flex;
+  flex: none;
+  height: var(--spacing-40, 40px);
+  justify-content: center;
+  padding: 0;
+  transition: background-color 100ms ease;
+  width: var(--spacing-40, 40px);
+}
+
+.evo-header__action .icon {
+  height: var(--icon-size-default, 24px);
+  width: var(--icon-size-default, 24px);
+}
+
+.evo-header__action:hover {
+  background: var(--color-background-base-tertiary-hover, #d9d9d9);
+}
+
+.evo-header__action:active,
+.evo-header__action[aria-expanded="true"] {
+  background: var(--color-background-base-tertiary-active, #b2b2b2);
+}
+
+.evo-header__action:focus-visible {
+  box-shadow: var(--evo-header-focus);
+  outline: none;
+}
+
+.evo-header__burger {
+  display: none;
+}
+
+/* logged out: Intră în cabinet (Primary) + Obține semnătura (Secondary) — library Button circular · Medium */
+.evo-header__buttons {
+  gap: var(--spacing-12, 12px);
+}
+
+/* Figma button-filled-circular · Medium = 40 · 0 20 (the library .btn-md pads 16) */
+.evo-header__button {
+  flex: none;
+  padding-inline: var(--spacing-20, 20px);
+  white-space: nowrap;
+}
+
+/* logged in: the library avatar · Medium 40 (Small 32 on phones) is the account menu button */
+.evo-header__account {
+  align-items: center;
+  display: inline-flex;
+  flex: none;
+  position: relative;
+}
+
+.evo-header__account[hidden] {
+  display: none;
+}
+
+.evo-header__avatar {
+  appearance: none;
+  background: var(--color-background-brand-default, #0058d2);
+  border: 0;
+  color: var(--color-background-base-inverse-on-color, #fff);
+  cursor: pointer;
+  font: inherit;
+  font-size: var(--font-size-fs-14, 14px);
+  font-weight: var(--font-weight-fw-medium, 500);
+  height: var(--spacing-40, 40px);
+  line-height: var(--line-height-lh-20, 20px);
+  padding: 0;
+  text-transform: none;
+  transition: background-color 100ms ease;
+  width: var(--spacing-40, 40px);
+}
+
+.evo-header__avatar:hover {
+  background: var(--color-background-brand-default-hover, #0046a8);
+}
+
+.evo-header__avatar:active {
+  background: var(--color-background-brand-default-active, #00357e);
+}
+
+/* keyboard focus and an open menu = the canonical ring (open button keeps it, user rule) */
+.evo-header__avatar:focus-visible,
+.evo-header__avatar[aria-expanded="true"] {
+  box-shadow: var(--evo-header-focus);
+  outline: none;
+}
+
+.evo-header__avatar:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* ---------- mega menu (header-menu-evo 912:26673): full width under the bar, --drop-shadow-200 ---------- */
+.evo-header__mega {
+  background: var(--color-background-base-default, #fff);
+  box-shadow: var(--drop-shadow-200);
+  box-sizing: border-box;
+  left: 0;
+  padding: var(--spacing-32, 32px) var(--spacing-24, 24px) var(--spacing-40, 40px);
+  position: absolute;
+  right: 0;
+  top: 100%;
+  z-index: 30;
+}
+
+.evo-header__mega[hidden] {
+  display: none;
+}
+
+.evo-header__mega-inner {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-40, 40px);
+  margin: 0 auto;
+  max-width: var(--evo-header-width);
+}
+
+.evo-header__mega-heading {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-12, 12px);
+}
+
+.evo-header__mega-title {
+  align-items: center;
+  align-self: flex-start;
+  border-radius: var(--border-radius-4, 4px);
+  color: var(--color-text-base-default, #121212);
+  display: inline-flex;
+  font-size: var(--font-size-fs-24, 24px);
+  font-weight: var(--font-weight-fw-semibold, 600);
+  gap: var(--spacing-4, 4px);
+  line-height: var(--line-height-lh-32, 32px);
+}
+
+.evo-header__mega-title .icon {
+  height: var(--icon-size-medium, 20px);
+  width: var(--icon-size-medium, 20px);
+}
+
+.evo-header__mega-title:hover {
+  color: var(--color-text-brand-default, #0058d2);
+}
+
+.evo-header__mega-text {
+  color: var(--color-text-base-tertiary, #757575);
+  font-size: var(--font-size-fs-14, 14px);
+  line-height: var(--line-height-lh-20, 20px);
+  margin: 0;
+}
+
+.evo-header__mega-body {
+  align-items: flex-start;
+  display: flex;
+  gap: var(--spacing-56, 56px);
+}
+
+/* Pentru tine / Pentru afacerea ta: 176 + the 1 px separator; the active one = brand label + 2 px brand line on it */
+.evo-header__mega-tabs {
+  align-self: stretch;
+  border-right: var(--border-width-1, 1px) solid var(--evo-header-line);
+  display: flex;
+  flex: 0 0 calc(var(--spacing-72, 72px) * 2 + var(--spacing-32, 32px));
+  flex-direction: column;
+  gap: var(--spacing-16, 16px);
+  padding-right: var(--spacing-4, 4px);
+}
+
+.evo-header__mega-tab {
+  appearance: none;
+  background: transparent;
+  border: 0;
+  border-radius: var(--border-radius-4, 4px);
+  color: var(--color-text-base-secondary, #383838);
+  cursor: pointer;
+  font: inherit;
+  font-size: var(--font-size-fs-16, 16px);
+  font-weight: var(--font-weight-fw-regular, 400);
+  line-height: var(--line-height-lh-24, 24px);
+  padding: var(--spacing-4, 4px) var(--spacing-4, 4px) var(--spacing-4, 4px) 0;
+  position: relative;
+  text-align: left;
+}
+
+.evo-header__mega-tab:hover,
+.evo-header__mega-tab.is-active {
+  color: var(--color-text-brand-default, #0058d2);
+  font-weight: var(--font-weight-fw-medium, 500);
+}
+
+.evo-header__mega-tab.is-active::after {
+  background: var(--color-background-brand-default, #0058d2);
+  content: "";
+  height: var(--spacing-40, 40px);
+  position: absolute;
+  right: calc((var(--spacing-4, 4px) + var(--border-width-1, 1px)) * -1);
+  top: calc(var(--spacing-4, 4px) * -1);
+  width: var(--border-width-2, 2px);
+}
+
+.evo-header__mega-tab:focus-visible,
+.evo-header__mega-link:focus-visible,
+.evo-header__mega-title:focus-visible,
+.evo-header__gov:focus-visible,
+.evo-header__language:focus-visible,
+.evo-header__logo:focus-visible {
+  box-shadow: var(--evo-header-focus);
+  outline: none;
+}
+
+.evo-header__mega-cols {
+  display: flex;
+  flex: 1 1 0;
+  gap: var(--spacing-48, 48px);
+  min-width: 0;
+}
+
+.evo-header__mega-cols[hidden] {
+  display: none;
+}
+
+.evo-header__mega-col {
+  display: flex;
+  flex: 1 1 0;
+  flex-direction: column;
+  /* Figma 14 between the rows (off the 4-step scale, kept as measured) */
+  gap: calc(var(--spacing-12, 12px) + var(--spacing-2, 2px));
+  list-style: none;
+  margin: 0;
+  min-width: 0;
+  padding: 0;
+}
+
+/* .menu-item 912:26795 · Leading: 4 4 4 0 · 24 icon box (20 glyph) · gap 6 · 14/20 regular secondary; hover / active brand medium */
+.evo-header__mega-link {
+  align-items: flex-start;
+  border-radius: var(--border-radius-4, 4px);
+  color: var(--color-text-base-secondary, #383838);
+  display: flex;
+  font-size: var(--font-size-fs-14, 14px);
+  font-weight: var(--font-weight-fw-regular, 400);
+  gap: var(--spacing-6, 6px);
+  line-height: var(--line-height-lh-20, 20px);
+  padding: var(--spacing-4, 4px) var(--spacing-4, 4px) var(--spacing-4, 4px) 0;
+}
+
+.evo-header__mega-link > span:last-child {
+  padding-top: var(--spacing-2, 2px);
+}
+
+.evo-header__mega-link:hover {
+  color: var(--color-text-brand-default, #0058d2);
+  font-weight: var(--font-weight-fw-medium, 500);
+}
+
+.evo-header__mega-icon {
+  align-items: center;
+  display: inline-flex;
+  flex: 0 0 var(--icon-size-default, 24px);
+  height: var(--icon-size-default, 24px);
+  justify-content: center;
+}
+
+.evo-header__mega-icon .icon {
+  height: var(--icon-size-medium, 20px);
+  width: var(--icon-size-medium, 20px);
+}
+
+/* „Meniu ⌄” (761–1100) opens the same panel + the entry the bar no longer shows */
+.evo-header__mega-more {
+  border-top: var(--border-width-1, 1px) solid var(--evo-header-line);
+  display: none;
+  padding-top: var(--spacing-24, 24px);
+}
+
+.evo-header__mega.is-menu .evo-header__mega-more {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-16, 16px) var(--spacing-48, 48px);
+}
+
+/* the not-live entry in „Meniu”: the Disabled look (tertiary) + its „În curând” tag, always shown here */
+.evo-header__mega-soon {
+  align-items: center;
+  color: var(--color-text-base-tertiary, #757575);
+  display: inline-flex;
+  font-size: var(--font-size-fs-20, 20px);
+  font-weight: var(--font-weight-fw-semibold, 600);
+  gap: var(--spacing-8, 8px);
+  line-height: var(--line-height-lh-28, 28px);
+}
+
+.evo-header__mega-more .evo-header__mega-title {
+  font-size: var(--font-size-fs-20, 20px);
+  line-height: var(--line-height-lh-28, 28px);
+}
+
+/* ---------- full nav → „Meniu” (Figma 1024) ---------- */
+@media (max-width: 1100px) {
+  .evo-header__nav-full {
+    display: none;
+  }
+
+  .evo-header__nav-compact {
+    display: flex;
+  }
+
+  .evo-header__mega-cols {
+    gap: var(--spacing-24, 24px);
+  }
+
+  .evo-header__mega-body {
+    gap: var(--spacing-32, 32px);
+  }
+}
+
+/* ---------- phones: header-evo-mobile under the .top-section Mobile bar ---------- */
+.evo-header__panel {
+  display: none;
+}
+
+@media (max-width: 760px) {
+  .evo-header {
+    min-height: calc(var(--spacing-32, 32px) + var(--spacing-64, 64px));
+  }
+
+  .evo-header__top {
+    padding: 0 var(--spacing-16, 16px);
+  }
+
+  /* data-evo-phone-gov="off": no gov bar on phones (EVO Cabinet — header-evo-mobile alone, as the Cabinet had) */
+  .evo-header[data-evo-phone-gov="off"] {
+    min-height: var(--spacing-64, 64px);
+  }
+
+  .evo-header[data-evo-phone-gov="off"] .evo-header__top {
+    display: none;
+  }
+
+  .evo-header__main {
+    height: var(--spacing-64, 64px);
+    padding: 0 var(--spacing-16, 16px);
+  }
+
+  .evo-header__logo-full,
+  .evo-header__nav,
+  .evo-header__action--desktop,
+  .evo-header__button--sign,
+  .evo-header__mega {
+    display: none;
+  }
+
+  .evo-header__logo-mark {
+    display: block;
+  }
+
+  .evo-header__start {
+    align-self: center;
+  }
+
+  .evo-header__end {
+    gap: var(--spacing-16, 16px);
+  }
+
+  .evo-header__burger {
+    display: inline-flex;
+  }
+
+  /* Anonymous: [Intră în cabinet] 16 [search 8 ☰] */
+  .evo-header__buttons {
+    order: -1;
+  }
+
+  .evo-header[data-evo-auth="out"] .evo-header__burger {
+    margin-left: calc(var(--spacing-8, 8px) * -1);
+  }
+
+  /* Authenticated: [search 8 bell] 16 [avatar 32] 16 [☰] */
+  .evo-header__avatar {
+    height: var(--spacing-32, 32px);
+    width: var(--spacing-32, 32px);
+  }
+
+  /* ---- the menu (header-evo-mobile State=Active): full screen ---- */
+  .evo-header__panel {
+    background: var(--color-background-base-default, #fff);
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    inset: 0;
+    position: fixed;
+    z-index: 1100;
+  }
+
+  .evo-header__panel[hidden] {
+    display: none;
+  }
+
+  html.is-evo-panel-open,
+  html.is-evo-panel-open body {
+    overflow: hidden;
+  }
+
+  .evo-header__panel-top {
+    align-items: center;
+    display: flex;
+    flex: none;
+    height: var(--spacing-64, 64px);
+    justify-content: space-between;
+    padding: 0 var(--spacing-12, 12px) 0 var(--spacing-16, 16px);
+  }
+
+  .evo-header__panel-top .evo-header__logo-mark {
+    display: block;
+  }
+
+  .evo-header__panel-tools {
+    align-items: center;
+    display: flex;
+    gap: var(--spacing-8, 8px);
+  }
+
+  .evo-header__lang {
+    position: relative;
+  }
+
+  /* the language menu = a dropdown (dropdown-effect surface + the one item size, css/dropdown.css) */
+  .evo-header__lang-menu {
+    background: var(--color-background-base-default, #fff);
+    border-radius: var(--border-radius-12, 12px);
+    /* „dropdown-effect” — the documented literal (no token; = the Dropdown surface rule, not loaded on RAP) */
+    box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.05), 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    min-width: calc(var(--spacing-72, 72px) * 2);
+    overflow: clip;
+    position: absolute;
+    right: 0;
+    top: calc(100% + var(--spacing-8, 8px));
+    z-index: 2;
+  }
+
+  .evo-header__lang-menu[hidden] {
+    display: none;
+  }
+
+  .evo-header__lang-item {
+    align-items: center;
+    appearance: none;
+    background: transparent;
+    border: 0;
+    color: var(--color-text-base-default, #121212);
+    cursor: pointer;
+    display: flex;
+    font-family: inherit;
+    justify-content: space-between;
+    text-align: left;
+    width: 100%;
+  }
+
+  .evo-header__lang-item:hover {
+    background: var(--color-background-base-secondary, #f5f5f5);
+  }
+
+  .evo-header__lang-item.is-selected {
+    background: var(--color-background-base-tertiary, #f1f1f1);
+  }
+
+  .evo-header__lang-item.is-selected:hover {
+    background: var(--color-background-base-tertiary-hover, #d9d9d9);
+  }
+
+  .evo-header__lang-item:focus-visible {
+    box-shadow: inset 0 0 0 var(--border-width-2, 2px) var(--blue-sky-500, #3379db);
+    outline: none;
+  }
+
+  .evo-header__panel-scroll {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+  }
+
+  .evo-header__panel-search {
+    padding: var(--spacing-12, 12px) var(--spacing-16, 16px) var(--spacing-6, 6px);
+  }
+
+  .evo-header__search {
+    width: 100%;
+  }
+
+  .evo-header__panel-section {
+    padding: var(--spacing-16, 16px) 0 var(--spacing-8, 8px);
+  }
+
+  .evo-header__panel-heading {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-12, 12px);
+    padding: var(--spacing-12, 12px) var(--spacing-16, 16px);
+  }
+
+  .evo-header__panel-heading--single {
+    border-block: var(--border-width-1, 1px) solid var(--evo-header-line);
+    margin-block: var(--spacing-2, 2px);
+  }
+
+  .evo-header__panel-title {
+    align-items: center;
+    border-radius: var(--border-radius-4, 4px);
+    color: var(--color-text-base-default, #121212);
+    display: flex;
+    font-size: var(--font-size-fs-18, 18px);
+    font-weight: var(--font-weight-fw-semibold, 600);
+    gap: var(--spacing-8, 8px);
+    justify-content: space-between;
+    line-height: var(--line-height-lh-26, 26px);
+  }
+
+  .evo-header__panel-title .icon {
+    height: var(--icon-size-medium, 20px);
+    width: var(--icon-size-medium, 20px);
+  }
+
+  .evo-header__panel-title:hover {
+    color: var(--color-text-brand-default, #0058d2);
+  }
+
+  .evo-header__panel-text {
+    color: var(--color-text-base-tertiary, #757575);
+    font-size: var(--font-size-fs-14, 14px);
+    line-height: var(--line-height-lh-20, 20px);
+    margin: 0;
+  }
+
+  .evo-header__panel-groups {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-4, 4px);
+  }
+
+  /* .navigation-item-mobile 1114:9933 · Primary: 48 · 0 16 · gap 12 · 16/24 medium · chevron 20; open = grey ground */
+  .evo-header__panel-item {
+    align-items: center;
+    appearance: none;
+    background: transparent;
+    border: 0;
+    color: var(--color-text-base-default, #121212);
+    cursor: pointer;
+    display: flex;
+    font: inherit;
+    font-size: var(--font-size-fs-16, 16px);
+    font-weight: var(--font-weight-fw-medium, 500);
+    gap: var(--spacing-12, 12px);
+    justify-content: space-between;
+    line-height: var(--line-height-lh-24, 24px);
+    min-height: var(--spacing-48, 48px);
+    padding: 0 var(--spacing-16, 16px);
+    text-align: left;
+    width: 100%;
+  }
+
+  .evo-header__panel-item .icon {
+    height: var(--icon-size-medium, 20px);
+    transition: transform 160ms ease;
+    width: var(--icon-size-medium, 20px);
+  }
+
+  .evo-header__panel-item:hover,
+  .evo-header__panel-item[aria-expanded="true"] {
+    background: var(--color-background-base-secondary, #f5f5f5);
+  }
+
+  .evo-header__panel-item[aria-expanded="true"]:hover {
+    background: var(--color-background-base-tertiary, #f1f1f1);
+  }
+
+  .evo-header__panel-item[aria-expanded="true"] .icon {
+    transform: rotate(180deg);
+  }
+
+  .evo-header__panel-sub {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-4, 4px);
+    list-style: none;
+    margin: 0;
+    padding: var(--spacing-4, 4px) 0;
+  }
+
+  .evo-header__panel-sub[hidden] {
+    display: none;
+  }
+
+  /* .menu-item (mobile) 48 · 4 24 4 16 · 24 icon box · gap 6 · 16/24 regular secondary; Secondary level + 12 */
+  .evo-header__panel-sub-link,
+  .evo-header__panel-link {
+    align-items: center;
+    color: var(--color-text-base-secondary, #383838);
+    display: flex;
+    font-size: var(--font-size-fs-16, 16px);
+    font-weight: var(--font-weight-fw-regular, 400);
+    gap: var(--spacing-6, 6px);
+    line-height: var(--line-height-lh-24, 24px);
+    min-height: var(--spacing-48, 48px);
+    padding: var(--spacing-4, 4px) var(--spacing-24, 24px) var(--spacing-4, 4px) var(--spacing-16, 16px);
+    box-sizing: border-box;
+  }
+
+  .evo-header__panel-sub-link {
+    padding-left: calc(var(--spacing-16, 16px) + var(--spacing-12, 12px));
+  }
+
+  .evo-header__panel-link .icon {
+    height: var(--icon-size-medium, 20px);
+    margin-inline: var(--spacing-2, 2px);
+    width: var(--icon-size-medium, 20px);
+  }
+
+  .evo-header__panel-sub-link:hover,
+  .evo-header__panel-link:hover {
+    background: var(--color-background-base-secondary, #f5f5f5);
+    color: var(--color-text-brand-default, #0058d2);
+  }
+
+  .evo-header__panel-links {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-4, 4px);
+    padding: var(--spacing-16, 16px) 0 var(--spacing-24, 24px);
+  }
+
+  .evo-header__panel :is(.evo-header__panel-item, .evo-header__panel-sub-link, .evo-header__panel-link, .evo-header__panel-title):focus-visible {
+    box-shadow: inset 0 0 0 var(--border-width-2, 2px) var(--blue-sky-500, #3379db);
+    outline: none;
+  }
+
+  /* Anonymous: the two buttons at the bottom, Large 48, full width */
+  .evo-header__panel-foot {
+    display: flex;
+    flex: none;
+    flex-direction: column;
+    gap: var(--spacing-12, 12px);
+    padding: var(--spacing-16, 16px) var(--spacing-16, 16px) calc(var(--spacing-20, 20px) + env(safe-area-inset-bottom, 0px));
+  }
+
+  .evo-header__panel-foot .btn {
+    width: 100%;
+  }
+}
+
+/* hover on the selected / brand parts (user rule: visible hover everywhere) — the current language and the active tab
+   get a thicker underline, the logo a soft ring (no veil, no filter) */
+.evo-header__language.is-active:hover {
+  text-decoration-thickness: var(--border-width-2, 2px);
+}
+
+.evo-header__mega-tab.is-active:hover {
+  text-decoration: underline;
+  text-underline-offset: var(--spacing-4, 4px);
+}
+
+.evo-header__logo:hover {
+  box-shadow: 0 0 0 var(--border-width-3, 3px) var(--color-background-base-tertiary-hover, #d9d9d9);
+}

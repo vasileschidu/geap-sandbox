@@ -316,6 +316,14 @@
     document.activeElement?.blur?.(); /* a tap leaves no focus ring (the demo's programmatic click would) */
   };
   /* a row whose only action is „Detalii” has no trigger at all (no-lone-detalii-v1) → the state shows the plain card */
+  /* EVO header (evo-header-v1): phones open ☰, desktop the visible Servicii / Meniu trigger */
+  const evoPhone = () => window.matchMedia("(max-width: 760px)").matches;
+  const evoMenu = async (h) => {
+    if (evoPhone()) { await h.click(".evo-header [data-evo-panel-open]"); await h.find(".evo-header__panel:not([hidden])"); return; }
+    const compact = window.matchMedia("(max-width: 1100px)").matches;
+    await h.click(`.evo-header [data-evo-mega-trigger="${compact ? "meniu" : "servicii"}"]`);
+    await h.find(".evo-header__mega:not([hidden])");
+  };
   const smMenu = (id) => async (h) => { await smFind(h, id); const sel = `[data-sm-card="${id}"] [data-cab-menu-trigger]`; if (document.querySelector(sel)) await h.click(sel); };
   const ntAt = (kind) => ({ page: CAB, params: { view: "notificari" }, ready: ".nt-item, .cab-state", run: async (h) => { await h.scroll(`[data-nt-kind="${kind}"]`); } });
   /* „Filtre” (US-158 AC-04 / 05) = the shared facet filter: desktop toggle → chip → option → Confirmă → Aplică;
@@ -2158,6 +2166,16 @@
     "sm-01v": sm(smPickMany(1)),
     "sm-01x": sm(smPickMany(3)),
     "sm-01y": sm(smPickMany(12)),
+    /* the shared EVO header logged in (evo-header-v1): Servicii mega menu (desktop) / ☰ full-screen menu (phones) */
+    "sm-hdr-01": sm(async (h) => { await evoMenu(h); }),
+    /* phones: the ☰ menu's „Pentru afacerea ta” expanded; desktop: Servicii › Pentru afacerea ta */
+    "sm-hdr-02": sm(async (h) => {
+      await evoMenu(h);
+      if (evoPhone()) await h.click('.evo-header__panel [data-evo-panel-group][aria-controls$="-pj"]');
+      else await h.click('.evo-header__mega [data-evo-mega-tab="pj"]');
+    }),
+    /* a visitor without a session (?auth=0): the Anonymous variant on the public catalog */
+    "sm-hdr-03": { page: CAB, params: { view: "catalog", auth: "0" }, ready: "[data-evo-mounted]" },
     "sm-01s": sm(async (h) => { await h.click("[data-fo-avatar-trigger]"); await h.find("[data-fo-avatar-dropdown]:not([hidden])"); }),
     "sm-01a": sm(smPick("status", ["Spre achitare", "Informații suplimentare"])),
     "sm-01b": sm(smPick("status", ["Schiță"])),
@@ -2392,6 +2410,21 @@
             return;
           }
           await open(h); await pick("status", ["Aprobat tacit"])(h); await h.click("[data-filter-commit]");
+        }),
+        /* the shared EVO header (evo-header-v1, Figma Components 912:18991 / 1210:5257): menus open. Desktop: Servicii ⌄
+           (≤1100 „Meniu ⌄”) mega menu; phones: ☰ → the full-screen menu (State=Active) */
+        "rap-01m": rap(async (h) => { await evoMenu(h); }),
+        /* desktop: the „Pentru afacerea ta” tab; phones: „Pentru tine” expanded */
+        "rap-01n": rap(async (h) => {
+          await evoMenu(h);
+          if (evoPhone()) await h.click('.evo-header__panel [data-evo-panel-group]');
+          else await h.click('.evo-header__mega [data-evo-mega-tab="pj"]');
+        }),
+        /* desktop: „Evenimente de viață” (Disabled) hovered → „În curând”; phones: the language menu of the open ☰ */
+        "rap-01o": rap(async (h) => {
+          if (evoPhone()) { await evoMenu(h); await h.click(".evo-header__panel [data-evo-lang-trigger]"); return; }
+          if (window.matchMedia("(max-width: 1100px)").matches) { await evoMenu(h); return; }
+          await h.focus(".evo-header__soon .evo-header__nav-item"); await h.wait(200);
         }),
         /* act profile (?act=): BO page header, sections over grey cards, Small status tags */
         "rap-02": { page: RAP, params: { act: "rap-0002" }, ready: "[data-rap-profile-view]:not([hidden]) h1" },
