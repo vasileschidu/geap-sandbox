@@ -123,6 +123,10 @@ gets better; never delete a lesson, rewrite it if it was wrong.
   sections, frames, layers, pages. Visible text stays Romanian. Glossary: tools/figma/naming-glossary.json. Names quoted in
   this playbook before 2026-10-15 are the old Romanian ones — look them up in tools/figma/naming-map.json.
 
+- Never flip `strokeAlign` in bulk (user, 2026-10-22). OUTSIDE strokes are often intentional: the 4 px screen frame and the
+  current-step band (8 px OUTSIDE stroke in the fill colour = the code's `box-shadow 0 0 0 8px`). Fix a stroke only on the node
+  you were asked about; audit rule `band-stroke-inside` flags a hidden band.
+
 ## Plugin API gotchas
 - `await figma.setCurrentPageAsync(page)` before `findAll` on another page; once per call.
 - Results capped ~20 KB — return counts + ids, not trees. Long scripts (> ~5 min) time out:
@@ -3198,3 +3202,29 @@ For any „research how other products do it” step, search Mobbin (mcp__mobbin
     first new id) so pre-existing Medium buttons stay.
   - RAP „Beneficiar” avatar is already `RAP / Beneficiary avatar` Type=Company = 24/business-filled c477fc69 (the glyph just reads
     as a case); the only suitcase / luggage glyphs on the page are home-page service categories, not companies — left.
+
+- 2026-10-22 · stepper-current-stroke-v1 (user on FOD 756:24789: „all stepper need update with the outer blue stroke for bg”, then
+  „it disappeared everywhere” / „its position changed from OUTSIDE to INSIDE”). **Root cause = my own sweep of 2026-10-04 12:00–12:02
+  UTC** (main session, Filtrare tables / shadows thread): use_figma „Outside strokes → inside with 1px border-width token inset, all
+  pages” (9 GEAP pages, 298 frames) + „Fix outside strokes in local main components” — every OUTSIDE stroke in a local main used on
+  those pages → INSIDE, and each 0 padding under it bound to border-width/border-1. It hit `.step-desktop` 1117:10830 Vertical ×
+  Current: `Frame 634403` band (8 px, blue-sky/100 = the fill colour) went INSIDE + padding 1, so the band vanished and the circle
+  moved 1 px. Proof: FOD still holds two imports of the same key c1cf0e4f — 1:417 (pre-sweep: OUTSIDE 8, padding spacing-0, 81
+  instances) and 756:20884 (post-sweep: INSIDE 8, padding 1, 9 instances); the Form Builder copy 8715:79128 kept OUTSIDE. The
+  code was never stored in a repo script (tools/figma/tokenize.js only binds 1 px paddings). Fixed:
+  - GEAP main 1117:10837 band → OUTSIDE, padding back to spacings/spacing-0 (= the original) → 161 instances inherit (0 overrides).
+  - GEAP `FO stepper · step` 11849:7107 State=Active `Row` had no band at all → stroke 8 OUTSIDE bound to background/brand/secondary
+    (= its fill, = code `.e-permits-fo-stepper__item.is-active .e-permits-fo-stepper__row`) → 65 instances (Ghișeu 59, Form
+    Builder 4, Address 2).
+  - Clipping: 6 wrappers cut the band (Services 04b preview `fo-stepper` / `fo-request__sidebar` / `fo-request__inner`, Form
+    Builder 4 × `FO stepper`) → clip off (nothing else overflowed). Re-check: 0 cut.
+  - FOD: 9 instances on 756:20884 → `swapComponent(1:417)` (same key, pre-sweep version; props re-set) → 90 / 90 OUTSIDE, 0 cut.
+    EVO Cabinet: 1 Current instance, old import, already OUTSIDE. eKYC: no step instances. Horizontal Current / .step-mobile /
+    `Stepper · drawer` have no band in the library — untouched.
+  Lessons:
+  - **A bulk geometry „cleanup” must list what it changes and skip intentional values**: a stroke in the fill colour ≥ 4 px is a
+    spread band, the 4 px screen frame is OUTSIDE by rule. New audit rule `band-stroke-inside` in tools/ui-qa/figma-audit.js.
+  - **Bisecting a Figma regression**: REST `?version=` node requests come back without children for big files; instead compare
+    the OTHER files' imports of the same component key — each import is a frozen copy of the library at that time.
+  - GEAP must publish the `.step-desktop` + `FO stepper · step` change; FOD / Cabinet then accept the update (their newer imports
+    would otherwise stay on the INSIDE version).
