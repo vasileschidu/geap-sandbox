@@ -359,6 +359,9 @@
   -webkit-box-decoration-break: clone;
   box-decoration-break: clone;
   display: inline;
+  /* the inline tint covers the font's content area (18 for 14/20): + 1 above / below = the Figma 20-high pill per line
+     (EVO Cabinet 1235:34171 „label-pill”: 20 high, sides 4, r4; wrapped lines = pills 20 apart, touching) */
+  padding-block: calc(var(--spacing-2, 2px) / 2);
 }
 
 .e-permits-trajectory:is(.e-permits-trajectory--vertical, .is-stacked):not(.is-measuring) .e-permits-trajectory__step:is(.is-current, .is-paused, .is-attention) .e-permits-trajectory__title > .status-tag {
@@ -374,6 +377,7 @@
     -webkit-box-decoration-break: clone;
     box-decoration-break: clone;
     display: inline;
+    padding-block: calc(var(--spacing-2, 2px) / 2);
   }
 
   .e-permits-trajectory:not(.e-permits-trajectory--vertical) .e-permits-trajectory__step:is(.is-current, .is-paused, .is-attention) .e-permits-trajectory__title > .status-tag {

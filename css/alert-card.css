@@ -59,6 +59,13 @@
   color: var(--color-icon-positive-default, #039855);
 }
 
+/* non-primary buttons on the grey surface (act-alert-card-v2, user: „blue text buttons read badly on the grey card”): the
+   library outlined variants (`btn-outline-strict`, `btn-outline-destructive`) on a WHITE rest fill — label 16:1 / red,
+   boundary = their own border (≥ 3:1 on --color-background-base-secondary); hover / pressed / focus stay the library's */
+.e-permits-callout--card .e-permits-callout__actions > :is(.btn-outline-strict, .btn-outline-destructive):not(:hover, :active, :disabled) {
+  background-color: var(--color-background-base-default, #ffffff);
+}
+
 /* the buttons: third column, centred on the text block, 24 from it (16 column gap + 8) */
 .e-permits-callout--card .e-permits-callout__actions {
   align-self: center;

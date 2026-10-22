@@ -61,7 +61,7 @@
       <li class="e-permits-trajectory__step is-${state}"${CURRENT.includes(state) ? ' aria-current="step"' : ""}>
         <span class="e-permits-trajectory__body">
           <span class="e-permits-trajectory__marker" aria-hidden="true">${marker(state)}</span>
-          <span class="e-permits-trajectory__title"><span class="e-permits-trajectory__label">${esc(step.label)}<span class="u-visually-hidden"> — ${esc(step.sr || STATE_SR[state])}</span></span>${step.tagHtml || ""}</span>
+          <span class="e-permits-trajectory__title"><span class="e-permits-trajectory__label">${esc(step.label)}</span><span class="u-visually-hidden"> — ${esc(step.sr || STATE_SR[state])}</span>${step.tagHtml || ""}</span>
           ${meta ? `<span class="e-permits-trajectory__meta">${meta}</span>` : ""}
         </span>
       </li>`;

@@ -2755,3 +2755,17 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   the brief said red. Request refused + appeal keeps „Depune contestație” in the header (only pay / supplement moved).
   No sub-agent tool → hover-audit 0 / 0 on `.cab-alert-card`, code-audit 0 findings in the card (static 0), component-audit
   0 non-library in the panels (majors = the standing avatar menu / doc-modal ×), capture 16 states × 2 0 errors.
+- 2026-10-22 · act-alert-card-v2 (user on a4122013). (1) „Empty yellow pill fragment under the label” could NOT be reproduced in
+  headless Chromium or WebKit (playwright-core from ~/form-crawler/node_modules: `webkit.launch()` = a Safari-engine check in
+  one script) at 19 widths — but the cause class is real: an inline tinted box with `box-decoration-break: clone` that
+  contains an absolutely positioned child (the `.u-visually-hidden` SR suffix) can get an empty cloned fragment where the
+  child's static position wraps. Fix = structural, not a guess at widths: the SR span became a SIBLING after the label
+  (js/trajectory.js), so the tinted inline holds text only; proof = a fragment probe (label `getClientRects()` vs the text
+  range rects → fragments without text) over 66 state × width runs = 0. Lesson: never put hidden / absolute children inside
+  an element whose background is drawn per line. (2) Figma pill height: the inline tint covers the font content area
+  (18 for 14/20) → `padding-block: calc(var(--spacing-2) / 2)` gives the Figma 20 (1235:34171 „label-pill”, lines touching).
+  (3) Buttons on a grey card: blue text buttons and grey fills fail the boundary contrast — library `btn-outline-strict` on a
+  white rest fill; the override must be `:not(:hover, :active, :disabled)` or it beats the library hover at equal
+  specificity (loaded later). (4) Shorter label („Solicitare nouă”) let two pills share one phone row. (5) „Vezi solicitarea”
+  back to the same tab: header button + the ⋯ copy + the menu click handler (`a[target=_blank]` → `a[href]`) + the alert —
+  grep `newTabAttrs` for every caller; the Istoric number link kept the new tab (reported).

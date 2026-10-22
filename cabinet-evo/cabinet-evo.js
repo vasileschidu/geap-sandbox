@@ -875,11 +875,11 @@
      not: what happens next, who decided and why, the deadline of a right (contestație), the action that solves it.
      { tone, icon?, title, text, actions } → GEAPAlertCard (js/alert-card.js) right under the header. Tone = the act's
      status tag tone (ACT_TONE: suspended amber, expired / withdrawn / annulled red). Actions = library Medium 40: the
-     action that solves it = primary (last → bottom-right); „Vezi solicitarea” = quiet text button next to a primary,
-     secondary when it is the only one; every card button is the library pill `btn-rounded` (user: „do Achită as round
+     action that solves it = primary (last → right); „Vezi solicitarea” = the outlined neutral `btn-outline-strict`
+     (act-alert-card-v2: blue text / grey fills read badly on the grey card), same tab, no external icon; every card button is the library pill `btn-rounded` (user: „do Achită as round
      buttons”). The decision number lives in Istoric (the alert keeps to 2–3 lines). */
   const alertBtn = (variant, inner, attrs) => `<button class="btn ${variant} btn-md btn-rounded" type="button" ${attrs}>${inner}</button>`;
-  const alertLinkBtn = (variant, href, label, extra = "") => `<a class="btn ${variant} btn-md btn-rounded" href="${escape(href)}"${extra}><span>${escape(label)}</span>${extra.includes("_blank") ? icon("icon-external-link") : ""}</a>`;
+  const alertLinkBtn = (variant, href, label, extra = "") => `<a class="btn ${variant} btn-md btn-rounded" href="${escape(href)}"${extra}><span>${escape(label)}</span></a>`;
   function actNotice(act) {
     const profile = actProfileOf(act);
     const change = profile.statusChange || {};
@@ -893,13 +893,14 @@
     const appealUntil = byAuthority && statusDate ? addDaysIso(isoOf(statusDate), state.appealDays) : "";
     const appealOpen = Boolean(appealUntil) && appealUntil >= state.today;
     const appeal = appealOpen ? ` Poți depune o contestație până la ${escape(longDate(appealUntil))}, din solicitarea care conține decizia.` : "";
-    const seeRequest = (id, variant) => (id ? alertLinkBtn(variant, requestHref(id), "Vezi solicitarea", ` data-cab-alert-request${newTabAttrs("Vezi solicitarea")}`) : "");
+    /* the request opens in the SAME tab (act-alert-card-v2: profiles have real URLs, Back returns here), no external icon */
+    const seeRequest = (id) => (id ? alertLinkBtn("btn-outline-strict", requestHref(id), "Vezi solicitarea", " data-cab-alert-request") : "");
     const ppButton = (ppId, label) => (act.postProcesses.some((pp) => pp.id === ppId)
       ? alertBtn("btn-primary", `<span>${escape(label)}</span>`, `data-cab-pp="${escape(ppId)}" data-cab-act="${escape(act.id)}"`)
       : "");
-    const newRequest = () => alertLinkBtn("btn-primary", cabUrl("catalog", {}, `#serviciu/${act.serviceCode}`), "Depune o solicitare nouă");
-    /* a primary + „Vezi solicitarea” (quiet), or „Vezi solicitarea” alone (secondary) */
-    const pair = (primary, requestId) => (primary ? `${seeRequest(requestId, "btn-text-neutral")}${primary}` : seeRequest(requestId, "btn-secondary"));
+    const newRequest = () => alertLinkBtn("btn-primary", cabUrl("catalog", {}, `#serviciu/${act.serviceCode}`), "Solicitare nouă");
+    /* „Vezi solicitarea” (outlined, readable on the grey card) + the primary last */
+    const pair = (primary, requestId) => `${seeRequest(requestId)}${primary}`;
     if (act.pending) {
       const id = state.dosarIdByNr[act.pending.dossier];
       const since = act.pending.since ? `, depusă pe ${escape(longDate(isoOf(act.pending.since)))}` : "";
@@ -1069,7 +1070,8 @@
             ${window.GEAPActRow.menuItemsHtml(act.postProcesses, (pp) => `data-cab-pp="${escape(pp.id)}" data-cab-act="${escape(act.id)}"`, "../assets/") /* the act rows' items: danger last + separator (action-menu-v1) */}
           </ul>
         </div>` : "",
-      issuing ? `<a class="btn btn-neutral btn-md" href="${escape(requestHref(issuing.id))}"${newTabAttrs("Vezi solicitarea")} data-cab-see-dosar data-cab-act-action="request"><span>Vezi solicitarea</span>${icon("icon-external-link")}</a>` : "",
+      /* same tab, no external icon (act-alert-card-v2: request profiles have real URLs, Back returns to the act) */
+      issuing ? `<a class="btn btn-neutral btn-md" href="${escape(requestHref(issuing.id))}" data-cab-see-dosar data-cab-act-action="request"><span>Vezi solicitarea</span></a>` : "",
       act.postProcesses.length || issuing ? `
         <div class="e-permits-fo-intent-act__action cab-act-header__overflow" hidden>
           <button class="btn btn-neutral btn-md btn-icon-only" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="cab-detail-more" aria-label="Mai multe acțiuni" data-cab-menu-trigger>${icon("icon-more-horizontal")}</button>
@@ -1274,7 +1276,7 @@
         ? act.postProcesses.map((pp) => (act.pending ? { ...pp, disabled: true, reason: `Postprocesul „${act.pendingLabel}” este în curs` } : pp))
         : [];
       menu.innerHTML = [
-        request ? `<li role="none"><a class="e-permits-fo-intent-menu__item" role="menuitem" href="${escape(request.getAttribute("href"))}"${newTabAttrs("Vezi solicitarea")}><span>Vezi solicitarea</span>${icon("icon-external-link", "medium")}</a></li>` : "",
+        request ? `<li role="none"><a class="e-permits-fo-intent-menu__item" role="menuitem" href="${escape(request.getAttribute("href"))}"><span>Vezi solicitarea</span></a></li>` : "",
         request && pps.length ? '<li role="separator" class="e-permits-fo-intent-menu__separator"></li>' : "",
         pps.length ? `<li class="cab-menu__label" role="presentation">Postprocese</li>${window.GEAPActRow.menuItemsHtml(pps, (pp) => `data-cab-pp="${escape(pp.id)}" data-cab-act="${escape(act.id)}"`, "../assets/")}` : "",
       ].join("");
@@ -1390,8 +1392,8 @@
         openAct(state.permits.find((p) => p.id === card.dataset.cabCard));
         return;
       }
-      /* a menu link that opens another page in a new tab (Vezi solicitarea): the menu closes behind it */
-      if (event.target.closest(".cab-menu a[target='_blank']")) { closeMenus(); return; }
+      /* a menu link to another page (Vezi solicitarea, same tab since act-alert-card-v2): the menu closes, the link navigates */
+      if (event.target.closest(".cab-menu a[href]")) { closeMenus(); return; }
       if (!event.target.closest(".cab-menu")) closeMenus();
     });
     document.addEventListener("keydown", (event) => {
