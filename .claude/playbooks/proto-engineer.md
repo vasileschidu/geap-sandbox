@@ -2700,3 +2700,15 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   my first edit were AFTER rows; killed it and took the rest from a HEAD worktree on :8977. Take the before table first, or from HEAD.
   QA: hover 0 / 0 (700 copy), component-audit 0 in the sheets (majors = header avatar / profile menus the tool opened, standing),
   code-audit standing only (footer „Arată” 11, section trigger, search ×, violet tag), capture 7 × 2 0 errors.
+- 2026-10-22 · EVO header line above the nav items (evo-header-border-v1; user: „header border should be above Evenimente de
+  viață”). Cause: the bar's bottom line was an `inset` box-shadow on `.evo-header__main`, and a box-shadow paints with the
+  element's BACKGROUND — every child with a fill (the Disabled item's secondary ground, 72 high = the full bar) covered it; the
+  hover rule had papered over it per item with its own inset line. Fix = the line as its own layer (`.evo-header__main::after`,
+  absolute, z 1, main `position: relative` — safe because the mega / phone panel are siblings of main, not children), open /
+  current items z 2 so their 3 px brand underline covers it as in Figma (pixel probe of 912:18991 + 209:32: line d9d9d9 under
+  the Disabled item, brand on the bottom 3 rows), focus rings add the 1 px line to their own shadow (a z 2 item with a fill
+  would hide it again) and focus + open keeps ring + brand. Proof = a line-row pixel probe (scratch ehb/probe.mjs: state × width
+  × hover / focus via real CDP mouse / keyboard, every non-d9d9d9 run on main.bottom − 1) at 1440 / 1280 / 1024 (+ 761 / 375):
+  before 198–200 px gaps under „Evenimente de viață” in every non-open state, after 0 (only the 5 px focus-ring sides and the
+  open item's brand). Lesson: a bar divider drawn as an inset shadow / border on the parent is under its children — any
+  full-height child with a background breaks it; draw dividers that must stay continuous as a pseudo-element layer.

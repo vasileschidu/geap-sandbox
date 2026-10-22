@@ -7448,7 +7448,11 @@ logo + 16, items 72 high, actions 40 at y 16, phone button x 116 / search 271 / 
 
 **States** (tokens): nav item hover = `--color-background-base-secondary` + 1 px `--color-border-base-default` bottom; Expanded
 (menu open) = same ground + brand label + 3 px brand bottom + chevron up; Active (`aria-current="page"`) = brand label + 3 px;
-Disabled = secondary ground + tertiary label. Header action (`.evo-header__action`, 40 round, icon 24 in the label colour): hover
+Disabled = secondary ground + tertiary label. **Header line (evo-header-border-v1, user: „header border should be above Evenimente
+de viață”)**: the 1 px `--color-border-base-default` line under the main bar is its own layer, `.evo-header__main::after` (z 1),
+painted ABOVE the nav items, so no grey item (Disabled, hover, pressed) ever hides it — continuous across the full width at every
+width (Figma 912:18991 has it under the Disabled item too). Only the 3 px brand underline of the open / current item (z 2) and the
+focus ring sit on top of it, as in navigation-item 209:32; focus + open keeps both the ring and the brand underline. Header action (`.evo-header__action`, 40 round, icon 24 in the label colour): hover
 `--color-background-base-tertiary-hover` (#d9d9d9), pressed / open `-tertiary-active` (#b2b2b2), focus = Focus Ring/Medium (2 white
 + 3 blue-sky-500, PNG-probed on 933:30352). Avatar (library `.avatar.avatar--md.avatar--initials` as the button, brand ground):
 hover / pressed = brand hover / active, keyboard focus and open menu = the focus ring (open button keeps it). Languages: current

@@ -129,11 +129,27 @@
 }
 
 /* ---------- main bar ---------- */
+/* The header line (evo-header-border-v1, 2026-10-22): its own layer ABOVE the nav items, so a grey item
+   („Evenimente de viață” disabled, hover, pressed) never hides it — continuous across the full width as in
+   Figma 912:18991. Only the open / current item's 3px brand underline (and the focus ring) sit on top of it,
+   as the navigation-item 209:32 underline covers the bar's bottom rows in Figma. */
 .evo-header__main {
-  box-shadow: inset 0 calc(var(--border-width-1, 1px) * -1) 0 var(--evo-header-line);
   box-sizing: border-box;
   height: var(--spacing-72, 72px);
   padding: 0 var(--spacing-24, 24px);
+  position: relative;
+}
+
+.evo-header__main::after {
+  background: var(--evo-header-line);
+  bottom: 0;
+  content: "";
+  height: var(--border-width-1, 1px);
+  left: 0;
+  pointer-events: none;
+  position: absolute;
+  right: 0;
+  z-index: 1;
 }
 
 .evo-header__start,
@@ -234,6 +250,7 @@
 .evo-header__nav-item[aria-current="page"] {
   box-shadow: inset 0 calc(var(--border-width-3, 3px) * -1) 0 var(--color-background-brand-default, #0058d2);
   color: var(--color-text-brand-default, #0058d2);
+  z-index: 2;
 }
 
 .evo-header__nav-item[aria-expanded="true"] {
@@ -245,9 +262,17 @@
 }
 
 .evo-header__nav-item:focus-visible {
-  box-shadow: var(--evo-header-focus);
+  box-shadow: inset 0 calc(var(--border-width-1, 1px) * -1) 0 var(--evo-header-line), var(--evo-header-focus);
   outline: none;
   z-index: 2;
+}
+
+/* open + keyboard focus: the ring AND the brand underline (an open button keeps its ring, user rule) */
+.evo-header__nav-item[aria-expanded="true"]:focus-visible,
+.evo-header__nav-item[aria-current="page"]:focus-visible {
+  box-shadow:
+    inset 0 calc(var(--border-width-3, 3px) * -1) 0 var(--color-background-brand-default, #0058d2),
+    var(--evo-header-focus);
 }
 
 /* Disabled („Evenimente de viață”, not live yet): grey ground, tertiary label; hover / focus show „În curând” */
@@ -265,7 +290,7 @@
 }
 
 .evo-header__nav-item.is-disabled:focus-visible {
-  box-shadow: var(--evo-header-focus);
+  box-shadow: inset 0 calc(var(--border-width-1, 1px) * -1) 0 var(--evo-header-line), var(--evo-header-focus);
 }
 
 .evo-header__soon-tag {
