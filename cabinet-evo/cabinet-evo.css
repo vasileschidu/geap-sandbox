@@ -1670,15 +1670,6 @@ button.cab-alert-link {
   right: 0;
 }
 
-/* „Istoric” = the shared trajectory card (vertical); on phones its corners follow the BO cards (16) */
-@media (max-width: 760px) {
-  .cab-act-profile .cab-act-history.e-permits-trajectory,
-  .sm-profile .cab-request-history.e-permits-trajectory {
-    border-radius: var(--border-radius-16, 16px);
-    padding: var(--spacing-16, 16px);
-  }
-}
-
 /* ===== Request profile — full container (act-profile-v1, 2026-10-21) =====
    „Solicitările mele” › #dosar/<id> takes the list width like the act profile (user: „full container, no reason to
    cut it”); long text keeps ~75ch lines (the status sentence / explanation, notices). Rows keep the BO label column. */

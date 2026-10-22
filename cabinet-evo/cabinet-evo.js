@@ -911,10 +911,14 @@
     return null;
   }
 
-  /* „Istoric” (US-162 AC-14): the act's key moments in date order on the shared trajectory (vertical) — the request
-     (when known), the tacit approval, the issue, every post-process of the act (status changes with who decided,
-     duplicates, one in progress) — then what comes next, dashed (end of validity / of the suspension). A moment
-     without a date is not shown. Paper acts: only what the registry knows (no GEAP post-processes). */
+  /* „Istoric” (US-162 AC-14) = the BO „Jurnal de evenimente” element itself (istoric-jurnal-v1; user: „exactly the same as
+     the Jurnal de evenimente in BO: the same icons, text, padding”): GEAPEventTimeline (js/event-timeline.js), newest
+     first, BO event shape { at, type, status, user, role, detail }. What happened = „Reușit” (green check, as the BO logs
+     every executed decision); an act that stopped running (retras / anulat / expirat) = the red error marker without a
+     tag (the title says it); a post-process still in examination = pending (clock); what comes next (end of validity /
+     of the suspension) = „Urmează” (empty ring) on top. Who = the authority + subdivision, never a specialist (data
+     minimisation); the holder's own request names the representative only when MPower filed it. A moment without a
+     date is not shown. Paper acts: only what the registry knows (no GEAP post-processes). */
   const PP_EVENT = {
     duplicat: ["Duplicat emis", "done"],
     reperfectare: ["Act reperfectat", "done"],
@@ -929,56 +933,47 @@
     const profile = actProfileOf(act);
     const issuing = issuingDossierOf(act);
     const code = act.service?.authority || "";
-    const where = [code, act.subdivision].filter(Boolean).join(" · ");
+    const authority = { user: code || "Autoritatea emitentă", role: act.subdivision || "" };
     const ref = (dosar) => (dosar?.id
       ? `<a class="e-permits-dosar-profil__link cab-external-link" href="${escape(requestHref(dosar.id))}"${newTabAttrs(`Solicitarea ${dosar.nr}`)}><span>${escape(dosar.nr)}</span>${icon("icon-external-link")}</a>`
       : dosar?.nr ? escape(dosar.nr) : "");
-    const meta = (...parts) => parts.filter(Boolean).join(" · ");
-    const whoOf = (initiator) => (initiator === "autoritate" ? `din inițiativa ${escape(code || "autorității")}` : "la cererea titularului");
+    const sentence = (...parts) => parts.filter(Boolean).join(" · ");
+    const whoOf = (initiator) => (initiator === "autoritate" ? `Din inițiativa ${escape(code || "autorității")}` : "La cererea titularului");
+    const happened = (at, type, state, more) => ({ at, type, status: "Reușit", ...(state === "rejected" ? { tone: "danger", statusTag: false } : {}), ...more });
     const events = [];
     const submitted = issuing?.submitted || profile.requestSubmitted;
     if (submitted) {
-      events.push({ at: submitted, label: "Cerere depusă", state: "done", html: meta(escape(longDateTime(submitted)), issuing?.pp ? escape(issuing.tip) : "", ref(issuing || { nr: profile.dossierNr })) });
+      events.push(happened(submitted, "Cerere depusă", "done", { user: issuing?.filedBy?.name || "", role: issuing?.filedBy ? "Reprezentant MPower" : "", detailHtml: sentence(issuing?.pp ? escape(issuing.tip) : "", ref(issuing || { nr: profile.dossierNr })) }));
     }
     if (profile.tacitApprovalDate) {
-      events.push({ at: isoOf(profile.tacitApprovalDate), label: "Aprobare tacită", state: "done", html: meta(escape(longDate(profile.tacitApprovalDate)), "autoritatea nu a emis o decizie în termen") });
+      events.push(happened(isoOf(profile.tacitApprovalDate), "Aprobare tacită", "done", { detail: "Autoritatea nu a emis o decizie în termen." }));
     }
-    events.push({ at: isoOf(act.issued), label: act.paper ? "Act emis pe hârtie" : "Act emis", state: "done", html: meta(escape(longDate(act.issued)), escape(where)) });
+    events.push(happened(isoOf(act.issued), act.paper ? "Act emis pe hârtie" : "Act emis", "done", authority));
     const covered = new Set();
     if (!act.paper) {
       dossiersOf(act).filter((dosar) => dosar !== issuing && dosar.pp).forEach((dosar) => {
         if (dosar.status === "finalizat" && dosar.result === "aprobat" && PP_EVENT[dosar.pp]) {
           const [label, state] = PP_EVENT[dosar.pp];
           covered.add(dosar.pp);
-          events.push({ at: dosar.finalized, label, state, pp: dosar.pp, html: meta(escape(longDate(dosar.finalized)), whoOf(dosar.initiatedBy), ref(dosar)) });
+          events.push(happened(isoOf(dosar.finalized), label, state, { ...authority, detailHtml: sentence(whoOf(dosar.initiatedBy), ref(dosar)) }));
         } else if (["derulare", "info", "achitare"].includes(dosar.status)) {
-          events.push({ at: dosar.submitted, label: `${dosar.tip} în examinare`, state: "current", html: meta(`depusă la ${escape(longDate(dosar.submitted))}`, ref(dosar)) });
+          events.push({ at: dosar.submitted, type: `${dosar.tip} în examinare`, status: "În curs", ...authority, detailHtml: ref(dosar) });
         }
       });
       /* a status change the holder's requests do not show (decided by the authority on its own file) */
       const pp = STATUS_EVENT[act.status];
       const change = profile.statusChange;
       if (pp && change && !covered.has(pp) && statusDateOf(act)) {
-        events.push({ at: isoOf(statusDateOf(act)), label: PP_EVENT[pp][0], state: PP_EVENT[pp][1], pp, html: meta(escape(longDate(statusDateOf(act))), whoOf(change.initiator), change.decision ? `decizia ${escape(change.decision)}` : "") });
+        events.push(happened(isoOf(statusDateOf(act)), PP_EVENT[pp][0], PP_EVENT[pp][1], { ...authority, detailHtml: sentence(whoOf(change.initiator), change.decision ? `Decizia ${escape(change.decision)}` : "") }));
       }
     }
     if (act.status === "expirat" && act.validUntil) {
-      events.push({ at: isoOf(act.validUntil), label: "Valabilitate încheiată", state: "rejected", html: meta(escape(longDate(act.validUntil)), "termenul de valabilitate a expirat") });
+      events.push(happened(isoOf(act.validUntil), "Valabilitate încheiată", "rejected", { detail: "Termenul de valabilitate a expirat." }));
     }
-    events.sort((a, b) => (a.at < b.at ? -1 : a.at > b.at ? 1 : 0));
-    /* the suspension in force is the current moment (amber pause), an earlier one is history */
-    if (act.status === "suspendat") {
-      const last = events.filter((event) => event.pp === "suspendare").pop();
-      if (last) last.state = "paused";
-    }
-    if (act.status === "valabil" && act.validUntil) events.push({ label: "Sfârșitul valabilității", state: "todo", html: escape(longDate(act.validUntil)) });
-    if (act.status === "suspendat" && profile.suspendedUntil) events.push({ label: "Reluarea valabilității", state: "todo", html: escape(longDate(profile.suspendedUntil)) });
-    return window.GEAPTrajectory?.html({
-      layout: "vertical",
-      className: "cab-act-history",
-      label: "Istoricul actului",
-      steps: events.map((event) => ({ label: event.label, state: event.state, metaHtml: event.html })),
-    }) || "";
+    events.sort((a, b) => (a.at > b.at ? -1 : a.at < b.at ? 1 : 0));
+    if (act.status === "valabil" && act.validUntil) events.unshift({ at: isoOf(act.validUntil), type: "Sfârșitul valabilității", status: "Urmează" });
+    if (act.status === "suspendat" && profile.suspendedUntil) events.unshift({ at: isoOf(profile.suspendedUntil), type: "Reluarea valabilității", status: "Urmează" });
+    return window.GEAPEventTimeline?.html("Istoric", events, { titleId: "cab-act-history", sectionAttrs: 'aria-labelledby="cab-act-history"' }) || "";
   }
 
   function renderDetail(act) {
@@ -1086,7 +1081,7 @@
           authority.email ? detailRow("E-mail", link(`mailto:${authority.email}`, authority.email)) : "",
         ]))}
         ${representative ? "" : beneficiary}
-        ${profileSection("cab-act-history", "Istoric", actHistory(act))}
+        ${actHistory(act)}
       </div>`;
     syncHeaderMeta();
     watchHeaderActions();

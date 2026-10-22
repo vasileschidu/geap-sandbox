@@ -778,84 +778,71 @@
   /* the request's steps: what happened (dates, who) + what comes next (dashed, no date) */
   /* US-161 AC-16 / US-16: the delivery chosen at filing — EVO Cabinet always, paper on top when chosen */
   const PAPER = { mdelivery: "Pe hârtie prin MDelivery", ghiseu: "Pe hârtie la instituția emitentă" };
-  function deliveryNote(dosar) {
-    const paper = dosar.delivery?.paper;
-    if (paper === "mdelivery") return "În EVO Cabinet și pe hârtie, prin MDelivery.";
-    if (paper === "ghiseu") return `În EVO Cabinet și pe hârtie, la ${dosar.subdivision}.`;
-    return "Livrat în EVO Cabinet.";
-  }
   function addressText(address = {}) {
     const street = [address.strada, address.numar].filter(Boolean).join(" ");
     return [street, address.bloc ? `bl. ${address.bloc}` : "", address.apartament, address.localitate, address.raion, address.codPostal].filter(Boolean).join(", ");
   }
 
-  function timelineEvents(dosar) {
-    /* US-161 AC-11: filed by a representative → his name (and the MPower basis), not the viewer's */
-    const by = dosar.filedBy
-      ? `${dosar.filedBy.name} în baza împuternicirii MPower`
-      : state.perspective?.mpower ? `${state.user?.name} în baza împuternicirii MPower` : state.user?.name || "solicitant";
-    const where = `${serviceOf(dosar).authority} — ${dosar.subdivision}`;
+  /* „Istoric” = the BO „Jurnal de evenimente” element itself (istoric-jurnal-v1; user: „exactly the same as the Jurnal
+     de evenimente in BO”): GEAPEventTimeline (js/event-timeline.js), newest first, BO event shape { at, type, status,
+     user, role, detail } — the stamp „8 iulie 2026, 14:00 · who · role”. What happened = „Reușit” (green check; a
+     refusal too, as the BO logs every executed decision, but with the red error marker and no tag: the title says it);
+     what is still open (examination, information or payment awaited, the draft) = pending (clock). Who = the applicant
+     (the representative's name + „Reprezentant MPower”, US-161 AC-11) or the authority + subdivision, never a
+     specialist (data minimisation, PO Q14). The future stays in the status tracker. */
+  function historyEvents(dosar) {
+    const mpower = Boolean(dosar.filedBy) || Boolean(state.perspective?.mpower);
+    const applicant = { user: dosar.filedBy ? dosar.filedBy.name : state.user?.name || "", role: mpower ? "Reprezentant MPower" : "Solicitant" };
+    const authority = { user: serviceOf(dosar).authority, role: dosar.subdivision };
+    const done = (at, type, more) => ({ at, type, status: "Reușit", ...more });
+    const open = (at, type, more) => ({ at, type, status: "În curs", ...more });
     const events = [];
     if (dosar.status === "schita") {
-      events.push({ state: "done", title: "Schiță creată", when: longDateTime(dosar.created), text: "Salvată automat." });
+      events.push(done(dosar.created, "Schiță creată", { ...applicant, detail: "Salvată automat." }));
       if (dosar.signed) {
-        events.push({ state: "done", title: "Cerere semnată", when: longDateTime(dosar.signed), text: `Semnată prin MSign de ${by}.` });
-        if (dosar.payment?.status === "Achitat") events.push({ state: "done", title: "Taxă achitată", when: longDateTime(dosar.payment.paid), text: `${money(dosar.payment.amount)} prin MPay.` });
-        events.push({ state: "current", title: "Confirmarea depunerii", when: "", text: "Se transmite automat după intervalul de grație." });
+        events.push(done(dosar.signed, "Cerere semnată", { ...applicant, detail: "Semnată prin MSign." }));
+        if (dosar.payment?.status === "Achitat") events.push(done(dosar.payment.paid, "Taxă achitată", { ...applicant, detail: `${money(dosar.payment.amount)} prin MPay.` }));
+        events.push(open("", "Confirmarea depunerii", { detail: "Se transmite automat după intervalul de grație." }));
       } else {
-        events.push({ state: "current", title: "Completarea cererii", when: "", text: pendingFee(dosar)
-          ? `Pasul „${dosar.draft?.stepLabel || DRAFT_STEPS[dosar.draft?.step]}” · nota de plată de ${money(dosar.payment.amount)} așteaptă achitarea · până la ${longDate(dosar.draft?.expires)}`
-          : `Pasul „${dosar.draft?.stepLabel || DRAFT_STEPS[dosar.draft?.step] || "Date solicitant"}” · până la ${longDate(dosar.draft?.expires)}` });
-        events.push({ state: "todo", title: "Depunere și semnare", when: "", text: "" });
+        const step = dosar.draft?.stepLabel || DRAFT_STEPS[dosar.draft?.step] || "Date solicitant";
+        events.push(open("", "Completarea cererii", { detail: pendingFee(dosar)
+          ? `Pasul „${step}”. Nota de plată de ${money(dosar.payment.amount)} așteaptă achitarea până la ${longDate(dosar.draft?.expires)}.`
+          : `Pasul „${step}”, de finalizat până la ${longDate(dosar.draft?.expires)}.` }));
       }
-      events.push({ state: "todo", title: "Examinare și decizie", when: "", text: "" });
-      return events;
+      return events.reverse();
     }
     const paidAtFiling = dosar.payment?.paid && !dosar.feeDuringExam ? ` Taxa de ${money(dosar.payment.amount)} a fost achitată prin MPay.` : "";
     /* act-profile-v1: a post-process started by the AUTHORITY (initiatedBy) — no applicant signed anything */
     const byAuthority = dosar.initiatedBy === "autoritate";
     events.push(byAuthority
-      ? { state: "done", title: "Procedură inițiată de autoritate", when: longDateTime(dosar.submitted), text: `${where}, din oficiu.` }
-      : { state: "done", title: "Solicitare depusă", when: longDateTime(dosar.submitted), text: `Semnată prin MSign de ${by}.${paidAtFiling}` });
+      ? done(dosar.submitted, "Procedură inițiată de autoritate", { ...authority, detail: "Din oficiu." })
+      : done(dosar.submitted, "Solicitare depusă", { ...applicant, detail: `Semnată prin MSign.${paidAtFiling}` }));
     const examining = dosar.status === "derulare";
     /* a suspension that is over (suplinire sent, or its term passed): its steps, then the resumed examination */
     const resumed = Boolean(dosar.suspended) && dosar.status !== "info";
-    events.push({ state: examining && !resumed ? "current" : "done", title: "În examinare la autoritate", when: `din ${longDate(addDays(dosar.submitted, 1))}`, text: examining && !resumed && dosar.examTerm ? `${where} · termen ${longDate(dosar.examTerm)}` : where });
+    const term = dosar.examTerm ? `Termen de examinare: ${longDate(dosar.examTerm)}.` : "";
+    events.push((examining && !resumed ? open : done)(addDays(dosar.submitted, 1), "În examinare la autoritate", { ...authority, detail: examining && !resumed ? term : "" }));
     if (resumed) {
-      events.push({ state: "done", title: "Informații suplimentare solicitate", when: longDate(dosar.suspended), text: dosar.info?.until ? `Examinarea a fost suspendată până la ${longDate(dosar.info.until)}.` : "Examinarea a fost suspendată." });
-      if (dosar.supplemented) events.push({ state: "done", title: "Informații transmise", when: longDateTime(dosar.supplemented), text: "Prin formularul de suplinire." });
-      else if (dosar.resumed?.kind === "expirat") events.push({ state: "done", title: "Suspendare încheiată", when: longDate(dosar.info?.until), text: "Termenul de suplinire a expirat; informațiile cerute nu au fost transmise." });
-      if (examining) events.push({ state: "current", title: "Examinare reluată", when: `din ${longDate(dosar.supplemented || dosar.resumed?.at)}`, text: dosar.examTerm ? `${where} · termen ${longDate(dosar.examTerm)}` : where });
+      events.push(done(dosar.suspended, "Informații suplimentare solicitate", { ...authority, detail: dosar.info?.until ? `Examinarea a fost suspendată până la ${longDate(dosar.info.until)}.` : "Examinarea a fost suspendată." }));
+      if (dosar.supplemented) events.push(done(dosar.supplemented, "Informații transmise", { ...applicant, detail: "Prin formularul de suplinire." }));
+      else if (dosar.resumed?.kind === "expirat") events.push(done(dosar.info?.until, "Suspendare încheiată", { detail: "Termenul de suplinire a expirat; informațiile cerute nu au fost transmise." }));
+      if (examining) events.push(open(dosar.supplemented || dosar.resumed?.at, "Examinare reluată", { ...authority, detail: term }));
     }
-    if (dosar.status === "info") events.push({ state: "attention", title: "Informații suplimentare solicitate", when: longDate(dosar.suspended), text: `Examinarea este suspendată · trimiteți-le până la ${longDate(dosar.info?.until)}.` });
-    if (dosar.status === "achitare") events.push({ state: "attention", title: "Notă de plată emisă", when: longDateTime(dosar.payment?.created), text: paymentExpired(dosar) ? `${money(dosar.payment?.amount)} · termenul de achitare a expirat pe ${longDate(dosar.payment?.due)}.` : `${money(dosar.payment?.amount)} · de achitat până la ${longDate(dosar.payment?.due)}.` });
+    if (dosar.status === "info") events.push(open(dosar.suspended, "Informații suplimentare solicitate", { ...authority, detail: `Examinarea este suspendată. Trimiteți-le până la ${longDate(dosar.info?.until)}.` }));
+    if (dosar.status === "achitare") events.push(open(dosar.payment?.created, "Notă de plată emisă", { ...authority, detail: paymentExpired(dosar) ? `${money(dosar.payment?.amount)}. Termenul de achitare a expirat pe ${longDate(dosar.payment?.due)}.` : `${money(dosar.payment?.amount)} de achitat până la ${longDate(dosar.payment?.due)}.` }));
     if (dosar.status === "finalizat") {
       const rejected = dosar.result === "respins";
-      events.push({ state: rejected ? "rejected" : "done", title: rejected ? "Solicitare respinsă" : byAuthority ? "Decizie semnată" : "Solicitare aprobată", when: longDate(dosar.finalized), text: rejected ? "Decizia de refuz a fost semnată și comunicată." : dosar.decisionOnly ? "Decizia a fost semnată; starea actului a fost actualizată." : "Actul permisiv a fost semnat și emis." });
-    } else {
-      events.push({ state: "todo", title: "Decizia autorității", when: "", text: dosar.examTerm && dosar.status !== "info" ? `Termen: ${longDate(dosar.examTerm)}` : "" });
-      events.push({ state: "todo", title: "Act emis", when: "", text: deliveryNote(dosar) });
+      events.push(done(dosar.finalized, rejected ? "Solicitare respinsă" : byAuthority ? "Decizie semnată" : "Solicitare aprobată", {
+        ...authority,
+        ...(rejected ? { tone: "danger", statusTag: false } : {}),
+        detail: rejected ? "Decizia de refuz a fost semnată și comunicată." : dosar.decisionOnly ? "Decizia a fost semnată; starea actului a fost actualizată." : "Actul permisiv a fost semnat și emis.",
+      }));
     }
-    return events;
+    return events.reverse();
   }
 
-  /* „Istoric” (request-trajectory-v1): what the vertical „Stadiul solicitării” used to say, step by step — every event
-     that happened (date + time, who signed and on which basis, MSign / MPay, where it is examined, the notes) and the
-     one in progress; the future stays in the tracker. Same component and look as the act profile's Istoric
-     (vertical GEAPTrajectory card). */
   function historyHtml(dosar) {
-    const events = timelineEvents(dosar).filter((event) => event.state !== "todo");
-    return section("istoric", "Istoric", window.GEAPTrajectory?.html({
-      layout: "vertical",
-      className: "cab-request-history",
-      label: "Istoricul solicitării",
-      steps: events.map((event) => ({
-        label: event.title,
-        state: event.state,
-        sr: STEP_STATE_TEXT[event.state],
-        meta: [event.when, event.text].filter(Boolean).join(" · "),
-      })),
-    }) || "");
+    return window.GEAPEventTimeline?.html("Istoric", historyEvents(dosar), { titleId: "sm-sec-istoric", sectionAttrs: 'aria-labelledby="sm-sec-istoric"' }) || "";
   }
 
   /* The BO dossier's element itself (cabinet-header-v1; user: „bring back the integrated notification exactly as in

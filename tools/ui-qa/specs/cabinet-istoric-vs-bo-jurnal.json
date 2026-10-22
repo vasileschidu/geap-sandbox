@@ -1,0 +1,219 @@
+{
+ "about": "EVO Cabinet „Istoric” (act profile pp-03d, request profile sm-05) vs the BO „Jurnal de evenimente” (usr-05) — istoric-jurnal-v1 (user 2026-10-22: „exactly the same as the Jurnal de evenimente in BO: the same icons, text, padding”). Both sides are rendered by ONE renderer (js/event-timeline.js, GEAPEventTimeline). Run: node --experimental-websocket --no-warnings tools/ui-qa/compare-styles.mjs --a usr-05 --b pp-03d --spec tools/ui-qa/specs/cabinet-istoric-vs-bo-jurnal.json (and --b sm-05). Widths are ignored: the Cabinet profiles take the full 1200 list container (act-profile-v1), the BO profile its 1024 column; the first Cabinet act item is the „Urmează” milestone, so the item pairs read its 2nd item. The danger pairs read svc-11 („Eroare la sincronizare”, Eșuat) vs pp-03 (act anulat: „Act anulat”, the same red error marker, no tag).",
+ "tokens": [
+  "--color-",
+  "--font-",
+  "--line-height-",
+  "--spacing-",
+  "--border-",
+  "--text-"
+ ],
+ "pairs": [
+  {
+   "name": "section",
+   "a": ".e-permits-dosar-profil__section:has(> .e-permits-timeline)",
+   "b": ".e-permits-dosar-profil__section:has(> .e-permits-timeline)",
+   "ignore": [
+    "rect.width",
+    "rect.right",
+    "rect.height",
+    "rect.x",
+    "rect.y"
+   ]
+  },
+  {
+   "name": "section heading",
+   "a": ".e-permits-dosar-profil__section:has(> .e-permits-timeline) > .e-permits-dosar-profil__section-heading",
+   "b": ".e-permits-dosar-profil__section:has(> .e-permits-timeline) > .e-permits-dosar-profil__section-heading",
+   "rel": "section",
+   "ignore": [
+    "rect.width",
+    "rect.right"
+   ]
+  },
+  {
+   "name": "section title",
+   "a": ".e-permits-dosar-profil__section:has(> .e-permits-timeline) .e-permits-dosar-profil__section-title",
+   "b": ".e-permits-dosar-profil__section:has(> .e-permits-timeline) .e-permits-dosar-profil__section-title",
+   "rel": "section",
+   "ignore": [
+    "rect.width",
+    "rect.right"
+   ]
+  },
+  {
+   "name": "card",
+   "a": ".e-permits-dosar-profil__section:has(> .e-permits-timeline) > .e-permits-timeline",
+   "b": ".e-permits-dosar-profil__section:has(> .e-permits-timeline) > .e-permits-timeline",
+   "rel": "section",
+   "ignore": [
+    "rect.width",
+    "rect.right",
+    "rect.height"
+   ]
+  },
+  {
+   "name": "item",
+   "a": ".e-permits-dosar-profil__section:has(> .e-permits-timeline) > .e-permits-timeline > .e-permits-timeline__item:first-child",
+   "b": ".e-permits-dosar-profil__section:has(> .e-permits-timeline) > .e-permits-timeline > .e-permits-timeline__item:nth-child(2)",
+   "rel": "card",
+   "ignore": [
+    "rect.width",
+    "rect.right",
+    "rect.height",
+    "rect.y"
+   ]
+  },
+  {
+   "name": "item (last)",
+   "a": ".e-permits-dosar-profil__section:has(> .e-permits-timeline) > .e-permits-timeline > .e-permits-timeline__item:last-child",
+   "b": ".e-permits-dosar-profil__section:has(> .e-permits-timeline) > .e-permits-timeline > .e-permits-timeline__item:last-child",
+   "rel": "card",
+   "ignore": [
+    "rect.width",
+    "rect.right",
+    "rect.height",
+    "rect.y"
+   ]
+  },
+  {
+   "name": "rail",
+   "a": ".e-permits-dosar-profil__section:has(> .e-permits-timeline) > .e-permits-timeline > .e-permits-timeline__item:first-child .e-permits-timeline__rail",
+   "b": ".e-permits-dosar-profil__section:has(> .e-permits-timeline) > .e-permits-timeline > .e-permits-timeline__item:nth-child(2) .e-permits-timeline__rail",
+   "ignore": [
+    "rect.height",
+    "rect.x",
+    "rect.y"
+   ]
+  },
+  {
+   "name": "rail line",
+   "a": ".e-permits-dosar-profil__section:has(> .e-permits-timeline) > .e-permits-timeline > .e-permits-timeline__item:first-child .e-permits-timeline__rail",
+   "b": ".e-permits-dosar-profil__section:has(> .e-permits-timeline) > .e-permits-timeline > .e-permits-timeline__item:nth-child(2) .e-permits-timeline__rail",
+   "pseudo": "::after",
+   "ignore": [
+    "rect.height",
+    "rect.x",
+    "rect.y",
+    "height"
+   ]
+  },
+  {
+   "name": "marker (Reușit)",
+   "a": ".e-permits-dosar-profil__section:has(> .e-permits-timeline) > .e-permits-timeline .e-permits-timeline__item--success .e-permits-timeline__marker",
+   "b": ".e-permits-dosar-profil__section:has(> .e-permits-timeline) > .e-permits-timeline .e-permits-timeline__item--success .e-permits-timeline__marker",
+   "ignore": [
+    "rect.x",
+    "rect.y"
+   ]
+  },
+  {
+   "name": "marker icon (Reușit)",
+   "a": ".e-permits-dosar-profil__section:has(> .e-permits-timeline) > .e-permits-timeline .e-permits-timeline__item--success .e-permits-timeline__marker .icon",
+   "b": ".e-permits-dosar-profil__section:has(> .e-permits-timeline) > .e-permits-timeline .e-permits-timeline__item--success .e-permits-timeline__marker .icon",
+   "ignore": [
+    "rect.x",
+    "rect.y"
+   ]
+  },
+  {
+   "name": "content",
+   "a": ".e-permits-dosar-profil__section:has(> .e-permits-timeline) > .e-permits-timeline > .e-permits-timeline__item:first-child .e-permits-timeline__content",
+   "b": ".e-permits-dosar-profil__section:has(> .e-permits-timeline) > .e-permits-timeline > .e-permits-timeline__item:nth-child(2) .e-permits-timeline__content",
+   "ignore": [
+    "rect.width",
+    "rect.right",
+    "rect.height",
+    "rect.x",
+    "rect.y"
+   ]
+  },
+  {
+   "name": "content (last)",
+   "a": ".e-permits-dosar-profil__section:has(> .e-permits-timeline) > .e-permits-timeline > .e-permits-timeline__item:last-child .e-permits-timeline__content",
+   "b": ".e-permits-dosar-profil__section:has(> .e-permits-timeline) > .e-permits-timeline > .e-permits-timeline__item:last-child .e-permits-timeline__content",
+   "ignore": [
+    "rect.width",
+    "rect.right",
+    "rect.height",
+    "rect.x",
+    "rect.y"
+   ]
+  },
+  {
+   "name": "event title",
+   "a": ".e-permits-dosar-profil__section:has(> .e-permits-timeline) > .e-permits-timeline .e-permits-timeline__item--success .e-permits-timeline__title",
+   "b": ".e-permits-dosar-profil__section:has(> .e-permits-timeline) > .e-permits-timeline .e-permits-timeline__item--success .e-permits-timeline__title",
+   "rel": "card",
+   "ignore": [
+    "rect.width",
+    "rect.right",
+    "rect.y"
+   ]
+  },
+  {
+   "name": "stamp",
+   "a": ".e-permits-dosar-profil__section:has(> .e-permits-timeline) > .e-permits-timeline .e-permits-timeline__item--success .e-permits-timeline__stamp",
+   "b": ".e-permits-dosar-profil__section:has(> .e-permits-timeline) > .e-permits-timeline .e-permits-timeline__item--success .e-permits-timeline__stamp",
+   "rel": "card",
+   "ignore": [
+    "rect.width",
+    "rect.right",
+    "rect.y",
+    "rect.height"
+   ]
+  },
+  {
+   "name": "text",
+   "a": ".e-permits-dosar-profil__section:has(> .e-permits-timeline) > .e-permits-timeline .e-permits-timeline__text",
+   "b": ".e-permits-dosar-profil__section:has(> .e-permits-timeline) > .e-permits-timeline .e-permits-timeline__text",
+   "rel": "card",
+   "ignore": [
+    "rect.width",
+    "rect.right",
+    "rect.y",
+    "rect.height"
+   ]
+  },
+  {
+   "name": "marker (danger)",
+   "a": ".e-permits-timeline .e-permits-timeline__item--danger .e-permits-timeline__marker",
+   "b": ".e-permits-timeline .e-permits-timeline__item--danger .e-permits-timeline__marker",
+   "states": {
+    "a": "svc-11",
+    "b": "pp-03"
+   },
+   "ignore": [
+    "rect.x",
+    "rect.y"
+   ]
+  },
+  {
+   "name": "marker icon (danger)",
+   "a": ".e-permits-timeline .e-permits-timeline__item--danger .e-permits-timeline__marker .icon",
+   "b": ".e-permits-timeline .e-permits-timeline__item--danger .e-permits-timeline__marker .icon",
+   "states": {
+    "a": "svc-11",
+    "b": "pp-03"
+   },
+   "ignore": [
+    "rect.x",
+    "rect.y"
+   ]
+  }
+ ],
+ "expected": [
+  {
+   "viewport": 1440,
+   "name": "section",
+   "prop": "min-height",
+   "why": "inert: the BO section's min-height 0 comes from a shell flex reset, but both sections sit in a BLOCK parent (BO user panel, Cabinet profile panel) where min-height auto = 0"
+  },
+  {
+   "viewport": 375,
+   "name": "section",
+   "prop": "min-height",
+   "why": "inert: the BO section's min-height 0 comes from a shell flex reset, but both sections sit in a BLOCK parent (BO user panel, Cabinet profile panel) where min-height auto = 0"
+  }
+ ]
+}

@@ -2513,3 +2513,20 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   (4) code-audit with 3 states stalled at 0 % CPU → one state per run with `--page cabinet-evo/index.html`. Demo pp-01r
   (phone „⋯” open). Hover 0 / 0 at 1440 + 375 (copy with the 375 viewport), component-audit only the standing avatar menu /
   filter-sheet trigger / doc-modal close, code-audit only spacing-off-scale on untouched parts, static 0.
+- 2026-10-22 · Cabinet „Istoric” = the BO „Jurnal de evenimente” (istoric-jurnal-v1; user: „exactly the same: icons, text,
+  padding”). „Literally the same element” = MOVE the renderer, not copy it: `renderEventTimeline` became
+  `js/event-timeline.js` (`GEAPEventTimeline.html / listHtml`, its own date formatter + tag + empty state + sprite path
+  from the script src) and the shell keeps a one-line delegate; proof = normalised outerHTML of every visible timeline
+  section on 9 BO states (usr / svc / clf / dos / eKYC) before vs after → all SAME. Cabinet-only needs became opt-in item
+  keys with the BO never setting them (`detailHtml`, `tone`, `statusTag: false`, `Urmează` = the dead `--upcoming` tone
+  that already existed in the CSS). Mapping rule I used: the BO logs every executed decision as „Reușit”, so what
+  happened = green check, open = clock, a stopping outcome = red marker without the „Eșuat” tag (PO question). Trap:
+  copying the reference meant copying its phone BUG — the BO section heading centred its title at ≤760 (base column +
+  BO `align-items: center`); compare-styles flagged the „difference” on the Cabinet side, the crop of the BO showed the
+  bug. Fix the reference (one BO phone rule, eKYC excluded — its own grid; a heading probe over usr / svc / clf / ek at
+  375 before / after) and restate the BO heading for Cabinet / RAP in bo-profile-parts.css. A `rect.x` of 73 for a
+  left-aligned title is the tell. Spec `cabinet-istoric-vs-bo-jurnal.json` (pair-level `states` for the danger marker:
+  svc-11 ↔ pp-03) = 0; the BO section `min-height: 0` vs `auto` is inert in a block parent → `expected`. My bump loop
+  matched `Components/`, `msupport/`, `acte-permisive/` (grep -rl prints paths WITHOUT „./”, so `grep -v "^./Components"`
+  filtered nothing) → reverted; filter with `grep -v "^\(Components\|msupport\|acte-permisive\)/"`. No sub-agent tool →
+  component-audit 0, hover-audit 0 / 0, code-audit only the standing BO 11 / 11 title padding.

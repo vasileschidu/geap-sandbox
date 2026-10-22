@@ -15687,6 +15687,18 @@
     min-width: 0;
     padding: 0 var(--spacing-12, 12px) var(--spacing-12, 12px);
   }
+
+  /* istoric-jurnal-v1: a heading WITHOUT tools (title, title + meta) keeps the desktop 48 row — the base ≤760 column
+     + the BO `align-items: center` centred the title on phones („Jurnal de evenimente”, „Ultimele modificări”); eKYC keeps its own title-over-meta grid */
+  html:not([data-product="ekyc"]) .e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-dosar-profil__section-heading:not(:has(> .e-permits-passport__heading-tools)) {
+    flex-direction: row;
+    gap: var(--spacing-12, 12px);
+    padding-bottom: 0;
+  }
+
+  html:not([data-product="ekyc"]) .e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-dosar-profil__section-heading:not(:has(> .e-permits-passport__heading-tools)) .e-permits-dosar-profil__section-title {
+    padding-bottom: calc(var(--spacing-12, 12px) - var(--border-width-1, 1px)) /* the title's own 11 (11 + 26 + 11 = 48) */;
+  }
 }
 
 .e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-dosar-profil__section-meta {

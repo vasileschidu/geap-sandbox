@@ -160,6 +160,24 @@
   padding: 0 0 var(--spacing-16, 16px);
 }
 
+/* section heading row (istoric-jurnal-v1): the BO back-office heading — a 48 row, title flex 1, meta on the right —
+   for the sections js/event-timeline.js renders here (Cabinet „Istoric”). The unscoped base rule in
+   e-permits-acte-permisive.css stacks it as a column on phones; the BO keeps the row at every width. */
+.e-permits-dosar-profil__section > .e-permits-dosar-profil__section-heading {
+  align-items: center;
+  display: flex;
+  flex-direction: row;
+  gap: var(--spacing-12, 12px);
+  height: var(--spacing-48, 48px);
+  justify-content: space-between;
+  padding-bottom: 0;
+}
+
+.e-permits-dosar-profil__section-heading > .e-permits-dosar-profil__section-title {
+  flex: 1;
+  padding-bottom: calc(var(--spacing-12, 12px) - var(--border-width-1, 1px)) /* the title's own 11 (11 + 26 + 11 = 48) */;
+}
+
 /* section-over-card rule: no divider, no gap to the card, 8/12 inset (11 + 26 + 11 = 48) */
 .e-permits-dosar-profil__section-title {
   align-items: center;

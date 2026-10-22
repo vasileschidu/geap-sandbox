@@ -7200,49 +7200,9 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   /* Event log — EVO Cabinet "Istoric complet" timeline (Figma EVO-Cabinet 519:12410).
-     Events are { at, user, type, status, detail }, newest first. "Reușit" gets the
-     green check, "Eșuat" the red error and a tag; anything else is pending (clock). */
-  const TIMELINE_TONES = {
-    "Reușit": { tone: "success", icon: "circle-checkmark-filled" },
-    "Eșuat": { tone: "danger", icon: "circle-error-filled" },
-    "Schiță": { tone: "pending", icon: "edit" }
-  };
-
-  const renderEventTimeline = (title, events, options = {}) => {
-    if (!events.length) {
-      return renderPassportEmpty(title, options.empty || "Nu există evenimente înregistrate.");
-    }
-
-    return `
-      <section class="e-permits-dosar-profil__section">
-        <div class="e-permits-dosar-profil__section-heading">
-          <h2 class="e-permits-dosar-profil__section-title">${escapeHtml(title)}</h2>
-          ${options.meta ? `<span class="e-permits-dosar-profil__section-meta">${escapeHtml(options.meta)}</span>` : ""}
-          ${options.actionHtml || ""}
-        </div>
-        <ol class="e-permits-timeline">
-          ${events.map((item, index) => {
-            const look = TIMELINE_TONES[item.status] || { tone: "pending", icon: "time-filled" };
-            /* options.openAttrs(item, index): the item opens its details — the title is an
-               underlined button (link signifier), the whole item hovers (Jurnal, US-228) */
-            const open = options.openAttrs ? options.openAttrs(item, index) : "";
-            return `
-              <li class="e-permits-timeline__item e-permits-timeline__item--${look.tone}${open ? " is-clickable" : ""}"${open ? ` ${open}` : ""}>
-                <span class="e-permits-timeline__rail" aria-hidden="true">
-                  <span class="e-permits-timeline__marker"><svg class="icon"><use href="assets/icons/sprite.svg#icon-${look.icon}"></use></svg></span>
-                </span>
-                <div class="e-permits-timeline__content">
-                  <span class="e-permits-timeline__title">${open ? `<button class="e-permits-timeline__link" type="button" aria-haspopup="dialog">${escapeHtml(item.type)}</button>` : escapeHtml(item.type)}${item.tab ? renderTag(item.tab, "neutral") : ""}${look.tone === "danger" ? renderTag(item.status, "danger") : ""}</span>
-                  <span class="e-permits-timeline__stamp"><time datetime="${escapeHtml(item.at)}">${escapeHtml(String(item.at).includes("T") ? formatStamp(item.at) : formatLongDate(item.at))}</time>${item.user ? ` · ${escapeHtml(item.user)}` : ""}${item.role ? ` · ${escapeHtml(item.role)}` : ""}</span>
-                  ${item.detail ? `<p class="e-permits-timeline__text">${escapeHtml(item.detail)}</p>` : ""}
-                </div>
-              </li>
-            `;
-          }).join("")}
-        </ol>
-      </section>
-    `;
-  };
+     ONE renderer for the BO „Jurnal de evenimente” and the EVO Cabinet „Istoric” (istoric-jurnal-v1):
+     js/event-timeline.js (GEAPEventTimeline). Events are { at, user, type, status, detail }, newest first. */
+  const renderEventTimeline = (title, events, options = {}) => window.GEAPEventTimeline.html(title, events, options);
 
   /* ---- Jurnal de evenimente (service) — every change is logged, so the list is long
      (~100 here): filter chips (Toate / Reușite / Eșuate) + search (type, detail, user,
