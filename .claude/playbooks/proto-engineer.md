@@ -2448,3 +2448,21 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   (HEAD vs tree: 226 = 226 majors, all header avatar / menu standing), code-audit (only the documented 11 Large padding,
   open-menu overlap, `.u-visually-hidden`, BO tab arrows; static 0), hover-audit 0 / 0 at 1440 + a 375 copy, capture 19 × 2
   clean; desktop proven by the same probe before / after (18 state × width pairs identical).
+- 2026-10-22 · RAP act profile = the shared page header + one start with the list (rap-header-v1; user: „the same changes with
+  the header: remove the padding, and the same with the actions”, then via the coordinator FOUR mid-job turns: actions BELOW
+  the title, „breadcrumbs in the same place on the list and the profile”, „even gaps between the table, the search and the
+  title”, phone H1 20/28 + 4-line clamp). (1) A shared-module option two agents need at once: I added `actionsPlacement:
+  "below"` to js/page-header.js first (opt-in, default output proven byte-identical with a node eval of the HEAD blob vs the
+  tree on 4 argument sets); the other agent then built `phoneTitle: "compact"` on top of my hunk in the same file — keep such
+  additions tiny and say which hunk is yours. My commit took only my hunks (HEAD blob + my edits → hash-object /
+  update-index); RAP's rules restate the few shared values it needs (the below row's flex) so the commit is self-consistent
+  before the other agent's CSS lands. (2) „Same place” = MEASURE both pages (scratch probe: breadcrumb text rect, title rect,
+  font) at 1440 / 1024 / 761 / 375 / 320 — the profile sat 16 higher and 16 to the right (BO header body 16 · 16, heading
+  gap 8) while the list had 32 page padding + crumb → title 16. Fix = the profile takes the list's page padding, the header
+  body 0, heading gap 16 → (80, 136) / (24, 136) / (16, 120) on both. (3) List rhythm as margins only on the page blocks
+  (`.rap-main :is(register, summary, state)` 24 / 16 phones, summary ~ results 16, pager 16) — measured gaps per state
+  (rap-01 / 01c / 01d / 01g) before and after. (4) A probe run that stalls (one state, no output) = re-run that state alone
+  under `perl -e 'alarm N; exec @ARGV'`; it was transient. Spec rap-profile-vs-bo: 11 → 0 with the intended differences
+  (below row, compact phone title, the 16 beneficiary card) in `expected`. No sub-agent tool → hover (0 / 0), code-audit
+  (BO 11 / 7, Large 11, visually hidden — standing), component-audit (header clean; „Vezi toate” link + filter-sheet section
+  trigger = pre-existing) run directly.

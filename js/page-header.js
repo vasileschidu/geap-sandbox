@@ -4,13 +4,16 @@
    CSS: e-permits-acte-permisive.css „Back-office page header” (BO + Cabinet) and css/bo-profile-parts.css (pages
    without the BO stylesheets). components.md › „Page header — one renderer”.
 
-   GEAPPageHeader.top({ crumbs, title, titleId, subtitleHtml, wrap, actions, caption, status }) → the __top content:
+   GEAPPageHeader.top({ crumbs, title, titleId, subtitleHtml, wrap, actions, actionsPlacement, caption, status }) → the __top content:
      crumbs   = the full trail ([{ label, attr? | href? }, …, { label: current }]) — drawn parents-only (breadcrumb-v3)
      title    = the H1 text; one line + tooltip (BO registries) unless `wrap` (EVO Cabinet: the full name wraps,
                 never truncated on its own page)
      titleId  = id + tabindex -1 on the H1 (focus after navigation)
      subtitleHtml = a line under the H1 (the Cabinet location with its pin), trusted HTML
-     actions  = trusted HTML of the right-aligned action row (one primary · neutral secondaries · ⋮)
+     actions  = trusted HTML of the action row (one primary · neutral secondaries · ⋮)
+     actionsPlacement = "aside" (default: right-aligned on the title row, BO) | "below" (rap-header-v1, 2026-10-22,
+                user: long names get squeezed beside the actions → a left-aligned row under the title / subtitle,
+                `.e-permits-page-header__actions--below`)
      caption / status = the 12/16 line under the actions (BO: „Publicat … · sincronizat …”)
    GEAPPageHeader.meta([[label, valueHtml], …]) → the __meta items (separators by ::before)
    GEAPPageHeader.syncMetaRows(metaEl) → .is-row-start on items that begin a wrapped line (no orphan separator) */
@@ -22,19 +25,24 @@
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#039;");
 
-  const top = ({ crumbs = [], title = "", titleId = "", subtitleHtml = "", wrap = false, actions = "", caption = "", status = "" } = {}) => `
+  const top = ({ crumbs = [], title = "", titleId = "", subtitleHtml = "", wrap = false, actions = "", actionsPlacement = "aside", caption = "", status = "" } = {}) => {
+    const below = actionsPlacement === "below" && actions;
+    const aside = below ? "" : actions;
+    return `
     <div class="e-permits-page-header__heading">
       ${window.GEAPBreadcrumbs?.html(crumbs, { truncate: true, parentsOnly: true }) || ""}
       <h1 class="e-permits-page-header__title"${wrap ? "" : " data-cell-tooltip"}${titleId ? ` id="${esc(titleId)}" tabindex="-1"` : ""}>${esc(title)}</h1>${subtitleHtml ? `
-      ${subtitleHtml}` : ""}
+      ${subtitleHtml}` : ""}${below ? `
+      <div class="e-permits-page-header__actions e-permits-page-header__actions--below">${actions}</div>` : ""}
     </div>
-    ${actions || caption || status ? `
+    ${aside || caption || status ? `
       <div class="e-permits-page-header__aside">
-        ${actions ? `<div class="e-permits-page-header__actions">${actions}</div>` : ""}
+        ${aside ? `<div class="e-permits-page-header__actions">${aside}</div>` : ""}
         ${caption || status ? `<p class="e-permits-page-header__caption">${status}${status && caption ? " · " : ""}${esc(caption)}</p>` : ""}
       </div>
     ` : ""}
   `;
+  };
 
   const meta = (items) => items.filter(Boolean).map(([label, valueHtml]) => `
     <div class="e-permits-page-header__meta-item">

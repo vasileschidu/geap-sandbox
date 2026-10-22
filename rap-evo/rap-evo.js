@@ -240,26 +240,31 @@
 
     elements.profileView.innerHTML = `
       <div class="rap-profile__container">
-        <header class="e-permits-page-header e-permits-page-header--public rap-profile__header">
+        <!-- the shared page header (rap-header-v1, 2026-10-22, user: „the same changes with the header [as the Cabinet
+             profiles]: remove the padding, and the same with the actions”): js/page-header.js (GEAPPageHeader, the BO
+             renderer) — breadcrumb (parents only) · H1 (wraps) · the action row UNDER the title (actionsPlacement
+             "below": long names are never squeezed beside it; one primary, Medium 40 / phones 48) · the details.
+             Phones: phoneTitle "compact" = H1 20/28, a long name stops at 4 lines with „Mai mult / Mai puțin”
+             (js/name-expand.js multi-line mode, scanned after the render).
+             The public registry has no location line: the object's address is a specific field, behind „Vezi act
+             permisiv” (US-162) -->
+        <header class="e-permits-page-header rap-profile__header" data-rap-profile-header>
           <div class="e-permits-page-header__body">
-            <div class="e-permits-page-header__top">
-              <div class="e-permits-page-header__heading">
-                ${crumbsHtml(record.permit.name)}
-                <div class="rap-profile__title-row">
-                  <h1 class="e-permits-page-header__title" id="rap-profile-title" data-cell-tooltip>${escapeHtml(record.permit.name)}</h1>
-                </div>
-              </div>
-            </div>
+            <div class="e-permits-page-header__top">${window.GEAPPageHeader.top({
+              crumbs: [...RAP_CRUMBS, { label: "Registrul actelor permisive", button: true, attr: "data-rap-profile-back" }, { label: record.permit.name }],
+              title: record.permit.name,
+              titleId: "rap-profile-title",
+              wrap: true,
+              phoneTitle: "compact",
+              actionsPlacement: "below",
+              actions: `<button class="btn btn-primary btn-md" type="button" aria-haspopup="dialog" data-rap-view-document>${icon("eye-open")}<span>Vezi act permisiv</span></button>`
+            })}</div>
             <div class="e-permits-page-header__meta" data-rap-profile-meta>
               ${renderProfileSummaryItem("Numărul actului", record.permit.number, { copy: true })}
               ${renderProfileSummaryItem("Stare", statusTags(record), { html: true })}
               ${renderProfileSummaryItem(headerDateLabel, headerDateValue)}
               ${renderProfileSummaryItem("Data expirării", profile.validUntil)}
             </div>
-            <button class="btn btn-primary btn-md e-permits-page-header__action rap-profile__document-button" type="button" aria-haspopup="dialog" data-rap-view-document>
-              ${icon("eye-open", "icon small")}
-              <span>Vezi act permisiv</span>
-            </button>
           </div>
         </header>
 
@@ -311,6 +316,7 @@
         </div>
       </div>
     `;
+    window.GEAPNameExpand?.scan(elements.profileView.querySelector("[data-rap-profile-header]"));
     const meta = elements.profileView.querySelector("[data-rap-profile-meta]");
     syncMetaRows(meta);
     metaObserver?.observe(meta);

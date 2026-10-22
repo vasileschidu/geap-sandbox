@@ -1,5 +1,5 @@
 {
- "about": "RAP act profile (rap-02 / rap-02a) vs the BO originals: page header meta (svc-01), Date generale card (svc-01), dossier cards (dos-01). Run: node --experimental-websocket --no-warnings tools/ui-qa/compare-styles.mjs --a svc-01 --b rap-02 --spec tools/ui-qa/specs/rap-profile-vs-bo.json (rows: a one-line row on both sides — „Data eliberării” on the RAP; the act name can wrap) 2026-10-17: support-card pairs dropped (the section became „Autoritatea emitentă” rows, user decision); row = „Valabil din data” (nth 6, not the last row); the PF masked id is read on rap-02a.",
+ "about": "RAP act profile (rap-02 / rap-02a) vs the BO originals: page header meta (svc-01), Date generale card (svc-01), dossier cards (dos-01). Run: node --experimental-websocket --no-warnings tools/ui-qa/compare-styles.mjs --a svc-01 --b rap-02 --spec tools/ui-qa/specs/rap-profile-vs-bo.json (rows: a one-line row on both sides — „Data eliberării” on the RAP; the act name can wrap) 2026-10-17: support-card pairs dropped (the section became „Autoritatea emitentă” rows, user decision); row = „Valabil din data” (nth 6, not the last row); the PF masked id is read on rap-02a. 2026-10-22 (rap-header-v1): RAP = the shared page header with the actions below the title + the compact phone title; the header has no inset of its own and breadcrumb → title is 16 (same x / y as the list page) — the header body / heading are not paired here.",
  "tokens": [
   "--color-",
   "--font-",
@@ -439,6 +439,72 @@
    "name": "row value",
    "prop": "rect.x",
    "why": "RAP full container (2026-10-21): on the wide card the label column is clamp(120, 30%, 200) and wraps; the value fills the rest (the BO keeps 256 nowrap)"
+  },
+  {
+   "viewport": 1440,
+   "name": "meta",
+   "prop": "padding-top",
+   "why": "rap-header-v1 (2026-10-22): the actions sit UNDER the title (actionsPlacement \"below\", user: long names get squeezed beside them) → the shared rule puts the details 16 under the action row (css/bo-profile-parts.css); svc-01 keeps its actions on the title row"
+  },
+  {
+   "viewport": 1440,
+   "name": "meta item",
+   "prop": "rect.y",
+   "why": "rap-header-v1 (2026-10-22): the actions sit UNDER the title (actionsPlacement \"below\", user: long names get squeezed beside them) → the shared rule puts the details 16 under the action row (css/bo-profile-parts.css); svc-01 keeps its actions on the title row"
+  },
+  {
+   "viewport": 1440,
+   "name": "beneficiary card",
+   "prop": "padding-left",
+   "why": "beneficiary card padding 16 on every side = the Figma component „Profile / Beneficiary card” (EVO-WEB 22066:184323, user 2026-10-19)"
+  },
+  {
+   "viewport": 1440,
+   "name": "beneficiary card",
+   "prop": "padding-right",
+   "why": "beneficiary card padding 16 on every side = the Figma component „Profile / Beneficiary card” (EVO-WEB 22066:184323, user 2026-10-19)"
+  },
+  {
+   "viewport": 375,
+   "name": "meta",
+   "prop": "padding-top",
+   "why": "rap-header-v1 (2026-10-22): the actions sit UNDER the title (actionsPlacement \"below\", user: long names get squeezed beside them) → the shared rule puts the details 16 under the action row (css/bo-profile-parts.css); svc-01 keeps its actions on the title row"
+  },
+  {
+   "viewport": 375,
+   "name": "meta item",
+   "prop": "rect.y",
+   "why": "rap-header-v1 (2026-10-22): the actions sit UNDER the title (actionsPlacement \"below\", user: long names get squeezed beside them) → the shared rule puts the details 16 under the action row (css/bo-profile-parts.css); svc-01 keeps its actions on the title row"
+  },
+  {
+   "viewport": 375,
+   "name": "beneficiary card",
+   "prop": "padding-left",
+   "why": "beneficiary card padding 16 on every side = the Figma component „Profile / Beneficiary card” (EVO-WEB 22066:184323, user 2026-10-19)"
+  },
+  {
+   "viewport": 375,
+   "name": "beneficiary card",
+   "prop": "padding-right",
+   "why": "beneficiary card padding 16 on every side = the Figma component „Profile / Beneficiary card” (EVO-WEB 22066:184323, user 2026-10-19)"
+  },
+  {
+   "viewport": 1440,
+   "name": "meta",
+   "prop": "rect.height",
+   "why": "rap-header-v1 (2026-10-22): the actions sit UNDER the title (actionsPlacement \"below\", user: long names get squeezed beside them) → the shared rule puts the details 16 under the action row (css/bo-profile-parts.css); svc-01 keeps its actions on the title row"
+  },
+  {
+   "viewport": 375,
+   "name": "header title",
+   "prop": "font-size",
+   "why": "rap-header-v1 (2026-10-22): phoneTitle \"compact\" — on phones the profile H1 is 20/28 with the 4-line name-expand clamp (user: the title too big on mobile); the BO keeps 24/32"
+  },
+  {
+   "viewport": 375,
+   "name": "header title",
+   "prop": "line-height",
+   "why": "rap-header-v1 (2026-10-22): phoneTitle \"compact\" — on phones the profile H1 is 20/28 with the 4-line name-expand clamp (user: the title too big on mobile); the BO keeps 24/32"
   }
  ]
 }

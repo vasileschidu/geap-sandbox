@@ -328,7 +328,9 @@
 }
 
 /* ---- Public profile header (`.e-permits-page-header--public`, 2026-10-17): the BO page header on a
-   public page — RAP act profile and every EVO Cabinet profile. One block for both, moved from
+   public page — now ONLY the EVO Cabinet catalog service (CabEvo.pageHeader): the Cabinet act / request profiles
+   (cabinet-header-v1) and the RAP act profile (rap-header-v1, 2026-10-22) use the shared page header
+   (js/page-header.js). Moved from
    rap-evo.css (user 2026-10-17: breadcrumb → title 16 „as on the list page”, the full name wraps,
    the primary action = the library btn-primary btn-md, hugging, under the meta). Markup:
    header.e-permits-page-header.e-permits-page-header--public > __body > __top > __heading

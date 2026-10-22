@@ -750,9 +750,10 @@ a {
   transform: translateX(2px);
 }
 
-/* the list pager = the shared component (css/pager.css, audit-fix-v3); the register's footer inset only */
+/* the list pager = the shared component (css/pager.css, audit-fix-v3); the register's footer inset only — 16 on every
+   side (table → pager 16, the list rhythm below; was 12 / 16) */
 .rap-pagination {
-  padding: var(--spacing-12, 12px) var(--spacing-16, 16px);
+  padding: var(--spacing-16, 16px);
 }
 
 .rap-pagination:empty {
@@ -764,16 +765,70 @@ a {
   margin-top: var(--spacing-16, 16px);
 }
 
-/* the header's own top padding (BO page header: 16) is the only gap above the breadcrumb */
+/* the profile starts where the list starts (rap-header-v1, 2026-10-22, user: „make sure the breadcrumbs stay in the
+   same place [on the list and the act profile]”): the same page padding as .rap-main (32 · 24; phones 24 · 16) — the
+   header itself adds no inset (below) → breadcrumb at the same x / y on both pages, at every width */
 .rap-profile {
-  padding: 0 var(--spacing-24, 24px) var(--spacing-64, 64px);
+  padding: var(--spacing-32, 32px) var(--spacing-24, 24px) var(--spacing-64, 64px);
 }
 
-/* BO page header + sections (css/bo-profile-parts.css, the public header modifier
-   .e-permits-page-header--public: 12 inset, 16 breadcrumb → title, wrapping title, the action
-   under the meta, the phone meta grid) */
-.rap-profile__title-row > .status-tag {
-  flex: 0 0 auto;
+/* ===== Act profile header = the shared page header (rap-header-v1, 2026-10-22; user: „for the RAP profile, the same
+   changes with the header [as the Cabinet act / request profiles]: remove the padding, and the same with the actions”)
+   ===== js/page-header.js (GEAPPageHeader, actionsPlacement "below") + the BO header parts (css/bo-profile-parts.css:
+   16 inset, breadcrumb → title 8, details row). Only what RAP adds: the H1 wraps (the full name is never cut on its
+   own page — the BO registries keep one line + tooltip), the action row under the title (left-aligned, 16 under the
+   title, gap 8, library Medium 40), and on phones the touch size 48. The header has NO inset of its own („remove the
+   padding”) and breadcrumb → title is 16, as the list page (.rap-intro): breadcrumb and title start at the same x / y
+   on the list and the profile. Title wrap + actions = the Cabinet's .cab-profile-header values (cabinet-evo.css) —
+   that page loads the BO stylesheet, this one does not. */
+.rap-profile__header .e-permits-page-header__body {
+  padding: 0;
+}
+
+.rap-profile__header .e-permits-page-header__heading {
+  gap: var(--spacing-16, 16px);
+}
+
+.rap-profile__header .e-permits-page-header__title {
+  overflow: visible;
+  overflow-wrap: break-word;
+  text-overflow: clip;
+  white-space: normal;
+}
+
+/* the shared „below” row (css/bo-profile-parts.css: 8 apart, 16 to the details) — here the heading's 16 is the whole
+   title → actions step (the flex row restated: same values as the shared rule) */
+.rap-profile__header .e-permits-page-header__actions--below {
+  align-items: center;
+  display: flex;
+  gap: var(--spacing-8, 8px);
+  margin-top: 0;
+}
+
+.rap-profile__header .e-permits-page-header__actions--below > .btn {
+  flex: none;
+  white-space: nowrap;
+}
+
+@media (max-width: 760px) {
+  /* the touch size = the library Large (Figma 39:177): 48 · 16/24 · icon 20 · radius 8, 16 on the icon side; the
+     primary fills the row (= the BO / Cabinet phone header actions, e-permits-acte-permisive.css profile-phone-v1) */
+  .rap-profile__header .e-permits-page-header__actions--below > .btn {
+    --btn-icon-size: var(--icon-size-medium, 20px);
+    border-radius: var(--border-radius-8, 8px);
+    flex: 1 1 auto;
+    font-size: var(--font-size-fs-16, 16px);
+    height: auto;
+    line-height: var(--line-height-lh-24, 24px);
+    max-width: 100%;
+    min-height: var(--spacing-48, 48px);
+    padding: calc(var(--spacing-12, 12px) - var(--border-width-1, 1px)) var(--spacing-20, 20px);
+    white-space: normal;
+  }
+
+  .rap-profile__header .e-permits-page-header__actions--below > .btn:not(.btn-icon-only):has(> svg.icon:first-child) {
+    padding-left: var(--spacing-16, 16px);
+  }
 }
 
 /* full container (user 2026-10-21: „RAP profile: let's do full length, as the table container”; was the 1024 reading
@@ -800,13 +855,6 @@ a {
 /* long text inside a card keeps a readable line (~75 characters) */
 .rap-profile .e-permits-dosar-profil__card :is(p, .banner__content > p) {
   max-width: 75ch;
-}
-
-.rap-profile__title-row {
-  align-items: center;
-  display: flex;
-  gap: var(--spacing-8, 8px);
-  min-width: 0;
 }
 
 .rap-profile__beneficiary-card,
@@ -1193,14 +1241,8 @@ a {
   }
 
   .rap-profile {
-    padding: 0 var(--spacing-16, 16px) var(--spacing-48, 48px);
+    padding: var(--spacing-24, 24px) var(--spacing-16, 16px) var(--spacing-48, 48px);
   }
-
-  .rap-profile__title-row {
-    align-items: flex-start;
-    flex-wrap: wrap;
-  }
-
 
   .rap-profile__beneficiary-card,
   .rap-profile__timeline,
@@ -1284,10 +1326,7 @@ tr:hover .rap-act-link {
   text-decoration: underline;
 }
 
-/* the not-found screen keeps the list's distance to the site header */
-.rap-profile__container.rap-state {
-  padding-top: var(--spacing-32, 32px);
-}
+/* the not-found screen: the page padding (.rap-profile, = the list's) + the .rap-state 16 — as before rap-header-v1 */
 
 /* „Vizualizare actul” / „Vizualizare act” dialogs: css/act-view.css (shared with the EVO Cabinet) */
 
@@ -1310,6 +1349,26 @@ tr:hover .rap-act-link {
   /* the first column keeps the page's 16 edge, so the table lines up with the search above */
   .rap-table :is(th, td):first-child {
     padding-left: var(--spacing-16, 16px);
+  }
+}
+
+/* ===== List rhythm (rap-header-v1, 2026-10-22; user: „even gaps in RAP between the table, the search and the title —
+   make it organic and nice”) = the Cabinet list pages (components.md › „Phone list rhythm”): desktop breadcrumb →
+   title 16 · title → search 24 · search → the filter bar 16 · → the results (company card, table, empty state) 24 ·
+   between result blocks 16 · table → pager 16; phones ONE 16 step (title → search → results), the applied line
+   „N rezultate · Șterge filtrele” 8 under the search. Margins only — no block has padding + gap. ===== */
+.rap-main :is(.rap-register, .rap-company-summary:not([hidden]), .rap-state) {
+  margin-top: var(--spacing-24, 24px);
+}
+
+.rap-main .rap-company-summary:not([hidden]) ~ :is(.rap-register, .rap-state) {
+  margin-top: var(--spacing-16, 16px);
+}
+
+@media (max-width: 760px) {
+  .rap-main .rap-toolbar,
+  .rap-main :is(.rap-register, .rap-company-summary:not([hidden]), .rap-state) {
+    margin-top: var(--spacing-16, 16px);
   }
 }
 
@@ -1345,6 +1404,6 @@ tr:hover .rap-act-link {
   }
 }
 
-/* breadcrumb → title 16: css/bo-profile-parts.css (.e-permits-page-header--public) */
+/* the profile header (breadcrumb → title 8, the details): css/bo-profile-parts.css + „Act profile header” above */
 
 /* phones: every search is 48 · 16/24 · icon 24 — the shared rule in css/field-sizes.css (audit-fix-v1) */
