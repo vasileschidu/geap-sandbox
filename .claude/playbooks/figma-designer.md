@@ -3362,7 +3362,7 @@ For any „research how other products do it” step, search Mobbin (mcp__mobbin
   Old rows: GEAP Requestor guest lane G7b summary 5 raw rows → 4 `Document · card` Summary (code fo-g7b: 4 uploads, no Extras),
   G7a / G4a / G5 attached raw rows (24/document-filled glyph) → Field value cards (6); FOD Verificare (WIP) 1 raw + 2 library
   file-item / system-files-item rows → Summary cards. Phone fields (coordinator): G7a phone rows HORIZONTAL → VERTICAL gap 16,
-  button FILL 40; inline star via the new `Document field · label` on 61 GEAP + 32 FOD labels (FO 09 F4–F4h phones replaced the
+  button FILL 40; inline star via the new `Document field · label` on 77 GEAP + 32 FOD labels (FO 09 F4–F4h phones replaced the
   label-only text-input holders). Desktop × centred: `Document · card` Field value Desktop „Remove ×” constraint CENTER, y
   (68 − 32) / 2 in GEAP + FOD (phones keep y 6). Lessons:
   - **Range replace, never `characters =`**, for texts that may carry links / mixed styles (TOC lines, notes).
