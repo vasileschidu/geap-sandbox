@@ -3048,4 +3048,17 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   sequentially, or use separate files. Proof: connector gaps per state × width before / after (all equal after, desktop
   byte-identical), label edge offsets l = 0 / r = 0, centre delta 0. „Informații suplimentare” now stacks at 375 (fits from 390);
   ek-05 / ek-05f / dos-01 / fo-08 even at 600–760. No sub-agent tool → code-audit (static 0, runtime = hidden meta FP),
-  hover-audit 0 / 0, component-audit 0 in scope (standing avatar menu).
+  hover-audit 0 / 0, component-audit 0 in scope (standing avatar menu). (5) RACE: between my `git add` / index staging and
+  `git commit`, the figma-designer agent committed — its commit (09b5d365) swept MY staged hunks under its message; my own
+  commit found nothing staged. Never leave hunks staged across slow steps: stage + commit in ONE command (`… && git commit`),
+  and check `git show --stat HEAD` after. Pushed history is not rewritten → an empty record commit names what 09b5d365 holds.
+- 2026-10-23 · cards-radius-20-v1 (user, same pass: phone trajectory card „radius 20, the bottom one as well” → widened to
+  desktop and ALL grey details containers). Foundations gained `border-radius/radius-20` → `--border-radius-20` in
+  css/token-fix.css (never in main.css). Inventory by a runtime probe of computed radii per state × width (HEAD worktree vs
+  tree): dosar card 24/16 → 20/20 (BO-mode copy in e-permits-acte-permisive.css had a RAW 24px + its own phone 16 — two
+  rules, not one), timeline, trajectory card + its hanging callout (bottom corners AND the inset, which equals the radius),
+  alert card + the Cabinet tray's grey band (a gradient sized by the radius token — grep the token, not just
+  `border-radius`), Cabinet skeleton trajectory, RAP profile cards, FO review / payment summary. Phone 16 overrides were
+  deleted, not set to 20. Dialog content (Ghișeu gh-09) sits outside `main` and opens late — a probe scanning `main` after
+  1.5 s saw nothing; scan `[role=dialog]` after 3.5 s. Listed, not changed: FO payment invoice card 16, boxed doc field 16,
+  RAP company summary 24 / 16, builder 24, filter bar 24.

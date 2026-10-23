@@ -419,7 +419,8 @@ A linear scale based on a 4px base unit. Use `--spacing-{n}` custom properties i
 | `--border-radius-8` | 8px | Default cards, buttons |
 | `--border-radius-12` | 12px | Large cards, modals |
 | `--border-radius-16` | 16px | Panels, drawers, **list cards** (act / request rows, notifications, catalog cards), the request status notice, the document viewer canvas + signature card (radius-16-v1, 2026-10-21) |
-| `--border-radius-24` | 24px | The BO profile cards, the trajectory / status tracker card, the facet filter bar box (filter-bar-v3, 2026-10-22). **Not for list cards** (tried in radius-24-v1, 2026-10-21, rejected by the user → 16; Foundations has no 20). NOT in main.css: defined in `css/token-fix.css` (radius-24-v1, 2026-10-21, user decision) from the Foundations Figma variable `border-radius/radius-24` = 24 (collection „3. Sizes”, key `79848dbe4107a9babdbb8d1861d66890fc200d53`) |
+| `--border-radius-20` | 20px | **Details / grey containers, the trajectory card and the alert card — every width** (cards-radius-20-v1, 2026-10-23, user decision; were 24 desktop / 16 phones): `.e-permits-dosar-profil__card` (BO / eKYC / Ghișeu / Cabinet / RAP details, incl. the BO-mode copy in e-permits-acte-permisive.css), `.e-permits-timeline` (Jurnal / Istoric), `.e-permits-trajectory` + its hanging callout (bottom corners, inset 20), `.e-permits-callout--card` (alert card; tray top corners + grey band), the Cabinet profile skeleton trajectory, RAP `.rap-profile__beneficiary-card / __timeline / __support-card`, the FO review / Verificare summary card and `.e-permits-fo-payment-summary`. Edge-to-edge phone states (< 375 tray, Cabinet phone trajectory without alert) stay square. NOT in main.css: defined in `css/token-fix.css`, mirrors the Foundations Figma variable `border-radius/radius-20` (collection „3. Sizes”) |
+| `--border-radius-24` | 24px | The facet filter bar box (filter-bar-v3, 2026-10-22), the form-builder device frame / step sections, RAP company summary boxes. (The BO profile / trajectory cards moved to 20 in cards-radius-20-v1.) **Not for list cards** (tried in radius-24-v1, 2026-10-21, rejected by the user → 16). NOT in main.css: defined in `css/token-fix.css` (radius-24-v1, 2026-10-21, user decision) from the Foundations Figma variable `border-radius/radius-24` = 24 (collection „3. Sizes”, key `79848dbe4107a9babdbb8d1861d66890fc200d53`) |
 | `--border-radius-32` | 32px | main.css only — not used by the product yet |
 | `--border-radius-full` | 9999px (main.css; old fallbacks say 999px, same render) | Pills, avatars, circular buttons |
 
@@ -587,6 +588,8 @@ Paste this block into your project's root stylesheet to wire up all design token
   --border-radius-8: 8px;
   --border-radius-12: 12px;
   --border-radius-16: 16px;
+  --border-radius-20: 20px; /* css/token-fix.css (cards-radius-20-v1) — not in main.css */
+  --border-radius-24: 24px; /* css/token-fix.css (radius-24-v1) — not in main.css */
   --border-radius-full: 999px;
 
   /* ─── Border Width ────────────────────────────────── */

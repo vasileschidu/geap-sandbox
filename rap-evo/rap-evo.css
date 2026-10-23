@@ -721,9 +721,10 @@ a {
 .rap-profile__beneficiary-card,
 .rap-profile__timeline,
 .rap-profile__support-card {
-  /* = the BO card surface (.e-permits-dosar-profil__card, css/bo-profile-parts.css) */
+  /* = the BO card surface (.e-permits-dosar-profil__card, css/bo-profile-parts.css): 20 at every width
+     (cards-radius-20-v1, 2026-10-23; was 24 / phones 16) */
   background: var(--color-background-base-secondary, #f5f5f5);
-  border-radius: var(--border-radius-24, 24px);
+  border-radius: var(--border-radius-20, 20px);
 }
 
 .rap-profile__beneficiary-card {
@@ -1064,12 +1065,6 @@ a {
 
   .rap-profile {
     padding: var(--spacing-24, 24px) var(--spacing-16, 16px) var(--spacing-48, 48px);
-  }
-
-  .rap-profile__beneficiary-card,
-  .rap-profile__timeline,
-  .rap-profile__support-card {
-    border-radius: var(--border-radius-16, 16px);
   }
 
   .rap-profile__support-links {
