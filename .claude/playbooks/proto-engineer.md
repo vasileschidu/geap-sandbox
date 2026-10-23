@@ -2950,3 +2950,16 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   `--focus-ring` (RAP has no root `--focus-ring`, the fallback blue-sky-500 paints; main.css' `--focus-ring` is a
   switch-scoped box-shadow value, not a colour — never use it outside its fallback). Proof: a real-mouse probe (rest /
   hover / focus / reduced-motion: transform none → 2 px → none, cell shadows present), hover-audit 0 / 0.
+- 2026-10-23 · pager-compact-v1 (user, after rap-table-flat-v1/v2: „pagination too big”, „I need a separator between the table
+  and the pagination”, „remove the left / right padding of the pagination”). (1) The earlier relay „border on the last
+  element” meant a LINE under the last row, not a button — when a correction can read two ways, ask or show both before
+  building. (2) Shared GEAPPager = library `.pagination--compact` (32, gap 4; phones 40 touch), icon-only ‹ › („Pagina
+  anterioară / următoare”), 3 pages around the current + first / last with „…” on wider screens (never a „…” for one page),
+  phones only the 3; the size select at 32 needed a component-audit `sizeExempt` entry (documented exception to 40 / 48).
+  Items keep 14/20 (library compact 12 read too small next to the 14 summary) — reported. (3) Separator proved by PIXELS,
+  not CSS: crop under the last row at 1440 / 1024 / 375 → a #d9d9d9 row right above the pager (scratch line.mjs); the
+  killer was RAP's own `tbody tr:last-child td { border-bottom: 0 }` (the last-row rule) — exception documented in
+  components.md + memory. (4) „No side padding” = the pager on the table's edges (range x = table left 80, last button
+  right = table right 1360 at 1440); phones keep the 16 gutter (the table is edge to edge there, its text at 16).
+  Checked RAP, Cabinet pp-01t / sm-01j, BO dos-05, eKYC ek-04 at 1440 + 375: BO / eKYC already had the footer line,
+  Cabinet = card rows (no line needed). hover-audit 0 / 0, code-audit 0, component-audit 0 in the pager.

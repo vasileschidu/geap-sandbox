@@ -187,6 +187,7 @@
   "_sizeExempt": "fields that are deliberately another size (documented exceptions) — reported as info only",
   "sizeExempt": [
     ".search-input.small",
+    ".e-permits-pager__trigger",
     ".e-permits-builder *",
     ".e-permits-pd *",
     ".e-permits-dtpl__page *",

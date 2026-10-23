@@ -447,9 +447,8 @@ a {
   vertical-align: middle;
 }
 
-.rap-table tbody tr:last-child td {
-  border-bottom: 0;
-}
+/* the last row KEEPS its divider (pager-compact-v1, user: „I need a separator between the table and the pagination”):
+   a table followed by the pager is closed by this line — the documented exception to „last row no border” */
 
 .rap-table tbody tr {
   cursor: pointer;
@@ -609,10 +608,11 @@ a {
   }
 }
 
-/* the list pager = the shared component (css/pager.css, audit-fix-v3); the register's footer inset only — 16 on every
-   side (table → pager 16, the list rhythm below; was 12 / 16) */
+/* the list pager = the shared component (css/pager.css, audit-fix-v3); the register's footer: 16 under the table's
+   closing line, NO side inset (pager-compact-v1, user: „remove the left / right padding of the pagination”) → the
+   pager's text and its last button sit on the table's left / right edges */
 .rap-pagination {
-  padding: var(--spacing-16, 16px);
+  padding: var(--spacing-16, 16px) 0;
 }
 
 .rap-pagination:empty {
@@ -1105,6 +1105,8 @@ a {
     width: 360px;
   }
 
+  /* phones: the table runs edge to edge, so the pager keeps the 16 page gutter = the table's first-column text and the
+     search above */
   .rap-pagination {
     padding: var(--spacing-16, 16px);
   }

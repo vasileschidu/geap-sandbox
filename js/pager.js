@@ -2,7 +2,7 @@
    GEAPPager — ONE list pager for every product (audit-fix-v3, 2026-10-21; promoted from CabEvo.pagerHtml)
    = the library Pagination as drawn on the RAP list (rap-table-flat-v1, 2026-10-23): „Se afișează 1–16 din 33 de
    rezultate” · „<sizeLabel>: [16 ⌄]” (library `.select-control` opening the one dropdown item menu) · library
-   `.pagination` („‹ Anterior” 1 2 3 4 5 … 9 „Următor ›”, 7 slots; 5 on phones). Used by EVO Cabinet (Actele mele permisive, Solicitările mele), RAP and
+   `.pagination.pagination--compact` (‹ 1 … 4 5 6 … 9 ›, icon-only arrows; pager-compact-v1). Used by EVO Cabinet (Actele mele permisive, Solicitările mele), RAP and
    every BO / eKYC / Ghișeu registry (the shell workplace footer). No pager when everything fits on the smallest
    page size.
 
@@ -21,23 +21,28 @@
   const SPRITE = defaultSprite();
   let uid = 0;
 
-  /* page window = the library „Pagination Logic” (Components 144:4346, rap-table-flat-v1): at most 7 slots, the
-     overflow „…” included — every page up to 7; near the start 1 2 3 4 5 … N; near the end 1 … N−4 … N; in the
-     middle 1 … p−1 p p+1 … N */
-  function pageList(page, pages, slots = 7) {
+  /* page window (pager-compact-v1, user: „pagination too big, fewer page numbers”): THREE numbered pages around the
+     current one (shifted at the ends so there are always 3), plus — wider screens only — the first / last page with a
+     „…” when they are far (a „…” never hides a single page: that page is shown instead).
+     1 2 3 … 98 · 1 … 49 50 51 … 98 · 1 … 96 97 98; phones: 1 2 3 · 49 50 51 · 96 97 98 */
+  function pageList(page, pages, ends = true) {
     const range = (from, to) => Array.from({ length: to - from + 1 }, (_, i) => from + i);
-    if (pages <= slots) return range(1, pages);
-    const edge = slots - 2; /* 5 of 7 / 3 of 5 next to one „…” */
-    const side = (slots - 5) / 2; /* 1 neighbour each side of the current page at 7 slots, none at 5 */
-    /* a „…” always hides at least 2 pages (library: never „1 … 3”) */
-    if (page <= edge - side) return [...range(1, edge), "…", pages];
-    if (page >= pages - edge + 1 + side) return [1, "…", ...range(pages - edge + 1, pages)];
-    return [1, "…", ...range(page - side, page + side), "…", pages];
+    if (pages <= 3) return range(1, pages);
+    const from = Math.min(Math.max(1, page - 1), pages - 2);
+    const to = from + 2;
+    const out = range(from, to);
+    if (!ends) return out;
+    if (from === 3) out.unshift(2);
+    if (from > 3) out.unshift("…");
+    if (from > 1) out.unshift(1);
+    if (to === pages - 2) out.push(pages - 1);
+    if (to < pages - 2) out.push("…");
+    if (to < pages) out.push(pages);
+    return out;
   }
 
-  /* desktop 7 slots, phones 5 (the library: „on smaller screens more pages are truncated, 5 slots minimum”) → ONE
-     list: every slot of either window, tagged with the window(s) it belongs to (a „…” sits after page a = position
-     2a + 1, so the two windows merge in order) */
+  /* wider screens and phones show different windows → ONE list: every slot of either window, tagged with the window(s)
+     it belongs to (a „…” sits after page a = position 2a + 1, so the two windows merge in order) */
   function slotList(page, pages) {
     const at = new Map();
     const add = (list, mode) => list.forEach((p, i) => {
@@ -46,8 +51,8 @@
       slot.modes.add(mode);
       at.set(pos, slot);
     });
-    add(pageList(page, pages, 7), "wide");
-    add(pageList(page, pages, 5), "narrow");
+    add(pageList(page, pages, true), "wide");
+    add(pageList(page, pages, false), "narrow");
     return [...at.entries()].sort((a, b) => a[0] - b[0]).map(([, slot]) => ({ p: slot.p, only: slot.modes.size === 2 ? "" : [...slot.modes][0] }));
   }
 
@@ -66,9 +71,9 @@
         <button class="pagination__link${nav ? ` pagination__link--nav pagination__link--${nav}` : ""}${active ? " pagination__link--active" : ""}${disabled ? " pagination__link--disabled" : ""}" type="button" data-${prefix}-page="${target}"${disabled ? " disabled" : ""}${active ? ' aria-current="page"' : ""}${aria ? ` aria-label="${esc(aria)}"` : ""}>${text}</button>
       </li>`;
     const gap = (only) => `<li class="pagination__item${only ? ` e-permits-pager__item--${only}` : ""}" aria-hidden="true"><span class="pagination__link pagination__link--disabled e-permits-pager__gap">…</span></li>`;
-    /* the library Pagination (Components 144:4346; RAP Figma 22080:133246, rap-table-flat-v1): summary left
-       („Se afișează 1–16 din 1567 de rezultate” · „<sizeLabel>: [16 ⌄]” = the library select field), the pages right
-       („‹ Anterior” · 1 2 3 4 5 … N · „Următor ›”; ≤ 768 the library drops the words and the items to 32) */
+    /* the library Pagination, compact (pager-compact-v1): summary left („Se afișează 1–16 din 1567 de rezultate” ·
+       „<sizeLabel>: [16 ⌄]” = the library select field, 32), the pages right: icon-only ‹ › + the library compact
+       items (`.pagination--compact`, 32; 40 on phones) 4 apart */
     const countText = (n) => { const [num, de] = ofCount(n).split(" "); return `<strong>${num}</strong>${de ? " de" : ""}`; };
     return `
       <div class="e-permits-pager">
@@ -83,10 +88,10 @@
           </div>
         </div>
         <nav class="e-permits-pager__nav" aria-label="${esc(label)}">
-          <ul class="pagination">
-            ${link(current - 1, `${icon("icon-chevron-left")}<span class="pagination__link--text">Anterior</span>`, { disabled: current === 1, aria: "Anterior, pagina anterioară", nav: "prev" })}
+          <ul class="pagination pagination--compact">
+            ${link(current - 1, icon("icon-chevron-left"), { disabled: current === 1, aria: "Pagina anterioară", nav: "prev" })}
             ${slotList(current, pages).map(({ p, only }) => (p === "…" ? gap(only) : link(p, String(p), { active: p === current, aria: `Pagina ${p}`, only }))).join("")}
-            ${link(current + 1, `<span class="pagination__link--text">Următor</span>${icon("icon-chevron-right")}`, { disabled: current === pages, aria: "Următor, pagina următoare", nav: "next" })}
+            ${link(current + 1, icon("icon-chevron-right"), { disabled: current === pages, aria: "Pagina următoare", nav: "next" })}
           </ul>
         </nav>
       </div>`;
