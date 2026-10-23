@@ -898,8 +898,8 @@
      not: what happens next, who decided and why, the deadline of a right (contestație), the action that solves it.
      { tone, icon?, title, text, actions } → GEAPAlertCard (js/alert-card.js) right under the header. Tone = the act's
      status tag tone (ACT_TONE: suspended amber, expired / withdrawn / annulled red). Actions = library Medium 40: the
-     action that solves it = primary (last → right); „Vezi solicitarea” = the outlined neutral `btn-outline-strict`
-     (act-alert-card-v2: blue text / grey fills read badly on the grey card), same tab, no external icon; every card button is the library pill `btn-rounded` (user: „do Achită as round
+     action that solves it = primary (last → right); „Vezi solicitarea” = the library text button `btn-text-strict` next
+     to a primary, the library outlined `btn-outline-strict` when alone (alert-buttons-library-v1), same tab, no external icon; every card button is the library pill `btn-rounded` (user: „do Achită as round
      buttons”). The decision number lives in Istoric (the alert keeps to 2–3 lines). */
   const alertBtn = (variant, inner, attrs) => `<button class="btn ${variant} btn-md btn-rounded" type="button" ${attrs}>${inner}</button>`;
   const alertLinkBtn = (variant, href, label, extra = "") => `<a class="btn ${variant} btn-md btn-rounded" href="${escape(href)}"${extra}><span>${escape(label)}</span></a>`;
@@ -917,13 +917,15 @@
     const appealOpen = Boolean(appealUntil) && appealUntil >= state.today;
     const appeal = appealOpen ? ` Poți depune o contestație până la ${escape(longDate(appealUntil))}, din solicitarea care conține decizia.` : "";
     /* the request opens in the SAME tab (act-alert-card-v2: profiles have real URLs, Back returns here), no external icon */
-    const seeRequest = (id) => (id ? alertLinkBtn("btn-outline-strict", requestHref(id), "Vezi solicitarea", " data-cab-alert-request") : "");
+    /* alert-buttons-library-v1 (user): next to a primary = the library text button `btn-text-strict` (no fill, no border,
+       grey hover); alone = the library outlined `btn-outline-strict` (transparent, dark border) */
+    const seeRequest = (id, alone) => (id ? alertLinkBtn(alone ? "btn-outline-strict" : "btn-text-strict", requestHref(id), "Vezi solicitarea", " data-cab-alert-request") : "");
     const ppButton = (ppId, label) => (act.postProcesses.some((pp) => pp.id === ppId)
       ? alertBtn("btn-primary", `<span>${escape(label)}</span>`, `data-cab-pp="${escape(ppId)}" data-cab-act="${escape(act.id)}"`)
       : "");
     const newRequest = () => alertLinkBtn("btn-primary", cabUrl("catalog", {}, `#serviciu/${act.serviceCode}`), "Solicitare nouă");
-    /* „Vezi solicitarea” (outlined, readable on the grey card) + the primary last */
-    const pair = (primary, requestId) => `${seeRequest(requestId)}${primary}`;
+    /* „Vezi solicitarea” (text button next to the primary, outlined when alone) + the primary last */
+    const pair = (primary, requestId) => `${seeRequest(requestId, !primary)}${primary}`;
     if (act.pending) {
       const id = state.dosarIdByNr[act.pending.dossier];
       const since = act.pending.since ? `, depusă pe ${escape(longDate(isoOf(act.pending.since)))}` : "";

@@ -2869,3 +2869,12 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   panel wrappers with bars inside (cheap; crumb needed its +8 to land the H1 on 172). No sub-agent tool → code-audit
   (only `.u-visually-hidden`, BO 11 / 7, the 136 trigger reserve, a pre-existing `#cab-title` „hex” FP), hover-audit 0 / 0,
   component-audit 0 in my markup (majors = the standing avatar menu the tool opens).
+- 2026-10-23 · Alert card buttons = plain library variants (alert-buttons-library-v1; user: „this white-filled outlined pill we
+  don't have in components — no background, darker grey hover; alone = the outlined strict”). My act-alert-card-v2 white rest
+  fill on `btn-outline-strict` was a look-alike the library does not have → rejected. Lesson: before „fixing” contrast with an
+  override on a library button, check the library variant list — `btn-text-strict` already has exactly the needed grey hover
+  (gray-250 = --color-background-base-tertiary-hover, one step over the card's gray-100) and needed NO css at all; the override
+  rule was deleted. Variant choice lives in the caller (`seeRequest(id, alone)` in actNotice `pair`): text next to a primary,
+  outlined alone; request alerts have only primaries. Proof = a scratch real-mouse probe (abl/probe.mjs: classes, rest / hover
+  paint, element on top, crops) on pp-01e/i/j/k, pp-03/03a/03b/03c, sm-04b at 1440 + 375; hover-audit 0 / 0, component-audit 0
+  non-library / 0 button-paint in the card (majors = standing avatar menu / doc-modal ×), code-audit 0 (tokens 100).

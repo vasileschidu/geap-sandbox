@@ -59,12 +59,11 @@
   color: var(--color-icon-positive-default, #039855);
 }
 
-/* non-primary buttons on the grey surface (act-alert-card-v2, user: „blue text buttons read badly on the grey card”): the
-   library outlined variants (`btn-outline-strict`, `btn-outline-destructive`) on a WHITE rest fill — label 16:1 / red,
-   boundary = their own border (≥ 3:1 on --color-background-base-secondary); hover / pressed / focus stay the library's */
-.e-permits-callout--card .e-permits-callout__actions > :is(.btn-outline-strict, .btn-outline-destructive):not(:hover, :active, :disabled) {
-  background-color: var(--color-background-base-default, #ffffff);
-}
+/* non-primary buttons on the grey surface = plain LIBRARY variants, no override (alert-buttons-library-v1, user: „this
+   white-filled outlined pill we don't have in components”): next to a primary = `btn-text-strict` (no fill, no border,
+   label 16:1; hover gray-250 = --color-background-base-tertiary-hover, pressed gray-300 — one step darker than the card's
+   gray-100, so it reads on the grey); alone = `btn-outline-strict` (transparent, dark 1px border, library hover = dark
+   fill + white label); destructive = `btn-outline-destructive`. Focus = the library ring. */
 
 /* the buttons: third column, centred on the text block, 24 from it (16 column gap + 8) */
 .e-permits-callout--card .e-permits-callout__actions {
