@@ -3320,3 +3320,11 @@ For any „research how other products do it” step, search Mobbin (mcp__mobbin
   trajectory 3 steps, Date generale rows from the probe), v2 header „Vezi solicitarea” without icon (pp-01x / 01y / 01m desktop
   carry a leading icon), restack columns 02–06 + 04 · Permit profile (new act blocks parked at y 20000), arrows check, notes for the
   6 new blocks are set, Start here 06 / 04 counts + file index, stored figma-audit on the set + changed blocks.
+- 2026-10-23 · Same job, finished after the bridge came back: sm-05u 1275:3919 / sm-05v 1275:4805 (clones of sm-05, header, meta,
+  trajectory, Date generale from the probe; sm-05v hides the Location line), v2 „Vezi solicitarea” without icon in the pp-01m / 01x /
+  01y headers (7 buttons, `📍 Icon` None, ids kept), sm-04h retry note shown (a frame cloned out of a component main keeps the
+  main's hidden state — set `visible = true` on the clone and its children, and `primaryAxisSizingMode = "AUTO"` after switching it
+  VERTICAL or it keeps the old 48 height), 8 notes rewritten (≤ 37 words), columns restacked at 240 twice (after the notes), 28
+  connectors re-routed (0 unattached), Start here contents + counts (Permits 25, My requests 54) and the cover index updated.
+  Stored `qsweep/audit` on the set + 5 blocks: only the section-over-card gap 0 baseline. Lesson: **resume = count first** — the
+  REST nodes call plus a per-block census of `Alert card` instances showed exactly what had landed before the interruption.
