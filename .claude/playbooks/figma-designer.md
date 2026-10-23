@@ -3377,3 +3377,18 @@ For any „research how other products do it” step, search Mobbin (mcp__mobbin
     file-item rows (upload pattern page, not a summary); F8 finish card system-files-item.
   - No Agent tool in this session → stored `ghs/audit` on the changed blocks: only label → description gap 6 (= code) and the
     baseline stepper fractions / image checks.
+- 2026-10-23 · Same job, coordinator answers: (1) **toolbar chips radius = the library Button radius of that size: 8 for 40 / 48,
+  6 only for the BO 36** → Cabinet 42 + 22 desktop Filtre / sort chips bound to border-radius/radius-8 (archive r999 facet chips
+  untouched; the phone 48 chips already 8); RAP 33 filter chips (14 desktop 40 + 19 phone 48) radius-6 → radius-8
+  (VariableID:dc82cc9d…/1308:580). The 2026-10-21 RAP lesson („r6 = the Medium button”) is superseded. (2) **Open Filtre = code
+  look**: chip `State=Hover` (tertiary-hover = pressed #D9D9D9) + Focus Ring/Medium effect style, not the chip's Focus variant
+  (resting fill). Cabinet sm-01g / 01h / 01p / 01aa, pp-01s / 01s3; RAP rap-01a / 01b / 01r / 01s / 01t / 01u. Active-and-open
+  chips (black paints copied from Mode=On: RAP rap-01c / 01h / 01d) stay Focus + black = code (`is-selected` + ring). Recipe: snapshot
+  non-variant props + icon main → swapComponent(Hover) → setProperties → re-swap icon if lost → FIXED 40 / HUG → re-bind radii →
+  effectStyleId. (3) New block **pp-01s2 1285:19457** (col 02): clone of pp-01, sort chip „Valabil până la”, rows re-ordered in BOTH
+  `Acts` frames by validity ascending with Retras / Expirat last (the code's order: nearest first, inactive after; probe =
+  per-row meta text in order, scratch figdes-sortchip/probe2.mjs), connector from the pp-01s1 menu („Valabil până la” item via a
+  `position` start on the menu instance), Start here 27 / 54 + Filters · 5, cover 27. Lesson: **the CDP helper writes screenshots
+  to the process cwd** — run probes with absolute output paths, or they land in the repo root.
+  Drift (reported, not fixed): the Figma Permits rows still use the pre-„type first” anatomy and older sample data (9 acts vs the
+  code's 12; titles = location).
