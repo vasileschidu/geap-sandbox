@@ -4120,7 +4120,7 @@ For any „research how other products do it” step, search Mobbin (mcp__mobbin
     (Dashboard 13 + Providers 11 = modal / list item order differs from the target order; only removable by moving blocks), FOD 0.
     Not touched: RAP non-board pages (Sitemap 667, IA 105, Cups, Explorations…). No Agent tool → QA = route-audit + screenshots.
 
-- 2026-10-23 · board-arrows-v3 — **ONE connector per arrow, never split** (user: „do ONE blue arrow, not 3 connected pieces — is it so
+- 2026-10-23 · board-arrows-v3 — **ONE connector per arrow, never split** (v3 start-in-the-gap anchors REJECTED too — see v4: start ON the clicked element) (user: „do ONE blue arrow, not 3 connected pieces — is it so
   complicated?”). Every v2 arrow (A + waypoint + B, via stubs, footer 3-piece) collapsed back into its original connector; all waypoint /
   via / extra-piece nodes deleted in the 4 files (+15 orphaned older eKYC start anchors). Tool: tools/figma/board-arrows/one-arrow.js
   (ONE_ARROW / CONVERT / REDO, stored per file in `boardarrows/one`). How to steer a single ELBOWED connector:
@@ -4187,3 +4187,21 @@ For any „research how other products do it” step, search Mobbin (mcp__mobbin
     then restore gridRowCount / height. resize() a moved cell BEFORE setting FILL (resize after FILL fixes it again).
   - Stored converters (shared plugin data, run with AsyncFunction) keep calls tiny; a page-wide findAll on the Services page dropped the
     MCP transport but the write completed — always re-check state before re-running.
+
+- 2026-10-23 · board-arrows-v4 — **one connector, START ON THE CLICKED ELEMENT, shared paths = parallel lines 16 px apart** (user).
+  - **Hand bends are not scriptable here**: ConnectorNode has `connectorControlPoints` / `connectorBezierControlPoints` /
+    `resetConnectorControlPoints` (and `connectorTextPosition`), but the MCP plugin runtime throws „not a supported API” on read AND write,
+    and the REST file JSON has no field for them. Any write to connectorStart/End re-routes the arrow and drops a hand-moved segment →
+    never rewrite an arrow the user bent today; ask first.
+  - **Router rules (measured with throw-away clones)**: start RIGHT + end RIGHT → the vertical runs at max(right edge of the two endpoint
+    boxes) + 33 (LEFT/LEFT mirrored); moving an endpoint box 16 px moves the line 16 px. RIGHT → LEFT (next column) → vertical at the
+    MIDPOINT of the two boxes (a start deep inside a screen puts it inside the screen). BOTTOM/TOP start toward a far target → straight
+    vertical through everything first (unusable), except a short hop or a start on a card edge.
+  - Technique (tools/figma/board-arrows/restart.js, stored `boardarrows/restart`: RESTART + OFFSET): start = the control itself (or an anchor
+    sized to it when nested) with the side magnet; end = 8×8 anchor just inside the target edge with the side magnet. Shared verticals →
+    OFFSET moves the end anchor outward 16 px per extra arrow (nested / shorter = inner), so the tip stops 16 / 32 px before the edge.
+    Two arrows from one row: rightmost leaves RIGHT, the next leaves TOP (its horizontal runs above the row); a third can't be separated.
+    Decision fan-outs (FOD d5): exits on the card's BOTTOM edge at x = right − 8 − 16k, the branch that ends first outermost → 0 crossings.
+  - Left for a manual 16 px drag (listed to the user): third+ arrows on one row (eKYC R05c tabs, C02i „Clic pe status”, RAP chip Autoritate
+    top segment, Cabinet pp-01j „Vezi act permisiv” × „Inițiază un postproces”), the eKYC Dashboard modal fan-out (starts on the screen edge
+    at each row, staggered 32 px), RAP footer → registry (starts on the Entry Point top edge).
