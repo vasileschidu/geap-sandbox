@@ -6596,7 +6596,6 @@
             ${textHtml ? `<p class="e-permits-fo-finish-doc-card__note">${textHtml}</p>` : ""}
           </div>
           <button class="btn btn-neutral btn-sm" type="button" aria-haspopup="dialog" ${actionAttrs}>
-            <svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-eye-open"></use></svg>
             <span>${esc(actionLabel)}</span>
           </button>
         </div>`;

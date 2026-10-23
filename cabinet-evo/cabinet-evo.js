@@ -642,7 +642,16 @@
      below and there is room above (the ⋮ of the last rows on a phone) */
   const MENU_EDGE = 16;
   function fitMenu(menu) {
-    menu.classList.remove("is-end", "is-start", "is-open-up");
+    menu.classList.remove("is-end", "is-start", "is-open-up", "is-trigger-end");
+    /* the profile header „⋯” on phones hangs from the action row (header-max-two-v1): right edge on the trigger when the
+       menu fits leftwards from it, else the row's left edge — geometry, set as a custom property */
+    const overflow = menu.closest(".cab-act-header__overflow");
+    if (overflow && getComputedStyle(overflow).position === "static") {
+      const row = overflow.parentElement.getBoundingClientRect();
+      const trigger = overflow.querySelector("[data-cab-menu-trigger]").getBoundingClientRect();
+      menu.style.setProperty("--cab-menu-right", `${Math.max(0, Math.round(row.right - trigger.right))}px`);
+      menu.classList.toggle("is-trigger-end", trigger.right - row.left >= menu.getBoundingClientRect().width);
+    }
     const rect = menu.getBoundingClientRect();
     const edge = document.documentElement.clientWidth;
     if (rect.right > edge - MENU_EDGE) menu.classList.add("is-end");
@@ -1085,9 +1094,11 @@
     const notice = actNotice(act);
     const statusDate = actHeaderDate(act);
     /* the header's action row (cabinet-header-v1; under the title since header-actions-below-v1, library Medium 40), in
-       priority order (primary · Postprocese · Vezi solicitarea); what does not fit goes into a trailing „⋯” (fitActActions) */
+       priority order (primary · Vezi solicitarea · Postprocese; max 2 visible — header-max-two-v1); what does not fit goes into a trailing „⋯” (fitActActions) */
     const actions = [
-      `<button class="btn btn-primary btn-md" type="button" aria-haspopup="dialog" data-cab-view-act="${escape(act.id)}">${icon("icon-eye-open")}<span>Vezi act permisiv</span></button>`,
+      `<button class="btn btn-primary btn-md" type="button" aria-haspopup="dialog" data-cab-view-act="${escape(act.id)}"><span>Vezi act permisiv</span></button>` /* label only, no eye (user 2026-10-23, request-act-modal-link-v1) */,
+      /* header-max-two-v1: in order of importance — Vezi solicitarea before Postprocese (→ „⋯”); same tab, no external icon (act-alert-card-v2: request profiles have real URLs, Back returns to the act) */
+      issuing ? `<a class="btn btn-neutral btn-md" href="${escape(requestHref(issuing.id))}" data-cab-see-dosar data-cab-act-action="request"><span>Vezi solicitarea</span></a>` : "",
       act.postProcesses.length ? `
         <div class="e-permits-fo-intent-act__action" data-cab-act-action="postprocese">
           <button class="btn btn-neutral btn-md" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="cab-detail-menu" aria-label="Postprocese pentru ${escape(act.label || "")}" data-cab-menu-trigger ${act.pending ? 'disabled aria-describedby="cab-act-notice"' : ""}><span>Postprocese</span>${icon("icon-chevron-bottom")}</button>
@@ -1095,8 +1106,6 @@
             ${window.GEAPActRow.menuItemsHtml(act.postProcesses, (pp) => `data-cab-pp="${escape(pp.id)}" data-cab-act="${escape(act.id)}"`, "../assets/") /* the act rows' items: danger last + separator (action-menu-v1) */}
           </ul>
         </div>` : "",
-      /* same tab, no external icon (act-alert-card-v2: request profiles have real URLs, Back returns to the act) */
-      issuing ? `<a class="btn btn-neutral btn-md" href="${escape(requestHref(issuing.id))}" data-cab-see-dosar data-cab-act-action="request"><span>Vezi solicitarea</span></a>` : "",
       act.postProcesses.length || issuing ? `
         <div class="e-permits-fo-intent-act__action cab-act-header__overflow" hidden>
           <button class="btn btn-neutral btn-md btn-icon-only" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="cab-detail-more" aria-label="Mai multe acțiuni" data-cab-menu-trigger>${icon("icon-more-horizontal")}</button>
@@ -1261,12 +1270,16 @@
     const widths = items.map(width);
     const moreW = more ? width(more) : 0;
     box.classList.remove("is-measuring");
-    /* decide */
-    let keep = items.length;
-    if (primaryW + widths.reduce((sum, w) => sum + gap + w, 0) > room + 0.5) {
+    /* decide — header-max-two-v1 (2026-10-23, user: „more than 2 → dots; if only 2 → normal buttons”), every width:
+       ≤ 2 actions = all of them as buttons (a red „Elimină schița” too); ≥ 3 = the 2 most important (the markup is in
+       order of importance, destructive last) + the rest in „⋯”; then the width check below may show fewer on phones */
+    const total = items.length + (primary ? 1 : 0);
+    const cap = total <= 2 ? items.length : Math.max(0, 2 - (primary ? 1 : 0));
+    let keep = Math.min(items.length, cap);
+    if (primaryW + widths.slice(0, keep).reduce((sum, w) => sum + gap + w, 0) + (keep < items.length ? gap + moreW : 0) > room + 0.5) {
       let used = primaryW + gap + moreW;
       keep = 0;
-      for (const w of widths) {
+      for (const w of widths.slice(0, cap)) {
         if (used + gap + w > room + 0.5) break;
         used += gap + w;
         keep += 1;
@@ -1286,10 +1299,14 @@
         const danger = (el) => el.matches(".btn-outline-destructive, .btn-destructive");
         const itemHtml = (el) => {
           const tag = el.tagName === "A" ? "a" : "button";
-          const attrs = [...el.attributes].filter((a) => (a.name.startsWith("data-") && a.name !== "data-cab-header-item") || a.name === "href")
+          /* a new-tab link keeps target / rel / its „filă nouă” name and shows label then the external icon
+             (request-act-modal-link-v1) */
+          const newTab = el.getAttribute("target") === "_blank";
+          const attrs = [...el.attributes].filter((a) => (a.name.startsWith("data-") && a.name !== "data-cab-header-item") || a.name === "href" || (newTab && ["target", "rel", "aria-label"].includes(a.name)))
             .map((a) => ` ${a.name}="${escape(a.value)}"`).join("");
           const glyph = el.querySelector("svg use")?.getAttribute("href")?.split("#")[1];
-          return `<li role="none"><${tag} class="e-permits-fo-intent-menu__item${danger(el) ? " is-danger" : ""}"${tag === "button" ? ' type="button"' : ""} role="menuitem"${attrs}>${glyph ? icon(glyph, "medium") : ""}<span>${escape(el.textContent.trim())}</span></${tag}></li>`;
+          const label = `<span>${escape(el.textContent.trim())}</span>`;
+          return `<li role="none"><${tag} class="e-permits-fo-intent-menu__item${danger(el) ? " is-danger" : ""}"${tag === "button" ? ' type="button"' : ""} role="menuitem"${attrs}>${newTab ? `${label}${icon("icon-external-link", "medium e-permits-fo-intent-menu__external")}` : `${glyph ? icon(glyph, "medium") : ""}${label}`}</${tag}></li>`;
         };
         const safe = overflow.filter((el) => !danger(el));
         const risky = overflow.filter(danger);
@@ -1417,7 +1434,8 @@
         openAct(state.permits.find((p) => p.id === card.dataset.cabCard));
         return;
       }
-      /* a menu link to another page (Vezi solicitarea, same tab since act-alert-card-v2): the menu closes, the link navigates */
+      /* a menu link to another page (Vezi solicitarea, same tab since act-alert-card-v2; the request profile's „Profilul
+         actului”, new tab — request-act-modal-link-v1): the menu closes, the link navigates */
       if (event.target.closest(".cab-menu a[href]")) { closeMenus(); return; }
       if (!event.target.closest(".cab-menu")) closeMenus();
     });
@@ -1788,7 +1806,7 @@
     VIEW, AUTH, SUBJECT, SPRITE, params,
     icon, escape, copyValueHtml, closeMenus, cabUrl, longDate, longDateTime, setHeaderTitle, restrictionHtml, pagerHtml,
     docRowHtml, docContentHtml, openDocModal, closeDocModal, signedTagHtml,
-    actGroups, pageHeader, profileHeader, notFoundHtml, pageAddress, modifiedClick, syncHeaderMeta, watchHeaderActions, identityCardHtml, tagHtml, tacitTagHtml, ACT_TONE, detailRow, detailCard, profileSection,
+    actGroups, newTabAttrs, pageHeader, profileHeader, notFoundHtml, pageAddress, modifiedClick, syncHeaderMeta, watchHeaderActions, identityCardHtml, tagHtml, tacitTagHtml, ACT_TONE, detailRow, detailCard, profileSection,
     els,
   };
 

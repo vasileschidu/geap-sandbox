@@ -1513,6 +1513,12 @@ button.cab-alert-link {
   width: var(--icon-size-small, 16px);
 }
 
+/* a menu item that opens another page in a new tab (request-act-modal-link-v1, 2026-10-23): [pp icon] label … external
+   icon on the item's trailing edge (the item's own size / colour / hover — css/dropdown.css) */
+.cab-menu .e-permits-fo-intent-menu__item > .e-permits-fo-intent-menu__external {
+  margin-inline-start: auto;
+}
+
 /* „Sortează” (desktop + phones): the key group, a divider, the direction group — radio items in nested groups */
 .cab-menu__group {
   display: flex;
@@ -1790,6 +1796,27 @@ button.cab-alert-link {
     left: 0;
     max-width: 100%;
     right: auto;
+  }
+
+  /* header-max-two-v1 (2026-10-23, user: „the ⋯ menu position on phones is broken”): the menu hangs under the row with
+     its right edge on the „⋯” (fitMenu sets `--cab-menu-right` = row right − trigger right and `is-trigger-end` when the
+     menu fits leftwards from the trigger); else it stays on the row's left edge (the page gutter) */
+  .cab-act-header__overflow .cab-menu.e-permits-fo-intent-menu.is-trigger-end,
+  .cab-act-header__overflow .cab-menu.e-permits-fo-intent-menu.is-trigger-end:is(.is-start, .is-end) {
+    left: auto;
+    right: var(--cab-menu-right, 0px);
+  }
+
+  /* the profile header menus („⋯”, Postprocese) on phones = the dropdown item (MEDIUM label, icon 20) at the touch
+     size 48 · 16/24 (user 2026-10-23: „the item font is regular — it should be medium”); list row menus unchanged */
+  .cab-profile-header .e-permits-fo-intent-act__action > .e-permits-fo-intent-menu .e-permits-fo-intent-menu__item {
+    font-weight: var(--font-weight-fw-medium, 500);
+  }
+
+  .cab-profile-header .e-permits-fo-intent-act__action > .e-permits-fo-intent-menu .e-permits-fo-intent-menu__item > .icon {
+    flex: 0 0 var(--icon-size-medium, 20px);
+    height: var(--icon-size-medium, 20px);
+    width: var(--icon-size-medium, 20px);
   }
 }
 

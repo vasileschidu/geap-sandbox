@@ -2288,7 +2288,22 @@
     "sm-05v": smDosar("d-transport"),
     "sm-05a": smDosar("d-nota"),
     "sm-05b": smDosar("d-cantina-retragere"),
-    "sm-05c": smDosar("d-izvoras", async (h) => { await smHeadAct(h, "download"); }, { descarcare: "eroare" }),
+    /* request-act-modal-link-v1: an approved request has no header download any more (its act lives in the act profile,
+       „Profilul actului ↗”) → the failed header download is shown on a REFUSED request's „Descarcă decizia” */
+    "sm-05c": smDosar("d-nota", async (h) => { await smHeadAct(h, "download"); }, { descarcare: "eroare" }),
+    /* request-act-modal-link-v1 + header-max-two-v1 (2026-10-23): the request never shows the act itself — „Profilul
+       actului ↗” opens the act profile in a new tab; max 2 header buttons + „⋯”. sm-act-03 a decision request at the
+       holder's request (Suspendarea valabilității: Profilul actului · Descarcă decizia; the „⋯” opened where it shows —
+       320) · sm-act-04 the authority's annulment inside the appeal term (Depune contestație · Profilul actului ·
+       „⋯” › Descarcă decizia, opened) — a contestație only against a negative decision */
+    "sm-act-03": smDosar("d-piata-susp", async (h) => {
+      await h.wait(400);
+      if ([...document.querySelectorAll("[data-sm-profile] .cab-act-header__overflow [data-cab-menu-trigger]")].some((el) => el.getClientRects().length)) await h.click("[data-sm-profile] .cab-act-header__overflow [data-cab-menu-trigger]");
+    }),
+    "sm-act-04": smDosar("d-ana-anulare", async (h) => {
+      await h.wait(400);
+      if ([...document.querySelectorAll("[data-sm-profile] .cab-act-header__overflow [data-cab-menu-trigger]")].some((el) => el.getClientRects().length)) await h.click("[data-sm-profile] .cab-act-header__overflow [data-cab-menu-trigger]");
+    }, { as: "pf-anastasia" }),
     /* 2026-10-14 · Documente însoțitoare = the shared document cards: the card → document modal (its footer has
        „Descarcă”; no ⋮ since 2026-10-20, no „Detalii” since no-lone-detalii-v1 — sm-05g = the card click, sm-05f /
        sm-05h = the keyboard: the focused card + Enter / Space) */

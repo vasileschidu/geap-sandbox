@@ -269,7 +269,7 @@
               wrap: true,
               phoneTitle: "compact",
               actionsPlacement: "below",
-              actions: `<button class="btn btn-primary btn-md" type="button" aria-haspopup="dialog" data-rap-view-document>${icon("eye-open")}<span>Vezi act permisiv</span></button>`
+              actions: `<button class="btn btn-primary btn-md" type="button" aria-haspopup="dialog" data-rap-view-document><span>Vezi act permisiv</span></button>` /* label only, no eye (user 2026-10-23) */
             })}</div>
             <div class="e-permits-page-header__meta" data-rap-profile-meta>
               ${renderProfileSummaryItem("Numărul actului", record.permit.number, { copy: true })}

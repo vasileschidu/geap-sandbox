@@ -3159,3 +3159,26 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   for shared docs prefer the Edit tool. No sub-agent tool → hover-audit 0 / 0 (list + window), code-audit (only the
   library search × overlap FP in my scope), component-audit (standing shell / th-sort / „Schimbă” majors only), real-mouse
   probe: ⋮ and trash white on the hovered band → #d9d9d9 on own hover, tooltips „Postprocese” / „Elimină schița”.
+- 2026-10-23 · request-act-modal-link-v1 + header-max-two-v1 — SIX mid-job course changes, two of them reversals of my own
+  work: (1) „Vezi actul” as the Actele mele act dialog on the request (built, proven byte-identical to pp-01m with a
+  normalised-outerHTML compare) → rejected („misleading when the act is Retras”, no act on the request at all); (2) every
+  navigating profile action in a new tab (built across alert / header / ⋯ / Postprocese items / the consequence dialog) →
+  rejected („bring it back”). What made reverting cheap: each change was a set of exact-match Edits I could undo one by
+  one and a shared helper extended only by an OPTIONAL argument (act-row `menuItemsHtml(…, { hrefOf })`, default output
+  unchanged) — removed whole. Lesson: when a user idea changes WHAT a page shows (an act on a request page), build the
+  smallest proof and show it before widening the scope; a relay that says „all actions” is a candidate for a crop first.
+  (3) A real logic bug surfaced by the user's „why does it have Depune contestație?”: `canAppeal` = any finished request
+  in the 30-day term, approved ones included (sm-05b — the holder's own withdrawal). Rule now `negativeDecision`
+  (refused, or the authority's suspendare / retragere / anulare) — check the data matrix (python over the JSON) before
+  trusting a status helper's name. (4) Max 2 visible header actions: ONE cap in `fitActActions` (≤ 2 → all, ≥ 3 → 2 + „⋯”;
+  my first cut forced destructive into „⋯” and was corrected within minutes — „only 2 → normal buttons”); the fallback
+  width loop must iterate `widths.slice(0, cap)` or a narrow-then-wide pass shows more than the cap. Importance order
+  lives in the MARKUP (act header: Vezi solicitarea moved before Postprocese). (5) „Items got smaller” was not a
+  regression: a menu probe on worktrees 57fe8c51^ / HEAD / tree (python http.server :8971 / :8972) showed identical
+  48 · 16/24 phone and 32 · 14/20 desktop items — the new thing was the DESKTOP „⋯” (32). Measure history before
+  „restoring”. Phone „⋯” anchored to its trigger's right edge via a geometry custom property set in `fitMenu`
+  (`--cab-menu-right` + `.is-trigger-end`, fallback row left edge). (6) Probe kit worth keeping (scratch ram/probe.mjs):
+  browser-level CDP with `Target.setDiscoverTargets` + `targetInfoChanged` (a new tab's URL is '' at `targetCreated`),
+  `BASE` / `MEASURE` env to point one probe at worktrees and swap the in-page measure. hover-audit on the act header
+  needs `--scope "[data-cab-detail] [data-cab-profile-header]"` (the first match is the hidden request header → „0
+  interactive”).

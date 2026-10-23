@@ -133,7 +133,13 @@
   const pendingFee = (dosar) => dosar.status === "schita" && dosar.payment?.status === "În așteptare";
 
   const appealUntil = (dosar) => (dosar.status === "finalizat" && dosar.finalized ? addDays(dosar.finalized, state.data.appealDays || 30) : "");
-  const canAppeal = (dosar) => Boolean(appealUntil(dosar)) && appealUntil(dosar) >= TODAY;
+  /* request-act-modal-link-v1 (2026-10-23, user: „why does it have Depune contestație?”): a contestație exists only against a
+     NEGATIVE decision — the request refused, or the authority's own suspension / withdrawal / annulment of the act
+     (Feature 90818) — inside the appeal term; never on an approved request (issued act, a duplicate, the holder's own
+     withdrawal, a resumed validity), even when that act was withdrawn later */
+  const negativeDecision = (dosar) => dosar.result === "respins"
+    || (Boolean(dosar.decisionOnly) && dosar.initiatedBy === "autoritate" && /^(suspendare|retragere|anulare)$/.test(dosar.pp || ""));
+  const canAppeal = (dosar) => negativeDecision(dosar) && Boolean(appealUntil(dosar)) && appealUntil(dosar) >= TODAY;
   const authorityLabel = (dosar) => [serviceOf(dosar).authority, dosar.subdivision].filter(Boolean).join(" · ");
   const readOnly = () => Boolean(state.perspective?.readOnly);
 
@@ -920,6 +926,9 @@
      row (under the title since header-actions-below-v1, library Medium 40 / 48 on phones). The immediate one — continue the draft, send the information, pay, appeal a refusal — is
      THE primary; see the act is the primary of an approved request; the rest are neutral; removing a draft is red.
      The status notice in the trajectory card only explains. Never the same action twice. */
+  /* a link that opens another page in a NEW tab (request-act-modal-link-v1: „Profilul actului”) — label + trailing external
+     icon (no leading icon), name „<label> (se deschide într-o filă nouă)” (C.newTabAttrs) */
+  const newTabLink = (variant, href, label, attrs = "") => `<a class="btn ${variant} btn-md" href="${escape(href)}"${C.newTabAttrs(label)} ${attrs}><span>${escape(label)}</span>${icon("icon-external-link")}</a>`;
   function headerActions(dosar) {
     const buttons = [];
     const download = (kind, label) => `<button class="btn btn-neutral btn-md" type="button" data-sm-action="download" data-sm-kind="${kind}" data-sm-id="${escape(dosar.id)}">${icon("icon-export")}<span>${escape(label)}</span></button>`;
@@ -936,9 +945,15 @@
           if (canAppeal(dosar)) buttons.push(appeal("btn-primary"));
           buttons.push(download("decizie", "Descarcă decizia"));
         } else if (dosar.actId) {
-          buttons.push(`<a class="btn btn-primary btn-md" href="${escape(cabUrl("acte", { act: dosar.actId }))}" data-sm-action="act">${icon("icon-page-text")}<span>Vezi actul</span></a>`);
-          buttons.push(download(dosar.decisionOnly ? "decizie" : "act", dosar.decisionOnly ? "Descarcă decizia" : "Descarcă actul"));
-          if (canAppeal(dosar)) buttons.push(appeal("btn-neutral"));
+          /* request-act-modal-link-v1 (2026-10-23, user: „instead of Descarcă, an action to the act permisiv profile, always a
+             new tab”, then „no act in the request profile — Vezi actul is misleading when the act was withdrawn since”): the
+             request never shows the act itself; „Profilul actului ↗” = the act's address (?act=<id>) in a new tab, where
+             the act's CURRENT status lives. header-max-two-v1: in order of importance — an open contestație (the immediate
+             action, a negative decision only) is the primary, then Profilul actului, Descarcă decizia; max 2 visible + „⋯”. */
+          const appealOpen = canAppeal(dosar);
+          if (appealOpen) buttons.push(appeal("btn-primary"));
+          buttons.push(newTabLink(appealOpen ? "btn-neutral" : "btn-primary", cabUrl("acte", { act: dosar.actId }), "Profilul actului", 'data-sm-action="act"'));
+          if (dosar.decisionOnly) buttons.push(download("decizie", "Descarcă decizia"));
         }
         break;
       default:

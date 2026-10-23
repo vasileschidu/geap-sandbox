@@ -6338,9 +6338,9 @@ of the request (`headerActions`, BO Small buttons, the immediate action = the pr
 | Informații suplimentare | warning | „Trimiteți informațiile cerute până la {d}” · „Examinarea este suspendată până atunci · {countdown}.” (the reason = Date generale row „Motivul suspendării”) | „Completează informația” — IN the alert card, not the header |
 | Spre achitare | warning | „Achitați {sumă} până la {d}” · „După achitare, examinarea continuă automat · {countdown}.” | „Achită {sumă}” — IN the alert card, not the header |
 | Notă expirată | error | „Taxa a expirat pe {d}” · „Achitarea nu mai este posibilă.” | — |
-| Aprobată | success | „Actul permisiv a fost emis pe {d}” · „Îl găsiți și în „Actele mele permisive”.” | Vezi actul · Descarcă actul (· Depune contestație) |
+| Aprobată | success | „Actul permisiv a fost emis pe {d}” · „Îl găsiți și în „Actele mele permisive”.” | Profilul actului ↗ (new tab; request-act-modal-link-v1 — no act dialog / download on the request) |
 | Aprobată tacit | success | „Aprobată tacit pe {d}” · „Autoritatea nu s-a pronunțat în termen; actul îl găsiți în „Actele mele permisive”.” | same |
-| Decizie fără act nou | success | „Decizia a fost emisă pe {d}” · `decision.text` | Vezi actul · Descarcă decizia |
+| Decizie fără act nou | success | „Decizia a fost emisă pe {d}” · `decision.text` | Profilul actului ↗ · Descarcă decizia (· Depune contestație first when the AUTHORITY suspended / withdrew / annulled, in the term) |
 | Respinsă, în termen | error | „Puteți depune contestație până la {d}” · „Motivul refuzului: {motiv} · {countdown}” | Depune contestație · Descarcă decizia |
 | Respinsă | error | „Solicitarea a fost respinsă” · „Motivul refuzului: {motiv}” | Descarcă decizia |
 
@@ -7721,8 +7721,45 @@ tertiary pin) as `subtitleHtml`; the actions were BO Small buttons on the title 
 title (library Medium 40, section „Page header options — actions below, compact phone title”); phones stack the header (BO) — the act's
 row keeps its priority+ „⋯” (`fitActActions`), the request's wraps. Request actions (`headerActions`): Schiță =
 Continuă schița (primary) · Elimină schița (red outlined); Informații suplimentare = Suplinește informații (primary);
-Spre achitare = Achită {sumă} (primary; none once the note expired); Aprobată = Vezi actul (primary) · Descarcă actul /
-decizia · Depune contestație (in the window); Respinsă = Depune contestație (primary, in the window) · Descarcă decizia.
+Spre achitare = Achită {sumă} (primary; none once the note expired); Aprobată = „Profilul actului ↗” (primary, new tab,
+request-act-modal-link-v1) · Descarcă decizia (decision requests only); a negative decision of the authority on the act
+(suspendare / retragere / anulare, in the window) = Depune contestație (primary) · Profilul actului ↗ · „⋯” › Descarcă
+decizia; Respinsă = Depune contestație (primary, in the window) · Descarcă decizia. Order of importance + max 2 visible:
+§ „Profile header actions — max 2 visible + ⋯”.
+
+### Profile header actions — max 2 visible + „⋯” (header-max-two-v1, 2026-10-23)
+
+User: „more than 2 → dots; if only 2 → normal buttons” (EVO Cabinet act + request profiles; `fitActActions` in
+cabinet-evo.js — the BO header is a different renderer with no „⋯” and is unchanged; RAP has one action).
+- ≤ 2 actions = all of them as buttons at every width (a red outlined „Elimină schița” too); ≥ 3 = the 2 most important
+  + the rest in the trailing „⋯”. Phones: the same, and priority+ may show fewer when the two do not fit (320).
+- The markup lists the actions in order of importance (primary first, destructive last): the immediate action
+  (Continuă schița / Achită / Completează informația / Depune contestație) › Vezi act permisiv › Profilul actului ↗ /
+  Vezi solicitarea › the rest (Descarcă …, Postprocese, Elimină schița). Act profile: Vezi act permisiv · Vezi
+  solicitarea · (Postprocese → „⋯” as the labelled group).
+- „Vezi …” header buttons are label-only (no eye icon, user 2026-10-23): Cabinet „Vezi act permisiv”, RAP „Vezi act
+  permisiv”, the FO / Ghișeu finish card „Vezi documentul”.
+- Phones (≤ 760): the „⋯” menu hangs under the action row with its RIGHT edge on the „⋯” (`fitMenu` sets
+  `--cab-menu-right` + `.is-trigger-end` when the menu fits leftwards from the trigger), else on the row's left edge (16);
+  items = the dropdown item at the touch size 48 · 16/24 MEDIUM, icon 20 (profile header menus only; list row menus keep
+  the row-menu 16/24 regular · icon 24 — PO question). Desktop items = the dropdown item 32 · 14/20 medium (unchanged —
+  measured identical in 57fe8c51^, HEAD and now).
+- Per state (1440 / 375 / 320): sm-03 Continuă schița · Elimină schița (320: + „⋯” › Elimină schița) · sm-05 / 05u / 05v
+  / 05w Profilul actului ↗ · sm-05b / sm-act-03 Profilul actului ↗ · Descarcă decizia (320: „⋯” › Descarcă decizia) ·
+  sm-05a Depune contestație · Descarcă decizia (375 / 320: „⋯” › Descarcă decizia) · sm-act-04 Depune contestație ·
+  Profilul actului ↗ · „⋯” › Descarcă decizia (phones: Depune contestație · „⋯”) · pp-03 Vezi act permisiv · Vezi
+  solicitarea (320: „⋯”) · pp-03b / 03c Vezi act permisiv · Postprocese (320: „⋯”) · pp-03d / 03g Vezi act permisiv ·
+  Vezi solicitarea · „⋯” › Postprocese items (320: „⋯” › Vezi solicitarea + Postprocese).
+- Contestație rule (request-act-modal-link-v1): „Depune contestație” only against a NEGATIVE decision — the request
+  refused, or the authority's own suspendare / retragere / anulare of the act — inside `appealDays`; never on an
+  approved request (issued act, duplicate, the holder's own withdrawal, a resumed validity), even if the act was
+  withdrawn later (`negativeDecision` / `canAppeal` in solicitari.js; was any finished request in the term — sm-05b
+  showed it).
+- The request profile never shows the act itself (user: „Vezi actul is misleading when the act is Retras”): no act
+  dialog, no „Descarcă actul” in the header; „Profilul actului ↗” (`a.btn` + `C.newTabAttrs`, label then
+  `icon-external-link`, „Profilul actului (se deschide într-o filă nouă)”) opens `?view=acte&act=<id>` in a new tab,
+  where the act's current status lives. The Act tab (US-161 AC-29) is unchanged — PO question. A new-tab link copied into
+  the „⋯” keeps target / rel / aria-label and shows label then the external icon (`.e-permits-fo-intent-menu__external`).
 The catalog service keeps the public header (`CabEvo.pageHeader`, `.e-permits-page-header--public`); the RAP act profile uses the shared header since rap-header-v1 (2026-10-22). Parity:
 `tools/ui-qa/specs/cabinet-profile-vs-bo.json` (svc-01 ↔ sm-05) = 0 at 1440 / 375 (header body / top / heading /
 aside / actions / action button pairs added; documented: full-container widths, the action's flex: none).
@@ -7834,7 +7871,7 @@ edge. Also the action buttons are too small”, then „remove the details-line 
   was: the primary / every BO button filled the row) — `flex: 0 1 auto` (shrinks only so a too-long label wraps inside
   its button). EVO Cabinet act + request = ONE row, priority+: the secondaries that do not fit go into the trailing „⋯” (`cab-act-header__overflow`, `fitActActions` /
   `CabEvo.watchHeaderActions`; request items keep their `data-sm-action` / href, so the page handlers run unchanged; red
-  destructive last after a separator). 375: sm-05 „Vezi actul” + „Descarcă actul”, sm-03 „Continuă schița” + „Elimină
+  destructive last after a separator; max 2 visible since header-max-two-v1 — see that section for the current per-state list). 375: sm-05 „Vezi actul” + „Descarcă actul”, sm-03 „Continuă schița” + „Elimină
   schița”, pp-03 „Vezi act permisiv” + „Vezi solicitarea” (all fit at 40), pp-03g primary + „⋯”; 320: primary + „⋯”
   (sm-05 keeps both). `fitActActions` measures natural widths, so hugging changed no „⋯” decision (checked 375 / 320 on
   pp-03 / 03g / 03h, sm-03, sm-05 / 05w). RAP rap-02: „Vezi act permisiv” hugs (167). BO = the row wraps, buttons hug (no
@@ -7867,7 +7904,7 @@ separate „Request profile — full container” block); coverage `tools/person
 |---|---|
 | Container | full list width (`--cab-list-width`, 1 200 at 1440) — `.cab-main__container:has(.cab-act-profile …)` / `:has(.sm-profile …)`; the catalog service profile keeps 1024. Long text keeps ~75ch lines (facts-card notice; request status text + notices). Rows keep the BO label column (256). |
 | Header | `CabEvo.pageHeader({ back, title, titleId, subtitle, subtitleIcon, bodyHtml })` (`subtitle` / `subtitleIcon` / `bodyHtml` optional, the other profiles unchanged): ‹ Actele mele permisive · `h1` = the ACT TYPE (the full service title, wraps; type-first-v1 2026-10-21 — was the object) + `p.cab-page-header__subtitle.cab-page-header__subtitle--icon` = the 16 filled tertiary map pin + the object / location (16/24 regular secondary) in `.cab-page-header__titles` (gap 4) — no subtitle when the act has no location (pp-03e). The request profile (Solicitările mele) has the same header: `h1` = the service, subtitle = the object (sm-03 / sm-05; none for sm-05v). No meta row. |
-| Action row | `.cab-act-header__bar > .cab-act-header__actions`, LEFT-aligned under the title (16), ONE line, gap 8, in priority order: `btn btn-primary btn-md` „👁 Vezi act permisiv” (every status) · `.e-permits-fo-intent-act__action[data-cab-act-action=postprocese]` „Postprocese ⌄” (only when eligible; `disabled` + `aria-describedby` the notice while one is in progress) · `a.btn.btn-neutral.btn-md[data-cab-act-action=request]` „📄 Vezi solicitarea” (the issuing request). What does not fit → `hidden` (out of the tab order) and listed in the trailing `.cab-act-header__overflow` „⋯” (`btn btn-neutral btn-md btn-icon-only`, `aria-label="Mai multe acțiuni"`, only when something overflowed) — its menu = the row action menu: „Vezi solicitarea”, separator, `li.cab-menu__label` „Postprocese” + the act's items (danger last after a separator; pending → every item disabled with the reason as 2nd line). `fitActActions()`: all reads first (natural widths with `.is-measuring`), then writes; ResizeObserver on the bar + fonts.ready; the menu is rebuilt only when the overflow set changes. Phones ≤760: buttons Medium 40, every button hugs its label (header-actions-hug-v1); the „⋯” menu hangs from the ACTION ROW (row `position: relative`, overflow wrapper `static`, menu `left: 0`, max the row width — x 16 under the row; a button-anchored menu ran to x −20 once the „⋯” stopped sitting on the gutter); desktop: opens leftwards from its button. 1440: everything visible, no „⋯”; 375 / 320: „Vezi act permisiv” + „⋯”. |
+| Action row | `.cab-act-header__bar > .cab-act-header__actions`, LEFT-aligned under the title (16), ONE line, gap 8, in priority order: `btn btn-primary btn-md` „Vezi act permisiv” (every status; label only since 2026-10-23) · `a.btn.btn-neutral.btn-md[data-cab-act-action=request]` „Vezi solicitarea” (the issuing request, same tab) · `.e-permits-fo-intent-act__action[data-cab-act-action=postprocese]` „Postprocese ⌄” (only when eligible; `disabled` + `aria-describedby` the notice while one is in progress) — max 2 visible (header-max-two-v1): with all three, Postprocese goes into „⋯”. What does not fit → `hidden` (out of the tab order) and listed in the trailing `.cab-act-header__overflow` „⋯” (`btn btn-neutral btn-md btn-icon-only`, `aria-label="Mai multe acțiuni"`, only when something overflowed) — its menu = the row action menu: „Vezi solicitarea”, separator, `li.cab-menu__label` „Postprocese” + the act's items (danger last after a separator; pending → every item disabled with the reason as 2nd line). `fitActActions()`: all reads first (natural widths with `.is-measuring`), then writes; ResizeObserver on the bar + fonts.ready; the menu is rebuilt only when the overflow set changes. Phones ≤760: buttons Medium 40, every button hugs its label (header-actions-hug-v1); the „⋯” menu hangs from the ACTION ROW (row `position: relative`, overflow wrapper `static`, menu `left: 0`, max the row width — x 16 under the row; a button-anchored menu ran to x −20 once the „⋯” stopped sitting on the gutter); desktop: opens leftwards from its button. Since header-max-two-v1 the phone menu's right edge sits on the „⋯” when it fits (else the row's left edge) — § „Profile header actions — max 2 visible + ⋯”. |
 | Key-facts card | `.cab-act-header__facts` (grey `--color-background-base-secondary`, r16, 16 / 20, edges on the section cards = −12 margin, 16 under the actions, gap 12): `p.cab-act-header__key` (14/20 medium; whole parts wrap, no separators) = `Nr.` + the copy component · the Small status tag („Aprobare tacită” instead of „Valabil” for a tacit act) · ONE status date (`actHeaderDate`): Valabil „Valabil până la 15 septembrie 2028 (704 zile rămase)” (brackets, never a line-leading „·”; no end date → „Valabilitate nelimitată”), Suspendat „Suspendat până la …”, Retras „Retras la …”, Expirat „A expirat la …”, Anulat „Anulat la …” · then the status notice (library `message message--subtle banner--{info,warning} message--small cab-message#cab-act-notice`, ≤ 1 `.cab-alert-link`) · `button.cab-alert-link.cab-act-header__more` „Vezi toate detaliile” (scrolls to and focuses „Detalii act”; no hash — the Cabinet routes by hash). |
 | Status notice (`actNotice`, only when useful; never repeats a date of the facts line) | pending post-process (warning, icon-time) „<b>X în curs.</b> … solicitării GEAP-…” + „Vezi solicitarea →” · paper act (info) the offline text, no Postprocese · Suspendat (warning) „<b>Activitatea autorizată nu poate fi desfășurată pe durata suspendării.</b>” + who decided (`la cererea titularului` / `de <autoritate>`) + decision + reason + „Cere reluarea valabilității →” (when Reluare is eligible) or „se reia automat” + the request · Retras / Anulat „<b>Actul nu mai este valabil.</b>” + who + decision + reason; decided by the AUTHORITY and within `appealDays` → warning + „Poți depune o contestație până la …, din solicitarea care conține decizia.” + „Vezi solicitarea →” (Feature 90818: the contestație belongs to the dossier); otherwise info + „depune o solicitare nouă” · Expirat (info) + „Depune o solicitare nouă →” (catalog) · Valabil with ≤ 60 days left (warning) + „Inițiază prelungirea →” (eligible) or „Depune o solicitare nouă →”. |
 | Sections (BO, `profileSection`) | [Beneficiar — first when a representative acts (`perspectives[as].mpower`)] · **Ce permite actul** = the configured fields (US-161 AC-29) through `GEAPActView.fieldsHtml` (the request Act tab's renderer: groups, lists, grids with „Arată toate (N)”); the first group takes the name „Ce permite actul”, the next keep their passport titles; empty fields hidden; a value equal to the page title is not repeated · **Detalii act**: Numărul dosarului electronic (copy; the issuing request, else `dossierNr`) · Seria și nr. documentului tipărit · Data aprobării tacite · Data emiterii · Valabil din (only when ≠ Data emiterii) · Valabil până la (only for Suspendat / Retras / Anulat — for Valabil / Expirat it is the header's status date) · Data suspendării (Suspendat) — Data retragerii / anulării = the header's status date · **Autoritatea emitentă**: Denumire · Subdiviziunea emitentă · Telefon · E-mail · [Beneficiar — for the owner] · **Istoric**. |
@@ -7953,9 +7990,9 @@ profile's `statusNow` / `timelineEvents` in `cabinet-evo/solicitari.js`; no new 
 | În derulare — suplinire expirată (US-24 AC-03) | as În derulare (`normalize()`: an `info` past `info.until` becomes `derulare` + `resumed.kind = "expirat"`) | text „Termenul de suplinire a expirat pe …”; Data suspendării kept; timeline „Suspendare încheiată” → „Examinare reluată” | „Termenul de suplinire a expirat” (`supplement-expired`) | sm-04i, nt-01f |
 | Informații suplimentare | warning · „Trimiteți informațiile … · countdown · Trimite informațiile →” | Suplinește informații | „Autoritatea a cerut informații suplimentare” + `details` „Motivul suspendării” / „Neconformități depistate” (`info-requested`, `.nt-item__details`, US-126 AC-16) | sm-04b, nt-01g |
 | Spre achitare | warning · „Achitați taxa … · Achită acum →”; expired note = error (PO Q1) | MPay badge | „Aveți o notă de plată de achitat” | sm-04c, sm-04g |
-| Finalizat · Aprobat | ONE success tag „Aprobat” (SR „Aprobat (finalizată)”; no „Finalizat” tag, outcome-tag-v1) · none · „Finalizată …” | Vezi actul · Descarcă; duplicate: Act „Exemplar — Duplicat al actului …”, validity from `validFrom` | „Actul permisiv a fost emis” | sm-05, sm-05p |
+| Finalizat · Aprobat | ONE success tag „Aprobat” (SR „Aprobat (finalizată)”; no „Finalizat” tag, outcome-tag-v1) · none · „Finalizată …” | Profilul actului ↗ (new tab); duplicate: Act „Exemplar — Duplicat al actului …”, validity from `validFrom` | „Actul permisiv a fost emis” | sm-05, sm-05p |
 | Finalizat · Aprobat (decizie: retragere / suspendare / reluare) | as Aprobat | tab „Decizie” | „Decizia a fost emisă” | sm-05b, sm-05q, sm-05r |
-| Finalizat · Aprobat tacit (US-157; demo `?tacit-dosar=<id>`, the seed has none) | ONE blue tag „Aprobat tacit” (SR „… (finalizată)”) · none · „Finalizată …” | „Aprobată tacit pe …” · Vezi actul · Descarcă | — | sm-05t, sm-05u |
+| Finalizat · Aprobat tacit (US-157; demo `?tacit-dosar=<id>`, the seed has none) | ONE blue tag „Aprobat tacit” (SR „… (finalizată)”) · none · „Finalizată …” | „Aprobată tacit pe …” · Profilul actului ↗ | — | sm-05t, sm-05u |
 | Finalizat · Respins | ONE danger tag „Respins” (SR „Respins (finalizată)”) · INFO while `canAppeal` (30 days = `appealDays`, PO Q3) | Descarcă decizia · Depune contestație | „Solicitarea a fost respinsă” | sm-05a, sm-05o |
 
 Profile variants: **Livrare** (US-161 AC-16) from `delivery.paper` = `mdelivery` (row „Metoda de livrare” EVO Cabinet +
