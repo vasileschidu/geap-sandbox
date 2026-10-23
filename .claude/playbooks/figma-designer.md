@@ -3466,3 +3466,33 @@ For any „research how other products do it” step, search Mobbin (mcp__mobbin
   Figma dates kept („6 noiembrie 2026 (15 zile lucrătoare)”, coordinator). Lesson: when a column is parked for another agent, note
   the exact gap left so the follow-up is one restack call.
 
+
+- 2026-10-23 · request-tray-figma-v1 (EVO Cabinet iitScYOwMYjDayuyrm3750; code 4e760610 alert-timeline-tray-v1 + c37bbb92
+  alert-buttons-library-v1; user reference 1287:34973 in sm-04a). All 28 request profile blocks on ↳ My requests (56 panels, sm-03…
+  sm-05v; sm-03d / 02 / 04h1 / 04e / 04f / 04g1 / 05o have no profile) brought to the code, measured per state × 1440 / 375 with a CDP
+  probe (scratch rtf/probe.mjs: panel children rects, alert, trajectory padding / border / radius / stacked, per-step x / w / label lines,
+  tab strip, first section). **Tray** = `Alert` wrapper pB 0 + Alert card instance bottom radii 0 (top bound radius-24) + ABSOLUTE
+  `Tray corners` rectangle (24 high, background/base/secondary, STRETCH / MIN, index 0) at the top of `Section · Status` = the code's
+  24 px gradient band, so the grey shows only behind the white card's top corners. Phones: card FILL 343, radius-24, 1 px all sides,
+  12 / 16 padding; horizontal steps `Show details` off, widths = code (cumulative rounding, last FILL); sm-04j stays the vertical card
+  with details; sm-04h (retry note between) keeps alert + card separate, card 375 edge to edge. **Tabs**: `Section · Status` pB 24 / 16,
+  `Tabs` pB 24 / 16; phone Profile tabs instance FIXED 375 centred (overflows the 343 panel like the card did), padding 16 → line edge to
+  edge, first label at 28 = code; clip only where the strip overflows (sm-05a / 05m, code scrolls). All panel offsets = code to the pixel
+  (alert → status → tabs → first section) except the known +20 phone alert wraps (sm-05q / 05r) and sm-04h's retry note (+6 / +9).
+  **Alert buttons**: Alert card 1259:4099 Buttons=Two quiet → library button-text-circular Strict Medium (a97526693c…, lk-03f6), fills /
+  strokes copied from the new main; white fill override removed on pp-01e / 01j / 01k / 03 (desktop + phone, 8 buttons). The user's
+  wrapper frame in sm-04a was unwrapped into the standard structure (no connector inside). Columns 02–06 restacked at 240 twice (after
+  the notes), 23 connectors attached; the 9 profile arrows re-pointed from stale block-edge positions (y 552 vs control 316) to the
+  clicked phone control: header button / ⋯ (magnet RIGHT), alert button and sheet buttons (`position` = button right edge on the
+  Alert card / Confirm instance), tabs (`position` on Profile tabs: last tab → its right edge, else top-centre; a clipped tab → strip
+  right edge), end = target block RIGHT; two stale labels fixed („Completează informația (eroare)”, „Achită 500,00 MDL”). Notes sm-04 /
+  sm-04h, Start here intro + cover index dated. Lessons:
+  - **Block-edge arrow positions go stale silently** (they never follow the control) — prefer the clicked control (+ `position`) and
+    re-check every arrow's y against its control after any height change.
+  - **Probe every state before a column-wide pass**: the per-state step widths, the stacked / vertical case and the one non-tray state
+    (error between) came straight from the probe; one test block + screenshot, then 3 batches of ≤ 13 blocks, each logging the new
+    offsets to compare with the probe numbers.
+  - A grey area behind only the TOP corners of a bordered card = absolute band in the card's parent, not a grey parent (a grey parent
+    with the same radius leaves an anti-aliased fringe at the bottom corners).
+  - No Agent tool in this session → stored `qsweep/audit` on the 56 panels + the Alert card set: only the known section-over-card gap 0
+    (sm-04l / 05s groups); pp-01k / 01j alert screenshots checked (text button no fill, outlined transparent).
