@@ -3695,3 +3695,35 @@ For any „research how other products do it” step, search Mobbin (mcp__mobbin
     converting them.
   - No Agent tool in this session → QA = re-census (0 desktop single in Cabinet, all 46 height 20, labels kept) + spot screenshots
     sm-05 1236:49405 / pp-03 1268:4759 against the code probe.
+
+- 2026-10-23 · cabinet-rows-sync-v1 (user on EVO Cabinet 1064:1880: „we still have icons for cards — update as in code, fix any other
+  discrepancies”). Fixed at the SOURCE: Cabinet `Act row` 1055:1380 (10 variants) lost the 24 document lead icon (phones: `Line 1`
+  paddingLeft / Bottom → 0); `Act row` + `Request row` 1117:3222 gained a `Place` line (16/map-pin-filled 78c28176… in icon/base/tertiary,
+  in a 16 × 20 `Pin` box · gap 4 · Desktop/Body/Small text/base/default; desktop 1 line + ellipsis, phones wrap) with props `Place` /
+  `Show place`, act meta reordered to the code (Number · Authority · Subdivision · Validity), titles default to the TYPE, request
+  `What` default „Eliberare”, BOOLEAN `Subdivision on own line` (was „Break before subdivision”; phones: a FIXED 311 × 0 `Line break`
+  before AND `Line break · after` the part). `Pager · compact` 1305:4300 got `Page 4` + BOOLEANs `Show page 3` / `Show page 4`
+  (default off). Data: every list block = the code's first page — 12 permit blocks (186 → 198 rows: pp-01 / 01s / 01s1 / 01s2 / 01s3 /
+  01a / 01p / 01r / 01g = 10 of 12, pp-01t = 10 of 36, pp-01u / 01h = 1) and 21 request blocks (sm-01… = 10 of 20, page-2 blocks
+  11–20, sm-01q 5, sm-01o 1); 9 permit blocks got the pager they lacked; 19 request pagers „din 19 rezultate” → „din 20 de
+  rezultate”, 2 pages; pp-01t „din 36 de rezultate”, 4 pages; filter-sheet buttons „Arată 20 de rezultate”; pp-01w empty state glyph
+  → 24/permission; 5 notes, both Start here sections and the cover index updated; 8 columns restacked at 240; 0 dangling connectors.
+  Tool: tools/figma/cabinet-rows-sync/ (sync.js = stored runner `cab`/`rowsync`, make-payload.py; row dictionaries stored as
+  `cab`/`rowsU-act` / `rowsU-req`). Lessons:
+  - **Sync rows by a key, not by position**: match Figma instances to code rows by the number (Copy value `Value`), reuse unmatched
+    rows, clone only when short, then reorder — the Menu open instances (with their filled menus) and Locked / Paper rows stay with
+    their act, so pp-01a / pp-01p kept the right menus after the order changed.
+  - **Probe the phone line breaks** (`getClientRects` per meta part at 375): only the parts the code wraps over 2 lines need a
+    special layout; the rest wrap like the code because the metrics are the same.
+  - **A wrap layout can't force a full-width child from an instance**: `minWidth` is not overridable („min-size”), `resize()` on a
+    nested text is silently ignored, a FILL child shares its line and a FILL break doesn't break. What works: two FIXED line-break
+    frames (row width × 0) around the part, bound to a boolean, + the part FILL / text FILL + HEIGHT, truncation off.
+  - **Never walk „up until an icon is found”** when targeting a glyph: my first empty-state swap hit the header's e-gov logo and the
+    phone globe (reverted by swapping to the same path's main in a sibling screen). Target by layer name + parent name.
+  - Cloned pager frames carry the source's per-instance booleans (pp-01t's Show page 4 → every new pager showed „1 2 4”); set every
+    boolean explicitly after cloning.
+  - Countdown texts („mai sunt 5 zile și 9 ore”) follow the clock in code — never treat them as drift.
+  - Left (reported): rows are 2 px shorter than code (1.5 stroke INSIDE, not in layout — board baseline); phone locked notice wraps
+    4 lines vs code 3 (code breaks inside „GEAP-2026-…”); pp-01r hovers a locked row in code (no Hover + Locked variant); header
+    avatar = library neutral „AC” vs code blue. No Agent tool in this session → stored `qsweep`/`audit` on the 33 blocks + 2 sets:
+    only the declared baseline (meta dot gap 18, trigger reservation 133, 812 phone viewports behind sheets).
