@@ -3090,3 +3090,12 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   intermediate (radius 20 bar never committed). ek-04o's script closes the bar on desktop (toggle after commit) — use
   dos-05d / gh-01c to see the open BO bar. Probe pitfall: a `return out` injected by sed before the loop returned an
   object without `ds` → every row „undefined”; build probes with a python splice, not sed.
+- 2026-10-23 · invoice-head-small-v1 (user on GEAP 11761:26404: „a SMALL badge and SMALLER amount text” on the payment note
+  head). One shared renderer (`paymentStepBodyHtml`, FO fo-07 + Ghișeu gh-09*) → two lines of JS + one CSS block: status =
+  `GEAPTag.cls(tone)` (Tag · Small subtle, the list tag; the strong 24 tag and its `min-height: 24` went), amount = the
+  RESPONSIVE heading tokens `--type-heading-h4-*` (20/28 desktop, Mobile H4 18/26 on phones — no phone rule needed). Read
+  the caller's tone names first: GEAPTag maps accent / success / danger / neutral, so no data changed. Side find from the
+  375 crop: the smaller tag gave the label room to wrap at the note number's HYPHEN („NP-2026-” / „004903”) → number in a
+  nowrap `__nr` span (regex on the escaped label, no caller change). Proof = scratch probe (tag classes / 20 high / tone
+  colours, amount fs / lh / ls, head height, crops) on fo-07, gh-09 / 09a / 09b / 09c at 1440 + 375; code-audit 0 in the
+  card (dosar rows 11/7 standing), hover-audit 0 / 0, component-audit 0 in the card (majors = the standing avatar menus).

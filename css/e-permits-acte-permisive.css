@@ -9684,18 +9684,24 @@ a.e-permits-fo-lib-item__title:is(:hover, :focus) {
   line-height: var(--line-height-lh-20, 20px);
 }
 
+/* status = Tag · Small (css/tag.css: 20 high, 12/16); amount = Heading H4 (20/28, phones Mobile H4 18/26 via
+   css/type-mobile.css) — invoice-head-small-v1 (user on GEAP 11761:26404: „a small badge and smaller amount text”;
+   was a strong 24 tag + H2 32/40) */
 .e-permits-fo-payment-invoice__status {
   flex: 0 0 auto;
-  min-height: 24px;
-  text-transform: none;
+}
+
+/* the note number never breaks at its hyphens („NP-2026-" / „004903” on phones) — it wraps whole */
+.e-permits-fo-payment-invoice__nr {
+  white-space: nowrap;
 }
 
 .e-permits-fo-payment-invoice__amount {
   color: var(--color-text-base-default, #121212);
-  font-size: var(--font-size-fs-32, 32px);
+  font-size: var(--type-heading-h4-font-size, 20px);
   font-weight: var(--font-weight-fw-semibold, 600);
-  letter-spacing: -0.64px;
-  line-height: var(--line-height-lh-40, 40px);
+  letter-spacing: var(--type-heading-h4-letter-spacing, -0.2px);
+  line-height: var(--type-heading-h4-line-height, 28px);
   margin: 0;
 }
 

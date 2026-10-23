@@ -3195,10 +3195,11 @@
           <div class="e-permits-fo-payment-invoice__card">
             <header class="e-permits-fo-payment-invoice__header">
               <div class="e-permits-fo-payment-invoice__caption">
-                <span class="e-permits-fo-payment-invoice__label">${escapeFrontOfficeHtml(invoice.label || "Notă de plată")}</span>
+                <span class="e-permits-fo-payment-invoice__label">${escapeFrontOfficeHtml(invoice.label || "Notă de plată").replace(/(\S*\d\S*-\S+)/g, '<span class="e-permits-fo-payment-invoice__nr">$1</span>')}</span>
                 ${
                   invoice.status
-                    ? `<span class="status-tag status-tag--${escapeFrontOfficeHtml(invoice.status.tone || "accent")} is-strong e-permits-fo-payment-invoice__status">${escapeFrontOfficeHtml(invoice.status.label || "")}</span>`
+                    /* Tag · Small (subtle, the list status tag) — invoice-head-small-v1, user on GEAP 11761:26404 */
+                    ? `<span class="${window.GEAPTag ? window.GEAPTag.cls(invoice.status.tone || "accent") : `status-tag status-tag--${escapeFrontOfficeHtml(invoice.status.tone || "accent")} is-subtle status-tag--small`} e-permits-fo-payment-invoice__status">${escapeFrontOfficeHtml(invoice.status.label || "")}</span>`
                     : ""
                 }
               </div>
