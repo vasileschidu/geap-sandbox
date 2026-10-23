@@ -3919,3 +3919,14 @@ For any „research how other products do it” step, search Mobbin (mcp__mobbin
     FO 09, captured raw) — phones now show the code values, desktops don't. Board-wide sync needs a per-occurrence name map (switcher rows,
     authorization „Acordată de”, documents) → reported, not done.
   - No Agent tool in this session → stored `ghs/audit` on the 16 rows + 14 cards: 0 findings after binding the 3 gap-32 rows.
+- 2026-10-23 · Same job, coordinator follow-up. (1) **PJ glyph: 0 suitcases in GEAP 2.0** — the „Persoană juridică” segment (library
+  segmented-control) already uses 24/business-filled c477fc69…, the FO identity card avatar Type=Icon already 20/business 13c70475…;
+  the Foundations „business” glyph simply looks like a briefcase. Census by MAIN name (`/suitcase|luggage|briefcase|portfolio/` on
+  `mainComponent.name` + set name of every ≤ 24 instance) over 20 pages, 49 k icon instances → 0. Lesson: **check the glyph's main
+  key before „fixing” a look-alike** — compare with the PJ keys in the Library table, not with the picture.
+  (2) **FO 09 desktop identity numbers = code**: 63 texts replaced by the name in the same row / card (nearest ancestor ≤ 4 levels
+  whose texts contain exactly one known name and no other person name): Anastasia Cojocaru 34, «Vita-Plant» SRL 15, SRL Global Trader
+  10, Vrabie Gheorghe 4; Copy value texts through their owning instance's `Value#` prop, raw texts by range replace (fonts loaded).
+  Not mapped (reported): 14 „Grigore Vasilescu · Împuternicire” rows in F1 / F1b / F1d / F1e / F1f (not in data/acte-permisive.json,
+  the code switcher has no such identity → stale identity list, needs a redraw), 9 persona-review notes quoting the old numbers (kept
+  as history). Stored `ghs/audit` on F1d / F2e / F2f: only pre-existing stepper fractions, tight-gap, one image-fill avatar.
