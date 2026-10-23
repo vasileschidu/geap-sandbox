@@ -3987,3 +3987,30 @@ For any „research how other products do it” step, search Mobbin (mcp__mobbin
     block edge; shortened „Mai multe acțiuni · act” → „Mai multe acțiuni”.
   - Region screenshots: a transparent temp frame on the page renders empty; screenshot the SECTION at maxDimension 10000 and crop with
     `sips -c h w --cropOffset y x`.
+
+- 2026-10-23 · ghiseu-roles-as-fo-figma (code 58d72ac3). GEAP Ghișeu „Date solicitant” = the FO role groups. PJ (gh-03, 03b, 03h, 03i,
+  04, 03f, 03g, 03a, 03e, 03j, 03k, 02r): „Persoana care depune” → „Reprezentant”; the old basis `Section` (H5 header + „Legătura dintre
+  persoana…” paragraph) removed; new `Representation basis` group (VERTICAL gap spacing-8: `Basis title` = clone of the Solicitant title
+  row + `Info trigger (tooltip)`, then the Authorization card, or the fallback `Basis body` gap spacing-12 = Message · subtle Warning ·
+  `Check option` (pB spacing-6, = code wrapper 38) · inline error / boxed upload) inside `Section - Solicitant › Container` (gap
+  spacing-20). gh-02r's green „Temeiul reprezentării: administrator în RSUD…” notice → RSUD card. PF (gh-03c, 03d, 03m, 03n, 04a, 04b):
+  `Representative` group (title + `Representative body` gap 12: check option, then lookup row or identity card) + basis group; gh-03c lookup
+  → Ion Rusu Changeable card (= code). **`Document option · checkbox` got `State=Error, Checked=False` 12595:2207** (the procură error;
+  replaced 3 library checkbox-label Error). Verificare gh-07 / 07j / 07a / 07b / 07c / 07f / 07d / 07e / 07g / 07h / 07i / 07a1 / 07a2 /
+  07a3 / 07g1 + gh-13 / 13a: row „Reprezentant” (name + IDNP) + new row „Temeiul reprezentării”; A4 `Document page · Paper request · page
+  1` 12001:7123 group → „Reprezentantul”. New: gh-03b1 12600:39086, gh-03a1 12600:39915, gh-03c1 12600:40738 (library tooltip Large Arrow
+  Bottom, text LEFT, ABSOLUTE in the screen, arrow tip 2 px into the trigger), FO 09 F2e1 12600:376821 (fo-02h, desktop tooltip + Flow
+  anchor on the Requestor instance's ⓘ). GH-02k redrawn as Reperfectare step 2 (gh-02w's Form:align cloned, stepper 1 Completed / 2 Active,
+  info-note text prop). Comment reply 1979579209 on 1975419018. Lessons:
+  - **Removing a captured control deletes the connectors that start on it** (gh-03a → gh-03j on the swapped checkbox-label, gh-03c → gh-03d
+    on the removed lookup). List the connectors of every block BEFORE a structural pass and re-point first; I had to recreate both.
+  - **Cloning a variant inside its set drops its componentPropertyReferences** (Label / Asterisk / Icon) — setProperties then silently does
+    nothing. Re-bind `componentPropertyReferences` on the clone's text / layers right after cloning.
+  - **Ghișeu sheets: Dialog HUG + Overlay align MAX** → a shorter step slides the sheet down and shows the BO behind. After any content
+    change set Dialog `layoutSizingVertical = FILL` and Body.minHeight = max(868, content + 24 − 32) (screen ≥ 900).
+  - The stored `ghs/audit` caps `findings` at 60 — run it per block to see everything; filter to the changed subtree.
+  - Another agent's block (gh-02w0) appeared mid-job in column 03 — restack by current y, never by a list taken earlier.
+  - Left / reported: gh-02k / gh-02w „Țara” is drawn as a phone-code field (code = flag + Moldova select, disabled); demo state gh-02k still
+    opens step 1 (Figma shows step 2 as asked); identity card IDs have no copy icon (code has). No Agent tool → stored `ghs/audit` per block:
+    only the board baseline (background table clip, rows-per-page label, raw scrim, section-over-card gap 0) after binding 9 Row 1 gaps
+    (spacing-20), 2 lookup gaps (spacing-24) and the gh-03g half-pixel dialog.
