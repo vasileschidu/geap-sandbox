@@ -128,6 +128,12 @@ gets better; never delete a lesson, rewrite it if it was wrong.
   current-step band (8 px OUTSIDE stroke in the fill colour = the code's `box-shadow 0 0 0 8px`). Fix a stroke only on the node
   you were asked about; audit rule `band-stroke-inside` flags a hidden band.
 
+- No inner-shadow dividers (user, 2026-10-23: „WTF is this inner shadow?”). A 1 px line is a one-side STROKE bound to
+  border/base/default (individual weights, INSIDE, not in layout), never an INNER_SHADOW (offset ±1, radius 0). Captures turn
+  the code's `box-shadow: inset 0 -1px 0 …` into one — swap-ghiseu.js / swap-workplace-registry.js now convert it; sweep any
+  file with tools/figma/quality-sweep/inner-shadow-dividers.js (dry run first).
+- A ⋮ whose menu would hold no enabled item is not drawn (2026-10-23, row-menu-no-disabled-only-v1): empty actions cell, same width.
+
 ## Plugin API gotchas
 - `await figma.setCurrentPageAsync(page)` before `findAll` on another page; once per call.
 - Results capped ~20 KB — return counts + ids, not trees. Long scripts (> ~5 min) time out:
@@ -3408,3 +3414,24 @@ For any „research how other products do it” step, search Mobbin (mcp__mobbin
     and made the scope obvious; then apply with a tight predicate (name + parent + fill var + radius var) and re-count to 0.
   - Bind via `importVariableByKeyAsync(key)` and check `variableCollectionId` contains the Sizes collection key before writing.
   - Stored `ghs/audit` on 8 changed cards: 0 findings; blocks 01 / 04b only the known section-over-card gap 0 + egov logo baseline.
+
+- 2026-10-23 · ghiseu-comments-fixes-v1 (GEAP Ghișeu board). (1) **Inner-shadow dividers**: 98 „Filtrare dosare” toolbar frames
+  (Ghișeu 95, Process Designer 3) had an INNER_SHADOW 0/−1 r0 as their bottom line → bottom stroke 1 on border/base/default
+  (VariableID:9fa253…/1296:283), INSIDE, strokesIncludedInLayout false, effect removed; sizes unchanged. EVO Cabinet / EVO-WEB / FOD /
+  eKYC: 0. Root cause: the BO toolbar CSS draws its line as `box-shadow: inset 0 -1px 0` (e-permits-acte-permisive.css), the capture
+  maps inset shadows to INNER_SHADOW and no swap step normalised it (only eKYC swap-screens.js did, locally). Fix: the step in
+  swap-ghiseu.js + swap-workplace-registry.js and the sweep tool. Left alone (rings, not dividers): 15 captured raw chips with an
+  INNER_SHADOW spread 1 (Services 12, Ghișeu 3) and the instance-switcher selected role card (deliberate code inset).
+  (2) GH-12 entry arrow `gh-11b → gh-12 · Opens the draft link after 90 days` 12488:361363 from the oldest draft's number cell
+  (C-2026-004688, 11798:30217) LEFT → GH-12 LEFT (GH-13a's table sits under the opened draft — not a visible source); GH-12 note
+  rewritten in English (entry path). (3) GH-11c → „Schiță achitată — fără acțiuni”: open menu removed, note rewritten; **the paid
+  row's ⋮ removed in all 92 list blocks of the board** (whole-board rule — header ⋮ of the open draft stays: it still has „Istoricul
+  cererii”), PO question 4 amended. Lessons:
+  - **`importVariableByKeyAsync` fails in GEAP for Foundations border keys** — read the variable id off an existing bound stroke
+    (getVariableByIdAsync) and verify its name; tabs strokes there are border/base/tertiary, not the toolbar token.
+  - **Pick the arrow source by what is visible**: a block's table can live under an opened-draft overlay (gh-13a) — screenshot the
+    candidate block before attaching.
+  - A note that grows a block (1 → 2 lines) → re-fit the section bottom padding (80).
+  - No Agent tool → stored `ghs/audit` on gh-11c / 12 / 11b / 11d: only the board baseline (table scroll clip, truncated names,
+    „Rows per page:” label, scrim fill).
+

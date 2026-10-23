@@ -58,6 +58,23 @@ const place = (old, inst, w) => {
 };
 const report = {};
 const ra = (root, pred) => root.findAll((n) => !n.removed && !inInst(n) && !inSkip(n) && pred(n));
+// Inset box-shadow dividers (2026-10-23): the capture turns CSS `box-shadow: inset 0 -1px 0 var(--color-border-…)` into an
+// INNER_SHADOW effect (offset ±1, radius 0) = a fake 1 px line. Replace it with a one-side stroke on border/base/default
+// (INSIDE, not in layout → same size). Rings (offset 0, spread ≥ 1) are left alone. Sweep tool: tools/figma/quality-sweep/inner-shadow-dividers.js
+const insetDivider = (e) => e.type === "INNER_SHADOW" && e.visible !== false && (e.radius || 0) === 0 && (e.spread || 0) === 0 &&
+  ((Math.abs(e.offset.y) === 1 && e.offset.x === 0) || (Math.abs(e.offset.x) === 1 && e.offset.y === 0));
+let BORDER_DEFAULT = (await figma.variables.getLocalVariablesAsync("COLOR")).find((v) => v.name === "border/base/default") || null;
+if (!BORDER_DEFAULT) { try { BORDER_DEFAULT = await figma.variables.importVariableByKeyAsync("9fa253aab4b44e39a049a0cbbd163e4c61e129b6"); } catch (e) {} }
+if (!BORDER_DEFAULT) BORDER_DEFAULT = await figma.variables.getVariableByIdAsync("VariableID:9fa253aab4b44e39a049a0cbbd163e4c61e129b6/1296:283"); // GEAP
+const fixInsetDivider = (n) => {
+  const e = n.effects.find(insetDivider); if (!e) return false;
+  n.effects = n.effects.filter((x) => !insetDivider(x));
+  if (n.strokes && n.strokes.length) return true; // already has a real border — the shadow was a duplicate
+  const side = e.offset.y === -1 ? "Bottom" : e.offset.y === 1 ? "Top" : e.offset.x === -1 ? "Right" : "Left";
+  n.strokes = [figma.variables.setBoundVariableForPaint({ type: "SOLID", color: { r: 0.851, g: 0.851, b: 0.851 } }, "color", BORDER_DEFAULT)];
+  n.strokeAlign = "INSIDE"; for (const s of ["Top", "Right", "Bottom", "Left"]) n["stroke" + s + "Weight"] = s === side ? 1 : 0;
+  if ("strokesIncludedInLayout" in n) n.strokesIncludedInLayout = false; return true;
+};
 const ungrid = (f) => {
   if (f.layoutMode !== "GRID") return false;
   const kids = f.children.filter((k) => k.layoutPositioning !== "ABSOLUTE" && k.visible !== false).map((k) => ({ k, x: Math.round(k.x), y: Math.round(k.y), w: k.width, h: k.height }));
@@ -241,6 +258,7 @@ for (const rid of ROOTS) {
     const v = V(C.tag, { "Type": "Subtle", "Style": style, "Icon": "None", "Size": "Small" }) || V(C.tag, { "Type": "Subtle", "Style": "Neutral", "Size": "Small" });
     const i = v.createInstance(); setP(i, { "⌨️ Label": label }); i.name = "tag · " + label; place(f, i); push("tag");
   }
+  for (const f of ra(root, (n) => "effects" in n && n.effects.some(insetDivider))) if (fixInsetDivider(f)) push("inset-divider");
   // spacers + non-auto-layout rows
   for (const f of ra(root, (n) => n.type === "FRAME" && !n.children.length && !(n.fills && n.fills.length) && !(n.strokes && n.strokes.length) && n.width > 300 && n.height <= 24)) { f.remove(); push("spacer"); }
   for (const f of ra(root, (n) => n.type === "FRAME" && (!n.layoutMode || n.layoutMode === "NONE") && n.children && n.children.length >= 2 && !/^(Body|cap ·|Overlay|Container$)/.test(n.name))) if (autoRow(f)) push("auto-row");

@@ -31,6 +31,23 @@ const key = (inst, name) => Object.keys(inst.componentProperties).find((k) => k.
 const variant = (set, pick) => set.children.find((c) => Object.entries(pick).every(([k, v]) => c.name.includes(`${k}=${v}`)));
 const loadAll = async (n) => { for (const t of n.findAll((x) => x.type === "TEXT")) for (const s of t.getStyledTextSegments(["fontName"])) await figma.loadFontAsync(s.fontName); };
 const res = { swapped: {}, left: [] };
+// Inset box-shadow dividers (2026-10-23): the capture turns CSS `box-shadow: inset 0 -1px 0 var(--color-border-…)` into an
+// INNER_SHADOW effect (offset ±1, radius 0) = a fake 1 px line. Replace it with a one-side stroke on border/base/default
+// (INSIDE, not in layout → same size). Rings (offset 0, spread ≥ 1) are left alone. Sweep tool: tools/figma/quality-sweep/inner-shadow-dividers.js
+const insetDivider = (e) => e.type === "INNER_SHADOW" && e.visible !== false && (e.radius || 0) === 0 && (e.spread || 0) === 0 &&
+  ((Math.abs(e.offset.y) === 1 && e.offset.x === 0) || (Math.abs(e.offset.x) === 1 && e.offset.y === 0));
+let BORDER_DEFAULT = (await figma.variables.getLocalVariablesAsync("COLOR")).find((v) => v.name === "border/base/default") || null;
+if (!BORDER_DEFAULT) { try { BORDER_DEFAULT = await figma.variables.importVariableByKeyAsync("9fa253aab4b44e39a049a0cbbd163e4c61e129b6"); } catch (e) {} }
+if (!BORDER_DEFAULT) BORDER_DEFAULT = await figma.variables.getVariableByIdAsync("VariableID:9fa253aab4b44e39a049a0cbbd163e4c61e129b6/1296:283"); // GEAP
+const fixInsetDivider = (n) => {
+  const e = n.effects.find(insetDivider); if (!e) return false;
+  n.effects = n.effects.filter((x) => !insetDivider(x));
+  if (n.strokes && n.strokes.length) return true; // already has a real border — the shadow was a duplicate
+  const side = e.offset.y === -1 ? "Bottom" : e.offset.y === 1 ? "Top" : e.offset.x === -1 ? "Right" : "Left";
+  n.strokes = [figma.variables.setBoundVariableForPaint({ type: "SOLID", color: { r: 0.851, g: 0.851, b: 0.851 } }, "color", BORDER_DEFAULT)];
+  n.strokeAlign = "INSIDE"; for (const s of ["Top", "Right", "Bottom", "Left"]) n["stroke" + s + "Weight"] = s === side ? 1 : 0;
+  if ("strokesIncludedInLayout" in n) n.strokesIncludedInLayout = false; return true;
+};
 const count = (k) => (res.swapped[k] = (res.swapped[k] || 0) + 1);
 const put = (old, inst, fill) => {
   const p = old.parent; p.insertChild(p.children.indexOf(old), inst);
@@ -42,6 +59,7 @@ const put = (old, inst, fill) => {
 for (const rid of ROOTS) {
   const root = await g(rid); if (!root) { res.left.push("missing " + rid); continue; }
   const raw = (re) => root.findAll((n) => n.type === "FRAME" && re.test(n.name) && !inI(n));
+  for (const f of root.findAll((n) => "effects" in n && n.effects.some(insetDivider) && !inI(n))) if (fixInsetDivider(f)) count("inset-divider");
   // toolbar
   for (const f of raw(/^Container$/)) if (f.children.some((c) => c.name === "Search Input")) {
     const ph = T(f); const i = PR.search.clone(); const k = key(i, "⌨️ Placeholder"); if (k) i.setProperties({ [k]: ph });
