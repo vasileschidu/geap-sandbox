@@ -22,9 +22,5 @@
   --border-radius-24: 24px;
 }
 
-/* Radius 20 (cards-radius-20-v1, 2026-10-23, user decision: details / grey containers, the trajectory card and the alert
-   card are 20 at every width — they were 24 desktop / 16 phones). Mirrors the Foundations Figma library variable
-   `border-radius/radius-20` (collection „3. Sizes”). main.css has no 20 → defined here, not in main.css (library file). */
-:root {
-  --border-radius-20: 20px;
-}
+/* Radius 20 was added in cards-radius-20-v1 and removed in cards-radius-16-v1 (2026-10-23, user: one card radius = 16,
+   main.css `--border-radius-16`). No product rule uses 20. */

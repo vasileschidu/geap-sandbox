@@ -3062,3 +3062,17 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   deleted, not set to 20. Dialog content (Ghișeu gh-09) sits outside `main` and opens late — a probe scanning `main` after
   1.5 s saw nothing; scan `[role=dialog]` after 3.5 s. Listed, not changed: FO payment invoice card 16, boxed doc field 16,
   RAP company summary 24 / 16, builder 24, filter bar 24.
+- 2026-10-23 · cards-radius-16-v1 (user final: ONE card radius = 16; + mid-job, via the coordinator: the grey identity / role
+  cards too, GEAP 11861:7775 / 11860:349862). Reverting a same-day change = walk the previous commit's diff
+  (`git show ad581171 -- css …`) hunk by hunk, not a grep for the value: the tray's grey band is a gradient SIZE and the
+  hanging callout's inset is a SPACING token — both follow the radius. The removed token (`--border-radius-20`) had no
+  other user (grep css / js / html / tools) → deleted, a comment left in token-fix.css. The identity cards were never in the
+  20 pass: a static rule scan (python, every `selector { … border-radius … }` whose selector matches identity / role /
+  authorization) found the grey ones (`.e-permits-fo-selected-role` + its ≤ 760 restatement, `.e-permits-fo-authorization-card`,
+  `.e-permits-shell__profile-role-card`, `.bo-login__identity`: 12 → 16) apart from the white bordered selectable options
+  (shell role card / option, FO avatar-menu role, mpass-test identity — kept 12, reported). Cabinet `identityCardHtml`
+  reuses `.e-permits-fo-selected-role`, so one rule covered FO / Cabinet / Ghișeu. Proof: computed radii per state ×
+  width (dos-01, gh-09 dialog, sm-04c, sm-03, pp-03, rap-02, fo-08, fo-02, cat-04, bo-login refusal, shell) all 16; tray
+  band 16, callout inset 16 / 16, < 375 tray square. The scratch `rad.mjs` full-page shot of dos-01 came out blank (the
+  page-reveal + static-position hack) — use capture.mjs for the pictures, the probe only for numbers. Docs edited in the
+  tree AND in a HEAD copy (components.md / playbook carry other agents' hunks) → staged via hash-object in the commit command.
