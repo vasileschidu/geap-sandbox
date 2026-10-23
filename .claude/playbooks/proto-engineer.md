@@ -2805,6 +2805,22 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   shipped). Contrast reported, not changed: grey connector and light-blue pill ≈ 1.2:1 on --color-background-base-secondary.
   No sub-agent tool → hover-audit 0 / 0 (panel scope), component-audit 0 in the panel (majors = standing avatar menu),
   code-audit static 0 (runtime = standing visually-hidden / BO 11 title padding), capture 8 states × 2 clean.
+- 2026-10-23 · alert-timeline-tray-v1 — the fused version was WRONG, then FOUR more corrections in one job: (1) „leave the
+  timeline as it was (stroke, white bg), like Figma 1287:34973” → (2) a 4px grey frame (coordinator's guess) → „no padding
+  at all” → (3) I chose square top corners for a clean join → user: „round on ALL corners, as in Figma — why do you invent
+  stuff”. Lesson: when a Figma node exists, MEASURE IT FIRST and build exactly that — screenshot + a pixel probe (no PIL:
+  scratch atf/png.py, a 40-line zlib PNG reader) gave everything in one run: card flush (border at x 0 / 1199), radius 24
+  on all corners, grey only behind the card's top corners, page white at its bottom corners. Never „improve” a measured
+  value. Implementation without DOM changes: the status section paints the grey as a 24-high top band
+  (`linear-gradient(token, token) top / 100% var(--border-radius-24) no-repeat`, the tabs-track technique) so the section's
+  bottom padding never shows grey (the first tray try had a grey strip under the card = that padding). Phones: „edge to
+  edge only if the steps would stack” = a width breakpoint (< 375), not a JS toggle on `is-stacked` (edge to edge fits →
+  un-stacks → back to gutter → oscillation); proved per state × width with the stacked flag. Hiding the step meta on phones
+  = the visually-hidden recipe scoped `:is(.is-measuring, :not(.is-stacked))`, so the fit is measured without the lines
+  and a stacked list shows them again; trajectory heights 114–166 → 76–96 at 375. Tabs: section → strip 24, strip → panel
+  24 (16 / 16 phones), phone strip edge to edge with `background-clip/origin: border-box` so the content-box track line
+  runs full width while padding 16 keeps the first label on the content edge. code-audit's mobile „clipped text” +3 = the
+  hidden meta spans (same FP class as `.u-visually-hidden`).
 - 2026-10-23 · File card × centred on desktop (file-remove-center-v1; user on GEAP 2.0 10815:26044: „on desktop centre the
   close button — everywhere”). Inventory first, by a runtime probe, not by the brief's list: every visible icon-only button
   (+ the picker `__check`) whose nearest ≥ 40-high ancestor holds file text (.pdf / KB / MDocs / Încărcat) over fo-04g /

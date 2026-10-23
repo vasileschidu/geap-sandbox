@@ -941,6 +941,24 @@
     border-inline: 0;
     border-radius: 0;
     margin-inline: calc(var(--spacing-16, 16px) * -1);
+    /* alert-timeline-tray-v1 (user: „on phone add a little more padding left / right, kinda too close”): 16 at the
+       sides (the shared phone trajectory has 12), 12 top / bottom as before */
+    padding-inline: var(--spacing-16, 16px);
+  }
+
+  /* alert-timeline-tray-v1 (user: „on mobile hide the details under the timeline items so we have more space”): the
+     HORIZONTAL request trajectory shows icon + step label only; the date / who / „Termen …” lines stay in the DOM for
+     screen readers (visually hidden, the .u-visually-hidden recipe — never display: none) and also while the fit is
+     measured, so more steps stay on one line. A trajectory that still has to stack (vertical list) has the room and
+     shows them again. Cabinet only — the BO dossier trajectory (dos-01) keeps its lines. */
+  .cab-status > .e-permits-trajectory:not(.e-permits-trajectory--vertical):is(.is-measuring, :not(.is-stacked)) .e-permits-trajectory__meta {
+    clip: rect(0 0 0 0);
+    clip-path: inset(50%);
+    height: var(--border-width-1, 1px);
+    overflow: hidden;
+    position: absolute;
+    white-space: nowrap;
+    width: var(--border-width-1, 1px);
   }
 }
 
@@ -1292,13 +1310,41 @@
 }
 
 /* US-161 · the request profile's sections as tabs (the BO page-header tab strip, css/e-permits-acte-permisive.css)
-   under „Stadiul solicitării” (16 under it = the section rhythm); the panel's first section title starts 8 under
-   the track line; sections keep their own 16 bottom padding */
+   under „Stadiul solicitării”; the panel's first section starts 24 under the track line (16 on phones, see below);
+   sections keep their own 16 bottom padding */
 .cab-profile-tabs {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-8, 8px);
+  gap: var(--spacing-24, 24px);
   min-width: 0;
+}
+
+/* alert-timeline-tray-v1 (user: „the tabs don't look too good — the separator is disrupted — do nice padding / spacing”):
+   the tab strip breathes on the 8 / 16 / 24 scale — 24 between the status / trajectory and the strip, 24 between the
+   strip's line and the first section (16 / 16 on phones). Phones: the strip and its one track line run edge to edge
+   (−16 = the page gutter, as the BO dossier dos-01), the first label stays on the content edge (padding 16), the tabs
+   scroll sideways under the line and the active 2px underline still covers it (library tabs as-is). */
+.e-permits-dosar-profil__panel > .cab-status:has(+ .cab-profile-tabs) {
+  padding-bottom: var(--spacing-24, 24px);
+}
+
+@media (max-width: 760px) {
+  .e-permits-dosar-profil__panel > .cab-status:has(+ .cab-profile-tabs) {
+    padding-bottom: var(--spacing-16, 16px);
+  }
+
+  .cab-profile-tabs {
+    gap: var(--spacing-16, 16px);
+  }
+
+  .cab-profile-tabs > .e-permits-page-header__tabs {
+    background-clip: border-box;
+    background-origin: border-box;
+    margin-inline: calc(var(--spacing-16, 16px) * -1);
+    padding-inline: var(--spacing-16, 16px);
+    scroll-padding-inline: var(--spacing-16, 16px);
+    width: auto;
+  }
 }
 
 .cab-profile-tabs__panel {
@@ -1689,39 +1735,47 @@ button.cab-alert-link {
   }
 }
 
-/* ---- Alert + trajectory fused (alert-timeline-fused-v1, 2026-10-23; user on sm-03: „integrate this alert — no padding
-   left / right but full, the alert with 0 radius bottom-left / right, and the whole background of both the same colour
-   as the alert so it fuses nicely”). ONE modifier on the alert card (`cab-alert-card--fused`, solicitari.js
-   alertCardHtml); it acts only while the card sits DIRECTLY above the request trajectory (an error line between them,
-   sm-04h, or the act profile without a trajectory leaves both as they were). One grey block
-   (--color-background-base-secondary): the alert keeps its 24 top corners and its padding (24 / phones 16), square
-   bottom, no gap; the trajectory under it takes the alert's grey, no border, square top, 24 bottom, padding as before
-   (20 / phones 16 sides, = the alert's phone padding). No divider (a hairline was tried — the step row already starts
-   after the alert's own bottom padding). Phones: the block keeps the page gutter (the alert's width), so the
-   trajectory is no longer edge to edge; when its words cannot fit it stacks (js/trajectory.js), as in a narrow column. ---- */
+/* ---- Alert + trajectory tray (alert-timeline-tray-v1, 2026-10-23; replaces alert-timeline-fused-v1 — user: „the
+   solicitare integration is wrong — leave the timeline as it was (stroke and white bg)”, EVO Cabinet Figma 1287:34973).
+   ONE modifier on the alert card (`cab-alert-card--fused`, solicitari.js alertCardHtml); it acts only while the card sits
+   DIRECTLY above the request trajectory (an error line between them, sm-04h, or the act profile leaves both as they
+   were). Anatomy measured from the Figma pixels (1287:34973, 1200 wide): the grey alert (--color-background-base-secondary,
+   its own padding 24 / phones 16, top radius 24) is 96 high; the trajectory card EXACTLY as it was (white, 1px
+   border-base-default, radius 24 on ALL four corners, padding 20 / phones 12) sits flush under it — border at x 0 and
+   x 1199, top line at y 96, no inset — and the grey shows only behind the card's rounded TOP corners (its bottom corners
+   sit on the page white). Built on the existing DOM: the alert's bottom corners square, no gap; the status section paints
+   the grey in a 24-high band at its top only (behind the card's top corners), the card is untouched. Phones: the tray
+   keeps the page gutter (the card gets back its side borders + radius); on narrow phones (< 375) the steps would stack in
+   the gutter (sm-03 / 03h / 04c at 320), so there the tray runs edge to edge like the phone trajectory did (square, top /
+   bottom borders only). ---- */
 .e-permits-dosar-profil__panel > .cab-alert-card--fused:has(+ .cab-status) {
   border-end-end-radius: 0;
   border-end-start-radius: 0;
   margin-bottom: 0;
 }
 
-.e-permits-dosar-profil__panel > .cab-alert-card--fused + .cab-status > .e-permits-trajectory {
-  background: var(--color-background-base-secondary, #f5f5f5);
-  border: 0;
-  border-start-end-radius: 0;
-  border-start-start-radius: 0;
+.e-permits-dosar-profil__panel > .cab-alert-card--fused + .cab-status {
+  background: linear-gradient(var(--color-background-base-secondary, #f5f5f5), var(--color-background-base-secondary, #f5f5f5)) top / 100% var(--border-radius-24, 24px) no-repeat;
 }
 
 @media (max-width: 760px) {
+  .e-permits-dosar-profil__panel > .cab-alert-card--fused + .cab-status > .e-permits-trajectory:not(.e-permits-trajectory--vertical) {
+    border-inline: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
+    border-radius: var(--border-radius-24, 24px);
+    margin-inline: 0;
+  }
+}
+
+@media (max-width: 374px) {
   .e-permits-dosar-profil__panel > .cab-alert-card--fused:has(+ .cab-status) {
     border-radius: 0;
     margin-inline: calc(var(--spacing-16, 16px) * -1);
   }
 
-  .e-permits-dosar-profil__panel > .cab-alert-card--fused + .cab-status > .e-permits-trajectory {
+  .e-permits-dosar-profil__panel > .cab-alert-card--fused + .cab-status > .e-permits-trajectory:not(.e-permits-trajectory--vertical) {
+    border-inline: 0;
     border-radius: 0;
-    /* 16 under the alert's text (its own bottom padding) + 8 = 24 to the step row */
-    padding: var(--spacing-8, 8px) var(--spacing-16, 16px) var(--spacing-16, 16px);
+    margin-inline: calc(var(--spacing-16, 16px) * -1);
   }
 }
 
