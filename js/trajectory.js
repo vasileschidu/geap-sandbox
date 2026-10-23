@@ -99,6 +99,58 @@
     if (!steps || !room) return;
     const style = getComputedStyle(card);
     const avail = room - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight);
+    /* phones (trajectory-phone-even-v1): the desktop anatomy (first block on the left edge, last on the right, every icon
+       centred over its label) with the icons on an even pitch. Measure the first / last blocks, write the first / last
+       column widths + the label room (css/trajectory.css), twice (the room can re-wrap a block), then check the real
+       layout: neighbouring texts keep 8, the blocks fit their half-columns, the lines are at least 16 — else stack. */
+    const VARS = ["--e-permits-trajectory-first", "--e-permits-trajectory-last", "--e-permits-trajectory-room"];
+    if (style.getPropertyValue("--e-permits-trajectory-fit").trim() !== "even") {
+      VARS.forEach((name) => card.style.removeProperty(name));
+    } else {
+      card.classList.remove("is-stacked");
+      VARS.forEach((name) => card.style.removeProperty(name));
+      const items = [...steps.children];
+      const n = items.length;
+      const bodyOf = (step) => step.querySelector(".e-permits-trajectory__body");
+      const gap8 = 8;
+      const line16 = 16;
+      let ok = n > 1;
+      if (ok) {
+        /* the room re-wraps the first / last block, which moves the pitch: repeat until both widths are stable */
+        let prev = null;
+        for (let pass = 0; pass < 5; pass += 1) {
+          const w1 = bodyOf(items[0]).getBoundingClientRect().width;
+          const wn = bodyOf(items[n - 1]).getBoundingClientRect().width;
+          const pitch = (avail - w1 / 2 - wn / 2) / (n - 1);
+          ok = pitch - 24 - 2 * gap8 >= line16 && w1 <= w1 / 2 + pitch / 2 + 0.5 && wn <= wn / 2 + pitch / 2 + 0.5;
+          if (prev && Math.abs(prev[0] - w1) < 0.5 && Math.abs(prev[1] - wn) < 0.5) break;
+          prev = [w1, wn];
+          card.style.setProperty(VARS[0], `${(w1 / 2 + pitch / 2).toFixed(2)}px`);
+          card.style.setProperty(VARS[1], `${(wn / 2 + pitch / 2).toFixed(2)}px`);
+          card.style.setProperty(VARS[2], `${Math.max(0, pitch - gap8).toFixed(2)}px`);
+        }
+      }
+      const box = steps.getBoundingClientRect();
+      const extents = items.map((step) => {
+        const rects = [];
+        step.querySelectorAll(".e-permits-trajectory__label, .e-permits-trajectory__meta").forEach((el) => {
+          if (getComputedStyle(el).position === "absolute") return; // visually hidden lines (Cabinet meta on phones)
+          rects.push(...el.getClientRects());
+          const range = document.createRange();
+          range.selectNodeContents(el);
+          rects.push(...range.getClientRects());
+        });
+        const shown = rects.filter((r) => r.width > 0);
+        return shown.length ? { l: Math.min(...shown.map((r) => r.left)), r: Math.max(...shown.map((r) => r.right)) } : null;
+      }).filter(Boolean);
+      const fits = ok && extents.length > 0
+        && extents[0].l >= box.left - 0.5
+        && extents[extents.length - 1].r <= box.right + 0.5
+        && extents.every((e, i) => i === 0 || extents[i - 1].r + gap8 <= e.l + 0.5);
+      if (!fits) VARS.forEach((name) => card.style.removeProperty(name));
+      card.classList.toggle("is-stacked", !fits);
+      return;
+    }
     card.classList.add("is-measuring");
     const need = steps.getBoundingClientRect().width;
     card.classList.remove("is-measuring");

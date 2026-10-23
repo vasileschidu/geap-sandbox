@@ -384,3 +384,87 @@
     margin-inline-start: var(--spacing-8, 8px);
   }
 }
+
+/* ---- phones: desktop anatomy, EVEN pitch (trajectory-phone-even-v1, 2026-10-23; user on EVO Cabinet Figma 1236:47988:
+   „do it as on desktop — now on mobile it is uneven”, „centre the icon, same for the first and the last one”). As on
+   desktop: every icon is centred over its own label (first and last too), the first step's block (icon + label) sits on
+   the content's LEFT edge (label left = padding edge), the last step's block on the RIGHT edge. Unlike desktop, the icons
+   in between sit on an even pitch, so every connector between two icons has the same length:
+     w1 / wn = width of the first / last block (its label or meta, at least 24 + 2 × 8)
+     pitch   = (content − w1 / 2 − wn / 2) / (steps − 1)      icon centres: w1 / 2, + pitch, …, content − wn / 2
+     line    = pitch − 24 − 2 × 8 (8 from each icon)
+   Columns: first = w1 / 2 + pitch / 2 (its block hugs the left, a filler after it), middle = pitch each (icon centred),
+   last = wn / 2 + pitch / 2 (a filler before its block, which hugs the right). js/trajectory.js (fit, flag
+   --e-permits-trajectory-fit: even) measures w1 / wn and writes the two column widths + the label room (pitch − 8) as
+   runtime custom properties on the card; text wraps by word inside the room, a longer word overhangs both sides equally.
+   Neighbouring texts closer than 8, a block wider than its half-column or a line < 16 → the vertical list as before.
+   Desktop (> 760) unchanged. ---- */
+@media (max-width: 760px) {
+  .e-permits-trajectory:not(.e-permits-trajectory--vertical) {
+    --e-permits-trajectory-fit: even;
+  }
+
+  .e-permits-trajectory:not(.e-permits-trajectory--vertical):not(.is-stacked) .e-permits-trajectory__step,
+  .e-permits-trajectory:not(.e-permits-trajectory--vertical):not(.is-stacked) .e-permits-trajectory__step + .e-permits-trajectory__step {
+    flex: 1 1 0;
+    min-width: 0;
+  }
+
+  .e-permits-trajectory:not(.e-permits-trajectory--vertical):not(.is-stacked) .e-permits-trajectory__step:first-child {
+    flex: 0 0 var(--e-permits-trajectory-first, auto);
+  }
+
+  .e-permits-trajectory:not(.e-permits-trajectory--vertical):not(.is-stacked) .e-permits-trajectory__step:last-child {
+    flex: 0 0 var(--e-permits-trajectory-last, auto);
+  }
+
+  /* middle steps: no filler, the body fills the column (icon centred, the half-lines from the column edges) */
+  .e-permits-trajectory:not(.e-permits-trajectory--vertical):not(.is-stacked) .e-permits-trajectory__step:not(:first-child, :last-child)::before {
+    content: none;
+  }
+
+  .e-permits-trajectory:not(.e-permits-trajectory--vertical):not(.is-stacked) .e-permits-trajectory__step:not(:first-child, :last-child) .e-permits-trajectory__body {
+    flex: 1 1 0;
+    min-width: 0;
+  }
+
+  /* first / last: the block hugs its text (icon centred over it, at least 24 + 2 × 8 for the line inset) on the outer
+     edge; a filler between the block and the column's inner edge (after the first, before the last) */
+  .e-permits-trajectory:not(.e-permits-trajectory--vertical):not(.is-stacked) .e-permits-trajectory__step:is(:first-child, :last-child) .e-permits-trajectory__body {
+    flex: none;
+    min-width: calc(var(--spacing-24, 24px) + var(--spacing-8, 8px) * 2);
+  }
+
+  .e-permits-trajectory:not(.e-permits-trajectory--vertical):not(.is-stacked) .e-permits-trajectory__step:last-child::before,
+  .e-permits-trajectory:not(.e-permits-trajectory--vertical):not(.is-stacked) .e-permits-trajectory__step:first-child:not(:last-child)::after {
+    margin-inline: 0;
+    min-width: 0;
+  }
+
+  .e-permits-trajectory:not(.e-permits-trajectory--vertical):not(.is-stacked) .e-permits-trajectory__step:first-child:not(:last-child)::after {
+    background: var(--color-border-base-default, #d9d9d9);
+    content: "";
+    flex: 1 1 0;
+    height: var(--border-width-1-5, 1.5px);
+    margin-top: calc(var(--spacing-12, 12px) - var(--border-width-1-5, 1.5px) / 2);
+  }
+
+  /* brand 2px when the first two steps are reached (the same rule as the connector's other pieces) */
+  .e-permits-trajectory:not(.e-permits-trajectory--vertical):not(.is-stacked) .e-permits-trajectory__step:first-child:is(.is-done, .is-current, .is-paused, .is-attention, .is-rejected):has(+ .e-permits-trajectory__step:is(.is-done, .is-current, .is-paused, .is-attention, .is-rejected))::after {
+    background: var(--color-border-brand-default, #0058d2);
+    height: var(--border-width-2, 2px);
+    margin-top: calc(var(--spacing-12, 12px) - var(--border-width-2, 2px) / 2);
+  }
+
+  .e-permits-trajectory:not(.e-permits-trajectory--vertical):not(.is-stacked) .e-permits-trajectory__marker {
+    margin-inline: 0;
+  }
+
+  .e-permits-trajectory:not(.e-permits-trajectory--vertical):not(.is-stacked) :is(.e-permits-trajectory__title, .e-permits-trajectory__meta) {
+    flex: none;
+    max-width: var(--e-permits-trajectory-room, none);
+    /* a word longer than the room keeps its width and overhangs both sides equally (stays centred on the icon) */
+    min-width: min-content;
+    width: max-content;
+  }
+}

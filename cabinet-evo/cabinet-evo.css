@@ -955,6 +955,9 @@
     clip: rect(0 0 0 0);
     clip-path: inset(50%);
     height: var(--border-width-1, 1px);
+    /* trajectory-phone-even-v1: the phone step text gets min-width: min-content (css/trajectory.css) — the hidden line
+       must stay 1 px or it widens the page */
+    min-width: 0;
     overflow: hidden;
     position: absolute;
     white-space: nowrap;

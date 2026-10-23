@@ -3727,3 +3727,22 @@ For any „research how other products do it” step, search Mobbin (mcp__mobbin
     4 lines vs code 3 (code breaks inside „GEAP-2026-…”); pp-01r hovers a locked row in code (no Hover + Locked variant); header
     avatar = library neutral „AC” vs code blue. No Agent tool in this session → stored `qsweep`/`audit` on the 33 blocks + 2 sets:
     only the declared baseline (meta dot gap 18, trigger reservation 133, 812 phone viewports behind sheets).
+
+- 2026-10-23 · header-actions-hug-v1 (code 57fe8c51; user on EVO Cabinet 1236:47947 „let's do HUG buttons, not fill, on mobile”).
+  Phone page-header actions = library Medium 40 at natural width, row left-aligned, gap 8; icon-only ⋯ stays FIXED 40 × 40. There
+  is NO local header / action-row component — the rows are raw `Page header › Actions` (Cabinet) / `Page header › Action` (RAP)
+  frames from the stored header passes, so the fix is per row: text buttons `layoutSizingHorizontal = "HUG"` + FIXED 40 high
+  (HUG vertically collapses library buttons), row `primaryAxisAlignItems = "MIN"`. EVO Cabinet 31 rows (My Requests 18, My
+  Permits 13), RAP 27 (rap-02* + the rap-03* profiles behind the modals), GEAP 0 (its only phone frames are unsaved-changes sheets
+  — no BO phone page header exists). Code probe at 375 for every board state first: the ⋯ decisions were unchanged, except
+  **pp-01q** whose phone still had the icon-only ⋯ while the code shows labelled „Postprocese” → fresh Focus / Trailing Medium
+  instance (1330:68928), and its open Touch menu re-anchored = code: right edge on the trigger's right edge, 6 under the row,
+  `Show label` off (code menu has no „Postprocese” group heading → 177 = code). No pp-03g / pp-03h / sm-03p blocks exist on the
+  board (not drawn). All header arrows were magnet-attached to the buttons → followed without edits; block heights unchanged → no
+  restack. Figma buttons are 3 px narrower than code (158 / 161, 118 / 121, 166 / 169 — library padding/gap drift, declared).
+  Lessons:
+  - **Probe the whole column's states before a „sizing only” pass** — it found the one stale trigger (pp-01q) that a sizing pass
+    would have kept wrong.
+  - **Stored audits differ per file**: RAP `rap/audit` = AsyncFunction body taking `R`; Cabinet `qsweep/audit` = an arrow
+    `async (ROOTS, OPT)` → `eval("(" + src + ")")(ids, { perBlock: false })` returns `{ tot, findings }` (not `counts`).
+  - No Agent tool in this session → stored audits on all 58 rows + the pp-01q menu: 0 findings.

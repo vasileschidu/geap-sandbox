@@ -3033,3 +3033,19 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   — x 16, under the row, measured on pp-03h / sm-03p. hover-audit at 375 (a temp copy of the tool with the 375 viewport)
   0 / 0 on pp-03 / sm-03 / sm-05 / rap-02 / svc-01 / pp-03h menu; code-audit 0 new (svc-01 tab-arrow overlap + open menu
   over the details = standing); component-audit 0 header findings (avatar menu / doc-modal × standing).
+- 2026-10-23 · trajectory-phone-even-v1 (user on EVO Cabinet Figma 1236:47988: „do it as on desktop — now on mobile it is
+  uneven”, then two mid-job corrections: „centre the icon, same for the first and the last one” and „first block on the left
+  edge, last on the right, icons centred over labels, middle even”). (1) MEASURE DESKTOP BEFORE „like desktop”: the brief said
+  desktop is even with a left-aligned first label — the probe showed desktop is neither (labels centred over icons, connectors
+  368 / 338 / 303 on sm-04). I built the brief's version first (icons on an even grid, first label left-aligned) and it was
+  rejected within minutes; an N-equal-columns version was rejected next. The final rule = desktop anatomy + even pitch:
+  pitch = (content − w1/2 − wn/2) / (n − 1). (2) That rule cannot be done in pure CSS (a track of half a block's width).
+  js/trajectory.js measures w1 / wn and writes three runtime custom properties (first / last column, label room) on the
+  card. It must REPEAT until w1 / wn are stable: the room re-wraps the blocks, and two passes left ek-05f with a 5 px gap
+  → stacked. (3) `min-width: min-content` on the step text overrode the Cabinet visually-hidden meta (width 1 px) → 110 px
+  clipped boxes, document 328 at 320. Any new min-width on a part that a visually-hidden recipe also targets needs
+  `min-width: 0` in the recipe. (4) Two parallel probe runs into `paste` gave a garbage HEAD/tree table — run HEAD and tree
+  sequentially, or use separate files. Proof: connector gaps per state × width before / after (all equal after, desktop
+  byte-identical), label edge offsets l = 0 / r = 0, centre delta 0. „Informații suplimentare” now stacks at 375 (fits from 390);
+  ek-05 / ek-05f / dos-01 / fo-08 even at 600–760. No sub-agent tool → code-audit (static 0, runtime = hidden meta FP),
+  hover-audit 0 / 0, component-audit 0 in scope (standing avatar menu).
