@@ -3591,3 +3591,10 @@ For any „research how other products do it” step, search Mobbin (mcp__mobbin
   re-routed. **Moving the variant's existing button instances into a new child frame KEPT the per-instance State overrides** (the 4
   Cabinet page-2 pagers still show „Anterior” enabled / „Următor” disabled) — restructure by moving nodes, never by recreating them.
   RAP has no tablet (761–1100) list frame → the 48 px edge fade of the scrolled table is not drawn (reported).
+- 2026-10-23 · Same job, phone pager v4 (code 69424d15, supersedes v3): `Pager · compact` Screen=Phone (RAP 22396:14828, Cabinet
+  1305:4287) = ONE row SPACE_BETWEEN: library button-text-rectangular Primary Icon=None Medium „Afișează mai multe” (hover = the
+  library's own state) · `Arrows` (gap 8) = outlined Strict Medium **Icon=Only** 40 ‹ › (chevron-left / -right 20). 29 RAP + 20 Cabinet
+  phone pagers 92 → 40, all columns restacked at 240, connectors attached (0 dangling). Script tools/figma/rap-table-flat/phone-pager-v4.js.
+  Lesson: **a variant swap done per instance (setProperties State) pins every variant property on that instance** — the 4 Cabinet
+  page-2 pagers kept `Icon=Leading/Trailing` when the main switched to Icon=Only; after changing a main's nested variant, re-check
+  instances that ever had a nested `setProperties` and set the new value there too.
