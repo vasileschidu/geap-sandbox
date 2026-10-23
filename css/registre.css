@@ -1,0 +1,134 @@
+/* =====================================================================================
+   Registre — BackOffice registers, phase 1 (js/registre.js, registre-v1, 2026-10-23)
+   Page glue only: every register is the BO registry (workplace table, facet filter, pager, export dialog), the
+   record card is the BO profile panel (page header, tabs, details cards, event timeline), the actions use the
+   library dialog and the ONE drawer. components.md › „Registre — BackOffice registers”.
+   ===================================================================================== */
+
+/* menu icons of the „Registre” group (the shell draws nav icons as 20px masks per data-nav-id) */
+.e-permits-shell__nav--specialist [data-nav-id="registre"] .e-permits-shell__nav-icon::before {
+  mask-image: url("../assets/icons/dot-grid.svg");
+  mask-size: 20px 20px;
+  -webkit-mask-image: url("../assets/icons/dot-grid.svg");
+  -webkit-mask-size: 20px 20px;
+}
+
+.e-permits-shell__nav--specialist [data-nav-id="reg-dosare"] .e-permits-shell__nav-icon::before {
+  mask-image: url("../assets/icons/document.svg");
+  mask-size: 20px 20px;
+  -webkit-mask-image: url("../assets/icons/document.svg");
+  -webkit-mask-size: 20px 20px;
+}
+
+.e-permits-shell__nav--specialist [data-nav-id="reg-acte"] .e-permits-shell__nav-icon::before {
+  mask-image: url("../assets/icons/permission.svg");
+  mask-size: 20px 20px;
+  -webkit-mask-image: url("../assets/icons/permission.svg");
+  -webkit-mask-size: 20px 20px;
+}
+
+.e-permits-shell__nav--specialist [data-nav-id="reg-note"] .e-permits-shell__nav-icon::before {
+  mask-image: url("../assets/icons/receipt-bill.svg");
+  mask-size: 20px 20px;
+  -webkit-mask-image: url("../assets/icons/receipt-bill.svg");
+  -webkit-mask-size: 20px 20px;
+}
+
+.e-permits-shell__nav--specialist [data-nav-id="reg-avize"] .e-permits-shell__nav-icon::before {
+  mask-image: url("../assets/icons/stamp.svg");
+  mask-size: 20px 20px;
+  -webkit-mask-image: url("../assets/icons/stamp.svg");
+  -webkit-mask-size: 20px 20px;
+}
+
+/* the registers have no checkbox column: the pinned first column carries the divider (as „Dosare noi”) */
+.e-permits-workplace[data-registry-kind^="reg-"] .e-permits-workplace__table th:nth-child(1),
+.e-permits-workplace[data-registry-kind^="reg-"] .e-permits-workplace__table td:nth-child(1) {
+  border-right: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
+  left: 0;
+  position: sticky;
+  z-index: 7;
+}
+
+.e-permits-workplace[data-registry-kind^="reg-"] .e-permits-workplace__table th:nth-child(1) {
+  z-index: 9;
+}
+
+.e-permits-workplace[data-registry-kind^="reg-"] .e-permits-workplace__table th:nth-child(2),
+.e-permits-workplace[data-registry-kind^="reg-"] .e-permits-workplace__table td:nth-child(2) {
+  border-right: 0;
+  left: auto;
+  position: static;
+  z-index: auto;
+}
+
+/* notices at the top of a record card / the Push Case drawer: the section rhythm under them */
+.e-permits-reg-notices {
+  display: grid;
+  gap: var(--spacing-8, 8px);
+  margin-bottom: var(--spacing-24, 24px);
+}
+
+.e-permits-reg-notices > .message {
+  margin: 0;
+}
+
+/* a list-level module page (catalog, „Acces interzis”): its title is in the top bar, the content starts at the
+   profile tabs → first section distance (24) */
+.e-permits-reg-page > .e-permits-dosar-profil__panel {
+  padding-top: var(--spacing-24, 24px);
+}
+
+/* catalog: the register icon as the row lead (library Avatar · icon, grey) */
+.e-permits-reg-catalog__icon {
+  flex: none;
+}
+
+/* Push Case drawer: the step choice (library radio rows, Small) and the optional blocks */
+.e-permits-reg-steps {
+  display: grid;
+  gap: var(--spacing-12, 12px);
+}
+
+.e-permits-reg-steps .radio-label {
+  align-items: center;
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-8, 8px);
+}
+
+.e-permits-reg-blocks {
+  display: grid;
+  gap: var(--spacing-16, 16px);
+}
+
+/* event detail dialog: before → after on one line (the arrow in the text colour) */
+.e-permits-reg-changes .e-permits-dosar-profil__row-value {
+  align-items: center;
+  gap: var(--spacing-8, 8px);
+}
+
+.e-permits-reg-modal--event .e-permits-dosar-profil__section-title {
+  margin: var(--spacing-8, 8px) 0 0;
+}
+
+/* phones (≤760): the registry toolbar wraps and only the actions column stays pinned (the Ghișeu pattern) */
+@media (max-width: 760px) {
+  .e-permits-workplace[data-registry-kind^="reg-"] {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr) auto;
+  }
+
+  .e-permits-workplace[data-registry-kind^="reg-"] .e-permits-workplace__table th:nth-child(1),
+  .e-permits-workplace[data-registry-kind^="reg-"] .e-permits-workplace__table td:nth-child(1) {
+    border-right: 0;
+    left: auto;
+    position: static;
+    z-index: auto;
+  }
+
+  .e-permits-workplace[data-registry-kind^="reg-"] .e-permits-workplace__footer {
+    flex-basis: auto;
+    height: auto;
+  }
+}

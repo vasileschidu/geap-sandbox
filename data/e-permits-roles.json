@@ -142,6 +142,36 @@
           ]
         },
         {
+          "label": "Registre",
+          "items": [
+            {
+              "id": "registre",
+              "label": "Toate registrele",
+              "shellView": "registre-catalog"
+            },
+            {
+              "id": "reg-dosare",
+              "label": "Registru Dosare",
+              "shellView": "reg-dosare-registry"
+            },
+            {
+              "id": "reg-acte",
+              "label": "Registrul actelor permisive",
+              "shellView": "reg-acte-registry"
+            },
+            {
+              "id": "reg-note",
+              "label": "Registru note de plată",
+              "shellView": "reg-note-registry"
+            },
+            {
+              "id": "reg-avize",
+              "label": "Registru Avize",
+              "shellView": "reg-avize-registry"
+            }
+          ]
+        },
+        {
           "label": "Configurare",
           "items": [
             {
@@ -221,6 +251,36 @@
           ]
         },
         {
+          "label": "Registre",
+          "items": [
+            {
+              "id": "registre",
+              "label": "Toate registrele",
+              "shellView": "registre-catalog"
+            },
+            {
+              "id": "reg-dosare",
+              "label": "Registru Dosare",
+              "shellView": "reg-dosare-registry"
+            },
+            {
+              "id": "reg-acte",
+              "label": "Registrul actelor permisive",
+              "shellView": "reg-acte-registry"
+            },
+            {
+              "id": "reg-note",
+              "label": "Registru note de plată",
+              "shellView": "reg-note-registry"
+            },
+            {
+              "id": "reg-avize",
+              "label": "Registru Avize",
+              "shellView": "reg-avize-registry"
+            }
+          ]
+        },
+        {
           "label": "Administrare",
           "items": [
             {
@@ -293,6 +353,26 @@
               "label": "Clasificatoare",
               "iconAsset": "assets/icons/admin-newspaper.svg",
               "shellView": "classifiers-registry"
+            }
+          ]
+        },
+        {
+          "label": "Registre",
+          "items": [
+            {
+              "id": "registre",
+              "label": "Toate registrele",
+              "shellView": "registre-catalog"
+            },
+            {
+              "id": "reg-acte",
+              "label": "Registrul actelor permisive",
+              "shellView": "reg-acte-registry"
+            },
+            {
+              "id": "reg-note",
+              "label": "Registru note de plată",
+              "shellView": "reg-note-registry"
             }
           ]
         }

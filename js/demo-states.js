@@ -2926,8 +2926,119 @@
        Specialist ghișeu (CSP Chișinău): Dosare noi (US-241), the wizard #ghiseu/nou · #ghiseu/<id>/<step>
        (US-233…238), drafts (US-239/240). Demo switches as params: mconnect=0, mdocs=0, msign / olograf /
        cert = 0|1, msignerr=1, taxa=incompleta, depunere=eroare, certerr=1, gol=1, registru=asteptare. */
-    ...ghDemoStates()
+    ...ghDemoStates(),
+
+    /* ---- Registre — BackOffice registers, phase 1 (Epic 89620, js/registre.js, registre-v1 2026-10-23) ----
+       reg-01 catalog · 02 Dosare · 03 Acte · 04 Note de plată · 05 Avize · 06–09 record cards · 10 Push Case ·
+       11 Arhivare · 12 Radiere · 13 Anonimizare + redactare · 14 acces interzis · 15 câmp-sursă dispărut · 16 gol */
+    ...regDemoStates()
   };
+
+  function regDemoStates() {
+    const ADMIN = "ansp-central-admin", LOCAL = "ansp-local-admin", SPEC = "ansp-specialist-chisinau", SUP = "ansp-supervisor-chisinau";
+    const ANTA = "anta-specialist-chisinau", GHISEU = "ansp-ghiseu-chisinau";
+    const LIST = (kind) => `[data-registry-kind='${kind}'] tr[data-workplace-row], [data-registry-kind='${kind}'] .e-permits-empty`;
+    const CARD = "#reg-panel .e-permits-dosar-profil__section, #reg-panel .e-permits-empty";
+    const reg = (kind, as = ADMIN, run, params) => ({ flow: "back-office", as, hash: `#${kind}`, params, ready: LIST(kind), run });
+    const card = (kind, id, tab = "detalii", as = ADMIN, run, params) => ({ flow: "back-office", as, hash: `#registru/${kind}/${id}/${tab}`, params, ready: CARD, run });
+    const page = (hash, as = ADMIN, run, params) => ({ flow: "back-office", as, hash, params, ready: "[data-reg-page]:not([hidden]) .e-permits-stack__item, [data-reg-page]:not([hidden]) .e-permits-empty", run });
+    /* a row's ⋮: search its number first (it may be on another page), then open the menu */
+    const rowMenu = (id) => async (h) => {
+      await h.fill("[data-workplace-search]", id); await h.wait(300);
+      await h.click(`tr[data-workplace-row="${id}"] [data-stack-menu-trigger]`); await h.wait(200);
+    };
+    const act = (id, key) => async (h) => { await rowMenu(id)(h); await h.click(`[data-reg-action="${key}"][data-reg-row="${id}"]`); await h.wait(400); };
+    /* the record card's header ⋮ */
+    const cardAct = (id, key) => async (h) => {
+      await h.click(".e-permits-page-header [data-stack-menu-trigger]"); await h.wait(200);
+      await h.click(`[data-reg-action="${key}"][data-reg-row="${id}"]`); await h.wait(400);
+    };
+    /* facet filters applied the way the shell keeps them (sessionStorage per register), then the register redrawn */
+    const filtered = (kind, applied) => async (h) => {
+      window.GEAPShellApi.setRegistryFilters(kind, applied);
+      /* the side menu is hidden on phones: click the item itself (same handler) */
+      document.querySelector(`[data-nav-item][data-nav-id="${kind}"]`).click(); await h.wait(600);
+    };
+    const fillReason = (sel, text) => async (h) => { await h.fill(sel, text, { leave: false }); };
+    const ELIBERAT = "D-2026-004704", EXAM = "D-2026-004498", RESPINS = "D-2026-004726";
+    const anonymize = async (h) => {
+      await cardAct(ELIBERAT, "anonymize")(h);
+      await fillReason("#fo-reg-anon-reason", "Cererea nr. 112 din 20 octombrie 2026 a solicitantului")(h);
+      await h.click("[data-reg-confirm]"); await h.wait(600);
+    };
+    const pushOpen = (id) => cardAct(id, "push");
+    const pushFill = async (h) => {
+      await h.click('input[name="reg-push-step"][value="semnare"]');
+      await h.fill("#fo-reg-push-reason", "Pasul automat de emitere a eșuat; dosarul revine la semnare.", { leave: false });
+    };
+    return {
+      /* catalog „Toate registrele” (Feature 91139 § UX): icon, name, category, perimeter count, description; Solicitanți „În curând” */
+      "reg-01": page("#registre"),
+      "reg-01a": page("#registre", SPEC),
+      "reg-01b": page("#registre", LOCAL),
+      /* Registru Dosare (US-194): admin — every ANSP dossier, ⋮ with the configured actions */
+      "reg-02": reg("reg-dosare"),
+      "reg-02a": reg("reg-dosare", SPEC),
+      "reg-02b": reg("reg-dosare", ADMIN, filtered("reg-dosare", { statut: ["Eliberat", "Respins"] })),
+      "reg-02c": reg("reg-dosare", ADMIN, rowMenu(ELIBERAT)),
+      "reg-02d": reg("reg-dosare", ADMIN, async (h) => { await h.fill("[data-workplace-search]", "zzz"); await h.wait(400); }),
+      "reg-02e": reg("reg-dosare", ANTA),
+      "reg-02f": reg("reg-dosare", SPEC, rowMenu("D-2026-004566")),
+      /* Registrul actelor permisive (US-196) */
+      "reg-03": reg("reg-acte"),
+      "reg-03a": reg("reg-acte", ANTA),
+      "reg-03b": reg("reg-acte", ADMIN, async (h) => { await h.hover("[data-workplace-export]"); }),
+      "reg-03c": reg("reg-acte", ADMIN, async (h) => { await filtered("reg-acte", { status: ["Suspendat", "Retras", "Anulat"] })(h); await h.click("[data-workplace-export]"); }),
+      "reg-03d": reg("reg-acte", SPEC),
+      /* Registru note de plată (US-197) */
+      "reg-04": reg("reg-note"),
+      "reg-04a": reg("reg-note", SPEC),
+      "reg-04b": reg("reg-note", ADMIN, filtered("reg-note", { statutNota: ["Parțial achitată", "Neachitată", "Expirată"] })),
+      /* Registru Avize (US-198): no actions configured → no ⋮ (AC-07) */
+      "reg-05": reg("reg-avize"),
+      "reg-05a": reg("reg-avize", SPEC),
+      /* record cards (US-196 AC-07, US-197 AC-05, US-273) */
+      "reg-06": card("reg-acte", "act-045"),
+      "reg-06a": card("reg-acte", "act-002", "versiuni"),
+      "reg-06b": card("reg-acte", "act-045", "jurnal"),
+      "reg-06c": card("reg-acte", "act-045", "jurnal", ADMIN, async (h) => { await h.click("[data-reg-ev-open] .e-permits-timeline__link"); }),
+      "reg-06d": card("reg-acte", "act-005", "detalii", SPEC),
+      "reg-07": card("reg-note", "np-032"),
+      "reg-07a": card("reg-note", "np-023"),
+      "reg-07b": card("reg-note", "np-032", "jurnal"),
+      "reg-08": card("reg-avize", "av-022"),
+      "reg-08a": card("reg-avize", "av-001", "jurnal"),
+      "reg-09": card("reg-dosare", ELIBERAT),
+      "reg-09a": card("reg-dosare", ELIBERAT, "jurnal"),
+      "reg-09b": card("reg-dosare", ELIBERAT, "jurnal", ADMIN, async (h) => { await h.click('[data-reg-ev-filter="modificare"]'); await h.fill("[data-reg-ev-search]", "telefon", { leave: false }); }),
+      /* US-195 Push Case — the drawer, filled, refused (concurrent), done */
+      "reg-10": card("reg-dosare", EXAM, "detalii", ADMIN, pushOpen(EXAM)),
+      "reg-10a": card("reg-dosare", EXAM, "detalii", ADMIN, async (h) => { await pushOpen(EXAM)(h); await pushFill(h); await h.click('[data-reg-push-block="sub"]'); await h.click('[data-reg-push-block="term"]'); await h.scroll("[data-reg-push] .drawer__footer"); }),
+      "reg-10b": card("reg-dosare", EXAM, "detalii", ADMIN, async (h) => { await pushOpen(EXAM)(h); await pushFill(h); await h.click("[data-reg-push-submit]"); }, { concurent: "1" }),
+      "reg-10c": card("reg-dosare", EXAM, "detalii", ADMIN, async (h) => { await pushOpen(EXAM)(h); await pushFill(h); await h.click("[data-reg-push-submit]"); await h.wait(500); }),
+      "reg-10d": card("reg-dosare", RESPINS, "detalii", ADMIN, async (h) => { await pushOpen(RESPINS)(h); await h.click('input[name="reg-push-step"][value="examinare"]'); await h.fill("#fo-reg-push-reason", "Respins din eroare: documentul lipsă era în dosar.", { leave: false }); await h.click("[data-reg-push-submit]"); await h.wait(500); }),
+      /* Arhivare — confirm with reason; refused when the dossier changed meanwhile (US-194 AC-11/12) */
+      "reg-11": reg("reg-dosare", ADMIN, act(ELIBERAT, "archive")),
+      "reg-11a": reg("reg-dosare", ADMIN, async (h) => { await act(ELIBERAT, "archive")(h); await fillReason("#fo-reg-archive-reason", "Termenul de păstrare activă a expirat")(h); await h.click("[data-reg-confirm]"); await h.wait(500); }, { modificat: ELIBERAT }),
+      "reg-11b": reg("reg-dosare", ADMIN, async (h) => { await act(ELIBERAT, "archive")(h); await h.click("[data-reg-confirm]"); }),
+      /* Radiere dosar */
+      "reg-12": reg("reg-dosare", ADMIN, act(EXAM, "strike")),
+      /* Anonimizare (US-277): the confirm, then the card, the redacted journal and one redacted event */
+      "reg-13": card("reg-dosare", ELIBERAT, "detalii", ADMIN, cardAct(ELIBERAT, "anonymize")),
+      "reg-13a": card("reg-dosare", ELIBERAT, "detalii", ADMIN, anonymize),
+      "reg-13b": card("reg-dosare", ELIBERAT, "detalii", ADMIN, async (h) => { await anonymize(h); await h.click('[data-reg-tab="jurnal"]'); }),
+      "reg-13c": card("reg-dosare", ELIBERAT, "detalii", ADMIN, async (h) => { await anonymize(h); await h.click('[data-reg-tab="jurnal"]'); await h.click("[data-reg-ev-open] .e-permits-timeline__link", "Depunere dosar"); }),
+      "reg-13d": reg("reg-dosare", ADMIN, async (h) => { await h.hash(`#registru/reg-dosare/${ELIBERAT}/detalii`); await anonymize(h); await h.click("[data-dosar-profil-crumb-back]"); await h.fill("[data-workplace-search]", ELIBERAT); }),
+      /* no access: Specialist ghișeu has no „Registre”; Administrator local has no Registru Dosare grant (AC-01) */
+      "reg-14": { flow: "back-office", as: GHISEU, hash: "#reg-acte", ready: "[data-reg-page]:not([hidden]) .e-permits-empty" },
+      "reg-14a": { flow: "back-office", as: LOCAL, hash: "#reg-dosare", ready: "[data-reg-page]:not([hidden]) .e-permits-empty" },
+      /* a source field gone (?lipsa=actor): the column is simply absent (AC-08) */
+      "reg-15": reg("reg-dosare", ADMIN, null, { lipsa: "actor" }),
+      /* empty source (?registre=gol) */
+      "reg-16": reg("reg-acte", ADMIN, null, { registre: "gol" }),
+      "reg-16a": reg("reg-acte", SUP)
+    };
+  }
 
   function ghDemoStates() {
     const GH = "ansp-ghiseu-chisinau";

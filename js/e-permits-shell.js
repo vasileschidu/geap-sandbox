@@ -2103,7 +2103,7 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   const getNaturalColumnWidth = (key, rows) => {
-    if (["users", "services", "authorities", "tariffs", "ntpl", "flows", "ghiseu"].includes(workplaceDb?.kind) && workplaceDb.columns[key]?.width) {
+    if ((["users", "services", "authorities", "tariffs", "ntpl", "flows", "ghiseu"].includes(workplaceDb?.kind) || workplaceDb?.fixedWidths) && workplaceDb.columns[key]?.width) {
       return workplaceDb.columns[key].width;
     }
 
@@ -6052,6 +6052,22 @@ document.addEventListener("DOMContentLoaded", () => {
        opens its CSV dialog, export-modal-csv-v1) */
     const workplaceExport = document.querySelector("[data-workplace-export]");
     if (workplaceExport) workplaceExport.setAttribute("aria-label", view.exportLabel || "Exportă");
+    /* registre-v1: a module registry decides the export button per role / criteria — `exportState({ query, filtered })`
+       → { hidden } (no export permission: no button, US-194 AC-06) or { reason } (aria-disabled + the reason tooltip:
+       no export without a search or filter, US-196 AC-06) */
+    if (workplaceExport) {
+      const exportState = productRegistry(workplaceDb.kind)?.exportState?.({ query: workplaceState.query.trim(), filtered: appliedEntries().length > 0 }) || {};
+      workplaceExport.hidden = Boolean(exportState.hidden);
+      const divider = workplaceExport.previousElementSibling;
+      if (divider?.classList.contains("e-permits-workplace__tool-divider")) divider.hidden = Boolean(exportState.hidden);
+      if (exportState.reason) {
+        workplaceExport.setAttribute("aria-disabled", "true");
+        workplaceExport.dataset.tooltipReason = exportState.reason;
+      } else {
+        workplaceExport.removeAttribute("aria-disabled");
+        delete workplaceExport.dataset.tooltipReason;
+      }
+    }
 
     const filteredRows = getVisibleRows();
     const columnWidths = getColumnWidths(view.columns, filteredRows);
@@ -18186,7 +18202,8 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
   document.querySelector("[data-workplace-add-tariff]")?.addEventListener("click", () => openTariffDrawer(null, "global"));
-  document.querySelector("[data-workplace-export]")?.addEventListener("click", () => {
+  document.querySelector("[data-workplace-export]")?.addEventListener("click", (event) => {
+    if (event.currentTarget.getAttribute("aria-disabled") === "true") return;
     const productKind = productRegistry(workplaceDb?.kind);
     if (productKind?.exportRows) {
       productKind.exportRows(getVisibleRows());
@@ -19327,7 +19344,9 @@ document.addEventListener("DOMContentLoaded", () => {
       currentAssignment: () => getRoleAssignments().find((item) => item.id === activeAssignmentId) || null,
       els: { workplacePanel, workplaceTitle, workplaceRefresh, dosarProfilPanel, dosarProfilTitleRow, dosarProfilSummary, dosarProfilTabs, dosarProfilPanelBody },
       /* for modules: the service passport and its settings (US-221), the signed-in user */
-      getServiceByCode, serviceConfig, getAuthorityById, servicesStore: () => servicesStore, currentUserName, localIsoNow, renderBreadcrumbs
+      getServiceByCode, serviceConfig, getAuthorityById, servicesStore: () => servicesStore, currentUserName, localIsoNow, renderBreadcrumbs,
+      /* registre-v1 (js/registre.js): Registru Dosare reads the BO dossiers (rows + status labels / tones) */
+      dossierStore: () => dossierDb
     };
     if (product?.init) product.init(shellApi);
     window.GEAPShellApi = shellApi;

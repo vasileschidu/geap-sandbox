@@ -354,6 +354,7 @@ but this doc previously described it wrongly, see the entry.
 | Back-office helpers for other scripts | `window.GEAPUi` = renderCheckOption, renderToggle, renderNotice, renderInfoNote, renderFoSelectControl, renderTag, renderStackMenu, requiredMark, askConfirm, showShellToast, escapeHtml | `js/e-permits-shell.js` | app |
 | Undo toast | `GEAPToast.show({ …, action: { label: "Anulează", onClick } })` → `button.toast__link.toast__action` in the link slot | `js/toast.js` | library + app |
 | Ghișeu — depunere la ghișeu (Dosare noi + picker + request sheet) | small modal `#gh-start-modal.modal-overlay > .modal.modal--lg.e-permits-passport__modal.e-permits-gh` = one screen (service + applicant with the search-input lookups), hugs its content up to 24 from the viewport edges, bottom sheet ≤680 (phones ≤760 since 2026-10-19: the shared rule „Modals on phones — maximum content space”, 16 from the top, radius 16); the request window opens on the FO intent screen „Ce se solicită?” (`GEAPFormRender.intentHtml`, step `intent`, no stepper) — a choice starts the request; request = **full-screen sheet** `#gh-request-modal.modal-overlay.e-permits-gh-sheet-overlay > .modal.modal--fullscreen.e-permits-gh-sheet` (24 from the top, radius 16 top corners, header · scrolling body · sticky footer; z 990 under library dialogs) with the FO request layout `.e-permits-fo-request__inner.e-permits-gh__inner` (FO stepper `[data-gh-step]` + `.e-permits-fo-form` panel `[data-gh-panel]`); registry kind `ghiseu` via `window.GEAPShellRegistries`; routes via `window.GEAPShellRoutes`; helpers via `window.GEAPShellApi` | `js/ghiseu.js`, `css/ghiseu.css`, `data/ghiseu.json`, demo `gh-*`; section „Ghișeu — depunere la ghișeu” | app |
+| Registre — BackOffice registers (registre-v1, 2026-10-23; Epic 89620) | no new component: each register = the BO registry engine (`window.GEAPShellRegistries["reg-dosare" · "reg-acte" · "reg-note" · "reg-avize"]`, pinned first column, actions column only with a configured action) driven by `data/registre.json › registers[]`; catalog = a module page with one stacked list (lead `.e-permits-reg-catalog__icon` on the library Avatar · icon); record card = the BO profile panel (Detalii / Versiuni / Jurnalul evenimentelor); confirmations in `#case-action-modal` (`.e-permits-reg-modal`, `--confirm`, `--export`, `--event`; changes card `.e-permits-reg-changes`); Push Case = the ONE drawer (`[data-reg-push]`, steps `.e-permits-reg-steps` / `.e-permits-reg-step`, blocks `.e-permits-reg-blocks`); notices `.e-permits-reg-notices`; page `.e-permits-reg-page` | `js/registre.js`, `css/registre.css`; section „Registre — BackOffice registers”; demo reg-01…16a | app |
 | Ghișeu — registry down notice (registry-down-alert-v1, 2026-10-23, user on GEAP 11850:301832) | ONE `renderNotice("warning", …, { className: "e-permits-gh__down-notice" })` (library Mesaj · subtil warning, role=status) as a full-width row right above the first lookup of the section, instead of a red error on every field: „**Registrul de stat nu răspunde acum.** Completați datele manual. Datele introduse manual se verifică la examinare.”; shown after the first lookup that could not reach MConnect, only while it is down; fields stay clean (real errors per field); manual values keep the Small warning tag „Introdus manual” (role card, Verificare) | `downNoticeHtml(slots)` in `js/ghiseu.js`, `css/ghiseu.css`; section „Ghișeu — depunere la ghișeu” › Registry down; demo gh-02f, gh-02f2, gh-02f3, gh-02f4, gh-03m, gh-03n | app |
 | Ghișeu act picker = the Cabinet act row (ghiseu-picker-toast-v1, 2026-10-23, user on GEAP 11850:27348 „as in Actele mele — only the accent is the location; remove the icon; the action fixed and square as in Solicitări”) | the shared `GEAPActRow.html` with two new options: `placeIcon: false` (line 2 without the pin) and `actionIcon: "icon-more-vertical"` (the trigger = the SQUARE `btn btn-neutral btn-sm btn-icon-only e-permits-fo-intent-act__trigger`, 32, tooltip = `actionLabel` „Postprocese”, aria-label „Postprocese pentru <loc> — <type>”, chevron rotation off, same menu; NO trigger when nothing can start — locked row or every item unavailable). Ghișeu row: no lead icon · title = the object / location + Small status tag · line 2 = the act type (service title; decision → „Decizie de respingere”) · meta = Cabinet slots number (compact copy) · authority code · subdivision · `valabil până la` / `expirat la` / `emisă acum N zile` · ⋮ in the corner. Row not clickable (as before). **Search from 8 acts** (= facet-filter SEARCH_MIN): library `.search-input.medium.rectangular.e-permits-workplace__search.e-permits-list-search.e-permits-list-search--fill[data-gh-acts-search]` in `.e-permits-gh-acts-search` (grid, gap 12) between the „Acte emise…” title and the rows (`intentHtml({ listHeadHtml })`), live, case- + diacritics-insensitive over location · type · number · subdivision; rows `hidden` in place; „Niciun rezultat” = `GEAPEmptyState.noResults` (bare + compact); count announced (role=status) | `actRowHtml` / `actsSearchHtml` / `filterActs` in `js/ghiseu.js`, `css/ghiseu.css`; demo gh-02i, gh-02j (⋮ open), gh-02t (locked, no ⋮), gh-02z (15 acts, `?acte=multe`), gh-02z1 („izvoras”), gh-02z2 (no match) | app |
 | Ghișeu submit → success toast on the list (ghiseu-picker-toast-v1, user 2026-10-23 on GEAP 11595:321749) | the window keeps the in-place confirmation (US-238 AC-04, no toast there); when the window of a dossier submitted in it closes (× / Esc / „Înapoi la Dosare noi” / „Dosar nou”), the library success toast `showShellToast("Dosarul <nr> a fost depus și trimis la distribuire.", "success")` (auto-dismiss, top-right) | `submit()` sets `S.submittedNr`, `closeSheet()` shows it once; demo gh-01t | app |
@@ -8742,6 +8743,79 @@ the same as Solicitant / Reprezentant, with the i button”. ONE pattern for who
   gh-03b1 / gh-03a1 / gh-03c1 (ⓘ open), gh-07 (Verificare).
 - **Figma** — the FO blocks: Date solicitant roles (GEAP 11858:24176 — Solicitant / Reprezentant cards + the
   „Temeiul reprezentării” authorization card); the „ⓘ” hint = the library Tooltip (hint, top-center + arrow).
+
+### Registre — BackOffice registers, phase 1 (registre-v1, 2026-10-23; Epic 89620)
+
+Stories: Feature 94524 Registru Dosare (US-194, US-195 Push Case), 91139 Registrul actelor permisive (US-196), 94155
+Registru note de plată (US-197), 94526 Registru Avize (US-198), 94525 Registru solicitanți („În curând” — needs a 5th
+source object in code), US-273 (tab „Jurnalul evenimentelor”), US-277 (redaction at anonymisation). Plain copies:
+`tools/persona-test/specs/registre/`. **No new component**: a BO module like Ghișeu (`js/registre.js` +
+`css/registre.css` = page glue only).
+
+- **One generic renderer, driven by a definition** — `data/registre.json › registers[]` (generated by
+  `tools/registre/seed.mjs`, = what the AdminPortal builder US-146…150 publishes): `id`, `code`, `name`, `object`
+  (Case / Permit / Invoice / Expertise), `category`, `icon`, `version`, `grants` (role ids = Register Grant),
+  `predefinedFilter` (invisible rule list), `defaultSort`, `columns[]` `{ key, label, width, visible, sortable, filter:
+  text | multi | single | date | null }`, `actions[]` `{ key, type: open | form | process-* | custom, control, label,
+  icon, roles, danger }`. Columns whose source field is missing (`SOURCE_FIELDS[object]`, demo `?lipsa=`) are
+  dropped silently. Filter `text` → the toolbar search (also on hidden columns, e.g. Nr. dosar on the acts register);
+  `multi` / `single` → a checklist facet (search inside when > 8 values); `date` → the date-range facet.
+- **Register page** = the BO registry engine (`window.GEAPShellRegistries[<reg-id>]`, shellView `<reg-id>-registry`):
+  toolbar search + „Filtrare avansată”, sortable headers, compact pager, export button, pinned first column (CSS by
+  `[data-registry-kind^="reg-"]`), actions column `pin: "end"` only when the role has a configured action (else no ⋮
+  at all — AC-09 / AC-07). Cells reuse the BO vocabulary: `.e-permits-workplace__case-cell` + `__source` (name over
+  company / IDNO, subdivision over authority), `renderListCode` (compact copy) for numbers, Tag · Small for statuses,
+  `renderDateTime` / date-stack with a relative meta for deadlines. Status tones: acts Valabil success · Aprobare
+  tacită brand (one tag) · Suspendat warning · Expirat neutral (grey) · Retras / Anulat danger; notes Emisă brand ·
+  Achitată success · Parțial achitată warning · Neachitată danger · Expirată / Anulată neutral · Rambursată violet; MPay
+  Finalizată cu succes success · Eșuată danger · În așteptare warning; avize Favorabil success · Nefavorabil / Retras
+  danger · În lucru brand · Expirat neutral; dossiers = the BO dossier tones (+ Radiat danger).
+- **Shell hooks used (2026-10-23)**: `exportState({ query, filtered })` → `{ hidden }` (no Registers.Viewer.Export →
+  no button + divider) or `{ reason }` (aria-disabled + tooltip reason: acts never export without a search / filter,
+  US-196 AC-06); `fixedWidths: true` on the db (column widths from the definition); `GEAPShellApi.dossierStore()`
+  (Registru Dosare = the BO dossier seed, „Deschide dosarul” → `#dosar/<id>`).
+- **Catalog „Toate registrele”** (`#registre`) = a module page (`[data-shell-module-page]`, title in the top bar)
+  holding ONE stacked list „Registrele tale”: lead = library Avatar · icon md (`.avatar.avatar--md.avatar--icon` +
+  `.e-permits-reg-catalog__icon`), title, meta „category · N înregistrări · Perimetru: …”, meta2 = description;
+  the row opens the register; „În curând” = Small neutral tag, not clickable.
+- **Persistent switcher** = the side-menu group „Registre” (Toate registrele + one item per granted register); leaving
+  a register keeps its search / sort / page (`S.saved`), the facet filters persist per register in the shell (US-196
+  AC-08).
+- **Record card** (`#registru/<reg-id>/<id>/<tab>`) = the BO profile panel (`openProfilePanel` + `els`): breadcrumb
+  „Registre › <register>”, H1 = what the record is (service / act name / „Notă de plată” / aviz type), meta row with the
+  number (copy) first, tabs „Detalii” (canonical details cards via `renderInfoCard`) · „Versiuni” (acts: the version
+  chain as the event timeline — Feature 91139) · „Jurnalul evenimentelor” (roles with Audit.Journal.View only, US-273).
+  Header actions = „Deschide dosarul” (neutral) + the row ⋮ (fixed menu). Status / redaction notices = `renderNotice`
+  in `.e-permits-reg-notices` (8 between, 24 to the first section).
+- **Jurnalul evenimentelor** (US-273): heading + live count (`.e-permits-svc-events__heading`), toolbar
+  (`.e-permits-pay__toolbar`): chips Toate · Modificări · Accesări · Sistem with count badges, library search, order
+  button „Cele mai noi / vechi”; the list = `GEAPEventTimeline.listHtml(…, { openAttrs })` (title = button → the event
+  dialog, US-271: details card + „Modificări” card `field: before → after`); empty = „Jurnalul de audit nu conține încă
+  înregistrări” (AC-06). Opening a record logs „Vizualizare fișă în registru” (US-197 AC-08).
+- **Actions** (definition × role × the record's real state, re-checked at confirm): menu items carry
+  `aria-disabled` + `data-tooltip-reason` when the state forbids them (row-menu rule: the ⋮ stays while one item is
+  enabled). Confirmations = the library `#case-action-modal` (Medium footer): „Arhivează” / „Radiază dosarul” /
+  „Anonimizează” = filled destructive + required reason (FO textarea with counter); Anonimizare adds the basis
+  (`renderFoSelectControl`) + an info note. A record changed in another session (`?modificat=<id>`) → the error
+  toast, nothing changes (US-194 AC-12). **Push Case** (US-195) = the ONE drawer: „Situația curentă” details card,
+  „Transferă la etapa” = library radio Small rows (human + final steps only, the current one tagged „Etapa curentă”),
+  „Motivul intervenției” (≥ 10, counter), three switches (`renderToggle`) opening their fields; „Transferă dosarul”
+  aria-disabled with a reason until step + reason (AC-05); concurrent transfer (`?concurent=1`) → error notice
+  at the drawer top + refreshed situation (AC-12). Every action logs its event (GEAP.CASE.PUSHED with source / target /
+  reason / blocks).
+- **Anonymisation + redaction** (US-277): the personal values (name, phone) of the record's EARLIER events become
+  «‹redactat›», the events stay (tag „Redactat” on the item), + events „Anonimizare date personale” and „Redactare”
+  (list of redacted event ids + the anonymisation request CA-2026-…). Register cell + card show «‹redactat›» and the
+  „Date anonimizate” tag / notice.
+- **Perimeter** (demo personas = the role switcher): Administrator central = all; Administrator local ANSP = ANSP
+  (registers: Acte, Note); Specialist / Supervizor / Director = authority + subdivision (acts: authority only);
+  Specialist ANTA = ANTA; Specialist ghișeu = no „Registre” (address typed → „Acces interzis” page).
+- **Demo** reg-01 / 01a / 01b (catalog per role), reg-02…02f (Dosare: admin, specialist, filtered, ⋮, no results, empty
+  perimeter, specialist ⋮), reg-03…03d (acts: admin, ANTA, export disabled tooltip, export dialog, specialist),
+  reg-04…04b (notes), reg-05 / 05a (avize, no ⋮), reg-06…09b (record cards + journal + event dialog), reg-10…10d (Push
+  Case: open, filled, refused, done, reopened finalized), reg-11…11b (archive: confirm, refused, reason error), reg-12
+  (strike), reg-13…13d (anonymise: confirm, card, redacted journal, redacted event, register row), reg-14 / 14a (acces
+  interzis), reg-15 (column source gone), reg-16 / 16a (empty source, supervisor).
 
 ## 5. Removed from this document
 
