@@ -4087,3 +4087,33 @@ For any „research how other products do it” step, search Mobbin (mcp__mobbin
   22411:177536 + 8 board instances, Cabinet 1072:8943 / 1072:14582. Local style + component created per file: eKYC `S:7d843104…` /
   10981:134238, RAP `S:c4e19733…` / 22457:226184 (section Shared 22424:3773), Cabinet `S:1e7445ed…` / 1369:54458. A4 document grids
   (RAP `A4 grid row`, Cabinet Label / Value cells, GEAP 12001:…) have borders on every column — not pinned, left alone.
+
+- 2026-10-23 · board-arrows-v2 (user: „blue arrow text = blue background + white text, everywhere; fix the arrow overlaps everywhere”).
+  EVO Cabinet (My Requests 21 / My Permits 10), EVO-WEB RAP (Registrul actelor permisive 19), eKYC (9 BO pages, 85), FOD (Requestor 56).
+  Tools: tools/figma/board-arrows/ (route-audit.js, label-pass.js, label-component.js, reroute.js, autoplan.js), stored per file in
+  figma.root shared plugin data `boardarrows/{audit,labels,labelcomp,reroute,autoplan}` (run `new Function("figma", src + "\nreturn X;")(figma)`).
+  - **Label pill = the connector's own label background**, not a separate instance: `c.textBackground.fills = [setBoundVariableForPaint(…,
+    stroke variable)]`, corners via `topLeftRadius…` = 999 (= radius-full; the `cornerRadius` setter is a silent no-op, no variable binding,
+    no padding API, no absoluteBoundingBox), `c.text.fills` bound to text/base-inverse/default of the SAME library as the stroke variable.
+    Only the native label stays centred on its arrow when blocks move; the local `Board / Arrow label` component (padding 4/8, radius-full,
+    same variables + label font) is the documented spec / legend (Cabinet 1362:3947, RAP 22452:47951, eKYC 10978:12423, FOD 1350:12155).
+  - **Read the real route from `exportAsync({format:"SVG_STRING"})`**: arrows with an arrowhead export as an outlined fill (stroke rectangles →
+    bounding boxes of subpaths), cap-less pieces as a centre-line `stroke` path. route-audit.js turns both into H/V segments and reports
+    overlap (parallel < 14 px), block (segment through a screen / note that is not its own), cross (right angle, allowed), detached, label.
+  - **Lane technique, generalised** (reroute.js): start = the control (or an anchor over it / over a position start), A = start → 2×2 lane
+    waypoint (TOP/BOTTOM magnet, keeps the label, no caps), B = waypoint → target screen edge `position` at endY (arrowhead) = straight last
+    segment. Lanes: block right + 130 / 190 / 250 on Cabinet phones, centred in the real gap width on desktop grids (autoplan.js; 1440 blocks
+    in 1920 slots leave 720), nested / shorter ranges on inner lanes, ends spread +48 per extra arrow into the same screen.
+  - **Same row, several arrows** (tabs, search + filter, decision branches): never one start point — rightmost control leaves directly, the
+    others get stacked TOP stubs (`via`, leftmost tallest, 24 apart) or own exit points on a card edge (anchors 30 apart on a decision).
+    **Fan-out to the next column**: the arrow that ends first takes the OUTERMOST lane and should start highest → 0 crossings (FOD d5).
+  - **Router quirks**: a TOP/BOTTOM start with a far target runs vertically through the blocks below/above first → use a 8–32 px `via`
+    stub; an A piece may pick its own vertical x and jog near the waypoint → put the lane at the x the router chose; **a clone keeps the old
+    cached route and no magnet toggle fixes it** (FOD G1, Cabinet sm-04d B) → clone a healthy short piece, re-point it, delete the stuck one
+    (`figma.createConnector` does not exist in design files). Re-point / clone BEFORE removing anything an arrow is attached to.
+  - RAP connectors had `ARROW_LINES` on the START too (an arrowhead pointing into the clicked control) → reroute.js forces start cap NONE.
+  - Jump markers sit in the Cabinet lane strip → lifted above the connectors (z-order) so lanes pass under them; `/^Screen/` also matches
+    „Screen label · …” — use `/^Screen · /`. Desktop-only controls (RAP filter chips) go to left lanes via stacked TOP stubs (viaSide LEFT).
+  - Result: 0 overlaps / 0 detached / 0 off-screen crossings on all 13 pages; right-angle crossings left: Cabinet 4, RAP 2, eKYC 28
+    (Dashboard 13 + Providers 11 = modal / list item order differs from the target order; only removable by moving blocks), FOD 0.
+    Not touched: RAP non-board pages (Sitemap 667, IA 105, Cups, Explorations…). No Agent tool → QA = route-audit + screenshots.
