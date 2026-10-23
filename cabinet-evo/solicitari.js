@@ -1177,7 +1177,7 @@
       contact.phone ? row("Telefon", escape(`+373 ${contact.phone}`)) : "",
     ]));
 
-    const documents = section("documente", "Documente însoțitoare", documentsHtml(dosar), { scope: true });
+    const documents = section("documente", "Acte necesare", documentsHtml(dosar), { scope: true });
     /* US-161 AC-16: the method(s) chosen at filing (EVO Cabinet always; paper on top when chosen, US-16) */
     const paper = PAPER[dosar.delivery?.paper];
     const delivery = section("livrare", "Livrare", rows([

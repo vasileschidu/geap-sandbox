@@ -3248,9 +3248,9 @@ document.addEventListener("DOMContentLoaded", () => {
     const required = docs.filter((doc) => doc.obligatoriu).length;
     const items = docs.map((doc) => ({ ...renderDosarDocItem(doc, "insotitoare"), group: doc.obligatoriu ? "Obligatorii" : "Opționale" }));
 
-    return renderStackedList("Documente însoțitoare", groupBy(items, (item) => item.group, ["Obligatorii", "Opționale"]), {
+    return renderStackedList("Acte necesare", groupBy(items, (item) => item.group, ["Obligatorii", "Opționale"]), {
       meta: `${plural(docs.length, "document", "documente")} · ${required} ${required === 1 ? "obligatoriu" : "obligatorii"}`,
-      empty: "Niciun document însoțitor. Solicitantul nu a anexat documente la cerere.",
+      empty: "Niciun document atașat. Solicitantul nu a anexat documente la cerere.",
       icon: "document"
     });
   };
@@ -3340,7 +3340,7 @@ document.addEventListener("DOMContentLoaded", () => {
     } else if (doc.genId === "cerere" || doc.genId === "nota-initiere") {
       body = `<h1>${escapeHtml(doc.genId === "cerere" ? "Cerere" : "Notă de inițiere")}</h1><p>nr. ${escapeHtml(row.nrDosar)} din ${escapeHtml(day)}</p>
         ${table([["Serviciul", row.serviciu], ["Tipul solicitării", row.tipDosar || "Eliberare"], [doc.genId === "cerere" ? "Solicitant" : "Titular", holder], ["Cod de identificare", holderId], ["Adresa obiectului", address]])}
-        <p>${doc.genId === "cerere" ? "Solicit eliberarea actului permisiv în condițiile legii. Documentele însoțitoare sunt anexate la cerere." : "Procedura se inițiază din oficiu, în temeiul atribuțiilor autorității."}</p>`;
+        <p>${doc.genId === "cerere" ? "Solicit eliberarea actului permisiv în condițiile legii. Actele necesare sunt anexate la cerere." : "Procedura se inițiază din oficiu, în temeiul atribuțiilor autorității."}</p>`;
     } else if (doc.genId === "certificat") {
       body = `<h1>Certificat constatator</h1><p>Confirmă depunerea cererii în SIA GEAP.</p>
         ${table([["Numărul dosarului", row.nrDosar], ["Serviciul", row.serviciu], ["Solicitant", holder], ["Data depunerii", formatStamp(doc.at)]])}`;
@@ -6923,10 +6923,10 @@ document.addEventListener("DOMContentLoaded", () => {
         })
       };
     };
-    return renderStackedList("Documente însoțitoare", groups.map((g) => ({ label: g.label, items: g.items.map(item) })), {
+    return renderStackedList("Acte necesare", groups.map((g) => ({ label: g.label, items: g.items.map(item) })), {
       meta: `${plural(docs.length, "document", "documente")} · ${required} ${required === 1 ? "obligatoriu" : "obligatorii"}${docs.length > active.length ? ` · ${docs.length - active.length} ${docs.length - active.length === 1 ? "inactiv" : "inactive"}` : ""}`,
       actionHtml: admin ? `<button class="btn btn-secondary btn-sm" type="button" data-doc-add><svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-plus-large"></use></svg><span>Adaugă document</span></button>` : "",
-      empty: "Serviciul nu are documente însoțitoare."
+      empty: "Serviciul nu are acte necesare."
     });
   };
 
@@ -7011,7 +7011,7 @@ document.addEventListener("DOMContentLoaded", () => {
         ["Formulare electronice", withLink(`${plural(publishedForms, "publicat", "publicate")} · ${geap.forms.length - publishedForms} în schiță`, "forms", "Vezi formularele")],
         ["Șabloane de tipar", withLink(plural(geap.templates.length, "șablon", "șabloane"), "templates", "Vezi șabloanele")],
         ["Taxe", withLink(`${plural(serviceTaxes(service).length, "taxă", "taxe")} · ${plural(tariffs.length, "tarif", "tarife")}${unconfiguredServiceTariffs(service).length ? ` · ${unconfiguredServiceTariffs(service).length} de configurat` : ""}`, "fees", "Vezi taxele")],
-        ["Documente însoțitoare", docsAll.length ? withLink(`${docsAll.length} · ${requiredDocs} obligatorii`, "documents", "Vezi documentele") : "—"],
+        ["Acte necesare", docsAll.length ? withLink(`${docsAll.length} · ${requiredDocs} obligatorii`, "documents", "Vezi documentele") : "—"],
         ["Tipuri solicitanți", applicantTags(rssp.applicantTypes)]
       ], "GEAP")}
       ${renderEventTimeline("Ultimele modificări", geap.events.slice(0, 3), {
@@ -17012,7 +17012,7 @@ document.addEventListener("DOMContentLoaded", () => {
       ...["Codul CAEM", "Denumirea activității", "Subgenuri de activitate"].map((x) => row("Detalii solicitare", x, CFG_RAP_CAEM)),
       ...["Suprafața obiectului (m²)", "Codul cadastral"].map((x) => row("Detalii solicitare", x)),
       ...CFG_RAP_SPECIFIC.map((x) => row("Câmpuri specifice serviciului", x)),
-      ...CFG_RAP_DOCS.map((x) => row("Documente însoțitoare", x)),
+      ...CFG_RAP_DOCS.map((x) => row("Acte necesare", x)),
       ...CFG_RAP_DELIVERY.map((x) => row("Livrare și plată", x))
     ] : CFG_FORM_FIELDS.map((x) => row(["Denumirea persoanei juridice", "IDNO", "Adresa juridică", "Numele și prenumele (PF)", "IDNP"].includes(x) ? "Date solicitant" : "Detalii solicitare", x));
     cfgRapCache.set(code, list);

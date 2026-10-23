@@ -1023,7 +1023,7 @@
     "dos-04j": dos(SPEC, "inExaminare", "solicitare", {}, async (h) => { await docRow("Declarație", "insotitoare")(h); }),
     "dos-04k": { ...dosOf("D-2026-004559", SPEC, "solicitare"), run: async (h) => { await h.scroll(".e-permits-stack-section"); } },
     "dos-04l": { ...dosOf("D-2026-004559", SPEC, "solicitare"), run: async (h) => { await docEye("Extras din Registrul")(h); } },
-    "dos-04m": dos(SPEC, "inExaminare", "solicitare", { documente: "0" }, async (h) => { await h.scroll(".e-permits-dosar-profil__section", "Documente însoțitoare"); }),
+    "dos-04m": dos(SPEC, "inExaminare", "solicitare", { documente: "0" }, async (h) => { await h.scroll(".e-permits-dosar-profil__section", "Acte necesare"); }),
     /* 04n–04t Documente generate + Act/Decizie = the însoțitoare pattern (2026-10-14): grouped by flow step,
        blue icon + „Generat”, number · file · size · Generat … · de … · Semnat electronic de …; the row (Enter) →
        the same document modal with the page preview (its footer has „Descarcă”); the row click → the modal; a

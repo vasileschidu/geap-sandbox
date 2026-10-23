@@ -56,7 +56,7 @@
     /* user 2026-10-15: identity, representation and contact on ONE step, as FO fo-01 „Date solicitant” */
     { id: "identificare", label: "Date solicitant" },
     { id: "detalii", label: "Detalii serviciu" },
-    { id: "documente", label: "Documente însoțitoare" },
+    { id: "documente", label: "Acte necesare" },
     { id: "verificare", label: "Verificare" },
     { id: "livrare", label: "Livrare" },
     { id: "plata", label: "Notă de plată" },
@@ -1152,7 +1152,7 @@
         <div class="e-permits-fo-doc-field__row">
           <div class="e-permits-fo-doc-field__info">
             <span class="e-permits-fo-doc-field__label">${esc(PROCURA_DOC.label)} ${req()}</span>
-            <p class="e-permits-fo-doc-field__desc">Atașați-o aici sau la pasul «Documente însoțitoare».</p>
+            <p class="e-permits-fo-doc-field__desc">Atașați-o aici sau la pasul „Acte necesare”.</p>
           </div>
           <button class="btn btn-strict btn-md" type="button" data-fo-open-doc-modal data-fo-doc-label="${esc(PROCURA_DOC.label)}">${icon("upload", 20, "icon medium")}<span>Adaugă fișier</span></button>
         </div>
@@ -1696,8 +1696,8 @@
   }
   function stepDocumente(d) {
     return `
-      ${stepHeader("Documente însoțitoare")}
-      <section class="e-permits-fo-documents" aria-label="Documente însoțitoare" data-gh-docs>
+      ${stepHeader("Acte necesare")}
+      <section class="e-permits-fo-documents" aria-label="Acte necesare" data-gh-docs>
         ${docsOf(d).map(docFieldHtml).join("")}
         <hr class="e-permits-fo-documents__separator">
         <div class="e-permits-fo-other-docs">
@@ -1819,7 +1819,7 @@
       ...(d.docs.alte || []).map((f) => docCard({ ...f, tip: "Document suplimentar", fisier: f.fisier || f.tip }))
     ].join("");
     const missing = docsOf(d).filter((doc) => doc.required && !(d.docs[doc.id] || []).length).map((doc) => doc.label);
-    const attachments = `${attachedCards || window.GEAPEmptyState?.render({ title: "Nu au fost atașate documente", text: "Se atașează la pasul „Documente însoțitoare”.", icon: "document", compact: true }) || ""}${missing.length ? U().renderNotice?.("warning", `<strong>Lipsesc documente obligatorii.</strong> ${missing.map(esc).join("; ")}.`) || "" : ""}`;
+    const attachments = `${attachedCards || window.GEAPEmptyState?.render({ title: "Nu au fost atașate documente", text: "Se atașează la pasul „Acte necesare”.", icon: "document", compact: true }) || ""}${missing.length ? U().renderNotice?.("warning", `<strong>Lipsesc documente obligatorii.</strong> ${missing.map(esc).join("; ")}.`) || "" : ""}`;
     return `
       <div class="e-permits-fo-review e-permits-gh__review">
         ${summarySection("Date generale ale solicitării", general, STEP_INDEX.identificare)}

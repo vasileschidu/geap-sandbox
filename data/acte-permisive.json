@@ -592,7 +592,7 @@
           "index": 3,
           "id": "supporting-documents",
           "label": "Acte necesare",
-          "title": "Documente însoțitoare",
+          "title": "Acte necesare",
           "documents": [
             {
               "id": "property-deed",
@@ -1369,7 +1369,7 @@
         { "id": "passport", "label": "e-Pașaport", "count": null },
         { "id": "forms", "label": "Formulare", "count": 18, "active": true },
         { "id": "applicant-type", "label": "Tipul solicitantului", "count": 2 },
-        { "id": "supporting-documents", "label": "Documente însoțitoare", "count": 4 },
+        { "id": "supporting-documents", "label": "Acte necesare", "count": 4 },
         { "id": "fees", "label": "Taxe", "count": 2 },
         { "id": "lex", "label": "Lex", "count": 1 },
         { "id": "expertise", "label": "Expertiză", "count": 0 },

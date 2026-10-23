@@ -2769,3 +2769,13 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   specificity (loaded later). (4) Shorter label („Solicitare nouă”) let two pills share one phone row. (5) „Vezi solicitarea”
   back to the same tab: header button + the ⋯ copy + the menu click handler (`a[target=_blank]` → `a[href]`) + the alert —
   grep `newTabAttrs` for every caller; the Istoric number link kept the new tab (reported).
+- 2026-10-23 · acte-necesare-label-v1 (user: „Documente însoțitoare” must be „Acte necesare”, = the FO stepper step,
+  „check everywhere”): a label rename touches more than the screen asked about — FO step 3 H1 / aria-label / back
+  button (static HTML + `renderFrontOfficeStep3` fallback + the S5 post-process variant), `data/acte-permisive.json`
+  step `title` (wins over the label), Verificare section + „Editează actele necesare”, empty-state hints („la pasul
+  „Acte necesare””), Ghișeu `STEPS` + stepHeader + procură hint, BO dossier stacked list, BO service passport row +
+  Documente tab title / empty text, RAP catalog section, Cabinet profile section, the cerere preview sentence, and
+  the demo `h.scroll(…, "<title>")` selectors (dos-04m). Grep the stem (`însoțit`), not just the phrase — the
+  singular „Niciun document însoțitor” empty title was missed by the plural grep and only showed in the screenshot.
+  Patch with Python + exact count asserts; commit via index blobs (HEAD + only my replacements) when other agents
+  have uncommitted hunks in components.md / the playbook.

@@ -2739,9 +2739,9 @@
 
       panel.innerHTML = `
         <header class="e-permits-fo-form__header">
-          <h1 id="fo-request-step-3-title" tabindex="-1">${escapeFrontOfficeHtml(step.title || step.label || "Documente însoțitoare")}</h1>
+          <h1 id="fo-request-step-3-title" tabindex="-1">${escapeFrontOfficeHtml(step.title || step.label || "Acte necesare")}</h1>
         </header>
-        <section class="e-permits-fo-documents" aria-label="Documente însoțitoare" data-fo-step3-documents>
+        <section class="e-permits-fo-documents" aria-label="Acte necesare" data-fo-step3-documents>
           ${step.documents.map(documentItemHtml).join("")}
           <hr class="e-permits-fo-documents__separator">
           <div class="e-permits-fo-other-docs">
@@ -5472,8 +5472,8 @@
         reluare: { id: "pp-resume-docs", label: "Documente care confirmă înlăturarea cauzelor suspendării", description: "", required: false }
       }[pp.id];
       panel.innerHTML = `
-        <header class="e-permits-fo-form__header"><h1 id="fo-request-step-3-title" tabindex="-1">Documente însoțitoare</h1></header>
-        <section class="e-permits-fo-documents" aria-label="Documente însoțitoare" data-fo-step3-documents>
+        <header class="e-permits-fo-form__header"><h1 id="fo-request-step-3-title" tabindex="-1">Acte necesare</h1></header>
+        <section class="e-permits-fo-documents" aria-label="Acte necesare" data-fo-step3-documents>
           ${postprocessDocFieldHtml({ id: "pp-previous-act", label: "Actul permisiv emis anterior", description: "Atașat automat din MDocs — nu trebuie încărcat.", required: true, addable: false, filesHtml: prevAct })}
           ${extra ? `<hr class="e-permits-fo-documents__separator">${postprocessDocFieldHtml(extra)}` : ""}
         </section>
@@ -5596,7 +5596,7 @@
           <div class="e-permits-fo-summary-card">${requestRows}${detailRows}</div>
         </div>
         <div class="e-permits-fo-summary-section">
-          <div class="e-permits-fo-summary-section__header"><h2 class="e-permits-fo-summary-section__heading">Documente însoțitoare</h2>${summaryEditButton(3, "Editează documentele însoțitoare")}</div>
+          <div class="e-permits-fo-summary-section__header"><h2 class="e-permits-fo-summary-section__heading">Acte necesare</h2>${summaryEditButton(3, "Editează actele necesare")}</div>
           <div class="e-permits-fo-summary-docs">${foSummaryDocsHtml(document.querySelector("[data-fo-step-panel='3']"))}</div>
         </div>`;
     }
@@ -7096,13 +7096,13 @@
       let docsHtml = foSummaryDocsHtml(document.querySelector("[data-fo-step-panel='3']"));
 
       if (!docsHtml) {
-        docsHtml = window.GEAPEmptyState.render({ title: "Nu au fost adăugate documente", text: "Le poți încărca la pasul Documente însoțitoare.", icon: "document", compact: true });
+        docsHtml = window.GEAPEmptyState.render({ title: "Nu au fost adăugate documente", text: "Le poți încărca la pasul „Acte necesare”.", icon: "document", compact: true });
       }
 
       container.innerHTML = `
         ${foSummarySectionHtml({ title: "Date solicitant", bodyHtml: applicantRows, extraClass: "e-permits-fo-summary-section--applicant" })}
         ${foSummarySectionHtml({ title: "Detalii serviciu", editHtml: summaryEditButton(2, "Editează detaliile serviciului"), bodyHtml: `${serviceRows}${caemHtml}` })}
-        ${foSummarySectionHtml({ title: "Documente însoțitoare", editHtml: summaryEditButton(3, "Editează documentele însoțitoare"), bodyHtml: docsHtml, docs: true })}
+        ${foSummarySectionHtml({ title: "Acte necesare", editHtml: summaryEditButton(3, "Editează actele necesare"), bodyHtml: docsHtml, docs: true })}
       `;
 
       const footer = panel.querySelector(".e-permits-fo-form__footer");
@@ -7116,7 +7116,7 @@
               <span>Salvează ca schiță</span>
             </button>
             <div class="e-permits-fo-form__actions-primary e-permits-fo-form__actions-primary--sign">
-              <button class="btn btn-neutral btn-icon-only e-permits-fo-back-button" type="button" aria-label="Înapoi la Documente însoțitoare" data-fo-prev="step-4">
+              <button class="btn btn-neutral btn-icon-only e-permits-fo-back-button" type="button" aria-label="Înapoi la Acte necesare" data-fo-prev="step-4">
                 <svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-arrow-left"></use></svg>
               </button>
               <button class="btn btn-badge btn-badge--primary btn-badge--msign e-permits-fo-sign-button" type="button" data-fo-next="step-4">
