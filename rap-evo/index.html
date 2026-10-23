@@ -18,7 +18,7 @@
   <link rel="stylesheet" href="../css/doc-preview.css?v=radius-16-v1">
   <link rel="stylesheet" href="../css/act-view.css?v=modal-name-expand-end-v1">
   <link rel="stylesheet" href="../css/evo-header.css?v=evo-header-border-v1">
-  <link rel="stylesheet" href="rap-evo.css?v=pager-compact-v1">
+  <link rel="stylesheet" href="rap-evo.css?v=rap-table-scroll-v1">
   <link rel="stylesheet" href="../css/dropdown.css?v=facet-popover-v2">
   <link rel="stylesheet" href="../css/copy-value.css?v=copy-wrap-v1">
   <link rel="stylesheet" href="../css/name-expand.css?v=name-expand-align-v1">
@@ -45,7 +45,7 @@
   <script src="../js/name-expand.js?v=header-actions-below-v1"></script>
   <script src="../js/page-header.js?v=header-actions-below-v1"></script>
   <script src="../js/evo-header.js?v=evo-header-v1" defer></script>
-  <script src="rap-evo.js?v=pager-compact-v3" defer></script>
+  <script src="rap-evo.js?v=rap-table-scroll-v1" defer></script>
   <script src="../js/page-reveal.js?v=skeleton-v1" defer></script>
 </head>
 <body class="rap-page">
@@ -96,7 +96,11 @@
       <section class="rap-company-summary" data-rap-company-summary hidden aria-live="polite"></section>
 
       <section class="rap-register" aria-label="Acte permisive">
-        <div class="rap-table-scroller" data-rap-table-scroller>
+        <!-- sideways-scroll cue (rap-table-scroll-v1) = the BO passport tabs fade only: a soft faded edge where more
+             columns hide, only while there is more on that side (the arrows were rejected by the user); the scroller is a
+             focusable region so the keyboard scrolls it with the arrow keys -->
+        <div class="rap-table-scroll">
+        <div class="rap-table-scroller" data-rap-table-scroller tabindex="0" role="region" aria-label="Registrul actelor permisive">
           <table class="rap-table">
             <colgroup>
               <col class="rap-table__col--beneficiary">
@@ -120,6 +124,7 @@
             </thead>
             <tbody data-rap-table-body></tbody>
           </table>
+        </div>
         </div>
 
         <div class="rap-pagination" data-rap-pagination></div>

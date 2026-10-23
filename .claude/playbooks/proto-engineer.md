@@ -2982,3 +2982,12 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   steps nav with tabindex −1, never <body>. „Fits?” is a container query on the pager (< 420 → load more full width on its
   own row), not a viewport query — the BO footer is narrower than the viewport. Proved on RAP / Cabinet pp-01t, sm-01 / BO
   dos-05 at 375: rows 16 → 32 (10 → 20), focus on the new button, live „Se afișează 1–32 din 1567”.
+- 2026-10-23 · rap-table-scroll-v1 (user: table full width in the 761–1100 „Meniu ⌄” range + a scroll cue; then „the arrows
+  with scroll more are not the best — remove the chevron”). Reused the BO passport tabs overflow pattern but shipped only its
+  fade (mask 48 on the side with more, classes from one `syncTableOverflow` on render / scroll / resize). Second rejected
+  „arrow” affordance today (row-end bordered button, scroll chevrons) → for this user, prefer the quietest cue first and
+  offer the louder one. Traps: (1) a mask-image on the scroller also fades ITS outline → the focus ring of the focusable
+  region is drawn by the wrapper (`:has(> :focus-visible)::after`, inset box-shadow); (2) full width at 761–1100 = negative
+  margin of the 24 gutter + the gutter as the first / last cell's outer padding (text stays on the search line, measured
+  24 = 24) + the pager's inline padding; widen the action column by the gutter so the chevron keeps its 56 cell; (3) the
+  hover-audit flags a focusable scroll region as „no-hover” — a region is not a control (triaged, reported).

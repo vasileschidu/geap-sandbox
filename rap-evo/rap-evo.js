@@ -529,12 +529,25 @@
     render();
   };
 
+  /* sideways-scroll cue (rap-table-scroll-v1) = the BO passport tabs fade (syncPassportTabOverflow in
+     e-permits-shell.js): fade the edge that hides more columns; none without overflow; no arrows (user) */
+  const syncTableOverflow = () => {
+    const scroller = elements.tableScroller;
+    if (!scroller) return;
+    const max = scroller.scrollWidth - scroller.clientWidth;
+    const start = scroller.scrollLeft > 1;
+    const end = max - scroller.scrollLeft > 1;
+    scroller.classList.toggle("has-overflow-start", start);
+    scroller.classList.toggle("has-overflow-end", end);
+  };
+
   const renderTable = () => {
     const start = (state.page - 1) * state.pageSize;
     const rows = state.filteredRecords.slice(start, start + state.pageSize);
     elements.tableBody.innerHTML = rows.map(renderRow).join("");
     elements.empty.hidden = rows.length > 0;
     document.querySelector(".rap-register").hidden = rows.length === 0;
+    window.requestAnimationFrame(syncTableOverflow);
 
     if (rows.length === 0) {
       /* the shared empty state (js/empty-state.js); filters applied → the bar's „Șterge filtrele” */
@@ -762,6 +775,10 @@
     });
 
     elements.searchClear.addEventListener("click", clearSearch);
+
+    /* the table's scroll cue follows scroll / resize */
+    elements.tableScroller?.addEventListener("scroll", syncTableOverflow, { passive: true });
+    window.addEventListener("resize", syncTableOverflow);
 
     elements.pagination.addEventListener("click", (event) => {
       const size = event.target.closest("[data-rap-per-page]");
