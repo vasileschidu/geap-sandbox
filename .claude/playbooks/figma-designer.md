@@ -3328,3 +3328,25 @@ For any „research how other products do it” step, search Mobbin (mcp__mobbin
   connectors re-routed (0 unattached), Start here contents + counts (Permits 25, My requests 54) and the cover index updated.
   Stored `qsweep/audit` on the set + 5 blocks: only the section-over-card gap 0 baseline. Lesson: **resume = count first** — the
   REST nodes call plus a per-block census of `Alert card` instances showed exactly what had landed before the interruption.
+
+- 2026-10-23 · sort-chip-icon-v1 (code e538ea01; user: „Data depunerii sort: instead of the chevron use the sort icon from mobile”).
+  EVO Cabinet iitScYOwMYjDayuyrm3750. There is NO local sort-trigger component (Sort trigger 1119:3048 was deleted 2026-10-21) —
+  the desktop sort was a per-block library button-filled-rectangular Neutral Trailing Medium, so the fix is per instance:
+  **desktop sort = library filter-chip `Mode=Off, State=Default, Icon=Leading` (1175:45402, = the Filtre chip)** via `swapComponent`
+  (node id kept → connectors stay), Label = the key, Counter Badge / Indicator off, nested icon `swapComponent` to the phone square's
+  glyph 1205:3757 („arrow-bottom-top, sort 2” filled=on 1.5 r2), FIXED 40 / HUG, radii bound to the Filtre chip's variable
+  (border-radius/radius-6 in this file — the code says 8; kept identical to Filtre, declared). Open = `State=Hover` (tertiary-hover =
+  the code's pressed #D9D9D9) + effect style Focus Ring/Medium 1296:337 — the chip's own Focus variant has the RESTING fill, so it is
+  not the code's open look (Filtre open still uses Focus — reported). Counts: My Requests 21 desktop triggers (sm-01f / sm-01t open);
+  My Permits had NO sort at all (acts-sort-v1 never drawn) → 10 desktop chips „Data emiterii” added after Filtre + 10 phone sort
+  squares (clone of the Requests square; pp-01h corner badge re-placed at chip x + 33), new block **pp-01s1 1282:63683** (col 02, desktop
+  Sort menu instance cloned from sm-01f, 5 keys, Item 6 hidden, width 196 = code; phone 812 viewport + library bottom sheet with the new
+  `Sort sheet content · pp-01s1` 1282:63635), connector pp-01 sort chip → pp-01s1, Start here + band 02 line + cover count 26.
+  RAP and GEAP: no sort chip (Ghișeu „Data creării” chips are date facets). Lessons:
+  - **Check the sister board before „just swap”**: the brief said update Permits too; the census found zero sort triggers there —
+    the code feature (acts-sort-v1) had never reached Figma. Census both boards by label + host set before planning counts.
+  - **Radio rows: the visible text is `⌨️ Label`, not the first TEXT property** — `⌨️ Supporting Text` comes first in the key list;
+    pick properties by name prefix, and screenshot the component before using it.
+  - A slice appended into an auto-layout screen joins the flow (screenshot came out blank) — screenshot the frame with get_screenshot
+    instead of slicing.
+  - pp-01s2 (sort applied „Valabil până la”) has a demo state but no Figma block yet — open.
