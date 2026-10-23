@@ -4035,3 +4035,25 @@ For any „research how other products do it” step, search Mobbin (mcp__mobbin
     (it REFITs existing shadows to the cells' span and removes orphans) after dropping / adding rows.
   - No Agent tool in this session → inline figma-audit on the set + 3 instances + 2 tables: 0 findings on the new nodes (6 pre-existing
     captured-cell clips). Start here / file index unchanged (no block or count changed).
+
+- 2026-10-23 · ghiseu-fo-small-fixes (three code ≠ Figma points from ghiseu-roles-as-fo-figma). (1) **„Țara” = library select-input
+  Disabled + Leading flag** (code: disabled `.e-permits-fo-select` 🇲🇩 Moldova): the 9 Ghișeu `phone · Țara` (phone-number-input
+  International „+373”) in gh-02k, gh-02w0, gh-02w, gh-02o, gh-05, gh-05a/b/c/d → clones of Post-processes `select · Country`
+  12100:11086 (select-input Style Default · State Disabled · Medium, Leading Icon on = flag · MD, Placeholder „Moldova”), FILL, star
+  kept. FO 09 / FOD Address / Requestor G7 already use a disabled select / text-input with the flag — left. (2) **Identity card IDs =
+  Copy value Type=Default** (value + 16 copy, = code `selectedRoleHtml` → GEAPCopyValue default): source `Identity card · selected (FO)`
+  11848:340972 (both Modes) `ID value` Compact → Default, its old 4/4 padding override removed (padding 0 → the absolute Wrap sits −8 / −4
+  like the code), `Meta` gap → spacings/spacing-8 (= code margin-left 8), `Manual tag` paddingLeft 8 → 0 (tag stays 8 from the icon);
+  53 instances (Ghișeu 37, FO 09 16). The older FO `Requestor` set 2210:20269 (38 instances: FO 09, FOD Requestor / Address, MSupport)
+  had the same Compact ID values in 9 IDNP / IDNO rows → Default + row gap spacing-8 (45 nested values kept; „Cod” rows left Compact).
+  FO 09 phone cards (11, Mode Changeable): `Change` hidden — the code hides „Schimbă” ≤ 760 (css 14975) and the wider ID clipped the
+  Copy frame. (3) FO 09 F2e / F2e1 desktop header `Instance switcher` → „SRL Global Trader” / „Persoană juridică”, avatar Type=Icon +
+  20/business with the reference fills (FO Post-processes 10272:4323) = code fo-02 / fo-02h. Lessons:
+  - **Swapping a nested instance's variant in a MAIN drops every instance's override of that nested instance's TEXT property** (the
+    Value lives on the variant's own text node → new path). Swapping back restores them. Recipe: record `{instance, nested id suffix,
+    Value, State}` for all instances (`getInstancesAsync` per variant; nested = `i.findOne(x => x.id.endsWith(";" + nestedId))`),
+    swap in the main, re-apply with `setProperties` — verify by the rendered text, not the property (both lied „rsspa-AP-023” = default).
+  - **„Phone” by width is wrong for Ghișeu**: its dialog cards are 374 wide too. Decide phone by the page (FO 09) + an ancestor screen
+    ≤ 430 wide, never by the card width. And `findOne` skips hidden layers unless `figma.skipInvisibleInstanceChildren = false`.
+  - After widening a value inside a card, census `Meta.width > Copy.width` (clipping) on every instance before reporting.
+  - No Agent tool → figma-audit (read-only, roots = card set, 9 Requestor rows, 9 selects' rows, 2 headers, the F2e phone group): 0 findings.
