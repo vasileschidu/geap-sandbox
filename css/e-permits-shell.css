@@ -1570,7 +1570,8 @@ body {
   height: 100%;
   min-height: 100%;
   display: grid;
-  grid-template-rows: auto minmax(0, 1fr) 64px;
+  /* the footer row = its content (min 64; the library pager wraps on narrow workplaces — rap-table-flat-v1) */
+  grid-template-rows: auto minmax(0, 1fr) auto;
   min-width: 0;
   background: var(--white);
   color: var(--color-text-base-default, #121212);
@@ -1798,6 +1799,13 @@ body {
 /* the footer hosts the shared list pager (css/pager.css, audit-fix-v3); nothing to page = no footer */
 .e-permits-workplace__footer:has(> .e-permits-workplace__pagination:empty) {
   display: none;
+}
+
+/* the library pager (rap-table-flat-v1) wraps to two rows on narrow workplaces and on phones (pages, then the
+   summary) → the footer grows with it; 64 stays the minimum (one 40 row + 12 / 12) */
+.e-permits-workplace__footer:has(> .e-permits-workplace__pagination) {
+  flex-basis: auto;
+  height: auto;
 }
 
 .e-permits-shell.is-collapsed {

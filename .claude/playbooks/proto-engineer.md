@@ -2916,3 +2916,27 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   412…320 and narrowing the subtitle 300→200 px in-page: Chrome keeps the atomic inline-flex label with the last word, so
   it never wraps alone. Trap: with the A4 viewer open the data modal stays rendered (parked) — a probe that takes the
   FIRST visible `[data-rap-subtitle]` measures the wrong dialog; take the last. New demo `rap-03u` (A4 viewer expanded).
+- 2026-10-23 · RAP flat table + library pager + row button + clamps + authority abbreviation (rap-table-flat-v1; Ramona on RAP
+  Figma 22080:133246 „no rounded-shape table, use the Header Styles header”, then the user mid-job ×3: pagination „as in Figma,
+  these are components”, „a bordered button on the last element”, 2-line „Denumire act”, Beneficiar = key column + Autoritate
+  = abbreviation with the full name in a tooltip). (1) Reading Figma values WITHOUT get_design_context: metadata gives the
+  geometry (header 32, Title frame x 24 y 8 = padding 8 24, text 16 high; cell Data y 10 → 40 rows) and a 1× screenshot +
+  a tiny zlib PNG decoder in node (no PIL / pngjs here) gives the colours: header #f1f1f1, title #121212, divider on white
+  #ececec / on #f5f5f5 #e7e7e7 = #d9d9d9 at HALF coverage (rows 40.0001 high) — not a new token. (2) Kept the cells' 12
+  inset instead of the library cell's 24 (7 columns × 24 = 168 px; the 100-wide „Aprobare tacită” tag would not fit) and no
+  line under the last row (project rule beats the Figma sample) — both reported. (3) The shared GEAPPager change hit EVERY
+  list: the BO workplace grid had a FIXED 64 footer row (`auto minmax(0,1fr) 64px`) → the wrapped pager spilled over the
+  table on phones; found only by cropping dos-05 at 375 → row `auto` (footer min 64). Always crop every host of a shared
+  component (RAP, Cabinet sm/pp, BO dos-05, eKYC) at 1440 / 1024 / 375. (4) 9 phone slots (‹ + 7 + ›) at 32 + 8 = 352 >
+  343 → 1 px page overflow (innerWidth turned 376 in the probe — a cheap overflow tell); the library says 5 slots on small
+  screens → ONE list with both windows merged by position (page p at 2p, a „…” after page a at 2a + 1) and
+  `__item--wide / --narrow` classes; and a „…” never hides a single page. (5) code-audit flagged the library `.select-control`
+  as a non-library button → added it to the tool's library list (it IS the library Select trigger), icon colour =
+  currentColor. (6) Keyboard path for an abbreviation tooltip without 16 extra tab stops: the focusable row carries
+  `data-tooltip-focus` (GEAPTooltip shows its first `[data-tooltip-text]` child) + the full name in the row's aria-label and
+  a visually hidden span; the row-end button is `tabindex=-1` (the row stays the path). (7) Wider desktop key column must
+  not change phones: col widths in a fixed-layout table are absolute → restate the old phone widths in the ≤ 760 block
+  (else Beneficiar filled the whole 375 screen and hid the sideways-scroll hint). No sub-agent tool → hover-audit 0 / 0
+  (register, table, pager on rap / dos / pp), component-audit 0 new majors (standing header / avatar menu / BO th sort),
+  code-audit 0 after the fix; tooltips proved with a real-mouse probe (clamped name shows, short name does not, authority
+  + button names, row focus → authority).

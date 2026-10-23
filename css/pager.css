@@ -1,9 +1,11 @@
 /* ==========================================================================================================
    List pager — ONE component (audit-fix-v3, 2026-10-21; js/pager.js `GEAPPager.html`, promoted from the
    EVO Cabinet `.cab-pager`). Loaded after the product CSS on the BO page, e-permits-shell.html, Cabinet and RAP.
-   „1–16 din 33” (14/20 tertiary) · library `.pagination` (40 links, 4 radius; ≤768 the library 32 links) ·
-   „N pe pagină ⌄” = library `btn btn-text-neutral btn-sm` + the dropdown item menu (css/dropdown.css sizes)
-   opening ABOVE the trigger (the pager sits at the end of a list / in a sticky footer).
+   = the library Pagination as drawn on the RAP list (rap-table-flat-v1, 2026-10-23; Components 144:4346, RAP Figma
+   22080:133246): summary left — „Se afișează 1–16 din 1567 de rezultate” (14/20 secondary, numbers medium default)
+   · 24 · „<Acte> pe pagină:” + the library select field (`.select-control`, 40 · r8 · 14/20; the dropdown item menu
+   opens ABOVE it) — and the pages right: „‹ Anterior” · library `.pagination` items 40 (gap 16) · „Următor ›”
+   (24 from the items; disabled = the disabled text colour). ≤ 768 the library items 32 without the words.
    Placement (margins, the BO sticky footer) belongs to the host, never to this file.
    ========================================================================================================== */
 
@@ -11,35 +13,80 @@
   align-items: center;
   display: flex;
   flex-wrap: wrap;
-  gap: var(--spacing-16, 16px);
+  gap: var(--spacing-16, 16px) var(--spacing-24, 24px);
   justify-content: space-between;
   width: 100%;
 }
 
+.e-permits-pager__summary {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-8, 8px) var(--spacing-24, 24px);
+}
+
 .e-permits-pager__range {
-  color: var(--color-text-base-tertiary, #757575);
+  color: var(--color-text-base-secondary, #383838);
   font-size: var(--font-size-fs-14, 14px);
   line-height: var(--line-height-lh-20, 20px);
   margin: 0;
 }
 
+.e-permits-pager__range strong {
+  color: var(--color-text-base-default, #121212);
+  font-weight: var(--font-weight-fw-medium, 500);
+}
+
+/* ---- pages: the library list, the Figma rhythm (items 16 apart, Anterior / Următor 24 from them); when the row
+   wraps (narrow hosts) the pages stay on the right ---- */
+.e-permits-pager__nav {
+  margin-left: auto;
+}
+
 .e-permits-pager .pagination {
   display: flex;
-  gap: var(--spacing-4, 4px);
+  gap: var(--spacing-16, 16px);
   margin: 0;
   padding: 0;
+}
+
+.e-permits-pager .pagination__item:has(> .pagination__link--prev) {
+  margin-right: var(--spacing-8, 8px);
+}
+
+.e-permits-pager .pagination__item:has(> .pagination__link--next) {
+  margin-left: var(--spacing-8, 8px);
 }
 
 .e-permits-pager .pagination__link {
   appearance: none;
   border: 0;
+  color: var(--color-text-base-default, #121212);
   cursor: pointer;
   font-family: inherit;
 }
 
+.e-permits-pager .pagination__link--active {
+  color: var(--color-text-base-inverse-default, #fff);
+}
+
+/* Anterior / Următor = the library text button with a chevron (button-text-rectangular): 40 · 14/20 medium ·
+   icon 20 · gap 6 · padding 12 */
+.e-permits-pager .pagination__link--nav {
+  line-height: var(--line-height-lh-20, 20px);
+}
+
 .e-permits-pager .pagination__link .icon {
+  flex: 0 0 var(--icon-size-medium, 20px);
   height: var(--icon-size-medium, 20px);
   width: var(--icon-size-medium, 20px);
+}
+
+/* disabled (first / last page): kept in place, the disabled text colour instead of the library half opacity */
+.e-permits-pager .pagination__link--nav.pagination__link--disabled {
+  color: var(--color-text-disabled-default, #b2b2b2);
+  cursor: default;
+  opacity: 1;
 }
 
 /* hover: tertiary on white; the current page one brand step deeper (hover rules per component class) */
@@ -57,13 +104,48 @@
   opacity: 1;
 }
 
-/* ---- „N pe pagină ⌄” + its menu ---- */
+/* ---- „<Acte> pe pagină: [16 ⌄]” = label + the library select field + its menu ---- */
 .e-permits-pager__size {
+  align-items: center;
+  display: flex;
+  gap: var(--spacing-8, 8px);
   position: relative;
 }
 
-.btn.e-permits-pager__trigger[aria-expanded="true"] {
-  background: var(--color-background-base-tertiary-hover, #d9d9d9);
+.e-permits-pager__size-label {
+  color: var(--color-text-base-secondary, #383838);
+  font-size: var(--font-size-fs-14, 14px);
+  line-height: var(--line-height-lh-20, 20px);
+  white-space: nowrap;
+}
+
+/* the library field at the desktop field size (40 · 14/20, user rule: fields 40 desktop / 48 phones) */
+.e-permits-pager .select-control.e-permits-pager__trigger {
+  color: var(--color-text-base-default, #121212);
+  font-family: inherit;
+  font-size: var(--font-size-fs-14, 14px);
+  gap: var(--spacing-8, 8px);
+  height: var(--spacing-40, 40px);
+  line-height: var(--line-height-lh-20, 20px);
+  min-width: 0;
+  padding: 0 var(--spacing-12, 12px);
+  width: auto;
+}
+
+.e-permits-pager .select-control.e-permits-pager__trigger .icon {
+  color: currentColor;
+  height: var(--icon-size-medium, 20px);
+  width: var(--icon-size-medium, 20px);
+}
+
+/* open = the field's focus look stays while its menu is open (open-button rule) */
+.e-permits-pager .select-control.e-permits-pager__trigger[aria-expanded="true"] {
+  border-color: var(--select-accent);
+  box-shadow: 0 0 0 4px var(--select-focus-ring, rgba(3, 102, 214, 0.12));
+}
+
+.e-permits-pager .select-control.e-permits-pager__trigger[aria-expanded="true"] .icon {
+  transform: rotate(180deg);
 }
 
 .e-permits-pager .e-permits-pager__menu {
@@ -74,10 +156,10 @@
   left: auto;
   list-style: none;
   margin: 0;
+  min-width: 120px;
   position: absolute;
   right: 0;
   top: auto;
-  width: 200px;
   z-index: 30;
 }
 
@@ -116,9 +198,52 @@
   outline: none;
 }
 
-/* phones: range on its own line, the pages + size under it, centred */
-@media (max-width: 600px) {
+/* the page window: 7 slots on wider screens, 5 on phones (js/pager.js tags the slots of only one window) */
+.e-permits-pager .e-permits-pager__item--narrow {
+  display: none;
+}
+
+@media (max-width: 760px) {
+  .e-permits-pager .e-permits-pager__item--narrow {
+    display: inline-flex;
+  }
+
+  .e-permits-pager .e-permits-pager__item--wide {
+    display: none;
+  }
+}
+
+/* ≤ 768 = the library mobile pagination (items 32, gap 8, no words); Anterior / Următor keep their names */
+@media (max-width: 768px) {
+  .e-permits-pager .pagination {
+    gap: var(--spacing-8, 8px);
+  }
+
+  .e-permits-pager .pagination__item:has(> .pagination__link--prev),
+  .e-permits-pager .pagination__item:has(> .pagination__link--next) {
+    margin: 0;
+  }
+}
+
+/* phones: the pages on their own centred row first, the summary under them (the field at the phone size 48 · 16/24) */
+@media (max-width: 760px) {
   .e-permits-pager {
-    justify-content: center;
+    flex-direction: column-reverse;
+    gap: var(--spacing-16, 16px);
+  }
+
+  .e-permits-pager__nav {
+    margin-inline: auto;
+  }
+
+  .e-permits-pager__summary {
+    justify-content: space-between;
+    width: 100%;
+  }
+
+  .e-permits-pager .select-control.e-permits-pager__trigger {
+    font-size: var(--font-size-fs-16, 16px);
+    height: var(--spacing-48, 48px);
+    line-height: var(--line-height-lh-24, 24px);
   }
 }

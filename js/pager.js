@@ -1,7 +1,8 @@
 /* ==========================================================================================================
    GEAPPager — ONE list pager for every product (audit-fix-v3, 2026-10-21; promoted from CabEvo.pagerHtml)
-   „1–16 din 33” · library `.pagination` (‹ 1 2 3 … 9 ›) · „16 pe pagină ⌄” (library `btn btn-text-neutral btn-sm`
-   opening the one dropdown item menu). Used by EVO Cabinet (Actele mele permisive, Solicitările mele), RAP and
+   = the library Pagination as drawn on the RAP list (rap-table-flat-v1, 2026-10-23): „Se afișează 1–16 din 33 de
+   rezultate” · „<sizeLabel>: [16 ⌄]” (library `.select-control` opening the one dropdown item menu) · library
+   `.pagination` („‹ Anterior” 1 2 3 4 5 … 9 „Următor ›”, 7 slots; 5 on phones). Used by EVO Cabinet (Actele mele permisive, Solicitările mele), RAP and
    every BO / eKYC / Ghișeu registry (the shell workplace footer). No pager when everything fits on the smallest
    page size.
 
@@ -20,19 +21,34 @@
   const SPRITE = defaultSprite();
   let uid = 0;
 
-  /* page window: every page up to 7, else 1 … (p − 1) p (p + 1) … N (7 slots) */
-  function pageList(page, pages) {
-    if (pages <= 7) return Array.from({ length: pages }, (_, i) => i + 1);
-    const out = [1];
-    let from = Math.max(2, page - 1);
-    let to = Math.min(pages - 1, page + 1);
-    if (page <= 3) { from = 2; to = 4; }
-    if (page >= pages - 2) { from = pages - 3; to = pages - 1; }
-    if (from > 2) out.push("…");
-    for (let p = from; p <= to; p += 1) out.push(p);
-    if (to < pages - 1) out.push("…");
-    out.push(pages);
-    return out;
+  /* page window = the library „Pagination Logic” (Components 144:4346, rap-table-flat-v1): at most 7 slots, the
+     overflow „…” included — every page up to 7; near the start 1 2 3 4 5 … N; near the end 1 … N−4 … N; in the
+     middle 1 … p−1 p p+1 … N */
+  function pageList(page, pages, slots = 7) {
+    const range = (from, to) => Array.from({ length: to - from + 1 }, (_, i) => from + i);
+    if (pages <= slots) return range(1, pages);
+    const edge = slots - 2; /* 5 of 7 / 3 of 5 next to one „…” */
+    const side = (slots - 5) / 2; /* 1 neighbour each side of the current page at 7 slots, none at 5 */
+    /* a „…” always hides at least 2 pages (library: never „1 … 3”) */
+    if (page <= edge - side) return [...range(1, edge), "…", pages];
+    if (page >= pages - edge + 1 + side) return [1, "…", ...range(pages - edge + 1, pages)];
+    return [1, "…", ...range(page - side, page + side), "…", pages];
+  }
+
+  /* desktop 7 slots, phones 5 (the library: „on smaller screens more pages are truncated, 5 slots minimum”) → ONE
+     list: every slot of either window, tagged with the window(s) it belongs to (a „…” sits after page a = position
+     2a + 1, so the two windows merge in order) */
+  function slotList(page, pages) {
+    const at = new Map();
+    const add = (list, mode) => list.forEach((p, i) => {
+      const pos = p === "…" ? 2 * list[i - 1] + 1 : 2 * p;
+      const slot = at.get(pos) || { p, modes: new Set() };
+      slot.modes.add(mode);
+      at.set(pos, slot);
+    });
+    add(pageList(page, pages, 7), "wide");
+    add(pageList(page, pages, 5), "narrow");
+    return [...at.entries()].sort((a, b) => a[0] - b[0]).map(([, slot]) => ({ p: slot.p, only: slot.modes.size === 2 ? "" : [...slot.modes][0] }));
   }
 
   function html({ total, page = 1, perPage, sizes = [10, 20, 50], prefix = "pager", label = "Paginare", sizeLabel = "Rânduri pe pagină", sprite = SPRITE } = {}) {
@@ -43,27 +59,36 @@
     const first = (current - 1) * perPage + 1;
     const last = Math.min(total, current * perPage);
     const menuId = `${prefix}-per-page-${++uid}`;
-    const link = (target, text, { disabled = false, active = false, aria = "" } = {}) => `
-      <li class="pagination__item">
-        <button class="pagination__link${active ? " pagination__link--active" : ""}${disabled ? " pagination__link--disabled" : ""}" type="button" data-${prefix}-page="${target}"${disabled ? " disabled" : ""}${active ? ' aria-current="page"' : ""}${aria ? ` aria-label="${esc(aria)}"` : ""}>${text}</button>
+    /* Romanian counts: 20 and up (by the last two digits) take „de” — „1567 de rezultate”, „16 rezultate” */
+    const ofCount = (n) => (n % 100 === 0 || n % 100 >= 20 ? `${n} de` : String(n));
+    const link = (target, text, { disabled = false, active = false, aria = "", nav = "", only = "" } = {}) => `
+      <li class="pagination__item${only ? ` e-permits-pager__item--${only}` : ""}">
+        <button class="pagination__link${nav ? ` pagination__link--nav pagination__link--${nav}` : ""}${active ? " pagination__link--active" : ""}${disabled ? " pagination__link--disabled" : ""}" type="button" data-${prefix}-page="${target}"${disabled ? " disabled" : ""}${active ? ' aria-current="page"' : ""}${aria ? ` aria-label="${esc(aria)}"` : ""}>${text}</button>
       </li>`;
-    const gap = '<li class="pagination__item" aria-hidden="true"><span class="pagination__link pagination__link--disabled e-permits-pager__gap">…</span></li>';
+    const gap = (only) => `<li class="pagination__item${only ? ` e-permits-pager__item--${only}` : ""}" aria-hidden="true"><span class="pagination__link pagination__link--disabled e-permits-pager__gap">…</span></li>`;
+    /* the library Pagination (Components 144:4346; RAP Figma 22080:133246, rap-table-flat-v1): summary left
+       („Se afișează 1–16 din 1567 de rezultate” · „<sizeLabel>: [16 ⌄]” = the library select field), the pages right
+       („‹ Anterior” · 1 2 3 4 5 … N · „Următor ›”; ≤ 768 the library drops the words and the items to 32) */
+    const countText = (n) => { const [num, de] = ofCount(n).split(" "); return `<strong>${num}</strong>${de ? " de" : ""}`; };
     return `
       <div class="e-permits-pager">
-        <p class="e-permits-pager__range">${first}–${last} din ${total}</p>
+        <div class="e-permits-pager__summary">
+          <p class="e-permits-pager__range">Se afișează <strong>${first}</strong>–<strong>${last}</strong> din ${countText(total)} rezultate</p>
+          <div class="e-permits-pager__size">
+            <span class="e-permits-pager__size-label" id="${menuId}-label">${esc(sizeLabel)}:</span>
+            <button class="select-control e-permits-pager__trigger" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="${menuId}" aria-labelledby="${menuId}-label ${menuId}-value" data-pager-size-trigger><span class="select-value" id="${menuId}-value">${perPage}</span>${icon("icon-chevron-bottom")}</button>
+            <ul class="e-permits-fo-intent-menu e-permits-pager__menu" id="${menuId}" role="menu" aria-label="${esc(sizeLabel)}" hidden>
+              ${sizes.map((size) => `<li role="none"><button class="e-permits-fo-intent-menu__item" type="button" role="menuitemradio" aria-checked="${size === perPage}" data-${prefix}-per-page="${size}"><span>${size}</span>${size === perPage ? icon("icon-checkmark-large") : ""}</button></li>`).join("")}
+            </ul>
+          </div>
+        </div>
         <nav class="e-permits-pager__nav" aria-label="${esc(label)}">
           <ul class="pagination">
-            ${link(current - 1, icon("icon-chevron-left-small"), { disabled: current === 1, aria: "Pagina anterioară" })}
-            ${pageList(current, pages).map((p) => (p === "…" ? gap : link(p, String(p), { active: p === current, aria: `Pagina ${p}` }))).join("")}
-            ${link(current + 1, icon("icon-chevron-right-small"), { disabled: current === pages, aria: "Pagina următoare" })}
+            ${link(current - 1, `${icon("icon-chevron-left")}<span class="pagination__link--text">Anterior</span>`, { disabled: current === 1, aria: "Anterior, pagina anterioară", nav: "prev" })}
+            ${slotList(current, pages).map(({ p, only }) => (p === "…" ? gap(only) : link(p, String(p), { active: p === current, aria: `Pagina ${p}`, only }))).join("")}
+            ${link(current + 1, `<span class="pagination__link--text">Următor</span>${icon("icon-chevron-right")}`, { disabled: current === pages, aria: "Următor, pagina următoare", nav: "next" })}
           </ul>
         </nav>
-        <div class="e-permits-pager__size">
-          <button class="btn btn-text-neutral btn-sm e-permits-pager__trigger" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="${menuId}" data-pager-size-trigger><span>${perPage} pe pagină</span>${icon("icon-chevron-bottom")}</button>
-          <ul class="e-permits-fo-intent-menu e-permits-pager__menu" id="${menuId}" role="menu" aria-label="${esc(sizeLabel)}" hidden>
-            ${sizes.map((size) => `<li role="none"><button class="e-permits-fo-intent-menu__item" type="button" role="menuitemradio" aria-checked="${size === perPage}" data-${prefix}-per-page="${size}"><span>${size} pe pagină</span>${size === perPage ? icon("icon-checkmark-large") : ""}</button></li>`).join("")}
-          </ul>
-        </div>
       </div>`;
   }
 

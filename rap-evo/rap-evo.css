@@ -366,9 +366,9 @@ a {
 }
 
 .rap-table-scroller {
-  background: #fff;
-  border: var(--border-width-1, 1px) solid var(--rap-border);
-  border-radius: var(--border-radius-12, 12px);
+  /* flat table (rap-table-flat-v1, 2026-10-23; Ramona on RAP Figma 22080:133246: „let's not use this rounded-shape
+     table”): no outer border / radius — the grey header band on top, row dividers between rows, nothing around */
+  background: var(--color-background-base-default, #fff);
   box-sizing: border-box;
   overflow-x: auto;
   overflow-y: hidden;
@@ -382,18 +382,21 @@ a {
   width: 1280px;
 }
 
+/* rap-table-flat-v1 (2026-10-23, user + Ramona): „Beneficiar” is the key column → the widest (382, was 313); „Autoritate”
+   shows only the abbreviation (96, was 186 — „ANSP” / „ANRE” + the 12 insets); the action column holds the 32 outlined
+   button (56, was 44); the 1280 total is unchanged (the list width; ≤ 1280 the table scrolls sideways as before) */
 .rap-table__col--beneficiary {
-  width: 313px;
+  width: 382px;
 }
 
 /* 14px of „Denumire act” went to „Statut” (2026-10-17): the blue „Aprobare tacită” Small tag is 100 wide
    and the status cell's content box was 87 (111 − 2 × 12) */
 .rap-table__col--permit {
-  width: 299px;
+  width: 308px;
 }
 
 .rap-table__col--authority {
-  width: 186px;
+  width: 96px;
 }
 
 .rap-table__col--number {
@@ -409,21 +412,23 @@ a {
 }
 
 .rap-table__col--action {
-  width: 44px;
+  width: 56px;
 }
 
+/* header = the library table-header „Subtle” (GEAP Components ulaLp9rK3kyehmlpJBfR6Y › Table › Header Styles 653:10481,
+   updated by Ramona 2026-10-23): 32 high (8 + 16 + 8), background base tertiary, Caption/Medium 12/16 in the default
+   text colour, no line under it (the band itself is the edge); the inline inset stays the cells' 12 so every title sits
+   over its values (the library cell's 24 would cost 168 px across 7 columns — the status tag would not fit) */
 .rap-table thead {
-  background: var(--rap-surface-subtle);
+  background: var(--color-background-base-tertiary, #f1f1f1);
 }
 
 .rap-table th {
-  border-bottom: var(--border-width-1, 1px) solid var(--rap-border);
-  color: var(--rap-text-secondary);
+  color: var(--color-text-base-default, #121212);
   font-size: var(--font-size-fs-12, 12px);
-  font-weight: 500;
-  height: 38px;
+  font-weight: var(--font-weight-fw-medium, 500);
   line-height: var(--line-height-lh-16, 16px);
-  padding: 0 var(--spacing-12, 12px);
+  padding: var(--spacing-8, 8px) var(--spacing-12, 12px);
   text-align: left;
   vertical-align: middle;
 }
@@ -435,7 +440,9 @@ a {
   font-weight: 400;
   height: 56px;
   line-height: var(--line-height-lh-20, 20px);
-  padding: 0 var(--spacing-12, 12px);
+  /* 8 above / below: a 2-line name (40) fills the 56 row exactly (Figma rap-01e: text 8 from the top, 40 high); a
+     longer beneficiary (2 lines + its identifier) grows the row */
+  padding: var(--spacing-8, 8px) var(--spacing-12, 12px);
   transition: background-color 100ms ease;
   vertical-align: middle;
 }
@@ -530,23 +537,33 @@ a {
   white-space: nowrap;
 }
 
-.rap-row-action {
-  align-items: center;
-  display: flex;
-  justify-content: center;
+/* 2 lines at most, „…” at the end; the full text in the tooltip only when it is really cut (data-cell-tooltip,
+   js/icon-tooltip.js reads the line clamp) — Beneficiar and Denumire act (rap-table-flat-v1) */
+.rap-clamp {
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  display: -webkit-box;
+  line-clamp: 2;
+  min-width: 0;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+  white-space: normal;
 }
 
-.rap-row-action .icon {
-  color: var(--rap-text-tertiary);
-  height: 20px;
-  transition: color 100ms ease, transform 100ms ease;
-  width: 20px;
-}
-
-.rap-table tbody tr:hover .rap-row-action .icon,
-.rap-table tbody tr:focus-visible .rap-row-action .icon {
+/* „Autoritate” = the abbreviation only; the full name = its plain tooltip (hover) + visually hidden text */
+.rap-authority {
   color: var(--rap-text);
-  transform: translateX(2px);
+  cursor: default;
+}
+
+/* the last cell = the library outlined icon-only Small button (32, chevron 16) — „Add a bordered button to the last
+   element in the table” (user, rap-table-flat-v1); its own library hover; on the row's hover band it stays white */
+.rap-table__action {
+  text-align: right;
+}
+
+.rap-table tbody tr:is(:hover, :focus-visible) .rap-row-action:not(:hover, :active) {
+  background: var(--color-background-base-default, #fff);
 }
 
 /* the list pager = the shared component (css/pager.css, audit-fix-v3); the register's footer inset only — 16 on every
@@ -1094,17 +1111,21 @@ tr:hover .rap-act-link {
 /* AC-09 „Imprimă”: only the A4 page(s), at their real size = GEAPDocPreview.print (css/doc-preview.css) */
 
 
-/* phones (user 2026-10-17): the table runs edge to edge — out of the 16px page gutter, no rounded
-   corners, no side borders (top / bottom lines only), so every column gets the full width */
+/* phones (user 2026-10-17): the table runs edge to edge — out of the 16px page gutter, so every column gets the full
+   width (the flat table of rap-table-flat-v1 has no box to drop any more) */
 @media (max-width: 760px) {
   .rap-register {
     margin-inline: calc(var(--spacing-16, 16px) * -1);
   }
 
-  .rap-table-scroller {
-    border-left: 0;
-    border-radius: 0;
-    border-right: 0;
+  /* the key column keeps its phone width (313, as before rap-table-flat-v1) so the next column still peeks in at 375
+     and tells the table scrolls sideways; its 69 go to „Denumire act” */
+  .rap-table__col--beneficiary {
+    width: 313px;
+  }
+
+  .rap-table__col--permit {
+    width: 377px;
   }
 
   /* the first column keeps the page's 16 edge, so the table lines up with the search above */
