@@ -3219,3 +3219,16 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   0 / 0 (covered only in the ⓘ-open state = the hint itself), code-audit 0 new (standing: FO buttons, search × overlap,
   off-scale paddings of the doc card / lookup), component-audit 0 in `.e-permits-fo-form__roles` after the inventory row,
   capture 0 errors / 0 overflow (fo-02 / 02h / cat-04 also at 375). Demo fo-02h, gh-03b1 / 03a1 / 03c1.
+- 2026-10-23 · export-modal-csv-v1 (user, the same day as ghiseu-autosave-csv-v1: „on export, still show the modal — it has nice
+  info about personal data”). Lesson: „one format left” removed the CHOICE, not the reason for the dialog — a dialog that also
+  carries a legal / privacy notice (personal data, audit log) stays; drop only the control that lost its purpose. Restored from
+  `git show cf6c954e^:js/ghiseu.js` (old title „Exportă lista” → „Exportă dosarele”, same subtitle + `renderInfoNote` text, the
+  segmented Excel / CSV removed, lead line „Fișierul se descarcă în format CSV.”, primary „Exportă CSV” with `icon-export`);
+  the toast lost its audit sentence (the dialog says it). The shared `view.exportLabel` hook needed no change — the registry's
+  `exportRows` decides dialog vs direct download. Keyboard proof needs a REAL opener focus: a demo `h.click()` opens the library
+  modal without focusing the button, so `__lastFocused` = body and „focus return” looks broken — probe by focusing the toolbar
+  button and pressing Enter (CDP keyDown needs `text: "\r"` or the button never activates). Proven: × first, Tab cycles × →
+  Anulează → Exportă CSV, Esc / Anulează / confirm return focus to „Exportă CSV” in the toolbar. Open: export with 0 rows (search
+  „zzz”) still offers „0 înregistrări” + an empty CSV (pre-existing) — PO question. Toast wraps the file name at its hyphen
+  („dosare-” / „noi.csv”) at 1440 — library toast width, reported. QA: hover-audit 0 / 0 (dialog scope), code-audit 0 (static +
+  runtime), component-audit 0 in the dialog (standing profile-menu majors only), capture 0 errors / 0 overflow. Demo gh-01e2 (new).

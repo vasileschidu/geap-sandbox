@@ -6048,7 +6048,8 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     /* ghiseu-autosave-csv-v1: a registry with ONE export format names it on the icon button (name + tooltip,
-       e.g. „Exportă CSV”, view.exportLabel); the click downloads at once (no format menu) */
+       e.g. „Exportă CSV”, view.exportLabel); the click calls the registry's exportRows (no format menu — the Ghișeu
+       opens its CSV dialog, export-modal-csv-v1) */
     const workplaceExport = document.querySelector("[data-workplace-export]");
     if (workplaceExport) workplaceExport.setAttribute("aria-label", view.exportLabel || "Exportă");
 

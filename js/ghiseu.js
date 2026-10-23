@@ -508,7 +508,8 @@
             { id: "submitted", label: "Dosare nedistribuite", filter: "gh:submitted" }
           ],
           primaryAction: can() ? { id: "gh-new", label: "Dosar nou" } : null,
-          /* CSV only (gh-01e, user 2026-10-23): one format → the export button exports at once */
+          /* CSV only (gh-01e, user 2026-10-23): one format → the button is named „Exportă CSV” and opens the
+             export dialog without a format choice (export-modal-csv-v1) */
           exportLabel: "Exportă CSV"
         }
       },
@@ -593,7 +594,7 @@
       if (query || filtered) return E?.noResults?.("Nicio înregistrare nu corespunde criteriului de căutare", { text: "Caută după numărul cererii, numele solicitantului sau companie.", bare: true });
       return E?.render({ title: "Nu sunt schițe înregistrate.", text: "Cererile începute la ghișeu apar aici până la confirmarea depunerii.", icon: "page-text", bare: true, actionHtml: '<button class="btn btn-primary btn-sm" type="button" data-workplace-add-product="gh-new">Dosar nou</button>' });
     },
-    exportRows: (rows) => exportCsv(rows)
+    exportRows: (rows) => openExport(rows)
   };
   /* the open registry draws its rows again (the nav item re-shows it), never over the wizard */
   const refreshRegistry = () => {
@@ -2682,6 +2683,7 @@
     const t = event.target;
     const ok = t.closest("[data-gh-remove-confirm]");
     if (ok) { confirmRemove(ok.dataset.ghRemoveConfirm); return; }
+    if (t.closest("[data-gh-export-confirm]")) { exportCsv(exportRowsCache); return; }
     if (t.closest("[data-gh-msign-ok]")) {
       const d = S.cur;
       closeModal();
@@ -2746,9 +2748,23 @@
   }
 
   /* US-241 AC-09 / AC-14 — export with the applied filters and the shown columns. ghiseu-autosave-csv-v1 (user
-     decision 2026-10-23, gh-01e): CSV only → one format left, so the toolbar export button („Exportă CSV”) downloads
-     at once — no format dialog. Excel-friendly CSV (BOM + semicolons, as the BO tariffs export); the old dialog's
-     personal-data note became the toast's „Exportul s-a înregistrat în Jurnalul de audit.” */
+     decision 2026-10-23, gh-01e): CSV only. export-modal-csv-v1 (user 2026-10-23: „still show the modal — it has
+     nice info about personal data”): the toolbar button („Exportă CSV”) opens the library dialog again — record
+     count + scope, the CSV hint and the personal-data note, NO format choice; „Exportă CSV” downloads.
+     Excel-friendly CSV (BOM + semicolons, as the BO tariffs export). */
+  let exportRowsCache = [];
+  function openExport(list) {
+    exportRowsCache = list;
+    openModal({
+      kind: "export",
+      title: "Exportă dosarele",
+      subtitle: `${plural(list.length, "înregistrare", "înregistrări")} · filtrele aplicate și coloanele afișate`,
+      body: `
+        <p class="e-permits-passport__lead">Fișierul se descarcă în format CSV.</p>
+        ${U().renderInfoNote?.("Lista conține date cu caracter personal: exportul se înregistrează în Jurnalul de audit.") || ""}`,
+      footer: `<div class="modal-buttons"><button class="btn btn-neutral btn-rounded" type="button" data-case-close>Anulează</button><button class="btn btn-primary btn-rounded" type="button" data-gh-export-confirm>${icon("export", 20, "icon small")}<span>Exportă CSV</span></button></div>`
+    });
+  }
   function exportCsv(list) {
     const head = ["Număr cerere", "Denumirea serviciului", "Nume solicitant", "Compania", "Substatut", "Data creării", "Data ultimei modificări", "Data expirării notei de plată", "Data eliminării automate"];
     const rows = list.map((r) => [r.nr, r.serviciu, r.solicitant, r.companie, r.substatut, stamp(r.creat), stamp(r.modificat), longDate(r.expirareNota), longDate(r.eliminare)]);
@@ -2760,7 +2776,9 @@
     setTimeout(() => URL.revokeObjectURL(a.href), 1000);
     S.audit.unshift({ at: nowIso(), user: userName(), action: "Export listă Dosare noi", detail: `${rows.length} înregistrări · CSV · reușit`, personal: true });
     writeStore();
-    U().showShellToast?.(`Am exportat ${plural(rows.length, "înregistrare", "înregistrări")} în ${name}. Exportul s-a înregistrat în Jurnalul de audit.`, "success");
+    closeModal();
+    /* the dialog already says the export goes to the audit log → the toast names only the result */
+    U().showShellToast?.(`Am exportat ${plural(rows.length, "înregistrare", "înregistrări")} în ${name}.`, "success");
   }
 
   /* „Istoricul cererii” — the request's audit entries, newest first */

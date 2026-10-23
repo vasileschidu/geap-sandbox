@@ -2991,10 +2991,12 @@
       "gh-01c": ghList(async (h) => { await h.click("[data-workplace-filter-toggle]"); }),
       /* lone-trash-v1: a draft row whose only action is „Elimină schița” = ONE grey trash (hovered: tooltip „Elimină schița”) */
       "gh-01d": ghList(async (h) => { await h.hover("tr[data-workplace-row='gh-4771'] .e-permits-gh-row-remove"); await h.wait(600); }),
-      /* ghiseu-autosave-csv-v1: CSV only → the export button („Exportă CSV” tooltip, hovered) downloads at once;
-         gh-01e1 = after the click: dosare-noi.csv + the success toast (no format dialog any more) */
+      /* CSV only (ghiseu-autosave-csv-v1) + the dialog back (export-modal-csv-v1): gh-01e = the export button hovered
+         („Exportă CSV” tooltip); gh-01e2 = the click → „Exportă dosarele” dialog (count + scope, CSV hint, personal-data
+         note, Anulează / Exportă CSV); gh-01e1 = „Exportă CSV” confirmed → dosare-noi.csv + the success toast */
       "gh-01e": ghList(async (h) => { await h.hover("[data-workplace-export]"); await h.wait(600); }),
-      "gh-01e1": ghList(async (h) => { await h.click("[data-workplace-export]"); await h.find(".toast"); await h.wait(300); }),
+      "gh-01e2": ghList(async (h) => { await h.click("[data-workplace-export]"); await h.find("#case-action-modal.is-active [data-gh-export-confirm]"); await h.wait(300); }),
+      "gh-01e1": ghList(async (h) => { await h.click("[data-workplace-export]"); await h.click("#case-action-modal.is-active [data-gh-export-confirm]"); await h.find(".toast"); await h.wait(300); }),
       "gh-01f": ghList(async (h) => { await h.click('[data-workplace-tab="submitted"]'); }),
       "gh-01g": { flow: "back-office", as: "ansp-specialist-chisinau", hash: "#ghiseu/nou", ready: "#gh-start-modal.is-active .e-permits-empty" },
       /* ghiseu-picker-toast-v1: a dossier submitted (gh-10a) → „Înapoi la Dosare noi” → the list with the library success toast */
