@@ -80,14 +80,15 @@
             ${link(current + 1, icon("icon-chevron-right"), { disabled: current === pages, aria: "Pagina următoare", nav: "next" })}
           </ul>
         </nav>
-        <!-- phones (≤ 760, pager-compact-v3, user): LEFT „Afișează mai multe” (library btn-secondary Medium = load more:
-             the page size grows by the smallest size, the window keeps the current first row; gone when every row shows),
-             RIGHT „‹ Anterior” „Următor ›” side by side (library btn-outline-strict Medium); no range / numbers / size -->
+        <!-- phones (≤ 760, pager-compact-v4, user): LEFT „Afișează mai multe” (library btn-text-primary Medium — blue
+             label, no fill at rest, light blue on hover / press = load more: the page size grows by the smallest size,
+             the window keeps the current first row; gone when every row shows), RIGHT ‹ › icon-only squares side by side
+             (library btn-outline-strict Medium); no range / numbers / size -->
         <nav class="e-permits-pager__steps" tabindex="-1" aria-label="${esc(label)}" data-pager-live="Se afișează ${first}–${last} din ${total}">
-          ${last < total ? `<button class="btn btn-secondary btn-md e-permits-pager__step e-permits-pager__more" type="button" data-${prefix}-per-page="${perPage + step}" data-${prefix}-page="${Math.floor((first - 1) / (perPage + step)) + 1}" data-pager-step="more">Afișează mai multe</button>` : ""}
+          ${last < total ? `<button class="btn btn-text-primary btn-md e-permits-pager__step e-permits-pager__more" type="button" data-${prefix}-per-page="${perPage + step}" data-${prefix}-page="${Math.floor((first - 1) / (perPage + step)) + 1}" data-pager-step="more">Afișează mai multe</button>` : ""}
           <span class="e-permits-pager__arrows">
-            <button class="btn btn-outline-strict btn-md e-permits-pager__step" type="button" data-${prefix}-page="${current - 1}" data-pager-step="prev"${current === 1 ? " disabled" : ""}>${icon("icon-chevron-left")}<span>Anterior</span></button>
-            <button class="btn btn-outline-strict btn-md e-permits-pager__step" type="button" data-${prefix}-page="${current + 1}" data-pager-step="next"${current === pages ? " disabled" : ""}><span>Următor</span>${icon("icon-chevron-right")}</button>
+            <button class="btn btn-outline-strict btn-md btn-icon-only e-permits-pager__step" type="button" data-${prefix}-page="${current - 1}" data-pager-step="prev" aria-label="Pagina anterioară"${current === 1 ? " disabled" : ""}>${icon("icon-chevron-left")}</button>
+            <button class="btn btn-outline-strict btn-md btn-icon-only e-permits-pager__step" type="button" data-${prefix}-page="${current + 1}" data-pager-step="next" aria-label="Pagina următoare"${current === pages ? " disabled" : ""}>${icon("icon-chevron-right")}</button>
           </span>
         </nav>
       </div>`;

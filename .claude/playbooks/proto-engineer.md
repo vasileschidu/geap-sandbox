@@ -2991,3 +2991,9 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   margin of the 24 gutter + the gutter as the first / last cell's outer padding (text stays on the search line, measured
   24 = 24) + the pager's inline padding; widen the action column by the gutter so the chevron keeps its 56 cell; (3) the
   hover-audit flags a focusable scroll region as „no-hover” — a region is not a control (triaged, reported).
+- 2026-10-23 · pager-compact-v4 (user: phone ‹ › icon-only, „Afișează mai multe” = blue text button that fills only on hover).
+  The library already had the exact variant (`btn-text-primary`: transparent + blue label, blue-sky-200 hover, 300 pressed) —
+  no CSS. Icon-only arrows (40 squares, aria-label „Pagina anterioară / următoare”) brought the row to 157 + 16 + 88 = 261 of
+  288 at 320 → ONE row everywhere, so the v3 container query (load more on its own row) was deleted, not kept as dead CSS.
+  Verified with real-mouse hover crops (rest / hover at 375 + 320) and a tap sequence (load more → 32 rows, next → focus on
+  „Pagina următoare”, live „Se afișează 33–64 din 1567”).
