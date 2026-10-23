@@ -2997,3 +2997,14 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   288 at 320 → ONE row everywhere, so the v3 container query (load more on its own row) was deleted, not kept as dead CSS.
   Verified with real-mouse hover crops (rest / hover at 375 + 320) and a tap sequence (load more → 32 rows, next → focus on
   „Pagina următoare”, live „Se afișează 33–64 din 1567”).
+- 2026-10-23 · sm-04h-error-toast-v1 (user on EVO Cabinet Figma 1265:4451: the inline „Formularul de suplinire nu s-a
+  deschis” + „Reîncercați” cut the alert + trajectory tray in half → „anywhere else, or a non-auto-closing toast”). A failed
+  ACTION on a profile = `GEAPToast.show({ type: "error", message, link: { href, label: "Reîncercați" }, duration: 0, key })`,
+  never an inline message in the panel (also moved: header „Continuă schița” sm-03e, header „Descarcă” sm-05c — both sat
+  above the alert); list rows keep `.cab-retry`. Traps: (1) `action:` renders a `button.toast__action` whose reset lives in
+  css/form-builder.css only → on Cabinet / RAP it paints as a raw UA button (white box) — use the library `link` slot when
+  the retry is an address; (2) the phone toast sits at the bottom and can land on the button that failed (320: overlap) →
+  `keepClearOfToast` scrolls just enough for 16, measured on the CONTAINER (the toast is still sliding in, its rect is off
+  by the animation); (3) the desktop top-right toast covers the EVO header actions (hover-audit „covered”) — library
+  position by decision, × closes it; flag it, don't move it. Dead CSS removed with it (`.cab-profile-notice`,
+  `.cab-alert-card__retry`).

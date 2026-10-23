@@ -2268,7 +2268,7 @@
     /* US-135 AC-14: the payment note expired (demo ?nota=expirata) — the message, no pay button (status unchanged) */
     "sm-04g": smDosar("d-sud", null, { nota: "expirata" }),
     "sm-04g1": sm(async (h) => { await h.scroll('[data-sm-card="d-sud"]'); }, { nota: "expirata" }),
-    /* US-24 AC-04: the redirect to the suplinire form fails (demo ?redirectionare=eroare) → error + „Reîncercați” */
+    /* US-24 AC-04: the redirect to the suplinire form fails (demo ?redirectionare=eroare) → profile: the non-auto-closing error toast + „Reîncercați” (sm-04h-error-toast-v1); row: the inline notice */
     "sm-04h": smDosar("d-nistru", async (h) => { await h.click('[data-sm-profile] [data-sm-alert] [data-sm-action="supplement"]'); }, { redirectionare: "eroare" }),
     "sm-04h1": sm(async (h) => { await h.scroll('[data-sm-card="d-nistru"]'); await h.click('[data-sm-card="d-nistru"] .e-permits-fo-intent-act__pending [data-sm-action="supplement"]'); }, { redirectionare: "eroare" }),
     /* 04i the suplinire term passed → back „În derulare” (US-24 AC-03) · 04j suplinire sent → examination resumed

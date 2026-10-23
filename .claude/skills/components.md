@@ -285,7 +285,7 @@ but this doc previously described it wrongly, see the entry.
 | Tacit approval mark in a list (US-19 AC-15) | `button.sm-tacit[data-sm-tip]` = `icon-circle-checkmark` + „Disponibilă aprobarea tacită” (12/16 medium brand, underline on hover) + the library tooltip | `tacitListMark`; demo sm-01k | page-app |
 | Profile tabs (EVO Cabinet request profile, US-161) | `.cab-profile-tabs` › BO page-header strip `.tabs.e-permits-page-header__tabs > .tab-buttons[role=tablist] > button.tab-button[role=tab][data-sm-tab]` + `.cab-profile-tabs__panel[role=tabpanel][data-sm-panel]`; ←/→/Home/End; hash `#dosar/<id>/<tab>` | `profileTabsHtml` / `selectTab`; demo sm-05 (Date generale), sm-05j / 05k / 05l / 05m | page-app |
 | Notification row (EVO Cabinet › Notificări, minimal) | the request stacked row `.e-permits-stack__item.sm-item.nt-item` + lead `.nt-item__icon--success/warning/danger/neutral` (32 circle, 20 icon) + `p.nt-item__text` + „Nou” Small info tag (≤ 3 days) + one labelled action | `cabinet-evo/notificari.js`; demo nt-01…01c | page-app |
-| Retry notice (EVO Cabinet) | `.cab-retry` = `.cab-message` error notice + `btn btn-strict btn-sm` „Reîncercați” (`icon-rotate-arrow`) on one row, wrapping ≤ 320 of notice (= Ghișeu `.e-permits-gh__retry`) | `solicitari.js redirectError` (US-24 AC-04); demo sm-04h, sm-04h1 | page-app |
+| Retry notice (EVO Cabinet) | `.cab-retry` = `.cab-message` error notice + `btn btn-strict btn-sm` „Reîncercați” (`icon-rotate-arrow`) on one row, wrapping ≤ 320 of notice (= Ghișeu `.e-permits-gh__retry`) — LIST ROWS only; on a request profile the same failure is the error toast (sm-04h-error-toast-v1) | `solicitari.js redirectError` (US-24 AC-04); demo sm-04h1 | page-app |
 | Act viewer — MDocs act in the document modal (RAP public page, US-143) | FO doc-modal shell `.e-permits-fo-doc-modal-overlay.rap-act-modal > .e-permits-fo-doc-modal.rap-act-modal__dialog` (header title „Forma de tipar a actului” since 2026-10-17 + the expandable subtitle, `.rap-act-modal__body` > grey `.e-permits-doc-peek__canvas.rap-act-modal__canvas` > A4 `.e-permits-dtpl__page.e-permits-doc-peek__page.rap-act-doc` zoomed to the canvas, footer „Imprimă” (`__cancel` + printer stroke icon) · „Închide” (`__submit`)); loading / errors = `GEAPEmptyState` bare (spinner / `circle-error`, AC texts) in the canvas; page content `.rap-act-doc__head/__arms/__country/__authority/__office/__number/__foot/__sign/__signed/__qr/__qr-code/__footer`; status ≠ Valabil → `.rap-act-doc__watermark--warning/--danger/--neutral` (tag tone); ≤600 full-height sheet (24 from the top, r16 top) (phones ≤760 since 2026-10-19: the shared rule „Modals on phones — maximum content space”, 16 from the top, radius 16); `@media print` prints the page only. Shared CSS for pages without the FO stylesheet: `css/doc-modal-parts.css` | `openActDocument(record, opener)` / `renderActPage` / `fitActPage` in `rap-evo/rap-evo.js`; demo `rap-03…03f`, `?mdocs=incarcare\|indisponibil\|date\|sablon` | page-app |
 | Card radius 16 — list cards + document viewer (radius-16-v1, 2026-10-21; 24 tried and rejected, Foundations has no 20) | `--border-radius-16` on act / request rows, notifications, catalog cards, the request status notice (callout default), the viewer canvas + signature card — every width; Cabinet document cards = the one FO document-card surface 12; inner alerts 12; trajectory / status tracker card stays 24 (dos-01) | the card's own rule — § „Card radius” |
 | Document viewer — preview + signature card (doc-viewer-v2, 2026-10-21, GEAP 2.0 11366:6892) | every document (generated + uploaded) = header · A4 canvas filling the dialog (r16 + inset 1px border-default ring) · 12 · `div.e-permits-doc-signature` (Small brand tag `icon-signature` „Semnat electronic” ABOVE `p.e-permits-doc-signature__meta` „MSign · signer · date, time” 14/20 tertiary; grey card r16, pad 12 16, gap 2, as wide as the canvas) · footer; no „Date generale”, no „Doar citire”, no badge by the title; unsigned = no card | `GEAPDocPreview.signatureHtml` (js/doc-preview.js, css/doc-preview.css › „Signature block”); BO `openDosarDetail`, `CabEvo.openDocModal({ generated, signature })`, `GEAPActView` document dialog, Ghișeu `previewSignature`; section „Generated document viewer”; demo `dos-04s`, `sm-05f`, `pp-01m`, `rap-03l`, `gh-10d` | app + page-app |
@@ -4062,6 +4062,19 @@ modals. Back office: `showShellToast(message, tone, title?)`; front office:
 `showFrontOfficeToast`; RAP: its `showToast(message, type)` — all delegate here.
 The old `.e-permits-shell-toast`, `.e-permits-fo-toast`, `.rap-toast` are removed.
 
+**Failed action on a profile = error toast that stays (sm-04h-error-toast-v1, 2026-10-23; user on EVO Cabinet Figma
+1265:4451: „this one should not cut the alert and timeline in half — put it anywhere else, or as a non-auto-closing
+toast”).** When a profile action fails (Cabinet request profile: the alert card's „Completează informația” sm-04h, the
+header's „Continuă schița” sm-03e, the header's „Descarcă” sm-05c), never put an inline message in the panel — show
+`GEAPToast.show({ type: "error", message, link: { href: <the action's address>, label: "Reîncercați" }, duration: 0,
+key })`: library error toast, text-only, role=alert (announced; focus stays on the button), the retry in the library
+LINK slot (retrying = the redirect, so the toast leaves with the page), × closes it; a new attempt replaces it (same
+key). Download has no link (the header button retries; a new attempt dismisses the old toast first). Position = the
+library container: desktop top-right 24 / 24, 350 wide; phones (≤ 768) bottom 24, centred, `min(350, 100vw − 32)`
+(343 at 375, 288 at 320). Phones: `keepClearOfToast` scrolls the page just enough to keep 16 between the failed
+button and the toast. List rows keep `.cab-retry` in the row's notice slot. Note: `.toast__action` (the undo button
+slot) is styled only in css/form-builder.css — on other pages use `link`, or move that reset to a shared file first.
+
 ### Pașaportul Serviciului — registry + profile (Feature 90575)
 
 - **Rules:** `core/service-passport.js` (`GEAP.servicePassport`) — RSSP mapping and
@@ -6382,8 +6395,8 @@ Coordinator: radius 24 (list cards stay 16), directly under the profile header, 
   alert-timeline-fused-v1, where the trajectory turned grey — user: „leave the timeline as it was (stroke and white bg)”,
   then „no padding at all”, then „round on ALL corners, as in Figma”).** ONE modifier on the request alert,
   `cab-alert-card--fused` (solicitari.js `alertCardHtml`); it acts only while the card is DIRECTLY followed by `.cab-status`
-  (cabinet-evo.css › „Alert + trajectory tray”), so an error line between them (sm-04h) or the act profile keeps the
-  separate card. Values (measured from the Figma pixels, 1200 wide):
+  (cabinet-evo.css › „Alert + trajectory tray”); the act profile keeps the separate card. Nothing ever sits between the
+  alert and the trajectory: a failed action of the card / header is the error TOAST (sm-04h-error-toast-v1, below). Values (measured from the Figma pixels, 1200 wide):
   - tray = the grey alert on top (`--color-background-base-secondary`, radius 24 24 0 0, padding 24 / phones 16, no gap
     under it) + the trajectory card EXACTLY as before, flush under it, same width (no inset);
   - trajectory card: white `--color-background-base-default`, 1px `--color-border-base-default`, radius 24 on all four
@@ -6394,7 +6407,7 @@ Coordinator: radius 24 (list cards stay 16), directly under the profile header, 
   - phones, horizontal trajectory: icon + step label only — the date / who / „Termen …” lines are visually hidden (kept for
     screen readers, also hidden while the fit is measured); a trajectory that still stacks shows them (sm-04b at 320).
     Cabinet only, the BO dossier trajectory keeps its lines.
-  Demo sm-03, sm-03h, sm-04, sm-04a, sm-04b, sm-04c, sm-05, sm-05a, sm-05u (sm-04h = the separate fallback).
+  Demo sm-03, sm-03h, sm-04, sm-04a, sm-04b, sm-04c, sm-04h (with the error toast), sm-05, sm-05a, sm-05u.
 - **Profile tabs under it (same job; user: „the separator is disrupted — do nice padding / spacing”):** library / BO strip
   as-is; 24 from the status section to the strip and 24 from the strip's line to the first section (16 / 16 on phones);
   phones: the strip and its one track line run edge to edge (−16), first label on the content edge (padding 16), tabs
@@ -7871,7 +7884,7 @@ profile's `statusNow` / `timelineEvents` in `cabinet-evo/solicitari.js`; no new 
 | Schiță cu notă de plată „În așteptare” (US-17) | as Schiță | text names the note; Taxe tab; „Elimină” says the note is cancelled | — | sm-03g |
 | Schiță semnată + achitată (US-18 AC-09) | as Schiță + „Semnat electronic” | text: transmitted automatically after the grace period; timeline signed → paid → „Confirmarea depunerii” (removal date kept: PO Q5) | — | sm-03h |
 | Schiță eliminată automat (US-29 AC-02) | not listed (`autoRemoved`: `draft.expires < today`) | no profile — `#dosar/<id>` shows the list with an info notice + link to the catalog (`[data-sm-removed-notice]`) | „Schița a fost eliminată automat” (`draft-removed`, „Vezi detalii”) | sm-03d, nt-01d |
-| Continuă / Elimină — error (US-29 AC-01) | `?redirectionare=eroare`: row / ⋮ / profile → `.cab-retry` „Schița nu s-a deschis. Datele salvate nu s-au pierdut.” + „Reîncercați”; `?eliminare=eroare`: the first removal fails → error notice in the FO confirm dialog, primary becomes „Reîncercați” (`openConfirm` onConfirm returning `false` keeps it open) | | | sm-03e, sm-03f |
+| Continuă / Elimină — error (US-29 AC-01) | `?redirectionare=eroare`: row / ⋮ → `.cab-retry` „Schița nu s-a deschis. Datele salvate nu s-au pierdut.” + „Reîncercați”; profile header (sm-03e) → the same text as the non-auto-closing error toast + „Reîncercați” link (sm-04h-error-toast-v1); `?eliminare=eroare`: the first removal fails → error notice in the FO confirm dialog, primary becomes „Reîncercați” (`openConfirm` onConfirm returning `false` keeps it open) | | | sm-03e, sm-03f |
 | În derulare | info · none · „Depusă …” | „În examinare · termen …” | „Solicitarea a fost depusă” | sm-04 |
 | În derulare — după suplinire (US-24 AC-20) | as În derulare | text „Informațiile … au fost transmise pe …”; timeline „Informații suplimentare solicitate” → „Informații transmise” → „Examinare reluată” | „Informațiile au fost transmise” (`supplement-done`) | sm-04j, nt-01e |
 | În derulare — suplinire expirată (US-24 AC-03) | as În derulare (`normalize()`: an `info` past `info.until` becomes `derulare` + `resumed.kind = "expirat"`) | text „Termenul de suplinire a expirat pe …”; Data suspendării kept; timeline „Suspendare încheiată” → „Examinare reluată” | „Termenul de suplinire a expirat” (`supplement-expired`) | sm-04i, nt-01f |
@@ -7967,7 +7980,8 @@ Expired payment note (US-135 AC-14, 2026-10-17; demo `?nota=expirata`, sm-04g / 
 item; the status card shows „Spre achitare · termenul notei de plată a expirat pe …” + the error `.cab-message`
 „Taxa a expirat. Achitarea nu mai este posibilă.” in place of the button; the row's deadline line says it; Taxe ›
 Starea notei = red „Expirat”. Failed redirect to the suplinire form (US-24 AC-04, demo `?redirectionare=eroare`,
-sm-04h profile / sm-04h1 row) = `.cab-retry` (error notice + btn-strict „Reîncercați”) under the action.
+sm-04h1 row) = `.cab-retry` (error notice + btn-strict „Reîncercați”) in the row's notice slot; on the PROFILE (sm-04h)
+= the error toast that does not auto-close (sm-04h-error-toast-v1, § Toast).
 „Data estimată de finalizare” (US-19 AC-02): `estimatedEnd` = the examination term while open (Informații
 suplimentare too) and the finish date after; rows show „Finalizare estimată …” / „Finalizată …” where the
 deadline line does not already carry the date. „Termenul de examinare” stays visible in Informații suplimentare

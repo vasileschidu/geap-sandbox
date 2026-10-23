@@ -1690,16 +1690,6 @@ button.cab-alert-link {
   max-width: var(--cab-list-width);
 }
 
-/* the act's status notice opens the panel under the header (was in the key-facts card); 12 + the section title's
-   11 above the next section; ~75ch lines */
-.e-permits-dosar-profil__panel > .cab-profile-notice:first-child {
-  margin-bottom: var(--spacing-12, 12px);
-}
-
-.cab-profile-notice .banner__content > p {
-  max-width: 75ch;
-}
-
 /* the status alert card (act-alert-card-v1, css/alert-card.css) opens the act / request panel, right under the header:
    24 above on desktop / 16 on phones (instead of the BO panel's 20); under it 16 before a titled section (its 48 heading
    row adds its own ~12, so it reads as the section rhythm) and 24 before the request trajectory card (16 on phones) */
@@ -1715,22 +1705,15 @@ button.cab-alert-link {
   margin-bottom: var(--spacing-24, 24px);
 }
 
-/* an error of the card's button (sm-04h) sits 8 under the card, then the same gap */
-.e-permits-dosar-profil__panel > .cab-alert-card:has(+ .cab-alert-card__retry) {
-  margin-bottom: var(--spacing-8, 8px);
-}
-
-.e-permits-dosar-profil__panel > .cab-alert-card + .cab-alert-card__retry {
-  margin-bottom: var(--spacing-24, 24px);
-}
+/* a failed action of the card / header (sm-04h, sm-03e, sm-05c) = the library error toast (sm-04h-error-toast-v1),
+   never an inline message in the panel — the alert + trajectory tray stays whole */
 
 @media (max-width: 760px) {
   .e-permits-dosar-profil__panel:has(> .cab-alert-card:first-child) {
     padding-top: var(--spacing-16, 16px);
   }
 
-  .e-permits-dosar-profil__panel > .cab-alert-card:has(+ .cab-status),
-  .e-permits-dosar-profil__panel > .cab-alert-card + .cab-alert-card__retry {
+  .e-permits-dosar-profil__panel > .cab-alert-card:has(+ .cab-status) {
     margin-bottom: var(--spacing-16, 16px);
   }
 }
@@ -1738,8 +1721,8 @@ button.cab-alert-link {
 /* ---- Alert + trajectory tray (alert-timeline-tray-v1, 2026-10-23; replaces alert-timeline-fused-v1 — user: „the
    solicitare integration is wrong — leave the timeline as it was (stroke and white bg)”, EVO Cabinet Figma 1287:34973).
    ONE modifier on the alert card (`cab-alert-card--fused`, solicitari.js alertCardHtml); it acts only while the card sits
-   DIRECTLY above the request trajectory (an error line between them, sm-04h, or the act profile leaves both as they
-   were). Anatomy measured from the Figma pixels (1287:34973, 1200 wide): the grey alert (--color-background-base-secondary,
+   DIRECTLY above the request trajectory (the act profile leaves both as they were; a failed action is a toast since
+   sm-04h-error-toast-v1, so nothing splits the tray). Anatomy measured from the Figma pixels (1287:34973, 1200 wide): the grey alert (--color-background-base-secondary,
    its own padding 24 / phones 16, top radius 24) is 96 high; the trajectory card EXACTLY as it was (white, 1px
    border-base-default, radius 24 on ALL four corners, padding 20 / phones 12) sits flush under it — border at x 0 and
    x 1199, top line at y 96, no inset — and the grey shows only behind the card's rounded TOP corners (its bottom corners

@@ -1440,14 +1440,21 @@
 
   function download(button) {
     root.querySelectorAll("[data-sm-download-error]").forEach((node) => node.remove());
+    window.GEAPToast?.dismiss(document.querySelector('[data-toast-key="sm-download-error"]'));
     if (params.get("descarcare") !== "eroare") return;
     const scope = button.closest("[data-sm-dl-scope], .e-permits-page-header__actions") || button.closest(".cab-request-row");
-    const html = message("banner--error", "icon-circle-error-filled", "A apărut o eroare. Descărcarea nu a fost efectuată. Încercați din nou.", { role: "alert", attrs: "data-sm-download-error" });
+    const text = "A apărut o eroare. Descărcarea nu a fost efectuată. Încercați din nou.";
+    /* the header's action row (cabinet-header-v1): the same non-auto-closing error toast as a failed redirect
+       (sm-04h-error-toast-v1) — an inline message there pushed the alert + trajectory tray down; the header button retries,
+       a new attempt first closes the old toast */
+    if (scope?.matches(".e-permits-page-header__actions") && window.GEAPToast) {
+      keepClearOfToast(button, window.GEAPToast.show({ type: "error", message: text, duration: 0, key: "sm-download-error" }));
+      return;
+    }
+    const html = message("banner--error", "icon-circle-error-filled", text, { role: "alert", attrs: "data-sm-download-error" });
     /* in a row: the full-width notice slot under the row (as the act row's locked notice) */
     if (scope?.classList.contains("cab-request-row")) scope.insertAdjacentHTML("beforeend", html.replace('class="message', 'class="cab-request-row__notice message'));
     else if (scope?.matches(".cab-status__actions, .cab-detail__actions")) scope.insertAdjacentHTML("afterend", html);
-    /* the header's action row (cabinet-header-v1): the message opens the panel under the header */
-    else if (scope?.matches(".e-permits-page-header__actions")) scope.closest("[data-sm-profile]")?.querySelector(".e-permits-dosar-profil__panel")?.insertAdjacentHTML("afterbegin", html.replace('class="message', 'class="cab-profile-notice message'));
     else scope?.insertAdjacentHTML("beforeend", html);
     root.querySelector("[data-sm-download-error]")?.scrollIntoView({ block: "nearest" });
   }
@@ -1459,22 +1466,43 @@
     supplement: "Formularul de suplinire nu s-a deschis. Datele dosarului nu s-au pierdut.",
     draft: "Schița nu s-a deschis. Datele salvate nu s-au pierdut.",
   };
+  /* phones: the toast sits at the bottom (library position) — when it would cover the button that failed, the page
+     scrolls just enough to keep 16 between them (nothing moves on desktop, where the toast is top-right) */
+  function keepClearOfToast(button, toast) {
+    if (!button || !toast) return;
+    const b = button.getBoundingClientRect();
+    const t = (toast.parentElement || toast).getBoundingClientRect(); /* the container: the toast itself is still sliding in */
+    const overlapsX = b.right > t.left && b.left < t.right;
+    const delta = b.bottom + 16 - t.top;
+    if (overlapsX && delta > 0 && b.top < t.bottom) window.scrollBy({ top: delta, behavior: "instant" });
+  }
+
   function redirectError(action, { kind = "supplement", href = "" } = {}) {
     root.querySelectorAll("[data-sm-redirect-error]").forEach((node) => node.remove());
+    const retryHref = href || action.getAttribute("href") || "";
+    /* on the request PROFILE (the alert card's button sm-04h, the header's „Continuă schița” sm-03e) the failure is
+       the library error toast that does NOT auto-close (sm-04h-error-toast-v1, 2026-10-23; user on EVO Cabinet Figma
+       1265:4451: „this one should not cut the alert and timeline in half — put it anywhere else, or as a non-auto-closing
+       toast”): role=alert (announced, focus stays on the button), „Reîncercați” = the library link slot (the form's
+       address: retrying IS the redirect, the toast goes with the page), × closes it; the alert + trajectory tray stays whole. A list row keeps its inline notice in the row's slot. */
+    if (!action.closest(".cab-request-row") && window.GEAPToast) {
+      keepClearOfToast(action, window.GEAPToast.show({
+        type: "error",
+        message: REDIRECT_ERRORS[kind],
+        link: { href: retryHref, label: "Reîncercați" },
+        duration: 0,
+        key: "sm-redirect-error",
+      }));
+      return;
+    }
     const html = `
       <div class="cab-retry" data-sm-redirect-error>
         ${message("banner--error", "icon-circle-error-filled", REDIRECT_ERRORS[kind], { role: "alert" })}
-        <button class="btn btn-strict btn-sm" type="button" data-sm-redirect-retry="${escape(href || action.getAttribute("href") || "")}">${icon("icon-rotate-arrow")}<span>Reîncercați</span></button>
+        <button class="btn btn-strict btn-sm" type="button" data-sm-redirect-retry="${escape(retryHref)}">${icon("icon-rotate-arrow")}<span>Reîncercați</span></button>
       </div>`;
     const item = action.closest(".cab-request-row");
-    const panel = action.closest(".e-permits-page-header__actions") ? action.closest("[data-sm-profile]")?.querySelector(".e-permits-dosar-profil__panel") : null;
-    const card = action.closest("[data-sm-alert]");
     if (item) item.insertAdjacentHTML("beforeend", html.replace('class="cab-retry"', 'class="cab-retry cab-request-row__notice"'));
-    /* the alert card's button (act-alert-card-v1): the error notice right under the card */
-    else if (card) card.insertAdjacentHTML("afterend", html.replace('class="cab-retry"', 'class="cab-retry cab-alert-card__retry"'));
-    /* the header's action row (cabinet-header-v1): the message opens the panel under the header */
-    else if (panel) panel.insertAdjacentHTML("afterbegin", html.replace('class="cab-retry"', 'class="cab-retry cab-profile-notice"'));
-    else (action.closest(".cab-status__actions") || action).insertAdjacentHTML("afterend", html);
+    else action.insertAdjacentHTML("afterend", html);
     root.querySelector("[data-sm-redirect-retry]")?.focus();
   }
 
