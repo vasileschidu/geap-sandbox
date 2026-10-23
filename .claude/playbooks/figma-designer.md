@@ -3392,3 +3392,19 @@ For any „research how other products do it” step, search Mobbin (mcp__mobbin
   to the process cwd** — run probes with absolute output paths, or they land in the repo root.
   Drift (reported, not fixed): the Figma Permits rows still use the pre-„type first” anatomy and older sample data (9 acts vs the
   code's 12; titles = location).
+
+- 2026-10-23 · section-card-radius-24 (comment 1978649554 on GEAP 9579:18162, user: „update to 24 px, everywhere for this type of
+  wrap”, all four files). The section-over-card grey wrap (`Card` / `Timeline` FRAME, 1024, background/base/secondary, child of a
+  `Section…` frame under the section heading) = **radius-24** (Foundations › 3. Sizes `border-radius/radius-24` key 79848dbe4107…,
+  GEAP id VariableID:79848dbe…/4433:106) = code `.e-permits-dosar-profil__card` (24; phones 16). Rebound all four corners on 188
+  frames, all in GEAP: Service passport 162, Application Shell 24, Notification templates 2 (Timeline). EVO-WEB RAP cards were
+  already 24 (83) / 16 phones, EVO Cabinet `Card` already 24 (desktop + phone), FOD has no grey section cards — 0 changes there.
+  Excluded after the dry run: no-fill layout `Container`s bound to radius-32 (hundreds; invisible corner), the white FO `Section
+  Title` / auth cards (GEAP Patterns 1928:4414, App Shell `Auth card`, FOD Requestor / Attachments / Apostile), board lanes, the
+  EVO home / Signature / CUPS hero bands (`Header / 97 /`, `Layout / 12 /`, `Event / 20 /`, `Panel`) and footer containers.
+  Lessons:
+  - **Radius sweeps: dry-run census first, grouped by type | name | width | fill variable | parent** (skip fill = none, flag
+    in-instance / in-component / archive) — one call per file with `ALL` pages minus drafts / archive / separators ran in seconds
+    and made the scope obvious; then apply with a tight predicate (name + parent + fill var + radius var) and re-count to 0.
+  - Bind via `importVariableByKeyAsync(key)` and check `variableCollectionId` contains the Sizes collection key before writing.
+  - Stored `ghs/audit` on 8 changed cards: 0 findings; blocks 01 / 04b only the known section-over-card gap 0 + egov logo baseline.
