@@ -3779,3 +3779,23 @@ For any „research how other products do it” step, search Mobbin (mcp__mobbin
   - RAP data-modal cards live in native SLOT content (ids with „;”) and accept `setBoundVariable` directly.
   - The stored Cabinet `qsweep/audit` returned 0 findings on the changed cards, sets and sm-04b; GEAP repo audit on the dossier
     trajectory section + card + Now callout main: 1 pre-existing `no-text-style` (callout title 9696:562). No Agent tool in this session.
+
+- 2026-10-23 · invoice-head-small-v1 + v2 (code ebc196cc; user on GEAP 11761:26404 „a SMALL badge and SMALLER amount text … in full
+  flow accordingly”; v2 mid-job: label → amount gap 4, grey head padding 16 on all sides). No payment-note component exists → per
+  block. GEAP Ghișeu gh-09 / 09a / 09b / 09c / 09d heads (`Section - Notă de plată NP-…` › `Header`) + FO Full Flows 09 F7 / F7a
+  desktop + phone (`Container` › `Frame 1261156104`): tag-filled Strong Medium → **Subtle Small** (setProperties, then FIXED 20 +
+  HUG — the swapped tag keeps the old 24), amount Desktop/Heading/H2 → **Desktop/Heading/H4 6437d483…** (phones Mobile/Heading/H2 →
+  **Mobile/Heading/H4 47680a7a…**, lk-e9e8), caption row `minHeight 24` (= code `.e-permits-fo-payment-invoice__caption
+  min-height: 24px` — without it the row drops to 20 and the head is 4 short), padding spacing-16 ×4 + gap spacing-4 bound. Heads =
+  code probe: Ghișeu 89 (16 + 24 + 4 + 28 + 16 + 1 border), F7 88 / phone 86. F7 / F7a also had the tag beside the amount (stale) →
+  moved into the label row (SPACE_BETWEEN, centre) = code „label left, tag right, amount below”. Ghișeu block heights unchanged
+  (screen height = Body.minHeight); F7 / F7a are the last blocks of their column → no restack, no connector touched. FOD
+  pvDAJPXKyUuJgz3P921Ye8 has no payment note (its „100 MDL” 24 px texts are Apostile price cards); Post-processes has none. Lessons:
+  - **Census by text + size, not by name**: `^Notă de plată` texts (skip stepper instances, ids with „;”) + `MDL` texts ≥ 24 px on
+    every page that can hold the step — the second pass proves nothing was missed.
+  - **Probe the code's row heights before judging a head** (tools: scratchpad probe.mjs pattern = CDP + getBoundingClientRect of
+    the header's children): a `min-height` on a flex row is invisible in a screenshot but costs 4 px.
+  - **Another agent may edit the same nodes mid-job** (gh-09a's gap turned 4 between two of my calls = the v2 spec arriving) — re-read
+    the nodes before the final audit and don't „repair” a value you didn't set without asking.
+  - Left: F7 / F7a phone table rows carry +0.0001 px per captured `Cell` (pre-existing; block heights x.0007) — not touched.
+  - No Agent tool in this session → repo figma-audit.js rules on the 9 heads: 0 findings (before and after v2).
