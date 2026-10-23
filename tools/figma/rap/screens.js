@@ -33,7 +33,7 @@ const crumbs = async (labels, mobile) => {
   return c;
 };
 
-// ---- phone bottom sheet over the viewport (812): scrim + library bottom-sheet, content slot = a local component built per state
+// ---- phone bottom sheet over the viewport (812): scrim + library bottom-sheet, content slot = „RAP / Filter / Filter sheet content”
 const sheetOverlay = async (s, S) => {
   s.primaryAxisSizingMode = "FIXED"; s.resize(375, 812); s.minHeight = 812;
   const ov = await AL("Overlay · bottom sheet", "VERTICAL", { main: "MAX" }); s.appendChild(ov); ov.layoutPositioning = "ABSOLUTE"; ov.resize(375, 812); ov.primaryAxisSizingMode = "FIXED"; ov.counterAxisSizingMode = "FIXED"; ov.x = 0; ov.y = 0;
@@ -42,45 +42,42 @@ const sheetOverlay = async (s, S) => {
   const bs = sheetMain.createInstance(); bs.name = "Bottom sheet · " + S.sheet.title; put(ov, bs, { fillW: true });
   setP(bs, { Header: false, "Drag Handle": true, "Action Button": true });
   await rad(bs, 24); bs.bottomLeftRadius = 0; bs.bottomRightRadius = 0; bs.clipsContent = true;
-  const content = await sheetContent(S);
-  const slot = bs.findOne(n => n.name === "Content Slot"); slot.swapComponent(content);
+  const slot = bs.findOne(n => n.name === "Content Slot"); await sheetContent(slot, S);
   const act = bs.findOne(n => n.name === "Action Button"); await strokeV(act, "border/base/default"); act.strokeTopWeight = 1; act.strokeBottomWeight = 0; act.strokeLeftWeight = 0; act.strokeRightWeight = 0;
   await pad(act, 16, 16, 16, 16);
   const ab = act.findOne(n => n.type === "INSTANCE"); setP(ab, { Label: S.sheet.apply });
   return ov;
 };
-const sheetContent = async (S) => {
-  const sec = await getL("compSection"); const name = "Filter sheet content · " + S.id;
-  const old = sec.children.find(c => c.name === name); if (old) old.remove();
-  const c = figma.createComponent(); c.name = name; c.layoutMode = "VERTICAL"; c.primaryAxisSizingMode = "AUTO"; c.counterAxisSizingMode = "FIXED"; c.resize(375, 100); c.fills = []; sec.appendChild(c);
-  const hd = await AL("Header", "HORIZONTAL", { gap: 12, align: "CENTER", pad: [4, 16, 8, 16] }); put(c, hd, { fillW: true });
-  const t = await TX(S.sheet.title, "mh3", "text/base/default", { name: "Title" }); put(hd, t, { fillW: true }); t.textAutoResize = "HEIGHT";
-  const rs = await inst("btnTC", { Style: "Strict", Icon: "None", Size: "Small", State: "Default" }); setP(rs, { Label: S.sheet.reset }); rs.name = "Resetează"; hd.appendChild(rs);
-  const cl = await inst("btnFC", { Style: "Neutral", Icon: "Only", Size: "Small", State: "Default" }); const x16 = await L.icon("cross16"); setP(cl, { "Leading Icon: 16": x16.id }); cl.name = "Close"; hd.appendChild(cl);
-  const opts = (await getL("facetOpt")); const tags = await getL("tag");
+// rap-components-cleanup-v1 (2026-10-23): no „Filter sheet content · <state>” components — the bottom sheet's Content Slot is
+// swapped to „RAP / Filter / Filter sheet content” (ids „fSheet”: Title, exposed Resetează / Close, Facets slot) and the
+// state's facets are „RAP / Filter / Filter section” instances (ids „fSection”: State Closed / Open × Divider On / Off,
+// Label / Summary / Show summary, Panel slot = search + options) in that slot.
+const sheetContent = async (cs, S) => {
+  cs.swapComponent(await getL("fSheet")); cs.name = "Content Slot";
+  setP(cs, { Title: S.sheet.title });
+  setP(cs.findOne(n => n.type === "INSTANCE" && n.name === "Resetează"), { Label: S.sheet.reset });
+  const clear = (i) => { const sl = i.findOne(n => n.type === "SLOT"); for (const ch of [].concat(sl.children)) ch.remove(); return sl; };
+  const facets = clear(cs);
+  const opts = (await getL("facetOpt")); const tags = await getL("tag"); const secSet = await getL("fSection");
   const TONE = { success: "Success", warning: "Warning", neutral: "Neutral", danger: "Danger", info: "Info" };
-  const optionRows = async (host, options) => { const list = await AL("Options", "VERTICAL", { pad: [0, 8, 0, 8] }); put(host, list, { fillW: true });
-    for (const o of options) { const v = opts.children.find(x => x.name === `Content=${o.tone ? "Tag" : "Text"}, State=Default, Size=Sheet`); const i = v.createInstance(); i.name = "Option · " + o.v; put(list, i, { fillW: true });
+  const optionRows = async (host, options) => { const list = await AL("Options", "VERTICAL", { pad: [0, 8, 0, 8] }); host.appendChild(list); list.layoutSizingHorizontal = "FILL";
+    for (const o of options) { const v = opts.children.find(x => x.name === "Content=" + (o.tone ? "Tag" : "Text") + ", State=Default, Size=Touch"); const i = v.createInstance(); i.name = "Option · " + o.v; put(list, i, { fillW: true });
       setP(nested(i, n => n.type === "INSTANCE" && n.name === "Checkbox"), { Mode: o.checked ? "Checked" : "Unchecked" });
       if (o.tone) { const tg = nested(i, n => n.type === "INSTANCE" && n.name === "Status"); tg.swapComponent(tags.children.find(x => x.name === "Tone=" + (TONE[o.tone] || "Neutral"))); setP(tg, { Label: o.v }); } else setP(i, { Value: o.v }); }
     return list; };
+  const searchRow = async (host) => { const sw = await AL("Search", "VERTICAL", { pad: [4, 16, 8, 16] }); host.appendChild(sw); sw.layoutSizingHorizontal = "FILL"; const se = await inst("search", { State: S.sheet.search.value ? "Filled" : "Default", Size: "Medium", Button: "False" }); setP(se, { "Clear Button": !!S.sheet.search.value, Placeholder: S.sheet.search.value || S.sheet.search.placeholder }); put(sw, se, { fillW: true }); };
   if (S.sheet.sections && S.sheet.sections.length) {
-    const secs = await AL("Sections", "VERTICAL"); put(c, secs, { fillW: true });
     for (let k = 0; k < S.sheet.sections.length; k++) { const se = S.sheet.sections[k];
-      const box = await AL("Section · " + se.label, "VERTICAL"); put(secs, box, { fillW: true }); if (k) { await strokeV(box, "border/base/default"); box.strokeTopWeight = 1; box.strokeBottomWeight = 0; box.strokeLeftWeight = 0; box.strokeRightWeight = 0; box.strokesIncludedInLayout = false; }
-      const tr = await AL("Section row", "HORIZONTAL", { gap: 12, align: "CENTER", pad: [8, 16, 8, 16] }); tr.minHeight = 56; put(box, tr, { fillW: true });
-      const tx = await AL("Section text", "VERTICAL"); put(tr, tx, { fillW: true });
-      tx.appendChild(await TX(se.label, "body500", "text/base/default", { name: "Label" }));
-      if (se.summary) { const sm = await TX(se.summary, "small", "text/base/tertiary", { name: "Summary" }); put(tx, sm, { fillW: true }); sm.textTruncation = "ENDING"; sm.maxLines = 1; sm.layoutSizingVertical = "HUG"; }
-      tr.appendChild(await L.iconInst(se.open ? "chevT20" : "chevB20", "icon/base/default"));
-      if (se.open) { const pn = await AL("Section panel", "VERTICAL", { pad: [0, 0, 8, 0] }); put(box, pn, { fillW: true }); await optionRows(pn, S.sheet.options); }
+      const i = secSet.children.find(v => v.name === "State=" + (se.open ? "Open" : "Closed") + ", Divider=" + (k ? "On" : "Off")).createInstance(); i.name = "Section · " + se.label;
+      facets.appendChild(i); i.layoutSizingHorizontal = "FILL";
+      setP(i, { Label: se.label, Summary: se.summary || "", "Show summary": !!se.summary });
+      if (se.open) { const pn = clear(i); if (S.sheet.search) await searchRow(pn); await optionRows(pn, S.sheet.options); }
     }
   } else {
-    if (S.sheet.search) { const sw = await AL("Search", "VERTICAL", { pad: [4, 16, 8, 16] }); put(c, sw, { fillW: true }); const se = await inst("search", { State: S.sheet.search.value ? "Filled" : "Default", Size: "Medium", Button: "False" }); setP(se, { "Clear Button": !!S.sheet.search.value, Placeholder: S.sheet.search.value || S.sheet.search.placeholder }); put(sw, se, { fillW: true }); }
-    await optionRows(c, S.sheet.options);
+    if (S.sheet.search) await searchRow(facets);
+    await optionRows(facets, S.sheet.options);
   }
-  c.description = "Phone facet sheet content for " + S.id + " (js/facet-filter.js mobileSheets): header title · „Resetează” · close 32, search when > 7 values, 44 rows / 56 section rows. Swapped into the library bottom-sheet Content Slot.";
-  return c;
+  return cs;
 };
 
 // ---- list

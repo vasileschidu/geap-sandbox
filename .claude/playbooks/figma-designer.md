@@ -98,6 +98,7 @@ gets better; never delete a lesson, rewrite it if it was wrong.
 | Document field · label (local, 2026-10-23) | GEAP **12468:8391** (🧩 Local components › Components · Documents) · FOD 1275:11464 | label of a FO document field: TEXT `First lines` (+ BOOLEAN `Show first lines`) + `Last line` row (gap spacing-6) = last-line text · 12/asterisk (icon/danger) `Show star` · tag-filled Subtle Neutral Small „Opțional” `Show optional` → the star / tag sits right after the last word like the code (library text-input label puts it at the right edge). Phone lines = the code's breaks at 343 (probe word rects). Desktop 16/24 500 |
 | Details card + row (2026-10-23, = BO „Date generale”) | row = `svc/field-row` set **12143:21330** (Context Page 256 · Drawer 200 · Modal 163 · Modal · narrow 147); card = plain frame like the dossier card 11332:17170 | card VERTICAL, fill background/base/secondary (2099ba93…/1296:266), radius-24, padding 8 / 20 bound, gap 0; rows FILL, 8 / 7 + 1 px bottom stroke = 40, last row `strokeBottomWeight = 0`. Copy = BOOLEAN `Show copy value` + exposed nested `Copy value` (Default) — not the old 24/copy `Show copy`. Several values = Value text with `\n` + paragraphSpacing 4 + row counterAxisAlign MIN; a long single value = Value text FILL + HEIGHT. Tags = Tag 1–3 (setProperties Style / Label). Converter: scratch-style one call per ≤ 27 cards (see lesson 2026-10-23 details-wrap-align-v1) |
 | Pager · compact (local, 2026-10-23) | RAP EVO-WEB **22396:14841** (Desktop 22396:14744 / Phone 22396:14828, section 22060:2438) · EVO Cabinet **1305:4300** (Desktop 1305:4205 / Phone 1305:4287, section Components · Toolbar) | shared GEAPPager (pager-compact-v1/v2). Desktop: `Summary` (Range 14/20 secondary, numbers 500 default · 16 · Size label + library select-input Medium Filled with its `Input` overridden to HUG + 6/8/6/12, gap 4 → 32) SPACE_BETWEEN `Pages` (gap 4: button-text-rectangular Strict Icon=Only Small ‹ › + library `.pagination-item` Breakpoint=Mobile 32, text style overridden to Body/Small 500). Phone (v3): Secondary Medium „Afișează mai multe” full width, gap 12, then right-aligned `Arrows` (gap 8) = button-outlined-rectangular Strict Medium „Anterior” (Leading chevron-left, Disabled on page 1) / „Următor” (Trailing chevron-right). Per instance: Range text, Size label, hide / rename page items, swap States. `.pagination-item` set (key 51a339f3…) is NOT importable by key — reach it through an existing library pagination instance. Builder tools/figma/rap-table-flat/pager-compact-set.js |
+| RAP consolidated components (EVO-WEB, 2026-10-23, rap-components-cleanup-v1) | section „RAP · Public registry components” 22060:2438 on 🧱 Local Components (sub-sections Board helpers 22424:3768 · Table & list :3769 · Profile :3770 · Filters :3771 · Modals & documents :3772 · Shared :3773) | `RAP / Modal / Data modal content` **22403:11850** (Breakpoint × Subtitle Plain / Collapsed / Expanded; TEXT `Act name` / `Last line`; SLOT `Sections`; exposed Read-only note) · `RAP / Modal / Act fields table` **22411:177587** (Desktop / Mobile; SLOT `Rows`) · `RAP / Document / A4 act page` **22413:6789** (Page First / Continuation; BOOLEAN Show watermark / closing / signature; TEXT Authority / Office / Act name / Number / Continuation / Signed / Footer; SLOT `Rows`) · `RAP / Document / A4 watermark` 22413:6652 (Status Suspended / Withdrawn) · `RAP / Document / Doc canvas` **22413:7030** (Breakpoint × State Pages / Loading / Error; SLOT `Pages`; = the Document modal 22089:209155 `Canvas` default) · `RAP / Filter / Filter section` **22422:3978** (State Closed / Open × Divider On / Off; Label / Summary / Show summary; SLOT `Panel`) · `RAP / Filter / Filter sheet content` **22422:3979** (TEXT Title; SLOT `Facets`; exposed Resetează / Close). Ids in root plugin data „rap”/„ids” (dmContent, afTable, a4, a4wm, canvas, fSection, fSheet); generators tools/figma/rap/act-fields.js · modals.js · screens.js (sheetContent) |
 | Text styles (Foundations lk-e9e8) | — | Desktop/Heading/H5 75e7dfdc… (18/26 600 = BO section title) · Desktop/Caption/Medium 8d8e3878… (12/16 400 = section meta) · H4 6437d483… (20/28) |
 | PJ / PF icons (user, 2026-10-17) | — | PJ = „business” only: 20/business 13c704752d… (avatars 32 / 40, switcher rows), 24/business b135d6dc… (48 profile avatar), 16/business 931f741c…, filled 24/business-filled c477fc69… (GEAP 11972:38938; tags / segmented / checkbox glyph, scaled 16 / 20). PF = 20/person 4559c555… / filled 6502:74649. Never suitcase-2 / luggage / suitcase-work / 24/suitcase-filled. Code icon-business / icon-business-filled |
 | Download / export / print glyphs (2026-10-17) | — | export = central „arrow-inbox, download” filled=on 1.5 r2 e41040ca… (all „Descarcă …” / „Exportă …”, follows the button colour) · upload 20/upload e72e41aa… (Importă / Descarcă din MDocs) · print = „printer, print” filled=off 1.5 r2 f519c646… · A4 preview pages 12001:7122 |
@@ -135,6 +136,12 @@ gets better; never delete a lesson, rewrite it if it was wrong.
   the code's `box-shadow: inset 0 -1px 0 …` into one — swap-ghiseu.js / swap-workplace-registry.js now convert it; sweep any
   file with tools/figma/quality-sweep/inner-shadow-dividers.js (dry run first).
 - A ⋮ whose menu would hold no enabled item is not drawn (2026-10-23, row-menu-no-disabled-only-v1): empty actions cell, same width.
+- **No per-state components** (user 2026-10-23 on EVO-WEB 22089:33231: „such a mess in components — resolve”). A component
+  is a reusable UI part (used ≥ 2× or a real building block), never „<thing> · <state id>”. When a library / local shell
+  (modal content slot, bottom sheet, document canvas) needs per-state content, give the consolidated component a native
+  SLOT (`component.createSlot()`) and build the state's content INTO the instance's slot (frames of library / local
+  instances); variants / properties only for real differences (breakpoint, subtitle shape, page kind). Generators never
+  create a component per state.
 
 ## Plugin API gotchas
 - `await figma.setCurrentPageAsync(page)` before `findAll` on another page; once per call.
@@ -3624,3 +3631,44 @@ For any „research how other products do it” step, search Mobbin (mcp__mobbin
   column-02 profiles (sm-03 / 03g / 03h / 03e / 03f; sm-03 → sm-03f arrow moved to the new button). Columns 02 / 04 / 06 restacked at 240,
   0 dangling connectors, Start here 55 blocks / 06 · 14 + sm-05c line, cover 55. Audit: only the intended viewport `clipped-content`.
   Lesson: **probe the code's header actions at 375 for the whole column** before trusting the board — all five draft profiles had drifted.
+
+- 2026-10-23 · rap-components-cleanup-v1 (EVO-WEB YrIzksVgFqtPqDd5z9zY5h, user on 22089:33231 „such a mess in components —
+  resolve”). Section „RAP · Public registry components” 22060:2438: **92 → 34 items** (64 per-state mains deleted: 18 `Data modal
+  content · rap-XX · Desktop/Mobile`, 8 `Filter sheet content · rap-XX`, 20 `Doc canvas · rap-XX` + the placeholder, 12 `A4 act
+  page · <nr> · k/n`, 6 `Act fields table · … · N rows`; 7 consolidated sets added — ids in the Library table). Swapped in place
+  (instance ids kept, arrows untouched): 20 data-modal hosts (rap-03, 03g, 03q, 03h, 03i, 03j, 03m, 03n, 03o, 03r × desktop + phone),
+  16 nested tables, 22 document-modal hosts (rap-03a/b/c/d/e/f/k/l/s/t/u × 2; 31 A4 page instances rebuilt from one component), 8 phone filter
+  sheets (rap-01b, 01r–01u, 04a–04c). Section organised into 6 sub-sections (names `RAP / <group> / <name>`; cross-file names „Copy
+  value”, „Copy value · tooltip”, „Document viewer / Signature tray”, „Board / …” kept), one-line descriptions, shelf layout gap 80,
+  sub-section fills background/base/secondary. Verified with REST renders of all 50 hosts before / after (scratch render.sh + diff.py
+  with PIL): 38 pixel-identical; the 10 printed-form hosts built from the old generator differ only by sub-pixel anti-aliasing because
+  the A4 head texts moved from x .5 to whole pixels (FILL + centre), 2 phones by 3 px. Generators rewritten + stored copies refreshed
+  (rap/af, rap/modals; rap/screens: only sheetContent patched). Lessons:
+  - **Native slots nest**: `component.createSlot()`; a slot inside an instance that is itself nested (library modal › content
+    instance › slot, Document modal › canvas › slot › A4 page › slot) accepts `appendChild`, and default slot children in an
+    instance can be removed. Test once on a scratch clone before a family swap.
+  - **Clone the per-state content from the INSTANCE, not the main**: the phone instances carried overrides the mains did not have
+    (section titles → Mobile/Heading/H5 from the phone H5 sweep); cloning sublayers of an instance keeps those overrides.
+  - **Never clone rows out of a rescaled instance** (A4 pages at 0.786 / 0.452): the clones are already scaled and get scaled
+    again. Take rows from the unscaled main (`getMainComponentAsync`), fill the new page's slot, THEN `rescale()`.
+  - **Swapping the default of a nested INSTANCE_SWAP keeps the old size override**: the Document modal phone variants kept the
+    placeholder's FIXED 311 width at x 32 → every phone canvas shifted 24 px. Set FILL on the nested instance in the main right after.
+  - **getInstancesAsync() under-reports instances nested in other instances / slots** (0 for every used content component) →
+    census by walking the board page (`findAllWithCriteria` INSTANCE + `getMainComponentAsync`), one page per call (a multi-page
+    scan dropped the transport). Delete a main only after that census says 0.
+  - **The stored figma-audit skips everything inside an instance — now including slot content**. For QA of slot content, patch
+    `insideInstance` in-run to stop at a SLOT (done here; tools/ui-qa/figma-audit.js has someone else's uncommitted edits, so the
+    repo file is unchanged — apply the same one-line change there next time it is free).
+  - **Verify pixel identity with REST renders, not screenshots**: `/v1/images/:key?ids=…&scale=1` for all hosts in one request,
+    curl the PNGs, diff with PIL (venv in the scratchpad); locate diffs with a bbox + side-by-side crop before judging.
+  - Variant property and TEXT property with the same name („Name”) collide in the panel — name them apart (Subtitle / Act name).
+  - Stored builders: store with `String.raw` + a djb2 checksum of the repo file checked inside the call, then run a scratch test in
+    the SAME call and throw on mismatch — the store rolls back with it. Stored copies may be comment-stripped (rap/screens): patch by
+    function bounds (`const sheetContent` … `const listScreen`), not by comment markers.
+  - Coordination: the list blocks / Table row / Pager belonged to a concurrent agent; the filter sheets live in „02 · Filter”, not
+    the list column, so only their Content Slot was touched (after the other agent's commits); renames are safe because the
+    generators look components up by stored id.
+  - Open: stored payloads P:rap-04a / 04b / 01b still describe the old single-facet sheets (the blocks were rebuilt in place on
+    2026-10-22); 7 jump markers sit at x 1951 instead of 1911 (connector audit, pre-existing). No Agent tool in this session → QA =
+    stored rap/audit on the 8 sets + 7 sample hosts (slot content included): only the board baseline (section-over-card gap 0,
+    rescaled A4 fractions, .5 spinner centring, scrolled-viewport clip); connector audit 18 / 18 attached.

@@ -1,16 +1,20 @@
 // RAP board — configured act fields: groups + tables (2026-10-19, code 135c5d05, Figma comment 1968940910).
 // Stored as "rap"/"af" in figma.root shared plugin data; body of an async function receiving L (the "rap"/"lib" prelude).
 // NO template literals in this file (it is stored through a String.raw literal).
-// - tableComp(label, T, n, mobile): local component „Act fields table · <label> · Desktop|Mobile · <n> rows”
-//   Desktop = white box (1px border, r12, clip = the code's own sideways scroll) > Table: header row of library
-//   table-header (658ba90a, Subtle, overridden to the BO registry th: 38, 8/12, 12/16 medium secondary on
-//   background/base/secondary) + body rows of library table-cell (86cc7c40, Text; 8/12, min 50, 14/20 secondary,
-//   numbers right-aligned, first column pinned = right divider, last row no divider).
-//   Mobile = stacked „Act fields / Row card” instances (first cell = label over value, then label | value lines).
-// - fillContent(C, D, mobile, T): (re)builds a „Data modal content · <state> · <bp>” component IN PLACE (same id).
-// - a4 grid: „A4 act page · row” gets Kind=Grid label; „A4 act page · grid row” (Kind Header / Body, 5 columns
-//   3·2·2·2·2 units, columns 4–5 numbers); a4PageG(P, name, x, y) = the stored a4Page + grid rows + list values.
-// - docCanvas(id, pages, mobile, offsets): „Doc canvas · <id> · <bp>” (offsets = scrolled view: fixed + absolute pages).
+// rap-components-cleanup-v1 (2026-10-23): NO per-state components. Every state is an instance of a consolidated
+// component whose native SLOT holds the state's content (frames of library / local instances):
+// - tableInst(T, n, mobile): „RAP / Modal / Act fields table” (ids „afTable”) Breakpoint=Desktop (bordered box that scrolls
+//   sideways; header row + body rows of library table-header 658ba90a / table-cell 86cc7c40 in the Rows slot) or Mobile
+//   (Act fields / Row card instances in the Rows slot).
+// - fillContent(ci, D, mobile, TABLES): swaps the library modal's .content-slot instance ci to „RAP / Modal / Data modal
+//   content” (ids „dmContent”: Breakpoint × Subtitle Plain / Collapsed / Expanded; TEXT Act name / Last line) and builds the
+//   section cards INTO its Sections slot.
+// - a4Inst(P, scale): „RAP / Document / A4 act page” (ids „a4”: Page=First / Continuation; Show closing / signature /
+//   watermark; the rows — Field / Group / Grid label rows of „A4 act page · row” + „A4 act page · grid row” — in its Rows
+//   slot), rescaled to the canvas AFTER the slot is filled (rows cloned from a scaled page would be scaled twice).
+// - fillCanvas(cc, pages, mobile, offsets): swaps the Document modal's canvas instance to „RAP / Document / Doc canvas”
+//   (ids „canvas”) Pages and puts the page instances in its Pages slot (offsets = scrolled view: a fixed clipped
+//   „Viewport (scrolled)” frame with the pages at the code's scroll offsets).
 const { AL, TX, put, fillV, strokeV, pad, sp, rad, inst, setP, getL, variant } = L;
 const AFID = JSON.parse(figma.root.getSharedPluginData("rap", "afids") || "{}");
 const saveAF = (k, id) => { AFID[k] = id; figma.root.setSharedPluginData("rap", "afids", JSON.stringify(AFID)); };
@@ -79,97 +83,68 @@ const ensureRowCard = async () => {
   saveAF("rowCard", c.id); return c;
 };
 
-// ---- table component (T = { cols: [[label, width, isNumber]], rows: [[cells]] })
-const tableComp = async (label, T, n, mobile) => {
-  const key = "tbl:" + label + ":" + (mobile ? "M" : "D") + ":" + n;
-  const ex = await getAF(key); if (ex) return ex;
-  const idx = Object.keys(AFID).filter(k => k.indexOf("tbl:") === 0).length;
-  const c = figma.createComponent(); sec.appendChild(c); c.name = "Act fields table · " + label + " · " + (mobile ? "Mobile" : "Desktop") + " · " + n + " rows";
-  c.x = mobile ? 2600 + 400 * idx : 800 + 0 * idx; c.y = mobile ? Y0 : Y0 + 700 * idx;
-  c.layoutMode = "VERTICAL"; c.counterAxisSizingMode = "FIXED"; c.resize(mobile ? 258 : 510, 100); c.primaryAxisSizingMode = "AUTO";
+// ---- table instance (T = { cols: [[label, width, isNumber]], rows: [[cells]] }) — rows in the slot, never an N-rows component
+const clearSlot = (i) => { const s = i.findOne(x => x.type === "SLOT"); for (const ch of [].concat(s.children)) ch.remove(); return s; };
+const tableInst = async (T, n, mobile) => {
+  const set = await getL("afTable");
+  const i = set.children.find(v => v.name === "Breakpoint=" + (mobile ? "Mobile" : "Desktop")).createInstance();
+  figma.currentPage.appendChild(i); const slot = clearSlot(i);
   if (!mobile) {
-    c.x = 800; await fillV(c, "background/base/default"); await sideStroke(c, 1, 1, 1, 1); await rad(c, 12); c.strokesIncludedInLayout = true; c.clipsContent = true;
-    const tb = await AL("Table", "VERTICAL"); c.appendChild(tb);
-    const hr = await AL("Header row", "HORIZONTAL"); tb.appendChild(hr);
+    const hr = await AL("Header row", "HORIZONTAL"); slot.appendChild(hr);
     for (let j = 0; j < T.cols.length; j++) { const col = T.cols[j]; const h = await headCell(col[0], col[1], col[2], j === 0); hr.appendChild(h); h.layoutSizingVertical = "FILL"; }
     for (let r = 0; r < n; r++) {
-      const row = await AL("Row " + (r + 1), "HORIZONTAL"); tb.appendChild(row);
+      const row = await AL("Row " + (r + 1), "HORIZONTAL"); slot.appendChild(row);
       for (let j = 0; j < T.cols.length; j++) { const col = T.cols[j]; const ce = await bodyCell(T.rows[r][j], col[1], col[2], j === 0, r === n - 1); row.appendChild(ce); ce.layoutSizingVertical = "FILL"; }
     }
-    c.description = "Configured act table „" + label + "” (" + n + " rows) as the code's .e-permits-act-fields__table-wrap: white box, 1 px border, r12, its own sideways scroll (clip = the scrolled-out columns). Header = library table-header, cells = library table-cell, with the BO registry overrides (th 38 · 8/12 · 12/16 medium secondary; td min 50 · 8/12 · 14/20 secondary; numbers right; first column pinned with a divider; long headers wrap at 160).";
   } else {
-    c.fills = []; await sp(c, "itemSpacing", 8);
     const card = await ensureRowCard();
     for (let r = 0; r < n; r++) {
-      const ci = card.createInstance(); ci.name = "Row card " + (r + 1); put(c, ci, { fillW: true });
+      const ci = card.createInstance(); ci.name = "Row card " + (r + 1); slot.appendChild(ci); ci.layoutSizingHorizontal = "FILL";
       setP(ci, { "Title label": T.cols[0][0], "Title value": T.rows[r][0] });
       const lines = ci.children.filter(x => x.name.indexOf("Line ") === 0);
       for (let k = 0; k < lines.length; k++) { if (k + 1 < T.cols.length) setP(lines[k], { Label: T.cols[k + 1][0], Value: T.rows[r][k + 1] }); else lines[k].visible = false; }
     }
-    c.description = "Configured act table „" + label + "” (" + n + " rows) on phones (≤ 760): stacked „Act fields / Row card” mini-cards, 8 apart.";
   }
-  saveAF(key, c.id); return c;
+  return i;
 };
 
-// modal-name-expand-end-v1 (2026-10-23): the subtitle toggle sits at the END of the name — collapsed desktop: right
-// after the ellipsis (1 line, gap 4); collapsed phones: own line under the 2 clamped lines (gap 2); expanded: the name's
-// first lines + a „Last line” row (last-line words · 4 · toggle), split where the text wraps at the frame's width
-// (Chrome keeps the toggle with the last word: if it does not fit, the last word moves down with it).
-const nameEnd = async (nmw, nm, more, expanded, mobile) => {
+// modal-name-expand-end-v1 (2026-10-23): the subtitle toggle sits at the END of the name — collapsed desktop: right after
+// the ellipsis; collapsed phones: own line under the 2 clamped lines; expanded: first lines (TEXT „Act name”) + a „Last line”
+// row (TEXT „Last line” · 4 · „Mai puțin”). The variant carries the layout; splitName measures where the text wraps at the
+// Name width (Chrome keeps the toggle with the last word: if it does not fit, the last word moves down with it).
+const subtitleVariant = (set, D, mobile) => set.children.find(v => v.name === "Breakpoint=" + (mobile ? "Mobile" : "Desktop") + ", Subtitle=" + (!D.clamp ? "Plain" : D.clamp === "true" ? "Expanded" : "Collapsed"));
+const splitName = async (ci, full) => {
+  const nmw = ci.findOne(x => x.type === "FRAME" && x.name === "Act name");
+  const nm = nmw.findOne(x => x.type === "TEXT" && x.name === "Name"), tg = nmw.findOne(x => x.type === "INSTANCE");
   await figma.loadFontAsync(nm.fontName);
-  const row0 = nmw.children.find(c => c.name === "Last line");
-  if (row0) { const lt = row0.children.find(c => c.type === "TEXT"); nm.characters = nm.characters + " " + lt.characters; nmw.appendChild(more); row0.remove(); nm.visible = true; }
-  nmw.layoutWrap = "NO_WRAP";
-  if (!expanded) {
-    nmw.layoutMode = mobile ? "VERTICAL" : "HORIZONTAL"; nmw.itemSpacing = mobile ? 2 : 4;
-    nmw.counterAxisAlignItems = mobile ? "MIN" : "CENTER"; nmw.layoutSizingHorizontal = "FILL"; nmw.layoutSizingVertical = "HUG";
-    nm.layoutSizingHorizontal = "FILL"; nm.textAutoResize = "HEIGHT"; nm.layoutSizingVertical = "HUG";
-    nm.textTruncation = "ENDING"; nm.maxLines = mobile ? 2 : 1; // order: auto-resize → truncation → maxLines
-    more.layoutSizingHorizontal = "HUG"; more.layoutSizingVertical = "HUG";
-    return { lines: mobile ? 2 : 1 };
-  }
-  nmw.layoutMode = "VERTICAL"; nmw.itemSpacing = 0; nmw.counterAxisAlignItems = "MIN";
-  nmw.layoutSizingHorizontal = "FILL"; nmw.layoutSizingVertical = "HUG";
-  nm.layoutSizingHorizontal = "FILL"; nm.textAutoResize = "HEIGHT"; nm.layoutSizingVertical = "HUG";
-  nm.textTruncation = "DISABLED"; nm.maxLines = null;
-  const W = nmw.width, full = nm.characters, words = full.split(" ");
+  const W = nm.width, words = full.split(" ");
   const pr = nm.clone(); figma.currentPage.appendChild(pr); pr.textTruncation = "DISABLED"; pr.maxLines = null; pr.resize(W, 20); pr.textAutoResize = "HEIGHT"; // resize() makes it FIXED — auto-resize after
   const lh = (s) => { pr.characters = s; return pr.height; };
-  const H = lh(full), line = lh(words[0]), L = Math.round(H / line);
+  const H = lh(full), line = lh(words[0]), Ln = Math.round(H / line);
   let k = 0;
-  if (L > 1) { let lo = 1, hi = words.length - 1; while (lo < hi) { const mid = (lo + hi) >> 1; if (lh(words.slice(0, mid + 1).join(" ")) > (L - 1) * line + 1) hi = mid; else lo = mid + 1; } k = lo; }
+  if (Ln > 1) { let lo = 1, hi = words.length - 1; while (lo < hi) { const mid = (lo + hi) >> 1; if (lh(words.slice(0, mid + 1).join(" ")) > (Ln - 1) * line + 1) hi = mid; else lo = mid + 1; } k = lo; }
   pr.textAutoResize = "WIDTH_AND_HEIGHT"; pr.characters = words.slice(k).join(" ");
-  if (pr.width + 4 + more.width > W) k = words.length - 1;
+  if (pr.width + 4 + (tg ? tg.width : 60) > W) k = words.length - 1;
   pr.remove();
-  const row = figma.createFrame(); row.name = "Last line"; row.fills = []; row.clipsContent = false;
-  row.layoutMode = "HORIZONTAL"; row.itemSpacing = 4; row.counterAxisAlignItems = "CENTER";
-  nmw.appendChild(row); row.layoutSizingHorizontal = "HUG"; row.layoutSizingVertical = "HUG";
-  const lt = nm.clone(); lt.name = "Name · last line"; row.appendChild(lt); lt.characters = words.slice(k).join(" "); lt.textAutoResize = "WIDTH_AND_HEIGHT"; lt.layoutSizingHorizontal = "HUG";
-  row.appendChild(more); more.layoutSizingHorizontal = "HUG"; more.layoutSizingVertical = "HUG";
-  if (k > 0) nm.characters = words.slice(0, k).join(" "); else nm.visible = false;
-  return { lines: L, k, last: lt.characters };
+  return { first: words.slice(0, k).join(" "), last: words.slice(k).join(" ") };
 };
-// tokens for the gaps nameEnd sets (4 = name end padding, 2 = phone stack, 0 = expanded lines)
-const nameEndTokens = async nmw => { await sp(nmw, "itemSpacing", nmw.itemSpacing); const row = nmw.children.find(c => c.name === "Last line"); if (row) await sp(row, "itemSpacing", 4); };
+const setSubtitle = async (ci, D) => {
+  if (D.clamp === "true") { const s = await splitName(ci, D.name); setP(ci, { "Act name": s.first || " ", "Last line": s.last }); if (!s.first) ci.findOne(x => x.type === "TEXT" && x.name === "Name").visible = false; }
+  else setP(ci, { "Act name": D.name });
+};
 
-// ---- the data modal content, rebuilt in place
+// ---- the data modal content: consolidated component + the state's section cards in its Sections slot
 const TONE = { success: "Success", warning: "Warning", neutral: "Neutral", danger: "Danger", info: "Info" };
-const fillContent = async (C, D, mobile, TABLES) => {
-  for (const ch of [...C.children]) ch.remove();
-  const W = mobile ? 338 : 588;
-  C.layoutMode = "VERTICAL"; C.counterAxisSizingMode = "FIXED"; C.resize(W, Math.max(C.height, 10)); C.primaryAxisSizingMode = "AUTO"; C.fills = [];
-  await pad(C, 4, mobile ? 16 : 20, 24, mobile ? 16 : 20);
-  const sub = await AL("Subtitle", mobile ? "VERTICAL" : "HORIZONTAL", { gap: mobile ? 2 : 8, align: mobile ? "MIN" : "CENTER", pad: [0, mobile ? 40 : 32, 8, mobile ? 0 : 12] }); put(C, sub, { fillW: true });
-  const nmw = await AL("Act name", "HORIZONTAL", { gap: 4, pad: [0, mobile ? 8 : 12, 0, 0] }); put(sub, nmw, { fillW: true }); // × column: Subtitle pR 32 / 40 (× size) + 12 / 8 clearance
-  const nm = await TX(D.name, "small", "text/base/tertiary", { name: "Name" }); put(nmw, nm, { fillW: true });
-  nm.textAutoResize = "HEIGHT";
-  // toggle at the END of the name (modal-name-expand-end-v1): collapsed desktop after the ellipsis, phones under the
-  // 2 clamped lines, expanded right after the last word (split into first lines + „Last line” row) — never next to ×
-  if (D.clamp) { const more = await inst("link", { Style: "Primary", Size: "14: Small", State: "Default" }); setP(more, { Link: D.more, Underline: false }); more.name = "Mai mult"; nmw.appendChild(more); await nameEnd(nmw, nm, more, D.clamp === "true", mobile); await nameEndTokens(nmw); }
+const fillContent = async (ci, D, mobile, TABLES) => {
+  const set = await getL("dmContent");
+  ci.swapComponent(subtitleVariant(set, D, mobile)); ci.name = "Data modal content";
+  await setSubtitle(ci, D);
+  const slot = clearSlot(ci);
   const stl = await getL("secTitle"), rows = await getL("detRow"), tags = await getL("tag");
   for (const se of D.sections) {
-    const box = await AL("Section · " + se.title, "VERTICAL", { pad: [0, 0, 16, 0] }); put(C, box, { fillW: true });
+    const box = await AL("Section · " + se.title, "VERTICAL", { pad: [0, 0, 16, 0] }); slot.appendChild(box); box.layoutSizingHorizontal = "FILL";
     const ti = stl.createInstance(); put(box, ti, { fillW: true }); setP(ti, { Title: se.title });
+    if (mobile) { const tt = ti.findOne(x => x.type === "TEXT" && x.name === "Title"); const st = await L.ts("mh5"); await figma.loadFontAsync(tt.fontName); await figma.loadFontAsync(st.fontName); await tt.setTextStyleIdAsync(st.id); } // phone section heading = Mobile H5
     const card = await AL("Card", "VERTICAL", { pad: [8, 20, 8, 20], r: mobile ? 16 : 24, fill: "background/base/secondary" }); put(box, card, { fillW: true });
     const items = se.items;
     for (let i = 0; i < items.length; i++) {
@@ -178,31 +153,24 @@ const fillContent = async (C, D, mobile, TABLES) => {
         const tf = await AL("Table field · " + r.table, "VERTICAL", { gap: 8, pad: [8, 0, 8, 0] }); put(card, tf, { fillW: true });
         if (!last) await sideStroke(tf, 0, 0, 1, 0);
         const lt = await TX(r.table, "small", "text/base/secondary", { name: "Label" }); put(tf, lt, { fillW: true }); lt.textAutoResize = "HEIGHT";
-        const ti2 = (await tableComp(r.table, TABLES[r.table], r.n, mobile)).createInstance(); ti2.name = "Table · " + r.table; put(tf, ti2, { fillW: true });
+        const ti2 = await tableInst(TABLES[r.table], r.n, mobile); ti2.name = "Table · " + r.table; put(tf, ti2, { fillW: true });
         if (r.toggle) { const tw = await AL("Toggle", "HORIZONTAL"); put(tf, tw, { fillW: true }); const b = await inst("btnTC", { Style: "Primary", Icon: "None", Size: "Small", State: "Default" }); setP(b, { Label: r.toggle }); b.name = r.toggle; tw.appendChild(b); }
         continue;
       }
       if (r.toggle) { const tw = await AL("Toggle", "HORIZONTAL", { pad: [8, 0, 8, 0] }); put(card, tw, { fillW: true }); const b = await inst("btnTC", { Style: "Primary", Icon: "None", Size: "Small", State: "Default" }); setP(b, { Label: r.toggle }); b.name = r.toggle; tw.appendChild(b); continue; }
-      const nextToggle = !last && items[i + 1].toggle && !items[i + 1].table;
       const tagged = r.tag && r.tag.length; const kind = r.copy ? "Copy" : tagged ? "Tag" : "Text";
       const v = rows.children.find(x => x.name === "Breakpoint=" + (mobile ? "Mobile" : "Desktop") + ", Value=" + kind + ", Divider=" + (last ? "Off" : "On"));
       const ri = v.createInstance(); ri.name = "Row · " + r.label; put(card, ri, { fillW: true });
       const val = Array.isArray(r.value) ? r.value.join("\n") : r.value;
       setP(ri, { Label: r.label, Value: val, "Tacit badge": false });
-      if (Array.isArray(r.value)) { const vt = ri.findOne(n => n.type === "TEXT" && n.name === "Value text"); if (vt) { await figma.loadFontAsync(vt.fontName); vt.paragraphSpacing = 4; } }
+      if (Array.isArray(r.value)) { const vt = ri.findOne(x => x.type === "TEXT" && x.name === "Value text"); if (vt) { await figma.loadFontAsync(vt.fontName); vt.paragraphSpacing = 4; } }
       if (r.top && !mobile) ri.counterAxisAlignItems = "MIN";
-      if (r.copy) setP(ri.findOne(n => n.type === "INSTANCE" && n.name === "Copy"), { Value: r.value, "Show icon": true });
-      if (tagged) { const tg = ri.findOne(n => n.type === "INSTANCE" && n.name === "Status"); tg.swapComponent(tags.children.find(x => x.name === "Tone=" + (TONE[r.tag[0][1]] || "Neutral"))); setP(tg, { Label: r.tag[0][0] }); }
+      if (r.copy) setP(ri.findOne(x => x.type === "INSTANCE" && x.name === "Copy"), { Value: r.value, "Show icon": true });
+      if (tagged) { const tg = ri.findOne(x => x.type === "INSTANCE" && x.name === "Status"); tg.swapComponent(tags.children.find(x => x.name === "Tone=" + (TONE[r.tag[0][1]] || "Neutral"))); setP(tg, { Label: r.tag[0][0] }); }
     }
   }
-  const note = (await getL("roNote")).createInstance(); note.name = "Read-only note"; put(C, note, { fillW: true }); setP(note, { Text: D.note });
-  C.description = "„Vizualizare act” data modal content (GEAPActView.fieldsHtml, 2026-10-19): subtitle = act name only (clamp + „Mai mult” when long), Date generale, then one BO section per configured group (> 10 items → first 8 + „Arată toate câmpurile (N)”; grids = „Act fields table · …”, > 5 rows → first 5 + „Arată toate (N)”), read-only note. In code the modal body scrolls inside min(90vh); Figma shows the whole content.";
-  return C;
-};
-const newContent = async (name, mobile) => {
-  let c = sec.children.find(x => x.name === name && x.type === "COMPONENT");
-  if (!c) { c = figma.createComponent(); sec.appendChild(c); c.name = name; c.x = mobile ? 7700 : 7100; c.y = Y0; }
-  return c;
+  const note = ci.findOne(x => x.type === "INSTANCE" && x.name === "Read-only note"); if (note && D.note) setP(note, { Text: D.note });
+  return ci;
 };
 
 // ---- A4 grid rows
@@ -240,77 +208,43 @@ const ensureGridRow = async () => {
   saveAF("gridRow", set.id); return set;
 };
 
-// ---- A4 page with grids (the stored a4Page + rows of kind gridLabel / grid; values with \n = list lines)
-const a4PageG = async (P, name, x, y) => {
-  let c = sec.children.find(n => n.name === name && n.type === "COMPONENT");
-  if (c) { for (const ch of [...c.children]) ch.remove(); } else { c = figma.createComponent(); sec.appendChild(c); c.name = name; }
-  c.x = x; c.y = y;
-  c.layoutMode = "VERTICAL"; c.primaryAxisSizingMode = "FIXED"; c.counterAxisSizingMode = "FIXED"; c.resize(794, 1123); await fillV(c, "background/base/default");
-  c.paddingTop = 68; c.paddingBottom = 68; c.paddingLeft = 60; c.paddingRight = 60; c.clipsContent = true;
-  try { const fx = await figma.importStyleByKeyAsync("31092db557fca92f0a227cb1b1ee8dbaa703e17a"); await c.setEffectStyleIdAsync(fx.id); } catch (e) {}
-  const W = 674;
-  if (P.cont) { const ct = await AL("Continuation", "VERTICAL", { pad: [0, 0, 8, 0] }); put(c, ct, { fillW: true }); await sideStroke(ct, 0, 0, 1, 0); const t = await TX(P.cont, "cap", "text/base/tertiary"); put(ct, t, { fillW: true }); t.textAutoResize = "HEIGHT"; }
-  if (P.authority) {
-    const hd = await AL("Head", "VERTICAL", { gap: 2, pad: [0, 0, 16, 0], align: "CENTER" }); put(c, hd, { fillW: true }); await sideStroke(hd, 0, 0, 1, 0);
-    const gs = await figma.importComponentSetByKeyAsync("3d0facf597c6961a599c09eb57f2fa8668f32df3"); const arms = variant(gs, { Style: "Blue", Logomark: "False", Language: "Ro" }).createInstance(); arms.name = "Arms"; const aw = await AL("Arms box", "VERTICAL", { pad: [0, 0, 8, 0] }); aw.appendChild(arms); hd.appendChild(aw);
-    const ctry = await TX(P.country, "cap", "text/base/tertiary", { name: "Country" }); ctry.textCase = "UPPER"; ctry.letterSpacing = { unit: "PERCENT", value: 8 }; hd.appendChild(ctry);
-    hd.appendChild(await TX(P.authority, "mh5", "text/base/default", { name: "Authority" }));
-    if (P.office) hd.appendChild(await TX(P.office, "small", "text/base/secondary", { name: "Office" }));
-    const h = await AL("Title", "VERTICAL", { gap: 8, pad: [24, 0, 16, 0], align: "CENTER" }); put(c, h, { fillW: true });
-    const h1 = await TX(P.h1, "h5", "text/base/default", { name: "Act name", w: W }); h1.textAlignHorizontal = "CENTER"; put(h, h1, { fillW: true });
-    const nr = await TX(P.number, "small", "text/base/secondary", { name: "Number" }); nr.textAlignHorizontal = "CENTER"; h.appendChild(nr);
-    // odd free space centres a hugging text at .5 → FILL + centre alignment (whole pixels)
-    for (const t of [...hd.children.filter(n => n.type === "TEXT"), nr]) { t.layoutSizingHorizontal = "FILL"; t.textAutoResize = "HEIGHT"; t.textAlignHorizontal = "CENTER"; }
-  }
+// ---- A4 page instance with grids (rows of kind gridLabel / grid; values with \n = list lines) — one consolidated page
+const WM = { SUSPENDAT: "Suspended", RETRAS: "Withdrawn" };
+const a4Inst = async (P, scale) => {
+  const set = await getL("a4"), wms = await getL("a4wm");
+  const NP = set.children.find(v => v.name === "Page=" + (P.authority ? "First" : "Continuation")).createInstance(); figma.currentPage.appendChild(NP);
+  const pr = { "Show closing": !!P.closing, "Show signature": !!P.sign, "Show watermark": !!P.wm };
+  if (P.authority) { pr.Authority = P.authority; pr.Office = P.office || ""; pr["Act name"] = P.h1; pr.Number = P.number; }
+  else if (P.sign) pr.Authority = P.sign[1];
+  if (P.cont) pr.Continuation = P.cont;
+  if (P.sign) pr.Signed = P.sign[2];
+  if (P.footer) pr.Footer = P.footer;
+  setP(NP, pr);
+  if (P.authority && !P.office) { const o = NP.findOne(x => x.type === "TEXT" && x.name === "Office"); if (o) o.visible = false; }
+  if (P.closing) { const t = NP.findOne(x => x.type === "TEXT" && x.name === "Closing"); await figma.loadFontAsync(t.fontName); if (t.characters !== P.closing) t.characters = P.closing; }
+  if (P.wm) { const w = NP.children.find(x => x.name === "Watermark"); const v = wms.children.find(x => x.name === "Status=" + (WM[P.wm] || "Suspended")); if (v) w.swapComponent(v); }
   const rowSet = await getL("a4row"); await ensureGridLabel(); const gset = await ensureGridRow();
-  const tb = await AL("Table", "VERTICAL"); put(c, tb, { fillW: true }); await sideStroke(tb, 1, 0, 0, 1);
-  const tw = await AL("Table margin", "VERTICAL", { pad: [12, 0, 12, 0] }); c.insertChild(c.children.indexOf(tb), tw); put(tw, tb, { fillW: true }); tw.layoutSizingHorizontal = "FILL";
+  const tb = clearSlot(NP);
   for (const r of P.rows) {
-    if (Array.isArray(r)) { const i = rowSet.children.find(v => v.name === "Kind=Field").createInstance(); put(tb, i, { fillW: true }); setP(i, { Label: r[0], Value: r[1] }); if (r[1].indexOf("\n") > -1) { const vt = i.findOne(n => n.type === "TEXT" && n.name === "Value"); if (vt) { await figma.loadFontAsync(vt.fontName); vt.paragraphSpacing = 0; } } continue; }
+    if (Array.isArray(r)) { const i = rowSet.children.find(v => v.name === "Kind=Field").createInstance(); put(tb, i, { fillW: true }); setP(i, { Label: r[0], Value: r[1] }); if (r[1].indexOf("\n") > -1) { const vt = i.findOne(x => x.type === "TEXT" && x.name === "Value"); if (vt) { await figma.loadFontAsync(vt.fontName); vt.paragraphSpacing = 0; } } continue; }
     if (r.group) { const i = rowSet.children.find(v => v.name === "Kind=Group").createInstance(); put(tb, i, { fillW: true }); setP(i, { Label: r.group }); continue; }
     if (r.gridLabel) { const i = rowSet.children.find(v => v.name === "Kind=Grid label").createInstance(); i.name = "Grid label · " + r.gridLabel; put(tb, i, { fillW: true }); setP(i, { Label: r.gridLabel }); continue; }
     if (r.grid) { const i = gset.children.find(v => v.name === "Kind=" + (r.head ? "Header" : "Body")).createInstance(); i.name = (r.head ? (r.repeat ? "Grid header (repeated)" : "Grid header") : "Grid row · " + r.grid[0].slice(0, 24)); put(tb, i, { fillW: true }); const o = {}; for (let j = 0; j < 5; j++) o["C" + (j + 1)] = r.grid[j]; setP(i, o); continue; }
   }
-  if (P.closing) { const t = await TX(P.closing, "small", "text/base/default", { name: "Closing" }); put(c, t, { fillW: true }); t.textAutoResize = "HEIGHT"; }
-  const grow = await AL("Spacer", "VERTICAL"); put(c, grow, { fillW: true }); grow.layoutGrow = 1;
-  if (P.sign) {
-    const ft = await AL("Foot", "HORIZONTAL", { gap: 24, pad: [24, 0, 0, 0] }); put(c, ft, { fillW: true }); ft.counterAxisAlignItems = "MAX";
-    const sg = await AL("Sign", "VERTICAL"); put(ft, sg, { fillW: true });
-    sg.appendChild(await TX(P.sign[0], "cap", "text/base/tertiary", { name: "Label" }));
-    const st = await AL("Strong", "VERTICAL", { pad: [4, 0, 0, 0] }); st.appendChild(await TX(P.sign[1], "small500", "text/base/default", { name: "Authority" })); sg.appendChild(st);
-    const sd = await AL("Signed", "HORIZONTAL", { gap: 6, align: "CENTER", pad: [8, 0, 0, 0] });
-    const sig = await figma.importComponentByKeyAsync("76db9b9b257f155ae5860ca608d7964cf5a72d1d"); const si = sig.createInstance(); si.name = "Icon"; for (const v of si.findAll(x => x.type === "VECTOR")) if (v.fills.length) v.fills = [await L.paint(v, "icon/brand/default")]; sd.appendChild(si);
-    sd.appendChild(await TX(P.sign[2], "small", "text/brand/default", { name: "Text" })); sg.appendChild(sd);
-    const qr = await AL("QR", "HORIZONTAL", { gap: 12, align: "CENTER" }); ft.appendChild(qr);
-    const box = await AL("QR code", "HORIZONTAL", { pad: [4, 4, 4, 4], r: 4 }); await strokeV(box, "border/base/default"); const q = (await figma.importComponentByKeyAsync("2aafc1d569aff667e5e71d8ee8070871322edfae")).createInstance(); q.resize(80, 80); for (const v of q.findAll(x => x.type === "VECTOR")) if (v.fills.length) v.fills = [await L.paint(v, "icon/base/default")]; box.appendChild(q); qr.appendChild(box);
-    const qt = await AL("QR text", "VERTICAL", { gap: 2 }); qr.appendChild(qt); qt.maxWidth = 184;
-    const parts = P.qr.split(/(?<=autenticitatea)\s*/); qt.appendChild(await TX(parts[0], "cap500", "text/base/default", { name: "Title" }));
-    if (parts[1]) { const u = await TX(parts[1], "cap", "text/base/tertiary", { name: "Url" }); put(qt, u, { fillW: true }); u.textAutoResize = "HEIGHT"; u.resize(184, u.height); }
-  }
-  const fl = await AL("Footer line", "VERTICAL", { pad: [8, 0, 0, 0] }); put(c, fl, { fillW: true }); await sideStroke(fl, 1, 0, 0, 0);
-  const flm = await AL("Footer margin", "VERTICAL", { pad: [16, 0, 0, 0] }); c.insertChild(c.children.indexOf(fl), flm); put(flm, fl, { fillW: true }); flm.layoutSizingHorizontal = "FILL";
-  const ftx = await TX(P.footer, "cap", "text/base/tertiary", { name: "Footer" }); ftx.textAlignHorizontal = "CENTER"; put(fl, ftx, { fillW: true }); ftx.textAutoResize = "HEIGHT";
-  c.description = "MDocs A4 act page (real size 794 × 1123) with configured groups and grids (2026-10-19): group heading rows, grid = label row + header row + one bordered row per data row (A4 act page · grid row), the header repeated on a continuation page; every row printed (no „Arată toate”).";
-  return c;
+  if (scale && scale !== 1) NP.rescale(scale); // after the slot is filled
+  return NP;
 };
 
-// ---- doc canvas (scaled pages); offsets = [y per page] → fixed scrolled view (clip + absolute pages)
-const docCanvas = async (id, pages, mobile, offsets) => {
-  const zoomW = mobile ? 311 : 624; const name = "Doc canvas · " + id + " · " + (mobile ? "Mobile" : "Desktop");
-  let c = sec.children.find(n => n.name === name && n.type === "COMPONENT");
-  if (c) { for (const ch of [...c.children]) ch.remove(); } else { c = figma.createComponent(); sec.appendChild(c); c.name = name; c.x = mobile ? 6500 : 5500; c.y = Y0; }
-  c.fills = [];
-  if (!offsets) {
-    c.layoutMode = "VERTICAL"; c.counterAxisSizingMode = "FIXED"; c.resize(zoomW, 100); c.primaryAxisSizingMode = "AUTO"; await sp(c, "itemSpacing", 24); c.counterAxisAlignItems = "CENTER";
-    for (let k = 0; k < pages.length; k++) { const i = pages[k].createInstance(); c.appendChild(i); i.rescale(zoomW / 794); i.name = "A4 page " + (k + 1) + "/" + pages.length; }
-  } else {
-    // a NONE-layout component keeps the slot's 100 px height override in the modal (resize is ignored on that nested
-    // instance) → HUG wrapper + a fixed clipped „Viewport (scrolled)” frame holding the absolute pages
-    c.layoutMode = "VERTICAL"; c.counterAxisSizingMode = "FIXED"; c.resize(zoomW, 100); c.primaryAxisSizingMode = "AUTO"; c.clipsContent = false;
-    const vpf = figma.createFrame(); vpf.name = "Viewport (scrolled)"; vpf.fills = []; vpf.clipsContent = true; vpf.resize(zoomW, mobile ? 503 : 531); c.appendChild(vpf);
-    for (let k = 0; k < pages.length; k++) { const i = pages[k].createInstance(); vpf.appendChild(i); i.rescale(zoomW / 794); i.x = 0; i.y = offsets[k]; i.name = "A4 page " + (k + 1) + "/" + pages.length; }
-    c.description = "Scrolled canvas: the pages sit where the code's canvas scroll puts them (scrollTop of the demo state).";
-  }
-  return c;
+// ---- doc canvas: the Document modal's canvas instance → „RAP / Document / Doc canvas” Pages, pages in its slot
+const fillCanvas = async (cc, pages, mobile, offsets) => {
+  const set = await getL("canvas"); const W = mobile ? 359 : 624;
+  cc.swapComponent(set.children.find(v => v.name === "Breakpoint=" + (mobile ? "Mobile" : "Desktop") + ", State=Pages")); cc.name = "Canvas content";
+  const slot = clearSlot(cc);
+  const made = []; for (let k = 0; k < pages.length; k++) { const p = await a4Inst(pages[k], W / 794); p.name = "A4 page " + (k + 1) + "/" + pages.length; made.push(p); }
+  if (!offsets) { for (const p of made) slot.appendChild(p); return cc; }
+  // scrolled view (scrollTop of the demo state): a fixed clipped viewport holding the absolute pages
+  const vpf = figma.createFrame(); vpf.name = "Viewport (scrolled)"; vpf.fills = []; vpf.clipsContent = true; vpf.resize(W, mobile ? 612 : 531); slot.appendChild(vpf);
+  for (let k = 0; k < made.length; k++) { vpf.appendChild(made[k]); made[k].x = 0; made[k].y = offsets[k]; }
+  return cc;
 };
-return { tableComp, fillContent, newContent, ensureRowCard, ensureCardLine, ensureGridRow, ensureGridLabel, a4PageG, docCanvas, AFID, saveAF, getAF, sec, Y0 };
+return { tableInst, fillContent, ensureRowCard, ensureCardLine, ensureGridRow, ensureGridLabel, a4Inst, fillCanvas, splitName, AFID, saveAF, getAF, sec, Y0 };
