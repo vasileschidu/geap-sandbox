@@ -161,26 +161,28 @@
 }
 
 /* ==========================================================================
-   Filter bar container (filter-bar-v2, 2026-10-22; user: „when there is no space, keep all the chips as much as
-   possible on one line, and Aplică on the next one; even padding on all sides, more round, so it fits the rounder
-   chips”). ONE rule for every product and width (phones of a facet-filter list =
-   only the applied line, `.is-sheets`, unchanged; the Taxe / Tarife bar has no phone mode, so it keeps the box):
-   - container: 1px border-default, padding 12 on all four sides, radius 24 (user decision 2026-10-22, filter-bar-v3:
-     24, not the concentric 32 = 20 pill radius + 12 — 32 turned a one-line bar into a capsule);
-   - wrap order: the chips group and the action group („N rezultate · Șterge filtrele” / „Filtre neaplicate ·
-     Renunță · Aplică filtrele” / the hint) share line 1 while both fit; when they don't, the ACTION GROUP moves to
-     the next line first, right-aligned (the primary keeps the right edge, as in the dialog footer and on the wide
-     bar, so „Aplică filtrele” never jumps sides); only when the chips alone overflow one line do they wrap, as a
-     group, left-aligned, 8 apart. Lines 8 apart. No horizontal scroll.
-   Placement stays with the page (16 under the toolbar on Cabinet / RAP / the Taxe-Tarife lists; inset 8 · 16 · 16
-   in the BO table card, css/e-permits-acte-permisive.css).
+   Filter bar — NO container (filter-bar-open-v1, 2026-10-23; user on GEAP 12402:364736: „remove the rounded
+   container for filters everywhere — no padding needed”; was a 1px bordered box, padding 12, radius 24 in
+   filter-bar-v2 / v3). ONE rule for every product and width (phones of a facet-filter list = only the applied line,
+   `.is-sheets`, unchanged): no border, no background, no radius, no padding — the chips and the action group sit
+   in the page / toolbar flow on the content edges.
+   - wrap order (unchanged): the chips group and the action group („N rezultate · Șterge filtrele” / „Filtre
+     neaplicate · Renunță · Aplică filtrele” / the hint) share line 1 while both fit; when they don't, the ACTION
+     GROUP moves to the next line first, right-aligned (the primary keeps the right edge, so „Aplică filtrele” never
+     jumps sides); only when the chips alone overflow one line do they wrap, as a group, left-aligned, 8 apart.
+     Lines 8 apart. No horizontal scroll.
+   Placement stays with the page: 8 under the toolbar on Cabinet / RAP (the toolbar group), the list keeps its own gap
+   (24 desktop, 16 phones — the toolbar → list rhythm);
+   BO table card: 8 under the toolbar row (= 16 under the search), 16 at the sides (the search's edge), 16 above
+   the line (css/e-permits-acte-permisive.css); Taxe / Tarife 16 above the list.
    ========================================================================== */
 .e-permits-workplace__filters:not(.is-sheets) {
-  border: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
-  border-radius: var(--border-radius-24, 24px);
+  background: transparent;
+  border: 0;
+  border-radius: 0;
   flex-wrap: wrap;
   gap: var(--spacing-8, 8px) var(--spacing-12, 12px);
-  padding: var(--spacing-12, 12px);
+  padding: var(--spacing-0, 0px);
 }
 
 /* basis = the chips on one line: the group shrinks (and wraps inside) only once it is alone on its line */

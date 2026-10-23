@@ -22,5 +22,10 @@
   --border-radius-24: 24px;
 }
 
-/* Radius 20 was added in cards-radius-20-v1 and removed in cards-radius-16-v1 (2026-10-23, user: one card radius = 16,
-   main.css `--border-radius-16`). No product rule uses 20. */
+/* Radius 20 (cards-radius-20-final, 2026-10-23, user final: „back to 20 px” — one card radius = 20 for every grey /
+   details container, trajectory, alert card + tray and the grey identity / role cards; 24 and 16 tried and replaced).
+   Mirrors the Foundations Figma library variable `border-radius/radius-20` (collection „3. Sizes”). main.css has no 20 →
+   defined here, not in main.css (library file). List row cards stay 16. */
+:root {
+  --border-radius-20: 20px;
+}

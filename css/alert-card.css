@@ -2,7 +2,7 @@
    The soft status alert of the EVO Cabinet act + request profiles (user: „nice round, grey background, coloured icon,
    a nice title and description, and buttons for actions”; Google Wallet = look & feel only). A modifier of the product
    Callout (css/e-permits-acte-permisive.css › „Callout”), rendered by js/alert-card.js (GEAPAlertCard.html):
-   grey surface (no tint, no border) · radius 16 (one card radius, cards-radius-16-v1) · padding 24 (phones 16) · icon 24 in the tone colour on the title line ·
+   grey surface (no tint, no border) · radius 20 (one card radius, cards-radius-20-final) · padding 24 (phones 16) · icon 24 in the tone colour on the title line ·
    title 16/24 semibold · text 14/20 secondary (title → text 4) · library Medium 40 PILL buttons `btn … btn-md btn-rounded`
    (user: „do Achită as round buttons”), gap 8.
    Layout (user: „buttons in the same row as the icon and text”): ONE row [icon 24] · 16 · [title + text, fills, wraps] ·
@@ -13,8 +13,8 @@
 .e-permits-callout.e-permits-callout--card {
   align-items: start;
   background: var(--color-background-base-secondary, #f5f5f5);
-  /* one card radius: 16 at every width (cards-radius-16-v1, 2026-10-23; was 24 → 20) — the details cards and the trajectory card too */
-  border-radius: var(--border-radius-16, 16px);
+  /* one card radius: 20 at every width (cards-radius-20-final, 2026-10-23; 24 → 20 → 16 → 20) — the details cards and the trajectory card too */
+  border-radius: var(--border-radius-20, 20px);
   column-gap: var(--spacing-16, 16px);
   container: alert-card / inline-size;
   display: grid;

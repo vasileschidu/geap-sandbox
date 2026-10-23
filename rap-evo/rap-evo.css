@@ -721,10 +721,10 @@ a {
 .rap-profile__beneficiary-card,
 .rap-profile__timeline,
 .rap-profile__support-card {
-  /* = the BO card surface (.e-permits-dosar-profil__card, css/bo-profile-parts.css): one card radius 16 at every width
-     (cards-radius-16-v1, 2026-10-23; was 24 / phones 16 → 20) */
+  /* = the BO card surface (.e-permits-dosar-profil__card, css/bo-profile-parts.css): one card radius 20 at every width
+     (cards-radius-20-final, 2026-10-23; was 24 / phones 16 → 20 → 16 → 20) */
   background: var(--color-background-base-secondary, #f5f5f5);
-  border-radius: var(--border-radius-16, 16px);
+  border-radius: var(--border-radius-20, 20px);
 }
 
 .rap-profile__beneficiary-card {
@@ -1120,10 +1120,10 @@ a {
 }
 
 /* ---- „Filtru” = the BO advanced filter (css/facet-filter.css, js/facet-filter.js) ----
-   Placement only: 16 under the toolbar; the box (border, padding 12, radius 32) = the shared
-   „Filter bar container” rule in css/facet-filter.css (filter-bar-v2). */
+   Placement only: 8 under the toolbar (the toolbar group); no box since filter-bar-open-v1 (2026-10-23, the shared
+   „Filter bar” rule in css/facet-filter.css), the list keeps its own gap. */
 .rap-filters.e-permits-workplace__filters {
-  margin-top: var(--spacing-16, 16px);
+  margin-top: var(--spacing-8, 8px);
 }
 
 @media (max-width: 760px) {

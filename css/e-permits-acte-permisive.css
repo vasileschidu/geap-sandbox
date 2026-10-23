@@ -4311,7 +4311,7 @@
 .e-permits-fo-selected-role {
   align-items: flex-start;
   background: var(--color-background-base-secondary, #f5f5f5);
-  border-radius: var(--border-radius-16, 16px); /* one card radius (cards-radius-16-v1, was 12) */
+  border-radius: var(--border-radius-20, 20px); /* one card radius (cards-radius-20-final; was 12 → 16) */
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
@@ -4506,7 +4506,7 @@
 .e-permits-fo-authorization-card {
   align-items: center;
   background: var(--color-background-base-secondary, #f5f5f5);
-  border-radius: var(--border-radius-16, 16px); /* one card radius (cards-radius-16-v1, was 12) */
+  border-radius: var(--border-radius-20, 20px); /* one card radius (cards-radius-20-final; was 12 → 16) */
   box-sizing: border-box;
   display: flex;
   gap: var(--spacing-16, 16px);
@@ -8656,7 +8656,7 @@ a.e-permits-fo-lib-item__title:is(:hover, :focus) {
 .e-permits-fo-step-panel[data-fo-step-panel="4"] .e-permits-fo-summary-card,
 .e-permits-fo-review .e-permits-fo-summary-card {
   background: var(--gray-50, #f7f7f7);
-  border-radius: var(--border-radius-16, 16px); /* one card radius (cards-radius-16-v1) */
+  border-radius: var(--border-radius-20, 20px); /* one card radius (cards-radius-20-final) */
   padding: var(--spacing-8, 8px) var(--spacing-20, 20px);
 }
 
@@ -9624,7 +9624,7 @@ a.e-permits-fo-lib-item__title:is(:hover, :focus) {
    summary card (details-wrap-align-v1: was r16 + tertiary labels, the odd one out) */
 .e-permits-fo-payment-summary {
   background: var(--gray-50, #f7f7f7);
-  border-radius: var(--border-radius-16, 16px); /* one card radius (cards-radius-16-v1) */
+  border-radius: var(--border-radius-20, 20px); /* one card radius (cards-radius-20-final) */
   box-sizing: border-box;
   padding: var(--spacing-8, 8px) var(--spacing-20, 20px);
   width: 100%;
@@ -15733,10 +15733,10 @@ a.e-permits-fo-lib-item__title:is(:hover, :focus) {
 }
 
 .e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-dosar-profil__card {
-  /* same surface as the timeline, stack group heads and preview frame; one card radius 16 at every width (cards-radius-16-v1) */
+  /* same surface as the timeline, stack group heads and preview frame; one card radius 20 at every width (cards-radius-20-final) */
   background: var(--color-background-base-secondary, #f5f5f5);
   border: 0;
-  border-radius: var(--border-radius-16, 16px);
+  border-radius: var(--border-radius-20, 20px);
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
@@ -18995,8 +18995,8 @@ a.e-permits-fo-lib-item__title:is(:hover, :focus) {
    and an optional sentence. */
 .e-permits-timeline {
   background: var(--color-background-base-secondary, #f5f5f5);
-  /* = the details card it sits next to (one card radius 16, cards-radius-16-v1) */
-  border-radius: var(--border-radius-16, 16px);
+  /* = the details card it sits next to (one card radius 20, cards-radius-20-final) */
+  border-radius: var(--border-radius-20, 20px);
   display: flex;
   flex-direction: column;
   gap: var(--spacing-6, 6px);
@@ -19975,9 +19975,9 @@ a.e-permits-fo-lib-item__title:is(:hover, :focus) {
   grid-row: 2;
 }
 
-/* filter-bar-v2: the open bar is the shared box (css/facet-filter.css › Filter bar container), inset in the table
-   card — 8 under the toolbar row (= 16 under the search, as on Cabinet / RAP), 16 at the sides (the search's
-   edge), 16 above the line. The toolbar + the box read as one group: the toolbar's line moves under the box
+/* filter-bar-open-v1 (2026-10-23): the open bar has no box (css/facet-filter.css › Filter bar), inset in the table
+   card — 8 under the toolbar row (= 16 under the search), 16 at the sides (the search's edge), 16 above the line.
+   The toolbar + the bar read as one group: the toolbar's line moves under the bar
    (the header's own bottom line, which the status tabs' border covers when they show). */
 .e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-workplace__header > .e-permits-workplace__filters:not(.is-sheets) {
   margin: var(--spacing-8, 8px) var(--spacing-16, 16px) var(--spacing-16, 16px);
@@ -20867,14 +20867,14 @@ button.e-permits-steps-strip__cell:focus-visible {
 /* under the trajectory the callout hangs from the card, like the Figma strip:
    no gap, square top corners, inset 16px on each side; compact (padding 12/16,
    icon–text gap 12, lines gap 4) so it reads as part of the timeline */
-/* inset = the card's corner radius (16 since cards-radius-16-v1; was 24 → 20), so the callout's sides start where the
-   card's rounded corners end (user, 2026-10-13) */
+/* inset = the card's corner radius (20 since cards-radius-20-final; was 24 → 20 → 16 → 20), so the callout's sides start
+   where the card's rounded corners end (user, 2026-10-13) */
 .e-permits-trajectory + .e-permits-callout-wrap {
-  margin: 0 var(--spacing-16, 16px);
+  margin: 0 var(--spacing-20, 20px);
 }
 
 .e-permits-trajectory + .e-permits-callout-wrap .e-permits-callout {
-  border-radius: 0 0 var(--border-radius-16, 16px) var(--border-radius-16, 16px);
+  border-radius: 0 0 var(--border-radius-20, 20px) var(--border-radius-20, 20px);
   gap: var(--spacing-12, 12px);
   padding: var(--spacing-12, 12px) var(--spacing-16, 16px);
 }
@@ -22619,8 +22619,8 @@ body[data-fo-postprocess] .e-permits-fo-form__roles .e-permits-fo-selected-role_
   margin: 0;
 }
 
-/* the registry's filter bar above a stacked list: 16 above the list; the box (border, padding 12, radius 32) =
-   the shared „Filter bar container” rule in css/facet-filter.css (filter-bar-v2) */
+/* the registry's filter bar above a stacked list: 16 above the list; no box (filter-bar-open-v1, 2026-10-23 — the
+   shared „Filter bar” rule in css/facet-filter.css) */
 .e-permits-pay__filters {
   margin-bottom: var(--spacing-16, 16px);
 }

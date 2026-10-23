@@ -3076,3 +3076,17 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   band 16, callout inset 16 / 16, < 375 tray square. The scratch `rad.mjs` full-page shot of dos-01 came out blank (the
   page-reveal + static-position hack) — use capture.mjs for the pictures, the probe only for numbers. Docs edited in the
   tree AND in a HEAD copy (components.md / playbook carry other agents' hunks) → staged via hash-object in the commit command.
+- 2026-10-23 · cards-radius-20-final (user final: „back to 20 px”) + filter-bar-open-v1 (mid-job, via the coordinator:
+  first „filter bar container → radius 20”, then overridden by GEAP 12402:364736 „remove the rounded container for
+  filters everywhere — no padding needed”). Third flip of the same value in one day: walk the previous commit's diff
+  (`git show ed4a818b -- '*.css'`) hunk by hunk and set each back — the tray band SIZE, the hanging callout's SPACING
+  inset and the restored `--border-radius-20` token in token-fix.css all follow the radius; the identity cards (12 → 16
+  in that commit) go to 20 too, the ≤ 760 restatement stays deleted. List row cards were never in the set → 16. Proof
+  = computed radii per state × width (dos-01, gh-09, sm-04c, pp-03, rap-02, fo-08, fo-02, usr-01 at 1440 / 375): every
+  changed card 20, callout inset 20 / 20, tray band 20, role options 12, invoice 16. Filter bar: ONE rule in
+  facet-filter.css (border 0, transparent, radius 0, padding 0); hosts only restate placement → Cabinet / RAP 16 → 8
+  under the toolbar (toolbar group, list keeps its 24), BO table card margin 8 · 16 · 16 unchanged (chips on the search
+  edge). A course correction that cancels an earlier one in the same job: apply only the final rule, never ship the
+  intermediate (radius 20 bar never committed). ek-04o's script closes the bar on desktop (toggle after commit) — use
+  dos-05d / gh-01c to see the open BO bar. Probe pitfall: a `return out` injected by sed before the loop returned an
+  object without `ds` → every row „undefined”; build probes with a python splice, not sed.

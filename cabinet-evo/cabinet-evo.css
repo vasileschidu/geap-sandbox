@@ -1200,9 +1200,10 @@
   display: none;
 }
 
-/* the box (border, padding 12, radius 32) = the shared „Filter bar container” rule in css/facet-filter.css */
+/* no box (filter-bar-open-v1, 2026-10-23: the shared „Filter bar” rule in css/facet-filter.css drops the container):
+   the chips belong to the toolbar group — 8 under it (as the phone applied line); the list keeps its 24 */
 .cab-filters.e-permits-workplace__filters {
-  margin-top: var(--spacing-16, 16px);
+  margin-top: var(--spacing-8, 8px);
 }
 
 /* the restriction notice keeps the intro → content distance */
@@ -1737,15 +1738,15 @@ button.cab-alert-link {
   margin-bottom: 0;
 }
 
-/* cards-radius-16-v1 (2026-10-23): the alert and the trajectory card are 16 at every width → the grey band = 16 */
+/* cards-radius-20-final (2026-10-23): the alert and the trajectory card are 20 at every width → the grey band = 20 */
 .e-permits-dosar-profil__panel > .cab-alert-card--fused + .cab-status {
-  background: linear-gradient(var(--color-background-base-secondary, #f5f5f5), var(--color-background-base-secondary, #f5f5f5)) top / 100% var(--border-radius-16, 16px) no-repeat;
+  background: linear-gradient(var(--color-background-base-secondary, #f5f5f5), var(--color-background-base-secondary, #f5f5f5)) top / 100% var(--border-radius-20, 20px) no-repeat;
 }
 
 @media (max-width: 760px) {
   .e-permits-dosar-profil__panel > .cab-alert-card--fused + .cab-status > .e-permits-trajectory:not(.e-permits-trajectory--vertical) {
     border-inline: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
-    border-radius: var(--border-radius-16, 16px);
+    border-radius: var(--border-radius-20, 20px);
     margin-inline: 0;
   }
 }
@@ -2000,8 +2001,8 @@ button.cab-alert-link {
 }
 
 .cab-skeleton-profile__trajectory {
-  /* = the trajectory card, 16 at every width (cards-radius-16-v1) */
-  border-radius: var(--border-radius-16, 16px);
+  /* = the trajectory card, 20 at every width (cards-radius-20-final) */
+  border-radius: var(--border-radius-20, 20px);
   height: calc(var(--spacing-48, 48px) * 2);
   margin-bottom: var(--spacing-24, 24px);
 }
