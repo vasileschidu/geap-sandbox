@@ -3835,3 +3835,26 @@ For any „research how other products do it” step, search Mobbin (mcp__mobbin
   - No Agent tool in this session → repo figma-audit (inline) on the identity / auth sets, Ghișeu card stack, F7 recap, dossier
     trajectory, MPass card, skeleton: no radius findings; pre-existing: pill radius 9999 unbound (5), MPass text without style (1),
     skeleton bars fractional (6).
+
+- 2026-10-23 · request-act-headers-figma-v1 (code 4afbf27a request-act-modal-link-v1 + header-max-two-v1). Header actions = code at
+  1440 / 375 (probe: scratch hdr2/, measure.js per state = label · class · icons · target). EVO Cabinet ↳ My Requests: sm-05 / 05l /
+  05p / 05s / 05w / 05u / 05v → one primary „Profilul actului” (button-filled-rectangular Primary **Icon=Trailing** + Foundations
+  20/external-link 8df5d4b1…); sm-05b / 05q / 05r → „Profilul actului ↗” · „Descarcă decizia” (sm-05b lost „Depune contestație”, phone ⋯
+  → labelled download); sm-05a / 05m / drafts already = code. **sm-05c** = the refused request's „Descarcă decizia” failure: both
+  `Main`s replaced by clones of sm-05a's (screens, header, toasts and the 812 phone viewport kept), block moved after sm-05a, arrow
+  1315:50868 re-pointed to the sm-05a phone ⋯ („⋯ › Descarcă decizia (eroare)”). New **sm-act-04 1352:54359** (clone of sm-05b + a
+  text map from the code's innerText; header Depune contestație P · Profilul actului ↗ N · ⋯ / phone Depune + ⋯). sm-act-03 not drawn
+  (same request + header as sm-05q, other tab). My Permits: every „Vezi act permisiv” → Icon=None (20 rows); pp-01m (6 rows) / 01x / 01y
+  = Vezi act permisiv · Vezi solicitarea · ⋯ (Postprocese removed); pp-01q menus re-anchored (right edge = trigger right, 6 below —
+  the narrower label-only primary moved the trigger 22 px) and phone header-menu items → Desktop/Body/Default 500 (code: header
+  menus 16/24 500 · icon 20, LIST row menus stay 16/24 400 · icon 24 — they differ). RAP: 54 „Vezi act permisiv” → Icon=None (ids
+  kept). Column 06 restacked at 240 (3 connectors attached), Start here (56 blocks / 06 · 15, lines moved / added, not-built bullet),
+  Permits + RAP Start here and cover index dated. Lessons:
+  - **Clone + text map is the cheap way to a sibling state**: same structure in code (innerText diff) → clone the nearest block,
+    replace by an ordered pair list (longest first, exact-match map for short words like „Depusă” / „Retragere”), then grep the clone
+    for the old tokens. **Copy value numbers survived the pass** — their `Value` lives on a nested instance whose property the outer
+    loop missed; fix by walking up from the text to the instance that owns `componentPropertyReferences.characters`.
+  - **Re-point a connector BEFORE removing its start node** (Figma deletes connectors whose endpoint disappears).
+  - **Removing a leading icon shifts every later control** — re-anchor menus / arrows that hang on the next button after an icon change.
+  - No Agent tool in this session → stored `qsweep/audit` (12 request + 13 permit blocks) and RAP `rap/audit` (4 profiles): only the
+    baseline (section-over-card gap 0, 812 phone viewport clips). Figma buttons stay 3 px narrower than code (library drift, declared).
