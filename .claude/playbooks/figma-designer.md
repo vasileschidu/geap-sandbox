@@ -3897,3 +3897,25 @@ For any „research how other products do it” step, search Mobbin (mcp__mobbin
     drift; Ghișeu sidebar badges (code shows none). No Agent tool in this session → stored `ghs/audit` on 19 blocks + components:
     only the board baseline (background table clip, rows-per-page label, raw scrim, cloned spacing-unbound) + declared Note style;
     connector audit 66 connectors, only the 2 pre-existing marker-off-grid findings.
+
+- 2026-10-23 · ghiseu-figma-cleanup-v1 (the three open points of ghiseu-bundle-figma-v1). (1) **Lookup row widths = code**: the 16 three-field
+  rows `Row 1` (`Lookup · IDNP|IDNO…` frame + Nume + Prenume) on the Ghișeu board → lookup FIXED `round((W − gap) / 2)` (= the code's
+  span-6), the two others FILL (= span-3): column 02 dialogs 680 / gap 16 → 332 / 158 / 158 (gh-02b/c/d/m/v/g/p/h/e/f/f2/f3/f4; PJ
+  company rows already 332 / 332 = span-6 + span-6), column 04 page rows 768 / gap 32 → 368 / 168 / 168 (gh-03c / 03d / 03m, their
+  gap 32 now bound to spacings/spacing-32). The `Counter` is ABSOLUTE constraint MAX → it followed. Only gh-02f3 grew (Nume / Prenume
+  „Câmpul este obligatoriu.” wraps to 2 lines in 158 → 116 = code 116); dialogs centre in FIXED 1024 screens → no restack, no
+  connector touched. (2) FO Full Flows 09: the 14 leaked `rsspa-AP-023` (all phone `Identity card · selected (FO)` cards F2…F2i) →
+  the code's idValue by the card's `Name` prop (data/acte-permisive.json: Anastasia Cojocaru 2990000000001, Vrabie Gheorghe
+  2990000000002, SRL Global Trader 1012600000002, «Vita-Plant» SRL 1012600000001), set on the nested Copy value `Value#` prop; 0 left
+  on GEAP board pages (only the component mains keep the default). (3) **Sidebar count badges: nothing to remove** — all 106 Ghișeu
+  sidebars (105 `Sidebar · Desk clerk (Ghișeu)` 11595:241745 + gh-01g's `Public Services Sidebar`) have 0 visible badges (main's
+  numbered-badge layers hidden), = the code (js/e-permits-shell.js renders a nav badge only when `item.badge` is set; no Ghișeu item
+  has one). The counters on the board are the tab counters („Schițe 8”, „Dosare nedistribuite 1”), which the code shows too. Lessons:
+  - **Verify an „open point” before acting on it**: census by visibility chain (`skipInvisibleInstanceChildren = false`, walk up to the
+    instance checking `visible`) + a code probe of the nav text proved the badge item was a misreading of hidden main layers / tab counters.
+  - **span-N rows in Figma**: Figma's FILL has no grow ratio → the wide field FIXED at `(W − gap) / 2`, the narrow ones FILL; works for
+    any row width / gap (dialog 680 / 16, page 768 / 32).
+  - **The board's desktop FO identity numbers are a different fake set** (9007021010055 / 2118421010044 / 12012092309223014, 88 texts on
+    FO 09, captured raw) — phones now show the code values, desktops don't. Board-wide sync needs a per-occurrence name map (switcher rows,
+    authorization „Acordată de”, documents) → reported, not done.
+  - No Agent tool in this session → stored `ghs/audit` on the 16 rows + 14 cards: 0 findings after binding the 3 gap-32 rows.
