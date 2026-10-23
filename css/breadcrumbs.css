@@ -4,9 +4,12 @@
    EVO Cabinet, RAP). */
 
 /* Figma „📏 Breakpoint”: Desktop = the trail, Mobile (≤760) = the library .breadcrumbs--mobile — chevron-left-small
-   + the parent level only. The renderer writes both navs as siblings; one shows per breakpoint. */
-.breadcrumbs--mobile {
-  display: none;
+   + the parent level only. The renderer writes both navs as siblings; one shows per breakpoint. A trail with ONE
+   parent level writes the --mobile nav alone (breadcrumb-single-back-v1): „‹ parent” at every width. */
+@media (min-width: 761px) {
+  .breadcrumbs:not(.breadcrumbs--mobile) + .breadcrumbs--mobile {
+    display: none;
+  }
 }
 
 @media (max-width: 760px) {

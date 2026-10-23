@@ -19,6 +19,9 @@
      „Acasă › Resurse utile › Registrul actelor permisive” and nothing after; no `--trailing` class, no current level.
      Every page header uses it (shell renderPageHeaderTop, CabEvo.pageHeader, RAP crumbsHtml); callers still pass the
      whole trail. Only a trail that REPLACES the title (process designer drill-in) keeps the current level.
+     ONE parent level left (breadcrumb-single-back-v1, user 2026-10-23: „in the Solicitările mele profile, when we have
+     only one breadcrumb, let's do it as on mobile, with the chevron”): only the phone back nav is written —
+     „‹ Solicitările mele” at every width (Figma 232:5282 „📏 Breakpoint=Mobile”); same link, same name, same place.
    Output = two library navs, siblings (css/breadcrumbs.css shows one per breakpoint, Figma „📏 Breakpoint”):
      desktop  the trail; > `max` levels → first · „…” (overflow menu with the hidden levels) · the last 3 (Figma
               „w/ overflow”: at most 4 visible levels); every level `--truncate` (30 characters) with its full text in a
@@ -84,6 +87,9 @@
       ? `<nav class="breadcrumbs breadcrumbs--mobile${extra}" aria-label="${esc(label)}"><ol class="breadcrumbs__list"><li class="breadcrumbs__item breadcrumbs__item--back">${linkHtml(back, `<span class="e-permits-page-header__crumb-label">${esc(back.label)}</span>`)}</li></ol></nav>`
       : "";
     queueSync();
+    /* one parent level above the H1 (breadcrumb-single-back-v1): the phone back „‹ parent” at every width — a one-item
+       trail is a way back, not a path; the lone --mobile nav is shown on desktop too (css/breadcrumbs.css) */
+    if (parentsOnly && list.length === 1 && phone) return phone;
     return desktop + phone;
   };
 

@@ -3008,3 +3008,14 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   by the animation); (3) the desktop top-right toast covers the EVO header actions (hover-audit „covered”) — library
   position by decision, × closes it; flag it, don't move it. Dead CSS removed with it (`.cab-profile-notice`,
   `.cab-alert-card__retry`).
+- 2026-10-23 · breadcrumb-single-back-v1 (user: „in the Solicitările mele profile, when we have only one breadcrumb, let's do
+  it as on mobile, with the chevron”). ONE line in the renderer: `parentsOnly` leaving one LINK level → return only the
+  phone `--mobile` nav; css/breadcrumbs.css now hides `--mobile` on desktop only when it FOLLOWS a desktop trail
+  (`@media (min-width: 761px) .breadcrumbs:not(.breadcrumbs--mobile) + .breadcrumbs--mobile`) — a scoped min-width query,
+  because an unscoped (0,3,0) sibling rule would beat the ≤ 760 `.breadcrumbs--mobile { display: flex }`. No new class,
+  same link / handler / name, same box (120,136, h 20 at 1440 on sm-05 / pp-03). Which pages = a 1440 inventory probe over
+  the 235 base states (`^[a-z]+-\d+$`): only EVO Cabinet (sm-03/04/05, pp-03, cat-02, + not-found sm-05y / pp-03x); BO
+  trails always get the menu section prefix (≥ 2 parents), RAP has 3. Proof: real-mouse rest / hover / focus crops + a
+  click back to the list, hover-audit 0 / 0, code-audit 0, component-audit 0 breadcrumb findings (standing avatar menu /
+  doc-modal × / shell icons only). Trap: the long inventory ran while I edited — harmless here because the probe counted
+  both the old one-item trail and the new lone `--mobile` nav; design such probes to be edit-agnostic.
