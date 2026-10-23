@@ -81,7 +81,7 @@ const AUDIT = (scope, SPACING, RADIUS, FONT) => {
          cell, and of every [data-cell-tooltip] that is cut (on it, its clipping parent or a part inside it) */
       const tipRuntime = document.querySelector("script[src*='icon-tooltip.js']");
       const cellTip = (tipRuntime && (el.closest("[data-cell-tooltip]") || el.querySelector("[data-cell-tooltip]") || el.closest("td, th, [role=cell], [role=gridcell]")));
-      if (el.scrollWidth > el.clientWidth + 1 && cs.overflow !== "visible" && !el.title && !el.closest("[data-tooltip-label],[data-tooltip-text],[data-tooltip-hint],[title]") && !cellTip) add("clipped-text-no-tooltip", el, `${el.scrollWidth} > ${el.clientWidth}`);
+      if (el.scrollWidth > el.clientWidth + 1 && cs.overflow !== "visible" && !el.title && !el.closest("[data-tooltip-label],[data-tooltip-text],[data-tooltip-hint],[title],.visually-hidden,.u-visually-hidden,.sr-only") && !cellTip) add("clipped-text-no-tooltip", el, `${el.scrollWidth} > ${el.clientWidth}`);
     }
     const bg = cs.backgroundColor; if (bg && bg !== "rgba(0, 0, 0, 0)" && tokens.size && !tokens.has(bg.replace(/\s/g, ""))) add("background-not-token", el, bg);
     if (parseFloat(cs.borderTopWidth) > 0 && cs.borderTopStyle !== "none" && !/rgba\([^)]*,\s*0\)$/.test(cs.borderTopColor) && tokens.size && !tokens.has(cs.borderTopColor.replace(/\s/g, ""))) add("border-not-token", el, cs.borderTopColor);

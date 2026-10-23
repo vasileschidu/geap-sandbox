@@ -195,49 +195,23 @@
   outline: none;
 }
 
-/* the page window: first / last + „…” on wider screens, only the 3 pages around the current one on phones
-   (js/pager.js tags the slots of only one window) */
-.e-permits-pager .e-permits-pager__item--narrow {
+/* phones (≤ 760, pager-compact-v2, user): no range, no page numbers, no page size — ONLY the two library outlined
+   strict Medium buttons (40, touch), „‹ Anterior” on the left edge and „Următor ›” on the right (space-between;
+   icon + label fits at 320: 2 × ~110 in 288); disabled on the first / last page; „Pagina X din Y” visually hidden */
+.e-permits-pager__steps {
   display: none;
 }
 
 @media (max-width: 760px) {
-  .e-permits-pager .e-permits-pager__item--narrow {
-    display: inline-flex;
-  }
-
-  .e-permits-pager .e-permits-pager__item--wide {
+  .e-permits-pager__summary,
+  .e-permits-pager__nav {
     display: none;
   }
-}
 
-/* phones: touch size 40 for the items, ‹ › and the field; the pages on their own centred row first, the summary under */
-@media (max-width: 760px) {
-  .e-permits-pager {
-    flex-direction: column-reverse;
-    gap: var(--spacing-16, 16px);
-  }
-
-  .e-permits-pager__nav {
-    margin-inline: auto;
-  }
-
-  .e-permits-pager__summary {
+  .e-permits-pager__steps {
+    align-items: center;
+    display: flex;
     justify-content: space-between;
     width: 100%;
-  }
-
-  .e-permits-pager .pagination .pagination__link {
-    font-size: var(--font-size-fs-14, 14px);
-    height: var(--spacing-40, 40px);
-    min-width: var(--spacing-40, 40px);
-  }
-
-  .e-permits-pager .pagination .pagination__link--nav {
-    width: var(--spacing-40, 40px);
-  }
-
-  .e-permits-pager .select-control.e-permits-pager__trigger {
-    height: var(--spacing-40, 40px);
   }
 }

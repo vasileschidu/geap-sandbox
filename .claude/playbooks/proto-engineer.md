@@ -2963,3 +2963,14 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   right = table right 1360 at 1440); phones keep the 16 gutter (the table is edge to edge there, its text at 16).
   Checked RAP, Cabinet pp-01t / sm-01j, BO dos-05, eKYC ek-04 at 1440 + 375: BO / eKYC already had the footer line,
   Cabinet = card rows (no line needed). hover-audit 0 / 0, code-audit 0, component-audit 0 in the pager.
+- 2026-10-23 · pager-compact-v2 (user: phones = only „‹ Anterior” / „Următor ›”, outlined, on the edges). Phone pager = a
+  separate `nav.e-permits-pager__steps` (two library `btn-outline-strict btn-md`, icon + label — 2 × ~110 fits the 288 of
+  320 — label = the name, no aria-label that would break label-in-name) shown only ≤ 760; the desktop summary + numbers
+  hidden there. Traps: (1) the pager is redrawn by the host after a page click (Cabinet after its skeleton delay) → the
+  pressed button disappears and focus fell to <body>; the generic `keepFocus` matched by `data-*` values that CHANGE
+  (data-sm-page="2" → "3") → a stable `data-pager-step` hook + one document click listener in pager.js that polls until
+  the old button is detached and focuses the visible twin (or the other step when disabled) — proved on RAP, Cabinet
+  pp-01t, BO dos-05 at 375 (focus on the new „Următor”, SR text „Pagina 2 din N”). (2) Demo states click
+  `[data-sm-page="2"]`; demo-links `find` takes the first VISIBLE match, so the hidden desktop „2” never wins on phones.
+  (3) code-audit flagged the visually hidden „Pagina X din Y” as clipped text → the rule now skips `.visually-hidden` /
+  `.u-visually-hidden` / `.sr-only`. No list depends on the page size on phones (the default stays).

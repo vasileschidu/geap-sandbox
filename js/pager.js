@@ -24,7 +24,7 @@
   /* page window (pager-compact-v1, user: „pagination too big, fewer page numbers”): THREE numbered pages around the
      current one (shifted at the ends so there are always 3), plus — wider screens only — the first / last page with a
      „…” when they are far (a „…” never hides a single page: that page is shown instead).
-     1 2 3 … 98 · 1 … 49 50 51 … 98 · 1 … 96 97 98; phones: 1 2 3 · 49 50 51 · 96 97 98 */
+     1 2 3 … 98 · 1 … 49 50 51 … 98 · 1 … 96 97 98 (phones show no numbers — only ‹ Anterior / Următor ›, pager-compact-v2) */
   function pageList(page, pages, ends = true) {
     const range = (from, to) => Array.from({ length: to - from + 1 }, (_, i) => from + i);
     if (pages <= 3) return range(1, pages);
@@ -41,21 +41,6 @@
     return out;
   }
 
-  /* wider screens and phones show different windows → ONE list: every slot of either window, tagged with the window(s)
-     it belongs to (a „…” sits after page a = position 2a + 1, so the two windows merge in order) */
-  function slotList(page, pages) {
-    const at = new Map();
-    const add = (list, mode) => list.forEach((p, i) => {
-      const pos = p === "…" ? 2 * list[i - 1] + 1 : 2 * p;
-      const slot = at.get(pos) || { p, modes: new Set() };
-      slot.modes.add(mode);
-      at.set(pos, slot);
-    });
-    add(pageList(page, pages, true), "wide");
-    add(pageList(page, pages, false), "narrow");
-    return [...at.entries()].sort((a, b) => a[0] - b[0]).map(([, slot]) => ({ p: slot.p, only: slot.modes.size === 2 ? "" : [...slot.modes][0] }));
-  }
-
   function html({ total, page = 1, perPage, sizes = [10, 20, 50], prefix = "pager", label = "Paginare", sizeLabel = "Rânduri pe pagină", sprite = SPRITE } = {}) {
     if (!total || total <= sizes[0]) return "";
     const icon = (name) => `<svg class="icon" aria-hidden="true"><use href="${sprite}#${name}"></use></svg>`;
@@ -66,11 +51,11 @@
     const menuId = `${prefix}-per-page-${++uid}`;
     /* Romanian counts: 20 and up (by the last two digits) take „de” — „1567 de rezultate”, „16 rezultate” */
     const ofCount = (n) => (n % 100 === 0 || n % 100 >= 20 ? `${n} de` : String(n));
-    const link = (target, text, { disabled = false, active = false, aria = "", nav = "", only = "" } = {}) => `
-      <li class="pagination__item${only ? ` e-permits-pager__item--${only}` : ""}">
+    const link = (target, text, { disabled = false, active = false, aria = "", nav = "" } = {}) => `
+      <li class="pagination__item">
         <button class="pagination__link${nav ? ` pagination__link--nav pagination__link--${nav}` : ""}${active ? " pagination__link--active" : ""}${disabled ? " pagination__link--disabled" : ""}" type="button" data-${prefix}-page="${target}"${disabled ? " disabled" : ""}${active ? ' aria-current="page"' : ""}${aria ? ` aria-label="${esc(aria)}"` : ""}>${text}</button>
       </li>`;
-    const gap = (only) => `<li class="pagination__item${only ? ` e-permits-pager__item--${only}` : ""}" aria-hidden="true"><span class="pagination__link pagination__link--disabled e-permits-pager__gap">…</span></li>`;
+    const gap = () => `<li class="pagination__item" aria-hidden="true"><span class="pagination__link pagination__link--disabled e-permits-pager__gap">…</span></li>`;
     /* the library Pagination, compact (pager-compact-v1): summary left („Se afișează 1–16 din 1567 de rezultate” ·
        „<sizeLabel>: [16 ⌄]” = the library select field, 32), the pages right: icon-only ‹ › + the library compact
        items (`.pagination--compact`, 32; 40 on phones) 4 apart */
@@ -90,12 +75,36 @@
         <nav class="e-permits-pager__nav" aria-label="${esc(label)}">
           <ul class="pagination pagination--compact">
             ${link(current - 1, icon("icon-chevron-left"), { disabled: current === 1, aria: "Pagina anterioară", nav: "prev" })}
-            ${slotList(current, pages).map(({ p, only }) => (p === "…" ? gap(only) : link(p, String(p), { active: p === current, aria: `Pagina ${p}`, only }))).join("")}
+            ${pageList(current, pages).map((p) => (p === "…" ? gap() : link(p, String(p), { active: p === current, aria: `Pagina ${p}` }))).join("")}
             ${link(current + 1, icon("icon-chevron-right"), { disabled: current === pages, aria: "Pagina următoare", nav: "next" })}
           </ul>
         </nav>
+        <!-- phones (≤ 760, pager-compact-v2, user): ONLY two library outlined strict Medium buttons, ‹ Anterior on the left
+             edge, Următor › on the right; no range, no page numbers, no page size; „Pagina X din Y” for screen readers -->
+        <nav class="e-permits-pager__steps" aria-label="${esc(label)}">
+          <button class="btn btn-outline-strict btn-md e-permits-pager__step" type="button" data-${prefix}-page="${current - 1}" data-pager-step="prev"${current === 1 ? " disabled" : ""}>${icon("icon-chevron-left")}<span>Anterior</span></button>
+          <p class="visually-hidden" aria-live="polite">Pagina ${current} din ${pages}</p>
+          <button class="btn btn-outline-strict btn-md e-permits-pager__step" type="button" data-${prefix}-page="${current + 1}" data-pager-step="next"${current === pages ? " disabled" : ""}><span>Următor</span>${icon("icon-chevron-right")}</button>
+        </nav>
       </div>`;
   }
+
+  /* ---------- the phone ‹ Anterior / Următor › keep the focus (pager-compact-v2) ----------
+     the host redraws the pager after a page click (at once, or after a skeleton delay) → the pressed button is gone;
+     put the focus on its twin in the new pager (the other one when the twin is disabled: first / last page) */
+  document.addEventListener("click", (event) => {
+    const step = event.target.closest?.(".e-permits-pager__step[data-pager-step]");
+    if (!step) return;
+    const which = step.dataset.pagerStep;
+    const until = performance.now() + 2500;
+    const poll = () => {
+      if (step.isConnected) { if (performance.now() < until) window.setTimeout(poll, 100); return; }
+      const twins = [...document.querySelectorAll(".e-permits-pager__step[data-pager-step]")].filter((b) => b.getClientRects().length);
+      const target = twins.find((b) => b.dataset.pagerStep === which && !b.disabled) || twins.find((b) => !b.disabled);
+      target?.focus({ preventScroll: true });
+    };
+    window.setTimeout(poll, 0);
+  });
 
   /* ---------- the size menu (one document listener for every pager) ---------- */
   const itemsOf = (menu) => [...menu.querySelectorAll("[role^='menuitem']")].filter((item) => !item.disabled && item.getClientRects().length);
