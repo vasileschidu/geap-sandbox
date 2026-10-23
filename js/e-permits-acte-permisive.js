@@ -3296,7 +3296,7 @@
        library .status-tag for "Acum"/"Opțional", the outlined and primary
        .btn, and the form footer. The case-status tracker and the "Statutul
        dosarului" timeline are the shared trajectory (js/trajectory.js: horizontal /
-       vertical); the proof-of-filing document banner is .e-permits-fo-finish-doc. */
+       vertical); the proof-of-filing certificate is the shared document card (foFinishDocHtml). */
 
     /* US-18: the certificate retry state survives a re-render */
     let frontOfficeCertRetried = false;
@@ -3328,7 +3328,7 @@
          a failed generation shows the error + „Reîncercați” (?cert=error) */
       const certMode = new URLSearchParams(location.search).get("cert") || "";
       const doc = step.document && certMode === "none" ? "" : step.document && certMode === "error" && !frontOfficeCertRetried
-        ? foFinishDocHtml({ title: step.document.title || "", error: "Certificatul Constatator nu a putut fi generat.", actionAttrs: "data-fo-finish-document-retry" })
+        ? foFinishDocHtml({ title: step.document.title || "", error: "Nu a putut fi generat.", actionAttrs: "data-fo-finish-document-retry" })
         : step.document
         ? foFinishDocHtml({ title: step.document.title || "", textHtml: `${esc(step.document.text || "")}${step.document.link ? ` <a href="${esc(step.document.href || "#")}">${esc(step.document.link)}</a>` : ""}.`, actionLabel: step.document.action || "Vezi documentul", actionAttrs: "data-fo-finish-document" })
         : "";
@@ -6559,26 +6559,42 @@
         </header>`;
     }
     function foFinishDocHtml({ title, textHtml = "", error = "", actionLabel = "Vezi documentul", actionAttrs = "" }) {
+    /* the proof-of-filing certificate (FO Finalizare + Ghișeu Confirmare, finish-doc-error-filecard-v1 — user on GEAP
+       11777:28258: „this should also be the file component”) = the shared FO document card (`.e-permits-fo-mdocs__attachment`
+       + blue generated icon + title row + a 12/20 note line in the text column + a labelled `btn-neutral btn-sm` action, the
+       document cards' „Detalii” look). Error = the library file-item Error: same card, 1.5 danger stroke, the message in the
+       note line (danger), the action `btn-outline-strict btn-sm` „Reîncercați” (rotate arrow; a lone recovery action) named „Reîncercați generarea certificatului” and described by the message. */
+    let foFinishDocSeq = 0;
       const esc = escapeFrontOfficeHtml;
-      return error ? `
-        <div class="e-permits-fo-finish-doc is-error" role="alert">
-          <span class="e-permits-fo-finish-doc__icon" aria-hidden="true"><img src="assets/images/document-illustration.svg" alt=""></span>
-          <div class="e-permits-fo-finish-doc__copy">
-            <p class="e-permits-fo-finish-doc__title">${esc(title)}</p>
-            <p class="e-permits-fo-finish-doc__text e-permits-fo-finish-doc__error">${esc(error)}</p>
+      const icon = foDocIconHtml({ sursa: "generat" });
+      const titleRow = (tag) => `
+            <div class="e-permits-fo-lib-item__title-row e-permits-fo-doc-title-row">
+              <span class="e-permits-fo-lib-item__title" data-cell-tooltip>${esc(title)}</span>
+              ${tag ? `<span class="status-tag status-tag--neutral is-subtle status-tag--small e-permits-fo-doc-tag">${esc(foDocSource({ sursa: "generat" }).tag)}</span>` : ""}
+            </div>`;
+      if (error) {
+        const msgId = `fo-finish-doc-error-${++foFinishDocSeq}`;
+        return `
+        <div class="e-permits-fo-mdocs__attachment e-permits-fo-finish-doc-card is-error">
+          ${icon}
+          <div class="e-permits-fo-lib-item__content">
+            ${titleRow(false)}
+            <p class="e-permits-fo-finish-doc-card__note" id="${msgId}" role="alert">${esc(error)}</p>
           </div>
-          <button class="btn btn-strict btn-sm e-permits-fo-finish-doc__action" type="button" ${actionAttrs}>
+          <button class="btn btn-outline-strict btn-sm" type="button" aria-label="Reîncercați generarea certificatului" aria-describedby="${msgId}" ${actionAttrs}>
             <svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-rotate-arrow"></use></svg>
             <span>Reîncercați</span>
           </button>
-        </div>` : `
-        <div class="e-permits-fo-finish-doc">
-          <span class="e-permits-fo-finish-doc__icon" aria-hidden="true"><img src="assets/images/document-illustration.svg" alt=""></span>
-          <div class="e-permits-fo-finish-doc__copy">
-            <p class="e-permits-fo-finish-doc__title">${esc(title)}</p>
-            <p class="e-permits-fo-finish-doc__text">${textHtml}</p>
+        </div>`;
+      }
+      return `
+        <div class="e-permits-fo-mdocs__attachment e-permits-fo-finish-doc-card">
+          ${icon}
+          <div class="e-permits-fo-lib-item__content">
+            ${titleRow(true)}
+            ${textHtml ? `<p class="e-permits-fo-finish-doc-card__note">${textHtml}</p>` : ""}
           </div>
-          <button class="btn btn-outline-primary btn-sm e-permits-fo-finish-doc__action" type="button" ${actionAttrs}>
+          <button class="btn btn-neutral btn-sm" type="button" aria-haspopup="dialog" ${actionAttrs}>
             <svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-eye-open"></use></svg>
             <span>${esc(actionLabel)}</span>
           </button>

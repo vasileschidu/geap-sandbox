@@ -16292,8 +16292,7 @@ a.e-permits-fo-lib-item__title:is(:hover, :focus) {
   margin: calc(var(--spacing-4, 4px) * -1) 0 0;
 }
 
-.e-permits-fo-finish__lead a,
-.e-permits-fo-finish-doc__text a {
+.e-permits-fo-finish__lead a {
   color: inherit;
   text-decoration: underline;
   text-underline-position: from-font;
@@ -16306,76 +16305,47 @@ a.e-permits-fo-lib-item__title:is(:hover, :focus) {
   width: 100%;
 }
 
-/* ---- proof-of-filing document banner (Figma system-files-item 4315:32535)
-   70px tall, 0 12px padding, icon+copy group (12px gap) and the button
-   20px apart. The icon is Figma's document illustration, not a sprite glyph. */
-.e-permits-fo-finish-doc {
-  align-items: center;
-  background: var(--color-background-positive-secondary, #e6f5ee);
-  border-radius: var(--border-radius-12, 12px);
-  display: flex;
-  gap: var(--spacing-12, 12px);
-  min-height: 70px;
-  overflow: hidden;
-  /* 12 all round (was 0 12: the text touched the edges once the card wrapped on phones); desktop
-     stays 70 tall — 46 of content + 2 × 12 */
-  padding: var(--spacing-12, 12px);
-}
-
-.e-permits-fo-finish-doc__icon {
-  align-items: center;
-  display: inline-flex;
-  flex: 0 0 24px;
-  height: 24px;
-  justify-content: center;
-  width: 24px;
-}
-
-.e-permits-fo-finish-doc__icon img {
-  display: block;
-  height: 21.4px;
-  width: 18.6px;
-}
-
-.e-permits-fo-finish-doc__copy {
-  display: flex;
-  flex: 1 1 auto;
-  flex-direction: column;
-  gap: var(--spacing-6, 6px);
+/* ---- proof-of-filing certificate = the shared document card (finish-doc-error-filecard-v1, 2026-10-23, user on
+   GEAP 11777:28258: „this should also be the file component”). `foFinishDocHtml` renders
+   `.e-permits-fo-mdocs__attachment.e-permits-fo-finish-doc-card` — the card surface / grid / labelled action
+   placement are the shared document-card rules; only the note line (a sentence, not the dotted meta) and the
+   library file-item Error look are here: 1.5 danger stroke drawn inside (no size change), message in danger. */
+.e-permits-fo-finish-doc-card__note {
+  color: var(--color-text-base-tertiary, #757575);
+  font-size: var(--font-size-fs-12, 12px);
+  grid-column: 2 / -1;
+  grid-row: 2;
+  line-height: var(--line-height-lh-20, 20px);
+  margin: 0;
   min-width: 0;
 }
 
-.e-permits-fo-finish-doc__title,
-.e-permits-fo-finish-doc__text {
-  font-size: var(--font-size-fs-14, 14px);
-  line-height: var(--line-height-lh-20, 20px);
-  margin: 0;
+.e-permits-fo-finish-doc-card__note a {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-position: from-font;
 }
 
-.e-permits-fo-finish-doc__title {
-  color: var(--color-text-base-default, #121212);
-  font-weight: var(--font-weight-fw-medium, 500);
+.e-permits-fo-finish-doc-card__note a:hover {
+  color: var(--color-text-brand-default, #0058d2);
+  text-decoration-thickness: var(--border-width-2, 2px);
 }
 
-.e-permits-fo-finish-doc__text {
-  color: var(--color-text-base-secondary, #383838);
+.e-permits-fo-finish-doc-card.is-error {
+  box-shadow: inset 0 0 0 var(--border-width-1-5, 1.5px) var(--color-border-danger-default, #d92d20);
 }
 
-.e-permits-fo-finish-doc__text a {
-  color: var(--color-text-base-default, #121212);
+/* danger text on the grey card: danger-default (red-600) is 4.4 : 1 on base-secondary at 12 px → the
+   on-secondary danger text (red-700, 6.0 : 1) */
+.e-permits-fo-finish-doc-card.is-error .e-permits-fo-finish-doc-card__note {
+  color: var(--color-text-danger-on-secondary, #b32318);
 }
 
-/* Figma's small outlined button here is 32px tall, 1.5px border, 6px
-   radius, 8px/12px side padding — scoped, the library .btn-sm is unchanged. */
-.e-permits-fo-finish-doc__action.btn {
-  border-radius: var(--border-radius-6, 6px);
-  border-width: var(--border-width-1-5, 1.5px);
-  flex: 0 0 auto;
-  gap: var(--spacing-6, 6px);
-  height: 32px;
-  line-height: var(--line-height-lh-20, 20px);
-  margin-left: var(--spacing-8, 8px);
-  padding: 0 var(--spacing-12, 12px) 0 var(--spacing-8, 8px);
+/* desktop: the action holds column 3 on both rows → the note wraps in the text column */
+@media (min-width: 721px) {
+  .e-permits-fo-finish-doc-card:has(> .btn) .e-permits-fo-finish-doc-card__note {
+    grid-column: 2;
+  }
 }
 
 /* ---- "Statutul dosarului" vertical timeline (Figma 3629:19973) ----
@@ -16406,27 +16376,6 @@ a.e-permits-fo-lib-item__title:is(:hover, :focus) {
 }
 
 @media (max-width: 720px) {
-  /* the document-card phone layout (2026-10-14): icon 24 · text, the title line centred on the icon,
-     the action under the text (a wrapping flex row left the icon alone on the first line and the
-     action's indent lost to `.e-permits-fo-finish-doc__action.btn`) */
-  .e-permits-fo-finish-doc {
-    align-items: start;
-    column-gap: var(--spacing-12, 12px);
-    display: grid;
-    grid-template-columns: var(--spacing-24, 24px) minmax(0, 1fr);
-    row-gap: var(--spacing-12, 12px);
-  }
-
-  .e-permits-fo-finish-doc__copy {
-    padding-top: var(--spacing-2, 2px);
-  }
-
-  .e-permits-fo-finish-doc__action.btn {
-    grid-column: 2;
-    justify-self: start;
-    margin-left: 0;
-  }
-
   .e-permits-fo-finish__cta {
     justify-content: center;
     width: 100%;
@@ -22784,7 +22733,6 @@ button.e-permits-steps-strip__cell:hover,
 
 .e-permits-fo-draft-status__link:hover,
 .e-permits-fo-finish__lead a:hover,
-.e-permits-fo-finish-doc__text a:hover,
 .e-permits-fo-auth__beta-content a:hover {
   color: var(--color-text-brand-default, #0058d2);
   text-decoration-thickness: var(--border-width-2, 2px);
@@ -22875,15 +22823,7 @@ button.e-permits-steps-strip__cell:hover,
   padding-bottom: var(--spacing-32, 32px);
 }
 
-/* US-18: certificate card error state + the certificate preview in its modal */
-.e-permits-fo-finish-doc.is-error {
-  background: var(--color-background-danger-secondary, #fdecea);
-}
-
-.e-permits-fo-finish-doc__error {
-  color: var(--color-text-danger-default, #d92d20);
-}
-
+/* US-18: the certificate preview in its modal (the card error state = .e-permits-fo-finish-doc-card.is-error) */
 .e-permits-fo-payment__notice {
   margin-bottom: var(--spacing-16, 16px);
 }

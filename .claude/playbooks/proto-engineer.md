@@ -3112,3 +3112,22 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   demo-states.js / components.md in parallel → my hunks were rebuilt on HEAD blobs (asserted pairs) and committed in one
   command. Also: `capture.mjs --help` is NOT a help flag — it starts a full fo- capture; and `pkill -f "<that command>"`
   also killed another session's identical run — kill by PID only.
+- 2026-10-23 · finish-doc-error-filecard-v1 (user on GEAP 11777:28258: the Ghișeu finish step's pink „Certificatul constatator nu
+  a putut fi generat.” row + dark „Reîncercați” → „this should also be the file component”, FO too). ONE helper served both
+  products (`foFinishDocHtml`, Ghișeu via `GEAPFormRender.finishDocHtml`; Cabinet has no finish step) → swapped its markup to
+  the shared document card (`.e-permits-fo-mdocs__attachment` + `foDocIconHtml({ sursa: "generat" })` + title row + labelled
+  `.btn`) and deleted ~90 lines of the green `.e-permits-fo-finish-doc` banner CSS (desktop + phone + hover twin + error) —
+  the shared grid already placed a labelled action (desktop column 3 centred, ≤ 720 under the text), so the only new CSS is
+  a sentence-style note line (the dotted meta clips / nowraps — wrong for a sentence) and the Error look. Error = the library
+  file-item Error (Components 262:6754: same grey card, 1.5 red stroke, message row), stroke as an INSET box-shadow (no 3 px
+  growth). Traps: (1) red-600 danger text is 4.4 : 1 on the #f5f5f5 card at 12 px → `--color-text-danger-on-secondary`
+  (red-700, 6.0); check contrast of every coloured 12 px text on grey, not only on white. (2) `btn-neutral` on the grey card
+  is nearly invisible at rest — fine for the document „Detalii” convention, but the lone recovery action got
+  `btn-outline-strict` (brief allowed both). (3) The Ghișeu dialog root carries `aria-hidden="false"` and the BO page keeps
+  a hidden copy of the step → `--scope ".e-permits-fo-finish-doc-card"` matched the hidden one (hover-audit „0 interactive”)
+  — scope `#gh-request-modal .e-permits-fo-finish-doc-card`. (4) CDP clip coords are DOCUMENT coords: measure after the
+  scroll and add scrollX / scrollY (+ captureBeyondViewport), else FO crops showed the trajectory. (5) Adding
+  `aria-haspopup="dialog"` made component-audit OPEN the Ghișeu preview → its pre-existing „missing-copy” on the
+  request-number cell appears in gh-10a / 10c1 (preview content, not this card). Retry now focuses the success action
+  in Ghișeu too (was <body>). New demos fo-08a1 / gh-10c1 (after retry). No sub-agent tool → hover-audit 0 / 0, code-audit
+  0 (static + runtime, both scopes), component-audit 0 in the card, capture 0 errors / 0 overflow at 1440 + 375.

@@ -1236,6 +1236,8 @@
     "fo-07": foReq(6),
     "fo-08": foReq(7, { paid: "1" }),
     "fo-08a": foReq(7, { paid: "1", cert: "error" }),
+    /* finish-doc-error-filecard-v1: „Reîncercați” on the error card → the generated certificate card, focus on its action */
+    "fo-08a1": foReq(7, { paid: "1", cert: "error" }, async (h) => { await h.click("[data-fo-finish-document-retry]"); }),
     "fo-08b": foReq(7, { paid: "1", cert: "none" }),
     "fo-08c": foReq(7),
     "fo-08d": foReq(7, { paid: "1" }, async (h) => { await h.click("[data-fo-finish-document]"); }),
@@ -3099,6 +3101,8 @@
       "gh-11c": ghList(async (h) => { await h.find("tr[data-workplace-row='gh-4765']"); }),
       "gh-11d": ghList(menu("tr[data-workplace-row='gh-4702']")),
       "gh-12": gh("#ghiseu/gh-4650"),
+      /* finish-doc-error-filecard-v1: „Reîncercați” → the generated certificate card, focus on „Vezi documentul” */
+      "gh-10c1": gh("#ghiseu/gh-4771/plata", seq(async (h) => { await h.click("[data-gh-mpay]"); }, next, async (h) => { await h.click("[data-gh-submit]"); }, async (h) => { await h.click("[data-gh-cert-retry]"); }), { certerr: "1" }),
       /* no-continue-btn-v1: the draft ROW continues the request (no „Continuă” button) — gh-13 = Enter on the focused row,
          gh-13a = a click on the row, gh-13b = Space on a submitted row („Dosare nedistribuite”, no „Detalii”) */
       "gh-13": ghList(async (h) => { const row = await h.find("tr[data-workplace-row='gh-4790'][data-workplace-row-open]"); row.focus(); row.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true, cancelable: true })); await h.find("[data-gh-panel='verificare']"); }),

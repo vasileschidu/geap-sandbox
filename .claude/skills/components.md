@@ -250,6 +250,7 @@ but this doc previously described it wrongly, see the entry.
 | **Section header with an action — one pattern** (BO) | `.e-permits-dosar-profil__section-heading` > `h2.e-permits-dosar-profil__section-title` + `.e-permits-passport__heading-tools` (meta? + `btn-secondary btn-sm` / stack-menu button / `segmented-control`) — never a bare button in the heading | `renderStackedList(title, groups, { meta, actionHtml })` (svc-02 „Tipuri solicitări”); section „Section header with an action — one pattern” | app |
 | Service passport | registry `kind: services` + `.permits-profile` passport | `?flow=back-office#serviciu/003000023/general` | app |
 | **Document row — one pattern everywhere** (BO dossier: însoțitoare, Documente generate, Act/Decizie; FO picker / field values / Verificare / post-process act; Cabinet dossier + catalog) | one data shape `{ sursa: upload\|mdocs\|generat, tip, nr, fisier, size/kb, verb, at, de, semnat, tags }` · icon by source (grey `document-uploaded.svg` / blue `document-generated.svg`) · title = type + source tag + blue „✍ Semnat electronic” badge (`icon-signature`) · meta number · file · size · „<Verb> <date, time>” · „de …” · „semnat de …” · „👁 Detalii” (no download and no ⋮ on the row, 2026-10-20) → document modal with the A4 page preview + footer „Descarcă” · card = icon centred · title (1 line) + tags right after it / meta 12 stack-meta (2px dots) under the title · one surface secondary grey r12 pad 12 | BO `renderDosarDocItem` / `openDosarDetail(kind, id)`; FO `foDocIconHtml` / `foDocContentHtml` / `foSummaryDocsHtml`; Cabinet `CabEvo.docRowHtml` / `openDocModal`; section „Documents — one pattern everywhere” | app |
+| Certificate card on the finish step (FO Finalizare + Ghișeu Confirmare) + its Error state | `foFinishDocHtml` → `.e-permits-fo-mdocs__attachment.e-permits-fo-finish-doc-card` (shared document card, blue generated icon, title + „Generat”, `__note` 12/20, `btn-neutral btn-sm` „Vezi documentul”); `.is-error` = 1.5 danger inset stroke + danger note „Nu a putut fi generat.” + `btn-outline-strict btn-sm` „Reîncercați” (rotate arrow, aria-label + aria-describedby) | § „Certificate card (finish step)”; demo fo-08, fo-08a, fo-08a1, gh-10a, gh-10c, gh-10c1 | app |
 | Dosar › Acte necesare (applicant's documents) + document modal with page preview | `renderStackedList` groups Obligatorii / Opționale · `li.e-permits-stack__item.has-lead.is-clickable[data-dosar-detail-row="insotitoare\|fN"]` (lead `img.e-permits-fo-lib-item__icon` grey uploaded / blue MDocs · title · `MDocs`/`Încărcat` tag · meta) · no button: the row is the control (no-lone-detalii-v1, `rowOpens`; ⋮ Descarcă gone 2026-10-20); modal `#dosar-detail-modal` + `.e-permits-doc-peek__canvas.e-permits-detail-modal__preview > .e-permits-dtpl__page.e-permits-doc-peek__page` | `renderDosarInsotitoare`, `openDosarDetail("insotitoare", id)`, `renderDosarDocPreview`, `fitDosarDocPreview`; section „Dosar › Acte necesare” | app |
 | Sum list (list + total tray) | `.e-permits-sum-list` > list + `.e-permits-sum-list__total`; JS `renderSumList(listHtml, total)` | Figma 9721:9920 | app |
 | Next step | `.e-permits-next-step` > `__label` + `__box` (icon + target); JS `renderNextStep(target, { label, icon })` | Figma 9721:9920 | app |
@@ -9311,7 +9312,8 @@ do the same data architecture … change all documents in the whole system” (+
   uploaded + Verificare + Cabinet tertiary / r8 — the later `.e-permits-fo-file-item` /
   `.e-permits-fo-confirm-file` base rules overrode the attached item). Cabinet hover stays
   `tertiary-hover`. The picker modal options stay white + 1px border + r12 / 12 (selectable options with a
-  selected state). Finalizare (`.e-permits-fo-finish-doc`) keeps its green card. BO rows 12 / 20.
+  selected state). Finalizare / Ghișeu Confirmare certificate = this card too since finish-doc-error-filecard-v1
+  (2026-10-23; the green `.e-permits-fo-finish-doc` banner is gone). BO rows 12 / 20.
 - **Tags keep one size (2026-10-15):** the library `.status-tag--small` reads `--text-caption-md-font-size`,
   which main.css drops to 10 at ≤720 — `.e-permits-fo-doc-tag` pins it to `--font-size-fs-12` → 12 / 14,
   20 high, at 375 / 390 / 720 / 1440 (BO `.e-permits-workplace__tag` is 12 / 20 already).
@@ -9350,6 +9352,27 @@ do the same data architecture … change all documents in the whole system” (+
 | EVO Cabinet | `CabEvo.docRowHtml(doc, { key })` (FO summary card; with a key the card is the control — `tabindex 0`, „<tip>, deschide detaliile”, click / Enter / Space; no ⋮ since 2026-10-20, no „Detalii” since no-lone-detalii-v1), `CabEvo.openDocModal({ title, subtitle, doc, pageHtml, rowsHtml })` (FO doc-modal shell, `.cab-doc-modal`) | Solicitările mele › dosar › Acte necesare (certificat constatator generated + uploads), Catalog › serviciu › Documente necesare (types) |
 | RAP (EVO public) | `GEAPActView.openDocument(act)` (js/act-view.js, 2026-10-17: also the Cabinet act profile and its ⋮ „Descarcă actul (MDocs)”) — the same FO doc-modal shell + canvas + A4 page as Cabinet, page only (no „Date generale”: the act page shows them), footer Imprimă · Închide; CSS from `css/act-view.css` + `css/doc-modal-parts.css` (values of the FO originals, never loaded where e-permits-acte-permisive.css is) | Act profile › „Vizualizare actul” (US-143, US-162 AC-12) |
 
+### Certificate card (finish step) + document card Error state (finish-doc-error-filecard-v1, 2026-10-23)
+
+User on GEAP 11777:28258 (Ghișeu final step, custom pink row + dark „Reîncercați”): „this should also be the file
+component” — FO full flow too. ONE helper `foFinishDocHtml({ title, textHtml, error, actionLabel, actionAttrs })`
+(js/e-permits-acte-permisive.js, exposed as `window.GEAPFormRender.finishDocHtml` → Ghișeu `R().finishDocHtml`):
+- **Success** = the shared document card `.e-permits-fo-mdocs__attachment.e-permits-fo-finish-doc-card` (surface /
+  grid / labelled-action placement from the shared card rules): blue generated icon (`foDocIconHtml({ sursa:
+  "generat" })`), title + „Generat” Small tag, a 12/20 tertiary **note line** `p.e-permits-fo-finish-doc-card__note`
+  (a sentence with an optional underlined link — not the dotted meta), action `btn btn-neutral btn-sm` + eye
+  „Vezi documentul” (`aria-haspopup="dialog"`; FO `data-fo-finish-document`, Ghișeu `data-gh-preview="cert"`).
+- **Error** (`.is-error`, = library file-item Error): same card + 1.5 `--color-border-danger-default` stroke drawn
+  inside (`box-shadow: inset`, no size change), no source tag, the note = the message „Nu a putut fi generat.” in
+  `--color-text-danger-on-secondary` (red-600 is 4.4 : 1 on the grey card at 12 px), `role="alert"`, with an id;
+  action `btn btn-outline-strict btn-sm` + `icon-rotate-arrow` „Reîncercați”, `aria-label` „Reîncercați generarea
+  certificatului” + `aria-describedby` → the message. Retry re-renders the success card and focuses its action.
+- Placement = the shared labelled-action rule: desktop (≥ 721) column 3 centred on title + note (card 70 high);
+  ≤ 720 under the text in the text column (row 3, 12 below the note), icon centred on title + note.
+- Not used by Cabinet (Cabinet has no finish step). Demo: `fo-08` / `fo-08a` / `fo-08a1` (FO success / error /
+  after retry), `gh-10a` / `gh-10c` / `gh-10c1` (Ghișeu). Figma: document card instance (GEAP `document-icon`
+  System Generated) + the Components `file-item` Error look (danger stroke, message row) — no pink fill.
+
 ### No download in document rows (2026-10-20, user — product-wide rule)
 
 „Everywhere for documents we don't download the document in the list row; only in the modal. A ⋮ that has only
@@ -9375,8 +9398,8 @@ with progress — a form input; only the icon became the grey document), the MDo
 (a listbox, not cards), Pași care generează documente in the request-type drawer (`rtOverrideRow` —
 a step → template setting, not a document), Șabloane / Formulare lists (templates, not documents),
 eKYC Dovezi (image / video evidence thumbnails with a viewer), Cabinet act section / act profile and the
-FO intent act list (act records with their own actions, not files), the FO finish card „Certificatul
-constatator · Vezi documentul” (one card, navigation to the certificate).
+FO intent act list (act records with their own actions, not files). (The FO / Ghișeu finish certificate joined the
+shared card on 2026-10-23 — „Certificate card (finish step) + Error state” below.)
 Demo: `dos-04g…04m` (însoțitoare), `dos-04n` (Documente generate), `dos-04o` / `dos-04p` (modal: cerere,
 plată), `dos-04q` (row click → modal), `dos-04r` (draft act, `Proiect`), `dos-04s` / `dos-04t` (Act/Decizie modal),
 `svc-06a` (passport types), `fo-04d` / `fo-04e` / `fo-04f` (picker, selected, attached), `fo-g5` / `fo-g7a`

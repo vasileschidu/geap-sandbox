@@ -2096,7 +2096,7 @@
   function confirmedHtml(d) {
     const st = settingsOf(d.service);
     const cert = !st.certificat ? "" : d.certError
-      ? R().finishDocHtml?.({ title: "Certificatul constatator", error: "Certificatul constatator nu a putut fi generat.", actionAttrs: "data-gh-cert-retry" }) || ""
+      ? R().finishDocHtml?.({ title: "Certificatul constatator", error: "Nu a putut fi generat.", actionAttrs: "data-gh-cert-retry" }) || ""
       : R().finishDocHtml?.({ title: "Certificatul constatator", textHtml: "Dovada depunerii, pentru solicitant. Disponibil și în EVO Cabinet.", actionAttrs: 'data-gh-preview="cert"' }) || "";
     return `
       <div class="e-permits-gh__finish">
@@ -2383,7 +2383,7 @@
     if (t.closest("[data-gh-mpay]")) { mpayCallback(); return; }
     if (t.closest("[data-gh-regenerate]")) { regeneratePayment(d); render({ focusTitle: false }); U().showShellToast?.(`Nota de plată ${d.payment.nr} a fost generată și trimisă solicitantului.`, "success"); return; }
     if (t.closest("[data-gh-submit]")) { submit(); return; }
-    if (t.closest("[data-gh-cert-retry]")) { d.certError = false; audit("Generare certificat constatator", d, "Reușită la reîncercare"); persist({ silent: true }); render({ focusTitle: false }); return; }
+    if (t.closest("[data-gh-cert-retry]")) { d.certError = false; audit("Generare certificat constatator", d, "Reușită la reîncercare"); persist({ silent: true }); render({ focusTitle: false }); document.querySelector('[data-gh-preview="cert"]')?.focus(); return; }
     if (t.closest("[data-gh-history]")) { closeMenus(); openHistory(); }
   }
   function onChange(event) {
