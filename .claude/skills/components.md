@@ -329,6 +329,7 @@ but this doc previously described it wrongly, see the entry.
 | Guest requestor „Date solicitant” (no MPass; Figma FOD-Components-flow 633:7411, G1–G8) | `section[data-fo-screen="guest"]` > `form[data-fo-guest-form]`: MPass upsell `.e-permits-fo-guest__upsell` · „Soliciți în numele” `[data-fo-guest-type-section]` (animated segmented control) · `[data-fo-guest-company]` (IDNO → registry name) · `[data-fo-guest-person]` · „Pentru cine” radio option rows · `[data-fo-guest-represented]` (G4) / `[data-fo-guest-mandate]` (G5) with a boxed doc field · consent · „Înainte” never disabled; leave modal `[data-fo-guest-leave-modal]` | `showFrontOfficeGuest` / `setGuestType` / `validateGuest` / `enterGuestWizard` (`frontOfficeGuest`) / `guestSchemaVariant`, demo `fo-g*` | app |
 | Radio option row (hover + focus on the whole row) | `label.e-permits-fo-radio.e-permits-fo-radio--option` (row fills its grid column, padding 12/16; `::before` grey layer radius 12, opacity 0 → 1 + scale .97 → 1, 180ms decelerate; keyboard ring on the row) | „Pentru cine” (guest), `contactPersonHtml` (Persoana de contact) | app |
 | Authorization / representation basis card | `.e-permits-fo-authorization-card` (grey r20 card — one card radius, cards-radius-20-final, was r12 → 16 — 32 round icon, title + green outline status, meta parts with dots, copy code) via `authorizationCardHtml(subject)` / `GEAPFormRender.authorizationCardHtml({ title, status, grantedBy, validUntil, code })` or `{ title, status, icon, details: [{ label, value, copy }] }` | FO „Date solicitant”: under Solicitant + Reprezentant, its own role group `.e-permits-fo-form__role-group.e-permits-fo-form__basis` titled „Temeiul reprezentării” (the same `roleGroupTitleHtml` as „Solicitant”, `representationBasisHtml(subject)`, 2026-10-18) — RSUD administrator from the subject's `representationBasis` (fo-02, self-PJ; NOT `authorization`, which means an MPower proxy in the switcher) or the MPower grant (cat-04 / cat-04a); Ghișeu „Temeiul reprezentării” MPower + RSUD | app |
+| Role group — title + „ⓘ” explanation (FO „Date solicitant” + Ghișeu step 1, ghiseu-roles-as-fo-v1 2026-10-23) | `div.e-permits-fo-form__role-group` (flex column, gap 8) > `div.e-permits-fo-form__role-title` (gap 6, 24 high) > `h2` (16/24 medium) + `button.e-permits-fo-role-info[data-tooltip-hint]` (24 square, `icon-circle-info-filled` 16 tertiary, r6, hover tertiary fill, FO focus ring; aria-label „Detalii despre <rol>”) — the hint = the library hint tooltip (js/icon-tooltip.js: hover 600 ms, keyboard focus at once, click / tap / Enter / Space TOGGLES, Esc closes ONLY the hint, never the dialog under it); then the content: identity card `.e-permits-fo-selected-role`, the basis card `.e-permits-fo-authorization-card`, or (Ghișeu only) `.e-permits-gh__rep-body` / `.e-permits-gh__basis-body` (stack 12, full width) with the desk's option / lookup / procură fallback. Groups sit in `section.e-permits-fo-form__roles` (gap 20, bottom 32): `__roles-grid` (Solicitant · Reprezentant, 2 columns; `.is-single` = 1) then the „Temeiul reprezentării” group `.e-permits-fo-form__basis`. Texts ONE map `ROLE_GROUP_HINTS` (Solicitant / Reprezentant / Temeiul reprezentării, exported `GEAPFormRender.roleGroupHints`); a caller may pass `{ hint }` (the Ghișeu basis adds „Altfel, se verifică procura pe hârtie.”) | `roleGroupTitleHtml(label, { hint })` = `GEAPFormRender.roleGroupTitleHtml`; FO `subjectRolesHtml` / `representationBasisHtml`; Ghișeu `applicantFlowHtml` / `basisHtml` (`js/ghiseu.js`, css/ghiseu.css); section „Role groups — Solicitant / Reprezentant / Temeiul reprezentării”; demo fo-02, fo-02h (ⓘ open), gh-03 / 03a / 03b / 03c / 03d / 03k / 03m / 03n, gh-03b1 / 03a1 / 03c1 (ⓘ open) | app |
 | Boxed doc field (required attachment inside a form section) | `.e-permits-fo-doc-field.e-permits-fo-doc-field--boxed` (1px dashed border/base/default, radius 16, padding 20/16; empty = click target with the dropzone hover; `is-error` = 1.5px dashed danger + inline error in the description) + `btn btn-strict btn-md` with 20px `icon-upload` | guest procură / decizie de numire | app |
 | Animated segmented control (sliding selected thumb) | `.segmented-control.is-animated` (+ `role="radiogroup"` > `button.segment-item[role=radio][aria-checked]`, roving tabindex) — `::before` thumb from `--seg-x/-y/-w/-h`, `is-ready` / `is-snap` | `initAnimatedSegmentedControls()` | app |
 | FO phone error state | `.e-permits-fo-phone--editable.is-error` (mirrors `.e-permits-fo-input.is-error`) | guest validation | app |
@@ -2132,7 +2133,10 @@ old span said „Collapse menu” in English).
 
 **States** — hidden · pending (600 ms mouse, 1 s clipped text) · shown (library `.show` fade / 4 px slide, none for
 reduced motion) · warm (while one shows or ≤ 400 ms after, the next shows at once) · keyboard: on `:focus-visible`
-at once (clipped text on any focus) · touch: hints only, on tap · hides on mouse-out, blur, pointer-down, Escape,
+at once (clipped text on any focus) · touch: hints only, on tap · **hints: a click / tap / Enter / Space toggles them
+(a hover-opened hint stays open on the click, a click-opened one closes on the next click); Esc with a hint open
+closes ONLY the hint (window capture, `stopImmediatePropagation`) — the dialog / sheet under it stays (ghiseu-roles-as-fo-v1,
+2026-10-23)** · hides on mouse-out, blur, pointer-down, Escape,
 window blur, resize; follows its target on scroll and hides when the target leaves the viewport · never while the
 target's menu is open (`aria-expanded="true"`). API: `GEAPTooltip.show(el) / hide() / refresh()`
 (`GEAPIconTooltip` = alias).
@@ -4882,8 +4886,9 @@ Caption / Version texts. Scheduled-publication blocks: 01f1, 01f2, 01h1, 01j, 01
 alert / notice right under it (banner `.message`, `.info-box`, `.e-permits-fo-notice`, `.e-permits-fo-infobox` —
 directly, or first child of a block that is not the section body; also the FO authorization card) gets the section's normal header → content gap
 (24 = the FO section body's top padding; BO drawer content already has 16). One generic rule in
-css/e-permits-acte-permisive.css („Section rule (2026-10-16)”). Applies today to Ghișeu „Temeiul reprezentării”
-(gh-03, 03a, 03b, 03e, 03f); every other header + alert pair already sits in a section body.
+css/e-permits-acte-permisive.css („Section rule (2026-10-16)”). It applied to the Ghișeu „Temeiul reprezentării”
+section until 2026-10-23 (ghiseu-roles-as-fo-v1 made it an FO role group: small title + ⓘ, card 8 under it); no current
+screen relies on it — every other header + alert pair already sits in a section body.
 
 **Stepper (Figma) = local component „Stepper · drawer” (`10421:197819`, page ↳ BO ->
 Servicii)** — strip (padding 16/20, bottom border) with 4 `.step-desktop` instances
@@ -8536,7 +8541,10 @@ added for modules (all generic, reuse them for the next BO module):
     reason once the note is paid. A new service / holder clears the process (info notice on the intent screen).
     A draft can exist before the process („—” in the list); resuming it opens the intent screen.
 - **First step „Date solicitant”** (identity in the small modal; representation and contact in the flow): the identity as FO role cards (`e-permits-fo-selected-role--changeable` + „Schimbă” = the picker),
-  „Persoana care depune” for PJ, then „Reprezentantul” (PF check option + IDNP lookup) / „Temeiul reprezentării”
+  **since ghiseu-roles-as-fo-v1 (2026-10-23) exactly the FO role groups** (section „Role groups — Solicitant /
+  Reprezentant / Temeiul reprezentării”): PJ = „Solicitant” · „Reprezentant” (the person at the desk; was „Persoana care
+  depune”), PF = „Solicitant”, then the „Reprezentant” group (check option + IDNP lookup; found in RSP → the identity card),
+  then the „Temeiul reprezentării” group
   (RSUD / MPower / Prin procură with the live AC-21 error — the FO way: the message under the group and only
   the checkbox control in the library `checkbox--error` style, no border around the option). Basis outcomes use the
   **FO full-flow layouts** (user 2026-10-16, Figma 11685:13047; replaced the success / info notices — one
@@ -8654,6 +8662,39 @@ OTP at the desk. The FO guest form keeps its own validator (`guestPhoneProblem`)
 +373 = „60 999 999” (other codes: groups of 3); a pasted „+37360999999” / „060999999” / „60 999 999” normalises
 the same; the caret keeps its digit position (typing, mid-edit, backspace over a space); stored value = digits. Drafts are kept in `localStorage["e-permits-ghiseu-v1"]` (cleared by
 demo links). `window.GEAPGhiseu` = state, route, go(step), fill(step), paid(), expire().
+
+### Role groups — Solicitant / Reprezentant / Temeiul reprezentării (ghiseu-roles-as-fo-v1, 2026-10-23)
+
+User (2026-10-23, on Alexandru's Figma comment gh-02g „unde verificăm MPower? cum le selectăm?”): „we discussed this to be
+the same as Solicitant / Reprezentant, with the i button”. ONE pattern for who files and on what basis, FO and Ghișeu:
+
+- **Anatomy** — `section.e-permits-fo-form__roles` (flex column, gap 20, bottom 32) › `__roles-grid` (2 columns, gap 20;
+  `.is-single` → 1; Ghișeu stacks at ≤720) with the „Solicitant” and „Reprezentant” `__role-group`s, then the „Temeiul
+  reprezentării” group `.e-permits-fo-form__role-group.e-permits-fo-form__basis`. Each group = `roleGroupTitleHtml(label)`
+  (h2 16/24 medium + the 24 „ⓘ” `button.e-permits-fo-role-info[data-tooltip-hint]`) 8 above its content.
+- **Content** — identity card `.e-permits-fo-selected-role` (`GEAPFormRender.roleCardHtml`; „Schimbă” only when there is
+  somewhere to go), basis card `.e-permits-fo-authorization-card` (RSUD administrator / „Împuternicire MPower aplicată”).
+- **„ⓘ” texts** (`ROLE_GROUP_HINTS`, exported `GEAPFormRender.roleGroupHints`): Solicitant „Persoana fizică sau juridică în
+  numele căreia se depune cererea. Actul permisiv se emite pe numele ei.” · Reprezentant „Persoana care depune cererea în
+  numele solicitantului.” · Temeiul reprezentării „Se verifică automat: administrator în RSUD sau împuternicire activă în
+  MPower. Nu trebuie selectat nimic.” (Ghișeu + „Altfel, se verifică procura pe hârtie.”). Before 2026-10-23 the „ⓘ” only
+  named itself („Detalii despre …”) — the explanation is new in the FO too.
+- **Ghișeu (desk) additions** — PJ: „Reprezentant” = the person at the desk (identified in the picker). PF: the
+  „Reprezentant” group holds `.e-permits-gh__rep-body` (stack 12): the „Cererea se depune de un reprezentant” check option,
+  then the IDNP lookup (`.e-permits-fo-form__section-body.e-permits-gh__rep-lookup`, the FO field grid without its padding,
+  + the registry-down notice); a person found in RSP becomes the identity card with „Schimbă” (`data-gh-reset="rep"` → the
+  lookup again, focus on the code); after the lookup the focus goes to that „Schimbă”. Values typed by hand (registry down)
+  stay editable fields; a manual holder keeps its „Introdus manual” tag on its card. No electronic basis → the group holds
+  `.e-permits-gh__basis-body` (stack 12): the warning notice, „Prin procură” (required, `checkbox--error` + the message
+  under it until ticked) and, once ticked, the boxed procură upload. No basis needed (PF filing for himself) → the group is
+  `hidden`.
+- **Review** (Verificare): rows „Solicitant”, „Reprezentant” (FO fo-05 labels) and, at the desk, „Temeiul reprezentării”
+  (MPower: label · Cod · Valabilă până la; the FO review has no basis row). The paper request says „Reprezentantul”.
+- **Demo** fo-02, fo-02h (ⓘ open), gh-03 (RSUD), gh-03a (procură), gh-03b (MPower PJ), gh-03c (PF rep card + MPower),
+  gh-03d (rep not found), gh-03k (procură uploaded), gh-03m (registry down, rep manual), gh-03n (manual holder),
+  gh-03b1 / gh-03a1 / gh-03c1 (ⓘ open), gh-07 (Verificare).
+- **Figma** — the FO blocks: Date solicitant roles (GEAP 11858:24176 — Solicitant / Reprezentant cards + the
+  „Temeiul reprezentării” authorization card); the „ⓘ” hint = the library Tooltip (hint, top-center + arrow).
 
 ## 5. Removed from this document
 

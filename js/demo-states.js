@@ -1175,6 +1175,8 @@
     /* header instance switcher open (FOD 756:25276): trigger keeps the focus ring, menu right-aligned under it */
     "fo-01s": foReq(1, {}, async (h) => { await h.click("[data-fo-avatar-trigger]"); await h.find("[data-fo-avatar-dropdown]:not([hidden])"); }),
     "fo-02": foReq(1),
+    /* ghiseu-roles-as-fo-v1: the „ⓘ” of „Temeiul reprezentării” open — the library hint (RSUD / MPower checked automatically) */
+    "fo-02h": foReq(1, {}, async (h) => { const b = [...document.querySelectorAll(".e-permits-fo-form__basis .e-permits-fo-role-info")].find((x) => x.getBoundingClientRect().height > 0); b.click(); await h.wait(200); }),
     "fo-03": foReq(2),
     /* CAEM search with no match = the shared empty state inside the list (bare + compact) */
     "fo-03e": foReq(2, {}, async (h) => { await h.click("#fo-caem-code"); await h.fill("[data-fo-caem-search]", "zzz", { leave: false }); document.querySelector("[data-fo-caem-menu]")?.scrollIntoView({ block: "center" }); await h.wait(200); }),
@@ -3069,6 +3071,11 @@
          a holder typed by hand keeps its „Introdus manual” tag on the role card (gh-03n) */
       "gh-03m": gh("#ghiseu/nou", seq(start(pfManual("2001002003004")), async (h) => { await h.click("[data-gh-rep-toggle]"); }, code("rep", "2004001234567")), { mconnect: "0" }),
       "gh-03n": gh("#ghiseu/nou", start(pfManual("2001002003004")), { mconnect: "0" }),
+      /* ghiseu-roles-as-fo-v1 (user 2026-10-23): the FO role groups' „ⓘ” open — „Temeiul reprezentării” with MPower (gh-03b1),
+         with the paper procură fallback (gh-03a1) and the PF „Reprezentant” (gh-03c1) */
+      "gh-03b1": gh("#ghiseu/nou", seq(start(pjMpower), async (h) => { const b = document.querySelector("#gh-request-modal .e-permits-gh__basis .e-permits-fo-role-info"); b.click(); await h.wait(200); })),
+      "gh-03a1": gh("#ghiseu/nou", seq(start(pjNoLink), async (h) => { const b = document.querySelector("#gh-request-modal .e-permits-gh__basis .e-permits-fo-role-info"); b.click(); await h.wait(200); })),
+      "gh-03c1": gh("#ghiseu/nou", seq(start(pf("2001002003004")), async (h) => { await h.click("[data-gh-rep-toggle]"); }, code("rep", "2004001234567"), async (h) => { const b = document.querySelector("#gh-request-modal .e-permits-gh__rep .e-permits-fo-role-info"); b.click(); await h.wait(200); })),
       /* US-234 „Date de contact” on the same step: seed draft (scrolled to the contact), wrong phone / .ru email, MNotify missing values */
       "gh-04": gh("#ghiseu/gh-4812/identificare", async (h) => { await h.scroll("#gh-contact-title"); }),
       "gh-04a": gh("#ghiseu/nou", seq(start(pf("2001002003004")), async (h) => { await h.fill("#fo-gh-phone", "123", { leave: false }); await h.fill("#fo-gh-email", "maria.ceban@mail.ru", { leave: false }); }, next)),

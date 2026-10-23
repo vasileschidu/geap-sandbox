@@ -3524,11 +3524,20 @@
       `;
     }
 
-    function roleGroupTitleHtml(label) {
+    /* what the „ⓘ” of a role group explains (ghiseu-roles-as-fo-v1, 2026-10-23: the button only named itself
+       before) — the library hint tooltip (js/icon-tooltip.js `data-tooltip-hint`: hover, keyboard focus, click /
+       tap toggles, Esc closes). One text per role, shared by the FO „Date solicitant” and the Ghișeu; a caller
+       may pass its own `hint`. */
+    const ROLE_GROUP_HINTS = {
+      Solicitant: "Persoana fizică sau juridică în numele căreia se depune cererea. Actul permisiv se emite pe numele ei.",
+      Reprezentant: "Persoana care depune cererea în numele solicitantului.",
+      "Temeiul reprezentării": "Se verifică automat: administrator în RSUD sau împuternicire activă în MPower. Nu trebuie selectat nimic."
+    };
+    function roleGroupTitleHtml(label, { hint = ROLE_GROUP_HINTS[label] || "" } = {}) {
       return `
         <div class="e-permits-fo-form__role-title">
           <h2>${escapeFrontOfficeHtml(label)}</h2>
-          <button class="e-permits-fo-role-info" type="button" aria-label="Detalii despre ${escapeFrontOfficeHtml(label.toLowerCase())}">
+          <button class="e-permits-fo-role-info" type="button" aria-label="Detalii despre ${escapeFrontOfficeHtml(label.toLowerCase())}"${hint ? ` data-tooltip-hint="${escapeFrontOfficeHtml(hint)}"` : ""}>
             <svg class="icon" width="16" height="16" aria-hidden="true">
               <use href="assets/icons/sprite.svg#icon-circle-info-filled"></use>
             </svg>
@@ -8769,6 +8778,7 @@
       /* the FO identity card of „Date solicitant” (fo-01/02) and its group title — shared with Ghișeu */
       roleCardHtml: (subject, opts = {}) => `<div class="e-permits-fo-selected-role${opts.changeable ? " e-permits-fo-selected-role--changeable" : ""}">${selectedRoleHtml(subject, opts)}</div>`,
       roleGroupTitleHtml,
+      roleGroupHints: ROLE_GROUP_HINTS,
       /* the representation basis card (MPower / RSUD) of „Date solicitant”: auth = { title, status, grantedBy,
          validUntil, code } or { title, status, icon, details } */
       authorizationCardHtml: (auth) => authorizationCardHtml({ authorization: auth }),

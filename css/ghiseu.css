@@ -73,15 +73,30 @@
   margin-bottom: var(--spacing-24, 24px);
 }
 
-.e-permits-gh__basis {
+/* ghiseu-roles-as-fo-v1 (2026-10-23): „Temeiul reprezentării” and the PF „Reprezentant” are FO role groups inside
+   the roles section (title + „ⓘ” 8 above the content, 20 between groups, the section's 32 below). The desk-only
+   content of a group — the procură fallback (notice · option · error · upload), the representative option + its
+   IDNP lookup — stacks at 12 over the group's full width (the FO group hugs its card) */
+.e-permits-gh__basis[hidden] {
+  display: none;
+}
+
+.e-permits-gh__basis-body,
+.e-permits-gh__rep-body {
+  align-self: stretch;
   display: flex;
   flex-direction: column;
   gap: var(--spacing-12, 12px);
-  padding-bottom: var(--spacing-32, 32px);
+  min-width: 0;
 }
 
-.e-permits-gh__basis[hidden] {
-  display: none;
+.e-permits-gh__rep-body > .e-permits-check-options {
+  align-self: flex-start;
+}
+
+/* the IDNP lookup keeps the FO field grid (12 columns, 24 · 32 gaps) without the section body's own padding */
+.e-permits-fo-form__section-body.e-permits-gh__rep-lookup {
+  padding: var(--spacing-0, 0);
 }
 
 /* MConnect down (registry-down-alert-v1): the one warning notice above the lookups takes the whole row

@@ -1178,10 +1178,13 @@
   }
   function basisHtml(d) {
     const b = S.step === 0 ? null : basisOf(d);
-    if (!b || b.kind === "self") return '<div data-gh-block="basis" class="e-permits-gh__basis" hidden></div>';
+    if (!b || b.kind === "self") return '<div data-gh-block="basis" class="e-permits-fo-form__role-group e-permits-fo-form__basis e-permits-gh__basis" hidden></div>';
     const filer = d.personType === "PJ" ? fullName(d.applicant) : fullName(d.rep);
     const holder = holderName(d);
     let body = "";
+    /* ghiseu-roles-as-fo-v1 (user 2026-10-23, on Alexandru's „unde verificăm MPower? cum le selectăm?”): the FO
+       „Temeiul reprezentării” role group (`representationBasisHtml`: small title + „ⓘ”, then the card) — the „ⓘ”
+       says RSUD / MPower are checked automatically, nothing to select; the desk adds the paper procură fallback */
     /* the FO full-flow layouts (user 2026-10-16, Figma 11685:13047): MPower = the FO „Împuternicire MPower
        aplicată” card (fo-02, the same renderer); RSUD administrator = the same card (the FO has no RSUD
        card: an MPass administrator files as himself) with the RSUD source; Procură = the warning + the
@@ -1195,7 +1198,7 @@
          style (checkbox--error) — no border around the option */
       const option = U().renderCheckOption?.({ label: "Prin procură", required: true, checked: d.procura, attrs: 'data-gh-procura aria-describedby="gh-err-procura"' }) || "";
       const procuraOption = d.procura ? option : option.replace('class="checkbox ', 'class="checkbox checkbox--error ');
-      body = `
+      body = `<div class="e-permits-gh__basis-body">
         ${U().renderNotice?.("warning", b.manual
           ? "<strong>Legătura nu se poate confirma electronic</strong> cât timp registrul de stat nu răspunde. Verificați procura pe hârtie prezentată de reprezentant."
           : `<strong>Legătura nu este confirmată electronic.</strong> ${esc(filer)} nu este ${d.personType === "PJ" ? "administrator în RSUD și nu are" : "împuternicit în MPower de"} ${d.personType === "PJ" ? `împuternicire MPower pentru ${esc(holder)}` : esc(holder)}. Verificați procura pe hârtie prezentată de reprezentant.`) || ""}
@@ -1203,9 +1206,12 @@
           ${procuraOption}
         </div>
         ${d.procura ? errSlot("procura") : `<span class="message message--inline message--error e-permits-fo-field__error" id="gh-err-procura" data-gh-err="procura" role="alert">${ERR_ICON}<span>Legătura nu este confirmată electronic. Bifați «Prin procură», după verificarea procurii pe hârtie.</span></span>`}
-        ${d.procura ? procuraUploadHtml() : ""}`;
+        ${d.procura ? procuraUploadHtml() : ""}
+      </div>`;
     }
-    return `<div data-gh-block="basis" class="e-permits-gh__basis">${body}</div>`;
+    const hints = R().roleGroupHints || {};
+    const hint = hints["Temeiul reprezentării"] ? `${hints["Temeiul reprezentării"]} Altfel, se verifică procura pe hârtie.` : undefined;
+    return `<div data-gh-block="basis" class="e-permits-fo-form__role-group e-permits-fo-form__basis e-permits-gh__basis">${R().roleGroupTitleHtml?.("Temeiul reprezentării", { hint }) || ""}${body}</div>`;
   }
   /* „Prin procură” ticked: the scanned copy can be attached right here — the FO boxed upload of the guest
      „pentru altcineva” flow (dashed block, black Strict „Adaugă fișier”). It is the same document as
@@ -1273,23 +1279,33 @@
     const holder = d.personType === "PJ"
       ? roleCard({ name: d.company.denumire, idLabel: "IDNO", idValue: d.company.idno, pj: true, tag: manualTag(d.company), change: 'data-gh-goto="0" aria-label="Schimbă solicitantul"' })
       : roleCard({ name: fullName(d.applicant), idLabel: "IDNP", idValue: d.applicant.idnp, tag: manualTag(d.applicant), change: 'data-gh-goto="0" aria-label="Schimbă solicitantul"' });
+    /* ghiseu-roles-as-fo-v1 (user 2026-10-23): the FO „Date solicitant” roles as they are — „Solicitant” +
+       „Reprezentant” role groups (title + „ⓘ” + identity card), then the „Temeiul reprezentării” group (basisHtml).
+       PJ: the person at the desk is the company's Reprezentant (was „Persoana care depune”). PF: the Reprezentant
+       group holds the desk's „Cererea se depune de un reprezentant” option + the IDNP lookup; a person found in RSP
+       becomes the FO identity card („Schimbă” = a new IDNP); manual values (registry down) stay editable fields. */
     const filer = d.personType === "PJ" ? roleCard({ name: fullName(d.applicant), idLabel: "IDNP", idValue: d.applicant.idnp, tag: manualTag(d.applicant) }) : "";
+    const repFound = d.personType === "PF" && d.rep.on && d.rep.state === "found";
     const rep = d.personType === "PF" ? `
-      <div class="e-permits-fo-form__section-body">
-        <div class="e-permits-fo-field e-permits-fo-field--span-12">
+      <div class="e-permits-fo-form__role-group e-permits-gh__rep">
+        ${roleTitle("Reprezentant")}
+        <div class="e-permits-gh__rep-body">
           <div class="e-permits-check-options">${U().renderCheckOption?.({ label: "Cererea se depune de un reprezentant", checked: d.rep.on, attrs: "data-gh-rep-toggle" }) || ""}</div>
+          ${repFound
+            ? roleCard({ name: fullName(d.rep), idLabel: "IDNP", idValue: d.rep.idnp, change: `data-gh-reset="rep" aria-label="Schimbă reprezentantul ${esc(fullName(d.rep))}"` })
+            : d.rep.on ? `<div class="e-permits-fo-form__section-body e-permits-gh__rep-lookup">${downNoticeHtml([d.rep])}${codeGroupHtml("rep", d)}</div>` : ""}
         </div>
-        ${d.rep.on ? `${downNoticeHtml([d.rep])}${codeGroupHtml("rep", d)}` : ""}
       </div>` : "";
     return `
       <div data-gh-block="applicant">
-        <section class="e-permits-fo-form__roles${filer ? "" : " is-single"}" aria-label="Solicitant">
+        <section class="e-permits-fo-form__roles${filer ? "" : " is-single"}" aria-label="Solicitant și reprezentare">
           <div class="e-permits-fo-form__roles-grid">
             <div class="e-permits-fo-form__role-group">${roleTitle("Solicitant")}${holder}</div>
-            ${filer ? `<div class="e-permits-fo-form__role-group">${roleTitle("Persoana care depune")}${filer}</div>` : ""}
+            ${filer ? `<div class="e-permits-fo-form__role-group">${roleTitle("Reprezentant")}${filer}</div>` : ""}
           </div>
+          ${rep}
+          ${basisHtml(d)}
         </section>
-        ${section(d.personType === "PJ" ? "Temeiul reprezentării" : "Reprezentantul", `${rep}${basisHtml(d)}`, { id: "gh-rep-title", desc: d.personType === "PJ" ? "Legătura dintre persoana care depune și companie: RSUD, MPower sau procură verificată la ghișeu." : "Doar dacă cererea se depune printr-un reprezentant al solicitantului." })}
       </div>`;
   }
   /* every post-process the service knows (Setări › Postprocese pe acte permisive + Contestație) */
@@ -1560,7 +1576,11 @@
     const hadDownNotice = Boolean(S.page.querySelector(".e-permits-gh__down-notice"));
     redrawBlock("applicant");
     refreshChrome();
-    if (slot.state === "found") {
+    if (slot.state === "found" && kind === "rep" && d.personType === "PF") {
+      /* ghiseu-roles-as-fo-v1: the found representative is the FO identity card now — the focus goes to its
+         „Schimbă” (where the code box was), the name is in its accessible name */
+      S.page.querySelector('[data-gh-reset="rep"]')?.focus();
+    } else if (slot.state === "found") {
       const group = S.page.querySelector(`[data-gh-lookup="${kind}"]`);
       group?.querySelectorAll(".e-permits-fo-input.is-readonly").forEach((wrap) => { void wrap.offsetWidth; wrap.classList.add("is-srre-new"); wrap.addEventListener("animationend", () => wrap.classList.remove("is-srre-new"), { once: true }); });
     } else {
@@ -1934,7 +1954,12 @@
     const repPerson = d.personType === "PJ" ? d.applicant : d.rep.on ? d.rep : null;
     const applicant = [
       summaryRow("Solicitant", [esc(holderName(d)) + manual, esc(d.personType === "PJ" ? `IDNO ${d.company.idno}` : `IDNP ${d.applicant.idnp}`)]),
-      repPerson ? summaryRow(d.personType === "PJ" ? "Persoana care depune" : "Reprezentant", [esc(fullName(repPerson)), esc(`IDNP ${repPerson.idnp}`), esc(`Temei: ${basisLabel(d) || "—"}`)]) : "",
+      /* ghiseu-roles-as-fo-v1: the FO review rows „Solicitant” / „Reprezentant” (fo-05); the desk adds the basis as
+         its own row, named as the step's group (the FO review has none — its basis is always electronic) */
+      repPerson ? summaryRow("Reprezentant", [esc(fullName(repPerson)), esc(`IDNP ${repPerson.idnp}`)]) : "",
+      repPerson ? summaryRow("Temeiul reprezentării", basisOf(d)?.kind === "mpower"
+        ? [esc(basisLabel(d)), esc(`Cod ${basisOf(d).nr}`), esc(`Valabilă până la ${longDate(basisOf(d).until)}`)]
+        : [esc(basisLabel(d) || "—")]) : "",
       summaryRow("Date de contact pentru notificări", [esc(d.contact.phone ? `+373 ${formatPhone(d.contact.phone)}` : "—"), esc(d.contact.email || "fără email")])
     ].join("");
     const form = formOf(d);
@@ -2790,7 +2815,7 @@
         rows: [
           docGroup("Serviciul solicitat", [["Serviciul", svc?.title || ""], ["Tipul solicitării", d.requestType], ["Subdiviziunea de procesare", d.details.subdivision], ["Termen de examinare", termOf(d)?.label]]),
           docGroup("Solicitantul", [[d.personType === "PJ" ? "Denumirea" : "Nume, prenume", holderName(d)], ["Cod de identificare", d.personType === "PJ" ? `IDNO ${d.company.idno}` : `IDNP ${d.applicant.idnp}`]]),
-          repPerson ? docGroup(d.personType === "PJ" ? "Persoana care depune" : "Reprezentantul", [["Nume, prenume", fullName(repPerson)], ["IDNP", repPerson.idnp], ["Temeiul reprezentării", basisLabel(d)]]) : "",
+          repPerson ? docGroup("Reprezentantul", [["Nume, prenume", fullName(repPerson)], ["IDNP", repPerson.idnp], ["Temeiul reprezentării", basisLabel(d)]]) : "",
           docGroup("Date de contact", [["Telefon", d.contact.phone ? `+373 ${formatPhone(d.contact.phone)}` : ""], ["Email", d.contact.email]]),
           docGroup("Detalii serviciu", [...form.fields.map((f) => [f.label, d.details.values[f.key]]), ...(form.address ? [["Adresa obiectului", addressText(d.details.address)]] : [])]),
           docGroup("Documente anexate", attached.length ? attached : [["Documente", "—"]])

@@ -246,15 +246,39 @@
     show(el);
   });
 
-  /* touch: a hint opens on tap (the explanation is otherwise unreachable); everything else stays quiet */
-  document.addEventListener("pointerdown", (event) => { lastPointer = event.pointerType || "mouse"; hide(); }, true);
+  /* a hint is an explanation behind an info button: a click / tap / Enter / Space TOGGLES it (ghiseu-roles-as-fo-v1,
+     2026-10-23 — before, only touch opened it on tap and a mouse click closed what the hover had opened). The
+     pointerdown remembers whether this target's hint was opened by a click, so a second click closes it (one the
+     hover opened stays open on the click). */
+  let openAtDown = null;
+  let clickedOpen = null;
+  document.addEventListener("pointerdown", (event) => {
+    lastPointer = event.pointerType || "mouse";
+    openAtDown = tip && !tip.hidden && clickedOpen === target ? target : null;
+    clickedOpen = null;
+    hide();
+  }, true);
   document.addEventListener("click", (event) => {
-    if (lastPointer === "mouse") return;
     const el = event.target instanceof Element ? event.target.closest("[data-tooltip-hint]") : null;
-    if (el && !el.hasAttribute("data-no-tooltip")) show(el);
+    if (!el || el.hasAttribute("data-no-tooltip")) return;
+    if (event.detail === 0) { /* keyboard (Enter / Space): the focus already showed it → close; else open */
+      if (target === el && tip && !tip.hidden) hide(); else show(el);
+      return;
+    }
+    const wasOpen = openAtDown === el;
+    openAtDown = null;
+    if (!wasOpen) { show(el); clickedOpen = el; }
   }, true);
 
   document.addEventListener("focusout", (event) => { if (!target || event.target === target || event.target.contains?.(target)) hide(); });
+  /* Esc closes an open HINT only — not the dialog / sheet under it (WCAG 1.4.13 dismissable; window capture runs
+     before js/modal.js and the page dialogs); a plain tooltip just hides and lets Esc go on */
+  window.addEventListener("keydown", (event) => {
+    if (event.key !== "Escape" || !tip || tip.hidden || kind !== "hint") return;
+    hide();
+    event.preventDefault();
+    event.stopImmediatePropagation();
+  }, true);
   document.addEventListener("keydown", (event) => { if (event.key === "Escape") hide(); });
   window.addEventListener("scroll", () => { if (tip && !tip.hidden) place(); }, true);
   window.addEventListener("resize", hide);

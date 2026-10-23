@@ -3199,3 +3199,23 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   the PO, Azure untouched. Demo: gh-02o redefined (edit → status), new gh-02o1 / gh-01e1; Figma block config labels
   updated. No sub-agent tool → hover-audit 0 / 0 (sheet header, toolbar), code-audit 0 (tokens 100, static 0),
   component-audit only standing majors (shell header tools, th sort, missing-copy, profile menu).
+- 2026-10-23 · ghiseu-roles-as-fo-v1 (user, on Alexandru's gh-02g „unde verificăm MPower? cum le selectăm?”: „the same as
+  Solicitant / Reprezentant, with the i button”). (1) CHECK THE PREMISE: the brief said the FO „ⓘ” opens an explanation —
+  it only named itself (icon-only button → plain tooltip from aria-label). The fix belonged in the shared helper:
+  `roleGroupTitleHtml(label, { hint })` + one `ROLE_GROUP_HINTS` map (exported `roleGroupHints`) → FO and Ghișeu get the
+  same texts, the Ghișeu adds one sentence for its paper fallback. (2) The tooltip runtime had no way to open a hint by
+  mouse click (only touch tap; a click CLOSED what the hover opened) and Esc with a hint open also closed the Ghișeu
+  window under it (both document listeners). Now in js/icon-tooltip.js: click / tap / Enter / Space toggle a hint (a
+  hover-opened one stays open on the click), Esc with a hint open → window capture + `stopImmediatePropagation` closes
+  only the hint. (3) Probe trap: CDP `keyDown` Enter without `text: "\r"` fires NO click on a button — my first probe
+  said „Enter does not toggle” when the code was fine. (4) Same component = same container: the basis left its big
+  section (h2 + description + divider) for an FO `__role-group` inside `section.e-permits-fo-form__roles`; desk-only
+  content (procură fallback, PF representative option + IDNP lookup) = a full-width 12-stack inside the group; a person
+  found in RSP becomes the FO identity card with „Schimbă” = the existing `data-gh-reset` (focus to that „Schimbă” after
+  the lookup). (5) component-audit flagged the FO „ⓘ” (`.e-permits-fo-role-info`) as non-library on fo-02 too — it was
+  never in the inventory; documenting it in a § 2 row (backticked classes) is what makes it „documented”, a `product`
+  entry in the spec only matches the element itself / bare roots (reverted mine). Other agents re-bumped `?v=` of
+  ghiseu.js / demo-states.js mid-job (export-modal-csv-v1) → commit blobs built from HEAD + my pairs. QA: hover-audit
+  0 / 0 (covered only in the ⓘ-open state = the hint itself), code-audit 0 new (standing: FO buttons, search × overlap,
+  off-scale paddings of the doc card / lookup), component-audit 0 in `.e-permits-fo-form__roles` after the inventory row,
+  capture 0 errors / 0 overflow (fo-02 / 02h / cat-04 also at 375). Demo fo-02h, gh-03b1 / 03a1 / 03c1.
