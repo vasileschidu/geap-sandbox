@@ -3232,3 +3232,22 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   „zzz”) still offers „0 înregistrări” + an empty CSV (pre-existing) — PO question. Toast wraps the file name at its hyphen
   („dosare-” / „noi.csv”) at 1440 — library toast width, reported. QA: hover-audit 0 / 0 (dialog scope), code-audit 0 (static +
   runtime), component-audit 0 in the dialog (standing profile-menu majors only), capture 0 errors / 0 overflow. Demo gh-01e2 (new).
+- 2026-10-23 · sticky-col-shadow-v1 (user: „dropdown effect on the fixed first / last columns when content goes under them”).
+  (1) Pin rules are scattered per registry (base pins checkbox + number, users / flows / ghiseu unpin col 2, services /
+  tariffs / eKYC pin the name, `pin: "end"`, phones pin only the actions) → never re-list them in a selector: read the
+  header row's COMPUTED `position` / `left` / `right` in JS and mark the inner edge cells (`is-pin-edge-start/-end`).
+  One standalone module (`js/table-pin-shadow.js` + css) loaded by the 4 pages with tables; Mutation/ResizeObserver +
+  one capture `scroll` listener → no call from the shell / Ghișeu / act view, and act-field tables in RAP / Cabinet
+  came for free. (2) A pseudo-element shadow outside the cell is CUT: registry `td`s have `overflow: hidden` (ellipsis)
+  and a sticky td is the pseudo's containing block. Cell box-shadow instead — but a per-cell blurred shadow bands at
+  every row line (lighter at the edges) → grow it by spread +24 / offset −24 (same edge + falloff) and `clip-path:
+  inset(0 -32px 0 0)` to the row height = one continuous column shadow (checked on 3× crops). (3) Box-shadow collides
+  with other cell shadows (focused clickable row = inset ring rules with higher specificity) → expose the edge shadow as
+  `--pin-shadow-cast` and APPEND it in those rules; animate a registered `@property --pin-shadow` (0 → 1), not
+  box-shadow, so the focus ring never fades. (4) Reuse the project's state names (`has-overflow-start/-end`, RAP /
+  page-header tabs) scoped with the module's own box class. (5) Ask „which tables pin?” by measuring: no registry has a
+  ⋮ menu inside a pinned cell today (guard kept), Dosare / eKYC have no end pin, the classifier grid has no start pin.
+  Probe kit: scratch scs/probe.mjs (state × width × scroll start / middle / end → classes, `--pin-shadow`, crops + 3×
+  zooms of each edge; PAGE / SEL env for RAP / Cabinet). No sub-agent tool → code-audit / component-audit identical to
+  a HEAD worktree (:8977), hover-audit 0 / 0, capture 0 errors / 0 overflow (srv-01 / trf-01 mobile demo errors are
+  pre-existing on HEAD).

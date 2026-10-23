@@ -1,0 +1,71 @@
+/* ==========================================================================
+   Pinned-column edge shadow (2026-10-23, user: „for scrollable tables with a fixed first and last
+   column, apply the same dropdown effect to the columns when content goes under them, so it's clear
+   there is something to scroll”). Behaviour + classes: js/table-pin-shadow.js (one module, every
+   table that pins columns with `position: sticky` inside its own sideways scroll box).
+
+   The shadow = the Figma effect style „dropdown-effect” (GEAP 2.0, the menus' surface) turned on its
+   side: its 0 4 6 −2 @5 % and 0 10 15 −3 @10 % drop shadows run along X instead of Y. Its 0 0 0 1 @8 %
+   ring is already there as the pinned column's 1px divider (border default), so it is not repeated.
+   There is no CSS token for the effect (main.css has only --drop-shadow-100…600) — the values live
+   here once, like the Dropdown surface rule in e-permits-acte-permisive.css.
+
+   - `.has-overflow-start` (content scrolled under the first pinned column) → shadow on the RIGHT edge of
+     `.is-pin-edge-start`; `.has-overflow-end` (more to scroll right) → shadow on the LEFT edge of
+     `.is-pin-edge-end`. At the start only the end shadow shows, at the end only the start one, a table
+     that fits shows none.
+   - It is the cell's own box-shadow, not a pseudo-element: registry cells clip their content
+     (`overflow: hidden` for the ellipsis), which would cut a pseudo outside the cell. Each shadow is
+     grown by 24 along both axes and moved back by 24 (same edge, same falloff), and `clip-path` keeps
+     only the side that faces the scrolling columns — so the column reads as ONE continuous shadow,
+     with no lighter band at the row lines, and nothing spills on the rows above / below.
+   - The strength rides on a registered custom property (`--pin-shadow`, 0 → 1), so the 150 ms fade
+     never animates the cells' other box-shadows (the focused row's inset ring); off with reduced motion.
+   - The cell's other box-shadows (focused clickable row: inset ring) are kept: the edge shadow is
+     appended through `--pin-shadow-cast`, read by those rules. The sticky cells are opaque (white body,
+     secondary header), so nothing shows through them.
+   - An open row menu inside the end cell is not clipped: the clip and the shadow drop while it is open.
+   ========================================================================== */
+@property --pin-shadow {
+  syntax: "<number>";
+  inherits: false;
+  initial-value: 0;
+}
+
+:is(.is-pin-edge-start, .is-pin-edge-end) {
+  --pin-shadow: 0;
+  transition: --pin-shadow 150ms ease;
+}
+
+.is-pin-edge-start {
+  --pin-shadow-cast:
+    -20px 0 6px 22px rgba(0, 0, 0, calc(0.05 * var(--pin-shadow))),
+    -14px 0 15px 21px rgba(0, 0, 0, calc(0.1 * var(--pin-shadow)));
+  box-shadow: var(--pin-shadow-cast);
+  clip-path: inset(0 calc(-1 * var(--spacing-32, 32px)) 0 0);
+}
+
+.is-pin-edge-end {
+  --pin-shadow-cast:
+    20px 0 6px 22px rgba(0, 0, 0, calc(0.05 * var(--pin-shadow))),
+    14px 0 15px 21px rgba(0, 0, 0, calc(0.1 * var(--pin-shadow)));
+  box-shadow: var(--pin-shadow-cast);
+  clip-path: inset(0 0 0 calc(-1 * var(--spacing-32, 32px)));
+}
+
+.has-pin-shadow.has-overflow-start .is-pin-edge-start,
+.has-pin-shadow.has-overflow-end .is-pin-edge-end {
+  --pin-shadow: 1;
+}
+
+/* an open ⋮ menu inside a pinned cell must not be cut by the clip */
+:is(.is-pin-edge-start, .is-pin-edge-end):has([data-stack-menu]:not([hidden]), [role="menu"]:not([hidden])) {
+  --pin-shadow: 0;
+  clip-path: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :is(.is-pin-edge-start, .is-pin-edge-end) {
+    transition: none;
+  }
+}

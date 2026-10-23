@@ -200,6 +200,7 @@ but this doc previously described it wrongly, see the entry.
 | Button | `.btn` + variant + `.btn-sm/.btn-md/.btn-lg` (icon AND label from the button size: Small 32 · 14/20 · icon 16, Medium 40 · 14/20 · icon 20, Large 48 · 16/24 · icon 20 at every width — `css/button-icons.css`, § Button › „Button icons”) | `buttons.html` | app |
 | Clickable card / row = the action, no lone „Detalii” (user rule 2026-10-21, no-lone-detalii-v1) | a card / row that already opens its details on click has NO „👁 Detalii” button when that would be its only action: Cabinet request row (`actionsHtml` → "" → no `.cab-doc__actions`, no `--row-trigger-w` reservation), Cabinet document card (`CabEvo.docRowHtml(doc, { key })`: `.cab-doc.is-clickable[tabindex=0][aria-label="<tip>, deschide detaliile"]`), BO stacked rows (`renderRowActions({ …, rowOpens: true })` → "" when only the preview is left; `renderStackItem` gives a row with `rowAttrs` and no action `tabindex="0"` + `data-stack-row-open` + `aria-label` „<title> — <tags>, deschide detaliile”, Enter / Space = click through one shell keydown). Focus = the row ring (2 px `--focus-ring` outline, offset −2) + the hover band. Kept: rows / cards that are NOT clickable (FO previous act card, Ghișeu document cards, passport forms) and data tables (`tr` is not focusable — the column button is the keyboard path). With other actions the ⋮ stays | § „Row actions” rule 5; demo sm-01 (d-fresh, d-lab, d-prut), sm-05e…h, dos-03a, dos-04g…o, svc-06j, svc-07 | app |
 | Registry row = the action (no-continue-btn-v1, user 2026-10-21 GEAP 11862:24338 / 11914:29753) | product registry hook `rowLabel(row)` → `tr[data-workplace-row][tabindex="0"][data-workplace-row-open][aria-label="<name> — <what the click does>"]` (shell `workplaceRowOpenAttrs`); Enter / Space = click (shared keydown with `[data-stack-row-open]`); `:focus-visible` = hover band + inset `--focus-ring` box-shadows on the cells (`css/e-permits-shell.css`); the action cell keeps only the grey ⋮ (`btn btn-neutral btn-sm btn-icon-only e-permits-stack__menu-trigger`, white on the band) — no „Continuă” / „Detalii” that repeats the click | § „Row actions” rules 6–7; Ghișeu demo gh-01, gh-01d, gh-01f, gh-13 (Enter), gh-13a (click), gh-13b (Space, submitted) | app |
+| Pinned-column edge shadow (sticky-col-shadow-v1, user 2026-10-23: „same dropdown effect on the fixed columns when content goes under them”) | automatic for EVERY table that pins columns with `position: sticky` inside its own sideways scroll box (BO / eKYC / Ghișeu registries, classifier grid, RAP / Cabinet act-field tables): `js/table-pin-shadow.js` marks the inner edge cells `th/td.is-pin-edge-start` (right-most left-pinned column) / `.is-pin-edge-end` (left-most right-pinned column) from the computed styles, and the scroll box `.has-pin-shadow` + `.has-overflow-start` (content under the start column) / `.has-overflow-end` (more to scroll right); `css/table-pin-shadow.css` draws the Figma „dropdown-effect” turned sideways (0 4 6 −2 @5 % + 0 10 15 −3 @10 % along X; the 1px @8 % ring = the existing divider) as the cell's own box-shadow, clipped to the row height (one continuous column shadow), 150 ms fade via `@property --pin-shadow` (none with reduced motion). No shadow on a side with nothing hidden; none when the table fits. Rules that set their own cell box-shadow append `var(--pin-shadow-cast, 0 0 0 transparent)` (focused clickable row) | § „Pinned-column edge shadow”; demo gh-01, dos-05, srv-01, ek-04, trf-01, clf-03, rap-03q (scroll sideways) | app |
 | No ⋮ with only unavailable items (user rule 2026-10-23, row-menu-no-disabled-only-v1, GEAP 2.0 11818:22341) | `renderStackMenu(items, label)` returns "" when no item is enabled (`disabled: true`, or `aria-disabled="true"` / `disabled` in `attrs`) → no trigger; `renderRowActions` / `renderStackItem` follow; the caller's cell / column stays (no shift). One enabled item → the menu stays, disabled items keep their tooltip reason | § „Row actions” rule 9; demo gh-11c (paid draft row, no ⋮), gh-11d (expired payment, ⋮ kept) | app |
 | Action icons — „Editează” = pen, „Elimină / Șterge” = trash (user rule 2026-10-21) | shell `actionIconFor(label)` → `actionLabelHtml` / `renderRowActions` / `renderStackMenu` (the label picks the icon); `icon-edit` / `icon-delete` before the label in the label colour; exceptions + audit rule 6 in „Action icons” (§ after „Row actions”) | — | app |
 | Link to another page in a new tab — label + TRAILING external icon (user rule 2026-10-22, external-link-v1) | `<a class="btn btn-neutral btn-md" href="…" target="_blank" rel="noopener" aria-label="<label> (se deschide într-o filă nouă)"><span>Vezi solicitarea</span><svg class="icon small"><use href="#icon-external-link"/></svg></a>` — NO leading icon, the glyph after the label at the button size (css/button-icons.css trailing padding, 20 Medium / 16 Small), label colour; ⋯ menu item = the same `<a role="menuitem" … target="_blank">` with label then icon (closes the menu); text links (`.link` / detail-row links + `.cab-external-link`, icon 16) | § „Action icons” › „Links that open another page”; Cabinet `newTabAttrs` / `requestLinkHtml`; demo pp-01d, pp-03h (phone ⋯, 320), pp-03 (notice), pp-03d (Istoric). **Superseded for the Cabinet act → request „Vezi solicitarea” (act-alert-card-v2, 2026-10-22: profiles have real URLs + working Back): header button, its ⋯ item and the alert card button open the request in the SAME tab, no external icon; only the Istoric request number keeps the new-tab link** | app |
@@ -8455,6 +8456,43 @@ reference skipped). Administrator platformă only (menu in `data/ekyc-roles.json
   test-lent · eroare-stergere. **Demo states** `ek-20 … ek-32l` (122): per screen list, tabs, filters, search
   without results, empty / error / loading, detail tabs, drawers, validation, 409, confirmations, results.
 
+### Pinned-column edge shadow (sticky-col-shadow-v1, 2026-10-23)
+
+User: „for scrollable tables with a fixed first and last column, can we apply the same dropdown effect to the
+columns when content goes under them, so it's clear there is something to scroll?”
+
+- **Where:** every table whose columns are pinned with `position: sticky` inside its own sideways scroll box —
+  nothing to add per table. Loaded by `e-permits-acte-permisive.html`, `e-permits-shell.html`, `rap-evo/`,
+  `cabinet-evo/` (`css/table-pin-shadow.css` + `js/table-pin-shadow.js`, deferred). The RAP registry
+  (`.rap-table`) pins nothing and keeps its fade (`.rap-table-scroller.has-overflow-*`).
+- **Which cells:** read from the CSS, not configured — the header row's (else the first aligned row's) sticky cells:
+  the right-most `left`-pinned one = `.is-pin-edge-start`, the left-most `right`-pinned one = `.is-pin-edge-end`;
+  marked on every row whose cells line up with the header (colspan rows — group rows, empty states — are skipped).
+  Per-registry pin rules (checkbox + number on Dosare = edge on column 2; the name on Servicii / Tarife / eKYC; the
+  `pin: "end"` actions; phones ≤ 760 with the actions only) are followed as they are, at every width.
+- **When:** the scroll box gets `.has-pin-shadow` and `.has-overflow-start` (scrollLeft > 1: content under the
+  start column) / `.has-overflow-end` (more than 1px left to scroll). At the start only the end shadow, at the end
+  only the start shadow, both in between, none when the table fits. One capture `scroll` listener on the document,
+  a MutationObserver (only mutations inside / adding a table) + ResizeObserver (box + table) re-mark after renders,
+  dialogs and resizes.
+- **Look:** the Figma effect style „dropdown-effect” (GEAP 2.0, menus) on its side — `0 4 6 −2 @5 %` and
+  `0 10 15 −3 @10 %` along X, towards the scrolling columns; its `0 0 0 1 @8 %` ring is the existing 1px divider
+  of the pinned column. No CSS token exists for the effect (as the Dropdown surface rule) — literal once, in
+  `css/table-pin-shadow.css`. Drawn as the cell's own box-shadow (registry cells clip their content for the
+  ellipsis, so a pseudo outside the cell would be cut): spread +24 / offset −24 keeps the same edge and falloff,
+  `clip-path: inset()` keeps only the outer side within the row height → one continuous column shadow, no
+  banding at the row lines. Fade 150 ms on the registered `--pin-shadow` (0 → 1) only; none with
+  `prefers-reduced-motion`. Pinned cells stay opaque (body white, header secondary).
+- **Composing:** a rule that gives the same cells another box-shadow must append
+  `var(--pin-shadow-cast, 0 0 0 transparent)` — done for the focused clickable row's inset ring
+  (`css/e-permits-shell.css`). An open menu inside an edge cell drops the clip and the shadow.
+- **Figma spec:** pinned column frame → effect = „dropdown-effect” rotated: drop shadow X 4 Y 0 blur 6 spread −2
+  #000 5 % + X 10 Y 0 blur 15 spread −3 #000 10 % (first column: positive X, last column: negative X), shown only
+  on the side where content is hidden; put it on the whole pinned-column frame (header + rows), not per cell,
+  so it reads as one continuous shadow.
+- **Demo:** any registry state scrolled sideways — gh-01, dos-05, srv-01, ek-04, trf-01, clf-03 (end column only),
+  rap-03q (act-field table, start column only).
+
 ### Ghișeu — depunere la ghișeu (Feature 95768, 2026-10-15)
 
 Specialist ghișeu files a request on behalf of the applicant: **Dosare noi** (US-241) → **Dosar nou**
@@ -8483,6 +8521,8 @@ added for modules (all generic, reuse them for the next BO module):
   ≤760, keeps only the actions pinned. Widths = the one-line header (label + sort icon + 24) or the
   longest date; names ellipsize with the cell tooltip. An open row menu lifts its actions cell
   (`:has([data-stack-menu]:not([hidden]))` → z 8) so the rows below don't paint over it.
+  Pinned columns get the **pinned-column edge shadow** for free (§ „Pinned-column edge shadow” below) — no
+  registry code.
 - `window.GEAPShellRoutes = [(hash) => boolean]` — `routeFromHash` asks them first (`#ghiseu/…`).
 - `window.GEAPShellApi` — the object products get in `init(api)` (page header, stacked list, row
   actions, confirms, toasts, `hideShellPages`, `setActiveNav`, `currentAssignment`) + `getServiceByCode`,
