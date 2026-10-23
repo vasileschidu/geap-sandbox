@@ -97,6 +97,7 @@ gets better; never delete a lesson, rewrite it if it was wrong.
 | Unsaved changes review (local, 2026-10-21) | GEAP holder 12241:493487 on 🧩 Local components: `Header status` 12241:493506 · `Change row` 12241:528864 · `Change group` 12241:528943 · `Unsaved changes review` 12241:529090 (Desktop 12241:528944 / Phone 12241:529017) · eKYC copy 10904:162304 (status 10904:162323, row :162346, group :162425, review :162572) | code #profile-changes-modal (9ed3a52d). Header status = dot 8 icon/warning + Caption 500 12/16 (or Inline 14/20 for the dtpl sheet head), hover dotted underline, focus 2 px brand ring; now inside `Main Navigation` 9442:44686 (exposed `Status`, visible = „Unpublished changes”), `Settings · Save bar` 10638:1534 (its Text prop removed — set the exposed Status) and `Profile / Header` 10133:184694. Review: exposed Group 1–3 (Show group 2/3) › exposed Row 1–3 (Show row 2/3) › exposed Tag + Undo; fill with tools/figma/unsaved-review/blocks.js `fillReview`. Phone = bottom sheet 375 (no handle, × Medium 40 + 24/cross-large b6145b5f…; title 20/32 = code, user-confirmed). State=Changes / Empty (Desktop 12250:339727, Phone 12250:339869; eKYC 10910:257 / 10910:440) |
 | Document field · label (local, 2026-10-23) | GEAP **12468:8391** (🧩 Local components › Components · Documents) · FOD 1275:11464 | label of a FO document field: TEXT `First lines` (+ BOOLEAN `Show first lines`) + `Last line` row (gap spacing-6) = last-line text · 12/asterisk (icon/danger) `Show star` · tag-filled Subtle Neutral Small „Opțional” `Show optional` → the star / tag sits right after the last word like the code (library text-input label puts it at the right edge). Phone lines = the code's breaks at 343 (probe word rects). Desktop 16/24 500 |
 | Details card + row (2026-10-23, = BO „Date generale”) | row = `svc/field-row` set **12143:21330** (Context Page 256 · Drawer 200 · Modal 163 · Modal · narrow 147); card = plain frame like the dossier card 11332:17170 | card VERTICAL, fill background/base/secondary (2099ba93…/1296:266), radius-24, padding 8 / 20 bound, gap 0; rows FILL, 8 / 7 + 1 px bottom stroke = 40, last row `strokeBottomWeight = 0`. Copy = BOOLEAN `Show copy value` + exposed nested `Copy value` (Default) — not the old 24/copy `Show copy`. Several values = Value text with `\n` + paragraphSpacing 4 + row counterAxisAlign MIN; a long single value = Value text FILL + HEIGHT. Tags = Tag 1–3 (setProperties Style / Label). Converter: scratch-style one call per ≤ 27 cards (see lesson 2026-10-23 details-wrap-align-v1) |
+| Pager · compact (local, 2026-10-23) | RAP EVO-WEB **22396:14841** (Desktop 22396:14744 / Phone 22396:14828, section 22060:2438) · EVO Cabinet **1305:4300** (Desktop 1305:4205 / Phone 1305:4287, section Components · Toolbar) | shared GEAPPager (pager-compact-v1/v2). Desktop: `Summary` (Range 14/20 secondary, numbers 500 default · 16 · Size label + library select-input Medium Filled with its `Input` overridden to HUG + 6/8/6/12, gap 4 → 32) SPACE_BETWEEN `Pages` (gap 4: button-text-rectangular Strict Icon=Only Small ‹ › + library `.pagination-item` Breakpoint=Mobile 32, text style overridden to Body/Small 500). Phone: button-outlined-rectangular Strict Medium „Anterior” (Leading chevron-left, Disabled on page 1) / „Următor” (Trailing chevron-right) on the edges. Per instance: Range text, Size label, hide / rename page items, swap States. `.pagination-item` set (key 51a339f3…) is NOT importable by key — reach it through an existing library pagination instance. Builder tools/figma/rap-table-flat/pager-compact-set.js |
 | Text styles (Foundations lk-e9e8) | — | Desktop/Heading/H5 75e7dfdc… (18/26 600 = BO section title) · Desktop/Caption/Medium 8d8e3878… (12/16 400 = section meta) · H4 6437d483… (20/28) |
 | PJ / PF icons (user, 2026-10-17) | — | PJ = „business” only: 20/business 13c704752d… (avatars 32 / 40, switcher rows), 24/business b135d6dc… (48 profile avatar), 16/business 931f741c…, filled 24/business-filled c477fc69… (GEAP 11972:38938; tags / segmented / checkbox glyph, scaled 16 / 20). PF = 20/person 4559c555… / filled 6502:74649. Never suitcase-2 / luggage / suitcase-work / 24/suitcase-filled. Code icon-business / icon-business-filled |
 | Download / export / print glyphs (2026-10-17) | — | export = central „arrow-inbox, download” filled=on 1.5 r2 e41040ca… (all „Descarcă …” / „Exportă …”, follows the button colour) · upload 20/upload e72e41aa… (Importă / Descarcă din MDocs) · print = „printer, print” filled=off 1.5 r2 f519c646… · A4 preview pages 12001:7122 |
@@ -3548,3 +3549,38 @@ For any „research how other products do it” step, search Mobbin (mcp__mobbin
     check state with get_metadata, then retry.
   - No Agent tool in this session → stored `rap/audit` on the 4 blocks + 10 mains / set: only the board baseline (section-over-card
     tight-gap 0, background Profile clipped by the screen behind the scrim); the 2 off-scale paddings it caught were tokenised.
+
+- 2026-10-23 · rap-table-flat + pager-compact (code ffcdd8dd / 76347812 / 535c8fa1 / 4313604f; Ramona comment 1978888260). EVO-WEB RAP:
+  `RAP / Table header` 22063:5069 → flat band (32 = 8 / 12 cells, background/base/tertiary, Caption/Medium 500 in text/base/default, NO
+  bottom line), `RAP / Table row` 22063:5326 (8 variants) → cells 8 / 12 (phones first 16), minHeight 56, Beneficiar 382 / phones 313,
+  Denumire act 308 / 377, Autoritate 96 = abbreviation only (`Authority name` layer + TEXT property deleted), action 56 with the bare
+  chevron (Hover: icon/base/default + paddingLeft 16 → +2 px), names / act 2-line ENDING, Act underlined on Hover, `Last row=True` keeps
+  the 1 px bottom line (separator above the pager). 19 blocks (13 desktop + 18 phone tables: rap-01, 01q, 01e, 01f, 01a, 01b, 01r, 01s,
+  01t, 01u, 01c, 01h, 01g, 04, 04a–04d; rap-01d = empty state) → table wrappers lost their border / radius, 29 pager hosts → `Pager ·
+  compact` (desktop host 16 / 0, phone 16), rap-01g's two pagers removed (code: none ≤ 16 results), 01q = „din 294 … 19”. Fixed on the
+  way: every row's Copy value showed the default „P-8991/2026” (Identifier + Number overrides lost in the 2026-10-21 Copy value
+  upgrade) → IDNO / masked IDNP by beneficiary + number from the row name (tools/figma/rap-table-flat/blocks.js). Columns 01 / 02 / 05
+  restacked at 240, 18 RAP connectors re-routed, audit only the board baseline (phone scroll clip). EVO Cabinet: 40 pager hosts (My
+  Requests 38, My Permits 2) → local `Pager · compact` 1305:4300 (Requests „Dosare pe pagină:”, 2 pages; page-2 blocks sm-01j / 01u /
+  01w / 05o current = 2, ‹ enabled, › disabled; Permits „Acte pe pagină:”, „din 27 de rezultate”, 3 pages); 12 columns restacked at 240;
+  „Pagina 2” arrow 1152:31652 now starts on the sm-01 pager (position at page 2) instead of the block edge. GEAP 2.0 census only
+  (not edited, awaiting go): library pagination in 104 hosts (Tariffs 23, Incidents 21, Services 13, User Management 12, Workplace 11,
+  App Shell 11, Advanced filtering 10, Dossiers 2, Notification templates 1) + 99 captured raw-item pagers (Ghișeu 96, Process Designer
+  3) = 203; no shared pager component in GEAP. Lessons:
+  - **Local table components pay off**: header + row mains carried the whole flat-table change (2 + 8 variants → 31 headers + 472 rows);
+    only the per-block wrapper border / radius and the pager hosts needed a block pass.
+  - **Library Small button = 16 glyph**: an icon-only Small (32) button cannot show a 20 chevron (nested `resize()` is ignored, the 20
+    component lands at 16 in the `: 16` slot). The code pager uses 20 — declared, library rule kept.
+  - **The library select-input has no 32 size** (Large / Medium only): the 32 page-size field = Medium Filled with the nested `Input`
+    frame set to HUG + paddings 6 / 8 / 6 / 12 + gap 4 (sizing / padding overrides on nested layers are allowed).
+  - **`.`-prefixed library sets are not importable by key** (`.pagination-item` 51a339f3…: „not found”) — take `mainComponent.parent` from
+    an instance that already lives in the file.
+  - **`insertCharacters(…, "BEFORE")` takes the style of the character before** — replacing „19 rezultate” by „27 de rezultate” made „27”
+    regular; re-apply the strong ranges after any range replace.
+  - **The served working tree can be ahead of the brief**: localhost showed a third phone pager variant („Afișează mai multe” + right
+    arrows) while the coordinator's final spec (4313604f) is two edge buttons — draw the briefed / committed spec and report the drift.
+  - Data drift left (report): Cabinet Figma lists still show 19 requests / 27 permits (code 20 / 36); RAP jump markers sit at x 1951
+    (audit expects 1911) and are 6 px off their rows after the 38 → 32 header.
+  - No Agent tool in this session → stored `rap/audit` (5 blocks + 3 sets) and `qsweep/audit` (Cabinet pagers + set): only the RAP
+    baseline (phone horizontal-scroll clip, „mixed” Onest range) and one pre-existing .5 label in rap-01g.
+
