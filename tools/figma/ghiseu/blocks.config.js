@@ -67,7 +67,7 @@ const GH_STATES = {
   "gh-02j": ["Meniul actului", "Meniul post-proceselor deschis; un proces indisponibil arată motivul la hover."],
   "gh-02t": ["Act în curs (blocat)", "Un rând „în curs” nu poate porni alt proces: hover pe trigger."],
   "gh-02r": ["Solicitare nouă aleasă", "Alegerea pornește cererea la „Date solicitant” (emitere primară)."],
-  "gh-02k": ["Reperfectare aleasă", "Din „Mai multe acțiuni” „Reperfectare” pe ASF-2026-04521: cererea pornește la „Date solicitant”."],
+  "gh-02k": ["Reperfectare aleasă", "„Reperfectare” pe ASF-2026-04521: pasul 2 „Detalii serviciu” cu datele actului precompletate."],
   "gh-02w": ["Schimbă procesul", "„Mai multe acțiuni” în antetul cererii › „Schimbă procesul”: confirmare când datele s-ar pierde."],
   "gh-02x": ["Schiță salvată înainte de proces", "O schiță salvată înainte de alegere se reia pe „Ce se solicită?”."],
   "gh-02l": ["Fără acte", "Solicitantul nu are acte emise pentru serviciu: doar „Solicitare nouă”."],

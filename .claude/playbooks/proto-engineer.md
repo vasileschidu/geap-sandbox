@@ -3251,3 +3251,8 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   zooms of each edge; PAGE / SEL env for RAP / Cabinet). No sub-agent tool → code-audit / component-audit identical to
   a HEAD worktree (:8977), hover-audit 0 / 0, capture 0 errors / 0 overflow (srv-01 / trf-01 mobile demo errors are
   pre-existing on HEAD).
+- 2026-10-23 · gh-02k-step2-v1 (Figma GH-02k moved to step 2 of the Reperfectare). A demo state that must follow a Figma
+  block forward = the old run + the step's own `next` helper + `h.find('[data-gh-panel="<step id>"]')` (step ids live in
+  ghiseu.js `STEPS`); no new data — a post-process on act-izvoras pre-fills step 2 by itself. Capture gotcha: Ghișeu states
+  run on e-permits-acte-permisive.html (capture's default `--page`); `--page bo-login.html` only shows the login → DEMO-ERROR.
+  Also update the block label in tools/figma/ghiseu/blocks.config.js when the state's screen changes.

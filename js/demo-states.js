@@ -3043,7 +3043,8 @@
       /* a choice starts the request at once: from „Solicitare nouă” · from „Reperfectare” on ASF-2026-04521 ·
          ⋮ „Schimbă procesul” (confirm when data would be lost) */
       "gh-02r": gh("#ghiseu/nou", seq(service("003000118"), pjAdmin, cont, primar)),
-      "gh-02k": gh("#ghiseu/nou", seq(service("003000118"), pjAdmin, cont, chooseAct("act-izvoras", "Reperfectare"))),
+      /* gh-02k-step2-v1: „Reperfectare” on ASF-2026-04521 → Continuă → step 2 „Detalii serviciu” (notice + object / address pre-filled, as Figma GH-02k) */
+      "gh-02k": gh("#ghiseu/nou", seq(service("003000118"), pjAdmin, cont, chooseAct("act-izvoras", "Reperfectare"), next, async (h) => { await h.find('#gh-request-modal.is-active [data-gh-panel="detalii"]'); await h.wait(300); })),
       "gh-02w": gh("#ghiseu/gh-4790/detalii", async (h) => { await h.click("#gh-request-modal .e-permits-gh-sheet__actions [data-stack-menu-trigger]"); await h.click("[data-gh-change-process]"); }),
       /* the service list open (a fixed layer over the dialog: never cut by the modal body) */
       "gh-02q": gh("#ghiseu/nou", async (h) => { await h.click("#fo-gh-serviciu"); await h.wait(300); }),
