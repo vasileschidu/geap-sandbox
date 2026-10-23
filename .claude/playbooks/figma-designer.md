@@ -3799,3 +3799,39 @@ For any „research how other products do it” step, search Mobbin (mcp__mobbin
     the nodes before the final audit and don't „repair” a value you didn't set without asking.
   - Left: F7 / F7a phone table rows carry +0.0001 px per captured `Cell` (pre-existing; block heights x.0007) — not touched.
   - No Agent tool in this session → repo figma-audit.js rules on the 9 heads: 0 findings (before and after v2).
+
+- 2026-10-23 · cards-radius-20-final + filter-bar-open-v1 in Figma (code ed4a818b → 4810f022; the value flipped 20 → 16 → 20 within the
+  job via the coordinator, then the filter bar was added). **Cards = Foundations border-radius/radius-20** (67f239d0…), selection = the
+  radius-20 pass (ba37d651) + the grey identity / role cards + the FO summary / payment recap cards + the two skipped ones:
+  GEAP 627 nodes bound (487 written + inherited instances): the 20-pass cards / timelines / trajectory cards / `Dossier / Now · callout`
+  main (24 `acum-wrap` insets spacing-20); identity / role mains `Authorization card (FO)` 11861:7112 / :7140 and `Identity card ·
+  selected (FO)` 11848:340942 (Changeable, = .fo-selected-role--changeable) / :340959 (40 instances follow); 5 raw `fo-selected-role`
+  (Post-processes), `MPass identity` 10256:5213 (= .bo-login__identity); FO review summary + payment recap = captured gray/50 frames
+  `Frame 1261156147 / 1261156152 / 1261156148` (FO 09 18 incl. F5 / F7 desktop + phone, FOD Pattern Address 4, Post-processes 1 +
+  4 `fo-payment-summary`, Local 2, Dossiers 3, User Management 17); Services modal `Skeleton` 9544:14542 and Post-processes `Frame
+  1261156078` ×2 (grey details boxes). Cabinet 411 (369 from the 20 pass + `Profile / Beneficiary card` 1058:560 + `Authorization card
+  (MPower)` 1120:3152 → 40 instances; 58 `Tray corners` bands stay 20). eKYC 195 + `MPass identity` 10537:54025. RAP 166 (details
+  cards + Beneficiary set; the old 62 slot cards no longer exist after rap-components-cleanup). FOD 4 trajectory + 11 summary / recap
+  cards (Frame 1261156147 / 152, `Container` / `Section - Application details` in the guest wizard, 589:16869 recap). Kept at 12: white
+  role options (`Instance switcher · menu · role`, `.role-switch-item`, `Role selector · card`), notices, the „Arată mai multe”
+  buttons. **Document · card NOT changed (PO question)**: GEAP set 11364:7441 (54 variants, r12) → 141 instances (Ghișeu 73, FO 09 50,
+  FOD Requestor 14, Post-processes 4); Cabinet 983:2727 → 12; FOD local 762:10435 → 19 + 13 remote.
+  **Filter bar without a box** (code: no border / background / radius / padding; Cabinet / RAP 8 under the toolbar; BO table-card inset
+  8 · 16 · 16 unchanged): GEAP `advanced-filter/bar` 9645:1949 child `Box` ×3 + 4 raw `Filter bar › Box` (Advanced filtering 3,
+  Services 1) → strokes / fills off, radius 0, padding 0 (66 → 40; 39 instances follow; all inside FIXED 1024 screens → no restack);
+  Cabinet `Facet filter · bar` variants 1056:2046 / :2080 / :2116 + `Controls` gap 16 → spacing-8 (9 blocks, columns restacked: 7
+  blocks moved); RAP 9 raw `Facet filter bar` + `Filter bar inset` top 16 → spacing-8 (rap-01* column restacked, 13 moved); eKYC
+  `Advanced filter · bar` Box ×3 (16 instances in HUG grid rows → headers shrink; 13 blocks restacked to 240). Lessons:
+  - **Store the ids before a bulk rebind** (`root.setSharedPluginData("rad", "<file>-sel", JSON)`): the value flipped mid-job and the
+    16-rebind had no list — I had to rebuild the set from names + fills and match the per-page counts of the previous pass. Now the GEAP
+    selection lives in shared plugin data `rad` / `geap-r20-sel` (+ `geap-filterbox`), FOD `rad` / `fod-r20-extra`.
+  - **Rebind only the corner keys that were bound to the old variable** (callout = bottom corners, tray alerts = top corners) — never
+    set all four on a census hit; and rebinding a main updates its instances, so per-page counts drop on the second pass (Dossiers 143 → 119).
+  - **Captured FO summaries are gray/50 (not background/base/secondary) frames named `Frame 1261156147 / 152`** — a census by the
+    secondary token misses them; search gray/50 too and confirm by text („Solicitant”, „Denumirea obiectului”, „70.00 MDL”).
+  - **A shrinking bar needs a restack only where the screen hugs**: GEAP BO screens are FIXED 1024 (no change), Cabinet / RAP / eKYC
+    blocks hug → restack each affected column from an explicit sorted list, shifting only after an affected block (gap 274 / 267 → 240).
+  - Icon stroke overrides: scanned 9 237 GEAP icon instances for `strokes` overrides on stroked vectors → 0 besides the one the user fixed.
+  - No Agent tool in this session → repo figma-audit (inline) on the identity / auth sets, Ghișeu card stack, F7 recap, dossier
+    trajectory, MPass card, skeleton: no radius findings; pre-existing: pill radius 9999 unbound (5), MPass text without style (1),
+    skeleton bars fractional (6).
