@@ -1771,10 +1771,17 @@
   }
 
   /* ================================================================ step 5 · Verificare (US-236) */
-  const summaryRow = (label, values) => R().summaryRowHtml?.(label, values) || "";
-  /* the FO Verificare summary section (GEAPFormRender.summarySectionHtml) with the desk's edit pen */
+  /* details-wrap-align-v1 (2026-10-23, user on GEAP 2.0 11757:25390 / 11768:27325 / 11777:28273): EVERY Ghișeu details
+     box = the canonical BO details card (.e-permits-dosar-profil__card + __row / __row-label / __row-value, components.md
+     „Details card”); several values = the BO one-value-per-line list (.e-permits-passport__row-lines). valueHtml = markup */
+  const detailRow = (label, valueHtml) => `<div class="e-permits-dosar-profil__row"><span class="e-permits-dosar-profil__row-label" data-cell-tooltip>${esc(label)}</span><span class="e-permits-dosar-profil__row-value">${valueHtml}</span></div>`;
+  const summaryRow = (label, values) => {
+    const list = (Array.isArray(values) ? values : [values]).filter((v) => v !== "" && v != null);
+    return detailRow(label, list.length > 1 ? `<span class="e-permits-passport__row-lines">${list.map((v) => `<span class="e-permits-passport__row-line">${v}</span>`).join("")}</span>` : list[0] ?? "—");
+  };
+  /* the FO Verificare section heading (GEAPFormRender.summarySectionHtml) over the canonical card, with the desk's edit pen */
   const summarySection = (title, rowsHtml, step = null, extraClass = "") => R().summarySectionHtml?.({
-    title, bodyHtml: rowsHtml, extraClass: extraClass.trim(),
+    title, bodyHtml: rowsHtml, extraClass: extraClass.trim(), card: "profile",
     editHtml: step != null && !locked(S.cur) ? `<button class="e-permits-fo-summary-section__edit" type="button" aria-label="Corectează: ${esc(title)}" data-tooltip-label="Corectează" data-gh-goto="${step}">${icon("edit")}</button>` : ""
   }) || "";
   const addressText = (a) => [a?.street && a?.house ? `${a.street} ${a.house}` : a?.street, a?.locality, a?.district, a?.postalCode].filter(Boolean).join(", ");
@@ -2019,14 +2026,14 @@
     const extra = p.status === "Expirată"
       ? `<button class="btn btn-primary" type="button" data-gh-regenerate>${icon("rotate-arrow")}<span>Regenerează nota de plată</span></button>`
       : p.status === "Emisă" ? `<button class="btn btn-neutral" type="button" data-gh-mpay>${icon("rotate-arrow")}<span>Verifică achitarea în MPay</span></button>` : "";
-    const history = (p.history || []).filter((h) => h.nr).map((h) => summaryRow(`Nota ${h.nr}`, [tagHtml(h.status, NOTE_TONE[h.status] || "neutral"), esc(mdl(h.total))])).join("");
+    const history = (p.history || []).filter((h) => h.nr).map((h) => detailRow(`Nota ${h.nr}`, `${esc(mdl(h.total))}${tagHtml(h.status, NOTE_TONE[h.status] || "neutral")}`)).join("");
     const blocked = p.status !== "Achitată" || incomplete;
     return `
       ${stepHeader("Notă de plată")}
       <div class="e-permits-fo-payment__body">
         ${state || ""}
         ${incomplete ? U().renderNotice?.("error", "<strong>Configurarea taxei este incompletă.</strong> Pentru asistență, contactați autoritatea emitentă.", { role: "alert" }) || "" : ""}
-        ${R().paymentStepBodyHtml?.(step, { downloadAttrs: 'data-gh-download="note"', extraActionsHtml: extra, summaryLabel: "Detaliile notei de plată" }) || ""}
+        ${R().paymentStepBodyHtml?.(step, { downloadAttrs: 'data-gh-download="note"', extraActionsHtml: extra, summaryLabel: "Detaliile notei de plată", summaryVariant: "profile" }) || ""}
         ${history ? summarySection("Note de plată anterioare", history) : ""}
         ${blocked ? U().renderNotice?.("info", "<strong>Confirmarea depunerii se deblochează după statutul „Achitată”.</strong>") || "" : ""}
       </div>
@@ -2061,13 +2068,13 @@
     return `
       ${stepHeader("Confirmarea depunerii")}
       ${S.notice === "submit-error" ? U().renderNotice?.("error", "A apărut o eroare. Depunerea nu a putut fi finalizată. Încercați din nou.", { role: "alert" }) || "" : ""}
-      ${summarySection("Condițiile depunerii", list.map((x) => summaryRow(x.label, [tagHtml(x.ok ? "Îndeplinită" : "Neîndeplinită", x.ok ? "success" : "danger")])).join(""))}
+      ${summarySection("Condițiile depunerii", list.map((x) => detailRow(x.label, tagHtml(x.ok ? "Îndeplinită" : "Neîndeplinită", x.ok ? "success" : "danger"))).join(""))}
       ${summarySection("Cererea", [
-        summaryRow("Numărul cererii", [esc(d.nr)]),
-        summaryRow("Solicitant", [esc(holderName(d))]),
-        summaryRow("Tipul solicitării", [esc(d.requestType)]),
-        summaryRow("Livrare", [esc({ evo: "Electronic, în EVO Cabinet", ghiseu: "Pe hârtie, la instituția emitentă", mdelivery: `Prin MDelivery · ${d.delivery.address || ""}` }[d.delivery.mode])]),
-        summaryRow("Termen de examinare", [esc(termOf(d)?.label || "—")])
+        detailRow("Numărul cererii", R().copyValueHtml?.(d.nr, { ariaLabel: `Copiază numărul cererii ${d.nr}` }) || esc(d.nr)),
+        detailRow("Solicitant", esc(holderName(d))),
+        detailRow("Tipul solicitării", esc(d.requestType)),
+        detailRow("Livrare", esc({ evo: "Electronic, în EVO Cabinet", ghiseu: "Pe hârtie, la instituția emitentă", mdelivery: `Prin MDelivery · ${d.delivery.address || ""}` }[d.delivery.mode])),
+        detailRow("Termen de examinare", esc(termOf(d)?.label || "—"))
       ].join(""))}
       ${footerHtml(d, { next: S.notice === "submit-error" ? "Reîncercați" : "Confirmă depunerea", nextAttrs: "data-gh-submit", nextDisabled: !ok })}`;
   }
@@ -2081,12 +2088,12 @@
         ${R().finishHeroHtml?.({ title: "Dosarul a fost depus cu succes.", leadHtml: '<p class="e-permits-fo-finish__lead">Solicitantul îl urmărește în EVO Cabinet → Solicitările mele și a primit notificarea de depunere prin MNotify.</p>' }) || ""}
         <div class="e-permits-fo-finish__content">
           ${cert}
-          <section class="e-permits-fo-payment-summary" aria-label="Dosarul depus">
-            ${summaryRow("Numărul dosarului", [R().copyValueHtml?.(d.nr, { ariaLabel: `Copiază numărul dosarului ${d.nr}` }) || esc(d.nr)])}
-            ${summaryRow("Data depunerii", [esc(stamp(d.submittedAt))])}
-            ${summaryRow("Termen de examinare", [esc(longDate(d.examDeadline)), esc(termOf(d)?.label || "")])}
-            ${summaryRow("Statut", [`${tagHtml("În procesare", "info")} ${tagHtml("Spre distribuire", "info")}`])}
-            ${summaryRow("Canal de depunere", ["Ghișeu"])}
+          <section class="e-permits-dosar-profil__card" aria-label="Dosarul depus">
+            ${detailRow("Numărul dosarului", R().copyValueHtml?.(d.nr, { ariaLabel: `Copiază numărul dosarului ${d.nr}` }) || esc(d.nr))}
+            ${detailRow("Data depunerii", esc(stamp(d.submittedAt)))}
+            ${detailRow("Termen de examinare", `${esc(longDate(d.examDeadline))}${termOf(d)?.label ? ` (${esc(termOf(d).label)})` : ""}`)}
+            ${detailRow("Statut", `${tagHtml("În procesare", "info")}${tagHtml("Spre distribuire", "info")}`)}
+            ${detailRow("Canal de depunere", "Ghișeu")}
           </section>
           ${U().renderNotice?.("info", "<strong>Dosarul a fost trimis la distribuire.</strong> Apare în „Dosare noi” › „Dosare nedistribuite”; evenimentul depunerii a fost publicat în MConnect Event Bus.") || ""}
         </div>
@@ -2470,7 +2477,7 @@
       subtitle: `${d.nr} · documentul cererii în format JSON`,
       body: `
         <p class="e-permits-passport__lead">Semnați cererea cu semnătura dvs. electronică, în numele solicitantului ${esc(holderName(d))}. SIA GEAP verifică semnătura după întoarcerea din MSign.</p>
-        <div class="e-permits-fo-summary-card">
+        <div class="e-permits-dosar-profil__card">
           ${summaryRow("Document", [esc(`cerere-${d.nr}.json`), "6 KB"])}
           ${summaryRow("Semnatar", [esc(userName()), "Specialist ghișeu · CSP Chișinău"])}
         </div>`,

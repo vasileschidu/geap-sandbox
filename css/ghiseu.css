@@ -523,3 +523,22 @@
     grid-template-columns: minmax(0, 1fr);
   }
 }
+
+/* details-wrap-align-v1 (2026-10-23): every Ghișeu details box is the canonical BO details card; a value with several
+   lines (.e-permits-passport__row-lines) keeps its label on the first line, as the act-fields rows do */
+:is(.e-permits-gh, .e-permits-gh-modal) .e-permits-dosar-profil__row:has(> .e-permits-dosar-profil__row-value > .e-permits-passport__row-lines) {
+  align-items: flex-start;
+}
+
+/* the Ghișeu window is a full step page in a sheet, not a small dialog: its details rows keep the page's 256 label
+   column (one line, ellipsis + tooltip) instead of the in-dialog 120–200 column (modal-phone.css); small dialogs
+   over it (Semnare prin MSign) keep the dialog column */
+@media (min-width: 761px) {
+  .e-permits-front-office-page[data-demo-flow] .e-permits-gh .e-permits-dosar-profil__row > .e-permits-dosar-profil__row-label {
+    flex: 0 0 256px;
+    max-width: 340px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}

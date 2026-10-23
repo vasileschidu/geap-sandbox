@@ -2816,3 +2816,20 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   375. Left, reported: component-audit flags the × itself as non-library (pre-existing; its #e5e5e5 hover is what shows
   on the #f5f5f5 card — a plain library strict swap would need a grey-on-grey hover override, a separate job).
   cabinet-evo/index.html had another agent's hunks → staged only my `?v=` line.
+- 2026-10-23 · details-wrap-align-v1 (user on GEAP 2.0 11757:25390, then 11768:27325 and 11777:28273 mid-job: „this details
+  wrap looks different from the others”). Found FOUR look-alike label / value cards: BO `.e-permits-dosar-profil__card`
+  (canonical: base-secondary, r24 / 16 phones, 8 20, 40 rows incl. the 7 + 1 divider, 256 secondary label, value 14/20
+  medium), the FO Verificare `.e-permits-fo-summary-card` (gray-50, 44 rows, two equal columns), the FO payment recap
+  (r16, tertiary labels) and a desk variant (#F1F1F1, r12, 6 20). The coordinator widened the job twice → fix at the
+  SHARED helpers, not per box: Ghișeu `summaryRow(label, values[])` now emits the canonical row (several values =
+  the BO `.e-permits-passport__row-lines`), `summarySection` passes `card: "profile"` to the FO `summarySectionHtml`,
+  and the FO `paymentStepBodyHtml` got `summaryVariant: "profile"` — every Ghișeu box (Verificare, Plată + history,
+  Confirmare, Dosarul depus, MSign dialog) followed with ~30 lines and no new class. Traps: (1) the BO card's real values
+  live under `.e-permits-front-office-page[data-demo-flow="back-office"]` (the unscoped base rule is an old r8 / bordered
+  / 196-label card) — the Ghișeu is BO flow so it inherits them, the citizen FO would NOT; (2) the Ghișeu window is a
+  `.modal`, so the in-dialog 120–200 label rule (modal-phone.css, loaded later, same specificity) wrapped the checklist
+  labels — a step page keeps the 256 page column (+1 attribute in the selector to win); (3) canonical labels carry
+  `data-cell-tooltip`; (4) a 2-line value with a centred label reads wrong → label on the first line (act-fields rule).
+  Before / after = a HEAD worktree served on :8979 + one crop/metrics script (scratch dwa/crop.mjs: card bg / radius /
+  padding, row heights, label width / colour) run on both — a stray server on another port showed a different tree.
+  zsh: `echo == x` fails („= not found”, equals expansion) — quote it.

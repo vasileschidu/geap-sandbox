@@ -3130,7 +3130,9 @@
        span, metaHtml[] }], totals[] }, actions{ download, pay } }; the host passes its own button hooks
        (never data-fo-*, the FO listens on the document) and extra actions after the FO ones. item.metaHtml =
        small tertiary lines under an element (bank account, reductions — US-237 AC-04). */
-    function paymentStepBodyHtml(step, { downloadAttrs = "data-fo-payment-download", payAttrs = "data-fo-payment-pay", extraActionsHtml = "", summaryLabel = "Detaliile cererii" } = {}) {
+    /* summaryVariant "profile" (details-wrap-align-v1, 2026-10-23): a back-office host (Ghișeu) draws the summary as
+       the canonical BO details card (.e-permits-dosar-profil__card + __row), the FO keeps its summary rows */
+    function paymentStepBodyHtml(step, { downloadAttrs = "data-fo-payment-download", payAttrs = "data-fo-payment-pay", extraActionsHtml = "", summaryLabel = "Detaliile cererii", summaryVariant = "fo" } = {}) {
       const metaHtml = (item) => (Array.isArray(item.metaHtml) ? item.metaHtml.map((line) => `<span class="e-permits-fo-payment-table__meta">${line}</span>`).join("") : "");
       const summaryRows = Array.isArray(step.summary?.rows) ? step.summary.rows : [];
       const invoice = step.invoice || {};
@@ -3139,7 +3141,17 @@
       const totals = Array.isArray(invoice.totals) ? invoice.totals : [];
       const actions = step.actions || {};
 
-      const summaryHtml = summaryRows.length
+      const profileRowHtml = (row) => `
+              <div class="e-permits-dosar-profil__row">
+                <span class="e-permits-dosar-profil__row-label" data-cell-tooltip>${escapeFrontOfficeHtml(row.label || "")}</span>
+                <span class="e-permits-dosar-profil__row-value">${row.copy ? copyValueButtonHtml(row.value || "", { ariaLabel: `Copiază ${String(row.label || "").toLowerCase()} ${row.value || ""}`.replace(/\s+/g, " ") }) : escapeFrontOfficeHtml(row.value || "")}</span>
+              </div>`;
+      const summaryHtml = summaryRows.length && summaryVariant === "profile"
+        ? `
+          <section class="e-permits-dosar-profil__card" aria-label="${escapeFrontOfficeHtml(summaryLabel)}">${summaryRows.map(profileRowHtml).join("")}
+          </section>
+        `
+        : summaryRows.length
         ? `
           <section class="e-permits-fo-payment-summary" aria-label="${escapeFrontOfficeHtml(summaryLabel)}">
             ${summaryRows
@@ -6521,14 +6533,16 @@
 
     /* a Verificare summary section (fo-05): heading + the edit pen (the host's button) + the gray card of rows,
        or the documents list (docs) — for any host (Ghișeu Verificare) */
-    function foSummarySectionHtml({ title, editHtml = "", bodyHtml = "", docs = false, extraClass = "" }) {
+    /* card "profile" (details-wrap-align-v1): a back-office host (Ghișeu) puts canonical BO rows
+       (.e-permits-dosar-profil__row) in the canonical BO details card under the same heading */
+    function foSummarySectionHtml({ title, editHtml = "", bodyHtml = "", docs = false, extraClass = "", card = "fo" }) {
       return `
         <div class="e-permits-fo-summary-section${extraClass ? ` ${extraClass}` : ""}">
           <div class="e-permits-fo-summary-section__header">
             <h2 class="e-permits-fo-summary-section__heading">${escapeFrontOfficeHtml(title)}</h2>
             ${editHtml}
           </div>
-          <div class="${docs ? "e-permits-fo-summary-docs" : "e-permits-fo-summary-card"}">${bodyHtml}</div>
+          <div class="${docs ? "e-permits-fo-summary-docs" : card === "profile" ? "e-permits-dosar-profil__card" : "e-permits-fo-summary-card"}">${bodyHtml}</div>
         </div>`;
     }
     /* the Finalizare hero (fo-08): check icon + h1 + lead, and the proof-of-filing document card (or its error with

@@ -9620,10 +9620,11 @@ a.e-permits-fo-lib-item__title:is(:hover, :focus) {
   width: 100%;
 }
 
-/* request recap — the shared summary rows on the gray-50 surface */
+/* request recap — the shared summary rows on the gray-50 surface; radius + label colour = the Verificare
+   summary card (details-wrap-align-v1: was r16 + tertiary labels, the odd one out) */
 .e-permits-fo-payment-summary {
   background: var(--gray-50, #f7f7f7);
-  border-radius: var(--border-radius-16, 16px);
+  border-radius: var(--border-radius-24, 24px);
   box-sizing: border-box;
   padding: var(--spacing-8, 8px) var(--spacing-20, 20px);
   width: 100%;
@@ -9631,10 +9632,6 @@ a.e-permits-fo-lib-item__title:is(:hover, :focus) {
 
 .e-permits-fo-payment-summary .e-permits-fo-summary-row {
   padding: var(--spacing-12, 12px) 0;
-}
-
-.e-permits-fo-payment-summary .e-permits-fo-summary-row__label {
-  color: var(--color-text-base-tertiary, #757575);
 }
 
 /* notă de plată — one card, closed off by the torn edge below it */
