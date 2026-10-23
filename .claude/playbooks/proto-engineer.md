@@ -3137,3 +3137,7 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   and made the visible gap 6, not the asked 4. When a spacing request names a gap between two lines of text, check every
   min-height / line box between them, not just the flex gap. Probe: padding / gap / caption bottom → amount top = 4, edges 16
   (bottom 17 incl. the divider), head 85 / 83 on fo-07, gh-09 / 09a / 09b / 09c at 1440 + 375.
+  Commit trap: `git diff -U0` hunks applied with `git apply --cached --unidiff-zero` place pure INSERTIONS by line number
+  only — another agent committed demo-states.js between my diff and my apply, so gh-10c1 landed after gh-12 (valid JS,
+  wrong order; fix commit). Regenerate the diff inside the same command as the apply, use ≥ 1 context line for
+  insertions, and grep the committed blob for each insertion's neighbour after the commit.
