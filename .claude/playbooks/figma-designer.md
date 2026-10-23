@@ -3930,3 +3930,23 @@ For any „research how other products do it” step, search Mobbin (mcp__mobbin
   Not mapped (reported): 14 „Grigore Vasilescu · Împuternicire” rows in F1 / F1b / F1d / F1e / F1f (not in data/acte-permisive.json,
   the code switcher has no such identity → stale identity list, needs a redraw), 9 persona-review notes quoting the old numbers (kept
   as history). Stored `ghs/audit` on F1d / F2e / F2f: only pre-existing stepper fractions, tight-gap, one image-fill avatar.
+
+- 2026-10-23 · ghiseu-autosave-csv-figma (code cf6c954e autosave + cc535e3e export-modal-csv-v1; scope changed mid-job: export dialog
+  kept, CSV only). GEAP Ghișeu col 01: gh-01e 12593:375348 (new: list, export button State=Hover + library tooltip Small Top „Exportă
+  CSV”), gh-01e2 11818:21157 (the old „Exportă lista” block renamed: Format label + segmented removed, title „Exportă dosarele”, new
+  „Format line” Desktop/Body/Small text/base/default, primary „Exportă CSV”), gh-01e1 12593:373670 (list + library toast Success
+  Text-only top-right „Am exportat 8 înregistrări în dosare-noi.csv.”, export button State=Focus + tooltip = code's returned focus).
+  Arrows gh-01 → gh-01e „Hover pe export” (re-pointed), gh-01e → gh-01e2 „Click” 12593:375995, gh-01e2 → gh-01e1 „Exportă CSV”
+  12593:374337. Col 11: gh-02o 11818:22373 retitled „Autosave” (leave dialog overlay deleted, status line time 16:32, name field
+  State=Focus), new gh-02o1 12593:37246 (clone of gh-01, rows 1/2 swapped so the edited draft is on top with 16:32) + arrow from the
+  request window × 12593:37881. Both columns restacked at 240, Start here + file index updated (109 blocks). Lessons:
+  - **Board time beats the brief's sample time**: the board's „today” is 16 octombrie (rows modified 15:59) — the brief's „14:32” would
+    have put the just-edited draft below older edits. Used 16:32 + the row's own elimination date (12 ianuarie 2027) and reported it.
+  - **Swapping two table rows by text keeps the captured clip frames' FIXED widths** (a „—” frame 9 wide cut „Emitere primară” to „Ei”)
+    → swap the clipping wrapper widths too, then re-run the audit (clipped-content caught a 1 px number cut).
+  - **Block notes / Start here lines carry per-line links** → edit with insertCharacters / deleteCharacters on ranges, never `characters =`.
+  - **Connector re-route helper must handle position endpoints**: `{...e, magnet}` on a position endpoint throws „Unrecognized key” —
+    branch on `"magnet" in e` vs `e.position` (nudge x + 1 and back).
+  - A scope change mid-job (dialog deleted → kept) is cheap when the old block is kept and renamed (ids + arrows survive) instead of
+    deleted and rebuilt. No Agent tool in this session → stored `ghs/audit` on the 5 blocks: only the board baseline (table scroll
+    clip, rows-per-page label, scrim fill); connector audit 70, only the 2 pre-existing marker-off-grid.
