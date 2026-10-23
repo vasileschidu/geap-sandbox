@@ -1689,6 +1689,42 @@ button.cab-alert-link {
   }
 }
 
+/* ---- Alert + trajectory fused (alert-timeline-fused-v1, 2026-10-23; user on sm-03: „integrate this alert — no padding
+   left / right but full, the alert with 0 radius bottom-left / right, and the whole background of both the same colour
+   as the alert so it fuses nicely”). ONE modifier on the alert card (`cab-alert-card--fused`, solicitari.js
+   alertCardHtml); it acts only while the card sits DIRECTLY above the request trajectory (an error line between them,
+   sm-04h, or the act profile without a trajectory leaves both as they were). One grey block
+   (--color-background-base-secondary): the alert keeps its 24 top corners and its padding (24 / phones 16), square
+   bottom, no gap; the trajectory under it takes the alert's grey, no border, square top, 24 bottom, padding as before
+   (20 / phones 16 sides, = the alert's phone padding). No divider (a hairline was tried — the step row already starts
+   after the alert's own bottom padding). Phones: the block keeps the page gutter (the alert's width), so the
+   trajectory is no longer edge to edge; when its words cannot fit it stacks (js/trajectory.js), as in a narrow column. ---- */
+.e-permits-dosar-profil__panel > .cab-alert-card--fused:has(+ .cab-status) {
+  border-end-end-radius: 0;
+  border-end-start-radius: 0;
+  margin-bottom: 0;
+}
+
+.e-permits-dosar-profil__panel > .cab-alert-card--fused + .cab-status > .e-permits-trajectory {
+  background: var(--color-background-base-secondary, #f5f5f5);
+  border: 0;
+  border-start-end-radius: 0;
+  border-start-start-radius: 0;
+}
+
+@media (max-width: 760px) {
+  .e-permits-dosar-profil__panel > .cab-alert-card--fused:has(+ .cab-status) {
+    border-radius: 0;
+    margin-inline: calc(var(--spacing-16, 16px) * -1);
+  }
+
+  .e-permits-dosar-profil__panel > .cab-alert-card--fused + .cab-status > .e-permits-trajectory {
+    border-radius: 0;
+    /* 16 under the alert's text (its own bottom padding) + 8 = 24 to the step row */
+    padding: var(--spacing-8, 8px) var(--spacing-16, 16px) var(--spacing-16, 16px);
+  }
+}
+
 /* the „⋯” sits at the row's right edge: its menu always opens leftwards from it and never runs past the left
    screen edge (16) — on phones the trigger's right edge is the page gutter (16; profile-phone-v1) */
 .cab-act-header__overflow .cab-menu.e-permits-fo-intent-menu,

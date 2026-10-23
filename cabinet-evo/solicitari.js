@@ -867,10 +867,13 @@
 
   /* the status alert card (act-alert-card-v1) right under the header — ONE per request (statusNow = the highest-priority
      fact of the status): title = the key fact + its date, text = ≤ 1 sentence (+ the live countdown), the action that
-     solves it (pay / send the information) = the primary INSIDE the card; GEAPAlertCard (js/alert-card.js). */
+     solves it (pay / send the information) = the primary INSIDE the card; GEAPAlertCard (js/alert-card.js).
+     alert-timeline-fused-v1 (2026-10-23, user: „integrate this alert … the whole background of both the same colour as
+     the alert so it fuses nicely”): ONE modifier `cab-alert-card--fused` — while the card sits directly above the
+     trajectory (cabinet-evo.css › „Alert + trajectory fused”) the two read as one grey block; drop the class to undo. */
   function alertCardHtml(dosar) {
     const now = statusNow(dosar);
-    return window.GEAPAlertCard?.html({ tone: now.tone, icon: now.icon, title: now.lead, text: now.text, actions: now.actions, id: "sm-alert", className: "cab-alert-card", attrs: "data-sm-alert", sprite: C.SPRITE }) || "";
+    return window.GEAPAlertCard?.html({ tone: now.tone, icon: now.icon, title: now.lead, text: now.text, actions: now.actions, id: "sm-alert", className: "cab-alert-card cab-alert-card--fused", attrs: "data-sm-alert", sprite: C.SPRITE }) || "";
   }
 
   /* cabinet-header-v1 (user: „the header as in Configurări servicii and Dosarele, with the actions on top”, then „all

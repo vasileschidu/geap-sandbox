@@ -2792,3 +2792,16 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   the write target BEFORE evaluating the argument → components.md became 0 bytes and lost other agents' uncommitted
   hunks; recovered from `~/.claude/file-history/<session>/<hash>@vN` (size + a `diff --stat` equal to the pre-edit
   `git diff --stat` proved it was the exact tree). Read into a variable first, then write.
+- 2026-10-23 · Alert + trajectory fused (alert-timeline-fused-v1; user on sm-03: „integrate this alert … no padding left /
+  right but full, 0 radius bottom, the whole background the same colour as the alert”). ONE modifier class on the alert
+  (`cab-alert-card--fused`, passed through `GEAPAlertCard.html({ className })`) + `:has(+ .cab-status)` / `+ .cab-status >`
+  in cabinet-evo.css: adjacency is the switch, so an error line inserted between them (sm-04h) or the act profile falls back
+  by itself and the shared alert-card.css / trajectory.css stayed untouched. Trap I hit first: keeping the block in the phone
+  gutter (alert width) took 32 px from the trajectory, which had been made edge to edge so its steps fit → sm-03 / 320,
+  sm-04b / 375, sm-04c / 320 STACKED (the `is-stacked` flag in the probe was the tell). Fix = the whole fused block edge to edge
+  on phones (alert `margin-inline: −16`, radius 0, as the trajectory already was) → stacking identical to HEAD. Lesson: before
+  changing the width / padding of a container that holds a fit-measured component (trajectory, priority+ header), record its
+  „fits / stacks” flag per state × width before and after. Hairline variant shown by injected CSS in the crop script (not
+  shipped). Contrast reported, not changed: grey connector and light-blue pill ≈ 1.2:1 on --color-background-base-secondary.
+  No sub-agent tool → hover-audit 0 / 0 (panel scope), component-audit 0 in the panel (majors = standing avatar menu),
+  code-audit static 0 (runtime = standing visually-hidden / BO 11 title padding), capture 8 states × 2 clean.
