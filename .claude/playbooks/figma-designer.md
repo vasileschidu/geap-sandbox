@@ -4074,3 +4074,16 @@ For any „research how other products do it” step, search Mobbin (mcp__mobbin
     cells at S + visible − column width, column 0 cloned as absolute cells at x S over a Start shadow, dividers appended last.
   - REST `/v1/images` renders the last SAVED version — it lagged minutes behind the plugin edits (showed the column without the new blocks);
     use it only for 3× crops of nodes that have not changed recently, or MCP get_screenshot (capped at 1×).
+- 2026-10-23 · Pinned divider everywhere (coordinator: „the code applies the 8 % divider to every pinned column”). Captured tables
+  only draw a vertical border where the code pins a column (checked: Dosare col 2, Utilizatori / Servicii / Tarife / eKYC / ntpl /
+  clf-01 / pd-35 col 1, clf-03 + registries' actions = end), so „one vertical side stroke in a table” = the pinned edge. Four shapes:
+  (a) **column frames** (`Frame 1261156219` first, `…228` / `…236` last, `Vertical Frame` empty headers; B0) → just
+  `setStrokeStyleIdAsync(„Table / Pinned divider 8%”)` — 123 frames on 8 GEAP pages (Tarife via its set main, 3);
+  (b) **row tables** (table › thead/tbody › tr › td, row line in the same paint) → inner side 0 + one `Table / Pinned divider` ABSOLUTE in
+  the table frame per edge: Classifiers 22 tables + Services 1 (apply-divider-rows.js); (c) **grid tables** → same overlay, restore
+  gridRowCount / height: Process Designer 3, Ghișeu backgrounds + gh-01g 83 (apply-divider-grid-any.js), eKYC 106 tables (cells are named
+  `th · …` / `cell · …` / `Table Cell` → match by stroke, not name); (d) **library table-cell instances inside a SLOT** (RAP / Cabinet
+  act-field tables): `strokeRightWeight` 0 on the instance + divider appended to the slot (works on instance slot content too): RAP main
+  22411:177536 + 8 board instances, Cabinet 1072:8943 / 1072:14582. Local style + component created per file: eKYC `S:7d843104…` /
+  10981:134238, RAP `S:c4e19733…` / 22457:226184 (section Shared 22424:3773), Cabinet `S:1e7445ed…` / 1369:54458. A4 document grids
+  (RAP `A4 grid row`, Cabinet Label / Value cells, GEAP 12001:…) have borders on every column — not pinned, left alone.
