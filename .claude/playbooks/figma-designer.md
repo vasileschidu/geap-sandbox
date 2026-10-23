@@ -3858,3 +3858,42 @@ For any „research how other products do it” step, search Mobbin (mcp__mobbin
   - **Removing a leading icon shifts every later control** — re-anchor menus / arrows that hang on the next button after an icon change.
   - No Agent tool in this session → stored `qsweep/audit` (12 request + 13 permit blocks) and RAP `rap/audit` (4 profiles): only the
     baseline (section-over-card gap 0, 812 phone viewport clips). Figma buttons stay 3 px narrower than code (library drift, declared).
+
+- 2026-10-23 · ghiseu-bundle-figma-v1 (code b5c41a24 registry-down-alert-v1, 06ecea15 ghiseu-picker-toast-v1 + lone-trash-v1, 36e31351
+  finish-doc-error-filecard-v1; user mid-job: „Vezi …” buttons are label only, no eye). GEAP Ghișeu + FO Full Flows 09 + FOD:
+  (1) **Registry down** = one `Message · subtle` Warning (bold lead „Registrul de stat nu răspunde acum.”) as the stack child right above
+  the first IDNP/IDNO row (gap 16 dialog / 24 sheet section); fields lose the outage error + „Introdus manual · se verifică” hints;
+  gh-02f fixed, new gh-02f2 (PJ, from gh-02d) · gh-02f3 (required errors) · gh-02f4 (= gh-02v, before lookup) · gh-03m · gh-03n. New
+  additive props: `Identity card · selected (FO)` BOOLEAN `Show manual tag` + exposed tag-filled Subtle Accent „Introdus manual”.
+  (2) **Act picker** = `Act row` 11846:340996 got BOOLEAN `Show icon` (default on), TEXT `Line 2` + `Show line 2`, exposed `More`
+  (Neutral Icon=Only Small ⋮, ABSOLUTE MAX/MIN 12/12, `Show more`) — 30 Ghișeu rows: icon off, line 2 = act type („Decizie de
+  respingere” for the rejection), authority on, pill off, ⋮ only when something can start (not locked / expired), title row pR 40;
+  open = More State Active + Focus Ring/Medium effect style. New gh-02z (15 acts + library search Medium, section gap 12),
+  gh-02z1 (Focus + value + clear), gh-02z2 (`Empty state · no results` 10703:1516, Text hidden, padding 16).
+  (3) **Lone trash**: 643 row ⋮ in 94 `Table - Dosare noi, Schițe` tables → same button, `🔄 Leading Icon: 16` = 20/delete 489:3163
+  (grey, renders 16); gh-01d = Hover + library tooltip Small Top Right „Elimină schița”; open menus in gh-01d / gh-11d removed (arrow
+  re-pointed to the trash first). Comment 1979398089 posted on gh-01 for Alexandr.
+  (4) gh-01t (clone of gh-01, row 4771 dropped, tabs 7 / 2, library toast Success Text-only) in column 10 after gh-10a + arrow from
+  „Înapoi la Dosare noi”. (5) **Certificate** = `Document · card` new variants Context=Certificate × State Default/Error × Screen
+  (12571:2703 / :2747 / :2787 / :2832, TEXT `Note`) → gh-10a / gh-10c, new gh-10c1, FO F8 / F8b / F8d / F8e (desktop + phone), new
+  F8b1 (fo-08a1); FOD G7d (local set 762:10435 + Certificate Desktop 1346:14946 / Mobile 1346:14974). Tools:
+  tools/figma/documents/certificate-card-set.js, finish-card-mobile.js (now: any captured card → Certificate instance, connectors
+  re-pointed); stored helpers in figma.root „ghb”: cloneBlock, restack, downNotice, fitSheet, actRowPass. Lessons:
+  - **Ghișeu GRID tables keep the sticky actions column as 9 ABSOLUTE cells (`gridRowAnchorIndex = -1`)** — dropping a row = remove
+    its grid cells, shift later anchors up with `setGridChildPosition(row-1, col)`, `gridRowCount -= 1`, AND remove the matching
+    absolute action cell + move the ones below up by the row height (else an orphan trash floats under the table).
+  - **`findAll` on a stack descends into field instances** — setting `layoutSizingVertical = "HUG"` on every frame collapsed the
+    library inputs to 0 height. Filter `!id.includes(";")`, or restore nested sizing from the main by parallel walk.
+  - **Sheets that grow** (rows +28 each): Ghișeu sheets centre the Dialog in the Overlay → a taller dialog loses its header above
+    the screen. `fitSheet`: Body.minHeight = dialog + overlay paddingTop − 32, Overlay resize to the screen height; short content →
+    Dialog `layoutSizingVertical = "FILL"` (the code sheet always reaches the bottom).
+  - **The Copy value upgrade leaked its default „rsspa-AP-023” into every Identity card ID** (30 on Ghișeu, fixed from the code
+    probe; FO Full Flows 09 still has 14 — open). Census leaked defaults by text after any component upgrade.
+  - **Onest has no „⋮”** (again): my notes said „⋮” → rendered „:”. Write „More actions” / „Mai multe acțiuni” in board text.
+  - Disabled-item tooltips in open menus: a library tooltip above the item covers the trigger — use Arrow Bottom Right and shift
+    the bubble left of the menu.
+  - Library gap (declared): no 12/20 text style in Foundations → the certificate `Note` (12/20) is unstyled Onest + text tokens.
+  - Left / reported: dialog field widths in column 02 are 216 × 3 (code IDNP span-6 332 + 158 + 158) on every block — column-wide
+    drift; Ghișeu sidebar badges (code shows none). No Agent tool in this session → stored `ghs/audit` on 19 blocks + components:
+    only the board baseline (background table clip, rows-per-page label, raw scrim, cloned spacing-unbound) + declared Note style;
+    connector audit 66 connectors, only the 2 pre-existing marker-off-grid findings.
