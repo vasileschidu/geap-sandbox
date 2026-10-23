@@ -1883,7 +1883,6 @@
         ${errSlot("msign")}`) : "";
     return `
       ${stepHeader("Verificare")}
-      ${U().renderInfoNote?.("Pentru corecții, navigați la pasul corespunzător din bara de progres.") || ""}
       ${notices ? `<div class="e-permits-gh__notices">${notices}</div>` : ""}
       ${reviewSummaryHtml(d)}
       ${section("Cererea pe hârtie", `<div class="e-permits-fo-form__section-body e-permits-fo-form__section-body--single">${paper}</div>`, { id: "gh-paper-title" })}
