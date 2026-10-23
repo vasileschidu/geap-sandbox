@@ -314,6 +314,7 @@ but this doc previously described it wrongly, see the entry.
 | Evidence tiles + viewer | `ul.e-permits-ekyc-evidence > li.__item` > `button.__thumb(--doc)` (img, `__play` badge) · `__title` · `__meta`; viewer `.e-permits-ekyc-viewer` (`__stage` + `img[data-zoom][data-rot]` + `__mark` watermark · `__tools` toolbar · `__note`); locked = `.e-permits-ekyc-locked` (lock note · `__list` · `__actions`) | `renderEvidence()` / `viewerBody()` in `js/ekyc.js` | app |
 | Source match row | info card row value `.e-permits-ekyc-match` (value + „în document: …” meta + success/danger icon tag Concordă / Diferă); title with source tag `.e-permits-ekyc-source-title` | `renderExternal()` / `matchTag()` | app |
 | Export format menu (labelled) | `.e-permits-stack__menu-wrap` > `btn btn-neutral btn-sm` (export icon · label · chevron, `data-stack-menu-trigger`) + `ul.e-permits-fo-intent-menu.e-permits-stack__menu` | `exportMenu()` in `js/ekyc.js` | app |
+| Table export button — one format (2026-10-23) | the BO toolbar `button.btn.btn-neutral.btn-sm.btn-icon-only[data-workplace-export]` (`icon-export`); a registry with ONE format names it in the label / tooltip through `view.exportLabel` (shell sets `aria-label`, default „Exportă”) and its `exportRows(rows)` downloads at once — **no format menu / dialog** when only one format exists. BO list exports = CSV only (user decision gh-01e, ghiseu-autosave-csv-v1): Ghișeu „Dosare noi” = „Exportă CSV” → `dosare-noi.csv` (BOM + `;`) + success toast „Am exportat N înregistrări în dosare-noi.csv. Exportul s-a înregistrat în Jurnalul de audit.” (gh-01e tooltip, gh-01e1 after the click) | `js/e-permits-shell.js` (workplace toolbar) · `exportCsv()` in `js/ghiseu.js` | app |
 | Loading state | `GEAPEmptyState.render({ loading: true })` → brand spinner in the empty-state icon circle | `js/empty-state.js` | product |
 | Bottom Sheet | `.bottom-sheet` + `__overlay/__panel/__handle/__header/__content` | `bottom-sheet.html` | library |
 | Filter trigger = library chip with button radius (2026-10-21, filter-chip-v1) | `button.chip.e-permits-filter-trigger` (+ `--sm` = 36 / r6 in the GEAP BO registries) > `.chip__icon` (filter icon, rest AND active) + `.chip__label` + `.chip__badge` (the chip's numbered badge, 16); `.is-selected` = black when ≥ 1 value is applied; `aria-expanded` + `aria-controls`, name „Filtre, 3 aplicate”. Radius = the library Button of that size at EVERY width (8 · 6 `--sm`; 8 on phones = Large 48 — never round, phone-toolbar-v2). Phones (≤760): the same element as an ICON-ONLY square 48 `.e-permits-filter-trigger--icon` (label hidden, name „Filtre” / „Filtre, N aplicate”, badge on the top-right corner). Every „Filtre” / „Filtru” / „Filtrare avansată” trigger: Cabinet acts + requests, RAP, eKYC, BO registries, passport lists. The toolbar „Sortează” is the same chip (`+ e-permits-sort-trigger`, leading `.chip__icon` icon-sort + label, no chevron = Filtre's anatomy, never selected; phones icon-only; sort-chip-v1 / sort-chip-icon-v1) | `css/facet-filter.css` („Filter trigger”), `js/facet-filter.js` (`markTrigger`); demo sm-01 (rest) · sm-01v / 01x / 01y (1 / 3 / 7 applied, bar closed) · ek-04o (12) · sm-01a / dos-05d / rap-01d (active + open); section „Advanced filter › Filter trigger” | app |
@@ -1083,7 +1084,7 @@ buttons”. Measured in Figma Components `doJ7tDY0PlQ0PqMgbpFVIC`, Modal › `.m
 | Small size | 40 · 14/20, footer 12 · 20 · 20 | — | not used (no small dialogs in the product) |
 
 Families (before → after, desktop): library `.modal-buttons` — BO askConfirm (svc-08k), passport / case / detail modals
-incl. the dossier document viewer (dos-04s), eKYC `openModal` (ek-27k, ek-30c), Ghișeu leave (gh-02o), Process Designer
+incl. the dossier document viewer (dos-04s), eKYC `openModal` (ek-27k, ek-30c), Ghișeu leave (gh-02o — dialog removed 2026-10-23, autosave), Process Designer
 leave (pd-27), RAP / Cabinet „Vizualizare act” data (rap-03), FO certificate (fo-08d): 40 · 14/20 · gap 12 · footer 20 →
 48 · 16/24 · gap 8 · footer 12 20 24. FO confirm card (pp-02b, pp-01g, sm-03a): 40 · 14/20 · gap 12 → 48 · 16/24 · gap 8.
 FO dialog shell (fo-04d picker, sm-05h Cabinet document viewer, rap-03l act A4 viewer): 48 already (act viewer 16/22 →
@@ -8559,9 +8560,11 @@ added for modules (all generic, reuse them for the next BO module):
 - **Request sheet** = library `modal--fullscreen` used as a sheet (`#gh-request-modal`): overlay padding-top
   24 (16 on phones ≤760, „Modals on phones”), modal `calc(100dvh − 24)`, full width, `--border-radius-16` top corners, scrim behind. Window chrome only:
   header = title (service) · meta parts (nr · solicitant · process · Ghișeu) + status tags · the FO draft status
-  (`GEAPFormRender.draftStatusHtml`: „Salvat ca schiță · <date, time>” + „eliminare automată la …”, wraps on
-  phones) · „Salvează schița” (`btn btn-neutral btn-sm`, cloud icon; ≤680 icon-only 32 with the label as
-  tooltip / aria-label; user 2026-10-16: back in the header, next to ⋮) · ⋮
+  (`GEAPFormRender.draftStatusHtml`: „Salvat ca schiță · <time>” — the time only for a save made today, as the
+  FO header; „<date>, <time>” for an older one — + „eliminare automată la …”, wraps on phones; `[data-gh-saved]`,
+  updated in place after each autosave) · „Salvează schița” (`btn btn-neutral btn-sm`, cloud icon; ≤680 icon-only
+  32 with the label as tooltip / aria-label; user 2026-10-16: back in the header, next to ⋮; kept next to the
+  autosave as the FO keeps its „Salvează ca schiță”: saves now + toast „Schița a fost salvată.”, no validation) · ⋮
   (Schimbă procesul, Istoricul cererii, Elimină schița) · `.modal-close`. **No window footer.** The body is the FO
   request page as is: FO page width / sidebar / gutter (no overrides), FO stepper sticky (≤960 the FO mobile
   progress), FO step header `h1` 32/40 with no lead (desk notes = FO info note under it), FO sections, and the FO
@@ -8570,7 +8573,15 @@ added for modules (all generic, reuse them for the next BO module):
   submission Înapoi la Dosare noi · Dosar nou). Measured against fo-02 / fo-03 / fo-05 at 1440: stepper x 120 /
   w 280, content x 488 / w 768, h1 32/40, section h2 18 + 12/12 + divider, section body 24 / 32, row gap 24,
   column gap 32, „Înainte” 118 × 48 flush right, draft button 48 flush left — identical.
-  × / Esc / scrim with unsaved data → „Salvați schița înainte de a închide?”. Library dialogs open above it
+  **Autosave (ghiseu-autosave-csv-v1, user decision 2026-10-23 — Galina, „like the FO”):** every edit in the window
+  (`S.dirty = true`) saves the draft 1 s after the last change (step values collected, no validation — a draft is
+  work in progress; „Înainte” / submit still validate), and a step change, „Schimbă” (picker), × / Esc / scrim and
+  `pagehide` save at once. One audit entry „Salvare automată schiță” per step (its time moves). × / Esc / scrim
+  therefore close straight to «Dosare noi» — the „Salvați schița înainte de a închide?” dialog (Rămâi · Închide fără
+  salvare · Salvează și închide) is **removed**. Deviation from US-239 („se salvează după validarea câmpurilor
+  obligatorii”; „datele se salvează doar la una dintre aceste două acțiuni”, US-233) — a story-change proposal for
+  the PO / BA, not edited in Azure. States gh-02o (edit → „Salvat ca schiță · hh:mm”), gh-02o1 (× after an edit →
+  the list, row modified now). Library dialogs open above it
   (sheet overlay z 990 < 1000). A draft opened from the list or a link opens the sheet at its saved step.
 - **Every step body is an FO renderer** (user 2026-10-16, „just take from full flow”): Livrare =
   `deliveryStepHtml` + `renderDeliveryStep` (fo-06 as is: EVO Cabinet card, „copie pe hârtie” with the desk's

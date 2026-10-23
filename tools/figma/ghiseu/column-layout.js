@@ -10,7 +10,7 @@
 //  - same column, further down / up → control LEFT → target LEFT at (0, 200 + 32·k) (left lane).
 //  Never pick a control outside the visible screen (background list rows behind sheets are clipped at x > 1440).
 const COLS = [
-  ["01", "Dosare noi", ["gh-01", "gh-01c", "gh-01f", "gh-01d", "gh-01e", "gh-01a", "gh-01b", "gh-01g"]],
+  ["01", "Dosare noi", ["gh-01", "gh-01c", "gh-01f", "gh-01d", "gh-01e", "gh-01e1", "gh-01a", "gh-01b", "gh-01g"]],
   ["02", "Dosar nou · fereastra mică", ["gh-02", "gh-02q", "gh-02b", "gh-02c", "gh-02d", "gh-02m", "gh-02v", "gh-02g", "gh-02p", "gh-02a", "gh-02s", "gh-02h", "gh-02e", "gh-02f"]],
   ["03", "Ce se solicită?", ["gh-02i", "gh-02j", "gh-02t", "gh-02r", "gh-02k", "gh-02w", "gh-02x", "gh-02l", "gh-02u", "gh-02n"]],
   ["04", "Date solicitant", ["gh-03", "gh-03b", "gh-03c", "gh-03h", "gh-03i", "gh-04", "gh-04b", "gh-03f", "gh-03g", "gh-03a", "gh-03j", "gh-03k", "gh-03e", "gh-03d", "gh-04a"]],
@@ -20,7 +20,7 @@ const COLS = [
   ["08", "Livrare", ["gh-08", "gh-08a"]],
   ["09", "Notă de plată", ["gh-09", "gh-09a", "gh-09b", "gh-09c", "gh-09d"]],
   ["10", "Confirmarea depunerii", ["gh-10", "gh-10a", "gh-10d", "gh-10e", "gh-10b", "gh-10c"]],
-  ["11", "Schițe: salvare, reluare, eliminare", ["gh-13", "gh-11c", "gh-11d", "gh-02o", "gh-11", "gh-11b", "gh-11a", "gh-12"]],
+  ["11", "Schițe: salvare, reluare, eliminare", ["gh-13", "gh-11c", "gh-11d", "gh-02o", "gh-02o1", "gh-11", "gh-11b", "gh-11a", "gh-12"]],
 ];
 const COLUMN_LAYOUT = async () => {
   const page = await figma.getNodeByIdAsync("11589:327039"); await figma.setCurrentPageAsync(page);

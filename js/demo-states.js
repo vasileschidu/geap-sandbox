@@ -2989,7 +2989,10 @@
       "gh-01c": ghList(async (h) => { await h.click("[data-workplace-filter-toggle]"); }),
       /* lone-trash-v1: a draft row whose only action is „Elimină schița” = ONE grey trash (hovered: tooltip „Elimină schița”) */
       "gh-01d": ghList(async (h) => { await h.hover("tr[data-workplace-row='gh-4771'] .e-permits-gh-row-remove"); await h.wait(600); }),
-      "gh-01e": ghList(async (h) => { await h.click("[data-workplace-export]"); await h.find("#case-action-modal.is-active [data-gh-export-confirm]"); }),
+      /* ghiseu-autosave-csv-v1: CSV only → the export button („Exportă CSV” tooltip, hovered) downloads at once;
+         gh-01e1 = after the click: dosare-noi.csv + the success toast (no format dialog any more) */
+      "gh-01e": ghList(async (h) => { await h.hover("[data-workplace-export]"); await h.wait(600); }),
+      "gh-01e1": ghList(async (h) => { await h.click("[data-workplace-export]"); await h.find(".toast"); await h.wait(300); }),
       "gh-01f": ghList(async (h) => { await h.click('[data-workplace-tab="submitted"]'); }),
       "gh-01g": { flow: "back-office", as: "ansp-specialist-chisinau", hash: "#ghiseu/nou", ready: "#gh-start-modal.is-active .e-permits-empty" },
       /* ghiseu-picker-toast-v1: a dossier submitted (gh-10a) → „Înapoi la Dosare noi” → the list with the library success toast */
@@ -3040,8 +3043,11 @@
       "gh-02w": gh("#ghiseu/gh-4790/detalii", async (h) => { await h.click("#gh-request-modal .e-permits-gh-sheet__actions [data-stack-menu-trigger]"); await h.click("[data-gh-change-process]"); }),
       /* the service list open (a fixed layer over the dialog: never cut by the modal body) */
       "gh-02q": gh("#ghiseu/nou", async (h) => { await h.click("#fo-gh-serviciu"); await h.wait(300); }),
-      /* the sheet: × with unsaved changes asks first; „Schimbă” on the identity reopens the picker */
-      "gh-02o": gh("#ghiseu/gh-4812/detalii", seq(async (h) => { await h.fill("#fo-gh-obiect", "Cafeneaua „La Izvor”", { leave: false }); await h.click("[data-gh-sheet-close]"); })),
+      /* the sheet autosaves (ghiseu-autosave-csv-v1, as the FO): an edit → 1 s later „Salvat ca schiță · hh:mm” in the
+         header (gh-02o); × right after an edit closes straight to «Dosare noi», the row's „Data ultimei modificări” =
+         now (gh-02o1) — no „Salvați schița?” dialog any more. „Schimbă” on the identity reopens the picker (gh-02p) */
+      "gh-02o": gh("#ghiseu/gh-4812/detalii", seq(async (h) => { await h.fill("#fo-gh-obiect", "Cafeneaua „La Izvor”", { leave: false }); await h.wait(1500); })),
+      "gh-02o1": gh("#ghiseu/gh-4812/detalii", seq(async (h) => { await h.fill("#fo-gh-obiect", "Cafeneaua „La Izvor”", { leave: false }); await h.click("[data-gh-sheet-close]"); await h.find("[data-registry-kind='ghiseu'] tr[data-workplace-row]"); await h.wait(400); })),
       "gh-02p": gh("#ghiseu/gh-4812/identificare", async (h) => { await h.click('#gh-request-modal .e-permits-fo-selected-role__change'); await h.find("#gh-start-modal.is-active [data-gh-panel]"); }),
       /* the request's first step „Date solicitant” (FO fo-01): identity cards, representative + basis (US-233 AC-15…22) and, on the same page, the contact (US-234) */
       "gh-03": gh("#ghiseu/nou", start(pjAdmin)),

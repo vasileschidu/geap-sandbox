@@ -6047,6 +6047,11 @@ document.addEventListener("DOMContentLoaded", () => {
       workplaceFieldCount.innerHTML = `<strong>${workplaceDb.fieldCount || view.columns.length}</strong> câmpuri`;
     }
 
+    /* ghiseu-autosave-csv-v1: a registry with ONE export format names it on the icon button (name + tooltip,
+       e.g. „Exportă CSV”, view.exportLabel); the click downloads at once (no format menu) */
+    const workplaceExport = document.querySelector("[data-workplace-export]");
+    if (workplaceExport) workplaceExport.setAttribute("aria-label", view.exportLabel || "Exportă");
+
     const filteredRows = getVisibleRows();
     const columnWidths = getColumnWidths(view.columns, filteredRows);
     const tableWidth = view.columns.reduce(

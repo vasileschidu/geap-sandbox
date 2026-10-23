@@ -4,7 +4,7 @@
 const GH_ROWS = [
   { key: "01 · Dosare noi", chip: "01", title: "Dosare noi", us: "US-241",
     desc: "Registrul ghișeului: schițe + dosare nedistribuite, căutare, filtre, export, meniul „Mai multe acțiuni” al rândului, permisiunea.",
-    states: ["gh-01", "gh-01c", "gh-01f", "gh-01d", "gh-01e", "gh-01a", "gh-01b", "gh-01g"] },
+    states: ["gh-01", "gh-01c", "gh-01f", "gh-01d", "gh-01e", "gh-01e1", "gh-01a", "gh-01b", "gh-01g"] },
   { key: "02 · Dosar nou", chip: "02", title: "Dosar nou · fereastra mică", us: "US-233",
     desc: "Un singur ecran: serviciul + solicitantul (IDNP / IDNO prin MConnect). Implicit → completat → erori.",
     states: ["gh-02", "gh-02q", "gh-02b", "gh-02c", "gh-02d", "gh-02m", "gh-02v", "gh-02g", "gh-02p", "gh-02a", "gh-02s", "gh-02h", "gh-02e", "gh-02f"] },
@@ -34,7 +34,7 @@ const GH_ROWS = [
     states: ["gh-10", "gh-10a", "gh-10d", "gh-10e", "gh-10b", "gh-10c"] },
   { key: "11 · Schițe", chip: "11", title: "Schițe: reluare și eliminare", us: "US-239 · US-240",
     desc: "Reluarea unei schițe din listă, eliminarea manuală (cu motiv), eliminarea automată după 90 de zile.",
-    states: ["gh-13", "gh-11c", "gh-11d", "gh-02o", "gh-11", "gh-11b", "gh-11a", "gh-12"] },
+    states: ["gh-13", "gh-11c", "gh-11d", "gh-02o", "gh-02o1", "gh-11", "gh-11b", "gh-11a", "gh-12"] },
 ];
 
 // title = Screen label title; note = Note text (Romanian, screen language); us = tag
@@ -44,7 +44,8 @@ const GH_STATES = {
   "gh-01b": ["Fără schițe", "Nicio schiță înregistrată: starea goală cu „Dosar nou”."],
   "gh-01c": ["Filtrare avansată deschisă", "Panoul de filtre al registrului (aceleași filtre ca registrele BO)."],
   "gh-01d": ["Meniul „Mai multe acțiuni” al rândului", "Meniul rândului (C-2026-004771, Spre achitare): „Elimină schița”. Butonul deschis păstrează focusul. Tabelul derulat la dreapta: la 1440 coloana de acțiuni iese din ecran fără derulare (vezi Întrebări)."],
-  "gh-01e": ["Exportă lista", "Fereastra de export a listei curente."],
+  "gh-01e": ["Exportă CSV", "Only CSV: the export button (tooltip „Exportă CSV”) downloads the shown list at once, no format dialog."],
+  "gh-01e1": ["Export done", "After the click: dosare-noi.csv and a success toast that says the export was logged."],
   "gh-01f": ["Dosare nedistribuite", "Al doilea tab: cererile depuse care așteaptă distribuirea."],
   "gh-01g": ["Fără permisiune", "Un utilizator fără rolul de ghișeu deschide „Dosar nou”: mesajul de permisiune, fără formular."],
   "gh-02": ["Dosar nou — gol", "Fereastra mică: serviciul (listă cu căutare) și solicitantul; „Continuă” validează la click."],
@@ -126,7 +127,8 @@ const GH_STATES = {
   "gh-13": ["Reluarea schiței", "„Continuă” pe rând redeschide schița la pasul unde a rămas (aici Verificare)."],
   "gh-11c": ["Schiță achitată fără „Mai multe acțiuni”", "Rândul C-2026-004765 (nota achitată): fără ⋮ — singura acțiune, „Elimină schița”, nu mai e posibilă."],
   "gh-11d": ["„Mai multe acțiuni” pe plată expirată", "Rândul C-2026-004702 (plată expirată): „Elimină schița” disponibil."],
-  "gh-02o": ["Închidere cu modificări", "× cu modificări nesalvate: „Salvați schița înainte de a închide?”."],
+  "gh-02o": ["Autosave", "An edit saves the draft by itself after a second; the header shows „Salvat ca schiță · hh:mm”."],
+  "gh-02o1": ["Close after an edit", "× closes straight to Dosare noi (no save dialog); the row shows the new modification time."],
   "gh-11": ["Eliminare schiță", "Confirmarea cu motiv obligatoriu; schița primește „Eliminat”, se scrie în Jurnalul de audit."],
   "gh-11b": ["Schiță eliminată", "Rândul dispare, toast „Schița C-2026-004812 a fost eliminată.”"],
   "gh-11a": ["Eliminare cu notă emisă", "Nota de plată emisă primește statutul „Anulată” (avertisment în confirmare)."],

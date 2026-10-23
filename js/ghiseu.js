@@ -119,6 +119,22 @@
 
   /* ---------------------------------------------------------------- data + store */
   const S = { data: null, drafts: [], audit: [], seq: 4900, loading: null, page: null, cur: null, step: 0, errors: {}, notice: null, lookups: {} };
+  /* ghiseu-autosave-csv-v1 (user decision 2026-10-23, Galina on the Ghișeu board): the draft saves itself, as the FO
+     shows it („Salvat ca schiță · 14:32”) — every `S.dirty = true` (an edit anywhere in the window) schedules an
+     autosave AUTOSAVE_MS after the last change; a step change, „Salvează schița”, × / Esc and leaving the page save at
+     once. So there is never an unsaved change to ask about on close. `dirty` stays a plain flag for the readers. */
+  const AUTOSAVE_MS = 1000;
+  let dirtyFlag = false;
+  let autosaveTimer = 0;
+  Object.defineProperty(S, "dirty", {
+    enumerable: true,
+    get: () => dirtyFlag,
+    set: (value) => {
+      dirtyFlag = Boolean(value);
+      clearTimeout(autosaveTimer);
+      if (dirtyFlag) autosaveTimer = setTimeout(() => autosave(), AUTOSAVE_MS);
+    }
+  });
 
   function load() {
     if (S.data) return Promise.resolve(S.data);
@@ -491,7 +507,9 @@
             { id: "drafts", label: "Schițe", filter: "gh:draft" },
             { id: "submitted", label: "Dosare nedistribuite", filter: "gh:submitted" }
           ],
-          primaryAction: can() ? { id: "gh-new", label: "Dosar nou" } : null
+          primaryAction: can() ? { id: "gh-new", label: "Dosar nou" } : null,
+          /* CSV only (gh-01e, user 2026-10-23): one format → the export button exports at once */
+          exportLabel: "Exportă CSV"
         }
       },
       runtimeRows: can() ? rows : []
@@ -575,7 +593,7 @@
       if (query || filtered) return E?.noResults?.("Nicio înregistrare nu corespunde criteriului de căutare", { text: "Caută după numărul cererii, numele solicitantului sau companie.", bare: true });
       return E?.render({ title: "Nu sunt schițe înregistrate.", text: "Cererile începute la ghișeu apar aici până la confirmarea depunerii.", icon: "page-text", bare: true, actionHtml: '<button class="btn btn-primary btn-sm" type="button" data-workplace-add-product="gh-new">Dosar nou</button>' });
     },
-    exportRows: (rows) => openExport(rows)
+    exportRows: (rows) => exportCsv(rows)
   };
   /* the open registry draws its rows again (the nav item re-shows it), never over the wizard */
   const refreshRegistry = () => {
@@ -718,18 +736,10 @@
       setTimeout(() => U().showShellToast?.(`Dosarul ${nr} a fost depus și trimis la distribuire.`, "success"), 0);
     }
   }
-  /* × / Esc / scrim: unsaved data → „Salvați schița?” (Rămâi · Închide fără salvare · Salvează și închide) */
+  /* × / Esc / scrim: the pending autosave runs now, then the window closes — no „Salvați schița?” dialog any more
+     (ghiseu-autosave-csv-v1: with autosave there is nothing unsaved to lose) */
   function requestCloseSheet() {
-    if (S.cur && S.dirty && !isSubmitted(S.cur) && !S.cur.removed) {
-      openModal({
-        kind: "leave",
-        title: "Salvați schița înainte de a închide?",
-        subtitle: S.cur.nr || "Dosar nou",
-        body: '<p class="e-permits-passport__lead">Modificările făcute după ultima salvare se pierd dacă închideți cererea fără să o salvați.</p>',
-        footer: '<div class="modal-buttons"><button class="btn btn-neutral btn-rounded" type="button" data-case-close>Rămâi în cerere</button><button class="btn btn-outline-destructive btn-rounded" type="button" data-gh-leave-discard>Închide fără salvare</button><button class="btn btn-primary btn-rounded" type="button" data-gh-leave-save>Salvează și închide</button></div>'
-      });
-      return;
-    }
+    autosave();
     leave();
   }
   function leave() {
@@ -818,6 +828,43 @@
   const openDraftFromList = (id) => { window.location.hash = `#ghiseu/${encodeURIComponent(id)}`; };
 
   /* ---------------------------------------------------------------- render */
+  /* the FO header draft status „Salvat ca schiță · 14:32” (today: the time only, as the FO; an older save: the date
+     too) + the desk retention date (US-239) */
+  function savedStatusHtml(d) {
+    if (isSubmitted(d)) return esc(`Depus la ${stamp(d.submittedAt)}`);
+    if (!d.updatedAt || !d.id) return "Nesalvat";
+    const at = new Date(d.updatedAt);
+    const hm = `${pad(at.getHours())}:${pad(at.getMinutes())}`;
+    const time = at.toDateString() === new Date().toDateString() ? hm : `${longDate(d.updatedAt)}, ${hm}`;
+    return R().draftStatusHtml?.({ time, datetime: d.updatedAt, extraHtml: `<span class="e-permits-fo-draft-status__dot" aria-hidden="true"></span><span class="e-permits-fo-draft-status__time">eliminare automată la ${esc(longDate(retentionEnd(d)))}</span>` }) || "";
+  }
+  /* after an autosave only the status line changes (an open ⋮ / the focus in the header stay); the live region
+     speaks only when the text changes — at most once a minute */
+  function syncSavedStatus() {
+    const line = document.querySelector(`#${SHEET_ID} [data-gh-saved]`);
+    if (!line || !S.cur) return;
+    const next = savedStatusHtml(S.cur);
+    const probe = document.createElement("p");
+    probe.innerHTML = next;
+    if (probe.textContent.replace(/\s+/g, " ").trim() !== line.textContent.replace(/\s+/g, " ").trim()) line.innerHTML = next;
+  }
+  /* ghiseu-autosave-csv-v1: the step's current values into the draft, saved without validation (a draft is work in
+     progress; „Înainte” and the submit still validate). Nothing to do outside the request window, before the request
+     exists (the small „Dosar nou” modal saves on „Continuă”), on „Ce se solicită?” or once the dossier is filed. */
+  function autosave({ explicit = false } = {}) {
+    clearTimeout(autosaveTimer);
+    const d = S.cur;
+    if (!d || !d.id || d.removed || isSubmitted(d) || S.step <= STEP_INDEX.intent || !sheetOpen()) return false;
+    if (!S.dirty && !explicit) return false;
+    COLLECT[STEPS[S.step].id]?.();
+    voidIfChanged();
+    if (S.step < STEP_INDEX.verificare) S.sigAtEntry = sig(d);
+    persist({ auto: !explicit });
+    syncSavedStatus();
+    return true;
+  }
+  window.addEventListener("pagehide", () => { if (S.dirty) autosave(); });
+
   function sheetHeaderHtml(d) {
     const svc = serviceOf(d.service);
     const removable = d.id && !isSubmitted(d) && !isPaid(d);
@@ -830,15 +877,11 @@
     const statusTags = `${tagHtml(d.status, d.status === "În procesare" ? "info" : d.status === "Respins formal" ? "danger" : "neutral")}${d.substatus && d.substatus !== d.status ? ` ${tagHtml(d.substatus, SUB_TONE[d.substatus] || "neutral")}` : ""}`;
     const processMeta = d.process === "post" ? `${d.requestType} · ${actById(d, d.act)?.nr || ""}` : d.requestType;
     const meta = [d.nr || "Nesalvat", holderName(d), processMeta, "Ghișeu"].filter(Boolean).map((x) => `<span class="e-permits-gh-sheet__meta-part">${esc(x)}</span>`).join("");
-    /* FO header draft status „Salvat ca schiță · hh:mm” (+ the desk retention date) */
-    const savedHtml = isSubmitted(d) ? esc(`Depus la ${stamp(d.submittedAt)}`) : d.updatedAt && d.id
-      ? R().draftStatusHtml?.({ time: `${longDate(d.updatedAt)}, ${pad(new Date(d.updatedAt).getHours())}:${pad(new Date(d.updatedAt).getMinutes())}`, datetime: d.updatedAt, extraHtml: `<span class="e-permits-fo-draft-status__dot" aria-hidden="true"></span><span class="e-permits-fo-draft-status__time">eliminare automată la ${esc(longDate(retentionEnd(d)))}</span>` }) || ""
-      : "Nesalvat";
     return `
       <div class="e-permits-gh-sheet__title">
         <h2 class="modal--header-title" id="gh-sheet-title" data-cell-tooltip>${esc(svc?.title || "Dosar nou")}</h2>
         <div class="e-permits-gh-sheet__meta">${meta}<span class="e-permits-gh__tags">${statusTags}</span></div>
-        <p class="e-permits-fo-draft-status e-permits-gh-sheet__saved" aria-live="polite">${savedHtml}</p>
+        <p class="e-permits-fo-draft-status e-permits-gh-sheet__saved" aria-live="polite" data-gh-saved>${savedStatusHtml(d)}</p>
       </div>
       <div class="e-permits-gh-sheet__actions">
         ${isSubmitted(d) || isPaid(d) ? "" : `<button class="btn btn-neutral btn-sm e-permits-gh-sheet__save" type="button" aria-label="Salvează schița" data-tooltip-label="Salvează schița" data-gh-save><svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg?v=draft-icons-v1#icon-cloud-upload-draft"></use></svg><span class="e-permits-gh-sheet__save-label">Salvează schița</span></button>`}
@@ -2259,9 +2302,15 @@
     return `C-2026-${String(max + 1).padStart(6, "0")}`;
   }
   /* US-239: first save creates the draft (nr + UID, statut Schiță, canal Ghișeu); every save keeps the step */
-  function persist({ explicit = false } = {}) {
+  function persist({ auto = false } = {}) {
     const d = S.cur;
-    if (!d.id) {
+    const last = S.audit[0];
+    if (auto && d.id && last?.action === "Salvare automată schiță" && last.cerere === d.nr && last.step === S.step) {
+      /* one audit entry per autosave run on a step (the time moves), not one per typing pause */
+      last.at = nowIso();
+    } else if (auto && d.id) {
+      audit("Salvare automată schiță", d, `Pasul „${STEPS[S.step].label}”`, { step: S.step });
+    } else if (!d.id) {
       d.nr = nextRequestNumber();
       d.id = `gh-${d.nr.slice(-4)}-${Date.now().toString(36).slice(-4)}`;
       d.uid = `uid-${d.id}`;
@@ -2282,7 +2331,6 @@
     writeStore();
     updateBadge();
     S.dirty = false;
-    if (explicit) U().showShellToast?.("Datele au fost salvate cu succes.", "success");
   }
   function go(target, { validate = true } = {}) {
     const d = S.cur;
@@ -2290,6 +2338,7 @@
     if (target === from || !d) return;
     /* back to the picker (US-233: applicant and process change only there) */
     if (target === 0) {
+      autosave(); /* the window's last edits are kept even when the picker is cancelled (it reopens the saved draft) */
       COLLECT[STEPS[from].id]?.();
       S.returnStep = from;
       S.step = 0;
@@ -2315,12 +2364,12 @@
         }
       }
     }
-    const valid = !CHECK[from](d).length;
     S.step = target;
     if (target === STEP_INDEX.plata) ensurePayment(d);
     if (target === STEP_INDEX.verificare && from < target) audit("Intrare în pasul Verificare", d, "Rezumatul cererii afișat");
-    /* AC-06: saved on every step change once the step left is valid (the first one creates the draft) */
-    if (valid && !isSubmitted(d)) persist();
+    /* AC-06: saved on every step change (the first one creates the draft) — ghiseu-autosave-csv-v1: also when the step
+       left is incomplete, as its edits were autosaved anyway (a draft is work in progress) */
+    if (!isSubmitted(d)) persist();
     else d.maxStep = Math.max(d.maxStep || 0, target);
     S.notice = null;
     render();
@@ -2419,11 +2468,13 @@
     const goto = t.closest("[data-gh-goto]");
     if (goto) { event.preventDefault(); const target = Number(goto.dataset.ghGoto); go(target, { validate: !goto.hasAttribute("data-gh-free") && target > S.step }); return; }
     if (t.closest("[data-gh-save]")) {
-      /* the FO listens for its draft button on the document — this one is the desk's */
+      /* the FO listens for its draft button on the document — this one is the desk's. Kept next to the autosave as
+         in the FO (fo-02…fo-06 „Salvează ca schiță”): saves now + the FO confirmation, no validation (the autosave
+         keeps incomplete steps too) */
       event.stopPropagation();
-      const errs = validateStep(S.step);
-      if (errs.length) { showErrors(errs); return; }
-      persist({ explicit: true });
+      if (!autosave({ explicit: true }) && d.id) persist();
+      /* the FO draft button's confirmation (US-239 „afișează confirmarea”) */
+      U().showShellToast?.("Schița a fost salvată.", "success");
       refreshChrome();
       setHash(`#ghiseu/${encodeURIComponent(d.id)}/${STEPS[S.step].id}`);
       return;
@@ -2606,16 +2657,6 @@
     const t = event.target;
     const ok = t.closest("[data-gh-remove-confirm]");
     if (ok) { confirmRemove(ok.dataset.ghRemoveConfirm); return; }
-    if (t.closest("[data-gh-export-confirm]")) { runExport(); return; }
-    if (t.closest("[data-gh-leave-discard]")) { closeModal(); leave(); return; }
-    if (t.closest("[data-gh-leave-save]")) {
-      closeModal();
-      const errs = validateStep(S.step);
-      if (errs.length) { showErrors(errs); return; }
-      persist({ explicit: true });
-      leave();
-      return;
-    }
     if (t.closest("[data-gh-msign-ok]")) {
       const d = S.cur;
       closeModal();
@@ -2679,45 +2720,22 @@
     else refreshRegistry();
   }
 
-  /* US-241 AC-09 / AC-14 — export with the applied filters and the shown columns */
-  let exportRowsCache = [];
-  function openExport(rows) {
-    exportRowsCache = rows;
-    openModal({
-      kind: "export",
-      title: "Exportă lista",
-      subtitle: `${plural(rows.length, "înregistrare", "înregistrări")} · filtrele aplicate și coloanele afișate`,
-      body: `
-        <div class="e-permits-fo-field">
-          <label id="gh-export-format-label">Format</label>
-          <div class="segmented-control is-animated" role="radiogroup" aria-labelledby="gh-export-format-label" data-fo-segment data-gh-export-format>
-            <button class="segment-item is-selected" type="button" role="radio" aria-checked="true" tabindex="0" data-value="xlsx">Excel</button>
-            <button class="segment-item" type="button" role="radio" aria-checked="false" tabindex="-1" data-value="csv">CSV</button>
-          </div>
-        </div>
-        ${U().renderInfoNote?.("Lista conține date cu caracter personal: exportul se înregistrează în Jurnalul de audit.") || ""}`,
-      footer: `<div class="modal-buttons"><button class="btn btn-neutral btn-rounded" type="button" data-case-close>Anulează</button><button class="btn btn-primary btn-rounded" type="button" data-gh-export-confirm>${icon("export", 20, "icon small")}<span>Exportă</span></button></div>`
-    });
-  }
-  function runExport() {
-    const format = document.querySelector("[data-gh-export-format] .segment-item.is-selected")?.dataset.value || "xlsx";
+  /* US-241 AC-09 / AC-14 — export with the applied filters and the shown columns. ghiseu-autosave-csv-v1 (user
+     decision 2026-10-23, gh-01e): CSV only → one format left, so the toolbar export button („Exportă CSV”) downloads
+     at once — no format dialog. Excel-friendly CSV (BOM + semicolons, as the BO tariffs export); the old dialog's
+     personal-data note became the toast's „Exportul s-a înregistrat în Jurnalul de audit.” */
+  function exportCsv(list) {
     const head = ["Număr cerere", "Denumirea serviciului", "Nume solicitant", "Compania", "Substatut", "Data creării", "Data ultimei modificări", "Data expirării notei de plată", "Data eliminării automate"];
-    const rows = exportRowsCache.map((r) => [r.nr, r.serviciu, r.solicitant, r.companie, r.substatut, stamp(r.creat), stamp(r.modificat), longDate(r.expirareNota), longDate(r.eliminare)]);
-    const name = `dosare-noi.${format === "csv" ? "csv" : "xls"}`;
-    let blob;
-    if (format === "csv") {
-      const cell = (v) => `"${String(v ?? "").replace(/"/g, '""')}"`;
-      blob = new Blob(["﻿" + [head, ...rows].map((line) => line.map(cell).join(";")).join("\r\n")], { type: "text/csv;charset=utf-8" });
-    } else {
-      blob = new Blob([`﻿<table><thead><tr>${head.map((h) => `<th>${esc(h)}</th>`).join("")}</tr></thead><tbody>${rows.map((line) => `<tr>${line.map((v) => `<td>${esc(v)}</td>`).join("")}</tr>`).join("")}</tbody></table>`], { type: "application/vnd.ms-excel;charset=utf-8" });
-    }
+    const rows = list.map((r) => [r.nr, r.serviciu, r.solicitant, r.companie, r.substatut, stamp(r.creat), stamp(r.modificat), longDate(r.expirareNota), longDate(r.eliminare)]);
+    const name = "dosare-noi.csv";
+    const cell = (v) => `"${String(v ?? "").replace(/"/g, '""')}"`;
+    const blob = new Blob(["\ufeff" + [head, ...rows].map((line) => line.map(cell).join(";")).join("\r\n")], { type: "text/csv;charset=utf-8" });
     const a = Object.assign(document.createElement("a"), { href: URL.createObjectURL(blob), download: name });
     document.body.appendChild(a); a.click(); a.remove();
     setTimeout(() => URL.revokeObjectURL(a.href), 1000);
-    S.audit.unshift({ at: nowIso(), user: userName(), action: "Export listă Dosare noi", detail: `${rows.length} înregistrări · ${format.toUpperCase()} · reușit`, personal: true });
+    S.audit.unshift({ at: nowIso(), user: userName(), action: "Export listă Dosare noi", detail: `${rows.length} înregistrări · CSV · reușit`, personal: true });
     writeStore();
-    closeModal();
-    U().showShellToast?.(`Am exportat ${plural(rows.length, "înregistrare", "înregistrări")} în ${name}.`, "success");
+    U().showShellToast?.(`Am exportat ${plural(rows.length, "înregistrare", "înregistrări")} în ${name}. Exportul s-a înregistrat în Jurnalul de audit.`, "success");
   }
 
   /* „Istoricul cererii” — the request's audit entries, newest first */

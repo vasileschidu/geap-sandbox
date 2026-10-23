@@ -3182,3 +3182,20 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   `BASE` / `MEASURE` env to point one probe at worktrees and swap the in-page measure. hover-audit on the act header
   needs `--scope "[data-cab-detail] [data-cab-profile-header]"` (the first match is the hidden request header → „0
   interactive”).
+- 2026-10-23 · ghiseu-autosave-csv-v1 (user decisions from Figma comments: Ghișeu autosave „like the FO”, gh-01e CSV only).
+  (1) READ the FO before „like the FO”: the FO does NOT autosave on input — it saves on every step change, keeps a manual
+  „Salvează ca schiță” and shows „Salvat ca schiță · 14:32”; the Ghișeu already did all three. The real gap the user saw
+  was the close dialog → only a true autosave (debounced on edits + flush on step change / „Schimbă” / × / Esc / pagehide)
+  makes „no unsaved changes on close” true. (2) ~15 scattered `S.dirty = true` sites → ONE `Object.defineProperty(S,
+  "dirty")` setter that schedules / cancels the timer; no call site touched. (3) Autosave must run the same side-effect
+  steps a step change runs (COLLECT + `voidIfChanged` + reset `sigAtEntry`), or a saved edit after MSign would never void
+  the signature on reopen (sigAtEntry is recomputed from the saved data). (4) Audit flood: coalesce consecutive autosaves
+  per step into one entry whose time moves. (5) Update only the status line in place (re-rendering the header would close
+  an open ⋮ / steal focus); compare TEXT before writing so the polite live region speaks at most once a minute.
+  (6) Export with one format left = a registry hook `view.exportLabel` on the shared toolbar button (aria-label → the
+  tooltip runtime reads it at show time) + direct download; PD (JSON) / eKYC / tariffs keep „Exportă”. Only the Ghișeu
+  offered Excel + CSV; the service „Jurnal de evenimente” ⋮ „Exportă (Excel)” is single-format Excel (AC-11) — reported,
+  not changed. (7) Story deviation (US-239 / US-233 „save after validation”, „only at those two actions”) reported for
+  the PO, Azure untouched. Demo: gh-02o redefined (edit → status), new gh-02o1 / gh-01e1; Figma block config labels
+  updated. No sub-agent tool → hover-audit 0 / 0 (sheet header, toolbar), code-audit 0 (tokens 100, static 0),
+  component-audit only standing majors (shell header tools, th sort, missing-copy, profile menu).
