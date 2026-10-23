@@ -1441,7 +1441,7 @@
 
   /* every Cabinet profile (request, act, catalog service) opens with the RAP / BO public page header
      (.e-permits-page-header--public, css/bo-profile-parts.css — 2026-10-17 alignment): desktop = the
-     library breadcrumb as Figma Components 232:5282 — the parent level only, ending in the trailing chevron
+     library breadcrumb as Figma Components 232:5282 — the parent level only, no trailing chevron (breadcrumb-no-trailing-v1)
      (`parentsOnly`, breadcrumb-v3, user 2026-10-21: the trail never repeats the title shown right under it; Figma
      „Active Level” off), phones = „‹ parent” (library breadcrumbs Breakpoint=Mobile);
      16 to the title, which wraps (never truncated); the meta row (label 12/16 · value 14/20 medium,

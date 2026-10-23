@@ -2304,7 +2304,8 @@ document.addEventListener("DOMContentLoaded", () => {
      (GEAPBreadcrumbs.html: the trail · „…” overflow past 4 levels · 30-character truncation + tooltip · the phone back
      variant ≤760). A crumb with `attr` is a link that reuses an existing back handler; without it, plain text. The last
      crumb is the current level unless `trailing` / `parentsOnly` (breadcrumb-v3: a page header with its H1 right
-     below shows only the parents, ending in the trailing chevron — the trail never repeats the page title). */
+     below shows only the parents, chevrons only between them, none after the last — breadcrumb-no-trailing-v1 —
+     the trail never repeats the page title). */
   const renderBreadcrumbs = (crumbs, options = {}) => window.GEAPBreadcrumbs?.html(crumbs, options) || "";
 
   /* Shared back-office page header (Figma 8993:37914): breadcrumbs + title,

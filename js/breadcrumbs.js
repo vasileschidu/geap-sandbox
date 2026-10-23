@@ -14,7 +14,9 @@
      right under it — the builder service line, the notification-template back line).
      parentsOnly (breadcrumb-v3, user 2026-10-21: „The breadcrumbs should not display «Autorizația pentru importul,
      exportul sau reex…» — it's already there”): the trail sits above the page's H1 → the last crumb (the current page)
-     is left out and the parents end in the library `--trailing` chevron (Figma 232:5282 „👁️ Active Level” = off).
+     is left out (Figma 232:5282 „👁️ Active Level” = off). No trailing chevron after the last parent (breadcrumb-no-
+     trailing-v1, user + research 2026-10-23: GOV.UK / USWDS / Carbon / Material draw separators only BETWEEN items) —
+     „Acasă › Resurse utile › Registrul actelor permisive” and nothing after; no `--trailing` class, no current level.
      Every page header uses it (shell renderPageHeaderTop, CabEvo.pageHeader, RAP crumbsHtml); callers still pass the
      whole trail. Only a trail that REPLACES the title (process designer drill-in) keeps the current level.
    Output = two library navs, siblings (css/breadcrumbs.css shows one per breakpoint, Figma „📏 Breakpoint”):
@@ -60,11 +62,12 @@
 
   const html = (crumbs = [], { parentsOnly = false, trailing = false, truncate = true, label = "Navigare", mobile = true, max = 4, className = "" } = {}) => {
     let list = crumbs.filter((crumb) => crumb && String(crumb.label ?? "").trim() !== "");
-    if (parentsOnly) { list = list.slice(0, -1); trailing = true; }
+    if (parentsOnly) list = list.slice(0, -1);
+    const noCurrent = trailing || parentsOnly; /* parentsOnly: every level a parent, separators between items only */
     if (!list.length) return "";
     const last = list.length - 1;
     const extra = className ? ` ${className}` : "";
-    const items = list.map((crumb, index) => ({ crumb, current: !trailing && index === last }));
+    const items = list.map((crumb, index) => ({ crumb, current: !noCurrent && index === last }));
     let body;
     if (items.length > max) {
       const tail = items.slice(-3);
@@ -74,8 +77,8 @@
       body = items.map((item) => itemHtml(item.crumb, item.current)).join("");
     }
     const desktop = `<nav class="breadcrumbs${trailing ? " breadcrumbs--trailing" : ""}${truncate ? " breadcrumbs--truncate" : ""}${extra}" aria-label="${esc(label)}"><ol class="breadcrumbs__list">${body}</ol></nav>`;
-    /* phones: the parent = the nearest link before the current page (with trailing: the last link) */
-    const parents = trailing ? list : list.slice(0, last);
+    /* phones: the parent = the nearest link before the current page (trailing / parentsOnly: the last link) */
+    const parents = noCurrent ? list : list.slice(0, last);
     const back = mobile ? [...parents].reverse().find(isLink) : null;
     const phone = back
       ? `<nav class="breadcrumbs breadcrumbs--mobile${extra}" aria-label="${esc(label)}"><ol class="breadcrumbs__list"><li class="breadcrumbs__item breadcrumbs__item--back">${linkHtml(back, `<span class="e-permits-page-header__crumb-label">${esc(back.label)}</span>`)}</li></ol></nav>`

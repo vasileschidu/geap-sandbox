@@ -2894,3 +2894,14 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   outlined alone; request alerts have only primaries. Proof = a scratch real-mouse probe (abl/probe.mjs: classes, rest / hover
   paint, element on top, crops) on pp-01e/i/j/k, pp-03/03a/03b/03c, sm-04b at 1440 + 375; hover-audit 0 / 0, component-audit 0
   non-library / 0 button-paint in the card (majors = standing avatar menu / doc-modal ×), code-audit 0 (tokens 100).
+- 2026-10-23 · Breadcrumb without a trailing chevron (breadcrumb-no-trailing-v1; user + research: GOV.UK / USWDS / Carbon /
+  Material draw separators only BETWEEN items). breadcrumb-v3 had tied `parentsOnly` to the library `--trailing` class
+  („Active Level off = chevron after the last parent”). Fix in the ONE renderer: `parentsOnly` no longer forces
+  `trailing`; a local `noCurrent = trailing || parentsOnly` keeps every level a parent (no aria-current) and the phone
+  back on the last link, while the library `:last-child::after { content: none }` drops the chevron by itself — no CSS.
+  `trailing: true` (builder service line, notification-template back line) left as is (not above an H1). Proof = the
+  scratch probe (visible navs, items, `::after` content of the last li, nav → H1 gap): `none` on rap-01 / 02 / 02d,
+  pp-03, sm-05, svc-01, dos-01 at 1440, gaps unchanged (16 public / 8 BO), phones „‹ parent” unchanged; the > 4 overflow
+  case checked by rendering a 7-level trail in node (vm + stub window). Traps: (1) a CDP screenshot script that writes
+  RELATIVE paths drops PNGs in the repo root (cwd) — always write absolute scratch paths; (2) comment-only edits in
+  rap-evo.js / cabinet-evo.js / e-permits-shell.js still need their `?v=` bumped (rule: every changed file).

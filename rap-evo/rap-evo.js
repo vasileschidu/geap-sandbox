@@ -26,8 +26,8 @@
   };
 
   /* the trail above the list title and the act profile title = the library breadcrumb as Figma Components 232:5282
-     (the component everywhere): the ONE renderer (../js/breadcrumbs.js). Desktop = the PARENT levels only, ending in
-     the trailing chevron (`parentsOnly`, breadcrumb-v3, user 2026-10-21: „The breadcrumbs should not display
+     (the component everywhere): the ONE renderer (../js/breadcrumbs.js). Desktop = the PARENT levels only, chevrons
+     only between them (no trailing one, breadcrumb-no-trailing-v1) (`parentsOnly`, breadcrumb-v3, user 2026-10-21: „The breadcrumbs should not display
      «Autorizația pentru importul, exportul sau reex…» — it's already there”): the H1 right below is the current page
      (list „Registrul actelor permisive”, profile = the act's name), so the trail never repeats it. Phones = „‹ parent”.
      .rap-breadcrumbs = reveal hook */
