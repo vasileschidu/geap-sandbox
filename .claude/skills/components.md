@@ -9144,8 +9144,13 @@ do the same data architecture … change all documents in the whole system” (+
   Title row (column 2): title `flex: 1 1 64; max-width: max-content; min-width: 0` + one-line ellipsis +
   `title` tooltip → the tags sit **right after the title text** (gap 8, 4 between tags, `flex: none`), the
   title truncates first, and the tags wrap under it only when not even 64 of it would stay (an MDocs value
-  with MDocs + Semnat electronic + Activă at 375). Meta `grid-column: 2 / -1` (under the title, may run under
-  the ×). × (32) on the title line (`margin-block: (20 − 32) / 2`), picker check (20) column 3 row 1. Labelled
+  with MDocs + Semnat electronic + Activă at 375). **Trailing × / picker check (file-remove-center-v1,
+  2026-10-23, user on GEAP 2.0 10815:26044 „on desktop centre the close button”):** desktop (≥ 761) =
+  column 3, `grid-row: 1 / -1; align-self: center; margin-block: 0` → centred on the WHOLE card content (like
+  the icon), and the meta stays in column 2 (never under the ×); phones (≤ 760) = column 3 row 1, × (32) on
+  the title line (`margin-block: (20 − 32) / 2`), check (20) on row 1, meta `2 / -1` (may run under the ×).
+  One shared rule for every caller (FO step 3, Verificare, Ghișeu documents + procura, Form Builder
+  preview, Cabinet suplinire = FO, document picker options); × size / paint / hit area unchanged. Labelled
   actions (Cabinet / post-process „Detalii”): desktop column 3 across both rows, centred; ≤720
   row 3 in the text column (`margin-top: 8` → 12 under the meta), the icon stays centred on rows 1–2.
   BO document rows (`.e-permits-stack__item.has-lead:has(> .e-permits-fo-lib-item__icon)`, ≤760): icon

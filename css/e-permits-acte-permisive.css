@@ -8871,7 +8871,8 @@ a.e-permits-fo-lib-item__title:is(:hover, :focus) {
   grid-row: 2;
 }
 
-/* × (32) and check (20) centred on the 20px title line */
+/* × (32) and check (20) centred on the 20px title line (phones; desktop centres them on the whole card —
+   file-remove-center-v1 below) */
 :is(.e-permits-fo-file-item, .e-permits-fo-mdocs__attachment, .e-permits-fo-lib-item, .e-permits-fo-confirm-file--doc) > :is(.e-permits-fo-document-remove, .e-permits-fo-lib-item__check) {
   grid-column: 3;
   grid-row: 1;
@@ -8891,6 +8892,22 @@ a.e-permits-fo-lib-item__title:is(:hover, :focus) {
    (2 / -1 stays for the × / check, which only hold row 1, and for phones, where actions go to row 3) */
 @media (min-width: 721px) {
   :is(.e-permits-fo-file-item, .e-permits-fo-mdocs__attachment, .e-permits-fo-lib-item, .e-permits-fo-confirm-file--doc):has(> :is(.cab-doc__actions, .btn)) > .e-permits-fo-lib-item__content > .e-permits-fo-doc-meta {
+    grid-column: 2;
+  }
+}
+
+/* file-remove-center-v1 (2026-10-23, user on GEAP 2.0 10815:26044: „on desktop centre the close button”):
+   on desktop (> 760) the trailing × / picker check spans every row and sits on the vertical centre of
+   the whole card content (like the icon and the labelled actions); the meta then stays in the text
+   column so it never runs under it. Phones (≤ 760) keep it on the title line (multi-line cards). */
+@media (min-width: 761px) {
+  :is(.e-permits-fo-file-item, .e-permits-fo-mdocs__attachment, .e-permits-fo-lib-item, .e-permits-fo-confirm-file--doc):has(> .e-permits-fo-lib-item__content) > :is(.e-permits-fo-document-remove, .e-permits-fo-lib-item__check) {
+    align-self: center;
+    grid-row: 1 / -1;
+    margin-block: 0;
+  }
+
+  :is(.e-permits-fo-file-item, .e-permits-fo-mdocs__attachment, .e-permits-fo-lib-item, .e-permits-fo-confirm-file--doc):has(> :is(.e-permits-fo-document-remove, .e-permits-fo-lib-item__check)) > .e-permits-fo-lib-item__content > .e-permits-fo-doc-meta {
     grid-column: 2;
   }
 }

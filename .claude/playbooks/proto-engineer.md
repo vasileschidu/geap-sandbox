@@ -2805,3 +2805,14 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   shipped). Contrast reported, not changed: grey connector and light-blue pill ≈ 1.2:1 on --color-background-base-secondary.
   No sub-agent tool → hover-audit 0 / 0 (panel scope), component-audit 0 in the panel (majors = standing avatar menu),
   code-audit static 0 (runtime = standing visually-hidden / BO 11 title padding), capture 8 states × 2 clean.
+- 2026-10-23 · File card × centred on desktop (file-remove-center-v1; user on GEAP 2.0 10815:26044: „on desktop centre the
+  close button — everywhere”). Inventory first, by a runtime probe, not by the brief's list: every visible icon-only button
+  (+ the picker `__check`) whose nearest ≥ 40-high ancestor holds file text (.pdf / KB / MDocs / Încărcat) over fo-04g /
+  04e / 04f, gh-06 / 03k, sm-04b, dos-04d / 04g, fb-36a → ONLY the shared FO document card has a trailing icon action
+  (FO, Ghișeu, Form Builder preview, Cabinet suplinire = FO, picker); BO dossier rows lost theirs with no-row-download,
+  sm-04b has none. So ONE `@media (min-width: 761px)` block: × / check `grid-row: 1 / -1; align-self: center;
+  margin-block: 0` + meta back to column 2 (with a 1-row × the meta `2 / -1` ran under it — a spanning × would overlap
+  it). Probe column that proves it: × centre − card inner centre = 0 at 1440 / 1024 / 761, −12 (title line) at 760 /
+  375. Left, reported: component-audit flags the × itself as non-library (pre-existing; its #e5e5e5 hover is what shows
+  on the #f5f5f5 card — a plain library strict swap would need a grey-on-grey hover override, a separate job).
+  cabinet-evo/index.html had another agent's hunks → staged only my `?v=` line.
