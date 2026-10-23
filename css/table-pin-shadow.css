@@ -6,7 +6,11 @@
 
    The shadow = the Figma effect style „dropdown-effect” (GEAP 2.0, the menus' surface) turned on its
    side: its 0 4 6 −2 @5 % and 0 10 15 −3 @10 % drop shadows run along X instead of Y. Its 0 0 0 1 @8 %
-   ring is already there as the pinned column's 1px divider (border default), so it is not repeated.
+   ring = the pinned column's inner 1px divider (user 2026-10-23, sticky-col-shadow-v2: „the left border
+   of the column — make it like the dropdown-effect stroke”): the existing border keeps its width, its
+   colour becomes black 8 % (over white a shade lighter than the row lines, over the grey header / hover band a step darker, as a
+   menu's ring over the page). Always — scrolled or not — so the line never jumps when the shadow fades.
+   `!important` on the colour only: the dividers come from ~10 per-registry pin rules up to (0,4,1).
    There is no CSS token for the effect (main.css has only --drop-shadow-100…600) — the values live
    here once, like the Dropdown surface rule in e-permits-acte-permisive.css.
 
@@ -35,6 +39,15 @@
 :is(.is-pin-edge-start, .is-pin-edge-end) {
   --pin-shadow: 0;
   transition: --pin-shadow 150ms ease;
+}
+
+/* the dropdown-effect ring as the inner divider (header, body and footer cells alike) */
+.is-pin-edge-start {
+  border-right-color: rgba(0, 0, 0, 0.08) !important;
+}
+
+.is-pin-edge-end {
+  border-left-color: rgba(0, 0, 0, 0.08) !important;
 }
 
 .is-pin-edge-start {

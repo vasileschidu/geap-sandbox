@@ -3256,3 +3256,9 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   ghiseu.js `STEPS`); no new data — a post-process on act-izvoras pre-fills step 2 by itself. Capture gotcha: Ghișeu states
   run on e-permits-acte-permisive.html (capture's default `--page`); `--page bo-login.html` only shows the login → DEMO-ERROR.
   Also update the block label in tools/figma/ghiseu/blocks.config.js when the state's screen changes.
+- 2026-10-23 · sticky-col-shadow-v2 (user: „the left border of the column — make it like the dropdown-effect stroke”). When
+  a brief maps a Figma effect onto an existing element, map EVERY layer: in v1 I called the effect's 1px @8 % ring „already
+  there as the divider” — but the divider was border default (#d9d9d9, darker), so the user saw a different line. Fix =
+  recolour the edge cells' existing inner border to `rgba(0,0,0,.08)` (width kept, no layout change) with `!important`
+  on the colour only (~10 per-registry pin rules up to (0,4,1) set it). Kept at rest too: 3× crops at 1024 start / middle
+  / end show a soft divider that does not jump when the shadow fades. code-audit flags a hex even inside a CSS comment.
