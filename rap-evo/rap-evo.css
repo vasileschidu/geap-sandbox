@@ -672,11 +672,12 @@ a {
 @media (max-width: 760px) {
   /* the library Medium (Figma 39:177): 40 · 14/20 · icon 20 · radius 8, 12 on the icon side
      (profile-header-phone-medium-v1, 2026-10-22, user on Figma 22083:24857: „use medium button not large”; was Large
-     48); the primary fills the row (= the BO / Cabinet phone header actions, e-permits-acte-permisive.css profile-phone-v1) */
+     48); every button hugs its label, left-aligned (header-actions-hug-v1, 2026-10-23, user: „HUG buttons, not fill, on
+     mobile”; was: the primary filled the row) = the BO / Cabinet phone header actions, e-permits-acte-permisive.css */
   .rap-profile__header .e-permits-page-header__actions--below > .btn {
     --btn-icon-size: var(--icon-size-medium, 20px);
     border-radius: var(--border-radius-8, 8px);
-    flex: 1 1 auto;
+    flex: 0 1 auto;
     font-size: var(--font-size-fs-14, 14px);
     height: auto;
     line-height: var(--line-height-lh-20, 20px);

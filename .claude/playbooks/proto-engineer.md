@@ -3019,3 +3019,17 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   click back to the list, hover-audit 0 / 0, code-audit 0, component-audit 0 breadcrumb findings (standing avatar menu /
   doc-modal × / shell icons only). Trap: the long inventory ran while I edited — harmless here because the probe counted
   both the old one-item trail and the new lone `--mobile` nav; design such probes to be edit-agnostic.
+- 2026-10-23 · header-actions-hug-v1 (user on EVO Cabinet Figma 1236:47947: „let's do HUG buttons, not fill, on mobile”).
+  Three rules carried the phone „fill”: the shared ≤760 `.e-permits-page-header__actions:not(.is-measuring) > .btn
+  { flex: 1 1 auto }` (BO + Cabinet), Cabinet's `> .btn-primary { flex: 1 1 auto }` and RAP's restated `__actions--below
+  > .btn` → `flex: 0 1 auto` (hug; may still shrink so a too-long BO label wraps inside its button), the Cabinet one
+  deleted. Priority+ (`fitActActions`) already measured NATURAL widths under `.is-measuring`, so no „⋯” decision changed
+  (before / after probe at 375 / 320 / 1440 over 11 states: every 1440 row identical; 375 two-button rows unchanged,
+  pp-03g / 03h primary + „⋯” at 375 and 320, sm-03 / pp-03 primary + „⋯” at 320 only, sm-05 keeps both at 320). The trap
+  the change opened: the „⋯” menu was anchored `right: 0` to its button on the assumption that the button sits on the
+  right gutter — once it hugs (x 193 at 375 / 320) the 253-wide menu opened to x −20. Lesson: when a container's
+  children stop filling, re-open every menu / popover anchored to one of them at the narrowest width. Fix = on phones the
+  menu hangs from the ACTION ROW (row `position: relative`, the overflow wrapper `static`, menu `left: 0; max-width: 100%`)
+  — x 16, under the row, measured on pp-03h / sm-03p. hover-audit at 375 (a temp copy of the tool with the 375 viewport)
+  0 / 0 on pp-03 / sm-03 / sm-05 / rap-02 / svc-01 / pp-03h menu; code-audit 0 new (svc-01 tab-arrow overlap + open menu
+  over the details = standing); component-audit 0 header findings (avatar menu / doc-modal × standing).

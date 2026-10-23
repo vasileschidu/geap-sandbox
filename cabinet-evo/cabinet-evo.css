@@ -1672,14 +1672,11 @@ button.cab-alert-link {
     padding-inline: 0;
   }
 
-  /* the act / request action row: ONE line across the header (priority+), the primary takes the free room beside the
-     rest (the desktop top-alignment would keep the row at its content width) */
+  /* the act / request action row: ONE line across the header (priority+ measures the whole row), every button hugs
+     its label, left-aligned (header-actions-hug-v1, 2026-10-23, user: „HUG buttons, not fill, on mobile”; the primary
+     used to take the free room) */
   .cab-profile-header .e-permits-page-header__top {
     align-items: stretch;
-  }
-
-  .cab-profile-header .e-permits-page-header__actions:not(.is-measuring) > .btn-primary {
-    flex: 1 1 auto;
   }
 }
 
@@ -1762,13 +1759,33 @@ button.cab-alert-link {
   }
 }
 
-/* the „⋯” sits at the row's right edge: its menu always opens leftwards from it and never runs past the left
-   screen edge (16) — on phones the trigger's right edge is the page gutter (16; profile-phone-v1) */
+/* desktop: the „⋯” ends the row after the visible buttons: its menu opens leftwards from it and never runs past the
+   left screen edge (16); phones: see the next block */
 .cab-act-header__overflow .cab-menu.e-permits-fo-intent-menu,
 .cab-act-header__overflow .cab-menu.e-permits-fo-intent-menu:is(.is-start, .is-end) {
   left: auto;
   max-width: calc(100vw - var(--spacing-16, 16px) * 2);
   right: 0;
+}
+
+/* phones (header-actions-hug-v1, 2026-10-23): the buttons hug, so the „⋯” no longer sits on the gutter — opened from
+   it the menu ran past the left screen edge (pp-03h: x −20 at 375 / 320). The menu hangs from the ACTION ROW instead:
+   under the row, on its left edge (= the primary's left, the page gutter), at most the row's width */
+@media (max-width: 760px) {
+  .cab-profile-header .e-permits-page-header__actions:has(> .cab-act-header__overflow) {
+    position: relative;
+  }
+
+  .cab-profile-header .e-permits-page-header__actions > .cab-act-header__overflow {
+    position: static;
+  }
+
+  .cab-act-header__overflow .cab-menu.e-permits-fo-intent-menu,
+  .cab-act-header__overflow .cab-menu.e-permits-fo-intent-menu:is(.is-start, .is-end) {
+    left: 0;
+    max-width: 100%;
+    right: auto;
+  }
 }
 
 /* ===== Request profile — full container (act-profile-v1, 2026-10-21) =====
