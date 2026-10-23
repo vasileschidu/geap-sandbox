@@ -3614,3 +3614,13 @@ For any „research how other products do it” step, search Mobbin (mcp__mobbin
     the base block's frames into place (texts compared first) instead of re-building the tray by hand.
   - Library toast drift (declared, not overridden): icon + × centred vertically (code top-aligned), height 92 with link (code 104 on
     phones, 16 px text).
+- 2026-10-23 · Same job, user follow-up („on mobile do a fixed-height screen and align the toast”): **a phone screen that shows a
+  viewport-anchored overlay (toast, sheet, modal) is a FIXED 375 × 812 viewport** — `primaryAxisSizingMode = "FIXED"`, `resize(375, 812)`,
+  clip on the screen frame only (radius / 4 px OUTSIDE border kept), content cut below the fold; toast ABSOLUTE x 16, y 812 − 24 − h, no
+  safe-area inset (board phones have none). On a full-height phone frame „y = 812 − …” lands mid-page over the timeline — the user's catch.
+  sm-04h / sm-03e phones fixed; new block **sm-05c 1315:50715** (clone of sm-05, toast without link „A apărut o eroare. Descărcarea nu a
+  fost efectuată. Încercați din nou.”, desktop 1315:50844 / phone 1315:50856, arrow 1315:50868 from sm-05 phone „Descarcă actul”). Draft
+  phone headers = code at 375: „Continuă schița” FILL + labelled „Elimină schița” (outline-destructive, HUG) instead of ⋯ in all five
+  column-02 profiles (sm-03 / 03g / 03h / 03e / 03f; sm-03 → sm-03f arrow moved to the new button). Columns 02 / 04 / 06 restacked at 240,
+  0 dangling connectors, Start here 55 blocks / 06 · 14 + sm-05c line, cover 55. Audit: only the intended viewport `clipped-content`.
+  Lesson: **probe the code's header actions at 375 for the whole column** before trusting the board — all five draft profiles had drifted.
