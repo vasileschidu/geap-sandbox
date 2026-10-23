@@ -3099,3 +3099,16 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   nowrap `__nr` span (regex on the escaped label, no caller change). Proof = scratch probe (tag classes / 20 high / tone
   colours, amount fs / lh / ls, head height, crops) on fo-07, gh-09 / 09a / 09b / 09c at 1440 + 375; code-audit 0 in the
   card (dosar rows 11/7 standing), hover-audit 0 / 0, component-audit 0 in the card (majors = the standing avatar menus).
+- 2026-10-23 · registry-down-alert-v1 (user on GEAP 11850:301832, Ghișeu picker with MConnect down: „add an ALERT and this
+  as the description — no need to repeat it for every input”). One `renderNotice("warning", …, { className })` above the first
+  lookup replaced DOWN_MSG on 4 code paths (lookup setError, afterLookup, the Continuă validator) and two per-field hints;
+  `createRegistryLookup`'s `notFound` is evaluated at bind time, so `mconnectDown() ? "" : NOT_FOUND_MSG` also keeps the
+  live region from saying „Persoana nu a fost găsită” during an outage. Visibility is DERIVED (down && a slot `manual`), no
+  flag to reset. Announce once: the notice arrives with a block redraw, so afterLookup empties its text and refills it after
+  60 ms only when no notice was on screen before the redraw (proved with a MutationObserver: 0 → 111 chars once). Side find
+  the old error had hidden: with an error under the names but none under the code, the code's toolbar search
+  (`flex: 1 1 auto`) stretched to 87 in the FO field column → `flex: 0 0 auto` on `.e-permits-gh-lookup` (40 again). The
+  US-54 FO cadastral search may have the same stretch — not checked. Another agent edited ghiseu.js / ghiseu.css /
+  demo-states.js / components.md in parallel → my hunks were rebuilt on HEAD blobs (asserted pairs) and committed in one
+  command. Also: `capture.mjs --help` is NOT a help flag — it starts a full fo- capture; and `pkill -f "<that command>"`
+  also killed another session's identical run — kill by PID only.

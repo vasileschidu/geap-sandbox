@@ -2937,6 +2937,8 @@
     const pjNoLink = seq(type("PJ"), code("company", "1014600099887"), code("applicant", "2002005006007"));
     const pjMpower = seq(type("PJ"), code("company", "1003600012345"), code("applicant", "2004001234567"));
     const pf = (idnp) => code("applicant", idnp);
+    /* ?mconnect=0: the search opens the names, the clerk types them */
+    const pfManual = (idnp) => seq(pf(idnp), async (h) => { await h.fill('[data-gh-target="applicant:last"]', "Ceban", { leave: false }); await h.fill('[data-gh-target="applicant:first"]', "Maria", { leave: false }); });
     /* the modal filled (service + applicant) → Continuă → intent: „Solicitare nouă” (or a post-process) → the request */
     const start = (who, svc = "003000118", choice = primar) => seq(service(svc), who, cont, choice);
     const chooseAct = (id, type) => async (h) => { await openActMenu(id)(h); await actMenuPick(`[data-fo-intent-act="${id}"] [data-fo-intent-postprocess="${type}"]`)(h); await atStep1(h); };
@@ -2981,6 +2983,12 @@
       "gh-02d": gh("#ghiseu/nou", seq(service("003000118"), pjAdmin)),
       "gh-02e": gh("#ghiseu/nou", seq(service("003000118"), pf("9999999999999"))),
       "gh-02f": gh("#ghiseu/nou", seq(service("003000118"), pf("2001002003004")), { mconnect: "0" }),
+      /* registry down (registry-down-alert-v1): ONE warning notice above the lookups, clean fields — PJ (two
+         lookups, one notice), Continuă with the names empty (only the real „required” errors), before any search
+         (no notice yet) */
+      "gh-02f2": gh("#ghiseu/nou", seq(service("003000118"), type("PJ"), code("company", "1012600000002"), code("applicant", "2002005006007")), { mconnect: "0" }),
+      "gh-02f3": gh("#ghiseu/nou", seq(service("003000118"), pf("2001002003004"), async (h) => { await h.click("[data-gh-start-next]"); await h.wait(300); }), { mconnect: "0" }),
+      "gh-02f4": gh("#ghiseu/nou", seq(service("003000118"), typeCode("applicant", "2001002003004")), { mconnect: "0" }),
       "gh-02g": gh("#ghiseu/nou", seq(service("003000118"), typeCode("applicant", "2001002003004"), async (h) => { await h.click('[data-gh-search="applicant"]'); await h.wait(300); }), { registru: "asteptare" }),
       "gh-02v": gh("#ghiseu/nou", seq(service("003000118"), typeCode("applicant", "2001002003004"))),
       "gh-02h": gh("#ghiseu/nou", seq(service("003000118"), async (h) => { await h.fill('[data-gh-code="applicant"]', "20010", { leave: false }); const el = document.querySelector('[data-gh-code="applicant"]'); el.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true })); await h.wait(300); })),
@@ -3024,6 +3032,10 @@
       "gh-03j": gh("#ghiseu/nou", seq(start(pjNoLink), async (h) => { await h.click("[data-gh-procura]"); await h.scroll("[data-gh-procura-doc]"); })),
       "gh-03k": gh("#ghiseu/nou", seq(start(pjNoLink), async (h) => { await h.click("[data-gh-procura]"); }, ghUpload("[data-gh-procura-doc]", "procura-scan.pdf", 640000), async (h) => { await h.scroll("[data-gh-procura-doc]"); })),
       "gh-03l": gh("#ghiseu/nou", seq(start(pjNoLink), async (h) => { await h.click("[data-gh-procura]"); }, ghUpload("[data-gh-procura-doc]", "procura-scan.pdf", 640000), async (h) => { /* the stepper is hidden on phones: dispatch the row's click directly */ document.querySelector('#gh-request-modal [data-gh-step="4"] [data-gh-goto]').click(); await h.wait(400); await h.find('[data-gh-doc="procura"] [data-fo-doc]'); })),
+      /* registry down in the request's first step: the representative's lookup gets the same notice (gh-03m);
+         a holder typed by hand keeps its „Introdus manual” tag on the role card (gh-03n) */
+      "gh-03m": gh("#ghiseu/nou", seq(start(pfManual("2001002003004")), async (h) => { await h.click("[data-gh-rep-toggle]"); }, code("rep", "2004001234567")), { mconnect: "0" }),
+      "gh-03n": gh("#ghiseu/nou", start(pfManual("2001002003004")), { mconnect: "0" }),
       /* US-234 „Date de contact” on the same step: seed draft (scrolled to the contact), wrong phone / .ru email, MNotify missing values */
       "gh-04": gh("#ghiseu/gh-4812/identificare", async (h) => { await h.scroll("#gh-contact-title"); }),
       "gh-04a": gh("#ghiseu/nou", seq(start(pf("2001002003004")), async (h) => { await h.fill("#fo-gh-phone", "123", { leave: false }); await h.fill("#fo-gh-email", "maria.ceban@mail.ru", { leave: false }); }, next)),

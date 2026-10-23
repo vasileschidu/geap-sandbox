@@ -1063,9 +1063,16 @@
     </header>`;
 
   /* ================================================================ step 1 · Inițiere (US-233) */
-  const DOWN_MSG = "Registrul de stat nu răspunde acum. Completați datele manual.";
   const NOT_FOUND_MSG = "Persoana nu a fost găsită în registrul de stat.";
   const mconnectDown = () => params.get("mconnect") === "0";
+  /* MConnect down (user 2026-10-23, GEAP 11850:301832): ONE warning notice above the lookups says it once —
+     no red error on the code, no „introdus manual” hint under every field. It shows once a lookup could not
+     reach the registry (a slot in the „manual” state) and only while the registry is down; the manual values
+     keep their „Introdus manual” tag on the role cards / Verificare for the specialist. */
+  const DOWN_NOTICE = "<strong>Registrul de stat nu răspunde acum.</strong> Completați datele manual. Datele introduse manual se verifică la examinare.";
+  const downNoticeHtml = (slots) => (mconnectDown() && slots.some((slot) => slot?.state === "manual")
+    ? U().renderNotice?.("warning", DOWN_NOTICE, { className: "e-permits-gh__down-notice" }) || ""
+    : "");
 
   /* the FO search sizes: library Search input Medium (40) on desktop, Large (48) at ≤720 */
   const searchSize = () => (window.matchMedia("(max-width: 720px)").matches ? "large" : "medium");
@@ -1097,7 +1104,7 @@
                 : `<button type="button" class="btn btn-primary btn-search" aria-label="Caută ${esc(conf.code)}-ul în registru" data-tooltip-label="Caută ${esc(conf.code)}-ul în registru"${(conf.value || "").length === 13 ? "" : " disabled"} data-gh-search="${kind}"><svg class="icon medium" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-arrow-left"></use></svg></button>`}
             </div>
           </div>
-          <p class="e-permits-fo-field__hint" id="${id}-hint" data-fo-field-hint>${found ? `Preluat din ${kind === "company" ? "RSUD" : "RSP"} prin MConnect` : manual ? "Registrul nu a răspuns · introdus manual" : ""}</p>
+          <p class="e-permits-fo-field__hint" id="${id}-hint" data-fo-field-hint>${found ? `Preluat din ${kind === "company" ? "RSUD" : "RSP"} prin MConnect` : ""}</p>
         </div>
         ${conf.targets.map(([key, tLabel, span, value, ph]) => `
           <div class="e-permits-fo-field e-permits-fo-field--span-${span}">
@@ -1106,7 +1113,6 @@
               <input id="${id}-${key}" type="text"${manual ? ` placeholder="${key === "name" ? "Introdu denumirea" : key === "last" ? "Introdu numele" : "Introdu prenumele"}" aria-required="true"` : ` readonly tabindex="-1" placeholder="${esc(ph)}"`} value="${esc(value || "")}" data-fo-registry-target="${key}" data-gh-target="${kind}:${key}">
               ${found && value ? icon("checkmark-small") : ""}
             </div>
-            ${manual ? `<p class="e-permits-fo-field__hint">Introdus manual · se verifică la examinare</p>` : ""}
           </div>`).join("")}
         <p class="u-visually-hidden" role="status" aria-live="polite" data-fo-registry-live></p>
       </div>`;
@@ -1195,9 +1201,10 @@
       ? R().fieldHtml({ id: "gh-tip", type: "segment", label: "Tip persoană", span: 12, value: d.personType, options: [{ value: "PF", label: "Persoană fizică", icon: "icon-person-filled" }, { value: "PJ", label: "Persoană juridică", icon: "icon-business-filled" }] }).replace("data-fo-segment", "data-fo-segment data-gh-type")
       : readonlyField({ id: "gh-tip-fix", label: "Tip persoană", value: types[0] === "PJ" ? "Persoană juridică" : "Persoană fizică", span: 6, hint: "Singurul tip de solicitant configurat pentru serviciu." });
     const rows = d.personType === "PJ" ? `${codeGroupHtml("company", d)}${codeGroupHtml("applicant", d)}` : codeGroupHtml("applicant", d);
+    const down = downNoticeHtml(d.personType === "PJ" ? [d.company, d.applicant] : [d.applicant]);
     return `
       <div data-gh-block="applicant">
-        ${section("Solicitantul", `<div class="e-permits-fo-form__section-body">${typeField}${rows}</div>`, { id: "gh-applicant-title" })}
+        ${section("Solicitantul", `<div class="e-permits-fo-form__section-body">${typeField}${down}${rows}</div>`, { id: "gh-applicant-title" })}
       </div>`;
   }
   /* the request's first step: the identity as FO role cards („Schimbă” = the picker), the representative
@@ -1213,7 +1220,7 @@
         <div class="e-permits-fo-field e-permits-fo-field--span-12">
           <div class="e-permits-check-options">${U().renderCheckOption?.({ label: "Cererea se depune de un reprezentant", checked: d.rep.on, attrs: "data-gh-rep-toggle" }) || ""}</div>
         </div>
-        ${d.rep.on ? codeGroupHtml("rep", d) : ""}
+        ${d.rep.on ? `${downNoticeHtml([d.rep])}${codeGroupHtml("rep", d)}` : ""}
       </div>` : "";
     return `
       <div data-gh-block="applicant">
@@ -1393,9 +1400,10 @@
         const p = registryPerson(code); return p ? { last: p.nume, first: p.prenume } : null;
       },
       loadingText: isCompany ? "Se caută compania în RSUD prin MConnect…" : "Se caută persoana în RSP prin MConnect…",
-      notFound: NOT_FOUND_MSG,
+      /* registry down: no field error and nothing in the live region — the notice above the lookups speaks */
+      notFound: mconnectDown() ? "" : NOT_FOUND_MSG,
       foundText: (record) => (isCompany ? `Denumirea companiei a fost preluată din RSUD: ${record.name}.` : `Numele a fost preluat din RSP: ${record.last} ${record.first}.`),
-      setError: (inp, msg) => R().setFieldError?.(inp, msg && mconnectDown() ? DOWN_MSG : msg)
+      setError: (inp, msg) => R().setFieldError?.(inp, msg)
     });
     S.lookups[kind] = lookup;
     const box = group.querySelector("[data-gh-lookup-box]");
@@ -1441,6 +1449,7 @@
     S.dirty = true;
     if (needsProcura(d) === false) d.procura = false;
     /* lock the code (and open the names when the registry did not answer) */
+    const hadDownNotice = Boolean(S.page.querySelector(".e-permits-gh__down-notice"));
     redrawBlock("applicant");
     refreshChrome();
     if (slot.state === "found") {
@@ -1448,8 +1457,15 @@
       group?.querySelectorAll(".e-permits-fo-input.is-readonly").forEach((wrap) => { void wrap.offsetWidth; wrap.classList.add("is-srre-new"); wrap.addEventListener("animationend", () => wrap.classList.remove("is-srre-new"), { once: true }); });
     } else {
       S.page.querySelector(`[data-gh-target="${kind}:${kind === "company" ? "name" : "last"}"]`)?.focus();
-      const code = S.page.querySelector(`[data-gh-code="${kind}"]`);
-      if (code) R().setFieldError?.(code, DOWN_MSG);
+      /* the notice came in with the redraw: refill it once so its role="status" is announced (a live region
+         inserted with its text is not read); a notice already on screen is not read again. Focus stays on the name field. */
+      const notice = S.page.querySelector(`[data-gh-lookup="${kind}"]`)?.closest(".e-permits-fo-form__section-body")?.querySelector(".e-permits-gh__down-notice");
+      if (notice && !hadDownNotice) {
+        const text = notice.querySelector(".banner__text");
+        const html = text.innerHTML;
+        text.innerHTML = "";
+        window.setTimeout(() => { text.innerHTML = html; }, 60);
+      }
     }
   }
   function collectInitiere() {
@@ -1474,7 +1490,7 @@
       const codeErr = (kind, value, state, len = 13) => {
         if (!value) return REQUIRED;
         if (value.length !== len) return `${kind === "company" ? "IDNO" : "IDNP"}-ul are 13 cifre.`;
-        if (!state) return S.lookups[kind]?.code === value ? (mconnectDown() ? DOWN_MSG : NOT_FOUND_MSG) : `Căutați ${kind === "company" ? "IDNO" : "IDNP"}-ul în registru.`;
+        if (!state) return S.lookups[kind]?.code === value && !mconnectDown() ? NOT_FOUND_MSG : `Căutați ${kind === "company" ? "IDNO" : "IDNP"}-ul în registru.`;
         return "";
       };
       const check = (kind, slot, code) => {

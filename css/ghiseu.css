@@ -84,6 +84,18 @@
   display: none;
 }
 
+/* MConnect down (registry-down-alert-v1): the one warning notice above the lookups takes the whole row
+   of the section grid; the rhythm is the grid's own gap */
+.e-permits-fo-form__section-body > .e-permits-gh__down-notice {
+  grid-column: 1 / -1;
+}
+
+/* the code box keeps its control height when a name next to it shows an error (the toolbar search
+   grows with flex 1 1 auto; in the FO field column that stretched it to the row's height) */
+.e-permits-fo-field > .search-input.e-permits-gh-lookup {
+  flex: 0 0 auto;
+}
+
 .e-permits-gh__block {
   display: contents;
 }
