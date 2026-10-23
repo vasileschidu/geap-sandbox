@@ -767,7 +767,8 @@
       const size = event.target.closest("[data-rap-per-page]");
       if (size) {
         state.pageSize = Number(size.dataset.rapPerPage);
-        state.page = 1;
+        /* „Afișează mai multe” (phone pager) names the page that keeps the current first row; the size menu → page 1 */
+        state.page = Number(size.dataset.rapPage) || 1;
         render();
         return;
       }

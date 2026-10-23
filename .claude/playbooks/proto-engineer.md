@@ -2974,3 +2974,11 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   `[data-sm-page="2"]`; demo-links `find` takes the first VISIBLE match, so the hidden desktop „2” never wins on phones.
   (3) code-audit flagged the visually hidden „Pagina X din Y” as clipped text → the rule now skips `.visually-hidden` /
   `.u-visually-hidden` / `.sr-only`. No list depends on the page size on phones (the default stays).
+- 2026-10-23 · pager-compact-v3 (user: phones = „Afișează mai multe” left + „‹ Anterior” „Următor ›” right). Load more needs no new
+  host API: it is a page-size change (`data-<prefix>-per-page` = size + sizes[0]) plus a `data-<prefix>-page` that keeps the
+  current first row — each host's size handler only had to read that page instead of forcing 1 (4 one-line edits; BO also
+  had to accept a size outside its menu list). A live region INSIDE re-rendered markup never speaks → one persistent body
+  `<p aria-live>` filled after the redraw. Focus fallback when nothing is left to press (all rows shown, one page) = the
+  steps nav with tabindex −1, never <body>. „Fits?” is a container query on the pager (< 420 → load more full width on its
+  own row), not a viewport query — the BO footer is narrower than the viewport. Proved on RAP / Cabinet pp-01t, sm-01 / BO
+  dos-05 at 375: rows 16 → 32 (10 → 20), focus on the new button, live „Se afișează 1–32 din 1567”.

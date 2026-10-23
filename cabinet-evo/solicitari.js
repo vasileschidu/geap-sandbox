@@ -1530,7 +1530,7 @@
         return;
       }
       const size = target.closest("[data-sm-per-page]");
-      if (size) { state.perPage = Number(size.dataset.smPerPage); state.page = 1; C.closeMenus(); listLoader.load(); return; }
+      if (size) { state.perPage = Number(size.dataset.smPerPage); state.page = Number(size.dataset.smPage) || 1; C.closeMenus(); listLoader.load(); return; }
       const page = target.closest("[data-sm-page]");
       if (page && !page.disabled) { state.page = Number(page.dataset.smPage); listLoader.load(); root.querySelector("#sm-title")?.scrollIntoView({ block: "start" }); return; }
       const tab = target.closest("[data-sm-tab]");

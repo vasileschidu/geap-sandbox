@@ -49,6 +49,7 @@
     const first = (current - 1) * perPage + 1;
     const last = Math.min(total, current * perPage);
     const menuId = `${prefix}-per-page-${++uid}`;
+    const step = sizes[0]; /* „Afișează mai multe” adds one smallest page (16 on RAP / BO, 10 on Cabinet) */
     /* Romanian counts: 20 and up (by the last two digits) take „de” — „1567 de rezultate”, „16 rezultate” */
     const ofCount = (n) => (n % 100 === 0 || n % 100 >= 20 ? `${n} de` : String(n));
     const link = (target, text, { disabled = false, active = false, aria = "", nav = "" } = {}) => `
@@ -79,19 +80,35 @@
             ${link(current + 1, icon("icon-chevron-right"), { disabled: current === pages, aria: "Pagina următoare", nav: "next" })}
           </ul>
         </nav>
-        <!-- phones (≤ 760, pager-compact-v2, user): ONLY two library outlined strict Medium buttons, ‹ Anterior on the left
-             edge, Următor › on the right; no range, no page numbers, no page size; „Pagina X din Y” for screen readers -->
-        <nav class="e-permits-pager__steps" aria-label="${esc(label)}">
-          <button class="btn btn-outline-strict btn-md e-permits-pager__step" type="button" data-${prefix}-page="${current - 1}" data-pager-step="prev"${current === 1 ? " disabled" : ""}>${icon("icon-chevron-left")}<span>Anterior</span></button>
-          <p class="visually-hidden" aria-live="polite">Pagina ${current} din ${pages}</p>
-          <button class="btn btn-outline-strict btn-md e-permits-pager__step" type="button" data-${prefix}-page="${current + 1}" data-pager-step="next"${current === pages ? " disabled" : ""}><span>Următor</span>${icon("icon-chevron-right")}</button>
+        <!-- phones (≤ 760, pager-compact-v3, user): LEFT „Afișează mai multe” (library btn-secondary Medium = load more:
+             the page size grows by the smallest size, the window keeps the current first row; gone when every row shows),
+             RIGHT „‹ Anterior” „Următor ›” side by side (library btn-outline-strict Medium); no range / numbers / size -->
+        <nav class="e-permits-pager__steps" tabindex="-1" aria-label="${esc(label)}" data-pager-live="Se afișează ${first}–${last} din ${total}">
+          ${last < total ? `<button class="btn btn-secondary btn-md e-permits-pager__step e-permits-pager__more" type="button" data-${prefix}-per-page="${perPage + step}" data-${prefix}-page="${Math.floor((first - 1) / (perPage + step)) + 1}" data-pager-step="more">Afișează mai multe</button>` : ""}
+          <span class="e-permits-pager__arrows">
+            <button class="btn btn-outline-strict btn-md e-permits-pager__step" type="button" data-${prefix}-page="${current - 1}" data-pager-step="prev"${current === 1 ? " disabled" : ""}>${icon("icon-chevron-left")}<span>Anterior</span></button>
+            <button class="btn btn-outline-strict btn-md e-permits-pager__step" type="button" data-${prefix}-page="${current + 1}" data-pager-step="next"${current === pages ? " disabled" : ""}><span>Următor</span>${icon("icon-chevron-right")}</button>
+          </span>
         </nav>
       </div>`;
   }
 
-  /* ---------- the phone ‹ Anterior / Următor › keep the focus (pager-compact-v2) ----------
-     the host redraws the pager after a page click (at once, or after a skeleton delay) → the pressed button is gone;
-     put the focus on its twin in the new pager (the other one when the twin is disabled: first / last page) */
+  /* ---------- the phone buttons keep the focus + announce the new range (pager-compact-v2 / v3) ----------
+     the host redraws the pager after a click (at once, or after a skeleton delay) → the pressed button is gone; put
+     the focus on its twin in the new pager (else the next enabled step: „Afișează mai multe” disappears once every row
+     shows) and say „Se afișează 1–32 din 1567” in ONE persistent live region (a region inside the redrawn markup would
+     be new each time and stay silent) */
+  let live = null;
+  const announce = (text) => {
+    if (!live) {
+      live = document.createElement("p");
+      live.className = "visually-hidden";
+      live.setAttribute("aria-live", "polite");
+      document.body.append(live);
+    }
+    live.textContent = "";
+    window.setTimeout(() => { live.textContent = text; }, 50);
+  };
   document.addEventListener("click", (event) => {
     const step = event.target.closest?.(".e-permits-pager__step[data-pager-step]");
     if (!step) return;
@@ -100,8 +117,11 @@
     const poll = () => {
       if (step.isConnected) { if (performance.now() < until) window.setTimeout(poll, 100); return; }
       const twins = [...document.querySelectorAll(".e-permits-pager__step[data-pager-step]")].filter((b) => b.getClientRects().length);
-      const target = twins.find((b) => b.dataset.pagerStep === which && !b.disabled) || twins.find((b) => !b.disabled);
+      /* nothing left to press (every row shows, one page) → the pager's nav itself (tabindex −1), never <body> */
+      const target = twins.find((b) => b.dataset.pagerStep === which && !b.disabled) || twins.find((b) => !b.disabled) || twins[0]?.closest(".e-permits-pager__steps");
       target?.focus({ preventScroll: true });
+      const text = (target || twins[0])?.closest("[data-pager-live]")?.dataset.pagerLive;
+      if (text) announce(text);
     };
     window.setTimeout(poll, 0);
   });

@@ -18786,9 +18786,10 @@ document.addEventListener("DOMContentLoaded", () => {
       const size = event.target.closest("[data-workplace-per-page]");
       if (size) {
         const nextSize = Number(size.dataset.workplacePerPage);
-        if (workplacePageSizeOptions.includes(nextSize)) {
+        /* a menu size, or the phone „Afișează mai multe” (+16, with the page that keeps the first row — pager-compact-v3) */
+        if (workplacePageSizeOptions.includes(nextSize) || (size.dataset.pagerStep === "more" && nextSize > 0)) {
           workplaceState.pageSize = nextSize;
-          workplaceState.page = 1;
+          workplaceState.page = Number(size.dataset.workplacePage) || 1;
           renderWorkplace();
         }
         return;

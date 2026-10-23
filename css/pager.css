@@ -195,11 +195,17 @@
   outline: none;
 }
 
-/* phones (≤ 760, pager-compact-v2, user): no range, no page numbers, no page size — ONLY the two library outlined
-   strict Medium buttons (40, touch), „‹ Anterior” on the left edge and „Următor ›” on the right (space-between;
-   icon + label fits at 320: 2 × ~110 in 288); disabled on the first / last page; „Pagina X din Y” visually hidden */
+/* phones (≤ 760, pager-compact-v3, user): no range, no page numbers, no page size — LEFT „Afișează mai multe” (library
+   `btn btn-secondary btn-md`), RIGHT „‹ Anterior” „Următor ›” side by side, gap 8 (library `btn btn-outline-strict
+   btn-md`, disabled on the first / last page); all three need ~404 px → under that the load-more button takes its own
+   full-width row ABOVE and the arrows stay right-aligned under it (gap 12) */
 .e-permits-pager__steps {
   display: none;
+}
+
+/* the nav only takes the focus programmatically (nothing left to press after a load) — no ring for that */
+.e-permits-pager__steps:focus {
+  outline: none;
 }
 
 @media (max-width: 760px) {
@@ -211,7 +217,26 @@
   .e-permits-pager__steps {
     align-items: center;
     display: flex;
-    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: var(--spacing-12, 12px) var(--spacing-16, 16px);
+    justify-content: flex-end;
+    width: 100%;
+  }
+
+  .e-permits-pager {
+    container-type: inline-size;
+  }
+
+  .e-permits-pager__arrows {
+    display: flex;
+    gap: var(--spacing-8, 8px);
+    margin-left: auto;
+  }
+}
+
+/* the three do not fit on one row (load more ~170 + 16 + arrows ~226) → load more alone, full width, above */
+@container (max-width: 419px) {
+  .e-permits-pager__more {
     width: 100%;
   }
 }

@@ -577,7 +577,7 @@
 
     els.pager.addEventListener("click", (event) => {
       const size = event.target.closest("[data-cab-per-page]");
-      if (size) { state.perPage = Number(size.dataset.cabPerPage); state.page = 1; closeMenus(); actsLoader.load(); return; }
+      if (size) { state.perPage = Number(size.dataset.cabPerPage); state.page = Number(size.dataset.cabPage) || 1; closeMenus(); actsLoader.load(); return; }
       const page = event.target.closest("[data-cab-page]");
       if (page && !page.disabled) { state.page = Number(page.dataset.cabPage); actsLoader.load(); document.querySelector("#cab-title")?.scrollIntoView({ block: "start" }); }
     });
