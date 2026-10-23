@@ -120,7 +120,9 @@ const ensureDocModal = async () => {
     const hd = await AL("Header", "HORIZONTAL", { gap: 12, pad: m ? [16, 16, 16, 16] : [24, 24, 24, 24] }); put(c, hd, { fillW: true }); hd.counterAxisAlignItems = "MIN";
     const tx = await AL("Header text", "VERTICAL", { gap: 8 }); put(hd, tx, { fillW: true });
     tx.appendChild(await TX("Forma de tipar a actului", "h3", "text/base/default", { name: "Title" }));
-    const sub = await AL("Subtitle", m ? "VERTICAL" : "HORIZONTAL", { gap: m ? 2 : 8, align: m ? "MIN" : "CENTER" }); put(tx, sub, { fillW: true });
+    const sub = await AL("Subtitle", m ? "VERTICAL" : "HORIZONTAL", { gap: m ? 2 : 4, align: m ? "MIN" : "CENTER" }); put(tx, sub, { fillW: true });
+    // name → „Mai mult” = 4 (the name's end padding); the live set also has Name=Expanded variants (first lines + „Last line”
+    // row with „Mai puțin” after the last word, TEXT prop „Last line”) added in place 2026-10-23 — split the name with nameEnd's measure
     // no act number in the header subtitle (code 5b15f948) — the name only
     const nm = await TX("Autorizație de funcționare – comerț", "small", "text/base/tertiary", { name: "Act name" }); put(sub, nm, { fillW: true }); nm.textTruncation = "ENDING"; nm.maxLines = m ? 2 : 1; nm.layoutSizingVertical = "HUG";
     const cl = await inst("btnFC", { Style: "Neutral", Icon: "Only", Size: "Small", State: "Default" }); setP(cl, { "Leading Icon: 16": (await L.icon("cross16")).id }); cl.name = "Close"; hd.appendChild(cl);
@@ -143,17 +145,60 @@ const ensureDocModal = async () => {
   L.saveId("docModal", set.id); return set;
 };
 
+// modal-name-expand-end-v1 (2026-10-23): the subtitle toggle sits at the END of the name — collapsed desktop: right
+// after the ellipsis (1 line, gap 4); collapsed phones: own line under the 2 clamped lines (gap 2); expanded: the name's
+// first lines + a „Last line” row (last-line words · 4 · toggle), split where the text wraps at the frame's width
+// (Chrome keeps the toggle with the last word: if it does not fit, the last word moves down with it).
+const nameEnd = async (nmw, nm, more, expanded, mobile) => {
+  await figma.loadFontAsync(nm.fontName);
+  const row0 = nmw.children.find(c => c.name === "Last line");
+  if (row0) { const lt = row0.children.find(c => c.type === "TEXT"); nm.characters = nm.characters + " " + lt.characters; nmw.appendChild(more); row0.remove(); nm.visible = true; }
+  nmw.layoutWrap = "NO_WRAP";
+  if (!expanded) {
+    nmw.layoutMode = mobile ? "VERTICAL" : "HORIZONTAL"; nmw.itemSpacing = mobile ? 2 : 4;
+    nmw.counterAxisAlignItems = mobile ? "MIN" : "CENTER"; nmw.layoutSizingHorizontal = "FILL"; nmw.layoutSizingVertical = "HUG";
+    nm.layoutSizingHorizontal = "FILL"; nm.textAutoResize = "HEIGHT"; nm.layoutSizingVertical = "HUG";
+    nm.textTruncation = "ENDING"; nm.maxLines = mobile ? 2 : 1; // order: auto-resize → truncation → maxLines
+    more.layoutSizingHorizontal = "HUG"; more.layoutSizingVertical = "HUG";
+    return { lines: mobile ? 2 : 1 };
+  }
+  nmw.layoutMode = "VERTICAL"; nmw.itemSpacing = 0; nmw.counterAxisAlignItems = "MIN";
+  nmw.layoutSizingHorizontal = "FILL"; nmw.layoutSizingVertical = "HUG";
+  nm.layoutSizingHorizontal = "FILL"; nm.textAutoResize = "HEIGHT"; nm.layoutSizingVertical = "HUG";
+  nm.textTruncation = "DISABLED"; nm.maxLines = null;
+  const W = nmw.width, full = nm.characters, words = full.split(" ");
+  const pr = nm.clone(); figma.currentPage.appendChild(pr); pr.textTruncation = "DISABLED"; pr.maxLines = null; pr.resize(W, 20); pr.textAutoResize = "HEIGHT"; // resize() makes it FIXED — auto-resize after
+  const lh = (s) => { pr.characters = s; return pr.height; };
+  const H = lh(full), line = lh(words[0]), L = Math.round(H / line);
+  let k = 0;
+  if (L > 1) { let lo = 1, hi = words.length - 1; while (lo < hi) { const mid = (lo + hi) >> 1; if (lh(words.slice(0, mid + 1).join(" ")) > (L - 1) * line + 1) hi = mid; else lo = mid + 1; } k = lo; }
+  pr.textAutoResize = "WIDTH_AND_HEIGHT"; pr.characters = words.slice(k).join(" ");
+  if (pr.width + 4 + more.width > W) k = words.length - 1;
+  pr.remove();
+  const row = figma.createFrame(); row.name = "Last line"; row.fills = []; row.clipsContent = false;
+  row.layoutMode = "HORIZONTAL"; row.itemSpacing = 4; row.counterAxisAlignItems = "CENTER";
+  nmw.appendChild(row); row.layoutSizingHorizontal = "HUG"; row.layoutSizingVertical = "HUG";
+  const lt = nm.clone(); lt.name = "Name · last line"; row.appendChild(lt); lt.characters = words.slice(k).join(" "); lt.textAutoResize = "WIDTH_AND_HEIGHT"; lt.layoutSizingHorizontal = "HUG";
+  row.appendChild(more); more.layoutSizingHorizontal = "HUG"; more.layoutSizingVertical = "HUG";
+  if (k > 0) nm.characters = words.slice(0, k).join(" "); else nm.visible = false;
+  return { lines: L, k, last: lt.characters };
+};
+// tokens for the gaps nameEnd sets (4 = name end padding, 2 = phone stack, 0 = expanded lines)
+const nameEndTokens = async nmw => { await sp(nmw, "itemSpacing", nmw.itemSpacing); const row = nmw.children.find(c => c.name === "Last line"); if (row) await sp(row, "itemSpacing", 4); };
+
 // ---- data modal content (library modal .content-slot replacement)
 const dataContent = async (S, mobile) => {
   const W = mobile ? 338 : 588; const D = S.data;
   const c = await upsertComp(`Data modal content · ${S.id} · ${mobile ? "Mobile" : "Desktop"}`, mobile ? 7600 : 7000, 80);
   c.layoutMode = "VERTICAL"; c.primaryAxisSizingMode = "AUTO"; c.counterAxisSizingMode = "FIXED"; c.resize(W, 100); c.fills = []; await pad(c, 4, mobile ? 16 : 20, 24, mobile ? 16 : 20);
-  const sub = await AL("Subtitle", mobile ? "VERTICAL" : "HORIZONTAL", { gap: mobile ? 2 : 8, align: mobile ? "MIN" : "CENTER", pad: [0, 0, 8, mobile ? 0 : 12] }); put(c, sub, { fillW: true });
+  const sub = await AL("Subtitle", mobile ? "VERTICAL" : "HORIZONTAL", { gap: mobile ? 2 : 8, align: mobile ? "MIN" : "CENTER", pad: [0, mobile ? 40 : 32, 8, mobile ? 0 : 12] }); put(c, sub, { fillW: true });
   // no act number in the header subtitle (code 5b15f948) — the name only
-  const nmw = await AL("Act name", "HORIZONTAL", { gap: 4 }); nmw.layoutWrap = "WRAP"; put(sub, nmw, { fillW: true });
+  const nmw = await AL("Act name", "HORIZONTAL", { gap: 4, pad: [0, mobile ? 8 : 12, 0, 0] }); put(sub, nmw, { fillW: true }); // × column: Subtitle pR 32 / 40 (× size) + 12 / 8 clearance
   const nm = await TX(D.name, "small", "text/base/tertiary", { name: "Name" }); put(nmw, nm, { fillW: true });
-  if (D.clamp === "false") { nm.textTruncation = "ENDING"; nm.maxLines = mobile ? 2 : 1; nm.layoutSizingVertical = "HUG"; } else nm.textAutoResize = "HEIGHT";
-  if (D.clamp) { const more = await inst("link", { Style: "Primary", Size: "14: Small", State: "Default" }); setP(more, { Link: D.more, Underline: false }); more.name = "Mai mult"; nmw.appendChild(more); if (D.clamp === "false") nm.layoutSizingHorizontal = "FILL"; }
+  nm.textAutoResize = "HEIGHT";
+  // toggle at the END of the name (modal-name-expand-end-v1): collapsed desktop after the ellipsis, phones under the
+  // 2 clamped lines, expanded right after the last word (split into first lines + „Last line” row) — never next to ×
+  if (D.clamp) { const more = await inst("link", { Style: "Primary", Size: "14: Small", State: "Default" }); setP(more, { Link: D.more, Underline: false }); more.name = "Mai mult"; nmw.appendChild(more); await nameEnd(nmw, nm, more, D.clamp === "true", mobile); await nameEndTokens(nmw); }
   const stl = await getL("secTitle"), rows = await getL("detRow"), tags = await getL("tag");
   for (const se of D.sections) {
     const box = await AL("Section · " + se.title, "VERTICAL", { pad: [0, 0, 16, 0] }); put(c, box, { fillW: true });

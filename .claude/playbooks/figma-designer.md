@@ -3521,3 +3521,30 @@ For any „research how other products do it” step, search Mobbin (mcp__mobbin
     re-run the census once the user has accepted.
   - A read-only raw census over 21 GEAP pages in one call dropped the transport (same as 2026-10-21) — 3–5 pages per call.
 
+
+- 2026-10-23 · modal-name-expand-end-v1 (Ramona on EVO-WEB 22088:29587 „× and Mai puțin too close”; code 80c0e9e5). The dialog
+  subtitle toggle now sits at the END of the act name: collapsed desktop right after the ellipsis (gap 4), phones on its own line
+  under the 2 clamped lines (gap 2), expanded right after the last word. Fixed the 18 `Data modal content · <id>` mains (section
+  22060:2438): Subtitle paddingRight = × size token (spacing-32 / -40) + `Act name` paddingRight = clearance (spacing-12 / -8) →
+  text column 494 / 295 = the title column (code 506 / 295, Figma's library modal header starts at 32, code 20 — drift, declared);
+  rap-03g / 03m / 03r collapsed, rap-03h expanded = `Name` (first lines) + `Last line` row (last words · 4 · „Mai puțin”). Phone
+  screens refit to modal bottom (03g +22, 03h −20, 03m / 03r +22), column 04 restacked at 240. `Document modal (MDocs act)`
+  22089:209155 got variant `Name=Collapsed / Expanded` (Expanded 22390:15485 / :15504, TEXT `Last line#22390:0`), desktop name →
+  „Mai mult” gap 8 → 4. New block **rap-03u 22390:234449** (A4 viewer, expanded; line breaks = code at 628 / 295), connector
+  22390:235926 from rap-03s phone „Mai mult” (position on the modal instance), Start here line + count 21. Generators
+  tools/figma/rap/act-fields.js + modals.js got `nameEnd` (+ `nameEndTokens`). Lessons:
+  - **Inline toggle after the last word = split the text** (Figma has no inline flow): measure with a scratch text node at the
+    frame width — greedy wrap of a prefix = the same lines — binary-search the first word of the last line, then if last line + 4
+    + toggle > width move only the last word down (Chrome keeps the label with the last word). Same pattern as `Document field ·
+    label` (12468:8391). Matches the code exactly when the column width matches (rap-03u, all phones).
+  - **`resize()` on a text with `textAutoResize = "HEIGHT"` makes it FIXED** — set auto-resize AFTER resize, or every measured
+    height is the old one (my first pass measured 1 line for everything and split at the wrong word).
+  - **Cloning a variant inside its set drops `componentPropertyReferences` in practice** (the clone rendered the default text
+    and an empty canvas): after cloning, copy every reference by layer path from the source variant (moved layers: map the new
+    path), then re-set the instance props.
+  - **Hidden layers in instances are invisible to `findOne`/walks** while `figma.skipInvisibleInstanceChildren` is true (the default)
+    — set it false before looking for a toggle that a boolean hides.
+  - The Figma MCP hit a „tool call limit” once mid-job; get_metadata still answered and use_figma came back on the next call —
+    check state with get_metadata, then retry.
+  - No Agent tool in this session → stored `rap/audit` on the 4 blocks + 10 mains / set: only the board baseline (section-over-card
+    tight-gap 0, background Profile clipped by the screen behind the scrim); the 2 off-scale paddings it caught were tokenised.
