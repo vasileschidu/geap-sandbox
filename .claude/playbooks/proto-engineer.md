@@ -3141,3 +3141,21 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   only — another agent committed demo-states.js between my diff and my apply, so gh-10c1 landed after gh-12 (valid JS,
   wrong order; fix commit). Regenerate the diff inside the same command as the apply, use ≥ 1 context line for
   insertions, and grep the committed blob for each insertion's neighbour after the commit.
+- 2026-10-23 · ghiseu-picker-toast-v1 + lone-trash-v1 (user: Ghișeu act picker „as in Actele mele — only the accent is the
+  location; remove the icon; the action fixed and square as in Solicitări”, search when many acts, a success toast on «Dosare
+  noi» after submit; mid-job via the coordinator: a draft row whose only action is „Elimină schița” = ONE grey trash, „not
+  red”). (1) Same component, new look = two OPTIONS on the shared `GEAPActRow.html` with old defaults (`placeIcon`,
+  `actionIcon` → the square ⋮ that is never shown without an enabled item) — FO / Cabinet output unchanged, the pill CSS
+  only needed `:not(.btn-icon-only)` on the chevron rotation. The Figma reference (blue doc icon, labelled pill) was older
+  than the code (no icon since permission-icon-v1) — check the code before „removing” something. (2) A list search inside a
+  shared screen renderer = one `listHeadHtml` slot on `intentHtml` (default "" → FO unchanged); rows filtered by `hidden` in
+  place (author `display` beats the attribute → `li[hidden] { display: none }`), the query in state so a redraw keeps it,
+  the search input excluded from the draft's `S.dirty`. Threshold = the only documented one (facet SEARCH_MIN 8), reported.
+  (3) Toast „after” an in-place confirmation = a flag set in submit, shown once in the window's close path (every exit
+  goes through `closeSheet`). (4) Demo helpers that open a row ⋮ must tolerate its absence (`?.click()`), or every state
+  built on them breaks when a row loses its ⋮. (5) DISASTER, mine: `open(p, "w").write(fn(open(p).read()))` truncates
+  BEFORE the read → components.md became EMPTY and another agent's uncommitted reorder (2 blocks) was lost; restored HEAD +
+  my pairs and reported it. Never write a file in the same expression that reads it — read into a variable first, and
+  for shared docs prefer the Edit tool. No sub-agent tool → hover-audit 0 / 0 (list + window), code-audit (only the
+  library search × overlap FP in my scope), component-audit (standing shell / th-sort / „Schimbă” majors only), real-mouse
+  probe: ⋮ and trash white on the hovered band → #d9d9d9 on own hover, tooltips „Postprocese” / „Elimină schița”.

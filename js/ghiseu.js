@@ -234,6 +234,10 @@
     const code = holderCode(d);
     if (!code || code === NOT_FOUND_CODE || !d.service) return [];
     const seeded = (S.data.acts?.[code] || []).filter((a) => a.service === d.service);
+    /* demo only (?acte=multe, as the Cabinet acts list): + two numbered copies of every act → the picker's search */
+    if (seeded.length && params.get("acte") === "multe") {
+      return [...seeded, ...seeded.flatMap((act) => [1, 2].map((n) => ({ ...act, id: `${act.id}-${n}`, nr: `${act.nr}/${n}`, name: act.name.replace(/,/, ` ${n + 1},`), pending: null })))];
+    }
     if (seeded.length) return seeded;
     return code.startsWith("0") ? [] : generatedActs(code, d.service);
   };
@@ -544,6 +548,11 @@
         }
         case "actiuni": {
           if (row.submitted) return "";
+          /* lone-trash-v1 (user 2026-10-23): „Elimină schița” is the row's ONLY action → no ⋮ and no ×: ONE grey icon-only
+             trash (library Neutral · Icon Only · Small, the ⋮ size; deliberately NOT red — exception to destructive-red for a
+             lone row icon), tooltip „Elimină schița”, the same confirm (its button stays red). A paid draft can't be
+             removed → nothing (row-menu-no-disabled-only-v1). */
+          if (!row.paid) return `<span class="e-permits-workplace__row-actions"><button class="btn btn-neutral btn-sm btn-icon-only e-permits-gh-row-remove" type="button" aria-label="Elimină schița ${esc(row.nr)}" data-tooltip-label="Elimină schița" data-gh-remove="${esc(row.id)}"><svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-delete"></use></svg></button></span>`;
           const menu = [
             { label: "Elimină schița", icon: "delete", danger: true, attrs: `data-gh-remove="${esc(row.id)}"${row.paid ? ' aria-disabled="true" data-tooltip-reason="Nota de plată este achitată: schița nu se mai poate elimina."' : ""}` }
           ];
@@ -701,6 +710,13 @@
     ov.querySelector(".modal").classList.remove("is-active");
     ov.setAttribute("aria-hidden", "true");
     setTimeout(() => { if (!document.querySelector(".modal-overlay.is-active")) document.body.classList.remove("modal-open"); }, 0);
+    /* a dossier submitted in this window (user 2026-10-23 on GEAP 11595:321749): back over «Dosare noi» the library
+       success toast says it once (auto-dismiss, as every success toast); the window itself showed it in place */
+    if (S.submittedNr) {
+      const nr = S.submittedNr;
+      S.submittedNr = null;
+      setTimeout(() => U().showShellToast?.(`Dosarul ${nr} a fost depus și trimis la distribuire.`, "success"), 0);
+    }
   }
   /* × / Esc / scrim: unsaved data → „Salvați schița?” (Rămâi · Închide fără salvare · Salvează și închide) */
   function requestCloseSheet() {
@@ -1257,21 +1273,64 @@
   }
   /* = GEAPActRow.ppIcon (js/act-row.js, act-icons-v1), which wins in the menu */
   const PP_ICON = { Prelungire: "icon-calendar-add", Reperfectare: "icon-edit", "Emitere duplicat": "icon-copy", "Suspendare valabilitate": "icon-lock", "Reluarea valabilității": "icon-rotate-arrow", Retragere: "icon-circle-x", "Contestație": "icon-judge-gavel" };
-  /* one act / decision = the shared FO act row (GEAPFormRender.actRowHtml): every post-process of the
-     service in its menu, the ones the status / term does not allow disabled with the reason (AC-28/31/32) */
-  function actRowHtml(d, act) {
+  /* one act / decision = the shared act row (GEAPFormRender.actRowHtml → js/act-row.js) as in Cabinet „Actele mele
+     permisive” (ghiseu-picker-toast-v1, user 2026-10-23 on GEAP 11850:27348: „same components, only the accent is the
+     location; remove the icon; the action fixed and square as in Solicitări”): no lead icon · title = the object /
+     location + the Small status tag · line 2 = the act type (no pin) · the Cabinet meta slots (number · authority ·
+     subdivision · the key date) · the square ⋮ in the corner with every post-process of the service, the ones the
+     status / term does not allow disabled with the reason (AC-28/31/32); no ⋮ when nothing can start (a locked row,
+     or every item unavailable — row-menu-no-disabled-only-v1). The row itself is not clickable (as before). */
+  const actTypeOf = (d, act) => (act.kind === "decizie" ? act.decizie : serviceOf(d.service)?.title || "");
+  const authorityCodeOf = (d) => { const a = A().getAuthorityById?.(serviceOf(d.service)?.authorityId); return a?.shortName || a?.code || ""; };
+  function actRowHtml(d, act, attrs = "") {
     const allowed = postprocessesOf(d, act);
     const items = serviceTypes(d).map((t) => ({ id: t, label: t, icon: PP_ICON[t], disabled: !allowed.includes(t), reason: allowed.includes(t) ? "" : ineligibleReason(d, act, t) }));
+    const date = act.kind === "decizie" ? `emisă acum ${plural(act.emisZileInUrma, "zi", "zile")}`
+      : act.status === "expirat" ? `expirat la ${longDate(act.valabilPana)}` : `valabil până la ${longDate(act.valabilPana)}`;
     return R().actRowHtml?.({
-      id: act.id, name: act.name, number: act.nr, status: act.status, statusLabel: (ACT_TONE[act.status] || [act.status])[0], tacit: act.tacit,
-      validUntil: act.valabilPana, subdivision: act.subdiviziune,
-      /* the shared meta slots order (js/act-row.js): number · subdivision · the key date */
-      meta: act.kind === "decizie" ? [act.nr, { text: act.subdiviziune, long: true }, `${act.decizie} · emisă acum ${plural(act.emisZileInUrma, "zi", "zile")}`] : undefined
+      id: act.id, name: act.name, status: act.status, statusLabel: (ACT_TONE[act.status] || [act.status])[0], tacit: act.tacit
     }, {
-      menuId: `gh-act-menu-${act.id}`, items,
+      menuId: `gh-act-menu-${act.id}`, items, attrs,
+      place: actTypeOf(d, act), placeIcon: false, actionIcon: "icon-more-vertical",
+      metaSlots: { number: act.nr, numberLabel: `Copiază numărul actului ${act.nr}`, authority: authorityCodeOf(d), subdivision: act.subdiviziune, date },
       pendingTitle: act.pending ? `${act.pending.type} în curs` : "",
       pendingText: act.pending ? `· dosar ${act.pending.dossier}. Un alt postproces se inițiază după finalizarea acestuia.` : ""
     }) || "";
+  }
+  /* many acts → the library search above the list (from 8 = the facet-filter SEARCH_MIN, js/facet-filter.js), live,
+     case- and diacritics-insensitive (= its `fold`) over location · type · number · subdivision; „Niciun rezultat” = the
+     shared empty state (bare + compact); the count is announced. The query survives a redraw (S.actsQuery). */
+  const ACTS_SEARCH_MIN = 8;
+  const fold = (text) => String(text ?? "").normalize("NFD").replace(/\p{M}/gu, "").toLocaleLowerCase("ro").trim();
+  const actSearchText = (d, act) => fold([act.name, actTypeOf(d, act), act.nr, act.subdiviziune].join(" "));
+  function actsSearchHtml(query) {
+    const label = "Caută după locație, tip sau număr";
+    return `
+          <div class="e-permits-gh-acts-search">
+            <div class="search-input medium rectangular e-permits-workplace__search e-permits-list-search e-permits-list-search--fill${query ? " has-value is-ready" : ""}">
+              <span class="icon-search" aria-hidden="true">${icon("search")}</span>
+              <input class="input" type="search" placeholder="${label}" aria-label="${label}" autocomplete="off" value="${esc(query)}" data-gh-acts-search>
+              <div class="btn-group"><span class="spinner spinner--extra-small spinner--brand" aria-hidden="true"></span><button type="button" class="btn-icon clear" aria-label="Șterge căutarea"><svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-cross-small"></use></svg></button></div>
+            </div>
+            <div data-gh-acts-none${query && !S.actsMatches ? "" : " hidden"}>${window.GEAPEmptyState?.noResults?.("Niciun rezultat", { text: "", bare: true, compact: true }) || "Niciun rezultat"}</div>
+            <p class="u-visually-hidden" role="status" aria-live="polite" data-gh-acts-live></p>
+          </div>`;
+  }
+  /* live filter: rows hidden in place (no redraw, the field keeps its focus) */
+  let actsLiveTimer = 0;
+  function filterActs(input) {
+    S.actsQuery = input.value;
+    const q = fold(input.value);
+    const rows = [...(S.page?.querySelectorAll("[data-gh-act-text]") || [])];
+    rows.forEach((row) => { row.hidden = Boolean(q) && !row.dataset.ghActText.includes(q); });
+    const shown = rows.filter((row) => !row.hidden).length;
+    const box = input.closest(".e-permits-gh-acts-search");
+    box?.querySelector("[data-gh-acts-none]")?.toggleAttribute("hidden", shown > 0);
+    window.clearTimeout(actsLiveTimer);
+    actsLiveTimer = window.setTimeout(() => {
+      const live = box?.querySelector("[data-gh-acts-live]");
+      if (live) live.textContent = !q ? "" : shown ? `${plural(shown, "act găsit", "acte găsite")}.` : "Niciun rezultat.";
+    }, 500);
   }
   /* the request window's first screen (US-233 AC-24…32, user 2026-10-15) = the FO „Ce vrei să soliciți?”
      (GEAPFormRender.intentHtml, shared with FO #intent): „Solicitant <name> · Schimbă” (the small modal),
@@ -1279,6 +1338,11 @@
   function stepIntent(d) {
     normalizeProcess(d);
     const acts = actsOf(d);
+    const searchable = acts.length >= ACTS_SEARCH_MIN;
+    const q = searchable ? fold(S.actsQuery || "") : "";
+    const matches = (act) => !q || actSearchText(d, act).includes(q);
+    S.actsMatches = acts.filter(matches).length;
+    const rowAttrs = (act) => (searchable ? `data-gh-act-text="${esc(actSearchText(d, act))}"${matches(act) ? "" : " hidden"}` : "");
     return `
       <div class="e-permits-fo-intent__inner e-permits-gh-intent" data-gh-intent>
         ${R().intentHtml?.({
@@ -1292,7 +1356,8 @@
           newAttrs: "data-gh-intent-new",
           actsTitle: "Acte emise pentru acest serviciu",
           actsId: "gh-acts-title",
-          rowsHtml: acts.map((act) => actRowHtml(d, act)).join(""),
+          listHeadHtml: searchable ? actsSearchHtml(S.actsQuery || "") : "",
+          rowsHtml: acts.map((act) => actRowHtml(d, act, rowAttrs(act))).join(""),
           emptyTitle: "Solicitantul nu are acte emise pentru acest serviciu",
           emptyAttrs: "data-gh-acts-empty"
         }) || ""}
@@ -2133,7 +2198,9 @@
     audit("Publicare eveniment MConnect Event Bus", d, "cerere.depusa", { system: true });
     audit("Notificare MNotify: depunere", d, `Identificator ${d.nr}, termen ${longDate(d.examDeadline)}`, { system: true });
     persist({ silent: true });
-    /* no toast: the confirmation is shown in place (US-238 AC-04) */
+    /* no toast here: the confirmation is shown in place (US-238 AC-04); the success toast comes when the window
+       closes over «Dosare noi» (closeSheet, ghiseu-picker-toast-v1) */
+    S.submittedNr = d.nr;
     render();
   }
 
@@ -2415,6 +2482,8 @@
     }
   }
   function onInput(event) {
+    /* the acts search filters the picker; it is not a change of the draft */
+    if (event.target.matches?.("[data-gh-acts-search]")) { filterActs(event.target); return; }
     S.dirty = true;
 
     const t = event.target;

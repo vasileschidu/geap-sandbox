@@ -16901,7 +16901,8 @@ a.e-permits-fo-lib-item__title:is(:hover, :focus) {
   transition: transform 160ms ease;
 }
 
-.e-permits-fo-intent-act__trigger[aria-expanded="true"] .icon {
+/* the chevron of the labelled pill turns; the square ⋮ (GEAPActRow `actionIcon`, ghiseu-picker-toast-v1) does not */
+.e-permits-fo-intent-act__trigger:not(.btn-icon-only)[aria-expanded="true"] .icon {
   transform: rotate(180deg);
 }
 

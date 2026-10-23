@@ -47,7 +47,16 @@
                                             colour, gap 4; user 2026-10-21) (desktop one line + ellipsis + tooltip, phones wrap). The Cabinet
                                             acts / requests pass title = the act type / service + place = the object;
                                             the FO intent step (and the Ghișeu picker — one service) keep the object as
-                                            the title and pass no place (all acts there are the same type). }
+                                            the title and pass no place (all acts there are the same type).
+              // ghiseu-picker-toast-v1 (2026-10-23, user on GEAP 11850:27348: the Ghișeu act picker „as in Actele mele —
+              // only the accent is the location; the action fixed and square as in Solicitări”):
+              placeIcon = true              false → line 2 without the pin (the Ghișeu picker: title = the location, line 2 =
+                                            the act type)
+              actionIcon = ""               a sprite id („icon-more-vertical”) → the trigger is the SQUARE icon-only button
+                                            (library `btn btn-neutral btn-sm btn-icon-only`, 32, tooltip = actionLabel), same
+                                            menu; with nothing to start (a locked row, or every item unavailable) there is
+                                            NO trigger at all (row-menu-no-disabled-only-v1). The labelled pill stays the
+                                            default (FO, Cabinet acts). }
 
    Menu (action-menu-v1, 2026-10-20 — user: „the action does a dropdown menu, as Telegram, not a down modal”):
    ONE anchored dropdown at every width (the phone action sheet of the morning is gone): unavailable items keep
@@ -133,7 +142,8 @@
     menuId = `fo-act-menu-${act.id}`, actionLabel = "Postprocese", items = [], pendingTitle = "", pendingText = "", menuClass = "",
     assets = "assets/", attrs = "", tagHtml = null, extraTagsHtml = "", triggerAttrs = "data-fo-intent-trigger", itemAttrs = null,
     noticeTone = "warning", noticeIcon = "icon-time", noticeLocks = true, hideEmptyAction = false,
-    iconSrc = null, metaSlots = null, actionHtml = null, rowClass = "", noticeHtml = "", place = "", titleHref = ""
+    iconSrc = null, metaSlots = null, actionHtml = null, rowClass = "", noticeHtml = "", place = "", titleHref = "",
+    placeIcon = true, actionIcon = ""
   } = {}) {
     /* accessible names of the trigger / menu: the type alone repeats on every row → „<type> — <place>” */
     const label = place ? `${act.name} — ${place}` : act.name;
@@ -148,12 +158,17 @@
       ? `<span class="status-tag status-tag--brand is-subtle status-tag--small e-permits-fo-doc-tag">${TACIT_LABEL_HTML}</span>` /* blue = the FO „Semnat electronic” tone (library info-subtle has grey text) */
       : `<span class="status-tag status-tag--${tone} is-subtle status-tag--small e-permits-fo-doc-tag">${esc(act.statusLabel || act.status)}</span>`);
     const itemHook = itemAttrs || ((pp) => `data-fo-intent-postprocess="${esc(pp.id)}"`);
-    const action = actionHtml !== null ? actionHtml : hideEmptyAction && !items.length ? "" : `
-          <div class="cab-doc__actions e-permits-fo-intent-act__action">
+    /* the square ⋮ (actionIcon) is never shown without one item that can start */
+    const noIconAction = actionIcon && (locked || !items.some((pp) => !pp.disabled));
+    const action = actionHtml !== null ? actionHtml : (hideEmptyAction && !items.length) || noIconAction ? "" : `
+          <div class="cab-doc__actions e-permits-fo-intent-act__action">${actionIcon ? `
+            <button class="btn btn-neutral btn-sm btn-icon-only e-permits-fo-intent-act__trigger" type="button" aria-label="${esc(actionLabel)} pentru ${esc(label)}" data-tooltip-label="${esc(actionLabel)}" aria-haspopup="menu" aria-expanded="false" aria-controls="${esc(menuId)}" ${triggerAttrs}>
+              <svg class="icon small" aria-hidden="true"><use href="${assets}icons/sprite.svg#${esc(actionIcon)}"></use></svg>
+            </button>` : `
             <button class="btn btn-neutral btn-sm e-permits-fo-intent-act__trigger" type="button" aria-label="${esc(actionLabel)} pentru ${esc(label)}" aria-haspopup="menu" aria-expanded="false" aria-controls="${esc(menuId)}" ${triggerAttrs}${locked ? " disabled" : ""}>
               <span>${esc(actionLabel)}</span>
               <svg class="icon small" aria-hidden="true"><use href="${assets}icons/sprite.svg#icon-chevron-bottom"></use></svg>
-            </button>
+            </button>`}
             <ul class="e-permits-fo-intent-menu e-permits-stack__menu${menuClass && menuClass !== "e-permits-stack__menu" ? ` ${menuClass}` : ""}" id="${esc(menuId)}" role="menu" aria-label="Postprocese pentru ${esc(label)}" hidden>
               ${menuItemsHtml(items, itemHook, assets)}
             </ul>
@@ -168,7 +183,7 @@
                 : `<span class="e-permits-fo-lib-item__title" data-full-name="${esc(act.name)}">${esc(act.name)}</span>`}
               ${tag}${extraTagsHtml}
             </div>${place ? `
-            <p class="e-permits-fo-intent-act__place"><svg class="icon small e-permits-fo-intent-act__place-icon" aria-hidden="true"><use href="${assets}icons/sprite.svg#icon-map-pin-filled"></use></svg><span class="e-permits-fo-intent-act__place-text" data-full-name="${esc(place)}">${esc(place)}</span></p>` : ""}
+            <p class="e-permits-fo-intent-act__place">${placeIcon ? `<svg class="icon small e-permits-fo-intent-act__place-icon" aria-hidden="true"><use href="${assets}icons/sprite.svg#icon-map-pin-filled"></use></svg>` : ""}<span class="e-permits-fo-intent-act__place-text" data-full-name="${esc(place)}">${esc(place)}</span></p>` : ""}
             ${parts.length ? `<div class="e-permits-fo-lib-item__meta e-permits-fo-doc-meta"><span class="e-permits-fo-doc-meta__line">${parts.map((part) => `<span class="e-permits-fo-doc-meta__part${part.kind ? ` e-permits-fo-doc-meta__part--${part.kind}` : part.long ? " e-permits-fo-doc-meta__part--long" : ""}">${part.html}</span>`).join("")}</span></div>` : ""}
             ${hasNotice ? `<div class="message message--subtle banner--${noticeTone} e-permits-fo-intent-act__pending"><span class="banner__icon"><svg class="icon" aria-hidden="true"><use href="${assets}icons/sprite.svg#${noticeIcon}"></use></svg></span><div class="banner__content"><p class="banner__text">${noticeHtml || `${pendingTitle ? `<strong>${esc(pendingTitle)}</strong> ` : ""}${esc(pendingText)}`}</p></div></div>` : ""}
           </div>${action}

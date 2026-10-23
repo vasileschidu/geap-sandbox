@@ -554,3 +554,22 @@
     white-space: nowrap;
   }
 }
+
+/* ghiseu-picker-toast-v1 (2026-10-23): many acts (≥ 8) → the library search above the act rows (Medium 40, full column
+   width) + the shared „Niciun rezultat” in its place; the section's own 12 gap spaces title · search · rows. Rows that do
+   not match are `hidden` in place (the row's display would beat the attribute); an all-hidden list takes no room. */
+.e-permits-gh-acts-search {
+  display: grid;
+  gap: var(--spacing-12, 12px);
+}
+
+.e-permits-gh-intent .e-permits-fo-intent__list > li[hidden],
+.e-permits-gh-intent .e-permits-fo-intent__list:not(:has(> li:not([hidden]))) {
+  display: none;
+}
+
+/* lone-trash-v1 (2026-10-23): the lone grey trash of a draft row in «Dosare noi» = the ⋮ look — white on the grey row band
+   until the pointer is on it (as .e-permits-stack__menu-trigger, e-permits-shell.css) */
+.e-permits-workplace__table tbody tr:is(:hover, :focus-visible) .btn-neutral.e-permits-gh-row-remove:not(:hover, :active) {
+  background: var(--color-background-base-default, #fff);
+}

@@ -5118,7 +5118,7 @@
     /* the whole „Ce vrei să soliciți?” screen body — FO #intent and the Ghișeu request window (2026-10-15):
        header (title + „<label> <name> · Schimbă”), optional notice, „Solicitare nouă”, „sau”, the acts list
        (rows from foActRowHtml) or the shared empty state */
-    function foIntentHtml({ title = "Ce vrei să soliciți?", titleId = "fo-intent-title", subjectLabel = "Solicitant", subjectName = "", subjectMeta = "", changeAttrs = "data-fo-back-choice", noticeHtml = "", newRequest = {}, newAttrs = "data-fo-intent-new", separator = "sau", actsTitle = "Acte emise pentru acest serviciu", actsId = "fo-intent-acts-title", rowsHtml = "", emptyTitle = "Dumneavoastră nu aveți acte emise pentru serviciul dat", emptyAttrs = "data-fo-intent-empty" } = {}) {
+    function foIntentHtml({ title = "Ce vrei să soliciți?", titleId = "fo-intent-title", subjectLabel = "Solicitant", subjectName = "", subjectMeta = "", changeAttrs = "data-fo-back-choice", noticeHtml = "", newRequest = {}, newAttrs = "data-fo-intent-new", separator = "sau", actsTitle = "Acte emise pentru acest serviciu", actsId = "fo-intent-acts-title", rowsHtml = "", emptyTitle = "Dumneavoastră nu aveți acte emise pentru serviciul dat", emptyAttrs = "data-fo-intent-empty", listHeadHtml = "" } = {}) {
       const esc = escapeFrontOfficeHtml;
       return `
         <header class="e-permits-fo-intent__header">
@@ -5138,6 +5138,7 @@
         <div class="e-permits-fo-intent__separator" role="separator"><span>${esc(separator)}</span></div>
         <section class="e-permits-fo-intent__acts" aria-labelledby="${esc(actsId)}">
           <p class="e-permits-fo-intent__acts-title" id="${esc(actsId)}">${esc(actsTitle)}</p>
+          ${rowsHtml ? listHeadHtml : "" /* above the rows (the Ghișeu acts search, ghiseu-picker-toast-v1) */}
           ${rowsHtml
             ? `<ul class="e-permits-fo-intent__list">${rowsHtml}</ul>`
             : `<div ${emptyAttrs}>${window.GEAPEmptyState.render({ title: String(emptyTitle).replace(/\.$/, ""), text: "Un act apare aici după ce este emis. Pentru un act nou, alegeți „Solicitare nouă”.", icon: "permission" })}</div>`}

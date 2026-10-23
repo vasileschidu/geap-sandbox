@@ -2944,7 +2944,8 @@
     /* the modal filled (service + applicant) → Continuă → intent: „Solicitare nouă” (or a post-process) → the request */
     const start = (who, svc = "003000118", choice = primar) => seq(service(svc), who, cont, choice);
     const chooseAct = (id, type) => async (h) => { await openActMenu(id)(h); await actMenuPick(`[data-fo-intent-act="${id}"] [data-fo-intent-postprocess="${type}"]`)(h); await atStep1(h); };
-    const menu = (sel) => async (h) => { (await h.find(sel)).closest(".e-permits-stack__item, tr").querySelector("[data-stack-menu-trigger]").click(); await h.wait(300); };
+    /* a row's ⋮ (rows whose only action is „Elimină schița” show the lone trash instead — lone-trash-v1: nothing to open) */
+    const menu = (sel) => async (h) => { (await h.find(sel)).closest(".e-permits-stack__item, tr").querySelector("[data-stack-menu-trigger]")?.click(); await h.wait(300); };
     /* a real file into a document field: the FO document modal, „Încarcă” tab */
     const ghUpload = (fieldSel, name, size = 1200000) => async (h) => {
       await h.click(`${fieldSel} [data-fo-open-doc-modal]`); await h.wait(300);
@@ -2971,10 +2972,13 @@
       "gh-01a": ghList(async (h) => { await h.fill("[data-workplace-search]", "zzz"); await h.wait(500); }),
       "gh-01b": ghList(null, { gol: "1" }),
       "gh-01c": ghList(async (h) => { await h.click("[data-workplace-filter-toggle]"); }),
-      "gh-01d": ghList(menu("tr[data-workplace-row='gh-4771']")),
+      /* lone-trash-v1: a draft row whose only action is „Elimină schița” = ONE grey trash (hovered: tooltip „Elimină schița”) */
+      "gh-01d": ghList(async (h) => { await h.hover("tr[data-workplace-row='gh-4771'] .e-permits-gh-row-remove"); await h.wait(600); }),
       "gh-01e": ghList(async (h) => { await h.click("[data-workplace-export]"); await h.find("#case-action-modal.is-active [data-gh-export-confirm]"); }),
       "gh-01f": ghList(async (h) => { await h.click('[data-workplace-tab="submitted"]'); }),
       "gh-01g": { flow: "back-office", as: "ansp-specialist-chisinau", hash: "#ghiseu/nou", ready: "#gh-start-modal.is-active .e-permits-empty" },
+      /* ghiseu-picker-toast-v1: a dossier submitted (gh-10a) → „Înapoi la Dosare noi” → the list with the library success toast */
+      "gh-01t": gh("#ghiseu/gh-4771/plata", seq(async (h) => { await h.click("[data-gh-mpay]"); }, next, async (h) => { await h.click("[data-gh-submit]"); await h.wait(400); await h.click("[data-gh-close-sheet]"); await h.find("[data-registry-kind='ghiseu'] tr[data-workplace-row]"); await h.find(".toast"); await h.wait(300); })),
       /* US-233 small modal „Dosar nou” (one screen): empty, list search, service, PF / PJ found, not found
          (9999999999999), registry down, lookup running, 13 digits typed (arrow enabled), short code + Enter,
          Continuă with nothing, PJ-only service */
@@ -3002,8 +3006,14 @@
       "gh-02i": gh("#ghiseu/nou", seq(service("003000118"), pjAdmin, cont)),
       /* tacit-tag-v1: Izvoraș (Valabil, tacit) = „Aprobare tacită” only; Piața Mare (Suspendat, tacit) = „Suspendat” only */
       "gh-02y": gh("#ghiseu/nou", seq(service("003000118"), pjAdmin, cont), { tacit: "act-izvoras,act-piata-mare" }),
+      /* ghiseu-picker-toast-v1: many acts (?acte=multe, 15) → the search above the rows; a query without diacritics
+         („izvoras” finds „Izvoraș”); a query with no match → „Niciun rezultat” */
+      "gh-02z": gh("#ghiseu/nou", seq(service("003000118"), pjAdmin, cont), { acte: "multe" }),
+      "gh-02z1": gh("#ghiseu/nou", seq(service("003000118"), pjAdmin, cont, async (h) => { await h.fill("[data-gh-acts-search]", "izvoras", { leave: false }); await h.wait(600); }), { acte: "multe" }),
+      "gh-02z2": gh("#ghiseu/nou", seq(service("003000118"), pjAdmin, cont, async (h) => { await h.fill("[data-gh-acts-search]", "zzz", { leave: false }); await h.wait(600); }), { acte: "multe" }),
       "gh-02j": gh("#ghiseu/nou", seq(service("003000118"), pjAdmin, cont, openActMenu("act-piata-mare"), async (h) => { if (window.matchMedia("(max-width: 760px)").matches) return; /* phones: the reason is a line in the item */ await h.hover('[data-fo-intent-act="act-piata-mare"] [data-fo-intent-postprocess="Prelungire"]'); await h.wait(600); })),
-      "gh-02t": gh("#ghiseu/nou", seq(service("003000118"), pjAdmin, cont, async (h) => { await h.scroll('[data-fo-intent-act="act-depozit"]'); await h.hover('[data-fo-intent-act="act-depozit"] [data-fo-intent-trigger]'); await h.wait(600); })),
+      /* a locked act (Reperfectare în curs): the notice, no ⋮ (nothing can start — ghiseu-picker-toast-v1) */
+      "gh-02t": gh("#ghiseu/nou", seq(service("003000118"), pjAdmin, cont, async (h) => { await h.scroll('[data-fo-intent-act="act-depozit"]'); await h.wait(300); })),
       "gh-02l": gh("#ghiseu/nou", seq(service("003000118"), pf("0990001234567"), cont)),
       "gh-02u": gh("#ghiseu/nou", seq(service("003000118"), pf("2123456789018"), cont)),
       "gh-02n": gh("#ghiseu/nou", seq(service("003000118"), pjAdmin, cont, chooseAct("act-izvoras", "Reperfectare"), async (h) => { await h.click('#gh-request-modal .e-permits-fo-selected-role__change'); await h.find("#gh-start-modal.is-active [data-gh-panel]"); await h.click('[data-gh-reset="company"]'); }, code("company", "1014600099887"), cont)),
