@@ -3281,3 +3281,42 @@ For any „research how other products do it” step, search Mobbin (mcp__mobbin
   - No Agent tool in this session → stored audits (`rap/audit`, Cabinet `qsweep/audit`, GEAP `ghs/audit`, eKYC `qsweep/audit-lite`) on
     every changed block / component: only board baseline left (phone viewport clips, table scroll, pager 1 px, padded Register gap 0,
     pre-existing Fees list title padding 11); fixed 1 unbound option label fill (Advanced filtering 02b).
+
+- 2026-10-22/23 · act-alert-card-v1 → v2 (EVO Cabinet iitScYOwMYjDayuyrm3750; code a4122013 + 78cb1341). New local set **`Alert card`
+  1259:4099** (section „Components · Alert card (2026-10-22)” 1259:4100 on 🧱 Local components): Status Info / Warning / Danger /
+  Success × Layout Row (desktop: p24, gap 16, `Actions wrap` STRETCH + paddingLeft 8 → buttons 24 from the text and centred on it,
+  text maxWidth 698 = the code's 75ch) / Stacked (phones: p16, icon gap 12, buttons in a right-aligned row 16 under the text) ×
+  Buttons None / One / Two; TEXT props Title / Text; exposed `Button` / `Quiet button` / `Primary button`. Title = Mobile/Heading/H5
+  (the only 16/24 SemiBold style; declared), text Desktop/Body/Small + text/base/secondary, surface background/base/secondary,
+  radius-24. Primary = library button-filled-circular Primary Medium (the pill IS a library variant — no radius override); quiet
+  (v2 „btn-outline-strict”) = button-outlined-circular Strict Medium with a white fill (background/base/default) on the instance —
+  the library outlined button has no fill, it vanished on the grey card. „În examinare” uses EVO DS 24/time-filled c011c86f…
+  (Foundations has none at 24), recoloured to the tone token. Applied by tools/figma/alert-card/apply.js (idempotent: removes old
+  `Alert`, the trajectory `Callout wrap`, header actions listed in `rm`; Panel top 24 / 16; wrap bottom 24 / 16 requests, 16 acts):
+  29 existing blocks (sm-03…sm-05w, pp-01j / 01k / 01q) — 52 old `Trajectory · callout` instances removed, „Suplinește informații” /
+  „Achită 500,00 MDL” removed from sm-04b / 04h / 04c / 04d headers; sm-04h got the retry note (clone of the Request row `Retry`
+  frame). New act blocks (tools/figma/alert-card/act-block.js, clone of pp-01j + code header / body rows): pp-01e 1267:3919,
+  pp-01i 1268:3919, pp-03 1268:4752, pp-03a 1268:5385, pp-03b 1268:52004, pp-03c 1268:52636. Card heights = code to the pixel
+  except three where Figma wraps one line less / more (sm-04k desktop 96 vs 116, sm-05q / 05r phone +20) — font metrics, declared.
+  Lessons:
+  - **Probe the code once for every state × width before building** (scratch probe.mjs: tone, glyph, title, text, buttons with
+    classes / icons, card / content / actions rects, header height + actions, next sibling, trajectory labels): it gave every
+    spec and caught the extra states that also carry the alert (sm-03e/f/g, 04d, 04l, 05l/m/p/q/r/s/w, pp-01q) beyond the brief.
+  - **Text layers created then given `characters` are auto-renamed** to their content → name them AFTER setting the text and set
+    `autoRename = false`; a later `findOne(name === "Text")` returned null and the call rolled back.
+  - **Per-line label tints** (code `box-decoration-break: clone`): `Trajectory · step` 1087:2497 Current / Suspended / Attention
+    horizontal variants got a `label-lines` VERTICAL CENTER wrapper with the old `label-pill` + a hidden `label-pill 2` (TEXT
+    `Label line 2#1261:0`, BOOLEAN `Show label line 2#1261:15`). Phone steps whose label wraps in code are split by word (sm-04b /
+    04h „Informații / suplimentare”, sm-04c / 04d / 04g „Spre / achitare”). **A FILL pill inside a new HUG wrapper freezes at the
+    main's width** (every phone pill became 77) → set pill + text HUG / WIDTH_AND_HEIGHT on every instance right after.
+  - Two-button stacked alerts: with v2's shorter „Solicitare nouă” the pair fits one 311 row → Stacked/Two = one right-aligned
+    row (quiet, primary). Figma wrap can't do the code's wrap-reverse (primary on top when they don't fit) — declared.
+  - Phone act headers: code shows the labelled „Postprocese” (not ⋯) → pp-01j / pp-01l phones switched by setProperties (id kept,
+    the pp-01j → pp-01q connector stays attached). „Valabil până la … (N de zile rămase)” wraps the days onto line 2 on phones.
+  - **The Figma MCP stalled for ~17 min per call twice in this job** (also after the machine slept). Check node existence with the
+    REST API (`/v1/files/:key/nodes?ids=…&depth=1`) — it answers when the plugin bridge does not — and write the lessons /
+    remaining list early.
+  Still open when the bridge died (to resume): sm-05u / sm-05v blocks (clone sm-05 1133:3935, header Aprobat tacit Brand / Aprobat,
+  trajectory 3 steps, Date generale rows from the probe), v2 header „Vezi solicitarea” without icon (pp-01x / 01y / 01m desktop
+  carry a leading icon), restack columns 02–06 + 04 · Permit profile (new act blocks parked at y 20000), arrows check, notes for the
+  6 new blocks are set, Start here 06 / 04 counts + file index, stored figma-audit on the set + changed blocks.
