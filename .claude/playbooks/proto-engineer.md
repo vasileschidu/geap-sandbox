@@ -3131,3 +3131,9 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   request-number cell appears in gh-10a / 10c1 (preview content, not this card). Retry now focuses the success action
   in Ghișeu too (was <body>). New demos fo-08a1 / gh-10c1 (after retry). No sub-agent tool → hover-audit 0 / 0, code-audit
   0 (static + runtime, both scopes), component-audit 0 in the card, capture 0 errors / 0 overflow at 1440 + 375.
+- 2026-10-23 · invoice-head-small-v2 (user follow-up: label line → amount 4, head padding 16 on every side, desktop + phones).
+  Base rule `gap: --spacing-4; padding: --spacing-16` and the ≤ 720 padding override DELETED (now identical). Also dropped the
+  caption's `min-height: 24` — a leftover of the old 24 strong tag that would have added 2 px of air under the 20 label line
+  and made the visible gap 6, not the asked 4. When a spacing request names a gap between two lines of text, check every
+  min-height / line box between them, not just the flex gap. Probe: padding / gap / caption bottom → amount top = 4, edges 16
+  (bottom 17 incl. the divider), head 85 / 83 on fo-07, gh-09 / 09a / 09b / 09c at 1440 + 375.

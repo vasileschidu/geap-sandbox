@@ -9665,8 +9665,10 @@ a.e-permits-fo-lib-item__title:is(:hover, :focus) {
   border-bottom: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-12, 12px);
-  padding: var(--spacing-16, 16px) var(--spacing-24, 24px);
+  /* label line → amount 4, padding 16 on every side at every width (invoice-head-small-v2, user 2026-10-23;
+     was gap 12 · padding 16 / 24, phones 16) */
+  gap: var(--spacing-4, 4px);
+  padding: var(--spacing-16, 16px);
 }
 
 .e-permits-fo-payment-invoice__caption {
@@ -9674,7 +9676,6 @@ a.e-permits-fo-lib-item__title:is(:hover, :focus) {
   display: flex;
   gap: var(--spacing-12, 12px);
   justify-content: space-between;
-  min-height: 24px;
 }
 
 .e-permits-fo-payment-invoice__label {
@@ -9804,10 +9805,6 @@ a.e-permits-fo-lib-item__title:is(:hover, :focus) {
   .e-permits-fo-payment-summary .e-permits-fo-summary-row {
     grid-template-columns: 1fr;
     row-gap: var(--spacing-2, 2px);
-  }
-
-  .e-permits-fo-payment-invoice__header {
-    padding: var(--spacing-16, 16px);
   }
 
   /* the fee table would need ~480px to keep its four columns, so on phones
