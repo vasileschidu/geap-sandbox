@@ -2940,3 +2940,13 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   (register, table, pager on rap / dos / pp), component-audit 0 new majors (standing header / avatar menu / BO th sort),
   code-audit 0 after the fix; tooltips proved with a real-mouse probe (clamped name shows, short name does not, authority
   + button names, row focus → authority).
+- 2026-10-23 · rap-table-flat-v2 — the user REJECTED the bordered row-end button of v1 („bring it back as it was, a simple
+  chevron, and move it on hover”). Lesson: a coordinator relay („add a bordered button”) that contradicts the library
+  pattern (Ramona's action cell = a bare icon) deserves a quick crop to the user before shipping; restoring „as it was” =
+  take the exact pre-change markup / CSS from `git show <commit>^:file` (bare `span.rap-row-action[aria-hidden]`, tertiary
+  20 chevron, text colour + translateX(2px) / 100 ms on row hover / focus — the nudge already existed), plus a
+  reduced-motion guard. Also fixed a standing gap: `tr:focus-visible { box-shadow: inset … }` is NEVER painted in a
+  collapsed table → the BO registry pattern (inset top / bottom shadows on every cell, sides on the first / last) with
+  `--focus-ring` (RAP has no root `--focus-ring`, the fallback blue-sky-500 paints; main.css' `--focus-ring` is a
+  switch-scoped box-shadow value, not a colour — never use it outside its fallback). Proof: a real-mouse probe (rest /
+  hover / focus / reduced-motion: transform none → 2 px → none, cell shadows present), hover-audit 0 / 0.

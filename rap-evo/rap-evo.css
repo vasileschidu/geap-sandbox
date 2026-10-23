@@ -461,8 +461,28 @@ a {
   background: var(--rap-hover);
 }
 
-.rap-table tbody tr:focus-visible {
-  box-shadow: inset 0 0 0 2px var(--rap-brand);
+/* keyboard focus ring (rap-table-flat-v2): a box-shadow on the `tr` is never painted in a collapsed table (the cells
+   cover it) → the library ring (2 px `--focus-ring`) drawn INSIDE the cells: top + bottom on every cell, the sides on
+   the first / last (the BO registry pattern, css/e-permits-shell.css › data-workplace-row-open) — inset, so the
+   table scroller never clips it */
+.rap-table tbody tr:focus-visible > td {
+  box-shadow:
+    inset 0 var(--border-width-2, 2px) 0 var(--focus-ring, var(--blue-sky-500, #3379db)),
+    inset 0 calc(var(--border-width-2, 2px) * -1) 0 var(--focus-ring, var(--blue-sky-500, #3379db));
+}
+
+.rap-table tbody tr:focus-visible > td:first-child {
+  box-shadow:
+    inset var(--border-width-2, 2px) 0 0 var(--focus-ring, var(--blue-sky-500, #3379db)),
+    inset 0 var(--border-width-2, 2px) 0 var(--focus-ring, var(--blue-sky-500, #3379db)),
+    inset 0 calc(var(--border-width-2, 2px) * -1) 0 var(--focus-ring, var(--blue-sky-500, #3379db));
+}
+
+.rap-table tbody tr:focus-visible > td:last-child {
+  box-shadow:
+    inset calc(var(--border-width-2, 2px) * -1) 0 0 var(--focus-ring, var(--blue-sky-500, #3379db)),
+    inset 0 var(--border-width-2, 2px) 0 var(--focus-ring, var(--blue-sky-500, #3379db)),
+    inset 0 calc(var(--border-width-2, 2px) * -1) 0 var(--focus-ring, var(--blue-sky-500, #3379db));
 }
 
 .rap-beneficiary,
@@ -556,14 +576,37 @@ a {
   cursor: default;
 }
 
-/* the last cell = the library outlined icon-only Small button (32, chevron 16) — „Add a bordered button to the last
-   element in the table” (user, rap-table-flat-v1); its own library hover; on the row's hover band it stays white */
-.rap-table__action {
-  text-align: right;
+/* the last cell = the bare chevron again (rap-table-flat-v2, user: „bring it back as it was, a simple chevron, and move
+   it on hover” — the bordered button of v1 was rejected): restored exactly as before v1 (tertiary 20 chevron, on the
+   row's hover / focus the text colour + 2 px to the right, 100 ms); no move with reduced motion */
+.rap-row-action {
+  align-items: center;
+  display: flex;
+  justify-content: center;
 }
 
-.rap-table tbody tr:is(:hover, :focus-visible) .rap-row-action:not(:hover, :active) {
-  background: var(--color-background-base-default, #fff);
+.rap-row-action .icon {
+  color: var(--rap-text-tertiary);
+  height: 20px;
+  transition: color 100ms ease, transform 100ms ease;
+  width: 20px;
+}
+
+.rap-table tbody tr:hover .rap-row-action .icon,
+.rap-table tbody tr:focus-visible .rap-row-action .icon {
+  color: var(--rap-text);
+  transform: translateX(2px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rap-row-action .icon {
+    transition: color 100ms ease;
+  }
+
+  .rap-table tbody tr:hover .rap-row-action .icon,
+  .rap-table tbody tr:focus-visible .rap-row-action .icon {
+    transform: none;
+  }
 }
 
 /* the list pager = the shared component (css/pager.css, audit-fix-v3); the register's footer inset only — 16 on every

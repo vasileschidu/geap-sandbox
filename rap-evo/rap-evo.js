@@ -419,8 +419,8 @@
   /* rap-table-flat-v1 (2026-10-23, user + Ramona): Beneficiar = the key column (widest, 2-line clamp), Denumire act
      2-line clamp — both with the full text in the tooltip only when cut; Autoritate = the abbreviation only, the full
      name in the plain tooltip (hover; keyboard: the row's focus shows it, `data-tooltip-focus`) and in the row's
-     name / a visually hidden text for screen readers; the last cell = an outlined icon-only Small button (the row
-     stays the keyboard path, so the button is out of the tab order) */
+     name / a visually hidden text for screen readers; the last cell = the bare chevron (aria-hidden; v2 — the bordered
+     button of v1 was rejected), the row is the click / keyboard target */
   const renderRow = (record) => `
     <tr tabindex="0" data-tooltip-focus data-record-id="${escapeHtml(record.id)}" aria-label="Deschide ${escapeHtml(record.permit.name)} pentru ${escapeHtml(record.beneficiary.name)}, emis de ${escapeHtml(record.authority.name)}">
       <td>${renderBeneficiary(record)}</td>
@@ -443,10 +443,10 @@
         </span>
       </td>
       <td>${statusTags(record)}</td>
-      <td class="rap-table__action">
-        <a class="btn btn-outline-strict btn-sm btn-icon-only rap-row-action" href="${escapeHtml(pageUrl(record.id))}" tabindex="-1" aria-label="Deschide actul ${escapeHtml(record.permit.number)}">
-          <svg class="icon" aria-hidden="true"><use href="../assets/icons/sprite.svg#icon-chevron-right"></use></svg>
-        </a>
+      <td>
+        <span class="rap-row-action" aria-hidden="true">
+          <svg class="icon"><use href="../assets/icons/sprite.svg#icon-chevron-right"></use></svg>
+        </span>
       </td>
     </tr>
   `;
@@ -782,7 +782,7 @@
     });
 
     elements.tableBody.addEventListener("click", (event) => {
-      const link = event.target.closest(".rap-act-link, .rap-row-action");
+      const link = event.target.closest(".rap-act-link");
       if (link && (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || event.button !== 0)) {
         return;
       }
