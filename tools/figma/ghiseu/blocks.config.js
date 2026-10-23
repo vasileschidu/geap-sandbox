@@ -124,7 +124,7 @@ const GH_STATES = {
   "gh-10b": ["Eroare la depunere", "„A apărut o eroare. Depunerea nu a putut fi finalizată. Încercați din nou.”"],
   "gh-10c": ["Certificat negenerat", "Depunerea a reușit, certificatul nu: „Reîncercați”."],
   "gh-13": ["Reluarea schiței", "„Continuă” pe rând redeschide schița la pasul unde a rămas (aici Verificare)."],
-  "gh-11c": ["„Mai multe acțiuni” pe o schiță achitată", "Rândul C-2026-004765 (nota achitată): „Elimină schița” dezactivat."],
+  "gh-11c": ["Schiță achitată fără „Mai multe acțiuni”", "Rândul C-2026-004765 (nota achitată): fără ⋮ — singura acțiune, „Elimină schița”, nu mai e posibilă."],
   "gh-11d": ["„Mai multe acțiuni” pe plată expirată", "Rândul C-2026-004702 (plată expirată): „Elimină schița” disponibil."],
   "gh-02o": ["Închidere cu modificări", "× cu modificări nesalvate: „Salvați schița înainte de a închide?”."],
   "gh-11": ["Eliminare schiță", "Confirmarea cu motiv obligatoriu; schița primește „Eliminat”, se scrie în Jurnalul de audit."],

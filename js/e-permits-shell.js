@@ -7059,8 +7059,15 @@ document.addEventListener("DOMContentLoaded", () => {
      (.e-permits-fo-intent-menu: icon + 16/24 medium items, 16px panel) */
   let stackMenuSeq = 0;
 
+  /* row-menu-no-disabled-only-v1 (2026-10-23, user on GEAP 2.0 11818:22341: „better not to show the menu at all than to
+     tempt with a single impossible action … it's misleading”): a ⋮ whose items are ALL unavailable (aria-disabled /
+     disabled / item.disabled) is not rendered — the caller keeps its cell, so nothing shifts. One enabled item → the
+     menu stays and the disabled ones keep their tooltip reason (components.md › Row actions). */
+  const stackMenuItemEnabled = (item) => !item.disabled && !/(^|\s)(aria-disabled="true"|disabled(?=[\s=>]|$))/.test(String(item.attrs || ""));
+  const stackMenuHasEnabled = (items = []) => items.some(stackMenuItemEnabled);
+
   const renderStackMenu = (items, label) => {
-    if (!items.length) {
+    if (!items.length || !stackMenuHasEnabled(items)) {
       return "";
     }
 
@@ -7109,7 +7116,7 @@ document.addEventListener("DOMContentLoaded", () => {
           </div>
         `).join("")}
       </div>
-      ${item.actionsHtml ? `<div class="e-permits-stack__actions">${item.actionsHtml}</div>` : item.action || item.menu?.length ? `
+      ${item.actionsHtml ? `<div class="e-permits-stack__actions">${item.actionsHtml}</div>` : item.action || stackMenuHasEnabled(item.menu) ? `
         <div class="e-permits-stack__actions">
           ${item.action ? `<button class="btn ${isDestructiveLabel(item.action.label) ? "btn-outline-destructive" : item.action.tone === "secondary" ? "btn-secondary" : "btn-neutral"} btn-sm e-permits-stack__action" type="button" ${item.action.attrs}>${actionLabelHtml(item.action.label)}</button>` : ""}
           ${renderStackMenu(item.menu || [], item.plainTitle || "")}

@@ -2833,3 +2833,21 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   Before / after = a HEAD worktree served on :8979 + one crop/metrics script (scratch dwa/crop.mjs: card bg / radius /
   padding, row heights, label width / colour) run on both — a stray server on another port showed a different tree.
   zsh: `echo == x` fails („= not found”, equals expansion) — quote it.
+- 2026-10-23 · No ⋮ with only unavailable items (row-menu-no-disabled-only-v1; user on GEAP 2.0 11818:22341 „better not to show
+  the menu at all than to tempt with a single impossible action … it's misleading”). ONE place: `renderStackMenu` returns ""
+  when no item is enabled (`item.disabled`, or `aria-disabled="true"` / a bare `disabled` in `attrs` — regex anchored on
+  start / whitespace so `data-…-disabled` and `aria-disabled="false"` don't count); `renderStackItem` asks the same helper
+  (`stackMenuHasEnabled`) so no empty actions box; `renderRowActions` already skipped an empty string. No product file
+  changed: Ghișeu's `"".replace(…fixed…)` keeps an empty `__row-actions` span → the pinned actions cell stays (width +
+  border unchanged, 1440 / 375). Inventory by a runtime probe, not by grep alone (scratch rmd/probe.mjs: every rendered
+  `[aria-haspopup=menu][aria-controls]` whose menu items are ALL disabled, all 1243 states at 1440 on a HEAD worktree
+  :8987, 8 nohup workers ≈ 12 min): before = the Ghișeu paid draft row (gh-4765, 55 states) + the labelled „Postprocese ⌄”
+  of a withdrawn act in the Ghișeu picker (gh-02i/j/t/x/y — a labelled menu, out of the ⋮ rule, reported to the PO);
+  after = only the latter. Grep found two more renderer paths no demo shows (Utilizatori › Roluri with one combination,
+  PD lane panel with one lane) — proved by a browser unit check of `GEAPUi.renderStackMenu` / `renderRowActions` (all
+  disabled / mixed / data-x-disabled / aria-disabled="false"). The sheet header ⋮ of a paid draft keeps „Istoricul cererii”
+  (enabled) → still shown (gh-10). Demo gh-11c no longer opens a menu (the `menu()` helper would throw on a missing ⋮) —
+  it shows the list; its Figma label in tools/figma/ghiseu/blocks.config.js changed with it. Probe flake: a single
+  `found: []` on gh-09b was timing (rerun = menu present) — rerun any before / after difference before believing it.
+  No sub-agent tool → hover-audit 0 / 0, component-audit (standing th sort / missing-copy / avatar menu only), code-audit
+  static 0, capture gh-11c / 11d / 01 × 2 clean.

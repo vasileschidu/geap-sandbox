@@ -3072,7 +3072,8 @@
       "gh-11": ghList(seq(menu("tr[data-workplace-row='gh-4812']"), async (h) => { await h.click('[data-gh-remove="gh-4812"]'); })),
       "gh-11a": ghList(seq(menu("tr[data-workplace-row='gh-4771']"), async (h) => { await h.click('[data-gh-remove="gh-4771"]'); }, async (h) => { await h.click("[data-gh-remove-confirm]"); })),
       "gh-11b": ghList(seq(menu("tr[data-workplace-row='gh-4812']"), async (h) => { await h.click('[data-gh-remove="gh-4812"]'); }, async (h) => { await h.fill("#fo-gh-remove-reason", "Solicitantul a renunțat la cerere."); }, async (h) => { await h.click("[data-gh-remove-confirm]"); })),
-      "gh-11c": ghList(menu("tr[data-workplace-row='gh-4765']")),
+      /* row-menu-no-disabled-only-v1: the paid draft (C-2026-004765) has no ⋮ — its only item („Elimină schița”) is unavailable */
+      "gh-11c": ghList(async (h) => { await h.find("tr[data-workplace-row='gh-4765']"); }),
       "gh-11d": ghList(menu("tr[data-workplace-row='gh-4702']")),
       "gh-12": gh("#ghiseu/gh-4650"),
       /* no-continue-btn-v1: the draft ROW continues the request (no „Continuă” button) — gh-13 = Enter on the focused row,
