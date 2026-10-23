@@ -3461,4 +3461,8 @@ For any „research how other products do it” step, search Mobbin (mcp__mobbin
     gap is 464 because another agent was editing gh-11c / gh-12 (restack it when that job ends). Board intro + file index dated.
   - No Agent tool in this session → stored `ghs/audit` on the 67 cards + 6 screens: only tight-gap 0 = section-over-card / padded
     rows baseline. Open: FO wizard payment recap (code r24 + secondary labels) not redrawn on FO Full Flows 09 (out of this scope).
+- 2026-10-23 · Same job, follow-up: column 11 restacked at 240 once the other agent finished (gh-11c … gh-12 up 224, 9 gaps = 240,
+  section re-fit to 16899 with its 80 bottom padding); GH-12 arrow 12488:361363 + the 2 other in-section connectors stayed attached.
+  Figma dates kept („6 noiembrie 2026 (15 zile lucrătoare)”, coordinator). Lesson: when a column is parked for another agent, note
+  the exact gap left so the follow-up is one restack call.
 
