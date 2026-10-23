@@ -3598,3 +3598,19 @@ For any „research how other products do it” step, search Mobbin (mcp__mobbin
   Lesson: **a variant swap done per instance (setProperties State) pins every variant property on that instance** — the 4 Cabinet
   page-2 pagers kept `Icon=Leading/Trailing` when the main switched to Icon=Only; after changing a main's nested variant, re-check
   instances that ever had a nested `setProperties` and set the new value there too.
+
+- 2026-10-23 · sm-04h-error-toast-v1 (user on EVO Cabinet 1265:4451; code ef8f8a41). A failed redirect is a non-auto-closing library
+  **toast** (Components lk-03f6 set `toast` 75:425, key 8324658c…; Error · Text-only = c0917527…, imported here as 1312:62198), never an
+  inline error between the alert and the timeline. sm-04h: `Alert` + `Section · Status` replaced by clones of sm-04b's (same state →
+  fused tray, phone card 343 r16 = the other 27 blocks; Retry frame 1265:4451 gone); toasts added to sm-04h + sm-03e desktop
+  (1313:50871 / 50899: ABSOLUTE last child, x 1440 − 24 − 350, y 24, constraints MAX / MIN, over the header) and phone (1313:50887 /
+  50911: 343 wide, x 16, y 812 − 24 − h = viewport bottom, CENTER / MIN). Props: Message, `👁️ Link` on + nested `link` → `⌨️ Link`
+  „Reîncercați” + Underline on, Close on. Arrows sm-04b → sm-04h and sm-03 → sm-03e now end on the phone toast (RIGHT). Notes, Start here
+  (intro + contents lines) and cover index updated; section 04 refit (sm-04h −136). sm-05c (download toast) has no block on the board —
+  not drawn. Stored `qsweep/audit` on both blocks: 0 findings. Lessons:
+  - **Brief node ids can be stale** — 9399:32597 resolved in none of Components / Cabinet / GEAP (REST nodes). Find the set via
+    search_design_system, confirm its file with REST `/v1/component_sets/:key` (→ doJ7tDY0PlQ0PqMgbpFVIC 75:425), use the lk-03f6 copy.
+  - **Same-state sibling block = the fastest exact fix**: when an error variant (sm-04h) must look like its base state (sm-04b), clone
+    the base block's frames into place (texts compared first) instead of re-building the tray by hand.
+  - Library toast drift (declared, not overridden): icon + × centred vertically (code top-aligned), height 92 with link (code 104 on
+    phones, 16 px text).
