@@ -4089,6 +4089,8 @@ For any „research how other products do it” step, search Mobbin (mcp__mobbin
   (RAP `A4 grid row`, Cabinet Label / Value cells, GEAP 12001:…) have borders on every column — not pinned, left alone.
 
 - 2026-10-23 · board-arrows-v2 (user: „blue arrow text = blue background + white text, everywhere; fix the arrow overlaps everywhere”).
+  **SPLIT ARROWS REJECTED by the user the same day („do ONE blue arrow, not 3 connected pieces”) — the lane-waypoint / A+B / via-stub
+  technique below (and in gh-02w-arrow follow-up) is wrong; see board-arrows-v3: one connector per arrow, never split.**
   EVO Cabinet (My Requests 21 / My Permits 10), EVO-WEB RAP (Registrul actelor permisive 19), eKYC (9 BO pages, 85), FOD (Requestor 56).
   Tools: tools/figma/board-arrows/ (route-audit.js, label-pass.js, label-component.js, reroute.js, autoplan.js), stored per file in
   figma.root shared plugin data `boardarrows/{audit,labels,labelcomp,reroute,autoplan}` (run `new Function("figma", src + "\nreturn X;")(figma)`).
@@ -4117,3 +4119,21 @@ For any „research how other products do it” step, search Mobbin (mcp__mobbin
   - Result: 0 overlaps / 0 detached / 0 off-screen crossings on all 13 pages; right-angle crossings left: Cabinet 4, RAP 2, eKYC 28
     (Dashboard 13 + Providers 11 = modal / list item order differs from the target order; only removable by moving blocks), FOD 0.
     Not touched: RAP non-board pages (Sitemap 667, IA 105, Cups, Explorations…). No Agent tool → QA = route-audit + screenshots.
+
+- 2026-10-23 · board-arrows-v3 — **ONE connector per arrow, never split** (user: „do ONE blue arrow, not 3 connected pieces — is it so
+  complicated?”). Every v2 arrow (A + waypoint + B, via stubs, footer 3-piece) collapsed back into its original connector; all waypoint /
+  via / extra-piece nodes deleted in the 4 files (+15 orphaned older eKYC start anchors). Tool: tools/figma/board-arrows/one-arrow.js
+  (ONE_ARROW / CONVERT / REDO, stored per file in `boardarrows/one`). How to steer a single ELBOWED connector:
+  - **Start** = a 2×2 Flow anchor placed beside the column at the lane's x, on the clicked control's row; magnet BOTTOM / TOP toward the
+    target (LEFT / RIGHT when the target spans that row → a straight line). Figma then draws one L: down the lane, into the target.
+    Several arrows from one row = several anchors at different lane x → no shared start segment, no stub tricks needed.
+  - **End** = an 8×8 Flow anchor INSIDE the target screen at its edge (x = width − 8 or 0, absolute) with the side magnet RIGHT / LEFT
+    (or TOP for an arrow that must come from above). An edge `position` endpoint has no outward stub — Figma ran the line ALONG the
+    screen border to reach it (seen on every Cabinet arrow in the first try).
+  - Lanes: same interval rules as v2 (nested ranges inner, fan-out ending first = outermost, ends +48 apart on one screen). With no start
+    horizontals, crossings dropped: Cabinet 4 → 1, RAP 2 → 0, eKYC 28 → 3 (Dashboard 13 → 0), FOD 0.
+  - If two single arrows meet on the same target side, change one end side (FOD G1 → „For whom” now enters from TOP) — never add a piece.
+  - Short arrows: a pill hides an L shorter than ~150 px → use a straight horizontal from an inner lane when the row lies inside the
+    target's height (eKYC „Deschide furnizorul”).
+  - Result: Cabinet 21 + 10, RAP 19, eKYC 85, FOD 56 connectors (one per arrow), 0 overlaps / 0 detached / 0 off-screen crossings,
+    0 lane / via nodes; right-angle crossings left: Cabinet 1 (sm-03 Continuă × Elimină), eKYC Providers 3.
