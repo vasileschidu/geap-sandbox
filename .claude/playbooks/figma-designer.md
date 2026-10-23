@@ -3950,3 +3950,22 @@ For any „research how other products do it” step, search Mobbin (mcp__mobbin
   - A scope change mid-job (dialog deleted → kept) is cheap when the old block is kept and renamed (ids + arrows survive) instead of
     deleted and rebuilt. No Agent tool in this session → stored `ghs/audit` on the 5 blocks: only the board baseline (table scroll
     clip, rows-per-page label, scrim fill); connector audit 70, only the 2 pre-existing marker-off-grid.
+- 2026-10-23 · gh-02w-arrow (comment 1975407534, Alexandr: „pentru ce este necesar acest dialog?”; user: „do an arrow so it's clear and
+  explain”). GH-02w (confirm „Schimbați procesul?”) had NO incoming arrow and no block showed its trigger → new **gh-02w0 · Mai multe
+  acțiuni deschis** 12593:374341 (clone of gh-02w, confirm Overlay removed, header ⋮ State=Active + effect style Focus Ring/Medium
+  `S:97cdddcd…,1296:337` = open-button rule, menu = local `Post-process menu` Desktop 11844:340693 instance 12593:375267 ABSOLUTE in
+  the screen at button bottom + 4 / right-aligned (= code data-stack-menu-fixed): Item 1 „Schimbă procesul” 24/reorder d21b8ace… resized
+  20, Item 2 „Istoricul cererii” 20/history 9ab6104c…, Item 3 made visible + State=Danger „Elimină schița” 20/delete 489:3163; no
+  separator = code renderStackMenu). Connector 12593:375329 (clone of 11823:20255) from the menu with `position {x: menu.width, y: item 1
+  centre}` → GH-02w's raw `Dialog` frame 11673:10375 magnet RIGHT, label „Schimbă procesul”. gh-02w note → English why-text. Column 03
+  restacked (+2069, then +20 because the new 2-line note grew gh-02w), section +2089, Contents 03 „15 blocuri”. Reply 1979546457. Lessons:
+  - **A confirm dialog block without an incoming arrow reads as „why does this exist?”** — when a state is reached through a menu,
+    draw the open-menu block before it (menu-open states have no demo state of their own → link „Prototype ↗” to the closed screen,
+    here gh-05c) and arrow from the item.
+  - Hidden slots of a local menu (`Item 3`… visible=false) are invisible to `children.filter` while `figma.skipInvisibleInstanceChildren`
+    is true (the call failed with „cannot set property 'visible' of undefined”) → set it false before toggling hidden instance slots.
+  - Rewriting a note can add a line (+20 high) → re-check the column gaps after note edits, not only after inserts.
+  - The `Block · gh-` census (109) already matched the index line after the insert — the old index count was off by one; recount
+    instead of „+1”.
+  - No Agent tool in this session → inline figma-audit on both blocks: only the board baseline (background table clip under the sheet,
+    raw scrim fill); the new menu passes dropdown-effect.
