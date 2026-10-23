@@ -3969,3 +3969,21 @@ For any „research how other products do it” step, search Mobbin (mcp__mobbin
     instead of „+1”.
   - No Agent tool in this session → inline figma-audit on both blocks: only the board baseline (background table clip under the sheet,
     raw scrim fill); the new menu passes dropdown-effect.
+- 2026-10-23 · gh-02w-arrow follow-up (user: the new arrow „must not overlap other arrows or blocks — move it so it's clear where it
+  leads”). Elbow connectors can't take waypoints, and Figma's auto-route put every right-side arrow of column 03 in one 8641–8749 bundle
+  (lanes 5 px apart, the gh-02j arrowhead and the gh-02j → gh-02k start on the same y = collinear). Fix = **lane anchors**: a 2×2 `Flow
+  anchor` (10438:120705) in the section at (lane x, end y); connector A = source → anchor magnet TOP (end cap NONE, keeps the label),
+  connector B = anchor magnet LEFT → target (no label, ARROW_LINES) = a straight last segment. Column 03 lanes in the free strip
+  8640–8920: gh-02i → gh-02j 8710 (end moved to block y + 400, off the gh-02j → gh-02k start), → gh-02t 8780, → gh-02r 8840, gh-02j → gh-02k
+  8910, gh-02w0 → gh-02w 8800 (own y range). Anchors `lane · …` + B connectors `… · lane → block|dialog` live in the section. Lessons:
+  - **A connector START given as `position` on an instance may route DOWN first** (through the screen): both the gh-02w0 menu start
+    and the gh-02i act-row ⋮ start did, once the end changed. Start from a `Flow anchor` instance placed ABSOLUTE in the screen over
+    the control (sized to it, checked against the control's absoluteBoundingBox — the stored position 768 was the ⋮'s right edge, not
+    its centre) with magnet RIGHT.
+  - Lane order = nesting: an arrow whose y-range lies inside another's takes the inner lane; interleaved ranges (start A < start B <
+    end A < end B) cross once whatever the order — 3 such perpendicular crossings remain in column 03 (gh-02i→gh-02j × →gh-02t,
+    gh-02j→gh-02k × →gh-02t and × →gh-02r), only removable by moving blocks.
+  - Connector labels have no background and centre on the vertical segment: keep lanes ≥ label half-width (~60) from neighbours and the
+    block edge; shortened „Mai multe acțiuni · act” → „Mai multe acțiuni”.
+  - Region screenshots: a transparent temp frame on the page renders empty; screenshot the SECTION at maxDimension 10000 and crop with
+    `sips -c h w --cropOffset y x`.
