@@ -3672,3 +3672,26 @@ For any „research how other products do it” step, search Mobbin (mcp__mobbin
     2026-10-22); 7 jump markers sit at x 1951 instead of 1911 (connector audit, pre-existing). No Agent tool in this session → QA =
     stored rap/audit on the 8 sets + 7 sample hosts (slot content included): only the board baseline (section-over-card gap 0,
     rescaled A4 fractions, .5 spinner centring, scrolled-viewport clip); connector audit 18 / 18 attached.
+
+- 2026-10-23 · breadcrumb-single-back-v1 (code 8dd95ba7; user: „when we have only one breadcrumb, do it as on mobile, with the
+  chevron”). A library breadcrumbs instance whose desktop trail has ONE visible item → `📏 Breakpoint=Mobile` (20/chevron-left-small +
+  `.breadcrumb-item`), the nested item's `⌨️ Label#570:0` re-set to the old Level label (the swap resets it to the variant default).
+  EVO Cabinet: 46 swapped (My Requests 29 = every sm-03* / 04* / 05* desktop; My Permits 17 = pp-01e/i/j/k/l/q, pp-03/03a/b/c,
+  pp-01x/y, pp-01m's five size frames); after: 0 desktop breadcrumbs left in the file (88 Mobile: 58 „Solicitările mele”, 30 „Actele
+  mele permisive”). Geometry = code at 1440 (probe sm-*/pp-*): crumb (120, 136) 20 high, title 172 (gap 16) — the Mobile variant is
+  20 high too, so nothing moved and no restack. No cat-02 block exists in Cabinet (catalog service not drawn). Read-only census of
+  the other files (not changed, brief = code says none): RAP register 41 desktop, 0 single; the EVO-WEB public pages hold one-item
+  trails outside GEAPBreadcrumbs — Catalog (Services) 16 „Acasă”, Service Providers Catalog 13. GEAP: BO pages 0 single (Services 185,
+  Dossiers 50, Classifiers 23, User Management 39, Notification templates 19), but 248 one-item desktop instances in contexts the code
+  does not render with GEAPBreadcrumbs: FO draft-status bar „Solicitările mele · 19:40” (local main 12094:352187 → FO Full Flows 39,
+  Post-processes 43, FOD Address 49; code = plain `.e-permits-fo-draft-status__link`), Form Builder 70 / Editable Grid 20 („Notificare
+  în comerț”, „Step 2 of 6” wizard headers), Incidents 27 (no prototype). Script: scratch single-census (same props as trailing-census).
+  Lessons:
+  - **Swapping a variant inside a `findAll` loop removes the old variant's sublayers** — the list still holds ids like
+    `I1126:3330;81:778` and reading `componentProperties` on them throws („node does not exist”), rolling back the call. Filter
+    `!id.includes(";")` before the loop and skip `n.removed`; the retry was safe because the filter (Breakpoint=Desktop) is idempotent.
+  - **„Code says none” ≠ Figma has none**: the census by component property found one-item breadcrumb instances the code never
+    renders as breadcrumbs (FO draft status bar, wizard headers). Report them as drift instead of following the brief blindly or
+    converting them.
+  - No Agent tool in this session → QA = re-census (0 desktop single in Cabinet, all 46 height 20, labels kept) + spot screenshots
+    sm-05 1236:49405 / pp-03 1268:4759 against the code probe.
