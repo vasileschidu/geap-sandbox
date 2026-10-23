@@ -237,6 +237,7 @@ but this doc previously described it wrongly, see the entry.
 | Spinner | `.spinner` + size + colour | `spinner.html` | library |
 | Separator | `.separator` + orientation + thickness + style | — | library |
 | Link | `.link` + `.link-primary/-strict/-white` + `.link-xs/-sm/-md/-lg` | `link.html` | library |
+| Cabinet list + profile skeleton (cabinet-skeleton-v1; Actele mele permisive, Solicitările mele, act / request profile by address) | `ul.cab-skeleton-list` (`--acts` / `--requests`) › `li.cab-skeleton-row` (`.cab-skeleton-row__head`, `.cab-skeleton-row__title`, `.cab-skeleton-row__tag`, `.cab-skeleton-row__place`, `.cab-skeleton-row__meta`, `.cab-skeleton-row__trigger`), `.cab-skeleton-count`, `.cab-skeleton-profile` (`.cab-skeleton-profile__crumb`, `.cab-skeleton-profile__title`, `.cab-skeleton-profile__subtitle`, `.cab-skeleton-profile__button`, `.cab-skeleton-profile__trajectory`) — placements of the ONE `.skeleton`; `CabEvo.listLoader` / `firstLoad` (simulated 600–900 ms, `?latency=`) | section „Cabinet list skeleton” (under „Skeleton”) | app |
 | **Skeleton — ONE loading placeholder** (skeleton-v1; FO lookups, registry / SRRE fills, grid source, subject switch, page reveal auth / choice / step, BO sync summary) | `span.skeleton` + `--text` (1lh, r4, short line) / `--input` (40, phones 48, r8) / `--block` (r12, height from the slot) / `--circle` (24, round); `css/skeleton.css` loaded right after the library CSS; size = placement rules of the owner; containers `aria-hidden` + `aria-busy` region | section „Skeleton — ONE loading placeholder” | app |
 | **Dialog footer — ONE size, the library Modal › Footer** (dialog-footer-v1, 2026-10-21; modal-footer-medium-v1, 2026-10-22; every dialog: library `.modal`, drawer, FO confirm card, FO dialog shell) | footer 12 · 20 · 24 · 20 (phones 12 · 16 · max(16, safe area)), right-aligned, gap 8; buttons on **desktop modals (> 760) = Medium 40 pill, 14/20 medium, sides 16 (12 on the icon side), icon 20** (user: „for modals desktop let's also use medium buttons, these are huge”); **phones = Large 48 pill, 16/24, sides 20 (16 on the icon side)**; **drawers + the template sheet = Large 48 at every width** (side panels, not modals — open question); secondary `btn-neutral` (grey), main `btn-primary` / `btn-destructive`; phones = two equal halves that wrap, primary on top; **document / act viewers on phones = Medium 40 · 14/20** (viewer-footer-phone-v1, `css/modal-phone.css` § 7b); markup unchanged (`.modal--footer > .modal-buttons > .btn.btn-rounded`) | `css/dialog-footer.css` (loaded right before `css/modal-phone.css`); section „Dialog footer — the library size” | app |
 | **Drawer — ONE right-hand panel** (drawer-v1; every BO / eKYC / Process Designer side panel) | `.drawer-overlay[hidden]` > `button.drawer-overlay__scrim` + `aside.drawer(.drawer--lg)[role=dialog][aria-modal][tabindex=-1]` > `header.drawer__header` (`.drawer__heading` > `h2.drawer__title` + `p.drawer__subtitle`, library `.modal-close`) · [strips] · `.drawer__body` (the only scroller) · `footer.drawer__footer` > `.modal-buttons`; `css/drawer.css` + `js/drawer.js` (`GEAPDrawer`: focus trap, Escape → the drawer's own ×, focus return); inner form vocabulary stays `.e-permits-user-create__section / __grid / __field` | section „Drawer — ONE right-hand panel” | app |
@@ -968,6 +969,36 @@ indicator, the skeletons are its targets).
 Changes against the old look (measured, 16 states × 2 widths, scratch sk/sk.mjs): sizes identical; text-line radius
 6 → 4; FO skeleton base secondary → tertiary (one step darker); phone input skeletons in the step skeleton and the FO
 grid 40 → 48 (they now match the 48 phone fields).
+
+#### Cabinet list skeleton (cabinet-skeleton-v1, 2026-10-23)
+
+User: „for Actele mele permisive and Solicitările mele, a nice skeleton loader when there is loading time”. The ONE
+`.skeleton` placed in the Cabinet lists and profiles — no new paint, placement only (`cabinet-evo.css` „Cabinet list
+skeleton”), markup from ONE place (`CabEvo.listSkeletonHtml({ rows, kind: "acts" | "requests" })`,
+`CabEvo.profileSkeletonHtml({ trajectory })`).
+
+| Part | Markup | Geometry |
+|---|---|---|
+| List | `ul.cab-act-list.cab-skeleton-list.cab-skeleton-list--acts / --requests[data-cab-skeleton][aria-hidden]` (+ `.cab-request-list` for requests — same margins / gap 12) | 6 rows on a first load, else the rows the page will hold (1–6); `pointer-events: none` (no hover) |
+| Row | `li.cab-skeleton-row` › `__head` (`.skeleton--text.cab-skeleton-row__title` + `.skeleton--block.cab-skeleton-row__tag`) · `__place` · `__meta` (2 bars) · `.skeleton--block.cab-skeleton-row__trigger` | = the act / request row: padding 16, r16, 1.5 default stroke, lines 8 apart; title line 16/24 + tag 52 × 20 r4; location 14/20; meta 14/20 (2 lines on phones); trigger 32 high r6 in the corner (top = right = 16 − 6), 128 wide for acts („Postprocese ⌄”), 32 for requests (⋮); head reserves trigger + 8. Desktop 115, phones 163 (tag line first, then the title) — the first real row lands on the skeleton's y (measured 264 / 204, 1440 / 375) |
+| Text bar | any `.skeleton--text` inside the skeletons | `height: 1em` of the slot's type, `margin-block: (1lh − 1em) / 2` — centred on the slot's line, so the line box is the real one |
+| Count | `.e-permits-workplace__filter-result` › `.skeleton--text.cab-skeleton-count` (`CabEvo.maskResultCount`) | 80 wide, the „N rezultate” of the desktop bar / phone applied line while the list loads |
+| Profile | `.cab-skeleton-profile[data-cab-profile-skeleton]` inside the REAL header / panel wrappers (`e-permits-page-header`, `__heading`, `__actions--below`, `__meta-item`, `e-permits-dosar-profil__section / __card / __row`) | crumb 14/20 (+8 → 16 to the H1), H1 24/32 (phones 20/28), location 16/24, two Medium 40 buttons r8 (168 / 128), 4 meta pairs, request trajectory 96 r24 (r16 phones), two sections with 40 rows — slot y = the real profile's (136 / 172 / 212 / 252 / 292 at 1440) |
+
+**When** (`CabEvo.firstLoad` / `CabEvo.listLoader`): the prototype has no server — a load is SIMULATED, 600–900 ms,
+on the first load (incl. `?as=` perspective changes, which reload the page) and after search (typing restarts it —
+the last change wins), Filtre apply / clear, Sortează, page, page size, „Resetează filtrele”. Never for Back from a
+profile, tab switches or a profile opened from the list (data already there → instant). `?latency=<ms>` overrides
+(0 = instant), `?latency=freeze` keeps the skeleton (demo); demo links (`?state=`) are instant unless the state passes
+`latency`. A wait < 300 ms shows no skeleton, so a skeleton never flashes for less than 300 ms. **Toolbar**: real at
+every load; on the FIRST load (nothing to search yet) it is `inert` and „Filtre” / „Sortează” wear the chip's
+`aria-disabled` look (the facet filter is created early with every facet, so the trigger keeps its place on phones);
+later loads keep it fully usable. Pager: drawn from the new state during a reload (none on the first load).
+**A11y**: the list region `aria-busy="true"`, a visually hidden polite line „Se încarcă…” (`[data-cab-loading-status]` /
+`[data-sm-loading-status]`, cleared when the rows arrive), skeletons `aria-hidden`; focus is never moved — a redraw
+that replaces the focused pager button focuses its twin (same `data-*` hooks). Profiles: a `role=status` „Se încarcă…”.
+Reduced motion = no shimmer (css/skeleton.css). **Demo**: `pp-01-loading`, `sm-01-loading` (lists, first load),
+`pp-03-loading`, `sm-05-loading` (profiles by address) — all frozen.
 
 ### Drawer — ONE right-hand panel (drawer-v1, 2026-10-21)
 

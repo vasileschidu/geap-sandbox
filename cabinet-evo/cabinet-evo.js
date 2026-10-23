@@ -202,7 +202,8 @@
       sort: els.sort,
       sprite: SPRITE,
       state: () => state.filter,
-      facets: availableFacets,
+      /* first load (cabinet-skeleton-v1): every facet, so the trigger keeps its place (disabled, inert toolbar) */
+      facets: () => (state.firstLoading ? FACETS : availableFacets()),
       allFacets: () => FACETS,
       options: facetOptions,
       /* status values read as the cards' Small tags */
@@ -210,7 +211,7 @@
       total: () => visiblePermits().length,
       mobileSheets: true,
       preview: (selection) => state.permits.filter((permit) => matchesSearch(permit) && matchesFacets(permit, null, selection)).length,
-      apply: () => { state.page = 1; render(); },
+      apply: () => { state.page = 1; actsLoader.load(); },
     });
   }
 
@@ -329,7 +330,7 @@
     state.sort = next;
     state.page = 1;
     closeMenus();
-    render();
+    actsLoader.load();
     if (els.sortStatus) els.sortStatus.textContent = `Lista este sortată după ${sortNow().text}.`;
     els.sortTrigger?.focus();
   }
@@ -343,20 +344,25 @@
     els.searchClear.disabled = !hasValue;
   }
 
-  function render() {
+  /* loading (cabinet-skeleton-v1): the toolbar, sort label, facet bar and pager are drawn from the new state at once,
+     the rows are the skeleton (kept while it is already there, so typing does not restart its shimmer) */
+  function render({ loading = false } = {}) {
     if (state.restriction) { renderRestriction(); return; }
     const permits = visiblePermits();
     const pages = Math.max(1, Math.ceil(permits.length / state.perPage));
     state.page = Math.min(state.page, pages);
     const pageItems = permits.slice((state.page - 1) * state.perPage, state.page * state.perPage);
-    els.list.innerHTML = pageItems.length ? `<ul class="e-permits-fo-intent__list cab-act-list">${pageItems.map(cardMarkup).join("")}</ul>` : "";
-    els.list.hidden = !pageItems.length;
+    const rows = skeletonRows(pageItems.length);
+    if (!loading) els.list.innerHTML = pageItems.length ? `<ul class="e-permits-fo-intent__list cab-act-list">${pageItems.map(cardMarkup).join("")}</ul>` : "";
+    else if (els.list.querySelector(":scope > [data-cab-skeleton]")?.children.length !== rows) els.list.innerHTML = listSkeletonHtml({ rows });
+    els.list.hidden = !loading && !pageItems.length;
+    setBusy(els.list, els.loadingStatus, loading);
     els.pager.innerHTML = pagerHtml({ total: permits.length, page: state.page, perPage: state.perPage, prefix: "cab", label: "Paginarea actelor permisive", sizeLabel: "Acte pe pagină" });
     els.pager.hidden = !els.pager.innerHTML.trim();
-    els.empty.hidden = permits.length > 0;
+    els.empty.hidden = loading || permits.length > 0;
     /* the shared empty state: no acts at all (an unknown subject too) vs. nothing matches the
        search / filters */
-    els.empty.innerHTML = permits.length ? "" : state.permits.length
+    els.empty.innerHTML = loading || permits.length ? "" : state.permits.length
       ? window.GEAPEmptyState.noResults("Niciun act permisiv nu corespunde căutării", {
         text: state.query.trim() ? "Verificați ortografia sau încercați alți termeni." : "Alegeți alte valori sau resetați filtrele.",
         actionHtml: '<button class="btn btn-neutral btn-sm" type="button" data-cab-reset>Resetează filtrele</button>'
@@ -367,6 +373,23 @@
     syncSearchState();
     syncSort();
     facetFilter?.render();
+    if (loading) maskResultCount(els.filterBar);
+  }
+  /* every list change (search, filters, sort, page, page size) goes through the one simulated load */
+  const actsLoader = listLoader({
+    scope: () => els.list?.closest("[data-cab-view]"),
+    show: () => { if (!state.detail) render({ loading: true }); },
+    draw: () => { if (!state.detail) render(); },
+  });
+  /* the first load (no data yet): the real toolbar (inert), the skeleton rows, no pager */
+  function renderFirstLoad() {
+    els.list.innerHTML = listSkeletonHtml();
+    els.list.hidden = false;
+    [els.pager, els.empty].forEach((el) => { el.hidden = true; });
+    setBusy(els.list, els.loadingStatus, true);
+    syncSort();
+    facetFilter?.render();
+    setToolbarLoading(els.toolbar, true);
   }
 
   /* Feature 90818 (§4, AC) + US-159: when the representative's MPower expired or was revoked the
@@ -511,7 +534,7 @@
     els.search.addEventListener("input", (event) => {
       state.query = event.target.value;
       state.page = 1;
-      render();
+      actsLoader.load();
     });
 
     els.searchClear.addEventListener("click", () => {
@@ -519,7 +542,7 @@
       state.page = 1;
       els.search.value = "";
       els.search.focus();
-      render();
+      actsLoader.load();
     });
 
     els.empty.addEventListener("click", (event) => {
@@ -529,7 +552,7 @@
       state.filter.draft = null;
       state.page = 1;
       els.search.value = "";
-      render();
+      actsLoader.load();
       els.search.focus();
     });
 
@@ -554,9 +577,9 @@
 
     els.pager.addEventListener("click", (event) => {
       const size = event.target.closest("[data-cab-per-page]");
-      if (size) { state.perPage = Number(size.dataset.cabPerPage); state.page = 1; closeMenus(); render(); return; }
+      if (size) { state.perPage = Number(size.dataset.cabPerPage); state.page = 1; closeMenus(); actsLoader.load(); return; }
       const page = event.target.closest("[data-cab-page]");
-      if (page && !page.disabled) { state.page = Number(page.dataset.cabPage); render(); document.querySelector("#cab-title")?.scrollIntoView({ block: "start" }); }
+      if (page && !page.disabled) { state.page = Number(page.dataset.cabPage); actsLoader.load(); document.querySelector("#cab-title")?.scrollIntoView({ block: "start" }); }
     });
 
     bindAvatarMenu();
@@ -1643,8 +1666,123 @@
     else if (!event.shiftKey && active === last) { event.preventDefault(); first.focus(); }
   });
 
+  /* ---------- list loading (cabinet-skeleton-v1, 2026-10-23; components.md › „Cabinet list skeleton”) ----------
+     User: „for Actele mele permisive and Solicitările mele, a nice skeleton loader when there is loading time”. The
+     prototype has no server, so a load is SIMULATED: 600–900 ms on the first load and after every search / filter /
+     sort / page / page-size change (the last change wins — typing restarts it). ONE helper for both lists:
+       ?latency=<ms>   override (0 = instant, as before); ?latency=freeze = the skeleton stays (demo states *-loading)
+       demo links (?state=…) are instant unless the state passes `latency` — the existing states keep their timing
+       a wait < 300 ms shows NO skeleton (components.md › Skeleton: „no skeleton for < 300 ms waits”), so a skeleton is
+       always on screen ≥ 300 ms; Back from a profile / tab switches draw at once (the data is already there).
+     The skeleton = the ONE `.skeleton` (css/skeleton.css) placed by cabinet-evo.css „Cabinet list skeleton”: rows
+     shaped like the act / request row (same card, padding, line heights → nothing jumps), the toolbar stays real
+     (inert + disabled only on the first load, when there is nothing to search yet). A11y: the region aria-busy, a
+     visually hidden „Se încarcă…” live line, the skeleton aria-hidden, focus never moved. */
+  const LATENCY = (() => {
+    const raw = params.get("latency");
+    if (raw === "freeze") return Infinity;
+    if (raw !== null && raw.trim() !== "" && Number.isFinite(Number(raw))) return Math.max(0, Number(raw));
+    return document.documentElement.dataset.demoLink ? 0 : null;
+  })();
+  const SKELETON_MIN_MS = 300;
+  const SKELETON_ROWS = 6;
+  const latency = () => LATENCY ?? 600 + Math.round(Math.random() * 300);
+  const wait = (ms) => new Promise((resolve) => { if (Number.isFinite(ms)) window.setTimeout(resolve, Math.max(0, ms)); });
+  /* the first load: { skeleton } = show it now, done() = resolves when the simulated answer is in (never when frozen) */
+  function firstLoad() {
+    const at = performance.now();
+    const ms = latency();
+    return { skeleton: ms >= SKELETON_MIN_MS, done: () => wait(ms - (performance.now() - at)) };
+  }
+  /* a redraw that replaced the focused control (the pager) gives the focus back to its twin (same data-* hooks) */
+  function keepFocus(scope, fn) {
+    const active = document.activeElement;
+    const inside = Boolean(scope && active && active !== document.body && scope.contains(active));
+    const key = inside ? [...active.attributes].filter((attr) => attr.name.startsWith("data-")).map((attr) => `[${attr.name}="${CSS.escape(attr.value)}"]`).join("") : "";
+    fn();
+    if (inside && key && !active.isConnected) scope.querySelector(key)?.focus({ preventScroll: true });
+  }
+  /* a list reload: show() draws the loading state (toolbar real, rows = skeleton), draw() the result */
+  function listLoader({ scope, show, draw }) {
+    let timer = 0;
+    return {
+      load() {
+        window.clearTimeout(timer);
+        const ms = latency();
+        if (!ms) { keepFocus(scope(), draw); return; }
+        if (ms >= SKELETON_MIN_MS) keepFocus(scope(), show);
+        if (Number.isFinite(ms)) timer = window.setTimeout(() => keepFocus(scope(), draw), ms);
+      },
+    };
+  }
+  /* aria-busy on the region + the live line (set a frame later, so a region inserted just now is read) */
+  function setBusy(region, status, busy) {
+    region?.setAttribute("aria-busy", String(busy));
+    if (!status) return;
+    window.requestAnimationFrame(() => { status.textContent = busy ? "Se încarcă…" : ""; });
+  }
+  /* the toolbar on the FIRST load: nothing to search / filter / sort yet → inert, „Filtre” / „Sortează” disabled look */
+  function setToolbarLoading(toolbar, loading) {
+    if (!toolbar) return;
+    toolbar.inert = loading;
+    toolbar.querySelectorAll(".e-permits-filter-trigger").forEach((trigger) => {
+      if (loading) trigger.setAttribute("aria-disabled", "true");
+      else if (trigger.matches(".e-permits-sort-trigger")) trigger.removeAttribute("aria-disabled");
+    });
+  }
+  /* the facet bar's „N rezultate” (desktop bar / phone applied line) = a short bar while the list loads */
+  function maskResultCount(bar) {
+    bar?.querySelectorAll(".e-permits-workplace__filter-result").forEach((el) => {
+      el.innerHTML = '<span class="skeleton skeleton--text cab-skeleton-count" aria-hidden="true"></span>';
+      el.closest("[data-filter-phone-meta]")?.removeAttribute("data-html"); /* the phone line redraws next time */
+    });
+  }
+  const skeletonRows = (count) => Math.max(1, Math.min(SKELETON_ROWS, count ?? SKELETON_ROWS));
+  /* the act / request row skeleton: tag · title (+ the trigger in the corner) · location · meta (2 lines on phones) */
+  function listSkeletonHtml({ rows = SKELETON_ROWS, kind = "acts" } = {}) {
+    const row = `
+          <li class="cab-skeleton-row">
+            <span class="cab-skeleton-row__head"><span class="skeleton skeleton--text cab-skeleton-row__title"></span><span class="skeleton skeleton--block cab-skeleton-row__tag"></span></span>
+            <span class="cab-skeleton-row__place"><span class="skeleton skeleton--text"></span></span>
+            <span class="cab-skeleton-row__meta"><span class="skeleton skeleton--text"></span><span class="skeleton skeleton--text"></span></span>
+            <span class="skeleton skeleton--block cab-skeleton-row__trigger"></span>
+          </li>`;
+    return `<ul class="e-permits-fo-intent__list cab-act-list${kind === "requests" ? " cab-request-list" : ""} cab-skeleton-list cab-skeleton-list--${kind}" aria-hidden="true" data-cab-skeleton>${row.repeat(skeletonRows(rows))}</ul>`;
+  }
+  /* the act / request profile on its FIRST load (a shared link, a reload): the page header (breadcrumb, H1, location,
+     action buttons, meta) + the trajectory (requests) + two detail sections, in the real wrappers so every slot keeps
+     its place; never on a profile opened from the list (its data is already there) */
+  function profileSkeletonHtml({ trajectory = false } = {}) {
+    const metaItem = '<div class="e-permits-page-header__meta-item"><span class="e-permits-page-header__meta-label"><span class="skeleton skeleton--text"></span></span><span class="e-permits-page-header__meta-value"><span class="skeleton skeleton--text"></span></span></div>';
+    const detailRowHtml = '<div class="e-permits-dosar-profil__row"><span class="e-permits-dosar-profil__row-label"><span class="skeleton skeleton--text"></span></span><span class="e-permits-dosar-profil__row-value"><span class="skeleton skeleton--text"></span></span></div>';
+    const sectionHtml = (rows) => `<div class="e-permits-dosar-profil__section cab-section"><span class="e-permits-dosar-profil__section-title"><span class="skeleton skeleton--text"></span></span><div class="e-permits-dosar-profil__card">${detailRowHtml.repeat(rows)}</div></div>`;
+    return `
+      <p class="u-visually-hidden" role="status">Se încarcă…</p>
+      <div class="cab-skeleton-profile" aria-hidden="true" data-cab-profile-skeleton>
+        <header class="e-permits-page-header cab-page-header cab-profile-header">
+          <div class="e-permits-page-header__body">
+            <div class="e-permits-page-header__top">
+              <div class="e-permits-page-header__heading">
+                <span class="cab-skeleton-profile__crumb"><span class="skeleton skeleton--text"></span></span>
+                <span class="e-permits-page-header__title e-permits-page-header__title--compact cab-skeleton-profile__title"><span class="skeleton skeleton--text"></span></span>
+                <span class="cab-page-header__subtitle cab-skeleton-profile__subtitle"><span class="skeleton skeleton--text"></span></span>
+                <span class="e-permits-page-header__actions e-permits-page-header__actions--below"><span class="skeleton skeleton--block cab-skeleton-profile__button"></span><span class="skeleton skeleton--block cab-skeleton-profile__button"></span></span>
+              </div>
+            </div>
+            <div class="e-permits-page-header__meta">${metaItem.repeat(4)}</div>
+          </div>
+        </header>
+        <div class="e-permits-dosar-profil__panel">
+          ${trajectory ? '<span class="skeleton skeleton--block cab-skeleton-profile__trajectory"></span>' : ""}
+          ${sectionHtml(4)}
+          ${sectionHtml(3)}
+        </div>
+      </div>`;
+  }
+
   /* ---------- shared with solicitari.js and catalog.js ---------- */
   window.CabEvo = {
+    firstLoad, listLoader, setBusy, setToolbarLoading, maskResultCount, listSkeletonHtml, profileSkeletonHtml, skeletonRows,
     VIEW, AUTH, SUBJECT, SPRITE, params,
     icon, escape, copyValueHtml, closeMenus, cabUrl, longDate, longDateTime, setHeaderTitle, restrictionHtml, pagerHtml,
     docRowHtml, docContentHtml, openDocModal, closeDocModal, signedTagHtml,
@@ -1655,6 +1793,24 @@
   /* ---------- boot ---------- */
 
   async function init() {
+    /* cabinet-skeleton-v1: the acts view shows its skeleton until the (simulated) answer is in */
+    const first = VIEW === "acte" ? firstLoad() : null;
+    if (VIEW === "acte") {
+      els.list.insertAdjacentHTML("beforebegin", '<p class="u-visually-hidden" aria-live="polite" data-cab-loading-status></p>');
+      els.loadingStatus = els.list.previousElementSibling;
+      state.query = els.search.value;
+      if (first.skeleton) {
+        state.firstLoading = true;
+        initFacetFilter();
+        if (params.get("act")) {
+          actListParts().forEach((el) => { if (el) el.hidden = true; });
+          const panel = detailPanel();
+          panel.hidden = false;
+          panel.setAttribute("aria-busy", "true");
+          panel.innerHTML = profileSkeletonHtml();
+        } else renderFirstLoad();
+      }
+    }
     const response = await fetch(DATA_URL);
     if (!response.ok) throw new Error(`Nu am putut încărca datele (${response.status})`);
     const data = await response.json();
@@ -1701,9 +1857,16 @@
       if (els.role) els.role.textContent = state.geap.subject.roleLabel || (state.geap.subject.type === "PJ" ? "Persoană juridică" : "Persoană fizică");
     }
 
+    if (first) {
+      await first.done();
+      state.firstLoading = false;
+      setToolbarLoading(els.toolbar, false);
+      const skeletonPanel = document.querySelector("[data-cab-detail][aria-busy]");
+      if (skeletonPanel) { skeletonPanel.removeAttribute("aria-busy"); skeletonPanel.hidden = true; }
+    }
     bind();
     bindGeap();
-    initFacetFilter();
+    if (!facetFilter) initFacetFilter();
     render();
     /* ?act=<id> opens the act profile (a reload, a shared link, a dosar's „Vezi actul”); Back / Forward follow the
        address (act-profile-url-v1) */
@@ -1717,6 +1880,9 @@
 
   init().catch((error) => {
     console.error(error);
+    els.list.hidden = true; /* no skeleton left behind the error (cabinet-skeleton-v1) */
+    setBusy(els.list, els.loadingStatus, false);
+    setToolbarLoading(els.toolbar, false);
     els.empty.hidden = false;
     els.empty.innerHTML = window.GEAPEmptyState.render({ title: "A apărut o eroare", text: "Actele permisive nu au fost încărcate. Încercați din nou.", icon: "circle-error" });
   });

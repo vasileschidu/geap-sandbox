@@ -1744,3 +1744,236 @@ button.cab-alert-link {
 .sm-profile .cab-message .banner__content > p {
   max-width: 75ch;
 }
+
+/* ===== Cabinet list skeleton (cabinet-skeleton-v1, 2026-10-23) — components.md › „Cabinet list skeleton” =====
+   User: „for Actele mele permisive and Solicitările mele, a nice skeleton loader when there is loading time”. The ONE
+   `.skeleton` (css/skeleton.css: paint, shimmer, reduced motion) PLACED in the act / request row's geometry, so the
+   rows that arrive take exactly its place: card padding 16 · radius 16 · 1.5 default stroke · lines 8 apart; line 1 =
+   title 16/24 + the Small tag (20) — phones: the tag line first, then the title —, line 2 the location 14/20, line 3
+   the meta 14/20 (two lines on phones); the trigger („Postprocese ⌄” 128 · the requests' ⋮ 32) in the card corner
+   (top = right = 16 − (32 − 20) / 2, as the real one). Desktop 115 high, phones 163 (= the usual row). A text bar is
+   1em of its slot's type centred on its line (1lh). Not interactive: no hover, no pointer. */
+.cab-skeleton-list {
+  pointer-events: none;
+}
+
+.cab-skeleton-row {
+  --cab-skeleton-trigger: calc(var(--spacing-64, 64px) * 2);
+  background: var(--color-background-base-default, #fff);
+  border: var(--border-width-1-5, 1.5px) solid var(--color-border-base-default, #d9d9d9);
+  border-radius: var(--border-radius-16, 16px);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-8, 8px);
+  padding: var(--spacing-16, 16px);
+  position: relative;
+}
+
+.cab-skeleton-list--requests > .cab-skeleton-row {
+  --cab-skeleton-trigger: var(--spacing-32, 32px);
+}
+
+:is(.cab-skeleton-row, .cab-skeleton-profile) .skeleton--text,
+.skeleton--text.cab-skeleton-count {
+  height: 1em;
+  margin-block: calc((1lh - 1em) / 2);
+}
+
+.cab-skeleton-row__head {
+  align-items: center;
+  display: flex;
+  gap: var(--spacing-8, 8px);
+  padding-right: calc(var(--cab-skeleton-trigger) + var(--spacing-8, 8px));
+}
+
+.cab-skeleton-row__title {
+  font-size: var(--font-size-fs-16, 16px);
+  line-height: var(--line-height-lh-24, 24px);
+}
+
+.cab-skeleton-row .skeleton--text.cab-skeleton-row__title {
+  flex: 0 1 auto;
+  width: 34%;
+}
+
+.cab-skeleton-row__tag {
+  border-radius: var(--border-radius-4, 4px);
+  height: var(--spacing-20, 20px);
+  width: calc(var(--spacing-48, 48px) + var(--spacing-4, 4px));
+}
+
+.cab-skeleton-row__place,
+.cab-skeleton-row__meta {
+  display: flex;
+  flex-direction: column; /* no margin collapsing between the meta's two phone lines (2 × 20) */
+  font-size: var(--font-size-fs-14, 14px);
+  line-height: var(--line-height-lh-20, 20px);
+}
+
+.cab-skeleton-row__place > .skeleton {
+  width: 22%;
+}
+
+.cab-skeleton-row__meta > .skeleton {
+  width: 60%;
+}
+
+.cab-skeleton-row__meta > .skeleton + .skeleton {
+  display: none;
+}
+
+.cab-skeleton-row__trigger {
+  border-radius: var(--border-radius-6, 6px);
+  height: var(--spacing-32, 32px);
+  position: absolute;
+  right: calc(var(--spacing-16, 16px) - (var(--spacing-32, 32px) - var(--spacing-20, 20px)) / 2);
+  top: calc(var(--spacing-16, 16px) - (var(--spacing-32, 32px) - var(--spacing-20, 20px)) / 2);
+  width: var(--cab-skeleton-trigger);
+}
+
+/* rows differ a little, as real names do */
+.cab-skeleton-row:nth-child(3n + 2) .skeleton--text.cab-skeleton-row__title {
+  width: 26%;
+}
+
+.cab-skeleton-row:nth-child(3n + 3) .skeleton--text.cab-skeleton-row__title {
+  width: 30%;
+}
+
+.cab-skeleton-row:nth-child(3n + 2) .cab-skeleton-row__place > .skeleton {
+  width: 18%;
+}
+
+.cab-skeleton-row:nth-child(3n + 3) .cab-skeleton-row__meta > .skeleton {
+  width: 48%;
+}
+
+/* the facet bar's „N rezultate” while the list loads */
+.skeleton--text.cab-skeleton-count {
+  display: inline-block;
+  vertical-align: middle;
+  width: calc(var(--spacing-72, 72px) + var(--spacing-8, 8px));
+}
+
+@media (max-width: 760px) {
+  .cab-skeleton-row__head {
+    display: contents;
+  }
+
+  .cab-skeleton-row__tag {
+    order: -1;
+  }
+
+  .cab-skeleton-row .skeleton--text.cab-skeleton-row__title,
+  .cab-skeleton-row:nth-child(n) .skeleton--text.cab-skeleton-row__title {
+    width: 84%;
+  }
+
+  .cab-skeleton-row__place > .skeleton,
+  .cab-skeleton-row:nth-child(n) .cab-skeleton-row__place > .skeleton {
+    width: 64%;
+  }
+
+  .cab-skeleton-row__meta > .skeleton,
+  .cab-skeleton-row:nth-child(n) .cab-skeleton-row__meta > .skeleton {
+    width: 92%;
+  }
+
+  .cab-skeleton-row__meta > .skeleton + .skeleton,
+  .cab-skeleton-row:nth-child(n) .cab-skeleton-row__meta > .skeleton + .skeleton {
+    display: block;
+    width: 56%;
+  }
+}
+
+/* the act / request profile on its first load: the real header / panel wrappers, bars in the slots (breadcrumb
+   14/20 · H1 24/32 — phones 20/28 · location 16/24 · two Medium 40 buttons · four meta pairs 12/16 + 14/20 · the
+   request trajectory · two sections with BO rows) */
+.cab-skeleton-profile {
+  pointer-events: none;
+}
+
+/* 16 to the H1, as the real breadcrumb (heading gap 8 + its own 8) */
+.cab-skeleton-profile__crumb {
+  display: block;
+  margin-bottom: var(--spacing-8, 8px);
+  font-size: var(--font-size-fs-14, 14px);
+  line-height: var(--line-height-lh-20, 20px);
+}
+
+.cab-skeleton-profile__crumb > .skeleton {
+  width: calc(var(--spacing-72, 72px) * 2);
+}
+
+.cab-skeleton-profile .cab-skeleton-profile__title {
+  display: block;
+}
+
+.cab-skeleton-profile__title > .skeleton {
+  width: 52%;
+}
+
+.cab-skeleton-profile__subtitle > .skeleton {
+  width: 28%;
+}
+
+.cab-skeleton-profile__button {
+  border-radius: var(--border-radius-8, 8px);
+  height: var(--spacing-40, 40px);
+  width: calc(var(--spacing-64, 64px) * 2);
+}
+
+.cab-skeleton-profile__button:first-child {
+  width: calc(var(--spacing-64, 64px) * 2 + var(--spacing-40, 40px));
+}
+
+.cab-skeleton-profile .e-permits-page-header__meta-value {
+  align-items: center;
+  display: flex;
+  min-height: var(--spacing-24, 24px);
+}
+
+.cab-skeleton-profile .e-permits-page-header__meta-label > .skeleton {
+  width: var(--spacing-72, 72px);
+}
+
+.cab-skeleton-profile .e-permits-page-header__meta-value > .skeleton {
+  width: calc(var(--spacing-56, 56px) * 2);
+}
+
+.cab-skeleton-profile__trajectory {
+  border-radius: var(--border-radius-24, 24px);
+  height: calc(var(--spacing-48, 48px) * 2);
+  margin-bottom: var(--spacing-24, 24px);
+}
+
+.cab-skeleton-profile .e-permits-dosar-profil__section-title {
+  display: block;
+}
+
+.cab-skeleton-profile .e-permits-dosar-profil__section-title > .skeleton {
+  width: calc(var(--spacing-72, 72px) * 2);
+}
+
+.cab-skeleton-profile .e-permits-dosar-profil__row-label > .skeleton {
+  width: 60%;
+}
+
+.cab-skeleton-profile .e-permits-dosar-profil__row-value > .skeleton {
+  width: 44%;
+}
+
+@media (max-width: 760px) {
+  .cab-skeleton-profile__title > .skeleton {
+    width: 88%;
+  }
+
+  .cab-skeleton-profile__subtitle > .skeleton {
+    width: 60%;
+  }
+
+  .cab-skeleton-profile__trajectory {
+    border-radius: var(--border-radius-16, 16px);
+    margin-bottom: var(--spacing-16, 16px);
+  }
+}

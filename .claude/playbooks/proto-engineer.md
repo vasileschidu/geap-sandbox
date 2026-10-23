@@ -2851,3 +2851,21 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   `found: []` on gh-09b was timing (rerun = menu present) — rerun any before / after difference before believing it.
   No sub-agent tool → hover-audit 0 / 0, component-audit (standing th sort / missing-copy / avatar menu only), code-audit
   static 0, capture gh-11c / 11d / 01 × 2 clean.
+- 2026-10-23 · Cabinet list + profile skeletons (cabinet-skeleton-v1; user: „a nice skeleton loader when there is loading
+  time” for Actele mele permisive / Solicitările mele). A static prototype has no latency → ONE simulated-load helper in
+  `CabEvo` (`firstLoad` / `listLoader`: 600–900 ms, last change wins, `?latency=<ms|freeze>`, instant for demo links via
+  `documentElement.dataset.demoLink` — set synchronously by demo-links.js in `<head>` — so the 147 existing pp-0* / sm-0*
+  states kept their timing, no state touched). Pages render in TWO modes from the same function (`render({ loading })`):
+  toolbar / sort label / facet bar / pager from the new state at once, rows = skeleton (kept if already there, so typing
+  does not restart the shimmer). Geometry without copying the row's complex anatomy: a separate skeleton row with the
+  same card (padding 16, r16, 1.5 stroke, lines 8 apart) and every text bar `height: 1em; margin-block: (1lh − 1em) / 2`
+  of its slot's type → the line boxes are the real ones; proof = first real row y == skeleton row y (264 / 204 at 1440 /
+  375) and row height 114 = 114 / 162 = 162. Traps: (1) two text bars stacked as blocks COLLAPSE their margins (37 instead
+  of 40) → flex column; (2) the facet filter's phone applied line caches its HTML in `data-html` — masking „N rezultate”
+  must drop the cache or the skeleton sticks; (3) a delayed draw must not paint the list over a profile opened meanwhile
+  → guard `draw` on „list view shown”; (4) the pager redraw drops focus → `keepFocus` refocuses the twin by its `data-*`
+  hooks; (5) the first load needs the facet filter created EARLY with every facet (else the phone trigger is hidden until
+  data arrives = a toolbar jump) and the toolbar `inert` + chip `aria-disabled` look. Profile skeleton = real header /
+  panel wrappers with bars inside (cheap; crumb needed its +8 to land the H1 on 172). No sub-agent tool → code-audit
+  (only `.u-visually-hidden`, BO 11 / 7, the 136 trigger reserve, a pre-existing `#cab-title` „hex” FP), hover-audit 0 / 0,
+  component-audit 0 in my markup (majors = the standing avatar menu the tool opens).

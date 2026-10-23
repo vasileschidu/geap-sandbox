@@ -1375,6 +1375,11 @@
        valabilității →”) · 03c Valabil expiring in 45 days, seen by a representative (MPower: Beneficiar first,
        „Inițiază prelungirea →”) · 03d the Istoric of a Valabil act (request, issue, duplicate, end of validity) */
     "pp-03": { page: "cabinet-evo/index.html", params: { as: "pf-anastasia", act: "act-ana-anulat" }, ready: "[data-cab-detail]:not([hidden]) #cab-act-title", run: null },
+    /* cabinet-skeleton-v1 (2026-10-23): the loading skeletons, frozen (?latency=freeze — the simulated answer never
+       comes): pp-01-loading the acts list on its first load (real toolbar, inert, „Filtre” / „Sortează” disabled, 6
+       skeleton rows), pp-03-loading the act profile opened by its address (header + sections skeleton) */
+    "pp-01-loading": { page: "cabinet-evo/index.html", params: { latency: "freeze" }, ready: "[data-cab-skeleton] .cab-skeleton-row", run: null },
+    "pp-03-loading": { page: "cabinet-evo/index.html", params: { as: "pf-anastasia", act: "act-ana-anulat", latency: "freeze" }, ready: "[data-cab-profile-skeleton]", run: null },
     "pp-03a": { page: "cabinet-evo/index.html", params: { act: "act-cofetaria" }, ready: "[data-cab-detail]:not([hidden]) #cab-act-title", run: null },
     "pp-03b": { page: "cabinet-evo/index.html", params: { act: "act-licenta-susp" }, ready: "[data-cab-detail]:not([hidden]) #cab-act-title", run: null },
     "pp-03c": { page: "cabinet-evo/index.html", params: { as: "pj-vita-plant", act: "act-vita-farm" }, ready: "[data-cab-detail]:not([hidden]) #cab-act-title", run: null },
@@ -2273,6 +2278,10 @@
     "sm-04k": smDosar("d-lab-prelungire"),
     "sm-04l": smDosar("d-fresh", async (h) => { await h.click('[data-sm-tab="solicitare"]'); await h.scroll("#sm-sec-livrare"); }),
     "sm-05": smDosar("d-izvoras"),
+    /* cabinet-skeleton-v1: Solicitările mele loading, frozen — sm-01-loading the list (first load), sm-05-loading a
+       request opened by its address (header, trajectory, sections) */
+    "sm-01-loading": { ...sm(null, { latency: "freeze" }), ready: "[data-cab-skeleton] .cab-skeleton-row" },
+    "sm-05-loading": { ...smDosar("d-izvoras", null, { latency: "freeze" }), ready: "[data-cab-profile-skeleton]" },
     /* type-first-v1: the profile of a request WITHOUT an object — H1 = the service, no subtitle */
     "sm-05v": smDosar("d-transport"),
     "sm-05a": smDosar("d-nota"),

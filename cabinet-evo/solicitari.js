@@ -440,7 +440,8 @@
     return [...counts.entries()].map(([value, count]) => ({ value, count }))
       .sort((a, b) => (order ? order(a.value) - order(b.value) : a.value.localeCompare(b.value, "ro", { numeric: true })));
   }
-  const availableFacets = () => FACETS.filter((facet) => state.filter.applied[facet.key]?.length || new Set(state.dosare.flatMap((dosar) => facetValues(facet, dosar))).size > 1);
+  /* first load (cabinet-skeleton-v1): every facet, so the trigger keeps its place (disabled, inert toolbar) */
+  const availableFacets = () => (state.firstLoading ? FACETS : FACETS.filter((facet) => state.filter.applied[facet.key]?.length || new Set(state.dosare.flatMap((dosar) => facetValues(facet, dosar))).size > 1));
   let facetFilter = null;
   function initFacetFilter() {
     facetFilter = window.GEAPFacetFilter?.create({
@@ -463,7 +464,7 @@
       total: () => filtered().length,
       mobileSheets: true,
       preview: (selection) => state.dosare.filter((dosar) => matchesBase(dosar) && matchesFacets(dosar, null, selection)).length,
-      apply: () => { state.page = 1; renderList(); },
+      apply: () => { state.page = 1; listLoader.load(); },
     }) || null;
   }
 
@@ -534,7 +535,7 @@
     state.sort = next;
     state.page = 1;
     C.closeMenus();
-    renderList();
+    listLoader.load();
     root.querySelector("[data-sm-sort-status]").textContent = `Lista este sortată după ${sortNow().text}.`;
     root.querySelector(".cab-sort__trigger")?.focus();
   }
@@ -582,6 +583,7 @@
         </div>
         <div class="e-permits-workplace__filters cab-filters" id="sm-filters" role="group" aria-label="Filtre" data-sm-filters hidden></div>
         <p class="u-visually-hidden" aria-live="polite" data-sm-sort-status></p>
+        <p class="u-visually-hidden" aria-live="polite" data-sm-loading-status></p>
         <div class="sm-results" data-sm-results></div>
       </div>
       <div class="sm-profile-view" data-sm-profile-view hidden></div>`;
@@ -598,7 +600,9 @@
     return root.querySelector("[data-sm-list-view]");
   }
 
-  function renderList() {
+  /* loading (cabinet-skeleton-v1, CabEvo.listLoader): the toolbar, facet bar and pager from the new state at once,
+     the rows = the skeleton (kept while already there, so typing does not restart its shimmer) */
+  function renderList({ loading = false } = {}) {
     C.setHeaderTitle("Solicitările mele");
     const view = ensureListShell();
     view.hidden = false;
@@ -635,12 +639,47 @@
     view.querySelector("[data-sm-sort-menu]").innerHTML = sortMenuHtml();
     syncSortTrigger(view);
 
-    results.innerHTML = state.searchFailed
+    C.setBusy(results, view.querySelector("[data-sm-loading-status]"), loading && !state.searchFailed);
+    const skeleton = results.querySelector(":scope > [data-cab-skeleton]");
+    const rows = C.skeletonRows(pageItems.length);
+    if (loading && !state.searchFailed && skeleton?.children.length === rows) {
+      [...results.children].forEach((child) => { if (child !== skeleton) child.remove(); });
+      skeleton.insertAdjacentHTML("afterend", pagerHtml(all.length));
+    } else results.innerHTML = loading && !state.searchFailed
+      ? `${C.listSkeletonHtml({ rows, kind: "requests" })}${pagerHtml(all.length)}`
+      : state.searchFailed
       ? `<div class="cab-state" role="alert">${errorHtml("Lista solicitărilor nu a putut fi actualizată. Încercați din nou.", "data-sm-search-retry")}</div>`
       : pageItems.length
         ? `<ul class="e-permits-fo-intent__list cab-act-list cab-request-list" aria-label="Lista solicitărilor">${pageItems.map(cardHtml).join("")}</ul>${pagerHtml(all.length)}`
         : `<div class="cab-state">${fixAssets(window.GEAPEmptyState.noResults("Nu au fost găsite rezultate pentru criteriile selectate.", { text: "Modificați căutarea sau filtrele aplicate." }))}</div>`;
     facetFilter?.render();
+    if (loading && !state.searchFailed) C.maskResultCount(view.querySelector("[data-sm-filters]"));
+  }
+  /* every list change (search, filters, sort, page, page size) = the one simulated load; never over a profile */
+  const listShown = () => root.querySelector("[data-sm-profile-view]")?.hidden !== false;
+  const listLoader = C.listLoader({
+    scope: () => root,
+    show: () => { if (listShown()) renderList({ loading: true }); },
+    draw: () => { if (listShown()) renderList(); },
+  });
+  /* the first load (no data yet): the list shell with the real toolbar (inert), the skeleton rows, no pager — or,
+     on a request address (#dosar/<id>), the profile skeleton */
+  function renderFirstLoad() {
+    const view = ensureListShell();
+    if (/^#dosar\//.test(window.location.hash)) {
+      view.hidden = true;
+      const profileView = root.querySelector("[data-sm-profile-view]");
+      profileView.hidden = false;
+      profileView.setAttribute("aria-busy", "true");
+      profileView.innerHTML = `<article class="cab-profile sm-profile" aria-label="Solicitarea se încarcă">${C.profileSkeletonHtml({ trajectory: true })}</article>`;
+      return;
+    }
+    const results = view.querySelector("[data-sm-results]");
+    results.innerHTML = C.listSkeletonHtml({ kind: "requests" });
+    C.setBusy(results, view.querySelector("[data-sm-loading-status]"), true);
+    syncSortTrigger(view); /* the icon-only phone square needs its name („Sortează: …”) */
+    facetFilter?.render();
+    C.setToolbarLoading(view.querySelector("[data-sm-toolbar]"), true);
   }
 
   /* ---------- profile (US-161) ---------- */
@@ -1465,7 +1504,7 @@
       state.page = 1;
       /* US-158 AC-14 demo: the first refresh fails */
       if (params.get("eroare") === "cautare" && state.query) state.searchFailed = true;
-      renderList();
+      listLoader.load();
     });
 
     root.addEventListener("click", (event) => {
@@ -1473,7 +1512,7 @@
       if (target.closest("[data-sm-search-clear]")) {
         state.query = "";
         state.page = 1;
-        renderList();
+        listLoader.load();
         root.querySelector("[data-sm-search]")?.focus();
         return;
       }
@@ -1491,9 +1530,9 @@
         return;
       }
       const size = target.closest("[data-sm-per-page]");
-      if (size) { state.perPage = Number(size.dataset.smPerPage); state.page = 1; C.closeMenus(); renderList(); return; }
+      if (size) { state.perPage = Number(size.dataset.smPerPage); state.page = 1; C.closeMenus(); listLoader.load(); return; }
       const page = target.closest("[data-sm-page]");
-      if (page && !page.disabled) { state.page = Number(page.dataset.smPage); renderList(); root.querySelector("#sm-title")?.scrollIntoView({ block: "start" }); return; }
+      if (page && !page.disabled) { state.page = Number(page.dataset.smPage); listLoader.load(); root.querySelector("#sm-title")?.scrollIntoView({ block: "start" }); return; }
       const tab = target.closest("[data-sm-tab]");
       if (tab) { selectTab(tab.dataset.smTab); return; }
       if (target.closest("[data-sm-back]")) {
@@ -1638,6 +1677,9 @@
   }
 
   async function init() {
+    /* cabinet-skeleton-v1: the skeleton until the (simulated) answer is in */
+    const first = C.firstLoad();
+    if (first.skeleton) { state.firstLoading = true; renderFirstLoad(); }
     try {
       const [data, fo] = await Promise.all([
         fetch("../data/cabinet-evo-solicitari.json?v=type-first-v1").then((response) => { if (!response.ok) throw new Error(String(response.status)); return response.json(); }),
@@ -1656,6 +1698,12 @@
       state.removed = all.filter(autoRemoved);
       state.dosare = all.filter((dosar) => !autoRemoved(dosar));
       applyReturns();
+      await first.done();
+      if (state.firstLoading) {
+        state.firstLoading = false;
+        C.setToolbarLoading(root.querySelector("[data-sm-toolbar]"), false);
+        root.querySelector("[data-sm-profile-view]")?.removeAttribute("aria-busy");
+      }
       bind();
       route();
       /* from a payment notification (US-135 AC-02 / AC-11 / AC-14): ?achita=<id> opens MPay, or the expired-fee message */
