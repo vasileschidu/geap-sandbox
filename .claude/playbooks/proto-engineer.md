@@ -2905,3 +2905,14 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   case checked by rendering a 7-level trail in node (vm + stub window). Traps: (1) a CDP screenshot script that writes
   RELATIVE paths drops PNGs in the repo root (cwd) — always write absolute scratch paths; (2) comment-only edits in
   rap-evo.js / cabinet-evo.js / e-permits-shell.js still need their `?v=` bumped (rule: every changed file).
+- 2026-10-23 · „× and Mai puțin too close” on the RAP data modal (modal-name-expand-end-v1, Figma comment on rap-03h;
+  user: „Mai puțin at the END of the text, not on the right”). The code ALREADY put it after the last word — the Figma
+  block had drawn it top-right in the × column, so the main fix is Figma. Check the code before rewriting: the dialog
+  subtitle is NOT js/name-expand.js but `rap-act-subtitle` (js/act-view.js `actSubtitleHtml` / `syncClamps`), used by the
+  data modal AND the A4 viewer (Cabinet pp-01m/n reuse it; their names are short → no toggle); name-expand only lives in
+  page headers. Real code gaps fixed in css/act-view.css: the expanded label's `margin-left: 4` → the name's
+  `padding-inline-end: 4` (the name-expand-align-v1 trap), and the collapsed one-line toggle was 20 tall → padding-block 2
+  + margin-block −2 (24 target, layout unchanged). Proof = a scratch probe measuring toggle / label / × rects at 1440, 1024,
+  412…320 and narrowing the subtitle 300→200 px in-page: Chrome keeps the atomic inline-flex label with the last word, so
+  it never wraps alone. Trap: with the A4 viewer open the data modal stays rendered (parked) — a probe that takes the
+  FIRST visible `[data-rap-subtitle]` measures the wrong dialog; take the last. New demo `rap-03u` (A4 viewer expanded).

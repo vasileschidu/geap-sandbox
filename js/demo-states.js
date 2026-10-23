@@ -2525,7 +2525,9 @@
             "rap-03r": data("rap-0015", async (h) => { await h.click("[data-rap-act-data] .e-permits-act-fields__table-field [data-act-fields-more]"); await h.scroll("[data-rap-act-data] .e-permits-act-fields__table-field"); }),
             /* its A4 form: the groups, both tables with every row, the header row repeated on the next page */
             "rap-03s": view("rap-0015"),
-            "rap-03t": view("rap-0015", {}, ".rap-act-doc", async (h) => { await h.scroll("[data-rap-act-modal] .e-permits-doc-page__grid-head.is-repeat"); })
+            "rap-03t": view("rap-0015", {}, ".rap-act-doc", async (h) => { await h.scroll("[data-rap-act-modal] .e-permits-doc-page__grid-head.is-repeat"); }),
+            /* the A4 viewer's long name expanded: „Mai puțin” at the end of the text, never next to × (modal-name-expand-end-v1) */
+            "rap-03u": view("rap-0015", {}, ".rap-act-doc", async (h) => { await h.click("[data-rap-act-modal] [data-rap-clamp-toggle]"); })
           };
         })()
       };

@@ -253,8 +253,12 @@
   white-space: nowrap;
 }
 
+/* the toggle's target is ≥ 24 tall (WCAG 2.5.8) without moving the line: 2 more above and below, given back by
+   the margin (modal-name-expand-end-v1) */
 button.rap-act-subtitle__name {
   cursor: pointer;
+  margin-block: calc(-1 * var(--spacing-2, 2px));
+  padding-block: var(--spacing-2, 2px);
 }
 
 button.rap-act-subtitle__name:hover .rap-act-subtitle__text {
@@ -277,7 +281,10 @@ button.rap-act-subtitle__name:hover .rap-act-subtitle__more {
   text-decoration: underline;
 }
 
-/* expanded: the whole name, „Mai puțin” right after its last word */
+/* expanded: the whole name, „Mai puțin” right after its last word — at the END of the text, never in the header's
+   right column next to × (modal-name-expand-end-v1, Figma comment on rap-03h); when the last line is full, the label
+   takes the last word with it to the next line; the 4 before it is the name's END padding, not a margin on the label
+   (a margin would indent a label that starts a line — the name-expand-align-v1 lesson) */
 button.rap-act-subtitle__name[aria-expanded="true"] {
   display: block;
 }
@@ -287,11 +294,8 @@ button.rap-act-subtitle__name[aria-expanded="true"] .rap-act-subtitle__text {
   -webkit-line-clamp: none;
   line-clamp: none;
   overflow-wrap: anywhere;
+  padding-inline-end: var(--spacing-4, 4px);
   white-space: normal;
-}
-
-button.rap-act-subtitle__name[aria-expanded="true"] .rap-act-subtitle__more {
-  margin-left: var(--spacing-4, 4px);
 }
 
 .rap-act-subtitle__name.is-measuring .rap-act-subtitle__more {
