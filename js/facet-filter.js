@@ -297,12 +297,13 @@
           if (toggleControls) toggle.setAttribute("aria-controls", toggleControls);
         }
       }
-      /* the sort trigger = the same toolbar chip as „Filtre” (sort-chip-v1): on phones its icon-only square
-         (`--icon`, label + caret hidden, icon-sort 24 in a `.chip__icon`); a page that still passes a `.btn` gets
-         the button's icon-only square */
+      /* the sort trigger = the same toolbar chip as „Filtre” (sort-chip-v1 / sort-chip-icon-v1): its own leading
+         `.chip__icon` (icon-sort) at every width; on phones the icon-only square (`--icon`, label + caret hidden).
+         A chip without its own icon, or a page that still passes a `.btn`, gets icon-sort inserted on phones only */
       sortEl?.querySelectorAll(":scope > :is(.btn, .chip)").forEach((btn) => {
         const chip = btn.classList.contains("chip");
         btn.classList.toggle(chip ? "e-permits-filter-trigger--icon" : "e-permits-filter-icon-only", on);
+        if (chip && btn.querySelector(":scope > .chip__icon:not([data-filter-sort-icon])")) return;
         const icon = btn.querySelector(":scope > [data-filter-sort-icon]");
         /* the leading icon exists only on phones (on desktop it would change the trigger's icon-side padding) */
         const svg = `<svg class="icon" aria-hidden="true"><use href="${sprite}#icon-sort"></use></svg>`;

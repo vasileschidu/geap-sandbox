@@ -13,7 +13,7 @@
   <link rel="stylesheet" href="../css/skeleton.css?v=skeleton-v1">
   <!-- the FO / BO product stylesheet (the shared copy value: ../css/copy-value.css below) -->
   <!-- the shared facet filter (BO bar + RAP phone sheets), before the FO stylesheet as on the BO pages -->
-  <link rel="stylesheet" href="../css/facet-filter.css?v=filter-sheet-height-v1">
+  <link rel="stylesheet" href="../css/facet-filter.css?v=sort-chip-icon-v1">
   <link rel="stylesheet" href="../css/e-permits-acte-permisive.css?v=act-profile-url-v1">
   <link rel="stylesheet" href="../css/empty-state.css?v=empty-v3">
   <!-- the BO page header / sections / Small tags with their BO values (the BO scope is not on this page) -->
@@ -54,7 +54,7 @@
   <script src="../js/input-date-picker.js?v=sm-v1" defer></script>
   <script src="../js/doc-preview.js?v=doc-fullheight-v1" defer></script>
   <script src="../js/act-view.js?v=audit-fix-v5" defer></script>
-  <script src="../js/facet-filter.js?v=filter-sheet-height-v1" defer></script>
+  <script src="../js/facet-filter.js?v=sort-chip-icon-v1" defer></script>
   <script src="../js/sort-sheet.js?v=radio-v1" defer></script>
   <!-- the act row of the FO „Ce vrei să soliciți?” / Ghișeu — one renderer (Actele mele permisive list) -->
   <script src="../js/act-row.js?v=act-profile-url-v1" defer></script>
@@ -64,7 +64,7 @@
   <script src="../js/alert-card.js?v=act-alert-card-v2" defer></script>
   <script src="../js/evo-header.js?v=evo-header-v1" defer></script>
   <script src="cabinet-evo.js?v=act-alert-card-v2" defer></script>
-  <script src="solicitari.js?v=acte-necesare-label-v1" defer></script>
+  <script src="solicitari.js?v=sort-chip-icon-v1" defer></script>
   <script src="notificari.js?v=permission-icon-v1" defer></script>
   <script src="catalog.js?v=permission-icon-v1" defer></script>
   <script src="../js/page-reveal.js?v=skeleton-v1" defer></script>
@@ -265,8 +265,8 @@
              menu „Sortează după” / „Ordine” (js/sort-sheet.js); phones: icon-only square → the sort sheet -->
         <div class="cab-sort" data-cab-sort>
           <button type="button" class="chip e-permits-filter-trigger e-permits-sort-trigger cab-sort__trigger" aria-haspopup="menu" aria-expanded="false" aria-controls="cab-sort-menu" data-cab-menu-trigger>
+            <span class="chip__icon"><svg class="icon" aria-hidden="true"><use href="../assets/icons/sprite.svg#icon-sort"></use></svg></span>
             <span class="chip__label" data-cab-sort-label>Data emiterii</span>
-            <svg class="icon e-permits-workplace__filter-caret" aria-hidden="true"><use href="../assets/icons/sprite.svg#icon-chevron-bottom"></use></svg>
           </button>
           <ul class="e-permits-fo-intent-menu e-permits-stack__menu cab-menu cab-menu--wide e-permits-sort-menu" id="cab-sort-menu" role="menu" aria-label="Sortează actele permisive" hidden data-cab-sort-menu></ul>
         </div>

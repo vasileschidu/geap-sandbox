@@ -2779,3 +2779,16 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   singular „Niciun document însoțitor” empty title was missed by the plural grep and only showed in the screenshot.
   Patch with Python + exact count asserts; commit via index blobs (HEAD + only my replacements) when other agents
   have uncommitted hunks in components.md / the playbook.
+- 2026-10-23 · Sort chip icon (sort-chip-icon-v1; user: „instead of the chevron, use the sort icon from mobile” on
+  „Data depunerii” / „Data emiterii”). Cheapest correct change = give the sort chip Filtre's anatomy in the MARKUP
+  (`.chip__icon` icon-sort leading + `.chip__label`, chevron deleted) and DELETE its own padding / gap rule, so the
+  library `.chip:has(.chip__icon)` + `.e-permits-filter-trigger` rules size it exactly as Filtre (12 icon · 16 label ·
+  gap 4 · icon 20 / 24 phones). The phone re-skin in js/facet-filter.js used to insert / remove the icon → it now skips
+  a chip that has its own `.chip__icon` (else two icons on phones); proved with a live resize probe 1440 → 375 → 1440
+  → 375 → 1024 (always 1 icon). Before / after = one scratch crop + metrics script (sci/crop.mjs: sort vs Filtre pad /
+  gap / radius / bg / font / icon name + size + x offset, aria-label, aria-expanded) — after: sort row identical to
+  Filtre's. hover-audit said „0 interactive” for sm-01 twice (cold / timing) → a real-mouse CDP probe (rest f5f5f5 →
+  hover d9d9d9, element on top) instead. **Never `open(P, "w").write(f(open(P).read()))`**: Python opens (truncates)
+  the write target BEFORE evaluating the argument → components.md became 0 bytes and lost other agents' uncommitted
+  hunks; recovered from `~/.claude/file-history/<session>/<hash>@vN` (size + a `diff --stat` equal to the pre-edit
+  `git diff --stat` proved it was the exact tree). Read into a variable first, then write.

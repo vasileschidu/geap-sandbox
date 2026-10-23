@@ -64,17 +64,13 @@
   line-height: inherit;
 }
 
-/* „Sortează” = the SAME toolbar chip (sort-chip-v1, 2026-10-21; user: „make Data depunerii also a filter chip”):
-   `chip e-permits-filter-trigger e-permits-sort-trigger` > `.chip__label` (the key) + the facet chips' caret
-   (`e-permits-workplace__filter-caret`, chevron 20) — so height, radius, type, hover, the open look (pressed + ring)
-   are Filtre's. Label side 16, caret side 12 (as the facet chips with a caret). Never `.is-selected`: a sort always
-   has a value, it does not narrow the list — black stays the „filters applied” signal. Phones: the icon-only
-   square (`--icon` + icon-sort 24, js/facet-filter.js), the caret hidden. */
-.chip.e-permits-sort-trigger {
-  gap: var(--spacing-6, 6px);
-  padding: 0 var(--spacing-12, 12px) 0 var(--spacing-16, 16px);
-}
-
+/* „Sortează” = the SAME toolbar chip (sort-chip-v1, 2026-10-21; user: „make Data depunerii also a filter chip”;
+   sort-chip-icon-v1, 2026-10-23; user: „instead of the chevron, use the sort icon from mobile”):
+   `chip e-permits-filter-trigger e-permits-sort-trigger` > `.chip__icon` (icon-sort, LEADING — the Filtre anatomy:
+   20 on the 40 chip, 24 on the phone 48 square) + `.chip__label` (the key), no chevron — so height, radius, type,
+   icon side 12 / label side 16, gap, hover and the open look (pressed + ring) are exactly Filtre's; no own padding.
+   Never `.is-selected`: a sort always has a value, it does not narrow the list — black stays the „filters applied”
+   signal. Phones: the same markup as the icon-only square (`--icon`, label hidden, js/facet-filter.js). */
 .e-permits-sort-trigger .chip__label {
   white-space: nowrap;
 }

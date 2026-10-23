@@ -574,8 +574,8 @@
           </button>
           <div class="cab-sort">
             <button type="button" class="chip e-permits-filter-trigger e-permits-sort-trigger cab-sort__trigger" aria-haspopup="menu" aria-expanded="false" aria-controls="sm-sort-menu" data-cab-menu-trigger>
+              <span class="chip__icon"><svg class="icon" aria-hidden="true"><use href="${SPRITE}#icon-sort"></use></svg></span>
               <span class="chip__label" data-sm-sort-label>Data depunerii</span>
-              <svg class="icon e-permits-workplace__filter-caret" aria-hidden="true"><use href="${SPRITE}#icon-chevron-bottom"></use></svg>
             </button>
             <ul class="e-permits-fo-intent-menu e-permits-stack__menu cab-menu cab-menu--wide e-permits-sort-menu" id="sm-sort-menu" role="menu" aria-label="Sortează solicitările" hidden data-sm-sort-menu></ul>
           </div>
