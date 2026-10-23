@@ -4137,3 +4137,35 @@ For any „research how other products do it” step, search Mobbin (mcp__mobbin
     target's height (eKYC „Deschide furnizorul”).
   - Result: Cabinet 21 + 10, RAP 19, eKYC 85, FOD 56 connectors (one per arrow), 0 overlaps / 0 detached / 0 off-screen crossings,
     0 lane / via nodes; right-angle crossings left: Cabinet 1 (sm-03 Continuă × Elimină), eKYC Providers 3.
+
+- 2026-10-23 · board-arrows-v2 on **GEAP 2.0** (all board pages; same job as the Cabinet / RAP / eKYC / FOD entries above).
+  **Rules now (user, same day): arrow label = blue pill + white text; every arrow = ONE connector — no waypoints, no split pieces; steer
+  only with endpoint sides (magnets), anchor placement and ELBOWED; where arrows share a path they should run as parallel lines 16 px apart.**
+  - Labels (tools/figma/board-arrows/labels.js, stored `barrows/labels`): native label, `textBackground.fills` = background/brand/default
+    (Foundations lk-e9e8 7104dc11…) — or the stroke's own variable when it is not the brand one (FOD Address = main-color/600) — corners
+    `topLeftRadius…` = 999, text = text/base-inverse/default (c6263eb1…), Onest Medium 14/20; the API cannot bind a text style to a
+    connector label (`textStyleId` / `setTextStyleIdAsync` = „no such property”). Labelled connectors appended last (pills over lines).
+    Empty labels: background cleared. 615 labels on 15 pages (Services 134, Ghișeu 76, Requestor 55, Address 39, User Mgmt 33, …).
+  - **Wrong labels found**: every arrow on Classifiers (24) and User Management (33) read „Șterge” (the old unloaded-font clone bug) →
+    rewritten from the clicked element / target block. Check labels against the start element before any arrow pass.
+  - I first built a split-lane router (pieces + 2×2 waypoints) — rejected by the user mid-job; tools/figma/board-arrows/unsplit.js
+    (stored `barrows/unsplit`) merged every split arrow back (original end, ELBOWED, label kept; pieces + lane anchors deleted; start
+    anchors at the clicked element kept). Also merged the older Ghișeu column 03 lane arrows + gh-02w0 → GH-02w (12593:375329, 11823:20255
+    / 20259 / 20263 / 20267) into single connectors.
+  - **STEER** (steer.js, stored `barrows/steer`): for each flagged arrow try start side × end side (+ ends on the target block's label row /
+    screens = anchor placement), score Figma's REAL elbow route (SVG export) — overlap 1000, through a block 300, label on a block 200,
+    heads touching 300, length/100 — keep the best; batches of ≤ 15–30 arrows per call (≈ 2 s per arrow). Overlaps: Services 254 → 2,
+    Ghișeu 109 → 2, Classifiers 12 → 0, all other pages 0. Through-block crossings that magnets cannot avoid stay (long backward jumps:
+    FO 09 F3i → F4 28 000 px, Services 17 arrows, Ghișeu 26 segments) — candidates for jump markers or moved blocks.
+  - **Analyzer** (analyze.js, stored `barrows/analyze`): arrows with an arrowhead export as outlined fills, cap-less ones as a `stroke`
+    centre-line path — parse both (v1 missed every cap-less piece and reported 0 on broken pages). Start anchors sit in the section over
+    their block → count them as that block. Intra-block annotation arrows (FOD Address C01c) are left alone.
+  - **Moved elbow segments are NOT reachable from the Plugin API**: `connectorControlPoints`, `connectorBezierControlPoints`,
+    `resetConnectorControlPoints`, `connectorTextPosition` exist on the node but throw „not a supported API” (get and set). So the 16 px
+    parallel offsets the user drags by hand cannot be read, copied or scripted — and **any endpoint write (connectorStart / connectorEnd,
+    even the same value) re-routes the connector and drops a hand-bent segment**. Never run a magnet/steer pass over a board the user has
+    bent by hand; ask first, and do the 16 px offsets in the editor.
+  - Elbow pieces between two anchors on one line took long detours (MSupport) → when a straight piece is unavoidable use
+    `connectorLineType = "STRAIGHT"`; Figma deletes nothing on line-type changes.
+  - Ghișeu: 3 connectors already dangling before this job (start node gone: 11882:347454, 11823:20351, 12488:361363) — left for the
+    agents editing Ghișeu now.
