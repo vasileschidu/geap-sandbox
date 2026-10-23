@@ -3786,8 +3786,8 @@ For any „research how other products do it” step, search Mobbin (mcp__mobbin
   desktop + phone (`Container` › `Frame 1261156104`): tag-filled Strong Medium → **Subtle Small** (setProperties, then FIXED 20 +
   HUG — the swapped tag keeps the old 24), amount Desktop/Heading/H2 → **Desktop/Heading/H4 6437d483…** (phones Mobile/Heading/H2 →
   **Mobile/Heading/H4 47680a7a…**, lk-e9e8), caption row `minHeight 24` (= code `.e-permits-fo-payment-invoice__caption
-  min-height: 24px` — without it the row drops to 20 and the head is 4 short), padding spacing-16 ×4 + gap spacing-4 bound. Heads =
-  code probe: Ghișeu 89 (16 + 24 + 4 + 28 + 16 + 1 border), F7 88 / phone 86. F7 / F7a also had the tag beside the amount (stale) →
+  min-height: 24px`; **code v2 def9e28f dropped it → minHeight removed again, row HUG 20**), padding spacing-16 ×4 + gap spacing-4
+  bound. Heads = code: Ghișeu 85 (16 + 20 + 4 + 28 + 16 + 1 border), F7 84 / phone 82 (+1 border not in layout = code 85 / 83). F7 / F7a also had the tag beside the amount (stale) →
   moved into the label row (SPACE_BETWEEN, centre) = code „label left, tag right, amount below”. Ghișeu block heights unchanged
   (screen height = Body.minHeight); F7 / F7a are the last blocks of their column → no restack, no connector touched. FOD
   pvDAJPXKyUuJgz3P921Ye8 has no payment note (its „100 MDL” 24 px texts are Apostile price cards); Post-processes has none. Lessons:
