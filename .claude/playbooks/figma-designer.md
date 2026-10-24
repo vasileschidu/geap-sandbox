@@ -4316,3 +4316,40 @@ For any „research how other products do it” step, search Mobbin (mcp__mobbin
     stays a plain nested instance.
   - Before reconfiguring a column, delete its arrows + anchors and redraw from the stored `arrow` helper: anchors are absolute and go stale
     the moment a stepper / section shifts the content.
+- 2026-10-24 · registre-board-v1 (code b5b89a83 + 81b33830). New page „↳ BO -> Registre" 12670:388301: 94 desktop blocks (BO only, no
+  phones), 12 column sections (01 Catalog 12670:388303 · 02 Registru Dosare :388304 · 03 Acte :388305 · 04 Note :388306 · 05 Avize :388307 ·
+  06 Record cards & journal :388308 · 07 Record actions :388309 · 08–12 Builder list / profile / editor / publish / deprecate-access-roles
+  12670:388310, 12770:18702…18705 — the 44-state builder was split into 5 columns), 00 Start here 12670:388302 (title, contents with NODE links
+  + block counts, 15 PO questions in Romanian), „Build assets" section with the base screen 12673:398541, index card 12850:423518 (Workplace
+  group) + index meta line. 56 arrows (one connector each, start on the clicked control, end anchors inside the target block, blue pills).
+  New local components (Forms & fields): `Field · choice chips` 12779:12771, `Field group header` 12803:399802, `Field picker · item`
+  12850:41161; `Sidebar · BO (Registre)` 12673:12819 got `Role=Central admin + granted register` 12847:1826; `Pager · compact` 12698:384436.
+  Tools: tools/figma/registre/ (README = pipeline; helpers in figma.root „reg"). Lessons:
+  - **Captured CSS grids are poison for later swaps**: tracks come in as FIXED 1 / FIXED captured px, an instance inserted into a GRID
+    parent loses its anchor (lands in the last row or on top of a sibling), HUG row tracks collapse FILL children. Convert every non-table
+    grid to auto-layout FIRST (1-col → VERTICAL, one row of children → HORIZONTAL with the captured widths FIXED, multi-row → VERTICAL of
+    HORIZONTAL rows, last child FILL), and when replacing inside a grid use setGridChildPosition(old anchors). Tables (Header / Table Cell)
+    stay GRID; only round their tracks.
+  - **Generic matchers need negative tests**: the „info note" rule ate the grey „Filtrare avansată" trigger (11 screens) and two-row detail
+    cards; the dialog row rule ate the pager range; the journal „Numbered List → timeline" rule ate the filter rule builder and the
+    breadcrumbs; an input rule using findOne() replaced a whole editor overlay with one input. Rules now require: icon box ≤ 32 + text > 24
+    chars (notes), a stroke / grey card parent (dialog rows), a date in the first item (timelines), DIRECT children (inputs). After every new
+    rule screenshot 2 screens of another kind before running it on a batch.
+  - Captures keep hidden template text (`display:none` copy-value / tags / „Inline message"): collect texts with `absoluteRenderBounds`
+    only, else notes / switch descriptions get junk („C-2026-004771 Persoană fizică …").
+  - Reading `.findOne` on a TEXT / `cornerRadius >= n` on a mixed radius THROWS in the plugin runtime (not undefined) — guard by type and
+    `typeof … === "number"`. A thrown pass rolls back the whole call (and its root plugin-data writes).
+  - SF Mono (rule-builder keyword tokens) is not available in Figma: appendChild of a capture fails with „unloaded font" → swap Mono runs to
+    Roboto Mono before moving the capture.
+  - Drawers: after swaps the body outgrows the captured 900 → HUG the body + dialog and grow the screen Body.minHeight + overlay by the
+    difference (stored `drawerfit`), never leave the drawer clipped.
+  - Header buttons with icons: label → glyph (Istoric → 24/history, Configurează → 20/settings, Deschide → 20/page-text) resized to the
+    size's icon slot (Small = 16); light-blue fill = Secondary. Editor row actions = button-text-rectangular Strict / Destructive Icon=Only
+    (ghost) — there is no ghost in button-filled-rectangular.
+  - Icon picker / pictogram tiles: the code's names are in data/registre.json (admin.icons) — map each to the Foundations glyph; `24/…`
+    glyphs work in the 16 slot after resize; a local node id that is not a COMPONENT throws „Value for instance swap … invalid".
+  - Grey info boxes in code = svc/info-note (not Message Info); the profile notice rule skips Neutral fills now.
+  - Polish at the end (stored `polish`): bind scrims to background/alpha/overlay-dark, drop ~0-opacity fills, and fix ±0.5 centring by
+    growing the FIXED parent 1 px (65 → 6 fractional on a sample). Board census after polish: 0 raw svg icons, 0 no-text-style, 0 foreign
+    fonts (Roboto Mono only in rule tokens), raw controls = 2 „și ⌄" rule-combinator tokens (mono keyword exception), 13 zero-height table
+    shadow helpers flagged as not-auto-layout (pinned column decor), 37 fractional nodes left (numbers centred in 16 px boxes).
