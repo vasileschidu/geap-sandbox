@@ -31,7 +31,10 @@ document.addEventListener("DOMContentLoaded", () => {
   const userCreate = document.querySelector("[data-user-create]");
   const userCreateDrawer = userCreate?.querySelector(".drawer");
   const userCreateBody = userCreate?.querySelector("[data-user-create-body]");
-  const userCreateSubmit = userCreate?.querySelector("[data-user-create-submit]");
+  const userCreateSteps = userCreate?.querySelector("[data-user-create-steps]");
+  const userCreateSubtitle = userCreate?.querySelector("[data-user-create-subtitle]");
+  const userCreateSummary = userCreate?.querySelector("[data-user-create-summary]");
+  const userCreateButtons = userCreate?.querySelector("[data-user-create-buttons]");
   const permitsProfilePanel = document.querySelector(".permits-profile");
   const workplacePageSizeOptions = [16, 32, 48, 96];
   const dosarProfilPanel = document.querySelector("[data-dosar-profil]");
@@ -131,7 +134,12 @@ document.addEventListener("DOMContentLoaded", () => {
     permAdd: new Set(),
     permRemove: new Set()
   };
+  /* „Adaugă utilizator nou” = 2 steps in the shared drawer step strip (users-new-2steps-v1) */
+  const USER_CREATE_STEPS = ["Date utilizator", "Atribuire roluri"];
   const userCreateState = {
+    step: 1,
+    maxStep: 1,
+    errors: {},
     idnp: "",
     person: null,
     lookupError: "",
@@ -662,6 +670,9 @@ document.addEventListener("DOMContentLoaded", () => {
       .toLocaleUpperCase("ro") || "U";
 
   const resetUserCreateState = () => {
+    userCreateState.step = 1;
+    userCreateState.maxStep = 1;
+    userCreateState.errors = {};
     userCreateState.idnp = "";
     userCreateState.person = null;
     userCreateState.lookupError = "";
@@ -704,11 +715,12 @@ document.addEventListener("DOMContentLoaded", () => {
     span = 12,
     support = "",
     checked = false,
-    calendar = false
+    calendar = false,
+    error = ""
   }) => `
     <div class="e-permits-fo-field e-permits-user-create__field e-permits-user-create__field--${span}">
       <label for="user-create-${escapeHtml(name)}">${escapeHtml(label)}${required ? requiredMark() : ""}</label>
-      <div class="e-permits-fo-input${readonly ? " is-filled is-readonly" : ""}">
+      <div class="e-permits-fo-input${readonly ? " is-filled is-readonly" : ""}${error ? " is-error" : ""}">
         <input
           id="user-create-${escapeHtml(name)}"
           type="${escapeHtml(type)}"
@@ -722,7 +734,7 @@ document.addEventListener("DOMContentLoaded", () => {
         ${checked ? `<svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-checkmark-small"></use></svg>` : ""}
         ${calendar ? `<svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-calendar"></use></svg>` : ""}
       </div>
-      ${support ? `<p class="e-permits-fo-field__hint">${escapeHtml(support)}</p>` : ""}
+      ${error ? clasFieldError({ error }, "error") : ""}${support ? `<p class="e-permits-fo-field__hint"${error ? " hidden" : ""}>${escapeHtml(support)}</p>` : ""}
     </div>
   `;
 
@@ -798,18 +810,44 @@ document.addEventListener("DOMContentLoaded", () => {
     `;
   };
 
-  const canCreateUser = () =>
-    Boolean(
-      userCreateState.person &&
-      userCreateState.functie.trim() &&
-      userCreateState.combinations.length
-    );
-
-  const renderUserCreate = ({ focusName = null } = {}) => {
-    if (!userCreateBody || !userCreateSubmit) {
-      return;
+  /* step checks — „Continuă” / „Creează utilizator nou” validate on click, as every create drawer */
+  const validateUserCreateStep = (step) => {
+    const errors = {};
+    if (step === 1) {
+      if (!userCreateState.person) {
+        errors.idnp = userCreateState.idnp.length !== 13 ? "Introdu exact 13 cifre." : (userCreateState.lookupError || "Caută persoana în RSSP după IDNP.");
+      }
+      if (userCreateState.person && !userCreateState.functie.trim()) errors.functie = "Completează funcția.";
     }
+    if (step === 2 && !userCreateState.combinations.length) {
+      errors.combinations = "Adaugă cel puțin o combinație de rol.";
+    }
+    return errors;
+  };
 
+  const userCreateDirty = () => Boolean(
+    userCreateState.idnp ||
+    userCreateState.person ||
+    userCreateState.functie.trim() ||
+    userCreateState.comments.trim() ||
+    userCreateState.combinations.length ||
+    userCreateState.isAddingCombination
+  );
+
+  const renderUserCreateFooter = () => {
+    if (!userCreateButtons) return;
+    const { step } = userCreateState;
+    if (userCreateSummary) userCreateSummary.textContent = `Pasul ${step} din ${USER_CREATE_STEPS.length} · ${USER_CREATE_STEPS[step - 1]}`;
+    userCreateButtons.innerHTML = step === 1 ? `
+      <button class="btn btn-neutral btn-rounded" type="button" data-user-create-close>Anulează</button>
+      <button class="btn btn-primary btn-rounded" type="button" data-user-create-next>Continuă</button>
+    ` : `
+      <button class="btn btn-neutral btn-rounded" type="button" data-user-create-back>Înapoi</button>
+      <button class="btn btn-primary btn-rounded" type="button" data-user-create-submit>Creează utilizator nou</button>
+    `;
+  };
+
+  const renderUserCreateStep1 = () => {
     const person = userCreateState.person;
     const idnpCount = userCreateState.idnp.length;
     const identityContent = person ? `
@@ -867,7 +905,7 @@ document.addEventListener("DOMContentLoaded", () => {
       </div>
     `;
 
-    userCreateBody.innerHTML = `
+    return `
       <section class="e-permits-user-create__section">
         <h3 class="e-permits-user-create__section-title">Verificarea identității</h3>
         <div class="e-permits-user-create__section-content">${identityContent}</div>
@@ -882,7 +920,8 @@ document.addEventListener("DOMContentLoaded", () => {
               value: userCreateState.functie,
               placeholder: "Ex. Specialist principal",
               required: true,
-              support: "Funcția pe care o are utilizatorul în cadrul autorității."
+              support: "Funcția pe care o are utilizatorul în cadrul autorității.",
+              error: userCreateState.errors.functie || ""
             })}
             <div class="e-permits-fo-field e-permits-user-create__field">
               <label for="user-create-comments">Comentarii</label>
@@ -892,22 +931,75 @@ document.addEventListener("DOMContentLoaded", () => {
             </div>
           </div>
         </section>
-        <section class="e-permits-user-create__section">
-          <h3 class="e-permits-user-create__section-title">Combinații de roluri</h3>
-          <div class="e-permits-user-create__section-content" data-user-combinations>
-            ${renderUserCreateCombinations()}
-          </div>
-        </section>
       ` : ""}
     `;
+  };
 
-    userCreateSubmit.disabled = !canCreateUser();
+  const renderUserCreateStep2 = () => `
+    <section class="e-permits-user-create__section">
+      <h3 class="e-permits-user-create__section-title">Combinații de roluri</h3>
+      <div class="e-permits-user-create__section-content" data-user-combinations>
+        ${renderUserCreateCombinations()}
+        ${clasFieldError(userCreateState.errors, "combinations")}
+      </div>
+    </section>
+  `;
+
+  const renderUserCreate = ({ focusName = null, keepScroll = false } = {}) => {
+    if (!userCreateBody) {
+      return;
+    }
+
+    const top = userCreateBody.scrollTop;
+    if (userCreateSteps) userCreateSteps.innerHTML = renderStepStrip(USER_CREATE_STEPS, userCreateState, "data-user-create-goto");
+    if (userCreateSubtitle) {
+      const person = userCreateState.person;
+      userCreateSubtitle.textContent = person ? `${person.firstName} ${person.lastName}`.trim() : "";
+    }
+    userCreateBody.innerHTML = userCreateState.step === 1 ? renderUserCreateStep1() : renderUserCreateStep2();
+    renderUserCreateFooter();
+    if (keepScroll) userCreateBody.scrollTop = top;
 
     if (focusName) {
       requestAnimationFrame(() => {
         focusFormControl(userCreateBody.querySelector(`[name="${focusName}"]`));
       });
     }
+  };
+
+  /* forward moves validate every step on the way (strip or „Continuă”); back keeps the data */
+  const goUserCreateStep = (target) => {
+    if (target > userCreateState.step) {
+      for (let step = userCreateState.step; step < target; step += 1) {
+        const errors = validateUserCreateStep(step);
+        if (Object.keys(errors).length) {
+          userCreateState.step = step;
+          userCreateState.errors = errors;
+          if (errors.idnp && !userCreateState.person) userCreateState.lookupError = errors.idnp;
+          renderUserCreate({ focusName: errors.idnp ? "idnp" : "functie" });
+          return;
+        }
+      }
+    }
+    userCreateState.step = target;
+    userCreateState.maxStep = Math.max(userCreateState.maxStep, target);
+    userCreateState.errors = {};
+    renderUserCreate();
+    userCreateBody.scrollTop = 0;
+    requestAnimationFrame(() => {
+      const first = target === 1
+        ? userCreateBody.querySelector('[name="functie"], [name="idnp"]')
+        : userCreateBody.querySelector("[data-user-combination-open], [name='roleId']");
+      focusFormControl(first);
+    });
+  };
+
+  const requestCloseUserCreate = () => {
+    if (userCreateDirty()) {
+      askConfirm({ title: "Renunți la utilizatorul nou?", text: "Datele introduse în acest formular se pierd.", confirmLabel: "Renunță", destructive: true }, () => closeUserCreate());
+      return;
+    }
+    closeUserCreate();
   };
 
   const openUserCreate = () => {
@@ -931,6 +1023,7 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
+    closeFoSelect();
     userCreate.classList.add("is-closing");
     window.setTimeout(() => {
       userCreate.hidden = true;
@@ -971,6 +1064,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     userCreateState.person = person;
     userCreateState.lookupError = "";
+    delete userCreateState.errors.idnp;
     userCreateState.additionalInfo = person.additionalInfo || "";
     renderUserCreate({ focusName: "functie" });
   };
@@ -1002,14 +1096,26 @@ document.addEventListener("DOMContentLoaded", () => {
       });
     }
 
+    delete userCreateState.errors.combinations;
     userCreateState.isAddingCombination = false;
     userCreateState.combinationDraft = { roleId: "", authorityId: "", subdivisionId: "" };
-    renderUserCreate();
+    renderUserCreate({ keepScroll: true });
   };
 
   const createRegistryUser = () => {
-    if (!canCreateUser() || !userCreateState.person || !usersDb) {
+    if (!userCreateState.person || !usersDb) {
       return;
+    }
+
+    for (const step of [1, 2]) {
+      const errors = validateUserCreateStep(step);
+      if (Object.keys(errors).length) {
+        userCreateState.step = step;
+        userCreateState.errors = errors;
+        renderUserCreate({ focusName: errors.functie ? "functie" : null, keepScroll: step === 2 });
+        if (errors.combinations) userCreateBody?.querySelector("[data-user-combination-open], [name='roleId']")?.focus();
+        return;
+      }
     }
 
     const person = userCreateState.person;
@@ -18629,7 +18735,29 @@ document.addEventListener("DOMContentLoaded", () => {
 
   userCreate?.addEventListener("click", (event) => {
     if (event.target.closest("[data-user-create-close]")) {
-      closeUserCreate();
+      requestCloseUserCreate();
+      return;
+    }
+
+    if (event.target.closest("[data-user-create-next]")) {
+      goUserCreateStep(2);
+      return;
+    }
+
+    if (event.target.closest("[data-user-create-back]")) {
+      goUserCreateStep(1);
+      return;
+    }
+
+    const gotoStep = event.target.closest("[data-user-create-goto]");
+
+    if (gotoStep) {
+      goUserCreateStep(Number(gotoStep.dataset.userCreateGoto));
+      return;
+    }
+
+    if (event.target.closest("[data-user-create-submit]")) {
+      createRegistryUser();
       return;
     }
 
@@ -18643,8 +18771,7 @@ document.addEventListener("DOMContentLoaded", () => {
       userCreateState.lookupError = "";
       userCreateState.functie = "";
       userCreateState.comments = "";
-      userCreateState.combinations = [];
-      userCreateState.isAddingCombination = false;
+      userCreateState.errors = {};
       renderUserCreate({ focusName: "idnp" });
       return;
     }
@@ -18652,7 +18779,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (event.target.closest("[data-user-combination-open]")) {
       userCreateState.isAddingCombination = true;
       userCreateState.combinationDraft = { roleId: "", authorityId: "", subdivisionId: "" };
-      renderUserCreate({ focusName: "roleId" });
+      renderUserCreate({ focusName: "roleId", keepScroll: true });
       userCreateBody?.scrollTo({ top: userCreateBody.scrollHeight, behavior: "smooth" });
       return;
     }
@@ -18660,7 +18787,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (event.target.closest("[data-user-combination-cancel]")) {
       userCreateState.isAddingCombination = false;
       userCreateState.combinationDraft = { roleId: "", authorityId: "", subdivisionId: "" };
-      renderUserCreate();
+      renderUserCreate({ keepScroll: true });
       return;
     }
 
@@ -18673,7 +18800,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (removeCombination) {
       userCreateState.combinations.splice(Number(removeCombination.dataset.userCombinationRemove), 1);
-      renderUserCreate();
+      renderUserCreate({ keepScroll: true });
     }
   });
 
@@ -18689,6 +18816,7 @@ document.addEventListener("DOMContentLoaded", () => {
       target.value = value;
       userCreateState.idnp = value;
       userCreateState.lookupError = "";
+      delete userCreateState.errors.idnp;
       const inline = target.closest(".e-permits-fo-field")?.querySelector(".e-permits-user-create__inline");
       const message = inline?.querySelector("span:first-child");
       const counter = inline?.querySelector(".e-permits-user-create__counter");
@@ -18701,14 +18829,17 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (target.name === "functie") {
       userCreateState.functie = target.value;
+      if (userCreateState.errors.functie && target.value.trim()) {
+        delete userCreateState.errors.functie;
+        const field = target.closest(".e-permits-fo-field");
+        field?.querySelector(".e-permits-fo-input")?.classList.remove("is-error");
+        field?.querySelector(".e-permits-fo-field__error")?.remove();
+        field?.querySelector(".e-permits-fo-field__hint")?.removeAttribute("hidden");
+      }
     } else if (target.name === "comments") {
       userCreateState.comments = target.value;
     } else if (target.name === "additionalInfo") {
       userCreateState.additionalInfo = target.value;
-    }
-
-    if (userCreateSubmit) {
-      userCreateSubmit.disabled = !canCreateUser();
     }
   });
 
@@ -18727,7 +18858,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (select.name === "authorityId") {
       userCreateState.combinationDraft.authorityId = select.value;
       userCreateState.combinationDraft.subdivisionId = "";
-      renderUserCreate({ focusName: "subdivisionId" });
+      renderUserCreate({ focusName: "subdivisionId", keepScroll: true });
       return;
     }
 
@@ -18738,8 +18869,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
   userCreate?.addEventListener("keydown", (event) => {
     if (event.key === "Escape") {
+      if (document.querySelector("body > .e-permits-fo-select__list:not([hidden]), .modal-overlay.is-active")) return;
       event.preventDefault();
-      closeUserCreate();
+      requestCloseUserCreate();
       return;
     }
 
@@ -18773,7 +18905,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  userCreateSubmit?.addEventListener("click", createRegistryUser);
 
   if (workplaceSearch) {
     workplaceSearch.addEventListener("input", () => {

@@ -3356,3 +3356,21 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   the combination form card (reported). No sub-agent tool → code-audit (drawer + toolbar: only the 18 padding and the
   card's title → meta 4 tight-gap), hover-audit 0 / 0 (toolbar + 6 drawer states; one cold-run „no-hover” on the footer
   primary disproved by a real-mouse probe), component-audit 0 in the drawer / toolbar (standing shell profile-menu majors).
+- 2026-10-24 · users-new-2steps-v1 (user: „when creating a user, add 2 steps as in other creation flows; the 2nd step =
+  role attribution; the horizontal stepper”). (1) Turning a one-form drawer into a wizard = copy the Șablon nou wiring, not
+  its markup: `{ step, maxStep, errors }` in the existing state object, `renderStepStrip(STEPS, state, "data-x-goto")` into a
+  `nav.e-permits-steps-strip` between header and body, footer summary `span.e-permits-rt__summary` „Pasul n din N · …” +
+  buttons re-rendered per step, one `goStep(target)` that validates every step on the way forward (footer AND completed-strip
+  clicks), `requestClose` with `askConfirm` when dirty. The old body renderer split into step1 / step2 without touching the
+  identity / combination markup. (2) A button queried once at init (`userCreateSubmit`) dies when the footer is re-rendered
+  per step → delegate the clicks on the drawer and drop the cached node; a `disabled` primary toggled on every input also
+  goes — BO create drawers validate on click (the brief said „Înainte” + disabled; every BO create drawer says „Continuă”
+  and validates → followed the drawers, reported). (3) Re-rendering a step on every inner action (add / remove / cancel a
+  combination, authority change) jumped the body to the top on step 2 → `keepScroll` option on the renderer. (4) The
+  component-audit flagged `button.e-permits-steps-strip__cell` as non-library on EVERY wizard drawer (clf-02a too): the
+  strip had sections in components.md but no § 2 inventory row with backticked classes → the row made it 0 majors on all
+  of them. (5) Esc order: a document/drawer Esc handler must skip when a body-level fo-select list or a `.modal-overlay
+  .is-active` is open — probed with real keys: list open → Esc closes only the list; data → confirm; Esc on the confirm →
+  only the confirm closes. No sub-agent tool → capture 15 states × 2 (0 errors / overflow), hover-audit 0 / 0 (8 drawer
+  states), code-audit static 0 + only the standing strip check-icon colour FP, the 18 padding and the card meta 4 gap
+  (pre-existing), component-audit 0 majors in the drawer after the row (standing profile-menu majors outside it).

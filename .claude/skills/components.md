@@ -242,6 +242,7 @@ but this doc previously described it wrongly, see the entry.
 | **Skeleton — ONE loading placeholder** (skeleton-v1; FO lookups, registry / SRRE fills, grid source, subject switch, page reveal auth / choice / step, BO sync summary) | `span.skeleton` + `--text` (1lh, r4, short line) / `--input` (40, phones 48, r8) / `--block` (r12, height from the slot) / `--circle` (24, round); `css/skeleton.css` loaded right after the library CSS; size = placement rules of the owner; containers `aria-hidden` + `aria-busy` region | section „Skeleton — ONE loading placeholder” | app |
 | **Dialog footer — ONE size, the library Modal › Footer** (dialog-footer-v1, 2026-10-21; modal-footer-medium-v1, 2026-10-22; every dialog: library `.modal`, drawer, FO confirm card, FO dialog shell) | footer 12 · 20 · 24 · 20 (phones 12 · 16 · max(16, safe area)), right-aligned, gap 8; buttons on **desktop modals (> 760) = Medium 40 pill, 14/20 medium, sides 16 (12 on the icon side), icon 20** (user: „for modals desktop let's also use medium buttons, these are huge”); **phones = Large 48 pill, 16/24, sides 20 (16 on the icon side)**; **drawers + the template sheet = Large 48 at every width** (side panels, not modals — open question); secondary `btn-neutral` (grey), main `btn-primary` / `btn-destructive`; phones = two equal halves that wrap, primary on top; **document / act viewers on phones = Medium 40 · 14/20** (viewer-footer-phone-v1, `css/modal-phone.css` § 7b); markup unchanged (`.modal--footer > .modal-buttons > .btn.btn-rounded`) | `css/dialog-footer.css` (loaded right before `css/modal-phone.css`); section „Dialog footer — the library size” | app |
 | **Drawer — ONE right-hand panel** (drawer-v1; every BO / eKYC / Process Designer side panel) | `.drawer-overlay[hidden]` > `button.drawer-overlay__scrim` + `aside.drawer(.drawer--lg)[role=dialog][aria-modal][tabindex=-1]` > `header.drawer__header` (`.drawer__heading` > `h2.drawer__title` + `p.drawer__subtitle`, library `.modal-close`) · [strips] · `.drawer__body` (the only scroller) · `footer.drawer__footer` > `.modal-buttons`; `css/drawer.css` + `js/drawer.js` (`GEAPDrawer`: focus trap, Escape → the drawer's own ×, focus return); inner form vocabulary stays `.e-permits-user-create__section / __grid / __field` | section „Drawer — ONE right-hand panel” | app |
+| **Drawer step strip — „Stepper · drawer”** (every multi-step create drawer: Clasificator nou, Șablon nou, Tarif nou, Tip de solicitare nou, Adaugă utilizator nou) | `nav.e-permits-steps-strip[aria-label="Pașii creării"]` between `.drawer__header` and `.drawer__body` > `ol.e-permits-steps-strip__list` > `li.e-permits-steps-strip__step.is-{current\|completed\|incomplete}` (`aria-current="step"` on the current) > `__line` (from step 2) + `button.e-permits-steps-strip__cell[data-…-goto]` (completed = go back; forward through the strip validates every step on the way) / `span.e-permits-steps-strip__cell` > `__circle` (number / `checkmark-small`) + `__label`; markup only from `renderStepStrip(steps, { step, maxStep }, gotoAttr)`; footer `span.e-permits-rt__summary[aria-live=polite]` „Pasul n din N · <step>” + `.modal-buttons` (step 1: Anulează · Continuă; middle: Înapoi · Continuă; last: Înapoi · final primary); „Continuă” / the final action validate on click (never disabled); × / scrim / Esc / Anulează with data entered → `askConfirm` „Renunți la …?” (destructive „Renunță”). Figma local component „Stepper · drawer” `10421:197819` | — (demo `clf-02a`, `usr-u02d1`) | app |
 | **Tooltip — ONE runtime** (plain + hint; every tooltip in the product, tooltip-one-v1) | library `.tooltip.tooltip--small.tooltip--plain` / `.tooltip--{top\|bottom}-center` + arrow, ONE node `#icon-tooltip` placed by `js/icon-tooltip.js` (`GEAPTooltip`); opt-in `data-tooltip-label / -text / -reason / -hint`, `data-cell-tooltip` (cut text), `data-tooltip-placement`; never `title=` | section „Tooltip — ONE runtime” · `tooltip.html` | app |
 | Header | `.header .header__wrapper` | `header.html` | library (partial) |
 | Footer | `.footer__top/__middle/__bottom` | `footer.html` | library |
@@ -6122,6 +6123,27 @@ destructive }, onConfirm)`, which uses the shared `#service-confirm-modal`.
     text buttons included, even when aria-disabled.
 - **Example:** the template header's "Publică" is always present. With nothing to
   publish it is aria-disabled, with the tooltip "Nu există modificări de publicat."
+
+### Adaugă utilizator nou — 2-step create drawer (users-new-2steps-v1, 2026-10-24)
+
+User 2026-10-24: „when creating a user, add 2 steps as in other creation flows; the 2nd step = role attribution”.
+The standard drawer `[data-user-create]` (normal width) + the drawer step strip `[data-user-create-steps]`
+(`renderStepStrip(USER_CREATE_STEPS, userCreateState, "data-user-create-goto")`) — no own stepper markup.
+Subtitle `[data-user-create-subtitle]` = the person's name once found in RSSP (never the IDNP — no codes in headers).
+1. **Date utilizator** — section „Verificarea identității” (IDNP lookup: 13-digit counter, „Caută”; errors „Introdu
+   exact 13 cifre.” / „Persoana nu a fost găsită în RSSP.” / „Această persoană este deja utilizator.”; found → read-only
+   RSSP data + „Schimbă”, editable „Informații adiționale”), section „Date editabile” (Funcția *, Comentarii). Footer
+   Anulează · **Continuă**: validates — no person → the IDNP error („Caută persoana în RSSP după IDNP.”), empty Funcția →
+   „Completează funcția.” (`clasFieldError` under the field, hint hidden; cleared while typing).
+2. **Atribuire roluri** — section „Combinații de roluri”: empty state „Niciun rol adăugat” + „Adaugă combinație”, the
+   add form (Rol → Autoritate → Subdiviziune, fo-selects, Adaugă / Anulează), combination cards with the red trash.
+   Footer Înapoi · **Creează utilizator nou**: validates — no combination → „Adaugă cel puțin o combinație de rol.” under
+   the list. Success = drawer closes, the new user first in the registry + success toast.
+Back (footer or the completed strip step) keeps every value; „Schimbă” on step 1 clears the person + Funcția / Comentarii
+but keeps the combinations. Closing with data (× / scrim / Esc / Anulează) asks „Renunți la utilizatorul nou?”.
+Demo: `usr-u02` (empty) · `-u02a/b/c` (lookup errors) · `-u02d` (found) · `-u02d0` (Continuă without Funcția) ·
+`-u02d1` (step 2 empty) · `-u02d2` (create without a combination) · `-u02e/f` (add form empty / filled) · `usr-u03x`
+(= U02g, card) · `-u02h` (ready) · `-u02i` (created + toast) · `-u02j` (back on step 1, data kept) · `-u02k` (close confirm).
 
 ### Workplace toolbar primary action (added 2026-10-01)
 

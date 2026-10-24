@@ -43,7 +43,7 @@
   <script src="js/empty-state.js?v=empty-v3"></script>
   <script src="js/trajectory.js?v=trajectory-phone-even-v1"></script>
   <script src="js/event-timeline.js?v=istoric-jurnal-v1"></script>
-  <script src="js/demo-states.js?v=users-new-flow-v1"></script>
+  <script src="js/demo-states.js?v=users-new-2steps-v1"></script>
   <script src="js/demo-links.js?v=links-v4"></script>
   <!-- ?flow=ekyc: the eKYC back office on this shell (js/ekyc.js → window.GEAPShellProduct) -->
   <script src="js/ekyc.js?v=audit-fix-v5"></script>
@@ -2863,19 +2863,22 @@
       tabindex="-1"
     >
       <header class="drawer__header">
-        <h2 class="drawer__title" id="user-create-title">Adaugă utilizator nou</h2>
+        <div class="drawer__heading">
+          <h2 class="drawer__title" id="user-create-title">Adaugă utilizator nou</h2>
+          <p class="drawer__subtitle" data-user-create-subtitle></p>
+        </div>
         <button class="modal-close" type="button" aria-label="Închide" data-user-create-close>
           <svg class="icon" width="16" height="16" aria-hidden="true">
             <use href="assets/icons/sprite.svg#icon-cross-large"></use>
           </svg>
         </button>
       </header>
+      <!-- 2 steps: Date utilizator · Atribuire roluri (renderStepStrip, users-new-2steps-v1) -->
+      <nav class="e-permits-steps-strip" aria-label="Pașii creării" data-user-create-steps></nav>
       <div class="drawer__body" data-user-create-body></div>
       <footer class="drawer__footer">
-        <div class="modal-buttons">
-          <button class="btn btn-neutral btn-rounded" type="button" data-user-create-close>Anulează</button>
-          <button class="btn btn-primary btn-rounded" type="button" data-user-create-submit disabled>Creează utilizator nou</button>
-        </div>
+        <span class="e-permits-rt__summary" data-user-create-summary aria-live="polite"></span>
+        <div class="modal-buttons" data-user-create-buttons></div>
       </footer>
     </aside>
   </div>
@@ -3534,7 +3537,7 @@
   <script src="core/permissions.js?v=clas-v1"></script>
   <script src="core/case-flow.js?v=fees-v4"></script>
   <script src="js/facet-filter.js?v=sort-chip-icon-v1"></script>
-  <script src="js/e-permits-shell.js?v=users-new-flow-v1"></script>
+  <script src="js/e-permits-shell.js?v=users-new-2steps-v1"></script>
 
   <!-- Instance switch warning modal -->
   <div class="e-permits-fo-instance-switch-modal" data-fo-instance-switch-modal hidden aria-modal="true" role="dialog" aria-labelledby="fo-instance-switch-title" aria-describedby="fo-instance-switch-description">
