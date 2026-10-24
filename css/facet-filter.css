@@ -349,6 +349,22 @@
 
 /* the open trigger keeps the focus ring: the „Filter trigger” rule at the top (filter-chip-v1) */
 
+/* open facet chip (popover / „Mai multe” menu showing; open-chip-pressed-v1, 2026-10-24; user: „if chip is pressed do
+   proper state, chevron up”; Figma open-chip-popover-v1) = the Filtre trigger's open look in every product and at every
+   width: the library chip's pressed fill (background/base/tertiary-hover — the chip's own hover step, it has no other
+   pressed token) + the open-button ring (2 white + 5 focus blue), chevron up (js/facet-filter.js). A selected (black)
+   chip stays black (its hover step on hover) and only gains the ring; the date chip with a period = its inner
+   `.chip__label` carries aria-expanded, the chip draws the ring. */
+.chip.e-permits-workplace__filter-chip[aria-expanded="true"],
+.chip.e-permits-workplace__filter-chip--date:has(> .chip__label[aria-expanded="true"]) {
+  box-shadow: 0 0 0 var(--border-width-2, 2px) var(--color-background-base-default, #fff), 0 0 0 calc(var(--border-width-2, 2px) + var(--border-width-3, 3px)) var(--focus-ring, var(--blue-sky-500, #3379db));
+  outline: none;
+}
+
+.chip.e-permits-workplace__filter-chip[aria-expanded="true"]:not(.is-selected) {
+  background-color: var(--color-background-base-tertiary-hover, #d9d9d9);
+}
+
 /* a selected (black) chip is one step lighter on hover — the BO generic rule in
    e-permits-acte-permisive.css (`.chip.is-selected:hover…`, higher specificity, same values) */
 .chip.e-permits-workplace__filter-chip.is-selected:hover {

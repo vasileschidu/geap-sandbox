@@ -3496,3 +3496,16 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   top / bottom, open sideways past the shadow reach (10 + 15 − 3 = 22 → `--spacing-32`; the box edge adds its hang).
   The ring keeps only its side lines, group-row run ends are cut too, the sideways look is byte-identical. (3) A
   probe that diffs before / after crops is the quickest proof a fix is invisible where it should be.
+- 2026-10-24 · open-chip-pressed-v1 (Figma QA gap; user: „if chip is pressed do proper state, chevron up”). The open Filtre
+  trigger already had pressed + ring, but the FACET chips relied on product CSS: BO / RAP / eKYC had nothing, Cabinet only
+  its page-wide `.cab-page .chip[aria-expanded]` ring (fill stayed the rest grey). Fix in the shared module only:
+  `.chip.e-permits-workplace__filter-chip[aria-expanded="true"]` + the date chip via `:has(> .chip__label[aria-expanded])`
+  = ring, `:not(.is-selected)` = `--color-background-base-tertiary-hover` (the library chip has no pressed token; its
+  hover step = Figma tertiary-hover = the trigger's open fill). The ring spread as `calc(--border-width-2 + --border-width-3)`
+  — a literal `5px` is flagged by code-audit's static px check even though older rules in the file use it. Side find via
+  the probe (chip rect vs popover rect): the date chip's popover sat 7 under / 1 right — `place()` measured the inner
+  `.chip__label` button (inside the chip's 1px border) → anchor = `anchor.closest(chip)`. Probe for every product =
+  scratch oc/probe.mjs (open chip bg / box-shadow / caret / popover dy-dx + crop, `ACT` env to confirm + reopen for the
+  selected and the date-chip variants). No sub-agent tool → code-audit (only standing: date popover overflow visible,
+  th sort, banner link), component-audit (only standing avatar / profile menu / th majors), hover-audit 0 / 0 (open chip
+  „keeps pressed”), capture clean (rap-01r 375 overflow = HEAD).

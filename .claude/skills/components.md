@@ -5458,6 +5458,14 @@ migrate. Never write a third one.
   - **Selected chip:** `inverse-default` background, with a white `.chip__badge`
     (18px, 12 medium) holding the number of selected values, then a 20px chevron
     (bottom, or top while open).
+  - **Open chip (popover / „Mai multe” menu showing; open-chip-pressed-v1, 2026-10-24; user: „if chip is pressed do
+    proper state, chevron up”; Figma open-chip-popover-v1):** `[aria-expanded="true"]` = the pressed fill
+    `--color-background-base-tertiary-hover` (#D9D9D9 — the library chip's hover step, it has no other pressed token;
+    the same as the open Filtre trigger) + the open-button ring (2 white + 5 focus blue, `box-shadow`) + chevron top, in
+    every product and at every width. A selected (black) chip stays black and only gains the ring; the date chip with a
+    period draws the ring on the chip (`:has(> .chip__label[aria-expanded="true"])`). The popover is placed from the
+    CHIP box (the date chip's inner button sits inside its 1px border): 8 under, left edges equal. Demo rap-01r, dos-05c,
+    ek-04c / 06b / 22b, sm-01g, pp-01s (rest), sm-01p (date).
   - **Count badge:** the same `badge badge--lg badge--solid-light` as everywhere else.
   - **"Mai multe":** the first 4 facets are chips; the rest sit in "Mai multe" (a menu)
     until they hold a value.

@@ -801,7 +801,8 @@
        above → it opens above the chip (facet-popover-v2) */
     const GUTTER = 16;
     const place = (anchor) => {
-      const r = anchor.getBoundingClientRect();
+      /* the date chip's inner button sits inside the chip's 1px border → anchor to the chip itself (8 under, left edges equal) */
+      const r = (anchor.closest(".e-permits-workplace__filter-chip") || anchor).getBoundingClientRect();
       const width = popover.offsetWidth;
       const height = popover.offsetHeight;
       let left = r.left;
