@@ -107,8 +107,96 @@
   border-left-width: 0 !important;
 }
 
+/* ==========================================================================
+   Box-edge effect (table-edge-shadow-v1, 2026-10-24, user on the Registrul actelor permisive: „we don't have
+   fixed columns here, but can we put the same shadow + stroke at the edges of the screen so it's clear there's
+   something to scroll?”). A side of a sideways-scrolling table WITHOUT a pinned column shows the same ring +
+   sideways shadows at the scroll box's own edge, as if an empty pinned column stood just outside the box.
+   - `.table-scroll-edges` (in the rail, as wide as the table) clips sideways only (`overflow-x: clip` creates no
+     scroll box, adds no scroll width); its `__track` reaches one hang past the table on both sides, so the
+     sticky `.table-scroll-edge--start / --end` segments (one hang wide, `left` / `right` = minus the hang) rest
+     just outside the visible box at every scroll position — only their ring line (the box's inner 1 px) and the
+     shadow cast into the box are seen. Same row runs as the pinned columns (header + data rows; full-width group
+     rows / empty states break them), same z 7, transparent, `pointer-events: none`.
+   - States: ring AND shadows only while there is more on that side (`.has-overflow-start` → start edge,
+     `.has-overflow-end` → end edge): at the end of the scroll the edge is gone, not a line on the box border.
+     150 ms fade, none with reduced motion.
+   ========================================================================== */
+.table-scroll-edges {
+  align-self: start;
+  grid-area: 1 / 1;
+  height: 0;
+  overflow-x: clip;
+  overflow-y: visible;
+  --table-edge-hang: var(--spacing-48, 48px);
+}
+
+.table-scroll-edges__track {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: 0;
+  height: 0;
+  margin: 0 calc(var(--table-edge-hang) * -1);
+}
+
+.table-scroll-edge {
+  align-self: start;
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0),
+    0 0 6px -2px rgba(0, 0, 0, 0),
+    0 0 15px -3px rgba(0, 0, 0, 0);
+  grid-area: 1 / 1;
+  height: var(--pin-seg-h, 0);
+  margin-top: calc(var(--pin-seg-top, 0px) - var(--pin-rail-up, 0px));
+  position: sticky;
+  transition: box-shadow 150ms ease;
+  width: var(--table-edge-hang);
+  z-index: 7;
+}
+
+.table-scroll-edge--start {
+  justify-self: start;
+  left: calc(var(--table-edge-hang) * -1);
+}
+
+.table-scroll-edge--end {
+  justify-self: end;
+  right: calc(var(--table-edge-hang) * -1);
+}
+
+.has-overflow-start .table-scroll-edge--start {
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.08),
+    4px 0 6px -2px rgba(0, 0, 0, 0.05),
+    10px 0 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+.has-overflow-end .table-scroll-edge--end {
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.08),
+    -4px 0 6px -2px rgba(0, 0, 0, 0.05),
+    -10px 0 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+/* a box with its own border on that side (RAP / Cabinet act-field tables): the border is the stroke, the edge adds
+   only the shadow — no second line just inside the border */
+.has-edge-shadow--framed-start.has-overflow-start .table-scroll-edge--start {
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0),
+    4px 0 6px -2px rgba(0, 0, 0, 0.05),
+    10px 0 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+.has-edge-shadow--framed-end.has-overflow-end .table-scroll-edge--end {
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0),
+    -4px 0 6px -2px rgba(0, 0, 0, 0.05),
+    -10px 0 15px -3px rgba(0, 0, 0, 0.1);
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .table-pin-column {
+  .table-pin-column,
+  .table-scroll-edge {
     transition: none;
   }
 }

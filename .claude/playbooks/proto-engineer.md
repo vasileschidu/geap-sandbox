@@ -3467,3 +3467,22 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   when the user says „lines where they make no sense”; measure all sources before editing other people's CSS.
   Another agent had uncommitted work in the same two module files (table-edge-shadow-v1 box-edge overlay) → my commit =
   HEAD + my exact replacements only.
+- 2026-10-24 · table-edge-shadow-v1 (user on Registrul actelor permisive: „no fixed columns here, but put the same shadow +
+  stroke at the edges of the screen so it's clear there's something to scroll”). (1) MEASURE THE PREMISE: reg-03 in code
+  DOES pin „Nr. act” (start) and fits at 1440 / 1280 since my-cases-no-hscroll-v1; the Figma screen (1184 box, cut) is
+  older — so per side: pinned → column effect, none → box edge. (2) „The same effect at the box edge” = an empty pinned
+  column standing just OUTSIDE the box. A sticky element can never leave its containing block and the last `hang` px of
+  scroll would drag it inward; fix = a clip wrapper as wide as the table (`overflow-x: clip` + `overflow-y: visible`: no
+  scroll box, sticky still binds to the real scroller, adds NO scroll width) holding a track one hang wider on each side;
+  sticky `left/right: −hang` segments then rest exactly at the box edge at every scroll position (probe: edge.left ==
+  box.right at max−30 / −10 / −1 / max, scrollWidth unchanged). Pixel profile = the v3 column's (229 → 208 | edge).
+  (3) An inset shadow would be simpler but darkens the segment's top / bottom (spread −3 makes the hole smaller) —
+  the outer shadow fades at the ends like the column. (4) Bordered boxes (act-field tables, 1px + r12) got a double line
+  (ring 208 + border 217) → `--framed-*` drops the ring; the border is the stroke. (5) Extending a „sticky tables only”
+  module to every scroll box: guard the rail insert (table parent must be block / flow-root, or the 0-high rail becomes a
+  flex item beside the table) and skip boxes with their own cue (RAP `.rap-table-scroller` mask). The sweep found two
+  false targets — the doc-template canvas on phones (svc-08b1) and the Ghișeu sheet body (gh-09, widened by its
+  progress bar) — fixed by „the TABLE must be what overflows” (table width + box padding ≥ scrollWidth). (6) A full demo-state
+  sweep at 2 widths is ~2 h single-threaded (FO states are slow) → narrow to table prefixes, 6 Chrome workers, JSONL.
+  No sub-agent tool → capture 8 × 2 clean, hover-audit 0 / 0, code-audit static 0 + standing th-sort, component-audit
+  standing majors only.
