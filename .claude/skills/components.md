@@ -200,7 +200,7 @@ but this doc previously described it wrongly, see the entry.
 | Button | `.btn` + variant + `.btn-sm/.btn-md/.btn-lg` (icon AND label from the button size: Small 32 · 14/20 · icon 16, Medium 40 · 14/20 · icon 20, Large 48 · 16/24 · icon 20 at every width — `css/button-icons.css`, § Button › „Button icons”) | `buttons.html` | app |
 | Clickable card / row = the action, no lone „Detalii” (user rule 2026-10-21, no-lone-detalii-v1) | a card / row that already opens its details on click has NO „👁 Detalii” button when that would be its only action: Cabinet request row (`actionsHtml` → "" → no `.cab-doc__actions`, no `--row-trigger-w` reservation), Cabinet document card (`CabEvo.docRowHtml(doc, { key })`: `.cab-doc.is-clickable[tabindex=0][aria-label="<tip>, deschide detaliile"]`), BO stacked rows (`renderRowActions({ …, rowOpens: true })` → "" when only the preview is left; `renderStackItem` gives a row with `rowAttrs` and no action `tabindex="0"` + `data-stack-row-open` + `aria-label` „<title> — <tags>, deschide detaliile”, Enter / Space = click through one shell keydown). Focus = the row ring (2 px `--focus-ring` outline, offset −2) + the hover band. Kept: rows / cards that are NOT clickable (FO previous act card, Ghișeu document cards, passport forms) and data tables (`tr` is not focusable — the column button is the keyboard path). With other actions the ⋮ stays | § „Row actions” rule 5; demo sm-01 (d-fresh, d-lab, d-prut), sm-05e…h, dos-03a, dos-04g…o, svc-06j, svc-07 | app |
 | Registry row = the action (no-continue-btn-v1, user 2026-10-21 GEAP 11862:24338 / 11914:29753) | product registry hook `rowLabel(row)` → `tr[data-workplace-row][tabindex="0"][data-workplace-row-open][aria-label="<name> — <what the click does>"]` (shell `workplaceRowOpenAttrs`); Enter / Space = click (shared keydown with `[data-stack-row-open]`); `:focus-visible` = hover band + inset `--focus-ring` box-shadows on the cells (`css/e-permits-shell.css`); the action cell keeps only the grey ⋮ (`btn btn-neutral btn-sm btn-icon-only e-permits-stack__menu-trigger`, white on the band) — no „Continuă” / „Detalii” that repeats the click | § „Row actions” rules 6–7; Ghișeu demo gh-01, gh-01d, gh-01f, gh-13 (Enter), gh-13a (click), gh-13b (Space, submitted) | app |
-| Pinned-column edge shadow (sticky-col-shadow-v1, user 2026-10-23: „same dropdown effect on the fixed columns when content goes under them”) | automatic for EVERY table that pins columns with `position: sticky` inside its own sideways scroll box (BO / eKYC / Ghișeu registries, classifier grid, RAP / Cabinet act-field tables): `js/table-pin-shadow.js` marks the inner edge cells `th/td.is-pin-edge-start` (right-most left-pinned column) / `.is-pin-edge-end` (left-most right-pinned column) from the computed styles, and the scroll box `.has-pin-shadow` + `.has-overflow-start` (content under the start column) / `.has-overflow-end` (more to scroll right); `css/table-pin-shadow.css` draws the Figma „dropdown-effect” turned sideways (0 4 6 −2 @5 % + 0 10 15 −3 @10 % along X; the 1px @8 % ring = the pinned column's inner divider, recoloured `rgba(0,0,0,.08)` in v2) as the cell's own box-shadow, clipped to the row height (one continuous column shadow), 150 ms fade via `@property --pin-shadow` (none with reduced motion). No shadow on a side with nothing hidden; none when the table fits. Rules that set their own cell box-shadow append `var(--pin-shadow-cast, 0 0 0 transparent)` (focused clickable row) | § „Pinned-column edge shadow”; demo gh-01, dos-05, srv-01, ek-04, trf-01, clf-03, rap-03q (scroll sideways) | app |
+| Pinned-column edge (sticky-col-shadow-v1…v3, user 2026-10-23 / 24: „the effect you use for dropdowns — shadow and border — EXACTLY the same, only the shadow points left or right”) | automatic for EVERY table that pins columns with `position: sticky` inside its own sideways scroll box (BO / eKYC / Ghișeu registries, classifier grid, RAP / Cabinet act-field tables): `js/table-pin-shadow.js` marks the inner edge cells `th/td.is-pin-edge-start` / `.is-pin-edge-end` from the computed styles, the scroll box `.has-pin-shadow` + `.has-overflow-start` / `.has-overflow-end`, and puts right after the table a 0-high `div.table-pin-rail` (aria-hidden) with sticky `.table-pin-column--start / --end` segments = the WHOLE pinned column as one element (one segment per run of header + data rows; full-width group / empty rows break it). The segment carries the Dropdown surface effect on its side: ring `0 0 0 1px` black 8 % always + `±4px 0 6px −2px` @5 % and `±10px 0 15px −3px` @10 % while content is hidden under that side (+X start column, −X end column), 150 ms fade; z 7 (over scrolling cells + sticky header, under pinned cells and a lifted menu cell). The edge cells' own inner border is removed (width 0). No per-cell shadow / border, no hook for other rules | § „Pinned-column edge shadow”; demo gh-01, dos-05, srv-01, ek-04, trf-01, clf-03, rap-03q (scroll sideways) | app |
 | No ⋮ with only unavailable items (user rule 2026-10-23, row-menu-no-disabled-only-v1, GEAP 2.0 11818:22341) | `renderStackMenu(items, label)` returns "" when no item is enabled (`disabled: true`, or `aria-disabled="true"` / `disabled` in `attrs`) → no trigger; `renderRowActions` / `renderStackItem` follow; the caller's cell / column stays (no shift). One enabled item → the menu stays, disabled items keep their tooltip reason | § „Row actions” rule 9; demo gh-11c (paid draft row, no ⋮), gh-11d (expired payment, ⋮ kept) | app |
 | Action icons — „Editează” = pen, „Elimină / Șterge” = trash (user rule 2026-10-21) | shell `actionIconFor(label)` → `actionLabelHtml` / `renderRowActions` / `renderStackMenu` (the label picks the icon); `icon-edit` / `icon-delete` before the label in the label colour; exceptions + audit rule 6 in „Action icons” (§ after „Row actions”) | — | app |
 | Link to another page in a new tab — label + TRAILING external icon (user rule 2026-10-22, external-link-v1) | `<a class="btn btn-neutral btn-md" href="…" target="_blank" rel="noopener" aria-label="<label> (se deschide într-o filă nouă)"><span>Vezi solicitarea</span><svg class="icon small"><use href="#icon-external-link"/></svg></a>` — NO leading icon, the glyph after the label at the button size (css/button-icons.css trailing padding, 20 Medium / 16 Small), label colour; ⋯ menu item = the same `<a role="menuitem" … target="_blank">` with label then icon (closes the menu); text links (`.link` / detail-row links + `.cab-external-link`, icon 16) | § „Action icons” › „Links that open another page”; Cabinet `newTabAttrs` / `requestLinkHtml`; demo pp-01d, pp-03h (phone ⋯, 320), pp-03 (notice), pp-03d (Istoric). **Superseded for the Cabinet act → request „Vezi solicitarea” (act-alert-card-v2, 2026-10-22: profiles have real URLs + working Back): header button, its ⋯ item and the alert card button open the request in the SAME tab, no external icon; only the Istoric request number keeps the new-tab link** | app |
@@ -8457,7 +8457,7 @@ reference skipped). Administrator platformă only (menu in `data/ekyc-roles.json
   test-lent · eroare-stergere. **Demo states** `ek-20 … ek-32l` (122): per screen list, tabs, filters, search
   without results, empty / error / loading, detail tabs, drawers, validation, 409, confirmations, results.
 
-### Pinned-column edge shadow (sticky-col-shadow-v1, 2026-10-23)
+### Pinned-column edge shadow (sticky-col-shadow-v1 2026-10-23, v3 2026-10-24)
 
 User: „for scrollable tables with a fixed first and last column, can we apply the same dropdown effect to the
 columns when content goes under them, so it's clear there is something to scroll?”
@@ -8476,28 +8476,43 @@ columns when content goes under them, so it's clear there is something to scroll
   only the start shadow, both in between, none when the table fits. One capture `scroll` listener on the document,
   a MutationObserver (only mutations inside / adding a table) + ResizeObserver (box + table) re-mark after renders,
   dialogs and resizes.
-- **Look:** the Figma effect style „dropdown-effect” (GEAP 2.0, menus) on its side — `0 4 6 −2 @5 %` and
-  `0 10 15 −3 @10 %` along X, towards the scrolling columns; its `0 0 0 1 @8 %` ring is the existing 1px divider
-  of the pinned column. No CSS token exists for the effect (as the Dropdown surface rule) — literal once, in
-  `css/table-pin-shadow.css`. Drawn as the cell's own box-shadow (registry cells clip their content for the
-  ellipsis, so a pseudo outside the cell would be cut): spread +24 / offset −24 keeps the same edge and falloff,
-  `clip-path: inset()` keeps only the outer side within the row height → one continuous column shadow, no
-  banding at the row lines. Fade 150 ms on the registered `--pin-shadow` (0 → 1) only; none with
-  `prefers-reduced-motion`. Pinned cells stay opaque (body white, header secondary).
-- **Composing:** a rule that gives the same cells another box-shadow must append
-  `var(--pin-shadow-cast, 0 0 0 transparent)` — done for the focused clickable row's inset ring
-  (`css/e-permits-shell.css`). An open menu inside an edge cell drops the clip and the shadow.
-- **Figma spec:** pinned column frame → effect = „dropdown-effect” rotated: drop shadow X 4 Y 0 blur 6 spread −2
-  #000 5 % + X 10 Y 0 blur 15 spread −3 #000 10 % (first column: positive X, last column: negative X), shown only
-  on the side where content is hidden; put it on the whole pinned-column frame (header + rows), not per cell,
-  so it reads as one continuous shadow. Divider (v2): the pinned column's inner 1px stroke = the dropdown-effect
-  ring, black (#000) 8 %, inside, on the inner side only (first column: right, last column: left), header + rows.
-- **Divider = the dropdown-effect stroke (sticky-col-shadow-v2, user 2026-10-23: „the left border of the column —
-  make it like the dropdown-effect stroke”):** the edge cells' existing 1px inner border keeps its width, its colour
-  becomes `rgba(0, 0, 0, 0.08)` (the effect's `0 0 0 1 @8 %` ring) — `!important` on the colour only, since the
-  dividers come from ~10 per-registry pin rules. ALWAYS, scrolled or not: tried at rest and it reads as a soft
-  divider, a shade lighter than the row lines over white and a step darker over the grey header / hover band (as a
-  menu ring over the page); switching it with the shadow would make the line jump.
+- **Look (v3, sticky-col-shadow-v3, user 2026-10-24: „the effect you use for dropdowns — the one with shadow and
+  border — do EXACTLY the same, only the shadow points left or right instead of down”):** the code's „Dropdown
+  surface” rule (e-permits-acte-permisive.css; computed on an open menu: `0 0 0 1px @8 %, 0 4px 6px −2px @5 %,
+  0 10px 15px −3px @10 %`) with Y turned into X:
+  - ring `0 0 0 1px rgba(0,0,0,.08)` — the column's divider, ALL AROUND the column, always (scrolled or not);
+  - `±4px 0 6px −2px rgba(0,0,0,.05)` + `±10px 0 15px −3px rgba(0,0,0,.1)` — only while content is hidden under
+    that side; `+` for the first pinned column (casts right), `−` for the last one (casts left). Fade 150 ms on the
+    shadow alpha only; none with `prefers-reduced-motion`.
+  No CSS token exists for the effect (as the Dropdown surface rule) — literal once, in `css/table-pin-shadow.css`.
+- **One element per pinned column (v3):** `js/table-pin-shadow.js` appends right after the table a 0-high
+  `div.table-pin-rail` (aria-hidden, `pointer-events: none`, a one-cell grid as wide as the table) holding
+  `div.table-pin-column--start / --end` segments: `position: sticky` with the same `left` / `right` as the pinned
+  cells, as wide as all pinned columns of that side (outer cell's `left` … edge cell's inner edge), as high as a run
+  of rows that HAVE the pinned column (header + data rows; a full-width group row or empty state ends a run), moved
+  up over the table with a negative margin. Geometry = custom properties on the rail / segment (`--pin-rail-w`,
+  `--pin-rail-up`, `--pin-start-left/-w`, `--pin-end-right/-w`, `--pin-seg-top/-h`), re-measured by the existing
+  Mutation / ResizeObserver; every rect length is divided by the table's current scale (rect width ÷ offsetWidth),
+  so a measure taken during a dialog's scale-in animation stays right. Transparent: only the ring + shadows paint,
+  outside the column, over the scrolling cells. z 7: above the scrolling cells and the vertically sticky header
+  cells (6), under the pinned cells (9) and a pinned cell lifted for its open ⋮ menu (8).
+- **Edge cells:** their own inner divider (the per-registry pin rules' border) is removed — `border-right-width: 0`
+  on `.is-pin-edge-start`, `border-left-width: 0` on `.is-pin-edge-end` (`!important`, ~10 pin rules set it). Width
+  0, not transparent: a transparent side leaves a white corner pixel where every row line meets the ring. Row lines,
+  hover band and the focused row's inset ring are the cells' own and are untouched.
+- **What v1 / v2 got wrong (measured on 3× crops, gh-01 @1024):** a box-shadow per edge cell + the cell's recoloured
+  1px border. The border pixel was LIGHTER than the shadow next to it (226 → 235 → 255) — a pale seam along the
+  column instead of the menu's crisp edge — and lighter than the row lines (217), so every row line broke at the
+  column with a light notch; the ring existed only on the inner side (no top / bottom). v3 edge: 229 → 208 | 255,
+  row lines 195 → 177 | 217 (continuous).
+- **Figma spec (for `Table / Pinned column` GEAP 12619:61500):** effect = the „dropdown-effect” style rotated —
+  drop shadow X 0 Y 0 blur 0 spread 1 #000 8 % (ring, replaces any divider stroke) + X ±4 Y 0 blur 6 spread −2
+  #000 5 % + X ±10 Y 0 blur 15 spread −3 #000 10 % (Start: +X, End: −X); No shadow = ring only. On the whole
+  pinned-column frame (header + rows). Note: the set built on 2026-10-23 uses X ±4 for BOTH shadows — the second
+  one must be ±10 to equal the dropdown.
+- **Known limit:** in a box that also scrolls vertically (dos-05, ek-04), the area beside the sticky header shows
+  the segment that is under it; in grouped Dosare a group row passing under the header leaves the header without
+  the edge for that moment.
 - **Demo:** any registry state scrolled sideways — gh-01, dos-05, srv-01, ek-04, trf-01, clf-03 (end column only),
   rap-03q (act-field table, start column only).
 

@@ -1,84 +1,104 @@
 /* ==========================================================================
-   Pinned-column edge shadow (2026-10-23, user: „for scrollable tables with a fixed first and last
-   column, apply the same dropdown effect to the columns when content goes under them, so it's clear
-   there is something to scroll”). Behaviour + classes: js/table-pin-shadow.js (one module, every
-   table that pins columns with `position: sticky` inside its own sideways scroll box).
+   Pinned-column edge (2026-10-23, user: „for scrollable tables with a fixed first and last column, apply
+   the same dropdown effect to the columns when content goes under them, so it's clear there is something to
+   scroll”; sticky-col-shadow-v3, user: „the effect you use for dropdowns — the one with shadow and border —
+   do EXACTLY the same, only the shadow points left or right instead of down”). Behaviour + markup:
+   js/table-pin-shadow.js (one module, every table that pins columns with `position: sticky` inside its own
+   sideways scroll box).
 
-   The shadow = the Figma effect style „dropdown-effect” (GEAP 2.0, the menus' surface) turned on its
-   side: its 0 4 6 −2 @5 % and 0 10 15 −3 @10 % drop shadows run along X instead of Y. Its 0 0 0 1 @8 %
-   ring = the pinned column's inner 1px divider (user 2026-10-23, sticky-col-shadow-v2: „the left border
-   of the column — make it like the dropdown-effect stroke”): the existing border keeps its width, its
-   colour becomes black 8 % (over white a shade lighter than the row lines, over the grey header / hover band a step darker, as a
-   menu's ring over the page). Always — scrolled or not — so the line never jumps when the shadow fades.
-   `!important` on the colour only: the dividers come from ~10 per-registry pin rules up to (0,4,1).
-   There is no CSS token for the effect (main.css has only --drop-shadow-100…600) — the values live
-   here once, like the Dropdown surface rule in e-permits-acte-permisive.css.
+   The look = the „Dropdown surface” rule (e-permits-acte-permisive.css, Figma „dropdown-effect”) on its side:
+     ring    X 0 · Y 0 · blur 0 · spread 1      black 8 %   (the menu's border — here the column's divider, all around)
+     shadow  X ±4 · Y 0 · blur 6 · spread −2    black 5 %   (dropdown: X 0 · Y 4)
+     shadow  X ±10 · Y 0 · blur 15 · spread −3  black 10 %  (dropdown: X 0 · Y 10)
+   + X for the first pinned column (casts right), − X for the last one (casts left). No CSS token exists for
+   the effect (main.css has only --drop-shadow-100…600) — the literal lives here once, as in the Dropdown
+   surface rule.
 
-   - `.has-overflow-start` (content scrolled under the first pinned column) → shadow on the RIGHT edge of
-     `.is-pin-edge-start`; `.has-overflow-end` (more to scroll right) → shadow on the LEFT edge of
-     `.is-pin-edge-end`. At the start only the end shadow shows, at the end only the start one, a table
-     that fits shows none.
-   - It is the cell's own box-shadow, not a pseudo-element: registry cells clip their content
-     (`overflow: hidden` for the ellipsis), which would cut a pseudo outside the cell. Each shadow is
-     grown by 24 along both axes and moved back by 24 (same edge, same falloff), and `clip-path` keeps
-     only the side that faces the scrolling columns — so the column reads as ONE continuous shadow,
-     with no lighter band at the row lines, and nothing spills on the rows above / below.
-   - The strength rides on a registered custom property (`--pin-shadow`, 0 → 1), so the 150 ms fade
-     never animates the cells' other box-shadows (the focused row's inset ring); off with reduced motion.
-   - The cell's other box-shadows (focused clickable row: inset ring) are kept: the edge shadow is
-     appended through `--pin-shadow-cast`, read by those rules. The sticky cells are opaque (white body,
-     secondary header), so nothing shows through them.
-   - An open row menu inside the end cell is not clipped: the clip and the shadow drop while it is open.
+   v3 — ONE element per pinned column, not per cell (v1 / v2 drew a box-shadow on every edge cell and
+   recoloured its border: the shadow read as a flat band with a hard step, cut at every row line, and the ring
+   was only a side line). `.table-pin-rail` = a 0-high strip right after the table inside the scroll box, as
+   wide as the table; its `.table-pin-column--start / --end` are `position: sticky` (same `left` / `right` as
+   the pinned cells), as wide as the pinned columns and as high as the rows that have them (one segment per
+   run: header + data rows; full-width group rows / empty states break it), moved up over the table — so they
+   stay over the pinned columns while the rest scrolls, both ways. Transparent, `pointer-events: none`: only
+   the ring and the shadow paint, OUTSIDE the column, over the scrolling cells.
+   - Stacking: z 7 = above the scrolling cells and the vertically sticky header cells (6), under the pinned
+     cells (9 in the registries) and under a pinned cell lifted for its open ⋮ menu (8) — the menu is never
+     crossed by the ring.
+   - States: the ring always (a pinned column, scrolled or not — the line never jumps); the shadows only
+     while content is hidden under that side: `.has-overflow-start` → start column, `.has-overflow-end` →
+     end column. 150 ms fade of the shadow alpha only; none with reduced motion.
+   - The edge cells' own inner divider (`.is-pin-edge-start` right / `.is-pin-edge-end` left border, set by
+     ~10 per-registry pin rules) is removed (width 0); the ring replaces it.
    ========================================================================== */
-@property --pin-shadow {
-  syntax: "<number>";
-  inherits: false;
-  initial-value: 0;
+.table-pin-rail {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: 0;
+  height: 0;
+  min-width: 100%;
+  pointer-events: none;
+  width: var(--pin-rail-w, 100%);
 }
 
-:is(.is-pin-edge-start, .is-pin-edge-end) {
-  --pin-shadow: 0;
-  transition: --pin-shadow 150ms ease;
+/* one segment per run of rows that have the pinned column (header + data rows); a full-width group row or
+   empty state between them has no pinned column, so the edge stops there */
+.table-pin-column {
+  align-self: start;
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.08),
+    0 0 6px -2px rgba(0, 0, 0, 0),
+    0 0 15px -3px rgba(0, 0, 0, 0);
+  box-sizing: border-box;
+  grid-area: 1 / 1;
+  height: var(--pin-seg-h, 0);
+  margin-top: calc(var(--pin-seg-top, 0px) - var(--pin-rail-up, 0px));
+  position: sticky;
+  transition: box-shadow 150ms ease;
+  z-index: 7;
 }
 
-/* the dropdown-effect ring as the inner divider (header, body and footer cells alike) */
+.table-pin-column--start {
+  justify-self: start;
+  left: var(--pin-start-left, 0);
+  margin-left: var(--pin-start-left, 0);
+  width: var(--pin-start-w, 0);
+}
+
+.table-pin-column--end {
+  justify-self: end;
+  margin-right: var(--pin-end-right, 0);
+  right: var(--pin-end-right, 0);
+  width: var(--pin-end-w, 0);
+}
+
+.has-overflow-start .table-pin-column--start {
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.08),
+    4px 0 6px -2px rgba(0, 0, 0, 0.05),
+    10px 0 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+.has-overflow-end .table-pin-column--end {
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.08),
+    -4px 0 6px -2px rgba(0, 0, 0, 0.05),
+    -10px 0 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+/* the ring replaces the edge cells' own inner divider (header, body and footer cells alike). Width 0, not a
+   transparent colour: a transparent 1px side leaves a white corner pixel where every row line meets the ring.
+   The column width comes from the table layout, so only the cell's inner box grows by that pixel. */
 .is-pin-edge-start {
-  border-right-color: rgba(0, 0, 0, 0.08) !important;
+  border-right-width: 0 !important;
 }
 
 .is-pin-edge-end {
-  border-left-color: rgba(0, 0, 0, 0.08) !important;
-}
-
-.is-pin-edge-start {
-  --pin-shadow-cast:
-    -20px 0 6px 22px rgba(0, 0, 0, calc(0.05 * var(--pin-shadow))),
-    -14px 0 15px 21px rgba(0, 0, 0, calc(0.1 * var(--pin-shadow)));
-  box-shadow: var(--pin-shadow-cast);
-  clip-path: inset(0 calc(-1 * var(--spacing-32, 32px)) 0 0);
-}
-
-.is-pin-edge-end {
-  --pin-shadow-cast:
-    20px 0 6px 22px rgba(0, 0, 0, calc(0.05 * var(--pin-shadow))),
-    14px 0 15px 21px rgba(0, 0, 0, calc(0.1 * var(--pin-shadow)));
-  box-shadow: var(--pin-shadow-cast);
-  clip-path: inset(0 0 0 calc(-1 * var(--spacing-32, 32px)));
-}
-
-.has-pin-shadow.has-overflow-start .is-pin-edge-start,
-.has-pin-shadow.has-overflow-end .is-pin-edge-end {
-  --pin-shadow: 1;
-}
-
-/* an open ⋮ menu inside a pinned cell must not be cut by the clip */
-:is(.is-pin-edge-start, .is-pin-edge-end):has([data-stack-menu]:not([hidden]), [role="menu"]:not([hidden])) {
-  --pin-shadow: 0;
-  clip-path: none;
+  border-left-width: 0 !important;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  :is(.is-pin-edge-start, .is-pin-edge-end) {
+  .table-pin-column {
     transition: none;
   }
 }

@@ -3284,3 +3284,25 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   of each Chrome before `kill`. No sub-agent tool → hover-audit 0 / 0 (scopes: `[data-reg-page]`, `.e-permits-workplace`,
   `[data-dosar-profil]`, the open menu / dialog / drawer), code-audit only standing FPs (BO 11 / 7, stack meta 18, th sort,
   violet tag), static 0, component-audit 0 findings in the module's markup, capture 52 states × 2 clean.
+- 2026-10-24 · sticky-col-shadow-v3 (user: „the border for the fixed column is still wrong”; mid-job clarification: „the
+  dropdown effect — shadow and border — EXACTLY the same, only pointing left / right”). (1) The third pass on the same
+  look: MEASURE PIXELS before arguing about it. A 3-line PNG profile across the edge (scratch scs/px.py, pure zlib, every
+  3rd px of a 3× crop) showed the falloff had been right since v1; what the user saw was the EDGE: the recoloured 1px
+  border was lighter than the shadow beside it (226 → 235 → 255, a pale seam) and than the row lines (217 → a notch at
+  every row). Eyeballing 3× crops twice missed it. (2) „Same effect as X” = copy X's computed value (an open menu's
+  `getComputedStyle().boxShadow`), not my reading of a Figma spec — the Figma set had X ±4 for both shadows, the dropdown
+  is 4 / 10; the user's sentence wins, the Figma difference goes into the report for figma-designer. (3) „Treat the
+  column as ONE element” in a sticky table with clipped cells and a box that scrolls both ways: a 0-high grid rail
+  right AFTER the table inside the scroll box, its children `position: sticky` (same left / right as the cells), sized
+  by custom properties and moved up with a negative margin. Sticky needs a containing block as wide as the table — a
+  flex / one-cell-grid rail with `width: table width` works; a grid item in a narrow track or a block of the box width
+  cannot travel. Transparent + `pointer-events: none` → hover-audit stays 0 / 0. z between the scrolling header (6) and
+  the pinned cells (9), below the lifted menu cell (8). (4) A full-height overlay drew the ring through dos-05's
+  full-width group rows → one segment per run of rows that have the edge cell. (5) RAP measured 3 px narrow: the act
+  table was measured during its scale-in animation (rects include transforms, and a transform fires no
+  ResizeObserver) → divide every rect length by rect.width / offsetWidth. (6) A transparent border keeps a white
+  corner pixel where each row line meets the ring → width 0 (the table layout keeps the column width). Removed the
+  `--pin-shadow-cast` hook in e-permits-shell.css (fallbacks made that safe). No sub-agent tool → capture 0 errors / 0
+  overflow (srv-01 / trf-01 mobile DEMO-ERROR pre-existing), hover-audit 0 / 0 (gh-01, srv-01, dos-05, trf-01, ek-04,
+  clf-03), code-audit static 0 (a px value in a CSS comment is flagged — write „X 4 · blur 6”), component-audit only
+  the standing majors (th sort, missing copy, profile menu) = HEAD baseline; geometry probe 56 / 56 edges exact.
