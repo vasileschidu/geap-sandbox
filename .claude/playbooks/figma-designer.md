@@ -4544,3 +4544,37 @@ For any „research how other products do it” step, search Mobbin (mcp__mobbin
     shadow; only phones (and narrow states) need No shadow / Shadow / Scroll edge.
   - Left (library): table-cell rows 56 vs code 50 (secondary line 20 vs 16), 0.5 px bound row line vs code 1 px, header 14 + 20 sort icon vs
     code 12 + 16 chevron (narrow headers ellipsize: Tip date, Status, Nivel asigurare, Timp scurs).
+
+- 2026-10-24 · registre-board-v1 follow-up 3 (user: „all this is broken menu”, „columns misaligned, the first column is off”, pinned /
+  edge shadows clipped top + bottom, State=None for fit tables, live side-by-side reg-01/02/03). GEAP 2.0 page „↳ BO -> Registre”
+  12670:388301. Done:
+  - **One BO sidebar.** The canonical admin sidebar `sidebar-public-services` 8993:35379 (332 instances on Services, Users, Classifiers,
+    Tariffs…) and the Registre look-alike set `Sidebar · BO (Registre)` 12673:12819 are now ONE set **`sidebar-public-services`
+    12898:445617** with `Role` = Admin (the old main, unchanged content) / Central admin / Specialist / Local admin / Central admin +
+    granted register. Done with `figma.combineAsVariants([canon, ...registreVariants], section)` after moving the Registre variants
+    out of their set: every instance (426) stays linked with its overrides, the old set disappears — no swap needed. Then fixed in all
+    5: layers named (Header / Brand / Logo mark / Group · <title> / Group header), Brand HUG + centred (Logo Text no longer at y −3),
+    `strokesIncludedInLayout = false` (children 256, no 1 px border padding), nav top 2 only on the FIRST group (code: `nav` padding-top 2,
+    groups stack without it — the old 2 px per group drifted), raw logo vectors → Foundations `evo-logo` Logomark: Small (set key
+    bcacc078…) rescaled 36/40.
+  - **Sidebar glyph 24 in a 20 mask** (main sidebar-list-item 6347:28130, Glyph child 24 at 0,0 → art offset 2 px right/down and cut):
+    resized the glyph instance to 20 in the 3 State variants of the MAIN (instances cannot override size / position of nested glyphs).
+  - **Row drift**: pinned slot cells were 39 / 51 (hug + 1 px stroke included) vs grid rows 38 / 50 → +1 px per row. Routine `rowfix`
+    (figma.root shared data „reg”): every pinned cell FIXED to `gridRowSizes[i]`, pinned height = table height at y 0, table
+    `clipsContent = true` (ring / shadow / edge never spill above the header or below the last row), cells `minWidth/maxWidth = null`
+    + FILL (a stale min = max width from the capture kept cells at their old 1524-table widths after the tracks were refit — cells
+    overlapped the next column). Census (pinned cell y/h = grid track, table h = Σ tracks, clip on) = 0 on 36 tables; other boards
+    (Ghișeu 149, Workplace, Dossiers…) = 0 drift. Cell bottom strokes `strokesIncludedInLayout = false` (2 842 cells) → content centres
+    on whole px (49 / 2 = 6.5 before).
+  - Fit tables (28) → `Table / Pinned column` **State=None** (keeps the slot cells; the switch resets height to 100 → resize to the table
+    after). Overflow tables keep Start No shadow + End Shadow; reg-04/04a/04b/a14a (no ⋮ column) got **`Table / Scroll edge`**
+    12898:445724 (Side Start/End, pinned-column fill + the pinned effect styles; a frame with NO fill casts no shadow) at x = visible
+    width inside the clipping table. Appending it into the GRID added an 18th row (+50 px) — restore `gridRowCount`.
+  - Deleted 35 captured „Container” ghosts (0 px tall, 1524 wide, children with drop shadows and no fill = invisible sticky shadows)
+    under every table; header sort = label + chevron HUG (chevron next to the label, as code); export button Disabled on reg-03/03b/16/16a
+    (code `aria-disabled`).
+  - Open: „Spre coordonare” is violet in code (`status-tag--violet`) — the library tag has no violet style (Brand blue used, as Workplace).
+    The export icon (stroke glyph) keeps its dark stroke in the Disabled button — library icon, not overridden. User Management: 16 pinned
+    columns taller than their (clipping) container (838 vs 806) — not visible, not fixed.
+  - Lesson: when a „broken” look-alike main was cloned from a canonical main, fix the CANONICAL and merge the clone in as variants
+    (combineAsVariants keeps instances) instead of rebuilding + swapping 90 screens.
