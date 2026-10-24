@@ -31,8 +31,14 @@
      `.has-overflow-end` → end column. 150 ms fade; none with reduced motion.
    - The edge cells' own inner divider (`.is-pin-edge-start` right / `.is-pin-edge-end` left border, set by
      ~10 per-registry pin rules) is removed (width 0); the ring replaces it.
+   - Clipped top and bottom (table-pin-clip-v1, 2026-10-24, user: „do so bottom stroke is clipped by the table
+     container, makes sense?”): `clip-path: inset(0 -X 0 -X)` cuts the effect at the segment's own top (the header's
+     top) and bottom (the last row's bottom) — no ring line, shadow or stroke stub above the header or below the
+     last row, the ring keeps only its left / right lines; sideways the clip reaches past the shadow (`--pin-clip-x`
+     = 32 ≥ 10 offset + 15 blur − 3 spread), so the sideways look is unchanged.
    ========================================================================== */
 .table-pin-rail {
+  --pin-clip-x: var(--spacing-32, 32px);
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   grid-template-rows: 0;
@@ -46,6 +52,7 @@
    empty state between them has no pinned column, so the edge stops there */
 .table-pin-column {
   align-self: start;
+  clip-path: inset(0 calc(var(--pin-clip-x) * -1));
   box-shadow:
     0 0 0 1px rgba(0, 0, 0, 0),
     0 0 6px -2px rgba(0, 0, 0, 0),
@@ -141,6 +148,9 @@
 
 .table-scroll-edge {
   align-self: start;
+  /* clipped at the table's top and bottom like the pinned column (table-pin-clip-v1); sideways the clip reaches past
+     the segment (hang) and the shadow it casts into the box */
+  clip-path: inset(0 calc((var(--table-edge-hang) + var(--pin-clip-x)) * -1));
   box-shadow:
     0 0 0 1px rgba(0, 0, 0, 0),
     0 0 6px -2px rgba(0, 0, 0, 0),

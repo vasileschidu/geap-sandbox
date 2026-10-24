@@ -3486,3 +3486,13 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   sweep at 2 widths is ~2 h single-threaded (FO states are slow) → narrow to table prefixes, 6 Chrome workers, JSONL.
   No sub-agent tool → capture 8 × 2 clean, hover-audit 0 / 0, code-audit static 0 + standing th-sort, component-audit
   standing majors only.
+- 2026-10-24 · table-pin-clip-v1 (user, crop of a pinned column's bottom: ring stub + shadow under the last row — „do so
+  bottom stroke is clipped by the table container, makes sense?”). (1) An overlay that only PAINTS outside its box
+  (box-shadow ring / shadows) must be clipped by itself, not trusted to the scroll box: on the 6 states at 1440 / 1024 /
+  375 the box clipped (before == after, pixel-identical), but wherever the box is taller than the table (padding,
+  few rows) the ring's bottom line + the shadow showed under the last row. Repro = force the box `height: auto;
+  padding-bottom: 60px` in the probe (scratch clipb/m2.js, `__NOCLIP` toggles the fix) → before min 224 below the
+  table, after 255. (2) Fix = `clip-path: inset(0 −X 0 −X)` on every segment (column + box edge): cut at its own
+  top / bottom, open sideways past the shadow reach (10 + 15 − 3 = 22 → `--spacing-32`; the box edge adds its hang).
+  The ring keeps only its side lines, group-row run ends are cut too, the sideways look is byte-identical. (3) A
+  probe that diffs before / after crops is the quickest proof a fix is invisible where it should be.
