@@ -64,10 +64,9 @@ const role = async (ctx, state) => {
   const sel = state.startsWith("Selected");
   fill(c, { Default: "bgDefault", Hover: "bgTertiary", Selected: "bgBrandSec", "Selected hover": "bgBrandSecHover" }[state]);
   stroke(c, sel ? "borderBrand" : "borderBase", 1);
-  if (sel && ctx === "BO") { // code: 1px border + 1px inset brand line (2 px total, same card size)
-    const v = VAR.borderBrand, val = v.resolveForConsumer(probe).value;
-    c.effects = [figma.variables.setBoundVariableForEffect({ type: "INNER_SHADOW", color: { r: val.r, g: val.g, b: val.b, a: 1 }, offset: { x: 0, y: 0 }, radius: 0, spread: 1, visible: true, blendMode: "NORMAL" }, "color", v)];
-  }
+  // BO selected: code = 1px border + 1px inset brand line (2 px total, same card size). Figma: ONE 2 px INSIDE stroke, not in
+  // layout, card height fixed to the unselected height below — never an INNER_SHADOW (user 2026-10-24, inner-shadow-sweep-v2).
+  const selBO = sel && ctx === "BO";
   const av = ctx === "FO" ? await avatar("Initials", "Small", "brand", "AC") : await avatar("Icon", "Small", "soft");
   c.appendChild(av);
   const copy = al("VERTICAL", "Copy"); gap(copy, 2); c.appendChild(copy); copy.layoutSizingHorizontal = "FILL";
@@ -84,6 +83,7 @@ const role = async (ctx, state) => {
   meta.appendChild(mv);
   if (ctx === "BO") ml.visible = false;
   const ck = icon(ICON.check20, "iconBrand"); ck.name = "Check"; c.appendChild(ck); ck.visible = sel;
+  if (selBO) { const h = c.height; c.strokeWeight = 2; c.strokesIncludedInLayout = false; c.counterAxisSizingMode = "FIXED"; c.resize(c.width, h); }
   return c;
 };
 const roles = [];

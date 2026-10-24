@@ -133,7 +133,12 @@ gets better; never delete a lesson, rewrite it if it was wrong.
   current-step band (8 px OUTSIDE stroke in the fill colour = the code's `box-shadow 0 0 0 8px`). Fix a stroke only on the node
   you were asked about; audit rule `band-stroke-inside` flags a hidden band.
 
-- No inner-shadow dividers (user, 2026-10-23: „WTF is this inner shadow?”). A 1 px line is a one-side STROKE bound to
+- **No INNER_SHADOW anywhere** (user 2026-10-24: „again this inner shadow — remove ALL inner shadows”; 2026-10-23: „WTF is this
+  inner shadow?”). Not in mains, frames, instance overrides or effect styles. Divider (offset ±1, r0) → one-side stroke 1 on the
+  border variable, INSIDE, not in layout — ALWAYS draw the stroke, never just delete the line; ring (offset 0, spread n) → INSIDE
+  stroke n (same-colour existing stroke → one thicker stroke, box kept); bevels / gloss → removed. Tool:
+  tools/figma/quality-sweep/no-inner-shadow.js (sweep + NO_INNER_SHADOW(roots) step, already inside every swap script + TOKENIZE).
+- (older wording) No inner-shadow dividers (user, 2026-10-23: „WTF is this inner shadow?”). A 1 px line is a one-side STROKE bound to
   border/base/default (individual weights, INSIDE, not in layout), never an INNER_SHADOW (offset ±1, radius 0). Captures turn
   the code's `box-shadow: inset 0 -1px 0 …` into one — swap-ghiseu.js / swap-workplace-registry.js now convert it; sweep any
   file with tools/figma/quality-sweep/inner-shadow-dividers.js (dry run first).
@@ -4404,3 +4409,29 @@ For any „research how other products do it” step, search Mobbin (mcp__mobbin
   toolbar line moves under the box — added the 1 px bottom stroke on the box. (5) Entry notes on link-opened blocks (a05b, a10d, a12b,
   14, 14a, 06d, a03e) instead of arrows. Border census per column after the fixes: 0 inner shadows, 0 tab strips without the hairline,
   0 table cells without a divider (last rows of card tables excluded), all register tables pinned.
+
+- 2026-10-24 · inner-shadow-sweep-v2 (all 5 files, Registre page excluded — other agent). User: „again this inner shadow — remove ALL”.
+  Counts (shallow before → after 0 everywhere; local effect styles with INNER_SHADOW: none in any file):
+  GEAP 2.0 ≈ 400 hits: Local components 148 (6 mains: instance switcher BO Selected / Selected hover = brand ring + same stroke →
+  one 2 px stroke; document-icon vectors ×3 gloss #fff@40 removed; Form Builder `.menu-item-selection` Focus 8715:79266 ring s2 →
+  INSIDE stroke 2 on its own colour var — this detached a remote effect style), Patterns 10 (remote `.upload-icon` gloss → overrides),
+  Post-processes 15 (`.role-switch-item` gloss, remote style detached), Dossiers 51 / Ghișeu 82 / Services 81 / Full Flows 64 /
+  Requestor 14 / Workplace 2 / App Shell 4 / Drafts 12 → mostly instances of the fixed mains; plain captured chips: 12 Services + 3
+  Ghișeu rings → INSIDE stroke (border/base/default ×10, border/brand/secondary ×5), 6 Drafts merged. EVO Cabinet 9 (2 mains merged,
+  6 gloss). FOD 6 + 84 hidden overrides in instances of remote mains. eKYC 104 captured rings #d9d9d9 → INSIDE stroke base/default.
+  EVO-WEB (RAP) ≈ 740: Safari-mockup toolbars 42 hairline dividers (0/−0.5 #000@5) → bottom stroke 1 base/default; traffic lights,
+  device bevels, icon gloss → removed. Ghișeu toolbars: 115/116 keep their bottom stroke (the 1 without = filter box below, by design).
+  Lessons:
+  - **Colour match tie**: border/disabled/default = #d9d9d9 = border/base/default — rank base/default first (8 strokes rebound).
+  - **Merging a ring into an existing stroke grows HUG boxes** (sil true: 56 → 58). Keep the box: stroke out of layout, HUG axis →
+    FIXED at the old size, weight rebound to the `border-width/border-2` sibling variable. Now in the tool.
+  - `strokesIncludedInLayout` throws on non-auto-layout frames → guard `layoutMode !== "NONE"` (the first big apply rolled back).
+  - Big pages (Ghișeu, Dossiers) time out with `skipInvisibleInstanceChildren = false` + findAll → sweep with `true`, then catch hidden
+    sublayers through `mainComponent.getInstancesAsync()` of every REMOTE main that still contains an INNER_SHADOW (overrides).
+    Instances nested inside remote mains are read-only — skip them (library fix, not ours).
+  - „transport dropped / session expired” on a write call usually means it still ran: always recount before re-running.
+  - Libraries still carry inner shadows in their mains (document-icon, file-item, `.upload-icon`, Safari toolbar) — our files
+    override them; the library owner should fix the mains (open question).
+  - Scripts: NO_INNER_SHADOW block (guarded `globalThis`, markers) synced into tokenize.js, swap-to-instances.js,
+    swap-builder-address.js, ghiseu/swap-ghiseu.js, swap-workplace-registry.js, users-board/registry-pass.js by
+    tools/figma/quality-sweep/sync-no-inner-shadow.py; instance-switcher/build-items.js now draws the BO selected ring as a 2 px stroke.

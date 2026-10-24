@@ -15,6 +15,9 @@
 //    --selector captures only that element (a section, a drawer aside, a modal) — preferred
 // 3. Poll: mcp__figma-a__generate_figma_design { fileKey, captureId } until it returns the node URL.
 //    The script itself always ends with "timeout (submitted?)" — that is normal: the upload is done.
+// 4. The capture maps CSS `box-shadow: inset …` to INNER_SHADOW effects — never leave them (user 2026-10-24): every swap step
+//    (swap-to-instances / swap-ghiseu / swap-workplace-registry / swap-builder-address) and TOKENIZE (tokenize.js, pasted after
+//    swap-cabinet / swap-cabinet-fod / swap-fo-guest / swap-ekyc) runs NO_INNER_SHADOW (tools/figma/quality-sweep/no-inner-shadow.js).
 // Needs the prototype on http://localhost:8935 and Google Chrome. The Figma capture script is
 // downloaded once to tools/figma/.capture.js (gitignored).
 import { spawn, execSync } from "node:child_process";

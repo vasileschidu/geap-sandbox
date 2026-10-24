@@ -1,3 +1,5 @@
+// SUPERSEDED 2026-10-24 by tools/figma/quality-sweep/no-inner-shadow.js (no INNER_SHADOW anywhere: dividers, rings and the rest;
+// mains, instance overrides, effect styles). Kept for history.
 // Inner-shadow dividers → real strokes (2026-10-23, ghiseu-comments-fixes-v1).
 // Captures (generate_figma_design) turn the code's `box-shadow: inset 0 -1px 0 var(--color-border-…)`
 // into an INNER_SHADOW effect (offset ±1, radius 0, spread 0) — a fake 1 px divider. This finds them
