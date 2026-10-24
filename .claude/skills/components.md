@@ -8563,6 +8563,15 @@ Specialist ghișeu files a request on behalf of the applicant: **Dosare noi** (U
 hidden when nothing is paid) · Confirmarea depunerii (US-238). Drafts: save / resume / remove /
 automatic removal (US-239/240), expired note regeneration (US-256).
 
+**Verificare = the FO summary rhythm (gh-verificare-spacing-v1, 2026-10-24, user on GEAP 11801:30527).** Every block of
+the step is an FO `summarySectionHtml` section inside `.e-permits-fo-review.e-permits-gh__review` (column, gap 32,
+32 above the footer): Date generale · Date despre solicitant · Date despre cerere (details cards, `card: "profile"`) ·
+Atașamente · **Cererea pe hârtie** · **Semnarea cererii** (`docs: true` lists, items 8 apart). Heading 48 (18/26, inset
+12) → content right under it; no form-section divider and no 24 body inset; the list's own FO 32 bottom padding is
+off inside the review (`.e-permits-gh__review .e-permits-fo-summary-docs`); the „Semnarea cererii” one-line
+explanation (`p.e-permits-fo-section-header__desc`) is the first list item, inset 12 like the heading. H1 → first
+section 24 (FO header). Demo gh-07, gh-07c, gh-07f, gh-07g1.
+
 **Act picker, search, submit toast, lone trash (ghiseu-picker-toast-v1 / lone-trash-v1, 2026-10-23).** The „Ce se
 solicită?” act rows are the Cabinet act row (title = location, line 2 = act type, Cabinet meta slots, square ⋮ via
 `GEAPActRow` `actionIcon`, no ⋮ when nothing can start); from 8 acts a live library search sits above them

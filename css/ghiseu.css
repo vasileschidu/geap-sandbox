@@ -141,6 +141,17 @@
   margin-bottom: var(--spacing-32, 32px);
 }
 
+/* gh-verificare-spacing-v1: the FO documents list ends its step with its own 32 — inside the review the section gap /
+   the review's margin already give the 32 (it was 64 under „Atașamente”) */
+.e-permits-gh__review .e-permits-fo-summary-docs {
+  padding-bottom: 0;
+}
+
+/* „Semnarea cererii”: its one-line explanation reads with the heading — same 12 inset as the summary headings */
+.e-permits-gh__review .e-permits-fo-summary-docs > .e-permits-fo-section-header__desc {
+  padding-inline: var(--spacing-12, 12px);
+}
+
 .e-permits-gh .e-permits-gh__doc {
   align-items: center;
 }

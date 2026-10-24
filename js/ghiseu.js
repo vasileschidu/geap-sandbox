@@ -1939,7 +1939,7 @@
       ${actions ? `<div class="e-permits-gh__doc-actions cab-doc__actions">${actions}</div>` : ""}
     </div>`;
   const detailsBtn = (attrs, label) => `<button class="btn btn-neutral btn-sm" type="button" aria-label="Detalii: ${esc(label)}" ${attrs}>${icon("eye-open", 20, "icon small")}<span>Detalii</span></button>`;
-  function reviewSummaryHtml(d) {
+  function reviewSummaryHtml(d, moreHtml = "") {
     const svc = serviceOf(d.service);
     const authority = A().getAuthorityById?.(svc?.authorityId)?.name || "Agenția Națională pentru Sănătate Publică";
     const act = d.act ? actById(d, d.act) : null;
@@ -1983,6 +1983,7 @@
         ${summarySection("Date despre solicitant", applicant, STEP_INDEX.identificare)}
         ${summarySection("Date despre cerere", request, STEP_INDEX.detalii)}
         ${R().summarySectionHtml?.({ title: "Atașamente", bodyHtml: attachments, docs: true, editHtml: locked(d) ? "" : `<button class="e-permits-fo-summary-section__edit" type="button" aria-label="Corectează: Atașamente" data-tooltip-label="Corectează" data-gh-goto="${STEP_INDEX.documente}">${icon("edit")}</button>` }) || ""}
+        ${moreHtml}
       </div>`;
   }
   function stepVerificare(d) {
@@ -2031,12 +2032,18 @@
           </button>
         </div>
         ${errSlot("msign")}`) : "";
+    /* gh-verificare-spacing-v1 (user 2026-10-24 on GEAP 11801:30527: „too much space — see the FO full flow”): the paper
+       and signing blocks are FO Verificare summary sections too (heading 48, the content right under it; no divider, no
+       24 body inset) inside the review, so the whole step keeps the FO summary rhythm: 32 between sections, 8 between the
+       items of a section, 32 above the footer */
+    const signDesc = [st.olograf ? "atașați cererea semnată de solicitant" : "", st.msign ? "semnați cererea prin MSign" : ""].filter(Boolean).join(" și ").replace(/^./, (c) => c.toUpperCase()) + " — cerute de setările serviciului.";
+    const block = (title, bodyHtml) => R().summarySectionHtml?.({ title, bodyHtml, docs: true }) || "";
     return `
       ${stepHeader("Verificare")}
       ${notices ? `<div class="e-permits-gh__notices">${notices}</div>` : ""}
-      ${reviewSummaryHtml(d)}
-      ${section("Cererea pe hârtie", `<div class="e-permits-fo-form__section-body e-permits-fo-form__section-body--single">${paper}</div>`, { id: "gh-paper-title" })}
-      ${st.olograf || st.msign ? section("Semnarea cererii", `<div class="e-permits-fo-form__section-body e-permits-fo-form__section-body--single">${olograf}${sign}</div>`, { id: "gh-sign-title", desc: [st.olograf ? "atașați cererea semnată de solicitant" : "", st.msign ? "semnați cererea prin MSign" : ""].filter(Boolean).join(" și ").replace(/^./, (c) => c.toUpperCase()) + " — cerute de setările serviciului." }) : U().renderInfoNote?.("Setările serviciului nu cer cererea semnată olograf și nici semnarea prin MSign la ghișeu.") || ""}
+      ${reviewSummaryHtml(d, `
+        ${block("Cererea pe hârtie", paper)}
+        ${st.olograf || st.msign ? block("Semnarea cererii", `<p class="e-permits-fo-section-header__desc">${signDesc}</p>${olograf}${sign}`) : U().renderInfoNote?.("Setările serviciului nu cer cererea semnată olograf și nici semnarea prin MSign la ghișeu.") || ""}`)}
       ${footerHtml(d)}`;
   }
   const OLOGRAF_EXT = /\.(jpe?g|png|pdf)$/i;
@@ -2210,13 +2217,16 @@
       hasFee(d) || d.payment ? { label: "Nota de plată este achitată", ok: isPaid(d) } : { label: "Fără notă de plată", ok: true }
     ].filter(Boolean);
   }
+  /* gh-verificare-spacing-v1: the two summary sections sit in the FO review wrapper (as Verificare) — 32 between them and
+     above the footer, headings inset 12; they touched each other and the footer before */
   function stepConfirmare(d) {
     if (isSubmitted(d)) return confirmedHtml(d);
     const list = readiness(d);
     const ok = list.every((x) => x.ok);
     return `
       ${stepHeader("Confirmarea depunerii")}
-      ${S.notice === "submit-error" ? U().renderNotice?.("error", "A apărut o eroare. Depunerea nu a putut fi finalizată. Încercați din nou.", { role: "alert" }) || "" : ""}
+      ${S.notice === "submit-error" ? `<div class="e-permits-gh__notices">${U().renderNotice?.("error", "A apărut o eroare. Depunerea nu a putut fi finalizată. Încercați din nou.", { role: "alert" }) || ""}</div>` : ""}
+      <div class="e-permits-fo-review e-permits-gh__review">
       ${summarySection("Condițiile depunerii", list.map((x) => detailRow(x.label, tagHtml(x.ok ? "Îndeplinită" : "Neîndeplinită", x.ok ? "success" : "danger"))).join(""))}
       ${summarySection("Cererea", [
         detailRow("Numărul cererii", R().copyValueHtml?.(d.nr, { ariaLabel: `Copiază numărul cererii ${d.nr}` }) || esc(d.nr)),
@@ -2225,6 +2235,7 @@
         detailRow("Livrare", esc({ evo: "Electronic, în EVO Cabinet", ghiseu: "Pe hârtie, la instituția emitentă", mdelivery: `Prin MDelivery · ${d.delivery.address || ""}` }[d.delivery.mode])),
         detailRow("Termen de examinare", esc(termOf(d)?.label || "—"))
       ].join(""))}
+      </div>
       ${footerHtml(d, { next: S.notice === "submit-error" ? "Reîncercați" : "Confirmă depunerea", nextAttrs: "data-gh-submit", nextDisabled: !ok })}`;
   }
   function confirmedHtml(d) {

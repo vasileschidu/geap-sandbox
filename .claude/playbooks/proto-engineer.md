@@ -3417,3 +3417,17 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   cache-keyed except the `?v=draft-icons-v1` uses. (4) Probe (scratch books/probe.mjs): computed mask url, icon colour =
   label colour on the active item (brand), real-mouse hover → F1F1F1; inactive nav icons are icon-base-default 121212
   vs text 383838 — the shell's standing rule for every item, not this change. hover-audit nav 0 / 0, capture clean.
+- 2026-10-24 · gh-verificare-spacing-v1 (user on GEAP 11801:30527: „Verificare and the details have too much space — see the FO
+  full flow”). (1) MEASURE BOTH SURFACES IN CODE FIRST (scratch gv/probe2.mjs: every structural block's top / bottom relative
+  to the h1, + padding / gap / margins): the summary sections were already FO-identical (h1 → 24, heading 48, card → next
+  heading 32); the real excess was (a) 64 under „Atașamente” = the FO docs list's own step-end `padding-bottom: 32` + the
+  Ghișeu review's `margin-bottom: 32`, and (b) „Cererea pe hârtie” / „Semnarea cererii” built as FO FORM sections (51 header
+  with divider + 24 body inset = 75 to the content). The Figma block also had h1 → 48 — a stale capture, not code. Fix = the
+  two blocks became `summarySectionHtml({ docs: true })` sections INSIDE `.e-permits-gh__review` + the docs padding off there.
+  (2) The FO's dead `--signing` summary variant (heading at x 0) looked right in isolation but jumped 12 against the inset
+  summary headings above it → one heading inset per page wins; the sign explanation got the same 12 inset. (3) A probe over
+  the other steps (fo-02/03/04 vs gh-03/05/06) showed identical form rhythm; Confirmare was the opposite problem (sections
+  touching each other, the footer and the error notice: no review wrapper) → same wrapper + `__notices`. Pattern: a desk step
+  built from FO summary sections needs the FO review wrapper, never loose sections. No sub-agent tool → capture 12 × 2 clean,
+  hover-audit 0 / 0 (gh-07, gh-07c, gh-10), code-audit only standing FPs (heading 11, profile row 7, edit pen), component-audit
+  only standing (edit pen, doc ×, shell profile menu).
