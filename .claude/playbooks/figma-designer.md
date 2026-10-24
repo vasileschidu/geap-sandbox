@@ -4460,3 +4460,32 @@ For any „research how other products do it” step, search Mobbin (mcp__mobbin
   - REST `/files/:key/nodes?version=` can be rate-limited for ~38 h (`retry-after: 136412`, tier „low”) — never count on version history
     as the undo; record state in plugin data before risky main edits. getInstancesAsync / page walks over 6 900 nested items drop the
     transport on the big pages (Registre, Services) → census through `variant.getInstancesAsync()` only, one call per question.
+
+- 2026-10-24 · open-chip-popover-v1 (user on RAP 22338:161903 rap-01r: „if a chip is pressed, show the proper state — chevron up — and put
+  the dropdown items in the right place”; + coordinator: eKYC too, and the 16/16 list rhythm of filter-bar-spacing-v1 61efb4c5).
+  **Open facet chip = the chip instance with fill bound to background/base/tertiary-hover (#D9D9D9, key 1ad66fae…, import by key in
+  eKYC / GEAP) + effect style Focus Ring/Medium (S:97cdddcd…; eKYC local id …,5060:5) + 20/chevron-top** (selected black chips keep
+  the black, ring only). **Popover = ABSOLUTE in the screen frame at chip.x, chip.bottom + 8** (right-aligned to the chip only if it
+  would pass screen width − 16 = code place()); widths / heights = the code probe. Routine tools/figma/open-chip-popover/fix.js
+  (+ cabinet-spacing.js). Counts: RAP 5 (rap-01b / 01r / 01s / 01t / 01u: popovers were 13–17 px right and 29 px low), Cabinet 6
+  (sm-01g / 01p / 01h / 01aa, pp-01s / 01s3; stale ring removed from sm-01aa's closed „Data depunerii”), eKYC 10 (ek-04c / 04j / 04m /
+  06b / 06c / 08b / 13a / 22b / 27a / 20b: 4 px low; ek-06b rebuilt as the code's date presets = new variant `Type=Date` 10996:32426 on
+  `Facet filter · popover` 10819:1688 (5 radio rows, library radio-label Small, 320 × 225 = code); ek-22b 285 wide + Option 9 added to
+  the Checklist main = 409 = code; `Advanced filter · button` Open variants tertiary-active → tertiary-hover = code), GEAP 11 chips
+  (Advanced filtering 02 / 02a / 02b, Services 02 + their „Filtrare avansată” trigger pressed + ring; Incidents „menu expanded” ×7 ring
+  only — legacy spec, its 710 mega-menus left). **16 / 16 rhythm**: RAP every desktop Main: Filter bar inset 8 → 16, Register / Empty /
+  Company inset 24 → 16 (13 blocks; rap-01r's Toolbar 16 → 24 = code title → search 24 and the column); Cabinet 30 desktop lists:
+  new `List area` frame (Controls + Requests/Acts, gap spacing-16) inside Container (gap 24 kept = title → search 24, list → pager 24),
+  Controls gap 8 → 16; columns restacked at 240 (RAP 01, Cabinet Request list / Filters / Post-process). Lessons:
+  - **`figma.skipInvisibleInstanceChildren` is ON in this runtime**: hidden children of instances are missing from `.children` /
+    `findAll` (an „Option 9” added to the main looked absent in the instance, a variant swap seemed to keep 3 of 5 rows). Set it to
+    `false` at the top of any call that shows hidden instance children.
+  - **`resetOverrides()` on an ABSOLUTE instance resets `layoutPositioning` to AUTO and its name** — the popover dropped into the flow
+    and the screen grew 225 / 409 px. Prefer `swapComponent` alone; if you reset, re-set ABSOLUTE, x / y and the name right after.
+  - **Instance sublayers only show up in `findAll` when their page is current** (first pass found 0 chevron-top chips) — every routine
+    calls `setCurrentPageAsync(page of the node)` first, even for `getNodeByIdAsync` roots.
+  - Moving the filter row (8 → 16) moves the chips: anchor popovers AFTER spacing changes, never before.
+  - Code gap (for proto-engineer): RAP / BO / eKYC open facet chips have neither the pressed fill nor the ring (Cabinet: ring only,
+    fill #F1F1F1); chips are 14/20 in code, the library chip in RAP / Cabinet is 16/24 (wider chips, popovers anchored to the Figma chip).
+  - No Agent tool in this session → stored audits (RAP `rap/audit` 5 screens, Cabinet `qsweep/audit` 8 screens, eKYC
+    `qsweep/audit-lite` 10 screens + set, GEAP `ghs/audit` on the filter rows / popovers / triggers): 0 findings.
