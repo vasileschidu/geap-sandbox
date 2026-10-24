@@ -4435,3 +4435,28 @@ For any „research how other products do it” step, search Mobbin (mcp__mobbin
   - Scripts: NO_INNER_SHADOW block (guarded `globalThis`, markers) synced into tokenize.js, swap-to-instances.js,
     swap-builder-address.js, ghiseu/swap-ghiseu.js, swap-workplace-registry.js, users-board/registry-pass.js by
     tools/figma/quality-sweep/sync-no-inner-shadow.py; instance-switcher/build-items.js now draws the BO selected ring as a 2 px stroke.
+
+- 2026-10-24 · sidebar-active-icon-v1 (user on GEAP 11595:321763: Ghișeu „Dosare noi” active = blue label, BLACK icon; „all active items
+  blue icons; test the sidebar components, then switch properties”). Cause: the local `sidebar-list-item` set **6347:28130** coloured the
+  Active icon with a STROKE override (border/brand/default) on the glyph's `vector` → every swapped Foundations FILL glyph (24/page-add,
+  24/document, 20/coins …) stayed dark (117 Active items), and its `🔄 Icon#12863:0` / `📍 Leading Icon#797:3` props were bound to nothing.
+  Fix = **masked icon slot** (the code does the same: `.sidebar__icon` is a CSS mask, `color` = icon/base/default, active = icon/brand/default):
+  `Icon` (20, no auto-layout, visible ← Leading Icon) › `Glyph` (20, auto-layout, **isMask ALPHA**, glyph FILL × FILL, mainComponent ← Icon prop)
+  + `Icon colour` rect (STRETCH) bound to icon/base/default (Default, Hover) / icon/brand/default (Active, Foundations lk-e9e8 bc354272…).
+  Any glyph — stroke (central) or fill (Foundations), 20 or 24 — takes the state colour, also after a State switch; QA rule
+  `nav-active-icon-colour` added to tools/ui-qa/figma-audit.js. 6 900 items: Active 621 brand / Default+Hover 6 279 base; 37 leftover brand
+  glyph overrides reset (Tariffs 23, Advanced filtering 10, Workplace 3, Dossiers 1). eKYC uses the published library item (66c046a8, its
+  Active already brand on all 265 items), Cabinet / FOD have no BO sidebar → nothing to change there. Lessons:
+  - **isMask on a swappable instance is lost on swap** → put the mask on a wrapper FRAME around the glyph, never on the glyph itself.
+  - **Binding an instance-swap property to a layer that instances had already swapped is DANGEROUS**: each instance holds TWO values — the
+    old swap override and a stale stored property value (here folder-paper stroke=2, 6364:46765, left by whoever added the property) — and
+    the bound property wins. Binding flipped ~800 items to the folder glyph (Registre set when first read, the 332 sidebar-public-services
+    central glyphs in the next read); unbinding flips them back only partly. Recovery that worked: unbind → record every item's glyph into
+    root shared plugin data (chunks of 1 500) → bind → for items now showing folder-paper set the recorded glyph with `setProperties`
+    (mains first, then nested `I…` ids) → census label → glyph until every label shows one glyph family. **Before binding a swap property
+    on a main with instances: record every instance's current glyph first, then re-assert it with setProperties after binding.**
+  - A fresh instance swapped through the property takes the new glyph's native size (24 in a 20 slot) → the Glyph wrapper is auto-layout
+    with the glyph FILL × FILL, so any swap lands at 20.
+  - REST `/files/:key/nodes?version=` can be rate-limited for ~38 h (`retry-after: 136412`, tier „low”) — never count on version history
+    as the undo; record state in plugin data before risky main edits. getInstancesAsync / page walks over 6 900 nested items drop the
+    transport on the big pages (Registre, Services) → census through `variant.getInstancesAsync()` only, one call per question.
