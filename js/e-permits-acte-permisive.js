@@ -1084,8 +1084,50 @@
         field: params.get("codcadastral") || "",
         srre: params.get("srre") || "normal",
         saved: params.get("coduri") === "fara" ? "fara" : "cu",
+        /* US-32 AC-20 / AC-22: the GEAP localities classifier answers empty (gol) or fails (eroare) */
+        cuatm: ["gol", "eroare"].includes(params.get("cuatm")) ? params.get("cuatm") : "",
       };
     })();
+
+    /* US-32 „Țara” (classifier GEAP țări — a short demo list, Moldova first). Moldova = the CUATM
+       cascade; any other country = free text for Raion / Oraș / Stradă (AC-17) */
+    const ADDRESS_COUNTRIES = [
+      { name: "Moldova", flag: "🇲🇩" }, { name: "România", flag: "🇷🇴" }, { name: "Ucraina", flag: "🇺🇦" },
+      { name: "Italia", flag: "🇮🇹" }, { name: "Germania", flag: "🇩🇪" }, { name: "Franța", flag: "🇫🇷" },
+      { name: "Regatul Unit", flag: "🇬🇧" }, { name: "Statele Unite ale Americii", flag: "🇺🇸" },
+      { name: "Israel", flag: "🇮🇱" }, { name: "Turcia", flag: "🇹🇷" },
+    ];
+
+    /* one value of a cascade address as the applicant sees it: the select (not its placeholder), the
+       free-text box that replaced it (foreign address / „Introdu manual”), or the text part */
+    function cascadeAddressValue(root, key) {
+      if (!root) return "";
+      if (key === "country") return root.querySelector("[data-fo-address-part='country']")?.textContent?.trim() || "";
+      const selector = { district: "[data-fo-cascade-raion]", locality: "[data-fo-cascade-localitate]", sector: "[data-fo-cascade-sector]", street: "[data-fo-cascade-strada]" }[key];
+      if (!selector) return root.querySelector(`[data-fo-address-part='${key}']`)?.value?.trim() || "";
+      const select = root.querySelector(selector);
+      const fieldEl = select?.closest(".e-permits-fo-field");
+      if (!fieldEl || fieldEl.hidden) return "";
+      const free = fieldEl.querySelector("[data-fo-free-box]:not([hidden]) [data-fo-address-free]");
+      if (free) return free.value.trim();
+      const value = select.querySelector("[data-fo-select-value]");
+      return value && !value.classList.contains("e-permits-fo-select__value--placeholder") ? value.textContent.trim() : "";
+    }
+
+    /* required-field errors of the address (step „Înainte”): message + red frame on the visible control */
+    function clearAddressError(fieldEl) {
+      if (!fieldEl) return;
+      fieldEl.querySelectorAll(":scope > [data-fo-address-error]").forEach((el) => el.remove());
+      fieldEl.querySelectorAll("[data-fo-address-invalid]").forEach((el) => {
+        el.classList.remove("is-error");
+        el.removeAttribute("data-fo-address-invalid");
+      });
+      fieldEl.querySelectorAll("[data-fo-address-err]").forEach((el) => {
+        el.removeAttribute("aria-invalid");
+        el.removeAttribute("aria-describedby");
+        el.removeAttribute("data-fo-address-err");
+      });
+    }
 
     /* FO search inputs follow the FO field sizes: library Search input Medium (40) on desktop,
        Large (48) at ≤720px — the size class is swapped, the library CSS does the rest */
@@ -1162,6 +1204,11 @@
       /* US-54: „Cod cadastral” sub-field (Form Designer › Componentele: Vizibilitate + Obligatoriu) */
       const cadastral = cadastralConfig(field.cadastral);
       const cadastralOn = Boolean(cadastral?.visible);
+      /* the address configuration follows the Form Designer „Cod cadastral” toggles (address-modes-v1):
+         a = code hidden, simple address · b = code visible + optional, collapsed behind „Adaugă codul
+         cadastral” (progressive disclosure) · c = code required, first (above „Caută adresa”) */
+      const addressMode = !cadastralOn ? "a" : cadastral.required ? "c" : "b";
+      const reqAttr = (key) => ((parts[key]?.required ?? PART_REQUIRED[key]) ? ` data-fo-address-required="${key}"` : "");
       const searchHint = cadastralOn
         ? "Căutați o adresă salvată sau introduceți un cod cadastral și alegeți „Caută codul cadastral” din listă."
         : "Selectarea unei adrese existente pre-completează toate câmpurile";
@@ -1176,7 +1223,7 @@
          searching). Its own message slot stays empty (no hint — user 2026-10-13) until the lookup message. */
       const cadastralId = `${uid}-cadastral`;
       const cadastralFieldHtml = cadastralOn ? `
-            <div class="e-permits-fo-field e-permits-fo-field--span-6" data-fo-cadastral-field>
+            <div class="e-permits-fo-field e-permits-fo-field--span-6" id="${cadastralId}-field" data-fo-cadastral-field${addressMode === "b" ? " hidden data-fo-cadastral-collapsed" : ""}>
               <label for="${cadastralId}">Cod cadastral${cadastral.required ? ` ${requiredMarkerHtml()}` : ""}</label>
               <div class="search-input ${foSearchSize()} rectangular e-permits-workplace__search e-permits-list-search e-permits-list-search--fill e-permits-fo-cadastral-search" data-fo-search-size data-fo-cadastral-box>
                 <span class="icon-search" aria-hidden="true"><svg class="icon" width="20" height="20"><use href="assets/icons/sprite.svg#icon-search"></use></svg></span>
@@ -1193,29 +1240,31 @@
          message slot under it holds the hint, then the lookup message (loading / success / error /
          warning); a visually hidden live region announces the outcome once */
       return `
-        <div class="${fieldClass(field)} e-permits-fo-cascade-address" data-fo-cascade-address data-fo-cascade-districts="${districtsJson}"${cadastralOn ? ' data-fo-cadastral="on"' : ""}>
+        <div class="${fieldClass(field)} e-permits-fo-cascade-address" data-fo-cascade-address data-fo-address-mode="${addressMode}" data-fo-cascade-districts="${districtsJson}"${cadastralOn ? ' data-fo-cadastral="on"' : ""}>
+          ${addressMode === "c" ? `<div class="e-permits-fo-address-details--smart e-permits-fo-cascade-address__lead">${cadastralFieldHtml}</div>` : ""}
           <div class="e-permits-fo-field e-permits-fo-field--span-12">
             <label for="${searchId}">${escapeFrontOfficeHtml(searchLabel)}${field.searchLabel && field.required ? ` ${requiredMarkerHtml()}` : ""}</label>
             ${addressSearchInputHtml({ id: searchId, placeholder: searchText, describedBy: `${searchId}-message` })}
             <p class="e-permits-fo-field__hint" id="${searchId}-message" data-fo-cadastral-search-hint>${escapeFrontOfficeHtml(searchHint)}</p>
             ${cadastralOn ? `<p class="u-visually-hidden" aria-live="polite" data-fo-cadastral-live></p>` : ""}
+            ${addressMode === "b" ? `<button type="button" class="btn btn-secondary btn-md e-permits-fo-cascade-address__code-toggle" aria-expanded="false" aria-controls="${cadastralId}-field" data-fo-cadastral-toggle><svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-plus-small"></use></svg><span>Adaugă codul cadastral</span></button>` : ""}
           </div>
           <div class="e-permits-fo-address-details--smart e-permits-fo-cascade-address__grid">
-            ${cadastralFieldHtml}
-            <div class="e-permits-fo-field e-permits-fo-field--span-6"${hiddenAttr("country")}>
-              <label>Țara${star("country")}</label>
-              <div class="e-permits-fo-select e-permits-fo-select--address is-disabled" data-fo-select>
-                <button class="e-permits-fo-select__button" id="fo-casc-country-${uid}" type="button" aria-haspopup="listbox" aria-expanded="false" aria-controls="fo-casc-country-${uid}-list" disabled>
-                  <span class="e-permits-fo-country-flag" aria-hidden="true">🇲🇩</span>
+            ${addressMode === "b" ? cadastralFieldHtml : ""}
+            <div class="e-permits-fo-field e-permits-fo-field--span-6"${hiddenAttr("country")}${reqAttr("country")}>
+              <label for="fo-casc-country-${uid}">Țara${star("country")}</label>
+              <div class="e-permits-fo-select e-permits-fo-select--address" data-fo-select data-fo-country-select>
+                <button class="e-permits-fo-select__button" id="fo-casc-country-${uid}" type="button" aria-haspopup="listbox" aria-expanded="false" aria-controls="fo-casc-country-${uid}-list">
+                  <span class="e-permits-fo-country-flag" aria-hidden="true" data-fo-country-flag>🇲🇩</span>
                   <span class="e-permits-fo-select__value" data-fo-select-value data-fo-address-part="country" data-placeholder="Moldova">Moldova</span>
                   <svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-chevron-bottom"></use></svg>
                 </button>
                 <ul class="e-permits-fo-select__list" id="fo-casc-country-${uid}-list" role="listbox" aria-labelledby="fo-casc-country-${uid}" hidden>
-                  <li class="e-permits-fo-select__option is-selected" role="option" aria-selected="true" data-value="Moldova" tabindex="-1">Moldova</li>
+                  ${ADDRESS_COUNTRIES.map((c) => `<li class="e-permits-fo-select__option${c.name === "Moldova" ? " is-selected" : ""}" role="option" aria-selected="${c.name === "Moldova"}" data-value="${escapeFrontOfficeHtml(c.name)}" tabindex="-1">${escapeFrontOfficeHtml(c.name)}</li>`).join("")}
                 </ul>
               </div>
             </div>
-            <div class="e-permits-fo-field e-permits-fo-field--span-6"${hiddenAttr("district")}>
+            <div class="e-permits-fo-field e-permits-fo-field--span-6"${hiddenAttr("district")}${reqAttr("district")}>
               <label>Raionul/Municipiul${star("district")}</label>
               <div class="e-permits-fo-select" data-fo-cascade-select data-fo-cascade-raion>
                 <button class="e-permits-fo-select__button" id="${raionId}" type="button" aria-haspopup="listbox" aria-expanded="false" aria-controls="${raionId}-list">
@@ -1227,7 +1276,7 @@
                 </ul>
               </div>
             </div>
-            <div class="e-permits-fo-field e-permits-fo-field--span-6"${hiddenAttr("locality")}>
+            <div class="e-permits-fo-field e-permits-fo-field--span-6"${hiddenAttr("locality")}${reqAttr("locality")}>
               <label>Orașul/Comuna${star("locality")}</label>
               <div class="e-permits-fo-select is-disabled" data-fo-cascade-select data-fo-cascade-localitate>
                 <button class="e-permits-fo-select__button" id="${localitateId}" type="button" aria-haspopup="listbox" aria-expanded="false" aria-controls="${localitateId}-list" disabled>
@@ -1247,7 +1296,7 @@
                 <ul class="e-permits-fo-select__list" id="${sectorId}-list" role="listbox" aria-labelledby="${sectorId}" hidden></ul>
               </div>
             </div>
-            <div class="e-permits-fo-field e-permits-fo-field--span-8"${hiddenAttr("street")}>
+            <div class="e-permits-fo-field e-permits-fo-field--span-8"${hiddenAttr("street")}${reqAttr("street")}>
               <label>Strada${star("street")}</label>
               <div class="e-permits-fo-select is-disabled" data-fo-cascade-select data-fo-cascade-strada>
                 <button class="e-permits-fo-select__button" id="${stradaId}" type="button" aria-haspopup="listbox" aria-expanded="false" aria-controls="${stradaId}-list" disabled>
@@ -1263,23 +1312,23 @@
                 <input id="${uid}-postal" type="text" placeholder="MD-0000" disabled data-fo-address-part="postalCode">
               </div>
             </div>
-            <div class="e-permits-fo-field e-permits-fo-field--span-4"${hiddenAttr("house")}>
+            <div class="e-permits-fo-field e-permits-fo-field--span-4"${hiddenAttr("house")}${reqAttr("house")}>
               <label for="${uid}-house">Casa${star("house")}</label>
               <div class="e-permits-fo-input"><input id="${uid}-house" type="text" placeholder="Nr." data-fo-address-part="house"></div>
             </div>
-            <div class="e-permits-fo-field e-permits-fo-field--span-4"${hiddenAttr("block")}>
+            <div class="e-permits-fo-field e-permits-fo-field--span-4"${hiddenAttr("block")}${reqAttr("block")}>
               <label for="${uid}-block">Blocul${star("block")}</label>
               <div class="e-permits-fo-input"><input id="${uid}-block" type="text" placeholder="Nr." data-fo-address-part="block"></div>
             </div>
-            <div class="e-permits-fo-field e-permits-fo-field--span-4"${hiddenAttr("stair")}>
+            <div class="e-permits-fo-field e-permits-fo-field--span-4"${hiddenAttr("stair")}${reqAttr("stair")}>
               <label for="${uid}-stair">Scara${star("stair")}</label>
               <div class="e-permits-fo-input"><input id="${uid}-stair" type="text" placeholder="Scara" data-fo-address-part="stair"></div>
             </div>
-            <div class="e-permits-fo-field e-permits-fo-field--span-4"${hiddenAttr("floor")}>
+            <div class="e-permits-fo-field e-permits-fo-field--span-4"${hiddenAttr("floor")}${reqAttr("floor")}>
               <label for="${uid}-floor">Etajul${star("floor")}</label>
               <div class="e-permits-fo-input"><input id="${uid}-floor" type="text" placeholder="0" data-fo-address-part="floor"></div>
             </div>
-            <div class="e-permits-fo-field e-permits-fo-field--span-4"${hiddenAttr("apartment")}>
+            <div class="e-permits-fo-field e-permits-fo-field--span-4"${hiddenAttr("apartment")}${reqAttr("apartment")}>
               <label for="${uid}-apt">Apartamentul${star("apartment")}</label>
               <div class="e-permits-fo-input"><input id="${uid}-apt" type="text" placeholder="Numărul ap." data-fo-address-part="apartment"></div>
             </div>
@@ -1483,10 +1532,162 @@
         if (!enabled) postalInput.value = "";
       }
 
+      const fieldOf = (el) => el?.closest(".e-permits-fo-field");
       const raion = bindCascadeSelect(raionEl, { onChange: onRaionChange });
       const localitate = bindCascadeSelect(localitateEl, { onChange: onLocalitateChange });
-      const sector = bindCascadeSelect(sectorEl, {});
-      const strada = bindCascadeSelect(stradaEl, {});
+      const sector = bindCascadeSelect(sectorEl, { onChange: () => clearAddressError(fieldOf(sectorEl)) });
+      const strada = bindCascadeSelect(stradaEl, { onChange: () => clearAddressError(fieldOf(stradaEl)) });
+      const countryEl = root.querySelector("[data-fo-country-select]");
+      let country = "Moldova";
+      let classifierRun = 0;
+      const isForeign = () => country !== "Moldova";
+      /* AC-13: the postcode comes from the locality (editable); mock = the SRRE postcodes table */
+      loadSrreDb();
+
+      /* free text instead of a classifier select (AC-17 foreign address, AC-23 „Introdu manual”):
+         an FO input box after the select, which is hidden; the label points at whichever is shown */
+      const FREE = {
+        district: { el: raionEl, placeholder: "Introduceți raionul sau regiunea" },
+        locality: { el: localitateEl, placeholder: "Introduceți orașul sau localitatea" },
+        street: { el: stradaEl, placeholder: "Introduceți strada" },
+      };
+      function setFree(key, on) {
+        const conf = FREE[key];
+        const fieldEl = fieldOf(conf?.el);
+        if (!fieldEl) return;
+        const id = `${conf.el.querySelector(".e-permits-fo-select__button")?.id || key}-free`;
+        let box = fieldEl.querySelector("[data-fo-free-box]");
+        if (on && !box) {
+          conf.el.insertAdjacentHTML("afterend", `<div class="e-permits-fo-input" data-fo-free-box hidden><input id="${escapeFrontOfficeHtml(id)}" type="text" autocomplete="off" placeholder="${escapeFrontOfficeHtml(conf.placeholder)}" data-fo-address-free="${key}"${fieldEl.hasAttribute("data-fo-address-required") ? ' aria-required="true"' : ""}></div>`);
+          box = fieldEl.querySelector("[data-fo-free-box]");
+        }
+        conf.el.hidden = on;
+        const label = fieldEl.querySelector(":scope > label");
+        if (on) label?.setAttribute("for", id);
+        else label?.removeAttribute("for");
+        if (!box) return;
+        box.hidden = !on;
+        if (!on) box.querySelector("input").value = "";
+      }
+
+      /* the localities classifier (demo ?cuatm=gol|eroare): skeleton in Oraș while it answers, then the
+         list, or the AC-20 / AC-22 message with „Reîncearcă” (the retry answers) + „Introdu manual” */
+      const CLASSIFIER = {
+        gol: { tone: "message--warning e-permits-fo-field__warning", icon: "icon-warning-filled", text: "Nu sunt valori disponibile." },
+        eroare: { tone: "message--error", icon: "icon-circle-error-filled", text: "Nu s-au putut încărca datele." },
+      };
+      function setClassifierLoading(on) {
+        const fieldEl = fieldOf(localitateEl);
+        fieldEl?.querySelector("[data-fo-classifier-skeleton]")?.remove();
+        fieldEl?.classList.toggle("is-srre-loading", on);
+        fieldEl?.toggleAttribute("aria-busy", on);
+        if (on) fieldEl?.insertAdjacentHTML("beforeend", '<span class="skeleton skeleton--input" aria-hidden="true" data-fo-srre-skeleton data-fo-classifier-skeleton></span>');
+      }
+      function showLocalities(districtData) {
+        localitate?.setOptions(districtData.localities.map((l) => l.value));
+        localitate?.enable();
+        localitate?.clearValue("Selectează orașul/comuna");
+      }
+      function setClassifierMessage(kind, districtData) {
+        const fieldEl = fieldOf(localitateEl);
+        fieldEl?.querySelector("[data-fo-classifier-message]")?.remove();
+        const message = CLASSIFIER[kind];
+        if (!message || !fieldEl) return;
+        fieldEl.insertAdjacentHTML("beforeend", `
+          <div class="e-permits-fo-cascade-address__status" data-fo-classifier-message>
+            <p class="message message--inline e-permits-fo-field__error ${message.tone}" role="alert"><svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#${message.icon}"></use></svg><span>${message.text}</span></p>
+            <div class="e-permits-fo-cascade-address__actions">
+              <button class="btn btn-strict btn-sm" type="button" data-fo-classifier-retry><svg class="icon" width="16" height="16" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-rotate-arrow"></use></svg><span>Reîncearcă</span></button>
+              <button class="btn btn-strict btn-sm" type="button" data-fo-classifier-manual><svg class="icon" width="16" height="16" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-edit"></use></svg><span>Introdu manual</span></button>
+            </div>
+          </div>`);
+        const box = fieldEl.querySelector("[data-fo-classifier-message]");
+        box.querySelector("[data-fo-classifier-retry]").addEventListener("click", () => {
+          setClassifierMessage(null);
+          loadLocalities(districtData, "", { focus: true });
+        });
+        box.querySelector("[data-fo-classifier-manual]").addEventListener("click", () => {
+          setClassifierMessage(null);
+          setFree("locality", true);
+          setFree("street", true);
+          hideSector();
+          setPostalEnabled(true);
+          fieldEl.querySelector("[data-fo-address-free]")?.focus();
+        });
+      }
+      function loadLocalities(districtData, outcome, { focus = false } = {}) {
+        const run = ++classifierRun;
+        setClassifierLoading(true);
+        window.setTimeout(() => {
+          if (run !== classifierRun) return;
+          setClassifierLoading(false);
+          if (outcome) { setClassifierMessage(outcome, districtData); return; }
+          showLocalities(districtData);
+          if (focus) localitateEl?.querySelector(".e-permits-fo-select__button")?.focus();
+        }, 600);
+      }
+
+      /* AC-14 / AC-17: the country. Moldova = the cascade; another country = free text for Raion /
+         Oraș / Stradă, no sector, a free postcode, no cadastral code (SRRE covers Moldova only). A change
+         with address data asks first (the FO confirm dialog) and empties the children. */
+      const textKeys = ["house", "block", "stair", "floor", "apartment"];
+      const part = (key) => root.querySelector(`[data-fo-address-part="${key}"]`);
+      function showCountry(name) {
+        const flag = countryEl?.querySelector("[data-fo-country-flag]");
+        if (flag) flag.textContent = ADDRESS_COUNTRIES.find((c) => c.name === name)?.flag || "";
+        const value = countryEl?.querySelector("[data-fo-select-value]");
+        if (value) value.textContent = name;
+        countryEl?.querySelectorAll(".e-permits-fo-select__option").forEach((option) => {
+          const selected = option.dataset.value === name;
+          option.classList.toggle("is-selected", selected);
+          option.setAttribute("aria-selected", String(selected));
+        });
+      }
+      function resetChildren() {
+        classifierRun += 1;
+        setClassifierLoading(false);
+        setClassifierMessage(null);
+        root.foCadastralRelease?.();
+        raion?.clearValue("Selectează raionul/municipiul");
+        localitate?.disable("Selectează mai întâi Raionul/Municipiul");
+        strada?.disable("Selectează orașul/comuna mai întâi");
+        hideSector();
+        setPostalEnabled(false);
+        textKeys.forEach((key) => { if (part(key)) part(key).value = ""; });
+        root.querySelectorAll("[data-fo-address-free]").forEach((input) => { input.value = ""; });
+        root.querySelectorAll(".e-permits-fo-cascade-address__grid > .e-permits-fo-field").forEach(clearAddressError);
+      }
+      function applyCountry(name) {
+        country = name;
+        showCountry(name);
+        resetChildren();
+        const foreign = isForeign();
+        ["district", "locality", "street"].forEach((key) => setFree(key, foreign));
+        setPostalEnabled(foreign);
+        if (postalInput) postalInput.placeholder = foreign ? "Codul poștal" : "MD-0000";
+        root.foCadastralAvailable?.(!foreign);
+      }
+      const hasAddressData = () => Boolean(raion?.getValue())
+        || [...root.querySelectorAll("[data-fo-address-free], .e-permits-fo-cascade-address__grid input[data-fo-address-part], [data-fo-cadastral-input]")].some((input) => input.value.trim());
+      countryEl?.addEventListener("fo-select-change", (event) => {
+        const next = String(event.detail?.value || "").trim();
+        clearAddressError(fieldOf(countryEl));
+        if (!next || next === country) return;
+        const button = countryEl.querySelector(".e-permits-fo-select__button");
+        const confirm = window.GEAPFoRepeat?.confirm;
+        if (!hasAddressData() || !confirm) { applyCountry(next); return; }
+        /* the old country stays shown until the answer */
+        showCountry(country);
+        confirm({
+          title: "Schimbi țara?",
+          text: "Raionul, localitatea, strada și celelalte câmpuri ale adresei se golesc.",
+          confirm: "Schimbă țara",
+          returnFocus: button,
+          onConfirm: () => { applyCountry(next); button?.focus(); },
+        });
+      });
+      /* a typed value clears that field's required error */
+      root.addEventListener("input", (event) => clearAddressError(event.target.closest?.(".e-permits-fo-field")));
 
       function isChisinauLocality(value) {
         return String(value || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase() === "chisinau";
@@ -1520,6 +1721,12 @@
       hideSector();
 
       function onRaionChange(raionValue) {
+        clearAddressError(fieldOf(raionEl));
+        classifierRun += 1;
+        setClassifierLoading(false);
+        setClassifierMessage(null);
+        setFree("locality", false);
+        setFree("street", false);
         localitate?.disable("Selectează mai întâi Raionul/Municipiul");
         setSectorOptions("", []);
         strada?.disable("Selectează orașul/comuna mai întâi");
@@ -1527,13 +1734,13 @@
         if (!raionValue) return;
         const districtData = districts.find((d) => d.value === raionValue);
         if (!districtData) return;
-        localitate?.setOptions(districtData.localities.map((l) => l.value));
-        localitate?.enable();
-        localitate?.clearValue("Selectează orașul/comuna");
+        if (foAddressDemo.cuatm) loadLocalities(districtData, foAddressDemo.cuatm);
+        else showLocalities(districtData);
         document.dispatchEvent(new CustomEvent("fo:raion-changed", { detail: { raion: raionValue } }));
       }
 
       function onLocalitateChange(localitateValue) {
+        clearAddressError(fieldOf(localitateEl));
         strada?.disable("Selectează strada");
         setPostalEnabled(false);
         const raionValue = raion?.getValue();
@@ -1552,11 +1759,51 @@
         strada?.enable();
         strada?.clearValue("Selectează strada");
         setPostalEnabled(true);
+        /* AC-13: the postcode of the locality, editable */
+        const postal = localitateData.postalCode || srreDb?.postalCodes?.[localitateValue] || "";
+        if (postalInput && postal) postalInput.value = postal;
       }
+
+      /* the address checked by „Înainte”: a required, visible part left empty → its message + red
+         frame (only Țara + Raion by default, AC-04); a required „Cod cadastral” → „Introduceți codul
+         cadastral.” Returns the first field with an error, or null. */
+      function validate() {
+        root.querySelectorAll(".e-permits-fo-field").forEach(clearAddressError);
+        let first = null;
+        const codeField = root.querySelector("[data-fo-cadastral-field]");
+        const codeInput = codeField?.querySelector("[data-fo-cadastral-input]");
+        if (codeInput?.getAttribute("aria-required") === "true" && !codeField.closest("[hidden]") && !codeInput.value.trim()) {
+          root.foCadastralRequired?.();
+          first = codeField;
+        }
+        root.querySelectorAll("[data-fo-address-required]").forEach((fieldEl) => {
+          if (fieldEl.closest("[hidden]")) return;
+          const key = fieldEl.dataset.foAddressRequired;
+          if (cascadeAddressValue(root, key)) return;
+          const control = fieldEl.querySelector("[data-fo-free-box]:not([hidden])")
+            || fieldEl.querySelector(":scope > .e-permits-fo-select:not([hidden])")
+            || fieldEl.querySelector(":scope > .e-permits-fo-input");
+          const isSelect = Boolean(control?.matches(".e-permits-fo-select"));
+          const label = (fieldEl.querySelector(":scope > label")?.childNodes[0]?.textContent || "").trim().toLocaleLowerCase("ro");
+          const errorId = `${control?.querySelector("button, input")?.id || key}-error`;
+          control?.classList.add("is-error");
+          control?.setAttribute("data-fo-address-invalid", "");
+          const focusable = control?.querySelector("button, input");
+          focusable?.setAttribute("aria-invalid", "true");
+          focusable?.setAttribute("aria-describedby", errorId);
+          focusable?.setAttribute("data-fo-address-err", "");
+          fieldEl.insertAdjacentHTML("beforeend", `<p class="message message--inline e-permits-fo-field__error" id="${escapeFrontOfficeHtml(errorId)}" data-fo-address-error><svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-circle-error-filled"></use></svg><span>${escapeFrontOfficeHtml(`${isSelect ? "Selectați" : "Introduceți"} ${label}.`)}</span></p>`);
+          first ||= fieldEl;
+        });
+        return first;
+      }
+      root.foAddress = { validate, isForeign };
 
       const searchRoot = root.querySelector("[data-fo-address-search]");
       if (searchRoot) {
         searchRoot.foCascadeAddressFill = function(item) {
+          /* saved addresses are in Moldova: a foreign country goes back to the cascade first */
+          if (isForeign()) applyCountry("Moldova");
           /* a saved address chosen after an SRRE fill: the SRRE parts become editable again */
           root.foCadastralRelease?.();
           if (item.district) raion?.setValue(item.district);
@@ -1574,8 +1821,16 @@
             if (el) el.value = item[key] || "";
           });
         };
+        /* the search list's „Introdu manual” row (no saved address matches): the cascade below is the
+           manual route — the search is emptied and the first part (Raion, or its free text) takes focus */
+        searchRoot.foManualEntry = function() {
+          const raionField = fieldOf(raionEl);
+          const target = raionField?.querySelector("[data-fo-free-box]:not([hidden]) input") || raionEl?.querySelector(".e-permits-fo-select__button");
+          target?.focus({ preventScroll: true });
+          raionField?.scrollIntoView({ block: "nearest" });
+        };
         if (root.dataset.foCadastral === "on") {
-          initCadastralLookup(root, searchRoot, { raion, localitate, sector, strada, postalInput, hideSector, setPostalEnabled, isChisinauLocality });
+          initCadastralLookup(root, searchRoot, { raion, localitate, sector, strada, postalInput, hideSector, setPostalEnabled, isChisinauLocality, toMoldova: () => { if (isForeign()) applyCountry("Moldova"); } });
         }
       }
     }
@@ -1622,6 +1877,8 @@
       const codeWrap = codeInput?.closest(".search-input");
       const codeSubmit = root.querySelector("[data-fo-cadastral-submit]");
       const codeSlot = root.querySelector("[data-fo-cadastral-code-hint]");
+      const codeField = root.querySelector("[data-fo-cadastral-field]");
+      const codeToggle = root.querySelector("[data-fo-cadastral-toggle]");
       if (!input || !slot) return;
       /* the two fields that take a code: „Caută adresa” and „Cod cadastral”. A lookup's messages
          go under the one the code was typed in; the other shows its hint again */
@@ -1652,7 +1909,55 @@
         success: { tone: "message--success e-permits-fo-field__success", icon: "icon-circle-checkmark-filled", text: "Adresa a fost completată din Registrul de Stat al Bunurilor Imobile." },
         invalid: { tone: "message--error", icon: "icon-circle-error-filled", text: "Codul nu este valid, corectați." },
         unavailable: { tone: "message--warning e-permits-fo-field__warning", icon: "icon-warning-filled", text: "Adresă indisponibilă. Puteți completa adresa manual." },
+        required: { tone: "message--error", icon: "icon-circle-error-filled", text: "Introduceți codul cadastral." },
       };
+
+      /* mode B: „Cod cadastral” waits behind „Adaugă codul cadastral” and opens on that button or
+         as soon as it receives a code (typed in the search, chosen from the saved codes) */
+      function expandCode(focus = false) {
+        if (!codeField?.hasAttribute("data-fo-cadastral-collapsed")) return;
+        codeField.removeAttribute("data-fo-cadastral-collapsed");
+        codeField.hidden = false;
+        if (codeToggle) {
+          codeToggle.setAttribute("aria-expanded", "true");
+          codeToggle.hidden = true;
+        }
+        if (focus) codeInput?.focus();
+      }
+      codeToggle?.addEventListener("click", () => expandCode(true));
+      /* a foreign address has no cadastral code (SRRE = Moldova): the code and its button step aside */
+      root.foCadastralAvailable = (on) => {
+        if (!codeField) return;
+        const collapsed = codeField.hasAttribute("data-fo-cadastral-collapsed");
+        codeField.hidden = !on || collapsed;
+        const lead = codeField.closest(".e-permits-fo-cascade-address__lead");
+        if (lead) lead.hidden = !on;
+        if (codeToggle) codeToggle.hidden = !on || !collapsed;
+      };
+
+      /* SRRE / MConnect down (demo ?srre=indisponibil) = the Ghișeu registry-down alert: ONE warning
+         notice above the first lookup, no message under the field; it goes with a fill or an emptied code */
+      function setDown(on) {
+        root.querySelector(":scope > [data-fo-srre-down]")?.remove();
+        if (!on) return;
+        root.insertAdjacentHTML("afterbegin", foUi().renderNotice?.("warning", "<strong>Registrul de Stat al Bunurilor Imobile nu răspunde acum.</strong> Completați adresa manual. Adresa introdusă manual se verifică la examinare.", { className: "e-permits-fo-cascade-address__down" }) || "");
+        root.querySelector(":scope > .e-permits-fo-cascade-address__down")?.setAttribute("data-fo-srre-down", "");
+      }
+
+      /* the way out of a registry fill: „Completează manual” under the success message — the values
+         stay, the fields become editable (the code stays in the request) */
+      function setWayOut(from) {
+        root.querySelectorAll("[data-fo-srre-manual-row]").forEach((el) => el.remove());
+        const source = from ? sources[from] : null;
+        if (!source) return;
+        source.slot.insertAdjacentHTML("afterend", `<div class="e-permits-fo-cascade-address__actions" data-fo-srre-manual-row><button class="btn btn-strict btn-sm" type="button" data-fo-srre-manual><svg class="icon" width="16" height="16" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-edit"></use></svg><span>Completează manual</span></button></div>`);
+        root.querySelector("[data-fo-srre-manual]")?.addEventListener("click", () => {
+          unlockKeep();
+          setStatus(null);
+          setWayOut(null);
+          root.querySelector("[data-fo-cascade-raion] .e-permits-fo-select__button")?.focus();
+        });
+      }
 
       /* the two fields stay in sync: a code typed / chosen in one is written into the other */
       function setSearchValue(value) {
@@ -1676,6 +1981,7 @@
       function setCodeValue(value) {
         if (!codeInput) return;
         codeInput.value = value;
+        if (value) expandCode(false);
         syncCodeBox();
       }
 
@@ -1712,11 +2018,13 @@
          only in the field the code came from (`from`) */
       function setStatus(kind, from = "search") {
         const message = kind ? MESSAGES[kind] : null;
+        if (kind !== "success") setWayOut(null);
+        const isError = kind === "invalid" || kind === "required";
         Object.entries(sources).forEach(([key, source]) => {
           if (!source) return;
           const own = Boolean(message) && key === from;
-          source.control?.classList.toggle("is-error", own && kind === "invalid");
-          if (own && kind === "invalid") source.input.setAttribute("aria-invalid", "true");
+          source.control?.classList.toggle("is-error", own && isError);
+          if (own && isError) source.input.setAttribute("aria-invalid", "true");
           else source.input.removeAttribute("aria-invalid");
           if (!own) {
             source.slot.className = "e-permits-fo-field__hint";
@@ -1804,6 +2112,24 @@
         textParts.forEach(unlockInput);
         api.setPostalEnabled(false);
       }
+      /* „Completează manual”: the SRRE values stay, the parts become editable again */
+      function unlockKeep() {
+        if (!filled) return;
+        filled = false;
+        Object.values(selectFields).forEach((fieldEl) => {
+          fieldEl?.querySelector("[data-fo-srre-value]")?.remove();
+          const select = fieldEl?.querySelector(".e-permits-fo-select");
+          if (select) select.hidden = false;
+        });
+        textParts.forEach((inputEl) => {
+          const wrap = inputEl.closest(".e-permits-fo-input");
+          inputEl.readOnly = false;
+          inputEl.removeAttribute("tabindex");
+          if (inputEl.dataset.foPlaceholder !== undefined) inputEl.placeholder = inputEl.dataset.foPlaceholder;
+          wrap?.classList.remove("is-filled", "is-readonly", "is-srre-new");
+          wrap?.querySelector(".icon")?.remove();
+        });
+      }
       /* a saved address chosen in the search: the SRRE parts become editable, the code goes */
       root.foCadastralRelease = () => {
         token += 1;
@@ -1812,9 +2138,16 @@
         release();
         setCodeValue("");
         setStatus(null);
+        setDown(false);
+      };
+      /* „Înainte” with a required code left empty (mode C) */
+      root.foCadastralRequired = () => {
+        expandCode(false);
+        setStatus("required", "code");
       };
 
       function fill(address, code, postalCode) {
+        api.toMoldova?.();
         release();
         const focused = [input, codeInput].includes(document.activeElement) ? document.activeElement : null;
         api.raion?.setValue(address.district);
@@ -1857,10 +2190,14 @@
         if (run !== token) return;
         setBusy(false);
         const address = mode === "invalid" ? null : db.parcels?.[code];
-        if (mode === "indisponibil" || address?.unavailable) { release(); setStatus("unavailable", from); return; }
-        if (!address) { release(); setStatus("invalid", from); return; }
+        /* the registry does not answer at all → the alert above; this parcel has no address → AC-20 */
+        if (mode === "indisponibil") { release(); setStatus(null); setDown(true); return; }
+        if (address?.unavailable) { release(); setDown(false); setStatus("unavailable", from); return; }
+        if (!address) { release(); setDown(false); setStatus("invalid", from); return; }
+        setDown(false);
         fill(address, code, db.postalCodes?.[address.locality] || "");
         setStatus("success", from);
+        setWayOut(from);
       }
 
       /* submit: a code is sent to SRRE; anything else (letters, other characters) cannot be a
@@ -1890,6 +2227,7 @@
           release();
           if (from === "search") setCodeValue("");
           setStatus(null);
+          if (!value) setDown(false);
           return;
         }
         /* a code edited while SRRE answers: the running request finishes (submit is disabled) */
@@ -5730,6 +6068,25 @@
       idnp.closest(".e-permits-fo-input")?.classList.toggle("is-disabled", !consent.checked);
     });
 
+    /* address-modes-v1: „Înainte” on Detalii solicitare stops on an address with a required part (or a
+       required „Cod cadastral”) left empty — messages under the fields, focus on the first one */
+    document.addEventListener("click", (event) => {
+      if (frontOfficePostprocess) return;
+      const next = event.target.closest("[data-fo-next='step-2']");
+      if (!next || next.disabled) return;
+      const panel = next.closest("[data-fo-step-panel]") || document.querySelector("[data-fo-step-panel='2']");
+      let first = null;
+      panel?.querySelectorAll("[data-fo-cascade-address]").forEach((root) => {
+        const invalid = root.foAddress?.validate();
+        first ||= invalid;
+      });
+      if (!first) return;
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      first.scrollIntoView({ block: "center" });
+      first.querySelector(":is(.search-input, [data-fo-free-box]:not([hidden]), .e-permits-fo-select:not([hidden]), .e-permits-fo-input) :is(input, button)")?.focus({ preventScroll: true });
+    }, true);
+
     /* post-process navigation, ahead of the primary handler: validate the
        form, skip MPay when there is no fee, build the review */
     document.addEventListener("click", (event) => {
@@ -7221,7 +7578,7 @@
 
       const cascadeRoot = step2Panel?.querySelector("[data-fo-cascade-address]");
       const raionFilled = cascadeRoot?.querySelector("[data-fo-cascade-raion] .e-permits-fo-select__option.is-selected");
-      if (cascadeRoot && !raionFilled) {
+      if (cascadeRoot && !raionFilled && !cascadeAddressValue(cascadeRoot, "district")) {
         const searchRoot = cascadeRoot.querySelector("[data-fo-address-search]");
         searchRoot?.foCascadeAddressFill?.({
           district: "Municipiul Chișinău",
@@ -7303,15 +7660,18 @@
       // --- Service rows ---
       const objectName = step2Panel?.querySelector("#fo-object-name")?.value?.trim() || "—";
 
-      const raion = step2Panel?.querySelector("[data-fo-cascade-raion] [data-fo-select-value]")?.textContent?.trim();
-      const localitate = step2Panel?.querySelector("[data-fo-cascade-localitate] [data-fo-select-value]")?.textContent?.trim();
-      const strada = step2Panel?.querySelector("[data-fo-cascade-strada] [data-fo-select-value]")?.textContent?.trim();
-      const house = step2Panel?.querySelector("[data-fo-address-part='house']")?.value?.trim();
-      const postal = step2Panel?.querySelector("[data-fo-address-part='postalCode']")?.value?.trim();
+      const addressRoot = step2Panel?.querySelector("[data-fo-cascade-address]");
+      const raion = cascadeAddressValue(addressRoot, "district");
+      const localitate = cascadeAddressValue(addressRoot, "locality");
+      const strada = cascadeAddressValue(addressRoot, "street");
+      const house = cascadeAddressValue(addressRoot, "house");
+      const postal = cascadeAddressValue(addressRoot, "postalCode");
+      const addressCountry = cascadeAddressValue(addressRoot, "country");
       const addressParts = [
         strada && house ? `${strada} ${house}` : strada || "",
         postal && localitate ? `${postal}, ${localitate}` : localitate || "",
         raion || "",
+        addressCountry && addressCountry !== "Moldova" ? addressCountry : "",
       ].filter(Boolean);
       const addressDisplay = addressParts.join(", ") || "—";
 
@@ -7760,15 +8120,15 @@
       const suggestionIdBase = `fo-address-suggestion-${Math.random().toString(16).slice(2)}`;
 
       const fallbackAddresses = [
-        { title: "Strada Calea Ieșilor 80, ap. 12", meta: "Chișinău, Moldova", value: "Strada Calea Ieșilor 80, ap. 12, Chișinău, Moldova", country: "Moldova", district: "Municipiul Chișinău", locality: "Chișinău", sector: "Buiucani", street: "Calea Ieșilor", postalCode: "MD-2069", house: "80", block: "A", stair: "2", floor: "4", apartment: "12" },
-        { title: "Bulevardul Ștefan cel Mare și Sfânt 134", meta: "Chișinău, Moldova", value: "Bulevardul Ștefan cel Mare și Sfânt 134, Chișinău, Moldova", country: "Moldova", district: "Municipiul Chișinău", locality: "Chișinău", sector: "Centru", street: "Bulevardul Ștefan cel Mare și Sfânt", postalCode: "MD-2012", house: "134", block: "", stair: "", floor: "1", apartment: "" },
-        { title: "Strada București 68, of. 24", meta: "Chișinău, Moldova", value: "Strada București 68, of. 24, Chișinău, Moldova", country: "Moldova", district: "Municipiul Chișinău", locality: "Chișinău", sector: "Centru", street: "Strada București", postalCode: "MD-2012", house: "68", block: "", stair: "1", floor: "3", apartment: "24" },
-        { title: "Strada Alexandru cel Bun 83", meta: "Chișinău, Moldova", value: "Strada Alexandru cel Bun 83, Chișinău, Moldova", country: "Moldova", district: "Municipiul Chișinău", locality: "Chișinău", sector: "Centru", street: "Strada Alexandru cel Bun", postalCode: "MD-2012", house: "83", block: "", stair: "", floor: "0", apartment: "" },
-        { title: "Bulevardul Dacia 49, ap. 8", meta: "Chișinău, Moldova", value: "Bulevardul Dacia 49, ap. 8, Chișinău, Moldova", country: "Moldova", district: "Municipiul Chișinău", locality: "Chișinău", sector: "Botanica", street: "Bulevardul Dacia", postalCode: "MD-2060", house: "49", block: "B", stair: "3", floor: "2", apartment: "8" },
+        { title: "Strada Calea Ieșilor 80, ap. 12", meta: "Chișinău, Moldova", value: "Strada Calea Ieșilor 80, ap. 12, Chișinău, Moldova", country: "Moldova", district: "Municipiul Chișinău", locality: "Chișinău", sector: "Buiucani", street: "str. Calea Ieșilor", postalCode: "MD-2069", house: "80", block: "A", stair: "2", floor: "4", apartment: "12" },
+        { title: "Bulevardul Ștefan cel Mare și Sfânt 134", meta: "Chișinău, Moldova", value: "Bulevardul Ștefan cel Mare și Sfânt 134, Chișinău, Moldova", country: "Moldova", district: "Municipiul Chișinău", locality: "Chișinău", sector: "Centru", street: "bd. Ștefan cel Mare și Sfânt", postalCode: "MD-2012", house: "134", block: "", stair: "", floor: "1", apartment: "" },
+        { title: "Strada București 68, of. 24", meta: "Chișinău, Moldova", value: "Strada București 68, of. 24, Chișinău, Moldova", country: "Moldova", district: "Municipiul Chișinău", locality: "Chișinău", sector: "Centru", street: "str. București", postalCode: "MD-2012", house: "68", block: "", stair: "1", floor: "3", apartment: "24" },
+        { title: "Strada Alexandru cel Bun 83", meta: "Chișinău, Moldova", value: "Strada Alexandru cel Bun 83, Chișinău, Moldova", country: "Moldova", district: "Municipiul Chișinău", locality: "Chișinău", sector: "Centru", street: "str. Alexandru cel Bun", postalCode: "MD-2012", house: "83", block: "", stair: "", floor: "0", apartment: "" },
+        { title: "Bulevardul Dacia 49, ap. 8", meta: "Chișinău, Moldova", value: "Bulevardul Dacia 49, ap. 8, Chișinău, Moldova", country: "Moldova", district: "Municipiul Chișinău", locality: "Chișinău", sector: "Botanica", street: "bd. Dacia", postalCode: "MD-2060", house: "49", block: "B", stair: "3", floor: "2", apartment: "8" },
         { title: "Calea Ieșilor 80", meta: "Bălți, Moldova", value: "Calea Ieșilor 80, Bălți, Moldova", country: "Moldova", district: "Municipiul Bălți", locality: "Bălți", street: "Calea Ieșilor", postalCode: "MD-3100", house: "80", block: "", stair: "", floor: "0", apartment: "" },
-        { title: "Strada Independenței 6/1", meta: "Ungheni, Moldova", value: "Strada Independenței 6/1, Ungheni, Moldova", country: "Moldova", district: "Raionul Ungheni", locality: "Ungheni", street: "Strada Independenței", postalCode: "MD-3600", house: "6/1", block: "", stair: "", floor: "0", apartment: "" },
-        { title: "Strada Alecu Russo 15", meta: "Orhei, Moldova", value: "Strada Alecu Russo 15, Orhei, Moldova", country: "Moldova", district: "Raionul Orhei", locality: "Orhei", street: "Strada Alecu Russo", postalCode: "MD-3505", house: "15", block: "", stair: "", floor: "0", apartment: "" },
-        { title: "Strada Mihai Eminescu 49", meta: "Cahul, Moldova", value: "Strada Mihai Eminescu 49, Cahul, Moldova", country: "Moldova", district: "Raionul Cahul", locality: "Cahul", street: "Strada Mihai Eminescu", postalCode: "MD-3909", house: "49", block: "", stair: "", floor: "0", apartment: "" },
+        { title: "Strada Independenței 6/1", meta: "Ungheni, Moldova", value: "Strada Independenței 6/1, Ungheni, Moldova", country: "Moldova", district: "Raionul Ungheni", locality: "Ungheni", street: "str. Independenței", postalCode: "MD-3600", house: "6/1", block: "", stair: "", floor: "0", apartment: "" },
+        { title: "Strada Alecu Russo 15", meta: "Orhei, Moldova", value: "Strada Alecu Russo 15, Orhei, Moldova", country: "Moldova", district: "Raionul Orhei", locality: "Orhei", street: "str. Alecu Russo", postalCode: "MD-3505", house: "15", block: "", stair: "", floor: "0", apartment: "" },
+        { title: "Strada Mihai Eminescu 49", meta: "Cahul, Moldova", value: "Strada Mihai Eminescu 49, Cahul, Moldova", country: "Moldova", district: "Raionul Cahul", locality: "Cahul", street: "str. Mihai Eminescu", postalCode: "MD-3909", house: "49", block: "", stair: "", floor: "0", apartment: "" },
       ];
       let addresses = fallbackAddresses;
       try {
@@ -7941,14 +8301,25 @@
           return;
         }
 
-        renderSuggestions(
-          addresses.filter((item) => `${item.title} ${item.meta} ${item.value}`.toLocaleLowerCase("ro").includes(query)).slice(0, 5)
-        );
+        const matches = addresses.filter((item) => `${item.title} ${item.meta} ${item.value}`.toLocaleLowerCase("ro").includes(query)).slice(0, 5);
+        /* nothing saved matches: the list says so and offers the manual route (the cascade below) */
+        renderSuggestions(matches.length ? matches : [
+          { action: "manual", title: "Introdu manual", meta: `„${raw}” nu este printre adresele salvate`, icon: "icon-edit" },
+        ]);
       }
 
       function chooseAddress(index) {
         const item = visibleAddresses[index];
         if (!item) return;
+        if (item.action === "manual") {
+          hasSelectedAddress = true;
+          setOpen(false);
+          input.removeAttribute("aria-activedescendant");
+          input.value = "";
+          syncSearchValue();
+          searchRoot.foManualEntry?.();
+          return;
+        }
         if (item.action === "cadastral-search") {
           hasSelectedAddress = true;
           setOpen(false);

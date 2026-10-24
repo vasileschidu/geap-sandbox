@@ -3583,3 +3583,25 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   linked to the passport rules — a demo rule would be a second source of truth (reported as a gap). No sub-agent tool →
   component-audit (step 0 majors; picker × / footer = pre-existing, same on fo-04d), code-audit (standing meta 18 / Large
   11 / label 18 only, static 0), hover-audit 0 / 0 on step, picker, confirm.
+- 2026-10-24 · address-modes-v1 (FOD Address rebuilt as strips per configuration, US-32 + US-54: A simple · B optional code
+  collapsed · C code first · D errors / registry down · E foreign; 30 demo states adr-a1…e5). (1) **DATA LOSS I CAUSED AND
+  RECOVERED**: a patch script did `open(p, "w").write(apply(open(p).read()))` — Python opens (truncates) the file for writing
+  BEFORE evaluating the read → css/e-permits-acte-permisive.css became 0 bytes, with another agent's 88 uncommitted lines in
+  it. Recovered byte-exact from a headless Chrome HTTP cache (`/tmp/ui-qa-cdp-*/Default/Cache/Cache_Data/*`: grep the
+  newest entry for a known tail line, cut from the first `/*` to the trailing NUL, diff vs HEAD = only their block). Rule:
+  ALWAYS `src = read(); out = apply(src); write(out)` on separate lines; copy a file to the scratchpad before the first
+  patch of a shared file. (2) Mode = derived from the existing „Cod cadastral” toggles (`data-fo-address-mode`), no new
+  setting; the conditional code search was already true (no `foCadastral` in A → no code rows) — read the binder before
+  „implementing” a rule. (3) `bindAddressSearch` `partInputs` = the SEARCH field's parts (always empty for the cascade) —
+  its reset / fill are no-ops there; the cascade fill is `foCascadeAddressFill`. (4) The saved-address mock had street
+  names that are not classifier values („Bulevardul Dacia” vs „bd. Dacia”) → a picked address never filled Stradă; demo
+  data must use the classifier's exact values. (5) Step 3 now blocks „Înainte” without documents (another agent's
+  doc-upload work) → review states reach Verificare through the stepper row (`[data-fo-step='4'] .e-permits-fo-stepper__row`
+  clicked directly — hidden on phones); a hash change does not route the FO. adr-10 fixed the same way.
+  `applyFrontOfficeStep4DemoFill` filled Chișinău over a foreign address (it only checked the select) → it reads
+  `cascadeAddressValue`. (6) Crops for Figma: hide the sticky FO header / mobile progress / MSupport launcher
+  (`visibility:hidden`) or they paint over document-coordinate clips. capture.mjs on a busy machine hung with no output
+  for 10 min → own one-Chrome crop script (scratch adr/crop.mjs + probe.js: demo state, demo-links warnings, crop of the
+  address / summary / dialog). No sub-agent tool → code-audit (only standing cadastral-box / chevron / phone-prefix
+  findings, static 0), hover-audit 0 / 0 on 5 states, component-audit: in scope 0 non-library / 0 button-paint (majors =
+  the standing FO avatar menu).

@@ -1555,7 +1555,12 @@
       const code = (value, ms = 1900) => async (h) => { await typeCode(value)(h); await sendRow(h); await h.wait(ms); };
       const COD = "[data-fo-step-panel='2'] [data-fo-cascade-address] [data-fo-cadastral-input]";
       const SUBMIT = "[data-fo-step-panel='2'] [data-fo-cascade-address] [data-fo-cadastral-submit]";
-      const typeCod = (value) => async (h) => { await h.fill(COD, value, { leave: false }); };
+      /* mode B: „Cod cadastral” opens from „Adaugă codul cadastral” first (progressive disclosure) */
+      const openCode = async (h) => {
+        const toggle = document.querySelector("[data-fo-step-panel='2'] [data-fo-cascade-address] [data-fo-cadastral-toggle]");
+        if (toggle && !toggle.hidden) { toggle.click(); await h.wait(250); }
+      };
+      const typeCod = (value) => async (h) => { await openCode(h); await h.fill(COD, value, { leave: false }); };
       const cod = (value, ms = 1900) => async (h) => { await typeCod(value)(h); await h.click(SUBMIT); await h.wait(Math.max(0, ms - 450)); };
       return {
         "adr-01": bld(expand),
@@ -1626,11 +1631,124 @@
           await h.click("[data-fo-step-panel='2'] [data-fo-cascade-address] [data-fo-cadastral-clear]");
           await h.wait(300);
         }),
+        ...(() => {
+          /* address-modes-v1 — one linear strip per configuration (Figma „Address” page, table in
+             components.md › „Address — configurations”). A = Cod cadastral hidden · B = default (visible,
+             optional, collapsed) · C = Cod cadastral required (first) · D = errors · E = foreign address */
+          const A = { codcadastral: "ascuns" };
+          const C = { codcadastral: "obligatoriu" };
+          const IN = (sel) => `[data-fo-step-panel='2'] [data-fo-cascade-address] ${sel}`;
+          const row = async (h, text) => {
+            const option = await h.find(ACTION, text);
+            option.dispatchEvent(new MouseEvent("mousedown", { bubbles: true, cancelable: true }));
+            await h.wait(300);
+          };
+          const pick = async (h, which, value) => {
+            await h.click(IN(`[data-fo-cascade-${which}] .e-permits-fo-select__button`));
+            await h.click(IN(`[data-fo-cascade-${which}] .e-permits-fo-select__option[data-value="${value}"]`));
+          };
+          const country = async (h, name) => {
+            await h.click(IN("[data-fo-country-select] .e-permits-fo-select__button"));
+            await h.click(IN(`[data-fo-country-select] .e-permits-fo-select__option[data-value="${name}"]`));
+          };
+          const blur = async (h) => { document.activeElement?.blur?.(); await h.wait(150); };
+          /* the cascade by hand: Chișinău → Sector appears, postcode from the locality, house typed */
+          const manual = async (h) => {
+            await pick(h, "raion", "Municipiul Chișinău");
+            await pick(h, "localitate", "Chișinău");
+            await pick(h, "sector", "Centru");
+            await pick(h, "strada", "str. Armenească");
+            await h.fill(IN("[data-fo-address-part='house']"), "25");
+            await blur(h);
+          };
+          const next = async (h) => { await h.click("[data-fo-step-panel='2'] [data-fo-next]"); await h.wait(300); };
+          /* Verificare straight after „Înainte” on step 2, through the stepper (step 3 asks for its documents
+             first; the stepper is hidden on phones, so the click goes to the row directly) */
+          const review = async (h) => {
+            await next(h);
+            document.querySelector(".e-permits-fo-request [data-fo-step='4'] .e-permits-fo-stepper__row, [data-fo-step='4'] .e-permits-fo-stepper__row")?.click();
+            await h.wait(500);
+            await h.scroll(".e-permits-fo-summary-row", "Adresa");
+          };
+          const raionOrhei = async (h) => { await pick(h, "raion", "Raionul Orhei"); await h.wait(900); };
+          const italy = async (h) => {
+            await country(h, "Italia");
+            await h.fill(IN("[data-fo-address-free='district']"), "Lombardia");
+            await h.fill(IN("[data-fo-address-free='locality']"), "Milano");
+            await h.fill(IN("[data-fo-address-free='street']"), "Via Torino");
+            await h.fill(IN("[data-fo-address-part='postalCode']"), "20123");
+            await h.fill(IN("[data-fo-address-part='house']"), "12");
+            await blur(h);
+          };
+          return {
+            /* A · simple address: a1 empty (= adr-09) · a2 focus → saved addresses · a3 typed → matches ·
+               a4 one picked → every part filled, editable · a5 no match → „Introdu manual” row · a6 after
+               „Introdu manual”: the cascade by hand (Chișinău → Sector, postcode auto) · a7 Verificare */
+            "adr-a1": adr(A),
+            "adr-a2": adr(A, openList),
+            "adr-a3": adr(A, typeCode("Dacia")),
+            "adr-a4": adr(A, async (h) => { await typeCode("Dacia")(h); await row(h, "Bulevardul Dacia"); await blur(h); }),
+            "adr-a5": adr(A, typeCode("Strada Florilor 5")),
+            "adr-a6": adr(A, async (h) => { await typeCode("Strada Florilor 5")(h); await row(h, "Introdu manual"); await manual(h); }),
+            "adr-a7": adr(A, async (h) => { await manual(h); await review(h); }),
+            /* B · address + optional code: b1 collapsed („Adaugă codul cadastral”) · b2 opened (focus in
+               the empty code) · b3 code typed (submit on) · b4 sent → filled read-only + „Completează
+               manual” · b5 a code typed in „Caută adresa” (it takes codes in B / C) → the send row ·
+               b6 sent from that row → the code field opens with the code */
+            "adr-b1": adr(),
+            "adr-b2": adr({}, openCode),
+            "adr-b3": adr({}, typeCod("0100510.123")),
+            "adr-b4": adr({}, async (h) => { await cod("0100510.123")(h); await blur(h); }),
+            "adr-b5": adr({}, typeCode("0100510")),
+            "adr-b6": adr({}, async (h) => { await code("0100510.123")(h); await blur(h); }),
+            /* C · code first (required): c1 empty · c2 „Înainte” with nothing → code + Raion errors ·
+               c3 sent, SRRE pending (skeletons) · c4 filled read-only + the way out · c5 „Completează
+               manual” → values kept, editable · c6 SRRE has no address → AC-20, fields editable */
+            "adr-c1": adr(C),
+            "adr-c2": adr(C, next),
+            "adr-c3": adr({ ...C, srre: "asteptare" }, cod("0100510.123", 1200)),
+            "adr-c4": adr(C, async (h) => { await cod("0100510.123")(h); await blur(h); }),
+            "adr-c5": adr(C, async (h) => { await cod("0100510.123")(h); await h.click(IN("[data-fo-srre-manual]")); await blur(h); }),
+            "adr-c6": adr(C, cod("0100999.777")),
+            /* D · errors: d1 localities empty (AC-20) · d2 localities not loaded (AC-22) — both with
+               „Reîncearcă” + „Introdu manual” · d3 after „Introdu manual” (Oraș + Stradă free text) ·
+               d4 SRRE / MConnect down → the registry-down alert · d5 required code left empty (C, address
+               typed by hand) · d6 required parts empty (A: Raion, AC-04) */
+            "adr-d1": adr({ ...A, cuatm: "gol" }, raionOrhei),
+            "adr-d2": adr({ ...A, cuatm: "eroare" }, raionOrhei),
+            "adr-d3": adr({ ...A, cuatm: "eroare" }, async (h) => {
+              await raionOrhei(h);
+              await h.click(IN("[data-fo-classifier-manual]"));
+              await h.fill(IN("[data-fo-address-free='locality']"), "Peresecina");
+              await h.fill(IN("[data-fo-address-free='street']"), "str. Mihai Viteazul");
+              await h.fill(IN("[data-fo-address-part='house']"), "14");
+              await blur(h);
+            }),
+            "adr-d4": adr({ srre: "indisponibil" }, async (h) => { await cod("0100510.123")(h); await blur(h); }),
+            "adr-d5": adr(C, async (h) => { await manual(h); await next(h); }),
+            "adr-d6": adr(A, next),
+            /* E · foreign address (AC-17): e1 the Țara list · e2 another country → Raion / Oraș / Stradă
+               free text, no sector, free postcode · e3 typed · e4 a change of country with data → the
+               confirm (AC-14) · e5 Verificare */
+            "adr-e1": adr(A, async (h) => { await h.click(IN("[data-fo-country-select] .e-permits-fo-select__button")); }),
+            "adr-e2": adr(A, async (h) => { await country(h, "Italia"); await blur(h); }),
+            "adr-e3": adr(A, italy),
+            "adr-e4": adr(A, async (h) => {
+              await typeCode("Dacia")(h);
+              await row(h, "Bulevardul Dacia");
+              await country(h, "România");
+              await h.find("[data-fo-grid-confirm]:not([hidden])");
+            }),
+            "adr-e5": adr(A, async (h) => { await italy(h); await review(h); }),
+          };
+        })(),
         /* AC-18: Verificare și semnare shows the code with the address */
         "adr-10": adr({}, async (h) => {
           await code("0100510.123")(h);
           await h.click("[data-fo-step-panel='2'] [data-fo-next]");
-          await h.click("[data-fo-step-panel='3'] [data-fo-next]");
+          /* step 3 asks for its documents first: Verificare through the stepper row (hidden on phones) */
+          document.querySelector("[data-fo-step='4'] .e-permits-fo-stepper__row")?.click();
+          await h.wait(500);
           await h.scroll(".e-permits-fo-summary-row", "Cod cadastral");
         })
       };

@@ -328,6 +328,7 @@ but this doc previously described it wrongly, see the entry.
 | Sort control — desktop menu + phone sort sheet (2026-10-20) | `js/sort-sheet.js` (`GEAPSortSheet.menuHtml({ id, keys, orders, current, keyAttr, orderAttr })` / `.bind(trigger, { title, sprite, keys, orders(key), current(), apply })`) + `css/sort-sheet.css`. Desktop: the page's `ul.e-permits-fo-intent-menu.e-permits-stack__menu.e-permits-sort-menu` — `li.e-permits-sort-menu__label` (12/16 medium secondary) · `ul.e-permits-sort-menu__group` of `button.e-permits-fo-intent-menu__item.e-permits-sort-menu__item[role=menuitemradio][aria-checked]` (the ONE radio, decorative Small `span.radio.radio--small > span.radio-custom` leading, selected through `aria-checked`) · `li.e-permits-sort-menu__separator`. Phones (≤760): `GEAPSheet` `.e-permits-filter-sheet.e-permits-sort-sheet` — `h3.e-permits-sort-sheet__label` (14/20 medium secondary) + library `.radio-group.e-permits-sort-sheet__keys[role=radiogroup]` of `label.radio.radio--medium.e-permits-sort-sheet__key` (48 rows, the ONE radio Medium: 24, label 16/24 500) · label + a second library `.radio-group.e-permits-sort-sheet__keys.e-permits-sort-sheet__order[role=radiogroup]` of the same rows (order, labels follow the key; v2 — the segmented control of v1 was removed, user 2026-10-20) · footer `btn btn-primary btn-lg e-permits-filter-sheet__apply` „Aplică” | section „Sort sheet on phones”; Cabinet „Solicitările mele” (sm-01f, sm-01t, sm-01m) and „Actele mele permisive” (acts-sort-v1: pp-01s1, pp-01s2) | app |
 | Cookie Banner | `.cookie-banner` (**shell only**) | `cookie-banner.html` | library (partial) |
 | Date Picker | `.date-picker`, `.date-picker-panel`, `__weekday/__day` | `input-date-picker.html` | library |
+| Address — configurations A / B / C + errors + foreign (address-modes-v1, 2026-10-24; US-32 + US-54; one renderer, the mode follows the Form Designer „Cod cadastral” toggles) | `[data-fo-cascade-address][data-fo-address-mode="a|b|c"]`; B: `button.btn.btn-secondary.btn-md.e-permits-fo-cascade-address__code-toggle[data-fo-cadastral-toggle]` „Adaugă codul cadastral” (+ `icon-plus-small`, `aria-expanded` / `aria-controls`) under the search hint, code field `[data-fo-cadastral-collapsed][hidden]` until opened; C: the code first in `.e-permits-fo-address-details--smart.e-permits-fo-cascade-address__lead`; Țara = enabled FO select `[data-fo-country-select]` (flag `[data-fo-country-flag]`, `ADDRESS_COUNTRIES`); free text instead of a classifier select = `.e-permits-fo-input[data-fo-free-box]` › `input[data-fo-address-free="district|locality|street"]` (foreign, „Introdu manual”); classifier message `.e-permits-fo-cascade-address__status[data-fo-classifier-message]` (inline message + `.e-permits-fo-cascade-address__actions` with two `btn btn-strict btn-sm` „Reîncearcă” / „Introdu manual”); SRRE fill way out = `__actions[data-fo-srre-manual-row]` „Completează manual”; registry down = `renderNotice("warning", …)` `.e-permits-fo-cascade-address__down[data-fo-srre-down]` above the first lookup; required errors `p.message--inline.e-permits-fo-field__error[data-fo-address-error]` + `is-error` on the shown control; search list „Introdu manual” row (`action: "manual"`) | `cascadeAddressHtml` / `initCascadeAddress` (`root.foAddress.validate`, `cascadeAddressValue`) / `initCadastralLookup`; demo `adr-a1…a7`, `adr-b1…b6`, `adr-c1…c6`, `adr-d1…d6`, `adr-e1…e5`; section „Address — configurations” | app |
 | Address by cadastral code (FO „Caută adresa sau cod cadastral” + editable „Cod cadastral” + SRRE fill, read-only parts) | cascade address: product search input (`.search-input` + `.e-permits-fo-cascade-address__search`, × clear) + „Cod cadastral” = library search input with submit (`.search-input.e-permits-fo-cadastral-search` + `.btn-group`: spinner / `.btn-icon.clear` / `.btn.btn-primary.btn-search`; `.loading` while SRRE answers) + the search list's action row „Caută codul cadastral «…»” + one message slot per field `[data-fo-cadastral-search-hint]` / `[data-fo-cadastral-code-hint]` (hint → `message--inline e-permits-fo-field__error` + `__success` / `__warning` / `__loading`) + SRRE skeleton (`.is-srre-loading` + `.e-permits-fo-skeleton--input`) + fill highlight `.is-srre-new` | `cascadeAddressHtml` / `initCadastralLookup` / `foAddressDemo` (e-permits-acte-permisive.js), demo `adr-*` | app |
 | Guest requestor „Date solicitant” (no MPass; Figma FOD-Components-flow 633:7411, G1–G8) | `section[data-fo-screen="guest"]` > `form[data-fo-guest-form]`: MPass upsell `.e-permits-fo-guest__upsell` · „Soliciți în numele” `[data-fo-guest-type-section]` (animated segmented control) · `[data-fo-guest-company]` (IDNO → registry name) · `[data-fo-guest-person]` · „Pentru cine” radio option rows · `[data-fo-guest-represented]` (G4) / `[data-fo-guest-mandate]` (G5) with a boxed doc field · consent · „Înainte” never disabled; leave modal `[data-fo-guest-leave-modal]` | `showFrontOfficeGuest` / `setGuestType` / `validateGuest` / `enterGuestWizard` (`frontOfficeGuest`) / `guestSchemaVariant`, demo `fo-g*` | app |
 | Radio option row (hover + focus on the whole row) | `label.e-permits-fo-radio.e-permits-fo-radio--option` (row fills its grid column, padding 12/16; `::before` grey layer radius 12, opacity 0 → 1 + scale .97 → 1, 180ms decelerate; keyboard ring on the row) | „Pentru cine” (guest), `contactPersonHtml` (Persoana de contact) | app |
@@ -3868,6 +3869,92 @@ screen should open as a bottom sheet (iOS / Android native pickers, Material „
 post-process action sheet). `renderFoSelectControl`, the cascade address and the CAEM combobox share the list code
 (`positionFloatingSelectList`, keyboard handling, `data-fo-float`) — a sheet mode is a separate change.
 
+### Address — configurations A / B / C, errors, foreign address (address-modes-v1, 2026-10-24)
+
+US-32 (88572) + US-54 (89469). The rebuild of the FOD Address pattern: ONE renderer (`cascadeAddressHtml`),
+the configuration is derived from the Form Designer „Cod cadastral” toggles (no new setting), each
+configuration has its own linear strip of demo states (the Figma „Address” page is built from the table
+below). Decisions (user, 2026-10-24): strips per mode; the cadastral search in „Caută adresa” is
+**conditional** — only when „Cod cadastral” is on (B / C); foreign address included (Țara is no longer
+locked to Moldova).
+
+| Mode | „Cod cadastral” | „Caută adresa” | What the applicant sees |
+|---|---|---|---|
+| **A · Adresă simplă** | Vizibil off | addresses only — no code hint, no code rows, label „Caută adresa” + the US-32 hint | search + the cascade (Țara → Raion → Oraș → Sector (Chișinău) → Stradă, postcode from the locality) |
+| **B · Adresă + cod cadastral opțional** (service 09 default) | Vizibil on, Obligatoriu off | addresses + codes („Caută adresa sau cod cadastral”, the „Caută codul cadastral «…»” row) | the code collapsed: `btn btn-secondary btn-md` „Adaugă codul cadastral” under the search hint (hugs its label); it opens on click (focus in the code) or as soon as a code arrives from the search |
+| **C · Cod cadastral întâi** | Vizibil on, Obligatoriu on | addresses + codes | «Cod cadastral *» first (own grid row above the search, span-6 / full on phones); empty on „Înainte” → „Introduceți codul cadastral.” |
+| **E · Adresă din străinătate** | any (the code steps aside) | addresses | Țara ≠ Moldova → Raion / Oraș / Stradă free text, no sector, free postcode (placeholder „Codul poștal”) |
+
+**Behaviour**
+- **Țara** (AC-14 / AC-17): an enabled FO select (10 demo countries, flag in the button). Another
+  country with address data on screen asks first — the FO confirm dialog (`GEAPFoRepeat.confirm`, red
+  primary = it empties data): „Schimbi țara?” / „Raionul, localitatea, strada și celelalte câmpuri ale
+  adresei se golesc.” / „Schimbă țara”; the old country stays shown until the answer. A saved address
+  or an SRRE fill brings the country back to Moldova (no question: the person chose it).
+- **Free text** replaces a classifier select in place: `.e-permits-fo-input[data-fo-free-box]` after the
+  hidden select, the label's `for` points at it; placeholders „Introduceți raionul sau regiunea” /
+  „orașul sau localitatea” / „strada”. Read values through `cascadeAddressValue(root, key)` (select,
+  free text or text part) — Verificare does, and names a foreign country.
+- **Postcode** (AC-13): filled from the locality (mock = `srre-cadastral.json` › `postalCodes`), editable.
+- **„Introdu manual” in the search list**: typed text that matches no saved address → one action row
+  (`icon-edit`) „Introdu manual” / „„…” nu este printre adresele salvate”; choosing it empties the
+  search and puts the focus on Raion (or its free text). The cascade IS the manual route.
+- **Classifier states** (AC-20 / AC-22, demo `?cuatm=gol|eroare`): Raion chosen → the Oraș field shows
+  the FO input skeleton (600 ms), then `.e-permits-fo-cascade-address__status`: inline message
+  (gol = warning „Nu sunt valori disponibile.”, eroare = error „Nu s-au putut încărca datele.”,
+  `role=alert`) + `.e-permits-fo-cascade-address__actions` with `btn btn-strict btn-sm` „Reîncearcă”
+  (`icon-rotate-arrow`; the retry answers → the list, focus on Oraș) and „Introdu manual” (`icon-edit`;
+  Oraș + Stradă become free text, postcode free, focus in Oraș).
+- **Registry down** (`?srre=indisponibil`) = the Ghișeu registry-down alert: after a lookup that gets no
+  answer, ONE `renderNotice("warning", …)` above the first lookup („**Registrul de Stat al Bunurilor
+  Imobile nu răspunde acum.** Completați adresa manual. Adresa introdusă manual se verifică la
+  examinare.”), no message under the field, fields editable; it goes with a fill or an emptied code.
+  A parcel without an address (`unavailable` in the mock) keeps the AC-20 field message.
+- **Way out of an SRRE fill** (B / C): `btn btn-strict btn-sm` „Completează manual” under the success
+  message — the values stay, the parts become editable, the code stays (PO question: US-54 constraint
+  „Câmpurile completate din SRRE nu se corectează în formular”).
+- **Required** („Înainte” on Detalii solicitare, main flow only — post-processes keep their own check):
+  every visible part with the star (`data-fo-address-required`; Țara + Raion by default, AC-04) left
+  empty → `p.message--inline.e-permits-fo-field__error` „Selectați raionul/municipiul.” (select) /
+  „Introduceți …” (text) + `is-error` on the shown control + `aria-invalid` / `aria-describedby`; a
+  required code → its slot „Introduceți codul cadastral.” (+ `.search-input.is-error`). Scroll + focus
+  to the first; the error goes when that field changes.
+
+**Demo states → strips** (`?codcadastral=ascuns` = A, default = B, `obligatoriu` = C; desktop 1440 + phone 375)
+
+| Strip | State | Shows |
+|---|---|---|
+| A | `adr-a1` (= `adr-09`) | empty, simple address |
+| A | `adr-a2` | focus → saved addresses |
+| A | `adr-a3` | „Dacia” typed → matches |
+| A | `adr-a4` | address picked → every part filled, editable |
+| A | `adr-a5` | no match → „Introdu manual” row |
+| A | `adr-a6` | after „Introdu manual”: cascade by hand (Chișinău → Sector, postcode auto) |
+| A | `adr-a7` | Verificare — address row, no code row |
+| B | `adr-b1` | code collapsed („Adaugă codul cadastral”) |
+| B | `adr-b2` | code opened, empty, focused |
+| B | `adr-b3` | code typed, submit on |
+| B | `adr-b4` | sent → filled from SRRE, read-only + „Completează manual” |
+| B | `adr-b5` | code typed in „Caută adresa” → „Caută codul cadastral «…»” row |
+| B | `adr-b6` | sent from that row → the code field opens with the code, filled |
+| C | `adr-c1` | code first, required, empty |
+| C | `adr-c2` | „Înainte” with nothing → code + Raion errors |
+| C | `adr-c3` | sent, SRRE pending (spinner + skeletons) |
+| C | `adr-c4` | filled read-only + the way out |
+| C | `adr-c5` | „Completează manual” → values kept, editable |
+| C | `adr-c6` | SRRE has no address → AC-20, fields editable |
+| D | `adr-d1` | localities empty + „Reîncearcă” / „Introdu manual” |
+| D | `adr-d2` | localities not loaded + „Reîncearcă” / „Introdu manual” |
+| D | `adr-d3` | after „Introdu manual”: Oraș + Stradă free text |
+| D | `adr-d4` | SRRE / MConnect down → registry-down alert |
+| D | `adr-d5` | required code left empty (address typed by hand) |
+| D | `adr-d6` | required parts empty (Raion) |
+| E | `adr-e1` | Țara list open |
+| E | `adr-e2` | Italia → free-text parts, empty |
+| E | `adr-e3` | foreign address typed |
+| E | `adr-e4` | change of country with data → confirm |
+| E | `adr-e5` | Verificare — foreign address |
+
 ### Address by cadastral code — US-54 (2026-10-13, refined 2026-10-13)
 
 Extends the FO cascade address (`cascadeAddressHtml`, service 09 step 2 „Detalii solicitare”)
@@ -3883,6 +3970,8 @@ butonului de căutare (sau Enter) solicită adresa din SRRE ca în «Caută adre
 afișează același cod.” (AC-11/12/19/20/21
 then read „sub câmpul în care a fost introdus codul”, not only „sub «Caută adresa»”.)
 
+- **Placement (address-modes-v1)**: optional = collapsed behind „Adaugă codul cadastral” (mode B),
+  required = first, above the search (mode C) — § „Address — configurations”.
 - **Label**: with „Cod cadastral” visible the search label + placeholder = „Caută adresa sau cod
   cadastral”; hidden (AC-04) = „Caută adresa” (+ the US-32 hint). The builder preview keeps the
   component label (`field.searchLabel`).

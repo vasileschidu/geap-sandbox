@@ -13984,6 +13984,37 @@ a.e-permits-fo-lib-item__title:is(:hover, :focus) {
   display: none;
 }
 
+/* address configurations (address-modes-v1). B: „Adaugă codul cadastral” = the library secondary
+   Medium button under the search hint, hugging its label (the field column would stretch it) */
+.e-permits-fo-cascade-address__code-toggle {
+  align-self: flex-start;
+}
+
+/* C: „Cod cadastral” first, in its own row of the address grid (same columns: span-6 on desktop) */
+.e-permits-fo-cascade-address__lead {
+  margin-bottom: var(--spacing-24, 24px);
+  margin-top: 0;
+}
+
+/* SRRE / MConnect down = the Ghișeu registry-down alert: one warning notice above the first lookup */
+.e-permits-fo-cascade-address__down {
+  margin-bottom: var(--spacing-24, 24px);
+}
+
+/* a field's status line + its recovery actions (classifier „Reîncearcă” / „Introdu manual”; SRRE fill
+   „Completează manual”): library Small text buttons in one row under the message, 8 apart */
+.e-permits-fo-cascade-address__status {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-8, 8px);
+}
+
+.e-permits-fo-cascade-address__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-8, 8px);
+}
+
 /* US-54 „Caută adresa” = the product search input (.search-input …, one renderer:
    addressSearchInputHtml). Inside an FO field its frame follows the FO input exactly — a 1px
    border ON the box (the library draws a 2px transparent border + an inset line, which reads
