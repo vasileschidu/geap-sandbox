@@ -4212,7 +4212,7 @@ For any „research how other products do it” step, search Mobbin (mcp__mobbin
   Sections (title H3 + one-line Body/Small secondary description, bound colours), 110 mains already there + 89 moved from board pages
   (Address 6 sets, Start here Status, Dossiers holder 15, User Management Profile/Modal holder 13, Full Flows 09 top-level 13, Patterns 4,
   Requestor 4 phone/email, Process Designer 6, Form Builder 3 + its old „Local Components” section, Incidents „Local Components” section,
-  Services .step-desktop, Workplace sidebar-list-item, Post-processes Permit card, MSupport button copy). 108 missing descriptions written.
+  Services .step-desktop, Workplace sidebar-list-item, Post-processes Permit card, MSupport button copy). Every main now has a one-line English description (about 80 were missing).
   Lessons:
   - **Moving a main between pages is just `section.appendChild(main)`** (no page switch needed); every instance stays linked (sampled
     .street / Status / Trajectory). Delete the emptied holder frames afterwards; check they hold only TEXT first.
