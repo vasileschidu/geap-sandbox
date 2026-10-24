@@ -8828,6 +8828,10 @@ source object in code), US-273 (tab „Jurnalul evenimentelor”), US-277 (redac
   no button + divider) or `{ reason }` (aria-disabled + tooltip reason: acts never export without a search / filter,
   US-196 AC-06); `fixedWidths: true` on the db (column widths from the definition); `GEAPShellApi.dossierStore()`
   (Registru Dosare = the BO dossier seed, „Deschide dosarul” → `#dosar/<id>`).
+- **Menu icon (registre-icon-books-v1, 2026-10-24)**: „Toate registrele” (BO group „Registre”) and the Administrare
+  „Registre” item = central „books, library” (filled=off, stroke 1.5, r2, round; library file ajbwyR8tKjEhWRYJ6r7uCS set
+  9017:24806) — `assets/icons/books.svg` as the 20 px nav mask (css/registre.css) + sprite `icon-books` (20 viewBox,
+  currentColor) for any other use. Each register keeps its object icon (document / permission / receipt-bill / stamp).
 - **Catalog „Toate registrele”** (`#registre`) = a module page (`[data-shell-module-page]`, title in the top bar)
   holding ONE stacked list „Registrele tale”: lead = library Avatar · icon md (`.avatar.avatar--md.avatar--icon` +
   `.e-permits-reg-catalog__icon`), title, meta „category · N înregistrări · Perimetru: …”, meta2 = description;

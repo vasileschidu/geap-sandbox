@@ -3405,3 +3405,15 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   desktop sizes. Proof = real scrollLeft at start / middle / end × 375 / 768 / 1280 (label 12 from the wrap's left,
   elementFromPoint at both label ends hits the label, i.e. never under the pinned column) + 320 for the ellipsis + a real
   mouse hover → full-text tooltip. Scratch kit mc/grp.mjs + grp.js.
+- 2026-10-24 · registre-icon-books-v1 (user picked the library icon „books, library” 20×20 for „Registre”). (1) The name was
+  NOT in Foundations (Iconography 106:640 has only 24/book, 24/bookmark): „a, b” names are the CENTRAL icon pack — its
+  file is `ajbwyR8tKjEhWRYJ6r7uCS` (found via REST `GET /v1/component_sets/<known central key>` → file_key), then
+  `GET /v1/files/ajbw…/component_sets` + grep name → set 9017:24806, export the variant node as SVG with `/v1/images`.
+  (2) Variant = filled=off · stroke 1.5 · r2 · round (house convention, like icon-export); coordinates scaled 24 → 20 in
+  python with the stroke kept 1.5 (a 24 viewBox drawn at 20 thins the stroke to 1.25). (3) The BO side menu does NOT use
+  the sprite: nav icons are 20 px CSS masks per `data-nav-id` / `data-nav-object` (css/registre.css for the Registre
+  items) → the glyph needs a standalone `assets/icons/books.svg` too; the sprite `icon-books` is for other uses. A new
+  file name needs no ?v on the url — bump the CSS key in the page (`registre.css?v=`). The sprite itself is not
+  cache-keyed except the `?v=draft-icons-v1` uses. (4) Probe (scratch books/probe.mjs): computed mask url, icon colour =
+  label colour on the active item (brand), real-mouse hover → F1F1F1; inactive nav icons are icon-base-default 121212
+  vs text 383838 — the shell's standing rule for every item, not this change. hover-audit nav 0 / 0, capture clean.

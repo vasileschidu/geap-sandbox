@@ -7,9 +7,9 @@
 
 /* menu icons of the „Registre” group (the shell draws nav icons as 20px masks per data-nav-id) */
 .e-permits-shell__nav--specialist [data-nav-id="registre"] .e-permits-shell__nav-icon::before {
-  mask-image: url("../assets/icons/dot-grid.svg");
+  mask-image: url("../assets/icons/books.svg");
   mask-size: 20px 20px;
-  -webkit-mask-image: url("../assets/icons/dot-grid.svg");
+  -webkit-mask-image: url("../assets/icons/books.svg");
   -webkit-mask-size: 20px 20px;
 }
 
@@ -143,9 +143,9 @@
 
 /* menu icons: the AdminPortal „Registre” item + every register by its source object (the menu follows the catalog) */
 .e-permits-shell__nav--specialist [data-nav-id="registre-config"] .e-permits-shell__nav-icon::before {
-  mask-image: url("../assets/icons/book.svg");
+  mask-image: url("../assets/icons/books.svg");
   mask-size: 20px 20px;
-  -webkit-mask-image: url("../assets/icons/book.svg");
+  -webkit-mask-image: url("../assets/icons/books.svg");
   -webkit-mask-size: 20px 20px;
 }
 
