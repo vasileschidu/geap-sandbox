@@ -11,7 +11,7 @@
   <link rel="stylesheet" href="css/button-icons.css?v=button-label-v1">
   <link rel="stylesheet" href="css/radio.css?v=radio-v1">
   <link rel="stylesheet" href="css/skeleton.css?v=skeleton-v1">
-  <link rel="stylesheet" href="css/e-permits-shell.css?v=sticky-col-shadow-v3">
+  <link rel="stylesheet" href="css/e-permits-shell.css?v=users-new-flow-v1">
   <link rel="stylesheet" href="css/table-pin-shadow.css?v=sticky-col-shadow-v3">
   <link rel="stylesheet" href="css/facet-filter.css?v=cards-radius-20-final">
   <link rel="stylesheet" href="css/drawer.css?v=phone-title-20-v1">
@@ -43,7 +43,7 @@
   <script src="js/empty-state.js?v=empty-v3"></script>
   <script src="js/trajectory.js?v=trajectory-phone-even-v1"></script>
   <script src="js/event-timeline.js?v=istoric-jurnal-v1"></script>
-  <script src="js/demo-states.js?v=registre-v2"></script>
+  <script src="js/demo-states.js?v=users-new-flow-v1"></script>
   <script src="js/demo-links.js?v=links-v4"></script>
   <!-- ?flow=ekyc: the eKYC back office on this shell (js/ekyc.js → window.GEAPShellProduct) -->
   <script src="js/ekyc.js?v=audit-fix-v5"></script>
@@ -2707,8 +2707,8 @@
                         </li>
                       </ul>
                     </div>
-                    <button class="e-permits-workplace__add-user" type="button" data-workplace-add-user hidden>
-                      <img src="assets/icons/add-user.svg" alt="" aria-hidden="true">
+                    <button class="btn btn-primary btn-sm e-permits-workplace__primary-action" type="button" data-workplace-add-user hidden>
+                      <svg class="icon" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-person-add"></use></svg>
                       <span>Adaugă utilizator</span>
                     </button>
                   </div>
@@ -2874,7 +2874,7 @@
       <footer class="drawer__footer">
         <div class="modal-buttons">
           <button class="btn btn-neutral btn-rounded" type="button" data-user-create-close>Anulează</button>
-          <button class="btn btn-primary btn-rounded" type="button" data-user-create-submit disabled>Crează utilizator nou</button>
+          <button class="btn btn-primary btn-rounded" type="button" data-user-create-submit disabled>Creează utilizator nou</button>
         </div>
       </footer>
     </aside>
@@ -3534,7 +3534,7 @@
   <script src="core/permissions.js?v=clas-v1"></script>
   <script src="core/case-flow.js?v=fees-v4"></script>
   <script src="js/facet-filter.js?v=sort-chip-icon-v1"></script>
-  <script src="js/e-permits-shell.js?v=registre-v2"></script>
+  <script src="js/e-permits-shell.js?v=users-new-flow-v1"></script>
 
   <!-- Instance switch warning modal -->
   <div class="e-permits-fo-instance-switch-modal" data-fo-instance-switch-modal hidden aria-modal="true" role="dialog" aria-labelledby="fo-instance-switch-title" aria-describedby="fo-instance-switch-description">

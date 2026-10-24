@@ -2963,49 +2963,8 @@ td .e-permits-workplace__date-stack > .e-permits-workplace__date-meta:not(:has(.
   white-space: nowrap;
 }
 
-/* Shared registry cell variants: users reuse the dossier table shell and states. */
-.e-permits-workplace__add-user {
-  box-sizing: border-box;
-  width: 154px;
-  min-width: 154px;
-  height: 32px;
-  padding: 0 var(--spacing-12, 12px) 0 var(--spacing-8, 8px);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--spacing-6, 6px);
-  border: 0;
-  border-radius: var(--border-radius-6, 6px);
-  background: var(--color-background-brand-default, #0058d2);
-  color: var(--color-background-base-inverse-on-color, #fff);
-  font-family: var(--font-family-primary-font, Onest);
-  font-size: var(--font-size-fs-14, 14px);
-  font-weight: var(--font-weight-fw-medium, 500);
-  line-height: var(--line-height-lh-20, 20px);
-  white-space: nowrap;
-  cursor: pointer;
-  transition: background-color 120ms ease, box-shadow 120ms ease;
-}
-
-.e-permits-workplace__add-user[hidden] {
-  display: none;
-}
-
-.e-permits-workplace__add-user img {
-  width: 16px;
-  height: 16px;
-  flex: 0 0 16px;
-}
-
-.e-permits-workplace__add-user:hover {
-  background: var(--color-background-brand-hover, #0047aa);
-}
-
-.e-permits-workplace__add-user:focus-visible {
-  outline: 0;
-  box-shadow: 0 0 0 4px var(--blue-sky-200, #ccdef6);
-}
-
+/* Shared registry cell variants: users reuse the dossier table shell and states.
+   („Adaugă utilizator” is the library btn-primary btn-sm + .e-permits-workplace__primary-action since users-new-flow-v1.) */
 .e-permits-workplace__user-identity {
   min-width: 0;
   display: flex;

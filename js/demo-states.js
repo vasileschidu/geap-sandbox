@@ -152,6 +152,26 @@
     const select = sub.tagName === "SELECT" ? sub : sub.querySelector("select");
     await h.choose('[data-combo-field="subdivision"]', [...select.options].map((o) => o.value).filter(Boolean)[1]);
   };
+  /* 2026-10-24 (users-new-flow-v1) · Utilizatori › „Adaugă utilizator” drawer, step by step (Figma User Management
+     board, „new user” column). The drawer re-renders on every step, so each helper waits for its own element. */
+  const usrNew = (run) => ({ flow: "back-office", as: ADMIN, hash: "#users", ready: "[data-workplace-add-user]:not([hidden])", run });
+  const UC = "[data-user-create]";
+  const ucOpen = async (h) => { await h.click("[data-workplace-add-user]"); await h.find(`${UC} #user-create-idnp`); };
+  const ucLookup = async (h, idnp) => { await h.fill(`${UC} #user-create-idnp`, idnp, { leave: false }); await h.click(`${UC} [data-user-lookup]`); };
+  const ucFound = async (h) => { await ucOpen(h); await ucLookup(h, "2005003318852"); await h.find(`${UC} #user-create-functie`); };
+  const ucCombo = async (h) => { await ucFound(h); await h.click(`${UC} [data-user-combination-open]`); await h.find(`${UC} #user-combo-role`); };
+  const ucComboFilled = async (h) => {
+    await ucCombo(h);
+    await h.choose(`${UC} select[name="roleId"]`, "specialist");
+    await h.choose(`${UC} select[name="authorityId"]`, "ansp");
+    await h.choose(`${UC} select[name="subdivisionId"]`, "ansp-central");
+  };
+  const ucReady = async (h) => {
+    await ucComboFilled(h);
+    await h.click(`${UC} [data-user-combination-confirm]`);
+    await h.fill(`${UC} #user-create-functie`, "Specialist principal", { leave: false });
+  };
+  const ucBlur = () => { document.activeElement?.blur?.(); };
   const twoWithdrawn = async (h) => { await h.nth("[data-perm-switch]", 0); await h.wait(300); await h.nth("[data-perm-switch]", 5); await h.wait(300); };
   const avizare = async (h) => {
     await h.click('[data-perm-group="avizare"]');
@@ -495,6 +515,29 @@
       await h.scroll("[data-user-create] .e-permits-user-create__combo-card");
       document.activeElement?.blur?.();
     } },
+    /* 2026-10-24 (users-new-flow-v1) · the „new user” column of the Figma User Management board:
+       U01 registry → U02 empty drawer → lookup errors (a: 9 digits, b: not in RSSP, c: already a user) → d: person
+       found → e: add-combination form → f: role + authority + subdivision → h: „Creează utilizator nou” enabled →
+       i: back on the registry, the new user first + the success toast. (U02g = usr-u03x, the combination card.) */
+    "usr-u01": usrNew(),
+    "usr-u02": usrNew(async (h) => { await ucOpen(h); ucBlur(); }),
+    "usr-u02a": usrNew(async (h) => { await ucOpen(h); await ucLookup(h, "200500331"); await h.find(`${UC} .e-permits-user-create__error`); ucBlur(); }),
+    "usr-u02b": usrNew(async (h) => { await ucOpen(h); await ucLookup(h, "2009999999999"); await h.find(`${UC} .e-permits-user-create__error`); ucBlur(); }),
+    "usr-u02c": usrNew(async (h) => {
+      await ucReady(h);
+      await h.click(`${UC} [data-user-create-submit]`);
+      await h.wait(400);
+      await clearToasts(h);
+      await ucOpen(h);
+      await ucLookup(h, "2005003318852");
+      await h.find(`${UC} .e-permits-user-create__error`);
+      ucBlur();
+    }),
+    "usr-u02d": usrNew(async (h) => { await ucFound(h); ucBlur(); }),
+    "usr-u02e": usrNew(async (h) => { await ucCombo(h); ucBlur(); }),
+    "usr-u02f": usrNew(async (h) => { await ucComboFilled(h); ucBlur(); }),
+    "usr-u02h": usrNew(async (h) => { await ucReady(h); ucBlur(); }),
+    "usr-u02i": usrNew(async (h) => { await ucReady(h); await h.click(`${UC} [data-user-create-submit]`); await h.wait(400); }),
     "usr-u04c": usr("roles", comboFilled),
     "usr-u04e": usr("roles", async (h) => { await rowMenu0(h); await h.click("[data-combo-remove]"); }),
     "usr-u04f": usr("roles", async (h) => { await comboFilled(h); await h.click("[data-user-combo-save]"); }),

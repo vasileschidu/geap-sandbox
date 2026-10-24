@@ -507,6 +507,23 @@ document.addEventListener("DOMContentLoaded", () => {
     select.dispatchEvent(new Event("change", { bubbles: true }));
   };
 
+  /* users-new-flow-v1 · a value set from a script (demo links, the Figma capture steps) changes the hidden native
+     select without passing through the list → the box kept „Selectează …” while the control held a value (the new-user
+     drawer's Subdiviziune looked unchosen). Capture phase: the box shows the chosen option before any handler re-renders. */
+  document.addEventListener("change", (event) => {
+    const select = event.target;
+    const root = select instanceof HTMLSelectElement ? select.closest("[data-fo-native-select]") : null;
+    const value = root?.querySelector(".e-permits-fo-select__value");
+    const option = select.selectedOptions?.[0];
+
+    if (!value || !option) {
+      return;
+    }
+
+    value.textContent = option.textContent.trim();
+    value.classList.toggle("e-permits-fo-select__value--placeholder", option.value === "");
+  }, true);
+
   document.addEventListener("click", (event) => {
     const button = event.target.closest("[data-fo-native-select] .e-permits-fo-select__button");
 

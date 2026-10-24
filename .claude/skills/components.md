@@ -1339,7 +1339,7 @@ earlier removal from this document was correct.
 | field wrapper | `.e-permits-fo-field` > `<label for>` (+ `.e-permits-fo-required` marker via `requiredMark()`) > control > `.e-permits-fo-field__hint` or library `message--inline message--error` |
 | text | `.e-permits-fo-input` > `<input>` (+ trailing `.icon`); read-only = `is-filled is-readonly`; error = `is-error` |
 | textarea | `.e-permits-fo-textarea` > `<textarea>` — Figma text-area (Components 14701:8123): padding 8/12, radius 8, 14/20, `resize: vertical` with the grip bottom-right; a trailing `.icon` adds 36px right padding and turns resize off |
-| select | `.e-permits-fo-select` via `renderFoSelectControl()` in `e-permits-shell.js` — a hidden native `<select>` keeps the value and fires `change`; the open list floats (fixed, in `<body>`) so modals/drawers never clip it; ↑↓ Enter Esc |
+| select | `.e-permits-fo-select` via `renderFoSelectControl()` in `e-permits-shell.js` — a hidden native `<select>` keeps the value and fires `change`; the open list floats (fixed, in `<body>`) so modals/drawers never clip it; ↑↓ Enter Esc. A value set from a script (`select.value = …` + a bubbling `change`: demo `h.choose`, Figma capture steps) also updates the box text / placeholder look — one capture-phase `change` listener next to `chooseFoSelectOption` (users-new-flow-v1) |
 
 Deleted forks — never bring back: `e-permits-user-create__input/-shell/select/-shell/textarea/label/required`,
 `e-permits-user-profile__control/select-shell/textarea/combo-select`, `e-permits-passport__hint`.
@@ -6125,10 +6125,14 @@ destructive }, onConfirm)`, which uses the shared `#service-confirm-modal`.
 
 ### Workplace toolbar primary action (added 2026-10-01)
 
-"Adaugă tarif" and "Sincronizare serviciu" in the workplace toolbar use the library
-`btn btn-primary btn-sm` with `e-permits-workplace__primary-action`, which hugs the label
-and keeps `[hidden]` working. Do not use the fixed-width `.e-permits-workplace__add-user`
-for new actions. Leading "add" icons on small buttons are `icon-plus-large` at
+"Adaugă tarif", "Sincronizare serviciu" and (since users-new-flow-v1, 2026-10-24) "Adaugă
+utilizator" in the workplace toolbar use the library `btn btn-primary btn-sm` with
+`e-permits-workplace__primary-action`, which hugs the label and keeps `[hidden]` working.
+The old fixed-width `.e-permits-workplace__add-user` (154 wide, an `<img>` icon, its own
+hover / focus ring) is gone. "Adaugă utilizator" leads with the sprite `icon-person-add`
+(the person + plus glyph of the old `assets/icons/add-user.svg`, 16 grid, stroke 1.5,
+`currentColor` — Foundations has no add-person icon) as `<svg class="icon">`: size and
+gap come from css/button-icons.css (Small → 16, gap 6), never `icon small` / width attributes. Leading "add" icons on small buttons are `icon-plus-large` at
 `.icon.small` (16px), as in the Figma 16/plus. `icon-plus-small` draws a visibly smaller
 glyph at that size.
 

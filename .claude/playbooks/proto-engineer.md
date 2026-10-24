@@ -3336,3 +3336,23 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   followed the stories and reported it. No sub-agent tool → capture (62 states × 2: 0 errors / overflow), hover-audit 0 /
   0 on list / profile / editor / drawers / dialogs (fixed 1), code-audit only standing FPs (BO 11 / 7, meta 18, th sort,
   fo-select chevron), component-audit only the standing shell chrome + the rule builder's „și ▾” (same on svc-06m).
+- 2026-10-24 · New-user flow demo states (users-new-flow-v1; usr-u01 / u02 / u02a–f / u02h / u02i for the Figma User
+  Management board's „new user” column). (1) The reported bug „the subdivision does not stick after the authority
+  re-renders the form” was NOT reproducible with a real mouse (CDP press / release on the fo-select button + option:
+  draft and box correct, combination added) — it was the CONTROL: a value set from a script (demo `h.choose`, the Figma
+  capture steps' `__choose`) changed the hidden native select but left the box on „Selectează subdiviziune”, and only the
+  last select in a chain has no re-render after it to repaint. Reproduce a „sticky value” bug with BOTH paths (real input
+  and the script the reporter used) before touching the form's state code; the fix belonged in the shared
+  `renderFoSelectControl` (one capture-phase `change` listener syncing the box), which also corrects usr-u04c and every
+  other `h.choose` state on a BO fo-select. (2) A toolbar action that pre-dated the library button (`.e-permits-workplace__add-user`,
+  fixed 154 wide, `<img>` icon with a white stroke, own hover / ring) → library `btn btn-primary btn-sm
+  e-permits-workplace__primary-action` like its siblings; its CSS deleted. The sprite had no add-person glyph and
+  Foundations' Iconography page has none either (get_metadata of 106:640, grep person / user) → the old SVG's path went into
+  the sprite as `icon-person-add` with `stroke="currentColor"` (16 viewBox, the icon-export precedent of a stroked symbol).
+  (3) Romanian copy: „Crează” → „Creează” (a grep of js / css / data / html / skills / tools found one occurrence).
+  (4) A long demo chain (create a user, then add the same IDNP: ~8 s) showed „NOT READY” once in capture.mjs under load and
+  passed alone — time a state directly before „fixing” it. (5) Left: the dead `.e-permits-workplace__add-user .icon` rule in
+  css/e-permits-acte-permisive.css (its page keys carried another agent's uncommitted bump), the off-scale 18 padding of
+  the combination form card (reported). No sub-agent tool → code-audit (drawer + toolbar: only the 18 padding and the
+  card's title → meta 4 tight-gap), hover-audit 0 / 0 (toolbar + 6 drawer states; one cold-run „no-hover” on the footer
+  primary disproved by a real-mouse probe), component-audit 0 in the drawer / toolbar (standing shell profile-menu majors).
