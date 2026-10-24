@@ -22,7 +22,7 @@ prelude + compose once in `figma.root` shared plugin data `isw/lib` and run with
 | `swap-generic.js` | any FO file: old trigger instances (direct + nested) + mobile 32px header avatars → switcher (snapshot `isw/snap-generic-<pageId>`) |
 | `fill-open-menus.js` | open screens: State=Open, slot composed from a spec, raw captured menu removed (connectors re-pointed), header branch unclipped / raised, screen grown if the menu would be cut; mobile = clone of the closed page of the same step + switcher over the header avatar |
 
-Component ids — GEAP (🧩 Local components, frame 11532:7841): set 11536:8013, menu 11535:6128, profile 11532:7890,
+Component ids — GEAP (🧩 Local components › section „Navigation & headers” 12645:7593; the old frame 11532:7841 was removed 2026-10-24): set 11536:8013, menu 11535:6128, profile 11532:7890,
 role 11532:8016, more 11532:8125. FOD (Requestor page, 838:10517): set 839:11429, menu 839:10597, profile 838:10575,
 role 838:10701, more 838:10810. EVO Cabinet (My requests, 1014:4587): set 1014:7391, menu 1014:6580, profile 1014:5700,
 role 1014:5826, more 1014:5935.

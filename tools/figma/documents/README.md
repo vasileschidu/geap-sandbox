@@ -1,6 +1,6 @@
 # Documents — one pattern (Figma), 2026-10-14
 
-Local components (GEAP 2.0 › 🧩 Componente locale › „Componente · Documente (un singur model)” 11361:6350):
+Local components (GEAP 2.0 › 🧩 Componente locale › section „Documents & files” 12645:8484 — the old holder 11361:6350 was removed 2026-10-24):
 - `Document · rând` 11362:7113 (BO rows) · `Document · card` 11364:7441 (FO / Cabinet) · `Modal conținut / Document · detalii` 11366:6892.
 - Copies (files do not share local components): FOD-Components-flow `Document · card` 762:10435, EVO Cabinet `Document · card` 983:2727.
 

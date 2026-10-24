@@ -7151,7 +7151,7 @@ label, so it's clear it takes you to another page. And open it in a new tab / wi
       Stare; 48px, counter on the label line);
     - „Stare goală · fără rezultate” `10703:1516` (bare; title uses Body/Small 500 — there is no 600
       style);
-    - „Modal conținut / Subdiviziuni de examinare” `10704:2158` (Stare Implicit · Căutare · Selectate
+    - „Modal conținut / Subdiviziuni de examinare” (was `10704:2158`; since 2026-10-24 the content of each block lives in the slot of `Modal content / Body` 12698:438587, Spacing=16, Height=Fill) (Stare Implicit · Căutare · Selectate
       · Fără rezultate; 680×698, the list fills and clips).
   - The shared **Modal** set gained **Tip=Selecție** (`10704:158854`, User Management page): 720×880,
     the content fills the height, and the footer is space-between with a **Total** text property
@@ -7264,8 +7264,8 @@ Shared by the global Șabloane editor and the service editor (Servicii › Notif
 - Demo: `ntpl-03`, `ntpl-03a` (edit), `ntpl-03c` (add); service editor `svc-09f`, `svc-09f1`
   (add), `svc-09f2` (edit), `svc-09f3` (⋮), `svc-09f4` (Șterge blocked), `svc-09f5` (delete
   confirm, 2 rules), `svc-09f6` (deactivate confirm).
-- Figma: `Modal` (Tip=Conținut) + local component „Modal conținut / Regulă destinatar”
-  `10567:43442` (page „🧩 Componente locale”); blocks Servicii 09f1–09f6, Șabloane 03a, 03c.
+- Figma: `Modal` (Tip=Conținut) + the rule fields in the slot of `Modal content / Body`
+  12698:438587 (Spacing=24; the per-state component 10567:43442 was merged away 2026-10-24); blocks Servicii 09f1–09f6, Șabloane 03a, 03c.
 
 ### Servicii › Notificări — clone drawer, full-screen template editor, row actions (2026-10-03)
 
