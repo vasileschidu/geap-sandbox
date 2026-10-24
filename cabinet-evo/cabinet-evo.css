@@ -1200,10 +1200,19 @@
   display: none;
 }
 
-/* no box (filter-bar-open-v1, 2026-10-23: the shared „Filter bar” rule in css/facet-filter.css drops the container):
-   the chips belong to the toolbar group — 8 under it (as the phone applied line); the list keeps its 24 */
+/* no box (filter-bar-open-v1, 2026-10-23: the shared „Filter bar” rule in css/facet-filter.css drops the container).
+   Desktop = ONE 16 step (filter-bar-spacing-v1, 2026-10-24, user: „all 16”, ref RAP 22338:161903): search row → the
+   open filter row 16 · filter row → the list / empty state 16 · search row → the list 16 when the row is closed
+   (the list, request list and empty state below). Phones: the applied line 8 under the search row (`.is-sheets`). */
 .cab-filters.e-permits-workplace__filters {
-  margin-top: var(--spacing-8, 8px);
+  margin-top: var(--spacing-16, 16px);
+}
+
+@media (min-width: 761px) {
+  .cab-filters ~ :is(.cab-list, .cab-state),
+  .cab-filters ~ .sm-results > :is(.cab-request-list, .cab-state) {
+    margin-top: var(--spacing-16, 16px);
+  }
 }
 
 /* the restriction notice keeps the intro → content distance */
@@ -1428,7 +1437,7 @@
    tertiary hover, 24 icon · 14/20 medium title + Small tags · 14/20 secondary meta with the 2px dots), desktop
    AND phones; .cab-act-list gives the pointer + focus ring. Only the request-specific parts are defined here. */
 
-/* 24 under the toolbar / filter bar (= .cab-list on Actele mele permisive) */
+/* 24 by default; under the Solicitările mele toolbar / filter row 16 (filter-bar-spacing-v1, „Filter bar” rule above) */
 .sm-results > .cab-request-list {
   margin-top: var(--spacing-24, 24px);
 }
@@ -1556,7 +1565,7 @@ button.cab-alert-link {
    description) → the search row (search · icon-only „Filtre” · „Sortează”, phone-toolbar-v2; Catalog: + the
    category chips) → first card. The applied-filters line („N rezultate · Șterge filtrele”) belongs to the
    toolbar group: 8 under the search row, then 16 to the cards.
-   Cards keep 12 between each other (the act list too). Desktop (> 760) unchanged: 24 / 16 / 24. */
+   Cards keep 12 between each other (the act list too). Desktop (> 760): title → search 24, then one 16 step (filter-bar-spacing-v1). */
 @media (max-width: 760px) {
   .cab-intro ~ .cab-toolbar {
     margin-top: var(--spacing-16, 16px);

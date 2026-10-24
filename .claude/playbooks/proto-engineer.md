@@ -3431,3 +3431,18 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   built from FO summary sections needs the FO review wrapper, never loose sections. No sub-agent tool → capture 12 × 2 clean,
   hover-audit 0 / 0 (gh-07, gh-07c, gh-10), code-audit only standing FPs (heading 11, profile row 7, edit pen), component-audit
   only standing (edit pen, doc ×, shell profile menu).
+- 2026-10-24 · filter-bar-spacing-v1 (user on RAP 22302:44251: open filter row „too close to the search, and the spacing down to
+  the table isn't good either”; mid-job via the coordinator: „too many different gaps — make them ALL 16”, ref RAP
+  22338:161903). (1) When a container is removed (filter-bar-open-v1), the spacing that the container's padding used to give
+  must be re-decided: 8 under the toolbar was right for a bordered box, wrong for bare chips (they read as glued to the
+  search). (2) Measure EVERY following block, not just the list: the gap after the toolbar is set by whichever block comes
+  next (RAP `.rap-register` / `.rap-company-summary` / `.rap-state`; Cabinet `.cab-list`, `.cab-state`, the skeleton list,
+  `.sm-results > .cab-request-list` / `.cab-state`) — a sibling-walk probe (scratch fb/measure2.js: search bottom → each next
+  visible sibling's top) over closed / open / empty / loading / company states found all of them in one run. (3) Scope a
+  shared class's margin by context (`.cab-filters ~ .cab-list`) when the same class lives on a page outside the brief (the
+  catalog's `.cab-list` after the category chips stayed 24), and `@media (min-width: 761px)` so the phone rhythm is
+  byte-identical (proved against a HEAD worktree on :8981, 375 / 760 diff = SAME). (4) BO closed toolbar = the table card's
+  8 · 40 · 8 band; a literal „16 everywhere” would resize every BO registry + 94 Figma blocks → left at 8 and reported as a
+  PO question instead of shipping a cascade the user did not look at. No sub-agent tool → code-audit 0 desktop (phone sheet
+  findings = HEAD), hover-audit 0 / 0 (`#sm-filters` scope — `.e-permits-workplace__filters` first-matches a hidden bar on
+  Cabinet), component-audit only the standing avatar / profile-menu majors, capture 0 errors (rap-01 375 overflow = HEAD).

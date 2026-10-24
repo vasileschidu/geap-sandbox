@@ -171,8 +171,8 @@
      GROUP moves to the next line first, right-aligned (the primary keeps the right edge, so „Aplică filtrele” never
      jumps sides); only when the chips alone overflow one line do they wrap, as a group, left-aligned, 8 apart.
      Lines 8 apart. No horizontal scroll.
-   Placement stays with the page: 8 under the toolbar on Cabinet / RAP (the toolbar group), the list keeps its own gap
-   (24 desktop, 16 phones — the toolbar → list rhythm);
+   Placement stays with the page: desktop ONE 16 step on Cabinet / RAP (filter-bar-spacing-v1, 2026-10-24: search row →
+   filter row 16 → list 16; search row → list 16 when closed), phones the applied line 8 under the search row;
    BO table card: 8 under the toolbar row (= 16 under the search), 16 at the sides (the search's edge), 16 above
    the line (css/e-permits-acte-permisive.css); Taxe / Tarife 16 above the list.
    ========================================================================== */

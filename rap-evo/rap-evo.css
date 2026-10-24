@@ -1120,10 +1120,11 @@ a {
 }
 
 /* ---- „Filtru” = the BO advanced filter (css/facet-filter.css, js/facet-filter.js) ----
-   Placement only: 8 under the toolbar (the toolbar group); no box since filter-bar-open-v1 (2026-10-23, the shared
-   „Filter bar” rule in css/facet-filter.css), the list keeps its own gap. */
+   Placement only: 16 under the search row and 16 above the results (filter-bar-spacing-v1, 2026-10-24: one even
+   16 step, components.md › „Filter bar”); no box since filter-bar-open-v1 (the shared rule in css/facet-filter.css).
+   Phones: the applied line keeps 8 (below, `.is-sheets`). */
 .rap-filters.e-permits-workplace__filters {
-  margin-top: var(--spacing-8, 8px);
+  margin-top: var(--spacing-16, 16px);
 }
 
 @media (max-width: 760px) {
@@ -1246,20 +1247,17 @@ tr:hover .rap-act-link {
 
 /* ===== List rhythm (rap-header-v1, 2026-10-22; user: „even gaps in RAP between the table, the search and the title —
    make it organic and nice”) = the Cabinet list pages (components.md › „Phone list rhythm”): desktop breadcrumb →
-   title 16 · title → search 24 · search → the filter bar 16 · → the results (company card, table, empty state) 24 ·
-   between result blocks 16 · table → pager 16; phones ONE 16 step (title → search → results), the applied line
-   „N rezultate · Șterge filtrele” 8 under the search. Margins only — no block has padding + gap. ===== */
+   title 16 · title → search 24 · then ONE 16 step (filter-bar-spacing-v1, 2026-10-24, user: „all 16”, ref RAP
+   22338:161903): search → the open filter row 16 · filter row → the results (company card, table, empty state) 16 ·
+   search → results 16 when the row is closed · between result blocks 16 · table → pager 16; phones ONE 16 step
+   (title → search → results), the applied line „N rezultate · Șterge filtrele” 8 under the search. Margins only —
+   no block has padding + gap. ===== */
 .rap-main :is(.rap-register, .rap-company-summary:not([hidden]), .rap-state) {
-  margin-top: var(--spacing-24, 24px);
-}
-
-.rap-main .rap-company-summary:not([hidden]) ~ :is(.rap-register, .rap-state) {
   margin-top: var(--spacing-16, 16px);
 }
 
 @media (max-width: 760px) {
-  .rap-main .rap-toolbar,
-  .rap-main :is(.rap-register, .rap-company-summary:not([hidden]), .rap-state) {
+  .rap-main .rap-toolbar {
     margin-top: var(--spacing-16, 16px);
   }
 }
