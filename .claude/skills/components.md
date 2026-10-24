@@ -10378,7 +10378,11 @@ serviciului” 95242.
 - Header in two rows (user decision 2026-10-10). Row 1 `.e-permits-svc-events__heading`: title
   „Jurnal de evenimente” + `.e-permits-svc-events__count` (14/20 tertiary, aria-live)
   „100 de evenimente · Jurnalizat prin MLog”; while a search/filter is active it reads „8 din 100 de
-  evenimente · …”. No count badge (it would repeat the number). Row 2 `.e-permits-pay__toolbar
+  evenimente · …”. No count badge (it would repeat the number). **Spacing (2026-10-24, user: „when we have
+  such header, don't use also the 16 bottom padding, just the header”):** the heading = the 48 title row + its
+  own 4 bottom pad (= Figma header 52) and row 2 starts right under it — no margin (was 16 → 64); a count
+  wrapped under the title (phones, svc-11) carries its own 4 → 8 to the toolbar. Same rule for every section
+  header above a toolbar / chips / table: the header's own spacing only. Row 2 `.e-permits-pay__toolbar
   .e-permits-svc-events__toolbar`: search „Caută eveniment sau autor” + „Filtrare avansată”
   (`SF_LISTS.jurnal`) on the left; sort „Cele mai noi / Cele mai vechi” + ⋮ „Exportă (Excel)” on the right.
 - Filters: Tip eveniment · Creat de · Rolul · Tab · Perioadă (Astăzi / 7 / 30 / 90 de zile / Mai vechi) ·

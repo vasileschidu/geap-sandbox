@@ -3526,3 +3526,17 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   Lesson: a width „estimate from text” is wrong for any column holding controls — measure the rendered units. No
   sub-agent tool → code-audit + component-audit on ek-29 / ek-25 identical to HEAD (standing th-sort / shell header /
   profile menu majors), hover-audit 0 / 0, capture 4 × 2 clean.
+- 2026-10-24 · header-no-extra-gap-v1 (user: „when we have such header, don't use also the 16 bottom padding, just the
+  header. I don't want unnecessary space” — Figma fixed first: header 48 + its own 4 pad = toolbar at 52). The Registre
+  „Jurnalul evenimentelor” heading (`.e-permits-svc-events__heading`, shared with Servicii › Jurnal svc-11) had a 16
+  margin-bottom → chips row at 64. Fix: margin → `padding-bottom: --spacing-4` (the box = Figma's 52, title unmoved),
+  and the count gets its own 4 so a count wrapped under the title on phones (svc-11 375) keeps 8 to the search, not 4
+  (breathing rule). „Same pattern elsewhere” = a runtime census, not a grep: every visible section title / heading
+  wrapper × its next visible sibling that is / holds a toolbar, chips, search or table, with gap + margins, over all
+  1432 states at 1440 (6 Chrome workers, ~12 min; scratch shm/census.mjs + census.js) and the 114 matching states at
+  375. Result: only this heading had an extra gap (13 states); every other header → toolbar / table is 0 (52-row
+  headings carry their own 4). Not this pattern: `.e-permits-reg-access` (12 under the Acces heading — it opens with an
+  info note = the header → alert rule) and the phone `pay__title` → `pay__tools` 16 (the list toolbar's own wrap gap,
+  title inside the toolbar). Another agent edited the same CSS + HTML pages mid-job → staged HEAD + my asserted
+  replacements only (EDIT_ROOT script). code-audit: only the title's documented 11 pad; component-audit: only the
+  standing shell profile-menu majors; hover-audit section 0 / 0; capture 5 × 2 clean.

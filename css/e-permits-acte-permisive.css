@@ -22648,13 +22648,19 @@ body[data-fo-postprocess] .e-permits-fo-form__roles .e-permits-fo-selected-role_
 
 
 /* Jurnal (US-228): row 1 title + „N de evenimente · Jurnalizat prin MLog”; row 2 the toolbar
-   (search + Filtrare avansată left, order + ⋮ right) */
+   (search + Filtrare avansată left, order + ⋮ right). The heading = 48 row + its own 4 bottom pad
+   (Figma header 52) and the toolbar follows at once — no extra margin (header-no-extra-gap-v1, user:
+   „when we have such header, don't use also the 16 bottom padding”). A count wrapped under the title
+   (phones) keeps 8 to the toolbar via its own 4. */
 .e-permits-svc-events__heading {
   align-items: baseline;
   display: flex;
   flex-wrap: wrap;
   gap: var(--spacing-4, 4px) var(--spacing-12, 12px);
-  margin-bottom: var(--spacing-16, 16px);
+  padding-bottom: var(--spacing-4, 4px);
+}
+.e-permits-svc-events__heading > .e-permits-svc-events__count {
+  padding-bottom: var(--spacing-4, 4px);
 }
 .e-permits-svc-events__heading .e-permits-pay__title {
   margin: 0;
