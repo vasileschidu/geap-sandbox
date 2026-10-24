@@ -3374,3 +3374,26 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   only the confirm closes. No sub-agent tool → capture 15 states × 2 (0 errors / overflow), hover-audit 0 / 0 (8 drawer
   states), code-audit static 0 + only the standing strip check-icon colour FP, the 18 padding and the card meta 4 gap
   (pre-existing), component-audit 0 majors in the drawer after the row (standing profile-menu majors outside it).
+- 2026-10-24 · my-cases-no-hscroll-v1 (user: „the service name „Autorizație de comerț cu produse alcoolice” makes Dosarele
+  mele scroll sideways”). (1) CHECK THE PREMISE BY MEASURING: the service name sits in a colspan group row of a
+  `table-layout: fixed` table — it cannot widen anything. The real cause was the width code: `getColumnWidths` only ever
+  GREW `fill` columns; `defaultMinColumnWidth` 128 / `minColumnWidths` / the JSON `width` acted as hard floors, so the
+  9 columns summed to 1392 in a 1184 box at 1440 — on every BO list (Ghișeu 1536, registers 1524, services 1344). The long
+  group label just made the scroll visible. (2) Estimating a column's need from text (`measureText` 14 px) under-measures
+  tags (padding), avatars and person cells → cut tags at the first try. Measure the rendered max-content instead: a
+  one-frame class (`table.is-measuring-columns`: `table-layout: auto; width: max-content`, cells `width/min/max: auto
+  !important`, group / empty rows `display: none`) and read the `th` widths — header + sort icon + every cell on screen in
+  one reflow. A table in auto layout with `width: auto` shrink-to-fits its box and squeezes wrapping flex cells (tags) —
+  `max-content` is the point. (3) Cutting names in a table that scrolls anyway is a double loss → text columns shrink only
+  if that makes the table fit (floors 120, then 96, never below the header), otherwise they stay whole. (4) Order matters:
+  first the non-text columns' spare room (nothing cut), then the text — a cheap „does it fit without measuring?” pre-check
+  let the names absorb a small deficit first; decide on measuring from the NATURAL sum. (5) Widths were computed only at
+  render: a ResizeObserver on the wrap re-applies them in place (style on `th/td[data-column]`, no redraw → focus / menus
+  stay); the side-menu collapse proved it (1280 collapsed: 1214 box, fits). Probe kit (scratch mc/probe.mjs + measure.js):
+  URL × width → box client / scroll width, th widths, cut text per column, children painted past the content box, a real
+  mouse hover on a cut cell → tooltip text; plus a HEAD worktree on :8979 for baselines. Copy-value wraps bleed 8 px into
+  the padding by design — not a spill. Result 1440: Dosarele mele / Oficiu / Registrul Dosare / Servicii / Registrul acte /
+  Avize fit; 1280 with the side menu open needs 1173 at the floors vs 1024 → scrolls (narrower: 1249, names whole);
+  Ghișeu (header-sized) and Registrul note (12 columns) still scroll. No sub-agent tool → capture 5 states × 2 clean
+  (srv-01 mobile DEMO-ERROR pre-existing), hover-audit 0 / 0 (table scope, 4 states), code-audit static 0 + runtime = HEAD,
+  component-audit = HEAD (standing profile-menu / missing-copy / th sort).

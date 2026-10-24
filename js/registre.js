@@ -613,7 +613,9 @@
     const cols = columnsOf(def);
     const visible = cols.filter((c) => c.visible);
     const hasActions = actionsFor(def, who).length > 0;
-    const columns = Object.fromEntries(visible.map((c) => [c.key, { label: c.label, width: c.width, sortable: c.sortable, fill: c.key === "denumire" || c.key === "serviciu" || c.key === "tip" }]));
+    /* fill = a name column: takes the spare room and, when the table is too wide, ellipsizes with a tooltip
+       (my-cases-no-hscroll-v1: authority / person / company names too, not only the service) */
+    const columns = Object.fromEntries(visible.map((c) => [c.key, { label: c.label, width: c.width, sortable: c.sortable, fill: ["denumire", "serviciu", "tip", "subdiviziune", "autoritate", "solicitant", "companie", "beneficiar"].includes(c.key) }]));
     if (hasActions) columns.actiuni = { label: "", width: 56, pin: "end" };
     const rows = rowsOf(def, who);
     kindState[id] = { who, rows: rows.length };

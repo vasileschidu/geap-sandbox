@@ -2229,8 +2229,51 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   };
 
+  const usesDeclaredWidths = () => ["users", "services", "authorities", "tariffs", "ntpl", "flows", "ghiseu"].includes(workplaceDb?.kind) || Boolean(workplaceDb?.fixedWidths);
+  const isTextColumn = (key) => fillColumns.has(key) || Boolean(workplaceDb?.columns[key]?.fill);
+  /* a text column (names, services) shrinks to these, in this order, but only if that makes the table fit — the rest
+     of the text ellipsizes with a tooltip; a table that scrolls anyway keeps its names whole */
+  const textColumnFloors = [120, 96];
+  const headerColumnWidth = (column) => Math.ceil(measureText(column?.label || "", "500 12px Onest, Arial, sans-serif") + 24 + (column?.sortable ? 24 : 0));
+
+  /* The narrowest a non-text column may get when the table is wider than its box (my-cases-no-hscroll-v1): it is
+     never cut, so its floor is what it really needs — `measured` = the rendered max-content of the header + the
+     cells on screen (tags, avatars, dates), and for columns sized from their data also the widest value of every
+     row (other pages). Not measured yet, pinned at the end or a fixed width → it keeps its width. */
+  const getColumnFloor = (key, rows, width, measured) => {
+    const column = workplaceDb.columns[key];
+    if (column?.pin === "end" || fixedColumnWidths[key] || !measured?.[key]) return width;
+    if (usesDeclaredWidths()) return Math.ceil(Math.min(width, measured[key]));
+    const contentWidth = rows.reduce((max, row) => {
+      const lines = getColumnTextLines(row, key).map((line) => measureText(line));
+      const lineWidth = key === "alerte" && row.alerte?.length
+        ? lines.reduce((sum, w) => sum + w + 12, 0) + 4 * (lines.length - 1)
+        : Math.max(0, ...lines);
+      return Math.max(max, lineWidth + 24);
+    }, 0);
+    return Math.ceil(Math.min(width, Math.max(measured[key], contentWidth)));
+  };
+
+  /* takes up to `amount` px from `keys`, each in proportion to what it can give (width − floor) */
+  const shrinkColumns = (widths, floors, keys, amount) => {
+    const slack = keys.reduce((sum, key) => sum + widths[key] - floors[key], 0);
+    const take = Math.min(amount, slack);
+    if (take <= 0) return 0;
+    let left = take;
+    keys.forEach((key) => {
+      const cut = Math.floor(((widths[key] - floors[key]) * take) / slack);
+      widths[key] -= cut;
+      left -= cut;
+    });
+    for (const key of keys) {
+      if (left <= 0) break;
+      if (widths[key] > floors[key]) { widths[key] -= 1; left -= 1; }
+    }
+    return take;
+  };
+
   const getNaturalColumnWidth = (key, rows) => {
-    if ((["users", "services", "authorities", "tariffs", "ntpl", "flows", "ghiseu"].includes(workplaceDb?.kind) || workplaceDb?.fixedWidths) && workplaceDb.columns[key]?.width) {
+    if (usesDeclaredWidths() && workplaceDb.columns[key]?.width) {
       return workplaceDb.columns[key].width;
     }
 
@@ -2250,13 +2293,30 @@ document.addEventListener("DOMContentLoaded", () => {
     return Math.ceil(clamp(Math.max(headerWidth, contentWidth), minWidth, maxWidth));
   };
 
-  const getColumnWidths = (columns, rows) => {
+  const getColumnWidths = (columns, rows, measured = null) => {
     const widths = Object.fromEntries(columns.map((key) => [key, getNaturalColumnWidth(key, rows)]));
     const tablePaddingWidth = getView()?.selectable === false ? 0 : selectColumnWidth;
     const visibleTableWidth = workplaceTable?.parentElement?.clientWidth || 0;
     const naturalWidth = columns.reduce((sum, key) => sum + widths[key], tablePaddingWidth);
     const extraWidth = Math.max(0, visibleTableWidth - naturalWidth);
-    const growable = columns.filter((key) => fillColumns.has(key) || workplaceDb?.columns[key]?.fill);
+    const growable = columns.filter(isTextColumn);
+
+    /* wider than its box: first the spare room of the other columns (nothing gets cut), then — only if that makes
+       it fit — the text columns down to a floor (never below their one-line header). What cannot fit scrolls, with
+       the pinned columns + edge shadow, and keeps its names whole. */
+    if (visibleTableWidth && naturalWidth > visibleTableWidth) {
+      const rigid = columns.filter((key) => !isTextColumn(key));
+      const floors = Object.fromEntries(rigid.map((key) => [key, getColumnFloor(key, rows, widths[key], measured)]));
+      let deficit = naturalWidth - visibleTableWidth;
+      deficit -= shrinkColumns(widths, floors, rigid, deficit);
+      for (const floor of textColumnFloors) {
+        const textFloors = Object.fromEntries(growable.map((key) => [key, Math.min(widths[key], Math.max(headerColumnWidth(workplaceDb.columns[key]), floor))]));
+        if (deficit > 0 && growable.reduce((sum, key) => sum + widths[key] - textFloors[key], 0) >= deficit) {
+          shrinkColumns(widths, textFloors, growable, deficit);
+          break;
+        }
+      }
+    }
 
     if (extraWidth > 0 && growable.length) {
       const each = Math.floor(extraWidth / growable.length);
@@ -5724,6 +5784,44 @@ document.addEventListener("DOMContentLoaded", () => {
     new ResizeObserver(([entry]) => entry.target.style.setProperty("--workplace-view-width", `${Math.round(entry.target.clientWidth)}px`)).observe(workplaceTable.parentElement);
   }
 
+  /* The column widths follow the box (my-cases-no-hscroll-v1): when it changes size (window, side menu, a panel
+     drawn while hidden) the widths are fitted again in place — no redraw, so focus / open menus stay. */
+  let fittedViewWidth = 0;
+  let refitFrame = 0;
+  /* the rendered max-content of every column (header + the rows on screen): one auto-layout pass */
+  const measureColumnContent = () => {
+    workplaceTable.classList.add("is-measuring-columns");
+    const measured = Object.fromEntries([...workplaceTable.querySelectorAll("thead th[data-column]")].map((th) => [th.dataset.column, Math.ceil(th.getBoundingClientRect().width)]));
+    workplaceTable.classList.remove("is-measuring-columns");
+    return measured;
+  };
+  const refitColumnWidths = (force = false) => {
+    const box = workplaceTable?.parentElement;
+    const view = getView();
+    if (!box?.clientWidth || !Array.isArray(view?.columns) || (!force && box.clientWidth === fittedViewWidth)) return;
+    fittedViewWidth = box.clientWidth;
+    if (!workplaceRows?.querySelector("tr[data-workplace-row]")) return;
+    const rows = getVisibleRows();
+    const sumOf = (widths) => view.columns.reduce((sum, key) => sum + widths[key], view.selectable === false ? 0 : selectColumnWidth);
+    /* wider than the box → the real content decides how far each column can give */
+    const natural = Object.fromEntries(view.columns.map((key) => [key, getNaturalColumnWidth(key, rows)]));
+    const widths = getColumnWidths(view.columns, rows, sumOf(natural) > box.clientWidth ? measureColumnContent() : null);
+    workplaceTable.style.width = `${sumOf(widths)}px`;
+    view.columns.forEach((key) => {
+      const value = `${widths[key] || workplaceDb.columns[key]?.width || 140}px`;
+      workplaceTable.querySelectorAll(`th[data-column="${CSS.escape(key)}"], td[data-column="${CSS.escape(key)}"]`).forEach((cell) => {
+        cell.style.width = value;
+        cell.style.minWidth = value;
+        cell.style.maxWidth = value;
+      });
+    });
+    fitTagRows(workplaceTable);
+    syncPinnedScrollPadding();
+  };
+  if (workplaceTable?.parentElement && "ResizeObserver" in window) {
+    new ResizeObserver(() => { cancelAnimationFrame(refitFrame); refitFrame = requestAnimationFrame(refitColumnWidths); }).observe(workplaceTable.parentElement);
+  }
+
   const renderUserCell = (row, key) => {
     switch (key) {
       case "numeComplet":
@@ -6222,6 +6320,7 @@ document.addEventListener("DOMContentLoaded", () => {
     renderTableRows(visibleRows, view.columns, view, columnWidths);
     fitTagRows(workplaceTable);
     syncPinnedScrollPadding();
+    refitColumnWidths(true);
     renderPagination(filteredRows.length);
     syncSelectAll(visibleRows);
 

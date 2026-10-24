@@ -2591,6 +2591,25 @@ body {
   text-overflow: ellipsis;
 }
 
+/* A one-frame measuring pass (js: measureColumnContent, my-cases-no-hscroll-v1): every column at its max-content
+   (header + cells), so a table wider than its box knows how far each column can give without cutting it. The
+   full-width group rows (service names) never take part — a long service name must not widen any column. */
+.e-permits-workplace__table.is-measuring-columns {
+  width: max-content !important;
+  min-width: 0;
+  table-layout: auto;
+}
+
+.e-permits-workplace__table.is-measuring-columns :is(th, td) {
+  width: auto !important;
+  min-width: 0 !important;
+  max-width: none !important;
+}
+
+.e-permits-workplace__table.is-measuring-columns :is(.e-permits-workplace__group-row, .e-permits-empty-row) {
+  display: none;
+}
+
 .e-permits-workplace__table .e-permits-workplace__group-row td {
   position: sticky !important;
   top: 38px;
