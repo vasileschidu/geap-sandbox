@@ -4304,3 +4304,15 @@ For any „research how other products do it” step, search Mobbin (mcp__mobbin
     (the instance alone renders; in context only blank white) — the Ghișeu ones still render. Fix that held: move the pinned instance OUT
     of the GRID into the table's parent container, ABSOLUTE at the table's x / y. Check pinned columns with an inline `node.screenshot()`
     of the table container after every table pass — get_screenshot and the instance's own render hid it.
+- 2026-10-24 · users-board-flows-v1, code d5422394 (new-user drawer in 2 steps). `Drawer` 12701:424075 upgraded in place (instances kept their
+  Body content): `Title block` (Title + Subtitle, BOOLEAN Show subtitle), × ABSOLUTE MAX/MIN at 748/9 with header pR 64, `Stepper` = nested
+  `Stepper · drawer` 10421:197819 (BOOLEAN Show stepper; Step 3/4 hidden per instance — it has no props, so it can't be exposed: set the
+  nested Step instances' State / labels as overrides), footer `Step` text (Show step) + `Actions` FILL / MAX. Column now 16 blocks: new U02d0
+  12814:420295, U02d1 12814:417417, U02d2 12814:418085, U02j 12814:421694, U02k 12814:423664; U02d / U02e–U02h reconfigured (step-2 frames
+  keep only „Combinații de roluri”), all arrows redrawn (17 in the column + the page arrow), Start here 51 / index 51. Lessons:
+  - **A step change = configure, don't rebuild**: one stored `conf` routine (props, nested stepper overrides, button labels, drop sections
+    by name) + clones of an existing block for the new states took 6 calls for 14 frames.
+  - `isExposedInstance` only works on instances that have properties or exposed children — a prop-less nested component (Stepper · drawer)
+    stays a plain nested instance.
+  - Before reconfiguring a column, delete its arrows + anchors and redraw from the stored `arrow` helper: anchors are absolute and go stale
+    the moment a stepper / section shifts the content.
