@@ -4368,3 +4368,29 @@ For any „research how other products do it” step, search Mobbin (mcp__mobbin
     track) — the INSIDE bottom stroke then sits under the next row's white fill. Never resize GRID children; fix parity on the track.
     Fix = resize every in-grid cell to its row-track height. `Table / Pinned column` (12619:61500, start No shadow + end Shadow, cells moved
     into the slot, Sticky placeholders left) applied to 14 of 35 register tables before the MCP session expired.
+
+- 2026-10-24 · gh-verificare-spacing-figma (code 2035ab7e gh-verificare-spacing-v1; user on GEAP 11801:30527 „too much space — see the FO
+  full flow”). GEAP Ghișeu: 17 Verificare blocks (gh-07, 07j, 07a, 07a1, 07a2, 07a3, 07b, 07c, 07d, 07e, 07f, 07g, 07g1, 07h, 07i, gh-13,
+  13a) + Confirmare gh-10 / 10b. Verificare: review `Container` pT 24 → 0 (H1 → first heading = the Header's own 24), pB spacing-32;
+  Atașamente docs box pB 32 → 0; „Cererea pe hârtie” / „Semnarea cererii” `Section`s (or gh-07f's info-note) moved INTO the review
+  (gap 32); their headings = 48 fixed, centre, 0 / 12 padding (spacing-12), divider stroke removed, H5 text style; the sign explanation
+  `Paragraph` moved into the content box as item 1 (0 / 12 inset); content boxes padding 0, gap spacing-8 (a FIXED 100 retry box in
+  07g / 07g1 → HUG); gh-07e notices box pT 0 / pB spacing-24; gh-07f `Footer:margin` pT 0; doc cards minHeight 70 (= code; the
+  `Document · card` main is 68 — left, FO uses it too). Confirmare: new `Review` frame (gap / pB spacing-32) around the two sections,
+  their pB 16 → 0, headings FILL + 12 inset + H5; gh-10b error message in a `Notices` frame (pB spacing-24). Offsets vs code probe
+  (scratch probe of `.e-permits-gh__review` children): identical on 07 / 07j / 07a* / 07b / 07e / 07f / 07g1 / 07i / 13 / 13a / 10 / 10b;
+  known deltas: 07c / 07a3 paper card 70 vs code 88 (code meta wraps to 2 lines), 07h / 07d olograf field 138 vs 137, 07d inline
+  error 8 under the MSign row vs code 16. Screens: Verificare Δ −58…−126 → `Body.minHeight -= Δ` AND the FIXED `Dialog` resized by
+  the screen delta (Overlay stretches, the Dialog does not → it rode up to y −92 on the first try); gh-10b grew +58 (its 900 screen
+  clipped the footer). Columns 07 / 10 / 11 restacked at 240, sections refit (+80); 22 connectors attached (the 2 dangling GH-11
+  ones were dangling before). Lessons:
+  - **Ghișeu full-screen request windows: `Dialog` is FIXED inside an ABSOLUTE/STRETCH Overlay** — after any content height change
+    move Body.minHeight AND resize the Dialog by the same screen delta; check `dlg.y` is back at 22 (24 for 900 screens).
+  - **Zeroing padding does not shrink a box that was FIXED** — after a padding pass census `layoutSizingVertical === "FIXED"` in the
+    touched boxes and HUG them (the retry box kept 100 with its message centred).
+  - **A content-grow on a 900 screen clips silently** — screenshot every 1104 block after adding gaps; fit = Body.minHeight + need,
+    Dialog + need (need = inner content − FILL container height).
+  - Moving a node keeps its id → connectors on moved buttons (Generează, Semnează prin MSign, Adaugă fișier) stayed attached; no
+    re-pointing needed when restructuring by reparenting instead of rebuilding.
+  - No Agent tool in this session → stored `ghs/audit` on 8 forms: only the section-over-card gap 0 baseline + field label gap 6;
+    bound gh-07d's olograf box padding to spacing-20. Ghișeu intro (11818:22458) dated.
