@@ -2666,8 +2666,15 @@ body {
   background: var(--color-background-base-default, #fff);
 }
 
+/* The service-name band spans the whole row and scrolls with the table; its LABEL stays at the visible left edge of
+   the scroller at every sideways position (my-cases-group-sticky-v1, user on a phone: „torizație de comerț…”) —
+   the colspan td itself cannot stick (it is as wide as the table). Longer than the visible width → ellipsis +
+   the automatic cell tooltip. --workplace-view-width = the scroller's width (shell ResizeObserver). */
 .e-permits-workplace__group-header {
-  width: 378px;
+  position: sticky;
+  left: var(--spacing-12, 12px);
+  width: max-content;
+  max-width: calc(var(--workplace-view-width, 100%) - 2 * var(--spacing-12, 12px));
   height: 24px;
   display: inline-flex;
   align-items: center;

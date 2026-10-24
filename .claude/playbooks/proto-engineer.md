@@ -3397,3 +3397,11 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   Ghișeu (header-sized) and Registrul note (12 columns) still scroll. No sub-agent tool → capture 5 states × 2 clean
   (srv-01 mobile DEMO-ERROR pre-existing), hover-audit 0 / 0 (table scope, 4 states), code-audit static 0 + runtime = HEAD,
   component-audit = HEAD (standing profile-menu / missing-copy / th sort).
+- 2026-10-24 · my-cases-group-sticky-v1 (user on a real phone: the service group row „torizație de comerț…” cut at the left
+  after a sideways scroll). `position: sticky; left: 0` on a colspan td does NOTHING: a sticky box can only move inside its
+  containing block, and the td is as wide as the table. Stick the CHILD instead (label `sticky; left: 12`, `width:
+  max-content`, `max-width: calc(var(--workplace-view-width) − 24)` from the existing wrap ResizeObserver; the td keeps
+  `overflow: visible`) — the band still spans the row. The old label had a fixed `width: 378px` that hid the problem at
+  desktop sizes. Proof = real scrollLeft at start / middle / end × 375 / 768 / 1280 (label 12 from the wrap's left,
+  elementFromPoint at both label ends hits the label, i.e. never under the pinned column) + 320 for the ellipsis + a real
+  mouse hover → full-text tooltip. Scratch kit mc/grp.mjs + grp.js.
