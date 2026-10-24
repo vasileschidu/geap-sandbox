@@ -3306,3 +3306,33 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   overflow (srv-01 / trf-01 mobile DEMO-ERROR pre-existing), hover-audit 0 / 0 (gh-01, srv-01, dos-05, trf-01, ek-04,
   clf-03), code-audit static 0 (a px value in a CSS comment is flagged — write „X 4 · blur 6”), component-audit only
   the standing majors (th sort, missing copy, profile menu) = HEAD baseline; geometry probe 56 / 56 edges exact.
+- 2026-10-24 · Registre phase 2 — the AdminPortal builder (registre-v2; Feature 94523, US-146…150, US-193, US-215). What
+  kept a whole builder (list, profile, 3 drawers, a full-screen editor with 3 tabs, publish / versions / restore,
+  deprecate, grants, permissions, BO effects) at ~1 300 lines of module JS + ~330 of CSS with zero new components: ONE data
+  shape for both sides — the builder's `config` / `published` ARE the phase-1 definition (+ `labels`, `target`), so
+  publishing = copy + `commit()` (save → rebuild `S.data.registers` → register new shell registries → `refreshNav` →
+  redraw an open register). Build the catalog from the seed at first read and persist only after a change (demo links
+  start clean). Seed for the builder = a deterministic `admin` block at the END of the seed (no `rnd()`), proved by
+  comparing every old key byte-identical.
+- 2026-10-24 · BUG I made: the shared review modal opened EMPTY — `registerChangeSource` ran at the top of a DEFERRED module,
+  which executes before the shell's DOMContentLoaded builds `window.GEAPShellApi`. Every shell API call from a module's
+  top level is a silent no-op; register sources / bind shell hooks lazily (first use) or on DOMContentLoaded.
+- 2026-10-24 · A data-driven menu without forking the shell: one hook in `renderShellNav`
+  (`window.GEAPShellNavHook(profileKey, groups)`) + `GEAPShellApi.refreshNav()` (re-render, keep the active item). Make the
+  hook reproduce the static JSON menu EXACTLY for the seed (same ids, labels, order) so no existing state / Figma screen
+  drifts; new items carry `navObject` → `[data-nav-object]` icon masks (the specialist nav draws icons as CSS masks).
+- 2026-10-24 · Reusing panels in a new container: (1) `.e-permits-list-search--fill` is `flex: 1 1 auto` → in a COLUMN flex
+  panel with a short list the search grew 480 px tall → `flex: 0 0 auto` scoped; (2) the sprite has no
+  `icon-chevron-top-small` (the dtpl panel references it — that one is broken too); (3) `--spacing-80` does not exist
+  (eKYC uses it only through its fallback) — check main.css before using a token, write multiples of 40; (4) the phone
+  stacked-row grid has a 24 lead column — a wider lead (order handle + number, a 32 avatar) overflowed onto the title →
+  scoped `grid-template-columns: auto 1fr` and the drag handle hidden on touch; (5) the Documente value group
+  (`.e-permits-doc-val`) is mode + value: without the mode part use the plain FO field (phone 48 for free; the group stays
+  40 on phones — pre-existing in svc-06m, reported); (6) the compact copy inside a `__source` line renders heavier than the
+  primary line → a code UNDER a name is plain text + cut tooltip.
+- 2026-10-24 · Disabled check options with a reason tooltip have no hover in the shared component (hover-audit „no-hover”) —
+  scoped fix in the module (secondary-hover); the shared rule is a follow-up. Brief vs stories: the brief listed 5
+  profile tabs; the stories (the spec) say profile Informații · Coloane · Acces + an editor Coloane · Filtru · Acțiuni →
+  followed the stories and reported it. No sub-agent tool → capture (62 states × 2: 0 errors / overflow), hover-audit 0 /
+  0 on list / profile / editor / drawers / dialogs (fixed 1), code-audit only standing FPs (BO 11 / 7, meta 18, th sort,
+  fo-select chevron), component-audit only the standing shell chrome + the rule builder's „și ▾” (same on svc-06m).

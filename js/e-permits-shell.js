@@ -1134,8 +1134,11 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     shellNav.setAttribute("aria-label", profile.ariaLabel || "Navigare principală");
+    /* registre-v2: a module may rewrite the menu groups (js/registre.js: the „Registre” group follows the published,
+       granted, non-deprecated registers; the AdminPortal „Registre” item needs the permission) */
+    const groups = window.GEAPShellNavHook?.(profileKey, profile.groups || []) || profile.groups || [];
 
-    shellNav.innerHTML = (profile.groups || []).map((group, groupIndex) => `
+    shellNav.innerHTML = groups.map((group, groupIndex) => `
       <div class="e-permits-shell__nav-group${groupIndex === 0 ? " e-permits-shell__nav-group--workplace" : ""}${group.label === "Configurare" && !product ? " e-permits-shell__nav-group--config" : ""}">
         ${group.label ? `<p class="e-permits-shell__group-label">${escapeHtml(group.label)}</p>` : ""}
         <ul class="e-permits-shell__nav-list">
@@ -1143,7 +1146,8 @@ document.addEventListener("DOMContentLoaded", () => {
             const isActive = item.id === profile.defaultItemId;
             const attributes = [
               item.workplaceView ? `data-workplace-view="${escapeHtml(item.workplaceView)}"` : "",
-              item.shellView ? `data-shell-view="${escapeHtml(item.shellView)}"` : ""
+              item.shellView ? `data-shell-view="${escapeHtml(item.shellView)}"` : "",
+              item.navObject ? `data-nav-object="${escapeHtml(item.navObject)}"` : ""
             ].filter(Boolean).join(" ");
 
             return `
@@ -1161,7 +1165,7 @@ document.addEventListener("DOMContentLoaded", () => {
     `).join("");
 
     setupNavTooltips();
-    return (profile.groups || []).flatMap((group) => group.items || []).find((item) => item.id === profile.defaultItemId) || null;
+    return groups.flatMap((group) => group.items || []).find((item) => item.id === profile.defaultItemId) || null;
   };
 
   const showRolePlaceholder = (title) => {
@@ -1591,7 +1595,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const specialistFns = [...ids("dosare"), "p1", "p3", ...ids("avizare").slice(0, 1), ...ids("decizii"), ...ids("sarcini"), ...ids("audit")];
     const supervisorFns = [...ids("dosare"), ...ids("plati"), ...ids("avizare"), ...ids("decizii"), ...ids("sarcini")];
-    const admlFns = ["adm1", "adm2", "adm3", "adm4", "adm5", "adm6", "adm8", ...ids("audit"), "d1", "s1"];
+    const admlFns = ["adm1", "adm2", "adm3", "adm4", "adm5", "adm6", "adm8", ...ids("audit"), "d1", "s1", ...ids("registre")];
 
     const roles = [
       { id: "rol-admc", denumire: "Administrator central", descriere: "Administrare completă: autorități, subdiviziuni, roluri, utilizatori, excepții de permisiuni.", eligibilLocal: false, protejat: true, activ: true, dataCreare: "2026-04-30", utilizatori: 2, functii: all },
@@ -6747,7 +6751,8 @@ document.addEventListener("DOMContentLoaded", () => {
     workplaceState.pageSize = 16;
     /* Configurări servicii opens sorted by „Modificat în GEAP”, newest first (US-230 AC-09) */
     workplaceState.sortKey = kind === "services" ? "actualizat" : db.defaultSort || null;
-    workplaceState.sortDirection = "desc";
+    /* registre-v2: a module registry may open ascending (the AdminPortal registers: „Poziție” 0 → 999) */
+    workplaceState.sortDirection = db.defaultSortDirection || "desc";
     workplaceState.selected.clear();
     serviceProfileState.code = null;
 
@@ -19346,7 +19351,19 @@ document.addEventListener("DOMContentLoaded", () => {
       /* for modules: the service passport and its settings (US-221), the signed-in user */
       getServiceByCode, serviceConfig, getAuthorityById, servicesStore: () => servicesStore, currentUserName, localIsoNow, renderBreadcrumbs,
       /* registre-v1 (js/registre.js): Registru Dosare reads the BO dossiers (rows + status labels / tones) */
-      dossierStore: () => dossierDb
+      dossierStore: () => dossierDb,
+      /* registre-v2 (js/registre-admin.js): the menu redrawn after a publish / grant / deprecation (the active item
+         kept), the permissions of a role from the Roles screen (Feature 89940), the single-choice chips */
+      refreshNav: () => {
+        const assignment = getRoleAssignments().find((item) => item.id === activeAssignmentId);
+        const current = shellNav?.querySelector("[data-nav-item].is-active")?.dataset.navId;
+        if (!assignment) return;
+        renderShellNav(assignment.menuProfile);
+        if (current) setActiveNav(current);
+      },
+      roleFunctions: (label) => (roleAdminDb?.runtimeRows || []).find((role) => role.denumire === label)?.functii || null,
+      permissionGroups: () => usersDb?.profile?.permissionCatalog?.groups || [],
+      renderChoiceChips, syncStackMetaRows
     };
     if (product?.init) product.init(shellApi);
     window.GEAPShellApi = shellApi;

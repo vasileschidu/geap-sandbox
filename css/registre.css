@@ -42,20 +42,20 @@
 }
 
 /* the registers have no checkbox column: the pinned first column carries the divider (as „Dosare noi”) */
-.e-permits-workplace[data-registry-kind^="reg-"] .e-permits-workplace__table th:nth-child(1),
-.e-permits-workplace[data-registry-kind^="reg-"] .e-permits-workplace__table td:nth-child(1) {
+.e-permits-workplace:is([data-registry-kind^="reg-"], [data-registry-kind="registre-admin"]) .e-permits-workplace__table th:nth-child(1),
+.e-permits-workplace:is([data-registry-kind^="reg-"], [data-registry-kind="registre-admin"]) .e-permits-workplace__table td:nth-child(1) {
   border-right: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
   left: 0;
   position: sticky;
   z-index: 7;
 }
 
-.e-permits-workplace[data-registry-kind^="reg-"] .e-permits-workplace__table th:nth-child(1) {
+.e-permits-workplace:is([data-registry-kind^="reg-"], [data-registry-kind="registre-admin"]) .e-permits-workplace__table th:nth-child(1) {
   z-index: 9;
 }
 
-.e-permits-workplace[data-registry-kind^="reg-"] .e-permits-workplace__table th:nth-child(2),
-.e-permits-workplace[data-registry-kind^="reg-"] .e-permits-workplace__table td:nth-child(2) {
+.e-permits-workplace:is([data-registry-kind^="reg-"], [data-registry-kind="registre-admin"]) .e-permits-workplace__table th:nth-child(2),
+.e-permits-workplace:is([data-registry-kind^="reg-"], [data-registry-kind="registre-admin"]) .e-permits-workplace__table td:nth-child(2) {
   border-right: 0;
   left: auto;
   position: static;
@@ -108,27 +108,368 @@
   gap: var(--spacing-8, 8px);
 }
 
-.e-permits-reg-modal--event .e-permits-dosar-profil__section-title {
+.e-permits-reg-modal--event .e-permits-dosar-profil__section-title,
+.e-permits-reg-modal--version .e-permits-dosar-profil__section-title {
   margin: var(--spacing-8, 8px) 0 0;
 }
 
 /* phones (≤760): the registry toolbar wraps and only the actions column stays pinned (the Ghișeu pattern) */
 @media (max-width: 760px) {
-  .e-permits-workplace[data-registry-kind^="reg-"] {
+  .e-permits-workplace:is([data-registry-kind^="reg-"], [data-registry-kind="registre-admin"]) {
     grid-template-columns: minmax(0, 1fr);
     grid-template-rows: auto minmax(0, 1fr) auto;
   }
 
-  .e-permits-workplace[data-registry-kind^="reg-"] .e-permits-workplace__table th:nth-child(1),
-  .e-permits-workplace[data-registry-kind^="reg-"] .e-permits-workplace__table td:nth-child(1) {
+  .e-permits-workplace:is([data-registry-kind^="reg-"], [data-registry-kind="registre-admin"]) .e-permits-workplace__table th:nth-child(1),
+  .e-permits-workplace:is([data-registry-kind^="reg-"], [data-registry-kind="registre-admin"]) .e-permits-workplace__table td:nth-child(1) {
     border-right: 0;
     left: auto;
     position: static;
     z-index: auto;
   }
 
-  .e-permits-workplace[data-registry-kind^="reg-"] .e-permits-workplace__footer {
+  .e-permits-workplace:is([data-registry-kind^="reg-"], [data-registry-kind="registre-admin"]) .e-permits-workplace__footer {
     flex-basis: auto;
     height: auto;
+  }
+}
+
+/* =====================================================================================
+   registre-v2 (2026-10-24) — the register builder in the AdminPortal (js/registre-admin.js, US-146…150, US-193,
+   US-215). Page glue only: list = the BO registry, profile = the shared profile panel, forms = the ONE drawer,
+   „Configurează registrul” = the full-screen template sheet with the dtpl „Câmpuri disponibile” panel, stacked lists,
+   the Documente rule-builder markup and the Setări sticky save bar. components.md › „Registre — AdminPortal builder”.
+   ===================================================================================== */
+
+/* menu icons: the AdminPortal „Registre” item + every register by its source object (the menu follows the catalog) */
+.e-permits-shell__nav--specialist [data-nav-id="registre-config"] .e-permits-shell__nav-icon::before {
+  mask-image: url("../assets/icons/book.svg");
+  mask-size: 20px 20px;
+  -webkit-mask-image: url("../assets/icons/book.svg");
+  -webkit-mask-size: 20px 20px;
+}
+
+.e-permits-shell__nav--specialist [data-nav-object="Case"] .e-permits-shell__nav-icon::before {
+  mask-image: url("../assets/icons/document.svg");
+  -webkit-mask-image: url("../assets/icons/document.svg");
+}
+
+.e-permits-shell__nav--specialist [data-nav-object="Permit"] .e-permits-shell__nav-icon::before {
+  mask-image: url("../assets/icons/permission.svg");
+  -webkit-mask-image: url("../assets/icons/permission.svg");
+}
+
+.e-permits-shell__nav--specialist [data-nav-object="Invoice"] .e-permits-shell__nav-icon::before {
+  mask-image: url("../assets/icons/receipt-bill.svg");
+  -webkit-mask-image: url("../assets/icons/receipt-bill.svg");
+}
+
+.e-permits-shell__nav--specialist [data-nav-object="Expertise"] .e-permits-shell__nav-icon::before {
+  mask-image: url("../assets/icons/stamp.svg");
+  -webkit-mask-image: url("../assets/icons/stamp.svg");
+}
+
+.e-permits-shell__nav--specialist [data-nav-object] .e-permits-shell__nav-icon::before {
+  mask-size: 20px 20px;
+  -webkit-mask-size: 20px 20px;
+}
+
+/* ---- a plain table in a profile section / the drawer (Acces · Istoric versiuni) = the eKYC card table:
+   bordered r16 card, no pinned columns, no divider under the last row */
+.e-permits-reg-table {
+  border: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
+  border-radius: var(--border-radius-16, 16px);
+  overflow: auto;
+}
+
+.e-permits-reg-table__table {
+  table-layout: fixed;
+  width: 100%;
+}
+
+.e-permits-reg-table__table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.e-permits-reg-table__table :is(th, td):is(:nth-child(1), :nth-child(2)) {
+  border-right: 0;
+  left: auto;
+  position: static;
+}
+
+.e-permits-reg-table__table--access {
+  min-width: calc(var(--spacing-40, 40px) * 16);
+}
+
+.e-permits-reg-table__table--access th:nth-child(3) {
+  width: calc(var(--spacing-40, 40px) * 4);
+}
+
+.e-permits-reg-table__table--versions {
+  min-width: calc(var(--spacing-40, 40px) * 22);
+}
+
+.e-permits-reg-table__table--versions th:nth-child(1) {
+  width: var(--spacing-64, 64px);
+}
+
+.e-permits-reg-table__table--versions th:nth-child(2) {
+  width: calc(var(--spacing-64, 64px) * 2);
+}
+
+.e-permits-reg-table__table--versions :is(th:nth-child(3), th:nth-child(5)) {
+  width: calc(var(--spacing-40, 40px) * 4);
+}
+
+.e-permits-reg-table__table--versions th:nth-child(6) {
+  width: calc(var(--spacing-56, 56px) * 3);
+}
+
+.e-permits-reg-table__table :is(th, td):last-child {
+  width: var(--spacing-64, 64px);
+}
+
+.e-permits-reg-table__action {
+  text-align: right;
+}
+
+/* the version number with its „curentă” tag on one line */
+.e-permits-reg-version {
+  align-items: center;
+  display: inline-flex;
+  gap: var(--spacing-8, 8px);
+}
+
+.e-permits-reg-version > .status-tag {
+  flex: none;
+}
+
+/* Acces: the note, then the table (the section rhythm); 16 under the heading row (it keeps 4 of its own) */
+.e-permits-reg-access {
+  display: grid;
+  gap: var(--spacing-16, 16px);
+  margin-top: var(--spacing-12, 12px);
+}
+
+/* Acordă acces: the role checklist and its count */
+.e-permits-reg-roles {
+  display: grid;
+  gap: var(--spacing-8, 8px);
+}
+
+/* a role that already has access is unavailable but explains why on hover: the option still reacts */
+.e-permits-reg-roles .checkbox.e-permits-check-option.is-disabled:hover {
+  background: var(--color-background-base-secondary-hover);
+}
+
+/* ---- „Configurează registrul” — the full-screen template sheet: header · tabs · panes · sticky save bar */
+.e-permits-reg-editor__panel {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.e-permits-reg-editor__header {
+  flex: none;
+}
+
+.e-permits-reg-editor .e-permits-page-header__body,
+.e-permits-reg-editor .e-permits-page-header__tabs {
+  padding-inline: var(--spacing-24, 24px);
+}
+
+.e-permits-reg-editor__body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.e-permits-reg-editor__grid {
+  display: grid;
+  height: 100%;
+}
+
+.e-permits-reg-editor__grid--3 {
+  grid-template-columns: calc(var(--spacing-40, 40px) * 7.5) minmax(0, 1fr) calc(var(--spacing-40, 40px) * 10);
+}
+
+.e-permits-reg-editor__grid--2 {
+  grid-template-columns: minmax(0, 1fr) calc(var(--spacing-40, 40px) * 10);
+}
+
+/* the search keeps its height in the panel's column (the --fill rule makes it grow when the list is short) */
+.e-permits-reg-editor__fields .search-input.e-permits-list-search--fill {
+  flex: 0 0 auto;
+}
+
+/* the available fields panel is the dtpl one; its items are clicked, not dragged */
+.e-permits-reg-editor__fields .e-permits-dtpl-fields__list .e-permits-ntpl-picker__item {
+  cursor: pointer;
+}
+
+.e-permits-reg-editor__main,
+.e-permits-reg-editor__props,
+.e-permits-reg-editor__single {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-16, 16px);
+  min-height: 0;
+  min-width: 0;
+  overflow-y: auto;
+  padding: var(--spacing-16, 16px) var(--spacing-24, 24px) var(--spacing-24, 24px);
+}
+
+.e-permits-reg-editor__props {
+  border-left: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
+}
+
+.e-permits-reg-editor__single {
+  height: 100%;
+  margin-inline: auto;
+  max-width: calc(var(--spacing-40, 40px) * 24);
+  width: 100%;
+}
+
+.e-permits-reg-editor__props-title {
+  color: var(--color-text-base-default, #121212);
+  font-size: var(--font-size-fs-16, 16px);
+  font-weight: var(--font-weight-fw-medium, 500);
+  line-height: var(--line-height-lh-24, 24px);
+  margin: 0;
+}
+
+.e-permits-reg-editor__props > .e-permits-dtpl-fields__hint {
+  margin-top: calc(var(--spacing-8, 8px) * -1);
+}
+
+.e-permits-reg-editor__props .e-permits-user-create__grid {
+  row-gap: var(--spacing-16, 16px);
+}
+
+.e-permits-reg-editor__switches {
+  display: grid;
+  gap: var(--spacing-16, 16px);
+}
+
+.e-permits-reg-editor__field {
+  display: grid;
+  gap: var(--spacing-8, 8px);
+}
+
+/* the selected column / action of the list (the Process Designer list selection: brand-secondary) */
+.e-permits-reg-editor__stack .e-permits-stack__item.is-selected {
+  background: var(--color-background-brand-secondary, #e6eefb);
+}
+
+.e-permits-reg-editor__stack .e-permits-stack__item.is-selected:hover {
+  background: var(--color-background-brand-secondary-hover, #d6e4f8);
+}
+
+.e-permits-reg-editor__stack .e-permits-stack__item.is-dragging {
+  opacity: 0.5;
+}
+
+.e-permits-reg-editor__stack .e-permits-stack__item.is-drop-target {
+  box-shadow: inset 0 var(--spacing-2, 2px) 0 var(--color-border-brand-default, #0058d2);
+}
+
+/* the library × of a full-screen tool, on the title line (the header has no actions) */
+.e-permits-reg-editor__close {
+  right: var(--spacing-24, 24px);
+  top: var(--spacing-16, 16px);
+  z-index: 2;
+}
+
+.e-permits-reg-editor .e-permits-page-header__body {
+  padding-right: calc(var(--spacing-24, 24px) + var(--spacing-32, 32px) + var(--spacing-16, 16px));
+}
+
+/* the sticky save bar of Setări at the bottom of the sheet */
+.e-permits-reg-editor__bar {
+  flex: none;
+  padding-inline: var(--spacing-24, 24px);
+  position: static;
+}
+
+.e-permits-reg-editor__saved {
+  color: var(--color-text-base-tertiary, #757575);
+  font-size: var(--font-size-fs-12, 12px);
+  line-height: var(--line-height-lh-16, 16px);
+}
+
+/* the rule builder fills the single column */
+.e-permits-reg-editor__rule {
+  margin: 0;
+}
+
+/* Pictogramă: 20 icon-only Small buttons, one radio group (selected = the library Secondary variant) */
+.e-permits-reg-icons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-8, 8px);
+}
+
+/* phones (≤ 760) and narrow windows: the panes stack and the sheet scrolls as one page */
+@media (max-width: 1100px) {
+  .e-permits-reg-editor__body {
+    overflow-y: auto;
+  }
+
+  .e-permits-reg-editor__grid,
+  .e-permits-reg-editor__grid--3,
+  .e-permits-reg-editor__grid--2 {
+    grid-template-columns: minmax(0, 1fr);
+    height: auto;
+  }
+
+  .e-permits-reg-editor__main,
+  .e-permits-reg-editor__props,
+  .e-permits-reg-editor__single,
+  .e-permits-reg-editor__fields {
+    overflow: visible;
+  }
+
+  .e-permits-reg-editor__props {
+    border-left: 0;
+    border-top: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
+  }
+
+  .e-permits-reg-editor__fields {
+    border-bottom: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
+    border-right: 0;
+  }
+}
+
+@media (max-width: 760px) {
+  /* rows with a wider lead (order number, action icon): the lead column hugs it (the shared phone grid is 24) */
+  :is(.e-permits-reg-editor__stack, [id="rga-panel"]) .e-permits-stack__item.has-lead {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  /* no dragging on touch: the order lead is the number only, ↑ ↓ move */
+  .e-permits-reg-editor__stack .e-permits-ekcfg-order__handle {
+    display: none;
+  }
+
+  .e-permits-reg-editor .e-permits-page-header__body,
+  .e-permits-reg-editor .e-permits-page-header__tabs,
+  .e-permits-reg-editor__main,
+  .e-permits-reg-editor__props,
+  .e-permits-reg-editor__single,
+  .e-permits-reg-editor__bar {
+    padding-inline: var(--spacing-16, 16px);
+  }
+
+  .e-permits-reg-editor__bar {
+    flex-wrap: wrap;
+    row-gap: var(--spacing-8, 8px);
+  }
+
+  .e-permits-reg-editor .e-permits-page-header__body {
+    padding-right: calc(var(--spacing-16, 16px) + var(--spacing-32, 32px) + var(--spacing-8, 8px));
+  }
+
+  .e-permits-reg-editor__close {
+    right: var(--spacing-16, 16px);
   }
 }

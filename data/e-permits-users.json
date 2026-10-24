@@ -459,6 +459,57 @@
           ]
         },
         {
+          "id": "registre",
+          "label": "Registre",
+          "permissions": [
+            {
+              "id": "rg1",
+              "label": "Vizualizarea registrelor",
+              "role": "Administrator local"
+            },
+            {
+              "id": "rg2",
+              "label": "Crearea unui registru",
+              "role": "Administrator local"
+            },
+            {
+              "id": "rg3",
+              "label": "Editarea unui registru",
+              "role": "Administrator local"
+            },
+            {
+              "id": "rg4",
+              "label": "Publicarea unui registru",
+              "role": "Administrator local"
+            },
+            {
+              "id": "rg5",
+              "label": "Deprecierea unui registru",
+              "role": "Administrator local"
+            },
+            {
+              "id": "rg6",
+              "label": "Istoricul versiunilor registrului",
+              "role": "Administrator local"
+            },
+            {
+              "id": "rg7",
+              "label": "Restaurarea unei versiuni a registrului",
+              "role": "Administrator local"
+            },
+            {
+              "id": "rg8",
+              "label": "Exportul unei versiuni a registrului",
+              "role": "Administrator local"
+            },
+            {
+              "id": "rg9",
+              "label": "Gestionarea accesului la registre",
+              "role": "Administrator local"
+            }
+          ]
+        },
+        {
           "id": "audit",
           "label": "Audit",
           "permissions": [

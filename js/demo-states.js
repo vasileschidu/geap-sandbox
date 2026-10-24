@@ -2931,8 +2931,132 @@
     /* ---- Registre — BackOffice registers, phase 1 (Epic 89620, js/registre.js, registre-v1 2026-10-23) ----
        reg-01 catalog · 02 Dosare · 03 Acte · 04 Note de plată · 05 Avize · 06–09 record cards · 10 Push Case ·
        11 Arhivare · 12 Radiere · 13 Anonimizare + redactare · 14 acces interzis · 15 câmp-sursă dispărut · 16 gol */
-    ...regDemoStates()
+    ...regDemoStates(),
+
+    /* ---- Registre — the register builder in the AdminPortal, phase 2 (Feature 94523, js/registre-admin.js,
+       registre-v2 2026-10-24): reg-a01 listă · a02 creare · a03 profil · a04 editare · a05 coloane · a06 filtru ·
+       a07 acțiuni · a08 publicare · a09 istoric versiuni · a10 depreciere · a11 acces · a12 Administrator local ·
+       a13 permisiuni · a14 efectul în BackOffice */
+    ...regAdminDemoStates()
   };
+
+  function regAdminDemoStates() {
+    const ADMIN = "ansp-central-admin", LOCAL = "ansp-local-admin", SUP = "ansp-supervisor-chisinau", ANTA = "anta-specialist-chisinau";
+    const LIST = "[data-registry-kind='registre-admin'] tr[data-workplace-row], [data-registry-kind='registre-admin'] .e-permits-empty";
+    const PROFILE = "#rga-panel .e-permits-dosar-profil__section, #rga-panel .e-permits-empty";
+    const PAGE = "[data-reg-page]:not([hidden]) .e-permits-empty";
+    const list = (as = ADMIN, run, params) => ({ flow: "back-office", as, hash: "#registre-config", params, ready: LIST, run });
+    const prof = (id, tab = "informatii", as = ADMIN, run, params) => ({ flow: "back-office", as, hash: `#registru-config/${id}/${tab}`, params, ready: PROFILE, run });
+    const listTab = (id) => async (h) => { await h.click(`[data-workplace-tab="${id}"]`); await h.wait(300); };
+    const add = async (h) => { await h.click('[data-workplace-add-product="rga-new"]'); await h.wait(300); };
+    const fillCreate = (object, scope, name, extra) => async (h) => {
+      await add(h);
+      await h.choose('[data-rga-field="object"]', object);
+      if (scope) await h.click(`[data-rga-scope="${scope}"]`);
+      if (extra) await extra(h);
+      await h.fill("#rga-ro", name, { leave: false });
+    };
+    const editor = (tab) => async (h) => {
+      await h.click("[data-rga-configure]"); await h.wait(400);
+      if (tab) { await h.click(`[data-rga-editor-tab="${tab}"]`); await h.wait(250); }
+    };
+    const menu = async (h) => { await h.click(".e-permits-page-header [data-stack-menu-trigger]"); await h.wait(200); };
+    const menuItem = (attr) => async (h) => { await menu(h); await h.click(`[${attr}]`); await h.wait(400); };
+    const publish = async (h) => { await h.click("[data-rga-publish]"); await h.wait(400); };
+    const publishWith = (note) => async (h) => { await publish(h); await h.fill("#rgp-publish-note", note, { leave: false }); await h.click("[data-rgp-confirm]"); await h.wait(500); };
+    const history = async (h) => { await h.click("[data-rga-history]"); await h.wait(400); };
+    const versionMenu = (nr) => async (h) => { await history(h); await h.click(`[data-rga-drawer] tr:has([data-rgv-view="${nr}"]) [data-stack-menu-trigger]`); await h.wait(250); };
+    const save = async (h) => { await h.click("[data-rga-editor-save]"); await h.wait(500); };
+    return {
+      /* US-147 — the list: perimeter tabs with counts, code under the name, ordered by „Poziție” */
+      "reg-a01": list(),
+      "reg-a01a": list(ADMIN, listTab("authority")),
+      "reg-a01b": list(ADMIN, listTab("service")),
+      "reg-a01c": list(ADMIN, async (h) => { await h.fill("[data-workplace-search]", "zzz"); await h.wait(400); }),
+      "reg-a01d": list(ADMIN, async (h) => { window.GEAPShellApi.setRegistryFilters("registre-admin", { statut: ["Schiță"] }); document.querySelector('[data-nav-item][data-nav-id="registre-config"]').click(); await h.wait(600); await listTab("authority")(h); }),
+      "reg-a01e": list(ADMIN, async (h) => { await h.click("[data-workplace-export]"); }),
+      /* US-146 — „Registru nou”: empty, errors, filled (Autoritate + registru-părinte), duplicate code, created */
+      "reg-a02": list(ADMIN, add),
+      "reg-a02a": list(ADMIN, async (h) => { await add(h); await h.click('[data-rga-scope="Authority"]'); await h.click("[data-rga-create-save]"); }),
+      "reg-a02b": list(ADMIN, fillCreate("Case", "Authority", "Dosare ANSP Bălți", async (h) => { await h.choose('[data-rga-field="authority"]', "ANSP"); await h.choose('[data-rga-field="parent"]', "reg-dosare"); await h.fill("#rga-ru", "Дела ANSP Бэлць", { leave: false }); })),
+      "reg-a02c": list(ADMIN, async (h) => { await fillCreate("Case", "Global", "Registru Dosare")(h); await h.click("[data-rga-create-save]"); }),
+      "reg-a02d": list(ADMIN, async (h) => { await fillCreate("Case", "Authority", "Dosare ANSP Bălți", async (x) => { await x.choose('[data-rga-field="authority"]', "ANSP"); await x.choose('[data-rga-field="parent"]', "reg-dosare"); })(h); await h.click("[data-rga-create-save]"); await h.wait(500); }),
+      /* US-147 profile + tabs (AC-16…19), the header ⋮, a draft with unpublished changes, a deprecated register */
+      "reg-a03": prof("reg-dosare"),
+      "reg-a03a": prof("reg-dosare", "coloane"),
+      "reg-a03b": prof("reg-dosare", "acces"),
+      "reg-a03c": prof("reg-dosare", "informatii", ADMIN, menu),
+      "reg-a03d": prof("reg-avizeigsu"),
+      "reg-a03e": prof("reg-acteanta"),
+      "reg-a03f": prof("reg-noterestante", "coloane"),
+      /* US-148 — „Editează registrul”, + errors */
+      "reg-a04": prof("reg-dosare", "informatii", ADMIN, menuItem("data-rga-edit")),
+      "reg-a04a": prof("reg-dosare", "informatii", ADMIN, async (h) => { await menuItem("data-rga-edit")(h); await h.fill("#rga-ro", "", { leave: false }); await h.fill("#rga-position", "1200", { leave: false }); await h.click("[data-rga-edit-save]"); }),
+      /* US-149 — „Configurează registrul” › Coloane: three panes, search, a service field, a change → review */
+      "reg-a05": prof("reg-dosare", "informatii", ADMIN, editor()),
+      "reg-a05a": prof("reg-dosare", "informatii", ADMIN, async (h) => { await editor()(h); await h.fill("[data-rga-col-search]", "comp", { leave: false }); await h.click('[data-rga-col="statut"]'); }),
+      "reg-a05b": prof("reg-dosaresanitar", "informatii", ADMIN, async (h) => { await editor()(h); await h.click('[data-rga-col="svc:activitate"]'); }),
+      "reg-a05c": prof("reg-dosare", "informatii", ADMIN, async (h) => { await editor()(h); await h.click('[data-rga-add-col="companie"]'); await h.click('[data-rga-col-move="actor|-1"]'); }),
+      "reg-a05d": prof("reg-dosare", "informatii", ADMIN, async (h) => { await editor()(h); await h.click('[data-rga-add-col="companie"]'); await h.click('[data-rga-col="tip"]'); await h.click('[data-rga-col-flag="visible"]'); await h.click("[data-rga-editor-bar] [data-profile-changes]"); }),
+      /* › Filtru: the rule sentence, „și ▾ / sau”, the value error + the bar message (AC-15), no rule (AC-16) */
+      "reg-a06": prof("reg-dosareplata", "informatii", ADMIN, editor("filtru")),
+      "reg-a06a": prof("reg-dosareplata", "informatii", ADMIN, async (h) => { await editor("filtru")(h); await h.click("[data-rga-rule-add]"); await h.choose("#rga-rule-col-1 ~ select, [data-rga-rule='1'][data-rga-rule-part='column']", "subdiviziune"); await h.choose("[data-rga-rule='1'][data-rga-rule-part='op']", "contains"); await h.fill("#rga-rule-value-1", "Chișinău", { leave: false }); await h.choose("[data-rga-rule-logic]", "or"); }),
+      "reg-a06b": prof("reg-dosareplata", "informatii", ADMIN, async (h) => { await editor("filtru")(h); await h.click("[data-rga-rule-add]"); await save(h); }),
+      "reg-a06c": prof("reg-acte", "informatii", ADMIN, editor("filtru")),
+      /* › Acțiuni: the list + properties, a new action, 12 = „Adaugă acțiune” off (AC-23), Acte permisive types (AC-19) */
+      "reg-a07": prof("reg-dosare", "informatii", ADMIN, async (h) => { await editor("actiuni")(h); await h.click('[data-rga-act="archive"]'); }),
+      "reg-a07a": prof("reg-dosare", "informatii", ADMIN, async (h) => { await editor("actiuni")(h); await h.click("[data-rga-act-add]"); await h.choose('[data-rga-field="act-type"]', "process-start"); await h.choose('[data-rga-field="act-target"]', "p-reperfectare"); }),
+      "reg-a07b": prof("reg-dosare", "informatii", ADMIN, async (h) => { await editor("actiuni")(h); for (let i = 0; i < 7; i += 1) { await h.click("[data-rga-act-add]"); await h.choose('[data-rga-field="act-type"]', "process-start"); await h.choose('[data-rga-field="act-target"]'); } await h.hover("[data-rga-act-add]"); }),
+      "reg-a07c": prof("reg-acte", "informatii", ADMIN, async (h) => { await editor("actiuni")(h); await h.click("[data-rga-act-add]"); await h.click("#rga-act-type"); }),
+      /* US-150 — publish: changes warning, comment error, no columns, deprecated, done, rejected, no effect */
+      "reg-a08": prof("reg-avizeigsu", "informatii", ADMIN, publish),
+      "reg-a08a": prof("reg-avizeigsu", "informatii", ADMIN, async (h) => { await publish(h); await h.click("[data-rgp-confirm]"); }),
+      "reg-a08b": prof("reg-noterestante", "informatii", ADMIN, publish),
+      "reg-a08c": prof("reg-acteanta", "informatii", ADMIN, publish),
+      "reg-a08d": prof("reg-avizeigsu", "informatii", ADMIN, publishWith("Coloana „Valabil până la” și filtrul IGSU.")),
+      "reg-a08e": prof("reg-avizeigsu", "informatii", ADMIN, async (h) => { await editor()(h); await h.click('[data-rga-col="solicitant"]'); await h.choose('[data-rga-field="col-filter"]', "date"); await save(h); await publishWith("Filtru pe solicitant.")(h); }),
+      "reg-a08f": prof("reg-avize", "informatii", ADMIN, publish),
+      /* „Istoric versiuni” (AC-14…26): 12 versions → 10 per page, sort, ⋮, the version window, restore, done */
+      "reg-a09": prof("reg-dosare", "informatii", ADMIN, history),
+      "reg-a09a": prof("reg-dosare", "informatii", ADMIN, async (h) => { await history(h); await h.click('[data-rgv-sort="data"]'); await h.click('[data-rgv-sort="data"]'); }),
+      "reg-a09b": prof("reg-dosare", "informatii", ADMIN, versionMenu(7)),
+      "reg-a09c": prof("reg-dosare", "informatii", ADMIN, async (h) => { await versionMenu(7)(h); await h.click('[data-rgv-view="7"][role="menuitem"]'); }),
+      "reg-a09d": prof("reg-dosare", "informatii", ADMIN, async (h) => { await versionMenu(7)(h); await h.click('[data-rgv-restore="7"]'); }),
+      "reg-a09e": prof("reg-dosare", "informatii", ADMIN, async (h) => { await versionMenu(7)(h); await h.click('[data-rgv-restore="7"]'); await h.fill("#rgv-restore-note", "Revenire: acțiunile noi se retestează.", { leave: false }); await h.click("[data-rgv-restore-confirm]"); await h.wait(500); }),
+      /* US-193 — deprecate / reactivate (+ refused without columns, the BO link to a deprecated register) */
+      "reg-a10": prof("reg-avize", "informatii", ADMIN, menuItem("data-rga-deprecate")),
+      "reg-a10a": prof("reg-avize", "informatii", ADMIN, async (h) => { await menuItem("data-rga-deprecate")(h); await h.click("[data-service-confirm-ok]"); await h.wait(500); }),
+      "reg-a10b": prof("reg-acteanta", "informatii", ADMIN, menuItem("data-rga-reactivate")),
+      "reg-a10c": prof("reg-avizeexpirate", "informatii", ADMIN, menuItem("data-rga-reactivate")),
+      "reg-a10d": { flow: "back-office", as: ANTA, hash: "#reg-acteanta", ready: PAGE },
+      /* US-215 — access: the grant panel, an authority with a role already granted, granted, revoke */
+      "reg-a11": prof("reg-platisanitar", "acces", ADMIN, async (h) => { await h.click("[data-rga-grant]"); }),
+      "reg-a11a": prof("reg-note", "acces", ADMIN, async (h) => { await h.click("[data-rga-grant]"); await h.choose('[data-rga-field="authority"]', "ANSP"); await h.click('input[data-rga-role][value="auditor"]'); }),
+      "reg-a11b": prof("reg-platisanitar", "acces", ADMIN, async (h) => { await h.click("[data-rga-grant]"); await h.click('input[data-rga-role][value="central-admin"]'); await h.click('input[data-rga-role][value="supervisor"]'); await h.click("[data-rga-grant-save]"); await h.wait(500); }),
+      "reg-a11c": prof("reg-dosare", "acces", ADMIN, async (h) => { await h.click('[data-rga-revoke="reg-dosare-g4"]'); }),
+      /* Administrator local (ANSP): no global registers, own authority + its services, „Acces interzis” elsewhere */
+      "reg-a12": list(LOCAL),
+      "reg-a12a": list(LOCAL, add),
+      "reg-a12b": { flow: "back-office", as: LOCAL, hash: "#registru-config/reg-dosare/informatii", ready: PAGE },
+      "reg-a12c": { flow: "back-office", as: SUP, hash: "#registre-config", ready: PAGE },
+      /* permissions (Feature 94523 group „Registre”): no publish / history; the group on the Roles screen */
+      "reg-a13": prof("reg-dosare", "informatii", ADMIN, null, { fara: "publicare,istoric,depreciere" }),
+      "reg-a13a": { flow: "back-office", as: ADMIN, hash: "#rol/rol-adml/permissions", ready: "[data-role-profile] .e-permits-stack__item, .e-permits-stack-section", run: async (h) => { await h.fill("[data-perm-search]", "registr", { leave: false }); } },
+      /* item 7 — a column published in the builder shows in the BO register at once (reg-02); a grant adds the menu item */
+      "reg-a14": prof("reg-dosare", "informatii", ADMIN, async (h) => {
+        await editor()(h); await h.click('[data-rga-add-col="companie"]');
+        for (let i = 0; i < 7; i += 1) await h.click('[data-rga-col-move="companie|-1"]');
+        await save(h);
+        await publishWith("Coloana „Companie”.")(h);
+        document.querySelector('[data-nav-item][data-nav-id="reg-dosare"]').click(); await h.wait(900);
+        await h.find('[data-registry-kind="reg-dosare"] th[data-column="companie"]');
+      }),
+      "reg-a14a": prof("reg-platisanitar", "acces", ADMIN, async (h) => {
+        await h.click("[data-rga-grant]"); await h.click('input[data-rga-role][value="central-admin"]'); await h.click("[data-rga-grant-save]"); await h.wait(500);
+        document.querySelector('[data-nav-item][data-nav-id="reg-platisanitar"]').click(); await h.wait(900);
+      })
+    };
+  }
 
   function regDemoStates() {
     const ADMIN = "ansp-central-admin", LOCAL = "ansp-local-admin", SPEC = "ansp-specialist-chisinau", SUP = "ansp-supervisor-chisinau";

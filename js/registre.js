@@ -23,6 +23,14 @@
    ?modificat=<record id> (the record changed in another session → the action is refused, US-194 AC-12),
    ?concurent=1 (Push Case refused: transferred meanwhile, US-195 AC-12), ?registre=gol (empty source).
    State (anonymised / archived / struck records, transfers, added events) lives in localStorage `e-permits-registre-v1`.
+
+   Phase 2 (registre-v2, 2026-10-24) — the AdminPortal builder (js/registre-admin.js, US-146…150, US-193, US-215) writes
+   the builder CATALOG (one record per register: names RO / RU / EN, perimeter, position, status, the working config, the
+   last PUBLISHED config, the version history, the access grants) into localStorage `e-permits-registre-admin-v1`. This
+   file builds the catalog from data/registre.json (the seed's published definitions + `admin`) and turns every record
+   that has a published version into the SAME definition shape phase 1 always consumed (`S.data.registers`), so a
+   column published in the builder shows in the BO register at once. Grants are `role` (all authorities) or
+   `{ role, authority }`; a deprecated register leaves the menu and the catalog, an old link shows a notice.
    ===================================================================================== */
 (function () {
   "use strict";
@@ -78,13 +86,231 @@
       S.loading = fetch(DATA_URL, { cache: "no-store" }).then((r) => r.json()).then((data) => {
         if (params.get("registre") === "gol") { data.acts = []; data.notes = []; data.avize = []; }
         S.data = data;
+        S.seedRegisters = data.registers;
         readStore();
+        applyCatalog();
+        /* the menu follows the catalog (published, granted, not deprecated) — same items as the static menu for the seed */
+        A().refreshNav?.();
         return data;
       }).catch((error) => { console.warn(error); S.loading = null; return null; });
     }
     return S.loading;
   }
   const defOf = (id) => S.data?.registers.find((reg) => reg.id === id) || null;
+
+  /* ================================================================ phase 2: the builder catalog (registre-v2) */
+  /* the fields each source object offers to the builder — [group, [[key, label, type, width]]]; type decides what a
+     column can do: text → sort + text filter · enum → sort + single / multi choice · date → sort + period · number →
+     sort only. The Serviciu perimeter adds the service's own fields (display only, US-149 AC-04 / AC-11). */
+  const FIELD_CATALOG = {
+    Case: [
+      ["Dosar", [["nr", "Nr. dosar", "text", 168], ["tip", "Tip solicitare", "enum", 140], ["serviciu", "Serviciu", "enum", 232], ["statut", "Statut dosar", "enum", 152], ["depus", "Data depunerii", "date", 160], ["termen", "Termen de examinare", "date", 176]]],
+      ["Solicitant", [["solicitant", "Solicitant", "text", 208], ["companie", "Companie", "text", 208]]],
+      ["Responsabil", [["subdiviziune", "Autoritate / Subdiviziune", "enum", 196], ["actor", "Actor responsabil", "enum", 176]]]
+    ],
+    Permit: [
+      ["Act permisiv", [["nr", "Nr. act", "text", 168], ["denumire", "Denumire act", "enum", 264], ["tip", "Tip act", "enum", 140], ["status", "Status", "enum", 144], ["emis", "Data emiterii", "date", 160], ["valabil", "Valabil până la", "date", 168], ["dosar", "Nr. dosar", "text", 160]]],
+      ["Beneficiar", [["beneficiar", "Beneficiar", "text", 208]]],
+      ["Autoritate", [["autoritate", "Autoritate emitentă", "enum", 168]]]
+    ],
+    Invoice: [
+      ["Nota de plată", [["nr", "Nr. notă de plată", "text", 176], ["referinta", "Dosar / Act permisiv", "text", 176], ["serviciu", "Serviciu", "enum", 224], ["suma", "Sumă", "number", 136], ["statutNota", "Statut notă", "enum", 152], ["emisa", "Data emiterii", "date", 160], ["termen", "Termen de achitare", "date", 168], ["confirmatDe", "Confirmat de", "enum", 168]]],
+      ["Plătitor", [["solicitant", "Solicitant", "text", 200]]],
+      ["Tranzacția MPay", [["statutMpay", "Tranzacție MPay", "enum", 176], ["metoda", "Metodă de plată", "enum", 160], ["mpay", "Nr. MPay", "text", 160]]],
+      ["Autoritate", [["autoritate", "Autoritate / Subdiviziune", "enum", 196]]]
+    ],
+    Expertise: [
+      ["Aviz", [["nr", "Nr. aviz", "text", 160], ["tip", "Tip aviz", "enum", 232], ["statut", "Statut aviz", "enum", 140], ["emis", "Data emiterii", "date", 160], ["valabil", "Valabil până la", "date", 168]]],
+      ["Dosar", [["dosar", "Dosar", "text", 160], ["solicitant", "Solicitant", "text", 192]]],
+      ["Autoritate", [["autoritate", "Autoritate / Subdiviziune", "enum", 196]]]
+    ]
+  };
+  /* the service's own request fields (Feature 90575 passport) — display only; values follow the record */
+  const SERVICE_FIELDS = {
+    "003000118": [
+      ["svc:activitate", "Tipul activității", ["Alimentație publică", "Comerț cu produse alimentare", "Prestări servicii de înfrumusețare", "Instituție de învățământ preșcolar"], 220],
+      ["svc:suprafata", "Suprafața încăperilor", (h) => `${40 + (h % 580)} m²`, 160],
+      ["svc:capacitate", "Capacitatea", (h) => `${12 + (h % 168)} locuri`, 136]
+    ],
+    "003000519": [
+      ["svc:produs", "Denumirea produsului biocid", ["Dezinfectant pentru suprafețe", "Insecticid de uz casnic", "Raticid granulat"], 220],
+      ["svc:substanta", "Substanța activă", ["Clorură de benzalconiu", "Permetrină", "Bromadiolonă"], 180]
+    ]
+  };
+  const OBJECTS = { Case: { label: "Dosare", code: "Case" }, Permit: { label: "Acte permisive", code: "Permit" }, Invoice: { label: "Note de plată", code: "PaymentOrder" }, Expertise: { label: "Avize", code: "Expertise" } };
+  const SCOPES = { Global: { label: "Global", code: "Global" }, Authority: { label: "Autoritate", code: "Authority" }, Service: { label: "Serviciu", code: "Service" } };
+  const FIELD_TYPES = { text: "Text", enum: "Listă de valori", date: "Dată", number: "Număr", svc: "Câmp al serviciului" };
+  const FILTER_SUPPORT = { text: ["text"], enum: ["single", "multi"], date: ["date"], number: [], svc: [] };
+  const serviceOf = (code) => (S.data?.admin?.services || []).find((s) => s.code === code) || null;
+  function fieldsOf(object, serviceCode = null) {
+    const list = (FIELD_CATALOG[object] || []).flatMap(([group, fields]) => fields.map(([key, label, type, width]) => ({ key, label, type, width, group })));
+    const own = object === "Case" && serviceCode ? (SERVICE_FIELDS[serviceCode] || []).map(([key, label, values, width]) => ({ key, label, type: "svc", width, group: "Câmpuri ale serviciului", values })) : [];
+    return [...list, ...own];
+  }
+  const fieldOf = (object, key, serviceCode = null) => fieldsOf(object, serviceCode).find((f) => f.key === key) || null;
+  /* a new column from a source field: the type's natural sort / filter, visible */
+  const columnFrom = (field) => ({
+    key: field.key, label: field.label, labels: { ru: "", en: "" }, width: field.width || 160, align: field.type === "number" ? "right" : "left",
+    visible: true, sortable: field.type !== "svc", filter: { text: "text", enum: "multi", date: "date" }[field.type] || null
+  });
+  const svcValue = (row, key) => {
+    const field = Object.values(SERVICE_FIELDS).flat().find(([k]) => k === key);
+    if (!field) return "";
+    const h = hashOf(`${row.id}:${key}`);
+    return typeof field[2] === "function" ? field[2](h) : field[2][h % field[2].length];
+  };
+  const clone = (x) => (x == null ? x : JSON.parse(JSON.stringify(x)));
+  const CATALOG_KEY = "e-permits-registre-admin-v1";
+  /* RU / EN headers of the seeded Registru Dosare (v1.1.3 „Antetele RU și EN pentru toate coloanele”) */
+  const HEADERS_RU_EN = {
+    nr: ["№ дела", "Case no."], solicitant: ["Заявитель", "Applicant"], serviciu: ["Услуга", "Service"], subdiviziune: ["Орган / Подразделение", "Authority / Unit"],
+    statut: ["Статус дела", "Case status"], actor: ["Ответственный", "Assignee"], depus: ["Дата подачи", "Submitted on"], termen: ["Срок рассмотрения", "Review deadline"], tip: ["Тип заявки", "Request type"]
+  };
+  /* phase-1 rule {field, op: ≠ | =, value: code} → the builder's {column, op, value: label} (AC-13 operators + „nu este”) */
+  const convertFilter = (pf) => {
+    if (!pf) return null;
+    if (pf.rules?.every((r) => r.column)) return { label: pf.label || "", logic: pf.logic || "and", rules: pf.rules };
+    return {
+      label: pf.label || "",
+      logic: "and",
+      rules: (pf.rules || []).map((r) => (r.field === "status"
+        ? { column: "statut", op: r.op === "≠" ? "isNot" : "is", value: dossierStatuses()[r.value]?.label || (r.value === "schita" ? "Schiță" : r.value) }
+        : { column: r.field, op: r.op === "≠" ? "isNot" : "is", value: r.value }))
+    };
+  };
+  const configFromDef = (def, withHeaders = false) => ({
+    columns: def.columns.map((c) => ({ ...c, labels: { ru: withHeaders ? HEADERS_RU_EN[c.key]?.[0] || "" : "", en: withHeaders ? HEADERS_RU_EN[c.key]?.[1] || "" : "" } })),
+    predefinedFilter: convertFilter(def.predefinedFilter),
+    actions: (def.actions || []).map((a) => ({ ...a, labels: { ru: "", en: "" }, target: a.control || a.form || a.process || "" })),
+    defaultSort: def.defaultSort || null,
+    exportNeedsCriteria: Boolean(def.exportNeedsCriteria)
+  });
+  /* an older version = the config without the columns / actions added later (seed history) */
+  const snapshot = (config, drop = {}) => ({
+    ...clone(config),
+    columns: config.columns.filter((c) => !(drop.columns || []).includes(c.key)).map(clone),
+    actions: config.actions.filter((a) => !(drop.actions || []).includes(a.key)).map(clone)
+  });
+  function buildCatalog(data) {
+    const adm = data.admin || {};
+    const seed = (S.seedRegisters || data.registers).filter((def) => !def.soon);
+    const records = seed.map((def) => {
+      const meta = adm.registers?.[def.id] || {};
+      const config = configFromDef(def, def.id === "reg-dosare");
+      return {
+        id: def.id, code: def.code, object: def.object, scope: "Global", authority: null, service: null, parent: null,
+        names: { ro: def.name, ru: meta.names?.ru || "", en: meta.names?.en || "" }, description: def.description || "",
+        position: def.position || 0, category: def.category, icon: def.icon,
+        status: def.status === "Publicat" ? "Publicat" : def.status, version: def.version, publishedVersion: def.version, unpublished: false,
+        config, published: clone(config), publishedAt: def.publishedAt,
+        createdAt: meta.createdAt || def.publishedAt, createdBy: meta.createdBy || "Anastasia Cojocaru",
+        editedAt: meta.editedAt || def.publishedAt, editedBy: meta.editedBy || "Anastasia Cojocaru",
+        versions: (meta.versions || []).map((v, i) => ({ nr: i + 1, version: v.version, type: v.type, note: v.note, at: v.at, by: v.by, config: snapshot(config, v.drop) })),
+        grants: (meta.grants || def.grants.map((role) => ({ role, authority: null, at: def.publishedAt, by: "Anastasia Cojocaru" }))).map((g, i) => ({ id: `${def.id}-g${i + 1}`, ...g })),
+        events: []
+      };
+    });
+    (adm.extra || []).forEach((x) => {
+      const base = (id) => records.find((r) => r.id === id);
+      const c = x.config || {};
+      let columns = c.copyColumnsOf ? base(c.copyColumnsOf).config.columns.map(clone) : (c.columns || []).map((key) => columnFrom(fieldOf(x.object, key, x.service)));
+      if (c.dropColumns) columns = columns.filter((col) => !c.dropColumns.includes(col.key));
+      const config = {
+        columns,
+        predefinedFilter: c.predefinedFilter ? { label: "", ...clone(c.predefinedFilter) } : null,
+        actions: c.copyActionsOf ? base(c.copyActionsOf).config.actions.map(clone) : [],
+        defaultSort: c.copyColumnsOf ? clone(base(c.copyColumnsOf).config.defaultSort) : null,
+        exportNeedsCriteria: false
+      };
+      const published = x.publishedVersion ? { ...clone(config), columns: config.columns.filter((col) => !(x.published?.dropColumns || []).includes(col.key)) } : null;
+      records.push({
+        id: x.id, code: x.code, object: x.object, scope: x.scope, authority: x.authority, service: x.service, parent: x.parent,
+        names: { ru: "", en: "", ...x.names }, description: x.description, position: x.position, category: adm.categories?.[x.object] || "", icon: OBJECT_ICON[x.object],
+        status: x.status, version: x.version, publishedVersion: x.publishedVersion, unpublished: Boolean(x.unpublished),
+        config, published, publishedAt: x.versions?.[x.versions.length - 1]?.at || null,
+        createdAt: x.createdAt, createdBy: x.createdBy, editedAt: x.editedAt, editedBy: x.editedBy,
+        versions: (x.versions || []).map((v, i) => ({ nr: i + 1, version: v.version, type: v.type, note: v.note, at: v.at, by: v.by, config: clone(published || config) })),
+        grants: (x.grants || []).map((g, i) => ({ id: `${x.id}-g${i + 1}`, ...g })),
+        events: []
+      });
+    });
+    return { records, seq: 100, audit: [] };
+  }
+  const OBJECT_ICON = { Case: "document", Permit: "permission", Invoice: "receipt-bill", Expertise: "stamp" };
+  /* the name of a row action's target (a Form Designer form, a process, a control) */
+  const targetLabel = (a) => {
+    const t = S.data?.admin?.targets || {};
+    const id = a.form || a.process || a.control || a.target;
+    return [...(t.forms || []), ...(t.processes || []), ...(t.controls || [])].find((x) => x.id === id)?.label || id || a.label;
+  };
+  function catalog() {
+    if (S.catalog) return S.catalog;
+    if (!S.data) return null;
+    let stored = null;
+    try { stored = JSON.parse(window.localStorage.getItem(CATALOG_KEY) || "null"); } catch { stored = null; }
+    S.catalog = stored?.records ? stored : buildCatalog(S.data);
+    return S.catalog;
+  }
+  const recordOf = (id) => catalog()?.records.find((r) => r.id === id) || null;
+  /* the published definition of a record = what phase 1 renders (same shape as data/registre.json › registers) */
+  const activeGrants = (rec) => rec.grants.filter((g) => !g.revokedAt).map((g) => (g.authority ? { role: g.role, authority: g.authority } : g.role));
+  function boDefOf(rec) {
+    if (!rec.published) return null;
+    const p = rec.published;
+    return {
+      id: rec.id, code: rec.code, name: rec.names.ro, object: rec.object, objectLabel: OBJECTS[rec.object]?.label || rec.object,
+      scope: rec.scope, authority: rec.authority || null, service: rec.service || null, category: rec.category, icon: rec.icon,
+      version: rec.publishedVersion, status: rec.status, publishedAt: rec.publishedAt, description: rec.description, position: rec.position,
+      deprecated: rec.status === "Depreciat", deprecatedAt: rec.deprecatedAt || rec.editedAt,
+      grants: activeGrants(rec),
+      predefinedFilter: clone(p.predefinedFilter), exportNeedsCriteria: Boolean(p.exportNeedsCriteria), defaultSort: clone(p.defaultSort),
+      columns: p.columns.map(({ labels, ...c }) => ({ ...c })),
+      actions: p.actions.map(({ labels, target, ...a }) => {
+        const control = a.type === "custom" ? target || a.control : undefined;
+        return {
+          ...a, control,
+          form: a.type === "form" ? target : undefined,
+          process: /^process/.test(a.type) ? target : undefined,
+          danger: Boolean(a.danger || (S.data?.admin?.targets?.controls || []).find((c) => c.id === control)?.danger),
+          permission: control === "PushCase" ? "Cases.Case.Push" : undefined
+        };
+      })
+    };
+  }
+  const SCOPE_ORDER = { Global: 0, Authority: 1, Service: 2 };
+  function applyCatalog() {
+    const cat = catalog();
+    if (!cat) return;
+    const soon = (S.seedRegisters || []).filter((def) => def.soon);
+    S.data.registers = [
+      ...cat.records.map(boDefOf).filter(Boolean).sort((a, b) => (SCOPE_ORDER[a.scope] - SCOPE_ORDER[b.scope]) || (a.position - b.position)),
+      ...soon
+    ];
+    S.data.registers.filter((def) => !def.soon).forEach((def) => registerRegistry(def.id));
+  }
+  /* the builder calls this after every change: save, rebuild the BO definitions, redraw the menu and an open register */
+  function commit() {
+    try { window.localStorage.setItem(CATALOG_KEY, JSON.stringify(S.catalog)); } catch { /* private mode: session only */ }
+    applyCatalog();
+    A().refreshNav?.();
+    const open = document.querySelector("[data-workplace][data-registry-kind^='reg-']");
+    if (open && !open.closest("[hidden]")) refresh(open.dataset.registryKind);
+  }
+
+  /* the AdminPortal permissions of the signed-in role (Feature 94523: grupul „Registre” al ecranului «Roluri») —
+     read from the role on the Roles screen; ?fara=publicare,istoric… removes some for a demo */
+  const PERMISSIONS = { view: "rg1", create: "rg2", edit: "rg3", publish: "rg4", deprecate: "rg5", history: "rg6", restore: "rg7", exportVersion: "rg8", access: "rg9" };
+  const PERM_PARAM = { vizualizare: "view", creare: "create", editare: "edit", publicare: "publish", depreciere: "deprecate", istoric: "history", restaurare: "restore", exportversiune: "exportVersion", acces: "access" };
+  function adminPerms(who = persona()) {
+    const fns = A().roleFunctions?.(who.roleLabel);
+    const off = (params.get("fara") || "").split(",").map((k) => PERM_PARAM[k.trim()]).filter(Boolean);
+    /* before the Roles data arrives: the two administrator roles carry the whole group (the seed) */
+    const has = (id) => (fns ? fns.includes(id) : ["central-admin", "local-admin"].includes(who.roleId));
+    return new Set(Object.entries(PERMISSIONS).filter(([key, id]) => has(id) && !off.includes(key)).map(([key]) => key));
+  }
+  /* AdminPortal perimeter: the central administrator sees every register; a local one only the registers of its own
+     authority and of that authority's services — never the global ones (US-146 AC-12, US-147 AC-04 / AC-21) */
+  const adminSees = (rec, who = persona()) => who.all || (rec.scope !== "Global" && rec.authority === who.authority);
   const authorityOf = (code) => S.data?.authorities.find((a) => a.code === code) || { code, name: code };
 
   /* ---------------------------------------------------------------- who is looking (role + perimeter) */
@@ -113,7 +339,10 @@
       can: (perm) => (PERMS[roleId] || []).includes(perm)
     };
   }
-  const granted = (def, who = persona()) => Boolean(def && !def.soon && def.grants.includes(who.roleId));
+  /* Register Grant (US-215): a role id = every authority; { role, authority } = that authority only; a deprecated
+     register is out of the BO for everyone (US-193 AC-04) */
+  const grantMatches = (g, who) => (typeof g === "string" ? g === who.roleId : g.role === who.roleId && (!g.authority || who.all || g.authority === who.authority));
+  const granted = (def, who = persona()) => Boolean(def && !def.soon && !def.deprecated && (def.grants || []).some((g) => grantMatches(g, who)));
   /* perimeter: the authority (+ subdivision when the record has one and the role is local) */
   const inPerimeter = (who, authority, subdivision, { authorityOnly = false } = {}) => {
     if (who.all) return true;
@@ -199,24 +428,48 @@
   };
   /* the fields each source object offers to the builder (a column whose key is missing here is dropped silently:
      US-194 / US-196 / US-198 AC „dacă un câmp-sursă dispare, coloana nu mai apare”) */
-  const SOURCE_FIELDS = {
-    Case: ["nr", "solicitant", "serviciu", "subdiviziune", "statut", "actor", "depus", "termen", "tip"],
-    Permit: ["nr", "denumire", "autoritate", "beneficiar", "status", "emis", "valabil", "dosar", "tip"],
-    Invoice: ["nr", "referinta", "solicitant", "serviciu", "suma", "statutNota", "statutMpay", "metoda", "autoritate", "emisa", "termen", "confirmatDe", "mpay"],
-    Expertise: ["nr", "tip", "dosar", "solicitant", "autoritate", "statut", "emis", "valabil"]
-  };
+  /* = the builder's field catalog (registre-v2: one list for both sides) */
+  const SOURCE_FIELDS = Object.fromEntries(Object.keys(FIELD_CATALOG).map((object) => [object, fieldsOf(object).map((f) => f.key)]));
   const columnsOf = (def) => {
     const gone = (params.get("lipsa") || "").split(",").filter(Boolean);
-    return def.columns.filter((c) => SOURCE_FIELDS[def.object]?.includes(c.key) && !gone.includes(c.key));
+    const own = def.object === "Case" && def.service ? (SERVICE_FIELDS[def.service] || []).map(([key]) => key) : [];
+    return def.columns.filter((c) => (SOURCE_FIELDS[def.object]?.includes(c.key) || own.includes(c.key)) && !gone.includes(c.key));
   };
-  /* the predefined filter (invisible to the BO user, Feature 94523): rule list, all must hold */
-  const passesPredefined = (def, row) => !def.predefinedFilter || def.predefinedFilter.rules.every((rule) => {
-    const value = rule.field === "status" ? row.src?.status ?? row.status : row[rule.field];
-    return rule.op === "≠" ? value !== rule.value : value === rule.value;
-  });
+  /* the predefined filter (invisible to the BO user, Feature 94523): phase-1 rules {field, op ≠ | =, value} or the
+     builder's {column, op: contains | is | isNot | empty | notEmpty, value} joined by „Și” (all) or „Sau” (any) */
+  const norm = (v) => String(v ?? "").normalize("NFD").replace(/\p{M}/gu, "").toLocaleLowerCase("ro").trim();
+  const ruleHolds = (rule, row) => {
+    if (rule.field) {
+      const value = rule.field === "status" ? row.src?.status ?? row.status : row[rule.field];
+      return rule.op === "≠" ? value !== rule.value : value === rule.value;
+    }
+    const value = norm(textOf(row, rule.column));
+    const blank = !value || value === "—";
+    switch (rule.op) {
+      case "contains": return value.includes(norm(rule.value));
+      case "is": return value === norm(rule.value);
+      case "isNot": return value !== norm(rule.value);
+      case "empty": return blank;
+      case "notEmpty": return !blank;
+      default: return true;
+    }
+  };
+  const passesPredefined = (def, row) => {
+    const rules = def.predefinedFilter?.rules || [];
+    if (!rules.length) return true;
+    return def.predefinedFilter.logic === "or" ? rules.some((r) => ruleHolds(r, row)) : rules.every((r) => ruleHolds(r, row));
+  };
+  /* a register on the Autoritate / Serviciu perimeter shows only that authority's / service's records */
+  const inRegisterPerimeter = (def, row) => {
+    if (def.authority && row.authority !== def.authority) return false;
+    if (!def.service) return true;
+    const name = serviceOf(def.service)?.name;
+    return !name || [row.serviciu, row.src?.service, row.denumire].includes(name);
+  };
   function rowsOf(def, who = persona()) {
     if (!granted(def, who)) return [];
     return (SOURCES[def.object]?.() || [])
+      .filter((row) => inRegisterPerimeter(def, row))
       .filter((row) => passesPredefined(def, row))
       .filter((row) => inPerimeter(who, row.authority, row.subdivision, { authorityOnly: row.authorityOnly }));
   }
@@ -313,7 +566,7 @@
     valabil: (r) => longDate(r.valabil), suma: (r) => mdl(r.suma), subdiviziune: (r) => `${r.subdivision} (${r.authority})`,
     autoritate: (r) => (r.autoritate && r.subdivision && !String(r.autoritate).includes("·") ? `${r.autoritate} · ${r.subdivision}` : r.autoritate)
   };
-  const textOf = (row, key) => String(TEXT[key]?.(row) ?? row[key] ?? "");
+  const textOf = (row, key) => String(/^svc:/.test(key) ? svcValue(row, key) : TEXT[key]?.(row) ?? row[key] ?? "");
 
   /* ---------------------------------------------------------------- row actions (definition × role × state) */
   const actionsFor = (def, who = persona()) => (def.actions || []).filter((a) => !a.roles.length || a.roles.includes(who.roleId))
@@ -512,7 +765,8 @@
   async function showCatalog() {
     await load();
     const who = persona();
-    const defs = (S.data?.registers || []).filter((def) => def.grants.includes(who.roleId));
+    /* published + granted + not deprecated (registre-v2); „În curând” for whoever would get it */
+    const defs = (S.data?.registers || []).filter((def) => (def.soon ? def.grants.includes(who.roleId) : granted(def, who)));
     if (!defs.length) {
       showPage("Registre", window.GEAPEmptyState?.render({ title: DENIED, text: "Rolul tău nu are acces la niciun registru. Accesul se acordă de Administratorul central, per rol.", icon: "lock" }) || DENIED);
       return;
@@ -544,6 +798,40 @@
     document.querySelectorAll("[data-nav-item].is-active").forEach((link) => { link.classList.remove("is-active"); link.removeAttribute("aria-current"); });
     showPage(title, window.GEAPEmptyState?.render({ title: DENIED, text: "Rolul tău nu are acces la acest registru. Accesul se acordă de Administratorul central, per rol.", icon: "lock" }) || DENIED);
   }
+
+  /* a link to a register that was deprecated (US-193 AC-04): it is out of the menu; the old address explains why */
+  function showDeprecated(def) {
+    document.querySelectorAll("[data-nav-item].is-active").forEach((link) => { link.classList.remove("is-active"); link.removeAttribute("aria-current"); });
+    showPage(def.name, window.GEAPEmptyState?.render({
+      title: "Registrul nu mai este disponibil",
+      text: `„${def.name}” a fost depreciat de administrator pe ${longDate(def.deprecatedAt)}. Înregistrările nu s-au pierdut: le găsești în celelalte registre din meniul „Registre”.`,
+      icon: "page-text-lock",
+      actionHtml: '<button class="btn btn-neutral btn-sm" type="button" data-reg-to-catalog>Toate registrele</button>'
+    }) || "");
+  }
+  document.addEventListener("click", (event) => {
+    if (!event.target.closest?.("[data-reg-to-catalog]")) return;
+    document.querySelector('[data-nav-item][data-nav-id="registre"]')?.click();
+  });
+
+  /* ---------------------------------------------------------------- the „Registre” menu group (registre-v2) */
+  /* the BO menu lists the published, granted, non-deprecated registers (global → authority → service, then „Poziția
+     în listă”); the AdminPortal „Registre” item needs „Vizualizarea registrelor” (US-147 AC-01). Before the data
+     arrives the static menu stays (the same items for the seed). */
+  window.GEAPShellNavHook = (profileKey, groups) => {
+    const who = persona();
+    return groups.map((group) => {
+      if (group.label === "Registre" && S.data) {
+        const catalogItem = group.items.find((item) => item.id === "registre") || { id: "registre", label: "Toate registrele", shellView: "registre-catalog" };
+        const defs = S.data.registers.filter((def) => !def.soon && granted(def, who));
+        return { ...group, items: [catalogItem, ...defs.map((def) => ({ id: def.id, label: def.name, shellView: `${def.id}-registry`, navObject: def.object }))] };
+      }
+      if (group.items.some((item) => item.id === "registre-config") && !adminPerms(who).has("view")) {
+        return { ...group, items: group.items.filter((item) => item.id !== "registre-config") };
+      }
+      return group;
+    }).filter((group) => group.items.length);
+  };
 
   /* ================================================================ record card (US-196 AC-07 · US-197 AC-05 · US-273) */
   function tabsOf(def, row) {
@@ -994,13 +1282,28 @@
     const action = actionsFor(def).find((a) => a.key === key);
     if (!row || !action) return;
     if (action.type === "open") {
-      /* „Deschide înregistrarea” → the dossier profile (US-194 AC-10) */
-      window.location.hash = `#dosar/${encodeURIComponent(row.id)}/general`;
+      /* „Deschide înregistrarea” → the dossier profile (US-194 AC-10); other objects → their record card */
+      if (def.object === "Case") window.location.hash = `#dosar/${encodeURIComponent(row.id)}/general`;
+      else openCard(def.id, row.id);
       return;
     }
     const blocked = actionState(action, row);
     if (blocked) { U().showShellToast?.(blocked, "info"); return; }
     pending = { kind, rowId, key };
+    /* registre-v2: a form / process / control configured in the builder that has no screen of its own in this
+       prototype → one confirmation naming the target; the run is logged on the record */
+    if (action.type !== "custom" || !["PushCase", "ArchiveRecord", "StrikeCase", "Anonymize"].includes(action.control)) {
+      const target = targetLabel(action);
+      const verb = { form: "Completezi formularul", "process-start": "Pornești procesul", "process-advance": "Avansezi procesul" }[action.type] || "Rulezi controlul";
+      openModal({
+        kind: "confirm",
+        title: `${verb} „${target}”?`,
+        subtitle: titleOf(def, row),
+        body: `<p class="e-permits-passport__lead">${esc(action.type === "form" ? `Formularul se deschide completat cu datele înregistrării ${row.nr}.` : action.type === "process-advance" ? `Înregistrarea ${row.nr} trece la pasul următor al procesului.` : `Acțiunea se aplică înregistrării ${row.nr} și se înregistrează în jurnalul ei.`)}</p>`,
+        footer: footerOf(action.label, "data-reg-confirm", { destructive: Boolean(action.danger) })
+      });
+      return;
+    }
     switch (action.control) {
       case "PushCase": openPush(def, row); return;
       case "ArchiveRecord":
@@ -1049,6 +1352,11 @@
     const action = actionsFor(def).find((a) => a.key === key);
     if (!row || !action) return;
     const st = readStore();
+    if (action.type !== "custom" || !["PushCase", "ArchiveRecord", "StrikeCase", "Anonymize"].includes(action.control)) {
+      logEvent(def, row, { user: userName(), role: persona().roleLabel, type: action.label, category: "modificare", detail: `${targetLabel(action)} · din ${def.name}.` });
+      done(`„${action.label}” a pornit pentru ${row.nr}.`);
+      return;
+    }
     if (action.control === "ArchiveRecord") {
       const reason = requireText("#fo-reg-archive-reason");
       if (!reason) return;
@@ -1403,12 +1711,14 @@
     if (m) {
       const def = defOf(m[1]);
       const nav = document.querySelector(`[data-nav-item][data-nav-id="${m[1]}"]`);
+      if (def?.deprecated) { showDeprecated(def); return; }
       if (def && granted(def, who) && nav) nav.click(); else showDenied(def?.name || "Registru");
       return;
     }
     m = hash.match(/^#registru\/(reg-[a-z]+)\/([^/]+)(?:\/([^/]+))?$/);
     if (m) {
       const def = defOf(m[1]);
+      if (def?.deprecated) { showDeprecated(def); return; }
       if (!def || !granted(def, who)) { showDenied(def?.name || "Registru"); return; }
       /* the register under the card (the crumb returns to it), drawn without touching the address */
       if (document.querySelector("[data-workplace]")?.dataset.registryKind !== m[1]) {
@@ -1437,5 +1747,13 @@
   load();
 
   /* for demo states / probes */
-  window.GEAPRegistre = { load, openCard, persona, rowsOf: (id) => rowsOf(defOf(id)), store: readStore };
+  window.GEAPRegistre = {
+    load, openCard, persona, rowsOf: (id) => rowsOf(defOf(id)), store: readStore,
+    /* registre-v2 — the AdminPortal builder (js/registre-admin.js) */
+    data: () => S.data, catalog, recordOf, commit, boDefOf, defOf, adminPerms, adminSees,
+    fieldsOf, fieldOf, columnFrom, objects: OBJECTS, scopes: SCOPES, fieldTypes: FIELD_TYPES, filterSupport: FILTER_SUPPORT, serviceOf, targetLabel,
+    /* the distinct values of a source field (value lists of the predefined-filter rules) */
+    valuesOf: (object, key) => [...new Set((SOURCES[object]?.() || []).map((row) => textOf(row, key)).filter((v) => v && v !== "—"))].sort((a, b) => a.localeCompare(b, "ro")),
+    openModal, closeModal, footerOf, detailRow, tag, icon, esc, longDate, stamp, nowIso, userName, plural, clone, showPage
+  };
 })();

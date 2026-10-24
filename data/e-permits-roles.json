@@ -314,6 +314,11 @@
               "shellView": "classifiers-registry"
             },
             {
+              "id": "registre-config",
+              "label": "Registre",
+              "shellView": "registre-admin-registry"
+            },
+            {
               "id": "service-config",
               "label": "Configurări servicii",
               "iconAsset": "assets/icons/admin-list-sparkle.svg",
@@ -353,6 +358,11 @@
               "label": "Clasificatoare",
               "iconAsset": "assets/icons/admin-newspaper.svg",
               "shellView": "classifiers-registry"
+            },
+            {
+              "id": "registre-config",
+              "label": "Registre",
+              "shellView": "registre-admin-registry"
             }
           ]
         },

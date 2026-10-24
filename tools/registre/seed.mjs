@@ -240,7 +240,7 @@ const registers = [
     actions: []
   },
   {
-    id: "reg-note", code: "Invoice.Global.RegistruNotePlata", name: "Registru note de plată", object: "Invoice", objectLabel: "Note de plată", scope: "Global",
+    id: "reg-note", code: "PaymentOrder.Global.RegistruNotePlata", name: "Registru note de plată", object: "Invoice", objectLabel: "Note de plată", scope: "Global",
     category: "Plăți", icon: "receipt-bill", version: "v1.0.3", status: "Publicat", publishedAt: "2026-10-01T09:05:00",
     description: "Notele de plată și tranzacțiile MPay corelate: suma, metoda de plată și cele două statuturi.",
     grants: ["central-admin", "local-admin", "supervisor", "director", "specialist"],
@@ -290,10 +290,195 @@ const registers = [
   }
 ];
 
+/* „Poziția în listă” (US-146 / US-148): the order of the registers inside their perimeter tab and of the BO menu */
+registers.filter((r) => !r.soon).forEach((r, i) => { r.position = i + 1; });
+
+/* ---------------------------------------------------------------- phase 2 (registre-v2): the AdminPortal builder
+   US-146 creare · US-147 listă · US-148 editare · US-149 configurare · US-150 publicare + istoric versiuni · US-193
+   depreciere / reactivare · US-215 acces. Deterministic data only (no rnd() — every record above stays byte-identical).
+   js/registre.js builds the builder catalog from `registers` (the published definitions) + `admin.registers` (the
+   builder's own data: names RU / EN, editors, the published version history, the access grants) + `admin.extra`
+   (registers that exist only in the AdminPortal: drafts, perimeter Autoritate / Serviciu, a deprecated one). */
+const USERS = ["Anastasia Cojocaru", "Vasile Schidu", "Ion Popescu", "Mariana Rusu"];
+const by = (i) => USERS[i % USERS.length];
+const grant = (role, authority, at, who, extra = {}) => ({ role, authority: authority || null, at, by: who, ...extra });
+const ver = (version, at, note, who, o = {}) => ({ version, at, note, by: who, type: o.type || "Publicare", drop: { columns: o.columns || [], actions: o.actions || [] } });
+const DOSARE_LATER = ["push", "archive", "strike", "anonymize"];
+const admin = {
+  /* the BO roles a register can be granted to (Feature 89940; local = visible to an Administrator local, AC-07) */
+  roles: [
+    { id: "central-admin", label: "Administrator central", local: false },
+    { id: "local-admin", label: "Administrator local", local: true },
+    { id: "specialist", label: "Specialist", local: true },
+    { id: "supervisor", label: "Supervizor", local: true },
+    { id: "director", label: "Director", local: true },
+    { id: "operator-ghiseu", label: "Specialist ghișeu", local: true },
+    { id: "expert", label: "Expert", local: false },
+    { id: "auditor", label: "Auditor", local: false }
+  ],
+  /* the Serviciu perimeter (Feature 94523: „Serviciu necesar pentru Registrul medicamentelor / NIAC”) */
+  services: [
+    { code: "003000118", name: "Autorizație sanitară de funcționare", authority: "ANSP" },
+    { code: "003000519", name: "Înregistrarea produselor biocide", authority: "ANSP" },
+    { code: "003000402", name: "Aviz sanitar-veterinar pentru unitățile de producție", authority: "ANSA" },
+    { code: "003000312", name: "Autorizație de mediu pentru emisii", authority: "AM" }
+  ],
+  /* action targets (US-149 AC-20): Form Designer forms, processes (Epic 85371), custom controls */
+  targets: {
+    forms: [
+      { id: "f-notificare-comert", label: "Cerere de notificare în comerț" },
+      { id: "f-autorizatie-sanitara", label: "Cerere de eliberare a autorizației sanitare de funcționare" },
+      { id: "f-constatare-control", label: "Proces-verbal de constatare la control" },
+      { id: "f-corectare-date", label: "Cerere de corectare a datelor dosarului" }
+    ],
+    processes: [
+      { id: "p-autorizare", label: "Flux standard de autorizare", version: "v3.2.0" },
+      { id: "p-simplificat", label: "Flux simplificat fără supervizor", version: "v1.4.0" },
+      { id: "p-suspendare", label: "Suspendarea actului permisiv", version: "v1.1.0" },
+      { id: "p-reperfectare", label: "Reperfectarea actului permisiv", version: "v2.0.0" }
+    ],
+    /* controls written in code (Feature 94523 comments: Anonimizare, Arhivare, Radiere dosar, Modificare statut act,
+       Modificare punct proces); objects = the source objects the control works on */
+    controls: [
+      { id: "PushCase", label: "Transfer administrativ (Push Case)", objects: ["Case"], danger: false },
+      { id: "ArchiveRecord", label: "Arhivare", objects: ["Case"], danger: false },
+      { id: "StrikeCase", label: "Radiere dosar", objects: ["Case"], danger: true },
+      { id: "Anonymize", label: "Anonimizare date personale", objects: ["Case"], danger: true },
+      { id: "ChangePermitStatus", label: "Modificare statut act", objects: ["Permit"], danger: false },
+      { id: "MarkPaid", label: "Confirmare plată manuală", objects: ["Invoice"], danger: false },
+      { id: "WithdrawExpertise", label: "Retragere aviz", objects: ["Expertise"], danger: true }
+    ]
+  },
+  /* the fixed set of 20 row-action icons (Feature 94523) */
+  icons: [
+    ["document", "Document"], ["page-text", "Pagină"], ["edit", "Editare"], ["direction", "Direcție"], ["page-text-lock", "Arhivă"],
+    ["circle-x", "Anulare"], ["shield-keyhole", "Protecție"], ["delete", "Ștergere"], ["eye-open", "Vizualizare"], ["export", "Export"],
+    ["stamp", "Ștampilă"], ["permission", "Act permisiv"], ["receipt-bill", "Notă de plată"], ["people", "Persoane"], ["history", "Istoric"],
+    ["rotate-arrow", "Reluare"], ["pause", "Suspendare"], ["checkmark-large", "Confirmare"], ["settings", "Setări"], ["tree", "Proces"]
+  ],
+  categories: { Case: "Procesarea dosarelor", Permit: "Acte permisive", Invoice: "Plăți", Expertise: "Avizare" },
+  /* the builder's data of the four published registers above (id → names, editors, history, grants) */
+  registers: {
+    "reg-dosare": {
+      names: { ru: "Реестр дел", en: "Case register" }, createdAt: "2026-05-28T11:20:00", createdBy: by(0), editedAt: "2026-10-02T10:15:00", editedBy: by(0),
+      versions: [
+        ver("v1.0.0", "2026-06-02T09:40:00", "Registrul dosarelor din toate autoritățile: număr, solicitant, serviciu, statut.", by(0), { type: "Prima publicare", columns: ["actor", "termen", "tip"], actions: DOSARE_LATER }),
+        ver("v1.0.1", "2026-06-10T14:05:00", "Coloana „Actor responsabil”, filtrabilă.", by(1), { columns: ["termen", "tip"], actions: DOSARE_LATER }),
+        ver("v1.0.2", "2026-06-24T10:30:00", "Coloana „Termen de examinare” cu filtru pe perioadă.", by(0), { columns: ["tip"], actions: DOSARE_LATER }),
+        ver("v1.0.3", "2026-07-08T16:12:00", "Filtru predefinit: fără schițe.", by(2), { columns: ["tip"], actions: DOSARE_LATER }),
+        ver("v1.0.4", "2026-07-21T11:48:00", "Acțiunea „Arhivează dosarul” pentru Supervizor.", by(1), { columns: ["tip"], actions: ["push", "strike", "anonymize"] }),
+        ver("v1.0.5", "2026-08-04T09:15:00", "Lățimi ajustate pentru coloanele de dată.", by(3), { columns: ["tip"], actions: ["push", "strike", "anonymize"] }),
+        ver("v1.1.0", "2026-08-19T15:30:00", "Acțiunea „Radiază dosarul” (Administrator central).", by(0), { columns: ["tip"], actions: ["push", "anonymize"] }),
+        ver("v1.1.1", "2026-08-28T10:02:00", "Coloana ascunsă „Tip solicitare”, filtrabilă.", by(2), { actions: ["push", "anonymize"] }),
+        ver("v1.1.2", "2026-09-09T13:40:00", "Acțiunea „Transfer administrativ” (Push Case).", by(1), { actions: ["anonymize"] }),
+        ver("v1.1.3", "2026-09-17T17:20:00", "Antetele RU și EN pentru toate coloanele.", by(3), { actions: ["anonymize"] }),
+        ver("v1.1.4", "2026-09-22T09:05:00", "Revenire la v1.1.2: antetele RU conțineau erori de traducere.", by(0), { type: "Restaurare (din v1.1.2)", actions: ["anonymize"] }),
+        ver("v1.2.0", "2026-10-02T10:15:00", "Acțiunea „Anonimizează datele personale” (Legea nr. 175/2025).", by(0))
+      ],
+      grants: [
+        grant("central-admin", null, "2026-06-02T09:45:00", by(0)), grant("supervisor", null, "2026-06-02T09:46:00", by(0)),
+        grant("director", null, "2026-06-11T08:30:00", by(1)), grant("specialist", null, "2026-06-11T08:31:00", by(1)),
+        grant("expert", null, "2026-07-02T12:00:00", by(2), { revokedAt: "2026-08-14T10:20:00", revokedBy: by(0) })
+      ]
+    },
+    "reg-acte": {
+      names: { ru: "Реестр разрешительных актов", en: "Register of permits" }, createdAt: "2026-05-14T10:00:00", createdBy: by(1), editedAt: "2026-09-30T16:40:00", editedBy: by(1),
+      versions: [
+        ver("v1.0.0", "2026-05-20T12:00:00", "Actele emise: număr, denumire, autoritate, beneficiar, status.", by(1), { type: "Prima publicare", columns: ["emis", "valabil", "dosar", "tip"] }),
+        ver("v1.1.0", "2026-06-30T09:30:00", "Coloana „Data emiterii” și căutarea după numărul dosarului.", by(1), { columns: ["valabil", "tip"] }),
+        ver("v2.0.0", "2026-08-12T11:10:00", "Coloana „Valabil până la”; exportul cere o căutare sau un filtru.", by(0), { columns: ["tip"] }),
+        ver("v2.0.1", "2026-09-30T16:40:00", "Coloana ascunsă „Tip act”, filtrabilă.", by(1))
+      ],
+      grants: [
+        grant("central-admin", null, "2026-05-20T12:05:00", by(1)), grant("local-admin", null, "2026-05-20T12:06:00", by(1)),
+        grant("supervisor", null, "2026-05-21T08:10:00", by(1)), grant("director", null, "2026-05-21T08:11:00", by(1)),
+        grant("specialist", null, "2026-05-21T08:12:00", by(1))
+      ]
+    },
+    "reg-note": {
+      names: { ru: "Реестр платёжных поручений", en: "Payment order register" }, createdAt: "2026-06-18T09:00:00", createdBy: by(2), editedAt: "2026-10-01T09:05:00", editedBy: by(2),
+      versions: [
+        ver("v1.0.0", "2026-07-01T10:00:00", "Notele de plată cu statutul notei și al tranzacției MPay.", by(2), { type: "Prima publicare", columns: ["metoda", "confirmatDe", "mpay"] }),
+        ver("v1.0.1", "2026-07-29T14:25:00", "Coloana „Metodă de plată”.", by(2), { columns: ["confirmatDe", "mpay"] }),
+        ver("v1.0.2", "2026-09-03T11:00:00", "Coloana „Confirmat de”.", by(3), { columns: ["mpay"] }),
+        ver("v1.0.3", "2026-10-01T09:05:00", "Căutarea după numărul tranzacției MPay.", by(2))
+      ],
+      grants: [
+        grant("central-admin", null, "2026-07-01T10:05:00", by(2)), grant("local-admin", "ANSP", "2026-07-01T10:06:00", by(2)),
+        grant("supervisor", null, "2026-07-02T09:00:00", by(2)), grant("director", null, "2026-07-02T09:01:00", by(2)),
+        grant("specialist", null, "2026-07-02T09:02:00", by(2))
+      ]
+    },
+    "reg-avize": {
+      names: { ru: "Реестр заключений", en: "Expertise register" }, createdAt: "2026-09-25T15:00:00", createdBy: by(3), editedAt: "2026-10-02T14:20:00", editedBy: by(3),
+      versions: [ver("v1.0.0", "2026-10-02T14:20:00", "Avizele cerute în examinarea dosarelor.", by(3), { type: "Prima publicare" })],
+      grants: [
+        grant("central-admin", null, "2026-10-02T14:22:00", by(3)), grant("supervisor", null, "2026-10-02T14:23:00", by(3)),
+        grant("director", null, "2026-10-02T14:24:00", by(3)), grant("specialist", null, "2026-10-02T14:25:00", by(3))
+      ]
+    }
+  },
+  /* registers that exist only in the AdminPortal (config = the same shape the BO definition carries) */
+  extra: [
+    {
+      id: "reg-dosareplata", code: "Case.Authority.DosareInAsteptareaPlatii", object: "Case", scope: "Authority", authority: "ANSP", service: null, parent: "reg-dosare",
+      names: { ro: "Dosare în așteptarea plății", ru: "Дела в ожидании оплаты", en: "" }, description: "Dosarele ANSP care așteaptă achitarea taxelor, pentru verificarea zilnică a plăților.",
+      position: 1, status: "Schiță", version: "v1.0.0", publishedVersion: null, createdAt: "2026-10-20T10:12:00", createdBy: by(0), editedAt: "2026-10-21T15:40:00", editedBy: by(0),
+      config: { copyColumnsOf: "reg-dosare", copyActionsOf: "reg-dosare", predefinedFilter: { logic: "and", rules: [{ column: "statut", op: "is", value: "Așteaptă plata" }] } },
+      versions: [], grants: []
+    },
+    {
+      id: "reg-acteanta", code: "Permit.Authority.ActePermisiveANTA", object: "Permit", scope: "Authority", authority: "ANTA", service: null, parent: "reg-acte",
+      names: { ro: "Acte permisive ANTA", ru: "Разрешительные акты ANTA", en: "ANTA permits" }, description: "Licențele și autorizațiile de transport emise de ANTA. Înlocuit de Registrul actelor permisive.",
+      position: 2, status: "Depreciat", version: "v1.0.0", publishedVersion: "v1.0.0", createdAt: "2026-06-05T09:00:00", createdBy: by(1), editedAt: "2026-09-12T11:30:00", editedBy: by(0),
+      config: { copyColumnsOf: "reg-acte", dropColumns: ["dosar", "tip"], predefinedFilter: null },
+      versions: [ver("v1.0.0", "2026-06-12T10:00:00", "Actele emise de ANTA.", by(1), { type: "Prima publicare" })],
+      grants: [grant("specialist", "ANTA", "2026-06-12T10:05:00", by(1))]
+    },
+    {
+      id: "reg-avizeigsu", code: "Expertise.Authority.AvizeIGSU", object: "Expertise", scope: "Authority", authority: "IGSU", service: null, parent: null,
+      names: { ro: "Avize IGSU", ru: "Заключения ГИЧС", en: "" }, description: "Avizele Serviciului Pompieri și Salvatori pentru dosarele în examinare.",
+      position: 3, status: "Schiță", unpublished: true, version: "v1.0.0", publishedVersion: "v1.0.0", createdAt: "2026-09-02T13:00:00", createdBy: by(3), editedAt: "2026-10-22T16:05:00", editedBy: by(3),
+      config: { copyColumnsOf: "reg-avize", predefinedFilter: { logic: "and", rules: [{ column: "autoritate", op: "contains", value: "IGSU" }] } },
+      published: { dropColumns: ["valabil", "emis"] },
+      versions: [ver("v1.0.0", "2026-09-04T10:00:00", "Avizele IGSU: număr, tip, dosar, solicitant, statut.", by(3), { type: "Prima publicare" })],
+      grants: [grant("expert", "IGSU", "2026-09-04T10:10:00", by(3))]
+    },
+    {
+      id: "reg-dosaresanitar", code: "Case.Service.DosareAutorizatieSanitara", object: "Case", scope: "Service", authority: "ANSP", service: "003000118", parent: null,
+      names: { ro: "Dosare autorizație sanitară", ru: "", en: "" }, description: "Dosarele serviciului „Autorizație sanitară de funcționare”, cu câmpurile proprii ale cererii.",
+      position: 1, status: "Schiță", version: "v1.0.0", publishedVersion: null, createdAt: "2026-10-22T09:30:00", createdBy: by(0), editedAt: "2026-10-23T11:10:00", editedBy: by(0),
+      config: { columns: ["nr", "solicitant", "statut", "svc:activitate", "svc:suprafata", "depus"], predefinedFilter: null },
+      versions: [], grants: []
+    },
+    {
+      id: "reg-platisanitar", code: "PaymentOrder.Service.PlatiAutorizatieSanitara", object: "Invoice", scope: "Service", authority: "ANSP", service: "003000118", parent: "reg-note",
+      names: { ro: "Plăți autorizație sanitară", ru: "Платежи за санитарное разрешение", en: "Sanitary permit payments" }, description: "Notele de plată ale serviciului „Autorizație sanitară de funcționare”.",
+      position: 2, status: "Publicat", version: "v1.0.0", publishedVersion: "v1.0.0", createdAt: "2026-10-09T10:00:00", createdBy: by(2), editedAt: "2026-10-15T12:00:00", editedBy: by(2),
+      config: { copyColumnsOf: "reg-note", dropColumns: ["serviciu", "mpay"], predefinedFilter: null },
+      versions: [ver("v1.0.0", "2026-10-15T12:00:00", "Notele de plată ale serviciului, fără coloana „Serviciu”.", by(2), { type: "Prima publicare" })],
+      grants: []
+    },
+    {
+      id: "reg-noterestante", code: "PaymentOrder.Global.NoteDePlataRestante", object: "Invoice", scope: "Global", authority: null, service: null, parent: null,
+      names: { ro: "Note de plată restante", ru: "", en: "" }, description: "Notele de plată neachitate după termen, pentru notificarea solicitanților.",
+      position: 5, status: "Schiță", version: "v1.0.0", publishedVersion: null, createdAt: "2026-10-23T08:45:00", createdBy: by(1), editedAt: "2026-10-23T08:45:00", editedBy: by(1),
+      config: { columns: [], predefinedFilter: null }, versions: [], grants: []
+    },
+    {
+      id: "reg-avizeexpirate", code: "Expertise.Global.AvizeExpirate", object: "Expertise", scope: "Global", authority: null, service: null, parent: null,
+      names: { ro: "Avize expirate", ru: "", en: "" }, description: "Proiect abandonat: avizele expirate se văd în Registru Avize, cu filtrul de statut.",
+      position: 6, status: "Depreciat", version: "v1.0.0", publishedVersion: null, createdAt: "2026-08-01T10:00:00", createdBy: by(2), editedAt: "2026-08-20T09:30:00", editedBy: by(2),
+      config: { columns: [], predefinedFilter: null }, versions: [], grants: []
+    }
+  ]
+};
+
 const out = {
-  _comment: "Registers module, phase 1 (registre-v1). Generated by tools/registre/seed.mjs — do not edit by hand.",
+  _comment: "Registers module, phase 1 (registre-v1) + the AdminPortal builder data (registre-v2). Generated by tools/registre/seed.mjs — do not edit by hand.",
   today: iso(TODAY),
   registers,
+  admin,
   authorities: Object.values(AUTHORITIES).map(({ code, name, subdivisions }) => ({ code, name, subdivisions })),
   acts,
   notes,
