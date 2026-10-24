@@ -4268,3 +4268,31 @@ For any „research how other products do it” step, search Mobbin (mcp__mobbin
     12697:2116 over the collapse button). No Agent tool in this session → QA = the audit rules run in-call on the new sets / frames
     (left: logo vectors inside the sidebar main, fractional kpi-widget widths 364.5 inside the KPI row, the Requestor frame overlap —
     all pre-existing) + 48 pixel diffs.
+
+- 2026-10-24 · users-board-flows-v1 (user on GEAP 10077:11646: „I don't see adding a new user and its states — add all flows; they're only
+  in the previous version”). **The previous version was gone from the canvas**: the four „Central administrator / Administration / Users ·
+  Roles · Authorities · Subdivisions” sections (6774:7368, 7037:74909, 7157:76903, 7187:49551) were deleted between versions
+  2413800564698815195 (07:40 UTC) and 2413871332339189646 (12:19 UTC) today — the old → new map was read from REST
+  `/v1/files/:key/nodes?ids=…&version=<id>&depth=2`. New page-level section **„Users · registry and new user (2026-10)” 12701:424244**
+  (left of the profile section, flow order) with Band F 12701:424245 and 11 blocks: U01 12701:424251 registry · U02 12712:387232 ·
+  U02a 12712:388324 · U02b 12712:389018 · U02c 12712:390513 · U02d 12712:391203 · U02e 12712:393192 · U02f 12712:394524 · U02g
+  12712:395899 · U02h 12712:396780 · U02i 12720:393609; „00 · Start here · User Management” 12724:394205 (the page had none); index card
+  „Users” → Start here, 46 blocks. New local components: **`Drawer` 12701:424075** (Title TEXT, native SLOT `Body`, exposed Cancel /
+  Primary Large; Modals section) · **`Role combination card` 12701:424113** (Cards section) · `Empty state · boxed` + BOOLEAN `Show
+  action#12701:4` + exposed `Action` (additive, hidden by default). Tools tools/figma/users-board/ (registry-pass.js, drawer-block.js,
+  helpers.js; stored in root plugin data „figdesusr”/regpass, drawer, fit, label, arrow). Lessons:
+  - **„Only in the previous version” can mean version history**: page census by text found nothing; REST page children per saved version
+    showed when the old sections vanished — inventory them from that version instead of guessing.
+  - **Code states without a demo state**: probe the real code path with page-side steps (scratch steps.mjs: click / fill / choose) and
+    `capture-to-figma.mjs --state usr-01 --eval "<steps>"`; blocks link the PLANNED ids (usr-u01 …) and the gap goes to proto-engineer.
+  - **Drawer blocks = spec → library instances in a Drawer SLOT**, not captures: one stored builder per block call, 1–2 blocks per call.
+    The drawer height reads stale in the build call (always the empty 154) → separate FIT (HUG → read → max(1024, h)).
+  - **FILL set on a child while its ancestors still HUG does not stick** (textareas / inputs stayed 384 / 282): re-apply FILL after the
+    section is inside the slot. **Read Only text-input shows a nested 20/checkmark-small**, not the trailing swap property → swapComponent
+    that node for other glyphs (calendar) and bind its colour.
+  - **Registry capture fixes** (registry-pass.js): grid cells FIXED narrower than their tracks → white gaps in the header; cells FILL +
+    whole-pixel tracks. Cells 50 high with a 1 px bottom stroke in layout → 1,089 children at .5 → strokesIncludedInLayout off. Clone
+    blocks AFTER the whole-pixel / binding passes, or every clone needs them again (I had to re-run on 11 blocks).
+  - Secondary button + plus glyph via the property rendered dark → copy the vector paint of a correct Secondary sibling („Schimbă”,
+    icon/brand/on-secondary). No Agent tool → stored `ghs/audit` on all 11 blocks + 2 components: left = board baseline (gov-bar logo /
+    text, table cut at the 1024 viewport = code, Onest 400 + 500 „mixed”, rows-per-page label).
