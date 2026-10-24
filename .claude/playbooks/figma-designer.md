@@ -4394,3 +4394,13 @@ For any „research how other products do it” step, search Mobbin (mcp__mobbin
     re-pointing needed when restructuring by reparenting instead of rebuilding.
   - No Agent tool in this session → stored `ghs/audit` on 8 forms: only the section-over-card gap 0 baseline + field label gap 6;
     bound gh-07d's olograf box padding to spacing-20. Ghișeu intro (11818:22458) dated.
+- 2026-10-24 · registre-board-v1 follow-up 2. (1) Table separators restored: 2 999 in-grid cells resized back to their row-track height
+  (stored `cellh`, batches of ~8 tables; one call for all 42 tables dropped the transport and rolled back); `polish` no longer touches
+  children of GRID cells. (2) `Table / Pinned column` (start No shadow + end Shadow) on all 35 register tables (stored `pinned`).
+  (3) **`sidebar-list-item` was refactored meanwhile** (6347:28130: `Icon` = Glyph mask + „Icon colour” rect, icon chosen by the
+  INSTANCE_SWAP prop `🔄 Icon#12863:0`) — that wiped my nested glyph swaps (all items showed folder-paper). Set sidebar icons ONLY via
+  the `🔄 Icon` property (colour comes from the mask, never touch glyph fills); then re-sync screen instances whose prop was overridden
+  (stored `sidesync`, 90 items). Label → icon map stored in figma.root „reg"/„sideicons". (4) Open filter box (02b / 03c / 04b): the
+  toolbar line moves under the box — added the 1 px bottom stroke on the box. (5) Entry notes on link-opened blocks (a05b, a10d, a12b,
+  14, 14a, 06d, a03e) instead of arrows. Border census per column after the fixes: 0 inner shadows, 0 tab strips without the hairline,
+  0 table cells without a divider (last rows of card tables excluded), all register tables pinned.
