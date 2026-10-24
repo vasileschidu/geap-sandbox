@@ -2231,8 +2231,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const usesDeclaredWidths = () => ["users", "services", "authorities", "tariffs", "ntpl", "flows", "ghiseu"].includes(workplaceDb?.kind) || Boolean(workplaceDb?.fixedWidths);
   const isTextColumn = (key) => fillColumns.has(key) || Boolean(workplaceDb?.columns[key]?.fill);
-  /* a text column (names, services) shrinks to these, in this order, but only if that makes the table fit — the rest
-     of the text ellipsizes with a tooltip; a table that scrolls anyway keeps its names whole */
+  /* a text column (names, services) shrinks to these, one after the other, and stays at the last one — the rest of
+     the text ellipsizes with a tooltip (reg-cols-monotonic-v1) */
   const textColumnFloors = [120, 96];
   const headerColumnWidth = (column) => Math.ceil(measureText(column?.label || "", "500 12px Onest, Arial, sans-serif") + 24 + (column?.sortable ? 24 : 0));
 
@@ -2259,16 +2259,11 @@ document.addEventListener("DOMContentLoaded", () => {
     const slack = keys.reduce((sum, key) => sum + widths[key] - floors[key], 0);
     const take = Math.min(amount, slack);
     if (take <= 0) return 0;
-    let left = take;
+    /* fractional px on purpose (reg-cols-monotonic-v1): integer rounding handed a spare pixel to a different column at
+       the next width, so a column could grow by 1 while the window got narrower */
     keys.forEach((key) => {
-      const cut = Math.floor(((widths[key] - floors[key]) * take) / slack);
-      widths[key] -= cut;
-      left -= cut;
+      widths[key] -= ((widths[key] - floors[key]) * take) / slack;
     });
-    for (const key of keys) {
-      if (left <= 0) break;
-      if (widths[key] > floors[key]) { widths[key] -= 1; left -= 1; }
-    }
     return take;
   };
 
@@ -2301,30 +2296,26 @@ document.addEventListener("DOMContentLoaded", () => {
     const extraWidth = Math.max(0, visibleTableWidth - naturalWidth);
     const growable = columns.filter(isTextColumn);
 
-    /* wider than its box: first the spare room of the other columns (nothing gets cut), then — only if that makes
-       it fit — the text columns down to a floor (never below their one-line header). What cannot fit scrolls, with
-       the pinned columns + edge shadow, and keeps its names whole. */
+    /* wider than its box: first the spare room of the other columns (nothing gets cut), then the text columns down
+       to 120, then down to 96 (never below their one-line header; cut text = ellipsis + tooltip). Below that they STAY
+       at the floor and the table scrolls (pinned columns + edge shadow). Each step continues from where the previous
+       one ended, so every column width moves monotonically with the box — never a jump back to whole names
+       (reg-cols-monotonic-v1, user: „Serviciu shrinks, then suddenly jumps back to large”). */
     if (visibleTableWidth && naturalWidth > visibleTableWidth) {
       const rigid = columns.filter((key) => !isTextColumn(key));
       const floors = Object.fromEntries(rigid.map((key) => [key, getColumnFloor(key, rows, widths[key], measured)]));
       let deficit = naturalWidth - visibleTableWidth;
       deficit -= shrinkColumns(widths, floors, rigid, deficit);
       for (const floor of textColumnFloors) {
+        if (deficit <= 0) break;
         const textFloors = Object.fromEntries(growable.map((key) => [key, Math.min(widths[key], Math.max(headerColumnWidth(workplaceDb.columns[key]), floor))]));
-        if (deficit > 0 && growable.reduce((sum, key) => sum + widths[key] - textFloors[key], 0) >= deficit) {
-          shrinkColumns(widths, textFloors, growable, deficit);
-          break;
-        }
+        deficit -= shrinkColumns(widths, textFloors, growable, deficit);
       }
     }
 
     if (extraWidth > 0 && growable.length) {
-      const each = Math.floor(extraWidth / growable.length);
-      let remainder = extraWidth - each * growable.length;
-
       growable.forEach((key) => {
-        widths[key] += each + (remainder > 0 ? 1 : 0);
-        remainder -= 1;
+        widths[key] += extraWidth / growable.length;
       });
     }
 

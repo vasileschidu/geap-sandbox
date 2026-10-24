@@ -3446,3 +3446,13 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   PO question instead of shipping a cascade the user did not look at. No sub-agent tool → code-audit 0 desktop (phone sheet
   findings = HEAD), hover-audit 0 / 0 (`#sm-filters` scope — `.e-permits-workplace__filters` first-matches a hidden bar on
   Cabinet), component-audit only the standing avatar / profile-menu majors, capture 0 errors (rap-01 375 overflow = HEAD).
+- 2026-10-24 · reg-cols-monotonic-v1 (user narrowing the window on Registrul Dosare: „Serviciu shrinks, then suddenly JUMPS
+  back to large”). My own my-cases-no-hscroll-v1 rule „cut names only if that makes the table fit, else keep them whole”
+  is a cliff: at the width where the fit fails, every name column snaps back. Any width rule with a condition on „does it
+  fit” must be checked by RESIZING, not at 3 fixed widths. Also: (1) „stage A, else stage B from scratch” is not
+  continuous either — at the switch the proportional split to the lower floors differs from „all at the upper floor”;
+  run the stages one after another, each from where the last ended; (2) integer rounding with a „spare pixel to the first
+  column” hands that pixel to a different column at the next width → a 1 px grow while narrowing; fractional px widths
+  (tables accept them) make it exactly monotonic. Gate = scratch mc/sweep.mjs: one load, viewport 1600 → 768 → 1600 in
+  8 px steps, every th width asserted non-increasing down / non-decreasing up and equal down vs up (5 lists × 209
+  steps: 0 / 0). Names now stay at the floor (96 or their header) below the fit width and the table scrolls.
