@@ -4353,3 +4353,18 @@ For any „research how other products do it” step, search Mobbin (mcp__mobbin
     growing the FIXED parent 1 px (65 → 6 fractional on a sample). Board census after polish: 0 raw svg icons, 0 no-text-style, 0 foreign
     fonts (Roboto Mono only in rule tokens), raw controls = 2 „și ⌄" rule-combinator tokens (mono keyword exception), 13 zero-height table
     shadow helpers flagged as not-auto-layout (pinned column decor), 37 fractional nodes left (numbers centred in 16 px boxes).
+- 2026-10-24 · registre-board-v1 follow-up (user: sidebar icons, inner shadows, tab hairline, table separators). Done: sidebar icons from
+  the code's masks (css/registre.css + assets/icons, read live via computed `::before` mask-image — the shell draws nav icons as CSS masks
+  per data-nav-id / data-nav-object, NOT from data/e-permits-roles.json): Toate registrele + Administrare › Registre = central „books,
+  library" outline (component a593fc5643b31ddf45ed4806e53c08e9a15c7727, set d2bb5bfd7f370e3cc6d444834f7a33da20c5a1f6); Registru Dosare 24/document
+  ec541f6e…; Acte permisive 24/permission 78e2e45d…; Note / Plăți 24/receipt-bill 11725aa8…; Avize + specialist „Acte permisive" 24/stamp
+  e6f92697…; Dosare noi 24/page-add 9f3bb37c… (also in `Sidebar · Desk clerk (Ghișeu)` 11595:241745); Fluxuri 20/tree; Sarcinile mele
+  20/checklist; specialist folders = central folder-shared / folder-delete / folder-download / printer, print. Foundations glyphs in
+  sidebar-list-item need fills = icon/base/default + strokes [] (the old central override cleared fills → invisible icons). Screen
+  instances whose item was set Active kept the OLD icon as an instance override → re-swap per screen after changing the component.
+  35 inner-shadow dividers → bottom strokes (stored `insetdiv`, now first in `post`); 72 tab strips got the 1 px border/base/default bottom
+  hairline (the capture drew it as a background gradient that the profile pass deleted — never delete a gradient without adding the line).
+  - **Cause of the missing table separators**: the `polish` centring-parity step grew in-grid Table / Header Cells by 1 px (51 in a 50 row
+    track) — the INSIDE bottom stroke then sits under the next row's white fill. Never resize GRID children; fix parity on the track.
+    Fix = resize every in-grid cell to its row-track height. `Table / Pinned column` (12619:61500, start No shadow + end Shadow, cells moved
+    into the slot, Sticky placeholders left) applied to 14 of 35 register tables before the MCP session expired.
