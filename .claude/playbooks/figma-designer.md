@@ -4296,3 +4296,11 @@ For any „research how other products do it” step, search Mobbin (mcp__mobbin
   - Secondary button + plus glyph via the property rendered dark → copy the vector paint of a correct Secondary sibling („Schimbă”,
     icon/brand/on-secondary). No Agent tool → stored `ghs/audit` on all 11 blocks + 2 components: left = board baseline (gov-bar logo /
     text, table cut at the 1024 viewport = code, Onest 400 + 500 „mixed”, rows-per-page label).
+- 2026-10-24 · users-board-flows-v1 follow-up (code 1acd9a20: usr-u01…u02i states exist, „Creează”, library „Adaugă utilizator”). Drawer
+  main `Primary` label → „Creează utilizator nou” (10 instances inherit, 1 override fixed) + 4 texts / 1 arrow label on the page; the 11
+  „Adaugă utilizator” buttons (library Primary Leading Small 32 · r6 · icon 16) → central „people-add, user-add” (b03a2607…, filled=on 1.5
+  r2 = code icon-person-add, one person + plus; „people-add-2” was the wrong glyph). U01 re-checked against the live sandbox usr-u01: equal.
+  - **A `Table / Pinned column` instance ABSOLUTE inside a GRID table stopped rendering its slot content** after later passes on the grid
+    (the instance alone renders; in context only blank white) — the Ghișeu ones still render. Fix that held: move the pinned instance OUT
+    of the GRID into the table's parent container, ABSOLUTE at the table's x / y. Check pinned columns with an inline `node.screenshot()`
+    of the table container after every table pass — get_screenshot and the instance's own render hid it.
