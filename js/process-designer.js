@@ -109,22 +109,21 @@ document.addEventListener("DOMContentLoaded", () => {
           <span class="e-permits-builder__view-title e-permits-pd__title" data-pd-title></span>
           <span class="e-permits-pd__status" data-pd-status></span>
           <div class="e-permits-stack__menu-wrap e-permits-pd__version-wrap">
-            <button class="e-permits-builder__version" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="pd-versions-menu" data-stack-menu-trigger data-pd-version>
+            <button class="btn btn-neutral btn-md e-permits-pd__version" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="pd-versions-menu" data-stack-menu-trigger data-pd-version>
               <span data-pd-version-label>v1.0.0</span>
-              ${icon("chevron-bottom", 16)}
+              ${icon("chevron-bottom", 20)}
             </button>
             <ul class="e-permits-fo-intent-menu e-permits-stack__menu e-permits-pd__versions" id="pd-versions-menu" role="menu" aria-label="Versiunile procesului" hidden data-stack-menu data-pd-versions></ul>
           </div>
         </div>
-        <div class="e-permits-builder__mode" role="tablist" aria-label="Modul designerului">
-          <button class="is-active" type="button" role="tab" aria-selected="true" data-pd-mode="build">${BUILD_ICON}<span>Editare</span></button>
-          <button type="button" role="tab" aria-selected="false" data-pd-mode="json">${icon("brackets")}<span>Schemă JSON</span></button>
-          <i aria-hidden="true"></i>
-          <button type="button" aria-pressed="false" data-pd-settings>${icon("settings")}<span>Setări generale</span></button>
+        <div class="segmented-control segmented-control--compact e-permits-pd__modes" role="tablist" aria-label="Modul designerului">
+          <button class="segment-item is-selected" type="button" role="tab" aria-selected="true" aria-label="Editare" data-pd-mode="build">${BUILD_ICON}<span>Editare</span></button>
+          <button class="segment-item" type="button" role="tab" aria-selected="false" aria-label="Schemă JSON" data-pd-mode="json">${icon("brackets")}<span>Schemă JSON</span></button>
+          <button class="segment-item" type="button" aria-pressed="false" aria-label="Setări generale" data-pd-settings>${icon("settings")}<span>Setări generale</span></button>
         </div>
         <div class="e-permits-builder__nav-actions">
           <div class="e-permits-stack__menu-wrap e-permits-builder__issues" data-pd-edit-only>
-            <button class="btn btn-sm btn-outline-destructive e-permits-builder__errors" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="pd-issues-menu" data-stack-menu-trigger data-pd-errors>
+            <button class="btn btn-md btn-outline-destructive e-permits-builder__errors" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="pd-issues-menu" data-stack-menu-trigger data-pd-errors>
               <span aria-hidden="true"><i></i></span>
               <strong data-pd-errors-label>Fără erori</strong>
             </button>
@@ -133,9 +132,9 @@ document.addEventListener("DOMContentLoaded", () => {
           <div class="e-permits-pd__viewonly" data-pd-viewonly-wrap>
             ${ui().renderToggle?.({ label: "Doar vizualizare", attrs: "data-pd-viewonly" }) || ""}
           </div>
-          <button class="btn btn-primary btn-sm btn-rounded e-permits-pd__restore" type="button" hidden data-pd-restore>Restaurează ca schiță</button>
-          <button class="e-permits-builder__publish" type="button" data-pd-publish data-pd-edit-only>Publică</button>
-          <button class="modal-close e-permits-builder__close" type="button" aria-label="Închide designerul" data-tooltip-label="Închide" data-pd-close>${icon("cross-large", 16)}</button>
+          <button class="btn btn-primary btn-md e-permits-pd__restore" type="button" hidden data-pd-restore>Restaurează ca schiță</button>
+          <button class="btn btn-primary btn-md e-permits-pd__publish-action" type="button" data-pd-publish data-pd-edit-only>Publică</button>
+          <button class="btn btn-neutral btn-md btn-icon-only e-permits-pd__close" type="button" aria-label="Închide designerul" data-tooltip-label="Închide" data-pd-close>${icon("cross-large", 20)}</button>
         </div>
       </header>
 
@@ -148,9 +147,11 @@ document.addEventListener("DOMContentLoaded", () => {
           <svg class="e-permits-pd__overlay" width="1" height="1" aria-hidden="true" data-pd-overlay></svg>
         </div>
 
-        <aside class="e-permits-pd__float e-permits-pd__float--left" aria-label="Elemente" data-pd-palette></aside>
-        <aside class="e-permits-pd__float e-permits-pd__float--right" aria-label="Proprietăți" data-pd-props></aside>
-        <button class="btn btn-neutral btn-sm e-permits-pd__pill" type="button" hidden data-pd-show-props>${icon("sidebar", 16)}<span>Proprietăți</span></button>
+        <aside class="e-permits-pd__float e-permits-pd__float--left" id="pd-palette-panel" aria-label="Elemente" data-pd-palette></aside>
+        <aside class="e-permits-pd__float e-permits-pd__float--right" id="pd-props-panel" aria-label="Proprietăți" data-pd-props></aside>
+        <aside class="e-permits-pd__float e-permits-pd__float--end is-rail" aria-label="Proprietăți (restrânse)" hidden data-pd-props-rail>
+          <div class="e-permits-pd__rail">${tbButton('aria-expanded="false" aria-controls="pd-props-panel" data-pd-show-props', "sidebar", "Extinde proprietățile", "]")}</div>
+        </aside>
 
         <div class="e-permits-pd__toolbar" role="toolbar" aria-label="Instrumente și zoom" data-pd-toolbar>
           <span class="e-permits-pd__toolgroup" data-pd-edit-only>
@@ -259,6 +260,7 @@ document.addEventListener("DOMContentLoaded", () => {
     palette: q("[data-pd-palette]"),
     props: q("[data-pd-props]"),
     showProps: q("[data-pd-show-props]"),
+    propsRail: q("[data-pd-props-rail]"),
     toolbar: q("[data-pd-toolbar]"),
     zoomLabel: q("[data-pd-zoom-label]"),
     minimap: q("[data-pd-minimap]"),
@@ -637,7 +639,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const narrow = window.innerWidth < 960;
     const nothing = !S.settings && !S.sel.nodes.size && !S.sel.edge && !S.sel.lane && !S.sel.pool;
     el.props.hidden = !S.rightOpen || (narrow && nothing);
-    el.showProps.hidden = S.rightOpen || S.mode !== "build" || (narrow && nothing);
+    el.propsRail.hidden = S.rightOpen || S.mode !== "build" || (narrow && nothing);
     el.stage.dataset.tool = S.tool;
     requestAnimationFrame(positionToolbar);
   }
@@ -655,7 +657,7 @@ document.addEventListener("DOMContentLoaded", () => {
     root.dataset.mode = mode;
     root.querySelectorAll("[data-pd-mode]").forEach((b) => {
       const on = b.dataset.pdMode === mode;
-      b.classList.toggle("is-active", on);
+      b.classList.toggle("is-selected", on);
       b.setAttribute("aria-selected", String(on));
     });
     el.json.hidden = mode !== "json";
@@ -770,7 +772,7 @@ document.addEventListener("DOMContentLoaded", () => {
       el.palette.classList.add("is-rail");
       el.palette.innerHTML = `
         <div class="e-permits-pd__rail">
-          ${tbButton("data-pd-rail-toggle", "sidebar", "Extinde elementele", "[")}
+          ${tbButton('aria-expanded="false" aria-controls="pd-palette-panel" data-pd-rail-toggle', "sidebar", "Extinde elementele", "[")}
           <i class="e-permits-pd__railsep" aria-hidden="true"></i>
           ${[...items, lane].map((p) => `<button class="btn btn-strict btn-sm btn-icon-only e-permits-pd__rail-item" type="button" aria-label="${esc(p.label)}" data-tooltip-label="${esc(p.label)}"${p.disabled ? ` aria-disabled="true" data-tooltip-reason="Ai atins limita de 15 benzi."` : ""} data-pd-palette-item="${p.type}">${glyph(p.type)}</button>`).join("")}
         </div>`;
@@ -786,7 +788,7 @@ document.addEventListener("DOMContentLoaded", () => {
     el.palette.innerHTML = `
       <div class="e-permits-pd__card-head">
         <h2 class="e-permits-pd__card-title">Elemente</h2>
-        ${tbButton("data-pd-rail-toggle", "sidebar", "Restrânge elementele", "[")}
+        ${tbButton('aria-expanded="true" aria-controls="pd-palette-panel" data-pd-rail-toggle', "sidebar", "Restrânge elementele", "[")}
       </div>
       <div class="e-permits-pd__palette-list">
         ${items.map(itemHtml).join("")}
@@ -1082,6 +1084,8 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!el.palette.hidden && S.mode === "build") left = Math.max(left, r(el.palette).r + pad);
     if (S.trace && !traceCard.hidden && S.mode === "build" && stageRect.width >= 720) left = Math.max(left, r(traceCard).r + pad);
     if (!el.props.hidden && S.mode === "build" && stageRect.width >= 960) right = Math.min(right, r(el.props).l - pad);
+    /* the collapsed properties rail (56, top right) keeps the area clear like the palette rail does */
+    if (!el.propsRail.hidden && S.mode === "build") right = Math.min(right, r(el.propsRail).l - pad);
     /* below 960 the properties are a bottom card: the area ends above it */
     if (!el.props.hidden && S.mode === "build" && stageRect.width < 960) bottom = Math.min(bottom, r(el.props).t - pad);
     if (!el.toolbar.hidden) bottom = Math.min(bottom, r(el.toolbar).t - pad);
@@ -1380,7 +1384,7 @@ document.addEventListener("DOMContentLoaded", () => {
           <h2 id="pd-panel-title" data-cell-tooltip="${esc(title)}">${esc(title)}</h2>
           <span class="e-permits-pd__head-tools">
             ${menu}
-            ${tbButton("data-pd-hide-props", "sidebar", "Ascunde proprietățile", "]")}
+            ${tbButton('aria-expanded="true" aria-controls="pd-props-panel" data-pd-hide-props', "sidebar", "Restrânge proprietățile", "]")}
           </span>
         </div>
         ${chip || subtitle ? `<div class="e-permits-builder__panel-meta">${chip}${subtitle ? `<span>${esc(subtitle)}</span>` : ""}</div>` : ""}
@@ -1928,7 +1932,7 @@ document.addEventListener("DOMContentLoaded", () => {
       <div class="e-permits-builder__panel-head e-permits-builder__panel-head--selected e-permits-pd__panel-head">
         <div class="e-permits-builder__panel-title-row">
           <h2 id="pd-panel-title">Setări generale</h2>
-          <span class="e-permits-pd__head-tools">${tbButton("data-pd-hide-props", "sidebar", "Ascunde proprietățile", "]")}</span>
+          <span class="e-permits-pd__head-tools">${tbButton('aria-expanded="true" aria-controls="pd-props-panel" data-pd-hide-props', "sidebar", "Restrânge proprietățile", "]")}</span>
         </div>
         <div class="e-permits-builder__panel-meta">${tag("Proces", "neutral")}<span>Global · Administrator Central</span></div>
       </div>
@@ -2700,7 +2704,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   el.stage.addEventListener("pointerdown", (event) => {
     if (S.mode !== "build") return;
-    if (event.target.closest(".e-permits-pd__float, .e-permits-pd__toolbar, .e-permits-pd__minimap, .e-permits-pd__pill, [data-pd-add-menu], .e-permits-pd__json")) return;
+    if (event.target.closest(".e-permits-pd__float, .e-permits-pd__toolbar, .e-permits-pd__minimap, [data-pd-add-menu], .e-permits-pd__json")) return;
     if (!el.addMenu.hidden) closeAddMenu();
     if (S.kbConnect) endKbConnect(false);
     const middle = event.button === 1;

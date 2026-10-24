@@ -3540,3 +3540,22 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   title inside the toolbar). Another agent edited the same CSS + HTML pages mid-job → staged HEAD + my asserted
   replacements only (EDIT_ROOT script). code-audit: only the title's documented 11 pad; component-audit: only the
   standing shell profile-menu majors; hover-audit section 0 / 0; capture 5 × 2 clean.
+- 2026-10-24 · pd-header-compact-v1 (user: Process Designer „Proprietăți” collapse = the „Elemente” rail, compact header with
+  Medium 40 square actions, a 14 px segmented, a slimmer footer). (1) MEASURE THE BEFORE AT 1024 TOO: the 1024 crop showed a
+  pre-existing overlap (the 52-high mode switch ran over the version button and „Fără erori”) that 1440 hid; the fix was the
+  grid itself — `minmax(0, 1fr) auto minmax(max-content, 1fr)` keeps the modes centred when there is room and lets only the
+  title column shrink (ellipsis) when there is not, plus icon-only modes at 961–1279 / ≤ 720 (labels `display: none`, name in
+  `aria-label` → the tooltip runtime; a clip-path-hidden span still counts as „visible text” for js/icon-tooltip.js, so no
+  tooltip). (2) „Same as the other collapse” = render the SAME rail markup (`.e-permits-pd__float … .is-rail >
+  .e-permits-pd__rail` + the same `tbButton`), not a restyled pill; a NEW float modifier (`__float--end`) instead of reusing
+  `__float--right`, because ~10 rules key layout off `__float--right` (list view `right`, minimap offset, narrow bottom card).
+  Anything that measures free space (`visibleArea`, list `right`) must learn the new rail. (3) The user asked for
+  aria-expanded on collapse buttons although the 2026-10-14 lesson said „a collapse button inside its panel gets neither” —
+  the user wins; switch the product „open keeps the ring” paint off for disclosures (the library-adopt-v3 sidebar recipe),
+  prove rest = transparent / no shadow with a real-mouse probe. (4) Library has ONE segmented size in Figma (659:8188) and a
+  12-px `--small` in code → a documented local `--compact` (32 items, 40 track). (5) Shared FB chrome: scope every change to
+  `.e-permits-builder--process` or swap the PD markup to library classes (`btn … e-permits-pd__publish-action`, not
+  `e-permits-builder__publish`, whose FB paint would beat `.btn` by order). (6) Footer kept (US-50 AC-12 names it; merging save
+  + note into the header needs ~200 px the header lacks at 1024) — only 12 → 8 padding. (7) Two screenshots rendered with no
+  product CSS (unstyled lists) while ~90 headless Chromes of other agents were running; the probe of the same state was fine
+  and a re-shoot too — re-shoot before chasing a „broken layout”. Canvas-only pd states are DEMO-ERROR on phones on HEAD too.

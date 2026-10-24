@@ -1643,6 +1643,9 @@
         "pd-13": pd(async (h) => { await pick("node6")(h); }, { vizualizare: "1" }),
         "pd-13a": pd(null, { vizualizare: "1" }),
         "pd-14": pd(async (h) => { await h.click("[data-pd-rail-toggle]"); }),
+        /* pd-header-compact-v1: the properties collapse into the same 56 rail as the palette */
+        "pd-14a": pd(async (h) => { await h.click("[data-pd-hide-props]"); document.activeElement?.blur?.(); }),
+        "pd-14b": pd(async (h) => { if (!document.querySelector("#process-designer-modal [data-pd-palette].is-rail")) await h.click("[data-pd-rail-toggle]"); await h.click("[data-pd-hide-props]"); document.activeElement?.blur?.(); }),
         "pd-15": pd(async (h) => { await h.click("[data-pd-zoom-label]"); await h.click("[data-pd-zoom-to='0.5']"); }),
         "pd-15a": pd(async (h) => { await h.click("[data-pd-zoom-label]"); }),
         "pd-18": pd(async (h) => { await h.click("[data-pd-mode='json']"); }),

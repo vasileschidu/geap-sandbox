@@ -8,8 +8,46 @@
   grid-template-rows: auto minmax(0, 1fr) auto;
 }
 
+/* compact header (pd-header-compact-v1, 2026-10-24): every action is a library Medium 40 (square radius 8,
+   icon-only = 40 square), the mode switch is the compact segmented control (40 high), padding 8 · 24 = the BO
+   toolbar rhythm (8 · 40 · 8 = 56). The right column never shrinks below its actions (max-content); the
+   title column gives the room (ellipsis + tooltip) — at 1024 the mode switch no longer overlaps the actions */
 .e-permits-builder--process .e-permits-builder__topbar {
-  min-height: var(--spacing-72, 72px);
+  grid-template-columns: minmax(0, 1fr) auto minmax(max-content, 1fr);
+  min-height: var(--spacing-56, 56px);
+  padding: var(--spacing-8, 8px) var(--spacing-24, 24px);
+}
+
+.e-permits-pd__modes {
+  justify-self: center;
+}
+
+.e-permits-builder--process .btn.btn-md.e-permits-builder__errors {
+  padding-left: var(--spacing-12, 12px);
+}
+
+/* the errors glyph sits in the Medium icon box (20) */
+.e-permits-builder--process .e-permits-builder__errors > span {
+  flex-basis: var(--spacing-20, 20px);
+  height: var(--spacing-20, 20px);
+  width: var(--spacing-20, 20px);
+}
+
+/* Segmented control · Compact (local modifier, pd-header-compact-v1). The library control has ONE size in Figma
+   (Components 659:8188: track 52, items 40, 14/20) and an undocumented code `--small` at 12 text (never in the
+   back office). Compact = the same component at the Small button height: items 32 (6 · 12 padding, 14/20, icon
+   16, gap 8), track 4 · 4 → 40, so it lines up with Medium buttons in a toolbar. Colours, separators, hover,
+   selected, focus and disabled stay the library's. */
+.segmented-control.segmented-control--compact {
+  gap: var(--spacing-4, 4px);
+  padding: var(--spacing-4, 4px);
+}
+
+.segmented-control--compact .segment-item {
+  font-size: var(--font-size-fs-14, 14px);
+  line-height: var(--line-height-lh-20, 20px);
+  padding: var(--spacing-6, 6px) var(--spacing-12, 12px);
+  white-space: nowrap;
 }
 
 .e-permits-builder--process .e-permits-pd__nav-left {
@@ -71,14 +109,14 @@
 }
 
 /* „Setări generale” is a panel, not a mode: pressed while the process panel shows */
-.e-permits-builder__mode [data-pd-settings].is-active {
+.e-permits-pd__modes .segment-item[data-pd-settings].is-active {
   background: var(--color-background-base-default, #fff);
   box-shadow: var(--shadow-100, 0 1px 3px rgba(0, 0, 0, 0.16), 0 0 0.5px rgba(0, 0, 0, 0.3));
   color: var(--color-text-base-default, #121212);
   font-weight: var(--font-weight-fw-medium, 500);
 }
 
-.e-permits-builder__mode [data-pd-settings].is-active:hover {
+.e-permits-pd__modes .segment-item[data-pd-settings].is-active:hover {
   background: var(--color-background-base-tertiary-hover, #e7e7e7);
 }
 
@@ -886,7 +924,6 @@
 
 .e-permits-pd__float[hidden],
 .e-permits-pd__minimap[hidden],
-.e-permits-pd__pill[hidden],
 .e-permits-pd__json[hidden] {
   display: none;
 }
@@ -899,6 +936,33 @@
 
 .e-permits-pd__float--left.is-rail {
   width: var(--spacing-56, 56px);
+}
+
+/* collapsed properties = the SAME rail as the collapsed palette (pd-header-compact-v1; was a „Proprietăți” pill):
+   56 wide card, top right, the toggle in `.e-permits-pd__rail` (aria-expanded false → „Extinde proprietățile”) */
+.e-permits-pd__float--end {
+  animation: e-permits-pd-float-right 160ms var(--motion-easing-standard, ease) backwards;
+  right: var(--spacing-16, 16px);
+  width: var(--spacing-56, 56px);
+}
+
+/* the rail toggles are disclosures (aria-expanded = the panel is open), not popups: the product „open button
+   keeps the ring” rule is for menus — here the strict Small states stay (as the BO side-menu toggle) */
+.e-permits-pd__float .btn.btn-sm.btn-strict.e-permits-pd__tool[aria-expanded] {
+  background: transparent;
+  box-shadow: none;
+}
+
+.e-permits-pd__float .btn.btn-sm.btn-strict.e-permits-pd__tool[aria-expanded]:hover:not(:disabled) {
+  background: var(--color-background-base-tertiary-hover, #e0e0e0);
+}
+
+.e-permits-pd__float .btn.btn-sm.btn-strict.e-permits-pd__tool[aria-expanded]:active:not(:disabled) {
+  background: var(--color-background-base-tertiary-active, #d9d9d9);
+}
+
+.e-permits-pd__float .btn.btn-sm.btn-strict.e-permits-pd__tool[aria-expanded]:focus-visible {
+  box-shadow: 0 0 0 var(--border-width-2, 2px) var(--color-background-base-default, #fff), 0 0 0 calc(var(--border-width-2, 2px) + var(--border-width-3, 3px)) var(--focus-ring, var(--blue-sky-500, #3379db));
 }
 
 .e-permits-pd__float--right {
@@ -1187,13 +1251,6 @@
   color: var(--color-icon-danger-default, #d92d20);
 }
 
-.e-permits-pd__pill {
-  position: absolute;
-  right: var(--spacing-16, 16px);
-  top: var(--spacing-16, 16px);
-  z-index: 5;
-}
-
 /* ===== Bottom toolbar + minimap (spec E.5) ===== */
 .e-permits-pd__toolbar {
   align-items: center;
@@ -1363,7 +1420,7 @@
   width: 100%;
 }
 
-.e-permits-builder--process[data-mode="json"] :is(.e-permits-pd__float, .e-permits-pd__toolbar, .e-permits-pd__minimap, .e-permits-pd__pill) {
+.e-permits-builder--process[data-mode="json"] :is(.e-permits-pd__float, .e-permits-pd__toolbar, .e-permits-pd__minimap) {
   display: none;
 }
 
@@ -1375,7 +1432,8 @@
   display: flex;
   gap: var(--spacing-16, 16px);
   justify-content: space-between;
-  padding: var(--spacing-12, 12px) var(--spacing-24, 24px);
+  /* 8 · 40 · 8 = the header / BO toolbar rhythm (pd-header-compact-v1; was 12 · 40 · 12) */
+  padding: var(--spacing-8, 8px) var(--spacing-24, 24px);
 }
 
 .e-permits-pd__footer-note {
@@ -1852,6 +1910,11 @@
   right: var(--spacing-16, 16px);
 }
 
+/* the collapsed properties rail stays beside the list (16 · 56 · 16) */
+.e-permits-builder--process:has(.e-permits-pd__float--end:not([hidden])) .e-permits-pd__list {
+  right: calc(var(--spacing-56, 56px) + var(--spacing-32, 32px));
+}
+
 .e-permits-pd__list-head {
   align-items: flex-end;
   display: flex;
@@ -2051,6 +2114,20 @@
 }
 
 /* ===== Responsive (spec E.7) ===== */
+/* 961–1279 (one header row) and phones the modes go icon-only (32 squares) so the title keeps its room; the
+   name stays in aria-label and the tooltip runtime shows it on hover / focus (icon-only button). 721–960 the
+   switch has its own header row and keeps its labels. */
+@media (min-width: 961px) and (max-width: 1279px), (max-width: 720px) {
+  .e-permits-pd__modes .segment-item > span {
+    display: none;
+  }
+
+  .e-permits-pd__modes .segment-item.segment-item {
+    gap: 0;
+    padding: var(--spacing-8, 8px);
+  }
+}
+
 @media (max-width: 1279px) {
   .e-permits-pd__viewonly .switch-label {
     clip-path: inset(50%);
@@ -2074,6 +2151,7 @@
     display: flex;
     flex: 1 1 0;
     min-width: 0;
+    justify-content: flex-start;
     order: 1;
   }
 
@@ -2081,10 +2159,17 @@
     order: 2;
   }
 
-  .e-permits-builder--process .e-permits-builder__mode {
-    flex: 1 1 100%;
-    justify-content: center;
+  .e-permits-builder--process .e-permits-pd__modes {
+    flex: 0 1 auto;
+    margin-inline: auto;
     order: 3;
+  }
+
+  /* the wrapped header row starts the mode switch on its own line */
+  .e-permits-builder--process .e-permits-builder__topbar::after {
+    content: "";
+    flex-basis: 100%;
+    order: 2;
   }
 
   .e-permits-pd__float--right,
