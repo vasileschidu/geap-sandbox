@@ -3456,3 +3456,14 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   (tables accept them) make it exactly monotonic. Gate = scratch mc/sweep.mjs: one load, viewport 1600 → 768 → 1600 in
   8 px steps, every th width asserted non-increasing down / non-decreasing up and equal down vs up (5 lists × 209
   steps: 0 / 0). Names now stay at the floor (96 or their header) below the fit width and the table scrolls.
+- 2026-10-24 · table-vlines-v1 (user on #reg-acte: „vertical column separators where they make no sense”; rule via the
+  coordinator: a vertical line only on the edge of a column that is pinned AND a table that overflows, none when it
+  fits). The brief suspected cell border-left/right / registre CSS / header separators — a probe over all 10 BO tables ×
+  1440 / 1024 × start / middle (scratch scs/vlines.js: every th/td side border with alpha > 0, ::before/::after hairlines,
+  sideways inset shadows, wrap / table borders, + each overlay segment's ring alpha) found ZERO cell / pseudo lines: the
+  only vertical lines were MY v3 rings, which I had made „always on” for any pinned column (and v2 had argued for it).
+  A pinned column in a table that fits is an ordinary column → ring only under `:is(.has-overflow-start,
+  .has-overflow-end)`. Lesson: a design decision of mine („ring always, so the line never jumps”) is the first suspect
+  when the user says „lines where they make no sense”; measure all sources before editing other people's CSS.
+  Another agent had uncommitted work in the same two module files (table-edge-shadow-v1 box-edge overlay) → my commit =
+  HEAD + my exact replacements only.

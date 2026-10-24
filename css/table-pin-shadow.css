@@ -25,9 +25,10 @@
    - Stacking: z 7 = above the scrolling cells and the vertically sticky header cells (6), under the pinned
      cells (9 in the registries) and under a pinned cell lifted for its open ⋮ menu (8) — the menu is never
      crossed by the ring.
-   - States: the ring always (a pinned column, scrolled or not — the line never jumps); the shadows only
-     while content is hidden under that side: `.has-overflow-start` → start column, `.has-overflow-end` →
-     end column. 150 ms fade of the shadow alpha only; none with reduced motion.
+   - States: the ring while the table scrolls sideways at all (either `.has-overflow-*` on the box — scrolled
+     or not, so the line does not jump while scrolling); none when the table fits (table-vlines-v1). The
+     shadows only while content is hidden under that side: `.has-overflow-start` → start column,
+     `.has-overflow-end` → end column. 150 ms fade; none with reduced motion.
    - The edge cells' own inner divider (`.is-pin-edge-start` right / `.is-pin-edge-end` left border, set by
      ~10 per-registry pin rules) is removed (width 0); the ring replaces it.
    ========================================================================== */
@@ -46,7 +47,7 @@
 .table-pin-column {
   align-self: start;
   box-shadow:
-    0 0 0 1px rgba(0, 0, 0, 0.08),
+    0 0 0 1px rgba(0, 0, 0, 0),
     0 0 6px -2px rgba(0, 0, 0, 0),
     0 0 15px -3px rgba(0, 0, 0, 0);
   box-sizing: border-box;
@@ -70,6 +71,15 @@
   margin-right: var(--pin-end-right, 0);
   right: var(--pin-end-right, 0);
   width: var(--pin-end-w, 0);
+}
+
+/* the ring only while the table really scrolls sideways (table-vlines-v1, user 2026-10-24: „vertical separators
+   where they make no sense” — a pinned column in a table that fits is an ordinary column: no line at all) */
+:is(.has-overflow-start, .has-overflow-end) .table-pin-column {
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.08),
+    0 0 6px -2px rgba(0, 0, 0, 0),
+    0 0 15px -3px rgba(0, 0, 0, 0);
 }
 
 .has-overflow-start .table-pin-column--start {
