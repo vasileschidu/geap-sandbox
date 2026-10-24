@@ -2719,7 +2719,7 @@
         const fieldId = (doc.id || "").replace(/[^a-z0-9-]/gi, "-");
         return `
           ${doc.separator ? `<hr class="e-permits-fo-documents__separator">` : ""}
-          <div class="e-permits-fo-doc-field" data-fo-doc-field="${escapeFrontOfficeHtml(fieldId)}">
+          <div class="e-permits-fo-doc-field" data-fo-doc-field="${escapeFrontOfficeHtml(fieldId)}" data-fo-doc-replace${doc.required ? " data-fo-doc-required" : ""}>
             <div class="e-permits-fo-doc-field__row">
               <div class="e-permits-fo-doc-field__info">
                 <span class="e-permits-fo-doc-field__label">
@@ -2737,11 +2737,21 @@
         `;
       }
 
+      /* doc-upload-v1 · US-20 AC-01: the list comes from RSSPA; when it does not answer, the step shows the error +
+         „Reîncercați” instead of the list (demo `?rsspa=indisponibil`; the retry answers) and „Înainte” waits */
+      const registryDown = new URLSearchParams(location.search).get("rsspa") === "indisponibil" && !panel.dataset.foDocsRetried;
+      const nextBlocked = registryDown ? ' aria-disabled="true" data-tooltip-reason="Lista actelor necesare nu s-a încărcat."' : "";
       panel.innerHTML = `
         <header class="e-permits-fo-form__header">
           <h1 id="fo-request-step-3-title" tabindex="-1">${escapeFrontOfficeHtml(step.title || step.label || "Acte necesare")}</h1>
         </header>
         <section class="e-permits-fo-documents" aria-label="Acte necesare" data-fo-step3-documents>
+          ${registryDown ? `
+          ${foUi().renderNotice?.("error", "<strong>Lista actelor necesare nu s-a încărcat.</strong> Registrul serviciilor publice nu răspunde acum. Datele introduse se păstrează.", { role: "alert", className: "e-permits-fo-docs-down" }) || ""}
+          <button class="btn btn-outline-strict btn-md e-permits-fo-docs-retry" type="button" data-fo-docs-retry>
+            <svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-rotate-arrow"></use></svg>
+            <span>Reîncercați</span>
+          </button>` : `
           ${step.documents.map(documentItemHtml).join("")}
           <hr class="e-permits-fo-documents__separator">
           <div class="e-permits-fo-other-docs">
@@ -2759,7 +2769,7 @@
                 Adaugă document
               </button>
             </div>
-          </div>
+          </div>`}
         </section>
         <footer class="e-permits-fo-form__footer e-permits-fo-form__footer--actions-only">
           <div class="e-permits-fo-form__actions e-permits-fo-form__actions--with-draft">
@@ -2773,7 +2783,7 @@
               <button class="btn btn-neutral btn-icon-only e-permits-fo-back-button" type="button" aria-label="Înapoi la Detalii serviciu" data-fo-prev="step-3">
                 <svg class="icon" width="24" height="24" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-arrow-left"></use></svg>
               </button>
-              <button class="btn btn-primary e-permits-fo-next e-permits-fo-next--step-3" type="button" data-fo-next="step-3">
+              <button class="btn btn-primary e-permits-fo-next e-permits-fo-next--step-3" type="button" data-fo-next="step-3"${nextBlocked}>
                 <span>Înainte</span>
                 <svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-arrow-left"></use></svg>
               </button>
@@ -6678,7 +6688,7 @@
     function foDocFieldTitle(el) {
       const field = el?.closest?.("[data-fo-doc-field]");
       const label = field?.querySelector(".e-permits-fo-doc-field__label, .e-permits-fo-field__label, label");
-      if (!label) return el?.closest?.("[data-fo-other-doc-list]") ? "Document suplimentar" : "";
+      if (!label) return el?.closest?.("[data-fo-other-doc-card]")?.querySelector("[data-fo-other-doc-name]")?.value.trim() || (el?.closest?.("[data-fo-other-doc-list]") ? "Document suplimentar" : "");
       const copy = label.cloneNode(true);
       copy.querySelectorAll(".e-permits-fo-required, .e-permits-fo-optional-tag, .u-visually-hidden").forEach((x) => x.remove());
       return copy.textContent.replace(/\s+/g, " ").trim();
@@ -6837,7 +6847,25 @@
       if (captions[1]) captions[1].textContent = size ? `Mărime maximă: ${size}` : captions[1].dataset.foDefault;
       const tabs = foDocOverlay.querySelector(".e-permits-fo-doc-modal__tabs");
       if (tabs) tabs.hidden = uploadOnly;
-      foDocSwitchTab(uploadOnly ? "upload" : "library", { animate: false });
+      /* doc-upload-v1 · AC-05 replace mode = the same picker, titled „Înlocuiește fișierul” */
+      const replacing = Boolean(fieldEl?.querySelector("[data-fo-doc-field-files] [data-fo-doc]") && fieldEl?.hasAttribute("data-fo-doc-replace"));
+      const titleEl = foDocOverlay.querySelector("#fo-doc-modal-title");
+      if (titleEl) titleEl.textContent = replacing ? "Înlocuiește fișierul" : "Adaugă fișier";
+      if (foDocSubmitBtn) foDocSubmitBtn.textContent = replacing ? "Înlocuiește" : "Adaugă fișier";
+      /* AC-04 · MDocs does not answer (demo `?mdocs=indisponibil`): its tab is unavailable with the reason, a
+         warning notice says why, the device upload keeps working */
+      const mdocsDown = !uploadOnly && foDocDemo("mdocs") === "indisponibil";
+      const libraryTab = foDocOverlay.querySelector('[data-fo-doc-tab="library"]');
+      if (libraryTab) {
+        if (mdocsDown) { libraryTab.setAttribute("aria-disabled", "true"); libraryTab.dataset.tooltipReason = "Librăria MDocs nu răspunde acum."; }
+        else { libraryTab.removeAttribute("aria-disabled"); delete libraryTab.dataset.tooltipReason; }
+      }
+      const downSlot = foDocOverlay.querySelector("[data-fo-doc-mdocs-down]");
+      if (downSlot) {
+        downSlot.innerHTML = mdocsDown ? foUi().renderNotice?.("warning", "<strong>Librăria MDocs nu răspunde acum.</strong> Încărcați fișierul de pe dispozitiv.") || "" : "";
+        downSlot.hidden = !mdocsDown;
+      }
+      foDocSwitchTab(uploadOnly || mdocsDown ? "upload" : "library", { animate: false });
       setMotionModalHidden(foDocOverlay, false);
       document.body.style.overflow = "hidden";
     }
@@ -6860,6 +6888,8 @@
       const max = Number(docField?.dataset.foDocMax) || 1;
       const existing = container.querySelectorAll(".e-permits-fo-file-item");
       if (max === 1 || existing.length >= max) existing.forEach((el) => el.remove());
+      /* doc-upload-v1: a single-file field holds ONE document — an upload replaces an MDocs link too */
+      if (max === 1) container.querySelectorAll(".e-permits-fo-mdocs__attachment").forEach((el) => el.remove());
       const syncFull = () => docField?.classList.toggle("is-full", container.querySelectorAll(".e-permits-fo-file-item").length >= max);
       const doc = { sursa: "upload", tip: extra.tip || fileName, fisier: fileName, size: sizeLabel || extra.size || "", at: extra.at || foDocStampNow(), verb: "Încărcat" };
       const item = document.createElement("div");
@@ -6868,18 +6898,22 @@
       item.innerHTML = `
         ${foDocIconHtml(doc)}
         ${foDocContentHtml({ ...doc, fisier: doc.tip === fileName ? "" : fileName })}
-        <button class="e-permits-fo-document-remove e-permits-fo-doc-attached-item__remove" type="button" aria-label="Elimină ${escapeFrontOfficeHtml(fileName)}">
+        ${docField?.hasAttribute("data-fo-doc-replace") && max === 1 ? foDocReplaceButtonHtml(docField) : `<button class="e-permits-fo-document-remove e-permits-fo-doc-attached-item__remove" type="button" aria-label="Elimină ${escapeFrontOfficeHtml(fileName)}">
           <svg class="icon" width="16" height="16" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-cross-large-16"></use></svg>
-        </button>`;
+        </button>`}`;
       /* the guest flow reads the file name back */
       if (doc.tip === fileName) item.querySelector(".e-permits-fo-lib-item__title")?.classList.add("e-permits-fo-file-item__name");
-      item.querySelector(".e-permits-fo-doc-attached-item__remove").addEventListener("click", () => { item.remove(); syncFull(); });
+      item.querySelector(".e-permits-fo-doc-attached-item__remove")?.addEventListener("click", () => { item.remove(); syncFull(); });
       container.appendChild(item);
       syncFull();
     }
 
     function foDocAttachMdocsItem(container, libDoc) {
       container.querySelectorAll(".e-permits-fo-mdocs__attachment").forEach((el) => el.remove());
+      const docField = container.closest("[data-fo-doc-field]");
+      const single = (Number(docField?.dataset.foDocMax) || 1) === 1;
+      /* doc-upload-v1: a single-file field holds ONE document — an MDocs link replaces an upload too */
+      if (single) container.querySelectorAll(".e-permits-fo-file-item").forEach((el) => el.remove());
       const doc = libDoc.sursa && !libDoc.type ? libDoc : foDocFromLibrary(libDoc.type ? libDoc : { type: "emis", ...libDoc });
       const att = document.createElement("div");
       att.className = "e-permits-fo-mdocs__attachment";
@@ -6887,11 +6921,175 @@
       att.innerHTML = `
         ${foDocIconHtml(doc)}
         ${foDocContentHtml(doc, { titleClass: "e-permits-fo-mdocs__attachment-title" })}
-        <button class="e-permits-fo-document-remove e-permits-fo-mdocs__attachment-remove" type="button" aria-label="Elimină ${escapeFrontOfficeHtml(doc.tip)}">
+        ${docField?.hasAttribute("data-fo-doc-replace") && single ? foDocReplaceButtonHtml(docField) : `<button class="e-permits-fo-document-remove e-permits-fo-mdocs__attachment-remove" type="button" aria-label="Elimină ${escapeFrontOfficeHtml(doc.tip)}">
+          <svg class="icon" width="16" height="16" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-cross-large-16"></use></svg>
+        </button>`}`;
+      att.querySelector(".e-permits-fo-mdocs__attachment-remove")?.addEventListener("click", () => att.remove());
+      container.appendChild(att);
+    }
+
+    /* ===== doc-upload-v1 (2026-10-24) · FO „Acte necesare” — US-20 (88480), only what the story covers =====
+       AC-03 client-side checks before the upload (one file's error never touches the others), the library
+       file-item Uploading (progress) → the shared document card, the file-item Error = the document card Error
+       state under the document; AC-05 predefined documents: „Înlocuiește”, never ×; AC-06 required → inline
+       error + summary + „Înainte” unavailable until attached; AC-04 MDocs down → its tab disabled + notice;
+       AC-08 „Alte documente” delete = the FO confirm dialog (upload vs MDocs link wording).
+       Scope: the request's step 3 (main + guest wizard) — Ghișeu / Form Builder keep their own rules. */
+    const FO_DOC_EXTENSIONS = ["JPG", "PNG", "PDF", "XLS", "XLSX", "ZIP", "RAR", "DOCX", "DOC"];
+    const FO_DOC_MAX_MB = 60;
+    const foDocUploadFlow = (el) => Boolean(el?.closest?.("[data-fo-step-panel='3']"));
+    const foDocDemo = (key) => new URLSearchParams(location.search).get(key) || "";
+    function foDocFileProblem(file) {
+      const ext = (String(file?.name || "").match(/\.([a-z0-9]+)$/i)?.[1] || "").toUpperCase();
+      if (!FO_DOC_EXTENSIONS.includes(ext === "JPEG" ? "JPG" : ext)) return `Nu puteți atașa fișierul. Se permit doar extensiile ${FO_DOC_EXTENSIONS.join(", ")}.`;
+      if (Number(file?.size) > FO_DOC_MAX_MB * 1048576) return `Nu puteți atașa fișiere mai mari decât ${FO_DOC_MAX_MB} MB.`;
+      return "";
+    }
+    /* „Înlocuiește” on a predefined document's card (AC-05): reopens the picker for the same field */
+    function foDocReplaceButtonHtml(docField) {
+      const type = foDocFieldTitle(docField.querySelector("[data-fo-doc-field-files]") || docField) || "documentul";
+      return `<button class="btn btn-outline-strict btn-sm e-permits-fo-doc-replace" type="button" data-fo-open-doc-modal data-fo-doc-replace-open aria-label="Înlocuiește fișierul pentru ${escapeFrontOfficeHtml(type)}">
+          <svg class="icon" width="16" height="16" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-upload"></use></svg>
+          <span>Înlocuiește</span>
+        </button>`;
+    }
+    function foDocTitleRowHtml(name) {
+      return `<div class="e-permits-fo-lib-item__title-row e-permits-fo-doc-title-row"><span class="e-permits-fo-lib-item__title" data-cell-tooltip>${escapeFrontOfficeHtml(name)}</span></div>`;
+    }
+    function foDocMetaPartsHtml(parts) {
+      return `<div class="e-permits-fo-lib-item__meta e-permits-fo-doc-meta"><span class="e-permits-fo-doc-meta__line">${parts.map((part) => `<span class="e-permits-fo-doc-meta__part">${part}</span>`).join("")}</span></div>`;
+    }
+    let foDocErrorSeq = 0;
+    /* AC-03 · the rejected file under its document = the document card Error state (library file-item Error):
+       file name + size, the message in the note line, × closes it; whatever was attached before stays */
+    function foDocShowFileError(container, file, message) {
+      container.querySelectorAll("[data-fo-doc-error]").forEach((el) => el.remove());
+      const id = `fo-doc-error-${foDocErrorSeq += 1}`;
+      const item = document.createElement("div");
+      item.className = "e-permits-fo-file-item is-error";
+      item.dataset.foDocError = "";
+      item.innerHTML = `
+        ${foDocIconHtml({ sursa: "upload" })}
+        <div class="e-permits-fo-lib-item__content">
+          ${foDocTitleRowHtml(file.name)}
+          ${foDocMetaPartsHtml([escapeFrontOfficeHtml(formatFoFileSize(file.size))])}
+          <p class="e-permits-fo-file-item__error" id="${id}" role="alert">${escapeFrontOfficeHtml(message)}</p>
+        </div>
+        <button class="btn btn-strict btn-sm btn-icon-only e-permits-fo-document-remove" type="button" aria-label="Închide mesajul pentru ${escapeFrontOfficeHtml(file.name)}" aria-describedby="${id}" data-fo-doc-error-close>
           <svg class="icon" width="16" height="16" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-cross-large-16"></use></svg>
         </button>`;
-      att.querySelector(".e-permits-fo-mdocs__attachment-remove").addEventListener("click", () => att.remove());
-      container.appendChild(att);
+      container.appendChild(item);
+    }
+    /* AC-03 · file-item Uploading: spinner in the icon slot, name · size · percent, × cancels, progress line;
+       on 100 % the shared document card takes its place (the previous file stays until then).
+       Demo `?incarcare=pauza` holds it at 62 %. */
+    function foDocStartUpload(container, file) {
+      container.querySelectorAll("[data-fo-doc-error], [data-fo-doc-uploading]").forEach((el) => el.remove());
+      const size = formatFoFileSize(file.size);
+      const item = document.createElement("div");
+      item.className = "e-permits-fo-file-item is-uploading";
+      item.dataset.foDocUploading = "";
+      item.innerHTML = `
+        <span class="e-permits-fo-lib-item__icon e-permits-fo-file-item__spinner" aria-hidden="true"><span class="spinner spinner--small spinner--brand"></span></span>
+        <div class="e-permits-fo-lib-item__content">
+          ${foDocTitleRowHtml(file.name)}
+          ${foDocMetaPartsHtml([escapeFrontOfficeHtml(size), `Se încarcă <span data-fo-upload-percent>0</span>%`])}
+        </div>
+        <button class="btn btn-strict btn-sm btn-icon-only e-permits-fo-document-remove" type="button" aria-label="Anulează încărcarea fișierului ${escapeFrontOfficeHtml(file.name)}" data-fo-upload-cancel>
+          <svg class="icon" width="16" height="16" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-cross-large-16"></use></svg>
+        </button>
+        <div class="e-permits-fo-file-item__progress" role="progressbar" aria-label="Încărcarea fișierului ${escapeFrontOfficeHtml(file.name)}" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div class="e-permits-fo-file-item__progress-bar"></div></div>`;
+      container.appendChild(item);
+      const bar = item.querySelector(".e-permits-fo-file-item__progress-bar");
+      const track = item.querySelector("[role=progressbar]");
+      const label = item.querySelector("[data-fo-upload-percent]");
+      const hold = foDocDemo("incarcare") === "pauza" ? 62 : 101;
+      let progress = 0;
+      const step = () => {
+        if (!item.isConnected) return;
+        progress = Math.min(100, progress + 4 + Math.random() * 8, hold);
+        bar.style.width = `${progress}%`;
+        track.setAttribute("aria-valuenow", String(Math.round(progress)));
+        label.textContent = String(Math.round(progress));
+        if (progress >= 100) {
+          window.setTimeout(() => {
+            if (!item.isConnected) return;
+            item.remove();
+            foDocAttachFileItem(container, file.name, size);
+          }, 200);
+          return;
+        }
+        if (progress < hold) window.setTimeout(step, 90);
+      };
+      window.setTimeout(step, 60);
+    }
+    /* AC-06 · required documents: inline „Documentul este obligatoriu.” under each missing one + ONE summary
+       notice at the top of the step (the Ghișeu Verificare wording); „Înainte” stays unavailable (aria-disabled +
+       reason) until every required document has a file; the step re-checks itself while the errors show */
+    const FO_DOC_REQUIRED_MSG = "Documentul este obligatoriu.";
+    function foDocHasFile(field) {
+      return Boolean(field.querySelector("[data-fo-doc-field-files] [data-fo-doc]"));
+    }
+    function foDocMissing(panel) {
+      return [...panel.querySelectorAll("[data-fo-doc-field][data-fo-doc-required]")].filter((field) => !field.closest("[hidden]") && !foDocHasFile(field));
+    }
+    function foDocSetFieldError(field, on) {
+      const info = field.querySelector(".e-permits-fo-doc-field__info");
+      const add = field.querySelector(".e-permits-fo-doc-field__add");
+      let error = field.querySelector("[data-fo-doc-required-error]");
+      field.classList.toggle("is-error", on);
+      if (!on) { error?.remove(); add?.removeAttribute("aria-describedby"); return; }
+      if (!error && info) {
+        error = document.createElement("span");
+        error.className = "message message--inline message--error e-permits-fo-field__error";
+        error.dataset.foDocRequiredError = "";
+        error.id = `fo-doc-${field.dataset.foDocField}-required`;
+        error.innerHTML = `<svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-circle-error-filled"></use></svg><span>${FO_DOC_REQUIRED_MSG}</span>`;
+        info.appendChild(error);
+      }
+      if (error) add?.setAttribute("aria-describedby", error.id);
+    }
+    function foDocSyncRequired(panel, { announce = false } = {}) {
+      if (!panel?.dataset.foDocsChecked) return [];
+      const missing = foDocMissing(panel);
+      panel.querySelectorAll("[data-fo-doc-field][data-fo-doc-required]").forEach((field) => foDocSetFieldError(field, missing.includes(field)));
+      const section = panel.querySelector("[data-fo-step3-documents]");
+      let summary = panel.querySelector("[data-fo-docs-summary]");
+      if (!missing.length) summary?.remove();
+      else {
+        const names = missing.map((field) => escapeFrontOfficeHtml(foDocFieldTitle(field.querySelector("[data-fo-doc-field-files]")) || "")).filter(Boolean).join("; ");
+        /* redraw only when the list changes (the step's own observer sees every redraw) */
+        if (!summary || summary.dataset.foDocsSummary !== names) {
+          const html = foUi().renderNotice?.("error", `<strong>Lipsesc documente obligatorii.</strong> ${names}.`, { role: announce ? "alert" : "status", className: "e-permits-fo-docs-summary" }) || "";
+          const box = document.createElement("div");
+          box.innerHTML = html.trim();
+          const next = box.firstElementChild;
+          if (next) {
+            next.dataset.foDocsSummary = names;
+            next.tabIndex = -1;
+            if (summary) summary.replaceWith(next); else section?.prepend(next);
+            summary = next;
+          }
+        }
+      }
+      const button = panel.querySelector("[data-fo-next='step-3']");
+      if (button) {
+        if (missing.length) {
+          button.setAttribute("aria-disabled", "true");
+          button.dataset.tooltipReason = "Atașați documentele obligatorii.";
+        } else {
+          button.removeAttribute("aria-disabled");
+          delete button.dataset.tooltipReason;
+        }
+      }
+      return missing;
+    }
+    /* the step re-checks on every change of its files (attach, replace, upload done) */
+    const foDocObserved = new WeakSet();
+    function foDocWatch(panel) {
+      if (!panel || foDocObserved.has(panel)) return;
+      foDocObserved.add(panel);
+      new MutationObserver(() => { if (panel.dataset.foDocsChecked) foDocSyncRequired(panel); }).observe(panel, { childList: true, subtree: true });
     }
 
     if (foDocOverlay) {
@@ -6900,7 +7098,21 @@
       foDocOverlay.addEventListener("click", (e) => { if (e.target === foDocOverlay) foDocCloseModal(); });
 
       foDocOverlay.querySelectorAll("[data-fo-doc-tab]").forEach((tab) => {
-        tab.addEventListener("click", () => foDocSwitchTab(tab.dataset.foDocTab));
+        tab.addEventListener("click", () => { if (tab.getAttribute("aria-disabled") !== "true") foDocSwitchTab(tab.dataset.foDocTab); });
+      });
+      /* AC-03 drag & drop onto the picker's drop zone = the same as „choose files” */
+      const dropZone = foDocOverlay.querySelector("[data-fo-doc-drop-zone]");
+      dropZone?.addEventListener("dragover", (event) => { event.preventDefault(); dropZone.classList.add("is-dragover"); });
+      dropZone?.addEventListener("dragleave", () => dropZone.classList.remove("is-dragover"));
+      dropZone?.addEventListener("drop", (event) => {
+        event.preventDefault();
+        dropZone.classList.remove("is-dragover");
+        const file = event.dataTransfer?.files?.[0];
+        if (!file || !foDocFileInput) return;
+        const files = new DataTransfer();
+        files.items.add(file);
+        foDocFileInput.files = files.files;
+        foDocFileInput.dispatchEvent(new Event("change", { bubbles: true }));
       });
 
       foDocSearchInput?.addEventListener("input", () => {
@@ -6929,7 +7141,12 @@
         if (activePanel?.dataset.foDocPanel === "library" && foDocModalSelectedLib) {
           foDocAttachMdocsItem(filesContainer, foDocModalSelectedLib);
         } else if (activePanel?.dataset.foDocPanel === "upload" && foDocModalPendingFile) {
-          foDocAttachFileItem(filesContainer, foDocModalPendingFile.name, formatFoFileSize(foDocModalPendingFile.size));
+          /* doc-upload-v1: on the request's step 3 the file is checked first, then uploaded with progress */
+          if (foDocUploadFlow(foDocModalField)) {
+            const problem = foDocFileProblem(foDocModalPendingFile);
+            if (problem) foDocShowFileError(filesContainer, foDocModalPendingFile, problem);
+            else foDocStartUpload(filesContainer, foDocModalPendingFile);
+          } else foDocAttachFileItem(filesContainer, foDocModalPendingFile.name, formatFoFileSize(foDocModalPendingFile.size));
         }
         foDocCloseModal();
       });
@@ -6939,8 +7156,48 @@
       const btn = e.target.closest("[data-fo-open-doc-modal]");
       if (!btn) return;
       const fieldEl = btn.closest("[data-fo-doc-field]");
-      const label = btn.dataset.foDocLabel || "";
+      const label = btn.dataset.foDocLabel || foDocFieldTitle(fieldEl?.querySelector("[data-fo-doc-field-files]")) || "";
       foDocOpenModal(fieldEl, label);
+    });
+
+    /* doc-upload-v1 · the rejected-file card × and the upload cancel × */
+    document.addEventListener("click", (e) => {
+      const close = e.target.closest("[data-fo-doc-error-close], [data-fo-upload-cancel]");
+      if (!close) return;
+      const field = close.closest("[data-fo-doc-field]");
+      close.closest(".e-permits-fo-file-item")?.remove();
+      (field?.querySelector(".e-permits-fo-doc-field__add:not([hidden])") || field?.querySelector("[data-fo-doc-replace-open]"))?.focus();
+    });
+
+    /* doc-upload-v1 · AC-06 on „Înainte” (main + guest wizard; the post-process handler stops earlier) */
+    document.addEventListener("click", (event) => {
+      const next = event.target.closest("[data-fo-next='step-3']");
+      if (!next || frontOfficePostprocess) return;
+      const panel = next.closest("[data-fo-step-panel='3']");
+      if (!panel) return;
+      if (next.getAttribute("aria-disabled") === "true" && !panel.dataset.foDocsChecked) { event.stopImmediatePropagation(); return; }
+      panel.dataset.foDocsChecked = "1";
+      foDocWatch(panel);
+      const missing = foDocSyncRequired(panel, { announce: true });
+      if (!missing.length) { delete panel.dataset.foDocsChecked; return; }
+      event.stopImmediatePropagation();
+      const summary = panel.querySelector("[data-fo-docs-summary]");
+      summary?.scrollIntoView({ block: "center" });
+      summary?.focus({ preventScroll: true });
+    }, true);
+
+    /* doc-upload-v1 · AC-01 „Reîncercați”: the list loads again, every answer of the other steps stays */
+    document.addEventListener("click", (event) => {
+      const retry = event.target.closest("[data-fo-docs-retry]");
+      if (!retry) return;
+      const panel = retry.closest("[data-fo-step-panel='3']");
+      retry.classList.add("loading");
+      retry.setAttribute("aria-disabled", "true");
+      window.setTimeout(() => {
+        if (panel) panel.dataset.foDocsRetried = "1";
+        renderFrontOfficeStep3FromSchema(frontOfficeGuest ? guestSchemaVariant(frontOfficeSchema, frontOfficeGuest) : frontOfficeSchema);
+        panel?.querySelector("h1")?.focus();
+      }, 700);
     });
     // ===== End document picker modal =====
 
@@ -8679,7 +8936,7 @@
                 <span class="e-permits-fo-required" aria-label="obligatoriu"><svg class="icon" width="12" height="12" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-asterisk"></use></svg></span>
               </label>
               <div class="e-permits-fo-input">
-                <input id="fo-other-title-${uid}" type="text" placeholder="ex. Certificat de conformitate" required>
+                <input id="fo-other-title-${uid}" type="text" placeholder="ex. Certificat de conformitate" required data-fo-other-doc-name>
               </div>
             </div>
             <div class="e-permits-fo-field">
@@ -8689,35 +8946,43 @@
                 <svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-resize"></use></svg>
               </div>
             </div>
-            <label class="e-permits-fo-file-drop" for="fo-other-file-${uid}">
-              <input id="fo-other-file-${uid}" type="file" accept=".jpg,.jpeg,.png,.pdf,.xls,.xlsx,.zip,.docx" data-fo-file-input>
-              <span class="e-permits-fo-file-drop__icon" aria-hidden="true">
-                <svg class="icon" width="24" height="24"><use href="assets/icons/sprite.svg#icon-cloud-upload"></use></svg>
-              </span>
-              <span class="e-permits-fo-file-drop__copy">
-                <span><span>Drag and drop or</span> <strong>choose files</strong></span>
-                <small>Un singur fișier JPG, PNG, PDF, XLS, ZIP, DOCX <span aria-hidden="true">•</span> max 60 MB</small>
-              </span>
-              <button class="btn btn-secondary btn-md e-permits-fo-upload-button" type="button" aria-label="Încarcă fișier" data-fo-upload-trigger>
-                <svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-upload"></use></svg>
-                Încarcă fișier
-              </button>
-            </label>
+            <div class="e-permits-fo-doc-field e-permits-fo-doc-field--other" data-fo-doc-field="other-${uid}" data-fo-doc-replace>
+              <div class="e-permits-fo-doc-field__row">
+                <button class="btn btn-secondary btn-md e-permits-fo-doc-field__add" type="button" data-fo-open-doc-modal>
+                  <svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-plus-large"></use></svg>
+                  Adaugă fișier
+                </button>
+              </div>
+              <div class="e-permits-fo-doc-field__files" data-fo-doc-field-files></div>
+            </div>
           </div>
         `;
         list.appendChild(card);
-        initFileUploadDrop(card.querySelector(".e-permits-fo-file-drop"));
         syncOtherDocCards();
         card.scrollIntoView({ block: "nearest", behavior: "smooth" });
         return;
       }
 
       if (event.target.closest("[data-fo-remove-other-doc]")) {
+        const trigger = event.target.closest("[data-fo-remove-other-doc]");
         const card = event.target.closest("[data-fo-other-doc-card]");
-        if (card) {
+        if (!card) return;
+        /* AC-08 · asks first; an uploaded file goes with the document, an MDocs document only loses its link */
+        const name = card.querySelector("[data-fo-other-doc-name]")?.value.trim();
+        const label = name ? `„${name}”` : `Documentul ${card.querySelector("[data-fo-other-doc-index]")?.textContent.trim() || ""}`.trim();
+        const attached = card.querySelector("[data-fo-doc-field-files] [data-fo-doc]");
+        const source = attached ? foDocDataOf(attached)?.sursa : "";
+        const text = source === "mdocs"
+          ? `${label} se elimină din cerere. Documentul rămâne în librăria MDocs.`
+          : source ? `${label} se elimină din cerere, împreună cu fișierul încărcat.` : `${label} se elimină din cerere.`;
+        const remove = () => {
+          const addButton = card.closest(".e-permits-fo-other-docs__body")?.querySelector("[data-fo-add-other-doc]");
           card.remove();
           syncOtherDocCards();
-        }
+          addButton?.focus();
+        };
+        if (window.GEAPFoRepeat?.confirm) window.GEAPFoRepeat.confirm({ title: "Elimini documentul?", text, confirm: "Elimină documentul", onConfirm: remove, returnFocus: trigger });
+        else remove();
       }
     });
 

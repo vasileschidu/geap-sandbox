@@ -1219,6 +1219,9 @@
 
   window.GEAPFoRepeat = {
     setContext(context) { ctx = { ...(ctx || {}), ...context }; },
+    /* the same FO confirm dialog for other FO parts ({ title, text, confirm, onConfirm, returnFocus }) —
+       doc-upload-v1: „Alte documente” › Elimină (US-20 AC-08) */
+    confirm: openConfirm,
     gridHtml,
     blockHtml,
     bind,

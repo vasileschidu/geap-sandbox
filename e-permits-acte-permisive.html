@@ -15,7 +15,7 @@
   <link rel="stylesheet" href="css/table-pin-shadow.css?v=table-pin-clip-v1">
   <link rel="stylesheet" href="css/facet-filter.css?v=open-chip-pressed-v1">
   <link rel="stylesheet" href="css/drawer.css?v=phone-title-20-v1">
-  <link rel="stylesheet" href="css/e-permits-acte-permisive.css?v=header-no-extra-gap-v1">
+  <link rel="stylesheet" href="css/e-permits-acte-permisive.css?v=doc-upload-v1">
   <link rel="stylesheet" href="css/doc-preview.css?v=radius-16-v1">
   <link rel="stylesheet" href="css/page-reveal.css?v=skeleton-v1">
   <link rel="stylesheet" href="msupport/msupport.css?v=20260925-anon">
@@ -43,7 +43,7 @@
   <script src="js/empty-state.js?v=empty-v3"></script>
   <script src="js/trajectory.js?v=trajectory-phone-even-v1"></script>
   <script src="js/event-timeline.js?v=istoric-jurnal-v1"></script>
-  <script src="js/demo-states.js?v=pd-header-compact-v1"></script>
+  <script src="js/demo-states.js?v=doc-upload-v1"></script>
   <script src="js/demo-links.js?v=links-v4"></script>
   <!-- ?flow=ekyc: the eKYC back office on this shell (js/ekyc.js → window.GEAPShellProduct) -->
   <script src="js/ekyc.js?v=audit-fix-v5"></script>
@@ -60,10 +60,10 @@
   <script src="js/input-date-picker.js?v=dp-v3" defer></script>
   <script src="msupport/msupport.js?v=20260925-anon" defer></script>
   <!-- Grilă editabilă + Bloc repetabil (FO side, before the FO renderer that dispatches to it) -->
-  <script src="js/fo-grid.js?v=destructive-red-v1" defer></script>
+  <script src="js/fo-grid.js?v=doc-upload-v1" defer></script>
   <!-- the act row (FO #intent, Ghișeu, EVO Cabinet) — one renderer, before the FO script that uses it -->
   <script src="js/act-row.js?v=ghiseu-picker-toast-v1" defer></script>
-  <script src="js/e-permits-acte-permisive.js?v=ghiseu-roles-as-fo-v1" defer></script>
+  <script src="js/e-permits-acte-permisive.js?v=doc-upload-v1" defer></script>
   <!-- Form Builder (after the FO renderer it shares) -->
   <script src="js/form-builder.js?v=destructive-red-v1" defer></script>
   <script src="core/process-model.js?v=pd-v3" defer></script>
@@ -3675,8 +3675,9 @@
       <!-- Upload panel -->
       <div class="e-permits-fo-doc-modal__panel" data-fo-doc-panel="upload" hidden>
         <div class="e-permits-fo-doc-modal__upload-content">
+          <div class="e-permits-fo-doc-modal__down" data-fo-doc-mdocs-down hidden></div>
           <label class="e-permits-fo-doc-modal__drop-zone" data-fo-doc-drop-zone>
-            <input type="file" accept=".jpg,.jpeg,.png,.pdf,.xls,.xlsx,.zip,.docx" hidden data-fo-doc-file-input>
+            <input type="file" accept=".jpg,.jpeg,.png,.pdf,.xls,.xlsx,.zip,.rar,.docx,.doc" hidden data-fo-doc-file-input>
             <div class="e-permits-fo-doc-modal__drop-icon">
               <svg class="icon" width="24" height="24" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-cloud-upload"></use></svg>
             </div>
@@ -3686,8 +3687,8 @@
             </div>
           </label>
           <div class="e-permits-fo-doc-modal__drop-captions">
-            <span>Un singur fișier JPG, PNG, PDF, XLS, ZIP, DOCX,</span>
-            <span>Maximum size: 60 MB</span>
+            <span>Un singur fișier: JPG, PNG, PDF, XLS, XLSX, ZIP, RAR, DOCX, DOC</span>
+            <span>Mărime maximă: 60 MB</span>
           </div>
           <div class="e-permits-fo-doc-modal__upload-preview" data-fo-doc-upload-preview hidden></div>
         </div>

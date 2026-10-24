@@ -318,6 +318,41 @@
     input.dispatchEvent(new Event("change", { bubbles: true }));
     await h.wait(200); await h.click("[data-fo-doc-modal-submit]"); await h.wait(300);
   };
+  /* doc-upload-v1 · a file of a given size (real bytes: the size check reads File.size) and the picker's upload path */
+  const duFile = (name, mb, type = "application/pdf") => new File([new Uint8Array(Math.round(mb * 1048576))], name, { type });
+  const duPick = async (h, fieldSel, file) => {
+    await h.click(`[data-fo-step-panel='3'] ${fieldSel} [data-fo-open-doc-modal]`); await h.wait(300);
+    const tab = document.querySelector('[data-fo-doc-tab="upload"]');
+    if (tab && tab.getBoundingClientRect().height) tab.click();
+    const input = document.querySelector("[data-fo-doc-file-input]");
+    const files = new DataTransfer();
+    files.items.add(file);
+    input.files = files.files;
+    input.dispatchEvent(new Event("change", { bubbles: true }));
+    await h.wait(200); await h.click("[data-fo-doc-modal-submit]"); await h.wait(300);
+  };
+  /* field 1 uploaded (after its progress) + field 3 from MDocs: both predefined → „Înlocuiește” */
+  const duAttached = async (h) => {
+    await duPick(h, "[data-fo-doc-field='property-deed']", duFile("contract-locatiune.pdf", 1.8));
+    await h.find("[data-fo-step-panel='3'] [data-fo-doc-field='property-deed'] [data-fo-doc]");
+    await h.click("[data-fo-step-panel='3'] [data-fo-doc-field='state-registry-extract'] [data-fo-open-doc-modal]"); await h.wait(300);
+    await h.click("[data-fo-doc-modal-list] .e-permits-fo-lib-item"); await h.click("[data-fo-doc-modal-submit]"); await h.wait(300);
+    document.activeElement?.blur?.();
+  };
+  /* one „Alte documente” card, named, with an uploaded file or an MDocs document */
+  const duOther = async (h, kind) => {
+    await h.click("[data-fo-step-panel='3'] [data-fo-add-other-doc]"); await h.wait(300);
+    await h.fill("[data-fo-step-panel='3'] [data-fo-other-doc-name]", "Certificat de conformitate");
+    const field = "[data-fo-other-doc-card] [data-fo-doc-field]";
+    if (kind === "mdocs") {
+      await h.click(`[data-fo-step-panel='3'] ${field} [data-fo-open-doc-modal]`); await h.wait(300);
+      await h.click("[data-fo-doc-modal-list] .e-permits-fo-lib-item"); await h.click("[data-fo-doc-modal-submit]"); await h.wait(300);
+    } else {
+      await duPick(h, field, duFile("certificat-conformitate.pdf", 0.9));
+      await h.find(`[data-fo-step-panel='3'] ${field} [data-fo-doc]`);
+    }
+    await h.scroll("[data-fo-step-panel='3'] [data-fo-other-doc-card]");
+  };
   const foReq = (step, params = {}, run) => ({
     page: PP_FO, flow: "full", params,
     hash: step === 1 ? "#request" : `#request-step-${step}`,
@@ -1294,6 +1329,22 @@
     }),
     "fo-cfg-auth-5": foReq(5, {}, async (h) => { await cfgPick(h, "requiresAuth", "no"); await cfgPick(h, "authenticated", "no"); }),
     "fo-05d": foReq(4, {}, async (h) => { await h.scroll(".e-permits-fo-summary-docs"); }),
+    /* doc-upload-v1 (2026-10-24) · FOD pattern „Document upload” — Acte necesare, US-20 (88480) only; each id at 1440
+       and 375. du1 uploading (progress held at 62 %) · du2 wrong type · du3 over 60 MB (both = the card Error under
+       the document) · du4 predefined documents attached = „Înlocuiește”, no × · du5 „Înlocuiește” → the picker in
+       replace mode · du6 / du7 „Alte documente” › Elimină = the FO confirm (uploaded file / MDocs link) · du8 „Înainte”
+       with required documents missing (inline errors + summary, „Înainte” unavailable) · du9 MDocs does not answer
+       (tab unavailable + notice, upload works) · du10 RSSPA does not answer (error + „Reîncercați”) */
+    "fo-04du1": foReq(3, { incarcare: "pauza" }, async (h) => { await duPick(h, "[data-fo-doc-field='floor-plan']", duFile("planul-incaperilor-parter.pdf", 2.4)); await h.wait(700); await h.scroll("[data-fo-step-panel='3'] [data-fo-doc-uploading]"); }),
+    "fo-04du2": foReq(3, {}, async (h) => { await duPick(h, "[data-fo-doc-field='floor-plan']", duFile("planul-incaperilor.heic", 3.1, "image/heic")); await h.scroll("[data-fo-step-panel='3'] [data-fo-doc-error]"); }),
+    "fo-04du3": foReq(3, {}, async (h) => { await duPick(h, "[data-fo-doc-field='property-deed']", duFile("contract-locatiune-scanat.pdf", 72)); await h.scroll("[data-fo-step-panel='3'] [data-fo-doc-error]"); }),
+    "fo-04du4": foReq(3, {}, async (h) => { await duAttached(h); await h.scroll("[data-fo-step-panel='3'] [data-fo-doc-field='property-deed']"); }),
+    "fo-04du5": foReq(3, {}, async (h) => { await duAttached(h); await h.click("[data-fo-step-panel='3'] [data-fo-doc-field='property-deed'] [data-fo-doc-replace-open]"); await h.wait(400); }),
+    "fo-04du6": foReq(3, {}, async (h) => { await duOther(h, "upload"); await h.click("[data-fo-step-panel='3'] [data-fo-remove-other-doc]"); await h.find("[data-fo-grid-confirm]:not([hidden])"); }),
+    "fo-04du7": foReq(3, {}, async (h) => { await duOther(h, "mdocs"); await h.click("[data-fo-step-panel='3'] [data-fo-remove-other-doc]"); await h.find("[data-fo-grid-confirm]:not([hidden])"); }),
+    "fo-04du8": foReq(3, {}, async (h) => { await duPick(h, "[data-fo-doc-field='property-deed']", duFile("contract-locatiune.pdf", 1.8)); await h.find("[data-fo-step-panel='3'] [data-fo-doc-field='property-deed'] [data-fo-doc]"); await h.click("[data-fo-step-panel='3'] [data-fo-next='step-3']"); await h.wait(300); }),
+    "fo-04du9": foReq(3, { mdocs: "indisponibil" }, async (h) => { await h.click("[data-fo-step-panel='3'] [data-fo-doc-field='state-registry-extract'] [data-fo-open-doc-modal]"); await h.wait(400); }),
+    "fo-04du10": foReq(3, { rsspa: "indisponibil" }),
     "fo-06": foReq(5),
     "fo-07": foReq(6),
     "fo-08": foReq(7, { paid: "1" }),
@@ -1335,7 +1386,11 @@
       /* through the wizard in guest mode: 2 → 3 → 4 → 5 → 6 (MPay) → 7 */
       const toStep = (step) => async (h) => {
         const order = ["step-2", "step-3", "step-4", "step-5"];
-        for (let n = 2; n < Math.min(step, 6); n += 1) await h.click(`[data-fo-step-panel="${n}"] [data-fo-next="${order[n - 2]}"]`);
+        for (let n = 2; n < Math.min(step, 6); n += 1) {
+          /* doc-upload-v1: „Înainte” on Acte necesare needs the required documents (US-20 AC-06) */
+          if (n === 3) document.querySelectorAll("[data-fo-step-panel='3'] [data-fo-doc-field][data-fo-doc-required] [data-fo-doc-field-files]").forEach((box) => { if (!box.querySelector("[data-fo-doc]")) window.GEAPFormRender?.attachFileItem?.(box, "document-scanat.pdf", "1.2 MB"); });
+          await h.click(`[data-fo-step-panel="${n}"] [data-fo-next="${order[n - 2]}"]`);
+        }
         if (step === 7) { await h.click("[data-fo-payment-pay]"); await h.wait(1600); }
       };
       return {

@@ -3559,3 +3559,27 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   + note into the header needs ~200 px the header lacks at 1024) — only 12 → 8 padding. (7) Two screenshots rendered with no
   product CSS (unstyled lists) while ~90 headless Chromes of other agents were running; the probe of the same state was fine
   and a re-shoot too — re-shoot before chasing a „broken layout”. Canvas-only pd states are DEMO-ERROR on phones on HEAD too.
+- 2026-10-24 · FOD „Document upload” — FO Acte necesare states from US-20 only (doc-upload-v1; demo fo-04du1…du10). What
+  kept it small: every state is an existing component in a new state — the shared document card (Uploading = spinner in
+  the 24 icon slot + the old progress line, Error = the finish certificate's Error look, „Înlocuiește” = the card's
+  labelled-action slot), `renderNotice` for the summary / RSSPA / MDocs alerts, the fo-grid FO confirm exported as
+  `GEAPFoRepeat.confirm` for „Alte documente” › Elimină. Opt-in hooks on the field (`[data-fo-doc-replace]`,
+  `[data-fo-doc-required]`) + a step-3 scope (`closest("[data-fo-step-panel='3']")`) left Ghișeu / Form Builder untouched.
+  Traps: (1) BUG I made — a MutationObserver on the step that re-renders the summary on every callback = an endless
+  mutation loop (the page hung, capture printed nothing for the rest of the run); redraw only when the content changes
+  (`dataset.foDocsSummary !== names`). (2) The asserted-patch helper's „already applied” test `new in s and old not in s`
+  is FALSE for insertions (new contains old) → the second run duplicated an export line (third time this bit): test
+  `new in s` FIRST. (3) A library `.btn` dropped into the shared document card is placed by the card's „labelled action”
+  rule (row 3 under the text on phones) — an icon-only × made of `.btn` needs its own ≤ 720 placement back on the title
+  line. (4) The FO renders `renderNotice` with the LIBRARY message size (16/24, big padding) unless its container is in
+  the inline-note scope list (`:is([data-demo-flow="back-office"], .e-permits-fo-intent-act, …)`) — add the container, same
+  specificity. (5) Adding a real AC-06 check to „Înainte” broke nothing only because the guest demo `toStep` now attaches the
+  required documents first (`GEAPFormRender.attachFileItem`, instant) — grep every demo / tool that clicks the guarded
+  button. (6) Guest states failed in the shared tree because ANOTHER agent's uncommitted US-32 address work was mid-way —
+  a HEAD worktree + only my asserted scripts (python http.server :8962) proved my part clean and served every QA run.
+  (7) Crop scripts: the FO page scrolls smoothly → set `scrollBehavior = "auto"` and use document coords +
+  `captureBeyondViewport`, or the crop shows the wrong area. Real bytes for size tests (`new Uint8Array(72 MB)`): an own
+  `size` property does not survive `DataTransfer`. Conditional documents (US-225 AC-25–29) NOT built: the FO schema is not
+  linked to the passport rules — a demo rule would be a second source of truth (reported as a gap). No sub-agent tool →
+  component-audit (step 0 majors; picker × / footer = pre-existing, same on fo-04d), code-audit (standing meta 18 / Large
+  11 / label 18 only, static 0), hover-audit 0 / 0 on step, picker, confirm.
