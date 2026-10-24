@@ -2288,8 +2288,11 @@ document.addEventListener("DOMContentLoaded", () => {
     return Math.ceil(clamp(Math.max(headerWidth, contentWidth), minWidth, maxWidth));
   };
 
-  const getColumnWidths = (columns, rows, measured = null) => {
-    const widths = Object.fromEntries(columns.map((key) => [key, getNaturalColumnWidth(key, rows)]));
+  /* `hug` = per column, the widest unbreakable thing in its cells (row-action group, tag, button, switch) + the cell
+     padding, measured on screen (measureColumnContent). It is the column's minimum at every width: action and tag
+     columns hug their content and are never cut — the text columns give the room instead (ekyc-cols-hug-v1). */
+  const getColumnWidths = (columns, rows, measured = null, hug = null) => {
+    const widths = Object.fromEntries(columns.map((key) => [key, Math.max(getNaturalColumnWidth(key, rows), hug?.[key] || 0)]));
     const tablePaddingWidth = getView()?.selectable === false ? 0 : selectColumnWidth;
     const visibleTableWidth = workplaceTable?.parentElement?.clientWidth || 0;
     const naturalWidth = columns.reduce((sum, key) => sum + widths[key], tablePaddingWidth);
@@ -2303,12 +2306,12 @@ document.addEventListener("DOMContentLoaded", () => {
        (reg-cols-monotonic-v1, user: „Serviciu shrinks, then suddenly jumps back to large”). */
     if (visibleTableWidth && naturalWidth > visibleTableWidth) {
       const rigid = columns.filter((key) => !isTextColumn(key));
-      const floors = Object.fromEntries(rigid.map((key) => [key, getColumnFloor(key, rows, widths[key], measured)]));
+      const floors = Object.fromEntries(rigid.map((key) => [key, Math.max(getColumnFloor(key, rows, widths[key], measured), hug?.[key] || 0)]));
       let deficit = naturalWidth - visibleTableWidth;
       deficit -= shrinkColumns(widths, floors, rigid, deficit);
       for (const floor of textColumnFloors) {
         if (deficit <= 0) break;
-        const textFloors = Object.fromEntries(growable.map((key) => [key, Math.min(widths[key], Math.max(headerColumnWidth(workplaceDb.columns[key]), floor))]));
+        const textFloors = Object.fromEntries(growable.map((key) => [key, Math.min(widths[key], Math.max(headerColumnWidth(workplaceDb.columns[key]), floor, hug?.[key] || 0))]));
         deficit -= shrinkColumns(widths, textFloors, growable, deficit);
       }
     }
@@ -5779,12 +5782,40 @@ document.addEventListener("DOMContentLoaded", () => {
      drawn while hidden) the widths are fitted again in place — no redraw, so focus / open menus stay. */
   let fittedViewWidth = 0;
   let refitFrame = 0;
-  /* the rendered max-content of every column (header + the rows on screen): one auto-layout pass */
+  /* the rendered max-content of every column (header + the rows on screen): one auto-layout pass. In the same pass
+     `hug` = the widest unbreakable unit per column (the row-action group, a tag, a button, a switch — never the text
+     around them) + the cell's side padding: what the column needs so nothing in it is cut (ekyc-cols-hug-v1) */
+  const HUG_UNITS = ".e-permits-workplace__row-actions, .status-tag, .tag, .chip, .switch-wrapper, .btn";
   const measureColumnContent = () => {
     workplaceTable.classList.add("is-measuring-columns");
     const measured = Object.fromEntries([...workplaceTable.querySelectorAll("thead th[data-column]")].map((th) => [th.dataset.column, Math.ceil(th.getBoundingClientRect().width)]));
+    const hug = {};
+    workplaceTable.querySelectorAll("tbody tr[data-workplace-row] > td[data-column]").forEach((cell) => {
+      const units = [...cell.querySelectorAll(HUG_UNITS)].filter((el) => !el.closest("[data-tag-fit]") && (!el.parentElement.closest(HUG_UNITS) || !cell.contains(el.parentElement.closest(HUG_UNITS))));
+      const unitWidths = units.map((el) => el.getBoundingClientRect().width);
+      /* a tag row folded to „first tag + N” (fitTagRows) needs at least the first tag, the gap and the badge */
+      cell.querySelectorAll("[data-tag-fit]").forEach((box) => {
+        const first = box.querySelector(".status-tag, .tag");
+        const more = box.querySelector(".e-permits-workplace__user-role-more");
+        if (!first) return;
+        let need = first.getBoundingClientRect().width;
+        if (more && box.querySelectorAll(".status-tag, .tag").length > 1) {
+          const wasHidden = more.hidden;
+          more.hidden = false;
+          need += more.getBoundingClientRect().width + (parseFloat(getComputedStyle(box).columnGap) || 0);
+          more.hidden = wasHidden;
+        }
+        unitWidths.push(need);
+      });
+      if (!unitWidths.length) return;
+      const widest = Math.max(...unitWidths);
+      if (!widest) return;
+      const cs = getComputedStyle(cell);
+      const need = Math.ceil(widest + parseFloat(cs.paddingLeft) + parseFloat(cs.paddingRight) + parseFloat(cs.borderLeftWidth) + parseFloat(cs.borderRightWidth));
+      hug[cell.dataset.column] = Math.max(hug[cell.dataset.column] || 0, need);
+    });
     workplaceTable.classList.remove("is-measuring-columns");
-    return measured;
+    return { measured, hug };
   };
   const refitColumnWidths = (force = false) => {
     const box = workplaceTable?.parentElement;
@@ -5794,9 +5825,10 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!workplaceRows?.querySelector("tr[data-workplace-row]")) return;
     const rows = getVisibleRows();
     const sumOf = (widths) => view.columns.reduce((sum, key) => sum + widths[key], view.selectable === false ? 0 : selectColumnWidth);
-    /* wider than the box → the real content decides how far each column can give */
-    const natural = Object.fromEntries(view.columns.map((key) => [key, getNaturalColumnWidth(key, rows)]));
-    const widths = getColumnWidths(view.columns, rows, sumOf(natural) > box.clientWidth ? measureColumnContent() : null);
+    /* the rendered content decides: what each column needs so nothing unbreakable is cut (`hug`, every width) and,
+       wider than the box, how far each column can give (`measured`) */
+    const { measured, hug } = measureColumnContent();
+    const widths = getColumnWidths(view.columns, rows, measured, hug);
     workplaceTable.style.width = `${sumOf(widths)}px`;
     view.columns.forEach((key) => {
       const value = `${widths[key] || workplaceDb.columns[key]?.width || 140}px`;

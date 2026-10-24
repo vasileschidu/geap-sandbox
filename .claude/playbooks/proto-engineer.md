@@ -3509,3 +3509,20 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   selected and the date-chip variants). No sub-agent tool → code-audit (only standing: date popover overflow visible,
   th sort, banner link), component-audit (only standing avatar / profile menu / th majors), hover-audit 0 / 0 (open chip
   „keeps pressed”), capture clean (rap-01r 375 overflow = HEAD).
+- 2026-10-24 · ekyc-cols-hug-v1 (user at 1920: ek-29 „Testează conexiunea” + ⋮ cut in the 168 actions column, ek-25 „0 · flux
+  incomplet” cut in Pași). Cause: `getNaturalColumnWidth` ESTIMATES from text (`measureText` of `getColumnTextLines`),
+  so it never knows a button group or a tag; the declared `width` won, and the rendered max-content was only measured
+  when the table overflowed (and then only as a shrink floor ≤ width). Fix in the shared code: `measureColumnContent`
+  runs on every refit and also returns `hug` = per column the widest unbreakable unit (`.e-permits-workplace__row-actions`,
+  `.status-tag`/`.tag`, `.chip`, `.btn`, `.switch-wrapper`, outermost only; `[data-tag-fit]` = first tag + gap + „+N”,
+  un-hiding the badge for the read) + cell padding; `getColumnWidths(…, measured, hug)` starts every column at
+  max(natural, hug) and uses hug in both the rigid and the text floors. Text never counts (it ellipsizes). Proof kit
+  (scratch ekc/probe.mjs + measure.js): per table cell, any tag / button / svg painted past the cell's box or a tag with
+  scrollWidth > clientWidth; 264 ek-* states × 1920 / 1440 / 1024 in 6 Chrome workers (~5 min): 0 cuts (only ek-31m's
+  open ⋮ = `position: fixed` menu, proved with elementFromPoint). It also fixed ek-20 roles („+N” row at 96 / 175) and
+  pd-35 Process Designer actions (152 < 166) — 12 BO states vs a HEAD worktree (:8991): only pd-35 changed. Resize sweep
+  1920 ↔ 1024: no visible jumps (the 0.0x px jitter in the actions column exists on HEAD too). ek-29 at 1440 now scrolls
+  a bit more (1355 vs 1293 in 1184): its Denumire is not `fill` — left as is, the pinned column + edge shadow carry it.
+  Lesson: a width „estimate from text” is wrong for any column holding controls — measure the rendered units. No
+  sub-agent tool → code-audit + component-audit on ek-29 / ek-25 identical to HEAD (standing th-sort / shell header /
+  profile menu majors), hover-audit 0 / 0, capture 4 × 2 clean.
