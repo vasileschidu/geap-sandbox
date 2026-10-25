@@ -100,8 +100,8 @@ document.addEventListener("DOMContentLoaded", () => {
   /* ---------------------------------------------------------------- shell markup (FB topbar reused) */
   const BUILD_ICON = `<svg class="icon" width="20" height="20" viewBox="0 0 16.6667 16.6667" aria-hidden="true"><path d="M14.072 0.2876C14.0535 0.123905 13.9151 0.00016861 13.7503 0C13.5856 -0.000167919 13.4469 0.123286 13.4281 0.286942C13.3402 1.04885 13.1139 1.57153 12.7594 1.92606C12.4049 2.28059 11.8822 2.50685 11.1203 2.59473C10.9566 2.6136 10.8332 2.75226 10.8333 2.917C10.8335 3.08174 10.9572 3.22014 11.1209 3.23868C11.87 3.32352 12.4045 3.54974 12.7681 3.9067C13.1296 4.26173 13.3602 4.78367 13.4272 5.53793C13.4421 5.70528 13.5824 5.83352 13.7504 5.83333C13.9184 5.83314 14.0584 5.70459 14.0729 5.53721C14.1371 4.79569 14.3674 4.26198 14.7314 3.89803C15.0953 3.53409 15.629 3.30372 16.3705 3.23953C16.5379 3.22504 16.6665 3.08504 16.6667 2.91703C16.6669 2.74902 16.5386 2.60873 16.3713 2.59386C15.617 2.52686 15.0951 2.29631 14.74 1.93475C14.3831 1.57121 14.1569 1.03662 14.072 0.2876Z" fill="currentColor"/><path d="M8.32804 2.40621C8.28036 1.98528 7.92447 1.6671 7.50085 1.66667C7.07723 1.66623 6.72069 1.98369 6.67216 2.40452C6.44619 4.3637 5.86437 5.70775 4.95272 6.61939C4.04108 7.53103 2.69703 8.11285 0.737851 8.33882C0.31702 8.38736 -0.000431792 8.7439 0 9.16752C0.000433568 9.59114 0.318613 9.94703 0.739542 9.9947C2.66559 10.2129 4.04025 10.7946 4.97507 11.7125C5.9048 12.6254 6.49765 13.9675 6.66994 15.9071C6.70816 16.3374 7.06892 16.6672 7.50094 16.6667C7.93296 16.6662 8.29297 16.3356 8.33023 15.9052C8.49528 13.9985 9.08766 12.626 10.0235 11.6902C10.9594 10.7543 12.3318 10.1619 14.2385 9.99689C14.6689 9.95964 14.9995 9.59963 15 9.1676C15.0005 8.73558 14.6707 8.37483 14.2404 8.3366C12.3009 8.16431 10.9587 7.57146 10.0458 6.64173C9.1279 5.70692 8.5462 4.33226 8.32804 2.40621Z" fill="currentColor"/></svg>`;
   const tbButton = (attrs, iconId, label, shortcut = "") => `<button class="btn btn-strict btn-sm btn-icon-only e-permits-pd__tool" type="button" aria-label="${esc(label)}" data-tooltip-label="${esc(label)}${shortcut ? ` (${shortcut})` : ""}" ${attrs}>${icon(iconId, 20)}</button>`;
-  /* a view mode in the toolbar's mini segmented group: an independent toggle (aria-pressed), selected look when on */
-  const viewItem = (attr, iconId, label, shortcut = "") => `<button class="segment-item e-permits-pd__view" type="button" aria-pressed="false" aria-label="${esc(label)}" data-tooltip-label="${esc(label)}${shortcut ? ` (${shortcut})` : ""}" ${attr}>${icon(iconId, 16)}</button>`;
+  /* a view in the toolbar's segmented view switch: ONE view at a time (role=radio, aria-checked, roving tabindex) */
+  const viewItem = (view, iconId, label, shortcut = "") => `<button class="segment-item e-permits-pd__view" type="button" role="radio" aria-checked="false" tabindex="-1" aria-label="${esc(label)}" data-tooltip-label="${esc(label)}${shortcut ? ` (${shortcut})` : ""}" data-pd-view="${view}">${icon(iconId, 16)}</button>`;
   const shellHtml = () => `
     <div class="modal e-permits-builder e-permits-builder--process" tabindex="-1" role="dialog" aria-modal="true" aria-labelledby="pd-dialog-title" data-pd-root>
       <header class="e-permits-builder__topbar e-permits-pd__topbar">
@@ -182,10 +182,11 @@ document.addEventListener("DOMContentLoaded", () => {
             ${tbButton('aria-pressed="false" data-pd-panels-toggle', "sidebar", "Restrânge panourile", "Ctrl+\\")}
           </span>
           <i class="e-permits-pd__toolsep e-permits-pd__toolsep--views" aria-hidden="true"></i>
-          <div class="segmented-control segmented-control--compact e-permits-pd__views" role="group" aria-label="Vizualizare">
-            ${viewItem("data-pd-minimap-toggle", "image", "Hartă", "M")}
-            ${viewItem("data-pd-viewonly-toggle", "eye-open", "Doar vizualizare")}
-            ${viewItem("data-pd-list-toggle", "bullet-list", "Vizualizare listă", "L")}
+          ${tbButton('aria-pressed="false" data-pd-minimap-toggle', "image", "Hartă", "M")}
+          <div class="segmented-control segmented-control--compact e-permits-pd__views" role="radiogroup" aria-label="Vizualizare">
+            ${viewItem("diagram", "edit", "Diagramă")}
+            ${viewItem("readonly", "eye-open", "Doar vizualizare")}
+            ${viewItem("list", "bullet-list", "Vizualizare listă", "L")}
           </div>
         </div>
         <div class="e-permits-pd__minimap" hidden data-pd-minimap>
@@ -249,7 +250,6 @@ document.addEventListener("DOMContentLoaded", () => {
     errors: q("[data-pd-errors]"),
     errorsLabel: q("[data-pd-errors-label]"),
     issues: q("[data-pd-issues]"),
-    viewOnly: q("[data-pd-viewonly-toggle]"),
     publish: q("[data-pd-publish]"),
     settings: q("[data-pd-settings]"),
     stage: q("[data-pd-stage]"),
@@ -612,7 +612,6 @@ document.addEventListener("DOMContentLoaded", () => {
     el.versionLabel.textContent = `v${S.def.version || rec.version}`;
     root.classList.toggle("is-view-only", S.viewOnly);
     root.classList.toggle("is-dirty", S.dirty);
-    setView(el.viewOnly, S.viewOnly, S.forced || "");
     el.save.disabled = !S.dirty;
     el.cancel.disabled = !S.dirty;
     el.dirtyNote.textContent = S.dirty ? "Modificări nesalvate" : S.rec.modifiedOn ? `Salvat ${longDate(S.rec.modifiedOn)}, ${hhmm(S.rec.modifiedOn)} · ${S.rec.modifiedBy}` : "";
@@ -620,8 +619,10 @@ document.addEventListener("DOMContentLoaded", () => {
     root.querySelectorAll("[data-pd-redo]").forEach((b) => { b.disabled = !S.redo.length; });
     root.querySelectorAll("[data-pd-tool]").forEach((b) => { const on = b.dataset.pdTool === S.tool; b.setAttribute("aria-checked", String(on)); b.tabIndex = on ? 0 : -1; });
     const listOn = S.listView || listForced();
-    setView(q("[data-pd-minimap-toggle]"), S.minimap && !listOn, listOn ? "Harta arată diagrama — nu e disponibilă în vizualizarea listă." : "");
-    setView(q("[data-pd-list-toggle]"), listOn, listForced() ? "Pe ecrane mici procesul se vede ca listă." : "");
+    const mapBtn = q("[data-pd-minimap-toggle]");
+    mapBtn.setAttribute("aria-pressed", String(S.minimap && !listOn));
+    unavailable(mapBtn, listOn ? "Harta arată diagrama — nu e disponibilă în vizualizarea listă." : "");
+    syncViews();
     root.classList.toggle("is-list", listOn);
     const panelsHidden = panelsCollapsed();
     const panelsBtn = q("[data-pd-panels-toggle]");
@@ -1142,14 +1143,14 @@ document.addEventListener("DOMContentLoaded", () => {
     if (t.closest("[data-pd-fit]")) { fit(); return; }
     if (t.closest("[data-pd-fit-selection]")) { fitSelection(); return; }
     if (t.closest("[data-pd-minimap-toggle]")) { if (!(S.listView || listForced())) toggleMinimap(); return; }
-    if (t.closest("[data-pd-list-toggle]")) { if (!listForced()) setListView(!S.listView); return; }
+    const viewBtn = t.closest("[data-pd-view]");
+    if (viewBtn) { chooseView(viewBtn.dataset.pdView); return; }
     if (t.closest("[data-pd-autolayout]")) { autoLayout(); return; }
     if (t.closest("[data-pd-restore]")) { restoreVersion(); return; }
     const crumb = t.closest("[data-pd-crumb]");
     if (crumb) { event.preventDefault(); drillOut(Number(crumb.dataset.pdCrumb)); return; }
     if (t.closest("[data-pd-json-import]")) { if (!S.viewOnly) importInput.click(); return; }
     if (t.closest("[data-pd-panels-toggle]")) { togglePanels(); return; }
-    if (t.closest("[data-pd-viewonly-toggle]")) { if (!S.forced) setViewOnly(!S.viewOnly); return; }
     const tool = t.closest("[data-pd-tool]");
     if (tool) { S.tool = tool.dataset.pdTool; renderChrome(); return; }
     if (t.closest("[data-pd-undo]")) { undo(); return; }
@@ -1167,6 +1168,16 @@ document.addEventListener("DOMContentLoaded", () => {
   });
   window.addEventListener("resize", () => syncTabsOverflow());
   el.toolbar.addEventListener("keydown", (event) => {
+    const viewRadio = event.target.closest("[data-pd-view]");
+    if (viewRadio && ["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"].includes(event.key)) {
+      event.preventDefault();
+      event.stopPropagation();
+      const views = [...root.querySelectorAll("[data-pd-view]")].filter((b) => !b.hasAttribute("aria-disabled") || b.getAttribute("aria-checked") === "true");
+      const i = views.indexOf(viewRadio);
+      const next = views[(i + (event.key === "ArrowLeft" || event.key === "ArrowUp" ? -1 : 1) + views.length) % views.length];
+      if (next) chooseView(next.dataset.pdView);
+      return;
+    }
     const radio = event.target.closest("[data-pd-tool]");
     if (!radio || !["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"].includes(event.key)) return;
     event.preventDefault();
@@ -1197,12 +1208,37 @@ document.addEventListener("DOMContentLoaded", () => {
     if (S.rightOpen) renderPanel();
     announce(panelsCollapsed() ? "Panourile sunt restrânse. Ctrl + \\ le extinde." : "Panourile sunt extinse.");
   }
-  /* a view-mode item: pressed = the library selected segment; a reason = unavailable (tooltip says why) */
-  function setView(btn, on, reason) {
-    btn.setAttribute("aria-pressed", String(on));
-    btn.classList.toggle("is-selected", on);
+  /* unavailable = aria-disabled + the reason in the tooltip */
+  function unavailable(btn, reason) {
     if (reason) { btn.setAttribute("aria-disabled", "true"); btn.dataset.tooltipReason = reason; }
     else { btn.removeAttribute("aria-disabled"); delete btn.dataset.tooltipReason; }
+  }
+  /* the view switch (user 2026-10-25: „radio — only one view at a time”): Diagramă (editable canvas, default) ·
+     Doar vizualizare (read-only canvas) · Vizualizare listă. Forced read-only (past version, trace, < 960) keeps
+     „Doar vizualizare” and locks the others; below 720 the list is the only view */
+  const currentView = () => (S.listView || listForced() ? "list" : S.viewOnly ? "readonly" : "diagram");
+  function syncViews() {
+    const now = currentView();
+    const lock = listForced() ? "Pe ecrane mici procesul se vede ca listă, doar pentru vizualizare." : S.forced || "";
+    root.querySelectorAll("[data-pd-view]").forEach((b) => {
+      const on = b.dataset.pdView === now;
+      b.setAttribute("aria-checked", String(on));
+      b.classList.toggle("is-selected", on);
+      b.tabIndex = on ? 0 : -1;
+      unavailable(b, on ? "" : lock);
+    });
+  }
+  function chooseView(view, { keepFocus = true } = {}) {
+    if (view === currentView() || S.forced || listForced()) return;
+    if (view === "list") {
+      /* the list keeps the canvas' edit / read-only state underneath: leaving it returns to that view */
+      setListView(true, { focus: !keepFocus });
+    } else {
+      if (S.listView) setListView(false, { focus: !keepFocus });
+      if (S.viewOnly !== (view === "readonly")) setViewOnly(view === "readonly");
+    }
+    renderChrome();
+    if (keepFocus) root.querySelector(`[data-pd-view="${view}"]`)?.focus({ preventScroll: true });
   }
 
   /* ---- minimap (canvas; redrawn on the next frame after a model / view change) */
@@ -3171,7 +3207,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (key === "1" || (event.shiftKey && event.key === "!")) { event.preventDefault(); fit(); return; }
     if (key === "2" || (event.shiftKey && event.key === "@")) { event.preventDefault(); fitSelection(); return; }
     if (key === "m" && !(S.listView || listForced())) { toggleMinimap(); return; }
-    if (key === "l" && !listForced()) { event.preventDefault(); setListView(!S.listView); return; }
+    if (key === "l" && !listForced() && !S.forced) { event.preventDefault(); setListView(!S.listView); return; }
     if (event.key === "[" && !S.viewOnly) { togglePanels("left"); return; }
     if (event.key === "]") { togglePanels("right"); return; }
     if (event.key === " " && !S.space) { event.preventDefault(); S.space = true; el.stage.classList.add("is-space"); }
@@ -3809,13 +3845,14 @@ document.addEventListener("DOMContentLoaded", () => {
     const keep = (focusId && listEl.querySelector(`[data-pd-list-node="${CSS.escape(focusId)}"], [data-pd-list-edge="${CSS.escape(focusId)}"]`)) || listEl.querySelector(".is-selected [data-pd-list-node]") || items[0];
     if (keep) { keep.tabIndex = 0; if (focusId) keep.focus({ preventScroll: true }); }
   }
-  function setListView(on) {
+  function setListView(on, { focus = true } = {}) {
     if (listForced() && !on) return;
     S.listView = on;
     renderChrome();
     renderList();
     renderTrace();
-    if (on || listForced()) window.setTimeout(() => listEl.querySelector('[tabindex="0"]')?.focus({ preventScroll: false }), 30);
+    if (!focus) { /* the view switch keeps the focus (radio behaviour) */ }
+    else if (on || listForced()) window.setTimeout(() => listEl.querySelector('[tabindex="0"]')?.focus({ preventScroll: false }), 30);
     else el.stage.focus({ preventScroll: true });
     announce(on ? "Vizualizare listă. Săgețile trec de la un element la altul." : "Vizualizarea diagramei.");
   }

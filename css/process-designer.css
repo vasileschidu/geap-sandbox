@@ -9,6 +9,8 @@
      (was the Form Builder's 382) — every offset that depends on them reads these two */
   --pd-inset: var(--spacing-8, 8px);
   --pd-props-width: calc(var(--spacing-80, 80px) * 4);
+  /* the bottom toolbar: padding 4 · the 40 view switch · 4 + 1 · 1 border = 50 (cards above it stop 8 higher) */
+  --pd-toolbar-h: calc(var(--spacing-48, 48px) + var(--border-width-1, 1px) * 2);
   grid-template-rows: auto minmax(0, 1fr) auto;
 }
 
@@ -1410,20 +1412,23 @@
   box-shadow: 0 0 0 var(--border-width-2, 2px) var(--color-background-base-default, #fff), 0 0 0 calc(var(--border-width-2, 2px) + var(--border-width-3, 3px)) var(--focus-ring, var(--blue-sky-500, #3379db));
 }
 
-/* view modes (Hartă · Doar vizualizare · Vizualizare listă) = the library segmented control at a Mini size that
-   matches the toolbar's 32 buttons: track 2 · 2 → 32, items 28 square (6 padding, icon 16), library separators,
-   hover, selected (inverse) and focus ring; each item is its own toggle (aria-pressed), so several can be selected */
+/* the view switch (Diagramă · Doar vizualizare · Vizualizare listă; user 2026-10-25 „a little bigger, square, radio”)
+   = the library segmented control, square: track 4 · 4 → 40 (radius 8, the Medium button radius), items 32 square
+   (radius 6 = the toolbar's Small buttons, padding 8, icon 16 like every toolbar glyph), library separators, hover,
+   selected (inverse) and focus ring; ONE view at a time (role=radio, aria-checked) */
 .e-permits-pd__views.segmented-control.segmented-control--compact {
+  border-radius: var(--border-radius-8, 8px);
   flex: 0 0 auto;
-  gap: var(--spacing-2, 2px);
-  padding: var(--spacing-2, 2px);
+  gap: var(--spacing-4, 4px);
+  padding: var(--spacing-4, 4px);
 }
 
 .e-permits-pd__views.segmented-control--compact .segment-item {
+  border-radius: var(--border-radius-6, 6px);
   box-sizing: border-box;
-  height: calc(var(--spacing-32, 32px) - var(--spacing-4, 4px));
-  padding: var(--spacing-6, 6px);
-  width: calc(var(--spacing-32, 32px) - var(--spacing-4, 4px));
+  height: var(--spacing-32, 32px);
+  padding: var(--spacing-8, 8px);
+  width: var(--spacing-32, 32px);
 }
 
 .e-permits-pd__views .segment-item .icon {
@@ -1433,7 +1438,7 @@
 }
 
 .e-permits-pd__views .segment-item:not(:last-child)::after {
-  right: calc((var(--spacing-2, 2px) + var(--border-width-1, 1px)) / -2);
+  right: calc((var(--spacing-4, 4px) + var(--border-width-1, 1px)) / -2);
 }
 
 .e-permits-pd__views .segment-item[aria-disabled="true"] {
@@ -2054,7 +2059,7 @@
   background: var(--color-background-base-default, #fff);
   border: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
   border-radius: var(--border-radius-16, 16px);
-  bottom: calc(var(--pd-inset, 8px) + var(--spacing-48, 48px) + var(--spacing-8, 8px));
+  bottom: calc(var(--pd-inset, 8px) + var(--pd-toolbar-h, 50px) + var(--spacing-8, 8px));
   box-shadow: var(--shadow-200, 0 1px 3px rgba(0, 0, 0, 0.08), 0 3px 8px rgba(0, 0, 0, 0.08), 0 0 0.5px rgba(0, 0, 0, 0.18));
   box-sizing: border-box;
   left: var(--pd-inset, 8px);
@@ -2335,7 +2340,7 @@
 
   .e-permits-pd__float--right,
   .e-permits-pd__float--right.is-compact {
-    bottom: calc(var(--pd-inset, 8px) + var(--spacing-48, 48px) + var(--spacing-8, 8px));
+    bottom: calc(var(--pd-inset, 8px) + var(--pd-toolbar-h, 50px) + var(--spacing-8, 8px));
     left: var(--pd-inset, 8px);
     max-height: 45%;
     top: auto;

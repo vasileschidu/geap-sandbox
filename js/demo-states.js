@@ -1766,7 +1766,7 @@
       /* below 720 the list replaces the canvas (spec E.7): the same element is picked from the list */
       const listShown = () => Boolean(document.querySelector("[data-pd-list]:not([hidden])"));
       const pick = (id) => async (h) => { if (listShown()) { await h.click(`[data-pd-list-node='${id}']`); return; } await at(id)(h); await h.click(node(id)); };
-      const listOn = async (h) => { if (!listShown()) await h.click("[data-pd-list-toggle]"); };
+      const listOn = async (h) => { if (!listShown()) await h.click("[data-pd-view='list']"); };
       const center = (el) => { const r = el.getBoundingClientRect(); return [r.left + r.width / 2, r.top + r.height / 2]; };
       /* a gesture as a mouse sends it (pointer events; the designer uses no HTML5 drag) */
       const pointer = (type, target, x, y, buttons = 1) => target.dispatchEvent(new PointerEvent(type, { bubbles: true, cancelable: true, pointerId: 1, pointerType: "mouse", isPrimary: true, button: type === "pointermove" ? -1 : 0, buttons, clientX: x, clientY: y }));
@@ -1816,7 +1816,7 @@
         "pd-13": pd(async (h) => { await pick("node6")(h); }, { vizualizare: "1" }),
         "pd-13a": pd(null, { vizualizare: "1" }),
         /* toolbar view group (pd-props-compact-v1): „Doar vizualizare” pressed from the mini segmented control; panels collapsed to both rails by the toolbar toggle */
-        "pd-13b": pd(async (h) => { await h.click("[data-pd-viewonly-toggle]"); document.activeElement?.blur?.(); }),
+        "pd-13b": pd(async (h) => { await h.click("[data-pd-view='readonly']"); document.activeElement?.blur?.(); }),
         "pd-12a": pd(async (h) => { await h.click("[data-pd-panels-toggle]"); await h.wait(300); }),
         "pd-14": pd(async (h) => { await h.click("[data-pd-rail-toggle]"); }),
         /* pd-header-compact-v1: the properties collapse into the same 56 rail as the palette */

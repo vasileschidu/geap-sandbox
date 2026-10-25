@@ -3628,3 +3628,15 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   code-audit static 0 + only by-design overlaps (tab arrow over the faded tab, canvas under cards), component-audit 0
   majors on pd-16a / pd-12a (pd-04 / pd-23 = the standing step-row / list-row / edge-label majors), capture 17 × 2 0 errors
   / overflow (phone DEMO-ERRORs = canvas-only states, as on HEAD).
+- 2026-10-25 · pd-view-switch-v1 (user, same day: „segmented control a little bigger, square not round, radio — only one view”).
+  (1) Independent toggles in a segmented track read as ONE choice to the user: a segmented control is a radio group by
+  nature — never pack toggles that can be on together (minimap) into it; overlays stay tool buttons before the group.
+  (2) Radio over modes that used to be two booleans (viewOnly, listView): derive the checked item from the state
+  (`currentView()`), never store it; the list keeps the canvas' read-only flag underneath so leaving the list returns
+  there (and old demo pd-23a „view-only + list” keeps its meaning). (3) Forced states lock the radio: the checked item
+  stays, the others get `aria-disabled` + reason; arrow keys skip unavailable items. (4) A 40 track in a toolbar of 32
+  buttons grows the toolbar (42 → 50): every card offset that assumed the old height must read one var
+  (`--pd-toolbar-h`). (5) Pick the item glyph against its neighbours: `dot-grid` for „Diagramă” looked like the pan
+  tool's `drag` dots next to it → `edit` (pen) pairs with the eye (edit / view). Probe (scratch pdp/radio.mjs): real
+  clicks + ← → keys → aria-checked / tabindex / focus / :focus-visible / view-only / list / minimap per step, plus the
+  forced (pd-21a) and phone (375) starts. QA: hover-audit 0 / 0 (4 toolbar states), component-audit 0 majors, code-audit 0.
