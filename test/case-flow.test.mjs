@@ -116,4 +116,14 @@ check("list status follows the resting node", () => {
   assert.equal(cf.initialState(complex, "spreSemnare", { vars }).stateId, "node19");
 });
 
+check("US-295 Redistribuie: Supervisor only, only on a Specialist step, never for the Director", () => {
+  const ctx = (role, canRedistribute = true) => ({ role, vars, pendingFees: 0, activeReviews: 0, canRedistribute });
+  assert.deepEqual(ids(cf.available(complex, at("node6"), ctx("supervizor"))), ["redistribuie"]);
+  assert.ok(ids(cf.available(complex, at("node6", { suspended: true }), ctx("supervizor"))).includes("redistribuie"));
+  assert.ok(!ids(cf.available(complex, at("node6"), ctx("supervizor", false))).includes("redistribuie"));
+  assert.ok(!ids(cf.available(complex, at("RecordState2"), ctx("supervizor"))).includes("redistribuie"));
+  assert.ok(!ids(cf.available(complex, at("node6"), ctx("director"))).includes("redistribuie"));
+  assert.equal(cf.apply(complex, at("node6"), "redistribuie", { vars }).stateId, "node6");
+});
+
 console.log(`\n${passed} checks passed`);

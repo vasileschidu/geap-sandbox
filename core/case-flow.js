@@ -257,6 +257,14 @@
         out.items.push({ id: "reiaExaminarea", label: "Reia examinarea", kind: "operation", icon: "checkmark-large", form: null, disabled: false, reason: "", target: "Informațiile au fost completate", demo: true });
       }
     }
+    /* US-295 (redistribuire): a case under examination (it rests on a Specialist step) may be given
+       to another specialist by the Supervisor of its subdivision — an operation outside the lane
+       gating, behind its own permission (ctx.canRedistribute, set by the caller: role + subdivision
+       + the case has a responsible). AC-01 / AC-02. */
+    if (ctx.canRedistribute && lane && lane.role === "specialist" && !banned(ctx.role, "redistribuire")) {
+      out.items.push({ id: "redistribuie", label: "Redistribuie", kind: "operation", icon: "people", form: "redistribuire", disabled: false, reason: "", target: "Alt specialist al subdiviziunii · termenul nu se resetează" });
+      if (!mayAct) out.note = "Pasul aparține Specialistului. Puteți redistribui dosarul altui specialist al subdiviziunii.";
+    }
     if (state.stateId === "node16") {
       /* the applicant pays in MPay; the prototype simulates the confirmation */
       out.items.push({ id: "achitat", label: "Simulează achitarea (MPay)", kind: "advance", icon: "receipt-check", form: null, disabled: false, reason: "", target: describeTarget(flow, node.transitions[0], ctx.vars), demo: true });

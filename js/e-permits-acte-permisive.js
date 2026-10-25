@@ -33,7 +33,7 @@
     function currentDemoFlow() {
       const params = new URLSearchParams(window.location.search);
       const flow = normalizeDemoFlow(params.get("flow"));
-      if (flow === "full" && !["#choice", "#choice-authenticated", "#intent", "#access", "#guest"].includes(window.location.hash) && !frontOfficeStepFromHash()) {
+      if (flow === "full" && !["#choice", "#choice-authenticated", "#intent", "#access", "#guest", "#suplinire"].includes(window.location.hash) && !frontOfficeStepFromHash()) {
         history.replaceState(null, "", window.location.pathname + window.location.search);
       }
       if (flow) return flow;
@@ -50,6 +50,8 @@
     const frontOfficeGuestScreen = document.querySelector("[data-fo-screen='guest']");
     const frontOfficeAccessScreen = document.querySelector("[data-fo-screen='access']");
     const frontOfficeIntentScreen = document.querySelector("[data-fo-screen='intent']");
+    /* US-25 S4 (suplinire informații) */
+    const frontOfficeSupplementScreen = document.querySelector("[data-fo-screen='supplement']");
     const frontOfficeRoot = document.querySelector(".e-permits-fo-auth");
     const frontOfficeMain = document.querySelector(".e-permits-fo-auth__main");
     const frontOfficeConsent = document.querySelector("[data-fo-consent]");
@@ -4191,6 +4193,7 @@
         request: frontOfficeRequestScreen,
         guest: frontOfficeGuestScreen,
         intent: frontOfficeIntentScreen,
+        supplement: frontOfficeSupplementScreen,
       };
 
       Object.entries(screens).forEach(([name, node]) => {
@@ -4202,13 +4205,13 @@
          (same "keep the stepper on the left" treatment as the real wizard),
          so it needs the same full-width, top-aligned chrome — not the
          centered-card chrome auth/choice use. */
-      const isWizardLayout = screen === "request" || screen === "guest" || screen === "intent";
+      const isWizardLayout = screen === "request" || screen === "guest" || screen === "intent" || screen === "supplement";
       frontOfficeMain?.classList.toggle("is-request-mode", isWizardLayout);
       frontOfficeRoot?.classList.toggle("is-request-mode", isWizardLayout);
       document.body.classList.toggle("is-fo-request-mode", isWizardLayout);
       if (frontOfficeAvatarMenu) {
         /* the intent screen already has an identity, so the header shows it */
-        const shouldShowRoleSwitcher = (screen === "request" && !frontOfficeGuest) || screen === "intent";
+        const shouldShowRoleSwitcher = (screen === "request" && !frontOfficeGuest) || screen === "intent" || screen === "supplement";
         frontOfficeAvatarMenu.hidden = !shouldShowRoleSwitcher;
         frontOfficeAvatarMenu.setAttribute("aria-hidden", String(!shouldShowRoleSwitcher));
         if (!shouldShowRoleSwitcher) setFrontOfficeAvatarMenuOpen(false);
@@ -4236,6 +4239,9 @@
       }
       if (screen === "intent") {
         frontOfficeIntentScreen?.querySelector("h1")?.focus?.({ preventScroll: true });
+      }
+      if (screen === "supplement") {
+        frontOfficeSupplementScreen?.querySelector("h1")?.focus?.({ preventScroll: true });
       }
     }
 
@@ -5580,6 +5586,90 @@
       setFrontOfficeScreen("intent", { focus });
     }
 
+    /* ===================================================================
+       US-25 (Azure 88528) S4 „Motivul suspendării” — generic for every suspended request (AC-06): the applicant
+       lands here from EVO Cabinet › Solicitările mele › „Suplinire informații” (?suplinire=<nr>, the Cabinet link
+       opens #request-step-2 = S5; the first landing shows S4 first, a reload of S5 stays on S5) or on #suplinire.
+       Read-only: Număr dosar (AC-01, „—” when missing), Autoritatea emitentă (AC-02), Subdiviziunea de procesare
+       (AC-03, „Nedefinit”), Tipul solicitării = the service name · request type (AC-04, „Nedefinit”), Motivul
+       suspendării = exactly what the BO specialist recorded (AC-05, „—”). „Continuă” opens S5 = the request form of
+       that service / post-process (AC-07; here the FO request at step 2); ?s5=eroare = the form does not load once →
+       message + „Reîncercați”. Data: the Cabinet seed (data/cabinet-evo-solicitari.json), the same record the
+       Cabinet profile shows. bo-dossier-flows-v1. */
+    const frontOfficeSupplementNr = new URLSearchParams(location.search).get("suplinire") || "";
+    const SUPPLEMENT_SEEN = "e-permits-fo-suplinire-s4";
+    let frontOfficeSupplement = null;
+    let frontOfficeSupplementFailed = false;
+    async function loadFrontOfficeSupplement() {
+      if (frontOfficeSupplement) return frontOfficeSupplement;
+      let data = null;
+      try { data = await (await fetch("data/cabinet-evo-solicitari.json", { cache: "no-store" })).json(); } catch { data = null; }
+      const dosar = Object.values(data?.perspectives || {}).flatMap((p) => p.dosare || []).find((d) => d.nr === frontOfficeSupplementNr) || null;
+      const service = dosar ? data.services?.[dosar.service] : null;
+      frontOfficeSupplement = { nr: frontOfficeSupplementNr, dosar, service };
+      return frontOfficeSupplement;
+    }
+    function renderFrontOfficeSupplement({ error = false } = {}) {
+      const body = frontOfficeSupplementScreen?.querySelector("[data-fo-supplement-body]");
+      if (!body || !frontOfficeSupplement) return;
+      const esc = escapeFrontOfficeHtml;
+      const { dosar, service } = frontOfficeSupplement;
+      const info = dosar?.info || {};
+      const longDay = (iso) => { if (!iso) return ""; const d = new Date(`${iso.slice(0, 10)}T00:00:00`); return `${d.getDate()} ${["ianuarie", "februarie", "martie", "aprilie", "mai", "iunie", "iulie", "august", "septembrie", "octombrie", "noiembrie", "decembrie"][d.getMonth()]} ${d.getFullYear()}`; };
+      const requestType = [service?.title, dosar?.tip].filter(Boolean).join(" · ");
+      const rows = [
+        summaryRow("Număr dosar", [esc(dosar?.nr || frontOfficeSupplementNr || "—")]),
+        summaryRow("Autoritatea emitentă", [esc(service?.authorityName || "—")]),
+        summaryRow("Subdiviziunea de procesare", [esc(dosar?.subdivision || "Nedefinit")]),
+        summaryRow("Tipul solicitării", [esc(requestType || "Nedefinit")]),
+        summaryRow("Motivul suspendării", info.category || info.reason ? [info.category ? `<strong>${esc(info.category)}</strong>` : "", info.reason ? esc(info.reason) : ""].filter(Boolean) : ["—"])
+      ].join("");
+      body.innerHTML = `
+        <header class="e-permits-fo-intent__header">
+          <h1 id="fo-supplement-title" tabindex="-1">Motivul suspendării</h1>
+          ${frontOfficeSelectedSubject?.name ? `<p class="e-permits-fo-intent__subject"><span class="e-permits-fo-intent__subject-label">Solicitant</span><span class="e-permits-fo-intent__subject-name">${esc(frontOfficeSelectedSubject.name)}</span></p>` : ""}
+        </header>
+        ${foUi().renderNotice?.("warning", `<strong>Examinarea dosarului este suspendată.</strong> Completați informațiile cerute${info.until ? ` până la ${esc(longDay(info.until))}` : ""}; pe pasul următor actualizați datele cererii.`) || ""}
+        ${foSummarySectionHtml({ title: "Dosarul suspendat", bodyHtml: rows })}
+        ${error ? `
+          <div class="e-permits-fo-supplement__retry" data-fo-supplement-error>
+            ${foUi().renderNotice?.("error", "<strong>Formularul cererii nu s-a încărcat.</strong> Datele dosarului se păstrează. Încercați din nou.", { role: "alert" }) || ""}
+            <button class="btn btn-outline-strict btn-md" type="button" data-fo-supplement-retry>
+              <svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-rotate-arrow"></use></svg>
+              <span>Reîncercați</span>
+            </button>
+          </div>` : ""}
+        ${foStepFooterHtml({ backAttrs: "data-fo-supplement-back", backLabel: "Înapoi la Solicitările mele", nextLabel: "Continuă", nextAttrs: "data-fo-supplement-next" })}`;
+    }
+    async function showFrontOfficeSupplement({ focus = true } = {}) {
+      if (!frontOfficeSupplementScreen) return;
+      await loadFrontOfficeSupplement();
+      renderFrontOfficeSupplement();
+      if (window.location.hash !== "#suplinire") history.replaceState(null, "", "#suplinire");
+      setFrontOfficeScreen("supplement", { focus });
+    }
+    /* S4 → S5: the request form; ?s5=eroare fails the first time (AC-07 error path) */
+    function continueFrontOfficeSupplement() {
+      if (new URLSearchParams(location.search).get("s5") === "eroare" && !frontOfficeSupplementFailed) {
+        frontOfficeSupplementFailed = true;
+        renderFrontOfficeSupplement({ error: true });
+        frontOfficeSupplementScreen?.querySelector("[data-fo-supplement-retry]")?.focus();
+        return;
+      }
+      try { sessionStorage.setItem(SUPPLEMENT_SEEN, frontOfficeSupplementNr); } catch { /* private mode */ }
+      history.replaceState(null, "", "#request-step-2");
+      /* the request already exists (it is being supplemented): no „Cererea a fost creată ca schiță” */
+      frontOfficeDraftCreated = true;
+      showFrontOfficeRequest({ step: 2 });
+    }
+    frontOfficeSupplementScreen?.addEventListener("click", (event) => {
+      if (event.target.closest("[data-fo-supplement-next], [data-fo-supplement-retry]")) { continueFrontOfficeSupplement(); return; }
+      if (event.target.closest("[data-fo-supplement-back]")) {
+        const solicitant = new URLSearchParams(location.search).get("solicitant");
+        window.location.href = `cabinet-evo/index.html?view=solicitari${solicitant ? `&as=${encodeURIComponent(solicitant)}` : ""}`;
+      }
+    });
+
     function closeFrontOfficeIntentMenus(except = null) {
       frontOfficeIntentScreen?.querySelectorAll("[data-fo-intent-trigger]").forEach((trigger) => {
         const menu = document.getElementById(trigger.getAttribute("aria-controls"));
@@ -6412,7 +6502,14 @@
     }
 
     const bootStep = frontOfficeStepFromHash();
-    if (bootStep) {
+    /* US-25: a „Suplinire informații” landing shows S4 before the form (once per request and tab) */
+    let supplementSeen = "";
+    try { supplementSeen = sessionStorage.getItem(SUPPLEMENT_SEEN) || ""; } catch { supplementSeen = ""; }
+    if (frontOfficeSupplementNr && (window.location.hash === "#suplinire" || (bootStep === 2 && supplementSeen !== frontOfficeSupplementNr))) {
+      /* at once, so nothing that routes by the step hash while the schema loads opens S5 (and a new-draft toast) */
+      history.replaceState(null, "", "#suplinire");
+      frontOfficeSchemaLoadPromise.then(() => showFrontOfficeSupplement({ focus: false }));
+    } else if (bootStep) {
       showFrontOfficeRequest({ focus: false, step: bootStep });
     }
 

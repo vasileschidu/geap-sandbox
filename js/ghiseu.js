@@ -608,6 +608,120 @@
     document.querySelectorAll('[data-nav-item][data-nav-id="dosare-noi"] .e-permits-shell__nav-badge').forEach((b) => { b.textContent = String(n); });
   };
 
+  /* ---------------------------------------------------------------- registry „Dosare suspendate” (US-255, Azure 95793)
+     The cases of the user's subdivision with statut „Suspendat” · substatut „Suplinire info”, filed online or at the
+     desk, whoever supplements them (BO or EVO Cabinet). Read-only list on the shell's registry engine: AC-02 columns,
+     AC-04 search (număr, solicitant, companie), AC-05 facets (serviciu, data depunerii, termen de suplinire), AC-06
+     sorted by the nearest supplement term, AC-07 / AC-11 the CSV export dialog + an audit entry with the personal-
+     data mark, AC-08 / AC-09 the two empty states, AC-01 no rights. The suspension record (reason, term) is the
+     shell's `dosarSuspension(row)` — the same one the BO profile and the applicant's S4 show. AC-10: a click opens
+     the case (US-250 — the BO supplement flow — is not built; reported). Demo: ?suspendate=0 = none. */
+  const SUSP_KIND = "ghsusp";
+  const suspDays = (iso) => {
+    const today = new Date(`${A().dossierStore?.()?.today || nowIso().slice(0, 10)}T00:00:00`);
+    return Math.round((new Date(`${iso}T00:00:00`) - today) / 86400000);
+  };
+  function suspRows() {
+    const db = A().dossierStore?.();
+    if (!db || params.get("suspendate") === "0") return [];
+    return (db.runtimeRows || [])
+      .filter((row) => row.status === "inExaminare" && row.alerte.includes("suspendat") && ["FO", "BO"].includes(row.sursa) && row.subdiviziune === db.mySubdiviziune)
+      .map((row) => {
+        const s = A().dosarSuspension?.(row);
+        const minute = (row.id.charCodeAt(row.id.length - 1) * 7) % 60;
+        return s && {
+          /* own id: the shell's getDosarById looks in the open registry's rows first — a dossier id here would hand
+             this list row (not the case) to the profile */
+          id: `susp:${row.id}`,
+          dosarId: row.id,
+          nr: row.nrDosar,
+          tip: row.tipDosar,
+          serviciu: row.serviciu,
+          solicitant: row.numeSolicitant,
+          companie: row.companie || "",
+          canal: row.sursa === "FO" ? "Depus online" : "Depus la ghișeu",
+          online: s.online,
+          depus: `${row.dataDepunerii}T${pad(9 + (minute % 8))}:${pad(minute)}:00`,
+          termen: s.termen,
+          ramase: s.ramase
+        };
+      })
+      .filter(Boolean);
+  }
+  function suspRegistryDb() {
+    const rows = can() ? suspRows() : [];
+    return {
+      kind: SUSP_KIND,
+      fieldCount: 6,
+      defaultSort: "termen",
+      defaultSortDirection: "asc",
+      columns: {
+        nr: { label: "Număr dosar", width: 160, sortable: true },
+        serviciu: { label: "Denumirea serviciului", width: 220, fill: true, sortable: true },
+        solicitant: { label: "Nume solicitant", width: 168, sortable: true },
+        companie: { label: "Compania", width: 168, sortable: true },
+        depus: { label: "Data depunerii", width: 152, sortable: true },
+        termen: { label: "Termen de suplinire", width: 168, sortable: true }
+      },
+      views: {
+        [SUSP_KIND]: {
+          title: "Dosare suspendate",
+          selectable: false,
+          searchPlaceholder: "Caută după numărul dosarului, solicitant sau companie",
+          columns: ["nr", "serviciu", "solicitant", "companie", "depus", "termen"],
+          exportLabel: "Exportă CSV"
+        }
+      },
+      runtimeRows: rows
+    };
+  }
+  window.GEAPShellRegistries[SUSP_KIND] = {
+    build: suspRegistryDb,
+    facets: [
+      { key: "serviciu", label: "Denumirea serviciului", get: (r) => r.serviciu },
+      { key: "depus", label: "Data depunerii", get: (r) => { const n = -suspDays(r.depus.slice(0, 10)); return n <= 7 ? "Ultimele 7 zile" : n <= 30 ? "Ultimele 30 de zile" : "Mai vechi de 30 de zile"; } },
+      { key: "termen", label: "Termen de suplinire", get: (r) => (r.ramase <= 3 ? "În următoarele 3 zile" : r.ramase <= 7 ? "În 4–7 zile" : r.ramase <= 30 ? "În 8–30 de zile" : "Peste 30 de zile") }
+    ],
+    searchText: (row) => [row.nr, row.solicitant, row.companie].filter(Boolean).join(" "),
+    sortValue: (row, key) => (key === "depus" || key === "termen" ? row[key] : undefined),
+    renderCell: (row, key) => {
+      switch (key) {
+        case "nr": return `
+          <div class="e-permits-workplace__case-cell">
+            <span class="e-permits-passport__name" data-cell-tooltip="${esc(row.nr)}">${esc(row.nr)}</span>
+            <span class="e-permits-workplace__source"><span data-cell-tooltip="${esc(`${row.canal}${row.online ? " · suplinire începută online" : ""}`)}">${esc(row.online ? "Suplinire începută online" : row.canal)}</span></span>
+          </div>`;
+        case "serviciu": return `<span data-cell-tooltip="${esc(row.serviciu)}">${esc(row.serviciu)}</span>`;
+        case "solicitant": return `<span data-cell-tooltip="${esc(row.solicitant)}">${esc(row.solicitant)}</span>`;
+        case "companie": return row.companie ? `<span data-cell-tooltip="${esc(row.companie)}">${esc(row.companie)}</span>` : '<span class="e-permits-workplace__dash">—</span>';
+        case "depus": return U().renderDateTime?.(row.depus) || esc(stamp(row.depus));
+        case "termen": {
+          const n = row.ramase;
+          return dateCell(row.termen, n < 0 ? "depășit" : inDays(n), n < 0 ? "danger" : n <= 3 ? "warning" : "");
+        }
+        default: return esc(String(row[key] ?? "—"));
+      }
+    },
+    /* AC-10: the row opens the case (the BO supplement flow of US-250 starts from there) */
+    openRow: (id) => { window.location.hash = `#dosar/${encodeURIComponent(String(id).replace(/^susp:/, ""))}/general`; },
+    rowLabel: (row) => `${row.nr}, ${row.serviciu}, ${row.solicitant}${row.companie ? `, ${row.companie}` : ""} — termen de suplinire ${longDate(row.termen)}, deschide dosarul`,
+    rowClass: () => "",
+    emptyHtml: ({ query, filtered }) => {
+      const E = window.GEAPEmptyState;
+      if (!can()) return E?.render({ title: NO_RIGHTS, text: "Dosarele suspendate sunt disponibile utilizatorilor cu permisiunea de inițiere a cererilor la ghișeu.", icon: "lock", bare: true });
+      if (query || filtered) return E?.noResults?.("Nicio înregistrare nu corespunde criteriului de căutare", { text: "Caută după numărul dosarului, numele solicitantului sau companie.", bare: true });
+      return E?.render({ title: "Nu sunt dosare suspendate.", text: "Dosarele suspendate pentru suplinirea informațiilor apar aici până la reluarea examinării.", icon: "pause", bare: true });
+    },
+    exportRows: (rows) => openExport(rows, "susp")
+  };
+  /* AC-01: a role without the permission that opens #dosare-suspendate directly gets the list's no-rights state */
+  window.GEAPShellRoutes = window.GEAPShellRoutes || [];
+  window.GEAPShellRoutes.push((hash) => {
+    if (hash !== "#dosare-suspendate" || document.querySelector('[data-nav-item][data-nav-id="dosare-suspendate"]')) return false;
+    A().showRegistry?.(suspRegistryDb());
+    return true;
+  });
+
   /* ---------------------------------------------------------------- permission (Feature AC-02, every story AC-01) */
   function can() {
     const role = A().currentAssignment?.()?.roleId;
@@ -2764,8 +2878,10 @@
      count + scope, the CSV hint and the personal-data note, NO format choice; „Exportă CSV” downloads.
      Excel-friendly CSV (BOM + semicolons, as the BO tariffs export). */
   let exportRowsCache = [];
-  function openExport(list) {
+  let exportKind = "noi";
+  function openExport(list, kind = "noi") {
     exportRowsCache = list;
+    exportKind = kind;
     openModal({
       kind: "export",
       title: "Exportă dosarele",
@@ -2777,15 +2893,22 @@
     });
   }
   function exportCsv(list) {
-    const head = ["Număr cerere", "Denumirea serviciului", "Nume solicitant", "Compania", "Substatut", "Data creării", "Data ultimei modificări", "Data expirării notei de plată", "Data eliminării automate"];
-    const rows = list.map((r) => [r.nr, r.serviciu, r.solicitant, r.companie, r.substatut, stamp(r.creat), stamp(r.modificat), longDate(r.expirareNota), longDate(r.eliminare)]);
-    const name = "dosare-noi.csv";
+    /* US-255 AC-07: „Dosare suspendate” exports its own six columns */
+    const susp = exportKind === "susp";
+    const head = susp
+      ? ["Număr dosar", "Denumirea serviciului", "Nume solicitant", "Compania", "Data depunerii", "Termen de suplinire"]
+      : ["Număr cerere", "Denumirea serviciului", "Nume solicitant", "Compania", "Substatut", "Data creării", "Data ultimei modificări", "Data expirării notei de plată", "Data eliminării automate"];
+    const rows = susp
+      ? list.map((r) => [r.nr, r.serviciu, r.solicitant, r.companie, stamp(r.depus), longDate(r.termen)])
+      : list.map((r) => [r.nr, r.serviciu, r.solicitant, r.companie, r.substatut, stamp(r.creat), stamp(r.modificat), longDate(r.expirareNota), longDate(r.eliminare)]);
+    const name = susp ? "dosare-suspendate.csv" : "dosare-noi.csv";
     const cell = (v) => `"${String(v ?? "").replace(/"/g, '""')}"`;
     const blob = new Blob(["\ufeff" + [head, ...rows].map((line) => line.map(cell).join(";")).join("\r\n")], { type: "text/csv;charset=utf-8" });
     const a = Object.assign(document.createElement("a"), { href: URL.createObjectURL(blob), download: name });
     document.body.appendChild(a); a.click(); a.remove();
     setTimeout(() => URL.revokeObjectURL(a.href), 1000);
-    S.audit.unshift({ at: nowIso(), user: userName(), action: "Export listă Dosare noi", detail: `${rows.length} înregistrări · CSV · reușit`, personal: true });
+    /* US-255 AC-11: user, action, record count, result, the personal-data mark, timestamp */
+    S.audit.unshift({ at: nowIso(), user: userName(), action: susp ? "Export listă Dosare suspendate" : "Export listă Dosare noi", detail: `${rows.length} înregistrări · CSV · reușit`, personal: true });
     writeStore();
     closeModal();
     /* the dialog already says the export goes to the audit log → the toast names only the result */

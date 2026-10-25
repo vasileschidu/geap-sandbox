@@ -29,6 +29,16 @@
     row.click(); await h.wait(500);
   };
   const dosList = (as) => ({ flow: "back-office", as, ready: "tr[data-workplace-row], .e-permits-workplace" });
+  /* US-295: the header menu / the „Redistribuie” dialog / a finished manual redistribution; the Supervisor's list */
+  const redistMenu = async (h) => { await h.click(".e-permits-case-actions__trigger"); await h.find("#case-actions-menu:not([hidden])"); };
+  const redistOpen = async (h) => { await redistMenu(h); await h.click("[data-case-action='redistribuie']"); await h.find("#case-action-modal.is-active [data-case-choice]"); };
+  const redistDone = async (h) => {
+    await redistOpen(h);
+    await h.choose("#case-action-modal [data-case-select='specialist']", "sp2");
+    await h.fill("#case-motiv", "Elena Caragia este în concediu medical până la 15 august.");
+    await h.click("#case-action-modal [data-case-submit]"); await h.find(".toast");
+  };
+  const subList = (run) => ({ flow: "back-office", as: SUP, hash: "#subdivision-cases", ready: "tr[data-workplace-row], .e-permits-workplace .e-permits-empty", run });
   /* Setări: jump to a section from the section list */
   const cfgNav = (key) => async (h) => { await h.click(`[data-cfg2-nav="${key}"]`); await h.wait(500); };
   const bio = (tab, run) => svc(tab, run, BIO);
@@ -111,6 +121,14 @@
     await nav("deps");
     await h.click("[data-cfg2-dep-remove]"); await h.wait(300);
     TOP(); await h.wait(200);
+  };
+  /* US-290: the exam section (the section list is hidden on phones → scroll there) + a few overrides */
+  const distNav = async (h) => { const el = document.querySelector('[data-cfg2-nav="exam"]'); if (el?.getClientRects().length) { el.click(); await h.wait(500); } else await h.scroll("#cfg2-exam"); };
+  const distEdit = async (h) => {
+    await distNav(h);
+    await h.choose('select[data-cfg-dp="competent"]', "nu");
+    await h.fill("#cfg-dp-window", "4"); await h.fill("#cfg-dp-baseHours", "10"); await h.fill("#cfg-dp-f_inspectie", "5");
+    await h.scroll("[data-cfg-dp-field='competent']");
   };
   const ntplTwoEdits = async (h) => {
     const subject = await h.find('[data-ntplp-text="subject"]');
@@ -243,6 +261,8 @@
   /* post-process helpers: the EVO Cabinet page, the intent screen and the
      FOD2 wizard opened straight on a step (?pp=<type>&act=<id>) */
   const PP_FO = "e-permits-acte-permisive.html";
+  /* US-25 S4: the Cabinet „Suplinire informații” link of the suspended „Terasa Nistru” request (pj-global-trader) */
+  const supplementS4 = (hash, params = {}, run) => ({ page: PP_FO, flow: "full", hash, params: { solicitant: "pj-global-trader", suplinire: "GEAP-2026-009-04466", ...params }, ready: "#fo-supplement-title", run });
   /* one facet of the shared facet filter (js/facet-filter.js): desktop = its chip (→ popover); phones (≤760) = the
      icon-only „Filtre” in the search row (phone-toolbar-v2, `data-filter-all`; no facet chips) → the all-filters sheet with THAT facet's section
      open and the others folded (so a value click can only hit this facet) */
@@ -1025,7 +1045,23 @@
     "svc-10r": { ...svc("settings"), as: LOCAL_ADMIN },
     /* aliases of the exploration states (svc-10v…) */
     "svc-10v": svc("settings"),
-    "svc-10v1": svc("settings", async (h) => { await cfgNav("exam")(h); await h.click('[data-cfg-switch="distEligible"]'); await h.fill("#cfg-distMax", "20"); await h.wait(300); }),
+    /* US-290 replaced „Doar specialiștii eligibili” / „Coeficientul maxim de ocupare” (US-221) by the distribution parameters */
+    "svc-10v1": svc("settings", async (h) => { await cfgNav("exam")(h); await h.choose('select[data-cfg-dp="competent"]', "nu"); await h.fill("#cfg-dp-maxLoad", "120"); await h.wait(300); }),
+    /* ---- US-290 (Azure 96007) Parametrii de distribuire ai serviciului (bo-dossier-flows-v1) ----
+       dp the service level (inherited / overridden tags, effective values) · dp1 one request type (Emitere primară: the
+       authority's per-type value) · dp2 overrides typed (Suprascris, save bar) · dp3 invalid values after „Salvează”
+       (window 0, max load 0, ramp half filled) · dp4 saved (toast) · dp5 the service journal: one event per parameter
+       (AC-14) · dp6 Reperfectare: coefficient + a full ramp for the type · dp7 „Distribuire automată” off: no parameters
+       (AC-02 / AC-03) · dp8 the „Modificări nesalvate” review lists each parameter old → new */
+    "svc-10dp": svc("settings", distNav),
+    "svc-10dp1": svc("settings", async (h) => { await distNav(h); await h.choose("[data-cfg-dp-scope]", "Emitere primară"); await h.scroll("[data-cfg-dp-field='competent']"); }),
+    "svc-10dp2": svc("settings", distEdit),
+    "svc-10dp3": svc("settings", async (h) => { await distNav(h); await h.fill("#cfg-dp-window", "0"); await h.fill("#cfg-dp-maxLoad", "0"); await h.fill("#cfg-dp-ramp-0", "10"); await h.fill("#cfg-dp-ramp-1", "30"); await h.click("[data-cfg2-save]"); await h.wait(600); await h.scroll("[data-cfg-dp-field='window']"); }),
+    "svc-10dp4": svc("settings", async (h) => { await distEdit(h); await h.click("[data-cfg2-save]"); await h.find(".toast"); await h.scroll("[data-cfg-dp-field='window']"); }),
+    "svc-10dp5": svc("settings", async (h) => { await distEdit(h); await h.click("[data-cfg2-save]"); await h.wait(500); await h.click('[data-passport-tab="events"]'); TOP(); await h.wait(300); }),
+    "svc-10dp6": svc("settings", async (h) => { await distNav(h); await h.choose("[data-cfg-dp-scope]", "Reperfectare"); for (const [i, v] of ["10", "25", "50", "75", "100", "100"].entries()) await h.fill(`#cfg-dp-ramp-${i}`, v); await h.scroll("[data-cfg-dp-field='coef']"); }),
+    "svc-10dp7": svc("settings", async (h) => { await distNav(h); await h.click('[data-cfg-switch="autoDist"]'); await h.wait(500); }),
+    "svc-10dp8": svc("settings", async (h) => { await distEdit(h); await h.click(CHANGES_HEAD("service-settings")); }),
     "svc-10v2": svc("settings", async (h) => { await h.fill("#cfg-payTerm", ""); await h.wait(200); await h.click("[data-cfg2-save]"); await h.wait(600); }),
     "svc-10v3": svc("settings", async (h) => { await cfgNav("deps")(h); await h.click("[data-cfg2-dep-add]"); await h.wait(300); }),
     "svc-10v4": svc("settings", async (h) => { await h.click('[data-cfg-switch="suspEditable"]'); await h.wait(300); await h.click('[data-passport-tab="forms"]'); }),
@@ -1178,6 +1214,28 @@
        phone mode too) = the icon-only „Filtre” → the all-filters sheet (→ „Arată N rezultate”) — the eKYC helpers */
     "dos-05c": { ...dosList(SPEC), run: ekFacet("status") },
     "dos-05d": { ...dosList(SPEC), run: async (h) => { await ekPick("status", ["În examinare"])(h); await ekCommit(h); } },
+
+    /* ---- Dosare · 06 Redistribuire (US-295, Azure 96012; bo-dossier-flows-v1) ----
+       06 Supervisor's header menu with „Redistribuie” · 06a the dialog (Manual) · 06b a specialist without competence
+       (AC-16 warning) · 06c empty submit (AC-06 / AC-15) · 06d Automat · 06e done (toast, new Specialist) · 06f the
+       journal entry (AC-14) · 06g the operation fails (AC-19) · 06h Automat without a candidate (AC-08) · 06i the
+       Director: no „Redistribuie” (AC-01) · 06j „Dosarele subdiviziunii” · 06k 3 rows selected · 06l one specialist's
+       open cases, all selected (AC-17) · 06m bulk dialog + „În nedistribuite” (AC-18) · 06n bulk done */
+    "dos-06": dos(SUP, "inExaminare", "general", {}, redistMenu),
+    "dos-06a": dos(SUP, "inExaminare", "general", {}, redistOpen),
+    "dos-06b": dos(SUP, "inExaminare", "general", {}, async (h) => { await redistOpen(h); await h.choose("#case-action-modal [data-case-select='specialist']", "sp3"); }),
+    "dos-06c": dos(SUP, "inExaminare", "general", {}, async (h) => { await redistOpen(h); await h.click("#case-action-modal [data-case-submit]"); }),
+    "dos-06d": dos(SUP, "inExaminare", "general", {}, async (h) => { await redistOpen(h); await h.click("#case-action-modal [data-case-choice='automat']"); }),
+    "dos-06e": dos(SUP, "inExaminare", "general", {}, redistDone),
+    "dos-06f": dos(SUP, "inExaminare", "general", {}, async (h) => { await redistDone(h); await h.click("[data-dosar-tab='jurnal']"); }),
+    "dos-06g": dos(SUP, "inExaminare", "general", { redistribuire: "eroare" }, redistDone),
+    "dos-06h": dos(SUP, "inExaminare", "general", { candidati: "0" }, async (h) => { await redistOpen(h); await h.click("#case-action-modal [data-case-choice='automat']"); await h.fill("#case-motiv", "Specialistul pleacă din subdiviziune."); await h.click("#case-action-modal [data-case-submit]"); await h.find(".toast"); }),
+    "dos-06i": dos(DIR, "inExaminare", "general", {}, redistMenu),
+    "dos-06j": subList(),
+    "dos-06k": subList(async (h) => { for (let i = 0; i < 3; i += 1) await h.nth("[data-workplace-select-row]", i); }),
+    "dos-06l": subList(async (h) => { await ekPick("specialist", ["Mihai Grosu"])(h); await ekCommit(h); await h.click("[data-workplace-select-all]"); }),
+    "dos-06m": subList(async (h) => { await ekPick("specialist", ["Mihai Grosu"])(h); await ekCommit(h); await h.click("[data-workplace-select-all]"); await h.click("[data-workplace-redistribute]"); await h.click("#case-action-modal [data-case-choice='nedistribuite']"); }),
+    "dos-06n": subList(async (h) => { for (let i = 0; i < 3; i += 1) await h.nth("[data-workplace-select-row]", i); await h.click("[data-workplace-redistribute]"); await h.click("#case-action-modal [data-case-choice='automat']"); await h.fill("#case-motiv", "Echilibrarea încărcării în subdiviziune."); await h.click("#case-action-modal [data-case-submit]"); await h.find(".toast"); }),
     "auth-05": { flow: "back-office", as: ADMIN, run: async (h) => { await h.click("[data-user-menu] .e-permits-shell__user-trigger"); } },
     "auth-05a": { page: "bo-login.html", params: { ended: "logout" }, ready: "[data-bo-login] h1" },
     "auth-05b": { page: "bo-login.html", params: { ended: "logout", portal: "admin" }, ready: "[data-bo-login] h1" },
@@ -1305,6 +1363,14 @@
        "Ce vrei să soliciți?" and the FOD2 post-process wizard per type */
     /* US-18 and the primary request flow (Figma FO · 09 bands F0–F8) */
     "fo-01": { page: PP_FO, flow: "full", ready: "h1" },
+    /* US-25 (Azure 88528) S4 „Motivul suspendării” (bo-dossier-flows-v1): s4 the Cabinet „Suplinire informații” link
+       (#request-step-2 → S4 first) · s4a #suplinire directly · s4b „Continuă” → S5 (the request form) · s4c the form does
+       not load (?s5=eroare: message + „Reîncercați”) · s4d a request the BO data does not know (AC-01…05 deviations) */
+    "fo-s4": supplementS4("#request-step-2"),
+    "fo-s4a": supplementS4("#suplinire"),
+    "fo-s4b": supplementS4("#request-step-2", {}, async (h) => { await h.click("[data-fo-supplement-next]"); await h.find("[data-fo-step-panel='2']:not([hidden]) h1"); }),
+    "fo-s4c": supplementS4("#request-step-2", { s5: "eroare" }, async (h) => { await h.click("[data-fo-supplement-next]"); await h.find("[data-fo-supplement-error]"); }),
+    "fo-s4d": supplementS4("#suplinire", { suplinire: "GEAP-2026-009-09999" }),
     /* header instance switcher open (FOD 756:25276): trigger keeps the focus ring, menu right-aligned under it */
     "fo-01s": foReq(1, {}, async (h) => { await h.click("[data-fo-avatar-trigger]"); await h.find("[data-fo-avatar-dropdown]:not([hidden])"); }),
     "fo-02": foReq(1),
@@ -3455,6 +3521,8 @@
     const READY = "#gh-start-modal.is-active [data-gh-panel], #gh-start-modal.is-active .e-permits-empty, #gh-request-modal.is-active [data-gh-panel]";
     const gh = (hash, run, params) => ({ flow: "back-office", as: GH, hash, params, ready: READY, run: async (h) => { await h.wait(300); if (run) await run(h); } });
     const ghList = (run, params) => ({ flow: "back-office", as: GH, hash: "#dosare-noi", params, ready: "[data-registry-kind='ghiseu'] tr[data-workplace-row], [data-registry-kind='ghiseu'] .e-permits-empty", run });
+    /* US-255 „Dosare suspendate” */
+    const ghSusp = (run, params) => ({ flow: "back-office", as: GH, hash: "#dosare-suspendate", params, ready: "[data-registry-kind='ghsusp'] tr[data-workplace-row], [data-registry-kind='ghsusp'] .e-permits-empty", run });
     const down = (el) => el.dispatchEvent(new MouseEvent("mousedown", { bubbles: true }));
     /* the clicks a clerk makes on the initiation screen */
     const service = (code) => async (h) => { await h.click("#fo-gh-serviciu"); down(await h.find(`.e-permits-fo-caem__option[data-code="${code}"]`)); await h.wait(400); };
@@ -3519,6 +3587,18 @@
       "gh-01e1": ghList(async (h) => { await h.click("[data-workplace-export]"); await h.click("#case-action-modal.is-active [data-gh-export-confirm]"); await h.find(".toast"); await h.wait(300); }),
       "gh-01f": ghList(async (h) => { await h.click('[data-workplace-tab="submitted"]'); }),
       "gh-01g": { flow: "back-office", as: "ansp-specialist-chisinau", hash: "#ghiseu/nou", ready: "#gh-start-modal.is-active .e-permits-empty" },
+      /* ---- US-255 (Azure 95793) „Dosare suspendate” (bo-dossier-flows-v1): s01 the list (nearest supplement term
+         first) · s01a search without a match (AC-09) · s01b none suspended (AC-08, ?suspendate=0) · s01c „Filtrare
+         avansată” open (AC-05) · s01d the export dialog · s01e exported (AC-07 / AC-11) · s01f a role without the
+         permission on #dosare-suspendate (AC-01) · s01g a row opens the case: the „Suspendare” card (AC-10) */
+      "gh-s01": ghSusp(),
+      "gh-s01a": ghSusp(async (h) => { await h.fill("[data-workplace-search]", "zzz", { leave: false }); await h.wait(500); }),
+      "gh-s01b": ghSusp(null, { suspendate: "0" }),
+      "gh-s01c": ghSusp(async (h) => { await h.click("[data-workplace-filter-toggle]"); }),
+      "gh-s01d": ghSusp(async (h) => { await h.click("[data-workplace-export]"); await h.find("#case-action-modal.is-active [data-gh-export-confirm]"); await h.wait(300); }),
+      "gh-s01e": ghSusp(async (h) => { await h.click("[data-workplace-export]"); await h.click("#case-action-modal.is-active [data-gh-export-confirm]"); await h.find(".toast"); await h.wait(300); }),
+      "gh-s01f": { flow: "back-office", as: "ansp-specialist-chisinau", hash: "#dosare-suspendate", ready: "[data-registry-kind='ghsusp'] .e-permits-empty" },
+      "gh-s01g": ghSusp(async (h) => { await h.click("[data-registry-kind='ghsusp'] tr[data-workplace-row]"); await h.scroll(".e-permits-dosar-profil__section", "Motivul suspendării"); }),
       /* ghiseu-picker-toast-v1: a dossier submitted (gh-10a) → „Înapoi la Dosare noi” → the list with the library success toast */
       "gh-01t": gh("#ghiseu/gh-4771/plata", seq(async (h) => { await h.click("[data-gh-mpay]"); }, next, async (h) => { await h.click("[data-gh-submit]"); await h.wait(400); await h.click("[data-gh-close-sheet]"); await h.find("[data-registry-kind='ghiseu'] tr[data-workplace-row]"); await h.find(".toast"); await h.wait(300); })),
       /* US-233 small modal „Dosar nou” (one screen): empty, list search, service, PF / PJ found, not found

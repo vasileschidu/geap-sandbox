@@ -3715,3 +3715,26 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   use Edit. No sub-agent tool → code-audit (dialog scope: only A4 mm padding / zoomed-page line gaps / BO 11·7),
   component-audit (0 in my markup; standing shell header, FO doc-modal shell buttons, missing-copy inside A4 tables),
   hover-audit 0 / 0.
+- 2026-10-25 · bo-dossier-flows-v1 (4 partly covered stories: US-295 redistribuire, US-255 Dosare suspendate, US-290
+  parametrii de distribuire, US-25 S4). What kept it cheap: (1) a permission that crosses the lane gating (Supervisor
+  acting on a Specialist step) = a `ctx.canRedistribute` flag the CALLER computes, one branch in `caseFlow.available()`
+  + a Node check in test/case-flow.test.mjs — the engine stays pure; (2) a bulk action on a dossier list = a view flag
+  (`bulkRedistribute`, `selectAllFiltered`) + one toolbar button synced in `renderWorkplace` and the row-checkbox
+  handler; the single and bulk dialogs are ONE form (`caseDraft.rowIds` / `bulk`). (3) A new role menu = a new
+  `menuProfile` in roles.json (nobody else keys on „specialist”), never a per-role branch in the nav code. (4) Team /
+  competence data that the seed generator would reshuffle (it picks by `specialisti.length`) lives in the shell as a
+  prototype table. Traps: (a) the dossier db has NO `kind` → `workplaceDb === dossierDb`, not `kind === "dossiers"`
+  (the bulk button stayed hidden); (b) a module registry whose row ids equal dossier ids → `getDosarById` (reads the
+  open registry's rows first) handed MY list row to the profile → prefix ids (`susp:`) and make `#dosar/…` switch
+  `workplaceDb` back to the dossiers when the open db has no `statuses`; (c) a `renderInfoCard` value is a flex row —
+  `<strong>` + text become two side-by-side columns → wrap the value in one `<span>`; (d) a service-journal event is
+  sorted into a passport tab by a regex on its TYPE (`/setăr/`) — name new event types so they land on the right tab;
+  (e) an fo-select option with value "" renders as the grey placeholder → real choices (Moștenit, Serviciu) need
+  non-empty values; (f) the FO routes by the step hash while the schema loads — an entry screen in front of a step
+  (S4 before #request-step-2) must `replaceState` its own hash synchronously at boot, or the step opens and fires the
+  „Cererea a fost creată ca schiță” toast; (g) label + inline tag rows that wrap misalign the inputs of a 2-column
+  grid → short tags (Moștenit / Suprascris) and the source in the hint. No sub-agent tool → capture 50 states × 2 (0
+  errors / overflow; svc-10v1 phone = HEAD's cfgNav), hover-audit 0 / 0 (dialogs, lists, settings, S4; a first
+  run showed 3 transient toolbar no-hovers that a re-run against gh-01 cleared), code-audit static 0 + standing FPs
+  (th sort, data avatar colours, heading 11, Large 11, fo-select chevron), component-audit = standing shell / FO header
+  / th / missing-copy majors only.

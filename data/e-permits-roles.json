@@ -38,7 +38,7 @@
           "roleLabel": "Supervizor",
           "instanceLabel": "CSP Chișinău",
           "headerMeta": "Supervizor • Chișinău",
-          "menuProfile": "specialist",
+          "menuProfile": "supervisor",
           "icon": "people"
         },
         {
@@ -185,6 +185,109 @@
         }
       ]
     },
+    "supervisor": {
+      "_note": "US-295 (2026-10-25): the Specialist menu + „Dosarele subdiviziunii” (the cases under examination of the subdivision, bulk „Redistribuie”)",
+      "ariaLabel": "Locul de muncă supervizor",
+      "defaultItemId": "my-cases",
+      "groups": [
+        {
+          "label": "Locul de muncă",
+          "items": [
+            {
+              "id": "my-cases",
+              "label": "Dosarele mele",
+              "icon": "document",
+              "workplaceView": "mine",
+              "badgeView": "mine",
+              "badge": 33
+            },
+            {
+              "id": "subdivision-cases",
+              "label": "Dosarele subdiviziunii",
+              "workplaceView": "subdivision"
+            },
+            {
+              "id": "unassigned",
+              "label": "Dosare nedistribuite",
+              "icon": "page-text",
+              "workplaceView": "unassigned",
+              "badgeView": "unassigned",
+              "badge": 12
+            },
+            {
+              "id": "office",
+              "label": "Dosare inițiate în oficiu",
+              "icon": "mark-all",
+              "workplaceView": "office",
+              "badgeView": "office",
+              "badge": 5
+            },
+            {
+              "id": "print",
+              "label": "Dosare spre printare",
+              "icon": "download",
+              "workplaceView": "print",
+              "badgeView": "print",
+              "badge": 8
+            }
+          ]
+        },
+        {
+          "label": "Sarcini",
+          "items": [
+            {
+              "id": "my-tasks",
+              "label": "Sarcinile mele",
+              "iconAsset": "assets/icons/admin-folder-check.svg",
+              "shellView": "sarcini-registry",
+              "badge": 10
+            }
+          ]
+        },
+        {
+          "label": "Registre",
+          "items": [
+            {
+              "id": "registre",
+              "label": "Toate registrele",
+              "shellView": "registre-catalog"
+            },
+            {
+              "id": "reg-dosare",
+              "label": "Registru Dosare",
+              "shellView": "reg-dosare-registry"
+            },
+            {
+              "id": "reg-acte",
+              "label": "Registrul actelor permisive",
+              "shellView": "reg-acte-registry"
+            },
+            {
+              "id": "reg-note",
+              "label": "Registru note de plată",
+              "shellView": "reg-note-registry"
+            },
+            {
+              "id": "reg-avize",
+              "label": "Registru Avize",
+              "shellView": "reg-avize-registry"
+            }
+          ]
+        },
+        {
+          "label": "Configurare",
+          "items": [
+            {
+              "id": "permits",
+              "label": "Acte permisive",
+              "icon": "stamp",
+              "shellView": "services-registry",
+              "badge": 142
+            }
+          ]
+        }
+      ]
+    },
     "ghiseu": {
       "ariaLabel": "Locul de muncă specialist ghișeu",
       "defaultItemId": "dosare-noi",
@@ -201,7 +304,7 @@
             {
               "id": "dosare-suspendate",
               "label": "Dosare suspendate",
-              "shellView": "role-placeholder"
+              "shellView": "ghsusp-registry"
             },
             {
               "id": "acte-spre-eliberare",
@@ -229,6 +332,11 @@
               "label": "Dosare noi",
               "shellView": "ghiseu-registry",
               "badge": 0
+            },
+            {
+              "id": "dosare-suspendate",
+              "label": "Dosare suspendate",
+              "shellView": "ghsusp-registry"
             },
             {
               "id": "work-in-progress",

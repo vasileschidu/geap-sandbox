@@ -1,0 +1,107 @@
+/* =====================================================================================
+   BO dossier flows — partial stories completed (bo-dossier-flows-v1, 2026-10-25)
+   US-295 Redistribuirea dosarelor · US-255 Dosare suspendate · US-290 parametrii de
+   distribuire în pașaport · US-25 S4 Motivul suspendării (FO).
+   Glue only: every control is a library / documented component (components.md ›
+   „Redistribuire”, „Dosare suspendate”, „Parametrii de distribuire”, „Suplinire — S4”).
+   ===================================================================================== */
+
+/* ---- US-295: the Supervisor's „Dosarele subdiviziunii” menu icon (the shell draws nav icons as 20px masks) */
+.e-permits-shell__nav--specialist [data-workplace-view="subdivision"] .e-permits-shell__nav-icon::before {
+  mask-image: url("../assets/icons/admin-folder-open.svg");
+  mask-size: 17.2623px 14.4167px;
+  -webkit-mask-image: url("../assets/icons/admin-folder-open.svg");
+  -webkit-mask-size: 17.2623px 14.4167px;
+}
+
+/* ---- US-255: „Dosare suspendate” has no checkbox column — the pinned number carries the divider
+   (the „Dosare noi” rules of css/ghiseu.css, for this registry) */
+.e-permits-workplace[data-registry-kind="ghsusp"] .e-permits-workplace__table th:nth-child(1),
+.e-permits-workplace[data-registry-kind="ghsusp"] .e-permits-workplace__table td:nth-child(1) {
+  border-right: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
+  left: 0;
+  position: sticky;
+  z-index: 7;
+}
+
+.e-permits-workplace[data-registry-kind="ghsusp"] .e-permits-workplace__table th:nth-child(1) {
+  z-index: 9;
+}
+
+.e-permits-workplace[data-registry-kind="ghsusp"] .e-permits-workplace__table th:nth-child(2),
+.e-permits-workplace[data-registry-kind="ghsusp"] .e-permits-workplace__table td:nth-child(2) {
+  border-right: 0;
+  left: auto;
+  position: static;
+  z-index: auto;
+}
+
+@media (max-width: 760px) {
+  .e-permits-workplace[data-registry-kind="ghsusp"] {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr) auto;
+  }
+
+  .e-permits-workplace[data-registry-kind="ghsusp"] .e-permits-workplace__table th:nth-child(1),
+  .e-permits-workplace[data-registry-kind="ghsusp"] .e-permits-workplace__table td:nth-child(1) {
+    border-right: 0;
+    left: auto;
+    position: static;
+    z-index: auto;
+  }
+
+  .e-permits-workplace[data-registry-kind="ghsusp"] .e-permits-workplace__footer {
+    flex-basis: auto;
+    height: auto;
+  }
+
+  .e-permits-workplace[data-registry-kind="ghsusp"] .e-permits-workplace__pagination {
+    flex-wrap: wrap;
+    row-gap: var(--spacing-8, 8px);
+  }
+}
+
+/* ---- US-290: Parametrii de distribuire (Setări › Examinare și distribuire) ----
+   label + its Small „Moștenit · …” / „Suprascris” tag on one line (wraps under on narrow cards) */
+.e-permits-cfg-dp__label {
+  align-items: center;
+  column-gap: var(--spacing-8, 8px);
+  display: flex;
+  flex-wrap: wrap;
+  row-gap: var(--spacing-8, 8px);
+}
+
+/* Rampa novicelui: six month inputs on one row (three per row on phones) */
+.e-permits-cfg-dp__ramp {
+  display: grid;
+  gap: var(--spacing-12, 12px);
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+}
+
+.e-permits-cfg-dp__ramp-month {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-8, 8px);
+  min-width: 0;
+}
+
+.e-permits-cfg-dp__ramp .e-permits-cfg-dp__ramp-label {
+  color: var(--color-text-base-tertiary, #757575);
+  font-size: var(--font-size-fs-12, 12px);
+  line-height: var(--line-height-lh-16, 16px);
+}
+
+@media (max-width: 760px) {
+  .e-permits-cfg-dp__ramp {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+/* ---- US-25 S4 „Motivul suspendării” (FO): the S5 load error = the FO error notice + „Reîncercați” under it
+   (the „Acte necesare” registry-down pattern) */
+.e-permits-fo-supplement__retry {
+  align-items: flex-start;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-16, 16px);
+}

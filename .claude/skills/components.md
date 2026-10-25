@@ -360,6 +360,10 @@ but this doc previously described it wrongly, see the entry.
 | Form Builder · saved components | palette group `[data-fb-library-saved]` „Componente salvate” (system preset + saved, version `renderTag("vN")`), card foot tag „Salvată” (`icon-bookmark`), panel group „Componentă salvată” (facts + Actualizează din sursă / Salvează în sursă / Detașează), modal `#fb-preset-modal` (library `modal--md e-permits-passport__modal`) | `insertPreset` / `presetAction` / `openPresetModal` | app |
 | Value group with a trailing unit | `.e-permits-doc-val` > `__control` (number) + `.e-permits-doc-val__mode.e-permits-doc-val__mode--end` (unit select, divider on its left, 80 wide) | Reguli de dată (± N zile / luni / ani) | app |
 | Back-office helpers for other scripts | `window.GEAPUi` = renderCheckOption, renderToggle, renderNotice, renderInfoNote, renderFoSelectControl, renderTag, renderStackMenu, requiredMark, askConfirm, showShellToast, escapeHtml | `js/e-permits-shell.js` | app |
+| Redistribuire (US-295, bo-dossier-flows-v1) | case-actions operation `redistribuie` (Supervisor, Specialist step, own subdivision) → `#case-action-modal` form `redistribuire`: `caseReadonly` ×2 + library `.segmented-control` (Manual · Automat · bulk „În nedistribuite”) + `caseSelect` + `caseNotice` warning / info + `caseTextarea`; bulk = toolbar `button.btn.btn-primary.btn-sm.e-permits-workplace__primary-action[data-workplace-redistribute]` (icon-people, „Redistribuie (N)”, aria-disabled + reason while none selected) on view `subdivision` | section „Redistribuire, Dosare suspendate, parametrii de distribuire, S4” | app |
+| Dosare suspendate (US-255) | module registry `ghsusp` (js/ghiseu.js) on the shell engine: case cell `.e-permits-workplace__case-cell` + Ghișeu `dateCell` meta, CSV export dialog, `GEAPEmptyState` | same section | app |
+| Parametrii de distribuire (US-290) | inside the `autoDist` `.e-permits-cfg-group`: `renderInfoNote` + scope `renderFoSelectControl[data-cfg-dp-scope]` + fields `.e-permits-cfg-dp__label` (label + Small tag Moștenit / Suprascris / Necompletat) + `.e-permits-cfg-dp__ramp` (6 FO inputs) | same section | app |
+| Suplinire S4 (US-25) | FO screen `[data-fo-screen="supplement"]` = the intent column (`.e-permits-fo-intent__inner`) + `renderNotice` + `foSummarySectionHtml` rows + `foStepFooterHtml`; error = `renderNotice("error")` + `.e-permits-fo-supplement__retry` „Reîncercați” | same section | app |
 | Undo toast | `GEAPToast.show({ …, action: { label: "Anulează", onClick } })` → `button.toast__link.toast__action` in the link slot | `js/toast.js` | library + app |
 | Ghișeu — depunere la ghișeu (Dosare noi + picker + request sheet) | small modal `#gh-start-modal.modal-overlay > .modal.modal--lg.e-permits-passport__modal.e-permits-gh` = one screen (service + applicant with the search-input lookups), hugs its content up to 24 from the viewport edges, bottom sheet ≤680 (phones ≤760 since 2026-10-19: the shared rule „Modals on phones — maximum content space”, 16 from the top, radius 16); the request window opens on the FO intent screen „Ce se solicită?” (`GEAPFormRender.intentHtml`, step `intent`, no stepper) — a choice starts the request; request = **full-screen sheet** `#gh-request-modal.modal-overlay.e-permits-gh-sheet-overlay > .modal.modal--fullscreen.e-permits-gh-sheet` (24 from the top, radius 16 top corners, header · scrolling body · sticky footer; z 990 under library dialogs) with the FO request layout `.e-permits-fo-request__inner.e-permits-gh__inner` (FO stepper `[data-gh-step]` + `.e-permits-fo-form` panel `[data-gh-panel]`); registry kind `ghiseu` via `window.GEAPShellRegistries`; routes via `window.GEAPShellRoutes`; helpers via `window.GEAPShellApi` | `js/ghiseu.js`, `css/ghiseu.css`, `data/ghiseu.json`, demo `gh-*`; section „Ghișeu — depunere la ghișeu” | app |
 | Registre — BackOffice registers (registre-v1, 2026-10-23; Epic 89620) | no new component: each register = the BO registry engine (`window.GEAPShellRegistries["reg-dosare" · "reg-acte" · "reg-note" · "reg-avize"]`, pinned first column, actions column only with a configured action) driven by `data/registre.json › registers[]`; catalog = a module page with one stacked list (lead `.e-permits-reg-catalog__icon` on the library Avatar · icon); record card = the BO profile panel (Detalii / Versiuni / Jurnalul evenimentelor); confirmations in `#case-action-modal` (`.e-permits-reg-modal`, `--confirm`, `--export`, `--event`; changes card `.e-permits-reg-changes`); Push Case = the ONE drawer (`[data-reg-push]`, steps `.e-permits-reg-steps` / `.e-permits-reg-step`, blocks `.e-permits-reg-blocks`); notices `.e-permits-reg-notices`; page `.e-permits-reg-page` | `js/registre.js`, `css/registre.css`; section „Registre — BackOffice registers”; demo reg-01…16a | app |
@@ -9164,6 +9168,46 @@ existing pattern; `js/registre-admin.js` + a block in `css/registre.css`.
   permisive types), a08…08f (publish), a09…09e (versions, sort, ⋮, window, restore, restored), a10…10d (deprecate,
   reactivate, refused, BO link), a11…11c (access), a12…12c (local admin + no-permission addresses), a13 / 13a
   (permissions), a14 / 14a (BO effects).
+
+### Redistribuire, Dosare suspendate, parametrii de distribuire, S4 (bo-dossier-flows-v1, 2026-10-25)
+
+Four partly covered stories completed with existing components only; the CSS glue is `css/bo-dossier-flows.css`.
+
+- **US-295 Redistribuire** — `core/case-flow.js` `available()` adds the operation `redistribuie` when the caller
+  passes `ctx.canRedistribute` (shell: Supervisor role + case of `dossierDb.mySubdiviziune` + has a responsible) and
+  the case rests on a Specialist step; the Director's `redistribuire` ban stays; the menu note says the step is the
+  Specialist's but it can be redistributed. Form `redistribuire` in `#case-action-modal`: Responsabil actual +
+  Termenul de examinare (read-only), „Modul redistribuirii” = library segmented (`data-case-choice`), Manual → „Responsabil
+  nou” (active Specialists of the case's subdivision, never the current one, with their open cases), a specialist
+  without competence → `caseNotice(…, "warning")` (continues), Automat / În nedistribuite → info `caseNotice`, „Motivul
+  redistribuirii” required, a lead line (term never resets, who is notified). Result: `row.specialist` + journal entry
+  „Dosar redistribuit” (author, reason, transaction `TD-…-0N` linked to the previous, recalculated complexity, the
+  term) + an internal notification row (canal „SIA GEAP”) + success toast; no candidate / „În nedistribuite” → node5 /
+  „Dosare nedistribuite” + info toast; `?redistribuire=eroare` → error toast „Operația nu a putut fi efectuată”, nothing
+  changes, an „Eșuat” journal line. Bulk: menu profile `supervisor` (roles.json) adds „Dosarele subdiviziunii” (view
+  `subdivision`: in examination, own subdivision, a „Specialist” column, `selectAllFiltered` = the header box takes every
+  filtered row) and the toolbar „Redistribuie (N)”. Team data (subdivision / active / competences) = `REDIST_TEAM_*`
+  in the shell, not the seed. Demo `dos-06` … `dos-06n`.
+- **US-255 Dosare suspendate** — Ghișeu menu item → registry kind `ghsusp`: Număr dosar (+ „Depus online / la ghișeu /
+  Suplinire începută online” meta), Denumirea serviciului, Nume solicitant, Compania, Data depunerii (date over time),
+  Termen de suplinire (date over „în N zile”, warning ≤ 3, danger past); default sort term ascending; facets serviciu /
+  data depunerii / termen; search număr / solicitant / companie; CSV export dialog (+ audit entry with the personal-data
+  mark); empty „Nu sunt dosare suspendate.” / no match / no rights (a role without the menu item that opens
+  `#dosare-suspendate`). Row ids are `susp:<dossier>` (the shell's `getDosarById` reads the open registry first); the row
+  opens the case. Suspension data = shell `dosarSuspension(row)` (also on `GEAPShellApi`), shown on the case as the
+  „Suspendare” info card (Motivul suspendării, Substatut „Suplinire info”, Suspendat la · de, Termen de suplinire,
+  Decizia de suspendare, Suplinirea). Demo `gh-s01` … `gh-s01g`, `dos-02b`.
+- **US-290 Parametrii de distribuire** — replaces the four US-221 distribution fields (one draft key `distParams` =
+  `{ svc, rt: { <tip>: {} } }`); scope select „Parametrii pentru” (service / a request type with its override count);
+  each field = label + Small tag (Moștenit neutral / Suprascris brand / Necompletat warning — short, so a row's inputs
+  stay aligned) + hint „Valoare efectivă: X — moștenită din … / setată pentru …”, redrawn in place while typing;
+  Da/Nu fields = FO select with „Moștenit (X)”; numbers ≥ 0 / > 0 / int ≥ 1; Rampa novicelui = 6 inputs (all or
+  none, 0–100); factor hours = the authority policy's factors. Inheritance stand-in `DIST_POLICY` (US-289 not built).
+  Save = one audit event per parameter („Modificare setări — parametri de distribuire”). Demo `svc-10dp` … `svc-10dp8`.
+- **US-25 S4 „Motivul suspendării” (FO)** — `?suplinire=<nr>` + the Cabinet link (`#request-step-2`) shows S4 first
+  (once per tab; `#suplinire` always): read-only rows from `data/cabinet-evo-solicitari.json` with the AC fallbacks
+  („—” / „Nedefinit”), a warning notice with the supplement term, footer back (→ Cabinet) + „Continuă” → S5 (request
+  step 2, no new-draft toast); `?s5=eroare` → error notice + „Reîncercați”. Demo `fo-s4` … `fo-s4d`.
 
 ## 5. Removed from this document
 

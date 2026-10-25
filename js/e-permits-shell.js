@@ -1765,6 +1765,9 @@ document.addEventListener("DOMContentLoaded", () => {
         return row.specialist?.id === workplaceDb.meSpecialistId;
       case "unassigned":
         return row.status === "depus" && row.nedistribuit;
+      /* US-295: under examination, in the user's subdivision, with a responsible */
+      case "subdivisionOpen":
+        return row.status === "inExaminare" && Boolean(row.specialist) && !row.nedistribuit && row.subdiviziune === workplaceDb.mySubdiviziune;
       case "office":
         return row.status === "schita";
       case "print":
@@ -3211,6 +3214,19 @@ document.addEventListener("DOMContentLoaded", () => {
       ] : [])
     ]);
 
+    /* US-25 AC-05 (BO side) + US-255: a suspended case says why, since when, until when the applicant
+       may supplement and how the suspension was decided — the same record the applicant reads (S4) */
+    const susp = dosarSuspension(row);
+    const suspendare = susp ? renderInfoCard("Suspendare", [
+      /* one inline run (the value cell is a flex row: separate nodes would sit side by side) */
+      ["Motivul suspendării", `<span>${susp.categorie ? `<strong>${escapeHtml(susp.categorie)}</strong> — ` : ""}${escapeHtml(susp.motiv)}</span>`],
+      ["Substatut", renderTag("Suplinire info", "warning")],
+      ["Suspendat la", `${escapeHtml(formatLongDate(susp.suspendatLa))} <span class="e-permits-dosar-profil__termen-meta">de ${escapeHtml(susp.de)}</span>`],
+      ["Termen de suplinire", `${escapeHtml(formatLongDate(susp.termen))} <span class="e-permits-dosar-profil__termen-meta">${escapeHtml(susp.ramase > 1 ? `${susp.ramase} zile rămase` : susp.ramase === 1 ? "o zi rămasă" : susp.ramase === 0 ? "expiră azi" : "depășit")}</span>`],
+      ["Decizia de suspendare", escapeHtml(susp.semnata ? "Coordonată de supervizor și semnată de director" : "Fără semnare — dosarul s-a suspendat la confirmare")],
+      ["Suplinirea", escapeHtml(susp.online ? "Începută de solicitant în EVO Cabinet" : "Neîncepută")]
+    ]) : "";
+
     const organizare = renderInfoCard("Organizare", [
       ["Autoritatea", escapeHtml(workplaceDb.myAutoritate)],
       ["Subdiviziunea de procesare", escapeHtml(row.subdiviziune)]
@@ -3229,7 +3245,7 @@ document.addEventListener("DOMContentLoaded", () => {
       ["Nr. actului anterior", row.actBaza?.nr ? escapeHtml(row.actBaza.nr) : dash]
     ]);
 
-    return `${renderDosarTrajectory(row)}${identificare}${dateDeProces}${organizare}${persoaneImplicate}${decizieSiAct}`;
+    return `${renderDosarTrajectory(row)}${identificare}${dateDeProces}${suspendare}${organizare}${persoaneImplicate}${decizieSiAct}`;
   };
 
   const renderDosarProfilSolicitare = (row) => {
@@ -3997,6 +4013,34 @@ document.addEventListener("DOMContentLoaded", () => {
     };
   };
 
+  /* US-25 / US-255: the suspension record of a suspended case (statut „Suspendat”, substatut „Suplinire
+     info”): what the specialist recorded at „Suspendare termen” (state.suspension), else a seeded one —
+     deterministic per case, on the dossiers' clock (dossierDb.today), so the BO profile, the Ghișeu
+     „Dosare suspendate” list and the applicant's S4 read the same reason and term. */
+  const SUSP_SEED_REASONS = [
+    ["Documente adiționale incorecte/incomplete", "Planul încăperilor anexat nu este lizibil și nu indică destinația spațiilor de depozitare. Încărcați planul la o rezoluție mai bună, cu legenda încăperilor."],
+    ["Date incorecte în cerere", "Adresa obiectului din cerere nu corespunde cu adresa din contractul de locațiune. Corectați adresa sau anexați actul adițional la contract."],
+    ["Lipsa unui act necesar", "Lipsește avizul de mediu pentru activitatea declarată. Anexați avizul emis de Agenția de Mediu."]
+  ];
+  const dosarSuspension = (row) => {
+    const cf = caseFlowOf(row);
+    if (!cf?.state.suspended) return null;
+    const h = hashValue(`susp-${row.id}`);
+    const own = cf.state.suspension;
+    const today = parseIsoDate(dossierDb?.today) || new Date();
+    const zile = Number(own?.zile) || [10, 15, 30][h % 3];
+    const since = own?.at || toIsoDate(addDays(today, -1 - (h % Math.min(zile - 1, 9))));
+    const termen = toIsoDate(addDays(parseIsoDate(since), zile));
+    const [categorie, motiv] = own ? ["", own.motiv] : SUSP_SEED_REASONS[h % SUSP_SEED_REASONS.length];
+    return {
+      categorie, motiv, zile, suspendatLa: since, termen,
+      ramase: Math.round((parseIsoDate(termen) - today) / 86400000),
+      de: own?.de || row.specialist?.nume || "—",
+      semnata: Boolean(cf.state.vars.SuspensionWithCoordination),
+      online: h % 4 === 0
+    };
+  };
+
   /* statusId; a manual fee addition at "Verificarea datelor" shows Plată suplimentară (US-117) */
   const casePublicStatus = (row) => {
     const cf = caseFlowOf(row);
@@ -4007,11 +4051,65 @@ document.addEventListener("DOMContentLoaded", () => {
     return { id, label: caseFlow.STATUS[id] };
   };
 
+  /* ---- US-295 Redistribuirea dosarelor (Azure 96012) ----------------------------
+     The Supervisor gives a case under examination of HIS subdivision to another active
+     specialist of that subdivision — manually or automatically (SIA GEAP picks, without the
+     current responsible) — or, in bulk, sends cases back to „Dosare nedistribuite”. Each case
+     is handled separately; the reason is mandatory; the examination term never resets; every
+     redistribution is a new distribution transaction linked to the previous one, written to
+     the case journal with author + reason, and the new responsible is notified.
+     Team data (subdivision, active, competences) is prototype data kept here, NOT in the seed
+     (the seed generator picks from `dossierDb.specialisti` by length — adding people there
+     would reshuffle every seeded case). Demo: ?redistribuire=eroare (AC-19 the operation
+     fails), ?candidati=0 (AC-08 no candidate left for „Automat”). */
+  const REDIST_PARAMS = new URLSearchParams(window.location.search);
+  const REDIST_TEAM_EXTRA = [
+    { id: "sp6", nume: "Ion Rusu", initiale: "IR", color: "#0058D2", rol: "Specialist" },
+    { id: "sp7", nume: "Natalia Cebotari", initiale: "NC", color: "#7A4A6B", rol: "Specialist" },
+    { id: "sp8", nume: "Victor Moraru", initiale: "VM", color: "#3E5C8A", rol: "Specialist" }
+  ];
+  /* per person: subdivision, active (absence / inactive account), the services it is NOT competent for */
+  const REDIST_TEAM_INFO = {
+    sp1: { subdiviziune: "CSP Chișinău", activ: true },
+    sp2: { subdiviziune: "CSP Chișinău", activ: true },
+    sp3: { subdiviziune: "CSP Chișinău", activ: true, faraCompetenta: ["Autorizație de comerț cu produse alcoolice", "Autorizație sanitară de funcționare"] },
+    sp4: { subdiviziune: "CSP Chișinău", activ: true },
+    sp5: { subdiviziune: "CSP Chișinău", activ: true },
+    sp6: { subdiviziune: "CSP Chișinău", activ: true },
+    sp7: { subdiviziune: "CSP Chișinău", activ: false, absenta: "În concediu până la 3 noiembrie 2026" },
+    sp8: { subdiviziune: "CSP Bălți", activ: true }
+  };
+  const redistTeam = () => [...(dossierDb?.specialisti || []), ...REDIST_TEAM_EXTRA].map((person) => ({ ...person, ...(REDIST_TEAM_INFO[person.id] || { subdiviziune: dossierDb?.mySubdiviziune, activ: true }) }));
+  const redistLoad = (personId) => (dossierDb?.runtimeRows || []).filter((row) => row.specialist?.id === personId && !["semnat", "eliberat", "respins", "arhivat"].includes(row.status)).length;
+  const redistCompetent = (person, row) => !(person.faraCompetenta || []).includes(row.serviciu);
+  /* AC-04 / AC-05: active specialists (role Specialist) of the case's subdivision, without the current responsible(s) */
+  const redistCandidates = (rows) => {
+    const subdivisions = new Set(rows.map((row) => row.subdiviziune));
+    const current = new Set(rows.map((row) => row.specialist?.id).filter(Boolean));
+    return redistTeam()
+      .filter((person) => person.rol === "Specialist" && person.activ && subdivisions.has(person.subdiviziune) && !current.has(person.id))
+      .map((person) => ({ ...person, load: redistLoad(person.id) }));
+  };
+  /* AC-01 / AC-02: the Supervisor role, a case of the user's subdivision with a responsible */
+  const canRedistributeCase = (row) => currentEngineRole() === "supervizor"
+    && Boolean(row?.specialist) && !row.nedistribuit
+    && row.subdiviziune === (dossierDb?.mySubdiviziune || "");
+  /* AC-07: „Automat” = the competent candidate with the lowest load (US-293 stand-in), never the
+     previous responsible; ?candidati=0 = nobody is left (AC-08) */
+  const redistAutoPick = (row) => {
+    if (REDIST_PARAMS.get("candidati") === "0") return null;
+    const pool = redistCandidates([row]).filter((person) => redistCompetent(person, row));
+    return pool.sort((a, b) => a.load - b.load || a.nume.localeCompare(b.nume, "ro"))[0] || null;
+  };
+  /* AC-10 stand-in for US-292: the complexity in normo-hours with the policy in force today */
+  const redistComplexity = (row) => (6 + (hashValue(`${row.id}${row.serviciu}`) % 9) * 0.5).toLocaleString("ro-MD", { minimumFractionDigits: 1 });
+  const redistTxId = (row, n) => `TD-${row.nrDosar.slice(-6)}-${String(n).padStart(2, "0")}`;
+
   const caseAvailable = (row) => {
     const cf = caseFlowOf(row);
     if (!cf) return null;
     const blockers = caseBlockers(row);
-    const avail = caseFlow.available(cf.flow, cf.state, { role: currentEngineRole(), vars: cf.state.vars, ...blockers });
+    const avail = caseFlow.available(cf.flow, cf.state, { role: currentEngineRole(), vars: cf.state.vars, ...blockers, canRedistribute: canRedistributeCase(row) });
     /* a request type that can never have avize / fees (passport) offers no such operation — same
        rule as the Avize / Taxe și plăți tabs (dosarTabSetup) */
     const setup = dosarTabSetup(row);
@@ -4224,6 +4322,39 @@ document.addEventListener("DOMContentLoaded", () => {
           ${caseSelect("specialist", "Specialist", caseSpecialists().map((person) => [person.id, `${person.nume} · ${person.load} ${person.load === 1 ? "dosar" : "dosare"} în lucru`]), { required: true, placeholder: "Alege specialistul", hint: "Numărul de dosare în lucru ajută la o repartizare echilibrată." })}
           ${caseTextarea("instructiuni", "Instrucțiuni", { required: true })}
         `;
+      /* US-295: one case from its header (Manual · Automat) or several from „Dosarele subdiviziunii”
+         (+ „În nedistribuite”, AC-18) */
+      case "redistribuire": {
+        const rows = (d.rowIds || [row.id]).map(getDosarById).filter(Boolean);
+        const mode = d.values.choice;
+        const people = redistCandidates(rows);
+        const chosen = people.find((person) => person.id === d.values.specialist);
+        const lacking = chosen ? rows.filter((r) => !redistCompetent(chosen, r)) : [];
+        const modes = [["manual", "Manual"], ["automat", "Automat"], ...(d.bulk ? [["nedistribuite", "În nedistribuite"]] : [])];
+        const holders = [...rows.reduce((map, r) => map.set(r.specialist?.nume || "—", (map.get(r.specialist?.nume || "—") || 0) + 1), new Map())];
+        return `
+          <div class="e-permits-user-create__grid">
+            ${d.bulk
+              ? `${caseReadonly("Dosare selectate", roCount(rows.length, "dosar în examinare", "dosare în examinare"))}${caseReadonly("Responsabili actuali", holders.map(([name, n]) => (holders.length > 1 || n > 1 ? `${name} (${n})` : name)).join(", "))}`
+              : `${caseReadonly("Responsabil actual", row.specialist?.nume)}${caseReadonly("Termenul de examinare", formatDate(row.termenExaminare))}`}
+          </div>
+          <div class="e-permits-fo-field">
+            <label id="case-redist-mode-label">Modul redistribuirii${requiredMark()}</label>
+            <div class="segmented-control" role="radiogroup" aria-labelledby="case-redist-mode-label">
+              ${modes.map(([value, text]) => `
+                <button class="segment-item${mode === value ? " is-selected" : ""}" type="button" role="radio" aria-checked="${mode === value ? "true" : "false"}" tabindex="${mode === value ? "0" : "-1"}" data-case-choice="${value}">${text}</button>
+              `).join("")}
+            </div>
+          </div>
+          ${mode === "manual" ? `
+            ${caseSelect("specialist", "Responsabil nou", people.map((person) => [person.id, `${person.nume} · ${roCount(person.load, "dosar în lucru", "dosare în lucru")}`]), { required: true, placeholder: "Alege specialistul", hint: `Specialiștii activi ai subdiviziunii ${rows[0]?.subdiviziune || ""}, fără responsabilul actual.` })}
+            ${lacking.length ? caseNotice(`<strong>${escapeHtml(chosen.nume)}</strong> nu are competență pentru ${lacking.length === rows.length ? `serviciul „${escapeHtml(row.serviciu)}”` : `${lacking.length} din dosarele selectate`}. Puteți continua redistribuirea.`, "warning") : ""}
+          ` : mode === "automat" ? caseNotice(`SIA GEAP alege specialistul competent cu cea mai mică încărcare, fără responsabilul actual. Dacă nu rămâne niciun candidat, dosarul trece în „Dosare nedistribuite”, iar supervizorii sunt notificați.`)
+            : caseNotice(`Dosarele ies din lista specialiștilor și așteaptă o nouă distribuire în „Dosare nedistribuite”.`)}
+          ${caseTextarea("motiv", "Motivul redistribuirii", { required: true })}
+          <p class="e-permits-case-form__lead">Termenul de examinare nu se resetează. ${mode === "nedistribuite" ? "Supervizorii subdiviziunii sunt notificați." : "Noul responsabil primește o notificare."}</p>
+        `;
+      }
       case "decizie":
         return `
           <div class="e-permits-fo-field">
@@ -4364,7 +4495,7 @@ document.addEventListener("DOMContentLoaded", () => {
       form: item.kind === "return" ? null : item.form,
       /* a form of the current step is titled by the step (US name); a form of the
          next step (Suspendare termen at Verificarea datelor) by the action */
-      title: item.kind !== "operation" && item.form && item.form === ctx.avail.step.form ? ctx.avail.step.name : item.label,
+      title: actionId === "redistribuie" ? "Redistribuie dosarul" : item.kind !== "operation" && item.form && item.form === ctx.avail.step.form ? ctx.avail.step.name : item.label,
       subtitle: `${row.nrDosar} · ${row.serviciu}`,
       /* operations get a verb; transitions keep their US label */
       submitLabel: { taxaExaminare: "Adaugă taxele", aviz: "Solicită avizul" }[actionId] || item.label,
@@ -4374,7 +4505,7 @@ document.addEventListener("DOMContentLoaded", () => {
         : `Confirmați acțiunea „${item.label}”.`,
       values: {
         instructiuni: "Spre examinare",
-        choice: "aprobare",
+        choice: item.form === "redistribuire" ? "manual" : "aprobare",
         fees: [],
         valabilDin: today,
         ...(row.flowState.suspension && item.form === "suspendare" ? row.flowState.suspension : {})
@@ -4409,6 +4540,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const need = (key, message) => { if (!String(v[key] || "").trim()) errors[key] = message; };
     switch (caseDraft.form) {
       case "distribuire": need("specialist", "Alege specialistul."); need("instructiuni", "Scrie instrucțiunile."); break;
+      /* US-295 AC-06 / AC-15 */
+      case "redistribuire": if (v.choice === "manual") need("specialist", "Alege noul responsabil."); need("motiv", "Indică motivul redistribuirii."); break;
       case "suspendare":
         need("motiv", "Indică motivul suspendării.");
         if (!/^\d+$/.test(String(v.zile || "")) || Number(v.zile) < 1) errors.zile = "Indică un număr de zile mai mare ca 0.";
@@ -4483,7 +4616,7 @@ document.addEventListener("DOMContentLoaded", () => {
         break;
       case "suspendare":
       case "confirmaSuspendarea":
-        state.suspension = { motiv: values.motiv, zile: values.zile };
+        state.suspension = { motiv: values.motiv, zile: values.zile, at: dossierDb?.today || today, de: me };
         detail = `${values.motiv} · ${values.zile} zile`;
         break;
       case "dosarExaminat":
@@ -4550,6 +4683,90 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   };
 
+  /* US-295: one case, separately (AC-03); returns { to, queued } — `to` = the new responsible,
+     `queued` = the case went to „Dosare nedistribuite” (AC-08 / AC-18) */
+  const redistributeCase = (row, values, me, now) => {
+    const cf = caseFlowOf(row);
+    if (!cf) return null;
+    const state = cf.state;
+    const profile = buildDosarProfile(row);
+    const from = row.specialist;
+    const mode = values.choice;
+    const to = mode === "manual" ? redistTeam().find((person) => person.id === values.specialist) || null : mode === "automat" ? redistAutoPick(row) : null;
+    /* AC-09: a new distribution transaction, linked to the previous one (kept in the history) */
+    const txs = row.distTx || (row.distTx = [{ id: redistTxId(row, 1), at: `${row.dataDepunerii}T11:30:00`, to: from?.nume || "—" }]);
+    const tx = { id: redistTxId(row, txs.length + 1), prev: txs[txs.length - 1].id, at: now, from: from?.nume || "—", to: to?.nume || null, mode, motiv: values.motiv, by: me };
+    txs.push(tx);
+    const term = `Termenul de examinare rămâne ${formatLongDate(row.termenExaminare)}.`;
+    const link = `Tranzacția ${tx.id}, legată de ${tx.prev}.`;
+    if (to) {
+      row.specialist = { id: to.id, nume: to.nume, initiale: to.initiale, color: to.color };
+      row.repartizatDe = personFromName(me);
+      /* AC-12: the new responsible is notified */
+      profile.notificari.unshift({ canal: "SIA GEAP", destinatar: to.nume, eveniment: "Dosar redistribuit către dvs.", trimisaLa: formatDateTime(now.slice(0, 10), now.slice(11, 16)), status: "livrata" });
+      state.log.unshift({
+        at: now, user: me, type: "Dosar redistribuit", status: "Reușit",
+        /* AC-14 reason + author (the row's user); AC-10 complexity recalculated with today's policy; AC-13 the term stays */
+        detail: `${from?.nume || "—"} → ${to.nume} · ${mode === "manual" ? "manual" : "automat"}. Motiv: ${values.motiv} ${link} Complexitate recalculată: ${redistComplexity(row)} normo-ore, cu politica în vigoare. ${term}`
+      });
+    } else {
+      row.specialist = null;
+      row.nedistribuit = true;
+      row.status = "depus";
+      state.stateId = "node5";
+      state.log.unshift({
+        at: now, user: me, type: "Dosar trimis în „Dosare nedistribuite”", status: "Reușit",
+        detail: `${mode === "automat" ? "Redistribuire automată: niciun specialist competent disponibil în afară de responsabilul anterior." : "Redistribuire în masă."} Responsabil anterior: ${from?.nume || "—"}. Motiv: ${values.motiv} ${link} Supervizorii subdiviziunii au fost notificați. ${term}`
+      });
+    }
+    return { to, queued: !to };
+  };
+  const submitRedistribution = () => {
+    const rows = (caseDraft.rowIds || [caseDraft.rowId]).map(getDosarById).filter(Boolean);
+    const values = { ...caseDraft.values };
+    const bulk = Boolean(caseDraft.bulk);
+    closeCaseModal();
+    const me = currentUserName();
+    const now = localIsoNow();
+    /* AC-19: the operation fails → nothing changes, the reason is said, the journal keeps the attempt */
+    if (REDIST_PARAMS.get("redistribuire") === "eroare") {
+      rows.forEach((row) => caseFlowOf(row)?.state.log.unshift({ at: now, user: me, type: "Redistribuire", status: "Eșuat", detail: `Responsabilul a rămas ${row.specialist?.nume || "—"}. Motiv: ${values.motiv}` }));
+      if (!bulk && rows[0]) renderDosarProfil(rows[0]);
+      showShellToast("Responsabilul dosarului rămâne neschimbat. Încercați din nou.", "error", "Operația nu a putut fi efectuată");
+      return;
+    }
+    const results = rows.map((row) => redistributeCase(row, values, me, now)).filter(Boolean);
+    const moved = results.filter((r) => r.to), queued = results.filter((r) => r.queued);
+    if (bulk) {
+      workplaceState.selected.clear();
+      renderWorkplace();
+      const parts = [moved.length ? `${roCount(moved.length, "dosar redistribuit", "dosare redistribuite")}${values.choice === "manual" && moved[0] ? ` către ${moved[0].to.nume}` : ""}` : "", queued.length ? `${roCount(queued.length, "dosar trimis", "dosare trimise")} în „Dosare nedistribuite”` : ""].filter(Boolean);
+      showShellToast(`${parts.join(" · ")}. Termenele de examinare nu s-au schimbat.`, "success", "Redistribuire efectuată");
+      return;
+    }
+    const row = rows[0];
+    renderDosarProfil(row);
+    syncCaseRowInList(row);
+    showShellToast(queued.length
+      ? "Niciun specialist competent disponibil: dosarul a trecut în „Dosare nedistribuite”, iar supervizorii au fost notificați."
+      : `Dosarul a fost redistribuit către ${moved[0].to.nume}. Termenul de examinare nu s-a schimbat.`, queued.length ? "info" : "success", queued.length ? "Dosar nedistribuit" : "Dosar redistribuit");
+  };
+  /* bulk (AC-03 / AC-17 / AC-18): the selected cases of „Dosarele subdiviziunii” that may still be redistributed */
+  const redistSelectedRows = () => [...workplaceState.selected].map(getDosarById).filter((row) => row && canRedistributeCase(row) && row.status === "inExaminare");
+  const openBulkRedistribution = () => {
+    const rows = redistSelectedRows();
+    if (!rows.length || !caseModal) return;
+    caseDraft = {
+      rowId: rows[0].id, rowIds: rows.map((row) => row.id), bulk: true, actionId: "redistribuie", kind: "operation", form: "redistribuire",
+      title: "Redistribuie dosarele", subtitle: `${roCount(rows.length, "dosar selectat", "dosare selectate")} · ${rows[0].subdiviziune}`,
+      submitLabel: "Redistribuie", next: "", confirmText: "",
+      values: { choice: "manual", motiv: "" }, errors: {}
+    };
+    renderCaseModal();
+    window.__modal?.open?.("#case-action-modal");
+    requestAnimationFrame(() => focusFormControl(caseModalBody.querySelector("[data-case-choice].is-selected")));
+  };
+
   const submitCaseDraft = () => {
     if (!caseDraft) return;
     if (!validateCaseDraft()) {
@@ -4557,6 +4774,7 @@ document.addEventListener("DOMContentLoaded", () => {
       focusFormControl(caseModalBody.querySelector(".is-error input, .is-error textarea, .e-permits-fo-select.is-error .e-permits-fo-select__button, [data-case-fee]"));
       return;
     }
+    if (caseDraft.form === "redistribuire") { submitRedistribution(); return; }
     const row = getDosarById(caseDraft.rowId);
     const item = caseAvailable(row)?.avail.items.find((entry) => entry.id === caseDraft.actionId);
     const values = { ...caseDraft.values };
@@ -4652,7 +4870,12 @@ document.addEventListener("DOMContentLoaded", () => {
   caseModal?.addEventListener("change", (event) => {
     if (!caseDraft) return;
     const select = event.target.closest("[data-case-select]");
-    if (select) { caseDraft.values[select.dataset.caseSelect] = select.value; delete caseDraft.errors[select.dataset.caseSelect]; return; }
+    if (select) {
+      caseDraft.values[select.dataset.caseSelect] = select.value; delete caseDraft.errors[select.dataset.caseSelect];
+      /* US-295 AC-16: the competence warning follows the chosen specialist */
+      if (caseDraft.form === "redistribuire") { renderCaseModal(); focusFormControl(caseModalBody.querySelector(`#case-${select.dataset.caseSelect}`)); }
+      return;
+    }
     const fee = event.target.closest("[data-case-fee]");
     if (fee) {
       const set = new Set(caseDraft.values.fees || []);
@@ -6192,6 +6415,9 @@ document.addEventListener("DOMContentLoaded", () => {
         return escapeHtml(row.actBaza?.titular || "—");
       case "initiatDe":
         return renderTablePerson(row.initiatDe);
+      /* US-295 „Dosarele subdiviziunii”: who holds the case */
+      case "specialist":
+        return renderTablePerson(row.specialist);
       case "creatDe":
         return renderTablePerson(row.specialist, row.specialist?.rol || "Specialist");
       default:
@@ -6348,7 +6574,8 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    const visibleIds = rows.map((row) => row.id);
+    /* US-295: a view whose header box takes every filtered row is checked only when all of them are */
+    const visibleIds = (getView()?.selectAllFiltered ? getVisibleRows() : rows).map((row) => row.id);
     const selectedCount = visibleIds.filter((id) => workplaceState.selected.has(id)).length;
 
     selectAll.checked = selectedCount > 0 && selectedCount === visibleIds.length;
@@ -6399,6 +6626,27 @@ document.addEventListener("DOMContentLoaded", () => {
     preview: previewSelection
   });
   const renderFilterBar = () => workplaceFilter.render();
+
+  /* US-295: the bulk „Redistribuie” follows the selection — hidden outside the Supervisor's
+     „Dosarele subdiviziunii”, „disabled with a reason” while nothing is selected, the count in
+     the label once rows are picked */
+  const syncWorkplaceBulk = () => {
+    const button = document.querySelector("[data-workplace-redistribute]");
+    if (!button) return;
+    const on = workplaceDb === dossierDb && Boolean(getView()?.bulkRedistribute) && currentEngineRole() === "supervizor";
+    button.hidden = !on;
+    if (!on) return;
+    const n = redistSelectedRows().length;
+    const label = button.querySelector("[data-workplace-redistribute-label]");
+    if (label) label.textContent = n ? `Redistribuie (${n})` : "Redistribuie";
+    if (n) {
+      button.removeAttribute("aria-disabled");
+      delete button.dataset.tooltipReason;
+    } else {
+      button.setAttribute("aria-disabled", "true");
+      button.dataset.tooltipReason = "Selectează unul sau mai multe dosare din listă.";
+    }
+  };
 
   const renderWorkplace = () => {
     if (!workplaceDb || !workplaceTable) {
@@ -6468,6 +6716,8 @@ document.addEventListener("DOMContentLoaded", () => {
       const label = workplaceAddProduct.querySelector("span");
       if (label && action) label.textContent = action.label;
     }
+
+    syncWorkplaceBulk();
 
     if (workplaceFieldCount) {
       workplaceFieldCount.innerHTML = `<strong>${workplaceDb.fieldCount || view.columns.length}</strong> câmpuri`;
@@ -17612,7 +17862,9 @@ document.addEventListener("DOMContentLoaded", () => {
   ];
   const CFG_FIELDS = {
     applicant: [["mpower", "Verificare împuternicire prin MPower"], ["authMode", "Modalitatea de verificare a împuternicirii"], ["tacit", "Aprobare tacită activată"]],
-    exam: [["subdivisions", "Subdiviziuni de examinare"], ["autoDist", "Distribuire automată"], ["distEligible", "Doar specialiștii eligibili pentru serviciu"], ["distExcludeAbsent", "Exclude specialiștii absenți sau inactivi"], ["distCriterion", "Criteriu de distribuire"], ["distMax", "Coeficientul maxim de ocupare"]],
+    /* US-290 AC-11: „Parametrii de distribuire” replace „Doar specialiștii eligibili…”, „Exclude specialiștii
+       absenți…”, „Criteriu de distribuire” and „Coeficientul maxim de ocupare” (US-221); „Distribuire automată” stays */
+    exam: [["subdivisions", "Subdiviziuni de examinare"], ["autoDist", "Distribuire automată"], ["distParams", "Parametrii de distribuire"]],
     suspension: [["suspCustom", "Suspendare termen examinare personalizată"], ["suspDays", "Termenul de suspendare implicit (zile)"], ["suspEditable", "Termen de suspendare modificabil de specialist"], ["suspSigned", "Suspendare cu semnarea deciziei"]],
     signing: [["signRequest", "Semnarea cererii prin MSign"], ["signCounter", "Semnarea cererii MSign de ghișeu"], ["pdfGen", "Generarea documentului PDF"], ["pdfSign", "Semnarea documentului PDF prin MSign"]],
     payment: [["mpayCode", "Cod serviciu MPay"], ["payTerm", "Termenul de achitare (zile)"]],
@@ -17673,7 +17925,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const term = String(s.paymentWait || "").match(/\d+/);
     geap.cfg = {
       authMode: CFG_AUTH_MODES[2], mpower: r.mpower ?? true, tacit: r.tacit ?? false,
-      subdivisions: [...(s.subdivisions || [])], autoDist: Boolean(flags.distribuireAutomata), distEligible: true, distExcludeAbsent: true, distCriterion: CFG_CRITERIA[0], distMax: "15",
+      subdivisions: [...(s.subdivisions || [])], autoDist: Boolean(flags.distribuireAutomata), distParams: distParamsSeed(service),
       suspCustom: /^Da/.test(s.suspension || ""), suspDays: (String(s.suspension || "").match(/(\d+)\s*zile/) || [])[1] || "30", suspEditable: true, suspSigned: false,
       signRequest: CFG_SIGN_REQUEST[1], signCounter: true, pdfGen: CFG_PDF_GEN[0], pdfSign: true,
       mpayCode: r.paid ? CFG_MPAY_CODE : "", payTerm: term ? term[0] : "30",
@@ -17829,6 +18081,190 @@ document.addEventListener("DOMContentLoaded", () => {
      a grey group with those fields (user, 2026-10-09) */
   const cfgGroup = (switchHtml, on, bodyHtml) => `<div class="e-permits-cfg-cascade">${switchHtml}${on ? `<div class="e-permits-cfg-group">${bodyHtml}</div>` : ""}</div>`;
 
+  /* ---- US-290 (Azure 96007) Parametrii de distribuire ai serviciului — in Setări › Examinare și distribuire,
+     only while „Distribuire automată” = Da (AC-02). Each parameter is set for the whole service or for one request
+     type (AC-05 / AC-06); an empty value is inherited in the order service + request type → service → authority +
+     request type → authority → GEAP + request type → GEAP (AC-07). Every field says whether it is inherited (and
+     from where) or overridden (AC-04) and shows its effective value (AC-12). „Orele de bază” exist only for the
+     service (AC-08, ≥ 0), the coefficient only for a request type (AC-09, ≥ 0), the complexity-factor hours can be
+     overridden (AC-10). The authority / GEAP policy (US-289) is not built yet: DIST_POLICY is its prototype stand-in.
+     The draft value: { svc: { param: value }, rt: { <request type>: { param: value } } }, „” / absent = inherited. */
+  const DIST_FACTORS = [["avize", "Avize interinstituționale"], ["inspectie", "Inspecție la fața locului"], ["documente", "Documente suplimentare"], ["postproces", "Post-proces pe un act existent"]];
+  const DIST_POLICY = {
+    geap: { competent: "da", noTwice: "nu", window: "3", maxLoad: "160", ramp: ["20", "40", "60", "80", "100", "100"], coef: "1", f_avize: "2", f_inspectie: "4", f_documente: "1", f_postproces: "0,5" },
+    geapRt: { Prelungire: { coef: "0,5" }, "Eliberare duplicat": { coef: "0,3" }, Duplicat: { coef: "0,3" } },
+    authority: { window: "6", maxLoad: "140", f_inspectie: "6" },
+    authorityRt: { "Emitere primară": { noTwice: "da" } }
+  };
+  const DIST_PARAMS = [
+    { key: "competent", label: "Doar competenți", kind: "yn", hint: "Doar specialiștii competenți pentru serviciu și tip." },
+    { key: "noTwice", label: "Nu doi la rând", kind: "yn", hint: "Nu două dosare consecutive aceluiași specialist." },
+    { key: "window", label: "Fereastra de încărcare (luni)", kind: "int1", hint: "Perioada de calcul a încărcării; cel puțin 1." },
+    { key: "maxLoad", label: "Încărcarea maximă (normo-ore)", kind: "pos", hint: "Mai mare decât 0." },
+    { key: "baseHours", label: "Orele de bază (normo-ore)", kind: "num0", only: "svc", hint: "Ale serviciului, doar la acest nivel; cel puțin 0." },
+    { key: "coef", label: "Coeficientul tipului", kind: "num0", only: "rt", hint: "Înmulțește orele de bază; cel puțin 0." }
+  ];
+  const DIST_LEVELS = { svcRt: "tipul de solicitare al serviciului", svc: "serviciu", autRt: "politica autorității pentru acest tip", aut: "politica autorității", geapRt: "politica GEAP pentru acest tip", geap: "politica GEAP" };
+  const distParamsSeed = (service) => {
+    /* the seed overrides a little, so both looks show up: the service's base hours and one request type's coefficient */
+    const rts = service.geap.requestTypes.map((rt) => rt.name);
+    return { svc: { baseHours: "8" }, rt: rts[1] ? { [rts[1]]: { coef: "0,6" } } : {} };
+  };
+  let distScope = { code: "", rt: "" };
+  const distScopeOf = (service) => (distScope.code === service.code && service.geap.requestTypes.some((rt) => rt.name === distScope.rt) ? distScope.rt : "");
+  const distFilled = (value) => (Array.isArray(value) ? value.some((x) => String(x ?? "").trim() !== "") : String(value ?? "").trim() !== "");
+  /* the value that applies + where it comes from (AC-07 / AC-12) */
+  const distResolve = (dp, rt, key) => {
+    const chain = [
+      ...(rt ? [["svcRt", dp.rt?.[rt]?.[key]]] : []),
+      ...(key === "coef" ? [] : [["svc", dp.svc?.[key]]]),
+      ...(key === "baseHours" ? [] : [
+        ...(rt ? [["autRt", DIST_POLICY.authorityRt[rt]?.[key]]] : []), ["aut", DIST_POLICY.authority[key]],
+        ...(rt ? [["geapRt", DIST_POLICY.geapRt[rt]?.[key]]] : []), ["geap", DIST_POLICY.geap[key]]
+      ])
+    ];
+    const own = rt ? "svcRt" : "svc";
+    const hit = chain.find(([, value]) => distFilled(value));
+    return hit ? { level: hit[0], value: hit[1], own: hit[0] === own } : { level: null, value: null, own: false };
+  };
+  const distShow = (key, value) => {
+    if (value == null) return "necompletat";
+    if (key === "ramp") return value.map((x) => `${x || "—"}%`).join(" · ");
+    if (key === "competent" || key === "noTwice") return value === "da" ? "Da" : "Nu";
+    return String(value);
+  };
+  /* tag (inherited from <level> / overridden) + the effective-value hint, redrawn in place while typing */
+  const distMeta = (dp, rt, key) => {
+    const r = distResolve(dp, rt, key);
+    /* short tags keep every label on one line (the inputs of a row stay aligned); the source goes in the hint */
+    const tag = r.own ? renderTag("Suprascris", "brand") : r.level ? renderTag("Moștenit", "neutral") : renderTag("Necompletat", "warning");
+    const from = r.own ? (rt ? `setată pentru „${rt}”` : "setată pentru serviciu") : r.level ? `moștenită din ${DIST_LEVELS[r.level]}` : "";
+    const hint = `Valoare efectivă: <strong>${escapeHtml(distShow(key, r.value))}</strong>${from ? ` — ${escapeHtml(from)}` : ""}`;
+    return { tag, hint };
+  };
+  const distField = (id, label, control, meta, { span = 6, hint = "", err = "" } = {}) => `
+    <div class="e-permits-fo-field e-permits-user-create__field e-permits-user-create__field--${span}" data-cfg-dp-field="${escapeHtml(id)}">
+      <div class="e-permits-cfg-dp__label"><label for="cfg-dp-${escapeHtml(id)}">${escapeHtml(label)}</label><span data-cfg-dp-tag>${meta.tag}</span></div>
+      ${control}
+      ${err ? clasFieldError({ [id]: err }, id) : ""}
+      <p class="e-permits-fo-field__hint" data-cfg-dp-hint${err ? " hidden" : ""}><span data-cfg-dp-eff>${meta.hint}</span>${hint ? `. ${escapeHtml(hint)}` : ""}</p>
+    </div>`;
+  /* an edit goes into the draft of the chosen scope; the tag + effective value of that field follow at once */
+  const distSortKeys = (o) => Object.fromEntries(Object.entries(o).sort(([a], [b]) => a.localeCompare(b)));
+  const distSet = (t) => {
+    const service = getServiceByCode(serviceProfileState.code);
+    if (!service || !cfgDraft) return;
+    const rt = distScopeOf(service);
+    const dp = cfgDraft.v.distParams || (cfgDraft.v.distParams = { svc: {}, rt: {} });
+    dp.svc = dp.svc || {}; dp.rt = dp.rt || {};
+    const scope = { ...(rt ? dp.rt[rt] || {} : dp.svc) };
+    const key = t.dataset.cfgDp;
+    if (key === "ramp") {
+      const arr = [...(scope.ramp || ["", "", "", "", "", ""])];
+      t.value = t.value.replace(/\D/g, "").slice(0, 3);
+      arr[Number(t.dataset.cfgDpI)] = t.value;
+      if (distFilled(arr)) scope.ramp = arr; else delete scope.ramp;
+    } else {
+      if (t.tagName !== "SELECT") t.value = t.value.replace(/[^\d.,]/g, "").slice(0, 6);
+      if (t.value && t.value !== "inherit") scope[key] = t.value; else delete scope[key];
+    }
+    if (rt) {
+      if (Object.keys(scope).length) dp.rt[rt] = distSortKeys(scope); else delete dp.rt[rt];
+      dp.rt = distSortKeys(dp.rt);
+    } else dp.svc = distSortKeys(scope);
+    cfgMark(`dp-${key}`, t);
+    const field = t.closest("[data-cfg-dp-field]");
+    if (!field) return;
+    const meta = distMeta(dp, rt, key);
+    const tag = field.querySelector("[data-cfg-dp-tag]"); if (tag) tag.innerHTML = meta.tag;
+    const eff = field.querySelector("[data-cfg-dp-eff]"); if (eff) eff.innerHTML = meta.hint;
+    const hint = field.querySelector("[data-cfg-dp-hint]"); if (hint && !field.querySelector(".e-permits-fo-field__error")) hint.hidden = false;
+  };
+  const distInput = (id, value, placeholder, attrs, err, { numeric = "decimal", max = 6 } = {}) => `<div class="e-permits-fo-input${err ? " is-error" : ""}"><input id="cfg-dp-${escapeHtml(id)}" type="text" inputmode="${numeric}" maxlength="${max}" value="${escapeHtml(value ?? "")}" placeholder="${escapeHtml(placeholder ?? "")}" autocomplete="off" ${attrs}></div>`;
+  const distParamsHtml = (service) => {
+    const dp = cfgDraft.v.distParams || { svc: {}, rt: {} };
+    const rts = service.geap.requestTypes.map((rt) => rt.name);
+    const rt = distScopeOf(service);
+    const own = (rt ? dp.rt?.[rt] : dp.svc) || {};
+    const err = (k) => cfgDraft.errors[`dp-${k}`] || "";
+    const overrides = (name) => Object.entries(dp.rt?.[name] || {}).filter(([, value]) => distFilled(value)).length;
+    const scopeSelect = cfgField("dp-scope", "Parametrii pentru", renderFoSelectControl({
+      id: "cfg-dp-scope", attrs: "data-cfg-dp-scope",
+      /* non-empty values: an empty option value would paint the choice as a grey placeholder */
+      optionsHtml: [["__svc", "Serviciu — toate tipurile de solicitare"], ...rts.map((name) => [name, `${name}${overrides(name) ? ` · ${roCount(overrides(name), "parametru suprascris", "parametri suprascriși")}` : ""}`])]
+        .map(([value, text]) => `<option value="${escapeHtml(value)}"${value === (rt || "__svc") ? " selected" : ""}>${escapeHtml(text)}</option>`).join("")
+    }), { span: 12, hint: rt ? `Valorile completate aici se aplică doar tipului „${escapeHtml(rt)}”; câmpurile goale se moștenesc.` : "Valorile completate aici se aplică tuturor tipurilor de solicitare; câmpurile goale se moștenesc." });
+    const fields = DIST_PARAMS.filter((p) => !p.only || p.only === (rt ? "rt" : "svc")).map((p) => {
+      const meta = distMeta(dp, rt, p.key);
+      if (p.kind === "yn") {
+        const inherited = distResolve({ ...dp, svc: rt ? dp.svc : {}, rt: rt ? { ...dp.rt, [rt]: {} } : dp.rt }, rt, p.key);
+        return distField(p.key, p.label, renderFoSelectControl({
+          id: `cfg-dp-${p.key}`, attrs: `data-cfg-dp="${p.key}"`,
+          optionsHtml: [["inherit", `Moștenit (${distShow(p.key, inherited.value)})`], ["da", "Da"], ["nu", "Nu"]].map(([value, text]) => `<option value="${value}"${value === (own[p.key] || "inherit") ? " selected" : ""}>${escapeHtml(text)}</option>`).join("")
+        }), meta, { hint: p.hint });
+      }
+      const inherited = p.only === "svc" ? null : distResolve({ ...dp, svc: rt ? dp.svc : {}, rt: rt ? { ...dp.rt, [rt]: {} } : dp.rt }, rt, p.key);
+      return distField(p.key, p.label, distInput(p.key, own[p.key], inherited?.value != null ? `${distShow(p.key, inherited.value)} (moștenit)` : "Ex. 8", `data-cfg-dp="${p.key}"`, err(p.key), { numeric: p.kind === "int1" ? "numeric" : "decimal" }), meta, { hint: p.hint, err: err(p.key) });
+    });
+    /* Rampa novicelui: 6 values, the % of a full load a newly hired specialist receives in months 1…6 */
+    const rampMeta = distMeta(dp, rt, "ramp");
+    const rampInherited = distResolve({ ...dp, svc: rt ? dp.svc : {}, rt: rt ? { ...dp.rt, [rt]: {} } : dp.rt }, rt, "ramp").value || [];
+    const ramp = distField("ramp-0", "Rampa novicelui (% din încărcarea plină)", `
+      <div class="e-permits-cfg-dp__ramp" role="group" aria-label="Rampa novicelui, lunile 1–6">
+        ${[0, 1, 2, 3, 4, 5].map((i) => `
+          <div class="e-permits-cfg-dp__ramp-month">
+            <span class="e-permits-cfg-dp__ramp-label" aria-hidden="true">Luna ${i + 1}</span>
+            ${distInput(`ramp-${i}`, (own.ramp || [])[i], rampInherited[i] ?? "", `data-cfg-dp="ramp" data-cfg-dp-i="${i}" aria-label="Rampa novicelui, luna ${i + 1} (%)"`, err("ramp"), { numeric: "numeric", max: 3 })}
+          </div>`).join("")}
+      </div>`, rampMeta, { span: 12, hint: "Procente între 0 și 100, pentru fiecare din primele 6 luni de la angajare", err: err("ramp") });
+    /* AC-10: the complexity factors are the authority policy's; their hours can be overridden here */
+    const factors = `
+      <div class="e-permits-fo-field e-permits-user-create__field e-permits-user-create__field--12">
+        <span class="e-permits-cfg-ro__label">Orele factorilor de complexitate (normo-ore)</span>
+        <p class="e-permits-fo-field__hint e-permits-fo-field__hint--top">Aceiași factori ca în politica autorității; se adaugă la orele dosarului când factorul este prezent.</p>
+        ${cfgGrid(DIST_FACTORS.map(([id, label]) => {
+          const key = `f_${id}`;
+          const inherited = distResolve({ ...dp, svc: rt ? dp.svc : {}, rt: rt ? { ...dp.rt, [rt]: {} } : dp.rt }, rt, key);
+          return distField(key, label, distInput(key, own[key], inherited.value != null ? `${inherited.value} (moștenit)` : "", `data-cfg-dp="${key}"`, err(key)), distMeta(dp, rt, key), { err: err(key) });
+        }).join(""))}
+      </div>`;
+    return `
+      ${renderInfoNote("Un câmp gol se moștenește, în ordinea: serviciu cu tipul de solicitare → serviciu → autoritate cu tipul de solicitare → autoritate → GEAP cu tipul de solicitare → GEAP. Modificările se aplică doar distribuirilor următoare; dosarele deja distribuite rămân neschimbate.")}
+      ${cfgGrid(`${scopeSelect}${fields.join("")}${ramp}${factors}`)}`;
+  };
+  /* AC-08 / AC-09 and the data model's ranges (window ≥ 1 integer, max load > 0, ramp 0–100 for all 6 or none) */
+  const distValidate = (dp, e) => {
+    const num = (s) => Number(String(s).replace(",", "."));
+    const isNum = (s) => /^\d+([.,]\d+)?$/.test(String(s).trim());
+    const check = (scope, label) => {
+      const o = scope || {};
+      const bad = (k, msg) => { if (!e[`dp-${k}`]) e[`dp-${k}`] = label ? `${msg} (${label})` : msg; };
+      if (distFilled(o.window) && (!/^\d+$/.test(String(o.window).trim()) || Number(o.window) < 1)) bad("window", "Introdu un număr întreg de luni, cel puțin 1.");
+      if (distFilled(o.maxLoad) && (!isNum(o.maxLoad) || num(o.maxLoad) <= 0)) bad("maxLoad", "Introdu un număr mai mare decât 0.");
+      ["baseHours", "coef", ...DIST_FACTORS.map(([id]) => `f_${id}`)].forEach((k) => { if (distFilled(o[k]) && !isNum(o[k])) bad(k, "Introdu un număr de cel puțin 0."); });
+      if (distFilled(o.ramp)) {
+        const vals = (o.ramp || []).map((x) => String(x ?? "").trim());
+        if (vals.length < 6 || vals.some((x) => x === "")) bad("ramp", "Completează toate cele 6 luni sau lasă rampa goală (moștenită).");
+        else if (vals.some((x) => !/^\d+$/.test(x) || Number(x) > 100)) bad("ramp", "Fiecare lună: un procent între 0 și 100.");
+      }
+    };
+    check(dp?.svc, "");
+    Object.entries(dp?.rt || {}).forEach(([rt, scope]) => check(scope, rt));
+  };
+  /* audit + change review: one line per parameter that changed (AC-14: parameter, old → new) */
+  const distParamLabel = (key) => (key === "ramp" ? "Rampa novicelui" : DIST_PARAMS.find((p) => p.key === key)?.label || DIST_FACTORS.find(([id]) => `f_${id}` === key)?.[1] || key);
+  const distDiffs = (before = {}, after = {}) => {
+    const out = [];
+    const scopes = [["", before.svc || {}, after.svc || {}], ...[...new Set([...Object.keys(before.rt || {}), ...Object.keys(after.rt || {})])].map((rt) => [rt, before.rt?.[rt] || {}, after.rt?.[rt] || {}])];
+    for (const [rt, b, a] of scopes) {
+      for (const key of new Set([...Object.keys(b), ...Object.keys(a)])) {
+        const fmt = (v) => (distFilled(v) ? distShow(key, v) : "moștenit");
+        if (fmt(b[key]) !== fmt(a[key])) out.push(`${rt ? `${rt} · ` : ""}${distParamLabel(key)}: ${fmt(b[key])} → ${fmt(a[key])}`);
+      }
+    }
+    return out;
+  };
+
   const CFG_GROUP_SWITCHES = ["autoDist", "suspCustom", "appealable"];
   const renderCfgForm = (service) => {
     const v = cfgDraft.v, r = cfgRssp(service), rts = service.geap.requestTypes.map((rt) => rt.name);
@@ -17843,10 +18279,7 @@ document.addEventListener("DOMContentLoaded", () => {
         ${cfgSubdivisionCatalog(service).length > CFG_SUBDIV_INLINE
           ? cfgSubdivPicks(service, "subdivisions", "Subdiviziuni de examinare", { required: true, hint: "Examinează toate tipurile de solicitare ale serviciului." })
           : cfgChecks("subdivisions", "Subdiviziuni de examinare", cfgSubdivisionOptions(service), { required: true, hint: "Examinează toate tipurile de solicitare ale serviciului." })}
-        ${cfgGroup(cfgSwitch("autoDist", "Distribuire automată", v.autoDist ? "Dosarele noi se distribuie după regulile de mai jos." : "Dosarele se distribuie manual de supervizor."), v.autoDist, `
-          ${cfgSwitch("distEligible", "Doar specialiștii eligibili pentru serviciu", "Dosarele merg doar la specialiștii marcați eligibili.")}
-          ${cfgSwitch("distExcludeAbsent", "Exclude specialiștii absenți sau inactivi", "Concediu sau cont inactiv = nu primesc dosare.")}
-          ${cfgGrid(`${cfgSelect("distCriterion", "Criteriu de distribuire", CFG_CRITERIA, { required: true, span: 6 })}${cfgInput("distMax", "Coeficientul maxim de ocupare", { numeric: true, span: 6, placeholder: "Ex. 15", hint: "Dosare active la examinare per specialist." })}`)}`)}`);
+        ${cfgGroup(cfgSwitch("autoDist", "Distribuire automată", v.autoDist ? "Dosarele noi se distribuie după parametrii de mai jos." : "Dosarele serviciului se distribuie manual de supervizor."), v.autoDist, distParamsHtml(service))}`);
       case "suspension": return cfgGrid(`
         ${cfgGroup(cfgSwitch("suspCustom", "Suspendare termen examinare personalizată", v.suspCustom ? "Termenul implicit de mai jos înlocuiește cele 30 de zile." : "Se aplică termenul implicit de 30 de zile calendaristice."), v.suspCustom,
           cfgGrid(cfgInput("suspDays", "Termenul de suspendare implicit (zile)", { required: true, numeric: true, span: 6, hint: "Zile calendaristice." })))}
@@ -17945,7 +18378,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const int = (k, val, required = true) => { const s = String(val ?? "").trim(); if (!s) { if (required) e[k] = CFG_REQUIRED_MSG; } else if (!/^\d+$/.test(s) || Number(s) < 1) e[k] = CFG_INT_MSG; };
     switch (cfgDraft.section) {
       case "applicant": req("authMode", v.authMode); break;
-      case "exam": req("subdivisions", v.subdivisions.length); if (v.autoDist) { req("distCriterion", v.distCriterion); int("distMax", v.distMax, false); } break;
+      case "exam": req("subdivisions", v.subdivisions.length); if (v.autoDist) distValidate(v.distParams, e); break;
       case "suspension": if (v.suspCustom) int("suspDays", v.suspDays); break;
       case "signing": req("signRequest", v.signRequest); req("pdfGen", v.pdfGen); break;
       case "payment": int("payTerm", v.payTerm); break; /* the MPay code is one for all GEAP (EPM02), not configured */
@@ -18023,6 +18456,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const s = new Set();
     for (const [sec, fields] of Object.entries(CFG_FIELDS)) for (const [key] of fields) if (cfg2.errors[key]) s.add(sec);
     if (Object.keys(cfg2.errors).some((k) => /^n\d+-/.test(k))) s.add("numbering");
+    if (Object.keys(cfg2.errors).some((k) => /^dp-/.test(k))) s.add("exam");
     if (Object.values(cfg2.depErrors).some((e) => Object.keys(e).length)) s.add("deps");
     return s;
   };
@@ -18137,6 +18571,12 @@ document.addEventListener("DOMContentLoaded", () => {
     const c = serviceConfig(service), at = localIsoNow(), by = currentUserName(), events = [];
     const secTitle = (k) => (CFG_SECTIONS.find(([x]) => x === k) || [])[1];
     for (const x of list) {
+      /* US-290 AC-14: one audit event per distribution parameter (service / request type · parameter: old → new) */
+      if (x.key === "distParams") {
+        distDiffs(c.distParams, cfg2.v.distParams).forEach((d) => events.push({ at, user: by, type: "Modificare setări — parametri de distribuire", status: "Reușit", detail: `${secTitle(x.sec)} · ${d}` }));
+        c.distParams = cfgClone(cfg2.v.distParams);
+        continue;
+      }
       if (x.key) { events.push({ at, user: by, type: "Modificare setări", status: "Reușit", detail: `${secTitle(x.sec)} · ${x.label}: ${x.key === "subdivisions" ? cfgListDiff(c[x.key], cfg2.v[x.key]) : `${cfgFmt(c[x.key])} → ${cfgFmt(cfg2.v[x.key])}`}` }); c[x.key] = cfgClone(cfg2.v[x.key]); }
       else if (x.dep) events.push({ at, user: by, type: x.kind === "add" ? "Adăugare interdependență" : x.kind === "remove" ? "Eliminare interdependență" : "Modificare interdependență", status: "Reușit", detail: `${x.dep.name} · ${x.dep.type}` });
     }
@@ -18158,6 +18598,7 @@ document.addEventListener("DOMContentLoaded", () => {
       return [cfgListDiff(before.map((x) => x.field), after.map((x) => x.field)), ...anon].filter(Boolean).join("; ");
     }
     if (key === "numbering") return `${changeValue(before.map(cfgNumTemplate))} → ${changeValue(after.map(cfgNumTemplate))}`;
+    if (key === "distParams") return distDiffs(before, after).join("; ") || "—";
     return `${changeValue(cfgFmt(before))} → ${changeValue(cfgFmt(after))}`;
   };
   registerChangeSource("service-settings", () => {
@@ -18176,7 +18617,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const cut = ref.indexOf(":"), kind = ref.slice(0, cut), key = ref.slice(cut + 1);
         if (kind === "key") {
           cfg2.v[key] = cfgClone(c[key]);
-          Object.keys(cfg2.errors).filter((e) => e === key || (key === "numbering" && /^n\d+-/.test(e))).forEach((e) => delete cfg2.errors[e]);
+          Object.keys(cfg2.errors).filter((e) => e === key || (key === "numbering" && /^n\d+-/.test(e)) || (key === "distParams" && /^dp-/.test(e))).forEach((e) => delete cfg2.errors[e]);
           redraw(Object.entries(CFG_FIELDS).find(([, fields]) => fields.some(([k]) => k === key))?.[0]);
           return;
         }
@@ -18599,6 +19040,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!cfgDraft) return;
     const t = event.target;
     if (t.matches("[data-cfg-numeric]")) t.value = t.value.replace(/\D/g, "").slice(0, 5);
+    if (t.matches("input[data-cfg-dp]")) { distSet(t); return; }
     if (t.matches("[data-cfg-input]")) { cfgDraft.v[t.dataset.cfgInput] = t.value; cfgMark(t.dataset.cfgInput, t); return; }
     if (t.matches("[data-cfg-rule]")) {
       const i = Number(t.dataset.cfgRule), f = t.dataset.cfgRuleField; cfgDraft.v.numbering[i][f] = t.value; cfgMark(`n${i}-${f}`, t);
@@ -18608,6 +19050,14 @@ document.addEventListener("DOMContentLoaded", () => {
   const onCfgChange = (event) => {
     if (!cfgDraft) return;
     const t = event.target;
+    /* US-290: the scope (service / one request type) redraws the parameters; a Da / Nu / Moștenit choice is a value */
+    if (t.matches("[data-cfg-dp-scope]")) {
+      distScope = { code: serviceProfileState.code, rt: t.value === "__svc" ? "" : t.value };
+      cfgRender();
+      cfgBody?.querySelector("#cfg-dp-scope")?.focus();
+      return;
+    }
+    if (t.matches("select[data-cfg-dp]")) { distSet(t); return; }
     if (t.matches("[data-cfg-select]")) {
       const key = t.dataset.cfgSelect; cfgDraft.v[key] = t.value; cfgMark(key, t);
       /* a new interdependence type or source changes which fields follow */
@@ -18797,6 +19247,16 @@ document.addEventListener("DOMContentLoaded", () => {
       usersDb = await usersResponse.json();
       rsspDb = await rsspResponse.json();
       dossierDb.runtimeRows = buildDosare(dossierDb);
+      /* US-295: the Supervisor's „Dosarele subdiviziunii” — the cases under examination of his
+         subdivision, who holds them, a selection for the bulk „Redistribuie” (AC-03 / AC-17) */
+      dossierDb.views.subdivision = {
+        title: "Dosarele subdiviziunii",
+        filter: "subdivisionOpen",
+        selectAllFiltered: true,
+        bulkRedistribute: true,
+        searchPlaceholder: "Caută după numărul dosarului, solicitant, companie sau specialist",
+        columns: ["nrDosar", "status", "alerte", "specialist", "tipDosar", "solicitant", "companie", "dataDepunerii", "termenExaminare"]
+      };
       usersDb.runtimeRows = buildUsers(usersDb);
       sarciniDb = buildSarciniDb();
       roleAdminDb = buildRoleAdminDb();
@@ -18869,6 +19329,9 @@ document.addEventListener("DOMContentLoaded", () => {
       let match = hash.match(/^#dosar\/([^/]+)(?:\/([^/]+))?$/);
       const linkedRow = match && getDosarById(match[1]);
       if (linkedRow) {
+        /* a case opened from a module registry (Ghișeu „Dosare suspendate”, US-255): the profile reads the
+           dossiers' statuses / alerts / decisions from workplaceDb */
+        if (!workplaceDb?.statuses && dossierDb) workplaceDb = dossierDb;
         applyDemoCaseState(linkedRow);
         openDosarProfil(linkedRow, match[2] || "general");
         return;
@@ -19377,7 +19840,9 @@ document.addEventListener("DOMContentLoaded", () => {
       const rowCheckbox = event.target.closest("[data-workplace-select-row]");
 
       if (selectAll) {
-        const visibleRows = getVisibleRows().slice(
+        /* US-295 AC-17: in „Dosarele subdiviziunii” the header box takes every filtered row (all the open
+           cases of a specialist, across pages), not only the page */
+        const visibleRows = getView()?.selectAllFiltered ? getVisibleRows() : getVisibleRows().slice(
           (workplaceState.page - 1) * workplaceState.pageSize,
           workplaceState.page * workplaceState.pageSize
         );
@@ -19404,10 +19869,18 @@ document.addEventListener("DOMContentLoaded", () => {
           (workplaceState.page - 1) * workplaceState.pageSize,
           workplaceState.page * workplaceState.pageSize
         ));
+        syncWorkplaceBulk();
       }
     });
 
     workplacePanel.addEventListener("click", async (event) => {
+      /* US-295: bulk redistribution of the selected cases */
+      const redistribute = event.target.closest("[data-workplace-redistribute]");
+      if (redistribute) {
+        if (redistribute.getAttribute("aria-disabled") !== "true") openBulkRedistribution();
+        return;
+      }
+
       const registryTariffView = event.target.closest("[data-tariff-view]");
 
       if (registryTariffView) {
@@ -19889,6 +20362,8 @@ document.addEventListener("DOMContentLoaded", () => {
       getServiceByCode, serviceConfig, getAuthorityById, servicesStore: () => servicesStore, currentUserName, localIsoNow, renderBreadcrumbs,
       /* registre-v1 (js/registre.js): Registru Dosare reads the BO dossiers (rows + status labels / tones) */
       dossierStore: () => dossierDb,
+      /* US-255 (js/ghiseu.js „Dosare suspendate”): the suspension record of a case (reason, term, days left) */
+      dosarSuspension,
       /* registre-v2 (js/registre-admin.js): the menu redrawn after a publish / grant / deprecation (the active item
          kept), the permissions of a role from the Roles screen (Feature 89940), the single-choice chips */
       refreshNav: () => {
