@@ -466,7 +466,7 @@
 .e-permits-mdoc-chip {
   align-items: center;
   background: var(--mdoc-chip-bg, var(--color-background-base-tertiary, #f1f1f1));
-  border: var(--border-width-1, 1px) solid var(--mdoc-chip-line, var(--color-border-base-default, #d9d9d9));
+  border: var(--border-width-1, 1px) solid var(--mdoc-chip-line, var(--gray-300, #b2b2b2)); /* neutral: border-base-default + 100 */
   border-radius: var(--border-radius-4, 4px);
   box-sizing: border-box;
   color: var(--mdoc-chip-ink, var(--mdoc-ink-2));
@@ -475,7 +475,7 @@
   font-size: var(--mdoc-type-body);
   font-weight: var(--font-weight-fw-medium, 500);
   line-height: var(--mdoc-type-body-lh);
-  padding: 0.6mm 2.2mm;
+  padding: 0.4mm 1.8mm;
   print-color-adjust: exact;
   -webkit-print-color-adjust: exact;
   white-space: nowrap;
@@ -484,25 +484,25 @@
 .e-permits-mdoc-chip--positive {
   --mdoc-chip-bg: var(--color-background-positive-secondary, #ecfdf3);
   --mdoc-chip-ink: var(--color-text-positive-on-secondary, #027a48);
-  --mdoc-chip-line: var(--color-border-positive-secondary, #abefc6);
+  --mdoc-chip-line: var(--green-300, #9ad6bb); /* border-positive-secondary (200) + 100 */
 }
 
 .e-permits-mdoc-chip--warning {
   --mdoc-chip-bg: var(--color-background-warning-secondary, #fffaeb);
   --mdoc-chip-ink: var(--color-text-warning-on-secondary, #b54708);
-  --mdoc-chip-line: var(--color-border-warning-secondary, #fedf89);
+  --mdoc-chip-line: var(--apricot-300, #fec84b); /* border-warning-secondary (200) + 100 */
 }
 
 .e-permits-mdoc-chip--danger {
   --mdoc-chip-bg: var(--color-background-danger-secondary, #fef3f2);
   --mdoc-chip-ink: var(--color-text-danger-on-secondary, #b42318);
-  --mdoc-chip-line: var(--color-border-danger-secondary, #fecdca);
+  --mdoc-chip-line: var(--red-300, #fda19b); /* border-danger-secondary (200) + 100 */
 }
 
 .e-permits-mdoc-chip--info {
   --mdoc-chip-bg: var(--color-background-brand-secondary, #eef4ff);
   --mdoc-chip-ink: var(--color-text-brand-on-secondary, #0047aa);
-  --mdoc-chip-line: var(--color-border-brand-secondary, #b2ccff);
+  --mdoc-chip-line: var(--blue-sky-300, #99bced); /* border-brand-secondary (200) + 100 */
 }
 
 /* ---- 5. The flow (editable zone + the signatures) — modules 6 mm apart ---- */
