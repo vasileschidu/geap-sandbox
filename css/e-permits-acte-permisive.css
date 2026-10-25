@@ -6462,13 +6462,12 @@
   background: var(--color-background-brand-secondary, #e8f0fb);
 }
 
-/* doc-compact-v1 (2026-10-25, user: „make the documents step more compact, too much space between the documents”):
-   16 between documents (was 32), 24 around the line before „Alte documente” (separator margin 8 + gap 16; was 32),
-   a field's file card 8 under its label row (`.e-permits-fo-doc-field` gap, was 16) */
+/* 32 between documents and around the line before „Alte documente” (doc-compact-v1 had tightened the step; reverted
+   2026-10-25 — the user meant only the „Alte documente” edit card) */
 .e-permits-fo-documents {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-16, 16px);
+  gap: var(--spacing-32, 32px);
   padding-bottom: var(--spacing-32, 32px);
   width: 100%;
 }
@@ -6508,7 +6507,7 @@
 .e-permits-fo-doc-field {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-8, 8px);
+  gap: var(--spacing-16, 16px);
   width: 100%;
 }
 
@@ -7340,11 +7339,6 @@ a.e-permits-fo-lib-item__title:is(:hover, :focus) {
   width: 100%;
 }
 
-/* doc-compact-v1: 24 above and under the line (the documents' gap 16 + 8) */
-.e-permits-fo-documents > .e-permits-fo-documents__separator {
-  margin-block: var(--spacing-8, 8px);
-}
-
 .e-permits-fo-document-item__header p {
   color: var(--color-text-base-tertiary, #757575);
   font-size: var(--font-size-fs-14, 14px);
@@ -7394,8 +7388,8 @@ a.e-permits-fo-lib-item__title:is(:hover, :focus) {
   align-items: flex-start;
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-16, 16px);
-  padding-top: var(--spacing-16, 16px);
+  gap: var(--spacing-24, 24px);
+  padding-top: var(--spacing-20, 20px);
   width: 100%;
 }
 
@@ -7403,12 +7397,10 @@ a.e-permits-fo-lib-item__title:is(:hover, :focus) {
   display: none;
 }
 
-/* 16 between documents = the required fields' rhythm (`.e-permits-fo-documents`, doc-compact-v1), so saved ones read as
-   the same list */
 [data-fo-other-doc-list] {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-16, 16px);
+  gap: var(--spacing-24, 24px);
   width: 100%;
 }
 
@@ -7474,6 +7466,13 @@ a.e-permits-fo-lib-item__title:is(:hover, :focus) {
    EDIT keeps „Anulează” · „Salvează” · „Elimină” in the card header (below). */
 .e-permits-fo-doc-card:not(.is-saved) [data-fo-other-doc-view],
 .e-permits-fo-doc-card.is-saved [data-fo-other-doc-edit-only] {
+  display: none;
+}
+
+/* EDIT with a file attached: the document field's row holds nothing visible („Adaugă fișier” hides, the saved-look
+   label / actions are off) — drop it so the file card sits 16 under „Descriere” (the empty row + the field's 16 gap made
+   it 32). An edit card stays compact inside: padding 16, gaps 16, label → field 8 (the FO field). */
+.e-permits-fo-doc-card:not(.is-saved) .e-permits-fo-doc-field:has([data-fo-doc-field-files] > [data-fo-doc]) > .e-permits-fo-doc-field__row {
   display: none;
 }
 
@@ -25135,9 +25134,9 @@ body:has(:is([aria-haspopup]:not([aria-haspopup="false"]), [role="combobox"], .j
 }
 
 /* AC-01 · the list did not load: the error notice, then „Reîncercați” under it (the section's own rhythm) */
-/* 16 under the notice = the section's own gap since doc-compact-v1 (was a −16 pull from 32) */
 .e-permits-fo-docs-retry {
   align-self: flex-start;
+  margin-top: calc(var(--spacing-16, 16px) - var(--spacing-32, 32px));
 }
 
 /* AC-06 · the summary at the top of the step is focusable (focus moves there on „Înainte”) — no ring on a message */
@@ -25163,8 +25162,11 @@ body:has(:is([aria-haspopup]:not([aria-haspopup="false"]), [role="combobox"], .j
   display: none;
 }
 
-/* AC-06 · the required error = last in the field, 8 under what is above it — the field's own gap since doc-compact-v1
-   (the field stacks at 8, an input's message sits 8 under its control); no extra margin */
+/* AC-06 · the required error = last in the field, 8 under what is above it (the field stacks at 16; an input's
+   message sits 8 under its control) */
+.e-permits-fo-doc-field > [data-fo-doc-required-error] {
+  margin-top: calc(var(--spacing-8, 8px) - var(--spacing-16, 16px));
+}
 
 /* the picker captions (formats · size) wrap as whole captions, never word by word (phones) */
 .e-permits-fo-doc-modal__drop-captions {

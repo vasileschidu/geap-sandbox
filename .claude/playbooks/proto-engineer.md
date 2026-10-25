@@ -3865,3 +3865,9 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   (8) I again used `sed -i` once on a JS line although the brief said Edit only — fourth time; Edit, always. QA: hover-audit
   0 / 0 (fo-04du4 / 12 / 13, gh-06 / 06l / 06m), component-audit: only the standing header-menu findings, code-audit
   static 0 + standing meta / label 18, real-mouse probe (padding / name / icon / meta / × / Tab / click) on FO + Ghișeu.
+- 2026-10-25 · doc-spacing-revert-v1: „make it more compact” (said while looking at the „Adaugă document” edit card) meant
+  ONLY that card — I had tightened the whole step (32 → 16 between documents etc.) and the user had it reverted. A
+  spacing request names a container: confirm WHICH box before touching a shared rhythm, and never widen it to „same
+  everywhere” on your own. Found while re-measuring: an edit card with a file kept an EMPTY doc-field row (add hidden,
+  view parts off) whose gap still counted → „Descriere” → file was 32; hide the row when it has nothing visible. Measure
+  edges (top − bottom of neighbours), not the CSS gap values — the empty row was invisible in the CSS.
