@@ -461,49 +461,47 @@
   letter-spacing: 0.06em;
 }
 
-/* status chip: tone pair + a dot (the dot and the word survive a grayscale print) */
+/* status chip = the library tag look (Tag · Small: tone pair + 1px tone border, radius 4, no dot; user 2026-10-25:
+   „for docs templates use the badges with border and square”). The word carries the meaning in grayscale print. */
 .e-permits-mdoc-chip {
   align-items: center;
   background: var(--mdoc-chip-bg, var(--color-background-base-tertiary, #f1f1f1));
-  border-radius: var(--border-radius-full, 9999px);
+  border: var(--border-width-1, 1px) solid var(--mdoc-chip-line, var(--color-border-base-default, #d9d9d9));
+  border-radius: var(--border-radius-4, 4px);
+  box-sizing: border-box;
   color: var(--mdoc-chip-ink, var(--mdoc-ink-2));
   display: inline-flex;
   font-size: var(--mdoc-type-caption);
-  font-weight: var(--font-weight-fw-semibold, 600);
-  gap: 1.2mm;
+  font-weight: var(--font-weight-fw-medium, 500);
   line-height: var(--mdoc-type-caption-lh);
-  padding: 0.6mm 2.4mm 0.6mm 2mm;
+  padding: 0.4mm 1.6mm;
   print-color-adjust: exact;
   -webkit-print-color-adjust: exact;
   white-space: nowrap;
 }
 
-.e-permits-mdoc-chip::before {
-  background: currentColor;
-  border-radius: var(--border-radius-full, 9999px);
-  content: "";
-  height: 1.4mm;
-  width: 1.4mm;
-}
-
 .e-permits-mdoc-chip--positive {
   --mdoc-chip-bg: var(--color-background-positive-secondary, #ecfdf3);
   --mdoc-chip-ink: var(--color-text-positive-on-secondary, #027a48);
+  --mdoc-chip-line: var(--color-border-positive-secondary, #abefc6);
 }
 
 .e-permits-mdoc-chip--warning {
   --mdoc-chip-bg: var(--color-background-warning-secondary, #fffaeb);
   --mdoc-chip-ink: var(--color-text-warning-on-secondary, #b54708);
+  --mdoc-chip-line: var(--color-border-warning-secondary, #fedf89);
 }
 
 .e-permits-mdoc-chip--danger {
   --mdoc-chip-bg: var(--color-background-danger-secondary, #fef3f2);
   --mdoc-chip-ink: var(--color-text-danger-on-secondary, #b42318);
+  --mdoc-chip-line: var(--color-border-danger-secondary, #fecdca);
 }
 
 .e-permits-mdoc-chip--info {
   --mdoc-chip-bg: var(--color-background-brand-secondary, #eef4ff);
   --mdoc-chip-ink: var(--color-text-brand-on-secondary, #0047aa);
+  --mdoc-chip-line: var(--color-border-brand-secondary, #b2ccff);
 }
 
 /* ---- 5. The flow (editable zone + the signatures) — modules 6 mm apart ---- */
