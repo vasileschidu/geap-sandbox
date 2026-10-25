@@ -45,6 +45,7 @@
    token (PO question, component audit S101); the values are the ones the BO tag used */
 .status-tag--violet.is-subtle {
   background-color: #f0e9ff;
-  border: var(--border-width-1, 1px) solid transparent;
+  /* 1px tone border like every library subtle tag (user 2026-10-25: „Spre coordonare has no border”) */
+  border: var(--border-width-1, 1px) solid #d9ccfa;
   color: #6941c6;
 }
