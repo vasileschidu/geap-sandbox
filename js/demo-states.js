@@ -1842,6 +1842,10 @@
         "pd-06a": pd(async (h) => { PDX().zoomToNodes(["node9", "node15"], 1); await h.wait(500); await connecting("node9", "top", "node15")(h); }),
         "pd-06b": pd(async (h) => { await at("node6")(h); await connecting("node6", "top-right", [60, -90], { release: true })(h); }),
         "pd-07": pd(async (h) => { await at("node6")(h); await h.click("[data-pd-edge-label='node6:0']"); }),
+        /* bend handles (pd-bend-v1): the selected connection shows a handle per segment; pd-07e = a hand-moved route
+           (the straight connection's segment nudged 3 × 20 down with the arrow keys: it leaves the ports along their stubs, label kept on it) */
+        "pd-07d": pd(async (h) => { await at("node6", 0.75)(h); await h.click("[data-pd-edge-label='node6:0']"); await h.wait(200); }),
+        "pd-07e": pd(async (h) => { await at("node6", 0.75)(h); await h.click("[data-pd-edge-label='node6:0']"); const st = document.querySelector("[data-pd-stage]"); st.focus(); for (let i = 0; i < 3; i += 1) { key(st, "ArrowDown"); await h.wait(120); } await h.wait(200); }),
         "pd-07a": pd(async (h) => { await at("node6", 0.75)(h); await h.click("[data-pd-lane-select='lane5']"); }),
         "pd-16": pd(async (h) => { await brokenBits(h); PDX().fit(); await h.wait(400); await h.click("[data-pd-errors]"); }),
         /* the new Decizie's own problems as the compact issue cards on its Ieșiri tab (pd-props-compact-v1) */

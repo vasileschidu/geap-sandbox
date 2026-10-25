@@ -366,6 +366,57 @@
   }
   function round1(n) { return Math.round(n * 10) / 10; }
   /* where the label sits: the middle of the longest segment */
+  /* ------------------------------------------------------------------ bend handles (pd-bend-v1)
+     Drag the middle of one segment of a drawn route perpendicular to itself: segment `index` (between
+     points[index] and points[index + 1]) gets the coordinate `value` on its moving axis (y for a horizontal
+     segment, x for a vertical one); its neighbours stretch. A segment that touches a port first leaves the
+     port along its stub (16) so the route never starts / ends sideways. Returns the waypoints to store (the
+     corners between the two stub ends; the ports and stub ends are re-derived by route()). */
+  function segmentAxis(points, index) {
+    var a = points[index], b = points[index + 1];
+    return a && b && a.y === b.y ? "y" : "x";
+  }
+  function bendRoute(points, index, value, from, to) {
+    var P = points.map(function (p) { return { x: p.x, y: p.y }; });
+    var last = P.length - 1;
+    if (index < 0 || index >= last) return null;
+    var ax = segmentAxis(P, index);
+    var head, tail, A = { x: P[index].x, y: P[index].y }, B = { x: P[index + 1].x, y: P[index + 1].y };
+    if (index === 0) {
+      var s = { x: P[0].x + from.dx * STUB, y: P[0].y + from.dy * STUB };
+      head = [P[0], s];
+      A = { x: s.x, y: s.y };
+    } else head = P.slice(0, index);
+    if (index + 1 === last) {
+      var t = { x: P[last].x + to.dx * STUB, y: P[last].y + to.dy * STUB };
+      tail = [t, P[last]];
+      B = { x: t.x, y: t.y };
+    } else tail = P.slice(index + 2);
+    A[ax] = value;
+    B[ax] = value;
+    var full = simplify(head.concat([A, B], tail));
+    var sEnd = { x: from.x + from.dx * STUB, y: from.y + from.dy * STUB };
+    var tEnd = { x: to.x + to.dx * STUB, y: to.y + to.dy * STUB };
+    var wp = full.slice(1, -1);
+    if (wp.length && wp[0].x === sEnd.x && wp[0].y === sEnd.y) wp.shift();
+    if (wp.length && wp[wp.length - 1].x === tEnd.x && wp[wp.length - 1].y === tEnd.y) wp.pop();
+    return wp.map(function (p) { return { x: p.x, y: p.y }; });
+  }
+  /* a stored route still fits its ports: it leaves the source and enters the target along the port
+     direction (after a node moved, a route that would run back into its own shape falls back to auto) */
+  function routeFitsPorts(points, from, to) {
+    if (!points || points.length < 2) return false;
+    var a = points[0], b = points[1];
+    if ((b.x - a.x) * from.dx < 0 || (b.y - a.y) * from.dy < 0) return false;
+    if (from.dx !== 0 && b.y !== a.y) return false;
+    if (from.dy !== 0 && b.x !== a.x) return false;
+    var y = points[points.length - 1], z = points[points.length - 2];
+    if ((z.x - y.x) * to.dx < 0 || (z.y - y.y) * to.dy < 0) return false;
+    if (to.dx !== 0 && z.y !== y.y) return false;
+    if (to.dy !== 0 && z.x !== y.x) return false;
+    return true;
+  }
+
   function labelPoint(points) {
     var best = 0, at = { x: points[0].x, y: points[0].y, horizontal: true };
     for (var i = 0; i < points.length - 1; i++) {
@@ -902,6 +953,10 @@
     route: route,
     pathD: pathD,
     labelPoint: labelPoint,
+    segmentAxis: segmentAxis,
+    bendRoute: bendRoute,
+    routeFitsPorts: routeFitsPorts,
+    STUB: STUB,
     newDefinition: newDefinition,
     fromFlowSteps: fromFlowSteps,
     MSG: MSG,

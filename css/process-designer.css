@@ -1919,6 +1919,57 @@
   pointer-events: none;
 }
 
+/* ---- bend handles (pd-bend-v1, bpmn.io / draw.io style): a 10 white square with a brand border at the middle of each
+   segment of the selected connection; ns / ew cursor by the segment's direction; hover brand-secondary + 12;
+   the active (last moved / keyboard) segment brand-filled; hidden while connecting */
+.e-permits-pd__edge-bend {
+  background: var(--color-background-base-default, #fff);
+  border: var(--border-width-1-5, 1.5px) solid var(--color-border-brand-default, #0058d2);
+  border-radius: var(--spacing-2, 2px);
+  box-shadow: var(--shadow-100);
+  box-sizing: border-box;
+  height: calc(var(--spacing-8, 8px) + var(--spacing-2, 2px));
+  left: 0;
+  pointer-events: auto;
+  position: absolute;
+  top: 0;
+  transition: width 120ms var(--motion-easing-standard, ease), height 120ms var(--motion-easing-standard, ease), background-color 120ms var(--motion-easing-standard, ease);
+  width: calc(var(--spacing-8, 8px) + var(--spacing-2, 2px));
+  z-index: 4;
+}
+
+.e-permits-pd__edge-bend--h {
+  cursor: ns-resize;
+}
+
+.e-permits-pd__edge-bend--v {
+  cursor: ew-resize;
+}
+
+.e-permits-pd__edge-bend:hover {
+  background: var(--color-background-brand-secondary, #e8f0fb);
+  height: var(--spacing-12, 12px);
+  width: var(--spacing-12, 12px);
+}
+
+.e-permits-pd__edge-bend.is-active {
+  background: var(--color-background-brand-default, #0058d2);
+}
+
+.e-permits-pd__stage.is-connecting .e-permits-pd__edge-bend {
+  pointer-events: none;
+}
+
+.e-permits-pd__stage.is-bending-y,
+.e-permits-pd__stage.is-bending-y * {
+  cursor: ns-resize;
+}
+
+.e-permits-pd__stage.is-bending-x,
+.e-permits-pd__stage.is-bending-x * {
+  cursor: ew-resize;
+}
+
 /* ---- sub-process: „Deschide sub-procesul” on the card (pointer twin of the panel button) */
 .e-permits-pd__open-sub {
   align-items: center;

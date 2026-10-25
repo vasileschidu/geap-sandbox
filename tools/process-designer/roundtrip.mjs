@@ -300,4 +300,33 @@ check("case path: Start → … through the visited steps to the current one, as
   p.edges.forEach((k) => { const [src, i] = k.split(":"); assert.ok(st(def, src).transitions[Number(i)], k); });
 });
 
+check("bend: moving a middle segment keeps the route orthogonal, through the new coordinate, and fits its ports", () => {
+  const from = { x: 0, y: 0, dx: 1, dy: 0 }, to = { x: 200, y: 100, dx: -1, dy: 0 };
+  const pts = pm.route(from, to, [], null);
+  const mid = pts.findIndex((p, i) => i > 0 && i < pts.length - 2 && pts[i + 1] && p.x === pts[i + 1].x);
+  assert.ok(mid > 0, "auto route has a vertical middle segment");
+  const wp = pm.bendRoute(pts, mid, 140, from, to);
+  const again = pm.route(from, to, [], wp);
+  again.forEach((p, i) => { if (i) assert.ok(p.x === again[i - 1].x || p.y === again[i - 1].y, "orthogonal"); });
+  assert.ok(again.some((p, i) => i && p.x === 140 && again[i - 1].x === 140), "segment at x 140");
+  assert.ok(pm.routeFitsPorts(again, from, to), "fits ports");
+});
+check("bend: a port segment (straight edge) leaves along its stub, then jogs", () => {
+  const from = { x: 0, y: 0, dx: 1, dy: 0 }, to = { x: 200, y: 0, dx: -1, dy: 0 };
+  const pts = pm.route(from, to, [], null);
+  assert.equal(pts.length, 2);
+  const wp = pm.bendRoute(pts, 0, 60, from, to);
+  const again = pm.route(from, to, [], wp);
+  assert.ok(pm.routeFitsPorts(again, from, to), "fits ports");
+  assert.ok(again.some((p, i) => i && p.y === 60 && again[i - 1].y === 60), "segment at y 60");
+  assert.equal(again[1].x, 16, "first corner = the stub end");
+});
+check("bend: waypoints survive serialize / parse byte-identically", () => {
+  const def = pm.parse(seedText);
+  const src = def.states.find((s) => (s.transitions || []).length);
+  src.transitions[0].waypoints = [{ x: 100, y: 40 }, { x: 100, y: 120 }];
+  const text = pm.serialize(def);
+  same(text, pm.serialize(pm.parse(text)), "waypoints re-save");
+});
+
 console.log(`\n${passed} checks passed`);

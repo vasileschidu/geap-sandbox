@@ -156,7 +156,7 @@ document.addEventListener("DOMContentLoaded", () => {
           <span class="e-permits-pd__toolgroup" data-pd-edit-only>
             ${tbButton("data-pd-undo", "undo", "Anulează", "Ctrl+Z")}
             ${tbButton("data-pd-redo", "redo", "Refă", "Ctrl+Shift+Z")}
-            ${tbButton("data-pd-autolayout", "tree", "Aranjează automat pe benzi")}
+            ${tbButton("data-pd-autolayout", "tree", "Aranjează automat pe benzi (resetează traseele mutate de mână)")}
           </span>
           <i class="e-permits-pd__toolsep" aria-hidden="true" data-pd-edit-only></i>
           <span class="e-permits-pd__toolgroup" role="radiogroup" aria-label="Instrument" data-pd-edit-only>
@@ -971,11 +971,34 @@ document.addEventListener("DOMContentLoaded", () => {
       const p = PM.portPoint(a, PM.normalPort(a.type, t.sourcePort) || (a.type === "decision" ? "corner-tr" : "right"));
       return [p, { x: p.x + p.dx * 60, y: p.y + p.dy * 60 }];
     }
+    const { from, to } = edgePorts(src, t, tgt);
+    const obstacles = obstaclesFor(src, tgt);
+    if (t.waypoints?.length) {
+      /* a hand-drawn route that no longer fits its ports (a node moved past it) falls back to the automatic one */
+      const manual = PM.route(from, to, obstacles, t.waypoints);
+      if (PM.routeFitsPorts(manual, from, to)) return manual;
+      return PM.route(from, to, obstacles, null);
+    }
+    return PM.route(from, to, obstacles, null);
+  }
+  function edgePorts(src, t, tgt) {
     const a = boxOf(src), b = boxOf(tgt);
     const auto = PM.facingPorts(a, b);
     const sp = PM.normalPort(a.type, t.sourcePort) || auto.source;
     const tp = PM.normalPort(b.type, t.targetPort) || auto.target;
-    return PM.route(PM.portPoint(a, sp), PM.portPoint(b, tp), obstaclesFor(src, tgt), t.waypoints);
+    return { from: PM.portPoint(a, sp), to: PM.portPoint(b, tp) };
+  }
+  /* the label sits on the longest segment; on a hand-drawn route, on the longest segment the user placed (both ends
+     are waypoints), so it stays on the moved segment */
+  function edgeLabelPoint(pts, t) {
+    if (!t.waypoints?.length || pts.length < 4) return PM.labelPoint(pts);
+    let best = -1, at = null;
+    for (let i = 1; i < pts.length - 2; i += 1) {
+      const a = pts[i], b = pts[i + 1];
+      const len = Math.abs(b.x - a.x) + Math.abs(b.y - a.y);
+      if (len > best) { best = len; at = { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2, horizontal: a.y === b.y }; }
+    }
+    return best >= 40 ? at : PM.labelPoint(pts);
   }
   function arrowD(points) {
     const n = points.length;
@@ -1016,7 +1039,7 @@ document.addEventListener("DOMContentLoaded", () => {
     rec.label.hidden = !text;
     if (text) {
       if (rec.label.textContent !== text) { rec.label.textContent = text; rec.label.dataset.cellTooltip = text; }
-      const at = PM.labelPoint(pts);
+      const at = edgeLabelPoint(pts, e.t);
       let dx = Number(e.t.labelDx) || 0, dy = Number(e.t.labelDy) || 0;
       /* offsets the old designer stored for ITS routes: kept in the data, applied only when small */
       if (Math.hypot(dx, dy) > 48) { dx = 0; dy = 0; }
@@ -1376,6 +1399,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (ids.length === 1 && window.innerWidth < 960) requestAnimationFrame(() => ensureVisible(ids[0]));
   }
   function selectEdge(key) {
+    if (S.sel.edge !== key) S.bendSeg = null;
     S.sel = { nodes: new Set(), edge: key, lane: "" };
     S.settings = false;
     S.typingKey = "";
@@ -1952,6 +1976,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const err = (S.issues.find((i) => i.id === e.key && i.level === "error") || {}).message || "";
     const menu = S.viewOnly ? "" : ui().renderStackMenu?.([
       { label: "Inserează un eveniment", icon: "notification", attrs: `data-pd-act="split-edge" data-id="${esc(e.key)}"${e.tgt ? "" : ' aria-disabled="true" data-tooltip-reason="Conexiunea nu are țintă."'}` },
+      { label: "Resetează traseul", icon: "rotate-arrow", attrs: `data-pd-act="route-reset"${e.t.waypoints?.length ? "" : ' aria-disabled="true" data-tooltip-reason="Traseul este deja cel automat."'}` },
       { label: "Șterge conexiunea", icon: "delete", danger: true, attrs: `data-pd-act="delete-edge" data-id="${esc(e.key)}"` },
     ], "conexiune") || "";
     const label = e.t.event === "next" ? "" : e.t.event || "";
@@ -1976,8 +2001,9 @@ document.addEventListener("DOMContentLoaded", () => {
             <span class="e-permits-pd__label">Traseu</span>
             <div class="e-permits-pd__route">
               <span>${e.t.waypoints?.length ? "Personalizat" : "Automat (ocolește elementele)"}</span>
-              ${e.t.waypoints?.length && !S.viewOnly ? '<button class="btn btn-text-primary btn-sm" type="button" data-pd-act="route-reset">Revino la traseul automat</button>' : ""}
+              ${e.t.waypoints?.length && !S.viewOnly ? '<button class="btn btn-text-primary btn-sm" type="button" data-pd-act="route-reset">Resetează traseul</button>' : ""}
             </div>
+            ${S.viewOnly ? "" : '<p class="e-permits-fo-field__hint">Trage pătratele de pe segmente (sau săgețile) ca să muți traseul; „Aranjează automat” îl resetează.</p>'}
           </div>
           ${facts([["Port de plecare", esc(PORT_TITLE[e.t.sourcePort] || "automat")], ["Port de sosire", esc(PORT_TITLE[e.t.targetPort] || "automat")]])}
         `))}
@@ -2388,7 +2414,7 @@ document.addEventListener("DOMContentLoaded", () => {
       case "assign-add": edit(() => { PM.putKey(s, "fieldAssignments", [...(s.fieldAssignments || []), { name: "TeamId", value: "" }], "state"); }); focusAfter(`#${CSS.escape(pid(`assign.${(s.fieldAssignments || []).length - 1}.value`))}`); return;
       case "assign-remove": edit(() => { const list = [...(s.fieldAssignments || [])]; list.splice(i, 1); PM.setKey(s, "fieldAssignments", list, "state"); }); return;
       case "tpl-remove": edit(() => { PM.setKey(s.properties, "templateCodes", (s.properties.templateCodes || []).filter((c) => c !== item.dataset.code), "properties"); }); focusAfter("[data-pd-tpl-open]"); return;
-      case "route-reset": { const e = edgeOf(S.sel.edge); if (e) edit(() => { delete e.t.waypoints; }); return; }
+      case "route-reset": { const e = edgeOf(S.sel.edge); if (e?.t.waypoints) { edit(() => { delete e.t.waypoints; }); S.bendSeg = null; announce("Traseul a revenit la cel automat."); } return; }
       case "open-sub": drillIn(item.dataset.id); return;
       case "new-sub": createSubprocess(item.dataset.id); return;
       case "lane-up": case "lane-down": moveLane(item.dataset.id, act === "lane-up" ? -1 : 1); return;
@@ -2799,6 +2825,7 @@ document.addEventListener("DOMContentLoaded", () => {
     else if (drag.kind === "reconnect") reconnectFrame(e);
     else if (drag.kind === "lane") laneDragFrame(e);
     else if (drag.kind === "laneResize") laneResizeFrame(e);
+    else if (drag.kind === "bend") bendFrame(e);
   }
   function onDragStart() {
     if (drag.kind === "pan") el.stage.classList.add("is-panning");
@@ -2808,6 +2835,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (drag.kind === "reconnect") el.stage.classList.add("is-connecting");
     if (drag.kind === "lane") el.stage.classList.add("is-lane-dragging");
     if (drag.kind === "laneResize") { el.stage.classList.add("is-lane-resizing"); checkpoint(); }
+    if (drag.kind === "bend") { el.stage.classList.add("is-bending", drag.axis === "y" ? "is-bending-y" : "is-bending-x"); checkpoint(); }
   }
   function beginDrag(event, info) {
     drag = { ...info, x0: event.clientX, y0: event.clientY, moved: false, pointerId: event.pointerId, captured: event.target };
@@ -2826,7 +2854,7 @@ document.addEventListener("DOMContentLoaded", () => {
     window.removeEventListener("blur", onCancel);
     el.stage.removeEventListener("lostpointercapture", onLost);
     try { if (drag && el.stage.hasPointerCapture?.(drag.pointerId)) el.stage.releasePointerCapture(drag.pointerId); } catch { /* released */ }
-    el.stage.classList.remove("is-panning", "is-moving", "is-connecting", "is-adding", "is-lane-dragging", "is-lane-resizing", "is-connect-invalid");
+    el.stage.classList.remove("is-panning", "is-moving", "is-connecting", "is-adding", "is-lane-dragging", "is-lane-resizing", "is-connect-invalid", "is-bending", "is-bending-x", "is-bending-y");
     markSplit("");
     nodeEls.forEach((n) => n.classList.remove("is-target", "is-target-invalid"));
     if (S.hoverTarget) { S.hoverTarget = ""; el.lanes.querySelectorAll(".is-target").forEach((n) => n.classList.remove("is-target")); }
@@ -2846,7 +2874,7 @@ document.addEventListener("DOMContentLoaded", () => {
   function onCancel() {
     if (!drag) return;
     const d = drag;
-    if ((d.kind === "move" || d.kind === "laneResize") && d.moved) { const snap0 = S.undo.pop(); if (snap0) restore(snap0); }
+    if ((d.kind === "move" || d.kind === "laneResize" || d.kind === "bend") && d.moved) { const snap0 = S.undo.pop(); if (snap0) restore(snap0); }
     drag = null;
     endListeners();
   }
@@ -2863,6 +2891,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (d.kind === "marquee") return d.moved ? endMarquee(d) : (d.add ? null : clearSelection());
     if (d.kind === "palette") return d.moved ? endPalette(d, event) : addFromPalette(d.type);
     if (d.kind === "reconnect") return d.moved ? endReconnect(d) : null;
+    if (d.kind === "bend") return d.moved ? endBend(d) : null;
     if (d.kind === "lane") { if (d.moved) endLaneDrag(d); else { selectLane(d.lane); S.rightOpen = true; renderChrome(); renderPanel(); } return null; }
     if (d.kind === "laneResize") {
       if (!d.moved || d.h === d.h0) { if (d.moved) S.undo.pop(); return null; }
@@ -2885,6 +2914,15 @@ document.addEventListener("DOMContentLoaded", () => {
     if (panning) { event.preventDefault(); beginDrag(event, { kind: "pan", vx: S.view.x, vy: S.view.y }); return; }
     const end = event.target.closest("[data-pd-edge-end]");
     if (end && S.sel.edge && !S.viewOnly) { event.preventDefault(); beginDrag(event, { kind: "reconnect", key: S.sel.edge, end: end.dataset.pdEdgeEnd }); return; }
+    const bend = event.target.closest("[data-pd-edge-bend]");
+    if (bend && S.sel.edge && !S.viewOnly) {
+      event.preventDefault();
+      const pts = routes.get(S.sel.edge);
+      const seg = Number(bend.dataset.pdEdgeBend);
+      S.bendSeg = seg;
+      if (pts) beginDrag(event, { kind: "bend", key: S.sel.edge, seg, pts0: pts.map((p) => ({ x: p.x, y: p.y })), axis: PM.segmentAxis(pts, seg), value: null });
+      return;
+    }
     const resize = event.target.closest("[data-pd-lane-resize]");
     if (resize && !S.viewOnly) {
       event.preventDefault();
@@ -3023,6 +3061,14 @@ document.addEventListener("DOMContentLoaded", () => {
   function endMove(d) {
     const moved = d.start.some((st) => { const s = S.byId.get(st.id); return s.properties.x !== st.x || s.properties.y !== st.y; });
     if (!moved) { S.undo.pop(); return; }
+    /* hand-drawn routes of the moved nodes stay (absolute corners = the user's offsets) unless they no longer fit their
+       ports — then they go back to automatic (the same undo step as the move) */
+    const ids = new Set(d.start.map((st) => st.id));
+    allEdges().forEach((e) => {
+      if (!e.tgt || !e.t.waypoints?.length || (!ids.has(e.src.id) && !ids.has(e.tgt.id))) return;
+      const { from, to } = edgePorts(e.src, e.t, e.tgt);
+      if (!PM.routeFitsPorts(PM.route(from, to, obstaclesFor(e.src, e.tgt), e.t.waypoints), from, to)) delete e.t.waypoints;
+    });
     /* a move keeps the original numbers of nodes that did not move (the seed is not on the grid) */
     commit({ full: false });
     const s = S.byId.get(d.id);
@@ -3290,6 +3336,7 @@ document.addEventListener("DOMContentLoaded", () => {
       nudge(arrows[event.key][0] * step, arrows[event.key][1] * step);
       return;
     }
+    if (arrows[event.key] && S.sel.edge && !S.viewOnly) { event.preventDefault(); event.stopPropagation(); nudgeBend(arrows[event.key]); return; }
     if (event.key === "Enter" && focusedId) { event.preventDefault(); event.stopPropagation(); selectNodes([focusedId], { focus: true }); S.rightOpen = true; renderChrome(); renderPanel(); return; }
     if (event.key === "F2" && focusedId && !S.viewOnly) { event.preventDefault(); selectNodes([focusedId]); S.rightOpen = true; renderChrome(); renderPanel(); const input = el.props.querySelector('[data-pd-prop="title"]'); input?.focus(); input?.select?.(); return; }
     if (mod || event.altKey) return;
@@ -3550,11 +3597,89 @@ document.addEventListener("DOMContentLoaded", () => {
     splitAt(key, "event", { x: mid.x, y: mid.y });
   }
 
+  /* ---- bend handles (pd-bend-v1): move one segment of the selected connection perpendicular to itself */
+  function applyBend(key, pts0, seg, value) {
+    const ed = edgeOf(key);
+    if (!ed?.tgt) return false;
+    const { from, to } = edgePorts(ed.src, ed.t, ed.tgt);
+    const wp = PM.bendRoute(pts0, seg, value, from, to);
+    if (!wp) return false;
+    if (wp.length) PM.setKey(ed.t, "waypoints", wp, "transition"); else delete ed.t.waypoints;
+    drawEdge({ ...ed, key });
+    /* the moved segment keeps its handle highlighted at its new index */
+    const pts = routes.get(key) || [];
+    const ax = PM.segmentAxis(pts0, seg);
+    const i = pts.findIndex((p, k) => k < pts.length - 1 && PM.segmentAxis(pts, k) === ax && p[ax] === value && pts[k + 1][ax] === value);
+    if (i >= 0) S.bendSeg = i;
+    syncEdgeEnds();
+    return true;
+  }
+  function bendFrame(e) {
+    const w = toWorld(e.clientX, e.clientY), w0 = toWorld(drag.x0, drag.y0);
+    const orig = drag.pts0[drag.seg][drag.axis];
+    const value = Math.round((orig + (w[drag.axis] - w0[drag.axis])) / GRID) * GRID;
+    if (value === drag.value) return;
+    drag.value = value;
+    applyBend(drag.key, drag.pts0, drag.seg, value);
+  }
+  function endBend(d) {
+    const before = JSON.parse(S.undo[S.undo.length - 1]?.text || "null");
+    const now = JSON.stringify(edgeOf(d.key)?.t.waypoints || null);
+    const [srcId, idx] = d.key.split(":");
+    const was = JSON.stringify(before?.states?.find((s) => s.id === srcId)?.transitions?.[Number(idx)]?.waypoints || null);
+    if (d.value === null || now === was) { S.undo.pop(); syncEdgeEnds(); return; }
+    S.redo = [];
+    reindex();
+    commit({ full: false });
+    announce(`Traseul conexiunii a fost mutat${d.axis === "y" ? " pe verticală" : " pe orizontală"}. Ctrl + Z îl readuce.`);
+  }
+  /* keyboard twin: arrows move the active segment of the selected connection (↑ ↓ a horizontal one, ← → a vertical one) */
+  function nudgeBend(dir) {
+    const key = S.sel.edge;
+    const pts = routes.get(key);
+    if (!pts || pts.length < 2) return;
+    const ax = dir[1] ? "y" : "x";
+    const segs = [];
+    for (let i = 0; i < pts.length - 1; i += 1) if (PM.segmentAxis(pts, i) === ax && (pts[i].x !== pts[i + 1].x || pts[i].y !== pts[i + 1].y)) segs.push(i);
+    if (!segs.length) { announce(ax === "y" ? "Conexiunea nu are un segment orizontal." : "Conexiunea nu are un segment vertical."); return; }
+    const mid = (pts.length - 2) / 2;
+    const seg = segs.includes(S.bendSeg) ? S.bendSeg : segs.sort((a, b) => Math.abs(a - mid) - Math.abs(b - mid))[0];
+    const value = pts[seg][ax] + (dir[0] + dir[1]) * GRID;
+    S.bendSeg = seg;
+    checkpoint();
+    if (!applyBend(key, pts.map((p) => ({ x: p.x, y: p.y })), seg, value)) { S.undo.pop(); return; }
+    S.redo = [];
+    reindex();
+    commit({ full: false });
+  }
+
   /* ---- re-connect: drag an endpoint handle of the selected connection */
   function syncEdgeEnds() {
-    el.labels.querySelectorAll("[data-pd-edge-end]").forEach((n) => n.remove());
+    el.labels.querySelectorAll("[data-pd-edge-end], [data-pd-edge-bend]").forEach((n) => n.remove());
     const pts = S.sel.edge && !S.viewOnly ? routes.get(S.sel.edge) : null;
     if (!pts) return;
+    /* bend handles (pd-bend-v1): one at the middle of every segment long enough to grab (≥ 24 px on screen);
+       dragging moves the segment perpendicular to itself */
+    const ed = edgeOf(S.sel.edge);
+    if (ed?.tgt) {
+      const lab = edgeLabel(ed.src, ed.t) ? edgeLabelPoint(pts, ed.t) : null;
+      for (let i = 0; i < pts.length - 1; i += 1) {
+        const a = pts[i], b = pts[i + 1];
+        const len = Math.abs(b.x - a.x) + Math.abs(b.y - a.y);
+        if (len * S.view.z < 24) continue;
+        const horizontal = a.y === b.y;
+        const h = document.createElement("span");
+        h.className = `e-permits-pd__edge-bend e-permits-pd__edge-bend--${horizontal ? "h" : "v"}${S.bendSeg === i ? " is-active" : ""}`;
+        h.dataset.pdEdgeBend = String(i);
+        h.dataset.tooltipLabel = horizontal ? "Trage în sus sau în jos ca să muți segmentul" : "Trage la stânga sau la dreapta ca să muți segmentul";
+        h.setAttribute("aria-hidden", "true");
+        /* the segment that carries the label gets its handle a quarter in, so the label never hides it */
+        let mx = (a.x + b.x) / 2, my = (a.y + b.y) / 2;
+        if (lab && Math.abs(lab.x - mx) < 1 && Math.abs(lab.y - my) < 1) { mx = a.x + (b.x - a.x) / 4; my = a.y + (b.y - a.y) / 4; }
+        h.style.transform = `translate(${mx}px, ${my}px) translate(-50%, -50%)`;
+        el.labels.appendChild(h);
+      }
+    }
     [["source", pts[0]], ["target", pts[pts.length - 1]]].forEach(([end, p]) => {
       const h = document.createElement("span");
       h.className = `e-permits-pd__edge-end e-permits-pd__edge-end--${end}`;

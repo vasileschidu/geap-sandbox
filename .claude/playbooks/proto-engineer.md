@@ -3658,3 +3658,16 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   the fit bounds leave the pool's last row under the footer — zoom to the lowest node for crops. QA: hover-audit 0 / 0
   (toolbar 3, node menu, node), component-audit = standing majors only, code-audit: one static px in a `--shadow-100`
   fallback (dropped the fallback), capture 15 × 2 0 errors (phone DEMO-ERRORs = canvas-only states).
+- 2026-10-25 · pd-bend-v1 (user: „middle-side elements on the arrows so I can arrange them how I want” — bend handles).
+  (1) The model already routed through stored `waypoints` and the UI already had reset + an auto-layout confirm: the job
+  was ONE pure function (`PM.bendRoute(points, segment, value, from, to)` → the new corners; a port segment first
+  leaves along its stub so the route never starts sideways) + `PM.routeFitsPorts` + 3 Node checks in roundtrip.mjs,
+  then thin UI (handles in the existing edge-end layer, a `bend` drag kind next to `reconnect`, a keyboard twin).
+  (2) BUG I made and found with the keyboard twin: `edgeOf()` returns { src, t, tgt } WITHOUT the key, and
+  `drawEdge(ed)` then wrote `routes.set(undefined, …)` — the first move looked right (commit redrew everything), the
+  active-segment lookup read the stale route and the 2nd nudge moved the stub instead. Log the internals
+  (`window.__dbg` push, removed after) when a repeated action alternates working / not working. (3) Absolute waypoints
+  ARE „keep the user's offsets when a node moves”; only the validity check is needed (render falls back; endMove drops
+  the stale corners in the same undo step). (4) A handle at a segment's middle sits under that segment's label —
+  move that one a quarter in. Probe (scratch pdp/bend.mjs): real CDP drag (cursor, stage class mid-drag, path after,
+  label on the moved segment), Ctrl+Z / Ctrl+Shift+Z, blur-cancel mid-drag, then a node nudge keeping the route.
