@@ -4111,6 +4111,22 @@ document.addEventListener("DOMContentLoaded", () => {
     const pool = redistCandidates([row]).filter((person) => redistCompetent(person, row));
     return pool.sort((a, b) => a.load - b.load || a.nume.localeCompare(b.nume, "ro"))[0] || null;
   };
+  /* the dialog's preview of „Automat”: the same pick as redistributeCase, case after case — each
+     move adds one case to the new responsible's load and takes one from the previous one */
+  const redistAutoPlan = (rows) => {
+    if (REDIST_PARAMS.get("candidati") === "0") return rows.map(() => null);
+    const shift = new Map();
+    const loadOf = (person) => person.load + (shift.get(person.id) || 0);
+    return rows.map((row) => {
+      const pool = redistCandidates([row]).filter((person) => redistCompetent(person, row));
+      const pick = pool.sort((a, b) => loadOf(a) - loadOf(b) || a.nume.localeCompare(b.nume, "ro"))[0] || null;
+      if (pick) {
+        shift.set(pick.id, (shift.get(pick.id) || 0) + 1);
+        if (row.specialist?.id) shift.set(row.specialist.id, (shift.get(row.specialist.id) || 0) - 1);
+      }
+      return pick;
+    });
+  };
   /* AC-10 stand-in for US-292: the complexity in normo-hours with the policy in force today */
   const redistComplexity = (row) => (6 + (hashValue(`${row.id}${row.serviciu}`) % 9) * 0.5).toLocaleString("ro-MD", { minimumFractionDigits: 1 });
   const redistTxId = (row, n) => `TD-${row.nrDosar.slice(-6)}-${String(n).padStart(2, "0")}`;
@@ -4205,11 +4221,13 @@ document.addEventListener("DOMContentLoaded", () => {
     </span>
   ` : "";
 
+  /* span 0 = outside the 12-column grid (the redistribution transfer row); the value shows its
+     full text in a tooltip when the read-only box cuts it */
   const caseReadonly = (label, value, span = 6) => `
-    <div class="e-permits-fo-field e-permits-user-create__field e-permits-user-create__field--${span}">
+    <div class="e-permits-fo-field${span ? ` e-permits-user-create__field e-permits-user-create__field--${span}` : ""}">
       <label>${escapeHtml(label)}</label>
       <div class="e-permits-fo-input is-filled is-readonly">
-        <input type="text" value="${escapeHtml(value || "—")}" readonly tabindex="-1">
+        <input type="text" value="${escapeHtml(value || "—")}" readonly tabindex="-1" data-cell-tooltip aria-label="${escapeHtml(label)}">
         <svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-lock"></use></svg>
       </div>
     </div>
@@ -4240,15 +4258,17 @@ document.addEventListener("DOMContentLoaded", () => {
     </div>
   `;
 
-  const caseSelect = (key, label, options, { required = false, placeholder = "Alege", hint = "" } = {}) => `
-    <div class="e-permits-fo-field e-permits-user-create__field">
+  /* inRow: a field of the redistribution transfer row — outside the 12-column grid, its error /
+     hint drawn under the whole row by the caller (caseRowMessage) */
+  const caseSelect = (key, label, options, { required = false, placeholder = "Alege", hint = "", inRow = false } = {}) => `
+    <div class="e-permits-fo-field${inRow ? "" : " e-permits-user-create__field"}">
       <label for="case-${key}">${escapeHtml(label)}${required ? requiredMark() : ""}</label>
       ${renderFoSelectControl({
-        id: `case-${key}`, attrs: `data-case-select="${key}"`,
+        id: `case-${key}`, attrs: `data-case-select="${key}"`, error: Boolean(caseDraft.errors[key]),
         optionsHtml: `<option value=""${caseDraft.values[key] ? "" : " selected"} disabled>${escapeHtml(placeholder)}</option>${options.map(([value, text]) => `<option value="${escapeHtml(value)}"${value === caseDraft.values[key] ? " selected" : ""}>${escapeHtml(text)}</option>`).join("")}`
       })}
-      ${caseFieldError(key)}
-      ${hint && !caseDraft.errors[key] ? `<p class="e-permits-fo-field__hint">${escapeHtml(hint)}</p>` : ""}
+      ${inRow ? "" : caseFieldError(key)}
+      ${!inRow && hint && !caseDraft.errors[key] ? `<p class="e-permits-fo-field__hint">${escapeHtml(hint)}</p>` : ""}
     </div>
   `;
 
@@ -4289,10 +4309,12 @@ document.addEventListener("DOMContentLoaded", () => {
     `;
   };
 
-  const caseNotice = (text, tone = "info") => `
+  /* the tone's own icon (NOTICE_ICONS: warning = warning-filled); `title` = a medium first line
+     over the text (the redistribution „Termen de examinare: …” alert) */
+  const caseNotice = (text, tone = "info", { title = "" } = {}) => `
     <div class="message message--subtle banner--${tone} e-permits-case-form__notice">
-      <span class="banner__icon"><svg class="icon" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-circle-info-filled"></use></svg></span>
-      <div class="banner__content"><p class="banner__text">${text}</p></div>
+      <span class="banner__icon"><svg class="icon" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-${NOTICE_ICONS[tone] || "circle-info-filled"}"></use></svg></span>
+      <div class="banner__content">${title ? `<p class="banner__text"><strong>${title}</strong></p>` : ""}<p class="banner__text">${text}</p></div>
     </div>
   `;
 
@@ -4342,12 +4364,38 @@ document.addEventListener("DOMContentLoaded", () => {
         const lacking = chosen ? rows.filter((r) => !redistCompetent(chosen, r)) : [];
         const modes = [["manual", "Manual"], ["automat", "Automat"], ...(d.bulk ? [["nedistribuite", "În nedistribuite"]] : [])];
         const holders = [...rows.reduce((map, r) => map.set(r.specialist?.nume || "—", (map.get(r.specialist?.nume || "—") || 0) + 1), new Map())];
+        /* redist-transfer-v1: reads as a transfer — mode, then „Responsabil actual → Responsabil nou”
+           (stacked with ↓ on phones), the row's hint / error under it, then the alerts (competence
+           first, then the term that never resets), then the reason */
+        const current = d.bulk
+          ? caseReadonly(holders.length > 1 ? "Responsabili actuali" : "Responsabil actual", `${roCount(rows.length, "dosar", "dosare")} · ${holders.map(([name, n]) => (holders.length > 1 ? `${name} (${n})` : name)).join(", ")}`, 0)
+          : caseReadonly("Responsabil actual", row.specialist?.nume, 0);
+        const plan = mode === "automat" ? redistAutoPlan(rows) : [];
+        const picked = [...new Set(plan.filter(Boolean).map((person) => person.nume))];
+        const unplaced = plan.filter((person) => !person).length;
+        const next = mode === "manual"
+          ? caseSelect("specialist", "Responsabil nou", people.map((person) => [person.id, `${person.nume} · ${roCount(person.load, "dosar în lucru", "dosare în lucru")}`]), { required: true, placeholder: "Alege specialistul", inRow: true })
+          : caseReadonly("Responsabil nou", mode === "nedistribuite" ? "Dosare nedistribuite"
+            : picked.length ? `${picked.join(", ")}${unplaced ? ` · ${roCount(unplaced, "dosar", "dosare")} în nedistribuite` : ""}`
+            : "Niciun specialist disponibil", 0);
+        const rowMessage = mode === "manual" && d.errors.specialist ? caseFieldError("specialist")
+          : `<p class="e-permits-fo-field__hint">${mode === "manual" ? `Specialiștii activi ai subdiviziunii ${escapeHtml(rows[0]?.subdiviziune || "")}, fără responsabilul actual.`
+            : mode === "automat" ? `Automat: SIA GEAP alege ${d.bulk ? "pentru fiecare dosar " : ""}specialistul competent cu cea mai mică încărcare, fără responsabilul actual.`
+            : "Dosarele ies din lista specialiștilor și așteaptă o nouă distribuire."}</p>`;
+        const warning = mode === "manual" && lacking.length
+          ? caseNotice(`<strong>${escapeHtml(chosen.nume)}</strong> nu are competență pentru ${lacking.length === rows.length ? `serviciul „${escapeHtml(row.serviciu)}”` : `${lacking.length} din dosarele selectate`}. Puteți continua redistribuirea.`, "warning")
+          : mode === "automat" && unplaced
+            ? caseNotice(unplaced < rows.length
+              ? `<strong>Niciun specialist competent disponibil pentru ${roCount(unplaced, "dosar", "dosare")}.</strong> ${unplaced > 1 ? "Acestea trec" : "Acesta trece"} în „Dosare nedistribuite”, iar supervizorii sunt notificați.`
+              : `<strong>Niciun specialist competent disponibil.</strong> ${rows.length > 1 ? "Dosarele trec" : "Dosarul trece"} în „Dosare nedistribuite”, iar supervizorii sunt notificați.`, "warning")
+            : "";
+        const terms = [...new Set(rows.map((r) => r.termenExaminare).filter(Boolean))].sort();
+        const notified = mode === "nedistribuite" || (mode === "automat" && !picked.length) ? "Supervizorii subdiviziunii sunt notificați."
+          : picked.length > 1 ? "Noii responsabili primesc o notificare." : "Noul responsabil primește o notificare.";
+        const termAlert = d.bulk
+          ? caseNotice(`Termenele nu se resetează: fiecare dosar își păstrează termenul. ${notified}`, "info", { title: terms.length > 1 ? `Termene de examinare: ${formatDate(terms[0])} – ${formatDate(terms[terms.length - 1])}` : `Termen de examinare: ${terms[0] ? formatDate(terms[0]) : "—"}` })
+          : caseNotice(`Termenul nu se resetează. ${notified}`, "info", { title: `Termen de examinare: ${formatDate(row.termenExaminare)}` });
         return `
-          <div class="e-permits-user-create__grid">
-            ${d.bulk
-              ? `${caseReadonly("Dosare selectate", roCount(rows.length, "dosar în examinare", "dosare în examinare"))}${caseReadonly("Responsabili actuali", holders.map(([name, n]) => (holders.length > 1 || n > 1 ? `${name} (${n})` : name)).join(", "))}`
-              : `${caseReadonly("Responsabil actual", row.specialist?.nume)}${caseReadonly("Termenul de examinare", formatDate(row.termenExaminare))}`}
-          </div>
           <div class="e-permits-fo-field">
             <label id="case-redist-mode-label">Modul redistribuirii${requiredMark()}</label>
             <div class="segmented-control" role="radiogroup" aria-labelledby="case-redist-mode-label">
@@ -4356,13 +4404,16 @@ document.addEventListener("DOMContentLoaded", () => {
               `).join("")}
             </div>
           </div>
-          ${mode === "manual" ? `
-            ${caseSelect("specialist", "Responsabil nou", people.map((person) => [person.id, `${person.nume} · ${roCount(person.load, "dosar în lucru", "dosare în lucru")}`]), { required: true, placeholder: "Alege specialistul", hint: `Specialiștii activi ai subdiviziunii ${rows[0]?.subdiviziune || ""}, fără responsabilul actual.` })}
-            ${lacking.length ? caseNotice(`<strong>${escapeHtml(chosen.nume)}</strong> nu are competență pentru ${lacking.length === rows.length ? `serviciul „${escapeHtml(row.serviciu)}”` : `${lacking.length} din dosarele selectate`}. Puteți continua redistribuirea.`, "warning") : ""}
-          ` : mode === "automat" ? caseNotice(`SIA GEAP alege specialistul competent cu cea mai mică încărcare, fără responsabilul actual. Dacă nu rămâne niciun candidat, dosarul trece în „Dosare nedistribuite”, iar supervizorii sunt notificați.`)
-            : caseNotice(`Dosarele ies din lista specialiștilor și așteaptă o nouă distribuire în „Dosare nedistribuite”.`)}
+          <div class="e-permits-case-transfer">
+            <div class="e-permits-case-transfer__row">
+              ${current}
+              <span class="e-permits-case-transfer__arrow" aria-hidden="true"><svg class="icon medium" width="20" height="20"><use href="assets/icons/sprite.svg#icon-arrow-right"></use></svg></span>
+              ${next}
+            </div>
+            ${rowMessage}
+          </div>
+          <div class="e-permits-case-form__notices">${warning}${termAlert}</div>
           ${caseTextarea("motiv", "Motivul redistribuirii", { required: true })}
-          <p class="e-permits-case-form__lead">Termenul de examinare nu se resetează. ${mode === "nedistribuite" ? "Supervizorii subdiviziunii sunt notificați." : "Noul responsabil primește o notificare."}</p>
         `;
       }
       case "decizie":

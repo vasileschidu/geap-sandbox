@@ -1254,6 +1254,8 @@
     "dos-06k": subList(async (h) => { for (let i = 0; i < 3; i += 1) await h.nth("[data-workplace-select-row]", i); }),
     "dos-06l": subList(async (h) => { await ekPick("specialist", ["Mihai Grosu"])(h); await ekCommit(h); await h.click("[data-workplace-select-all]"); }),
     "dos-06m": subList(async (h) => { await ekPick("specialist", ["Mihai Grosu"])(h); await ekCommit(h); await h.click("[data-workplace-select-all]"); await h.click("[data-workplace-redistribute]"); await h.click("#case-action-modal [data-case-choice='nedistribuite']"); }),
+    "dos-06o": dos(SUP, "inExaminare", "general", { candidati: "0" }, async (h) => { await redistOpen(h); await h.click("#case-action-modal [data-case-choice='automat']"); }),
+    "dos-06p": subList(async (h) => { for (let i = 0; i < 3; i += 1) await h.nth("[data-workplace-select-row]", i); await h.click("[data-workplace-redistribute]"); await h.click("#case-action-modal [data-case-choice='automat']"); }),
     "dos-06n": subList(async (h) => { for (let i = 0; i < 3; i += 1) await h.nth("[data-workplace-select-row]", i); await h.click("[data-workplace-redistribute]"); await h.click("#case-action-modal [data-case-choice='automat']"); await h.fill("#case-motiv", "Echilibrarea încărcării în subdiviziune."); await h.click("#case-action-modal [data-case-submit]"); await h.find(".toast"); }),
     "auth-05": { flow: "back-office", as: ADMIN, run: async (h) => { await h.click("[data-user-menu] .e-permits-shell__user-trigger"); } },
     "auth-05a": { page: "bo-login.html", params: { ended: "logout" }, ready: "[data-bo-login] h1" },
