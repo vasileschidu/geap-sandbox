@@ -25000,30 +25000,19 @@ body:has(:is([aria-haspopup]:not([aria-haspopup="false"]), [role="combobox"], .j
   background: var(--color-border-base-default, #d9d9d9);
 }
 
-/* file-item Error = the document card Error state (as the finish certificate): 1.5 danger stroke drawn inside,
-   the message as the note line under the meta, in the on-secondary danger text */
+/* file-item Error = the document card Error state: 1.5 danger stroke drawn inside (the input keeps its red border
+   in error), name + size + × only. The message is OUTSIDE the card, like an input's (doc-error-outside-v1, user on
+   GEAP D08): the FO field error `.message--inline.e-permits-fo-field__error` 8 under the card = the `.e-permits-fo-field`
+   gap between a control and its message */
 .e-permits-fo-file-item.is-error {
   box-shadow: inset 0 0 0 var(--border-width-1-5, 1.5px) var(--color-border-danger-default, #d92d20);
 }
 
-.e-permits-fo-file-item.is-error:has(> .e-permits-fo-lib-item__content) {
-  grid-template-rows: auto auto auto;
-}
-
-.e-permits-fo-file-item__error {
-  color: var(--color-text-danger-on-secondary, #b32318);
-  font-size: var(--font-size-fs-12, 12px);
-  grid-column: 2;
-  grid-row: 3;
-  line-height: var(--line-height-lh-20, 20px);
-  margin: 0;
+.e-permits-fo-doc-error {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-8, 8px);
   min-width: 0;
-}
-
-@media (max-width: 760px) {
-  .e-permits-fo-file-item__error {
-    grid-column: 2 / -1;
-  }
 }
 
 /* the × of the Uploading / Error cards is the library icon-only Strict (32) — it keeps the × place of the shared
@@ -25070,9 +25059,10 @@ body:has(:is([aria-haspopup]:not([aria-haspopup="false"]), [role="combobox"], .j
   display: none;
 }
 
-/* AC-06 · the required error under the description: 8 from it (the info column's gap is 6) */
-.e-permits-fo-doc-field__info > [data-fo-doc-required-error] {
-  margin-top: var(--spacing-2, 2px);
+/* AC-06 · the required error = last in the field, 8 under what is above it (the field stacks at 16; an input's
+   message sits 8 under its control) */
+.e-permits-fo-doc-field > [data-fo-doc-required-error] {
+  margin-top: calc(var(--spacing-8, 8px) - var(--spacing-16, 16px));
 }
 
 /* the picker captions (formats · size) wrap as whole captions, never word by word (phones) */

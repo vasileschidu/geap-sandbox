@@ -3760,3 +3760,15 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   too, proved on a worktree :8957), code-audit (only in-page print units + standing BO / builder; static 0 after moving a
   hex out of a comment), component-audit (standing shell / avatar / doc-modal × + missing-copy inside A4 tables),
   hover-audit 0 / 0 on the specimen + 3 viewers, print-media + grayscale render checked.
+- 2026-10-25 · doc-error-outside-v1 (user on GEAP D08: „the error goes OUTSIDE the card, exactly like an input”). A
+  validation message never lives inside a card / control: it is the FO field error (`span.message.message--inline
+  .message--error.e-permits-fo-field__error`, 20 icon · 4 · 14/20 danger) 8 under the control; the control keeps only its
+  red border. How: (1) card + message wrapped in ONE group (`.e-permits-fo-doc-error[data-fo-doc-error]`, gap 8) inside
+  the files box, so every existing remover / the rerender that carries `files.children` moves or removes both — a loose
+  sibling message would be orphaned by the six places that clear cards; (2) a message placed in a stack with a bigger gap
+  (doc field = 16) gets `margin-top: calc(8 − 16)` instead of a new wrapper; (3) ONE `foDocSyncDescribedBy(field)` builds
+  the buttons' `aria-describedby` from every error present (rejected file + required + guest), called by each
+  add / remove path — never set it per path. Measured with a probe vs the input error on adr-d6 (gap, icon box, icon →
+  text, colour, size / lh at 1440 + 375) before reporting. Another agent's uncommitted hunks sat in the same JS file →
+  staged only mine with `git apply --cached` of a filtered diff. No sub-agent tool → code-audit (standing label 18 /
+  Large 11 / meta 18, static 0), component-audit 0 in scope (standing FO avatar menu), hover-audit 0 / 0 on du2 / du8.

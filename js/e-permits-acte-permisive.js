@@ -7395,6 +7395,7 @@
       /* the guest flow reads the file name back */
       if (doc.tip === fileName) item.querySelector(".e-permits-fo-lib-item__title")?.classList.add("e-permits-fo-file-item__name");
       item.querySelector(".e-permits-fo-doc-attached-item__remove")?.addEventListener("click", () => { item.remove(); syncFull(); });
+      foDocClearFileError(container);
       container.appendChild(item);
       syncFull();
     }
@@ -7416,6 +7417,7 @@
           <svg class="icon" width="16" height="16" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-cross-large-16"></use></svg>
         </button>`}`;
       att.querySelector(".e-permits-fo-mdocs__attachment-remove")?.addEventListener("click", () => att.remove());
+      foDocClearFileError(container);
       container.appendChild(att);
     }
 
@@ -7451,31 +7453,58 @@
       return `<div class="e-permits-fo-lib-item__meta e-permits-fo-doc-meta"><span class="e-permits-fo-doc-meta__line">${parts.map((part) => `<span class="e-permits-fo-doc-meta__part">${part}</span>`).join("")}</span></div>`;
     }
     let foDocErrorSeq = 0;
-    /* AC-03 · the rejected file under its document = the document card Error state (library file-item Error):
-       file name + size, the message in the note line, × closes it; whatever was attached before stays */
+    /* the document field's error = the FO input field error (text-input Destructive: 20 circle-error-filled + 14/20
+       danger, 4 apart, 8 under the control) — never inside the card (doc-error-outside-v1, user on GEAP D08) */
+    function foDocFieldErrorHtml(id, message, attrs = "") {
+      return `<span class="message message--inline message--error e-permits-fo-field__error" id="${id}"${attrs}><svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-circle-error-filled"></use></svg><span>${escapeFrontOfficeHtml(message)}</span></span>`;
+    }
+    /* the field's buttons (Adaugă fișier / Înlocuiește) are described by every error the field shows */
+    function foDocSyncDescribedBy(field) {
+      if (!field) return;
+      const ids = [...field.querySelectorAll("[data-fo-guest-error], [data-fo-doc-error] > .e-permits-fo-field__error, [data-fo-doc-required-error]")].map((el) => el.id).filter(Boolean);
+      field.querySelectorAll("[data-fo-open-doc-modal]").forEach((btn) => {
+        if (btn.closest("[data-fo-doc-error]")) return;
+        if (ids.length) btn.setAttribute("aria-describedby", ids.join(" "));
+        else btn.removeAttribute("aria-describedby");
+      });
+    }
+    /* a document that arrives (upload, MDocs link) clears the rejected file's card + message */
+    function foDocClearFileError(container) {
+      const groups = container?.querySelectorAll("[data-fo-doc-error]") || [];
+      if (!groups.length) return;
+      groups.forEach((el) => el.remove());
+      foDocSyncDescribedBy(container.closest("[data-fo-doc-field]"));
+    }
+    /* AC-03 · the rejected file under its document = the document card Error state (library file-item Error: name +
+       size + ×, danger stroke) and, 8 under the card, the field error message; × closes both; whatever was attached
+       before stays */
     function foDocShowFileError(container, file, message) {
       container.querySelectorAll("[data-fo-doc-error]").forEach((el) => el.remove());
       const id = `fo-doc-error-${foDocErrorSeq += 1}`;
-      const item = document.createElement("div");
-      item.className = "e-permits-fo-file-item is-error";
-      item.dataset.foDocError = "";
-      item.innerHTML = `
-        ${foDocIconHtml({ sursa: "upload" })}
-        <div class="e-permits-fo-lib-item__content">
-          ${foDocTitleRowHtml(file.name)}
-          ${foDocMetaPartsHtml([escapeFrontOfficeHtml(formatFoFileSize(file.size))])}
-          <p class="e-permits-fo-file-item__error" id="${id}" role="alert">${escapeFrontOfficeHtml(message)}</p>
+      const group = document.createElement("div");
+      group.className = "e-permits-fo-doc-error";
+      group.dataset.foDocError = "";
+      group.innerHTML = `
+        <div class="e-permits-fo-file-item is-error">
+          ${foDocIconHtml({ sursa: "upload" })}
+          <div class="e-permits-fo-lib-item__content">
+            ${foDocTitleRowHtml(file.name)}
+            ${foDocMetaPartsHtml([escapeFrontOfficeHtml(formatFoFileSize(file.size))])}
+          </div>
+          <button class="btn btn-strict btn-sm btn-icon-only e-permits-fo-document-remove" type="button" aria-label="Închide mesajul pentru ${escapeFrontOfficeHtml(file.name)}" aria-describedby="${id}" data-fo-doc-error-close>
+            <svg class="icon" width="16" height="16" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-cross-large-16"></use></svg>
+          </button>
         </div>
-        <button class="btn btn-strict btn-sm btn-icon-only e-permits-fo-document-remove" type="button" aria-label="Închide mesajul pentru ${escapeFrontOfficeHtml(file.name)}" aria-describedby="${id}" data-fo-doc-error-close>
-          <svg class="icon" width="16" height="16" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-cross-large-16"></use></svg>
-        </button>`;
-      container.appendChild(item);
+        ${foDocFieldErrorHtml(id, message, ' role="alert"')}`;
+      container.appendChild(group);
+      foDocSyncDescribedBy(container.closest("[data-fo-doc-field]"));
     }
     /* AC-03 · file-item Uploading: spinner in the icon slot, name · size · percent, × cancels, progress line;
        on 100 % the shared document card takes its place (the previous file stays until then).
        Demo `?incarcare=pauza` holds it at 62 %. */
     function foDocStartUpload(container, file) {
-      container.querySelectorAll("[data-fo-doc-error], [data-fo-doc-uploading]").forEach((el) => el.remove());
+      foDocClearFileError(container);
+      container.querySelectorAll("[data-fo-doc-uploading]").forEach((el) => el.remove());
       const size = formatFoFileSize(file.size);
       const item = document.createElement("div");
       item.className = "e-permits-fo-file-item is-uploading";
@@ -7524,21 +7553,14 @@
     function foDocMissing(panel) {
       return [...panel.querySelectorAll("[data-fo-doc-field][data-fo-doc-required]")].filter((field) => !field.closest("[hidden]") && !foDocHasFile(field));
     }
+    /* the required error sits where every document field error sits: last in the field, 8 under the control (the
+       button row on desktop, the full-width button on phones) or under a rejected file's message */
     function foDocSetFieldError(field, on) {
-      const info = field.querySelector(".e-permits-fo-doc-field__info");
-      const add = field.querySelector(".e-permits-fo-doc-field__add");
-      let error = field.querySelector("[data-fo-doc-required-error]");
+      const error = field.querySelector("[data-fo-doc-required-error]");
       field.classList.toggle("is-error", on);
-      if (!on) { error?.remove(); add?.removeAttribute("aria-describedby"); return; }
-      if (!error && info) {
-        error = document.createElement("span");
-        error.className = "message message--inline message--error e-permits-fo-field__error";
-        error.dataset.foDocRequiredError = "";
-        error.id = `fo-doc-${field.dataset.foDocField}-required`;
-        error.innerHTML = `<svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-circle-error-filled"></use></svg><span>${FO_DOC_REQUIRED_MSG}</span>`;
-        info.appendChild(error);
-      }
-      if (error) add?.setAttribute("aria-describedby", error.id);
+      if (!on) error?.remove();
+      else if (!error) field.insertAdjacentHTML("beforeend", foDocFieldErrorHtml(`fo-doc-${field.dataset.foDocField}-required`, FO_DOC_REQUIRED_MSG, " data-fo-doc-required-error"));
+      foDocSyncDescribedBy(field);
     }
     function foDocSyncRequired(panel, { announce = false } = {}) {
       if (!panel?.dataset.foDocsChecked) return [];
@@ -7656,7 +7678,8 @@
       const close = e.target.closest("[data-fo-doc-error-close], [data-fo-upload-cancel]");
       if (!close) return;
       const field = close.closest("[data-fo-doc-field]");
-      close.closest(".e-permits-fo-file-item")?.remove();
+      (close.closest("[data-fo-doc-error]") || close.closest(".e-permits-fo-file-item"))?.remove();
+      foDocSyncDescribedBy(field);
       (field?.querySelector(".e-permits-fo-doc-field__add:not([hidden])") || field?.querySelector("[data-fo-doc-replace-open]"))?.focus();
     });
 
