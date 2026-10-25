@@ -3671,3 +3671,11 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   the stale corners in the same undo step). (4) A handle at a segment's middle sits under that segment's label —
   move that one a quarter in. Probe (scratch pdp/bend.mjs): real CDP drag (cursor, stage class mid-drag, path after,
   label on the moved segment), Ctrl+Z / Ctrl+Shift+Z, blur-cancel mid-drag, then a node nudge keeping the route.
+- 2026-10-25 · pd-panel-fit-v1 (found by figma-designer: connection facts 9 px wide in pd-07d / 07e, node JSON 820 px in the
+  286 panel in pd-33). (1) A child of `.e-permits-user-create__grid` (12 columns) without a `__field--N` / `__field` class
+  spans ONE column → the `facts()` dl inside `gridHtml()` was 1/12 wide. Any non-field block put in a field grid needs
+  `grid-column: 1 / -1` (rule scoped to the PD panel grid). (2) `.e-permits-builder__schema` is the Form Builder's PAGE code
+  canvas (`min-width: 860px`, `min-height: 520px`): reusing it in a narrow panel must reset min-width / min-height (0),
+  width 100% + border-box, and `overflow-wrap: anywhere` on the pre (GUIDs / long strings). The min-height had also beaten
+  the panel's max-height (240 → 520 tall). Measured at 1440 / 1024: facts 286 = panel content, JSON 286 × 240, scrollWidth
+  = width. Seen, not fixed (pre-existing): „Grosime” segmented „Implicită” item is cramped at 286 (text touches the pill).

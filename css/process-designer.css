@@ -1333,6 +1333,12 @@
   gap: var(--spacing-16, 16px);
 }
 
+/* read-only facts inside a field grid span the full row (pd-panel-fit-v1: an unclassed grid child took 1 of 12 columns = 9 px) */
+.e-permits-pd__float--right .e-permits-builder__panel-grid > .e-permits-builder__facts {
+  grid-column: 1 / -1;
+  min-width: 0;
+}
+
 /* the tab row: the BO profile strip, its track line inset 16 like the content (content-box background) */
 .e-permits-pd__tabs {
   flex: 0 0 auto;
@@ -2217,8 +2223,18 @@
 }
 
 .e-permits-pd__node-json.e-permits-builder__schema {
+  box-sizing: border-box;
   max-height: calc(var(--spacing-80, 80px) * 3);
+  max-width: 100%;
+  min-height: 0;
+  min-width: 0;
   overflow: auto;
+  width: 100%;
+}
+
+/* the node JSON wraps inside the panel (the shared schema canvas is a 860+ wide page block) */
+.e-permits-pd__node-json.e-permits-builder__schema pre {
+  overflow-wrap: anywhere;
 }
 
 /* ---- list view (spec E.5): the outline replaces the canvas; keyboard-first */
