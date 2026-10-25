@@ -3794,8 +3794,9 @@
 }
 
 /* step = Figma „Step indicator” (GEAP 2.0 5848:67682 = FOD 756:24789, stepper-current-stroke-v1, user 2026-10-22):
-   steps 8 apart; each step after the first = 46.5 (connector 16 at the top, 6.5, row 24 at the bottom), so the line
-   keeps 8 below the previous circle and 6.5 above its own — first step = the row only (24); 7 steps = 351 */
+   steps 8 apart; each step after the first = 46 (connector 16 at the top, 6, row 24 at the bottom; whole px since
+   fo-qa-1440-v1, Figma boards 2026-10-25 — was 46.5), so the line keeps 8 below the previous circle and 6 above its
+   own — first step = the row only (24); 7 steps = 348 */
 .e-permits-fo-stepper ol {
   display: flex;
   flex-direction: column;
@@ -3811,7 +3812,7 @@
   flex-direction: column;
   gap: var(--spacing-0, 0);
   justify-content: space-between;
-  min-height: calc(var(--spacing-48, 48px) - var(--border-width-1-5, 1.5px)); /* 46.5 = Figma step */
+  min-height: calc(var(--spacing-48, 48px) - var(--spacing-2, 2px)); /* 46 = Figma step (whole px) */
   width: 100%;
 }
 
