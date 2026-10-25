@@ -3804,3 +3804,11 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   must show ONLY the foreign hunks (grep the leftover for your own keywords = 0). Better: never -U0 for insertions —
   build the blob as HEAD + asserted (old → new) replacements, as the Python fix did. zsh `$F` with a file list is ONE
   word — the first try produced an empty patch.
+- 2026-10-25 · bo-code-drift-v1 (4 bugs the figma-designer found). (1) A new registry column whose cell is an object
+  (`row.specialist`) needs a case in `getColumnTextLines` too, not only in the cell renderer — the width pass measured
+  „[object Object]”. Grep `getColumnTextLines` whenever a column key is added. The visible „[object Object]” did not
+  reproduce in today's DOM; fix the only object-to-string path and say so. (2) The case-action modal subtitle is ONE line
+  shared by every case dialog (`subtitle: row.serviciu`) — fixing it for one dialog fixes all; the dosar drawer subtitle
+  and „Dosarul X” event detail still carry numbers (reported, not in scope). (3) Seed values that already carry a prefix
+  („v2.1.0”) — strip before prefixing. (4) The journal stores only the actor's name → resolve the role at read time
+  (`dosarActorRole`: signed-in assignment, team, applicant) instead of writing it into every log call.

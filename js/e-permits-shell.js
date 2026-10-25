@@ -2225,6 +2225,11 @@ document.addEventListener("DOMContentLoaded", () => {
         return [row.actBaza?.titular || "—"];
       case "initiatDe":
         return [row.initiatDe?.nume || "—"];
+      /* person cells measure the name (+ role line), never the object — „[object Object]” sized the column */
+      case "specialist":
+        return [row.specialist?.nume || "—"];
+      case "creatDe":
+        return [row.specialist?.nume || "—", row.specialist?.rol || "Specialist"];
       case "solicitant":
         return [row.numeSolicitant || "—"];
       default:
@@ -4501,7 +4506,8 @@ document.addEventListener("DOMContentLoaded", () => {
       /* a form of the current step is titled by the step (US name); a form of the
          next step (Suspendare termen at Verificarea datelor) by the action */
       title: actionId === "redistribuie" ? "Redistribuie dosarul" : item.kind !== "operation" && item.form && item.form === ctx.avail.step.form ? ctx.avail.step.name : item.label,
-      subtitle: `${row.nrDosar} · ${row.serviciu}`,
+      /* modal subtitles never carry the dossier number (PO rule) — it stays in the content */
+      subtitle: row.serviciu,
       /* operations get a verb; transitions keep their US label */
       submitLabel: { taxaExaminare: "Adaugă taxele", aviz: "Solicită avizul" }[actionId] || item.label,
       next: item.kind === "operation" ? "" : item.target,
@@ -8088,9 +8094,19 @@ document.addEventListener("DOMContentLoaded", () => {
     authority: getAuthorityById?.(service.authorityId)?.name || service.authority || "",
     objectType: "Serviciu (pașaport)",
     objectId: service.code,
-    objectVersion: service.geap?.version ? `v${service.geap.version}` : "",
+    /* the seed already writes „v2.1.0” — prefix only bare numbers */
+    objectVersion: service.geap?.version ? `v${String(service.geap.version).replace(/^v/i, "")}` : "",
     related: (SVC_AUDIT_RELATED.find(([pattern]) => pattern.test(e.type)) || [null, []])[1]
   });
+  /* the journal stores only the actor's name → the role comes from the demo users: the signed-in user's active
+     assignment, the subdivision team (specialisti + redistribution extras), the applicant; system actors stay empty */
+  const dosarActorRole = (row, name) => {
+    if (!name) return "";
+    if (name === currentUserName()) return getRoleAssignments().find((assignment) => assignment.id === activeAssignmentId)?.roleLabel || "";
+    const person = redistTeam().find((entry) => entry.nume === name);
+    if (person) return person.rol || "";
+    return name === row.companie || name === row.numeSolicitant ? "Solicitant" : "";
+  };
   const dosarAuditContext = (row, item) => {
     const filedOnline = item.type === "Dosar depus" && row.sursa === "FO";
     const related = item.audit?.related
@@ -8103,7 +8119,7 @@ document.addEventListener("DOMContentLoaded", () => {
         : []);
     return {
       module: filedOnline ? "FrontOffice" : "BackOffice",
-      role: filedOnline ? "Solicitant" : "",
+      role: filedOnline ? "Solicitant" : dosarActorRole(row, item.user),
       authority: filedOnline ? "" : dossierDb?.myAutoritate || workplaceDb.myAutoritate || "",
       subdivision: filedOnline ? "" : row.subdiviziune || "",
       objectType: item.audit?.objectType || "Dosar",
