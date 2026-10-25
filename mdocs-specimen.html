@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Machetele MDocs — sistemul de documente · GEAP</title>
+  <!-- mdocs-system-v1 (2026-10-25): the specimen of the MDocs document system — foundations, every module and
+       variant, every template on real A4 pages (demo mdoc-sys; mdoc-sys-z with the locked / editable zones).
+       The visual spec Figma copies; js/mdocs-specimen.js composes it from GEAPDocPreview.mdoc only. -->
+  <link rel="stylesheet" href="assets/fonts/Onest.css">
+  <link rel="stylesheet" href="css/main.css?v=border200-v1">
+  <link rel="stylesheet" href="css/token-fix.css?v=cards-radius-20-final">
+  <link rel="stylesheet" href="css/type-mobile.css?v=type-mobile-v1">
+  <link rel="stylesheet" href="css/button-icons.css?v=button-label-v1">
+  <link rel="stylesheet" href="css/doc-modal-parts.css?v=act-doc-v1">
+  <link rel="stylesheet" href="css/doc-preview.css?v=mdocs-system-v1">
+  <!-- ?state=<id> opens the screen a Figma frame shows (js/demo-states.js) -->
+  <script src="js/demo-states.js?v=mdocs-system-v1"></script>
+  <script src="js/demo-links.js?v=links-v4"></script>
+  <script src="js/doc-preview.js?v=mdocs-system-v1" defer></script>
+  <script src="js/mdocs-specimen.js?v=mdocs-system-v1" defer></script>
+</head>
+<body>
+  <main class="e-permits-mdoc-spec" data-mdoc-spec>
+    <header class="e-permits-mdoc-spec__intro">
+      <p class="e-permits-mdoc-spec__kicker">GEAP · MDocs · mdocs-system-v1</p>
+      <h1 class="e-permits-mdoc-spec__h1">Machetele documentelor generate prin MDocs</h1>
+      <p class="e-permits-mdoc-spec__lead">Un singur sistem pentru cerere, notificare, decizie, act permisiv și certificat constatator: fundații de tipar, module combinabile și șabloane care sunt doar o listă de module. Antetul, blocul de titlu, semnăturile și subsolul sunt blocate (macheta); conținutul principal este editabil prin șablonul serviciului (US-306 AC-01 / AC-06).</p>
+      <a class="btn btn-neutral btn-sm e-permits-mdoc-spec__zones" data-mdoc-spec-zones href="?zone=1">Arată zonele</a>
+    </header>
+    <div class="e-permits-mdoc-spec__sheets" data-mdoc-spec-sheets></div>
+  </main>
+</body>
+</html>

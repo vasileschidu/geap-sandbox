@@ -213,7 +213,6 @@
         ? docGridRows(item)
         : `<tr><td>${escapeHtml(item.label)}</td><td>${Array.isArray(item.value) ? item.value.filter(isFilled).map(escapeHtml).join("<br>") : escapeHtml(item.value)}</td></tr>`);
       const rowsHtml = [
-        ...[["Beneficiar", act.beneficiary.name], ...(person ? [] : [[act.beneficiary.idType, act.beneficiary.id]])].map(row),
         ...normalizeFields(act.groups).map((group) => `${group.title ? `<tr class="e-permits-doc-page__group"><th colspan="2" scope="colgroup">${escapeHtml(group.title)}</th></tr>` : ""}${group.items.map(itemRow).join("")}`),
         ...[
           ...(act.tacitDate ? [["Data aprobării tacite", act.tacitDate]] : []),
@@ -236,6 +235,10 @@
         number: act.number,
         date: act.issuedDate,
         validUntil: act.validUntil,
+        /* mdocs-system-v1: the beneficiary = the party block (PF: the anonymised name only, US-145); the act's status at
+           generation = the title block's chip (the watermark still marks a non-valid act across the page) */
+        parties: [{ role: "Beneficiar", name: act.beneficiary.name, lines: person ? [] : [[act.beneficiary.idType, act.beneficiary.id].filter(Boolean).join(" ")] }],
+        status: act.tacitBadge ? { label: "Aprobare tacită", tone: "brand" } : act.status ? { label: act.status, tone: act.tone } : null,
         rowsHtml,
         closingHtml: '<p class="rap-act-doc__closing">Actul permisiv se eliberează pentru desfășurarea activității indicate, în condițiile legii.</p>',
         signers: act.signers,

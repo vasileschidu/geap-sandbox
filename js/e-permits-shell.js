@@ -3542,11 +3542,12 @@ document.addEventListener("DOMContentLoaded", () => {
     office: row.subdiviziune || "",
     request: { number: row.nrDosar, date: row.dataDepunerii, type: row.tipDosar || "Eliberare", service: row.serviciu }
   });
-  const dosarHolderRows = (row, profile) => [
-    [row.companie ? "Denumirea" : "Nume, prenume", row.companie || row.numeSolicitant],
-    ["Cod de identificare", profile.companyId ? `IDNO ${profile.companyId}` : `IDNP ${profile.applicantId}`],
-    ...(row.companie ? [["Reprezentant", `${row.numeSolicitant}${profile.representative?.type === "mpower" ? ` · împuternicire MPower ${profile.representative.numar}` : " · administrator"}`]] : [])
-  ];
+  /* mdocs-system-v1: the applicant (+ representative) as the document's party block */
+  const dosarMdocParties = (row, profile, role = "Solicitant") => {
+    const holder = { role, name: row.companie || row.numeSolicitant, lines: [profile.companyId ? `IDNO ${profile.companyId}` : `IDNP ${profile.applicantId}`] };
+    if (!row.companie) return [holder];
+    return [holder, { role: "Reprezentant", name: row.numeSolicitant, lines: [profile.representative?.type === "mpower" ? `Împuternicire MPower ${profile.representative.numar}` : "Administrator"] }];
+  };
   const dosarMdocSpec = (doc, row, profile) => {
     const base = dosarMdocBase(row);
     const status = workplaceDb.statuses?.[row.status]?.label || "";
@@ -3554,12 +3555,12 @@ document.addEventListener("DOMContentLoaded", () => {
     if (doc.genId === "cerere") {
       return {
         ...base, type: "cerere", number: row.nrDosar, date: row.dataDepunerii,
+        parties: dosarMdocParties(row, profile),
         groups: [
-          { title: "Solicitantul", rows: dosarHolderRows(row, profile) },
           { title: "Serviciul solicitat", rows: [["Serviciul", row.serviciu], ["Tipul solicitării", base.request.type], ["Subdiviziunea de procesare", row.subdiviziune], ["Canal de depunere", row.sursa === "FO" ? "EVO · Front Office" : "Ghișeu"]] },
-          { title: "Obiectul activității", rows: [["Adresa obiectului", DOSAR_OBJECT_ADDRESS]] },
-          { title: "Acte anexate", rows: (profile.insotitoare || []).map((item, index) => [`${index + 1}.`, item.tip]) }
-        ]
+          { title: "Obiectul activității", rows: [["Adresa obiectului", DOSAR_OBJECT_ADDRESS]] }
+        ],
+        attachments: (profile.insotitoare || []).map((item) => ({ name: item.tip, meta: item.fisier || "" }))
       };
     }
     if (doc.genId === "certificat") {
@@ -3579,9 +3580,9 @@ document.addEventListener("DOMContentLoaded", () => {
       const rejection = row.flowState?.rejection || {};
       return {
         ...base, type: "decizie-refuz", number: row.nrDosar, date: doc.at,
-        introHtml: `<p>În urma examinării cererii și a actelor anexate, ${escapeHtml(base.authority)} a decis refuzul eliberării actului permisiv.</p>`,
+        outcome: { tone: "refused", title: "Cererea a fost refuzată", text: `În urma examinării cererii și a actelor anexate, ${base.authority} a decis refuzul eliberării actului permisiv.` },
+        parties: dosarMdocParties(row, profile),
         groups: [{ rows: [
-          ...dosarHolderRows(row, profile),
           ["Motivele refuzului", rejection.motiv || "Actele anexate nu confirmă respectarea cerințelor sanitare pentru spațiul de activitate."],
           ["Temeiul legal", rejection.temei || "Legea nr. 160/2011 privind reglementarea prin autorizare a activității de întreprinzător, art. 19"],
           ...(rejection.recomandari ? [["Recomandări", rejection.recomandari]] : []),
@@ -3594,13 +3595,13 @@ document.addEventListener("DOMContentLoaded", () => {
       const signer = docSigner();
       return {
         ...base, type: "act", title: row.serviciu, number: doc.nr, date: doc.at, validUntil: act.valabilPana || "",
+        parties: dosarMdocParties(row, profile, "Titularul actului"),
         groups: [
-          { rows: dosarHolderRows(row, profile) },
           { title: "Obiectul activității", rows: [["Adresa obiectului", DOSAR_OBJECT_ADDRESS], ["Subdiviziunea emitentă", row.subdiviziune]] },
           { rows: [["Valabil din data", formatLongDate(act.valabilDin || doc.at)], ["Numărul dosarului electronic", row.nrDosar]] }
         ],
         closingHtml: "<p>Actul permisiv se eliberează pentru desfășurarea activității la adresa indicată, în condițiile legii.</p>",
-        signers: [{ role: signer.rol, name: signer.nume }]
+        signers: [{ role: signer.rol, name: signer.nume, signedAt: doc.at }]
       };
     }
     return null;
@@ -3624,7 +3625,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const total = fees.reduce((sum, fee) => sum + Number(fee.suma || 0), 0);
     const paymentNote = /plată/.test(item.eveniment);
     const groups = paymentNote
-      ? [{ rows: [["Cererea", `Nr. ${window.GEAPDocPreview?.mdocsNumber(row.nrDosar) || row.nrDosar}`], ["Serviciul", row.serviciu], ...fees.map((fee) => [fee.denumire, `${fee.id} · ${fee.suma} MDL`]), ["Suma totală", `${total} MDL`], ["Termen de achitare", fees[0] ? formatLongDate(fees[0].termen) : ""], ["Modalitatea de achitare", "MPay (mpay.gov.md)"]] }]
+      ? [{ rows: [["Cererea", `Nr. ${window.GEAPDocPreview?.mdocsNumber(row.nrDosar) || row.nrDosar}`], ["Serviciul", row.serviciu], ["Termen de achitare", fees[0] ? formatLongDate(fees[0].termen) : ""], ["Modalitatea de achitare", "MPay (mpay.gov.md)"]] }]
       : [{ rows: [["Cererea", `Nr. ${window.GEAPDocPreview?.mdocsNumber(row.nrDosar) || row.nrDosar}`], ["Serviciul", row.serviciu], ["Tipul solicitării", base.request.type], ["Data înregistrării", formatLongDate(row.dataDepunerii)], ["Termen de examinare", row.termenExaminare ? formatLongDate(row.termenExaminare) : ""], ["Subdiviziunea de examinare", row.subdiviziune]] }];
     const intro = paymentNote
       ? `Pentru cererea dumneavoastră a fost emisă nota de plată. Examinarea continuă după confirmarea achitării prin MPay.`
@@ -3632,7 +3633,11 @@ document.addEventListener("DOMContentLoaded", () => {
     return {
       id: `notif-${docSlug(item.eveniment)}`, kind: "notificare", tip: title, sursa: "generat",
       fisier: `${docSlug(title)}-${docSlug(row.nrDosar)}.pdf`, at, semnat: null,
-      mdoc: { type: "notificare", title, number: row.nrDosar, date: at, introHtml: `<p>Stimate solicitant,</p><p>${escapeHtml(intro)}</p>`, groups }
+      mdoc: {
+        type: "notificare", title, number: row.nrDosar, date: at, intro: ["Stimate solicitant,", intro], groups,
+        /* mdocs-system-v1: the fees of a payment note = the table module with its total */
+        table: paymentNote && fees.length ? { title: "Taxe de achitat", columns: [{ label: "Taxa" }, { label: "Nota de plată", width: "medium" }, { label: "Suma, MDL", align: "end", width: "narrow" }], rows: fees.map((fee) => [fee.denumire, fee.id, String(fee.suma)]), total: ["Total de achitat", `${total} MDL`] } : null
+      }
     };
   };
   /* US-306 AC-16 / US-307…311: every generation is written to the dossier's journal (the MDocs side shares the action's

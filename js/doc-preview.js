@@ -61,9 +61,145 @@
     if (body) syncScrollEdges(body);
   }
 
+  /* ---- Flow pagination of the MDocs module pages (mdocs-system-v1, 2026-10-25). The page body is
+     `.e-permits-mdoc__flow`: its children are MODULES. `data-flow="keep"` = atomic (moves whole);
+     `data-flow="split"` = breaks between the children of its `[data-flow-items]` (kv rows, table rows, paragraphs,
+     attachments) — the part on the next page is a clone of the module without items (`.is-continued`: its
+     `[data-flow-head]` title gets „(continuare)”, a table keeps its <thead>, so the header repeats). Rules: an item
+     that is a heading / keep row (`.e-permits-doc-page__group`, `.e-permits-doc-page__keep`, `[data-flow-keep]`) or a
+     module title never ends a page; `[data-flow-with-prev]` (signatures) never opens a page alone; a configured grid
+     continued on the next page repeats its header row (act fields); a block taller than a page stays (no loop). ---- */
+  const FLOW = ".e-permits-mdoc__flow";
+  const KEEP_ITEM = ".e-permits-doc-page__group, .e-permits-doc-page__keep, [data-flow-keep]";
+  function paginateFlow(canvas, first, { repeat = "" } = {}) {
+    const style = window.getComputedStyle(first);
+    const room = parseFloat(style.minHeight) - parseFloat(style.paddingTop) - parseFloat(style.paddingBottom);
+    const fits = (page) => {
+      page.classList.add("is-measuring");
+      const height = page.querySelector(".e-permits-doc-page__surface").scrollHeight;
+      page.classList.remove("is-measuring");
+      return height <= room + 1;
+    };
+    const contTemplate = first.querySelector("template.e-permits-doc-page__cont-tpl");
+    const continuation = (from) => {
+      const page = document.createElement("div");
+      page.className = from.className;
+      if (repeat) from.querySelectorAll(`:scope > :is(${repeat})`).forEach((part) => page.append(part.cloneNode(true)));
+      const surface = document.createElement("div");
+      surface.className = from.querySelector(".e-permits-doc-page__surface").className;
+      if (contTemplate) surface.append(contTemplate.content.cloneNode(true));
+      const flow = document.createElement("div");
+      flow.className = "e-permits-mdoc__flow";
+      surface.append(flow);
+      const footer = from.querySelector(".e-permits-doc-page__footer");
+      if (footer) surface.append(footer.cloneNode(true));
+      page.append(surface);
+      return page;
+    };
+    const itemsOf = (module) => (module?.matches('[data-flow="split"]') ? module.querySelector("[data-flow-items]") : null);
+    const pieceOf = (module) => {
+      const piece = module.cloneNode(true);
+      itemsOf(piece).replaceChildren();
+      piece.classList.add("is-continued");
+      piece.querySelectorAll("[data-flow-head]").forEach((head) => {
+        if (head.querySelector(".e-permits-mdoc__cont-mark")) return;
+        const mark = document.createElement("span");
+        mark.className = "e-permits-mdoc__cont-mark";
+        mark.textContent = " (continuare)";
+        head.append(mark);
+      });
+      piece.mdocSource = module;
+      return piece;
+    };
+    /* one unit from the end of `flow` to the start of `next`; false when nothing can move */
+    const moveOne = (flow, next) => {
+      const last = flow.lastElementChild;
+      if (!last) return false;
+      const items = itemsOf(last);
+      if (items && items.children.length > 1) {
+        let piece = next.firstElementChild;
+        if (!piece || piece.mdocSource !== last) { piece = pieceOf(last); next.prepend(piece); }
+        itemsOf(piece).prepend(items.lastElementChild);
+        return true;
+      }
+      if (flow.children.length < 2) return false;
+      const piece = next.firstElementChild;
+      next.prepend(last);
+      if (piece && piece.mdocSource === last) {
+        itemsOf(last).append(...itemsOf(piece).children);
+        piece.remove();
+      }
+      return true;
+    };
+    /* the reverse of moveOne: the first unit of `next` back to the end of `flow` */
+    const pullOne = (flow, next) => {
+      const head = next.firstElementChild;
+      if (!head) return false;
+      const last = flow.lastElementChild;
+      if (head.mdocSource && head.mdocSource === last) {
+        const item = itemsOf(head).firstElementChild;
+        if (!item) return false;
+        itemsOf(last).append(item);
+        if (!itemsOf(head).children.length) head.remove();
+        return true;
+      }
+      if (head.mdocSource) return false;
+      flow.append(head);
+      return true;
+    };
+    const dangles = (flow) => {
+      const last = flow.lastElementChild;
+      const items = itemsOf(last);
+      return Boolean(last) && ((items && (!items.lastElementChild || items.lastElementChild.matches(KEEP_ITEM))) || last.matches("[data-flow-keep-next]"));
+    };
+    let page = first;
+    for (let guard = 0; guard < 30 && !fits(page); guard += 1) {
+      const flow = page.querySelector(FLOW);
+      if (!flow) break;
+      const next = continuation(page);
+      page.after(next);
+      const nextFlow = next.querySelector(FLOW);
+      let moved = 0;
+      while (!fits(page) && moveOne(flow, nextFlow)) moved += 1;
+      for (let step = 0; step < 6; step += 1) {
+        const last = flow.lastElementChild;
+        if (!last) break;
+        const items = itemsOf(last);
+        const dangling = (items && (!items.lastElementChild || items.lastElementChild.matches(KEEP_ITEM))) || last.matches("[data-flow-keep-next]");
+        if (!dangling || !moveOne(flow, nextFlow)) break;
+        moved += 1;
+      }
+      if (nextFlow.firstElementChild?.matches("[data-flow-with-prev]") && moveOne(flow, nextFlow)) moved += 1;
+      /* backfill: moving a tall block from the end can leave room — pull the next page's first units back one by one
+         while the page still fits and no heading / keep row would end it */
+      for (let step = 0; step < 60 && pullOne(flow, nextFlow); step += 1) {
+        if (fits(page) && !dangles(flow) && !nextFlow.firstElementChild?.matches("[data-flow-with-prev]")) continue;
+        for (let back = 0; back < 60 && (!fits(page) || dangles(flow)) && moveOne(flow, nextFlow); back += 1);
+        if (nextFlow.firstElementChild?.matches("[data-flow-with-prev]")) moveOne(flow, nextFlow);
+        break;
+      }
+      if (!nextFlow.children.length) { next.remove(); break; }
+      const firstRow = itemsOf(nextFlow.firstElementChild)?.firstElementChild;
+      const head = firstRow?.dataset?.docGridOf ? canvas.querySelector(`[data-doc-grid="${firstRow.dataset.docGridOf}"]:not(.is-repeat)`) : null;
+      if (head) firstRow.before(Object.assign(head.cloneNode(true), { className: `${head.className} is-repeat` }));
+      if (!moved) { next.remove(); break; }
+      page = next;
+    }
+  }
+
   function paginate(canvas, { repeat = "", tail = ".e-permits-doc-page__tail" } = {}) {
     const first = canvas?.querySelector(".e-permits-doc-page");
     if (!first) return;
+    if (first.querySelector(FLOW)) {
+      canvas.querySelectorAll(".e-permits-doc-page").forEach((page) => { page.style.zoom = ""; });
+      paginateFlow(canvas, first, { repeat });
+      const all = canvas.querySelectorAll(".e-permits-doc-page");
+      all.forEach((item, index) => {
+        const label = item.querySelector("[data-doc-page-label]");
+        if (label) label.textContent = `Pagina ${index + 1} din ${all.length}`;
+      });
+      return;
+    }
     canvas.querySelectorAll(".e-permits-doc-page").forEach((page) => { page.style.zoom = ""; });
     const style = window.getComputedStyle(first);
     const room = parseFloat(style.minHeight) - parseFloat(style.paddingTop) - parseFloat(style.paddingBottom);
@@ -273,9 +409,256 @@
     return `${group.title ? `<tr class="e-permits-doc-page__group"><th colspan="2" scope="colgroup">${escapeText(group.title)}</th></tr>` : ""}${rows.map(([label, value]) => `<tr><td>${escapeText(label)}</td><td>${cellValue(value)}</td></tr>`).join("")}`;
   }).join("");
 
-  function mdocsHtml(spec = {}) {
+  /* =====================================================================================
+     MDocs DOCUMENT SYSTEM (mdocs-system-v1, 2026-10-25) — modules + templates.
+     A document = a TEMPLATE (an ordered list of module configs) + its DATA (`mdocData(spec)`). Each module is one
+     render function: data in, markup out; it returns "" when its data is missing, so templates stay plain lists.
+     Zones (US-306 AC-01 / AC-06): every module carries `data-mdoc-zone` —
+       locked   = the macheta (header, title block, continuation header, signatures, footer): fixed in code, filled by
+                  the system; never edited from the UI;
+       editable = the main content (parties, data grids, tables, text, outcome, attachments): what the service's print
+                  template (US-227) produces — the only zone a template editor may change (no editor rework yet).
+     Placement: `place: "head"` = page 1 above the flow; `continuation` = the <template> pages 2+ start with;
+     `footer` = every page; everything else flows in `.e-permits-mdoc__flow` and paginates (paginateFlow).
+     ===================================================================================== */
+  const esc = escapeText;
+  const spriteIcon = (id, cls = "icon") => `<svg class="${cls}" aria-hidden="true"><use href="${ASSETS}icons/sprite.svg#icon-${id}"></use></svg>`;
+  const filled = (value) => (Array.isArray(value) ? value.some((part) => String(part ?? "").trim()) : String(value ?? "").trim() !== "");
+  const zoneOf = (cfg, fallback) => cfg.zone || fallback;
+
+  /* a QR-like code drawn from the verification link (deterministic; MDocs generates the real, scannable code — AC-15):
+     25 × 25 modules, the three finder squares, timing lines and one alignment square */
+  const hashText = (text) => {
+    let h = 2166136261;
+    for (const ch of String(text)) { h ^= ch.charCodeAt(0); h = Math.imul(h, 16777619); }
+    return h >>> 0;
+  };
+  function qrSvg(text) {
+    const n = 25;
+    let seed = hashText(text) || 1;
+    const rnd = () => { seed ^= seed << 13; seed >>>= 0; seed ^= seed >>> 17; seed ^= seed << 5; seed >>>= 0; return seed / 4294967296; };
+    const square = (x, y, size, hollowRing) => (r, c) => {
+      const dx = c - x; const dy = r - y;
+      if (dx < 0 || dy < 0 || dx >= size || dy >= size) return null;
+      const mid = (size - 1) / 2;
+      return Math.max(Math.abs(dx - mid), Math.abs(dy - mid)) !== hollowRing;
+    };
+    const finders = [square(0, 0, 7, 2), square(n - 7, 0, 7, 2), square(0, n - 7, 7, 2), square(n - 9, n - 9, 5, 1)];
+    const path = [];
+    for (let r = 0; r < n; r += 1) {
+      for (let c = 0; c < n; c += 1) {
+        let dark = null;
+        for (const test of finders) { const v = test(r, c); if (v !== null) { dark = v; break; } }
+        if (dark === null && ((r < 8 && c < 8) || (r < 8 && c > n - 9) || (r > n - 9 && c < 8))) dark = false;
+        if (dark === null && (r === 6 || c === 6)) dark = (r + c) % 2 === 0;
+        if (dark === null) dark = rnd() < 0.48;
+        if (dark) path.push(`M${c} ${r}h1v1h-1z`);
+      }
+    }
+    return `<svg class="e-permits-mdoc__qr-code" viewBox="0 0 ${n} ${n}" shape-rendering="crispEdges" aria-hidden="true"><path d="${path.join("")}" fill="currentColor"/></svg>`;
+  }
+
+  /* a signing moment: date + time, or the date alone when only a day is known */
+  const signedOn = (value) => {
+    const date = toDate(value);
+    return date && (date.getHours() || date.getMinutes()) ? mdocsStamp(date) : mdocsDate(value);
+  };
+  const sectionTitle = (title) => (title ? `<h2 class="e-permits-mdoc__section-title" data-flow-head>${esc(title)}</h2>` : "");
+  const OUTCOME_TONES = {
+    approved: { tone: "positive", icon: "circle-checkmark-filled" },
+    refused: { tone: "danger", icon: "circle-error-filled" },
+    suspended: { tone: "warning", icon: "pause" },
+    info: { tone: "info", icon: "circle-info-filled" }
+  };
+  const CHIP_TONES = { success: "positive", positive: "positive", warning: "warning", danger: "danger", brand: "info", info: "info", accent: "info", neutral: "neutral" };
+
+  const MODULES = {
+    /* header — variant full (arms · issuer · contacts in a column) | compact (one band) | emblem (centred, acts and
+       certificates); AC-02 / AC-03 */
+    header(d, cfg = {}) {
+      const variant = ["full", "compact", "emblem"].includes(cfg.variant) ? cfg.variant : "full";
+      const who = d.issuer;
+      const contacts = [who.address, who.phone ? `Tel.: ${who.phone}` : "", who.email ? `Email: ${who.email}` : "", who.web].filter(filled);
+      return `
+          <header class="e-permits-mdoc__head e-permits-mdoc__head--${variant}" data-mdoc-module="header" data-mdoc-zone="${zoneOf(cfg, "locked")}">
+            <span class="e-permits-mdoc__arms" aria-hidden="true"><img src="${ASSETS}logos/gov.svg" alt=""></span>
+            <div class="e-permits-mdoc__issuer">
+              <p class="e-permits-mdoc__country">Republica Moldova</p>
+              <p class="e-permits-mdoc__authority">${esc(who.name)}</p>
+              ${d.office ? `<p class="e-permits-mdoc__office">${esc(d.office)}</p>` : ""}
+            </div>
+            <ul class="e-permits-mdoc__contact" aria-label="Datele de contact ale autorității emitente">${contacts.map((line) => `<li>${esc(line)}</li>`).join("")}</ul>
+          </header>`;
+    },
+    /* continuation header — pages 2+ (AC-07): issuer line · the document line of the type */
+    continuation(d, cfg = {}) {
+      return `<div class="e-permits-mdoc__cont" data-mdoc-module="continuation" data-mdoc-zone="${zoneOf(cfg, "locked")}"><p class="e-permits-mdoc__cont-issuer">${esc(d.issuerLine)}</p><p class="e-permits-mdoc__cont-doc">${esc(d.contLine)}</p></div>`;
+    },
+    /* title block — overline (document type, only when the title does not already say it) · status chip · title ·
+       decision line · number / date pairs (AC-04 / AC-05); align start | center */
+    title(d, cfg = {}) {
+      const align = cfg.align === "center" ? "center" : "start";
+      const chip = d.status?.label ? `<span class="e-permits-mdoc-chip e-permits-mdoc-chip--${CHIP_TONES[d.status.tone] || "neutral"}">${esc(d.status.label)}</span>` : "";
+      const overline = d.overline ? `<p class="e-permits-mdoc-title__overline">${esc(d.overline)}</p>` : "";
+      return `
+          <div class="e-permits-mdoc-title e-permits-mdoc-title--${align}" data-mdoc-module="title" data-mdoc-zone="${zoneOf(cfg, "locked")}">
+            ${overline || chip ? `<div class="e-permits-mdoc-title__top">${overline}${chip}</div>` : ""}
+            <h1 class="e-permits-mdoc__title">${esc(d.title)}</h1>
+            ${d.subline ? `<p class="e-permits-mdoc-title__subline">${esc(d.subline)}</p>` : ""}
+            ${d.meta.length ? `<dl class="e-permits-mdoc__meta">${d.meta.map(([label, value]) => `<div><dt>${esc(label)}</dt> <dd>${esc(value)}</dd></div>`).join("")}</dl>` : ""}
+          </div>`;
+    },
+    /* party block — applicant / beneficiary / representative, 1–3 columns */
+    parties(d, cfg = {}) {
+      const list = (d.parties || []).filter((party) => party && filled(party.name));
+      if (!list.length) return "";
+      return `
+          <section class="e-permits-mdoc-parties e-permits-mdoc-parties--n${Math.min(list.length, 3)}" data-mdoc-module="parties" data-mdoc-zone="${zoneOf(cfg, "editable")}" data-flow="keep">
+            ${list.map((party) => `<div class="e-permits-mdoc-party"><p class="e-permits-mdoc__label">${esc(party.role)}</p><p class="e-permits-mdoc-party__name">${esc(party.name)}</p>${(party.lines || []).filter(filled).map((line) => `<p class="e-permits-mdoc-party__line">${esc(line)}</p>`).join("")}</div>`).join("")}
+          </section>`;
+    },
+    /* key–value data grid — one module per group { title?, rows: [[label, value | [values]]], columns: 1 | 2 } */
+    kv(d, cfg = {}, group = cfg.group || {}) {
+      const rows = (group.rows || []).filter(([, value]) => filled(value));
+      if (!rows.length) return "";
+      const cols = group.columns === 2 ? 2 : 1;
+      return `
+          <section class="e-permits-mdoc-kv e-permits-mdoc-kv--${cols}col" data-mdoc-module="kv" data-mdoc-zone="${zoneOf(cfg, "editable")}" data-flow="split">
+            ${sectionTitle(group.title)}
+            <dl class="e-permits-mdoc-kv__list" data-flow-items>${rows.map(([label, value]) => `<div class="e-permits-mdoc-kv__row"><dt>${esc(label)}</dt> <dd>${cellValue(value)}</dd></div>`).join("")}</dl>
+          </section>`;
+    },
+    /* every data group of the document, in order */
+    groups(d, cfg = {}) {
+      return (d.groups || []).map((group) => MODULES.kv(d, cfg, group)).join("");
+    },
+    /* pre-built rows (the act's configured fields: heading rows, grids with a repeated header — act-view docGridRows) */
+    rows(d, cfg = {}) {
+      if (!d.rowsHtml) return "";
+      return `
+          <section class="e-permits-mdoc-kv e-permits-mdoc-kv--rows" data-mdoc-module="kv" data-mdoc-zone="${zoneOf(cfg, "editable")}" data-flow="split">
+            <table class="e-permits-mdoc-kv__table"><colgroup><col class="e-permits-doc-page__label-col"><col></colgroup><tbody data-flow-items>${d.rowsHtml}</tbody></table>
+          </section>`;
+    },
+    /* table — repeated items { title?, columns: [{ label, align: "end", width: "num|narrow|medium" }], rows: [[…]],
+       total?: [label, value] }; the header row repeats on every page */
+    table(d, cfg = {}) {
+      return (d.tables || []).filter((table) => table.rows?.length).map((table) => {
+        const cols = table.columns || [];
+        const end = (index) => (cols[index]?.align === "end" ? ' class="is-number"' : "");
+        return `
+          <section class="e-permits-mdoc-table" data-mdoc-module="table" data-mdoc-zone="${zoneOf(cfg, "editable")}" data-flow="split">
+            ${sectionTitle(table.title)}
+            <table class="e-permits-mdoc-table__grid"><colgroup>${cols.map((col) => `<col${col.width ? ` class="e-permits-mdoc-table__col--${col.width}"` : ""}>`).join("")}</colgroup>
+              <thead><tr>${cols.map((col, index) => `<th scope="col"${end(index)}>${esc(col.label)}</th>`).join("")}</tr></thead>
+              <tbody data-flow-items>${table.rows.map((row) => `<tr>${row.map((value, index) => `<td${end(index)}>${cellValue(value)}</td>`).join("")}</tr>`).join("")}${table.total ? `<tr class="is-total"><td colspan="${Math.max(1, cols.length - 1)}">${esc(table.total[0])}</td><td class="is-number">${esc(table.total[1])}</td></tr>` : ""}</tbody>
+            </table>
+          </section>`;
+      }).join("");
+    },
+    /* text body — { title?, paragraphs: [], points: [] } (numbered points with a hanging number) or { html } */
+    text(d, cfg = {}) {
+      const text = d[cfg.key || "text"];
+      if (!text) return "";
+      const body = text.html || [
+        ...(text.paragraphs || []).filter(filled).map((line) => `<p>${esc(line)}</p>`),
+        ...(text.points || []).filter(filled).map((line, index) => `<p class="e-permits-mdoc-text__point"><span class="e-permits-mdoc-text__num">${index + 1}.</span><span>${esc(line)}</span></p>`)
+      ].join("");
+      if (!body) return "";
+      return `
+          <section class="e-permits-mdoc-text${cfg.key === "closing" ? " e-permits-mdoc-text--closing" : ""}" data-mdoc-module="text" data-mdoc-zone="${zoneOf(cfg, "editable")}" data-flow="split">
+            ${sectionTitle(text.title)}
+            <div class="e-permits-mdoc-text__flow" data-flow-items>${body}</div>
+          </section>`;
+    },
+    /* decision / outcome callout — { tone: approved | refused | suspended | info, title, text } */
+    outcome(d, cfg = {}) {
+      const outcome = d.outcome;
+      if (!outcome?.title) return "";
+      const look = OUTCOME_TONES[outcome.tone] || OUTCOME_TONES.info;
+      return `
+          <section class="e-permits-mdoc-outcome e-permits-mdoc-outcome--${look.tone}" data-mdoc-module="outcome" data-mdoc-zone="${zoneOf(cfg, "editable")}" data-flow="keep">
+            ${spriteIcon(look.icon, "icon e-permits-mdoc-outcome__icon")}
+            <div class="e-permits-mdoc-outcome__body"><p class="e-permits-mdoc-outcome__title">${esc(outcome.title)}</p>${outcome.text ? `<p class="e-permits-mdoc-outcome__text">${esc(outcome.text)}</p>` : ""}</div>
+          </section>`;
+    },
+    /* signature block — 1–n signers { role, name, signedAt?, provider?, pending? }: „Semnat electronic de (funcția)
+       (nume)” (US-310 AC-07/08) + the MSign line when signed; pending = dashed line „Spre semnare” */
+    signatures(d, cfg = {}) {
+      const signers = (d.signers || []).filter((signer) => signer && (filled(signer.role) || filled(signer.name)));
+      if (!signers.length) return "";
+      return `
+          <section class="e-permits-mdoc-signatures" data-mdoc-module="signatures" data-mdoc-zone="${zoneOf(cfg, "locked")}" data-flow="keep" data-flow-with-prev>
+            ${signers.map((signer) => `<div class="e-permits-mdoc-sign${signer.pending ? " is-pending" : ""}">
+              <p class="e-permits-mdoc-sign__lead">${spriteIcon("signature", "icon")}<span>${signer.pending ? "Spre semnare de" : "Semnat electronic de"}</span></p>
+              ${signer.role ? `<p class="e-permits-mdoc-sign__role">${esc(signer.role)}</p>` : ""}
+              ${signer.name ? `<p class="e-permits-mdoc-sign__name">${esc(signer.name)}</p>` : ""}
+              ${signer.signedAt && toDate(signer.signedAt) ? `<p class="e-permits-mdoc-sign__meta">${esc(`${signer.provider || "MSign"} · ${signedOn(signer.signedAt)}`)}</p>` : signer.pending ? '<p class="e-permits-mdoc-sign__meta">În așteptarea semnăturii MSign</p>' : ""}
+            </div>`).join("")}
+          </section>`;
+    },
+    /* attachments list — [{ name, meta? }] */
+    attachments(d, cfg = {}) {
+      const list = (d.attachments || []).filter((item) => item && filled(item.name));
+      if (!list.length) return "";
+      return `
+          <section class="e-permits-mdoc-files" data-mdoc-module="attachments" data-mdoc-zone="${zoneOf(cfg, "editable")}" data-flow="split">
+            ${sectionTitle(d.attachmentsTitle || "Acte anexate")}
+            <ol class="e-permits-mdoc-files__list" data-flow-items>${list.map((item, index) => `<li><span class="e-permits-mdoc-files__num">${index + 1}</span><span class="e-permits-mdoc-files__name">${esc(item.name)}</span>${item.meta ? `<span class="e-permits-mdoc-files__meta">${esc(item.meta)}</span>` : ""}</li>`).join("")}</ol>
+          </section>`;
+    },
+    /* footer — identical on every page (AC-08): QR (AC-15) · verification link · the type's legal block with the
+       generation time (AC-10 / AC-11) · „Pagina X din Y” (AC-09) */
+    footer(d, cfg = {}) {
+      return `
+          <footer class="e-permits-doc-page__footer e-permits-mdoc__footer" data-mdoc-module="footer" data-mdoc-zone="${zoneOf(cfg, "locked")}">
+            <span class="e-permits-mdoc__qr" role="img" aria-label="${esc(d.qrLabel)}">${qrSvg(d.qrUrl)}</span>
+            <div class="e-permits-mdoc__verify">
+              <p class="e-permits-mdoc__label">Verificare</p>
+              <p class="e-permits-mdoc__link">${esc(d.qrUrl.replace(/^https?:\/\//, ""))}</p>
+              <div class="e-permits-mdoc__legal">${d.legal.map((line) => `<p>${esc(line)}</p>`).join("")}</div>
+            </div>
+            <p class="e-permits-mdoc__page"><span data-doc-page-label>Pagina 1 din 1</span></p>
+          </footer>`;
+    }
+  };
+
+  /* TEMPLATES — each document type = ONLY its ordered list of modules (+ the data from mdocData). */
+  const CHROME_END = [{ module: "footer" }];
+  const TEMPLATES = {
+    cerere: [
+      { module: "continuation" }, { module: "header", variant: "full", place: "head" }, { module: "title", align: "start", place: "head" },
+      { module: "parties" }, { module: "text", key: "intro" }, { module: "groups" }, { module: "rows" }, { module: "table" },
+      { module: "attachments" }, { module: "text", key: "closing" }, { module: "signatures" }, ...CHROME_END
+    ],
+    notificare: [
+      { module: "continuation" }, { module: "header", variant: "compact", place: "head" }, { module: "title", align: "start", place: "head" },
+      { module: "text", key: "intro" }, { module: "outcome" }, { module: "groups" }, { module: "rows" }, { module: "table" },
+      { module: "text", key: "closing" }, ...CHROME_END
+    ],
+    "decizie-refuz": [
+      { module: "continuation" }, { module: "header", variant: "full", place: "head" }, { module: "title", align: "start", place: "head" },
+      { module: "outcome" }, { module: "parties" }, { module: "text", key: "intro" }, { module: "groups" }, { module: "rows" },
+      { module: "text", key: "points" }, { module: "text", key: "closing" }, { module: "signatures" }, ...CHROME_END
+    ],
+    act: [
+      { module: "continuation" }, { module: "header", variant: "emblem", place: "head" }, { module: "title", align: "center", place: "head" },
+      { module: "parties" }, { module: "groups" }, { module: "rows" }, { module: "table" }, { module: "text", key: "closing" },
+      { module: "signatures" }, ...CHROME_END
+    ],
+    certificat: [
+      { module: "continuation" }, { module: "header", variant: "emblem", place: "head" }, { module: "title", align: "center", place: "head" },
+      { module: "parties" }, { module: "text", key: "intro" }, { module: "groups" }, { module: "rows" }, { module: "table" },
+      { module: "text", key: "closing" }, ...CHROME_END
+    ]
+  };
+  TEMPLATES["decizie-suspendare"] = TEMPLATES["decizie-refuz"];
+
+  /* the data every module reads, from the caller's spec (the old spec keys keep working: groups, rowsHtml,
+     introHtml, closingHtml, signers, qrUrl, repeatHtml, pageClass) */
+  function mdocData(spec = {}) {
     const type = MDOCS_TYPES[spec.type] ? spec.type : "cerere";
-    const who = issuer(spec.authority || "");
+    const who = { ...issuer(spec.authority || ""), ...(spec.issuer || {}) };
     const isAct = type === "act";
     const isDecision = type.startsWith("decizie");
     const number = mdocsNumber(spec.number, isAct ? "act" : "cerere");
@@ -287,58 +670,76 @@
       : isDecision ? MDOCS_TYPES[type]
       : spec.title || MDOCS_TYPES[type];
     const requestLine = `privind Cererea Nr.${mdocsNumber(request.number || spec.number)} din ${mdocsDate(request.date)}`;
-    const meta = type === "certificat" ? [`Nr. de înregistrare: ${number}`, `Data înregistrării: ${date}`]
-      : isAct ? [`Nr. ${number}`, [`Eliberat: ${date}`, spec.validUntil ? (toDate(spec.validUntil) ? `Valabil până la ${mdocsDate(spec.validUntil)}` : `Valabil: ${String(spec.validUntil).toLocaleLowerCase("ro")}`) : ""].filter(Boolean).join(" · ")]
-      : isDecision ? [`${requestLine} pentru ${requestSubject(request)}`, date ? `Data deciziei: ${date}` : ""]
-      : [`Nr. ${number}`, `Data: ${date}`];
+    const valid = spec.validUntil ? (toDate(spec.validUntil) ? ["Valabil până la", mdocsDate(spec.validUntil)] : ["Valabil:", String(spec.validUntil).toLocaleLowerCase("ro")]) : null;
+    const meta = type === "certificat" ? [["Nr. de înregistrare:", number], ["Data înregistrării:", date]]
+      : isAct ? [["Nr.", number], ["Eliberat:", date], ...(valid ? [valid] : [])]
+      : isDecision ? (date ? [["Data deciziei:", date]] : [])
+      : [["Nr.", number], ["Data:", date]];
     const contLine = type === "certificat" ? `CERTIFICAT CONSTATATOR Nr. de înregistrare: ${number} din ${date}`
       : isAct ? `${title} · Nr. ${number}`
       : isDecision ? `${title} · ${requestLine}`
       : `${title} Nr ${number} din ${date}`;
-    const legal = type === "certificat" ? [LEGAL.sia, `Data și ora generării: ${generated}.`, LEGAL.personal]
+    const legal = spec.legal || (type === "certificat" ? [LEGAL.sia, `Data și ora generării: ${generated}.`, LEGAL.personal]
       : isAct ? [LEGAL.evo(generated), LEGAL.rap, LEGAL.personal]
-      : [LEGAL.evo(generated), isDecision ? LEGAL.replicaSigned : LEGAL.replica, LEGAL.personal];
+      : [LEGAL.evo(generated), isDecision ? LEGAL.replicaSigned : LEGAL.replica, LEGAL.personal]);
     const verifyCode = `${type}-${number.replace(/[^\dA-Za-z]+/g, "-")}`.toLowerCase();
     const qrUrl = spec.qrUrl || `https://evo.gov.md/verificare/${verifyCode}`;
-    const qrLabel = `Cod QR: ${MDOCS_TYPES[type]} ${number}, ${date}, ${who.name}. Legătura de verificare: ${qrUrl}`;
-    const rowsHtml = spec.rowsHtml || mdocsRows(spec.groups || []);
-    const signers = isAct ? (spec.signers && spec.signers.length ? spec.signers : [who.head]).filter((signer) => signer && (signer.role || signer.name)) : [];
-    const tail = `${spec.closingHtml || ""}${signers.map((signer) => `<p class="e-permits-mdoc__signer"><svg class="icon" aria-hidden="true"><use href="${ASSETS}icons/sprite.svg#icon-signature"></use></svg><span>Semnat electronic de ${escapeText([signer.role, signer.name].filter(Boolean).join(" "))}</span></p>`).join("")}`;
-    const issuerLine = [who.name, spec.office].filter(Boolean).map(escapeText).join(" · ");
+    const typeLabel = MDOCS_TYPES[type];
+    const textOf = (value, html) => (value ? (Array.isArray(value) ? { paragraphs: value } : value) : html ? { html } : null);
+    return {
+      type, typeLabel, number, date, title, issuer: who, office: spec.office || "",
+      overline: spec.overline ?? (title.toLocaleLowerCase("ro").startsWith(typeLabel.toLocaleLowerCase("ro")) ? "" : typeLabel),
+      status: spec.status || null,
+      subline: isDecision ? `${requestLine} pentru ${requestSubject(request)}` : (spec.subline || ""),
+      meta, contLine,
+      issuerLine: [who.name, spec.office].filter(Boolean).join(" · "),
+      parties: spec.parties || [],
+      intro: textOf(spec.intro, spec.introHtml),
+      closing: textOf(spec.closing, spec.closingHtml),
+      points: spec.points ? { title: spec.pointsTitle || "", points: spec.points } : null,
+      text: spec.text || null,
+      groups: spec.groups || [],
+      rowsHtml: spec.rowsHtml || "",
+      tables: spec.tables || (spec.table ? [spec.table] : []),
+      outcome: spec.outcome || null,
+      attachments: spec.attachments || [],
+      attachmentsTitle: spec.attachmentsTitle || "",
+      /* the act names its signers (US-310 AC-07/08; default the authority head), signed with MSign on the issue date */
+      signers: isAct ? (spec.signers && spec.signers.length ? spec.signers : [who.head]).map((signer) => (signer ? { signedAt: spec.signedAt || spec.date, ...signer } : signer)) : (spec.signers || []),
+      legal, qrUrl,
+      qrLabel: `Cod QR: ${typeLabel} ${number}, ${date}, ${who.name}. Legătura de verificare: ${qrUrl}`
+    };
+  }
+
+  /* one A4 page shell + the template's modules (header / title on page 1, the flow, the footer, the continuation
+     template); paginate() then flows the modules over as many pages as they need */
+  function renderDoc(template, data, { pageClass = "", repeatHtml = "" } = {}) {
+    const list = Array.isArray(template) ? template : TEMPLATES[template] || TEMPLATES.cerere;
+    const parts = { head: [], flow: [], cont: "", footer: "" };
+    list.forEach((cfg) => {
+      const render = MODULES[cfg.module];
+      if (!render) return;
+      const html = render(data, cfg);
+      if (!html) return;
+      if (cfg.module === "continuation") parts.cont = html;
+      else if (cfg.module === "footer") parts.footer = html;
+      else (cfg.place === "head" ? parts.head : parts.flow).push(html);
+    });
     return `
-      <div class="e-permits-dtpl__page e-permits-doc-peek__page e-permits-doc-page e-permits-mdoc e-permits-mdoc--${type}${spec.pageClass ? ` ${spec.pageClass}` : ""}" data-doc-type="${type}" data-doc-cont="${escapeText(contLine)}">
-        ${spec.repeatHtml || ""}
+      <div class="e-permits-dtpl__page e-permits-doc-peek__page e-permits-doc-page e-permits-mdoc e-permits-mdoc--${data.type}${pageClass ? ` ${pageClass}` : ""}" data-doc-type="${data.type}" data-doc-cont="${esc(data.contLine)}">
+        ${repeatHtml}
         <div class="e-permits-dtpl__surface e-permits-doc-page__surface">
-          <template class="e-permits-doc-page__cont-tpl"><div class="e-permits-mdoc__cont"><p class="e-permits-mdoc__cont-issuer">${issuerLine}</p><p class="e-permits-mdoc__cont-doc">${escapeText(contLine)}</p></div></template>
-          <header class="e-permits-mdoc__head">
-            <span class="e-permits-mdoc__arms" aria-hidden="true"><img src="${ASSETS}logos/gov.svg" alt=""></span>
-            <div class="e-permits-mdoc__issuer">
-              <p class="e-permits-mdoc__country">Republica Moldova</p>
-              <p class="e-permits-mdoc__authority">${escapeText(who.name)}</p>
-              ${spec.office ? `<p class="e-permits-mdoc__office">${escapeText(spec.office)}</p>` : ""}
-            </div>
-            <ul class="e-permits-mdoc__contact" aria-label="Datele de contact ale autorității emitente">
-              <li>${escapeText(who.address)}</li>
-              <li>Tel.: ${escapeText(who.phone)}</li>
-              <li>Email: ${escapeText(who.email)}</li>
-              ${who.web ? `<li>${escapeText(who.web)}</li>` : ""}
-            </ul>
-          </header>
-          <h1 class="e-permits-mdoc__title">${escapeText(title)}</h1>
-          <div class="e-permits-mdoc__meta">${meta.filter(Boolean).map((line) => `<p>${escapeText(line)}</p>`).join("")}</div>
-          ${spec.introHtml || ""}
-          <table><colgroup><col class="e-permits-doc-page__label-col"><col></colgroup><tbody>${rowsHtml}</tbody></table>
-          ${tail ? `<div class="e-permits-doc-page__tail e-permits-mdoc__tail">${tail}</div>` : ""}
-          <footer class="e-permits-doc-page__footer e-permits-mdoc__footer">
-            <span class="e-permits-mdoc__qr" role="img" aria-label="${escapeText(qrLabel)}"><svg class="icon" aria-hidden="true"><use href="${ASSETS}icons/sprite.svg#icon-qr-code"></use></svg></span>
-            <div class="e-permits-mdoc__legal">
-              ${legal.map((line) => `<p>${escapeText(line)}</p>`).join("")}
-              <p class="e-permits-mdoc__link">${escapeText(qrUrl.replace(/^https?:\/\//, ""))}</p>
-            </div>
-            <p class="e-permits-mdoc__page"><span data-doc-page-label>Pagina 1 din 1</span></p>
-          </footer>
+          ${parts.cont ? `<template class="e-permits-doc-page__cont-tpl">${parts.cont}</template>` : ""}
+          ${parts.head.join("")}
+          <div class="e-permits-mdoc__flow">${parts.flow.join("")}</div>
+          ${parts.footer}
         </div>
       </div>`;
+  }
+
+  function mdocsHtml(spec = {}) {
+    const data = mdocData(spec);
+    return renderDoc(spec.template || data.type, data, { pageClass: spec.pageClass || "", repeatHtml: spec.repeatHtml || "" });
   }
 
   /* the viewer's canvas while MDocs works / when it fails (US-306 AC-14) / without the right (US-307…311 AC-01) */
@@ -355,5 +756,10 @@
     });
   };
 
-  window.GEAPDocPreview = { fit, paginate, print, printIcon, signatureHtml, mdocsHtml, mdocsRows, mdocsNumber, mdocsDate, mdocsState, issuer, MDOCS_TYPES };
+  window.GEAPDocPreview = {
+    fit, paginate, print, printIcon, signatureHtml, mdocsHtml, mdocsRows, mdocsNumber, mdocsDate, mdocsState, issuer, MDOCS_TYPES,
+    /* the document system (mdocs-system-v1): modules, templates, data, page shell, QR — the specimen (mdoc-sys) and
+       any new document type compose these */
+    mdoc: { MODULES, TEMPLATES, data: mdocData, render: renderDoc, qrSvg, stamp: mdocsStamp }
+  };
 })();

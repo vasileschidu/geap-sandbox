@@ -1195,6 +1195,10 @@
         document.querySelectorAll("[data-rap-act-modal]:not([hidden]) .e-permits-doc-page")[1]?.scrollIntoView({ block: "start" });
       }
     },
+    /* mdocs-system-v1 (2026-10-25): the specimen of the MDocs document system — foundations, every module + variant, every
+       template paginated on A4 (the visual spec Figma copies); -z = the locked / editable zones outlined (US-306 AC-01 / 06) */
+    "mdoc-sys": { page: "mdocs-specimen.html", ready: ".e-permits-mdoc-spec[data-ready]" },
+    "mdoc-sys-z": { page: "mdocs-specimen.html", params: { zone: "1" }, ready: ".e-permits-mdoc-spec[data-ready]" },
     /* audit-context-v1 (2026-10-25, US-262): context + correlation id on the journal rows and in the event detail */
     "audit-01": svc("events"),
     "audit-02": svc("events", async (h) => { await h.click("[data-svc-event] .e-permits-timeline__link"); }),

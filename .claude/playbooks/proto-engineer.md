@@ -3738,3 +3738,25 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   run showed 3 transient toolbar no-hovers that a re-run against gh-01 cleared), code-audit static 0 + standing FPs
   (th sort, data avatar colours, heading 11, Large 11, fo-select chevron), component-audit = standing shell / FO header
   / th / missing-copy majors only.
+- 2026-10-25 · MDocs document system (mdocs-system-v1; user: „more design-forward, modular, subtle EVO gradient, minimalist
+  Google / Apple”). (1) Keep the caller API, change the inside: `mdocsHtml(spec)` = `render(TEMPLATES[type], data(spec))`
+  with MODULES (one render fn each, "" when data is missing) — old spec keys (groups, rowsHtml, introHtml, closingHtml,
+  signers, repeatHtml, pageClass) map into the new data, so 6 viewers kept working and only got richer data where it
+  paid (parties, outcome, attachments, a fee table). (2) Pagination of MODULES ≠ pagination of one table: a flow of
+  `data-flow="keep|split"` units, split modules break between `[data-flow-items]` children and the next-page part is a
+  clone without items (thead repeats for free). Greedy „move from the end until it fits” UNDER-FILLS a page when a tall
+  atomic block (signatures) moves first → add a backfill pass (pull units back while it fits, push back on a dangling
+  heading / with-prev). Cloning an already-continued piece doubled „(continuare)” — guard the mark. Check every page's
+  surface height ≤ the content box in a probe (1016 ≤ 1020), not only the picture. (3) Print type in pt / mm as
+  documented LOCAL tokens on the page root (Foundations has no print scale); code-audit's spacing / font off-scale on the
+  page is then by design — triage findings by „inside `.e-permits-doc-page`?” (scratch filter on `el`). (4) The page's
+  `p` inherited the RAP / library 16 px — any print surface must reset `font-size / line-height: inherit` on its text
+  elements, and that reset (0,2,1) then beats single-class part rules (`.x dt` 0,1,1) → re-scope those. (5) Tinted outcome
+  callouts were the loudest thing on a calm page → grey surface + tone bar + icon (the user's Google-alert taste; grayscale
+  safe). (6) EVO gradient = the logo's own run, and those four colours ARE Foundations primitives (blue-sky / lavender /
+  purple / magenta 600) — grep main.css for a brand hex before inventing a token. (7) A specimen page (standalone
+  `mdocs-specimen.html` + demo `mdoc-sys`) composed ONLY from the exported MODULES is the cheapest „visual spec” for Figma
+  and doubles as a regression page. No sub-agent tool → capture 27 states × 2 (0 errors; mdoc-13 mobile overflow 2 = HEAD
+  too, proved on a worktree :8957), code-audit (only in-page print units + standing BO / builder; static 0 after moving a
+  hex out of a comment), component-audit (standing shell / avatar / doc-modal × + missing-copy inside A4 tables),
+  hover-audit 0 / 0 on the specimen + 3 viewers, print-media + grayscale render checked.

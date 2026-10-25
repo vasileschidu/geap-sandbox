@@ -1062,15 +1062,19 @@
       office: dosar.subdivision || "",
       request: { number: dosar.nr, date: dosar.submitted, type: dosar.tip, service: service.title || "" }
     };
+    /* mdocs-system-v1: the subject (+ the MPower representative who filed it) = the party block */
+    const parties = [
+      { role: "Solicitant", name: subject.name, lines: [[subject.idLabel || "Cod de identificare", subject.idValue].filter(Boolean).join(" ")] },
+      ...(dosar.filedBy?.name ? [{ role: "Reprezentant", name: dosar.filedBy.name, lines: ["Împuternicire MPower"] }] : [])
+    ];
     if (kind === "cerere") {
       return {
-        ...base, type: "cerere", number: dosar.nr, date: dosar.submitted,
+        ...base, type: "cerere", number: dosar.nr, date: dosar.submitted, parties,
         groups: [
-          { title: "Solicitantul", rows: [...holder, ...(dosar.filedBy?.name ? [["Depusă de", `${dosar.filedBy.name} · reprezentant MPower`]] : [])] },
           { title: "Serviciul solicitat", rows: [["Serviciul", service.title], ["Tipul solicitării", dosar.tip], ["Subdiviziunea de examinare", dosar.subdivision]] },
-          { title: "Obiectul activității", rows: [["Obiectul", dosar.object], ["Adresa", dosar.address]] },
-          { title: "Acte anexate", rows: dosarDocs(dosar).filter((doc) => doc.kind === "fisier").map((doc, index) => [`${index + 1}.`, doc.tip]) }
-        ]
+          { title: "Obiectul activității", rows: [["Obiectul", dosar.object], ["Adresa", dosar.address]] }
+        ],
+        attachments: dosarDocs(dosar).filter((doc) => doc.kind === "fisier").map((doc) => ({ name: doc.tip, meta: doc.fisier || "" }))
       };
     }
     if (kind === "certificat") {
@@ -1083,9 +1087,11 @@
     if (!type) return null;
     const decision = dosar.decision || {};
     return {
-      ...base, type, number: dosar.nr, date: dosar.finalized,
+      ...base, type, number: dosar.nr, date: dosar.finalized, parties: parties.slice(0, 1),
+      outcome: type === "decizie-refuz"
+        ? { tone: "refused", title: "Cererea a fost refuzată", text: `${base.authority} a refuzat eliberarea actului permisiv; motivele și temeiul legal sunt mai jos.` }
+        : { tone: "suspended", title: "Valabilitatea actului permisiv este suspendată", text: `${base.authority} a suspendat valabilitatea actului permisiv; conținutul și temeiul legal sunt mai jos.` },
       groups: [{ rows: [
-        ...holder,
         ["Obiectul", dosar.object],
         type === "decizie-refuz" ? ["Motivele refuzului", decision.reason] : ["Conținutul deciziei", decision.text],
         ["Temeiul legal", decision.legal || "Legea nr. 160/2011 privind reglementarea prin autorizare a activității de întreprinzător"],

@@ -126,24 +126,139 @@
   text-align: center;
 }
 
-/* ---- MDocs standard template — „macheta comună” (machete-mdocs-v1, 2026-10-25; US-306…US-311,
-   GEAPDocPreview.mdocsHtml). Page 1: header (arms · issuer · contacts) over a hairline, the centred title and
-   its number / date lines, the content table, [the act's signature mentions]; pages 2+: the simplified header
-   (issuer line + document line); EVERY page: the same footer — QR · legal block · „Pagina X din Y”. ---- */
+/* ==========================================================================
+   MDocs DOCUMENT SYSTEM (mdocs-system-v1, 2026-10-25; Feature 96074 US-306…US-311; js/doc-preview.js ›
+   GEAPDocPreview.mdoc; components.md › „MDocs document system”). One A4 page shell + modules; every document type is a
+   list of modules (TEMPLATES). Calm, print-first: generous margins, hairlines instead of boxes, ONE accent (the EVO
+   band on top of every page), three-step type, Onest only.
+
+   ---- 1. Print foundations — documented LOCAL tokens of the page (Foundations has no print scale) ----
+   Type (pt = the print unit; ≈ px at 96 dpi in brackets):
+     --mdoc-type-micro    7 / 10 pt  (9.3 / 13.3)  legal block, page number, contacts
+     --mdoc-type-caption  7.5 / 10 pt (10 / 13.3) caps labels, overlines, section titles — tracked 0.1em
+     --mdoc-type-small    8.5 / 12 pt (11.3 / 16)  data labels, secondary lines
+     --mdoc-type-body     9.5 / 14 pt (12.7 / 18.7) values, paragraphs
+     --mdoc-type-lead     11 / 15 pt  (14.7 / 20)  authority, party names, outcome title
+     --mdoc-type-title    17 / 22 pt  (22.7 / 29.3) document title (start)
+     --mdoc-type-display  19 / 25 pt  (25.3 / 33.3) acts + certificates (centred)
+   Grid (mm, A4 210 × 297): margins 15 top · 18 sides · 12 bottom; label column 36 %; sections 6 mm apart, blocks 3 mm.
+   Colour: ink = text base default / secondary / tertiary; rules = border base default (gray-250 class lines) and the
+   soft row line gray-200; tones = the product's positive / warning / danger / brand secondary pairs;
+   --mdoc-accent = the EVO logo run blue-sky-600 → lavender-600 → purple-600 → magenta-600 (Foundations primitives),
+   drawn ONLY as the 1 mm band on top of each page (grey in a grayscale print; carries no meaning).
+   ========================================================================== */
+.e-permits-mdoc {
+  --mdoc-type-micro: 7pt;
+  --mdoc-type-micro-lh: 10pt;
+  --mdoc-type-caption: 7.5pt;
+  --mdoc-type-caption-lh: 10pt;
+  --mdoc-type-small: 8.5pt;
+  --mdoc-type-small-lh: 12pt;
+  --mdoc-type-body: 9.5pt;
+  --mdoc-type-body-lh: 14pt;
+  --mdoc-type-lead: 11pt;
+  --mdoc-type-lead-lh: 15pt;
+  --mdoc-type-title: 17pt;
+  --mdoc-type-title-lh: 22pt;
+  --mdoc-type-display: 19pt;
+  --mdoc-type-display-lh: 25pt;
+  --mdoc-track: 0.1em;
+  --mdoc-margin-top: 15mm;
+  --mdoc-margin-x: 18mm;
+  --mdoc-margin-bottom: 12mm;
+  --mdoc-gap-section: 6mm;
+  --mdoc-gap-block: 3mm;
+  --mdoc-row-pad: 1.8mm;
+  --mdoc-label-col: 36%;
+  --mdoc-ink: var(--color-text-base-default, #121212);
+  --mdoc-ink-2: var(--color-text-base-secondary, #383838);
+  --mdoc-ink-3: var(--color-text-base-tertiary, #757575);
+  --mdoc-rule: var(--color-border-base-default, #d9d9d9);
+  --mdoc-rule-soft: var(--gray-200, #f1f1f1);
+  --mdoc-rule-sign: var(--color-border-base-secondary, #b2b2b2);
+  --mdoc-band: 1mm;
+  --mdoc-accent: linear-gradient(90deg, var(--blue-sky-600, #0058d2), var(--lavender-600, #561fe5) 38%, var(--purple-600, #7e37f9) 68%, var(--magenta-600, #aa18ce));
+}
+
+.e-permits-doc-page.e-permits-mdoc {
+  padding: var(--mdoc-margin-top) var(--mdoc-margin-x) var(--mdoc-margin-bottom);
+}
+
+/* the one accent: the EVO band along the top edge of every page */
+.e-permits-doc-page.e-permits-mdoc::before {
+  background: var(--mdoc-accent);
+  content: "";
+  height: var(--mdoc-band);
+  inset: 0 0 auto;
+  position: absolute;
+  print-color-adjust: exact;
+  -webkit-print-color-adjust: exact;
+}
+
+.e-permits-mdoc .e-permits-doc-page__surface {
+  color: var(--mdoc-ink);
+  font-size: var(--mdoc-type-body);
+  line-height: var(--mdoc-type-body-lh);
+  min-height: calc(297mm - var(--mdoc-margin-top) - var(--mdoc-margin-bottom));
+}
+
+/* page text inherits the page scale (the library / page `p` rules size text for screens) */
+.e-permits-mdoc .e-permits-doc-page__surface :is(p, h1, h2, dl, dd, dt, ol, ul, li) {
+  font-size: inherit;
+  line-height: inherit;
+  margin: 0;
+}
+
+.e-permits-mdoc .e-permits-doc-page__surface :is(ol, ul) {
+  list-style: none;
+  padding: 0;
+}
+
+.e-permits-mdoc .e-permits-doc-page__surface table {
+  border-collapse: collapse;
+  margin: 0;
+  table-layout: fixed;
+  width: 100%;
+}
+
+.e-permits-mdoc .e-permits-doc-page__surface :is(td, th) {
+  border: 0;
+  padding: 0;
+  text-align: left;
+  vertical-align: top;
+}
+
+.e-permits-mdoc .e-permits-doc-page__surface td:first-child {
+  color: inherit;
+  width: auto;
+}
+
+/* the caps label: overlines, section titles, party roles, „Verificare” */
+.e-permits-mdoc .e-permits-doc-page__surface :is(.e-permits-mdoc__label, .e-permits-mdoc__section-title, .e-permits-mdoc-title__overline, .e-permits-mdoc__country) {
+  color: var(--mdoc-ink-3);
+  font-size: var(--mdoc-type-caption);
+  font-weight: var(--font-weight-fw-semibold, 600);
+  letter-spacing: var(--mdoc-track);
+  line-height: var(--mdoc-type-caption-lh);
+  text-align: inherit;
+  text-transform: uppercase;
+}
+
+/* ---- 2. Header (locked; page 1) — full | compact | emblem ---- */
 .e-permits-mdoc__head {
-  align-items: start;
-  border-bottom: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
+  align-items: center;
+  border-bottom: var(--border-width-1, 1px) solid var(--mdoc-rule);
+  column-gap: 4mm;
   display: grid;
-  gap: var(--spacing-16, 16px);
-  grid-template-columns: auto minmax(0, 1fr) minmax(0, auto);
-  padding-bottom: var(--spacing-12, 12px);
+  grid-template-columns: auto minmax(0, 1fr) minmax(0, 38%);
+  padding-bottom: 5mm;
 }
 
 /* gov.svg = arms + „Guvernul Republicii Moldova”: the box shows the arms only (34.3 × 40 of the 148 × 40 logo) */
 .e-permits-mdoc__arms {
   aspect-ratio: 6 / 7;
   display: block;
-  height: var(--spacing-48, 48px);
+  height: 13mm;
   overflow: hidden;
 }
 
@@ -154,140 +269,911 @@
   width: auto;
 }
 
-.e-permits-doc-page__surface .e-permits-mdoc__issuer p,
-.e-permits-doc-page__surface .e-permits-mdoc__legal p,
-.e-permits-doc-page__surface .e-permits-mdoc__meta p,
-.e-permits-doc-page__surface .e-permits-mdoc__cont p {
-  margin: 0;
+.e-permits-mdoc__issuer {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6mm;
+  min-width: 0;
 }
 
-.e-permits-doc-page__surface .e-permits-mdoc__country {
-  color: var(--color-text-base-tertiary, #757575);
-  font-size: var(--font-size-fs-12, 12px);
-  letter-spacing: 0.08em;
-  line-height: var(--line-height-lh-16, 16px);
-  text-transform: uppercase;
-}
-
-.e-permits-doc-page__surface .e-permits-mdoc__authority {
-  font-size: var(--font-size-fs-16, 16px);
+.e-permits-mdoc .e-permits-doc-page__surface .e-permits-mdoc__authority {
+  font-size: var(--mdoc-type-lead);
   font-weight: var(--font-weight-fw-semibold, 600);
-  line-height: var(--line-height-lh-24, 24px);
+  letter-spacing: -0.005em;
+  line-height: var(--mdoc-type-lead-lh);
 }
 
-.e-permits-doc-page__surface .e-permits-mdoc__office {
-  color: var(--color-text-base-secondary, #383838);
+.e-permits-mdoc .e-permits-doc-page__surface .e-permits-mdoc__office {
+  color: var(--mdoc-ink-2);
+  font-size: var(--mdoc-type-small);
+  line-height: var(--mdoc-type-small-lh);
 }
 
-.e-permits-mdoc__contact {
-  color: var(--color-text-base-secondary, #383838);
-  font-size: var(--font-size-fs-12, 12px);
-  line-height: var(--line-height-lh-16, 16px);
-  list-style: none;
-  margin: 0;
-  padding: 0;
+.e-permits-mdoc .e-permits-doc-page__surface .e-permits-mdoc__contact {
+  color: var(--mdoc-ink-2);
+  display: flex;
+  flex-direction: column;
+  font-size: var(--mdoc-type-micro);
+  gap: 0.4mm;
+  line-height: var(--mdoc-type-micro-lh);
   text-align: right;
 }
 
-.e-permits-doc-page__surface h1.e-permits-mdoc__title {
-  margin: var(--spacing-24, 24px) 0 var(--spacing-8, 8px);
+/* compact: one band — small arms, issuer, contacts in one dotted line under it */
+.e-permits-mdoc__head--compact {
+  grid-template-columns: auto minmax(0, 1fr);
+  padding-bottom: 4mm;
+  row-gap: 1.5mm;
 }
 
-.e-permits-mdoc--certificat h1.e-permits-mdoc__title {
-  letter-spacing: 0.04em;
+.e-permits-mdoc__head--compact .e-permits-mdoc__arms {
+  height: 10mm;
 }
 
-.e-permits-mdoc__meta {
-  color: var(--color-text-base-secondary, #383838);
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-2, 2px);
-  margin-bottom: var(--spacing-16, 16px);
+.e-permits-mdoc .e-permits-doc-page__surface .e-permits-mdoc__head--compact .e-permits-mdoc__contact,
+.e-permits-mdoc .e-permits-doc-page__surface .e-permits-mdoc__head--emblem .e-permits-mdoc__contact {
+  column-gap: 1.6mm;
+  flex-direction: row;
+  flex-wrap: wrap;
+}
+
+.e-permits-mdoc .e-permits-doc-page__surface .e-permits-mdoc__head--compact .e-permits-mdoc__contact {
+  grid-column: 2;
+  justify-content: flex-start;
+  text-align: left;
+}
+
+:is(.e-permits-mdoc__head--compact, .e-permits-mdoc__head--emblem) .e-permits-mdoc__contact li + li::before {
+  color: var(--mdoc-ink-3);
+  content: "·";
+  margin-right: 1.6mm;
+}
+
+/* emblem: centred — acts and certificates */
+.e-permits-mdoc__head--emblem {
+  grid-template-columns: minmax(0, 1fr);
+  justify-items: center;
+  row-gap: 2.5mm;
   text-align: center;
 }
 
-/* pages 2+: the simplified header */
-.e-permits-mdoc__cont {
-  border-bottom: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
+.e-permits-mdoc__head--emblem .e-permits-mdoc__arms {
+  height: 16mm;
+}
+
+.e-permits-mdoc__head--emblem .e-permits-mdoc__issuer {
+  align-items: center;
+}
+
+.e-permits-mdoc .e-permits-doc-page__surface .e-permits-mdoc__head--emblem .e-permits-mdoc__contact {
+  justify-content: center;
+  text-align: center;
+}
+
+/* ---- 3. Continuation header (locked; pages 2+, AC-07) ---- */
+.e-permits-mdoc .e-permits-doc-page__surface .e-permits-mdoc__cont {
+  align-items: baseline;
+  border-bottom: var(--border-width-1, 1px) solid var(--mdoc-rule);
+  display: flex;
+  font-size: var(--mdoc-type-micro);
+  gap: 6mm;
+  justify-content: space-between;
+  line-height: var(--mdoc-type-micro-lh);
+  padding-bottom: 3mm;
+}
+
+.e-permits-mdoc .e-permits-doc-page__surface .e-permits-mdoc__cont-issuer {
+  color: var(--mdoc-ink-3);
+  min-width: 0;
+}
+
+.e-permits-mdoc .e-permits-doc-page__surface .e-permits-mdoc__cont-doc {
+  color: var(--mdoc-ink-2);
+  font-weight: var(--font-weight-fw-semibold, 600);
+  max-width: 62%;
+  text-align: right;
+}
+
+/* ---- 4. Title block (locked) — overline · status chip · title · decision line · number / date pairs ---- */
+.e-permits-mdoc-title {
   display: flex;
   flex-direction: column;
-  font-size: var(--font-size-fs-12, 12px);
-  gap: var(--spacing-2, 2px);
-  line-height: var(--line-height-lh-16, 16px);
-  padding-bottom: var(--spacing-8, 8px);
+  gap: 2mm;
+  padding: 9mm 0 7mm;
 }
 
-.e-permits-doc-page__surface .e-permits-mdoc__cont-issuer {
-  color: var(--color-text-base-tertiary, #757575);
+.e-permits-mdoc-title__top {
+  align-items: center;
+  display: flex;
+  gap: 4mm;
+  justify-content: space-between;
 }
 
-.e-permits-doc-page__surface .e-permits-mdoc__cont-doc {
-  color: var(--color-text-base-secondary, #383838);
+.e-permits-mdoc .e-permits-doc-page__surface h1.e-permits-mdoc__title {
+  font-size: var(--mdoc-type-title);
+  font-weight: var(--font-weight-fw-semibold, 600);
+  letter-spacing: -0.01em;
+  line-height: var(--mdoc-type-title-lh);
+  margin: 0;
+  max-width: 150mm;
+  text-align: left;
+  text-wrap: balance;
+}
+
+.e-permits-mdoc .e-permits-doc-page__surface .e-permits-mdoc-title__subline {
+  color: var(--mdoc-ink-2);
+  max-width: 150mm;
+}
+
+.e-permits-mdoc .e-permits-doc-page__surface .e-permits-mdoc__meta {
+  display: flex;
+  flex-wrap: wrap;
+  margin-top: 1mm;
+  row-gap: 1mm;
+}
+
+.e-permits-mdoc__meta > div {
+  align-items: baseline;
+  border-right: var(--border-width-1, 1px) solid var(--mdoc-rule);
+  display: flex;
+  gap: 1.5mm;
+  margin-right: 4mm;
+  padding-right: 4mm;
+}
+
+.e-permits-mdoc__meta > div:last-child {
+  border-right: 0;
+  margin-right: 0;
+  padding-right: 0;
+}
+
+.e-permits-mdoc .e-permits-doc-page__surface .e-permits-mdoc__meta dt {
+  color: var(--mdoc-ink-3);
+  font-size: var(--mdoc-type-small);
+}
+
+.e-permits-mdoc__meta dd {
   font-weight: var(--font-weight-fw-semibold, 600);
 }
 
-/* the act's signature mention, one line per signer (US-310 AC-07/08) */
-.e-permits-mdoc__tail {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-4, 4px);
+/* centred (acts, certificates) */
+.e-permits-mdoc-title--center {
+  align-items: center;
+  text-align: center;
 }
 
-.e-permits-doc-page__surface .e-permits-mdoc__signer {
+.e-permits-mdoc-title--center .e-permits-mdoc-title__top {
+  flex-direction: column;
+  gap: 2mm;
+}
+
+.e-permits-mdoc .e-permits-doc-page__surface .e-permits-mdoc-title--center h1.e-permits-mdoc__title {
+  font-size: var(--mdoc-type-display);
+  line-height: var(--mdoc-type-display-lh);
+  text-align: center;
+}
+
+.e-permits-mdoc .e-permits-doc-page__surface .e-permits-mdoc-title--center .e-permits-mdoc__meta {
+  justify-content: center;
+}
+
+.e-permits-mdoc--certificat.e-permits-mdoc .e-permits-doc-page__surface h1.e-permits-mdoc__title {
+  letter-spacing: 0.06em;
+}
+
+/* status chip: tone pair + a dot (the dot and the word survive a grayscale print) */
+.e-permits-mdoc-chip {
+  align-items: center;
+  background: var(--mdoc-chip-bg, var(--color-background-base-tertiary, #f1f1f1));
+  border-radius: var(--border-radius-full, 9999px);
+  color: var(--mdoc-chip-ink, var(--mdoc-ink-2));
+  display: inline-flex;
+  font-size: var(--mdoc-type-caption);
+  font-weight: var(--font-weight-fw-semibold, 600);
+  gap: 1.2mm;
+  line-height: var(--mdoc-type-caption-lh);
+  padding: 0.6mm 2.4mm 0.6mm 2mm;
+  print-color-adjust: exact;
+  -webkit-print-color-adjust: exact;
+  white-space: nowrap;
+}
+
+.e-permits-mdoc-chip::before {
+  background: currentColor;
+  border-radius: var(--border-radius-full, 9999px);
+  content: "";
+  height: 1.4mm;
+  width: 1.4mm;
+}
+
+.e-permits-mdoc-chip--positive {
+  --mdoc-chip-bg: var(--color-background-positive-secondary, #ecfdf3);
+  --mdoc-chip-ink: var(--color-text-positive-on-secondary, #027a48);
+}
+
+.e-permits-mdoc-chip--warning {
+  --mdoc-chip-bg: var(--color-background-warning-secondary, #fffaeb);
+  --mdoc-chip-ink: var(--color-text-warning-on-secondary, #b54708);
+}
+
+.e-permits-mdoc-chip--danger {
+  --mdoc-chip-bg: var(--color-background-danger-secondary, #fef3f2);
+  --mdoc-chip-ink: var(--color-text-danger-on-secondary, #b42318);
+}
+
+.e-permits-mdoc-chip--info {
+  --mdoc-chip-bg: var(--color-background-brand-secondary, #eef4ff);
+  --mdoc-chip-ink: var(--color-text-brand-on-secondary, #0047aa);
+}
+
+/* ---- 5. The flow (editable zone + the signatures) — modules 6 mm apart ---- */
+.e-permits-mdoc__flow {
+  display: flex;
+  flex-direction: column;
+  gap: var(--mdoc-gap-section);
+  padding-bottom: 7mm;
+}
+
+.e-permits-mdoc__cont + .e-permits-mdoc__flow {
+  padding-top: 7mm;
+}
+
+.e-permits-mdoc .e-permits-doc-page__surface .e-permits-mdoc__section-title {
+  border-bottom: var(--border-width-1, 1px) solid var(--mdoc-rule);
+  padding-bottom: 1.6mm;
+}
+
+.e-permits-mdoc .e-permits-doc-page__surface .e-permits-mdoc__cont-mark {
+  font-weight: var(--font-weight-fw-regular, 400);
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+/* party block: 1–3 columns, each a role over a name over its lines, a hairline above */
+.e-permits-mdoc-parties {
+  display: grid;
+  gap: 4mm 8mm;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.e-permits-mdoc-parties--n1 {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.e-permits-mdoc-parties--n3 {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.e-permits-mdoc-party {
+  border-top: var(--border-width-1, 1px) solid var(--mdoc-rule);
+  display: flex;
+  flex-direction: column;
+  gap: 0.6mm;
+  padding-top: 2mm;
+}
+
+.e-permits-mdoc .e-permits-doc-page__surface .e-permits-mdoc-party__name {
+  font-size: var(--mdoc-type-lead);
+  font-weight: var(--font-weight-fw-semibold, 600);
+  line-height: var(--mdoc-type-lead-lh);
+  margin-top: 0.6mm;
+}
+
+.e-permits-mdoc .e-permits-doc-page__surface .e-permits-mdoc-party__line {
+  color: var(--mdoc-ink-2);
+  font-size: var(--mdoc-type-small);
+  line-height: var(--mdoc-type-small-lh);
+}
+
+/* key–value grid: 1 column (label 36 % | value) or 2 columns (label over value); soft lines between rows */
+.e-permits-mdoc-kv,
+.e-permits-mdoc-table,
+.e-permits-mdoc-files {
+  display: flex;
+  flex-direction: column;
+}
+
+.e-permits-mdoc-kv__row {
+  border-bottom: var(--border-width-1, 1px) solid var(--mdoc-rule-soft);
+  break-inside: avoid;
+  column-gap: 4mm;
+  display: grid;
+  grid-template-columns: var(--mdoc-label-col) minmax(0, 1fr);
+  padding: var(--mdoc-row-pad) 0;
+}
+
+.e-permits-mdoc-kv__row:last-child {
+  border-bottom: 0;
+}
+
+.e-permits-mdoc .e-permits-doc-page__surface .e-permits-mdoc-kv__row dt {
+  color: var(--mdoc-ink-3);
+  font-size: var(--mdoc-type-small);
+  line-height: var(--mdoc-type-body-lh);
+}
+
+.e-permits-mdoc-kv__row dd {
+  font-weight: var(--font-weight-fw-medium, 500);
+  overflow-wrap: anywhere;
+}
+
+.e-permits-mdoc-kv--2col .e-permits-mdoc-kv__list {
+  column-gap: 8mm;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.e-permits-mdoc-kv--2col .e-permits-mdoc-kv__row {
+  grid-template-columns: minmax(0, 1fr);
+  row-gap: 0.4mm;
+}
+
+.e-permits-mdoc-kv--2col .e-permits-mdoc-kv__row:last-child {
+  border-bottom: var(--border-width-1, 1px) solid var(--mdoc-rule-soft);
+}
+
+/* pre-built rows (act fields): the same look — label column, soft lines, heading rows = section titles */
+.e-permits-mdoc .e-permits-doc-page__surface .e-permits-mdoc-kv__table td {
+  border-bottom: var(--border-width-1, 1px) solid var(--mdoc-rule-soft);
+  padding: var(--mdoc-row-pad) 0;
+}
+
+.e-permits-mdoc .e-permits-doc-page__surface .e-permits-mdoc-kv__table td:first-child {
+  color: var(--mdoc-ink-3);
+  font-size: var(--mdoc-type-small);
+  padding-right: 4mm;
+}
+
+.e-permits-mdoc .e-permits-doc-page__surface .e-permits-mdoc-kv__table td + td {
+  font-weight: var(--font-weight-fw-medium, 500);
+}
+
+.e-permits-mdoc .e-permits-doc-page__surface .e-permits-mdoc-kv__table tr:last-child > td,
+.e-permits-mdoc .e-permits-doc-page__surface .e-permits-mdoc-kv__table tr:has(+ .e-permits-doc-page__group) > td {
+  border-bottom: 0;
+}
+
+.e-permits-mdoc .e-permits-doc-page__surface .e-permits-mdoc-kv__table .e-permits-doc-page__label-col {
+  width: var(--mdoc-label-col);
+}
+
+.e-permits-mdoc .e-permits-doc-page__surface .e-permits-mdoc-kv__table .e-permits-doc-page__group th {
+  background: none;
+  border: 0;
+  border-bottom: var(--border-width-1, 1px) solid var(--mdoc-rule);
+  color: var(--mdoc-ink-3);
+  font-size: var(--mdoc-type-caption);
+  font-weight: var(--font-weight-fw-semibold, 600);
+  letter-spacing: var(--mdoc-track);
+  line-height: var(--mdoc-type-caption-lh);
+  padding: var(--mdoc-gap-section) 0 1.6mm;
+  text-transform: uppercase;
+}
+
+.e-permits-mdoc .e-permits-doc-page__surface .e-permits-mdoc-kv__table tbody > .e-permits-doc-page__group:first-child th {
+  padding-top: 0;
+}
+
+/* a configured grid inside the rows (act fields): a quiet table — caps header over a line, soft row lines */
+.e-permits-mdoc .e-permits-doc-page__surface .e-permits-doc-page__grid-label td {
+  border-bottom: 0;
+  color: var(--mdoc-ink-2);
+  font-size: var(--mdoc-type-body);
+  font-weight: var(--font-weight-fw-medium, 500);
+  padding: var(--mdoc-gap-block) 0 1mm;
+}
+
+.e-permits-mdoc .e-permits-doc-page__surface td.e-permits-doc-page__grid-cell {
+  border-bottom: 0;
+  padding: 0;
+}
+
+.e-permits-mdoc .e-permits-doc-page__surface .e-permits-doc-page__grid :is(td, th) {
+  border: 0;
+  border-bottom: var(--border-width-1, 1px) solid var(--mdoc-rule-soft);
+  color: var(--mdoc-ink);
+  font-size: var(--mdoc-type-small);
+  line-height: var(--mdoc-type-small-lh);
+  padding: 1.4mm 2mm 1.4mm 0;
+}
+
+.e-permits-mdoc .e-permits-doc-page__surface .e-permits-doc-page__grid th {
+  background: none;
+  border-bottom-color: var(--mdoc-rule);
+  color: var(--mdoc-ink-3);
+  font-size: var(--mdoc-type-caption);
+  letter-spacing: var(--mdoc-track);
+  line-height: var(--mdoc-type-caption-lh);
+  text-transform: uppercase;
+}
+
+/* table module: caps header over one line, soft row lines, numbers right, an optional total row */
+.e-permits-mdoc .e-permits-doc-page__surface .e-permits-mdoc-table > .e-permits-mdoc__section-title {
+  border-bottom: 0;
+  padding-bottom: 2mm;
+}
+
+.e-permits-mdoc .e-permits-doc-page__surface .e-permits-mdoc-table__grid th {
+  border-bottom: var(--border-width-1, 1px) solid var(--mdoc-rule);
+  color: var(--mdoc-ink-3);
+  font-size: var(--mdoc-type-caption);
+  font-weight: var(--font-weight-fw-semibold, 600);
+  letter-spacing: var(--mdoc-track);
+  line-height: var(--mdoc-type-caption-lh);
+  padding: 0 3mm 1.6mm 0;
+  text-transform: uppercase;
+}
+
+.e-permits-mdoc .e-permits-doc-page__surface .e-permits-mdoc-table__grid td {
+  border-bottom: var(--border-width-1, 1px) solid var(--mdoc-rule-soft);
+  padding: var(--mdoc-row-pad) 3mm var(--mdoc-row-pad) 0;
+}
+
+.e-permits-mdoc .e-permits-doc-page__surface .e-permits-mdoc-table__grid :is(td, th):last-child {
+  padding-right: 0;
+}
+
+.e-permits-mdoc .e-permits-doc-page__surface .e-permits-mdoc-table__grid .is-number {
+  text-align: right;
+}
+
+.e-permits-mdoc .e-permits-doc-page__surface .e-permits-mdoc-table__grid tr.is-total td {
+  border-bottom: 0;
+  border-top: var(--border-width-1, 1px) solid var(--mdoc-rule);
+  font-weight: var(--font-weight-fw-semibold, 600);
+}
+
+.e-permits-mdoc-table__col--num {
+  width: 9%;
+}
+
+.e-permits-mdoc-table__col--narrow {
+  width: 16%;
+}
+
+.e-permits-mdoc-table__col--medium {
+  width: 24%;
+}
+
+/* text body: paragraphs and numbered points with a hanging number */
+.e-permits-mdoc-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2.5mm;
+}
+
+.e-permits-mdoc-text__flow {
+  display: flex;
+  flex-direction: column;
+  gap: 2.5mm;
+  max-width: 160mm;
+}
+
+.e-permits-mdoc .e-permits-doc-page__surface .e-permits-mdoc-text__point {
+  display: grid;
+  grid-template-columns: 6mm minmax(0, 1fr);
+}
+
+.e-permits-mdoc-text__num {
+  color: var(--mdoc-ink-3);
+}
+
+.e-permits-mdoc-text--closing .e-permits-mdoc-text__flow {
+  color: var(--mdoc-ink-2);
+}
+
+/* decision / outcome callout: the quiet grey surface, the tone only on the 2 px bar and the icon (a tinted fill was
+   louder than the rest of the page); icon + title + one sentence — the words carry the meaning in grayscale */
+.e-permits-mdoc-outcome {
+  background: var(--color-background-base-secondary, #f5f5f5);
+  border-left: var(--border-width-2, 2px) solid var(--mdoc-tone-line, var(--color-border-brand-default, #0058d2));
+  border-radius: 0 var(--border-radius-8, 8px) var(--border-radius-8, 8px) 0;
+  column-gap: 3mm;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  padding: 4mm 5mm;
+  print-color-adjust: exact;
+  -webkit-print-color-adjust: exact;
+}
+
+.e-permits-mdoc-outcome__icon {
+  color: var(--mdoc-tone-icon, var(--color-icon-brand-default, #0058d2));
+  height: var(--icon-size-medium, 20px);
+  width: var(--icon-size-medium, 20px);
+}
+
+.e-permits-mdoc-outcome__body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8mm;
+}
+
+.e-permits-mdoc .e-permits-doc-page__surface .e-permits-mdoc-outcome__title {
+  font-size: var(--mdoc-type-lead);
+  font-weight: var(--font-weight-fw-semibold, 600);
+  line-height: var(--mdoc-type-lead-lh);
+}
+
+.e-permits-mdoc .e-permits-doc-page__surface .e-permits-mdoc-outcome__text {
+  color: var(--mdoc-ink-2);
+}
+
+.e-permits-mdoc-outcome--positive {
+  --mdoc-tone-line: var(--color-border-positive-default, #027a48);
+  --mdoc-tone-icon: var(--color-icon-positive-default, #039855);
+}
+
+.e-permits-mdoc-outcome--warning {
+  --mdoc-tone-line: var(--color-border-warning-default, #dc6803);
+  --mdoc-tone-icon: var(--color-icon-warning-default, #dc6803);
+}
+
+.e-permits-mdoc-outcome--danger {
+  --mdoc-tone-line: var(--color-border-danger-default, #d92d20);
+  --mdoc-tone-icon: var(--color-icon-danger-default, #d92d20);
+}
+
+/* attachments: number · name · meta, soft lines */
+.e-permits-mdoc .e-permits-doc-page__surface .e-permits-mdoc-files__list > li {
+  border-bottom: var(--border-width-1, 1px) solid var(--mdoc-rule-soft);
+  column-gap: 2mm;
+  display: grid;
+  grid-template-columns: 6mm minmax(0, 1fr) auto;
+  padding: var(--mdoc-row-pad) 0;
+}
+
+.e-permits-mdoc .e-permits-doc-page__surface .e-permits-mdoc-files__list > li:last-child {
+  border-bottom: 0;
+}
+
+.e-permits-mdoc-files__num {
+  color: var(--mdoc-ink-3);
+}
+
+.e-permits-mdoc-files__meta {
+  color: var(--mdoc-ink-3);
+  font-size: var(--mdoc-type-small);
+  white-space: nowrap;
+}
+
+/* signatures (locked, after the content): 2 per row, a signature line on top; pending = dashed + grey */
+.e-permits-mdoc-signatures {
+  display: grid;
+  gap: 5mm 8mm;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  padding-top: 2mm;
+}
+
+.e-permits-mdoc-sign {
+  border-top: var(--border-width-1, 1px) solid var(--mdoc-rule-sign);
+  display: flex;
+  flex-direction: column;
+  gap: 0.5mm;
+  padding-top: 2.5mm;
+}
+
+.e-permits-mdoc .e-permits-doc-page__surface .e-permits-mdoc-sign__lead {
   align-items: center;
   color: var(--color-text-brand-default, #0058d2);
   display: flex;
-  gap: var(--spacing-6, 6px);
-  margin: 0;
+  font-size: var(--mdoc-type-small);
+  font-weight: var(--font-weight-fw-semibold, 600);
+  gap: 1.5mm;
+  line-height: var(--mdoc-type-small-lh);
 }
 
-.e-permits-mdoc__signer .icon {
+.e-permits-mdoc-sign__lead .icon {
   flex: none;
   height: var(--icon-size-small, 16px);
   width: var(--icon-size-small, 16px);
 }
 
-/* the footer, identical on every page: QR · legal block · page number */
-.e-permits-doc-page__surface .e-permits-mdoc__footer {
+.e-permits-mdoc .e-permits-doc-page__surface .e-permits-mdoc-sign__role {
+  color: var(--mdoc-ink-2);
+  font-size: var(--mdoc-type-small);
+  line-height: var(--mdoc-type-small-lh);
+  margin-top: 1mm;
+}
+
+.e-permits-mdoc .e-permits-doc-page__surface .e-permits-mdoc-sign__name {
+  font-size: var(--mdoc-type-lead);
+  font-weight: var(--font-weight-fw-semibold, 600);
+  line-height: var(--mdoc-type-lead-lh);
+}
+
+.e-permits-mdoc .e-permits-doc-page__surface .e-permits-mdoc-sign__meta {
+  color: var(--mdoc-ink-3);
+  font-size: var(--mdoc-type-micro);
+  line-height: var(--mdoc-type-micro-lh);
+}
+
+.e-permits-mdoc-sign.is-pending {
+  border-top-style: dashed;
+}
+
+.e-permits-mdoc .e-permits-doc-page__surface .e-permits-mdoc-sign.is-pending .e-permits-mdoc-sign__lead {
+  color: var(--mdoc-ink-3);
+}
+
+/* ---- 6. Footer (locked; every page, AC-08): QR · verification + legal block · „Pagina X din Y” ---- */
+.e-permits-mdoc .e-permits-doc-page__surface .e-permits-mdoc__footer {
   align-items: end;
-  column-gap: var(--spacing-12, 12px);
+  border-top: var(--border-width-1, 1px) solid var(--mdoc-rule);
+  color: var(--mdoc-ink-3);
+  column-gap: 4mm;
   display: grid;
+  font-size: var(--mdoc-type-micro);
   grid-template-columns: auto minmax(0, 1fr) auto;
+  line-height: var(--mdoc-type-micro-lh);
   margin-top: auto;
-  padding-top: var(--spacing-12, 12px);
+  padding-top: 4mm;
   text-align: left;
 }
 
 .e-permits-mdoc__qr {
   align-self: start;
-  border: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
-  border-radius: var(--border-radius-4, 4px);
+  color: var(--mdoc-ink);
   display: block;
-  padding: var(--spacing-4, 4px);
+  height: 18mm;
+  width: 18mm;
 }
 
-.e-permits-mdoc__qr .icon {
-  color: var(--color-text-base-default, #121212);
+.e-permits-mdoc__qr-code {
   display: block;
-  height: var(--spacing-64, 64px);
-  width: var(--spacing-64, 64px);
+  height: 100%;
+  width: 100%;
 }
 
-.e-permits-mdoc__legal {
+.e-permits-mdoc__verify {
   align-self: start;
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-2, 2px);
+  gap: 0.6mm;
+  min-width: 0;
 }
 
-.e-permits-doc-page__surface .e-permits-mdoc__link {
-  color: var(--color-text-base-secondary, #383838);
+.e-permits-mdoc .e-permits-doc-page__surface .e-permits-mdoc__link {
+  color: var(--mdoc-ink);
+  font-size: var(--mdoc-type-small);
+  font-weight: var(--font-weight-fw-medium, 500);
+  line-height: var(--mdoc-type-small-lh);
   overflow-wrap: anywhere;
 }
 
-.e-permits-doc-page__surface .e-permits-mdoc__page {
-  margin: 0;
+.e-permits-mdoc__legal {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3mm;
+  margin-top: 0.8mm;
+}
+
+.e-permits-mdoc .e-permits-doc-page__surface .e-permits-mdoc__page {
+  color: var(--mdoc-ink-2);
+  font-weight: var(--font-weight-fw-medium, 500);
   white-space: nowrap;
+}
+
+/* ---- 7. Specimen only (mdocs-specimen.html, demo mdoc-sys / mdoc-sys-z): zones outlined on the page —
+   locked = grey dashed, editable = brand dashed, each with its caption (US-306 AC-01 / AC-06) ---- */
+.e-permits-mdoc-spec.is-zones [data-mdoc-zone] {
+  outline: var(--border-width-1, 1px) dashed var(--mdoc-zone, var(--color-border-base-secondary, #b2b2b2));
+  outline-offset: 1.2mm;
+  position: relative;
+}
+
+.e-permits-mdoc-spec.is-zones [data-mdoc-zone="editable"] {
+  --mdoc-zone: var(--color-border-brand-default, #0058d2);
+}
+
+.e-permits-mdoc-spec.is-zones [data-mdoc-zone]::after {
+  background: var(--color-background-base-default, #fff);
+  color: var(--mdoc-zone, var(--mdoc-ink-3));
+  content: "Blocat · macheta";
+  font-size: var(--mdoc-type-micro);
+  font-weight: var(--font-weight-fw-semibold, 600);
+  line-height: var(--mdoc-type-micro-lh);
+  padding: 0 1mm;
+  position: absolute;
+  right: 0;
+  top: -3.2mm;
+}
+
+.e-permits-mdoc-spec.is-zones [data-mdoc-zone="editable"]::after {
+  content: "Editabil · șablonul serviciului";
+}
+
+/* ---- 8. The specimen page (mdocs-specimen.html, js/mdocs-specimen.js): intro + one grey canvas per sheet ---- */
+.e-permits-mdoc-spec {
+  background: var(--color-background-base-default, #fff);
+  color: var(--color-text-base-default, #121212);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-40, 40px);
+  margin: 0 auto;
+  max-width: calc(210mm + var(--spacing-48, 48px) * 2);
+  padding: var(--spacing-48, 48px) var(--spacing-24, 24px) var(--spacing-80, 80px);
+}
+
+.e-permits-mdoc-spec__intro {
+  align-items: flex-start;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-12, 12px);
+}
+
+.e-permits-mdoc-spec__intro::before {
+  background: linear-gradient(90deg, var(--blue-sky-600, #0058d2), var(--lavender-600, #561fe5) 38%, var(--purple-600, #7e37f9) 68%, var(--magenta-600, #aa18ce));
+  border-radius: var(--border-radius-full, 9999px);
+  content: "";
+  height: var(--spacing-4, 4px);
+  width: var(--spacing-64, 64px);
+}
+
+.e-permits-mdoc-spec__kicker {
+  color: var(--color-text-base-tertiary, #757575);
+  font-size: var(--font-size-fs-12, 12px);
+  font-weight: var(--font-weight-fw-semibold, 600);
+  letter-spacing: 0.08em;
+  line-height: var(--line-height-lh-16, 16px);
+  margin: 0;
+  text-transform: uppercase;
+}
+
+.e-permits-mdoc-spec__h1 {
+  font-size: var(--type-heading-h3-font-size, 24px);
+  font-weight: var(--font-weight-fw-semibold, 600);
+  letter-spacing: var(--type-heading-h3-letter-spacing, -0.01em);
+  line-height: var(--type-heading-h3-line-height, 32px);
+  margin: 0;
+}
+
+.e-permits-mdoc-spec__lead {
+  color: var(--color-text-base-secondary, #383838);
+  font-size: var(--font-size-fs-16, 16px);
+  line-height: var(--line-height-lh-24, 24px);
+  margin: 0;
+  max-width: 72ch;
+}
+
+.e-permits-mdoc-spec__sheets {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-48, 48px);
+}
+
+.e-permits-mdoc-spec__sheet {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-8, 8px);
+  scroll-margin-top: var(--spacing-24, 24px);
+}
+
+.e-permits-mdoc-spec__title {
+  font-size: var(--type-heading-h5-font-size, 18px);
+  font-weight: var(--font-weight-fw-semibold, 600);
+  line-height: var(--type-heading-h5-line-height, 26px);
+  margin: 0;
+}
+
+.e-permits-mdoc-spec__desc {
+  color: var(--color-text-base-tertiary, #757575);
+  font-size: var(--font-size-fs-14, 14px);
+  line-height: var(--line-height-lh-20, 20px);
+  margin: 0 0 var(--spacing-8, 8px);
+}
+
+.e-permits-mdoc-spec__canvas {
+  border-radius: var(--border-radius-20, 20px);
+  flex: none;
+  overflow: visible;
+}
+
+/* the specimen captions: brand caps between the modules on a sheet */
+.e-permits-mdoc .e-permits-doc-page__surface .e-permits-mdoc-spec__caption {
+  color: var(--color-text-brand-default, #0058d2);
+  font-size: var(--mdoc-type-caption);
+  font-weight: var(--font-weight-fw-semibold, 600);
+  letter-spacing: var(--mdoc-track);
+  line-height: var(--mdoc-type-caption-lh);
+  margin-bottom: calc(var(--mdoc-gap-section) * -1 + 2mm);
+  text-transform: uppercase;
+}
+
+.e-permits-mdoc-spec__row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3mm;
+}
+
+.e-permits-mdoc-spec__type {
+  display: flex;
+  flex-direction: column;
+}
+
+.e-permits-mdoc-spec__type-row {
+  align-items: baseline;
+  border-bottom: var(--border-width-1, 1px) solid var(--mdoc-rule-soft);
+  column-gap: 4mm;
+  display: grid;
+  grid-template-columns: 18mm 40mm minmax(0, 1fr);
+  padding: 2mm 0;
+}
+
+.e-permits-mdoc .e-permits-doc-page__surface .e-permits-mdoc-spec__type-meta {
+  color: var(--mdoc-ink-3);
+  font-size: var(--mdoc-type-micro);
+  line-height: var(--mdoc-type-micro-lh);
+}
+
+.e-permits-mdoc .e-permits-doc-page__surface .e-permits-mdoc-spec__type-sample--display { font-size: var(--mdoc-type-display); font-weight: var(--font-weight-fw-semibold, 600); line-height: var(--mdoc-type-display-lh); }
+.e-permits-mdoc .e-permits-doc-page__surface .e-permits-mdoc-spec__type-sample--title { font-size: var(--mdoc-type-title); font-weight: var(--font-weight-fw-semibold, 600); line-height: var(--mdoc-type-title-lh); }
+.e-permits-mdoc .e-permits-doc-page__surface .e-permits-mdoc-spec__type-sample--lead { font-size: var(--mdoc-type-lead); font-weight: var(--font-weight-fw-semibold, 600); line-height: var(--mdoc-type-lead-lh); }
+.e-permits-mdoc .e-permits-doc-page__surface .e-permits-mdoc-spec__type-sample--small { font-size: var(--mdoc-type-small); line-height: var(--mdoc-type-small-lh); }
+.e-permits-mdoc .e-permits-doc-page__surface .e-permits-mdoc-spec__type-sample--caption { color: var(--mdoc-ink-3); font-size: var(--mdoc-type-caption); font-weight: var(--font-weight-fw-semibold, 600); letter-spacing: var(--mdoc-track); line-height: var(--mdoc-type-caption-lh); text-transform: uppercase; }
+.e-permits-mdoc .e-permits-doc-page__surface .e-permits-mdoc-spec__type-sample--micro { color: var(--mdoc-ink-3); font-size: var(--mdoc-type-micro); line-height: var(--mdoc-type-micro-lh); }
+
+.e-permits-mdoc-spec__swatches {
+  display: grid;
+  gap: 3mm 4mm;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
+.e-permits-mdoc-spec__swatch {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6mm;
+}
+
+.e-permits-mdoc-spec__chip {
+  border: var(--border-width-1, 1px) solid var(--mdoc-rule);
+  border-radius: var(--border-radius-4, 4px);
+  display: block;
+  height: 10mm;
+  print-color-adjust: exact;
+  -webkit-print-color-adjust: exact;
+}
+
+.e-permits-mdoc .e-permits-doc-page__surface .e-permits-mdoc-spec__swatch-name {
+  font-size: var(--mdoc-type-small);
+  font-weight: var(--font-weight-fw-semibold, 600);
+  line-height: var(--mdoc-type-small-lh);
+}
+
+.e-permits-mdoc-spec__chip--0 { background: var(--mdoc-ink); }
+.e-permits-mdoc-spec__chip--1 { background: var(--mdoc-ink-2); }
+.e-permits-mdoc-spec__chip--2 { background: var(--mdoc-ink-3); }
+.e-permits-mdoc-spec__chip--3 { background: var(--mdoc-rule); }
+.e-permits-mdoc-spec__chip--4 { background: var(--mdoc-rule-soft); }
+.e-permits-mdoc-spec__chip--5 { background: var(--mdoc-rule-sign); }
+.e-permits-mdoc-spec__chip--6 { background: var(--color-background-base-secondary, #f5f5f5); border-left: var(--border-width-2, 2px) solid var(--color-border-positive-default, #027a48); }
+.e-permits-mdoc-spec__chip--7 { background: var(--color-background-base-secondary, #f5f5f5); border-left: var(--border-width-2, 2px) solid var(--color-border-warning-default, #dc6803); }
+.e-permits-mdoc-spec__chip--8 { background: var(--color-background-base-secondary, #f5f5f5); border-left: var(--border-width-2, 2px) solid var(--color-border-danger-default, #d92d20); }
+.e-permits-mdoc-spec__chip--9 { background: var(--color-background-base-secondary, #f5f5f5); border-left: var(--border-width-2, 2px) solid var(--color-border-brand-default, #0058d2); }
+
+.e-permits-mdoc-spec__accent {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5mm;
+}
+
+.e-permits-mdoc-spec__band {
+  background: var(--mdoc-accent);
+  display: block;
+  height: var(--mdoc-band);
+  print-color-adjust: exact;
+  -webkit-print-color-adjust: exact;
+}
+
+@media (max-width: 760px) {
+  .e-permits-mdoc-spec {
+    padding: var(--spacing-24, 24px) var(--spacing-16, 16px) var(--spacing-48, 48px);
+  }
+
+  .e-permits-mdoc-spec__canvas {
+    border-radius: var(--border-radius-16, 16px);
+    margin-inline: calc(var(--spacing-16, 16px) * -1);
+    padding: var(--spacing-8, 8px);
+  }
 }
 
 /* an alert above the canvas (FO certificate „Reîncercați”) keeps the 12 rhythm of the signature card */
