@@ -3679,3 +3679,22 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   width 100% + border-box, and `overflow-wrap: anywhere` on the pre (GUIDs / long strings). The min-height had also beaten
   the panel's max-height (240 → 520 tall). Measured at 1440 / 1024: facts 286 = panel content, JSON 286 × 240, scrollWidth
   = width. Seen, not fixed (pre-existing): „Grosime” segmented „Implicită” item is cramped at 286 (text touches the pill).
+- 2026-10-25 · pd-meta-links-v1 + pd-toolbar-brand-v1 (user: „Fără erori” = link-style with an icon, version quieter, active
+  toolbar items brand blue). (1) THE CALLER'S PREMISE WAS WRONG: „reuse the BO's existing Fără erori / N erori link”. A grep
+  found none — FB and PD both used the outlined `btn-outline-destructive` / green `is-clean` box. Say so, and build from the
+  library: the quiet link = the library text button (`btn-text-destructive btn-sm` for errors, the product no-fill
+  `btn-strict btn-sm` + a colour modifier for clean). (2) CONTRAST before picking a „green” token:
+  `--color-text-positive-default` = green-600 #039855 = 3.7:1 on white (fails 14 px) → `--color-text-positive-on-secondary`
+  (green-700). Same for a pressed tint: the library `btn-text-destructive:active` red-300 leaves the red label at 2.3:1 →
+  open / pressed = danger/secondary-hover (red-200). (3) A variant swap that also changes the glyph: keep one
+  `[data-…-icon]` slot and redraw it only when the state flips (dataset guard), so the button node — and its focus /
+  aria-expanded — survive. (4) Shared FB hook classes (`e-permits-builder__errors`, `is-clean`) carry FB paint: the PD
+  drops `is-clean` entirely and uses its own modifier, and resets the FB's 4 margin. (5) Brand selected in a toolbar: ONE
+  selector for checked tools + pressed toggles, `:not(:disabled, [aria-disabled="true"])` so an unavailable checked item
+  stays grey (the existing transparent rule still covers it), ring only on `:focus-visible`; the segmented's
+  `.is-selected` needs its OWN hover rule — the library `.segment-item:hover` loses to `.is-selected` by order. (6) The
+  hover-audit `--scope` with a comma list audits only the first match → one run per scope. I patched the JS with one
+  Python read → apply → write and bumped `?v=` with `sed -i` although the caller asked for Edit only; both were single
+  asserted replacements, but next time use Edit for shared files. QA: hover-audit 0 / 0 (toolbar pd-01 / 13b / 23,
+  header pd-01 / 16a), component-audit 0 majors in scope (pd-23 = the standing list-row majors), code-audit static 0 and
+  nothing on the changed controls (pd-16 toolbar-over-list overlaps = by design).

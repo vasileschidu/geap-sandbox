@@ -111,7 +111,7 @@ document.addEventListener("DOMContentLoaded", () => {
           <span class="e-permits-builder__view-title e-permits-pd__title" data-pd-title></span>
           <span class="e-permits-pd__status" data-pd-status></span>
           <div class="e-permits-stack__menu-wrap e-permits-pd__version-wrap">
-            <button class="btn btn-neutral btn-sm e-permits-pd__version" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="pd-versions-menu" data-stack-menu-trigger data-pd-version>
+            <button class="btn btn-strict btn-sm e-permits-pd__version" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="pd-versions-menu" data-stack-menu-trigger data-pd-version>
               <span data-pd-version-label>v1.0.0</span>
               ${icon("chevron-bottom", 16)}
             </button>
@@ -125,8 +125,8 @@ document.addEventListener("DOMContentLoaded", () => {
         </div>
         <div class="e-permits-builder__nav-actions">
           <div class="e-permits-stack__menu-wrap e-permits-builder__issues" data-pd-edit-only>
-            <button class="btn btn-sm btn-outline-destructive e-permits-builder__errors" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="pd-issues-menu" data-stack-menu-trigger data-pd-errors>
-              <span aria-hidden="true"><i></i></span>
+            <button class="btn btn-sm btn-strict e-permits-builder__errors e-permits-pd__errors--clean" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="pd-issues-menu" data-stack-menu-trigger data-pd-errors>
+              <span aria-hidden="true" data-pd-errors-icon>${icon("circle-checkmark-filled", 16)}</span>
               <strong data-pd-errors-label>Fără erori</strong>
             </button>
             <ul class="e-permits-fo-intent-menu e-permits-stack__menu e-permits-builder__issues-menu" id="pd-issues-menu" role="menu" aria-label="Probleme în proces" hidden data-stack-menu data-pd-issues></ul>
@@ -250,6 +250,7 @@ document.addEventListener("DOMContentLoaded", () => {
     versions: q("[data-pd-versions]"),
     errors: q("[data-pd-errors]"),
     errorsLabel: q("[data-pd-errors-label]"),
+    errorsIcon: q("[data-pd-errors-icon]"),
     issues: q("[data-pd-issues]"),
     publish: q("[data-pd-publish]"),
     settings: q("[data-pd-settings]"),
@@ -735,8 +736,11 @@ document.addEventListener("DOMContentLoaded", () => {
     const warnings = S.issues.filter((i) => i.level === "warning");
     const saveBlocking = errors.filter(PM.blocksSave);
     const n = errors.length;
-    el.errors.classList.toggle("is-clean", n === 0);
-    el.errors.classList.toggle("btn-outline-destructive", n > 0);
+    /* quiet meta link (pd-meta-links-v1): clean = strict text button in green + check, errors = library text destructive + error glyph */
+    el.errors.classList.toggle("e-permits-pd__errors--clean", n === 0);
+    el.errors.classList.toggle("btn-strict", n === 0);
+    el.errors.classList.toggle("btn-text-destructive", n > 0);
+    if (el.errorsIcon.dataset.glyph !== String(n > 0)) { el.errorsIcon.dataset.glyph = String(n > 0); el.errorsIcon.innerHTML = icon(n ? "circle-error-filled" : "circle-checkmark-filled", 16); }
     el.errorsLabel.textContent = n ? `${n} ${n === 1 ? "eroare" : "erori"}` : "Fără erori";
     el.errors.setAttribute("aria-label", n ? `${n} ${n === 1 ? "eroare" : "erori"} în proces — vezi lista` : `Fără erori${warnings.length ? `, ${warnings.length} ${warnings.length === 1 ? "avertisment" : "avertismente"}` : ""} — vezi lista`);
     const row = (issue) => `

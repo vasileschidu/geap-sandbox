@@ -28,15 +28,57 @@
   justify-self: center;
 }
 
+/* Quiet meta controls (pd-meta-links-v1, user 2026-10-25: „Fără erori” = a link-style button with an icon, no box;
+   the version = the same quiet style). Both are library text buttons at the product Small size (32 · r6 · 0 12 /
+   8 on the icon side · 14/20 medium · icon 16): no fill, no border at rest, a fill on hover / press, the product
+   „open keeps the pressed fill + ring” while their menu is open, the ring on keyboard focus.
+   - version: `btn btn-strict btn-sm` (the product's no-fill text button) + chevron 16.
+   - issues: no errors = `btn btn-strict btn-sm e-permits-pd__errors--clean` — label + `circle-checkmark-filled` in
+     the positive on-secondary green (green-600 is 3.7:1 on white, too low for 14 px text); errors = library
+     `btn btn-text-destructive btn-sm` — red label + `circle-error-filled`, hover danger/secondary. The JS swaps the
+     variant AND the glyph (`[data-pd-errors-icon]`); FB's green outlined `is-clean` is not used here. */
 .e-permits-builder--process .btn.btn-sm.e-permits-builder__errors {
+  margin-right: 0;
   padding-left: var(--spacing-8, 8px);
 }
 
-/* the errors glyph sits in the Small icon box (16) */
+.e-permits-builder--process .btn.btn-sm.btn-strict.e-permits-pd__errors--clean {
+  color: var(--color-text-positive-on-secondary, #027948);
+}
+
+.e-permits-builder--process .e-permits-pd__errors--clean .icon {
+  color: var(--color-icon-positive-on-secondary, #027948);
+}
+
+.e-permits-builder--process .btn.btn-sm.btn-text-destructive.e-permits-builder__errors {
+  border-color: transparent;
+  color: var(--color-text-danger-default, #d92d20);
+}
+
+.e-permits-builder--process .btn.btn-sm.btn-text-destructive.e-permits-builder__errors:hover:not(:disabled) {
+  background: var(--color-background-danger-secondary, #fee4e2);
+}
+
+/* pressed / open: the hover tint one step darker (library active red-300 leaves the red label at 2.3:1) */
+.e-permits-builder--process .btn.btn-sm.btn-text-destructive.e-permits-builder__errors:active:not(:disabled),
+.e-permits-builder--process .btn.btn-sm.btn-text-destructive.e-permits-builder__errors[aria-expanded="true"] {
+  background: var(--color-background-danger-secondary-hover, #fecdca);
+}
+
+/* the glyph sits in the Small icon box (16) */
 .e-permits-builder--process .e-permits-builder__errors > span {
   flex-basis: var(--spacing-16, 16px);
   height: var(--spacing-16, 16px);
   width: var(--spacing-16, 16px);
+}
+
+.e-permits-builder--process .e-permits-builder__errors > span > .icon {
+  height: var(--spacing-16, 16px);
+  width: var(--spacing-16, 16px);
+}
+
+.e-permits-builder--process .e-permits-builder__errors > strong {
+  font-weight: inherit;
 }
 
 /* Segmented control · Compact (local modifier, pd-header-compact-v1). The library control has ONE size in Figma
@@ -1518,27 +1560,27 @@
   width: var(--border-width-1, 1px);
 }
 
-/* the active tool (radio) = the pressed fill, no ring (the ring is for buttons that own something open) */
-.e-permits-pd__toolbar .btn.e-permits-pd__tool[aria-checked="true"] {
-  background: var(--color-background-base-tertiary-active, #b2b2b2);
-}
-
-.e-permits-pd__toolbar .btn.e-permits-pd__tool[aria-checked="true"]:hover:not(:disabled) {
-  background: var(--color-background-base-tertiary-hover, #e7e7e7);
-}
-
-/* „Restrânge panourile” on = the same pressed fill as the active tool; it is a toggle, not an open menu, so the
-   product „open button keeps the ring” rule is off — the ring only on keyboard focus (user 2026-10-25) */
-.e-permits-pd__toolbar .btn.btn-sm.btn-strict.e-permits-pd__tool[aria-pressed="true"]:not(:disabled) {
-  background: var(--color-background-base-tertiary-active, #b2b2b2);
+/* Active toolbar items = the brand fill with a white glyph (pd-toolbar-brand-v1, user 2026-10-25: „brand blue, not the
+   grey fill / black segment”): the active tool (Selectare / Panoramare, role=radio aria-checked), the pressed toggles
+   („Hartă”, „Restrânge panourile”, aria-pressed) and the checked view below. Rest brand/default → hover
+   brand/default-hover → press brand/default-active (the library Primary button's states). They are toggles, not open
+   menus, so the product „open button keeps the ring” rule is off — the ring only on keyboard focus, on top of the
+   fill. Unavailable (aria-disabled) items never keep the fill (rule further down). */
+.e-permits-pd__toolbar .btn.btn-sm.btn-strict.e-permits-pd__tool:is([aria-checked="true"], [aria-pressed="true"]):not(:disabled, [aria-disabled="true"]) {
+  background: var(--color-background-brand-default, #0058d2);
   box-shadow: none;
+  color: var(--color-icon-base-inverse-on-color, #fff);
 }
 
-.e-permits-pd__toolbar .btn.btn-sm.btn-strict.e-permits-pd__tool[aria-pressed="true"]:hover:not(:disabled) {
-  background: var(--color-background-base-tertiary-hover, #e7e7e7);
+.e-permits-pd__toolbar .btn.btn-sm.btn-strict.e-permits-pd__tool:is([aria-checked="true"], [aria-pressed="true"]):not(:disabled, [aria-disabled="true"]):hover {
+  background: var(--color-background-brand-default-hover, #0046a8);
 }
 
-.e-permits-pd__toolbar .btn.btn-sm.btn-strict.e-permits-pd__tool[aria-pressed="true"]:focus-visible {
+.e-permits-pd__toolbar .btn.btn-sm.btn-strict.e-permits-pd__tool:is([aria-checked="true"], [aria-pressed="true"]):not(:disabled, [aria-disabled="true"]):active {
+  background: var(--color-background-brand-default-active, #00357e);
+}
+
+.e-permits-pd__toolbar .btn.btn-sm.btn-strict.e-permits-pd__tool:is([aria-checked="true"], [aria-pressed="true"]):not(:disabled, [aria-disabled="true"]):focus-visible {
   box-shadow: 0 0 0 var(--border-width-2, 2px) var(--color-background-base-default, #fff), 0 0 0 calc(var(--border-width-2, 2px) + var(--border-width-3, 3px)) var(--focus-ring, var(--blue-sky-500, #3379db));
 }
 
@@ -1569,6 +1611,21 @@
 
 .e-permits-pd__views .segment-item:not(:last-child)::after {
   right: calc((var(--spacing-4, 4px) + var(--border-width-1, 1px)) / -2);
+}
+
+/* the checked view = the toolbar's brand selected look (pd-toolbar-brand-v1) instead of the library inverse segment;
+   the library separators, shadow and focus ring stay */
+.e-permits-pd__views .segment-item.is-selected {
+  background-color: var(--color-background-brand-default, #0058d2);
+  color: var(--color-icon-base-inverse-on-color, #fff);
+}
+
+.e-permits-pd__views .segment-item.is-selected:hover {
+  background-color: var(--color-background-brand-default-hover, #0046a8);
+}
+
+.e-permits-pd__views .segment-item.is-selected:active {
+  background-color: var(--color-background-brand-default-active, #00357e);
 }
 
 .e-permits-pd__views .segment-item[aria-disabled="true"] {
