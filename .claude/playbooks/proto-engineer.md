@@ -3640,3 +3640,21 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   tool's `drag` dots next to it → `edit` (pen) pairs with the eye (edit / view). Probe (scratch pdp/radio.mjs): real
   clicks + ← → keys → aria-checked / tabindex / focus / :focus-visible / view-only / list / minimap per step, plus the
   forced (pd-21a) and phone (375) starts. QA: hover-audit 0 / 0 (4 toolbar states), component-audit 0 majors, code-audit 0.
+- 2026-10-25 · pd-view-steady-v1 (user: „the view switcher jumps”; + view-only hides Proprietăți, „Adaugă bandă” barely visible,
+  „+” menu closes on release, a ⋮ on every block, selected keeps the halo). (1) „Nothing jumps” = MEASURE the switch's box
+  in every view (scratch pdp/steady.mjs: real clicks Diagramă → Doar vizualizare → Listă → … at 1440 / 1024, views /
+  toolbar / footer / stage rects, Δ0 asserted). Two causes: the footer vanished in view-only (stage grew → toolbar moved
+  down) and the toolbar both lost tools AND was centred on the free area (which changes when view-only hides cards).
+  Fix = keep the shape (unavailable tools stay, aria-disabled + reason, a capture-phase click guard) and centre on the
+  EDIT layout (`toolbarArea()` from the rail / card state the user chose), not on what is visible. (2) A panel a mode
+  hides must restore the user's open / collapsed state on return: snapshot on entering (`S.rightBeforeRead`) — selection
+  code sets `rightOpen = true` in ~12 places, guarding each would miss one. (3) BUG (pre-existing, mine to find): a menu
+  opened on POINTERDOWN is closed by the same gesture's click (the shell's document outside-click). Open popovers on the
+  click, after the document handler (setTimeout 0); pointerdown only stops the drag. Proof = CDP press → release → +600 ms
+  still open, + touch emulation (`Emulation.setTouchEmulationEnabled` + `dispatchTouchEvent`), + outside click closes.
+  The shell closes stack menus by setting `hidden` directly → a MutationObserver on the menu's `hidden` cleans the
+  trigger's open state. (4) A row inside a 2320-wide pool: centred text is off-screen at most zooms — start-align after
+  the rail. (5) Demo-probe traps: `"[data-pd-add-lane]".includes("lane-add")` is false (I wasted three crops on it);
+  the fit bounds leave the pool's last row under the footer — zoom to the lowest node for crops. QA: hover-audit 0 / 0
+  (toolbar 3, node menu, node), component-audit = standing majors only, code-audit: one static px in a `--shadow-100`
+  fallback (dropped the fallback), capture 15 × 2 0 errors (phone DEMO-ERRORs = canvas-only states).

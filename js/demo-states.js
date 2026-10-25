@@ -1829,6 +1829,8 @@
         "pd-25": pd(async (h) => { await pick("node12")(h); }, { vizualizare: "1" }),
         /* batch 1 — editing */
         "pd-04": pd(pick("node6")),
+        /* the canvas ⋮ of a node open (pd-view-steady-v1): the panel's actions in the library dropdown under the ⋮ */
+        "pd-04m": pd(async (h) => { await pick("node6")(h); await h.click("[data-pd-node='node6'] [data-pd-more]"); await h.wait(200); }),
         "pd-04a": pd(async (h) => { await at("node6", 0.75)(h); PDX().select(["node6", "node7", "node12", "node41"]); await h.wait(200); }),
         "pd-04b": pd(pick("node12")),
         "pd-04c": pd(pick("node41")),

@@ -195,6 +195,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         <section class="e-permits-pd__json" hidden aria-label="Schema JSON a procesului" data-pd-json></section>
         <ul class="e-permits-fo-intent-menu e-permits-stack__menu e-permits-pd__add-menu" id="pd-add-menu" role="menu" aria-label="Continuă cu" hidden data-stack-menu data-pd-add-menu></ul>
+        <ul class="e-permits-fo-intent-menu e-permits-stack__menu e-permits-pd__node-menu" id="pd-node-menu" role="menu" aria-label="Acțiunile elementului" hidden data-stack-menu data-pd-node-menu></ul>
         <p class="u-visually-hidden" aria-live="polite" data-pd-live></p>
       </main>
 
@@ -269,6 +270,7 @@ document.addEventListener("DOMContentLoaded", () => {
     minimapCanvas: q("[data-pd-minimap-canvas]"),
     json: q("[data-pd-json]"),
     addMenu: q("[data-pd-add-menu]"),
+    nodeMenu: q("[data-pd-node-menu]"),
     live: q("[data-pd-live]"),
     footer: q("[data-pd-footer]"),
     dirtyNote: q("[data-pd-dirty-note]"),
@@ -636,18 +638,42 @@ document.addEventListener("DOMContentLoaded", () => {
     /* below 960 the properties are a bottom card that appears with a selection (spec E.7) */
     const narrow = window.innerWidth < 960;
     const nothing = !S.settings && !S.sel.nodes.size && !S.sel.edge && !S.sel.lane && !S.sel.pool;
-    el.props.hidden = !S.rightOpen || (narrow && nothing);
-    el.propsRail.hidden = S.rightOpen || S.mode !== "build" || (narrow && nothing);
+    /* Doar vizualizare hides Proprietăți (card + rail) like Elemente (user 2026-10-25); „Setări generale” still opens it */
+    const readView = currentView() === "readonly" && !S.settings;
+    el.props.hidden = !S.rightOpen || (narrow && nothing) || readView;
+    el.propsRail.hidden = S.rightOpen || S.mode !== "build" || (narrow && nothing) || readView;
+    /* the toolbar never changes shape between views (user: „the switcher must not jump”): tools that do not apply stay
+       in place, unavailable with the reason */
+    const roReason = S.viewOnly ? "Doar vizualizare — editarea este oprită." : "";
+    const listReason = listOn ? "Nu se aplică în vizualizarea listă." : "";
+    el.toolbar.querySelectorAll("[data-pd-undo], [data-pd-redo], [data-pd-autolayout], [data-pd-tool]").forEach((b) => unavailable(b, roReason || (b.matches("[data-pd-tool], [data-pd-autolayout]") ? listReason : "")));
+    el.toolbar.querySelectorAll("[data-pd-zoom-out], [data-pd-zoom-in], [data-pd-zoom-label], [data-pd-fit]").forEach((b) => unavailable(b, listReason));
+    unavailable(panelsBtn, readView ? "În Doar vizualizare panourile sunt ascunse." : "");
     el.stage.dataset.tool = S.tool;
     requestAnimationFrame(positionToolbar);
   }
-  /* the toolbar sits in the middle of the area the cards leave free (never under a panel) */
+  /* the toolbar sits in the middle of the area the cards leave free in Diagramă — computed from the EDIT layout
+     (palette / rail · properties / rail as the user left them), so switching Diagramă ↔ Doar vizualizare ↔ Listă,
+     which hide cards, never moves it (pd-view-steady-v1). Widths mirror css/process-designer.css. */
+  const PALETTE_W = 240, RAIL_W = 56, PROPS_W = 320;
+  function toolbarArea() {
+    const pad = 16;
+    const inset = parseFloat(getComputedStyle(root).getPropertyValue("--pd-inset")) || 8;
+    const W = stageRect.width;
+    let left = pad, right = W - pad;
+    if (W >= 720) {
+      left = inset + (S.rail ? RAIL_W : PALETTE_W) + pad;
+      if (W >= 960) right = W - inset - (S.rightOpen ? Math.min(PROPS_W, W - inset * 2) : RAIL_W) - pad;
+    }
+    if (right - left < 240) { left = pad; right = W - pad; }
+    return { inset, cx: (left + right) / 2 };
+  }
   function positionToolbar() {
     if (!overlay.classList.contains("is-active")) return;
     measureStage();
-    const v = visibleArea();
+    const v = toolbarArea();
     const half = el.toolbar.offsetWidth / 2;
-    const inset = parseFloat(getComputedStyle(root).getPropertyValue("--pd-inset")) || 8;
+    const inset = v.inset;
     const x = clamp(v.cx, half + inset, Math.max(half + inset, stageRect.width - half - inset));
     el.stage.style.setProperty("--pd-toolbar-x", `${Math.round(x)}px`);
   }
@@ -821,7 +847,7 @@ document.addEventListener("DOMContentLoaded", () => {
           </div>`).join("")}
         ${S.viewOnly ? "" : lanes.map((l) => `<span class="e-permits-pd__lane-resize${S.sel.lane === l.id ? " is-selected" : ""}" data-pd-lane-resize="${esc(l.id)}" data-pd-geo="${-RAIL},${l.top + l.height - 4},${w + RAIL},8" data-tooltip-label="Trage pentru a schimba înălțimea benzii" aria-hidden="true"><i></i></span>`).join("")}
         ${S.viewOnly ? "" : '<span class="u-visually-hidden" id="pd-lane-hint">Trage în sus sau în jos ca să schimbi ordinea benzilor. Înălțimea și ordinea se pot schimba și din proprietăți.</span>'}
-        ${!S.viewOnly && !full ? `<button class="e-permits-builder__dropzone e-permits-pd__lane-add" type="button" data-pd-add-lane data-pd-geo="${-RAIL + 12},${total + 8},${w + RAIL - 24},${ADD_LANE - 20}">${icon("plus-small", 20)}<span>Adaugă bandă</span></button>` : ""}
+        ${!S.viewOnly && !full ? `<button class="e-permits-pd__lane-add" type="button" data-pd-add-lane data-pd-geo="${-RAIL},${total},${w + RAIL},${ADD_LANE}">${icon("plus-small", 20)}<span>Adaugă bandă</span></button>` : ""}
       </div>`;
     /* geometry from the model (spec C.3): position + size are data, not CSS */
     el.lanes.querySelectorAll("[data-pd-geo]").forEach((node) => {
@@ -872,7 +898,8 @@ document.addEventListener("DOMContentLoaded", () => {
     }).join("");
     const plusPort = t === "decision" ? "corner-tr" : "right";
     const plus = S.viewOnly || t === "end" ? "" : (() => { const p = PM.portPoint(b, plusPort); return `<span class="e-permits-pd__plus" data-pd-plus data-x="${p.x - b.x + 20}" data-y="${p.y - b.y}" aria-hidden="true">${icon("plus-small", 16)}</span>`; })();
-    return `${inner}${ports}${plus}<span class="e-permits-pd__dot" aria-hidden="true"></span><span class="status-tag status-tag--info is-strong status-tag--small e-permits-pd__current-tag" aria-hidden="true">Pas curent</span>`;
+    const more = S.viewOnly ? "" : `<span class="e-permits-pd__more" data-pd-more data-tooltip-label="Acțiuni (Shift+F10)" aria-hidden="true">${icon("more-vertical", 16)}</span>`;
+    return `${inner}${ports}${plus}${more}<span class="e-permits-pd__dot" aria-hidden="true"></span><span class="status-tag status-tag--info is-strong status-tag--small e-permits-pd__current-tag" aria-hidden="true">Pas curent</span>`;
   }
   function nodeAria(s) {
     const t = typeOf(s);
@@ -1167,6 +1194,9 @@ document.addEventListener("DOMContentLoaded", () => {
     if (scroller) scroller.scrollBy({ left: Number(step.dataset.pdTabsStep) * scroller.clientWidth * 0.6, behavior: "smooth" });
   });
   window.addEventListener("resize", () => syncTabsOverflow());
+  el.toolbar.addEventListener("click", (event) => {
+    if (event.target.closest('[aria-disabled="true"]')) { event.preventDefault(); event.stopImmediatePropagation(); }
+  }, true);
   el.toolbar.addEventListener("keydown", (event) => {
     const viewRadio = event.target.closest("[data-pd-view]");
     if (viewRadio && ["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"].includes(event.key)) {
@@ -1584,19 +1614,24 @@ document.addEventListener("DOMContentLoaded", () => {
   const issueAt = (id, prop) => (S.issues.find((i) => i.id === id && i.prop === prop && i.level === "error") || {}).message || "";
   const issueLike = (id, prefix) => S.issues.filter((i) => i.id === id && String(i.prop || "").startsWith(prefix));
 
-  function nodePanel(s) {
-    if (!s) return emptyPanel();
+  /* a node's actions — ONE list for the panel ⋮ and the canvas ⋮ / right-click (data-pd-act → the root dispatcher) */
+  function nodeMenuItems(s) {
     const t = typeOf(s);
-    const list = TABS[t] || ["general"];
-    if (!list.includes(S.tab)) S.tab = "general";
     const fixed = t === "start" || t === "end";
-    const menu = S.viewOnly ? "" : ui().renderStackMenu?.([
+    return [
       ...(t === "subprocess" ? [{ label: "Deschide sub-procesul", icon: "external-link", attrs: `data-pd-act="open-sub" data-id="${esc(s.id)}"${s.properties?.processRef ? "" : ' aria-disabled="true" data-tooltip-reason="Alege întâi procesul apelat."'}` }] : []),
       { label: "Continuă cu…", icon: "plus-small", attrs: `data-pd-act="continue" data-id="${esc(s.id)}"${t === "end" ? " disabled" : ""}` },
       { label: "Centrează pe diagramă", icon: "scan", attrs: `data-pd-act="center" data-id="${esc(s.id)}"` },
       ...(fixed ? [] : [{ label: "Duplică", icon: "copy", attrs: `data-pd-act="duplicate" data-id="${esc(s.id)}"` }]),
       { label: "Șterge", icon: "delete", danger: true, attrs: `data-pd-act="delete" data-id="${esc(s.id)}"${fixed ? ` aria-disabled="true" data-tooltip-reason="${t === "start" ? "Startul procesului nu se poate șterge." : "Sfârșitul procesului nu se poate șterge."}"` : ""}` },
-    ], nameOf(s)) || "";
+    ];
+  }
+  function nodePanel(s) {
+    if (!s) return emptyPanel();
+    const t = typeOf(s);
+    const list = TABS[t] || ["general"];
+    if (!list.includes(S.tab)) S.tab = "general";
+    const menu = S.viewOnly ? "" : ui().renderStackMenu?.(nodeMenuItems(s), nameOf(s)) || "";
     const kindTag = tag(TYPE_LABEL[t], t === "decision" ? "warning" : t === "start" ? "success" : t === "end" ? "danger" : "neutral");
     const lane = laneById(s.properties?.laneId);
     const issues = issuesOf(s.id);
@@ -2626,6 +2661,56 @@ document.addEventListener("DOMContentLoaded", () => {
     S.addMenuFor = null;
     if (restoreFocus && forId) nodeEls.get(forId)?.focus({ preventScroll: true });
   }
+  /* ---- canvas ⋮ (user 2026-10-25: node actions right on the diagram): the panel's action list in the library dropdown,
+     anchored under the node's ⋮ (or at the pointer for a right-click); „Șterge” last after a divider */
+  function openNodeMenu(id, { at = null } = {}) {
+    const s = S.byId.get(id);
+    if (!s || S.viewOnly) return;
+    closeAddMenu();
+    if (!S.sel.nodes.has(id) || S.sel.nodes.size > 1) selectNodes([id]);
+    const items = nodeMenuItems(s);
+    el.nodeMenu.setAttribute("aria-label", `Acțiuni: ${nameOf(s)}`);
+    el.nodeMenu.innerHTML = items.map((item, i) => `${item.danger && i ? '<li role="separator" class="e-permits-fo-intent-menu__separator"></li>' : ""}
+      <li role="none"><button class="e-permits-fo-intent-menu__item${item.danger ? " is-danger" : ""}" type="button" role="menuitem" ${item.attrs}>${icon(item.icon, 20)}<span>${esc(item.label)}</span></button></li>`).join("");
+    S.nodeMenuFor = id;
+    el.nodeMenu.hidden = false;
+    nodeEls.forEach((n) => n.classList.toggle("is-more-open", n.dataset.pdNode === id));
+    const anchor = nodeEls.get(id)?.querySelector("[data-pd-more]");
+    const sr = el.stage.getBoundingClientRect();
+    const w = el.nodeMenu.offsetWidth, h = el.nodeMenu.offsetHeight;
+    let x, y;
+    if (at) { x = at.x - sr.left; y = at.y - sr.top; }
+    /* under the ⋮, opening to the right — away from the card, so the node title stays visible */
+    else if (anchor) { const r = anchor.getBoundingClientRect(); x = r.left - sr.left; y = r.bottom - sr.top + 4; }
+    else { const r = nodeEls.get(id).getBoundingClientRect(); x = r.right - sr.left - w; y = r.top - sr.top; }
+    el.nodeMenu.style.left = `${clamp(x, 8, sr.width - w - 8)}px`;
+    el.nodeMenu.style.top = `${clamp(y, 8, sr.height - h - 8)}px`;
+    el.nodeMenu.querySelector("[role='menuitem']:not([disabled])")?.focus({ preventScroll: true });
+  }
+  function closeNodeMenu({ restoreFocus = false } = {}) {
+    if (el.nodeMenu.hidden) return;
+    const id = S.nodeMenuFor;
+    el.nodeMenu.hidden = true;
+    if (restoreFocus && id) nodeEls.get(id)?.focus({ preventScroll: true });
+  }
+  new MutationObserver(() => { if (el.nodeMenu.hidden && S.nodeMenuFor) { S.nodeMenuFor = null; nodeEls.forEach((n) => n.classList.remove("is-more-open")); } }).observe(el.nodeMenu, { attributes: true, attributeFilter: ["hidden"] });
+  el.nodeMenu.addEventListener("click", (event) => {
+    const item = event.target.closest("[role='menuitem']");
+    if (!item || item.disabled || item.getAttribute("aria-disabled") === "true") return;
+    window.setTimeout(() => closeNodeMenu(), 0);
+  });
+  /* right-click on a node = the same menu at the pointer */
+  el.nodes.addEventListener("contextmenu", (event) => {
+    const nodeEl = event.target.closest("[data-pd-node]");
+    if (!nodeEl || S.viewOnly) return;
+    event.preventDefault();
+    const id = nodeEl.dataset.pdNode;
+    const at = { x: event.clientX, y: event.clientY };
+    window.setTimeout(() => openNodeMenu(id, { at }), 0);
+  });
+
+  /* closed from outside (the shell's outside-click / Esc handlers set `hidden` directly): drop the node's open state */
+  new MutationObserver(() => { if (el.addMenu.hidden && S.addMenuFor) { S.addMenuAt = null; S.addMenuFor = null; nodeEls.forEach((n) => n.classList.remove("is-menu-open")); } }).observe(el.addMenu, { attributes: true, attributeFilter: ["hidden"] });
   el.addMenu.addEventListener("click", (event) => {
     const item = event.target.closest("[data-pd-add-type]");
     const conn = event.target.closest("[data-pd-add-connect]");
@@ -2791,7 +2876,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   el.stage.addEventListener("pointerdown", (event) => {
     if (S.mode !== "build") return;
-    if (event.target.closest(".e-permits-pd__float, .e-permits-pd__toolbar, .e-permits-pd__minimap, [data-pd-add-menu], .e-permits-pd__json")) return;
+    if (event.target.closest(".e-permits-pd__float, .e-permits-pd__toolbar, .e-permits-pd__minimap, [data-pd-add-menu], [data-pd-node-menu], .e-permits-pd__json")) return;
     if (!el.addMenu.hidden) closeAddMenu();
     if (S.kbConnect) endKbConnect(false);
     const middle = event.button === 1;
@@ -2817,10 +2902,16 @@ document.addEventListener("DOMContentLoaded", () => {
       beginDrag(event, { kind: "connect", src: s.id, port: port.dataset.pdPort });
       return;
     }
+    /* „+”: the press only stops the drag; the menu opens on the CLICK (below) — opened on pointerdown, the release's
+       click reached the shell's outside-click handler and closed it at once (pd-view-steady-v1 bug fix) */
     if (event.target.closest("[data-pd-plus]") && nodeEl && !S.viewOnly) {
       event.preventDefault();
-      const id = nodeEl.dataset.pdNode;
-      window.setTimeout(() => openAddMenu(id), 0);
+      return;
+    }
+    /* ⋮: selects the node, never starts a drag; the menu opens on the click (like „+”) */
+    if (event.target.closest("[data-pd-more]") && nodeEl && !S.viewOnly) {
+      event.preventDefault();
+      if (!S.sel.nodes.has(nodeEl.dataset.pdNode)) selectNodes([nodeEl.dataset.pdNode]);
       return;
     }
     if (nodeEl) {
@@ -3063,7 +3154,7 @@ document.addEventListener("DOMContentLoaded", () => {
   /* ---- wheel: Ctrl/⌘ (and trackpad pinch) = zoom at the cursor; otherwise pan (two fingers) */
   el.stage.addEventListener("wheel", (event) => {
     if (S.mode !== "build") return;
-    if (event.target.closest(".e-permits-pd__float, [data-pd-add-menu], .e-permits-pd__json")) return;
+    if (event.target.closest(".e-permits-pd__float, [data-pd-add-menu], [data-pd-node-menu], .e-permits-pd__json")) return;
     event.preventDefault();
     if (event.ctrlKey || event.metaKey) {
       const k = Math.exp(-event.deltaY * (event.deltaMode === 1 ? 0.05 : 0.0025));
@@ -3130,6 +3221,7 @@ document.addEventListener("DOMContentLoaded", () => {
       event.preventDefault();
       event.stopImmediatePropagation();
       if (!el.addMenu.hidden) { closeAddMenu({ restoreFocus: true, cancelled: true }); return; }
+      if (!el.nodeMenu.hidden) { closeNodeMenu({ restoreFocus: true }); return; }
       const openMenu = root.querySelector("[data-stack-menu]:not([hidden])");
       if (openMenu) {
         openMenu.hidden = true;
@@ -3187,6 +3279,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (mod && (event.key === "v" || event.key === "V") && S.clip && !S.viewOnly) { event.preventDefault(); event.stopPropagation(); pasteClip(); return; }
     if (mod && (event.key === "d" || event.key === "D") && S.sel.nodes.size && !S.viewOnly) { event.preventDefault(); event.stopPropagation(); duplicateSelection([...S.sel.nodes]); return; }
     if (mod && (event.key === "a" || event.key === "A")) { event.preventDefault(); event.stopPropagation(); selectNodes((S.def.states || []).map((s) => s.id)); announce(`${S.def.states.length} elemente selectate.`); return; }
+    if (((event.shiftKey && event.key === "F10") || event.key === "ContextMenu") && focusedId && !S.viewOnly) { event.preventDefault(); event.stopPropagation(); openNodeMenu(focusedId); return; }
     if (mod && event.key === "Enter" && focusedId) { event.preventDefault(); event.stopPropagation(); openAddMenu(focusedId); return; }
     if ((event.key === "Delete" || event.key === "Backspace") && !S.viewOnly) { event.preventDefault(); event.stopPropagation(); deleteSelection(); return; }
     const arrows = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] };
@@ -3218,6 +3311,14 @@ document.addEventListener("DOMContentLoaded", () => {
   /* a click that no pointer started (keyboard, screen reader, demo link) selects too */
   el.nodes.addEventListener("click", (event) => {
     const nodeEl = event.target.closest("[data-pd-node]");
+    /* after the shell's document click handler (which closes stack menus) has run → setTimeout */
+    if (nodeEl && event.target.closest("[data-pd-plus]") && !S.viewOnly) { const id = nodeEl.dataset.pdNode; window.setTimeout(() => openAddMenu(id), 0); return; }
+    if (nodeEl && event.target.closest("[data-pd-more]") && !S.viewOnly) {
+      const id = nodeEl.dataset.pdNode;
+      const wasOpen = !el.nodeMenu.hidden && S.nodeMenuFor === id;
+      window.setTimeout(() => { if (wasOpen) closeNodeMenu(); else openNodeMenu(id); }, 0);
+      return;
+    }
     if (nodeEl && event.detail === 0) { selectNodes([nodeEl.dataset.pdNode], { focus: true }); S.rightOpen = true; renderChrome(); renderPanel(); }
   });
   el.palette.addEventListener("click", (event) => {
@@ -3232,6 +3333,9 @@ document.addEventListener("DOMContentLoaded", () => {
   /* ---------------------------------------------------------------- view-only toggle */
   function setViewOnly(on) {
     if (S.forced) return;
+    /* selecting in Doar vizualizare opens no panel; back in Diagramă the properties return as they were */
+    if (on && !S.viewOnly) S.rightBeforeRead = S.rightOpen;
+    if (!on && S.viewOnly && typeof S.rightBeforeRead === "boolean") { S.rightOpen = S.rightBeforeRead; S.rightBeforeRead = null; }
     S.viewOnly = on;
     closeAddMenu();
     if (S.kbConnect) endKbConnect(false);
