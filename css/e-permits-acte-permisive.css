@@ -20891,8 +20891,9 @@ button.e-permits-steps-strip__cell:focus-visible {
    banners (template „Modificări nepublicate”) are this notice too (2026-10-16). The FO act row's locked
    notice (.e-permits-fo-intent-act__pending, shared with the Ghișeu) takes the same geometry on the FO
    page (2026-10-16) so both products draw one notice. FO „Acte necesare” (summary / RSSPA error) and the document
-   picker's „MDocs nu răspunde” notice too (doc-upload-v1, 2026-10-24). */
-:is([data-demo-flow="back-office"], .e-permits-fo-intent-act, .e-permits-fo-documents, .e-permits-fo-doc-modal__down) :is(.info-box.e-permits-info-note, .message.message--subtle:not(.message--inline)) {
+   picker's „MDocs nu răspunde” notice too (doc-upload-v1, 2026-10-24). „Date solicitant” notes (MNotify without
+   contact data, RSUD / MPower down) sit in `.e-permits-fo-requestor-note` (requestor-scenarios-v1, 2026-10-25). */
+:is([data-demo-flow="back-office"], .e-permits-fo-intent-act, .e-permits-fo-documents, .e-permits-fo-doc-modal__down, .e-permits-fo-requestor-note) :is(.info-box.e-permits-info-note, .message.message--subtle:not(.message--inline)) {
   align-items: flex-start;
   animation: none;
   border-radius: var(--border-radius-12, 12px);
@@ -20903,7 +20904,7 @@ button.e-permits-steps-strip__cell:focus-visible {
   padding: var(--spacing-12, 12px) var(--spacing-16, 16px);
 }
 
-:is([data-demo-flow="back-office"], .e-permits-fo-intent-act, .e-permits-fo-documents, .e-permits-fo-doc-modal__down) :is(.e-permits-info-note .info-box__icon, .message--subtle:not(.message--inline) .banner__icon) {
+:is([data-demo-flow="back-office"], .e-permits-fo-intent-act, .e-permits-fo-documents, .e-permits-fo-doc-modal__down, .e-permits-fo-requestor-note) :is(.e-permits-info-note .info-box__icon, .message--subtle:not(.message--inline) .banner__icon) {
   align-items: center;
   display: inline-flex;
   flex: 0 0 20px;
@@ -20913,12 +20914,12 @@ button.e-permits-steps-strip__cell:focus-visible {
   width: 20px;
 }
 
-:is([data-demo-flow="back-office"], .e-permits-fo-intent-act, .e-permits-fo-documents, .e-permits-fo-doc-modal__down) :is(.e-permits-info-note .info-box__icon, .message--subtle:not(.message--inline) .banner__icon) .icon {
+:is([data-demo-flow="back-office"], .e-permits-fo-intent-act, .e-permits-fo-documents, .e-permits-fo-doc-modal__down, .e-permits-fo-requestor-note) :is(.e-permits-info-note .info-box__icon, .message--subtle:not(.message--inline) .banner__icon) .icon {
   height: 20px;
   width: 20px;
 }
 
-:is([data-demo-flow="back-office"], .e-permits-fo-intent-act, .e-permits-fo-documents, .e-permits-fo-doc-modal__down) .message--subtle:not(.message--inline) .banner__content {
+:is([data-demo-flow="back-office"], .e-permits-fo-intent-act, .e-permits-fo-documents, .e-permits-fo-doc-modal__down, .e-permits-fo-requestor-note) .message--subtle:not(.message--inline) .banner__content {
   display: flex;
   flex: 1 1 auto;
   flex-direction: column;
@@ -20927,7 +20928,7 @@ button.e-permits-steps-strip__cell:focus-visible {
   padding: 0;
 }
 
-:is([data-demo-flow="back-office"], .e-permits-fo-intent-act, .e-permits-fo-documents, .e-permits-fo-doc-modal__down) :is(.e-permits-info-note .info-box__content, .e-permits-info-note .info-box__content p, .message--subtle:not(.message--inline) .banner__text) {
+:is([data-demo-flow="back-office"], .e-permits-fo-intent-act, .e-permits-fo-documents, .e-permits-fo-doc-modal__down, .e-permits-fo-requestor-note) :is(.e-permits-info-note .info-box__content, .e-permits-info-note .info-box__content p, .message--subtle:not(.message--inline) .banner__text) {
   color: var(--color-text-base-default, #121212);
   font-family: var(--font-family-primary-font, Onest);
   font-size: var(--font-size-fs-14, 14px);
@@ -20936,7 +20937,7 @@ button.e-permits-steps-strip__cell:focus-visible {
   margin: 0;
 }
 
-:is([data-demo-flow="back-office"], .e-permits-fo-intent-act, .e-permits-fo-documents, .e-permits-fo-doc-modal__down) :is(.e-permits-info-note, .message--subtle:not(.message--inline)) strong {
+:is([data-demo-flow="back-office"], .e-permits-fo-intent-act, .e-permits-fo-documents, .e-permits-fo-doc-modal__down, .e-permits-fo-requestor-note) :is(.e-permits-info-note, .message--subtle:not(.message--inline)) strong {
   font-weight: var(--font-weight-fw-medium, 500);
 }
 

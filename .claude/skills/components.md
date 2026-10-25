@@ -336,6 +336,7 @@ but this doc previously described it wrongly, see the entry.
 | Radio option row (hover + focus on the whole row) | `label.e-permits-fo-radio.e-permits-fo-radio--option` (row fills its grid column, padding 12/16; `::before` grey layer radius 12, opacity 0 → 1 + scale .97 → 1, 180ms decelerate; keyboard ring on the row) | „Pentru cine” (guest), `contactPersonHtml` (Persoana de contact) | app |
 | Authorization / representation basis card | `.e-permits-fo-authorization-card` (grey r20 card — one card radius, cards-radius-20-final, was r12 → 16 — 32 round icon, title + green outline status, meta parts with dots, copy code) via `authorizationCardHtml(subject)` / `GEAPFormRender.authorizationCardHtml({ title, status, grantedBy, validUntil, code })` or `{ title, status, icon, details: [{ label, value, copy }] }` | FO „Date solicitant”: under Solicitant + Reprezentant, its own role group `.e-permits-fo-form__role-group.e-permits-fo-form__basis` titled „Temeiul reprezentării” (the same `roleGroupTitleHtml` as „Solicitant”, `representationBasisHtml(subject)`, 2026-10-18) — RSUD administrator from the subject's `representationBasis` (fo-02, self-PJ; NOT `authorization`, which means an MPower proxy in the switcher) or the MPower grant (cat-04 / cat-04a); Ghișeu „Temeiul reprezentării” MPower + RSUD | app |
 | Role group — title + „ⓘ” explanation (FO „Date solicitant” + Ghișeu step 1, ghiseu-roles-as-fo-v1 2026-10-23) | `div.e-permits-fo-form__role-group` (flex column, gap 8) > `div.e-permits-fo-form__role-title` (gap 6, 24 high) > `h2` (16/24 medium) + `button.e-permits-fo-role-info[data-tooltip-hint]` (24 square, `icon-circle-info-filled` 16 tertiary, r6, hover tertiary fill, FO focus ring; aria-label „Detalii despre <rol>”) — the hint = the library hint tooltip (js/icon-tooltip.js: hover 600 ms, keyboard focus at once, click / tap / Enter / Space TOGGLES, Esc closes ONLY the hint, never the dialog under it); then the content: identity card `.e-permits-fo-selected-role`, the basis card `.e-permits-fo-authorization-card`, or (Ghișeu only) `.e-permits-gh__rep-body` / `.e-permits-gh__basis-body` (stack 12, full width) with the desk's option / lookup / procură fallback. Groups sit in `section.e-permits-fo-form__roles` (gap 20, bottom 32): `__roles-grid` (Solicitant · Reprezentant, 2 columns; `.is-single` = 1) then the „Temeiul reprezentării” group `.e-permits-fo-form__basis`. Texts ONE map `ROLE_GROUP_HINTS` (Solicitant / Reprezentant / Temeiul reprezentării, exported `GEAPFormRender.roleGroupHints`); a caller may pass `{ hint }` (the Ghișeu basis adds „Altfel, se verifică procura pe hârtie.”) | `roleGroupTitleHtml(label, { hint })` = `GEAPFormRender.roleGroupTitleHtml`; FO `subjectRolesHtml` / `representationBasisHtml`; Ghișeu `applicantFlowHtml` / `basisHtml` (`js/ghiseu.js`, css/ghiseu.css); section „Role groups — Solicitant / Reprezentant / Temeiul reprezentării”; demo fo-02, fo-02h (ⓘ open), gh-03 / 03a / 03b / 03c / 03d / 03k / 03m / 03n, gh-03b1 / 03a1 / 03c1 (ⓘ open) | app |
+| Requestor variants of „Date solicitant” (requestor-scenarios-v1 2026-10-25) | notarial proxy signed in: `div.e-permits-fo-form__role-group.e-permits-fo-form__proxy[data-fo-proxy]` (Solicitant = the Form Builder IDNO group `idnoFieldHtml` → RSUD fills „Denumirea companiei”) + the Reprezentant card in `__roles-grid` + `.e-permits-fo-form__basis.e-permits-fo-form__proxy` holding the boxed `fileFieldHtml` „Procură notarială *”; a note in a role group / under typed contact / on the choice screen sits in `div.e-permits-fo-requestor-note` (inline-note geometry scope; `--contact` = 0 · 32 like the MNotify box); typed contact (MNotify empty) = FO `phoneFieldHtml` + `textFieldHtml` (email) | `proxyRolesHtml`, `contactTypedHtml`, `step1Problems` (on „Înainte”), `step1ApplicantData` (Verificare), `applyRequestorDemo` (`?mnotify` / `?rsud` / `?mpower`); section „Requestor — scenarios”; css/form-builder.css (stretch + `--contact`) | app |
 | Boxed doc field (required attachment inside a form section) | `.e-permits-fo-doc-field.e-permits-fo-doc-field--boxed` (1px dashed border/base/default, radius 16, padding 20/16; empty = click target with the dropzone hover; `is-error` = 1.5px dashed danger + inline error in the description) + `btn btn-strict btn-md` with 20px `icon-upload` | guest procură / decizie de numire | app |
 | Animated segmented control (sliding selected thumb) | `.segmented-control.is-animated` (+ `role="radiogroup"` > `button.segment-item[role=radio][aria-checked]`, roving tabindex) — `::before` thumb from `--seg-x/-y/-w/-h`, `is-ready` / `is-snap` | `initAnimatedSegmentedControls()` | app |
 | Segmented control · Compact (local modifier, pd-header-compact-v1) | `.segmented-control.segmented-control--compact` > `button.segment-item` (items 32 · 6 12 · 14/20, track 4 / 4 = 40; library colours / states) | `css/process-designer.css`; Process Designer modes `.e-permits-pd__modes`; section „Segmented control · Compact” | app |
@@ -3961,6 +3962,76 @@ locked to Moldova).
 | E | `adr-e3` | foreign address typed |
 | E | `adr-e4` | change of country with data → confirm |
 | E | `adr-e5` | Verificare — foreign address |
+
+### Requestor — scenarios (requestor-scenarios-v1, 2026-10-25)
+
+The FOD Requestor pattern as linear strips per scenario (as Address, address-modes-v1): ENTRY · INSTANCE ·
+APPLICANT · CONTACT · SWITCH · GUEST · GHIȘEU · REVIEW · CONFIG. Stories: US-10, US-11, US-12 (core), US-13, US-14,
+US-21, US-159 (AC-10 text), US-233, US-234. Figma = GEAP 2.0 page „↳ FOD Pattern → Requestor” `2206:22475`
+(sections 01 Entry `11350:129315` · 02 Authentication `11350:129419` · 03 Instance selection `11350:129494` · 04
+Injected `11350:129067` · How to read `11350:129266` · 05 Applicant data `11350:129616` · 06 Instance switch
+`11350:130173` · Guest lane `11350:130664`; „Requestor · variants” `12698:382544`). Every FO state = 1440 + 375;
+Ghișeu = desktop only.
+
+**Built in requestor-scenarios-v1** (no new component — FO renderers reused):
+- **Notarial proxy, signed in** (`?solicitant=notarial-proxy`, the „Am procură notarială” row): Solicitant = the Form
+  Builder IDNO group (`idnoFieldHtml`, RSUD fills „Denumirea companiei”), Reprezentant = the user's card, „Temeiul
+  reprezentării” = the boxed `fileFieldHtml` „Procură notarială *” (PDF / JPG / PNG, 10 MB). „Înainte” (`step1Problems`):
+  IDNO empty → „Câmpul este obligatoriu.”, not 13 → „IDNO are 13 cifre.”, still asked → „Așteaptă răspunsul Registrului
+  de Stat.”, unknown → the registry message; no file → „Câmp obligatoriu — atașează procura notarială.”; focus → first
+  error; edits / a file clear their error. Verificare: Solicitant = the found company + IDNO, row „Temeiul reprezentării”
+  = „Procură notarială” + file name. Before: the step showed a card named „Am procură notarială” and nothing to fill.
+- **MNotify without contact data** (`?mnotify=gol` both / `partial` only the e-mail): typed `phoneFieldHtml` + email
+  `textFieldHtml` (required), the grey info note in place of the MNotify box (`.e-permits-fo-requestor-note--contact`,
+  0 · 32); messages = US-234 AC-05…08 („Câmpul este obligatoriu.” · „Se va indica număr telefon mobil +37300000000 sau
+  fix +373(cod regiune)000000.” · „Adresa email nu este validă.” · „Adresele de email cu domeniul .ru nu sunt
+  acceptate.”); Verificare shows the typed values.
+- **RSUD down** (`?rsud=indisponibil`, own PJ): „Temeiul reprezentării” = warning notice, the flow goes on.
+- **MPower** on the choice screen: `?mpower=expirata` = Vrabie Gheorghe unavailable with the reason (existing
+  `roleBlockedNoteHtml`); `?mpower=eroare` = no MPower identities + the US-159 AC-10 error notice.
+- Notes in these places sit in `.e-permits-fo-requestor-note` (added to the Inline note scope list).
+
+| # | Scenario | Strip | Ordered demo states | US / AC | Figma blocks that exist | Gaps |
+|---|---|---|---|---|---|---|
+| 1 | Entry from EVO catalogue, not signed in → MPass | ENTRY | cat-02a → cat-03 (MPass gate) | US-10 AC-05, US-11 AC-01 | 01 Entry E1 `11350:129398`; 02 A1 `11350:129424` | MPass cancel / error back to catalog (US-11 AC-05) and session expiry (AC-06) — no state |
+| 2 | Service with optional MPass → sign in or continue without account | ENTRY | fo-g0 | US-11, guest | 02 A2 `11350:129456`; G0 `11350:132470` | — |
+| 3 | Signed in, choose the instance (≤ 2 / > 2 mandates, expanded) | INSTANCE | cat-03a → cat-03a1 **new** | US-12 AC-01, 03…05 | 03 B1 `11350:129499`, B2 `11350:129529`, B3 `11350:129567` | — |
+| 4 | MPower mandate expired / invalid (row blocked + reason) | INSTANCE | cat-03a2 **new** (`?mpower=expirata`) | US-12 Assumptions (invalid MPower blocks) | none | Figma block missing; PO Q1 |
+| 5 | MPower does not answer (own identities only + message) | INSTANCE | cat-03a3 **new** (`?mpower=eroare`) | US-12 Risks, US-159 AC-10 text | none | Figma block missing; PO Q2 |
+| 6 | Entry from EVO with the instance transferred (skip identity choice) | ENTRY | cat-02e / cat-02f (catalog) → cat-04 (MPower PF) · cat-04a (MPower PJ) · cat-04b (own PF → intent) | US-11 AC-03, US-10 AC-06, memory rule | 01 „Flow · Instance transferred from EVO” `11350:129325`, Note `11350:129394` | hand-over mechanics ⚠ PO / tech |
+| 7 | Issued permits → „Ce vrei să soliciți?” injected step | ENTRY | cat-03b / pp-02 (+ pp-02a…) | US-191 | 04 P1 `11350:129072`, P2 `11350:129144` | — |
+| 8 | PF applying for themselves | APPLICANT | fo-02f **new** | US-12 AC-02, 09 | 05 C1 `11350:129621` | — |
+| 9 | PJ administrator for the company (RSUD basis) | APPLICANT | fo-02 → fo-02h (ⓘ) | US-12 AC-03, 10 | 05 C2 `11350:129730`; variants `12698:382544` | — |
+| 10 | PJ administrator, RSUD does not answer (basis not confirmed, flow continues) | APPLICANT | fo-02r **new** (`?rsud=indisponibil`) | US-12 Constraints | none | Figma block missing; PO Q3 |
+| 11 | MPower representative for another PF | APPLICANT | cat-04 (step 1 as mpower-pf-vrabie) | US-12 AC-04 | 05 C3 `11350:129839` | — |
+| 12 | MPower representative for a PJ | APPLICANT | cat-04a | US-12 AC-05 | 05 C4 `11350:129948` | — |
+| 13 | Notarial / manual representation (entity not in my list) — IDNO from RSUD + procură upload | APPLICANT | fo-02n **new** → fo-02n4 **new** (RSUD asked) → fo-02n1 **new** (found + procură) · errors: fo-02n2 **new** (Înainte empty) · fo-02n3 **new** (unknown IDNO) | US-12 AC-06, 08, Constraints | 05 C5 `11350:130057` (different: notarial-registry search by the grantor's IDNP) | Figma C5 ≠ story; PO Q4, Q5 |
+| 14 | Contact data prefilled from MNotify (one phone, several e-mails) | CONTACT | fo-02 → fo-02e **new** (e-mail list open) | US-12 AC-07, US-234 AC-03 | C1–C4 contact section | — |
+| 15 | Contact data missing in MNotify → typed, with validation | CONTACT | fo-02c **new** → fo-02c1 **new** (required) → fo-02c2 **new** (formats) → fo-02c3 **new** (.ru) · partial: fo-02c4 **new** (only e-mail typed) → fo-05c **new** (Verificare with typed contact) | US-12 AC-07, US-234 AC-04…08 (messages) | none | Figma blocks missing; PO Q6 |
+| 16 | Switching the acting instance (header menu, mandates expanded, confirm on step ≥ 2) | SWITCH | fo-01s → fo-01s2 **new** → fo-01s1 **new** (confirm „Salvează și schimbă”) | US-12 | 06 S1 `11350:130174`, S2 `11350:130334`, S3 `11350:130531` | — |
+| 17 | Guest without login — PF for me / for another person / PJ, IDNO lookup, validation, wizard, leaving | GUEST | fo-g1 → fo-g1b → fo-g1c → fo-g1d · fo-g1e · fo-g2 · fo-g3 · fo-g4 → fo-g4a · fo-g5 · fo-g6 · fo-g6a · fo-g6b · fo-g7 → fo-g7a → fo-g7b → fo-g7c → fo-g7d · fo-g8 | US-12 AC-06…08, US-16, US-18, US-21 | Guest lane `11350:130664`: G0 `132470`, G1 `130674`, G1b `131279`, G1c `132538`, G1d `132771`, G1e `133004`, G2 `130868`, G3 `131054`, G4 `131512`, G4a `133237`, G5 `131757`, G6 `131989`, G6a `133490`, G6b `133684`, G7 `133917`, G7a `134140`, G7b `134414`, G7c `134765`, G7d `134931`, G8 `132242` (all `11350:`) | — |
+| 18 | Ghișeu clerk filing for an applicant — PF / PJ, lookups, not found, registry down | GHIȘEU | gh-02 → gh-02b → gh-02c (PF) · gh-02d (PJ admin) · gh-02e (not found) · gh-02g (lookup running) · gh-02f / 02f2 / 02f3 / 02f4 (MConnect down) · gh-02h / gh-02s (validation) · gh-02m (PJ-only service) | US-233 AC-07…14, 23, 36 | GEAP Ghișeu page (not the Requestor page) | — |
+| 19 | Ghișeu — representative + basis (RSUD / MPower / procură) with ⓘ | GHIȘEU | gh-03 (RSUD) · gh-03b → gh-03b1 (MPower, ⓘ) · gh-03a → gh-03a1 (no link, ⓘ) → gh-03f / gh-03j → gh-03k → gh-03l (procură) · gh-03c → gh-03c1 (PF + rep, ⓘ) · gh-03d (rep not found) · gh-03m / gh-03n (registry down, manual) · gh-03e (Înainte without basis) | US-233 AC-15…22 | GEAP `11858:24176` (role groups) | — |
+| 20 | Ghișeu — contact data (MNotify vs typed, errors) | GHIȘEU | gh-04 → gh-04b → gh-04a | US-234 AC-02…08 | Ghișeu page | — |
+| 21 | Read-only review in Verificare | REVIEW | fo-05 (own PJ) · fo-05f **new** (own PF) · fo-05m **new** (MPower PF) · fo-05n **new** (notarial proxy + „Temeiul reprezentării” row) · fo-05c **new** (typed contact) · fo-g7b (guest) · gh-07 (Ghișeu) | US-14 AC-05, 07 | none on the Requestor page (FO 09 Verificare blocks elsewhere) | Requestor-page review blocks missing; PO Q7 |
+| 22 | Phone versions | all FO strips | every fo- / cat-03 state at 375 (capture mobile) | US-10 AC-07 | Guest lane has 375 per block; C1–C5 / B / S desktop only | 375 frames for C1–C5, B1–B3, S1–S3 + every new block |
+| 23 | Admin configuration (what the admin toggles) | CONFIG | „Configurare flux” panel: fo-cfg-auth / -a / -gate / -1 / -5 (Autentificare obligatorie / opțională · Eligibilitate PF / PJ / ambele · stare utilizator) · Form Designer identity fields: fb-30 · fb-31 / 31a / 31b (IDNP typed / RSP / from MPass) · fb-32 / 32a / 32b / 32c (IDNO RSUD lookup) · fb-33 / fb-05y (contact person parts) | US-12, Form Designer stories | none on the Requestor page | auth / eligibility / „Am procură notarială” live only in the demo panel — PO Q8 |
+
+**Not built** (no story backing or a PO decision first): MPass cancel / error return and session expiry (US-11 AC-05 /
+06); procură for a PF represented person when signed in; FO proxy lookup with RSUD down (manual company name); „Nicio
+identitate eligibilă” on the choice screen (unreachable with the seed); EVO hand-over with an expired MPower instance
+(`?solicitant=` of a blocked identity silently falls back to the default).
+
+**PO questions (RO)**
+1. **Împuternicire MPower expirată** — o afișăm în lista „Cum vrei să depui cererea?” ca rând indisponibil cu motivul („Împuternicirea MPower a expirat pe …”) sau o ascundem complet?
+2. **MPower nu răspunde** — este corect să afișăm doar identitățile proprii + mesajul din US-159 AC-10 și să permitem continuarea ca PF/PJ proprie? Adăugăm un buton „Reîncercați”?
+3. **RSUD nu răspunde (administrator PJ)** — continuăm fluxul cu temeiul neconfirmat și verificare la examinare (cum e acum în prototip) sau blocăm până la confirmare?
+4. **„Am procură notarială” (autentificat)** — US-12 AC-06 cere IDNO/IDNP-ul reprezentatului + procura încărcată; Figma C5 arată căutare în registrul notarial după IDNP-ul celui care a acordat-o. Care este varianta corectă? Există un registru notarial accesibil prin MConnect?
+5. **Procura pentru o persoană fizică** — opțiunea „Am procură notarială” acoperă și PF (US-12: „persoană fizică/juridică prin procură”) sau doar organizații, cum spune textul „Reprezint o organizație care nu apare în lista mea”?
+6. **MNotify fără date de contact** — telefonul și emailul introduse în cerere se salvează și în MNotify sau rămân doar pe cerere? Folosim aceleași mesaje de eroare ca la ghișeu (US-234 AC-05…08)?
+7. **Verificare — „Temeiul reprezentării”** — online afișăm rândul doar la procura notarială (cum e acum); îl afișăm și pentru RSUD / MPower, ca la ghișeu?
+8. **Configurarea serviciului** — „Autentificare obligatorie / opțională”, „Eligibilitate PF / PJ” și opțiunea „Am procură notarială” se setează în pașaportul serviciului (Setări) sau în Form Designer? În prezent există doar în panoul de test.
+9. **Câmpuri precompletate (US-12 AC-11)** — povestea cere fundal gri + lacăt + eticheta „Precompletat automat”; prototipul folosește bifa verde (stilul FO Read Only). Păstrăm bifa?
 
 ### Address by cadastral code — US-54 (2026-10-13, refined 2026-10-13)
 

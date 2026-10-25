@@ -3772,3 +3772,19 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   text, colour, size / lh at 1440 + 375) before reporting. Another agent's uncommitted hunks sat in the same JS file →
   staged only mine with `git apply --cached` of a filtered diff. No sub-agent tool → code-audit (standing label 18 /
   Large 11 / meta 18, static 0), component-audit 0 in scope (standing FO avatar menu), hover-audit 0 / 0 on du2 / du8.
+- 2026-10-25 · requestor-scenarios-v1 (FOD Requestor strips, like address-modes-v1; 22 new states). (1) A scenario
+  inventory is a WALK, not a grep: clicking „Am procură notarială” on the signed-in choice screen showed a step 1 with a
+  card named „Am procură notarială” and nothing to fill — US-12 AC-06 (IDNO + procură) had never been built, although
+  the subject existed in the schema. Click every row of a chooser once before writing „covered”. (2) The cheapest build
+  of a missing step part = the Form Builder renderers (`idnoFieldHtml` RSUD lookup, boxed `fileFieldHtml`) + their binder
+  `GEAPFormRender.bind(root)` + the guest error helpers (`setGuestFieldError` / `setGuestDocError`, generic since
+  2026-10-13) — zero new markup, one CSS rule (role groups align children to the start → `align-self: stretch`).
+  (3) `renderNotice` / `renderInfoNote` in the FO render at the LIBRARY size unless a scope ancestor is in the Inline note
+  `:is()` list — add a wrapper class to the list (replace_all on the list's last item) instead of restating geometry.
+  (4) Demo switches for cases the seed lacks (`?mnotify`, `?rsud`, `?mpower`) mutate the parsed schema in ONE function
+  before `frontOfficeSchema` is set — other states stay byte-identical. (5) Figma metadata of a whole page is ~900 KB:
+  wrap the XML in `<root>` (several top-level nodes) and print 3 levels with ElementTree to get block ids for the table.
+  (6) Azure search API returned 500 — `wit_work_item get` / `get_batch` on known ids + a feature's `Relations` still work.
+  Figma C5 (notarial-registry search by the grantor's IDNP) contradicts US-12 AC-06 → built the story, PO question.
+  No sub-agent tool → code-audit (standing FO ⓘ / Schimbă / phone prefix / role items / Large 11, static 0),
+  component-audit = the fo-02 baseline (+ the standing file ×), hover-audit 0 / 0 on step 1 (scope must be ONE selector).

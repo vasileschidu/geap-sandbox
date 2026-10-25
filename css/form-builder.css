@@ -28,6 +28,19 @@
   min-width: 0;
 }
 
+/* requestor-scenarios-v1 (2026-10-25): an IDNO lookup group, a boxed file field or a notice inside an FO role
+   group („Am procură notarială” signed in, RSUD down) takes the group's full width (the group aligns its
+   cards to the start) */
+.e-permits-fo-form__role-group > :is(.e-permits-fo-field-group, .e-permits-fo-field, .e-permits-fo-requestor-note) {
+  align-self: stretch;
+}
+
+/* MNotify without contact data: the note takes the MNotify box's place and rhythm (0 above — the section
+   body already pads — and 32 to the consent divider) */
+.e-permits-fo-requestor-note--contact {
+  margin: 0 0 var(--spacing-32, 32px);
+}
+
 /* stacked parts (Persoana de contact: radio rows, then the card) — the FO „single” section rhythm */
 .e-permits-fo-field-group--stack {
   display: flex;

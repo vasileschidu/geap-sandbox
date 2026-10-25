@@ -1380,6 +1380,56 @@
     "fo-02": foReq(1),
     /* ghiseu-roles-as-fo-v1: the „ⓘ” of „Temeiul reprezentării” open — the library hint (RSUD / MPower checked automatically) */
     "fo-02h": foReq(1, {}, async (h) => { const b = [...document.querySelectorAll(".e-permits-fo-form__basis .e-permits-fo-role-info")].find((x) => x.getBoundingClientRect().height > 0); b.click(); await h.wait(200); }),
+    /* requestor-scenarios-v1 (2026-10-25) · FOD Requestor strips (components.md › „Requestor — scenarios”).
+       Own PF (C1) · own PJ with RSUD down (basis not confirmed, flow goes on) · the e-mail list from MNotify open ·
+       „Am procură notarială” signed in (US-12 AC-06 / 08: IDNO from RSUD + the procură; empty / filled / Înainte
+       with nothing / unknown IDNO / RSUD asked) · MNotify without contact data (US-12 AC-07, US-234 texts: empty /
+       required / wrong formats / .ru / only the e-mail missing) · switching the instance on step 2 (S3 confirm) ·
+       Verificare for own PF, MPower PF, notarial proxy and typed contact */
+    ...(() => {
+      const consent = async (h) => { const c = document.querySelector("[data-fo-step-panel='1'] [data-fo-consent]"); if (c && !c.checked) { c.checked = true; c.dispatchEvent(new Event("change", { bubbles: true })); } await h.wait(100); };
+      const next1 = async (h) => { await consent(h); await h.click("[data-fo-step-panel='1'] [data-fo-next='step-1']"); await h.wait(300); };
+      const proxyIdno = (code, ms = 1400) => async (h) => { await h.fill("[data-fo-step-panel='1'] #fo-proxy-idno", code, { leave: false }); await h.wait(ms); };
+      const procura = async (h) => {
+        await h.click("[data-fo-step-panel='1'] [data-fo-doc-field='fo-proxy-procura'] [data-fo-open-doc-modal]"); await h.wait(300);
+        const tab = document.querySelector('[data-fo-doc-tab="upload"]');
+        if (tab && tab.getBoundingClientRect().height) tab.click();
+        const input = document.querySelector("[data-fo-doc-file-input]");
+        const files = new DataTransfer();
+        files.items.add(new File(["%PDF-1.4"], "procura-notariala-nord-agro.pdf", { type: "application/pdf" }));
+        input.files = files.files;
+        input.dispatchEvent(new Event("change", { bubbles: true }));
+        await h.wait(200); await h.click("[data-fo-doc-modal-submit]"); await h.wait(400);
+        document.activeElement?.blur?.();
+      };
+      /* Verificare through the stepper row (hidden on phones: the same click, dispatched) */
+      const toReview = async (h) => { await h.find("[data-fo-step-panel='2']:not([hidden]) h1"); document.querySelector("[data-fo-screen='request'] [data-fo-step='4'] .e-permits-fo-stepper__row").click(); await h.find("[data-fo-step-panel='4']:not([hidden]) h1"); await h.wait(400); };
+      const contactOk = async (h) => { await h.fill("[data-fo-step-panel='1'] #fo-contact-phone", "60123456", { leave: false }); await h.fill("[data-fo-step-panel='1'] #fo-contact-email", "maria.ceban@gmail.com", { leave: false }); };
+      const PROXY = { solicitant: "notarial-proxy" };
+      return {
+        "fo-02f": foReq(1, { solicitant: "pf-anastasia" }),
+        "fo-02r": foReq(1, { rsud: "indisponibil" }),
+        "fo-02e": foReq(1, {}, async (h) => { await h.click("[data-fo-step-panel='1'] #fo-representative-email"); await h.find("#fo-representative-email-list:not([hidden])"); }),
+        "fo-02n": foReq(1, PROXY),
+        "fo-02n1": foReq(1, PROXY, async (h) => { await proxyIdno("1012600000002")(h); await procura(h); }),
+        "fo-02n2": foReq(1, PROXY, next1),
+        "fo-02n3": foReq(1, PROXY, async (h) => { await proxyIdno("1012600000099")(h); await h.scroll("[data-fo-step-panel='1'] #fo-proxy-idno"); }),
+        "fo-02n4": foReq(1, { ...PROXY, registru: "asteptare" }, proxyIdno("1012600000002", 300)),
+        "fo-02c": foReq(1, { mnotify: "gol" }, async (h) => { await h.scroll("#fo-representative-title"); }),
+        "fo-02c1": foReq(1, { mnotify: "gol" }, next1),
+        "fo-02c2": foReq(1, { mnotify: "gol" }, async (h) => { await h.fill("[data-fo-step-panel='1'] #fo-contact-phone", "123", { leave: false }); await h.fill("[data-fo-step-panel='1'] #fo-contact-email", "maria.ceban@", { leave: false }); await next1(h); }),
+        "fo-02c3": foReq(1, { mnotify: "gol" }, async (h) => { await h.fill("[data-fo-step-panel='1'] #fo-contact-phone", "60123456", { leave: false }); await h.fill("[data-fo-step-panel='1'] #fo-contact-email", "maria.ceban@mail.ru", { leave: false }); await next1(h); }),
+        "fo-02c4": foReq(1, { mnotify: "partial" }, async (h) => { await h.scroll("#fo-representative-title"); }),
+        /* the header switcher on step 2: another identity → „Salvează și schimbă” confirmation (draft kept) */
+        "fo-01s1": foReq(2, {}, async (h) => { await h.click("[data-fo-avatar-trigger]"); await h.find("[data-fo-avatar-dropdown]:not([hidden])"); await h.click("[data-fo-avatar-dropdown] [data-fo-avatar-role][data-fo-subject-id='pf-anastasia']"); await h.wait(400); }),
+        /* the header switcher with every MPower identity listed („Arată mai multe” in the menu, Figma S2) */
+        "fo-01s2": foReq(1, {}, async (h) => { await h.click("[data-fo-avatar-trigger]"); await h.find("[data-fo-avatar-dropdown]:not([hidden])"); await h.click("[data-fo-avatar-dropdown] .e-permits-fo-avatar-menu__proxy"); await h.wait(400); }),
+        "fo-05f": foReq(4, { solicitant: "pf-anastasia" }),
+        "fo-05m": foReq(4, { solicitant: "mpower-pf-vrabie" }),
+        "fo-05n": foReq(1, PROXY, async (h) => { await proxyIdno("1012600000002")(h); await procura(h); await next1(h); await toReview(h); }),
+        "fo-05c": foReq(1, { mnotify: "gol" }, async (h) => { await contactOk(h); await next1(h); await toReview(h); }),
+      };
+    })(),
     "fo-03": foReq(2),
     /* CAEM search with no match = the shared empty state inside the list (bare + compact) */
     "fo-03e": foReq(2, {}, async (h) => { await h.click("#fo-caem-code"); await h.fill("[data-fo-caem-search]", "zzz", { leave: false }); document.querySelector("[data-fo-caem-menu]")?.scrollIntoView({ block: "center" }); await h.wait(200); }),
@@ -2735,6 +2785,11 @@
     /* where „Solicită online” lands: MPass (no session), S3 instance, „Ce vrei să soliciți?” */
     "cat-03": { page: PP_FO, flow: "full", ready: "[data-fo-screen='auth']:not([hidden]) h1" },
     "cat-03a": { page: PP_FO, flow: "full", hash: "#choice-authenticated", ready: "[data-fo-screen='choice']:not([hidden]) h1", delay: 1900 },
+    /* requestor-scenarios-v1: the instance list with every MPower identity shown (B3) · one MPower expired (row
+       unavailable + reason, ?mpower=expirata) · MPower does not answer (own identities + the US-159 AC-10 message) */
+    "cat-03a1": { page: PP_FO, flow: "full", hash: "#choice-authenticated", ready: "[data-fo-screen='choice']:not([hidden]) h1", delay: 1900, run: async (h) => { await h.click("[data-fo-screen='choice'] [data-fo-role-collapse-toggle]"); await h.wait(400); } },
+    "cat-03a2": { page: PP_FO, flow: "full", params: { mpower: "expirata" }, hash: "#choice-authenticated", ready: "[data-fo-screen='choice']:not([hidden]) h1", delay: 1900, run: async (h) => { await h.click("[data-fo-screen='choice'] [data-fo-role-collapse-toggle]"); await h.wait(400); await h.scroll("[data-fo-screen='choice'] .e-permits-fo-auth__role-item.is-disabled"); } },
+    "cat-03a3": { page: PP_FO, flow: "full", params: { mpower: "eroare" }, hash: "#choice-authenticated", ready: "[data-fo-screen='choice']:not([hidden]) h1", delay: 1900 },
     /* Registrul actelor permisive (public RAP list): „Filtru” = the BO advanced filter
        (js/facet-filter.js) — bar of facet chips, checklist popover, applied chips, empty result */
     ...(() => {

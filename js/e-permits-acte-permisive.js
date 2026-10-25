@@ -796,6 +796,10 @@
         renderRoleCluster(directSubjects),
         renderRoleGroup("Cu împuternicire MPower", proxySubjects, { collapseAfter: 3 }),
       ].join("");
+      /* MPower does not answer (?mpower=eroare): own identities only + the US-159 AC-10 message */
+      if (schema?.mpowerUnavailable) {
+        roleList.insertAdjacentHTML("beforeend", `<div class="e-permits-fo-requestor-note">${foUi().renderNotice?.("error", "<strong>A apărut o eroare.</strong> Verificarea drepturilor de reprezentare nu a putut fi efectuată. Încercați din nou.", { role: "alert" }) || ""}</div>`);
+      }
 
       /* No identity at all can start this request. Say why, rather than
          leaving the list blank — the notarial-proxy row below may still be
@@ -3883,6 +3887,34 @@
       Reprezentant: "Persoana care depune cererea în numele solicitantului.",
       "Temeiul reprezentării": "Se verifică automat: administrator în RSUD sau împuternicire activă în MPower. Nu trebuie selectat nimic."
     };
+    /* requestor-scenarios-v1 (2026-10-25) — demo switches for the „Date solicitant” cases the seed has no
+       data for (Figma FOD › Requestor strips): ?mnotify=gol (MNotify has no phone / e-mail → both typed,
+       US-12 AC-07, texts of US-234 AC-05…08) · partial (the phone from MNotify, the e-mail typed) ·
+       ?rsud=indisponibil (own PJ: RSUD does not answer → the basis is not confirmed, the flow goes on, US-12
+       Constraints) · ?mpower=expirata (one MPower identity blocked on the choice screen, US-12 Assumptions)
+       · eroare (MPower does not answer: no MPower identities + the US-159 AC-10 message). */
+    const foRequestorDemo = (() => {
+      const params = new URLSearchParams(window.location.search);
+      return { mnotify: params.get("mnotify") || "", rsud: params.get("rsud") || "", mpower: params.get("mpower") || "" };
+    })();
+    const FO_CONTACT_REQUIRED = "Câmpul este obligatoriu.";
+    const FO_CONTACT_PHONE = "Se va indica număr telefon mobil +37300000000 sau fix +373(cod regiune)000000.";
+    const FO_CONTACT_EMAIL = "Adresa email nu este validă.";
+    const FO_CONTACT_EMAIL_RU = "Adresele de email cu domeniul .ru nu sunt acceptate.";
+    const FO_PROXY_PROCURA_ERROR = "Câmp obligatoriu — atașează procura notarială.";
+
+    function applyRequestorDemo(schema) {
+      if (!schema || !Array.isArray(schema.subjects)) return;
+      if (foRequestorDemo.mpower === "expirata") {
+        const vrabie = schema.subjects.find((subject) => subject.id === "mpower-pf-vrabie");
+        if (vrabie) Object.assign(vrabie, { selectable: false, blockedReason: "Împuternicirea MPower a expirat pe 30 septembrie 2026." });
+      }
+      if (foRequestorDemo.mpower === "eroare") {
+        schema.subjects = schema.subjects.filter((subject) => !subject.authorization);
+        schema.mpowerUnavailable = true;
+      }
+    }
+
     function roleGroupTitleHtml(label, { hint = ROLE_GROUP_HINTS[label] || "" } = {}) {
       return `
         <div class="e-permits-fo-form__role-title">
@@ -3901,6 +3933,16 @@
        or the MPower grant. `representationBasis` (RSUD) is separate from `authorization`, which means an
        MPower proxy everywhere else (switcher groups, avatar tone). No card → no block. */
     function representationBasisHtml(subject) {
+      /* RSUD does not answer (?rsud=indisponibil): the administrator link cannot be confirmed now — a notice in
+         the same group, the flow is not blocked (US-12 Constraints); the officer checks it at examination */
+      if (subject?.representationBasis && foRequestorDemo.rsud === "indisponibil") {
+        return `
+          <div class="e-permits-fo-form__role-group e-permits-fo-form__basis">
+            ${roleGroupTitleHtml("Temeiul reprezentării")}
+            <div class="e-permits-fo-requestor-note">${foUi().renderNotice?.("warning", "<strong>Registrul de Stat al Unităților de Drept nu răspunde acum.</strong> Nu am putut confirma că ești administratorul companiei. Poți continua; dreptul de reprezentare se verifică la examinarea cererii.") || ""}</div>
+          </div>
+        `;
+      }
       const card = authorizationCardHtml(subject?.representationBasis ? { authorization: subject.representationBasis } : subject);
       if (!card) return "";
       return `
@@ -3957,8 +3999,109 @@
       `;
     }
 
+    /* „Am procură notarială” signed in (US-12 AC-06 / AC-08, Figma Requestor C5): the represented organisation
+       is not in the user's MPower / RSUD list, so its IDNO is looked up in RSUD (the Form Builder IDNO group,
+       `idnoFieldHtml`) and the notarial power of attorney is uploaded (the boxed `fileFieldHtml`). The portal
+       never judges the procură — the officer does (US-12 Constraints). Checked on „Înainte” (step1Problems). */
+    function proxyRolesHtml(subject) {
+      const representative = representativeForSubject(subject);
+      return `
+        <div class="e-permits-fo-form__role-group e-permits-fo-form__proxy" data-fo-proxy>
+          ${roleGroupTitleHtml("Solicitant", { hint: "Organizația pe care o reprezinți prin procură notarială. Actul permisiv se emite pe numele ei." })}
+          ${idnoFieldHtml({ id: "proxy-idno", label: "IDNO", required: true, hint: "13 cifre" })}
+        </div>
+        ${representative ? `
+          <div class="e-permits-fo-form__roles-grid">
+            <div class="e-permits-fo-form__role-group">
+              ${roleGroupTitleHtml("Reprezentant")}
+              <div class="e-permits-fo-selected-role">${selectedRoleHtml(representative)}</div>
+            </div>
+          </div>` : ""}
+        <div class="e-permits-fo-form__role-group e-permits-fo-form__basis e-permits-fo-form__proxy">
+          ${roleGroupTitleHtml("Temeiul reprezentării", { hint: "Procura notarială prin care organizația te împuternicește. Funcționarul o verifică la examinarea cererii." })}
+          ${fileFieldHtml({ id: "proxy-procura", label: "Procură notarială", required: true, types: ["PDF", "JPG", "PNG"], maxSizeMb: 10, hint: "Funcționarul o verifică în Back Office." })}
+        </div>
+      `;
+    }
+
+    /* the values of step 1 that the review needs: the represented organisation (proxy) and typed contact */
+    function step1ApplicantData() {
+      const panel = document.querySelector("[data-fo-step-panel='1']");
+      const proxyCode = panel?.querySelector("#fo-proxy-idno")?.value || "";
+      const proxyName = panel?.querySelector("#fo-proxy-idno-name")?.value || "";
+      const phone = panel?.querySelector("#fo-contact-phone")?.value?.trim() || "";
+      const email = panel?.querySelector("#fo-contact-email")?.value?.trim() || "";
+      const procura = panel?.querySelector("[data-fo-doc-field='fo-proxy-procura'] .e-permits-fo-file-item__name")?.textContent?.trim() || "";
+      return { proxyCode, proxyName, phone, email, procura };
+    }
+
+    /* „Înainte” on Date solicitant: the typed contact (MNotify had none) and the notarial proxy. Returns the
+       first control with an error (focus target) or null. */
+    function step1Problems() {
+      const panel = document.querySelector("[data-fo-step-panel='1']");
+      if (!panel) return null;
+      const problems = [];
+      const phone = panel.querySelector("#fo-contact-phone");
+      if (phone) {
+        const digits = phone.value.replace(/[\s-]/g, "");
+        const message = !digits ? FO_CONTACT_REQUIRED : /^\d{8}$/.test(digits) ? "" : FO_CONTACT_PHONE;
+        setGuestFieldError(phone, message);
+        if (message) problems.push(phone);
+      }
+      const email = panel.querySelector("#fo-contact-email");
+      if (email) {
+        const value = email.value.trim();
+        const message = !value ? FO_CONTACT_REQUIRED
+          : !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(value) ? FO_CONTACT_EMAIL
+          : /\.ru$/i.test(value) ? FO_CONTACT_EMAIL_RU : "";
+        setGuestFieldError(email, message);
+        if (message) problems.push(email);
+      }
+      const proxyCode = panel.querySelector("#fo-proxy-idno");
+      if (proxyCode) {
+        const group = proxyCode.closest("[data-fo-registry-lookup]");
+        const lookup = group?.foLookup;
+        const value = proxyCode.value;
+        const message = !value ? FO_CONTACT_REQUIRED
+          : value.length !== 13 ? "IDNO are 13 cifre."
+          : lookup?.pending ? "Așteaptă răspunsul Registrului de Stat."
+          : !lookup?.record ? REGISTRY_COMPANY_NOT_FOUND : "";
+        setGuestFieldError(proxyCode, message);
+        if (message) problems.push(proxyCode);
+        const doc = panel.querySelector("[data-fo-doc-field='fo-proxy-procura']");
+        const attached = Boolean(doc?.querySelector(".e-permits-fo-file-item, .e-permits-fo-mdocs__attachment"));
+        setGuestDocError(doc, attached ? "" : FO_PROXY_PROCURA_ERROR);
+        if (!attached && doc) problems.push(doc.querySelector("[data-fo-open-doc-modal]") || doc);
+      }
+      return problems[0] || null;
+    }
+
+    /* an edit clears its own error (contact fields; the IDNO clears in bindRegistryLookup; a file in the box) */
+    document.addEventListener("input", (event) => {
+      if (event.target.matches?.("[data-fo-step-panel='1'] :is(#fo-contact-phone, #fo-contact-email)")) setGuestFieldError(event.target, "");
+    });
+
+    /* MNotify without the phone / e-mail (?mnotify=gol | partial): the missing ones are typed (US-12 AC-07) */
+    function contactTypedHtml(contact) {
+      const partial = foRequestorDemo.mnotify === "partial";
+      const phone = partial
+        ? `<div class="e-permits-fo-field e-permits-fo-field--span-6"><label>Telefon</label>${verifiedPhoneHtml(contact.phone || "60 999 999")}</div>`
+        : phoneFieldHtml({ id: "contact-phone", label: "Telefon", required: true, span: 6, placeholder: "60 000 000", hint: "Mobil sau fix, 8 cifre după +373" });
+      return `
+        <h2 id="fo-representative-title">Date de contact</h2>
+        <div class="e-permits-fo-form__section-body">
+          ${phone}
+          ${textFieldHtml({ id: "contact-email", type: "email", label: "Email", required: true, span: 6, placeholder: "nume@exemplu.md", autocomplete: "email" })}
+        </div>
+        <div class="e-permits-fo-requestor-note e-permits-fo-requestor-note--contact">${foUi().renderInfoNote?.(partial
+          ? "MNotify nu are adresa ta de email. Completeaz-o aici: pe ea primești notificările despre această cerere."
+          : "MNotify nu are datele tale de contact. Completează-le aici: pe ele primești notificările despre această cerere.") || ""}</div>
+      `;
+    }
+
     function contactSectionHtml(subject) {
       const userContact = frontOfficeSchema?.authenticatedUser?.contact || {};
+      if (["gol", "partial"].includes(foRequestorDemo.mnotify)) return contactTypedHtml(subject?.contact || userContact);
       const contact = subject?.contact || userContact;
       const emails = contactChoices(contact, "email", userContact.email || "anastasia.cojocaru@mnotify.gov.md");
       const email = emails[0] || "";
@@ -4077,12 +4220,20 @@
       const rolesSection = document.querySelector(".e-permits-fo-form__roles");
       if (rolesSection) {
         rolesSection.classList.toggle("is-single", !representativeForSubject(subject));
-        rolesSection.innerHTML = `
-          <div class="e-permits-fo-form__roles-grid">
-            ${subjectRolesHtml(subject)}
-          </div>
-          ${representationBasisHtml(subject)}
-        `;
+        if (subject.scenario === "notarial-proxy") {
+          rolesSection.innerHTML = proxyRolesHtml(subject);
+          window.GEAPFormRender?.bind?.(rolesSection);
+          const doc = rolesSection.querySelector("[data-fo-doc-field='fo-proxy-procura']");
+          const files = doc?.querySelector("[data-fo-doc-field-files]");
+          if (files) new MutationObserver(() => { if (files.querySelector(".e-permits-fo-file-item, .e-permits-fo-mdocs__attachment")) setGuestDocError(doc, ""); }).observe(files, { childList: true });
+        } else {
+          rolesSection.innerHTML = `
+            <div class="e-permits-fo-form__roles-grid">
+              ${subjectRolesHtml(subject)}
+            </div>
+            ${representationBasisHtml(subject)}
+          `;
+        }
       }
 
       if (frontOfficeSubjectLoadTimer) {
@@ -4138,6 +4289,7 @@
     }
 
     function applyFrontOfficeSchema(schema) {
+      applyRequestorDemo(schema);
       frontOfficeSchema = schema;
       /* a re-applied schema (Configurare flux) starts over: no guest request in progress */
       frontOfficeGuest = null;
@@ -7793,15 +7945,19 @@
       // --- Applicant rows ---
       let applicantRows = "";
       if (subject) {
-        const representative = subject.representative || (subject.type === "PJ" ? user : null);
-        const notificationContact = subject.contact || user?.contact || {};
+        const representative = subject.representative || (subject.type === "PJ" || subject.scenario === "notarial-proxy" ? user : null);
+        const typed = step1ApplicantData();
+        const notificationContact = { ...(subject.contact || user?.contact || {}), ...(typed.phone ? { phone: typed.phone } : {}), ...(typed.email ? { email: typed.email } : {}) };
         const notificationPhone = String(notificationContact.phone || "+37322000000").replace(/\s+/g, "");
         const formattedNotificationPhone = notificationPhone.startsWith("+") ? notificationPhone : `+373${notificationPhone}`;
 
-        applicantRows += summaryRow("Solicitant", [
-          escapeFrontOfficeHtml(subject.name),
-          escapeFrontOfficeHtml(`${subject.idLabel} ${subject.idValue}`),
-        ]);
+        applicantRows += summaryRow("Solicitant", proxy
+          ? [escapeFrontOfficeHtml(typed.proxyName || "—"), escapeFrontOfficeHtml(typed.proxyCode ? `IDNO ${typed.proxyCode}` : "")].filter(Boolean)
+          : [
+            escapeFrontOfficeHtml(subject.name),
+            escapeFrontOfficeHtml(`${subject.idLabel} ${subject.idValue}`),
+          ]);
+        const proxy = subject.scenario === "notarial-proxy";
         if (representative) {
           applicantRows += summaryRow("Reprezentant", [
             escapeFrontOfficeHtml(representative.name),
@@ -7813,6 +7969,7 @@
           escapeFrontOfficeHtml(notificationContact.email || "a.cojocaru1993@gmail.com"),
         ]);
       }
+        if (proxy) applicantRows += summaryRow("Temeiul reprezentării", ["Procură notarială", escapeFrontOfficeHtml(typed.procura || "—")]);
 
       // --- Service rows ---
       const objectName = step2Panel?.querySelector("#fo-object-name")?.value?.trim() || "—";
@@ -8068,6 +8225,13 @@
         showFrontOfficeRequest({ step: 2 });
       }
       if (action === "step-2" && next) {
+        /* requestor-scenarios-v1: typed contact + the notarial proxy are checked here (focus → first error) */
+        const firstProblem = step1Problems();
+        if (firstProblem) {
+          firstProblem.scrollIntoView?.({ block: "center" });
+          firstProblem.focus?.({ preventScroll: true });
+          return;
+        }
         saveFrontOfficeDraft();
         if (window.location.hash !== "#request-step-3") history.replaceState(null, "", "#request-step-3");
         showFrontOfficeRequest({ step: 3 });
