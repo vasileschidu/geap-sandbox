@@ -471,10 +471,11 @@
   box-sizing: border-box;
   color: var(--mdoc-chip-ink, var(--mdoc-ink-2));
   display: inline-flex;
-  font-size: var(--mdoc-type-caption);
+  /* body size, medium weight (user 2026-10-25: „badge bigger with medium font”) */
+  font-size: var(--mdoc-type-body);
   font-weight: var(--font-weight-fw-medium, 500);
-  line-height: var(--mdoc-type-caption-lh);
-  padding: 0.4mm 1.6mm;
+  line-height: var(--mdoc-type-body-lh);
+  padding: 0.6mm 2.2mm;
   print-color-adjust: exact;
   -webkit-print-color-adjust: exact;
   white-space: nowrap;
