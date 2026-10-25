@@ -1815,6 +1815,9 @@
         "pd-12": pd(async (h) => { key(document.querySelector("[data-pd-stage]"), "\\", { ctrlKey: true }); await h.wait(300); }),
         "pd-13": pd(async (h) => { await pick("node6")(h); }, { vizualizare: "1" }),
         "pd-13a": pd(null, { vizualizare: "1" }),
+        /* toolbar view group (pd-props-compact-v1): „Doar vizualizare” pressed from the mini segmented control; panels collapsed to both rails by the toolbar toggle */
+        "pd-13b": pd(async (h) => { await h.click("[data-pd-viewonly-toggle]"); document.activeElement?.blur?.(); }),
+        "pd-12a": pd(async (h) => { await h.click("[data-pd-panels-toggle]"); await h.wait(300); }),
         "pd-14": pd(async (h) => { await h.click("[data-pd-rail-toggle]"); }),
         /* pd-header-compact-v1: the properties collapse into the same 56 rail as the palette */
         "pd-14a": pd(async (h) => { await h.click("[data-pd-hide-props]"); document.activeElement?.blur?.(); }),
@@ -1839,6 +1842,8 @@
         "pd-07": pd(async (h) => { await at("node6")(h); await h.click("[data-pd-edge-label='node6:0']"); }),
         "pd-07a": pd(async (h) => { await at("node6", 0.75)(h); await h.click("[data-pd-lane-select='lane5']"); }),
         "pd-16": pd(async (h) => { await brokenBits(h); PDX().fit(); await h.wait(400); await h.click("[data-pd-errors]"); }),
+        /* the new Decizie's own problems as the compact issue cards on its Ieșiri tab (pd-props-compact-v1) */
+        "pd-16a": pd(async (h) => { await brokenBits(h); PDX().fit(); await h.wait(400); await tab("exits")(h); }),
         "pd-17": pd(async (h) => { await pick("node9")(h); key(document.querySelector(node("node9")), "Delete"); await h.wait(300); }),
         "pd-27": pd(async (h) => { await nudge(h); await h.click("[data-pd-close]"); }),
         "pd-28": pd(async (h) => { await nudge(h); await h.click("[data-pd-save]"); }),

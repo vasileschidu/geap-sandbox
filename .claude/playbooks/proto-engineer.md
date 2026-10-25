@@ -3605,3 +3605,26 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   address / summary / dialog). No sub-agent tool → code-audit (only standing cadastral-box / chevron / phone-prefix
   findings, static 0), hover-audit 0 / 0 on 5 states, component-audit: in scope 0 non-library / 0 button-paint (majors =
   the standing FO avatar menu).
+- 2026-10-25 · pd-props-compact-v1 (user: Process Designer „Proprietăți not that wide; tabs as in the BO profile; a little less
+  compressed”, + three mid-job additions: dark pressed Hartă / panels without a sticky ring, „Ascunde panourile” = both cards
+  to their rails, floating cards 8 from the edges, then a Figma-style mini segmented view group Hartă · Doar vizualizare ·
+  Listă replacing the header switch). (1) MEASURE THE PREMISE: the panel tabs were ALREADY the BO size (40 · 0 12 · 14/20,
+  gap 0 — reg-06 / dos-01 identical); the real differences were the strip inset (8 vs the content's 20), hover / focus
+  paint and the missing overflow. „Exactly the BO component” = the BO classes (`.tabs.tabs--sm.e-permits-page-header__tabs`
+  in `.e-permits-page-header__tabs-scroll` + the passport arrows), not FB `.e-permits-builder__tabs`. A width cut must be
+  checked against the widest CONTENT, not the fields: 5 Activitate tabs = 363 > 288 → the passport's faded edge + arrow +
+  active tab kept in view (scroll events do not bubble — capture listener on the card). (2) A width var shared by 3 rules
+  (card, list right offset, minimap stop) → product-local custom properties (`--pd-props-width`, `--pd-inset`) on the
+  root, every offset reads them; the old minimap stop was 6 not 8 (it forgot the canvas borders) — compute stops from
+  parts (inset + canvas + padding + borders + gap). (3) The issue cards rendered at the LIBRARY message size (16/22, 16 · 20,
+  icon 24) because the PD overlay lives outside every inline-note scope; copied the inline-note geometry scoped to
+  `.e-permits-pd__panel-issues` instead of growing the shared `:is()` list. They live on the tab that owns the issue
+  (pd-16's menu hid them) → own demo pd-16a. (4) The product rule „aria-pressed keeps the ring” is for buttons that own
+  something open; a canvas toggle needs `box-shadow: none` + its own `:focus-visible` ring — proved with a real CDP mouse
+  (focus true, :focus-visible false, shadow none; click elsewhere → still pressed). (5) Independent toggles in one
+  segmented track: `aria-pressed` per item + `.is-selected` mirrored for the library paint; unavailable = `aria-disabled`
+  + reason (minimap in list view, view-only when forced — on phones < 960 it is always forced). Mini size = track 2 · 2,
+  items 28 (no `--spacing-28` token: `calc(32 − 4)`). No sub-agent tool → hover-audit 0 / 0 (panel 3 states, toolbar 4),
+  code-audit static 0 + only by-design overlaps (tab arrow over the faded tab, canvas under cards), component-audit 0
+  majors on pd-16a / pd-12a (pd-04 / pd-23 = the standing step-row / list-row / edge-label majors), capture 17 × 2 0 errors
+  / overflow (phone DEMO-ERRORs = canvas-only states, as on HEAD).

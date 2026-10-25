@@ -100,6 +100,8 @@ document.addEventListener("DOMContentLoaded", () => {
   /* ---------------------------------------------------------------- shell markup (FB topbar reused) */
   const BUILD_ICON = `<svg class="icon" width="20" height="20" viewBox="0 0 16.6667 16.6667" aria-hidden="true"><path d="M14.072 0.2876C14.0535 0.123905 13.9151 0.00016861 13.7503 0C13.5856 -0.000167919 13.4469 0.123286 13.4281 0.286942C13.3402 1.04885 13.1139 1.57153 12.7594 1.92606C12.4049 2.28059 11.8822 2.50685 11.1203 2.59473C10.9566 2.6136 10.8332 2.75226 10.8333 2.917C10.8335 3.08174 10.9572 3.22014 11.1209 3.23868C11.87 3.32352 12.4045 3.54974 12.7681 3.9067C13.1296 4.26173 13.3602 4.78367 13.4272 5.53793C13.4421 5.70528 13.5824 5.83352 13.7504 5.83333C13.9184 5.83314 14.0584 5.70459 14.0729 5.53721C14.1371 4.79569 14.3674 4.26198 14.7314 3.89803C15.0953 3.53409 15.629 3.30372 16.3705 3.23953C16.5379 3.22504 16.6665 3.08504 16.6667 2.91703C16.6669 2.74902 16.5386 2.60873 16.3713 2.59386C15.617 2.52686 15.0951 2.29631 14.74 1.93475C14.3831 1.57121 14.1569 1.03662 14.072 0.2876Z" fill="currentColor"/><path d="M8.32804 2.40621C8.28036 1.98528 7.92447 1.6671 7.50085 1.66667C7.07723 1.66623 6.72069 1.98369 6.67216 2.40452C6.44619 4.3637 5.86437 5.70775 4.95272 6.61939C4.04108 7.53103 2.69703 8.11285 0.737851 8.33882C0.31702 8.38736 -0.000431792 8.7439 0 9.16752C0.000433568 9.59114 0.318613 9.94703 0.739542 9.9947C2.66559 10.2129 4.04025 10.7946 4.97507 11.7125C5.9048 12.6254 6.49765 13.9675 6.66994 15.9071C6.70816 16.3374 7.06892 16.6672 7.50094 16.6667C7.93296 16.6662 8.29297 16.3356 8.33023 15.9052C8.49528 13.9985 9.08766 12.626 10.0235 11.6902C10.9594 10.7543 12.3318 10.1619 14.2385 9.99689C14.6689 9.95964 14.9995 9.59963 15 9.1676C15.0005 8.73558 14.6707 8.37483 14.2404 8.3366C12.3009 8.16431 10.9587 7.57146 10.0458 6.64173C9.1279 5.70692 8.5462 4.33226 8.32804 2.40621Z" fill="currentColor"/></svg>`;
   const tbButton = (attrs, iconId, label, shortcut = "") => `<button class="btn btn-strict btn-sm btn-icon-only e-permits-pd__tool" type="button" aria-label="${esc(label)}" data-tooltip-label="${esc(label)}${shortcut ? ` (${shortcut})` : ""}" ${attrs}>${icon(iconId, 20)}</button>`;
+  /* a view mode in the toolbar's mini segmented group: an independent toggle (aria-pressed), selected look when on */
+  const viewItem = (attr, iconId, label, shortcut = "") => `<button class="segment-item e-permits-pd__view" type="button" aria-pressed="false" aria-label="${esc(label)}" data-tooltip-label="${esc(label)}${shortcut ? ` (${shortcut})` : ""}" ${attr}>${icon(iconId, 16)}</button>`;
   const shellHtml = () => `
     <div class="modal e-permits-builder e-permits-builder--process" tabindex="-1" role="dialog" aria-modal="true" aria-labelledby="pd-dialog-title" data-pd-root>
       <header class="e-permits-builder__topbar e-permits-pd__topbar">
@@ -128,9 +130,6 @@ document.addEventListener("DOMContentLoaded", () => {
               <strong data-pd-errors-label>Fără erori</strong>
             </button>
             <ul class="e-permits-fo-intent-menu e-permits-stack__menu e-permits-builder__issues-menu" id="pd-issues-menu" role="menu" aria-label="Probleme în proces" hidden data-stack-menu data-pd-issues></ul>
-          </div>
-          <div class="e-permits-pd__viewonly" data-pd-viewonly-wrap>
-            ${(ui().renderToggle?.({ label: "Doar vizualizare", attrs: "data-pd-viewonly" }) || "").replace('class="switch', 'class="switch switch--medium')}
           </div>
           <button class="btn btn-primary btn-sm e-permits-pd__restore" type="button" hidden data-pd-restore>Restaurează ca schiță</button>
           <button class="btn btn-primary btn-sm e-permits-pd__publish-action" type="button" data-pd-publish data-pd-edit-only>Publică</button>
@@ -180,10 +179,14 @@ document.addEventListener("DOMContentLoaded", () => {
           <i class="e-permits-pd__toolsep" aria-hidden="true"></i>
           <span class="e-permits-pd__toolgroup">
             ${tbButton("data-pd-fit", "scan", "Potrivește în ecran", "1")}
-            ${tbButton('aria-pressed="false" data-pd-minimap-toggle', "image", "Hartă", "M")}
-            ${tbButton('aria-pressed="false" data-pd-panels-toggle', "sidebar", "Ascunde panourile", "Ctrl+\\")}
-            ${tbButton('aria-pressed="false" data-pd-list-toggle', "bullet-list", "Vizualizare listă", "L")}
+            ${tbButton('aria-pressed="false" data-pd-panels-toggle', "sidebar", "Restrânge panourile", "Ctrl+\\")}
           </span>
+          <i class="e-permits-pd__toolsep e-permits-pd__toolsep--views" aria-hidden="true"></i>
+          <div class="segmented-control segmented-control--compact e-permits-pd__views" role="group" aria-label="Vizualizare">
+            ${viewItem("data-pd-minimap-toggle", "image", "Hartă", "M")}
+            ${viewItem("data-pd-viewonly-toggle", "eye-open", "Doar vizualizare")}
+            ${viewItem("data-pd-list-toggle", "bullet-list", "Vizualizare listă", "L")}
+          </div>
         </div>
         <div class="e-permits-pd__minimap" hidden data-pd-minimap>
           <canvas class="e-permits-pd__minimap-canvas" width="200" height="136" tabindex="0" role="img" aria-label="Harta diagramei. Click sau săgeți pentru a muta vederea." data-pd-minimap-canvas></canvas>
@@ -246,8 +249,7 @@ document.addEventListener("DOMContentLoaded", () => {
     errors: q("[data-pd-errors]"),
     errorsLabel: q("[data-pd-errors-label]"),
     issues: q("[data-pd-issues]"),
-    viewOnly: q("[data-pd-viewonly]"),
-    viewOnlyWrap: q("[data-pd-viewonly-wrap]"),
+    viewOnly: q("[data-pd-viewonly-toggle]"),
     publish: q("[data-pd-publish]"),
     settings: q("[data-pd-settings]"),
     stage: q("[data-pd-stage]"),
@@ -610,30 +612,25 @@ document.addEventListener("DOMContentLoaded", () => {
     el.versionLabel.textContent = `v${S.def.version || rec.version}`;
     root.classList.toggle("is-view-only", S.viewOnly);
     root.classList.toggle("is-dirty", S.dirty);
-    el.viewOnly.checked = S.viewOnly;
-    el.viewOnly.disabled = Boolean(S.forced);
-    if (S.forced) el.viewOnlyWrap.dataset.tooltipReason = S.forced; else delete el.viewOnlyWrap.dataset.tooltipReason;
+    setView(el.viewOnly, S.viewOnly, S.forced || "");
     el.save.disabled = !S.dirty;
     el.cancel.disabled = !S.dirty;
     el.dirtyNote.textContent = S.dirty ? "Modificări nesalvate" : S.rec.modifiedOn ? `Salvat ${longDate(S.rec.modifiedOn)}, ${hhmm(S.rec.modifiedOn)} · ${S.rec.modifiedBy}` : "";
     root.querySelectorAll("[data-pd-undo]").forEach((b) => { b.disabled = !S.undo.length; });
     root.querySelectorAll("[data-pd-redo]").forEach((b) => { b.disabled = !S.redo.length; });
     root.querySelectorAll("[data-pd-tool]").forEach((b) => { const on = b.dataset.pdTool === S.tool; b.setAttribute("aria-checked", String(on)); b.tabIndex = on ? 0 : -1; });
-    q("[data-pd-minimap-toggle]").setAttribute("aria-pressed", String(S.minimap));
-    const listBtn = q("[data-pd-list-toggle]");
-    listBtn.setAttribute("aria-pressed", String(S.listView || listForced()));
-    listBtn.setAttribute("aria-label", S.listView ? "Vizualizarea diagramei" : "Vizualizare listă");
-    listBtn.dataset.tooltipLabel = listForced() ? "Pe ecrane mici procesul se vede ca listă" : `${S.listView ? "Vizualizarea diagramei" : "Vizualizare listă"} (L)`;
-    if (listForced()) listBtn.setAttribute("aria-disabled", "true"); else listBtn.removeAttribute("aria-disabled");
-    root.classList.toggle("is-list", S.listView || listForced());
-    const panelsHidden = !S.leftOpen && !S.rightOpen;
+    const listOn = S.listView || listForced();
+    setView(q("[data-pd-minimap-toggle]"), S.minimap && !listOn, listOn ? "Harta arată diagrama — nu e disponibilă în vizualizarea listă." : "");
+    setView(q("[data-pd-list-toggle]"), listOn, listForced() ? "Pe ecrane mici procesul se vede ca listă." : "");
+    root.classList.toggle("is-list", listOn);
+    const panelsHidden = panelsCollapsed();
     const panelsBtn = q("[data-pd-panels-toggle]");
     panelsBtn.setAttribute("aria-pressed", String(panelsHidden));
-    panelsBtn.setAttribute("aria-label", panelsHidden ? "Arată panourile" : "Ascunde panourile");
-    panelsBtn.dataset.tooltipLabel = `${panelsHidden ? "Arată panourile" : "Ascunde panourile"} (Ctrl+\\)`;
+    panelsBtn.setAttribute("aria-label", panelsHidden ? "Extinde panourile" : "Restrânge panourile");
+    panelsBtn.dataset.tooltipLabel = `${panelsHidden ? "Extinde panourile" : "Restrânge panourile"} (Ctrl+\\)`;
     el.settings.setAttribute("aria-pressed", String(S.settings));
     el.settings.classList.toggle("is-active", S.settings);
-    el.minimap.hidden = !S.minimap;
+    el.minimap.hidden = !S.minimap || listOn;
     el.palette.hidden = S.viewOnly || !S.leftOpen;
     /* below 960 the properties are a bottom card that appears with a selection (spec E.7) */
     const narrow = window.innerWidth < 960;
@@ -649,7 +646,8 @@ document.addEventListener("DOMContentLoaded", () => {
     measureStage();
     const v = visibleArea();
     const half = el.toolbar.offsetWidth / 2;
-    const x = clamp(v.cx, half + 16, Math.max(half + 16, stageRect.width - half - 16));
+    const inset = parseFloat(getComputedStyle(root).getPropertyValue("--pd-inset")) || 8;
+    const x = clamp(v.cx, half + inset, Math.max(half + inset, stageRect.width - half - inset));
     el.stage.style.setProperty("--pd-toolbar-x", `${Math.round(x)}px`);
   }
   function setMode(mode) {
@@ -1143,7 +1141,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (zoomTo100) { setZoom(Number(zoomTo100.dataset.pdZoomTo)); return; }
     if (t.closest("[data-pd-fit]")) { fit(); return; }
     if (t.closest("[data-pd-fit-selection]")) { fitSelection(); return; }
-    if (t.closest("[data-pd-minimap-toggle]")) { toggleMinimap(); return; }
+    if (t.closest("[data-pd-minimap-toggle]")) { if (!(S.listView || listForced())) toggleMinimap(); return; }
     if (t.closest("[data-pd-list-toggle]")) { if (!listForced()) setListView(!S.listView); return; }
     if (t.closest("[data-pd-autolayout]")) { autoLayout(); return; }
     if (t.closest("[data-pd-restore]")) { restoreVersion(); return; }
@@ -1151,14 +1149,23 @@ document.addEventListener("DOMContentLoaded", () => {
     if (crumb) { event.preventDefault(); drillOut(Number(crumb.dataset.pdCrumb)); return; }
     if (t.closest("[data-pd-json-import]")) { if (!S.viewOnly) importInput.click(); return; }
     if (t.closest("[data-pd-panels-toggle]")) { togglePanels(); return; }
+    if (t.closest("[data-pd-viewonly-toggle]")) { if (!S.forced) setViewOnly(!S.viewOnly); return; }
     const tool = t.closest("[data-pd-tool]");
     if (tool) { S.tool = tool.dataset.pdTool; renderChrome(); return; }
     if (t.closest("[data-pd-undo]")) { undo(); return; }
     if (t.closest("[data-pd-redo]")) { redo(); return; }
     if (t.closest("[data-pd-show-props]")) { S.rightOpen = true; renderChrome(); renderPanel(); el.props.querySelector("button, input")?.focus(); return; }
-    if (t.closest("[data-pd-rail-toggle]")) { S.rail = !S.rail; writeUi(); renderPalette(); el.palette.querySelector("[data-pd-rail-toggle]")?.focus(); return; }
+    if (t.closest("[data-pd-rail-toggle]")) { S.rail = !S.rail; writeUi(); renderPalette(); renderChrome(); el.palette.querySelector("[data-pd-rail-toggle]")?.focus(); return; }
     if (t.closest("[data-pd-hide-props]")) { S.rightOpen = false; renderChrome(); el.showProps.focus(); announce("Proprietățile sunt ascunse."); return; }
   });
+  /* properties tab row: scroll events do not bubble → capture; the edge arrows step 60 % of the row */
+  el.props.addEventListener("scroll", (event) => { if (event.target.matches?.("[data-pd-tabs-scroller]")) syncTabsOverflow(); }, true);
+  el.props.addEventListener("click", (event) => {
+    const step = event.target.closest("[data-pd-tabs-step]");
+    const scroller = step && el.props.querySelector("[data-pd-tabs-scroller]");
+    if (scroller) scroller.scrollBy({ left: Number(step.dataset.pdTabsStep) * scroller.clientWidth * 0.6, behavior: "smooth" });
+  });
+  window.addEventListener("resize", () => syncTabsOverflow());
   el.toolbar.addEventListener("keydown", (event) => {
     const radio = event.target.closest("[data-pd-tool]");
     if (!radio || !["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"].includes(event.key)) return;
@@ -1176,13 +1183,26 @@ document.addEventListener("DOMContentLoaded", () => {
     else fit();
   }
   function toggleMinimap() { S.minimap = !S.minimap; writeUi(); renderChrome(); scheduleMinimap(); announce(S.minimap ? "Harta este afișată." : "Harta este ascunsă."); }
+  /* „Restrânge panourile” collapses both cards to their 56 rails (user 2026-10-25; it used to hide „Elemente”):
+     Elemente → the left rail (S.rail), Proprietăți → the right rail (S.rightOpen false); off restores both.
+     [ / ] toggle one side, Ctrl+\\ both. In view-only there is no palette: the right side decides. */
+  function panelsCollapsed() { return (S.viewOnly || S.rail) && !S.rightOpen; }
   function togglePanels(which = "both") {
-    if (which === "left") S.leftOpen = !S.leftOpen;
+    if (which === "left") { if (S.viewOnly) return; S.rail = !S.rail; }
     else if (which === "right") S.rightOpen = !S.rightOpen;
-    else { const show = !S.leftOpen && !S.rightOpen; S.leftOpen = show; S.rightOpen = show; }
+    else { const expand = panelsCollapsed(); S.rail = !expand; S.rightOpen = expand; }
+    writeUi();
+    renderPalette();
     renderChrome();
     if (S.rightOpen) renderPanel();
-    announce(S.leftOpen || S.rightOpen ? "Panourile sunt afișate." : "Panourile sunt ascunse. Ctrl + \\ le readuce.");
+    announce(panelsCollapsed() ? "Panourile sunt restrânse. Ctrl + \\ le extinde." : "Panourile sunt extinse.");
+  }
+  /* a view-mode item: pressed = the library selected segment; a reason = unavailable (tooltip says why) */
+  function setView(btn, on, reason) {
+    btn.setAttribute("aria-pressed", String(on));
+    btn.classList.toggle("is-selected", on);
+    if (reason) { btn.setAttribute("aria-disabled", "true"); btn.dataset.tooltipReason = reason; }
+    else { btn.removeAttribute("aria-disabled"); delete btn.dataset.tooltipReason; }
   }
 
   /* ---- minimap (canvas; redrawn on the next frame after a model / view change) */
@@ -1390,10 +1410,12 @@ document.addEventListener("DOMContentLoaded", () => {
         ${chip || subtitle ? `<div class="e-permits-builder__panel-meta">${chip}${subtitle ? `<span>${esc(subtitle)}</span>` : ""}</div>` : ""}
       </div>`;
   }
-  /* ---- panel tabs (FB `.tabs--sm`; a tab with an error carries the FB red dot) */
+  /* ---- panel tabs = the BO profile tabs (`.tabs.tabs--sm.e-permits-page-header__tabs`: 40 · 0 12 · 14/20, pd-props-compact-v1);
+     a row wider than the card scrolls with the passport's faded edge + arrow; a tab with an error carries the FB red dot */
   function tabsHtml(list, active, issues = []) {
     return `
-      <div class="tabs tabs--sm e-permits-builder__tabs">
+      <div class="e-permits-page-header__tabs-scroll e-permits-pd__tabs">
+      <div class="tabs tabs--sm e-permits-page-header__tabs" data-pd-tabs-scroller>
         <div class="tab-buttons" role="tablist" aria-label="Proprietăți">
           ${list.map((tab) => {
             const on = tab === active;
@@ -1401,7 +1423,30 @@ document.addEventListener("DOMContentLoaded", () => {
             return `<button class="tab-button${on ? " active" : ""}" id="pd-tab-${tab}" type="button" role="tab" aria-selected="${on}" aria-controls="pd-tabpanel" tabindex="${on ? "0" : "-1"}" data-pd-tab="${tab}"><span>${TAB_LABEL[tab]}</span>${bad ? '<span class="e-permits-ntpl-dot e-permits-tariff__tab-error" aria-label="conține erori"></span>' : ""}</button>`;
           }).join("")}
         </div>
+      </div>
+      <button class="btn btn-neutral btn-sm btn-icon-only e-permits-page-header__tabs-arrow e-permits-page-header__tabs-arrow--start" type="button" aria-label="Taburile anterioare" data-tooltip-label="Taburile anterioare" tabindex="-1" data-pd-tabs-step="-1" hidden>${icon("chevron-left", 16)}</button>
+      <button class="btn btn-neutral btn-sm btn-icon-only e-permits-page-header__tabs-arrow e-permits-page-header__tabs-arrow--end" type="button" aria-label="Taburile următoare" data-tooltip-label="Taburile următoare" tabindex="-1" data-pd-tabs-step="1" hidden>${icon("chevron-right", 16)}</button>
       </div>`;
+  }
+  /* keep the active tab in view and fade + arrow the side that hides more (the passport's syncPassportTabOverflow) */
+  function syncTabsOverflow({ reveal = false } = {}) {
+    const scroller = el.props.querySelector("[data-pd-tabs-scroller]");
+    if (!scroller) return;
+    if (reveal) {
+      const tab = scroller.querySelector(".tab-button.active");
+      if (tab) {
+        const left = tab.offsetLeft - scroller.offsetLeft;
+        if (left < scroller.scrollLeft) scroller.scrollLeft = left;
+        else if (left + tab.offsetWidth > scroller.scrollLeft + scroller.clientWidth) scroller.scrollLeft = left + tab.offsetWidth - scroller.clientWidth;
+      }
+    }
+    const max = scroller.scrollWidth - scroller.clientWidth;
+    const start = scroller.scrollLeft > 1;
+    const end = max - scroller.scrollLeft > 1;
+    scroller.classList.toggle("has-overflow-start", start);
+    scroller.classList.toggle("has-overflow-end", end);
+    el.props.querySelector('[data-pd-tabs-step="-1"]')?.toggleAttribute("hidden", !start);
+    el.props.querySelector('[data-pd-tabs-step="1"]')?.toggleAttribute("hidden", !end);
   }
   const tabPanel = (tab, body, extra = "") => `
     <div class="e-permits-builder__panel-scroll e-permits-pd__panel-scroll" id="pd-tabpanel" role="tabpanel" aria-labelledby="pd-tab-${tab}" data-pd-panel-scroll>
@@ -1414,6 +1459,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const caret = focusId && typeof active.selectionStart === "number" ? [active.selectionStart, active.selectionEnd] : null;
     const scroller = el.props.querySelector("[data-pd-panel-scroll]");
     const scrollTop = scroller ? scroller.scrollTop : 0;
+    const tabsLeft = el.props.querySelector("[data-pd-tabs-scroller]")?.scrollLeft || 0;
     const key = `${S.settings}:${[...S.sel.nodes].join(",")}:${S.sel.edge}:${S.sel.lane}:${S.sel.pool}:${S.tab}`;
     const sameKey = el.props.dataset.pdFor === key;
     let html = "";
@@ -1429,6 +1475,11 @@ document.addEventListener("DOMContentLoaded", () => {
     el.props.classList.toggle("is-compact", !S.settings && !S.sel.edge && !S.sel.lane && !S.sel.pool && !S.sel.nodes.size);
     const next = el.props.querySelector("[data-pd-panel-scroll]");
     if (next && sameKey) next.scrollTop = scrollTop;
+    const tabsScroller = el.props.querySelector("[data-pd-tabs-scroller]");
+    if (tabsScroller) {
+      if (sameKey) tabsScroller.scrollLeft = tabsLeft;
+      syncTabsOverflow({ reveal: true });
+    }
     if (focusId) {
       const target = el.props.querySelector(`#${CSS.escape(focusId)}`);
       if (target) {
@@ -3119,7 +3170,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (key === "h" && !S.viewOnly) { S.tool = "pan"; renderChrome(); return; }
     if (key === "1" || (event.shiftKey && event.key === "!")) { event.preventDefault(); fit(); return; }
     if (key === "2" || (event.shiftKey && event.key === "@")) { event.preventDefault(); fitSelection(); return; }
-    if (key === "m") { toggleMinimap(); return; }
+    if (key === "m" && !(S.listView || listForced())) { toggleMinimap(); return; }
     if (key === "l" && !listForced()) { event.preventDefault(); setListView(!S.listView); return; }
     if (event.key === "[" && !S.viewOnly) { togglePanels("left"); return; }
     if (event.key === "]") { togglePanels("right"); return; }
@@ -3143,14 +3194,14 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   /* ---------------------------------------------------------------- view-only toggle */
-  el.viewOnly.addEventListener("change", () => {
-    if (S.forced) { el.viewOnly.checked = true; return; }
-    S.viewOnly = el.viewOnly.checked;
+  function setViewOnly(on) {
+    if (S.forced) return;
+    S.viewOnly = on;
     closeAddMenu();
     if (S.kbConnect) endKbConnect(false);
     renderAll();
     announce(S.viewOnly ? "Doar vizualizare: editarea este oprită." : "Editare pornită.");
-  });
+  }
 
   /* ---------------------------------------------------------------- save / cancel / publish */
   function save() {

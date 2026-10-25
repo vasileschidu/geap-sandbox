@@ -5,6 +5,10 @@
 
 /* ===== Shell ===== */
 .e-permits-builder.e-permits-builder--process {
+  /* floating cards sit 8 from the canvas edges (user 2026-10-25, was 16); the properties card is 320 wide
+     (was the Form Builder's 382) — every offset that depends on them reads these two */
+  --pd-inset: var(--spacing-8, 8px);
+  --pd-props-width: calc(var(--spacing-80, 80px) * 4);
   grid-template-rows: auto minmax(0, 1fr) auto;
 }
 
@@ -121,10 +125,6 @@
   background: var(--color-background-base-tertiary-hover, #e7e7e7);
 }
 
-.e-permits-pd__viewonly {
-  flex: 0 0 auto;
-}
-
 .e-permits-pd__modes.segmented-control--compact {
   gap: var(--spacing-2, 2px);
   padding: var(--spacing-2, 2px);
@@ -138,15 +138,6 @@
 .e-permits-pd__modes .segment-item > svg {
   height: var(--spacing-16, 16px);
   width: var(--spacing-16, 16px);
-}
-
-.e-permits-pd__viewonly .switch-label {
-  font-size: var(--font-size-fs-14, 14px);
-  line-height: var(--line-height-lh-20, 20px);
-}
-
-.e-permits-pd__viewonly .switch-label {
-  white-space: nowrap;
 }
 
 .e-permits-builder--process.is-view-only [data-pd-edit-only] {
@@ -939,10 +930,10 @@
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  max-height: calc(100% - var(--spacing-16, 16px) * 2);
+  max-height: calc(100% - var(--pd-inset, 8px) * 2);
   overflow: hidden;
   position: absolute;
-  top: var(--spacing-16, 16px);
+  top: var(--pd-inset, 8px);
   z-index: 5;
 }
 
@@ -954,7 +945,7 @@
 
 .e-permits-pd__float--left {
   animation: e-permits-pd-float-left 160ms var(--motion-easing-standard, ease) backwards;
-  left: var(--spacing-16, 16px);
+  left: var(--pd-inset, 8px);
   width: calc(var(--spacing-80, 80px) * 3);
 }
 
@@ -966,7 +957,7 @@
    56 wide card, top right, the toggle in `.e-permits-pd__rail` (aria-expanded false → „Extinde proprietățile”) */
 .e-permits-pd__float--end {
   animation: e-permits-pd-float-right 160ms var(--motion-easing-standard, ease) backwards;
-  right: var(--spacing-16, 16px);
+  right: var(--pd-inset, 8px);
   width: var(--spacing-56, 56px);
 }
 
@@ -991,9 +982,9 @@
 
 .e-permits-pd__float--right {
   animation: e-permits-pd-float-right 160ms var(--motion-easing-standard, ease) backwards;
-  bottom: var(--spacing-16, 16px);
-  right: var(--spacing-16, 16px);
-  width: min(var(--builder-right-width, 382px), calc(100% - var(--spacing-16, 16px) * 2));
+  bottom: var(--pd-inset, 8px);
+  right: var(--pd-inset, 8px);
+  width: min(var(--pd-props-width, 320px), calc(100% - var(--pd-inset, 8px) * 2));
 }
 
 /* nothing selected: the card hugs its content */
@@ -1001,9 +992,9 @@
   bottom: auto;
 }
 
-/* with the minimap on, the properties card stops above it (gap 8) */
+/* with the minimap on, the properties card stops above it (gap 8): inset + canvas + padding 4 · 4 + border 1 · 1 + gap */
 .e-permits-pd__stage:has(.e-permits-pd__minimap:not([hidden])) .e-permits-pd__float--right:not(.is-compact) {
-  bottom: calc(var(--spacing-16, 16px) + var(--pd-minimap-h, 136px) + var(--spacing-8, 8px) + var(--spacing-8, 8px));
+  bottom: calc(var(--pd-inset, 8px) + var(--pd-minimap-h, 136px) + var(--spacing-8, 8px) + var(--border-width-1, 1px) * 2 + var(--spacing-8, 8px));
 }
 
 .e-permits-pd__card-head {
@@ -1177,9 +1168,99 @@
   top: calc(50% - 0.75px);
 }
 
-/* properties card */
+/* properties card — compact (pd-props-compact-v1, user 2026-10-25: „not that wide; tabs as in the BO profile; a little
+   less compressed”): 320 wide, 16 side padding, head = the Elemente card head (12 12 8 16, title 16/24), tabs = the BO
+   profile tabs, section titles 14/20 semibold, fields 40 with 14/20, section / field rhythm 16 */
 .e-permits-pd__float--right .e-permits-builder__panel-head {
   border-bottom: 0;
+}
+
+.e-permits-pd__float--right .e-permits-builder__panel-head--selected {
+  padding: var(--spacing-12, 12px) var(--spacing-12, 12px) var(--spacing-8, 8px) var(--spacing-16, 16px);
+}
+
+.e-permits-pd__float--right .e-permits-builder__panel-title-row {
+  align-items: center;
+}
+
+.e-permits-pd__float--right .e-permits-pd__panel-scroll.e-permits-builder__panel-scroll {
+  padding: 0 var(--spacing-16, 16px) var(--spacing-16, 16px);
+}
+
+.e-permits-pd__float--right .e-permits-builder__panel-scroll > .e-permits-builder__group:first-child {
+  margin-top: 0;
+}
+
+.e-permits-pd__float--right .e-permits-builder__group .e-permits-user-create__section-title {
+  font-size: var(--font-size-fs-14, 14px);
+  font-weight: var(--font-weight-fw-semibold, 600);
+  line-height: var(--line-height-lh-20, 20px);
+  padding: var(--spacing-16, 16px) 0 var(--spacing-8, 8px);
+}
+
+.e-permits-pd__float--right .e-permits-builder__group .e-permits-user-create__section-content {
+  gap: var(--spacing-16, 16px);
+  padding: var(--spacing-16, 16px) 0 var(--spacing-8, 8px);
+}
+
+.e-permits-pd__float--right .e-permits-builder__panel-grid {
+  gap: var(--spacing-16, 16px);
+}
+
+/* the tab row: the BO profile strip, its track line inset 16 like the content (content-box background) */
+.e-permits-pd__tabs {
+  flex: 0 0 auto;
+}
+
+.e-permits-pd__tabs > .e-permits-page-header__tabs {
+  padding: 0 var(--spacing-16, 16px);
+}
+
+.e-permits-pd__tabs .tab-button {
+  white-space: nowrap;
+}
+
+/* the issue cards = the inline-note geometry (12 · 16, r12, icon 20, 14/20) — the library notice at its compact size */
+.e-permits-pd__panel-issues .message.message--subtle {
+  align-items: flex-start;
+  animation: none;
+  border-radius: var(--border-radius-12, 12px);
+  box-sizing: border-box;
+  display: flex;
+  gap: var(--spacing-12, 12px);
+  margin: 0;
+  padding: var(--spacing-12, 12px) var(--spacing-16, 16px);
+}
+
+.e-permits-pd__panel-issues .message--subtle .banner__icon {
+  align-items: center;
+  display: inline-flex;
+  flex: 0 0 var(--spacing-20, 20px);
+  height: var(--spacing-20, 20px);
+  justify-content: center;
+  margin: 0;
+  width: var(--spacing-20, 20px);
+}
+
+.e-permits-pd__panel-issues .message--subtle .banner__icon .icon {
+  height: var(--spacing-20, 20px);
+  width: var(--spacing-20, 20px);
+}
+
+.e-permits-pd__panel-issues .message--subtle .banner__content {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-width: 0;
+  padding: 0;
+}
+
+.e-permits-pd__panel-issues .message--subtle .banner__text {
+  color: var(--color-text-base-default, #121212);
+  font-size: var(--font-size-fs-14, 14px);
+  font-weight: var(--font-weight-fw-regular, 400);
+  line-height: var(--line-height-lh-20, 20px);
+  margin: 0;
 }
 
 .e-permits-pd__panel-head .e-permits-builder__panel-title-row h2 {
@@ -1281,7 +1362,7 @@
   background: var(--color-background-base-default, #fff);
   border: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
   border-radius: var(--border-radius-16, 16px);
-  bottom: var(--spacing-16, 16px);
+  bottom: var(--pd-inset, 8px);
   box-shadow: var(--shadow-200, 0 1px 3px rgba(0, 0, 0, 0.08), 0 3px 8px rgba(0, 0, 0, 0.08), 0 0 0.5px rgba(0, 0, 0, 0.18));
   display: flex;
   gap: var(--spacing-4, 4px);
@@ -1312,6 +1393,56 @@
 
 .e-permits-pd__toolbar .btn.e-permits-pd__tool[aria-checked="true"]:hover:not(:disabled) {
   background: var(--color-background-base-tertiary-hover, #e7e7e7);
+}
+
+/* „Restrânge panourile” on = the same pressed fill as the active tool; it is a toggle, not an open menu, so the
+   product „open button keeps the ring” rule is off — the ring only on keyboard focus (user 2026-10-25) */
+.e-permits-pd__toolbar .btn.btn-sm.btn-strict.e-permits-pd__tool[aria-pressed="true"]:not(:disabled) {
+  background: var(--color-background-base-tertiary-active, #b2b2b2);
+  box-shadow: none;
+}
+
+.e-permits-pd__toolbar .btn.btn-sm.btn-strict.e-permits-pd__tool[aria-pressed="true"]:hover:not(:disabled) {
+  background: var(--color-background-base-tertiary-hover, #e7e7e7);
+}
+
+.e-permits-pd__toolbar .btn.btn-sm.btn-strict.e-permits-pd__tool[aria-pressed="true"]:focus-visible {
+  box-shadow: 0 0 0 var(--border-width-2, 2px) var(--color-background-base-default, #fff), 0 0 0 calc(var(--border-width-2, 2px) + var(--border-width-3, 3px)) var(--focus-ring, var(--blue-sky-500, #3379db));
+}
+
+/* view modes (Hartă · Doar vizualizare · Vizualizare listă) = the library segmented control at a Mini size that
+   matches the toolbar's 32 buttons: track 2 · 2 → 32, items 28 square (6 padding, icon 16), library separators,
+   hover, selected (inverse) and focus ring; each item is its own toggle (aria-pressed), so several can be selected */
+.e-permits-pd__views.segmented-control.segmented-control--compact {
+  flex: 0 0 auto;
+  gap: var(--spacing-2, 2px);
+  padding: var(--spacing-2, 2px);
+}
+
+.e-permits-pd__views.segmented-control--compact .segment-item {
+  box-sizing: border-box;
+  height: calc(var(--spacing-32, 32px) - var(--spacing-4, 4px));
+  padding: var(--spacing-6, 6px);
+  width: calc(var(--spacing-32, 32px) - var(--spacing-4, 4px));
+}
+
+.e-permits-pd__views .segment-item .icon {
+  flex: 0 0 auto;
+  height: var(--spacing-16, 16px);
+  width: var(--spacing-16, 16px);
+}
+
+.e-permits-pd__views .segment-item:not(:last-child)::after {
+  right: calc((var(--spacing-2, 2px) + var(--border-width-1, 1px)) / -2);
+}
+
+.e-permits-pd__views .segment-item[aria-disabled="true"] {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.e-permits-pd__views .segment-item[aria-disabled="true"]:not(.is-selected):hover {
+  background-color: var(--color-background-base-tertiary-hover, #d9d9d9);
 }
 
 /* the select tool glyph: the sprite's „direction” arrow mirrored into a cursor */
@@ -1345,12 +1476,12 @@
   background: var(--color-background-base-default, #fff);
   border: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
   border-radius: var(--border-radius-16, 16px);
-  bottom: var(--spacing-16, 16px);
+  bottom: var(--pd-inset, 8px);
   box-shadow: var(--shadow-200, 0 1px 3px rgba(0, 0, 0, 0.08), 0 3px 8px rgba(0, 0, 0, 0.08), 0 0 0.5px rgba(0, 0, 0, 0.18));
   display: flex;
   padding: var(--spacing-4, 4px);
   position: absolute;
-  right: var(--spacing-16, 16px);
+  right: var(--pd-inset, 8px);
   z-index: 5;
 }
 
@@ -1724,10 +1855,10 @@
   display: flex;
   flex-direction: column;
   gap: var(--spacing-8, 8px);
-  left: var(--spacing-16, 16px);
+  left: var(--pd-inset, 8px);
   padding: var(--spacing-12, 12px) var(--spacing-12, 12px) var(--spacing-16, 16px) var(--spacing-16, 16px);
   position: absolute;
-  top: var(--spacing-16, 16px);
+  top: var(--pd-inset, 8px);
   width: calc(var(--spacing-80, 80px) * 3 + var(--spacing-40, 40px));
   z-index: 5;
 }
@@ -1911,8 +2042,7 @@
 .e-permits-builder--process.is-list .e-permits-pd__toolgroup:has([data-pd-tool]),
 .e-permits-builder--process.is-list .e-permits-pd__toolgroup:has([data-pd-zoom-in]),
 .e-permits-builder--process.is-list [data-pd-fit],
-.e-permits-builder--process.is-list [data-pd-minimap-toggle],
-.e-permits-builder--process.is-list .e-permits-pd__toolsep {
+.e-permits-builder--process.is-list .e-permits-pd__toolsep:not(.e-permits-pd__toolsep--views) {
   display: none;
 }
 
@@ -1924,25 +2054,26 @@
   background: var(--color-background-base-default, #fff);
   border: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
   border-radius: var(--border-radius-16, 16px);
-  bottom: calc(var(--spacing-16, 16px) + var(--spacing-48, 48px) + var(--spacing-8, 8px));
+  bottom: calc(var(--pd-inset, 8px) + var(--spacing-48, 48px) + var(--spacing-8, 8px));
   box-shadow: var(--shadow-200, 0 1px 3px rgba(0, 0, 0, 0.08), 0 3px 8px rgba(0, 0, 0, 0.08), 0 0 0.5px rgba(0, 0, 0, 0.18));
   box-sizing: border-box;
-  left: var(--spacing-16, 16px);
+  left: var(--pd-inset, 8px);
   overflow: auto;
   padding: var(--spacing-16, 16px) var(--spacing-20, 20px) var(--spacing-20, 20px);
   position: absolute;
-  right: calc(min(var(--builder-right-width, 382px), 100% - var(--spacing-32, 32px)) + var(--spacing-32, 32px));
-  top: var(--spacing-16, 16px);
+  /* clear of the properties card: inset · card · 16 gap (same width var as the card) */
+  right: calc(min(var(--pd-props-width, 320px), 100% - var(--pd-inset, 8px) * 2) + var(--pd-inset, 8px) + var(--spacing-16, 16px));
+  top: var(--pd-inset, 8px);
   z-index: 4;
 }
 
 .e-permits-builder--process:not(:has(.e-permits-pd__float--right:not([hidden]))) .e-permits-pd__list {
-  right: var(--spacing-16, 16px);
+  right: var(--pd-inset, 8px);
 }
 
-/* the collapsed properties rail stays beside the list (16 · 56 · 16) */
+/* the collapsed properties rail stays beside the list (8 · 56 · 16) */
 .e-permits-builder--process:has(.e-permits-pd__float--end:not([hidden])) .e-permits-pd__list {
-  right: calc(var(--spacing-56, 56px) + var(--spacing-32, 32px));
+  right: calc(var(--pd-inset, 8px) + var(--spacing-56, 56px) + var(--spacing-16, 16px));
 }
 
 .e-permits-pd__list-head {
@@ -2204,8 +2335,8 @@
 
   .e-permits-pd__float--right,
   .e-permits-pd__float--right.is-compact {
-    bottom: calc(var(--spacing-16, 16px) + var(--spacing-48, 48px) + var(--spacing-8, 8px));
-    left: var(--spacing-16, 16px);
+    bottom: calc(var(--pd-inset, 8px) + var(--spacing-48, 48px) + var(--spacing-8, 8px));
+    left: var(--pd-inset, 8px);
     max-height: 45%;
     top: auto;
     width: auto;
@@ -2246,7 +2377,6 @@
     right: 0;
   }
 
-  .e-permits-builder--process.is-list .e-permits-pd__toolbar [data-pd-list-toggle],
   .e-permits-builder--process.is-list .e-permits-pd__toolbar [data-pd-panels-toggle],
   .e-permits-builder--process.is-list .e-permits-pd__toolsep {
     display: none;
