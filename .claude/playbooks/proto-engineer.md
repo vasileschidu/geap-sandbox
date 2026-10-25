@@ -3698,3 +3698,20 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   asserted replacements, but next time use Edit for shared files. QA: hover-audit 0 / 0 (toolbar pd-01 / 13b / 23,
   header pd-01 / 16a), component-audit 0 majors in scope (pd-23 = the standing list-row majors), code-audit static 0 and
   nothing on the changed controls (pd-16 toolbar-over-list overlaps = by design).
+- 2026-10-25 · machete-mdocs-v1 + audit-context-v1 (Feature 96074 US-306…311, US-262). (1) „One template per document
+  type” = ONE page shell in the shared preview module with a `type` switch for title / number lines / page-2 header /
+  legal block (`GEAPDocPreview.mdocsHtml`), callers pass data only — the act page of GEAPActView became a 30-line call
+  and 140 lines of private act-page CSS were deleted; 6 viewers (BO dossier, notifications, Cabinet requests + decisions,
+  act dialog RAP/Cabinet, FO certificate, Ghișeu certificate) cost ~40 lines each. (2) A richer continuation header with
+  zero change for the old callers: paginate() clones a `<template class="e-permits-doc-page__cont-tpl">` when the first
+  page has one, else the old one-line `data-doc-cont` (a template's content is not in textContent → downloads unaffected).
+  (3) Prototype numbers / dates in other formats → small normalisers (`mdocsNumber` keeps year + last digits, `mdocsDate`
+  reads ISO, „8 iulie 2026” and dd/mm/yyyy) instead of new data. (4) Audit records derived deterministically from the
+  existing log shape (FNV hash → ids, correlation, IP, MLog state) + an opt-in `context` key on the shared timeline →
+  BO lists that don't pass it stay byte-identical. (5) Traps: `max(var(--x), auto)` is invalid CSS (caught before the
+  capture); a registered time 120–900 ms after the action prints the same second → offset ≥ 1 s so AC-09 is visible;
+  another agent's half-written demo-states.js (`distEdit`, `ghSusp` undefined) broke unrelated states mid-run — read the
+  error's stack before blaming your change; Python read-then-write on shared files is fast but the brief said Edit only —
+  use Edit. No sub-agent tool → code-audit (dialog scope: only A4 mm padding / zoomed-page line gaps / BO 11·7),
+  component-audit (0 in my markup; standing shell header, FO doc-modal shell buttons, missing-copy inside A4 tables),
+  hover-audit 0 / 0.

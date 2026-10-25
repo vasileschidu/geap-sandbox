@@ -2866,6 +2866,17 @@
         footer: `Semnat electronic prin MSign · ${d.nr}`
       });
     }
+    /* machete-mdocs-v1 (2026-10-25, US-311): the certificate = the MDocs standard template */
+    if (window.GEAPDocPreview?.mdocsHtml) {
+      return window.GEAPDocPreview.mdocsHtml({
+        type: "certificat",
+        authority,
+        office: d.details.subdivision,
+        number: d.nr,
+        date: d.submittedAt,
+        groups: [{ rows: [["Serviciul", svc?.title || ""], ["Tipul solicitării", d.requestType], ["Solicitant", holderName(d)], ["Data și ora depunerii", stamp(d.submittedAt)], ["Canal de depunere", "Ghișeu"], ["Termen de examinare", longDate(d.examDeadline)]] }]
+      });
+    }
     return docPage({
       cont: `Certificat constatator ${d.nr} · continuare`,
       head: `<h1>Certificat constatator</h1><p>Confirmă depunerea cererii în SIA GEAP</p>`,

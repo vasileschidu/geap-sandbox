@@ -847,6 +847,8 @@
       printedNumber: profile.printedDocumentNumber || "",
       groups: actGroups(act),
       url: `${window.location.origin}${window.location.pathname}?view=acte&act=${encodeURIComponent(act.id)}`,
+      /* US-310 AC-09: the QR on the act PDF = the act's permanent address in the Registrul Actelor Permisive */
+      registryUrl: `https://rap.gov.md/act/${encodeURIComponent(window.GEAPDocPreview?.mdocsNumber(act.number, "act") || act.number)}`,
       source: "EVO Cabinet",
       signed: !act.paper,
     };
@@ -1614,7 +1616,9 @@
     const canvas = document.querySelector("[data-cab-doc-modal]:not([hidden]) [data-cab-doc-canvas]");
     if (canvas) window.GEAPDocPreview?.fit(canvas);
   }
-  function openDocModal({ title, subtitle, doc, pageHtml, rowsHtml, downloadAttrs = "", generated = false, signature = "" }) {
+  /* mdocSpec (machete-mdocs-v1, 2026-10-25): an MDocs document = the standard template (GEAPDocPreview.mdocsHtml, US-306…311),
+     paginated; without it `pageHtml` goes into one plain A4 page as before */
+  function openDocModal({ title, subtitle, doc, pageHtml, rowsHtml, downloadAttrs = "", generated = false, signature = "", mdocSpec = null }) {
     let overlay = document.querySelector("[data-cab-doc-modal]");
     if (!overlay) {
       overlay = document.createElement("div");
@@ -1645,8 +1649,8 @@
           <button class="e-permits-fo-doc-modal__close" type="button" aria-label="Închide" data-cab-doc-close>${icon("icon-cross-large")}</button>
         </div>
         <div class="cab-filter__body cab-doc-modal__body${generated ? " cab-doc-modal__body--doc" : ""}">
-          <div class="e-permits-doc-peek__canvas cab-doc-modal__preview" data-cab-doc-canvas role="img" aria-label="Previzualizare: ${escape(doc.tip)}${doc.fisier ? `, ${escape(doc.fisier)}` : ""}">
-            <div class="e-permits-dtpl__page e-permits-doc-peek__page"><div class="e-permits-dtpl__surface">${pageHtml}</div></div>
+          <div class="e-permits-doc-peek__canvas cab-doc-modal__preview" data-cab-doc-canvas role="${mdocSpec ? "document" : "img"}" aria-label="Previzualizare: ${escape(doc.tip)}${doc.fisier ? `, ${escape(doc.fisier)}` : ""}">
+            ${mdocSpec ? window.GEAPDocPreview?.mdocsHtml(mdocSpec) || "" : `<div class="e-permits-dtpl__page e-permits-doc-peek__page"><div class="e-permits-dtpl__surface">${pageHtml}</div></div>`}
           </div>
           ${generated ? signature : `<h3 class="e-permits-fo-finish__section-title">Date generale</h3>
           ${rowsHtml}`}
@@ -1662,6 +1666,7 @@
     rowsBox.innerHTML = rowsHtml || "";
     docModalFile.text = [title, subtitle, "", ...[...rowsBox.querySelectorAll(".e-permits-dosar-profil__row")].map((r) => `${r.querySelector(".e-permits-dosar-profil__row-label")?.textContent.trim() || ""}: ${(r.querySelector(".e-permits-dosar-profil__row-value")?.textContent || "").replace(/\s+/g, " ").trim()}`)].join("\n");
     overlay.hidden = false;
+    if (mdocSpec) window.GEAPDocPreview?.paginate(overlay.querySelector("[data-cab-doc-canvas]"));
     fitDocPreview();
     overlay.querySelector("[data-cab-doc-close]")?.focus();
   }

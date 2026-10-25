@@ -5292,6 +5292,43 @@
       const rows = view.rows;
       const esc = escapeFrontOfficeHtml;
       certModal.querySelector("#fo-certificate-title").textContent = view.modalTitle;
+      /* machete-mdocs-v1 (2026-10-25, US-311): the certificate = the MDocs standard template in the A4 viewer (canvas filling
+         the dialog + the SIA GEAP signature card, as the BO / Cabinet viewers); the previous act (certView) keeps its card */
+      const dialog = certModal.querySelector(".modal");
+      const a4 = !certView && Boolean(window.GEAPDocPreview?.mdocsHtml);
+      dialog?.classList.toggle("modal--md", !a4);
+      dialog?.classList.toggle("modal--lg", a4);
+      dialog?.classList.toggle("e-permits-detail-modal", a4);
+      dialog?.classList.toggle("e-permits-detail-modal--doc", a4);
+      if (a4) {
+        const value = (label) => rows.find((row) => new RegExp(label, "i").test(row.label || ""))?.value || "";
+        const service = frontOfficeLastFinishSchema?.service || {};
+        const submitted = value("Data depunerii").replace(/^(\d{2})\/(\d{2})\/(\d{4})/, "$3-$2-$1").replace(/,\s*/, "T");
+        const subject = frontOfficeSelectedSubject || {};
+        const spec = {
+          type: "certificat",
+          authority: service.authority || "Agenția Națională pentru Sănătate Publică",
+          office: service.subdivision || "CSP Chișinău",
+          number: value("Numărul"),
+          date: submitted,
+          groups: [{ rows: [
+            ["Serviciul", value("Serviciul") || service.shortTitle || ""],
+            ...(subject.name ? [["Solicitant", subject.name], [subject.idLabel || "Cod de identificare", subject.idValue || ""]] : []),
+            ["Data și ora depunerii", value("Data depunerii")],
+            ["Canal de depunere", "EVO · Front Office"],
+            ["Termenul de examinare", value("Termenul")]
+          ] }]
+        };
+        certModal.querySelector("[data-fo-cert-body]").innerHTML = `
+          ${downloadError ? `<div class="message message--subtle banner--error" role="alert"><span class="banner__icon"><svg class="icon" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-circle-error-filled"></use></svg></span><div class="banner__content"><p class="banner__text">Fișierul nu este disponibil momentan. Încercați din nou.</p></div></div>` : ""}
+          <div class="e-permits-doc-peek__canvas e-permits-detail-modal__preview" data-fo-cert-canvas role="document" aria-label="Certificat constatator">${window.GEAPDocPreview.mdocsHtml(spec)}</div>
+          ${window.GEAPDocPreview.signatureHtml({ by: "SIA GEAP", at: value("Data depunerii") })}`;
+        certModal.querySelector("[data-fo-cert-download] span").textContent = downloadError ? "Reîncercați" : "Descarcă";
+        const canvas = certModal.querySelector("[data-fo-cert-canvas]");
+        window.GEAPDocPreview.paginate(canvas);
+        requestAnimationFrame(() => window.GEAPDocPreview.fit(canvas));
+        return;
+      }
       certModal.querySelector("[data-fo-cert-body]").innerHTML = `
         ${downloadError ? `<div class="message message--subtle banner--error" role="alert"><span class="banner__icon"><svg class="icon" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-circle-error-filled"></use></svg></span><div class="banner__content"><p class="banner__text">Fișierul nu este disponibil momentan. Încercați din nou.</p></div></div>` : ""}
         <div class="e-permits-fo-cert">
@@ -5343,8 +5380,8 @@
       if (dl && certModal) {
         const unavailable = !certView && new URLSearchParams(location.search).get("cert") === "unavailable" && !dl.dataset.retried;
         if (unavailable) { dl.dataset.retried = "1"; renderCertificateModal(true); return; }
-        const docTitle = certModal.querySelector(".e-permits-fo-cert__title")?.textContent || "Document";
-        const html = `<!doctype html><meta charset="utf-8"><title>${escapeFrontOfficeHtml(docTitle)}</title>${certModal.querySelector(".e-permits-fo-cert").outerHTML}`;
+        const docTitle = certModal.querySelector(".e-permits-fo-cert__title, .e-permits-mdoc__title")?.textContent || "Document";
+        const html = `<!doctype html><meta charset="utf-8"><title>${escapeFrontOfficeHtml(docTitle)}</title>${[...certModal.querySelectorAll(".e-permits-fo-cert, [data-fo-cert-canvas] .e-permits-doc-page")].map((el) => el.outerHTML).join("")}`;
         const a = Object.assign(document.createElement("a"), { href: URL.createObjectURL(new Blob([html], { type: "text/html" })), download: `${certView?.file || "Certificat-constatator"}.html` });
         a.click(); URL.revokeObjectURL(a.href);
         renderCertificateModal(false);

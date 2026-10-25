@@ -1032,6 +1032,8 @@
     const docs = [];
     /* US-161 AC-14: the system certificate, once the request was filed */
     if (dosar.status !== "schita") {
+      /* US-307 AC-02/04: the request's PDF (MDocs standard template) on every filed request, never on a draft */
+      docs.push({ id: "cerere", sursa: "generat", tip: "Cererea depusă", nr: dosar.nr, fisier: `cerere-${String(dosar.nr).toLowerCase()}.pdf`, size: "312 KB", verb: "Generat", at: longDateTime(dosar.submitted), de: "SIA GEAP", kind: "cerere" });
       docs.push({ id: "certificat", sursa: "generat", tip: "Certificat constatator", nr: dosar.nr, fisier: `certificat-constatator-${String(dosar.nr).toLowerCase()}.pdf`, size: "96 KB", verb: "Generat", at: longDateTime(dosar.submitted), de: "SIA GEAP", semnat: true, kind: "certificat" });
     }
     files.forEach((file, index) => docs.push({
@@ -1048,6 +1050,68 @@
     }
     return `<div class="cab-docs">${docs.map((doc) => C.docRowHtml(doc, { key: `${dosar.id}|${doc.id}` })).join("")}</div>`;
   }
+  /* machete-mdocs-v1 (2026-10-25, Feature 96074): the request's MDocs documents on the standard template
+     (GEAPDocPreview.mdocsHtml) — cerere (US-307), certificat constatator (US-311), decizie de refuz / de suspendare (US-309) */
+  const decisionType = (dosar) => (dosar.status !== "finalizat" ? "" : dosar.result === "respins" ? "decizie-refuz" : dosar.pp === "suspendare" ? "decizie-suspendare" : "");
+  function dosarMdocSpec(dosar, kind) {
+    const service = serviceOf(dosar);
+    const subject = state.subject || {};
+    const holder = [["Solicitant", subject.name], [subject.idLabel || "Cod de identificare", subject.idValue]];
+    const base = {
+      authority: service.authorityName || service.authority || "",
+      office: dosar.subdivision || "",
+      request: { number: dosar.nr, date: dosar.submitted, type: dosar.tip, service: service.title || "" }
+    };
+    if (kind === "cerere") {
+      return {
+        ...base, type: "cerere", number: dosar.nr, date: dosar.submitted,
+        groups: [
+          { title: "Solicitantul", rows: [...holder, ...(dosar.filedBy?.name ? [["Depusă de", `${dosar.filedBy.name} · reprezentant MPower`]] : [])] },
+          { title: "Serviciul solicitat", rows: [["Serviciul", service.title], ["Tipul solicitării", dosar.tip], ["Subdiviziunea de examinare", dosar.subdivision]] },
+          { title: "Obiectul activității", rows: [["Obiectul", dosar.object], ["Adresa", dosar.address]] },
+          { title: "Acte anexate", rows: dosarDocs(dosar).filter((doc) => doc.kind === "fisier").map((doc, index) => [`${index + 1}.`, doc.tip]) }
+        ]
+      };
+    }
+    if (kind === "certificat") {
+      return {
+        ...base, type: "certificat", number: dosar.nr, date: dosar.submitted,
+        groups: [{ rows: [["Serviciul", service.title], ["Tipul solicitării", dosar.tip], ...holder, ["Obiectul", dosar.object], ["Data și ora depunerii", longDateTime(dosar.submitted)], ["Canal de depunere", "EVO · Solicitările mele"], ["Subdiviziunea de examinare", dosar.subdivision]] }]
+      };
+    }
+    const type = decisionType(dosar);
+    if (!type) return null;
+    const decision = dosar.decision || {};
+    return {
+      ...base, type, number: dosar.nr, date: dosar.finalized,
+      groups: [{ rows: [
+        ...holder,
+        ["Obiectul", dosar.object],
+        type === "decizie-refuz" ? ["Motivele refuzului", decision.reason] : ["Conținutul deciziei", decision.text],
+        ["Temeiul legal", decision.legal || "Legea nr. 160/2011 privind reglementarea prin autorizare a activității de întreprinzător"],
+        ...(decision.recommendations ? [["Recomandări", decision.recommendations]] : []),
+        ...(type === "decizie-refuz" ? [["Dreptul de contestare", `Decizia poate fi contestată în termen de ${state.data.appealDays || 30} de zile de la comunicare.`]] : [])
+      ] }]
+    };
+  }
+  function openDecisionDoc(dosar) {
+    const spec = dosarMdocSpec(dosar, "decizie");
+    if (!spec) return;
+    const tip = window.GEAPDocPreview?.MDOCS_TYPES?.[spec.type] || "Decizie";
+    const doc = { tip, fisier: `${spec.type}-${String(dosar.nr).toLowerCase()}.pdf` };
+    C.openDocModal({
+      title: "Document generat",
+      subtitle: tip,
+      doc,
+      mdocSpec: spec,
+      rowsHtml: rows([row("Tip document", escape(tip)), row("Numărul deciziei", escape(dosar.decision?.nr || "—")), row("Data emiterii", escape(longDate(dosar.finalized))), row("Fișier", escape(doc.fisier))]),
+      downloadAttrs: `data-cab-doc-download="${escape(dosar.id)}|decizie"`,
+      generated: true,
+      /* the decision itself was signed (MSign) — the PDF carries no signature (AC-10); the tray names the signature */
+      signature: dosar.decision?.signedBy ? window.GEAPDocPreview?.signatureHtml({ by: dosar.decision.signedBy, at: longDate(dosar.finalized), sprite: C.SPRITE }) || "" : "",
+    });
+  }
+
   /* the document modal: a demo A4 page + the details */
   function openDosarDoc(key) {
     const [dosarId, docId] = key.split("|");
@@ -1061,10 +1125,11 @@
       ? `<h1>Certificat constatator</h1><p>Confirmă depunerea cererii în SIA GEAP.</p>${table([["Numărul dosarului", dosar.nr], ["Serviciul", service.title || ""], ["Solicitant", holder], ["Data depunerii", longDateTime(dosar.submitted)]])}<p>Semnat electronic · SIA GEAP · ${escape(longDate(dosar.submitted))}</p>`
       : `<h1>${escape(doc.tip)}</h1><p>Anexă la cererea ${escape(dosar.nr)} · ${escape(service.title || "")}</p>${table([["Obiectul", dosar.object || ""], ["Adresa", dosar.address || ""], ["Solicitant", holder]])}`;
     C.openDocModal({
-      title: doc.kind === "certificat" ? "Document generat" : "Document însoțitor",
+      title: doc.kind === "fisier" ? "Document însoțitor" : "Document generat",
       subtitle: doc.tip,
       doc,
       pageHtml,
+      mdocSpec: doc.kind === "fisier" ? null : dosarMdocSpec(dosar, doc.kind),
       rowsHtml: rows([
         row("Tip document", escape(doc.tip)),
         doc.nr ? row("Numărul dosarului", escape(doc.nr)) : "",
@@ -1456,7 +1521,12 @@
   function download(button) {
     root.querySelectorAll("[data-sm-download-error]").forEach((node) => node.remove());
     window.GEAPToast?.dismiss(document.querySelector('[data-toast-key="sm-download-error"]'));
-    if (params.get("descarcare") !== "eroare") return;
+    if (params.get("descarcare") !== "eroare") {
+      /* US-309: a refusal / a suspension decision opens its MDocs PDF (standard template) in the document dialog */
+      const dosar = state.dosare.find((item) => item.id === button.dataset.smId);
+      if (button.dataset.smKind === "decizie" && dosar && decisionType(dosar)) openDecisionDoc(dosar);
+      return;
+    }
     const scope = button.closest("[data-sm-dl-scope], .e-permits-page-header__actions") || button.closest(".cab-request-row");
     const text = "A apărut o eroare. Descărcarea nu a fost efectuată. Încercați din nou.";
     /* the header's action row (cabinet-header-v1): the same non-auto-closing error toast as a failed redirect

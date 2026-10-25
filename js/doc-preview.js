@@ -73,15 +73,20 @@
       page.classList.remove("is-measuring");
       return height <= room + 1;
     };
+    /* a page that carries a <template class="e-permits-doc-page__cont-tpl"> (the MDocs macheta, US-306 AC-07) starts every
+       continuation page with that simplified header instead of the one-line `data-doc-cont` */
+    const contTemplate = first.querySelector("template.e-permits-doc-page__cont-tpl");
     const continuation = (from) => {
       const page = document.createElement("div");
       page.className = from.className;
       if (repeat) from.querySelectorAll(`:scope > :is(${repeat})`).forEach((part) => page.append(part.cloneNode(true)));
       const surface = document.createElement("div");
       surface.className = from.querySelector(".e-permits-doc-page__surface").className;
-      const cont = document.createElement("p");
-      cont.className = "e-permits-doc-page__cont";
-      cont.textContent = first.dataset.docCont || "";
+      const cont = contTemplate ? contTemplate.content.cloneNode(true) : document.createElement("p");
+      if (!contTemplate) {
+        cont.className = "e-permits-doc-page__cont";
+        cont.textContent = first.dataset.docCont || "";
+      }
       const table = document.createElement("table");
       const cols = from.querySelector("table > colgroup");
       if (cols) table.append(cols.cloneNode(true));
@@ -149,5 +154,206 @@
         <p class="e-permits-doc-signature__meta">${[provider, by, at].filter(Boolean).map(escapeText).join(" · ")}</p>
       </div>`;
 
-  window.GEAPDocPreview = { fit, paginate, print, printIcon, signatureHtml };
+  /* =====================================================================================
+     The MDocs standard template — „macheta comună” (machete-mdocs-v1, 2026-10-25; Feature 96074, US-306…US-311).
+     ONE page shell for every generated document; the type decides only the title, the number / date line, the
+     simplified header of pages 2+, the signature mention (act) and the legal block:
+       page 1   header = arms · „Republica Moldova” · issuing authority + subdivision | their address, phone, email,
+                site (US-306 AC-02/03) · title (AC-04) · number + date in the type's format (AC-05) · the main
+                content (the service's print template data, AC-06) · [act: „Semnat electronic de …” per signer]
+       pages 2+ the simplified header: authority · subdivision + „<title> Nr <nr> din <data>” (AC-07, the
+                `template.e-permits-doc-page__cont-tpl` paginate() clones)
+       every page the SAME footer: QR (type, number, date, authority + the permanent verification link — AC-15) ·
+                the legal block of the type (generation date + time, AC-10; personal data, AC-11) · „Pagina X din Y”
+     The structure is fixed here (AC-01: never edited from the UI); callers pass data only:
+       mdocsHtml({ type, authority, office, title?, number, date, validUntil?, request: { number, date, type, service },
+                   introHtml?, rowsHtml | groups, closingHtml?, signers: [{ role, name }], qrUrl?, generatedAt?,
+                   pageClass?, repeatHtml? })
+         type = cerere | notificare | decizie-refuz | decizie-suspendare | act | certificat
+       mdocsRows(groups)   [{ title?, rows: [[label, value | [values]]] }] → the table rows (heading row per titled group)
+       mdocsNumber(raw, kind) „Cxxxxxx/anul” (request / notification / decision / certificate) · „P-xxxx/anul” (act)
+       mdocsDate(value)    ISO or „8 iulie 2026” → „08.07.2026”
+       mdocsState(view, { retryAttrs })  loading | eroare (AC-14 text) | acces („Acces interzis”) — the bare empty state
+       issuer(authority)   the issuing authority's profile (contacts + head) — demo table, AC-12 */
+  const ASSETS = (() => {
+    try {
+      const src = document.currentScript?.src;
+      return src ? new URL("../assets/", src).pathname : "assets/";
+    } catch (error) {
+      return "assets/";
+    }
+  })();
+  const pad2 = (value) => String(value).padStart(2, "0");
+  const RO_MONTHS = ["ianuarie", "februarie", "martie", "aprilie", "mai", "iunie", "iulie", "august", "septembrie", "octombrie", "noiembrie", "decembrie"];
+  const toDate = (value) => {
+    if (value instanceof Date) return value;
+    const text = String(value ?? "").trim();
+    if (!text) return null;
+    const long = text.match(/^(\d{1,2})\s+([a-zăâîșțA-Z]+)\s+(\d{4})(?:,\s*(\d{1,2}):(\d{2}))?/);
+    if (long && RO_MONTHS.includes(long[2].toLowerCase())) return new Date(Number(long[3]), RO_MONTHS.indexOf(long[2].toLowerCase()), Number(long[1]), Number(long[4] || 0), Number(long[5] || 0));
+    const dotted = text.match(/^(\d{2})[./](\d{2})[./](\d{4})(?:,\s*(\d{1,2}):(\d{2}))?/);
+    if (dotted) return new Date(Number(dotted[3]), Number(dotted[2]) - 1, Number(dotted[1]), Number(dotted[4] || 0), Number(dotted[5] || 0));
+    const date = new Date(/^\d{4}-\d{2}-\d{2}$/.test(text) ? `${text}T00:00:00` : text);
+    return Number.isNaN(date.getTime()) ? null : date;
+  };
+  const mdocsDate = (value) => {
+    const date = toDate(value);
+    return date ? `${pad2(date.getDate())}.${pad2(date.getMonth() + 1)}.${date.getFullYear()}` : String(value ?? "");
+  };
+  const mdocsStamp = (value) => {
+    const date = toDate(value) || new Date();
+    return `${mdocsDate(date)}, ${pad2(date.getHours())}:${pad2(date.getMinutes())}`;
+  };
+  /* US-306 data model: the request number „Cxxxxxx/anul” (request, notification, decision, certificate), the act
+     „P-xxxx/anul”; a prototype number in another format keeps its year and its last digits */
+  const mdocsNumber = (raw, kind = "cerere") => {
+    const text = String(raw ?? "").trim();
+    if (kind === "act" ? /^P-\d+\/\d{4}$/.test(text) : /^C\d{6}\/\d{4}$/.test(text)) return text;
+    const year = (text.match(/20\d{2}/) || [String(new Date().getFullYear())])[0];
+    const digits = (text.replace(year, "").match(/\d+/g) || ["0"]).pop();
+    return kind === "act" ? `P-${digits.slice(-4).padStart(4, "0")}/${year}` : `C${digits.slice(-6).padStart(6, "0")}/${year}`;
+  };
+
+  /* the issuing authorities' profile data (demo — the real system reads the authority / subdivision profile at
+     generation time, AC-12); unknown authorities get a derived address on gov.md */
+  const ISSUERS = [
+    [/sănătate publică|\bANSP\b/i, { short: "ANSP", address: "str. Gheorghe Asachi 67A, MD-2028, mun. Chișinău", phone: "+373 22 574 501", email: "office@ansp.gov.md", web: "www.ansp.gov.md", head: { role: "Directorul general", name: "Dumitru Rotaru" } }],
+    [/siguranța alimentelor|\bANSA\b/i, { short: "ANSA", address: "str. Mihail Kogălniceanu 63, MD-2009, mun. Chișinău", phone: "+373 22 264 634", email: "info@ansa.gov.md", web: "www.ansa.gov.md", head: { role: "Directorul general", name: "Vasile Moraru" } }],
+    [/medicamentului|\bAMDM\b/i, { short: "AMDM", address: "str. Korolenko 2/1, MD-2028, mun. Chișinău", phone: "+373 22 884 301", email: "office@amdm.gov.md", web: "www.amdm.gov.md", head: { role: "Directoarea generală", name: "Silvia Ceban" } }],
+    [/transport auto|\bANTA\b/i, { short: "ANTA", address: "bd. Ștefan cel Mare și Sfânt 162, MD-2004, mun. Chișinău", phone: "+373 22 820 500", email: "office@anta.gov.md", web: "www.anta.gov.md", head: { role: "Directorul", name: "Mihail Lungu" } }],
+    [/agenția de mediu/i, { short: "AM", address: "str. Valeriu Cupcea 9, MD-2005, mun. Chișinău", phone: "+373 22 204 605", email: "office@am.gov.md", web: "www.am.gov.md", head: { role: "Directoarea", name: "Elena Rusu" } }],
+    [/servicii publice|\bASP\b/i, { short: "ASP", address: "str. Arborilor 21, MD-2025, mun. Chișinău", phone: "+373 22 504 710", email: "office@asp.gov.md", web: "www.asp.gov.md", head: { role: "Directorul general", name: "Andrei Popa" } }],
+    [/ministerul economiei/i, { short: "MDED", address: "Piața Marii Adunări Naționale 1, MD-2033, mun. Chișinău", phone: "+373 22 250 107", email: "secretariat@mded.gov.md", web: "www.mded.gov.md", head: { role: "Secretarul general de stat", name: "Victor Lungu" } }],
+    [/primăria municipiului chișinău/i, { short: "PMC", address: "bd. Ștefan cel Mare și Sfânt 83, MD-2012, mun. Chișinău", phone: "+373 22 201 505", email: "office@pmc.md", web: "www.chisinau.md", head: { role: "Primarul general", name: "Ion Ceban" } }]
+  ];
+  const issuer = (authority = "") => {
+    const known = ISSUERS.find(([pattern]) => pattern.test(authority));
+    if (known) return { name: authority, ...known[1] };
+    const short = String(authority).split(/\s+/).filter((word) => /^[A-ZĂÂÎȘȚ]/.test(word)).map((word) => word[0]).join("").normalize("NFD").replace(/\p{M}/gu, "") || "GEAP";
+    const slug = short.toLowerCase();
+    return { name: authority, short, address: "mun. Chișinău", phone: "+373 22 000 000", email: `office@${slug}.gov.md`, web: `www.${slug}.gov.md`, head: { role: "Conducătorul autorității", name: "" } };
+  };
+
+  const MDOCS_TYPES = {
+    cerere: "Cerere",
+    notificare: "Notificare",
+    "decizie-refuz": "Decizie de refuz",
+    "decizie-suspendare": "Decizie de suspendare",
+    act: "Act permisiv",
+    certificat: "Certificat constatator"
+  };
+  /* „Cerere privind (tipul cererii) (denumirea serviciului)” (US-307 AC-05) and the decision's „pentru …” (US-309 AC-04):
+     the request type as an action + the service name in quotes */
+  const REQUEST_ACTIONS = [
+    [/duplicat/i, "eliberarea duplicatului actului permisiv"],
+    [/prelung/i, "prelungirea actului permisiv"],
+    [/reperfect/i, "reperfectarea actului permisiv"],
+    [/relu/i, "reluarea valabilității actului permisiv"],
+    [/suspend/i, "suspendarea valabilității actului permisiv"],
+    [/retrag/i, "retragerea actului permisiv"],
+    [/anul/i, "anularea actului permisiv"],
+    [/emitere|eliberare|primar/i, "eliberarea actului permisiv"]
+  ];
+  const requestAction = (type = "") => (REQUEST_ACTIONS.find(([pattern]) => pattern.test(type)) || [null, `${String(type || "eliberarea").toLocaleLowerCase("ro")} actului permisiv`])[1];
+  const requestSubject = (request = {}) => `${requestAction(request.type)}${request.service ? ` „${request.service}”` : ""}`;
+
+  const LEGAL = {
+    evo: (at) => `Generat din portalul guvernamental integrat EVO (evo.gov.md) la ${at}.`,
+    replica: "Documentul reprezintă o replică vizuală a datelor din SIA GEAP, în conformitate cu Legea nr. 124/2022 și Legea nr. 160/2011.",
+    replicaSigned: "Documentul reprezintă o replică vizuală a datelor semnate electronic în SIA GEAP, în conformitate cu Legea nr. 124/2022 și Legea nr. 160/2011.",
+    rap: "Verificarea autenticității și a valabilității datelor se efectuează prin scanarea codului QR sau prin accesarea Registrului Actelor Permisive (rap.gov.md).",
+    sia: "Generat de Sistemul informațional automatizat de gestionare și emitere a actelor permisive (SIA GEAP), în conformitate cu Legea nr. 160/2011.",
+    personal: "Documentul conține date cu caracter personal, prelucrate în condițiile Legii nr. 195/2024."
+  };
+
+  const cellValue = (value) => (Array.isArray(value) ? value.filter((part) => String(part ?? "").trim()).map(escapeText).join("<br>") : escapeText(value));
+  const mdocsRows = (groups = []) => groups.map((group) => {
+    const rows = (group.rows || []).filter(([, value]) => (Array.isArray(value) ? value.length : String(value ?? "").trim()));
+    if (!rows.length) return "";
+    return `${group.title ? `<tr class="e-permits-doc-page__group"><th colspan="2" scope="colgroup">${escapeText(group.title)}</th></tr>` : ""}${rows.map(([label, value]) => `<tr><td>${escapeText(label)}</td><td>${cellValue(value)}</td></tr>`).join("")}`;
+  }).join("");
+
+  function mdocsHtml(spec = {}) {
+    const type = MDOCS_TYPES[spec.type] ? spec.type : "cerere";
+    const who = issuer(spec.authority || "");
+    const isAct = type === "act";
+    const isDecision = type.startsWith("decizie");
+    const number = mdocsNumber(spec.number, isAct ? "act" : "cerere");
+    const date = mdocsDate(spec.date);
+    const generated = mdocsStamp(spec.generatedAt || new Date());
+    const request = spec.request || {};
+    const title = type === "cerere" ? `Cerere privind ${requestSubject(request)}`
+      : type === "certificat" ? "CERTIFICAT CONSTATATOR"
+      : isDecision ? MDOCS_TYPES[type]
+      : spec.title || MDOCS_TYPES[type];
+    const requestLine = `privind Cererea Nr.${mdocsNumber(request.number || spec.number)} din ${mdocsDate(request.date)}`;
+    const meta = type === "certificat" ? [`Nr. de înregistrare: ${number}`, `Data înregistrării: ${date}`]
+      : isAct ? [`Nr. ${number}`, [`Eliberat: ${date}`, spec.validUntil ? (toDate(spec.validUntil) ? `Valabil până la ${mdocsDate(spec.validUntil)}` : `Valabil: ${String(spec.validUntil).toLocaleLowerCase("ro")}`) : ""].filter(Boolean).join(" · ")]
+      : isDecision ? [`${requestLine} pentru ${requestSubject(request)}`, date ? `Data deciziei: ${date}` : ""]
+      : [`Nr. ${number}`, `Data: ${date}`];
+    const contLine = type === "certificat" ? `CERTIFICAT CONSTATATOR Nr. de înregistrare: ${number} din ${date}`
+      : isAct ? `${title} · Nr. ${number}`
+      : isDecision ? `${title} · ${requestLine}`
+      : `${title} Nr ${number} din ${date}`;
+    const legal = type === "certificat" ? [LEGAL.sia, `Data și ora generării: ${generated}.`, LEGAL.personal]
+      : isAct ? [LEGAL.evo(generated), LEGAL.rap, LEGAL.personal]
+      : [LEGAL.evo(generated), isDecision ? LEGAL.replicaSigned : LEGAL.replica, LEGAL.personal];
+    const verifyCode = `${type}-${number.replace(/[^\dA-Za-z]+/g, "-")}`.toLowerCase();
+    const qrUrl = spec.qrUrl || `https://evo.gov.md/verificare/${verifyCode}`;
+    const qrLabel = `Cod QR: ${MDOCS_TYPES[type]} ${number}, ${date}, ${who.name}. Legătura de verificare: ${qrUrl}`;
+    const rowsHtml = spec.rowsHtml || mdocsRows(spec.groups || []);
+    const signers = isAct ? (spec.signers && spec.signers.length ? spec.signers : [who.head]).filter((signer) => signer && (signer.role || signer.name)) : [];
+    const tail = `${spec.closingHtml || ""}${signers.map((signer) => `<p class="e-permits-mdoc__signer"><svg class="icon" aria-hidden="true"><use href="${ASSETS}icons/sprite.svg#icon-signature"></use></svg><span>Semnat electronic de ${escapeText([signer.role, signer.name].filter(Boolean).join(" "))}</span></p>`).join("")}`;
+    const issuerLine = [who.name, spec.office].filter(Boolean).map(escapeText).join(" · ");
+    return `
+      <div class="e-permits-dtpl__page e-permits-doc-peek__page e-permits-doc-page e-permits-mdoc e-permits-mdoc--${type}${spec.pageClass ? ` ${spec.pageClass}` : ""}" data-doc-type="${type}" data-doc-cont="${escapeText(contLine)}">
+        ${spec.repeatHtml || ""}
+        <div class="e-permits-dtpl__surface e-permits-doc-page__surface">
+          <template class="e-permits-doc-page__cont-tpl"><div class="e-permits-mdoc__cont"><p class="e-permits-mdoc__cont-issuer">${issuerLine}</p><p class="e-permits-mdoc__cont-doc">${escapeText(contLine)}</p></div></template>
+          <header class="e-permits-mdoc__head">
+            <span class="e-permits-mdoc__arms" aria-hidden="true"><img src="${ASSETS}logos/gov.svg" alt=""></span>
+            <div class="e-permits-mdoc__issuer">
+              <p class="e-permits-mdoc__country">Republica Moldova</p>
+              <p class="e-permits-mdoc__authority">${escapeText(who.name)}</p>
+              ${spec.office ? `<p class="e-permits-mdoc__office">${escapeText(spec.office)}</p>` : ""}
+            </div>
+            <ul class="e-permits-mdoc__contact" aria-label="Datele de contact ale autorității emitente">
+              <li>${escapeText(who.address)}</li>
+              <li>Tel.: ${escapeText(who.phone)}</li>
+              <li>Email: ${escapeText(who.email)}</li>
+              ${who.web ? `<li>${escapeText(who.web)}</li>` : ""}
+            </ul>
+          </header>
+          <h1 class="e-permits-mdoc__title">${escapeText(title)}</h1>
+          <div class="e-permits-mdoc__meta">${meta.filter(Boolean).map((line) => `<p>${escapeText(line)}</p>`).join("")}</div>
+          ${spec.introHtml || ""}
+          <table><colgroup><col class="e-permits-doc-page__label-col"><col></colgroup><tbody>${rowsHtml}</tbody></table>
+          ${tail ? `<div class="e-permits-doc-page__tail e-permits-mdoc__tail">${tail}</div>` : ""}
+          <footer class="e-permits-doc-page__footer e-permits-mdoc__footer">
+            <span class="e-permits-mdoc__qr" role="img" aria-label="${escapeText(qrLabel)}"><svg class="icon" aria-hidden="true"><use href="${ASSETS}icons/sprite.svg#icon-qr-code"></use></svg></span>
+            <div class="e-permits-mdoc__legal">
+              ${legal.map((line) => `<p>${escapeText(line)}</p>`).join("")}
+              <p class="e-permits-mdoc__link">${escapeText(qrUrl.replace(/^https?:\/\//, ""))}</p>
+            </div>
+            <p class="e-permits-mdoc__page"><span data-doc-page-label>Pagina 1 din 1</span></p>
+          </footer>
+        </div>
+      </div>`;
+  }
+
+  /* the viewer's canvas while MDocs works / when it fails (US-306 AC-14) / without the right (US-307…311 AC-01) */
+  const mdocsState = (view, { retryAttrs = "" } = {}) => {
+    const empty = window.GEAPEmptyState;
+    if (!empty) return "";
+    if (view === "loading") return empty.render({ loading: true, bare: true, title: "Se generează documentul", text: "MDocs completează macheta cu datele dosarului. Poate dura câteva secunde." });
+    if (view === "acces") return empty.render({ bare: true, icon: "lock", title: "Acces interzis", text: "Nu aveți drept de acces la dosarul acestui document." });
+    return empty.render({
+      bare: true,
+      icon: "circle-error",
+      text: "Documentul nu a putut fi generat. Încercați din nou.",
+      actionHtml: retryAttrs ? `<button class="btn btn-strict btn-sm" type="button" ${retryAttrs}><svg class="icon small" aria-hidden="true"><use href="${ASSETS}icons/sprite.svg#icon-rotate-arrow"></use></svg><span>Reîncercați</span></button>` : ""
+    });
+  };
+
+  window.GEAPDocPreview = { fit, paginate, print, printIcon, signatureHtml, mdocsHtml, mdocsRows, mdocsNumber, mdocsDate, mdocsState, issuer, MDOCS_TYPES };
 })();

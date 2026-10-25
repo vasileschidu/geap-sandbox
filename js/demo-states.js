@@ -1130,6 +1130,44 @@
     "dos-04r": dos(SPEC, "spreSemnare", "documente", {}, async (h) => { await docEye("Proiectul actului", "documente")(h); }),
     "dos-04s": dos(SPEC, "eliberat", "decizie", {}, async (h) => { await docEye("Act permisiv", "acte")(h); }),
     "dos-04t": dos(SPEC, "respins", "decizie", { decizia: "respingere" }, async (h) => { await docEye("Decizie de respingere", "acte")(h); }),
+    /* machete-mdocs-v1 (2026-10-25, Feature 96074 · US-306…US-311): the MDocs standard template in every generated-document
+       viewer — BO dossier (cerere, certificat, notificare, decizie de refuz, act), MDocs error / retry / no right, the
+       generation in the journal; EVO Cabinet (cerere, certificat, decizie de refuz / suspendare, act, draft without PDF);
+       FO certificate; RAP act page 2 (simplified header) */
+    "mdoc-01": dos(SPEC, "eliberat", "documente", {}, async (h) => { await docEye("Cererea depusă", "documente")(h); }),
+    "mdoc-02": dos(SPEC, "eliberat", "documente", {}, async (h) => { await docEye("Certificat constatator", "documente")(h); }),
+    "mdoc-03": dos(SPEC, "inExaminare", "notificari", {}, async (h) => { await docRow("Înregistrarea cererii", "notificari")(h); }),
+    "mdoc-04": dos(SPEC, "inExaminare", "notificari", { mdocs: "reincercare" }),
+    "mdoc-05": dos(SPEC, "respins", "decizie", { decizia: "respingere" }, async (h) => { await docEye("Decizie de respingere", "acte")(h); }),
+    "mdoc-06": dos(SPEC, "eliberat", "decizie", {}, async (h) => { await docEye("Act permisiv", "acte")(h); }),
+    "mdoc-07": dos(SPEC, "eliberat", "documente", { mdocs: "eroare" }, async (h) => { await docEye("Cererea depusă", "documente")(h); }),
+    "mdoc-08": dos(SPEC, "eliberat", "documente", { mdocs: "eroare" }, async (h) => { await docEye("Cererea depusă", "documente")(h); await h.click("#dosar-detail-modal [data-dosar-mdoc-retry]"); await h.wait(400); }),
+    "mdoc-09": dos(SPEC, "eliberat", "documente", { mdocs: "acces" }, async (h) => { await docEye("Cererea depusă", "documente")(h); }),
+    "mdoc-10": dos(SPEC, "eliberat", "documente", {}, async (h) => { await docEye("Cererea depusă", "documente")(h); await h.click("#dosar-detail-modal [data-dosar-detail-close]"); await h.wait(400); await h.click('[data-dosar-tab="jurnal"]'); }),
+    "mdoc-11": smDosar("d-izvoras", async (h) => { await h.click('[data-sm-tab="solicitare"]'); await h.scroll(".cab-docs"); await h.click('.cab-doc[data-cab-doc$="|cerere"]'); await h.wait(400); }),
+    "mdoc-12": smDosar("d-izvoras", async (h) => { await h.click('[data-sm-tab="solicitare"]'); await h.scroll(".cab-docs"); await h.click('.cab-doc[data-cab-doc$="|certificat"]'); await h.wait(400); }),
+    "mdoc-13": smDosar("d-nota", async (h) => { await smHeadAct(h, "download"); await h.wait(400); }),
+    "mdoc-14": smDosar("d-piata-susp", async (h) => { await h.click('[data-sm-tab="act"]'); await h.click('[data-sm-panel="act"] [data-sm-action="download"]'); await h.wait(400); }),
+    "mdoc-15": ppCab(async (h) => { await h.click("[data-cab-card='act-izvoras'] .e-permits-fo-lib-item__title"); await h.click("[data-cab-view-act]"); await h.find("[data-rap-act-modal]:not([hidden]) [data-rap-act-canvas]"); }),
+    "mdoc-16": smDosar("d-spicul", async (h) => { await h.click('[data-sm-tab="solicitare"]'); }),
+    "mdoc-17": foReq(7, { paid: "1" }, async (h) => { await h.click("[data-fo-finish-document]"); await h.wait(400); }),
+    "mdoc-18": {
+      page: "rap-evo/index.html", params: { act: "rap-0016" }, ready: "[data-rap-profile-view]:not([hidden]) h1",
+      run: async (h) => {
+        await h.click("[data-rap-view-document]"); await h.find("[data-rap-act-data].is-active [data-rap-data-download]"); await h.wait(250);
+        await h.click("[data-rap-act-data].is-active [data-rap-data-download]"); await h.find("[data-rap-act-modal]:not([hidden]) .rap-act-doc"); await h.wait(300);
+        document.querySelectorAll("[data-rap-act-modal]:not([hidden]) .e-permits-doc-page")[1]?.scrollIntoView({ block: "start" });
+      }
+    },
+    /* audit-context-v1 (2026-10-25, US-262): context + correlation id on the journal rows and in the event detail */
+    "audit-01": svc("events"),
+    "audit-02": svc("events", async (h) => { await h.click("[data-svc-event] .e-permits-timeline__link"); }),
+    "audit-03": svc("events", async (h) => { const item = [...document.querySelectorAll("[data-svc-event]")].find((el) => /SIA GEAP/.test(el.textContent)); item?.querySelector(".e-permits-timeline__link")?.click(); await h.wait(400); }),
+    "audit-04": svc("events", async (h) => { const item = [...document.querySelectorAll("[data-svc-event]")].find((el) => /Eroare la sincronizare/.test(el.textContent)); item?.querySelector(".e-permits-timeline__link")?.click(); await h.wait(400); }),
+    "audit-05": dos(SPEC, "inExaminare", "jurnal"),
+    "audit-06": dos(SPEC, "inExaminare", "jurnal", {}, async (h) => { const item = [...document.querySelectorAll("[data-dosar-event]")].find((el) => /Dosar depus/.test(el.textContent)); item?.querySelector(".e-permits-timeline__link")?.click(); await h.wait(400); }),
+    "audit-07": dos(SPEC, "eliberat", "documente", {}, async (h) => { await docEye("Cererea depusă", "documente")(h); await h.click("#dosar-detail-modal [data-dosar-detail-close]"); await h.wait(400); await h.click('[data-dosar-tab="jurnal"]'); await h.click('[data-dosar-event="0"] .e-permits-timeline__link'); await h.wait(400); }),
+    "audit-08": dos(SPEC, "eliberat", "documente", { mdocs: "acces" }, async (h) => { await docEye("Cererea depusă", "documente")(h); await h.click("#dosar-detail-modal [data-dosar-detail-close]"); await h.wait(400); await h.click('[data-dosar-tab="jurnal"]'); await h.click('[data-dosar-event="0"] .e-permits-timeline__link'); await h.wait(400); }),
     /* 05 liste pe rol */
     "dos-05": dosList(SPEC),
     "dos-05a": dosList(SUP),

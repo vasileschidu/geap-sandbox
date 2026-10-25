@@ -3453,13 +3453,29 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const renderDosarProfilNotificari = (row) => {
     const profile = buildDosarProfile(row);
-    const items = profile.notificari.map((item) => ({
-      group: item.canal,
-      plainTitle: item.eveniment,
-      title: escapeHtml(item.eveniment),
-      badges: [item.status === "esuata" ? renderTag("Livrare eșuată", "danger") : renderTag("Livrată", "success")],
-      meta: [escapeHtml(item.destinatar), `Trimisă ${escapeHtml(item.trimisaLa)}`]
-    }));
+    /* US-308: an e-mail notification whose template has a document carries its PDF (AC-08) — the row opens it; with
+       ?mdocs=reincercare the first one was issued WITHOUT the PDF and MDocs retries (AC-10) */
+    const retrying = new URLSearchParams(window.location.search).get("mdocs") === "reincercare";
+    let firstPdf = true;
+    const items = profile.notificari.map((item, index) => {
+      const pdf = notificationPdf(row, profile, item);
+      const pending = Boolean(pdf) && retrying && firstPdf;
+      if (pdf) firstPdf = false;
+      const key = `notificari|${index}`;
+      return {
+        group: item.canal,
+        plainTitle: item.eveniment,
+        title: escapeHtml(item.eveniment),
+        badges: [item.status === "esuata" ? renderTag("Livrare eșuată", "danger") : renderTag("Livrată", "success"), ...(pending ? [renderTag("PDF în curs de generare", "warning")] : [])],
+        meta: [escapeHtml(item.destinatar), `Trimisă ${escapeHtml(item.trimisaLa)}`,
+          ...(pdf && !pending ? [`<span class="e-permits-stack__file" data-cell-tooltip>${escapeHtml(pdf.fisier)}</span>`] : []),
+          ...(pending ? ["Fără PDF · MDocs reîncearcă generarea automat"] : [])],
+        ...(pdf && !pending ? {
+          rowAttrs: `data-dosar-detail-row="${escapeHtml(key)}"`,
+          actionsHtml: renderRowActions({ preview: `data-dosar-detail="${escapeHtml(key)}" aria-haspopup="dialog"`, label: pdf.tip, rowOpens: true })
+        } : {})
+      };
+    });
 
     return renderStackedList("Notificări", groupBy(items, (item) => item.group), {
       meta: plural(profile.notificari.length, "notificare trimisă", "notificări trimise"),
@@ -3482,7 +3498,7 @@ document.addEventListener("DOMContentLoaded", () => {
       case "notificari":
         return renderDosarProfilNotificari(row);
       case "jurnal":
-        return renderEventTimeline("Jurnalul activităților", caseFlowOf(row)?.state.log || [], { meta: "Jurnalizat prin MLog", empty: "Nu există activități înregistrate." });
+        return renderEventTimeline("Jurnalul activităților", dosarAuditRows(row), { meta: "Jurnalizat prin MLog", empty: "Nu există activități înregistrate.", openAttrs: (e, index) => `data-dosar-event="${index}"` });
       case "general":
       default:
         return renderDosarProfilGeneral(row);
@@ -3499,10 +3515,134 @@ document.addEventListener("DOMContentLoaded", () => {
       <span class="info-box__icon"><svg class="icon" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-lock"></use></svg></span>
       <div class="info-box__content"><p>Doar citire</p></div>
     </div>`;
+  /* machete-mdocs-v1 (2026-10-25, Feature 96074 US-306…US-311): the dossier documents MDocs generates = the standard
+     template (GEAPDocPreview.mdocsHtml) — Cererea depusă (US-307), the notification PDF (US-308, Notificări tab), the
+     signed refusal decision (US-309), the signed act (US-310), the certificat constatator (US-311). Projects, uploads,
+     extracts and payment confirmations keep the plain page below. Demo: ?mdocs=eroare (AC-14, once — „Reîncercați”
+     generates) · acces (no right on the dossier: „Acces interzis”, logged „Refuzat”) · incarcare (stays loading). */
+  const DOSAR_OBJECT_ADDRESS = "mun. Chișinău, str. Alba Iulia 20";
+  const dosarMdocBase = (row) => ({
+    authority: dossierDb?.myAutoritate || workplaceDb.myAutoritate || "",
+    office: row.subdiviziune || "",
+    request: { number: row.nrDosar, date: row.dataDepunerii, type: row.tipDosar || "Eliberare", service: row.serviciu }
+  });
+  const dosarHolderRows = (row, profile) => [
+    [row.companie ? "Denumirea" : "Nume, prenume", row.companie || row.numeSolicitant],
+    ["Cod de identificare", profile.companyId ? `IDNO ${profile.companyId}` : `IDNP ${profile.applicantId}`],
+    ...(row.companie ? [["Reprezentant", `${row.numeSolicitant}${profile.representative?.type === "mpower" ? ` · împuternicire MPower ${profile.representative.numar}` : " · administrator"}`]] : [])
+  ];
+  const dosarMdocSpec = (doc, row, profile) => {
+    const base = dosarMdocBase(row);
+    const status = workplaceDb.statuses?.[row.status]?.label || "";
+    if (doc.kind === "notificare") return { ...base, ...doc.mdoc };
+    if (doc.genId === "cerere") {
+      return {
+        ...base, type: "cerere", number: row.nrDosar, date: row.dataDepunerii,
+        groups: [
+          { title: "Solicitantul", rows: dosarHolderRows(row, profile) },
+          { title: "Serviciul solicitat", rows: [["Serviciul", row.serviciu], ["Tipul solicitării", base.request.type], ["Subdiviziunea de procesare", row.subdiviziune], ["Canal de depunere", row.sursa === "FO" ? "EVO · Front Office" : "Ghișeu"]] },
+          { title: "Obiectul activității", rows: [["Adresa obiectului", DOSAR_OBJECT_ADDRESS]] },
+          { title: "Acte anexate", rows: (profile.insotitoare || []).map((item, index) => [`${index + 1}.`, item.tip]) }
+        ]
+      };
+    }
+    if (doc.genId === "certificat") {
+      return {
+        ...base, type: "certificat", number: row.nrDosar, date: row.dataDepunerii,
+        groups: [{ rows: [
+          ["Serviciul", row.serviciu], ["Tipul solicitării", base.request.type],
+          ["Solicitant", row.companie || row.numeSolicitant], ["Data și ora depunerii", formatStamp(doc.at)],
+          ["Canal de depunere", row.sursa === "FO" ? "EVO · Front Office" : "Ghișeu"],
+          ["Termen de examinare", row.termenExaminare ? formatLongDate(row.termenExaminare) : ""],
+          ["Statutul dosarului la data generării", status]
+        ] }]
+      };
+    }
+    const refusal = doc.decizie === "respingere" || doc.genId === "proiect-respingere";
+    if (refusal && doc.semnat) {
+      const rejection = row.flowState?.rejection || {};
+      return {
+        ...base, type: "decizie-refuz", number: row.nrDosar, date: doc.at,
+        introHtml: `<p>În urma examinării cererii și a actelor anexate, ${escapeHtml(base.authority)} a decis refuzul eliberării actului permisiv.</p>`,
+        groups: [{ rows: [
+          ...dosarHolderRows(row, profile),
+          ["Motivele refuzului", rejection.motiv || "Actele anexate nu confirmă respectarea cerințelor sanitare pentru spațiul de activitate."],
+          ["Temeiul legal", rejection.temei || "Legea nr. 160/2011 privind reglementarea prin autorizare a activității de întreprinzător, art. 19"],
+          ...(rejection.recomandari ? [["Recomandări", rejection.recomandari]] : []),
+          ["Dreptul de contestare", "Decizia poate fi contestată în termen de 30 de zile de la comunicare, în condițiile Codului administrativ."]
+        ] }]
+      };
+    }
+    if (doc.decizie === "aprobare" && doc.semnat && doc.nr) {
+      const act = row.flowState?.act || {};
+      const signer = docSigner();
+      return {
+        ...base, type: "act", title: row.serviciu, number: doc.nr, date: doc.at, validUntil: act.valabilPana || "",
+        groups: [
+          { rows: dosarHolderRows(row, profile) },
+          { title: "Obiectul activității", rows: [["Adresa obiectului", DOSAR_OBJECT_ADDRESS], ["Subdiviziunea emitentă", row.subdiviziune]] },
+          { rows: [["Valabil din data", formatLongDate(act.valabilDin || doc.at)], ["Numărul dosarului electronic", row.nrDosar]] }
+        ],
+        closingHtml: "<p>Actul permisiv se eliberează pentru desfășurarea activității la adresa indicată, în condițiile legii.</p>",
+        signers: [{ role: signer.rol, name: signer.nume }]
+      };
+    }
+    return null;
+  };
+  const dosarMdocCanvas = (spec, label) => `
+      <div class="e-permits-doc-peek__canvas e-permits-detail-modal__preview" data-dosar-doc-canvas data-dosar-mdoc role="document" aria-label="${escapeHtml(label)}">${window.GEAPDocPreview?.mdocsHtml(spec) || ""}</div>`;
+  /* US-308: the notification PDF of an e-mail notification whose template has a document (AC-08 — saved at the notification) */
+  const NOTIFICATION_PDFS = {
+    "Înregistrarea cererii": "Notificare privind înregistrarea cererii",
+    "Inițierea procedurii": "Notificare privind inițierea procedurii",
+    "Notă de plată emisă — de achitat": "Notificare privind emiterea notei de plată"
+  };
+  const notificationPdf = (row, profile, item) => {
+    const title = item.canal === "Email" && NOTIFICATION_PDFS[item.eveniment];
+    if (!title) return null;
+    const base = dosarMdocBase(row);
+    const fees = profile.taxe || [];
+    const time = String(item.trimisaLa || "").split(/,\s*/)[1] || "10:14";
+    const day = /plată/.test(item.eveniment) ? fees[0]?.emitere || row.dataDepunerii : /Inițierea/.test(item.eveniment) ? row.dataInitierii || row.dataDepunerii : row.dataDepunerii;
+    const at = `${day}T${time}:00`;
+    const total = fees.reduce((sum, fee) => sum + Number(fee.suma || 0), 0);
+    const paymentNote = /plată/.test(item.eveniment);
+    const groups = paymentNote
+      ? [{ rows: [["Cererea", `Nr. ${window.GEAPDocPreview?.mdocsNumber(row.nrDosar) || row.nrDosar}`], ["Serviciul", row.serviciu], ...fees.map((fee) => [fee.denumire, `${fee.id} · ${fee.suma} MDL`]), ["Suma totală", `${total} MDL`], ["Termen de achitare", fees[0] ? formatLongDate(fees[0].termen) : ""], ["Modalitatea de achitare", "MPay (mpay.gov.md)"]] }]
+      : [{ rows: [["Cererea", `Nr. ${window.GEAPDocPreview?.mdocsNumber(row.nrDosar) || row.nrDosar}`], ["Serviciul", row.serviciu], ["Tipul solicitării", base.request.type], ["Data înregistrării", formatLongDate(row.dataDepunerii)], ["Termen de examinare", row.termenExaminare ? formatLongDate(row.termenExaminare) : ""], ["Subdiviziunea de examinare", row.subdiviziune]] }];
+    const intro = paymentNote
+      ? `Pentru cererea dumneavoastră a fost emisă nota de plată. Examinarea continuă după confirmarea achitării prin MPay.`
+      : `Cererea dumneavoastră a fost înregistrată la ${base.authority}. Statutul ei îl urmăriți în EVO, în „Solicitările mele”.`;
+    return {
+      id: `notif-${docSlug(item.eveniment)}`, kind: "notificare", tip: title, sursa: "generat",
+      fisier: `${docSlug(title)}-${docSlug(row.nrDosar)}.pdf`, at, semnat: null,
+      mdoc: { type: "notificare", title, number: row.nrDosar, date: at, introHtml: `<p>Stimate solicitant,</p><p>${escapeHtml(intro)}</p>`, groups }
+    };
+  };
+  /* US-306 AC-16 / US-307…311: every generation is written to the dossier's journal (the MDocs side shares the action's
+     correlation id — US-262 AC-08); a refused generation is logged „Refuzat” */
+  const logDosarMdoc = (row, spec, result = "Reușit") => {
+    const state = caseFlowOf(row)?.state;
+    if (!state || !spec) return;
+    const label = window.GEAPDocPreview?.MDOCS_TYPES?.[spec.type] || "Document";
+    const number = window.GEAPDocPreview?.mdocsNumber(spec.number, spec.type === "act" ? "act" : "cerere") || spec.number;
+    state.log.unshift({
+      at: localIsoNow(),
+      user: currentUserName(),
+      type: result === "Refuzat" ? "Generare PDF refuzată — acces interzis" : "Document generat prin MDocs",
+      status: result,
+      ...(result === "Refuzat" ? { tone: "danger" } : {}),
+      detail: `${label} · Nr. ${number}`,
+      audit: { objectType: "Document", objectId: number, related: result === "Refuzat" ? [] : [{ module: "MDocs", type: `PDF generat: ${label.toLocaleLowerCase("ro")}`, actor: "Sistem extern", user: "MDocs" }] }
+    });
+  };
+
   /* Documente însoțitoare › the document itself: the A4 page of the template previews
      (.e-permits-dtpl__page in the grey .e-permits-doc-peek__canvas), scaled to the modal's width;
      demo content built from the dossier's data */
   const renderDosarDocPreview = (doc, row, profile) => {
+    const mdoc = dosarMdocSpec(doc, row, profile);
+    if (mdoc) return dosarMdocCanvas(mdoc, `${doc.tip}, ${doc.fisier}`);
     const holder = row.companie || row.numeSolicitant;
     const holderId = profile.companyId ? `IDNO ${profile.companyId}` : `IDNP ${profile.applicantId}`;
     const address = "mun. Chișinău, str. Alba Iulia 20";
@@ -3578,7 +3718,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const profile = buildDosarProfile(row);
     const dash = '<span class="e-permits-workplace__dash">—</span>';
     const today = workplaceDb.today;
-    let title = "", subtitle = "", rows = [], file = "", preview = "", signature = "", generated = false;
+    let title = "", subtitle = "", rows = [], file = "", preview = "", signature = "", generated = false, mdocSpec = null;
     if (kind === "taxe") {
       const t = profile.taxe.find((x) => x.id === key); if (!t) return;
       const paid = t.status !== "neachitat";
@@ -3653,7 +3793,30 @@ document.addEventListener("DOMContentLoaded", () => {
       signature = generated && d.semnat
         ? window.GEAPDocPreview?.signatureHtml({ by: d.semnat.nume || d.de?.nume || row.numeSolicitant, at: formatStamp(d.at) }) || ""
         : "";
+      mdocSpec = dosarMdocSpec(d, row, profile);
+    } else if (kind === "notificari") {
+      /* US-308: the notification's PDF (MDocs standard template, no e-signature — AC-09) */
+      const item = profile.notificari[Number(key)];
+      const pdf = item && notificationPdf(row, profile, item);
+      if (!pdf) return;
+      title = "Document generat"; subtitle = pdf.tip;
+      rows = [["Tip document", escapeHtml(pdf.tip)], ["Notificarea", escapeHtml(item.eveniment)], ["Canal", escapeHtml(item.canal)], ["Destinatar", escapeHtml(item.destinatar)], ["Trimisă la", escapeHtml(item.trimisaLa)], ["Fișier", escapeHtml(pdf.fisier)], ["Număr dosar", escapeHtml(row.nrDosar)]];
+      file = pdf.fisier.replace(/\.[a-z0-9]+$/i, "");
+      mdocSpec = dosarMdocSpec(pdf, row, profile);
+      preview = dosarMdocCanvas(mdocSpec, `${pdf.tip}, ${pdf.fisier}`);
+      generated = true;
     } else return;
+    /* machete-mdocs-v1: an MDocs template document — the demo views (loading / AC-14 error / no right) replace the page */
+    const mdocsDemo = new URLSearchParams(window.location.search).get("mdocs");
+    const mdocView = !mdocSpec ? "ready"
+      : mdocsDemo === "acces" ? "acces"
+      : mdocsDemo === "incarcare" ? "loading"
+      : mdocsDemo === "eroare" && !dosarMdocRetried ? "eroare" : "ready";
+    if (mdocView !== "ready") {
+      preview = `<div class="e-permits-doc-peek__canvas e-permits-detail-modal__preview e-permits-doc-peek__canvas--state">${window.GEAPDocPreview?.mdocsState(mdocView, { retryAttrs: `data-dosar-mdoc-retry="${escapeHtml(`${kind}|${key}`)}"` }) || ""}</div>`;
+      signature = "";
+      file = "";
+    }
     dosarDetailModal.querySelector("[data-dosar-detail-title]").textContent = title;
     dosarDetailModal.querySelector("[data-dosar-detail-subtitle]").textContent = subtitle;
     dosarDetailModal.querySelector(".modal")?.classList.toggle("e-permits-detail-modal--doc", generated);
@@ -3669,8 +3832,12 @@ document.addEventListener("DOMContentLoaded", () => {
       ${file ? '<button class="btn btn-neutral btn-rounded" type="button" data-dosar-detail-download><svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-export"></use></svg><span>Descarcă</span></button>' : ""}
       <button class="btn btn-primary btn-rounded" type="button" data-dosar-detail-close>Închide</button>`;
     window.__modal?.open?.("#dosar-detail-modal");
+    if (mdocSpec && mdocView === "ready") window.GEAPDocPreview?.paginate(dosarDetailModal.querySelector("[data-dosar-doc-canvas]"));
     fitDosarDocPreview();
+    if (mdocSpec && mdocView === "ready") logDosarMdoc(row, mdocSpec);
+    if (mdocView === "acces") logDosarMdoc(row, mdocSpec, "Refuzat");
   };
+  let dosarMdocRetried = false;
   /* a one-shot action after the modal closes (any way: button, ×, overlay, Esc) */
   let dosarDetailAfterClose = null;
   if (dosarDetailModal) {
@@ -3721,10 +3888,21 @@ document.addEventListener("DOMContentLoaded", () => {
 
   dosarDetailModal?.addEventListener("click", (event) => {
     if (event.target.closest("[data-dosar-detail-close]")) { window.__modal?.close?.("#dosar-detail-modal"); return; }
+    const mdocRetry = event.target.closest("[data-dosar-mdoc-retry]");
+    if (mdocRetry) {
+      dosarMdocRetried = true;
+      const [retryKind, retryKey] = mdocRetry.dataset.dosarMdocRetry.split("|");
+      openDosarDetail(retryKind, retryKey);
+      dosarDetailModal.querySelector("[data-dosar-detail-close]")?.focus();
+      return;
+    }
     if (!event.target.closest("[data-dosar-detail-download]")) return;
     downloadTextFile(dosarDetailFile.name, dosarDetailFile.text);
   });
   dosarProfilPanelBody?.addEventListener("click", (event) => {
+    /* US-262: a journal item opens its audit record */
+    const auditItem = event.target.closest("[data-dosar-event]");
+    if (auditItem && !event.target.closest("a, input")) { const row = getDosarById(dosarProfilState.rowId); if (row) openDosarAuditDetail(row, auditItem.dataset.dosarEvent); return; }
     const trigger = event.target.closest("[data-dosar-detail]") || (!event.target.closest("button, a, input, label, .e-permits-stack__menu-wrap") && event.target.closest(".e-permits-stack__item[data-dosar-detail-row]"));
     if (!trigger) return;
     const [kind, key] = (trigger.dataset.dosarDetail || trigger.dataset.dosarDetailRow).split("|");
@@ -7613,7 +7791,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const shown = rows.slice(0, svcEventsState.shown);
     const rest = rows.length - shown.length;
     /* the timeline markup of renderEventTimeline, without its section heading; each item opens its details */
-    const timeline = renderEventTimeline("", shown, { openAttrs: (e) => `data-svc-event="${escapeHtml(`${e.at}|${e.type}`)}"` }).replace(/^[\s\S]*?(<ol class="e-permits-timeline">[\s\S]*<\/ol>)[\s\S]*$/, "$1");
+    const timeline = renderEventTimeline("", shown.map((e) => ({ ...e, context: window.GEAPEventTimeline.contextOf(window.GEAPEventTimeline.audit(svcAuditEvent(e), svcAuditContext(service, e))) })), { openAttrs: (e) => `data-svc-event="${escapeHtml(`${e.at}|${e.type}`)}"` }).replace(/^[\s\S]*?(<ol class="e-permits-timeline">[\s\S]*<\/ol>)[\s\S]*$/, "$1");
     return `${count}${timeline}${rest > 0 ? `
       <div class="e-permits-svc-events__more">
         <span>Afișate ${shown.length} din ${rows.length}</span>
@@ -7629,21 +7807,110 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!raw) return;
     const e = svcEventRow(raw);
     const changes = svcEventChanges(raw, service);
-    modal.querySelector("[data-dosar-detail-title]").textContent = e.type;
-    modal.querySelector("[data-dosar-detail-subtitle]").textContent = `${formatStamp(e.at)} · ${e.user}`;
+    const record = window.GEAPEventTimeline.audit(svcAuditEvent(e), svcAuditContext(service, e));
+    openAuditEventDetail(record, {
+      title: e.type,
+      general: [["Denumirea evenimentului", escapeHtml(e.type)], ["Tip eveniment", renderTag(e.category, "neutral")], ["Tab", escapeHtml(e.tab)]],
+      changesHtml: changes.length ? renderInfoCard("Modificări", changes.map(([field, before, after]) => [field, `<span class="e-permits-event-diff"><span class="e-permits-event-diff__before">${escapeHtml(before)}</span><span aria-hidden="true">→</span><span class="sr-only">devine</span><strong>${escapeHtml(after)}</strong></span>`]))
+        : `<p class="e-permits-passport__muted">${e.status === "Eșuat" ? "Operația a eșuat — nu s-a modificat nimic." : "Evenimentul nu modifică câmpuri ale pașaportului."}</p>`
+    });
+  };
+  /* ---- US-262 (Azure 95901) — the audit event with its context and correlation id (audit-context-v1, 2026-10-25):
+     GEAPEventTimeline.audit derives the unique-journal record; the rows show a second stamp line (module · authority ·
+     subdivision · „ID corelare …”), the detail = Date generale · Actorul și contextul · Corelare (+ the other events of
+     the same action, from every module — AC-08) · Modificări · Transmitere către MLog. Used by Servicii › Jurnal de
+     evenimente (svc-11) and the dossier „Jurnalul activităților” (dos-04f). */
+  const svcAuditEvent = (e) => ({ ...e, status: e.category === "Acces refuzat" ? "Refuzat" : e.status });
+  const SVC_AUDIT_RELATED = [
+    [/^Publicare/, [{ module: "RSSP", type: "Pașaport transmis în RSSP", user: "RSSP" }, { module: "MNotify", type: "Notificare trimisă administratorilor", user: "MNotify" }]],
+    [/^(Sincronizare|Modificări preluate|Eroare la sincronizare)/, [{ module: "RSSP", type: "Răspuns primit de la RSSP", user: "RSSP" }]],
+    [/tax|tarif/i, [{ module: "MPay", type: "Tarif transmis în MPay", user: "MPay" }]],
+    [/MDocs|șablon de tipar|șablon act/i, [{ module: "MDocs", type: "Șablon înregistrat în MDocs", user: "MDocs" }]],
+    [/notificare/i, [{ module: "MNotify", type: "Șablon transmis în MNotify", user: "MNotify" }]]
+  ];
+  const svcAuditContext = (service, e) => ({
+    module: "BackOffice",
+    authority: getAuthorityById?.(service.authorityId)?.name || service.authority || "",
+    objectType: "Serviciu (pașaport)",
+    objectId: service.code,
+    objectVersion: service.geap?.version ? `v${service.geap.version}` : "",
+    related: (SVC_AUDIT_RELATED.find(([pattern]) => pattern.test(e.type)) || [null, []])[1]
+  });
+  const dosarAuditContext = (row, item) => {
+    const filedOnline = item.type === "Dosar depus" && row.sursa === "FO";
+    const related = item.audit?.related
+      || (item.type === "Dosar depus" ? [
+        ...(filedOnline ? [{ module: "MSign", type: "Semnătura cererii verificată", user: "MSign" }] : []),
+        { module: "MDocs", type: "PDF generat: certificat constatator", user: "MDocs" },
+        { module: "MNotify", type: "Notificare trimisă: înregistrarea cererii", user: "MNotify" }
+      ] : item.type === "Dosar distribuit" ? [{ module: "MNotify", type: "Notificare trimisă specialistului", user: "MNotify" }]
+        : /tax/i.test(`${item.type} ${item.detail || ""}`) ? [{ module: "MPay", type: "Notă de plată emisă", user: "MPay" }, { module: "MNotify", type: "Notificare trimisă: notă de plată", user: "MNotify" }]
+        : []);
+    return {
+      module: filedOnline ? "FrontOffice" : "BackOffice",
+      role: filedOnline ? "Solicitant" : "",
+      authority: filedOnline ? "" : dossierDb?.myAutoritate || workplaceDb.myAutoritate || "",
+      subdivision: filedOnline ? "" : row.subdiviziune || "",
+      objectType: item.audit?.objectType || "Dosar",
+      objectId: item.audit?.objectId || row.nrDosar,
+      personal: true,
+      correlation: item.audit?.correlation,
+      related
+    };
+  };
+  const dosarAuditRows = (row) => (caseFlowOf(row)?.state.log || []).map((item) => ({ ...item, context: window.GEAPEventTimeline.contextOf(window.GEAPEventTimeline.audit(item, dosarAuditContext(row, item))) }));
+  const openDosarAuditDetail = (row, index) => {
+    const item = (caseFlowOf(row)?.state.log || [])[Number(index)];
+    if (!item) return;
+    openAuditEventDetail(window.GEAPEventTimeline.audit(item, dosarAuditContext(row, item)), { title: item.type, general: [["Denumirea evenimentului", escapeHtml(item.type)]] });
+  };
+  const openAuditEventDetail = (record, { title, general = [], changesHtml = "" }) => {
+    const modal = document.querySelector("#dosar-detail-modal");
+    if (!modal) return;
+    const dash = '<span class="e-permits-workplace__dash">—</span>';
+    const text = (value) => (value ? escapeHtml(value) : dash);
+    const copy = (value) => (value ? renderCopyCode(value, `Copiază ${value}`) : dash);
+    const tone = record.result === "Succes" ? "success" : "danger";
+    modal.querySelector("[data-dosar-detail-title]").textContent = title;
+    modal.querySelector("[data-dosar-detail-subtitle]").textContent = [record.module, record.user || record.systemName].filter(Boolean).join(" · ");
+    const related = record.related.length
+      ? `<section class="e-permits-dosar-profil__section">
+          <div class="e-permits-dosar-profil__section-heading">
+            <h2 class="e-permits-dosar-profil__section-title">Evenimentele aceleiași acțiuni</h2>
+            <span class="e-permits-dosar-profil__section-meta">${escapeHtml(plural(record.related.length, "eveniment", "evenimente"))} · același ID de corelare</span>
+          </div>${window.GEAPEventTimeline.listHtml(record.related)}
+        </section>`
+      : "";
     modal.querySelector("[data-dosar-detail-body]").innerHTML = `
       ${renderInfoCard("Date generale", [
-        ["Denumirea evenimentului", escapeHtml(e.type)],
-        ["Tip eveniment", renderTag(e.category, "neutral")],
-        ["Data și ora", escapeHtml(formatStamp(e.at))],
-        ["Creat de", escapeHtml(e.user)],
-        ["Rolul", escapeHtml(e.role)],
-        ["Tab", escapeHtml(e.tab)],
-        ["Rezultat", renderTag(e.status, e.status === "Eșuat" ? "danger" : "success")],
-        ...(e.detail ? [["Descriere", escapeHtml(e.detail)]] : [])
+        ...general,
+        ["Mesaj", escapeHtml(record.message)],
+        ["Rezultat", renderTag(record.result, tone)],
+        ["Data și ora acțiunii", escapeHtml(record.actionAt)],
+        ["Data și ora înregistrării", escapeHtml(record.registeredAt)],
+        ["Șablon de jurnalizare", `${escapeHtml(record.template)} ${renderTag(record.templateState, "success")}`],
+        ["Modulul", escapeHtml(record.module)]
       ])}
-      ${changes.length ? renderInfoCard("Modificări", changes.map(([field, before, after]) => [field, `<span class="e-permits-event-diff"><span class="e-permits-event-diff__before">${escapeHtml(before)}</span><span aria-hidden="true">→</span><span class="sr-only">devine</span><strong>${escapeHtml(after)}</strong></span>`]))
-        : `<p class="e-permits-passport__muted">${e.status === "Eșuat" ? "Operația a eșuat — nu s-a modificat nimic." : "Evenimentul nu modifică câmpuri ale pașaportului."}</p>`}
+      ${renderInfoCard("Actorul și contextul", [
+        ["Tip actor", renderTag(record.actorType, "neutral")],
+        ["Executat de", record.user ? escapeHtml(record.user) : record.systemName ? `${escapeHtml(record.systemName)} <span class="e-permits-passport__row-note">· fără utilizator</span>` : dash],
+        ["Rolul", text(record.role)],
+        ["Autoritate", text(record.authority)],
+        ["Subdiviziune", text(record.subdivision)],
+        ["Adresă IP", text(record.ip)],
+        ["Obiect", text([record.objectType, record.objectId].filter(Boolean).join(" · "))],
+        ["Versiunea obiectului", text(record.objectVersion)],
+        ["Date cu caracter personal", record.personal ? "Da" : "Nu"]
+      ])}
+      ${renderInfoCard("Corelare", [["Identificator eveniment", copy(record.id)], ["Identificator de corelare", copy(record.correlation)]])}
+      ${related}
+      ${changesHtml}
+      ${renderInfoCard("Transmitere către MLog", [
+        ["Stare transmitere", renderTag(record.mlog.state, record.mlog.state === "Expediat" ? "success" : "warning")],
+        ["Încercări", escapeHtml(String(record.mlog.attempts))],
+        ["Identificator MLog", record.mlog.id ? copy(record.mlog.id) : dash],
+        ...(record.mlog.error ? [["Ultima eroare", escapeHtml(record.mlog.error)]] : [])
+      ])}
       ${renderReadOnlyNote()}`;
     modal.querySelector("[data-dosar-detail-buttons]").innerHTML = '<button class="btn btn-primary btn-rounded" type="button" data-dosar-detail-close>Închide</button>';
     window.__modal?.open?.("#dosar-detail-modal");

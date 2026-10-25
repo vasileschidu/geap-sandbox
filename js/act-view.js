@@ -184,8 +184,6 @@
     ].join("");
   };
 
-  const longStamp = (date) => `${new Intl.DateTimeFormat("ro-RO", { day: "numeric", month: "long", year: "numeric" }).format(date)}, ${new Intl.DateTimeFormat("ro-RO", { hour: "2-digit", minute: "2-digit" }).format(date)}`;
-
   /* copy: the shared component (js/copy-value.js) handles its own clicks in the capture phase — onCopy /
      copySelector stay for old callers and never fire for .copy-value buttons */
   function create({ sprite = "../assets/icons/sprite.svg", copyHtml = (value) => window.GEAPCopyValue?.html(value, { label: `Copiază numărul actului ${value}` }) || escapeHtml(value), onCopy = () => {}, copySelector = "[data-copy-value]", bodyOpenClass = "", documentTitle = "Forma de tipar a actului", onDocumentDownload = null } = {}) {
@@ -202,9 +200,12 @@
     const actModal = { overlay: null, opener: null, run: 0, record: null };
     const actData = { overlay: null, record: null, opener: null, parked: false };
 
-    /* the MDocs page: arms + authority, title, number, the public fields + the act's dynamic fields
-       (PF: the anonymised name only, never an IDNP — US-145), signature, QR, footer; a long act
-       continues on more A4 pages (paginateActDoc) */
+    /* the MDocs page = the standard template of an act permisiv (machete-mdocs-v1, US-310 on the US-306 macheta —
+       GEAPDocPreview.mdocsHtml): header with the issuing authority + subdivision and their contacts, the act's name,
+       „Nr. P-xxxx/anul”, „Eliberat: … · Valabil până la …”, the public fields + the act's configured fields (PF: the
+       anonymised name only, never an IDNP — US-145), „Semnat electronic de (funcția) (nume)” per signer (`act.signers`,
+       default the authority head), the footer with the QR of the act's permanent RAP address (`act.registryUrl` ||
+       `act.url`) + the legal block, on every page; a long act continues on more A4 pages with the simplified header */
     const renderActPage = (act) => {
       const person = act.beneficiary.person;
       const row = ([label, value]) => `<tr><td>${escapeHtml(label)}</td><td>${escapeHtml(value)}</td></tr>`;
@@ -218,50 +219,31 @@
           ...(act.tacitDate ? [["Data aprobării tacite", act.tacitDate]] : []),
           ["Valabil din data", act.validFrom],
           ...(act.statusDates || []),
-          ["Data expirării", act.validUntil],
           ["Numărul dosarului electronic", act.paperNumber],
           ["Seria și nr. documentului tipărit", act.printedNumber]
         ].filter(([, value]) => value).map(row)
       ].join("");
-      const url = act.url;
       const watermark = act.watermark
         ? `<span class="rap-act-doc__watermark rap-act-doc__watermark--${act.tone}" aria-hidden="true"><span>${escapeHtml(act.status.toLocaleUpperCase("ro"))}</span></span>`
         : "";
-      return `
-      <div class="e-permits-dtpl__page e-permits-doc-peek__page e-permits-doc-page rap-act-doc" data-doc-cont="${escapeHtml(`${act.name} · nr. ${act.number} · continuare`)}">
-        ${watermark}
-        <div class="e-permits-dtpl__surface e-permits-doc-page__surface rap-act-doc__surface">
-          <header class="rap-act-doc__head">
-            <span class="rap-act-doc__arms" aria-hidden="true"><img src="../assets/logos/gov.svg" alt=""></span>
-            <p class="rap-act-doc__country">Republica Moldova</p>
-            <p class="rap-act-doc__authority">${escapeHtml(act.authority)}</p>
-            ${act.office ? `<p class="rap-act-doc__office">${escapeHtml(act.office)}</p>` : ""}
-          </header>
-          <h1>${escapeHtml(act.name)}</h1>
-          <p class="rap-act-doc__number">nr. ${escapeHtml(act.number)} din ${escapeHtml(act.issuedDate)}</p>
-          <table><colgroup><col class="e-permits-doc-page__label-col"><col></colgroup><tbody>${rowsHtml}</tbody></table>
-          <p class="rap-act-doc__closing">Actul permisiv se eliberează pentru desfășurarea activității indicate, în condițiile legii.</p>
-          <div class="rap-act-doc__foot">
-            <div class="rap-act-doc__sign">
-              <p class="rap-act-doc__label">Autoritatea emitentă</p>
-              <p class="rap-act-doc__strong">${escapeHtml(act.authority)}</p>
-              <p class="rap-act-doc__signed">${icon("signature")}<span>Semnat electronic · MSign · ${escapeHtml(act.issuedDate)}</span></p>
-            </div>
-            <div class="rap-act-doc__qr">
-              <span class="rap-act-doc__qr-code" aria-hidden="true">${icon("qr-code")}</span>
-              <span class="rap-act-doc__qr-text">
-                <strong>Verificați autenticitatea</strong>
-                <span>${escapeHtml(url.replace(/^https?:\/\//, ""))}</span>
-              </span>
-            </div>
-          </div>
-          <p class="e-permits-doc-page__footer rap-act-doc__footer">Generat prin MDocs la ${escapeHtml(longStamp(new Date()))} · ${escapeHtml(act.source || "Registrul actelor permisive")} · <span data-doc-page-label>Pagina 1 din 1</span></p>
-        </div>
-      </div>
-    `;
+      return window.GEAPDocPreview?.mdocsHtml({
+        type: "act",
+        pageClass: "rap-act-doc",
+        repeatHtml: watermark,
+        authority: act.authority,
+        office: act.office,
+        title: act.name,
+        number: act.number,
+        date: act.issuedDate,
+        validUntil: act.validUntil,
+        rowsHtml,
+        closingHtml: '<p class="rap-act-doc__closing">Actul permisiv se eliberează pentru desfășurarea activității indicate, în condițiile legii.</p>',
+        signers: act.signers,
+        qrUrl: act.registryUrl || act.url
+      }) || "";
     };
 
-    const paginateActDoc = (canvas) => window.GEAPDocPreview?.paginate(canvas, { repeat: ".rap-act-doc__watermark", tail: ".rap-act-doc__closing, .rap-act-doc__foot" });
+    const paginateActDoc = (canvas) => window.GEAPDocPreview?.paginate(canvas, { repeat: ".rap-act-doc__watermark" });
     const fitActPage = () => window.GEAPDocPreview?.fit(actModal.overlay?.querySelector("[data-rap-act-canvas]"));
 
     /* view = loading | ready | <error key> */

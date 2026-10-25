@@ -126,6 +126,175 @@
   text-align: center;
 }
 
+/* ---- MDocs standard template — „macheta comună” (machete-mdocs-v1, 2026-10-25; US-306…US-311,
+   GEAPDocPreview.mdocsHtml). Page 1: header (arms · issuer · contacts) over a hairline, the centred title and
+   its number / date lines, the content table, [the act's signature mentions]; pages 2+: the simplified header
+   (issuer line + document line); EVERY page: the same footer — QR · legal block · „Pagina X din Y”. ---- */
+.e-permits-mdoc__head {
+  align-items: start;
+  border-bottom: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
+  display: grid;
+  gap: var(--spacing-16, 16px);
+  grid-template-columns: auto minmax(0, 1fr) minmax(0, auto);
+  padding-bottom: var(--spacing-12, 12px);
+}
+
+/* gov.svg = arms + „Guvernul Republicii Moldova”: the box shows the arms only (34.3 × 40 of the 148 × 40 logo) */
+.e-permits-mdoc__arms {
+  aspect-ratio: 6 / 7;
+  display: block;
+  height: var(--spacing-48, 48px);
+  overflow: hidden;
+}
+
+.e-permits-mdoc__arms img {
+  display: block;
+  height: 100%;
+  max-width: none;
+  width: auto;
+}
+
+.e-permits-doc-page__surface .e-permits-mdoc__issuer p,
+.e-permits-doc-page__surface .e-permits-mdoc__legal p,
+.e-permits-doc-page__surface .e-permits-mdoc__meta p,
+.e-permits-doc-page__surface .e-permits-mdoc__cont p {
+  margin: 0;
+}
+
+.e-permits-doc-page__surface .e-permits-mdoc__country {
+  color: var(--color-text-base-tertiary, #757575);
+  font-size: var(--font-size-fs-12, 12px);
+  letter-spacing: 0.08em;
+  line-height: var(--line-height-lh-16, 16px);
+  text-transform: uppercase;
+}
+
+.e-permits-doc-page__surface .e-permits-mdoc__authority {
+  font-size: var(--font-size-fs-16, 16px);
+  font-weight: var(--font-weight-fw-semibold, 600);
+  line-height: var(--line-height-lh-24, 24px);
+}
+
+.e-permits-doc-page__surface .e-permits-mdoc__office {
+  color: var(--color-text-base-secondary, #383838);
+}
+
+.e-permits-mdoc__contact {
+  color: var(--color-text-base-secondary, #383838);
+  font-size: var(--font-size-fs-12, 12px);
+  line-height: var(--line-height-lh-16, 16px);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  text-align: right;
+}
+
+.e-permits-doc-page__surface h1.e-permits-mdoc__title {
+  margin: var(--spacing-24, 24px) 0 var(--spacing-8, 8px);
+}
+
+.e-permits-mdoc--certificat h1.e-permits-mdoc__title {
+  letter-spacing: 0.04em;
+}
+
+.e-permits-mdoc__meta {
+  color: var(--color-text-base-secondary, #383838);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2, 2px);
+  margin-bottom: var(--spacing-16, 16px);
+  text-align: center;
+}
+
+/* pages 2+: the simplified header */
+.e-permits-mdoc__cont {
+  border-bottom: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
+  display: flex;
+  flex-direction: column;
+  font-size: var(--font-size-fs-12, 12px);
+  gap: var(--spacing-2, 2px);
+  line-height: var(--line-height-lh-16, 16px);
+  padding-bottom: var(--spacing-8, 8px);
+}
+
+.e-permits-doc-page__surface .e-permits-mdoc__cont-issuer {
+  color: var(--color-text-base-tertiary, #757575);
+}
+
+.e-permits-doc-page__surface .e-permits-mdoc__cont-doc {
+  color: var(--color-text-base-secondary, #383838);
+  font-weight: var(--font-weight-fw-semibold, 600);
+}
+
+/* the act's signature mention, one line per signer (US-310 AC-07/08) */
+.e-permits-mdoc__tail {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4, 4px);
+}
+
+.e-permits-doc-page__surface .e-permits-mdoc__signer {
+  align-items: center;
+  color: var(--color-text-brand-default, #0058d2);
+  display: flex;
+  gap: var(--spacing-6, 6px);
+  margin: 0;
+}
+
+.e-permits-mdoc__signer .icon {
+  flex: none;
+  height: var(--icon-size-small, 16px);
+  width: var(--icon-size-small, 16px);
+}
+
+/* the footer, identical on every page: QR · legal block · page number */
+.e-permits-doc-page__surface .e-permits-mdoc__footer {
+  align-items: end;
+  column-gap: var(--spacing-12, 12px);
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  margin-top: auto;
+  padding-top: var(--spacing-12, 12px);
+  text-align: left;
+}
+
+.e-permits-mdoc__qr {
+  align-self: start;
+  border: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
+  border-radius: var(--border-radius-4, 4px);
+  display: block;
+  padding: var(--spacing-4, 4px);
+}
+
+.e-permits-mdoc__qr .icon {
+  color: var(--color-text-base-default, #121212);
+  display: block;
+  height: var(--spacing-64, 64px);
+  width: var(--spacing-64, 64px);
+}
+
+.e-permits-mdoc__legal {
+  align-self: start;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2, 2px);
+}
+
+.e-permits-doc-page__surface .e-permits-mdoc__link {
+  color: var(--color-text-base-secondary, #383838);
+  overflow-wrap: anywhere;
+}
+
+.e-permits-doc-page__surface .e-permits-mdoc__page {
+  margin: 0;
+  white-space: nowrap;
+}
+
+/* an alert above the canvas (FO certificate „Reîncercați”) keeps the 12 rhythm of the signature card */
+.e-permits-detail-modal--doc .modal-content > .message + .e-permits-doc-peek__canvas {
+  margin-top: var(--spacing-12, 12px);
+}
+
 /* a stroked icon: the library .icon fills with currentColor */
 .e-permits-doc-print-icon {
   fill: none;
