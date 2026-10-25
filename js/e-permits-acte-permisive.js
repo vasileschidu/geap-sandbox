@@ -7950,6 +7950,7 @@
         const notificationContact = { ...(subject.contact || user?.contact || {}), ...(typed.phone ? { phone: typed.phone } : {}), ...(typed.email ? { email: typed.email } : {}) };
         const notificationPhone = String(notificationContact.phone || "+37322000000").replace(/\s+/g, "");
         const formattedNotificationPhone = notificationPhone.startsWith("+") ? notificationPhone : `+373${notificationPhone}`;
+        const proxy = subject.scenario === "notarial-proxy";
 
         applicantRows += summaryRow("Solicitant", proxy
           ? [escapeFrontOfficeHtml(typed.proxyName || "—"), escapeFrontOfficeHtml(typed.proxyCode ? `IDNO ${typed.proxyCode}` : "")].filter(Boolean)
@@ -7957,19 +7958,18 @@
             escapeFrontOfficeHtml(subject.name),
             escapeFrontOfficeHtml(`${subject.idLabel} ${subject.idValue}`),
           ]);
-        const proxy = subject.scenario === "notarial-proxy";
         if (representative) {
           applicantRows += summaryRow("Reprezentant", [
             escapeFrontOfficeHtml(representative.name),
             escapeFrontOfficeHtml(`${representative.idLabel} ${representative.idValue}`),
           ]);
         }
+        if (proxy) applicantRows += summaryRow("Temeiul reprezentării", ["Procură notarială", escapeFrontOfficeHtml(typed.procura || "—")]);
         applicantRows += summaryRow("Date de contact pentru notificări", [
           escapeFrontOfficeHtml(formattedNotificationPhone),
           escapeFrontOfficeHtml(notificationContact.email || "a.cojocaru1993@gmail.com"),
         ]);
       }
-        if (proxy) applicantRows += summaryRow("Temeiul reprezentării", ["Procură notarială", escapeFrontOfficeHtml(typed.procura || "—")]);
 
       // --- Service rows ---
       const objectName = step2Panel?.querySelector("#fo-object-name")?.value?.trim() || "—";
@@ -8220,11 +8220,6 @@
 
       const action = next?.dataset.foNext || prev?.dataset.foPrev;
       if (action === "step-1") {
-        saveFrontOfficeDraft();
-        if (window.location.hash !== "#request-step-2") history.replaceState(null, "", "#request-step-2");
-        showFrontOfficeRequest({ step: 2 });
-      }
-      if (action === "step-2" && next) {
         /* requestor-scenarios-v1: typed contact + the notarial proxy are checked here (focus → first error) */
         const firstProblem = step1Problems();
         if (firstProblem) {
@@ -8232,6 +8227,11 @@
           firstProblem.focus?.({ preventScroll: true });
           return;
         }
+        saveFrontOfficeDraft();
+        if (window.location.hash !== "#request-step-2") history.replaceState(null, "", "#request-step-2");
+        showFrontOfficeRequest({ step: 2 });
+      }
+      if (action === "step-2" && next) {
         saveFrontOfficeDraft();
         if (window.location.hash !== "#request-step-3") history.replaceState(null, "", "#request-step-3");
         showFrontOfficeRequest({ step: 3 });

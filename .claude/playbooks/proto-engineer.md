@@ -3788,3 +3788,10 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   Figma C5 (notarial-registry search by the grantor's IDNP) contradicts US-12 AC-06 → built the story, PO question.
   No sub-agent tool → code-audit (standing FO ⓘ / Schimbă / phone prefix / role items / Large 11, static 0),
   component-audit = the fo-02 baseline (+ the standing file ×), hover-audit 0 / 0 on step 1 (scope must be ONE selector).
+- 2026-10-25 · BUG I committed (8ced25df, fixed in the next commit): `git diff -U0` + `git apply --cached --unidiff-zero`
+  with 6 foreign hunks in the same JS file put THREE pure insertions in the wrong place — the step-1 check landed in the
+  `step-2` branch, `const proxy` after its first use (TDZ), a row outside its `if` block. The staged blob passed
+  `node --check`, so syntax checks prove nothing here. Gate after every hunk-filtered commit: `diff HEAD:<file> <tree>`
+  must show ONLY the foreign hunks (grep the leftover for your own keywords = 0). Better: never -U0 for insertions —
+  build the blob as HEAD + asserted (old → new) replacements, as the Python fix did. zsh `$F` with a file list is ONE
+  word — the first try produced an empty patch.
