@@ -80,7 +80,7 @@
   ];
   const SWATCHES = [
     ["Ink", "--mdoc-ink", "text base default"], ["Ink 2", "--mdoc-ink-2", "text base secondary"], ["Ink 3", "--mdoc-ink-3", "text base tertiary"],
-    ["Rule", "--mdoc-rule", "border base default"], ["Rule soft", "--mdoc-rule-soft", "gray-200 · rânduri"], ["Rule sign", "--mdoc-rule-sign", "border base secondary"],
+    ["Rule", "--mdoc-rule", "border base secondary · secțiuni"], ["Rule soft", "--mdoc-rule-soft", "border base default · rânduri"], ["Rule sign", "--mdoc-rule-sign", "border base secondary"],
     ["Positive", "positive", "bară + icon pe gri"], ["Warning", "warning", "bară + icon pe gri"], ["Danger", "danger", "bară + icon pe gri"], ["Info", "info", "brand · bară + icon pe gri"]
   ];
   const foundations = page(`
@@ -91,7 +91,7 @@
       ${caption("Accentul EVO · singurul accent · banda de 1 mm din capul fiecărei pagini")}
       <div class="e-permits-mdoc-spec__accent"><span class="e-permits-mdoc-spec__band" aria-hidden="true"></span><p class="e-permits-mdoc-spec__type-meta">--mdoc-accent · blue-sky-600 → lavender-600 → purple-600 → magenta-600 (sigla EVO) · tipar alb-negru: o linie gri, fără sens propriu</p></div>
       ${caption("Grilă · A4 210 × 297 mm")}
-      <dl class="e-permits-mdoc-spec__grid">${[["Margini", "15 sus · 18 laterale · 12 jos (mm)"], ["Coloana etichetelor", "36 % (tabel cheie–valoare)"], ["Între module", "6 mm · în modul 3 mm · rânduri 1.8 mm"], ["Linii", "1 px · implicită #D9D9D9 · rânduri gray-200"], ["Rotunjiri", "doar cipul de statut (full) și chenarul rezultatului (8)"]].map(([k, v]) => `<div class="e-permits-mdoc-kv__row"><dt>${esc(k)}</dt> <dd>${esc(v)}</dd></div>`).join("")}</dl>`, cerere, { footer: false });
+      <dl class="e-permits-mdoc-spec__grid">${[["Margini", "15 sus · 18 laterale · 12 jos (mm)"], ["Coloana etichetelor", "36 % (tabel cheie–valoare)"], ["Între module", "6 mm · în modul 3 mm · rânduri 1.8 mm"], ["Linii", "1 px (0,75 pt) · secțiuni gray-300 · rânduri gray-250 · se tipăresc și alb-negru"], ["Text gri sub 8 pt", "gray-600 (9,7:1) · minimum 7 pt"], ["Rotunjiri", "doar cipul de statut (full) și chenarul rezultatului (8)"]].map(([k, v]) => `<div class="e-permits-mdoc-kv__row"><dt>${esc(k)}</dt> <dd>${esc(v)}</dd></div>`).join("")}</dl>`, cerere, { footer: false });
 
   /* ---- 01 header + continuation ---- */
   const headers = page(`

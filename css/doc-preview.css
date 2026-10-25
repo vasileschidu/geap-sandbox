@@ -142,8 +142,8 @@
      --mdoc-type-title    17 / 22 pt  (22.7 / 29.3) document title (start)
      --mdoc-type-display  19 / 25 pt  (25.3 / 33.3) acts + certificates (centred)
    Grid (mm, A4 210 × 297): margins 15 top · 18 sides · 12 bottom; label column 36 %; sections 6 mm apart, blocks 3 mm.
-   Colour: ink = text base default / secondary / tertiary; rules = border base default (gray-250 class lines) and the
-   soft row line gray-200; tones = the product's positive / warning / danger / brand secondary pairs;
+   Colour: ink = text base default / secondary / tertiary (+ ink-fine gray-600 for grey text under 8 pt); rules = border
+   base secondary (gray-300 section lines) and the row line border base default (gray-250) — print-ready-v1, § 9; tones = the product's positive / warning / danger / brand secondary pairs;
    --mdoc-accent = the EVO logo run blue-sky-600 → lavender-600 → purple-600 → magenta-600 (Foundations primitives),
    drawn ONLY as the 1 mm band on top of each page (grey in a grayscale print; carries no meaning).
    ========================================================================== */
@@ -173,10 +173,16 @@
   --mdoc-ink: var(--color-text-base-default, #121212);
   --mdoc-ink-2: var(--color-text-base-secondary, #383838);
   --mdoc-ink-3: var(--color-text-base-tertiary, #757575);
-  --mdoc-rule: var(--color-border-base-default, #d9d9d9);
-  --mdoc-rule-soft: var(--gray-200, #f1f1f1);
+  /* print-ready-v1: grey text under 8 pt (caption 7.5, micro 7) = gray-600 (≈ 73 % black, 9.7:1 on white) — tertiary
+     gray-400 (4.6:1) breaks up on a laser at that size; ink-3 stays for 8.5 pt and up */
+  --mdoc-ink-fine: var(--gray-600, #444444);
+  /* lines that must print: row lines ≥ gray-250 (≈ 15 % black), section rules one step darker (gray-300, ≈ 30 %);
+     the old gray-200 row line (≈ 5 %) vanished on paper. All 1 px = 0.75 pt. */
+  --mdoc-rule: var(--color-border-base-secondary, #b2b2b2);
+  --mdoc-rule-soft: var(--color-border-base-default, #d9d9d9);
   --mdoc-rule-sign: var(--color-border-base-secondary, #b2b2b2);
   --mdoc-band: 1mm;
+  --mdoc-band-print-top: 5mm;
   --mdoc-accent: linear-gradient(90deg, var(--blue-sky-600, #0058d2), var(--lavender-600, #561fe5) 38%, var(--purple-600, #7e37f9) 68%, var(--magenta-600, #aa18ce));
 }
 
@@ -235,7 +241,7 @@
 
 /* the caps label: overlines, section titles, party roles, „Verificare” */
 .e-permits-mdoc .e-permits-doc-page__surface :is(.e-permits-mdoc__label, .e-permits-mdoc__section-title, .e-permits-mdoc-title__overline, .e-permits-mdoc__country) {
-  color: var(--mdoc-ink-3);
+  color: var(--mdoc-ink-fine);
   font-size: var(--mdoc-type-caption);
   font-weight: var(--font-weight-fw-semibold, 600);
   letter-spacing: var(--mdoc-track);
@@ -324,7 +330,7 @@
 }
 
 :is(.e-permits-mdoc__head--compact, .e-permits-mdoc__head--emblem) .e-permits-mdoc__contact li + li::before {
-  color: var(--mdoc-ink-3);
+  color: var(--mdoc-ink-fine);
   content: "·";
   margin-right: 1.6mm;
 }
@@ -363,7 +369,7 @@
 }
 
 .e-permits-mdoc .e-permits-doc-page__surface .e-permits-mdoc__cont-issuer {
-  color: var(--mdoc-ink-3);
+  color: var(--mdoc-ink-fine);
   min-width: 0;
 }
 
@@ -414,7 +420,7 @@
 
 .e-permits-mdoc__meta > div {
   align-items: baseline;
-  border-right: var(--border-width-1, 1px) solid var(--mdoc-rule);
+  border-right: var(--border-width-1, 1px) solid var(--mdoc-rule-soft);
   display: flex;
   gap: 1.5mm;
   margin-right: 4mm;
@@ -466,7 +472,8 @@
 .e-permits-mdoc-chip {
   align-items: center;
   background: var(--mdoc-chip-bg, var(--color-background-base-tertiary, #f1f1f1));
-  border: var(--border-width-1, 1px) solid var(--mdoc-chip-line, var(--gray-300, #b2b2b2)); /* neutral: border-base-default + 100 */
+  /* 1.5 px (print-ready-v1): the 300-level tone border is what carries the chip on paper */
+  border: var(--border-width-1-5, 1.5px) solid var(--mdoc-chip-line, var(--gray-300, #b2b2b2)); /* neutral: border-base-default + 100 */
   border-radius: var(--border-radius-4, 4px);
   box-sizing: border-box;
   color: var(--mdoc-chip-ink, var(--mdoc-ink-2));
@@ -475,7 +482,7 @@
   font-size: var(--mdoc-type-body);
   font-weight: var(--font-weight-fw-medium, 500);
   line-height: var(--mdoc-type-body-lh);
-  padding: 0.4mm 1.8mm;
+  padding: 0.2mm 1.4mm; /* hugs the 9.5 / 14 pt text */
   print-color-adjust: exact;
   -webkit-print-color-adjust: exact;
   white-space: nowrap;
@@ -640,7 +647,7 @@
   background: none;
   border: 0;
   border-bottom: var(--border-width-1, 1px) solid var(--mdoc-rule);
-  color: var(--mdoc-ink-3);
+  color: var(--mdoc-ink-fine);
   font-size: var(--mdoc-type-caption);
   font-weight: var(--font-weight-fw-semibold, 600);
   letter-spacing: var(--mdoc-track);
@@ -679,7 +686,7 @@
 .e-permits-mdoc .e-permits-doc-page__surface .e-permits-doc-page__grid th {
   background: none;
   border-bottom-color: var(--mdoc-rule);
-  color: var(--mdoc-ink-3);
+  color: var(--mdoc-ink-fine);
   font-size: var(--mdoc-type-caption);
   letter-spacing: var(--mdoc-track);
   line-height: var(--mdoc-type-caption-lh);
@@ -694,7 +701,7 @@
 
 .e-permits-mdoc .e-permits-doc-page__surface .e-permits-mdoc-table__grid th {
   border-bottom: var(--border-width-1, 1px) solid var(--mdoc-rule);
-  color: var(--mdoc-ink-3);
+  color: var(--mdoc-ink-fine);
   font-size: var(--mdoc-type-caption);
   font-weight: var(--font-weight-fw-semibold, 600);
   letter-spacing: var(--mdoc-track);
@@ -881,7 +888,7 @@
 }
 
 .e-permits-mdoc .e-permits-doc-page__surface .e-permits-mdoc-sign__meta {
-  color: var(--mdoc-ink-3);
+  color: var(--mdoc-ink-fine);
   font-size: var(--mdoc-type-micro);
   line-height: var(--mdoc-type-micro-lh);
 }
@@ -898,7 +905,7 @@
 .e-permits-mdoc .e-permits-doc-page__surface .e-permits-mdoc__footer {
   align-items: end;
   border-top: var(--border-width-1, 1px) solid var(--mdoc-rule);
-  color: var(--mdoc-ink-3);
+  color: var(--mdoc-ink-fine);
   column-gap: 4mm;
   display: grid;
   font-size: var(--mdoc-type-micro);
@@ -1099,7 +1106,7 @@
 }
 
 .e-permits-mdoc .e-permits-doc-page__surface .e-permits-mdoc-spec__type-meta {
-  color: var(--mdoc-ink-3);
+  color: var(--mdoc-ink-fine);
   font-size: var(--mdoc-type-micro);
   line-height: var(--mdoc-type-micro-lh);
 }
@@ -1108,8 +1115,8 @@
 .e-permits-mdoc .e-permits-doc-page__surface .e-permits-mdoc-spec__type-sample--title { font-size: var(--mdoc-type-title); font-weight: var(--font-weight-fw-semibold, 600); line-height: var(--mdoc-type-title-lh); }
 .e-permits-mdoc .e-permits-doc-page__surface .e-permits-mdoc-spec__type-sample--lead { font-size: var(--mdoc-type-lead); font-weight: var(--font-weight-fw-semibold, 600); line-height: var(--mdoc-type-lead-lh); }
 .e-permits-mdoc .e-permits-doc-page__surface .e-permits-mdoc-spec__type-sample--small { font-size: var(--mdoc-type-small); line-height: var(--mdoc-type-small-lh); }
-.e-permits-mdoc .e-permits-doc-page__surface .e-permits-mdoc-spec__type-sample--caption { color: var(--mdoc-ink-3); font-size: var(--mdoc-type-caption); font-weight: var(--font-weight-fw-semibold, 600); letter-spacing: var(--mdoc-track); line-height: var(--mdoc-type-caption-lh); text-transform: uppercase; }
-.e-permits-mdoc .e-permits-doc-page__surface .e-permits-mdoc-spec__type-sample--micro { color: var(--mdoc-ink-3); font-size: var(--mdoc-type-micro); line-height: var(--mdoc-type-micro-lh); }
+.e-permits-mdoc .e-permits-doc-page__surface .e-permits-mdoc-spec__type-sample--caption { color: var(--mdoc-ink-fine); font-size: var(--mdoc-type-caption); font-weight: var(--font-weight-fw-semibold, 600); letter-spacing: var(--mdoc-track); line-height: var(--mdoc-type-caption-lh); text-transform: uppercase; }
+.e-permits-mdoc .e-permits-doc-page__surface .e-permits-mdoc-spec__type-sample--micro { color: var(--mdoc-ink-fine); font-size: var(--mdoc-type-micro); line-height: var(--mdoc-type-micro-lh); }
 
 .e-permits-mdoc-spec__swatches {
   display: grid;
@@ -1172,6 +1179,66 @@
     border-radius: var(--border-radius-16, 16px);
     margin-inline: calc(var(--spacing-16, 16px) * -1);
     padding: var(--spacing-8, 8px);
+  }
+}
+
+/* ---- 9. Print rules (print-ready-v1, 2026-10-25; components.md › MDocs › „Print rules”) — office lasers incl.
+   black-and-white: nothing on paper depends on a fill. Lines ≥ 1 px (0.75 pt) at ≥ gray-250, section rules gray-300;
+   grey text under 8 pt = ink-fine (gray-600); status = word + 300-level border, outcome = bar + icon + words.
+   The sheet margins are the page padding in mm (15 · 18 · 12): the JS paginates into exact A4 pages, so @page keeps
+   0 mm and the page box carries the margins. ---- */
+@media print {
+  /* the EVO band: printers cannot print the top 4–5 mm of a sheet → the band drops to 5 mm, still in colour
+     (print-color-adjust: exact); a B/W driver renders the gradient as a dark grey line */
+  .e-permits-doc-page.e-permits-mdoc::before {
+    top: var(--mdoc-band-print-top);
+  }
+
+  /* near-white fills print as white: drop them, keep border + text */
+  .e-permits-mdoc-chip {
+    background: none;
+  }
+
+  .e-permits-mdoc-outcome {
+    background: none;
+    border: var(--border-width-1, 1px) solid var(--mdoc-rule);
+    border-left: var(--border-width-2, 2px) solid var(--mdoc-tone-line, var(--color-border-brand-default, #0058d2));
+  }
+
+  /* no break inside a row, a callout, a party, the signatures or the footer; a heading stays with what follows */
+  .e-permits-mdoc :is(tr, .e-permits-mdoc-kv__row, .e-permits-mdoc-files__list > li, .e-permits-mdoc-text__point,
+    .e-permits-mdoc-party, .e-permits-mdoc-outcome, .e-permits-mdoc-signatures, .e-permits-mdoc-sign, .e-permits-mdoc__footer) {
+    break-inside: avoid;
+  }
+
+  .e-permits-mdoc :is(.e-permits-mdoc__section-title, .e-permits-doc-page__group, .e-permits-doc-page__grid-label) {
+    break-after: avoid;
+  }
+
+  /* real tables: the header row repeats if the browser ever splits one (the JS pagination already repeats it) */
+  .e-permits-mdoc thead {
+    display: table-header-group;
+  }
+
+  .e-permits-mdoc .e-permits-doc-page__surface :is(p, li, dd, td) {
+    orphans: 3;
+    widows: 3;
+  }
+
+  /* links print as plain text */
+  .e-permits-mdoc a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .e-permits-mdoc a::after {
+    content: none;
+  }
+
+  /* the QR stays a sharp vector (crispEdges path); a raster QR, if one is ever passed, is not smoothed */
+  .e-permits-mdoc__qr :is(svg, img) {
+    image-rendering: pixelated;
+    shape-rendering: crispEdges;
   }
 }
 
@@ -1378,9 +1445,10 @@
 /* „Printează” / „Imprimă”: only the page(s) of the canvas, at their real size
    (GEAPDocPreview.print marks the canvas and its top-level ancestor) */
 @media print {
+  /* A4 portrait; the sheet margins (mm) are the page padding of each paginated A4 page (§ 9) */
   @page {
-    margin: 0;
-    size: A4;
+    margin: 0mm;
+    size: A4 portrait;
   }
 
   html.is-doc-printing,

@@ -10227,12 +10227,35 @@ icon QR are gone from MDocs pages (non-MDocs previews — Ghișeu paper request,
 | `--mdoc-margin-top / -x / -bottom` | 15 / 18 / 12 mm | page padding (A4 210 × 297 mm) |
 | `--mdoc-gap-section` / `--mdoc-gap-block` / `--mdoc-row-pad` | 6 mm / 3 mm / 1.8 mm | between modules / inside / row padding |
 | `--mdoc-label-col` | 36 % | key–value label column |
-| `--mdoc-ink` / `-2` / `-3` | text base default / secondary / tertiary | text |
-| `--mdoc-rule` / `-soft` / `-sign` | border base default · gray-200 · border base secondary | section + header lines · row lines · signature line |
+| `--mdoc-ink` / `-2` / `-3` | text base default / secondary / tertiary | text (ink-3 only at 8.5 pt and up) |
+| `--mdoc-ink-fine` | gray-600 #444444 (9.7:1) | grey text under 8 pt: caps captions / section titles / table heads, footer legal block, contacts, MSign line, continuation issuer |
+| `--mdoc-rule` / `-soft` / `-sign` | border base secondary (gray-300) · border base default (gray-250) · border base secondary | section + header + footer lines · row lines (kv, tables, attachments, meta separators) · signature line |
+| `--mdoc-band-print-top` | 5 mm | where the EVO band sits on paper (printers can't print the top 4–5 mm) |
 | `--mdoc-accent` + `--mdoc-band` | blue-sky-600 → lavender-600 → purple-600 → magenta-600 · 1 mm | the EVO band on the top edge of EVERY page (`::before`, print-color-adjust exact) — the only accent; grey in grayscale, carries no meaning |
 
 Print: mm page, `@media print` = only the pages (unchanged), tones always paired with a word + icon / bar → legible in
 grayscale. Onest only, no monospace (also for numbers / codes).
+
+**1b · Print rules (print-ready-v1, 2026-10-25; css/doc-preview.css § 9) — office lasers, incl. black-and-white:**
+- **Lines:** every line ≥ 1 px (0.75 pt). Row lines ≥ gray-250 #D9D9D9 (`--mdoc-rule-soft`); section / header / footer
+  rules gray-300 #B2B2B2 (`--mdoc-rule`). Never gray-200 #F1F1F1 or lighter on a page — it vanishes on paper.
+- **Text:** minimum 7 pt. Grey text under 8 pt = `--mdoc-ink-fine` (gray-600, 9.7:1); `--mdoc-ink-3` (#757575, 4.6:1)
+  only at 8.5 pt and up.
+- **No meaning by colour alone:** the status chip = word + 1.5 px 300-level tone border (radius 4, padding 0.2 × 1.4 mm);
+  the outcome callout = icon + title + sentence + 2 px tone bar; a signed / pending signature = words + solid / dashed line.
+- **Fills:** paper never depends on a fill. In `@media print` the chip's 50-level fill and the callout's grey surface are
+  dropped; the callout gets a 1 px `--mdoc-rule` border + its tone bar. Screen keeps the calm fills.
+- **Page:** `@page { size: A4 portrait; margin: 0mm }` — the margins are the page padding in mm (15 · 18 · 12) because
+  the JS paginates into exact A4 pages. No break inside a row, party, callout, signature block or footer; headings stay
+  with what follows; `thead` = `table-header-group` (the JS pagination also repeats it); widows / orphans 3; links
+  print as plain text; the QR is a vector path (`crispEdges`, `image-rendering: pixelated` for a raster one).
+- **EVO band:** prints in colour (`print-color-adjust: exact`), 5 mm from the top edge on paper; on a B/W printer the
+  gradient becomes a dark grey line (luminance of the four 600 colours ≈ 22–31 %), carries no meaning.
+- Check: demo `mdoc-sys`, `mdoc-02`, `mdoc-05`, `rap-03k` rendered in print media and converted to grayscale.
+
+> **PO note:** MDocs should output **PDF/A** (PDF/A-2b or newer) with **all fonts embedded** — Onest is under the SIL
+> Open Font License, which allows embedding. Then the archived and printed document looks the same everywhere,
+> independent of the viewer's fonts.
 
 **2 · Modules** — one render function each (`MODULES.<name>(data, cfg)` → markup or "" when its data is missing);
 each root carries `data-mdoc-module`, `data-mdoc-zone` and (flow modules) `data-flow="keep|split"`:
@@ -10241,13 +10264,13 @@ each root carries `data-mdoc-module`, `data-mdoc-zone` and (flow modules) `data-
 |---|---|---|---|
 | `header` | `header.e-permits-mdoc__head` + `.e-permits-mdoc__head--full` / `--compact` / `--emblem` › `__arms` (gov.svg cropped: 13 / 10 / 16 mm) · `__issuer` (`__country` caps · `__authority` lead · `__office` small) · `ul.__contact` (micro; full = right column, compact / emblem = one dotted line) | issuer profile (`GEAPDocPreview.issuer`, AC-02/03, AC-12) | locked |
 | `continuation` | `.e-permits-mdoc__cont` › `__cont-issuer` (tertiary) · `__cont-doc` (semibold, right, ≤ 62 %), line under — inside `template.e-permits-doc-page__cont-tpl` | pages 2+ (AC-07) | locked |
-| `title` | `.e-permits-mdoc-title` + `.e-permits-mdoc-title--start` / `--center` › `__top` (`__overline` caps, only when the title does not already say the type · `.e-permits-mdoc-chip` + `--positive` / `--warning` / `--danger` / `--info` / `--neutral` pill + dot) · `h1.e-permits-mdoc__title` · `__subline` (decision „privind Cererea …”) · `dl.e-permits-mdoc__meta` (dt small tertiary · dd semibold, pairs split by a hairline) | AC-04/05 texts per type | locked |
+| `title` | `.e-permits-mdoc-title` + `.e-permits-mdoc-title--start` / `--center` › `__top` (`__overline` caps, only when the title does not already say the type · `.e-permits-mdoc-chip` + `--positive` / `--warning` / `--danger` / `--info` / `--neutral` = library tag look: tone pair + 1.5 px 300-level border, radius 4, padding 0.2 × 1.4 mm, body 500, no dot) · `h1.e-permits-mdoc__title` · `__subline` (decision „privind Cererea …”) · `dl.e-permits-mdoc__meta` (dt small tertiary · dd semibold, pairs split by a hairline) | AC-04/05 texts per type | locked |
 | `parties` | `.e-permits-mdoc-parties` + `--n1` / `--n2` / `--n3` › `.e-permits-mdoc-party` (line on top · `.e-permits-mdoc__label` role · `__name` lead · `__line` small) | `parties: [{ role, name, lines }]` | editable |
 | `kv` / `groups` | `section.e-permits-mdoc-kv` + `--1col` / `--2col` › `h2.e-permits-mdoc__section-title[data-flow-head]` · `dl.e-permits-mdoc-kv__list[data-flow-items]` › `.e-permits-mdoc-kv__row` (dt / dd; 1col = 36 % label column + value, 2col = label over value) | `groups: [{ title, rows, columns }]` (columns 1 or 2) | editable |
 | `rows` | `.e-permits-mdoc-kv--rows` › `table.e-permits-mdoc-kv__table` (heading rows = section-title look, act field grids = quiet caps table, header repeated) | `rowsHtml` (act fields from `GEAPActView`) | editable |
 | `table` | `section.e-permits-mdoc-table` › title · `table.e-permits-mdoc-table__grid` (`col.e-permits-mdoc-table__col--num` / `--narrow` / `--medium`, caps `th` over a line, `td.is-number` right, `tr.is-total`) | `table` / `tables: [{ title, columns: [{ label, align: "end", width }], rows, total }]` | editable |
 | `text` | `section.e-permits-mdoc-text(--closing)` › title · `.e-permits-mdoc-text__flow[data-flow-items]` › `p` / `p.e-permits-mdoc-text__point` (`__num` hanging) | `intro`, `closing` (array or `{ title, paragraphs, points }`), `points` + `pointsTitle`, legacy `introHtml` / `closingHtml` | editable |
-| `outcome` | `section.e-permits-mdoc-outcome` + `--positive` / `--warning` / `--danger` / `--info` › `__icon` 20 (circle-checkmark-filled / circle-error-filled / pause / circle-info-filled) · `__title` lead · `__text` — grey `--color-background-base-secondary` surface, 2 px tone bar, r 0 8 8 0 | `outcome: { tone, title, text }` (tone approved / refused / suspended / info) | editable |
+| `outcome` | `section.e-permits-mdoc-outcome` + `--positive` / `--warning` / `--danger` / `--info` › `__icon` 20 (circle-checkmark-filled / circle-error-filled / pause / circle-info-filled) · `__title` lead · `__text` — grey `--color-background-base-secondary` surface, 2 px tone bar, r 0 8 8 0; print: no fill, 1 px `--mdoc-rule` border + the bar | `outcome: { tone, title, text }` (tone approved / refused / suspended / info) | editable |
 | `signatures` | `section.e-permits-mdoc-signatures[data-flow-with-prev]` › `.e-permits-mdoc-sign(.is-pending)` (line on top · `__lead` brand „Semnat electronic de” + `icon-signature` 16 · `__role` · `__name` lead · `__meta` „MSign · zz.ll.aaaa, hh:mm”) | `signers: [{ role, name, signedAt, provider, pending }]`; act default = authority head signed on the issue date (US-310 AC-07/08) | locked |
 | `attachments` | `section.e-permits-mdoc-files` › title „Acte anexate” · `ol.e-permits-mdoc-files__list` › `li` (`__num` · `__name` · `__meta`) | `attachments: [{ name, meta }]` | editable |
 | `footer` | `footer.e-permits-doc-page__footer.e-permits-mdoc__footer` › `.e-permits-mdoc__qr[role=img]` (18 mm `svg.e-permits-mdoc__qr-code`, deterministic QR-like code from the link — MDocs makes the real one) · `.e-permits-mdoc__verify` (`__label` „Verificare” · `__link` · `.e-permits-mdoc__legal`) · `.e-permits-mdoc__page` | every page (AC-08/09/10/11/15) | locked |

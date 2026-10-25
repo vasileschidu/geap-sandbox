@@ -3812,3 +3812,17 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   and „Dosarul X” event detail still carry numbers (reported, not in scope). (3) Seed values that already carry a prefix
   („v2.1.0”) — strip before prefixing. (4) The journal stores only the actor's name → resolve the role at read time
   (`dosarActorRole`: signed-in assignment, team, applicant) instead of writing it into every log call.
+- 2026-10-25 · print-ready-v1 (MDocs templates for office lasers incl. B/W). (1) A print check = the REAL print path,
+  not a screen grab: mark the canvas like `GEAPDocPreview.print` does (`is-doc-printing`, `data-doc-print(-root)`) without
+  calling window.print, `Emulation.setEmulatedMedia {media:"print"}`, clip-screenshot the A4 pages, then the same with
+  `html { filter: grayscale(1) }` and a mild „laser” curve (`grayscale(1) brightness(1.04) contrast(1.15)` = tones under
+  ≈ 6 % drop out). A harsh curve (contrast 1.6) wipes #D9D9D9 too and proves nothing. Script: scratch print-gray/gray.mjs;
+  BEFORE = a `git worktree` of HEAD on another port (never stash). (2) Print floor: lines ≥ 1 px at gray-250 (rows),
+  section rules gray-300; grey text under 8 pt = gray-600 (`--mdoc-ink-fine`, 9.7:1) — #757575 only from 8.5 pt; fills
+  (chip 50-level, callout grey) dropped in @media print, callout gets a 1 px rule border + its tone bar. (3) JS-paginated
+  A4 pages carry their mm margins as padding → `@page { margin: 0mm }` is right; a full-bleed decoration (the EVO band at
+  top 0) falls in the printer's unprintable 4–5 mm → move it in on paper (`--mdoc-band-print-top`). (4) Static audit flags
+  hex in comments AND in specimen copy — write token names (gray-600), not hex, in both. (5) Shared playbook had foreign
+  uncommitted hunks → staged my lesson as HEAD blob + appended text (hash-object + update-index) in the commit command.
+  QA: code-audit static 0 (in-page mm/pt + standing avatar / stack radius), component-audit = standing shell profile-menu
+  majors, hover-audit 0 / 0 on the specimen, capture 16 states × 2: 0 errors (mdoc-13 phone overflow 2 = HEAD).
