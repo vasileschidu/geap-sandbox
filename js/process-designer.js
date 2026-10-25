@@ -109,9 +109,9 @@ document.addEventListener("DOMContentLoaded", () => {
           <span class="e-permits-builder__view-title e-permits-pd__title" data-pd-title></span>
           <span class="e-permits-pd__status" data-pd-status></span>
           <div class="e-permits-stack__menu-wrap e-permits-pd__version-wrap">
-            <button class="btn btn-neutral btn-md e-permits-pd__version" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="pd-versions-menu" data-stack-menu-trigger data-pd-version>
+            <button class="btn btn-neutral btn-sm e-permits-pd__version" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="pd-versions-menu" data-stack-menu-trigger data-pd-version>
               <span data-pd-version-label>v1.0.0</span>
-              ${icon("chevron-bottom", 20)}
+              ${icon("chevron-bottom", 16)}
             </button>
             <ul class="e-permits-fo-intent-menu e-permits-stack__menu e-permits-pd__versions" id="pd-versions-menu" role="menu" aria-label="Versiunile procesului" hidden data-stack-menu data-pd-versions></ul>
           </div>
@@ -123,18 +123,18 @@ document.addEventListener("DOMContentLoaded", () => {
         </div>
         <div class="e-permits-builder__nav-actions">
           <div class="e-permits-stack__menu-wrap e-permits-builder__issues" data-pd-edit-only>
-            <button class="btn btn-md btn-outline-destructive e-permits-builder__errors" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="pd-issues-menu" data-stack-menu-trigger data-pd-errors>
+            <button class="btn btn-sm btn-outline-destructive e-permits-builder__errors" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="pd-issues-menu" data-stack-menu-trigger data-pd-errors>
               <span aria-hidden="true"><i></i></span>
               <strong data-pd-errors-label>Fără erori</strong>
             </button>
             <ul class="e-permits-fo-intent-menu e-permits-stack__menu e-permits-builder__issues-menu" id="pd-issues-menu" role="menu" aria-label="Probleme în proces" hidden data-stack-menu data-pd-issues></ul>
           </div>
           <div class="e-permits-pd__viewonly" data-pd-viewonly-wrap>
-            ${ui().renderToggle?.({ label: "Doar vizualizare", attrs: "data-pd-viewonly" }) || ""}
+            ${(ui().renderToggle?.({ label: "Doar vizualizare", attrs: "data-pd-viewonly" }) || "").replace('class="switch', 'class="switch switch--medium')}
           </div>
-          <button class="btn btn-primary btn-md e-permits-pd__restore" type="button" hidden data-pd-restore>Restaurează ca schiță</button>
-          <button class="btn btn-primary btn-md e-permits-pd__publish-action" type="button" data-pd-publish data-pd-edit-only>Publică</button>
-          <button class="btn btn-neutral btn-md btn-icon-only e-permits-pd__close" type="button" aria-label="Închide designerul" data-tooltip-label="Închide" data-pd-close>${icon("cross-large", 20)}</button>
+          <button class="btn btn-primary btn-sm e-permits-pd__restore" type="button" hidden data-pd-restore>Restaurează ca schiță</button>
+          <button class="btn btn-primary btn-sm e-permits-pd__publish-action" type="button" data-pd-publish data-pd-edit-only>Publică</button>
+          <button class="btn btn-neutral btn-sm btn-icon-only e-permits-pd__close" type="button" aria-label="Închide designerul" data-tooltip-label="Închide" data-pd-close>${icon("cross-large", 16)}</button>
         </div>
       </header>
 
@@ -197,8 +197,8 @@ document.addEventListener("DOMContentLoaded", () => {
       <footer class="modal--footer e-permits-pd__footer" data-pd-footer>
         <p class="e-permits-pd__footer-note" data-pd-dirty-note></p>
         <div class="modal-buttons">
-          <button class="btn btn-secondary btn-rounded" type="button" data-pd-cancel>Anulează</button>
-          <button class="btn btn-primary btn-rounded" type="button" data-pd-save>Salvează</button>
+          <button class="btn btn-secondary btn-sm" type="button" data-pd-cancel>Anulează</button>
+          <button class="btn btn-primary btn-sm" type="button" data-pd-save>Salvează</button>
         </div>
       </footer>
     </div>`;

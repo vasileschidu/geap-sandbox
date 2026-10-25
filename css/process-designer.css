@@ -8,13 +8,13 @@
   grid-template-rows: auto minmax(0, 1fr) auto;
 }
 
-/* compact header (pd-header-compact-v1, 2026-10-24): every action is a library Medium 40 (square radius 8,
-   icon-only = 40 square), the mode switch is the compact segmented control (40 high), padding 8 · 24 = the BO
-   toolbar rhythm (8 · 40 · 8 = 56). The right column never shrinks below its actions (max-content); the
+/* compact header (pd-header-small-v1, 2026-10-25; user: „version, Fără erori, toggle, Publică too big”): every
+   action is a library Small 32 (radius 8, icon 16, icon-only = 32 square), the mode switch is the compact segmented
+   control (32 high), the view-only switch is the library Medium switch, padding 8 · 24 (8 · 32 · 8 = 48). The right column never shrinks below its actions (max-content); the
    title column gives the room (ellipsis + tooltip) — at 1024 the mode switch no longer overlaps the actions */
 .e-permits-builder--process .e-permits-builder__topbar {
   grid-template-columns: minmax(0, 1fr) auto minmax(max-content, 1fr);
-  min-height: var(--spacing-56, 56px);
+  min-height: var(--spacing-48, 48px);
   padding: var(--spacing-8, 8px) var(--spacing-24, 24px);
 }
 
@@ -22,21 +22,22 @@
   justify-self: center;
 }
 
-.e-permits-builder--process .btn.btn-md.e-permits-builder__errors {
-  padding-left: var(--spacing-12, 12px);
+.e-permits-builder--process .btn.btn-sm.e-permits-builder__errors {
+  padding-left: var(--spacing-8, 8px);
 }
 
-/* the errors glyph sits in the Medium icon box (20) */
+/* the errors glyph sits in the Small icon box (16) */
 .e-permits-builder--process .e-permits-builder__errors > span {
-  flex-basis: var(--spacing-20, 20px);
-  height: var(--spacing-20, 20px);
-  width: var(--spacing-20, 20px);
+  flex-basis: var(--spacing-16, 16px);
+  height: var(--spacing-16, 16px);
+  width: var(--spacing-16, 16px);
 }
 
 /* Segmented control · Compact (local modifier, pd-header-compact-v1). The library control has ONE size in Figma
    (Components 659:8188: track 52, items 40, 14/20) and an undocumented code `--small` at 12 text (never in the
    back office). Compact = the same component at the Small button height: items 32 (6 · 12 padding, 14/20, icon
-   16, gap 8), track 4 · 4 → 40, so it lines up with Medium buttons in a toolbar. Colours, separators, hover,
+   16, gap 8), track 4 · 4 → 40. In the Process Designer header (pd-header-small-v1) the track is 2 · 2 and the
+   items 28 (4 · 12) → 32, so it lines up with the Small buttons. Colours, separators, hover,
    selected, focus and disabled stay the library's. */
 .segmented-control.segmented-control--compact {
   gap: var(--spacing-4, 4px);
@@ -124,6 +125,26 @@
   flex: 0 0 auto;
 }
 
+.e-permits-pd__modes.segmented-control--compact {
+  gap: var(--spacing-2, 2px);
+  padding: var(--spacing-2, 2px);
+}
+
+.e-permits-pd__modes.segmented-control--compact .segment-item {
+  padding: var(--spacing-4, 4px) var(--spacing-12, 12px);
+}
+
+.e-permits-pd__modes .segment-item .icon,
+.e-permits-pd__modes .segment-item > svg {
+  height: var(--spacing-16, 16px);
+  width: var(--spacing-16, 16px);
+}
+
+.e-permits-pd__viewonly .switch-label {
+  font-size: var(--font-size-fs-14, 14px);
+  line-height: var(--line-height-lh-20, 20px);
+}
+
 .e-permits-pd__viewonly .switch-label {
   white-space: nowrap;
 }
@@ -135,7 +156,8 @@
 /* ===== Stage: full bleed, dot grid 20 px × zoom (a background, not DOM) ===== */
 .e-permits-pd__stage {
   background-color: var(--color-background-base-secondary, #f5f5f5);
-  background-image: radial-gradient(circle at 1px 1px, var(--color-border-base-secondary, #b2b2b2) 1px, transparent 1.5px);
+  /* dots one step lighter (user 2026-10-25: „a little less visible”) */
+  background-image: radial-gradient(circle at 1px 1px, var(--color-border-base-default, #d9d9d9) 1px, transparent 1.5px);
   background-position: var(--pd-gx, 0) var(--pd-gy, 0);
   background-size: var(--pd-grid, 20px) var(--pd-grid, 20px);
   contain: strict;
@@ -256,8 +278,10 @@
   white-space: nowrap;
 }
 
-/* a lane: the rail (vertical title) + a transparent body over the grid; 1px divider above */
+/* a lane: the rail (vertical title) + a white 90 % body over the grid (user 2026-10-25: lanes on a white 90 % bg,
+   the dots only show faintly through); 1px divider above */
 .e-permits-pd__lane {
+  background: color-mix(in srgb, var(--color-background-base-default, #fff) 90%, transparent);
   border-top: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
   transition: background-color 120ms var(--motion-easing-standard, ease);
 }
@@ -1432,7 +1456,7 @@
   display: flex;
   gap: var(--spacing-16, 16px);
   justify-content: space-between;
-  /* 8 · 40 · 8 = the header / BO toolbar rhythm (pd-header-compact-v1; was 12 · 40 · 12) */
+  /* 8 · 32 · 8 = the header rhythm, Small Anulează · Salvează (pd-header-small-v1; was 12 · 48 · 12) */
   padding: var(--spacing-8, 8px) var(--spacing-24, 24px);
 }
 
@@ -1441,6 +1465,12 @@
   font-size: var(--font-size-fs-14, 14px);
   line-height: var(--line-height-lh-20, 20px);
   margin: 0;
+}
+
+/* Anulează · Salvează = library Small 32 (pd-header-small-v1; beats dialog-footer.css `.modal-buttons .btn` 40) */
+.e-permits-pd__footer .modal-buttons .btn {
+  height: var(--spacing-32, 32px);
+  padding: var(--spacing-0, 0px) var(--spacing-12, 12px);
 }
 
 .e-permits-builder--process.is-dirty .e-permits-pd__footer-note {
