@@ -1574,6 +1574,11 @@
   background-color: var(--color-background-base-tertiary-hover, #d9d9d9);
 }
 
+/* an unavailable tool never shows its pressed fill (the disabled glyph vanished on the grey in Doar vizualizare) */
+.e-permits-pd__toolbar .btn.btn-sm.btn-strict.e-permits-pd__tool:is([aria-checked="true"], [aria-pressed="true"])[aria-disabled="true"] {
+  background: transparent;
+}
+
 /* the select tool glyph: the sprite's „direction” arrow mirrored into a cursor */
 .e-permits-pd__tool[data-pd-tool="select"] .icon {
   transform: scaleX(-1);
