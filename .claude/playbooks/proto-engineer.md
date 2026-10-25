@@ -3772,6 +3772,15 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   text, colour, size / lh at 1440 + 375) before reporting. Another agent's uncommitted hunks sat in the same JS file →
   staged only mine with `git apply --cached` of a filtered diff. No sub-agent tool → code-audit (standing label 18 /
   Large 11 / meta 18, static 0), component-audit 0 in scope (standing FO avatar menu), hover-audit 0 / 0 on du2 / du8.
+- 2026-10-25 · gh-doc-error-outside-v1 (follow-up: Ghișeu doc errors still sat in the label column, gh-06a / gh-07h /
+  gh-07d). A fix to a shared pattern must sweep every product that copies its markup — grep the old placement
+  (`errSlot` inside `__info`) in ghiseu.js the same turn. Reuse, not copy: GEAPFormRender now exports
+  `docFieldErrorHtml` + `docSyncDescribedBy`; Ghișeu's hidden slots are built with it (`docErrSlot`, last in the field
+  with `data-fo-doc-required-error` → the FO 8-under-the-row margin for free). A BOXED (dashed) field = a control: its
+  message goes AFTER the box inside the `.e-permits-fo-field` (gap 8 = the input rule), and `foDocSyncDescribedBy` now
+  also reads the box's next sibling and skips `[hidden]` slots. Hover-audit scope for the Ghișeu wizard =
+  `.e-permits-gh-sheet` (a comma list / `main` gives „0 interactive”). Seen, not changed: the MSign error sits 16 under
+  its block (not a document field).
 - 2026-10-25 · requestor-scenarios-v1 (FOD Requestor strips, like address-modes-v1; 22 new states). (1) A scenario
   inventory is a WALK, not a grep: clicking „Am procură notarială” on the signed-in choice screen showed a step 1 with a
   card named „Am procură notarială” and nothing to fill — US-12 AC-06 (IDNO + procură) had never been built, although

@@ -7610,10 +7610,13 @@
     function foDocFieldErrorHtml(id, message, attrs = "") {
       return `<span class="message message--inline message--error e-permits-fo-field__error" id="${id}"${attrs}><svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-circle-error-filled"></use></svg><span>${escapeFrontOfficeHtml(message)}</span></span>`;
     }
-    /* the field's buttons (Adaugă fișier / Înlocuiește) are described by every error the field shows */
+    /* the field's buttons (Adaugă fișier / Înlocuiește) are described by every error the field shows — a boxed
+       field's message sits right after the box, like an input's (Ghișeu „Cererea semnată olograf”); hidden slots
+       (Ghișeu) do not count */
     function foDocSyncDescribedBy(field) {
       if (!field) return;
-      const ids = [...field.querySelectorAll("[data-fo-guest-error], [data-fo-doc-error] > .e-permits-fo-field__error, [data-fo-doc-required-error]")].map((el) => el.id).filter(Boolean);
+      const after = field.nextElementSibling?.matches(".e-permits-fo-field__error") ? [field.nextElementSibling] : [];
+      const ids = [...field.querySelectorAll("[data-fo-guest-error], [data-fo-doc-error] > .e-permits-fo-field__error, [data-fo-doc-required-error]"), ...after].filter((el) => !el.hidden).map((el) => el.id).filter(Boolean);
       field.querySelectorAll("[data-fo-open-doc-modal]").forEach((btn) => {
         if (btn.closest("[data-fo-doc-error]")) return;
         if (ids.length) btn.setAttribute("aria-describedby", ids.join(" "));
@@ -9728,6 +9731,9 @@
       createRegistryLookup,
       setRegistryValue,
       docIconHtml: foDocIconHtml,
+      /* the document field error (FO input error markup, 8 under the field) + the buttons' aria-describedby */
+      docFieldErrorHtml: foDocFieldErrorHtml,
+      docSyncDescribedBy: foDocSyncDescribedBy,
       /* the act row + „Solicitare nouă” card shared by FO #intent and the Ghișeu picker */
       actRowHtml: foActRowHtml,
       intentNewHtml: foIntentNewHtml,

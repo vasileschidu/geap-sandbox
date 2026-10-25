@@ -731,6 +731,19 @@
   /* ================================================================ the wizard page */
   const ERR_ICON = icon("circle-error-filled");
   const errSlot = (key) => `<span class="message message--inline message--error e-permits-fo-field__error" id="gh-err-${key}" data-gh-err="${key}" hidden></span>`;
+  /* a document field's error = the FO document field error (GEAPFormRender.docFieldErrorHtml), never inside the label
+     column: last in the field, 8 under the button row (`inField`), or right after a boxed field, like an input's
+     message (doc-error-outside-v1) */
+  const docErrSlot = (key, { inField = true } = {}) => R().docFieldErrorHtml?.(`gh-err-${key}`, "", ` data-gh-err="${key}"${inField ? " data-fo-doc-required-error" : ""} hidden`) || errSlot(key);
+  /* the document field that owns an error slot (inside it, or the boxed field right before it) */
+  const docFieldOfSlot = (slot) => slot.closest(".e-permits-fo-doc-field") || (slot.previousElementSibling?.matches(".e-permits-fo-doc-field") ? slot.previousElementSibling : null);
+  /* its buttons are described by the error while it shows */
+  function syncDocErr(slot) {
+    const field = docFieldOfSlot(slot);
+    if (!field) return;
+    if (field.matches("[data-fo-doc-field]")) { R().docSyncDescribedBy?.(field); return; }
+    field.querySelectorAll("[data-gh-paper]").forEach((btn) => { if (slot.hidden) btn.removeAttribute("aria-describedby"); else btn.setAttribute("aria-describedby", slot.id); });
+  }
   const req = () => U().requiredMark?.() || "";
   /* the FO „Date solicitant” identity card + group title (GEAPFormRender.roleCardHtml / roleGroupTitleHtml) */
   const roleTitle = (label) => R().roleGroupTitleHtml?.(label) || "";
@@ -1945,12 +1958,12 @@
           <div class="e-permits-fo-doc-field__info">
             <span class="e-permits-fo-doc-field__label">${esc(doc.label)} ${required}</span>
             ${doc.description ? `<p class="e-permits-fo-doc-field__desc">${esc(doc.description)}</p>` : ""}
-            ${errSlot(`doc-${doc.id}`)}
           </div>
           <button class="btn btn-secondary btn-md e-permits-fo-doc-field__add" type="button" data-fo-open-doc-modal data-fo-doc-label="${esc(doc.label)}">${icon("plus-large")}Adaugă fișier</button>
         </div>
         ${doc.id === "procura" && !(S.cur?.docs?.procura || []).length ? U().renderNotice?.("info", "<strong>Procura pe hârtie a fost verificată la inițiere.</strong> Atașați copia ei scanată.") || "" : ""}
         <div class="e-permits-fo-doc-field__files" data-fo-doc-field-files></div>
+        ${docErrSlot(`doc-${doc.id}`)}
       </div>`;
   }
   function stepDocumente(d) {
@@ -2116,10 +2129,10 @@
             <div class="e-permits-fo-doc-field__info">
               <span class="e-permits-fo-doc-field__label">Formularul de tipar al cererii</span>
               <p class="e-permits-fo-doc-field__desc">Se generează prin MDocs după șablonul serviciului, cu datele de mai sus și textul consimțământului. Tipăriți-l și dați-l solicitantului spre semnare.</p>
-              ${errSlot("paper")}
             </div>
             <button class="btn btn-secondary btn-md e-permits-fo-doc-field__add" type="button" data-gh-paper>${icon("page-text")}Generează cererea pe hârtie</button>
           </div>
+          ${docErrSlot("paper")}
         </div>`;
     const olograf = st.olograf ? `
       <div class="e-permits-fo-field e-permits-fo-field--span-12">
@@ -2128,12 +2141,12 @@
             <div class="e-permits-fo-doc-field__info">
               <span class="e-permits-fo-doc-field__label">Cererea semnată olograf ${req()}</span>
               <p class="e-permits-fo-doc-field__desc">Copia scanată a cererii pe hârtie, semnată de solicitant. JPG, PNG, PDF · maximum 60 MB.</p>
-              ${errSlot("olograf")}
             </div>
             <button class="btn btn-strict btn-md" type="button" data-fo-open-doc-modal data-fo-doc-label="Cererea semnată olograf">${icon("upload", 20, "icon medium")}<span>Adaugă fișier</span></button>
           </div>
           <div class="e-permits-fo-doc-field__files" data-fo-doc-field-files></div>
         </div>
+        ${docErrSlot("olograf", { inField: false })}
       </div>` : "";
     const sign = st.msign ? (d.review.signed
       ? `${U().renderNotice?.("success", "Cererea a fost semnată.") || ""}${docCard(signedDoc(d), `${detailsBtn("data-gh-preview=\"signed\"", "Cererea semnată MSign")}`)}`
@@ -2529,7 +2542,7 @@
   function clearErrors() {
     if (!S.page) return;
     S.page.querySelectorAll("[aria-invalid='true']").forEach((el) => { if (el.matches("input, textarea")) R().setFieldError?.(el, ""); else el.removeAttribute("aria-invalid"); });
-    S.page.querySelectorAll("[data-gh-err]").forEach((slot) => { slot.hidden = true; slot.innerHTML = ""; });
+    S.page.querySelectorAll("[data-gh-err]").forEach((slot) => { const was = !slot.hidden; slot.hidden = true; slot.innerHTML = ""; if (was) syncDocErr(slot); });
     S.page.querySelectorAll("[data-gh-select-err]").forEach((el) => el.remove());
     S.page.querySelectorAll(".is-error").forEach((el) => { if (el.matches(".e-permits-fo-select, .e-permits-fo-caem, .e-permits-fo-doc-field, .e-permits-check-options, .segmented-control")) el.classList.remove("is-error"); });
   }
@@ -2539,12 +2552,14 @@
     slot.innerHTML = `${ERR_ICON}<span>${esc(msg)}</span>`;
     slot.hidden = false;
     fieldEl?.classList.add("is-error");
+    syncDocErr(slot);
   }
   function clearErr(key) {
     const slot = S.page?.querySelector(`[data-gh-err="${key}"]`);
     if (!slot || slot.hidden) return;
     slot.hidden = true; slot.innerHTML = "";
-    slot.closest(".e-permits-fo-doc-field")?.classList.remove("is-error");
+    docFieldOfSlot(slot)?.classList.remove("is-error");
+    syncDocErr(slot);
     S.page.querySelector(key === "serviciu" ? "[data-gh-service] .e-permits-fo-caem" : key === "procura" ? ".e-permits-gh__procura" : "x-none")?.classList.remove("is-error");
   }
   const ERR_FIELD = { livrare: "[data-fo-delivery-address-card]", serviciu: "[data-gh-service] .e-permits-fo-caem", procura: ".e-permits-gh__procura", tip: "[data-gh-type]", subdiv: "#fo-gh-subdiv", term: "#fo-gh-term" };
