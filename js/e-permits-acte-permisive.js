@@ -3048,7 +3048,7 @@
               <div hidden data-fo-mdocs-empty>${window.GEAPEmptyState.noResults("Nu am găsit documente în MDocs", { text: "Verifică denumirea sau numărul documentului.", bare: true })}</div>
             </div>
             <div class="e-permits-fo-mdocs__attachment" hidden data-fo-mdocs-attachment>
-              <button class="e-permits-fo-document-remove e-permits-fo-mdocs__attachment-remove" type="button" aria-label="Elimină documentul din MDocs" data-fo-mdocs-remove>
+              <button class="btn btn-strict btn-sm btn-icon-only e-permits-fo-document-remove e-permits-fo-mdocs__attachment-remove" type="button" aria-label="Elimină documentul din MDocs" data-fo-mdocs-remove>
                 <svg class="icon" width="16" height="16" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-cross-large-16"></use></svg>
               </button>
             </div>
@@ -3063,7 +3063,7 @@
         const fieldId = (doc.id || "").replace(/[^a-z0-9-]/gi, "-");
         return `
           ${doc.separator ? `<hr class="e-permits-fo-documents__separator">` : ""}
-          <div class="e-permits-fo-doc-field" data-fo-doc-field="${escapeFrontOfficeHtml(fieldId)}" data-fo-doc-replace${doc.required ? " data-fo-doc-required" : ""}>
+          <div class="e-permits-fo-doc-field" data-fo-doc-field="${escapeFrontOfficeHtml(fieldId)}"${doc.required ? " data-fo-doc-required" : ""}>
             <div class="e-permits-fo-doc-field__row">
               <div class="e-permits-fo-doc-field__info">
                 <span class="e-permits-fo-doc-field__label">
@@ -3109,7 +3109,7 @@
             <div class="e-permits-fo-other-docs__body">
               <div data-fo-other-doc-list></div>
               <button class="btn btn-secondary btn-md e-permits-fo-add-doc-button" type="button" data-fo-add-other-doc>
-                <svg class="icon" width="16" height="16" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-plus-small"></use></svg>
+                <svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-plus-large"></use></svg>
                 Adaugă document
               </button>
             </div>
@@ -7347,7 +7347,8 @@
       const cls = `e-permits-fo-lib-item__title${titleClass ? ` ${titleClass}` : ""}`;
       if (!open && !openAttrs) return `<span class="${cls}" data-cell-tooltip>${esc(doc.tip)}</span>`;
       const attrs = openAttrs || `data-fo-doc-open="${esc(JSON.stringify(doc))}"`;
-      return `<button class="link link-strict link-sm link-no-underline ${cls} e-permits-fo-doc-name" type="button" aria-haspopup="dialog" aria-label="Deschide ${esc(doc.tip)}" data-cell-tooltip ${attrs}>${esc(doc.tip)}</button>`;
+      /* doc-card-hover-v1: + the library `.stretched-link` → the whole card is the hit area (hover / focus ring on the card) */
+      return `<button class="link link-strict link-sm link-no-underline stretched-link ${cls} e-permits-fo-doc-name" type="button" aria-haspopup="dialog" aria-label="Deschide ${esc(doc.tip)}" data-cell-tooltip ${attrs}>${esc(doc.tip)}</button>`;
     }
     /* doc-name-open-v1: the A4 page of an attached document in the viewer (FO #fo-certificate-modal, Ghișeu
        #dosar-detail-modal) — the document page of the shared preview (js/doc-preview.js: paginate / fit); the file itself
@@ -7388,6 +7389,9 @@
     /* the document type a field asks for (its label without the required / optional marks) */
     function foDocFieldTitle(el) {
       const field = el?.closest?.("[data-fo-doc-field]");
+      /* other-doc-saved-v1: an „Alte documente” card is titled by its name input (its saved-look label is a copy) */
+      const otherCard = el?.closest?.("[data-fo-other-doc-card]");
+      if (otherCard) return otherCard.querySelector("[data-fo-other-doc-name]")?.value.trim() || "Document suplimentar";
       const label = field?.querySelector(".e-permits-fo-doc-field__label, .e-permits-fo-field__label, label");
       if (!label) return el?.closest?.("[data-fo-other-doc-card]")?.querySelector("[data-fo-other-doc-name]")?.value.trim() || (el?.closest?.("[data-fo-other-doc-list]") ? "Document suplimentar" : "");
       const copy = label.cloneNode(true);
@@ -7548,11 +7552,11 @@
       if (captions[1]) captions[1].textContent = size ? `Mărime maximă: ${size}` : captions[1].dataset.foDefault;
       const tabs = foDocOverlay.querySelector(".e-permits-fo-doc-modal__tabs");
       if (tabs) tabs.hidden = uploadOnly;
-      /* doc-upload-v1 · AC-05 replace mode = the same picker, titled „Înlocuiește fișierul” */
-      const replacing = Boolean(fieldEl?.querySelector("[data-fo-doc-field-files] [data-fo-doc]") && fieldEl?.hasAttribute("data-fo-doc-replace"));
+      /* file-remove-x-v1 (2026-10-25, user: „Înlocuiește doesn't make sense”): no replace mode — a file goes with its
+         ×, a new one comes with „Adaugă fișier”; the picker is always „Adaugă fișier” */
       const titleEl = foDocOverlay.querySelector("#fo-doc-modal-title");
-      if (titleEl) titleEl.textContent = replacing ? "Înlocuiește fișierul" : "Adaugă fișier";
-      if (foDocSubmitBtn) foDocSubmitBtn.textContent = replacing ? "Înlocuiește" : "Adaugă fișier";
+      if (titleEl) titleEl.textContent = "Adaugă fișier";
+      if (foDocSubmitBtn) foDocSubmitBtn.textContent = "Adaugă fișier";
       /* AC-04 · MDocs does not answer (demo `?mdocs=indisponibil`): its tab is unavailable with the reason, a
          warning notice says why, the device upload keeps working */
       const mdocsDown = !uploadOnly && foDocDemo("mdocs") === "indisponibil";
@@ -7599,12 +7603,13 @@
       item.innerHTML = `
         ${foDocIconHtml(doc)}
         ${foDocContentHtml({ ...doc, fisier: doc.tip === fileName ? "" : fileName }, { open: true })}
-        ${docField?.hasAttribute("data-fo-doc-replace") && max === 1 ? foDocReplaceButtonHtml(docField) : `<button class="e-permits-fo-document-remove e-permits-fo-doc-attached-item__remove" type="button" aria-label="Elimină ${escapeFrontOfficeHtml(fileName)}">
+        <button class="btn btn-strict btn-sm btn-icon-only e-permits-fo-document-remove e-permits-fo-doc-attached-item__remove" type="button" aria-label="Elimină ${escapeFrontOfficeHtml(fileName)}">
           <svg class="icon" width="16" height="16" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-cross-large-16"></use></svg>
-        </button>`}`;
+        </button>`;
       /* the guest flow reads the file name back */
       if (doc.tip === fileName) item.querySelector(".e-permits-fo-lib-item__title")?.classList.add("e-permits-fo-file-item__name");
-      item.querySelector(".e-permits-fo-doc-attached-item__remove")?.addEventListener("click", () => { item.remove(); syncFull(); });
+      /* file-remove-x-v1: × removes the file (never the field, US-20 AC-05) → focus back on „Adaugă fișier” */
+      item.querySelector(".e-permits-fo-doc-attached-item__remove")?.addEventListener("click", () => { item.remove(); syncFull(); foDocFocusAdd(docField); });
       foDocClearFileError(container);
       container.appendChild(item);
       syncFull();
@@ -7623,10 +7628,10 @@
       att.innerHTML = `
         ${foDocIconHtml(doc)}
         ${foDocContentHtml(doc, { titleClass: "e-permits-fo-mdocs__attachment-title", open: true })}
-        ${docField?.hasAttribute("data-fo-doc-replace") && single ? foDocReplaceButtonHtml(docField) : `<button class="e-permits-fo-document-remove e-permits-fo-mdocs__attachment-remove" type="button" aria-label="Elimină ${escapeFrontOfficeHtml(doc.tip)}">
+        <button class="btn btn-strict btn-sm btn-icon-only e-permits-fo-document-remove e-permits-fo-mdocs__attachment-remove" type="button" aria-label="Elimină ${escapeFrontOfficeHtml(doc.tip)}">
           <svg class="icon" width="16" height="16" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-cross-large-16"></use></svg>
-        </button>`}`;
-      att.querySelector(".e-permits-fo-mdocs__attachment-remove")?.addEventListener("click", () => att.remove());
+        </button>`;
+      att.querySelector(".e-permits-fo-mdocs__attachment-remove")?.addEventListener("click", () => { att.remove(); foDocFocusAdd(docField); });
       foDocClearFileError(container);
       container.appendChild(att);
     }
@@ -7634,13 +7639,16 @@
     /* ===== doc-upload-v1 (2026-10-24) · FO „Acte necesare” — US-20 (88480), only what the story covers =====
        AC-03 client-side checks before the upload (one file's error never touches the others), the library
        file-item Uploading (progress) → the shared document card, the file-item Error = the document card Error
-       state under the document; AC-05 predefined documents: „Înlocuiește”, never ×; AC-06 required → inline
+       state under the document; AC-05 predefined documents: the FIELD stays, its file has a × (file-remove-x-v1,
+       2026-10-25 — was „Înlocuiește”), a new one comes with „Adaugă fișier”; AC-06 required → inline
        error + summary + „Înainte” unavailable until attached; AC-04 MDocs down → its tab disabled + notice;
        AC-08 „Alte documente” delete = the FO confirm dialog (upload vs MDocs link wording).
-       Scope: the request's step 3 (main + guest wizard) — Ghișeu / Form Builder keep their own rules. */
+       Scope: the request's step 3 (main + guest wizard) and the Ghișeu „Acte necesare” step (other-doc-saved-v1). */
     const FO_DOC_EXTENSIONS = ["JPG", "PNG", "PDF", "XLS", "XLSX", "ZIP", "RAR", "DOCX", "DOC"];
     const FO_DOC_MAX_MB = 60;
-    const foDocUploadFlow = (el) => Boolean(el?.closest?.("[data-fo-step-panel='3']"));
+    /* other-doc-saved-v1 (2026-10-25, user: „in ALL files, also in the document upload pattern”): the Ghișeu
+       „Acte necesare” step (`[data-gh-docs]`) runs the same checks + Uploading card — one upload flow */
+    const foDocUploadFlow = (el) => Boolean(el?.closest?.("[data-fo-step-panel='3'], [data-gh-docs]"));
     const foDocDemo = (key) => new URLSearchParams(location.search).get(key) || "";
     function foDocFileProblem(file) {
       const ext = (String(file?.name || "").match(/\.([a-z0-9]+)$/i)?.[1] || "").toUpperCase();
@@ -7648,13 +7656,9 @@
       if (Number(file?.size) > FO_DOC_MAX_MB * 1048576) return `Nu puteți atașa fișiere mai mari decât ${FO_DOC_MAX_MB} MB.`;
       return "";
     }
-    /* „Înlocuiește” on a predefined document's card (AC-05): reopens the picker for the same field */
-    function foDocReplaceButtonHtml(docField) {
-      const type = foDocFieldTitle(docField.querySelector("[data-fo-doc-field-files]") || docField) || "documentul";
-      return `<button class="btn btn-outline-strict btn-sm e-permits-fo-doc-replace" type="button" data-fo-open-doc-modal data-fo-doc-replace-open aria-label="Înlocuiește fișierul pentru ${escapeFrontOfficeHtml(type)}">
-          <svg class="icon" width="16" height="16" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-upload"></use></svg>
-          <span>Înlocuiește</span>
-        </button>`;
+    /* file-remove-x-v1: after a file's ×, focus goes to the field's „Adaugă fișier” (shown again once the field is empty) */
+    function foDocFocusAdd(docField) {
+      requestAnimationFrame(() => docField?.querySelector(".e-permits-fo-doc-field__add, [data-fo-open-doc-modal]")?.focus());
     }
     function foDocTitleRowHtml(name) {
       return `<div class="e-permits-fo-lib-item__title-row e-permits-fo-doc-title-row"><span class="e-permits-fo-lib-item__title" data-cell-tooltip>${escapeFrontOfficeHtml(name)}</span></div>`;
@@ -7668,7 +7672,7 @@
     function foDocFieldErrorHtml(id, message, attrs = "") {
       return `<span class="message message--inline message--error e-permits-fo-field__error" id="${id}"${attrs}><svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-circle-error-filled"></use></svg><span>${escapeFrontOfficeHtml(message)}</span></span>`;
     }
-    /* the field's buttons (Adaugă fișier / Înlocuiește) are described by every error the field shows — a boxed
+    /* the field's „Adaugă fișier” is described by every error the field shows — a boxed
        field's message sits right after the box, like an input's (Ghișeu „Cererea semnată olograf”); hidden slots
        (Ghișeu) do not count */
     function foDocSyncDescribedBy(field) {
@@ -7893,7 +7897,7 @@
       const field = close.closest("[data-fo-doc-field]");
       (close.closest("[data-fo-doc-error]") || close.closest(".e-permits-fo-file-item"))?.remove();
       foDocSyncDescribedBy(field);
-      (field?.querySelector(".e-permits-fo-doc-field__add:not([hidden])") || field?.querySelector("[data-fo-doc-replace-open]"))?.focus();
+      field?.querySelector(".e-permits-fo-doc-field__add:not([hidden])")?.focus();
     });
 
     /* doc-upload-v1 · AC-06 on „Înainte” (main + guest wizard; the post-process handler stops earlier) */
@@ -9662,6 +9666,89 @@
       });
     }
 
+    /* other-doc-saved-v1 (2026-10-25): the „Alte documente” lifecycle — edit → Salvează → saved (= a required document
+       field) → Editează → edit (Anulează restores the saved one) → Elimină = the FO confirm. Shared by every surface
+       that renders the section (FO step 3 main + guest wizard, Ghișeu) — one implementation, the document-level click
+       handler below. */
+    function foOtherDocParts(card) {
+      return {
+        name: card.querySelector("[data-fo-other-doc-name]"),
+        desc: card.querySelector("[data-fo-other-doc-desc]"),
+        field: card.querySelector("[data-fo-doc-field]"),
+        files: card.querySelector("[data-fo-doc-field-files]")
+      };
+    }
+    function foOtherDocShowSaved(card, { focus = true } = {}) {
+      const { name, desc } = foOtherDocParts(card);
+      const viewName = card.querySelector("[data-fo-other-doc-view-name]");
+      const viewDesc = card.querySelector("[data-fo-other-doc-view-desc]");
+      const label = name?.value.trim() || "";
+      if (viewName) viewName.textContent = label;
+      if (viewDesc) { viewDesc.textContent = desc?.value.trim() || ""; viewDesc.hidden = !viewDesc.textContent; }
+      card.querySelectorAll("[data-fo-edit-other-doc]").forEach((btn) => btn.setAttribute("aria-label", `Editează ${label}`));
+      card.querySelectorAll("[data-fo-remove-other-doc]").forEach((btn) => btn.setAttribute("aria-label", `Elimină ${label}`));
+      card.classList.add("is-saved");
+      card.dataset.foOtherDocSaved = JSON.stringify({ name: label, desc: desc?.value.trim() || "" });
+      if (focus) card.querySelector("[data-fo-edit-other-doc]")?.focus();
+    }
+    function foOtherDocSave(card, { focus = true } = {}) {
+      const { name, field } = foOtherDocParts(card);
+      const missingName = !name?.value.trim();
+      const missingFile = field ? !foDocHasFile(field) : false;
+      setGuestFieldError(name, missingName ? FO_CONTACT_REQUIRED : "");
+      if (field) foDocSetFieldError(field, missingFile);
+      if (missingName || missingFile) {
+        card.dataset.foOtherDocChecked = "";
+        foOtherDocWatchFiles(card);
+        (missingName ? name : field?.querySelector("[data-fo-open-doc-modal]"))?.focus();
+        return false;
+      }
+      delete card.dataset.foOtherDocChecked;
+      card.__foOtherDocFiles = null;
+      foOtherDocShowSaved(card, { focus });
+      return true;
+    }
+    function foOtherDocEdit(card) {
+      const { name, files } = foOtherDocParts(card);
+      card.__foOtherDocFiles = [...(files?.children || [])];
+      card.classList.remove("is-saved");
+      name?.focus();
+    }
+    function foOtherDocCancel(card) {
+      const { name, desc, field, files } = foOtherDocParts(card);
+      let saved = null;
+      try { saved = JSON.parse(card.dataset.foOtherDocSaved || "null"); } catch { saved = null; }
+      /* a NEW one (never saved): „Anulează” drops the draft */
+      if (!saved) {
+        const addButton = card.closest(".e-permits-fo-other-docs__body")?.querySelector("[data-fo-add-other-doc]");
+        card.remove();
+        syncOtherDocCards();
+        addButton?.focus();
+        return;
+      }
+      if (name) { name.value = saved.name; setGuestFieldError(name, ""); name.removeAttribute("aria-invalid"); }
+      if (desc) desc.value = saved.desc;
+      if (files && card.__foOtherDocFiles) files.replaceChildren(...card.__foOtherDocFiles);
+      if (field) { field.classList.remove("is-full"); foDocSetFieldError(field, false); }
+      card.__foOtherDocFiles = null;
+      delete card.dataset.foOtherDocChecked;
+      foOtherDocShowSaved(card);
+    }
+    /* after a failed „Salvează” the messages follow the input / the file (as the step's required documents do) */
+    document.addEventListener("input", (event) => {
+      const name = event.target.closest?.("[data-fo-other-doc-name]");
+      const card = name?.closest("[data-fo-other-doc-card][data-fo-other-doc-checked]");
+      if (card && name.value.trim()) { setGuestFieldError(name, ""); name.removeAttribute("aria-invalid"); }
+    });
+    function foOtherDocWatchFiles(card) {
+      const { field, files } = foOtherDocParts(card);
+      if (!files || card.__foOtherDocWatch) return;
+      card.__foOtherDocWatch = new MutationObserver(() => {
+        if (card.hasAttribute("data-fo-other-doc-checked") && foDocHasFile(field)) foDocSetFieldError(field, false);
+      });
+      card.__foOtherDocWatch.observe(files, { childList: true });
+    }
+
     document.addEventListener("click", (event) => {
       if (event.target.closest("[data-fo-add-other-doc]")) {
         const btn = event.target.closest("[data-fo-add-other-doc]");
@@ -9672,18 +9759,25 @@
         const card = document.createElement("div");
         card.className = "e-permits-fo-doc-card";
         card.dataset.foOtherDocCard = "";
+        /* other-doc-saved-v1 (2026-10-25, user): one card, two looks. EDIT = the bordered card (header: #n · Document, then
+           „Anulează” · „Salvează” pills + red „Elimină”; Denumire / Descriere / the document field). „Anulează” drops a
+           new draft, or restores a saved one.
+           SAVED (`.is-saved`) = exactly a required document field: label = the name, description under it, the file
+           card(s) under it (whole-card hover → viewer), „Editează” (pen) + „Elimină” (trash, red) on the right where
+           „Adaugă fișier” sits. `[data-fo-other-doc-edit-only]` / `[data-fo-other-doc-view]` = what each look shows. */
         card.innerHTML = `
-          <div class="e-permits-fo-doc-card__header">
+          <div class="e-permits-fo-doc-card__header" data-fo-other-doc-edit-only>
             <div class="e-permits-fo-doc-card__title">
               <span class="e-permits-fo-doc-card__index" data-fo-other-doc-index>#${count}</span>
               <span class="e-permits-fo-doc-card__name">Document</span>
             </div>
-            <button class="btn btn-text-destructive btn-sm btn-icon-only e-permits-fo-doc-card__remove" type="button" aria-label="Elimină documentul" data-tooltip-label="Elimină" data-fo-remove-other-doc>
-              <svg class="icon" width="16" height="16" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-delete"></use></svg>
-            </button>
+            <div class="e-permits-fo-doc-field__actions e-permits-fo-doc-card__actions">
+              <button class="btn btn-neutral btn-rounded btn-md" type="button" data-fo-cancel-other-doc>Anulează</button>
+              <button class="btn btn-primary btn-rounded btn-md" type="button" data-fo-save-other-doc>Salvează</button>
+            </div>
           </div>
           <div class="e-permits-fo-doc-card__body">
-            <div class="e-permits-fo-field">
+            <div class="e-permits-fo-field" data-fo-other-doc-edit-only>
               <label for="fo-other-title-${uid}">
                 Denumirea documentului
                 <span class="e-permits-fo-required" aria-label="obligatoriu"><svg class="icon" width="12" height="12" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-asterisk"></use></svg></span>
@@ -9692,19 +9786,33 @@
                 <input id="fo-other-title-${uid}" type="text" placeholder="ex. Certificat de conformitate" required data-fo-other-doc-name>
               </div>
             </div>
-            <div class="e-permits-fo-field">
+            <div class="e-permits-fo-field" data-fo-other-doc-edit-only>
               <label for="fo-other-desc-${uid}">Descriere scurtă</label>
               <div class="e-permits-fo-textarea">
-                <textarea id="fo-other-desc-${uid}" placeholder="Scurtă descriere a documentului" rows="2"></textarea>
+                <textarea id="fo-other-desc-${uid}" placeholder="Scurtă descriere a documentului" rows="2" data-fo-other-doc-desc></textarea>
                 <svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-resize"></use></svg>
               </div>
             </div>
-            <div class="e-permits-fo-doc-field e-permits-fo-doc-field--other" data-fo-doc-field="other-${uid}" data-fo-doc-replace>
+            <div class="e-permits-fo-doc-field e-permits-fo-doc-field--other" data-fo-doc-field="other-${uid}">
               <div class="e-permits-fo-doc-field__row">
+                <div class="e-permits-fo-doc-field__info" data-fo-other-doc-view>
+                  <span class="e-permits-fo-doc-field__label" data-fo-other-doc-view-name></span>
+                  <p class="e-permits-fo-doc-field__desc" data-fo-other-doc-view-desc hidden></p>
+                </div>
                 <button class="btn btn-secondary btn-md e-permits-fo-doc-field__add" type="button" data-fo-open-doc-modal>
                   <svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-plus-large"></use></svg>
                   Adaugă fișier
                 </button>
+                <div class="e-permits-fo-doc-field__actions" data-fo-other-doc-view>
+                  <button class="btn btn-text-neutral btn-sm" type="button" data-fo-edit-other-doc>
+                    <svg class="icon" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-edit"></use></svg>
+                    <span>Editează</span>
+                  </button>
+                  <button class="btn btn-text-destructive btn-sm" type="button" data-fo-remove-other-doc>
+                    <svg class="icon" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-delete"></use></svg>
+                    <span>Elimină</span>
+                  </button>
+                </div>
               </div>
               <div class="e-permits-fo-doc-field__files" data-fo-doc-field-files></div>
             </div>
@@ -9713,6 +9821,27 @@
         list.appendChild(card);
         syncOtherDocCards();
         card.scrollIntoView({ block: "nearest", behavior: "smooth" });
+        return;
+      }
+
+      /* other-doc-saved-v1 · „Salvează”: the name (required, the FO input error) and one file (the document field's
+         required error) — then the SAVED look; „Editează” → the edit look with the saved values kept for „Anulează” */
+      const saveOther = event.target.closest("[data-fo-save-other-doc]");
+      if (saveOther) {
+        const card = saveOther.closest("[data-fo-other-doc-card]");
+        if (card) foOtherDocSave(card);
+        return;
+      }
+      const editOther = event.target.closest("[data-fo-edit-other-doc]");
+      if (editOther) {
+        const card = editOther.closest("[data-fo-other-doc-card]");
+        if (card) foOtherDocEdit(card);
+        return;
+      }
+      const cancelOther = event.target.closest("[data-fo-cancel-other-doc]");
+      if (cancelOther) {
+        const card = cancelOther.closest("[data-fo-other-doc-card]");
+        if (card) foOtherDocCancel(card);
         return;
       }
 
@@ -9821,6 +9950,8 @@
       renderDeliveryStep,
       docContentHtml: foDocContentHtml,
       docPageHtml: foDocPageHtml,
+      /* other-doc-saved-v1: restore an „Alte documente” card in its saved look (Ghișeu drafts) */
+      otherDocSave: (card, opts) => foOtherDocSave(card, opts),
       summaryDocsHtml: foSummaryDocsHtml,
       attachFileItem: foDocAttachFileItem,
       attachMdocsItem: foDocAttachMdocsItem,

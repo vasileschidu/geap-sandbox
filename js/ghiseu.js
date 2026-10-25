@@ -1982,7 +1982,7 @@
           </div>
           <div class="e-permits-fo-other-docs__body">
             <div data-fo-other-doc-list></div>
-            <button class="btn btn-secondary btn-md e-permits-fo-add-doc-button" type="button" data-fo-add-other-doc>${icon("plus-small")}<span>Adaugă document</span></button>
+            <button class="btn btn-secondary btn-md e-permits-fo-add-doc-button" type="button" data-fo-add-other-doc>${icon("plus-large")}<span>Adaugă document</span></button>
           </div>
         </div>
       </section>
@@ -2010,7 +2010,13 @@
     root.querySelectorAll("[data-gh-doc]").forEach((field) => {
       out[field.dataset.ghDoc] = [...field.querySelectorAll("[data-fo-doc]")].map((el) => { try { return JSON.parse(el.dataset.foDoc); } catch { return null; } }).filter(Boolean);
     });
-    const others = [...root.querySelectorAll("[data-fo-other-doc-list] [data-fo-doc]")].map((el) => { try { return JSON.parse(el.dataset.foDoc); } catch { return null; } }).filter(Boolean);
+    /* other-doc-saved-v1: an „Alte documente” entry keeps its card's name / description / saved look */
+    const others = [...root.querySelectorAll("[data-fo-other-doc-list] [data-fo-doc]")].map((el) => {
+      let doc = null;
+      try { doc = JSON.parse(el.dataset.foDoc); } catch { return null; }
+      const card = el.closest("[data-fo-other-doc-card]");
+      return card ? { ...doc, denumire: card.querySelector("[data-fo-other-doc-name]")?.value.trim() || "", descriere: card.querySelector("[data-fo-other-doc-desc]")?.value.trim() || "", salvat: card.classList.contains("is-saved") } : doc;
+    }).filter(Boolean);
     if (others.length) out.alte = others;
     return out;
   }
@@ -2022,7 +2028,15 @@
       others.forEach((doc) => {
         add?.click();
         const cards = panel.querySelectorAll("[data-fo-other-doc-list] [data-fo-other-doc-card]");
-        attachTo(cards[cards.length - 1]?.querySelector("[data-fo-doc-field-files]"), doc);
+        const card = cards[cards.length - 1];
+        const { denumire = "", descriere = "", salvat = false, ...file } = doc;
+        const name = card?.querySelector("[data-fo-other-doc-name]");
+        const desc = card?.querySelector("[data-fo-other-doc-desc]");
+        if (name) name.value = denumire;
+        if (desc) desc.value = descriere;
+        attachTo(card?.querySelector("[data-fo-doc-field-files]"), file);
+        /* other-doc-saved-v1: a saved one comes back saved (the shared FO lifecycle) */
+        if (card && salvat) R().otherDocSave?.(card, { focus: false });
       });
     }
     S.docsObserver?.disconnect();

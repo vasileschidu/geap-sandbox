@@ -351,7 +351,7 @@
     input.dispatchEvent(new Event("change", { bubbles: true }));
     await h.wait(200); await h.click("[data-fo-doc-modal-submit]"); await h.wait(300);
   };
-  /* field 1 uploaded (after its progress) + field 3 from MDocs: both predefined → „Înlocuiește” */
+  /* field 1 uploaded (after its progress) + field 3 from MDocs: both predefined → the file × (file-remove-x-v1) */
   const duAttached = async (h) => {
     await duPick(h, "[data-fo-doc-field='property-deed']", duFile("contract-locatiune.pdf", 1.8));
     await h.find("[data-fo-step-panel='3'] [data-fo-doc-field='property-deed'] [data-fo-doc]");
@@ -372,6 +372,19 @@
       await h.find(`[data-fo-step-panel='3'] ${field} [data-fo-doc]`);
     }
     await h.scroll("[data-fo-step-panel='3'] [data-fo-other-doc-card]");
+  };
+  /* other-doc-saved-v1: the card with a description too (edit look), then saved */
+  const duOtherEdit = async (h) => {
+    await duOther(h, "upload");
+    await h.fill("[data-fo-step-panel='3'] [data-fo-other-doc-desc]", "Certificatul de conformitate a echipamentului frigorific.");
+    await h.scroll("[data-fo-step-panel='3'] [data-fo-other-doc-card]");
+    document.activeElement?.blur?.();
+  };
+  const duOtherSaved = async (h) => {
+    await duOtherEdit(h);
+    await h.click("[data-fo-step-panel='3'] [data-fo-other-doc-card] [data-fo-save-other-doc]"); await h.wait(200);
+    await h.scroll("[data-fo-step-panel='3'] [data-fo-other-doc-card]");
+    document.activeElement?.blur?.();
   };
   const foReq = (step, params = {}, run) => ({
     page: PP_FO, flow: "full", params,
@@ -1458,7 +1471,8 @@
     "fo-04d": foReq(3, {}, async (h) => { await h.click("[data-fo-step-panel='3'] [data-fo-open-doc-modal]"); await h.wait(400); }),
     "fo-04e": foReq(3, {}, async (h) => { await h.click("[data-fo-step-panel='3'] [data-fo-open-doc-modal]"); await h.wait(300); await h.click("[data-fo-doc-modal-list] .e-permits-fo-lib-item"); }),
     "fo-04f": foReq(3, {}, async (h) => { await h.click("[data-fo-step-panel='3'] [data-fo-open-doc-modal]"); await h.wait(300); await h.click("[data-fo-doc-modal-list] .e-permits-fo-lib-item"); await h.click("[data-fo-doc-modal-submit]"); await h.wait(300); }),
-    /* doc-name-open-v1: the attached document's NAME (hover = underline, fo-04f1) opens the FO document viewer (fo-04f2) */
+    /* doc-name-open-v1: the attached document's NAME (hover = underline, fo-04f1) opens the FO document viewer (fo-04f2);
+       doc-card-hover-v1: the whole card is the target — fo-04f1 = the hovered card (darker grey + underlined name) */
     "fo-04f1": foReq(3, {}, async (h) => { await h.click("[data-fo-step-panel='3'] [data-fo-open-doc-modal]"); await h.wait(300); await h.click("[data-fo-doc-modal-list] .e-permits-fo-lib-item"); await h.click("[data-fo-doc-modal-submit]"); await h.wait(300); (await h.find("[data-fo-step-panel='3'] .e-permits-fo-doc-name")).setAttribute("data-demo-hover", ""); }),
     "fo-04f2": foReq(3, {}, async (h) => { await h.click("[data-fo-step-panel='3'] [data-fo-open-doc-modal]"); await h.wait(300); await h.click("[data-fo-doc-modal-list] .e-permits-fo-lib-item"); await h.click("[data-fo-doc-modal-submit]"); await h.wait(300); await h.click("[data-fo-step-panel='3'] .e-permits-fo-doc-name"); await h.find("#fo-certificate-modal.is-active [data-fo-cert-canvas]"); }),
     /* Acte necesare with both document kinds side by side: MDocs (blue) in the first field, an uploaded PDF (grey) in the second — one card surface (2026-10-15) */
@@ -1494,20 +1508,33 @@
     "fo-05d": foReq(4, {}, async (h) => { await h.scroll(".e-permits-fo-summary-docs"); }),
     /* doc-upload-v1 (2026-10-24) · FOD pattern „Document upload” — Acte necesare, US-20 (88480) only; each id at 1440
        and 375. du1 uploading (progress held at 62 %) · du2 wrong type · du3 over 60 MB (both = the card Error under
-       the document) · du4 predefined documents attached = „Înlocuiește”, no × · du5 „Înlocuiește” → the picker in
-       replace mode · du6 / du7 „Alte documente” › Elimină = the FO confirm (uploaded file / MDocs link) · du8 „Înainte”
+       the document) · du4 predefined documents attached, each file with its × (file-remove-x-v1, 2026-10-25 — was
+       „Înlocuiește”) · du5 the file × clicked: the field stays (AC-05), empty again with „Adaugă fișier” focused (no
+       error until „Înainte”; was the replace-mode picker, removed) · du6 / du7 „Alte documente” › Elimină = the FO confirm (uploaded file / MDocs link) · du8 „Înainte”
        with required documents missing (inline errors + summary, „Înainte” unavailable) · du9 MDocs does not answer
        (tab unavailable + notice, upload works) · du10 RSSPA does not answer (error + „Reîncercați”) */
     "fo-04du1": foReq(3, { incarcare: "pauza" }, async (h) => { await duPick(h, "[data-fo-doc-field='floor-plan']", duFile("planul-incaperilor-parter.pdf", 2.4)); await h.wait(700); await h.scroll("[data-fo-step-panel='3'] [data-fo-doc-uploading]"); }),
     "fo-04du2": foReq(3, {}, async (h) => { await duPick(h, "[data-fo-doc-field='floor-plan']", duFile("planul-incaperilor.heic", 3.1, "image/heic")); await h.scroll("[data-fo-step-panel='3'] [data-fo-doc-error]"); }),
     "fo-04du3": foReq(3, {}, async (h) => { await duPick(h, "[data-fo-doc-field='property-deed']", duFile("contract-locatiune-scanat.pdf", 72)); await h.scroll("[data-fo-step-panel='3'] [data-fo-doc-error]"); }),
     "fo-04du4": foReq(3, {}, async (h) => { await duAttached(h); await h.scroll("[data-fo-step-panel='3'] [data-fo-doc-field='property-deed']"); }),
-    "fo-04du5": foReq(3, {}, async (h) => { await duAttached(h); await h.click("[data-fo-step-panel='3'] [data-fo-doc-field='property-deed'] [data-fo-doc-replace-open]"); await h.wait(400); }),
-    "fo-04du6": foReq(3, {}, async (h) => { await duOther(h, "upload"); await h.click("[data-fo-step-panel='3'] [data-fo-remove-other-doc]"); await h.find("[data-fo-grid-confirm]:not([hidden])"); }),
-    "fo-04du7": foReq(3, {}, async (h) => { await duOther(h, "mdocs"); await h.click("[data-fo-step-panel='3'] [data-fo-remove-other-doc]"); await h.find("[data-fo-grid-confirm]:not([hidden])"); }),
+    "fo-04du5": foReq(3, {}, async (h) => { await duAttached(h); await h.click("[data-fo-step-panel='3'] [data-fo-doc-field='property-deed'] .e-permits-fo-document-remove"); await h.wait(300); await h.scroll("[data-fo-step-panel='3'] [data-fo-doc-field='property-deed']"); }),
+    /* other-doc-saved-v1: „Elimină” exists only on a SAVED „Alte documente” entry → saved first, then the confirm */
+    "fo-04du6": foReq(3, {}, async (h) => { await duOther(h, "upload"); await h.click("[data-fo-step-panel='3'] [data-fo-save-other-doc]"); await h.wait(200); await h.click("[data-fo-step-panel='3'] .e-permits-fo-doc-field__actions [data-fo-remove-other-doc]"); await h.find("[data-fo-grid-confirm]:not([hidden])"); }),
+    "fo-04du7": foReq(3, {}, async (h) => { await duOther(h, "mdocs"); await h.click("[data-fo-step-panel='3'] [data-fo-save-other-doc]"); await h.wait(200); await h.click("[data-fo-step-panel='3'] .e-permits-fo-doc-field__actions [data-fo-remove-other-doc]"); await h.find("[data-fo-grid-confirm]:not([hidden])"); }),
     "fo-04du8": foReq(3, {}, async (h) => { await duPick(h, "[data-fo-doc-field='property-deed']", duFile("contract-locatiune.pdf", 1.8)); await h.find("[data-fo-step-panel='3'] [data-fo-doc-field='property-deed'] [data-fo-doc]"); await h.click("[data-fo-step-panel='3'] [data-fo-next='step-3']"); await h.wait(300); }),
     "fo-04du9": foReq(3, { mdocs: "indisponibil" }, async (h) => { await h.click("[data-fo-step-panel='3'] [data-fo-doc-field='state-registry-extract'] [data-fo-open-doc-modal]"); await h.wait(400); }),
     "fo-04du10": foReq(3, { rsspa: "indisponibil" }),
+    /* doc-card-hover-v1 + other-doc-saved-v1 (2026-10-25) · the same pattern, continued: du11 an attached document card
+       hovered (the whole card: darker grey, name underlined → the viewer) · du12 „Alte documente” › a new one in EDIT
+       (name, description, file, „Salvează”) · du13 SAVED = a required field's look (name, description, the file card,
+       „Editează” + red „Elimină” on the right) · du14 „Editează” = the edit look again with „Anulează” · du15 the saved
+       one › „Elimină” = the FO confirm · du16 „Salvează” with no name and no file (the field errors) */
+    "fo-04du11": foReq(3, {}, async (h) => { await duAttached(h); await h.scroll("[data-fo-step-panel='3'] [data-fo-doc-field='property-deed']"); (await h.find("[data-fo-step-panel='3'] [data-fo-doc-field='property-deed'] .e-permits-fo-doc-name")).setAttribute("data-demo-hover", ""); }),
+    "fo-04du12": foReq(3, {}, async (h) => { await duOtherEdit(h); }),
+    "fo-04du13": foReq(3, {}, async (h) => { await duOtherSaved(h); }),
+    "fo-04du14": foReq(3, {}, async (h) => { await duOtherSaved(h); await h.click("[data-fo-step-panel='3'] [data-fo-other-doc-card] [data-fo-edit-other-doc]"); await h.scroll("[data-fo-step-panel='3'] [data-fo-other-doc-card]"); }),
+    "fo-04du15": foReq(3, {}, async (h) => { await duOtherSaved(h); await h.click("[data-fo-step-panel='3'] [data-fo-other-doc-card] .e-permits-fo-doc-field__actions [data-fo-remove-other-doc]"); await h.find("[data-fo-grid-confirm]:not([hidden])"); }),
+    "fo-04du16": foReq(3, {}, async (h) => { await h.click("[data-fo-step-panel='3'] [data-fo-add-other-doc]"); await h.wait(300); await h.click("[data-fo-step-panel='3'] [data-fo-save-other-doc]"); await h.scroll("[data-fo-step-panel='3'] [data-fo-other-doc-card]"); document.activeElement?.blur?.(); }),
     "fo-06": foReq(5),
     "fo-07": foReq(6),
     "fo-08": foReq(7, { paid: "1" }),
@@ -3629,6 +3656,29 @@
       input.dispatchEvent(new Event("change", { bubbles: true }));
       await h.wait(200); await h.click("[data-fo-doc-modal-submit]"); await h.wait(500);
     };
+    /* other-doc-saved-v1: „Adaugă fișier” on the first desk document without a file → the FO picker, on a tab */
+    const ghPicker = (tab) => async (h) => {
+      const add = [...document.querySelectorAll("#gh-request-modal [data-gh-doc] .e-permits-fo-doc-field__add")].find((b) => b.getBoundingClientRect().height);
+      add.scrollIntoView({ block: "center" }); add.click(); await h.wait(300);
+      const button = document.querySelector(`[data-fo-doc-tab="${tab}"]`);
+      if (button && !button.closest("[hidden]")) { button.click(); await h.wait(300); }
+    };
+    /* other-doc-saved-v1: one „Alte documente” entry at the desk — named, described, a scanned file; then saved */
+    const ghOtherEdit = async (h) => {
+      await h.click("#gh-request-modal [data-fo-add-other-doc]"); await h.wait(300);
+      await h.fill("#gh-request-modal [data-fo-other-doc-name]", "Certificat de conformitate");
+      await h.fill("#gh-request-modal [data-fo-other-doc-desc]", "Prezentat de solicitant la ghișeu, copie scanată.");
+      await ghUpload("#gh-request-modal [data-fo-other-doc-card]", "certificat-conformitate.pdf")(h);
+      await h.find("#gh-request-modal [data-fo-other-doc-card] [data-fo-doc]");
+      await h.scroll("#gh-request-modal [data-fo-other-doc-card]");
+      document.activeElement?.blur?.();
+    };
+    const ghOtherSaved = async (h) => {
+      await ghOtherEdit(h);
+      await h.click("#gh-request-modal [data-fo-other-doc-card] [data-fo-save-other-doc]"); await h.wait(200);
+      await h.scroll("#gh-request-modal [data-fo-other-doc-card]");
+      document.activeElement?.blur?.();
+    };
     /* Verificare done: paper request generated, signed scan attached, signed in MSign */
     /* „Generează cererea pe hârtie”: MDocs answers after ~0.9 s in the preview, which is then closed */
     const ghPaper = async (h) => { await h.click("[data-gh-paper]"); await h.find("#dosar-detail-modal.is-active [data-dosar-doc-canvas]"); document.querySelector("#dosar-detail-modal [data-close]")?.click(); await h.wait(400); };
@@ -3759,8 +3809,32 @@
       "gh-06": gh("#ghiseu/gh-4790/documente"),
       /* doc-name-open-v1 (GEAP 2.0 11818:21893 „cum descarcăm / previzualizăm documentele?”): the document NAME is the way
          into the viewer — hovered = underlined (gh-06h); a click on an uploaded one (gh-06i) / the signed MDocs extract
-         (gh-06j, + signature card) opens the desk's document viewer with „Descarcă” */
+         (gh-06j, + signature card) opens the desk's document viewer with „Descarcă”. doc-card-hover-v1: the WHOLE card is
+         the target (stretched name) → gh-06h = the hovered card (darker grey + underlined name), gh-06k = keyboard focus
+         on the name = the focus ring on the card */
       "gh-06h": gh("#ghiseu/gh-4790/documente", async (h) => { (await h.find("#gh-request-modal [data-gh-doc] .e-permits-fo-doc-name")).setAttribute("data-demo-hover", ""); await h.wait(200); }),
+      "gh-06k": gh("#ghiseu/gh-4790/documente", async (h) => { (await h.find("#gh-request-modal [data-gh-doc] .e-permits-fo-doc-name")).focus(); await h.wait(200); }),
+      /* other-doc-saved-v1 (2026-10-25): „Alte documente” at the desk = the FO lifecycle — gh-06l a new one in EDIT (name,
+         description, file, „Salvează”) · gh-06m SAVED = the required fields' look + „Editează” / red „Elimină” · gh-06n
+         „Editează” again (+ „Anulează”) · gh-06o the saved one › „Elimină” = the confirm */
+      /* other-doc-saved-v1 · how the desk uploads (Alexandr, GEAP 2.0): the same FO picker and upload flow — gh-06c
+         „Adaugă fișier” → the picker on the device tab · gh-06d the picker on the MDocs tab · gh-06e a file uploading
+         (the file-item Uploading card, progress held at 62 %) */
+      "gh-06c": gh("#ghiseu/gh-4790/documente", ghPicker("upload")),
+      "gh-06d": gh("#ghiseu/gh-4790/documente", ghPicker("library")),
+      "gh-06e": gh("#ghiseu/gh-4790/documente", seq(ghPicker("upload"), async (h) => {
+        const input = document.querySelector("[data-fo-doc-file-input]");
+        const files = new DataTransfer();
+        files.items.add(new File([new Uint8Array(2400000)], "planul-incaperilor-parter.pdf", { type: "application/pdf" }));
+        input.files = files.files;
+        input.dispatchEvent(new Event("change", { bubbles: true }));
+        await h.wait(200); await h.click("[data-fo-doc-modal-submit]"); await h.wait(900);
+        await h.scroll("#gh-request-modal [data-fo-doc-uploading]");
+      }), { incarcare: "pauza" }),
+      "gh-06l": gh("#ghiseu/gh-4790/documente", ghOtherEdit),
+      "gh-06m": gh("#ghiseu/gh-4790/documente", ghOtherSaved),
+      "gh-06n": gh("#ghiseu/gh-4790/documente", seq(ghOtherSaved, async (h) => { await h.click("#gh-request-modal [data-fo-other-doc-card] [data-fo-edit-other-doc]"); await h.scroll("#gh-request-modal [data-fo-other-doc-card]"); })),
+      "gh-06o": gh("#ghiseu/gh-4790/documente", seq(ghOtherSaved, async (h) => { await h.click("#gh-request-modal [data-fo-other-doc-card] .e-permits-fo-doc-field__actions [data-fo-remove-other-doc]"); await h.find("[data-fo-grid-confirm]:not([hidden])"); })),
       "gh-06i": gh("#ghiseu/gh-4790/documente", async (h) => { await h.click("#gh-request-modal [data-gh-doc] .e-permits-fo-doc-name"); await h.find("#dosar-detail-modal.is-active [data-dosar-doc-canvas]"); }),
       "gh-06j": gh("#ghiseu/gh-4790/documente", async (h) => { await h.click("#gh-request-modal [data-gh-doc] .e-permits-fo-mdocs__attachment .e-permits-fo-doc-name"); await h.find("#dosar-detail-modal.is-active [data-dosar-doc-canvas]"); }),
       "gh-06a": gh("#ghiseu/gh-4812/detalii", seq(async () => { window.GEAPGhiseu.fill("detalii"); }, (h) => h.wait(600), next, next)),

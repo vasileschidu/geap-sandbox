@@ -229,7 +229,26 @@
     schedule(el);
   });
 
+  /* doc-card-hover-v1 (2026-10-25): a `.stretched-link` (the document card's name) covers its card with ::after, so the
+     text under it (a cut file name in the meta) never gets its own pointerover → while the pointer moves over the link,
+     the target is the [data-cell-tooltip] text under the pointer (else the link itself, when its own text is cut) */
+  let stretchedEl = null;
+  document.addEventListener("pointermove", (event) => {
+    if (event.pointerType && event.pointerType !== "mouse") return;
+    const link = event.target instanceof Element ? event.target.closest(".stretched-link") : null;
+    if (!link) { stretchedEl = null; return; }
+    const under = document.elementsFromPoint(event.clientX, event.clientY)
+      .find((n) => n !== link && !link.contains(n) && n.matches("[data-cell-tooltip]"));
+    const el = (under && candidate(under)) || candidate(link);
+    if (el === stretchedEl) return;
+    stretchedEl = el;
+    if (el && el !== target) schedule(el);
+    else if (!el) hide();
+  });
+
   document.addEventListener("pointerout", (event) => {
+    const leftLink = event.target instanceof Element ? event.target.closest(".stretched-link") : null;
+    if (leftLink && !(event.relatedTarget instanceof Node && leftLink.contains(event.relatedTarget))) { stretchedEl = null; hide(); return; }
     const el = candidate(event.target);
     if (!el || (event.relatedTarget instanceof Node && el.contains(event.relatedTarget))) return;
     if (el === target || !target) hide();

@@ -6462,10 +6462,13 @@
   background: var(--color-background-brand-secondary, #e8f0fb);
 }
 
+/* doc-compact-v1 (2026-10-25, user: „make the documents step more compact, too much space between the documents”):
+   16 between documents (was 32), 24 around the line before „Alte documente” (separator margin 8 + gap 16; was 32),
+   a field's file card 8 under its label row (`.e-permits-fo-doc-field` gap, was 16) */
 .e-permits-fo-documents {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-32, 32px);
+  gap: var(--spacing-16, 16px);
   padding-bottom: var(--spacing-32, 32px);
   width: 100%;
 }
@@ -6505,7 +6508,7 @@
 .e-permits-fo-doc-field {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-16, 16px);
+  gap: var(--spacing-8, 8px);
   width: 100%;
 }
 
@@ -7337,6 +7340,11 @@ a.e-permits-fo-lib-item__title:is(:hover, :focus) {
   width: 100%;
 }
 
+/* doc-compact-v1: 24 above and under the line (the documents' gap 16 + 8) */
+.e-permits-fo-documents > .e-permits-fo-documents__separator {
+  margin-block: var(--spacing-8, 8px);
+}
+
 .e-permits-fo-document-item__header p {
   color: var(--color-text-base-tertiary, #757575);
   font-size: var(--font-size-fs-14, 14px);
@@ -7386,8 +7394,8 @@ a.e-permits-fo-lib-item__title:is(:hover, :focus) {
   align-items: flex-start;
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-24, 24px);
-  padding-top: var(--spacing-20, 20px);
+  gap: var(--spacing-16, 16px);
+  padding-top: var(--spacing-16, 16px);
   width: 100%;
 }
 
@@ -7395,10 +7403,12 @@ a.e-permits-fo-lib-item__title:is(:hover, :focus) {
   display: none;
 }
 
+/* 16 between documents = the required fields' rhythm (`.e-permits-fo-documents`, doc-compact-v1), so saved ones read as
+   the same list */
 [data-fo-other-doc-list] {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-24, 24px);
+  gap: var(--spacing-16, 16px);
   width: 100%;
 }
 
@@ -7410,8 +7420,8 @@ a.e-permits-fo-lib-item__title:is(:hover, :focus) {
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-20, 20px);
-  padding: var(--spacing-20, 20px);
+  gap: var(--spacing-16, 16px);
+  padding: var(--spacing-16, 16px);
   width: 100%;
 }
 
@@ -7449,15 +7459,48 @@ a.e-permits-fo-lib-item__title:is(:hover, :focus) {
   line-height: var(--line-height-lh-24, 24px);
 }
 
-/* the × of an „Alt document” card = library `btn btn-text-destructive btn-sm btn-icon-only` (destructive-red-v1) */
-.e-permits-fo-doc-card__remove {
-  flex-shrink: 0;
-}
-
 .e-permits-fo-doc-card__body {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-20, 20px);
+  gap: var(--spacing-16, 16px);
+}
+
+/* other-doc-saved-v1 (2026-10-25, user: „after Save it must look EXACTLY like the required document fields”): an „Alte
+   documente” card has two looks. EDIT (default) = the bordered card; its document field shows only „Adaugă fișier”
+   (the `[data-fo-other-doc-view]` label / actions hidden). SAVED (`.is-saved`) = no card chrome, no inputs: the
+   document field as a required one draws it (label = the name 16/24 medium, description 14/20 tertiary, the file
+   card(s) under it) + „Editează” (Small text-neutral, pen) and „Elimină” (Small text-destructive, trash) in the
+   row's right slot, where „Adaugă fișier” sits (that one hides once a file is there, as in every field).
+   EDIT keeps „Anulează” · „Salvează” · „Elimină” in the card header (below). */
+.e-permits-fo-doc-card:not(.is-saved) [data-fo-other-doc-view],
+.e-permits-fo-doc-card.is-saved [data-fo-other-doc-edit-only] {
+  display: none;
+}
+
+.e-permits-fo-doc-card.is-saved {
+  border: 0;
+  border-radius: 0;
+  padding: 0;
+}
+
+.e-permits-fo-doc-card.is-saved > .e-permits-fo-doc-card__body {
+  gap: 0;
+}
+
+.e-permits-fo-doc-field__actions {
+  align-items: center;
+  display: flex;
+  flex: none;
+  gap: var(--spacing-8, 8px);
+}
+
+/* EDIT header (user 2026-10-25: „Salvează in the header”, then „round, like our modal footer buttons”): #n · Document on
+   the left, „Anulează” (`btn-neutral btn-rounded btn-md`) · „Salvează” (`btn-primary btn-rounded btn-md`) = the dialog
+   footer pair (Medium 40 pills) · „Elimină” (Small text-destructive + trash, as in the saved look) on the right; on a
+   narrow card the group wraps under the title */
+.e-permits-fo-doc-card__header {
+  flex-wrap: wrap;
+  gap: var(--spacing-12, 12px);
 }
 
 /* „Opțional” next to a field label = the document cards' bordered Small tag
@@ -8879,13 +8922,51 @@ a.e-permits-fo-lib-item__title:is(:hover, :focus) {
   text-align: start;
 }
 
-.e-permits-fo-doc-name:is(:hover, [data-demo-hover]),
+.e-permits-fo-doc-name:is(:hover, :focus-visible, [data-demo-hover]),
 .e-permits-stack__item.is-clickable[data-dosar-detail-row]:is(:hover, :focus-visible, [data-demo-hover]) .e-permits-stack__title,
 .cab-doc.is-clickable:is(:hover, :focus-visible, [data-demo-hover]) .e-permits-fo-lib-item__title {
   color: var(--color-link-strict-hover, #383838);
   text-decoration: underline;
   text-decoration-thickness: var(--border-width-1, 1px);
   text-underline-offset: var(--spacing-2, 2px);
+}
+
+/* doc-card-hover-v1 (2026-10-25, user: „hover should be on the entire element so it's clear”): the WHOLE card is the
+   target. The name stays the one real button („Deschide <name>”) + the library `.stretched-link` (main.css: `::after`
+   inset 0, z-index 1) → its hit area covers the card, so padding, icon, tags and meta open the viewer too, with no
+   nested interactive markup. Card hover = the Cabinet document card's (grey card → one step darker, tertiary-hover) +
+   the name underline + pointer; keyboard focus on the name = the focus ring on the card. Secondary controls (the
+   file ×, labelled actions) sit above the link (z-index 2) with their own hover and never open the viewer; the
+   card hover follows the NAME's hover, so it goes away while one of them is hovered. The red error card has no name
+   button → never clickable. Truncated meta (file name) keeps its tooltip: js/icon-tooltip.js looks under the link. */
+:is(.e-permits-fo-file-item, .e-permits-fo-mdocs__attachment, .e-permits-fo-confirm-file--doc):has(> .e-permits-fo-lib-item__content .e-permits-fo-doc-name.stretched-link) {
+  cursor: pointer;
+  position: relative;
+  transition: background-color 140ms var(--motion-easing-standard, cubic-bezier(0.4, 0, 0.2, 1));
+}
+
+:is(.e-permits-fo-file-item, .e-permits-fo-mdocs__attachment, .e-permits-fo-confirm-file--doc):has(> .e-permits-fo-lib-item__content .e-permits-fo-doc-name.stretched-link:is(:hover, :focus-visible, [data-demo-hover])) {
+  background: var(--color-background-base-tertiary-hover, #d9d9d9);
+}
+
+:is(.e-permits-fo-file-item, .e-permits-fo-mdocs__attachment, .e-permits-fo-confirm-file--doc):has(> .e-permits-fo-lib-item__content .e-permits-fo-doc-name.stretched-link:focus-visible) {
+  outline: var(--border-width-2, 2px) solid var(--focus-ring, var(--blue-sky-500, #3379db));
+  outline-offset: calc(var(--border-width-2, 2px) * -1);
+}
+
+.e-permits-fo-doc-name.stretched-link:focus-visible {
+  outline: none;
+}
+
+:is(.e-permits-fo-file-item, .e-permits-fo-mdocs__attachment, .e-permits-fo-confirm-file--doc):has(> .e-permits-fo-lib-item__content .e-permits-fo-doc-name.stretched-link) > :is(.e-permits-fo-document-remove, .cab-doc__actions, .btn) {
+  position: relative;
+  z-index: 2;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :is(.e-permits-fo-file-item, .e-permits-fo-mdocs__attachment, .e-permits-fo-confirm-file--doc):has(> .e-permits-fo-lib-item__content .e-permits-fo-doc-name.stretched-link) {
+    transition: none;
+  }
 }
 
 /* title → first tag 8, between tags 4 */
@@ -8909,7 +8990,7 @@ a.e-permits-fo-lib-item__title:is(:hover, :focus) {
   margin-block: calc((var(--line-height-lh-20, 20px) - var(--spacing-32, 32px)) / 2);
 }
 
-:is(.e-permits-fo-file-item, .e-permits-fo-mdocs__attachment, .e-permits-fo-lib-item, .e-permits-fo-confirm-file--doc) > :is(.cab-doc__actions, .btn) {
+:is(.e-permits-fo-file-item, .e-permits-fo-mdocs__attachment, .e-permits-fo-lib-item, .e-permits-fo-confirm-file--doc) > :is(.cab-doc__actions, .btn:not(.e-permits-fo-document-remove)) {
   align-self: center;
   grid-column: 3;
   grid-row: 1 / -1;
@@ -8918,7 +8999,7 @@ a.e-permits-fo-lib-item__title:is(:hover, :focus) {
 /* labelled actions take column 3 on every row on desktop → the meta wraps inside the text column
    (2 / -1 stays for the × / check, which only hold row 1, and for phones, where actions go to row 3) */
 @media (min-width: 721px) {
-  :is(.e-permits-fo-file-item, .e-permits-fo-mdocs__attachment, .e-permits-fo-lib-item, .e-permits-fo-confirm-file--doc):has(> :is(.cab-doc__actions, .btn)) > .e-permits-fo-lib-item__content > .e-permits-fo-doc-meta {
+  :is(.e-permits-fo-file-item, .e-permits-fo-mdocs__attachment, .e-permits-fo-lib-item, .e-permits-fo-confirm-file--doc):has(> :is(.cab-doc__actions, .btn:not(.e-permits-fo-document-remove))) > .e-permits-fo-lib-item__content > .e-permits-fo-doc-meta {
     grid-column: 2;
   }
 }
@@ -8946,15 +9027,15 @@ a.e-permits-fo-lib-item__title:is(:hover, :focus) {
 
   /* labelled actions under the text, in the text column (row gap 4 + 8 = 12); the icon stays centred
      on title + meta */
-  :is(.e-permits-fo-file-item, .e-permits-fo-mdocs__attachment, .e-permits-fo-lib-item, .e-permits-fo-confirm-file--doc):has(> .e-permits-fo-lib-item__content):has(> :is(.cab-doc__actions, .btn)) {
+  :is(.e-permits-fo-file-item, .e-permits-fo-mdocs__attachment, .e-permits-fo-lib-item, .e-permits-fo-confirm-file--doc):has(> .e-permits-fo-lib-item__content):has(> :is(.cab-doc__actions, .btn:not(.e-permits-fo-document-remove))) {
     grid-template-rows: auto auto auto;
   }
 
-  :is(.e-permits-fo-file-item, .e-permits-fo-mdocs__attachment, .e-permits-fo-lib-item, .e-permits-fo-confirm-file--doc):has(> .e-permits-fo-lib-item__content):has(> :is(.cab-doc__actions, .btn)) > :is(.e-permits-fo-lib-item__icon, .e-permits-fo-confirm-file__icon) {
+  :is(.e-permits-fo-file-item, .e-permits-fo-mdocs__attachment, .e-permits-fo-lib-item, .e-permits-fo-confirm-file--doc):has(> .e-permits-fo-lib-item__content):has(> :is(.cab-doc__actions, .btn:not(.e-permits-fo-document-remove))) > :is(.e-permits-fo-lib-item__icon, .e-permits-fo-confirm-file__icon) {
     grid-row: 1 / span 2;
   }
 
-  :is(.e-permits-fo-file-item, .e-permits-fo-mdocs__attachment, .e-permits-fo-lib-item, .e-permits-fo-confirm-file--doc) > :is(.cab-doc__actions, .btn) {
+  :is(.e-permits-fo-file-item, .e-permits-fo-mdocs__attachment, .e-permits-fo-lib-item, .e-permits-fo-confirm-file--doc) > :is(.cab-doc__actions, .btn:not(.e-permits-fo-document-remove)) {
     grid-column: 2 / -1;
     grid-row: 3;
     justify-self: start;
@@ -16670,7 +16751,7 @@ a.e-permits-fo-lib-item__title:is(:hover, :focus) {
 }
 
 @media (max-width: 720px) {
-  .e-permits-fo-lib-item.e-permits-fo-intent-act > :is(.cab-doc__actions, .btn) {
+  .e-permits-fo-lib-item.e-permits-fo-intent-act > :is(.cab-doc__actions, .btn:not(.e-permits-fo-document-remove)) {
     margin-top: var(--spacing-4, 4px);
   }
 }
@@ -25042,8 +25123,9 @@ body:has(:is([aria-haspopup]:not([aria-haspopup="false"]), [role="combobox"], .j
   min-width: 0;
 }
 
-/* the × of the Uploading / Error cards is the library icon-only Strict (32) — it keeps the × place of the shared
-   card (title line on phones), not the labelled-action row the shared ≤ 720 `.btn` rule gives */
+/* the × of every document card (Uploading / Error, and since file-remove-x-v1 the attached file) is the library
+   icon-only Strict (32) — it keeps the × place of the shared card (title line on phones); the labelled-action `.btn`
+   rules skip `.e-permits-fo-document-remove` */
 @media (max-width: 720px) {
   .e-permits-fo-file-item > .btn.e-permits-fo-document-remove {
     grid-column: 3;
@@ -25052,15 +25134,10 @@ body:has(:is([aria-haspopup]:not([aria-haspopup="false"]), [role="combobox"], .j
   }
 }
 
-/* „Înlocuiește” is the card's labelled action (shared placement: column 3 on desktop, under the text on phones) */
-.e-permits-fo-doc-replace {
-  white-space: nowrap;
-}
-
 /* AC-01 · the list did not load: the error notice, then „Reîncercați” under it (the section's own rhythm) */
+/* 16 under the notice = the section's own gap since doc-compact-v1 (was a −16 pull from 32) */
 .e-permits-fo-docs-retry {
   align-self: flex-start;
-  margin-top: calc(var(--spacing-16, 16px) - var(--spacing-32, 32px));
 }
 
 /* AC-06 · the summary at the top of the step is focusable (focus moves there on „Înainte”) — no ring on a message */
@@ -25086,11 +25163,8 @@ body:has(:is([aria-haspopup]:not([aria-haspopup="false"]), [role="combobox"], .j
   display: none;
 }
 
-/* AC-06 · the required error = last in the field, 8 under what is above it (the field stacks at 16; an input's
-   message sits 8 under its control) */
-.e-permits-fo-doc-field > [data-fo-doc-required-error] {
-  margin-top: calc(var(--spacing-8, 8px) - var(--spacing-16, 16px));
-}
+/* AC-06 · the required error = last in the field, 8 under what is above it — the field's own gap since doc-compact-v1
+   (the field stacks at 8, an input's message sits 8 under its control); no extra margin */
 
 /* the picker captions (formats · size) wrap as whole captions, never word by word (phones) */
 .e-permits-fo-doc-modal__drop-captions {

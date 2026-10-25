@@ -15,7 +15,7 @@
   <link rel="stylesheet" href="css/table-pin-shadow.css?v=table-pin-clip-v1">
   <link rel="stylesheet" href="css/facet-filter.css?v=open-chip-pressed-v1">
   <link rel="stylesheet" href="css/drawer.css?v=phone-title-20-v1">
-  <link rel="stylesheet" href="css/e-permits-acte-permisive.css?v=doc-name-open-v1">
+  <link rel="stylesheet" href="css/e-permits-acte-permisive.css?v=doc-card-hover-v2">
   <link rel="stylesheet" href="css/doc-preview.css?v=print-ready-v1">
   <link rel="stylesheet" href="css/page-reveal.css?v=skeleton-v1">
   <link rel="stylesheet" href="msupport/msupport.css?v=20260925-anon">
@@ -44,7 +44,7 @@
   <script src="js/empty-state.js?v=empty-v3"></script>
   <script src="js/trajectory.js?v=trajectory-phone-even-v1"></script>
   <script src="js/event-timeline.js?v=machete-mdocs-v1"></script>
-  <script src="js/demo-states.js?v=doc-name-open-v1"></script>
+  <script src="js/demo-states.js?v=doc-card-hover-v2"></script>
   <script src="js/demo-links.js?v=links-v4"></script>
   <!-- ?flow=ekyc: the eKYC back office on this shell (js/ekyc.js → window.GEAPShellProduct) -->
   <script src="js/ekyc.js?v=audit-fix-v5"></script>
@@ -53,7 +53,7 @@
   <script src="js/modal.js" defer></script>
   <script src="js/toast.js?v=toast-v3" defer></script>
   <script src="js/dropdown-select.js" defer></script>
-  <script src="js/icon-tooltip.js?v=ghiseu-roles-as-fo-v1" defer></script>
+  <script src="js/icon-tooltip.js?v=doc-card-hover-v2" defer></script>
   <script src="js/drawer.js?v=drawer-v1" defer></script>
   <script src="js/name-expand.js?v=header-actions-below-v1" defer></script>
   <script src="js/table-cells.js?v=tooltip-one-v1" defer></script>
@@ -64,12 +64,12 @@
   <script src="js/fo-grid.js?v=doc-upload-v1" defer></script>
   <!-- the act row (FO #intent, Ghișeu, EVO Cabinet) — one renderer, before the FO script that uses it -->
   <script src="js/act-row.js?v=ghiseu-picker-toast-v1" defer></script>
-  <script src="js/e-permits-acte-permisive.js?v=doc-name-open-v1" defer></script>
+  <script src="js/e-permits-acte-permisive.js?v=doc-card-hover-v2" defer></script>
   <!-- Form Builder (after the FO renderer it shares) -->
   <script src="js/form-builder.js?v=destructive-red-v1" defer></script>
   <script src="core/process-model.js?v=pd-bend-v2" defer></script>
   <script src="js/process-designer.js?v=pd-meta-brand-v1" defer></script>
-  <script src="js/ghiseu.js?v=doc-name-open-v1" defer></script>
+  <script src="js/ghiseu.js?v=doc-card-hover-v2" defer></script>
   <script src="js/registre.js?v=my-cases-no-hscroll-v1" defer></script>
   <script src="js/registre-admin.js?v=registre-v2" defer></script>
   <script src="js/doc-preview.js?v=mdocs-system-v1" defer></script>
@@ -1755,7 +1755,7 @@
                   <div class="e-permits-fo-other-docs__body">
                     <div data-fo-other-doc-list></div>
                     <button class="btn btn-secondary btn-md e-permits-fo-add-doc-button" type="button" data-fo-add-other-doc>
-                      <svg class="icon" width="16" height="16" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-plus-small"></use></svg>
+                      <svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-plus-large"></use></svg>
                       Adaugă document
                     </button>
                   </div>
