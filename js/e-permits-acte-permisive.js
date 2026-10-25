@@ -5453,11 +5453,24 @@
       /* machete-mdocs-v1 (2026-10-25, US-311): the certificate = the MDocs standard template in the A4 viewer (canvas filling
          the dialog + the SIA GEAP signature card, as the BO / Cabinet viewers); the previous act (certView) keeps its card */
       const dialog = certModal.querySelector(".modal");
-      const a4 = !certView && Boolean(window.GEAPDocPreview?.mdocsHtml);
+      /* doc-name-open-v1: an attached document (its name on the card) = the same A4 viewer: page + signature card when
+         signed, title = the document type, footer Închide · Descarcă */
+      const docView = certView?.doc || null;
+      const a4 = (!certView || Boolean(docView)) && Boolean(window.GEAPDocPreview?.mdocsHtml);
       dialog?.classList.toggle("modal--md", !a4);
       dialog?.classList.toggle("modal--lg", a4);
       dialog?.classList.toggle("e-permits-detail-modal", a4);
       dialog?.classList.toggle("e-permits-detail-modal--doc", a4);
+      if (a4 && docView) {
+        certModal.querySelector("[data-fo-cert-body]").innerHTML = `
+          <div class="e-permits-doc-peek__canvas e-permits-detail-modal__preview" data-fo-cert-canvas role="document" aria-label="${esc(docView.tip)}">${foDocPageHtml(docView)}</div>
+          ${docView.semnat ? window.GEAPDocPreview.signatureHtml({ by: docView.de || "MSign", at: docView.at || "" }) : ""}`;
+        certModal.querySelector("[data-fo-cert-download] span").textContent = "Descarcă";
+        const canvas = certModal.querySelector("[data-fo-cert-canvas]");
+        window.GEAPDocPreview.paginate(canvas);
+        requestAnimationFrame(() => window.GEAPDocPreview.fit(canvas));
+        return;
+      }
       if (a4) {
         const value = (label) => rows.find((row) => new RegExp(label, "i").test(row.label || ""))?.value || "";
         const service = frontOfficeLastFinishSchema?.service || {};
@@ -5506,7 +5519,18 @@
         document.querySelector("[data-fo-finish-document]")?.focus();
         return;
       }
-      /* the post-process previous act: „Detalii” → the viewer with its „Descarcă” */
+      /* doc-name-open-v1: a document card's name → the viewer (the Ghișeu sheet handles its own and prevents this) */
+      const docOpen = event.target.closest("[data-fo-doc-open]");
+      if (docOpen && certModal && !event.defaultPrevented) {
+        let doc = null;
+        try { doc = JSON.parse(docOpen.dataset.foDocOpen || "null"); } catch { doc = null; }
+        if (!doc) return;
+        certView = { doc, modalTitle: doc.tip, file: String(doc.fisier || doc.tip || "document").replace(/\.[a-z0-9]+$/i, "") };
+        renderCertificateModal(false);
+        window.__modal?.open?.("#fo-certificate-modal");
+        return;
+      }
+      /* the post-process previous act: its name → the viewer with its „Descarcă” */
       const prevActOpen = event.target.closest("[data-fo-pp-prev-act-open]");
       if (prevActOpen && certModal && frontOfficePostprocess) {
         const { act, service } = frontOfficePostprocess;
@@ -6107,14 +6131,14 @@
       if (!panel || !ctx) return;
       const { act, pp, service } = ctx;
       const esc = escapeFrontOfficeHtml;
-      /* the previous act = the shared FO document card (MDocs, blue icon) + „👁 Detalii” → the document viewer
-         (#fo-certificate-modal) with „Descarcă”; no download on the card (user 2026-10-20) */
+      /* the previous act = the shared FO document card (MDocs, blue icon); its NAME opens the document viewer
+         (#fo-certificate-modal) with „Descarcă” (doc-name-open-v1 — the lone „👁 Detalii” did the same and is gone);
+         no download on the card (user 2026-10-20) */
       const prevActDoc = postprocessPrevActDoc(ctx);
       const prevAct = `
         <div class="e-permits-fo-mdocs__attachment" data-fo-pp-prev-act data-fo-doc="${esc(JSON.stringify(prevActDoc))}">
           ${foDocIconHtml(prevActDoc)}
-          ${foDocContentHtml(prevActDoc)}
-          <button class="btn btn-neutral btn-sm" type="button" aria-haspopup="dialog" aria-label="Detalii: ${esc(prevActDoc.tip)}" data-fo-pp-prev-act-open><svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-eye-open"></use></svg><span>Detalii</span></button>
+          ${foDocContentHtml(prevActDoc, { openAttrs: "data-fo-pp-prev-act-open" })}
         </div>`;
       const extra = {
         reperfectare: { id: "pp-change-docs", label: "Documentele care confirmă modificările intervenite", description: "Documentele sau copiile acestora, cu prezentarea ulterioară a originalelor pentru verificare.", required: true },
@@ -7312,14 +7336,48 @@
     function foDocMetaHtml(lines) {
       return lines.length ? `<div class="e-permits-fo-lib-item__meta e-permits-fo-doc-meta">${lines.map((line) => `<span class="e-permits-fo-doc-meta__line">${line.join("")}</span>`).join("")}</div>` : "";
     }
-    /* the content block (title row + meta) — inside any FO document card */
-    function foDocContentHtml(doc, { titleClass = "" } = {}) {
+    /* the content block (title row + meta) — inside any FO document card.
+       doc-name-open-v1 (2026-10-25, user on GEAP 2.0 11818:21893 „cum descarcăm / previzualizăm documentele?”): on a card
+       that is not itself clickable (field values with ×, Verificare) the NAME is the way into the document viewer — a real
+       button „Deschide <name>” (library strict-link hover: underline + strict-hover colour; focus ring). `open: true` =
+       the FO viewer (`data-fo-doc-open` carries the shape; the Ghișeu sheet opens its own); `openAttrs` = a caller's own
+       trigger (Ghișeu paper / signed request, post-process previous act). Never inside a picker option (a button). */
+    function foDocNameHtml(doc, { titleClass = "", open = false, openAttrs = "" } = {}) {
+      const esc = escapeFrontOfficeHtml;
+      const cls = `e-permits-fo-lib-item__title${titleClass ? ` ${titleClass}` : ""}`;
+      if (!open && !openAttrs) return `<span class="${cls}" data-cell-tooltip>${esc(doc.tip)}</span>`;
+      const attrs = openAttrs || `data-fo-doc-open="${esc(JSON.stringify(doc))}"`;
+      return `<button class="link link-strict link-sm link-no-underline ${cls} e-permits-fo-doc-name" type="button" aria-haspopup="dialog" aria-label="Deschide ${esc(doc.tip)}" data-cell-tooltip ${attrs}>${esc(doc.tip)}</button>`;
+    }
+    /* doc-name-open-v1: the A4 page of an attached document in the viewer (FO #fo-certificate-modal, Ghișeu
+       #dosar-detail-modal) — the document page of the shared preview (js/doc-preview.js: paginate / fit); the file itself
+       is not in the prototype, so the page shows the type and what is known about the file */
+    function foDocPageHtml(doc) {
+      const esc = escapeFrontOfficeHtml;
+      const verb = doc.verb || (doc.sursa === "mdocs" ? "Emis" : doc.sursa === "generat" ? "Generat" : "Încărcat");
+      const source = doc.sursa === "mdocs" ? "MDocs" : doc.sursa === "generat" ? "SIA GEAP" : "Încărcat de pe dispozitiv";
+      const lead = doc.sursa === "upload" ? "Copia documentului, încărcată de pe dispozitiv"
+        : doc.sursa === "mdocs" ? `Document emis${doc.de ? ` de ${doc.de}` : ""}, preluat din MDocs` : "Document generat de SIA GEAP";
+      const rows = [["Număr", doc.nr], ["Fișier", doc.fisier], ["Dimensiune", doc.size], [`${verb} la`, doc.at], [doc.sursa === "upload" ? "Încărcat de" : "Emitent", doc.de]]
+        .filter(([, value]) => value)
+        .map(([label, value]) => `<tr><td>${esc(label)}</td><td>${esc(value)}</td></tr>`).join("");
+      return `
+        <div class="e-permits-dtpl__page e-permits-doc-peek__page e-permits-doc-page" data-doc-cont="${esc(doc.tip)} · continuare">
+          <div class="e-permits-dtpl__surface e-permits-doc-page__surface">
+            <h1>${esc(doc.tip)}</h1>
+            <p>${esc(lead)}</p>
+            <table><colgroup><col class="e-permits-doc-page__label-col"><col></colgroup><tbody>${rows}</tbody></table>
+            <p class="e-permits-doc-page__footer">${esc(source)} · <span data-doc-page-label>Pagina 1 din 1</span></p>
+          </div>
+        </div>`;
+    }
+    function foDocContentHtml(doc, { titleClass = "", open = false, openAttrs = "" } = {}) {
       const esc = escapeFrontOfficeHtml;
       const lines = foDocMetaLines(doc);
       return `
         <div class="e-permits-fo-lib-item__content">
           <div class="e-permits-fo-lib-item__title-row e-permits-fo-doc-title-row">
-            <span class="e-permits-fo-lib-item__title${titleClass ? ` ${titleClass}` : ""}" data-cell-tooltip>${esc(doc.tip)}</span>
+            ${foDocNameHtml(doc, { titleClass, open, openAttrs })}
             <span class="status-tag status-tag--neutral is-subtle status-tag--small e-permits-fo-doc-tag">${esc(foDocSource(doc).tag)}</span>
             ${doc.semnat ? FO_DOC_SIGNED_TAG : ""}
             ${doc.badge ? `<span class="e-permits-fo-lib-item__badge">${esc(doc.badge)}</span>` : ""}
@@ -7351,7 +7409,7 @@
         if (!doc) return "";
         const type = foDocFieldTitle(el);
         const shown = type && type !== doc.tip ? { ...doc, tip: type, fisier: doc.fisier || doc.tip } : doc;
-        return `<div class="e-permits-fo-confirm-file e-permits-fo-confirm-file--doc e-permits-fo-confirm-file--${shown.sursa === "upload" ? "uploaded" : "system"}">${foDocIconHtml(shown, "e-permits-fo-confirm-file__icon")}${foDocContentHtml(shown)}</div>`;
+        return `<div class="e-permits-fo-confirm-file e-permits-fo-confirm-file--doc e-permits-fo-confirm-file--${shown.sursa === "upload" ? "uploaded" : "system"}">${foDocIconHtml(shown, "e-permits-fo-confirm-file__icon")}${foDocContentHtml(shown, { open: true })}</div>`;
       }).join("");
     }
     function foDocDataOf(el) {
@@ -7540,7 +7598,7 @@
       item.dataset.foDoc = JSON.stringify(doc);
       item.innerHTML = `
         ${foDocIconHtml(doc)}
-        ${foDocContentHtml({ ...doc, fisier: doc.tip === fileName ? "" : fileName })}
+        ${foDocContentHtml({ ...doc, fisier: doc.tip === fileName ? "" : fileName }, { open: true })}
         ${docField?.hasAttribute("data-fo-doc-replace") && max === 1 ? foDocReplaceButtonHtml(docField) : `<button class="e-permits-fo-document-remove e-permits-fo-doc-attached-item__remove" type="button" aria-label="Elimină ${escapeFrontOfficeHtml(fileName)}">
           <svg class="icon" width="16" height="16" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-cross-large-16"></use></svg>
         </button>`}`;
@@ -7564,7 +7622,7 @@
       att.dataset.foDoc = JSON.stringify(doc);
       att.innerHTML = `
         ${foDocIconHtml(doc)}
-        ${foDocContentHtml(doc, { titleClass: "e-permits-fo-mdocs__attachment-title" })}
+        ${foDocContentHtml(doc, { titleClass: "e-permits-fo-mdocs__attachment-title", open: true })}
         ${docField?.hasAttribute("data-fo-doc-replace") && single ? foDocReplaceButtonHtml(docField) : `<button class="e-permits-fo-document-remove e-permits-fo-mdocs__attachment-remove" type="button" aria-label="Elimină ${escapeFrontOfficeHtml(doc.tip)}">
           <svg class="icon" width="16" height="16" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-cross-large-16"></use></svg>
         </button>`}`;
@@ -9218,7 +9276,7 @@
           const doc = { sursa: "mdocs", tip: title, verb: "Emis", at: foDocLongDate(issuedLabel.replace(/^Emis\s+/i, "")), de: issuer, semnat: true, badge: "Activă" };
           attachment.dataset.foDoc = JSON.stringify(doc);
           attachment.querySelectorAll(":scope > :not([data-fo-mdocs-remove])").forEach((el) => el.remove());
-          removeButton?.insertAdjacentHTML("beforebegin", `${foDocIconHtml(doc)}${foDocContentHtml(doc, { titleClass: "e-permits-fo-mdocs__attachment-title" })}`);
+          removeButton?.insertAdjacentHTML("beforebegin", `${foDocIconHtml(doc)}${foDocContentHtml(doc, { titleClass: "e-permits-fo-mdocs__attachment-title", open: true })}`);
           button.hidden = true;
           setDropdownHidden(menu, true);
           attachment.hidden = false;
@@ -9762,6 +9820,7 @@
       readonlyFieldHtml,
       renderDeliveryStep,
       docContentHtml: foDocContentHtml,
+      docPageHtml: foDocPageHtml,
       summaryDocsHtml: foSummaryDocsHtml,
       attachFileItem: foDocAttachFileItem,
       attachMdocsItem: foDocAttachMdocsItem,

@@ -152,18 +152,6 @@
   padding-inline: var(--spacing-12, 12px);
 }
 
-.e-permits-gh .e-permits-gh__doc {
-  align-items: center;
-}
-
-.e-permits-gh__doc-actions {
-  align-items: center;
-  display: flex;
-  flex: 0 0 auto;
-  gap: var(--spacing-8, 8px);
-  margin-left: auto;
-}
-
 .e-permits-gh__sign,
 .e-permits-gh__retry {
   align-items: center;

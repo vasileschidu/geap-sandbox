@@ -8862,6 +8862,32 @@ a.e-permits-fo-lib-item__title:is(:hover, :focus) {
   flex: none;
 }
 
+/* doc-name-open-v1 (2026-10-25, GEAP 2.0 11818:21893): the document NAME opens the document viewer. On a card that is not
+   itself clickable (field values with ×, Verificare, previous act) the name is a real button with the library Link classes
+   (`.link.link-strict.link-sm.link-no-underline`: strict-hover colour, the library focus outline) + the card title type
+   (14/20 medium, one line + ellipsis → `display: block`, the Link's inline-flex would drop the ellipsis); hover / demo =
+   underline. Cards / rows that ARE the control (Cabinet `.cab-doc.is-clickable`, BO dossier rows) underline their name
+   while hovered / focused — same cue, the row stays the one control. `[data-demo-hover]` = the hover look for a demo. */
+.e-permits-fo-doc-name {
+  appearance: none;
+  background: none;
+  border: 0;
+  border-radius: var(--border-radius-4, 4px);
+  display: block;
+  font-family: inherit;
+  padding: 0;
+  text-align: start;
+}
+
+.e-permits-fo-doc-name:is(:hover, [data-demo-hover]),
+.e-permits-stack__item.is-clickable[data-dosar-detail-row]:is(:hover, :focus-visible, [data-demo-hover]) .e-permits-stack__title,
+.cab-doc.is-clickable:is(:hover, :focus-visible, [data-demo-hover]) .e-permits-fo-lib-item__title {
+  color: var(--color-link-strict-hover, #383838);
+  text-decoration: underline;
+  text-decoration-thickness: var(--border-width-1, 1px);
+  text-underline-offset: var(--spacing-2, 2px);
+}
+
 /* title → first tag 8, between tags 4 */
 .e-permits-fo-doc-title-row > :not(.e-permits-fo-lib-item__title) + :not(.e-permits-fo-lib-item__title) {
   margin-left: calc(var(--spacing-4, 4px) - var(--spacing-8, 8px));

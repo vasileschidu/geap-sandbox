@@ -2059,13 +2059,13 @@
   const addressText = (a) => [a?.street && a?.house ? `${a.street} ${a.house}` : a?.street, a?.locality, a?.district, a?.postalCode].filter(Boolean).join(", ");
   const paperDoc = (d) => ({ sursa: "generat", tip: "Cererea pe hârtie", nr: d.nr, fisier: `cerere-${d.nr}.pdf`, size: "184 KB", at: stamp(d.review.paper.at), verb: "Generat", de: "MDocs" });
   const signedDoc = (d) => ({ sursa: "generat", tip: "Cererea semnată MSign", nr: d.nr, fisier: `cerere-${d.nr}.json`, size: "6 KB", at: stamp(d.review.signed.at), verb: "Semnat", de: d.review.signed.by, semnat: true });
-  const docCard = (doc, actions = "") => `
-    <div class="e-permits-fo-confirm-file e-permits-fo-confirm-file--doc e-permits-fo-confirm-file--${doc.sursa === "upload" ? "uploaded" : "system"}${actions ? " e-permits-gh__doc" : ""}">
+  /* doc-name-open-v1 (2026-10-25, GEAP 2.0 11818:21893): the document NAME opens the viewer (`openAttrs` = the
+     desk's own preview, else the attached document's shape → `data-fo-doc-open`); the lone „👁 Detalii” is gone */
+  const docCard = (doc, openAttrs = "") => `
+    <div class="e-permits-fo-confirm-file e-permits-fo-confirm-file--doc e-permits-fo-confirm-file--${doc.sursa === "upload" ? "uploaded" : "system"}">
       ${R().docIconHtml?.(doc, "e-permits-fo-confirm-file__icon") || ""}
-      ${R().docContentHtml?.(doc) || esc(doc.tip)}
-      ${actions ? `<div class="e-permits-gh__doc-actions cab-doc__actions">${actions}</div>` : ""}
+      ${R().docContentHtml?.(doc, openAttrs ? { openAttrs } : { open: true }) || esc(doc.tip)}
     </div>`;
-  const detailsBtn = (attrs, label) => `<button class="btn btn-neutral btn-sm" type="button" aria-label="Detalii: ${esc(label)}" ${attrs}>${icon("eye-open", 20, "icon small")}<span>Detalii</span></button>`;
   function reviewSummaryHtml(d, moreHtml = "") {
     const svc = serviceOf(d.service);
     const authority = A().getAuthorityById?.(svc?.authorityId)?.name || "Agenția Națională pentru Sănătate Publică";
@@ -2121,7 +2121,7 @@
       voided.includes("olograf") ? U().renderNotice?.("warning", "Cererea semnată olograf a fost anulată. Atașați din nou cererea semnată olograf pentru a continua.") : ""
     ].filter(Boolean).join("");
     const paper = d.review.paper
-      ? docCard(paperDoc(d), detailsBtn("data-gh-preview=\"paper\"", "Cererea pe hârtie"))
+      ? docCard(paperDoc(d), 'data-gh-preview="paper"')
       : S.notice === "mdocs-error"
       ? `<div class="e-permits-gh__retry">${U().renderNotice?.("error", "<strong>Nu s-a putut genera formularul.</strong> MDocs nu a răspuns; datele cererii nu s-au pierdut.", { role: "alert" })}<button class="btn btn-strict btn-sm" type="button" data-gh-paper>${icon("rotate-arrow", 20, "icon small")}<span>Reîncercați</span></button></div>`
       : `<div class="e-permits-fo-doc-field">
@@ -2149,7 +2149,7 @@
         ${docErrSlot("olograf", { inField: false })}
       </div>` : "";
     const sign = st.msign ? (d.review.signed
-      ? `${U().renderNotice?.("success", "Cererea a fost semnată.") || ""}${docCard(signedDoc(d), `${detailsBtn("data-gh-preview=\"signed\"", "Cererea semnată MSign")}`)}`
+      ? `${U().renderNotice?.("success", "Cererea a fost semnată.") || ""}${docCard(signedDoc(d), 'data-gh-preview="signed"')}`
       : `${S.notice === "msign-error" ? `${U().renderNotice?.("error", "<strong>MSign nu răspunde acum.</strong> Cererea nu a fost semnată, datele ei rămân neschimbate.", { role: "alert" }) || ""}` : S.notice === "msign-cancel" ? U().renderNotice?.("warning", "Semnarea a fost anulată în MSign: cererea rămâne nesemnată.") || "" : ""}
         <div class="e-permits-gh__sign">
           <p class="e-permits-fo-doc-field__desc">Semnați cererea validată cu semnătura dvs., în numele solicitantului. MSign semnează documentul cererii în format JSON.</p>
@@ -2659,6 +2659,14 @@
       return;
     }
     if (t.closest("[data-gh-paper]")) { generatePaper(); return; }
+    /* doc-name-open-v1: an attached document's name → the desk's document viewer (the FO one stays out) */
+    const docOpen = t.closest("[data-fo-doc-open]");
+    if (docOpen) {
+      event.preventDefault();
+      try { S.docView = JSON.parse(docOpen.dataset.foDocOpen || "null"); } catch { S.docView = null; }
+      if (S.docView) openPreview("doc", docOpen);
+      return;
+    }
     const preview = t.closest("[data-gh-preview]");
     if (preview) { openPreview(preview.dataset.ghPreview, preview); return; }
     const dl = t.closest("[data-gh-download]");
@@ -3004,6 +3012,8 @@
         footer: `Semnat electronic prin MSign · ${d.nr}`
       });
     }
+    /* doc-name-open-v1: an attached document (its name on the card) = the shared FO document page */
+    if (kind === "doc") return R().docPageHtml?.(S.docView || {}) || "";
     /* machete-mdocs-v1 (2026-10-25, US-311): the certificate = the MDocs standard template */
     if (window.GEAPDocPreview?.mdocsHtml) {
       return window.GEAPDocPreview.mdocsHtml({
@@ -3027,7 +3037,9 @@
     paper: ["Cererea pe hârtie", `Generată prin MDocs · ${stamp(d.review.paper?.at)}`],
     /* doc-viewer-v1: who signed + when live in the signature tray under the page, not in the subtitle */
     signed: ["Cererea semnată MSign", "Documentul cererii în format JSON"],
-    cert: ["Certificatul constatator", "Generat de SIA GEAP la depunere"]
+    cert: ["Certificatul constatator", "Generat de SIA GEAP la depunere"],
+    /* doc-name-open-v1: title = the document type, subtitle = how it came + when (no numbers in the header) */
+    doc: [S.docView?.tip || "Document", [S.docView?.sursa === "mdocs" ? "Din MDocs" : S.docView?.sursa === "generat" ? "Generat" : "Încărcat la ghișeu", S.docView?.at].filter(Boolean).join(" · ")]
   });
   const previewModal = () => document.querySelector("#dosar-detail-modal");
   /* doc-viewer-v1 (2026-10-21, GEAP 2.0 11366:6892): generated documents = the page + ONE signature tray under it
@@ -3035,7 +3047,8 @@
   const previewSignature = (kind) => {
     const d = S.cur;
     const sig = kind === "cert" ? { by: "SIA GEAP", at: stamp(d.submittedAt) }
-      : kind === "signed" && d.review.signed ? { by: d.review.signed.by, at: stamp(d.review.signed.at) } : null;
+      : kind === "signed" && d.review.signed ? { by: d.review.signed.by, at: stamp(d.review.signed.at) }
+      : kind === "doc" && S.docView?.semnat ? { by: S.docView.de || "MSign", at: S.docView.at || "" } : null;
     return sig ? window.GEAPDocPreview?.signatureHtml(sig) || "" : "";
   };
   /* view = loading | error | ready */
@@ -3093,7 +3106,7 @@
   function download(kind) {
     const d = S.cur;
     if (!d) return;
-    const names = { paper: `cerere-${d.nr}.pdf`, signed: `cerere-${d.nr}.json`, cert: `certificat-constatator-${d.nr}.pdf`, note: `nota-de-plata-${d.payment?.nr}.pdf` };
+    const names = { paper: `cerere-${d.nr}.pdf`, signed: `cerere-${d.nr}.json`, cert: `certificat-constatator-${d.nr}.pdf`, note: `nota-de-plata-${d.payment?.nr}.pdf`, doc: S.docView?.fisier || "document.pdf" };
     const text = kind === "signed"
       ? JSON.stringify({ numarCerere: d.nr, uid: d.uid, serviciu: d.service, tipSolicitare: d.requestType, canal: "Ghișeu", solicitant: holderCode(d), semnatura: { semnatar: d.review.signed?.by, data: d.review.signed?.at, valida: true } }, null, 2)
       : kind === "note"

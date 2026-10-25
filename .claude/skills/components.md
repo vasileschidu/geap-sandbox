@@ -253,6 +253,7 @@ but this doc previously described it wrongly, see the entry.
 | **Section header with an action — one pattern** (BO) | `.e-permits-dosar-profil__section-heading` > `h2.e-permits-dosar-profil__section-title` + `.e-permits-passport__heading-tools` (meta? + `btn-secondary btn-sm` / stack-menu button / `segmented-control`) — never a bare button in the heading | `renderStackedList(title, groups, { meta, actionHtml })` (svc-02 „Tipuri solicitări”); section „Section header with an action — one pattern” | app |
 | Service passport | registry `kind: services` + `.permits-profile` passport | `?flow=back-office#serviciu/003000023/general` | app |
 | **Document row — one pattern everywhere** (BO dossier: însoțitoare, Documente generate, Act/Decizie; FO picker / field values / Verificare / post-process act; Cabinet dossier + catalog) | one data shape `{ sursa: upload\|mdocs\|generat, tip, nr, fisier, size/kb, verb, at, de, semnat, tags }` · icon by source (grey `document-uploaded.svg` / blue `document-generated.svg`) · title = type + source tag + blue „✍ Semnat electronic” badge (`icon-signature`) · meta number · file · size · „<Verb> <date, time>” · „de …” · „semnat de …” · „👁 Detalii” (no download and no ⋮ on the row, 2026-10-20) → document modal with the A4 page preview + footer „Descarcă” · card = icon centred · title (1 line) + tags right after it / meta 12 stack-meta (2px dots) under the title · one surface secondary grey r12 pad 12 | BO `renderDosarDocItem` / `openDosarDetail(kind, id)`; FO `foDocIconHtml` / `foDocContentHtml` / `foSummaryDocsHtml`; Cabinet `CabEvo.docRowHtml` / `openDocModal`; section „Documents — one pattern everywhere” | app |
+| Document name = the way into the viewer (doc-name-open-v1, 2026-10-25, GEAP 2.0 11818:21893) | not-clickable cards (field values with ×, Verificare, previous act): `button.link.link-strict.link-sm.link-no-underline.e-permits-fo-lib-item__title.e-permits-fo-doc-name[aria-haspopup=dialog][aria-label="Deschide <name>"]` (library Link + card-title type, hover = underline, `[data-demo-hover]`) → FO `#fo-certificate-modal` / Ghișeu `#dosar-detail-modal` viewer with „Descarcă”; no lone „Detalii” beside it. Clickable cards / rows (Cabinet `.cab-doc.is-clickable`, BO `[data-dosar-detail-row]`): the name underlines on row hover / focus | `foDocContentHtml(doc, { open \| openAttrs })`, `foDocNameHtml`, `GEAPFormRender.docPageHtml`; Ghișeu `openPreview("doc")`; section „Document name opens the viewer”; demo gh-06h / 06i / 06j, fo-04f1 / 04f2, pp-10c1, dos-04g1, sm-05e1 | app |
 | Certificate card on the finish step (FO Finalizare + Ghișeu Confirmare) + its Error state | `foFinishDocHtml` → `.e-permits-fo-mdocs__attachment.e-permits-fo-finish-doc-card` (shared document card, blue generated icon, title + „Generat”, `__note` 12/20, `btn-neutral btn-sm` „Vezi documentul”); `.is-error` = 1.5 danger inset stroke + danger note „Nu a putut fi generat.” + `btn-outline-strict btn-sm` „Reîncercați” (rotate arrow, aria-label + aria-describedby) | § „Certificate card (finish step)”; demo fo-08, fo-08a, fo-08a1, gh-10a, gh-10c, gh-10c1 | app |
 | Dosar › Acte necesare (applicant's documents) + document modal with page preview | `renderStackedList` groups Obligatorii / Opționale · `li.e-permits-stack__item.has-lead.is-clickable[data-dosar-detail-row="insotitoare\|fN"]` (lead `img.e-permits-fo-lib-item__icon` grey uploaded / blue MDocs · title · `MDocs`/`Încărcat` tag · meta) · no button: the row is the control (no-lone-detalii-v1, `rowOpens`; ⋮ Descarcă gone 2026-10-20); modal `#dosar-detail-modal` + `.e-permits-doc-peek__canvas.e-permits-detail-modal__preview > .e-permits-dtpl__page.e-permits-doc-peek__page` | `renderDosarInsotitoare`, `openDosarDetail("insotitoare", id)`, `renderDosarDocPreview`, `fitDosarDocPreview`; section „Dosar › Acte necesare” | app |
 | Sum list (list + total tray) | `.e-permits-sum-list` > list + `.e-permits-sum-list__total`; JS `renderSumList(listHtml, total)` | Figma 9721:9920 | app |
@@ -10128,6 +10129,31 @@ plată), `dos-04q` (row click → modal), `dos-04r` (draft act, `Proiect`), `dos
 (uploaded field value), `fo-08` / `fo-g7d` (Finalizare certificate), `fo-05d` / `fo-g7b`
 (Verificare), `pp-10c` / `pp-10c1` / `pp-10d` (previous act, its viewer, summary), `sm-05e…05h` (Cabinet list, modal, card click → modal),
 `cat-02` (Documente necesare).
+
+### Document name opens the viewer (doc-name-open-v1, 2026-10-25)
+
+User (GEAP 2.0 11818:21893, Ghișeu „Acte necesare”, Alexandr: „cum descarcăm / previzualizăm documentele?”): the document's
+NAME underlines on hover so it reads as the way into the document; the viewer has „Descarcă” in its footer (no row download).
+
+- **Card that is not itself clickable** (field values with ×, Verificare lists, post-process previous act): the title is
+  `button.link.link-strict.link-sm.link-no-underline.e-permits-fo-lib-item__title.e-permits-fo-doc-name[aria-haspopup=dialog]
+  [aria-label="Deschide <name>"][data-cell-tooltip]` — the library Link (strict-hover colour, its focus outline) with the
+  card-title type (14/20 medium, one line + ellipsis: `display: block`); hover (and `[data-demo-hover]`) = underline 1 px,
+  offset 2. Renderer: `foDocContentHtml(doc, { open: true })` (→ `data-fo-doc-open` = the doc shape) or `{ openAttrs }` (a
+  caller's own trigger: Ghișeu `data-gh-preview="paper|signed"`, FO `data-fo-pp-prev-act-open`); `foDocNameHtml`.
+  Never inside a picker option (the option is a button) — picker, upload preview and the „Document din MDocs” listbox
+  options keep the span.
+- **Viewer:** FO = `#fo-certificate-modal` in A4 mode (`certView = { doc }`: title = type, canvas with
+  `GEAPFormRender.docPageHtml(doc)`, signature card when `doc.semnat`, footer Închide · Descarcă). Ghișeu = its own
+  `#dosar-detail-modal` preview (`openPreview("doc")`, `S.docView`; subtitle „Încărcat la ghișeu / Din MDocs · <date>”,
+  footer Descarcă) — the sheet's click handler calls `preventDefault`, the FO handler skips prevented clicks.
+- **No lone „👁 Detalii”** next to a name that opens the same viewer: removed from the Ghișeu Verificare paper / signed
+  request cards and the FO previous-act card.
+- **Card / row that IS the control** (Cabinet `.cab-doc.is-clickable`, BO dossier `[data-dosar-detail-row]` rows): the
+  name underlines (same colour + line) while the row is hovered / focus-visible; no nested button (the row stays the one
+  control). The finish-step certificate keeps its labelled „Vezi documentul” (US-18 AC-07).
+- Demo: `gh-06h` (hovered), `gh-06i` (uploaded → viewer), `gh-06j` (MDocs signed → viewer + signature card), `fo-04f1` /
+  `fo-04f2` (FO), `pp-10c1` (previous act), `dos-04g1` (BO row), `sm-05e1` (Cabinet card).
 
 ### Document preview — one A4 viewer (2026-10-17)
 

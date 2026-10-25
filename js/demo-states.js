@@ -1149,6 +1149,8 @@
        details; „Descarcă” only in its footer — no ⋮ on document rows since 2026-10-20); the row click → the same
        modal; a first issue (Eliberare) dossier; the empty state (&documente=0) */
     "dos-04g": dos(SPEC, "inExaminare", "solicitare", {}, async (h) => { await h.scroll(".e-permits-stack-section"); }),
+    /* doc-name-open-v1: a hovered document row underlines its name (the row stays the one control) */
+    "dos-04g1": dos(SPEC, "inExaminare", "solicitare", {}, async (h) => { await h.scroll(".e-permits-stack-section"); (await h.find("[data-dosar-detail-row]")).setAttribute("data-demo-hover", ""); }),
     "dos-04h": dos(SPEC, "inExaminare", "solicitare", {}, async (h) => { await docEye("Declarație")(h); }),
     "dos-04i": dos(SPEC, "inExaminare", "solicitare", {}, async (h) => { await docEye("Actul permisiv emis anterior")(h); }),
     "dos-04j": dos(SPEC, "inExaminare", "solicitare", {}, async (h) => { await docRow("Declarație", "insotitoare")(h); }),
@@ -1456,6 +1458,9 @@
     "fo-04d": foReq(3, {}, async (h) => { await h.click("[data-fo-step-panel='3'] [data-fo-open-doc-modal]"); await h.wait(400); }),
     "fo-04e": foReq(3, {}, async (h) => { await h.click("[data-fo-step-panel='3'] [data-fo-open-doc-modal]"); await h.wait(300); await h.click("[data-fo-doc-modal-list] .e-permits-fo-lib-item"); }),
     "fo-04f": foReq(3, {}, async (h) => { await h.click("[data-fo-step-panel='3'] [data-fo-open-doc-modal]"); await h.wait(300); await h.click("[data-fo-doc-modal-list] .e-permits-fo-lib-item"); await h.click("[data-fo-doc-modal-submit]"); await h.wait(300); }),
+    /* doc-name-open-v1: the attached document's NAME (hover = underline, fo-04f1) opens the FO document viewer (fo-04f2) */
+    "fo-04f1": foReq(3, {}, async (h) => { await h.click("[data-fo-step-panel='3'] [data-fo-open-doc-modal]"); await h.wait(300); await h.click("[data-fo-doc-modal-list] .e-permits-fo-lib-item"); await h.click("[data-fo-doc-modal-submit]"); await h.wait(300); (await h.find("[data-fo-step-panel='3'] .e-permits-fo-doc-name")).setAttribute("data-demo-hover", ""); }),
+    "fo-04f2": foReq(3, {}, async (h) => { await h.click("[data-fo-step-panel='3'] [data-fo-open-doc-modal]"); await h.wait(300); await h.click("[data-fo-doc-modal-list] .e-permits-fo-lib-item"); await h.click("[data-fo-doc-modal-submit]"); await h.wait(300); await h.click("[data-fo-step-panel='3'] .e-permits-fo-doc-name"); await h.find("#fo-certificate-modal.is-active [data-fo-cert-canvas]"); }),
     /* Acte necesare with both document kinds side by side: MDocs (blue) in the first field, an uploaded PDF (grey) in the second — one card surface (2026-10-15) */
     "fo-04g": foReq(3, {}, async (h) => {
       await h.click("[data-fo-step-panel='3'] [data-fo-open-doc-modal]"); await h.wait(300); await h.click("[data-fo-doc-modal-list] .e-permits-fo-lib-item"); await h.click("[data-fo-doc-modal-submit]"); await h.wait(300);
@@ -2716,6 +2721,8 @@
        sm-05h = the keyboard: the focused card + Enter / Space) */
     /* US-161 tabs (2026-10-17): documents live in „Date solicitare” */
     "sm-05e": smDosar("d-izvoras", async (h) => { await h.click('[data-sm-tab="solicitare"]'); await h.scroll(".cab-docs"); }),
+    /* doc-name-open-v1: a hovered document card underlines its name (the card stays the one control) */
+    "sm-05e1": smDosar("d-izvoras", async (h) => { await h.click('[data-sm-tab="solicitare"]'); await h.scroll(".cab-docs"); document.querySelector(".cab-doc[data-cab-doc]").setAttribute("data-demo-hover", ""); }),
     "sm-05f": smDosar("d-izvoras", async (h) => { await h.click('[data-sm-tab="solicitare"]'); await h.scroll(".cab-docs"); const card = document.querySelector(".cab-doc[data-cab-doc]"); card.focus(); card.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true, cancelable: true })); }),
     "sm-05g": smDosar("d-izvoras", async (h) => { await h.click('[data-sm-tab="solicitare"]'); await h.scroll(".cab-docs"); await h.click(".cab-doc:nth-child(2)"); }),
     "sm-05h": smDosar("d-izvoras", async (h) => { await h.click('[data-sm-tab="solicitare"]'); await h.scroll(".cab-docs"); const card = document.querySelector(".cab-doc:nth-child(2)"); card.focus(); card.dispatchEvent(new KeyboardEvent("keydown", { key: " ", bubbles: true, cancelable: true })); }),
@@ -2974,8 +2981,8 @@
     "pp-10a": ppFo("reperfectare", "act-izvoras", 2),
     "pp-10b": ppFo("reperfectare", "act-izvoras", 2, async (h) => { await ppReason("Alte")(h); await h.click("[data-fo-step-panel='2'] [data-fo-next]"); }),
     "pp-10c": ppFo("reperfectare", "act-izvoras", 3),
-    /* 2026-10-20: the previous act card has „👁 Detalii” (no download on the card) → the FO document viewer
-       (#fo-certificate-modal) with „Descarcă” */
+    /* 2026-10-20: the previous act opens the FO document viewer (#fo-certificate-modal) with „Descarcă”; since
+       doc-name-open-v1 the trigger is the card's NAME (the lone „👁 Detalii” is gone) */
     "pp-10c1": ppFo("reperfectare", "act-izvoras", 3, async (h) => { await h.click("[data-fo-pp-prev-act-open]"); await h.wait(400); }),
     "pp-10d": ppFo("reperfectare", "act-izvoras", 4),
     "pp-10e": ppFo("reperfectare", "act-izvoras", 5),
@@ -3750,6 +3757,12 @@
       "gh-05d": gh("#ghiseu/gh-4812/detalii", seq(async (h) => { await h.click("#fo-gh-term"); await h.click("#fo-gh-term-list .e-permits-fo-select__option", "urgență"); await h.click('[data-gh-reduction="imm"]'); })),
       /* US-20 Documente însoțitoare */
       "gh-06": gh("#ghiseu/gh-4790/documente"),
+      /* doc-name-open-v1 (GEAP 2.0 11818:21893 „cum descarcăm / previzualizăm documentele?”): the document NAME is the way
+         into the viewer — hovered = underlined (gh-06h); a click on an uploaded one (gh-06i) / the signed MDocs extract
+         (gh-06j, + signature card) opens the desk's document viewer with „Descarcă” */
+      "gh-06h": gh("#ghiseu/gh-4790/documente", async (h) => { (await h.find("#gh-request-modal [data-gh-doc] .e-permits-fo-doc-name")).setAttribute("data-demo-hover", ""); await h.wait(200); }),
+      "gh-06i": gh("#ghiseu/gh-4790/documente", async (h) => { await h.click("#gh-request-modal [data-gh-doc] .e-permits-fo-doc-name"); await h.find("#dosar-detail-modal.is-active [data-dosar-doc-canvas]"); }),
+      "gh-06j": gh("#ghiseu/gh-4790/documente", async (h) => { await h.click("#gh-request-modal [data-gh-doc] .e-permits-fo-mdocs__attachment .e-permits-fo-doc-name"); await h.find("#dosar-detail-modal.is-active [data-dosar-doc-canvas]"); }),
       "gh-06a": gh("#ghiseu/gh-4812/detalii", seq(async () => { window.GEAPGhiseu.fill("detalii"); }, (h) => h.wait(600), next, next)),
       "gh-06b": gh("#ghiseu/nou", seq(start(pjNoLink), async (h) => { await h.click("[data-gh-procura]"); }, next, async () => { window.GEAPGhiseu.fill("detalii"); }, (h) => h.wait(600), next)),
       /* US-236 Verificare */
