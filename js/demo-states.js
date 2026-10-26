@@ -3465,6 +3465,12 @@
        cert = 0|1, msignerr=1, taxa=incompleta, depunere=eroare, certerr=1, gol=1, registru=asteptare. */
     ...ghDemoStates(),
 
+    /* ---- Din oficiu — Inițierea dosarelor în BackOffice din inițiativa autorității (Feature 95769, js/ghiseu.js mode
+       „oficiu”, 2026-10-26): ofc-01 «Dosare inițiate din oficiu» (US-249) · 02 the act search + ⋮ (US-242) · 03 Date
+       titular (US-243) · 04 Detalii serviciu + decizia (US-244) · 05 Acte necesare · 06 Verificare (US-245) · 07 Livrare ·
+       08 confirmare (US-246) · 09 schița: reluare, salvare, ⋮, eliminare (US-247/248) · ofc-01h / 02f no rights */
+    ...ofcDemoStates(),
+
     /* ---- Registre — BackOffice registers, phase 1 (Epic 89620, js/registre.js, registre-v1 2026-10-23) ----
        reg-01 catalog · 02 Dosare · 03 Acte · 04 Note de plată · 05 Avize · 06–09 record cards · 10 Push Case ·
        11 Arhivare · 12 Radiere · 13 Anonimizare + redactare · 14 acces interzis · 15 câmp-sursă dispărut · 16 gol */
@@ -3793,6 +3799,123 @@
       /* empty source (?registre=gol) */
       "reg-16": reg("reg-acte", ADMIN, null, { registre: "gol" }),
       "reg-16a": reg("reg-acte", SUP)
+    };
+  }
+
+  /* Din oficiu (Feature 95769): the desk wizard in its „oficiu” mode, as the Specialist (CSP Chișinău) — the seeded drafts
+     ofc-4741 (Reluare, Date titular) · ofc-4736 (Prelungire, Verificare) · ofc-4728 (Suspendare, Detalii serviciu) ·
+     ofc-4719 (Retragere, Acte necesare, removed in 5 days); ofc-4710 belongs to another user (not listed) */
+  function ofcDemoStates() {
+    const SPEC = "ansp-specialist-chisinau";
+    const READY = "#gh-start-modal.is-active .e-permits-empty, #gh-request-modal.is-active [data-gh-panel]";
+    const W = "#gh-request-modal";
+    const ofc = (hash, run, params, as = SPEC) => ({ flow: "back-office", as, hash, params, ready: READY, run: async (h) => { await h.wait(300); if (run) await run(h); } });
+    const ofcList = (run, params, as = SPEC) => ({ flow: "back-office", as, hash: "#office", params, ready: "[data-registry-kind='oficiu'] tr[data-workplace-row], [data-registry-kind='oficiu'] .e-permits-empty", run });
+    const seq = (...steps) => async (h) => { for (const step of steps) await step(h); };
+    const next = async (h) => { await h.click(`${W} [data-gh-next]`); await h.wait(500); };
+    const at = (step) => async (h) => { await h.find(`${W}.is-active [data-gh-panel="${step}"]`); await h.wait(300); };
+    /* „Nou” on the list → the act search; an act's ⋮ → a post-process starts the draft at „Date titular” */
+    const nou = async (h) => { await h.click('[data-workplace-add-product="ofc-new"]'); await at("intent")(h); };
+    const actMenu = (id) => async (h) => { await h.click(`${W} [data-fo-intent-act="${id}"] [data-fo-intent-trigger]`); await h.wait(250); };
+    const choose = (id, type) => seq(actMenu(id), async (h) => { await actMenuPick(`[data-fo-intent-act="${id}"] [data-fo-intent-postprocess="${type}"]`)(h); }, at("identificare"));
+    const search = (q) => async (h) => { await h.fill("#gh-ofc-q", q, { leave: false }); await h.wait(700); };
+    const service = (text) => async (h) => { await h.click("#fo-gh-ofc-service"); await h.click("#fo-gh-ofc-service-list .e-permits-fo-select__option", text); await h.wait(400); };
+    /* a real file into the decision's boxed PDF field: the FO document modal, „Încarcă” tab */
+    const upload = (name, size = 480000) => async (h) => {
+      await h.click(`${W} [data-gh-ofc-pdf] [data-fo-open-doc-modal]`); await h.wait(300);
+      const tab = document.querySelector('[data-fo-doc-tab="upload"]');
+      if (tab && !tab.closest("[hidden]")) { tab.click(); await h.wait(300); }
+      const input = document.querySelector("[data-fo-doc-file-input]");
+      const files = new DataTransfer();
+      files.items.add(new File([new Uint8Array(size)], name, { type: name.endsWith(".pdf") ? "application/pdf" : "application/octet-stream" }));
+      input.files = files.files;
+      input.dispatchEvent(new Event("change", { bubbles: true }));
+      await h.wait(200); await h.click("[data-fo-doc-modal-submit]"); await h.wait(500);
+      await h.scroll(`${W} [data-gh-ofc-pdf]`);
+    };
+    const headerMenu = async (h) => { await h.click(`${W} .e-permits-gh-sheet__actions [data-stack-menu-trigger]`); await h.wait(250); };
+    /* the stepper is hidden on phones: dispatch the row's click directly */
+    const stepRow = (stepId) => async (h) => {
+      const index = window.GEAPGhiseu.steps.indexOf(stepId);
+      document.querySelector(`${W} [data-gh-step="${index}"] [data-gh-goto]`)?.click();
+      await at(stepId)(h);
+    };
+    const submitDraft = seq(next, at("livrare"), next, at("confirmare"), async (h) => { await h.click(`${W} [data-gh-submit]`); await h.wait(600); });
+    return {
+      /* US-249 — the list: the user's own drafts (AC-04), columns AC-02, removal date + notification (AC-03) */
+      "ofc-01": ofcList(),
+      "ofc-01a": ofcList(async (h) => { await h.fill("[data-workplace-search]", "zzz"); await h.wait(500); }),
+      "ofc-01b": ofcList(null, { gol: "1" }),
+      "ofc-01c": ofcList(async (h) => { await h.click("[data-workplace-filter-toggle]"); }),
+      "ofc-01d": ofcList(async (h) => { await h.click("[data-workplace-export]"); await h.find("#case-action-modal.is-active [data-gh-export-confirm]"); await h.wait(300); }),
+      "ofc-01e": ofcList(async (h) => { await h.click("[data-workplace-export]"); await h.click("#case-action-modal.is-active [data-gh-export-confirm]"); await h.find(".toast"); await h.wait(300); }),
+      /* US-248 — the lone trash → the confirmation (AC-02) → removed (AC-03) */
+      "ofc-01f": ofcList(async (h) => { await h.click("tr[data-workplace-row='ofc-4741'] [data-gh-remove]"); await h.find(".modal-overlay.is-active [data-confirm-ok], .modal-overlay.is-active .btn-destructive"); await h.wait(300); }),
+      "ofc-01g": ofcList(async (h) => { await h.click("tr[data-workplace-row='ofc-4741'] [data-gh-remove]"); await h.click(".modal-overlay.is-active .btn-destructive"); await h.find(".toast"); await h.wait(400); }),
+      /* AC-01: a role without the permission (Director) sees the item's no-rights state */
+      "ofc-01h": ofcList(null, null, "ansp-director-chisinau"),
+      /* the Administrator central has the permission by default (Feature 95769) */
+      "ofc-01i": ofcList(null, null, "ansp-central-admin"),
+
+      /* US-242 — „Nou” → the act search (AC-02…09) */
+      "ofc-02": ofcList(nou),
+      "ofc-02a": ofcList(seq(nou, search("1008600031457"))),
+      "ofc-02b": ofcList(seq(nou, search("zzz"))),
+      "ofc-02c": ofcList(seq(nou, service("biocide"))),
+      "ofc-02d": ofcList(seq(nou, actMenu("act-izvoras"))),
+      "ofc-02e": ofcList(seq(nou, search("BIO-2023"), actMenu("act-ofc-biogel"))),
+      /* AC-01: the Specialist ghișeu (desk permission only) opening #oficiu/nou */
+      "ofc-02f": ofc("#oficiu/nou", null, null, "ansp-ghiseu-chisinau"),
+      /* a locked act (one active post-process): a dossier in progress on it (no ⋮); expired / withdrawn acts have none either (AC-09) */
+      "ofc-02g": ofcList(seq(nou, search("ASF-2025-07734"))),
+
+      /* US-243 — Date titular: the holder read-only, contacts from the act, editable (AC-02/03) */
+      "ofc-03": ofcList(seq(nou, choose("act-izvoras", "Suspendare valabilitate"))),
+      "ofc-03a": ofcList(seq(nou, choose("act-izvoras", "Suspendare valabilitate"), async (h) => { await h.fill("#fo-gh-phone", "123", { leave: false }); await h.fill("#fo-gh-email", "office@izvoras.ru", { leave: false }); }, next)),
+      "ofc-03b": ofcList(seq(nou, choose("act-ofc-biogel", "Reluare valabilitate"), async (h) => { await h.fill("#fo-gh-phone", "", { leave: false }); await h.fill("#fo-gh-email", "office@bioclean", { leave: false }); }, next)),
+
+      /* US-244 — Detalii serviciu: the act prefilled, the post-process fields, the decision (form | PDF), the subdivision */
+      "ofc-04": ofc("#oficiu/ofc-4736/detalii"),
+      "ofc-04a": ofcList(seq(nou, choose("act-izvoras", "Suspendare valabilitate"), next, at("detalii"), next), { prefill: "0" }),
+      "ofc-04b": ofc("#oficiu/ofc-4736/detalii", async (h) => { await h.click(`${W} [data-gh-ofc-mode] .segment-item[data-value="pdf"]`); await h.scroll(`${W} [data-gh-ofc-pdf]`); }),
+      "ofc-04c": ofc("#oficiu/ofc-4736/detalii", seq(async (h) => { await h.click(`${W} [data-gh-ofc-mode] .segment-item[data-value="pdf"]`); }, upload("decizie-DA-2026-0736.pdf"))),
+      "ofc-04d": ofc("#oficiu/ofc-4736/detalii", seq(async (h) => { await h.click(`${W} [data-gh-ofc-mode] .segment-item[data-value="pdf"]`); }, upload("decizie-semnata.docx", 240000))),
+      "ofc-04e": ofc("#oficiu/ofc-4736/detalii", seq(async (h) => { await h.fill("#fo-gh-ofc-until", "01/01/2027"); }, next)),
+      "ofc-04f": ofc("#oficiu/ofc-4728/detalii"),
+
+      /* US-20 — Acte necesare (the ex-officio documents) */
+      "ofc-05": ofc("#oficiu/ofc-4719/documente"),
+      "ofc-05a": ofc("#oficiu/ofc-4719/documente", next),
+
+      /* US-245 — Verificare: the four sections, the permanent hint (AC-02…05), the decision preview */
+      "ofc-06": ofc("#oficiu/ofc-4736/verificare"),
+      "ofc-06a": ofc("#oficiu/ofc-4736/verificare", async (h) => { await h.click(`${W} [data-gh-preview="decizie"]`); await h.find("#dosar-detail-modal.is-active [data-dosar-doc-canvas]"); await h.wait(400); }),
+      /* AC-08 / AC-09: from Livrare to the confirmation with „Detalii serviciu” empty → the toast + back to it */
+      "ofc-06b": ofc("#oficiu/ofc-4741/identificare", seq(stepRow("livrare"), next)),
+
+      /* US-16 Livrare (the holder; no MDelivery — it would need a payment note) */
+      "ofc-07": ofc("#oficiu/ofc-4736/verificare", next),
+      "ofc-07a": ofc("#oficiu/ofc-4736/verificare", seq(next, async (h) => { await h.click(`${W} .e-permits-fo-delivery-paper`); await h.wait(400); })),
+
+      /* US-246 — the confirmation (no MSign, no note: AC-02/03), submitted (AC-04/05), error + Reîncercați (AC-08) */
+      "ofc-08": ofc("#oficiu/ofc-4736/verificare", seq(next, at("livrare"), next)),
+      "ofc-08a": ofc("#oficiu/ofc-4736/verificare", submitDraft),
+      "ofc-08b": ofc("#oficiu/ofc-4736/verificare", submitDraft, { depunere: "eroare" }),
+      "ofc-08c": ofc("#oficiu/ofc-4736/verificare", seq(submitDraft, async (h) => { await h.click(`${W} [data-gh-close-sheet]`); await h.find("[data-registry-kind='oficiu'] tr[data-workplace-row]"); await h.find(".toast"); await h.wait(300); })),
+      /* AC-06: the dossier in „Dosarele mele” (origin „Din oficiu”) and its BO profile */
+      "ofc-08d": ofc("#oficiu/ofc-4736/verificare", seq(submitDraft, async (h) => { await h.click(`${W} [data-gh-close-sheet]`); await h.wait(500); document.querySelector('[data-nav-item][data-nav-id="my-cases"]')?.click(); await h.wait(600); await h.fill("[data-workplace-search]", "C-2026-004736"); await h.find("tr[data-workplace-row='C-2026-004736']"); await h.wait(300); })),
+      "ofc-08e": ofc("#oficiu/ofc-4736/verificare", seq(submitDraft, async (h) => { await h.click(`${W} [data-ofc-open-dossier]`); await h.find(".e-permits-trajectory, .e-permits-dosar-profil__section"); await h.wait(600); })),
+      /* one active post-process per act: after the submission its act is locked in the act search */
+      "ofc-08f": ofc("#oficiu/ofc-4736/verificare", seq(submitDraft, async (h) => { await h.click(`${W} [data-gh-close-sheet]`); await h.find("[data-registry-kind='oficiu'] tr[data-workplace-row]"); await h.wait(400); }, nou, search("ASF-2025-03318"))),
+
+      /* US-247 — a draft from the list opens at its last step (AC-05); „Salvează schița” (AC-04); the header ⋮ */
+      "ofc-09": ofcList(async (h) => { await h.click("tr[data-workplace-row='ofc-4736']"); await at("verificare")(h); }),
+      "ofc-09a": ofc("#oficiu/ofc-4728/detalii", async (h) => { await h.fill("#fo-gh-ofc-dec-nr", "DA-2026-0731", { leave: false }); await h.click(`${W} [data-gh-save]`); await h.find(".toast"); await h.wait(300); }),
+      "ofc-09b": ofc("#oficiu/ofc-4728/detalii", headerMenu),
+      "ofc-09c": ofc("#oficiu/ofc-4728/detalii", seq(headerMenu, async (h) => { await h.click("[data-gh-change-process]"); await h.wait(400); })),
+      "ofc-09d": ofc("#oficiu/ofc-4728/detalii", seq(headerMenu, async (h) => { await h.click(`${W} [data-gh-remove]`); await h.find(".modal-overlay.is-active .btn-destructive"); await h.wait(300); })),
+      "ofc-09e": ofc("#oficiu/ofc-4728/detalii", seq(headerMenu, async (h) => { await h.click(`${W} [data-gh-remove]`); await h.click(".modal-overlay.is-active .btn-destructive"); await h.wait(600); await h.hash("#oficiu/ofc-4728"); await h.find("#gh-start-modal.is-active .e-permits-empty"); })),
+      "ofc-09f": ofc("#oficiu/ofc-4736/verificare", seq(headerMenu, async (h) => { await h.click("[data-gh-history]"); await h.find("#case-action-modal.is-active"); await h.wait(300); }))
     };
   }
 

@@ -33,6 +33,21 @@
        only + the empty state); any other code has the seed acts when defined for the service, else
        2–3 generated ones (valabil, suspendat, a decision when the last digit is even), numbers
        derived from the code.
+
+   Din oficiu — Inițierea dosarelor în BackOffice din inițiativa autorității (Feature 95769, 2026-10-26):
+   US-242 inițiere (actul + postprocesul) · US-243 date titular · US-244 detalii + decizia autorității ·
+   US-245 verificare · US-246 confirmare · US-247 schiță · US-248 eliminare · US-249 lista schițelor.
+   The SAME wizard in a second mode, not a fork: a draft with `channel: "Din oficiu"` (isOfc) runs the same
+   window, steps, autosave, documents, Verificare, Livrare and confirmation; only the entry and a few step bodies
+   branch (`ofc*` functions, „Din oficiu” section below). Entry: «Dosare inițiate din oficiu» (US-65; registry kind
+   `oficiu`, nav id `office`, route #oficiu/nou · #oficiu/<id>[/<step>]) → „Nou” → the window opens on the act
+   search (no small modal, no applicant: the holder of the chosen act is the subject) → a post-process from the
+   act's ⋮ starts the draft at „Date titular”. Only post-processes (no Emitere primară), no MSign, no payment
+   note; on submit the dossier goes „În procesare” · „Proiect act” (Prelungire) / „Proiect decizie”, is
+   distributed to the initiator and joins the shell's dossiers („Dosarele mele”, origin „Din oficiu”). Data:
+   data/ghiseu.json › oficiu (the per-status post-processes = US-221 stand-in, terms, documents, seeded drafts).
+   Permission (Feature 95769 assumptions): Administrator central by default, Specialist / Supervizor as granted
+   in the demo roles; anyone else gets the no-rights state. Demo: the same params (gol=1, depunere=eroare, ghseed=1).
    ===================================================================================== */
 (function () {
   "use strict";
@@ -63,6 +78,11 @@
     { id: "confirmare", label: "Confirmarea depunerii" }
   ];
   const STEP_INDEX = Object.fromEntries(STEPS.map((step, index) => [step.id, index]));
+  /* Din oficiu (Feature 95769): the same steps; two read differently (the Feature's UX description) */
+  const OFC = "Din oficiu";
+  const isOfc = (d) => d?.channel === OFC;
+  const OFC_LABELS = { intent: "Inițiere", identificare: "Date titular" };
+  const stepLabel = (d, id) => (isOfc(d) && OFC_LABELS[id]) || STEPS[STEP_INDEX[id]].label;
 
   /* the request form of each service (the published form of the request type; the fields a
      service story describes — here two demo forms drawn by the FO renderer) */
@@ -118,7 +138,8 @@
   const userName = () => A().currentUserName?.() || "Anastasia Cojocaru";
 
   /* ---------------------------------------------------------------- data + store */
-  const S = { data: null, drafts: [], audit: [], seq: 4900, loading: null, page: null, cur: null, step: 0, errors: {}, notice: null, lookups: {} };
+  /* mode = the list the window belongs to: "ghiseu" («Dosare noi») | "oficiu" («Dosare inițiate din oficiu») */
+  const S = { data: null, drafts: [], audit: [], seq: 4900, loading: null, page: null, cur: null, step: 0, errors: {}, notice: null, lookups: {}, mode: "ghiseu" };
   /* ghiseu-autosave-csv-v1 (user decision 2026-10-23, Galina on the Ghișeu board): the draft saves itself, as the FO
      shows it („Salvat ca schiță · 14:32”) — every `S.dirty = true` (an edit anywhere in the window) schedules an
      autosave AUTOSAVE_MS after the last change; a step change, „Salvează schița”, × / Esc and leaving the page save at
@@ -150,13 +171,20 @@
   function readStore() {
     let saved = null;
     if (!params.has("ghseed")) { try { saved = JSON.parse(localStorage.getItem(STORE_KEY) || "null"); } catch { saved = null; } }
-    if (saved?.drafts) { S.drafts = saved.drafts; S.audit = saved.audit || []; S.seq = saved.seq || S.seq; return; }
+    const ofcSeeds = () => (params.get("gol") === "1" ? [] : (S.data.oficiu?.drafts || []).map(seedOfcDraft).filter(Boolean));
+    if (saved?.drafts) {
+      S.drafts = saved.drafts; S.audit = saved.audit || []; S.seq = saved.seq || S.seq;
+      /* a store written before «Dosare inițiate din oficiu» existed gets its seeded drafts once */
+      if (!saved.ofcSeeded) { S.drafts = [...S.drafts, ...ofcSeeds()]; writeStore(); }
+      return;
+    }
     S.drafts = params.get("gol") === "1" ? [] : (S.data.drafts || []).map(seedDraft);
+    S.drafts = [...S.drafts, ...ofcSeeds()];
     S.audit = [];
     writeStore();
   }
   function writeStore() {
-    try { localStorage.setItem(STORE_KEY, JSON.stringify({ drafts: S.drafts, audit: S.audit, seq: S.seq })); } catch { /* private mode: the session keeps working */ }
+    try { localStorage.setItem(STORE_KEY, JSON.stringify({ drafts: S.drafts, audit: S.audit, seq: S.seq, ofcSeeded: true })); } catch { /* private mode: the session keeps working */ }
   }
   const audit = (action, draft, detail = "", extra = {}) => {
     S.audit.unshift({ at: nowIso(), user: extra.system ? "SIA GEAP" : userName(), action, cerere: draft?.nr || "", tmp: draft && !draft.nr ? draft.tmp : undefined, persoana: draft ? holderCode(draft) : "", detail, personal: true, ...extra });
@@ -276,6 +304,8 @@
   const reductionsOf = (d) => deskOf(d.service)?.reductions || [];
   /* the payment note's lines: the term's fees with the chosen reductions, + MDelivery */
   function feeLines(d) {
+    /* Din oficiu: no payment note (Feature 95769 AC: „fără notă de plată”) → the „Notă de plată” step never shows */
+    if (isOfc(d)) return [];
     const desk = deskOf(d.service) || {};
     const term = termOf(d);
     const lines = (term?.fees || []).map((key) => {
@@ -299,6 +329,8 @@
   /* substatut after the step reached (US-239 AC-09) */
   function syncSubstatus(d) {
     if (d.status === "În procesare" || d.removed) return;
+    /* US-247 AC-07: an ex-officio draft is „Schiță” · „Schiță” at every step (no signing, no payment) */
+    if (isOfc(d)) { d.status = "Schiță"; d.substatus = "Schiță"; return; }
     if (d.payment?.status === "Expirată") { d.status = "Respins formal"; d.substatus = "Plată expirată"; return; }
     d.status = "Schiță";
     if (d.payment?.status === "Achitată") d.substatus = "Achitat";
@@ -324,7 +356,10 @@
         changed = true;
       } else if (!d.notified && daysUntil(retentionEnd(d)) <= NOTIFY_BEFORE_DAYS) {
         d.notified = addDays(retentionEnd(d), -NOTIFY_BEFORE_DAYS);
-        audit("Notificare eliminare schiță", d, `MNotify solicitantului și utilizatorului: eliminare la ${longDate(retentionEnd(d))}`, { system: true });
+        /* US-247 AC-09 (din oficiu): the initiator, through MNotify and the internal SIA GEAP notification */
+        audit("Notificare eliminare schiță", d, isOfc(d)
+          ? `MNotify și notificare internă SIA GEAP utilizatorului care a inițiat dosarul: eliminare la ${longDate(retentionEnd(d))}; schița se poate finaliza până atunci`
+          : `MNotify solicitantului și utilizatorului: eliminare la ${longDate(retentionEnd(d))}`, { system: true });
         changed = true;
       }
     });
@@ -378,6 +413,7 @@
   }
   /* plausible answers for every step before `upTo` (seed + demo states) */
   function fillDemo(d, upTo) {
+    if (isOfc(d)) { fillDemoOfc(d, upTo); return; }
     const desk = deskOf(d.service) || {};
     const mn = S.data.mnotify || {};
     if (upTo > STEP_INDEX.identificare && !d.contact.phone) {
@@ -415,6 +451,8 @@
 
   /* ---------------------------------------------------------------- documents (US-20) */
   function docsOf(d) {
+    /* Din oficiu: the documents of the authority's own dossier (data/ghiseu.json › oficiu.docs), never the holder's */
+    if (isOfc(d)) return S.data?.oficiu?.docs || [];
     const form = formOf(d);
     const list = form.docs.filter((doc) => !doc.onlyPJ || d.personType === "PJ");
     return d.procura ? [PROCURA_DOC, ...list] : list;
@@ -451,7 +489,7 @@
     past: (iso) => { if (!iso) return ""; const n = -daysUntil(iso); return n <= 0 ? "Azi" : n <= 7 ? "Ultimele 7 zile" : n <= 30 ? "Ultimele 30 de zile" : "Mai vechi de 30 de zile"; },
     future: (iso) => { if (!iso) return ""; const n = daysUntil(iso); return n < 0 ? "Depășită" : n <= 7 ? "În următoarele 7 zile" : n <= 30 ? "În 8–30 de zile" : "Peste 30 de zile"; }
   };
-  const SUB_TONE = { "Schiță": "neutral", "Spre semnare": "brand", "Spre achitare": "warning", "Achitat": "success", "Plată expirată": "danger", "Spre distribuire": "info" };
+  const SUB_TONE = { "Schiță": "neutral", "Spre semnare": "brand", "Spre achitare": "warning", "Achitat": "success", "Plată expirată": "danger", "Spre distribuire": "info", "Proiect act": "info", "Proiect decizie": "info" };
   const regRow = (d) => ({
     id: d.id,
     nr: d.nr,
@@ -476,7 +514,7 @@
   });
   function registryDb() {
     if (!S.data) { load().then(refreshRegistry); }
-    const rows = S.drafts.filter((d) => !d.removed).map(regRow);
+    const rows = S.drafts.filter((d) => !d.removed && !isOfc(d)).map(regRow);
     return {
       kind: "ghiseu",
       fieldCount: 9,
@@ -597,15 +635,20 @@
     exportRows: (rows) => openExport(rows)
   };
   /* the open registry draws its rows again (the nav item re-shows it), never over the wizard */
-  const refreshRegistry = () => {
+  const refreshRegistry = (mode = "ghiseu") => {
     updateBadge();
-    const reg = document.querySelector('[data-registry-kind="ghiseu"]');
+    const list = listOf(mode);
+    const reg = document.querySelector(`[data-registry-kind="${list.kind}"]`);
     if (!reg || reg.closest("[hidden]") || (S.page && !S.page.hidden)) return;
-    document.querySelector('[data-nav-item][data-nav-id="dosare-noi"]')?.click();
+    document.querySelector(`[data-nav-item][data-nav-id="${list.nav}"]`)?.click();
   };
+  /* the menu badges: drafts in «Dosare noi» (US-68 AC-02) and the user's drafts in «Dosare inițiate din oficiu» (US-65 AC-09) */
   const updateBadge = () => {
-    const n = S.drafts.filter((d) => !d.removed && !isSubmitted(d)).length;
+    const n = S.drafts.filter((d) => !d.removed && !isSubmitted(d) && !isOfc(d)).length;
     document.querySelectorAll('[data-nav-item][data-nav-id="dosare-noi"] .e-permits-shell__nav-badge').forEach((b) => { b.textContent = String(n); });
+    if (!S.data) return;
+    const o = ofcDrafts().length;
+    document.querySelectorAll(`[data-nav-item][data-nav-id="${OFC_NAV}"] .e-permits-shell__nav-badge`).forEach((b) => { b.textContent = String(o); });
   };
 
   /* ---------------------------------------------------------------- registry „Dosare suspendate” (US-255, Azure 95793)
@@ -721,6 +764,274 @@
     A().showRegistry?.(suspRegistryDb());
     return true;
   });
+
+  /* ================================================================ Din oficiu (Feature 95769) — model + list
+     The authority's acts (US-242 AC-04/05), the ex-officio post-processes per act status (AC-07…09), one active
+     post-process per act (Feature assumptions), the drafts list «Dosare inițiate din oficiu» (US-249) and the
+     submitted dossier joining the shell's dossiers (US-246 AC-06/07). */
+  const OFC_KIND = "oficiu";
+  const OFC_NAV = "office";
+  const OFC_PHONE_MSG = "Se va indica număr telefon mobil +37300000000 sau fix +373(cod regiune)000000.";
+  const LISTS = {
+    ghiseu: { kind: "ghiseu", nav: "dosare-noi", hash: "#dosare-noi", name: "Dosare noi" },
+    oficiu: { kind: OFC_KIND, nav: OFC_NAV, hash: `#${OFC_NAV}`, name: "Dosare inițiate din oficiu" }
+  };
+  const listOf = (mode = S.mode) => LISTS[mode] || LISTS.ghiseu;
+  /* every act of every holder (seeds look acts up by id, whatever the signed-in authority) */
+  const allActs = () => Object.entries(S.data?.acts || {}).flatMap(([code, acts]) => acts.filter((a) => a.kind === "act").map((a) => ({ ...a, holder: code })));
+  /* AC-04: the acts of the user's authority (the desk's published services; the Administrator central sees all) */
+  function ofcActs() {
+    const services = new Set(deskServices().map((s) => s.code));
+    return allActs().filter((a) => services.has(a.service));
+  }
+  const ofcActOf = (d) => allActs().find((a) => a.id === d.act) || null;
+  /* the holder of an act = the RSUD company (an IDNO starts with 1) or the RSP person of its code */
+  const holderOf = (code) => (/^1/.test(code) ? { type: "PJ", company: registryCompany(code) } : { type: "PF", person: registryPerson(code) });
+  const holderLine = (code) => { const h = holderOf(code); return h.type === "PJ" ? `${h.company?.denumire || ""} · IDNO ${code}` : `${fullName(h.person)} · IDNP ${code}`; };
+  /* AC-07/08: the ex-officio types configured for the act's service with its current status in „Statute din care se
+     inițiază” (stand-in: data/ghiseu.json › oficiu.postprocese) */
+  const ofcTypes = (act) => S.data?.oficiu?.postprocese?.[act.service]?.[act.status] || [];
+  /* one active post-process per act (Feature 95769): a dossier in progress on it — a filed one (act.pending) or an
+     ex-officio dossier submitted from here. A draft does not lock the act (as at the desk: drafts are work in
+     progress; the second submission is the one the processing flow refuses) */
+  function ofcBusy(act, exceptId = "") {
+    if (act.pending) return { type: act.pending.type, nr: act.pending.dossier };
+    const other = S.drafts.find((x) => isOfc(x) && !x.removed && isSubmitted(x) && x.act === act.id && x.id !== exceptId);
+    return other ? { type: other.requestType, nr: other.nr } : null;
+  }
+  /* AC-08 (US-244): the initiator's subdivision at initiation */
+  const ofcSubdivision = () => A().currentAssignment?.()?.instanceLabel || "CSP Chișinău";
+  const blankOfc = () => ({ decision: { mode: "form", nr: "", date: "", temei: "", content: "", file: null }, fields: { until: "", from: "", reason: "" } });
+  const ofcTermDays = (d) => Number(S.data?.oficiu?.termene?.[d.requestType]) || 10;
+  const ofcTermLabel = (d) => `${plural(ofcTermDays(d), "zi lucrătoare", "zile lucrătoare")} de la depunere`;
+  /* the dossier type the shell's dossiers know (data/e-permits-workplace.json › tipDosar) */
+  const OFC_DOSSIER_TYPE = { Prelungire: "Prelungire", "Suspendare valabilitate": "Suspendare", "Reluare valabilitate": "Reluare", "Retragere act permisiv": "Retragere" };
+  /* the chosen act fills the draft: service, process, holder (read-only, US-243 AC-02), the holder's contacts from
+     the act (the MNotify mock, editable — AC-03), the initiator's subdivision (US-244 AC-08) */
+  function ofcApplyAct(d, act, type) {
+    const h = holderOf(act.holder);
+    d.service = act.service; d.act = act.id; d.process = "post"; d.requestType = type;
+    if (h.type === "PJ") {
+      const adminCode = h.company?.administratori?.[0] || "";
+      const admin = adminCode ? registryPerson(adminCode) : null;
+      d.personType = "PJ";
+      d.company = { idno: act.holder, denumire: h.company?.denumire || "", state: "found" };
+      d.applicant = admin ? { idnp: admin.idnp, nume: admin.nume, prenume: admin.prenume, state: "found" } : { idnp: "", nume: "", prenume: "", state: "" };
+    } else {
+      d.personType = "PF";
+      d.applicant = { idnp: act.holder, nume: h.person?.nume || "", prenume: h.person?.prenume || "", state: "found" };
+      d.company = { idno: "", denumire: "", state: "" };
+    }
+    d.rep = { on: false, idnp: "", nume: "", prenume: "", state: "" };
+    d.procura = false;
+    const c = (S.data.mnotify || {})[act.holder] || {};
+    d.contact = { phone: c.phone || "", email: c.email || "", phoneSrc: "manual", emailSrc: "manual" };
+    d.details = { values: {}, address: {}, subdivision: ofcSubdivision(), term: "", reductions: [] };
+    d.ofc = blankOfc();
+    d.docs = {};
+    d.review = { paper: null, olograf: null, signed: null, voided: [] };
+    d.payment = null;
+  }
+  const isoDay = (offset) => dayAt(offset).slice(0, 10);
+  const plusYears = (iso, n) => { const [y, m, day] = String(iso || isoDay(0)).split("-"); return `${Number(y) + n}-${m}-${day}`; };
+  /* plausible answers before `upTo` (seed + the demo prefill, as fillDemo for the desk) */
+  function fillDemoOfc(d, upTo) {
+    const act = ofcActOf(d);
+    if (upTo > STEP_INDEX.identificare && !d.contact.phone) d.contact = { ...d.contact, phone: "69000111", phoneSrc: "manual" };
+    if (upTo > STEP_INDEX.detalii && !d.ofc?.decision?.nr) {
+      d.ofc = d.ofc || blankOfc();
+      const tail = String(d.nr || "C-2026-004800").slice(-3);
+      d.ofc.decision = { mode: "form", nr: `DA-2026-0${tail}`, date: isoDay(-1), temei: "Decizie administrativă a autorității", content: OFC_DEMO_CONTENT[d.requestType] || "", file: null };
+      d.ofc.fields = {
+        until: d.requestType === "Prelungire" ? plusYears(act?.valabilPana, 5) : d.requestType === "Suspendare valabilitate" ? isoDay(30) : "",
+        from: ["Reluare valabilitate", "Retragere act permisiv"].includes(d.requestType) ? isoDay(1) : "",
+        reason: OFC_DEMO_REASON[d.requestType] || ""
+      };
+    }
+    if (upTo > STEP_INDEX.documente && !Object.keys(d.docs).length) {
+      docsOf(d).filter((doc) => doc.required).forEach((doc) => {
+        d.docs[doc.id] = [{ sursa: "upload", tip: doc.label, fisier: "proces-verbal-control.pdf", size: "860 KB", at: stamp(d.createdAt || nowIso()), verb: "Încărcat" }];
+      });
+    }
+  }
+  const OFC_DEMO_CONTENT = {
+    Prelungire: "Se prelungește valabilitatea actului permisiv, la inițiativa autorității, conform prevederilor legale în vigoare.",
+    "Suspendare valabilitate": "Se suspendă valabilitatea actului permisiv până la înlăturarea neconformităților constatate la control.",
+    "Reluare valabilitate": "Se reia valabilitatea actului permisiv: neconformitățile care au stat la baza suspendării au fost înlăturate.",
+    "Retragere act permisiv": "Se retrage actul permisiv: titularul nu a înlăturat în termen neconformitățile constatate."
+  };
+  const OFC_DEMO_REASON = {
+    "Suspendare valabilitate": "Neconformități sanitare constatate la controlul din data de referință (proces-verbal anexat).",
+    "Retragere act permisiv": "Neînlăturarea neconformităților în termenul de suspendare."
+  };
+  /* a seeded ex-officio draft (data/ghiseu.json › oficiu.drafts), filled up to its step */
+  function seedOfcDraft(seed) {
+    const act = allActs().find((a) => a.id === seed.act);
+    if (!act) return null;
+    const d = blankDraft();
+    d.channel = OFC;
+    d.id = seed.id; d.nr = seed.nr; d.uid = `uid-${seed.id}`;
+    ofcApplyAct(d, act, seed.requestType);
+    /* the seed's own drafts were started by the demo specialist (CSP Chișinău); others' by their act's subdivision */
+    d.details.subdivision = seed.by === "self" ? "CSP Chișinău" : act.subdiviziune || "CSP Chișinău";
+    d.by = seed.by === "self" ? userName() : seed.by;
+    d.createdAt = dayAt(seed.createdDays, seed.createdTime);
+    const upd = new Date(Date.now() + seed.updatedHours * 3600000);
+    d.updatedAt = isoOf(upd < new Date(d.createdAt) ? new Date(d.createdAt) : upd);
+    d.step = seed.step; d.maxStep = seed.step;
+    fillDemoOfc(d, d.step);
+    syncSubstatus(d);
+    return d;
+  }
+  /* permission (Feature 95769 assumptions): Administrator central by default; Specialist / Supervizor = granted in the
+     demo roles (Feature 89940); separate from the desk permission (`can`) */
+  function canOfc() {
+    const role = A().currentAssignment?.()?.roleId;
+    return ["central-admin", "specialist", "supervisor"].includes(role);
+  }
+
+  /* «Dosare inițiate din oficiu» (US-249): the user's own ex-officio drafts (AC-04) on the shell's registry engine */
+  const ofcRow = (d) => {
+    const act = ofcActOf(d);
+    return {
+      id: d.id, nr: d.nr, tip: d.requestType || "—", act: act?.nr || "",
+      serviciu: serviceOf(d.service)?.title || d.service,
+      titular: fullName(d.applicant), companie: d.personType === "PJ" ? d.company.denumire : "",
+      creat: d.createdAt, modificat: d.updatedAt, eliminare: retentionEnd(d), notificat: Boolean(d.notified)
+    };
+  };
+  const ofcDrafts = () => S.drafts.filter((d) => isOfc(d) && !d.removed && !isSubmitted(d) && d.by === userName());
+  function ofcRegistryDb() {
+    if (!S.data) { load().then(() => refreshRegistry(OFC_KIND)); }
+    const allowed = canOfc();
+    return {
+      kind: OFC_KIND,
+      fieldCount: 7,
+      defaultSort: "modificat",
+      fixedWidths: true,
+      columns: {
+        nr: { label: "Număr cerere", width: 168, sortable: true },
+        serviciu: { label: "Denumirea serviciului", width: 200, fill: true, sortable: true },
+        titular: { label: "Nume titular", width: 160, sortable: true },
+        companie: { label: "Compania", width: 152, sortable: true },
+        creat: { label: "Data creării", width: 152, sortable: true },
+        modificat: { label: "Data ultimei modificări", width: 180, sortable: true },
+        eliminare: { label: "Data eliminării automate", width: 192, sortable: true },
+        actiuni: { label: "", width: 56, pin: "end" }
+      },
+      views: {
+        [OFC_KIND]: {
+          title: LISTS.oficiu.name,
+          selectable: false,
+          searchPlaceholder: "Caută după numărul cererii, titular sau companie",
+          columns: ["nr", "serviciu", "titular", "companie", "creat", "modificat", "eliminare", "actiuni"],
+          primaryAction: allowed ? { id: "ofc-new", label: "Nou" } : null,
+          exportLabel: "Exportă CSV"
+        }
+      },
+      runtimeRows: allowed && S.data ? ofcDrafts().map(ofcRow) : []
+    };
+  }
+  window.GEAPShellRegistries[OFC_KIND] = {
+    build: ofcRegistryDb,
+    /* AC-06 */
+    facets: [
+      { key: "serviciu", label: "Denumirea serviciului", get: (r) => r.serviciu },
+      { key: "creat", label: "Data creării", get: (r) => DATE_FACETS.past(r.creat) },
+      { key: "modificat", label: "Data ultimei modificări", get: (r) => DATE_FACETS.past(r.modificat) },
+      { key: "eliminare", label: "Data eliminării automate", get: (r) => DATE_FACETS.future(r.eliminare) }
+    ],
+    /* AC-05: număr, nume titular, companie */
+    searchText: (row) => [row.nr, row.titular, row.companie].filter(Boolean).join(" "),
+    sortValue: (row, key) => (["creat", "modificat", "eliminare"].includes(key) ? row[key] || "" : undefined),
+    renderCell: (row, key) => {
+      switch (key) {
+        case "nr": {
+          /* the post-process under the number (the act's number is in the window header and Verificare) */
+          const sub = row.tip;
+          /* the number = the list's compact copy (copy-wrap-v1: no icon in lists, the number copies) */
+          return `
+          <div class="e-permits-workplace__case-cell">
+            ${A().renderListCode?.(row.nr) || `<span class="e-permits-passport__name" data-cell-tooltip="${esc(row.nr)}">${esc(row.nr)}</span>`}
+            <span class="e-permits-workplace__source"><span data-cell-tooltip="${esc(sub)}">${esc(sub)}</span></span>
+          </div>`;
+        }
+        case "serviciu": return `<span data-cell-tooltip="${esc(row.serviciu)}">${esc(row.serviciu)}</span>`;
+        case "titular": return row.titular ? `<span data-cell-tooltip="${esc(row.titular)}">${esc(row.titular)}</span>` : '<span class="e-permits-workplace__dash">—</span>';
+        case "companie": return row.companie ? `<span data-cell-tooltip="${esc(row.companie)}">${esc(row.companie)}</span>` : '<span class="e-permits-workplace__dash">—</span>';
+        case "creat": return U().renderDateTime?.(row.creat) || esc(longDate(row.creat));
+        case "modificat": return U().renderDateTime?.(row.modificat) || esc(longDate(row.modificat));
+        case "eliminare": {
+          const n = daysUntil(row.eliminare);
+          return dateCell(row.eliminare, row.notificat ? `${inDays(n)} · notificare trimisă` : inDays(n), n <= NOTIFY_BEFORE_DAYS ? "warning" : "");
+        }
+        /* „Elimină schița” is the row's only action (US-248 AC-06: every row is a draft) → the lone grey trash
+           (lone-trash-v1, Row actions rule 10) */
+        case "actiuni": return `<span class="e-permits-workplace__row-actions"><button class="btn btn-neutral btn-sm btn-icon-only e-permits-gh-row-remove" type="button" aria-label="Elimină schița ${esc(row.nr)}" data-tooltip-label="Elimină schița" data-gh-remove="${esc(row.id)}"><svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-delete"></use></svg></button></span>`;
+        default: return esc(String(row[key] ?? "—"));
+      }
+    },
+    /* AC-11: a click opens the draft at its last saved step */
+    openRow: (id) => { window.location.hash = `#oficiu/${encodeURIComponent(id)}`; },
+    rowLabel: (row) => `${row.nr}, ${row.tip}, ${row.serviciu}${row.titular ? `, ${row.titular}` : ""} — schiță, continuă completarea`,
+    rowClass: () => "",
+    emptyHtml: ({ query, filtered }) => {
+      const E = window.GEAPEmptyState;
+      if (!canOfc()) return E?.render({ title: NO_RIGHTS, text: "Dosarele din oficiu sunt disponibile utilizatorilor cu permisiunea de inițiere a dosarelor din oficiu.", icon: "lock", bare: true });
+      if (!S.data) return E?.render({ title: "Se încarcă schițele…", loading: true, bare: true });
+      /* AC-10 / AC-09 */
+      if (query || filtered) return E?.noResults?.("Nicio înregistrare nu corespunde criteriului de căutare", { text: "Caută după numărul cererii, numele titularului sau companie.", bare: true });
+      return E?.render({ title: "Nu sunt schițe înregistrate.", text: "Dosarele inițiate din oficiu apar aici ca schițe până la confirmarea depunerii.", icon: "page-text", bare: true, actionHtml: '<button class="btn btn-primary btn-sm" type="button" data-workplace-add-product="ofc-new">Nou</button>' });
+    },
+    exportRows: (rows) => openExport(rows, OFC_KIND)
+  };
+  window.GEAPShellRoutes.push((hash) => {
+    const m = hash.match(/^#oficiu\/([^/]+)(?:\/([^/]+))?$/);
+    if (!m) return false;
+    route(decodeURIComponent(m[1]), m[2], OFC_KIND);
+    return true;
+  });
+  /* AC-01 (US-249): a role without the item that opens #office directly gets the list's no-rights state */
+  window.GEAPShellRoutes.push((hash) => {
+    if (hash !== LISTS.oficiu.hash || document.querySelector(`[data-nav-item][data-nav-id="${OFC_NAV}"]`)) return false;
+    A().showRegistry?.(ofcRegistryDb());
+    return true;
+  });
+
+  /* US-246 AC-06/07: the submitted dossier joins the shell's dossiers — „În examinare” with the project stage
+     („Proiect”), distributed to the initiator (the signed-in specialist of the dossier seed), origin „Din oficiu”
+     (sursa OFICIU: the BO profile shows „Inițiat · Din oficiu”, the holder and the base act). Kept in the desk store
+     and put back after every page load (the shell rebuilds its seed rows). */
+  function ofcDossierRow(d, db) {
+    const me = (db.specialisti || []).find((s) => s.id === db.meSpecialistId) || db.specialisti?.[0] || null;
+    const act = ofcActOf(d);
+    const titular = fullName(d.applicant) || holderName(d);
+    const companie = d.personType === "PJ" ? d.company.denumire : "";
+    return {
+      id: d.nr, nrDosar: d.nr, status: "inExaminare", alerte: [], decizia: "proiect",
+      tipDosar: OFC_DOSSIER_TYPE[d.requestType] || d.requestType,
+      serviciu: serviceOf(d.service)?.title || d.service,
+      numeSolicitant: titular, companie, specialist: me, repartizatDe: me, subdiviziune: db.mySubdiviziune,
+      dataDepunerii: d.submittedAt.slice(0, 10), termenExaminare: d.examDeadline.slice(0, 10), termenZile: ofcTermDays(d),
+      dataSemnarii: null, modLivrare: d.delivery.mode === "ghiseu" ? "Ghișeu" : "Electronic", nedistribuit: false,
+      sursa: "OFICIU",
+      actBaza: { nr: act?.nr || "", denumire: serviceOf(d.service)?.title || "", titular, companie },
+      nrActEmis: null,
+      motivOficiu: [d.ofc?.decision?.temei, d.ofc?.decision?.nr ? `nr. ${d.ofc.decision.nr} din ${longDate(d.ofc.decision.date)}` : ""].filter(Boolean).join(", "),
+      dataInitierii: d.createdAt.slice(0, 10), initiatDe: me
+    };
+  }
+  function syncOfcDossiers({ redraw = false } = {}) {
+    const db = A().dossierStore?.();
+    if (!db?.runtimeRows || !S.data) return false;
+    const have = new Set(db.runtimeRows.map((row) => row.id));
+    const added = S.drafts.filter((d) => isOfc(d) && isSubmitted(d) && !have.has(d.nr)).map((d) => ofcDossierRow(d, db));
+    if (!added.length) return true;
+    db.runtimeRows.unshift(...added);
+    /* the dossiers list on screen (e.g. „Dosarele mele” after a reload) shows them at once */
+    if (redraw && A().els?.workplacePanel?.dataset.registryKind === "dossiers" && !A().els.workplacePanel.hidden) A().renderWorkplace?.();
+    return true;
+  }
 
   /* ---------------------------------------------------------------- permission (Feature AC-02, every story AC-01) */
   function can() {
@@ -861,7 +1172,9 @@
     if (S.submittedNr) {
       const nr = S.submittedNr;
       S.submittedNr = null;
-      setTimeout(() => U().showShellToast?.(`Dosarul ${nr} a fost depus și trimis la distribuire.`, "success"), 0);
+      /* din oficiu (US-246 AC-07): distributed to the initiator at once */
+      const text = S.mode === OFC_KIND ? `Dosarul ${nr} a fost depus și distribuit către dvs.` : `Dosarul ${nr} a fost depus și trimis la distribuire.`;
+      setTimeout(() => U().showShellToast?.(text, "success"), 0);
     }
   }
   /* × / Esc / scrim: the pending autosave runs now, then the window closes — no „Salvați schița?” dialog any more
@@ -875,16 +1188,19 @@
     closeSheet();
     toList();
   }
-  /* «Dosare noi» behind the dialogs: drawn when it is not the page already, refreshed otherwise */
+  /* the window's list behind the dialogs («Dosare noi» / «Dosare inițiate din oficiu», S.mode): drawn when it is
+     not the page already, refreshed otherwise */
   function toList() {
-    const nav = document.querySelector('[data-nav-item][data-nav-id="dosare-noi"]');
-    if (nav) nav.click(); else setHash("#dosare-noi");
+    const list = listOf();
+    const nav = document.querySelector(`[data-nav-item][data-nav-id="${list.nav}"]`);
+    if (nav) nav.click(); else setHash(list.hash);
     updateBadge();
   }
   function ensureListBehind() {
-    const reg = document.querySelector('[data-registry-kind="ghiseu"]');
+    const list = listOf();
+    const reg = document.querySelector(`[data-registry-kind="${list.kind}"]`);
     if (reg && !reg.hidden && !reg.closest("[hidden]")) return;
-    document.querySelector('[data-nav-item][data-nav-id="dosare-noi"]')?.click();
+    document.querySelector(`[data-nav-item][data-nav-id="${list.nav}"]`)?.click();
   }
   const setHash = (hash) => { if (window.location.hash !== hash) history.replaceState(null, "", `${window.location.pathname}${window.location.search}${hash}`); };
 
@@ -894,12 +1210,19 @@
     const tick = () => { if ((window.GEAPShellApi && A().servicesStore?.() && window.GEAPFormRender) || tries > 100) resolve(); else { tries += 1; setTimeout(tick, 60); } };
     tick();
   });
-  async function route(id, stepId) {
+  async function route(id, stepId, mode = "ghiseu") {
     await load();
     await shellReady();
     await R().schemaReady?.();
-    if (can()) ensureListBehind();
-    if (!can()) { renderMessage({ title: NO_RIGHTS, text: "Cererile la ghișeu se inițiază doar de utilizatorii cu permisiunea de inițiere a cererilor la ghișeu (Specialist ghișeu, Administrator central).", icon: "lock" }); return; }
+    S.mode = mode === OFC_KIND ? OFC_KIND : "ghiseu";
+    const allowed = S.mode === OFC_KIND ? canOfc() : can();
+    if (allowed) ensureListBehind();
+    if (!allowed) {
+      renderMessage({ title: NO_RIGHTS, icon: "lock", text: S.mode === OFC_KIND
+        ? "Dosarele din oficiu se inițiază doar de utilizatorii cu permisiunea de inițiere a dosarelor din oficiu (Administrator central sau un rol căruia i-a fost acordată)."
+        : "Cererile la ghișeu se inițiază doar de utilizatorii cu permisiunea de inițiere a cererilor la ghișeu (Specialist ghișeu, Administrator central)." });
+      return;
+    }
     if (id === "nou") { startNew(); return; }
     openDraft(id, stepId);
   }
@@ -917,7 +1240,7 @@
     S.cur = null;
     const ov = ensureStart();
     S.page = ov;
-    ov.querySelector("[data-gh-start-title]").textContent = crumb || "Dosar nou";
+    ov.querySelector("[data-gh-start-title]").textContent = crumb || (S.mode === OFC_KIND ? "Dosar nou din oficiu" : "Dosar nou");
     const sub = ov.querySelector("[data-gh-start-subtitle]");
     sub.textContent = ""; sub.hidden = true;
     ov.querySelector("[data-gh-start-body]").innerHTML = window.GEAPEmptyState?.render({ title, text, icon: ic, compact: true }) || esc(title);
@@ -928,19 +1251,30 @@
     S.cur = blankDraft();
     S.cur.by = userName();
     S.step = 0; S.errors = {}; S.notice = null; S.dirty = false;
+    /* din oficiu (US-242 AC-02): „Nou” opens the window straight on the act search — no small modal, no applicant */
+    if (S.mode === OFC_KIND) {
+      S.cur.channel = OFC;
+      S.step = STEP_INDEX.intent;
+      S.actsQuery = ""; S.ofcService = ""; S.actCleared = false;
+      document.getElementById(START_ID)?.classList.contains("is-active") && closeStart();
+    }
     closeSheet();
     render();
   }
   function openDraft(id, stepId) {
     const saved = S.drafts.find((d) => d.id === id || d.nr === id);
-    if (!saved) { renderMessage({ title: "Cererea nu a fost găsită", text: "Verificați numărul cererii în lista Dosare noi.", icon: "search" }); return; }
+    const ofc = S.mode === OFC_KIND;
+    /* a draft opens in its own list's window (a desk request under #oficiu/… or the other way round = not found);
+       an ex-officio draft is the initiator's own (US-249 AC-04) */
+    if (!saved || isOfc(saved) !== ofc || (ofc && saved.by !== userName())) { renderMessage({ title: "Cererea nu a fost găsită", text: `Verificați numărul cererii în lista ${listOf().name}.`, icon: "search" }); return; }
     if (saved.removed) {
       renderMessage({
-        crumb: saved.nr,
+        /* no numbers in a dialog header (product rule): the ex-officio window names the list instead */
+        crumb: ofc ? "Dosar din oficiu" : saved.nr,
         title: saved.removed.auto ? "Schița a fost eliminată automat" : "Schița a fost eliminată",
-        text: `${saved.removed.auto ? `La ${longDate(saved.removed.at)}, după perioada de retenție de ${settingsOf(saved.service).retentie} de zile.` : `La ${stamp(saved.removed.at)}, de ${saved.removed.by}.`} Motivul eliminării: ${saved.removed.reason}. Accesul la schiță este dezactivat, iar depunerea pe baza ei nu mai este posibilă.`,
+        text: `${saved.removed.auto ? `La ${longDate(saved.removed.at)}, după perioada de retenție de ${settingsOf(saved.service).retentie} de zile.` : `La ${stamp(saved.removed.at)}, de ${saved.removed.by}.`}${saved.removed.reason ? ` Motivul eliminării: ${saved.removed.reason}.` : ""} Accesul la schiță este dezactivat, iar depunerea pe baza ei nu mai este posibilă.`,
         icon: "delete",
-        actionHtml: '<button class="btn btn-primary btn-rounded" type="button" data-gh-new>Dosar nou</button>'
+        actionHtml: ofc ? '<button class="btn btn-primary btn-rounded" type="button" data-ofc-new>Dosar nou din oficiu</button>' : '<button class="btn btn-primary btn-rounded" type="button" data-gh-new>Dosar nou</button>'
       });
       return;
     }
@@ -954,6 +1288,10 @@
     render();
   }
   const openDraftFromList = (id) => { window.location.hash = `#ghiseu/${encodeURIComponent(id)}`; };
+  /* the window's address: #ghiseu/<id>/<step> · #oficiu/<id>/<step> (#oficiu/nou before the first save) */
+  const hashFor = (d, stepId) => (isOfc(d)
+    ? `#oficiu/${d.id ? `${encodeURIComponent(d.id)}/${stepId}` : "nou"}`
+    : `#ghiseu/${encodeURIComponent(d.id)}/${stepId}`);
 
   /* ---------------------------------------------------------------- render */
   /* the FO header draft status „Salvat ca schiță · 14:32” (today: the time only, as the FO; an older save: the date
@@ -997,22 +1335,26 @@
     const svc = serviceOf(d.service);
     const removable = d.id && !isSubmitted(d) && !isPaid(d);
     const onIntent = STEPS[S.step]?.id === "intent";
+    const ofc = isOfc(d);
     const menu = d.id && !isSubmitted(d) ? (A().renderStackMenu?.([
-      ...(d.process && !onIntent ? [{ label: "Schimbă procesul", icon: "reorder", attrs: `data-gh-change-process${isPaid(d) ? ' aria-disabled="true" data-tooltip-reason="Nota de plată este achitată: procesul nu se mai poate schimba."' : ""}` }] : []),
+      /* din oficiu: the holder comes with the act, so both change on the act search (US-243 constraints) */
+      ...(d.process && !onIntent ? [{ label: ofc ? "Schimbă actul sau postprocesul" : "Schimbă procesul", icon: "reorder", attrs: `data-gh-change-process${isPaid(d) ? ' aria-disabled="true" data-tooltip-reason="Nota de plată este achitată: procesul nu se mai poate schimba."' : ""}` }] : []),
       { label: "Istoricul cererii", icon: "history", attrs: "data-gh-history" },
       { label: "Elimină schița", icon: "delete", danger: true, attrs: `data-gh-remove="${esc(d.id)}"${removable ? "" : ' aria-disabled="true" data-tooltip-reason="Nota de plată este achitată: schița nu se mai poate elimina."'}` }
     ], d.nr) || "").replace("hidden data-stack-menu>", "hidden data-stack-menu data-stack-menu-fixed>") : "";
     const statusTags = `${tagHtml(d.status, d.status === "În procesare" ? "info" : d.status === "Respins formal" ? "danger" : "neutral")}${d.substatus && d.substatus !== d.status ? ` ${tagHtml(d.substatus, SUB_TONE[d.substatus] || "neutral")}` : ""}`;
-    const processMeta = d.process === "post" ? `${d.requestType} · ${actById(d, d.act)?.nr || ""}` : d.requestType;
-    const meta = [d.nr || "Nesalvat", holderName(d), processMeta, "Ghișeu"].filter(Boolean).map((x) => `<span class="e-permits-gh-sheet__meta-part">${esc(x)}</span>`).join("");
+    const processMeta = d.process === "post" ? `${d.requestType} · ${(ofc ? ofcActOf(d) : actById(d, d.act))?.nr || ""}` : d.requestType;
+    /* din oficiu before the first save (the act search): no number and no status yet — the draft line says „Nesalvat” */
+    const meta = [d.nr || (ofc ? "" : "Nesalvat"), holderName(d), processMeta, ofc ? OFC : "Ghișeu"].filter(Boolean).map((x) => `<span class="e-permits-gh-sheet__meta-part">${esc(x)}</span>`).join("");
+    const tags = ofc && !d.id ? "" : `<span class="e-permits-gh__tags">${statusTags}</span>`;
     return `
       <div class="e-permits-gh-sheet__title">
-        <h2 class="modal--header-title" id="gh-sheet-title" data-cell-tooltip>${esc(svc?.title || "Dosar nou")}</h2>
-        <div class="e-permits-gh-sheet__meta">${meta}<span class="e-permits-gh__tags">${statusTags}</span></div>
+        <h2 class="modal--header-title" id="gh-sheet-title" data-cell-tooltip>${esc(svc?.title || (ofc ? "Dosar nou din oficiu" : "Dosar nou"))}</h2>
+        <div class="e-permits-gh-sheet__meta">${meta}${tags}</div>
         <p class="e-permits-fo-draft-status e-permits-gh-sheet__saved" aria-live="polite" data-gh-saved>${savedStatusHtml(d)}</p>
       </div>
       <div class="e-permits-gh-sheet__actions">
-        ${isSubmitted(d) || isPaid(d) ? "" : `<button class="btn btn-neutral btn-sm e-permits-gh-sheet__save" type="button" aria-label="Salvează schița" data-tooltip-label="Salvează schița" data-gh-save><svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg?v=draft-icons-v1#icon-cloud-upload-draft"></use></svg><span class="e-permits-gh-sheet__save-label">Salvează schița</span></button>`}
+        ${isSubmitted(d) || isPaid(d) || !d.id ? "" : `<button class="btn btn-neutral btn-sm e-permits-gh-sheet__save" type="button" aria-label="Salvează schița" data-tooltip-label="Salvează schița" data-gh-save><svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg?v=draft-icons-v1#icon-cloud-upload-draft"></use></svg><span class="e-permits-gh-sheet__save-label">Salvează schița</span></button>`}
         ${menu}
       </div>`;
   }
@@ -1033,12 +1375,12 @@
             return `
               <li class="e-permits-fo-stepper__item${active ? " is-active" : ""}${done || (isSubmitted(d) && !active) ? " is-completed" : ""}"${active ? ' aria-current="step"' : ""} data-gh-step="${i}">
                 <span class="e-permits-fo-stepper__connector" aria-hidden="true"></span>
-                <span class="e-permits-fo-stepper__row" ${open ? `role="button" tabindex="0" aria-label="Deschide pasul ${n + 1}: ${esc(step.label)}" data-gh-goto="${i}" data-gh-free` : 'aria-disabled="true"'}>
+                <span class="e-permits-fo-stepper__row" ${open ? `role="button" tabindex="0" aria-label="Deschide pasul ${n + 1}: ${esc(stepLabel(d, step.id))}" data-gh-goto="${i}" data-gh-free` : 'aria-disabled="true"'}>
                   <span class="e-permits-fo-stepper__number">
                     <span class="e-permits-fo-stepper__number-text">${n + 1}</span>
                     ${icon("checkmark-small", 16, "icon e-permits-fo-stepper__check")}
                   </span>
-                  <span class="e-permits-fo-stepper__label">${esc(step.label)}</span>
+                  <span class="e-permits-fo-stepper__label">${esc(stepLabel(d, step.id))}</span>
                 </span>
               </li>`;
           }).join("")}
@@ -1051,7 +1393,7 @@
     return `
       <div class="e-permits-fo-mobile-progress e-permits-gh__progress" aria-live="polite">
         <div class="e-permits-fo-mobile-progress__row">
-          <span class="e-permits-fo-mobile-progress__label">${esc(STEPS[S.step].label)}</span>
+          <span class="e-permits-fo-mobile-progress__label">${esc(stepLabel(d, STEPS[S.step].id))}</span>
           <span class="e-permits-fo-mobile-progress__count">Pasul ${n} din ${steps.length}</span>
         </div>
         <div class="e-permits-fo-mobile-progress__bar" aria-hidden="true"><svg class="e-permits-gh__progress-bar" width="100%" height="4" preserveAspectRatio="none"><rect class="e-permits-gh__progress-fill" width="${Math.round((n / steps.length) * 100)}%" height="4" rx="2"></rect></svg></div>
@@ -1070,7 +1412,7 @@
       ${R().stepFooterHtml?.({
         /* „Salvează schița” lives in the window header (user 2026-10-16): the footer is back + „Înainte →” */
         backAttrs: prev ? "data-gh-prev" : "",
-        backLabel: prev ? `Înapoi la ${prev.label}` : "",
+        backLabel: prev ? `Înapoi la ${stepLabel(d, prev.id)}` : "",
         nextLabel: next, nextAttrs, nextDisabled, nextArrow: next === "Înainte"
       }) || ""}`;
   }
@@ -1096,7 +1438,7 @@
       </div>`;
     openSheet();
     bindPanel();
-    setHash(`#ghiseu/${encodeURIComponent(d.id)}/${STEPS[S.step].id}`);
+    setHash(hashFor(d, STEPS[S.step].id));
     ov.querySelector("[data-gh-body]").scrollTop = 0;
     if (focusTitle) requestAnimationFrame(() => ov.querySelector("[data-gh-panel] h2[tabindex], [data-gh-panel] h1[tabindex]")?.focus({ preventScroll: true }));
   }
@@ -1183,16 +1525,37 @@
   function choosePostprocess(item) {
     const row = item.closest("[data-fo-intent-act]");
     if (!row || item.getAttribute("aria-disabled") === "true") return;
+    if (isOfc(S.cur)) { ofcStart(row.dataset.foIntentAct, item.dataset.foIntentPostprocess); return; }
     startProcess("post", row.dataset.foIntentAct, item.dataset.foIntentPostprocess);
+  }
+  /* din oficiu (US-242 AC-10/11): the chosen act + post-process start the draft at once (first save: nr + UID,
+     „Schiță” · „Schiță”, canal „Din oficiu”) and the window goes on to „Date titular” */
+  function ofcStart(actId, type) {
+    const d = S.cur;
+    const act = ofcActs().find((a) => a.id === actId);
+    if (!act || ofcBusy(act, d.id) || !ofcTypes(act).includes(type)) return;
+    closeIntentMenus();
+    ofcApplyAct(d, act, type);
+    S.actCleared = false; S.dirty = true;
+    /* demo prefill (as the desk): the decision and the documents filled, so „Înainte” passes up to Verificare;
+       ?prefill=0 starts empty */
+    if (params.get("prefill") !== "0") fillDemoOfc(d, STEP_INDEX.verificare);
+    S.step = STEP_INDEX.identificare;
+    persist();
+    audit("Alegerea actului și a postprocesului", d, `${type} · ${act.nr} · ${serviceOf(act.service)?.title || ""}`);
+    writeStore();
+    render();
   }
   /* header ⋮ „Schimbă procesul”: back to the intent screen; what depends on the process is cleared
      (form, documents, verification) — asked first when there is any */
   function changeProcess() {
     const d = S.cur;
+    const ofc = isOfc(d);
     const doIt = () => {
       COLLECT[STEPS[S.step].id]?.();
       d.process = ""; d.act = null; d.requestType = "";
-      d.details = { values: {}, address: {}, subdivision: "", term: "", reductions: [] };
+      if (ofc) d.ofc = blankOfc();
+      d.details = { values: {}, address: {}, subdivision: ofc ? d.details.subdivision : "", term: "", reductions: [] };
       d.docs = {}; d.review = { paper: null, olograf: null, signed: null, voided: [] }; d.payment = null;
       d.maxStep = STEP_INDEX.intent;
       audit("Schimbarea procesului", d, "Procesul anterior a fost anulat");
@@ -1201,7 +1564,12 @@
       render();
     };
     if ((d.maxStep || 0) <= STEP_INDEX.identificare && !Object.keys(d.docs || {}).length) { doIt(); return; }
-    U().askConfirm?.({
+    U().askConfirm?.(ofc ? {
+      title: "Schimbați actul sau postprocesul?",
+      text: `Detaliile, decizia autorității și documentele pentru „${d.requestType}” se pierd. Titularul se preia din actul ales.`,
+      confirmLabel: "Schimbă actul",
+      destructive: true
+    } : {
       title: "Schimbați procesul?",
       text: `Datele din „Detalii serviciu”, documentele și verificarea pentru „${d.requestType}” se pierd. Solicitantul și datele de contact rămân.`,
       confirmLabel: "Schimbă procesul",
@@ -1523,6 +1891,7 @@
      (GEAPFormRender.intentHtml, shared with FO #intent): „Solicitant <name> · Schimbă” (the small modal),
      „Solicitare nouă”, „sau”, the holder's acts for the service with the post-process menus; no stepper */
   function stepIntent(d) {
+    if (isOfc(d)) return ofcIntentHtml(d);
     normalizeProcess(d);
     const acts = actsOf(d);
     const searchable = acts.length >= ACTS_SEARCH_MIN;
@@ -1568,6 +1937,7 @@
   }
   /* the request's first step „Solicitant” (US-233 identification part) */
   function stepIdentificare(d) {
+    if (isOfc(d)) return ofcTitularHtml(d);
     normalizeType(d);
     return `
       ${stepHeader("Date solicitant")}
@@ -1852,6 +2222,7 @@
       </div>`;
   }
   function stepDetalii(d) {
+    if (isOfc(d)) return ofcDetaliiHtml(d);
     const form = formOf(d);
     const act = d.act ? actById(d, d.act) : null;
     const desk = deskOf(d.service) || {};
@@ -1874,6 +2245,7 @@
   }
   function bindDetalii(panel) {
     const d = S.cur;
+    if (isOfc(d)) { bindDetaliiOfc(panel); return; }
     const cascade = panel.querySelector("[data-fo-cascade-address]");
     const fillAddress = () => {
       const a = d.details.address || {};
@@ -1911,6 +2283,7 @@
   }
   function collectDetalii() {
     const d = S.cur;
+    if (isOfc(d)) { collectDetaliiOfc(); return; }
     const form = formOf(d);
     form.fields.forEach((f) => {
       const id = `#fo-${f.id}`;
@@ -1935,6 +2308,7 @@
     refreshPayment(d);
   }
   function checkDetalii(d) {
+    if (isOfc(d)) return checkDetaliiOfc(d);
     const errs = [];
     const form = formOf(d);
     form.fields.forEach((f) => { if (f.required && !d.details.values[f.key]) errs.push({ input: `#fo-${f.id}`, select: f.type === "select", msg: REQUIRED, step: STEP_INDEX.detalii }); });
@@ -1978,7 +2352,7 @@
               <h2 class="e-permits-fo-other-docs__heading">Alte documente</h2>
               <span class="status-tag status-tag--neutral is-subtle status-tag--small e-permits-fo-doc-tag e-permits-fo-optional-tag">Opțional</span>
             </div>
-            <p class="e-permits-fo-other-docs__desc">Opțional — orice document suplimentar prezentat de solicitant.</p>
+            <p class="e-permits-fo-other-docs__desc">${isOfc(d) ? "Opțional — orice document suplimentar al dosarului." : "Opțional — orice document suplimentar prezentat de solicitant."}</p>
           </div>
           <div class="e-permits-fo-other-docs__body">
             <div data-fo-other-doc-list></div>
@@ -2081,6 +2455,7 @@
       ${R().docContentHtml?.(doc, openAttrs ? { openAttrs } : { open: true }) || esc(doc.tip)}
     </div>`;
   function reviewSummaryHtml(d, moreHtml = "") {
+    if (isOfc(d)) return ofcReviewHtml(d);
     const svc = serviceOf(d.service);
     const authority = A().getAuthorityById?.(svc?.authorityId)?.name || "Agenția Națională pentru Sănătate Publică";
     const act = d.act ? actById(d, d.act) : null;
@@ -2128,6 +2503,14 @@
       </div>`;
   }
   function stepVerificare(d) {
+    /* din oficiu (US-245): the summary only — no paper request, no MSign (US-246 AC-02) — with the permanent hint (AC-05) */
+    if (isOfc(d)) {
+      return `
+        ${stepHeader("Verificare")}
+        <div class="e-permits-gh__notices">${U().renderInfoNote?.("Pentru corecții, navigați la pasul corespunzător din bara de progres.") || ""}</div>
+        ${ofcReviewHtml(d)}
+        ${footerHtml(d)}`;
+    }
     const st = settingsOf(d.service);
     const voided = d.review.voided || [];
     const notices = [
@@ -2213,6 +2596,7 @@
     obs.observe(box, { childList: true, subtree: true });
   }
   function checkVerificare(d) {
+    if (isOfc(d)) return [];
     const st = settingsOf(d.service);
     const errs = [];
     if (!d.review.paper) errs.push({ key: "paper", focus: "[data-gh-paper]", msg: "Generați cererea pe hârtie: solicitantul o semnează olograf." });
@@ -2228,18 +2612,21 @@
   const DELIVERY_METHOD = { ghiseu: "pickup", mdelivery: "courier" };
   function deliveryConfig(d) {
     const st = settingsOf(d.service);
+    /* din oficiu: the holder receives the result; no MDelivery (its fee would need a payment note, Feature 95769) */
+    const ofc = isOfc(d);
+    const who = ofc ? "Titularul" : "Solicitantul";
     const methods = [
-      st.paperRelease ? { id: "pickup", title: "Ridicare de la ghișeul autorității", description: "Solicitantul ridică actul pe hârtie de la ghișeul autorității emitente.", icon: "icon-store", selected: d.delivery.mode === "ghiseu", badges: [{ label: "Gratuit", tone: "outline" }] } : null,
-      st.mdelivery ? {
+      st.paperRelease ? { id: "pickup", title: "Ridicare de la ghișeul autorității", description: `${who} ridică actul pe hârtie de la ghișeul autorității emitente.`, icon: "icon-store", selected: d.delivery.mode === "ghiseu", badges: [{ label: "Gratuit", tone: "outline" }] } : null,
+      st.mdelivery && !ofc ? {
         id: "courier", title: "Livrare prin MDelivery", description: `Actul pe hârtie se livrează la adresa indicată. Taxa MDelivery (${mdl(S.data.mdelivery.amount)}) se adaugă pe nota de plată.`, icon: "icon-car", selected: d.delivery.mode === "mdelivery", badges: [{ label: "Cu plată", tone: "warning" }],
         address: { title: "Adresa livrării", required: true, icon: "icon-map-pin", label: "Adresa de livrare", value: d.delivery.address || addressText(d.details.address) || "Adăugați adresa livrării", editLabel: "Editează adresa livrării", cancelLabel: "Anulează", saveLabel: "Salvează", form: { id: "gh-delivery-address", type: "cascade-address", span: 12, cadastral: { visible: false } } }
       } : null
     ].filter(Boolean);
     return {
       title: "Livrare",
-      sectionTitle: "Cum primește solicitantul rezultatul?",
-      options: [{ id: "evo-cabinet", title: "Livrare electronică (EVO Cabinet)", description: "Actul semnat electronic apare în EVO Cabinet al solicitantului.", logo: "assets/logos/evo-logo.svg", selected: true, badges: [{ label: "Gratuit", tone: "outline" }, { label: "100% digital", tone: "positive" }] }],
-      paperCopy: methods.length ? { label: "Solicitantul are nevoie și de o copie pe hârtie", description: "Opțional. Varianta electronică are aceeași valoare juridică.", selected: d.delivery.mode !== "evo", methods } : null
+      sectionTitle: `Cum primește ${who.toLocaleLowerCase("ro")} rezultatul?`,
+      options: [{ id: "evo-cabinet", title: "Livrare electronică (EVO Cabinet)", description: `Actul semnat electronic apare în EVO Cabinet al ${ofc ? "titularului" : "solicitantului"}.`, logo: "assets/logos/evo-logo.svg", selected: true, badges: [{ label: "Gratuit", tone: "outline" }, { label: "100% digital", tone: "positive" }] }],
+      paperCopy: methods.length ? { label: `${who} are nevoie și de o copie pe hârtie`, description: "Opțional. Varianta electronică are aceeași valoare juridică.", selected: d.delivery.mode !== "evo", methods } : null
     };
   }
   function stepLivrare(d) {
@@ -2351,6 +2738,8 @@
   function readiness(d) {
     const st = settingsOf(d.service);
     const all = STEPS.filter((s, i) => i < STEP_INDEX.verificare).flatMap((s) => CHECKS[s.id](d));
+    /* din oficiu (US-246 AC-02/03): straight from Livrare to the confirmation — no MSign, no payment note */
+    if (isOfc(d)) return [{ label: "Datele dosarului sunt validate", ok: !all.length }, { label: "Fără semnarea cererii prin MSign", ok: true }, { label: "Fără notă de plată", ok: true }];
     return [
       { label: "Datele cererii sunt validate", ok: !all.length },
       st.olograf ? { label: "Cererea semnată olograf este atașată", ok: Boolean(d.review.olograf) } : null,
@@ -2369,17 +2758,18 @@
       ${S.notice === "submit-error" ? `<div class="e-permits-gh__notices">${U().renderNotice?.("error", "A apărut o eroare. Depunerea nu a putut fi finalizată. Încercați din nou.", { role: "alert" }) || ""}</div>` : ""}
       <div class="e-permits-fo-review e-permits-gh__review">
       ${summarySection("Condițiile depunerii", list.map((x) => detailRow(x.label, tagHtml(x.ok ? "Îndeplinită" : "Neîndeplinită", x.ok ? "success" : "danger"))).join(""))}
-      ${summarySection("Cererea", [
+      ${summarySection(isOfc(d) ? "Dosarul" : "Cererea", [
         detailRow("Numărul cererii", R().copyValueHtml?.(d.nr, { ariaLabel: `Copiază numărul cererii ${d.nr}` }) || esc(d.nr)),
-        detailRow("Solicitant", esc(holderName(d))),
-        detailRow("Tipul solicitării", esc(d.requestType)),
+        detailRow(isOfc(d) ? "Titular" : "Solicitant", esc(holderName(d))),
+        detailRow("Tipul solicitării", esc(isOfc(d) ? `${d.requestType} · ${ofcActOf(d)?.nr || ""}` : d.requestType)),
         detailRow("Livrare", esc({ evo: "Electronic, în EVO Cabinet", ghiseu: "Pe hârtie, la instituția emitentă", mdelivery: `Prin MDelivery · ${d.delivery.address || ""}` }[d.delivery.mode])),
-        detailRow("Termen de examinare", esc(termOf(d)?.label || "—"))
+        detailRow("Termen de examinare", esc(isOfc(d) ? ofcTermLabel(d) : termOf(d)?.label || "—"))
       ].join(""))}
       </div>
       ${footerHtml(d, { next: S.notice === "submit-error" ? "Reîncercați" : "Confirmă depunerea", nextAttrs: "data-gh-submit", nextDisabled: !ok })}`;
   }
   function confirmedHtml(d) {
+    if (isOfc(d)) return ofcConfirmedHtml(d);
     const st = settingsOf(d.service);
     const cert = !st.certificat ? "" : d.certError
       ? R().finishDocHtml?.({ title: "Certificatul constatator", error: "Nu a putut fi generat.", actionAttrs: "data-gh-cert-retry" }) || ""
@@ -2410,6 +2800,7 @@
       return;
     }
     S.notice = null;
+    if (isOfc(d)) { ofcSubmit(d); return; }
     d.status = "În procesare"; d.substatus = "Spre distribuire";
     d.submittedAt = nowIso();
     d.examDeadline = addDays(d.submittedAt, Number((termOf(d)?.label || "").match(/\d+/)?.[0] || 15) + 6);
@@ -2425,11 +2816,369 @@
     render();
   }
 
+  /* ================================================================ Din oficiu (Feature 95769) — the step bodies
+     The window, stepper, footer, autosave, documents, Livrare and the confirmation readiness are the desk's; these
+     are the parts that read differently: the act search (US-242), „Date titular” (US-243), „Detalii serviciu” with
+     the decision (US-244), the Verificare summary (US-245) and the submitted dossier (US-246). */
+  const dmyToIso = (value) => {
+    const m = String(value || "").trim().match(/^(\d{1,2})[./-](\d{1,2})[./-](\d{4})$/);
+    if (!m) return "";
+    const dt = new Date(Number(m[3]), Number(m[2]) - 1, Number(m[1]));
+    return dt.getDate() === Number(m[1]) && dt.getMonth() === Number(m[2]) - 1 ? `${m[3]}-${pad(m[2])}-${pad(m[1])}` : "";
+  };
+  const DATE_MSG = "Introduceți data în formatul ZZ/LL/AAAA.";
+  const OFC_TEMEI = ["Decizie administrativă a autorității", "Hotărâre judecătorească"];
+  /* the post-process's own data (the published form of each ex-officio type, US-244 AC-02) */
+  const OFC_FIELDS = {
+    Prelungire: [{ key: "until", type: "date", label: "Valabil până la (termenul nou)", span: 6 }],
+    "Suspendare valabilitate": [{ key: "until", type: "date", label: "Suspendat până la", span: 6 }, { key: "reason", type: "textarea", label: "Motivul suspendării", span: 12 }],
+    "Reluare valabilitate": [{ key: "from", type: "date", label: "Valabilitatea se reia de la", span: 6 }],
+    "Retragere act permisiv": [{ key: "from", type: "date", label: "Data retragerii", span: 6 }, { key: "reason", type: "textarea", label: "Motivul retragerii", span: 12 }]
+  };
+  const OFC_DECISION_TITLE = {
+    Prelungire: "Decizie privind prelungirea actului permisiv",
+    "Suspendare valabilitate": "Decizie privind suspendarea valabilității actului permisiv",
+    "Reluare valabilitate": "Decizie privind reluarea valabilității actului permisiv",
+    "Retragere act permisiv": "Decizie privind retragerea actului permisiv"
+  };
+  const actStatusLabel = (act) => (ACT_TONE[act?.status] || [act?.status || ""])[0];
+
+  /* ---- US-242: the act search = the desk's „Ce se solicită?” vocabulary (FO intent header, the shared act rows with
+     the square ⋮, the live search) without an applicant: the service filter + one search over the act number, the
+     holder's IDNP / IDNO, the holder and the object (AC-03); every act of the authority is listed (AC-04/05) */
+  const ofcActText = (act) => { const h = holderOf(act.holder); return fold([act.nr, act.name, act.holder, h.type === "PJ" ? h.company?.denumire : fullName(h.person), serviceOf(act.service)?.title].join(" ")); };
+  function ofcActRowHtml(act, attrs = "") {
+    const busy = ofcBusy(act, S.cur?.id || "");
+    const date = act.status === "expirat" ? `expirat la ${longDate(act.valabilPana)}` : act.status === "retras" ? "" : `valabil până la ${longDate(act.valabilPana)}`;
+    return R().actRowHtml?.({ id: act.id, name: act.name, status: act.status, statusLabel: actStatusLabel(act) }, {
+      menuId: `gh-ofc-menu-${act.id}`,
+      /* AC-07…09: only the configured types for the act's status; none → no ⋮; one active post-process per act */
+      items: busy ? [] : ofcTypes(act).map((t) => ({ id: t, label: t })),
+      attrs,
+      actionLabel: "Postprocese din oficiu",
+      place: holderLine(act.holder), placeIcon: false, actionIcon: "icon-more-vertical",
+      metaSlots: { number: act.nr, numberLabel: `Copiază numărul actului ${act.nr}`, what: serviceOf(act.service)?.title || "", authority: act.emis ? `emis la ${longDate(act.emis)}` : "", date },
+      pendingTitle: busy ? `${busy.type} în curs` : "",
+      pendingText: busy ? `· dosar ${busy.nr}. Un alt postproces se inițiază după finalizarea acestuia.` : ""
+    }) || "";
+  }
+  function ofcIntentHtml(d) {
+    const all = ofcActs();
+    const titles = [...new Map(all.map((a) => [a.service, serviceOf(a.service)?.title || a.service])).entries()];
+    const svcTitle = titles.find(([code]) => code === S.ofcService)?.[1] || "";
+    const acts = all.filter((a) => !S.ofcService || a.service === S.ofcService);
+    const q = fold(S.actsQuery || "");
+    const matches = (act) => !q || ofcActText(act).includes(q);
+    S.actsMatches = acts.filter(matches).length;
+    const select = R().fieldHtml({ id: "gh-ofc-service", type: "select", label: "Denumirea serviciului", span: 6, value: svcTitle || "Toate serviciile", options: ["Toate serviciile", ...titles.map(([, title]) => title)] });
+    const search = `
+      <div class="e-permits-fo-field e-permits-fo-field--span-6">
+        <label for="gh-ofc-q">Numărul actului, IDNP sau IDNO</label>
+        <div class="search-input ${searchSize()} rectangular e-permits-workplace__search e-permits-list-search e-permits-list-search--fill${S.actsQuery ? " has-value is-ready" : ""}">
+          <span class="icon-search" aria-hidden="true">${icon("search")}</span>
+          <input class="input" id="gh-ofc-q" type="search" placeholder="De ex. ASF-2025-03318 sau 1008600031457" autocomplete="off" value="${esc(S.actsQuery || "")}" data-gh-acts-search>
+          <div class="btn-group"><span class="spinner spinner--extra-small spinner--brand" aria-hidden="true"></span><button type="button" class="btn-icon clear" aria-label="Șterge căutarea"><svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-cross-small"></use></svg></button></div>
+        </div>
+      </div>`;
+    const rows = acts.map((act) => ofcActRowHtml(act, `data-gh-act-text="${esc(ofcActText(act))}"${matches(act) ? "" : " hidden"}`)).join("");
+    const E = window.GEAPEmptyState;
+    return `
+      <div class="e-permits-fo-intent__inner e-permits-gh-intent" data-gh-intent>
+        <header class="e-permits-fo-intent__header">
+          <h1 id="gh-intent-title" tabindex="-1">Inițiere dosar din oficiu</h1>
+          <p class="e-permits-fo-intent__subject"><span class="e-permits-fo-intent__subject-label">Găsiți actul permisiv și alegeți din meniul lui postprocesul hotărât de autoritate.</span></p>
+        </header>
+        ${S.actCleared ? U().renderNotice?.("info", "Actul sau postprocesul ales anterior a fost anulat. Alegeți din nou.") || "" : ""}
+        <div class="e-permits-gh-acts-search e-permits-gh-ofc">
+          <div class="e-permits-fo-form__section-body e-permits-gh-ofc__filters">${select}${search}</div>
+          <section class="e-permits-fo-intent__acts" aria-labelledby="gh-acts-title">
+            <p class="e-permits-fo-intent__acts-title" id="gh-acts-title">Acte permisive emise de autoritate</p>
+            ${rows ? `<ul class="e-permits-fo-intent__list">${rows}</ul>` : ""}
+            <div data-gh-acts-none${!rows || (q && !S.actsMatches) ? "" : " hidden"}>${!rows
+              ? E?.render({ title: "Nu există acte permisive emise", text: "Actele emise de autoritate pentru serviciile cu pașaport publicat apar aici.", icon: "permission", compact: true }) || ""
+              /* AC-06 */
+              : E?.noResults?.("Nu există acte permisive care să corespundă căutării.", { text: "Caută după numărul actului, IDNP-ul sau IDNO-ul titularului.", bare: true, compact: true }) || ""}</div>
+          </section>
+          <p class="u-visually-hidden" role="status" aria-live="polite" data-gh-acts-live></p>
+        </div>
+      </div>`;
+  }
+
+  /* ---- US-243 „Date titular”: the holder of the act (the FO identity card, read-only — AC-02) + Telefon / Email
+     prefilled from the act and editable (AC-03), validated as at the desk (AC-04…07) */
+  function ofcTitularHtml(d) {
+    const pj = d.personType === "PJ";
+    const card = roleCard(pj
+      ? { name: d.company.denumire, idLabel: "IDNO", idValue: d.company.idno, pj: true }
+      : { name: fullName(d.applicant), idLabel: "IDNP", idValue: d.applicant.idnp });
+    const phone = R().fieldHtml({ id: "gh-phone", type: "phone", label: "Telefon", required: true, span: 6, value: d.contact.phone ? formatPhone(d.contact.phone) : "", placeholder: "60 999 999" });
+    const email = R().fieldHtml({ id: "gh-email", type: "email", label: "Email", span: 6, value: d.contact.email, placeholder: "office@companie.md" });
+    return `
+      ${stepHeader("Date titular")}
+      <section class="e-permits-fo-form__roles is-single" aria-label="Titularul actului permisiv">
+        <div class="e-permits-fo-form__roles-grid">
+          <div class="e-permits-fo-form__role-group">${R().roleGroupTitleHtml?.("Titular", { hint: "Titularul actului permisiv ales, preluat din act. Se schimbă doar alegând alt act: ⋮ › „Schimbă actul sau postprocesul”." }) || ""}${card}</div>
+        </div>
+      </section>
+      ${section("Date de contact", `<div class="e-permits-fo-form__section-body">${phone}${email}</div>`, { id: "gh-contact-title", desc: "Preluate din actul permisiv. Actualizați-le dacă s-au schimbat." })}
+      ${footerHtml(d)}`;
+  }
+  function checkContactOfc(d) {
+    const errs = [];
+    const raw = String(d.contact.phone || "").replace(/\D/g, "");
+    const digits = raw.length === 11 && raw.startsWith("373") ? raw.slice(3) : raw.length === 9 && raw.startsWith("0") ? raw.slice(1) : raw;
+    if (!digits) errs.push({ input: "#fo-gh-phone", msg: REQUIRED, step: STEP_INDEX.identificare });
+    else if (!/^\d{8}$/.test(digits)) errs.push({ input: "#fo-gh-phone", msg: OFC_PHONE_MSG, step: STEP_INDEX.identificare });
+    const email = String(d.contact.email || "").trim();
+    if (email && !/^[^\s@]+@[^\s@]+\.[a-z]{2,}$/i.test(email)) errs.push({ input: "#fo-gh-email", msg: "Adresa email nu este validă.", step: STEP_INDEX.identificare });
+    else if (/\.ru$/i.test(email)) errs.push({ input: "#fo-gh-email", msg: "Adresele de email cu domeniul .ru nu sunt acceptate.", step: STEP_INDEX.identificare });
+    return errs;
+  }
+
+  /* ---- US-244 „Detalii serviciu”: the act's data prefilled read-only (AC-02), the post-process's own fields, the
+     authority's decision as an electronic form (MDocs print version, AC-03) or an attached PDF (AC-04), the
+     initiator's subdivision read-only (AC-08) */
+  function ofcDecisionHtml(d) {
+    const dec = (d.ofc || blankOfc()).decision;
+    const mode = R().fieldHtml({ id: "gh-ofc-mode", type: "segment", label: "Forma deciziei", span: 12, value: dec.mode, options: [{ value: "form", label: "Formular electronic" }, { value: "pdf", label: "Fișier PDF" }] }).replace("data-fo-segment", "data-fo-segment data-gh-ofc-mode");
+    const nr = R().fieldHtml({ id: "gh-ofc-dec-nr", type: "text", label: "Numărul deciziei", required: true, span: 6, value: dec.nr, placeholder: "De ex. DA-2026-0412", maxLength: 40 });
+    const date = R().fieldHtml({ id: "gh-ofc-dec-date", type: "date", label: "Data deciziei", required: true, span: 6, value: dec.date });
+    const temei = R().fieldHtml({ id: "gh-ofc-temei", type: "select", label: "Temeiul", required: true, span: 12, placeholder: "Selectează temeiul", value: dec.temei, options: OFC_TEMEI });
+    const body = dec.mode === "pdf" ? `
+      <div class="e-permits-fo-field e-permits-fo-field--span-12">
+        <div class="e-permits-fo-doc-field e-permits-fo-doc-field--boxed" data-fo-doc-field="gh-ofc-pdf" data-gh-ofc-pdf data-fo-upload-only data-fo-doc-accept=".pdf" data-fo-doc-max="1" data-fo-doc-limits="PDF|60 MB">
+          <div class="e-permits-fo-doc-field__row">
+            <div class="e-permits-fo-doc-field__info">
+              <span class="e-permits-fo-doc-field__label">Decizia autorității (PDF) ${req()}</span>
+              <p class="e-permits-fo-doc-field__desc">Decizia pregătită în afara SIA GEAP. Doar PDF · maximum 60 MB.</p>
+            </div>
+            <button class="btn btn-strict btn-md" type="button" data-fo-open-doc-modal data-fo-doc-label="Decizia autorității (PDF)">${icon("upload", 20, "icon medium")}<span>Adaugă fișier</span></button>
+          </div>
+          <div class="e-permits-fo-doc-field__files" data-fo-doc-field-files></div>
+        </div>
+        ${docErrSlot("ofc-pdf", { inField: false })}
+      </div>` : `
+      ${R().fieldHtml({ id: "gh-ofc-content", type: "textarea", label: "Conținutul deciziei", required: true, span: 12, rows: 4, maxLength: 2000, charCounter: true, value: dec.content, placeholder: "Dispozitivul deciziei: ce hotărăște autoritatea și pe ce temei" })}
+      <div class="e-permits-fo-field e-permits-fo-field--span-12">${U().renderInfoNote?.("La confirmarea depunerii, MDocs generează versiunea de tipar a deciziei din acest formular.") || ""}</div>`;
+    return `<div data-gh-block="ofc-decision">${section("Decizia autorității", `<div class="e-permits-fo-form__section-body">${mode}${nr}${date}${temei}${body}</div>`, { id: "gh-ofc-dec-title", desc: "Decizia administrativă a autorității sau hotărârea instanței care stă la baza postprocesului." })}</div>`;
+  }
+  function ofcDetaliiHtml(d) {
+    const act = ofcActOf(d);
+    const o = d.ofc || (d.ofc = blankOfc());
+    const actFields = [
+      readonlyField({ id: "gh-ofc-act-nr", label: "Numărul actului permisiv", value: act?.nr || "", span: 6 }),
+      readonlyField({ id: "gh-ofc-act-status", label: "Statutul actului", value: actStatusLabel(act), span: 6 }),
+      readonlyField({ id: "gh-ofc-act-name", label: "Obiectul autorizat", value: act?.name || "", span: 12 }),
+      readonlyField({ id: "gh-ofc-act-emis", label: "Data emiterii", value: longDate(act?.emis), span: 6 }),
+      readonlyField({ id: "gh-ofc-act-until", label: act?.status === "expirat" ? "Expirat la" : "Valabil până la", value: longDate(act?.valabilPana), span: 6 })
+    ].join("");
+    const hint = (f) => (f.key === "until" && d.requestType === "Prelungire" ? `După ${longDate(act?.valabilPana)}, data actuală de expirare.` : f.key === "until" ? "Data până la care actul permisiv nu este valabil." : "");
+    const typeFields = (OFC_FIELDS[d.requestType] || []).map((f) => R().fieldHtml({
+      id: `gh-ofc-${f.key}`, type: f.type, label: f.label, required: true, span: f.span, value: o.fields[f.key] || "", hint: hint(f),
+      ...(f.type === "textarea" ? { rows: 3, maxLength: 500, charCounter: true, placeholder: "Descrieți pe scurt motivul" } : {})
+    })).join("");
+    return `
+      ${stepHeader("Detalii serviciu")}${U().renderInfoNote?.(`Postproces din oficiu „${esc(d.requestType)}” pe ${esc(act?.nr || "")}: datele actului sunt precompletate.`) || ""}
+      ${section("Datele actului permisiv", `<div class="e-permits-fo-form__section-body">${actFields}</div>`, { id: "gh-ofc-act-title" })}
+      ${section("Detaliile postprocesului", `<div class="e-permits-fo-form__section-body">${typeFields}</div>`, { id: "gh-ofc-pp-title" })}
+      ${ofcDecisionHtml(d)}
+      ${section("Examinare", `<div class="e-permits-fo-form__section-body">${readonlyField({ id: "gh-subdiv", label: "Procesat de subdiviziunea", value: d.details.subdivision || ofcSubdivision(), span: 12, required: true, hint: "Subdiviziunea dvs. la inițierea dosarului." })}</div>`, { id: "gh-exam-title" })}
+      ${footerHtml(d)}`;
+  }
+  function bindOfcDecision(block) {
+    if (!block) return;
+    block.querySelector("[data-gh-ofc-mode]")?.addEventListener("change", (event) => {
+      const value = event.currentTarget.querySelector(".segment-item.is-selected")?.dataset.value || "form";
+      const dec = S.cur.ofc.decision;
+      if (value === dec.mode) return;
+      collectDetaliiOfc();
+      dec.mode = value;
+      S.dirty = true;
+      redrawBlock("ofc-decision");
+      S.page.querySelector("[data-gh-ofc-mode] .segment-item.is-selected")?.focus();
+    });
+    /* the PDF (AC-04): the FO boxed upload, validated on upload, kept in the draft */
+    const field = block.querySelector("[data-gh-ofc-pdf]");
+    if (!field) return;
+    const box = field.querySelector("[data-fo-doc-field-files]");
+    if (S.cur.ofc.decision.file) attachTo(box, S.cur.ofc.decision.file);
+    const obs = new MutationObserver(() => {
+      const el = box.querySelector("[data-fo-doc]");
+      let doc = null;
+      try { doc = el ? JSON.parse(el.dataset.foDoc) : null; } catch { doc = null; }
+      const dec = S.cur.ofc.decision;
+      if (!doc) { if (dec.file) { dec.file = null; S.dirty = true; } return; }
+      if (JSON.stringify({ ...doc, tip: "Decizia autorității" }) === JSON.stringify(dec.file)) return;
+      const name = doc.fisier || doc.tip || "";
+      const error = !/\.pdf$/i.test(name) ? "Nu puteți atașa fișierul. Se permite doar formatul PDF." : sizeMb(doc.size) > 60 ? "Nu puteți atașa fișiere mai mari decât 60Mb." : "";
+      if (error) { obs.disconnect(); el.remove(); obs.observe(box, { childList: true, subtree: true }); setErr("ofc-pdf", error, field); return; }
+      dec.file = { ...doc, tip: "Decizia autorității" };
+      S.dirty = true;
+      clearErr("ofc-pdf");
+      audit("Atașare decizie PDF", S.cur, name);
+    });
+    obs.observe(box, { childList: true, subtree: true });
+  }
+  BLOCK_RENDER["ofc-decision"] = ofcDecisionHtml;
+  BLOCK_BIND["ofc-decision"] = bindOfcDecision;
+  function bindDetaliiOfc(panel) {
+    bindOfcDecision(panel.querySelector('[data-gh-block="ofc-decision"]'));
+  }
+  function collectDetaliiOfc() {
+    const d = S.cur;
+    const o = d.ofc || (d.ofc = blankOfc());
+    const before = JSON.stringify(o);
+    const el = (sel) => S.page?.querySelector(sel);
+    (OFC_FIELDS[d.requestType] || []).forEach((f) => {
+      const input = el(`#fo-gh-ofc-${f.key}`);
+      if (input) o.fields[f.key] = f.type === "date" ? dmyToIso(input.value) : input.value.trim();
+    });
+    const nr = el("#fo-gh-ofc-dec-nr");
+    if (nr) o.decision.nr = nr.value.trim();
+    const date = el("#fo-gh-ofc-dec-date");
+    if (date) o.decision.date = dmyToIso(date.value);
+    const temei = el("#fo-gh-ofc-temei")?.closest("[data-fo-select]")?.querySelector(".e-permits-fo-select__option.is-selected")?.dataset.value;
+    if (temei !== undefined) o.decision.temei = temei;
+    const content = el("#fo-gh-ofc-content");
+    if (content) o.decision.content = content.value.trim();
+    /* AC-09: every change of the dossier's details is logged — one entry per editing run (its time moves) */
+    if (JSON.stringify(o) !== before && d.id) {
+      const last = S.audit[0];
+      if (last?.action === "Modificare detalii dosar" && last.cerere === d.nr) last.at = nowIso();
+      else audit("Modificare detalii dosar", d, `${d.requestType}: detaliile postprocesului și decizia autorității`);
+    }
+  }
+  function checkDetaliiOfc(d) {
+    const o = d.ofc || blankOfc();
+    const act = ofcActOf(d);
+    const step = STEP_INDEX.detalii;
+    const today = isoDay(0);
+    const errs = [];
+    /* a typed date that is not a date (only while the step is on screen) */
+    const badDate = (id) => { const input = S.page?.querySelector(`[data-gh-panel="detalii"] #fo-${id}`); return Boolean(input && input.value.trim() && !dmyToIso(input.value)); };
+    (OFC_FIELDS[d.requestType] || []).forEach((f) => {
+      const input = `#fo-gh-ofc-${f.key}`;
+      const v = o.fields[f.key];
+      if (f.type === "date" && badDate(`gh-ofc-${f.key}`)) errs.push({ input, msg: DATE_MSG, step });
+      else if (!v) errs.push({ input, msg: REQUIRED, step });
+      else if (f.key === "until" && d.requestType === "Prelungire" && act?.valabilPana && v <= act.valabilPana) errs.push({ input, msg: `Termenul nou trebuie să fie după ${longDate(act.valabilPana)}.`, step });
+      else if (f.key === "until" && v <= today) errs.push({ input, msg: "Data trebuie să fie după data de azi.", step });
+    });
+    if (!o.decision.nr) errs.push({ input: "#fo-gh-ofc-dec-nr", msg: REQUIRED, step });
+    if (badDate("gh-ofc-dec-date")) errs.push({ input: "#fo-gh-ofc-dec-date", msg: DATE_MSG, step });
+    else if (!o.decision.date) errs.push({ input: "#fo-gh-ofc-dec-date", msg: REQUIRED, step });
+    else if (o.decision.date > today) errs.push({ input: "#fo-gh-ofc-dec-date", msg: "Data deciziei nu poate fi în viitor.", step });
+    if (!o.decision.temei) errs.push({ input: "#fo-gh-ofc-temei", select: true, msg: REQUIRED, step });
+    if (o.decision.mode === "pdf" && !o.decision.file) errs.push({ key: "ofc-pdf", focus: "[data-gh-ofc-pdf] [data-fo-open-doc-modal]", msg: "Atașați decizia în format PDF.", field: "[data-gh-ofc-pdf]", step });
+    if (o.decision.mode !== "pdf" && !o.decision.content) errs.push({ input: "#fo-gh-ofc-content", msg: REQUIRED, step });
+    return errs;
+  }
+
+  /* ---- US-245 Verificare: the four sections of AC-02 (no edit pen on „Date generale”: the act and the type change
+     through „Schimbă actul sau postprocesul”), the decision first among the attachments */
+  function ofcReviewHtml(d) {
+    const svc = serviceOf(d.service);
+    const act = ofcActOf(d);
+    const o = d.ofc || blankOfc();
+    const authority = A().getAuthorityById?.(svc?.authorityId)?.name || "Agenția Națională pentru Sănătate Publică";
+    const general = [
+      summaryRow("Numărul cererii", [esc(d.nr || "—")]),
+      summaryRow("Serviciul", [esc(svc?.title || "")]),
+      summaryRow("Actul permisiv", [esc(act?.nr || "—"), esc(act?.name || "")]),
+      summaryRow("Autoritatea", [esc(authority)]),
+      summaryRow("Subdiviziunea de procesare", [esc(d.details.subdivision || "—")]),
+      summaryRow("Tipul solicitării", [esc(d.requestType)]),
+      summaryRow("Canal de depunere", [OFC])
+    ].join("");
+    const titular = [
+      summaryRow("Titular", [esc(holderName(d)), esc(d.personType === "PJ" ? `IDNO ${d.company.idno}` : `IDNP ${d.applicant.idnp}`)]),
+      summaryRow("Date de contact", [esc(d.contact.phone ? `+373 ${formatPhone(d.contact.phone)}` : "—"), esc(d.contact.email || "fără email")])
+    ].join("");
+    const request = [
+      summaryRow("Decizia autorității", [esc(`Nr. ${o.decision.nr || "—"} din ${o.decision.date ? longDate(o.decision.date) : "—"}`), esc(o.decision.temei || "—"), esc(o.decision.mode === "pdf" ? "Atașată ca fișier PDF" : "Formular electronic · versiunea de tipar se generează prin MDocs")]),
+      ...(OFC_FIELDS[d.requestType] || []).map((f) => summaryRow(f.label, [esc(f.type === "date" ? longDate(o.fields[f.key]) : o.fields[f.key]) || "—"]))
+    ].join("");
+    const decision = o.decision.mode === "pdf"
+      ? (o.decision.file ? docCard({ ...o.decision.file, tip: "Decizia autorității" }) : "")
+      : docCard({ sursa: "generat", tip: "Decizia autorității", fisier: `decizie-${o.decision.nr || d.nr}.pdf`, verb: "Versiunea de tipar", de: "MDocs" }, 'data-gh-preview="decizie"');
+    const attached = [
+      decision,
+      ...docsOf(d).flatMap((doc) => (d.docs[doc.id] || []).map((f) => docCard({ ...f, tip: doc.label, fisier: f.fisier || f.tip }))),
+      ...(d.docs.alte || []).map((f) => docCard({ ...f, tip: "Document suplimentar", fisier: f.fisier || f.tip }))
+    ].join("");
+    const missing = docsOf(d).filter((doc) => doc.required && !(d.docs[doc.id] || []).length).map((doc) => doc.label);
+    if (o.decision.mode === "pdf" && !o.decision.file) missing.unshift("Decizia autorității (PDF)");
+    const attachments = `${attached || window.GEAPEmptyState?.render({ title: "Nu au fost atașate documente", text: "Se atașează la pasul „Acte necesare”.", icon: "document", compact: true }) || ""}${missing.length ? U().renderNotice?.("warning", `<strong>Lipsesc documente obligatorii.</strong> ${missing.map(esc).join("; ")}.`) || "" : ""}`;
+    return `
+      <div class="e-permits-fo-review e-permits-gh__review">
+        ${summarySection("Date generale ale solicitării", general)}
+        ${summarySection("Date despre titular", titular, STEP_INDEX.identificare)}
+        ${summarySection("Date despre cerere", request, STEP_INDEX.detalii)}
+        ${R().summarySectionHtml?.({ title: "Atașamente", bodyHtml: attachments, docs: true, editHtml: locked(d) ? "" : `<button class="e-permits-fo-summary-section__edit" type="button" aria-label="Corectează: Atașamente" data-tooltip-label="Corectează" data-gh-goto="${STEP_INDEX.documente}">${icon("edit")}</button>` }) || ""}
+      </div>`;
+  }
+
+  /* ---- US-246: submitted = „În procesare” · „Proiect act” (Prelungire) / „Proiect decizie” (AC-04), the number of
+     the dossier = the number of the request, distributed to the initiator (AC-07), the confirmation in place (AC-05) */
+  function ofcSubmit(d) {
+    const act = ofcActOf(d);
+    d.status = "În procesare";
+    d.substatus = d.requestType === "Prelungire" ? "Proiect act" : "Proiect decizie";
+    d.submittedAt = nowIso();
+    const wd = window.GEAPWorkingDays;
+    const day = d.submittedAt.slice(0, 10);
+    d.examDeadline = typeof wd?.addWorkingDays === "function" ? `${wd.addWorkingDays(day, ofcTermDays(d), "ANSP")}T23:59:00` : addDays(d.submittedAt, Math.round((ofcTermDays(d) * 7) / 5));
+    d.assignee = userName();
+    d.step = STEP_INDEX.confirmare; d.maxStep = d.step;
+    audit("Depunere dosar din oficiu", d, `Dosar ${d.nr} · act ${act?.nr || ""} · canal ${OFC} · În procesare / ${d.substatus} · reușită`);
+    audit("Distribuire automată", d, `Dosarul ${d.nr} a fost distribuit utilizatorului care l-a inițiat (${userName()})`, { system: true });
+    if (d.ofc?.decision?.mode === "form") audit("Generare decizie MDocs", d, `Versiunea de tipar a deciziei ${d.ofc.decision.nr}`, { system: true });
+    persist({ silent: true });
+    syncOfcDossiers();
+    /* the success toast comes when the window closes over the list (as the desk, ghiseu-picker-toast-v1) */
+    S.submittedNr = d.nr;
+    render();
+  }
+  function ofcConfirmedHtml(d) {
+    const act = ofcActOf(d);
+    return `
+      <div class="e-permits-gh__finish">
+        ${R().finishHeroHtml?.({ title: "Dosarul a fost depus cu succes.", leadHtml: '<p class="e-permits-fo-finish__lead">Dosarul a fost transmis spre procesare și distribuit automat către dvs. Îl găsiți în „Dosarele mele”.</p>' }) || ""}
+        <div class="e-permits-fo-finish__content">
+          <section class="e-permits-dosar-profil__card" aria-label="Dosarul depus">
+            ${detailRow("Numărul dosarului", R().copyValueHtml?.(d.nr, { ariaLabel: `Copiază numărul dosarului ${d.nr}` }) || esc(d.nr))}
+            ${detailRow("Data depunerii", esc(stamp(d.submittedAt)))}
+            ${detailRow("Termen de examinare", `${esc(longDate(d.examDeadline))} (${esc(plural(ofcTermDays(d), "zi lucrătoare", "zile lucrătoare"))})`)}
+            ${detailRow("Statut", `${tagHtml("În procesare", "info")}${tagHtml(d.substatus, "info")}`)}
+            ${detailRow("Postproces", esc(`${d.requestType} · ${act?.nr || ""}`))}
+            ${detailRow("Canal de depunere", OFC)}
+            ${detailRow("Responsabil", esc(d.assignee || userName()))}
+          </section>
+        </div>
+      </div>${footerHtml(d, { custom: `<button class="btn btn-neutral btn-rounded" type="button" data-gh-close-sheet>Înapoi la Dosare inițiate din oficiu</button><button class="btn btn-primary btn-rounded" type="button" data-ofc-open-dossier="${esc(d.nr)}">Deschide dosarul</button>` })}`;
+  }
+  /* US-244 AC-03: the decision's print version (MDocs standard template, „Decizie privind …”) */
+  function ofcDecisionPage(d, authority) {
+    const act = ofcActOf(d);
+    const o = d.ofc || blankOfc();
+    const svc = serviceOf(d.service);
+    return window.GEAPDocPreview?.mdocsHtml?.({
+      type: "notificare", title: OFC_DECISION_TITLE[d.requestType] || "Decizia autorității", overline: "",
+      authority, office: d.details.subdivision, number: o.decision.nr || d.nr, date: o.decision.date || d.createdAt,
+      intro: o.decision.content ? [o.decision.content] : null,
+      groups: [
+        { title: "Actul permisiv", rows: [["Numărul actului", act?.nr || ""], ["Serviciul", svc?.title || ""], ["Obiectul", act?.name || ""], ["Titular", `${holderName(d)} · ${d.personType === "PJ" ? `IDNO ${d.company.idno}` : `IDNP ${d.applicant.idnp}`}`]] },
+        { title: "Decizia", rows: [["Temeiul", o.decision.temei || "—"], ...(OFC_FIELDS[d.requestType] || []).map((f) => [f.label, f.type === "date" ? longDate(o.fields[f.key]) : o.fields[f.key] || "—"]), ["Dosarul din oficiu", d.nr]] }
+      ]
+    }) || "";
+  }
+
   const STEP_RENDER = { initiere: stepInitiere, intent: stepIntent, identificare: stepIdentificare, detalii: stepDetalii, documente: stepDocumente, verificare: stepVerificare, livrare: stepLivrare, plata: stepPlata, confirmare: stepConfirmare };
   const STEP_BIND = { initiere: bindInitiere, identificare: bindIdentificare, detalii: bindDetalii, documente: bindDocumente, verificare: bindVerificare, livrare: bindLivrare };
   const COLLECT = { identificare: () => { collectInitiere(); collectSolicitant(); }, detalii: collectDetalii, documente: collectDocumente, livrare: collectLivrare };
   /* data checks per step index (validate = collect + check) */
-  const CHECKS = { initiere: (d) => checkPicker(d), intent: (d) => checkProcess(d), identificare: (d) => [...dataCheckInitiere(d), ...checkContact(d)], detalii: checkDetalii, documente: checkDocumente, verificare: checkVerificare, livrare: checkLivrare, plata: () => [], confirmare: () => [] };
+  /* din oficiu: no picker (the act's holder is the subject), „Date titular” = the contact checks of US-243 */
+  const CHECKS = { initiere: (d) => (isOfc(d) ? [] : checkPicker(d)), intent: (d) => checkProcess(d), identificare: (d) => (isOfc(d) ? checkContactOfc(d) : [...dataCheckInitiere(d), ...checkContact(d)]), detalii: checkDetalii, documente: checkDocumente, verificare: checkVerificare, livrare: checkLivrare, plata: () => [], confirmare: () => [] };
   const CHECK = STEPS.map((step) => CHECKS[step.id]);
   /* the picker: a service, and a process (Emitere primară is preselected) */
   const PROCESS_MSG = "Alegeți „Solicitare nouă” sau un postproces pe un act emis.";
@@ -2456,6 +3205,7 @@
   function validateStep(i) {
     const id = STEPS[i].id;
     if (id === "initiere") return validateInitiere({ picker: true });
+    if (id === "identificare" && isOfc(S.cur)) { collectSolicitant(); return checkContactOfc(S.cur); }
     if (id === "identificare") return [...validateInitiere(), ...validateSolicitant()];
     COLLECT[id]?.();
     return CHECK[i](S.cur);
@@ -2487,18 +3237,19 @@
       /* one audit entry per autosave run on a step (the time moves), not one per typing pause */
       last.at = nowIso();
     } else if (auto && d.id) {
-      audit("Salvare automată schiță", d, `Pasul „${STEPS[S.step].label}”`, { step: S.step });
+      audit("Salvare automată schiță", d, `Pasul „${stepLabel(d, STEPS[S.step].id)}”`, { step: S.step });
     } else if (!d.id) {
       d.nr = nextRequestNumber();
-      d.id = `gh-${d.nr.slice(-4)}-${Date.now().toString(36).slice(-4)}`;
+      d.id = `${isOfc(d) ? "ofc" : "gh"}-${d.nr.slice(-4)}-${Date.now().toString(36).slice(-4)}`;
       d.uid = `uid-${d.id}`;
       d.createdAt = nowIso();
       d.by = userName();
       /* the MConnect lookups made before the first save belong to the request too (AC-36) */
       S.audit.forEach((e) => { if (e.tmp && e.tmp === d.tmp) { e.cerere = d.nr; delete e.tmp; } });
-      audit("Prima salvare a schiței", d, `${serviceOf(d.service)?.title || ""} · ${d.requestType} · statut Schiță · canal Ghișeu`);
+      /* US-242 AC-14 (din oficiu): + the permit, the person concerned (the holder) and the personal-data mark */
+      audit("Prima salvare a schiței", d, `${serviceOf(d.service)?.title || ""} · ${d.requestType}${isOfc(d) ? ` · act ${ofcActOf(d)?.nr || ""}` : ""} · statut Schiță · canal ${isOfc(d) ? OFC : "Ghișeu"}`);
     } else {
-      audit("Salvare schiță", d, `Pasul „${STEPS[S.step].label}”`);
+      audit("Salvare schiță", d, `Pasul „${stepLabel(d, STEPS[S.step].id)}”`);
     }
     if (!isSubmitted(d)) { d.step = S.step; d.maxStep = Math.max(d.maxStep || 0, S.step); }
     d.updatedAt = nowIso();
@@ -2514,6 +3265,8 @@
     const d = S.cur;
     const from = S.step;
     if (target === from || !d) return;
+    /* din oficiu has no picker: the act search („Schimbă actul sau postprocesul”) is the way back */
+    if (target === 0 && isOfc(d)) return;
     /* back to the picker (US-233: applicant and process change only there) */
     if (target === 0) {
       autosave(); /* the window's last edits are kept even when the picker is cancelled (it reopens the saved draft) */
@@ -2558,7 +3311,7 @@
     S.page.querySelectorAll("[aria-invalid='true']").forEach((el) => { if (el.matches("input, textarea")) R().setFieldError?.(el, ""); else el.removeAttribute("aria-invalid"); });
     S.page.querySelectorAll("[data-gh-err]").forEach((slot) => { const was = !slot.hidden; slot.hidden = true; slot.innerHTML = ""; if (was) syncDocErr(slot); });
     S.page.querySelectorAll("[data-gh-select-err]").forEach((el) => el.remove());
-    S.page.querySelectorAll(".is-error").forEach((el) => { if (el.matches(".e-permits-fo-select, .e-permits-fo-caem, .e-permits-fo-doc-field, .e-permits-check-options, .segmented-control")) el.classList.remove("is-error"); });
+    S.page.querySelectorAll(".is-error").forEach((el) => { if (el.matches(".e-permits-fo-select, .e-permits-fo-caem, .e-permits-fo-doc-field, .e-permits-check-options, .segmented-control, .e-permits-fo-textarea")) el.classList.remove("is-error"); });
   }
   function setErr(key, msg, fieldEl = null) {
     const slot = S.page?.querySelector(`[data-gh-err="${key}"]`);
@@ -2587,7 +3340,11 @@
           el.closest(".e-permits-fo-select")?.classList.add("is-error");
           el.setAttribute("aria-invalid", "true");
           el.closest(".e-permits-fo-field")?.insertAdjacentHTML("beforeend", `<span class="message message--inline message--error e-permits-fo-field__error" data-gh-select-err>${ERR_ICON}<span>${esc(e.msg)}</span></span>`);
-        } else R().setFieldError?.(el, e.msg);
+        } else {
+          R().setFieldError?.(el, e.msg);
+          /* the FO error helper colours inputs; a textarea's frame gets its error look here (as „Motivul eliminării”) */
+          el.closest(".e-permits-fo-textarea")?.classList.add("is-error");
+        }
       } else {
         const sel = e.field || ERR_FIELD[e.key];
         const target = sel ? S.page.querySelector(sel) : null;
@@ -2615,6 +3372,14 @@
       const select = event.target.closest?.("[data-fo-select]");
       const button = select?.querySelector(".e-permits-fo-select__button");
       if (!button) return;
+      /* din oficiu, the act search: the service filter redraws the list (not an edit of the draft) */
+      if (button.id === "fo-gh-ofc-service") {
+        const title = select.querySelector(".e-permits-fo-select__option.is-selected")?.dataset.value || "";
+        S.ofcService = ofcActs().find((a) => serviceOf(a.service)?.title === title)?.service || "";
+        render({ focusTitle: false });
+        S.page.querySelector("#fo-gh-ofc-service")?.focus();
+        return;
+      }
       S.dirty = true;
       if (button.getAttribute("aria-invalid") === "true") { select.classList.remove("is-error"); button.removeAttribute("aria-invalid"); select.closest(".e-permits-fo-field")?.querySelector("[data-gh-select-err]")?.remove(); }
       if (button.id === "fo-gh-subdiv") clearErr("subdiv");
@@ -2643,6 +3408,9 @@
     if (t.closest("[data-gh-start-cancel]")) { closeStart(); return; }
     if (t.closest("[data-gh-sheet-close]")) { requestCloseSheet(); return; }
     if (t.closest("[data-gh-close-sheet]")) { leave(); return; }
+    /* din oficiu, after submission: the dossier itself (US-246 AC-06 — it lives in „Dosarele mele” now) */
+    const dossier = t.closest("[data-ofc-open-dossier]");
+    if (dossier) { const nr = dossier.dataset.ofcOpenDossier; S.cur = null; S.dirty = false; closeSheet(); window.location.hash = `#dosar/${encodeURIComponent(nr)}/general`; return; }
     if (t.closest("[data-gh-next]")) { go(nextStepIndex(d, S.step)); return; }
     if (t.closest("[data-gh-prev]")) { go(prevStepIndex(d, S.step), { validate: false }); return; }
     const goto = t.closest("[data-gh-goto]");
@@ -2656,7 +3424,7 @@
       /* the FO draft button's confirmation (US-239 „afișează confirmarea”) */
       U().showShellToast?.("Schița a fost salvată.", "success");
       refreshChrome();
-      setHash(`#ghiseu/${encodeURIComponent(d.id)}/${STEPS[S.step].id}`);
+      setHash(hashFor(d, STEPS[S.step].id));
       return;
     }
     const reset = t.closest("[data-gh-reset]");
@@ -2726,7 +3494,7 @@
     S.dirty = true;
 
     const t = event.target;
-    if (t.getAttribute?.("aria-invalid") === "true" && !t.matches("[data-fo-registry-code]")) R().setFieldError?.(t, "");
+    if (t.getAttribute?.("aria-invalid") === "true" && !t.matches("[data-fo-registry-code]")) { R().setFieldError?.(t, ""); t.closest(".e-permits-fo-textarea")?.classList.remove("is-error"); }
   }
   function onKeydown(event) {
     const t = event.target;
@@ -2870,6 +3638,16 @@
     const d = S.drafts.find((x) => x.id === id);
     if (!d || isPaid(d) || isSubmitted(d)) return;
     closeMenus();
+    /* US-248 (din oficiu): the confirmation AC-02 asks, no reason field; the button stays red */
+    if (isOfc(d)) {
+      U().askConfirm?.({
+        title: "Sigur doriți să eliminați schița dosarului?",
+        text: `Schița ${d.nr} dispare din „Dosare inițiate din oficiu”, iar cererea primește statutul „Schiță”, substatutul „Eliminat”.`,
+        confirmLabel: "Elimină schița",
+        destructive: true
+      }, () => removeDraft(d, ""));
+      return;
+    }
     const note = d.payment && d.payment.status !== "Achitată" && d.payment.status !== "Anulată"
       ? U().renderNotice?.("warning", `Nota de plată ${esc(d.payment.nr)} (${esc(d.payment.status)}) primește statutul „Anulată”.`) || "" : "";
     openModal({
@@ -2896,17 +3674,23 @@
       return;
     }
     if (!d) return;
+    removeDraft(d, reason);
+  }
+  /* US-240 / US-248: statut „Schiță” · substatut „Eliminat”, the previous and new status in the audit (AC-07) */
+  function removeDraft(d, reason) {
+    const id = d.id;
     const before = `${d.status} / ${d.substatus}`;
     d.removed = { at: nowIso(), by: userName(), reason, auto: false };
     d.status = "Schiță"; d.substatus = "Eliminat";
     if (d.payment && d.payment.status !== "Achitată") d.payment.status = "Anulată";
-    audit("Eliminare schiță", d, `Motiv: ${reason} · ${before} → Schiță / Eliminat`);
+    audit("Eliminare schiță", d, `${reason ? `Motiv: ${reason} · ` : ""}${before} → Schiță / Eliminat`);
     writeStore();
     updateBadge();
     closeModal();
     U().showShellToast?.(`Schița ${d.nr} a fost eliminată.`, "success");
-    if (S.cur?.id === id) { S.cur = null; S.dirty = false; document.querySelector('[data-nav-item][data-nav-id="dosare-noi"]')?.click(); }
-    else refreshRegistry();
+    const mode = isOfc(d) ? OFC_KIND : "ghiseu";
+    if (S.cur?.id === id) { S.cur = null; S.dirty = false; closeSheet(); document.querySelector(`[data-nav-item][data-nav-id="${listOf(mode).nav}"]`)?.click(); }
+    else refreshRegistry(mode);
   }
 
   /* US-241 AC-09 / AC-14 — export with the applied filters and the shown columns. ghiseu-autosave-csv-v1 (user
@@ -2932,20 +3716,24 @@
   function exportCsv(list) {
     /* US-255 AC-07: „Dosare suspendate” exports its own six columns */
     const susp = exportKind === "susp";
+    /* US-249 AC-08 (din oficiu): the list's seven columns */
+    const ofc = exportKind === OFC_KIND;
     const head = susp
       ? ["Număr dosar", "Denumirea serviciului", "Nume solicitant", "Compania", "Data depunerii", "Termen de suplinire"]
+      : ofc ? ["Număr cerere", "Denumirea serviciului", "Nume titular", "Compania", "Data creării", "Data ultimei modificări", "Data eliminării automate"]
       : ["Număr cerere", "Denumirea serviciului", "Nume solicitant", "Compania", "Substatut", "Data creării", "Data ultimei modificări", "Data expirării notei de plată", "Data eliminării automate"];
     const rows = susp
       ? list.map((r) => [r.nr, r.serviciu, r.solicitant, r.companie, stamp(r.depus), longDate(r.termen)])
+      : ofc ? list.map((r) => [r.nr, r.serviciu, r.titular, r.companie, stamp(r.creat), stamp(r.modificat), longDate(r.eliminare)])
       : list.map((r) => [r.nr, r.serviciu, r.solicitant, r.companie, r.substatut, stamp(r.creat), stamp(r.modificat), longDate(r.expirareNota), longDate(r.eliminare)]);
-    const name = susp ? "dosare-suspendate.csv" : "dosare-noi.csv";
+    const name = susp ? "dosare-suspendate.csv" : ofc ? "dosare-din-oficiu.csv" : "dosare-noi.csv";
     const cell = (v) => `"${String(v ?? "").replace(/"/g, '""')}"`;
     const blob = new Blob(["\ufeff" + [head, ...rows].map((line) => line.map(cell).join(";")).join("\r\n")], { type: "text/csv;charset=utf-8" });
     const a = Object.assign(document.createElement("a"), { href: URL.createObjectURL(blob), download: name });
     document.body.appendChild(a); a.click(); a.remove();
     setTimeout(() => URL.revokeObjectURL(a.href), 1000);
     /* US-255 AC-11: user, action, record count, result, the personal-data mark, timestamp */
-    S.audit.unshift({ at: nowIso(), user: userName(), action: susp ? "Export listă Dosare suspendate" : "Export listă Dosare noi", detail: `${rows.length} înregistrări · CSV · reușit`, personal: true });
+    S.audit.unshift({ at: nowIso(), user: userName(), action: susp ? "Export listă Dosare suspendate" : ofc ? "Export listă Dosare inițiate din oficiu" : "Export listă Dosare noi", detail: `${rows.length} înregistrări · CSV · reușit`, personal: true });
     writeStore();
     closeModal();
     /* the dialog already says the export goes to the audit log → the toast names only the result */
@@ -3028,6 +3816,8 @@
     }
     /* doc-name-open-v1: an attached document (its name on the card) = the shared FO document page */
     if (kind === "doc") return R().docPageHtml?.(S.docView || {}) || "";
+    /* din oficiu (US-244 AC-03): the decision filled as an electronic form = the MDocs print version (preview) */
+    if (kind === "decizie") return ofcDecisionPage(d, authority);
     /* machete-mdocs-v1 (2026-10-25, US-311): the certificate = the MDocs standard template */
     if (window.GEAPDocPreview?.mdocsHtml) {
       return window.GEAPDocPreview.mdocsHtml({
@@ -3052,6 +3842,7 @@
     /* doc-viewer-v1: who signed + when live in the signature tray under the page, not in the subtitle */
     signed: ["Cererea semnată MSign", "Documentul cererii în format JSON"],
     cert: ["Certificatul constatator", "Generat de SIA GEAP la depunere"],
+    decizie: ["Decizia autorității", "Versiunea de tipar MDocs · formular electronic"],
     /* doc-name-open-v1: title = the document type, subtitle = how it came + when (no numbers in the header) */
     doc: [S.docView?.tip || "Document", [S.docView?.sursa === "mdocs" ? "Din MDocs" : S.docView?.sursa === "generat" ? "Generat" : "Încărcat la ghișeu", S.docView?.at].filter(Boolean).join(" · ")]
   });
@@ -3120,7 +3911,7 @@
   function download(kind) {
     const d = S.cur;
     if (!d) return;
-    const names = { paper: `cerere-${d.nr}.pdf`, signed: `cerere-${d.nr}.json`, cert: `certificat-constatator-${d.nr}.pdf`, note: `nota-de-plata-${d.payment?.nr}.pdf`, doc: S.docView?.fisier || "document.pdf" };
+    const names = { paper: `cerere-${d.nr}.pdf`, signed: `cerere-${d.nr}.json`, cert: `certificat-constatator-${d.nr}.pdf`, decizie: `decizie-${d.ofc?.decision?.nr || d.nr}.pdf`, note: `nota-de-plata-${d.payment?.nr}.pdf`, doc: S.docView?.fisier || "document.pdf" };
     const text = kind === "signed"
       ? JSON.stringify({ numarCerere: d.nr, uid: d.uid, serviciu: d.service, tipSolicitare: d.requestType, canal: "Ghișeu", solicitant: holderCode(d), semnatura: { semnatar: d.review.signed?.by, data: d.review.signed?.at, valida: true } }, null, 2)
       : kind === "note"
@@ -3137,6 +3928,8 @@
   document.addEventListener("click", (event) => {
     const t = event.target;
     if (t.closest('[data-workplace-add-product="gh-new"], [data-gh-new]')) { event.preventDefault(); history.pushState(null, "", `${window.location.pathname}${window.location.search}#ghiseu/nou`); route("nou"); return; }
+    /* «Dosare inițiate din oficiu» › „Nou” (US-242 AC-02) */
+    if (t.closest('[data-workplace-add-product="ofc-new"], [data-ofc-new]')) { event.preventDefault(); history.pushState(null, "", `${window.location.pathname}${window.location.search}#oficiu/nou`); route("nou", null, OFC_KIND); return; }
     const open = t.closest("[data-gh-open]");
     if (open) { event.preventDefault(); event.stopPropagation(); openDraftFromList(open.dataset.ghOpen); return; }
     const rm = t.closest("[data-gh-remove]");
@@ -3147,6 +3940,12 @@
     load().then(updateBadge);
     const nav = document.querySelector("[data-shell-nav]");
     if (nav) new MutationObserver(updateBadge).observe(nav, { childList: true });
+    /* submitted ex-officio dossiers back among the shell's dossiers once both stores are loaded (US-246 AC-06) */
+    load().then(() => {
+      let tries = 0;
+      const tick = () => { if (syncOfcDossiers({ redraw: true }) || tries > 150) return; tries += 1; setTimeout(tick, 100); };
+      tick();
+    });
   });
 
   /* for demo states and checks */

@@ -3968,3 +3968,23 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   code-audit (only standing FPs: BO 11 / 7, stack meta 18, th sort, fo-select chevron, date toggle; static 0), hover-audit
   0 / 0 (pages, dialogs, sort / row menus, confirm; toast over the header = standing), component-audit (only the standing
   shell header / profile-menu / th-sort majors; renamed a `__notices` wrapper that read as a notice).
+- 2026-10-26 · oficiu-v1 (Feature 95769 „Inițierea dosarelor din inițiativa autorității”, US-242…249 + US-65). „Same steps,
+  another entry” = a second MODE of the Ghișeu wizard, not a fork: a flag on the DRAFT (`channel: "Din oficiu"` → `isOfc(d)`)
+  read at ~25 branch points (entry, step bodies, checks, labels via `stepLabel`, header meta, submit, remove, export, hash
+  `#oficiu/…`) + one module-level `S.mode` for the list the window belongs to (`listOf()` → nav id / kind / hash). ~600
+  lines of module JS, ~25 of CSS, 1 shell line, the window / stepper / autosave / documents / Livrare / viewer for free.
+  Traps: (1) the step CHECKS run over EVERY step (stepper ticks, the Verificare gate, the readiness list) — a mode that
+  skips a step (the picker) must branch its check too (`initiere` → []), or a draft without an applicant never validates;
+  (2) a `display: grid` wrapper with an auto track grew to the act rows' one-line nowrap meta (856 in a 768 column) →
+  `grid-template-columns: minmax(0, 1fr)`; measure the column, the rows looked fine in the first shot; (3) a full-page
+  capture of an open menu inside the sheet shows it flipped / moved (captureBeyondViewport) — probe the rects before
+  „fixing” the flip; (4) seeded drafts that locked their acts turned half the act list amber → lock only by dossiers in
+  progress (filed or submitted), drafts never; (5) a module's submitted dossier joins the shell's dossiers by
+  `dossierStore().runtimeRows.unshift(row)` (+ re-added after every load by a polling sync, + `renderWorkplace` when the
+  dossier list is on screen): the existing `sursa: "OFICIU"` path gave „Dosarele mele” + the BO profile („Inițiat · Din
+  oficiu”) with no shell change; (6) `openDraft` caps the step at `maxStep` — a demo hash to a later step of an earlier
+  draft silently shows the earlier step (my ofc-05a showed Detalii errors): check the seed's step before naming a state;
+  (7) the list cell number must be the compact copy (`renderListCode`) — component-audit „missing-copy” caught it. I used
+  one Python replace on js/ghiseu.js (untouched by others) — still: Edit. No sub-agent tool → code-audit (standing FPs only,
+  static 0), hover-audit 0 / 0 on 11 states, component-audit (only the standing shell header / th-sort / profile-menu /
+  edit-pen majors), capture ofc-* × 2 + gh-* regression 130 × desktop clean.

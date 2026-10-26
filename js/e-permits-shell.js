@@ -6235,7 +6235,7 @@ document.addEventListener("DOMContentLoaded", () => {
       ${renderListCode(row.nrDosar)}
       <span class="e-permits-workplace__source">
         <span>Sursă:</span>
-        <span>${escapeHtml(row.sursa)}</span>
+        <span>${escapeHtml(row.sursa === "OFICIU" ? "Din oficiu" : row.sursa)}</span>
       </span>
     </div>
   `;

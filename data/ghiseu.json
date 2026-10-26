@@ -6,12 +6,18 @@
     { "idnp": "2001002003004", "nume": "Ceban", "prenume": "Maria" },
     { "idnp": "2985001122334", "nume": "Bejan", "prenume": "Radu" },
     { "idnp": "2002005006007", "nume": "Munteanu", "prenume": "Tatiana" },
-    { "idnp": "2003007008009", "nume": "Plămădeală", "prenume": "Sergiu" }
+    { "idnp": "2003007008009", "nume": "Plămădeală", "prenume": "Sergiu" },
+    { "idnp": "2001004005006", "nume": "Moraru", "prenume": "Sergiu" },
+    { "idnp": "2003005007009", "nume": "Lungu", "prenume": "Victor" },
+    { "idnp": "2005006007008", "nume": "Ceban", "prenume": "Elena" },
+    { "idnp": "2006007008009", "nume": "Rotaru", "prenume": "Andrei" }
   ],
   "companies": [
     { "idno": "1012600000002", "denumire": "SRL Global Trader", "administratori": ["2002005006007"] },
     { "idno": "1003600012345", "denumire": "SRL EcoServ", "administratori": ["2985001122334"] },
-    { "idno": "1014600099887", "denumire": "SA Apă-Canal", "administratori": ["2003007008009"] }
+    { "idno": "1014600099887", "denumire": "SA Apă-Canal", "administratori": ["2003007008009"] },
+    { "idno": "1008600031457", "denumire": "SRL Gustul Casei", "administratori": ["2001004005006"] },
+    { "idno": "1009600022110", "denumire": "SRL BioClean Pro", "administratori": ["2006007008009"] }
   ],
   "mpower": [
     { "from": "1003600012345", "to": "2004001234567", "nr": "MP-2026-008823", "valabilPana": "2026-11-30" },
@@ -21,7 +27,11 @@
     "2002005006007": { "phone": "60999999", "email": "tatiana.munteanu@mnotify.gov.md" },
     "1012600000002": { "phone": "60999999", "email": "office@globaltrader.md" },
     "2004001234567": { "phone": "69123456" },
-    "1003600012345": { "phone": "22445566", "email": "contact@ecoserv.md" }
+    "1003600012345": { "phone": "22445566", "email": "contact@ecoserv.md" },
+    "1008600031457": { "phone": "69445566", "email": "office@gustulcasei.md" },
+    "2003005007009": { "phone": "79112233" },
+    "2005006007008": { "phone": "68001122", "email": "elena.ceban@mail.md" },
+    "1009600022110": { "phone": "22556677", "email": "office@bioclean.md" }
   },
   "acts": {
     "1012600000002": [
@@ -33,6 +43,40 @@
     ],
     "1003600012345": [
       { "id": "act-biocid-eco", "kind": "act", "service": "003000519", "name": "Dezinfectant „EcoClean 5L”", "nr": "BIO-2025-00318", "status": "valabil", "emis": "2025-06-20", "valabilPana": "2030-06-20", "subdiviziune": "Direcția autorizare produse biocide", "object": { "name": "Dezinfectant „EcoClean 5L”" } }
+    ],
+    "1008600031457": [
+      { "id": "act-ofc-gustul", "kind": "act", "service": "003000118", "name": "Restaurantul „Gustul Casei”, mun. Chișinău", "nr": "ASF-2025-03318", "status": "valabil", "emis": "2025-03-12", "valabilPana": "2028-03-12", "subdiviziune": "CSP Chișinău", "object": { "name": "Restaurantul „Gustul Casei”", "district": "Municipiul Chișinău", "locality": "Chișinău", "street": "str. Columna", "house": "48", "postalCode": "MD-2004" } },
+      { "id": "act-ofc-cantina", "kind": "act", "service": "003000118", "name": "Cantina „Gustul Casei”, mun. Chișinău", "nr": "ASF-2022-00941", "status": "expirat", "emis": "2022-01-20", "valabilPana": "2025-01-20", "subdiviziune": "CSP Chișinău" }
+    ],
+    "2003005007009": [
+      { "id": "act-ofc-chiosc", "kind": "act", "service": "003000118", "name": "Chioșcul „La Victor”, or. Orhei", "nr": "ASF-2024-05562", "status": "suspendat", "emis": "2024-06-03", "valabilPana": "2027-06-03", "subdiviziune": "CSP Orhei", "object": { "name": "Chioșcul „La Victor”", "district": "Raionul Orhei", "locality": "Orhei", "street": "str. Vasile Lupu", "house": "7", "postalCode": "MD-3505" } }
+    ],
+    "2005006007008": [
+      { "id": "act-ofc-patiseria", "kind": "act", "service": "003000118", "name": "Patiseria „Elena”, mun. Bălți", "nr": "ASF-2025-08870", "status": "valabil", "emis": "2025-08-04", "valabilPana": "2028-08-04", "subdiviziune": "CSP Bălți", "object": { "name": "Patiseria „Elena”", "district": "Municipiul Bălți", "locality": "Bălți", "street": "str. Ștefan cel Mare", "house": "21", "postalCode": "MD-3100" } },
+      { "id": "act-ofc-coltisor", "kind": "act", "service": "003000118", "name": "Cafeneaua „Colțișor”, mun. Bălți", "nr": "ASF-2023-02210", "status": "retras", "emis": "2023-02-14", "valabilPana": "2026-02-14", "subdiviziune": "CSP Bălți" }
+    ],
+    "1009600022110": [
+      { "id": "act-ofc-bioclean", "kind": "act", "service": "003000519", "name": "Dezinfectant „BioClean 1L”", "nr": "BIO-2024-00211", "status": "valabil", "emis": "2024-11-18", "valabilPana": "2029-11-18", "subdiviziune": "Direcția autorizare produse biocide", "object": { "name": "Dezinfectant „BioClean 1L”" } },
+      { "id": "act-ofc-biogel", "kind": "act", "service": "003000519", "name": "Antiseptic „BioClean Gel”", "nr": "BIO-2023-00105", "status": "suspendat", "emis": "2023-09-05", "valabilPana": "2028-09-05", "subdiviziune": "Direcția autorizare produse biocide", "object": { "name": "Antiseptic „BioClean Gel”" } }
+    ]
+  },
+  "oficiu": {
+    "_comment": "Din oficiu (Feature 95769, US-242…249, js/ghiseu.js mode „oficiu”): the post-processes the authority starts on its own initiative. postprocese = the stand-in for Setări › „Postprocese pe acte permisive” › „Statute din care se inițiază” for the ex-officio request types (US-221, not in the passport yet): service code → act status → the request types offered in the act's ⋮ (AC-07/08; a status without types = no ⋮, AC-09). termene = the examination term after submission, in working days (js/working-days.js). docs = the predefined documents of an ex-officio dossier (US-20). drafts = the seeded drafts of «Dosare inițiate din oficiu» (act = an act id of `acts`; step = STEP_INDEX: 2 Date titular · 3 Detalii serviciu · 4 Acte necesare · 5 Verificare · 6 Livrare; dates as day offsets from today; by self = the signed-in user, anyone else is not listed, US-249 AC-04).",
+    "postprocese": {
+      "003000118": { "valabil": ["Prelungire", "Suspendare valabilitate", "Retragere act permisiv"], "suspendat": ["Reluare valabilitate", "Retragere act permisiv"] },
+      "003000519": { "valabil": ["Suspendare valabilitate", "Retragere act permisiv"], "suspendat": ["Reluare valabilitate"] }
+    },
+    "termene": { "Prelungire": 10, "Suspendare valabilitate": 5, "Reluare valabilitate": 5, "Retragere act permisiv": 10 },
+    "docs": [
+      { "id": "temei", "label": "Documentul care stă la baza deciziei", "description": "Procesul-verbal al controlului, hotărârea instanței sau o altă constatare a autorității.", "required": true },
+      { "id": "notificare-titular", "label": "Notificarea prealabilă a titularului", "description": "Dacă titularul a fost notificat înainte de decizie.", "required": false }
+    ],
+    "drafts": [
+      { "id": "ofc-4741", "nr": "C-2026-004741", "act": "act-piata-mare", "requestType": "Reluare valabilitate", "step": 2, "createdDays": 0, "createdTime": "09:15", "updatedHours": -0.3, "by": "self" },
+      { "id": "ofc-4736", "nr": "C-2026-004736", "act": "act-ofc-gustul", "requestType": "Prelungire", "step": 5, "createdDays": -2, "createdTime": "14:05", "updatedHours": -20, "by": "self" },
+      { "id": "ofc-4728", "nr": "C-2026-004728", "act": "act-ofc-bioclean", "requestType": "Suspendare valabilitate", "step": 3, "createdDays": -12, "createdTime": "10:40", "updatedHours": -260, "by": "self" },
+      { "id": "ofc-4719", "nr": "C-2026-004719", "act": "act-ofc-chiosc", "requestType": "Retragere act permisiv", "step": 4, "createdDays": -85, "createdTime": "11:30", "updatedHours": -1900, "by": "self" },
+      { "id": "ofc-4710", "nr": "C-2026-004710", "act": "act-ofc-patiseria", "requestType": "Suspendare valabilitate", "step": 3, "createdDays": -5, "createdTime": "16:20", "updatedHours": -100, "by": "Mihai Grosu" }
     ]
   },
   "services": {

@@ -113,11 +113,10 @@
             },
             {
               "id": "office",
-              "label": "Dosare inițiate în oficiu",
+              "label": "Dosare inițiate din oficiu",
               "icon": "mark-all",
-              "workplaceView": "office",
-              "badgeView": "office",
-              "badge": 5
+              "shellView": "oficiu-registry",
+              "badge": 0
             },
             {
               "id": "print",
@@ -226,11 +225,10 @@
             },
             {
               "id": "office",
-              "label": "Dosare inițiate în oficiu",
+              "label": "Dosare inițiate din oficiu",
               "icon": "mark-all",
-              "workplaceView": "office",
-              "badgeView": "office",
-              "badge": 5
+              "shellView": "oficiu-registry",
+              "badge": 0
             },
             {
               "id": "print",
@@ -357,6 +355,12 @@
               "id": "dosare-suspendate",
               "label": "Dosare suspendate",
               "shellView": "ghsusp-registry"
+            },
+            {
+              "id": "office",
+              "label": "Dosare inițiate din oficiu",
+              "shellView": "oficiu-registry",
+              "badge": 0
             },
             {
               "id": "work-in-progress",

@@ -26,22 +26,29 @@
   -webkit-mask-image: url("../assets/icons/sidebar-folder-shared.svg");
 }
 
-/* registry „Dosare noi”: no checkbox column — the pinned number carries the divider (as Fluxuri de lucru) */
-.e-permits-workplace[data-registry-kind="ghiseu"] .e-permits-workplace__table th:nth-child(1),
-.e-permits-workplace[data-registry-kind="ghiseu"] .e-permits-workplace__table td:nth-child(1) {
+/* «Dosare inițiate din oficiu» (Feature 95769): the item keeps the icon it had as a dossier view (`office`) */
+.e-permits-shell__nav--specialist [data-nav-id="office"] .e-permits-shell__nav-icon::before {
+  mask-image: url("../assets/icons/sidebar-folder-download.svg");
+  -webkit-mask-image: url("../assets/icons/sidebar-folder-download.svg");
+}
+
+/* registry „Dosare noi” (and «Dosare inițiate din oficiu», the same list shape): no checkbox column — the pinned
+   number carries the divider (as Fluxuri de lucru) */
+.e-permits-workplace:is([data-registry-kind="ghiseu"], [data-registry-kind="oficiu"]) .e-permits-workplace__table th:nth-child(1),
+.e-permits-workplace:is([data-registry-kind="ghiseu"], [data-registry-kind="oficiu"]) .e-permits-workplace__table td:nth-child(1) {
   border-right: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
   left: 0;
   position: sticky;
   z-index: 7;
 }
 
-.e-permits-workplace[data-registry-kind="ghiseu"] .e-permits-workplace__table th:nth-child(1) {
+.e-permits-workplace:is([data-registry-kind="ghiseu"], [data-registry-kind="oficiu"]) .e-permits-workplace__table th:nth-child(1) {
   z-index: 9;
 }
 
 /* …and the second column is not pinned (the shell rule is built for checkbox + name) */
-.e-permits-workplace[data-registry-kind="ghiseu"] .e-permits-workplace__table th:nth-child(2),
-.e-permits-workplace[data-registry-kind="ghiseu"] .e-permits-workplace__table td:nth-child(2) {
+.e-permits-workplace:is([data-registry-kind="ghiseu"], [data-registry-kind="oficiu"]) .e-permits-workplace__table th:nth-child(2),
+.e-permits-workplace:is([data-registry-kind="ghiseu"], [data-registry-kind="oficiu"]) .e-permits-workplace__table td:nth-child(2) {
   border-right: 0;
   left: auto;
   position: static;
@@ -206,54 +213,54 @@
 /* phones (≤760): the registry toolbar wraps instead of clipping „Dosar nou” (the eKYC pattern,
    scoped to this registry); the step progress stays in the flow (the FO pins it under its own header) */
 @media (max-width: 760px) {
-  .e-permits-workplace[data-registry-kind="ghiseu"] {
+  .e-permits-workplace:is([data-registry-kind="ghiseu"], [data-registry-kind="oficiu"]) {
     grid-template-columns: minmax(0, 1fr);
     grid-template-rows: auto minmax(0, 1fr) auto;
   }
 
   /* one pinned column only: the row actions stay at the right edge, the number scrolls with the row */
-  .e-permits-workplace[data-registry-kind="ghiseu"] .e-permits-workplace__table th:nth-child(1),
-  .e-permits-workplace[data-registry-kind="ghiseu"] .e-permits-workplace__table td:nth-child(1) {
+  .e-permits-workplace:is([data-registry-kind="ghiseu"], [data-registry-kind="oficiu"]) .e-permits-workplace__table th:nth-child(1),
+  .e-permits-workplace:is([data-registry-kind="ghiseu"], [data-registry-kind="oficiu"]) .e-permits-workplace__table td:nth-child(1) {
     border-right: 0;
     left: auto;
     position: static;
     z-index: auto;
   }
 
-  .e-permits-workplace[data-registry-kind="ghiseu"] .e-permits-workplace__footer {
+  .e-permits-workplace:is([data-registry-kind="ghiseu"], [data-registry-kind="oficiu"]) .e-permits-workplace__footer {
     flex-basis: auto;
     height: auto;
   }
 
-  .e-permits-workplace[data-registry-kind="ghiseu"] .e-permits-workplace__pagination {
+  .e-permits-workplace:is([data-registry-kind="ghiseu"], [data-registry-kind="oficiu"]) .e-permits-workplace__pagination {
     flex-wrap: wrap;
     row-gap: var(--spacing-8, 8px);
   }
 
 
-  .e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-workplace[data-registry-kind="ghiseu"] .e-permits-workplace__header {
+  .e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-workplace:is([data-registry-kind="ghiseu"], [data-registry-kind="oficiu"]) .e-permits-workplace__header {
     grid-template-rows: auto auto;
   }
 
-  .e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-workplace[data-registry-kind="ghiseu"] .e-permits-workplace__toolbar {
+  .e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-workplace:is([data-registry-kind="ghiseu"], [data-registry-kind="oficiu"]) .e-permits-workplace__toolbar {
     flex-wrap: wrap;
     height: auto;
     row-gap: var(--spacing-8, 8px);
   }
 
-  .e-permits-workplace[data-registry-kind="ghiseu"] .e-permits-workplace__toolbar .e-permits-workplace__search {
+  .e-permits-workplace:is([data-registry-kind="ghiseu"], [data-registry-kind="oficiu"]) .e-permits-workplace__toolbar .e-permits-workplace__search {
     flex: 1 1 100%;
     max-width: none;
   }
 
-  .e-permits-workplace[data-registry-kind="ghiseu"] .e-permits-workplace__table-tools {
+  .e-permits-workplace:is([data-registry-kind="ghiseu"], [data-registry-kind="oficiu"]) .e-permits-workplace__table-tools {
     flex: 0 0 auto;
     margin-left: auto;
     width: auto;
   }
 
-  .e-permits-workplace[data-registry-kind="ghiseu"] .e-permits-workplace__field-count,
-  .e-permits-workplace[data-registry-kind="ghiseu"] .e-permits-workplace__tool-divider {
+  .e-permits-workplace:is([data-registry-kind="ghiseu"], [data-registry-kind="oficiu"]) .e-permits-workplace__field-count,
+  .e-permits-workplace:is([data-registry-kind="ghiseu"], [data-registry-kind="oficiu"]) .e-permits-workplace__tool-divider {
     display: none;
   }
 
@@ -586,4 +593,21 @@
    until the pointer is on it (as .e-permits-stack__menu-trigger, e-permits-shell.css) */
 .e-permits-workplace__table tbody tr:is(:hover, :focus-visible) .btn-neutral.e-permits-gh-row-remove:not(:hover, :active) {
   background: var(--color-background-base-default, #fff);
+}
+
+/* Din oficiu (Feature 95769, US-242): the act search = filters (service select + the search, one FO grid row) 24 above
+   the acts (the intent screen's own 24 rhythm); the FO section-body insets are off here (no form section around) */
+.e-permits-gh-acts-search.e-permits-gh-ofc {
+  gap: var(--spacing-24, 24px);
+  /* one column as wide as the intent column (an auto track grew to the one-line act meta: 856 in 768) */
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.e-permits-gh-ofc .e-permits-gh-ofc__filters {
+  padding: 0;
+}
+
+/* the list is the page here: its bottom gap is the intent screen's own (no extra 24) */
+.e-permits-gh-ofc .e-permits-fo-intent__acts {
+  padding-bottom: 0;
 }
