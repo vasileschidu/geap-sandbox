@@ -1434,6 +1434,22 @@
     overflow: visible;
   }
 
+  /* sig-pinned-desktop-v1 (2026-10-26; user: the signature card stays visible on desktop like on phones, where the
+     canvas scrolls and the card is fixed under it): the card is the last child of the scrolling body and sticks to the
+     bottom edge of the dialog window, 12 above the footer (--doc-signature-pin = the body's bottom padding minus 12). It
+     stays in the flow, so at the end of the scroll nothing is hidden behind it; a 12 white ring (box-shadow, no
+     extra layer) keeps the page from showing around its rounded corners. */
+  :is(.modal.e-permits-detail-modal--doc > .modal-content, .rap-act-modal__body, .cab-doc-modal__body--doc) > .e-permits-doc-signature {
+    bottom: calc(var(--doc-signature-pin, var(--spacing-12, 12px) * -1) * -1);
+    box-shadow: 0 0 0 var(--spacing-12, 12px) var(--color-background-base-default, #fff);
+    position: sticky;
+    z-index: 1;
+  }
+
+  :is(.rap-act-modal__body, .cab-doc-modal__body--doc) > .e-permits-doc-signature {
+    --doc-signature-pin: var(--spacing-12, 12px);
+  }
+
   html:has(body > :is(.rap-act-modal, .cab-doc-modal):not([hidden])) {
     overflow: hidden;
     scrollbar-gutter: stable;
