@@ -271,7 +271,7 @@
          „Profilul actului ↗” in a new tab (a request never shows the act), no download from a row */
       items.push({ action: "act", label: "Profilul actului", href: cabUrl("acte", { act: dosar.actId }), newTab: true });
     }
-    if (dosar.status === "finalizat" && dosar.result === "respins") items.push({ action: "download", kind: "decizie", icon: "icon-export", label: "Descarcă decizia (MDocs)" });
+    if (dosar.status === "finalizat" && dosar.result === "respins") items.push({ action: "download", kind: "decizie", icon: "icon-export", label: "Descarcă decizia" });
     if (canAppeal(dosar)) items.push({ action: "appeal", icon: "icon-judge-gavel", label: "Depune contestație", href: foUrl(dosar, "appeal") });
     return items;
   }
@@ -1174,7 +1174,7 @@
           decision.signedBy ? row("Emisă de", escape(decision.signedBy)) : "",
           row("Subdiviziunea de examinare", escape(dosar.subdivision)),
         ])}
-        ${downloadButton("decizie", "Descarcă decizia (MDocs)")}`, { scope: true });
+        ${downloadButton("decizie", "Descarcă decizia")}`, { scope: true });
     }
     /* a duplicate keeps the original act's validity (validFrom) */
     const validFrom = dosar.validFrom || dosar.finalized;
@@ -1195,7 +1195,7 @@
         dosar.issuedBy ? row("Emisă de", escape(dosar.issuedBy)) : "",
         row("Subdiviziunea de examinare", escape(dosar.subdivision)),
       ])}
-      ${downloadButton("act", "Descarcă actul (MDocs)")}`, { scope: true })
+      <div class="cab-detail__actions">${newTabLink("btn-neutral btn-rounded", cabUrl("acte", { act: dosar.actId }), "Profilul actului", 'data-sm-action="act"')}</div>`, { scope: true })
       + window.GEAPActView.fieldsHtml(specific, { untitled: "Date specifice actului", section: (title, body, index) => section(`act-specific-${index}`, title, body) });
   }
 

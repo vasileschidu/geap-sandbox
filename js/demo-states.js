@@ -2755,7 +2755,7 @@
     "sm-01k": sm(async (h) => { await smFind(h, "d-gara"); await h.hover("[data-tooltip-hint]"); }),
     /* type-first-v1: a request WITHOUT an object (transport licence) — title only, no line 2 */
     "sm-01z": sm(async (h) => { await h.fill("[data-sm-search]", "transport", { leave: false }); }),
-    "sm-01l": sm(async (h) => { await h.scroll(".cab-pager"); await h.click(".cab-pager__size"); }),
+    "sm-01l": sm(async (h) => { await h.scroll("[aria-controls^=\"sm-per-page\"]"); await h.click("[aria-controls^=\"sm-per-page\"]"); }),
     /* the Izvoraș request's ⋮ open (user 2026-10-20, ref Telegram iOS; row-kebab-v1 „back to 3 dots”): the
        anchored dropdown on every width — phones with the touch item size (components.md „Row action menu on
        phones”); sm-01w = the trigger at the bottom of the screen → the menu opens upwards. (sm-01v, the ⋮ vs

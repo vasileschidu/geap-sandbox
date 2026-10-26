@@ -1,0 +1,889 @@
+{
+ "pp-01b@1440": {
+  "vw": 1440,
+  "scrollY": 0,
+  "docH": 1652,
+  "items": [
+   {
+    "trig": {
+     "cls": "btn btn-neutral btn-sm e-permits-fo-intent-act__trigger",
+     "text": "Postprocese",
+     "rect": [
+      1180,
+      1081,
+      127,
+      32
+     ],
+     "bg": "rgb(178, 178, 178)",
+     "shadow": "rgb(255, 255, 255) 0px 0px 0px 2px, rgb(51, 121, 219) 0px 0px 0px 5px",
+     "outline": "none 3px rgb(18, 18, 18)",
+     "icons": [
+      "icon-chevron-bottom"
+     ],
+     "radius": "6px"
+    },
+    "menu": {
+     "id": "cab-menu-act-piata-mare",
+     "cls": "e-permits-fo-intent-menu e-permits-stack__menu is-open-up",
+     "rect": [
+      1100,
+      1035,
+      207,
+      40
+     ],
+     "radius": "12px",
+     "pad": "4px",
+     "gap": "2px",
+     "fromTrig": {
+      "left": -80,
+      "right": 0,
+      "below": -78,
+      "above": 6
+     },
+     "rightEdge": 133
+    },
+    "items": [
+     {
+      "t": "Retragere act permisiv",
+      "rect": [
+       1104,
+       1039,
+       199,
+       32
+      ],
+      "pad": "6px 12px 6px 8px",
+      "fs": "14px/20px 500",
+      "color": "rgb(217, 45, 32)",
+      "icon": 20,
+      "gap": "8px",
+      "radius": "6px",
+      "dis": null
+     }
+    ],
+    "seps": []
+   }
+  ]
+ },
+ "pp-01b@375": {
+  "vw": 375,
+  "scrollY": 0,
+  "docH": 2408,
+  "items": [
+   {
+    "trig": {
+     "cls": "btn btn-neutral btn-sm e-permits-fo-intent-act__trigger",
+     "text": "Postprocese",
+     "rect": [
+      221,
+      1587,
+      127,
+      32
+     ],
+     "bg": "rgb(178, 178, 178)",
+     "shadow": "rgb(255, 255, 255) 0px 0px 0px 2px, rgb(51, 121, 219) 0px 0px 0px 5px",
+     "outline": "none 3px rgb(18, 18, 18)",
+     "icons": [
+      "icon-chevron-bottom"
+     ],
+     "radius": "6px"
+    },
+    "menu": {
+     "id": "cab-menu-act-piata-mare",
+     "cls": "e-permits-fo-intent-menu e-permits-stack__menu is-fit-end is-open-up",
+     "rect": [
+      95,
+      1517,
+      253,
+      64
+     ],
+     "radius": "16px",
+     "pad": "8px",
+     "gap": "0px",
+     "fromTrig": {
+      "left": -126,
+      "right": 0,
+      "below": -102,
+      "above": 6
+     },
+     "rightEdge": 27
+    },
+    "items": [
+     {
+      "t": "Retragere act permisiv",
+      "rect": [
+       103,
+       1525,
+       237,
+       48
+      ],
+      "pad": "12px 16px",
+      "fs": "16px/24px 400",
+      "color": "rgb(217, 45, 32)",
+      "icon": 24,
+      "gap": "12px",
+      "radius": "8px",
+      "dis": null
+     }
+    ],
+    "seps": []
+   }
+  ]
+ },
+ "pp-01c@1440": {
+  "vw": 1440,
+  "scrollY": 0,
+  "docH": 1652,
+  "items": [
+   {
+    "trig": {
+     "cls": "btn btn-neutral btn-sm e-permits-fo-intent-act__trigger",
+     "text": "Postprocese",
+     "rect": [
+      1180,
+      269,
+      127,
+      32
+     ],
+     "bg": "rgb(178, 178, 178)",
+     "shadow": "rgb(255, 255, 255) 0px 0px 0px 2px, rgb(51, 121, 219) 0px 0px 0px 5px",
+     "outline": "none 3px rgb(18, 18, 18)",
+     "icons": [
+      "icon-chevron-bottom"
+     ],
+     "radius": "6px"
+    },
+    "menu": {
+     "id": "cab-menu-act-depozit-10",
+     "cls": "e-permits-fo-intent-menu e-permits-stack__menu",
+     "rect": [
+      1100,
+      307,
+      207,
+      153
+     ],
+     "radius": "12px",
+     "pad": "4px",
+     "gap": "2px",
+     "fromTrig": {
+      "left": -80,
+      "right": 0,
+      "below": 6,
+      "above": -191
+     },
+     "rightEdge": 133
+    },
+    "items": [
+     {
+      "t": "Reperfectare",
+      "rect": [
+       1104,
+       311,
+       199,
+       32
+      ],
+      "pad": "6px 12px 6px 8px",
+      "fs": "14px/20px 500",
+      "color": "rgb(18, 18, 18)",
+      "icon": 20,
+      "gap": "8px",
+      "radius": "6px",
+      "dis": null
+     },
+     {
+      "t": "Prelungire",
+      "rect": [
+       1104,
+       345,
+       199,
+       32
+      ],
+      "pad": "6px 12px 6px 8px",
+      "fs": "14px/20px 500",
+      "color": "rgb(18, 18, 18)",
+      "icon": 20,
+      "gap": "8px",
+      "radius": "6px",
+      "dis": null
+     },
+     {
+      "t": "Emitere duplicat",
+      "rect": [
+       1104,
+       379,
+       199,
+       32
+      ],
+      "pad": "6px 12px 6px 8px",
+      "fs": "14px/20px 500",
+      "color": "rgb(18, 18, 18)",
+      "icon": 20,
+      "gap": "8px",
+      "radius": "6px",
+      "dis": null
+     },
+     {
+      "t": "Retragere act permisiv",
+      "rect": [
+       1104,
+       424,
+       199,
+       32
+      ],
+      "pad": "6px 12px 6px 8px",
+      "fs": "14px/20px 500",
+      "color": "rgb(217, 45, 32)",
+      "icon": 20,
+      "gap": "8px",
+      "radius": "6px",
+      "dis": null
+     }
+    ],
+    "seps": [
+     [
+      1112,
+      417,
+      183,
+      1
+     ]
+    ]
+   }
+  ]
+ },
+ "pp-01c@375": {
+  "vw": 375,
+  "scrollY": 0,
+  "docH": 2408,
+  "items": [
+   {
+    "trig": {
+     "cls": "btn btn-neutral btn-sm e-permits-fo-intent-act__trigger",
+     "text": "Postprocese",
+     "rect": [
+      221,
+      215,
+      127,
+      32
+     ],
+     "bg": "rgb(178, 178, 178)",
+     "shadow": "rgb(255, 255, 255) 0px 0px 0px 2px, rgb(51, 121, 219) 0px 0px 0px 5px",
+     "outline": "none 3px rgb(18, 18, 18)",
+     "icons": [
+      "icon-chevron-bottom"
+     ],
+     "radius": "6px"
+    },
+    "menu": {
+     "id": "cab-menu-act-depozit-10",
+     "cls": "e-permits-fo-intent-menu e-permits-stack__menu is-fit-end",
+     "rect": [
+      95,
+      253,
+      253,
+      225
+     ],
+     "radius": "16px",
+     "pad": "8px",
+     "gap": "0px",
+     "fromTrig": {
+      "left": -126,
+      "right": 0,
+      "below": 6,
+      "above": -263
+     },
+     "rightEdge": 27
+    },
+    "items": [
+     {
+      "t": "Reperfectare",
+      "rect": [
+       103,
+       261,
+       237,
+       48
+      ],
+      "pad": "12px 16px",
+      "fs": "16px/24px 400",
+      "color": "rgb(18, 18, 18)",
+      "icon": 24,
+      "gap": "12px",
+      "radius": "8px",
+      "dis": null
+     },
+     {
+      "t": "Prelungire",
+      "rect": [
+       103,
+       309,
+       237,
+       48
+      ],
+      "pad": "12px 16px",
+      "fs": "16px/24px 400",
+      "color": "rgb(18, 18, 18)",
+      "icon": 24,
+      "gap": "12px",
+      "radius": "8px",
+      "dis": null
+     },
+     {
+      "t": "Emitere duplicat",
+      "rect": [
+       103,
+       357,
+       237,
+       48
+      ],
+      "pad": "12px 16px",
+      "fs": "16px/24px 400",
+      "color": "rgb(18, 18, 18)",
+      "icon": 24,
+      "gap": "12px",
+      "radius": "8px",
+      "dis": null
+     },
+     {
+      "t": "Retragere act permisiv",
+      "rect": [
+       103,
+       422,
+       237,
+       48
+      ],
+      "pad": "12px 16px",
+      "fs": "16px/24px 400",
+      "color": "rgb(217, 45, 32)",
+      "icon": 24,
+      "gap": "12px",
+      "radius": "8px",
+      "dis": null
+     }
+    ],
+    "seps": [
+     [
+      119,
+      413,
+      205,
+      1
+     ]
+    ]
+   }
+  ]
+ },
+ "sm-01l@1440": {
+  "vw": 1440,
+  "scrollY": 0,
+  "docH": 1736,
+  "items": []
+ },
+ "sm-01l@375": {
+  "vw": 375,
+  "scrollY": 0,
+  "docH": 2360,
+  "items": []
+ },
+ "sm-01s@1440": {
+  "vw": 1440,
+  "scrollY": 0,
+  "docH": 1736,
+  "items": [
+   {
+    "trig": {
+     "cls": "avatar avatar--md avatar--initials evo-header__avatar",
+     "text": "AC Cont: Anastasia Cojocaru, acționezi c",
+     "rect": [
+      1280,
+      48,
+      40,
+      40
+     ],
+     "bg": "rgb(0, 88, 210)",
+     "shadow": "rgb(255, 255, 255) 0px 0px 0px 2px, rgb(51, 121, 219) 0px 0px 0px 5px",
+     "outline": "none 3px rgb(255, 255, 255)",
+     "icons": [],
+     "radius": "50%"
+    },
+    "menu": {
+     "id": "fo-avatar-menu",
+     "cls": "e-permits-fo-avatar-menu",
+     "rect": [
+      956,
+      96,
+      364,
+      594
+     ],
+     "radius": "12px",
+     "pad": "0px",
+     "gap": "normal",
+     "fromTrig": {
+      "left": -324,
+      "right": 0,
+      "below": 8,
+      "above": -642
+     },
+     "rightEdge": 120
+    },
+    "items": [
+     {
+      "t": "Cabinetul Personal",
+      "rect": [
+       1003,
+       246,
+       165,
+       40
+      ],
+      "pad": "0px 20px",
+      "fs": "14px/20px 500",
+      "color": "rgb(255, 255, 255)",
+      "icon": 0,
+      "gap": "normal",
+      "radius": "9999px",
+      "dis": null
+     },
+     {
+      "t": "",
+      "rect": [
+       1181,
+       246,
+       40,
+       40
+      ],
+      "pad": "0px",
+      "fs": "14px/20px 500",
+      "color": "rgb(0, 88, 210)",
+      "icon": 24,
+      "gap": "normal",
+      "radius": "9999px",
+      "dis": null
+     },
+     {
+      "t": "",
+      "rect": [
+       1233,
+       246,
+       40,
+       40
+      ],
+      "pad": "0px",
+      "fs": "14px/20px 500",
+      "color": "rgb(0, 88, 210)",
+      "icon": 24,
+      "gap": "normal",
+      "radius": "9999px",
+      "dis": null
+     },
+     {
+      "t": "AC Anastasia Cojocaru IDNP 2990000000002",
+      "rect": [
+       972,
+       355,
+       332,
+       64
+      ],
+      "pad": "12px 24px 12px 16px",
+      "fs": "13.3333px/normal 400",
+      "color": "rgb(18, 18, 18)",
+      "icon": 0,
+      "gap": "16px",
+      "radius": "12px",
+      "dis": null
+     },
+     {
+      "t": "SRL Global Trader IDNO 1012600000002",
+      "rect": [
+       972,
+       427,
+       332,
+       64
+      ],
+      "pad": "12px 24px 12px 16px",
+      "fs": "13.3333px/normal 400",
+      "color": "rgb(18, 18, 18)",
+      "icon": 20,
+      "gap": "16px",
+      "radius": "12px",
+      "dis": null
+     },
+     {
+      "t": "Arată mai multe GV OF +5",
+      "rect": [
+       972,
+       547,
+       332,
+       50
+      ],
+      "pad": "8px 4px 8px 16px",
+      "fs": "14px/20px 500",
+      "color": "rgb(56, 56, 56)",
+      "icon": 20,
+      "gap": "normal",
+      "radius": "12px",
+      "dis": null
+     },
+     {
+      "t": "Ieșire",
+      "rect": [
+       972,
+       634,
+       332,
+       40
+      ],
+      "pad": "0px 12px 0px 16px",
+      "fs": "14px/20px 500",
+      "color": "rgb(18, 18, 18)",
+      "icon": 24,
+      "gap": "6px",
+      "radius": "6px",
+      "dis": null
+     }
+    ],
+    "seps": []
+   }
+  ]
+ },
+ "sm-01s@375": {
+  "vw": 375,
+  "scrollY": 0,
+  "docH": 2360,
+  "items": [
+   {
+    "trig": {
+     "cls": "avatar avatar--md avatar--initials evo-header__avatar",
+     "text": "AC Cont: Anastasia Cojocaru, acționezi c",
+     "rect": [
+      271,
+      16,
+      32,
+      32
+     ],
+     "bg": "rgb(0, 88, 210)",
+     "shadow": "rgb(255, 255, 255) 0px 0px 0px 2px, rgb(51, 121, 219) 0px 0px 0px 5px",
+     "outline": "none 3px rgb(255, 255, 255)",
+     "icons": [],
+     "radius": "50%"
+    }
+   }
+  ]
+ },
+ "sm-act-04@1440": {
+  "vw": 1440,
+  "scrollY": 0,
+  "docH": 1718,
+  "items": [
+   {
+    "trig": {
+     "cls": "btn btn-neutral btn-md btn-icon-only",
+     "text": "",
+     "rect": [
+      475,
+      252,
+      40,
+      40
+     ],
+     "bg": "rgb(178, 178, 178)",
+     "shadow": "rgb(255, 255, 255) 0px 0px 0px 2px, rgb(51, 121, 219) 0px 0px 0px 5px",
+     "outline": "none 3px rgb(18, 18, 18)",
+     "icons": [
+      "icon-more-horizontal"
+     ],
+     "radius": "8px"
+    },
+    "menu": {
+     "id": "sm-header-more",
+     "cls": "e-permits-fo-intent-menu e-permits-stack__menu cab-menu",
+     "rect": [
+      335,
+      298,
+      180,
+      40
+     ],
+     "radius": "12px",
+     "pad": "4px",
+     "gap": "2px",
+     "fromTrig": {
+      "left": -140,
+      "right": 0,
+      "below": 6,
+      "above": -86
+     },
+     "rightEdge": 925
+    },
+    "items": [
+     {
+      "t": "Descarcă decizia",
+      "rect": [
+       339,
+       302,
+       172,
+       32
+      ],
+      "pad": "6px 12px 6px 8px",
+      "fs": "14px/20px 500",
+      "color": "rgb(18, 18, 18)",
+      "icon": 20,
+      "gap": "8px",
+      "radius": "6px",
+      "dis": null
+     }
+    ],
+    "seps": []
+   }
+  ]
+ },
+ "sm-act-04@375": {
+  "vw": 375,
+  "scrollY": 0,
+  "docH": 2006,
+  "items": [
+   {
+    "trig": {
+     "cls": "btn btn-neutral btn-md btn-icon-only",
+     "text": "",
+     "rect": [
+      212,
+      200,
+      40,
+      40
+     ],
+     "bg": "rgb(178, 178, 178)",
+     "shadow": "rgb(255, 255, 255) 0px 0px 0px 2px, rgb(51, 121, 219) 0px 0px 0px 5px",
+     "outline": "none 3px rgb(18, 18, 18)",
+     "icons": [
+      "icon-more-horizontal"
+     ],
+     "radius": "8px"
+    },
+    "menu": {
+     "id": "sm-header-more",
+     "cls": "e-permits-fo-intent-menu e-permits-stack__menu cab-menu is-trigger-end",
+     "rect": [
+      41,
+      246,
+      211,
+      112
+     ],
+     "radius": "16px",
+     "pad": "8px",
+     "gap": "0px",
+     "fromTrig": {
+      "left": -171,
+      "right": 0,
+      "below": 6,
+      "above": -158
+     },
+     "rightEdge": 123
+    },
+    "items": [
+     {
+      "t": "Profilul actului",
+      "rect": [
+       49,
+       254,
+       195,
+       48
+      ],
+      "pad": "12px 16px",
+      "fs": "16px/24px 400",
+      "color": "rgb(18, 18, 18)",
+      "icon": 24,
+      "gap": "12px",
+      "radius": "8px",
+      "dis": null
+     },
+     {
+      "t": "Descarcă decizia",
+      "rect": [
+       49,
+       302,
+       195,
+       48
+      ],
+      "pad": "12px 16px",
+      "fs": "16px/24px 400",
+      "color": "rgb(18, 18, 18)",
+      "icon": 24,
+      "gap": "12px",
+      "radius": "8px",
+      "dis": null
+     }
+    ],
+    "seps": []
+   }
+  ]
+ },
+ "pp-01a@1440": {
+  "vw": 1440,
+  "scrollY": 0,
+  "docH": 1652,
+  "items": [
+   {
+    "trig": {
+     "cls": "btn btn-neutral btn-sm e-permits-fo-intent-act__trigger",
+     "text": "Postprocese",
+     "rect": [
+      1180,
+      521,
+      127,
+      32
+     ],
+     "bg": "rgb(178, 178, 178)",
+     "shadow": "rgb(255, 255, 255) 0px 0px 0px 2px, rgb(51, 121, 219) 0px 0px 0px 5px",
+     "outline": "none 3px rgb(18, 18, 18)",
+     "icons": [
+      "icon-chevron-bottom"
+     ],
+     "radius": "6px"
+    },
+    "menu": {
+     "id": "cab-menu-act-izvoras",
+     "cls": "e-permits-fo-intent-menu e-permits-stack__menu",
+     "rect": [
+      1100,
+      559,
+      207,
+      85
+     ],
+     "radius": "12px",
+     "pad": "4px",
+     "gap": "2px",
+     "fromTrig": {
+      "left": -80,
+      "right": 0,
+      "below": 6,
+      "above": -123
+     },
+     "rightEdge": 133
+    },
+    "items": [
+     {
+      "t": "Reperfectare",
+      "rect": [
+       1104,
+       563,
+       199,
+       32
+      ],
+      "pad": "6px 12px 6px 8px",
+      "fs": "14px/20px 500",
+      "color": "rgb(18, 18, 18)",
+      "icon": 20,
+      "gap": "8px",
+      "radius": "6px",
+      "dis": null
+     },
+     {
+      "t": "Retragere act permisiv",
+      "rect": [
+       1104,
+       608,
+       199,
+       32
+      ],
+      "pad": "6px 12px 6px 8px",
+      "fs": "14px/20px 500",
+      "color": "rgb(217, 45, 32)",
+      "icon": 20,
+      "gap": "8px",
+      "radius": "6px",
+      "dis": null
+     }
+    ],
+    "seps": [
+     [
+      1112,
+      601,
+      183,
+      1
+     ]
+    ]
+   }
+  ]
+ },
+ "pp-01a@375": {
+  "vw": 375,
+  "scrollY": 0,
+  "docH": 2408,
+  "items": [
+   {
+    "trig": {
+     "cls": "btn btn-neutral btn-sm e-permits-fo-intent-act__trigger",
+     "text": "Postprocese",
+     "rect": [
+      221,
+      671,
+      127,
+      32
+     ],
+     "bg": "rgb(178, 178, 178)",
+     "shadow": "rgb(255, 255, 255) 0px 0px 0px 2px, rgb(51, 121, 219) 0px 0px 0px 5px",
+     "outline": "none 3px rgb(18, 18, 18)",
+     "icons": [
+      "icon-chevron-bottom"
+     ],
+     "radius": "6px"
+    },
+    "menu": {
+     "id": "cab-menu-act-izvoras",
+     "cls": "e-permits-fo-intent-menu e-permits-stack__menu is-fit-end is-open-up",
+     "rect": [
+      95,
+      536,
+      253,
+      129
+     ],
+     "radius": "16px",
+     "pad": "8px",
+     "gap": "0px",
+     "fromTrig": {
+      "left": -126,
+      "right": 0,
+      "below": -167,
+      "above": 6
+     },
+     "rightEdge": 27
+    },
+    "items": [
+     {
+      "t": "Reperfectare",
+      "rect": [
+       103,
+       544,
+       237,
+       48
+      ],
+      "pad": "12px 16px",
+      "fs": "16px/24px 400",
+      "color": "rgb(18, 18, 18)",
+      "icon": 24,
+      "gap": "12px",
+      "radius": "8px",
+      "dis": null
+     },
+     {
+      "t": "Retragere act permisiv",
+      "rect": [
+       103,
+       609,
+       237,
+       48
+      ],
+      "pad": "12px 16px",
+      "fs": "16px/24px 400",
+      "color": "rgb(217, 45, 32)",
+      "icon": 24,
+      "gap": "12px",
+      "radius": "8px",
+      "dis": null
+     }
+    ],
+    "seps": [
+     [
+      119,
+      600,
+      205,
+      1
+     ]
+    ]
+   }
+  ]
+ }
+}

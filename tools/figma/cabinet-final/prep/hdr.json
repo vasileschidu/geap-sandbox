@@ -1,0 +1,133 @@
+{
+ "pp-01d@1440": {
+  "h1": "Actele mele permisive",
+  "crumb": [],
+  "loc": "",
+  "actions": [
+   {
+    "t": "Vezi act permisiv",
+    "cls": "btn btn-primary btn-md",
+    "icons": []
+   },
+   {
+    "t": "Vezi solicitarea",
+    "cls": "btn btn-neutral btn-md",
+    "icons": []
+   },
+   {
+    "t": "",
+    "cls": "btn btn-neutral btn-md btn-icon-only",
+    "icons": [
+     "icon-more-horizontal"
+    ]
+   },
+   {
+    "t": "ASF-2026-04521",
+    "cls": "copy-value__button",
+    "icons": [
+     "icon-copy"
+    ]
+   }
+  ],
+  "meta": [
+   "Numărul actului ASF-2026-04521",
+   "Stare Valabil",
+   "Valabil până la 15 septembrie 2028 (704 zile rămase)",
+   "Autoritatea emitentă ANSP"
+  ],
+  "alert": "",
+  "dialog": [],
+  "main": "Actele mele permisive Filtre 0 Data emiterii Sortează după Data emiteriiValabil până laDenumirea actuluiAutoritatea emitentăStare Ordine Cele mai noiCele mai vechi Autorizația pentru substanțe stupefiante și psihotrope Valabil Depozit farmaceutic, mun. Chișinău AMDM-10-2026-0118AMDMComitetul permanent de control asupra drogurilorvalabil până la 20 ianuarie 2031 Postprocese Reperfectare Prelungire Emitere duplicat Retragere act permisiv Autorizația de comercializare a băuturilor alcoolice Valabil Cafeneaua „Izvoraș”, mun. Bălți MEC-ALC-2025-0877MECDirecția autorizări și licențevalabil până la 1 octombrie 2030 Postprocese Reperfectare Prelungire Retragere act permisiv Autorizația sanitară de funcționare Valabil Cafeneaua „Izvoraș”, mun. Bălți ASF-2026-04521ANSPCSP Bălțivalabil până la 15 septembrie 2028 Postprocese Reperfectare Retragere act permisiv Autorizația de securitate la incendiu Valabil Cafeneaua „Izvoraș”, mun. Bălți IGSU-2025-01342IGSUDSE Bălțivalabil până la 20 august 2027 Postprocese Reperfectare Retragere act permisiv Autorizația pentru substanțe stupefiante și psihotrope Valabil Laboratorul de analize clinice, toxicologice și farmaceutice al Centrului de Diagnostic Med"
+ },
+ "pp-01j@1440": {
+  "h1": "Actele mele permisive",
+  "crumb": [],
+  "loc": "",
+  "actions": [
+   {
+    "t": "Vezi act permisiv",
+    "cls": "btn btn-primary btn-md",
+    "icons": []
+   },
+   {
+    "t": "Postprocese",
+    "cls": "btn btn-neutral btn-md",
+    "icons": [
+     "icon-chevron-bottom"
+    ]
+   },
+   {
+    "t": "ASF-2025-11873",
+    "cls": "copy-value__button",
+    "icons": [
+     "icon-copy"
+    ]
+   }
+  ],
+  "meta": [
+   "Numărul actului ASF-2025-11873",
+   "Stare Suspendat",
+   "Suspendat până la 15 decembrie 2026",
+   "Autoritatea emitentă ANSP"
+  ],
+  "alert": "Actul este suspendat până la 15 decembrie 2026 Nu poți desfășura activitatea în această perioadă. Suspendarea a fost decisă la cererea titularului. Motivul: lucrări de reamenajare a sălii. Valabilitatea se reia automat la această dată. Vezi solicitarea",
+  "dialog": [],
+  "main": "Actele mele permisive Filtre 0 Data emiterii Sortează după Data emiteriiValabil până laDenumirea actuluiAutoritatea emitentăStare Ordine Cele mai noiCele mai vechi Autorizația pentru substanțe stupefiante și psihotrope Valabil Depozit farmaceutic, mun. Chișinău AMDM-10-2026-0118AMDMComitetul permanent de control asupra drogurilorvalabil până la 20 ianuarie 2031 Postprocese Reperfectare Prelungire Emitere duplicat Retragere act permisiv Autorizația de comercializare a băuturilor alcoolice Valabil Cafeneaua „Izvoraș”, mun. Bălți MEC-ALC-2025-0877MECDirecția autorizări și licențevalabil până la 1 octombrie 2030 Postprocese Reperfectare Prelungire Retragere act permisiv Autorizația sanitară de funcționare Valabil Cafeneaua „Izvoraș”, mun. Bălți ASF-2026-04521ANSPCSP Bălțivalabil până la 15 septembrie 2028 Postprocese Reperfectare Retragere act permisiv Autorizația de securitate la incendiu Valabil Cafeneaua „Izvoraș”, mun. Bălți IGSU-2025-01342IGSUDSE Bălțivalabil până la 20 august 2027 Postprocese Reperfectare Retragere act permisiv Autorizația pentru substanțe stupefiante și psihotrope Valabil Laboratorul de analize clinice, toxicologice și farmaceutice al Centrului de Diagnostic Med"
+ },
+ "pp-03x@1440": {
+  "h1": "Actele mele permisive",
+  "crumb": [],
+  "loc": "",
+  "actions": [],
+  "meta": [],
+  "alert": "",
+  "dialog": [],
+  "main": "Actele mele permisive Filtre 0 Data emiterii Sortează după Data emiteriiValabil până laDenumirea actuluiAutoritatea emitentăStare Ordine Cele mai noiCele mai vechi Autorizația pentru substanțe stupefiante și psihotrope Valabil Depozit farmaceutic, mun. Chișinău AMDM-10-2026-0118AMDMComitetul permanent de control asupra drogurilorvalabil până la 20 ianuarie 2031 Postprocese Reperfectare Prelungire Emitere duplicat Retragere act permisiv Autorizația de comercializare a băuturilor alcoolice Valabil Cafeneaua „Izvoraș”, mun. Bălți MEC-ALC-2025-0877MECDirecția autorizări și licențevalabil până la 1 octombrie 2030 Postprocese Reperfectare Prelungire Retragere act permisiv Autorizația sanitară de funcționare Valabil Cafeneaua „Izvoraș”, mun. Bălți ASF-2026-04521ANSPCSP Bălțivalabil până la 15 septembrie 2028 Postprocese Reperfectare Retragere act permisiv Autorizația de securitate la incendiu Valabil Cafeneaua „Izvoraș”, mun. Bălți IGSU-2025-01342IGSUDSE Bălțivalabil până la 20 august 2027 Postprocese Reperfectare Retragere act permisiv Autorizația pentru substanțe stupefiante și psihotrope Valabil Laboratorul de analize clinice, toxicologice și farmaceutice al Centrului de Diagnostic Med"
+ },
+ "sm-05y@1440": {
+  "h1": "Actele mele permisive",
+  "crumb": [],
+  "loc": "",
+  "actions": [],
+  "meta": [],
+  "alert": "",
+  "dialog": [],
+  "main": "Actele mele permisive Filtre 0 Data emiterii Sortează după Data emiteriiValabil până laDenumirea actuluiAutoritatea emitentăStare Ordine Cele mai noiCele mai vechi Autorizația pentru substanțe stupefiante și psihotrope Valabil Depozit farmaceutic, mun. Chișinău AMDM-10-2026-0118AMDMComitetul permanent de control asupra drogurilorvalabil până la 20 ianuarie 2031 Postprocese Reperfectare Prelungire Emitere duplicat Retragere act permisiv Autorizația de comercializare a băuturilor alcoolice Valabil Cafeneaua „Izvoraș”, mun. Bălți MEC-ALC-2025-0877MECDirecția autorizări și licențevalabil până la 1 octombrie 2030 Postprocese Reperfectare Prelungire Retragere act permisiv Autorizația sanitară de funcționare Valabil Cafeneaua „Izvoraș”, mun. Bălți ASF-2026-04521ANSPCSP Bălțivalabil până la 15 septembrie 2028 Postprocese Reperfectare Retragere act permisiv Autorizația de securitate la incendiu Valabil Cafeneaua „Izvoraș”, mun. Bălți IGSU-2025-01342IGSUDSE Bălțivalabil până la 20 august 2027 Postprocese Reperfectare Retragere act permisiv Autorizația pentru substanțe stupefiante și psihotrope Valabil Laboratorul de analize clinice, toxicologice și farmaceutice al Centrului de Diagnostic Med"
+ },
+ "sm-06@1440": {
+  "h1": "Actele mele permisive",
+  "crumb": [],
+  "loc": "",
+  "actions": [
+   {
+    "t": "Încercați din nou",
+    "cls": "btn btn-neutral",
+    "icons": [
+     "icon-rotate-arrow"
+    ]
+   }
+  ],
+  "meta": [],
+  "alert": "",
+  "dialog": [],
+  "main": "Actele mele permisive Filtre 0 Data emiterii Sortează după Data emiteriiValabil până laDenumirea actuluiAutoritatea emitentăStare Ordine Cele mai noiCele mai vechi Autorizația pentru substanțe stupefiante și psihotrope Valabil Depozit farmaceutic, mun. Chișinău AMDM-10-2026-0118AMDMComitetul permanent de control asupra drogurilorvalabil până la 20 ianuarie 2031 Postprocese Reperfectare Prelungire Emitere duplicat Retragere act permisiv Autorizația de comercializare a băuturilor alcoolice Valabil Cafeneaua „Izvoraș”, mun. Bălți MEC-ALC-2025-0877MECDirecția autorizări și licențevalabil până la 1 octombrie 2030 Postprocese Reperfectare Prelungire Retragere act permisiv Autorizația sanitară de funcționare Valabil Cafeneaua „Izvoraș”, mun. Bălți ASF-2026-04521ANSPCSP Bălțivalabil până la 15 septembrie 2028 Postprocese Reperfectare Retragere act permisiv Autorizația de securitate la incendiu Valabil Cafeneaua „Izvoraș”, mun. Bălți IGSU-2025-01342IGSUDSE Bălțivalabil până la 20 august 2027 Postprocese Reperfectare Retragere act permisiv Autorizația pentru substanțe stupefiante și psihotrope Valabil Laboratorul de analize clinice, toxicologice și farmaceutice al Centrului de Diagnostic Med"
+ },
+ "sm-06a@1440": {
+  "h1": "Actele mele permisive",
+  "crumb": [],
+  "loc": "",
+  "actions": [
+   {
+    "t": "",
+    "cls": "btn-icon clear cab-search__clear",
+    "icons": [
+     "icon-cross-small"
+    ]
+   }
+  ],
+  "meta": [],
+  "alert": "",
+  "dialog": [],
+  "main": "Actele mele permisive Filtre 0 Data emiterii Sortează după Data emiteriiValabil până laDenumirea actuluiAutoritatea emitentăStare Ordine Cele mai noiCele mai vechi Autorizația pentru substanțe stupefiante și psihotrope Valabil Depozit farmaceutic, mun. Chișinău AMDM-10-2026-0118AMDMComitetul permanent de control asupra drogurilorvalabil până la 20 ianuarie 2031 Postprocese Reperfectare Prelungire Emitere duplicat Retragere act permisiv Autorizația de comercializare a băuturilor alcoolice Valabil Cafeneaua „Izvoraș”, mun. Bălți MEC-ALC-2025-0877MECDirecția autorizări și licențevalabil până la 1 octombrie 2030 Postprocese Reperfectare Prelungire Retragere act permisiv Autorizația sanitară de funcționare Valabil Cafeneaua „Izvoraș”, mun. Bălți ASF-2026-04521ANSPCSP Bălțivalabil până la 15 septembrie 2028 Postprocese Reperfectare Retragere act permisiv Autorizația de securitate la incendiu Valabil Cafeneaua „Izvoraș”, mun. Bălți IGSU-2025-01342IGSUDSE Bălțivalabil până la 20 august 2027 Postprocese Reperfectare Retragere act permisiv Autorizația pentru substanțe stupefiante și psihotrope Valabil Laboratorul de analize clinice, toxicologice și farmaceutice al Centrului de Diagnostic Med"
+ }
+}

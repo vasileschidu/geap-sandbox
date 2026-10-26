@@ -1,0 +1,5316 @@
+{
+ "pp-01j@1440": [
+  {
+   "title": "Ce permite actul",
+   "rect": [
+    120,
+    516,
+    1200,
+    240
+   ],
+   "rows": [
+    {
+     "l": "Tipul obiectului",
+     "v": "Restaurant",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Adresa obiectului",
+     "v": "mun. Chișinău, str. Mitropolit Varlaam 63",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Activitatea (CAEM)",
+     "v": "I 56.10 Restaurante",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Capacitatea",
+     "v": "120 de locuri",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    }
+   ],
+   "cls": "e-permits-dosar-profil__section cab-section"
+  },
+  {
+   "title": "Detalii act",
+   "rect": [
+    120,
+    756,
+    1200,
+    280
+   ],
+   "rows": [
+    {
+     "l": "Numărul dosarului electronic",
+     "v": "GEAP-2025-009-01462",
+     "copy": true,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Seria și nr. documentului tipărit",
+     "v": "ASF 0031187",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Data emiterii",
+     "v": "2 aprilie 2025",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Valabil până la",
+     "v": "2 aprilie 2028",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Data suspendării",
+     "v": "5 iunie 2026",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    }
+   ],
+   "cls": "e-permits-dosar-profil__section cab-section"
+  },
+  {
+   "title": "Autoritatea emitentă",
+   "rect": [
+    120,
+    1036,
+    1200,
+    240
+   ],
+   "rows": [
+    {
+     "l": "Denumire",
+     "v": "Agenția Națională pentru Sănătate Publică",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Subdiviziunea emitentă",
+     "v": "CSP Chișinău",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Telefon",
+     "v": "022 574 501",
+     "copy": false,
+     "link": true,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "E-mail",
+     "v": "office@ansp.gov.md",
+     "copy": false,
+     "link": true,
+     "tag": null,
+     "h": 40
+    }
+   ],
+   "cls": "e-permits-dosar-profil__section cab-section"
+  },
+  {
+   "title": "Beneficiar",
+   "rect": [
+    120,
+    1276,
+    1200,
+    142
+   ],
+   "ben": {
+    "name": "SRL Global Trader",
+    "idl": "IDNO",
+    "id": "1012600000002",
+    "icon": "icon-business",
+    "initials": "",
+    "avcls": "avatar avatar--sm avatar--icon e-permits-fo-selected-role__avatar e-permits-fo-selected-role__avatar--icon",
+    "h": 78
+   },
+   "cls": "e-permits-dosar-profil__section cab-section"
+  },
+  {
+   "title": "Istoric",
+   "rect": [
+    120,
+    1418,
+    1200,
+    348
+   ],
+   "tl": {
+    "h": 284,
+    "items": [
+     {
+      "mod": "upcoming",
+      "icon": "",
+      "title": "Reluarea valabilității",
+      "tags": [],
+      "stamp": "15 decembrie 2026",
+      "text": null,
+      "h": 46
+     },
+     {
+      "mod": "success",
+      "icon": "icon-circle-checkmark-filled",
+      "title": "Valabilitate suspendată",
+      "tags": [],
+      "stamp": "5 iunie 2026 · ANSP · CSP Chișinău",
+      "text": [
+       [
+        "La cererea titularului · ",
+        0
+       ],
+       [
+        "GEAP-2026-009-03512",
+        2,
+        true
+       ]
+      ],
+      "h": 70
+     },
+     {
+      "mod": "success",
+      "icon": "icon-circle-checkmark-filled",
+      "title": "Act emis",
+      "tags": [],
+      "stamp": "2 aprilie 2025 · ANSP · CSP Chișinău",
+      "text": null,
+      "h": 46
+     },
+     {
+      "mod": "success",
+      "icon": "icon-circle-checkmark-filled",
+      "title": "Cerere depusă",
+      "tags": [],
+      "stamp": "12 martie 2025, 10:05",
+      "text": [
+       [
+        "GEAP-2025-009-01462",
+        0
+       ]
+      ],
+      "h": 64
+     }
+    ]
+   },
+   "cls": "e-permits-dosar-profil__section"
+  }
+ ],
+ "pp-01j@375": [
+  {
+   "title": "Ce permite actul",
+   "rect": [
+    16,
+    692,
+    343,
+    319
+   ],
+   "rows": [
+    {
+     "l": "Tipul obiectului",
+     "v": "Restaurant",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Adresa obiectului",
+     "v": "mun. Chișinău, str. Mitropolit Varlaam 63",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Activitatea (CAEM)",
+     "v": "I 56.10 Restaurante",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Capacitatea",
+     "v": "120 de locuri",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 59
+    }
+   ],
+   "cls": "e-permits-dosar-profil__section cab-section"
+  },
+  {
+   "title": "Detalii act",
+   "rect": [
+    16,
+    1011,
+    343,
+    379
+   ],
+   "rows": [
+    {
+     "l": "Numărul dosarului electronic",
+     "v": "GEAP-2025-009-01462",
+     "copy": true,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Seria și nr. documentului tipărit",
+     "v": "ASF 0031187",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Data emiterii",
+     "v": "2 aprilie 2025",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Valabil până la",
+     "v": "2 aprilie 2028",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Data suspendării",
+     "v": "5 iunie 2026",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 59
+    }
+   ],
+   "cls": "e-permits-dosar-profil__section cab-section"
+  },
+  {
+   "title": "Autoritatea emitentă",
+   "rect": [
+    16,
+    1390,
+    343,
+    319
+   ],
+   "rows": [
+    {
+     "l": "Denumire",
+     "v": "Agenția Națională pentru Sănătate Publică",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Subdiviziunea emitentă",
+     "v": "CSP Chișinău",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Telefon",
+     "v": "022 574 501",
+     "copy": false,
+     "link": true,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "E-mail",
+     "v": "office@ansp.gov.md",
+     "copy": false,
+     "link": true,
+     "tag": null,
+     "h": 59
+    }
+   ],
+   "cls": "e-permits-dosar-profil__section cab-section"
+  },
+  {
+   "title": "Beneficiar",
+   "rect": [
+    16,
+    1709,
+    343,
+    142
+   ],
+   "ben": {
+    "name": "SRL Global Trader",
+    "idl": "IDNO",
+    "id": "1012600000002",
+    "icon": "icon-business",
+    "initials": "",
+    "avcls": "avatar avatar--sm avatar--icon e-permits-fo-selected-role__avatar e-permits-fo-selected-role__avatar--icon",
+    "h": 78
+   },
+   "cls": "e-permits-dosar-profil__section cab-section"
+  },
+  {
+   "title": "Istoric",
+   "rect": [
+    16,
+    1851,
+    343,
+    368
+   ],
+   "tl": {
+    "h": 304,
+    "items": [
+     {
+      "mod": "upcoming",
+      "icon": "",
+      "title": "Reluarea valabilității",
+      "tags": [],
+      "stamp": "15 decembrie 2026",
+      "text": null,
+      "h": 46
+     },
+     {
+      "mod": "success",
+      "icon": "icon-circle-checkmark-filled",
+      "title": "Valabilitate suspendată",
+      "tags": [],
+      "stamp": "5 iunie 2026 · ANSP · CSP Chișinău",
+      "text": [
+       [
+        "La cererea titularului · ",
+        0
+       ],
+       [
+        "GEAP-2026-009-03512",
+        2,
+        true
+       ]
+      ],
+      "h": 90
+     },
+     {
+      "mod": "success",
+      "icon": "icon-circle-checkmark-filled",
+      "title": "Act emis",
+      "tags": [],
+      "stamp": "2 aprilie 2025 · ANSP · CSP Chișinău",
+      "text": null,
+      "h": 46
+     },
+     {
+      "mod": "success",
+      "icon": "icon-circle-checkmark-filled",
+      "title": "Cerere depusă",
+      "tags": [],
+      "stamp": "12 martie 2025, 10:05",
+      "text": [
+       [
+        "GEAP-2025-009-01462",
+        0
+       ]
+      ],
+      "h": 64
+     }
+    ]
+   },
+   "cls": "e-permits-dosar-profil__section"
+  }
+ ],
+ "pp-01k@1440": [
+  {
+   "title": "Ce permite actul",
+   "rect": [
+    120,
+    516,
+    1200,
+    200
+   ],
+   "rows": [
+    {
+     "l": "Tipul obiectului",
+     "v": "Cantină",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Adresa obiectului",
+     "v": "or. Soroca, str. Ștefan cel Mare 7",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Activitatea (CAEM)",
+     "v": "I 56.29 Alte activități de alimentație",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    }
+   ],
+   "cls": "e-permits-dosar-profil__section cab-section"
+  },
+  {
+   "title": "Detalii act",
+   "rect": [
+    120,
+    716,
+    1200,
+    200
+   ],
+   "rows": [
+    {
+     "l": "Numărul dosarului electronic",
+     "v": "GEAP-2024-009-00835",
+     "copy": true,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Data emiterii",
+     "v": "10 mai 2024",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Valabil până la",
+     "v": "10 mai 2027",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    }
+   ],
+   "cls": "e-permits-dosar-profil__section cab-section"
+  },
+  {
+   "title": "Autoritatea emitentă",
+   "rect": [
+    120,
+    916,
+    1200,
+    240
+   ],
+   "rows": [
+    {
+     "l": "Denumire",
+     "v": "Agenția Națională pentru Sănătate Publică",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Subdiviziunea emitentă",
+     "v": "CSP Soroca",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Telefon",
+     "v": "022 574 501",
+     "copy": false,
+     "link": true,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "E-mail",
+     "v": "office@ansp.gov.md",
+     "copy": false,
+     "link": true,
+     "tag": null,
+     "h": 40
+    }
+   ],
+   "cls": "e-permits-dosar-profil__section cab-section"
+  },
+  {
+   "title": "Beneficiar",
+   "rect": [
+    120,
+    1156,
+    1200,
+    142
+   ],
+   "ben": {
+    "name": "SRL Global Trader",
+    "idl": "IDNO",
+    "id": "1012600000002",
+    "icon": "icon-business",
+    "initials": "",
+    "avcls": "avatar avatar--sm avatar--icon e-permits-fo-selected-role__avatar e-permits-fo-selected-role__avatar--icon",
+    "h": 78
+   },
+   "cls": "e-permits-dosar-profil__section cab-section"
+  },
+  {
+   "title": "Istoric",
+   "rect": [
+    120,
+    1298,
+    1200,
+    296
+   ],
+   "tl": {
+    "h": 232,
+    "items": [
+     {
+      "mod": "danger",
+      "icon": "icon-circle-error-filled",
+      "title": "Act retras",
+      "tags": [],
+      "stamp": "2 octombrie 2026 · ANSP · CSP Soroca",
+      "text": [
+       [
+        "La cererea titularului · ",
+        0
+       ],
+       [
+        "GEAP-2026-009-04120",
+        2,
+        true
+       ]
+      ],
+      "h": 70
+     },
+     {
+      "mod": "success",
+      "icon": "icon-circle-checkmark-filled",
+      "title": "Act emis",
+      "tags": [],
+      "stamp": "10 mai 2024 · ANSP · CSP Soroca",
+      "text": null,
+      "h": 46
+     },
+     {
+      "mod": "success",
+      "icon": "icon-circle-checkmark-filled",
+      "title": "Cerere depusă",
+      "tags": [],
+      "stamp": "22 aprilie 2024, 09:15",
+      "text": [
+       [
+        "GEAP-2024-009-00835",
+        0
+       ]
+      ],
+      "h": 64
+     }
+    ]
+   },
+   "cls": "e-permits-dosar-profil__section"
+  }
+ ],
+ "pp-01k@375": [
+  {
+   "title": "Ce permite actul",
+   "rect": [
+    16,
+    672,
+    343,
+    259
+   ],
+   "rows": [
+    {
+     "l": "Tipul obiectului",
+     "v": "Cantină",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Adresa obiectului",
+     "v": "or. Soroca, str. Ștefan cel Mare 7",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Activitatea (CAEM)",
+     "v": "I 56.29 Alte activități de alimentație",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 59
+    }
+   ],
+   "cls": "e-permits-dosar-profil__section cab-section"
+  },
+  {
+   "title": "Detalii act",
+   "rect": [
+    16,
+    931,
+    343,
+    259
+   ],
+   "rows": [
+    {
+     "l": "Numărul dosarului electronic",
+     "v": "GEAP-2024-009-00835",
+     "copy": true,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Data emiterii",
+     "v": "10 mai 2024",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Valabil până la",
+     "v": "10 mai 2027",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 59
+    }
+   ],
+   "cls": "e-permits-dosar-profil__section cab-section"
+  },
+  {
+   "title": "Autoritatea emitentă",
+   "rect": [
+    16,
+    1190,
+    343,
+    319
+   ],
+   "rows": [
+    {
+     "l": "Denumire",
+     "v": "Agenția Națională pentru Sănătate Publică",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Subdiviziunea emitentă",
+     "v": "CSP Soroca",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Telefon",
+     "v": "022 574 501",
+     "copy": false,
+     "link": true,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "E-mail",
+     "v": "office@ansp.gov.md",
+     "copy": false,
+     "link": true,
+     "tag": null,
+     "h": 59
+    }
+   ],
+   "cls": "e-permits-dosar-profil__section cab-section"
+  },
+  {
+   "title": "Beneficiar",
+   "rect": [
+    16,
+    1509,
+    343,
+    142
+   ],
+   "ben": {
+    "name": "SRL Global Trader",
+    "idl": "IDNO",
+    "id": "1012600000002",
+    "icon": "icon-business",
+    "initials": "",
+    "avcls": "avatar avatar--sm avatar--icon e-permits-fo-selected-role__avatar e-permits-fo-selected-role__avatar--icon",
+    "h": 78
+   },
+   "cls": "e-permits-dosar-profil__section cab-section"
+  },
+  {
+   "title": "Istoric",
+   "rect": [
+    16,
+    1651,
+    343,
+    316
+   ],
+   "tl": {
+    "h": 252,
+    "items": [
+     {
+      "mod": "danger",
+      "icon": "icon-circle-error-filled",
+      "title": "Act retras",
+      "tags": [],
+      "stamp": "2 octombrie 2026 · ANSP · CSP Soroca",
+      "text": [
+       [
+        "La cererea titularului · ",
+        0
+       ],
+       [
+        "GEAP-2026-009-04120",
+        2,
+        true
+       ]
+      ],
+      "h": 90
+     },
+     {
+      "mod": "success",
+      "icon": "icon-circle-checkmark-filled",
+      "title": "Act emis",
+      "tags": [],
+      "stamp": "10 mai 2024 · ANSP · CSP Soroca",
+      "text": null,
+      "h": 46
+     },
+     {
+      "mod": "success",
+      "icon": "icon-circle-checkmark-filled",
+      "title": "Cerere depusă",
+      "tags": [],
+      "stamp": "22 aprilie 2024, 09:15",
+      "text": [
+       [
+        "GEAP-2024-009-00835",
+        0
+       ]
+      ],
+      "h": 64
+     }
+    ]
+   },
+   "cls": "e-permits-dosar-profil__section"
+  }
+ ],
+ "pp-01l@1440": [
+  {
+   "title": "Ce permite actul",
+   "rect": [
+    120,
+    380,
+    1200,
+    200
+   ],
+   "rows": [
+    {
+     "l": "Tipul obiectului",
+     "v": "Magazin alimentar",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Adresa obiectului",
+     "v": "mun. Chișinău, bd. Moscova 21",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Genul de activitate",
+     "v": "Comerț cu amănuntul al produselor alimentare",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    }
+   ],
+   "cls": "e-permits-dosar-profil__section cab-section"
+  },
+  {
+   "title": "Detalii act",
+   "rect": [
+    120,
+    580,
+    1200,
+    200
+   ],
+   "rows": [
+    {
+     "l": "Numărul dosarului electronic",
+     "v": "GEAP-2025-000-00512",
+     "copy": true,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Data aprobării tacite",
+     "v": "3 iunie 2025",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Data emiterii",
+     "v": "3 iunie 2025",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    }
+   ],
+   "cls": "e-permits-dosar-profil__section cab-section"
+  },
+  {
+   "title": "Autoritatea emitentă",
+   "rect": [
+    120,
+    780,
+    1200,
+    240
+   ],
+   "rows": [
+    {
+     "l": "Denumire",
+     "v": "Agenția Națională pentru Sănătate Publică",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Subdiviziunea emitentă",
+     "v": "Direcția teritorială Chișinău",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Telefon",
+     "v": "022 574 501",
+     "copy": false,
+     "link": true,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "E-mail",
+     "v": "office@ansp.gov.md",
+     "copy": false,
+     "link": true,
+     "tag": null,
+     "h": 40
+    }
+   ],
+   "cls": "e-permits-dosar-profil__section cab-section"
+  },
+  {
+   "title": "Beneficiar",
+   "rect": [
+    120,
+    1020,
+    1200,
+    142
+   ],
+   "ben": {
+    "name": "SRL Global Trader",
+    "idl": "IDNO",
+    "id": "1012600000002",
+    "icon": "icon-business",
+    "initials": "",
+    "avcls": "avatar avatar--sm avatar--icon e-permits-fo-selected-role__avatar e-permits-fo-selected-role__avatar--icon",
+    "h": 78
+   },
+   "cls": "e-permits-dosar-profil__section cab-section"
+  },
+  {
+   "title": "Istoric",
+   "rect": [
+    120,
+    1162,
+    1200,
+    348
+   ],
+   "tl": {
+    "h": 284,
+    "items": [
+     {
+      "mod": "upcoming",
+      "icon": "",
+      "title": "Sfârșitul valabilității",
+      "tags": [],
+      "stamp": "3 iunie 2030",
+      "text": null,
+      "h": 46
+     },
+     {
+      "mod": "success",
+      "icon": "icon-circle-checkmark-filled",
+      "title": "Aprobare tacită",
+      "tags": [],
+      "stamp": "3 iunie 2025",
+      "text": [
+       [
+        "Autoritatea nu a emis o decizie în termen.",
+        0
+       ]
+      ],
+      "h": 70
+     },
+     {
+      "mod": "success",
+      "icon": "icon-circle-checkmark-filled",
+      "title": "Act emis",
+      "tags": [],
+      "stamp": "3 iunie 2025 · ANSP · Direcția teritorială Chișinău",
+      "text": null,
+      "h": 46
+     },
+     {
+      "mod": "success",
+      "icon": "icon-circle-checkmark-filled",
+      "title": "Cerere depusă",
+      "tags": [],
+      "stamp": "5 mai 2025, 10:20",
+      "text": [
+       [
+        "GEAP-2025-000-00512",
+        0
+       ]
+      ],
+      "h": 64
+     }
+    ]
+   },
+   "cls": "e-permits-dosar-profil__section"
+  }
+ ],
+ "pp-01l@375": [
+  {
+   "title": "Ce permite actul",
+   "rect": [
+    16,
+    456,
+    343,
+    279
+   ],
+   "rows": [
+    {
+     "l": "Tipul obiectului",
+     "v": "Magazin alimentar",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Adresa obiectului",
+     "v": "mun. Chișinău, bd. Moscova 21",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Genul de activitate",
+     "v": "Comerț cu amănuntul al produselor alimentare",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 79
+    }
+   ],
+   "cls": "e-permits-dosar-profil__section cab-section"
+  },
+  {
+   "title": "Detalii act",
+   "rect": [
+    16,
+    735,
+    343,
+    259
+   ],
+   "rows": [
+    {
+     "l": "Numărul dosarului electronic",
+     "v": "GEAP-2025-000-00512",
+     "copy": true,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Data aprobării tacite",
+     "v": "3 iunie 2025",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Data emiterii",
+     "v": "3 iunie 2025",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 59
+    }
+   ],
+   "cls": "e-permits-dosar-profil__section cab-section"
+  },
+  {
+   "title": "Autoritatea emitentă",
+   "rect": [
+    16,
+    994,
+    343,
+    319
+   ],
+   "rows": [
+    {
+     "l": "Denumire",
+     "v": "Agenția Națională pentru Sănătate Publică",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Subdiviziunea emitentă",
+     "v": "Direcția teritorială Chișinău",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Telefon",
+     "v": "022 574 501",
+     "copy": false,
+     "link": true,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "E-mail",
+     "v": "office@ansp.gov.md",
+     "copy": false,
+     "link": true,
+     "tag": null,
+     "h": 59
+    }
+   ],
+   "cls": "e-permits-dosar-profil__section cab-section"
+  },
+  {
+   "title": "Beneficiar",
+   "rect": [
+    16,
+    1313,
+    343,
+    142
+   ],
+   "ben": {
+    "name": "SRL Global Trader",
+    "idl": "IDNO",
+    "id": "1012600000002",
+    "icon": "icon-business",
+    "initials": "",
+    "avcls": "avatar avatar--sm avatar--icon e-permits-fo-selected-role__avatar e-permits-fo-selected-role__avatar--icon",
+    "h": 78
+   },
+   "cls": "e-permits-dosar-profil__section cab-section"
+  },
+  {
+   "title": "Istoric",
+   "rect": [
+    16,
+    1455,
+    343,
+    384
+   ],
+   "tl": {
+    "h": 320,
+    "items": [
+     {
+      "mod": "upcoming",
+      "icon": "",
+      "title": "Sfârșitul valabilității",
+      "tags": [],
+      "stamp": "3 iunie 2030",
+      "text": null,
+      "h": 46
+     },
+     {
+      "mod": "success",
+      "icon": "icon-circle-checkmark-filled",
+      "title": "Aprobare tacită",
+      "tags": [],
+      "stamp": "3 iunie 2025",
+      "text": [
+       [
+        "Autoritatea nu a emis o decizie în termen.",
+        0
+       ]
+      ],
+      "h": 90
+     },
+     {
+      "mod": "success",
+      "icon": "icon-circle-checkmark-filled",
+      "title": "Act emis",
+      "tags": [],
+      "stamp": "3 iunie 2025 · ANSP · Direcția teritorială Chișinău",
+      "text": null,
+      "h": 62
+     },
+     {
+      "mod": "success",
+      "icon": "icon-circle-checkmark-filled",
+      "title": "Cerere depusă",
+      "tags": [],
+      "stamp": "5 mai 2025, 10:20",
+      "text": [
+       [
+        "GEAP-2025-000-00512",
+        0
+       ]
+      ],
+      "h": 64
+     }
+    ]
+   },
+   "cls": "e-permits-dosar-profil__section"
+  }
+ ],
+ "pp-01q@1440": [
+  {
+   "title": "Ce permite actul",
+   "rect": [
+    120,
+    536,
+    1200,
+    200
+   ],
+   "rows": [
+    {
+     "l": "Tipul obiectului",
+     "v": "Depozit alimentar",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Adresa obiectului",
+     "v": "mun. Chișinău, str. Uzinelor 19",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Genul de activitate",
+     "v": "Comerț cu ridicata al produselor alimentare",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    }
+   ],
+   "cls": "e-permits-dosar-profil__section cab-section"
+  },
+  {
+   "title": "Detalii act",
+   "rect": [
+    120,
+    736,
+    1200,
+    240
+   ],
+   "rows": [
+    {
+     "l": "Numărul dosarului electronic",
+     "v": "GEAP-2024-000-00219",
+     "copy": true,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Data emiterii",
+     "v": "11 februarie 2024",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Valabil până la",
+     "v": "11 februarie 2029",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Data suspendării",
+     "v": "20 august 2026",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    }
+   ],
+   "cls": "e-permits-dosar-profil__section cab-section"
+  },
+  {
+   "title": "Autoritatea emitentă",
+   "rect": [
+    120,
+    976,
+    1200,
+    240
+   ],
+   "rows": [
+    {
+     "l": "Denumire",
+     "v": "Agenția Națională pentru Sănătate Publică",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Subdiviziunea emitentă",
+     "v": "Direcția teritorială Chișinău",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Telefon",
+     "v": "022 574 501",
+     "copy": false,
+     "link": true,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "E-mail",
+     "v": "office@ansp.gov.md",
+     "copy": false,
+     "link": true,
+     "tag": null,
+     "h": 40
+    }
+   ],
+   "cls": "e-permits-dosar-profil__section cab-section"
+  },
+  {
+   "title": "Beneficiar",
+   "rect": [
+    120,
+    1216,
+    1200,
+    142
+   ],
+   "ben": {
+    "name": "SRL Global Trader",
+    "idl": "IDNO",
+    "id": "1012600000002",
+    "icon": "icon-business",
+    "initials": "",
+    "avcls": "avatar avatar--sm avatar--icon e-permits-fo-selected-role__avatar e-permits-fo-selected-role__avatar--icon",
+    "h": 78
+   },
+   "cls": "e-permits-dosar-profil__section cab-section"
+  },
+  {
+   "title": "Istoric",
+   "rect": [
+    120,
+    1358,
+    1200,
+    348
+   ],
+   "tl": {
+    "h": 284,
+    "items": [
+     {
+      "mod": "upcoming",
+      "icon": "",
+      "title": "Reluarea valabilității",
+      "tags": [],
+      "stamp": "20 noiembrie 2026",
+      "text": null,
+      "h": 46
+     },
+     {
+      "mod": "success",
+      "icon": "icon-circle-checkmark-filled",
+      "title": "Valabilitate suspendată",
+      "tags": [],
+      "stamp": "20 august 2026 · ANSP · Direcția teritorială Chișinău",
+      "text": [
+       [
+        "Din inițiativa ANSP · Decizia D-ANSP-2026-0688",
+        0
+       ]
+      ],
+      "h": 70
+     },
+     {
+      "mod": "success",
+      "icon": "icon-circle-checkmark-filled",
+      "title": "Act emis",
+      "tags": [],
+      "stamp": "11 februarie 2024 · ANSP · Direcția teritorială Chișinău",
+      "text": null,
+      "h": 46
+     },
+     {
+      "mod": "success",
+      "icon": "icon-circle-checkmark-filled",
+      "title": "Cerere depusă",
+      "tags": [],
+      "stamp": "29 ianuarie 2024, 13:00",
+      "text": [
+       [
+        "GEAP-2024-000-00219",
+        0
+       ]
+      ],
+      "h": 64
+     }
+    ]
+   },
+   "cls": "e-permits-dosar-profil__section"
+  }
+ ],
+ "pp-01q@375": [
+  {
+   "title": "Ce permite actul",
+   "rect": [
+    16,
+    732,
+    343,
+    259
+   ],
+   "rows": [
+    {
+     "l": "Tipul obiectului",
+     "v": "Depozit alimentar",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Adresa obiectului",
+     "v": "mun. Chișinău, str. Uzinelor 19",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Genul de activitate",
+     "v": "Comerț cu ridicata al produselor alimentare",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 59
+    }
+   ],
+   "cls": "e-permits-dosar-profil__section cab-section"
+  },
+  {
+   "title": "Detalii act",
+   "rect": [
+    16,
+    991,
+    343,
+    319
+   ],
+   "rows": [
+    {
+     "l": "Numărul dosarului electronic",
+     "v": "GEAP-2024-000-00219",
+     "copy": true,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Data emiterii",
+     "v": "11 februarie 2024",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Valabil până la",
+     "v": "11 februarie 2029",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Data suspendării",
+     "v": "20 august 2026",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 59
+    }
+   ],
+   "cls": "e-permits-dosar-profil__section cab-section"
+  },
+  {
+   "title": "Autoritatea emitentă",
+   "rect": [
+    16,
+    1310,
+    343,
+    319
+   ],
+   "rows": [
+    {
+     "l": "Denumire",
+     "v": "Agenția Națională pentru Sănătate Publică",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Subdiviziunea emitentă",
+     "v": "Direcția teritorială Chișinău",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Telefon",
+     "v": "022 574 501",
+     "copy": false,
+     "link": true,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "E-mail",
+     "v": "office@ansp.gov.md",
+     "copy": false,
+     "link": true,
+     "tag": null,
+     "h": 59
+    }
+   ],
+   "cls": "e-permits-dosar-profil__section cab-section"
+  },
+  {
+   "title": "Beneficiar",
+   "rect": [
+    16,
+    1629,
+    343,
+    142
+   ],
+   "ben": {
+    "name": "SRL Global Trader",
+    "idl": "IDNO",
+    "id": "1012600000002",
+    "icon": "icon-business",
+    "initials": "",
+    "avcls": "avatar avatar--sm avatar--icon e-permits-fo-selected-role__avatar e-permits-fo-selected-role__avatar--icon",
+    "h": 78
+   },
+   "cls": "e-permits-dosar-profil__section cab-section"
+  },
+  {
+   "title": "Istoric",
+   "rect": [
+    16,
+    1771,
+    343,
+    400
+   ],
+   "tl": {
+    "h": 336,
+    "items": [
+     {
+      "mod": "upcoming",
+      "icon": "",
+      "title": "Reluarea valabilității",
+      "tags": [],
+      "stamp": "20 noiembrie 2026",
+      "text": null,
+      "h": 46
+     },
+     {
+      "mod": "success",
+      "icon": "icon-circle-checkmark-filled",
+      "title": "Valabilitate suspendată",
+      "tags": [],
+      "stamp": "20 august 2026 · ANSP · Direcția teritorială Chișinău",
+      "text": [
+       [
+        "Din inițiativa ANSP · Decizia D-ANSP-2026-0688",
+        0
+       ]
+      ],
+      "h": 106
+     },
+     {
+      "mod": "success",
+      "icon": "icon-circle-checkmark-filled",
+      "title": "Act emis",
+      "tags": [],
+      "stamp": "11 februarie 2024 · ANSP · Direcția teritorială Chișinău",
+      "text": null,
+      "h": 62
+     },
+     {
+      "mod": "success",
+      "icon": "icon-circle-checkmark-filled",
+      "title": "Cerere depusă",
+      "tags": [],
+      "stamp": "29 ianuarie 2024, 13:00",
+      "text": [
+       [
+        "GEAP-2024-000-00219",
+        0
+       ]
+      ],
+      "h": 64
+     }
+    ]
+   },
+   "cls": "e-permits-dosar-profil__section"
+  }
+ ],
+ "pp-01e@1440": [
+  {
+   "title": "Ce permite actul",
+   "rect": [
+    120,
+    528,
+    1200,
+    243
+   ],
+   "rows": [
+    {
+     "l": "Adresa obiectului",
+     "v": "mun. Chișinău, str. Calea Ieșilor 8",
+     "vt": null,
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Genul de activitate",
+     "v": "Circulația substanțelor stupefiante, psihotrope și a precursorilor",
+     "vt": null,
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Activitățile autorizate",
+     "v": "ProcurarePăstrareUtilizare în scop de diagnostic de laborator",
+     "vt": "Procurare\nPăstrare\nUtilizare în scop de diagnostic de laborator",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 83
+    }
+   ],
+   "cls": "e-permits-dosar-profil__section cab-section"
+  },
+  {
+   "title": "Detalii act",
+   "rect": [
+    120,
+    771,
+    1200,
+    160
+   ],
+   "rows": [
+    {
+     "l": "Numărul dosarului electronic",
+     "v": "GEAP-2025-010-00341",
+     "vt": null,
+     "copy": true,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Data emiterii",
+     "v": "14 iulie 2025",
+     "vt": null,
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    }
+   ],
+   "cls": "e-permits-dosar-profil__section cab-section"
+  },
+  {
+   "title": "Autoritatea emitentă",
+   "rect": [
+    120,
+    931,
+    1200,
+    240
+   ],
+   "rows": [
+    {
+     "l": "Denumire",
+     "v": "Agenția Medicamentului și Dispozitivelor Medicale",
+     "vt": null,
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Subdiviziunea emitentă",
+     "v": "Comitetul permanent de control asupra drogurilor",
+     "vt": null,
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Telefon",
+     "v": "022 884 301",
+     "vt": null,
+     "copy": false,
+     "link": true,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "E-mail",
+     "v": "office@amdm.gov.md",
+     "vt": null,
+     "copy": false,
+     "link": true,
+     "tag": null,
+     "h": 40
+    }
+   ],
+   "cls": "e-permits-dosar-profil__section cab-section"
+  },
+  {
+   "title": "Beneficiar",
+   "rect": [
+    120,
+    1171,
+    1200,
+    142
+   ],
+   "ben": {
+    "name": "SRL Global Trader",
+    "idl": "IDNO",
+    "id": "1012600000002",
+    "icon": "icon-business",
+    "initials": "",
+    "avcls": "avatar avatar--sm avatar--icon e-permits-fo-selected-role__avatar e-permits-fo-selected-role__avatar--icon",
+    "h": 78
+   },
+   "cls": "e-permits-dosar-profil__section cab-section"
+  },
+  {
+   "title": "Istoric",
+   "rect": [
+    120,
+    1313,
+    1200,
+    348
+   ],
+   "tl": {
+    "h": 284,
+    "items": [
+     {
+      "mod": "upcoming",
+      "icon": "",
+      "title": "Sfârșitul valabilității",
+      "tags": [],
+      "stamp": "14 iulie 2030",
+      "text": null,
+      "h": 46
+     },
+     {
+      "mod": "pending",
+      "icon": "icon-time-filled",
+      "title": "Prelungire în examinare",
+      "tags": [],
+      "stamp": "28 septembrie 2026, 09:40 · AMDM · Comitetul permanent de control asupra drogurilor",
+      "text": [
+       [
+        "GEAP-2026-010-00877",
+        2,
+        true
+       ]
+      ],
+      "h": 70
+     },
+     {
+      "mod": "success",
+      "icon": "icon-circle-checkmark-filled",
+      "title": "Act emis",
+      "tags": [],
+      "stamp": "14 iulie 2025 · AMDM · Comitetul permanent de control asupra drogurilor",
+      "text": null,
+      "h": 46
+     },
+     {
+      "mod": "success",
+      "icon": "icon-circle-checkmark-filled",
+      "title": "Cerere depusă",
+      "tags": [],
+      "stamp": "1 iulie 2025, 14:30",
+      "text": [
+       [
+        "GEAP-2025-010-00341",
+        0
+       ]
+      ],
+      "h": 64
+     }
+    ]
+   },
+   "cls": "e-permits-dosar-profil__section"
+  }
+ ],
+ "pp-01e@375": [
+  {
+   "title": "Ce permite actul",
+   "rect": [
+    16,
+    776,
+    343,
+    327
+   ],
+   "rows": [
+    {
+     "l": "Adresa obiectului",
+     "v": "mun. Chișinău, str. Calea Ieșilor 8",
+     "vt": null,
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Genul de activitate",
+     "v": "Circulația substanțelor stupefiante, psihotrope și a precursorilor",
+     "vt": null,
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 80
+    },
+    {
+     "l": "Activitățile autorizate",
+     "v": "ProcurarePăstrareUtilizare în scop de diagnostic de laborator",
+     "vt": "Procurare\nPăstrare\nUtilizare în scop de diagnostic de laborator",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 107
+    }
+   ],
+   "cls": "e-permits-dosar-profil__section cab-section"
+  },
+  {
+   "title": "Detalii act",
+   "rect": [
+    16,
+    1103,
+    343,
+    199
+   ],
+   "rows": [
+    {
+     "l": "Numărul dosarului electronic",
+     "v": "GEAP-2025-010-00341",
+     "vt": null,
+     "copy": true,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Data emiterii",
+     "v": "14 iulie 2025",
+     "vt": null,
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 59
+    }
+   ],
+   "cls": "e-permits-dosar-profil__section cab-section"
+  },
+  {
+   "title": "Autoritatea emitentă",
+   "rect": [
+    16,
+    1302,
+    343,
+    359
+   ],
+   "rows": [
+    {
+     "l": "Denumire",
+     "v": "Agenția Medicamentului și Dispozitivelor Medicale",
+     "vt": null,
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 80
+    },
+    {
+     "l": "Subdiviziunea emitentă",
+     "v": "Comitetul permanent de control asupra drogurilor",
+     "vt": null,
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 80
+    },
+    {
+     "l": "Telefon",
+     "v": "022 884 301",
+     "vt": null,
+     "copy": false,
+     "link": true,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "E-mail",
+     "v": "office@amdm.gov.md",
+     "vt": null,
+     "copy": false,
+     "link": true,
+     "tag": null,
+     "h": 59
+    }
+   ],
+   "cls": "e-permits-dosar-profil__section cab-section"
+  },
+  {
+   "title": "Beneficiar",
+   "rect": [
+    16,
+    1661,
+    343,
+    142
+   ],
+   "ben": {
+    "name": "SRL Global Trader",
+    "idl": "IDNO",
+    "id": "1012600000002",
+    "icon": "icon-business",
+    "initials": "",
+    "avcls": "avatar avatar--sm avatar--icon e-permits-fo-selected-role__avatar e-permits-fo-selected-role__avatar--icon",
+    "h": 78
+   },
+   "cls": "e-permits-dosar-profil__section cab-section"
+  },
+  {
+   "title": "Istoric",
+   "rect": [
+    16,
+    1803,
+    343,
+    380
+   ],
+   "tl": {
+    "h": 316,
+    "items": [
+     {
+      "mod": "upcoming",
+      "icon": "",
+      "title": "Sfârșitul valabilității",
+      "tags": [],
+      "stamp": "14 iulie 2030",
+      "text": null,
+      "h": 46
+     },
+     {
+      "mod": "pending",
+      "icon": "icon-time-filled",
+      "title": "Prelungire în examinare",
+      "tags": [],
+      "stamp": "28 septembrie 2026, 09:40 · AMDM · Comitetul permanent de control asupra drogurilor",
+      "text": [
+       [
+        "GEAP-2026-010-00877",
+        2,
+        true
+       ]
+      ],
+      "h": 86
+     },
+     {
+      "mod": "success",
+      "icon": "icon-circle-checkmark-filled",
+      "title": "Act emis",
+      "tags": [],
+      "stamp": "14 iulie 2025 · AMDM · Comitetul permanent de control asupra drogurilor",
+      "text": null,
+      "h": 62
+     },
+     {
+      "mod": "success",
+      "icon": "icon-circle-checkmark-filled",
+      "title": "Cerere depusă",
+      "tags": [],
+      "stamp": "1 iulie 2025, 14:30",
+      "text": [
+       [
+        "GEAP-2025-010-00341",
+        0
+       ]
+      ],
+      "h": 64
+     }
+    ]
+   },
+   "cls": "e-permits-dosar-profil__section"
+  }
+ ],
+ "pp-01i@1440": [
+  {
+   "title": "Ce permite actul",
+   "rect": [
+    120,
+    496,
+    1200,
+    200
+   ],
+   "rows": [
+    {
+     "l": "Tipul obiectului",
+     "v": "Bistro",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Adresa obiectului",
+     "v": "or. Orhei, str. Vasile Lupu 21",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Activitatea (CAEM)",
+     "v": "I 56.10 Restaurante",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    }
+   ],
+   "cls": "e-permits-dosar-profil__section cab-section"
+  },
+  {
+   "title": "Detalii act",
+   "rect": [
+    120,
+    696,
+    1200,
+    160
+   ],
+   "rows": [
+    {
+     "l": "Numărul dosarului electronic",
+     "v": "GEAP-2021-009-00421",
+     "copy": true,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Data emiterii",
+     "v": "2 martie 2021",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    }
+   ],
+   "cls": "e-permits-dosar-profil__section cab-section"
+  },
+  {
+   "title": "Autoritatea emitentă",
+   "rect": [
+    120,
+    856,
+    1200,
+    240
+   ],
+   "rows": [
+    {
+     "l": "Denumire",
+     "v": "Agenția Națională pentru Sănătate Publică",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Subdiviziunea emitentă",
+     "v": "CSP Orhei",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Telefon",
+     "v": "022 574 501",
+     "copy": false,
+     "link": true,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "E-mail",
+     "v": "office@ansp.gov.md",
+     "copy": false,
+     "link": true,
+     "tag": null,
+     "h": 40
+    }
+   ],
+   "cls": "e-permits-dosar-profil__section cab-section"
+  },
+  {
+   "title": "Beneficiar",
+   "rect": [
+    120,
+    1096,
+    1200,
+    142
+   ],
+   "ben": {
+    "name": "SRL Global Trader",
+    "idl": "IDNO",
+    "id": "1012600000002",
+    "icon": "icon-business",
+    "initials": "",
+    "avcls": "avatar avatar--sm avatar--icon e-permits-fo-selected-role__avatar e-permits-fo-selected-role__avatar--icon",
+    "h": 78
+   },
+   "cls": "e-permits-dosar-profil__section cab-section"
+  },
+  {
+   "title": "Istoric",
+   "rect": [
+    120,
+    1238,
+    1200,
+    296
+   ],
+   "tl": {
+    "h": 232,
+    "items": [
+     {
+      "mod": "danger",
+      "icon": "icon-circle-error-filled",
+      "title": "Valabilitate încheiată",
+      "tags": [],
+      "stamp": "2 martie 2024",
+      "text": [
+       [
+        "Termenul de valabilitate a expirat.",
+        0
+       ]
+      ],
+      "h": 70
+     },
+     {
+      "mod": "success",
+      "icon": "icon-circle-checkmark-filled",
+      "title": "Act emis",
+      "tags": [],
+      "stamp": "2 martie 2021 · ANSP · CSP Orhei",
+      "text": null,
+      "h": 46
+     },
+     {
+      "mod": "success",
+      "icon": "icon-circle-checkmark-filled",
+      "title": "Cerere depusă",
+      "tags": [],
+      "stamp": "10 februarie 2021, 09:00",
+      "text": [
+       [
+        "GEAP-2021-009-00421",
+        2,
+        true
+       ]
+      ],
+      "h": 64
+     }
+    ]
+   },
+   "cls": "e-permits-dosar-profil__section"
+  }
+ ],
+ "pp-01i@375": [
+  {
+   "title": "Ce permite actul",
+   "rect": [
+    16,
+    608,
+    343,
+    259
+   ],
+   "rows": [
+    {
+     "l": "Tipul obiectului",
+     "v": "Bistro",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Adresa obiectului",
+     "v": "or. Orhei, str. Vasile Lupu 21",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Activitatea (CAEM)",
+     "v": "I 56.10 Restaurante",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 59
+    }
+   ],
+   "cls": "e-permits-dosar-profil__section cab-section"
+  },
+  {
+   "title": "Detalii act",
+   "rect": [
+    16,
+    867,
+    343,
+    199
+   ],
+   "rows": [
+    {
+     "l": "Numărul dosarului electronic",
+     "v": "GEAP-2021-009-00421",
+     "copy": true,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Data emiterii",
+     "v": "2 martie 2021",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 59
+    }
+   ],
+   "cls": "e-permits-dosar-profil__section cab-section"
+  },
+  {
+   "title": "Autoritatea emitentă",
+   "rect": [
+    16,
+    1066,
+    343,
+    319
+   ],
+   "rows": [
+    {
+     "l": "Denumire",
+     "v": "Agenția Națională pentru Sănătate Publică",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Subdiviziunea emitentă",
+     "v": "CSP Orhei",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Telefon",
+     "v": "022 574 501",
+     "copy": false,
+     "link": true,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "E-mail",
+     "v": "office@ansp.gov.md",
+     "copy": false,
+     "link": true,
+     "tag": null,
+     "h": 59
+    }
+   ],
+   "cls": "e-permits-dosar-profil__section cab-section"
+  },
+  {
+   "title": "Beneficiar",
+   "rect": [
+    16,
+    1385,
+    343,
+    142
+   ],
+   "ben": {
+    "name": "SRL Global Trader",
+    "idl": "IDNO",
+    "id": "1012600000002",
+    "icon": "icon-business",
+    "initials": "",
+    "avcls": "avatar avatar--sm avatar--icon e-permits-fo-selected-role__avatar e-permits-fo-selected-role__avatar--icon",
+    "h": 78
+   },
+   "cls": "e-permits-dosar-profil__section cab-section"
+  },
+  {
+   "title": "Istoric",
+   "rect": [
+    16,
+    1527,
+    343,
+    296
+   ],
+   "tl": {
+    "h": 232,
+    "items": [
+     {
+      "mod": "danger",
+      "icon": "icon-circle-error-filled",
+      "title": "Valabilitate încheiată",
+      "tags": [],
+      "stamp": "2 martie 2024",
+      "text": [
+       [
+        "Termenul de valabilitate a expirat.",
+        0
+       ]
+      ],
+      "h": 70
+     },
+     {
+      "mod": "success",
+      "icon": "icon-circle-checkmark-filled",
+      "title": "Act emis",
+      "tags": [],
+      "stamp": "2 martie 2021 · ANSP · CSP Orhei",
+      "text": null,
+      "h": 46
+     },
+     {
+      "mod": "success",
+      "icon": "icon-circle-checkmark-filled",
+      "title": "Cerere depusă",
+      "tags": [],
+      "stamp": "10 februarie 2021, 09:00",
+      "text": [
+       [
+        "GEAP-2021-009-00421",
+        2,
+        true
+       ]
+      ],
+      "h": 64
+     }
+    ]
+   },
+   "cls": "e-permits-dosar-profil__section"
+  }
+ ],
+ "pp-03@1440": [
+  {
+   "title": "Ce permite actul",
+   "rect": [
+    120,
+    536,
+    1200,
+    200
+   ],
+   "rows": [
+    {
+     "l": "Tipul obiectului",
+     "v": "Patiserie",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Adresa obiectului",
+     "v": "or. Ialoveni, str. Alexandru cel Bun 14",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Activitatea (CAEM)",
+     "v": "C 10.71 Fabricarea pâinii și a produselor de patiserie",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    }
+   ],
+   "cls": "e-permits-dosar-profil__section cab-section"
+  },
+  {
+   "title": "Detalii act",
+   "rect": [
+    120,
+    736,
+    1200,
+    240
+   ],
+   "rows": [
+    {
+     "l": "Numărul dosarului electronic",
+     "v": "GEAP-2024-009-01275",
+     "copy": true,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Seria și nr. documentului tipărit",
+     "v": "ASF 0028841",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Data emiterii",
+     "v": "18 aprilie 2024",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Valabil până la",
+     "v": "18 aprilie 2027",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    }
+   ],
+   "cls": "e-permits-dosar-profil__section cab-section"
+  },
+  {
+   "title": "Autoritatea emitentă",
+   "rect": [
+    120,
+    976,
+    1200,
+    240
+   ],
+   "rows": [
+    {
+     "l": "Denumire",
+     "v": "Agenția Națională pentru Sănătate Publică",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Subdiviziunea emitentă",
+     "v": "CSP Ialoveni",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Telefon",
+     "v": "022 574 501",
+     "copy": false,
+     "link": true,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "E-mail",
+     "v": "office@ansp.gov.md",
+     "copy": false,
+     "link": true,
+     "tag": null,
+     "h": 40
+    }
+   ],
+   "cls": "e-permits-dosar-profil__section cab-section"
+  },
+  {
+   "title": "Beneficiar",
+   "rect": [
+    120,
+    1216,
+    1200,
+    142
+   ],
+   "ben": {
+    "name": "Anastasia Cojocaru",
+    "idl": "IDNP",
+    "id": "2990000000001",
+    "icon": "icon-copy",
+    "initials": "AC",
+    "avcls": "avatar avatar--sm avatar--initials e-permits-fo-selected-role__avatar e-permits-fo-selected-role__avatar--initials",
+    "h": 78
+   },
+   "cls": "e-permits-dosar-profil__section cab-section"
+  },
+  {
+   "title": "Istoric",
+   "rect": [
+    120,
+    1358,
+    1200,
+    296
+   ],
+   "tl": {
+    "h": 232,
+    "items": [
+     {
+      "mod": "danger",
+      "icon": "icon-circle-error-filled",
+      "title": "Act anulat",
+      "tags": [],
+      "stamp": "1 octombrie 2026 · ANSP · CSP Ialoveni",
+      "text": [
+       [
+        "Din inițiativa ANSP · ",
+        0
+       ],
+       [
+        "GEAP-2026-009-04388",
+        2,
+        true
+       ]
+      ],
+      "h": 70
+     },
+     {
+      "mod": "success",
+      "icon": "icon-circle-checkmark-filled",
+      "title": "Act emis",
+      "tags": [],
+      "stamp": "18 aprilie 2024 · ANSP · CSP Ialoveni",
+      "text": null,
+      "h": 46
+     },
+     {
+      "mod": "success",
+      "icon": "icon-circle-checkmark-filled",
+      "title": "Cerere depusă",
+      "tags": [],
+      "stamp": "28 martie 2024, 11:40",
+      "text": [
+       [
+        "GEAP-2024-009-01275",
+        2,
+        true
+       ]
+      ],
+      "h": 64
+     }
+    ]
+   },
+   "cls": "e-permits-dosar-profil__section"
+  }
+ ],
+ "pp-03@375": [
+  {
+   "title": "Ce permite actul",
+   "rect": [
+    16,
+    732,
+    343,
+    279
+   ],
+   "rows": [
+    {
+     "l": "Tipul obiectului",
+     "v": "Patiserie",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Adresa obiectului",
+     "v": "or. Ialoveni, str. Alexandru cel Bun 14",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Activitatea (CAEM)",
+     "v": "C 10.71 Fabricarea pâinii și a produselor de patiserie",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 79
+    }
+   ],
+   "cls": "e-permits-dosar-profil__section cab-section"
+  },
+  {
+   "title": "Detalii act",
+   "rect": [
+    16,
+    1011,
+    343,
+    319
+   ],
+   "rows": [
+    {
+     "l": "Numărul dosarului electronic",
+     "v": "GEAP-2024-009-01275",
+     "copy": true,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Seria și nr. documentului tipărit",
+     "v": "ASF 0028841",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Data emiterii",
+     "v": "18 aprilie 2024",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Valabil până la",
+     "v": "18 aprilie 2027",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 59
+    }
+   ],
+   "cls": "e-permits-dosar-profil__section cab-section"
+  },
+  {
+   "title": "Autoritatea emitentă",
+   "rect": [
+    16,
+    1330,
+    343,
+    319
+   ],
+   "rows": [
+    {
+     "l": "Denumire",
+     "v": "Agenția Națională pentru Sănătate Publică",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Subdiviziunea emitentă",
+     "v": "CSP Ialoveni",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Telefon",
+     "v": "022 574 501",
+     "copy": false,
+     "link": true,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "E-mail",
+     "v": "office@ansp.gov.md",
+     "copy": false,
+     "link": true,
+     "tag": null,
+     "h": 59
+    }
+   ],
+   "cls": "e-permits-dosar-profil__section cab-section"
+  },
+  {
+   "title": "Beneficiar",
+   "rect": [
+    16,
+    1649,
+    343,
+    142
+   ],
+   "ben": {
+    "name": "Anastasia Cojocaru",
+    "idl": "IDNP",
+    "id": "2990000000001",
+    "icon": "icon-copy",
+    "initials": "AC",
+    "avcls": "avatar avatar--sm avatar--initials e-permits-fo-selected-role__avatar e-permits-fo-selected-role__avatar--initials",
+    "h": 78
+   },
+   "cls": "e-permits-dosar-profil__section cab-section"
+  },
+  {
+   "title": "Istoric",
+   "rect": [
+    16,
+    1791,
+    343,
+    316
+   ],
+   "tl": {
+    "h": 252,
+    "items": [
+     {
+      "mod": "danger",
+      "icon": "icon-circle-error-filled",
+      "title": "Act anulat",
+      "tags": [],
+      "stamp": "1 octombrie 2026 · ANSP · CSP Ialoveni",
+      "text": [
+       [
+        "Din inițiativa ANSP · ",
+        0
+       ],
+       [
+        "GEAP-2026-009-04388",
+        2,
+        true
+       ]
+      ],
+      "h": 90
+     },
+     {
+      "mod": "success",
+      "icon": "icon-circle-checkmark-filled",
+      "title": "Act emis",
+      "tags": [],
+      "stamp": "18 aprilie 2024 · ANSP · CSP Ialoveni",
+      "text": null,
+      "h": 46
+     },
+     {
+      "mod": "success",
+      "icon": "icon-circle-checkmark-filled",
+      "title": "Cerere depusă",
+      "tags": [],
+      "stamp": "28 martie 2024, 11:40",
+      "text": [
+       [
+        "GEAP-2024-009-01275",
+        2,
+        true
+       ]
+      ],
+      "h": 64
+     }
+    ]
+   },
+   "cls": "e-permits-dosar-profil__section"
+  }
+ ],
+ "pp-03a@1440": [
+  {
+   "title": "Ce permite actul",
+   "rect": [
+    120,
+    496,
+    1200,
+    200
+   ],
+   "rows": [
+    {
+     "l": "Tipul obiectului",
+     "v": "Cofetărie",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Adresa obiectului",
+     "v": "mun. Chișinău, str. București 45",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Activitatea (CAEM)",
+     "v": "C 10.71 Fabricarea pâinii și a produselor de patiserie",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    }
+   ],
+   "cls": "e-permits-dosar-profil__section cab-section"
+  },
+  {
+   "title": "Detalii act",
+   "rect": [
+    120,
+    696,
+    1200,
+    160
+   ],
+   "rows": [
+    {
+     "l": "Seria și nr. documentului tipărit",
+     "v": "AS 0004120",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Data emiterii",
+     "v": "21 noiembrie 2019",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    }
+   ],
+   "cls": "e-permits-dosar-profil__section cab-section"
+  },
+  {
+   "title": "Autoritatea emitentă",
+   "rect": [
+    120,
+    856,
+    1200,
+    240
+   ],
+   "rows": [
+    {
+     "l": "Denumire",
+     "v": "Agenția Națională pentru Sănătate Publică",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Subdiviziunea emitentă",
+     "v": "CSP Chișinău",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Telefon",
+     "v": "022 574 501",
+     "copy": false,
+     "link": true,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "E-mail",
+     "v": "office@ansp.gov.md",
+     "copy": false,
+     "link": true,
+     "tag": null,
+     "h": 40
+    }
+   ],
+   "cls": "e-permits-dosar-profil__section cab-section"
+  },
+  {
+   "title": "Beneficiar",
+   "rect": [
+    120,
+    1096,
+    1200,
+    142
+   ],
+   "ben": {
+    "name": "SRL Global Trader",
+    "idl": "IDNO",
+    "id": "1012600000002",
+    "icon": "icon-business",
+    "initials": "",
+    "avcls": "avatar avatar--sm avatar--icon e-permits-fo-selected-role__avatar e-permits-fo-selected-role__avatar--icon",
+    "h": 78
+   },
+   "cls": "e-permits-dosar-profil__section cab-section"
+  },
+  {
+   "title": "Istoric",
+   "rect": [
+    120,
+    1238,
+    1200,
+    196
+   ],
+   "tl": {
+    "h": 132,
+    "items": [
+     {
+      "mod": "upcoming",
+      "icon": "",
+      "title": "Sfârșitul valabilității",
+      "tags": [],
+      "stamp": "21 noiembrie 2029",
+      "text": null,
+      "h": 46
+     },
+     {
+      "mod": "success",
+      "icon": "icon-circle-checkmark-filled",
+      "title": "Act emis pe hârtie",
+      "tags": [],
+      "stamp": "21 noiembrie 2019 · ANSP · CSP Chișinău",
+      "text": null,
+      "h": 40
+     }
+    ]
+   },
+   "cls": "e-permits-dosar-profil__section"
+  }
+ ],
+ "pp-03a@375": [
+  {
+   "title": "Ce permite actul",
+   "rect": [
+    16,
+    588,
+    343,
+    279
+   ],
+   "rows": [
+    {
+     "l": "Tipul obiectului",
+     "v": "Cofetărie",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Adresa obiectului",
+     "v": "mun. Chișinău, str. București 45",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Activitatea (CAEM)",
+     "v": "C 10.71 Fabricarea pâinii și a produselor de patiserie",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 79
+    }
+   ],
+   "cls": "e-permits-dosar-profil__section cab-section"
+  },
+  {
+   "title": "Detalii act",
+   "rect": [
+    16,
+    867,
+    343,
+    199
+   ],
+   "rows": [
+    {
+     "l": "Seria și nr. documentului tipărit",
+     "v": "AS 0004120",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Data emiterii",
+     "v": "21 noiembrie 2019",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 59
+    }
+   ],
+   "cls": "e-permits-dosar-profil__section cab-section"
+  },
+  {
+   "title": "Autoritatea emitentă",
+   "rect": [
+    16,
+    1066,
+    343,
+    319
+   ],
+   "rows": [
+    {
+     "l": "Denumire",
+     "v": "Agenția Națională pentru Sănătate Publică",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Subdiviziunea emitentă",
+     "v": "CSP Chișinău",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Telefon",
+     "v": "022 574 501",
+     "copy": false,
+     "link": true,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "E-mail",
+     "v": "office@ansp.gov.md",
+     "copy": false,
+     "link": true,
+     "tag": null,
+     "h": 59
+    }
+   ],
+   "cls": "e-permits-dosar-profil__section cab-section"
+  },
+  {
+   "title": "Beneficiar",
+   "rect": [
+    16,
+    1385,
+    343,
+    142
+   ],
+   "ben": {
+    "name": "SRL Global Trader",
+    "idl": "IDNO",
+    "id": "1012600000002",
+    "icon": "icon-business",
+    "initials": "",
+    "avcls": "avatar avatar--sm avatar--icon e-permits-fo-selected-role__avatar e-permits-fo-selected-role__avatar--icon",
+    "h": 78
+   },
+   "cls": "e-permits-dosar-profil__section cab-section"
+  },
+  {
+   "title": "Istoric",
+   "rect": [
+    16,
+    1527,
+    343,
+    196
+   ],
+   "tl": {
+    "h": 132,
+    "items": [
+     {
+      "mod": "upcoming",
+      "icon": "",
+      "title": "Sfârșitul valabilității",
+      "tags": [],
+      "stamp": "21 noiembrie 2029",
+      "text": null,
+      "h": 46
+     },
+     {
+      "mod": "success",
+      "icon": "icon-circle-checkmark-filled",
+      "title": "Act emis pe hârtie",
+      "tags": [],
+      "stamp": "21 noiembrie 2019 · ANSP · CSP Chișinău",
+      "text": null,
+      "h": 40
+     }
+    ]
+   },
+   "cls": "e-permits-dosar-profil__section"
+  }
+ ],
+ "pp-03b@1440": [
+  {
+   "title": "Ce permite actul",
+   "rect": [
+    120,
+    536,
+    1200,
+    200
+   ],
+   "rows": [
+    {
+     "l": "Tipul obiectului",
+     "v": "Depozit alimentar",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Adresa obiectului",
+     "v": "mun. Chișinău, str. Uzinelor 19",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Genul de activitate",
+     "v": "Comerț cu ridicata al produselor alimentare",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    }
+   ],
+   "cls": "e-permits-dosar-profil__section cab-section"
+  },
+  {
+   "title": "Detalii act",
+   "rect": [
+    120,
+    736,
+    1200,
+    240
+   ],
+   "rows": [
+    {
+     "l": "Numărul dosarului electronic",
+     "v": "GEAP-2024-000-00219",
+     "copy": true,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Data emiterii",
+     "v": "11 februarie 2024",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Valabil până la",
+     "v": "11 februarie 2029",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Data suspendării",
+     "v": "20 august 2026",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    }
+   ],
+   "cls": "e-permits-dosar-profil__section cab-section"
+  },
+  {
+   "title": "Autoritatea emitentă",
+   "rect": [
+    120,
+    976,
+    1200,
+    240
+   ],
+   "rows": [
+    {
+     "l": "Denumire",
+     "v": "Agenția Națională pentru Sănătate Publică",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Subdiviziunea emitentă",
+     "v": "Direcția teritorială Chișinău",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Telefon",
+     "v": "022 574 501",
+     "copy": false,
+     "link": true,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "E-mail",
+     "v": "office@ansp.gov.md",
+     "copy": false,
+     "link": true,
+     "tag": null,
+     "h": 40
+    }
+   ],
+   "cls": "e-permits-dosar-profil__section cab-section"
+  },
+  {
+   "title": "Beneficiar",
+   "rect": [
+    120,
+    1216,
+    1200,
+    142
+   ],
+   "ben": {
+    "name": "SRL Global Trader",
+    "idl": "IDNO",
+    "id": "1012600000002",
+    "icon": "icon-business",
+    "initials": "",
+    "avcls": "avatar avatar--sm avatar--icon e-permits-fo-selected-role__avatar e-permits-fo-selected-role__avatar--icon",
+    "h": 78
+   },
+   "cls": "e-permits-dosar-profil__section cab-section"
+  },
+  {
+   "title": "Istoric",
+   "rect": [
+    120,
+    1358,
+    1200,
+    348
+   ],
+   "tl": {
+    "h": 284,
+    "items": [
+     {
+      "mod": "upcoming",
+      "icon": "",
+      "title": "Reluarea valabilității",
+      "tags": [],
+      "stamp": "20 noiembrie 2026",
+      "text": null,
+      "h": 46
+     },
+     {
+      "mod": "success",
+      "icon": "icon-circle-checkmark-filled",
+      "title": "Valabilitate suspendată",
+      "tags": [],
+      "stamp": "20 august 2026 · ANSP · Direcția teritorială Chișinău",
+      "text": [
+       [
+        "Din inițiativa ANSP · Decizia D-ANSP-2026-0688",
+        0
+       ]
+      ],
+      "h": 70
+     },
+     {
+      "mod": "success",
+      "icon": "icon-circle-checkmark-filled",
+      "title": "Act emis",
+      "tags": [],
+      "stamp": "11 februarie 2024 · ANSP · Direcția teritorială Chișinău",
+      "text": null,
+      "h": 46
+     },
+     {
+      "mod": "success",
+      "icon": "icon-circle-checkmark-filled",
+      "title": "Cerere depusă",
+      "tags": [],
+      "stamp": "29 ianuarie 2024, 13:00",
+      "text": [
+       [
+        "GEAP-2024-000-00219",
+        0
+       ]
+      ],
+      "h": 64
+     }
+    ]
+   },
+   "cls": "e-permits-dosar-profil__section"
+  }
+ ],
+ "pp-03b@375": [
+  {
+   "title": "Ce permite actul",
+   "rect": [
+    16,
+    732,
+    343,
+    259
+   ],
+   "rows": [
+    {
+     "l": "Tipul obiectului",
+     "v": "Depozit alimentar",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Adresa obiectului",
+     "v": "mun. Chișinău, str. Uzinelor 19",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Genul de activitate",
+     "v": "Comerț cu ridicata al produselor alimentare",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 59
+    }
+   ],
+   "cls": "e-permits-dosar-profil__section cab-section"
+  },
+  {
+   "title": "Detalii act",
+   "rect": [
+    16,
+    991,
+    343,
+    319
+   ],
+   "rows": [
+    {
+     "l": "Numărul dosarului electronic",
+     "v": "GEAP-2024-000-00219",
+     "copy": true,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Data emiterii",
+     "v": "11 februarie 2024",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Valabil până la",
+     "v": "11 februarie 2029",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Data suspendării",
+     "v": "20 august 2026",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 59
+    }
+   ],
+   "cls": "e-permits-dosar-profil__section cab-section"
+  },
+  {
+   "title": "Autoritatea emitentă",
+   "rect": [
+    16,
+    1310,
+    343,
+    319
+   ],
+   "rows": [
+    {
+     "l": "Denumire",
+     "v": "Agenția Națională pentru Sănătate Publică",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Subdiviziunea emitentă",
+     "v": "Direcția teritorială Chișinău",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Telefon",
+     "v": "022 574 501",
+     "copy": false,
+     "link": true,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "E-mail",
+     "v": "office@ansp.gov.md",
+     "copy": false,
+     "link": true,
+     "tag": null,
+     "h": 59
+    }
+   ],
+   "cls": "e-permits-dosar-profil__section cab-section"
+  },
+  {
+   "title": "Beneficiar",
+   "rect": [
+    16,
+    1629,
+    343,
+    142
+   ],
+   "ben": {
+    "name": "SRL Global Trader",
+    "idl": "IDNO",
+    "id": "1012600000002",
+    "icon": "icon-business",
+    "initials": "",
+    "avcls": "avatar avatar--sm avatar--icon e-permits-fo-selected-role__avatar e-permits-fo-selected-role__avatar--icon",
+    "h": 78
+   },
+   "cls": "e-permits-dosar-profil__section cab-section"
+  },
+  {
+   "title": "Istoric",
+   "rect": [
+    16,
+    1771,
+    343,
+    400
+   ],
+   "tl": {
+    "h": 336,
+    "items": [
+     {
+      "mod": "upcoming",
+      "icon": "",
+      "title": "Reluarea valabilității",
+      "tags": [],
+      "stamp": "20 noiembrie 2026",
+      "text": null,
+      "h": 46
+     },
+     {
+      "mod": "success",
+      "icon": "icon-circle-checkmark-filled",
+      "title": "Valabilitate suspendată",
+      "tags": [],
+      "stamp": "20 august 2026 · ANSP · Direcția teritorială Chișinău",
+      "text": [
+       [
+        "Din inițiativa ANSP · Decizia D-ANSP-2026-0688",
+        0
+       ]
+      ],
+      "h": 106
+     },
+     {
+      "mod": "success",
+      "icon": "icon-circle-checkmark-filled",
+      "title": "Act emis",
+      "tags": [],
+      "stamp": "11 februarie 2024 · ANSP · Direcția teritorială Chișinău",
+      "text": null,
+      "h": 62
+     },
+     {
+      "mod": "success",
+      "icon": "icon-circle-checkmark-filled",
+      "title": "Cerere depusă",
+      "tags": [],
+      "stamp": "29 ianuarie 2024, 13:00",
+      "text": [
+       [
+        "GEAP-2024-000-00219",
+        0
+       ]
+      ],
+      "h": 64
+     }
+    ]
+   },
+   "cls": "e-permits-dosar-profil__section"
+  }
+ ],
+ "pp-03c@1440": [
+  {
+   "title": "Beneficiar",
+   "rect": [
+    120,
+    528,
+    1200,
+    142
+   ],
+   "ben": {
+    "name": "«Vita-Plant» SRL",
+    "idl": "IDNO",
+    "id": "1012600000001",
+    "icon": "icon-business",
+    "initials": "",
+    "avcls": "avatar avatar--sm avatar--icon e-permits-fo-selected-role__avatar e-permits-fo-selected-role__avatar--icon",
+    "h": 78
+   },
+   "cls": "e-permits-dosar-profil__section cab-section"
+  },
+  {
+   "title": "Ce permite actul",
+   "rect": [
+    120,
+    670,
+    1200,
+    303
+   ],
+   "rows": [
+    {
+     "l": "Adresa obiectului",
+     "v": "or. Ialoveni, str. Industrială 3",
+     "vt": null,
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Genul de activitate",
+     "v": "Circulația substanțelor stupefiante, psihotrope și a precursorilor",
+     "vt": null,
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Activitățile autorizate",
+     "v": "ProcurarePăstrareDistribuire angro către farmacii",
+     "vt": "Procurare\nPăstrare\nDistribuire angro către farmacii",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 84
+    },
+    {
+     "l": "Tabelele de substanțe",
+     "v": "Tabelul II — substanțe stupefianteTabelul IV — precursori",
+     "vt": "Tabelul II — substanțe stupefiante\nTabelul IV — precursori",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 59
+    }
+   ],
+   "cls": "e-permits-dosar-profil__section cab-section"
+  },
+  {
+   "title": "Detalii act",
+   "rect": [
+    120,
+    973,
+    1200,
+    200
+   ],
+   "rows": [
+    {
+     "l": "Numărul dosarului electronic",
+     "v": "GEAP-2021-010-00093",
+     "vt": null,
+     "copy": true,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Seria și nr. documentului tipărit",
+     "v": "AMDM 0000731",
+     "vt": null,
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Data emiterii",
+     "v": "26 noiembrie 2021",
+     "vt": null,
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    }
+   ],
+   "cls": "e-permits-dosar-profil__section cab-section"
+  },
+  {
+   "title": "Autoritatea emitentă",
+   "rect": [
+    120,
+    1173,
+    1200,
+    240
+   ],
+   "rows": [
+    {
+     "l": "Denumire",
+     "v": "Agenția Medicamentului și Dispozitivelor Medicale",
+     "vt": null,
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Subdiviziunea emitentă",
+     "v": "Comitetul permanent de control asupra drogurilor",
+     "vt": null,
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Telefon",
+     "v": "022 884 301",
+     "vt": null,
+     "copy": false,
+     "link": true,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "E-mail",
+     "v": "office@amdm.gov.md",
+     "vt": null,
+     "copy": false,
+     "link": true,
+     "tag": null,
+     "h": 40
+    }
+   ],
+   "cls": "e-permits-dosar-profil__section cab-section"
+  },
+  {
+   "title": "Istoric",
+   "rect": [
+    120,
+    1413,
+    1200,
+    272
+   ],
+   "tl": {
+    "h": 208,
+    "items": [
+     {
+      "mod": "upcoming",
+      "icon": "",
+      "title": "Sfârșitul valabilității",
+      "tags": [],
+      "stamp": "26 noiembrie 2026",
+      "text": null,
+      "h": 46
+     },
+     {
+      "mod": "success",
+      "icon": "icon-circle-checkmark-filled",
+      "title": "Act emis",
+      "tags": [],
+      "stamp": "26 noiembrie 2021 · AMDM · Comitetul permanent de control asupra drogurilor",
+      "text": null,
+      "h": 46
+     },
+     {
+      "mod": "success",
+      "icon": "icon-circle-checkmark-filled",
+      "title": "Cerere depusă",
+      "tags": [],
+      "stamp": "2 noiembrie 2021, 09:45",
+      "text": [
+       [
+        "GEAP-2021-010-00093",
+        0
+       ]
+      ],
+      "h": 64
+     }
+    ]
+   },
+   "cls": "e-permits-dosar-profil__section"
+  }
+ ],
+ "pp-03c@375": [
+  {
+   "title": "Beneficiar",
+   "rect": [
+    16,
+    752,
+    343,
+    142
+   ],
+   "ben": {
+    "name": "«Vita-Plant» SRL",
+    "idl": "IDNO",
+    "id": "1012600000001",
+    "icon": "icon-business",
+    "initials": "",
+    "avcls": "avatar avatar--sm avatar--icon e-permits-fo-selected-role__avatar e-permits-fo-selected-role__avatar--icon",
+    "h": 78
+   },
+   "cls": "e-permits-dosar-profil__section cab-section"
+  },
+  {
+   "title": "Ce permite actul",
+   "rect": [
+    16,
+    894,
+    343,
+    411
+   ],
+   "rows": [
+    {
+     "l": "Adresa obiectului",
+     "v": "or. Ialoveni, str. Industrială 3",
+     "vt": null,
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Genul de activitate",
+     "v": "Circulația substanțelor stupefiante, psihotrope și a precursorilor",
+     "vt": null,
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 80
+    },
+    {
+     "l": "Activitățile autorizate",
+     "v": "ProcurarePăstrareDistribuire angro către farmacii",
+     "vt": "Procurare\nPăstrare\nDistribuire angro către farmacii",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 108
+    },
+    {
+     "l": "Tabelele de substanțe",
+     "v": "Tabelul II — substanțe stupefianteTabelul IV — precursori",
+     "vt": "Tabelul II — substanțe stupefiante\nTabelul IV — precursori",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 83
+    }
+   ],
+   "cls": "e-permits-dosar-profil__section cab-section"
+  },
+  {
+   "title": "Detalii act",
+   "rect": [
+    16,
+    1305,
+    343,
+    259
+   ],
+   "rows": [
+    {
+     "l": "Numărul dosarului electronic",
+     "v": "GEAP-2021-010-00093",
+     "vt": null,
+     "copy": true,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Seria și nr. documentului tipărit",
+     "v": "AMDM 0000731",
+     "vt": null,
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Data emiterii",
+     "v": "26 noiembrie 2021",
+     "vt": null,
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 59
+    }
+   ],
+   "cls": "e-permits-dosar-profil__section cab-section"
+  },
+  {
+   "title": "Autoritatea emitentă",
+   "rect": [
+    16,
+    1564,
+    343,
+    359
+   ],
+   "rows": [
+    {
+     "l": "Denumire",
+     "v": "Agenția Medicamentului și Dispozitivelor Medicale",
+     "vt": null,
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 80
+    },
+    {
+     "l": "Subdiviziunea emitentă",
+     "v": "Comitetul permanent de control asupra drogurilor",
+     "vt": null,
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 80
+    },
+    {
+     "l": "Telefon",
+     "v": "022 884 301",
+     "vt": null,
+     "copy": false,
+     "link": true,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "E-mail",
+     "v": "office@amdm.gov.md",
+     "vt": null,
+     "copy": false,
+     "link": true,
+     "tag": null,
+     "h": 59
+    }
+   ],
+   "cls": "e-permits-dosar-profil__section cab-section"
+  },
+  {
+   "title": "Istoric",
+   "rect": [
+    16,
+    1923,
+    343,
+    288
+   ],
+   "tl": {
+    "h": 224,
+    "items": [
+     {
+      "mod": "upcoming",
+      "icon": "",
+      "title": "Sfârșitul valabilității",
+      "tags": [],
+      "stamp": "26 noiembrie 2026",
+      "text": null,
+      "h": 46
+     },
+     {
+      "mod": "success",
+      "icon": "icon-circle-checkmark-filled",
+      "title": "Act emis",
+      "tags": [],
+      "stamp": "26 noiembrie 2021 · AMDM · Comitetul permanent de control asupra drogurilor",
+      "text": null,
+      "h": 62
+     },
+     {
+      "mod": "success",
+      "icon": "icon-circle-checkmark-filled",
+      "title": "Cerere depusă",
+      "tags": [],
+      "stamp": "2 noiembrie 2021, 09:45",
+      "text": [
+       [
+        "GEAP-2021-010-00093",
+        0
+       ]
+      ],
+      "h": 64
+     }
+    ]
+   },
+   "cls": "e-permits-dosar-profil__section"
+  }
+ ],
+ "pp-01d@1440": [
+  {
+   "title": "Ce permite actul",
+   "rect": [
+    120,
+    380,
+    1200,
+    200
+   ],
+   "rows": [
+    {
+     "l": "Tipul obiectului",
+     "v": "Cafenea",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Adresa obiectului",
+     "v": "str. Independenței 12, Bălți, Municipiul Bălți",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Activitatea (CAEM)",
+     "v": "56.10",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    }
+   ],
+   "cls": "e-permits-dosar-profil__section cab-section"
+  },
+  {
+   "title": "Detalii act",
+   "rect": [
+    120,
+    580,
+    1200,
+    200
+   ],
+   "rows": [
+    {
+     "l": "Numărul dosarului electronic",
+     "v": "GEAP-2025-009-03187",
+     "copy": true,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Seria și nr. documentului tipărit",
+     "v": "ASF 0045213",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Data emiterii",
+     "v": "15 septembrie 2025",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    }
+   ],
+   "cls": "e-permits-dosar-profil__section cab-section"
+  },
+  {
+   "title": "Autoritatea emitentă",
+   "rect": [
+    120,
+    780,
+    1200,
+    240
+   ],
+   "rows": [
+    {
+     "l": "Denumire",
+     "v": "Agenția Națională pentru Sănătate Publică",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Subdiviziunea emitentă",
+     "v": "CSP Bălți",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Telefon",
+     "v": "022 574 501",
+     "copy": false,
+     "link": true,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "E-mail",
+     "v": "office@ansp.gov.md",
+     "copy": false,
+     "link": true,
+     "tag": null,
+     "h": 40
+    }
+   ],
+   "cls": "e-permits-dosar-profil__section cab-section"
+  },
+  {
+   "title": "Beneficiar",
+   "rect": [
+    120,
+    1020,
+    1200,
+    142
+   ],
+   "ben": {
+    "name": "SRL Global Trader",
+    "idl": "IDNO",
+    "id": "1012600000002",
+    "icon": "icon-business",
+    "initials": "",
+    "avcls": "avatar avatar--sm avatar--icon e-permits-fo-selected-role__avatar e-permits-fo-selected-role__avatar--icon",
+    "h": 78
+   },
+   "cls": "e-permits-dosar-profil__section cab-section"
+  },
+  {
+   "title": "Istoric",
+   "rect": [
+    120,
+    1162,
+    1200,
+    348
+   ],
+   "tl": {
+    "h": 284,
+    "items": [
+     {
+      "mod": "upcoming",
+      "icon": "",
+      "title": "Sfârșitul valabilității",
+      "tags": [],
+      "stamp": "15 septembrie 2028",
+      "text": null,
+      "h": 46
+     },
+     {
+      "mod": "success",
+      "icon": "icon-circle-checkmark-filled",
+      "title": "Duplicat emis",
+      "tags": [],
+      "stamp": "24 iulie 2026 · ANSP · CSP Bălți",
+      "text": [
+       [
+        "La cererea titularului · ",
+        0
+       ],
+       [
+        "GEAP-2026-009-03905",
+        2,
+        true
+       ]
+      ],
+      "h": 70
+     },
+     {
+      "mod": "success",
+      "icon": "icon-circle-checkmark-filled",
+      "title": "Act emis",
+      "tags": [],
+      "stamp": "15 septembrie 2025 · ANSP · CSP Bălți",
+      "text": null,
+      "h": 46
+     },
+     {
+      "mod": "success",
+      "icon": "icon-circle-checkmark-filled",
+      "title": "Cerere depusă",
+      "tags": [],
+      "stamp": "18 august 2025, 12:10",
+      "text": [
+       [
+        "GEAP-2025-009-03187",
+        2,
+        true
+       ]
+      ],
+      "h": 64
+     }
+    ]
+   },
+   "cls": "e-permits-dosar-profil__section"
+  }
+ ],
+ "pp-01d@375": [
+  {
+   "title": "Ce permite actul",
+   "rect": [
+    16,
+    456,
+    343,
+    259
+   ],
+   "rows": [
+    {
+     "l": "Tipul obiectului",
+     "v": "Cafenea",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Adresa obiectului",
+     "v": "str. Independenței 12, Bălți, Municipiul Bălți",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Activitatea (CAEM)",
+     "v": "56.10",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 59
+    }
+   ],
+   "cls": "e-permits-dosar-profil__section cab-section"
+  },
+  {
+   "title": "Detalii act",
+   "rect": [
+    16,
+    715,
+    343,
+    259
+   ],
+   "rows": [
+    {
+     "l": "Numărul dosarului electronic",
+     "v": "GEAP-2025-009-03187",
+     "copy": true,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Seria și nr. documentului tipărit",
+     "v": "ASF 0045213",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Data emiterii",
+     "v": "15 septembrie 2025",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 59
+    }
+   ],
+   "cls": "e-permits-dosar-profil__section cab-section"
+  },
+  {
+   "title": "Autoritatea emitentă",
+   "rect": [
+    16,
+    974,
+    343,
+    319
+   ],
+   "rows": [
+    {
+     "l": "Denumire",
+     "v": "Agenția Națională pentru Sănătate Publică",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Subdiviziunea emitentă",
+     "v": "CSP Bălți",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Telefon",
+     "v": "022 574 501",
+     "copy": false,
+     "link": true,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "E-mail",
+     "v": "office@ansp.gov.md",
+     "copy": false,
+     "link": true,
+     "tag": null,
+     "h": 59
+    }
+   ],
+   "cls": "e-permits-dosar-profil__section cab-section"
+  },
+  {
+   "title": "Beneficiar",
+   "rect": [
+    16,
+    1293,
+    343,
+    142
+   ],
+   "ben": {
+    "name": "SRL Global Trader",
+    "idl": "IDNO",
+    "id": "1012600000002",
+    "icon": "icon-business",
+    "initials": "",
+    "avcls": "avatar avatar--sm avatar--icon e-permits-fo-selected-role__avatar e-permits-fo-selected-role__avatar--icon",
+    "h": 78
+   },
+   "cls": "e-permits-dosar-profil__section cab-section"
+  },
+  {
+   "title": "Istoric",
+   "rect": [
+    16,
+    1435,
+    343,
+    368
+   ],
+   "tl": {
+    "h": 304,
+    "items": [
+     {
+      "mod": "upcoming",
+      "icon": "",
+      "title": "Sfârșitul valabilității",
+      "tags": [],
+      "stamp": "15 septembrie 2028",
+      "text": null,
+      "h": 46
+     },
+     {
+      "mod": "success",
+      "icon": "icon-circle-checkmark-filled",
+      "title": "Duplicat emis",
+      "tags": [],
+      "stamp": "24 iulie 2026 · ANSP · CSP Bălți",
+      "text": [
+       [
+        "La cererea titularului · ",
+        0
+       ],
+       [
+        "GEAP-2026-009-03905",
+        2,
+        true
+       ]
+      ],
+      "h": 90
+     },
+     {
+      "mod": "success",
+      "icon": "icon-circle-checkmark-filled",
+      "title": "Act emis",
+      "tags": [],
+      "stamp": "15 septembrie 2025 · ANSP · CSP Bălți",
+      "text": null,
+      "h": 46
+     },
+     {
+      "mod": "success",
+      "icon": "icon-circle-checkmark-filled",
+      "title": "Cerere depusă",
+      "tags": [],
+      "stamp": "18 august 2025, 12:10",
+      "text": [
+       [
+        "GEAP-2025-009-03187",
+        2,
+        true
+       ]
+      ],
+      "h": 64
+     }
+    ]
+   },
+   "cls": "e-permits-dosar-profil__section"
+  }
+ ],
+ "pp-01x@1440": [
+  {
+   "title": "Ce permite actul",
+   "rect": [
+    120,
+    412,
+    1200,
+    367
+   ],
+   "rows": [
+    {
+     "l": "Denumirea obiectului",
+     "v": "Depozit farmaceutic",
+     "vt": null,
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Adresa obiectului",
+     "v": "mun. Chișinău, str. Albișoara 4",
+     "vt": null,
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Genul de activitate",
+     "v": "Circulația substanțelor stupefiante, psihotrope și a precursorilor",
+     "vt": null,
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Activitățile autorizate",
+     "v": "ProcurarePăstrareDistribuire angro către farmacii și instituții medicale",
+     "vt": "Procurare\nPăstrare\nDistribuire angro către farmacii și instituții medicale",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 84
+    },
+    {
+     "l": "Tabelele de substanțe",
+     "v": "Tabelul II — substanțe stupefianteTabelul III — substanțe psihotropeTabelul IV — precursori",
+     "vt": "Tabelul II — substanțe stupefiante\nTabelul III — substanțe psihotrope\nTabelul IV — precursori",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 83
+    }
+   ],
+   "cls": "e-permits-dosar-profil__section cab-section"
+  },
+  {
+   "title": "Substanțe controlate",
+   "rect": [
+    120,
+    779,
+    1200,
+    453
+   ],
+   "table": {
+    "rows": 7,
+    "head": [
+     "Denumirea substanței",
+     "Tabelul",
+     "Forma farmaceutică",
+     "Cantitate anuală (g)"
+    ]
+   },
+   "cls": "e-permits-dosar-profil__section cab-section"
+  },
+  {
+   "title": "Detalii act",
+   "rect": [
+    120,
+    1232,
+    1200,
+    200
+   ],
+   "rows": [
+    {
+     "l": "Numărul dosarului electronic",
+     "v": "GEAP-2026-010-00112",
+     "vt": null,
+     "copy": true,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Seria și nr. documentului tipărit",
+     "v": "AMDM 0001182",
+     "vt": null,
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Data emiterii",
+     "v": "20 ianuarie 2026",
+     "vt": null,
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    }
+   ],
+   "cls": "e-permits-dosar-profil__section cab-section"
+  },
+  {
+   "title": "Autoritatea emitentă",
+   "rect": [
+    120,
+    1432,
+    1200,
+    240
+   ],
+   "rows": [
+    {
+     "l": "Denumire",
+     "v": "Agenția Medicamentului și Dispozitivelor Medicale",
+     "vt": null,
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Subdiviziunea emitentă",
+     "v": "Comitetul permanent de control asupra drogurilor",
+     "vt": null,
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Telefon",
+     "v": "022 884 301",
+     "vt": null,
+     "copy": false,
+     "link": true,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "E-mail",
+     "v": "office@amdm.gov.md",
+     "vt": null,
+     "copy": false,
+     "link": true,
+     "tag": null,
+     "h": 40
+    }
+   ],
+   "cls": "e-permits-dosar-profil__section cab-section"
+  },
+  {
+   "title": "Beneficiar",
+   "rect": [
+    120,
+    1672,
+    1200,
+    142
+   ],
+   "ben": {
+    "name": "SRL Global Trader",
+    "idl": "IDNO",
+    "id": "1012600000002",
+    "icon": "icon-business",
+    "initials": "",
+    "avcls": "avatar avatar--sm avatar--icon e-permits-fo-selected-role__avatar e-permits-fo-selected-role__avatar--icon",
+    "h": 78
+   },
+   "cls": "e-permits-dosar-profil__section cab-section"
+  },
+  {
+   "title": "Istoric",
+   "rect": [
+    120,
+    1814,
+    1200,
+    272
+   ],
+   "tl": {
+    "h": 208,
+    "items": [
+     {
+      "mod": "upcoming",
+      "icon": "",
+      "title": "Sfârșitul valabilității",
+      "tags": [],
+      "stamp": "20 ianuarie 2031",
+      "text": null,
+      "h": 46
+     },
+     {
+      "mod": "success",
+      "icon": "icon-circle-checkmark-filled",
+      "title": "Act emis",
+      "tags": [],
+      "stamp": "20 ianuarie 2026 · AMDM · Comitetul permanent de control asupra drogurilor",
+      "text": null,
+      "h": 46
+     },
+     {
+      "mod": "success",
+      "icon": "icon-circle-checkmark-filled",
+      "title": "Cerere depusă",
+      "tags": [],
+      "stamp": "8 ianuarie 2026, 10:30 · Mihai Rusu · Reprezentant MPower",
+      "text": [
+       [
+        "Reperfectare · ",
+        0
+       ],
+       [
+        "GEAP-2026-010-00112",
+        2,
+        true
+       ]
+      ],
+      "h": 64
+     }
+    ]
+   },
+   "cls": "e-permits-dosar-profil__section"
+  }
+ ],
+ "pp-01x@375": [
+  {
+   "title": "Ce permite actul",
+   "rect": [
+    16,
+    540,
+    343,
+    515
+   ],
+   "rows": [
+    {
+     "l": "Denumirea obiectului",
+     "v": "Depozit farmaceutic",
+     "vt": null,
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Adresa obiectului",
+     "v": "mun. Chișinău, str. Albișoara 4",
+     "vt": null,
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Genul de activitate",
+     "v": "Circulația substanțelor stupefiante, psihotrope și a precursorilor",
+     "vt": null,
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 80
+    },
+    {
+     "l": "Activitățile autorizate",
+     "v": "ProcurarePăstrareDistribuire angro către farmacii și instituții medicale",
+     "vt": "Procurare\nPăstrare\nDistribuire angro către farmacii și instituții medicale",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 128
+    },
+    {
+     "l": "Tabelele de substanțe",
+     "v": "Tabelul II — substanțe stupefianteTabelul III — substanțe psihotropeTabelul IV — precursori",
+     "vt": "Tabelul II — substanțe stupefiante\nTabelul III — substanțe psihotrope\nTabelul IV — precursori",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 107
+    }
+   ],
+   "cls": "e-permits-dosar-profil__section cab-section"
+  },
+  {
+   "title": "Substanțe controlate",
+   "rect": [
+    16,
+    1055,
+    343,
+    1165
+   ],
+   "table": {
+    "rows": 7,
+    "head": [
+     "Denumirea substanței",
+     "Tabelul",
+     "Forma farmaceutică",
+     "Cantitate anuală (g)"
+    ]
+   },
+   "cls": "e-permits-dosar-profil__section cab-section"
+  },
+  {
+   "title": "Detalii act",
+   "rect": [
+    16,
+    2220,
+    343,
+    259
+   ],
+   "rows": [
+    {
+     "l": "Numărul dosarului electronic",
+     "v": "GEAP-2026-010-00112",
+     "vt": null,
+     "copy": true,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Seria și nr. documentului tipărit",
+     "v": "AMDM 0001182",
+     "vt": null,
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Data emiterii",
+     "v": "20 ianuarie 2026",
+     "vt": null,
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 59
+    }
+   ],
+   "cls": "e-permits-dosar-profil__section cab-section"
+  },
+  {
+   "title": "Autoritatea emitentă",
+   "rect": [
+    16,
+    2479,
+    343,
+    359
+   ],
+   "rows": [
+    {
+     "l": "Denumire",
+     "v": "Agenția Medicamentului și Dispozitivelor Medicale",
+     "vt": null,
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 80
+    },
+    {
+     "l": "Subdiviziunea emitentă",
+     "v": "Comitetul permanent de control asupra drogurilor",
+     "vt": null,
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 80
+    },
+    {
+     "l": "Telefon",
+     "v": "022 884 301",
+     "vt": null,
+     "copy": false,
+     "link": true,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "E-mail",
+     "v": "office@amdm.gov.md",
+     "vt": null,
+     "copy": false,
+     "link": true,
+     "tag": null,
+     "h": 59
+    }
+   ],
+   "cls": "e-permits-dosar-profil__section cab-section"
+  },
+  {
+   "title": "Beneficiar",
+   "rect": [
+    16,
+    2838,
+    343,
+    142
+   ],
+   "ben": {
+    "name": "SRL Global Trader",
+    "idl": "IDNO",
+    "id": "1012600000002",
+    "icon": "icon-business",
+    "initials": "",
+    "avcls": "avatar avatar--sm avatar--icon e-permits-fo-selected-role__avatar e-permits-fo-selected-role__avatar--icon",
+    "h": 78
+   },
+   "cls": "e-permits-dosar-profil__section cab-section"
+  },
+  {
+   "title": "Istoric",
+   "rect": [
+    16,
+    2980,
+    343,
+    324
+   ],
+   "tl": {
+    "h": 260,
+    "items": [
+     {
+      "mod": "upcoming",
+      "icon": "",
+      "title": "Sfârșitul valabilității",
+      "tags": [],
+      "stamp": "20 ianuarie 2031",
+      "text": null,
+      "h": 46
+     },
+     {
+      "mod": "success",
+      "icon": "icon-circle-checkmark-filled",
+      "title": "Act emis",
+      "tags": [],
+      "stamp": "20 ianuarie 2026 · AMDM · Comitetul permanent de control asupra drogurilor",
+      "text": null,
+      "h": 62
+     },
+     {
+      "mod": "success",
+      "icon": "icon-circle-checkmark-filled",
+      "title": "Cerere depusă",
+      "tags": [],
+      "stamp": "8 ianuarie 2026, 10:30 · Mihai Rusu · Reprezentant MPower",
+      "text": [
+       [
+        "Reperfectare · ",
+        0
+       ],
+       [
+        "GEAP-2026-010-00112",
+        2,
+        true
+       ]
+      ],
+      "h": 100
+     }
+    ]
+   },
+   "cls": "e-permits-dosar-profil__section"
+  }
+ ],
+ "pp-01y@1440": [
+  {
+   "title": "Ce permite actul",
+   "rect": [
+    120,
+    412,
+    1200,
+    367
+   ],
+   "rows": [
+    {
+     "l": "Denumirea obiectului",
+     "v": "Depozit farmaceutic",
+     "vt": null,
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Adresa obiectului",
+     "v": "mun. Chișinău, str. Albișoara 4",
+     "vt": null,
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Genul de activitate",
+     "v": "Circulația substanțelor stupefiante, psihotrope și a precursorilor",
+     "vt": null,
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Activitățile autorizate",
+     "v": "ProcurarePăstrareDistribuire angro către farmacii și instituții medicale",
+     "vt": "Procurare\nPăstrare\nDistribuire angro către farmacii și instituții medicale",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 84
+    },
+    {
+     "l": "Tabelele de substanțe",
+     "v": "Tabelul II — substanțe stupefianteTabelul III — substanțe psihotropeTabelul IV — precursori",
+     "vt": "Tabelul II — substanțe stupefiante\nTabelul III — substanțe psihotrope\nTabelul IV — precursori",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 83
+    }
+   ],
+   "cls": "e-permits-dosar-profil__section cab-section"
+  },
+  {
+   "title": "Substanțe controlate",
+   "rect": [
+    120,
+    779,
+    1200,
+    553
+   ],
+   "table": {
+    "rows": 7,
+    "head": [
+     "Denumirea substanței",
+     "Tabelul",
+     "Forma farmaceutică",
+     "Cantitate anuală (g)"
+    ]
+   },
+   "cls": "e-permits-dosar-profil__section cab-section"
+  },
+  {
+   "title": "Detalii act",
+   "rect": [
+    120,
+    1332,
+    1200,
+    200
+   ],
+   "rows": [
+    {
+     "l": "Numărul dosarului electronic",
+     "v": "GEAP-2026-010-00112",
+     "vt": null,
+     "copy": true,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Seria și nr. documentului tipărit",
+     "v": "AMDM 0001182",
+     "vt": null,
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Data emiterii",
+     "v": "20 ianuarie 2026",
+     "vt": null,
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    }
+   ],
+   "cls": "e-permits-dosar-profil__section cab-section"
+  },
+  {
+   "title": "Autoritatea emitentă",
+   "rect": [
+    120,
+    1532,
+    1200,
+    240
+   ],
+   "rows": [
+    {
+     "l": "Denumire",
+     "v": "Agenția Medicamentului și Dispozitivelor Medicale",
+     "vt": null,
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Subdiviziunea emitentă",
+     "v": "Comitetul permanent de control asupra drogurilor",
+     "vt": null,
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Telefon",
+     "v": "022 884 301",
+     "vt": null,
+     "copy": false,
+     "link": true,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "E-mail",
+     "v": "office@amdm.gov.md",
+     "vt": null,
+     "copy": false,
+     "link": true,
+     "tag": null,
+     "h": 40
+    }
+   ],
+   "cls": "e-permits-dosar-profil__section cab-section"
+  },
+  {
+   "title": "Beneficiar",
+   "rect": [
+    120,
+    1772,
+    1200,
+    142
+   ],
+   "ben": {
+    "name": "SRL Global Trader",
+    "idl": "IDNO",
+    "id": "1012600000002",
+    "icon": "icon-business",
+    "initials": "",
+    "avcls": "avatar avatar--sm avatar--icon e-permits-fo-selected-role__avatar e-permits-fo-selected-role__avatar--icon",
+    "h": 78
+   },
+   "cls": "e-permits-dosar-profil__section cab-section"
+  },
+  {
+   "title": "Istoric",
+   "rect": [
+    120,
+    1914,
+    1200,
+    272
+   ],
+   "tl": {
+    "h": 208,
+    "items": [
+     {
+      "mod": "upcoming",
+      "icon": "",
+      "title": "Sfârșitul valabilității",
+      "tags": [],
+      "stamp": "20 ianuarie 2031",
+      "text": null,
+      "h": 46
+     },
+     {
+      "mod": "success",
+      "icon": "icon-circle-checkmark-filled",
+      "title": "Act emis",
+      "tags": [],
+      "stamp": "20 ianuarie 2026 · AMDM · Comitetul permanent de control asupra drogurilor",
+      "text": null,
+      "h": 46
+     },
+     {
+      "mod": "success",
+      "icon": "icon-circle-checkmark-filled",
+      "title": "Cerere depusă",
+      "tags": [],
+      "stamp": "8 ianuarie 2026, 10:30 · Mihai Rusu · Reprezentant MPower",
+      "text": [
+       [
+        "Reperfectare · ",
+        0
+       ],
+       [
+        "GEAP-2026-010-00112",
+        2,
+        true
+       ]
+      ],
+      "h": 64
+     }
+    ]
+   },
+   "cls": "e-permits-dosar-profil__section"
+  }
+ ],
+ "pp-01y@375": [
+  {
+   "title": "Ce permite actul",
+   "rect": [
+    16,
+    540,
+    343,
+    515
+   ],
+   "rows": [
+    {
+     "l": "Denumirea obiectului",
+     "v": "Depozit farmaceutic",
+     "vt": null,
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Adresa obiectului",
+     "v": "mun. Chișinău, str. Albișoara 4",
+     "vt": null,
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Genul de activitate",
+     "v": "Circulația substanțelor stupefiante, psihotrope și a precursorilor",
+     "vt": null,
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 80
+    },
+    {
+     "l": "Activitățile autorizate",
+     "v": "ProcurarePăstrareDistribuire angro către farmacii și instituții medicale",
+     "vt": "Procurare\nPăstrare\nDistribuire angro către farmacii și instituții medicale",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 128
+    },
+    {
+     "l": "Tabelele de substanțe",
+     "v": "Tabelul II — substanțe stupefianteTabelul III — substanțe psihotropeTabelul IV — precursori",
+     "vt": "Tabelul II — substanțe stupefiante\nTabelul III — substanțe psihotrope\nTabelul IV — precursori",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 107
+    }
+   ],
+   "cls": "e-permits-dosar-profil__section cab-section"
+  },
+  {
+   "title": "Substanțe controlate",
+   "rect": [
+    16,
+    1055,
+    343,
+    1569
+   ],
+   "table": {
+    "rows": 7,
+    "head": [
+     "Denumirea substanței",
+     "Tabelul",
+     "Forma farmaceutică",
+     "Cantitate anuală (g)"
+    ]
+   },
+   "cls": "e-permits-dosar-profil__section cab-section"
+  },
+  {
+   "title": "Detalii act",
+   "rect": [
+    16,
+    2624,
+    343,
+    259
+   ],
+   "rows": [
+    {
+     "l": "Numărul dosarului electronic",
+     "v": "GEAP-2026-010-00112",
+     "vt": null,
+     "copy": true,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Seria și nr. documentului tipărit",
+     "v": "AMDM 0001182",
+     "vt": null,
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Data emiterii",
+     "v": "20 ianuarie 2026",
+     "vt": null,
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 59
+    }
+   ],
+   "cls": "e-permits-dosar-profil__section cab-section"
+  },
+  {
+   "title": "Autoritatea emitentă",
+   "rect": [
+    16,
+    2883,
+    343,
+    359
+   ],
+   "rows": [
+    {
+     "l": "Denumire",
+     "v": "Agenția Medicamentului și Dispozitivelor Medicale",
+     "vt": null,
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 80
+    },
+    {
+     "l": "Subdiviziunea emitentă",
+     "v": "Comitetul permanent de control asupra drogurilor",
+     "vt": null,
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 80
+    },
+    {
+     "l": "Telefon",
+     "v": "022 884 301",
+     "vt": null,
+     "copy": false,
+     "link": true,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "E-mail",
+     "v": "office@amdm.gov.md",
+     "vt": null,
+     "copy": false,
+     "link": true,
+     "tag": null,
+     "h": 59
+    }
+   ],
+   "cls": "e-permits-dosar-profil__section cab-section"
+  },
+  {
+   "title": "Beneficiar",
+   "rect": [
+    16,
+    3242,
+    343,
+    142
+   ],
+   "ben": {
+    "name": "SRL Global Trader",
+    "idl": "IDNO",
+    "id": "1012600000002",
+    "icon": "icon-business",
+    "initials": "",
+    "avcls": "avatar avatar--sm avatar--icon e-permits-fo-selected-role__avatar e-permits-fo-selected-role__avatar--icon",
+    "h": 78
+   },
+   "cls": "e-permits-dosar-profil__section cab-section"
+  },
+  {
+   "title": "Istoric",
+   "rect": [
+    16,
+    3384,
+    343,
+    324
+   ],
+   "tl": {
+    "h": 260,
+    "items": [
+     {
+      "mod": "upcoming",
+      "icon": "",
+      "title": "Sfârșitul valabilității",
+      "tags": [],
+      "stamp": "20 ianuarie 2031",
+      "text": null,
+      "h": 46
+     },
+     {
+      "mod": "success",
+      "icon": "icon-circle-checkmark-filled",
+      "title": "Act emis",
+      "tags": [],
+      "stamp": "20 ianuarie 2026 · AMDM · Comitetul permanent de control asupra drogurilor",
+      "text": null,
+      "h": 62
+     },
+     {
+      "mod": "success",
+      "icon": "icon-circle-checkmark-filled",
+      "title": "Cerere depusă",
+      "tags": [],
+      "stamp": "8 ianuarie 2026, 10:30 · Mihai Rusu · Reprezentant MPower",
+      "text": [
+       [
+        "Reperfectare · ",
+        0
+       ],
+       [
+        "GEAP-2026-010-00112",
+        2,
+        true
+       ]
+      ],
+      "h": 100
+     }
+    ]
+   },
+   "cls": "e-permits-dosar-profil__section"
+  }
+ ]
+}

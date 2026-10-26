@@ -1,0 +1,7864 @@
+{
+ "sm-03@1440": [
+  {
+   "title": "",
+   "rect": [
+    120,
+    480,
+    1200,
+    138
+   ],
+   "text": "Schiță — etapa curentă Până la 9 nov. 2026 Depusă — urmează Examinare — urmează Decizie — urmează",
+   "cls": "e-permits-dosar-profil__section cab-section cab-status"
+  },
+  {
+   "title": "Date generale",
+   "rect": [
+    120,
+    682,
+    1200,
+    320
+   ],
+   "rows": [
+    {
+     "l": "Numărul dosarului",
+     "v": "GEAP-2026-009-04588",
+     "copy": true,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Tipul dosarului",
+     "v": "Eliberare",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Denumirea serviciului",
+     "v": "Autorizația sanitară de funcționare",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Statutul dosarului",
+     "v": "Schiță",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Autoritatea",
+     "v": "Agenția Națională pentru Sănătate Publică",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Subdiviziunea de procesare",
+     "v": "CSP Bălți",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    }
+   ],
+   "cls": "e-permits-dosar-profil__section cab-section"
+  },
+  {
+   "title": "Istoric",
+   "rect": [
+    120,
+    1002,
+    1200,
+    224
+   ],
+   "tl": {
+    "h": 160,
+    "items": [
+     {
+      "mod": "pending",
+      "icon": "icon-time-filled",
+      "title": "Completarea cererii",
+      "tags": [],
+      "stamp": "",
+      "text": [
+       [
+        "Pasul „Acte necesare”, de finalizat până la 9 noiembrie 2026.",
+        0
+       ]
+      ],
+      "h": 50
+     },
+     {
+      "mod": "success",
+      "icon": "icon-circle-checkmark-filled",
+      "title": "Schiță creată",
+      "tags": [],
+      "stamp": "10 octombrie 2026, 09:15 · Anastasia Cojocaru · Solicitant",
+      "text": [
+       [
+        "Salvată automat.",
+        0
+       ]
+      ],
+      "h": 64
+     }
+    ]
+   },
+   "cls": "e-permits-dosar-profil__section"
+  },
+  {
+   "title": "Ai nevoie de ajutor?",
+   "rect": [
+    120,
+    1226,
+    1200,
+    200
+   ],
+   "rows": [
+    {
+     "l": "Autoritatea",
+     "v": "Agenția Națională pentru Sănătate Publică",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Telefon",
+     "v": "022 574 501",
+     "copy": false,
+     "link": true,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "E-mail",
+     "v": "office@ansp.gov.md",
+     "copy": false,
+     "link": true,
+     "tag": null,
+     "h": 40
+    }
+   ],
+   "cls": "e-permits-dosar-profil__section cab-section"
+  }
+ ],
+ "sm-03@375": [
+  {
+   "title": "",
+   "rect": [
+    16,
+    536,
+    343,
+    92
+   ],
+   "text": "Schiță — etapa curentă Până la 9 nov. 2026 Depusă — urmează Examinare — urmează Decizie — urmează",
+   "cls": "e-permits-dosar-profil__section cab-section cab-status"
+  },
+  {
+   "title": "Date generale",
+   "rect": [
+    16,
+    684,
+    343,
+    439
+   ],
+   "rows": [
+    {
+     "l": "Numărul dosarului",
+     "v": "GEAP-2026-009-04588",
+     "copy": true,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Tipul dosarului",
+     "v": "Eliberare",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Denumirea serviciului",
+     "v": "Autorizația sanitară de funcționare",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Statutul dosarului",
+     "v": "Schiță",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Autoritatea",
+     "v": "Agenția Națională pentru Sănătate Publică",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Subdiviziunea de procesare",
+     "v": "CSP Bălți",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 59
+    }
+   ],
+   "cls": "e-permits-dosar-profil__section cab-section"
+  },
+  {
+   "title": "Istoric",
+   "rect": [
+    16,
+    1123,
+    343,
+    260
+   ],
+   "tl": {
+    "h": 196,
+    "items": [
+     {
+      "mod": "pending",
+      "icon": "icon-time-filled",
+      "title": "Completarea cererii",
+      "tags": [],
+      "stamp": "",
+      "text": [
+       [
+        "Pasul „Acte necesare”, de finalizat până la 9 noiembrie 2026.",
+        0
+       ]
+      ],
+      "h": 70
+     },
+     {
+      "mod": "success",
+      "icon": "icon-circle-checkmark-filled",
+      "title": "Schiță creată",
+      "tags": [],
+      "stamp": "10 octombrie 2026, 09:15 · Anastasia Cojocaru · Solicitant",
+      "text": [
+       [
+        "Salvată automat.",
+        0
+       ]
+      ],
+      "h": 80
+     }
+    ]
+   },
+   "cls": "e-permits-dosar-profil__section"
+  },
+  {
+   "title": "Ai nevoie de ajutor?",
+   "rect": [
+    16,
+    1383,
+    343,
+    259
+   ],
+   "rows": [
+    {
+     "l": "Autoritatea",
+     "v": "Agenția Națională pentru Sănătate Publică",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Telefon",
+     "v": "022 574 501",
+     "copy": false,
+     "link": true,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "E-mail",
+     "v": "office@ansp.gov.md",
+     "copy": false,
+     "link": true,
+     "tag": null,
+     "h": 59
+    }
+   ],
+   "cls": "e-permits-dosar-profil__section cab-section"
+  }
+ ],
+ "sm-03h@1440": [
+  {
+   "title": "",
+   "rect": [
+    120,
+    480,
+    1200,
+    138
+   ],
+   "text": "Schiță — etapa curentă Până la 5 nov. 2026 Depusă — urmează Examinare — urmează Decizie — urmează",
+   "cls": "e-permits-dosar-profil__section cab-section cab-status"
+  },
+  {
+   "title": "Date generale",
+   "rect": [
+    120,
+    682,
+    1200,
+    320
+   ],
+   "rows": [
+    {
+     "l": "Numărul dosarului",
+     "v": "GEAP-2026-009-04603",
+     "copy": true,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Tipul dosarului",
+     "v": "Eliberare",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Denumirea serviciului",
+     "v": "Autorizația sanitară de funcționare",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Statutul dosarului",
+     "v": "Schiță",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Autoritatea",
+     "v": "Agenția Națională pentru Sănătate Publică",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Subdiviziunea de procesare",
+     "v": "CSP Cahul",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    }
+   ],
+   "cls": "e-permits-dosar-profil__section cab-section"
+  },
+  {
+   "title": "Istoric",
+   "rect": [
+    120,
+    1002,
+    1200,
+    376
+   ],
+   "tl": {
+    "h": 312,
+    "items": [
+     {
+      "mod": "pending",
+      "icon": "icon-time-filled",
+      "title": "Confirmarea depunerii",
+      "tags": [],
+      "stamp": "",
+      "text": [
+       [
+        "Se transmite automat după intervalul de grație.",
+        0
+       ]
+      ],
+      "h": 50
+     },
+     {
+      "mod": "success",
+      "icon": "icon-circle-checkmark-filled",
+      "title": "Taxă achitată",
+      "tags": [],
+      "stamp": "11 octombrie 2026, 16:58 · Anastasia Cojocaru · Solicitant",
+      "text": [
+       [
+        "500,00 MDL prin MPay.",
+        0
+       ]
+      ],
+      "h": 70
+     },
+     {
+      "mod": "success",
+      "icon": "icon-circle-checkmark-filled",
+      "title": "Cerere semnată",
+      "tags": [],
+      "stamp": "11 octombrie 2026, 16:52 · Anastasia Cojocaru · Solicitant",
+      "text": [
+       [
+        "Semnată prin MSign.",
+        0
+       ]
+      ],
+      "h": 70
+     },
+     {
+      "mod": "success",
+      "icon": "icon-circle-checkmark-filled",
+      "title": "Schiță creată",
+      "tags": [],
+      "stamp": "6 octombrie 2026, 09:30 · Anastasia Cojocaru · Solicitant",
+      "text": [
+       [
+        "Salvată automat.",
+        0
+       ]
+      ],
+      "h": 64
+     }
+    ]
+   },
+   "cls": "e-permits-dosar-profil__section"
+  },
+  {
+   "title": "Ai nevoie de ajutor?",
+   "rect": [
+    120,
+    1378,
+    1200,
+    200
+   ],
+   "rows": [
+    {
+     "l": "Autoritatea",
+     "v": "Agenția Națională pentru Sănătate Publică",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Telefon",
+     "v": "022 574 501",
+     "copy": false,
+     "link": true,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "E-mail",
+     "v": "office@ansp.gov.md",
+     "copy": false,
+     "link": true,
+     "tag": null,
+     "h": 40
+    }
+   ],
+   "cls": "e-permits-dosar-profil__section cab-section"
+  }
+ ],
+ "sm-03h@375": [
+  {
+   "title": "",
+   "rect": [
+    16,
+    580,
+    343,
+    92
+   ],
+   "text": "Schiță — etapa curentă Până la 5 nov. 2026 Depusă — urmează Examinare — urmează Decizie — urmează",
+   "cls": "e-permits-dosar-profil__section cab-section cab-status"
+  },
+  {
+   "title": "Date generale",
+   "rect": [
+    16,
+    728,
+    343,
+    439
+   ],
+   "rows": [
+    {
+     "l": "Numărul dosarului",
+     "v": "GEAP-2026-009-04603",
+     "copy": true,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Tipul dosarului",
+     "v": "Eliberare",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Denumirea serviciului",
+     "v": "Autorizația sanitară de funcționare",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Statutul dosarului",
+     "v": "Schiță",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Autoritatea",
+     "v": "Agenția Națională pentru Sănătate Publică",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Subdiviziunea de procesare",
+     "v": "CSP Cahul",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 59
+    }
+   ],
+   "cls": "e-permits-dosar-profil__section cab-section"
+  },
+  {
+   "title": "Istoric",
+   "rect": [
+    16,
+    1167,
+    343,
+    444
+   ],
+   "tl": {
+    "h": 380,
+    "items": [
+     {
+      "mod": "pending",
+      "icon": "icon-time-filled",
+      "title": "Confirmarea depunerii",
+      "tags": [],
+      "stamp": "",
+      "text": [
+       [
+        "Se transmite automat după intervalul de grație.",
+        0
+       ]
+      ],
+      "h": 70
+     },
+     {
+      "mod": "success",
+      "icon": "icon-circle-checkmark-filled",
+      "title": "Taxă achitată",
+      "tags": [],
+      "stamp": "11 octombrie 2026, 16:58 · Anastasia Cojocaru · Solicitant",
+      "text": [
+       [
+        "500,00 MDL prin MPay.",
+        0
+       ]
+      ],
+      "h": 86
+     },
+     {
+      "mod": "success",
+      "icon": "icon-circle-checkmark-filled",
+      "title": "Cerere semnată",
+      "tags": [],
+      "stamp": "11 octombrie 2026, 16:52 · Anastasia Cojocaru · Solicitant",
+      "text": [
+       [
+        "Semnată prin MSign.",
+        0
+       ]
+      ],
+      "h": 86
+     },
+     {
+      "mod": "success",
+      "icon": "icon-circle-checkmark-filled",
+      "title": "Schiță creată",
+      "tags": [],
+      "stamp": "6 octombrie 2026, 09:30 · Anastasia Cojocaru · Solicitant",
+      "text": [
+       [
+        "Salvată automat.",
+        0
+       ]
+      ],
+      "h": 80
+     }
+    ]
+   },
+   "cls": "e-permits-dosar-profil__section"
+  },
+  {
+   "title": "Ai nevoie de ajutor?",
+   "rect": [
+    16,
+    1611,
+    343,
+    259
+   ],
+   "rows": [
+    {
+     "l": "Autoritatea",
+     "v": "Agenția Națională pentru Sănătate Publică",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Telefon",
+     "v": "022 574 501",
+     "copy": false,
+     "link": true,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "E-mail",
+     "v": "office@ansp.gov.md",
+     "copy": false,
+     "link": true,
+     "tag": null,
+     "h": 59
+    }
+   ],
+   "cls": "e-permits-dosar-profil__section cab-section"
+  }
+ ],
+ "sm-03e@1440": [
+  {
+   "title": "",
+   "rect": [
+    120,
+    480,
+    1200,
+    138
+   ],
+   "text": "Schiță — etapa curentă Până la 9 nov. 2026 Depusă — urmează Examinare — urmează Decizie — urmează",
+   "cls": "e-permits-dosar-profil__section cab-section cab-status"
+  },
+  {
+   "title": "Date generale",
+   "rect": [
+    120,
+    682,
+    1200,
+    320
+   ],
+   "rows": [
+    {
+     "l": "Numărul dosarului",
+     "v": "GEAP-2026-009-04588",
+     "copy": true,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Tipul dosarului",
+     "v": "Eliberare",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Denumirea serviciului",
+     "v": "Autorizația sanitară de funcționare",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Statutul dosarului",
+     "v": "Schiță",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Autoritatea",
+     "v": "Agenția Națională pentru Sănătate Publică",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Subdiviziunea de procesare",
+     "v": "CSP Bălți",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    }
+   ],
+   "cls": "e-permits-dosar-profil__section cab-section"
+  },
+  {
+   "title": "Istoric",
+   "rect": [
+    120,
+    1002,
+    1200,
+    224
+   ],
+   "tl": {
+    "h": 160,
+    "items": [
+     {
+      "mod": "pending",
+      "icon": "icon-time-filled",
+      "title": "Completarea cererii",
+      "tags": [],
+      "stamp": "",
+      "text": [
+       [
+        "Pasul „Acte necesare”, de finalizat până la 9 noiembrie 2026.",
+        0
+       ]
+      ],
+      "h": 50
+     },
+     {
+      "mod": "success",
+      "icon": "icon-circle-checkmark-filled",
+      "title": "Schiță creată",
+      "tags": [],
+      "stamp": "10 octombrie 2026, 09:15 · Anastasia Cojocaru · Solicitant",
+      "text": [
+       [
+        "Salvată automat.",
+        0
+       ]
+      ],
+      "h": 64
+     }
+    ]
+   },
+   "cls": "e-permits-dosar-profil__section"
+  },
+  {
+   "title": "Ai nevoie de ajutor?",
+   "rect": [
+    120,
+    1226,
+    1200,
+    200
+   ],
+   "rows": [
+    {
+     "l": "Autoritatea",
+     "v": "Agenția Națională pentru Sănătate Publică",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Telefon",
+     "v": "022 574 501",
+     "copy": false,
+     "link": true,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "E-mail",
+     "v": "office@ansp.gov.md",
+     "copy": false,
+     "link": true,
+     "tag": null,
+     "h": 40
+    }
+   ],
+   "cls": "e-permits-dosar-profil__section cab-section"
+  }
+ ],
+ "sm-03e@375": [
+  {
+   "title": "",
+   "rect": [
+    16,
+    536,
+    343,
+    92
+   ],
+   "text": "Schiță — etapa curentă Până la 9 nov. 2026 Depusă — urmează Examinare — urmează Decizie — urmează",
+   "cls": "e-permits-dosar-profil__section cab-section cab-status"
+  },
+  {
+   "title": "Date generale",
+   "rect": [
+    16,
+    684,
+    343,
+    439
+   ],
+   "rows": [
+    {
+     "l": "Numărul dosarului",
+     "v": "GEAP-2026-009-04588",
+     "copy": true,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Tipul dosarului",
+     "v": "Eliberare",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Denumirea serviciului",
+     "v": "Autorizația sanitară de funcționare",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Statutul dosarului",
+     "v": "Schiță",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Autoritatea",
+     "v": "Agenția Națională pentru Sănătate Publică",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Subdiviziunea de procesare",
+     "v": "CSP Bălți",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 59
+    }
+   ],
+   "cls": "e-permits-dosar-profil__section cab-section"
+  },
+  {
+   "title": "Istoric",
+   "rect": [
+    16,
+    1123,
+    343,
+    260
+   ],
+   "tl": {
+    "h": 196,
+    "items": [
+     {
+      "mod": "pending",
+      "icon": "icon-time-filled",
+      "title": "Completarea cererii",
+      "tags": [],
+      "stamp": "",
+      "text": [
+       [
+        "Pasul „Acte necesare”, de finalizat până la 9 noiembrie 2026.",
+        0
+       ]
+      ],
+      "h": 70
+     },
+     {
+      "mod": "success",
+      "icon": "icon-circle-checkmark-filled",
+      "title": "Schiță creată",
+      "tags": [],
+      "stamp": "10 octombrie 2026, 09:15 · Anastasia Cojocaru · Solicitant",
+      "text": [
+       [
+        "Salvată automat.",
+        0
+       ]
+      ],
+      "h": 80
+     }
+    ]
+   },
+   "cls": "e-permits-dosar-profil__section"
+  },
+  {
+   "title": "Ai nevoie de ajutor?",
+   "rect": [
+    16,
+    1383,
+    343,
+    259
+   ],
+   "rows": [
+    {
+     "l": "Autoritatea",
+     "v": "Agenția Națională pentru Sănătate Publică",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Telefon",
+     "v": "022 574 501",
+     "copy": false,
+     "link": true,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "E-mail",
+     "v": "office@ansp.gov.md",
+     "copy": false,
+     "link": true,
+     "tag": null,
+     "h": 59
+    }
+   ],
+   "cls": "e-permits-dosar-profil__section cab-section"
+  }
+ ],
+ "sm-03f@1440": [
+  {
+   "title": "",
+   "rect": [
+    120,
+    480,
+    1200,
+    138
+   ],
+   "text": "Schiță — etapa curentă Până la 9 nov. 2026 Depusă — urmează Examinare — urmează Decizie — urmează",
+   "cls": "e-permits-dosar-profil__section cab-section cab-status"
+  },
+  {
+   "title": "Date generale",
+   "rect": [
+    120,
+    682,
+    1200,
+    320
+   ],
+   "rows": [
+    {
+     "l": "Numărul dosarului",
+     "v": "GEAP-2026-009-04588",
+     "copy": true,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Tipul dosarului",
+     "v": "Eliberare",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Denumirea serviciului",
+     "v": "Autorizația sanitară de funcționare",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Statutul dosarului",
+     "v": "Schiță",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Autoritatea",
+     "v": "Agenția Națională pentru Sănătate Publică",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Subdiviziunea de procesare",
+     "v": "CSP Bălți",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    }
+   ],
+   "cls": "e-permits-dosar-profil__section cab-section"
+  },
+  {
+   "title": "Istoric",
+   "rect": [
+    120,
+    1002,
+    1200,
+    224
+   ],
+   "tl": {
+    "h": 160,
+    "items": [
+     {
+      "mod": "pending",
+      "icon": "icon-time-filled",
+      "title": "Completarea cererii",
+      "tags": [],
+      "stamp": "",
+      "text": [
+       [
+        "Pasul „Acte necesare”, de finalizat până la 9 noiembrie 2026.",
+        0
+       ]
+      ],
+      "h": 50
+     },
+     {
+      "mod": "success",
+      "icon": "icon-circle-checkmark-filled",
+      "title": "Schiță creată",
+      "tags": [],
+      "stamp": "10 octombrie 2026, 09:15 · Anastasia Cojocaru · Solicitant",
+      "text": [
+       [
+        "Salvată automat.",
+        0
+       ]
+      ],
+      "h": 64
+     }
+    ]
+   },
+   "cls": "e-permits-dosar-profil__section"
+  },
+  {
+   "title": "Ai nevoie de ajutor?",
+   "rect": [
+    120,
+    1226,
+    1200,
+    200
+   ],
+   "rows": [
+    {
+     "l": "Autoritatea",
+     "v": "Agenția Națională pentru Sănătate Publică",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Telefon",
+     "v": "022 574 501",
+     "copy": false,
+     "link": true,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "E-mail",
+     "v": "office@ansp.gov.md",
+     "copy": false,
+     "link": true,
+     "tag": null,
+     "h": 40
+    }
+   ],
+   "cls": "e-permits-dosar-profil__section cab-section"
+  }
+ ],
+ "sm-03f@375": [
+  {
+   "title": "",
+   "rect": [
+    16,
+    536,
+    343,
+    92
+   ],
+   "text": "Schiță — etapa curentă Până la 9 nov. 2026 Depusă — urmează Examinare — urmează Decizie — urmează",
+   "cls": "e-permits-dosar-profil__section cab-section cab-status"
+  },
+  {
+   "title": "Date generale",
+   "rect": [
+    16,
+    684,
+    343,
+    439
+   ],
+   "rows": [
+    {
+     "l": "Numărul dosarului",
+     "v": "GEAP-2026-009-04588",
+     "copy": true,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Tipul dosarului",
+     "v": "Eliberare",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Denumirea serviciului",
+     "v": "Autorizația sanitară de funcționare",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Statutul dosarului",
+     "v": "Schiță",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Autoritatea",
+     "v": "Agenția Națională pentru Sănătate Publică",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Subdiviziunea de procesare",
+     "v": "CSP Bălți",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 59
+    }
+   ],
+   "cls": "e-permits-dosar-profil__section cab-section"
+  },
+  {
+   "title": "Istoric",
+   "rect": [
+    16,
+    1123,
+    343,
+    260
+   ],
+   "tl": {
+    "h": 196,
+    "items": [
+     {
+      "mod": "pending",
+      "icon": "icon-time-filled",
+      "title": "Completarea cererii",
+      "tags": [],
+      "stamp": "",
+      "text": [
+       [
+        "Pasul „Acte necesare”, de finalizat până la 9 noiembrie 2026.",
+        0
+       ]
+      ],
+      "h": 70
+     },
+     {
+      "mod": "success",
+      "icon": "icon-circle-checkmark-filled",
+      "title": "Schiță creată",
+      "tags": [],
+      "stamp": "10 octombrie 2026, 09:15 · Anastasia Cojocaru · Solicitant",
+      "text": [
+       [
+        "Salvată automat.",
+        0
+       ]
+      ],
+      "h": 80
+     }
+    ]
+   },
+   "cls": "e-permits-dosar-profil__section"
+  },
+  {
+   "title": "Ai nevoie de ajutor?",
+   "rect": [
+    16,
+    1383,
+    343,
+    259
+   ],
+   "rows": [
+    {
+     "l": "Autoritatea",
+     "v": "Agenția Națională pentru Sănătate Publică",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Telefon",
+     "v": "022 574 501",
+     "copy": false,
+     "link": true,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "E-mail",
+     "v": "office@ansp.gov.md",
+     "copy": false,
+     "link": true,
+     "tag": null,
+     "h": 59
+    }
+   ],
+   "cls": "e-permits-dosar-profil__section cab-section"
+  }
+ ],
+ "sm-04@1440": [
+  {
+   "title": "",
+   "rect": [
+    120,
+    420,
+    1200,
+    154
+   ],
+   "text": "Depusă — finalizat 5 oct. 2026Anastasia Cojocaru Examinare — etapa curentă Termen 26 oct. 2026CSP Chișinău Decizie — urmează Livrare — urmează",
+   "cls": "e-permits-dosar-profil__section cab-section cab-status"
+  },
+  {
+   "title": "Date generale",
+   "rect": [
+    120,
+    638,
+    1200,
+    400
+   ],
+   "rows": [
+    {
+     "l": "Numărul dosarului",
+     "v": "GEAP-2026-009-04502",
+     "copy": true,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Tipul dosarului",
+     "v": "Eliberare",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Denumirea serviciului",
+     "v": "Autorizația sanitară de funcționare",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Data depunerii",
+     "v": "5 octombrie 2026, 11:20",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Termenul de examinare",
+     "v": "26 octombrie 2026",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Statutul dosarului",
+     "v": "În derulare",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Autoritatea",
+     "v": "Agenția Națională pentru Sănătate Publică",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Subdiviziunea de procesare",
+     "v": "CSP Chișinău",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    }
+   ],
+   "cls": "e-permits-dosar-profil__section cab-section"
+  },
+  {
+   "title": "Istoric",
+   "rect": [
+    120,
+    1038,
+    1200,
+    244
+   ],
+   "tl": {
+    "h": 180,
+    "items": [
+     {
+      "mod": "pending",
+      "icon": "icon-time-filled",
+      "title": "În examinare la autoritate",
+      "tags": [],
+      "stamp": "6 octombrie 2026 · ANSP · CSP Chișinău",
+      "text": [
+       [
+        "Termen de examinare: 26 octombrie 2026.",
+        0
+       ]
+      ],
+      "h": 70
+     },
+     {
+      "mod": "success",
+      "icon": "icon-circle-checkmark-filled",
+      "title": "Solicitare depusă",
+      "tags": [],
+      "stamp": "5 octombrie 2026, 11:20 · Anastasia Cojocaru · Solicitant",
+      "text": [
+       [
+        "Semnată prin MSign. Taxa de 500,00 MDL a fost achitată prin MPay.",
+        0
+       ]
+      ],
+      "h": 64
+     }
+    ]
+   },
+   "cls": "e-permits-dosar-profil__section"
+  },
+  {
+   "title": "Ai nevoie de ajutor?",
+   "rect": [
+    120,
+    1282,
+    1200,
+    200
+   ],
+   "rows": [
+    {
+     "l": "Autoritatea",
+     "v": "Agenția Națională pentru Sănătate Publică",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Telefon",
+     "v": "022 574 501",
+     "copy": false,
+     "link": true,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "E-mail",
+     "v": "office@ansp.gov.md",
+     "copy": false,
+     "link": true,
+     "tag": null,
+     "h": 40
+    }
+   ],
+   "cls": "e-permits-dosar-profil__section cab-section"
+  }
+ ],
+ "sm-04@375": [
+  {
+   "title": "",
+   "rect": [
+    16,
+    476,
+    343,
+    92
+   ],
+   "text": "Depusă — finalizat 5 oct. 2026Anastasia Cojocaru Examinare — etapa curentă Termen 26 oct. 2026CSP Chișinău Decizie — urmează Livrare — urmează",
+   "cls": "e-permits-dosar-profil__section cab-section cab-status"
+  },
+  {
+   "title": "Date generale",
+   "rect": [
+    16,
+    624,
+    343,
+    559
+   ],
+   "rows": [
+    {
+     "l": "Numărul dosarului",
+     "v": "GEAP-2026-009-04502",
+     "copy": true,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Tipul dosarului",
+     "v": "Eliberare",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Denumirea serviciului",
+     "v": "Autorizația sanitară de funcționare",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Data depunerii",
+     "v": "5 octombrie 2026, 11:20",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Termenul de examinare",
+     "v": "26 octombrie 2026",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Statutul dosarului",
+     "v": "În derulare",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Autoritatea",
+     "v": "Agenția Națională pentru Sănătate Publică",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Subdiviziunea de procesare",
+     "v": "CSP Chișinău",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 59
+    }
+   ],
+   "cls": "e-permits-dosar-profil__section cab-section"
+  },
+  {
+   "title": "Istoric",
+   "rect": [
+    16,
+    1183,
+    343,
+    300
+   ],
+   "tl": {
+    "h": 236,
+    "items": [
+     {
+      "mod": "pending",
+      "icon": "icon-time-filled",
+      "title": "În examinare la autoritate",
+      "tags": [],
+      "stamp": "6 octombrie 2026 · ANSP · CSP Chișinău",
+      "text": [
+       [
+        "Termen de examinare: 26 octombrie 2026.",
+        0
+       ]
+      ],
+      "h": 90
+     },
+     {
+      "mod": "success",
+      "icon": "icon-circle-checkmark-filled",
+      "title": "Solicitare depusă",
+      "tags": [],
+      "stamp": "5 octombrie 2026, 11:20 · Anastasia Cojocaru · Solicitant",
+      "text": [
+       [
+        "Semnată prin MSign. Taxa de 500,00 MDL a fost achitată prin MPay.",
+        0
+       ]
+      ],
+      "h": 100
+     }
+    ]
+   },
+   "cls": "e-permits-dosar-profil__section"
+  },
+  {
+   "title": "Ai nevoie de ajutor?",
+   "rect": [
+    16,
+    1483,
+    343,
+    259
+   ],
+   "rows": [
+    {
+     "l": "Autoritatea",
+     "v": "Agenția Națională pentru Sănătate Publică",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Telefon",
+     "v": "022 574 501",
+     "copy": false,
+     "link": true,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "E-mail",
+     "v": "office@ansp.gov.md",
+     "copy": false,
+     "link": true,
+     "tag": null,
+     "h": 59
+    }
+   ],
+   "cls": "e-permits-dosar-profil__section cab-section"
+  }
+ ],
+ "sm-04a@1440": [
+  {
+   "title": "",
+   "rect": [
+    120,
+    420,
+    1200,
+    154
+   ],
+   "text": "Depusă — finalizat 1 sept. 2026Anastasia Cojocaru Examinare — etapa curentă Termen expirat 22 sept. 2026CSP Ungheni Decizie — urmează",
+   "cls": "e-permits-dosar-profil__section cab-section cab-status"
+  },
+  {
+   "title": "Date generale",
+   "rect": [
+    120,
+    638,
+    1200,
+    400
+   ],
+   "rows": [
+    {
+     "l": "Numărul dosarului",
+     "v": "GEAP-2026-009-04310",
+     "copy": true,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Tipul dosarului",
+     "v": "Eliberare",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Denumirea serviciului",
+     "v": "Autorizația sanitară de funcționare",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Data depunerii",
+     "v": "1 septembrie 2026, 13:50",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Termenul de examinare",
+     "v": "22 septembrie 2026Aprobare tacită",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Statutul dosarului",
+     "v": "În derulare",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Autoritatea",
+     "v": "Agenția Națională pentru Sănătate Publică",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Subdiviziunea de procesare",
+     "v": "CSP Ungheni",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    }
+   ],
+   "cls": "e-permits-dosar-profil__section cab-section"
+  },
+  {
+   "title": "Istoric",
+   "rect": [
+    120,
+    1038,
+    1200,
+    244
+   ],
+   "tl": {
+    "h": 180,
+    "items": [
+     {
+      "mod": "pending",
+      "icon": "icon-time-filled",
+      "title": "În examinare la autoritate",
+      "tags": [],
+      "stamp": "2 septembrie 2026 · ANSP · CSP Ungheni",
+      "text": [
+       [
+        "Termen de examinare: 22 septembrie 2026.",
+        0
+       ]
+      ],
+      "h": 70
+     },
+     {
+      "mod": "success",
+      "icon": "icon-circle-checkmark-filled",
+      "title": "Solicitare depusă",
+      "tags": [],
+      "stamp": "1 septembrie 2026, 13:50 · Anastasia Cojocaru · Solicitant",
+      "text": [
+       [
+        "Semnată prin MSign. Taxa de 500,00 MDL a fost achitată prin MPay.",
+        0
+       ]
+      ],
+      "h": 64
+     }
+    ]
+   },
+   "cls": "e-permits-dosar-profil__section"
+  },
+  {
+   "title": "Ai nevoie de ajutor?",
+   "rect": [
+    120,
+    1282,
+    1200,
+    200
+   ],
+   "rows": [
+    {
+     "l": "Autoritatea",
+     "v": "Agenția Națională pentru Sănătate Publică",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Telefon",
+     "v": "022 574 501",
+     "copy": false,
+     "link": true,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "E-mail",
+     "v": "office@ansp.gov.md",
+     "copy": false,
+     "link": true,
+     "tag": null,
+     "h": 40
+    }
+   ],
+   "cls": "e-permits-dosar-profil__section cab-section"
+  }
+ ],
+ "sm-04a@375": [
+  {
+   "title": "",
+   "rect": [
+    16,
+    500,
+    343,
+    92
+   ],
+   "text": "Depusă — finalizat 1 sept. 2026Anastasia Cojocaru Examinare — etapa curentă Termen expirat 22 sept. 2026CSP Ungheni Decizie — urmează",
+   "cls": "e-permits-dosar-profil__section cab-section cab-status"
+  },
+  {
+   "title": "Date generale",
+   "rect": [
+    16,
+    648,
+    343,
+    559
+   ],
+   "rows": [
+    {
+     "l": "Numărul dosarului",
+     "v": "GEAP-2026-009-04310",
+     "copy": true,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Tipul dosarului",
+     "v": "Eliberare",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Denumirea serviciului",
+     "v": "Autorizația sanitară de funcționare",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Data depunerii",
+     "v": "1 septembrie 2026, 13:50",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Termenul de examinare",
+     "v": "22 septembrie 2026Aprobare tacită",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Statutul dosarului",
+     "v": "În derulare",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Autoritatea",
+     "v": "Agenția Națională pentru Sănătate Publică",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Subdiviziunea de procesare",
+     "v": "CSP Ungheni",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 59
+    }
+   ],
+   "cls": "e-permits-dosar-profil__section cab-section"
+  },
+  {
+   "title": "Istoric",
+   "rect": [
+    16,
+    1207,
+    343,
+    300
+   ],
+   "tl": {
+    "h": 236,
+    "items": [
+     {
+      "mod": "pending",
+      "icon": "icon-time-filled",
+      "title": "În examinare la autoritate",
+      "tags": [],
+      "stamp": "2 septembrie 2026 · ANSP · CSP Ungheni",
+      "text": [
+       [
+        "Termen de examinare: 22 septembrie 2026.",
+        0
+       ]
+      ],
+      "h": 90
+     },
+     {
+      "mod": "success",
+      "icon": "icon-circle-checkmark-filled",
+      "title": "Solicitare depusă",
+      "tags": [],
+      "stamp": "1 septembrie 2026, 13:50 · Anastasia Cojocaru · Solicitant",
+      "text": [
+       [
+        "Semnată prin MSign. Taxa de 500,00 MDL a fost achitată prin MPay.",
+        0
+       ]
+      ],
+      "h": 100
+     }
+    ]
+   },
+   "cls": "e-permits-dosar-profil__section"
+  },
+  {
+   "title": "Ai nevoie de ajutor?",
+   "rect": [
+    16,
+    1507,
+    343,
+    259
+   ],
+   "rows": [
+    {
+     "l": "Autoritatea",
+     "v": "Agenția Națională pentru Sănătate Publică",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Telefon",
+     "v": "022 574 501",
+     "copy": false,
+     "link": true,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "E-mail",
+     "v": "office@ansp.gov.md",
+     "copy": false,
+     "link": true,
+     "tag": null,
+     "h": 59
+    }
+   ],
+   "cls": "e-permits-dosar-profil__section cab-section"
+  }
+ ],
+ "sm-04j@1440": [
+  {
+   "title": "",
+   "rect": [
+    120,
+    420,
+    1200,
+    154
+   ],
+   "text": "Depusă — finalizat 3 sept. 2026Anastasia Cojocaru Informații suplimentare — finalizat Suspendat 15 sept. 2026Trimise 26 sept. 2026 Examinare — etapa curentă Termen 16 oct. 2026CSP Orhei Decizie — urmează Livrare — urmează",
+   "cls": "e-permits-dosar-profil__section cab-section cab-status"
+  },
+  {
+   "title": "Date generale",
+   "rect": [
+    120,
+    638,
+    1200,
+    440
+   ],
+   "rows": [
+    {
+     "l": "Numărul dosarului",
+     "v": "GEAP-2026-009-04355",
+     "copy": true,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Tipul dosarului",
+     "v": "Eliberare",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Denumirea serviciului",
+     "v": "Autorizația sanitară de funcționare",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Data depunerii",
+     "v": "3 septembrie 2026, 09:10",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Data suspendării",
+     "v": "15 septembrie 2026",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Termenul de examinare",
+     "v": "16 octombrie 2026",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Statutul dosarului",
+     "v": "În derulare",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Autoritatea",
+     "v": "Agenția Națională pentru Sănătate Publică",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Subdiviziunea de procesare",
+     "v": "CSP Orhei",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    }
+   ],
+   "cls": "e-permits-dosar-profil__section cab-section"
+  },
+  {
+   "title": "Istoric",
+   "rect": [
+    120,
+    1078,
+    1200,
+    448
+   ],
+   "tl": {
+    "h": 384,
+    "items": [
+     {
+      "mod": "pending",
+      "icon": "icon-time-filled",
+      "title": "Examinare reluată",
+      "tags": [],
+      "stamp": "26 septembrie 2026, 15:20 · ANSP · CSP Orhei",
+      "text": [
+       [
+        "Termen de examinare: 16 octombrie 2026.",
+        0
+       ]
+      ],
+      "h": 70
+     },
+     {
+      "mod": "success",
+      "icon": "icon-circle-checkmark-filled",
+      "title": "Informații transmise",
+      "tags": [],
+      "stamp": "26 septembrie 2026, 15:20 · Anastasia Cojocaru · Solicitant",
+      "text": [
+       [
+        "Prin formularul de suplinire.",
+        0
+       ]
+      ],
+      "h": 70
+     },
+     {
+      "mod": "success",
+      "icon": "icon-circle-checkmark-filled",
+      "title": "Informații suplimentare solicitate",
+      "tags": [],
+      "stamp": "15 septembrie 2026 · ANSP · CSP Orhei",
+      "text": [
+       [
+        "Examinarea a fost suspendată până la 29 septembrie 2026.",
+        0
+       ]
+      ],
+      "h": 70
+     },
+     {
+      "mod": "success",
+      "icon": "icon-circle-checkmark-filled",
+      "title": "În examinare la autoritate",
+      "tags": [],
+      "stamp": "4 septembrie 2026 · ANSP · CSP Orhei",
+      "text": null,
+      "h": 46
+     },
+     {
+      "mod": "success",
+      "icon": "icon-circle-checkmark-filled",
+      "title": "Solicitare depusă",
+      "tags": [],
+      "stamp": "3 septembrie 2026, 09:10 · Anastasia Cojocaru · Solicitant",
+      "text": [
+       [
+        "Semnată prin MSign. Taxa de 500,00 MDL a fost achitată prin MPay.",
+        0
+       ]
+      ],
+      "h": 64
+     }
+    ]
+   },
+   "cls": "e-permits-dosar-profil__section"
+  },
+  {
+   "title": "Ai nevoie de ajutor?",
+   "rect": [
+    120,
+    1526,
+    1200,
+    200
+   ],
+   "rows": [
+    {
+     "l": "Autoritatea",
+     "v": "Agenția Națională pentru Sănătate Publică",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Telefon",
+     "v": "022 574 501",
+     "copy": false,
+     "link": true,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "E-mail",
+     "v": "office@ansp.gov.md",
+     "copy": false,
+     "link": true,
+     "tag": null,
+     "h": 40
+    }
+   ],
+   "cls": "e-permits-dosar-profil__section cab-section"
+  }
+ ],
+ "sm-04j@375": [
+  {
+   "title": "",
+   "rect": [
+    16,
+    496,
+    343,
+    364
+   ],
+   "text": "Depusă — finalizat 3 sept. 2026Anastasia Cojocaru Informații suplimentare — finalizat Suspendat 15 sept. 2026Trimise 26 sept. 2026 Examinare — etapa curentă Termen 16 oct. 2026CSP Orhei Decizie — urmează Livrare — urmează",
+   "cls": "e-permits-dosar-profil__section cab-section cab-status"
+  },
+  {
+   "title": "Date generale",
+   "rect": [
+    16,
+    916,
+    343,
+    619
+   ],
+   "rows": [
+    {
+     "l": "Numărul dosarului",
+     "v": "GEAP-2026-009-04355",
+     "copy": true,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Tipul dosarului",
+     "v": "Eliberare",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Denumirea serviciului",
+     "v": "Autorizația sanitară de funcționare",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Data depunerii",
+     "v": "3 septembrie 2026, 09:10",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Data suspendării",
+     "v": "15 septembrie 2026",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Termenul de examinare",
+     "v": "16 octombrie 2026",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Statutul dosarului",
+     "v": "În derulare",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Autoritatea",
+     "v": "Agenția Națională pentru Sănătate Publică",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Subdiviziunea de procesare",
+     "v": "CSP Orhei",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 59
+    }
+   ],
+   "cls": "e-permits-dosar-profil__section cab-section"
+  },
+  {
+   "title": "Istoric",
+   "rect": [
+    16,
+    1535,
+    343,
+    540
+   ],
+   "tl": {
+    "h": 476,
+    "items": [
+     {
+      "mod": "pending",
+      "icon": "icon-time-filled",
+      "title": "Examinare reluată",
+      "tags": [],
+      "stamp": "26 septembrie 2026, 15:20 · ANSP · CSP Orhei",
+      "text": [
+       [
+        "Termen de examinare: 16 octombrie 2026.",
+        0
+       ]
+      ],
+      "h": 90
+     },
+     {
+      "mod": "success",
+      "icon": "icon-circle-checkmark-filled",
+      "title": "Informații transmise",
+      "tags": [],
+      "stamp": "26 septembrie 2026, 15:20 · Anastasia Cojocaru · Solicitant",
+      "text": [
+       [
+        "Prin formularul de suplinire.",
+        0
+       ]
+      ],
+      "h": 86
+     },
+     {
+      "mod": "success",
+      "icon": "icon-circle-checkmark-filled",
+      "title": "Informații suplimentare solicitate",
+      "tags": [],
+      "stamp": "15 septembrie 2026 · ANSP · CSP Orhei",
+      "text": [
+       [
+        "Examinarea a fost suspendată până la 29 septembrie 2026.",
+        0
+       ]
+      ],
+      "h": 90
+     },
+     {
+      "mod": "success",
+      "icon": "icon-circle-checkmark-filled",
+      "title": "În examinare la autoritate",
+      "tags": [],
+      "stamp": "4 septembrie 2026 · ANSP · CSP Orhei",
+      "text": null,
+      "h": 46
+     },
+     {
+      "mod": "success",
+      "icon": "icon-circle-checkmark-filled",
+      "title": "Solicitare depusă",
+      "tags": [],
+      "stamp": "3 septembrie 2026, 09:10 · Anastasia Cojocaru · Solicitant",
+      "text": [
+       [
+        "Semnată prin MSign. Taxa de 500,00 MDL a fost achitată prin MPay.",
+        0
+       ]
+      ],
+      "h": 100
+     }
+    ]
+   },
+   "cls": "e-permits-dosar-profil__section"
+  },
+  {
+   "title": "Ai nevoie de ajutor?",
+   "rect": [
+    16,
+    2075,
+    343,
+    259
+   ],
+   "rows": [
+    {
+     "l": "Autoritatea",
+     "v": "Agenția Națională pentru Sănătate Publică",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Telefon",
+     "v": "022 574 501",
+     "copy": false,
+     "link": true,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "E-mail",
+     "v": "office@ansp.gov.md",
+     "copy": false,
+     "link": true,
+     "tag": null,
+     "h": 59
+    }
+   ],
+   "cls": "e-permits-dosar-profil__section cab-section"
+  }
+ ],
+ "sm-04i@1440": [
+  {
+   "title": "",
+   "rect": [
+    120,
+    420,
+    1200,
+    154
+   ],
+   "text": "Depusă — finalizat 10 sept. 2026Anastasia Cojocaru Informații suplimentare — netransmise, termenul a expirat Suspendat 22 sept. 2026Expirat 6 oct. 2026 Examinare — etapa curentă Termen 23 oct. 2026CSP Ungheni Decizie — urmează",
+   "cls": "e-permits-dosar-profil__section cab-section cab-status"
+  },
+  {
+   "title": "Date generale",
+   "rect": [
+    120,
+    638,
+    1200,
+    440
+   ],
+   "rows": [
+    {
+     "l": "Numărul dosarului",
+     "v": "GEAP-2026-009-04398",
+     "copy": true,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Tipul dosarului",
+     "v": "Eliberare",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Denumirea serviciului",
+     "v": "Autorizația sanitară de funcționare",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Data depunerii",
+     "v": "10 septembrie 2026, 10:20",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Data suspendării",
+     "v": "22 septembrie 2026",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Termenul de examinare",
+     "v": "23 octombrie 2026",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Statutul dosarului",
+     "v": "În derulare",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Autoritatea",
+     "v": "Agenția Națională pentru Sănătate Publică",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Subdiviziunea de procesare",
+     "v": "CSP Ungheni",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    }
+   ],
+   "cls": "e-permits-dosar-profil__section cab-section"
+  },
+  {
+   "title": "Istoric",
+   "rect": [
+    120,
+    1078,
+    1200,
+    448
+   ],
+   "tl": {
+    "h": 384,
+    "items": [
+     {
+      "mod": "pending",
+      "icon": "icon-time-filled",
+      "title": "Examinare reluată",
+      "tags": [],
+      "stamp": "7 octombrie 2026, 08:00 · ANSP · CSP Ungheni",
+      "text": [
+       [
+        "Termen de examinare: 23 octombrie 2026.",
+        0
+       ]
+      ],
+      "h": 70
+     },
+     {
+      "mod": "success",
+      "icon": "icon-circle-checkmark-filled",
+      "title": "Suspendare încheiată",
+      "tags": [],
+      "stamp": "6 octombrie 2026",
+      "text": [
+       [
+        "Termenul de suplinire a expirat; informațiile cerute nu au fost transmise.",
+        0
+       ]
+      ],
+      "h": 70
+     },
+     {
+      "mod": "success",
+      "icon": "icon-circle-checkmark-filled",
+      "title": "Informații suplimentare solicitate",
+      "tags": [],
+      "stamp": "22 septembrie 2026 · ANSP · CSP Ungheni",
+      "text": [
+       [
+        "Examinarea a fost suspendată până la 6 octombrie 2026.",
+        0
+       ]
+      ],
+      "h": 70
+     },
+     {
+      "mod": "success",
+      "icon": "icon-circle-checkmark-filled",
+      "title": "În examinare la autoritate",
+      "tags": [],
+      "stamp": "11 septembrie 2026 · ANSP · CSP Ungheni",
+      "text": null,
+      "h": 46
+     },
+     {
+      "mod": "success",
+      "icon": "icon-circle-checkmark-filled",
+      "title": "Solicitare depusă",
+      "tags": [],
+      "stamp": "10 septembrie 2026, 10:20 · Anastasia Cojocaru · Solicitant",
+      "text": [
+       [
+        "Semnată prin MSign. Taxa de 500,00 MDL a fost achitată prin MPay.",
+        0
+       ]
+      ],
+      "h": 64
+     }
+    ]
+   },
+   "cls": "e-permits-dosar-profil__section"
+  },
+  {
+   "title": "Ai nevoie de ajutor?",
+   "rect": [
+    120,
+    1526,
+    1200,
+    200
+   ],
+   "rows": [
+    {
+     "l": "Autoritatea",
+     "v": "Agenția Națională pentru Sănătate Publică",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Telefon",
+     "v": "022 574 501",
+     "copy": false,
+     "link": true,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "E-mail",
+     "v": "office@ansp.gov.md",
+     "copy": false,
+     "link": true,
+     "tag": null,
+     "h": 40
+    }
+   ],
+   "cls": "e-permits-dosar-profil__section cab-section"
+  }
+ ],
+ "sm-04i@375": [
+  {
+   "title": "",
+   "rect": [
+    16,
+    496,
+    343,
+    314
+   ],
+   "text": "Depusă — finalizat 10 sept. 2026Anastasia Cojocaru Informații suplimentare — netransmise, termenul a expirat Suspendat 22 sept. 2026Expirat 6 oct. 2026 Examinare — etapa curentă Termen 23 oct. 2026CSP Ungheni Decizie — urmează",
+   "cls": "e-permits-dosar-profil__section cab-section cab-status"
+  },
+  {
+   "title": "Date generale",
+   "rect": [
+    16,
+    866,
+    343,
+    619
+   ],
+   "rows": [
+    {
+     "l": "Numărul dosarului",
+     "v": "GEAP-2026-009-04398",
+     "copy": true,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Tipul dosarului",
+     "v": "Eliberare",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Denumirea serviciului",
+     "v": "Autorizația sanitară de funcționare",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Data depunerii",
+     "v": "10 septembrie 2026, 10:20",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Data suspendării",
+     "v": "22 septembrie 2026",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Termenul de examinare",
+     "v": "23 octombrie 2026",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Statutul dosarului",
+     "v": "În derulare",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Autoritatea",
+     "v": "Agenția Națională pentru Sănătate Publică",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Subdiviziunea de procesare",
+     "v": "CSP Ungheni",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 59
+    }
+   ],
+   "cls": "e-permits-dosar-profil__section cab-section"
+  },
+  {
+   "title": "Istoric",
+   "rect": [
+    16,
+    1485,
+    343,
+    544
+   ],
+   "tl": {
+    "h": 480,
+    "items": [
+     {
+      "mod": "pending",
+      "icon": "icon-time-filled",
+      "title": "Examinare reluată",
+      "tags": [],
+      "stamp": "7 octombrie 2026, 08:00 · ANSP · CSP Ungheni",
+      "text": [
+       [
+        "Termen de examinare: 23 octombrie 2026.",
+        0
+       ]
+      ],
+      "h": 90
+     },
+     {
+      "mod": "success",
+      "icon": "icon-circle-checkmark-filled",
+      "title": "Suspendare încheiată",
+      "tags": [],
+      "stamp": "6 octombrie 2026",
+      "text": [
+       [
+        "Termenul de suplinire a expirat; informațiile cerute nu au fost transmise.",
+        0
+       ]
+      ],
+      "h": 90
+     },
+     {
+      "mod": "success",
+      "icon": "icon-circle-checkmark-filled",
+      "title": "Informații suplimentare solicitate",
+      "tags": [],
+      "stamp": "22 septembrie 2026 · ANSP · CSP Ungheni",
+      "text": [
+       [
+        "Examinarea a fost suspendată până la 6 octombrie 2026.",
+        0
+       ]
+      ],
+      "h": 90
+     },
+     {
+      "mod": "success",
+      "icon": "icon-circle-checkmark-filled",
+      "title": "În examinare la autoritate",
+      "tags": [],
+      "stamp": "11 septembrie 2026 · ANSP · CSP Ungheni",
+      "text": null,
+      "h": 46
+     },
+     {
+      "mod": "success",
+      "icon": "icon-circle-checkmark-filled",
+      "title": "Solicitare depusă",
+      "tags": [],
+      "stamp": "10 septembrie 2026, 10:20 · Anastasia Cojocaru · Solicitant",
+      "text": [
+       [
+        "Semnată prin MSign. Taxa de 500,00 MDL a fost achitată prin MPay.",
+        0
+       ]
+      ],
+      "h": 100
+     }
+    ]
+   },
+   "cls": "e-permits-dosar-profil__section"
+  },
+  {
+   "title": "Ai nevoie de ajutor?",
+   "rect": [
+    16,
+    2029,
+    343,
+    259
+   ],
+   "rows": [
+    {
+     "l": "Autoritatea",
+     "v": "Agenția Națională pentru Sănătate Publică",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Telefon",
+     "v": "022 574 501",
+     "copy": false,
+     "link": true,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "E-mail",
+     "v": "office@ansp.gov.md",
+     "copy": false,
+     "link": true,
+     "tag": null,
+     "h": 59
+    }
+   ],
+   "cls": "e-permits-dosar-profil__section cab-section"
+  }
+ ],
+ "sm-04k@1440": [
+  {
+   "title": "",
+   "rect": [
+    120,
+    440,
+    1200,
+    154
+   ],
+   "text": "Depusă — finalizat 28 sept. 2026Anastasia Cojocaru Examinare — etapa curentă Termen 13 oct. 2026Comitetul permanent de control asupra drogurilor Decizie — urmează",
+   "cls": "e-permits-dosar-profil__section cab-section cab-status"
+  },
+  {
+   "title": "Date generale",
+   "rect": [
+    120,
+    658,
+    1200,
+    440
+   ],
+   "rows": [
+    {
+     "l": "Numărul dosarului",
+     "v": "GEAP-2026-010-00877",
+     "copy": true,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Tipul dosarului",
+     "v": "Prelungire",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Denumirea serviciului",
+     "v": "Autorizația pentru substanțe stupefiante și psihotrope",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Data depunerii",
+     "v": "28 septembrie 2026, 09:40",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Termenul de examinare",
+     "v": "13 octombrie 2026",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Statutul dosarului",
+     "v": "În derulare",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Autoritatea",
+     "v": "Agenția Medicamentului și Dispozitivelor Medicale",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Subdiviziunea de procesare",
+     "v": "Comitetul permanent de control asupra drogurilor",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Nr. actului anterior",
+     "v": "AMDM-10-2025-0342",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    }
+   ],
+   "cls": "e-permits-dosar-profil__section cab-section"
+  },
+  {
+   "title": "Istoric",
+   "rect": [
+    120,
+    1098,
+    1200,
+    244
+   ],
+   "tl": {
+    "h": 180,
+    "items": [
+     {
+      "mod": "pending",
+      "icon": "icon-time-filled",
+      "title": "În examinare la autoritate",
+      "tags": [],
+      "stamp": "29 septembrie 2026 · AMDM · Comitetul permanent de control asupra drogurilor",
+      "text": [
+       [
+        "Termen de examinare: 13 octombrie 2026.",
+        0
+       ]
+      ],
+      "h": 70
+     },
+     {
+      "mod": "success",
+      "icon": "icon-circle-checkmark-filled",
+      "title": "Solicitare depusă",
+      "tags": [],
+      "stamp": "28 septembrie 2026, 09:40 · Anastasia Cojocaru · Solicitant",
+      "text": [
+       [
+        "Semnată prin MSign.",
+        0
+       ]
+      ],
+      "h": 64
+     }
+    ]
+   },
+   "cls": "e-permits-dosar-profil__section"
+  },
+  {
+   "title": "Ai nevoie de ajutor?",
+   "rect": [
+    120,
+    1342,
+    1200,
+    200
+   ],
+   "rows": [
+    {
+     "l": "Autoritatea",
+     "v": "Agenția Medicamentului și Dispozitivelor Medicale",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Telefon",
+     "v": "022 884 301",
+     "copy": false,
+     "link": true,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "E-mail",
+     "v": "office@amdm.gov.md",
+     "copy": false,
+     "link": true,
+     "tag": null,
+     "h": 40
+    }
+   ],
+   "cls": "e-permits-dosar-profil__section cab-section"
+  }
+ ],
+ "sm-04k@375": [
+  {
+   "title": "",
+   "rect": [
+    16,
+    572,
+    343,
+    92
+   ],
+   "text": "Depusă — finalizat 28 sept. 2026Anastasia Cojocaru Examinare — etapa curentă Termen 13 oct. 2026Comitetul permanent de control asupra drogurilor Decizie — urmează",
+   "cls": "e-permits-dosar-profil__section cab-section cab-status"
+  },
+  {
+   "title": "Date generale",
+   "rect": [
+    16,
+    720,
+    343,
+    679
+   ],
+   "rows": [
+    {
+     "l": "Numărul dosarului",
+     "v": "GEAP-2026-010-00877",
+     "copy": true,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Tipul dosarului",
+     "v": "Prelungire",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Denumirea serviciului",
+     "v": "Autorizația pentru substanțe stupefiante și psihotrope",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 80
+    },
+    {
+     "l": "Data depunerii",
+     "v": "28 septembrie 2026, 09:40",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Termenul de examinare",
+     "v": "13 octombrie 2026",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Statutul dosarului",
+     "v": "În derulare",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Autoritatea",
+     "v": "Agenția Medicamentului și Dispozitivelor Medicale",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 80
+    },
+    {
+     "l": "Subdiviziunea de procesare",
+     "v": "Comitetul permanent de control asupra drogurilor",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 80
+    },
+    {
+     "l": "Nr. actului anterior",
+     "v": "AMDM-10-2025-0342",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 59
+    }
+   ],
+   "cls": "e-permits-dosar-profil__section cab-section"
+  },
+  {
+   "title": "Istoric",
+   "rect": [
+    16,
+    1399,
+    343,
+    296
+   ],
+   "tl": {
+    "h": 232,
+    "items": [
+     {
+      "mod": "pending",
+      "icon": "icon-time-filled",
+      "title": "În examinare la autoritate",
+      "tags": [],
+      "stamp": "29 septembrie 2026 · AMDM · Comitetul permanent de control asupra drogurilor",
+      "text": [
+       [
+        "Termen de examinare: 13 octombrie 2026.",
+        0
+       ]
+      ],
+      "h": 106
+     },
+     {
+      "mod": "success",
+      "icon": "icon-circle-checkmark-filled",
+      "title": "Solicitare depusă",
+      "tags": [],
+      "stamp": "28 septembrie 2026, 09:40 · Anastasia Cojocaru · Solicitant",
+      "text": [
+       [
+        "Semnată prin MSign.",
+        0
+       ]
+      ],
+      "h": 80
+     }
+    ]
+   },
+   "cls": "e-permits-dosar-profil__section"
+  },
+  {
+   "title": "Ai nevoie de ajutor?",
+   "rect": [
+    16,
+    1695,
+    343,
+    279
+   ],
+   "rows": [
+    {
+     "l": "Autoritatea",
+     "v": "Agenția Medicamentului și Dispozitivelor Medicale",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 80
+    },
+    {
+     "l": "Telefon",
+     "v": "022 884 301",
+     "copy": false,
+     "link": true,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "E-mail",
+     "v": "office@amdm.gov.md",
+     "copy": false,
+     "link": true,
+     "tag": null,
+     "h": 59
+    }
+   ],
+   "cls": "e-permits-dosar-profil__section cab-section"
+  }
+ ],
+ "sm-04b@1440": [
+  {
+   "title": "",
+   "rect": [
+    120,
+    420,
+    1200,
+    154
+   ],
+   "text": "Depusă — finalizat 24 sept. 2026Anastasia Cojocaru Informații suplimentare — necesită acțiunea dumneavoastră Suspendat 7 oct. 2026Până la 21 oct. 2026 Examinare — urmează Termen 4 nov. 2026CSP Soroca Decizie — urmează",
+   "cls": "e-permits-dosar-profil__section cab-section cab-status"
+  },
+  {
+   "title": "Date generale",
+   "rect": [
+    120,
+    638,
+    1200,
+    496
+   ],
+   "rows": [
+    {
+     "l": "Numărul dosarului",
+     "v": "GEAP-2026-009-04466",
+     "copy": true,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Tipul dosarului",
+     "v": "Eliberare",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Denumirea serviciului",
+     "v": "Autorizația sanitară de funcționare",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Data depunerii",
+     "v": "24 septembrie 2026, 10:05",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Data suspendării",
+     "v": "7 octombrie 2026",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Motivul suspendării",
+     "v": "Documente adiționale incorecte/incomplete — Planul încăperilor anexat nu este lizibil și nu indică destinația spațiilor de depozitare. Încărcați planul la o rezoluție mai bună, cu legenda încăperilor.",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 56
+    },
+    {
+     "l": "Termenul de examinare",
+     "v": "4 noiembrie 2026",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Statutul dosarului",
+     "v": "Informații suplimentare",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Autoritatea",
+     "v": "Agenția Națională pentru Sănătate Publică",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Subdiviziunea de procesare",
+     "v": "CSP Soroca",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    }
+   ],
+   "cls": "e-permits-dosar-profil__section cab-section"
+  },
+  {
+   "title": "Istoric",
+   "rect": [
+    120,
+    1134,
+    1200,
+    296
+   ],
+   "tl": {
+    "h": 232,
+    "items": [
+     {
+      "mod": "pending",
+      "icon": "icon-time-filled",
+      "title": "Informații suplimentare solicitate",
+      "tags": [],
+      "stamp": "7 octombrie 2026 · ANSP · CSP Soroca",
+      "text": [
+       [
+        "Examinarea este suspendată. Trimiteți-le până la 21 octombrie 2026.",
+        0
+       ]
+      ],
+      "h": 70
+     },
+     {
+      "mod": "success",
+      "icon": "icon-circle-checkmark-filled",
+      "title": "În examinare la autoritate",
+      "tags": [],
+      "stamp": "25 septembrie 2026 · ANSP · CSP Soroca",
+      "text": null,
+      "h": 46
+     },
+     {
+      "mod": "success",
+      "icon": "icon-circle-checkmark-filled",
+      "title": "Solicitare depusă",
+      "tags": [],
+      "stamp": "24 septembrie 2026, 10:05 · Anastasia Cojocaru · Solicitant",
+      "text": [
+       [
+        "Semnată prin MSign. Taxa de 500,00 MDL a fost achitată prin MPay.",
+        0
+       ]
+      ],
+      "h": 64
+     }
+    ]
+   },
+   "cls": "e-permits-dosar-profil__section"
+  },
+  {
+   "title": "Ai nevoie de ajutor?",
+   "rect": [
+    120,
+    1430,
+    1200,
+    200
+   ],
+   "rows": [
+    {
+     "l": "Autoritatea",
+     "v": "Agenția Națională pentru Sănătate Publică",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Telefon",
+     "v": "022 574 501",
+     "copy": false,
+     "link": true,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "E-mail",
+     "v": "office@ansp.gov.md",
+     "copy": false,
+     "link": true,
+     "tag": null,
+     "h": 40
+    }
+   ],
+   "cls": "e-permits-dosar-profil__section cab-section"
+  }
+ ],
+ "sm-04b@375": [
+  {
+   "title": "",
+   "rect": [
+    16,
+    612,
+    343,
+    314
+   ],
+   "text": "Depusă — finalizat 24 sept. 2026Anastasia Cojocaru Informații suplimentare — necesită acțiunea dumneavoastră Suspendat 7 oct. 2026Până la 21 oct. 2026 Examinare — urmează Termen 4 nov. 2026CSP Soroca Decizie — urmează",
+   "cls": "e-permits-dosar-profil__section cab-section cab-status"
+  },
+  {
+   "title": "Date generale",
+   "rect": [
+    16,
+    982,
+    343,
+    759
+   ],
+   "rows": [
+    {
+     "l": "Numărul dosarului",
+     "v": "GEAP-2026-009-04466",
+     "copy": true,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Tipul dosarului",
+     "v": "Eliberare",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Denumirea serviciului",
+     "v": "Autorizația sanitară de funcționare",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Data depunerii",
+     "v": "24 septembrie 2026, 10:05",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Data suspendării",
+     "v": "7 octombrie 2026",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Motivul suspendării",
+     "v": "Documente adiționale incorecte/incomplete — Planul încăperilor anexat nu este lizibil și nu indică destinația spațiilor de depozitare. Încărcați planul la o rezoluție mai bună, cu legenda încăperilor.",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 140
+    },
+    {
+     "l": "Termenul de examinare",
+     "v": "4 noiembrie 2026",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Statutul dosarului",
+     "v": "Informații suplimentare",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Autoritatea",
+     "v": "Agenția Națională pentru Sănătate Publică",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Subdiviziunea de procesare",
+     "v": "CSP Soroca",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 59
+    }
+   ],
+   "cls": "e-permits-dosar-profil__section cab-section"
+  },
+  {
+   "title": "Istoric",
+   "rect": [
+    16,
+    1741,
+    343,
+    352
+   ],
+   "tl": {
+    "h": 288,
+    "items": [
+     {
+      "mod": "pending",
+      "icon": "icon-time-filled",
+      "title": "Informații suplimentare solicitate",
+      "tags": [],
+      "stamp": "7 octombrie 2026 · ANSP · CSP Soroca",
+      "text": [
+       [
+        "Examinarea este suspendată. Trimiteți-le până la 21 octombrie 2026.",
+        0
+       ]
+      ],
+      "h": 90
+     },
+     {
+      "mod": "success",
+      "icon": "icon-circle-checkmark-filled",
+      "title": "În examinare la autoritate",
+      "tags": [],
+      "stamp": "25 septembrie 2026 · ANSP · CSP Soroca",
+      "text": null,
+      "h": 46
+     },
+     {
+      "mod": "success",
+      "icon": "icon-circle-checkmark-filled",
+      "title": "Solicitare depusă",
+      "tags": [],
+      "stamp": "24 septembrie 2026, 10:05 · Anastasia Cojocaru · Solicitant",
+      "text": [
+       [
+        "Semnată prin MSign. Taxa de 500,00 MDL a fost achitată prin MPay.",
+        0
+       ]
+      ],
+      "h": 100
+     }
+    ]
+   },
+   "cls": "e-permits-dosar-profil__section"
+  },
+  {
+   "title": "Ai nevoie de ajutor?",
+   "rect": [
+    16,
+    2093,
+    343,
+    259
+   ],
+   "rows": [
+    {
+     "l": "Autoritatea",
+     "v": "Agenția Națională pentru Sănătate Publică",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Telefon",
+     "v": "022 574 501",
+     "copy": false,
+     "link": true,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "E-mail",
+     "v": "office@ansp.gov.md",
+     "copy": false,
+     "link": true,
+     "tag": null,
+     "h": 59
+    }
+   ],
+   "cls": "e-permits-dosar-profil__section cab-section"
+  }
+ ],
+ "sm-04h@1440": [
+  {
+   "title": "",
+   "rect": [
+    120,
+    420,
+    1200,
+    154
+   ],
+   "text": "Depusă — finalizat 24 sept. 2026Anastasia Cojocaru Informații suplimentare — necesită acțiunea dumneavoastră Suspendat 7 oct. 2026Până la 21 oct. 2026 Examinare — urmează Termen 4 nov. 2026CSP Soroca Decizie — urmează",
+   "cls": "e-permits-dosar-profil__section cab-section cab-status"
+  },
+  {
+   "title": "Date generale",
+   "rect": [
+    120,
+    638,
+    1200,
+    496
+   ],
+   "rows": [
+    {
+     "l": "Numărul dosarului",
+     "v": "GEAP-2026-009-04466",
+     "copy": true,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Tipul dosarului",
+     "v": "Eliberare",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Denumirea serviciului",
+     "v": "Autorizația sanitară de funcționare",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Data depunerii",
+     "v": "24 septembrie 2026, 10:05",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Data suspendării",
+     "v": "7 octombrie 2026",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Motivul suspendării",
+     "v": "Documente adiționale incorecte/incomplete — Planul încăperilor anexat nu este lizibil și nu indică destinația spațiilor de depozitare. Încărcați planul la o rezoluție mai bună, cu legenda încăperilor.",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 56
+    },
+    {
+     "l": "Termenul de examinare",
+     "v": "4 noiembrie 2026",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Statutul dosarului",
+     "v": "Informații suplimentare",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Autoritatea",
+     "v": "Agenția Națională pentru Sănătate Publică",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Subdiviziunea de procesare",
+     "v": "CSP Soroca",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    }
+   ],
+   "cls": "e-permits-dosar-profil__section cab-section"
+  },
+  {
+   "title": "Istoric",
+   "rect": [
+    120,
+    1134,
+    1200,
+    296
+   ],
+   "tl": {
+    "h": 232,
+    "items": [
+     {
+      "mod": "pending",
+      "icon": "icon-time-filled",
+      "title": "Informații suplimentare solicitate",
+      "tags": [],
+      "stamp": "7 octombrie 2026 · ANSP · CSP Soroca",
+      "text": [
+       [
+        "Examinarea este suspendată. Trimiteți-le până la 21 octombrie 2026.",
+        0
+       ]
+      ],
+      "h": 70
+     },
+     {
+      "mod": "success",
+      "icon": "icon-circle-checkmark-filled",
+      "title": "În examinare la autoritate",
+      "tags": [],
+      "stamp": "25 septembrie 2026 · ANSP · CSP Soroca",
+      "text": null,
+      "h": 46
+     },
+     {
+      "mod": "success",
+      "icon": "icon-circle-checkmark-filled",
+      "title": "Solicitare depusă",
+      "tags": [],
+      "stamp": "24 septembrie 2026, 10:05 · Anastasia Cojocaru · Solicitant",
+      "text": [
+       [
+        "Semnată prin MSign. Taxa de 500,00 MDL a fost achitată prin MPay.",
+        0
+       ]
+      ],
+      "h": 64
+     }
+    ]
+   },
+   "cls": "e-permits-dosar-profil__section"
+  },
+  {
+   "title": "Ai nevoie de ajutor?",
+   "rect": [
+    120,
+    1430,
+    1200,
+    200
+   ],
+   "rows": [
+    {
+     "l": "Autoritatea",
+     "v": "Agenția Națională pentru Sănătate Publică",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Telefon",
+     "v": "022 574 501",
+     "copy": false,
+     "link": true,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "E-mail",
+     "v": "office@ansp.gov.md",
+     "copy": false,
+     "link": true,
+     "tag": null,
+     "h": 40
+    }
+   ],
+   "cls": "e-permits-dosar-profil__section cab-section"
+  }
+ ],
+ "sm-04h@375": [
+  {
+   "title": "",
+   "rect": [
+    16,
+    612,
+    343,
+    314
+   ],
+   "text": "Depusă — finalizat 24 sept. 2026Anastasia Cojocaru Informații suplimentare — necesită acțiunea dumneavoastră Suspendat 7 oct. 2026Până la 21 oct. 2026 Examinare — urmează Termen 4 nov. 2026CSP Soroca Decizie — urmează",
+   "cls": "e-permits-dosar-profil__section cab-section cab-status"
+  },
+  {
+   "title": "Date generale",
+   "rect": [
+    16,
+    982,
+    343,
+    759
+   ],
+   "rows": [
+    {
+     "l": "Numărul dosarului",
+     "v": "GEAP-2026-009-04466",
+     "copy": true,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Tipul dosarului",
+     "v": "Eliberare",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Denumirea serviciului",
+     "v": "Autorizația sanitară de funcționare",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Data depunerii",
+     "v": "24 septembrie 2026, 10:05",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Data suspendării",
+     "v": "7 octombrie 2026",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Motivul suspendării",
+     "v": "Documente adiționale incorecte/incomplete — Planul încăperilor anexat nu este lizibil și nu indică destinația spațiilor de depozitare. Încărcați planul la o rezoluție mai bună, cu legenda încăperilor.",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 140
+    },
+    {
+     "l": "Termenul de examinare",
+     "v": "4 noiembrie 2026",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Statutul dosarului",
+     "v": "Informații suplimentare",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Autoritatea",
+     "v": "Agenția Națională pentru Sănătate Publică",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Subdiviziunea de procesare",
+     "v": "CSP Soroca",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 59
+    }
+   ],
+   "cls": "e-permits-dosar-profil__section cab-section"
+  },
+  {
+   "title": "Istoric",
+   "rect": [
+    16,
+    1741,
+    343,
+    352
+   ],
+   "tl": {
+    "h": 288,
+    "items": [
+     {
+      "mod": "pending",
+      "icon": "icon-time-filled",
+      "title": "Informații suplimentare solicitate",
+      "tags": [],
+      "stamp": "7 octombrie 2026 · ANSP · CSP Soroca",
+      "text": [
+       [
+        "Examinarea este suspendată. Trimiteți-le până la 21 octombrie 2026.",
+        0
+       ]
+      ],
+      "h": 90
+     },
+     {
+      "mod": "success",
+      "icon": "icon-circle-checkmark-filled",
+      "title": "În examinare la autoritate",
+      "tags": [],
+      "stamp": "25 septembrie 2026 · ANSP · CSP Soroca",
+      "text": null,
+      "h": 46
+     },
+     {
+      "mod": "success",
+      "icon": "icon-circle-checkmark-filled",
+      "title": "Solicitare depusă",
+      "tags": [],
+      "stamp": "24 septembrie 2026, 10:05 · Anastasia Cojocaru · Solicitant",
+      "text": [
+       [
+        "Semnată prin MSign. Taxa de 500,00 MDL a fost achitată prin MPay.",
+        0
+       ]
+      ],
+      "h": 100
+     }
+    ]
+   },
+   "cls": "e-permits-dosar-profil__section"
+  },
+  {
+   "title": "Ai nevoie de ajutor?",
+   "rect": [
+    16,
+    2093,
+    343,
+    259
+   ],
+   "rows": [
+    {
+     "l": "Autoritatea",
+     "v": "Agenția Națională pentru Sănătate Publică",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Telefon",
+     "v": "022 574 501",
+     "copy": false,
+     "link": true,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "E-mail",
+     "v": "office@ansp.gov.md",
+     "copy": false,
+     "link": true,
+     "tag": null,
+     "h": 59
+    }
+   ],
+   "cls": "e-permits-dosar-profil__section cab-section"
+  }
+ ],
+ "sm-04c@1440": [
+  {
+   "title": "",
+   "rect": [
+    120,
+    420,
+    1200,
+    154
+   ],
+   "text": "Depusă — finalizat 29 sept. 2026Anastasia Cojocaru Spre achitare — necesită acțiunea dumneavoastră Până la 17 oct. 2026MPay Examinare — urmează Decizie — urmează",
+   "cls": "e-permits-dosar-profil__section cab-section cab-status"
+  },
+  {
+   "title": "Date generale",
+   "rect": [
+    120,
+    638,
+    1200,
+    360
+   ],
+   "rows": [
+    {
+     "l": "Numărul dosarului",
+     "v": "GEAP-2026-009-04431",
+     "copy": true,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Tipul dosarului",
+     "v": "Eliberare",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Denumirea serviciului",
+     "v": "Autorizația sanitară de funcționare",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Data depunerii",
+     "v": "29 septembrie 2026, 14:30",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Statutul dosarului",
+     "v": "Spre achitare",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Autoritatea",
+     "v": "Agenția Națională pentru Sănătate Publică",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Subdiviziunea de procesare",
+     "v": "CSP Cahul",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    }
+   ],
+   "cls": "e-permits-dosar-profil__section cab-section"
+  },
+  {
+   "title": "Istoric",
+   "rect": [
+    120,
+    998,
+    1200,
+    296
+   ],
+   "tl": {
+    "h": 232,
+    "items": [
+     {
+      "mod": "pending",
+      "icon": "icon-time-filled",
+      "title": "Notă de plată emisă",
+      "tags": [],
+      "stamp": "7 octombrie 2026, 09:00 · ANSP · CSP Cahul",
+      "text": [
+       [
+        "500,00 MDL de achitat până la 17 octombrie 2026.",
+        0
+       ]
+      ],
+      "h": 70
+     },
+     {
+      "mod": "success",
+      "icon": "icon-circle-checkmark-filled",
+      "title": "În examinare la autoritate",
+      "tags": [],
+      "stamp": "30 septembrie 2026 · ANSP · CSP Cahul",
+      "text": null,
+      "h": 46
+     },
+     {
+      "mod": "success",
+      "icon": "icon-circle-checkmark-filled",
+      "title": "Solicitare depusă",
+      "tags": [],
+      "stamp": "29 septembrie 2026, 14:30 · Anastasia Cojocaru · Solicitant",
+      "text": [
+       [
+        "Semnată prin MSign.",
+        0
+       ]
+      ],
+      "h": 64
+     }
+    ]
+   },
+   "cls": "e-permits-dosar-profil__section"
+  },
+  {
+   "title": "Ai nevoie de ajutor?",
+   "rect": [
+    120,
+    1294,
+    1200,
+    200
+   ],
+   "rows": [
+    {
+     "l": "Autoritatea",
+     "v": "Agenția Națională pentru Sănătate Publică",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Telefon",
+     "v": "022 574 501",
+     "copy": false,
+     "link": true,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "E-mail",
+     "v": "office@ansp.gov.md",
+     "copy": false,
+     "link": true,
+     "tag": null,
+     "h": 40
+    }
+   ],
+   "cls": "e-permits-dosar-profil__section cab-section"
+  }
+ ],
+ "sm-04c@375": [
+  {
+   "title": "",
+   "rect": [
+    16,
+    556,
+    343,
+    112
+   ],
+   "text": "Depusă — finalizat 29 sept. 2026Anastasia Cojocaru Spre achitare — necesită acțiunea dumneavoastră Până la 17 oct. 2026MPay Examinare — urmează Decizie — urmează",
+   "cls": "e-permits-dosar-profil__section cab-section cab-status"
+  },
+  {
+   "title": "Date generale",
+   "rect": [
+    16,
+    724,
+    343,
+    499
+   ],
+   "rows": [
+    {
+     "l": "Numărul dosarului",
+     "v": "GEAP-2026-009-04431",
+     "copy": true,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Tipul dosarului",
+     "v": "Eliberare",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Denumirea serviciului",
+     "v": "Autorizația sanitară de funcționare",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Data depunerii",
+     "v": "29 septembrie 2026, 14:30",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Statutul dosarului",
+     "v": "Spre achitare",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Autoritatea",
+     "v": "Agenția Națională pentru Sănătate Publică",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Subdiviziunea de procesare",
+     "v": "CSP Cahul",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 59
+    }
+   ],
+   "cls": "e-permits-dosar-profil__section cab-section"
+  },
+  {
+   "title": "Istoric",
+   "rect": [
+    16,
+    1223,
+    343,
+    332
+   ],
+   "tl": {
+    "h": 268,
+    "items": [
+     {
+      "mod": "pending",
+      "icon": "icon-time-filled",
+      "title": "Notă de plată emisă",
+      "tags": [],
+      "stamp": "7 octombrie 2026, 09:00 · ANSP · CSP Cahul",
+      "text": [
+       [
+        "500,00 MDL de achitat până la 17 octombrie 2026.",
+        0
+       ]
+      ],
+      "h": 90
+     },
+     {
+      "mod": "success",
+      "icon": "icon-circle-checkmark-filled",
+      "title": "În examinare la autoritate",
+      "tags": [],
+      "stamp": "30 septembrie 2026 · ANSP · CSP Cahul",
+      "text": null,
+      "h": 46
+     },
+     {
+      "mod": "success",
+      "icon": "icon-circle-checkmark-filled",
+      "title": "Solicitare depusă",
+      "tags": [],
+      "stamp": "29 septembrie 2026, 14:30 · Anastasia Cojocaru · Solicitant",
+      "text": [
+       [
+        "Semnată prin MSign.",
+        0
+       ]
+      ],
+      "h": 80
+     }
+    ]
+   },
+   "cls": "e-permits-dosar-profil__section"
+  },
+  {
+   "title": "Ai nevoie de ajutor?",
+   "rect": [
+    16,
+    1555,
+    343,
+    259
+   ],
+   "rows": [
+    {
+     "l": "Autoritatea",
+     "v": "Agenția Națională pentru Sănătate Publică",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Telefon",
+     "v": "022 574 501",
+     "copy": false,
+     "link": true,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "E-mail",
+     "v": "office@ansp.gov.md",
+     "copy": false,
+     "link": true,
+     "tag": null,
+     "h": 59
+    }
+   ],
+   "cls": "e-permits-dosar-profil__section cab-section"
+  }
+ ],
+ "sm-04d@1440": [
+  {
+   "title": "",
+   "rect": [
+    120,
+    420,
+    1200,
+    154
+   ],
+   "text": "Depusă — finalizat 29 sept. 2026Anastasia Cojocaru Spre achitare — necesită acțiunea dumneavoastră Până la 17 oct. 2026MPay Examinare — urmează Decizie — urmează",
+   "cls": "e-permits-dosar-profil__section cab-section cab-status"
+  },
+  {
+   "title": "Date generale",
+   "rect": [
+    120,
+    638,
+    1200,
+    360
+   ],
+   "rows": [
+    {
+     "l": "Numărul dosarului",
+     "v": "GEAP-2026-009-04431",
+     "copy": true,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Tipul dosarului",
+     "v": "Eliberare",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Denumirea serviciului",
+     "v": "Autorizația sanitară de funcționare",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Data depunerii",
+     "v": "29 septembrie 2026, 14:30",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Statutul dosarului",
+     "v": "Spre achitare",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Autoritatea",
+     "v": "Agenția Națională pentru Sănătate Publică",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Subdiviziunea de procesare",
+     "v": "CSP Cahul",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    }
+   ],
+   "cls": "e-permits-dosar-profil__section cab-section"
+  },
+  {
+   "title": "Istoric",
+   "rect": [
+    120,
+    998,
+    1200,
+    296
+   ],
+   "tl": {
+    "h": 232,
+    "items": [
+     {
+      "mod": "pending",
+      "icon": "icon-time-filled",
+      "title": "Notă de plată emisă",
+      "tags": [],
+      "stamp": "7 octombrie 2026, 09:00 · ANSP · CSP Cahul",
+      "text": [
+       [
+        "500,00 MDL de achitat până la 17 octombrie 2026.",
+        0
+       ]
+      ],
+      "h": 70
+     },
+     {
+      "mod": "success",
+      "icon": "icon-circle-checkmark-filled",
+      "title": "În examinare la autoritate",
+      "tags": [],
+      "stamp": "30 septembrie 2026 · ANSP · CSP Cahul",
+      "text": null,
+      "h": 46
+     },
+     {
+      "mod": "success",
+      "icon": "icon-circle-checkmark-filled",
+      "title": "Solicitare depusă",
+      "tags": [],
+      "stamp": "29 septembrie 2026, 14:30 · Anastasia Cojocaru · Solicitant",
+      "text": [
+       [
+        "Semnată prin MSign.",
+        0
+       ]
+      ],
+      "h": 64
+     }
+    ]
+   },
+   "cls": "e-permits-dosar-profil__section"
+  },
+  {
+   "title": "Ai nevoie de ajutor?",
+   "rect": [
+    120,
+    1294,
+    1200,
+    200
+   ],
+   "rows": [
+    {
+     "l": "Autoritatea",
+     "v": "Agenția Națională pentru Sănătate Publică",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Telefon",
+     "v": "022 574 501",
+     "copy": false,
+     "link": true,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "E-mail",
+     "v": "office@ansp.gov.md",
+     "copy": false,
+     "link": true,
+     "tag": null,
+     "h": 40
+    }
+   ],
+   "cls": "e-permits-dosar-profil__section cab-section"
+  }
+ ],
+ "sm-04d@375": [
+  {
+   "title": "",
+   "rect": [
+    16,
+    556,
+    343,
+    112
+   ],
+   "text": "Depusă — finalizat 29 sept. 2026Anastasia Cojocaru Spre achitare — necesită acțiunea dumneavoastră Până la 17 oct. 2026MPay Examinare — urmează Decizie — urmează",
+   "cls": "e-permits-dosar-profil__section cab-section cab-status"
+  },
+  {
+   "title": "Date generale",
+   "rect": [
+    16,
+    724,
+    343,
+    499
+   ],
+   "rows": [
+    {
+     "l": "Numărul dosarului",
+     "v": "GEAP-2026-009-04431",
+     "copy": true,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Tipul dosarului",
+     "v": "Eliberare",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Denumirea serviciului",
+     "v": "Autorizația sanitară de funcționare",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Data depunerii",
+     "v": "29 septembrie 2026, 14:30",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Statutul dosarului",
+     "v": "Spre achitare",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Autoritatea",
+     "v": "Agenția Națională pentru Sănătate Publică",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Subdiviziunea de procesare",
+     "v": "CSP Cahul",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 59
+    }
+   ],
+   "cls": "e-permits-dosar-profil__section cab-section"
+  },
+  {
+   "title": "Istoric",
+   "rect": [
+    16,
+    1223,
+    343,
+    332
+   ],
+   "tl": {
+    "h": 268,
+    "items": [
+     {
+      "mod": "pending",
+      "icon": "icon-time-filled",
+      "title": "Notă de plată emisă",
+      "tags": [],
+      "stamp": "7 octombrie 2026, 09:00 · ANSP · CSP Cahul",
+      "text": [
+       [
+        "500,00 MDL de achitat până la 17 octombrie 2026.",
+        0
+       ]
+      ],
+      "h": 90
+     },
+     {
+      "mod": "success",
+      "icon": "icon-circle-checkmark-filled",
+      "title": "În examinare la autoritate",
+      "tags": [],
+      "stamp": "30 septembrie 2026 · ANSP · CSP Cahul",
+      "text": null,
+      "h": 46
+     },
+     {
+      "mod": "success",
+      "icon": "icon-circle-checkmark-filled",
+      "title": "Solicitare depusă",
+      "tags": [],
+      "stamp": "29 septembrie 2026, 14:30 · Anastasia Cojocaru · Solicitant",
+      "text": [
+       [
+        "Semnată prin MSign.",
+        0
+       ]
+      ],
+      "h": 80
+     }
+    ]
+   },
+   "cls": "e-permits-dosar-profil__section"
+  },
+  {
+   "title": "Ai nevoie de ajutor?",
+   "rect": [
+    16,
+    1555,
+    343,
+    259
+   ],
+   "rows": [
+    {
+     "l": "Autoritatea",
+     "v": "Agenția Națională pentru Sănătate Publică",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Telefon",
+     "v": "022 574 501",
+     "copy": false,
+     "link": true,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "E-mail",
+     "v": "office@ansp.gov.md",
+     "copy": false,
+     "link": true,
+     "tag": null,
+     "h": 59
+    }
+   ],
+   "cls": "e-permits-dosar-profil__section cab-section"
+  }
+ ],
+ "sm-04g@1440": [
+  {
+   "title": "",
+   "rect": [
+    120,
+    420,
+    1200,
+    154
+   ],
+   "text": "Depusă — finalizat 29 sept. 2026Anastasia Cojocaru Spre achitare — necesită acțiunea dumneavoastră Expirată 10 oct. 2026MPay Examinare — urmează Decizie — urmează",
+   "cls": "e-permits-dosar-profil__section cab-section cab-status"
+  },
+  {
+   "title": "Date generale",
+   "rect": [
+    120,
+    638,
+    1200,
+    360
+   ],
+   "rows": [
+    {
+     "l": "Numărul dosarului",
+     "v": "GEAP-2026-009-04431",
+     "copy": true,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Tipul dosarului",
+     "v": "Eliberare",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Denumirea serviciului",
+     "v": "Autorizația sanitară de funcționare",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Data depunerii",
+     "v": "29 septembrie 2026, 14:30",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Statutul dosarului",
+     "v": "Spre achitare",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Autoritatea",
+     "v": "Agenția Națională pentru Sănătate Publică",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Subdiviziunea de procesare",
+     "v": "CSP Cahul",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    }
+   ],
+   "cls": "e-permits-dosar-profil__section cab-section"
+  },
+  {
+   "title": "Istoric",
+   "rect": [
+    120,
+    998,
+    1200,
+    296
+   ],
+   "tl": {
+    "h": 232,
+    "items": [
+     {
+      "mod": "pending",
+      "icon": "icon-time-filled",
+      "title": "Notă de plată emisă",
+      "tags": [],
+      "stamp": "7 octombrie 2026, 09:00 · ANSP · CSP Cahul",
+      "text": [
+       [
+        "500,00 MDL. Termenul de achitare a expirat pe 10 octombrie 2026.",
+        0
+       ]
+      ],
+      "h": 70
+     },
+     {
+      "mod": "success",
+      "icon": "icon-circle-checkmark-filled",
+      "title": "În examinare la autoritate",
+      "tags": [],
+      "stamp": "30 septembrie 2026 · ANSP · CSP Cahul",
+      "text": null,
+      "h": 46
+     },
+     {
+      "mod": "success",
+      "icon": "icon-circle-checkmark-filled",
+      "title": "Solicitare depusă",
+      "tags": [],
+      "stamp": "29 septembrie 2026, 14:30 · Anastasia Cojocaru · Solicitant",
+      "text": [
+       [
+        "Semnată prin MSign.",
+        0
+       ]
+      ],
+      "h": 64
+     }
+    ]
+   },
+   "cls": "e-permits-dosar-profil__section"
+  },
+  {
+   "title": "Ai nevoie de ajutor?",
+   "rect": [
+    120,
+    1294,
+    1200,
+    200
+   ],
+   "rows": [
+    {
+     "l": "Autoritatea",
+     "v": "Agenția Națională pentru Sănătate Publică",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Telefon",
+     "v": "022 574 501",
+     "copy": false,
+     "link": true,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "E-mail",
+     "v": "office@ansp.gov.md",
+     "copy": false,
+     "link": true,
+     "tag": null,
+     "h": 40
+    }
+   ],
+   "cls": "e-permits-dosar-profil__section cab-section"
+  }
+ ],
+ "sm-04g@375": [
+  {
+   "title": "",
+   "rect": [
+    16,
+    456,
+    343,
+    112
+   ],
+   "text": "Depusă — finalizat 29 sept. 2026Anastasia Cojocaru Spre achitare — necesită acțiunea dumneavoastră Expirată 10 oct. 2026MPay Examinare — urmează Decizie — urmează",
+   "cls": "e-permits-dosar-profil__section cab-section cab-status"
+  },
+  {
+   "title": "Date generale",
+   "rect": [
+    16,
+    624,
+    343,
+    499
+   ],
+   "rows": [
+    {
+     "l": "Numărul dosarului",
+     "v": "GEAP-2026-009-04431",
+     "copy": true,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Tipul dosarului",
+     "v": "Eliberare",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Denumirea serviciului",
+     "v": "Autorizația sanitară de funcționare",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Data depunerii",
+     "v": "29 septembrie 2026, 14:30",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Statutul dosarului",
+     "v": "Spre achitare",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Autoritatea",
+     "v": "Agenția Națională pentru Sănătate Publică",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Subdiviziunea de procesare",
+     "v": "CSP Cahul",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 59
+    }
+   ],
+   "cls": "e-permits-dosar-profil__section cab-section"
+  },
+  {
+   "title": "Istoric",
+   "rect": [
+    16,
+    1123,
+    343,
+    332
+   ],
+   "tl": {
+    "h": 268,
+    "items": [
+     {
+      "mod": "pending",
+      "icon": "icon-time-filled",
+      "title": "Notă de plată emisă",
+      "tags": [],
+      "stamp": "7 octombrie 2026, 09:00 · ANSP · CSP Cahul",
+      "text": [
+       [
+        "500,00 MDL. Termenul de achitare a expirat pe 10 octombrie 2026.",
+        0
+       ]
+      ],
+      "h": 90
+     },
+     {
+      "mod": "success",
+      "icon": "icon-circle-checkmark-filled",
+      "title": "În examinare la autoritate",
+      "tags": [],
+      "stamp": "30 septembrie 2026 · ANSP · CSP Cahul",
+      "text": null,
+      "h": 46
+     },
+     {
+      "mod": "success",
+      "icon": "icon-circle-checkmark-filled",
+      "title": "Solicitare depusă",
+      "tags": [],
+      "stamp": "29 septembrie 2026, 14:30 · Anastasia Cojocaru · Solicitant",
+      "text": [
+       [
+        "Semnată prin MSign.",
+        0
+       ]
+      ],
+      "h": 80
+     }
+    ]
+   },
+   "cls": "e-permits-dosar-profil__section"
+  },
+  {
+   "title": "Ai nevoie de ajutor?",
+   "rect": [
+    16,
+    1455,
+    343,
+    259
+   ],
+   "rows": [
+    {
+     "l": "Autoritatea",
+     "v": "Agenția Națională pentru Sănătate Publică",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Telefon",
+     "v": "022 574 501",
+     "copy": false,
+     "link": true,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "E-mail",
+     "v": "office@ansp.gov.md",
+     "copy": false,
+     "link": true,
+     "tag": null,
+     "h": 59
+    }
+   ],
+   "cls": "e-permits-dosar-profil__section cab-section"
+  }
+ ],
+ "sm-05@1440": [
+  {
+   "title": "",
+   "rect": [
+    120,
+    480,
+    1200,
+    154
+   ],
+   "text": "Depusă — finalizat 18 aug. 2025Anastasia Cojocaru Examinare — finalizat 15 sept. 2025CSP Bălți Aprobată — finalizat 15 sept. 2025Emisă de Ion Ceban",
+   "cls": "e-permits-dosar-profil__section cab-section cab-status"
+  },
+  {
+   "title": "Date generale",
+   "rect": [
+    120,
+    698,
+    1200,
+    440
+   ],
+   "rows": [
+    {
+     "l": "Numărul dosarului",
+     "v": "GEAP-2025-009-03187",
+     "copy": true,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Tipul dosarului",
+     "v": "Eliberare",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Denumirea serviciului",
+     "v": "Autorizația sanitară de funcționare",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Data depunerii",
+     "v": "18 august 2025, 12:10",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Termenul de examinare",
+     "v": "8 septembrie 2025",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Statutul dosarului",
+     "v": "Aprobat (finalizată)",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Autoritatea",
+     "v": "Agenția Națională pentru Sănătate Publică",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Subdiviziunea de procesare",
+     "v": "CSP Bălți",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Nr. actului generat",
+     "v": "ASF-2026-04521",
+     "copy": true,
+     "link": false,
+     "tag": null,
+     "h": 40
+    }
+   ],
+   "cls": "e-permits-dosar-profil__section cab-section"
+  },
+  {
+   "title": "Istoric",
+   "rect": [
+    120,
+    1138,
+    1200,
+    296
+   ],
+   "tl": {
+    "h": 232,
+    "items": [
+     {
+      "mod": "success",
+      "icon": "icon-circle-checkmark-filled",
+      "title": "Solicitare aprobată",
+      "tags": [],
+      "stamp": "15 septembrie 2025 · ANSP · CSP Bălți",
+      "text": [
+       [
+        "Actul permisiv a fost semnat și emis.",
+        0
+       ]
+      ],
+      "h": 70
+     },
+     {
+      "mod": "success",
+      "icon": "icon-circle-checkmark-filled",
+      "title": "În examinare la autoritate",
+      "tags": [],
+      "stamp": "19 august 2025 · ANSP · CSP Bălți",
+      "text": null,
+      "h": 46
+     },
+     {
+      "mod": "success",
+      "icon": "icon-circle-checkmark-filled",
+      "title": "Solicitare depusă",
+      "tags": [],
+      "stamp": "18 august 2025, 12:10 · Anastasia Cojocaru · Solicitant",
+      "text": [
+       [
+        "Semnată prin MSign. Taxa de 500,00 MDL a fost achitată prin MPay.",
+        0
+       ]
+      ],
+      "h": 64
+     }
+    ]
+   },
+   "cls": "e-permits-dosar-profil__section"
+  },
+  {
+   "title": "Ai nevoie de ajutor?",
+   "rect": [
+    120,
+    1434,
+    1200,
+    200
+   ],
+   "rows": [
+    {
+     "l": "Autoritatea",
+     "v": "Agenția Națională pentru Sănătate Publică",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Telefon",
+     "v": "022 574 501",
+     "copy": false,
+     "link": true,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "E-mail",
+     "v": "office@ansp.gov.md",
+     "copy": false,
+     "link": true,
+     "tag": null,
+     "h": 40
+    }
+   ],
+   "cls": "e-permits-dosar-profil__section cab-section"
+  }
+ ],
+ "sm-05@375": [
+  {
+   "title": "",
+   "rect": [
+    16,
+    540,
+    343,
+    92
+   ],
+   "text": "Depusă — finalizat 18 aug. 2025Anastasia Cojocaru Examinare — finalizat 15 sept. 2025CSP Bălți Aprobată — finalizat 15 sept. 2025Emisă de Ion Ceban",
+   "cls": "e-permits-dosar-profil__section cab-section cab-status"
+  },
+  {
+   "title": "Date generale",
+   "rect": [
+    16,
+    688,
+    343,
+    619
+   ],
+   "rows": [
+    {
+     "l": "Numărul dosarului",
+     "v": "GEAP-2025-009-03187",
+     "copy": true,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Tipul dosarului",
+     "v": "Eliberare",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Denumirea serviciului",
+     "v": "Autorizația sanitară de funcționare",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Data depunerii",
+     "v": "18 august 2025, 12:10",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Termenul de examinare",
+     "v": "8 septembrie 2025",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Statutul dosarului",
+     "v": "Aprobat (finalizată)",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Autoritatea",
+     "v": "Agenția Națională pentru Sănătate Publică",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Subdiviziunea de procesare",
+     "v": "CSP Bălți",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Nr. actului generat",
+     "v": "ASF-2026-04521",
+     "copy": true,
+     "link": false,
+     "tag": null,
+     "h": 59
+    }
+   ],
+   "cls": "e-permits-dosar-profil__section cab-section"
+  },
+  {
+   "title": "Istoric",
+   "rect": [
+    16,
+    1307,
+    343,
+    332
+   ],
+   "tl": {
+    "h": 268,
+    "items": [
+     {
+      "mod": "success",
+      "icon": "icon-circle-checkmark-filled",
+      "title": "Solicitare aprobată",
+      "tags": [],
+      "stamp": "15 septembrie 2025 · ANSP · CSP Bălți",
+      "text": [
+       [
+        "Actul permisiv a fost semnat și emis.",
+        0
+       ]
+      ],
+      "h": 70
+     },
+     {
+      "mod": "success",
+      "icon": "icon-circle-checkmark-filled",
+      "title": "În examinare la autoritate",
+      "tags": [],
+      "stamp": "19 august 2025 · ANSP · CSP Bălți",
+      "text": null,
+      "h": 46
+     },
+     {
+      "mod": "success",
+      "icon": "icon-circle-checkmark-filled",
+      "title": "Solicitare depusă",
+      "tags": [],
+      "stamp": "18 august 2025, 12:10 · Anastasia Cojocaru · Solicitant",
+      "text": [
+       [
+        "Semnată prin MSign. Taxa de 500,00 MDL a fost achitată prin MPay.",
+        0
+       ]
+      ],
+      "h": 100
+     }
+    ]
+   },
+   "cls": "e-permits-dosar-profil__section"
+  },
+  {
+   "title": "Ai nevoie de ajutor?",
+   "rect": [
+    16,
+    1639,
+    343,
+    259
+   ],
+   "rows": [
+    {
+     "l": "Autoritatea",
+     "v": "Agenția Națională pentru Sănătate Publică",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Telefon",
+     "v": "022 574 501",
+     "copy": false,
+     "link": true,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "E-mail",
+     "v": "office@ansp.gov.md",
+     "copy": false,
+     "link": true,
+     "tag": null,
+     "h": 59
+    }
+   ],
+   "cls": "e-permits-dosar-profil__section cab-section"
+  }
+ ],
+ "sm-05a@1440": [
+  {
+   "title": "",
+   "rect": [
+    120,
+    500,
+    1200,
+    154
+   ],
+   "text": "Depusă — finalizat 20 aug. 2026Anastasia Cojocaru Examinare — finalizat 25 sept. 2026CSP Orhei Respinsă — finalizat 25 sept. 2026Emisă de Elena Rotaru",
+   "cls": "e-permits-dosar-profil__section cab-section cab-status"
+  },
+  {
+   "title": "Date generale",
+   "rect": [
+    120,
+    718,
+    1200,
+    400
+   ],
+   "rows": [
+    {
+     "l": "Numărul dosarului",
+     "v": "GEAP-2026-009-04254",
+     "copy": true,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Tipul dosarului",
+     "v": "Eliberare",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Denumirea serviciului",
+     "v": "Autorizația sanitară de funcționare",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Data depunerii",
+     "v": "20 august 2026, 10:00",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Termenul de examinare",
+     "v": "10 septembrie 2026",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Statutul dosarului",
+     "v": "Respins (finalizată)",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Autoritatea",
+     "v": "Agenția Națională pentru Sănătate Publică",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Subdiviziunea de procesare",
+     "v": "CSP Orhei",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    }
+   ],
+   "cls": "e-permits-dosar-profil__section cab-section"
+  },
+  {
+   "title": "Istoric",
+   "rect": [
+    120,
+    1118,
+    1200,
+    296
+   ],
+   "tl": {
+    "h": 232,
+    "items": [
+     {
+      "mod": "danger",
+      "icon": "icon-circle-error-filled",
+      "title": "Solicitare respinsă",
+      "tags": [],
+      "stamp": "25 septembrie 2026 · ANSP · CSP Orhei",
+      "text": [
+       [
+        "Decizia de refuz a fost semnată și comunicată.",
+        0
+       ]
+      ],
+      "h": 70
+     },
+     {
+      "mod": "success",
+      "icon": "icon-circle-checkmark-filled",
+      "title": "În examinare la autoritate",
+      "tags": [],
+      "stamp": "21 august 2026 · ANSP · CSP Orhei",
+      "text": null,
+      "h": 46
+     },
+     {
+      "mod": "success",
+      "icon": "icon-circle-checkmark-filled",
+      "title": "Solicitare depusă",
+      "tags": [],
+      "stamp": "20 august 2026, 10:00 · Anastasia Cojocaru · Solicitant",
+      "text": [
+       [
+        "Semnată prin MSign. Taxa de 500,00 MDL a fost achitată prin MPay.",
+        0
+       ]
+      ],
+      "h": 64
+     }
+    ]
+   },
+   "cls": "e-permits-dosar-profil__section"
+  },
+  {
+   "title": "Ai nevoie de ajutor?",
+   "rect": [
+    120,
+    1414,
+    1200,
+    200
+   ],
+   "rows": [
+    {
+     "l": "Autoritatea",
+     "v": "Agenția Națională pentru Sănătate Publică",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Telefon",
+     "v": "022 574 501",
+     "copy": false,
+     "link": true,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "E-mail",
+     "v": "office@ansp.gov.md",
+     "copy": false,
+     "link": true,
+     "tag": null,
+     "h": 40
+    }
+   ],
+   "cls": "e-permits-dosar-profil__section cab-section"
+  }
+ ],
+ "sm-05a@375": [
+  {
+   "title": "",
+   "rect": [
+    16,
+    600,
+    343,
+    92
+   ],
+   "text": "Depusă — finalizat 20 aug. 2026Anastasia Cojocaru Examinare — finalizat 25 sept. 2026CSP Orhei Respinsă — finalizat 25 sept. 2026Emisă de Elena Rotaru",
+   "cls": "e-permits-dosar-profil__section cab-section cab-status"
+  },
+  {
+   "title": "Date generale",
+   "rect": [
+    16,
+    748,
+    343,
+    559
+   ],
+   "rows": [
+    {
+     "l": "Numărul dosarului",
+     "v": "GEAP-2026-009-04254",
+     "copy": true,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Tipul dosarului",
+     "v": "Eliberare",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Denumirea serviciului",
+     "v": "Autorizația sanitară de funcționare",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Data depunerii",
+     "v": "20 august 2026, 10:00",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Termenul de examinare",
+     "v": "10 septembrie 2026",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Statutul dosarului",
+     "v": "Respins (finalizată)",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Autoritatea",
+     "v": "Agenția Națională pentru Sănătate Publică",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Subdiviziunea de procesare",
+     "v": "CSP Orhei",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 59
+    }
+   ],
+   "cls": "e-permits-dosar-profil__section cab-section"
+  },
+  {
+   "title": "Istoric",
+   "rect": [
+    16,
+    1307,
+    343,
+    352
+   ],
+   "tl": {
+    "h": 288,
+    "items": [
+     {
+      "mod": "danger",
+      "icon": "icon-circle-error-filled",
+      "title": "Solicitare respinsă",
+      "tags": [],
+      "stamp": "25 septembrie 2026 · ANSP · CSP Orhei",
+      "text": [
+       [
+        "Decizia de refuz a fost semnată și comunicată.",
+        0
+       ]
+      ],
+      "h": 90
+     },
+     {
+      "mod": "success",
+      "icon": "icon-circle-checkmark-filled",
+      "title": "În examinare la autoritate",
+      "tags": [],
+      "stamp": "21 august 2026 · ANSP · CSP Orhei",
+      "text": null,
+      "h": 46
+     },
+     {
+      "mod": "success",
+      "icon": "icon-circle-checkmark-filled",
+      "title": "Solicitare depusă",
+      "tags": [],
+      "stamp": "20 august 2026, 10:00 · Anastasia Cojocaru · Solicitant",
+      "text": [
+       [
+        "Semnată prin MSign. Taxa de 500,00 MDL a fost achitată prin MPay.",
+        0
+       ]
+      ],
+      "h": 100
+     }
+    ]
+   },
+   "cls": "e-permits-dosar-profil__section"
+  },
+  {
+   "title": "Ai nevoie de ajutor?",
+   "rect": [
+    16,
+    1659,
+    343,
+    259
+   ],
+   "rows": [
+    {
+     "l": "Autoritatea",
+     "v": "Agenția Națională pentru Sănătate Publică",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Telefon",
+     "v": "022 574 501",
+     "copy": false,
+     "link": true,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "E-mail",
+     "v": "office@ansp.gov.md",
+     "copy": false,
+     "link": true,
+     "tag": null,
+     "h": 59
+    }
+   ],
+   "cls": "e-permits-dosar-profil__section cab-section"
+  }
+ ],
+ "sm-05b@1440": [
+  {
+   "title": "",
+   "rect": [
+    120,
+    480,
+    1200,
+    154
+   ],
+   "text": "Depusă — finalizat 12 sept. 2026Anastasia Cojocaru Examinare — finalizat 2 oct. 2026CSP Soroca Aprobată — finalizat 2 oct. 2026Emisă de Elena Rotaru",
+   "cls": "e-permits-dosar-profil__section cab-section cab-status"
+  },
+  {
+   "title": "Date generale",
+   "rect": [
+    120,
+    698,
+    1200,
+    440
+   ],
+   "rows": [
+    {
+     "l": "Numărul dosarului",
+     "v": "GEAP-2026-009-04120",
+     "copy": true,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Tipul dosarului",
+     "v": "Retragere",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Denumirea serviciului",
+     "v": "Autorizația sanitară de funcționare",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Data depunerii",
+     "v": "12 septembrie 2026, 08:30",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Termenul de examinare",
+     "v": "14 septembrie 2026",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Statutul dosarului",
+     "v": "Aprobat (finalizată)",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Autoritatea",
+     "v": "Agenția Națională pentru Sănătate Publică",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Subdiviziunea de procesare",
+     "v": "CSP Soroca",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Nr. actului anterior",
+     "v": "ASF-2024-07740",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    }
+   ],
+   "cls": "e-permits-dosar-profil__section cab-section"
+  },
+  {
+   "title": "Istoric",
+   "rect": [
+    120,
+    1138,
+    1200,
+    296
+   ],
+   "tl": {
+    "h": 232,
+    "items": [
+     {
+      "mod": "success",
+      "icon": "icon-circle-checkmark-filled",
+      "title": "Solicitare aprobată",
+      "tags": [],
+      "stamp": "2 octombrie 2026 · ANSP · CSP Soroca",
+      "text": [
+       [
+        "Decizia a fost semnată; starea actului a fost actualizată.",
+        0
+       ]
+      ],
+      "h": 70
+     },
+     {
+      "mod": "success",
+      "icon": "icon-circle-checkmark-filled",
+      "title": "În examinare la autoritate",
+      "tags": [],
+      "stamp": "13 septembrie 2026 · ANSP · CSP Soroca",
+      "text": null,
+      "h": 46
+     },
+     {
+      "mod": "success",
+      "icon": "icon-circle-checkmark-filled",
+      "title": "Solicitare depusă",
+      "tags": [],
+      "stamp": "12 septembrie 2026, 08:30 · Anastasia Cojocaru · Solicitant",
+      "text": [
+       [
+        "Semnată prin MSign.",
+        0
+       ]
+      ],
+      "h": 64
+     }
+    ]
+   },
+   "cls": "e-permits-dosar-profil__section"
+  },
+  {
+   "title": "Ai nevoie de ajutor?",
+   "rect": [
+    120,
+    1434,
+    1200,
+    200
+   ],
+   "rows": [
+    {
+     "l": "Autoritatea",
+     "v": "Agenția Națională pentru Sănătate Publică",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Telefon",
+     "v": "022 574 501",
+     "copy": false,
+     "link": true,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "E-mail",
+     "v": "office@ansp.gov.md",
+     "copy": false,
+     "link": true,
+     "tag": null,
+     "h": 40
+    }
+   ],
+   "cls": "e-permits-dosar-profil__section cab-section"
+  }
+ ],
+ "sm-05b@375": [
+  {
+   "title": "",
+   "rect": [
+    16,
+    580,
+    343,
+    92
+   ],
+   "text": "Depusă — finalizat 12 sept. 2026Anastasia Cojocaru Examinare — finalizat 2 oct. 2026CSP Soroca Aprobată — finalizat 2 oct. 2026Emisă de Elena Rotaru",
+   "cls": "e-permits-dosar-profil__section cab-section cab-status"
+  },
+  {
+   "title": "Date generale",
+   "rect": [
+    16,
+    728,
+    343,
+    619
+   ],
+   "rows": [
+    {
+     "l": "Numărul dosarului",
+     "v": "GEAP-2026-009-04120",
+     "copy": true,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Tipul dosarului",
+     "v": "Retragere",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Denumirea serviciului",
+     "v": "Autorizația sanitară de funcționare",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Data depunerii",
+     "v": "12 septembrie 2026, 08:30",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Termenul de examinare",
+     "v": "14 septembrie 2026",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Statutul dosarului",
+     "v": "Aprobat (finalizată)",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Autoritatea",
+     "v": "Agenția Națională pentru Sănătate Publică",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Subdiviziunea de procesare",
+     "v": "CSP Soroca",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Nr. actului anterior",
+     "v": "ASF-2024-07740",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 59
+    }
+   ],
+   "cls": "e-permits-dosar-profil__section cab-section"
+  },
+  {
+   "title": "Istoric",
+   "rect": [
+    16,
+    1347,
+    343,
+    332
+   ],
+   "tl": {
+    "h": 268,
+    "items": [
+     {
+      "mod": "success",
+      "icon": "icon-circle-checkmark-filled",
+      "title": "Solicitare aprobată",
+      "tags": [],
+      "stamp": "2 octombrie 2026 · ANSP · CSP Soroca",
+      "text": [
+       [
+        "Decizia a fost semnată; starea actului a fost actualizată.",
+        0
+       ]
+      ],
+      "h": 90
+     },
+     {
+      "mod": "success",
+      "icon": "icon-circle-checkmark-filled",
+      "title": "În examinare la autoritate",
+      "tags": [],
+      "stamp": "13 septembrie 2026 · ANSP · CSP Soroca",
+      "text": null,
+      "h": 46
+     },
+     {
+      "mod": "success",
+      "icon": "icon-circle-checkmark-filled",
+      "title": "Solicitare depusă",
+      "tags": [],
+      "stamp": "12 septembrie 2026, 08:30 · Anastasia Cojocaru · Solicitant",
+      "text": [
+       [
+        "Semnată prin MSign.",
+        0
+       ]
+      ],
+      "h": 80
+     }
+    ]
+   },
+   "cls": "e-permits-dosar-profil__section"
+  },
+  {
+   "title": "Ai nevoie de ajutor?",
+   "rect": [
+    16,
+    1679,
+    343,
+    259
+   ],
+   "rows": [
+    {
+     "l": "Autoritatea",
+     "v": "Agenția Națională pentru Sănătate Publică",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Telefon",
+     "v": "022 574 501",
+     "copy": false,
+     "link": true,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "E-mail",
+     "v": "office@ansp.gov.md",
+     "copy": false,
+     "link": true,
+     "tag": null,
+     "h": 59
+    }
+   ],
+   "cls": "e-permits-dosar-profil__section cab-section"
+  }
+ ],
+ "sm-05w@1440": [
+  {
+   "title": "",
+   "rect": [
+    120,
+    544,
+    1200,
+    154
+   ],
+   "text": "Depusă — finalizat 18 aug. 2025Anastasia Cojocaru Examinare — finalizat 15 sept. 2025CSP Bălți Aprobată — finalizat 15 sept. 2025Emisă de Ion Ceban",
+   "cls": "e-permits-dosar-profil__section cab-section cab-status"
+  },
+  {
+   "title": "Date generale",
+   "rect": [
+    120,
+    762,
+    1200,
+    456
+   ],
+   "rows": [
+    {
+     "l": "Numărul dosarului",
+     "v": "GEAP-2025-009-03187",
+     "copy": true,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Tipul dosarului",
+     "v": "Eliberare",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Denumirea serviciului",
+     "v": "Licență pentru fabricarea alcoolului etilic, a berii și a producției alcoolice, cu excepția vinului, produselor obținute pe bază de must și a produselor a căror fabricare este autorizată în conformitate cu Legea viei și vinului nr. 57/2006",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 56
+    },
+    {
+     "l": "Data depunerii",
+     "v": "18 august 2025, 12:10",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Termenul de examinare",
+     "v": "8 septembrie 2025",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Statutul dosarului",
+     "v": "Aprobat (finalizată)",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Autoritatea",
+     "v": "Agenția Națională pentru Sănătate Publică",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Subdiviziunea de procesare",
+     "v": "CSP Bălți",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Nr. actului generat",
+     "v": "ASF-2026-04521",
+     "copy": true,
+     "link": false,
+     "tag": null,
+     "h": 40
+    }
+   ],
+   "cls": "e-permits-dosar-profil__section cab-section"
+  },
+  {
+   "title": "Istoric",
+   "rect": [
+    120,
+    1218,
+    1200,
+    296
+   ],
+   "tl": {
+    "h": 232,
+    "items": [
+     {
+      "mod": "success",
+      "icon": "icon-circle-checkmark-filled",
+      "title": "Solicitare aprobată",
+      "tags": [],
+      "stamp": "15 septembrie 2025 · ANSP · CSP Bălți",
+      "text": [
+       [
+        "Actul permisiv a fost semnat și emis.",
+        0
+       ]
+      ],
+      "h": 70
+     },
+     {
+      "mod": "success",
+      "icon": "icon-circle-checkmark-filled",
+      "title": "În examinare la autoritate",
+      "tags": [],
+      "stamp": "19 august 2025 · ANSP · CSP Bălți",
+      "text": null,
+      "h": 46
+     },
+     {
+      "mod": "success",
+      "icon": "icon-circle-checkmark-filled",
+      "title": "Solicitare depusă",
+      "tags": [],
+      "stamp": "18 august 2025, 12:10 · Anastasia Cojocaru · Solicitant",
+      "text": [
+       [
+        "Semnată prin MSign. Taxa de 500,00 MDL a fost achitată prin MPay.",
+        0
+       ]
+      ],
+      "h": 64
+     }
+    ]
+   },
+   "cls": "e-permits-dosar-profil__section"
+  },
+  {
+   "title": "Ai nevoie de ajutor?",
+   "rect": [
+    120,
+    1514,
+    1200,
+    200
+   ],
+   "rows": [
+    {
+     "l": "Autoritatea",
+     "v": "Agenția Națională pentru Sănătate Publică",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Telefon",
+     "v": "022 574 501",
+     "copy": false,
+     "link": true,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "E-mail",
+     "v": "office@ansp.gov.md",
+     "copy": false,
+     "link": true,
+     "tag": null,
+     "h": 40
+    }
+   ],
+   "cls": "e-permits-dosar-profil__section cab-section"
+  }
+ ],
+ "sm-05w@375": [
+  {
+   "title": "",
+   "rect": [
+    16,
+    648,
+    343,
+    92
+   ],
+   "text": "Depusă — finalizat 18 aug. 2025Anastasia Cojocaru Examinare — finalizat 15 sept. 2025CSP Bălți Aprobată — finalizat 15 sept. 2025Emisă de Ion Ceban",
+   "cls": "e-permits-dosar-profil__section cab-section cab-status"
+  },
+  {
+   "title": "Date generale",
+   "rect": [
+    16,
+    796,
+    343,
+    719
+   ],
+   "rows": [
+    {
+     "l": "Numărul dosarului",
+     "v": "GEAP-2025-009-03187",
+     "copy": true,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Tipul dosarului",
+     "v": "Eliberare",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Denumirea serviciului",
+     "v": "Licență pentru fabricarea alcoolului etilic, a berii și a producției alcoolice, cu excepția vinului, produselor obținute pe bază de must și a produselor a căror fabricare este autorizată în conformitate cu Legea viei și vinului nr. 57/2006",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 160
+    },
+    {
+     "l": "Data depunerii",
+     "v": "18 august 2025, 12:10",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Termenul de examinare",
+     "v": "8 septembrie 2025",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Statutul dosarului",
+     "v": "Aprobat (finalizată)",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Autoritatea",
+     "v": "Agenția Națională pentru Sănătate Publică",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Subdiviziunea de procesare",
+     "v": "CSP Bălți",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Nr. actului generat",
+     "v": "ASF-2026-04521",
+     "copy": true,
+     "link": false,
+     "tag": null,
+     "h": 59
+    }
+   ],
+   "cls": "e-permits-dosar-profil__section cab-section"
+  },
+  {
+   "title": "Istoric",
+   "rect": [
+    16,
+    1515,
+    343,
+    332
+   ],
+   "tl": {
+    "h": 268,
+    "items": [
+     {
+      "mod": "success",
+      "icon": "icon-circle-checkmark-filled",
+      "title": "Solicitare aprobată",
+      "tags": [],
+      "stamp": "15 septembrie 2025 · ANSP · CSP Bălți",
+      "text": [
+       [
+        "Actul permisiv a fost semnat și emis.",
+        0
+       ]
+      ],
+      "h": 70
+     },
+     {
+      "mod": "success",
+      "icon": "icon-circle-checkmark-filled",
+      "title": "În examinare la autoritate",
+      "tags": [],
+      "stamp": "19 august 2025 · ANSP · CSP Bălți",
+      "text": null,
+      "h": 46
+     },
+     {
+      "mod": "success",
+      "icon": "icon-circle-checkmark-filled",
+      "title": "Solicitare depusă",
+      "tags": [],
+      "stamp": "18 august 2025, 12:10 · Anastasia Cojocaru · Solicitant",
+      "text": [
+       [
+        "Semnată prin MSign. Taxa de 500,00 MDL a fost achitată prin MPay.",
+        0
+       ]
+      ],
+      "h": 100
+     }
+    ]
+   },
+   "cls": "e-permits-dosar-profil__section"
+  },
+  {
+   "title": "Ai nevoie de ajutor?",
+   "rect": [
+    16,
+    1847,
+    343,
+    259
+   ],
+   "rows": [
+    {
+     "l": "Autoritatea",
+     "v": "Agenția Națională pentru Sănătate Publică",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Telefon",
+     "v": "022 574 501",
+     "copy": false,
+     "link": true,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "E-mail",
+     "v": "office@ansp.gov.md",
+     "copy": false,
+     "link": true,
+     "tag": null,
+     "h": 59
+    }
+   ],
+   "cls": "e-permits-dosar-profil__section cab-section"
+  }
+ ],
+ "sm-05u@1440": [
+  {
+   "title": "",
+   "rect": [
+    120,
+    480,
+    1200,
+    154
+   ],
+   "text": "Depusă — finalizat 10 feb. 2021Anastasia Cojocaru Examinare — finalizat 2 mar. 2021CSP Orhei Aprobată tacit — finalizat 2 mar. 2021Emisă de Ion Ceban",
+   "cls": "e-permits-dosar-profil__section cab-section cab-status"
+  },
+  {
+   "title": "Date generale",
+   "rect": [
+    120,
+    698,
+    1200,
+    440
+   ],
+   "rows": [
+    {
+     "l": "Numărul dosarului",
+     "v": "GEAP-2021-009-00421",
+     "copy": true,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Tipul dosarului",
+     "v": "Eliberare",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Denumirea serviciului",
+     "v": "Autorizația sanitară de funcționare",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Data depunerii",
+     "v": "10 februarie 2021, 09:00",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Termenul de examinare",
+     "v": "3 martie 2021",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Statutul dosarului",
+     "v": "Aprobat tacit (finalizată)",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Autoritatea",
+     "v": "Agenția Națională pentru Sănătate Publică",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Subdiviziunea de procesare",
+     "v": "CSP Orhei",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Nr. actului generat",
+     "v": "ASF-2021-01877",
+     "copy": true,
+     "link": false,
+     "tag": null,
+     "h": 40
+    }
+   ],
+   "cls": "e-permits-dosar-profil__section cab-section"
+  },
+  {
+   "title": "Istoric",
+   "rect": [
+    120,
+    1138,
+    1200,
+    296
+   ],
+   "tl": {
+    "h": 232,
+    "items": [
+     {
+      "mod": "success",
+      "icon": "icon-circle-checkmark-filled",
+      "title": "Solicitare aprobată",
+      "tags": [],
+      "stamp": "2 martie 2021 · ANSP · CSP Orhei",
+      "text": [
+       [
+        "Actul permisiv a fost semnat și emis.",
+        0
+       ]
+      ],
+      "h": 70
+     },
+     {
+      "mod": "success",
+      "icon": "icon-circle-checkmark-filled",
+      "title": "În examinare la autoritate",
+      "tags": [],
+      "stamp": "11 februarie 2021 · ANSP · CSP Orhei",
+      "text": null,
+      "h": 46
+     },
+     {
+      "mod": "success",
+      "icon": "icon-circle-checkmark-filled",
+      "title": "Solicitare depusă",
+      "tags": [],
+      "stamp": "10 februarie 2021, 09:00 · Anastasia Cojocaru · Solicitant",
+      "text": [
+       [
+        "Semnată prin MSign. Taxa de 500,00 MDL a fost achitată prin MPay.",
+        0
+       ]
+      ],
+      "h": 64
+     }
+    ]
+   },
+   "cls": "e-permits-dosar-profil__section"
+  },
+  {
+   "title": "Ai nevoie de ajutor?",
+   "rect": [
+    120,
+    1434,
+    1200,
+    200
+   ],
+   "rows": [
+    {
+     "l": "Autoritatea",
+     "v": "Agenția Națională pentru Sănătate Publică",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Telefon",
+     "v": "022 574 501",
+     "copy": false,
+     "link": true,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "E-mail",
+     "v": "office@ansp.gov.md",
+     "copy": false,
+     "link": true,
+     "tag": null,
+     "h": 40
+    }
+   ],
+   "cls": "e-permits-dosar-profil__section cab-section"
+  }
+ ],
+ "sm-05u@375": [
+  {
+   "title": "",
+   "rect": [
+    16,
+    536,
+    343,
+    92
+   ],
+   "text": "Depusă — finalizat 10 feb. 2021Anastasia Cojocaru Examinare — finalizat 2 mar. 2021CSP Orhei Aprobată tacit — finalizat 2 mar. 2021Emisă de Ion Ceban",
+   "cls": "e-permits-dosar-profil__section cab-section cab-status"
+  },
+  {
+   "title": "Date generale",
+   "rect": [
+    16,
+    684,
+    343,
+    619
+   ],
+   "rows": [
+    {
+     "l": "Numărul dosarului",
+     "v": "GEAP-2021-009-00421",
+     "copy": true,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Tipul dosarului",
+     "v": "Eliberare",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Denumirea serviciului",
+     "v": "Autorizația sanitară de funcționare",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Data depunerii",
+     "v": "10 februarie 2021, 09:00",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Termenul de examinare",
+     "v": "3 martie 2021",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Statutul dosarului",
+     "v": "Aprobat tacit (finalizată)",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Autoritatea",
+     "v": "Agenția Națională pentru Sănătate Publică",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Subdiviziunea de procesare",
+     "v": "CSP Orhei",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Nr. actului generat",
+     "v": "ASF-2021-01877",
+     "copy": true,
+     "link": false,
+     "tag": null,
+     "h": 59
+    }
+   ],
+   "cls": "e-permits-dosar-profil__section cab-section"
+  },
+  {
+   "title": "Istoric",
+   "rect": [
+    16,
+    1303,
+    343,
+    332
+   ],
+   "tl": {
+    "h": 268,
+    "items": [
+     {
+      "mod": "success",
+      "icon": "icon-circle-checkmark-filled",
+      "title": "Solicitare aprobată",
+      "tags": [],
+      "stamp": "2 martie 2021 · ANSP · CSP Orhei",
+      "text": [
+       [
+        "Actul permisiv a fost semnat și emis.",
+        0
+       ]
+      ],
+      "h": 70
+     },
+     {
+      "mod": "success",
+      "icon": "icon-circle-checkmark-filled",
+      "title": "În examinare la autoritate",
+      "tags": [],
+      "stamp": "11 februarie 2021 · ANSP · CSP Orhei",
+      "text": null,
+      "h": 46
+     },
+     {
+      "mod": "success",
+      "icon": "icon-circle-checkmark-filled",
+      "title": "Solicitare depusă",
+      "tags": [],
+      "stamp": "10 februarie 2021, 09:00 · Anastasia Cojocaru · Solicitant",
+      "text": [
+       [
+        "Semnată prin MSign. Taxa de 500,00 MDL a fost achitată prin MPay.",
+        0
+       ]
+      ],
+      "h": 100
+     }
+    ]
+   },
+   "cls": "e-permits-dosar-profil__section"
+  },
+  {
+   "title": "Ai nevoie de ajutor?",
+   "rect": [
+    16,
+    1635,
+    343,
+    259
+   ],
+   "rows": [
+    {
+     "l": "Autoritatea",
+     "v": "Agenția Națională pentru Sănătate Publică",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Telefon",
+     "v": "022 574 501",
+     "copy": false,
+     "link": true,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "E-mail",
+     "v": "office@ansp.gov.md",
+     "copy": false,
+     "link": true,
+     "tag": null,
+     "h": 59
+    }
+   ],
+   "cls": "e-permits-dosar-profil__section cab-section"
+  }
+ ],
+ "sm-05v@1440": [
+  {
+   "title": "",
+   "rect": [
+    120,
+    448,
+    1200,
+    154
+   ],
+   "text": "Depusă — finalizat 20 feb. 2024Anastasia Cojocaru Examinare — finalizat 12 mar. 2024Direcția licențiere Aprobată — finalizat 12 mar. 2024Emisă de Victor Lungu",
+   "cls": "e-permits-dosar-profil__section cab-section cab-status"
+  },
+  {
+   "title": "Date generale",
+   "rect": [
+    120,
+    666,
+    1200,
+    440
+   ],
+   "rows": [
+    {
+     "l": "Numărul dosarului",
+     "v": "GEAP-2024-618-00214",
+     "copy": true,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Tipul dosarului",
+     "v": "Eliberare",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Denumirea serviciului",
+     "v": "Licența pentru transportul rutier de mărfuri",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Data depunerii",
+     "v": "20 februarie 2024, 10:30",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Termenul de examinare",
+     "v": "12 martie 2024",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Statutul dosarului",
+     "v": "Aprobat (finalizată)",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Autoritatea",
+     "v": "Agenția Națională Transport Auto",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Subdiviziunea de procesare",
+     "v": "Direcția licențiere",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Nr. actului generat",
+     "v": "ANTA-2024-00563",
+     "copy": true,
+     "link": false,
+     "tag": null,
+     "h": 40
+    }
+   ],
+   "cls": "e-permits-dosar-profil__section cab-section"
+  },
+  {
+   "title": "Istoric",
+   "rect": [
+    120,
+    1106,
+    1200,
+    296
+   ],
+   "tl": {
+    "h": 232,
+    "items": [
+     {
+      "mod": "success",
+      "icon": "icon-circle-checkmark-filled",
+      "title": "Solicitare aprobată",
+      "tags": [],
+      "stamp": "12 martie 2024 · ANTA · Direcția licențiere",
+      "text": [
+       [
+        "Actul permisiv a fost semnat și emis.",
+        0
+       ]
+      ],
+      "h": 70
+     },
+     {
+      "mod": "success",
+      "icon": "icon-circle-checkmark-filled",
+      "title": "În examinare la autoritate",
+      "tags": [],
+      "stamp": "21 februarie 2024 · ANTA · Direcția licențiere",
+      "text": null,
+      "h": 46
+     },
+     {
+      "mod": "success",
+      "icon": "icon-circle-checkmark-filled",
+      "title": "Solicitare depusă",
+      "tags": [],
+      "stamp": "20 februarie 2024, 10:30 · Anastasia Cojocaru · Solicitant",
+      "text": [
+       [
+        "Semnată prin MSign. Taxa de 300,00 MDL a fost achitată prin MPay.",
+        0
+       ]
+      ],
+      "h": 64
+     }
+    ]
+   },
+   "cls": "e-permits-dosar-profil__section"
+  },
+  {
+   "title": "Ai nevoie de ajutor?",
+   "rect": [
+    120,
+    1402,
+    1200,
+    200
+   ],
+   "rows": [
+    {
+     "l": "Autoritatea",
+     "v": "Agenția Națională Transport Auto",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Telefon",
+     "v": "022 498 812",
+     "copy": false,
+     "link": true,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "E-mail",
+     "v": "office@anta.gov.md",
+     "copy": false,
+     "link": true,
+     "tag": null,
+     "h": 40
+    }
+   ],
+   "cls": "e-permits-dosar-profil__section cab-section"
+  }
+ ],
+ "sm-05v@375": [
+  {
+   "title": "",
+   "rect": [
+    16,
+    536,
+    343,
+    92
+   ],
+   "text": "Depusă — finalizat 20 feb. 2024Anastasia Cojocaru Examinare — finalizat 12 mar. 2024Direcția licențiere Aprobată — finalizat 12 mar. 2024Emisă de Victor Lungu",
+   "cls": "e-permits-dosar-profil__section cab-section cab-status"
+  },
+  {
+   "title": "Date generale",
+   "rect": [
+    16,
+    684,
+    343,
+    619
+   ],
+   "rows": [
+    {
+     "l": "Numărul dosarului",
+     "v": "GEAP-2024-618-00214",
+     "copy": true,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Tipul dosarului",
+     "v": "Eliberare",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Denumirea serviciului",
+     "v": "Licența pentru transportul rutier de mărfuri",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Data depunerii",
+     "v": "20 februarie 2024, 10:30",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Termenul de examinare",
+     "v": "12 martie 2024",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Statutul dosarului",
+     "v": "Aprobat (finalizată)",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Autoritatea",
+     "v": "Agenția Națională Transport Auto",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Subdiviziunea de procesare",
+     "v": "Direcția licențiere",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Nr. actului generat",
+     "v": "ANTA-2024-00563",
+     "copy": true,
+     "link": false,
+     "tag": null,
+     "h": 59
+    }
+   ],
+   "cls": "e-permits-dosar-profil__section cab-section"
+  },
+  {
+   "title": "Istoric",
+   "rect": [
+    16,
+    1303,
+    343,
+    332
+   ],
+   "tl": {
+    "h": 268,
+    "items": [
+     {
+      "mod": "success",
+      "icon": "icon-circle-checkmark-filled",
+      "title": "Solicitare aprobată",
+      "tags": [],
+      "stamp": "12 martie 2024 · ANTA · Direcția licențiere",
+      "text": [
+       [
+        "Actul permisiv a fost semnat și emis.",
+        0
+       ]
+      ],
+      "h": 70
+     },
+     {
+      "mod": "success",
+      "icon": "icon-circle-checkmark-filled",
+      "title": "În examinare la autoritate",
+      "tags": [],
+      "stamp": "21 februarie 2024 · ANTA · Direcția licențiere",
+      "text": null,
+      "h": 46
+     },
+     {
+      "mod": "success",
+      "icon": "icon-circle-checkmark-filled",
+      "title": "Solicitare depusă",
+      "tags": [],
+      "stamp": "20 februarie 2024, 10:30 · Anastasia Cojocaru · Solicitant",
+      "text": [
+       [
+        "Semnată prin MSign. Taxa de 300,00 MDL a fost achitată prin MPay.",
+        0
+       ]
+      ],
+      "h": 100
+     }
+    ]
+   },
+   "cls": "e-permits-dosar-profil__section"
+  },
+  {
+   "title": "Ai nevoie de ajutor?",
+   "rect": [
+    16,
+    1635,
+    343,
+    259
+   ],
+   "rows": [
+    {
+     "l": "Autoritatea",
+     "v": "Agenția Națională Transport Auto",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Telefon",
+     "v": "022 498 812",
+     "copy": false,
+     "link": true,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "E-mail",
+     "v": "office@anta.gov.md",
+     "copy": false,
+     "link": true,
+     "tag": null,
+     "h": 59
+    }
+   ],
+   "cls": "e-permits-dosar-profil__section cab-section"
+  }
+ ],
+ "sm-05c@1440": [
+  {
+   "title": "",
+   "rect": [
+    120,
+    500,
+    1200,
+    154
+   ],
+   "text": "Depusă — finalizat 20 aug. 2026Anastasia Cojocaru Examinare — finalizat 25 sept. 2026CSP Orhei Respinsă — finalizat 25 sept. 2026Emisă de Elena Rotaru",
+   "cls": "e-permits-dosar-profil__section cab-section cab-status"
+  },
+  {
+   "title": "Date generale",
+   "rect": [
+    120,
+    718,
+    1200,
+    400
+   ],
+   "rows": [
+    {
+     "l": "Numărul dosarului",
+     "v": "GEAP-2026-009-04254",
+     "copy": true,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Tipul dosarului",
+     "v": "Eliberare",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Denumirea serviciului",
+     "v": "Autorizația sanitară de funcționare",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Data depunerii",
+     "v": "20 august 2026, 10:00",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Termenul de examinare",
+     "v": "10 septembrie 2026",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Statutul dosarului",
+     "v": "Respins (finalizată)",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Autoritatea",
+     "v": "Agenția Națională pentru Sănătate Publică",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Subdiviziunea de procesare",
+     "v": "CSP Orhei",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    }
+   ],
+   "cls": "e-permits-dosar-profil__section cab-section"
+  },
+  {
+   "title": "Istoric",
+   "rect": [
+    120,
+    1118,
+    1200,
+    296
+   ],
+   "tl": {
+    "h": 232,
+    "items": [
+     {
+      "mod": "danger",
+      "icon": "icon-circle-error-filled",
+      "title": "Solicitare respinsă",
+      "tags": [],
+      "stamp": "25 septembrie 2026 · ANSP · CSP Orhei",
+      "text": [
+       [
+        "Decizia de refuz a fost semnată și comunicată.",
+        0
+       ]
+      ],
+      "h": 70
+     },
+     {
+      "mod": "success",
+      "icon": "icon-circle-checkmark-filled",
+      "title": "În examinare la autoritate",
+      "tags": [],
+      "stamp": "21 august 2026 · ANSP · CSP Orhei",
+      "text": null,
+      "h": 46
+     },
+     {
+      "mod": "success",
+      "icon": "icon-circle-checkmark-filled",
+      "title": "Solicitare depusă",
+      "tags": [],
+      "stamp": "20 august 2026, 10:00 · Anastasia Cojocaru · Solicitant",
+      "text": [
+       [
+        "Semnată prin MSign. Taxa de 500,00 MDL a fost achitată prin MPay.",
+        0
+       ]
+      ],
+      "h": 64
+     }
+    ]
+   },
+   "cls": "e-permits-dosar-profil__section"
+  },
+  {
+   "title": "Ai nevoie de ajutor?",
+   "rect": [
+    120,
+    1414,
+    1200,
+    200
+   ],
+   "rows": [
+    {
+     "l": "Autoritatea",
+     "v": "Agenția Națională pentru Sănătate Publică",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Telefon",
+     "v": "022 574 501",
+     "copy": false,
+     "link": true,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "E-mail",
+     "v": "office@ansp.gov.md",
+     "copy": false,
+     "link": true,
+     "tag": null,
+     "h": 40
+    }
+   ],
+   "cls": "e-permits-dosar-profil__section cab-section"
+  }
+ ],
+ "sm-05c@375": [
+  {
+   "title": "",
+   "rect": [
+    16,
+    600,
+    343,
+    92
+   ],
+   "text": "Depusă — finalizat 20 aug. 2026Anastasia Cojocaru Examinare — finalizat 25 sept. 2026CSP Orhei Respinsă — finalizat 25 sept. 2026Emisă de Elena Rotaru",
+   "cls": "e-permits-dosar-profil__section cab-section cab-status"
+  },
+  {
+   "title": "Date generale",
+   "rect": [
+    16,
+    748,
+    343,
+    559
+   ],
+   "rows": [
+    {
+     "l": "Numărul dosarului",
+     "v": "GEAP-2026-009-04254",
+     "copy": true,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Tipul dosarului",
+     "v": "Eliberare",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Denumirea serviciului",
+     "v": "Autorizația sanitară de funcționare",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Data depunerii",
+     "v": "20 august 2026, 10:00",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Termenul de examinare",
+     "v": "10 septembrie 2026",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Statutul dosarului",
+     "v": "Respins (finalizată)",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Autoritatea",
+     "v": "Agenția Națională pentru Sănătate Publică",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Subdiviziunea de procesare",
+     "v": "CSP Orhei",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 59
+    }
+   ],
+   "cls": "e-permits-dosar-profil__section cab-section"
+  },
+  {
+   "title": "Istoric",
+   "rect": [
+    16,
+    1307,
+    343,
+    352
+   ],
+   "tl": {
+    "h": 288,
+    "items": [
+     {
+      "mod": "danger",
+      "icon": "icon-circle-error-filled",
+      "title": "Solicitare respinsă",
+      "tags": [],
+      "stamp": "25 septembrie 2026 · ANSP · CSP Orhei",
+      "text": [
+       [
+        "Decizia de refuz a fost semnată și comunicată.",
+        0
+       ]
+      ],
+      "h": 90
+     },
+     {
+      "mod": "success",
+      "icon": "icon-circle-checkmark-filled",
+      "title": "În examinare la autoritate",
+      "tags": [],
+      "stamp": "21 august 2026 · ANSP · CSP Orhei",
+      "text": null,
+      "h": 46
+     },
+     {
+      "mod": "success",
+      "icon": "icon-circle-checkmark-filled",
+      "title": "Solicitare depusă",
+      "tags": [],
+      "stamp": "20 august 2026, 10:00 · Anastasia Cojocaru · Solicitant",
+      "text": [
+       [
+        "Semnată prin MSign. Taxa de 500,00 MDL a fost achitată prin MPay.",
+        0
+       ]
+      ],
+      "h": 100
+     }
+    ]
+   },
+   "cls": "e-permits-dosar-profil__section"
+  },
+  {
+   "title": "Ai nevoie de ajutor?",
+   "rect": [
+    16,
+    1659,
+    343,
+    259
+   ],
+   "rows": [
+    {
+     "l": "Autoritatea",
+     "v": "Agenția Națională pentru Sănătate Publică",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Telefon",
+     "v": "022 574 501",
+     "copy": false,
+     "link": true,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "E-mail",
+     "v": "office@ansp.gov.md",
+     "copy": false,
+     "link": true,
+     "tag": null,
+     "h": 59
+    }
+   ],
+   "cls": "e-permits-dosar-profil__section cab-section"
+  }
+ ],
+ "sm-act-04@1440": [
+  {
+   "title": "",
+   "rect": [
+    120,
+    500,
+    1200,
+    154
+   ],
+   "text": "Inițiată — finalizat 24 sept. 2026CSP Ialoveni Examinare — finalizat 1 oct. 2026CSP Ialoveni Aprobată — finalizat 1 oct. 2026Emisă de Elena Rotaru",
+   "cls": "e-permits-dosar-profil__section cab-section cab-status"
+  },
+  {
+   "title": "Date generale",
+   "rect": [
+    120,
+    718,
+    1200,
+    440
+   ],
+   "rows": [
+    {
+     "l": "Numărul dosarului",
+     "v": "GEAP-2026-009-04388",
+     "copy": true,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Tipul dosarului",
+     "v": "Anulare",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Denumirea serviciului",
+     "v": "Autorizația sanitară de funcționare",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Data depunerii",
+     "v": "24 septembrie 2026, 09:00",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Termenul de examinare",
+     "v": "8 octombrie 2026",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Statutul dosarului",
+     "v": "Aprobat (finalizată)",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Autoritatea",
+     "v": "Agenția Națională pentru Sănătate Publică",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Subdiviziunea de procesare",
+     "v": "CSP Ialoveni",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Nr. actului anterior",
+     "v": "ASF-2024-06618",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    }
+   ],
+   "cls": "e-permits-dosar-profil__section cab-section"
+  },
+  {
+   "title": "Istoric",
+   "rect": [
+    120,
+    1158,
+    1200,
+    296
+   ],
+   "tl": {
+    "h": 232,
+    "items": [
+     {
+      "mod": "success",
+      "icon": "icon-circle-checkmark-filled",
+      "title": "Decizie semnată",
+      "tags": [],
+      "stamp": "1 octombrie 2026 · ANSP · CSP Ialoveni",
+      "text": [
+       [
+        "Decizia a fost semnată; starea actului a fost actualizată.",
+        0
+       ]
+      ],
+      "h": 70
+     },
+     {
+      "mod": "success",
+      "icon": "icon-circle-checkmark-filled",
+      "title": "În examinare la autoritate",
+      "tags": [],
+      "stamp": "25 septembrie 2026 · ANSP · CSP Ialoveni",
+      "text": null,
+      "h": 46
+     },
+     {
+      "mod": "success",
+      "icon": "icon-circle-checkmark-filled",
+      "title": "Procedură inițiată de autoritate",
+      "tags": [],
+      "stamp": "24 septembrie 2026, 09:00 · ANSP · CSP Ialoveni",
+      "text": [
+       [
+        "Din oficiu.",
+        0
+       ]
+      ],
+      "h": 64
+     }
+    ]
+   },
+   "cls": "e-permits-dosar-profil__section"
+  },
+  {
+   "title": "Ai nevoie de ajutor?",
+   "rect": [
+    120,
+    1454,
+    1200,
+    200
+   ],
+   "rows": [
+    {
+     "l": "Autoritatea",
+     "v": "Agenția Națională pentru Sănătate Publică",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "Telefon",
+     "v": "022 574 501",
+     "copy": false,
+     "link": true,
+     "tag": null,
+     "h": 40
+    },
+    {
+     "l": "E-mail",
+     "v": "office@ansp.gov.md",
+     "copy": false,
+     "link": true,
+     "tag": null,
+     "h": 40
+    }
+   ],
+   "cls": "e-permits-dosar-profil__section cab-section"
+  }
+ ],
+ "sm-act-04@375": [
+  {
+   "title": "",
+   "rect": [
+    16,
+    600,
+    343,
+    92
+   ],
+   "text": "Inițiată — finalizat 24 sept. 2026CSP Ialoveni Examinare — finalizat 1 oct. 2026CSP Ialoveni Aprobată — finalizat 1 oct. 2026Emisă de Elena Rotaru",
+   "cls": "e-permits-dosar-profil__section cab-section cab-status"
+  },
+  {
+   "title": "Date generale",
+   "rect": [
+    16,
+    748,
+    343,
+    619
+   ],
+   "rows": [
+    {
+     "l": "Numărul dosarului",
+     "v": "GEAP-2026-009-04388",
+     "copy": true,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Tipul dosarului",
+     "v": "Anulare",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Denumirea serviciului",
+     "v": "Autorizația sanitară de funcționare",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Data depunerii",
+     "v": "24 septembrie 2026, 09:00",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Termenul de examinare",
+     "v": "8 octombrie 2026",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Statutul dosarului",
+     "v": "Aprobat (finalizată)",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Autoritatea",
+     "v": "Agenția Națională pentru Sănătate Publică",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Subdiviziunea de procesare",
+     "v": "CSP Ialoveni",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Nr. actului anterior",
+     "v": "ASF-2024-06618",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 59
+    }
+   ],
+   "cls": "e-permits-dosar-profil__section cab-section"
+  },
+  {
+   "title": "Istoric",
+   "rect": [
+    16,
+    1367,
+    343,
+    332
+   ],
+   "tl": {
+    "h": 268,
+    "items": [
+     {
+      "mod": "success",
+      "icon": "icon-circle-checkmark-filled",
+      "title": "Decizie semnată",
+      "tags": [],
+      "stamp": "1 octombrie 2026 · ANSP · CSP Ialoveni",
+      "text": [
+       [
+        "Decizia a fost semnată; starea actului a fost actualizată.",
+        0
+       ]
+      ],
+      "h": 90
+     },
+     {
+      "mod": "success",
+      "icon": "icon-circle-checkmark-filled",
+      "title": "În examinare la autoritate",
+      "tags": [],
+      "stamp": "25 septembrie 2026 · ANSP · CSP Ialoveni",
+      "text": null,
+      "h": 46
+     },
+     {
+      "mod": "success",
+      "icon": "icon-circle-checkmark-filled",
+      "title": "Procedură inițiată de autoritate",
+      "tags": [],
+      "stamp": "24 septembrie 2026, 09:00 · ANSP · CSP Ialoveni",
+      "text": [
+       [
+        "Din oficiu.",
+        0
+       ]
+      ],
+      "h": 80
+     }
+    ]
+   },
+   "cls": "e-permits-dosar-profil__section"
+  },
+  {
+   "title": "Ai nevoie de ajutor?",
+   "rect": [
+    16,
+    1699,
+    343,
+    259
+   ],
+   "rows": [
+    {
+     "l": "Autoritatea",
+     "v": "Agenția Națională pentru Sănătate Publică",
+     "copy": false,
+     "link": false,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "Telefon",
+     "v": "022 574 501",
+     "copy": false,
+     "link": true,
+     "tag": null,
+     "h": 60
+    },
+    {
+     "l": "E-mail",
+     "v": "office@ansp.gov.md",
+     "copy": false,
+     "link": true,
+     "tag": null,
+     "h": 59
+    }
+   ],
+   "cls": "e-permits-dosar-profil__section cab-section"
+  }
+ ]
+}

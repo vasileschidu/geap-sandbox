@@ -1,0 +1,2361 @@
+{
+ "pp-01m": {
+  "spec": {
+   "dialog": "Vizualizare act",
+   "sub": "Autorizația sanitară de funcționare",
+   "btns": [
+    "Descarcă",
+    "Închide"
+   ],
+   "sig": [
+    "e-permits-mdoc-signatures: Semnat electronic de Directorul general Dumitru Rotaru MSign · 15.09.2025",
+    "e-permits-mdoc-sign: Semnat electronic de Directorul general Dumitru Rotaru MSign · 15.09.2025",
+    "e-permits-mdoc-sign__lead: Semnat electronic de",
+    "e-permits-mdoc-sign__role: Directorul general"
+   ],
+   "pages": [
+    [
+     {
+      "m": "header",
+      "z": "locked",
+      "v": "emblem",
+      "country": "Republica Moldova",
+      "auth": "Agenția Națională pentru Sănătate Publică",
+      "office": "CSP Bălți",
+      "contacts": [
+       "str. Gheorghe Asachi 67A, MD-2028, mun. Chișinău",
+       "Tel.: +373 22 574 501",
+       "Email: office@ansp.gov.md",
+       "www.ansp.gov.md"
+      ]
+     },
+     {
+      "m": "title",
+      "z": "locked",
+      "align": "center",
+      "over": "Act permisiv",
+      "chip": [
+       "Valabil",
+       "positive"
+      ],
+      "title": "Autorizația sanitară de funcționare",
+      "sub": "",
+      "meta": [
+       [
+        "Nr.",
+        "P-4521/2026"
+       ],
+       [
+        "Eliberat:",
+        "15.09.2025"
+       ],
+       [
+        "Valabil până la",
+        "15.09.2028"
+       ]
+      ]
+     },
+     {
+      "m": "parties",
+      "z": "editable",
+      "parties": [
+       [
+        "Beneficiar",
+        "SRL Global Trader",
+        "IDNO 1012600000002"
+       ]
+      ]
+     },
+     {
+      "m": "kv",
+      "z": "editable",
+      "cols": "rows",
+      "title": "",
+      "rows": [
+       [
+        "Obiectul activității"
+       ],
+       [
+        "Denumirea obiectului",
+        "Cafeneaua „Izvoraș”, mun. Bălți"
+       ],
+       [
+        "Tipul obiectului",
+        "Cafenea"
+       ],
+       [
+        "Adresa obiectului",
+        "str. Independenței 12, Bălți, Municipiul Bălți"
+       ],
+       [
+        "Activitatea (CAEM)",
+        "56.10"
+       ],
+       [
+        "Valabil din data",
+        "15 septembrie 2025"
+       ],
+       [
+        "Numărul dosarului electronic",
+        "GEAP-2025-009-03187"
+       ],
+       [
+        "Seria și nr. documentului tipărit",
+        "ASF 0045213"
+       ]
+      ]
+     },
+     {
+      "m": "text",
+      "z": "editable",
+      "closing": true,
+      "title": "",
+      "cont": false,
+      "items": [
+       [
+        "p",
+        "Actul permisiv se eliberează pentru desfășurarea activității indicate, în condițiile legii."
+       ]
+      ]
+     },
+     {
+      "m": "signatures",
+      "z": "locked",
+      "signers": [
+       [
+        "signed",
+        "Semnat electronic de",
+        "Directorul general",
+        "Dumitru Rotaru",
+        "MSign · 15.09.2025"
+       ]
+      ]
+     },
+     {
+      "m": "footer",
+      "z": "locked",
+      "link": "rap.gov.md/act/P-4521%2F2026",
+      "legal": [
+       "Generat din portalul guvernamental integrat EVO (evo.gov.md) la 26.10.2026, 10:50.",
+       "Verificarea autenticității și a valabilității datelor se efectuează prin scanarea codului QR sau prin accesarea Registrului Actelor Permisive (rap.gov.md).",
+       "Documentul conține date cu caracter personal, prelucrate în condițiile Legii nr. 195/2024."
+      ],
+      "page": "Pagina 1 din 1",
+      "qr": 4142
+     }
+    ]
+   ]
+  },
+  "geo": {
+   "vw": 1440,
+   "vh": 900,
+   "dialog": [
+    0,
+    0,
+    1440,
+    900
+   ],
+   "page": [
+    408,
+    157,
+    624,
+    882
+   ],
+   "canvas": [
+    384,
+    133,
+    672,
+    930
+   ],
+   "scale": "none",
+   "wm": [],
+   "sig": [
+    "e-permits-mdoc-signatures",
+    "Semnat electronic de Directorul general Dumitru Rotaru MSign · 15.09.2025",
+    [
+     462,
+     789,
+     517,
+     73
+    ]
+   ],
+   "title": "Vizualizare act",
+   "footer": [
+    "Descarcă|btn btn-neutral btn-rounded",
+    "Închide|btn btn-primary btn-rounded"
+   ]
+  },
+  "geoM": {
+   "vw": 375,
+   "vh": 812,
+   "dialog": [
+    0,
+    0,
+    375,
+    812
+   ],
+   "page": [
+    8,
+    116,
+    359,
+    508
+   ],
+   "canvas": [
+    0,
+    108,
+    375,
+    529
+   ],
+   "scale": "none",
+   "wm": [],
+   "sig": [
+    "e-permits-mdoc-signatures",
+    "Semnat electronic de Directorul general Dumitru Rotaru MSign · 15.09.2025",
+    [
+     39,
+     485,
+     297,
+     42
+    ]
+   ],
+   "title": "Vizualizare act",
+   "footer": [
+    "Descarcă|btn btn-neutral btn-rounded",
+    "Închide|btn btn-primary btn-rounded"
+   ]
+  }
+ },
+ "pp-01n": {
+  "spec": {
+   "dialog": "Vizualizare act",
+   "sub": "Autorizația sanitară de funcționare",
+   "btns": [
+    "Descarcă",
+    "Închide"
+   ],
+   "sig": [
+    "e-permits-mdoc-signatures: Semnat electronic de Directorul general Dumitru Rotaru MSign · 02.04.2025",
+    "e-permits-mdoc-sign: Semnat electronic de Directorul general Dumitru Rotaru MSign · 02.04.2025",
+    "e-permits-mdoc-sign__lead: Semnat electronic de",
+    "e-permits-mdoc-sign__role: Directorul general"
+   ],
+   "pages": [
+    [
+     {
+      "m": "header",
+      "z": "locked",
+      "v": "emblem",
+      "country": "Republica Moldova",
+      "auth": "Agenția Națională pentru Sănătate Publică",
+      "office": "CSP Chișinău",
+      "contacts": [
+       "str. Gheorghe Asachi 67A, MD-2028, mun. Chișinău",
+       "Tel.: +373 22 574 501",
+       "Email: office@ansp.gov.md",
+       "www.ansp.gov.md"
+      ]
+     },
+     {
+      "m": "title",
+      "z": "locked",
+      "align": "center",
+      "over": "Act permisiv",
+      "chip": [
+       "Suspendat",
+       "warning"
+      ],
+      "title": "Autorizația sanitară de funcționare",
+      "sub": "",
+      "meta": [
+       [
+        "Nr.",
+        "P-1873/2025"
+       ],
+       [
+        "Eliberat:",
+        "02.04.2025"
+       ],
+       [
+        "Valabil până la",
+        "02.04.2028"
+       ]
+      ]
+     },
+     {
+      "m": "parties",
+      "z": "editable",
+      "parties": [
+       [
+        "Beneficiar",
+        "SRL Global Trader",
+        "IDNO 1012600000002"
+       ]
+      ]
+     },
+     {
+      "m": "kv",
+      "z": "editable",
+      "cols": "rows",
+      "title": "",
+      "rows": [
+       [
+        "Tipul obiectului",
+        "Restaurant"
+       ],
+       [
+        "Adresa obiectului",
+        "mun. Chișinău, str. Mitropolit Varlaam 63"
+       ],
+       [
+        "Activitatea (CAEM)",
+        "I 56.10 Restaurante"
+       ],
+       [
+        "Capacitatea",
+        "120 de locuri"
+       ],
+       [
+        "Valabil din data",
+        "2 aprilie 2025"
+       ],
+       [
+        "Data suspendării actului permisiv",
+        "5 iunie 2026"
+       ],
+       [
+        "Suspendat până la data de",
+        "15 decembrie 2026"
+       ],
+       [
+        "Numărul dosarului electronic",
+        "GEAP-2025-009-01462"
+       ],
+       [
+        "Seria și nr. documentului tipărit",
+        "ASF 0031187"
+       ]
+      ]
+     },
+     {
+      "m": "text",
+      "z": "editable",
+      "closing": true,
+      "title": "",
+      "cont": false,
+      "items": [
+       [
+        "p",
+        "Actul permisiv se eliberează pentru desfășurarea activității indicate, în condițiile legii."
+       ]
+      ]
+     },
+     {
+      "m": "signatures",
+      "z": "locked",
+      "signers": [
+       [
+        "signed",
+        "Semnat electronic de",
+        "Directorul general",
+        "Dumitru Rotaru",
+        "MSign · 02.04.2025"
+       ]
+      ]
+     },
+     {
+      "m": "footer",
+      "z": "locked",
+      "link": "rap.gov.md/act/P-1873%2F2025",
+      "legal": [
+       "Generat din portalul guvernamental integrat EVO (evo.gov.md) la 26.10.2026, 10:50.",
+       "Verificarea autenticității și a valabilității datelor se efectuează prin scanarea codului QR sau prin accesarea Registrului Actelor Permisive (rap.gov.md).",
+       "Documentul conține date cu caracter personal, prelucrate în condițiile Legii nr. 195/2024."
+      ],
+      "page": "Pagina 1 din 1",
+      "qr": 4187
+     }
+    ]
+   ]
+  },
+  "geo": {
+   "vw": 1440,
+   "vh": 900,
+   "dialog": [
+    0,
+    0,
+    1440,
+    900
+   ],
+   "page": [
+    408,
+    157,
+    624,
+    884
+   ],
+   "canvas": [
+    384,
+    133,
+    672,
+    932
+   ],
+   "scale": "none",
+   "wm": [
+    "rap-act-doc__watermark rap-act-doc__watermark--warning:SUSPENDAT"
+   ],
+   "sig": [
+    "e-permits-mdoc-signatures",
+    "Semnat electronic de Directorul general Dumitru Rotaru MSign · 02.04.2025",
+    [
+     462,
+     825,
+     517,
+     73
+    ]
+   ],
+   "title": "Vizualizare act",
+   "footer": [
+    "Descarcă|btn btn-neutral btn-rounded",
+    "Închide|btn btn-primary btn-rounded"
+   ]
+  },
+  "geoM": {
+   "vw": 375,
+   "vh": 812,
+   "dialog": [
+    0,
+    0,
+    375,
+    812
+   ],
+   "page": [
+    8,
+    116,
+    359,
+    515
+   ],
+   "canvas": [
+    0,
+    108,
+    375,
+    529
+   ],
+   "scale": "none",
+   "wm": [
+    "rap-act-doc__watermark rap-act-doc__watermark--warning:SUSPENDAT"
+   ],
+   "sig": [
+    "e-permits-mdoc-signatures",
+    "Semnat electronic de Directorul general Dumitru Rotaru MSign · 02.04.2025",
+    [
+     39,
+     506,
+     297,
+     42
+    ]
+   ],
+   "title": "Vizualizare act",
+   "footer": [
+    "Descarcă|btn btn-neutral btn-rounded",
+    "Închide|btn btn-primary btn-rounded"
+   ]
+  }
+ },
+ "pp-01z": {
+  "spec": {
+   "dialog": "Vizualizare act",
+   "sub": "Autorizația de activitate cu utilizarea obiectivelor și încăperilor legate de circulația substanțelor stupefiante, psihotrope și a precursorilorMai mult",
+   "btns": [
+    "Autorizația de activitate cu utilizarea obiectivelor și încăperilor legate de circulația substanțelor stupefiante, psihotrope și a precursorilorMai mult",
+    "Descarcă",
+    "Închide"
+   ],
+   "sig": [
+    "e-permits-mdoc-signatures: Semnat electronic de Directoarea generală Silvia Ceban MSign · 20.01.2026",
+    "e-permits-mdoc-sign: Semnat electronic de Directoarea generală Silvia Ceban MSign · 20.01.2026",
+    "e-permits-mdoc-sign__lead: Semnat electronic de",
+    "e-permits-mdoc-sign__role: Directoarea generală"
+   ],
+   "pages": [
+    [
+     {
+      "m": "header",
+      "z": "locked",
+      "v": "emblem",
+      "country": "Republica Moldova",
+      "auth": "Agenția Medicamentului și Dispozitivelor Medicale",
+      "office": "Comitetul permanent de control asupra drogurilor",
+      "contacts": [
+       "str. Korolenko 2/1, MD-2028, mun. Chișinău",
+       "Tel.: +373 22 884 301",
+       "Email: office@amdm.gov.md",
+       "www.amdm.gov.md"
+      ]
+     },
+     {
+      "m": "title",
+      "z": "locked",
+      "align": "center",
+      "over": "Act permisiv",
+      "chip": [
+       "Valabil",
+       "positive"
+      ],
+      "title": "Autorizația de activitate cu utilizarea obiectivelor și încăperilor legate de circulația substanțelor stupefiante, psihotrope și a precursorilor",
+      "sub": "",
+      "meta": [
+       [
+        "Nr.",
+        "P-0118/2026"
+       ],
+       [
+        "Eliberat:",
+        "20.01.2026"
+       ],
+       [
+        "Valabil până la",
+        "20.01.2031"
+       ]
+      ]
+     },
+     {
+      "m": "parties",
+      "z": "editable",
+      "parties": [
+       [
+        "Beneficiar",
+        "SRL Global Trader",
+        "IDNO 1012600000002"
+       ]
+      ]
+     },
+     {
+      "m": "kv",
+      "z": "editable",
+      "cols": "rows",
+      "title": "",
+      "rows": [
+       [
+        "Obiectul activității"
+       ],
+       [
+        "Denumirea obiectului",
+        "Depozit farmaceutic"
+       ],
+       [
+        "Adresa obiectului",
+        "mun. Chișinău, str. Albișoara 4"
+       ],
+       [
+        "Genul de activitate",
+        "Circulația substanțelor stupefiante, psihotrope și a precursorilor"
+       ],
+       [
+        "Activitățile autorizate",
+        "ProcurarePăstrareDistribuire angro către farmacii și instituții medicale"
+       ],
+       [
+        "Tabelele de substanțe",
+        "Tabelul II — substanțe stupefianteTabelul III — substanțe psihotropeTabelul IV — precursori"
+       ]
+      ]
+     },
+     {
+      "m": "footer",
+      "z": "locked",
+      "link": "rap.gov.md/act/P-0118%2F2026",
+      "legal": [
+       "Generat din portalul guvernamental integrat EVO (evo.gov.md) la 26.10.2026, 10:50.",
+       "Verificarea autenticității și a valabilității datelor se efectuează prin scanarea codului QR sau prin accesarea Registrului Actelor Permisive (rap.gov.md).",
+       "Documentul conține date cu caracter personal, prelucrate în condițiile Legii nr. 195/2024."
+      ],
+      "page": "Pagina 1 din 2",
+      "qr": 4168
+     }
+    ],
+    [
+     {
+      "m": "continuation",
+      "z": "locked",
+      "issuer": "Agenția Medicamentului și Dispozitivelor Medicale · Comitetul permanent de control asupra drogurilor",
+      "doc": "Autorizația de activitate cu utilizarea obiectivelor și încăperilor legate de circulația substanțelor stupefiante, psihotrope și a precursorilor · Nr. P-0118/2026"
+     },
+     {
+      "m": "kv",
+      "z": "editable",
+      "cols": "rows",
+      "title": "",
+      "rows": [
+       [
+        "Substanțe controlate"
+       ],
+       [
+        "Cote anuale autorizate"
+       ],
+       [
+        "Denumirea substanțeiTabelulForma farmaceuticăCantitate anuală (g)"
+       ],
+       [
+        "Denumirea substanței",
+        "Tabelul",
+        "Forma farmaceutică",
+        "Cantitate anuală (g)"
+       ],
+       [
+        "Morfină clorhidratIISoluție injectabilă 10 mg/ml1 200"
+       ],
+       [
+        "Morfină clorhidrat",
+        "II",
+        "Soluție injectabilă 10 mg/ml",
+        "1 200"
+       ],
+       [
+        "Fentanil citratIISoluție injectabilă 0,05 mg/ml15"
+       ],
+       [
+        "Fentanil citrat",
+        "II",
+        "Soluție injectabilă 0,05 mg/ml",
+        "15"
+       ],
+       [
+        "Tramadol clorhidratIIICapsule 50 mg25 000"
+       ],
+       [
+        "Tramadol clorhidrat",
+        "III",
+        "Capsule 50 mg",
+        "25 000"
+       ],
+       [
+        "DiazepamIIIComprimate 5 mg4 800"
+       ],
+       [
+        "Diazepam",
+        "III",
+        "Comprimate 5 mg",
+        "4 800"
+       ],
+       [
+        "FenobarbitalIIIComprimate 100 mg6 000"
+       ],
+       [
+        "Fenobarbital",
+        "III",
+        "Comprimate 100 mg",
+        "6 000"
+       ],
+       [
+        "Efedrină clorhidratIVSoluție injectabilă 50 mg/ml900"
+       ],
+       [
+        "Efedrină clorhidrat",
+        "IV",
+        "Soluție injectabilă 50 mg/ml",
+        "900"
+       ],
+       [
+        "Pseudoefedrină clorhidratIVComprimate 60 mg3 500"
+       ],
+       [
+        "Pseudoefedrină clorhidrat",
+        "IV",
+        "Comprimate 60 mg",
+        "3 500"
+       ],
+       [
+        "Valabil din data",
+        "20 ianuarie 2026"
+       ],
+       [
+        "Numărul dosarului electronic",
+        "GEAP-2026-010-00112"
+       ],
+       [
+        "Seria și nr. documentului tipărit",
+        "AMDM 0001182"
+       ]
+      ]
+     },
+     {
+      "m": "text",
+      "z": "editable",
+      "closing": true,
+      "title": "",
+      "cont": false,
+      "items": [
+       [
+        "p",
+        "Actul permisiv se eliberează pentru desfășurarea activității indicate, în condițiile legii."
+       ]
+      ]
+     },
+     {
+      "m": "signatures",
+      "z": "locked",
+      "signers": [
+       [
+        "signed",
+        "Semnat electronic de",
+        "Directoarea generală",
+        "Silvia Ceban",
+        "MSign · 20.01.2026"
+       ]
+      ]
+     },
+     {
+      "m": "footer",
+      "z": "locked",
+      "link": "rap.gov.md/act/P-0118%2F2026",
+      "legal": [
+       "Generat din portalul guvernamental integrat EVO (evo.gov.md) la 26.10.2026, 10:50.",
+       "Verificarea autenticității și a valabilității datelor se efectuează prin scanarea codului QR sau prin accesarea Registrului Actelor Permisive (rap.gov.md).",
+       "Documentul conține date cu caracter personal, prelucrate în condițiile Legii nr. 195/2024."
+      ],
+      "page": "Pagina 2 din 2",
+      "qr": 4168
+     }
+    ]
+   ]
+  },
+  "geo": {
+   "vw": 1440,
+   "vh": 900,
+   "dialog": [
+    0,
+    0,
+    1440,
+    900
+   ],
+   "page": [
+    408,
+    157,
+    624,
+    882
+   ],
+   "canvas": [
+    384,
+    133,
+    672,
+    1831
+   ],
+   "scale": "none",
+   "wm": [],
+   "sig": [
+    "e-permits-mdoc-signatures",
+    "Semnat electronic de Directoarea generală Silvia Ceban MSign · 20.01.2026",
+    [
+     462,
+     1529,
+     517,
+     73
+    ]
+   ],
+   "title": "Vizualizare act",
+   "footer": [
+    "Descarcă|btn btn-neutral btn-rounded",
+    "Închide|btn btn-primary btn-rounded"
+   ]
+  },
+  "geoM": {
+   "vw": 375,
+   "vh": 812,
+   "dialog": [
+    0,
+    0,
+    375,
+    812
+   ],
+   "page": [
+    8,
+    158,
+    359,
+    508
+   ],
+   "canvas": [
+    0,
+    150,
+    375,
+    487
+   ],
+   "scale": "none",
+   "wm": [],
+   "sig": [
+    "e-permits-mdoc-signatures",
+    "Semnat electronic de Directoarea generală Silvia Ceban MSign · 20.01.2026",
+    [
+     39,
+     949,
+     297,
+     42
+    ]
+   ],
+   "title": "Vizualizare act",
+   "footer": [
+    "Descarcă|btn btn-neutral btn-rounded",
+    "Închide|btn btn-primary btn-rounded"
+   ]
+  }
+ },
+ "mdoc-11": {
+  "spec": {
+   "dialog": "Document generat",
+   "sub": "Cererea depusă",
+   "btns": [
+    "Descarcă",
+    "Închide"
+   ],
+   "sig": [],
+   "pages": [
+    [
+     {
+      "m": "header",
+      "z": "locked",
+      "v": "full",
+      "country": "Republica Moldova",
+      "auth": "Agenția Națională pentru Sănătate Publică",
+      "office": "CSP Bălți",
+      "contacts": [
+       "str. Gheorghe Asachi 67A, MD-2028, mun. Chișinău",
+       "Tel.: +373 22 574 501",
+       "Email: office@ansp.gov.md",
+       "www.ansp.gov.md"
+      ]
+     },
+     {
+      "m": "title",
+      "z": "locked",
+      "align": "start",
+      "over": "",
+      "chip": null,
+      "title": "Cerere privind eliberarea actului permisiv „Autorizația sanitară de funcționare”",
+      "sub": "",
+      "meta": [
+       [
+        "Nr.",
+        "C003187/2025"
+       ],
+       [
+        "Data:",
+        "18.08.2025"
+       ]
+      ]
+     },
+     {
+      "m": "parties",
+      "z": "editable",
+      "parties": [
+       [
+        "Solicitant",
+        "SRL Global Trader",
+        "IDNO 1012600000002"
+       ]
+      ]
+     },
+     {
+      "m": "kv",
+      "z": "editable",
+      "cols": 1,
+      "title": "Serviciul solicitat",
+      "rows": [
+       [
+        "Serviciul",
+        "Autorizația sanitară de funcționare"
+       ],
+       [
+        "Tipul solicitării",
+        "Eliberare"
+       ],
+       [
+        "Subdiviziunea de examinare",
+        "CSP Bălți"
+       ]
+      ]
+     },
+     {
+      "m": "kv",
+      "z": "editable",
+      "cols": 1,
+      "title": "Obiectul activității",
+      "rows": [
+       [
+        "Obiectul",
+        "Cafeneaua „Izvoraș”, mun. Bălți"
+       ],
+       [
+        "Adresa",
+        "mun. Bălți, str. Independenței 12"
+       ]
+      ]
+     },
+     {
+      "m": "attachments",
+      "z": "editable",
+      "title": "Acte anexate",
+      "items": [
+       [
+        "1",
+        "Contract de locațiune",
+        "Contract-locatiune.pdf"
+       ],
+       [
+        "2",
+        "Planul încăperilor",
+        "Planul-incaperilor.pdf"
+       ]
+      ]
+     },
+     {
+      "m": "footer",
+      "z": "locked",
+      "link": "evo.gov.md/verificare/cerere-c003187-2025",
+      "legal": [
+       "Generat din portalul guvernamental integrat EVO (evo.gov.md) la 26.10.2026, 10:51.",
+       "Documentul reprezintă o replică vizuală a datelor din SIA GEAP, în conformitate cu Legea nr. 124/2022 și Legea nr. 160/2011.",
+       "Documentul conține date cu caracter personal, prelucrate în condițiile Legii nr. 195/2024."
+      ],
+      "page": "Pagina 1 din 1",
+      "qr": 4126
+     }
+    ]
+   ]
+  },
+  "geo": {
+   "vw": 1440,
+   "vh": 900,
+   "dialog": [
+    0,
+    0,
+    1440,
+    900
+   ],
+   "page": [
+    488,
+    157,
+    464,
+    656
+   ],
+   "canvas": [
+    464,
+    133,
+    512,
+    704
+   ],
+   "scale": "none",
+   "wm": [],
+   "sig": null,
+   "title": "Document generat",
+   "footer": [
+    "Descarcă|btn btn-neutral btn-rounded",
+    "Închide|btn btn-primary btn-rounded"
+   ]
+  },
+  "geoM": {
+   "vw": 375,
+   "vh": 812,
+   "dialog": [
+    0,
+    0,
+    375,
+    812
+   ],
+   "page": [
+    8,
+    116,
+    359,
+    508
+   ],
+   "canvas": [
+    0,
+    108,
+    375,
+    635
+   ],
+   "scale": "none",
+   "wm": [],
+   "sig": null,
+   "title": "Document generat",
+   "footer": [
+    "Descarcă|btn btn-neutral btn-rounded",
+    "Închide|btn btn-primary btn-rounded"
+   ]
+  }
+ },
+ "mdoc-12": {
+  "spec": {
+   "dialog": "Document generat",
+   "sub": "Certificat constatator",
+   "btns": [
+    "Descarcă",
+    "Închide"
+   ],
+   "sig": [
+    "e-permits-doc-signature: Semnat electronic MSign · SIA GEAP · 18 august 2025, 12:10",
+    "e-permits-doc-signature__meta: MSign · SIA GEAP · 18 august 2025, 12:10"
+   ],
+   "pages": [
+    [
+     {
+      "m": "header",
+      "z": "locked",
+      "v": "emblem",
+      "country": "Republica Moldova",
+      "auth": "Agenția Națională pentru Sănătate Publică",
+      "office": "CSP Bălți",
+      "contacts": [
+       "str. Gheorghe Asachi 67A, MD-2028, mun. Chișinău",
+       "Tel.: +373 22 574 501",
+       "Email: office@ansp.gov.md",
+       "www.ansp.gov.md"
+      ]
+     },
+     {
+      "m": "title",
+      "z": "locked",
+      "align": "center",
+      "over": "",
+      "chip": null,
+      "title": "CERTIFICAT CONSTATATOR",
+      "sub": "",
+      "meta": [
+       [
+        "Nr. de înregistrare:",
+        "C003187/2025"
+       ],
+       [
+        "Data înregistrării:",
+        "18.08.2025"
+       ]
+      ]
+     },
+     {
+      "m": "kv",
+      "z": "editable",
+      "cols": 1,
+      "title": "",
+      "rows": [
+       [
+        "Serviciul",
+        "Autorizația sanitară de funcționare"
+       ],
+       [
+        "Tipul solicitării",
+        "Eliberare"
+       ],
+       [
+        "Solicitant",
+        "SRL Global Trader"
+       ],
+       [
+        "IDNO",
+        "1012600000002"
+       ],
+       [
+        "Obiectul",
+        "Cafeneaua „Izvoraș”, mun. Bălți"
+       ],
+       [
+        "Data și ora depunerii",
+        "18 august 2025, 12:10"
+       ],
+       [
+        "Canal de depunere",
+        "EVO · Solicitările mele"
+       ],
+       [
+        "Subdiviziunea de examinare",
+        "CSP Bălți"
+       ]
+      ]
+     },
+     {
+      "m": "footer",
+      "z": "locked",
+      "link": "evo.gov.md/verificare/certificat-c003187-2025",
+      "legal": [
+       "Generat de Sistemul informațional automatizat de gestionare și emitere a actelor permisive (SIA GEAP), în conformitate cu Legea nr. 160/2011.",
+       "Data și ora generării: 26.10.2026, 10:51.",
+       "Documentul conține date cu caracter personal, prelucrate în condițiile Legii nr. 195/2024."
+      ],
+      "page": "Pagina 1 din 1",
+      "qr": 4204
+     }
+    ]
+   ]
+  },
+  "geo": {
+   "vw": 1440,
+   "vh": 900,
+   "dialog": [
+    0,
+    0,
+    1440,
+    900
+   ],
+   "page": [
+    488,
+    157,
+    464,
+    656
+   ],
+   "canvas": [
+    464,
+    133,
+    512,
+    704
+   ],
+   "scale": "none",
+   "wm": [],
+   "sig": [
+    "e-permits-doc-signature",
+    "Semnat electronic MSign · SIA GEAP · 18 august 2025, 12:10",
+    [
+     464,
+     849,
+     512,
+     66
+    ]
+   ],
+   "title": "Document generat",
+   "footer": [
+    "Descarcă|btn btn-neutral btn-rounded",
+    "Închide|btn btn-primary btn-rounded"
+   ]
+  },
+  "geoM": {
+   "vw": 375,
+   "vh": 812,
+   "dialog": [
+    0,
+    0,
+    375,
+    812
+   ],
+   "page": [
+    8,
+    116,
+    359,
+    508
+   ],
+   "canvas": [
+    0,
+    108,
+    375,
+    549
+   ],
+   "scale": "none",
+   "wm": [],
+   "sig": [
+    "e-permits-doc-signature",
+    "Semnat electronic MSign · SIA GEAP · 18 august 2025, 12:10",
+    [
+     8,
+     669,
+     359,
+     66
+    ]
+   ],
+   "title": "Document generat",
+   "footer": [
+    "Descarcă|btn btn-neutral btn-rounded",
+    "Închide|btn btn-primary btn-rounded"
+   ]
+  }
+ },
+ "mdoc-13": {
+  "spec": {
+   "dialog": "Document generat",
+   "sub": "Decizie de refuz",
+   "btns": [
+    "Descarcă",
+    "Închide"
+   ],
+   "sig": [
+    "e-permits-doc-signature: Semnat electronic MSign · Elena Rotaru · 25 septembrie 2026",
+    "e-permits-doc-signature__meta: MSign · Elena Rotaru · 25 septembrie 2026"
+   ],
+   "pages": [
+    [
+     {
+      "m": "header",
+      "z": "locked",
+      "v": "full",
+      "country": "Republica Moldova",
+      "auth": "Agenția Națională pentru Sănătate Publică",
+      "office": "CSP Orhei",
+      "contacts": [
+       "str. Gheorghe Asachi 67A, MD-2028, mun. Chișinău",
+       "Tel.: +373 22 574 501",
+       "Email: office@ansp.gov.md",
+       "www.ansp.gov.md"
+      ]
+     },
+     {
+      "m": "title",
+      "z": "locked",
+      "align": "start",
+      "over": "",
+      "chip": null,
+      "title": "Decizie de refuz",
+      "sub": "privind Cererea Nr.C004254/2026 din 20.08.2026 pentru eliberarea actului permisiv „Autorizația sanitară de funcționare”",
+      "meta": [
+       [
+        "Data deciziei:",
+        "25.09.2026"
+       ]
+      ]
+     },
+     {
+      "m": "outcome",
+      "z": "editable",
+      "tone": "danger",
+      "title": "Cererea a fost refuzată",
+      "text": "Agenția Națională pentru Sănătate Publică a refuzat eliberarea actului permisiv; motivele și temeiul legal sunt mai jos."
+     },
+     {
+      "m": "parties",
+      "z": "editable",
+      "parties": [
+       [
+        "Solicitant",
+        "SRL Global Trader",
+        "IDNO 1012600000002"
+       ]
+      ]
+     },
+     {
+      "m": "kv",
+      "z": "editable",
+      "cols": 1,
+      "title": "",
+      "rows": [
+       [
+        "Obiectul",
+        "Bar „Nota”, or. Orhei"
+       ],
+       [
+        "Motivele refuzului",
+        "Spațiul de producție nu asigură separarea fluxurilor de materie primă și produs finit."
+       ],
+       [
+        "Temeiul legal",
+        "Legea nr. 10/2009 privind supravegherea de stat a sănătății publice, art. 21; HG nr. 1209/2010."
+       ],
+       [
+        "Recomandări",
+        "Reamenajați zona de preparare cu fluxuri separate și depuneți o solicitare nouă."
+       ],
+       [
+        "Dreptul de contestare",
+        "Decizia poate fi contestată în termen de 30 de zile de la comunicare."
+       ]
+      ]
+     },
+     {
+      "m": "footer",
+      "z": "locked",
+      "link": "evo.gov.md/verificare/decizie-refuz-c004254-2026",
+      "legal": [
+       "Generat din portalul guvernamental integrat EVO (evo.gov.md) la 26.10.2026, 10:51.",
+       "Documentul reprezintă o replică vizuală a datelor semnate electronic în SIA GEAP, în conformitate cu Legea nr. 124/2022 și Legea nr. 160/2011.",
+       "Documentul conține date cu caracter personal, prelucrate în condițiile Legii nr. 195/2024."
+      ],
+      "page": "Pagina 1 din 1",
+      "qr": 4310
+     }
+    ]
+   ]
+  },
+  "geo": {
+   "vw": 1440,
+   "vh": 900,
+   "dialog": [
+    0,
+    0,
+    1440,
+    900
+   ],
+   "page": [
+    488,
+    157,
+    464,
+    656
+   ],
+   "canvas": [
+    464,
+    133,
+    512,
+    704
+   ],
+   "scale": "none",
+   "wm": [],
+   "sig": [
+    "e-permits-doc-signature",
+    "Semnat electronic MSign · Elena Rotaru · 25 septembrie 2026",
+    [
+     464,
+     849,
+     512,
+     66
+    ]
+   ],
+   "title": "Document generat",
+   "footer": [
+    "Descarcă|btn btn-neutral btn-rounded",
+    "Închide|btn btn-primary btn-rounded"
+   ]
+  },
+  "geoM": {
+   "vw": 375,
+   "vh": 812,
+   "dialog": [
+    0,
+    0,
+    375,
+    812
+   ],
+   "page": [
+    8,
+    116,
+    359,
+    508
+   ],
+   "canvas": [
+    0,
+    108,
+    375,
+    549
+   ],
+   "scale": "none",
+   "wm": [],
+   "sig": [
+    "e-permits-doc-signature",
+    "Semnat electronic MSign · Elena Rotaru · 25 septembrie 2026",
+    [
+     8,
+     669,
+     359,
+     66
+    ]
+   ],
+   "title": "Document generat",
+   "footer": [
+    "Descarcă|btn btn-neutral btn-rounded",
+    "Închide|btn btn-primary btn-rounded"
+   ]
+  }
+ },
+ "mdoc-14": {
+  "spec": {
+   "dialog": "Document generat",
+   "sub": "Decizie de suspendare",
+   "btns": [
+    "Descarcă",
+    "Închide"
+   ],
+   "sig": [
+    "e-permits-doc-signature: Semnat electronic MSign · Elena Rotaru · 5 iunie 2026",
+    "e-permits-doc-signature__meta: MSign · Elena Rotaru · 5 iunie 2026"
+   ],
+   "pages": [
+    [
+     {
+      "m": "header",
+      "z": "locked",
+      "v": "full",
+      "country": "Republica Moldova",
+      "auth": "Agenția Națională pentru Sănătate Publică",
+      "office": "CSP Chișinău",
+      "contacts": [
+       "str. Gheorghe Asachi 67A, MD-2028, mun. Chișinău",
+       "Tel.: +373 22 574 501",
+       "Email: office@ansp.gov.md",
+       "www.ansp.gov.md"
+      ]
+     },
+     {
+      "m": "title",
+      "z": "locked",
+      "align": "start",
+      "over": "",
+      "chip": null,
+      "title": "Decizie de suspendare",
+      "sub": "privind Cererea Nr.C003512/2026 din 02.06.2026 pentru suspendarea valabilității actului permisiv „Autorizația sanitară de funcționare”",
+      "meta": [
+       [
+        "Data deciziei:",
+        "05.06.2026"
+       ]
+      ]
+     },
+     {
+      "m": "outcome",
+      "z": "editable",
+      "tone": "warning",
+      "title": "Valabilitatea actului permisiv este suspendată",
+      "text": "Agenția Națională pentru Sănătate Publică a suspendat valabilitatea actului permisiv; conținutul și temeiul legal sunt mai jos."
+     },
+     {
+      "m": "parties",
+      "z": "editable",
+      "parties": [
+       [
+        "Solicitant",
+        "SRL Global Trader",
+        "IDNO 1012600000002"
+       ]
+      ]
+     },
+     {
+      "m": "kv",
+      "z": "editable",
+      "cols": 1,
+      "title": "",
+      "rows": [
+       [
+        "Obiectul",
+        "Restaurantul „Piața Mare”, mun. Chișinău"
+       ],
+       [
+        "Conținutul deciziei",
+        "Valabilitatea actului permisiv ASF-2025-11873 a fost suspendată la cererea titularului pe perioada 15 iunie – 15 decembrie 2026 (lucrări de reamenajare)."
+       ],
+       [
+        "Temeiul legal",
+        "Legea nr. 160/2011 privind reglementarea prin autorizare a activității de întreprinzător"
+       ]
+      ]
+     },
+     {
+      "m": "footer",
+      "z": "locked",
+      "link": "evo.gov.md/verificare/decizie-suspendare-c003512-2026",
+      "legal": [
+       "Generat din portalul guvernamental integrat EVO (evo.gov.md) la 26.10.2026, 10:51.",
+       "Documentul reprezintă o replică vizuală a datelor semnate electronic în SIA GEAP, în conformitate cu Legea nr. 124/2022 și Legea nr. 160/2011.",
+       "Documentul conține date cu caracter personal, prelucrate în condițiile Legii nr. 195/2024."
+      ],
+      "page": "Pagina 1 din 1",
+      "qr": 3948
+     }
+    ]
+   ]
+  },
+  "geo": {
+   "vw": 1440,
+   "vh": 900,
+   "dialog": [
+    0,
+    0,
+    1440,
+    900
+   ],
+   "page": [
+    488,
+    157,
+    464,
+    656
+   ],
+   "canvas": [
+    464,
+    133,
+    512,
+    704
+   ],
+   "scale": "none",
+   "wm": [],
+   "sig": [
+    "e-permits-doc-signature",
+    "Semnat electronic MSign · Elena Rotaru · 5 iunie 2026",
+    [
+     464,
+     849,
+     512,
+     66
+    ]
+   ],
+   "title": "Document generat",
+   "footer": [
+    "Descarcă|btn btn-neutral btn-rounded",
+    "Închide|btn btn-primary btn-rounded"
+   ]
+  },
+  "geoM": {
+   "vw": 375,
+   "vh": 812,
+   "dialog": [
+    0,
+    0,
+    375,
+    812
+   ],
+   "page": [
+    8,
+    116,
+    359,
+    508
+   ],
+   "canvas": [
+    0,
+    108,
+    375,
+    549
+   ],
+   "scale": "none",
+   "wm": [],
+   "sig": [
+    "e-permits-doc-signature",
+    "Semnat electronic MSign · Elena Rotaru · 5 iunie 2026",
+    [
+     8,
+     669,
+     359,
+     66
+    ]
+   ],
+   "title": "Document generat",
+   "footer": [
+    "Descarcă|btn btn-neutral btn-rounded",
+    "Închide|btn btn-primary btn-rounded"
+   ]
+  }
+ },
+ "mdoc-15": {
+  "spec": {
+   "dialog": "Vizualizare act",
+   "sub": "Autorizația sanitară de funcționare",
+   "btns": [
+    "Descarcă",
+    "Închide"
+   ],
+   "sig": [
+    "e-permits-mdoc-signatures: Semnat electronic de Directorul general Dumitru Rotaru MSign · 15.09.2025",
+    "e-permits-mdoc-sign: Semnat electronic de Directorul general Dumitru Rotaru MSign · 15.09.2025",
+    "e-permits-mdoc-sign__lead: Semnat electronic de",
+    "e-permits-mdoc-sign__role: Directorul general"
+   ],
+   "pages": [
+    [
+     {
+      "m": "header",
+      "z": "locked",
+      "v": "emblem",
+      "country": "Republica Moldova",
+      "auth": "Agenția Națională pentru Sănătate Publică",
+      "office": "CSP Bălți",
+      "contacts": [
+       "str. Gheorghe Asachi 67A, MD-2028, mun. Chișinău",
+       "Tel.: +373 22 574 501",
+       "Email: office@ansp.gov.md",
+       "www.ansp.gov.md"
+      ]
+     },
+     {
+      "m": "title",
+      "z": "locked",
+      "align": "center",
+      "over": "Act permisiv",
+      "chip": [
+       "Valabil",
+       "positive"
+      ],
+      "title": "Autorizația sanitară de funcționare",
+      "sub": "",
+      "meta": [
+       [
+        "Nr.",
+        "P-4521/2026"
+       ],
+       [
+        "Eliberat:",
+        "15.09.2025"
+       ],
+       [
+        "Valabil până la",
+        "15.09.2028"
+       ]
+      ]
+     },
+     {
+      "m": "parties",
+      "z": "editable",
+      "parties": [
+       [
+        "Beneficiar",
+        "SRL Global Trader",
+        "IDNO 1012600000002"
+       ]
+      ]
+     },
+     {
+      "m": "kv",
+      "z": "editable",
+      "cols": "rows",
+      "title": "",
+      "rows": [
+       [
+        "Obiectul activității"
+       ],
+       [
+        "Denumirea obiectului",
+        "Cafeneaua „Izvoraș”, mun. Bălți"
+       ],
+       [
+        "Tipul obiectului",
+        "Cafenea"
+       ],
+       [
+        "Adresa obiectului",
+        "str. Independenței 12, Bălți, Municipiul Bălți"
+       ],
+       [
+        "Activitatea (CAEM)",
+        "56.10"
+       ],
+       [
+        "Valabil din data",
+        "15 septembrie 2025"
+       ],
+       [
+        "Numărul dosarului electronic",
+        "GEAP-2025-009-03187"
+       ],
+       [
+        "Seria și nr. documentului tipărit",
+        "ASF 0045213"
+       ]
+      ]
+     },
+     {
+      "m": "text",
+      "z": "editable",
+      "closing": true,
+      "title": "",
+      "cont": false,
+      "items": [
+       [
+        "p",
+        "Actul permisiv se eliberează pentru desfășurarea activității indicate, în condițiile legii."
+       ]
+      ]
+     },
+     {
+      "m": "signatures",
+      "z": "locked",
+      "signers": [
+       [
+        "signed",
+        "Semnat electronic de",
+        "Directorul general",
+        "Dumitru Rotaru",
+        "MSign · 15.09.2025"
+       ]
+      ]
+     },
+     {
+      "m": "footer",
+      "z": "locked",
+      "link": "rap.gov.md/act/P-4521%2F2026",
+      "legal": [
+       "Generat din portalul guvernamental integrat EVO (evo.gov.md) la 26.10.2026, 10:51.",
+       "Verificarea autenticității și a valabilității datelor se efectuează prin scanarea codului QR sau prin accesarea Registrului Actelor Permisive (rap.gov.md).",
+       "Documentul conține date cu caracter personal, prelucrate în condițiile Legii nr. 195/2024."
+      ],
+      "page": "Pagina 1 din 1",
+      "qr": 4142
+     }
+    ]
+   ]
+  },
+  "geo": {
+   "vw": 1440,
+   "vh": 900,
+   "dialog": [
+    0,
+    0,
+    1440,
+    900
+   ],
+   "page": [
+    408,
+    157,
+    624,
+    882
+   ],
+   "canvas": [
+    384,
+    133,
+    672,
+    930
+   ],
+   "scale": "none",
+   "wm": [],
+   "sig": [
+    "e-permits-mdoc-signatures",
+    "Semnat electronic de Directorul general Dumitru Rotaru MSign · 15.09.2025",
+    [
+     462,
+     789,
+     517,
+     73
+    ]
+   ],
+   "title": "Vizualizare act",
+   "footer": [
+    "Descarcă|btn btn-neutral btn-rounded",
+    "Închide|btn btn-primary btn-rounded"
+   ]
+  },
+  "geoM": {
+   "vw": 375,
+   "vh": 812,
+   "dialog": [
+    0,
+    0,
+    375,
+    812
+   ],
+   "page": [
+    8,
+    116,
+    359,
+    508
+   ],
+   "canvas": [
+    0,
+    108,
+    375,
+    529
+   ],
+   "scale": "none",
+   "wm": [],
+   "sig": [
+    "e-permits-mdoc-signatures",
+    "Semnat electronic de Directorul general Dumitru Rotaru MSign · 15.09.2025",
+    [
+     39,
+     485,
+     297,
+     42
+    ]
+   ],
+   "title": "Vizualizare act",
+   "footer": [
+    "Descarcă|btn btn-neutral btn-rounded",
+    "Închide|btn btn-primary btn-rounded"
+   ]
+  }
+ },
+ "mdoc-16": {
+  "spec": {
+   "dialog": "",
+   "sub": "",
+   "btns": [],
+   "sig": [],
+   "pages": []
+  },
+  "geo": {
+   "vw": 1440,
+   "vh": 900,
+   "dialog": null,
+   "page": null,
+   "canvas": null,
+   "scale": null,
+   "wm": [],
+   "sig": null,
+   "title": null,
+   "footer": []
+  },
+  "geoM": {
+   "vw": 375,
+   "vh": 812,
+   "dialog": null,
+   "page": null,
+   "canvas": null,
+   "scale": null,
+   "wm": [],
+   "sig": null,
+   "title": null,
+   "footer": []
+  }
+ },
+ "sm-05e": {
+  "spec": {
+   "dialog": "",
+   "sub": "",
+   "btns": [],
+   "sig": [],
+   "pages": []
+  },
+  "geo": {
+   "vw": 1440,
+   "vh": 900,
+   "dialog": null,
+   "page": null,
+   "canvas": null,
+   "scale": null,
+   "wm": [],
+   "sig": null,
+   "title": null,
+   "footer": []
+  },
+  "geoM": {
+   "vw": 375,
+   "vh": 812,
+   "dialog": null,
+   "page": null,
+   "canvas": null,
+   "scale": null,
+   "wm": [],
+   "sig": null,
+   "title": null,
+   "footer": []
+  }
+ },
+ "sm-05f": {
+  "spec": {
+   "dialog": "Document generat",
+   "sub": "Cererea depusă",
+   "btns": [
+    "Descarcă",
+    "Închide"
+   ],
+   "sig": [],
+   "pages": [
+    [
+     {
+      "m": "header",
+      "z": "locked",
+      "v": "full",
+      "country": "Republica Moldova",
+      "auth": "Agenția Națională pentru Sănătate Publică",
+      "office": "CSP Bălți",
+      "contacts": [
+       "str. Gheorghe Asachi 67A, MD-2028, mun. Chișinău",
+       "Tel.: +373 22 574 501",
+       "Email: office@ansp.gov.md",
+       "www.ansp.gov.md"
+      ]
+     },
+     {
+      "m": "title",
+      "z": "locked",
+      "align": "start",
+      "over": "",
+      "chip": null,
+      "title": "Cerere privind eliberarea actului permisiv „Autorizația sanitară de funcționare”",
+      "sub": "",
+      "meta": [
+       [
+        "Nr.",
+        "C003187/2025"
+       ],
+       [
+        "Data:",
+        "18.08.2025"
+       ]
+      ]
+     },
+     {
+      "m": "parties",
+      "z": "editable",
+      "parties": [
+       [
+        "Solicitant",
+        "SRL Global Trader",
+        "IDNO 1012600000002"
+       ]
+      ]
+     },
+     {
+      "m": "kv",
+      "z": "editable",
+      "cols": 1,
+      "title": "Serviciul solicitat",
+      "rows": [
+       [
+        "Serviciul",
+        "Autorizația sanitară de funcționare"
+       ],
+       [
+        "Tipul solicitării",
+        "Eliberare"
+       ],
+       [
+        "Subdiviziunea de examinare",
+        "CSP Bălți"
+       ]
+      ]
+     },
+     {
+      "m": "kv",
+      "z": "editable",
+      "cols": 1,
+      "title": "Obiectul activității",
+      "rows": [
+       [
+        "Obiectul",
+        "Cafeneaua „Izvoraș”, mun. Bălți"
+       ],
+       [
+        "Adresa",
+        "mun. Bălți, str. Independenței 12"
+       ]
+      ]
+     },
+     {
+      "m": "attachments",
+      "z": "editable",
+      "title": "Acte anexate",
+      "items": [
+       [
+        "1",
+        "Contract de locațiune",
+        "Contract-locatiune.pdf"
+       ],
+       [
+        "2",
+        "Planul încăperilor",
+        "Planul-incaperilor.pdf"
+       ]
+      ]
+     },
+     {
+      "m": "footer",
+      "z": "locked",
+      "link": "evo.gov.md/verificare/cerere-c003187-2025",
+      "legal": [
+       "Generat din portalul guvernamental integrat EVO (evo.gov.md) la 26.10.2026, 10:51.",
+       "Documentul reprezintă o replică vizuală a datelor din SIA GEAP, în conformitate cu Legea nr. 124/2022 și Legea nr. 160/2011.",
+       "Documentul conține date cu caracter personal, prelucrate în condițiile Legii nr. 195/2024."
+      ],
+      "page": "Pagina 1 din 1",
+      "qr": 4126
+     }
+    ]
+   ]
+  },
+  "geo": {
+   "vw": 1440,
+   "vh": 900,
+   "dialog": [
+    0,
+    0,
+    1440,
+    900
+   ],
+   "page": [
+    488,
+    157,
+    464,
+    656
+   ],
+   "canvas": [
+    464,
+    133,
+    512,
+    704
+   ],
+   "scale": "none",
+   "wm": [],
+   "sig": null,
+   "title": "Document generat",
+   "footer": [
+    "Descarcă|btn btn-neutral btn-rounded",
+    "Închide|btn btn-primary btn-rounded"
+   ]
+  },
+  "geoM": {
+   "vw": 375,
+   "vh": 812,
+   "dialog": [
+    0,
+    0,
+    375,
+    812
+   ],
+   "page": [
+    8,
+    116,
+    359,
+    508
+   ],
+   "canvas": [
+    0,
+    108,
+    375,
+    635
+   ],
+   "scale": "none",
+   "wm": [],
+   "sig": null,
+   "title": "Document generat",
+   "footer": [
+    "Descarcă|btn btn-neutral btn-rounded",
+    "Închide|btn btn-primary btn-rounded"
+   ]
+  }
+ },
+ "sm-05g": {
+  "spec": {
+   "dialog": "Document generat",
+   "sub": "Certificat constatator",
+   "btns": [
+    "Descarcă",
+    "Închide"
+   ],
+   "sig": [
+    "e-permits-doc-signature: Semnat electronic MSign · SIA GEAP · 18 august 2025, 12:10",
+    "e-permits-doc-signature__meta: MSign · SIA GEAP · 18 august 2025, 12:10"
+   ],
+   "pages": [
+    [
+     {
+      "m": "header",
+      "z": "locked",
+      "v": "emblem",
+      "country": "Republica Moldova",
+      "auth": "Agenția Națională pentru Sănătate Publică",
+      "office": "CSP Bălți",
+      "contacts": [
+       "str. Gheorghe Asachi 67A, MD-2028, mun. Chișinău",
+       "Tel.: +373 22 574 501",
+       "Email: office@ansp.gov.md",
+       "www.ansp.gov.md"
+      ]
+     },
+     {
+      "m": "title",
+      "z": "locked",
+      "align": "center",
+      "over": "",
+      "chip": null,
+      "title": "CERTIFICAT CONSTATATOR",
+      "sub": "",
+      "meta": [
+       [
+        "Nr. de înregistrare:",
+        "C003187/2025"
+       ],
+       [
+        "Data înregistrării:",
+        "18.08.2025"
+       ]
+      ]
+     },
+     {
+      "m": "kv",
+      "z": "editable",
+      "cols": 1,
+      "title": "",
+      "rows": [
+       [
+        "Serviciul",
+        "Autorizația sanitară de funcționare"
+       ],
+       [
+        "Tipul solicitării",
+        "Eliberare"
+       ],
+       [
+        "Solicitant",
+        "SRL Global Trader"
+       ],
+       [
+        "IDNO",
+        "1012600000002"
+       ],
+       [
+        "Obiectul",
+        "Cafeneaua „Izvoraș”, mun. Bălți"
+       ],
+       [
+        "Data și ora depunerii",
+        "18 august 2025, 12:10"
+       ],
+       [
+        "Canal de depunere",
+        "EVO · Solicitările mele"
+       ],
+       [
+        "Subdiviziunea de examinare",
+        "CSP Bălți"
+       ]
+      ]
+     },
+     {
+      "m": "footer",
+      "z": "locked",
+      "link": "evo.gov.md/verificare/certificat-c003187-2025",
+      "legal": [
+       "Generat de Sistemul informațional automatizat de gestionare și emitere a actelor permisive (SIA GEAP), în conformitate cu Legea nr. 160/2011.",
+       "Data și ora generării: 26.10.2026, 10:51.",
+       "Documentul conține date cu caracter personal, prelucrate în condițiile Legii nr. 195/2024."
+      ],
+      "page": "Pagina 1 din 1",
+      "qr": 4204
+     }
+    ]
+   ]
+  },
+  "geo": {
+   "vw": 1440,
+   "vh": 900,
+   "dialog": [
+    0,
+    0,
+    1440,
+    900
+   ],
+   "page": [
+    488,
+    157,
+    464,
+    656
+   ],
+   "canvas": [
+    464,
+    133,
+    512,
+    704
+   ],
+   "scale": "none",
+   "wm": [],
+   "sig": [
+    "e-permits-doc-signature",
+    "Semnat electronic MSign · SIA GEAP · 18 august 2025, 12:10",
+    [
+     464,
+     849,
+     512,
+     66
+    ]
+   ],
+   "title": "Document generat",
+   "footer": [
+    "Descarcă|btn btn-neutral btn-rounded",
+    "Închide|btn btn-primary btn-rounded"
+   ]
+  },
+  "geoM": {
+   "vw": 375,
+   "vh": 812,
+   "dialog": [
+    0,
+    0,
+    375,
+    812
+   ],
+   "page": [
+    8,
+    116,
+    359,
+    508
+   ],
+   "canvas": [
+    0,
+    108,
+    375,
+    549
+   ],
+   "scale": "none",
+   "wm": [],
+   "sig": [
+    "e-permits-doc-signature",
+    "Semnat electronic MSign · SIA GEAP · 18 august 2025, 12:10",
+    [
+     8,
+     669,
+     359,
+     66
+    ]
+   ],
+   "title": "Document generat",
+   "footer": [
+    "Descarcă|btn btn-neutral btn-rounded",
+    "Închide|btn btn-primary btn-rounded"
+   ]
+  }
+ },
+ "sm-05h": {
+  "spec": {
+   "dialog": "Document generat",
+   "sub": "Certificat constatator",
+   "btns": [
+    "Descarcă",
+    "Închide"
+   ],
+   "sig": [
+    "e-permits-doc-signature: Semnat electronic MSign · SIA GEAP · 18 august 2025, 12:10",
+    "e-permits-doc-signature__meta: MSign · SIA GEAP · 18 august 2025, 12:10"
+   ],
+   "pages": [
+    [
+     {
+      "m": "header",
+      "z": "locked",
+      "v": "emblem",
+      "country": "Republica Moldova",
+      "auth": "Agenția Națională pentru Sănătate Publică",
+      "office": "CSP Bălți",
+      "contacts": [
+       "str. Gheorghe Asachi 67A, MD-2028, mun. Chișinău",
+       "Tel.: +373 22 574 501",
+       "Email: office@ansp.gov.md",
+       "www.ansp.gov.md"
+      ]
+     },
+     {
+      "m": "title",
+      "z": "locked",
+      "align": "center",
+      "over": "",
+      "chip": null,
+      "title": "CERTIFICAT CONSTATATOR",
+      "sub": "",
+      "meta": [
+       [
+        "Nr. de înregistrare:",
+        "C003187/2025"
+       ],
+       [
+        "Data înregistrării:",
+        "18.08.2025"
+       ]
+      ]
+     },
+     {
+      "m": "kv",
+      "z": "editable",
+      "cols": 1,
+      "title": "",
+      "rows": [
+       [
+        "Serviciul",
+        "Autorizația sanitară de funcționare"
+       ],
+       [
+        "Tipul solicitării",
+        "Eliberare"
+       ],
+       [
+        "Solicitant",
+        "SRL Global Trader"
+       ],
+       [
+        "IDNO",
+        "1012600000002"
+       ],
+       [
+        "Obiectul",
+        "Cafeneaua „Izvoraș”, mun. Bălți"
+       ],
+       [
+        "Data și ora depunerii",
+        "18 august 2025, 12:10"
+       ],
+       [
+        "Canal de depunere",
+        "EVO · Solicitările mele"
+       ],
+       [
+        "Subdiviziunea de examinare",
+        "CSP Bălți"
+       ]
+      ]
+     },
+     {
+      "m": "footer",
+      "z": "locked",
+      "link": "evo.gov.md/verificare/certificat-c003187-2025",
+      "legal": [
+       "Generat de Sistemul informațional automatizat de gestionare și emitere a actelor permisive (SIA GEAP), în conformitate cu Legea nr. 160/2011.",
+       "Data și ora generării: 26.10.2026, 10:52.",
+       "Documentul conține date cu caracter personal, prelucrate în condițiile Legii nr. 195/2024."
+      ],
+      "page": "Pagina 1 din 1",
+      "qr": 4204
+     }
+    ]
+   ]
+  },
+  "geo": {
+   "vw": 1440,
+   "vh": 900,
+   "dialog": [
+    0,
+    0,
+    1440,
+    900
+   ],
+   "page": [
+    488,
+    157,
+    464,
+    656
+   ],
+   "canvas": [
+    464,
+    133,
+    512,
+    704
+   ],
+   "scale": "none",
+   "wm": [],
+   "sig": [
+    "e-permits-doc-signature",
+    "Semnat electronic MSign · SIA GEAP · 18 august 2025, 12:10",
+    [
+     464,
+     849,
+     512,
+     66
+    ]
+   ],
+   "title": "Document generat",
+   "footer": [
+    "Descarcă|btn btn-neutral btn-rounded",
+    "Închide|btn btn-primary btn-rounded"
+   ]
+  },
+  "geoM": {
+   "vw": 375,
+   "vh": 812,
+   "dialog": [
+    0,
+    0,
+    375,
+    812
+   ],
+   "page": [
+    8,
+    116,
+    359,
+    508
+   ],
+   "canvas": [
+    0,
+    108,
+    375,
+    549
+   ],
+   "scale": "none",
+   "wm": [],
+   "sig": [
+    "e-permits-doc-signature",
+    "Semnat electronic MSign · SIA GEAP · 18 august 2025, 12:10",
+    [
+     8,
+     669,
+     359,
+     66
+    ]
+   ],
+   "title": "Document generat",
+   "footer": [
+    "Descarcă|btn btn-neutral btn-rounded",
+    "Închide|btn btn-primary btn-rounded"
+   ]
+  }
+ }
+}

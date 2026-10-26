@@ -5108,3 +5108,14 @@ For any „research how other products do it” step, search Mobbin (mcp__mobbin
   - **Copy value migration left every Workplace / Dossiers list row at the default „D-2026-004633”** (pre-existing): row matching by
     dossier number is impossible there; those lists also hold an older dataset (2027 dates). Update wording only and report.
   - Toasts in demo links never auto-close (duration 0) → toast states can be captured with --fit.
+
+- 2026-10-26 · cabinet-final-v2 (hand-off #5): stopped before the first write, `figma-a` needs a new sign-in (REST is 429 for days). The run before left
+  ready calls only in its session scratchpad, and no record of which ones it ran. Copy call files into the repo (tools/figma/cabinet-final/prep/)
+  and log each executed call in the README as you go, so a resume knows what is done.
+- 2026-10-26 · cabinet-final-v3: the read-only check found ~90 % already built by the first run, so always census before running prepared calls.
+  Cabinet section ids ≠ band ids (06 · Completed = SECTION 1122:6572, its band 1122:6573 is an instance → appendChild fails). A new tab state =
+  clone the nearest block with the right HEADER, then clone the tab's sections from a block that has them and rewrite rows (Kind / Last / Label / Value).
+
+- 2026-10-26 · menu-item-trailing-icon-v1 (Cabinet; „Profilul actului” icon after the label = code). Item set `Post-process menu · item` 1054:134
+  gained BOOLEAN `Leading icon#1446:0` (on), `Trailing icon#1446:9` (off) + INSTANCE_SWAP `Trailing icon · glyph#1446:18` (20/external-link; Touch 24 = leading size) in all 8 variants.
+  Cloning an instance then setting `mainComponent` renames the layer — rename after; set on 5 items (sm-01u, sm-01w, sm-act-04), stored `qsweep/audit` = baseline only.

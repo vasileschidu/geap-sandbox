@@ -189,6 +189,13 @@
   width: 100%;
 }
 
+/* the selected size's ✓ = 24, as the Figma library selection-menu (user 2026-10-26, „do as in Figma”) */
+.e-permits-pager__menu .e-permits-fo-intent-menu__item .icon {
+  flex: none;
+  height: var(--spacing-24, 24px);
+  width: var(--spacing-24, 24px);
+}
+
 .e-permits-pager__menu .e-permits-fo-intent-menu__item:hover,
 .e-permits-pager__menu .e-permits-fo-intent-menu__item:focus-visible {
   background: var(--color-background-base-tertiary, #f1f1f1);
