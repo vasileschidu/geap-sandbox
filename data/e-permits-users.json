@@ -78,6 +78,14 @@
         "countKey": "delegationsCount"
       },
       {
+        "id": "absences",
+        "label": "Absențe"
+      },
+      {
+        "id": "distribution",
+        "label": "Distribuire"
+      },
+      {
         "id": "events",
         "label": "Jurnal de evenimente"
       }

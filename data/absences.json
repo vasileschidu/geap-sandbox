@@ -1,0 +1,77 @@
+{
+  "_note": "Absences (US-312…316, Azure 96275…96279) + the specialists' distribution settings (US-291, 96008) + the distribution policy (US-289, 96006). Read by js/absences.js (window.GEAPAbsences). Dates are on the dossiers' clock (data/e-permits-workplace.json › today = 2026-07-09). People link to Administrare › Utilizatori by IDNP and to the BO dossier team by specialistId (sp*). Absences live ONLY in the user profile model (user decision 2026-10-26).",
+  "today": "2026-07-09",
+  "absenceTypes": ["Concediu", "Concediu medical", "Delegație", "Suspendare"],
+  "people": [
+    { "id": "me", "name": "Anastasia Cojocaru", "me": true, "authority": "ANSP", "subdivision": "CSP Chișinău", "role": "Specialist", "team": false },
+    { "id": "sp1", "name": "Elena Caragia", "specialistId": "sp1", "authority": "ANSP", "subdivision": "CSP Chișinău", "role": "Supervizor" },
+    { "id": "sp2", "name": "Mihai Grosu", "idnp": "2000002238471", "specialistId": "sp2", "authority": "ANSP", "subdivision": "CSP Chișinău", "role": "Specialist" },
+    { "id": "sp3", "name": "Stela Bradu", "specialistId": "sp3", "authority": "ANSP", "subdivision": "CSP Chișinău", "role": "Specialist" },
+    { "id": "sp4", "name": "Andrei Lazăr", "specialistId": "sp4", "authority": "ANSP", "subdivision": "CSP Chișinău", "role": "Supervizor" },
+    { "id": "sp5", "name": "Tamara Bragagiu", "specialistId": "sp5", "authority": "ANSP", "subdivision": "CSP Chișinău", "role": "Specialist" },
+    { "id": "sp6", "name": "Ion Rusu", "specialistId": "sp6", "authority": "ANSP", "subdivision": "CSP Chișinău", "role": "Specialist" },
+    { "id": "sp7", "name": "Natalia Cebotari", "specialistId": "sp7", "authority": "ANSP", "subdivision": "CSP Chișinău", "role": "Specialist" },
+    { "id": "u-valeriu", "name": "Valeriu Mănăscrută", "idnp": "2118421010044", "authority": "ANSP", "subdivision": "CSP Chișinău", "role": "Specialist" },
+    { "id": "u-irina", "name": "Irina Rusu", "idnp": "2118421010046", "authority": "ANSP", "subdivision": "CSP Chișinău", "role": "Supervizor" },
+    { "id": "u-andrei", "name": "Andrei Munteanu", "idnp": "2118421010045", "authority": "ANSP", "subdivision": "Direcția Chișinău", "role": "Supervizor" },
+    { "id": "sp8", "name": "Victor Moraru", "specialistId": "sp8", "authority": "ANSP", "subdivision": "CSP Bălți", "role": "Specialist" },
+    { "id": "p-olga", "name": "Olga Ciobanu", "authority": "ANSP", "subdivision": "CSP Bălți", "role": "Specialist" },
+    { "id": "p-petru", "name": "Petru Ceban", "authority": "ANTA", "subdivision": "Oficiul Chișinău", "role": "Specialist" }
+  ],
+  "absences": [
+    { "id": "abs-01", "person": "sp2", "type": "Concediu medical", "from": "2026-03-02", "to": "2026-03-06", "reason": "Certificat de concediu medical nr. 4471.", "recordedBy": "Irina Rusu", "recordedAt": "2026-03-02T09:12:00" },
+    { "id": "abs-02", "person": "sp2", "type": "Delegație", "from": "2026-07-20", "to": "2026-07-22", "reason": "Instruire privind controlul sanitar, CSP Bălți.", "recordedBy": "Mihai Grosu", "recordedAt": "2026-07-03T15:40:00" },
+    { "id": "abs-03", "person": "sp2", "type": "Concediu", "from": "2026-08-10", "to": "2026-08-28", "reason": "Concediu anual de odihnă.", "recordedBy": "Mihai Grosu", "recordedAt": "2026-06-25T11:05:00" },
+    { "id": "abs-04", "person": "sp7", "type": "Concediu", "from": "2026-07-01", "to": "2026-07-17", "reason": "Concediu anual de odihnă, prima parte.", "recordedBy": "Elena Caragia", "recordedAt": "2026-06-18T10:30:00" },
+    { "id": "abs-05", "person": "sp6", "type": "Suspendare", "from": "2026-07-27", "to": null, "reason": "Suspendarea contractului individual de muncă, la cererea angajatului.", "recordedBy": "Anastasia Cojocaru", "recordedAt": "2026-07-08T16:20:00" },
+    { "id": "abs-06", "person": "sp5", "type": "Concediu", "from": "2026-05-04", "to": "2026-05-15", "reason": "", "recordedBy": "Tamara Bragagiu", "recordedAt": "2026-04-20T08:55:00" },
+    { "id": "abs-07", "person": "sp8", "type": "Delegație", "from": "2026-07-06", "to": "2026-07-10", "reason": "Audit intern la CSP Comrat.", "recordedBy": "Victor Moraru", "recordedAt": "2026-07-01T09:00:00" },
+    { "id": "abs-08", "person": "p-olga", "type": "Concediu", "from": "2026-07-27", "to": "2026-08-14", "reason": "Concediu anual de odihnă.", "recordedBy": "Anastasia Cojocaru", "recordedAt": "2026-07-02T14:10:00" },
+    { "id": "abs-09", "person": "me", "type": "Delegație", "from": "2026-04-21", "to": "2026-04-23", "reason": "Conferința națională de sănătate publică.", "recordedBy": "Anastasia Cojocaru", "recordedAt": "2026-04-10T10:00:00" },
+    { "id": "abs-10", "person": "me", "type": "Concediu", "from": "2026-08-03", "to": "2026-08-14", "reason": "Concediu anual de odihnă.", "recordedBy": "Anastasia Cojocaru", "recordedAt": "2026-07-01T17:45:00" },
+    { "id": "abs-11", "person": "p-petru", "type": "Concediu medical", "from": "2026-07-07", "to": "2026-07-13", "reason": "", "recordedBy": "Anastasia Cojocaru", "recordedAt": "2026-07-07T08:30:00" },
+    { "id": "abs-13", "person": "sp5", "type": "Concediu medical", "from": "2026-07-06", "to": "2026-07-17", "reason": "Certificat de concediu medical nr. 5087.", "recordedBy": "Elena Caragia", "recordedAt": "2026-07-06T08:40:00" },
+    { "id": "abs-12", "person": "u-andrei", "type": "Concediu", "from": "2026-07-13", "to": "2026-07-24", "reason": "Concediu anual de odihnă.", "recordedBy": "Andrei Munteanu", "recordedAt": "2026-06-30T12:00:00" }
+  ],
+  "distribution": {
+    "sp2": { "norm": "", "normReason": "", "start": "2024-02-01", "competences": [] },
+    "sp3": { "norm": "80", "normReason": "Program redus: studii de masterat, 4 zile pe săptămână.", "start": "2023-09-04", "competences": [
+      { "service": "Aviz sanitar privind atribuirea terenului pentru construcție", "rt": "" },
+      { "service": "Certificat de urbanism pentru proiectare", "rt": "" },
+      { "service": "Autorizație de construire", "rt": "Eliberare" },
+      { "service": "Autorizație de construire", "rt": "Prelungire" }
+    ] },
+    "sp5": { "norm": "50", "normReason": "Jumătate de normă (contract part-time).", "start": "2026-03-02", "competences": [] },
+    "sp6": { "norm": "", "normReason": "", "start": "2026-05-11", "competences": [] },
+    "sp7": { "norm": "", "normReason": "", "start": "2022-01-10", "competences": [] },
+    "sp8": { "norm": "", "normReason": "", "start": "2021-06-01", "competences": [] },
+    "u-valeriu": { "norm": "80", "normReason": "Program redus: 4 zile pe săptămână (acord din 2 februarie 2026).", "start": "2026-02-02", "competences": [
+      { "service": "Autorizație sanitară de funcționare", "rt": "" },
+      { "service": "Autorizație pentru activitate de alimentație publică", "rt": "Eliberare" }
+    ] },
+    "me": { "norm": "", "normReason": "", "start": "2025-11-03", "competences": [
+      { "service": "Autorizație sanitară de funcționare", "rt": "" },
+      { "service": "Autorizație pentru activitate de alimentație publică", "rt": "" }
+    ] }
+  },
+  "policy": {
+    "requestTypes": ["Emitere primară", "Prelungire", "Reperfectare", "Emitere duplicat", "Duplicat", "Copii certificate", "Extras istoric", "Suspendarea valabilității", "Retragere"],
+    "geap": { "competent": "da", "noTwice": "da", "window": "3", "maxLoad": "", "ramp": ["100", "90", "70", "50", "30", "10"], "coef": "1", "f_doc": "0,25", "f_docReg": "0,15", "f_aviz": "1", "f_pj": "0,5", "f_foreign": "1", "f_activity": "0,25", "f_row": "0,5", "f_sign": "0,25", "f_level": "0,5", "f_tacit": "0,5", "f_min": "0,5" },
+    "geapRt": {
+      "Prelungire": { "coef": "0,5" },
+      "Emitere duplicat": { "coef": "0,3", "ramp": ["0", "0", "0", "0", "0", "0"] },
+      "Duplicat": { "coef": "0,3", "ramp": ["0", "0", "0", "0", "0", "0"] },
+      "Copii certificate": { "coef": "0,2", "ramp": ["0", "0", "0", "0", "0", "0"] },
+      "Extras istoric": { "coef": "0,2", "ramp": ["0", "0", "0", "0", "0", "0"] }
+    },
+    "authorities": {
+      "ANSP": { "base": { "window": "6", "maxLoad": "140", "f_aviz": "1,5" }, "rt": { "Emitere primară": { "noTwice": "nu" } } },
+      "MEC": { "base": { "window": "4" }, "rt": {} },
+      "ANTA": { "base": {}, "rt": {} }
+    },
+    "journal": [
+      { "at": "2026-06-30T10:15:00", "user": "Anastasia Cojocaru", "type": "Modificare politică — ANSP", "status": "Reușit", "detail": "Încărcarea maximă (normo-ore): necompletat → 140." },
+      { "at": "2026-06-12T09:02:00", "user": "Anastasia Cojocaru", "type": "Modificare politică — GEAP", "status": "Reușit", "detail": "Nu doi la rând: Nu → Da." }
+    ]
+  }
+}

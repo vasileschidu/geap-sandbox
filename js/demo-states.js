@@ -39,6 +39,24 @@
     await h.click("#case-action-modal [data-case-submit]"); await h.find(".toast");
   };
   const subList = (run) => ({ flow: "back-office", as: SUP, hash: "#subdivision-cases", ready: "tr[data-workplace-row], .e-permits-workplace .e-permits-empty", run });
+  /* absences-dist-v1 (js/absences.js): US-312…316 absences · US-291 Distribuire tab · US-289 policy · US-294 team load */
+  const absUser = (as, user, tab, run, params) => ({ flow: "back-office", as, params, hash: `#utilizator/${user}/${tab}`, ready: "[data-user-profile-tabs] .tab-button.active", run: async (h) => { await h.find("[data-abs-root], [data-user-profile-panel] .e-permits-empty, [data-user-profile-panel] .e-permits-dosar-profil__section"); await h.wait(200); if (run) await run(h); } });
+  const absMine = (as, tab, run) => ({ flow: "back-office", as, hash: `#profilul-meu/${tab}`, ready: "#abs-my-panel [data-abs-root], #abs-my-panel .e-permits-empty", run });
+  const absList = (as, run, params) => ({ flow: "back-office", as, params, hash: "#absente", ready: "[data-registry-kind='absente'] tr[data-workplace-row], [data-registry-kind='absente'] .e-permits-empty:not(:has(.spinner))", run });
+  const absTeam = (as, run, params) => ({ flow: "back-office", as, params, hash: "#incarcarea-echipei", ready: "[data-registry-kind='echipa'] tr[data-workplace-row], [data-registry-kind='echipa'] .e-permits-empty:not(:has(.spinner))", run });
+  const absPol = (as, tab, run, params) => ({ flow: "back-office", as, params, hash: `#distribuire/${tab}`, ready: "#abs-pol-panel > *, [data-dosar-profil-panel] .e-permits-empty", run });
+  const absModal = "#case-action-modal.is-active";
+  const absAdd = async (h) => { await h.click("[data-abs-add]"); await h.find(`${absModal} #abs-type`); };
+  const absFill = async (h, { type, from, to, reason } = {}) => {
+    if (type) await h.choose(`${absModal} select[data-abs-field="type"]`, type);
+    if (from != null) await h.fill("#abs-from", from);
+    if (to != null) await h.fill("#abs-to", to);
+    if (reason != null) await h.fill("#abs-reason", reason);
+  };
+  const absSave = async (h) => { await h.click(`${absModal} [data-abs-save]`); await h.wait(300); };
+  const absRowMenu = (i = 0) => async (h) => { await h.nth("[data-abs-root] .e-permits-stack__item [data-stack-menu-trigger]", i); };
+  const distEditOpen = async (h) => { await h.click("[data-abs-dist-edit]"); await h.find(`${absModal} #abs-norm`); };
+  const teamMenu = (name) => async (h) => { const row = [...document.querySelectorAll("[data-registry-kind='echipa'] tr[data-workplace-row]")].find((r) => r.textContent.includes(name)); row?.scrollIntoView({ block: "center", inline: "end" }); await h.wait(200); row?.querySelector("[data-stack-menu-trigger]")?.click(); await h.wait(400); };
   /* Setări: jump to a section from the section list */
   const cfgNav = (key) => async (h) => { await h.click(`[data-cfg2-nav="${key}"]`); await h.wait(500); };
   const bio = (tab, run) => svc(tab, run, BIO);
@@ -127,7 +145,7 @@
   const distEdit = async (h) => {
     await distNav(h);
     await h.choose('select[data-cfg-dp="competent"]', "nu");
-    await h.fill("#cfg-dp-window", "4"); await h.fill("#cfg-dp-baseHours", "10"); await h.fill("#cfg-dp-f_inspectie", "5");
+    await h.fill("#cfg-dp-window", "4"); await h.fill("#cfg-dp-baseHours", "10"); await h.fill("#cfg-dp-f_aviz", "2");
     await h.scroll("[data-cfg-dp-field='competent']");
   };
   const ntplTwoEdits = async (h) => {
@@ -546,6 +564,79 @@
     "usr-04": { flow: "back-office", as: ADMIN, hash: "#utilizator/user-1/delegations" },
     "usr-05": { flow: "back-office", as: ADMIN, hash: "#utilizator/user-1/events" },
     "usr-01a": { flow: "back-office", as: ADMIN, hash: "#utilizator/user-1/general", run: async (h) => { await h.fill("#user-geap-function", "Specialist principal", { leave: false }); } },
+
+    /* ---- absences-dist-v1: Absențe (US-312…316), Distribuire (US-291), politica (US-289), încărcarea echipei (US-294) ---- */
+    /* US-313: the profile tab (Mihai Grosu: one past + two planned absences), empty, own profile, hidden / no rights, sort */
+    "abs-01": absUser(ADMIN, "user-1", "absences"),
+    "abs-01a": absUser(ADMIN, "user-2", "absences"),
+    "abs-01b": absMine(SPEC, "absente"),
+    "abs-01c": absUser(SPEC, "user-1", "general"),
+    "abs-01d": absUser(SUP, "user-3", "absences"),
+    "abs-01e": absUser(ADMIN, "user-1", "absences", async (h) => { await h.click("[data-abs-root] .e-permits-abs-sort [data-stack-menu-trigger]"); }),
+    "abs-01f": absUser(ADMIN, "user-1", "absences", async (h) => { await h.click("[data-abs-root] .e-permits-abs-sort [data-stack-menu-trigger]"); await h.click('[data-abs-sort="to-asc"]'); }),
+    /* US-314: add — empty, required errors, end before start, overlap, reason > 500, saved + open-dossiers alert, failure */
+    "abs-02": absUser(ADMIN, "user-1", "absences", absAdd),
+    "abs-02a": absUser(ADMIN, "user-1", "absences", async (h) => { await absAdd(h); await absSave(h); }),
+    "abs-02b": absUser(ADMIN, "user-1", "absences", async (h) => { await absAdd(h); await absFill(h, { type: "Concediu", from: "15/07/2026", to: "10/07/2026" }); await absSave(h); }),
+    "abs-02c": absUser(ADMIN, "user-1", "absences", async (h) => { await absAdd(h); await absFill(h, { type: "Concediu medical", from: "21/07/2026", to: "24/07/2026" }); await absSave(h); }),
+    "abs-02d": absUser(ADMIN, "user-1", "absences", async (h) => { await absAdd(h); await absFill(h, { type: "Delegație", from: "03/09/2026", to: "04/09/2026", reason: "Instruire. ".repeat(52) }); await absSave(h); }),
+    "abs-02e": absUser(ADMIN, "user-1", "absences", async (h) => { await absAdd(h); await absFill(h, { type: "Concediu medical", from: "09/07/2026", to: "15/07/2026", reason: "Certificat de concediu medical nr. 5120." }); await absSave(h); await h.find("#abs-open-cases"); }),
+    "abs-02f": absUser(SUP, "user-1", "absences", async (h) => { await absAdd(h); await absFill(h, { type: "Concediu medical", from: "09/07/2026", to: "15/07/2026" }); await absSave(h); await h.find("#abs-open-cases"); }),
+    "abs-02g": absUser(ADMIN, "user-1", "absences", async (h) => { await absAdd(h); await absFill(h, { type: "Concediu", from: "01/09/2026", to: "04/09/2026" }); await absSave(h); await h.find(".toast"); }, { absente: "eroare" }),
+    "abs-02h": absUser(ADMIN, "user-1", "absences", async (h) => { await absAdd(h); await absFill(h, { type: "Concediu" }); await h.click(`${absModal} [aria-controls="abs-from-panel"]`); }),
+    "abs-02i": absMine(SPEC, "absente", async (h) => { await absAdd(h); await absFill(h, { type: "Delegație", from: "15/09/2026", to: "16/09/2026", reason: "Seminar regional." }); await absSave(h); await h.find(".toast"); }),
+    /* US-315: edit — prefilled, ended early, overlap, saved */
+    "abs-03": absUser(ADMIN, "user-1", "absences", async (h) => { await h.click("[data-abs-root] [data-abs-edit]"); await h.find(`${absModal} #abs-type`); }),
+    "abs-03a": absUser(ADMIN, "user-1", "absences", async (h) => { await h.click("[data-abs-root] [data-abs-edit]"); await absFill(h, { to: "17/08/2026" }); await absSave(h); await h.find(".toast"); }),
+    "abs-03b": absUser(ADMIN, "user-1", "absences", async (h) => { await h.click("[data-abs-root] [data-abs-edit]"); await absFill(h, { from: "18/07/2026" }); await absSave(h); }),
+    /* US-316: delete — ⋮ open, confirm, deleted, failure */
+    "abs-04": absUser(ADMIN, "user-1", "absences", absRowMenu(0)),
+    "abs-04a": absUser(ADMIN, "user-1", "absences", async (h) => { await absRowMenu(0)(h); await h.click("[data-abs-root] [data-abs-delete]"); await h.find("#service-confirm-modal.is-active"); }),
+    "abs-04b": absUser(ADMIN, "user-1", "absences", async (h) => { await absRowMenu(0)(h); await h.click("[data-abs-root] [data-abs-delete]"); await h.click("#service-confirm-modal [data-service-confirm-ok]"); await h.find(".toast"); }),
+    "abs-04c": absUser(ADMIN, "user-1", "absences", async (h) => { await absRowMenu(0)(h); await h.click("[data-abs-root] [data-abs-delete]"); await h.click("#service-confirm-modal [data-service-confirm-ok]"); await h.find(".toast"); }, { absente: "eroare" }),
+    /* US-312: the list — Supervisor (current + future), no hits, past, Local / Central Admin, row edit, add from the list, no rights */
+    "abs-05": absList(SUP),
+    "abs-05a": absList(SUP, async (h) => { await h.fill("[data-workplace-search]", "Popescu", { leave: false }); }),
+    "abs-05b": absList(SUP, async (h) => { await h.click('[data-workplace-tab="trecute"]'); }),
+    "abs-05c": absList(LOCAL),
+    "abs-05d": absList(ADMIN),
+    "abs-05e": absList(SUP, async (h) => { await h.nth("[data-registry-kind='absente'] [data-abs-edit]", 0); await h.find(`${absModal} #abs-type`); }),
+    "abs-05f": absList(SPEC),
+    "abs-05g": absList(SUP, async (h) => { await h.click('[data-workplace-add-product="abs-new"]'); await h.find(`${absModal} #abs-person`); }),
+    "abs-05h": absList(SUP, async (h) => { await h.click('[data-workplace-add-product="abs-new"]'); await h.choose(`${absModal} select[data-abs-field="person"]`, "sp3"); await absFill(h, { type: "Concediu", from: "20/07/2026", to: "31/07/2026" }); await absSave(h); await h.find(".toast"); }),
+    "abs-05i": absList(ADMIN, async (h) => { await h.nth("[data-registry-kind='absente'] [data-stack-menu-trigger]", 0); }),
+    /* US-291: Distribuire — read, edit, validation, competences, saved, own read-only, no rights */
+    "dset-01": absUser(ADMIN, "user-2", "distribution"),
+    "dset-01a": absUser(ADMIN, "user-1", "distribution"),
+    "dset-02": absUser(ADMIN, "user-2", "distribution", distEditOpen),
+    "dset-02a": absUser(ADMIN, "user-2", "distribution", async (h) => { await distEditOpen(h); await h.fill("#abs-norm", "120"); await h.click(`${absModal} [data-abs-dist-save]`); }),
+    "dset-02b": absUser(ADMIN, "user-2", "distribution", async (h) => { await distEditOpen(h); await h.fill("#abs-norm", "60"); await h.fill("#abs-norm-reason", ""); await h.click(`${absModal} [data-abs-dist-save]`); }),
+    "dset-02c": absUser(ADMIN, "user-2", "distribution", async (h) => { await distEditOpen(h); await h.click(`${absModal} [data-abs-comp-add]`); await h.choose(`${absModal} select[data-abs-comp-field="service"][data-abs-comp-i="2"]`, "Autorizație sanitară de funcționare"); await h.click(`${absModal} [data-abs-dist-save]`); }),
+    "dset-02d": absUser(ADMIN, "user-2", "distribution", async (h) => { await distEditOpen(h); await h.fill("#abs-norm", "100"); await h.click(`${absModal} [data-abs-comp-remove="1"]`); await h.click(`${absModal} [data-abs-dist-save]`); await h.find(".toast"); }),
+    "dset-03": absMine(SPEC, "distribuire"),
+    "dset-04": absUser(SUP, "user-3", "distribution"),
+    "dset-05": absUser(ADMIN, "user-2", "events", null),
+    /* US-289: the policy — GEAP, GEAP + request type, authority, validation, unsaved, saved, effective, Local / Supervisor, journal, no rights */
+    "pol-01": absPol(ADMIN, "parametri"),
+    "pol-01a": absPol(ADMIN, "parametri", async (h) => { await h.choose("select[data-abs-pol-rt]", "Duplicat"); }),
+    "pol-02": absPol(ADMIN, "parametri", async (h) => { await h.click('[data-abs-pol-level="aut"]'); }),
+    "pol-02a": absPol(ADMIN, "parametri", async (h) => { await h.click('[data-abs-pol-level="aut"]'); await h.fill("#abs-pol-window", "0"); await h.click("[data-abs-pol-save]"); }),
+    "pol-02b": absPol(ADMIN, "parametri", async (h) => { await h.click('[data-abs-pol-level="aut"]'); await h.fill("#abs-pol-maxLoad", "120"); await h.fill("#abs-pol-f_doc", "0,5"); }),
+    "pol-02c": absPol(ADMIN, "parametri", async (h) => { await h.click('[data-abs-pol-level="aut"]'); await h.fill("#abs-pol-maxLoad", "120"); await h.click("[data-abs-pol-save]"); await h.find(".toast"); await h.click('[data-abs-pol-tab="jurnal"]'); }),
+    "pol-03": absPol(ADMIN, "efectiva"),
+    "pol-03a": absPol(ADMIN, "efectiva", async (h) => { await h.choose("select[data-abs-eff-rt]", "Emitere duplicat"); }),
+    "pol-04": absPol(LOCAL, "parametri", async (h) => { await h.click('[data-abs-pol-level="geap"]'); }),
+    "pol-04a": absPol(LOCAL, "parametri", async (h) => { await h.click('[data-abs-pol-level="aut"]'); }),
+    "pol-04b": absPol(SUP, "efectiva"),
+    "pol-05": absPol(ADMIN, "jurnal"),
+    "pol-06": absPol(SPEC, "parametri"),
+    /* US-294: Încărcarea echipei — the team, an absent specialist's menu, his cases (AC-09), bulk redistribution (AC-11), no rights */
+    "team-01": absTeam(SUP),
+    "team-01a": absTeam(SUP, teamMenu("Tamara Bragagiu")),
+    "team-01b": absTeam(SUP, async (h) => { await h.hover("[data-registry-kind='echipa'] [data-tooltip-text]"); }),
+    "team-02": absTeam(SUP, async (h) => { await teamMenu("Stela Bradu")(h); await h.click("[data-abs-team-cases]"); await h.find("tr[data-workplace-row]"); }),
+    "team-03": absTeam(SUP, async (h) => { await teamMenu("Tamara Bragagiu")(h); await h.click("[data-abs-team-redistribute]"); await h.find(`${absModal} [data-case-choice]`); }),
+    "team-04": absTeam(ADMIN),
     "usr-02a": { flow: "back-office", as: ADMIN, hash: "#utilizator/user-1/roles", run: async (h) => { await h.click("[data-combo-add-open]"); } },
     "usr-02b": { flow: "back-office", as: ADMIN, hash: "#utilizator/user-1/roles", run: async (h) => { await h.click("[data-combo-add-open]"); await h.click("[data-user-combo-save]"); } },
     "usr-03a": { flow: "back-office", as: ADMIN, hash: "#utilizator/user-1/permissions", run: async (h) => { await h.nth("[data-perm-switch]", 0); await h.wait(300); await h.nth("[data-perm-switch]", 5); } },

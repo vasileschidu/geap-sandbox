@@ -4109,20 +4109,14 @@ document.addEventListener("DOMContentLoaded", () => {
     { id: "sp7", nume: "Natalia Cebotari", initiale: "NC", color: "#7A4A6B", rol: "Specialist" },
     { id: "sp8", nume: "Victor Moraru", initiale: "VM", color: "#3E5C8A", rol: "Specialist" }
   ];
-  /* per person: subdivision, active (absence / inactive account), the services it is NOT competent for */
-  const REDIST_TEAM_INFO = {
-    sp1: { subdiviziune: "CSP Chișinău", activ: true },
-    sp2: { subdiviziune: "CSP Chișinău", activ: true },
-    sp3: { subdiviziune: "CSP Chișinău", activ: true, faraCompetenta: ["Autorizație de comerț cu produse alcoolice", "Autorizație sanitară de funcționare"] },
-    sp4: { subdiviziune: "CSP Chișinău", activ: true },
-    sp5: { subdiviziune: "CSP Chișinău", activ: true },
-    sp6: { subdiviziune: "CSP Chișinău", activ: true },
-    sp7: { subdiviziune: "CSP Chișinău", activ: false, absenta: "În concediu până la 3 noiembrie 2026" },
-    sp8: { subdiviziune: "CSP Bălți", activ: true }
-  };
-  const redistTeam = () => [...(dossierDb?.specialisti || []), ...REDIST_TEAM_EXTRA].map((person) => ({ ...person, ...(REDIST_TEAM_INFO[person.id] || { subdiviziune: dossierDb?.mySubdiviziune, activ: true }) }));
+  /* per person: subdivision, active today, norm, competences — absences-dist-v1: read from the absences +
+     distribution-settings store (data/absences.json via js/absences.js, US-313…316 / US-291); an absent
+     specialist is never a candidate (US-293 AC-03, US-314 AC-13). Until that data arrives: the user's subdivision. */
+  const redistInfo = (id) => window.GEAPAbsences?.teamInfo?.(id) || { subdiviziune: dossierDb?.mySubdiviziune, activ: true };
+  const redistTeam = () => [...(dossierDb?.specialisti || []), ...REDIST_TEAM_EXTRA].map((person) => ({ ...person, ...redistInfo(person.id) }));
   const redistLoad = (personId) => (dossierDb?.runtimeRows || []).filter((row) => row.specialist?.id === personId && !["semnat", "eliberat", "respins", "arhivat"].includes(row.status)).length;
-  const redistCompetent = (person, row) => !(person.faraCompetenta || []).includes(row.serviciu);
+  /* US-291 AC-11: no competences = competent everywhere */
+  const redistCompetent = (person, row) => window.GEAPAbsences?.competent ? window.GEAPAbsences.competent(person.id, row) : true;
   /* AC-04 / AC-05: active specialists (role Specialist) of the case's subdivision, without the current responsible(s) */
   const redistCandidates = (rows) => {
     const subdivisions = new Set(rows.map((row) => row.subdiviziune));
@@ -4410,8 +4404,8 @@ document.addEventListener("DOMContentLoaded", () => {
             : picked.length ? `${picked.join(", ")}${unplaced ? ` · ${roCount(unplaced, "dosar", "dosare")} în nedistribuite` : ""}`
             : "Niciun specialist disponibil", 0);
         const rowMessage = mode === "manual" && d.errors.specialist ? caseFieldError("specialist")
-          : `<p class="e-permits-fo-field__hint">${mode === "manual" ? `Specialiștii activi ai subdiviziunii ${escapeHtml(rows[0]?.subdiviziune || "")}, fără responsabilul actual.`
-            : mode === "automat" ? `Automat: SIA GEAP alege ${d.bulk ? "pentru fiecare dosar " : ""}specialistul competent cu cea mai mică încărcare, fără responsabilul actual.`
+          : `<p class="e-permits-fo-field__hint">${mode === "manual" ? `Specialiștii activi ai subdiviziunii ${escapeHtml(rows[0]?.subdiviziune || "")}, fără responsabilul actual${(() => { const away = window.GEAPAbsences?.absentNames?.(rows[0]?.subdiviziune) || []; return away.length ? ` și fără cei absenți azi (${escapeHtml(away.join(", "))})` : ""; })()}.`
+            : mode === "automat" ? `Automat: SIA GEAP alege ${d.bulk ? "pentru fiecare dosar " : ""}specialistul competent cu cea mai mică încărcare, fără responsabilul actual și fără cei absenți azi.`
             : "Dosarele ies din lista specialiștilor și așteaptă o nouă distribuire."}</p>`;
         const warning = mode === "manual" && lacking.length
           ? caseNotice(`<strong>${escapeHtml(chosen.nume)}</strong> nu are competență pentru ${lacking.length === rows.length ? `serviciul „${escapeHtml(row.serviciu)}”` : `${lacking.length} din dosarele selectate`}. Puteți continua redistribuirea.`, "warning")
@@ -5175,10 +5169,12 @@ document.addEventListener("DOMContentLoaded", () => {
     ["Statut", renderTag(user.status, user.status === "Activ" ? "success" : "neutral")]
   ]);
 
+  /* absences-dist-v1: a tab a module owns (js/absences.js „Absențe” / „Distribuire”) decides its visibility + count */
   const renderUserProfileTabs = (user) =>
-    (usersDb?.profile?.tabs || []).map((tab) => {
+    (usersDb?.profile?.tabs || []).filter((tab) => !window.GEAPShellUserTabs?.[tab.id]?.hidden?.(user)).map((tab) => {
       const active = tab.id === userProfileState.tabKey;
-      const count = tab.countKey ? Number(user[tab.countKey] || 0) : null;
+      const moduleTab = window.GEAPShellUserTabs?.[tab.id];
+      const count = tab.countKey ? Number(user[tab.countKey] || 0) : moduleTab?.count ? moduleTab.count(user) : null;
 
       return `
         <button
@@ -5565,6 +5561,10 @@ document.addEventListener("DOMContentLoaded", () => {
     if (userProfileState.tabKey === "events") {
       return renderEventTimeline("Jurnal de evenimente", userEvents(user));
     }
+
+    /* absences-dist-v1: module tabs render themselves */
+    const moduleTab = window.GEAPShellUserTabs?.[userProfileState.tabKey];
+    if (moduleTab?.render) return moduleTab.render(user);
 
     const tab = (usersDb?.profile?.tabs || []).find((item) => item.id === userProfileState.tabKey);
     return userProfileState.tabKey === "delegations"
@@ -8358,6 +8358,8 @@ document.addEventListener("DOMContentLoaded", () => {
   ].filter(Boolean);
 
   const userEvents = (user) => [
+    /* absences-dist-v1: the absence / distribution-settings changes of this person (js/absences.js), newest first */
+    ...(window.GEAPShellUserEvents?.(user) || []),
     user.ultimaConectare && { at: user.ultimaConectare, user: user.numeComplet, type: "Autentificare prin MPass", status: "Reușit", detail: "" },
     user.ultimaActualizare && { at: user.ultimaActualizare, user: "", type: "Profil actualizat", status: "Reușit", detail: (user.roluri || []).length ? `Roluri: ${user.roluri.join(", ")}.` : "" }
   ].filter(Boolean);
@@ -18210,15 +18212,12 @@ document.addEventListener("DOMContentLoaded", () => {
      request type → authority → GEAP + request type → GEAP (AC-07). Every field says whether it is inherited (and
      from where) or overridden (AC-04) and shows its effective value (AC-12). „Orele de bază” exist only for the
      service (AC-08, ≥ 0), the coefficient only for a request type (AC-09, ≥ 0), the complexity-factor hours can be
-     overridden (AC-10). The authority / GEAP policy (US-289) is not built yet: DIST_POLICY is its prototype stand-in.
+     overridden (AC-10). absences-dist-v1: the authority / GEAP levels are the REAL US-289 policy (Setări › Distribuire,
+     data/absences.json › policy via js/absences.js `GEAPAbsences.policyFor(<service authority>)` + its complexity
+     factors `GEAPAbsences.FACTORS`); empty until that data arrives.
      The draft value: { svc: { param: value }, rt: { <request type>: { param: value } } }, „” / absent = inherited. */
-  const DIST_FACTORS = [["avize", "Avize interinstituționale"], ["inspectie", "Inspecție la fața locului"], ["documente", "Documente suplimentare"], ["postproces", "Post-proces pe un act existent"]];
-  const DIST_POLICY = {
-    geap: { competent: "da", noTwice: "nu", window: "3", maxLoad: "160", ramp: ["20", "40", "60", "80", "100", "100"], coef: "1", f_avize: "2", f_inspectie: "4", f_documente: "1", f_postproces: "0,5" },
-    geapRt: { Prelungire: { coef: "0,5" }, "Eliberare duplicat": { coef: "0,3" }, Duplicat: { coef: "0,3" } },
-    authority: { window: "6", maxLoad: "140", f_inspectie: "6" },
-    authorityRt: { "Emitere primară": { noTwice: "da" } }
-  };
+  const distFactors = () => window.GEAPAbsences?.FACTORS || [];
+  const distPolicy = () => window.GEAPAbsences?.policyFor?.(getServiceByCode(serviceProfileState.code)?.authorityId) || { geap: {}, geapRt: {}, authority: {}, authorityRt: {} };
   const DIST_PARAMS = [
     { key: "competent", label: "Doar competenți", kind: "yn", hint: "Doar specialiștii competenți pentru serviciu și tip." },
     { key: "noTwice", label: "Nu doi la rând", kind: "yn", hint: "Nu două dosare consecutive aceluiași specialist." },
@@ -18242,8 +18241,8 @@ document.addEventListener("DOMContentLoaded", () => {
       ...(rt ? [["svcRt", dp.rt?.[rt]?.[key]]] : []),
       ...(key === "coef" ? [] : [["svc", dp.svc?.[key]]]),
       ...(key === "baseHours" ? [] : [
-        ...(rt ? [["autRt", DIST_POLICY.authorityRt[rt]?.[key]]] : []), ["aut", DIST_POLICY.authority[key]],
-        ...(rt ? [["geapRt", DIST_POLICY.geapRt[rt]?.[key]]] : []), ["geap", DIST_POLICY.geap[key]]
+        ...(rt ? [["autRt", distPolicy().authorityRt[rt]?.[key]]] : []), ["aut", distPolicy().authority[key]],
+        ...(rt ? [["geapRt", distPolicy().geapRt[rt]?.[key]]] : []), ["geap", distPolicy().geap[key]]
       ])
     ];
     const own = rt ? "svcRt" : "svc";
@@ -18344,8 +18343,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const factors = `
       <div class="e-permits-fo-field e-permits-user-create__field e-permits-user-create__field--12">
         <span class="e-permits-cfg-ro__label">Orele factorilor de complexitate (normo-ore)</span>
-        <p class="e-permits-fo-field__hint e-permits-fo-field__hint--top">Aceiași factori ca în politica autorității; se adaugă la orele dosarului când factorul este prezent.</p>
-        ${cfgGrid(DIST_FACTORS.map(([id, label]) => {
+        <p class="e-permits-fo-field__hint e-permits-fo-field__hint--top">Aceiași factori ca în politica de distribuire (Setări › Distribuire); se adaugă la orele dosarului când factorul este prezent.</p>
+        ${cfgGrid(distFactors().map(([id, label]) => {
           const key = `f_${id}`;
           const inherited = distResolve({ ...dp, svc: rt ? dp.svc : {}, rt: rt ? { ...dp.rt, [rt]: {} } : dp.rt }, rt, key);
           return distField(key, label, distInput(key, own[key], inherited.value != null ? `${inherited.value} (moștenit)` : "", `data-cfg-dp="${key}"`, err(key)), distMeta(dp, rt, key), { err: err(key) });
@@ -18364,7 +18363,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const bad = (k, msg) => { if (!e[`dp-${k}`]) e[`dp-${k}`] = label ? `${msg} (${label})` : msg; };
       if (distFilled(o.window) && (!/^\d+$/.test(String(o.window).trim()) || Number(o.window) < 1)) bad("window", "Introdu un număr întreg de luni, cel puțin 1.");
       if (distFilled(o.maxLoad) && (!isNum(o.maxLoad) || num(o.maxLoad) <= 0)) bad("maxLoad", "Introdu un număr mai mare decât 0.");
-      ["baseHours", "coef", ...DIST_FACTORS.map(([id]) => `f_${id}`)].forEach((k) => { if (distFilled(o[k]) && !isNum(o[k])) bad(k, "Introdu un număr de cel puțin 0."); });
+      ["baseHours", "coef", ...distFactors().map(([id]) => `f_${id}`)].forEach((k) => { if (distFilled(o[k]) && !isNum(o[k])) bad(k, "Introdu un număr de cel puțin 0."); });
       if (distFilled(o.ramp)) {
         const vals = (o.ramp || []).map((x) => String(x ?? "").trim());
         if (vals.length < 6 || vals.some((x) => x === "")) bad("ramp", "Completează toate cele 6 luni sau lasă rampa goală (moștenită).");
@@ -18375,7 +18374,7 @@ document.addEventListener("DOMContentLoaded", () => {
     Object.entries(dp?.rt || {}).forEach(([rt, scope]) => check(scope, rt));
   };
   /* audit + change review: one line per parameter that changed (AC-14: parameter, old → new) */
-  const distParamLabel = (key) => (key === "ramp" ? "Rampa novicelui" : DIST_PARAMS.find((p) => p.key === key)?.label || DIST_FACTORS.find(([id]) => `f_${id}` === key)?.[1] || key);
+  const distParamLabel = (key) => (key === "ramp" ? "Rampa novicelui" : DIST_PARAMS.find((p) => p.key === key)?.label || distFactors().find(([id]) => `f_${id}` === key)?.[1] || key);
   const distDiffs = (before = {}, after = {}) => {
     const out = [];
     const scopes = [["", before.svc || {}, after.svc || {}], ...[...new Set([...Object.keys(before.rt || {}), ...Object.keys(after.rt || {})])].map((rt) => [rt, before.rt?.[rt] || {}, after.rt?.[rt] || {}])];

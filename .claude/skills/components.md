@@ -378,6 +378,7 @@ but this doc previously described it wrongly, see the entry.
 | Act row + „Solicitare nouă” card (FO #intent + Ghișeu picker + EVO Cabinet „Actele mele permisive” list, one renderer — `js/act-row.js` `GEAPActRow.html` since 2026-10-17; Cabinet options: `assets`, `attrs` (row hook), `tagHtml` / `extraTagsHtml` (Cabinet tones + „Aprobare tacită”), `triggerAttrs` / `itemAttrs`, `noticeTone` / `noticeIcon` / `noticeLocks` (paper act = info notice, `.has-notice`), `hideEmptyAction`, `place` = line 2, the location — Cabinet only, type-first-v1; `titleHref` = the title as a real `<a>` to the row's profile address, `tabindex=-1`, same look — Cabinet acts + requests, act-profile-url-v1; `iconSrc` = an optional lead image, none by default since permission-icon-v1) | `li.e-permits-fo-lib-item.e-permits-fo-intent-act` (the document card: NO lead icon in act-only lists (permission-icon-v1, 2026-10-21), title + Small status tag [+ brand tag of the chosen post-process], `.e-permits-fo-doc-meta` = the shared slots number · what · authority · subdivision · date (2026-10-20; 14/20 `--color-text-base-tertiary`, one line on desktop; card padding 16 · r16 · 1.5 stroke, title → meta 8 — § „List rows — act + request”), `.cab-doc__actions` with the `__trigger` „Postprocese ⌄” = `btn btn-neutral btn-sm` (library SMALL, 32 · 0 12 · 14/20 · gap 6, radius 6 — square since 2026-10-20; `aria-label` „Postprocese pentru <act>”; medium rejected 2026-10-18) + `ul.e-permits-fo-intent-menu.e-permits-stack__menu` at the one dropdown item size (32 · 6 12 6 8 · 14/20 medium · 20 icon, phones: § „Row action menu on phones”), FO = Ghișeu = Cabinet); states `is-locked` (+ `__pending` = full-width subtle warning notice, trigger disabled), menu items `aria-disabled` + `data-tooltip-reason`, menu `is-open-up`; pill on a hovered / selected row = white (default surface) until hovered / pressed / open — open = pressed `secondary-active` + focus ring (grey-on-grey rule, 2026-10-16); card `button.e-permits-fo-intent-new` (arrow; a click goes on); the whole screen body = `intentHtml(opts)` (header + subject „Schimbă”, notice slot, card, „sau”, acts or the shared empty state) | `GEAPActRow.html(act, opts)` (`js/act-row.js`, = `GEAPFormRender.actRowHtml`) / `intentNewHtml(opts)` / `intentHtml(opts)` in `js/e-permits-acte-permisive.js`; demo `pp-02*`, `gh-02i…x`, Cabinet `pp-01…01w` | app |
 | Profile address — every act / request profile is a URL (act-profile-url-v1, 2026-10-22; user: „act permisiv profile should have a unique URL”) | RAP `rap-evo/index.html?act=<record id>` · Cabinet acts `cabinet-evo/index.html[?view=acte][&as=<subject>]&act=<act id>` · Cabinet requests `?view=solicitari[&as=…]#dosar/<id>[/<tab>]` (query / hash only: static GitHub Pages hosting). From the list = `history.pushState` (the list entry first `replaceState`s its scroll — RAP also search / company / page / page size); profile tabs = `replaceState` (state kept); Back / Forward = `popstate` → the profile, the not-found state or the list as it was (`history.scrollRestoration = "manual"`); reload / shared link opens the profile; breadcrumb parent = `<a href>` to the list address (plain click = `history.back()` when the profile came from the list, else a new list entry; a modified click = the browser's); row title = `a.e-permits-fo-lib-item__title[tabindex=-1]` (Cabinet) / `a.rap-act-link` (RAP) — same look as the span, the row stays the control; `<title>` = the H1 (+ location) · EVO [Cabinet]. Unknown id = the profile header with the breadcrumb only + `GEAPEmptyState.render({ icon: "search" })` „Actul permisiv nu a fost găsit” / „Solicitarea nu a fost găsită”, no second back button | RAP `pageUrl` / `updateProfileUrl` / `syncViewFromUrl` / `renderProfileNotFound`; Cabinet `CabEvo.pageAddress` / `modifiedClick` / `notFoundHtml`, cabinet-evo.js `actUrl` / `openAct` / `syncActFromUrl` / `renderActNotFound`, solicitari.js `requestUrl` / `openRow` / `route` / `renderNotFound`; `GEAPActRow.html(act, { titleHref })`; demo rap-02c, pp-03x, sm-05y (+ every `params: { act }` state); section „Profile addresses” | page-app |
 | Location line — act / request rows + profile subtitle (type-first-v1, 2026-10-21) | rows: `p.e-permits-fo-intent-act__place` > `svg.icon.small.e-permits-fo-intent-act__place-icon` (`icon-map-pin-filled`, 16, `--color-icon-base-tertiary` — EXCEPTION to icon = label colour, user 2026-10-21: „a filled one, in the tertiary colour”; the text stays default) + `span.e-permits-fo-intent-act__place-text` — line 2 under the title, 14/20 regular `--color-text-base-default`, gap 4, pin centred on the 20 line; desktop one line + ellipsis + tooltip (`syncCut`), phones wrap; only when the act / request has a location. Profiles: `p.cab-page-header__subtitle.cab-page-header__subtitle--icon` > `svg.icon.small` + `span` (16/24 secondary, the same filled tertiary pin centred on the 24 line) | `GEAPActRow.html(act, { place })`, `CabEvo.pageHeader({ subtitle, subtitleIcon: "icon-map-pin-filled" })`; demo pp-01, pp-04, pp-01d, pp-03f, sm-01, sm-03, sm-05; none: pp-03e, sm-01z, sm-05v | page-app |
+| Absențe · Distribuire · Politica de distribuire · Încărcarea echipei (absences-dist-v1, 2026-10-26; US-312…316, US-291, US-289, US-294) | user profile tabs „Absențe” / „Distribuire” (+ „Profilul meu”) = `.e-permits-abs-tab[data-abs-root]` (flex column, gap 16) > Alert card `.e-permits-abs-alert` (open dossiers) + BO stacked list / passport block; sort = `.e-permits-abs-sort` (a `btn btn-neutral btn-sm` with `icon-sort` + the stack menu, `menuitem[aria-current]` + trailing `.e-permits-abs-sort__check`); dialogs in `#case-action-modal` with `.e-permits-abs-modal` (FO fields in `.e-permits-user-create__grid`, library date picker, counter textarea); competences editor `.e-permits-abs-comp` > `.e-permits-abs-comp__head` + `ul.e-permits-abs-comp__list` > `li.e-permits-abs-comp__row` (service select · type select · red icon-only trash) + `.e-permits-abs-comp__error`; registries `absente` / `echipa` (text + Small tag in one cell `.e-permits-abs-type`, `tr.e-permits-abs-row--past` quieter text, `tr.e-permits-abs-row--absent`, load = `.e-permits-abs-load` > product Meter + `.e-permits-abs-load__value`); secondary words `.e-permits-abs-muted`; policy page = profile panel with `.e-permits-abs-pol-lead` (the notes above the first card, gap 8), white cards `.e-permits-ntpl-card.e-permits-abs-pol-card`, US-290 field look (`.e-permits-cfg-dp__label`, `.e-permits-cfg-dp__ramp`), header status `.e-permits-abs-pol-status`, effective value `.e-permits-abs-eff` | `js/absences.js` (`GEAPAbsences`, `GEAPAbsencesUi`), `css/absences.css`, `data/absences.json`; shell hooks `window.GEAPShellUserTabs` / `GEAPShellUserEvents`; section „Absențe, distribuire, politică, încărcarea echipei”; demo `abs-01…05i`, `dset-01…05`, `pol-01…06`, `team-01…04` | app |
 | Date input · File input · Menu · Phone input · Segmented controls | — | see `Components/` | **library, no contract documented** |
 
 The last row is honest about a real gap: those previews exist, but no class contract was
@@ -9274,8 +9275,8 @@ Four partly covered stories completed with existing components only; the CSS glu
   „Dosare nedistribuite” + info toast; `?redistribuire=eroare` → error toast „Operația nu a putut fi efectuată”, nothing
   changes, an „Eșuat” journal line. Bulk: menu profile `supervisor` (roles.json) adds „Dosarele subdiviziunii” (view
   `subdivision`: in examination, own subdivision, a „Specialist” column, `selectAllFiltered` = the header box takes every
-  filtered row) and the toolbar „Redistribuie (N)”. Team data (subdivision / active / competences) = `REDIST_TEAM_*`
-  in the shell, not the seed. Demo `dos-06` … `dos-06p`.
+  filtered row) and the toolbar „Redistribuie (N)”. Team data (subdivision / active / competences) = `data/absences.json`
+  through `GEAPAbsences.teamInfo` / `.competent` (absences-dist-v1; was `REDIST_TEAM_INFO` in the shell), not the seed. Demo `dos-06` … `dos-06p`.
 - **Transfer layout (redist-transfer-v1, 2026-10-25, user: „read like a transfer”)** — order in the dialog:
   1. „Modul redistribuirii” (segmented, first);
   2. the transfer row `.e-permits-case-transfer > .e-permits-case-transfer__row` = `caseReadonly("Responsabil actual", …, 0)`
@@ -9317,12 +9318,84 @@ Four partly covered stories completed with existing components only; the CSS glu
   each field = label + Small tag (Moștenit neutral / Suprascris brand / Necompletat warning — short, so a row's inputs
   stay aligned) + hint „Valoare efectivă: X — moștenită din … / setată pentru …”, redrawn in place while typing;
   Da/Nu fields = FO select with „Moștenit (X)”; numbers ≥ 0 / > 0 / int ≥ 1; Rampa novicelui = 6 inputs (all or
-  none, 0–100); factor hours = the authority policy's factors. Inheritance stand-in `DIST_POLICY` (US-289 not built).
+  none, 0–100); factor hours = the US-289 policy's factors. Inheritance = the real US-289 policy of the service's
+  authority (`GEAPAbsences.policyFor`, absences-dist-v1; the `DIST_POLICY` stand-in is gone).
   Save = one audit event per parameter („Modificare setări — parametri de distribuire”). Demo `svc-10dp` … `svc-10dp8`.
 - **US-25 S4 „Motivul suspendării” (FO)** — `?suplinire=<nr>` + the Cabinet link (`#request-step-2`) shows S4 first
   (once per tab; `#suplinire` always): read-only rows from `data/cabinet-evo-solicitari.json` with the AC fallbacks
   („—” / „Nedefinit”), a warning notice with the supplement term, footer back (→ Cabinet) + „Continuă” → S5 (request
   step 2, no new-draft toast); `?s5=eroare` → error notice + „Reîncercați”. Demo `fo-s4` … `fo-s4d`.
+
+### Absențe, distribuire, politică, încărcarea echipei (absences-dist-v1, 2026-10-26)
+
+US-312…316 (absences), US-291 (user distribution settings), US-289 (policy), US-294 (team load). User decisions
+(PO questions stay open): absences live ONLY in the user profile model; saving an absence for someone with open dossiers
+shows an alert with „Deleagă rol” / „Redistribuie”; distribution excludes absent specialists. One module
+`js/absences.js` + `css/absences.css` + `data/absences.json` (people ↔ Utilizatori by IDNP, ↔ BO team by `specialistId`;
+dates on the dossiers' clock `e-permits-workplace.json › today`; store in sessionStorage `e-permits-absences`).
+Working days come from `js/working-days.js` (`GEAPWorkingDays.workingDaysBetween`), calendar days without it.
+
+- **Profile tab „Absențe” (US-313)** — `data/e-permits-users.json › profile.tabs` gets `absences` + `distribution`
+  (after „Delegări”); the shell asks `window.GEAPShellUserTabs[id]` for `hidden(user)` (AC-01: no permission → no tab),
+  `count(user)` (current + planned) and `render(user)`. Content: stacked list „Absențe” (title = type, Small tag „În curs”
+  success / „Planificată” brand, meta = period „20 – 22 iulie 2026” · working days · „Înregistrată de …”, line 2 = reason),
+  row = „Editează” (pen) + ⋮ „Șterge” (red); tools = sort button (De la / Până la, ↓ ↑; AC-06 default De la descending) +
+  „Adaugă absență” (`btn-secondary btn-sm`, plus). Empty: „Utilizatorul nu are absențe înregistrate.” with the add action
+  inside. Out of scope → „Nu aveți permisiunea de a accesa această pagină.” (AC-03 / AC-04). Dates written out („8 iulie
+  2026”, project rule) instead of AC-08 ZZ.LL.AAAA (PO question); the date fields take ZZ/LL/AAAA.
+- **„Adaugă absența” / „Modifică absența” (US-314 / US-315)** — `#case-action-modal` (`.e-permits-abs-modal`): [Utilizator —
+  only from the list, PO question] · Tipul absenței (FO select, required) · De la (required) | Până la (optional, hint „Gol =
+  fără dată de sfârșit.”) as two library date pickers 6 / 6 · Motiv (textarea, live „n / 500” counter, `.is-over` red) · info
+  note (no new dossiers in the period; open dossiers stay). Edit adds a lead „Înregistrată de X, data. Modificarea se aplică
+  doar distribuirilor de după salvare.” Errors = the FO field error, AC texts + full stop; overlap names the clashing
+  absence. Footer Anulează · Salvează (Medium pills). `?absente=eroare` → error toast „Operația nu a putut fi efectuată.”,
+  the dialog stays. Saved → toast „Absența a fost salvată.” + journal entry; if the person has dossiers under examination
+  and the absence is not over → **Alert card** (`GEAPAlertCard.html`, warning) above the list: „<Nume> are N dosare
+  deschise” + „Absența (…) nu le mută …” + `btn-text-strict` „Deleagă rol” (user profile: opens the shell's delegation)
+  and primary „Redistribuie” (Supervisor of that subdivision: the person's cases in „Dosarele subdiviziunii”, all selected,
+  bulk dialog open). Alone, „Deleagă rol” is `btn-outline-strict` (alert-buttons-library-v1).
+- **Delete (US-316)** — `askConfirm` destructive: title „Sigur doriți să ștergeți absența?” (AC-04), text = person · type,
+  period + „poate primi din nou dosare noi” + „rămâne în Jurnalul de audit”; „Șterge” red → toast „Absența a fost ștearsă.”
+- **„Absențe” list (US-312)** — registry kind `absente`: Supervisor = „Locul de muncă › Absențele echipei” (US-312 says
+  inside „Încărcarea echipei”: PO question), Local / Central Admin = „Administrare › Absențe” (PO question). Status tabs
+  „În curs și viitoare” (default, AC-05) · „Trecute” · „Toate”; columns Utilizator (+ role) · Subdiviziune · Tipul absenței
+  (+ „În curs” tag) · De la · Până la (empty = „—” named „fără dată de sfârșit”) · Motiv · Înregistrat de (name over date) ·
+  pinned actions (Editează + ⋮ Șterge, fixed menu); default sort De la ascending; search by name; facets Tipul absenței,
+  Perioadă (date facet on De la), Autoritate (Central), Subdiviziune (Local + Central); primary „Adaugă absență”; CSV export
+  + audit entry; empty / no match = „Nu există absențe pentru criteriile selectate.”; no permission (address typed) = lock
+  empty state.
+- **Profile tab „Distribuire” (US-291)** — info note (competences = preferences, not access) · passport block „Setări de
+  distribuire” (Norma „80%” / „100% · implicit”, Motivul normei, Data începerii, Specialist nou = brand „Nou” + „luna n din 6
+  · +x% din încărcarea medie”, Disponibil azi = accent „Absent” + the absence) + „Editează” (pen) · stacked list
+  „Competențe” or the compact empty state „Competent la toate serviciile”. Dialog „Setări de distribuire”: Norma (1–100,
+  empty = 100) | Data începerii (date picker) · Motivul normei (required under 100, star appears) · Competențe editor (service
+  + type „Toate tipurile”, red trash, „Adaugă competență”, duplicate / missing service errors). The specialist sees his own
+  data read-only in „Profilul meu” (AC-03).
+- **„Profilul meu”** — avatar menu link `[data-shell-my-profile]` → the shared profile panel (`A().openProfilePanel`):
+  header name + caption, meta Rol · Subdiviziunea · Autoritatea, tabs „Absențe” (+ count) and, for the Specialist,
+  „Distribuire”; route `#profilul-meu/<absente|distribuire>`.
+- **Politica de distribuire (US-289)** — menu group „Setări › Distribuire” (Central, Local, Supervisor), the profile panel:
+  header + „N modificări nesalvate” accent tag + Renunță · Salvează while dirty; tabs Parametri · Politica efectivă · Jurnal
+  (Supervisor: Politica efectivă only, AC-15). Parametri: notes (inheritance order AC-11, non-retroactive AC-14; read-only
+  notice for Local at GEAP, AC-02) → card „Nivelul politicii” (library segmented GEAP | Autoritate, Autoritate select —
+  fixed for Local, AC-03 — Tip de solicitare select with override counts, AC-04) → card „Reguli și încărcare” (Doar
+  competenți, Nu doi la rând = FO selects with „Moștenit (X)”, Fereastra int ≥ 1, Încărcarea maximă > 0 or empty = no limit,
+  Coeficientul ≥ 0, Rampa = 6 × 0–100) → card „Orele factorilor de complexitate” (11 factors, 2 columns; the „reducere”
+  factors are stored positive so AC-10 „≥ 0” holds — PO question). Each field: label + Small tag (Suprascris brand /
+  Moștenit neutral / Necompletat accent; none at the GEAP root) + hint „Valoare efectivă: X — moștenită din …”, redrawn
+  while typing. Politica efectivă (AC-13): Autoritate + Tip selects → passport block, value bold + level tertiary. Saving =
+  one journal entry per parameter (AC-16). The US-290 passport inherits from it: `GEAPAbsences.policyFor(service authority)`
+  + `GEAPAbsences.FACTORS` replace the old `DIST_POLICY` / `DIST_FACTORS` stand-ins (svc-10dp…).
+- **Încărcarea echipei (US-294)** — Supervisor „Locul de muncă › Încărcarea echipei”, registry kind `echipa`: Specialist
+  (+ „Nou” brand tag, tooltip „luna n din 6”) · Stare azi (accent „Absent” over „Concediu · până la …”, or „Disponibil”) ·
+  Dosare active (= under examination in the subdivision, the same set „Dosarele subdiviziunii” lists; absent → danger tag
+  „N dosare de preluat”, AC-10) · Termene în risc (≤ 3 working days or past) · Încărcare (Meter vs the effective
+  „Încărcarea maximă” + „36,3 h / 140”) · Norma · ⋮ Vezi dosarele / Redistribuie dosarele / Vezi absențele. Row = its
+  dossiers (AC-09: „Dosarele subdiviziunii” with the Specialist facet set); „Redistribuie dosarele” = all of them selected +
+  the bulk dialog (AC-11). Load = Σ complexity (US-292 stand-in from the policy) of the cases in the policy window ÷ norm.
+  Opening is logged (AC-14). Other roles → lock empty state.
+- **Redistribution** (shell): `redistTeam` / `redistCompetent` read `GEAPAbsences.teamInfo` / `.competent` (the old
+  `REDIST_TEAM_INFO` table is gone); absent specialists are never candidates and the Manual hint names them.
 
 ### Calendar zile nelucrătoare + working days (calendar-v1, 2026-10-26; Feature 93686, US-283…288)
 

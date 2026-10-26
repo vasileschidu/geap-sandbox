@@ -1,0 +1,209 @@
+/* =====================================================================================
+   Absențe + distribuire (absences-dist-v1, 2026-10-26; js/absences.js)
+   US-312…316 absences · US-291 user distribution settings · US-289 distribution policy · US-294 team load.
+   Glue only: every control is a library / documented component (components.md › „Absențe, distribuire, politică,
+   încărcarea echipei”). Tokens only.
+   ===================================================================================== */
+
+/* ---- menu icons (the shell draws nav icons as 20px masks) */
+.e-permits-shell__nav--specialist [data-nav-id="absente"] .e-permits-shell__nav-icon::before {
+  mask-image: url("../assets/icons/calendar-remove.svg");
+  mask-size: var(--icon-size-medium, 20px) var(--icon-size-medium, 20px);
+  -webkit-mask-image: url("../assets/icons/calendar-remove.svg");
+  -webkit-mask-size: var(--icon-size-medium, 20px) var(--icon-size-medium, 20px);
+}
+
+.e-permits-shell__nav--specialist [data-nav-id="incarcarea-echipei"] .e-permits-shell__nav-icon::before {
+  mask-image: url("../assets/icons/chart.svg");
+  mask-size: var(--icon-size-medium, 20px) var(--icon-size-medium, 20px);
+  -webkit-mask-image: url("../assets/icons/chart.svg");
+  -webkit-mask-size: var(--icon-size-medium, 20px) var(--icon-size-medium, 20px);
+}
+
+.e-permits-shell__nav--specialist [data-nav-id="distribuire"] .e-permits-shell__nav-icon::before {
+  mask-image: url("../assets/icons/settings.svg");
+  mask-size: var(--icon-size-medium, 20px) var(--icon-size-medium, 20px);
+  -webkit-mask-image: url("../assets/icons/settings.svg");
+  -webkit-mask-size: var(--icon-size-medium, 20px) var(--icon-size-medium, 20px);
+}
+
+/* ---- registries „Absențe” / „Încărcarea echipei”: no checkbox column — the first column is the pinned one
+   (the „Dosare suspendate” rules of css/bo-dossier-flows.css, for these two kinds) */
+.e-permits-workplace:is([data-registry-kind="absente"], [data-registry-kind="echipa"]) .e-permits-workplace__table th:nth-child(1),
+.e-permits-workplace:is([data-registry-kind="absente"], [data-registry-kind="echipa"]) .e-permits-workplace__table td:nth-child(1) {
+  border-right: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
+  left: 0;
+  position: sticky;
+  z-index: 7;
+}
+
+.e-permits-workplace:is([data-registry-kind="absente"], [data-registry-kind="echipa"]) .e-permits-workplace__table th:nth-child(1) {
+  z-index: 9;
+}
+
+.e-permits-workplace:is([data-registry-kind="absente"], [data-registry-kind="echipa"]) .e-permits-workplace__table th:nth-child(2),
+.e-permits-workplace:is([data-registry-kind="absente"], [data-registry-kind="echipa"]) .e-permits-workplace__table td:nth-child(2) {
+  border-right: 0;
+  left: auto;
+  position: static;
+  z-index: auto;
+}
+
+/* a past absence reads quieter (AC-10: current = the „În curs” tag, future = plain) */
+.e-permits-workplace[data-registry-kind="absente"] tr.e-permits-abs-row--past td:not([data-column="actiuni"]) {
+  color: var(--color-text-base-tertiary, #757575);
+}
+
+/* text + Small tag in one cell (Tipul absenței + „În curs”, Specialist + „Nou”) */
+.e-permits-abs-type {
+  align-items: center;
+  display: inline-flex;
+  gap: var(--spacing-8, 8px);
+  max-width: 100%;
+  min-width: 0;
+}
+
+.e-permits-abs-type > span:first-child {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.e-permits-abs-type > .status-tag {
+  flex: none;
+}
+
+/* secondary words next to a value (implicit, luna 3 din 6, the level a policy value comes from) */
+.e-permits-abs-muted {
+  color: var(--color-text-base-tertiary, #757575);
+}
+
+/* load = the product Meter + the hours (US-294) */
+.e-permits-abs-load {
+  align-items: center;
+  display: flex;
+  gap: var(--spacing-12, 12px);
+  min-width: 0;
+}
+
+.e-permits-abs-load .e-permits-meter {
+  max-width: calc(2 * var(--spacing-48, 48px));
+}
+
+.e-permits-abs-load__value {
+  flex: none;
+  white-space: nowrap;
+}
+
+/* ---- profile tabs: the alert sits in the rhythm above the list (16 = the section gap) */
+.e-permits-abs-tab {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-16, 16px);
+}
+
+.e-permits-abs-tab > .e-permits-dosar-profil__section {
+  margin-top: 0;
+}
+
+/* sort menu items: label then the trailing check of the chosen order (aria-current) */
+.e-permits-abs-sort .e-permits-fo-intent-menu__item > span {
+  flex: 1 1 auto;
+}
+
+.e-permits-abs-sort__check {
+  color: var(--color-icon-base-default, #121212);
+  flex: none;
+}
+
+/* ---- „Setări de distribuire” dialog: competence rows = service + request type + remove */
+.e-permits-abs-comp {
+  gap: var(--spacing-8, 8px);
+}
+
+.e-permits-abs-comp__head,
+.e-permits-abs-comp__row {
+  align-items: start;
+  column-gap: var(--spacing-12, 12px);
+  display: grid;
+  grid-template-columns: minmax(0, 3fr) minmax(0, 2fr) var(--spacing-32, 32px);
+}
+
+.e-permits-abs-comp__head {
+  color: var(--color-text-base-secondary, #383838);
+}
+
+.e-permits-abs-comp__list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-8, 8px);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.e-permits-abs-comp__row > .btn-icon-only {
+  margin-top: var(--spacing-4, 4px);
+}
+
+.e-permits-abs-comp__error {
+  grid-column: 1 / -1;
+  padding-top: var(--spacing-8, 8px);
+}
+
+/* the textarea counter over the limit (AC-10: the error says it on save) */
+.e-permits-fo-field__counter.is-over {
+  color: var(--color-text-danger-default, #d92d20);
+}
+
+/* ---- US-289 policy page: white bordered form cards (the user profile „Date administrate în GEAP” card) */
+.e-permits-abs-pol-card .e-permits-user-create__grid {
+  row-gap: var(--spacing-20, 20px);
+}
+
+/* the page's notes stack above the first section (8 apart) */
+.e-permits-abs-pol-lead {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-8, 8px);
+}
+
+.e-permits-abs-eff {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-4, 4px) var(--spacing-8, 8px);
+}
+
+@media (max-width: 760px) {
+  .e-permits-workplace:is([data-registry-kind="absente"], [data-registry-kind="echipa"]) {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr) auto;
+  }
+
+  .e-permits-workplace:is([data-registry-kind="absente"], [data-registry-kind="echipa"]) .e-permits-workplace__table th:nth-child(1),
+  .e-permits-workplace:is([data-registry-kind="absente"], [data-registry-kind="echipa"]) .e-permits-workplace__table td:nth-child(1) {
+    border-right: 0;
+    left: auto;
+    position: static;
+    z-index: auto;
+  }
+
+  .e-permits-abs-comp__head {
+    display: none;
+  }
+
+  .e-permits-abs-comp__row {
+    grid-template-columns: minmax(0, 1fr) var(--spacing-40, 40px);
+    row-gap: var(--spacing-8, 8px);
+  }
+
+  .e-permits-abs-comp__row > .e-permits-fo-select:nth-child(2) {
+    grid-column: 1;
+  }
+
+  .e-permits-abs-comp__row > .btn-icon-only {
+    grid-column: 2;
+    grid-row: 1;
+  }
+}

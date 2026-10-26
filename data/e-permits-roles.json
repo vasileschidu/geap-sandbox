@@ -207,6 +207,16 @@
               "workplaceView": "subdivision"
             },
             {
+              "id": "incarcarea-echipei",
+              "label": "Încărcarea echipei",
+              "shellView": "echipa-registry"
+            },
+            {
+              "id": "absente",
+              "label": "Absențele echipei",
+              "shellView": "absente-registry"
+            },
+            {
               "id": "unassigned",
               "label": "Dosare nedistribuite",
               "icon": "page-text",
@@ -283,6 +293,16 @@
               "icon": "stamp",
               "shellView": "services-registry",
               "badge": 142
+            }
+          ]
+        },
+        {
+          "label": "Setări",
+          "items": [
+            {
+              "id": "distribuire",
+              "label": "Distribuire",
+              "shellView": "distribuire-page"
             }
           ]
         }
@@ -398,6 +418,11 @@
               "shellView": "users-registry"
             },
             {
+              "id": "absente",
+              "label": "Absențe",
+              "shellView": "absente-registry"
+            },
+            {
               "id": "roles",
               "label": "Roluri",
               "iconAsset": "assets/icons/admin-shield-check.svg",
@@ -457,6 +482,16 @@
               "shellView": "ntpl-registry"
             }
           ]
+        },
+        {
+          "label": "Setări",
+          "items": [
+            {
+              "id": "distribuire",
+              "label": "Distribuire",
+              "shellView": "distribuire-page"
+            }
+          ]
         }
       ]
     },
@@ -467,6 +502,11 @@
         {
           "label": "Administrare",
           "items": [
+            {
+              "id": "absente",
+              "label": "Absențe",
+              "shellView": "absente-registry"
+            },
             {
               "id": "classifiers",
               "label": "Clasificatoare",
@@ -503,6 +543,16 @@
               "id": "reg-note",
               "label": "Registru note de plată",
               "shellView": "reg-note-registry"
+            }
+          ]
+        },
+        {
+          "label": "Setări",
+          "items": [
+            {
+              "id": "distribuire",
+              "label": "Distribuire",
+              "shellView": "distribuire-page"
             }
           ]
         }
