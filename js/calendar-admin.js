@@ -732,7 +732,7 @@
           ${absencesAvailable() ? checkHtml("absences", "Absențe", CV.layers.absences) : ""}
         </div>
         <ul class="e-permits-cal-legend" aria-label="Legendă">
-          ${legend.map(([cls, label]) => `<li><span class="e-permits-cal-mark ${cls}" aria-hidden="true">${cls === "has-absences" ? "" : "8"}</span>${LEGEND_ICON[cls] ? icon(LEGEND_ICON[cls], "icon small e-permits-cal-legend__icon") : ""}${esc(label)}</li>`).join("")}
+          ${legend.map(([cls, label]) => `<li><span class="e-permits-cal-mark ${cls}" aria-hidden="true">${cls === "is-weekend" ? "S" : ""}</span>${LEGEND_ICON[cls] ? icon(LEGEND_ICON[cls], "icon small e-permits-cal-legend__icon") : ""}${esc(label)}</li>`).join("")}
         </ul>
       </div>`;
   };

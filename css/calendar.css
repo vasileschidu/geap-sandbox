@@ -186,23 +186,23 @@
   width: var(--spacing-20, 20px);
 }
 
-/* three day kinds read apart (calendar-views-v4, user): red ring = non-working, blue ring = transferred working day,
-   grey fill without a ring = a normal weekend; today = inverse (and the solid grey cell in the month grid) */
+/* day kinds (calendar-views-v8, user): non-working = SOLID red (danger default, white 4.8:1), transferred working day =
+   SOLID blue (brand default, 6.3:1), white number, medium; weekend = grey number only; today = the black circle — on a
+   red / blue day the fill stays and a black outer ring (2 white · 2 black) marks today */
 .e-permits-cal-mark.is-weekend {
   color: var(--color-text-base-tertiary, #757575);
 }
 
 .e-permits-cal-mark.is-off {
-  background: var(--color-background-danger-secondary, #fee4e2);
-  box-shadow: inset 0 0 0 var(--border-width-1, 1px) var(--color-text-danger-on-secondary, #b42318);
-  color: var(--color-text-danger-on-secondary, #b42318);
+  background: var(--color-background-danger-default, #d92d20);
+  color: var(--color-text-base-inverse-default, #fff);
+  font-weight: var(--font-weight-fw-medium, 500);
 }
 
-/* a transferred working day also carries a ring (not only a colour) */
 .e-permits-cal-mark.is-on {
-  background: var(--color-background-brand-secondary, #e0ecff);
-  box-shadow: inset 0 0 0 var(--border-width-1, 1px) var(--color-text-brand-on-secondary, #0058d2);
-  color: var(--color-text-brand-on-secondary, #0058d2);
+  background: var(--color-background-brand-default, #0058d2);
+  color: var(--color-text-base-inverse-default, #fff);
+  font-weight: var(--font-weight-fw-medium, 500);
 }
 
 .e-permits-cal-mark.is-today {
@@ -316,16 +316,14 @@
 }
 
 .e-permits-cal-mini__day.is-off {
-  background: var(--color-background-danger-secondary, #fee4e2);
-  box-shadow: inset 0 0 0 var(--border-width-1, 1px) var(--color-text-danger-on-secondary, #b42318);
-  color: var(--color-text-danger-on-secondary, #b42318);
+  background: var(--color-background-danger-default, #d92d20);
+  color: var(--color-text-base-inverse-default, #fff);
   font-weight: var(--font-weight-fw-medium, 500);
 }
 
 .e-permits-cal-mini__day.is-on {
-  background: var(--color-background-brand-secondary, #e0ecff);
-  box-shadow: inset 0 0 0 var(--border-width-1, 1px) var(--color-text-brand-on-secondary, #0058d2);
-  color: var(--color-text-brand-on-secondary, #0058d2);
+  background: var(--color-background-brand-default, #0058d2);
+  color: var(--color-text-base-inverse-default, #fff);
   font-weight: var(--font-weight-fw-medium, 500);
 }
 
@@ -514,21 +512,47 @@
 }
 
 .e-permits-cal-month__cell.is-off .e-permits-cal-day__num {
-  background: var(--color-background-danger-secondary, #fee4e2);
-  box-shadow: inset 0 0 0 var(--border-width-1, 1px) var(--color-text-danger-on-secondary, #b42318);
-  color: var(--color-text-danger-on-secondary, #b42318);
+  background: var(--color-background-danger-default, #d92d20);
+  color: var(--color-text-base-inverse-default, #fff);
+  font-weight: var(--font-weight-fw-medium, 500);
 }
 
 .e-permits-cal-month__cell.is-on .e-permits-cal-day__num {
-  background: var(--color-background-brand-secondary, #e0ecff);
-  box-shadow: inset 0 0 0 var(--border-width-1, 1px) var(--color-text-brand-on-secondary, #0058d2);
-  color: var(--color-text-brand-on-secondary, #0058d2);
+  background: var(--color-background-brand-default, #0058d2);
+  color: var(--color-text-base-inverse-default, #fff);
+  font-weight: var(--font-weight-fw-medium, 500);
 }
 
 .e-permits-cal-month__cell.is-today .e-permits-cal-day__num {
   background: var(--color-background-base-inverse-default, #121212);
   color: var(--color-text-base-inverse-default, #fff);
   font-weight: var(--font-weight-fw-semibold, 600);
+}
+
+/* today on a non-working / transferred day: the day's fill + the black outer ring */
+.e-permits-cal-month__cell.is-today.is-off .e-permits-cal-day__num,
+.e-permits-cal-mini__day.is-today.is-off,
+.e-permits-cal-mark.is-today.is-off {
+  background: var(--color-background-danger-default, #d92d20);
+}
+
+.e-permits-cal-month__cell.is-today.is-on .e-permits-cal-day__num,
+.e-permits-cal-mini__day.is-today.is-on,
+.e-permits-cal-mark.is-today.is-on {
+  background: var(--color-background-brand-default, #0058d2);
+}
+
+.e-permits-cal-month__cell.is-today:is(.is-off, .is-on) .e-permits-cal-day__num,
+.e-permits-cal-mini__day.is-today:is(.is-off, .is-on),
+.e-permits-cal-mark.is-today:is(.is-off, .is-on) {
+  box-shadow: 0 0 0 var(--border-width-2, 2px) var(--color-background-base-default, #fff), 0 0 0 var(--border-width-4, 4px) var(--color-background-base-inverse-default, #121212);
+  font-weight: var(--font-weight-fw-semibold, 600);
+}
+
+/* legend swatches (v8, user: no sample digits): a 12 dot in the day's fill; weekend = a grey „S” */
+.e-permits-cal-legend .e-permits-cal-mark:not(.is-weekend) {
+  height: var(--spacing-12, 12px);
+  width: var(--spacing-12, 12px);
 }
 
 .e-permits-cal-day__events {
