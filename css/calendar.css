@@ -146,25 +146,7 @@
   justify-content: space-between;
 }
 
-.e-permits-cal-layers {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--spacing-8, 8px) var(--spacing-24, 24px);
-}
-
-.e-permits-cal-layer {
-  cursor: pointer;
-}
-
-.e-permits-cal-layer:hover .checkbox-input:not(:checked) + .checkbox-custom {
-  border-color: var(--color-border-base-tertiary, #757575);
-  background: var(--color-background-base-tertiary, #f1f1f1);
-}
-
-.e-permits-cal-layer:hover .checkbox-input:checked + .checkbox-custom {
-  background: var(--color-background-brand-default-hover, #0047a8);
-  border-color: var(--color-background-brand-default-hover, #0047a8);
-}
+/* the layers = the project checkbox options (`.e-permits-check-options` › renderCheckOption) — no own rules */
 
 .e-permits-cal-legend {
   color: var(--color-text-base-secondary, #383838);
@@ -254,12 +236,12 @@
   gap: var(--spacing-12, 12px);
   padding: var(--spacing-16, 16px);
   text-align: left;
-  transition: border-color 140ms ease, box-shadow 140ms ease;
+  transition: background-color 140ms ease;
 }
 
+/* hover = the grey hover surface only (calendar-views-v4, user: no shadow, no lift) */
 .e-permits-cal-mini:hover {
-  border-color: var(--color-border-base-secondary, #b3b3b3);
-  box-shadow: var(--shadow-200, 0 1px 3px rgba(0, 0, 0, 0.08), 0 3px 8px rgba(0, 0, 0, 0.08), 0 0 0.5px rgba(0, 0, 0, 0.18));
+  background: var(--color-background-base-tertiary, #f1f1f1);
 }
 
 .e-permits-cal-mini:focus-visible {

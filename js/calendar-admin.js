@@ -713,12 +713,9 @@
     return map;
   }
 
-  const checkHtml = (key, label, on) => `
-    <label class="checkbox checkbox--medium e-permits-cal-layer">
-      <input type="checkbox" class="checkbox-input" data-cal-layer="${key}" data-cal-focus="layer-${key}"${on ? " checked" : ""}>
-      <span class="checkbox-custom"></span>
-      <span class="checkbox-texts"><span class="checkbox-label">${esc(label)}</span></span>
-    </label>`;
+  /* the project's checkbox option on the grey surface (renderCheckOption, components.md „Checkbox option (grey
+     container)”) — classes 1:1, no own font / padding / hover (calendar-views-v4, user) */
+  const checkHtml = (key, label, on) => U().renderCheckOption?.({ label, checked: on, attrs: `data-cal-layer="${key}" data-cal-focus="layer-${key}"` }) || "";
   /* layers (Google-Calendar-like) + the colour legend */
   const LEGEND_ICON = { "is-off": "calendar-remove", "is-on": "reschedule", "has-absences": "people" };
   const barHtml = () => {
@@ -730,7 +727,7 @@
     ];
     return `
       <div class="e-permits-cal-board__bar">
-        <div class="e-permits-cal-layers" role="group" aria-label="Ce se afișează în calendar">
+        <div class="e-permits-check-options e-permits-cal-layers" role="group" aria-label="Ce se afișează în calendar">
           ${checkHtml("events", "Sărbători și zile transferate", CV.layers.events)}
           ${absencesAvailable() ? checkHtml("absences", "Absențe", CV.layers.absences) : ""}
         </div>
