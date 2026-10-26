@@ -267,8 +267,9 @@
     if (dosar.status === "achitare" && !paymentExpired(dosar)) items.push({ action: "pay", icon: "icon-credit-card", label: `Achită ${money(dosar.payment?.amount)}` });
     if (dosar.status === "derulare" || dosar.status === "info" || dosar.status === "achitare") items.push({ action: "download", kind: "certificat", icon: "icon-export", label: "Descarcă certificatul constatator" });
     if (dosar.status === "finalizat" && dosar.result === "aprobat" && dosar.actId) {
-      items.push({ action: "act", icon: "icon-page-text", label: "Vezi actul", href: cabUrl("acte", { act: dosar.actId }) });
-      items.push({ action: "download", kind: dosar.decisionOnly ? "decizie" : "act", icon: "icon-export", label: dosar.decisionOnly ? "Descarcă decizia (MDocs)" : "Descarcă actul (MDocs)" });
+      /* row-act-link-v1 (2026-10-26, final audit C1): the same action as the profile header (request-act-modal-link-v1) —
+         „Profilul actului ↗” in a new tab (a request never shows the act), no download from a row */
+      items.push({ action: "act", label: "Profilul actului", href: cabUrl("acte", { act: dosar.actId }), newTab: true });
     }
     if (dosar.status === "finalizat" && dosar.result === "respins") items.push({ action: "download", kind: "decizie", icon: "icon-export", label: "Descarcă decizia (MDocs)" });
     if (canAppeal(dosar)) items.push({ action: "appeal", icon: "icon-judge-gavel", label: "Depune contestație", href: foUrl(dosar, "appeal") });
@@ -297,6 +298,9 @@
         <ul class="e-permits-fo-intent-menu e-permits-stack__menu cab-menu" id="${menuId}" role="menu" aria-label="Acțiuni pentru ${escape(name)}" hidden>
           ${items.map((item) => item.separator
             ? `<li role="separator" class="cab-menu__separator"></li>`
+            : item.newTab
+              /* a new-tab link = label then the trailing external icon, as the header „⋯” (C.newTabAttrs) */
+              ? `<li role="none"><a class="e-permits-fo-intent-menu__item" role="menuitem" href="${escape(item.href)}"${C.newTabAttrs(item.label)} data-sm-action="${item.action}" data-sm-id="${escape(dosar.id)}"><span>${escape(item.label)}</span>${icon("icon-external-link", "medium e-permits-fo-intent-menu__external")}</a></li>`
             : item.href
               ? `<li role="none"><a class="e-permits-fo-intent-menu__item" role="menuitem" href="${escape(item.href)}" data-sm-action="${item.action}" data-sm-id="${escape(dosar.id)}">${icon(item.icon, "medium")}<span>${escape(item.label)}</span></a></li>`
               : `<li role="none"><button class="e-permits-fo-intent-menu__item${item.action === "delete" ? " is-danger" : ""}" type="button" role="menuitem" data-sm-action="${item.action}" data-sm-id="${escape(dosar.id)}"${item.kind ? ` data-sm-kind="${item.kind}"` : ""}>${icon(item.icon, "medium")}<span>${escape(item.label)}</span></button></li>`).join("")}
@@ -1225,6 +1229,16 @@
         ${tabs.map((tab) => `<div class="cab-profile-tabs__panel" role="tabpanel" id="sm-panel-${tab.id}" aria-labelledby="sm-tab-${tab.id}" data-sm-panel="${tab.id}"${tab.id === state.tab ? "" : " hidden"}>${panels[tab.id]}</div>`).join("")}
       </div>`;
   }
+  /* tabs-fade-v1 (2026-10-26, final audit C3: 4 tabs of a refused request are 19 px wider than a 375 phone): the strip
+     scrolls sideways like the BO passport tabs (syncPassportTabOverflow) and RAP — the edge that hides more tabs fades
+     (`.has-overflow-start` / `-end`, css/e-permits-acte-permisive.css), no arrows; the selected tab is brought into view */
+  function syncTabsOverflow() {
+    const scroller = root.querySelector("[data-sm-tabs] > .e-permits-page-header__tabs");
+    if (!scroller) return;
+    const max = scroller.scrollWidth - scroller.clientWidth;
+    scroller.classList.toggle("has-overflow-start", scroller.scrollLeft > 1);
+    scroller.classList.toggle("has-overflow-end", max - scroller.scrollLeft > 1);
+  }
   function selectTab(id, { focus = false } = {}) {
     const box = root.querySelector("[data-sm-tabs]");
     if (!box || !box.querySelector(`[data-sm-tab="${id}"]`)) return;
@@ -1235,7 +1249,9 @@
       button.setAttribute("aria-selected", String(on));
       button.tabIndex = on ? 0 : -1;
       if (on && focus) button.focus();
+      if (on) button.scrollIntoView({ block: "nearest", inline: "nearest" });
     });
+    syncTabsOverflow();
     box.querySelectorAll("[data-sm-panel]").forEach((panel) => { panel.hidden = panel.dataset.smPanel !== id; });
     const dosarId = root.querySelector("[data-sm-profile]")?.dataset.smProfile;
     if (dosarId) history.replaceState(history.state, "", `${window.location.pathname}${window.location.search}#dosar/${dosarId}${id === "general" ? "" : `/${id}`}`);
@@ -1369,6 +1385,11 @@
       </article>`;
     C.syncHeaderMeta();
     C.watchHeaderActions();
+    const tabStrip = root.querySelector("[data-sm-tabs] > .e-permits-page-header__tabs");
+    tabStrip?.addEventListener("scroll", syncTabsOverflow, { passive: true });
+    /* the tabs' width changes after the web font arrives / on resize → re-check (the strip is replaced on every render) */
+    if (tabStrip && window.ResizeObserver) new ResizeObserver(syncTabsOverflow).observe(tabStrip.firstElementChild);
+    syncTabsOverflow();
     root.querySelector("#sm-profile-title")?.focus({ preventScroll: true });
     window.scrollTo(0, 0);
 
@@ -1617,6 +1638,7 @@
   }
 
   function bind() {
+    window.addEventListener("resize", syncTabsOverflow);
     root.addEventListener("input", (event) => {
       if (!event.target.matches("[data-sm-search]")) return;
       state.query = event.target.value;
@@ -1802,7 +1824,7 @@
     try {
       const [data, fo] = await Promise.all([
         fetch("../data/cabinet-evo-solicitari.json?v=type-first-v1").then((response) => { if (!response.ok) throw new Error(String(response.status)); return response.json(); }),
-        fetch("../data/acte-permisive.json?v=type-first-v1").then((response) => response.json()).catch(() => null),
+        fetch("../data/acte-permisive.json?v=cabinet-audit-fix-v1").then((response) => response.json()).catch(() => null),
       ]);
       state.data = data;
       const flow = fo?.frontOfficeFlows?.[0] || {};

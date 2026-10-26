@@ -999,7 +999,7 @@
           },
           "DEMO": {
             "code": "DEMO",
-            "title": "Licență de activitate (exemplu pentru suspendare și reluare)",
+            "title": "Licență de activitate",
             "shortTitle": "Licență de activitate",
             "authority": "ANSP",
             "demo": true,

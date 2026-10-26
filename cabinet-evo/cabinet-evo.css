@@ -670,12 +670,6 @@
   width: 640px;
 }
 
-.cab-doc-modal .e-permits-fo-doc-modal__cancel {
-  align-items: center;
-  display: inline-flex;
-  gap: var(--spacing-8, 8px);
-}
-
 .cab-doc-modal__body {
   gap: var(--spacing-16, 16px);
 }
@@ -988,6 +982,24 @@
 .cab-page .chip[aria-expanded="true"] {
   box-shadow: 0 0 0 2px var(--color-background-base-default, #fff), 0 0 0 5px var(--focus-ring, var(--blue-sky-500, #3379db));
   outline: none;
+}
+
+/* open-trigger-v1 (2026-10-26, Figma menu pass): an open grey trigger is PRESSED at every size — the row triggers'
+   tertiary-active (css/e-permits-acte-permisive.css `.btn.btn-sm.btn-neutral[aria-expanded="true"]`) now also on the
+   Medium profile header „Postprocese ⌄” / „⋯” (they kept the resting secondary grey), hovered or not — and a trigger's
+   chevron turns UP while its menu is open (the pager / avatar menus; the act rows already did) */
+.cab-page .btn.btn-neutral[aria-expanded="true"]:not(:disabled),
+.cab-page .btn.btn-neutral[aria-expanded="true"]:hover:not(:disabled) {
+  background: var(--color-background-base-tertiary-active, #b2b2b2);
+  border-color: transparent;
+}
+
+.cab-page .btn[aria-expanded] > .icon:has(use[href$="#icon-chevron-bottom"]) {
+  transition: transform 160ms ease;
+}
+
+.cab-page .btn[aria-expanded="true"] > .icon:has(use[href$="#icon-chevron-bottom"]) {
+  transform: rotate(180deg);
 }
 
 /* ===== Solicitările mele — rows (user, 2026-10-12) =====
@@ -1816,17 +1828,10 @@ button.cab-alert-link {
     right: var(--cab-menu-right, 0px);
   }
 
-  /* the profile header menus („⋯”, Postprocese) on phones = the dropdown item (MEDIUM label, icon 20) at the touch
-     size 48 · 16/24 (user 2026-10-23: „the item font is regular — it should be medium”); list row menus unchanged */
-  .cab-profile-header .e-permits-fo-intent-act__action > .e-permits-fo-intent-menu .e-permits-fo-intent-menu__item {
-    font-weight: var(--font-weight-fw-medium, 500);
-  }
-
-  .cab-profile-header .e-permits-fo-intent-act__action > .e-permits-fo-intent-menu .e-permits-fo-intent-menu__item > .icon {
-    flex: 0 0 var(--icon-size-medium, 20px);
-    height: var(--icon-size-medium, 20px);
-    width: var(--icon-size-medium, 20px);
-  }
+  /* the profile header menus („⋯”, Postprocese) on phones = the row menus' items exactly (row-menu-one-v1, 2026-10-26,
+     coordinator: „one component”, per the components.md row-menu rule: 48 · 12 16 · 16/24 regular · icon 24,
+     css/e-permits-acte-permisive.css „Row action menu on phones”) — the header-only override (medium, icon 20, user
+     2026-10-23) is gone; open question for the PO: medium for every row menu instead */
 }
 
 /* ===== Request profile — full container (act-profile-v1, 2026-10-21) =====

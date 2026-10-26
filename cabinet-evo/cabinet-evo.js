@@ -27,7 +27,7 @@
      office uses (acte-permisive.json → intent): status × post-process
      matrix, the service passport (allows), paper acts and acts with a
      post-process already in progress. The perspective is ?as=<subject>. */
-  const GEAP_URL = "../data/acte-permisive.json?v=type-first-v1";
+  const GEAP_URL = "../data/acte-permisive.json?v=cabinet-audit-fix-v1";
   const FO_URL = "../e-permits-acte-permisive.html";
 
   const els = {
@@ -1656,8 +1656,11 @@
           ${rowsHtml}`}
         </div>
         <div class="e-permits-fo-doc-modal__footer">
-          <button class="e-permits-fo-doc-modal__cancel" type="button" ${downloadAttrs}>${icon("icon-export")}<span>Descarcă</span></button>
-          <button class="e-permits-fo-doc-modal__submit" type="button" data-cab-doc-close>Închide</button>
+          <!-- viewer-footer-one-v1 (2026-10-26, final audit C4): the SAME footer as the act viewer (js/act-view.js) — library
+               pills, „Descarcă” = grey neutral + icon-export (arrow into tray), „Închide” = primary; size from css/dialog-footer.css
+               (Medium 40 on desktop, viewer 40 on phones) -->
+          <button class="btn btn-neutral btn-rounded" type="button" ${downloadAttrs}>${icon("icon-export")}<span>Descarcă</span></button>
+          <button class="btn btn-primary btn-rounded" type="button" data-cab-doc-close>Închide</button>
         </div>
       </div>`;
     docModalFile.name = `${String(doc.fisier || doc.tip || "document").replace(/\.[a-z0-9]+$/i, "")}.txt`;

@@ -8018,9 +8018,24 @@ cabinet-evo.js — the BO header is a different renderer with no „⋯” and i
   permisiv”, the FO / Ghișeu finish card „Vezi documentul”.
 - Phones (≤ 760): the „⋯” menu hangs under the action row with its RIGHT edge on the „⋯” (`fitMenu` sets
   `--cab-menu-right` + `.is-trigger-end` when the menu fits leftwards from the trigger), else on the row's left edge (16);
-  items = the dropdown item at the touch size 48 · 16/24 MEDIUM, icon 20 (profile header menus only; list row menus keep
-  the row-menu 16/24 regular · icon 24 — PO question). Desktop items = the dropdown item 32 · 14/20 medium (unchanged —
-  measured identical in 57fe8c51^, HEAD and now).
+  ~~items = the dropdown item at the touch size 48 · 16/24 MEDIUM, icon 20 (profile header menus only)~~ — row-menu-one-v1
+  (2026-10-26): the header menus („⋯”, „Postprocese ⌄”) use the row menus' items exactly (48 · 12 16 · 16/24 regular ·
+  icon 24, § „Row action menu on phones”) — one component; the cabinet-evo.css override is gone (PO question kept:
+  medium for every row menu?). Desktop items = the dropdown item 32 · 14/20 medium (unchanged).
+- Open triggers (open-trigger-v1, 2026-10-26): a grey `.btn-neutral` trigger with its menu open is PRESSED at every size
+  (`--color-background-base-tertiary-active` + the focus ring, hovered or not — `.cab-page .btn.btn-neutral[aria-expanded="true"]`,
+  = the row triggers' btn-sm rule) and its `icon-chevron-bottom` turns up (`.cab-page .btn[aria-expanded="true"] > .icon:has(…)`,
+  as the pager / avatar menus). Demo pp-01q (profile „Postprocese”), pp-01a (row), sm-02 (⋮).
+- Request row menu of an approved request (row-act-link-v1, 2026-10-26): Detalii · „Profilul actului ↗” (new tab, label
+  then `icon-external-link` `.e-permits-fo-intent-menu__external`, name „… (se deschide într-o filă nouă)”) — the header's
+  action; no „Vezi actul”, no download (a request never shows the act; no row download). Demo sm-01u.
+- Request profile tabs on phones (tabs-fade-v1, 2026-10-26): the strip scrolls sideways and fades the edge that hides more
+  tabs (`.has-overflow-start` / `-end`, synced on scroll / resize / font load = the BO passport tabs, no arrows); the
+  selected tab is scrolled into view. Demo sm-05a / sm-05c / mdoc-13 at 375.
+- Document viewer footer (viewer-footer-one-v1, 2026-10-26): the Cabinet request / decision viewer (`CabEvo.openDocModal`)
+  has the act viewer's footer (js/act-view.js): `btn btn-neutral btn-rounded` „Descarcă” with `icon-export` + `btn
+  btn-primary btn-rounded` „Închide” — Medium 40 at every width (css/dialog-footer.css / modal-phone.css § 7b); the
+  outlined `.e-permits-fo-doc-modal__cancel` is no longer used in Cabinet. Demo mdoc-12 / mdoc-13 vs pp-01m / mdoc-15.
 - Per state (1440 / 375 / 320): sm-03 Continuă schița · Elimină schița (320: + „⋯” › Elimină schița) · sm-05 / 05u / 05v
   / 05w Profilul actului ↗ · sm-05b / sm-act-03 Profilul actului ↗ · Descarcă decizia (320: „⋯” › Descarcă decizia) ·
   sm-05a Depune contestație · Descarcă decizia (375 / 320: „⋯” › Descarcă decizia) · sm-act-04 Depune contestație ·
