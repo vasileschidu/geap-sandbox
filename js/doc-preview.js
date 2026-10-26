@@ -473,7 +473,7 @@
   const OUTCOME_TONES = {
     approved: { tone: "positive", icon: "circle-checkmark-filled" },
     refused: { tone: "danger", icon: "circle-error-filled" },
-    suspended: { tone: "warning", icon: "pause" },
+    suspended: { tone: "warning", icon: "warning-filled" },
     info: { tone: "info", icon: "circle-info-filled" }
   };
   const CHIP_TONES = { success: "positive", positive: "positive", warning: "warning", danger: "danger", brand: "info", info: "info", accent: "info", neutral: "neutral" };

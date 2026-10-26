@@ -842,7 +842,9 @@
   white-space: nowrap;
 }
 
-/* signatures (locked, after the content): 2 per row, a signature line on top; pending = dashed + grey */
+/* signatures (locked, after the content): 2 per row, each a framed box (sign-box-v1, 2026-10-26: a visible e-signature
+   reads as a seal, apart from the parties' top-line blocks); signed = brand border, pending = dashed grey. The state is
+   also in the text + icon colour, so a black-and-white print keeps it */
 .e-permits-mdoc-signatures {
   display: grid;
   gap: 5mm 8mm;
@@ -851,11 +853,13 @@
 }
 
 .e-permits-mdoc-sign {
-  border-top: var(--border-width-1, 1px) solid var(--mdoc-rule-sign);
+  border: var(--border-width-1, 1px) solid var(--color-border-brand-default, #0058d2);
+  border-radius: var(--border-radius-8, 8px);
   display: flex;
   flex-direction: column;
   gap: 0.5mm;
-  padding-top: 2.5mm;
+  padding: 2.5mm 3mm 3mm;
+  print-color-adjust: exact;
 }
 
 .e-permits-mdoc .e-permits-doc-page__surface .e-permits-mdoc-sign__lead {
@@ -894,7 +898,8 @@
 }
 
 .e-permits-mdoc-sign.is-pending {
-  border-top-style: dashed;
+  border-color: var(--mdoc-rule-sign);
+  border-style: dashed;
 }
 
 .e-permits-mdoc .e-permits-doc-page__surface .e-permits-mdoc-sign.is-pending .e-permits-mdoc-sign__lead {
