@@ -189,8 +189,7 @@
 /* three day kinds read apart (calendar-views-v4, user): red ring = non-working, blue ring = transferred working day,
    grey fill without a ring = a normal weekend; today = inverse (and the solid grey cell in the month grid) */
 .e-permits-cal-mark.is-weekend {
-  background: var(--color-background-base-tertiary, #f1f1f1);
-  color: var(--color-text-base-secondary, #383838);
+  color: var(--color-text-base-tertiary, #757575);
 }
 
 .e-permits-cal-mark.is-off {
@@ -226,10 +225,12 @@
   grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
+/* calendar-views-v6 (user): no outline at rest; hover = the grey surface + a small smooth zoom (no shadow); the title's
+   left edge = the first day column (the grid's 7 day-wide columns run edge to edge) */
 .e-permits-cal-mini {
   appearance: none;
   background: var(--color-background-base-default, #fff);
-  border: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
+  border: 0;
   border-radius: var(--border-radius-20, 20px);
   color: inherit;
   cursor: pointer;
@@ -239,12 +240,12 @@
   gap: var(--spacing-12, 12px);
   padding: var(--spacing-16, 16px);
   text-align: left;
-  transition: background-color 140ms ease;
+  transition: background-color 180ms var(--motion-easing-decelerate, cubic-bezier(0, 0, 0.2, 1)), transform 180ms var(--motion-easing-decelerate, cubic-bezier(0, 0, 0.2, 1));
 }
 
-/* hover = the grey hover surface only (calendar-views-v4, user: no shadow, no lift) */
 .e-permits-cal-mini:hover {
   background: var(--color-background-base-tertiary, #f1f1f1);
+  transform: scale(1.02);
 }
 
 .e-permits-cal-mini:focus-visible {
@@ -262,12 +263,16 @@
 .e-permits-cal-mini__grid {
   display: grid;
   gap: var(--spacing-2, 2px) 0;
-  grid-template-columns: repeat(7, minmax(0, 1fr));
+  grid-template-columns: repeat(7, var(--spacing-24, 24px));
+  justify-content: space-between;
   justify-items: center;
 }
 
+/* weekday letters: L–V secondary, S D the weekend's tertiary grey */
 .e-permits-cal-mini__wd {
-  color: var(--color-text-base-tertiary, #757575);
+  color: var(--color-text-base-secondary, #383838);
+  text-align: center;
+  width: 100%;
   font-size: var(--font-size-fs-12, 12px);
   font-weight: var(--font-weight-fw-medium, 500);
   line-height: var(--line-height-lh-24, 24px);
@@ -286,9 +291,10 @@
   width: var(--spacing-24, 24px);
 }
 
+/* a weekend = only its number in the tertiary grey (no fill, no ring; v6 user) — 4.6:1 on white */
+.e-permits-cal-mini__wd.is-weekend,
 .e-permits-cal-mini__day.is-weekend {
-  background: var(--color-background-base-tertiary, #f1f1f1);
-  color: var(--color-text-base-secondary, #383838);
+  color: var(--color-text-base-tertiary, #757575);
 }
 
 .e-permits-cal-mini__day.is-off {
@@ -484,8 +490,8 @@
 }
 
 /* weekend numbers on the grey cell: secondary text (tertiary on grey 100 = 4.2:1, under AA) */
+/* a weekend number: no fill, no ring (v6); secondary text on the hatched cell (tertiary would be 4.2:1 there) */
 .e-permits-cal-month__cell.is-weekend .e-permits-cal-day__num {
-  background: var(--color-background-base-tertiary, #f1f1f1);
   color: var(--color-text-base-secondary, #383838);
 }
 
@@ -673,8 +679,8 @@
     padding: var(--spacing-12, 12px) var(--spacing-8, 8px);
   }
 
-  .e-permits-cal-mini__title {
-    padding: 0 var(--spacing-4, 4px);
+  .e-permits-cal-mini__grid {
+    grid-template-columns: repeat(7, var(--spacing-20, 20px));
   }
 
   .e-permits-cal-mini__wd {
@@ -800,5 +806,9 @@
 @media (prefers-reduced-motion: reduce) {
   .e-permits-cal-mini {
     transition: none;
+  }
+
+  .e-permits-cal-mini:hover {
+    transform: none;
   }
 }

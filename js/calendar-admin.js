@@ -757,7 +757,7 @@
     return `
       <button class="e-permits-cal-mini" type="button" data-cal-month="${m}" data-cal-focus="month-${m}" aria-label="${esc(`${monthTitle(year, m)}${parts.length ? `: ${parts.join(", ")}` : ""}. Deschide luna`)}">
         <span class="e-permits-cal-mini__title">${esc(cap(RO_MONTHS[m]))}</span>
-        <span class="e-permits-cal-mini__grid" aria-hidden="true">${LETTERS.map((l) => `<span class="e-permits-cal-mini__wd">${l}</span>`).join("")}${cells.join("")}</span>
+        <span class="e-permits-cal-mini__grid" aria-hidden="true">${LETTERS.map((l, i) => `<span class="e-permits-cal-mini__wd${i > 4 ? " is-weekend" : ""}">${l}</span>`).join("")}${cells.join("")}</span>
       </button>`;
   }
   const yearHtml = (year, events, absent) => `
