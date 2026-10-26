@@ -275,7 +275,19 @@
     competent: (specialistId, row) => { const person = personBySpecialist(specialistId); return person ? competentFor(person, row) : true; },
     /* the active specialists of a subdivision left out today because they are absent (redistribution hint) */
     absentNames: (subdivision) => people().filter((p) => p.subdivision === subdivision && p.role === "Specialist" && absentOn(p.id)).map((p) => p.name),
-    policyFor, FACTORS
+    policyFor, FACTORS,
+    /* calendar-views-v1 (Administrare › Calendar, layer „Absențe”): who may see them, the absences of the people this
+       person manages that overlap [from, to] (ISO), and the existing „Modifică absența” dialog */
+    canView: () => canAbsences(),
+    between: (from, to) => {
+      if (!S.data || !canAbsences()) return [];
+      const w = who();
+      return S.list.filter((a) => a.from <= to && (!a.to || a.to >= from)).map((a) => ({ a, p: personById(a.person) }))
+        .filter(({ p }) => p && !p.me && inScope(p, w))
+        .map(({ a, p }) => ({ id: a.id, person: p.id, name: p.name, type: a.type, from: a.from, to: a.to || "", period: periodText(a.from, a.to) }))
+        .sort((x, y) => x.name.localeCompare(y.name, "ro"));
+    },
+    open: (id) => openAbsence({ id })
   };
 
   /* ================================================================ dialog (#case-action-modal) */
@@ -859,6 +871,190 @@
     }
   };
 
+  /* ================================================================ calendar-views-v1: „Cronologie” (US-312, Supervisor) */
+  /* A proposal beyond US-312 (the list stays the default view; user-approved 2026-10-26), like Freshteam / Timetastic:
+     rows = the team (the list's search applies to the names; „Filtre” keeps only people with a matching absence),
+     columns = the days of a month or a week (prev / next, „Azi”), weekends and non-working days (js/working-days.js)
+     shaded down every row, one coloured bar per absence (type = colour, legend; tooltip = type + period; click = the
+     existing „Modifică absența”). The status tabs are a time filter the timeline replaces: hidden there, „Toate” while
+     it shows, the list's tab back on „Listă”. The name column is pinned (js/table-pin-shadow.js draws its edge). */
+  const TL = { mode: "list", scale: "", anchor: "", listTab: "" };
+  const TL_TONE = { Concediu: "brand", "Concediu medical": "danger", "Delegație": "success", Suspendare: "neutral" };
+  const tlTone = (type) => TL_TONE[type] || "accent";
+  const WD_LETTERS = ["D", "L", "M", "M", "J", "V", "S"];
+  const canTimeline = () => who().supervisor && canAbsences();
+  const absReg = () => document.querySelector(`[data-workplace][data-registry-kind="${ABS_KIND}"]`);
+  const initials = (name) => String(name || "").split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0]).join("").toUpperCase();
+  const capital = (s) => s.charAt(0).toUpperCase() + s.slice(1);
+  /* the window: a calendar month, or Monday … Sunday around the anchor */
+  function tlWindow() {
+    const anchor = TL.anchor || today();
+    const d = dateOf(anchor);
+    if (TL.scale === "week") {
+      const from = addDays(anchor, -((d.getDay() + 6) % 7));
+      return { from, to: addDays(from, 6) };
+    }
+    const from = iso(new Date(d.getFullYear(), d.getMonth(), 1));
+    return { from, to: iso(new Date(d.getFullYear(), d.getMonth() + 1, 0)) };
+  }
+  const tlTitle = ({ from, to }) => (TL.scale === "week" ? periodText(from, to) : capital(`${MONTHS[dateOf(from).getMonth()]} ${dateOf(from).getFullYear()}`));
+  const nonWorking = (day, authority) => {
+    const wd = window.GEAPWorkingDays;
+    if (typeof wd?.isWorkingDay === "function") return !wd.isWorkingDay(day, authority);
+    const g = dateOf(day).getDay();
+    return g === 0 || g === 6;
+  };
+  const holidayName = (day, authority) => {
+    const st = window.GEAPWorkingDays?.dayStatus?.(day, authority);
+    return st && !st.working && st.exception ? st.exception.reason : "";
+  };
+  function tlBoardHtml() {
+    const w = who();
+    const win = tlWindow();
+    const days = [];
+    for (let day = win.from; day <= win.to; day = addDays(day, 1)) days.push(day);
+    const t = today();
+    const st = A().workplaceState || {};
+    const query = String(st.query || "").trim().toLocaleLowerCase("ro");
+    const visible = (A().getVisibleRows?.() || []).filter((r) => r.from <= win.to && (!r.to || r.to >= win.from));
+    const filtered = Boolean(document.querySelector("[data-workplace-filter-count]:not([hidden])"));
+    const team = scopePeople().filter((p) => (!query || p.name.toLocaleLowerCase("ro").includes(query))
+      && (!filtered || (A().getVisibleRows?.() || []).some((r) => r.personId === p.id)));
+    const unit = TL.scale === "week" ? "Săptămâna" : "Luna";
+    const step = (dir, label, name) => `<button class="btn btn-neutral btn-sm btn-icon-only" type="button" aria-label="${label}" data-abs-tl-step="${dir}" data-abs-tl-focus="step${dir}">${icon(name)}</button>`;
+    const legendTypes = (S.data?.absenceTypes || Object.keys(TL_TONE));
+    const head = `
+      <div class="e-permits-abs-tl__bar">
+        <div class="e-permits-abs-tl__nav">
+          <button class="btn btn-neutral btn-sm" type="button" data-abs-tl-today data-abs-tl-focus="today">Azi</button>
+          ${step(-1, `${unit} anterioară`, "chevron-left")}${step(1, `${unit} următoare`, "chevron-right")}
+          <h2 class="e-permits-abs-tl__title" id="abs-tl-title">${esc(tlTitle(win))}</h2>
+        </div>
+        ${window.GEAPViewSwitch?.html({ key: "abs-scale", label: "Perioada afișată", value: TL.scale, items: [["week", "Săptămână"], ["month", "Lună"]], className: "e-permits-abs-tl__scale" }) || ""}
+      </div>
+      <ul class="e-permits-abs-tl__legend" aria-label="Legendă">
+        ${legendTypes.map((type) => `<li><span class="e-permits-abs-tl__swatch e-permits-abs-tl__swatch--${tlTone(type)}" aria-hidden="true"></span>${esc(type)}</li>`).join("")}
+        <li><span class="e-permits-abs-tl__swatch e-permits-abs-tl__swatch--off" aria-hidden="true"></span>Weekend sau zi nelucrătoare</li>
+      </ul>`;
+    if (!S.data) return `${head}${window.GEAPEmptyState?.render({ title: "Se încarcă absențele…", loading: true, bare: true }) || ""}`;
+    if (!team.length) {
+      return `${head}${query || filtered
+        ? window.GEAPEmptyState?.render({ title: "Nu există absențe pentru criteriile selectate.", text: "Schimbă căutarea sau filtrele.", icon: "search", bare: true }) || ""
+        : window.GEAPEmptyState?.render({ title: "Nu există membri în echipă", icon: "people", bare: true }) || ""}`;
+    }
+    const dayClass = (day) => `${nonWorking(day, w.authority) ? " is-off" : ""}${day === t ? " is-today" : ""}`;
+    const headCells = days.map((day) => {
+      const d = dateOf(day);
+      const holiday = holidayName(day, w.authority);
+      return `<th scope="col" class="e-permits-abs-tl__day${dayClass(day)}${holiday ? " is-holiday" : ""}"${holiday ? ` data-tooltip-text="${esc(holiday)}"` : ""} aria-label="${esc(`${long(day)}${holiday ? `, ${holiday}` : ""}`)}">
+        <span class="e-permits-abs-tl__wd" aria-hidden="true">${WD_LETTERS[d.getDay()]}</span>
+        <span class="e-permits-abs-tl__num" aria-hidden="true">${d.getDate()}</span>
+      </th>`;
+    }).join("");
+    const rowsHtml = team.map((p) => {
+      const mine = visible.filter((r) => r.personId === p.id).sort((a, b) => a.from.localeCompare(b.from));
+      /* one cell per day (the rows line up with the header: the pinned column keeps its edge); the bar sits in
+         its first visible day and spans N columns (--abs-tl-span, set after the render) */
+      const cells = days.map((day, i) => {
+        const a = mine.find((r) => (r.from === day || (i === 0 && r.from < day)) && (!r.to || r.to >= day));
+        if (!a) return `<td class="e-permits-abs-tl__cell${dayClass(day)}"></td>`;
+        let span = 1;
+        while (i + span < days.length && (!a.to || a.to >= days[i + span])) span += 1;
+        const period = periodText(a.from, a.to || "");
+        return `<td class="e-permits-abs-tl__cell${dayClass(day)}">
+          <button class="e-permits-abs-tl__item e-permits-abs-tl__item--${tlTone(a.tip)}${a.from < win.from ? " is-cut-start" : ""}${!a.to || a.to > win.to ? " is-cut-end" : ""}" type="button" data-abs-span="${span}" data-abs-edit="${esc(a.absId)}" data-abs-tl-focus="bar-${esc(a.absId)}" data-tooltip-text="${esc(`${a.tip} · ${period}`)}" aria-label="${esc(`${p.name}: ${a.tip}, ${period}. Modifică absența`)}"><span>${esc(a.tip)}</span></button>
+        </td>`;
+      });
+      return `<tr>
+        <th scope="row" class="e-permits-abs-tl__person">
+          <span class="e-permits-abs-tl__who">
+            <span class="avatar avatar--xs avatar--initials e-permits-workplace__user-avatar" aria-hidden="true">${esc(initials(p.name))}</span>
+            <span class="e-permits-abs-tl__name" data-cell-tooltip="${esc(p.name)}">${esc(p.name)}</span>
+          </span>
+        </th>${cells.join("")}
+      </tr>`;
+    }).join("");
+    return `${head}
+      <div class="e-permits-workplace__table-wrap e-permits-abs-tl__scroll">
+        <table class="e-permits-abs-tl e-permits-abs-tl--${TL.scale}" aria-labelledby="abs-tl-title">
+          <thead><tr><th scope="col" class="e-permits-abs-tl__person e-permits-abs-tl__person--head">Membrul echipei</th>${headCells}</tr></thead>
+          <tbody>${rowsHtml}</tbody>
+        </table>
+      </div>`;
+  }
+  function renderTimeline() {
+    const reg = absReg();
+    if (!reg) return;
+    reg.dataset.absView = canTimeline() ? TL.mode : "list";
+    if (TL.mode !== "timeline" || !canTimeline()) return;
+    let board = reg.querySelector("[data-abs-board]");
+    if (!board) {
+      reg.querySelector(".e-permits-workplace__table-wrap")?.insertAdjacentHTML("afterend", '<section class="e-permits-abs-board" data-abs-board aria-labelledby="abs-tl-title"></section>');
+      board = reg.querySelector("[data-abs-board]");
+    }
+    if (!board) return;
+    const focusKey = document.activeElement?.closest?.("[data-abs-board] [data-abs-tl-focus], [data-abs-board] [data-view-value]");
+    const key = focusKey?.dataset.absTlFocus ? `[data-abs-tl-focus="${focusKey.dataset.absTlFocus}"]` : focusKey ? `[data-view-value="${focusKey.dataset.viewValue}"]` : "";
+    const keepScroll = board.querySelector(".e-permits-abs-tl__scroll")?.scrollLeft || 0;
+    board.innerHTML = tlBoardHtml();
+    board.querySelectorAll("[data-abs-span]").forEach((bar) => bar.style.setProperty("--abs-tl-span", bar.dataset.absSpan));
+    const scroller = board.querySelector(".e-permits-abs-tl__scroll");
+    if (scroller) {
+      /* a month opens at today's column (or keeps the place) */
+      const todayCol = scroller.querySelector("th.is-today");
+      scroller.scrollLeft = keepScroll || (todayCol ? Math.max(0, todayCol.offsetLeft - scroller.clientWidth / 2) : 0);
+    }
+    if (key) board.querySelector(key)?.focus();
+  }
+  /* the absences toolbar: the switch (Supervisor) + the hidden status tabs while the timeline shows */
+  function syncAbsChrome() {
+    const reg = document.querySelector("[data-workplace]");
+    if (!reg) return;
+    const tools = reg.querySelector(".e-permits-workplace__table-tools");
+    if (tools && !reg.querySelector('[data-view-switch="absente"]') && window.GEAPViewSwitch) {
+      tools.insertAdjacentHTML("beforebegin", window.GEAPViewSwitch.html({ key: "absente", label: "Mod de afișare a absențelor", value: TL.mode, items: [["list", "Listă"], ["timeline", "Cronologie"]], className: "e-permits-abs-switch" }));
+    }
+    const sw = reg.querySelector('[data-view-switch="absente"]');
+    if (sw) { sw.hidden = !canTimeline(); window.GEAPViewSwitch?.set(sw, TL.mode); }
+    if (reg.dataset.registryKind === ABS_KIND) renderTimeline();
+  }
+  function setTimeline(mode) {
+    TL.mode = mode;
+    const st = A().workplaceState || {};
+    if (mode === "timeline") {
+      if (!TL.scale) TL.scale = window.matchMedia("(max-width: 760px)").matches ? "week" : "month";
+      TL.listTab = st.tabKey || "curente";
+      const all = document.querySelector('[data-workplace-tab="toate"]');
+      if (st.tabKey !== "toate" && all) { all.click(); return; } /* the redraw renders the timeline */
+    } else if (TL.listTab && st.tabKey !== TL.listTab) {
+      const back = TL.listTab;
+      TL.listTab = "";
+      absReg()?.setAttribute("data-abs-view", "list");
+      document.querySelector(`[data-workplace-tab="${back}"]`)?.click();
+      return;
+    }
+    renderTimeline();
+  }
+  window.GEAPViewSwitch?.on("absente", (value) => setTimeline(value));
+  window.GEAPViewSwitch?.on("abs-scale", (value) => { TL.scale = value; renderTimeline(); });
+  const tlStep = (dir) => {
+    const anchor = TL.anchor || today();
+    if (TL.scale === "week") TL.anchor = addDays(anchor, 7 * dir);
+    else { const d = dateOf(anchor); TL.anchor = iso(new Date(d.getFullYear(), d.getMonth() + dir, 1)); }
+    const scroller = absReg()?.querySelector(".e-permits-abs-tl__scroll");
+    if (scroller) scroller.scrollLeft = 0;
+    renderTimeline();
+  };
+  /* every list redraw (search, Filtre, a saved absence) redraws the timeline from the same rows */
+  const observeAbsRegistry = () => {
+    const reg = document.querySelector("[data-workplace]");
+    if (!reg || reg.dataset.absObserved) return;
+    reg.dataset.absObserved = "1";
+    new MutationObserver(() => { if (reg.dataset.registryKind === ABS_KIND) syncAbsChrome(); }).observe(reg, { attributes: true, attributeFilter: ["data-registry-kind"] });
+    const tbody = reg.querySelector("[data-workplace-rows]");
+    if (tbody) new MutationObserver(() => { if (reg.dataset.registryKind === ABS_KIND) syncAbsChrome(); }).observe(tbody, { childList: true });
+  };
+
   /* ================================================================ US-294 registry „Încărcarea echipei” */
   const TEAM_KIND = "echipa";
   const canTeam = (w = who()) => !off("echipa") && w.supervisor;
@@ -1323,6 +1519,10 @@
   document.addEventListener("click", (event) => {
     const t = event.target;
     if (!t.closest) return;
+    /* calendar-views-v1: the timeline's period */
+    const tlStepBtn = t.closest("[data-abs-tl-step]");
+    if (tlStepBtn) { tlStep(Number(tlStepBtn.dataset.absTlStep)); return; }
+    if (t.closest("[data-abs-tl-today]")) { TL.anchor = ""; const sc = absReg()?.querySelector(".e-permits-abs-tl__scroll"); if (sc) sc.scrollLeft = 0; renderTimeline(); return; }
     /* the avatar menu „Profilul meu” */
     const my = t.closest("[data-shell-my-profile]");
     if (my) { event.preventDefault(); openMyProfile("absente"); return; }
@@ -1429,6 +1629,8 @@
   });
 
   load();
+  observeAbsRegistry();
+  if (document.querySelector("[data-workplace]")?.dataset.registryKind === ABS_KIND) syncAbsChrome();
   /* for demo states / probes */
-  window.GEAPAbsencesUi = { openAbsence, openDist, openMyProfile, openPolicy, showCasesOf, state: S, POL };
+  window.GEAPAbsencesUi = { openAbsence, openDist, openMyProfile, openPolicy, showCasesOf, state: S, POL, TL, setTimeline, renderTimeline };
 })();

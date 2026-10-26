@@ -359,6 +359,10 @@
         "reason": "Form Builder / Process Designer palette tile = a drag source (inventory row „Form Builder”: `__library-item`), not a button"
       },
       {
+        "selector": ".e-permits-abs-tl__item",
+        "reason": "calendar-views-v1 (2026-10-26): a timeline bar = one absence drawn over N day columns in its type colour (Gantt data bar; opens „Modifică absența”), inventory row „Absences timeline — Cronologie”; not an action button"
+      },
+      {
         "selector": ".e-permits-fo-stepper__row",
         "reason": "the canonical FO stepper's step row (inventory „Stepper”); its fill marks the current step"
       },

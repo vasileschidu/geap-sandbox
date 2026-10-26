@@ -46,6 +46,12 @@
   const absTeam = (as, run, params) => ({ flow: "back-office", as, params, hash: "#incarcarea-echipei", ready: "[data-registry-kind='echipa'] tr[data-workplace-row], [data-registry-kind='echipa'] .e-permits-empty:not(:has(.spinner))", run });
   const absPol = (as, tab, run, params) => ({ flow: "back-office", as, params, hash: `#distribuire/${tab}`, ready: "#abs-pol-panel > *, [data-dosar-profil-panel] .e-permits-empty", run });
   const absModal = "#case-action-modal.is-active";
+  /* calendar-views-v1: the „Cronologie” view of „Absențele echipei” (+ the period: week / month) */
+  const absTimeline = (scale = "") => async (h) => {
+    await h.click('[data-view-switch="absente"] [data-view-value="timeline"]');
+    await h.find("[data-abs-board] .e-permits-abs-tl, [data-abs-board] .e-permits-empty");
+    if (scale) { await h.click(`[data-abs-board] [data-view-switch="abs-scale"] [data-view-value="${scale}"]`); await h.wait(300); }
+  };
   const absAdd = async (h) => { await h.click("[data-abs-add]"); await h.find(`${absModal} #abs-type`); };
   const absFill = async (h, { type, from, to, reason } = {}) => {
     if (type) await h.choose(`${absModal} select[data-abs-field="type"]`, type);
@@ -605,6 +611,16 @@
     "abs-05g": absList(SUP, async (h) => { await h.click('[data-workplace-add-product="abs-new"]'); await h.find(`${absModal} #abs-person`); }),
     "abs-05h": absList(SUP, async (h) => { await h.click('[data-workplace-add-product="abs-new"]'); await h.choose(`${absModal} select[data-abs-field="person"]`, "sp3"); await absFill(h, { type: "Concediu", from: "20/07/2026", to: "31/07/2026" }); await absSave(h); await h.find(".toast"); }),
     "abs-05i": absList(ADMIN, async (h) => { await h.nth("[data-registry-kind='absente'] [data-stack-menu-trigger]", 0); }),
+    /* calendar-views-v1 — „Cronologie” (proposal beyond US-312; the list stays the default): month · week · bar tooltip ·
+       bar → „Modifică absența” · search · Filtre · next month · phone */
+    "abs-06": absList(SUP, absTimeline()),
+    "abs-06a": absList(SUP, absTimeline("week")),
+    "abs-06b": absList(SUP, async (h) => { await absTimeline()(h); await h.hover("[data-abs-board] .e-permits-abs-tl__item--danger"); }),
+    "abs-06c": absList(SUP, async (h) => { await absTimeline("month")(h); await h.click("[data-abs-board] .e-permits-abs-tl__item--success"); await h.find(`${absModal} #abs-type`); }),
+    "abs-06d": absList(SUP, async (h) => { await absTimeline()(h); await h.fill("[data-workplace-search]", "Grosu", { leave: false }); await h.wait(500); }),
+    "abs-06e": absList(SUP, async (h) => { window.GEAPShellApi.setRegistryFilters("absente", { tip: ["Concediu medical"] }); document.querySelector('[data-nav-item][data-nav-id="absente"]').click(); await h.wait(700); await absTimeline()(h); }),
+    "abs-06f": absList(SUP, async (h) => { await absTimeline()(h); await h.click('[data-abs-board] [data-abs-tl-step="1"]'); await h.wait(300); }),
+    "abs-06g": absList(SUP, absTimeline("month")),
     /* US-291: Distribuire — read, edit, validation, competences, saved, own read-only, no rights */
     "dset-01": absUser(ADMIN, "user-2", "distribution"),
     "dset-01a": absUser(ADMIN, "user-1", "distribution"),
@@ -3520,7 +3536,25 @@
     /* a national transfer that moves deadlines (Friday 31 July 2026, worked on Saturday 8 August) */
     const TRANSFER = { date: "31/07/2026", type: "nelucratoare", reason: "Transfer: zi de odihnă, lucrată sâmbătă, 8 august" };
     const generate = async (h) => { await h.click("[data-cal-generate].e-permits-cal-tool"); await h.find(MODAL); };
+    /* calendar-views-v1: the „Calendar” view (year → month → day), layers „Sărbători…” / „Absențe” */
+    const view = async (h) => { await h.click('[data-view-switch="calendar"] [data-view-value="calendar"]'); await h.find("[data-cal-board] .e-permits-cal-year, [data-cal-board] .e-permits-empty"); };
+    const month = (m) => async (h) => { await h.click(`[data-cal-board] [data-cal-month="${m}"]`); await h.find("[data-cal-board] .e-permits-cal-month"); };
+    const absLayer = async (h) => { await h.click('[data-cal-board] [data-cal-layer="absences"]'); await h.wait(600); await h.find("[data-cal-board] .e-permits-cal-legend .has-absences"); };
+    const phone = () => window.innerWidth <= 760;
+    const dayClick = (iso) => async (h) => { await h.click(`[data-cal-board] [data-cal-focus="day-${iso}"]`); await h.wait(300); };
     return {
+      /* calendar-views-v1 — proposal beyond US-283 (the list stays the default view) */
+      "cal-08": cal(ADMIN, view),
+      "cal-08a": cal(ADMIN, seq(view, month(0))),
+      "cal-08b": cal(ADMIN, seq(view, month(6), absLayer, async (h) => { await h.click(`[data-cal-board] [data-cal-focus="abs-2026-07-09${phone() ? "-agenda" : ""}"]`); await h.find(".e-permits-cal-people:not([hidden])"); })),
+      "cal-08c": cal(LOCAL, seq(view, month(0), dayClick("2026-01-07"), async (h) => { await h.find(".e-permits-cal-pop:not([hidden])"); })),
+      "cal-08d": cal(ADMIN, seq(view, month(6), absLayer)),
+      "cal-08e": cal(ADMIN, seq(view, month(9), dayClick("2026-10-15"), async (h) => { await h.find(`${MODAL} [data-cal-form]`); })),
+      "cal-08f": cal(ADMIN, seq(view, month(5), dayClick("2026-06-01"), async (h) => { await h.find(`${MODAL} [data-cal-form]`); })),
+      "cal-08g": cal(ADMIN, seq(tab(2028), view)),
+      "cal-08h": cal(ADMIN, seq(view, month(6), dayClick("2026-07-31"), fill({ reason: TRANSFER.reason }), save, confirm("[data-cal-confirm-save]")), { calendar: "eroare" }),
+      "cal-08i": cal(ADMIN, seq(view, absLayer)),
+      "cal-08j": cal(LOCAL, view),
       /* US-283 — the list: 2026 (year tabs = current −1 … +2), description, Generează anul · Adaugă zi, ⋮ per row */
       "cal-01": cal(),
       "cal-01a": cal(ADMIN, facet({ domeniu: ["Agenția Națională pentru Sănătate Publică"] })),

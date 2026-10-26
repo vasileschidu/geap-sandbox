@@ -109,3 +109,658 @@
     padding: var(--spacing-16, 16px) var(--spacing-16, 16px) 0;
   }
 }
+
+/* =====================================================================================
+   Calendar view (calendar-views-v1, 2026-10-26) — „Listă / Calendar” on this registry. A proposal beyond US-283 (the
+   list stays the default). Year = 12 compact months (`.e-permits-cal-mini`), a month opens the month grid
+   (`.e-permits-cal-month`), phones get the month's days as a list under the grid (`.e-permits-cal-agenda`).
+   Day look (`.e-permits-cal-mark`, the mini days, the month numbers): non-working exception = danger secondary,
+   transferred working day = brand secondary (the „Zi lucrătoare” tag), weekend = tertiary text on grey,
+   today = inverse. components.md › „Calendar view — year / month”.
+   ===================================================================================== */
+
+.e-permits-cal-board {
+  display: none;
+}
+
+.e-permits-workplace[data-registry-kind="calendar"][data-cal-view="calendar"] > .e-permits-workplace__table-wrap,
+.e-permits-workplace[data-registry-kind="calendar"][data-cal-view="calendar"] > .e-permits-workplace__footer {
+  display: none;
+}
+
+.e-permits-workplace[data-registry-kind="calendar"][data-cal-view="calendar"] > .e-permits-cal-board {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-16, 16px);
+  min-height: 0;
+  overflow: auto;
+  padding: var(--spacing-16, 16px) var(--spacing-16, 16px) var(--spacing-24, 24px);
+}
+
+/* layers + legend */
+.e-permits-cal-board__bar {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-12, 12px) var(--spacing-24, 24px);
+  justify-content: space-between;
+}
+
+.e-permits-cal-layers {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-8, 8px) var(--spacing-24, 24px);
+}
+
+.e-permits-cal-layer {
+  cursor: pointer;
+}
+
+.e-permits-cal-layer:hover .checkbox-input:not(:checked) + .checkbox-custom {
+  border-color: var(--color-border-base-tertiary, #757575);
+  background: var(--color-background-base-tertiary, #f1f1f1);
+}
+
+.e-permits-cal-layer:hover .checkbox-input:checked + .checkbox-custom {
+  background: var(--color-background-brand-default-hover, #0047a8);
+  border-color: var(--color-background-brand-default-hover, #0047a8);
+}
+
+.e-permits-cal-legend {
+  color: var(--color-text-base-secondary, #383838);
+  display: flex;
+  flex-wrap: wrap;
+  font-size: var(--font-size-fs-12, 12px);
+  gap: var(--spacing-8, 8px) var(--spacing-16, 16px);
+  line-height: var(--line-height-lh-16, 16px);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.e-permits-cal-legend li {
+  align-items: center;
+  display: inline-flex;
+  gap: var(--spacing-6, 6px);
+}
+
+/* one day mark (legend, agenda): a 20 circle in the day's colour */
+.e-permits-cal-mark {
+  align-items: center;
+  border-radius: var(--border-radius-full, 999px);
+  color: var(--color-text-base-secondary, #383838);
+  display: inline-flex;
+  flex: 0 0 auto;
+  font-size: var(--font-size-fs-12, 12px);
+  font-weight: var(--font-weight-fw-medium, 500);
+  height: var(--spacing-20, 20px);
+  justify-content: center;
+  line-height: var(--line-height-lh-16, 16px);
+  width: var(--spacing-20, 20px);
+}
+
+.e-permits-cal-mark.is-weekend {
+  background: var(--color-background-base-secondary, #f5f5f5);
+  color: var(--color-text-base-tertiary, #757575);
+}
+
+.e-permits-cal-mark.is-off {
+  background: var(--color-background-danger-secondary, #fee4e2);
+  color: var(--color-text-danger-on-secondary, #b42318);
+}
+
+.e-permits-cal-mark.is-on {
+  background: var(--color-background-brand-secondary, #e0ecff);
+  color: var(--color-text-brand-on-secondary, #0058d2);
+}
+
+.e-permits-cal-mark.is-today {
+  background: var(--color-background-base-inverse-default, #121212);
+  color: var(--color-text-base-inverse-default, #fff);
+}
+
+.e-permits-cal-mark.has-absences {
+  background: var(--color-icon-warning-default, #dc6803);
+  height: var(--spacing-8, 8px);
+  margin: 0 var(--spacing-6, 6px);
+  width: var(--spacing-8, 8px);
+}
+
+/* ---- year: 12 compact months */
+.e-permits-cal-year {
+  display: grid;
+  gap: var(--spacing-16, 16px);
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.e-permits-cal-mini {
+  appearance: none;
+  background: var(--color-background-base-default, #fff);
+  border: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
+  border-radius: var(--border-radius-20, 20px);
+  color: inherit;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  font: inherit;
+  gap: var(--spacing-12, 12px);
+  padding: var(--spacing-16, 16px);
+  text-align: left;
+  transition: border-color 140ms ease, box-shadow 140ms ease;
+}
+
+.e-permits-cal-mini:hover {
+  border-color: var(--color-border-base-secondary, #b3b3b3);
+  box-shadow: var(--shadow-200, 0 1px 3px rgba(0, 0, 0, 0.08), 0 3px 8px rgba(0, 0, 0, 0.08), 0 0 0.5px rgba(0, 0, 0, 0.18));
+}
+
+.e-permits-cal-mini:focus-visible {
+  box-shadow: 0 0 0 var(--border-width-2, 2px) var(--color-background-base-default, #fff), 0 0 0 var(--border-width-4, 4px) var(--focus-ring, var(--blue-sky-500, #3379db));
+  outline: none;
+}
+
+.e-permits-cal-mini__title {
+  color: var(--color-text-base-default, #121212);
+  font-size: var(--font-size-fs-16, 16px);
+  font-weight: var(--font-weight-fw-semibold, 600);
+  line-height: var(--line-height-lh-24, 24px);
+}
+
+.e-permits-cal-mini__grid {
+  display: grid;
+  gap: var(--spacing-2, 2px) 0;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  justify-items: center;
+}
+
+.e-permits-cal-mini__wd {
+  color: var(--color-text-base-tertiary, #757575);
+  font-size: var(--font-size-fs-12, 12px);
+  font-weight: var(--font-weight-fw-medium, 500);
+  line-height: var(--line-height-lh-24, 24px);
+}
+
+.e-permits-cal-mini__day {
+  align-items: center;
+  border-radius: var(--border-radius-full, 999px);
+  color: var(--color-text-base-secondary, #383838);
+  display: inline-flex;
+  font-size: var(--font-size-fs-12, 12px);
+  height: var(--spacing-24, 24px);
+  justify-content: center;
+  line-height: var(--line-height-lh-16, 16px);
+  position: relative;
+  width: var(--spacing-24, 24px);
+}
+
+.e-permits-cal-mini__day.is-weekend {
+  color: var(--color-text-base-tertiary, #757575);
+}
+
+.e-permits-cal-mini__day.is-off {
+  background: var(--color-background-danger-secondary, #fee4e2);
+  color: var(--color-text-danger-on-secondary, #b42318);
+  font-weight: var(--font-weight-fw-medium, 500);
+}
+
+.e-permits-cal-mini__day.is-on {
+  background: var(--color-background-brand-secondary, #e0ecff);
+  color: var(--color-text-brand-on-secondary, #0058d2);
+  font-weight: var(--font-weight-fw-medium, 500);
+}
+
+.e-permits-cal-mini__day.is-today {
+  background: var(--color-background-base-inverse-default, #121212);
+  color: var(--color-text-base-inverse-default, #fff);
+  font-weight: var(--font-weight-fw-medium, 500);
+}
+
+/* the absences layer: a dot under the number */
+.e-permits-cal-mini__day.has-absences::after {
+  background: var(--color-icon-warning-default, #dc6803);
+  border-radius: var(--border-radius-full, 999px);
+  bottom: 0;
+  content: "";
+  height: var(--spacing-4, 4px);
+  left: 50%;
+  position: absolute;
+  transform: translateX(-50%);
+  width: var(--spacing-4, 4px);
+}
+
+/* ---- month */
+.e-permits-cal-month-head {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-8, 8px);
+}
+
+.e-permits-cal-month-head__row {
+  align-items: center;
+  display: flex;
+  gap: var(--spacing-16, 16px);
+  justify-content: space-between;
+}
+
+.e-permits-cal-month-head__title {
+  color: var(--color-text-base-default, #121212);
+  font-size: var(--font-size-fs-20, 20px);
+  font-weight: var(--font-weight-fw-semibold, 600);
+  line-height: var(--line-height-lh-28, 28px);
+  margin: 0;
+}
+
+.e-permits-cal-month-head__nav {
+  display: flex;
+  gap: var(--spacing-8, 8px);
+}
+
+.e-permits-cal-month-head__nav .btn[aria-disabled="true"] {
+  color: var(--color-text-disabled-on-disabled, #b3b3b3);
+  cursor: not-allowed;
+}
+
+.e-permits-cal-month-wrap {
+  border: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
+  border-radius: var(--border-radius-20, 20px);
+  overflow: clip;
+}
+
+.e-permits-cal-month {
+  border-collapse: separate;
+  border-spacing: 0;
+  table-layout: fixed;
+  width: 100%;
+}
+
+.e-permits-cal-month th {
+  border-bottom: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
+  color: var(--color-text-base-tertiary, #757575);
+  font-size: var(--font-size-fs-12, 12px);
+  font-weight: var(--font-weight-fw-medium, 500);
+  line-height: var(--line-height-lh-16, 16px);
+  padding: var(--spacing-8, 8px) var(--spacing-12, 12px);
+  text-align: left;
+}
+
+.e-permits-cal-month__wd-short {
+  display: none;
+}
+
+.e-permits-cal-month__cell {
+  border-bottom: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
+  border-right: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
+  padding: 0;
+  vertical-align: top;
+}
+
+.e-permits-cal-month__cell:last-child {
+  border-right: 0;
+}
+
+.e-permits-cal-month tbody tr:last-child .e-permits-cal-month__cell {
+  border-bottom: 0;
+}
+
+.e-permits-cal-month__cell.is-weekend,
+.e-permits-cal-month__cell.is-blank {
+  background: var(--color-background-base-secondary, #f5f5f5);
+}
+
+.e-permits-cal-month__inner {
+  display: flex;
+  flex-direction: column;
+  min-height: calc(var(--spacing-56, 56px) * 2);
+}
+
+/* the menu-wrap variant (a day with a popover) keeps the column layout */
+.e-permits-cal-month__inner.e-permits-stack__menu-wrap {
+  position: relative;
+}
+
+.e-permits-cal-day {
+  align-items: flex-start;
+  appearance: none;
+  background: transparent;
+  border: 0;
+  color: inherit;
+  cursor: pointer;
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  font: inherit;
+  gap: var(--spacing-6, 6px);
+  min-width: 0;
+  padding: var(--spacing-8, 8px);
+  text-align: left;
+  width: 100%;
+}
+
+.e-permits-cal-day:hover {
+  background: var(--color-background-base-tertiary, #f1f1f1);
+}
+
+.e-permits-cal-month__cell.is-weekend .e-permits-cal-day:hover {
+  background: var(--color-background-base-tertiary-hover, #d9d9d9);
+}
+
+.e-permits-cal-day:focus-visible,
+.e-permits-cal-day[aria-expanded="true"] {
+  box-shadow: inset 0 0 0 var(--border-width-2, 2px) var(--focus-ring, var(--blue-sky-500, #3379db));
+  outline: none;
+}
+
+.e-permits-cal-day__num {
+  align-items: center;
+  border-radius: var(--border-radius-full, 999px);
+  color: var(--color-text-base-default, #121212);
+  display: inline-flex;
+  font-size: var(--font-size-fs-14, 14px);
+  font-weight: var(--font-weight-fw-medium, 500);
+  height: calc(var(--spacing-32, 32px) - var(--spacing-4, 4px));
+  justify-content: center;
+  line-height: var(--line-height-lh-20, 20px);
+  min-width: calc(var(--spacing-32, 32px) - var(--spacing-4, 4px));
+  padding: 0 var(--spacing-4, 4px);
+  box-sizing: border-box;
+}
+
+.e-permits-cal-month__cell.is-weekend .e-permits-cal-day__num {
+  color: var(--color-text-base-tertiary, #757575);
+}
+
+.e-permits-cal-month__cell.is-off .e-permits-cal-day__num {
+  background: var(--color-background-danger-secondary, #fee4e2);
+  color: var(--color-text-danger-on-secondary, #b42318);
+}
+
+.e-permits-cal-month__cell.is-on .e-permits-cal-day__num {
+  background: var(--color-background-brand-secondary, #e0ecff);
+  color: var(--color-text-brand-on-secondary, #0058d2);
+}
+
+.e-permits-cal-month__cell.is-today .e-permits-cal-day__num {
+  background: var(--color-background-base-inverse-default, #121212);
+  color: var(--color-text-base-inverse-default, #fff);
+}
+
+.e-permits-cal-day__events {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2, 2px);
+  max-width: 100%;
+  min-width: 0;
+  width: 100%;
+}
+
+.e-permits-cal-day__event {
+  border-radius: var(--border-radius-4, 4px);
+  box-sizing: border-box;
+  display: block;
+  font-size: var(--font-size-fs-12, 12px);
+  font-weight: var(--font-weight-fw-medium, 500);
+  line-height: var(--line-height-lh-16, 16px);
+  max-width: 100%;
+  overflow: hidden;
+  padding: var(--spacing-2, 2px) var(--spacing-6, 6px);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.e-permits-cal-day__event.is-off {
+  background: var(--color-background-danger-secondary, #fee4e2);
+  color: var(--color-text-danger-on-secondary, #b42318);
+}
+
+.e-permits-cal-day__event.is-on {
+  background: var(--color-background-brand-secondary, #e0ecff);
+  color: var(--color-text-brand-on-secondary, #0058d2);
+}
+
+.e-permits-cal-day__more {
+  color: var(--color-text-base-tertiary, #757575);
+  font-size: var(--font-size-fs-12, 12px);
+  line-height: var(--line-height-lh-16, 16px);
+}
+
+/* phones only: the absences dot under the number */
+.e-permits-cal-day__dot {
+  display: none;
+}
+
+.e-permits-cal-absent {
+  padding: 0 var(--spacing-8, 8px) var(--spacing-8, 8px);
+}
+
+.e-permits-cal-absent > .btn {
+  max-width: 100%;
+}
+
+/* the absent people (two-line items, the dropdown item size) */
+.e-permits-cal-people .e-permits-fo-intent-menu__item.e-permits-cal-people__item {
+  align-items: flex-start;
+  flex-direction: column;
+  gap: var(--spacing-2, 2px);
+}
+
+.e-permits-cal-people__name {
+  color: var(--color-text-base-default, #121212);
+}
+
+.e-permits-cal-people__meta {
+  color: var(--color-text-base-tertiary, #757575);
+  font-size: var(--font-size-fs-12, 12px);
+  font-weight: var(--font-weight-fw-regular, 400);
+  line-height: var(--line-height-lh-16, 16px);
+}
+
+/* the read-only day popover (Administrator local) — the dropdown surface, text rows */
+.e-permits-stack__menu.e-permits-cal-pop {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-12, 12px);
+  max-width: calc(100vw - var(--spacing-16, 16px));
+  padding: var(--spacing-12, 12px) var(--spacing-16, 16px) var(--spacing-16, 16px);
+  white-space: normal;
+  width: calc(var(--spacing-72, 72px) * 4);
+}
+
+.e-permits-stack__menu.e-permits-cal-pop[hidden] {
+  display: none;
+}
+
+.e-permits-cal-pop__title {
+  color: var(--color-text-base-default, #121212);
+  font-size: var(--font-size-fs-14, 14px);
+  font-weight: var(--font-weight-fw-semibold, 600);
+  line-height: var(--line-height-lh-20, 20px);
+  margin: 0;
+}
+
+.e-permits-cal-pop__list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-12, 12px);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.e-permits-cal-pop__row {
+  align-items: flex-start;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4, 4px);
+}
+
+.e-permits-cal-pop__text {
+  color: var(--color-text-base-secondary, #383838);
+  font-size: var(--font-size-fs-14, 14px);
+  line-height: var(--line-height-lh-20, 20px);
+  margin: 0;
+}
+
+.e-permits-cal-pop__meta {
+  color: var(--color-text-base-tertiary, #757575);
+  font-size: var(--font-size-fs-12, 12px);
+  line-height: var(--line-height-lh-16, 16px);
+}
+
+/* phones: the month's days with events, under the grid */
+.e-permits-cal-agenda {
+  display: none;
+}
+
+@media (max-width: 1279px) {
+  .e-permits-cal-year {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 1023px) {
+  .e-permits-cal-year {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 760px) {
+  .e-permits-workplace[data-registry-kind="calendar"][data-cal-view="calendar"] > .e-permits-cal-board {
+    padding: var(--spacing-16, 16px);
+  }
+
+  .e-permits-cal-year {
+    gap: var(--spacing-8, 8px);
+  }
+
+  .e-permits-cal-mini {
+    border-radius: var(--border-radius-16, 16px);
+    gap: var(--spacing-8, 8px);
+    padding: var(--spacing-12, 12px) var(--spacing-8, 8px);
+  }
+
+  .e-permits-cal-mini__title {
+    padding: 0 var(--spacing-4, 4px);
+  }
+
+  .e-permits-cal-mini__wd {
+    line-height: var(--line-height-lh-20, 20px);
+  }
+
+  .e-permits-cal-mini__day {
+    font-size: var(--font-size-fs-12, 12px);
+    height: var(--spacing-20, 20px);
+    width: var(--spacing-20, 20px);
+  }
+
+  .e-permits-cal-month-head__title {
+    font-size: var(--font-size-fs-18, 18px);
+    line-height: var(--line-height-lh-26, 26px);
+  }
+
+  .e-permits-cal-month th {
+    padding: var(--spacing-8, 8px) 0;
+    text-align: center;
+  }
+
+  .e-permits-cal-month__wd {
+    display: none;
+  }
+
+  .e-permits-cal-month__wd-short {
+    display: inline;
+  }
+
+  .e-permits-cal-month__inner {
+    min-height: var(--spacing-48, 48px);
+  }
+
+  .e-permits-cal-day {
+    align-items: center;
+    gap: var(--spacing-2, 2px);
+    padding: var(--spacing-6, 6px) 0;
+  }
+
+  .e-permits-cal-day__events,
+  .e-permits-cal-month__cell .e-permits-cal-absent {
+    display: none;
+  }
+
+  .e-permits-cal-day__dot {
+    background: var(--color-icon-warning-default, #dc6803);
+    border-radius: var(--border-radius-full, 999px);
+    display: block;
+    height: var(--spacing-4, 4px);
+    width: var(--spacing-4, 4px);
+  }
+
+  .e-permits-cal-agenda {
+    border: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
+    border-radius: var(--border-radius-20, 20px);
+    display: flex;
+    flex-direction: column;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .e-permits-cal-agenda__item {
+    align-items: flex-start;
+    border-bottom: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
+    display: flex;
+    gap: var(--spacing-12, 12px);
+    padding: var(--spacing-12, 12px) var(--spacing-16, 16px);
+  }
+
+  .e-permits-cal-agenda__item:last-child {
+    border-bottom: 0;
+  }
+
+  .e-permits-cal-agenda__item > .e-permits-cal-mark {
+    font-size: var(--font-size-fs-14, 14px);
+    height: var(--spacing-32, 32px);
+    line-height: var(--line-height-lh-20, 20px);
+    width: var(--spacing-32, 32px);
+  }
+
+  .e-permits-cal-agenda__item > .e-permits-cal-mark:not(.is-off, .is-on, .is-today, .is-weekend) {
+    background: var(--color-background-base-secondary, #f5f5f5);
+  }
+
+  .e-permits-cal-agenda__text {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    gap: var(--spacing-2, 2px);
+    min-width: 0;
+  }
+
+  .e-permits-cal-agenda__date {
+    color: var(--color-text-base-default, #121212);
+    font-size: var(--font-size-fs-16, 16px);
+    font-weight: var(--font-weight-fw-medium, 500);
+    line-height: var(--line-height-lh-24, 24px);
+  }
+
+  .e-permits-cal-agenda__event {
+    color: var(--color-text-base-secondary, #383838);
+    font-size: var(--font-size-fs-14, 14px);
+    line-height: var(--line-height-lh-20, 20px);
+  }
+
+  .e-permits-cal-agenda .e-permits-cal-absent {
+    flex: 0 0 auto;
+    padding: 0;
+  }
+}
+
+@media (max-width: 359px) {
+  .e-permits-cal-year {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .e-permits-cal-mini {
+    transition: none;
+  }
+}

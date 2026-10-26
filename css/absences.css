@@ -207,3 +207,372 @@
     grid-row: 1;
   }
 }
+
+/* =====================================================================================
+   „Cronologie” — the team absences as a timeline (calendar-views-v1, 2026-10-26; proposal beyond US-312, Supervisor).
+   Rows = the team (avatar xs + name, pinned), columns = the days of a month / week, weekends + non-working days
+   shaded down every row, one bar per absence in its type colour (Concediu brand · Concediu medical danger ·
+   Delegație positive · Suspendare neutral — the Tag Small tones). components.md › „Absences timeline — Cronologie”.
+   ===================================================================================== */
+
+.e-permits-abs-board {
+  display: none;
+}
+
+.e-permits-workplace[data-registry-kind="absente"][data-abs-view="timeline"] > .e-permits-workplace__table-wrap,
+.e-permits-workplace[data-registry-kind="absente"][data-abs-view="timeline"] > .e-permits-workplace__footer,
+.e-permits-workplace[data-registry-kind="absente"][data-abs-view="timeline"] .e-permits-workplace__status-tabs {
+  display: none;
+}
+
+.e-permits-workplace[data-registry-kind="absente"][data-abs-view="timeline"] > .e-permits-abs-board {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-16, 16px);
+  min-height: 0;
+  overflow: auto;
+  padding: var(--spacing-16, 16px) var(--spacing-16, 16px) var(--spacing-24, 24px);
+}
+
+.e-permits-abs-tl__bar {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-12, 12px) var(--spacing-16, 16px);
+  justify-content: space-between;
+}
+
+.e-permits-abs-tl__nav {
+  align-items: center;
+  display: flex;
+  gap: var(--spacing-8, 8px);
+  min-width: 0;
+}
+
+.e-permits-abs-tl__title {
+  color: var(--color-text-base-default, #121212);
+  font-size: var(--font-size-fs-20, 20px);
+  font-weight: var(--font-weight-fw-semibold, 600);
+  line-height: var(--line-height-lh-28, 28px);
+  margin: 0 0 0 var(--spacing-8, 8px);
+  white-space: nowrap;
+}
+
+.e-permits-abs-tl__scale.e-permits-view-switch {
+  margin-left: 0;
+}
+
+.e-permits-abs-tl__legend {
+  color: var(--color-text-base-secondary, #383838);
+  display: flex;
+  flex-wrap: wrap;
+  font-size: var(--font-size-fs-12, 12px);
+  gap: var(--spacing-8, 8px) var(--spacing-16, 16px);
+  line-height: var(--line-height-lh-16, 16px);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.e-permits-abs-tl__legend li {
+  align-items: center;
+  display: inline-flex;
+  gap: var(--spacing-6, 6px);
+}
+
+.e-permits-abs-tl__swatch {
+  border: var(--border-width-1, 1px) solid transparent;
+  border-radius: var(--border-radius-4, 4px);
+  box-sizing: border-box;
+  display: inline-block;
+  height: var(--spacing-12, 12px);
+  width: var(--spacing-20, 20px);
+}
+
+/* the table: its own sideways scroll box, the name column pinned */
+.e-permits-abs-board .e-permits-abs-tl__scroll {
+  border: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
+  border-radius: var(--border-radius-20, 20px);
+  flex: 0 0 auto;
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+.e-permits-abs-tl {
+  border-collapse: separate;
+  border-spacing: 0;
+  table-layout: fixed;
+  width: 100%;
+}
+
+.e-permits-abs-tl--month {
+  min-width: calc(var(--spacing-72, 72px) * 3 + var(--spacing-32, 32px) * 31);
+}
+
+.e-permits-abs-tl th,
+.e-permits-abs-tl td {
+  border-bottom: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
+  padding: 0;
+}
+
+.e-permits-abs-tl tbody tr:last-child > * {
+  border-bottom: 0;
+}
+
+.e-permits-abs-tl__person {
+  background: var(--color-background-base-default, #fff);
+  border-right: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
+  box-sizing: border-box;
+  left: 0;
+  position: sticky;
+  text-align: left;
+  width: calc(var(--spacing-72, 72px) * 3);
+  z-index: 2;
+}
+
+.e-permits-abs-tl__person--head {
+  color: var(--color-text-base-tertiary, #757575);
+  font-size: var(--font-size-fs-12, 12px);
+  font-weight: var(--font-weight-fw-medium, 500);
+  line-height: var(--line-height-lh-16, 16px);
+  padding: var(--spacing-8, 8px) var(--spacing-16, 16px);
+  z-index: 3;
+}
+
+.e-permits-abs-tl__who {
+  align-items: center;
+  display: flex;
+  gap: var(--spacing-8, 8px);
+  min-width: 0;
+  padding: var(--spacing-8, 8px) var(--spacing-16, 16px);
+}
+
+.e-permits-abs-tl__name {
+  color: var(--color-text-base-default, #121212);
+  font-size: var(--font-size-fs-14, 14px);
+  font-weight: var(--font-weight-fw-medium, 500);
+  line-height: var(--line-height-lh-20, 20px);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.e-permits-abs-tl__day {
+  color: var(--color-text-base-tertiary, #757575);
+  font-weight: var(--font-weight-fw-regular, 400);
+  padding: var(--spacing-6, 6px) 0;
+  text-align: center;
+}
+
+.e-permits-abs-tl__wd,
+.e-permits-abs-tl__num {
+  display: block;
+}
+
+.e-permits-abs-tl__wd {
+  font-size: var(--font-size-fs-12, 12px);
+  line-height: var(--line-height-lh-16, 16px);
+}
+
+.e-permits-abs-tl__num {
+  border-radius: var(--border-radius-full, 999px);
+  color: var(--color-text-base-default, #121212);
+  font-size: var(--font-size-fs-14, 14px);
+  font-weight: var(--font-weight-fw-medium, 500);
+  line-height: var(--line-height-lh-24, 24px);
+  margin: 0 auto;
+  width: var(--spacing-24, 24px);
+}
+
+.e-permits-abs-tl__day.is-off .e-permits-abs-tl__num {
+  color: var(--color-text-base-tertiary, #757575);
+}
+
+.e-permits-abs-tl__day.is-holiday .e-permits-abs-tl__num {
+  color: var(--color-text-danger-on-secondary, #b42318);
+}
+
+.e-permits-abs-tl__day.is-today .e-permits-abs-tl__num {
+  background: var(--color-background-base-inverse-default, #121212);
+  color: var(--color-text-base-inverse-default, #fff);
+}
+
+/* weekends + non-working days shaded down every row; today's column outlined */
+.e-permits-abs-tl :is(.e-permits-abs-tl__day, .e-permits-abs-tl__cell).is-off {
+  background: var(--color-background-base-secondary, #f5f5f5);
+}
+
+.e-permits-abs-tl__cell.is-today {
+  box-shadow: inset var(--border-width-1, 1px) 0 0 var(--color-border-brand-secondary, #b2d1ff), inset calc(var(--border-width-1, 1px) * -1) 0 0 var(--color-border-brand-secondary, #b2d1ff);
+}
+
+.e-permits-abs-tl__cell {
+  height: var(--spacing-48, 48px);
+  position: relative;
+}
+
+/* the toolbar's „N câmpuri” counts the list's columns: not shown with the timeline */
+.e-permits-workplace[data-registry-kind="absente"][data-abs-view="timeline"] :is(.e-permits-workplace__field-count, .e-permits-workplace__table-tools > .e-permits-workplace__tool-divider) {
+  display: none;
+}
+
+/* the bar = the absence (button → „Modifică absența”; tooltip = type + period) */
+.e-permits-abs-tl__item {
+  left: var(--spacing-2, 2px);
+  position: absolute;
+  top: var(--spacing-8, 8px);
+  width: calc(100% * var(--abs-tl-span, 1) - var(--spacing-4, 4px));
+  z-index: 1;
+  appearance: none;
+  border: var(--border-width-1, 1px) solid transparent;
+  border-radius: var(--border-radius-6, 6px);
+  box-sizing: border-box;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  font: inherit;
+  font-size: var(--font-size-fs-12, 12px);
+  font-weight: var(--font-weight-fw-medium, 500);
+  height: var(--spacing-32, 32px);
+  line-height: var(--line-height-lh-16, 16px);
+  min-width: 0;
+  padding: 0 var(--spacing-8, 8px);
+  text-align: left;
+  transition: background-color 140ms ease;
+}
+
+/* the label stays readable while the bar runs under the pinned name column (sticky inside the bar) */
+.e-permits-abs-tl__item > span {
+  left: calc(var(--spacing-72, 72px) * 3 + var(--spacing-8, 8px));
+  position: sticky;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.e-permits-abs-tl__item.is-cut-start {
+  border-bottom-left-radius: 0;
+  border-left-width: 0;
+  border-top-left-radius: 0;
+}
+
+.e-permits-abs-tl__item.is-cut-end {
+  border-bottom-right-radius: 0;
+  border-right-width: 0;
+  border-top-right-radius: 0;
+}
+
+.e-permits-abs-tl__item:focus-visible {
+  box-shadow: 0 0 0 var(--border-width-2, 2px) var(--color-background-base-default, #fff), 0 0 0 var(--border-width-4, 4px) var(--focus-ring, var(--blue-sky-500, #3379db));
+  outline: none;
+}
+
+.e-permits-abs-tl__item--brand,
+.e-permits-abs-tl__swatch--brand {
+  background: var(--color-background-brand-secondary, #e0ecff);
+  border-color: var(--color-border-brand-secondary, #b2d1ff);
+  color: var(--color-text-brand-on-secondary, #0058d2);
+}
+
+.e-permits-abs-tl__item--brand:hover {
+  background: var(--color-background-brand-secondary-hover, #b2d1ff);
+}
+
+.e-permits-abs-tl__item--danger,
+.e-permits-abs-tl__swatch--danger {
+  background: var(--color-background-danger-secondary, #fee4e2);
+  border-color: var(--color-border-danger-secondary, #fecdca);
+  color: var(--color-text-danger-on-secondary, #b42318);
+}
+
+.e-permits-abs-tl__item--danger:hover {
+  background: var(--color-background-danger-secondary-hover, #fecdca);
+}
+
+.e-permits-abs-tl__item--success,
+.e-permits-abs-tl__swatch--success {
+  background: var(--color-background-positive-secondary, #dcfae6);
+  border-color: var(--color-border-positive-secondary, #abefc6);
+  color: var(--color-text-positive-on-secondary, #067647);
+}
+
+.e-permits-abs-tl__item--success:hover {
+  background: var(--color-background-positive-secondary-active, #abefc6);
+}
+
+.e-permits-abs-tl__item--accent,
+.e-permits-abs-tl__swatch--accent {
+  background: var(--color-background-warning-secondary, #fef0c7);
+  border-color: var(--color-border-warning-secondary, #fedf89);
+  color: var(--apricot-700, #b54708);
+}
+
+.e-permits-abs-tl__item--accent:hover {
+  background: var(--color-background-warning-secondary-active, #fedf89);
+}
+
+.e-permits-abs-tl__item--neutral,
+.e-permits-abs-tl__swatch--neutral {
+  background: var(--color-background-base-tertiary, #f1f1f1);
+  border-color: var(--color-border-base-default, #d9d9d9);
+  color: var(--color-text-base-secondary, #383838);
+}
+
+.e-permits-abs-tl__item--neutral:hover {
+  background: var(--color-background-base-tertiary-hover, #d9d9d9);
+}
+
+.e-permits-abs-tl__swatch--off {
+  background: var(--color-background-base-secondary, #f5f5f5);
+  border-color: var(--color-border-base-default, #d9d9d9);
+}
+
+@media (max-width: 760px) {
+  .e-permits-workplace[data-registry-kind="absente"][data-abs-view="timeline"] > .e-permits-abs-board {
+    padding: var(--spacing-16, 16px);
+  }
+
+  .e-permits-abs-tl__nav {
+    flex-wrap: wrap;
+  }
+
+  .e-permits-abs-tl__title {
+    flex: 1 0 100%;
+    font-size: var(--font-size-fs-18, 18px);
+    line-height: var(--line-height-lh-26, 26px);
+    margin: 0;
+    order: -1;
+  }
+
+  .e-permits-abs-tl__person {
+    width: calc(var(--spacing-72, 72px) + var(--spacing-48, 48px));
+  }
+
+  .e-permits-abs-tl__item > span {
+    left: calc(var(--spacing-72, 72px) + var(--spacing-48, 48px) + var(--spacing-4, 4px));
+  }
+
+  .e-permits-abs-tl__who {
+    padding: var(--spacing-8, 8px);
+  }
+
+  .e-permits-abs-tl__person--head {
+    padding: var(--spacing-8, 8px);
+  }
+
+  .e-permits-abs-tl__who .avatar {
+    display: none;
+  }
+
+  .e-permits-abs-tl__item {
+    padding: 0 var(--spacing-4, 4px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .e-permits-abs-tl__item {
+    transition: none;
+  }
+}

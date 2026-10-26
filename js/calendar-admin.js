@@ -17,7 +17,8 @@
    Decisions (user, 2026-10-26; PO questions stay open — plan „calendar-absences-plan.md”):
      · absences are NOT calendar events: no „Utilizator” column, no absence types (US-283 AC-06/08/13, US-284 AC-14…17
        → the user profile „Absențe”, US-312…316);
-     · the table is the view (no month grid — Feature 93686 „out of scope”);
+     · the table is the default view; a „Calendar” view (year → month → day) is a user-approved PROPOSAL beyond the
+       stories (calendar-views-v1, 2026-10-26 — Feature 93686 lists a month grid as „out of scope”);
      · a change that moves deadlines shows a PREVIEW first (how many active dossiers get another deadline + examples),
        then the toast and a journal entry (the Feature says the preview is out of scope — PO question 5);
      · deadlines read in working days („3 zile lucrătoare rămase”, shell renderTermen).
@@ -224,6 +225,11 @@
         <button class="btn btn-neutral btn-sm btn-icon-only e-permits-cal-tool" type="button" aria-label="Jurnalul calendarului" data-cal-tool data-cal-journal>${icon("history")}</button>
         <button class="btn btn-neutral btn-sm e-permits-workplace__primary-action e-permits-cal-tool" type="button" data-cal-tool data-cal-generate>${icon("calendar-add")}<span>Generează anul</span></button>`);
     }
+    /* calendar-views-v1: „Listă / Calendar” before the table tools (shown only on this registry, css/view-switch.css) */
+    const tools = reg.querySelector(".e-permits-workplace__table-tools");
+    if (tools && !reg.querySelector(`[data-view-switch="${KIND}"]`) && window.GEAPViewSwitch) {
+      tools.insertAdjacentHTML("beforebegin", window.GEAPViewSwitch.html({ key: KIND, label: "Mod de afișare a calendarului", value: CV.mode, items: [["list", "Listă"], ["calendar", "Calendar"]], className: "e-permits-cal-switch" }));
+    }
   }
   function syncChrome() {
     ensureChrome();
@@ -239,6 +245,12 @@
       notes.innerHTML = `${readOnly}${note.html}`;
       notes.hidden = !notes.innerHTML.trim();
     }
+    const sw = reg.querySelector(`[data-view-switch="${KIND}"]`);
+    if (sw) { sw.hidden = !canView(); window.GEAPViewSwitch?.set(sw, CV.mode); }
+    if (reg.dataset.registryKind === KIND) {
+      reg.dataset.calView = canView() ? CV.mode : "list";
+      if (CV.mode === "calendar" && canView()) renderBoard();
+    }
   }
   /* the registry draws itself through the shell: keep the chrome in step with every render */
   const observeRegistry = () => {
@@ -246,6 +258,9 @@
     if (!reg || reg.dataset.calObserved) return;
     reg.dataset.calObserved = "1";
     new MutationObserver(() => { if (reg.dataset.registryKind === KIND) syncChrome(); }).observe(reg, { attributes: true, attributeFilter: ["data-registry-kind"] });
+    /* every list redraw (tab, search, Filtre, a saved day) redraws the calendar view from the same rows */
+    const tbody = reg.querySelector("[data-workplace-rows]");
+    if (tbody) new MutationObserver(() => { if (reg.dataset.registryKind === KIND && CV.mode === "calendar") renderBoard(); }).observe(tbody, { childList: true });
   };
 
   /* ---------------------------------------------------------------- the library dialog */
@@ -405,13 +420,16 @@
     window.GEAPDatePicker?.init?.(body);
     if (focus) body?.querySelector(focus)?.focus();
   }
-  function openForm(day = null) {
+  /* `prefill` (calendar view, a day without an event): the date + the type that day can take nationally (AC-08) */
+  function openForm(day = null, prefill = {}) {
     if (!canEdit()) return; /* AC-01: the direct call is refused too */
+    const preDate = prefill.date || "";
+    const preType = preDate ? (WD().isWeekend(preDate) ? "lucratoare" : "nelucratoare") : "";
     Object.assign(F, {
       mode: day ? "edit" : "add",
       id: day?.id || null,
       original: day ? { ...day } : null,
-      values: day ? { date: day.date, type: day.type, authority: day.authority || "", reason: day.reason } : { date: "", type: "", authority: "", reason: "" },
+      values: day ? { date: day.date, type: day.type, authority: day.authority || "", reason: day.reason } : { date: preDate, type: preType, authority: "", reason: "" },
       errors: {},
       pending: null
     });
@@ -648,6 +666,259 @@
     exportList = null;
   }
 
+  /* ---------------------------------------------------------------- calendar-views-v1: Listă / Calendar */
+  /* A proposal beyond US-283 (the list stays the default view; user-approved 2026-10-26). The same rows as the list —
+     the year tab (current −1 … +2), the search and „Filtre” (Domeniu de aplicare = the scope) — drawn as a year of 12
+     months (iPhone-style zoom: a month opens the month grid). Two layers: the calendar exceptions (on) and the absences
+     (off; js/absences.js › GEAPAbsences.between, the same people the person may manage). A day opens the existing
+     „Adaugă zi” (date + type prefilled) / „Editare zi”; a read-only role gets the day's events in a popover. */
+  const WEEKDAYS = ["Luni", "Marți", "Miercuri", "Joi", "Vineri", "Sâmbătă", "Duminică"];
+  const LETTERS = ["L", "M", "M", "J", "V", "S", "D"];
+  const CV = { mode: "list", month: null, layers: { events: true, absences: false } };
+  const isoOf = (y, m, d) => `${y}-${pad(m + 1)}-${pad(d)}`;
+  const todayIso = () => { const d = new Date(); return isoOf(d.getFullYear(), d.getMonth(), d.getDate()); };
+  const cap = (s) => s.charAt(0).toUpperCase() + s.slice(1);
+  const monthTitle = (y, m) => `${cap(RO_MONTHS[m])} ${y}`;
+  const daysIn = (y, m) => new Date(y, m + 1, 0).getDate();
+  const weekendIso = (iso) => { const d = toDate(iso); return d.getDay() === 0 || d.getDay() === 6; };
+  const ABS = () => window.GEAPAbsences;
+  const absencesAvailable = () => typeof ABS()?.between === "function" && Boolean(ABS().canView?.());
+  const registryEl = () => document.querySelector(`[data-workplace][data-registry-kind="${KIND}"]`);
+
+  /* the list's rows (tab + search + Filtre) by date; the layer off = no exceptions drawn */
+  function eventsByDate() {
+    const map = new Map();
+    if (!CV.layers.events) return map;
+    (A().getVisibleRows?.() || []).forEach((row) => { if (!map.has(row.date)) map.set(row.date, []); map.get(row.date).push(row); });
+    return map;
+  }
+  /* „off” = a non-working exception (holiday / transferred day off) wins; „on” = only a working day moved to a weekend */
+  const kindOf = (list) => (!list?.length ? "" : list.some((r) => r.type === "nelucratoare") ? "off" : "on");
+  /* the absent people per WORKING day (a weekend / holiday count would be noise) */
+  function absentByDate(from, to) {
+    const map = new Map();
+    if (!CV.layers.absences || !absencesAvailable()) return map;
+    const list = ABS().between(from, to);
+    if (!list.length) return map;
+    for (let d = toDate(from); d <= toDate(to); d.setDate(d.getDate() + 1)) {
+      const iso = isoOf(d.getFullYear(), d.getMonth(), d.getDate());
+      if (!WD().isWorkingDay(iso)) continue;
+      const here = list.filter((a) => a.from <= iso && (!a.to || a.to >= iso));
+      if (here.length) map.set(iso, here);
+    }
+    return map;
+  }
+
+  const checkHtml = (key, label, on) => `
+    <label class="checkbox checkbox--medium e-permits-cal-layer">
+      <input type="checkbox" class="checkbox-input" data-cal-layer="${key}" data-cal-focus="layer-${key}"${on ? " checked" : ""}>
+      <span class="checkbox-custom"></span>
+      <span class="checkbox-texts"><span class="checkbox-label">${esc(label)}</span></span>
+    </label>`;
+  /* layers (Google-Calendar-like) + the colour legend */
+  const barHtml = () => {
+    const legend = [
+      ...(CV.layers.events ? [["is-off", "Zi nelucrătoare"], ["is-on", "Zi lucrătoare transferată"]] : []),
+      ["is-weekend", "Weekend"],
+      ["is-today", "Azi"],
+      ...(CV.layers.absences && absencesAvailable() ? [["has-absences", "Cu absențe"]] : [])
+    ];
+    return `
+      <div class="e-permits-cal-board__bar">
+        <div class="e-permits-cal-layers" role="group" aria-label="Ce se afișează în calendar">
+          ${checkHtml("events", "Sărbători și zile transferate", CV.layers.events)}
+          ${absencesAvailable() ? checkHtml("absences", "Absențe", CV.layers.absences) : ""}
+        </div>
+        <ul class="e-permits-cal-legend" aria-label="Legendă">
+          ${legend.map(([cls, label]) => `<li><span class="e-permits-cal-mark ${cls}" aria-hidden="true">${cls === "has-absences" ? "" : "8"}</span>${esc(label)}</li>`).join("")}
+        </ul>
+      </div>`;
+  };
+
+  /* ---- year: 12 compact months; a month opens the month grid */
+  function miniHtml(year, m, events, absent) {
+    const lead = (new Date(year, m, 1, 12).getDay() + 6) % 7;
+    const today = todayIso();
+    let off = 0, on = 0;
+    const cells = Array.from({ length: lead }, () => '<span class="e-permits-cal-mini__day is-blank"></span>');
+    for (let d = 1; d <= daysIn(year, m); d += 1) {
+      const iso = isoOf(year, m, d);
+      const k = kindOf(events.get(iso));
+      if (k === "off") off += 1;
+      if (k === "on") on += 1;
+      cells.push(`<span class="e-permits-cal-mini__day${weekendIso(iso) ? " is-weekend" : ""}${k ? ` is-${k}` : ""}${iso === today ? " is-today" : ""}${absent.has(iso) ? " has-absences" : ""}">${d}</span>`);
+    }
+    const parts = [
+      off ? plural(off, "zi nelucrătoare", "zile nelucrătoare") : "",
+      on ? plural(on, "zi lucrătoare transferată", "zile lucrătoare transferate") : ""
+    ].filter(Boolean);
+    return `
+      <button class="e-permits-cal-mini" type="button" data-cal-month="${m}" data-cal-focus="month-${m}" aria-label="${esc(`${monthTitle(year, m)}${parts.length ? `: ${parts.join(", ")}` : ""}. Deschide luna`)}">
+        <span class="e-permits-cal-mini__title">${esc(cap(RO_MONTHS[m]))}</span>
+        <span class="e-permits-cal-mini__grid" aria-hidden="true">${LETTERS.map((l) => `<span class="e-permits-cal-mini__wd">${l}</span>`).join("")}${cells.join("")}</span>
+      </button>`;
+  }
+  const yearHtml = (year, events, absent) => `
+    <h2 class="u-visually-hidden" id="cal-board-title">Calendarul anului ${year}</h2>
+    <div class="e-permits-cal-year">${RO_MONTHS.map((_, m) => miniHtml(year, m, events, absent)).join("")}</div>`;
+
+  /* ---- month: the full grid (Monday first), the events of each day, the absent counter */
+  const eventLine = (r) => `${TYPES[r.type]}: ${r.reason}${r.authority ? ` (${r.domain})` : ""}`;
+  const absentMenu = (iso, list, suffix = "") => {
+    const id = `cal-abs-${iso}${suffix}`;
+    return `
+      <div class="e-permits-stack__menu-wrap e-permits-cal-absent">
+        <button class="btn btn-neutral btn-sm e-permits-stack__menu-trigger" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="${id}" data-stack-menu-trigger data-cal-focus="abs-${iso}${suffix}" aria-label="${esc(`${plural(list.length, "absent", "absenți")} pe ${longDate(iso)}`)}">
+          ${icon("people")}<span>${esc(plural(list.length, "absent", "absenți"))}</span>
+        </button>
+        <ul class="e-permits-fo-intent-menu e-permits-stack__menu e-permits-cal-people" id="${id}" role="menu" aria-label="${esc(`Absenți pe ${longDate(iso)}`)}" hidden data-stack-menu data-stack-menu-fixed>
+          ${list.map((a) => `<li role="none"><button class="e-permits-fo-intent-menu__item e-permits-cal-people__item" type="button" role="menuitem" data-cal-absence="${esc(a.id)}">
+            <span class="e-permits-cal-people__name">${esc(a.name)}</span>
+            <span class="e-permits-cal-people__meta">${esc(a.type)} · ${esc(a.period)}</span>
+          </button></li>`).join("")}
+        </ul>
+      </div>`;
+  };
+  /* the read-only popover of a day (Administrator local) — and the editor's choice when a date holds two events */
+  const dayPopover = (iso, list, id) => (canEdit()
+    ? `<ul class="e-permits-fo-intent-menu e-permits-stack__menu" id="${id}" role="menu" aria-label="${esc(longDate(iso))}" hidden data-stack-menu data-stack-menu-fixed>
+        ${list.map((r) => `<li role="none"><button class="e-permits-fo-intent-menu__item" type="button" role="menuitem" data-cal-action="edit" data-cal-id="${esc(r.id)}">${icon("edit")}<span>Editează: ${esc(r.reason)}</span></button></li>`).join("")}
+        <li role="none"><button class="e-permits-fo-intent-menu__item" type="button" role="menuitem" data-cal-add-date="${iso}">${icon("plus-large")}<span>Adaugă zi pe această dată</span></button></li>
+      </ul>`
+    : `<div class="e-permits-fo-intent-menu e-permits-stack__menu e-permits-cal-pop" id="${id}" role="dialog" aria-label="${esc(longDate(iso))}" hidden data-stack-menu data-stack-menu-fixed>
+        <p class="e-permits-cal-pop__title">${esc(`${longDate(iso)}, ${weekday(iso)}`)}</p>
+        ${list.length
+          ? `<ul class="e-permits-cal-pop__list">${list.map((r) => `<li class="e-permits-cal-pop__row">${tag(TYPES[r.type], TYPE_TONE[r.type])}<span class="e-permits-cal-pop__text">${esc(r.reason)}</span><span class="e-permits-cal-pop__meta">${esc(r.domain)} · ${esc(r.source)}</span></li>`).join("")}</ul>`
+          : `<p class="e-permits-cal-pop__text">${weekendIso(iso) ? "Zi de odihnă (weekend). Nicio excepție în calendar." : "Zi lucrătoare. Nicio excepție în calendar."}</p>`}
+      </div>`);
+  function cellHtml(iso, list = [], absent = null) {
+    const k = kindOf(list);
+    const today = iso === todayIso();
+    const edit = canEdit();
+    const pop = !edit || list.length > 1;
+    const popId = `cal-day-${iso}`;
+    const label = [
+      `${longDate(iso)}, ${weekday(iso)}${today ? ", azi" : ""}`,
+      ...list.map(eventLine),
+      absent ? plural(absent.length, "absent", "absenți") : "",
+      edit ? (list.length === 1 ? "Editează ziua" : list.length ? "Alege evenimentul" : "Adaugă o zi") : ""
+    ].filter(Boolean).join(". ");
+    const shown = list.slice(0, 2);
+    const day = `
+      <button class="e-permits-cal-day${pop ? " e-permits-stack__menu-trigger" : ""}" type="button" aria-label="${esc(label)}" data-cal-focus="day-${iso}" ${pop ? `aria-haspopup="${edit ? "menu" : "dialog"}" aria-expanded="false" aria-controls="${popId}" data-stack-menu-trigger` : `data-cal-day="${iso}"`}>
+        <span class="e-permits-cal-day__num">${Number(iso.slice(8))}</span>
+        ${absent ? '<span class="e-permits-cal-day__dot" aria-hidden="true"></span>' : ""}
+        ${shown.length ? `<span class="e-permits-cal-day__events" aria-hidden="true">${shown.map((r) => `<span class="e-permits-cal-day__event is-${r.type === "nelucratoare" ? "off" : "on"}" data-cell-tooltip="${esc(r.reason)}">${esc(r.reason)}</span>`).join("")}${list.length > shown.length ? `<span class="e-permits-cal-day__more">+${list.length - shown.length}</span>` : ""}</span>` : ""}
+      </button>`;
+    return `
+      <td class="e-permits-cal-month__cell${weekendIso(iso) ? " is-weekend" : ""}${k ? ` is-${k}` : ""}${today ? " is-today" : ""}">
+        <div class="e-permits-cal-month__inner${pop ? " e-permits-stack__menu-wrap" : ""}">
+          ${day}
+          ${pop ? dayPopover(iso, list, popId) : ""}
+          ${absent ? absentMenu(iso, absent) : ""}
+        </div>
+      </td>`;
+  }
+  function monthHtml(year, m, events, absent, empty) {
+    const ys = years();
+    const first = year === ys[0] && m === 0;
+    const last = year === ys[ys.length - 1] && m === 11;
+    const range = `Calendarul arată anii ${ys[0]}–${ys[ys.length - 1]}`;
+    const step = (dir, label, iconName, off) => `<button class="btn btn-neutral btn-sm btn-icon-only" type="button" aria-label="${label}" data-cal-step="${dir}" data-cal-focus="step${dir}"${off ? ` aria-disabled="true" data-tooltip-reason="${esc(range)}"` : ""}>${icon(iconName, "icon small")}</button>`;
+    const head = `
+      <div class="e-permits-cal-month-head">
+        ${window.GEAPBreadcrumbs?.html([{ label: String(year), button: true, attr: 'data-cal-to-year data-cal-focus="to-year"' }, { label: monthTitle(year, m) }], { parentsOnly: true, label: "Înapoi la an" }) || ""}
+        <div class="e-permits-cal-month-head__row">
+          <h2 class="e-permits-cal-month-head__title" id="cal-board-title">${esc(monthTitle(year, m))}</h2>
+          <div class="e-permits-cal-month-head__nav">${step(-1, "Luna anterioară", "chevron-left", first)}${step(1, "Luna următoare", "chevron-right", last)}</div>
+        </div>
+      </div>`;
+    if (empty) return `${head}${empty}`;
+    const lead = (new Date(year, m, 1, 12).getDay() + 6) % 7;
+    const count = daysIn(year, m);
+    const weeks = Math.ceil((lead + count) / 7);
+    const body = Array.from({ length: weeks }, (_, w) => `<tr>${Array.from({ length: 7 }, (__, c) => {
+      const d = w * 7 + c - lead + 1;
+      if (d < 1 || d > count) return '<td class="e-permits-cal-month__cell is-blank"></td>';
+      const iso = isoOf(year, m, d);
+      return cellHtml(iso, events.get(iso), absent.get(iso) || null);
+    }).join("")}</tr>`).join("");
+    /* phones: the grid keeps the numbers + colours, the names and counters move to this list under it (iPhone) */
+    const agendaDays = [...new Set([...events.keys(), ...absent.keys()])].filter((iso) => iso.startsWith(`${year}-${pad(m + 1)}-`)).sort();
+    const agenda = agendaDays.length ? `
+      <ul class="e-permits-cal-agenda" aria-label="${esc(`Zilele cu evenimente din ${RO_MONTHS[m]} ${year}`)}">
+        ${agendaDays.map((iso) => {
+          const list = events.get(iso) || [];
+          const k = kindOf(list);
+          return `<li class="e-permits-cal-agenda__item">
+            <span class="e-permits-cal-mark${k ? ` is-${k}` : weekendIso(iso) ? " is-weekend" : ""}${iso === todayIso() ? " is-today" : ""}" aria-hidden="true">${Number(iso.slice(8))}</span>
+            <span class="e-permits-cal-agenda__text">
+              <span class="e-permits-cal-agenda__date">${esc(`${longDate(iso)}, ${weekday(iso)}`)}</span>
+              ${list.map((r) => `<span class="e-permits-cal-agenda__event">${esc(r.reason)}</span>`).join("")}
+            </span>
+            ${absent.get(iso) ? absentMenu(iso, absent.get(iso), "-agenda") : ""}
+          </li>`;
+        }).join("")}
+      </ul>` : "";
+    return `${head}${barHtml()}
+      <div class="e-permits-cal-month-wrap">
+        <table class="e-permits-cal-month" aria-labelledby="cal-board-title">
+          <thead><tr>${WEEKDAYS.map((d, i) => `<th scope="col"><span class="e-permits-cal-month__wd">${d}</span><span class="e-permits-cal-month__wd-short" aria-hidden="true">${LETTERS[i]}</span></th>`).join("")}</tr></thead>
+          <tbody>${body}</tbody>
+        </table>
+      </div>
+      ${agenda}`;
+  }
+
+  function ensureBoard(reg) {
+    let board = reg.querySelector("[data-cal-board]");
+    if (!board) {
+      reg.querySelector(".e-permits-workplace__table-wrap")?.insertAdjacentHTML("afterend", '<section class="e-permits-cal-board" data-cal-board aria-labelledby="cal-board-title"></section>');
+      board = reg.querySelector("[data-cal-board]");
+    }
+    return board;
+  }
+  function renderBoard() {
+    const reg = registryEl();
+    if (!reg) return;
+    reg.dataset.calView = CV.mode;
+    if (CV.mode !== "calendar") return;
+    const board = ensureBoard(reg);
+    if (!board) return;
+    const focusKey = document.activeElement?.closest?.("[data-cal-board] [data-cal-focus]")?.dataset.calFocus || "";
+    const year = activeYear();
+    /* AC-11 / no results: the list's own empty state (the shell drew it into the table) */
+    const emptyEl = reg.querySelector("[data-workplace-rows] .e-permits-empty");
+    const empty = emptyEl ? emptyEl.outerHTML : "";
+    const events = eventsByDate();
+    const from = CV.month == null ? `${year}-01-01` : isoOf(year, CV.month, 1);
+    const to = CV.month == null ? `${year}-12-31` : isoOf(year, CV.month, daysIn(year, CV.month));
+    const absent = absentByDate(from, to);
+    board.innerHTML = CV.month == null
+      ? (empty ? `<h2 class="u-visually-hidden" id="cal-board-title">Calendarul anului ${year}</h2>${empty}` : `${barHtml()}${yearHtml(year, events, absent)}`)
+      : monthHtml(year, CV.month, events, absent, empty);
+    if (focusKey) board.querySelector(`[data-cal-focus="${focusKey}"]`)?.focus();
+  }
+  function setView(mode) {
+    CV.mode = mode;
+    const reg = registryEl();
+    if (reg) reg.dataset.calView = mode;
+    if (mode === "calendar") renderBoard();
+  }
+  /* prev / next month: across a year boundary the year tab follows (the board redraws with the list) */
+  function stepMonth(dir) {
+    const year = activeYear();
+    let m = (CV.month ?? 0) + dir;
+    let y = year;
+    if (m < 0) { m = 11; y -= 1; }
+    if (m > 11) { m = 0; y += 1; }
+    if (!years().includes(y)) return;
+    CV.month = m;
+    if (y !== year) document.querySelector(`[data-workplace-tab="y${y}"]`)?.click();
+    else renderBoard();
+  }
+  window.GEAPViewSwitch?.on(KIND, (value) => setView(value));
+
   /* ---------------------------------------------------------------- delegated events */
   const closeMenus = () => {
     document.querySelectorAll("[data-stack-menu]:not([hidden])").forEach((menu) => { menu.hidden = true; });
@@ -664,6 +935,39 @@
       if (act.dataset.calAction === "edit") openForm(day); else openDelete(day);
       return;
     }
+    /* calendar view: a day / counter popover near the bottom of the screen opens above its button (the shell
+       places fixed menus under the trigger) */
+    const popTrigger = t.closest("[data-cal-board] [data-stack-menu-trigger]");
+    if (popTrigger) {
+      requestAnimationFrame(() => {
+        const menu = document.getElementById(popTrigger.getAttribute("aria-controls"));
+        if (!menu || menu.hidden) return;
+        const r = popTrigger.getBoundingClientRect();
+        if (menu.getBoundingClientRect().bottom > window.innerHeight - 8 && r.top - menu.offsetHeight - 4 >= 8) menu.style.top = `${r.top - menu.offsetHeight - 4}px`;
+      });
+    }
+    /* calendar view: zoom year → month → day */
+    const month = t.closest("[data-cal-month]");
+    if (month) { CV.month = Number(month.dataset.calMonth); renderBoard(); document.querySelector("[data-cal-board] [data-cal-to-year]")?.focus(); return; }
+    if (t.closest("[data-cal-to-year]")) {
+      event.preventDefault();
+      const from = CV.month;
+      CV.month = null; renderBoard();
+      document.querySelector(`[data-cal-board] [data-cal-month="${from}"]`)?.focus();
+      return;
+    }
+    const step = t.closest("[data-cal-step]");
+    if (step) { if (step.getAttribute("aria-disabled") !== "true") stepMonth(Number(step.dataset.calStep)); return; }
+    const day = t.closest("[data-cal-day]");
+    if (day) {
+      const list = eventsByDate().get(day.dataset.calDay) || [];
+      if (list.length === 1) openForm(dayOf(list[0].id)); else openForm(null, { date: day.dataset.calDay });
+      return;
+    }
+    const addDate = t.closest("[data-cal-add-date]");
+    if (addDate) { closeMenus(); openForm(null, { date: addDate.dataset.calAddDate }); return; }
+    const absence = t.closest("[data-cal-absence]");
+    if (absence) { closeMenus(); ABS()?.open?.(absence.dataset.calAbsence); return; }
     if (t.closest("[data-cal-generate]")) { event.preventDefault(); openGenerate(); return; }
     if (t.closest("[data-cal-journal]")) { event.preventDefault(); openJournal(); return; }
     if (t.closest("[data-cal-save]")) { save(); return; }
@@ -673,6 +977,14 @@
     if (t.closest("[data-cal-confirm-generate]")) { confirmGenerate(); return; }
     if (t.closest("[data-cal-recalc]")) { runRecalc(); return; }
     if (t.closest("[data-cal-export-confirm]")) exportCsv();
+  });
+  /* calendar view layers (no toast — a switch of what is shown) */
+  document.addEventListener("change", (event) => {
+    const layer = event.target.closest?.("[data-cal-layer]");
+    if (!layer) return;
+    CV.layers[layer.dataset.calLayer] = layer.checked;
+    if (layer.dataset.calLayer === "absences" && layer.checked && !ABS()?.ready?.()) ABS()?.load?.().then(renderBoard);
+    renderBoard();
   });
   /* the reason counter (200) and the error of a field cleared as the person corrects it */
   document.addEventListener("input", (event) => {
@@ -707,5 +1019,11 @@
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot, { once: true }); else boot();
 
   /* for demo states / probes */
-  window.GEAPCalendarAdmin = { openForm, openDelete, openGenerate, openJournal, impactOf, recalculate, refreshList, persona };
+  window.GEAPCalendarAdmin = {
+    openForm, openDelete, openGenerate, openJournal, impactOf, recalculate, refreshList, persona,
+    /* calendar-views-v1: demo states / probes — setView("calendar"), showMonth(6), layer("absences", true) */
+    setView: (mode) => { const sw = document.querySelector(`[data-view-switch="${KIND}"] [data-view-value="${mode}"]`); if (sw) sw.click(); else setView(mode); },
+    showMonth: (m) => { CV.month = m; renderBoard(); },
+    layer: (key, on) => { CV.layers[key] = on; return (key === "absences" && on ? ABS()?.load?.() || Promise.resolve() : Promise.resolve()).then(renderBoard); }
+  };
 })();

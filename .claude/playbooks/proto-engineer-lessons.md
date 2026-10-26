@@ -3932,3 +3932,6 @@ For any „research how other products do it” step, search Mobbin (mcp__mobbin
   one Python replace on js/ghiseu.js (untouched by others) — still: Edit. No sub-agent tool → code-audit (standing FPs only,
   static 0), hover-audit 0 / 0 on 11 states, component-audit (only the standing shell header / th-sort / profile-menu /
   edit-pen majors), capture ofc-* × 2 + gh-* regression 130 × desktop clean.
+- 2026-10-26 · calendar-views-v1 (Calendar „Listă/Calendar”, Absențe „Listă/Cronologie”): a 2nd view of a BO registry = a board after the table, shown by `[data-registry-kind][data-*-view]`, redrawn by a MutationObserver on `[data-workplace-rows]` from `getVisibleRows()` (tab+search+Filtre free; copy the table's empty state); view switch = `js/view-switch.js`.
+  A pinned-column timeline keeps ONE cell per day (colspan rows lose the js/table-pin-shadow.js edge) → bar absolute in its first day, `width: calc(100% * var(--span))` set by JS, label `position: sticky`; check 1024/768 — one toolbar control more overflowed → wrap 761–1439.
+  hover-audit „covered” on a bar under the pinned column after the scroller moved = FP (it aims at the scroller's left); bars = `buttonPaint.allow` with a reason in the component-audit spec.

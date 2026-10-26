@@ -1,0 +1,55 @@
+/* =====================================================================================
+   View switch — „Listă / Calendar”, „Listă / Cronologie” (calendar-views-v1, 2026-10-26)
+   The library segmented control at the documented compact size (css/process-designer.css › `.segmented-control--compact`:
+   items 32, track 4 · 4 = 40 = the toolbar search). Markup + keyboard in js/view-switch.js. Here only the place in the
+   BO registry toolbar (right, before the table tools) and the phone size (track 48 = the phone search, 16/24 text).
+   components.md › „View switch — Listă / Calendar / Cronologie”.
+   ===================================================================================== */
+
+.e-permits-view-switch {
+  flex: 0 0 auto;
+  margin-left: auto;
+}
+
+.e-permits-view-switch[hidden] {
+  display: none;
+}
+
+/* the switch sits before the table tools: the tools no longer push themselves right */
+.e-permits-workplace__toolbar:has(> .e-permits-view-switch:not([hidden])) > .e-permits-workplace__table-tools {
+  margin-left: 0;
+}
+
+/* each module's switch shows only on its own registry (the toolbar markup is shared) */
+.e-permits-workplace:not([data-registry-kind="calendar"]) .e-permits-cal-switch,
+.e-permits-workplace:not([data-registry-kind="absente"]) .e-permits-abs-switch {
+  display: none;
+}
+
+@media (max-width: 760px) {
+  .segmented-control.segmented-control--compact.e-permits-view-switch {
+    gap: var(--spacing-4, 4px);
+    padding: var(--spacing-4, 4px);
+  }
+
+  .segmented-control--compact.e-permits-view-switch .segment-item {
+    font-size: var(--font-size-fs-16, 16px);
+    line-height: var(--line-height-lh-24, 24px);
+    padding: var(--spacing-8, 8px) var(--spacing-16, 16px);
+  }
+}
+
+/* 761–1439: the toolbar of a registry with a view switch has one control more than the 56 row holds (Calendar:
+   search · Filtre · switch · export · jurnal · Generează anul · Adaugă zi) → it wraps like the phone toolbar
+   (phone-toolbar-v3): every header track auto, the primary actions on a second line, 8 apart */
+@media (min-width: 761px) and (max-width: 1439px) {
+  .e-permits-front-office-page[data-demo-flow="back-office"] :is(.e-permits-workplace[data-registry-kind="calendar"]:has(.e-permits-cal-switch:not([hidden])), .e-permits-workplace[data-registry-kind="absente"]:has(.e-permits-abs-switch:not([hidden]))) > .e-permits-workplace__header {
+    grid-template-rows: auto auto auto;
+  }
+
+  .e-permits-front-office-page[data-demo-flow="back-office"] :is(.e-permits-workplace[data-registry-kind="calendar"]:has(.e-permits-cal-switch:not([hidden])), .e-permits-workplace[data-registry-kind="absente"]:has(.e-permits-abs-switch:not([hidden]))) .e-permits-workplace__toolbar {
+    flex-wrap: wrap;
+    height: auto;
+    row-gap: var(--spacing-8, 8px);
+  }
+}
