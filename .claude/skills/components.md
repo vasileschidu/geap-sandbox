@@ -9609,7 +9609,10 @@ seed absences move by (today − seed today) on load so they stay around today; 
 stripes, 135°) so the two never look alike; legend „Azi” swatch.
 (5) v4 (user): the calendar layers are the project checkbox options (`renderCheckOption` in `.e-permits-check-options`,
 same as „Obligatoriu” / document rules — measured identical to svc-06d / fb-05: Onest 14/20 medium, grey 245, 6 · 8,
-32 high); no own font / padding / hover rules.
+32 high); no own font / padding / hover rules. (6) v5 (user): three day kinds read apart at a glance — non-working = red tint + 1px red ring
+(`--color-text-danger-on-secondary`, built like the blue ring), transferred working day = blue tint + blue ring, normal
+weekend = grey fill (`--color-background-base-tertiary`) + secondary text, no ring; today = inverse circle, semibold, on
+the solid grey cell — the same three swatches in the legend (year mini days, month numbers, legend, agenda marks).
 
 ## 5. Removed from this document
 
