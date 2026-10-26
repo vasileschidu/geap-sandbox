@@ -2,6 +2,7 @@
 name: verifier
 description: Verifies persona-review findings against the evidence and drops anything not supported. Use as the last step of /persona-review.
 tools: Read, Glob, Grep, Write, Bash, mcp__figma-a__get_screenshot
+model: sonnet
 ---
 You are the **verifier**. Reviewers make mistakes; you keep only what is true.
 

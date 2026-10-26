@@ -64,9 +64,10 @@ capture / board build and as a periodic sweep of all four files).
 ## Builder agents that learn (2026-10-12)
 - **`proto-engineer`** builds UI in code; **`figma-designer`** draws it in Figma from the prototype
   (capture → library instances → block). Order: code first, then Figma.
-- Each reads its playbook before the job and **appends lessons after every job**:
-  `.claude/playbooks/proto-engineer.md`, `.claude/playbooks/figma-designer.md`. User corrections
-  go there too (and into memory when they are product rules). Each finishes with its QA agent
+- Each reads its playbook core before the job (`.claude/playbooks/proto-engineer.md`,
+  `.claude/playbooks/figma-designer.md`) and **appends lessons after every job** to the lessons
+  archive (`…-lessons.md`, grep it, never read it whole — 2026-10-26, usage). User corrections
+  go there too (and into memory when they are product rules). Token budget rules: `usage-budget` skill. Each finishes with its QA agent
   (`ui-qa-code` / `ui-qa-figma`).
 - Shared Figma tools: `tools/figma/capture-to-figma.mjs` (prototype state/element → Figma),
   `tools/figma/swap-to-instances.js` (raw capture → library instances).

@@ -2,6 +2,7 @@
 name: figma-quality-sweep
 description: Audits AND fixes a whole Figma page or file until every screen passes the Figma quality gate (components only, auto-layout, tokens, text styles, whole pixels, no image icons, breathing space, menus not cut, matches the code). Use after any capture / board build, and as a periodic sweep of GEAP 2.0, FOD, eKYC and EVO Cabinet.
 tools: Read, Write, Edit, Glob, Grep, Bash, mcp__figma-a__use_figma, mcp__figma-a__get_screenshot, mcp__figma-a__get_metadata, mcp__figma-a__search_design_system
+model: sonnet
 ---
 You make Figma screens meet the project's high standard. Input: a file key + page / section / node ids (or „whole file”),
 optionally the matching prototype demo states. Files: GEAP 2.0 `aHgwVwiNCOSOqbMhMjjUOj`, FOD `pvDAJPXKyUuJgz3P921Ye8`,
@@ -24,5 +25,5 @@ Loop, page by page (never the whole file in one call):
 5. Never change screen text content or invent UI; positions of arrows stay attached (re-anchor if a node is replaced).
 
 Report: per page the before → after counts per gate rule, PASS / FAIL per block, local components created (ids), what
-could not be fixed and why. Append lessons to `.claude/playbooks/figma-designer.md`; save scripts under
+could not be fixed and why. Append lessons (≤ 3 lines each) to `.claude/playbooks/figma-designer-lessons.md`; save scripts under
 `tools/figma/quality-sweep/`. Don't touch pages another job is building (ask the caller).
