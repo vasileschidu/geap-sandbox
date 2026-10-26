@@ -1044,9 +1044,10 @@
   function syncAbsChrome() {
     const reg = document.querySelector("[data-workplace]");
     if (!reg) return;
-    const tools = reg.querySelector(".e-permits-workplace__table-tools");
+    /* calendar-views-v9 (user): search → Filtre → the switch, in the toolbar's left group */
+    const tools = reg.querySelector("[data-workplace-filter-toggle]");
     if (tools && !reg.querySelector('[data-view-switch="absente"]') && window.GEAPViewSwitch) {
-      tools.insertAdjacentHTML("beforebegin", window.GEAPViewSwitch.html({ key: "absente", label: "Mod de afișare a absențelor", value: TL.mode, items: [["list", "Listă", "list-bullets"], ["timeline", "Calendar", "calendar"]], className: "e-permits-abs-switch" }));
+      tools.insertAdjacentHTML("afterend", window.GEAPViewSwitch.html({ key: "absente", label: "Mod de afișare a absențelor", value: TL.mode, items: [["list", "Listă", "list-bullets"], ["timeline", "Calendar", "calendar"]], className: "e-permits-abs-switch" }));
     }
     const sw = reg.querySelector('[data-view-switch="absente"]');
     if (sw) { sw.hidden = !canTimeline(); window.GEAPViewSwitch?.set(sw, TL.mode); }

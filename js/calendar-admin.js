@@ -229,9 +229,10 @@
         <button class="btn btn-neutral btn-sm e-permits-workplace__primary-action e-permits-cal-tool" type="button" data-cal-tool data-cal-generate>${icon("calendar-add")}<span>Generează anul</span></button>`);
     }
     /* calendar-views-v1: „Listă / Calendar” before the table tools (shown only on this registry, css/view-switch.css) */
-    const tools = reg.querySelector(".e-permits-workplace__table-tools");
+    /* calendar-views-v9 (user): search → Filtre → the switch, in the toolbar's left group */
+    const tools = reg.querySelector("[data-workplace-filter-toggle]");
     if (tools && !reg.querySelector(`[data-view-switch="${KIND}"]`) && window.GEAPViewSwitch) {
-      tools.insertAdjacentHTML("beforebegin", window.GEAPViewSwitch.html({ key: KIND, label: "Mod de afișare a calendarului", value: CV.mode, items: [["list", "Listă", "list-bullets"], ["calendar", "Calendar", "calendar"]], className: "e-permits-cal-switch" }));
+      tools.insertAdjacentHTML("afterend", window.GEAPViewSwitch.html({ key: KIND, label: "Mod de afișare a calendarului", value: CV.mode, items: [["list", "Listă", "list-bullets"], ["calendar", "Calendar", "calendar"]], className: "e-permits-cal-switch" }));
     }
   }
   function syncChrome() {
