@@ -280,13 +280,21 @@
   gap: var(--spacing-6, 6px);
 }
 
+/* the swatch = the bar in small: tone fill + border + the type icon (colour is never the only signal) */
 .e-permits-abs-tl__swatch {
+  align-items: center;
   border: var(--border-width-1, 1px) solid transparent;
   border-radius: var(--border-radius-4, 4px);
   box-sizing: border-box;
-  display: inline-block;
+  display: inline-flex;
+  height: var(--spacing-20, 20px);
+  justify-content: center;
+  width: var(--spacing-24, 24px);
+}
+
+.e-permits-abs-tl__swatch .icon {
   height: var(--spacing-12, 12px);
-  width: var(--spacing-20, 20px);
+  width: var(--spacing-12, 12px);
 }
 
 /* the table: its own sideways scroll box, the name column pinned */
@@ -347,6 +355,23 @@
   padding: var(--spacing-8, 8px) var(--spacing-16, 16px);
 }
 
+.e-permits-abs-tl__id {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+/* admins: the person's subdivision (· authority for the Central admin) under the name */
+.e-permits-abs-tl__sub {
+  color: var(--color-text-base-tertiary, #757575);
+  font-weight: var(--font-weight-fw-regular, 400);
+  font-size: var(--font-size-fs-12, 12px);
+  line-height: var(--line-height-lh-16, 16px);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .e-permits-abs-tl__name {
   color: var(--color-text-base-default, #121212);
   font-size: var(--font-size-fs-14, 14px);
@@ -385,8 +410,10 @@
   width: var(--spacing-24, 24px);
 }
 
-.e-permits-abs-tl__day.is-off .e-permits-abs-tl__num {
-  color: var(--color-text-base-tertiary, #757575);
+/* weekend numbers on the grey column: secondary text (tertiary on grey 100 = 4.2:1, under AA) */
+.e-permits-abs-tl__day.is-off .e-permits-abs-tl__num,
+.e-permits-abs-tl__day.is-off .e-permits-abs-tl__wd {
+  color: var(--color-text-base-secondary, #383838);
 }
 
 .e-permits-abs-tl__day.is-holiday .e-permits-abs-tl__num {
@@ -444,8 +471,20 @@
 
 /* the label stays readable while the bar runs under the pinned name column (sticky inside the bar) */
 .e-permits-abs-tl__item > span {
+  align-items: center;
+  display: inline-flex;
+  gap: var(--spacing-4, 4px);
   left: calc(var(--spacing-72, 72px) * 3 + var(--spacing-8, 8px));
+  max-width: 100%;
+  min-width: 0;
   position: sticky;
+}
+
+.e-permits-abs-tl__item > span > .icon {
+  flex: 0 0 auto;
+}
+
+.e-permits-abs-tl__item > span > span {
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -480,15 +519,15 @@
   background: var(--color-background-brand-secondary-hover, #b2d1ff);
 }
 
-.e-permits-abs-tl__item--danger,
-.e-permits-abs-tl__swatch--danger {
-  background: var(--color-background-danger-secondary, #fee4e2);
-  border-color: var(--color-border-danger-secondary, #fecdca);
-  color: var(--color-text-danger-on-secondary, #b42318);
+.e-permits-abs-tl__item--violet,
+.e-permits-abs-tl__swatch--violet {
+  background: var(--purple-100, #efeafc);
+  border-color: var(--purple-200, #ddd2fa);
+  color: var(--purple-700, #652cc7);
 }
 
-.e-permits-abs-tl__item--danger:hover {
-  background: var(--color-background-danger-secondary-hover, #fecdca);
+.e-permits-abs-tl__item--violet:hover {
+  background: var(--purple-200, #ddd2fa);
 }
 
 .e-permits-abs-tl__item--success,
@@ -502,14 +541,14 @@
   background: var(--color-background-positive-secondary-active, #abefc6);
 }
 
-.e-permits-abs-tl__item--accent,
-.e-permits-abs-tl__swatch--accent {
+.e-permits-abs-tl__item--warning,
+.e-permits-abs-tl__swatch--warning {
   background: var(--color-background-warning-secondary, #fef0c7);
   border-color: var(--color-border-warning-secondary, #fedf89);
-  color: var(--apricot-700, #b54708);
+  color: var(--color-text-warning-on-secondary, #b54708);
 }
 
-.e-permits-abs-tl__item--accent:hover {
+.e-permits-abs-tl__item--warning:hover {
   background: var(--color-background-warning-secondary-active, #fedf89);
 }
 
@@ -576,3 +615,23 @@
     transition: none;
   }
 }
+
+/* calendar-views-v2: an absence type in text = its sprite icon in the type's tone + the name (profile list title,
+   „Încărcarea echipei” › Stare azi, the calendar's absent list); the list's type cell is the library tag with the icon */
+.e-permits-abs-kind {
+  align-items: center;
+  display: inline-flex;
+  vertical-align: top;
+  gap: var(--spacing-4, 4px);
+  min-width: 0;
+}
+
+.e-permits-abs-kind > .icon {
+  flex: 0 0 auto;
+}
+
+.e-permits-abs-kind--brand > .icon { color: var(--color-text-brand-on-secondary, #0058d2); }
+.e-permits-abs-kind--warning > .icon { color: var(--color-text-warning-on-secondary, #b54708); }
+.e-permits-abs-kind--violet > .icon { color: var(--purple-700, #652cc7); }
+.e-permits-abs-kind--success > .icon { color: var(--color-text-positive-on-secondary, #027948); }
+.e-permits-abs-kind--neutral > .icon { color: var(--color-text-base-secondary, #383838); }

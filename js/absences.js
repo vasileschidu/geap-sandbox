@@ -63,7 +63,7 @@
         S.data = data;
         let saved = null;
         try { saved = JSON.parse(window.sessionStorage.getItem(STORE) || "null"); } catch { saved = null; }
-        S.list = saved?.list || clone(data.absences || []);
+        S.list = (saved?.list || clone(data.absences || [])).map((a) => (LEGACY_TYPES[a.type] ? { ...a, type: LEGACY_TYPES[a.type] } : a));
         S.dist = saved?.dist || clone(data.distribution || {});
         S.policy = saved?.policy || clone(data.policy || {});
         S.audit = saved?.audit || [];
@@ -169,6 +169,22 @@
   const overlapOf = (draft) => absencesOf(draft.person).find((a) => a.id !== draft.id
     && a.from <= (draft.to || "9999-12-31") && draft.from <= (a.to || "9999-12-31")) || null;
   const absenceLine = (a) => `${a.type}, ${periodText(a.from, a.to)}`;
+  /* calendar-views-v2 (user 2026-10-26: „the icons are important” — colour is never the only signal): every absence type
+     = a tone + a sprite icon, the same in the list's type tag, the profile list, the timeline bar + legend and the
+     calendar's absent list. Types = the stories: Concediu anual · Concediu medical · Concediu de maternitate · Delegație
+     (US-283…286) + Suspendare (US-314 data model). Sick leave is amber (red = holidays / days off in the calendar). */
+  const ABS_TYPES = {
+    "Concediu anual": { tone: "brand", icon: "vacation" },
+    "Concediu medical": { tone: "warning", icon: "health" },
+    "Concediu de maternitate": { tone: "violet", icon: "child" },
+    "Delegație": { tone: "success", icon: "suitcase" },
+    Suspendare: { tone: "neutral", icon: "pause" }
+  };
+  /* seeds / session stores written before the story names */
+  const LEGACY_TYPES = { Concediu: "Concediu anual" };
+  const typeMeta = (type) => ABS_TYPES[type] || { tone: "neutral", icon: "calendar" };
+  const typeIcon = (type) => icon(typeMeta(type).icon, "icon small");
+  const typeTag = (type) => window.GEAPTag?.html(type, typeMeta(type).tone, { icon: typeMeta(type).icon }) || esc(type);
 
   /* the dossiers of a specialist (BO seed): the ones under examination = what „Dosarele subdiviziunii” lists and what
      a redistribution moves (US-295 AC-02) — one count everywhere */
@@ -284,7 +300,7 @@
       const w = who();
       return S.list.filter((a) => a.from <= to && (!a.to || a.to >= from)).map((a) => ({ a, p: personById(a.person) }))
         .filter(({ p }) => p && !p.me && inScope(p, w))
-        .map(({ a, p }) => ({ id: a.id, person: p.id, name: p.name, type: a.type, from: a.from, to: a.to || "", period: periodText(a.from, a.to) }))
+        .map(({ a, p }) => ({ id: a.id, person: p.id, name: p.name, type: a.type, tone: typeMeta(a.type).tone, icon: typeMeta(a.type).icon, from: a.from, to: a.to || "", period: periodText(a.from, a.to) }))
         .sort((x, y) => x.name.localeCompare(y.name, "ro"));
     },
     open: (id) => openAbsence({ id })
@@ -636,7 +652,7 @@
       const st = statusOf(a);
       return {
         plainTitle: `${a.type}, ${periodText(a.from, a.to)}`,
-        title: esc(a.type),
+        title: `<span class="e-permits-abs-kind e-permits-abs-kind--${typeMeta(a.type).tone}">${typeIcon(a.type)}${esc(a.type)}</span>`,
         badges: st === "current" ? [tag("În curs", "success")] : st === "future" ? [tag("Planificată", "brand")] : [],
         meta: [esc(periodText(a.from, a.to)), esc(durationText(a.from, a.to, person.authority)), `Înregistrată de ${esc(a.recordedBy)}`],
         meta2: a.reason ? [esc(a.reason)] : [],
@@ -787,7 +803,7 @@
       columns: {
         utilizator: { label: "Utilizator", width: 200, fill: true, sortable: true },
         subdiviziune: { label: "Subdiviziune", width: 160 },
-        tip: { label: "Tipul absenței", width: 200 },
+        tip: { label: "Tipul absenței", width: 288 },
         from: { label: "De la", width: 150, sortable: true },
         to: { label: "Până la", width: 150, sortable: true },
         motiv: { label: "Motiv", width: 220, fill: true },
@@ -835,7 +851,7 @@
           </div>`;
         case "subdiviziune": return `<span data-cell-tooltip="${esc(`${row.subdiviziune} · ${row.autoritate}`)}">${esc(row.subdiviziune)}</span>`;
         /* AC-10: the current absence is marked */
-        case "tip": return `<span class="e-permits-abs-type"><span data-cell-tooltip="${esc(row.tip)}">${esc(row.tip)}</span>${row.status === "current" ? tag("În curs", "success") : ""}</span>`;
+        case "tip": return `<span class="e-permits-abs-type">${typeTag(row.tip)}${row.status === "current" ? tag("În curs", "success") : ""}</span>`;
         case "from": return esc(long(row.from));
         /* AC-09: no end date = empty */
         case "to": return row.to ? esc(long(row.to)) : `<span class="e-permits-workplace__dash" aria-label="fără dată de sfârșit">—</span>`;
@@ -879,10 +895,10 @@
      existing „Modifică absența”). The status tabs are a time filter the timeline replaces: hidden there, „Toate” while
      it shows, the list's tab back on „Listă”. The name column is pinned (js/table-pin-shadow.js draws its edge). */
   const TL = { mode: "list", scale: "", anchor: "", listTab: "" };
-  const TL_TONE = { Concediu: "brand", "Concediu medical": "danger", "Delegație": "success", Suspendare: "neutral" };
-  const tlTone = (type) => TL_TONE[type] || "accent";
+  const tlTone = (type) => typeMeta(type).tone;
   const WD_LETTERS = ["D", "L", "M", "M", "J", "V", "S"];
-  const canTimeline = () => who().supervisor && canAbsences();
+  /* calendar-views-v2: every role with the list (Central = all, Local = its authority, Supervisor = its subdivision) */
+  const canTimeline = () => canAbsences();
   const absReg = () => document.querySelector(`[data-workplace][data-registry-kind="${ABS_KIND}"]`);
   const initials = (name) => String(name || "").split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0]).join("").toUpperCase();
   const capital = (s) => s.charAt(0).toUpperCase() + s.slice(1);
@@ -922,7 +938,7 @@
       && (!filtered || (A().getVisibleRows?.() || []).some((r) => r.personId === p.id)));
     const unit = TL.scale === "week" ? "Săptămâna" : "Luna";
     const step = (dir, label, name) => `<button class="btn btn-neutral btn-sm btn-icon-only" type="button" aria-label="${label}" data-abs-tl-step="${dir}" data-abs-tl-focus="step${dir}">${icon(name)}</button>`;
-    const legendTypes = (S.data?.absenceTypes || Object.keys(TL_TONE));
+    const legendTypes = (S.data?.absenceTypes || Object.keys(ABS_TYPES));
     const head = `
       <div class="e-permits-abs-tl__bar">
         <div class="e-permits-abs-tl__nav">
@@ -933,7 +949,7 @@
         ${window.GEAPViewSwitch?.html({ key: "abs-scale", label: "Perioada afișată", value: TL.scale, items: [["week", "Săptămână"], ["month", "Lună"]], className: "e-permits-abs-tl__scale" }) || ""}
       </div>
       <ul class="e-permits-abs-tl__legend" aria-label="Legendă">
-        ${legendTypes.map((type) => `<li><span class="e-permits-abs-tl__swatch e-permits-abs-tl__swatch--${tlTone(type)}" aria-hidden="true"></span>${esc(type)}</li>`).join("")}
+        ${legendTypes.map((type) => `<li><span class="e-permits-abs-tl__swatch e-permits-abs-tl__swatch--${tlTone(type)}" aria-hidden="true">${typeIcon(type)}</span>${esc(type)}</li>`).join("")}
         <li><span class="e-permits-abs-tl__swatch e-permits-abs-tl__swatch--off" aria-hidden="true"></span>Weekend sau zi nelucrătoare</li>
       </ul>`;
     if (!S.data) return `${head}${window.GEAPEmptyState?.render({ title: "Se încarcă absențele…", loading: true, bare: true }) || ""}`;
@@ -962,14 +978,17 @@
         while (i + span < days.length && (!a.to || a.to >= days[i + span])) span += 1;
         const period = periodText(a.from, a.to || "");
         return `<td class="e-permits-abs-tl__cell${dayClass(day)}">
-          <button class="e-permits-abs-tl__item e-permits-abs-tl__item--${tlTone(a.tip)}${a.from < win.from ? " is-cut-start" : ""}${!a.to || a.to > win.to ? " is-cut-end" : ""}" type="button" data-abs-span="${span}" data-abs-edit="${esc(a.absId)}" data-abs-tl-focus="bar-${esc(a.absId)}" data-tooltip-text="${esc(`${a.tip} · ${period}`)}" aria-label="${esc(`${p.name}: ${a.tip}, ${period}. Modifică absența`)}"><span>${esc(a.tip)}</span></button>
+          <button class="e-permits-abs-tl__item e-permits-abs-tl__item--${tlTone(a.tip)}${a.from < win.from ? " is-cut-start" : ""}${!a.to || a.to > win.to ? " is-cut-end" : ""}" type="button" data-abs-span="${span}" data-abs-edit="${esc(a.absId)}" data-abs-tl-focus="bar-${esc(a.absId)}" data-tooltip-text="${esc(`${a.tip} · ${period}`)}" aria-label="${esc(`${p.name}: ${a.tip}, ${period}. Modifică absența`)}"><span>${typeIcon(a.tip)}<span>${esc(a.tip)}</span></span></button>
         </td>`;
       });
       return `<tr>
         <th scope="row" class="e-permits-abs-tl__person">
           <span class="e-permits-abs-tl__who">
             <span class="avatar avatar--xs avatar--initials e-permits-workplace__user-avatar" aria-hidden="true">${esc(initials(p.name))}</span>
-            <span class="e-permits-abs-tl__name" data-cell-tooltip="${esc(p.name)}">${esc(p.name)}</span>
+            <span class="e-permits-abs-tl__id">
+              <span class="e-permits-abs-tl__name" data-cell-tooltip="${esc(p.name)}">${esc(p.name)}</span>
+              ${w.supervisor ? "" : `<span class="e-permits-abs-tl__sub" data-cell-tooltip="${esc(`${p.subdivision} · ${p.authority}`)}">${esc(w.central ? `${p.subdivision} · ${p.authority}` : p.subdivision)}</span>`}
+            </span>
           </span>
         </th>${cells.join("")}
       </tr>`;
@@ -1123,7 +1142,7 @@
         case "specialist": return `<span class="e-permits-abs-type"><span data-cell-tooltip="${esc(row.specialist)}">${esc(row.specialist)}</span>${row.novice ? tag("Nou", "brand", `data-tooltip-text="Specialist nou: luna ${row.novice} din 6 de distribuire"`) : ""}</span>`;
         /* AC-05: absent today, with the absence */
         case "stare": return row.absent
-          ? `<span class="e-permits-workplace__date-stack"><span>${tag("Absent", "accent")}</span><span class="e-permits-workplace__date-meta" data-cell-tooltip="${esc(absenceLine(row.absence))}">${esc(row.absence.type)}${row.absence.to ? ` · până la ${esc(long(row.absence.to))}` : " · fără dată de sfârșit"}</span></span>`
+          ? `<span class="e-permits-workplace__date-stack"><span>${tag("Absent", "accent")}</span><span class="e-permits-workplace__date-meta" data-cell-tooltip="${esc(absenceLine(row.absence))}"><span class="e-permits-abs-kind e-permits-abs-kind--${typeMeta(row.absence.type).tone}">${typeIcon(row.absence.type)}${esc(row.absence.type)}</span>${row.absence.to ? ` · până la ${esc(long(row.absence.to))}` : " · fără dată de sfârșit"}</span></span>`
           : '<span class="e-permits-abs-muted">Disponibil</span>';
         /* AC-10: the open dossiers of an absent specialist stand out */
         case "dosare": return row.absent && row.dosare

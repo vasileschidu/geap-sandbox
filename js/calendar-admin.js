@@ -42,6 +42,9 @@
   const CASE_AUTHORITY = "ANSP";
   const TYPES = { nelucratoare: "Zi nelucrătoare", lucratoare: "Zi lucrătoare" };
   const TYPE_TONE = { nelucratoare: "neutral", lucratoare: "brand" };
+  /* calendar-views-v2: colour is never the only signal — each event type has its sprite icon (list tag, calendar chips,
+     popover); the absent counter keeps `people` */
+  const TYPE_ICON = { nelucratoare: "calendar-remove", lucratoare: "reschedule" };
   const NATIONAL = "Toată țara";
 
   const params = new URLSearchParams(window.location.search);
@@ -63,7 +66,7 @@
   const nowIso = () => { const d = new Date(); return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`; };
   /* Romanian counts: 1 dosar · 2–19 dosare · 20+ de dosare */
   const plural = (n, one, many) => `${n} ${n === 1 ? one : n % 100 >= 20 || (n % 100 === 0 && n) ? `de ${many}` : many}`;
-  const tag = (label, tone = "neutral") => window.GEAPTag?.html(label, tone) || esc(label);
+  const tag = (label, tone = "neutral", iconName = "") => window.GEAPTag?.html(label, tone, iconName ? { icon: iconName } : undefined) || esc(label);
   const userName = () => A().currentUserName?.() || "Anastasia Cojocaru";
   const currentYear = () => new Date().getFullYear();
   /* US-283 AC-03: the year filter = current year − 1 … + 2 */
@@ -171,7 +174,7 @@
             <span>${esc(longDate(row.date))}</span>
             <span class="e-permits-workplace__date-meta">${esc(weekday(row.date))}</span>
           </span>`;
-        case "tip": return tag(TYPES[row.type], TYPE_TONE[row.type]);
+        case "tip": return tag(TYPES[row.type], TYPE_TONE[row.type], TYPE_ICON[row.type]);
         case "motiv": return `<span data-cell-tooltip="${esc(row.reason)}">${esc(row.reason)}</span>`;
         case "domeniu": return `<span data-cell-tooltip="${esc(row.domain)}">${esc(row.domain)}</span>`;
         case "sursa": return esc(row.source);
@@ -716,6 +719,7 @@
       <span class="checkbox-texts"><span class="checkbox-label">${esc(label)}</span></span>
     </label>`;
   /* layers (Google-Calendar-like) + the colour legend */
+  const LEGEND_ICON = { "is-off": "calendar-remove", "is-on": "reschedule", "has-absences": "people" };
   const barHtml = () => {
     const legend = [
       ...(CV.layers.events ? [["is-off", "Zi nelucrătoare"], ["is-on", "Zi lucrătoare transferată"]] : []),
@@ -730,7 +734,7 @@
           ${absencesAvailable() ? checkHtml("absences", "Absențe", CV.layers.absences) : ""}
         </div>
         <ul class="e-permits-cal-legend" aria-label="Legendă">
-          ${legend.map(([cls, label]) => `<li><span class="e-permits-cal-mark ${cls}" aria-hidden="true">${cls === "has-absences" ? "" : "8"}</span>${esc(label)}</li>`).join("")}
+          ${legend.map(([cls, label]) => `<li><span class="e-permits-cal-mark ${cls}" aria-hidden="true">${cls === "has-absences" ? "" : "8"}</span>${LEGEND_ICON[cls] ? icon(LEGEND_ICON[cls], "icon small e-permits-cal-legend__icon") : ""}${esc(label)}</li>`).join("")}
         </ul>
       </div>`;
   };
@@ -774,7 +778,7 @@
         <ul class="e-permits-fo-intent-menu e-permits-stack__menu e-permits-cal-people" id="${id}" role="menu" aria-label="${esc(`Absenți pe ${longDate(iso)}`)}" hidden data-stack-menu data-stack-menu-fixed>
           ${list.map((a) => `<li role="none"><button class="e-permits-fo-intent-menu__item e-permits-cal-people__item" type="button" role="menuitem" data-cal-absence="${esc(a.id)}">
             <span class="e-permits-cal-people__name">${esc(a.name)}</span>
-            <span class="e-permits-cal-people__meta">${esc(a.type)} · ${esc(a.period)}</span>
+            <span class="e-permits-cal-people__meta e-permits-abs-kind e-permits-abs-kind--${esc(a.tone || "neutral")}">${a.icon ? icon(a.icon, "icon small") : ""}<span>${esc(a.type)} · ${esc(a.period)}</span></span>
           </button></li>`).join("")}
         </ul>
       </div>`;
@@ -788,7 +792,7 @@
     : `<div class="e-permits-fo-intent-menu e-permits-stack__menu e-permits-cal-pop" id="${id}" role="dialog" aria-label="${esc(longDate(iso))}" hidden data-stack-menu data-stack-menu-fixed>
         <p class="e-permits-cal-pop__title">${esc(`${longDate(iso)}, ${weekday(iso)}`)}</p>
         ${list.length
-          ? `<ul class="e-permits-cal-pop__list">${list.map((r) => `<li class="e-permits-cal-pop__row">${tag(TYPES[r.type], TYPE_TONE[r.type])}<span class="e-permits-cal-pop__text">${esc(r.reason)}</span><span class="e-permits-cal-pop__meta">${esc(r.domain)} · ${esc(r.source)}</span></li>`).join("")}</ul>`
+          ? `<ul class="e-permits-cal-pop__list">${list.map((r) => `<li class="e-permits-cal-pop__row">${tag(TYPES[r.type], TYPE_TONE[r.type], TYPE_ICON[r.type])}<span class="e-permits-cal-pop__text">${esc(r.reason)}</span><span class="e-permits-cal-pop__meta">${esc(r.domain)} · ${esc(r.source)}</span></li>`).join("")}</ul>`
           : `<p class="e-permits-cal-pop__text">${weekendIso(iso) ? "Zi de odihnă (weekend). Nicio excepție în calendar." : "Zi lucrătoare. Nicio excepție în calendar."}</p>`}
       </div>`);
   function cellHtml(iso, list = [], absent = null) {
@@ -808,7 +812,7 @@
       <button class="e-permits-cal-day${pop ? " e-permits-stack__menu-trigger" : ""}" type="button" aria-label="${esc(label)}" data-cal-focus="day-${iso}" ${pop ? `aria-haspopup="${edit ? "menu" : "dialog"}" aria-expanded="false" aria-controls="${popId}" data-stack-menu-trigger` : `data-cal-day="${iso}"`}>
         <span class="e-permits-cal-day__num">${Number(iso.slice(8))}</span>
         ${absent ? '<span class="e-permits-cal-day__dot" aria-hidden="true"></span>' : ""}
-        ${shown.length ? `<span class="e-permits-cal-day__events" aria-hidden="true">${shown.map((r) => `<span class="e-permits-cal-day__event is-${r.type === "nelucratoare" ? "off" : "on"}" data-cell-tooltip="${esc(r.reason)}">${esc(r.reason)}</span>`).join("")}${list.length > shown.length ? `<span class="e-permits-cal-day__more">+${list.length - shown.length}</span>` : ""}</span>` : ""}
+        ${shown.length ? `<span class="e-permits-cal-day__events" aria-hidden="true">${shown.map((r) => `<span class="e-permits-cal-day__event is-${r.type === "nelucratoare" ? "off" : "on"}">${icon(TYPE_ICON[r.type], "icon small")}<span data-cell-tooltip="${esc(r.reason)}">${esc(r.reason)}</span></span>`).join("")}${list.length > shown.length ? `<span class="e-permits-cal-day__more">+${list.length - shown.length}</span>` : ""}</span>` : ""}
       </button>`;
     return `
       <td class="e-permits-cal-month__cell${weekendIso(iso) ? " is-weekend" : ""}${k ? ` is-${k}` : ""}${today ? " is-today" : ""}">
@@ -854,7 +858,7 @@
             <span class="e-permits-cal-mark${k ? ` is-${k}` : weekendIso(iso) ? " is-weekend" : ""}${iso === todayIso() ? " is-today" : ""}" aria-hidden="true">${Number(iso.slice(8))}</span>
             <span class="e-permits-cal-agenda__text">
               <span class="e-permits-cal-agenda__date">${esc(`${longDate(iso)}, ${weekday(iso)}`)}</span>
-              ${list.map((r) => `<span class="e-permits-cal-agenda__event">${esc(r.reason)}</span>`).join("")}
+              ${list.map((r) => `<span class="e-permits-cal-agenda__event">${icon(TYPE_ICON[r.type], "icon small")}<span>${esc(r.reason)}</span></span>`).join("")}
             </span>
             ${absent.get(iso) ? absentMenu(iso, absent.get(iso), "-agenda") : ""}
           </li>`;

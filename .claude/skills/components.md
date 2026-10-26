@@ -382,7 +382,7 @@ but this doc previously described it wrongly, see the entry.
 | Absențe · Distribuire · Politica de distribuire · Încărcarea echipei (absences-dist-v1, 2026-10-26; US-312…316, US-291, US-289, US-294) | user profile tabs „Absențe” / „Distribuire” (+ „Profilul meu”) = `.e-permits-abs-tab[data-abs-root]` (flex column, gap 16) > Alert card `.e-permits-abs-alert` (open dossiers) + BO stacked list / passport block; sort = `.e-permits-abs-sort` (a `btn btn-neutral btn-sm` with `icon-sort` + the stack menu, `menuitem[aria-current]` + trailing `.e-permits-abs-sort__check`); dialogs in `#case-action-modal` with `.e-permits-abs-modal` (FO fields in `.e-permits-user-create__grid`, library date picker, counter textarea); competences editor `.e-permits-abs-comp` > `.e-permits-abs-comp__head` + `ul.e-permits-abs-comp__list` > `li.e-permits-abs-comp__row` (service select · type select · red icon-only trash) + `.e-permits-abs-comp__error`; registries `absente` / `echipa` (text + Small tag in one cell `.e-permits-abs-type`, `tr.e-permits-abs-row--past` quieter text, `tr.e-permits-abs-row--absent`, load = `.e-permits-abs-load` > product Meter + `.e-permits-abs-load__value`); secondary words `.e-permits-abs-muted`; policy page = profile panel with `.e-permits-abs-pol-lead` (the notes above the first card, gap 8), white cards `.e-permits-ntpl-card.e-permits-abs-pol-card`, US-290 field look (`.e-permits-cfg-dp__label`, `.e-permits-cfg-dp__ramp`), header status `.e-permits-abs-pol-status`, effective value `.e-permits-abs-eff` | `js/absences.js` (`GEAPAbsences`, `GEAPAbsencesUi`), `css/absences.css`, `data/absences.json`; shell hooks `window.GEAPShellUserTabs` / `GEAPShellUserEvents`; section „Absențe, distribuire, politică, încărcarea echipei”; demo `abs-01…05i`, `dset-01…05`, `pol-01…06`, `team-01…04` | app |
 | View switch — „Listă / Calendar”, „Listă / Cronologie”, „Săptămână / Lună” (calendar-views-v1, 2026-10-26) | ONE helper `GEAPViewSwitch.html({ key, label, value, items, className })` (`js/view-switch.js`) → the library `div.segmented-control.segmented-control--compact.e-permits-view-switch[role=radiogroup][data-view-switch]` > `button.segment-item[role=radio][aria-checked][data-view-value]` (roving tabindex, ← → ↑ ↓ Home End), `GEAPViewSwitch.on(key, fn)` / `.set(root, value)`; in a BO registry toolbar it sits right, before the table tools (`.e-permits-cal-switch` / `.e-permits-abs-switch` shown only on their registry); phones track 48 · items 40 · 16/24 (`css/view-switch.css`) | section „View switch — Listă / Calendar / Cronologie”; demo cal-08, abs-06 | app |
 | Calendar view — year / month (Administrare › Calendar, calendar-views-v1; proposal beyond US-283, list = default) | board `section.e-permits-cal-board[data-cal-board]` (after the registry table; `[data-registry-kind="calendar"][data-cal-view="calendar"]` hides table + pager) > bar `.e-permits-cal-board__bar` (layers `.e-permits-cal-layers` = library `label.checkbox.checkbox--medium.e-permits-cal-layer` + legend `ul.e-permits-cal-legend` with `.e-permits-cal-mark` `is-off · is-on · is-weekend · is-today · has-absences`); year `.e-permits-cal-year` > 12 × `button.e-permits-cal-mini[data-cal-month]` (`__title`, `__grid` aria-hidden, `__wd`, `__day.is-*`); month `.e-permits-cal-month-head` (library breadcrumb „‹ 2026” + `h2.__title` + `__nav` Small icon buttons) + `.e-permits-cal-month-wrap > table.e-permits-cal-month` (`td.e-permits-cal-month__cell.is-*` > `.e-permits-cal-month__inner` > `button.e-permits-cal-day` (`__num`, `__events > __event.is-off/on`, `__more`, phone `__dot`) + absent counter `.e-permits-cal-absent` = stack-menu wrap with `btn btn-neutral btn-sm` „N absenți” → `ul.e-permits-cal-people` (two-line `e-permits-fo-intent-menu__item.e-permits-cal-people__item`)); read-only day popover `div.e-permits-stack__menu.e-permits-cal-pop[role=dialog]` (`__title`, `__list`, `__row`, `__text`, `__meta`); phones `ul.e-permits-cal-agenda` (`__item`, `__text`, `__date`, `__event`) | `js/calendar-admin.js` (calendar-views block), `css/calendar.css`; section „Calendar view — year / month”; demo cal-08…08j | app |
-| Absences timeline — „Cronologie” (Absențele echipei, Supervisor, calendar-views-v1; proposal beyond US-312, list = default) | board `section.e-permits-abs-board[data-abs-board]` (`[data-registry-kind="absente"][data-abs-view="timeline"]` hides table, pager, status tabs, „N câmpuri”) > `.e-permits-abs-tl__bar` (`__nav`: „Azi” `btn btn-neutral btn-sm` + ‹ › icon-only Small + `h2.__title`; `.e-permits-abs-tl__scale` = the view switch Săptămână / Lună) + legend `ul.e-permits-abs-tl__legend` (`__swatch--brand · danger · success · neutral · accent · off`) + `div.e-permits-workplace__table-wrap.e-permits-abs-tl__scroll > table.e-permits-abs-tl(--month / --week)`: `th.e-permits-abs-tl__person` (pinned; `__who` = library `avatar avatar--xs avatar--initials e-permits-workplace__user-avatar` + `__name`), `th.e-permits-abs-tl__day.is-off/.is-holiday/.is-today` (`__wd`, `__num`), `td.e-permits-abs-tl__cell.is-off/.is-today`, bar `button.e-permits-abs-tl__item--{tone}(.is-cut-start/.is-cut-end)[data-abs-edit][data-abs-span]` (one per absence, absolute in its first day, width `--abs-tl-span` columns, tooltip `data-tooltip-text`) | `js/absences.js` (Cronologie block), `css/absences.css`; section „Absences timeline — Cronologie”; demo abs-06…06g | app |
+| Absences timeline — „Cronologie” (Absențe / Absențele echipei — Central, Local, Supervisor since calendar-views-v2; proposal beyond US-312, list = default) | board `section.e-permits-abs-board[data-abs-board]` (`[data-registry-kind="absente"][data-abs-view="timeline"]` hides table, pager, status tabs, „N câmpuri”) > `.e-permits-abs-tl__bar` (`__nav`: „Azi” `btn btn-neutral btn-sm` + ‹ › icon-only Small + `h2.__title`; `.e-permits-abs-tl__scale` = the view switch Săptămână / Lună) + legend `ul.e-permits-abs-tl__legend` (`__swatch--brand · warning · violet · success · neutral · off`, each with the type icon) + `div.e-permits-workplace__table-wrap.e-permits-abs-tl__scroll > table.e-permits-abs-tl(--month / --week)`: `th.e-permits-abs-tl__person` (pinned; `__who` = library `avatar avatar--xs avatar--initials e-permits-workplace__user-avatar` + `__id` > `__name` + admins `__sub` subdivision), `th.e-permits-abs-tl__day.is-off/.is-holiday/.is-today` (`__wd`, `__num`), `td.e-permits-abs-tl__cell.is-off/.is-today`, bar `button.e-permits-abs-tl__item--{tone}(.is-cut-start/.is-cut-end)[data-abs-edit][data-abs-span]` (one per absence, absolute in its first day, width `--abs-tl-span` columns, tooltip `data-tooltip-text`) | `js/absences.js` (Cronologie block), `css/absences.css`; section „Absences timeline — Cronologie”; demo abs-06…06g | app |
 | Date input · File input · Menu · Phone input · Segmented controls | — | see `Components/` | **library, no contract documented** |
 
 The last row is honest about a real gap: those previews exist, but no class contract was
@@ -9442,7 +9442,7 @@ Working days come from `js/working-days.js` (`GEAPWorkingDays.workingDaysBetween
   one journal entry per parameter (AC-16). The US-290 passport inherits from it: `GEAPAbsences.policyFor(service authority)`
   + `GEAPAbsences.FACTORS` replace the old `DIST_POLICY` / `DIST_FACTORS` stand-ins (svc-10dp…).
 - **Încărcarea echipei (US-294)** — Supervisor „Locul de muncă › Încărcarea echipei”, registry kind `echipa`: Specialist
-  (+ „Nou” brand tag, tooltip „luna n din 6”) · Stare azi (accent „Absent” over „Concediu · până la …”, or „Disponibil”) ·
+  (+ „Nou” brand tag, tooltip „luna n din 6”) · Stare azi (accent „Absent” over „<type icon> Concediu anual · până la …”, or „Disponibil”) ·
   Dosare active (= under examination in the subdivision, the same set „Dosarele subdiviziunii” lists; absent → danger tag
   „N dosare de preluat”, AC-10) · Termene în risc (≤ 3 working days or past) · Încărcare (Meter vs the effective
   „Încărcarea maximă” + „36,3 h / 140”) · Norma · ⋮ Vezi dosarele / Redistribuie dosarele / Vezi absențele. Row = its
@@ -9530,7 +9530,7 @@ GEAPViewSwitch.set(root, value);                            // paint only
 In a BO registry the module inserts it once before `.e-permits-workplace__table-tools` (right side; the tools lose their
 own `margin-left: auto`); the toolbar markup is shared, so each switch has a class hidden on other registries
 (`css/view-switch.css`). The list stays the default view; the view lives in the module (not the address). Used by
-Administrare › Calendar („Listă / Calendar”), Absențele echipei („Listă / Cronologie”, Supervisor only) and the
+Administrare › Calendar („Listă / Calendar”), Absențe / Absențele echipei („Listă / Cronologie”, every role with the list since calendar-views-v2) and the
 timeline period („Săptămână / Lună”). Rules: labels only (no icons — the library item has no icon slot), never mix
 independent toggles into it (lesson pd-view-switch-v1).
 
@@ -9545,6 +9545,11 @@ User-approved proposal: US-283 describes only the list, which stays the default.
 | Month | library breadcrumb „‹ 2026” (one parent = the back pair) + H2 „Iulie 2026” + ‹ › (Small icon-only; at the first / last month of the tabs `aria-disabled` + reason, the year tab follows across years) + a Monday-first table (Romanian day names; phones L M M J V S D) | a day → see below |
 | Day | editor (Administrator central): no event → „Adaugă zi” prefilled (date + the type that date can take nationally: weekend → Zi lucrătoare); one event → „Editare zi”; two → a menu (Editează: … · Adaugă zi pe această dată). Viewer (Administrator local): read-only popover `.e-permits-cal-pop` (date, tag, reason, domain · source) | the existing dialogs only |
 
+Icons + contrast (calendar-views-v2): colour is never the only signal — the event chips, the list's „Tip eveniment”
+tag, the popover tag and the legend carry the sprite icon (`calendar-remove` = Zi nelucrătoare, `reschedule` = Zi
+lucrătoare transferată, `people` = absent counter / legend); a transferred working day's number also gets a 1px brand
+ring; the absences dot is neutral (inverse) — amber is sick leave; weekend numbers on the grey cell are secondary text
+(tertiary on grey 100 = 4.2:1). Tints measured: brand 5.5 · danger 5.5 · warning 4.75 · positive 4.9 · purple 6.5 : 1.
 Colours (one look: legend, mini days, month numbers, event chips): non-working exception = danger secondary bg + danger
 on-secondary text; transferred working day = brand secondary (as the „Zi lucrătoare” tag); weekend = tertiary text,
 cell grey `--color-background-base-secondary`; today = inverse circle. Layers (Google Calendar): library checkboxes
@@ -9567,12 +9572,27 @@ period switch is the view switch. Weekends and non-working days (`GEAPWorkingDay
 shaded down every row; a holiday's number is danger-coloured with its name as tooltip; today = inverse number + a
 brand-secondary column outline. One bar per absence (`button.e-permits-abs-tl__item`, in the first visible day, width
 `calc(100% * --abs-tl-span − 4)`; rows keep one cell per day so the pinned column keeps its edge — colspan rows lose
-the js/table-pin-shadow.js edge), tone by type: Concediu brand · Concediu medical danger · Delegație positive ·
-Suspendare neutral (unknown types accent), cut ends square, label sticky past the pinned column, hover = the tone's
+the js/table-pin-shadow.js edge), tone + sprite icon by type (calendar-views-v2, user: „the icons are important” — colour is never the only signal; ONE
+map `ABS_TYPES` in js/absences.js): Concediu anual brand `vacation` · Concediu medical warning (amber) `health` · Concediu
+de maternitate violet (`--purple-*`; the list tag = the product violet tone) `child` · Delegație positive `suitcase` ·
+Suspendare neutral `pause` — the same icon in the bar, the legend swatch, the list's type tag (`GEAPTag` with `icon`),
+the profile list title / team load / calendar absent list (`.e-permits-abs-kind--{tone}` = icon in the tone + text);
+the tooltip stays text (type + period). Cut ends square, label sticky past the pinned column, hover = the tone's
 secondary-hover, tooltip type + period, click = the existing „Modifică absența” (`data-abs-edit`). Search = the names;
 „Filtre” keeps only people with a matching absence; the status tabs are hidden (the timeline is the time filter) and
 „Toate” applies while it shows, the list's tab comes back on „Listă”. Demo: abs-06 month · 06a week · 06b bar
-tooltip · 06c bar → dialog · 06d search · 06e Filtre · 06f next month · 06g month on phones.
+tooltip · 06c bar → dialog · 06d search · 06e Filtre · 06f next month · 06g month on phones. · 06h Central admin (subdivision · authority under the name) · 06i Local admin.
+
+**Types (calendar-views-v2).** The stories disagree: the calendar stories (US-283…286) name Concediu anual · Concediu
+medical · Concediu de maternitate · Delegație; the absences data model (US-314) names Concediu · Concediu medical ·
+Delegație · Suspendare. The prototype uses the union with the calendar's names: Concediu anual · Concediu medical ·
+Concediu de maternitate · Delegație · Suspendare (old „Concediu” rows are read as „Concediu anual”) — PO question.
+
+**Labels + tabs (calendar-views-v2, user: „do best practice”).** „Cronologie” (the Romanian name of a timeline view,
+as in Google Workspace), periods „Săptămână / Lună” (Google Calendar RO), counter „N absenți” (Romanian plural rules:
+1 absent · 2–19 absenți · 20 de absenți). The status tabs are hidden while the timeline shows: they are a time filter
+and the timeline's own period navigation replaces it (Timetastic / Freshteam / Google Calendar have no status tabs on
+the timeline); „Toate” applies underneath, the list gets its tab back on „Listă”.
 
 ## 5. Removed from this document
 
