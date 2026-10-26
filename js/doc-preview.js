@@ -349,6 +349,12 @@
     const digits = (text.replace(year, "").match(/\d+/g) || ["0"]).pop();
     return kind === "act" ? `P-${digits.slice(-4).padStart(4, "0")}/${year}` : `C${digits.slice(-6).padStart(6, "0")}/${year}`;
   };
+  /* the permanent public verification link printed under the QR (AC-15), never the prototype's own address:
+     an act = its RAP page „rap.gov.md/act/p-9031-2026”; every other document = „evo.gov.md/verificare/<type>-<number>” */
+  const verifySlug = (number) => String(number ?? "").replace(/[^\dA-Za-z]+/g, "-").replace(/^-|-$/g, "").toLowerCase();
+  const verifyUrl = (type, number) => (type === "act"
+    ? `https://rap.gov.md/act/${verifySlug(mdocsNumber(number, "act"))}`
+    : `https://evo.gov.md/verificare/${type}-${verifySlug(number)}`);
 
   /* the issuing authorities' profile data (demo — the real system reads the authority / subdivision profile at
      generation time, AC-12); unknown authorities get a derived address on gov.md */
@@ -682,8 +688,7 @@
     const legal = spec.legal || (type === "certificat" ? [LEGAL.sia, `Data și ora generării: ${generated}.`, LEGAL.personal]
       : isAct ? [LEGAL.evo(generated), LEGAL.rap, LEGAL.personal]
       : [LEGAL.evo(generated), isDecision ? LEGAL.replicaSigned : LEGAL.replica, LEGAL.personal]);
-    const verifyCode = `${type}-${number.replace(/[^\dA-Za-z]+/g, "-")}`.toLowerCase();
-    const qrUrl = spec.qrUrl || `https://evo.gov.md/verificare/${verifyCode}`;
+    const qrUrl = spec.qrUrl || verifyUrl(type, number);
     const typeLabel = MDOCS_TYPES[type];
     const textOf = (value, html) => (value ? (Array.isArray(value) ? { paragraphs: value } : value) : html ? { html } : null);
     return {
@@ -757,7 +762,7 @@
   };
 
   window.GEAPDocPreview = {
-    fit, paginate, print, printIcon, signatureHtml, mdocsHtml, mdocsRows, mdocsNumber, mdocsDate, mdocsState, issuer, MDOCS_TYPES,
+    fit, paginate, print, printIcon, signatureHtml, mdocsHtml, mdocsRows, mdocsNumber, mdocsDate, verifyUrl, mdocsState, issuer, MDOCS_TYPES,
     /* the document system (mdocs-system-v1): modules, templates, data, page shell, QR — the specimen (mdoc-sys) and
        any new document type compose these */
     mdoc: { MODULES, TEMPLATES, data: mdocData, render: renderDoc, qrSvg, stamp: mdocsStamp }

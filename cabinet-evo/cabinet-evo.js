@@ -848,7 +848,7 @@
       groups: actGroups(act),
       url: `${window.location.origin}${window.location.pathname}?view=acte&act=${encodeURIComponent(act.id)}`,
       /* US-310 AC-09: the QR on the act PDF = the act's permanent address in the Registrul Actelor Permisive */
-      registryUrl: `https://rap.gov.md/act/${encodeURIComponent(window.GEAPDocPreview?.mdocsNumber(act.number, "act") || act.number)}`,
+      registryUrl: window.GEAPDocPreview?.verifyUrl("act", act.number),
       source: "EVO Cabinet",
       signed: !act.paper,
     };

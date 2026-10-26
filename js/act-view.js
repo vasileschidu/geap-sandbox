@@ -242,7 +242,8 @@
         rowsHtml,
         closingHtml: '<p class="rap-act-doc__closing">Actul permisiv se eliberează pentru desfășurarea activității indicate, în condițiile legii.</p>',
         signers: act.signers,
-        qrUrl: act.registryUrl || act.url
+        /* the QR link = the act's public RAP address (rap.gov.md/act/<number slug>), never the prototype's own URL */
+        qrUrl: act.registryUrl || undefined
       }) || "";
     };
 
