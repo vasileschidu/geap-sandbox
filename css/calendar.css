@@ -221,7 +221,7 @@
 /* ---- year: 12 compact months */
 .e-permits-cal-year {
   display: grid;
-  gap: var(--spacing-16, 16px);
+  gap: var(--spacing-8, 8px);
   grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
@@ -240,12 +240,28 @@
   gap: var(--spacing-12, 12px);
   padding: var(--spacing-16, 16px);
   text-align: left;
-  transition: background-color 180ms var(--motion-easing-decelerate, cubic-bezier(0, 0, 0.2, 1)), transform 180ms var(--motion-easing-decelerate, cubic-bezier(0, 0, 0.2, 1));
+  isolation: isolate;
+  position: relative;
 }
 
-.e-permits-cal-mini:hover {
+/* v7 (user): only the grey hover surface grows (0.96 → 1, 180 ms decelerate); the month content never moves. Gap 8 >
+   the 0 px the surface reaches past the card, so it never touches a neighbour */
+.e-permits-cal-mini::before {
   background: var(--color-background-base-tertiary, #f1f1f1);
-  transform: scale(1.02);
+  border-radius: inherit;
+  content: "";
+  inset: 0;
+  opacity: 0;
+  pointer-events: none;
+  position: absolute;
+  transform: scale(0.96);
+  transition: opacity 180ms var(--motion-easing-decelerate, cubic-bezier(0, 0, 0.2, 1)), transform 180ms var(--motion-easing-decelerate, cubic-bezier(0, 0, 0.2, 1));
+  z-index: -1;
+}
+
+.e-permits-cal-mini:hover::before {
+  opacity: 1;
+  transform: scale(1);
 }
 
 .e-permits-cal-mini:focus-visible {
@@ -253,7 +269,9 @@
   outline: none;
 }
 
+/* the title text starts where the centred „L” glyph starts: (column − L advance 0.6 em of 12) / 2 — 8.4 at 24 */
 .e-permits-cal-mini__title {
+  padding-left: calc((var(--spacing-24, 24px) - var(--font-size-fs-12, 12px) * 0.6) / 2);
   color: var(--color-text-base-default, #121212);
   font-size: var(--font-size-fs-16, 16px);
   font-weight: var(--font-weight-fw-semibold, 600);
@@ -683,6 +701,10 @@
     grid-template-columns: repeat(7, var(--spacing-20, 20px));
   }
 
+  .e-permits-cal-mini__title {
+    padding-left: calc((var(--spacing-20, 20px) - var(--font-size-fs-12, 12px) * 0.6) / 2);
+  }
+
   .e-permits-cal-mini__wd {
     line-height: var(--line-height-lh-20, 20px);
   }
@@ -808,7 +830,8 @@
     transition: none;
   }
 
-  .e-permits-cal-mini:hover {
+  .e-permits-cal-mini::before {
     transform: none;
+    transition: none;
   }
 }
