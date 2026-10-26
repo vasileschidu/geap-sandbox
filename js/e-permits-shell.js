@@ -1474,7 +1474,14 @@ document.addEventListener("DOMContentLoaded", () => {
             : db.specialisti[1 + Math.floor(rnd() * (db.specialisti.length - 1))];
         const repartizatDe = isUnassigned ? null : pick(db.specialisti, rnd);
         const dataDepunerii = addDays(today, -Math.floor(rnd() * 75));
-        const termenExaminare = addDays(dataDepunerii, 10 + Math.floor(rnd() * 21));
+        /* calendar-v1: the examination term is counted in WORKING days on the calendar of Administrare › Calendar
+           (js/working-days.js — holidays, transfers, the ANSP's own days); the same random draw as before, turned
+           from calendar days into working days (×5/7), so the seed keeps its spread and every other field */
+        const termenCalendar = 10 + Math.floor(rnd() * 21);
+        const termenZile = Math.round((termenCalendar * 5) / 7);
+        const termenExaminare = window.GEAPWorkingDays
+          ? parseIsoDate(window.GEAPWorkingDays.addWorkingDays(toIsoDate(dataDepunerii), termenZile, "ANSP"))
+          : addDays(dataDepunerii, termenCalendar);
         const alerte = [];
 
         if (alerts?.length && rnd() > 0.28) {
@@ -1521,6 +1528,8 @@ document.addEventListener("DOMContentLoaded", () => {
           subdiviziune: rnd() < 0.72 ? db.mySubdiviziune : pick(otherSubdiviziuni, rnd),
           dataDepunerii: toIsoDate(dataDepunerii),
           termenExaminare: toIsoDate(termenExaminare),
+          /* calendar-v1: the term in working days — US-288 recalculates termenExaminare from it after a calendar change */
+          termenZile,
           dataSemnarii: ["semnat", "eliberat"].includes(status)
             ? toIsoDate(addDays(today, -Math.floor(rnd() * 14)))
             : null,
@@ -2216,7 +2225,8 @@ document.addEventListener("DOMContentLoaded", () => {
       case "dataDepunerii":
         return [formatLongDate(row.dataDepunerii)];
       case "termenExaminare":
-        return [formatLongDate(row.termenExaminare), daysUntil(row.termenExaminare) < 0 ? "depășit" : "rămase"];
+        /* calendar-v1: the width pass measures the real meta line („12 zile lucrătoare rămase”) */
+        return [formatLongDate(row.termenExaminare), termenLeft(row).short];
       case "dataSemnarii":
         return [formatLongDate(row.dataSemnarii)];
       case "actBaza":
@@ -2439,28 +2449,49 @@ document.addEventListener("DOMContentLoaded", () => {
     `;
   };
 
+  /* calendar-v1: the time left of an examination term in WORKING days (js/working-days.js, the calendar of
+     Administrare › Calendar, ANSP's own days included): „3 zile lucrătoare rămase” · „expiră azi” ·
+     „depășit cu 2 zile lucrătoare”; without the engine, the old calendar-day count */
+  const termenLeft = (row) => {
+    const engine = window.GEAPWorkingDays;
+    const today = dossierDb?.today || workplaceDb?.today;
+    if (!engine || !today || !row.termenExaminare) {
+      const days = daysUntil(row.termenExaminare);
+      const text = days < 0 ? `${Math.abs(days)} z. depășit` : `${days} z. rămase`;
+      return { days, text, short: text };
+    }
+    const days = engine.workingDaysBetween(today, row.termenExaminare, "ANSP");
+    const count = (n, one, many) => `${n} ${n === 1 ? one : n % 100 >= 20 || (n % 100 === 0 && n) ? `de ${many}` : many}`;
+    /* `short` = the list cell (the old „z.” abbreviation, the full words in its tooltip) */
+    if (days > 0) return { days, text: count(days, "zi lucrătoare rămasă", "zile lucrătoare rămase"), short: `${days} z. lucr. ${days === 1 ? "rămasă" : "rămase"}` };
+    if (days === 0) { const text = row.termenExaminare < today ? "termen depășit" : "expiră azi"; return { days, text, short: text }; }
+    return { days, text: `depășit cu ${count(Math.abs(days), "zi lucrătoare", "zile lucrătoare")}`, short: `depășit cu ${Math.abs(days)} z. lucr.` };
+  };
+
   const renderTermen = (row) => {
-    const days = daysUntil(row.termenExaminare);
+    const { days, text, short } = termenLeft(row);
     const done = ["eliberat", "respins", "arhivat", "semnat"].includes(row.status);
     let meta = "";
     let tone = "muted";
 
     if (!done) {
-      if (days < 0) {
-        meta = `${Math.abs(days)} z. depășit`;
+      if (days < 0 || (days === 0 && text === "termen depășit")) {
+        meta = short;
         tone = "danger";
       } else if (days <= 3) {
-        meta = `${days} z. rămase`;
+        meta = short;
         tone = "warning";
       } else {
-        meta = `${days} z. rămase`;
+        meta = short;
       }
     }
 
+    /* calendar-v1: the cell keeps the short form („3 z. lucr. rămase”); the full words are its tooltip + accessible name */
+    const full = meta && short !== text ? ` data-tooltip-text="${escapeHtml(text)}"` : "";
     return `
       <span class="e-permits-workplace__date-stack">
         <span>${escapeHtml(formatLongDate(row.termenExaminare))}</span>
-        ${meta ? `<span class="e-permits-workplace__date-meta e-permits-workplace__date-meta--${tone}">${tone === "danger" ? '<span class="e-permits-workplace__date-dot" aria-hidden="true"></span>' : ""}${escapeHtml(meta)}</span>` : ""}
+        ${meta ? `<span class="e-permits-workplace__date-meta e-permits-workplace__date-meta--${tone}"${full}>${tone === "danger" ? '<span class="e-permits-workplace__date-dot" aria-hidden="true"></span>' : ""}${full ? `<span aria-hidden="true">${escapeHtml(meta)}</span><span class="u-visually-hidden">${escapeHtml(text)}</span>` : escapeHtml(meta)}</span>` : ""}
       </span>
     `;
   };
@@ -3019,8 +3050,8 @@ document.addEventListener("DOMContentLoaded", () => {
       return "";
     }
 
-    const days = daysUntil(row.termenExaminare);
-    return days < 0 ? `${Math.abs(days)} z. depășit` : `${days} z. rămase`;
+    /* calendar-v1: in working days (termenLeft) */
+    return termenLeft(row).text;
   };
 
   const renderDosarProfilTitle = (row) => renderPageHeaderTop({
@@ -19338,6 +19369,8 @@ document.addEventListener("DOMContentLoaded", () => {
       dossierDb = await dossierResponse.json();
       usersDb = await usersResponse.json();
       rsspDb = await rsspResponse.json();
+      /* calendar-v1: the deadlines are counted on the calendar in force (seed + the changes made in Administrare › Calendar) */
+      await window.GEAPWorkingDays?.ready;
       dossierDb.runtimeRows = buildDosare(dossierDb);
       /* US-295: the Supervisor's „Dosarele subdiviziunii” — the cases under examination of his
          subdivision, who holds them, a selection for the bulk „Redistribuie” (AC-03 / AC-17) */

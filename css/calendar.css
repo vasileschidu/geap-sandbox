@@ -1,0 +1,111 @@
+/* =====================================================================================
+   Administrare › Calendar — page glue (calendar-v1, 2026-10-26; Feature 93686, US-283…288)
+   The list is the BO registry (js/calendar-admin.js → window.GEAPShellRegistries.calendar); no new component.
+   Here: the menu icon, the description + result note above the toolbar (AC-02), the two toolbar tools
+   („Jurnal” icon-only, „Generează anul”) shown only on this registry, and the plain card tables of the dialogs.
+   components.md › „Calendar zile nelucrătoare”.
+   ===================================================================================== */
+
+/* menu icon (the BO side menu draws icons as 20 masks per data-nav-id) */
+.e-permits-shell__nav--specialist [data-nav-id="calendar"] .e-permits-shell__nav-icon::before {
+  mask-image: url("../assets/icons/calendar.svg");
+  mask-size: var(--icon-size-medium, 20px) var(--icon-size-medium, 20px);
+  -webkit-mask-image: url("../assets/icons/calendar.svg");
+  -webkit-mask-size: var(--icon-size-medium, 20px) var(--icon-size-medium, 20px);
+}
+
+/* the module's parts live in the shared registry markup: only this registry shows them */
+.e-permits-workplace:not([data-registry-kind="calendar"]) > [data-cal-intro],
+.e-permits-workplace:not([data-registry-kind="calendar"]) .e-permits-cal-tool {
+  display: none;
+}
+
+.e-permits-workplace .e-permits-cal-tool[hidden] {
+  display: none;
+}
+
+/* no checkbox column: the pinned first column (Data) carries the divider and column 2 is not pinned — the
+   registers' rule (css/registre.css), else the base rule pins „Tip eveniment” at the checkbox offset */
+.e-permits-workplace[data-registry-kind="calendar"] .e-permits-workplace__table th:nth-child(1),
+.e-permits-workplace[data-registry-kind="calendar"] .e-permits-workplace__table td:nth-child(1) {
+  border-right: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
+  left: 0;
+  position: sticky;
+  z-index: 7;
+}
+
+.e-permits-workplace[data-registry-kind="calendar"] .e-permits-workplace__table th:nth-child(1) {
+  z-index: 9;
+}
+
+.e-permits-workplace[data-registry-kind="calendar"] .e-permits-workplace__table th:nth-child(2),
+.e-permits-workplace[data-registry-kind="calendar"] .e-permits-workplace__table td:nth-child(2) {
+  border-right: 0;
+  left: auto;
+  position: static;
+  z-index: auto;
+}
+
+/* one more grid row above the header (the workplace is header · table · footer) */
+.e-permits-workplace[data-registry-kind="calendar"] {
+  grid-template-rows: auto auto minmax(0, 1fr) auto;
+}
+
+/* the description (AC-02) — 16 from the edges, on the search's left edge; the result / read-only note under it */
+.e-permits-cal-intro {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-12, 12px);
+  padding: var(--spacing-16, 16px) var(--spacing-16, 16px) var(--spacing-8, 8px);
+}
+
+.e-permits-cal-intro__text {
+  margin: 0;
+  color: var(--color-text-base-secondary, #383838);
+  font-size: var(--font-size-fs-14, 14px);
+  line-height: var(--line-height-lh-20, 20px);
+}
+
+.e-permits-cal-intro__notes {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-12, 12px);
+}
+
+.e-permits-cal-intro__notes[hidden] {
+  display: none;
+}
+
+/* „Vezi jurnalul” inside the note: the library link at the note's 14/20 */
+.e-permits-cal-intro .e-permits-cal-intro__link {
+  display: inline;
+  font-size: inherit;
+  line-height: inherit;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+}
+
+/* the toolbar has room for the two tools: no „N câmpuri” here (5 columns, nothing to count) */
+.e-permits-workplace[data-registry-kind="calendar"] .e-permits-workplace__field-count,
+.e-permits-workplace[data-registry-kind="calendar"] .e-permits-workplace__table-tools > .e-permits-workplace__tool-divider {
+  display: none;
+}
+
+.e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-workplace[data-registry-kind="calendar"] .e-permits-workplace__table-tools {
+  width: auto;
+  min-width: 0;
+  flex: 0 0 auto;
+}
+
+/* dialogs: the preview / holiday tables = the plain card table (registre.css), every column its share */
+.e-permits-cal-table .e-permits-reg-table__table :is(th, td):last-child {
+  width: auto;
+}
+
+@media (max-width: 760px) {
+  .e-permits-cal-intro {
+    padding: var(--spacing-16, 16px) var(--spacing-16, 16px) 0;
+  }
+}

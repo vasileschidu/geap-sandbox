@@ -370,6 +370,7 @@ but this doc previously described it wrongly, see the entry.
 | Ghișeu — depunere la ghișeu (Dosare noi + picker + request sheet) | small modal `#gh-start-modal.modal-overlay > .modal.modal--lg.e-permits-passport__modal.e-permits-gh` = one screen (service + applicant with the search-input lookups), hugs its content up to 24 from the viewport edges, bottom sheet ≤680 (phones ≤760 since 2026-10-19: the shared rule „Modals on phones — maximum content space”, 16 from the top, radius 16); the request window opens on the FO intent screen „Ce se solicită?” (`GEAPFormRender.intentHtml`, step `intent`, no stepper) — a choice starts the request; request = **full-screen sheet** `#gh-request-modal.modal-overlay.e-permits-gh-sheet-overlay > .modal.modal--fullscreen.e-permits-gh-sheet` (24 from the top, radius 16 top corners, header · scrolling body · sticky footer; z 990 under library dialogs) with the FO request layout `.e-permits-fo-request__inner.e-permits-gh__inner` (FO stepper `[data-gh-step]` + `.e-permits-fo-form` panel `[data-gh-panel]`); registry kind `ghiseu` via `window.GEAPShellRegistries`; routes via `window.GEAPShellRoutes`; helpers via `window.GEAPShellApi` | `js/ghiseu.js`, `css/ghiseu.css`, `data/ghiseu.json`, demo `gh-*`; section „Ghișeu — depunere la ghișeu” | app |
 | Registre — BackOffice registers (registre-v1, 2026-10-23; Epic 89620) | no new component: each register = the BO registry engine (`window.GEAPShellRegistries["reg-dosare" · "reg-acte" · "reg-note" · "reg-avize"]`, pinned first column, actions column only with a configured action) driven by `data/registre.json › registers[]`; catalog = a module page with one stacked list (lead `.e-permits-reg-catalog__icon` on the library Avatar · icon); record card = the BO profile panel (Detalii / Versiuni / Jurnalul evenimentelor); confirmations in `#case-action-modal` (`.e-permits-reg-modal`, `--confirm`, `--export`, `--event`; changes card `.e-permits-reg-changes`); Push Case = the ONE drawer (`[data-reg-push]`, steps `.e-permits-reg-steps` / `.e-permits-reg-step`, blocks `.e-permits-reg-blocks`); notices `.e-permits-reg-notices`; page `.e-permits-reg-page` | `js/registre.js`, `css/registre.css`; section „Registre — BackOffice registers”; demo reg-01…16a | app |
 | Registre — AdminPortal register builder (registre-v2, 2026-10-24; Feature 94523, US-146…150, US-193, US-215) | no new component, page glue in `css/registre.css` + `js/registre-admin.js`: list = the BO registry (`window.GEAPShellRegistries["registre-admin"]`, perimeter tabs Globale · Pe autoritate · Pe serviciu, `defaultSortDirection: "asc"` on „Poziție”); profile = the shared profile panel (`[data-rga-tab]` Informații · Coloane · Acces); forms = the ONE drawer (`[data-rga-drawer]`, `--lg` for „Istoric versiuni”); editor = the template sheet `.e-permits-ntpl-sheet.e-permits-reg-editor` > `.e-permits-reg-editor__panel` (`.e-permits-reg-editor__header`, `.e-permits-reg-editor__body`, `.e-permits-reg-editor__bar` = `.e-permits-cfg2__bar`, `.e-permits-reg-editor__close` = library `.modal-close`) with `.e-permits-reg-editor__grid` (`--3` / `--2`), `.e-permits-reg-editor__fields` (the dtpl panel `.e-permits-dtpl-fields` + `.e-permits-dtpl-fields__head` + `.e-permits-dtpl-fields__list` items `.e-permits-fo-intent-menu__item.e-permits-ntpl-picker__item`), `.e-permits-reg-editor__main`, `.e-permits-reg-editor__props`, `.e-permits-reg-editor__single`, `.e-permits-reg-editor__props-title`, `.e-permits-reg-editor__switches`, `.e-permits-reg-editor__field`, `.e-permits-reg-editor__stack` (stacked list, `.is-selected` = brand-secondary), `.e-permits-reg-editor__saved`, `.e-permits-reg-editor__rule` (the Documente rule-builder markup); icon choice `.e-permits-reg-icons` (radiogroup of library `btn btn-neutral btn-sm btn-icon-only`, selected = `btn-secondary`); tables `.e-permits-reg-table` + `.e-permits-reg-table__table` (`--access` / `--versions`) + `.e-permits-reg-table__action`; `.e-permits-reg-version`, `.e-permits-reg-access`, `.e-permits-reg-roles`; menu icons by `[data-nav-object]` | section „Registre — AdminPortal register builder”; demo reg-a01…reg-a14a | app |
+| Calendar zile nelucrătoare (calendar-v1, 2026-10-26; Feature 93686, US-283…288) | no new component: the list = the BO registry engine (`window.GEAPShellRegistries.calendar`, menu `shellView: "calendar-registry"`, year filter = the status tabs, Filtre Tip eveniment · Domeniu de aplicare · Sursă, ⋮ Editează · red Șterge, the row opens „Editare zi”); dialogs = the library `#case-action-modal` (via `GEAPRegistre.openModal`) with the case-dialog form (`.e-permits-case-form` + `.e-permits-user-create__grid` + FO field shell, library date picker, fo-select, textarea with counter) and the plain card table `.e-permits-reg-table` (+ `.e-permits-cal-table`); page glue `.e-permits-cal-intro` (+ `__text`, `__notes`, `__link`) and `.e-permits-cal-tool` in `css/calendar.css`; engine `window.GEAPWorkingDays` (`js/working-days.js`, data `data/calendar.json`) | section „Calendar zile nelucrătoare + working days”; demo cal-01…cal-07a | app |
 | Ghișeu — registry down notice (registry-down-alert-v1, 2026-10-23, user on GEAP 11850:301832) | ONE `renderNotice("warning", …, { className: "e-permits-gh__down-notice" })` (library Mesaj · subtil warning, role=status) as a full-width row right above the first lookup of the section, instead of a red error on every field: „**Registrul de stat nu răspunde acum.** Completați datele manual. Datele introduse manual se verifică la examinare.”; shown after the first lookup that could not reach MConnect, only while it is down; fields stay clean (real errors per field); manual values keep the Small warning tag „Introdus manual” (role card, Verificare) | `downNoticeHtml(slots)` in `js/ghiseu.js`, `css/ghiseu.css`; section „Ghișeu — depunere la ghișeu” › Registry down; demo gh-02f, gh-02f2, gh-02f3, gh-02f4, gh-03m, gh-03n | app |
 | Ghișeu act picker = the Cabinet act row (ghiseu-picker-toast-v1, 2026-10-23, user on GEAP 11850:27348 „as in Actele mele — only the accent is the location; remove the icon; the action fixed and square as in Solicitări”) | the shared `GEAPActRow.html` with two new options: `placeIcon: false` (line 2 without the pin) and `actionIcon: "icon-more-vertical"` (the trigger = the SQUARE `btn btn-neutral btn-sm btn-icon-only e-permits-fo-intent-act__trigger`, 32, tooltip = `actionLabel` „Postprocese”, aria-label „Postprocese pentru <loc> — <type>”, chevron rotation off, same menu; NO trigger when nothing can start — locked row or every item unavailable). Ghișeu row: no lead icon · title = the object / location + Small status tag · line 2 = the act type (service title; decision → „Decizie de respingere”) · meta = Cabinet slots number (compact copy) · authority code · subdivision · `valabil până la` / `expirat la` / `emisă acum N zile` · ⋮ in the corner. Row not clickable (as before). **Search from 8 acts** (= facet-filter SEARCH_MIN): library `.search-input.medium.rectangular.e-permits-workplace__search.e-permits-list-search.e-permits-list-search--fill[data-gh-acts-search]` in `.e-permits-gh-acts-search` (grid, gap 12) between the „Acte emise…” title and the rows (`intentHtml({ listHeadHtml })`), live, case- + diacritics-insensitive over location · type · number · subdivision; rows `hidden` in place; „Niciun rezultat” = `GEAPEmptyState.noResults` (bare + compact); count announced (role=status) | `actRowHtml` / `actsSearchHtml` / `filterActs` in `js/ghiseu.js`, `css/ghiseu.css`; demo gh-02i, gh-02j (⋮ open), gh-02t (locked, no ⋮), gh-02z (15 acts, `?acte=multe`), gh-02z1 („izvoras”), gh-02z2 (no match) | app |
 | Ghișeu submit → success toast on the list (ghiseu-picker-toast-v1, user 2026-10-23 on GEAP 11595:321749) | the window keeps the in-place confirmation (US-238 AC-04, no toast there); when the window of a dossier submitted in it closes (× / Esc / „Înapoi la Dosare noi” / „Dosar nou”), the library success toast `showShellToast("Dosarul <nr> a fost depus și trimis la distribuire.", "success")` (auto-dismiss, top-right) | `submit()` sets `S.submittedNr`, `closeSheet()` shows it once; demo gh-01t | app |
@@ -9307,6 +9308,66 @@ Four partly covered stories completed with existing components only; the CSS glu
   (once per tab; `#suplinire` always): read-only rows from `data/cabinet-evo-solicitari.json` with the AC fallbacks
   („—” / „Nedefinit”), a warning notice with the supplement term, footer back (→ Cabinet) + „Continuă” → S5 (request
   step 2, no new-draft toast); `?s5=eroare` → error notice + „Reîncercați”. Demo `fo-s4` … `fo-s4d`.
+
+### Calendar zile nelucrătoare + working days (calendar-v1, 2026-10-26; Feature 93686, US-283…288)
+
+**One engine, one screen.** `js/working-days.js` (sync in `<head>`, before the shell seeds the dossiers) =
+`window.GEAPWorkingDays`, the ONLY place that answers „is this a working day / when is the deadline”. Rule:
+Monday–Friday work; the calendar holds only exceptions — national (`authority: null`) or for one authority (code,
+e.g. „ANSP”); for a date the authority's day wins over the country's, the country's over the weekday. Data =
+`data/calendar.json` (generated by `tools/calendar/seed.mjs` with the same engine) or, after a change,
+localStorage `e-permits-calendar-v1` (demo links clear it). Tests: `node test/working-days.test.mjs`.
+
+| API (stable — the absences / distribution module reads it) | Returns |
+|---|---|
+| `ready` | Promise: seed + local changes loaded (the shell awaits it before `buildDosare`) |
+| `isWorkingDay(date, authority?)` | boolean |
+| `addWorkingDays(date, n, authority?)` | the n-th working day after `date` (0 → `date`; negative counts back) |
+| `workingDaysBetween(a, b, authority?)` | working days in (a, b]; negative when b < a |
+| `dayStatus(date, authority?)` | `{ working, exception }` |
+| `holidays(year?, { authority })` · `days({ year, includeDeleted })` | the exceptions in force / every row (copies) |
+| `nationalHolidays(year)` · `orthodoxEaster(year)` · `missingHolidays(year)` | the US-287 list (weekend flags) |
+| `create(days)` | an engine over a candidate list (what-if previews) |
+| `onChange(fn)` | unsubscribe; fires after every saved change |
+| writers `saveDay` · `deleteDay` (soft) · `addGenerated` · `log` · `journal` | Administrare › Calendar only |
+
+Dates in = `"YYYY-MM-DD"` or `Date`; dates out = `"YYYY-MM-DD"`. Day = `{ id, date, type: nelucratoare | lucratoare,
+reason, authority, source: Generat | Manual, deleted, createdBy/At, editedBy/At, deletedBy/At }`. Absences are NOT
+calendar days (user decision 2026-10-26) — they live in the user profile.
+
+**The screen** (`js/calendar-admin.js` + `css/calendar.css`), Administrare › Calendar (Central Admin edits, Local
+Admin reads, others „Nu aveți permisiunea de a accesa această pagină.” on `#calendar`):
+- **List** = the BO registry: title „Calendar zile nelucrătoare” in the top bar, the AC-02 description as
+  `p.e-permits-cal-intro__text` above the toolbar (14/20 secondary, 16 from the edges) + `__notes` (the read-only
+  notice for the Local Admin, the success notice after a change with the library link „Vezi jurnalul”); toolbar
+  search „Căutare după dată sau motiv” (date in 3 formats + weekday + reason) · Filtre · export (CSV dialog, journal
+  entry) · `.e-permits-cal-tool` „Jurnalul calendarului” (icon-only `icon-history`) · „Generează anul” (neutral,
+  `icon-calendar-add`) · primary „Adaugă zi”. „N câmpuri” is hidden here (room for the tools at 1024).
+  Year = status tabs current −1 … +2 with counts. Columns Data (long date + weekday as `__date-meta`, pinned) ·
+  Tip eveniment (Tag Small: Zi nelucrătoare neutral, Zi lucrătoare brand) · Motiv · Domeniu de aplicare („Toată
+  țara” or the authority's name) · Sursă (text) · ⋮. The workplace gets one more grid row
+  (`auto auto minmax(0, 1fr) auto`) only for this registry; the parts are hidden on every other registry.
+- **Add / Editare zi** = `#case-action-modal`: Data (date picker, span 6) · Tip eveniment (fo-select, span 6) ·
+  Domeniu de aplicare (fo-select, empty = „Toată țara”, the AC-03 hint) · Motiv (textarea, „De exemplu: Paștele,
+  transfer de pe 12.05 · n/200”). A generated day being edited shows `renderInfoNote` „…sursa ei devine «Manual»”.
+  Errors = the FO field error under the control, exact AC texts (US-284 AC-05…10).
+- **Recalculation preview (US-288)**: when the change gives any active dossier another deadline the dialog becomes
+  „Salvezi ziua și recalculezi termenele?” — lead (M of N active dossiers) + a plain card table Dosar · Termen
+  actual · Termen nou (5 rows, „Și încă …”), footer Înapoi · „Salvează și recalculează”. Delete and generate show the
+  same lead + table inside their confirm. Then toast + calendar journal entry + „Recalculare termene” by SIA GEAP.
+- **Delete** = „Ștergerea zilei din calendar” + the AC-02 text, red „Șterge” (trash); soft delete — generating the year
+  never brings it back (`missingHolidays` skips every existing national date, deleted included).
+- **Generează anul** = confirm with the plain table of the holidays to add (date + weekday · name) and a grey note
+  naming the weekend holidays that are not stored; 0 to add → the „deja în calendar” lead, the run then toasts
+  „Au fost adăugate 0 sărbători legale pentru anul {an}” (AC-08 text; friendlier wording = PO question 8).
+- **Jurnalul calendarului** = the dialog with `GEAPEventTimeline.listHtml` (newest first) + „Recalculează termenele”
+  (manual run, AC-06; Central Admin only) + „Închide”.
+- **Dossier deadlines** (shell `termenLeft`): list cell meta and the dossier header / „Date de proces” read
+  „N zile lucrătoare rămase” · „1 zi lucrătoare rămasă” · „expiră azi” · „depășit cu N zile lucrătoare” (ANSP calendar);
+  seeded deadlines = `addWorkingDays(dataDepunerii, termenZile, "ANSP")` (`row.termenZile` = the term in working days).
+Demo switches `?calendar=eroare` (AC-12) · `?calendar=autoritate` (US-284 AC-10). Not built: month view, absences in
+the calendar (Utilizator column, absence types), the 1 January job as a real scheduler (its runs are journal rows),
+a „Termen recalculat” row in each dossier's journal.
 
 ## 5. Removed from this document
 

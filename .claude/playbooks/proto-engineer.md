@@ -3901,3 +3901,22 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   time (incl. the ?v= bumps). QA: hover-audit 0 / 0 (dos-06b / 06m / 06p), code-audit {} + static 0, component-audit =
   standing shell profile-menu majors only (+ minor „converge” on the `__notices` wrapper name), capture 7 states × 2: 0
   errors / overflow.
+- 2026-10-26 · calendar-v1 (Administrare › Calendar, Feature 93686 US-283…288 + a shared working-days engine another agent
+  reads). (1) A rule engine other modules depend on = its own SYNC file with the API documented in the header
+  (`js/working-days.js` → `window.GEAPWorkingDays`), a `create(days)` factory for what-if previews, a `ready` promise the
+  shell awaits before seeding (one `await` line), formula fallback until the JSON arrives, Node-testable (UMD tail) —
+  `test/working-days.test.mjs` + a seed generator that uses the SAME engine (`tools/calendar/seed.mjs`). (2) BUG I made and
+  found only in capture's MOBILE run: the engine read its localStorage store in `<head>` BEFORE js/demo-links.js cleared
+  the demo keys → the desktop run's saved day was still there on the mobile run („există deja”). A sync script that reads
+  storage goes AFTER demo-links.js. A state that passes alone but fails as the 2nd viewport of capture = leaked storage.
+  (3) A list page that needs a description + two actions on the shared registry engine: no shell edit — the module inserts
+  its parts into the registry markup once (`afterbegin` intro, tools before `[data-workplace-add-product]`) and CSS shows
+  them only under `[data-registry-kind="calendar"]` (+ one extra grid row for that kind); registries without a checkbox
+  column need the registers' pin rule (else column 2 pins at the checkbox offset — a stray vertical line on phones).
+  (4) Seed change without reshuffling: keep the random draw, convert it (calendar ×5/7 → working days) and store the
+  term on the row (`termenZile`) so a recalculation is `addWorkingDays(dataDepunerii, termenZile)`. Long meta in a 150
+  table column → short form in the cell („3 z. lucr. rămase”, full words as tooltip + visually hidden), full words in the
+  header. (5) Demo authority codes must exist in the data (ANTA is not in services.json) — check before naming. Used Edit
+  for every shared file. No sub-agent tool → hover-audit 0 / 0 (list, 9 dialogs, row menu), code-audit (only th sort /
+  FO date toggle / fo-select placeholder chevron FPs, static 0), component-audit (0 in the calendar markup; standing shell
+  header / profile menu / th sort majors), raw-px 0.

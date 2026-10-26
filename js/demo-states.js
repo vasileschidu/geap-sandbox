@@ -3383,8 +3383,103 @@
        registre-v2 2026-10-24): reg-a01 listă · a02 creare · a03 profil · a04 editare · a05 coloane · a06 filtru ·
        a07 acțiuni · a08 publicare · a09 istoric versiuni · a10 depreciere · a11 acces · a12 Administrator local ·
        a13 permisiuni · a14 efectul în BackOffice */
-    ...regAdminDemoStates()
+    ...regAdminDemoStates(),
+
+    /* ---- Administrare › Calendar zile nelucrătoare (Feature 93686, US-283…288, js/calendar-admin.js + js/working-days.js,
+       calendar-v1 2026-10-26): cal-01 listă · 02 adaugă · 03 editează · 04 șterge · 05 generează anul · 06 jurnal +
+       recalculare · 07 termenele dosarelor în zile lucrătoare. Demo switches: calendar=eroare · calendar=autoritate */
+    ...calDemoStates()
   };
+
+  function calDemoStates() {
+    const ADMIN = "ansp-central-admin", LOCAL = "ansp-local-admin", SPEC = "ansp-specialist-chisinau";
+    const LIST = "[data-registry-kind='calendar'] tr[data-workplace-row], [data-registry-kind='calendar'] .e-permits-empty";
+    const cal = (as = ADMIN, run, params) => ({ flow: "back-office", as, hash: "#calendar", params, ready: LIST, delay: 900, run });
+    const MODAL = "#case-action-modal.is-active";
+    const seq = (...steps) => async (h) => { for (const step of steps) await step(h); };
+    const tab = (year) => async (h) => { await h.click(`[data-workplace-tab="y${year}"]`); await h.wait(300); };
+    const facet = (applied) => async (h) => {
+      window.GEAPShellApi.setRegistryFilters("calendar", applied);
+      document.querySelector('[data-nav-item][data-nav-id="calendar"]').click(); await h.wait(700);
+      /* the applied chips show in the open filter bar (desktop; phones show the count on „Filtre”) */
+      const bar = document.querySelector("[data-workplace-filters]");
+      const toggle = document.querySelector("[data-workplace-filter-toggle]");
+      if (bar?.hidden && toggle && toggle.getClientRects().length && !toggle.classList.contains("e-permits-filter-trigger--icon")) { toggle.click(); await h.wait(400); }
+    };
+    const rowMenu = (id) => async (h) => {
+      await h.click(`tr[data-workplace-row="${id}"] [data-stack-menu-trigger]`); await h.wait(200);
+    };
+    const rowAct = (id, action) => async (h) => { await rowMenu(id)(h); await h.click(`[data-cal-action="${action}"][data-cal-id="${id}"]`); await h.find(MODAL); };
+    const add = async (h) => { await h.click('[data-workplace-add-product="cal-add"]'); await h.find(`${MODAL} [data-cal-form]`); };
+    /* the form: date (typed DD/MM/YYYY), type, domain, reason */
+    const fill = ({ date = "", type = "", authority = "", reason = "" }) => async (h) => {
+      if (date) await h.fill("#cal-date", date);
+      if (type) await h.choose(`${MODAL} [data-cal-select='type']`, type);
+      if (authority) await h.choose(`${MODAL} [data-cal-select='authority']`, authority);
+      if (reason) await h.fill("#cal-reason", reason);
+    };
+    const save = async (h) => { await h.click(`${MODAL} [data-cal-save]`); await h.wait(300); };
+    const confirm = (sel) => async (h) => { await h.click(`${MODAL} ${sel}`); await h.wait(500); };
+    /* a national transfer that moves deadlines (Friday 31 July 2026, worked on Saturday 8 August) */
+    const TRANSFER = { date: "31/07/2026", type: "nelucratoare", reason: "Transfer: zi de odihnă, lucrată sâmbătă, 8 august" };
+    const generate = async (h) => { await h.click("[data-cal-generate].e-permits-cal-tool"); await h.find(MODAL); };
+    return {
+      /* US-283 — the list: 2026 (year tabs = current −1 … +2), description, Generează anul · Adaugă zi, ⋮ per row */
+      "cal-01": cal(),
+      "cal-01a": cal(ADMIN, facet({ domeniu: ["Agenția Națională pentru Sănătate Publică"] })),
+      "cal-01b": cal(ADMIN, async (h) => { await h.fill("[data-workplace-search]", "transfer"); await h.wait(300); }),
+      "cal-01c": cal(ADMIN, async (h) => { await h.fill("[data-workplace-search]", "zzz"); await h.wait(300); }),
+      "cal-01d": cal(ADMIN, tab(2028)),
+      "cal-01e": cal(LOCAL),
+      "cal-01f": { flow: "back-office", as: SPEC, hash: "#calendar", ready: "[data-reg-page]:not([hidden]) .e-permits-empty", delay: 900 },
+      "cal-01g": cal(ADMIN, async (h) => { await h.click("[data-workplace-export]"); await h.find(MODAL); }),
+      "cal-01h": cal(ADMIN, async (h) => { await h.click('[data-workplace-sort="data"]'); await h.wait(300); }),
+      "cal-01i": cal(ADMIN, facet({ tip: ["Zi lucrătoare"] })),
+      "cal-01j": cal(ADMIN, rowMenu("cal-2026-01-02")),
+      "cal-01k": cal(ADMIN, tab(2027)),
+      /* US-284 — Adaugă zi */
+      "cal-02": cal(ADMIN, add),
+      "cal-02a": cal(ADMIN, seq(add, save)),
+      "cal-02b": cal(ADMIN, seq(add, fill({ date: "31/07/2026", type: "nelucratoare", reason: "Transfer: zi de odihnă, lucrată sâmbătă, 8 august, conform Hotărârii Guvernului privind transferul zilelor de odihnă în anul 2026, publicată în Monitorul Oficial; se aplică tuturor autorităților și instituțiilor publice." }), save)),
+      "cal-02c": cal(ADMIN, seq(add, fill({ date: "15/03/2101", type: "nelucratoare", reason: "Test" }), save)),
+      "cal-02d": cal(ADMIN, seq(add, fill({ date: "25/10/2026", type: "nelucratoare", reason: "Sărbătoare" }), save)),
+      "cal-02e": cal(ADMIN, seq(add, fill({ date: "27/08/2026", type: "nelucratoare", reason: "Ziua Independenței" }), save)),
+      "cal-02f": cal(ADMIN, seq(add, fill({ date: "16/11/2026", type: "nelucratoare", authority: "AM", reason: "Zi de odihnă pentru personalul Agenției de Mediu" }), save), { calendar: "autoritate" }),
+      /* US-288 — the preview: how many active dossiers get another deadline, before saving */
+      "cal-02g": cal(ADMIN, seq(add, fill(TRANSFER), save)),
+      "cal-02h": cal(ADMIN, seq(add, fill(TRANSFER), save, confirm("[data-cal-confirm-save]"))),
+      "cal-02i": cal(ADMIN, seq(add, fill(TRANSFER), save, confirm("[data-cal-confirm-save]")), { calendar: "eroare" }),
+      /* a day that moves no deadline (an authority's day in 2027): saved at once */
+      "cal-02j": cal(ADMIN, seq(add, fill({ date: "15/11/2027", type: "nelucratoare", authority: "ANSP", reason: "Zi de odihnă pentru personalul ANSP" }), save)),
+      /* US-285 — Editare zi (a generated holiday: the note that the source becomes „Manual”) */
+      "cal-03": cal(ADMIN, rowAct("cal-2026-06-01", "edit")),
+      "cal-03a": cal(ADMIN, seq(rowAct("cal-2026-12-25", "edit"), fill({ reason: "Crăciunul (stil nou)" }), save)),
+      "cal-03b": cal(ADMIN, seq(rowAct("cal-2026-12-25", "edit"), fill({ date: "01/01/2026" }), save)),
+      "cal-03c": cal(ADMIN, seq(rowAct("cal-2026-04-07-ansp", "edit"))),
+      /* US-286 — Ștergerea zilei din calendar (1 June moves deadlines → the preview inside the confirm) */
+      "cal-04": cal(ADMIN, rowAct("cal-2026-06-01", "delete")),
+      "cal-04a": cal(ADMIN, seq(rowAct("cal-2026-06-01", "delete"), confirm("[data-cal-confirm-delete]"))),
+      "cal-04b": cal(ADMIN, seq(rowAct("cal-2026-06-01", "delete"), confirm("[data-cal-confirm-delete]")), { calendar: "eroare" }),
+      /* AC-05: a deleted generated day does not come back — generating 2026 afterwards adds 0 */
+      "cal-04c": cal(ADMIN, seq(rowAct("cal-2026-06-01", "delete"), confirm("[data-cal-confirm-delete]"), generate)),
+      "cal-04d": cal(ADMIN, seq(rowAct("cal-2026-06-01", "delete"), confirm("[data-cal-confirm-delete]"), generate, confirm("[data-cal-confirm-generate]"))),
+      /* US-287 — Generează anul: 2028 (empty) → 9 holidays; 2027 (already there) → 0 */
+      "cal-05": cal(ADMIN, seq(tab(2028), generate)),
+      "cal-05a": cal(ADMIN, seq(tab(2028), generate, confirm("[data-cal-confirm-generate]"))),
+      "cal-05b": cal(ADMIN, seq(tab(2027), generate)),
+      "cal-05c": cal(ADMIN, seq(tab(2027), generate, confirm("[data-cal-confirm-generate]"))),
+      "cal-05d": cal(ADMIN, seq(tab(2028), generate, confirm("[data-cal-confirm-generate]")), { calendar: "eroare" }),
+      "cal-05e": cal(ADMIN, seq(tab(2028), async (h) => { await h.click(".e-permits-empty [data-cal-generate]"); await h.find(MODAL); })),
+      /* US-288 — the calendar journal; the manual recalculation (AC-06); after a change: the result note + journal */
+      "cal-06": cal(ADMIN, async (h) => { await h.click("[data-cal-journal].e-permits-cal-tool"); await h.find(MODAL); }),
+      "cal-06a": cal(ADMIN, async (h) => { await h.click("[data-cal-journal].e-permits-cal-tool"); await h.find(MODAL); await h.click(`${MODAL} [data-cal-recalc]`); await h.wait(400); }),
+      "cal-06b": cal(LOCAL, async (h) => { await h.click("[data-cal-journal].e-permits-cal-tool"); await h.find(MODAL); }),
+      "cal-06c": cal(ADMIN, seq(add, fill(TRANSFER), save, confirm("[data-cal-confirm-save]"), async (h) => { await h.click(".e-permits-cal-intro [data-cal-journal]"); await h.find(MODAL); })),
+      /* the dossier deadlines in working days („N zile lucrătoare rămase”): the list and the dossier header */
+      "cal-07": { flow: "back-office", as: SPEC, ready: "tr[data-workplace-row], .e-permits-workplace", delay: 900 },
+      "cal-07a": { flow: "back-office", as: SPEC, hash: "#dosar/D-2026-004575/general", ready: ".e-permits-trajectory, .e-permits-dosar-profil__section", delay: 900 }
+    };
+  }
 
   function regAdminDemoStates() {
     const ADMIN = "ansp-central-admin", LOCAL = "ansp-local-admin", SUP = "ansp-supervisor-chisinau", ANTA = "anta-specialist-chisinau";
