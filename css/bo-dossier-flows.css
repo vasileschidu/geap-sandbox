@@ -142,11 +142,24 @@
   justify-content: center;
 }
 
-/* the alerts after the row: competence warning first, then „Termen de examinare: …” — 8 apart */
+/* after the row (redist-term-field-v1, 2026-10-26): the competence / no-candidate warning, 16, then the
+   locked „Termenul de examinare” field with its „nu se resetează” alert 8 under it */
 .e-permits-case-form__notices {
   display: flex;
   flex-direction: column;
+  gap: var(--spacing-16, 16px);
+}
+
+.e-permits-case-term {
+  display: flex;
+  flex-direction: column;
   gap: var(--spacing-8, 8px);
+}
+
+/* the field keeps the width of the row's left column: (row − arrow − 2 × 12) / 2 */
+.e-permits-case-term__field {
+  max-width: 100%;
+  width: calc((100% - var(--icon-size-medium, 20px) - 2 * var(--spacing-12, 12px)) / 2);
 }
 
 @media (max-width: 760px) {
@@ -165,5 +178,9 @@
     grid-row: auto;
     justify-self: center;
     transform: rotate(90deg);
+  }
+
+  .e-permits-case-term__field {
+    width: 100%;
   }
 }

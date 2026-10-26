@@ -362,7 +362,7 @@ but this doc previously described it wrongly, see the entry.
 | Form Builder · saved components | palette group `[data-fb-library-saved]` „Componente salvate” (system preset + saved, version `renderTag("vN")`), card foot tag „Salvată” (`icon-bookmark`), panel group „Componentă salvată” (facts + Actualizează din sursă / Salvează în sursă / Detașează), modal `#fb-preset-modal` (library `modal--md e-permits-passport__modal`) | `insertPreset` / `presetAction` / `openPresetModal` | app |
 | Value group with a trailing unit | `.e-permits-doc-val` > `__control` (number) + `.e-permits-doc-val__mode.e-permits-doc-val__mode--end` (unit select, divider on its left, 80 wide) | Reguli de dată (± N zile / luni / ani) | app |
 | Back-office helpers for other scripts | `window.GEAPUi` = renderCheckOption, renderToggle, renderNotice, renderInfoNote, renderFoSelectControl, renderTag, renderStackMenu, requiredMark, askConfirm, showShellToast, escapeHtml | `js/e-permits-shell.js` | app |
-| Redistribuire (US-295, bo-dossier-flows-v1) | case-actions operation `redistribuie` (Supervisor, Specialist step, own subdivision) → `#case-action-modal` form `redistribuire` (transfer layout since redist-transfer-v1): library `.segmented-control` (Manual · Automat · bulk „În nedistribuite”) → transfer row `.e-permits-case-transfer__row` (`caseReadonly` „Responsabil actual” · `__arrow` icon-arrow-right 20 tertiary, ↓ on phones · `caseSelect({ inRow })` / `caseReadonly` „Responsabil nou”) + hint / error under the row → `.e-permits-case-form__notices` (competence warning, then the titled info alert „Termen de examinare: …”, gap 8) → `caseTextarea`; bulk = toolbar `button.btn.btn-primary.btn-sm.e-permits-workplace__primary-action[data-workplace-redistribute]` (icon-people, „Redistribuie (N)”, aria-disabled + reason while none selected) on view `subdivision` | section „Redistribuire, Dosare suspendate, parametrii de distribuire, S4” | app |
+| Redistribuire (US-295, bo-dossier-flows-v1) | case-actions operation `redistribuie` (Supervisor, Specialist step, own subdivision) → `#case-action-modal` form `redistribuire` (transfer layout since redist-transfer-v1): library `.segmented-control` (Manual · Automat · bulk „În nedistribuite”) → transfer row `.e-permits-case-transfer__row` (`caseReadonly` „Responsabil actual” · `__arrow` icon-arrow-right 20 tertiary, ↓ on phones · `caseSelect({ inRow })` / `caseReadonly` „Responsabil nou”) + hint / error under the row → `.e-permits-case-form__notices` (gap 16: competence warning, then `.e-permits-case-term` = locked `caseReadonly` „Termenul de examinare” „6 august 2026” at the left column's width + 8 under it the info alert „Termenul nu se resetează”) → `caseTextarea`; bulk = toolbar `button.btn.btn-primary.btn-sm.e-permits-workplace__primary-action[data-workplace-redistribute]` (icon-people, „Redistribuie (N)”, aria-disabled + reason while none selected) on view `subdivision` | section „Redistribuire, Dosare suspendate, parametrii de distribuire, S4” | app |
 | Dosare suspendate (US-255) | module registry `ghsusp` (js/ghiseu.js) on the shell engine: case cell `.e-permits-workplace__case-cell` + Ghișeu `dateCell` meta, CSV export dialog, `GEAPEmptyState` | same section | app |
 | Parametrii de distribuire (US-290) | inside the `autoDist` `.e-permits-cfg-group`: `renderInfoNote` + scope `renderFoSelectControl[data-cfg-dp-scope]` + fields `.e-permits-cfg-dp__label` (label + Small tag Moștenit / Suprascris / Necompletat) + `.e-permits-cfg-dp__ramp` (6 FO inputs) | same section | app |
 | Suplinire S4 (US-25) | FO screen `[data-fo-screen="supplement"]` = the intent column (`.e-permits-fo-intent__inner`) + `renderNotice` + `foSummarySectionHtml` rows + `foStepFooterHtml`; error = `renderNotice("error")` + `.e-permits-fo-supplement__retry` „Reîncercați” | same section | app |
@@ -9271,14 +9271,19 @@ Four partly covered stories completed with existing components only; the CSS glu
      (≤ 760): one column, the arrow turned down (rotate 90°), 8 above / below, fields 48. The row's hint (Manual: the
      subdivision's active specialists; Automat: „Automat: SIA GEAP alege …”; nedistribuite) or the select's error sits 8
      under the whole row, full width; the select gets `is-error` (`renderFoSelectControl({ error })`);
-  3. `.e-permits-case-form__notices` (flex column, gap 8 — the `__notices` name keeps the 12 Alert-stack margin out):
-     the competence / no-candidate warning first (`caseNotice(…, "warning")`, now with the tone's own icon), then the
-     term alert `caseNotice(text, "info", { title })` — title „Termen de examinare: 06/08/2026” (bulk „Termene de
-     examinare: <min> – <max>”), text „Termenul nu se resetează. Noul responsabil primește o notificare.” (bulk
-     „Termenele nu se resetează: fiecare dosar își păstrează termenul. …”; supervisors when nobody is picked). The title is
-     a medium first `p.banner__text > strong` (4 above the text = the library content gap) — not `.banner__title`, whose
-     library rule drops the icon 8 px in the BO inline-note geometry;
-  4. „Motivul redistribuirii”.
+  3. `.e-permits-case-form__notices` (flex column, gap 16 — the `__notices` name keeps the 12 Alert-stack margin out):
+     the competence / no-candidate warning first (`caseNotice(…, "warning")`, with the tone's own icon), then
+     `.e-permits-case-term` (flex column, gap 8) = **(redist-term-field-v1, 2026-10-26, user: „the term back as a locked
+     field”)** `.e-permits-case-term__field > caseReadonly("Termenul de examinare", formatLongDate(…), 0)` — the same locked
+     read-only input as „Responsabil actual”, written out („6 august 2026”; bulk = the range „6 – 21 august 2026” /
+     „28 iulie – 6 august 2026”, label „Termenele de examinare” when they differ), width = the transfer row's left column
+     (`calc((100% − --icon-size-medium − 2 × --spacing-12) / 2)`, 100% on phones) — then 8 under it the info alert
+     `caseNotice(text, "info", { title })`: title „Termenul nu se resetează”, text „Noul responsabil primește o notificare.”
+     (bulk title „Termenele nu se resetează”, text „Fiecare dosar își păstrează termenul. …”; supervisors / several new
+     responsibles worded accordingly). No date in the alert. The title is a medium first `p.banner__text > strong` (4 above
+     the text = the library content gap) — not `.banner__title`, whose library rule drops the icon 8 px in the BO
+     inline-note geometry;
+  4. „Motivul redistribuirii” (24 under the alert = the form gap).
   Bulk current = „N dosare · <specialist>[ (n), …]” (label „Responsabili actuali” when several), cut values show the
   full text through `data-cell-tooltip` on the read-only input. Demo `dos-06a` (Manual), `06b` (competence warning),
   `06c` (validation), `06d` (Automat), `06o` (Automat, no candidate), `06m` (bulk În nedistribuite), `06p` (bulk Automat).

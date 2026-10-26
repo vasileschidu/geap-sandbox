@@ -4365,8 +4365,8 @@ document.addEventListener("DOMContentLoaded", () => {
         const modes = [["manual", "Manual"], ["automat", "Automat"], ...(d.bulk ? [["nedistribuite", "În nedistribuite"]] : [])];
         const holders = [...rows.reduce((map, r) => map.set(r.specialist?.nume || "—", (map.get(r.specialist?.nume || "—") || 0) + 1), new Map())];
         /* redist-transfer-v1: reads as a transfer — mode, then „Responsabil actual → Responsabil nou”
-           (stacked with ↓ on phones), the row's hint / error under it, then the alerts (competence
-           first, then the term that never resets), then the reason */
+           (stacked with ↓ on phones), the row's hint / error under it, then the competence /
+           no-candidate warning, then the locked term with its „nu se resetează” alert 8 under it, then the reason */
         const current = d.bulk
           ? caseReadonly(holders.length > 1 ? "Responsabili actuali" : "Responsabil actual", `${roCount(rows.length, "dosar", "dosare")} · ${holders.map(([name, n]) => (holders.length > 1 ? `${name} (${n})` : name)).join(", ")}`, 0)
           : caseReadonly("Responsabil actual", row.specialist?.nume, 0);
@@ -4392,9 +4392,23 @@ document.addEventListener("DOMContentLoaded", () => {
         const terms = [...new Set(rows.map((r) => r.termenExaminare).filter(Boolean))].sort();
         const notified = mode === "nedistribuite" || (mode === "automat" && !picked.length) ? "Supervizorii subdiviziunii sunt notificați."
           : picked.length > 1 ? "Noii responsabili primesc o notificare." : "Noul responsabil primește o notificare.";
+        /* redist-term-field-v1: the term is a locked field again (written out, „6 august 2026”; bulk = the
+           range „6 – 21 august 2026”), the alert 8 under it says only that it never resets */
+        const termRange = (from, to) => {
+          if (!from || !to || from === to) return formatLongDate(from || to);
+          const [a, b] = [toDate(from), toDate(to)];
+          if (!a || !b) return "—";
+          if (a.getFullYear() !== b.getFullYear()) return `${formatLongDate(from)} – ${formatLongDate(to)}`;
+          return a.getMonth() === b.getMonth()
+            ? `${a.getDate()} – ${formatLongDate(to)}`
+            : `${a.getDate()} ${RO_MONTHS[a.getMonth()]} – ${formatLongDate(to)}`;
+        };
+        const termField = d.bulk
+          ? caseReadonly(terms.length > 1 ? "Termenele de examinare" : "Termenul de examinare", termRange(terms[0], terms[terms.length - 1]), 0)
+          : caseReadonly("Termenul de examinare", formatLongDate(row.termenExaminare), 0);
         const termAlert = d.bulk
-          ? caseNotice(`Termenele nu se resetează: fiecare dosar își păstrează termenul. ${notified}`, "info", { title: terms.length > 1 ? `Termene de examinare: ${formatDate(terms[0])} – ${formatDate(terms[terms.length - 1])}` : `Termen de examinare: ${terms[0] ? formatDate(terms[0]) : "—"}` })
-          : caseNotice(`Termenul nu se resetează. ${notified}`, "info", { title: `Termen de examinare: ${formatDate(row.termenExaminare)}` });
+          ? caseNotice(`Fiecare dosar își păstrează termenul. ${notified}`, "info", { title: terms.length > 1 ? "Termenele nu se resetează" : "Termenul nu se resetează" })
+          : caseNotice(notified, "info", { title: "Termenul nu se resetează" });
         return `
           <div class="e-permits-fo-field">
             <label id="case-redist-mode-label">Modul redistribuirii${requiredMark()}</label>
@@ -4412,7 +4426,13 @@ document.addEventListener("DOMContentLoaded", () => {
             </div>
             ${rowMessage}
           </div>
-          <div class="e-permits-case-form__notices">${warning}${termAlert}</div>
+          <div class="e-permits-case-form__notices">
+            ${warning}
+            <div class="e-permits-case-term">
+              <div class="e-permits-case-term__field">${termField}</div>
+              ${termAlert}
+            </div>
+          </div>
           ${caseTextarea("motiv", "Motivul redistribuirii", { required: true })}
         `;
       }

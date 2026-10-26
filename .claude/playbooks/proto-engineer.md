@@ -3890,3 +3890,14 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   hover-audit 0 / 0 (dos-06b / 06m / 06p, dialog scope), code-audit static 0 + the standing fo-select placeholder chevron,
   component-audit = standing shell profile-menu majors only, capture 12 states × 2: 0 errors / overflow, probe: arrow 20,
   12 clear each side, centre = control centre; fields 40 / 48.
+- 2026-10-26 · redist-term-field-v1 (user REJECTED redist-transfer-v1's „date in the alert title”: the term is DATA, so it is
+  a locked read-only field like „Responsabil actual”; the alert only says what happens — „Termenul nu se resetează” +
+  who is notified, 8 under the field). Rule: a value the user reads (date, person, amount) lives in a field / value slot,
+  never in an alert title; alerts carry consequences. Also: `formatDate` in the shell is the dd/mm/yyyy TABLE form — dialog
+  values use `formatLongDate` („6 august 2026”, nbsp inside); a range shares the month / year („6 – 21 august 2026”,
+  „28 iulie – 6 august 2026”). Half-width field aligned with a 3-column transfer row's left column = `width: calc((100% −
+  --icon-size-medium − 2 × --spacing-12) / 2)` (tokens only), 100% on phones — no phantom grid column needed. Rhythm in
+  the block after the row: warning → 16 → field → 8 → alert → 24 (form gap) → reason. Used Edit for every change this
+  time (incl. the ?v= bumps). QA: hover-audit 0 / 0 (dos-06b / 06m / 06p), code-audit {} + static 0, component-audit =
+  standing shell profile-menu majors only (+ minor „converge” on the `__notices` wrapper name), capture 7 states × 2: 0
+  errors / overflow.
