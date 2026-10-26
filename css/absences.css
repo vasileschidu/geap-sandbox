@@ -209,10 +209,10 @@
 }
 
 /* =====================================================================================
-   „Cronologie” — the team absences as a timeline (calendar-views-v1, 2026-10-26; proposal beyond US-312, Supervisor).
+   „Calendar” (was „Cronologie” until v3) — the absences as a timeline (calendar-views-v1, 2026-10-26; proposal beyond US-312, Supervisor).
    Rows = the team (avatar xs + name, pinned), columns = the days of a month / week, weekends + non-working days
    shaded down every row, one bar per absence in its type colour (Concediu brand · Concediu medical danger ·
-   Delegație positive · Suspendare neutral — the Tag Small tones). components.md › „Absences timeline — Cronologie”.
+   Delegație positive · Suspendare neutral — the Tag Small tones). components.md › „Absences timeline — Calendar view”.
    ===================================================================================== */
 
 .e-permits-abs-board {
@@ -298,10 +298,13 @@
 }
 
 /* the table: its own sideways scroll box, the name column pinned */
+/* full bleed (calendar-views-v3, user): the timeline spans the whole content width — no card, no radius, the board's
+   side padding cancelled; a top and bottom 1px line keep it a block. The name column / last day keep a 16 inset */
 .e-permits-abs-board .e-permits-abs-tl__scroll {
-  border: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
-  border-radius: var(--border-radius-20, 20px);
+  border-bottom: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
+  border-top: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
   flex: 0 0 auto;
+  margin: 0 calc(var(--spacing-16, 16px) * -1);
   overflow-x: auto;
   overflow-y: hidden;
 }
@@ -338,7 +341,7 @@
   z-index: 2;
 }
 
-.e-permits-abs-tl__person--head {
+.e-permits-abs-tl th.e-permits-abs-tl__person--head {
   color: var(--color-text-base-tertiary, #757575);
   font-size: var(--font-size-fs-12, 12px);
   font-weight: var(--font-weight-fw-medium, 500);
@@ -425,13 +428,31 @@
   color: var(--color-text-base-inverse-default, #fff);
 }
 
-/* weekends + non-working days shaded down every row; today's column outlined */
+/* weekends + non-working days: a light hatch down every row; today: the solid grey surface down the header and every
+   row (calendar-views-v3, user) — the two never look alike; both sit under the separators and the bars */
 .e-permits-abs-tl :is(.e-permits-abs-tl__day, .e-permits-abs-tl__cell).is-off {
-  background: var(--color-background-base-secondary, #f5f5f5);
+  background: repeating-linear-gradient(135deg, var(--color-background-base-default, #fff) 0 var(--spacing-6, 6px), var(--color-background-base-tertiary, #f1f1f1) var(--spacing-6, 6px) var(--spacing-8, 8px));
 }
 
-.e-permits-abs-tl__cell.is-today {
-  box-shadow: inset var(--border-width-1, 1px) 0 0 var(--color-border-brand-secondary, #b2d1ff), inset calc(var(--border-width-1, 1px) * -1) 0 0 var(--color-border-brand-secondary, #b2d1ff);
+.e-permits-abs-tl :is(.e-permits-abs-tl__day, .e-permits-abs-tl__cell).is-today {
+  background: var(--color-background-base-tertiary, #f1f1f1);
+}
+
+/* calendar-views-v3 (user: „the separators disappear when I resize”): a real 1px border on EVERY day column, in the
+   header and every row — whole px at any width (no gradient / box-shadow lines); none after the last column; the
+   shading is the cell's own background (under it), the bars sit above (z 1) */
+.e-permits-abs-tl :is(th.e-permits-abs-tl__day, td.e-permits-abs-tl__cell) {
+  border-right: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
+}
+
+.e-permits-abs-tl tr > :is(th.e-permits-abs-tl__day, td.e-permits-abs-tl__cell):last-child {
+  border-right: 0;
+}
+
+/* the line between the names and the first day: on the first day cell (the pinned name cell's own divider is removed
+   by css/table-pin-shadow.js, which draws its ring only while the table scrolls) */
+.e-permits-abs-tl tr > .e-permits-abs-tl__person + :is(th.e-permits-abs-tl__day, td.e-permits-abs-tl__cell) {
+  border-left: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
 }
 
 .e-permits-abs-tl__cell {
@@ -449,7 +470,8 @@
   left: var(--spacing-2, 2px);
   position: absolute;
   top: var(--spacing-8, 8px);
-  width: calc(100% * var(--abs-tl-span, 1) - var(--spacing-4, 4px));
+  /* N columns = N cell widths + the N − 1 day separators between them, minus the 2 + 2 inset */
+  width: calc((100% + var(--border-width-1, 1px)) * var(--abs-tl-span, 1) - var(--border-width-1, 1px) - var(--spacing-4, 4px));
   z-index: 1;
   appearance: none;
   border: var(--border-width-1, 1px) solid transparent;
@@ -563,8 +585,13 @@
   background: var(--color-background-base-tertiary-hover, #d9d9d9);
 }
 
+.e-permits-abs-tl__swatch--today {
+  background: var(--color-background-base-tertiary, #f1f1f1);
+  border-color: var(--color-border-base-default, #d9d9d9);
+}
+
 .e-permits-abs-tl__swatch--off {
-  background: var(--color-background-base-secondary, #f5f5f5);
+  background: repeating-linear-gradient(135deg, var(--color-background-base-default, #fff) 0 var(--spacing-6, 6px), var(--color-background-base-tertiary, #f1f1f1) var(--spacing-6, 6px) var(--spacing-8, 8px));
   border-color: var(--color-border-base-default, #d9d9d9);
 }
 
@@ -594,11 +621,11 @@
   }
 
   .e-permits-abs-tl__who {
-    padding: var(--spacing-8, 8px);
+    padding: var(--spacing-8, 8px) var(--spacing-8, 8px) var(--spacing-8, 8px) var(--spacing-16, 16px);
   }
 
-  .e-permits-abs-tl__person--head {
-    padding: var(--spacing-8, 8px);
+  .e-permits-abs-tl th.e-permits-abs-tl__person--head {
+    padding: var(--spacing-8, 8px) var(--spacing-8, 8px) var(--spacing-8, 8px) var(--spacing-16, 16px);
   }
 
   .e-permits-abs-tl__who .avatar {

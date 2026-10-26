@@ -1,12 +1,13 @@
 /* =====================================================================================
-   View switch — „Listă / Calendar”, „Listă / Cronologie” (calendar-views-v1, 2026-10-26)
+   View switch — „Listă / Calendar” on Calendar + Absențe, „Săptămână / Lună” (calendar-views-v1, 2026-10-26)
    ONE helper for a registry that offers a second view next to its list. It is the library segmented control
    (Components 659:8188) at the documented compact size (`.segmented-control--compact`, track 40 = the toolbar's
    search; phones 48), a radio group: `role=radiogroup` > `button.segment-item[role=radio][aria-checked]`,
    roving tabindex, ← → / ↑ ↓ / Home / End select (the library has no keyboard script — lesson 2026-10-20).
-   Layout + the phone size in css/view-switch.css. components.md › „View switch — Listă / Calendar / Cronologie”.
+   Layout + the phone size in css/view-switch.css. components.md › „View switch — Listă / Calendar”.
 
-   GEAPViewSwitch.html({ key, label, value, items: [[value, text]], className })   → markup
+   GEAPViewSwitch.html({ key, label, value, items: [[value, text, icon?]], className }) → markup; an icon (sprite id)
+     = the shared `.segment-item > .icon` 16 + gap 8, label in `__label` (phones: icon-only, name in aria-label → tooltip)
    GEAPViewSwitch.on(key, fn)                                                       → fn(value, button) after a change
    GEAPViewSwitch.set(root, value)                                                  → paint a value (no callback)
    ===================================================================================== */
@@ -19,7 +20,7 @@
 
   const html = ({ key, label = "Mod de afișare", value, items, className = "" }) => `
     <div class="segmented-control segmented-control--compact e-permits-view-switch${className ? ` ${esc(className)}` : ""}" role="radiogroup" aria-label="${esc(label)}" data-view-switch="${esc(key)}">
-      ${items.map(([v, text]) => `<button class="segment-item${v === value ? " is-selected" : ""}" type="button" role="radio" aria-checked="${v === value}" tabindex="${v === value ? 0 : -1}" data-view-value="${esc(v)}">${esc(text)}</button>`).join("")}
+      ${items.map(([v, text, iconName]) => `<button class="segment-item${v === value ? " is-selected" : ""}" type="button" role="radio" aria-checked="${v === value}" tabindex="${v === value ? 0 : -1}" data-view-value="${esc(v)}"${iconName ? ` aria-label="${esc(text)}"` : ""}>${iconName ? `<svg class="icon" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-${esc(iconName)}"></use></svg><span class="e-permits-view-switch__label" data-text="${esc(text)}">${esc(text)}</span>` : esc(text)}</button>`).join("")}
     </div>`;
 
   const set = (root, value) => {

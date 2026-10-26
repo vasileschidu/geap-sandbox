@@ -63,7 +63,11 @@
         S.data = data;
         let saved = null;
         try { saved = JSON.parse(window.sessionStorage.getItem(STORE) || "null"); } catch { saved = null; }
-        S.list = (saved?.list || clone(data.absences || [])).map((a) => (LEGACY_TYPES[a.type] ? { ...a, type: LEGACY_TYPES[a.type] } : a));
+        /* the seed keeps its place around today: every date moves by (real today − seed today) */
+        const shift = Math.round((new Date(`${realToday()}T00:00:00`) - new Date(`${data.today || realToday()}T00:00:00`)) / 86400000);
+        const moved = (v) => (v ? `${addDays(v.slice(0, 10), shift)}${v.slice(10)}` : v);
+        const seed = () => clone(data.absences || []).map((a) => ({ ...a, from: moved(a.from), to: moved(a.to), recordedAt: moved(a.recordedAt) }));
+        S.list = (saved?.list || seed()).map((a) => (LEGACY_TYPES[a.type] ? { ...a, type: LEGACY_TYPES[a.type] } : a));
         S.dist = saved?.dist || clone(data.distribution || {});
         S.policy = saved?.policy || clone(data.policy || {});
         S.audit = saved?.audit || [];
@@ -74,7 +78,17 @@
     return S.loading;
   }
 
-  const today = () => A().dossierStore?.()?.today || S.data?.today || new Date().toISOString().slice(0, 10);
+  /* calendar-views-v3 (user): „Azi” = the REAL date (or `?today=YYYY-MM-DD` for the demo states); the seed absences
+     are shifted by (real today − seed today) on load, so they keep their place around today. The dossiers keep their
+     own clock (e-permits-workplace.json › today) for deadlines, load windows and novice months: caseToday(). */
+  const realToday = () => {
+    const q = params.get("today") || "";
+    if (/^\d{4}-\d{2}-\d{2}$/.test(q)) return q;
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+  };
+  const today = realToday;
+  const caseToday = () => A().dossierStore?.()?.today || S.data?.today || realToday();
   const nowIso = () => `${today()}T${new Date().toTimeString().slice(0, 8)}`;
   const iso = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
   const dateOf = (s) => (s ? new Date(`${s.slice(0, 10)}T00:00:00`) : null);
@@ -110,8 +124,8 @@
     return n != null ? roCount(n, "zi lucrătoare", "zile lucrătoare") : roCount(Math.round((dateOf(to) - dateOf(from)) / 86400000) + 1, "zi", "zile");
   };
   const daysUntil = (s, authority = "ANSP") => {
-    const n = workingBetween(today(), s, authority);
-    return n != null ? n : Math.round((dateOf(s) - dateOf(today())) / 86400000);
+    const n = workingBetween(caseToday(), s, authority);
+    return n != null ? n : Math.round((dateOf(s) - dateOf(caseToday())) / 86400000);
   };
 
   /* ================================================================ who is looking */
@@ -200,7 +214,7 @@
   const distOf = (person) => S.dist[person?.id] || { norm: "", normReason: "", start: "", competences: [] };
   const normOf = (person) => { const n = num(distOf(person).norm); return n >= 1 && n <= 100 ? n : 100; };
   /* AC-08: novice = less than 6 months since „Data începerii în distribuire” */
-  const noviceMonth = (person, day = today()) => {
+  const noviceMonth = (person, day = caseToday()) => {
     const start = distOf(person).start;
     if (!start || start > day || addMonths(start, 6) <= day) return 0;
     let m = 1;
@@ -272,7 +286,7 @@
   const loadOf = (person) => {
     const scope = { level: "aut", authority: person.authority, rt: "" };
     const months = Math.max(1, num(resolve(S.policy, scope, "window").value) || 3);
-    const since = addMonths(today(), -months);
+    const since = addMonths(caseToday(), -months);
     const sum = openCasesOf(person).filter((row) => !row.dataDepunerii || row.dataDepunerii >= since).reduce((s, row) => s + complexityOf(row, person.authority), 0);
     return Math.round((sum / (normOf(person) / 100)) * 10) / 10;
   };
@@ -887,7 +901,7 @@
     }
   };
 
-  /* ================================================================ calendar-views-v1: „Cronologie” (US-312, Supervisor) */
+  /* ================================================================ calendar-views-v1: „Calendar” (timeline) (US-312, Supervisor) */
   /* A proposal beyond US-312 (the list stays the default view; user-approved 2026-10-26), like Freshteam / Timetastic:
      rows = the team (the list's search applies to the names; „Filtre” keeps only people with a matching absence),
      columns = the days of a month or a week (prev / next, „Azi”), weekends and non-working days (js/working-days.js)
@@ -951,6 +965,7 @@
       <ul class="e-permits-abs-tl__legend" aria-label="Legendă">
         ${legendTypes.map((type) => `<li><span class="e-permits-abs-tl__swatch e-permits-abs-tl__swatch--${tlTone(type)}" aria-hidden="true">${typeIcon(type)}</span>${esc(type)}</li>`).join("")}
         <li><span class="e-permits-abs-tl__swatch e-permits-abs-tl__swatch--off" aria-hidden="true"></span>Weekend sau zi nelucrătoare</li>
+        <li><span class="e-permits-abs-tl__swatch e-permits-abs-tl__swatch--today" aria-hidden="true"></span>Azi</li>
       </ul>`;
     if (!S.data) return `${head}${window.GEAPEmptyState?.render({ title: "Se încarcă absențele…", loading: true, bare: true }) || ""}`;
     if (!team.length) {
@@ -1031,7 +1046,7 @@
     if (!reg) return;
     const tools = reg.querySelector(".e-permits-workplace__table-tools");
     if (tools && !reg.querySelector('[data-view-switch="absente"]') && window.GEAPViewSwitch) {
-      tools.insertAdjacentHTML("beforebegin", window.GEAPViewSwitch.html({ key: "absente", label: "Mod de afișare a absențelor", value: TL.mode, items: [["list", "Listă"], ["timeline", "Cronologie"]], className: "e-permits-abs-switch" }));
+      tools.insertAdjacentHTML("beforebegin", window.GEAPViewSwitch.html({ key: "absente", label: "Mod de afișare a absențelor", value: TL.mode, items: [["list", "Listă", "list-bullets"], ["timeline", "Calendar", "calendar"]], className: "e-permits-abs-switch" }));
     }
     const sw = reg.querySelector('[data-view-switch="absente"]');
     if (sw) { sw.hidden = !canTimeline(); window.GEAPViewSwitch?.set(sw, TL.mode); }

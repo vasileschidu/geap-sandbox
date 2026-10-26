@@ -1,9 +1,9 @@
 /* =====================================================================================
-   View switch — „Listă / Calendar”, „Listă / Cronologie” (calendar-views-v1, 2026-10-26)
+   View switch — „Listă / Calendar” on Calendar + Absențe, „Săptămână / Lună” (calendar-views-v1, 2026-10-26)
    The library segmented control at the documented compact size (css/process-designer.css › `.segmented-control--compact`:
    items 32, track 4 · 4 = 40 = the toolbar search). Markup + keyboard in js/view-switch.js. Here only the place in the
    BO registry toolbar (right, before the table tools) and the phone size (track 48 = the phone search, 16/24 text).
-   components.md › „View switch — Listă / Calendar / Cronologie”.
+   components.md › „View switch — Listă / Calendar”.
    ===================================================================================== */
 
 .e-permits-view-switch {
@@ -26,7 +26,45 @@
   display: none;
 }
 
+/* the label reserves its selected (medium) width, so choosing an item never moves the control by a sub-pixel */
+.e-permits-view-switch__label {
+  display: inline-flex;
+  flex-direction: column;
+}
+
+.e-permits-view-switch__label::after {
+  content: attr(data-text);
+  font-weight: var(--font-weight-fw-medium, 500);
+  height: 0;
+  overflow: hidden;
+  pointer-events: none;
+  user-select: none;
+  visibility: hidden;
+}
+
+/* the two registries never show „N câmpuri” (calendar-views-v3, user): the switch sits at the same x / y in both views */
+.e-permits-workplace:is([data-registry-kind="absente"], [data-registry-kind="calendar"]) :is(.e-permits-workplace__field-count, .e-permits-workplace__table-tools > .e-permits-workplace__tool-divider) {
+  display: none;
+}
+
 @media (max-width: 760px) {
+  /* phones: icon-only items (the name stays in aria-label → the tooltip runtime), so the toolbar row keeps its tools */
+  .e-permits-view-switch .e-permits-view-switch__label {
+    display: none;
+  }
+
+  .segmented-control--compact.e-permits-view-switch .segment-item:has(> .icon) {
+    align-items: center;
+    justify-content: center;
+    min-height: var(--spacing-40, 40px);
+    padding: var(--spacing-8, 8px) var(--spacing-12, 12px);
+  }
+
+  .segmented-control--compact.e-permits-view-switch .segment-item > .icon {
+    height: var(--icon-size-medium, 20px);
+    width: var(--icon-size-medium, 20px);
+  }
+
   .segmented-control.segmented-control--compact.e-permits-view-switch {
     gap: var(--spacing-4, 4px);
     padding: var(--spacing-4, 4px);

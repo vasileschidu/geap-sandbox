@@ -68,7 +68,7 @@
   const plural = (n, one, many) => `${n} ${n === 1 ? one : n % 100 >= 20 || (n % 100 === 0 && n) ? `de ${many}` : many}`;
   const tag = (label, tone = "neutral", iconName = "") => window.GEAPTag?.html(label, tone, iconName ? { icon: iconName } : undefined) || esc(label);
   const userName = () => A().currentUserName?.() || "Anastasia Cojocaru";
-  const currentYear = () => new Date().getFullYear();
+  const currentYear = () => Number(todayIso().slice(0, 4)); /* todayIso: the real date or ?today= (calendar-views-v3) */
   /* US-283 AC-03: the year filter = current year − 1 … + 2 */
   const years = () => [currentYear() - 1, currentYear(), currentYear() + 1, currentYear() + 2];
 
@@ -231,7 +231,7 @@
     /* calendar-views-v1: „Listă / Calendar” before the table tools (shown only on this registry, css/view-switch.css) */
     const tools = reg.querySelector(".e-permits-workplace__table-tools");
     if (tools && !reg.querySelector(`[data-view-switch="${KIND}"]`) && window.GEAPViewSwitch) {
-      tools.insertAdjacentHTML("beforebegin", window.GEAPViewSwitch.html({ key: KIND, label: "Mod de afișare a calendarului", value: CV.mode, items: [["list", "Listă"], ["calendar", "Calendar"]], className: "e-permits-cal-switch" }));
+      tools.insertAdjacentHTML("beforebegin", window.GEAPViewSwitch.html({ key: KIND, label: "Mod de afișare a calendarului", value: CV.mode, items: [["list", "Listă", "list-bullets"], ["calendar", "Calendar", "calendar"]], className: "e-permits-cal-switch" }));
     }
   }
   function syncChrome() {
@@ -679,7 +679,8 @@
   const LETTERS = ["L", "M", "M", "J", "V", "S", "D"];
   const CV = { mode: "list", month: null, layers: { events: true, absences: false } };
   const isoOf = (y, m, d) => `${y}-${pad(m + 1)}-${pad(d)}`;
-  const todayIso = () => { const d = new Date(); return isoOf(d.getFullYear(), d.getMonth(), d.getDate()); };
+  /* the real date; `?today=YYYY-MM-DD` pins it for the demo states (calendar-views-v3) */
+  const todayIso = () => { const q = params.get("today") || ""; if (/^\d{4}-\d{2}-\d{2}$/.test(q)) return q; const d = new Date(); return isoOf(d.getFullYear(), d.getMonth(), d.getDate()); };
   const cap = (s) => s.charAt(0).toUpperCase() + s.slice(1);
   const monthTitle = (y, m) => `${cap(RO_MONTHS[m])} ${y}`;
   const daysIn = (y, m) => new Date(y, m + 1, 0).getDate();

@@ -40,13 +40,15 @@
   };
   const subList = (run) => ({ flow: "back-office", as: SUP, hash: "#subdivision-cases", ready: "tr[data-workplace-row], .e-permits-workplace .e-permits-empty", run });
   /* absences-dist-v1 (js/absences.js): US-312…316 absences · US-291 Distribuire tab · US-289 policy · US-294 team load */
-  const absUser = (as, user, tab, run, params) => ({ flow: "back-office", as, params, hash: `#utilizator/${user}/${tab}`, ready: "[data-user-profile-tabs] .tab-button.active", run: async (h) => { await h.find("[data-abs-root], [data-user-profile-panel] .e-permits-empty, [data-user-profile-panel] .e-permits-dosar-profil__section"); await h.wait(200); if (run) await run(h); } });
-  const absMine = (as, tab, run) => ({ flow: "back-office", as, hash: `#profilul-meu/${tab}`, ready: "#abs-my-panel [data-abs-root], #abs-my-panel .e-permits-empty", run });
-  const absList = (as, run, params) => ({ flow: "back-office", as, params, hash: "#absente", ready: "[data-registry-kind='absente'] tr[data-workplace-row], [data-registry-kind='absente'] .e-permits-empty:not(:has(.spinner))", run });
-  const absTeam = (as, run, params) => ({ flow: "back-office", as, params, hash: "#incarcarea-echipei", ready: "[data-registry-kind='echipa'] tr[data-workplace-row], [data-registry-kind='echipa'] .e-permits-empty:not(:has(.spinner))", run });
+  /* calendar-views-v3: „today” is the real date in the product; the demo states pin it (deterministic screenshots) */
+  const PIN = (params) => ({ today: "2026-10-26", ...(params || {}) });
+  const absUser = (as, user, tab, run, params) => ({ flow: "back-office", as, params: PIN(params), hash: `#utilizator/${user}/${tab}`, ready: "[data-user-profile-tabs] .tab-button.active", run: async (h) => { await h.find("[data-abs-root], [data-user-profile-panel] .e-permits-empty, [data-user-profile-panel] .e-permits-dosar-profil__section"); await h.wait(200); if (run) await run(h); } });
+  const absMine = (as, tab, run) => ({ flow: "back-office", as, params: PIN(), hash: `#profilul-meu/${tab}`, ready: "#abs-my-panel [data-abs-root], #abs-my-panel .e-permits-empty", run });
+  const absList = (as, run, params) => ({ flow: "back-office", as, params: PIN(params), hash: "#absente", ready: "[data-registry-kind='absente'] tr[data-workplace-row], [data-registry-kind='absente'] .e-permits-empty:not(:has(.spinner))", run });
+  const absTeam = (as, run, params) => ({ flow: "back-office", as, params: PIN(params), hash: "#incarcarea-echipei", ready: "[data-registry-kind='echipa'] tr[data-workplace-row], [data-registry-kind='echipa'] .e-permits-empty:not(:has(.spinner))", run });
   const absPol = (as, tab, run, params) => ({ flow: "back-office", as, params, hash: `#distribuire/${tab}`, ready: "#abs-pol-panel > *, [data-dosar-profil-panel] .e-permits-empty", run });
   const absModal = "#case-action-modal.is-active";
-  /* calendar-views-v1: the „Cronologie” view of „Absențele echipei” (+ the period: week / month) */
+  /* calendar-views-v1: the „Calendar” (timeline) view of „Absențele echipei” (+ the period: week / month) */
   const absTimeline = (scale = "") => async (h) => {
     await h.click('[data-view-switch="absente"] [data-view-value="timeline"]');
     await h.find("[data-abs-board] .e-permits-abs-tl, [data-abs-board] .e-permits-empty");
@@ -586,14 +588,14 @@
     "abs-02b": absUser(ADMIN, "user-1", "absences", async (h) => { await absAdd(h); await absFill(h, { type: "Concediu anual", from: "15/07/2026", to: "10/07/2026" }); await absSave(h); }),
     "abs-02c": absUser(ADMIN, "user-1", "absences", async (h) => { await absAdd(h); await absFill(h, { type: "Concediu medical", from: "21/07/2026", to: "24/07/2026" }); await absSave(h); }),
     "abs-02d": absUser(ADMIN, "user-1", "absences", async (h) => { await absAdd(h); await absFill(h, { type: "Delegație", from: "03/09/2026", to: "04/09/2026", reason: "Instruire. ".repeat(52) }); await absSave(h); }),
-    "abs-02e": absUser(ADMIN, "user-1", "absences", async (h) => { await absAdd(h); await absFill(h, { type: "Concediu medical", from: "09/07/2026", to: "15/07/2026", reason: "Certificat de concediu medical nr. 5120." }); await absSave(h); await h.find("#abs-open-cases"); }),
-    "abs-02f": absUser(SUP, "user-1", "absences", async (h) => { await absAdd(h); await absFill(h, { type: "Concediu medical", from: "09/07/2026", to: "15/07/2026" }); await absSave(h); await h.find("#abs-open-cases"); }),
+    "abs-02e": absUser(ADMIN, "user-1", "absences", async (h) => { await absAdd(h); await absFill(h, { type: "Concediu medical", from: "26/10/2026", to: "30/10/2026", reason: "Certificat de concediu medical nr. 5120." }); await absSave(h); await h.find("#abs-open-cases"); }),
+    "abs-02f": absUser(SUP, "user-1", "absences", async (h) => { await absAdd(h); await absFill(h, { type: "Concediu medical", from: "26/10/2026", to: "30/10/2026" }); await absSave(h); await h.find("#abs-open-cases"); }),
     "abs-02g": absUser(ADMIN, "user-1", "absences", async (h) => { await absAdd(h); await absFill(h, { type: "Concediu anual", from: "01/09/2026", to: "04/09/2026" }); await absSave(h); await h.find(".toast"); }, { absente: "eroare" }),
     "abs-02h": absUser(ADMIN, "user-1", "absences", async (h) => { await absAdd(h); await absFill(h, { type: "Concediu anual" }); await h.click(`${absModal} [aria-controls="abs-from-panel"]`); }),
     "abs-02i": absMine(SPEC, "absente", async (h) => { await absAdd(h); await absFill(h, { type: "Delegație", from: "15/09/2026", to: "16/09/2026", reason: "Seminar regional." }); await absSave(h); await h.find(".toast"); }),
     /* US-315: edit — prefilled, ended early, overlap, saved */
     "abs-03": absUser(ADMIN, "user-1", "absences", async (h) => { await h.click("[data-abs-root] [data-abs-edit]"); await h.find(`${absModal} #abs-type`); }),
-    "abs-03a": absUser(ADMIN, "user-1", "absences", async (h) => { await h.click("[data-abs-root] [data-abs-edit]"); await absFill(h, { to: "17/08/2026" }); await absSave(h); await h.find(".toast"); }),
+    "abs-03a": absUser(ADMIN, "user-1", "absences", async (h) => { await h.click('[data-abs-root] [data-abs-edit="abs-02"]'); await absFill(h, { to: "10/11/2026" }); await absSave(h); await h.find(".toast"); }),
     "abs-03b": absUser(ADMIN, "user-1", "absences", async (h) => { await h.click("[data-abs-root] [data-abs-edit]"); await absFill(h, { from: "18/07/2026" }); await absSave(h); }),
     /* US-316: delete — ⋮ open, confirm, deleted, failure */
     "abs-04": absUser(ADMIN, "user-1", "absences", absRowMenu(0)),
@@ -611,17 +613,17 @@
     "abs-05g": absList(SUP, async (h) => { await h.click('[data-workplace-add-product="abs-new"]'); await h.find(`${absModal} #abs-person`); }),
     "abs-05h": absList(SUP, async (h) => { await h.click('[data-workplace-add-product="abs-new"]'); await h.choose(`${absModal} select[data-abs-field="person"]`, "sp3"); await absFill(h, { type: "Concediu anual", from: "20/07/2026", to: "31/07/2026" }); await absSave(h); await h.find(".toast"); }),
     "abs-05i": absList(ADMIN, async (h) => { await h.nth("[data-registry-kind='absente'] [data-stack-menu-trigger]", 0); }),
-    /* calendar-views-v1 — „Cronologie” (proposal beyond US-312; the list stays the default): month · week · bar tooltip ·
+    /* calendar-views-v1 — the absences „Calendar” view (timeline; proposal beyond US-312; the list stays the default): month · week · bar tooltip ·
        bar → „Modifică absența” · search · Filtre · next month · phone */
     "abs-06": absList(SUP, absTimeline()),
     "abs-06a": absList(SUP, absTimeline("week")),
     "abs-06b": absList(SUP, async (h) => { await absTimeline()(h); await h.hover("[data-abs-board] .e-permits-abs-tl__item--warning"); }),
-    "abs-06c": absList(SUP, async (h) => { await absTimeline("month")(h); await h.click("[data-abs-board] .e-permits-abs-tl__item--success"); await h.find(`${absModal} #abs-type`); }),
+    "abs-06c": absList(SUP, async (h) => { await absTimeline("month")(h); await h.click("[data-abs-board] .e-permits-abs-tl__item--warning"); await h.find(`${absModal} #abs-type`); }),
     "abs-06d": absList(SUP, async (h) => { await absTimeline()(h); await h.fill("[data-workplace-search]", "Grosu", { leave: false }); await h.wait(500); }),
     "abs-06e": absList(SUP, async (h) => { window.GEAPShellApi.setRegistryFilters("absente", { tip: ["Concediu medical"] }); document.querySelector('[data-nav-item][data-nav-id="absente"]').click(); await h.wait(700); await absTimeline()(h); }),
     "abs-06f": absList(SUP, async (h) => { await absTimeline()(h); await h.click('[data-abs-board] [data-abs-tl-step="1"]'); await h.wait(300); }),
     "abs-06g": absList(SUP, absTimeline("month")),
-    /* calendar-views-v2: „Cronologie” for the administrators too (their list's scope; subdivision under the name) */
+    /* calendar-views-v2: the timeline for the administrators too (their list's scope; subdivision under the name) */
     "abs-06h": absList(ADMIN, absTimeline("month")),
     "abs-06i": absList(LOCAL, absTimeline("month")),
     /* US-291: Distribuire — read, edit, validation, competences, saved, own read-only, no rights */
@@ -3510,7 +3512,7 @@
   function calDemoStates() {
     const ADMIN = "ansp-central-admin", LOCAL = "ansp-local-admin", SPEC = "ansp-specialist-chisinau";
     const LIST = "[data-registry-kind='calendar'] tr[data-workplace-row], [data-registry-kind='calendar'] .e-permits-empty";
-    const cal = (as = ADMIN, run, params) => ({ flow: "back-office", as, hash: "#calendar", params, ready: LIST, delay: 900, run });
+    const cal = (as = ADMIN, run, params) => ({ flow: "back-office", as, hash: "#calendar", params: { today: "2026-10-26", ...(params || {}) }, ready: LIST, delay: 900, run });
     const MODAL = "#case-action-modal.is-active";
     const seq = (...steps) => async (h) => { for (const step of steps) await step(h); };
     const tab = (year) => async (h) => { await h.click(`[data-workplace-tab="y${year}"]`); await h.wait(300); };
@@ -3549,9 +3551,9 @@
       /* calendar-views-v1 — proposal beyond US-283 (the list stays the default view) */
       "cal-08": cal(ADMIN, view),
       "cal-08a": cal(ADMIN, seq(view, month(0))),
-      "cal-08b": cal(ADMIN, seq(view, month(6), absLayer, async (h) => { await h.click(`[data-cal-board] [data-cal-focus="abs-2026-07-09${phone() ? "-agenda" : ""}"]`); await h.find(".e-permits-cal-people:not([hidden])"); })),
+      "cal-08b": cal(ADMIN, seq(view, month(9), absLayer, async (h) => { await h.click(`[data-cal-board] [data-cal-focus="abs-2026-10-23${phone() ? "-agenda" : ""}"]`); await h.find(".e-permits-cal-people:not([hidden])"); })),
       "cal-08c": cal(LOCAL, seq(view, month(0), dayClick("2026-01-07"), async (h) => { await h.find(".e-permits-cal-pop:not([hidden])"); })),
-      "cal-08d": cal(ADMIN, seq(view, month(6), absLayer)),
+      "cal-08d": cal(ADMIN, seq(view, month(9), absLayer)),
       "cal-08e": cal(ADMIN, seq(view, month(9), dayClick("2026-10-15"), async (h) => { await h.find(`${MODAL} [data-cal-form]`); })),
       "cal-08f": cal(ADMIN, seq(view, month(5), dayClick("2026-06-01"), async (h) => { await h.find(`${MODAL} [data-cal-form]`); })),
       "cal-08g": cal(ADMIN, seq(tab(2028), view)),
