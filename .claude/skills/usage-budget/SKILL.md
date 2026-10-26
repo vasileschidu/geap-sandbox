@@ -13,7 +13,7 @@ The rules below target exactly those.
 
 | Job | Model |
 |---|---|
-| New module / new board / design decisions / complex refactor (calendar, MDocs, new flow) | default (Opus) |
+| New module / new board / design decisions / complex refactor (calendar, MDocs, new flow) | `opus` (pass it explicitly — figma-designer defaults to sonnet since 2026-10-26) |
 | Mechanical Figma: status changes, renames, height / hug / viewport fixes, restacks, clip, token rebinding, comment replies | `sonnet` |
 | Small code fixes (copy, a CSS value, a ?v= bump, one bug with a known cause) | `sonnet` |
 | QA / audits / persona reviews / verifier / research summaries | `sonnet` (set in their frontmatter) |
@@ -57,7 +57,15 @@ When unsure, start with `sonnet`; escalate to the default only if the result is 
 - When a rate limit hits, don't relaunch everything at once after the reset — resume the most urgent
   agent first, the rest in sequence.
 
-## 6. Before launching any agent — checklist
+## 6. Hand-off instead of endless sessions
+
+This project's coordinator sessions ran 8 h+ and every turn re-sent the whole history. After a
+milestone, or when limits get close: write `.claude/handoff/<date>.md` (open jobs, their tools /
+scripts / node ids, pending user decisions, next steps), then suggest `/clear`. A new session
+reads that one file instead of the old history. Paused agents can't be resumed across sessions —
+the hand-off must name the script / README each job stored, so a fresh agent continues from it.
+
+## 7. Before launching any agent — checklist
 
 1. Can I do it inline in ≤ 3 tool calls? → do it, no agent.
 2. Mechanical? → `model: "sonnet"`.
