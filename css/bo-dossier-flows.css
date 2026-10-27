@@ -222,12 +222,15 @@
   white-space: normal;
 }
 
-/* name (+ „Rol primit prin delegare”) and the „Executant ales” tag on one line, wrapping under it when narrow */
-.e-permits-dist-report__who {
-  align-items: center;
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--spacing-8, 8px);
+/* the chosen executant (dist-report-chosen-v1, 2026-10-27, user: „more clear… a whole row bg”): the whole row on the
+   success surface, the „Executant ales” tag under the name, aligned with it (the person cell's second line) */
+.e-permits-dist-report__candidates tr.is-chosen td {
+  background: var(--color-background-success-secondary, #e7f6ec);
+}
+
+.e-permits-dist-report__candidates tr.is-chosen .e-permits-workplace__person-copy .tag {
+  align-self: flex-start;
+  margin-top: var(--spacing-4, 4px);
 }
 
 /* an excluded candidate reads tertiary, as the other report tables' inactive rows */

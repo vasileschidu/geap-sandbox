@@ -3621,7 +3621,7 @@ document.addEventListener("DOMContentLoaded", () => {
               <thead><tr><th scope="col">Specialist</th><th scope="col">Încărcare</th><th scope="col">Norma, %</th><th scope="col">Specialist nou</th><th scope="col">Greutate</th><th scope="col">Interval</th><th scope="col">Motiv de excludere</th></tr></thead>
               <tbody>${report.candidates.map((c) => `
                 <tr class="${c.reason ? "is-inactive" : c.chosen ? "is-chosen" : ""}">
-                  <td><span class="e-permits-dist-report__who">${renderTablePerson(c, c.delegated ? "Rol primit prin delegare" : "")}${c.chosen ? renderTag("Executant ales", "success") : ""}</span></td>
+                  <td>${renderTablePerson(c, c.delegated ? "Rol primit prin delegare" : "", c.chosen ? renderTag("Executant ales", "success") : "")}</td>
                   <td>${num(c.load, 1)} h</td>
                   <td>${escapeHtml(String(c.norm))}</td>
                   <td>${c.novice ? "Da" : "Nu"}</td>
@@ -6854,7 +6854,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   };
 
-  const renderTablePerson = (person, subtitle) => {
+  const renderTablePerson = (person, subtitle, extraHtml = "") => {
     if (!person) {
       return '<span class="e-permits-workplace__dash">—</span>';
     }
@@ -6864,7 +6864,7 @@ document.addEventListener("DOMContentLoaded", () => {
         <span class="avatar avatar--xs avatar--initials e-permits-workplace__person-avatar" style="background:${escapeHtml(person.color || "#0058d2")}">${escapeHtml(person.initiale || "")}</span>
         <span class="e-permits-workplace__person-copy">
           <span class="e-permits-workplace__person-name">${escapeHtml(person.nume)}</span>
-          ${subtitle ? `<span class="e-permits-workplace__person-role">${escapeHtml(subtitle)}</span>` : ""}
+          ${subtitle ? `<span class="e-permits-workplace__person-role">${escapeHtml(subtitle)}</span>` : ""}${extraHtml}
         </span>
       </span>
     `;
