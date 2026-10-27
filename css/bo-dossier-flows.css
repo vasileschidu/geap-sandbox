@@ -184,3 +184,53 @@
     width: 100%;
   }
 }
+
+/* ---- dist-actions-v1 (2026-10-27, US-325): the distribution report — the factors and the candidates are report
+   tables in a rounded card (the eKYC „Descompunerea scorului” pattern: .e-permits-ekyc-breakdown + the sum-list total);
+   only the column widths are the report's own. Phones: the candidates table scrolls sideways inside its card. ---- */
+.e-permits-dist-report__card .e-permits-ekyc-breakdown__table th:nth-child(n) {
+  width: auto;
+}
+
+.e-permits-dist-report__card .e-permits-dist-report__factors th:first-child {
+  width: 52%;
+}
+
+/* fixed number columns sized to their header („Specialist nou”) and longest value („1 000 – 1 000”), the name takes
+   the rest; the reason wraps instead of being cut */
+.e-permits-dist-report__card .e-permits-dist-report__candidates {
+  min-width: calc(var(--spacing-80, 80px) * 11);
+}
+
+.e-permits-dist-report__card .e-permits-dist-report__candidates th:nth-child(2),
+.e-permits-dist-report__card .e-permits-dist-report__candidates th:nth-child(3),
+.e-permits-dist-report__card .e-permits-dist-report__candidates th:nth-child(5) {
+  width: calc(var(--spacing-80, 80px) + var(--spacing-16, 16px));
+}
+
+.e-permits-dist-report__card .e-permits-dist-report__candidates th:nth-child(4),
+.e-permits-dist-report__card .e-permits-dist-report__candidates th:nth-child(6) {
+  width: calc(var(--spacing-80, 80px) + var(--spacing-48, 48px));
+}
+
+.e-permits-dist-report__card .e-permits-dist-report__candidates th:last-child {
+  width: calc(var(--spacing-80, 80px) * 2 + var(--spacing-40, 40px));
+}
+
+.e-permits-dist-report__candidates td:last-child {
+  overflow-wrap: anywhere;
+  white-space: normal;
+}
+
+/* name (+ „Rol primit prin delegare”) and the „Executant ales” tag on one line, wrapping under it when narrow */
+.e-permits-dist-report__who {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-8, 8px);
+}
+
+/* an excluded candidate reads tertiary, as the other report tables' inactive rows */
+.e-permits-dist-report__candidates tr.is-inactive .e-permits-workplace__person-name {
+  color: var(--color-text-base-tertiary, #757575);
+}

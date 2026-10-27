@@ -39,6 +39,16 @@
     await h.click("#case-action-modal [data-case-submit]"); await h.find(".toast");
   };
   const subList = (run) => ({ flow: "back-office", as: SUP, hash: "#subdivision-cases", ready: "tr[data-workplace-row], .e-permits-workplace .e-permits-empty", run });
+  /* dist-actions-v1: US-296 „Refuză dosarul” (dialog / done with a reason) · US-297 a case of Mihai Grosu moved by the
+     revocation of his role · US-325 a distribution report opened from „Distribuire” */
+  const refOpen = async (h) => { await redistMenu(h); await h.click("[data-case-action='refuza']"); await h.find("#case-action-modal.is-active #case-motiv"); };
+  const refDone = async (h) => {
+    await refOpen(h);
+    await h.fill("#case-motiv", "Am fost implicată în consultanța acordată acestei companii (conflict de interese).");
+    await h.click("#case-action-modal [data-case-submit]"); await h.find(".toast");
+  };
+  const nedistCase = (tab, extra = {}, run) => ({ flow: "back-office", as: SUP, params: { transfer: "revocare", ...extra }, hash: `#dosar/D-2026-004566/${tab}`, ready: ".e-permits-trajectory, .e-permits-dosar-profil__section", run });
+  const drepOpen = (id) => async (h) => { await h.click(`[data-dist-report-row="${id}"]`); await h.find("[data-case-drawer]:not([hidden]) .e-permits-dist-report__candidates"); await h.wait(250); };
   /* absences-dist-v1 (js/absences.js): US-312…316 absences · US-291 Distribuire tab · US-289 policy · US-294 team load */
   /* calendar-views-v3: „today” is the real date in the product; the demo states pin it (deterministic screenshots) */
   const PIN = (params) => ({ today: "2026-10-26", ...(params || {}) });
@@ -1369,6 +1379,79 @@
     "dos-06o": dos(SUP, "inExaminare", "general", { candidati: "0" }, async (h) => { await redistOpen(h); await h.click("#case-action-modal [data-case-choice='automat']"); }),
     "dos-06p": subList(async (h) => { for (let i = 0; i < 3; i += 1) await h.nth("[data-workplace-select-row]", i); await h.click("[data-workplace-redistribute]"); await h.click("#case-action-modal [data-case-choice='automat']"); }),
     "dos-06n": subList(async (h) => { for (let i = 0; i < 3; i += 1) await h.nth("[data-workplace-select-row]", i); await h.click("[data-workplace-redistribute]"); await h.click("#case-action-modal [data-case-choice='automat']"); await h.fill("#case-motiv", "Echilibrarea încărcării în subdiviziune."); await h.click("#case-action-modal [data-case-submit]"); await h.find(".toast"); }),
+
+    /* ---- dist-actions-v1 (2026-10-27) · US-296 Refuzul executantului (Azure 96013) ----
+       ref-01 the executant's menu: „Refuză dosarul” red, last (AC-01) · 01a the Supervisor: no refusal (AC-01) · 02 the
+       examination started: blocked with the reason (AC-02) · 03 the service does not allow it: absent (AC-03) · 03a
+       Setări › Examinare „Refuzul dosarului de către executant” + roles (AC-03) · 04 the dialog, manual service · 04a the
+       dialog, automatic service · 05 empty reason (AC-04) · 06 refused, manual → back in „Dosarele mele” without the
+       case + toast (AC-05, AC-07) · 06a refused, automatic → redistributed (AC-08, AC-10) · 06b automatic, nobody left →
+       „Dosare nedistribuite” (AC-09) · 07 the Supervisor opens the refused case: „Spre distribuire” card (AC-07, AC-13)
+       · 07a its journal: refusal + reason + decision link + Local Admin notified (AC-06, AC-12, AC-14, AC-16) · 07b its
+       notifications: supervisors + Local Admin (AC-11, AC-12) · 07c „Dosare nedistribuite” with the „Motiv” column ·
+       07d automatic service: the new executant notified (AC-10) · 08 the refusal fails (AC-15) */
+    "ref-01": dos(SPEC, "inExaminare", "general", {}, redistMenu),
+    "ref-01a": dos(SUP, "inExaminare", "general", {}, redistMenu),
+    "ref-02": dos(SPEC, "inExaminare", "general", { examinare: "inceputa" }, redistMenu),
+    "ref-03": dos(SPEC, "inExaminare", "general", { refuz: "nepermis" }, redistMenu),
+    "ref-03a": svc("settings", async (h) => { await distNav(h); (await h.find('[data-cfg-switch="refusal"]')).closest(".e-permits-cfg-cascade").scrollIntoView({ block: "center" }); await h.wait(300); }),
+    "ref-04": dos(SPEC, "inExaminare", "general", {}, refOpen),
+    "ref-04a": dos(SPEC, "inExaminare", "general", { distribuire: "automata" }, refOpen),
+    "ref-05": dos(SPEC, "inExaminare", "general", {}, async (h) => { await refOpen(h); await h.click("#case-action-modal [data-case-submit]"); }),
+    "ref-06": { ...dos(SPEC, "inExaminare", "general", {}, refDone), ready: ".e-permits-trajectory" },
+    "ref-06a": { ...dos(SPEC, "inExaminare", "general", { distribuire: "automata" }, refDone), ready: ".e-permits-trajectory" },
+    "ref-06b": { ...dos(SPEC, "inExaminare", "general", { distribuire: "automata", candidati: "0" }, refDone), ready: ".e-permits-trajectory" },
+    "ref-07": dos(SUP, "inExaminare", "general", { transfer: "refuz" }),
+    "ref-07a": dos(SUP, "inExaminare", "jurnal", { transfer: "refuz" }),
+    "ref-07b": dos(SUP, "inExaminare", "notificari", { transfer: "refuz" }),
+    "ref-07c": { flow: "back-office", as: SUP, params: { transfer: "refuz" }, hash: "#unassigned", ready: "tr[data-workplace-row]" },
+    "ref-07d": dos(SUP, "inExaminare", "notificari", { transfer: "refuz", distribuire: "automata" }),
+    "ref-08": dos(SPEC, "inExaminare", "general", { refuz: "eroare" }, refDone),
+
+    /* ---- US-297 Trecerea automată în „Dosare nedistribuite” (Azure 96014) — Mihai Grosu (user-1 = specialist sp2) ----
+       nedist-01 removing „Specialist · CSP Chișinău”: the confirmation says his open cases of that role move (AC-02) ·
+       01a confirmed: toast (AC-02, AC-05) · 02 removing „Specialist ghișeu · CSP Cahul”: the cases stay (AC-03) · 03
+       inactivating: all open cases move (AC-04) · 03a confirmed · 03b the user's journal (AC-13) · 04 the Supervisor's
+       „Dosare nedistribuite” after the revocation (Motiv „Revocarea rolului”, AC-02 / AC-05) · 04a after the
+       deactivation · 05 a moved case: „Spre distribuire” card, term kept (AC-05, AC-06, AC-10) · 05a its journal: closed
+       assignment + new decision linked + reason (AC-06, AC-07, AC-13) · 05b its notifications: supervisors, specialist +
+       count (AC-09) · 06 a transfer fails: toast (AC-12) · 06a the failed case's journal: „Eșuat”, still with Mihai
+       (AC-12) · 07 the Supervisor distributes a moved case manually (AC-11) · 08 an absence does not move cases (AC-08) */
+    "nedist-01": usr("roles", async (h) => { await rowMenu0(h); await h.click("[data-combo-remove]"); }),
+    "nedist-01a": usr("roles", async (h) => { await rowMenu0(h); await h.click("[data-combo-remove]"); await h.click("[data-service-confirm-ok]"); await h.find(".toast"); }),
+    "nedist-02": usr("roles", async (h) => { await h.nth("[data-user-profile] .e-permits-stack__item [data-stack-menu-trigger]", 1); await h.click("[data-user-profile] .e-permits-stack__menu:not([hidden]) [data-combo-remove]"); }),
+    "nedist-03": usr("general", async (h) => { await headerMenu(h); await h.click("[data-user-profile-status-toggle]"); }),
+    "nedist-03a": usr("general", async (h) => { await headerMenu(h); await h.click("[data-user-profile-status-toggle]"); await h.click("[data-service-confirm-ok]"); await h.find(".toast"); }),
+    "nedist-03b": usr("general", async (h) => { await deactivate(h); await h.click('[data-user-profile-tab="events"], [data-user-tab="events"]'); }),
+    "nedist-04": { flow: "back-office", as: SUP, params: { transfer: "revocare" }, hash: "#unassigned", ready: "tr[data-workplace-row]" },
+    "nedist-04a": { flow: "back-office", as: SUP, params: { transfer: "dezactivare" }, hash: "#unassigned", ready: "tr[data-workplace-row]" },
+    "nedist-05": nedistCase("general"),
+    "nedist-05a": nedistCase("jurnal"),
+    "nedist-05b": nedistCase("notificari"),
+    "nedist-06": { ...usr("general", async (h) => { await headerMenu(h); await h.click("[data-user-profile-status-toggle]"); await h.click("[data-service-confirm-ok]"); await h.find(".toast"); }), params: { trecere: "eroare" } },
+    "nedist-06a": nedistCase("jurnal", { trecere: "eroare" }),
+    "nedist-07": nedistCase("general", {}, redistMenu),
+    "nedist-08": absUser(ADMIN, "user-1", "absences", async (h) => { await absAdd(h); await absFill(h, { type: "Concediu medical", from: "26/10/2026", to: "30/10/2026", reason: "Certificat de concediu medical nr. 5120." }); await absSave(h); await h.find("#abs-open-cases"); }),
+
+    /* ---- US-325 Raportul de distribuire (Azure 96398) — tab „Distribuire” of the case ----
+       drep-01 Administrator Central: two reports, newest first (AC-02, AC-04, AC-05, AC-06) · 01a Administrator Local, own
+       authority (AC-03) · 02 the first report: fields, complexity by factor, candidates (chosen marked, excluded with the
+       reason), drawn number in the chosen interval (AC-08 … AC-14, AC-17) · 02a scrolled to the candidates · 03 the
+       redistribution after a refusal: „Ales fără extragere”, „Decizia anterioară” (AC-06, AC-15) · 04 an attempt without
+       candidate (AC-04) · 04a its report: everyone excluded · 05 manual service: no reports (AC-07) · 06 the Specialist
+       types the address: „Acces interzis” (AC-01) · 07 Administrator Local, another authority's case (AC-03) · 08 the
+       consultation in the case journal (AC-18) · 09 Automat redistribution → a new report (AC-06, runtime) */
+    "drep-01": dos(ADMIN, "inExaminare", "distribuire", { rapoarte: "istoric" }),
+    "drep-01a": dos(LOCAL, "inExaminare", "distribuire", { rapoarte: "istoric" }),
+    "drep-02": dos(ADMIN, "inExaminare", "distribuire", { rapoarte: "istoric" }, drepOpen("TD-004575-01")),
+    "drep-02a": dos(ADMIN, "inExaminare", "distribuire", { rapoarte: "istoric" }, async (h) => { await drepOpen("TD-004575-01")(h); const t = await h.find("[data-case-drawer] .e-permits-dist-report__candidates"); t.closest("section").scrollIntoView({ block: "start" }); await h.wait(200); }),
+    "drep-03": dos(ADMIN, "inExaminare", "distribuire", { rapoarte: "istoric" }, drepOpen("TD-004575-02")),
+    "drep-04": dos(ADMIN, "depus", "distribuire", { rapoarte: "fara-candidat" }),
+    "drep-04a": dos(ADMIN, "depus", "distribuire", { rapoarte: "fara-candidat" }, drepOpen("TD-004575-01")),
+    "drep-05": dos(ADMIN, "inExaminare", "distribuire"),
+    "drep-06": { ...dos(SPEC, "inExaminare", "distribuire"), ready: "[data-dosar-profil-panel] .e-permits-empty, .e-permits-dosar-profil__panel .e-permits-empty" },
+    "drep-07": { ...dos(LOCAL, "inExaminare", "distribuire", { autoritate: "alta", rapoarte: "istoric" }), ready: "[data-dosar-profil-panel] .e-permits-empty, .e-permits-dosar-profil__panel .e-permits-empty" },
+    "drep-08": dos(ADMIN, "inExaminare", "distribuire", { rapoarte: "istoric" }, async (h) => { await drepOpen("TD-004575-01")(h); await h.click("[data-case-drawer] [data-case-close]"); await h.wait(300); await h.click('[data-dosar-tab="jurnal"]'); }),
     "auth-05": { flow: "back-office", as: ADMIN, run: async (h) => { await h.click("[data-user-menu] .e-permits-shell__user-trigger"); } },
     "auth-05a": { page: "bo-login.html", params: { ended: "logout" }, ready: "[data-bo-login] h1" },
     "auth-05b": { page: "bo-login.html", params: { ended: "logout", portal: "admin" }, ready: "[data-bo-login] h1" },

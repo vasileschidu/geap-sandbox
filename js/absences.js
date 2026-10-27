@@ -274,15 +274,27 @@
   };
 
   /* load (US-293 stand-in, US-292 complexity stand-in): Σ complexity of the case's under examination in the window ÷ norm */
-  const complexityOf = (row, authority = "ANSP") => {
+  /* dist-actions-v1 (US-325 AC-09): the same sum, kept by factor — the distribution report shows the parts */
+  const complexityParts = (row, authority = "ANSP") => {
     const rt = DOSSIER_RT[row.tipDosar] || row.tipDosar;
     const scope = { level: "aut", authority, rt };
     const h = [...String(row.id)].reduce((s, c) => (s * 31 + c.charCodeAt(0)) >>> 0, 7);
     const get = (k) => num(resolve(S.policy, scope, k).value) || 0;
-    const hours = 4 * (num(resolve(S.policy, scope, "coef").value) || 1)
-      + (1 + (h % 4)) * get("f_doc") + ((h >> 3) % 2) * get("f_aviz") + (row.companie ? get("f_pj") : 0) - ((h >> 5) % 2) * get("f_docReg");
-    return Math.max(get("f_min") || 0.5, Math.round(hours * 4) / 4);
+    const label = (id) => FACTORS.find(([key]) => key === id)?.[1] || id;
+    const coef = num(resolve(S.policy, scope, "coef").value) || 1;
+    const parts = [
+      { label: "Orele de bază × coeficientul tipului de solicitare", qty: 1, unit: 4 * coef, hours: 4 * coef },
+      { label: label("doc"), qty: 1 + (h % 4), unit: get("f_doc"), hours: (1 + (h % 4)) * get("f_doc") },
+      { label: label("aviz"), qty: (h >> 3) % 2, unit: get("f_aviz"), hours: ((h >> 3) % 2) * get("f_aviz") },
+      { label: label("pj"), qty: row.companie ? 1 : 0, unit: get("f_pj"), hours: row.companie ? get("f_pj") : 0 },
+      { label: label("docReg"), qty: (h >> 5) % 2, unit: get("f_docReg"), hours: -((h >> 5) % 2) * get("f_docReg") }
+    ].filter((part) => part.qty > 0);
+    const sum = parts.reduce((s, part) => s + part.hours, 0);
+    const floor = get("f_min") || 0.5;
+    const total = Math.max(floor, Math.round(sum * 4) / 4);
+    return { parts, total, sum, min: total === floor && sum < floor };
   };
+  const complexityOf = (row, authority = "ANSP") => complexityParts(row, authority).total;
   const loadOf = (person) => {
     const scope = { level: "aut", authority: person.authority, rt: "" };
     const months = Math.max(1, num(resolve(S.policy, scope, "window").value) || 3);
@@ -306,6 +318,20 @@
     /* the active specialists of a subdivision left out today because they are absent (redistribution hint) */
     absentNames: (subdivision) => people().filter((p) => p.subdivision === subdivision && p.role === "Specialist" && absentOn(p.id)).map((p) => p.name),
     policyFor, FACTORS,
+    /* dist-actions-v1 (US-325): the report's snapshot — complexity by factor, the effective policy (name, version = its
+       last change on or before that day, the rule parameters) and „Specialist nou” on that day */
+    complexity: (row, authority) => complexityParts(row, authority),
+    policyAt: (authority, rt, day) => {
+      const code = authCode(authority);
+      const scope = { level: "aut", authority: code, rt };
+      const changes = (S.policy?.journal || []).map((e) => String(e.at).slice(0, 10)).filter((d) => !day || d <= day).sort();
+      return {
+        name: `Politica de distribuire ${code}`,
+        version: changes.length ? `versiunea din ${long(changes[changes.length - 1])}` : "versiunea inițială",
+        params: PARAMS.filter((p) => p.key !== "coef").map((p) => [p.label.replace(/ \(.*\)$/, ""), showValue(p.key, resolve(S.policy, scope, p.key).value)])
+      };
+    },
+    novice: (specialistId, day) => { const person = personBySpecialist(specialistId); return person ? noviceMonth(person, day) > 0 : false; },
     /* calendar-views-v1 (Administrare › Calendar, layer „Absențe”): who may see them, the absences of the people this
        person manages that overlap [from, to] (ISO), and the existing „Modifică absența” dialog */
     canView: () => canAbsences(),
