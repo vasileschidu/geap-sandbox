@@ -1,5 +1,5 @@
-/* Preview (records-v2): same act, two renderings of the data modal. Left = grids as tables (today);
-   right = grids as records (act.gridDisplay = "records"). Switch (?act=ozon|radio|farmacie|forestier): the first is the
+/* Preview (records-v2): same act, two renderings of the data modal. Left = grids as tables (opt-out, act.gridDisplay = "table");
+   right = grids as records (the default). Switch (?act=ozon|radio|farmacie|forestier): the first is the
    real rap-0015, the others are demo acts rebuilt from their PDFs (act-records-preview-data.js). */
 (async () => {
   const toneOf = { Valabil: "success", Suspendat: "warning", Expirat: "danger", Retras: "danger", Anulat: "danger" };
@@ -62,7 +62,7 @@
       stage.innerHTML = view.dataPreviewHtml({
         ...picked.act,
         groups: window.GEAPActView.normalizeFields(picked.groups),
-        gridDisplay: stage.dataset.rrp === "records" ? "records" : null
+        gridDisplay: stage.dataset.rrp === "records" ? null : "table"
       });
       stage.querySelector(".modal").removeAttribute("aria-labelledby");
     });

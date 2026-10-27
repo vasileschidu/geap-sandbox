@@ -1321,14 +1321,14 @@
     "mdoc-12": smDosar("d-izvoras", async (h) => { await h.click('[data-sm-tab="solicitare"]'); await h.scroll(".cab-docs"); await h.click('.cab-doc[data-cab-doc$="|certificat"]'); await h.wait(400); }),
     "mdoc-13": smDosar("d-nota", async (h) => { await smHeadAct(h, "download"); await h.wait(400); }),
     "mdoc-14": smDosar("d-piata-susp", async (h) => { await h.click('[data-sm-tab="act"]'); await h.click('[data-sm-panel="act"] [data-sm-action="download"]'); await h.wait(400); }),
-    "mdoc-15": ppCab(async (h) => { await h.click("[data-cab-card='act-izvoras'] .e-permits-fo-lib-item__title"); await h.click("[data-cab-view-act]"); await h.find("[data-rap-act-modal]:not([hidden]) [data-rap-act-canvas]"); }),
+    "mdoc-15": ppCab(async (h) => { await h.click("[data-cab-card='act-izvoras'] .e-permits-fo-lib-item__title"); await h.click("[data-cab-view-act]"); await h.find("[data-rap-act-data].is-active [data-rap-data-generate]"); await h.wait(250); await h.click("[data-rap-act-data].is-active [data-rap-data-generate]"); await h.find("[data-rap-act-modal]:not([hidden]) [data-rap-act-canvas]"); }),
     "mdoc-16": smDosar("d-spicul", async (h) => { await h.click('[data-sm-tab="solicitare"]'); }),
     "mdoc-17": foReq(7, { paid: "1" }, async (h) => { await h.click("[data-fo-finish-document]"); await h.wait(400); }),
     "mdoc-18": {
       page: "rap-evo/index.html", params: { act: "rap-0016" }, ready: "[data-rap-profile-view]:not([hidden]) h1",
       run: async (h) => {
-        await h.click("[data-rap-view-document]"); await h.find("[data-rap-act-data].is-active [data-rap-data-download]"); await h.wait(250);
-        await h.click("[data-rap-act-data].is-active [data-rap-data-download]"); await h.find("[data-rap-act-modal]:not([hidden]) .rap-act-doc"); await h.wait(300);
+        await h.click("[data-rap-view-document]"); await h.find("[data-rap-act-data].is-active [data-rap-data-generate]"); await h.wait(250);
+        await h.click("[data-rap-act-data].is-active [data-rap-data-generate]"); await h.find("[data-rap-act-modal]:not([hidden]) .rap-act-doc"); await h.wait(300);
         document.querySelectorAll("[data-rap-act-modal]:not([hidden]) .e-permits-doc-page")[1]?.scrollIntoView({ block: "start" });
       }
     },
@@ -1834,17 +1834,20 @@
     "pp-01l": ppCab(async (h) => { await cabFind(h, "act-licenta-demo"); await h.click("[data-cab-card='act-licenta-demo'] .e-permits-fo-lib-item__title"); }),
     /* act-profile-v1 (2026-10-21): „Vezi act permisiv” opens the act document (MDocs A4, „Vizualizare act” · Descarcă) —
        the old data dialog is gone (its data is on the page); m / o = the Valabil act, n = the Suspendat one (watermark) */
-    "pp-01m": ppCab(async (h) => { await h.click("[data-cab-card='act-izvoras'] .e-permits-fo-lib-item__title"); await h.click("[data-cab-view-act]"); await h.find("[data-rap-act-modal]:not([hidden]) [data-rap-act-canvas]"); }),
-    "pp-01n": ppCab(async (h) => { await h.click("[data-cab-card='act-piata-mare'] .e-permits-fo-lib-item__title"); await h.click("[data-cab-view-act]"); await h.find("[data-rap-act-modal]:not([hidden]) [data-rap-act-canvas]"); }),
+    "pp-01m": ppCab(async (h) => { await h.click("[data-cab-card='act-izvoras'] .e-permits-fo-lib-item__title"); await h.click("[data-cab-view-act]"); await h.find("[data-rap-act-data].is-active [data-rap-data-generate]"); await h.wait(250); await h.click("[data-rap-act-data].is-active [data-rap-data-generate]"); await h.find("[data-rap-act-modal]:not([hidden]) [data-rap-act-canvas]"); }),
+    "pp-01n": ppCab(async (h) => { await h.click("[data-cab-card='act-piata-mare'] .e-permits-fo-lib-item__title"); await h.click("[data-cab-view-act]"); await h.find("[data-rap-act-data].is-active [data-rap-data-generate]"); await h.wait(250); await h.click("[data-rap-act-data].is-active [data-rap-data-generate]"); await h.find("[data-rap-act-modal]:not([hidden]) [data-rap-act-canvas]"); }),
     /* the act rows = the FO intent rows (2026-10-17): „Descarcă actul (MDocs)” lives in the profile (Vezi act permisiv → Descarcă) */
-    "pp-01o": ppCab(async (h) => { await h.click("[data-cab-card='act-izvoras'] .e-permits-fo-lib-item__title"); await h.click("[data-cab-view-act]"); await h.find("[data-rap-act-modal]:not([hidden]) [data-rap-act-canvas]"); }),
+    "pp-01o": ppCab(async (h) => { await h.click("[data-cab-card='act-izvoras'] .e-permits-fo-lib-item__title"); await h.click("[data-cab-view-act]"); await h.find("[data-rap-act-data].is-active [data-rap-data-generate]"); await h.wait(250); await h.click("[data-rap-act-data].is-active [data-rap-data-generate]"); await h.find("[data-rap-act-modal]:not([hidden]) [data-rap-act-canvas]"); }),
     /* US-55 AC-09 / AC-10: „Anulare” from Valabil and from Suspendat (DEMO service), same rules as Retragere */
     /* configured act fields (2026-10-19): the depot's 2 groups, a list value, the „Cote anuale autorizate” table
        (7 rows → first 5 + „Arată toate (7)”), expanded, and the A4 form — on the profile itself since act-profile-v1
        („Ce permite actul” + „Substanțe controlate”), the A4 in „Vizualizare act” */
-    "pp-01x": ppCab(async (h) => { await h.scroll("[data-cab-card='act-depozit-10']"); await h.click("[data-cab-card='act-depozit-10'] .e-permits-fo-lib-item__title"); await h.find("[data-cab-detail] .e-permits-act-fields__table"); await h.wait(250); await h.scroll("[data-cab-detail] .e-permits-act-fields__table-field"); }),
-    "pp-01y": ppCab(async (h) => { await h.scroll("[data-cab-card='act-depozit-10']"); await h.click("[data-cab-card='act-depozit-10'] .e-permits-fo-lib-item__title"); await h.find("[data-cab-detail] .e-permits-act-fields__table"); await h.wait(250); await h.click("[data-cab-detail] .e-permits-act-fields__table-field [data-act-fields-more]"); await h.scroll("[data-cab-detail] .e-permits-act-fields__table-field"); }),
-    "pp-01z": ppCab(async (h) => { await h.scroll("[data-cab-card='act-depozit-10']"); await h.click("[data-cab-card='act-depozit-10'] .e-permits-fo-lib-item__title"); await h.click("[data-cab-view-act]"); await h.find("[data-rap-act-modal]:not([hidden]) [data-rap-act-canvas]"); }),
+    "pp-01x": ppCab(async (h) => { await h.scroll("[data-cab-card='act-depozit-10']"); await h.click("[data-cab-card='act-depozit-10'] .e-permits-fo-lib-item__title"); await h.find("[data-cab-detail] .e-permits-act-fields__records"); await h.wait(250); await h.scroll("[data-cab-detail] .e-permits-act-fields__records"); }),
+    "pp-01y": ppCab(async (h) => { await h.scroll("[data-cab-card='act-depozit-10']"); await h.click("[data-cab-card='act-depozit-10'] .e-permits-fo-lib-item__title"); await h.find("[data-cab-detail] .e-permits-act-fields__records"); await h.wait(250); await h.click("[data-cab-detail] .e-permits-act-fields__records [data-act-fields-more]"); await h.scroll("[data-cab-detail] .e-permits-act-fields__records"); }),
+    "pp-01z": ppCab(async (h) => { await h.scroll("[data-cab-card='act-depozit-10']"); await h.click("[data-cab-card='act-depozit-10'] .e-permits-fo-lib-item__title"); await h.click("[data-cab-view-act]"); await h.find("[data-rap-act-data].is-active [data-rap-data-generate]"); await h.wait(250); await h.click("[data-rap-act-data].is-active [data-rap-data-generate]"); await h.find("[data-rap-act-modal]:not([hidden]) [data-rap-act-canvas]"); }),
+    /* act-data-first-v1 (2026-10-27): „Vezi act permisiv” opens the DATA panel (docked ≥ 1024); „Generează documentul” opens the A4 (pp-01m…) */
+    "pp-01za": ppCab(async (h) => { await h.click("[data-cab-card='act-izvoras'] .e-permits-fo-lib-item__title"); await h.click("[data-cab-view-act]"); await h.find("[data-rap-act-data].is-active .e-permits-dosar-profil__card"); await h.wait(300); }),
+    "pp-01zb": ppCab(async (h) => { await h.scroll("[data-cab-card='act-depozit-10']"); await h.click("[data-cab-card='act-depozit-10'] .e-permits-fo-lib-item__title"); await h.click("[data-cab-view-act]"); await h.find("[data-rap-act-data].is-active .e-permits-act-fields__records"); await h.wait(300); await h.scroll("[data-rap-act-data] .e-permits-act-fields__records"); }),
     "pp-01p": ppCab(async (h) => { await cabFind(h, "act-licenta-demo"); await h.click("[data-cab-card='act-licenta-demo'] [data-cab-menu-trigger]"); }),
     /* the profile's visible menu trigger: „Postprocese ⌄” on desktop, the overflow „⋯” on phones (act-profile-v1) */
     /* external-link-v1 (2026-10-22): „Vezi solicitarea” = label + trailing external icon, new tab; on phones it sits in the
@@ -2957,7 +2960,7 @@
     "sm-05l": smDosar("d-izvoras", async (h) => { await h.click('[data-sm-tab="act"]'); }),
     "sm-05m": smDosar("d-nota", async (h) => { await h.click('[data-sm-tab="act"]'); }),
     /* Act / Decizie with the act's configured fields (2026-10-19): the shared GEAPActView.fieldsHtml sections + table */
-    "sm-05n": smDosar("d-depozit-reperf", async (h) => { await h.click('[data-sm-tab="act"]'); await h.scroll(".e-permits-act-fields__table-field"); }),
+    "sm-05n": smDosar("d-depozit-reperf", async (h) => { await h.click('[data-sm-tab="act"]'); await h.scroll(".e-permits-act-fields__records"); }),
     /* 05o a refused request inside its appeal window: the row's countdown + „Depune contestație →” (the official
        matrix) · 05p Emitere duplicat (Act) · 05q Suspendarea valabilității (Decizie) · 05r Reluarea valabilității
        (Decizie) · 05s filed by a representative whose MPower has expired since (US-161 AC-11, US-19 AC-17) */
@@ -3150,8 +3153,8 @@
           const view = (act, params = {}, wait = ".rap-act-doc", then = null) => ({
             page: RAP, params: { act, ...params }, ready: "[data-rap-profile-view]:not([hidden]) h1",
             run: async (h) => {
-              await h.click("[data-rap-view-document]"); await h.find("[data-rap-act-data].is-active [data-rap-data-download]"); await h.wait(250);
-              await h.click("[data-rap-act-data].is-active [data-rap-data-download]"); await h.find(`[data-rap-act-modal]:not([hidden]) ${wait}`); await h.wait(300);
+              await h.click("[data-rap-view-document]"); await h.find("[data-rap-act-data].is-active [data-rap-data-generate]"); await h.wait(250);
+              await h.click("[data-rap-act-data].is-active [data-rap-data-generate]"); await h.find(`[data-rap-act-modal]:not([hidden]) ${wait}`); await h.wait(300);
               if (then) await then(h);
             }
           });
@@ -3181,17 +3184,22 @@
             /* configured act fields — groups + tables (2026-10-19, Figma comment 20607:34846), the ozone act:
                3 groups (Date despre operațiune · Destinatar / furnizor · Substanțe și echipamente), a list value,
                „Substanțe autorizate” 12 rows (first 5 + „Arată toate (12)”), „Echipamente” 3 rows */
-            "rap-03q": data("rap-0015", async (h) => { await h.scroll("[data-rap-act-data] .e-permits-act-fields__table-field"); }),
-            "rap-03r": data("rap-0015", async (h) => { await h.click("[data-rap-act-data] .e-permits-act-fields__table-field [data-act-fields-more]"); await h.scroll("[data-rap-act-data] .e-permits-act-fields__table-field"); }),
+            "rap-03q": data("rap-0015", async (h) => { await h.scroll("[data-rap-act-data] .e-permits-act-fields__records"); }),
+            "rap-03r": data("rap-0015", async (h) => { await h.click("[data-rap-act-data] .e-permits-act-fields__records [data-act-fields-more]"); await h.scroll("[data-rap-act-data] .e-permits-act-fields__records"); }),
             /* its A4 form: the groups, both tables with every row, the header row repeated on the next page */
             "rap-03s": view("rap-0015"),
             "rap-03t": view("rap-0015", {}, ".rap-act-doc", async (h) => { await h.scroll("[data-rap-act-modal] .e-permits-doc-page__grid-head.is-repeat"); }),
             /* the A4 viewer's long name expanded: „Mai puțin” at the end of the text, never next to × (modal-name-expand-end-v1) */
             "rap-03u": view("rap-0015", {}, ".rap-act-doc", async (h) => { await h.click("[data-rap-act-modal] [data-rap-clamp-toggle]"); }),
-            /* records-v1: grids as records (key-value only, no tables) — ?grids=records; -a = every record expanded; side-by-side
+            /* records-v1 (default since 2026-10-27, no switch): grids as records (key-value only); rap-03v = scrolled to them, -w = every record expanded; side-by-side
                preview page = rap-evo/act-records-preview.html */
-            "rap-03v": data("rap-0015", async (h) => { await h.scroll("[data-rap-act-data] .e-permits-act-fields__records"); }, { grids: "records" }),
-            "rap-03w": data("rap-0015", async (h) => { await h.click("[data-rap-act-data] .e-permits-act-fields__records [data-act-fields-more]"); await h.scroll("[data-rap-act-data] .e-permits-act-fields__records"); }, { grids: "records" })
+            "rap-03v": data("rap-0015", async (h) => { await h.scroll("[data-rap-act-data] .e-permits-act-fields__records"); }),
+            "rap-03w": data("rap-0015", async (h) => { await h.click("[data-rap-act-data] .e-permits-act-fields__records [data-act-fields-more]"); await h.scroll("[data-rap-act-data] .e-permits-act-fields__records"); }),
+            /* docked-v1 (2026-10-27): ≥ 1024 the data dialog is a right-docked panel over the visible act page (no scrim); the
+               same states at 1440 show the page behind; -a = scrolled body (hairline), -b = a short act */
+            "rap-03x": data("rap-0015"),
+            "rap-03xa": data("rap-0015", async (h) => { await h.scroll("[data-rap-act-data] .e-permits-act-fields__records"); }),
+            "rap-03xb": data("rap-0002")
           };
         })()
       };

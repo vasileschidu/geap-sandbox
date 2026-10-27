@@ -6,10 +6,10 @@
    1. „Vizualizare act” (US-162 AC-12 / US-163) = the BO detail modal (#dosar-detail-modal markup:
       library .modal.modal--md + .e-permits-detail-modal, css/bo-profile-parts.css): „Date generale”
       card, the act's configured fields = one BO section per configured group (fieldsHtml below), the
-      read-only note; footer Descarcă · Închide.
+      read-only note; footer „Generează documentul” (opens the A4 form, opt-in) · Închide.
    2. „Forma de tipar a actului” (US-143) = the FO / Cabinet document modal (grey canvas + A4 page,
       MDocs on demand: loading → page | AC-10/11/12 errors), paginated and fitted by GEAPDocPreview
-      (js/doc-preview.js), „Imprimă” prints the pages only. Opened from 1 › Descarcă; closing it comes
+      (js/doc-preview.js), „Imprimă” prints the pages only. Opened from 1 › Generează documentul; closing it comes
       back to 1.
    Markup and class names are the RAP ones (rap-act-*, data-rap-*: moved here unchanged from
    rap-evo.js, so the RAP dialogs stay byte-identical); the CSS is css/act-view.css.
@@ -23,7 +23,7 @@
        beneficiary: { name, person, idType, id },
        tacitDate, tacitBadge, issuedDate, validFrom, statusDates: [[label, value]], validUntil,
        paperNumber, printedNumber, groups, url,
-       gridDisplay? (records-v1: "records" = every grid of the data modal as records, see fieldsHtml; default tables),
+       gridDisplay? (records-v1, default since 2026-10-27: grids render as records; "table" = opt-out for the whole modal, see fieldsHtml),
        signed? (doc-viewer-v1: false = a paper act → no signature tray under the page; default signed),
        source? (the A4 footer's „Generat prin MDocs · <source>”, default „Registrul actelor permisive”) }
    groups = the act's configured fields (service passport, 2026-10-19 — Figma comment EVO-WEB-3.0
@@ -73,7 +73,7 @@
           ? { label: column, type: "text" }
           : { label: String(column?.label ?? ""), type: ["number", "short", "wide"].includes(column?.type) ? column.type : "text" })),
         rows: (item.rows || []).filter((row) => Array.isArray(row) && row.some(isFilled)),
-        display: item.display === "records" ? "records" : null,
+        display: item.display === "table" ? "table" : null, /* records are the default; "table" = opt-out for huge datasets */
         titleColumns: Array.isArray(item.titleColumns)
           ? item.titleColumns.map((entry) => (typeof entry === "number" ? { col: entry, prefix: "" } : { col: Number(entry?.col), prefix: String(entry?.prefix ?? "") }))
             .filter((entry) => Number.isInteger(entry.col) && entry.col >= 0 && entry.col < item.columns.length)
@@ -191,6 +191,7 @@
   /* groups → one BO section each, in the configured order; an untitled group takes `untitled` when it is the
      only one, „Alte câmpuri ale actului” next to titled groups */
   function fieldsHtml(input, { section = defaultSection, untitled = "Câmpuri specifice actului", grids = null } = {}) {
+    /* records = default; a grid (item.display) or the whole modal (grids) can opt out with "table" */
     const groups = normalizeFields(input);
     return groups.map((group, index) => {
       const id = `act-fields-${++fieldsUid}`;
@@ -198,7 +199,7 @@
       const items = group.items.map((item, at) => {
         const extra = collapsible && at >= ACT_FIELDS_SHOWN ? " e-permits-act-fields__more" : "";
         if (!item.columns) return fieldRowHtml(item, extra);
-        return (item.display || grids) === "records" ? recordsFieldHtml(item, extra) : tableFieldHtml(item, extra);
+        return (item.display || grids) === "table" ? tableFieldHtml(item, extra) : recordsFieldHtml(item, extra);
       }).join("");
       const body = `<div class="e-permits-dosar-profil__card e-permits-act-fields${collapsible ? " is-collapsed" : ""}" id="${id}" data-act-fields>${items}${collapsible ? toggleHtml(id, group.items.length, `Arată toate câmpurile (${group.items.length})`, "Arată mai puține câmpuri") : ""}</div>`;
       const title = group.title || (groups.length > 1 ? "Alte câmpuri ale actului" : untitled);
@@ -382,8 +383,21 @@
       modal.classList.toggle("has-scroll-below", scrollable && content.scrollTop + content.clientHeight < content.scrollHeight - 1);
     };
 
+    /* docked-v1: desktop ≥ 1024 = a right-docked panel over the visible page (no scrim, no focus trap, aria-modal off) */
+    const dockedQuery = window.matchMedia("(min-width: 1024px)");
+    const isDocked = () => dockedQuery.matches;
+    const syncDocked = () => {
+      actData.overlay?.querySelector(".modal")?.setAttribute("aria-modal", String(!isDocked()));
+    };
+    const onDockedEscape = (event) => {
+      if (event.key !== "Escape" || !isDocked() || (actModal.overlay && !actModal.overlay.hidden)) return;
+      closeActData();
+    };
+
     const showActData = () => {
       const overlay = actData.overlay;
+      syncDocked();
+      document.addEventListener("keydown", onDockedEscape);
       actData.parked = false;
       overlay.classList.add("is-active");
       overlay.querySelector(".modal").classList.add("is-active");
@@ -398,10 +412,11 @@
       overlay.classList.remove("is-active");
       overlay.querySelector(".modal").classList.remove("is-active");
       overlay.setAttribute("aria-hidden", "true");
+      document.removeEventListener("keydown", onDockedEscape);
       if (restoreFocus && actData.opener?.isConnected) actData.opener.focus();
     };
 
-    /* toData: opened from „Vizualizare act” › Descarcă → closing goes back to that dialog */
+    /* toData: opened from „Vizualizare act” › Generează documentul → closing goes back to that dialog */
     const closeActDocument = ({ toData = true } = {}) => {
       if (!actModal.overlay || actModal.overlay.hidden) return;
       actModal.run += 1;
@@ -526,7 +541,7 @@
         <div class="modal-content" data-rap-data-body></div>
         <div class="modal--footer">
           <div class="modal-buttons">
-            <button class="btn btn-neutral btn-rounded" type="button" aria-haspopup="dialog" data-rap-data-download>${icon("export", "icon small")}<span>Descarcă</span></button>
+            <button class="btn btn-neutral btn-rounded" type="button" aria-haspopup="dialog" data-rap-data-generate>${icon("document", "icon small")}<span>Generează documentul</span></button>
             <button class="btn btn-primary btn-rounded" type="button" data-rap-data-close>Închide</button>
           </div>
         </div>
@@ -546,13 +561,13 @@
     const ensureActData = () => {
       if (actData.overlay) return actData.overlay;
       const overlay = document.createElement("div");
-      overlay.className = "modal-overlay rap-act-data";
+      overlay.className = "modal-overlay rap-act-data e-permits-act-data--docked";
       overlay.setAttribute("aria-hidden", "true");
       overlay.dataset.rapActData = "";
       overlay.innerHTML = dataShellHtml();
       document.body.append(overlay);
       overlay.addEventListener("click", (event) => {
-        if (event.target === overlay || event.target.closest("[data-rap-data-close]")) {
+        if ((event.target === overlay && !isDocked()) || event.target.closest("[data-rap-data-close]")) {
           closeActData();
           return;
         }
@@ -567,7 +582,7 @@
           syncActDataEdges();
           return;
         }
-        const download = event.target.closest("[data-rap-data-download]");
+        const download = event.target.closest("[data-rap-data-generate]");
         if (download && actData.record && download.getAttribute("aria-disabled") !== "true") {
           closeActData({ restoreFocus: false });
           actData.parked = true;
@@ -581,8 +596,9 @@
           closeActData();
           return;
         }
-        if (event.key === "Tab") trapTab(overlay, event);
+        if (event.key === "Tab" && !isDocked()) trapTab(overlay, event);
       });
+      dockedQuery.addEventListener?.("change", syncDocked);
       overlay.querySelector(".modal-content").addEventListener("scroll", syncActDataEdges, { passive: true });
       overlay.addEventListener("act-fields-toggle", syncActDataEdges);
       if ("ResizeObserver" in window) new ResizeObserver(() => { syncClamps(overlay); syncActDataEdges(); }).observe(overlay.querySelector(".modal"));

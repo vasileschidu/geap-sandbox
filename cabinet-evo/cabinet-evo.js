@@ -870,7 +870,6 @@
       copyHtml: (value) => copyValueHtml(value, `Copiază numărul actului ${value}`),
       copySelector: "[data-copy-value]",
       onCopy: () => {},
-      documentTitle: "Vizualizare act",
       onDocumentDownload: downloadAct,
     });
     return actViewInstance;
@@ -1404,7 +1403,7 @@
         event.stopPropagation();
         closeMenus();
         const act = state.permits.find((p) => p.id === download.dataset.cabDownload);
-        if (act?.geap) actView().openDocument(toActView(act), download.closest(".cab-card")?.querySelector("[data-cab-menu-trigger]") || download);
+        if (act?.geap) actView().openData(toActView(act), download.closest(".cab-card")?.querySelector("[data-cab-menu-trigger]") || download);
         return;
       }
       const jump = event.target.closest("[data-cab-jump]");
@@ -1416,7 +1415,7 @@
       const viewAct = event.target.closest("[data-cab-view-act]");
       if (viewAct) {
         const act = state.permits.find((p) => p.id === viewAct.dataset.cabViewAct);
-        if (act) actView().openDocument(toActView(act), viewAct); /* the act itself — the page carries its data (act-profile-v1) */
+        if (act) actView().openData(toActView(act), viewAct); /* act-data-first-v1: the act's DATA panel (as RAP); „Generează documentul” opens the A4 */
         return;
       }
       if (ppBtn && ppBtn.getAttribute("aria-disabled") === "true") { event.stopPropagation(); return; }

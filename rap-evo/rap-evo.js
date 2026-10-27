@@ -389,8 +389,6 @@
       paperNumber: record.permit.paperNumber,
       printedNumber: profile.printedDocumentNumber,
       groups: actSpecificGroups(record),
-      /* records-v1: ?grids=records shows every grid as records (key-value only) instead of tables — preview of the PO proposal */
-      gridDisplay: new URLSearchParams(window.location.search).get("grids") === "records" ? "records" : null,
       url: permanentUrl(record)
     };
   };

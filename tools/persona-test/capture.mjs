@@ -15,7 +15,7 @@ const OUT = arg("out", path.join("tools/persona-test/out", new Date().toISOStrin
 const CHROME = arg("chrome", "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome");
 const HIDE = arg("hide", ".e-permits-fo-testcfg, .msup-bubble");
 const VIEWPORTS = [
-  { name: "desktop", width: 1440, height: 900, mobile: false, scale: 1 },
+  { name: "desktop", width: Number(arg("width", 1440)), height: 900, mobile: false, scale: 1 },
   { name: "mobile", width: 375, height: 812, mobile: true, scale: 2 },
 ];
 

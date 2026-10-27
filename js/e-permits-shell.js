@@ -18427,7 +18427,7 @@ document.addEventListener("DOMContentLoaded", () => {
             </div>
           </li>`;
   };
-  /* rows in form order; a composite field (editable grid) is one container — name + „Tabel”
+  /* rows in form order; a composite field (editable grid, shown in RAP as a list of records) is one container — name + „Listă”
      + a hint on a grey head, its columns as rows inside; each column is published on its own */
   const cfgRapItemsHtml = (shown, all, isPub, isAnon, kind, pubAll = shown) => {
     const done = new Set();
@@ -18436,16 +18436,16 @@ document.addEventListener("DOMContentLoaded", () => {
       if (done.has(x.group)) return "";
       done.add(x.group);
       const cols = shown.filter((y) => y.group === x.group), total = all.filter((y) => y.group === x.group).length;
-      const hint = kind === "modal" ? `${total} coloane` : `${pubAll.filter((y) => y.group === x.group).length} din ${total} coloane publicate`;
+      const hint = kind === "modal" ? `${total} câmpuri` : `${pubAll.filter((y) => y.group === x.group).length} din ${total} câmpuri publicate`;
       return `<li class="e-permits-cfg-rap__group">
             <div class="e-permits-cfg-rap__table">
               <div class="e-permits-cfg-rap__table-head">
                 <div class="e-permits-cfg-rap__group-head">
-                  <span class="e-permits-cfg-rap__name">${escapeHtml(x.group)}</span>${renderTag("Tabel")}
+                  <span class="e-permits-cfg-rap__name">${escapeHtml(x.group)}</span>${renderTag("Listă")}
                 </div>
                 <p class="e-permits-cfg-rap__group-hint">${hint}</p>
               </div>
-              <ul class="e-permits-cfg-rap e-permits-cfg-rap__cols" role="list" aria-label="${escapeHtml(`Coloanele: ${x.group}`)}">${cols.map((y) => cfgRapRowHtml(y, isPub(y), isAnon(y), kind)).join("")}</ul>
+              <ul class="e-permits-cfg-rap e-permits-cfg-rap__cols" role="list" aria-label="${escapeHtml(`Câmpurile: ${x.group}`)}">${cols.map((y) => cfgRapRowHtml(y, isPub(y), isAnon(y), kind)).join("")}</ul>
             </div>
           </li>`;
     }).join("");
