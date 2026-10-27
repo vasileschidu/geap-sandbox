@@ -586,22 +586,20 @@ button.rap-act-subtitle__name[aria-expanded="true"] .rap-act-subtitle__text {
    8px padding, transparent background — easier to compare with the document”). Desktop ≥ 1024 only; tablets / phones keep
    the centred dialog / the bottom sheet.
    `.e-permits-act-data--docked` (modifier of `.modal-overlay.rap-act-data`, set by js/act-view.js): the overlay shrinks to
-   the panel box — fixed, 8 from top / right / bottom, the library large modal width (720) or the viewport − 16 —, has no
-   scrim and lets clicks through; only the `.modal` takes them. The page behind stays visible and scrollable. The panel is
+   the panel box — fixed, 8 from top / right / bottom, the library large modal width (720) or the viewport − 16 — over the
+   library grey scrim (scrim-v1, user 2026-10-27; the page shows through it, not scrollable). The panel is
    the same `.modal` (radius 16, shadow-400, so it floats over the page), header + footer pinned, only `.modal-content`
    scrolls. Close = ×, „Închide”, Esc; role=dialog without aria-modal, no Tab trap.
    Variants: default · focus (the panel / × / buttons keep the library focus ring) · close hover (the library × hover).
    ========================================================================== */
 @media (min-width: 1024px) {
+  /* scrim-v1 (user 2026-10-27: „the modal should have the grey transparent background”): the library overlay scrim
+     stays; only the panel is docked right, 8 from top / right / bottom */
   .modal-overlay.rap-act-data.e-permits-act-data--docked {
     align-items: stretch;
-    background-color: transparent;
-    bottom: var(--spacing-8, 8px);
-    height: auto;
-    inset: var(--spacing-8, 8px) var(--spacing-8, 8px) var(--spacing-8, 8px) auto;
+    box-sizing: border-box;
     justify-content: flex-end;
-    pointer-events: none;
-    width: min(var(--modal-width-lg, 720px), calc(100vw - var(--spacing-16, 16px)));
+    padding: var(--spacing-8, 8px);
     will-change: auto;
   }
 
@@ -609,12 +607,6 @@ button.rap-act-subtitle__name[aria-expanded="true"] .rap-act-subtitle__text {
     height: 100%;
     max-height: none;
     max-width: none;
-    pointer-events: auto;
-    width: 100%;
-  }
-
-  /* the page behind keeps scrolling (the library locks it under any open overlay) */
-  body:has(.modal-overlay.rap-act-data.e-permits-act-data--docked.is-active) {
-    overflow-y: auto;
+    width: min(var(--modal-width-lg, 720px), 100%);
   }
 }

@@ -386,11 +386,11 @@
       modal.classList.toggle("has-scroll-below", scrollable && content.scrollTop + content.clientHeight < content.scrollHeight - 1);
     };
 
-    /* docked-v1: desktop ≥ 1024 = a right-docked panel over the visible page (no scrim, no focus trap, aria-modal off) */
+    /* docked-v1: desktop ≥ 1024 = a right-docked panel; scrim-v1 (2026-10-27): over the library grey scrim, so it is a normal modal again (aria-modal, focus trap, scrim click closes) */
     const dockedQuery = window.matchMedia("(min-width: 1024px)");
     const isDocked = () => dockedQuery.matches;
     const syncDocked = () => {
-      actData.overlay?.querySelector(".modal")?.setAttribute("aria-modal", String(!isDocked()));
+      actData.overlay?.querySelector(".modal")?.setAttribute("aria-modal", "true");
     };
     const onDockedEscape = (event) => {
       if (event.key !== "Escape" || !isDocked() || (actModal.overlay && !actModal.overlay.hidden)) return;
@@ -615,7 +615,7 @@
       overlay.innerHTML = dataShellHtml();
       document.body.append(overlay);
       overlay.addEventListener("click", (event) => {
-        if ((event.target === overlay && !isDocked()) || event.target.closest("[data-rap-data-close]")) {
+        if (event.target === overlay || event.target.closest("[data-rap-data-close]")) {
           closeActData();
           return;
         }
@@ -648,7 +648,7 @@
           closeActData();
           return;
         }
-        if (event.key === "Tab" && !isDocked()) trapTab(overlay, event);
+        if (event.key === "Tab") trapTab(overlay, event);
       });
       dockedQuery.addEventListener?.("change", syncDocked);
       overlay.querySelector(".modal-content").addEventListener("scroll", syncActDataEdges, { passive: true });
