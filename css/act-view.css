@@ -592,10 +592,14 @@ button.rap-act-subtitle__name[aria-expanded="true"] .rap-act-subtitle__text {
    scrolls. Close = ×, „Închide”, Esc; role=dialog without aria-modal, no Tab trap.
    Variants: default · focus (the panel / × / buttons keep the library focus ring) · close hover (the library × hover).
    ========================================================================== */
+/* docked-v2 (2026-10-27): ONE docked mechanism for both dialogs — the data panel `.modal-overlay.rap-act-data` and the A4
+   viewer `.e-permits-fo-doc-modal-overlay.rap-act-modal` („Forma de tipar”): same width (library large 720 + 80 = 800, capped
+   at the viewport − 16), same 8 inset, same library scrim, full height, right. The A4 canvas keeps fitting its width
+   (GEAPDocPreview.fit via the overlay ResizeObserver); signature card + footer stay pinned. The data panel is parked
+   (hidden) while the viewer is open, so there is never a double panel / scrim. */
 @media (min-width: 1024px) {
-  /* scrim-v1 (user 2026-10-27: „the modal should have the grey transparent background”): the library overlay scrim
-     stays; only the panel is docked right, 8 from top / right / bottom */
-  .modal-overlay.rap-act-data.e-permits-act-data--docked {
+  .modal-overlay.rap-act-data.e-permits-act-data--docked,
+  .e-permits-fo-doc-modal-overlay.rap-act-modal {
     align-items: stretch;
     box-sizing: border-box;
     justify-content: flex-end;
@@ -603,10 +607,16 @@ button.rap-act-subtitle__name[aria-expanded="true"] .rap-act-subtitle__text {
     will-change: auto;
   }
 
-  .modal-overlay.rap-act-data.e-permits-act-data--docked.is-active > .modal.e-permits-detail-modal {
+  .modal-overlay.rap-act-data.e-permits-act-data--docked.is-active > .modal.e-permits-detail-modal,
+  .e-permits-fo-doc-modal-overlay.rap-act-modal > .e-permits-fo-doc-modal.rap-act-modal__dialog {
     height: 100%;
     max-height: none;
     max-width: none;
-    width: min(var(--modal-width-lg, 720px), 100%);
+    width: min(calc(var(--modal-width-lg, 720px) + var(--spacing-80, 80px)), 100%);
+  }
+
+  .e-permits-fo-doc-modal-overlay.rap-act-modal > .e-permits-fo-doc-modal.rap-act-modal__dialog {
+    border-radius: var(--border-radius-16, 16px);
+    box-shadow: var(--drop-shadow-400);
   }
 }
