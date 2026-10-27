@@ -23,6 +23,7 @@
        beneficiary: { name, person, idType, id },
        tacitDate, tacitBadge, issuedDate, validFrom, statusDates: [[label, value]], validUntil,
        paperNumber, printedNumber, groups, url,
+       gridDisplay? (records-v1: "records" = every grid of the data modal as records, see fieldsHtml; default tables),
        signed? (doc-viewer-v1: false = a paper act → no signature tray under the page; default signed),
        source? (the A4 footer's „Generat prin MDocs · <source>”, default „Registrul actelor permisive”) }
    groups = the act's configured fields (service passport, 2026-10-19 — Figma comment EVO-WEB-3.0
@@ -58,6 +59,7 @@
   const ACT_FIELDS_SHOWN = 8;
   const ACT_FIELDS_LIMIT = 10;
   const ACT_TABLE_ROWS_SHOWN = 5;
+  const ACT_RECORDS_SHOWN = 3;
 
   /* ---- configured act fields: data model + the one renderer (see the header) ---- */
   const isFilled = (value) => value !== undefined && value !== null && String(value).trim() !== "";
@@ -69,8 +71,15 @@
         label: String(item.label ?? ""),
         columns: item.columns.map((column) => (typeof column === "string"
           ? { label: column, type: "text" }
-          : { label: String(column?.label ?? ""), type: column?.type === "number" ? "number" : "text" })),
-        rows: (item.rows || []).filter((row) => Array.isArray(row) && row.some(isFilled))
+          : { label: String(column?.label ?? ""), type: ["number", "short", "wide"].includes(column?.type) ? column.type : "text" })),
+        rows: (item.rows || []).filter((row) => Array.isArray(row) && row.some(isFilled)),
+        display: item.display === "records" ? "records" : null,
+        titleColumns: Array.isArray(item.titleColumns)
+          ? item.titleColumns.map((entry) => (typeof entry === "number" ? { col: entry, prefix: "" } : { col: Number(entry?.col), prefix: String(entry?.prefix ?? "") }))
+            .filter((entry) => Number.isInteger(entry.col) && entry.col >= 0 && entry.col < item.columns.length)
+          : null,
+        numberColumn: Number.isInteger(item.numberColumn) ? item.numberColumn : null,
+        numbered: item.numbered !== false
       };
     }
     return { label: String(item.label ?? ""), value: item.value };
@@ -109,10 +118,13 @@
   /* a grid: registry-look table (header row, numbers right-aligned, first column pinned,
      its own horizontal scroll); every cell also carries its column label, shown only when ≤ 760 turns the
      rows into stacked mini-cards */
+  /* column type → class: number = right-aligned figures; short (a letter, a code) hugs its content; wide (the long text)
+     takes all the remaining width (act-view.css, ≥ 761); default text = the old standard width */
+  const colClass = (column) => (column.type === "number" ? "is-number" : `is-text${column.type === "short" ? " is-short" : column.type === "wide" ? " is-wide" : ""}`);
   const tableFieldHtml = (item, extra) => {
     const id = `act-fields-${++fieldsUid}`;
     const collapsible = item.rows.length > ACT_TABLE_ROWS_SHOWN;
-    const cell = (column, value) => `<td class="${column.type === "number" ? "is-number" : "is-text"}"><span class="e-permits-act-fields__cell-label">${escapeHtml(column.label)}</span><span class="e-permits-act-fields__cell-value">${isFilled(value) ? escapeHtml(value) : "—"}</span></td>`;
+    const cell = (column, value) => `<td class="${colClass(column)}"><span class="e-permits-act-fields__cell-label">${escapeHtml(column.label)}</span><span class="e-permits-act-fields__cell-value">${isFilled(value) ? escapeHtml(value) : "—"}</span></td>`;
     const rows = item.rows.map((row, index) => {
       const classes = [
         collapsible && index >= ACT_TABLE_ROWS_SHOWN ? "e-permits-act-fields__more-row" : "",
@@ -125,10 +137,47 @@
         <p class="e-permits-act-fields__table-label" id="${id}-label">${escapeHtml(item.label)}</p>
         <div class="e-permits-act-fields__table-wrap" role="region" aria-labelledby="${id}-label">
           <table class="e-permits-act-fields__table${collapsible ? " is-collapsed" : ""}" id="${id}" aria-labelledby="${id}-label">
-            <thead><tr>${item.columns.map((column) => `<th scope="col" class="${column.type === "number" ? "is-number" : "is-text"}"><span>${escapeHtml(column.label)}</span></th>`).join("")}</tr></thead>
+            <thead><tr>${item.columns.map((column) => `<th scope="col" class="${colClass(column)}"><span>${escapeHtml(column.label)}</span></th>`).join("")}</tr></thead>
             <tbody>${rows}</tbody>
           </table>
         </div>
+        ${collapsible ? toggleHtml(id, item.rows.length, `Arată toate (${item.rows.length})`, "Arată mai puține") : ""}
+      </div>`;
+  };
+
+  /* a grid as RECORDS (records-v1, PO: „too many data types — rows, tables, grey containers”): no table — each grid row
+     = a bounded block inside the same grey card: sub-heading (the first column's value) + a thin left rule + the other
+     columns as key / value rows. Records collapse independently: > 3 in a run → first 3 + „Arată toate (N)”.
+     Optional (records-v2): titleColumns [col | { col, prefix }] = the title is those columns joined by „ · ” (e.g.
+     „Parcela 5 · O · parchet 1”), numberColumn = a column whose value replaces the automatic „1. ” number (source
+     numbering with gaps); both columns leave the key / value rows; numbered: false = no number (the title already names the record). Default: first column, automatic numbers.
+     The A4 form keeps its table (docGridRows). */
+  const recordsFieldHtml = (item, extra) => {
+    const id = `act-fields-${++fieldsUid}`;
+    const collapsible = item.rows.length > ACT_RECORDS_SHOWN;
+    const titleParts = item.titleColumns && item.titleColumns.length ? item.titleColumns : [{ col: 0, prefix: "" }];
+    const used = new Set(titleParts.map((part) => part.col));
+    if (item.numberColumn !== null && item.numberColumn < item.columns.length) used.add(item.numberColumn);
+    const records = item.rows.map((row, index) => {
+      const rows = item.columns
+        .map((column, col) => ({ label: column.label, value: row[col], col }))
+        .filter((entry) => !used.has(entry.col) && isFilled(entry.value))
+        .map((entry) => fieldRowHtml(entry, ""))
+        .join("");
+      const title = titleParts.filter((part) => isFilled(row[part.col])).map((part) => `${part.prefix}${row[part.col]}`).join(" · ");
+      const number = item.numberColumn !== null && isFilled(row[item.numberColumn])
+        ? `${row[item.numberColumn]}. `
+        : item.numbered && item.rows.length > 1 ? `${index + 1}. ` : "";
+      return `
+          <li class="e-permits-act-fields__record${collapsible && index >= ACT_RECORDS_SHOWN ? " e-permits-act-fields__record-more" : ""}">
+            <p class="e-permits-act-fields__record-title">${escapeHtml(number)}${title ? escapeHtml(title) : "—"}</p>
+            ${rows ? `<div class="e-permits-act-fields__record-rows">${rows}</div>` : ""}
+          </li>`;
+    }).join("");
+    return `
+      <div class="e-permits-act-fields__records${extra}">
+        <p class="e-permits-act-fields__table-label" id="${id}-label">${escapeHtml(item.label)}</p>
+        <ul class="e-permits-act-fields__record-list${collapsible ? " is-collapsed" : ""}" id="${id}" aria-labelledby="${id}-label">${records}</ul>
         ${collapsible ? toggleHtml(id, item.rows.length, `Arată toate (${item.rows.length})`, "Arată mai puține") : ""}
       </div>`;
   };
@@ -141,14 +190,15 @@
 
   /* groups → one BO section each, in the configured order; an untitled group takes `untitled` when it is the
      only one, „Alte câmpuri ale actului” next to titled groups */
-  function fieldsHtml(input, { section = defaultSection, untitled = "Câmpuri specifice actului" } = {}) {
+  function fieldsHtml(input, { section = defaultSection, untitled = "Câmpuri specifice actului", grids = null } = {}) {
     const groups = normalizeFields(input);
     return groups.map((group, index) => {
       const id = `act-fields-${++fieldsUid}`;
       const collapsible = group.items.length > ACT_FIELDS_LIMIT;
       const items = group.items.map((item, at) => {
         const extra = collapsible && at >= ACT_FIELDS_SHOWN ? " e-permits-act-fields__more" : "";
-        return item.columns ? tableFieldHtml(item, extra) : fieldRowHtml(item, extra);
+        if (!item.columns) return fieldRowHtml(item, extra);
+        return (item.display || grids) === "records" ? recordsFieldHtml(item, extra) : tableFieldHtml(item, extra);
       }).join("");
       const body = `<div class="e-permits-dosar-profil__card e-permits-act-fields${collapsible ? " is-collapsed" : ""}" id="${id}" data-act-fields>${items}${collapsible ? toggleHtml(id, group.items.length, `Arată toate câmpurile (${group.items.length})`, "Arată mai puține câmpuri") : ""}</div>`;
       const title = group.title || (groups.length > 1 ? "Alte câmpuri ale actului" : untitled);
@@ -460,20 +510,14 @@
         <h2 class="e-permits-dosar-profil__section-title">Date generale</h2>
         <div class="e-permits-dosar-profil__card">${general.map(([label, value]) => actDataRow(label, value)).join("")}</div>
       </section>
-      ${fieldsHtml(act.groups)}
+      ${fieldsHtml(act.groups, { grids: act.gridDisplay })}
       <div class="info-box info-box--neutral e-permits-info-note e-permits-readonly-note">
         <span class="info-box__icon">${icon("shield")}</span>
         <div class="info-box__content"><p>Datele personale sunt mascate conform legislației. Sunt afișate doar câmpurile publice ale actului.</p></div>
       </div>`;
     };
 
-    const ensureActData = () => {
-      if (actData.overlay) return actData.overlay;
-      const overlay = document.createElement("div");
-      overlay.className = "modal-overlay rap-act-data";
-      overlay.setAttribute("aria-hidden", "true");
-      overlay.dataset.rapActData = "";
-      overlay.innerHTML = `
+    const dataShellHtml = () => `
       <div class="modal modal--md e-permits-passport__modal e-permits-case-modal e-permits-detail-modal" tabindex="-1" role="dialog" aria-modal="true" aria-labelledby="rap-act-data-title">
         <button type="button" class="modal-close" aria-label="Închide" data-rap-data-close>
           <span class="d-inline-flex">${icon("cross-large", "icon small")}</span>
@@ -487,6 +531,25 @@
           </div>
         </div>
       </div>`;
+
+    /* the modal's static markup (shell + header + body), for side-by-side previews (rap-evo/act-records-preview.html) */
+    const dataPreviewHtml = (act) => {
+      const shell = document.createElement("div");
+      shell.innerHTML = dataShellHtml();
+      shell.querySelector("[data-rap-data-header]").innerHTML = `
+      <h2 class="modal--header-title">Vizualizare act</h2>
+      ${actSubtitleHtml(act, "e-permits-passport__modal-subtitle")}`;
+      shell.querySelector("[data-rap-data-body]").innerHTML = renderActData(act);
+      return shell.innerHTML;
+    };
+
+    const ensureActData = () => {
+      if (actData.overlay) return actData.overlay;
+      const overlay = document.createElement("div");
+      overlay.className = "modal-overlay rap-act-data";
+      overlay.setAttribute("aria-hidden", "true");
+      overlay.dataset.rapActData = "";
+      overlay.innerHTML = dataShellHtml();
       document.body.append(overlay);
       overlay.addEventListener("click", (event) => {
         if (event.target === overlay || event.target.closest("[data-rap-data-close]")) {
@@ -543,6 +606,7 @@
 
     return {
       openData: openActData,
+      dataPreviewHtml,
       openDocument: openActDocument,
       closeData: closeActData,
       closeDocument: closeActDocument,

@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vizualizare act · tabele vs. înregistrări (previzualizare)</title>
+  <!-- records-v6: the RAP „Vizualizare act” data modal as it is today (left) next to the key-value-only proposal (right) -->
+  <link rel="stylesheet" href="../assets/fonts/Onest.css">
+  <link rel="stylesheet" href="../css/main.css?v=crumbs-v2">
+  <link rel="stylesheet" href="../css/token-fix.css?v=cards-radius-20-final">
+  <link rel="stylesheet" href="../css/type-mobile.css?v=type-mobile-v1">
+  <link rel="stylesheet" href="../css/button-icons.css?v=button-label-v1">
+  <link rel="stylesheet" href="../css/radio.css?v=radio-v1">
+  <link rel="stylesheet" href="../css/empty-state.css?v=empty-v3">
+  <link rel="stylesheet" href="../css/bo-profile-parts.css?v=cards-radius-20-final">
+  <link rel="stylesheet" href="../css/doc-modal-parts.css?v=act-doc-v1">
+  <link rel="stylesheet" href="../css/doc-preview.css?v=sig-pinned-desktop-v1">
+  <link rel="stylesheet" href="../css/act-view.css?v=records-v11">
+  <link rel="stylesheet" href="../css/table-pin-shadow.css?v=table-pin-clip-v1">
+  <link rel="stylesheet" href="../css/dropdown.css?v=facet-popover-v2">
+  <link rel="stylesheet" href="../css/copy-value.css?v=copy-wrap-v1">
+  <link rel="stylesheet" href="../css/name-expand.css?v=name-expand-align-v1">
+  <link rel="stylesheet" href="../css/tag.css?v=tag-violet-border-v1">
+  <link rel="stylesheet" href="../css/field-sizes.css?v=audit-fix-v1">
+  <link rel="stylesheet" href="../css/dialog-footer.css?v=modal-footer-medium-v1">
+  <link rel="stylesheet" href="../css/modal-phone.css?v=filter-sheet-height-v1">
+  <link rel="stylesheet" href="act-records-preview.css?v=records-v6">
+  <script src="../js/tag.js?v=audit-fix-v5"></script>
+  <script src="../js/copy-value.js?v=copy-wrap-v1"></script>
+  <script src="../js/view-switch.js?v=calendar-views-v9" defer></script>
+  <script src="../js/act-view.js?v=records-v6" defer></script>
+  <script src="act-records-preview-data.js?v=records-v6" defer></script>
+  <script src="act-records-preview.js?v=records-v6" defer></script>
+</head>
+<body class="rap-page rap-records-preview">
+  <main class="rap-records-preview__main">
+    <h1 class="rap-records-preview__title">Vizualizare act · date specifice serviciului</h1>
+    <div class="rap-records-preview__switch" data-rrp-switch></div>
+    <div class="rap-records-preview__columns">
+      <section class="rap-records-preview__col" aria-labelledby="rrp-now">
+        <h2 class="rap-records-preview__label" id="rrp-now">Acum · rânduri, tabele, containere gri</h2>
+        <div class="rap-records-preview__stage" data-rrp="tables"></div>
+      </section>
+      <section class="rap-records-preview__col" aria-labelledby="rrp-new">
+        <h2 class="rap-records-preview__label" id="rrp-new">Propunere · doar cheie – valoare</h2>
+        <div class="rap-records-preview__stage" data-rrp="records"></div>
+      </section>
+    </div>
+  </main>
+</body>
+</html>

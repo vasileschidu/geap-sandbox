@@ -1,0 +1,69 @@
+/* Preview page (records-v1): two „Vizualizare act” modals side by side, the real modal markup shown statically
+   (not fixed, not animated, full height) so the two formulas can be compared at 1440. */
+.rap-records-preview__main {
+  box-sizing: border-box;
+  margin: 0 auto;
+  max-width: 1560px;
+  padding: var(--spacing-24, 24px) var(--spacing-16, 16px) var(--spacing-48, 48px);
+}
+
+.rap-records-preview__title {
+  color: var(--color-text-base-default, #121212);
+  font: var(--font-weight-fw-semibold, 600) var(--type-heading-h4-font-size, 24px) / var(--type-heading-h4-line-height, 32px) var(--font-family-primary-font, Onest), sans-serif;
+  margin: 0 0 var(--spacing-24, 24px);
+}
+
+.rap-records-preview__switch {
+  margin: 0 0 var(--spacing-24, 24px);
+  overflow-x: auto;
+}
+
+.rap-records-preview__columns {
+  align-items: flex-start;
+  display: grid;
+  gap: var(--spacing-32, 32px);
+  grid-template-columns: repeat(auto-fit, minmax(0, 1fr));
+}
+
+.rap-records-preview__col {
+  min-width: 0;
+}
+
+.rap-records-preview__label {
+  color: var(--color-text-base-secondary, #383838);
+  font: var(--font-weight-fw-medium, 500) var(--font-size-fs-14, 14px) / var(--line-height-lh-20, 20px) var(--font-family-primary-font, Onest), sans-serif;
+  margin: 0 0 var(--spacing-12, 12px);
+}
+
+.rap-records-preview__stage {
+  background: var(--color-background-base-tertiary, #ebebeb);
+  border-radius: var(--border-radius-20, 20px);
+  box-sizing: border-box;
+  display: flex;
+  justify-content: center;
+  padding: var(--spacing-16, 16px);
+}
+
+.rap-records-preview__stage > .modal {
+  max-width: var(--modal-width-lg, 720px);
+  opacity: 1;
+  transform: none;
+  width: 100%;
+}
+
+.rap-records-preview__stage .modal-content {
+  max-height: none;
+  overflow: visible;
+}
+
+@media (max-width: 1100px) {
+  .rap-records-preview__columns {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 760px) {
+  .rap-records-preview__stage {
+    padding: var(--spacing-8, 8px);
+  }
+}

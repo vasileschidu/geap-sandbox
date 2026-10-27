@@ -217,11 +217,80 @@ button.rap-act-subtitle__name[aria-expanded="true"] .rap-act-subtitle__text {
 
 /* the text button starts on the row text (its own 12 inline padding) */
 .e-permits-act-fields__toggle > .btn {
-  margin-left: calc(var(--spacing-12, 12px) * -1);
+  margin-left: calc(var(--spacing-10, 10px) * -1);
+}
+
+/* ---- a grid as records (records-v1): each grid row = a block on a thin left rule, sub-heading + key / value rows,
+   all inside the same grey card (no table, no nested card); the other fields stay flush-left ---- */
+.e-permits-act-fields__record-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-16, 16px);
+  list-style: none;
+  margin: 0;
+  min-width: 0;
+  padding: 0;
+}
+
+.e-permits-act-fields__record-list.is-collapsed > .e-permits-act-fields__record-more {
+  display: none;
+}
+
+.e-permits-act-fields__record {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4, 4px);
+  margin: 0;
+  min-width: 0;
+  position: relative;
+}
+
+/* the rule starts at the text edge of the plain fields; the title and the labels are indented by 12 INSIDE their own box (rule 2 + gap 10; the label keeps the page's width), so the values line up with the plain fields' values */
+.e-permits-act-fields__record::before {
+  background: var(--color-border-base-secondary, #b2b2b2);
+  border-radius: var(--border-radius-2, 2px);
+  bottom: var(--spacing-4, 4px);
+  content: "";
+  left: 0;
+  position: absolute;
+  top: 0;
+  width: var(--border-width-2, 2px);
+}
+
+.e-permits-act-fields__record-title {
+  color: var(--color-text-base-default, #121212);
+  font: var(--font-weight-fw-semibold, 600) var(--font-size-fs-14, 14px) / var(--line-height-lh-20, 20px) var(--font-family-primary-font, Onest), sans-serif;
+  margin: 0;
+  overflow-wrap: anywhere;
+  padding-left: var(--spacing-12, 12px);
+}
+
+.e-permits-act-fields__record-rows {
+  display: flex;
+  flex-direction: column;
+}
+
+/* the record's rows: the BO row as it is (same label width and gap as the plain fields), no dividers */
+.e-permits-act-fields__record-rows > .e-permits-dosar-profil__row {
+  align-items: flex-start;
+  border-bottom: 0;
+  min-height: 0;
+  padding: var(--spacing-4, 4px) 0;
+}
+
+.e-permits-act-fields__record-rows > .e-permits-dosar-profil__row > .e-permits-dosar-profil__row-label {
+  box-sizing: border-box;
+  padding-left: var(--spacing-12, 12px);
+  white-space: normal;
+}
+
+.e-permits-act-fields__record-rows > .e-permits-dosar-profil__row > .e-permits-dosar-profil__row-value {
+  align-items: flex-start;
 }
 
 /* ---- a grid field ---- */
-.e-permits-act-fields__table-field {
+.e-permits-act-fields__table-field,
+.e-permits-act-fields__records {
   border-bottom: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
   box-sizing: border-box;
   display: flex;
@@ -231,11 +300,11 @@ button.rap-act-subtitle__name[aria-expanded="true"] .rap-act-subtitle__text {
   padding: var(--spacing-8, 8px) 0 calc(var(--spacing-8, 8px) - var(--border-width-1, 1px));
 }
 
-.e-permits-act-fields > .e-permits-act-fields__table-field:last-child {
+.e-permits-act-fields > :is(.e-permits-act-fields__table-field, .e-permits-act-fields__records):last-child {
   border-bottom: 0;
 }
 
-.e-permits-act-fields__table-field > .e-permits-act-fields__toggle {
+.e-permits-act-fields :is(.e-permits-act-fields__table-field, .e-permits-act-fields__records) > .e-permits-act-fields__toggle {
   padding: 0;
 }
 
@@ -318,6 +387,34 @@ button.rap-act-subtitle__name[aria-expanded="true"] .rap-act-subtitle__text {
 /* the pinned name column leaves room for the scrolling ones in a 590 dialog */
 .e-permits-act-fields__table td.is-text:first-child > .e-permits-act-fields__cell-value {
   max-width: 200px;
+}
+
+/* column widths by content (act-fields-cols-v1, desktop only): short (a letter, a code) hugs its content, wide (the long
+   text) takes ALL the remaining width — the table already fills the container (min-width 100%), scrolls only when the
+   minimum widths no longer fit; unmarked text columns keep the standard width */
+@media (min-width: 761px) {
+  .e-permits-act-fields__table :is(th, td).is-short {
+    white-space: nowrap;
+    width: 1%;
+  }
+
+  .e-permits-act-fields__table td.is-short > .e-permits-act-fields__cell-value {
+    max-width: none;
+    min-width: 0;
+  }
+
+  .e-permits-act-fields__table :is(th, td).is-wide {
+    width: 100%;
+  }
+
+  .e-permits-act-fields__table:has(.is-wide) {
+    width: 100%;
+  }
+
+  .e-permits-act-fields__table td.is-wide > .e-permits-act-fields__cell-value {
+    max-width: none;
+    min-width: 320px;
+  }
 }
 
 /* the first column (the row's name) stays while the others scroll */

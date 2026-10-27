@@ -3143,8 +3143,8 @@
            Câmpuri specifice actului + note; Descarcă → the MDocs A4 form (US-143): loading,
            Suspendat watermark, MDocs down (AC-10), RAP API down (AC-11), PF anonymised, Retras */
         ...(() => {
-          const data = (act, run) => ({
-            page: RAP, params: { act }, ready: "[data-rap-profile-view]:not([hidden]) h1",
+          const data = (act, run, params = {}) => ({
+            page: RAP, params: { act, ...params }, ready: "[data-rap-profile-view]:not([hidden]) h1",
             run: async (h) => { await h.click("[data-rap-view-document]"); await h.find("[data-rap-act-data].is-active .e-permits-dosar-profil__card"); await h.wait(250); if (run) await run(h); }
           });
           const view = (act, params = {}, wait = ".rap-act-doc", then = null) => ({
@@ -3187,7 +3187,11 @@
             "rap-03s": view("rap-0015"),
             "rap-03t": view("rap-0015", {}, ".rap-act-doc", async (h) => { await h.scroll("[data-rap-act-modal] .e-permits-doc-page__grid-head.is-repeat"); }),
             /* the A4 viewer's long name expanded: „Mai puțin” at the end of the text, never next to × (modal-name-expand-end-v1) */
-            "rap-03u": view("rap-0015", {}, ".rap-act-doc", async (h) => { await h.click("[data-rap-act-modal] [data-rap-clamp-toggle]"); })
+            "rap-03u": view("rap-0015", {}, ".rap-act-doc", async (h) => { await h.click("[data-rap-act-modal] [data-rap-clamp-toggle]"); }),
+            /* records-v1: grids as records (key-value only, no tables) — ?grids=records; -a = every record expanded; side-by-side
+               preview page = rap-evo/act-records-preview.html */
+            "rap-03v": data("rap-0015", async (h) => { await h.scroll("[data-rap-act-data] .e-permits-act-fields__records"); }, { grids: "records" }),
+            "rap-03w": data("rap-0015", async (h) => { await h.click("[data-rap-act-data] .e-permits-act-fields__records [data-act-fields-more]"); await h.scroll("[data-rap-act-data] .e-permits-act-fields__records"); }, { grids: "records" })
           };
         })()
       };
