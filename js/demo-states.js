@@ -3143,29 +3143,16 @@
         "rap-02x": { page: RAP, params: { act: "rap-0015" }, ready: "[data-rap-profile-view]:not([hidden]) h1", run: async (h) => { await h.wait(300); if (document.querySelector("[data-rap-profile-view] h1 [data-name-expand-toggle]")) await h.click("[data-rap-profile-view] h1 [data-name-expand-toggle]"); } },
         "rap-02g": { page: RAP, params: { act: "rap-0001" }, ready: "[data-rap-profile-view]:not([hidden]) h1", run: async (h) => { await h.scroll("#rap-details-title"); } },
         /* „Vizualizare act” (US-162 AC-12, Figma 20607:34846): the data modal — Date generale +
-           Câmpuri specifice actului + note; Descarcă → the MDocs A4 form (US-143): loading,
-           Suspendat watermark, MDocs down (AC-10), RAP API down (AC-11), PF anonymised, Retras */
+           Câmpuri specifice actului + note; footer „Descarcă” = the act's raw data as CSV.
+           2026-10-27: RAP has NO MDocs A4 — the former A4 states rap-03a…f, k, l, s, t, u were retired (Suspendat / Retras / PF /
+           long-name cases live on in the data states rap-03m/n/o/g/h); the A4 stays in Cabinet (pp-01m/n/o/z, mdoc-15) */
         ...(() => {
           const data = (act, run, params = {}) => ({
             page: RAP, params: { act, ...params }, ready: "[data-rap-profile-view]:not([hidden]) h1",
             run: async (h) => { await h.click("[data-rap-view-document]"); await h.find("[data-rap-act-data].is-active .e-permits-dosar-profil__card"); await h.wait(250); if (run) await run(h); }
           });
-          const view = (act, params = {}, wait = ".rap-act-doc", then = null) => ({
-            page: RAP, params: { act, ...params }, ready: "[data-rap-profile-view]:not([hidden]) h1",
-            run: async (h) => {
-              await h.click("[data-rap-view-document]"); await h.find("[data-rap-act-data].is-active [data-rap-data-generate]"); await h.wait(250);
-              await h.click("[data-rap-act-data].is-active [data-rap-data-generate]"); await h.find(`[data-rap-act-modal]:not([hidden]) ${wait}`); await h.wait(300);
-              if (then) await then(h);
-            }
-          });
           return {
             "rap-03": data("rap-0002"),
-            "rap-03a": view("rap-0002", { mdocs: "incarcare" }, ".spinner"),
-            "rap-03b": view("rap-0003"),
-            "rap-03c": view("rap-0002", { mdocs: "indisponibil" }, ".e-permits-empty"),
-            "rap-03d": view("rap-0002", { mdocs: "date" }, ".e-permits-empty"),
-            "rap-03e": view("rap-0001"),
-            "rap-03f": view("rap-0005"),
             /* long act name: clamped + „Mai mult” (collapsed) / the whole name (expanded) */
             "rap-03g": data("rap-0015"),
             "rap-03h": data("rap-0015", async (h) => { await h.click("[data-rap-act-data] [data-rap-clamp-toggle]"); }),
@@ -3173,9 +3160,6 @@
                group has 12 → first 8 + „Arată toate câmpurile (12)” / all */
             "rap-03i": data("rap-0016", async (h) => { await h.scroll("[data-rap-act-data] [data-act-fields-more]"); }),
             "rap-03j": data("rap-0016", async (h) => { await h.click("[data-rap-act-data] [data-act-fields-more]"); await h.scroll("[data-rap-act-data] .e-permits-dosar-profil__section-title", "Genul de activitate"); }),
-            /* their A4 form: 2 pages */
-            "rap-03k": view("rap-0016"),
-            "rap-03l": view("rap-0002"),
             /* tacit approval + PF beneficiary in the data modal */
             "rap-03m": data("rap-0001"),
             /* US-162 AC-17 in the data modal: Suspendat (suspension dates) / Retras (withdrawal date) */
@@ -3186,11 +3170,6 @@
                „Substanțe autorizate” 12 rows (first 5 + „Arată toate (12)”), „Echipamente” 3 rows */
             "rap-03q": data("rap-0015", async (h) => { await h.scroll("[data-rap-act-data] .e-permits-act-fields__records"); }),
             "rap-03r": data("rap-0015", async (h) => { await h.click("[data-rap-act-data] .e-permits-act-fields__records [data-act-fields-more]"); await h.scroll("[data-rap-act-data] .e-permits-act-fields__records"); }),
-            /* its A4 form: the groups, both tables with every row, the header row repeated on the next page */
-            "rap-03s": view("rap-0015"),
-            "rap-03t": view("rap-0015", {}, ".rap-act-doc", async (h) => { await h.scroll("[data-rap-act-modal] .e-permits-doc-page__grid-head.is-repeat"); }),
-            /* the A4 viewer's long name expanded: „Mai puțin” at the end of the text, never next to × (modal-name-expand-end-v1) */
-            "rap-03u": view("rap-0015", {}, ".rap-act-doc", async (h) => { await h.click("[data-rap-act-modal] [data-rap-clamp-toggle]"); }),
             /* records-v1 (default since 2026-10-27, no switch): grids as records (key-value only); rap-03v = scrolled to them, -w = every record expanded; side-by-side
                preview page = rap-evo/act-records-preview.html */
             "rap-03v": data("rap-0015", async (h) => { await h.scroll("[data-rap-act-data] .e-permits-act-fields__records"); }),

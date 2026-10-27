@@ -395,7 +395,7 @@
 
   let actViewInstance = null;
   const actView = () => {
-    actViewInstance ||= window.GEAPActView.create({ copyHtml: (value) => copyValue(value, `Copiază numărul actului ${value}`), onCopy: () => {}, copySelector: "[data-copy-value]", bodyOpenClass: "rap-page--act-open" });
+    actViewInstance ||= window.GEAPActView.create({ copyHtml: (value) => copyValue(value, `Copiază numărul actului ${value}`), onCopy: () => {}, copySelector: "[data-copy-value]", bodyOpenClass: "rap-page--act-open", footer: "download" }); /* RAP: no MDocs document, raw data only (2026-10-27) */
     return actViewInstance;
   };
 

@@ -14,7 +14,10 @@
    Markup and class names are the RAP ones (rap-act-*, data-rap-*: moved here unchanged from
    rap-evo.js, so the RAP dialogs stay byte-identical); the CSS is css/act-view.css.
 
-   Usage: const view = GEAPActView.create({ copyHtml, onCopy, copySelector, bodyOpenClass, documentTitle?, onDocumentDownload? });
+   Usage: const view = GEAPActView.create({ copyHtml, onCopy, copySelector, bodyOpenClass, documentTitle?, onDocumentDownload?, footer? });
+          footer (data-footer-v1, 2026-10-27): "generate" (default, Cabinet) = „Generează documentul” → the A4 · Închide;
+          "download" (RAP: no MDocs document there, raw data only) = „Descarcă” (icon-export) → a client-side CSV of
+          the panel's data (UTF-8 BOM, „;”, section · label · value, file `<număr>.csv`, no toast) · Închide.
           documentTitle / onDocumentDownload (act-profile-v1, EVO Cabinet): the document dialog's title and a
           „Descarcă” (icon-export) in its footer instead of „Imprimă” — defaults = the RAP dialog, unchanged.
           view.openData(act, opener) · view.openDocument(act, opener) · view.closeData() · view.closeDocument()
@@ -237,7 +240,7 @@
 
   /* copy: the shared component (js/copy-value.js) handles its own clicks in the capture phase — onCopy /
      copySelector stay for old callers and never fire for .copy-value buttons */
-  function create({ sprite = "../assets/icons/sprite.svg", copyHtml = (value) => window.GEAPCopyValue?.html(value, { label: `Copiază numărul actului ${value}` }) || escapeHtml(value), onCopy = () => {}, copySelector = "[data-copy-value]", bodyOpenClass = "", documentTitle = "Forma de tipar a actului", onDocumentDownload = null } = {}) {
+  function create({ sprite = "../assets/icons/sprite.svg", copyHtml = (value) => window.GEAPCopyValue?.html(value, { label: `Copiază numărul actului ${value}` }) || escapeHtml(value), onCopy = () => {}, copySelector = "[data-copy-value]", bodyOpenClass = "", documentTitle = "Forma de tipar a actului", onDocumentDownload = null, footer = "generate" } = {}) {
     const icon = (name, className = "icon") => `
     <svg class="${className}" aria-hidden="true"><use href="${sprite}#icon-${name}"></use></svg>
   `;
@@ -532,6 +535,49 @@
       </div>`;
     };
 
+    /* RAP „Descarcă”: the panel's data as a CSV (section;label;value) — Excel-friendly (BOM, „;”); a list value = one
+       line per part; a record = one line per field, label prefixed by the record title; masked values stay masked */
+    const csvCell = (value) => `"${String(value ?? "").replaceAll('"', '""')}"`;
+    const actDataCsv = (act) => {
+      const lines = [["Secțiune", "Câmp", "Valoare"]];
+      const general = [
+        ["Autoritatea emitentă", act.authority], ["Subdiviziunea", act.office], ["Beneficiar", act.beneficiary.name],
+        ["Numărul actului permisiv", act.number], ["Stare", act.status], ...tacitDateRow(act).map(([label, value]) => [label, act.tacitDate]),
+        ["Data eliberării", act.issuedDate], ["Valabil din data", act.validFrom], ...(act.statusDates || []), ["Data expirării", act.validUntil]
+      ].filter(([, value]) => isFilled(value));
+      general.forEach(([label, value]) => lines.push(["Date generale", label, value]));
+      normalizeFields(act.groups).forEach((group, index, all) => {
+        const section = group.title || (all.length > 1 ? "Alte câmpuri ale actului" : "Câmpuri specifice actului");
+        group.items.forEach((item) => {
+          if (!item.columns) {
+            (Array.isArray(item.value) ? item.value.filter(isFilled) : [item.value]).forEach((part) => lines.push([section, item.label, part]));
+            return;
+          }
+          const titleParts = item.titleColumns && item.titleColumns.length ? item.titleColumns : [{ col: 0, prefix: "" }];
+          const used = new Set(titleParts.map((part) => part.col));
+          if (item.numberColumn !== null && item.numberColumn < item.columns.length) used.add(item.numberColumn);
+          item.rows.forEach((row, at) => {
+            const title = titleParts.filter((part) => isFilled(row[part.col])).map((part) => `${part.prefix}${row[part.col]}`).join(" · ");
+            const number = item.numberColumn !== null && isFilled(row[item.numberColumn]) ? `${row[item.numberColumn]}. ` : item.numbered && item.rows.length > 1 ? `${at + 1}. ` : "";
+            item.columns.forEach((column, col) => {
+              if (!used.has(col) && isFilled(row[col])) lines.push([section, `${item.label} · ${number}${title} · ${column.label}`, row[col]]);
+            });
+          });
+        });
+      });
+      return `\uFEFF${lines.map((line) => line.map(csvCell).join(";")).join("\r\n")}`;
+    };
+    const downloadActData = (act) => {
+      const url = URL.createObjectURL(new Blob([actDataCsv(act)], { type: "text/csv;charset=utf-8" }));
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `${String(act.number).replace(/[\\/:*?"<>|]+/g, "-")}.csv`;
+      document.body.append(link);
+      link.click();
+      link.remove();
+      window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+    };
+
     const dataShellHtml = () => `
       <div class="modal modal--md e-permits-passport__modal e-permits-case-modal e-permits-detail-modal" tabindex="-1" role="dialog" aria-modal="true" aria-labelledby="rap-act-data-title">
         <button type="button" class="modal-close" aria-label="Închide" data-rap-data-close>
@@ -541,7 +587,9 @@
         <div class="modal-content" data-rap-data-body></div>
         <div class="modal--footer">
           <div class="modal-buttons">
-            <button class="btn btn-neutral btn-rounded" type="button" aria-haspopup="dialog" data-rap-data-generate>${icon("document", "icon small")}<span>Generează documentul</span></button>
+            ${footer === "download"
+              ? `<button class="btn btn-neutral btn-rounded" type="button" data-rap-data-download>${icon("export", "icon small")}<span>Descarcă</span></button>`
+              : `<button class="btn btn-neutral btn-rounded" type="button" aria-haspopup="dialog" data-rap-data-generate>${icon("document", "icon small")}<span>Generează documentul</span></button>`}
             <button class="btn btn-primary btn-rounded" type="button" data-rap-data-close>Închide</button>
           </div>
         </div>
@@ -580,6 +628,10 @@
         if (clamp) {
           toggleClamp(clamp);
           syncActDataEdges();
+          return;
+        }
+        if (event.target.closest("[data-rap-data-download]") && actData.record) {
+          downloadActData(actData.record);
           return;
         }
         const download = event.target.closest("[data-rap-data-generate]");
