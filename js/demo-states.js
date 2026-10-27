@@ -2895,7 +2895,7 @@
        message + „Reîncercați” in the dialog · 03g a draft with its payment note „În așteptare” (US-17, Taxe) · 03h a
        signed + paid draft waiting for the automatic submission (US-18 AC-09) */
     "sm-03d": sm(null, {}, "#dosar/d-cuptor"),
-    "sm-03e": smDosar("d-spicul", async (h) => { await h.click('[data-sm-profile] [data-cab-profile-header] [data-sm-action="continue"]'); }, { redirectionare: "eroare" }),
+    "sm-03e": smDosar("d-spicul", async (h) => { await h.click('[data-sm-profile] [data-sm-alert] [data-sm-action="continue"]'); }, { redirectionare: "eroare" }),
     "sm-03f": smDosar("d-spicul", async (h) => { await smHeadAct(h, "delete"); await h.click("[data-sm-confirm-ok]"); }, { eliminare: "eroare" }),
     "sm-03g": smDosar("d-aroma", async (h) => { await h.click('[data-sm-tab="taxe"]'); }),
     "sm-03h": smDosar("d-gustul"),

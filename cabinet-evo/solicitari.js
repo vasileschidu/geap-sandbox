@@ -724,6 +724,14 @@
      story → „Istoric”. */
   const notice = (tone, iconId, lead, text = "", actions = "") => ({ tone, icon: iconId, lead, text, actions });
   const live = (dosar) => (deadlineOf(dosar) ? ` · <span data-sm-countdown="${escape(isoDay(deadlineOf(dosar)))}">${escape(countdownText(deadlineOf(dosar)))}</span>` : "");
+  /* alert-actions-v1 (2026-10-27, user: „fix across other alerts and do their actions”): every alert that names a next
+     step carries it — continue the draft, send the information, pay, appeal, open the issued act — as the card's
+     library pill (primary = the step the applicant must take; opening the act = outlined, new tab); the header keeps
+     only what the alert does not (Elimină schița, Descarcă decizia), never the same action twice */
+  const alertAppeal = (dosar) => `<a class="btn btn-primary btn-md btn-rounded" href="${escape(foUrl(dosar, "appeal"))}" data-sm-action="appeal">${icon("icon-judge-gavel")}<span>Depune contestație</span></a>`;
+  const alertAct = (dosar) => (dosar.actId
+    ? `<a class="btn btn-outline-strict btn-md btn-rounded" href="${escape(cabUrl("acte", { act: dosar.actId }))}"${C.newTabAttrs("Profilul actului")} data-sm-action="act"><span>Profilul actului</span>${icon("icon-external-link")}</a>`
+    : "");
   function statusNow(dosar) {
     const service = serviceOf(dosar);
     const where = escape([service.authority, dosar.subdivision].filter(Boolean).join(" — "));
@@ -731,9 +739,12 @@
     switch (dosar.status) {
       case "schita":
         /* US-18 AC-09: signed + paid but „Confirmă depunerea” not pressed → the BO submits it after the grace period */
-        if (dosar.signed) return notice("info", "icon-circle-info-filled", "Cererea este semnată, dar nu a fost depusă", "Dacă nu confirmați depunerea, se transmite automat autorității după intervalul de grație.");
-        /* US-21 AC-03: the retention sentence */
-        return notice("info", "icon-circle-info-filled", "Solicitarea nu a fost depusă", escape(draftKeptText(dosar)));
+        {
+          const resume = readOnly() ? "" : `<a class="btn btn-primary btn-md btn-rounded" href="${escape(foUrl(dosar, "draft"))}" data-sm-action="continue">${icon("icon-edit")}<span>${dosar.signed ? "Confirmă depunerea" : "Continuă schița"}</span></a>`;
+          if (dosar.signed) return notice("info", "icon-circle-info-filled", "Cererea este semnată, dar nu a fost depusă", "Dacă nu confirmați depunerea, se transmite automat autorității după intervalul de grație.", resume);
+          /* US-21 AC-03: the retention sentence */
+          return notice("info", "icon-circle-info-filled", "Solicitarea nu a fost depusă", escape(draftKeptText(dosar)), resume);
+        }
       case "info":
         /* act-alert-card-v1: the action that solves it lives in the alert card (no longer in the header) */
         return notice("warning", "icon-warning-filled", `Trimiteți informațiile cerute până la ${date(dosar.info?.until)}`, `Examinarea este suspendată până atunci${live(dosar)}.`,
@@ -755,12 +766,14 @@
         if (dosar.result === "respins") {
           const why = dosar.decision?.reason ? `Motivul refuzului: ${escape(dosar.decision.reason)}` : "Motivul refuzului este în fila Decizie.";
           return canAppeal(dosar)
-            ? notice("danger", "icon-circle-error-filled", `Puteți depune contestație până la ${date(appealUntil(dosar))}`, `${why}${live(dosar)}`)
+            ? notice("danger", "icon-circle-error-filled", `Puteți depune contestație până la ${date(appealUntil(dosar))}`, `${why}${live(dosar)}`, alertAppeal(dosar))
             : notice("danger", "icon-circle-error-filled", "Solicitarea a fost respinsă", why);
         }
-        if (dosar.decisionOnly) return notice("success", "icon-circle-checkmark-filled", `Decizia a fost emisă pe ${date(dosar.finalized)}`, escape(dosar.decision?.text || "Starea actului a fost actualizată."));
-        if (dosar.tacit) return notice("success", "icon-circle-checkmark-filled", `Aprobată tacit pe ${date(dosar.finalized)}`, "Autoritatea nu s-a pronunțat în termen; actul îl găsiți în „Actele mele permisive”.");
-        return notice("success", "icon-circle-checkmark-filled", `Actul permisiv a fost emis pe ${date(dosar.finalized)}`, "Îl găsiți și în „Actele mele permisive”.");
+        /* an authority's suspension / withdrawal / annulment inside its appeal term: the appeal is the next step */
+        if (dosar.decisionOnly && canAppeal(dosar)) return notice("danger", "icon-circle-error-filled", `Puteți depune contestație până la ${date(appealUntil(dosar))}`, `${escape(dosar.decision?.text || `Decizia a fost emisă pe ${longDate(dosar.finalized)}.`)}${live(dosar)}`, `${alertAct(dosar).replace("btn-outline-strict", "btn-text-strict")}${alertAppeal(dosar)}`);
+        if (dosar.decisionOnly) return notice("success", "icon-circle-checkmark-filled", `Decizia a fost emisă pe ${date(dosar.finalized)}`, escape(dosar.decision?.text || "Starea actului a fost actualizată."), alertAct(dosar));
+        if (dosar.tacit) return notice("success", "icon-circle-checkmark-filled", `Aprobată tacit pe ${date(dosar.finalized)}`, "Autoritatea nu s-a pronunțat în termen; actul îl găsiți în „Actele mele permisive”.", alertAct(dosar));
+        return notice("success", "icon-circle-checkmark-filled", `Actul permisiv a fost emis pe ${date(dosar.finalized)}`, "Îl găsiți și în „Actele mele permisive”.", alertAct(dosar));
       }
       default:
         return notice("info", "icon-circle-info-filled", escape(statusOf(dosar).label));
@@ -936,17 +949,16 @@
   function headerActions(dosar) {
     const buttons = [];
     const download = (kind, label) => `<button class="btn btn-neutral btn-md" type="button" data-sm-action="download" data-sm-kind="${kind}" data-sm-id="${escape(dosar.id)}">${icon("icon-export")}<span>${escape(label)}</span></button>`;
-    const appeal = (variant) => `<a class="btn ${variant} btn-md" href="${escape(foUrl(dosar, "appeal"))}" data-sm-action="appeal">${icon("icon-judge-gavel")}<span>Depune contestație</span></a>`;
     switch (dosar.status) {
       case "schita":
-        buttons.push(`<a class="btn btn-primary btn-md" href="${escape(foUrl(dosar, "draft"))}" data-sm-action="continue">${icon("icon-edit")}<span>Continuă schița</span></a>`);
+        /* alert-actions-v1: „Continuă schița” is the alert card's primary */
         buttons.push(`<button class="btn btn-outline-destructive btn-md" type="button" data-sm-action="delete" data-sm-id="${escape(dosar.id)}">${icon("icon-delete")}<span>Elimină schița</span></button>`);
         break;
       /* „Informații suplimentare” / „Spre achitare”: the action („Completează informația” / „Achită …”) is the primary of
          the alert card under the header (act-alert-card-v1), never twice. US-135 AC-14: an expired note has no button. */
       case "finalizat":
         if (dosar.result === "respins") {
-          if (canAppeal(dosar)) buttons.push(appeal("btn-primary"));
+          /* alert-actions-v1: „Depune contestație” is the alert card's primary */
           buttons.push(download("decizie", "Descarcă decizia"));
         } else if (dosar.actId) {
           /* request-act-modal-link-v1 (2026-10-23, user: „instead of Descarcă, an action to the act permisiv profile, always a
@@ -954,9 +966,7 @@
              request never shows the act itself; „Profilul actului ↗” = the act's address (?act=<id>) in a new tab, where
              the act's CURRENT status lives. header-max-two-v1: in order of importance — an open contestație (the immediate
              action, a negative decision only) is the primary, then Profilul actului, Descarcă decizia; max 2 visible + „⋯”. */
-          const appealOpen = canAppeal(dosar);
-          if (appealOpen) buttons.push(appeal("btn-primary"));
-          buttons.push(newTabLink(appealOpen ? "btn-neutral" : "btn-primary", cabUrl("acte", { act: dosar.actId }), "Profilul actului", 'data-sm-action="act"'));
+          /* alert-actions-v1: „Depune contestație” and „Profilul actului” moved into the alert card */
           if (dosar.decisionOnly) buttons.push(download("decizie", "Descarcă decizia"));
         }
         break;
@@ -1592,7 +1602,7 @@
   function redirectError(action, { kind = "supplement", href = "" } = {}) {
     root.querySelectorAll("[data-sm-redirect-error]").forEach((node) => node.remove());
     const retryHref = href || action.getAttribute("href") || "";
-    /* on the request PROFILE (the alert card's button sm-04h, the header's „Continuă schița” sm-03e) the failure is
+    /* on the request PROFILE (the alert card's buttons: „Trimite” sm-04h, „Continuă schița” sm-03e) the failure is
        the library error toast that does NOT auto-close (sm-04h-error-toast-v1, 2026-10-23; user on EVO Cabinet Figma
        1265:4451: „this one should not cut the alert and timeline in half — put it anywhere else, or as a non-auto-closing
        toast”): role=alert (announced, focus stays on the button), „Reîncercați” = the library link slot (the form's
@@ -1787,7 +1797,7 @@
         examTerm: addWorkdays(TODAY, ppLabel ? 5 : service09.termDays), justAdded: true,
         payment: ppLabel ? undefined : { nr: `NP-${TODAY.replaceAll("-", "")}-${filed.slice(-4)}`, amount: service09.fee, status: "Achitat", created: `${TODAY}T13:48`, paid: `${TODAY}T13:49` },
       });
-      state.notice = { tone: "banner--success", icon: "icon-circle-checkmark-filled", html: `Cererea a fost depusă. Dosarul <strong>${escape(filed)}</strong> este primul în listă, cu statutul „În derulare”.` };
+      state.toast = `Cererea a fost depusă. Dosarul ${filed} este primul în listă, cu statutul „În derulare”.`;
     }
     if (params.get("schita")) {
       const step = Number(params.get("pas")) || 1;
@@ -1805,7 +1815,7 @@
       paid.payment = { ...paid.payment, status: "Achitat", paid: `${TODAY}T14:05` };
       paid.examTerm = addWorkdays(TODAY, 10);
       paid.justAdded = true;
-      state.notice = { tone: "banner--success", icon: "icon-circle-checkmark-filled", html: `Plata de ${escape(money(paid.payment.amount))} pentru dosarul <strong>${escape(paid.nr)}</strong> a fost confirmată. Dosarul a revenit în examinare.` };
+      state.toast = `Plata de ${money(paid.payment.amount)} pentru dosarul ${paid.nr} a fost confirmată. Dosarul a revenit în examinare.`;
     }
     if (params.get("nota") === "expirata") {
       state.dosare.filter((dosar) => dosar.status === "achitare" && dosar.payment).forEach((dosar) => {
@@ -1847,6 +1857,9 @@
       }
       bind();
       route();
+      /* return-toast-v1 (2026-10-26, user on EVO Cabinet 1148:44312): a success on return (filed / paid) = the library
+         success toast — the highlighted row already shows the result; info / warning returns keep the inline notice */
+      if (state.toast) window.GEAPToast?.show({ type: "success", message: state.toast, key: "sm-return" });
       /* from a payment notification (US-135 AC-02 / AC-11 / AC-14): ?achita=<id> opens MPay, or the expired-fee message */
       const toPay = state.dosare.find((dosar) => dosar.id === params.get("achita") && dosar.status === "achitare");
       if (toPay && !paymentExpired(toPay)) openPayment(toPay);

@@ -925,7 +925,13 @@
        the appeal term of „Solicitările mele” (appealDays from the decision) */
     const appealUntil = byAuthority && statusDate ? addDaysIso(isoOf(statusDate), state.appealDays) : "";
     const appealOpen = Boolean(appealUntil) && appealUntil >= state.today;
-    const appeal = appealOpen ? ` Poți depune o contestație până la ${escape(longDate(appealUntil))}, din solicitarea care conține decizia.` : "";
+    const appeal = appealOpen ? ` Poți depune o contestație până la ${escape(longDate(appealUntil))}.` : "";
+    /* alert-actions-v1 (2026-10-27, user: „fix across other alerts and do their actions”): the contestație is filed
+       from the alert itself (the FO appeal flow of the deciding request), no longer only described */
+    const appealNr = appealOpen ? (state.dossiersByAct[act.id] || []).find((dosar) => dosar.id === change.dosarId)?.nr : "";
+    const appealBtn = appealNr
+      ? `<a class="btn btn-primary btn-md btn-rounded" href="${escape(`${FO_URL}?${new URLSearchParams({ flow: "full", solicitant: SUBJECT, contestatie: appealNr })}#request`)}" data-cab-alert-appeal>${icon("icon-judge-gavel")}<span>Depune contestație</span></a>`
+      : "";
     /* the request opens in the SAME tab (act-alert-card-v2: profiles have real URLs, Back returns here), no external icon */
     /* alert-buttons-library-v1 (user): next to a primary = the library text button `btn-text-strict` (no fill, no border,
        grey hover); alone = the library outlined `btn-outline-strict` (transparent, dark border) */
@@ -951,7 +957,7 @@
     }
     if (act.status === "suspendat") {
       const until = profile.suspendedUntil ? ` până la ${escape(longDate(profile.suspendedUntil))}` : "";
-      const resume = appealOpen ? "" : ppButton("reluare", "Cere reluarea valabilității");
+      const resume = appealOpen ? appealBtn : ppButton("reluare", "Cere reluarea valabilității");
       const next = appealOpen ? appeal
         : resume ? " Poți cere reluarea valabilității mai devreme."
           : until ? " Valabilitatea se reia automat la această dată." : "";
@@ -970,7 +976,7 @@
         tone: ACT_TONE[act.status],
         title: `Actul a fost ${withdrawn ? "retras" : "anulat"}${on}`,
         text: `${withdrawn ? "Retragerea" : "Anularea"} a fost decisă ${decided}.${reason}${next}`,
-        actions: pair(appealOpen ? "" : newRequest(), change.dosarId),
+        actions: pair(appealOpen ? appealBtn : newRequest(), change.dosarId),
       };
     }
     if (act.status === "expirat") {
@@ -1415,7 +1421,7 @@
       const viewAct = event.target.closest("[data-cab-view-act]");
       if (viewAct) {
         const act = state.permits.find((p) => p.id === viewAct.dataset.cabViewAct);
-        if (act) actView().openData(toActView(act), viewAct); /* act-data-first-v1: the act's DATA panel (as RAP); „Generează documentul” opens the A4 */
+        if (act) actView().openData(toActView(act), viewAct); /* act-data-footer-v1: the act's DATA panel (as RAP); „Generează documentul” opens the A4 */
         return;
       }
       if (ppBtn && ppBtn.getAttribute("aria-disabled") === "true") { event.stopPropagation(); return; }
