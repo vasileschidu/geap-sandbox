@@ -3609,32 +3609,63 @@ document.addEventListener("DOMContentLoaded", () => {
           <div class="e-permits-sum-list__total"><span>Complexitatea dosarului${report.complexity.min ? " (minimul politicii)" : Math.abs((report.complexity.sum ?? report.complexity.total) - report.complexity.total) > 0.001 ? " (rotunjită la 0,25)" : ""}</span><strong>${num(report.complexity.total, 2)} normo-ore</strong></div>
         </div>
       </section>` : "";
-    const candidates = `
-      <section class="e-permits-dosar-profil__section">
-        <div class="e-permits-dosar-profil__section-heading">
-          <h2 class="e-permits-dosar-profil__section-title">Candidați</h2>
-          <span class="e-permits-dosar-profil__section-meta">${escapeHtml(`${plural(report.candidates.length, "specialist", "specialiști")} · ${eligible.length === 1 ? "1 a participat" : `${eligible.length} au participat`} la extragere`)}</span>
-        </div>
-        <div class="e-permits-sum-list">
-          <div class="e-permits-workplace__table-wrap e-permits-ekyc-breakdown e-permits-dist-report__card">
-            <table class="e-permits-workplace__table e-permits-ekyc-breakdown__table e-permits-dist-report__candidates">
-              <thead><tr><th scope="col">Specialist</th><th scope="col">Încărcare</th><th scope="col">Norma, %</th><th scope="col">Specialist nou</th><th scope="col">Greutate</th><th scope="col">Interval</th><th scope="col">Motiv de excludere</th></tr></thead>
-              <tbody>${report.candidates.map((c) => `
-                <tr class="${c.reason ? "is-inactive" : c.chosen ? "is-chosen" : ""}">
-                  <td>${renderTablePerson(c, c.delegated ? "Rol primit prin delegare" : "", c.chosen ? renderTag("Executant ales", "success") : "")}</td>
-                  <td>${num(c.load, 1)} h</td>
-                  <td>${escapeHtml(String(c.norm))}</td>
-                  <td>${c.novice ? "Da" : "Nu"}</td>
-                  <td>${c.reason ? dash : num(c.weight, 1)}</td>
-                  <td>${c.reason ? dash : `${c.range[0]} – ${c.range[1]}`}</td>
-                  <td>${c.reason ? escapeHtml(c.reason) : dash}</td>
-                </tr>`).join("")}
-              </tbody>
-            </table>
+    /* dist-report-cards-v1 (2026-10-28, user: the 7-column table „still looks awful… maybe cards”): the candidates
+       are the BO stacked list in two groups — „Au participat la extragere” (chosen first) · „Excluși” (reason first,
+       no Greutate / Interval, AC-12) — under a „why” card: the 1–1000 scale split by the participants' intervals with
+       the drawn number marked (AC-13 / AC-14), „Ales fără extragere” (AC-15) or „Niciun candidat”. Model labels exact. */
+    const val = (text) => `<span class="e-permits-dist-report__val">${text}</span>`;
+    const kv = (label, text) => `${escapeHtml(label)} ${val(text)}`;
+    const avatarLead = (c) => `<span class="avatar avatar--xs avatar--initials e-permits-dosar-profil__avatar" style="background:${escapeHtml(c.color || "#0058D2")}" aria-hidden="true">${escapeHtml(c.initiale || "")}</span>`;
+    const candidateItem = (c) => ({
+      plainTitle: c.nume,
+      title: escapeHtml(c.nume),
+      leadHtml: avatarLead(c),
+      badges: [
+        ...(c.chosen ? [renderTag("Executant ales", "success")] : []),
+        ...(c.delegated ? [renderTag("Rol primit prin delegare", "neutral")] : [])
+      ],
+      ...(c.reason ? {
+        meta: [kv("Motiv de excludere", escapeHtml(c.reason))],
+        meta2: [kv("Încărcare", `${num(c.load, 1)} h`), kv("Norma, %", escapeHtml(String(c.norm))), kv("Specialist nou", c.novice ? "Da" : "Nu")]
+      } : {
+        meta: [kv("Încărcare", `${num(c.load, 1)} h`), kv("Norma, %", escapeHtml(String(c.norm))), kv("Specialist nou", c.novice ? "Da" : "Nu"), kv("Greutate", num(c.weight, 1)), kv("Interval", `${c.range[0]}&nbsp;–&nbsp;${c.range[1]}`)]
+      })
+    });
+    const excluded = report.candidates.filter((c) => c.reason);
+    const ranked = eligible.slice().sort((a, b) => (b.chosen - a.chosen) || (a.range[0] - b.range[0]));
+    const scale = eligible.slice().sort((a, b) => a.range[0] - b.range[0]);
+    const pctX = (n) => `${(((n - 1) / 999) * 100).toFixed(2)}%`;
+    const drawLabel = report.draw != null ? String(report.draw) : "";
+    const edge = report.draw != null && (report.draw < 80 || report.draw > 920);
+    const ticks = report.draw != null ? [...(edge ? [] : [[1, "1", "start"], [1000, "1000", "end"]]), [report.draw, drawLabel, report.draw < 80 ? "start" : report.draw > 920 ? "end" : "middle"]] : [];
+    const why = chosen && report.draw != null ? `
+        <div class="e-permits-chart e-permits-ekyc-band e-permits-dist-report__why">
+          <p class="e-permits-dist-report__why-title">Număr extras: ${escapeHtml(drawLabel)}</p>
+          <p class="e-permits-dist-report__why-text">Cade în intervalul lui ${escapeHtml(chosen.nume)} (${chosen.range[0]}&nbsp;–&nbsp;${chosen.range[1]}). Scala 1–1000 e împărțită între ${plural(eligible.length, "candidat", "candidați")} după greutate: încărcare mai mică, interval mai mare.</p>
+          <div class="e-permits-dist-report__scale">
+            <span class="e-permits-meter e-permits-meter--lg" role="img" aria-label="${escapeHtml(`Scala 1–1000: ${scale.map((c) => `${c.nume} ${c.range[0]} – ${c.range[1]}`).join(", ")}. Număr extras ${drawLabel}, în intervalul lui ${chosen.nume}.`)}"><svg class="e-permits-meter__svg" aria-hidden="true" focusable="false"><rect class="e-permits-meter__track" x="0" y="0" width="100%" height="100%"></rect>${scale.map((c) => `<rect class="e-permits-meter__fill e-permits-meter__fill--${c.chosen ? "success" : "neutral"}" x="${pctX(c.range[0])}" y="0" width="${(((c.range[1] - c.range[0] + 1) / 1000) * 100).toFixed(2)}%" height="100%"></rect>`).join("")}${scale.slice(1).map((c) => `<line class="e-permits-meter__gap" x1="${pctX(c.range[0])}" x2="${pctX(c.range[0])}" y1="0" y2="100%"></line>`).join("")}<line class="e-permits-dist-report__mark" x1="${pctX(report.draw)}" x2="${pctX(report.draw)}" y1="0" y2="100%"></line></svg></span>
+            <svg class="e-permits-ekyc-band__axis" aria-hidden="true" focusable="false">
+              ${ticks.map(([x, label, anchor]) => `<line class="e-permits-ekyc-band__tick${x === report.draw ? " e-permits-dist-report__draw-tick" : ""}" x1="${pctX(x)}" x2="${pctX(x)}" y1="0" y2="6"></line><text class="e-permits-ekyc-band__label${x === report.draw ? " is-threshold" : ""}" x="${pctX(x)}" y="22" text-anchor="${anchor}">${escapeHtml(label)}</text>`).join("")}
+            </svg>
           </div>
-          <div class="e-permits-sum-list__total"><span>Număr extras</span><strong>${drawText ? `${escapeHtml(drawText)}${report.draw != null && chosen ? ` · în intervalul ${chosen.range[0]} – ${chosen.range[1]} (${escapeHtml(chosen.nume)})` : ""}` : "— · niciun candidat"}</strong></div>
-        </div>
-      </section>`;
+          <ul class="e-permits-meter-legend e-permits-meter-legend--tray" role="list">
+            ${scale.map((c) => `<li><span class="e-permits-meter-legend__dot e-permits-meter-legend__dot--${c.chosen ? "success" : "neutral"}" aria-hidden="true"></span>${escapeHtml(c.nume)} <strong>${c.range[0]}&nbsp;–&nbsp;${c.range[1]}</strong></li>`).join("")}
+          </ul>
+        </div>` : `
+        <div class="e-permits-chart e-permits-dist-report__why">
+          <p class="e-permits-dist-report__why-title">${report.single ? "Ales fără extragere" : "Niciun candidat"}</p>
+          <p class="e-permits-dist-report__why-text">${report.single && chosen
+            ? escapeHtml(`După excluderi a rămas un singur candidat, ${chosen.nume}; nu s-a extras niciun număr.`)
+            : escapeHtml(`Toți cei ${plural(report.candidates.length, "specialist", "specialiști")} ai subdiviziunii au fost excluși, fiecare cu motivul de mai jos; dosarul nu a primit executant la această încercare.`)}</p>
+        </div>`;
+    const candidates = renderStackedList("Candidați", [
+      { label: "Au participat la extragere", items: ranked.map(candidateItem) },
+      { label: "Excluși", items: excluded.map(candidateItem) }
+    ].filter((group) => group.items.length), {
+      meta: `${plural(report.candidates.length, "specialist", "specialiști")} · ${eligible.length === 1 ? "1 a participat" : `${eligible.length} au participat`} la extragere`,
+      introHtml: why,
+      className: "e-permits-dist-report__candidates"
+    });
     return `
       <div class="e-permits-case-form">
         ${renderInfoNote("Raportul păstrează valorile de la momentul distribuirii: modificările ulterioare ale politicii, normei, competențelor sau absențelor nu îl schimbă.")}
@@ -3671,7 +3702,7 @@ document.addEventListener("DOMContentLoaded", () => {
     caseDrawer.querySelector("[data-case-buttons]").innerHTML = '<button class="btn btn-neutral btn-rounded" type="button" data-case-close>Închide</button>';
     caseDrawer.hidden = false;
     document.body.classList.add("is-drawer-open");
-    requestAnimationFrame(() => caseDrawer.querySelector("[data-case-close]")?.focus());
+    requestAnimationFrame(() => { caseDrawer.querySelector("[data-case-close]")?.focus(); syncStackMetaRows(caseDrawerBody); });
   };
 
   const renderDosarProfilSection = (row) => {
@@ -4379,12 +4410,16 @@ document.addEventListener("DOMContentLoaded", () => {
     const busiest = people.filter((c) => c.id !== executant?.id && c.id !== previous?.id).sort((a, b) => b.load - a.load)[0];
     people.forEach((c) => {
       c.reason = executant && c.id === executant.id ? null
-        : previous && c.id === previous.id ? "Executant anterior"
+        : previous && c.id === previous.id ? "Ultimul primitor" /* the story's classifier (US-325 model), not „Executant anterior” */
         : abs?.absentOn?.(c.id, day) ? "Absență"
         : !redistCompetent(c, row) ? "Lipsă de competență pentru serviciu"
         : !executant || single ? DIST_EXCLUSIONS[c.h % DIST_EXCLUSIONS.length]
         : c === busiest ? "Încărcare maximă depășită" : null;
     });
+    /* a „Încărcare maximă depășită” exclusion must be credible: its load sits above the policy's maximum of that day */
+    const policy = abs?.policyAt?.("ANSP", { Eliberare: "Emitere primară" }[row.tipDosar] || row.tipDosar, day) || { name: "Politica de distribuire", version: "", params: [] };
+    const maxLoad = parseFloat(String((policy.params.find(([label]) => /^Încărcarea maximă/.test(label)) || [])[1] || "").replace(",", ".")) || 0;
+    people.forEach((c) => { if (c.reason === "Încărcare maximă depășită" && maxLoad && c.load <= maxLoad) c.load = maxLoad + Math.round(5 + (c.h % 120)) / 10; });
     const eligible = people.filter((c) => !c.reason);
     const weights = eligible.map((c) => Math.round(1000 / (c.load / (c.norm / 100))) / 10);
     const sum = weights.reduce((s, w) => s + w, 0) || 1;
@@ -4397,12 +4432,11 @@ document.addEventListener("DOMContentLoaded", () => {
     });
     const chosen = executant ? eligible.find((c) => c.id === executant.id) : null;
     const draw = chosen && eligible.length > 1 ? chosen.range[0] + (hashValue(`${id}|draw`) % (chosen.range[1] - chosen.range[0] + 1)) : null;
-    const rt = { Eliberare: "Emitere primară" }[row.tipDosar] || row.tipDosar;
     return {
       id, at, type, prev,
       executant: executant ? { id: executant.id, nume: executant.nume, initiale: executant.initiale, color: executant.color } : null,
       subdiviziune: row.subdiviziune,
-      policy: abs?.policyAt?.("ANSP", rt, day) || { name: "Politica de distribuire", version: "", params: [] },
+      policy,
       complexity: abs?.complexity?.(row, "ANSP") || { parts: [], total: Number(String(redistComplexity(row)).replace(",", ".")) },
       draw, single: Boolean(chosen) && eligible.length === 1,
       candidates: people.map(({ h, ...c }) => ({ ...c, chosen: Boolean(chosen) && c.id === chosen.id }))
@@ -8468,7 +8502,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     return `
-      <section class="e-permits-dosar-profil__section e-permits-stack-section">
+      <section class="e-permits-dosar-profil__section e-permits-stack-section${options.className ? ` ${options.className}` : ""}">
         <div class="e-permits-dosar-profil__section-heading">
           <h2 class="e-permits-dosar-profil__section-title">${escapeHtml(title)}</h2>
           ${options.actionHtml ? `<div class="e-permits-passport__heading-tools">
@@ -8476,6 +8510,7 @@ document.addEventListener("DOMContentLoaded", () => {
             ${options.actionHtml}
           </div>` : options.meta ? `<span class="e-permits-dosar-profil__section-meta">${escapeHtml(options.meta)}</span>` : ""}
         </div>
+        ${options.introHtml || ""}
         <div class="e-permits-stack">
           ${groups.map((group) => `
             <div class="e-permits-stack__group">
@@ -17708,6 +17743,10 @@ document.addEventListener("DOMContentLoaded", () => {
   /* the dossier tabs use the same stacked lists (Documente însoțitoare, Taxe, Avize…) */
   if (dosarProfilPanelBody && "ResizeObserver" in window) {
     new ResizeObserver(() => syncStackMetaRows(dosarProfilPanelBody)).observe(dosarProfilPanelBody);
+  }
+  /* the case drawer's stacked lists (US-325 report candidates) */
+  if (caseDrawerBody && "ResizeObserver" in window) {
+    new ResizeObserver(() => syncStackMetaRows(caseDrawerBody)).observe(caseDrawerBody);
   }
 
   /* „Ieșire” (US-110): ends the session (SIA GEAP + MPass SLO) and lands on the login page */

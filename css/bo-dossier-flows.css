@@ -185,9 +185,9 @@
   }
 }
 
-/* ---- dist-actions-v1 (2026-10-27, US-325): the distribution report — the factors and the candidates are report
-   tables in a rounded card (the eKYC „Descompunerea scorului” pattern: .e-permits-ekyc-breakdown + the sum-list total);
-   only the column widths are the report's own. Phones: the candidates table scrolls sideways inside its card. ---- */
+/* ---- dist-actions-v1 (2026-10-27, US-325): the distribution report — the complexity factors are a report table in a
+   rounded card (the eKYC „Descompunerea scorului” pattern: .e-permits-ekyc-breakdown + the sum-list total); only the
+   column widths are the report's own. ---- */
 .e-permits-dist-report__card .e-permits-ekyc-breakdown__table th:nth-child(n) {
   width: auto;
 }
@@ -196,44 +196,52 @@
   width: 52%;
 }
 
-/* fixed number columns sized to their header („Specialist nou”) and longest value („1 000 – 1 000”), the name takes
-   the rest; the reason wraps instead of being cut */
-.e-permits-dist-report__card .e-permits-dist-report__candidates {
-  min-width: calc(var(--spacing-80, 80px) * 11);
+/* ---- dist-report-cards-v1 (2026-10-28, user: the 7-column candidates table „still looks awful… maybe cards”): the
+   candidates = the BO stacked list (two groups, avatar lead, Small tags, „Label value” meta parts) under a „why” card
+   = the eKYC decision band (chart card · stacked meter lg · SVG axis · legend tray): the 1–1000 scale split by the
+   participants' intervals, the chosen one green, the drawn number marked. Not clickable → no hover. ---- */
+.e-permits-dist-report__why {
+  gap: var(--spacing-8, 8px);
+  margin-bottom: var(--spacing-16, 16px);
 }
 
-.e-permits-dist-report__card .e-permits-dist-report__candidates th:nth-child(2),
-.e-permits-dist-report__card .e-permits-dist-report__candidates th:nth-child(3),
-.e-permits-dist-report__card .e-permits-dist-report__candidates th:nth-child(5) {
-  width: calc(var(--spacing-80, 80px) + var(--spacing-16, 16px));
+.e-permits-dist-report__why-title {
+  color: var(--color-text-base-default, #121212);
+  font-size: var(--font-size-fs-16, 16px);
+  font-weight: var(--font-weight-fw-semibold, 600);
+  line-height: var(--line-height-lh-24, 24px);
+  margin: 0;
 }
 
-.e-permits-dist-report__card .e-permits-dist-report__candidates th:nth-child(4),
-.e-permits-dist-report__card .e-permits-dist-report__candidates th:nth-child(6) {
-  width: calc(var(--spacing-80, 80px) + var(--spacing-48, 48px));
+.e-permits-dist-report__why-text {
+  color: var(--color-text-base-secondary, #383838);
+  font-size: var(--font-size-fs-14, 14px);
+  line-height: var(--line-height-lh-20, 20px);
+  margin: 0;
 }
 
-.e-permits-dist-report__card .e-permits-dist-report__candidates th:last-child {
-  width: calc(var(--spacing-80, 80px) * 2 + var(--spacing-40, 40px));
+/* scale = meter + axis; 16 above it (title block) and 8 to the legend tray under the axis labels */
+.e-permits-dist-report__scale {
+  margin-top: var(--spacing-8, 8px);
 }
 
-.e-permits-dist-report__candidates td:last-child {
-  overflow-wrap: anywhere;
-  white-space: normal;
+.e-permits-dist-report__mark {
+  stroke: var(--color-icon-base-default, #121212);
+  stroke-width: var(--border-width-2, 2px);
 }
 
-/* the chosen executant (dist-report-chosen-v1, 2026-10-27, user: „more clear… a whole row bg”): the whole row on the
-   success surface, the „Executant ales” tag under the name, aligned with it (the person cell's second line) */
-.e-permits-dist-report__candidates tr.is-chosen td {
-  background: var(--color-background-success-secondary, #e7f6ec);
+.e-permits-dist-report__draw-tick {
+  stroke: var(--color-icon-base-default, #121212);
 }
 
-.e-permits-dist-report__candidates tr.is-chosen .e-permits-workplace__person-copy .tag {
-  align-self: flex-start;
-  margin-top: var(--spacing-4, 4px);
+/* meta parts read „Label value”: the label stays tertiary, the value is the line's content */
+.e-permits-dist-report__val {
+  color: var(--color-text-base-secondary, #383838);
+  font-weight: var(--font-weight-fw-medium, 500);
 }
 
-/* an excluded candidate reads tertiary, as the other report tables' inactive rows */
-.e-permits-dist-report__candidates tr.is-inactive .e-permits-workplace__person-name {
-  color: var(--color-text-base-tertiary, #757575);
+@media (max-width: 760px) {
+  .e-permits-dist-report__why {
+    padding: var(--spacing-16, 16px);
+  }
 }

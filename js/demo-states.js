@@ -49,6 +49,7 @@
   };
   const nedistCase = (tab, extra = {}, run) => ({ flow: "back-office", as: SUP, params: { transfer: "revocare", ...extra }, hash: `#dosar/D-2026-004566/${tab}`, ready: ".e-permits-trajectory, .e-permits-dosar-profil__section", run });
   const drepOpen = (id) => async (h) => { await h.click(`[data-dist-report-row="${id}"]`); await h.find("[data-case-drawer]:not([hidden]) .e-permits-dist-report__candidates"); await h.wait(250); };
+  const drepScroll = (id) => async (h) => { await drepOpen(id)(h); (await h.find("[data-case-drawer] .e-permits-dist-report__candidates")).scrollIntoView({ block: "start" }); await h.wait(200); };
   /* absences-dist-v1 (js/absences.js): US-312…316 absences · US-291 Distribuire tab · US-289 policy · US-294 team load */
   /* calendar-views-v3: „today” is the real date in the product; the demo states pin it (deterministic screenshots) */
   const PIN = (params) => ({ today: "2026-10-26", ...(params || {}) });
@@ -1436,18 +1437,22 @@
     /* ---- US-325 Raportul de distribuire (Azure 96398) — tab „Distribuire” of the case ----
        drep-01 Administrator Central: two reports, newest first (AC-02, AC-04, AC-05, AC-06) · 01a Administrator Local, own
        authority (AC-03) · 02 the first report: fields, complexity by factor, candidates (chosen marked, excluded with the
-       reason), drawn number in the chosen interval (AC-08 … AC-14, AC-17) · 02a scrolled to the candidates · 03 the
-       redistribution after a refusal: „Ales fără extragere”, „Decizia anterioară” (AC-06, AC-15) · 04 an attempt without
-       candidate (AC-04) · 04a its report: everyone excluded · 05 manual service: no reports (AC-07) · 06 the Specialist
+       reason), drawn number in the chosen interval (AC-08 … AC-14, AC-17) · 02a scrolled to the candidates: the „why”
+       card (1–1000 scale split by interval, drawn number marked) + stacked list Au participat / Excluși · 03 the
+       redistribution after a refusal: „Ales fără extragere”, „Decizia anterioară” (AC-06, AC-15) · 03a scrolled to its
+       candidates · 04 an attempt without candidate (AC-04) · 04a its report: everyone excluded · 04b scrolled to „Niciun
+       candidat” + the Excluși group · 05 manual service: no reports (AC-07) · 06 the Specialist
        types the address: „Acces interzis” (AC-01) · 07 Administrator Local, another authority's case (AC-03) · 08 the
        consultation in the case journal (AC-18) · 09 Automat redistribution → a new report (AC-06, runtime) */
     "drep-01": dos(ADMIN, "inExaminare", "distribuire", { rapoarte: "istoric" }),
     "drep-01a": dos(LOCAL, "inExaminare", "distribuire", { rapoarte: "istoric" }),
     "drep-02": dos(ADMIN, "inExaminare", "distribuire", { rapoarte: "istoric" }, drepOpen("TD-004575-01")),
-    "drep-02a": dos(ADMIN, "inExaminare", "distribuire", { rapoarte: "istoric" }, async (h) => { await drepOpen("TD-004575-01")(h); const t = await h.find("[data-case-drawer] .e-permits-dist-report__candidates"); t.closest("section").scrollIntoView({ block: "start" }); await h.wait(200); }),
+    "drep-02a": dos(ADMIN, "inExaminare", "distribuire", { rapoarte: "istoric" }, drepScroll("TD-004575-01")),
     "drep-03": dos(ADMIN, "inExaminare", "distribuire", { rapoarte: "istoric" }, drepOpen("TD-004575-02")),
+    "drep-03a": dos(ADMIN, "inExaminare", "distribuire", { rapoarte: "istoric" }, drepScroll("TD-004575-02")),
     "drep-04": dos(ADMIN, "depus", "distribuire", { rapoarte: "fara-candidat" }),
     "drep-04a": dos(ADMIN, "depus", "distribuire", { rapoarte: "fara-candidat" }, drepOpen("TD-004575-01")),
+    "drep-04b": dos(ADMIN, "depus", "distribuire", { rapoarte: "fara-candidat" }, drepScroll("TD-004575-01")),
     "drep-05": dos(ADMIN, "inExaminare", "distribuire"),
     "drep-06": { ...dos(SPEC, "inExaminare", "distribuire"), ready: "[data-dosar-profil-panel] .e-permits-empty, .e-permits-dosar-profil__panel .e-permits-empty" },
     "drep-07": { ...dos(LOCAL, "inExaminare", "distribuire", { autoritate: "alta", rapoarte: "istoric" }), ready: "[data-dosar-profil-panel] .e-permits-empty, .e-permits-dosar-profil__panel .e-permits-empty" },
