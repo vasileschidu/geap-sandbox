@@ -4102,11 +4102,9 @@ document.addEventListener("DOMContentLoaded", () => {
   });
   dosarProfilPanelBody?.addEventListener("click", (event) => {
     /* US-325 (dist-in-jurnal-v1): a journal event of an automatic distribution opens its report (only with the permission:
-       the attribute is rendered for Administrator Central / Local alone); the „Distribuire” chips filter the journal */
+       the attribute is rendered for Administrator Central / Local alone); the „Toate · Distribuire” view switch swaps the timeline for the report list */
     const reportRow = event.target.closest("[data-dist-report-row]");
     if (reportRow) { const row = getDosarById(dosarProfilState.rowId); if (row) openDistReport(row, reportRow.dataset.distReportRow); return; }
-    const jurnalChip = event.target.closest("[data-dosar-jurnal-filter]");
-    if (jurnalChip) { dosarProfilState.jurnalFilter = jurnalChip.dataset.dosarJurnalFilter; const row = getDosarById(dosarProfilState.rowId); if (row) { renderDosarProfilPanelBody(row); dosarProfilPanelBody.querySelector(`[data-dosar-jurnal-filter="${jurnalChip.dataset.dosarJurnalFilter}"]`)?.focus(); } return; }
     /* US-262: a journal item opens its audit record */
     const auditItem = event.target.closest("[data-dosar-event]");
     if (auditItem && !event.target.closest("a, input")) { const row = getDosarById(dosarProfilState.rowId); if (row) openDosarAuditDetail(row, auditItem.dataset.dosarEvent); return; }
@@ -8739,22 +8737,48 @@ document.addEventListener("DOMContentLoaded", () => {
     return log.map((item, i) => ({ item, i })).sort((a, b) => String(b.item.at).localeCompare(String(a.item.at)) || a.i - b.i).map(({ item }, idx) => ({ ...item, idx }));
   };
   const dosarAuditRows = (row, items = dosarJournalItems(row)) => items.map((item) => ({ ...item, context: window.GEAPEventTimeline.contextOf(window.GEAPEventTimeline.audit(item, dosarAuditContext(row, item))) }));
-  /* the Jurnal tab: the library timeline; the „Distribuire” chips (library mono-select chips) only where the viewer may open
-     the reports and the case has distribution events; those events open the report (the title is the link), the rest the audit */
+  /* the Jurnal tab: the library timeline; the view switch „Toate · Distribuire” (library compact segmented control, in the
+     heading tools) only where the viewer may open the reports and the case has distribution events. „Toate” = the timeline
+     (distribution events open the report, the rest the audit record); „Distribuire” = the report list (US-325 AC-04 / 05:
+     newest first, type · date · executant · id; the row opens the report; manual distribution has none) */
   const renderDosarJurnal = (row) => {
     const all = dosarAuditRows(row);
     const canReports = canViewDistReports();
-    const hasDist = all.some((item) => item.distReport);
-    const filter = canReports && hasDist && dosarProfilState.jurnalFilter === "dist" ? "dist" : "all";
-    const shown = filter === "dist" ? all.filter((item) => item.distReport) : all;
-    const chips = canReports && hasDist ? renderChoiceChips({ labelId: "dosar-jurnal-title", name: "dosar-jurnal-filter", options: [["all", "Toate"], ["dist", "Distribuire"]], value: filter }) : "";
-    const timeline = renderEventTimeline("Jurnalul activităților", shown, {
-      meta: "Jurnalizat prin MLog", empty: "Nu există activități înregistrate.", titleId: "dosar-jurnal-title",
+    const reports = canReports ? distReportsOf(row) : [];
+    const hasSwitch = canReports && reports.length > 0 && Boolean(window.GEAPViewSwitch);
+    const filter = hasSwitch && dosarProfilState.jurnalFilter === "dist" ? "dist" : "all";
+    const switchHtml = hasSwitch ? window.GEAPViewSwitch.html({ key: "dosar-jurnal", label: "Vizualizare jurnal", value: filter, items: [["all", "Toate"], ["dist", "Distribuire"]] }) : "";
+    if (filter === "dist") {
+      const items = reports.map((report) => ({
+        plainTitle: `${report.type}, ${formatStamp(report.at)}`,
+        title: escapeHtml(report.type),
+        badges: report.executant ? [] : [renderTag("Fără candidat", "warning")],
+        meta: [
+          escapeHtml(formatStamp(report.at)),
+          report.executant ? `Executant: ${escapeHtml(report.executant.nume)}` : "Executant: —",
+          renderListCode(report.id, { meta: true })
+        ],
+        rowAttrs: `data-dist-report-row="${escapeHtml(report.id)}"`
+      }));
+      return renderStackedList("Jurnalul activităților", [{ label: "", items }], {
+        meta: `${plural(reports.length, "raport", "rapoarte")} · doar distribuirile automate`,
+        empty: "Dosarul nu are rapoarte de distribuire. Distribuirea manuală nu are raport de distribuire.",
+        icon: "chart", actionHtml: switchHtml
+      });
+    }
+    return renderEventTimeline("Jurnalul activităților", all, {
+      meta: hasSwitch ? "" : "Jurnalizat prin MLog", empty: "Nu există activități înregistrate.",
+      actionHtml: hasSwitch ? `<div class="e-permits-passport__heading-tools"><span class="e-permits-dosar-profil__section-meta">Jurnalizat prin MLog</span>${switchHtml}</div>` : "",
       openAttrs: (e) => (canReports && e.distReport ? `data-dist-report-row="${escapeHtml(e.distReport)}"` : `data-dosar-event="${e.idx}"`)
     });
-    /* the chips sit between the heading and the card (the heading row has no room for them on phones) */
-    return chips ? timeline.replace(/(<\/div>)(\s*<ol class="e-permits-timeline">)/, `$1${chips}$2`) : timeline;
   };
+  window.GEAPViewSwitch?.on("dosar-jurnal", (value) => {
+    dosarProfilState.jurnalFilter = value;
+    const row = getDosarById(dosarProfilState.rowId);
+    if (!row) return;
+    renderDosarProfilPanelBody(row);
+    dosarProfilPanelBody.querySelector('[data-view-switch="dosar-jurnal"] [aria-checked="true"]')?.focus();
+  });
   const openDosarAuditDetail = (row, index) => {
     const item = dosarJournalItems(row)[Number(index)];
     if (!item) return;
