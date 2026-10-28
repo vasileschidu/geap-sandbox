@@ -8724,6 +8724,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (match) {
         Object.assign(match, { type: title, distReport: report.id });
         if (report.type === "Distribuire") match.user = "SIA GEAP";
+        if (!report.executant) Object.assign(match, { status: "Eșuat", detail: `Niciun candidat eligibil; dosarul rămâne în „Dosare nedistribuite”. Raportul de distribuire ${report.id}.` });
         merged.add(match);
         return;
       }
