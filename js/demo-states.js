@@ -1434,29 +1434,32 @@
     "nedist-07": nedistCase("general", {}, redistMenu),
     "nedist-08": absUser(ADMIN, "user-1", "absences", async (h) => { await absAdd(h); await absFill(h, { type: "Concediu medical", from: "26/10/2026", to: "30/10/2026", reason: "Certificat de concediu medical nr. 5120." }); await absSave(h); await h.find("#abs-open-cases"); }),
 
-    /* ---- US-325 Raportul de distribuire (Azure 96398) — tab „Distribuire” of the case ----
-       drep-01 Administrator Central: two reports, newest first (AC-02, AC-04, AC-05, AC-06) · 01a Administrator Local, own
-       authority (AC-03) · 02 the first report: fields, complexity by factor, candidates (chosen marked, excluded with the
-       reason), drawn number in the chosen interval (AC-08 … AC-14, AC-17) · 02a scrolled to the candidates: the „why”
-       card (1–1000 scale split by interval, drawn number marked) + stacked list Au participat / Excluși · 03 the
-       redistribution after a refusal: „Ales fără extragere”, „Decizia anterioară” (AC-06, AC-15) · 03a scrolled to its
-       candidates · 04 an attempt without candidate (AC-04) · 04a its report: everyone excluded · 04b scrolled to „Niciun
-       candidat” + the Excluși group · 05 manual service: no reports (AC-07) · 06 the Specialist
-       types the address: „Acces interzis” (AC-01) · 07 Administrator Local, another authority's case (AC-03) · 08 the
-       consultation in the case journal (AC-18) · 09 Automat redistribution → a new report (AC-06, runtime) */
-    "drep-01": dos(ADMIN, "inExaminare", "distribuire", { rapoarte: "istoric" }),
-    "drep-01a": dos(LOCAL, "inExaminare", "distribuire", { rapoarte: "istoric" }),
-    "drep-02": dos(ADMIN, "inExaminare", "distribuire", { rapoarte: "istoric" }, drepOpen("TD-004575-01")),
-    "drep-02a": dos(ADMIN, "inExaminare", "distribuire", { rapoarte: "istoric" }, drepScroll("TD-004575-01")),
-    "drep-03": dos(ADMIN, "inExaminare", "distribuire", { rapoarte: "istoric" }, drepOpen("TD-004575-02")),
-    "drep-03a": dos(ADMIN, "inExaminare", "distribuire", { rapoarte: "istoric" }, drepScroll("TD-004575-02")),
-    "drep-04": dos(ADMIN, "depus", "distribuire", { rapoarte: "fara-candidat" }),
-    "drep-04a": dos(ADMIN, "depus", "distribuire", { rapoarte: "fara-candidat" }, drepOpen("TD-004575-01")),
-    "drep-04b": dos(ADMIN, "depus", "distribuire", { rapoarte: "fara-candidat" }, drepScroll("TD-004575-01")),
-    "drep-05": dos(ADMIN, "inExaminare", "distribuire"),
-    "drep-06": { ...dos(SPEC, "inExaminare", "distribuire"), ready: "[data-dosar-profil-panel] .e-permits-empty, .e-permits-dosar-profil__panel .e-permits-empty" },
-    "drep-07": { ...dos(LOCAL, "inExaminare", "distribuire", { autoritate: "alta", rapoarte: "istoric" }), ready: "[data-dosar-profil-panel] .e-permits-empty, .e-permits-dosar-profil__panel .e-permits-empty" },
-    "drep-08": dos(ADMIN, "inExaminare", "distribuire", { rapoarte: "istoric" }, async (h) => { await drepOpen("TD-004575-01")(h); await h.click("[data-case-drawer] [data-case-close]"); await h.wait(300); await h.click('[data-dosar-tab="jurnal"]'); }),
+    /* ---- US-325 Raportul de distribuire (Azure 96398) — the reports live in „Jurnalul activităților” (dist-in-jurnal-v1,
+       team decision 2026-10-28: the „Distribuire” tab was dropped; ids kept, 01b added) ----
+       drep-01 Administrator Central: the journal with the automatic distribution events (title = link to the report;
+       AC-02, AC-04, AC-05, AC-06) · 01a Administrator Local, own authority (AC-03) · 01b the „Distribuire” chip applied:
+       only the distribution events, newest first (AC-04) · 02 the first report, opened from its journal event: fields,
+       complexity by factor, candidates (AC-08 … AC-14, AC-17) · 02a scrolled to the candidates: the „why” card + stacked list
+       · 03 the redistribution after a refusal: „Ales fără extragere”, „Decizia anterioară” (AC-06, AC-15) · 03a scrolled
+       to its candidates · 04 the journal of an attempt without candidate (AC-04) · 04a its report: everyone excluded · 04b
+       scrolled to „Niciun candidat” + the Excluși group · 05 manual service: the plain „Dosar distribuit” event, no report,
+       no chips (AC-07) · 06 the Specialist: sees the distribution events as plain events, no report link, no chips (AC-01)
+       · 07 Administrator Local, another authority's case: same, no report access (AC-03) · 08 the consultation = an audit
+       event in the same journal (AC-18) · 09 Automat redistribution → a new report (AC-06, runtime) */
+    "drep-01": dos(ADMIN, "inExaminare", "jurnal", { rapoarte: "istoric" }),
+    "drep-01a": dos(LOCAL, "inExaminare", "jurnal", { rapoarte: "istoric" }),
+    "drep-01b": dos(ADMIN, "inExaminare", "jurnal", { rapoarte: "istoric" }, async (h) => { await h.click('[data-dosar-jurnal-filter="dist"]'); await h.wait(200); }),
+    "drep-02": dos(ADMIN, "inExaminare", "jurnal", { rapoarte: "istoric" }, drepOpen("TD-004575-01")),
+    "drep-02a": dos(ADMIN, "inExaminare", "jurnal", { rapoarte: "istoric" }, drepScroll("TD-004575-01")),
+    "drep-03": dos(ADMIN, "inExaminare", "jurnal", { rapoarte: "istoric" }, drepOpen("TD-004575-02")),
+    "drep-03a": dos(ADMIN, "inExaminare", "jurnal", { rapoarte: "istoric" }, drepScroll("TD-004575-02")),
+    "drep-04": dos(ADMIN, "depus", "jurnal", { rapoarte: "fara-candidat" }),
+    "drep-04a": dos(ADMIN, "depus", "jurnal", { rapoarte: "fara-candidat" }, drepOpen("TD-004575-01")),
+    "drep-04b": dos(ADMIN, "depus", "jurnal", { rapoarte: "fara-candidat" }, drepScroll("TD-004575-01")),
+    "drep-05": dos(ADMIN, "inExaminare", "jurnal"),
+    "drep-06": dos(SPEC, "inExaminare", "jurnal", { rapoarte: "istoric" }),
+    "drep-07": dos(LOCAL, "inExaminare", "jurnal", { autoritate: "alta", rapoarte: "istoric" }),
+    "drep-08": dos(ADMIN, "inExaminare", "jurnal", { rapoarte: "istoric" }, async (h) => { await drepOpen("TD-004575-01")(h); await h.click("[data-case-drawer] [data-case-close]"); await h.wait(300); await h.click('[data-dosar-tab="jurnal"]'); }),
     "auth-05": { flow: "back-office", as: ADMIN, run: async (h) => { await h.click("[data-user-menu] .e-permits-shell__user-trigger"); } },
     "auth-05a": { page: "bo-login.html", params: { ended: "logout" }, ready: "[data-bo-login] h1" },
     "auth-05b": { page: "bo-login.html", params: { ended: "logout", portal: "admin" }, ready: "[data-bo-login] h1" },

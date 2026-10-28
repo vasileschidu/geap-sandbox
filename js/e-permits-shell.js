@@ -121,6 +121,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const dosarProfilState = {
     rowId: null,
     tabKey: "general",
+    jurnalFilter: "all",
     returnTo: "dossiers"
   };
   const userProfileState = {
@@ -2632,8 +2633,8 @@ document.addEventListener("DOMContentLoaded", () => {
     { id: "decizie", label: "Act/Decizie", count: (profile) => profile.acte.length },
     { id: "documente", label: "Documente generate", count: (profile) => profile.documente.length },
     { id: "notificari", label: "Notificări", count: (profile) => profile.notificari.length },
-    /* US-325: only with the permission to view distribution reports (Administrator Central / Local) */
-    { id: "distribuire", label: "Distribuire" },
+    /* US-325: the distribution reports live in „Jurnalul activităților” (the „Distribuire” tab was dropped by team
+       decision 2026-10-28, dist-in-jurnal-v1) */
     { id: "jurnal", label: "Jurnalul activităților" }
   ];
 
@@ -2707,7 +2708,6 @@ document.addEventListener("DOMContentLoaded", () => {
     if (tab.id === "avize") return profile.avize.length > 0 || Boolean(dosarTabSetup(row)?.avize);
     if (tab.id === "decizie") return profile.acte.length > 0;
     if (tab.id === "jurnal") return Boolean(caseFlowOf(row));
-    if (tab.id === "distribuire") return Boolean(caseFlowOf(row)) && canViewDistReports();
     return true;
   };
 
@@ -3557,32 +3557,6 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   };
 
-  /* US-325 „Distribuire” › „Rapoarte de distribuire”: one row per automatic choice (newest first, AC-04), Data și ora ·
-     Tip distribuire · Executant (AC-05); the row opens the report (no lone „Detalii”). Without the permission → the lock
-     empty state „Acces interzis” (AC-01 / AC-03, address typed). The extended history (US-477) is not built here. */
-  const renderDosarProfilDistribuire = (row) => {
-    if (!canViewDistReports()) {
-      return renderEmptyState({ title: "Acces interzis", text: "Rapoartele de distribuire sunt disponibile rolurilor cu permisiunea de vizualizare a raportului de distribuire, pentru dosarele autorității lor.", icon: "lock" });
-    }
-    const reports = distReportsOf(row);
-    const items = reports.map((report) => ({
-      plainTitle: `${report.type}, ${formatStamp(report.at)}`,
-      title: escapeHtml(report.type),
-      badges: report.executant ? [] : [renderTag("Fără candidat", "warning")],
-      meta: [
-        escapeHtml(formatStamp(report.at)),
-        report.executant ? `Executant: ${escapeHtml(report.executant.nume)}` : "Executant: —",
-        renderListCode(report.id, { meta: true })
-      ],
-      rowAttrs: `data-dist-report-row="${escapeHtml(report.id)}"`
-    }));
-    return renderStackedList("Rapoarte de distribuire", [{ label: "", items }], {
-      meta: `${plural(reports.length, "raport", "rapoarte")} · doar distribuirile automate`,
-      empty: "Dosarul nu are rapoarte de distribuire. Distribuirea manuală nu are raport de distribuire.",
-      icon: "chart"
-    });
-  };
-
   /* the report (AC-08 … AC-17): the model fields with their exact labels, the complexity by factor (US-292), the
      candidates with the values of that moment (US-293), the chosen one marked, read-only — in the case drawer (lg) */
   const renderDistReport = (report) => {
@@ -3720,9 +3694,7 @@ document.addEventListener("DOMContentLoaded", () => {
       case "notificari":
         return renderDosarProfilNotificari(row);
       case "jurnal":
-        return renderEventTimeline("Jurnalul activităților", dosarAuditRows(row), { meta: "Jurnalizat prin MLog", empty: "Nu există activități înregistrate.", openAttrs: (e, index) => `data-dosar-event="${index}"` });
-      case "distribuire":
-        return renderDosarProfilDistribuire(row);
+        return renderDosarJurnal(row);
       case "general":
       default:
         return renderDosarProfilGeneral(row);
@@ -4129,12 +4101,15 @@ document.addEventListener("DOMContentLoaded", () => {
     downloadTextFile(dosarDetailFile.name, dosarDetailFile.text);
   });
   dosarProfilPanelBody?.addEventListener("click", (event) => {
+    /* US-325 (dist-in-jurnal-v1): a journal event of an automatic distribution opens its report (only with the permission:
+       the attribute is rendered for Administrator Central / Local alone); the „Distribuire” chips filter the journal */
+    const reportRow = event.target.closest("[data-dist-report-row]");
+    if (reportRow) { const row = getDosarById(dosarProfilState.rowId); if (row) openDistReport(row, reportRow.dataset.distReportRow); return; }
+    const jurnalChip = event.target.closest("[data-dosar-jurnal-filter]");
+    if (jurnalChip) { dosarProfilState.jurnalFilter = jurnalChip.dataset.dosarJurnalFilter; const row = getDosarById(dosarProfilState.rowId); if (row) { renderDosarProfilPanelBody(row); dosarProfilPanelBody.querySelector(`[data-dosar-jurnal-filter="${jurnalChip.dataset.dosarJurnalFilter}"]`)?.focus(); } return; }
     /* US-262: a journal item opens its audit record */
     const auditItem = event.target.closest("[data-dosar-event]");
     if (auditItem && !event.target.closest("a, input")) { const row = getDosarById(dosarProfilState.rowId); if (row) openDosarAuditDetail(row, auditItem.dataset.dosarEvent); return; }
-    /* US-325: a distribution report row opens the report */
-    const reportRow = !event.target.closest("button, a, input") && event.target.closest("[data-dist-report-row]");
-    if (reportRow) { const row = getDosarById(dosarProfilState.rowId); if (row) openDistReport(row, reportRow.dataset.distReportRow); return; }
     const trigger = event.target.closest("[data-dosar-detail]") || (!event.target.closest("button, a, input, label, .e-permits-stack__menu-wrap") && event.target.closest(".e-permits-stack__item[data-dosar-detail-row]"));
     if (!trigger) return;
     const [kind, key] = (trigger.dataset.dosarDetail || trigger.dataset.dosarDetailRow).split("|");
@@ -4334,7 +4309,7 @@ document.addEventListener("DOMContentLoaded", () => {
   /* ---- dist-actions-v1 (2026-10-27): US-296 Refuzul executantului (Azure 96013) · US-297 Trecerea automată în
      „Dosare nedistribuite” (96014) · US-325 Raportul de distribuire (96398) -----------------------------------------
      One distribution history per case: `row.distTx` (decisions, each linked to the previous one — US-295 started it),
-     `row.distReports` (one report per AUTOMATIC choice of SIA GEAP, a frozen snapshot — US-325 AC-16) and `row.nedist`
+     `row.distReports` (one report per AUTOMATIC choice of SIA GEAP, a frozen snapshot — US-325 AC-16) — the reports are opened from the journal events of the case („Jurnalul activităților”; the „Distribuire” tab was dropped by team decision 2026-10-28) and `row.nedist`
      (why an assigned case went back to „Dosare nedistribuite”, substatut „Spre distribuire”). Demo params:
      ?distribuire=automata|manuala (the service's „Distribuire automată”), ?refuz=eroare|nepermis, ?examinare=inceputa,
      ?transfer=refuz|revocare|dezactivare (a seeded past refusal / revocation / deactivation), ?trecere=eroare (US-297
@@ -5479,7 +5454,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     /* a tab can disappear (role switch, §10): fall back to the first visible one */
     const visibleTabs = getDosarProfileTabs(row);
-    if (!visibleTabs.some((tab) => tab.id === dosarProfilState.tabKey) && dosarProfilState.tabKey !== "distribuire") {
+    if (!visibleTabs.some((tab) => tab.id === dosarProfilState.tabKey)) {
       dosarProfilState.tabKey = visibleTabs[0]?.id || "general";
     }
 
@@ -5505,11 +5480,11 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     const tabs = getDosarProfileTabs(row);
-    /* US-325 AC-01: an address to „Distribuire” without the permission is answered „Acces interzis”, not redirected */
-    const activeTab = tabs.some((tab) => tab.id === requestedTab) || requestedTab === "distribuire" ? requestedTab : "general";
+    const activeTab = tabs.some((tab) => tab.id === requestedTab) ? requestedTab : "general";
 
     dosarProfilState.rowId = row.id;
     dosarProfilState.tabKey = activeTab;
+    dosarProfilState.jurnalFilter = "all";
 
     if (workplacePanel) {
       workplacePanel.hidden = true;
@@ -8734,9 +8709,53 @@ document.addEventListener("DOMContentLoaded", () => {
       related
     };
   };
-  const dosarAuditRows = (row) => (caseFlowOf(row)?.state.log || []).map((item) => ({ ...item, context: window.GEAPEventTimeline.contextOf(window.GEAPEventTimeline.audit(item, dosarAuditContext(row, item))) }));
+  /* US-325 (dist-in-jurnal-v1, team decision 2026-10-28: the „Distribuire” tab is dropped): the journal = the case log + ONE
+     event per automatic distribution report (Distribuire / Redistribuire / attempt „Fără candidat”) at the report's time.
+     A log entry written at the same moment as a report (the first assignment, „Dosar redistribuit (automat)”) IS that event:
+     it is merged (retitled, `distReport` set), never doubled. Manual distribution has no report → its plain event.
+     Newest first (AC-04); each item keeps `idx` = its place in the full list (the audit detail + the filter use it). */
+  const DIST_EVENT = { Distribuire: "Dosarul a fost distribuit automat", Redistribuire: "Dosarul a fost redistribuit automat" };
+  const dosarJournalItems = (row) => {
+    const log = (caseFlowOf(row)?.state.log || []).map((item) => ({ ...item }));
+    const merged = new Set();
+    distReportsOf(row).forEach((report) => {
+      const title = report.executant ? DIST_EVENT[report.type] : "Distribuire automată fără candidat";
+      const match = log.find((item) => !item.distReport && item.at === report.at && /^Dosar(ul)? (re)?distribuit/.test(item.type));
+      if (match) {
+        Object.assign(match, { type: title, distReport: report.id });
+        if (report.type === "Distribuire") match.user = "SIA GEAP";
+        merged.add(match);
+        return;
+      }
+      log.push({
+        at: report.at, user: "SIA GEAP", type: title, status: report.executant ? "Reușit" : "Eșuat", distReport: report.id,
+        detail: report.executant
+          ? `Repartizat către ${report.executant.nume}.${report.prev ? ` Decizia anterioară: ${report.prev}.` : ""} Raportul de distribuire ${report.id}.`
+          : `Niciun candidat eligibil; dosarul rămâne în „Dosare nedistribuite”. Raportul de distribuire ${report.id}.`,
+        audit: { objectType: "Raport de distribuire", objectId: report.id, related: [] }
+      });
+    });
+    return log.map((item, i) => ({ item, i })).sort((a, b) => String(b.item.at).localeCompare(String(a.item.at)) || a.i - b.i).map(({ item }, idx) => ({ ...item, idx }));
+  };
+  const dosarAuditRows = (row, items = dosarJournalItems(row)) => items.map((item) => ({ ...item, context: window.GEAPEventTimeline.contextOf(window.GEAPEventTimeline.audit(item, dosarAuditContext(row, item))) }));
+  /* the Jurnal tab: the library timeline; the „Distribuire” chips (library mono-select chips) only where the viewer may open
+     the reports and the case has distribution events; those events open the report (the title is the link), the rest the audit */
+  const renderDosarJurnal = (row) => {
+    const all = dosarAuditRows(row);
+    const canReports = canViewDistReports();
+    const hasDist = all.some((item) => item.distReport);
+    const filter = canReports && hasDist && dosarProfilState.jurnalFilter === "dist" ? "dist" : "all";
+    const shown = filter === "dist" ? all.filter((item) => item.distReport) : all;
+    const chips = canReports && hasDist ? renderChoiceChips({ labelId: "dosar-jurnal-title", name: "dosar-jurnal-filter", options: [["all", "Toate"], ["dist", "Distribuire"]], value: filter }) : "";
+    const timeline = renderEventTimeline("Jurnalul activităților", shown, {
+      meta: "Jurnalizat prin MLog", empty: "Nu există activități înregistrate.", titleId: "dosar-jurnal-title",
+      openAttrs: (e) => (canReports && e.distReport ? `data-dist-report-row="${escapeHtml(e.distReport)}"` : `data-dosar-event="${e.idx}"`)
+    });
+    /* the chips sit between the heading and the card (the heading row has no room for them on phones) */
+    return chips ? timeline.replace(/(<\/div>)(\s*<ol class="e-permits-timeline">)/, `$1${chips}$2`) : timeline;
+  };
   const openDosarAuditDetail = (row, index) => {
-    const item = (caseFlowOf(row)?.state.log || [])[Number(index)];
+    const item = dosarJournalItems(row)[Number(index)];
     if (!item) return;
     openAuditEventDetail(window.GEAPEventTimeline.audit(item, dosarAuditContext(row, item)), { title: item.type, general: [["Denumirea evenimentului", escapeHtml(item.type)]] });
   };

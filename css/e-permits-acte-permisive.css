@@ -18648,6 +18648,11 @@ a.e-permits-fo-lib-item__title:is(:hover, :focus) {
   margin-left: var(--spacing-2, 2px);
 }
 
+/* dossier „Jurnalul activităților” (dist-in-jurnal-v1): the „Distribuire” chips between the heading and the timeline card */
+.e-permits-dosar-profil__section > .e-permits-rt__chips {
+  padding: 0 var(--spacing-12, 12px) var(--spacing-16, 16px);
+}
+
 .e-permits-rt__search {
   width: min(320px, 100%);
 }
