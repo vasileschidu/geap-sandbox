@@ -12,18 +12,19 @@
   <link rel="stylesheet" href="css/radio.css?v=radio-v1">
   <link rel="stylesheet" href="css/skeleton.css?v=skeleton-v1">
   <link rel="stylesheet" href="css/e-permits-shell.css?v=filtrare-hug-v1">
+  <link rel="stylesheet" href="css/act-view.css?v=docked-v2">
   <link rel="stylesheet" href="css/table-pin-shadow.css?v=table-pin-clip-v1">
   <link rel="stylesheet" href="css/facet-filter.css?v=open-chip-pressed-v1">
   <link rel="stylesheet" href="css/drawer.css?v=phone-title-20-v1">
-  <link rel="stylesheet" href="css/e-permits-acte-permisive.css?v=dist-in-jurnal-v2">
+  <link rel="stylesheet" href="css/e-permits-acte-permisive.css?v=menu-40-v1">
   <link rel="stylesheet" href="css/doc-preview.css?v=sig-pinned-desktop-v1">
   <link rel="stylesheet" href="css/page-reveal.css?v=skeleton-v1">
   <link rel="stylesheet" href="msupport/msupport.css?v=20260925-anon">
   <link rel="stylesheet" href="css/empty-state.css?v=empty-v3">
   <link rel="stylesheet" href="css/form-builder.css?v=requestor-scenarios-v1">
   <link rel="stylesheet" href="css/process-designer.css?v=pd-meta-brand-v1">
-  <link rel="stylesheet" href="css/ghiseu.css?v=oficiu-v1">
-  <link rel="stylesheet" href="css/bo-dossier-flows.css?v=dist-in-jurnal-v2">
+  <link rel="stylesheet" href="css/ghiseu.css?v=oficiu-v2">
+  <link rel="stylesheet" href="css/bo-dossier-flows.css?v=act-card-v1">
   <link rel="stylesheet" href="css/registre.css?v=registre-icon-books-v1">
   <link rel="stylesheet" href="css/calendar.css?v=calendar-views-v8">
   <!-- calendar-views-v3: „Listă / Calendar · Cronologie” switch (library segmented, compact) -->
@@ -33,24 +34,26 @@
   <link rel="stylesheet" href="css/absences.css?v=calendar-views-v3">
   <link rel="stylesheet" href="css/name-expand.css?v=name-expand-align-v1">
   <link rel="stylesheet" href="css/trajectory.css?v=cards-radius-20-final">
-  <link rel="stylesheet" href="css/dropdown.css?v=facet-popover-v2">
+  <link rel="stylesheet" href="css/dropdown.css?v=menu-40-v1">
   <link rel="stylesheet" href="css/copy-value.css?v=copy-wrap-v1">
   <link rel="stylesheet" href="css/breadcrumbs.css?v=breadcrumb-single-back-v1">
   <link rel="stylesheet" href="css/pager.css?v=pager-check-24-v1">
   <link rel="stylesheet" href="css/tag.css?v=tag-violet-border-v1">
   <link rel="stylesheet" href="css/field-sizes.css?v=audit-fix-v1">
+  <link rel="stylesheet" href="css/start-dialog.css?v=start-dialog-v7">
   <link rel="stylesheet" href="css/dialog-footer.css?v=modal-footer-medium-v1">
   <link rel="stylesheet" href="css/modal-phone.css?v=filter-sheet-height-v1">
   <!-- ?state=<id> opens the screen a Figma frame shows (js/demo-states.js) -->
   <script src="js/tag.js?v=audit-fix-v5"></script>
   <script src="js/pager.js?v=pager-compact-v4"></script>
   <script src="js/copy-value.js?v=copy-wrap-v1"></script>
+  <script src="js/start-dialog.js?v=start-dialog-v8"></script>
   <script src="js/breadcrumbs.js?v=breadcrumb-single-back-v1"></script>
   <script src="js/page-header.js?v=header-actions-below-v1"></script>
   <script src="js/empty-state.js?v=empty-v3"></script>
   <script src="js/trajectory.js?v=trajectory-phone-even-v1"></script>
   <script src="js/event-timeline.js?v=machete-mdocs-v1"></script>
-  <script src="js/demo-states.js?v=dist-in-jurnal-v2"></script>
+  <script src="js/demo-states.js?v=start-dialog-v2"></script>
   <script src="js/demo-links.js?v=links-v4"></script>
   <!-- the working-days engine (Administrare › Calendar), before the shell seeds the dossier deadlines; after
        demo-links.js, which clears the stored calendar changes for a demo link before the engine reads them -->
@@ -73,13 +76,13 @@
   <script src="js/fo-grid.js?v=doc-upload-v1" defer></script>
   <!-- the act row (FO #intent, Ghișeu, EVO Cabinet) — one renderer, before the FO script that uses it -->
   <script src="js/act-row.js?v=ghiseu-picker-toast-v1" defer></script>
-  <script src="js/e-permits-acte-permisive.js?v=doc-card-hover-v2" defer></script>
+  <script src="js/e-permits-acte-permisive.js?v=start-dialog-v2" defer></script>
   <!-- Form Builder (after the FO renderer it shares) -->
   <script src="js/form-builder.js?v=destructive-red-v1" defer></script>
   <script src="core/process-model.js?v=pd-bend-v2" defer></script>
   <script src="js/process-designer.js?v=pd-meta-brand-v1" defer></script>
-  <script src="js/ghiseu.js?v=oficiu-v1" defer></script>
-  <script src="js/registre.js?v=my-cases-no-hscroll-v1" defer></script>
+  <script src="js/ghiseu.js?v=start-dialog-v7" defer></script>
+  <script src="js/registre.js?v=act-card-v2" defer></script>
   <script src="js/registre-admin.js?v=registre-v2" defer></script>
   <script src="js/view-switch.js?v=calendar-views-v3" defer></script>
   <script src="js/calendar-admin.js?v=calendar-views-v9" defer></script>
@@ -3563,7 +3566,8 @@
   <script src="core/permissions.js?v=clas-v1"></script>
   <script src="core/case-flow.js?v=bo-dossier-flows-v1"></script>
   <script src="js/facet-filter.js?v=open-chip-pressed-v1"></script>
-  <script src="js/e-permits-shell.js?v=dist-in-jurnal-v2"></script>
+  <script src="js/act-view.js?v=docked-v2"></script>
+  <script src="js/e-permits-shell.js?v=redist-modes-v1"></script>
 
   <!-- Instance switch warning modal -->
   <div class="e-permits-fo-instance-switch-modal" data-fo-instance-switch-modal hidden aria-modal="true" role="dialog" aria-labelledby="fo-instance-switch-title" aria-describedby="fo-instance-switch-description">
@@ -3583,29 +3587,6 @@
       <div class="modal-buttons e-permits-fo-instance-switch-modal__actions">
         <button class="btn btn-neutral e-permits-fo-instance-switch-modal__secondary" type="button" data-fo-instance-switch-cancel>Anulează</button>
         <button class="btn btn-primary e-permits-fo-instance-switch-modal__primary" type="button" data-fo-instance-switch-confirm>Salvează și schimbă</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Confirmation for a consequential post-process (suspendare, retragere).
-       Same dialog component as the instance switch above. -->
-  <div class="e-permits-fo-instance-switch-modal" data-fo-postprocess-modal hidden aria-modal="true" role="dialog" aria-labelledby="fo-postprocess-title" aria-describedby="fo-postprocess-description">
-    <div class="e-permits-fo-instance-switch-modal__card" tabindex="-1">
-      <div class="e-permits-fo-instance-switch-modal__body">
-        <div class="e-permits-fo-instance-switch-modal__icon" aria-hidden="true">
-          <svg class="icon" width="24" height="24"><use href="assets/icons/sprite.svg#icon-warning-filled" data-fo-postprocess-icon></use></svg>
-        </div>
-        <div class="e-permits-fo-instance-switch-modal__content">
-          <h2 id="fo-postprocess-title" data-fo-postprocess-title>Confirmă postprocesul</h2>
-          <div id="fo-postprocess-description" class="e-permits-fo-instance-switch-modal__description">
-            <p data-fo-postprocess-consequence></p>
-            <p>Act: <strong data-fo-postprocess-act></strong></p>
-          </div>
-        </div>
-      </div>
-      <div class="modal-buttons e-permits-fo-instance-switch-modal__actions">
-        <button class="btn btn-neutral e-permits-fo-instance-switch-modal__secondary" type="button" data-fo-postprocess-cancel>Anulează</button>
-        <button class="btn btn-primary e-permits-fo-instance-switch-modal__primary" type="button" data-fo-postprocess-confirm>Confirm și continui</button>
       </div>
     </div>
   </div>

@@ -795,10 +795,12 @@
   });
 
   /* „Acces interzis” — an address typed by hand for a register the role has no grant for (AC-01) */
-  function showDenied(title) {
+  /* US-317 AC-01: the act card's own wording for a role without access to the acts register */
+  const NO_PERMISSION = "Nu aveți permisiunea de a accesa această pagină.";
+  function showDenied(title, text = "Rolul tău nu are acces la acest registru. Accesul se acordă de Administratorul central, per rol.") {
     /* no menu item stands for a register the role cannot open */
     document.querySelectorAll("[data-nav-item].is-active").forEach((link) => { link.classList.remove("is-active"); link.removeAttribute("aria-current"); });
-    showPage(title, window.GEAPEmptyState?.render({ title: DENIED, text: "Rolul tău nu are acces la acest registru. Accesul se acordă de Administratorul central, per rol.", icon: "lock" }) || DENIED);
+    showPage(title, window.GEAPEmptyState?.render({ title: DENIED, text, icon: "lock" }) || DENIED);
   }
 
   /* a link to a register that was deprecated (US-193 AC-04): it is out of the menu; the old address explains why */
@@ -836,21 +838,49 @@
   };
 
   /* ================================================================ record card (US-196 AC-07 · US-197 AC-05 · US-273) */
+  /* US-317 (Feature 96367 „Profilul actului în Back Office”): the act card = title «Act: <nr>», the model's tabs in
+     this order, «Date generale» open by default, «Jurnal evenimente» only with the audit permission (AC-06/07/12).
+     Tab contents: US-318…322 (here: the record's existing sections), US-273 (the journal). Old links keep working:
+     …/detalii → generale, …/versiuni → istoria. */
+  const ACT_TABS = [["generale", "Date generale"], ["specifice", "Date specifice actului"], ["dosare", "Dosare"], ["plati", "Plăți"], ["istoria", "Istoria"]];
+  const ACT_TAB_ALIAS = { detalii: "generale", versiuni: "istoria" };
+  const defaultTab = (def) => (def?.object === "Permit" ? "generale" : "detalii");
+  const tabOf = (def, tab) => (def?.object === "Permit" ? ACT_TAB_ALIAS[tab] || tab : tab);
+  /* the act's payment notes (Registru note de plată): issued for the act or for its dossier */
+  const notesOfAct = (s) => (S.data?.notes || []).filter((n) => n.ref?.nr === s.nr || n.ref?.nr === s.dossier);
   function tabsOf(def, row) {
     const who = persona();
+    if (def.object === "Permit") {
+      const counts = { dosare: row.src.dossier ? 1 : 0, plati: notesOfAct(row.src).length, istoria: row.src.versions.length };
+      const tabs = ACT_TABS.map(([id, label]) => ({ id, label, count: counts[id] || 0 }));
+      if (who.can("journal")) tabs.push({ id: "jurnal", label: "Jurnal evenimente", count: eventsOf(def, row).length });
+      return tabs;
+    }
     const tabs = [{ id: "detalii", label: "Detalii", icon: "page-text" }];
     if (def.object === "Permit") tabs.push({ id: "versiuni", label: "Versiuni", count: row.src.versions.length });
     if (who.can("journal")) tabs.push({ id: "jurnal", label: "Jurnalul evenimentelor", count: eventsOf(def, row).length });
     return tabs;
   }
-  async function openCard(id, rowId, tab = "detalii", { push = true } = {}) {
+  async function openCard(id, rowId, tab = "", { push = true } = {}) {
     await load();
+    /* already open on this record (back / forward between its tabs) = not a new opening */
+    const reopening = S.card?.id === id && S.card?.rowId === rowId && A().els?.dosarProfilPanel?.hidden === false;
     const def = defOf(id);
-    if (!granted(def)) { showDenied(def?.name || "Registru"); return; }
+    if (!granted(def)) { showDenied(def?.name || "Registru", def?.object === "Permit" ? NO_PERMISSION : undefined); return; }
     const row = findRow(def, rowId);
     A().setActiveNav?.(id);
     A().openProfilePanel?.();
     const els = A().els || {};
+    /* US-317 AC-09: an act of an authority outside the role's perimeter → no card, the access message */
+    if (!row && def.object === "Permit" && (S.data?.acts || []).some((a) => a.id === rowId)) {
+      S.card = null;
+      els.dosarProfilTitleRow.innerHTML = A().renderPageHeaderTop({ crumbs: [{ label: def.name, attr: "data-dosar-profil-crumb-back" }, { label: rowId }], title: DENIED });
+      els.dosarProfilSummary.innerHTML = "";
+      els.dosarProfilTabs.innerHTML = "";
+      els.dosarProfilPanelBody.id = "reg-panel";
+      els.dosarProfilPanelBody.innerHTML = window.GEAPEmptyState?.render({ title: NO_PERMISSION, text: "Actul aparține unei autorități la care rolul tău nu are drepturi de acces active.", icon: "lock" }) || "";
+      return;
+    }
     if (!row) {
       els.dosarProfilTitleRow.innerHTML = A().renderPageHeaderTop({ crumbs: [{ label: def.name, attr: "data-dosar-profil-crumb-back" }, { label: rowId }], title: "Înregistrarea nu a fost găsită" });
       els.dosarProfilSummary.innerHTML = "";
@@ -860,9 +890,10 @@
       return;
     }
     const tabs = tabsOf(def, row);
-    S.card = { id, rowId, tab: tabs.some((t) => t.id === tab) ? tab : "detalii" };
+    const wanted = tabOf(def, tab || defaultTab(def));
+    S.card = { id, rowId, tab: tabs.some((t) => t.id === wanted) ? wanted : defaultTab(def) };
     if (S.card.tab === "jurnal" && S.ev.rowId !== rowId) Object.assign(S.ev, { rowId, query: "", filter: "all", sort: "desc" });
-    logAccess(def, row);
+    if (!reopening) logAccess(def, row);
     renderCard();
     A().writeHash?.(`#registru/${id}/${rowId}/${S.card.tab}`, { push });
     els.dosarProfilPanel?.scrollIntoView?.({ block: "start" });
@@ -876,7 +907,7 @@
     const els = A().els || {};
     els.dosarProfilTitleRow.innerHTML = A().renderPageHeaderTop({
       crumbs: [{ label: def.name, attr: "data-dosar-profil-crumb-back" }, { label: row.nr }],
-      title: titleOf(def, row),
+      title: def.object === "Permit" ? `Act: ${row.nr}` : titleOf(def, row),
       actions: cardActions(def, row)
     });
     els.dosarProfilSummary.innerHTML = A().renderPageHeaderMeta(metaOf(def, row));
@@ -891,7 +922,8 @@
     body.id = "reg-panel";
     body.setAttribute("role", "tabpanel");
     body.setAttribute("aria-labelledby", `reg-tab-${c.tab}`);
-    body.innerHTML = c.tab === "versiuni" ? versionsHtml(row) : c.tab === "jurnal" ? journalHtml(def, row) : detailsHtml(def, row);
+    body.innerHTML = c.tab === "versiuni" || c.tab === "istoria" ? versionsHtml(row) : c.tab === "jurnal" ? journalHtml(def, row)
+      : def.object === "Permit" ? actTabHtml(def, row, c.tab) : detailsHtml(def, row);
     if (keepFocus) body.querySelector(keepFocus)?.focus();
   }
   const titleOf = (def, row) => (def.object === "Case" ? row.serviciu : def.object === "Permit" ? row.denumire : def.object === "Invoice" ? "Notă de plată" : row.tip);
@@ -900,6 +932,8 @@
     const open = actionsFor(def).find((a) => a.type === "open");
     const openBtn = open && def.object === "Case" ? `<button class="btn btn-neutral btn-sm" type="button" data-reg-action="open" data-reg-kind="${esc(def.id)}" data-reg-row="${esc(row.id)}">${esc(open.label)}</button>` : "";
     const menu = (U().renderStackMenu?.(items, row.nr) || "").replace("hidden data-stack-menu>", "hidden data-stack-menu data-stack-menu-fixed>");
+    /* US-317 AC-10/11: the act card is read-only, no header actions; the crumb back returns to the register with its
+       search, filters, sort and page as they were (shell closeDosarProfil) */
     return openBtn + menu;
   }
   const copy = (value) => A().renderProfileCopyCode?.(value, `Copiază ${value}`) || esc(value);
@@ -914,7 +948,8 @@
         ["Termen", esc(longDate(row.termen) || "—")]
       ];
       case "Permit": return [
-        ["Nr. act", copy(row.nr)],
+        /* the number is the title (US-317 AC-05) → the meta starts with the act's name */
+        ["Denumire act", esc(row.src.name)],
         ["Status", tag(row.status, ACT_TONE[row.status])],
         ["Autoritate emitentă", esc(authorityOf(s.authority).name)],
         ["Valabil până la", esc(longDate(s.validUntil))]
@@ -965,7 +1000,28 @@
           ["Actor responsabil", val(`${row.actor}${row.actorRol ? ` · ${row.actorRol}` : ""}`)]
         ])}`;
     }
-    if (def.object === "Permit") {
+    if (def.object === "Permit") return actTabHtml(def, row, "generale");
+    return detailsHtml2(def, row);
+  }
+  /* US-317: one act card tab (contents per US-318…321; the beneficiary sits in «Date generale») */
+  function actTabHtml(def, row, tab) {
+    const s = row.src;
+    if (tab === "specifice") {
+      return card("Date specifice actului", [
+        s.place ? ["Adresa activității", val(s.place)] : null,
+        ...s.fields.map(([label, value]) => [label, val(value)])
+      ]);
+    }
+    if (tab === "dosare") {
+      return s.dossier ? card("Dosare", [["Dosarul de emitere", copy(s.dossier)]])
+        : `<section class="e-permits-dosar-profil__section"><h2 class="e-permits-dosar-profil__section-title">Dosare</h2>${window.GEAPEmptyState?.render({ title: "Niciun dosar legat de act", text: "Actul nu are un dosar de emitere înregistrat.", icon: "document", compact: true }) || ""}</section>`;
+    }
+    if (tab === "plati") {
+      const notes = notesOfAct(s);
+      return notes.length ? card("Note de plată", notes.map((n) => [`${n.nr} · ${mdl(n.total)}`, tag(n.status, NOTE_TONE[n.status])]))
+        : `<section class="e-permits-dosar-profil__section"><h2 class="e-permits-dosar-profil__section-title">Note de plată</h2>${window.GEAPEmptyState?.render({ title: "Nicio notă de plată", text: "Pentru act și dosarul lui nu s-a emis nicio notă de plată.", icon: "receipt-bill", compact: true }) || ""}</section>`;
+    }
+    {
       const b = s.beneficiary;
       const changeNotice = s.statusChange && ["Suspendat", "Retras", "Anulat"].includes(s.status)
         ? U().renderNotice?.(s.status === "Suspendat" ? "warning" : "error", `<strong>${esc(s.status === "Suspendat" ? `Suspendat până la ${longDate(s.statusChange.until)}` : `${s.status} ${longDate(s.statusChange.at)}`)}</strong> · ${esc(s.statusChange.reason)}.`) : "";
@@ -989,12 +1045,11 @@
           ["Adresa", val(b.address)],
           ["Telefon", val(b.phone)],
           ["E-mail", val(b.email)]
-        ])}
-        ${card("Date specifice actului", [
-          s.place ? ["Adresa activității", val(s.place)] : null,
-          ...s.fields.map(([label, value]) => [label, val(value)])
         ])}`;
     }
+  }
+  function detailsHtml2(def, row) {
+    const s = row.src;
     if (def.object === "Invoice") {
       const lines = s.lines.map((l) => [l.label, esc(mdl(l.amount))]);
       return `${card("Nota de plată", [
@@ -1120,11 +1175,21 @@
   }
   /* US-197 AC-08 / Feature 94523: every opening of a record is logged (once per session per record) */
   const accessLogged = new Set();
+  const lastActOpen = { key: "", at: 0 };
   function logAccess(def, row) {
     const key = `${def.id}:${row.id}`;
-    if (accessLogged.has(key) || !S.data) return;
-    accessLogged.add(key);
+    if (!S.data) return;
     const who = persona();
+    /* US-317 AC-13: EVERY opening of the act card is logged — user, action, act number, time (tab switches are not) */
+    if (def.object === "Permit") {
+      /* a deep link is routed twice by the shell (before / after the role assignment) — one opening, one entry */
+      if (lastActOpen.key === key && Date.now() - lastActOpen.at < 2000) return;
+      Object.assign(lastActOpen, { key, at: Date.now() });
+      logEvent(def, row, { user: userName(), role: who.roleLabel, type: "Vizualizare detalii act", category: "accesare", detail: `Actul ${row.nr} deschis din ${def.name} · perimetru ${perimeterText(who, { authorityOnly: true })}.` });
+      return;
+    }
+    if (accessLogged.has(key)) return;
+    accessLogged.add(key);
     logEvent(def, row, { user: userName(), role: who.roleLabel, type: "Vizualizare fișă în registru", category: "accesare", detail: `${def.name} · perimetru ${perimeterText(who)}.` });
   }
 
@@ -1147,7 +1212,7 @@
     return `
       <section class="e-permits-dosar-profil__section e-permits-stack-section">
         <div class="e-permits-svc-events__heading">
-          <h2 class="e-permits-dosar-profil__section-title e-permits-pay__title">Jurnalul evenimentelor</h2>
+          <h2 class="e-permits-dosar-profil__section-title e-permits-pay__title">${def.object === "Permit" ? "Jurnal evenimente" : "Jurnalul evenimentelor"}</h2>
           <p class="e-permits-svc-events__count" aria-live="polite" data-reg-ev-count>${esc(journalCount(def, row))}</p>
         </div>
         <div class="e-permits-pay__toolbar e-permits-svc-events__toolbar">
@@ -1721,12 +1786,12 @@
     if (m) {
       const def = defOf(m[1]);
       if (def?.deprecated) { showDeprecated(def); return; }
-      if (!def || !granted(def, who)) { showDenied(def?.name || "Registru"); return; }
+      if (!def || !granted(def, who)) { showDenied(def?.name || "Registru", def?.object === "Permit" ? NO_PERMISSION : undefined); return; }
       /* the register under the card (the crumb returns to it), drawn without touching the address */
       if (document.querySelector("[data-workplace]")?.dataset.registryKind !== m[1]) {
         A().showRegistry?.(registryDb(m[1]), { sortKey: def.defaultSort?.key || null, sortDirection: def.defaultSort?.dir || "desc" });
       }
-      openCard(m[1], decodeURIComponent(m[2]), m[3] || "detalii", { push: false });
+      openCard(m[1], decodeURIComponent(m[2]), m[3] || "", { push: false });
     }
   };
   window.GEAPShellRoutes = window.GEAPShellRoutes || [];

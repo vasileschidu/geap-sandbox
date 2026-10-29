@@ -656,7 +656,7 @@
         ".e-permits-shell__role-card",
         ".e-permits-fo-auth__role-item"
       ],
-      "fix": "the ONE dropdown item `.e-permits-fo-intent-menu__item` (32 · 6 12 6 8 · 14/20 medium · icon 20) — or add the item class to the css/dropdown.css item list",
+      "fix": "the ONE dropdown item `.e-permits-fo-intent-menu__item` (desktop 40 · 10 12 10 8 · 14/20 medium · icon 20; phones 48 · 12 16 · 16/24 · icon 24 — menu-40-v1) — or add the item class to the css/dropdown.css item list",
       "static": {
         "pattern": "(^|[-_])menu__(item|link|option)",
         "canonical": [

@@ -1,0 +1,504 @@
+{
+ "columns": [
+  {
+   "sec": "13377:576827",
+   "chip": "01",
+   "title": "Drafts list (US-249, US-248)",
+   "line": "«Dosare inițiate din oficiu»: the user's own ex-officio drafts, search, filters, export, removal and the no-rights state.",
+   "states": [
+    "ofc-01",
+    "ofc-01k",
+    "ofc-01a",
+    "ofc-01b",
+    "ofc-01c",
+    "ofc-01d",
+    "ofc-01e",
+    "ofc-01f",
+    "ofc-01j",
+    "ofc-01g",
+    "ofc-01h",
+    "ofc-01i"
+   ]
+  },
+  {
+   "sec": "13377:576828",
+   "chip": "02",
+   "title": "Act search (US-242)",
+   "line": "„Nou” opens the act search; an act's menu offers the configured post-processes; confirming one creates the draft.",
+   "states": [
+    "ofc-02",
+    "ofc-02a",
+    "ofc-02c",
+    "ofc-02b",
+    "ofc-02l",
+    "ofc-02d",
+    "ofc-02h",
+    "ofc-02h2",
+    "ofc-02i",
+    "ofc-02j",
+    "ofc-02k",
+    "ofc-02e",
+    "ofc-02g",
+    "ofc-02f"
+   ]
+  },
+  {
+   "sec": "13377:576829",
+   "chip": "03",
+   "title": "Holder data (US-243)",
+   "line": "The holder comes from the act (read-only); contacts are prefilled from the act and can be corrected.",
+   "states": [
+    "ofc-03",
+    "ofc-03a",
+    "ofc-03b"
+   ]
+  },
+  {
+   "sec": "13377:576830",
+   "chip": "04",
+   "title": "Service details and decision (US-244)",
+   "line": "Act data prefilled, the post-process fields, the authority's decision as an electronic form or a PDF, the processing subdivision.",
+   "states": [
+    "ofc-04",
+    "ofc-04f",
+    "ofc-04a",
+    "ofc-04e",
+    "ofc-04b",
+    "ofc-04c",
+    "ofc-04d"
+   ]
+  },
+  {
+   "sec": "13377:576831",
+   "chip": "05",
+   "title": "Required documents (US-20)",
+   "line": "The documents the ex-officio post-process needs, with the same upload cards as the desk.",
+   "states": [
+    "ofc-05",
+    "ofc-05a"
+   ]
+  },
+  {
+   "sec": "13377:576832",
+   "chip": "06",
+   "title": "Review (US-245)",
+   "line": "Four review sections with the decision card first and a permanent hint; incomplete steps send the user back.",
+   "states": [
+    "ofc-06",
+    "ofc-06c",
+    "ofc-06d",
+    "ofc-06a",
+    "ofc-06b"
+   ]
+  },
+  {
+   "sec": "13377:576833",
+   "chip": "07",
+   "title": "Delivery (US-16)",
+   "line": "How the holder receives the result: electronically in EVO Cabinet or on paper; no MDelivery.",
+   "states": [
+    "ofc-07",
+    "ofc-07a"
+   ]
+  },
+  {
+   "sec": "13377:576834",
+   "chip": "08",
+   "title": "Submission (US-246)",
+   "line": "Confirmation without MSign or payment note, the submitted dossier, the error, and where the dossier appears next.",
+   "states": [
+    "ofc-08",
+    "ofc-08g",
+    "ofc-08a",
+    "ofc-08b",
+    "ofc-08c",
+    "ofc-08d",
+    "ofc-08h",
+    "ofc-08e",
+    "ofc-08f"
+   ]
+  },
+  {
+   "sec": "13377:576835",
+   "chip": "09",
+   "title": "Drafts: resume, save, remove (US-247, US-248)",
+   "line": "A draft reopens at its last step; save, header menu, change the act or post-process, remove, history.",
+   "states": [
+    "ofc-09",
+    "ofc-09a",
+    "ofc-09h",
+    "ofc-09b",
+    "ofc-09c",
+    "ofc-09d",
+    "ofc-09e",
+    "ofc-09g",
+    "ofc-09f"
+   ]
+  },
+  {
+   "sec": "13818:18492",
+   "chip": "10",
+   "title": "No rights on step links (US-243…248 AC-01)",
+   "line": "A role without the permission opening any step or draft link directly sees the no-rights dialog.",
+   "states": [
+    "ofc-10a"
+   ]
+  },
+  {
+   "sec": "13818:18493",
+   "chip": "11",
+   "title": "Removal warning (US-247 AC-09)",
+   "line": "The bell warns before the automatic removal; the notification opens the draft.",
+   "states": [
+    "ofc-11",
+    "ofc-11a"
+   ]
+  },
+  {
+   "sec": "13818:18494",
+   "chip": "12",
+   "title": "Audit journal",
+   "line": "Every step of the flow is logged; „Istoricul cererii” shows the journal.",
+   "states": [
+    "ofc-12"
+   ]
+  }
+ ],
+ "blocks": {
+  "ofc-01": [
+   "Drafts list",
+   "Only the user's own ex-officio drafts: number with the post-process, service, holder, company, dates and the automatic removal date. „Nou” starts a new dossier.",
+   "US-249 AC-02…04 · US-65"
+  ],
+  "ofc-01a": [
+   "Search with no match",
+   "A search by number, holder or company that matches nothing shows the filtered empty state.",
+   "US-249 AC-10"
+  ],
+  "ofc-01b": [
+   "No drafts yet",
+   "Empty list: „Nu sunt schițe înregistrate.” with the „Nou” button.",
+   "US-249 AC-09"
+  ],
+  "ofc-01c": [
+   "Filter open",
+   "„Filtrare” shows the facets: service, creation date, last change and automatic removal date.",
+   "US-249 AC-06"
+  ],
+  "ofc-01d": [
+   "Export dialog",
+   "The export button opens the CSV export dialog for the current list.",
+   "US-249 AC-08"
+  ],
+  "ofc-01e": [
+   "Export done",
+   "After the export the success toast confirms the file.",
+   "US-249 AC-08"
+  ],
+  "ofc-01f": [
+   "Remove draft · confirmation",
+   "The grey trash asks „Sigur doriți să eliminați schița dosarului?”. No reason is needed; the red button removes it.",
+   "US-248 AC-02"
+  ],
+  "ofc-01g": [
+   "Draft removed",
+   "The draft leaves the list and a toast confirms the removal.",
+   "US-248 AC-03"
+  ],
+  "ofc-01h": [
+   "No permission · Director",
+   "A role without the permission opens the item and sees the shared no-rights state.",
+   "US-249 AC-01"
+  ],
+  "ofc-01i": [
+   "Central administrator",
+   "The central administrator has the permission by default and sees the same list.",
+   "Feature 95769 · US-65"
+  ],
+  "ofc-02": [
+   "Act search",
+   "The window opens on the act search: service select and one live search over act number, IDNP and IDNO. Acts without a configured post-process have no menu.\nSearch by name, object and service: not in US-242 — PO to confirm.",
+   "US-242 AC-02…05"
+  ],
+  "ofc-02a": [
+   "Search by IDNO",
+   "Typing an IDNO narrows the list to that company's acts as you type.\nSearch by name, object and service: not in US-242 — PO to confirm.",
+   "US-242 AC-04"
+  ],
+  "ofc-02c": [
+   "Filtered by service",
+   "Choosing a service in „Denumirea serviciului” keeps only that service's acts.",
+   "US-242 AC-03"
+  ],
+  "ofc-02b": [
+   "No act found",
+   "No match shows „Nu există acte permisive care să corespundă căutării.”.",
+   "US-242 AC-06"
+  ],
+  "ofc-02d": [
+   "Post-process menu",
+   "The act's menu lists only the ex-officio types configured for the act's status; Retragere is red and last.",
+   "US-242 AC-07/08"
+  ],
+  "ofc-02e": [
+   "Menu on a suspended act",
+   "A suspended act offers only „Reluare valabilitate”.",
+   "US-242 AC-07"
+  ],
+  "ofc-02g": [
+   "Locked act",
+   "An act with a dossier in progress has no menu button and shows the warning with the dossier number.\nLocked-act warning: not in US-242 — PO to confirm.",
+   "Feature 95769 (one active post-process per act)"
+  ],
+  "ofc-02f": [
+   "No permission · Specialist ghișeu",
+   "A user with desk permission only opens the link and sees the no-rights state.",
+   "US-242 AC-01"
+  ],
+  "ofc-03": [
+   "Holder data",
+   "The holder comes from the act and is read-only. Phone and e-mail are prefilled from the act and can be corrected.",
+   "US-243 AC-02/03"
+  ],
+  "ofc-03a": [
+   "Invalid phone and e-mail",
+   "A short phone number and a .ru address show their errors under the fields after „Înainte”.",
+   "US-243 AC-07"
+  ],
+  "ofc-03b": [
+   "Empty phone, incomplete e-mail",
+   "The phone is required; an e-mail without a domain shows the format error.",
+   "US-243 AC-04, AC-06"
+  ],
+  "ofc-04": [
+   "Service details · Prelungire",
+   "Act data prefilled read-only, the post-process fields and „Decizia autorității” as an electronic form. „Procesat de subdiviziunea” is read-only, without a required star.\nDecision fields and the 60 MB PDF limit: not in US-244 — PO to confirm.\n„Valabil până la (termenul nou)”: not named in US-244 — PO to confirm.",
+   "US-244 AC-02…06"
+  ],
+  "ofc-04f": [
+   "Service details · Suspendare",
+   "Suspension asks for the end date and the reason before the decision.\nDecision fields and the 60 MB PDF limit: not in US-244 — PO to confirm.\nSuspendare „până la” date: not named in US-244 — PO to confirm.",
+   "US-244 AC-02"
+  ],
+  "ofc-04a": [
+   "Required fields empty",
+   "„Înainte” with empty fields marks every required field with its error.\nDecision fields and the 60 MB PDF limit: not in US-244 — PO to confirm.",
+   "US-244 AC-05"
+  ],
+  "ofc-04e": [
+   "Date error",
+   "A date that breaks the rule shows its message under the field.\nDecision fields and the 60 MB PDF limit: not in US-244 — PO to confirm.",
+   "US-244 AC-06"
+  ],
+  "ofc-04b": [
+   "Decision as PDF",
+   "„Fișier PDF” replaces the content field with the boxed upload.\nDecision fields and the 60 MB PDF limit: not in US-244 — PO to confirm.",
+   "US-244 AC-04"
+  ],
+  "ofc-04c": [
+   "PDF attached",
+   "The signed decision PDF appears as a document card in the box.\nDecision fields and the 60 MB PDF limit: not in US-244 — PO to confirm.",
+   "US-244 AC-04"
+  ],
+  "ofc-04d": [
+   "Wrong file type",
+   "A non-PDF file is rejected with the error under the box.\nDecision fields and the 60 MB PDF limit: not in US-244 — PO to confirm.",
+   "US-244 AC-04"
+  ],
+  "ofc-05": [
+   "Required documents",
+   "The documents configured for the ex-officio post-process, with the desk's upload cards.",
+   "US-20"
+  ],
+  "ofc-05a": [
+   "Missing documents",
+   "„Înainte” with a required document missing shows the error on its card.",
+   "US-20"
+  ],
+  "ofc-06": [
+   "Review",
+   "Four sections: general data, holder, request and attachments. „Atașamente” lists the predefined documents with «Atașat» Da / Nu, then the decision. The hint says corrections are made from the stepper.",
+   "US-245 AC-02…05"
+  ],
+  "ofc-06a": [
+   "Decision preview",
+   "The electronic decision opens in the MDocs print preview.",
+   "US-244 AC-03 · US-245 AC-06"
+  ],
+  "ofc-06b": [
+   "Back to an incomplete step",
+   "Going to the confirmation with „Detalii serviciu” incomplete shows the toast and returns to that step.",
+   "US-245 AC-08/09"
+  ],
+  "ofc-07": [
+   "Delivery",
+   "The holder receives the result electronically in EVO Cabinet by default. No MDelivery: it would need a payment note.",
+   "US-16"
+  ],
+  "ofc-07a": [
+   "Paper delivery",
+   "Choosing paper shows where the holder collects the document.",
+   "US-16"
+  ],
+  "ofc-08": [
+   "Confirmation",
+   "Readiness list: data validated, no MSign signature and no payment note needed. „Confirmă depunerea” submits.",
+   "US-246 AC-02/03"
+  ],
+  "ofc-08a": [
+   "Dossier submitted",
+   "Success hero and the details card: number, date, term in working days, status „În procesare · Proiect act”, post-process, channel, responsible.\nResponsabil, „Deschide dosarul”, toast: not in US-246 — PO to confirm.",
+   "US-246 AC-04/05"
+  ],
+  "ofc-08b": [
+   "Submission error",
+   "A failed submission keeps the data and offers „Reîncercați”.",
+   "US-246 AC-08"
+  ],
+  "ofc-08c": [
+   "Back to the list",
+   "„Înapoi la Dosare inițiate din oficiu” closes the window; the submitted draft is gone and a toast confirms it.\nClose toast: not in US-246 — PO to confirm.",
+   "US-246 AC-06"
+  ],
+  "ofc-08d": [
+   "In „Dosarele mele”",
+   "The dossier joins the initiator's „Dosarele mele” with the origin „Din oficiu”.",
+   "US-246 AC-06"
+  ],
+  "ofc-08e": [
+   "Dossier profile",
+   "„Deschide dosarul” opens the BO profile: trajectory starts with „Inițiat · Din oficiu”.\n„Deschide dosarul”: not in US-246 — PO to confirm.",
+   "US-246 AC-06"
+  ],
+  "ofc-08f": [
+   "Act locked after submission",
+   "In a new act search the act now shows the dossier in progress and has no menu button.\nLocked-act warning: not in US-242 — PO to confirm.",
+   "Feature 95769 (one active post-process per act)"
+  ],
+  "ofc-09": [
+   "Draft resumed",
+   "Opening a draft from the list continues at its last step.",
+   "US-247 AC-05"
+  ],
+  "ofc-09a": [
+   "Draft saved",
+   "„Salvează schița” validates, saves and the toast confirms; the header shows the save time.",
+   "US-247 AC-04"
+  ],
+  "ofc-09b": [
+   "Header menu",
+   "The header menu: „Schimbă actul sau postprocesul”, history and the red „Elimină schița”.",
+   "US-247 · US-248"
+  ],
+  "ofc-09c": [
+   "Change act or post-process",
+   "The confirmation warns that the details, decision and documents are lost; the red button returns to the act search.\n„Schimbă actul” confirmation: not in US-247 — PO to confirm.",
+   "US-247"
+  ],
+  "ofc-09d": [
+   "Remove draft from the window",
+   "The same removal confirmation as in the list, opened from the header menu.",
+   "US-248 AC-02"
+  ],
+  "ofc-09e": [
+   "Removed draft opened",
+   "A link to a removed draft shows who removed it and when, with „Dosar nou din oficiu”.\nRemoved-draft page: not in US-248 — PO to confirm.",
+   "US-248 AC-05"
+  ],
+  "ofc-09f": [
+   "Draft history",
+   "The history dialog lists the draft's saves and changes. The subtitle shows no request number.\nHistory dialog: not in US-247 — PO to confirm.",
+   "US-247"
+  ],
+  "ofc-01j": [
+   "Removal cancelled",
+   "„Anulează” in the removal confirmation closes it; the draft stays in the list unchanged.",
+   "US-248 AC-04"
+  ],
+  "ofc-01k": [
+   "Sorted list",
+   "Columns sort on click; the default is „Data ultimei modificări”, newest first. Here the list is sorted by „Data eliminării automate”.",
+   "US-249 AC-07"
+  ],
+  "ofc-02k": [
+   "New draft in the list",
+   "After closing the window the new draft is listed in «Dosare inițiate din oficiu».",
+   "US-242 AC-12"
+  ],
+  "ofc-02l": [
+   "Only the authority's acts",
+   "The act search lists only acts issued by the user's authority. An ANTA specialist sees none of ANSP's acts.",
+   "US-242 AC-04"
+  ],
+  "ofc-06c": [
+   "Summary after a correction",
+   "After a correction in „Date titular” the user returns to „Verificare” from the stepper; the summary shows the new e-mail.",
+   "US-245 AC-07"
+  ],
+  "ofc-06d": [
+   "Attachments · Atașat Da / Nu",
+   "„Atașamente” lists the predefined documents with «Atașat» Da or Nu. A missing required one is red and the warning names it.",
+   "US-245 AC-04"
+  ],
+  "ofc-08g": [
+   "Confirmation disabled",
+   "While the dossier is not fully valid, „Confirmă depunerea” is disabled.",
+   "US-246 AC-03"
+  ],
+  "ofc-08h": [
+   "In «Toate»",
+   "The submitted dossier is also listed in „Dosarele mele” › „Toate”.",
+   "US-246 AC-06"
+  ],
+  "ofc-09g": [
+   "Automatic removal",
+   "Past the retention period SIA GEAP removes the draft. Opening it shows the date and the reason; access is off and „Dosar nou din oficiu” starts again.\nRemoved-draft page: not in US-248 — PO to confirm.",
+   "US-247 AC-08"
+  ],
+  "ofc-09h": [
+   "Save with errors",
+   "„Salvează schița” with invalid fields shows every error at once. Nothing is saved and there is no toast.\nClosing with invalid data does not save either: not in US-247 — PO to confirm.",
+   "US-247 AC-03"
+  ],
+  "ofc-10a": [
+   "No rights on a step link",
+   "A role without the permission opening a step or draft link sees the no-rights dialog. States 10a–10e (Date titular, Detalii serviciu, Verificare, Confirmare, a draft) are identical, so this block shows all five.",
+   "US-243…248 AC-01"
+  ],
+  "ofc-11": [
+   "Removal warning in the bell",
+   "Before the automatic removal the bell shows an internal notification with the exact date; the same warning goes out by MNotify.\nBell dropdown: not in US-247 — PO to confirm.",
+   "US-247 AC-09"
+  ],
+  "ofc-11a": [
+   "Warning opens the draft",
+   "The notification opens the draft at its last step so the user can finish it.",
+   "US-247 AC-09"
+  ],
+  "ofc-12": [
+   "Audit journal",
+   "„Istoricul cererii” shows the audit journal: first save, contact change, step entries and saves, each with date, user and the person concerned.",
+   "US-242 AC-14 · US-243 AC-08 · US-244 AC-09 · US-245 AC-11 · US-247 AC-10"
+  ],
+  "ofc-02h": [
+   "Before you start",
+   "The act's ⋮ menu › a post-process opens the „Before you start” dialog: what it does, the term, no fee. „Începe” creates the draft and opens „Date titular”; „Anulează” saves nothing.",
+   "US-242 AC-10/11"
+  ],
+  "ofc-02h2": [
+   "Before you start · consequential",
+   "A consequential post-process (Suspendare, Retragere, Anulare) shows its consequence as a warning or error notice and a red „Începe”. Same next steps as OFC-02H.",
+   "US-242 AC-10/11"
+  ],
+  "ofc-02i": [
+   "Cancelled, nothing saved",
+   "„Anulează” (or ×, Esc) closes the „Before you start” dialog; the act search stays as it was and no draft is created.",
+   "US-242 AC-11"
+  ],
+  "ofc-02j": [
+   "Draft created",
+   "„Începe” in the „Before you start” dialog creates the draft: the number, «Schiță» and the save time appear in the header and „Date titular” opens.",
+   "US-242 AC-11/13"
+  ]
+ }
+}

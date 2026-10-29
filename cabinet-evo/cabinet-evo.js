@@ -27,7 +27,7 @@
      office uses (acte-permisive.json → intent): status × post-process
      matrix, the service passport (allows), paper acts and acts with a
      post-process already in progress. The perspective is ?as=<subject>. */
-  const GEAP_URL = "../data/acte-permisive.json?v=cabinet-audit-fix-v1";
+  const GEAP_URL = "../data/acte-permisive.json?v=start-dialog-v2";
   const FO_URL = "../e-permits-acte-permisive.html";
 
   const els = {
@@ -710,45 +710,19 @@
     return `${FO_URL}?${params.toString()}#request`;
   }
 
-  /* the consequence confirmation for Suspendare / Retragere — a UX proposal,
-     not in the spec (same modal as the front office) */
-  function confirmPostprocess(act, pp) {
-    if (pp.kind !== "consequential") {
-      window.location.assign(foUrl(act, pp));
-      return;
-    }
-    let modal = document.querySelector("[data-cab-pp-modal]");
-    if (!modal) {
-      modal = document.createElement("div");
-      modal.className = "e-permits-fo-instance-switch-modal";
-      modal.dataset.cabPpModal = "";
-      modal.setAttribute("role", "dialog");
-      modal.setAttribute("aria-modal", "true");
-      modal.setAttribute("aria-labelledby", "cab-pp-title");
-      document.body.appendChild(modal);
-    }
-    /* tone = the consequence (user 2026-10-18: „retrage with amber or red, not blue”): Suspendare (reversible) =
-       amber icon, Retragere / Anulare (definitive) = red icon; the confirm is the red danger button for all three */
-    const tone = pp.id === "suspendare" ? "warning" : "danger";
-    modal.innerHTML = `
-      <div class="e-permits-fo-instance-switch-modal__card" tabindex="-1">
-        <div class="e-permits-fo-instance-switch-modal__body">
-          <div class="e-permits-fo-instance-switch-modal__icon e-permits-fo-instance-switch-modal__icon--${tone}" aria-hidden="true">${icon("icon-warning-filled", "medium")}</div>
-          <div class="e-permits-fo-instance-switch-modal__content">
-            <h2 id="cab-pp-title">${escape(pp.label)}</h2>
-            <div class="e-permits-fo-instance-switch-modal__description">
-              <p>${escape(pp.consequence || "")}</p>
-              <p>Act: <strong>${escape(act.label)} · ${escape(act.number)}</strong></p>
-            </div>
-          </div>
-        </div>
-        <div class="modal-buttons e-permits-fo-instance-switch-modal__actions">
-          <button class="btn btn-neutral e-permits-fo-instance-switch-modal__secondary" type="button" data-cab-pp-cancel>Anulează</button>
-          <a class="btn btn-destructive e-permits-fo-instance-switch-modal__primary e-permits-fo-instance-switch-modal__primary--danger" href="${escape(foUrl(act, pp))}" data-cab-pp-confirm>Confirm și continui</a>
-        </div>
-      </div>`;
-    modal.hidden = false;
-    modal.querySelector("[data-cab-pp-cancel]")?.focus();
+  /* start-dialog-v1 (2026-10-29, user): every post-process start — the list / profile „Postprocese ⌄” (and the phone
+     „⋯”) items and the act alerts' primaries (all `data-cab-pp`) — asks the shared „Before you start” dialog
+     (js/start-dialog.js, = the FO #intent one, start-dialog-v2): the act's name, one sentence + fee · term · MSign from
+     data/acte-permisive.json; Suspendare / Retragere / Anulare show their consequence notice instead (the old consequence modal is
+     gone — never two dialogs). „Începe” = the FO request steps (no draft yet); Anulează / × / Esc → back on the trigger */
+  function confirmPostprocess(act, pp, trigger = null) {
+    window.GEAPStartDialog.citizenPostprocess({ pp, service: act.service || {}, href: foUrl(act, pp), newTab: true, trigger, act: { name: act.place || act.title } });
+  }
+
+  /* the act alert's „Depune contestație” (a status changed by the authority, in the appeal term) — the same dialog,
+     the deciding request's appeal flow on „Începe” */
+  function confirmActAppeal(act, link) {
+    window.GEAPStartDialog.appeal({ subtitle: act.place || act.title, href: link.getAttribute("href"), newTab: true, trigger: link });
   }
 
   /* ---------- act profile (act-profile-v1, 2026-10-21 — user: „the profile as best practice; optimise, but don't
@@ -1393,9 +1367,15 @@
       const ppBtn = event.target.closest("[data-cab-pp]");
       const download = event.target.closest("[data-cab-download]");
       const back = event.target.closest("[data-cab-back]");
-      const cancel = event.target.closest("[data-cab-pp-cancel]");
       const card = event.target.closest("[data-cab-card]");
-      if (cancel) { document.querySelector("[data-cab-pp-modal]").hidden = true; return; }
+      const actAppeal = event.target.closest("[data-cab-alert-appeal]");
+      if (actAppeal && !modifiedClick(event)) {
+        event.preventDefault();
+        const act = state.permits.find((p) => p.id === state.detail);
+        if (act) { confirmActAppeal(act, actAppeal); return; }
+        window.location.assign(actAppeal.getAttribute("href"));
+        return;
+      }
       if (back) {
         if (modifiedClick(event)) return;
         event.preventDefault();
@@ -1430,7 +1410,7 @@
         closeMenus();
         const act = state.permits.find((p) => p.id === ppBtn.dataset.cabAct);
         const pp = act?.postProcesses.find((x) => x.id === ppBtn.dataset.cabPp);
-        if (act && pp) confirmPostprocess(act, pp);
+        if (act && pp) confirmPostprocess(act, pp, ppBtn.closest(".cab-menu") ? document.querySelector(`[aria-controls="${ppBtn.closest(".cab-menu").id}"]`) : ppBtn);
         return;
       }
       if (openBtn) { closeMenus(); openAct(state.permits.find((p) => p.id === openBtn.dataset.cabOpen)); return; }
@@ -1458,8 +1438,6 @@
       if (event.key !== "Escape") return;
       /* Esc on an open trigger: close and keep the focus there */
       closeMenus();
-      const modal = document.querySelector("[data-cab-pp-modal]");
-      if (modal) modal.hidden = true;
     });
   }
 

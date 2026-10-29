@@ -61,7 +61,7 @@
     ]
   },
   "oficiu": {
-    "_comment": "Din oficiu (Feature 95769, US-242…249, js/ghiseu.js mode „oficiu”): the post-processes the authority starts on its own initiative. postprocese = the stand-in for Setări › „Postprocese pe acte permisive” › „Statute din care se inițiază” for the ex-officio request types (US-221, not in the passport yet): service code → act status → the request types offered in the act's ⋮ (AC-07/08; a status without types = no ⋮, AC-09). termene = the examination term after submission, in working days (js/working-days.js). docs = the predefined documents of an ex-officio dossier (US-20). drafts = the seeded drafts of «Dosare inițiate din oficiu» (act = an act id of `acts`; step = STEP_INDEX: 2 Date titular · 3 Detalii serviciu · 4 Acte necesare · 5 Verificare · 6 Livrare; dates as day offsets from today; by self = the signed-in user, anyone else is not listed, US-249 AC-04).",
+    "_comment": "Din oficiu (Feature 95769, US-242…249, js/ghiseu.js mode „oficiu”): the post-processes the authority starts on its own initiative. postprocese = the stand-in for Setări › „Postprocese pe acte permisive” › „Statute din care se inițiază” for the ex-officio request types (US-221, not in the passport yet): service code → act status → the request types offered in the act's ⋮ (AC-07/08; a status without types = no ⋮, AC-09). termene = the examination term after submission, in working days (js/working-days.js). docs = the predefined documents of an ex-officio dossier (US-20). drafts = the seeded drafts of «Dosare inițiate din oficiu» (act = an act id of `acts`; step = STEP_INDEX: 2 Date titular · 3 Detalii serviciu · 4 Acte necesare · 5 Verificare · 6 Livrare; dates as day offsets from today; by self = the signed-in user, anyone else is not listed, US-249 AC-04; ofc-4702 = past its retention, removed automatically by SIA GEAP at load, US-247 AC-08).",
     "postprocese": {
       "003000118": { "valabil": ["Prelungire", "Suspendare valabilitate", "Retragere act permisiv"], "suspendat": ["Reluare valabilitate", "Retragere act permisiv"] },
       "003000519": { "valabil": ["Suspendare valabilitate", "Retragere act permisiv"], "suspendat": ["Reluare valabilitate"] }
@@ -76,7 +76,8 @@
       { "id": "ofc-4736", "nr": "C-2026-004736", "act": "act-ofc-gustul", "requestType": "Prelungire", "step": 5, "createdDays": -2, "createdTime": "14:05", "updatedHours": -20, "by": "self" },
       { "id": "ofc-4728", "nr": "C-2026-004728", "act": "act-ofc-bioclean", "requestType": "Suspendare valabilitate", "step": 3, "createdDays": -12, "createdTime": "10:40", "updatedHours": -260, "by": "self" },
       { "id": "ofc-4719", "nr": "C-2026-004719", "act": "act-ofc-chiosc", "requestType": "Retragere act permisiv", "step": 4, "createdDays": -85, "createdTime": "11:30", "updatedHours": -1900, "by": "self" },
-      { "id": "ofc-4710", "nr": "C-2026-004710", "act": "act-ofc-patiseria", "requestType": "Suspendare valabilitate", "step": 3, "createdDays": -5, "createdTime": "16:20", "updatedHours": -100, "by": "Mihai Grosu" }
+      { "id": "ofc-4710", "nr": "C-2026-004710", "act": "act-ofc-patiseria", "requestType": "Suspendare valabilitate", "step": 3, "createdDays": -5, "createdTime": "16:20", "updatedHours": -100, "by": "Mihai Grosu" },
+      { "id": "ofc-4702", "nr": "C-2026-004702", "act": "act-ofc-patiseria", "requestType": "Suspendare valabilitate", "step": 3, "createdDays": -97, "createdTime": "09:05", "updatedHours": -2200, "by": "self" }
     ]
   },
   "services": {

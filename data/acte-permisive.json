@@ -894,6 +894,7 @@
             "icon": "icon-edit",
             "kind": "routine",
             "requestType": "Reperfectare",
+            "summary": "Modifici datele actului permisiv. Actul emis se atașează automat.",
             "newAct": true
           },
           "prelungire": {
@@ -901,6 +902,7 @@
             "icon": "icon-calendar-add",
             "kind": "routine",
             "requestType": "Prelungire",
+            "summary": "Prelungești valabilitatea actului permisiv. Actul emis se atașează automat.",
             "newAct": true
           },
           "duplicat": {
@@ -908,6 +910,7 @@
             "icon": "icon-copy",
             "kind": "routine",
             "requestType": "Emitere duplicat",
+            "summary": "Primești un duplicat al actului permisiv, cu aceleași date.",
             "newAct": true
           },
           "suspendare": {
@@ -915,19 +918,22 @@
             "icon": "icon-lock",
             "kind": "consequential",
             "requestType": "Suspendare valabilitate",
+            "summary": "Suspenzi temporar valabilitatea actului permisiv.",
             "consequence": "Actul permisiv nu va mai fi valabil pe durata suspendării. Nu poți desfășura activitatea autorizată până când valabilitatea nu este reluată."
           },
           "reluare": {
             "label": "Reluarea valabilității",
             "icon": "icon-rotate-arrow",
             "kind": "routine",
-            "requestType": "Reluarea valabilității"
+            "requestType": "Reluarea valabilității",
+            "summary": "Ceri reluarea valabilității actului suspendat."
           },
           "retragere": {
             "label": "Retragere act permisiv",
             "icon": "icon-circle-x",
             "kind": "consequential",
             "requestType": "Retragere",
+            "summary": "Renunți definitiv la actul permisiv.",
             "consequence": "Actul permisiv va fi retras definitiv și nu mai poate fi reactivat. Pentru a relua activitatea va trebui să depui o cerere nouă."
           },
           "anulare": {
@@ -935,6 +941,7 @@
             "icon": "icon-circle-error",
             "kind": "consequential",
             "requestType": "Anulare",
+            "summary": "Ceri anularea actului permisiv.",
             "consequence": "Actul permisiv va fi anulat și nu mai poate fi reactivat. Pentru a desfășura din nou activitatea va trebui să depui o cerere nouă."
           }
         },

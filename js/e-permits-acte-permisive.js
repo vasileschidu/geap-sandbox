@@ -5605,8 +5605,6 @@
        the hand-off ends in a toast rather than a new screen.
        Not shown for the guest flow (it never passes through the picker) or
        the notarial-proxy path. All copy and rules live in schema.intent. */
-    const frontOfficePostprocessModal = document.querySelector("[data-fo-postprocess-modal]");
-    let frontOfficePendingPostprocess = null;
 
     function frontOfficeIntentConfig() {
       return frontOfficeSchema?.intent || null;
@@ -6419,11 +6417,6 @@
       }
     }, true);
 
-    function setFrontOfficePostprocessModalOpen(open) {
-      setMotionModalHidden(frontOfficePostprocessModal, !open);
-      document.body.classList.toggle("is-fo-modal-open", open);
-      if (open) frontOfficePostprocessModal?.querySelector("[data-fo-postprocess-cancel]")?.focus();
-    }
 
     frontOfficeIntentScreen?.addEventListener("click", (event) => {
       if (event.target.closest("[data-fo-intent-new]")) {
@@ -6452,24 +6445,17 @@
       closeFrontOfficeIntentMenus();
       if (!act || !pp) return;
 
-      if (pp.kind === "consequential") {
-        frontOfficePendingPostprocess = { act, pp };
-        const q = (sel) => frontOfficePostprocessModal?.querySelector(sel);
-        if (q("[data-fo-postprocess-title]")) q("[data-fo-postprocess-title]").textContent = pp.label;
-        if (q("[data-fo-postprocess-consequence]")) q("[data-fo-postprocess-consequence]").textContent = pp.consequence || "";
-        if (q("[data-fo-postprocess-act]")) q("[data-fo-postprocess-act]").textContent = `${act.name} · ${act.number}`;
-        /* tone = the consequence (2026-10-18): Suspendare amber icon, Retragere / Anulare red icon; red confirm for all */
-        const ppTone = pp.id === "suspendare" || pp.requestType === "Suspendare valabilitate" ? "warning" : "danger";
-        const ppIcon = q(".e-permits-fo-instance-switch-modal__icon");
-        ppIcon?.classList.toggle("e-permits-fo-instance-switch-modal__icon--warning", ppTone === "warning");
-        ppIcon?.classList.toggle("e-permits-fo-instance-switch-modal__icon--danger", ppTone === "danger");
-        const ppConfirm = q("[data-fo-postprocess-confirm]");
-        ppConfirm?.classList.remove("btn-primary");
-        ppConfirm?.classList.add("btn-destructive", "e-permits-fo-instance-switch-modal__primary--danger");
-        setFrontOfficePostprocessModalOpen(true);
-        return;
-      }
-      handOffPostprocess(act, pp);
+      /* start-dialog-v1 (2026-10-29, user): every post-process asks the shared „Before you start” dialog first
+         (js/start-dialog.js) — start-dialog-v2: the act's name, one sentence (pp.summary), fee · term · MSign; a
+         consequential one (Suspendare / Retragere / Anulare) shows its consequence notice instead, never a second dialog.
+         „Începe” opens the request steps (no draft yet); Anulează / × / Esc → back on the „Postprocese ⌄” */
+      const ppTrigger = item.closest("[data-fo-intent-act]")?.querySelector("[data-fo-intent-trigger]");
+      window.GEAPStartDialog.citizenPostprocess({
+        pp, service: postprocessService(act), trigger: ppTrigger,
+        act: { name: act.name },
+        onStart: () => handOffPostprocess(act, pp)
+      });
+      return;
     });
 
     frontOfficeIntentScreen?.addEventListener("keydown", (event) => {
@@ -6492,27 +6478,6 @@
       if (!frontOfficeIntentScreen || frontOfficeIntentScreen.hidden) return;
       if (event.target.closest(".e-permits-fo-intent-act__action")) return;
       closeFrontOfficeIntentMenus();
-    });
-
-    frontOfficePostprocessModal?.addEventListener("click", (event) => {
-      if (event.target.closest("[data-fo-postprocess-confirm]")) {
-        const pending = frontOfficePendingPostprocess;
-        frontOfficePendingPostprocess = null;
-        setFrontOfficePostprocessModalOpen(false);
-        if (pending) handOffPostprocess(pending.act, pending.pp);
-        return;
-      }
-      if (event.target.closest("[data-fo-postprocess-cancel]") || event.target === frontOfficePostprocessModal) {
-        frontOfficePendingPostprocess = null;
-        setFrontOfficePostprocessModalOpen(false);
-      }
-    });
-
-    document.addEventListener("keydown", (event) => {
-      if (event.key === "Escape" && frontOfficePostprocessModal && !frontOfficePostprocessModal.hidden) {
-        frontOfficePendingPostprocess = null;
-        setFrontOfficePostprocessModalOpen(false);
-      }
     });
 
     document.addEventListener("click", (event) => {
@@ -7245,13 +7210,13 @@
           ${leadHtml}
         </header>`;
     }
-    function foFinishDocHtml({ title, textHtml = "", error = "", actionLabel = "Vezi documentul", actionAttrs = "" }) {
     /* the proof-of-filing certificate (FO Finalizare + Ghișeu Confirmare, finish-doc-error-filecard-v1 — user on GEAP
        11777:28258: „this should also be the file component”) = the shared FO document card (`.e-permits-fo-mdocs__attachment`
        + blue generated icon + title row + a 12/20 note line in the text column + a labelled `btn-neutral btn-sm` action, the
        document cards' „Detalii” look). Error = the library file-item Error: same card, 1.5 danger stroke, the message in the
        note line (danger), the action `btn-outline-strict btn-sm` „Reîncercați” (rotate arrow; a lone recovery action) named „Reîncercați generarea certificatului” and described by the message. */
     let foFinishDocSeq = 0;
+    function foFinishDocHtml({ title, textHtml = "", error = "", actionLabel = "Vezi documentul", actionAttrs = "" }) {
       const esc = escapeFrontOfficeHtml;
       const icon = foDocIconHtml({ sursa: "generat" });
       const titleRow = (tag) => `

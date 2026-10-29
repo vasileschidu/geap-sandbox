@@ -692,6 +692,10 @@
     C.setToolbarLoading(view.querySelector("[data-sm-toolbar]"), true);
   }
 
+  function confirmAppeal(dosar, href, trigger) {
+    window.GEAPStartDialog.appeal({ subtitle: dosar.object || serviceOf(dosar).title || "", href, newTab: true, trigger });
+  }
+
   /* ---------- profile (US-161) ---------- */
 
   /* BO detail rows / card / section (CabEvo, css/bo-profile-parts.css) */
@@ -729,9 +733,6 @@
      library pill (primary = the step the applicant must take; opening the act = outlined, new tab); the header keeps
      only what the alert does not (Elimină schița, Descarcă decizia), never the same action twice */
   const alertAppeal = (dosar) => `<a class="btn btn-primary btn-md btn-rounded" href="${escape(foUrl(dosar, "appeal"))}" data-sm-action="appeal">${icon("icon-judge-gavel")}<span>Depune contestație</span></a>`;
-  const alertAct = (dosar) => (dosar.actId
-    ? `<a class="btn btn-outline-strict btn-md btn-rounded" href="${escape(cabUrl("acte", { act: dosar.actId }))}"${C.newTabAttrs("Profilul actului")} data-sm-action="act"><span>Profilul actului</span>${icon("icon-external-link")}</a>`
-    : "");
   function statusNow(dosar) {
     const service = serviceOf(dosar);
     const where = escape([service.authority, dosar.subdivision].filter(Boolean).join(" — "));
@@ -770,10 +771,10 @@
             : notice("danger", "icon-circle-error-filled", "Solicitarea a fost respinsă", why);
         }
         /* an authority's suspension / withdrawal / annulment inside its appeal term: the appeal is the next step */
-        if (dosar.decisionOnly && canAppeal(dosar)) return notice("danger", "icon-circle-error-filled", `Puteți depune contestație până la ${date(appealUntil(dosar))}`, `${escape(dosar.decision?.text || `Decizia a fost emisă pe ${longDate(dosar.finalized)}.`)}${live(dosar)}`, `${alertAct(dosar).replace("btn-outline-strict", "btn-text-strict")}${alertAppeal(dosar)}`);
-        if (dosar.decisionOnly) return notice("success", "icon-circle-checkmark-filled", `Decizia a fost emisă pe ${date(dosar.finalized)}`, escape(dosar.decision?.text || "Starea actului a fost actualizată."), alertAct(dosar));
-        if (dosar.tacit) return notice("success", "icon-circle-checkmark-filled", `Aprobată tacit pe ${date(dosar.finalized)}`, "Autoritatea nu s-a pronunțat în termen; actul îl găsiți în „Actele mele permisive”.", alertAct(dosar));
-        return notice("success", "icon-circle-checkmark-filled", `Actul permisiv a fost emis pe ${date(dosar.finalized)}`, "Îl găsiți și în „Actele mele permisive”.", alertAct(dosar));
+        if (dosar.decisionOnly && canAppeal(dosar)) return notice("danger", "icon-circle-error-filled", `Puteți depune contestație până la ${date(appealUntil(dosar))}`, `${escape(dosar.decision?.text || `Decizia a fost emisă pe ${longDate(dosar.finalized)}.`)}${live(dosar)}`, alertAppeal(dosar));
+        if (dosar.decisionOnly) return notice("success", "icon-circle-checkmark-filled", `Decizia a fost emisă pe ${date(dosar.finalized)}`, escape(dosar.decision?.text || "Starea actului a fost actualizată."));
+        if (dosar.tacit) return notice("success", "icon-circle-checkmark-filled", `Aprobată tacit pe ${date(dosar.finalized)}`, "Autoritatea nu s-a pronunțat în termen; actul îl găsiți în „Actele mele permisive”.");
+        return notice("success", "icon-circle-checkmark-filled", `Actul permisiv a fost emis pe ${date(dosar.finalized)}`, "Îl găsiți și în „Actele mele permisive”.");
       }
       default:
         return notice("info", "icon-circle-info-filled", escape(statusOf(dosar).label));
@@ -957,18 +958,12 @@
       /* „Informații suplimentare” / „Spre achitare”: the action („Completează informația” / „Achită …”) is the primary of
          the alert card under the header (act-alert-card-v1), never twice. US-135 AC-14: an expired note has no button. */
       case "finalizat":
-        if (dosar.result === "respins") {
-          /* alert-actions-v1: „Depune contestație” is the alert card's primary */
-          buttons.push(download("decizie", "Descarcă decizia"));
-        } else if (dosar.actId) {
-          /* request-act-modal-link-v1 (2026-10-23, user: „instead of Descarcă, an action to the act permisiv profile, always a
-             new tab”, then „no act in the request profile — Vezi actul is misleading when the act was withdrawn since”): the
-             request never shows the act itself; „Profilul actului ↗” = the act's address (?act=<id>) in a new tab, where
-             the act's CURRENT status lives. header-max-two-v1: in order of importance — an open contestație (the immediate
-             action, a negative decision only) is the primary, then Profilul actului, Descarcă decizia; max 2 visible + „⋯”. */
-          /* alert-actions-v1: „Depune contestație” and „Profilul actului” moved into the alert card */
-          if (dosar.decisionOnly) buttons.push(download("decizie", "Descarcă decizia"));
-        }
+        /* profile-act-link-header-v1 (2026-10-29, user: „alerts carry only urgent actions”): „Profilul actului ↗” is a
+           header action again — the library grey square Medium (btn-neutral btn-md, label + trailing external icon, new
+           tab), first; then „Descarcă decizia” for a refusal / a decision-only request. The alert keeps only
+           „Depune contestație” (the urgent one). header-max-two-v1: max 2 visible + „⋯” (C.watchHeaderActions). */
+        if (dosar.actId) buttons.push(newTabLink("btn-neutral", cabUrl("acte", { act: dosar.actId }), "Profilul actului", 'data-sm-action="act"'));
+        if (dosar.result === "respins" || dosar.decisionOnly) buttons.push(download("decizie", "Descarcă decizia"));
         break;
       default:
         break;
@@ -1707,6 +1702,17 @@
           event.preventDefault();
           C.closeMenus();
           redirectError(action, { kind: action.dataset.smAction === "continue" ? "draft" : "supplement" });
+          return;
+        }
+        /* start-dialog-v1 (2026-10-29, user): „Depune contestație” (row ⋮, row alert link, the profile's alert) asks the
+           shared „Before you start” dialog first (js/start-dialog.js) — the request's object, one sentence + fee · term · MSign (start-dialog-v2); „Începe” =
+           the FO appeal flow (no draft yet); Anulează / × / Esc → back on the trigger (the ⋮ for a menu item) */
+        if (action.dataset.smAction === "appeal" && dosar && !C.modifiedClick(event)) {
+          event.preventDefault();
+          const menu = action.closest(".cab-menu");
+          const trigger = menu ? root.querySelector(`[aria-controls="${menu.id}"]`) : action;
+          C.closeMenus();
+          confirmAppeal(dosar, action.getAttribute("href"), trigger);
           return;
         }
         if (action.tagName === "A") { C.closeMenus(); return; } /* links navigate (FOD2, act profile) */

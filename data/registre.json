@@ -282,7 +282,15 @@
      "filter": "multi"
     }
    ],
-   "actions": [],
+   "actions": [
+    {
+     "key": "open",
+     "type": "open",
+     "label": "Vizualizare detalii",
+     "icon": "eye-open",
+     "roles": []
+    }
+   ],
    "position": 2
   },
   {

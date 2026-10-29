@@ -1362,7 +1362,7 @@
        (AC-16 warning) · 06c empty submit (AC-06 / AC-15) · 06d Automat · 06e done (toast, new Specialist) · 06f the
        journal entry (AC-14) · 06g the operation fails (AC-19) · 06h Automat without a candidate (AC-08) · 06i the
        Director: no „Redistribuie” (AC-01) · 06j „Dosarele subdiviziunii” · 06k 3 rows selected · 06l one specialist's
-       open cases, all selected (AC-17) · 06m bulk dialog + „În nedistribuite” (AC-18) · 06n bulk done */
+       open cases, all selected (AC-17) · 06m bulk dialog (Manual; „În nedistribuite” removed, redist-modes-v1) · 06n bulk done */
     "dos-06": dos(SUP, "inExaminare", "general", {}, redistMenu),
     "dos-06a": dos(SUP, "inExaminare", "general", {}, redistOpen),
     "dos-06b": dos(SUP, "inExaminare", "general", {}, async (h) => { await redistOpen(h); await h.choose("#case-action-modal [data-case-select='specialist']", "sp3"); }),
@@ -1376,7 +1376,7 @@
     "dos-06j": subList(),
     "dos-06k": subList(async (h) => { for (let i = 0; i < 3; i += 1) await h.nth("[data-workplace-select-row]", i); }),
     "dos-06l": subList(async (h) => { await ekPick("specialist", ["Mihai Grosu"])(h); await ekCommit(h); await h.click("[data-workplace-select-all]"); }),
-    "dos-06m": subList(async (h) => { await ekPick("specialist", ["Mihai Grosu"])(h); await ekCommit(h); await h.click("[data-workplace-select-all]"); await h.click("[data-workplace-redistribute]"); await h.click("#case-action-modal [data-case-choice='nedistribuite']"); }),
+    "dos-06m": subList(async (h) => { await ekPick("specialist", ["Mihai Grosu"])(h); await ekCommit(h); await h.click("[data-workplace-select-all]"); await h.click("[data-workplace-redistribute]"); }),
     "dos-06o": dos(SUP, "inExaminare", "general", { candidati: "0" }, async (h) => { await redistOpen(h); await h.click("#case-action-modal [data-case-choice='automat']"); }),
     "dos-06p": subList(async (h) => { for (let i = 0; i < 3; i += 1) await h.nth("[data-workplace-select-row]", i); await h.click("[data-workplace-redistribute]"); await h.click("#case-action-modal [data-case-choice='automat']"); }),
     "dos-06n": subList(async (h) => { for (let i = 0; i < 3; i += 1) await h.nth("[data-workplace-select-row]", i); await h.click("[data-workplace-redistribute]"); await h.click("#case-action-modal [data-case-choice='automat']"); await h.fill("#case-motiv", "Echilibrarea încărcării în subdiviziune."); await h.click("#case-action-modal [data-case-submit]"); await h.find(".toast"); }),
@@ -1832,6 +1832,8 @@
     "pp-01d": ppCab(async (h) => { await h.click("[data-cab-card='act-izvoras'] .e-permits-fo-lib-item__title"); }),
     "pp-01e": ppCab(async (h) => { await h.click("[data-cab-card='act-lab-10'] .e-permits-fo-lib-item__title"); }),
     "pp-01f": ppCab(async (h) => { await cabFind(h, "act-cofetaria"); }),
+    /* start-dialog-v1: the list item → „Before you start” (pp-01a2 Reperfectare; pp-01g Retragere = the merged consequence) */
+    "pp-01a2": ppCab(async (h) => { await h.click("[data-cab-card='act-izvoras'] [data-cab-menu-trigger]"); await actMenuPick("[data-cab-card='act-izvoras'] [data-cab-pp='reperfectare']")(h); await h.find("#start-dialog.is-active"); await h.wait(250); }),
     "pp-01g": ppCab(async (h) => { await h.click("[data-cab-card='act-izvoras'] [data-cab-menu-trigger]"); await actMenuPick("[data-cab-card='act-izvoras'] [data-cab-pp='retragere']")(h); }),
     /* „Filtre” = the shared facet filter (2026-10-17): Statut = Expirat applied (desktop bar / phone sheet) */
     "pp-01h": ppCab(async (h) => { await cabPick("status", ["Expirat"])(h); await cabCommit(h); }),
@@ -1912,9 +1914,29 @@
     "pp-03f": { page: "cabinet-evo/index.html", params: { act: "act-izvoras-alcool" }, ready: "[data-cab-detail]:not([hidden]) #cab-act-title", run: null },
     /* cabinet-header-v1: the 144-character act type (service 10) in the BO header with its three actions */
     "pp-03g": { page: "cabinet-evo/index.html", params: { act: "act-depozit-10" }, ready: "[data-cab-detail]:not([hidden]) #cab-act-title", run: null },
+    /* start-dialog-v1: the profile header „Postprocese ⌄” item (desktop; phones: the „⋯” › item) → „Before you start”
+       (pp-03i Prelungire on the depot act) · pp-03j the alert primary „Cere reluarea valabilității” (Suspendat act) ·
+       pp-03k the act alert „Depune contestație” (annulled by the authority, in the appeal term) */
+    "pp-03i": { page: "cabinet-evo/index.html", params: { act: "act-depozit-10" }, ready: "[data-cab-detail]:not([hidden]) #cab-act-title", run: async (h) => {
+      await h.wait(300);
+      const visible = (sel) => [...document.querySelectorAll(sel)].find((el) => el.getClientRects().length);
+      const trigger = visible("[data-cab-detail] .e-permits-page-header__actions [data-cab-menu-trigger]");
+      if (trigger) trigger.click();
+      await h.wait(250);
+      const item = visible("[data-cab-detail] [data-cab-pp='prelungire']");
+      if (item) item.click();
+      await h.find("#start-dialog.is-active"); await h.wait(250);
+    } },
+    "pp-03j": { page: "cabinet-evo/index.html", params: { act: "act-licenta-susp" }, ready: "[data-cab-detail]:not([hidden]) #cab-act-title", run: async (h) => { await h.click("[data-cab-detail] .cab-alert-card [data-cab-pp]"); await h.find("#start-dialog.is-active"); await h.wait(250); } },
+    "pp-03k": { page: "cabinet-evo/index.html", params: { as: "pf-anastasia", act: "act-ana-anulat" }, ready: "[data-cab-detail]:not([hidden]) #cab-act-title", run: async (h) => { await h.click("[data-cab-detail] [data-cab-alert-appeal]"); await h.find("#start-dialog.is-active"); await h.wait(250); } },
     "pp-04": ppCab(async (h) => { await h.fill("[data-cab-search]", "Izvoraș", { leave: false }); }),
     "pp-02": ppIntent(),
     "pp-02a": ppIntent(async (h) => { await h.click("[data-fo-intent-act='act-izvoras'] [data-fo-intent-trigger]"); }),
+    /* start-dialog-v1 (2026-10-29): every item → the shared „Before you start” dialog: pp-02e Reperfectare (routine,
+       primary „Începe”) · pp-02b Retragere (the consequence inside „Ce urmează”, red „Începe” — the old consequence
+       modal is gone) · pp-02f „Începe” → the request steps */
+    "pp-02e": ppIntent(async (h) => { await h.click("[data-fo-intent-act='act-izvoras'] [data-fo-intent-trigger]"); await actMenuPick("[data-fo-intent-act='act-izvoras'] [data-fo-intent-postprocess='reperfectare']")(h); await h.find("#start-dialog.is-active"); await h.wait(250); }),
+    "pp-02f": ppIntent(async (h) => { await h.click("[data-fo-intent-act='act-izvoras'] [data-fo-intent-trigger]"); await actMenuPick("[data-fo-intent-act='act-izvoras'] [data-fo-intent-postprocess='reperfectare']")(h); await h.click("#start-dialog.is-active [data-start-dialog-start]"); await h.find("body[data-fo-postprocess] [data-fo-step-panel]:not([hidden]) h1"); }),
     "pp-02b": ppIntent(async (h) => { await h.click("[data-fo-intent-act='act-izvoras'] [data-fo-intent-trigger]"); await actMenuPick("[data-fo-intent-act='act-izvoras'] [data-fo-intent-postprocess='retragere']")(h); }),
     /* a locked act row (post-process in progress): the full-width subtle warning notice under the row */
     "pp-02d": { ...ppIntent(), params: { incurs: "act-izvoras" } },
@@ -2883,6 +2905,9 @@
     "sm-02c": sm(smMenu("d-nistru")),
     "sm-02d": sm(async (h) => { await smPick("status", ["Aprobat"])(h); await smMenu("d-izvoras")(h); }),
     "sm-02e": sm(smMenu("d-nota")),
+    /* start-dialog-v1: ⋮ › „Depune contestație” → „Before you start” («Contestare decizie») · sm-05a2 the same from the
+       profile's alert */
+    "sm-02e2": sm(async (h) => { await smMenu("d-nota")(h); await actMenuPick('[data-sm-card="d-nota"] [data-sm-action="appeal"]')(h); await h.find("#start-dialog.is-active"); await h.wait(250); }),
     "sm-03": smDosar("d-spicul"),
     /* a click on the DRAFT row opens its details (never the FO form — user 2026-10-20); „Continuă schița” stays in ⋮
        and on the details page */
@@ -2934,6 +2959,7 @@
     /* type-first-v1: the profile of a request WITHOUT an object — H1 = the service, no subtitle */
     "sm-05v": smDosar("d-transport"),
     "sm-05a": smDosar("d-nota"),
+    "sm-05a2": smDosar("d-nota", async (h) => { await h.click('[data-sm-profile] [data-sm-alert] [data-sm-action="appeal"]'); await h.find("#start-dialog.is-active"); await h.wait(250); }),
     "sm-05b": smDosar("d-cantina-retragere"),
     /* request-act-modal-link-v1: an approved request has no header download any more (its act lives in the act profile,
        „Profilul actului ↗”) → the failed header download is shown on a REFUSED request's „Descarcă decizia” */
@@ -3576,7 +3602,8 @@
 
     /* ---- Registre — BackOffice registers, phase 1 (Epic 89620, js/registre.js, registre-v1 2026-10-23) ----
        reg-01 catalog · 02 Dosare · 03 Acte · 04 Note de plată · 05 Avize · 06–09 record cards · 10 Push Case ·
-       11 Arhivare · 12 Radiere · 13 Anonimizare + redactare · 14 acces interzis · 15 câmp-sursă dispărut · 16 gol */
+       11 Arhivare · 12 Radiere · 13 Anonimizare + redactare · 14 acces interzis · 15 câmp-sursă dispărut · 16 gol ·
+       17 cardul actului (US-317) */
     ...regDemoStates(),
 
     /* ---- Registre — the register builder in the AdminPortal, phase 2 (Feature 94523, js/registre-admin.js,
@@ -3919,7 +3946,28 @@
       "reg-15": reg("reg-dosare", ADMIN, null, { lipsa: "actor" }),
       /* empty source (?registre=gol) */
       "reg-16": reg("reg-acte", ADMIN, null, { registre: "gol" }),
-      "reg-16a": reg("reg-acte", SUP)
+      "reg-16a": reg("reg-acte", SUP),
+
+      /* US-317 „Vizualizarea detaliilor actului” (Feature 96367): the act card — title «Act: <nr>», the 6 tabs of the model
+         (Date generale default), «Închide» back to the register with search / filters / sort kept, read-only; Jurnal
+         evenimente only with the audit permission; no access → «Nu aveți permisiunea…» (role, authority perimeter) */
+      "reg-17": { flow: "back-office", as: ADMIN, hash: "#registru/reg-acte/act-045", ready: CARD },
+      "reg-17a": card("reg-acte", "act-045", "specifice"),
+      "reg-17b": card("reg-acte", "act-045", "dosare"),
+      "reg-17c": card("reg-acte", "act-002", "plati"),
+      "reg-17d": card("reg-acte", "act-045", "plati"),
+      "reg-17e": card("reg-acte", "act-002", "istoria"),
+      "reg-17f": card("reg-acte", "act-045", "jurnal"),
+      "reg-17g": card("reg-acte", "act-002", "generale", SUP),
+      "reg-17h": reg("reg-acte", ADMIN, async (h) => { await h.fill("[data-workplace-search]", "AUT-2025-002828"); await h.wait(300); await h.click('tr[data-workplace-row="act-045"] [data-stack-menu-trigger]'); await h.wait(200); }),
+      "reg-17i": reg("reg-acte", ADMIN, async (h) => {
+        await h.fill("[data-workplace-search]", "Termoenergia"); await h.wait(300);
+        await h.click('tr[data-workplace-row="act-045"] [data-stack-menu-trigger]'); await h.wait(200);
+        await h.click('[data-reg-action="open"][data-reg-row="act-045"]'); await h.wait(400);
+        await h.click("[data-dosar-profil-crumb-back]"); await h.wait(400);
+      }),
+      "reg-17j": { flow: "back-office", as: GHISEU, hash: "#registru/reg-acte/act-045/generale", ready: "[data-reg-page]:not([hidden]) .e-permits-empty" },
+      "reg-17k": { flow: "back-office", as: SPEC, hash: "#registru/reg-acte/act-006", ready: CARD }
     };
   }
 
@@ -3938,7 +3986,11 @@
     /* „Nou” on the list → the act search; an act's ⋮ → a post-process starts the draft at „Date titular” */
     const nou = async (h) => { await h.click('[data-workplace-add-product="ofc-new"]'); await at("intent")(h); };
     const actMenu = (id) => async (h) => { await h.click(`${W} [data-fo-intent-act="${id}"] [data-fo-intent-trigger]`); await h.wait(250); };
-    const choose = (id, type) => seq(actMenu(id), async (h) => { await actMenuPick(`[data-fo-intent-act="${id}"] [data-fo-intent-postprocess="${type}"]`)(h); }, at("identificare"));
+    /* oficiu-v3 (US-242 AC-11): ⋮ › a post-process asks „Inițiezi <tip>?” (ask); „Inițiază” creates the draft (choose) */
+    /* start-dialog-v1 (2026-10-29): the shared „Before you start” dialog (#start-dialog) replaces „Inițiezi <tip>?” */
+    const ask = (id, type) => seq(actMenu(id), async (h) => { await actMenuPick(`[data-fo-intent-act="${id}"] [data-fo-intent-postprocess="${type}"]`)(h); await h.find("#start-dialog.is-active [data-start-dialog-start]"); await h.wait(300); });
+    const choose = (id, type) => seq(ask(id, type), async (h) => { await h.click("#start-dialog.is-active [data-start-dialog-start]"); }, at("identificare"));
+    const save = async (h) => { await h.click(`${W} [data-gh-save]`); await h.wait(400); };
     const search = (q) => async (h) => { await h.fill("#gh-ofc-q", q, { leave: false }); await h.wait(700); };
     const service = (text) => async (h) => { await h.click("#fo-gh-ofc-service"); await h.click("#fo-gh-ofc-service-list .e-permits-fo-select__option", text); await h.wait(400); };
     /* a real file into the decision's boxed PDF field: the FO document modal, „Încarcă” tab */
@@ -3977,6 +4029,10 @@
       "ofc-01h": ofcList(null, null, "ansp-director-chisinau"),
       /* the Administrator central has the permission by default (Feature 95769) */
       "ofc-01i": ofcList(null, null, "ansp-central-admin"),
+      /* US-248 AC-04: „Anulează” in the confirmation → the draft stays in the list */
+      "ofc-01j": ofcList(async (h) => { await h.click("tr[data-workplace-row='ofc-4741'] [data-gh-remove]"); await h.click("#service-confirm-modal.is-active .modal--footer [data-close]"); await h.wait(500); await h.find("tr[data-workplace-row='ofc-4741']"); }),
+      /* US-249 AC-07: sorted by „Data eliminării automate” (the default = „Data ultimei modificări”, newest first) */
+      "ofc-01k": ofcList(async (h) => { await h.click("[data-registry-kind='oficiu'] [data-workplace-sort='eliminare']"); await h.wait(400); }),
 
       /* US-242 — „Nou” → the act search (AC-02…09) */
       "ofc-02": ofcList(nou),
@@ -3989,6 +4045,19 @@
       "ofc-02f": ofc("#oficiu/nou", null, null, "ansp-ghiseu-chisinau"),
       /* a locked act (one active post-process): a dossier in progress on it (no ⋮); expired / withdrawn acts have none either (AC-09) */
       "ofc-02g": ofcList(seq(nou, search("ASF-2025-07734"))),
+      /* AC-10 / AC-11 (start-dialog-v1, was oficiu-v3 „Inițiezi Prelungire?”): ⋮ › Prelungire → the shared „Before you
+         start” dialog «Prelungire act» (start-dialog-v2: name, one sentence, fee · term, nothing saved yet); ofc-02h2
+         Suspendare = the consequence notice + red „Începe” */
+      "ofc-02h": ofcList(seq(nou, ask("act-ofc-gustul", "Prelungire"))),
+      /* „Anulează”: nothing saved, focus back on the ⋮, the act search unchanged („Nesalvat”) */
+      "ofc-02h2": ofcList(seq(nou, ask("act-izvoras", "Suspendare valabilitate"))),
+      "ofc-02i": ofcList(seq(nou, ask("act-ofc-gustul", "Prelungire"), async (h) => { await h.click("#start-dialog.is-active [data-start-dialog-cancel]"); await h.wait(500); })),
+      /* „Inițiază” = the AC-11 / AC-13 moment: number + tags in the header, „Date titular” */
+      "ofc-02j": ofcList(seq(nou, choose("act-ofc-gustul", "Prelungire"))),
+      /* AC-12: the new draft in «Dosare inițiate din oficiu» after × */
+      "ofc-02k": ofcList(seq(nou, choose("act-izvoras", "Suspendare valabilitate"), async (h) => { await h.click(`${W} [data-gh-sheet-close]`); await h.wait(600); await h.find("[data-registry-kind='oficiu'] tr[data-workplace-row]"); await h.wait(300); })),
+      /* AC-04: only the acts of the user's authority — an ANTA specialist sees none of ANSP's acts */
+      "ofc-02l": ofc("#oficiu/nou", null, null, "anta-specialist-chisinau"),
 
       /* US-243 — Date titular: the holder read-only, contacts from the act, editable (AC-02/03) */
       "ofc-03": ofcList(seq(nou, choose("act-izvoras", "Suspendare valabilitate"))),
@@ -4013,6 +4082,10 @@
       "ofc-06a": ofc("#oficiu/ofc-4736/verificare", async (h) => { await h.click(`${W} [data-gh-preview="decizie"]`); await h.find("#dosar-detail-modal.is-active [data-dosar-doc-canvas]"); await h.wait(400); }),
       /* AC-08 / AC-09: from Livrare to the confirmation with „Detalii serviciu” empty → the toast + back to it */
       "ofc-06b": ofc("#oficiu/ofc-4741/identificare", seq(stepRow("livrare"), next)),
+      /* AC-07: Corectează › Date titular, a new e-mail, back to Verificare by the stepper → the summary shows it */
+      "ofc-06c": ofc("#oficiu/ofc-4736/verificare", seq(async (h) => { await h.click(`${W} [data-gh-goto="${window.GEAPGhiseu.steps.indexOf("identificare")}"]:not([data-gh-free])`); await at("identificare")(h); await h.fill("#fo-gh-email", "control@gustulcasei.md", { leave: false }); }, stepRow("verificare"), async (h) => { await h.scroll(`${W} [aria-label="Corectează: Date despre titular"]`); })),
+      /* AC-04: the predefined documents with «Atașat» Da / Nu — the required one missing (danger) */
+      "ofc-06d": ofc("#oficiu/ofc-4728/detalii", seq(stepRow("verificare"), async (h) => { await h.scroll(`${W} [aria-label="Documente predefinite"]`); })),
 
       /* US-16 Livrare (the holder; no MDelivery — it would need a payment note) */
       "ofc-07": ofc("#oficiu/ofc-4736/verificare", next),
@@ -4028,15 +4101,38 @@
       "ofc-08e": ofc("#oficiu/ofc-4736/verificare", seq(submitDraft, async (h) => { await h.click(`${W} [data-ofc-open-dossier]`); await h.find(".e-permits-trajectory, .e-permits-dosar-profil__section"); await h.wait(600); })),
       /* one active post-process per act: after the submission its act is locked in the act search */
       "ofc-08f": ofc("#oficiu/ofc-4736/verificare", seq(submitDraft, async (h) => { await h.click(`${W} [data-gh-close-sheet]`); await h.find("[data-registry-kind='oficiu'] tr[data-workplace-row]"); await h.wait(400); }, nou, search("ASF-2025-03318"))),
+      /* AC-03: the dossier not fully valid (Detalii serviciu empty) → „Confirmă depunerea” disabled */
+      "ofc-08g": ofc("#oficiu/ofc-4741/identificare", stepRow("confirmare")),
+      /* AC-06: the submitted dossier in „Dosarele mele” › „Toate” too */
+      "ofc-08h": ofc("#oficiu/ofc-4736/verificare", seq(submitDraft, async (h) => { await h.click(`${W} [data-gh-close-sheet]`); await h.wait(500); document.querySelector('[data-nav-item][data-nav-id="my-cases"]')?.click(); await h.wait(600); await h.click('[data-workplace-tab="toate"]'); await h.wait(400); await h.fill("[data-workplace-search]", "C-2026-004736"); await h.find("tr[data-workplace-row='C-2026-004736']"); await h.wait(300); })),
 
       /* US-247 — a draft from the list opens at its last step (AC-05); „Salvează schița” (AC-04); the header ⋮ */
       "ofc-09": ofcList(async (h) => { await h.click("tr[data-workplace-row='ofc-4736']"); await at("verificare")(h); }),
-      "ofc-09a": ofc("#oficiu/ofc-4728/detalii", async (h) => { await h.fill("#fo-gh-ofc-dec-nr", "DA-2026-0731", { leave: false }); await h.click(`${W} [data-gh-save]`); await h.find(".toast"); await h.wait(300); }),
+      "ofc-09a": ofc("#oficiu/ofc-4736/detalii", async (h) => { await h.fill("#fo-gh-ofc-dec-nr", "DA-2026-0731", { leave: false }); await h.click(`${W} [data-gh-save]`); await h.find(".toast"); await h.wait(300); }),
       "ofc-09b": ofc("#oficiu/ofc-4728/detalii", headerMenu),
       "ofc-09c": ofc("#oficiu/ofc-4728/detalii", seq(headerMenu, async (h) => { await h.click("[data-gh-change-process]"); await h.wait(400); })),
       "ofc-09d": ofc("#oficiu/ofc-4728/detalii", seq(headerMenu, async (h) => { await h.click(`${W} [data-gh-remove]`); await h.find(".modal-overlay.is-active .btn-destructive"); await h.wait(300); })),
       "ofc-09e": ofc("#oficiu/ofc-4728/detalii", seq(headerMenu, async (h) => { await h.click(`${W} [data-gh-remove]`); await h.click(".modal-overlay.is-active .btn-destructive"); await h.wait(600); await h.hash("#oficiu/ofc-4728"); await h.find("#gh-start-modal.is-active .e-permits-empty"); })),
-      "ofc-09f": ofc("#oficiu/ofc-4736/verificare", seq(headerMenu, async (h) => { await h.click("[data-gh-history]"); await h.find("#case-action-modal.is-active"); await h.wait(300); }))
+      "ofc-09f": ofc("#oficiu/ofc-4736/verificare", seq(headerMenu, async (h) => { await h.click("[data-gh-history]"); await h.find("#case-action-modal.is-active"); await h.wait(300); })),
+      /* AC-08: past the retention period SIA GEAP removed ofc-4702 at load („Schiță” · „Eliminat”, access off) */
+      "ofc-09g": ofc("#oficiu/ofc-4702"),
+      /* AC-03: „Salvează schița” with errors — every error at once, nothing saved, no toast */
+      "ofc-09h": ofc("#oficiu/ofc-4728/detalii", seq(async (h) => { await h.fill("#fo-gh-ofc-dec-nr", "", { leave: false }); await h.fill("#fo-gh-ofc-content", "", { leave: false }); }, save)),
+
+      /* AC-01 of US-243…248: a role without the permission (Director) opening a step / draft URL directly */
+      "ofc-10a": ofc("#oficiu/ofc-4741/identificare", null, null, "ansp-director-chisinau"),
+      "ofc-10b": ofc("#oficiu/ofc-4736/detalii", null, null, "ansp-director-chisinau"),
+      "ofc-10c": ofc("#oficiu/ofc-4736/verificare", null, null, "ansp-director-chisinau"),
+      "ofc-10d": ofc("#oficiu/ofc-4736/confirmare", null, null, "ansp-director-chisinau"),
+      "ofc-10e": ofc("#oficiu/ofc-4728", null, null, "ansp-director-chisinau"),
+
+      /* US-247 AC-09: the removal warning in the BO bell (internal notification + MNotify mention), the item opens the draft */
+      "ofc-11": ofcList(async (h) => { await h.click(".e-permits-shell__icon-button--notification"); await h.find("#gh-ofc-notif:not([hidden])"); await h.wait(200); }),
+      "ofc-11a": ofcList(async (h) => { await h.click(".e-permits-shell__icon-button--notification"); await h.click("#gh-ofc-notif [data-gh-notif-open]"); await at("documente")(h); }),
+
+      /* the flow's audit journal (US-242 AC-14, US-243 AC-08, US-244 AC-09, US-245 AC-11, US-247 AC-10): a new draft
+         (first save), a contact change, the steps up to Verificare, then ⋮ › „Istoricul cererii” */
+      "ofc-12": ofcList(seq(nou, choose("act-izvoras", "Suspendare valabilitate"), async (h) => { await h.fill("#fo-gh-phone", "69 123 456", { leave: false }); }, next, at("detalii"), next, at("documente"), next, at("verificare"), headerMenu, async (h) => { await h.click("[data-gh-history]"); await h.find("#case-action-modal.is-active"); await h.wait(300); }))
     };
   }
 
@@ -4073,7 +4169,9 @@
     const pfManual = (idnp) => seq(pf(idnp), async (h) => { await h.fill('[data-gh-target="applicant:last"]', "Ceban", { leave: false }); await h.fill('[data-gh-target="applicant:first"]', "Maria", { leave: false }); });
     /* the modal filled (service + applicant) → Continuă → intent: „Solicitare nouă” (or a post-process) → the request */
     const start = (who, svc = "003000118", choice = primar) => seq(service(svc), who, cont, choice);
-    const chooseAct = (id, type) => async (h) => { await openActMenu(id)(h); await actMenuPick(`[data-fo-intent-act="${id}"] [data-fo-intent-postprocess="${type}"]`)(h); await atStep1(h); };
+    /* start-dialog-v1: ⋮ › a post-process → the „Before you start” dialog (askAct) → „Începe” creates the draft (chooseAct) */
+    const askAct = (id, type) => async (h) => { await openActMenu(id)(h); await actMenuPick(`[data-fo-intent-act="${id}"] [data-fo-intent-postprocess="${type}"]`)(h); await h.find("#start-dialog.is-active [data-start-dialog-start]"); await h.wait(300); };
+    const chooseAct = (id, type) => async (h) => { await askAct(id, type)(h); await h.click("#start-dialog.is-active [data-start-dialog-start]"); await atStep1(h); };
     /* a row's ⋮ (rows whose only action is „Elimină schița” show the lone trash instead — lone-trash-v1: nothing to open) */
     const menu = (sel) => async (h) => { (await h.find(sel)).closest(".e-permits-stack__item, tr").querySelector("[data-stack-menu-trigger]")?.click(); await h.wait(300); };
     /* a real file into a document field: the FO document modal, „Încarcă” tab */
@@ -4182,6 +4280,10 @@
       "gh-02z1": gh("#ghiseu/nou", seq(service("003000118"), pjAdmin, cont, async (h) => { await h.fill("[data-gh-acts-search]", "izvoras", { leave: false }); await h.wait(600); }), { acte: "multe" }),
       "gh-02z2": gh("#ghiseu/nou", seq(service("003000118"), pjAdmin, cont, async (h) => { await h.fill("[data-gh-acts-search]", "zzz", { leave: false }); await h.wait(600); }), { acte: "multe" }),
       "gh-02j": gh("#ghiseu/nou", seq(service("003000118"), pjAdmin, cont, openActMenu("act-piata-mare"), async (h) => { if (window.matchMedia("(max-width: 760px)").matches) return; /* phones: the reason is a line in the item */ await h.hover('[data-fo-intent-act="act-piata-mare"] [data-fo-intent-postprocess="Prelungire"]'); await h.wait(600); })),
+      /* start-dialog-v1: ⋮ › Reperfectare → „Before you start” («Reperfectare act»: one sentence, 120 MDL · 10 zile
+         lucrătoare · olograf sau MSign) · j3 Retragere: the consequence notice + red „Începe” */
+      "gh-02j2": gh("#ghiseu/nou", seq(service("003000118"), pjAdmin, cont, askAct("act-izvoras", "Reperfectare"))),
+      "gh-02j3": gh("#ghiseu/nou", seq(service("003000118"), pjAdmin, cont, askAct("act-izvoras", "Retragere"))),
       /* a locked act (Reperfectare în curs): the notice, no ⋮ (nothing can start — ghiseu-picker-toast-v1) */
       "gh-02t": gh("#ghiseu/nou", seq(service("003000118"), pjAdmin, cont, async (h) => { await h.scroll('[data-fo-intent-act="act-depozit"]'); await h.wait(300); })),
       "gh-02l": gh("#ghiseu/nou", seq(service("003000118"), pf("0990001234567"), cont)),

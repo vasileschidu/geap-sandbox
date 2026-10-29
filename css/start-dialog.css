@@ -1,0 +1,58 @@
+/* ==========================================================================================================
+   „Before you start” dialog (GEAPStartDialog, js/start-dialog.js; start-dialog-v2, 2026-10-29)
+   The library modal (.modal-overlay > .modal.modal--md) — header subtitle = .e-permits-passport__modal-subtitle, footer
+   buttons / phone sheet from css/dialog-footer.css + css/modal-phone.css (loaded after this file), the notice from the
+   one „Inline note” geometry (css/e-permits-acte-permisive.css, `.e-permits-start-dialog` is in its scope list). Only
+   the sentence, the facts row and the footer caption are drawn here. components.md › „Before you start — start dialog”.
+   ========================================================================================================== */
+
+/* above the Ghișeu request window and the side panels it can open from */
+.modal-overlay.e-permits-start-dialog__overlay {
+  z-index: 1300;
+}
+
+.modal.e-permits-start-dialog .modal-content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-16, 16px);
+  /* start-dialog-v3: + 8 over the footer padding = 24 between the facts row and the buttons */
+  padding-bottom: var(--spacing-8, 8px);
+}
+
+/* the one sentence: body 16/24, default text */
+.modal.e-permits-start-dialog .e-permits-start-dialog__text {
+  color: var(--color-text-base-default, #121212);
+  font: var(--font-weight-fw-regular, 400) var(--font-size-fs-16, 16px) / var(--line-height-lh-24, 24px) var(--font-family-primary-font, Onest), sans-serif;
+  margin: 0;
+}
+
+/* the facts (start-dialog-v6, user 2026-10-29: „medium badges with bg and border”): each fact = the library Medium
+   neutral subtle tag (span.status-tag.status-tag--neutral.is-subtle: grey + 1px border, radius 4, 14 medium, 24 high)
+   with a leading 16 icon — a tag, never a button (40, pill, no border); sentence case (the library capitalizes);
+   8 between tags, wraps */
+.modal.e-permits-start-dialog .e-permits-start-dialog__facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-8, 8px);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.modal.e-permits-start-dialog .e-permits-start-dialog__fact {
+  display: inline-flex;
+}
+
+.modal.e-permits-start-dialog .e-permits-start-dialog__fact > .status-tag {
+  text-transform: none;
+  white-space: nowrap;
+}
+
+.modal.e-permits-start-dialog .e-permits-start-dialog__fact > .status-tag > svg.icon {
+  color: var(--color-icon-base-secondary, #383838);
+  flex: 0 0 var(--icon-size-small, 16px);
+  height: var(--icon-size-small, 16px);
+  width: var(--icon-size-small, 16px);
+}
+
+/* footer: the library modal footer as is (start-dialog-v7: no caption under the buttons) */

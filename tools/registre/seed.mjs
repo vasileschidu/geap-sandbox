@@ -237,7 +237,8 @@ const registers = [
       col("dosar", "Nr. dosar", 160, { visible: false, filter: "text" }),
       col("tip", "Tip act", 140, { visible: false, filter: "multi" })
     ],
-    actions: []
+    /* US-317 AC-03: «Vizualizare detalii» opens the act card (configured in the builder, Feature 94523) */
+    actions: [{ key: "open", type: "open", label: "Vizualizare detalii", icon: "eye-open", roles: [] }]
   },
   {
     id: "reg-note", code: "PaymentOrder.Global.RegistruNotePlata", name: "Registru note de plată", object: "Invoice", objectLabel: "Note de plată", scope: "Global",

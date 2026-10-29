@@ -1,23 +1,26 @@
 /* ==========================================================================
-   Dropdown item — one size everywhere (2026-10-20)
-   User (Vasile): „when we have a dropdown menu let's use such item size / padding style as here
+   Dropdown item — one size everywhere (2026-10-20; menu-40-v1, 2026-10-29)
+   User (Vasile, 2026-10-20): „when we have a dropdown menu let's use such item size / padding style as here
    [GEAP 2.0 9716:10905 „Dossier / Step menu · action”] everywhere, so it's not big and chunky”.
+   User decision 2026-10-29 (menu-40-v1): desktop items 40 (were 32), phones (≤ 760) 48 · 16/24 for EVERY menu
+   (the phone rule used to live only on the act / request action menus in e-permits-acte-permisive.css).
 
-   Reference (measured in Figma):
    - list / menu surface: padding 4, gap 2 between items (radius 12 + „dropdown-effect” = the
      „Dropdown surface” rule in e-permits-acte-permisive.css, restated where that file is not loaded);
-   - item: 32 high = padding 6 top / 12 right / 6 bottom / 8 left around a 20 line, gap 8 icon → label,
-     radius 6, label 14/20 medium, icon 20.
+     phones: padding 8, no gap.
+   - item, desktop: 40 high = a 20 line centred by (40 − 20) / 2 = 10 top / bottom, 12 right, 8 left, gap 8
+     icon → label, radius 6, label 14/20 medium, icon 20. Rows with two lines keep the padding and grow.
+   - item, phones: 48 · 12 16 · gap 12 · 16/24 regular · icon 24 · radius 8; an unavailable item shows its reason
+     as a 14/20 tertiary second line.
 
    ONE rule for every action menu and option list (⋮ row menus, the act post-process menu, Sortează,
    Exportă, header help / BO account links, FO selects, CAEM / subgenre combos, address search, phone
-   codes, MDocs picker, facet-filter popover options). Each class is listed once here (0,1,0) and its
-   own rule no longer declares a size — only colours / layout of its parts. Loaded after the product
-   CSS (before modal-phone.css), so on equal specificity this file wins.
-   Same size on touch (user: no 48 rows for menus); the rows stay full-width tap targets.
-   Not here on purpose: the phone bottom sheets (facet-filter sheet rows 44, the instance-switcher
-   sheet) — they are sheets, not dropdowns; the identity cards of the account menus; the date picker
-   day grid. Rows with two lines (title + meta / description) keep the padding and grow in height.
+   codes, MDocs picker, facet-filter popover options, pager size, language). Each class is listed once here
+   (0,1,0) and its own rule no longer declares a size — only colours / layout of its parts. Loaded after the
+   product CSS (before modal-phone.css), so on equal specificity this file wins.
+   Not here on purpose: the phone bottom sheets (facet-filter sheet rows 44 — excluded below, the sort sheet 48,
+   the instance-switcher sheet) — they are sheets, not dropdowns; the identity cards of the account menus; the
+   date picker day grid.
    ========================================================================== */
 
 /* the lists inside a surface (and the surfaces that hold their items directly) */
@@ -60,8 +63,8 @@
   gap: var(--spacing-8, 8px);
   line-height: var(--line-height-lh-20, 20px);
   margin: 0;
-  min-height: var(--spacing-32, 32px);
-  padding: var(--spacing-6, 6px) var(--spacing-12, 12px) var(--spacing-6, 6px) var(--spacing-8, 8px);
+  min-height: var(--spacing-40, 40px);
+  padding: calc((var(--spacing-40, 40px) - var(--line-height-lh-20, 20px)) / 2) var(--spacing-12, 12px) calc((var(--spacing-40, 40px) - var(--line-height-lh-20, 20px)) / 2) var(--spacing-8, 8px);
 }
 
 /* Control → value gap (facet-popover-v2, 2026-10-22, user: „the checkbox with text kinda too close — the
@@ -84,4 +87,81 @@
   flex: 0 0 var(--icon-size-medium, 20px);
   height: var(--icon-size-medium, 20px);
   width: var(--icon-size-medium, 20px);
+}
+
+/* ===== Phones (≤ 760): touch items for EVERY menu (menu-40-v1, 2026-10-29) =====
+   Moved here from the act / request action-menu scope of e-permits-acte-permisive.css („Row action menu on phones”,
+   action-menu-v1) and widened to all the item classes above. The facet-filter bottom sheet shares
+   `.e-permits-workplace__filter-option` but is a sheet (44 rows, 14/20) — left out. */
+@media (max-width: 760px) {
+  :is(
+    .e-permits-fo-intent-menu,
+    .e-permits-fo-select__list,
+    .e-permits-fo-caem__list,
+    .e-permits-fo-subgen-select__list,
+    .e-permits-fo-address-search__list,
+    .e-permits-fo-phone__code-list,
+    .e-permits-fo-mdocs__list,
+    .e-permits-workplace__filter-list:not(:where(.e-permits-filter-sheet__list)),
+    .e-permits-shell__help-list,
+    .e-permits-shell__profile-links
+  ) {
+    gap: var(--spacing-0, 0px);
+    padding: var(--spacing-8, 8px);
+  }
+
+  :is(
+    .e-permits-fo-intent-menu__item,
+    .e-permits-fo-select__option,
+    .e-permits-fo-caem__option,
+    .e-permits-fo-subgen-select__option,
+    .e-permits-fo-address-search__option,
+    .e-permits-fo-phone__code-option,
+    .e-permits-fo-mdocs__option,
+    .e-permits-workplace__filter-option:not(:where(.e-permits-filter-sheet__list *)),
+    .e-permits-workplace__filter-more-item,
+    .e-permits-shell__help-link,
+    .e-permits-shell__profile-link
+  ) {
+    border-radius: var(--border-radius-8, 8px);
+    column-gap: var(--spacing-12, 12px);
+    font-size: var(--font-size-fs-16, 16px);
+    font-weight: var(--font-weight-fw-regular, 400);
+    gap: var(--spacing-12, 12px);
+    line-height: var(--line-height-lh-24, 24px);
+    min-height: var(--spacing-48, 48px);
+    padding: var(--spacing-12, 12px) var(--spacing-16, 16px);
+  }
+
+  :is(
+    .e-permits-fo-intent-menu__item,
+    .e-permits-fo-address-search__option,
+    .e-permits-fo-mdocs__option,
+    .e-permits-shell__help-link,
+    .e-permits-shell__profile-link
+  ) > :is(.icon, .e-permits-shell__profile-link-icon) {
+    flex: 0 0 var(--icon-size-default, 24px);
+    height: var(--icon-size-default, 24px);
+    width: var(--icon-size-default, 24px);
+  }
+
+  /* icon | label / reason (the reason under the label, the icon on the label line) */
+  .e-permits-fo-intent-menu__item:has(> .e-permits-fo-intent-menu__reason) {
+    align-items: start;
+    display: grid;
+    grid-template-columns: var(--icon-size-default, 24px) minmax(0, 1fr);
+    row-gap: var(--spacing-0, 0px);
+  }
+
+  .e-permits-fo-intent-menu__item > .e-permits-fo-intent-menu__reason {
+    color: var(--color-text-base-tertiary, #757575);
+    display: block;
+    font-size: var(--font-size-fs-14, 14px);
+    grid-column: 2;
+    line-height: var(--line-height-lh-20, 20px);
+  }
+
+  .e-permits-fo-intent-menu > :is(.e-permits-fo-intent-menu__separator, .cab-menu__separator) {
+    margin: var(--spacing-8, 8px) var(--spacing-16, 16px);
+  }
 }

@@ -3786,6 +3786,46 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     return null;
   };
+  /* act-data-dossier-v1 (2026-10-28, user: the permit = the SAME viewer as RAP / EVO Cabinet): a PERMIT in the dossier
+     (the issued act, the previous act, the unsigned „Proiectul actului”) opens the right-docked act data panel
+     (GEAPActView.openData, js/act-view.js) with the RAP footer „Descarcă” (CSV of the data) · Închide — never the A4. Decisions,
+     requests, notifications and uploaded files keep the A4 document viewer. A draft = status „Proiect”, no act number, no signature. */
+  const isPermitDoc = (doc) => doc.genId === "proiect-act" || Boolean(doc.act) || (doc.decizie === "aprobare" && Boolean(doc.nr) && !/decizie/i.test(doc.tip));
+  let dosarActViewInstance = null;
+  const dosarActView = () => {
+    dosarActViewInstance ||= window.GEAPActView.create({
+      sprite: "assets/icons/sprite.svg",
+      copyHtml: (value) => (value ? renderCopyCode(value, `Copiază numărul actului ${value}`) : ""),
+      copySelector: "[data-copy-value]",
+      footer: "download"
+    });
+    return dosarActViewInstance;
+  };
+  const dosarActViewOf = (doc, row, profile) => {
+    const draft = doc.genId === "proiect-act" || (doc.tags || []).some(([label]) => label === "Proiect");
+    const act = doc.act || row.flowState?.act || {};
+    const holder = row.companie || row.numeSolicitant;
+    const issued = draft ? "" : formatLongDate(doc.act?.emis || doc.at);
+    return {
+      id: doc.id,
+      name: row.serviciu,
+      number: draft ? "" : docNumber(doc),
+      status: draft ? "Proiect" : "Valabil",
+      tone: draft ? "warning" : "success",
+      watermark: draft,
+      authority: dossierDb?.myAutoritate || workplaceDb.myAutoritate || "",
+      office: row.subdiviziune || "",
+      beneficiary: { name: holder, person: !row.companie, idType: profile.companyId ? "IDNO" : "IDNP", id: profile.companyId || profile.applicantId || "" },
+      tacitDate: "", tacitBadge: false,
+      issuedDate: issued,
+      validFrom: issued || "",
+      statusDates: [],
+      validUntil: act.valabilPana ? formatLongDate(act.valabilPana) : "",
+      paperNumber: row.nrDosar, printedNumber: "",
+      groups: [{ title: "Obiectul activității", rows: [["Adresa obiectului", DOSAR_OBJECT_ADDRESS], ["Subdiviziunea emitentă", row.subdiviziune], ["Numărul dosarului electronic", row.nrDosar]] }],
+      url: "", source: "SIA GEAP", signed: !draft
+    };
+  };
   const dosarMdocCanvas = (spec, label) => `
       <div class="e-permits-doc-peek__canvas e-permits-detail-modal__preview" data-dosar-doc-canvas data-dosar-mdoc role="document" aria-label="${escapeHtml(label)}">${window.GEAPDocPreview?.mdocsHtml(spec) || ""}</div>`;
   /* US-308: the notification PDF of an e-mail notification whose template has a document (AC-08 — saved at the notification) */
@@ -3957,6 +3997,7 @@ document.addEventListener("DOMContentLoaded", () => {
       /* one document modal for every dossier document (însoțitoare, generate, act/decizie):
          the page preview, then „Date generale” */
       const d = dosarDocsOf(profile, kind).find((x) => x.id === key); if (!d) return;
+      if (isPermitDoc(d) && window.GEAPActView) { dosarActView().openData(dosarActViewOf(d, row, profile), document.activeElement); return; }
       const mdocs = d.sursa === "mdocs";
       const nr = docNumber(d);
       const verb = docVerb(d);
@@ -4777,15 +4818,15 @@ document.addEventListener("DOMContentLoaded", () => {
           ${caseSelect("specialist", "Specialist", caseSpecialists().map((person) => [person.id, `${person.nume} · ${person.load} ${person.load === 1 ? "dosar" : "dosare"} în lucru`]), { required: true, placeholder: "Alege specialistul", hint: "Numărul de dosare în lucru ajută la o repartizare echilibrată." })}
           ${caseTextarea("instructiuni", "Instrucțiuni", { required: true })}
         `;
-      /* US-295: one case from its header (Manual · Automat) or several from „Dosarele subdiviziunii”
-         (+ „În nedistribuite”, AC-18) */
+      /* US-295: one case from its header or several from „Dosarele subdiviziunii” — Manual · Automat only
+         (redist-modes-v1: „În nedistribuite” removed — undistributed is a status, not a mode; PO comment 2026-10-26) */
       case "redistribuire": {
         const rows = (d.rowIds || [row.id]).map(getDosarById).filter(Boolean);
         const mode = d.values.choice;
         const people = redistCandidates(rows);
         const chosen = people.find((person) => person.id === d.values.specialist);
         const lacking = chosen ? rows.filter((r) => !redistCompetent(chosen, r)) : [];
-        const modes = [["manual", "Manual"], ["automat", "Automat"], ...(d.bulk ? [["nedistribuite", "În nedistribuite"]] : [])];
+        const modes = [["manual", "Manual"], ["automat", "Automat"]];
         const holders = [...rows.reduce((map, r) => map.set(r.specialist?.nume || "—", (map.get(r.specialist?.nume || "—") || 0) + 1), new Map())];
         /* redist-transfer-v1: reads as a transfer — mode, then „Responsabil actual → Responsabil nou”
            (stacked with ↓ on phones), the row's hint / error under it, then the competence /
@@ -4798,13 +4839,11 @@ document.addEventListener("DOMContentLoaded", () => {
         const unplaced = plan.filter((person) => !person).length;
         const next = mode === "manual"
           ? caseSelect("specialist", "Responsabil nou", people.map((person) => [person.id, `${person.nume} · ${roCount(person.load, "dosar în lucru", "dosare în lucru")}`]), { required: true, placeholder: "Alege specialistul", inRow: true })
-          : caseReadonly("Responsabil nou", mode === "nedistribuite" ? "Dosare nedistribuite"
-            : picked.length ? `${picked.join(", ")}${unplaced ? ` · ${roCount(unplaced, "dosar", "dosare")} în nedistribuite` : ""}`
+          : caseReadonly("Responsabil nou", picked.length ? `${picked.join(", ")}${unplaced ? ` · ${roCount(unplaced, "dosar", "dosare")} în nedistribuite` : ""}`
             : "Niciun specialist disponibil", 0);
         const rowMessage = mode === "manual" && d.errors.specialist ? caseFieldError("specialist")
           : `<p class="e-permits-fo-field__hint">${mode === "manual" ? `Specialiștii activi ai subdiviziunii ${escapeHtml(rows[0]?.subdiviziune || "")}, fără responsabilul actual${(() => { const away = window.GEAPAbsences?.absentNames?.(rows[0]?.subdiviziune) || []; return away.length ? ` și fără cei absenți azi (${escapeHtml(away.join(", "))})` : ""; })()}.`
-            : mode === "automat" ? `Automat: SIA GEAP alege ${d.bulk ? "pentru fiecare dosar " : ""}specialistul competent cu cea mai mică încărcare, fără responsabilul actual și fără cei absenți azi.`
-            : "Dosarele ies din lista specialiștilor și așteaptă o nouă distribuire."}</p>`;
+            : `Automat: SIA GEAP alege ${d.bulk ? "pentru fiecare dosar " : ""}specialistul competent cu cea mai mică încărcare, fără responsabilul actual și fără cei absenți azi.`}</p>`;
         const warning = mode === "manual" && lacking.length
           ? caseNotice(`<strong>${escapeHtml(chosen.nume)}</strong> nu are competență pentru ${lacking.length === rows.length ? `serviciul „${escapeHtml(row.serviciu)}”` : `${lacking.length} din dosarele selectate`}. Puteți continua redistribuirea.`, "warning")
           : mode === "automat" && unplaced
@@ -4813,7 +4852,7 @@ document.addEventListener("DOMContentLoaded", () => {
               : `<strong>Niciun specialist competent disponibil.</strong> ${rows.length > 1 ? "Dosarele trec" : "Dosarul trece"} în „Dosare nedistribuite”, iar supervizorii sunt notificați.`, "warning")
             : "";
         const terms = [...new Set(rows.map((r) => r.termenExaminare).filter(Boolean))].sort();
-        const notified = mode === "nedistribuite" || (mode === "automat" && !picked.length) ? "Supervizorii subdiviziunii sunt notificați."
+        const notified = mode === "automat" && !picked.length ? "Supervizorii subdiviziunii sunt notificați."
           : picked.length > 1 ? "Noii responsabili primesc o notificare." : "Noul responsabil primește o notificare.";
         /* redist-term-field-v1: the term is a locked field again (written out, „6 august 2026”; bulk = the
            range „6 – 21 august 2026”), the alert 8 under it says only that it never resets */
