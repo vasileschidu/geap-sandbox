@@ -10,7 +10,8 @@
            > [optional strips: tabs, status…]
            > .drawer__body                   the only scroller (scroll hairlines from the header / footer borders)
            > footer.drawer__footer           > .modal-buttons (library footer buttons)
-   Sizes: default 800 (min with the screen), `.drawer--lg` 960 (wide forms: request type, documents).
+   Sizes: default 800 (min with the screen), `.drawer--lg` 960 (wide forms: request type, documents), `.drawer--sm` 480
+   (reading panels: the header bell's notifications).
    Behaviour (js/drawer.js, GEAPDrawer): focus trap, Escape → the drawer's own close (its unsaved-changes
    confirm included), focus back to the opener. `.is-closing` on the overlay plays the exit.
    Phones (≤ 760): the shared phone sheet (css/modal-phone.css): 16 top gap, top radius 16, no drag handle,
@@ -71,6 +72,11 @@ body.is-drawer-open {
   /* 960 (was 1120): the rows had room to spare (user, 2026-10-08) */
   transition: width 200ms cubic-bezier(0.16, 1, 0.3, 1);
   width: min(960px, calc(100vw - var(--spacing-64, 64px)));
+}
+
+/* `.drawer--sm` 480: a reading panel, not a form — the notifications drawer (notif-drawer-v1, 2026-10-29) */
+.drawer--sm {
+  width: min(480px, 100vw);
 }
 
 .drawer-overlay.is-closing .drawer-overlay__scrim {
@@ -208,7 +214,8 @@ body.is-drawer-open {
   }
 
   .drawer,
-  .drawer--lg {
+  .drawer--lg,
+  .drawer--sm {
     border-radius: var(--modal-phone-radius, 16px) var(--modal-phone-radius, 16px) 0 0;
     height: 100%;
     overflow: clip;

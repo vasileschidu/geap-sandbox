@@ -1,0 +1,276 @@
+/* =====================================================================================
+   Notifications drawer — the BO header bell (notif-drawer-v1, 2026-10-29; components.md › „Notifications drawer”).
+   Chrome = the ONE drawer (css/drawer.css, `.drawer--sm` 480); tabs = library `.tabs.tabs--sm` in the drawer tab strip
+   (`.e-permits-tariff__tabs`); count = `.e-permits-page-header__tab-count`; empty = GEAPEmptyState compact. Only the list
+   rows, the group headings, the header action placement and the load-more row are styled here.
+   ===================================================================================== */
+
+/* header: title · „Marchează toate ca citite” (library text button Small) · × — the button sits on the 26 title line like the × */
+.e-permits-notif__head-action {
+  display: flex;
+  flex: 0 0 auto;
+}
+
+.e-permits-notif__head-action > .btn {
+  margin-top: calc((var(--line-height-lh-26, 26px) - var(--spacing-32, 32px)) / 2);
+}
+
+/* search (notif-drawer-v2): the library list search under the tabs, inside the sticky tab strip, so it stays while the
+   list scrolls; 12 above / below, the body's side inset (phones 16; the field grows to 48 · 16/24 by css/field-sizes.css) */
+.e-permits-notif__search {
+  padding: var(--spacing-12, 12px) var(--spacing-16, 16px);
+}
+
+/* notif-drawer-v3 (user): the body inset is 16 at every width (24 left the 480 cards too narrow); the sticky tab strip
+   bleeds to the drawer edges and puts its tabs + search on the same 16 as the cards */
+.drawer__body.e-permits-notif__body {
+  padding: var(--spacing-8, 8px) var(--spacing-16, 16px) var(--spacing-16, 16px);
+}
+
+.drawer__body.e-permits-notif__body > .e-permits-notif__tabs {
+  margin-left: calc(-1 * var(--spacing-16, 16px));
+  margin-right: calc(-1 * var(--spacing-16, 16px));
+}
+
+.e-permits-notif__tabs .tab-buttons {
+  padding: 0 var(--spacing-16, 16px);
+}
+
+/* the first day heading under the sticky head: the search gives 12, + 4 = 16 */
+.e-permits-notif__panel > .e-permits-notif__group:first-child > .e-permits-notif__group-title {
+  padding-top: var(--spacing-4, 4px);
+}
+
+/* group: a small heading over its rows (Azi / Ieri / Mai vechi) */
+.e-permits-notif__group-title {
+  color: var(--color-text-base-tertiary, #757575);
+  font-family: var(--font-family-primary-font, Onest), sans-serif;
+  font-size: var(--font-size-fs-12, 12px);
+  font-weight: var(--font-weight-fw-medium, 500);
+  line-height: var(--line-height-lh-16, 16px);
+  margin: 0;
+  padding: var(--spacing-16, 16px) 0 var(--spacing-8, 8px);
+}
+
+/* notif-drawer-v3 (user): each notification = a rounded card (radius 12, 12 / 16 inside), 4 between cards, no dividers.
+   Read = white (hover tertiary, pressed tertiary-hover); unread = the lightest brand surface brand-secondary (blue-sky-100;
+   secondary text 10.2:1 on it, the time goes secondary too — tertiary would be 4.0:1), hover brand-secondary-hover,
+   pressed brand-secondary-active; the dot stays */
+.e-permits-notif__list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4, 4px);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.e-permits-notif__item {
+  align-items: flex-start;
+  background: var(--color-background-base-default, #fff);
+  border-radius: var(--border-radius-12, 12px);
+  box-sizing: border-box;
+  display: flex;
+  gap: var(--spacing-12, 12px);
+  padding: var(--spacing-12, 12px) var(--spacing-16, 16px);
+  position: relative;
+  transition: background-color 100ms ease;
+}
+
+.e-permits-notif__item:hover {
+  background: var(--color-background-base-tertiary, #f1f1f1);
+}
+
+.e-permits-notif__item:active {
+  background: var(--color-background-base-tertiary-hover, #d9d9d9);
+}
+
+.e-permits-notif__item.is-unread {
+  background: var(--color-background-brand-secondary, #e8f0fb);
+}
+
+.e-permits-notif__item.is-unread:hover {
+  background: var(--color-background-brand-secondary-hover, #ccdef6);
+}
+
+.e-permits-notif__item.is-unread:active {
+  background: var(--color-background-brand-secondary-active, #99bced);
+}
+
+.e-permits-notif__item.is-unread .e-permits-notif__time {
+  color: var(--color-text-base-secondary, #383838);
+}
+
+/* keyboard: the library focus ring drawn inside the card (the body clips sideways), hover fill kept */
+.e-permits-notif__item:has(.e-permits-notif__title:focus-visible) {
+  background: var(--color-background-base-tertiary, #f1f1f1);
+  box-shadow: inset 0 0 0 var(--border-width-2, 2px) var(--focus-ring, var(--blue-sky-500, #3379db));
+}
+
+.e-permits-notif__item.is-unread:has(.e-permits-notif__title:focus-visible) {
+  background: var(--color-background-brand-secondary-hover, #ccdef6);
+}
+
+/* unread = brand dot on the title line; read rows keep the column so the text stays aligned */
+.e-permits-notif__dot {
+  border-radius: var(--border-radius-full, 999px);
+  flex: 0 0 var(--spacing-8, 8px);
+  height: var(--spacing-8, 8px);
+  margin-top: calc((var(--line-height-lh-20, 20px) - var(--spacing-8, 8px)) / 2);
+}
+
+.e-permits-notif__item.is-unread .e-permits-notif__dot {
+  background: var(--color-background-brand-default, #0058d2);
+}
+
+.e-permits-notif__text {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: var(--spacing-2, 2px);
+  min-width: 0;
+}
+
+/* title line (notif-drawer-v3): title left (fills, one line, ellipsis + tooltip) · time right, baseline-aligned, no wrap */
+.e-permits-notif__head {
+  align-items: baseline;
+  display: flex;
+  gap: var(--spacing-8, 8px);
+  min-width: 0;
+}
+
+.e-permits-notif__title {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--color-text-base-default, #121212);
+  font-size: var(--font-size-fs-14, 14px);
+  font-weight: var(--font-weight-fw-medium, 500);
+  line-height: var(--line-height-lh-20, 20px);
+  outline: 0;
+  text-decoration: none;
+}
+
+.e-permits-notif__title:is(:focus, :visited, :active) {
+  color: var(--color-text-base-default, #121212);
+  text-decoration: none;
+}
+
+/* the stretched link covers the row: row hover = tertiary fill + underlined title (the document-card pattern) */
+.e-permits-notif__title:hover {
+  color: var(--color-text-base-default, #121212);
+  text-decoration: underline;
+}
+
+.e-permits-notif__meta {
+  color: var(--color-text-base-secondary, #383838);
+  font-size: var(--font-size-fs-14, 14px);
+  line-height: var(--line-height-lh-20, 20px);
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.e-permits-notif__time {
+  display: block;
+  flex: 0 0 auto;
+  white-space: nowrap;
+  color: var(--color-text-base-tertiary, #757575);
+  font-size: var(--font-size-fs-12, 12px);
+  line-height: var(--line-height-lh-16, 16px);
+  margin: 0;
+}
+
+/* „Încarcă mai multe”: library neutral button, full width, 16 above / below */
+.e-permits-notif__more {
+  padding: var(--spacing-16, 16px) 0;
+}
+
+.e-permits-notif__more-btn {
+  width: 100%;
+}
+
+/* the empty state sits under the tab strip with the body's rhythm */
+.e-permits-notif__panel > .e-permits-empty {
+  margin-top: var(--spacing-4, 4px);
+}
+
+/* the bell keeps its pressed fill AND the focus ring while the drawer is open (rule „open button focus”) */
+.e-permits-shell__icon-button--notification[aria-expanded="true"] {
+  box-shadow: 0 0 0 var(--border-width-2, 2px) var(--color-background-base-default, #fff), 0 0 0 calc(var(--border-width-2, 2px) + var(--border-width-3, 3px)) var(--focus-ring, var(--blue-sky-500, #3379db));
+  outline: none;
+}
+
+.e-permits-shell__icon-button--notification:focus-visible {
+  box-shadow: 0 0 0 var(--border-width-2, 2px) var(--color-background-base-default, #fff), 0 0 0 calc(var(--border-width-2, 2px) + var(--border-width-3, 3px)) var(--focus-ring, var(--blue-sky-500, #3379db));
+  outline: none;
+}
+
+.e-permits-shell__notification-dot[hidden] {
+  display: none;
+}
+
+/* phones (≤ 640) hid the whole header tool group; the bell stays — notifications must be reachable on a phone
+   („Ajutor” stays hidden as before) */
+@media (max-width: 640px) {
+  .e-permits-shell__header-tools:has(.e-permits-shell__icon-button--notification) {
+    display: inline-flex;
+  }
+
+  .e-permits-shell__header-tools > [data-help-menu] {
+    display: none;
+  }
+}
+
+/* ---- phones: the drawer is the shared sheet (title 20/32, × 40); the header action drops under the title, rows 16 inset ---- */
+@media (max-width: 760px) {
+  .e-permits-notif__header {
+    flex-wrap: wrap;
+  }
+
+  .e-permits-notif__header > .drawer__heading {
+    order: 1;
+  }
+
+  .e-permits-notif__header > .modal-close {
+    order: 2;
+  }
+
+  .e-permits-notif__head-action {
+    flex: 1 0 100%;
+    order: 3;
+  }
+
+  .e-permits-notif__head-action > .btn {
+    margin: 0 0 0 calc(-1 * var(--spacing-12, 12px));
+  }
+
+  .e-permits-notif__search {
+    padding: var(--spacing-12, 12px) var(--modal-phone-inset, 16px);
+  }
+
+  /* phones: the secondary line may take 2 lines (no hover tooltip on touch), then the clamp */
+  .e-permits-notif__meta {
+    -webkit-box-orient: vertical;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    white-space: normal;
+  }
+
+  .e-permits-notif__item {
+    min-height: var(--spacing-48, 48px);
+  }
+
+  .drawer__body.e-permits-notif__body {
+    padding: var(--spacing-8, 8px) var(--modal-phone-inset, 16px) var(--modal-phone-foot, 16px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .e-permits-notif__item {
+    transition: none;
+  }
+}

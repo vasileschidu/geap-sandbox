@@ -3983,3 +3983,15 @@ For any „research how other products do it” step, search Mobbin (mcp__mobbin
 - 2026-10-29 · start-dialog-v2 (user rejected v1: „too much / useless — two data tables”). A confirm-before-start dialog = title +
   the object's name + ONE sentence (or the consequence notice) + one row of 2–3 icon facts + a 12/16 caption of what happens
   next — never summary tables of data the user just saw on the row. Default to the lightest dialog; add detail only when asked.
+- 2026-10-29 · notif-drawer-v1 (bell dropdown → right drawer): a drawer opened by a SCRIPTED click (demo states, Safari) never
+  gets its opener focused, so GEAPDrawer returns focus to the page → focus the opener yourself before `GEAPDrawer.open`. The BO
+  header hid ALL header tools ≤ 640 (bell unreachable on phones) — check the trigger exists at 375 before building a phone sheet.
+- 2026-10-29 · hover-audit reads the hovered element's OWN style: a `.stretched-link` row whose fill changes on the `li` reports
+  „no-hover” → also underline the link (doc-card pattern). code-audit tight-gap exempts `p[class*='__meta|__title|__text']` —
+  name row text parts by role (`__meta`, span `__time`) instead of zeroing the gaps.
+- 2026-10-29 · notif-drawer-v2 (search in a drawer list): a live search must not sit in markup that `render()` rebuilds —
+  split the drawer body into a head rendered once per opening (tabs + search, sticky) and a panel slot; only the tab
+  buttons' innerHTML + the panel are redrawn, so typing keeps focus/caret. Filter the FULL list, then paginate.
+- 2026-10-29 · notif-drawer-v3 (user: unread tint + cards): on `--color-background-brand-secondary` (blue-sky-100) tertiary
+  text is only 4.0:1 — any 12/16 tertiary meta on a tinted unread card goes secondary. A `.stretched-link` title can get
+  `overflow: hidden` + ellipsis safely: its ::after is positioned by the card (`li` relative), not clipped by the link.

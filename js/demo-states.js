@@ -3600,6 +3600,11 @@
        08 confirmare (US-246) · 09 schița: reluare, salvare, ⋮, eliminare (US-247/248) · ofc-01h / 02f no rights */
     ...ofcDemoStates(),
 
+    /* ---- Notificări — the BO header bell opens the notifications drawer (notif-drawer-v1, 2026-10-29, js/notif-drawer.js):
+       notif-01 Toate (read + unread, din oficiu warnings included) · 02 Necitite · 03 after «Încarcă mai multe» · 04 empty ·
+       05 phone reference (scrolled to «Mai vechi»; every state is also captured at 375) */
+    ...notifDemoStates(),
+
     /* ---- Registre — BackOffice registers, phase 1 (Epic 89620, js/registre.js, registre-v1 2026-10-23) ----
        reg-01 catalog · 02 Dosare · 03 Acte · 04 Note de plată · 05 Avize · 06–09 record cards · 10 Push Case ·
        11 Arhivare · 12 Radiere · 13 Anonimizare + redactare · 14 acces interzis · 15 câmp-sursă dispărut · 16 gol ·
@@ -3971,6 +3976,25 @@
     };
   }
 
+  function notifDemoStates() {
+    const SPEC = "ansp-specialist-chisinau";
+    const OPEN = "#notif-drawer:not([hidden]) [data-notif-body] .e-permits-notif__panel";
+    const notif = (run, params) => ({
+      flow: "back-office", as: SPEC, params, ready: "tr[data-workplace-row], .e-permits-empty",
+      run: async (h) => { await h.wait(400); await h.click(".e-permits-shell__icon-button--notification"); await h.find(OPEN); await h.wait(300); if (run) await run(h); }
+    });
+    return {
+      "notif-01": notif(),
+      "notif-02": notif(async (h) => { await h.click('[data-notif-tab="necitite"]'); }),
+      "notif-03": notif(async (h) => { await h.click("[data-notif-more]"); }),
+      "notif-04": notif(null, { notificari: "gol" }),
+      /* notif-drawer-v2: the search under the tabs — matches (the story dossier) · no match */
+      "notif-06": notif(async (h) => { await h.fill("#notif-drawer [data-notif-search]", "004575", { leave: false }); await h.wait(500); }),
+      "notif-07": notif(async (h) => { await h.fill("#notif-drawer [data-notif-search]", "autorizatie xyz", { leave: false }); await h.wait(500); }),
+      "notif-05": notif(async (h) => { const g = [...document.querySelectorAll("#notif-drawer .e-permits-notif__group-title")].find((el) => el.textContent === "Mai vechi"); g?.scrollIntoView({ block: "start" }); await h.wait(200); })
+    };
+  }
+
   /* Din oficiu (Feature 95769): the desk wizard in its „oficiu” mode, as the Specialist (CSP Chișinău) — the seeded drafts
      ofc-4741 (Reluare, Date titular) · ofc-4736 (Prelungire, Verificare) · ofc-4728 (Suspendare, Detalii serviciu) ·
      ofc-4719 (Retragere, Acte necesare, removed in 5 days); ofc-4710 belongs to another user (not listed) */
@@ -4127,8 +4151,8 @@
       "ofc-10e": ofc("#oficiu/ofc-4728", null, null, "ansp-director-chisinau"),
 
       /* US-247 AC-09: the removal warning in the BO bell (internal notification + MNotify mention), the item opens the draft */
-      "ofc-11": ofcList(async (h) => { await h.click(".e-permits-shell__icon-button--notification"); await h.find("#gh-ofc-notif:not([hidden])"); await h.wait(200); }),
-      "ofc-11a": ofcList(async (h) => { await h.click(".e-permits-shell__icon-button--notification"); await h.click("#gh-ofc-notif [data-gh-notif-open]"); await at("documente")(h); }),
+      "ofc-11": ofcList(async (h) => { await h.click(".e-permits-shell__icon-button--notification"); (await h.find('#notif-drawer:not([hidden]) [data-notif-open^="ofc:"]')).closest("li").scrollIntoView({ block: "center" }); await h.wait(300); }),
+      "ofc-11a": ofcList(async (h) => { await h.click(".e-permits-shell__icon-button--notification"); await h.click('#notif-drawer [data-notif-open^="ofc:"]'); await at("documente")(h); }),
 
       /* the flow's audit journal (US-242 AC-14, US-243 AC-08, US-244 AC-09, US-245 AC-11, US-247 AC-10): a new draft
          (first save), a contact change, the steps up to Verificare, then ⋮ › „Istoricul cererii” */

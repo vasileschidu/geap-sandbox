@@ -1004,86 +1004,19 @@
     return true;
   });
 
-  /* US-247 AC-09 (oficiu-v2): before the retention period ends the initiator gets the removal warning through MNotify
-     AND as an internal SIA GEAP notification = the BO header bell. The bell opens an anchored dropdown (the header
-     „Ajutor” menu surface) with one two-line item per warned draft: the exact removal date + the way to finish it
-     (the item opens the draft at its last saved step). The dot counts the warnings. Demo: ofc-11, ofc-11a. */
-  const NOTIF_ID = "gh-ofc-notif";
+  /* US-247 AC-09 (oficiu-v2 → notif-drawer-v1, 2026-10-29): before the retention period ends the initiator gets the removal
+     warning through MNotify AND as an internal SIA GEAP notification = the BO header bell. The bell opens the notifications
+     drawer (js/notif-drawer.js); this module only hands it one item per warned draft: the exact removal date, the MNotify
+     mention and the way to finish it (the item opens the draft at its last saved step). Demo: ofc-11, ofc-11a. */
   const ofcNotices = () => (S.data && canOfc() ? ofcDrafts().filter((d) => d.notified) : []);
-  const bellBtn = () => document.querySelector(".e-permits-shell__icon-button--notification");
-  function syncOfcBell() {
-    const bell = bellBtn();
-    if (!bell || document.querySelector('[data-nav-id="ek-dashboard"]')) return; /* the eKYC product owns its bell */
-    const n = ofcNotices().length;
-    if (!n) return;
-    const dot = bell.querySelector(".e-permits-shell__notification-dot");
-    if (dot) { dot.textContent = String(n); dot.hidden = false; }
-    bell.setAttribute("aria-label", `Notificări: ${n} ${n === 1 ? "nouă" : "noi"}`);
-    bell.setAttribute("aria-haspopup", "menu");
-    bell.setAttribute("aria-controls", NOTIF_ID);
-    if (!bell.hasAttribute("aria-expanded")) bell.setAttribute("aria-expanded", "false");
-  }
-  function ofcNoticeItemHtml(d) {
-    const end = longDate(retentionEnd(d));
-    return `
-      <li role="none">
-        <a class="select-option e-permits-shell__help-link e-permits-gh-notif__item" role="menuitem" href="#oficiu/${encodeURIComponent(d.id)}" aria-label="Schița ${esc(d.nr)} se elimină automat la ${esc(end)}. Deschide schița pentru a o finaliza." data-gh-notif-open="${esc(d.id)}">
-          <svg class="icon e-permits-gh-notif__icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-time"></use></svg>
-          <span class="e-permits-gh-notif__text">
-            <span class="e-permits-gh-notif__title">Schița ${esc(d.nr)} se elimină automat la ${esc(end)}</span>
-            <span class="e-permits-gh-notif__meta">${esc(d.requestType)} · finalizați schița până atunci · trimisă și prin MNotify</span>
-          </span>
-        </a>
-      </li>`;
-  }
-  function toggleOfcBell(open) {
-    const bell = bellBtn();
-    if (!bell) return;
-    let panel = document.getElementById(NOTIF_ID);
-    if (!open) { if (panel && !panel.hidden) { panel.hidden = true; bell.setAttribute("aria-expanded", "false"); } return; }
-    if (!panel) {
-      /* the bell gets the header tool wrapper (position: relative) of the „Ajutor” menu, so the dropdown anchors to it */
-      if (!bell.parentElement.matches(".e-permits-shell__header-tool-menu")) {
-        const wrap = document.createElement("div");
-        wrap.className = "e-permits-shell__header-tool-menu";
-        bell.replaceWith(wrap);
-        wrap.append(bell);
-      }
-      panel = document.createElement("div");
-      panel.id = NOTIF_ID;
-      panel.className = "select-dropdown e-permits-shell__help-menu e-permits-gh-notif";
-      panel.setAttribute("role", "presentation");
-      bell.after(panel);
-    }
-    const items = ofcNotices();
-    panel.innerHTML = `
-      <p class="e-permits-gh-notif__heading" id="${NOTIF_ID}-title">Notificări</p>
-      <ul class="select-list e-permits-shell__help-list" role="menu" aria-labelledby="${NOTIF_ID}-title">${items.map(ofcNoticeItemHtml).join("")}</ul>`;
-    panel.hidden = false;
-    bell.setAttribute("aria-expanded", "true");
-    panel.querySelector('[role="menuitem"]')?.focus();
-  }
-  document.addEventListener("click", (event) => {
-    const bell = event.target.closest?.(".e-permits-shell__icon-button--notification");
-    if (bell && ofcNotices().length && !document.querySelector('[data-nav-id="ek-dashboard"]')) {
-      toggleOfcBell(bell.getAttribute("aria-expanded") !== "true");
-      return;
-    }
-    const item = event.target.closest?.("[data-gh-notif-open]");
-    if (item) { event.preventDefault(); toggleOfcBell(false); window.location.hash = `#oficiu/${encodeURIComponent(item.dataset.ghNotifOpen)}`; return; }
-    if (!event.target.closest?.(`#${NOTIF_ID}`)) toggleOfcBell(false);
-  });
-  document.addEventListener("keydown", (event) => {
-    const panel = document.getElementById(NOTIF_ID);
-    if (!panel || panel.hidden) return;
-    if (event.key === "Escape") { toggleOfcBell(false); bellBtn()?.focus(); return; }
-    if (!["ArrowDown", "ArrowUp"].includes(event.key)) return;
-    const items = [...panel.querySelectorAll('[role="menuitem"]')];
-    const i = items.indexOf(document.activeElement);
-    if (i < 0) return;
-    event.preventDefault();
-    items[(i + (event.key === "ArrowDown" ? 1 : items.length - 1)) % items.length].focus();
-  });
+  function syncOfcBell() { window.GEAPNotifDrawer?.sync(); }
+  (window.GEAPNotifSources = window.GEAPNotifSources || []).push(() => ofcNotices().map((d) => ({
+    id: `ofc:${d.id}`,
+    title: `Schița ${d.nr} se elimină automat la ${longDate(retentionEnd(d))}`,
+    line: `${d.requestType}: finalizați schița până atunci · trimisă și prin MNotify`,
+    at: `${String(d.notified).slice(0, 10)}T08:00:00`, /* the morning retention job */
+    href: `#oficiu/${encodeURIComponent(d.id)}`
+  })));
 
   /* US-246 AC-06/07: the submitted dossier joins the shell's dossiers — „În examinare” with the project stage
      („Proiect”), distributed to the initiator (the signed-in specialist of the dossier seed), origin „Din oficiu”
