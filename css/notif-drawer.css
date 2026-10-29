@@ -274,3 +274,18 @@
     transition: none;
   }
 }
+
+/* notif-drawer-v4: the long date on desktop, the short one („27 oct.”) on phones */
+.e-permits-notif__time-short {
+  display: none;
+}
+
+@media (max-width: 760px) {
+  .e-permits-notif__time-long {
+    display: none;
+  }
+
+  .e-permits-notif__time-short {
+    display: inline;
+  }
+}

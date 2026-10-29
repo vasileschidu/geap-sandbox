@@ -121,6 +121,13 @@
     </aside>`;
 
   const timeLabel = (at, group) => group === "Mai vechi" ? longDate(at) : `${pad(at.getHours())}:${pad(at.getMinutes())}`;
+  /* notif-drawer-v4 (user 2026-10-29): phones show the short date („27 oct.”) so the title keeps its room; desktop keeps
+     the long one — both rendered, css/notif-drawer.css shows one per width (display:none = read once) */
+  const SHORT_MONTHS = ["ian.", "feb.", "mar.", "apr.", "mai", "iun.", "iul.", "aug.", "sept.", "oct.", "nov.", "dec."];
+  const shortDate = (at) => (Number.isNaN(at.getTime()) ? "" : `${at.getDate()} ${SHORT_MONTHS[at.getMonth()]}`);
+  const timeHtml = (at, group) => group === "Mai vechi"
+    ? `<span class="e-permits-notif__time-long">${esc(longDate(at))}</span><span class="e-permits-notif__time-short">${esc(shortDate(at))}</span>`
+    : esc(timeLabel(at, group));
   const groupOf = (at) => {
     const start = new Date(); start.setHours(0, 0, 0, 0);
     if (at >= start) return "Azi";
@@ -133,7 +140,7 @@
       <div class="e-permits-notif__text">
         <div class="e-permits-notif__head">
           <a class="e-permits-notif__title stretched-link" href="${esc(item.href)}" data-notif-open="${esc(item.id)}" data-cell-tooltip="${esc(item.title)}">${item.unread ? '<span class="sr-only">Necitită: </span>' : ""}${esc(item.title)}</a>
-          <span class="e-permits-notif__time"><time datetime="${Number.isNaN(item.at.getTime()) ? "" : item.at.toISOString()}">${esc(timeLabel(item.at, group))}</time></span>
+          <span class="e-permits-notif__time"><time datetime="${Number.isNaN(item.at.getTime()) ? "" : item.at.toISOString()}">${timeHtml(item.at, group)}</time></span>
         </div>
         <p class="e-permits-notif__meta" data-cell-tooltip>${esc(item.line)}</p>
       </div>
