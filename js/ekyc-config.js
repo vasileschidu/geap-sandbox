@@ -164,12 +164,12 @@
       S.showView(view);
     }
   };
-  const openPanel = ({ view, crumb, title, actions = "", caption = "", status = "", meta = [], tabs = [], tab = "", body, hash }) => {
+  const openPanel = ({ view, back = null, title, actions = "", caption = "", status = "", meta = [], tabs = [], tab = "", body, hash }) => {
     S.ui.session = null;
     S.hideDash();
     A.openProfilePanel();
     const els = A.els;
-    els.dosarProfilTitleRow.innerHTML = A.renderPageHeaderTop({ crumbs: [{ label: VIEWS[view].title, attr: "data-dosar-profil-crumb-back" }, ...[].concat(crumb)], title, actions, caption, status });
+    els.dosarProfilTitleRow.innerHTML = A.renderPageHeaderTop({ back: back || { label: VIEWS[view].title, attr: "data-dosar-profil-crumb-back" }, title, actions, caption, status });
     els.dosarProfilSummary.innerHTML = meta.length ? A.renderPageHeaderMeta(meta) : "";
     if (meta.length) A.watchPageHeaderMeta(els.dosarProfilSummary);
     els.dosarProfilTabs.innerHTML = tabs.map(([id, label, count, tone]) => {
@@ -354,7 +354,7 @@
     const errSec = new Set(sections.filter(([key]) => def.fieldsOf(key).some((k) => Object.keys(F.errors).some((e) => e === k || e.startsWith(`${k}.`)))).map(([key]) => key));
     const scrollY = window.scrollY;
     openPanel({
-      view: def.view, crumb: def.crumbs(F), title: def.title(F), hash: def.hash(F),
+      view: def.view, back: def.back(F), title: def.title(F), hash: def.hash(F),
       caption: F.mode === "edit" ? `Ultima editare: ${stamp(def.entity(F).updatedAt)} · ${def.entity(F).updatedBy}` : "",
       body: `
         <div class="e-permits-cfg2 e-permits-ekcfg-page" data-ekcfg-page>
@@ -723,7 +723,7 @@
     barCreate: "Client nou · câmpurile marcate sunt obligatorii",
     entity: (f) => findClient(f.id),
     title: (f) => (f.mode === "create" ? "Client nou" : `Editează ${findClient(f.id).name}`),
-    crumbs: (f) => (f.mode === "create" ? { label: "Client nou" } : [{ label: findClient(f.id).name }, { label: "Editare" }]),
+    back: (f) => (f.mode === "create" ? null : { label: findClient(f.id).name, attr: "data-ekcfg-parent-back" }),
     hash: (f) => (f.mode === "create" ? "ek-client-nou" : `ek-client/${f.id}/editeaza`),
     submit: (f) => (f.mode === "create" ? "Creează clientul" : "Salvează"),
     note: (f) => (f.mode === "edit" ? "Modificările se aplică sesiunilor noi imediat după salvare; sesiunile în curs continuă cu configurația cu care au pornit." : "Clientul se creează activ. Client ID-ul și MPass Client ID-ul se comunică echipei de integrare a organizației."),
@@ -1506,7 +1506,7 @@
     barCreate: "Furnizor nou · câmpurile marcate sunt obligatorii",
     entity: (f) => findProvider(f.id),
     title: (f) => (f.mode === "create" ? "Furnizor nou" : `Editează ${findProvider(f.id).name}`),
-    crumbs: (f) => (f.mode === "create" ? { label: "Furnizor nou" } : [{ label: findProvider(f.id).name }, { label: "Editare" }]),
+    back: () => null,
     hash: (f) => (f.mode === "create" ? "ek-furnizor-nou" : `ek-furnizor/${f.id}/editeaza`),
     submit: (f) => (f.mode === "create" ? "Adaugă furnizorul" : "Salvează"),
     note: (f) => (f.mode === "edit" ? "Schimbările intră în vigoare fără repornirea platformei: sesiunile în curs își termină pasul curent cu configurația veche (hot-swap)." : "Furnizorul se adaugă activ. Testează conexiunea înainte de salvare."),
@@ -2113,6 +2113,7 @@
     }
     if (t("[data-ekcfg-close]")) { closeDrawer(); return; }
     if (t("[data-ekcfg-submit]") && F) { submitForm(); return; }
+    if (t("[data-ekcfg-parent-back]") && F) { const { id } = F; event.preventDefault(); leavePage(() => clientDetail(id)); return; }
     if (t("[data-ekcfg-page-cancel]") && F) { const { id, type, mode } = F; leavePage(() => (type === "client" && mode === "edit" ? clientDetail(id) : A.closeProfile())); return; }
     if ((el = t("[data-ekcfg-nav]"))) {
       event.preventDefault();

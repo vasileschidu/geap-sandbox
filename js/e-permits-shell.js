@@ -2558,7 +2558,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
   /* the header itself = js/page-header.js (GEAPPageHeader, cabinet-header-v1: one renderer with EVO Cabinet); the
      shell only prefixes the trail with the menu section the page lives in */
-  const renderPageHeaderTop = ({ crumbs = [], title = "", actions = "", caption = "", status = "" }) => {
+  const renderPageHeaderTop = ({ back = null, crumbs = [], title = "", actions = "", caption = "", status = "" }) => {
+    if (back) return window.GEAPPageHeader.top({ back, title, actions, caption, status });
     const section = crumbs.length ? navSectionOf(crumbs[0].label) : "";
     const trail = section && section !== crumbs[0].label ? [{ label: section }, ...crumbs] : crumbs;
     return window.GEAPPageHeader.top({ crumbs: trail, title, actions, caption, status });
@@ -3067,10 +3068,7 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   const renderDosarProfilTitle = (row) => renderPageHeaderTop({
-    crumbs: [
-      { label: workplaceTitle?.textContent.trim() || "Dosare", attr: "data-dosar-profil-crumb-back" },
-      { label: row.nrDosar }
-    ],
+    back: { label: workplaceTitle?.textContent.trim() || "Dosare", attr: "data-dosar-profil-crumb-back" },
     title: row.serviciu,
     /* the current process step and its actions (core/case-flow.js) */
     actions: renderCaseActions(row),
@@ -5660,10 +5658,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const changes = userProfileChanges(user);
     const dirty = changes > 0;
     return renderPageHeaderTop({
-      crumbs: [
-        { label: "Utilizatori", attr: "data-user-profile-crumb-back" },
-        { label: user.idnp }
-      ],
+      back: { label: "Utilizatori", attr: "data-user-profile-crumb-back" },
       title: user.numeComplet,
       actions: `
         ${dirty ? `
@@ -6558,10 +6553,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const renderRoleProfileTitle = (role) => {
     const changes = permDirtyCount(roleProfileState);
     return renderPageHeaderTop({
-      crumbs: [
-        { label: "Roluri", attr: "data-role-profile-crumb-back" },
-        { label: role.id }
-      ],
+      back: { label: "Roluri", attr: "data-role-profile-crumb-back" },
       title: role.denumire,
       actions: changes ? `
         <button class="btn btn-neutral btn-sm" type="button" data-role-profile-discard>Renunță</button>
@@ -11269,9 +11261,7 @@ document.addEventListener("DOMContentLoaded", () => {
       : c.status === "draft" ? (c.publishedSnapshot ? `Ciornă peste v${c.publishedSnapshot.versiune} · modificat ${formatLongDate(c.editatLa)}` : `Ciornă nepublicată · ${formatLongDate(c.editatLa)}`)
       : `Arhivat · ${formatLongDate(c.editatLa)} · ${c.editatDe}`;
     clasProfileTitle.innerHTML = renderPageHeaderTop({
-      crumbs: clasState.fromService
-        ? [{ label: "Configurări servicii", attr: "data-clas-crumb-back" }, { label: clasState.fromService, attr: "data-clas-crumb-back" }, { label: c.denumire }]
-        : [{ label: "Clasificatoare", attr: "data-clas-crumb-back" }, { label: c.denumire }],
+      back: { label: clasState.fromService ? `${clasState.fromService} · Clasificatoare` : "Clasificatoare", attr: "data-clas-crumb-back" },
       title: c.denumire,
       actions: `${sync}${actions}`,
       caption,
@@ -12670,9 +12660,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const service = ntplProfileState.service ? getServiceByCode(ntplProfileState.service) : null;
     const source = service && tpl.source ? systemTemplates().find((item) => item.code === tpl.source) : null;
     ntplProfileTitle.innerHTML = renderPageHeaderTop({
-      crumbs: service
-        ? [{ label: "Configurări servicii", attr: "data-ntpl-crumb-back" }, { label: service.code, attr: "data-ntpl-crumb-back" }, { label: "Notificări", attr: "data-ntpl-crumb-back" }, { label: tpl.code }]
-        : [{ label: "Șabloane de notificare", attr: "data-ntpl-crumb-back" }, { label: tpl.code }],
+      back: { label: service ? `${service.code} · Notificări` : "Șabloane de notificare", attr: "data-ntpl-crumb-back" },
       title: tpl.name,
       actions: `
         ${dirty ? `
@@ -14602,10 +14590,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const body = permitsProfilePanel.querySelector("[data-passport-body]");
 
     top.innerHTML = renderPageHeaderTop({
-      crumbs: [
-        { label: servicesRegistryLabel, attr: "data-passport-crumb-back" },
-        { label: service.code }
-      ],
+      back: { label: servicesRegistryLabel, attr: "data-passport-crumb-back" },
       title: service.title,
       /* Figma button-filled-rectangular Neutral · Small · Leading icon. One source: it
          resyncs; RSSP + eAPL: the same button opens the sources menu (stack-menu) */
@@ -21206,19 +21191,42 @@ document.addEventListener("DOMContentLoaded", () => {
      their own view title (same style, js sets it on render) */
   const syncTopbarTitle = () => {
     if (!workplaceTitle || !workplacePanel || !workplacePanel.hidden) return;
-    if (workplaceRefresh) workplaceRefresh.hidden = true; /* the refresh belongs to the list */
+    if (workplaceRefresh && !workplaceRefresh.hidden) workplaceRefresh.hidden = true; /* the refresh belongs to the list */
     const active = document.querySelector("[data-nav-item].is-active");
     /* a page with no menu item (the avatar menu „Profilul meu”) names itself: data-topbar-title on the open panel */
     const own = active ? "" : document.querySelector("[data-topbar-title]:not([hidden])")?.dataset.topbarTitle || "";
     const label = own || active?.dataset.navLabel || active?.querySelector(".e-permits-shell__nav-text")?.textContent.trim();
     if (label && workplaceTitle.textContent !== label) workplaceTitle.textContent = label;
   };
+  /* back-chevron-v1 (2026-10-31, user): a child page (any depth) shows ONE quiet chevron in the top bar, immediately left of
+     the top-bar title, going to its immediate parent. Pages declare it with GEAPPageHeader.backMarker (a hidden marker in
+     the page header, or the register list's own); the button carries the page's existing back handler attribute. */
+  const syncTopbarBack = () => {
+    const host = workplaceTitle?.parentElement;
+    if (!host) return;
+    const marker = [...document.querySelectorAll("[data-page-back]")].find((m) => m.parentElement?.getClientRects().length);
+    let button = host.querySelector("[data-topbar-back]");
+    if (!marker) { button?.remove(); return; }
+    const { backLabel, backAttr } = marker.dataset;
+    const text = `Înapoi la ${backLabel}`;
+    if (button && button.dataset.topbarBack === backAttr && button.getAttribute("aria-label") === text) return;
+    button?.remove();
+    host.insertAdjacentHTML("afterbegin", `<button class="btn btn-text-neutral btn-sm btn-icon-only e-permits-topbar-back" type="button" aria-label="${escapeHtml(text)}" data-tooltip-text="${escapeHtml(text)}" data-topbar-back="${escapeHtml(backAttr)}"><svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-chevron-left"></use></svg></button>`);
+  };
+  /* the chevron runs the page's own back handler: it clicks the page's hidden marker button (back-chevron-v3) */
+  document.addEventListener("click", (event) => {
+    const button = event.target instanceof Element ? event.target.closest("[data-topbar-back]") : null;
+    if (!button) return;
+    const marker = [...document.querySelectorAll("[data-page-back]")].find((m) => m.parentElement?.getClientRects().length);
+    marker?.click();
+  });
   let topbarTitleQueued = false;
   const queueTopbarTitle = () => {
     if (topbarTitleQueued) return;
     topbarTitleQueued = true;
-    queueMicrotask(() => { topbarTitleQueued = false; syncTopbarTitle(); });
+    queueMicrotask(() => { topbarTitleQueued = false; syncTopbarTitle(); syncTopbarBack(); });
   };
+  new MutationObserver(queueTopbarTitle).observe(document.body, { subtree: true, childList: true, attributes: true, attributeFilter: ["hidden"] });
   const topbarObserver = new MutationObserver(queueTopbarTitle);
   topbarObserver.observe(shell, { attributes: true, attributeFilter: ["class"] });
   if (workplacePanel) topbarObserver.observe(workplacePanel, { attributes: true, attributeFilter: ["hidden"] });

@@ -421,7 +421,7 @@
     const caret = active && "selectionStart" in active ? [active.selectionStart, active.selectionEnd] : null;
     const n = changedKeys().length;
     els.dosarProfilTitleRow.innerHTML = A().renderPageHeaderTop({
-      crumbs: [{ label: TITLE, attr: "data-lgt-back" }, { label: t.name }],
+      back: { label: TITLE, attr: "data-lgt-back" },
       title: t.name,
       actions: headerActions(),
       status: n ? A().renderHeaderStatus?.(n === 1 ? "1 modificare nesalvată" : `${n} modificări nesalvate`, "warning", A().changesStatusAttrs?.("lgt-draft")) || "" : "",
@@ -893,7 +893,7 @@
       const n = changedKeys().length;
       const t = tplOf(P.id);
       els.dosarProfilTitleRow.innerHTML = A().renderPageHeaderTop({
-        crumbs: [{ label: TITLE, attr: "data-lgt-back" }, { label: t.name }], title: t.name, actions: headerActions(),
+        back: { label: TITLE, attr: "data-lgt-back" }, title: t.name, actions: headerActions(),
         status: n ? A().renderHeaderStatus?.(n === 1 ? "1 modificare nesalvată" : `${n} modificări nesalvate`, "warning", A().changesStatusAttrs?.("lgt-draft")) || "" : "",
         caption: t.updatedAt ? `Actualizat ${longDate(t.updatedAt)}, ${time(t.updatedAt)} · ${t.updatedBy || ""}` : ""
       });

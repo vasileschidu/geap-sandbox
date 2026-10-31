@@ -91,7 +91,7 @@
         applyCatalog();
         /* the menu follows the catalog (published, granted, not deprecated) — same items as the static menu for the seed */
         A().refreshNav?.();
-        watchSwitcher();
+        watchBackArrow();
         return data;
       }).catch((error) => { console.warn(error); S.loading = null; return null; });
     }
@@ -840,11 +840,11 @@
         : window.GEAPEmptyState?.noResults?.("Niciun registru nu corespunde căutării", { text: "Caută după denumire, cod, obiect sau autoritate." }) || ""
     };
   }
-  /* the library tabs of the BO profiles (page header tabs, count = renderPageHeaderTabCount); counts follow the search */
+  /* object pills (registers-30-v16): the library filter chip (.chip / .chip.is-selected = black) + the light count badge (as the classifier values); single-select tablist; counts follow the search */
   const catTabsHtml = (v) => [["all", "Toate", v.found.length], ...v.objects.map((o) => [o, objectLabel(v.defs.find((d) => d.object === o)), v.found.filter((d) => d.object === o).length])]
     .map(([key, label, count]) => {
       const on = S.cat.object === key;
-      return `<button class="tab-button${on ? " active" : ""}" id="reg-cat-tab-${esc(key)}" type="button" role="tab" aria-controls="reg-cat-panel" aria-selected="${on}" tabindex="${on ? 0 : -1}" data-reg-cat-tab="${esc(key)}"><span>${esc(label)}</span>${A().renderPageHeaderTabCount?.(count) || ""}</button>`;
+      return `<button class="chip${on ? " is-selected" : ""}" id="reg-cat-tab-${esc(key)}" type="button" role="tab" aria-controls="reg-cat-panel" aria-selected="${on}" tabindex="${on ? 0 : -1}" data-reg-cat-tab="${esc(key)}"><span class="chip__label">${esc(label)}</span><span class="badge badge--lg badge--solid-light" aria-hidden="true">${count}</span></button>`;
     }).join("");
   async function showCatalog() {
     await load();
@@ -856,13 +856,6 @@
     const v = catalogView(who);
     showPage("Registre", `
       <section class="e-permits-dosar-profil__section e-permits-stack-section e-permits-reg-catalog" id="reg-cat-panel" role="tabpanel" aria-labelledby="reg-cat-tab-${esc(S.cat.object)}" data-reg-catalog>
-        <div class="e-permits-dosar-profil__section-heading">
-          <h2 class="e-permits-dosar-profil__section-title">Registrele tale</h2>
-          <span class="e-permits-dosar-profil__section-meta" aria-live="polite" data-reg-cat-meta>${esc(v.meta)}</span>
-        </div>
-        <div class="tabs tabs--sm e-permits-page-header__tabs e-permits-reg-catalog__tabs">
-          <div class="tab-buttons" role="tablist" aria-label="Registre după obiect" data-reg-cat-tabs>${catTabsHtml(v)}</div>
-        </div>
         <div class="e-permits-pay__toolbar e-permits-reg-catalog__toolbar">
           <div class="e-permits-pay__tools">
             <div class="search-input medium rectangular e-permits-workplace__search e-permits-list-search e-permits-rt__search${S.cat.query.trim() ? " has-value is-ready" : ""}">
@@ -875,6 +868,7 @@
             </div>
           </div>
         </div>
+        <div class="e-permits-rt__chips e-permits-reg-catalog__tabs" role="tablist" aria-label="Registre după obiect" data-reg-cat-tabs>${catTabsHtml(v)}</div>
         <div data-reg-cat-list>${v.listHtml}</div>
       </section>`);
     A().syncStackMetaRows?.(catalogPage);
@@ -885,7 +879,7 @@
     if (!box) return;
     const v = catalogView();
     box.innerHTML = v.listHtml;
-    catalogPage.querySelector("[data-reg-cat-meta]").textContent = v.meta;
+    const meta = catalogPage.querySelector("[data-reg-cat-meta]"); if (meta) meta.textContent = v.meta;
     catalogPage.querySelector("[data-reg-cat-tabs]").innerHTML = catTabsHtml(v);
     catalogPage.querySelector("[data-reg-catalog]")?.setAttribute("aria-labelledby", `reg-cat-tab-${S.cat.object}`);
     A().syncStackMetaRows?.(catalogPage);
@@ -953,7 +947,7 @@
     return groups.map((group) => {
       if (group.label === "Registre") {
         /* registers-30-v1 (user decision): ONE visible item „Registre” = the catalog; every granted register stays a hidden
-           item (routable: catalog rows, the header switcher, links, demo helpers) and keeps „Registre” active */
+           item (routable: catalog rows, links, demo helpers) and keeps „Registre” active */
         const catalogItem = { ...(group.items.find((item) => item.id === "registre") || { id: "registre", shellView: "registre-catalog" }), label: "Registre" };
         const regs = S.data
           ? visibleDefs(who).map((def) => ({ id: def.id, label: def.name, shellView: `${def.id}-registry`, navObject: def.object, hidden: true }))
@@ -967,112 +961,32 @@
     }).filter((group) => group.items.length);
   };
 
-  /* ---------------------------------------------------------------- register switcher next to the title (registers-30-v1) */
-  /* „switch to another register without going back”: a quiet chevron after the top-bar title opens the searchable
-     picker of the Șabloane field picker (stack menu .e-permits-ntpl-picker: search on top, group labels, label + 12px
-     meta) — the registers grouped by source object, each group by „Poziția în listă”, the open one marked; Enter in the
-     search opens the first match. Only on a register's list page (the record card keeps its breadcrumb „Registre › <register>”). */
-  S.sw = { query: "" };
-  function switchItemsHtml(current) {
-    const who = persona();
-    const q = norm(S.sw.query);
-    const match = (def) => !q || norm([def.name, def.code, objectLabel(def), def.authority, authorityName(def.authority)].join(" ")).includes(q);
-    const defs = visibleDefs(who).filter(match);
-    const item = (def) => {
-      const here = def.id === current;
-      const meta = [here ? "Deschis acum" : "", scopeLabel(def), plural(rowsOf(def, who).length, "înregistrare", "înregistrări")].filter(Boolean).join(" · ");
-      return `<li role="none"><button class="e-permits-fo-intent-menu__item e-permits-ntpl-picker__item" type="button" role="menuitem"${here ? ' aria-current="page"' : ""} data-reg-switch-to="${esc(def.id)}"><span class="e-permits-ntpl-picker__label">${esc(def.name)}</span><span class="e-permits-ntpl-picker__token">${esc(meta)}</span></button></li>`;
-    };
-    const objects = [...new Set([...OBJECT_ORDER, ...defs.map((d) => d.object)])];
-    const html = objects.map((o) => {
-      const list = defs.filter((d) => d.object === o);
-      return list.length ? `<li role="presentation" class="e-permits-ntpl-picker__group">${esc(objectLabel(list[0]))}</li>${list.map(item).join("")}` : "";
-    }).join("");
-    return html || `<li role="none">${window.GEAPEmptyState?.noResults?.("Niciun registru nu corespunde", { text: "Caută după denumire, cod, obiect sau autoritate.", bare: true, compact: true }) || ""}</li>`;
-  }
-  const switcherHtml = (current) => `
-    <div class="e-permits-stack__menu-wrap e-permits-reg-switch" data-reg-switch="${esc(current)}">
-      <button class="btn btn-strict btn-sm btn-icon-only e-permits-reg-switch__trigger" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="reg-switch-menu" aria-label="Schimbă registrul" data-tooltip-label="Schimbă registrul" data-stack-menu-trigger data-reg-switch-trigger>${icon("chevron-bottom", 16, "icon small")}</button>
-    </div>`;
-  /* the picker lives in a layer on <body> (the top bar clips and is a containing block for fixed children); the layer
-     is a .e-permits-stack__menu-wrap so the shell's outside-click rule treats clicks inside it as inside the menu */
-  const switcherMenuHtml = () => `
-    <div class="e-permits-stack__menu-wrap e-permits-reg-switch-layer" data-reg-switch-layer>
-      <div class="e-permits-fo-intent-menu e-permits-stack__menu e-permits-ntpl-picker e-permits-reg-switch__menu" id="reg-switch-menu" hidden data-stack-menu data-stack-menu-fixed>
-        <div class="e-permits-fo-input e-permits-fo-input--with-action e-permits-ntpl-picker__search">
-          <input type="text" placeholder="Caută un registru" aria-label="Caută un registru" autocomplete="off" data-reg-switch-search>
-          ${icon("search", 20)}
-        </div>
-        <ul class="e-permits-ntpl-picker__list" role="menu" aria-label="Registre" data-reg-switch-list></ul>
-      </div>
-    </div>`;
-  /* shown while a register's list is on screen, gone everywhere else */
-  function syncSwitcher() {
+  /* ---------------------------------------------------------------- back arrow before a register's title (back-arrow-v1) */
+  /* a register opened from the „Registre” catalog: one chevron in the top bar left of the title = back to the catalog (the catalog keeps
+     its tab / search in S.cat); shown on a register's list page only, gone everywhere else */
+  function syncBackArrow() {
     const els = A().els || {};
     const panel = els.workplacePanel;
     const title = els.workplaceTitle;
     const kind = panel?.dataset.registryKind || "";
     const def = /^reg-/.test(kind) ? defOf(kind) : null;
     const on = Boolean(panel && title && !panel.hidden && def && granted(def));
-    const wrap = document.querySelector("[data-reg-switch]");
-    if (!on) { wrap?.remove(); document.querySelector("[data-reg-switch-layer]")?.remove(); return; }
-    if (wrap?.dataset.regSwitch === kind) return;
-    wrap?.remove();
-    title.insertAdjacentHTML("afterend", switcherHtml(kind));
-    if (!document.querySelector("[data-reg-switch-layer]")) document.body.insertAdjacentHTML("beforeend", switcherMenuHtml());
+    const marker = document.querySelector("[data-page-back][data-back-attr='data-reg-back']");
+    if (!on) { marker?.remove(); return; }
+    if (marker) return;
+    title.insertAdjacentHTML("beforebegin", (window.GEAPPageHeader?.backMarker({ label: "Registre", attr: "data-reg-back" }) || ""));
   }
-  const switchObserver = new MutationObserver(() => syncSwitcher());
-  const watchSwitcher = () => {
+  const backObserver = new MutationObserver(() => syncBackArrow());
+  const watchBackArrow = () => {
     const panel = A().els?.workplacePanel;
-    if (!panel || panel.dataset.regSwitchWatched) return;
-    panel.dataset.regSwitchWatched = "1";
-    switchObserver.observe(panel, { attributes: true, attributeFilter: ["hidden", "data-registry-kind"] });
-    syncSwitcher();
+    if (!panel || panel.dataset.regBackWatched) return;
+    panel.dataset.regBackWatched = "1";
+    backObserver.observe(panel, { attributes: true, attributeFilter: ["hidden", "data-registry-kind"] });
+    syncBackArrow();
   };
-  const refreshSwitchList = () => {
-    const wrap = document.querySelector("[data-reg-switch]");
-    const list = document.querySelector("[data-reg-switch-list]");
-    if (wrap && list) list.innerHTML = switchItemsHtml(wrap.dataset.regSwitch);
-  };
-  /* about to open (capture, before the shell's stack-menu handler opens it): the list drawn fresh (pins / counts), the
-     search empty; once open the search takes the focus */
   document.addEventListener("click", (event) => {
-    const trigger = event.target.closest?.("[data-reg-switch-trigger]");
-    const menu = document.getElementById("reg-switch-menu");
-    if (!trigger || !menu || !menu.hidden) return;
-    S.sw.query = "";
-    menu.querySelector("[data-reg-switch-search]").value = "";
-    refreshSwitchList();
-    /* the shell un-hides and places it (fixed, right-aligned under the chevron, ≥ 8 from the screen edge) in its own
-       handler: once visible, the search takes the focus */
-    const placed = new MutationObserver(() => {
-      if (menu.hidden) return;
-      placed.disconnect();
-      menu.querySelector("[data-reg-switch-search]").focus({ preventScroll: true });
-    });
-    placed.observe(menu, { attributes: true, attributeFilter: ["hidden"] });
-    setTimeout(() => placed.disconnect(), 1000);
-  }, true);
-  document.addEventListener("click", (event) => {
-    const to = event.target.closest?.("[data-reg-switch-to]");
-    if (!to) return;
-    const id = to.dataset.regSwitchTo;
-    const trig = document.querySelector("[data-reg-switch-trigger]");
-    if (id === document.querySelector("[data-reg-switch]")?.dataset.regSwitch) { trig?.focus(); return; }
-    document.querySelector(`[data-nav-item][data-nav-id="${id}"]`)?.click();
-    /* the switcher is redrawn for the new register (observer, async): focus its new trigger */
-    setTimeout(() => document.querySelector("[data-reg-switch-trigger]")?.focus({ preventScroll: true }), 0);
-  });
-  document.addEventListener("input", (event) => {
-    if (!event.target.closest?.("[data-reg-switch-search]")) return;
-    S.sw.query = event.target.value;
-    refreshSwitchList();
-  });
-  document.addEventListener("keydown", (event) => {
-    const search = event.target.closest?.("[data-reg-switch-search]");
-    if (!search || event.key !== "Enter") return;
-    event.preventDefault();
-    document.querySelector("#reg-switch-menu [data-reg-switch-to]")?.click();
+    if (!event.target.closest?.("[data-reg-back]")) return;
+    document.querySelector('[data-nav-item][data-nav-id="registre"]')?.click();
   });
 
   /* ================================================================ record card (US-196 AC-07 · US-197 AC-05 · US-273) */
@@ -1113,7 +1027,7 @@
     /* US-317 AC-09: an act of an authority outside the role's perimeter → no card, the access message */
     if (!row && def.object === "Permit" && (S.data?.acts || []).some((a) => a.id === rowId)) {
       S.card = null;
-      els.dosarProfilTitleRow.innerHTML = A().renderPageHeaderTop({ crumbs: [{ label: def.name, attr: "data-dosar-profil-crumb-back" }, { label: rowId }], title: DENIED });
+      els.dosarProfilTitleRow.innerHTML = A().renderPageHeaderTop({ back: { label: def.name, attr: "data-dosar-profil-crumb-back" }, title: DENIED });
       els.dosarProfilSummary.innerHTML = "";
       els.dosarProfilTabs.innerHTML = "";
       els.dosarProfilPanelBody.id = "reg-panel";
@@ -1121,7 +1035,7 @@
       return;
     }
     if (!row) {
-      els.dosarProfilTitleRow.innerHTML = A().renderPageHeaderTop({ crumbs: [{ label: def.name, attr: "data-dosar-profil-crumb-back" }, { label: rowId }], title: "Înregistrarea nu a fost găsită" });
+      els.dosarProfilTitleRow.innerHTML = A().renderPageHeaderTop({ back: { label: def.name, attr: "data-dosar-profil-crumb-back" }, title: "Înregistrarea nu a fost găsită" });
       els.dosarProfilSummary.innerHTML = "";
       els.dosarProfilTabs.innerHTML = "";
       els.dosarProfilPanelBody.id = "reg-panel";
@@ -1145,7 +1059,7 @@
     if (!row) return;
     const els = A().els || {};
     els.dosarProfilTitleRow.innerHTML = A().renderPageHeaderTop({
-      crumbs: [{ label: def.name, attr: "data-dosar-profil-crumb-back" }, { label: row.nr }],
+      back: { label: def.name, attr: "data-dosar-profil-crumb-back" },
       title: def.object === "Permit" ? `Act: ${row.nr}` : titleOf(def, row),
       actions: cardActions(def, row)
     });

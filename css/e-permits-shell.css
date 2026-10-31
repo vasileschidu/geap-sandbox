@@ -2399,6 +2399,16 @@ body {
   padding-right: var(--spacing-40, 40px);
 }
 
+/* ONE search look (search-one-v1): the clear × sits 12 from the field's outer edge, as in the RAP search — the library
+   draws it 4 inside a 2px border (~6 from the edge). Searches with a submit (.btn-search) keep the library inset. */
+.e-permits-workplace__search.search-input:not(:has(.btn-search)) .btn-group {
+  right: calc(var(--spacing-12, 12px) - var(--border-width-2, 2px));
+}
+
+.e-permits-fo-field .e-permits-workplace__search.search-input:not(:has(.btn-search)) .btn-group {
+  right: calc(var(--spacing-12, 12px) - var(--border-width-1, 1px));
+}
+
 /* typing spinner and clear (x) share one 20px slot: the spinner is 16 + 2 inset, so it
    sits centred where the x appears, not 4px further right */
 .search-input .btn-group .spinner {
@@ -3564,3 +3574,50 @@ td .e-permits-workplace__date-stack > .e-permits-workplace__date-meta:not(:has(.
   outline: none;
 }
 
+
+/* back-chevron-v1 (2026-10-31): the way back of a BO child page = ONE quiet chevron in the top bar, left of the title.
+   Library text button (no fill at rest, library hover / pressed), Small 32 with a 20 chevron (user: 16 too small); phones 40, and the
+   title row (hidden ≤ 640) shows just the chevron. */
+.e-permits-topbar-back {
+  flex: 0 0 var(--spacing-32, 32px);
+  margin-inline-end: calc(var(--spacing-8, 8px) - var(--spacing-16, 16px));
+}
+
+.e-permits-back-marker {
+  display: none;
+}
+
+/* the chevron icon is 20 at every width (user 2026-10-31: 16 was too small) */
+.btn.btn-sm.btn-icon-only.e-permits-topbar-back {
+  --btn-icon-size: var(--spacing-20, 20px);
+}
+
+@media (max-width: 760px) {
+  .btn.btn-sm.btn-icon-only.e-permits-topbar-back {
+    flex-basis: var(--spacing-40, 40px);
+    height: var(--spacing-40, 40px);
+    width: var(--spacing-40, 40px);
+  }
+
+  .btn.btn-sm.btn-icon-only.e-permits-topbar-back .icon {
+    height: var(--spacing-20, 20px);
+    width: var(--spacing-20, 20px);
+  }
+}
+
+@media (max-width: 640px) {
+  .e-permits-shell__header .e-permits-workplace__title-row--shell:has(.e-permits-topbar-back) {
+    border-bottom: 0;
+    display: flex;
+    margin-inline-end: auto;
+    padding-inline: 0;
+  }
+
+  .e-permits-shell__header .e-permits-workplace__title-row--shell:has(.e-permits-topbar-back) :is(.e-permits-workplace__title, .e-permits-workplace__refresh) {
+    display: none;
+  }
+
+  .e-permits-topbar-back {
+    margin-inline-end: 0;
+  }
+}

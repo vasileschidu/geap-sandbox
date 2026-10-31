@@ -232,6 +232,7 @@
     "backText": "^\\s*(‹|←|Înapoi la\\b)",
     "backHook": "(^|[-_])back(-shell|-link)?$|shell-back",
     "exempt": [
+      ".e-permits-topbar-back",
       ".e-permits-fo-back-button",
       "[data-fo-back-choice]",
       ".modal-buttons",

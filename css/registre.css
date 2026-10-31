@@ -490,19 +490,29 @@
   margin-bottom: var(--spacing-16, 16px);
 }
 
-/* register switcher: the quiet chevron right after the top-bar title (title → button 8: the row's gap 16 − 8) */
-.e-permits-reg-switch {
-  flex: 0 0 auto;
-  margin-inline-start: calc(-1 * var(--spacing-8, 8px));
+/* the pills = the classifier's rt-chips (36 like every BO toolbar chip: 40 minus the search's 2px borders) */
+.e-permits-reg-catalog__tabs > .chip {
+  box-sizing: border-box;
+  height: calc(var(--spacing-40, 40px) - 2 * var(--border-width-2, 2px));
+  padding-block: 0;
 }
 
-/* the picker: a layer on <body>, fixed (data-stack-menu-fixed: the top bar clips), placed under the chevron by the
-   shell, kept inside a phone screen */
-.e-permits-reg-switch-layer > .e-permits-stack__menu {
-  max-width: calc(100vw - 2 * var(--spacing-16, 16px));
-}
+/* registers-30-v16: the pills are library filter chips (black when active); phones: one row, scrolls sideways, no scrollbar */
+@media (max-width: 760px) {
+  .e-permits-reg-catalog__tabs {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
 
-/* open = the shell rule `.btn[aria-expanded="true"]` (pressed + ring), nothing local */
+  .e-permits-reg-catalog__tabs::-webkit-scrollbar {
+    display: none;
+  }
+
+  .e-permits-reg-catalog__tabs > .chip {
+    flex: 0 0 auto;
+  }
+}
 
 /* catalog toolbar: the search starts the row (as the BO registries; the shared rule puts a lone tools block right) */
 .e-permits-pay__toolbar.e-permits-reg-catalog__toolbar > .e-permits-pay__tools:only-child {

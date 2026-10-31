@@ -2273,7 +2273,7 @@
         "pd-15": pd(async (h) => { await h.click("[data-pd-zoom-label]"); await h.click("[data-pd-zoom-to='0.5']"); }),
         "pd-15a": pd(async (h) => { await h.click("[data-pd-zoom-label]"); }),
         "pd-18": pd(async (h) => { await h.click("[data-pd-mode='json']"); }),
-        "pd-19": pd(async (h) => { await h.click("[data-pd-settings]"); }),
+        "pd-19": pd(async (h) => { await h.click("[data-pd-mode='settings']"); }),
         "pd-25": pd(async (h) => { await pick("node12")(h); }, { vizualizare: "1" }),
         /* batch 1 — editing */
         "pd-04": pd(pick("node6")),
@@ -2343,7 +2343,8 @@
         "pd-34": pd(async (h) => { await pick("node41")(h); await h.fill("[data-pd-prop='id']", "node6"); }),
 
         /* batch 3 — lifecycle (settings, JSON, versions, publish, registry, passport refresh) */
-        "pd-19a": pd(async (h) => { await h.click("[data-pd-settings]"); await h.scroll("[data-pd-props] .e-permits-user-create__section-title", "Utilizare"); }),
+        "pd-19a": pd(async (h) => { await h.click("[data-pd-mode='settings']"); await h.click("[data-pd-settings-nav='usage']"); await h.wait(1000); }),
+        "pd-19b": pd(async (h) => { await h.click("[data-pd-mode='settings']"); await h.fill("[data-pd-settings-page] [data-pd-prop='process.title']", ""); await h.wait(300); }),
         "pd-18a": pd(async (h) => { await h.click("[data-pd-mode='json']"); const text = PDX().serialize().replace('"title": "Flux Simplificat Fara Supervizor"', '"title": "Flux Simplificat (importat)"'); PDX().importText(text, "ProcesFluxSimplificatFaraSupervizor_v1.0.1.json"); await h.wait(500); }),
         /* publish blocked: E5 errors (lane without role) — the modal lists them, Publică disabled */
         "pd-20": pd(async (h) => { await at("node6", 0.75)(h); await h.click("[data-pd-lane-select='lane5']"); await h.choose("[data-pd-prop='lane.role']", ""); await h.click("[data-pd-publish]"); await h.wait(400); }),
@@ -4014,9 +4015,6 @@
          catalog = search + library tabs per object (Toate grouped by object, sorted by „Poziția în listă”); header switcher */
       "reg-01c": page("#registre", ADMIN, async (h) => { await h.fill("[data-reg-cat-search]", "ANSA", { leave: false }); await h.wait(200); }),
       "reg-01d": page("#registre", ADMIN, async (h) => { await h.click('[data-reg-cat-tab="Permit"]'); }),
-      "reg-01g": reg("reg-acte", ADMIN, async (h) => { await h.click("[data-reg-switch-trigger]"); await h.wait(200); }),
-      /* the switcher searched (captured at 375 too: the picker inside the phone screen, search 48) */
-      "reg-01h": reg("reg-acte", ADMIN, async (h) => { await h.click("[data-reg-switch-trigger]"); await h.fill("[data-reg-switch-search]", "aviz", { leave: false }); await h.wait(200); }),
       /* Registru Dosare (US-194): admin — every ANSP dossier, ⋮ with the configured actions */
       "reg-02": reg("reg-dosare"),
       "reg-02a": reg("reg-dosare", SPEC),
@@ -4027,8 +4025,11 @@
       "reg-02f": reg("reg-dosare", SPEC, rowMenu("D-2026-004566")),
       /* Registrul actelor permisive (US-196) */
       "reg-03": reg("reg-acte"),
+      "reg-03e": reg("reg-acte", ADMIN, async (h) => { await h.fill("[data-workplace-search]", "zzz", { leave: false }); await h.wait(400); }),
       "reg-03a": reg("reg-acte", ANTA),
       "reg-03b": reg("reg-acte", ADMIN, async (h) => { await h.hover("[data-workplace-export]"); }),
+      /* back-arrow-v1: the arrow left of the register title = „Înapoi la Registre” (hovered; click → the catalog) */
+      "reg-03b2": reg("reg-acte", ADMIN, async (h) => { await h.hover("[data-reg-back]"); }),
       "reg-03c": reg("reg-acte", ADMIN, async (h) => { await filtered("reg-acte", { status: ["Suspendat", "Retras", "Anulat"] })(h); await h.click("[data-workplace-export]"); }),
       "reg-03d": reg("reg-acte", SPEC),
       /* Registru note de plată (US-197) */

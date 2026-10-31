@@ -281,7 +281,7 @@
     if (!rec) return;
     const els = A().els || {};
     els.dosarProfilTitleRow.innerHTML = A().renderPageHeaderTop({
-      crumbs: [{ label: "Registre", attr: "data-rga-back" }, { label: rec.names.ro }],
+      back: { label: "Registre", attr: "data-rga-back" },
       title: rec.names.ro,
       actions: headerActions(rec),
       /* AC-26: the label while the saved configuration differs from the published one */
@@ -1201,7 +1201,7 @@
     const caret = active && "selectionStart" in active ? [active.selectionStart, active.selectionEnd] : null;
     const scrolls = [...el.querySelectorAll("[data-rga-scroll]")].map((s) => [s.dataset.rgaScroll, s.scrollTop]);
     el.querySelector("[data-rga-editor-top]").innerHTML = A().renderPageHeaderTop({
-      crumbs: [{ label: "Registre", attr: "data-rga-editor-close" }, { label: rec.names.ro, attr: "data-rga-editor-close" }, { label: "Configurare" }],
+      back: { label: rec.names.ro, attr: "data-rga-editor-close" },
       title: "Configurează registrul"
     });
     const counts = { coloane: E.draft.columns.length, filtru: E.draft.predefinedFilter?.rules?.length || 0, actiuni: E.draft.actions.length };

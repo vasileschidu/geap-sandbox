@@ -157,27 +157,8 @@
   line-height: var(--line-height-lh-16, 16px);
 }
 
-/* „Setări generale” is a panel, not a mode: pressed while the process panel shows */
-.e-permits-pd__modes .segment-item[data-pd-settings].is-active {
-  background: var(--color-background-base-default, #fff);
-  box-shadow: var(--shadow-100, 0 1px 3px rgba(0, 0, 0, 0.16), 0 0 0.5px rgba(0, 0, 0, 0.3));
-  color: var(--color-text-base-default, #121212);
-  font-weight: var(--font-weight-fw-medium, 500);
-}
-
-.e-permits-pd__modes .segment-item[data-pd-settings].is-active:hover {
-  background: var(--color-background-base-tertiary-hover, #e7e7e7);
-}
-
-.e-permits-pd__modes.segmented-control--compact {
-  gap: var(--spacing-2, 2px);
-  padding: var(--spacing-2, 2px);
-}
-
-.e-permits-pd__modes.segmented-control--compact .segment-item {
-  padding: var(--spacing-4, 4px) var(--spacing-12, 12px);
-}
-
+/* pd-modes-v2 (user 2026-10-31: „more padding top/bottom, use the component”): the modes = the documented compact
+   segmented control as-is (items 32 · 6 12, track 4 · 4 = 40, same as the view switch) — the local 2 / 28 squeeze is gone */
 .e-permits-pd__modes .segment-item .icon,
 .e-permits-pd__modes .segment-item > svg {
   height: var(--spacing-16, 16px);
@@ -1107,7 +1088,8 @@
 
 .e-permits-pd__float[hidden],
 .e-permits-pd__minimap[hidden],
-.e-permits-pd__json[hidden] {
+.e-permits-pd__json[hidden],
+.e-permits-pd__settings[hidden] {
   display: none;
 }
 
@@ -1772,8 +1754,33 @@
   width: 100%;
 }
 
-.e-permits-builder--process[data-mode="json"] :is(.e-permits-pd__float, .e-permits-pd__toolbar, .e-permits-pd__minimap) {
+.e-permits-builder--process:is([data-mode="json"], [data-mode="settings"]) :is(.e-permits-pd__float, .e-permits-pd__toolbar, .e-permits-pd__minimap) {
   display: none;
+}
+
+/* ===== Setări generale page (pd-settings-page-v1): its own mode, the Servicii › Setări layout (.e-permits-cfg2) ===== */
+.e-permits-pd__settings {
+  background: var(--color-background-base-default, #fff);
+  box-sizing: border-box;
+  inset: 0;
+  overflow: auto;
+  padding: var(--spacing-20, 20px) var(--spacing-24, 24px) var(--spacing-32, 32px);
+  position: absolute;
+  z-index: 8;
+}
+
+.e-permits-pd__settings:focus {
+  outline: none;
+}
+
+.e-permits-pd__settings-page {
+  margin: 0 auto;
+  max-width: calc(var(--spacing-64, 64px) * 16);
+}
+
+/* the library heading margin would double the head's 4 gap */
+.e-permits-pd__settings .e-permits-cfg2__head .e-permits-dosar-profil__section-title {
+  margin: 0;
 }
 
 /* ===== Footer: Anulează · Salvează (US-50 AC-12, Figma 5307:57645) ===== */
@@ -2613,7 +2620,8 @@
     display: none;
   }
 
-  .e-permits-pd__json {
+  .e-permits-pd__json,
+  .e-permits-pd__settings {
     padding: var(--spacing-16, 16px);
   }
 

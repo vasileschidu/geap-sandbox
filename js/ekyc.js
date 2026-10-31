@@ -612,7 +612,7 @@
     const hist = isHistorical(s);
     const uc = useCase(s.useCaseCode);
     api.els.dosarProfilTitleRow.innerHTML = api.renderPageHeaderTop({
-      crumbs: [{ label: hist ? "Sesiuni istorice" : "Sesiuni active", attr: "data-dosar-profil-crumb-back" }, { label: s.id }],
+      back: { label: hist ? "Sesiuni istorice" : "Sesiuni active", attr: "data-dosar-profil-crumb-back" },
       title: client(s.clientId).name,
       caption: role() === "auditor" ? "Doar citire · accesul se jurnalizează" : ""
     });
@@ -681,7 +681,7 @@
     hideDash();
     api.openProfilePanel();
     if (!s) {
-      api.els.dosarProfilTitleRow.innerHTML = api.renderPageHeaderTop({ crumbs: [{ label: "Sesiuni active", attr: "data-dosar-profil-crumb-back" }, { label: id }], title: id });
+      api.els.dosarProfilTitleRow.innerHTML = api.renderPageHeaderTop({ back: { label: "Sesiuni active", attr: "data-dosar-profil-crumb-back" }, title: id });
       api.els.dosarProfilSummary.innerHTML = "";
       api.els.dosarProfilTabs.innerHTML = "";
       api.els.dosarProfilPanelBody.innerHTML = api.renderEmptyState({
@@ -1551,7 +1551,7 @@
     }
     if (sup && r.status !== "Finalizată") actions = `<button class="btn btn-neutral btn-sm" type="button" aria-haspopup="dialog" data-ekyc-assign="${esc(s.id)}">${icon("people", 16)}<span>${r.status === "Nealocată" ? "Alocă" : "Realocă"}</span></button>`;
     api.els.dosarProfilTitleRow.innerHTML = api.renderPageHeaderTop({
-      crumbs: [{ label: sup ? "Coada de revizie" : "Sesiunile mele de revizie", attr: "data-dosar-profil-crumb-back" }, { label: s.id }],
+      back: { label: sup ? "Coada de revizie" : "Sesiunile mele de revizie", attr: "data-dosar-profil-crumb-back" },
       title: client(s.clientId).name,
       actions,
       caption: r.id
@@ -1591,7 +1591,7 @@
     api.openProfilePanel();
     const denied = !s || !s.review || (role() === "operator" && !myPart(s));
     if (denied) {
-      api.els.dosarProfilTitleRow.innerHTML = api.renderPageHeaderTop({ crumbs: [{ label: role() === "supervisor" ? "Coada de revizie" : "Sesiunile mele de revizie", attr: "data-dosar-profil-crumb-back" }, { label: id }], title: id });
+      api.els.dosarProfilTitleRow.innerHTML = api.renderPageHeaderTop({ back: { label: role() === "supervisor" ? "Coada de revizie" : "Sesiunile mele de revizie", attr: "data-dosar-profil-crumb-back" }, title: id });
       api.els.dosarProfilSummary.innerHTML = "";
       api.els.dosarProfilTabs.innerHTML = "";
       api.els.dosarProfilPanelBody.innerHTML = api.renderEmptyState(s && s.review

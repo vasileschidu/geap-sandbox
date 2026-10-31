@@ -711,6 +711,11 @@ html.is-filter-sheet-open .e-permits-fo-testcfg {
   line-height: var(--line-height-lh-20, 20px);
 }
 
+/* × 12 from the field's outer edge (= RAP search; the shared rule in e-permits-shell.css, restated for pages without it) */
+:is(.e-permits-workplace__filter-pop, .e-permits-filter-sheet) .e-permits-workplace__search.search-input:not(:has(.btn-search)) .btn-group {
+  right: calc(var(--spacing-12, 12px) - var(--border-width-2, 2px));
+}
+
 /* typing spinner and × share one 20px slot; one clear button only (never the browser's) */
 :is(.e-permits-workplace__filter-pop, .e-permits-filter-sheet) .search-input .btn-group .spinner {
   box-sizing: border-box;

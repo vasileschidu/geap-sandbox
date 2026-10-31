@@ -639,16 +639,6 @@
   width: 60%;
 }
 
-/* the search sits in a FORM field (label above): the clear ✕ keeps the field's own right padding (12) instead of the
-   toolbar search's 5 inset (ofc-search-first-v4); the text never runs under it */
-.e-permits-gh-ofc .e-permits-fo-field .search-input.e-permits-workplace__search .btn-group {
-  right: var(--spacing-12, 12px);
-}
-
-.e-permits-gh-ofc .e-permits-fo-field .search-input.e-permits-workplace__search.has-value .input {
-  padding-right: calc(var(--spacing-24, 24px) + var(--spacing-12, 12px) + var(--spacing-12, 12px));
-}
-
 /* phones: the act search is a 48 field with 16/24 text (the BO list search is a fixed 40 — registries have no phone) */
 @media (max-width: 760px) {
   .e-permits-gh-ofc .e-permits-fo-field .search-input.e-permits-workplace__search {

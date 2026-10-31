@@ -4,7 +4,7 @@
    CSS: e-permits-acte-permisive.css „Back-office page header” (BO + Cabinet) and css/bo-profile-parts.css (pages
    without the BO stylesheets). components.md › „Page header — one renderer”.
 
-   GEAPPageHeader.top({ crumbs, title, titleId, subtitleHtml, wrap, actions, actionsPlacement, phoneTitle, caption, status }) → the __top content:
+   GEAPPageHeader.top({ back?, crumbs, title, titleId, subtitleHtml, wrap, actions, actionsPlacement, phoneTitle, caption, status }) → the __top content:
      crumbs   = the full trail ([{ label, attr? | href? }, …, { label: current }]) — drawn parents-only (breadcrumb-v3)
      title    = the H1 text; one line + tooltip (BO registries) unless `wrap` (EVO Cabinet: the full name wraps,
                 never truncated on its own page)
@@ -31,13 +31,20 @@
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#039;");
 
-  const top = ({ crumbs = [], title = "", titleId = "", subtitleHtml = "", wrap = false, actions = "", actionsPlacement = "aside", phoneTitle = "default", caption = "", status = "" } = {}) => {
+  /* back-chevron-v1 (user 2026-10-31): the way back of a BO child page is ONE chevron in the shell top bar, left of the
+     top-bar title (js/e-permits-shell.js › syncTopbarBack) — never next to the H1. The page header only declares it: a hidden
+     marker with the parent's name and the page's existing back handler (`attr` = a data attribute). */
+  /* the marker is a real (hidden) button INSIDE the page carrying the page's back handler attribute, so the page's own
+     (scoped) click handlers run; the top-bar chevron just clicks it (back-chevron-v3) */
+  const backMarker = ({ label = "", attr = "" } = {}) => `<button class="e-permits-back-marker" type="button" hidden tabindex="-1" aria-hidden="true" data-page-back data-back-label="${esc(label)}" data-back-attr="${esc(attr)}" ${attr}></button>`;
+
+  const top = ({ back = null, crumbs = [], title = "", titleId = "", subtitleHtml = "", wrap = false, actions = "", actionsPlacement = "aside", phoneTitle = "default", caption = "", status = "" } = {}) => {
     const compact = phoneTitle === "compact";
     const below = actionsPlacement === "below" && actions;
     const aside = below ? "" : actions;
     return `
     <div class="e-permits-page-header__heading">
-      ${window.GEAPBreadcrumbs?.html(crumbs, { truncate: true, parentsOnly: true }) || ""}
+      ${back ? backMarker(back) : window.GEAPBreadcrumbs?.html(crumbs, { truncate: true, parentsOnly: true }) || ""}
       <h1 class="e-permits-page-header__title${compact ? " e-permits-page-header__title--compact" : ""}"${wrap || compact ? "" : " data-cell-tooltip"}${compact ? " data-name-expand data-name-expand-lines" : ""}${titleId ? ` id="${esc(titleId)}" tabindex="-1"` : ""}>${esc(title)}</h1>${subtitleHtml ? `
       ${subtitleHtml}` : ""}${below ? `
       <div class="e-permits-page-header__actions e-permits-page-header__actions--below">${actions}</div>` : ""}
@@ -68,5 +75,5 @@
     });
   };
 
-  window.GEAPPageHeader = { top, meta, syncMetaRows };
+  window.GEAPPageHeader = { top, backMarker, meta, syncMetaRows };
 })();

@@ -121,7 +121,7 @@ document.addEventListener("DOMContentLoaded", () => {
         <div class="segmented-control segmented-control--compact e-permits-pd__modes" role="tablist" aria-label="Modul designerului">
           <button class="segment-item is-selected" type="button" role="tab" aria-selected="true" aria-label="Editare" data-pd-mode="build">${BUILD_ICON}<span>Editare</span></button>
           <button class="segment-item" type="button" role="tab" aria-selected="false" aria-label="Schemă JSON" data-pd-mode="json">${icon("brackets")}<span>Schemă JSON</span></button>
-          <button class="segment-item" type="button" aria-pressed="false" aria-label="Setări generale" data-pd-settings>${icon("settings")}<span>Setări generale</span></button>
+          <button class="segment-item" type="button" role="tab" aria-selected="false" aria-label="Setări generale" data-pd-mode="settings">${icon("settings")}<span>Setări generale</span></button>
         </div>
         <div class="e-permits-builder__nav-actions">
           <div class="e-permits-stack__menu-wrap e-permits-builder__issues" data-pd-edit-only>
@@ -194,6 +194,7 @@ document.addEventListener("DOMContentLoaded", () => {
         </div>
 
         <section class="e-permits-pd__json" hidden aria-label="Schema JSON a procesului" data-pd-json></section>
+        <section class="e-permits-pd__settings" hidden tabindex="-1" aria-label="Setări generale ale procesului" data-pd-settings-page></section>
         <ul class="e-permits-fo-intent-menu e-permits-stack__menu e-permits-pd__add-menu" id="pd-add-menu" role="menu" aria-label="Continuă cu" hidden data-stack-menu data-pd-add-menu></ul>
         <ul class="e-permits-fo-intent-menu e-permits-stack__menu e-permits-pd__node-menu" id="pd-node-menu" role="menu" aria-label="Acțiunile elementului" hidden data-stack-menu data-pd-node-menu></ul>
         <p class="u-visually-hidden" aria-live="polite" data-pd-live></p>
@@ -253,7 +254,7 @@ document.addEventListener("DOMContentLoaded", () => {
     errorsIcon: q("[data-pd-errors-icon]"),
     issues: q("[data-pd-issues]"),
     publish: q("[data-pd-publish]"),
-    settings: q("[data-pd-settings]"),
+    settings: q("[data-pd-settings-page]"),
     stage: q("[data-pd-stage]"),
     world: q("[data-pd-world]"),
     lanes: q("[data-pd-lanes]"),
@@ -296,7 +297,6 @@ document.addEventListener("DOMContentLoaded", () => {
     sel: { nodes: new Set(), edge: "", lane: "", pool: false },
     view: { x: 0, y: 0, z: 1 },
     mode: "build",
-    settings: false,
     viewOnly: false,
     forced: "",          // reason the view-only toggle is locked
     leftOpen: true,
@@ -497,7 +497,6 @@ document.addEventListener("DOMContentLoaded", () => {
     S.sel = { nodes: new Set(), edge: "", lane: "", pool: false };
     S.undo = [];
     S.redo = [];
-    S.settings = false;
     S.mode = "build";
     S.forced = S.openedVersion ? "Versiune anterioară — o poți doar vizualiza." : forced;
     S.viewOnly = Boolean(viewOnly || S.forced || window.innerWidth < 960);
@@ -575,7 +574,8 @@ document.addEventListener("DOMContentLoaded", () => {
     renderIssues();
     nodeEls.forEach((node, id) => node.classList.toggle("has-error", errorsOf(id).length > 0));
     edgeEls.forEach((rec, key) => rec.g.classList.toggle("has-error", errorsOf(key).length > 0));
-    if (el.props.querySelector("[data-pd-panel-errors]")) renderPanel();
+    if (S.mode === "settings") renderSettingsPage();
+    else if (el.props.querySelector("[data-pd-panel-errors]")) renderPanel();
   }
 
   /* ================================================================== RENDER */
@@ -632,15 +632,13 @@ document.addEventListener("DOMContentLoaded", () => {
     panelsBtn.setAttribute("aria-pressed", String(panelsHidden));
     panelsBtn.setAttribute("aria-label", panelsHidden ? "Extinde panourile" : "Restrânge panourile");
     panelsBtn.dataset.tooltipLabel = `${panelsHidden ? "Extinde panourile" : "Restrânge panourile"} (Ctrl+\\)`;
-    el.settings.setAttribute("aria-pressed", String(S.settings));
-    el.settings.classList.toggle("is-active", S.settings);
     el.minimap.hidden = !S.minimap || listOn;
     el.palette.hidden = S.viewOnly || !S.leftOpen;
     /* below 960 the properties are a bottom card that appears with a selection (spec E.7) */
     const narrow = window.innerWidth < 960;
-    const nothing = !S.settings && !S.sel.nodes.size && !S.sel.edge && !S.sel.lane && !S.sel.pool;
-    /* Doar vizualizare hides Proprietăți (card + rail) like Elemente (user 2026-10-25); „Setări generale” still opens it */
-    const readView = currentView() === "readonly" && !S.settings;
+    const nothing = !S.sel.nodes.size && !S.sel.edge && !S.sel.lane && !S.sel.pool;
+    /* Doar vizualizare hides Proprietăți (card + rail) like Elemente (user 2026-10-25) */
+    const readView = currentView() === "readonly";
     el.props.hidden = !S.rightOpen || (narrow && nothing) || readView;
     el.propsRail.hidden = S.rightOpen || S.mode !== "build" || (narrow && nothing) || readView;
     /* the toolbar never changes shape between views (user: „the switcher must not jump”): tools that do not apply stay
@@ -687,18 +685,12 @@ document.addEventListener("DOMContentLoaded", () => {
       b.setAttribute("aria-selected", String(on));
     });
     el.json.hidden = mode !== "json";
+    el.settings.hidden = mode !== "settings";
     if (mode === "json") renderJson();
+    if (mode === "settings") renderSettingsPage(); else renderPanel();
     renderChrome();
   }
   root.querySelectorAll("[data-pd-mode]").forEach((b) => b.addEventListener("click", () => { closeAddMenu(); setMode(b.dataset.pdMode); }));
-  el.settings.addEventListener("click", () => {
-    S.settings = !S.settings;
-    if (S.settings) { S.rightOpen = true; if (S.mode !== "build") setMode("build"); }
-    renderChrome();
-    renderPanel();
-    if (S.settings) el.props.querySelector("input, textarea, button")?.focus();
-  });
-
   /* ---- versions menu (FB version button) */
   function renderVersions() {
     const rec = S.rec;
@@ -767,11 +759,17 @@ document.addEventListener("DOMContentLoaded", () => {
   }
   /* an issue row (menu, publish modal): select + centre the element, open the tab, focus the property */
   function goToIssue({ id, kind, prop = "", tab = "general" }) {
-    if (S.mode !== "build") setMode("build");
+    const onProcess = kind !== "edge" && !S.byId.has(id);
+    const wanted = onProcess ? "settings" : "build";
+    if (S.mode !== wanted) setMode(wanted);
+    if (onProcess) {
+      renderSettingsPage();
+      window.setTimeout(() => (el.settings.querySelector(`[data-pd-prop="${CSS.escape(prop)}"]`) || el.settings.querySelector("[data-pd-prop]"))?.focus(), 0);
+      return;
+    }
     if (S.listView && !listForced()) { S.listView = false; renderList(); }
     if (kind === "edge") selectEdge(id);
     else if (S.byId.has(id)) { S.tab = tab || "general"; selectNodes([id]); }
-    else { S.settings = true; S.rightOpen = true; renderChrome(); renderPanel(); return; }
     S.rightOpen = true;
     renderChrome();
     renderPanel();
@@ -1393,7 +1391,6 @@ document.addEventListener("DOMContentLoaded", () => {
     S.sel.edge = "";
     S.sel.lane = "";
     S.sel.pool = false;
-    S.settings = false;
     S.typingKey = "";
     refreshSelectionClasses();
     renderChrome();
@@ -1405,7 +1402,6 @@ document.addEventListener("DOMContentLoaded", () => {
   function selectEdge(key) {
     if (S.sel.edge !== key) S.bendSeg = null;
     S.sel = { nodes: new Set(), edge: key, lane: "" };
-    S.settings = false;
     S.typingKey = "";
     refreshSelectionClasses();
     renderChrome();
@@ -1413,7 +1409,6 @@ document.addEventListener("DOMContentLoaded", () => {
   }
   function selectLane(id) {
     S.sel = { nodes: new Set(), edge: "", lane: id };
-    S.settings = false;
     S.typingKey = "";
     refreshSelectionClasses();
     renderChrome();
@@ -1421,7 +1416,6 @@ document.addEventListener("DOMContentLoaded", () => {
   }
   function selectPool() {
     S.sel = { nodes: new Set(), edge: "", lane: "", pool: true };
-    S.settings = false;
     S.typingKey = "";
     S.rightOpen = true;
     refreshSelectionClasses();
@@ -1547,6 +1541,7 @@ document.addEventListener("DOMContentLoaded", () => {
       ${extra}${body}
     </div>`;
   function renderPanel() {
+    if (S.mode === "settings") { renderSettingsPage(); return; }
     if (el.props.hidden) return;
     const active = document.activeElement;
     const focusId = el.props.contains(active) ? active.id : "";
@@ -1554,11 +1549,10 @@ document.addEventListener("DOMContentLoaded", () => {
     const scroller = el.props.querySelector("[data-pd-panel-scroll]");
     const scrollTop = scroller ? scroller.scrollTop : 0;
     const tabsLeft = el.props.querySelector("[data-pd-tabs-scroller]")?.scrollLeft || 0;
-    const key = `${S.settings}:${[...S.sel.nodes].join(",")}:${S.sel.edge}:${S.sel.lane}:${S.sel.pool}:${S.tab}`;
+    const key = `${[...S.sel.nodes].join(",")}:${S.sel.edge}:${S.sel.lane}:${S.sel.pool}:${S.tab}`;
     const sameKey = el.props.dataset.pdFor === key;
     let html = "";
-    if (S.settings) html = processPanel();
-    else if (S.sel.edge) html = edgePanel(edgeOf(S.sel.edge));
+    if (S.sel.edge) html = edgePanel(edgeOf(S.sel.edge));
     else if (S.sel.lane) html = lanePanel(laneById(S.sel.lane));
     else if (S.sel.pool) html = poolPanel();
     else if (S.sel.nodes.size === 1) html = nodePanel(S.byId.get([...S.sel.nodes][0]));
@@ -1566,7 +1560,7 @@ document.addEventListener("DOMContentLoaded", () => {
     else html = emptyPanel();
     el.props.innerHTML = html;
     el.props.dataset.pdFor = key;
-    el.props.classList.toggle("is-compact", !S.settings && !S.sel.edge && !S.sel.lane && !S.sel.pool && !S.sel.nodes.size);
+    el.props.classList.toggle("is-compact", !S.sel.edge && !S.sel.lane && !S.sel.pool && !S.sel.nodes.size);
     const next = el.props.querySelector("[data-pd-panel-scroll]");
     if (next && sameKey) next.scrollTop = scrollTop;
     const tabsScroller = el.props.querySelector("[data-pd-tabs-scroller]");
@@ -2064,8 +2058,17 @@ document.addEventListener("DOMContentLoaded", () => {
       `)}`;
   }
 
-  /* ---- Setări generale (US-52 AC-03, spec E.6): identity · managed record · context variables · version · usage · statistics */
-  function processPanel() {
+  /* ---- Setări generale (US-52 AC-03, spec E.6): its own page (mode), the layout of Servicii › Setări (`.e-permits-cfg2`):
+     sticky section list left, sections right (title + description over a white card). Same `data-pd-prop` binding and
+     footer Salvează / Anulează as before; no private save bar. */
+  const SETTINGS_SECTIONS = [
+    ["identity", "Identificare", "circle-info", "Identificatorul, denumirea și descrierea procesului."],
+    ["record", "Parametrii înregistrării", "page-text", "Tabela gestionată de proces și variabilele de context pe care le citesc condițiile deciziilor."],
+    ["version", "Versiune", "history", "Statutul procesului, versiunea curentă, cea publicată și ultima editare."],
+    ["usage", "Utilizare", "link", "Tipurile de solicitare care folosesc acest proces."],
+    ["stats", "Statistici", "chart", "Numărul de elemente din diagramă."],
+  ];
+  function settingsBodies() {
     const rec = S.rec;
     const vars = S.def.variables || {};
     const read = PM.usedVariables(S.def);
@@ -2074,55 +2077,125 @@ document.addEventListener("DOMContentLoaded", () => {
     const usage = usageOf(rec);
     const counts = {};
     (S.def.states || []).forEach((s) => { const t = typeOf(s); counts[t] = (counts[t] || 0) + 1; });
-    const varRow = (v, label) => `
-      <li class="e-permits-pd__var">
-        ${ui().renderCheckOption?.({ label: `${v} · ${label}`, checked: v in vars, disabled: S.viewOnly, plain: true, attrs: `value="${esc(v)}" data-pd-prop="process.variables"` }) || ""}
-        <span class="e-permits-pd__var-meta">Da / Nu · ${read[v] ? `folosită în ${read[v]} ${read[v] === 1 ? "condiție" : "condiții"}` : "nefolosită"}</span>
-      </li>`;
-    const varIssue = S.issues.filter((i) => i.kind === "process" && i.prop === "variables");
-    return `
-      <div class="e-permits-builder__panel-head e-permits-builder__panel-head--selected e-permits-pd__panel-head">
-        <div class="e-permits-builder__panel-title-row">
-          <h2 id="pd-panel-title">Setări generale</h2>
-          <span class="e-permits-pd__head-tools">${tbButton('aria-expanded="true" aria-controls="pd-props-panel" data-pd-hide-props', "sidebar", "Restrânge proprietățile", "]")}</span>
-        </div>
-        <div class="e-permits-builder__panel-meta">${tag("Proces", "neutral")}<span>Global · Administrator Central</span></div>
-      </div>
-      <div class="e-permits-builder__panel-scroll e-permits-pd__panel-scroll" data-pd-panel-scroll>
-        ${group("Identificare", gridHtml(`
-          ${copyId(S.def.name)}
-          ${inputField({ prop: "process.title", label: "Denumirea procesului", value: S.def.title || "", required: true, error: S.def.title ? "" : "Câmpul este obligatoriu." })}
-          ${textareaField({ prop: "process.description", label: "Descriere scurtă", value: S.def.description || "" })}
-        `))}
-        ${group("Parametrii înregistrării gestionate de proces", gridHtml(`
-          ${selectField({ prop: "process.tableName", label: "Denumire tabelă", value: S.def.tableName || "GEAP_Cases", options: [["GEAP_Cases", "GEAP_Cases · dosare"], ["GEAP_Permits", "GEAP_Permits · acte permisive"], ["GEAP_Requests", "GEAP_Requests · solicitări"]] })}
-          ${facts([["Cheia înregistrării", esc(S.def.recordKey || "Id")]])}
-          <div class="e-permits-fo-field e-permits-user-create__field">
-            <span class="e-permits-pd__label" id="pd-vars-label">Variabile de context</span>
-            <p class="e-permits-fo-field__hint">Condițiile deciziilor citesc aceste variabile. Valorile vin din pașaportul serviciului.</p>
-            <ul class="e-permits-pd__vars" role="group" aria-labelledby="pd-vars-label">
-              ${CONTEXT_VARS.map(([v, label]) => varRow(v, label)).join("")}
-              ${extra.map((v) => varRow(v, "din JSON")).join("")}
-            </ul>
-            ${varIssue.map((w) => `<p class="e-permits-fo-field__hint"><span class="e-permits-pd__warn">${esc(w.message)}</span></p>`).join("")}
-          </div>
-        `))}
-        ${group("Versiune", facts([
-          ["Statut", tag(rec.status === "Publicat" && !S.dirty ? "Publicat" : "Schiță", rec.status === "Publicat" && !S.dirty ? "success" : "neutral")],
-          ["Versiune", `v${esc(S.def.version)}${S.dirty ? " · modificări nesalvate" : ""}`],
-          ["Versiunea publicată activă", rec.publishedVersion ? `v${esc(rec.publishedVersion)}` : "—"],
-          ["Editat", `${esc(longDate(rec.modifiedOn))}, ${esc(hhmm(rec.modifiedOn))} · ${esc(rec.modifiedBy)}`],
-        ]))}
-        ${group("Utilizare", usage.length ? `
-          <p class="e-permits-fo-field__hint">Folosit de ${usage.length} ${usage.length === 1 ? "tip de solicitare" : "tipuri de solicitare"} în ${new Set(usage.map((u) => u.code)).size} ${new Set(usage.map((u) => u.code)).size === 1 ? "serviciu" : "servicii"}.</p>
-          <ul class="e-permits-builder__step-list">${usage.map((u) => `<li><a class="e-permits-builder__step-row" href="e-permits-acte-permisive.html?flow=back-office#serviciu/${esc(u.code)}/request-types" target="_blank" rel="noopener"><span class="e-permits-pd__action-text"><strong>${esc(u.rt)}</strong> · ${esc(u.title)}</span><span class="e-permits-builder__step-row-meta">${esc(u.code)}</span></a></li>`).join("")}</ul>`
-          : window.GEAPEmptyState?.render({ title: "Nefolosit", text: "Niciun tip de solicitare nu folosește acest proces.", icon: "link", compact: true, bare: true }) || "")}
-        ${group("Statistici", facts([
-          ["Activități", String(counts.activity || 0)], ["Decizii", String(counts.decision || 0)], ["Evenimente", String(counts.event || 0)], ["Sub-procese", String(counts.subprocess || 0)],
-          ["Conexiuni", String(allEdges().length)], ["Benzi", String((S.def.lanes || []).length)],
-        ]))}
+    /* read-only value = the Servicii › Setări field (label + grey box), as `docRo` in e-permits-shell.js */
+    const roField = (label, html, span = 6) => `
+      <div class="e-permits-fo-field e-permits-user-create__field e-permits-user-create__field--${span}">
+        <span class="e-permits-cfg-ro__label">${esc(label)}</span>
+        <div class="e-permits-cfg-ro">${html}</div>
       </div>`;
+    const spanOf = (html, n) => html.replace('e-permits-user-create__field"', `e-permits-user-create__field e-permits-user-create__field--${n}"`);
+    const varOption = (v, label) => ui().renderCheckOption?.({ label: `${v} · ${label} · ${read[v] ? `folosită în ${read[v]} ${read[v] === 1 ? "condiție" : "condiții"}` : "nefolosită"}`, checked: v in vars, disabled: S.viewOnly, plain: true, attrs: `value="${esc(v)}" data-pd-prop="process.variables"` }) || "";
+    const varIssue = S.issues.filter((i) => i.kind === "process" && i.prop === "variables");
+    const services = new Set(usage.map((u) => u.code)).size;
+    const grid = (html) => `<div class="e-permits-user-create__grid">${html}</div>`;
+    return {
+      identity: grid(`
+        ${roField("Identificator", `<span class="e-permits-pd__copy">${window.GEAPFormRender?.copyValueHtml?.(S.def.name, { ariaLabel: `Copiază identificatorul ${S.def.name}` }) || esc(S.def.name)}</span>`, 12)}
+        ${spanOf(inputField({ prop: "process.title", label: "Denumirea procesului", value: S.def.title || "", required: true, error: S.def.title ? "" : "Câmpul este obligatoriu." }), 12)}
+        ${spanOf(textareaField({ prop: "process.description", label: "Descriere scurtă", value: S.def.description || "" }), 12)}
+      `),
+      record: grid(`
+        ${spanOf(selectField({ prop: "process.tableName", label: "Denumire tabelă", value: S.def.tableName || "GEAP_Cases", options: [["GEAP_Cases", "GEAP_Cases · dosare"], ["GEAP_Permits", "GEAP_Permits · acte permisive"], ["GEAP_Requests", "GEAP_Requests · solicitări"]] }), 6)}
+        ${roField("Cheia înregistrării", esc(S.def.recordKey || "Id"))}
+        <div class="e-permits-fo-field e-permits-user-create__field e-permits-user-create__field--12 e-permits-cfg-checks">
+          <label id="pd-vars-label">Variabile de context</label>
+          <p class="e-permits-fo-field__hint e-permits-fo-field__hint--top">Condițiile deciziilor citesc aceste variabile. Valorile vin din pașaportul serviciului.</p>
+          <div class="e-permits-pay__exemptions" role="group" aria-labelledby="pd-vars-label">
+            ${CONTEXT_VARS.map(([v, label]) => varOption(v, label)).join("")}
+            ${extra.map((v) => varOption(v, "din JSON")).join("")}
+          </div>
+          ${varIssue.map((w) => `<p class="e-permits-fo-field__hint"><span class="e-permits-pd__warn">${esc(w.message)}</span></p>`).join("")}
+        </div>
+      `),
+      version: grid([
+        roField("Statut", tag(rec.status === "Publicat" && !S.dirty ? "Publicat" : "Schiță", rec.status === "Publicat" && !S.dirty ? "success" : "neutral")),
+        roField("Versiune", `v${esc(S.def.version)}${S.dirty ? " · modificări nesalvate" : ""}`),
+        roField("Versiunea publicată activă", rec.publishedVersion ? `v${esc(rec.publishedVersion)}` : "—"),
+        roField("Editat", `${esc(longDate(rec.modifiedOn))}, ${esc(hhmm(rec.modifiedOn))} · ${esc(rec.modifiedBy)}`),
+      ].join("")),
+      usage: usage.length ? `
+        <p class="e-permits-fo-field__hint">Folosit de ${usage.length} ${usage.length === 1 ? "tip de solicitare" : "tipuri de solicitare"} în ${services} ${services === 1 ? "serviciu" : "servicii"}.</p>
+        <ul class="e-permits-builder__step-list">${usage.map((u) => `<li><a class="e-permits-builder__step-row" href="e-permits-acte-permisive.html?flow=back-office#serviciu/${esc(u.code)}/request-types" target="_blank" rel="noopener"><span class="e-permits-pd__action-text"><strong>${esc(u.rt)}</strong> · ${esc(u.title)}</span><span class="e-permits-builder__step-row-meta">${esc(u.code)}</span></a></li>`).join("")}</ul>`
+        : window.GEAPEmptyState?.render({ title: "Nefolosit", text: "Niciun tip de solicitare nu folosește acest proces.", icon: "link", compact: true, bare: true }) || "",
+      stats: grid([
+        ["Activități", counts.activity || 0], ["Decizii", counts.decision || 0], ["Evenimente", counts.event || 0], ["Sub-procese", counts.subprocess || 0],
+        ["Conexiuni", allEdges().length], ["Benzi", (S.def.lanes || []).length],
+      ].map(([k, v]) => roField(k, String(v), 4)).join("")),
+    };
   }
+  function renderSettingsPage() {
+    if (S.mode !== "settings") return;
+    const active = document.activeElement;
+    const focusId = el.settings.contains(active) ? active.id : "";
+    const caret = focusId && typeof active.selectionStart === "number" ? [active.selectionStart, active.selectionEnd] : null;
+    const top = el.settings.scrollTop;
+    const bodies = settingsBodies();
+    const current = S.settingsActive || SETTINGS_SECTIONS[0][0];
+    el.settings.innerHTML = `
+      <div class="e-permits-cfg2 e-permits-pd__settings-page">
+        <nav class="e-permits-cfg2__nav" aria-label="Secțiunile setărilor">
+          <ul role="list">${SETTINGS_SECTIONS.map(([key, title, ic]) => `
+            <li><a class="e-permits-cfg2__nav-link" href="#pd-set-${key}" data-pd-settings-nav="${key}"${current === key ? ' aria-current="true"' : ""}>
+              ${icon(ic, 16).replace('class="icon"', 'class="icon small e-permits-cfg2__nav-icon"')}
+              <span class="e-permits-cfg2__nav-text" data-text="${esc(title)}">${esc(title)}</span>
+            </a></li>`).join("")}</ul>
+        </nav>
+        <div class="e-permits-cfg2__main">
+          ${SETTINGS_SECTIONS.map(([key, title, , desc]) => `
+            <section class="e-permits-cfg2__section" id="pd-set-${key}" data-pd-settings-section="${key}" aria-labelledby="pd-set-${key}-title">
+              <div class="e-permits-cfg2__head">
+                <h2 class="e-permits-dosar-profil__section-title" id="pd-set-${key}-title" tabindex="-1">${esc(title)}</h2>
+                <p class="e-permits-cfg2__desc">${esc(desc)}</p>
+              </div>
+              <div class="e-permits-ntpl-card e-permits-clas-create e-permits-cfg-form">${bodies[key]}</div>
+            </section>`).join("")}
+        </div>
+      </div>`;
+    el.settings.scrollTop = top;
+    if (focusId) {
+      const target = el.settings.querySelector(`#${CSS.escape(focusId)}`);
+      if (target) {
+        target.focus({ preventScroll: true });
+        if (caret && typeof target.setSelectionRange === "function") { try { target.setSelectionRange(caret[0], caret[1]); } catch (e) { /* not selectable */ } }
+      }
+    }
+  }
+  el.settings.addEventListener("input", (event) => {
+    const input = event.target;
+    if (input.matches("[data-pd-prop]") && input.type !== "checkbox" && input.tagName !== "SELECT") onPanelValue(input, { typing: true });
+  });
+  el.settings.addEventListener("change", (event) => {
+    const input = event.target;
+    if (input.matches("[data-pd-prop]") && (input.type === "checkbox" || input.tagName === "SELECT")) onPanelValue(input, { typing: false });
+  });
+  el.settings.addEventListener("focusout", (event) => {
+    if (event.target.matches?.("[data-pd-prop]")) { S.typingKey = ""; window.setTimeout(() => { if (!el.settings.contains(document.activeElement)) renderSettingsPage(); }, 0); }
+  });
+  el.settings.addEventListener("click", (event) => {
+    const nav = event.target.closest("[data-pd-settings-nav]");
+    if (!nav) return;
+    event.preventDefault();
+    S.settingsActive = nav.dataset.pdSettingsNav;
+    S.settingsSpyUntil = Date.now() + 900;
+    el.settings.querySelectorAll("[data-pd-settings-nav]").forEach((a) => (a === nav ? a.setAttribute("aria-current", "true") : a.removeAttribute("aria-current")));
+    const target = el.settings.querySelector(`#pd-set-${nav.dataset.pdSettingsNav}`);
+    /* scroll the page itself — scrollIntoView would also shift the stage behind it */
+    if (target) el.settings.scrollTo({ top: el.settings.scrollTop + target.getBoundingClientRect().top - el.settings.getBoundingClientRect().top - parseFloat(getComputedStyle(el.settings).paddingTop), behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
+    target?.querySelector("h2")?.focus({ preventScroll: true });
+  });
+  /* the highlighted item follows the scroll: the last section whose title is in the top 30 % (the last one at the bottom) */
+  el.settings.addEventListener("scroll", () => {
+    if (S.settingsSpyUntil && Date.now() < S.settingsSpyUntil) return;
+    const secs = [...el.settings.querySelectorAll("[data-pd-settings-section]")];
+    if (!secs.length) return;
+    const box = el.settings.getBoundingClientRect();
+    const stick = box.top + box.height * 0.3;
+    const atEnd = Math.ceil(el.settings.scrollTop + el.settings.clientHeight) >= el.settings.scrollHeight - 2;
+    const cur = atEnd ? secs[secs.length - 1] : secs.filter((x) => x.getBoundingClientRect().top <= stick).pop() || secs[0];
+    if (cur.dataset.pdSettingsSection === S.settingsActive) return;
+    S.settingsActive = cur.dataset.pdSettingsSection;
+    el.settings.querySelectorAll("[data-pd-settings-nav]").forEach((a) => (a.dataset.pdSettingsNav === S.settingsActive ? a.setAttribute("aria-current", "true") : a.removeAttribute("aria-current")));
+  }, { passive: true });
 
   /* ---- panel input → model */
   function setStatus(s, value) {
@@ -2531,7 +2604,6 @@ document.addEventListener("DOMContentLoaded", () => {
       (after.transitions || (after.transitions = [])).push(t);
     }
     S.sel = { nodes: new Set([node.id]), edge: "", lane: "" };
-    S.settings = false;
     S.rightOpen = true;
     commit({ full: false });
     refreshSelectionClasses();
@@ -3282,9 +3354,9 @@ document.addEventListener("DOMContentLoaded", () => {
       }
       if (S.kbConnect) { endKbConnect(false); return; }
       if (drag) { onCancel(); return; }
+      if (S.mode === "settings" && typingTarget(target)) { target.blur(); el.settings.focus({ preventScroll: true }); return; }
       if (S.mode !== "build") { setMode("build"); return; }
       if (typingTarget(target)) { el.stage.focus({ preventScroll: true }); return; }
-      if (S.settings) { S.settings = false; renderChrome(); renderPanel(); return; }
       clearSelection();
       return;
     }
@@ -3584,7 +3656,6 @@ document.addEventListener("DOMContentLoaded", () => {
     PM.splitEdge(S.def, e.src.id, e.i, node);
     reindex();
     S.sel = { nodes: new Set([node.id]), edge: "", lane: "", pool: false };
-    S.settings = false;
     S.rightOpen = true;
     S.tab = type === "event" ? "processor" : "general";
     commit();
@@ -3762,8 +3833,7 @@ document.addEventListener("DOMContentLoaded", () => {
       S.openedVersion = frame.openedVersion;
       reindex();
       S.sel = { nodes: new Set([frame.nodeId]), edge: "", lane: "", pool: false };
-      S.settings = false;
-      S.dirty = PM.serialize(S.def) !== S.baseText;
+        S.dirty = PM.serialize(S.def) !== S.baseText;
       nodeEls.forEach((n) => n.remove()); nodeEls.clear();
       edgeEls.forEach((r) => { r.g.remove(); r.label.remove(); }); edgeEls.clear();
       renderAll();
