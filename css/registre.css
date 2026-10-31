@@ -473,3 +473,46 @@
     right: var(--spacing-16, 16px);
   }
 }
+
+/* =====================================================================================
+   registers-30-v1 (2026-10-31, GEAP 2.0 comment 12701:424523 „30 registers”; user decision: ONE menu item „Registre”)
+   components.md › „Registre — BackOffice registers › At scale: catalog + switcher”.
+   ===================================================================================== */
+
+/* catalog: the library page-header tabs right under the top bar (as a profile's tabs), the content 24 under them */
+.e-permits-reg-page.has-tabs > .e-permits-dosar-profil__panel {
+  padding-top: var(--spacing-24, 24px);
+}
+
+/* catalog (registers-30-v14, 2026-10-31): the object tabs = the scope, inside the section between the heading and the
+   search (full-width track line on the section edges, tab text on the heading's inset); tabs → search 16 */
+.e-permits-reg-catalog__tabs {
+  margin-bottom: var(--spacing-16, 16px);
+}
+
+/* register switcher: the quiet chevron right after the top-bar title (title → button 8: the row's gap 16 − 8) */
+.e-permits-reg-switch {
+  flex: 0 0 auto;
+  margin-inline-start: calc(-1 * var(--spacing-8, 8px));
+}
+
+/* the picker: a layer on <body>, fixed (data-stack-menu-fixed: the top bar clips), placed under the chevron by the
+   shell, kept inside a phone screen */
+.e-permits-reg-switch-layer > .e-permits-stack__menu {
+  max-width: calc(100vw - 2 * var(--spacing-16, 16px));
+}
+
+/* open = the shell rule `.btn[aria-expanded="true"]` (pressed + ring), nothing local */
+
+/* catalog toolbar: the search starts the row (as the BO registries; the shared rule puts a lone tools block right) */
+.e-permits-pay__toolbar.e-permits-reg-catalog__toolbar > .e-permits-pay__tools:only-child {
+  margin-left: 0;
+}
+
+/* phones: the lead column of a stacked row is 24 (document icon); the catalog lead is the Avatar md (40) → its own
+   column width, so the title no longer runs under the avatar */
+@media (max-width: 760px) {
+  .e-permits-stack__item.has-lead:has(> .e-permits-reg-catalog__icon) {
+    grid-template-columns: var(--spacing-40, 40px) minmax(0, 1fr);
+  }
+}

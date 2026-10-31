@@ -118,8 +118,32 @@
 }
 
 /* ---- „Setări de distribuire” dialog: competence rows = service + request type + remove */
-.e-permits-abs-comp {
+.e-permits-abs-comp-section {
+  grid-column: 1 / -1;
+}
+
+/* the section = the form section pattern (title + content); content gap 16 between note · rows · add */
+.e-permits-user-create__section-content.e-permits-abs-comp {
+  align-items: flex-start;
+  gap: var(--spacing-16, 16px);
+}
+
+.e-permits-abs-comp > .info-box,
+.e-permits-abs-comp__table {
+  align-self: stretch;
+}
+
+.e-permits-abs-comp__table {
+  display: flex;
+  flex-direction: column;
   gap: var(--spacing-8, 8px);
+}
+
+/* request-type multi-select (the FO multi-select look, compact: no search / footer): the open menu is fixed on the button's
+   rect by js/absences.js (placeRtMenu) — never cropped by the dialog, flips up, scrolls inside */
+.e-permits-abs-rt .e-permits-fo-subgen-select__list {
+  max-height: none;
+  min-height: 0;
 }
 
 .e-permits-abs-comp__head,
@@ -198,7 +222,7 @@
     row-gap: var(--spacing-8, 8px);
   }
 
-  .e-permits-abs-comp__row > .e-permits-fo-select:nth-child(2) {
+  .e-permits-abs-comp__row > .e-permits-abs-rt {
     grid-column: 1;
   }
 
@@ -662,3 +686,21 @@
 .e-permits-abs-kind--violet > .icon { color: var(--purple-700, #652cc7); }
 .e-permits-abs-kind--success > .icon { color: var(--color-text-positive-on-secondary, #027948); }
 .e-permits-abs-kind--neutral > .icon { color: var(--color-text-base-secondary, #383838); }
+
+/* Competențe: the section title row carries the „ⓘ” hint right after the text (comp-hint-v1, user 2026-10-31);
+   the row owns the section divider + padding, the title inside is plain text */
+.e-permits-abs-comp-title {
+  border-bottom: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
+  box-sizing: border-box;
+  display: flex;
+  min-height: 50px;
+  padding: var(--spacing-12, 12px) 0;
+  width: 100%;
+}
+
+.e-permits-abs-comp-title .e-permits-user-create__section-title {
+  border-bottom: 0;
+  min-height: 0;
+  padding: 0;
+  width: auto;
+}

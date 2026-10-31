@@ -20,7 +20,8 @@
                 Implies `wrap`. The page loads js/name-expand.js + css/name-expand.css and calls
                 GEAPNameExpand.scan(header) after inserting the header.
      caption / status = the 12/16 line under the actions (BO: „Publicat … · sincronizat …”)
-   GEAPPageHeader.meta([[label, valueHtml], …]) → the __meta items (separators by ::before)
+   GEAPPageHeader.meta([[label, valueHtml, captionHtml?], …]) → the __meta items (separators by ::before); captionHtml =
+     an optional 12/16 tertiary line UNDER the value (dist-mode-v1: „Specialist” → „Distribuit aleatoriu · 8 iul. 2026”)
    GEAPPageHeader.syncMetaRows(metaEl) → .is-row-start on items that begin a wrapped line (no orphan separator) */
 (function () {
   const esc = (value) => String(value ?? "")
@@ -50,10 +51,11 @@
   `;
   };
 
-  const meta = (items) => items.filter(Boolean).map(([label, valueHtml]) => `
-    <div class="e-permits-page-header__meta-item">
+  const meta = (items) => items.filter(Boolean).map(([label, valueHtml, captionHtml = ""]) => `
+    <div class="e-permits-page-header__meta-item${captionHtml ? " e-permits-page-header__meta-item--caption" : ""}">
       <span class="e-permits-page-header__meta-label">${esc(label)}</span>
-      <span class="e-permits-page-header__meta-value">${valueHtml}</span>
+      <span class="e-permits-page-header__meta-value">${valueHtml}</span>${captionHtml ? `
+      <span class="e-permits-page-header__meta-caption">${captionHtml}</span>` : ""}
     </div>
   `).join("");
 

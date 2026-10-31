@@ -3995,3 +3995,61 @@ For any „research how other products do it” step, search Mobbin (mcp__mobbin
 - 2026-10-29 · notif-drawer-v3 (user: unread tint + cards): on `--color-background-brand-secondary` (blue-sky-100) tertiary
   text is only 4.0:1 — any 12/16 tertiary meta on a tinted unread card goes secondary. A `.stretched-link` title can get
   `overflow: hidden` + ellipsis safely: its ::after is positioned by the card (`li` relative), not clipped by the link.
+- 2026-10-30 · act-card-tabs-v1 (US-318…322): new records in a deterministic seed = a TAIL after the last rnd() call
+  (fixed content, no draws) → re-run shows insertions only (`git diff data/… | grep '^-'` empty). Check new dossier-number
+  ranges against each other (a 900+i range collided with 600+i*7).
+- 2026-10-30 · Two datasets that never linked (registre acts ↔ BO dossier seed): a link to a missing dossier = add the row
+  to `dossierStore().runtimeRows` on click (clone of a seed row of the same status + the act's values) + a
+  GEAPShellRoutes hook that does the same for a typed `#dosar/<nr>` and returns false. Override date fields too.
+- 2026-10-30 · `.e-permits-reg-table__table` sizes its LAST column 64 (an action column) — a data table needs a modifier
+  (`--act`: last-child width auto, min-width for phone scroll); a number + Small tag cell needs a wider first column.
+- 2026-10-30 · AC „number is a link” vs list rule „codes = compact copy”: component-audit flags both a link-variant copy
+  in a td (copy-in-list) and a plain link (missing-copy). No compliant markup exists → plain link in tables, copy link
+  variant in details cards, report the conflict to the user instead of editing the audit spec.
+- 2026-10-30 · act-card-tabs-v2 (user: „why tables? we have stacked cards”): lists inside a BO profile tab = ALWAYS
+  `renderStackedList` rows (copy compact in the meta, row opens the record, sort = GEAPSortSheet chip in the heading),
+  never a table, even when the AC says „columns”. Leaving the page: arrow icon REJECTED (ambiguous) → title = plain link. Two compact copies on wrapped meta lines overlap (code-audit controls-overlap) → keep them adjacent.
+- 2026-10-30 · act-card-tabs-v3 (user): a row action that leaves the page = visible `btn-neutral btn-sm` label + TRAILING
+  icon-arrow-right (an arrow alone in the row / on titles was „ambiguous”); rows that open a dialog (note modal, act data
+  panel) stay row clicks. Reuse a shell modal from a module by filling `#dosar-detail-modal` slots (title / subtitle /
+  body / buttons) + `__modal.open`. „Doar citire” note is gone product-wide.
+- 2026-10-30 · dist-mode-v1 (random vs manual distribution on the assignment): deriving the seed from the service config
+  (`caseAutoDist`) gave 106 manual / 0 random — every seeded service has „Distribuire automată” = Nu. Probe the mode counts
+  over `runtimeRows` BEFORE trusting a config-based derivation; seed from the case-number hash, demo params force all.
+- 2026-10-30 · A new BO dossier facet lands in „Mai multe” on desktop (first chips only) → `ekPick` fails (DEMO-ERROR); the
+  demo must click `[data-filter-more]` → `[data-filter-more-facet=key]`. Header meta caption under a value =
+  `GEAPPageHeader.meta` 3rd element (align top + separator offset); dates in captions get NBSPs (phone grid broke „8 / iul.”).
+- 2026-10-30 row-vs-control: hover-audit aimed at row centre+24 = the copy value (band correctly off) → false „no-hover”; audit now aims where the pointer is on the row. Probe with real mouse before blaming CSS.
+- 2026-10-30 top bar: profile CSS hid `.title-row--shell` (display:none) → empty bar; show it + `syncTopbarTitle` (active nav label) instead of per-profile code. Sort toggles → one `GEAPSortSheet.controlHtml`.
+- 2026-10-30 · Șabloane de jurnalizare (jurnalizare-v1, Feature 93589, US-257…261) = a whole admin module in 3 new files
+  + 1 shell line: ntpl editor parts (`.e-permits-ntpl-content/-card/-preview/-picker`) on the profile panel, registry
+  hooks, ONE drawer; a shell helper a module needs (`renderStepStrip`) is EXPORTED on GEAPShellApi, never copied.
+- 2026-10-30 · Registry column `fill: true` = the column that shrinks FIRST (to 120 / 96, ellipsis) when the table is
+  wider than its box — on a 10-column list it squeezed „Denumire” to 100 px; drop `fill` and let the table scroll.
+- 2026-10-30 · Row ⋮ menus (`data-stack-menu-fixed`) of rows under the fold open off screen / under the pager: demo
+  helpers must `scrollIntoView` the row first; the shell positioner never flips up (shared bug, reported, not fixed).
+- 2026-10-30 stack-menu-flip: registry-row ⋮ menus are `data-stack-menu-fixed` (inline top/left from the click handler), so a CSS-only `.is-open-up` does nothing — flip by computing `top` in `fitStackMenu`; the demo state must scroll the LAST row to the viewport end first.
+- 2026-10-30 deep-link nav: a role's default nav item (central-admin = „Utilizatori”) stays highlighted under a `#dosar/` deep link; set the dossier-reaching item („Registru Dosare”, else „Toate registrele”) explicitly. Check every role's menu (local-admin has no reg-dosare).
+- 2026-10-30: top bar title / highlight for pages with no menu item (avatar „Profilul meu”, direct #utilizator link by a role without Utilizatori) = `data-topbar-title` on the open panel (syncTopbarTitle reads it only when no nav item is active); user-profile routes fall back to users → incarcarea-echipei → absente. Probe every role: setActiveNav silently no-ops on a missing id.
+- 2026-10-30: two-level rail + panel and the Azure-style accordion/flyout sidebar were both tried and rejected by the user; the BO keeps the single grouped sidebar.
+- 2026-10-31 · registers-30-v1 (30 registers): the decision moved 3 times mid-job (pins+recents → position + „Mai multe” → ONE
+  menu item + catalog tabs). Build behind small swappable helpers (menu ids, catalog view) and check the Azure features
+  BEFORE inventing personalisation: Feature 94523 „Poziția în listă” + no per-user personalisation killed pins / recents.
+- 2026-10-31 · Many routable things, one visible menu item: render the rest as `hidden` `<li>` (shell honours `item.hidden`)
+  so every `[data-nav-id=…].click()` route / demo helper keeps working, then `setActiveNav(<parent>)` after the click →
+  `syncTopbarTitle` names the parent on record cards. Cheaper than rewriting routes.
+- 2026-10-31 · A stack menu in the BO top bar is clipped AND `position: fixed` inside it is relative to the header (containing
+  block) → portal the menu into a `<body>` layer that is itself `.e-permits-stack__menu-wrap` (the shell's outside-click rule)
+  + `data-stack-menu-fixed`. Listener order vs the shell's opener is not guaranteed: fill the menu in a CAPTURE click
+  listener (before it opens) and act on „now visible” with a MutationObserver on `hidden`.
+- 2026-10-31 · `.btn[aria-pressed="true"]` draws the opener ring globally (e-permits-shell.css) — a pure state toggle must
+  opt out; and `.btn[aria-expanded="true"]` already gives an opener its ring: never restate the box-shadow (code-audit px).
+- 2026-10-31 · Phone stacked rows with a lead use a 24 column (document icon); an Avatar md lead (40) overlapped the title
+  (pre-existing on the registre catalog) → `:has(> .e-permits-reg-catalog__icon)` column 40.
+- 2026-10-31 · tools/registre/seed.mjs had drifted from data/registre.json (hand-added `modDistribuire` column): run the seed
+  and `cmp` against a copy BEFORE adding data; fold any hand edit into the seed first.
+
+- 2026-10-31 (dist-comp-multi-v1): a grid child that is a `section` needs its own `grid-column: 1 / -1` (`__field--12` has no rule, only `--6/--8` do) — otherwise it collapses to min-content. An absolute menu inside a scrolling dialog body is cut: reserve room with a `::after` spacer while `.is-open` (padding would be flagged off-scale) and `scrollBy` the `[data-case-modal-body]`.
+
+- 2026-10-31 · ofc-search-first-v1 (US-242, Figma comment: „search first, then show the acts”): a list that must not load on open = results container `[data-gh-ofc-results]` redrawn alone (fields keep focus) by `ofcRefresh` (debounce → skeleton → paint); state flag reset in the intent renderer. Making a list search-gated breaks every demo that clicks a row on open → put a `reveal(id)` (search by name) in the shared `actMenu` helper, and wait ≥ debounce + load (1000 ms) in `search()`. Loading states are too short to capture → `?latency=freeze` (as Cabinet). Seeded filler acts on an ofc-only holder, not a shared one.
+- 2026-10-31 (ofc-search-first-v3 / registers-30-v15 / comp-menu-fixed-v1): empty state in a wizard/section = BOXED (no `bare`), bare only in tables/lists; tabs = the scope, inside the section above the search (not page header); a custom in-dialog menu → `position: fixed` on the button rect + flip up + max-height (`placeRtMenu`), never an in-flow spacer.

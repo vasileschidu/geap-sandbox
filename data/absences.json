@@ -37,22 +37,21 @@
   "distribution": {
     "sp2": { "norm": "", "normReason": "", "start": "2024-02-01", "competences": [] },
     "sp3": { "norm": "80", "normReason": "Program redus: studii de masterat, 4 zile pe săptămână.", "start": "2023-09-04", "competences": [
-      { "service": "Aviz sanitar privind atribuirea terenului pentru construcție", "rt": "" },
-      { "service": "Certificat de urbanism pentru proiectare", "rt": "" },
-      { "service": "Autorizație de construire", "rt": "Eliberare" },
-      { "service": "Autorizație de construire", "rt": "Prelungire" }
+      { "service": "Aviz sanitar privind atribuirea terenului pentru construcție", "rt": [] },
+      { "service": "Certificat de urbanism pentru proiectare", "rt": [] },
+      { "service": "Autorizație de construire", "rt": ["Eliberare", "Prelungire"] }
     ] },
     "sp5": { "norm": "50", "normReason": "Jumătate de normă (contract part-time).", "start": "2026-03-02", "competences": [] },
     "sp6": { "norm": "", "normReason": "", "start": "2026-05-11", "competences": [] },
     "sp7": { "norm": "", "normReason": "", "start": "2022-01-10", "competences": [] },
     "sp8": { "norm": "", "normReason": "", "start": "2021-06-01", "competences": [] },
     "u-valeriu": { "norm": "80", "normReason": "Program redus: 4 zile pe săptămână (acord din 2 februarie 2026).", "start": "2026-02-02", "competences": [
-      { "service": "Autorizație sanitară de funcționare", "rt": "" },
-      { "service": "Autorizație pentru activitate de alimentație publică", "rt": "Eliberare" }
+      { "service": "Autorizație sanitară de funcționare", "rt": [] },
+      { "service": "Autorizație pentru activitate de alimentație publică", "rt": ["Eliberare"] }
     ] },
     "me": { "norm": "", "normReason": "", "start": "2025-11-03", "competences": [
-      { "service": "Autorizație sanitară de funcționare", "rt": "" },
-      { "service": "Autorizație pentru activitate de alimentație publică", "rt": "" }
+      { "service": "Autorizație sanitară de funcționare", "rt": [] },
+      { "service": "Autorizație pentru activitate de alimentație publică", "rt": [] }
     ] }
   },
   "policy": {

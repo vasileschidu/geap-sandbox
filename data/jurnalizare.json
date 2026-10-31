@@ -1,0 +1,86 @@
+{
+  "_comment": "Șabloane de jurnalizare (Feature 93589, US-257…261) — seed for js/jurnalizare.js. A template = the audit policy of one event type: message text, level, destination, action, personal-data flag. Sistem = shipped with the application; Proces = created in the AdminPortal (object always «Dosar»).",
+  "levels": ["Informativ", "Avertisment", "Eroare", "Critic"],
+  "destinations": ["Jurnal", "MLog", "Jurnal + MLog"],
+  "actions": ["Creare", "Modificare", "Vizualizare", "Autentificare", "Depunere", "Semnare", "Decizie", "Plată", "Arhivare", "Suspendare", "Reluare", "Activare", "Dezactivare", "Export", "Acces refuzat", "Notificare"],
+  "objects": ["Dosar", "Utilizator", "Rol", "Clasificator", "Registru", "Înregistrare de registru", "Act permisiv", "Plată", "Sesiune", "Șablon de jurnalizare", "Eveniment de audit"],
+  "processFields": [
+    ["Numărul dosarului", "CaseNumber"],
+    ["Codul serviciului", "ServiceCode"],
+    ["Suspendat până la", "SuspendedUntil"],
+    ["Motivul", "Reason"],
+    ["Temeiul legal", "LegalBasis"]
+  ],
+  "personalFields": ["ApplicantName", "ApplicantIdnp", "Idnp", "Idno", "PersonName", "Email", "Phone"],
+  "samples": {
+    "CaseNumber": "D-2026-004575",
+    "ServiceCode": "003000023",
+    "SuspendedUntil": "15 noiembrie 2026",
+    "Reason": "Lipsește avizul sanitar-veterinar",
+    "LegalBasis": "art. 12 alin. (3) din Legea nr. 160/2011",
+    "RoleName": "Specialist",
+    "ClassifierCode": "CAEM-2",
+    "RegisterName": "Registrul actelor permisive",
+    "ActNumber": "AP-2026-001284",
+    "PaymentId": "MPAY-7731902",
+    "Amount": "250,00 MDL",
+    "Module": "BackOffice",
+    "TemplateCode": "GEAP.CASE.SUSPENDED",
+    "Attempts": "5"
+  },
+  "templates": [
+    { "id": "lgt-auth-login", "code": "GEAP.AUTH.LOGIN_SUCCESS", "name": "Autentificare reușită", "message": "Utilizatorul s-a autentificat prin MPass în {{Module}}.", "level": "Informativ", "destination": "Jurnal + MLog", "action": "Autentificare", "object": "Sesiune", "personal": false, "type": "Sistem", "active": true, "usable": false, "fields": ["Module"], "updatedAt": null, "history": [] },
+    { "id": "lgt-auth-failed", "code": "GEAP.AUTH.LOGIN_FAILED", "name": "Autentificare eșuată", "message": "Autentificare eșuată în {{Module}} după {{Attempts}} încercări.", "level": "Avertisment", "destination": "Jurnal + MLog", "action": "Autentificare", "object": "Sesiune", "personal": false, "type": "Sistem", "active": true, "usable": false, "fields": ["Module", "Attempts"], "updatedAt": "2026-10-12T09:40:00", "updatedBy": "Olesea Luchian", "history": [
+      { "at": "2026-10-12T09:40:00", "by": "Olesea Luchian", "role": "Administrator central", "event": "Modificarea șablonului de jurnalizare", "detail": "Nivel: Informativ → Avertisment" }
+    ] },
+    { "id": "lgt-access-denied", "code": "GEAP.ACCESS.DENIED", "name": "Acces refuzat la o resursă", "message": "Accesul la {{Resource}} a fost refuzat: rolul {{RoleName}} nu are permisiunea necesară.", "level": "Avertisment", "destination": "Jurnal", "action": "Acces refuzat", "object": "Sesiune", "personal": false, "type": "Sistem", "active": true, "usable": false, "fields": ["Resource", "RoleName"], "updatedAt": null, "history": [] },
+    { "id": "lgt-audit-tamper", "code": "GEAP.AUDIT.TAMPER_ATTEMPT", "name": "Tentativă de modificare a unui eveniment de audit", "message": "Tentativă blocată de modificare sau ștergere a evenimentului {{Resource}}.", "level": "Critic", "destination": "Jurnal + MLog", "action": "Modificare", "object": "Eveniment de audit", "personal": false, "type": "Sistem", "active": true, "usable": false, "fields": ["Resource"], "updatedAt": null, "history": [] },
+    { "id": "lgt-user-role", "code": "GEAP.USER.ROLE_CHANGED", "name": "Rolurile unui utilizator au fost modificate", "message": "Rolul {{RoleName}} a fost atribuit sau retras.", "level": "Avertisment", "destination": "Jurnal + MLog", "action": "Modificare", "object": "Utilizator", "personal": true, "type": "Sistem", "active": true, "usable": false, "fields": ["RoleName"], "updatedAt": null, "history": [] },
+    { "id": "lgt-classifier-upd", "code": "GEAP.CLASSIFIER.UPDATED", "name": "Clasificator modificat", "message": "Clasificatorul {{ClassifierCode}} a fost modificat.", "level": "Informativ", "destination": "Jurnal", "action": "Modificare", "object": "Clasificator", "personal": false, "type": "Sistem", "active": true, "usable": false, "fields": ["ClassifierCode"], "updatedAt": null, "history": [] },
+    { "id": "lgt-register-archived", "code": "GEAP.REGISTER.ARCHIVED", "name": "Înregistrare de registru arhivată", "message": "O înregistrare din {{RegisterName}} a fost arhivată.", "level": "Informativ", "destination": "Jurnal + MLog", "action": "Arhivare", "object": "Înregistrare de registru", "personal": false, "type": "Sistem", "active": true, "usable": false, "fields": ["RegisterName"], "updatedAt": null, "history": [] },
+    { "id": "lgt-register-access", "code": "GEAP.REGISTER.ACCESS_GRANTED", "name": "Acces acordat la un registru", "message": "Accesul la {{RegisterName}} a fost acordat rolului {{RoleName}}.", "level": "Informativ", "destination": "Jurnal", "action": "Activare", "object": "Registru", "personal": false, "type": "Sistem", "active": false, "usable": false, "fields": ["RegisterName", "RoleName"], "updatedAt": "2026-09-30T16:05:00", "updatedBy": "Vasile Schidu", "history": [
+      { "at": "2026-09-30T16:05:00", "by": "Vasile Schidu", "role": "Administrator central", "event": "Dezactivarea șablonului de jurnalizare" }
+    ] },
+    { "id": "lgt-case-submitted", "code": "GEAP.CASE.SUBMITTED", "name": "Cerere depusă", "message": "Cererea {{CaseNumber}} pentru serviciul {{ServiceCode}} a fost depusă.", "level": "Informativ", "destination": "Jurnal + MLog", "action": "Depunere", "object": "Dosar", "personal": true, "type": "Sistem", "active": true, "usable": true, "fields": ["CaseNumber", "ServiceCode"], "updatedAt": null, "history": [] },
+    { "id": "lgt-case-signed", "code": "GEAP.CASE.SIGNED", "name": "Document semnat prin MSign", "message": "Documentul dosarului {{CaseNumber}} a fost semnat prin MSign.", "level": "Informativ", "destination": "Jurnal + MLog", "action": "Semnare", "object": "Dosar", "personal": false, "type": "Sistem", "active": true, "usable": true, "fields": ["CaseNumber"], "updatedAt": null, "history": [] },
+    { "id": "lgt-case-decision", "code": "GEAP.CASE.DECISION", "name": "Decizie emisă", "message": "Decizia pentru dosarul {{CaseNumber}} a fost emisă în baza {{LegalBasis}}.", "level": "Informativ", "destination": "Jurnal + MLog", "action": "Decizie", "object": "Dosar", "personal": false, "type": "Sistem", "active": true, "usable": true, "fields": ["CaseNumber", "LegalBasis"], "updatedAt": "2026-10-21T11:15:00", "updatedBy": "Olesea Luchian", "history": [
+      { "at": "2026-10-21T11:15:00", "by": "Olesea Luchian", "role": "Administrator central", "event": "Modificarea șablonului de jurnalizare", "detail": "Textul mesajului" },
+      { "at": "2026-10-02T10:00:00", "by": "Olesea Luchian", "role": "Administrator central", "event": "Modificarea șablonului de jurnalizare", "detail": "Destinație: Jurnal → Jurnal + MLog" }
+    ] },
+    { "id": "lgt-case-reopened", "code": "GEAP.CASE.REOPENED", "name": "Dosar redeschis", "message": "Dosarul {{CaseNumber}} a fost redeschis. Motivul: {{Reason}}.", "level": "Avertisment", "destination": "Jurnal + MLog", "action": "Reluare", "object": "Dosar", "personal": false, "type": "Sistem", "active": true, "usable": true, "fields": ["CaseNumber", "Reason"], "updatedAt": null, "history": [] },
+    { "id": "lgt-niac-cancelled", "code": "GEAP.CASE.NIAC_CANCELLED", "name": "Anulare NIAC", "message": "Numărul de identificare al cererii {{CaseNumber}} a fost anulat. Motivul: {{Reason}}.", "level": "Critic", "destination": "Jurnal + MLog", "action": "Modificare", "object": "Dosar", "personal": false, "type": "Sistem", "active": true, "usable": true, "fields": ["CaseNumber", "Reason"], "updatedAt": null, "history": [] },
+    { "id": "lgt-payment-ok", "code": "GEAP.PAYMENT.CONFIRMED", "name": "Plată confirmată prin MPay", "message": "Plata {{PaymentId}} de {{Amount}} pentru dosarul {{CaseNumber}} a fost confirmată.", "level": "Informativ", "destination": "Jurnal + MLog", "action": "Plată", "object": "Plată", "personal": false, "type": "Sistem", "active": true, "usable": true, "fields": ["PaymentId", "Amount", "CaseNumber"], "updatedAt": null, "history": [] },
+    { "id": "lgt-act-issued", "code": "GEAP.PERMIT.ISSUED", "name": "Act permisiv emis", "message": "Actul permisiv {{ActNumber}} a fost emis în dosarul {{CaseNumber}}.", "level": "Informativ", "destination": "Jurnal + MLog", "action": "Creare", "object": "Act permisiv", "personal": false, "type": "Sistem", "active": true, "usable": true, "fields": ["ActNumber", "CaseNumber"], "updatedAt": null, "history": [] },
+    { "id": "lgt-personal-read", "code": "GEAP.PERSONAL_DATA.VIEWED", "name": "Consultarea datelor cu caracter personal", "message": "Datele cu caracter personal din {{Resource}} au fost consultate.", "level": "Informativ", "destination": "Jurnal", "action": "Vizualizare", "object": "Dosar", "personal": true, "type": "Sistem", "active": true, "usable": false, "fields": ["Resource"], "updatedAt": null, "history": [] },
+    { "id": "lgt-mlog-failed", "code": "GEAP.INTEGRATION.MLOG_FAILED", "name": "Transmitere eșuată către MLog", "message": "Evenimentul {{TemplateCode}} nu a putut fi transmis în MLog după {{Attempts}} încercări.", "level": "Eroare", "destination": "Jurnal", "action": "Notificare", "object": "Eveniment de audit", "personal": false, "type": "Sistem", "active": true, "usable": false, "fields": ["TemplateCode", "Attempts"], "updatedAt": null, "history": [] },
+    { "id": "lgt-tpl-created", "code": "GEAP.LOGTEMPLATE.CREATED", "name": "Crearea șablonului de jurnalizare", "message": "A fost creat șablonul de jurnalizare {{TemplateCode}}.", "level": "Informativ", "destination": "Jurnal", "action": "Creare", "object": "Șablon de jurnalizare", "personal": false, "type": "Sistem", "active": true, "usable": false, "fields": ["TemplateCode"], "updatedAt": null, "history": [] },
+    { "id": "lgt-case-suspended", "code": "GEAP.CASE.SUSPENDED", "name": "Dosar suspendat", "message": "Dosarul {{CaseNumber}} a fost suspendat până la {{SuspendedUntil}}. Motivul: {{Reason}}.", "level": "Avertisment", "destination": "Jurnal + MLog", "action": "Suspendare", "object": "Dosar", "personal": false, "type": "Proces", "active": true, "usedIn": 3, "updatedAt": "2026-10-27T14:20:00", "updatedBy": "Anastasia Cojocaru", "history": [
+      { "at": "2026-10-27T14:20:00", "by": "Anastasia Cojocaru", "role": "Administrator central", "event": "Modificarea șablonului de jurnalizare", "detail": "Textul mesajului" },
+      { "at": "2026-10-20T09:12:00", "by": "Anastasia Cojocaru", "role": "Administrator central", "event": "Activarea șablonului de jurnalizare" },
+      { "at": "2026-10-14T17:48:00", "by": "Olesea Luchian", "role": "Administrator central", "event": "Dezactivarea șablonului de jurnalizare" },
+      { "at": "2026-09-18T10:05:00", "by": "Olesea Luchian", "role": "Administrator central", "event": "Modificarea șablonului de jurnalizare", "detail": "Destinație: Jurnal → Jurnal + MLog" },
+      { "at": "2026-09-04T11:30:00", "by": "Olesea Luchian", "role": "Administrator central", "event": "Crearea șablonului de jurnalizare" }
+    ] },
+    { "id": "lgt-case-resumed", "code": "GEAP.CASE.SUSPENSION_LIFTED", "name": "Suspendarea dosarului a fost ridicată", "message": "Examinarea dosarului {{CaseNumber}} a fost reluată.", "level": "Informativ", "destination": "Jurnal", "action": "Reluare", "object": "Dosar", "personal": false, "type": "Proces", "active": true, "usedIn": 2, "updatedAt": "2026-09-04T11:42:00", "updatedBy": "Olesea Luchian", "history": [
+      { "at": "2026-09-04T11:42:00", "by": "Olesea Luchian", "role": "Administrator central", "event": "Crearea șablonului de jurnalizare" }
+    ] },
+    { "id": "lgt-legal-check", "code": "GEAP.CASE.LEGAL_BASIS_CHECKED", "name": "Temeiul legal verificat", "message": "Temeiul legal {{LegalBasis}} a fost verificat pentru dosarul {{CaseNumber}}.", "level": "Informativ", "destination": "Jurnal", "action": "Decizie", "object": "Dosar", "personal": false, "type": "Proces", "active": true, "usedIn": 5, "updatedAt": "2026-10-08T15:30:00", "updatedBy": "Anastasia Cojocaru", "history": [
+      { "at": "2026-10-08T15:30:00", "by": "Anastasia Cojocaru", "role": "Administrator central", "event": "Modificarea șablonului de jurnalizare", "detail": "Nivel: Avertisment → Informativ" },
+      { "at": "2026-09-11T13:00:00", "by": "Anastasia Cojocaru", "role": "Administrator central", "event": "Crearea șablonului de jurnalizare" }
+    ] },
+    { "id": "lgt-site-visit", "code": "GEAP.CASE.SITE_VISIT_SCHEDULED", "name": "Control la fața locului programat", "message": "Pentru dosarul {{CaseNumber}} a fost programat un control la fața locului.", "level": "Informativ", "destination": "Jurnal", "action": "Notificare", "object": "Dosar", "personal": false, "type": "Proces", "active": true, "usedIn": 1, "updatedAt": "2026-10-15T08:55:00", "updatedBy": "Anastasia Cojocaru", "history": [
+      { "at": "2026-10-15T08:55:00", "by": "Anastasia Cojocaru", "role": "Administrator central", "event": "Crearea șablonului de jurnalizare" }
+    ] },
+    { "id": "lgt-escalated", "code": "GEAP.CASE.DEADLINE_ESCALATED", "name": "Termen depășit — dosar escaladat", "message": "Dosarul {{CaseNumber}} a fost escaladat: termenul de examinare a expirat.", "level": "Eroare", "destination": "Jurnal + MLog", "action": "Notificare", "object": "Dosar", "personal": false, "type": "Proces", "active": true, "usedIn": 4, "updatedAt": "2026-10-02T12:10:00", "updatedBy": "Olesea Luchian", "history": [
+      { "at": "2026-10-02T12:10:00", "by": "Olesea Luchian", "role": "Administrator central", "event": "Crearea șablonului de jurnalizare" }
+    ] },
+    { "id": "lgt-supplement", "code": "GEAP.CASE.SUPPLEMENT_REQUESTED", "name": "Completări cerute solicitantului", "message": "Pentru dosarul {{CaseNumber}} s-au cerut completări. Motivul: {{Reason}}.", "level": "Informativ", "destination": "Jurnal", "action": "Notificare", "object": "Dosar", "personal": false, "type": "Proces", "active": false, "usedIn": 2, "updatedAt": "2026-10-23T16:40:00", "updatedBy": "Anastasia Cojocaru", "history": [
+      { "at": "2026-10-23T16:40:00", "by": "Anastasia Cojocaru", "role": "Administrator central", "event": "Dezactivarea șablonului de jurnalizare" },
+      { "at": "2026-09-25T10:20:00", "by": "Olesea Luchian", "role": "Administrator central", "event": "Crearea șablonului de jurnalizare" }
+    ] },
+    { "id": "lgt-pilot", "code": "GEAP.CASE.PILOT_STEP", "name": "Pas pilot în fluxul de lucru", "message": "Dosarul {{CaseNumber}} a trecut prin pasul pilot.", "level": "Informativ", "destination": "Jurnal", "action": "Notificare", "object": "Dosar", "personal": false, "type": "Proces", "active": false, "usedIn": 0, "updatedAt": "2026-10-29T10:00:00", "updatedBy": "Anastasia Cojocaru", "history": [
+      { "at": "2026-10-29T10:00:00", "by": "Anastasia Cojocaru", "role": "Administrator central", "event": "Dezactivarea șablonului de jurnalizare" },
+      { "at": "2026-10-28T15:10:00", "by": "Anastasia Cojocaru", "role": "Administrator central", "event": "Crearea șablonului de jurnalizare" }
+    ] }
+  ]
+}

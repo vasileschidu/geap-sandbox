@@ -24,7 +24,6 @@ document.addEventListener("DOMContentLoaded", () => {
   const workplaceTable = document.querySelector(".e-permits-workplace__table");
   const workplaceHead = document.querySelector("[data-workplace-head]") || workplaceTable?.querySelector("thead tr");
   const workplacePagination = document.querySelector(".e-permits-workplace__pagination");
-  const workplaceFieldCount = document.querySelector(".e-permits-workplace__field-count");
   const workplaceToolbar = document.querySelector("[data-workplace-toolbar]");
   const workplaceAddUser = document.querySelector("[data-workplace-add-user]");
   const workplaceSyncService = document.querySelector("[data-workplace-sync-service]");
@@ -1274,8 +1273,10 @@ document.addEventListener("DOMContentLoaded", () => {
               item.navObject ? `data-nav-object="${escapeHtml(item.navObject)}"` : ""
             ].filter(Boolean).join(" ");
 
+            /* registers-30-v1: a module may keep an item routable but out of sight (`hidden`: the „Registre” group shows
+               only the pinned / recent registers; the others still open from the catalog, the switcher and links) */
             return `
-              <li>
+              <li${item.hidden ? " hidden" : ""}>
                 <a href="#" class="e-permits-shell__nav-link${isActive ? " is-active" : ""}" data-nav-item data-nav-id="${escapeHtml(item.id)}" data-nav-label="${escapeHtml(item.label)}" ${attributes}${isActive ? ' aria-current="page"' : ""}>
                   <span class="e-permits-shell__nav-icon" aria-hidden="true"></span>
                   <span class="e-permits-shell__nav-text">${escapeHtml(item.label)}</span>
@@ -1995,6 +1996,8 @@ document.addEventListener("DOMContentLoaded", () => {
       { key: "alerte", label: "Alerte", get: (r) => (r.alerte || []).map((a) => workplaceDb.alerts?.[a]?.label || a) },
       { key: "serviciu", label: "Serviciu", get: (r) => r.serviciu },
       { key: "specialist", label: "Specialist", get: (r) => r.specialist?.nume },
+      /* dist-mode-v1: random engine vs supervisor */
+      { key: "modDistribuire", label: "Mod distribuire", get: (r) => distModeLabel(r) },
       { key: "subdiviziune", label: "Subdiviziune", get: (r) => r.subdiviziune },
       { key: "modLivrare", label: "Mod de livrare", get: (r) => r.modLivrare },
       { key: "sursa", label: "Sursă", get: (r) => r.sursa }
@@ -2736,7 +2739,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (params.get("documente") === "0") { row.demoFaraDocumente = true; row.profil = null; }
     delete row.flowState;
     /* dist-actions-v1: the seeded refusal / transfer replays on the case in its demo status */
-    delete row.distTx; delete row.distReports; delete row.nedist; row.demoTransferApplied = false;
+    delete row.distTx; delete row.distReports; delete row.nedist; delete row.distribuire; row.demoTransferApplied = false;
     applyDemoTransfer(row);
   };
 
@@ -3079,15 +3082,13 @@ document.addEventListener("DOMContentLoaded", () => {
     const profile = buildDosarProfile(row);
     const status = workplaceDb.statuses[row.status];
     const applicant = row.companie || row.numeSolicitant || "—";
-    const representative = profile.representative?.nume || (row.companie ? row.numeSolicitant : "—");
 
     return renderPageHeaderMeta([
       ["Numărul dosarului", renderProfileCopyCode(row.nrDosar, `Copiază ${row.nrDosar}`)],
       [profile.isOficiu ? "Titular" : "Solicitant", escapeHtml(profile.isOficiu ? row.actBaza?.titular || applicant : applicant)],
-      ["Reprezentant", escapeHtml(profile.isOficiu ? "—" : representative)],
       ["Termen", `${escapeHtml(formatDate(row.termenExaminare))}${termenMeta ? ` <span class="e-permits-dosar-profil__termen-meta">${escapeHtml(termenMeta)}</span>` : ""}`],
-      ["Alerte", renderAlerts(row.alerte)],
-      ["Specialist", renderAvatarChip(row.specialist)],
+      row.alerte?.length ? ["Alerte", renderAlerts(row.alerte)] : null,
+      ["Specialist", renderAvatarChip(row.specialist), distCaption(distRecordOf(row))],
       ["Statut", `${renderTag(status?.label, status?.tone)}${row.tipDosar ? renderTag(row.tipDosar, "neutral") : ""}`]
     ]);
   };
@@ -3184,7 +3185,8 @@ document.addEventListener("DOMContentLoaded", () => {
     for (let i = 1; i < 6; i += 1) if (dates[i] < dates[i - 1]) dates[i] = dates[i - 1];
     const steps = [
       { key: "depus", label: isOficiu ? "Inițiat" : "Depusă", who: isOficiu ? "Din oficiu" : row.sursa === "FO" ? "Solicitant" : "Ghișeu" },
-      { key: "examinare", label: "Examinare", who: row.specialist?.nume || "Nerepartizat" },
+      /* dist-mode-v1: the distribution under the holder — „aleatoriu · Sistem” / „de <supervizor>” (eKYC „Alocată”) */
+      { key: "examinare", label: "Examinare", who: row.specialist?.nume || "Nerepartizat", dist: ((rec) => (rec ? (rec.mode === "aleatoriu" ? "aleatoriu · Sistem" : `manual · ${rec.by?.nume || "supervizor"}`) : ""))(distRecordOf(row)) },
       { key: "coordonare", label: "Coordonare", who: row.repartizatDe?.nume || "Șeful subdiviziunii" },
       { key: "semnare", label: "Semnare", who: "Conducătorul autorității" },
       { key: "semnat", label: "Semnat", who: "Conducătorul autorității" },
@@ -3222,7 +3224,7 @@ document.addEventListener("DOMContentLoaded", () => {
           steps: steps.map((step, i) => {
             const state = stateOf(i);
             const failed = state === "done" && step.key === "final" && rejected;
-            return { label: step.label, state: failed ? "rejected" : state, sr: failed ? "finalizat" : undefined, meta: state === "todo" ? "" : [short(dates[i]), step.who] };
+            return { label: step.label, state: failed ? "rejected" : state, sr: failed ? "finalizat" : undefined, meta: state === "todo" ? "" : [short(dates[i]), step.who, step.dist] };
           }),
           callout
         }) || ""}
@@ -3292,7 +3294,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const persoaneImplicate = renderInfoCard("Persoane implicate", [
       ["Recepționat de", escapeHtml(receptionatDe)],
-      ["Repartizat de", renderAvatarChip(row.repartizatDe)],
+      /* dist-mode-v1: who distributed it — SIA GEAP at random, or the supervisor */
+      ["Repartizat de", (() => {
+        const rec = distRecordOf(row);
+        if (!rec) return renderAvatarChip(row.repartizatDe);
+        return rec.mode === "aleatoriu"
+          ? `<span>SIA GEAP <span class="e-permits-dosar-profil__termen-meta">aleatoriu · ${escapeHtml(distShortDate(rec.at))}</span></span>`
+          : `<span>${renderAvatarChip(rec.by)} <span class="e-permits-dosar-profil__termen-meta">manual · ${escapeHtml(distShortDate(rec.at))}</span></span>`;
+      })()],
       ["Specialist", renderAvatarChip(row.specialist)],
       ["Aprobat de", dash]
     ]);
@@ -3703,14 +3712,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
   /* ---- Dosar: detail modal for a payment, approval, act or generated document ----
      Figma GEAP 2.0 8912:54211 "Notă de plată": title + subtitle, a "Date generale"
-     card of label/value rows, the grey "Doar citire" note, Descarcă · Închide. */
+     card of label/value rows, Descarcă · Închide (no „Doar citire” note — removed 2026-10-30, user). */
   const dosarDetailModal = document.querySelector("#dosar-detail-modal");
   const dosarDetailFile = { name: "", text: "" };
-  const renderReadOnlyNote = () => `
-    <div class="info-box info-box--neutral e-permits-info-note e-permits-readonly-note">
-      <span class="info-box__icon"><svg class="icon" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-lock"></use></svg></span>
-      <div class="info-box__content"><p>Doar citire</p></div>
-    </div>`;
   /* machete-mdocs-v1 (2026-10-25, Feature 96074 US-306…US-311): the dossier documents MDocs generates = the standard
      template (GEAPDocPreview.mdocsHtml) — Cererea depusă (US-307), the notification PDF (US-308, Notificări tab), the
      signed refusal decision (US-309), the signed act (US-310), the certificat constatator (US-311). Projects, uploads,
@@ -4066,8 +4070,7 @@ document.addEventListener("DOMContentLoaded", () => {
       ? `${preview}${signature}`
       : `
       ${preview}
-      ${renderInfoCard("Date generale", rows)}
-      ${renderReadOnlyNote()}`;
+      ${renderInfoCard("Date generale", rows)}`;
     dosarDetailFile.name = file;
     dosarDetailFile.text = [title, subtitle, "", ...rows.map(([label, html]) => { const tmp = document.createElement("div"); tmp.innerHTML = html; return `${label}: ${tmp.textContent.replace(/\s*Copiază\s*$/, "").trim() || "—"}`; })].join("\n");
     dosarDetailModal.querySelector("[data-dosar-detail-buttons]").innerHTML = `
@@ -4190,7 +4193,11 @@ document.addEventListener("DOMContentLoaded", () => {
       detail: row.sursa === "FO" ? "Depus prin Front Office." : "Înregistrat la ghișeu."
     }];
     if (row.specialist) {
-      log.unshift({ at: `${row.dataDepunerii}T11:30:00`, user: row.repartizatDe?.nume || "", type: "Dosar distribuit", status: "Reușit", detail: `Repartizat către ${row.specialist.nume}.` });
+      /* dist-mode-v1: random (SIA GEAP, role Sistem) or by the supervisor */
+      const rec = distRecordOf(row);
+      log.unshift(rec?.mode === "aleatoriu"
+        ? { at: rec.at, user: "SIA GEAP", type: "Dosar distribuit aleatoriu", status: "Reușit", detail: `Distribuit aleatoriu către ${row.specialist.nume}.` }
+        : { at: rec?.at || `${row.dataDepunerii}T11:30:00`, user: rec?.by?.nume || row.repartizatDe?.nume || "", type: "Dosar distribuit", status: "Reușit", detail: `Distribuit manual de ${rec?.by?.nume || "supervizor"} către ${row.specialist.nume}.` });
     }
     return log;
   };
@@ -4393,12 +4400,41 @@ document.addEventListener("DOMContentLoaded", () => {
   };
   const distNotify = (row, destinatar, eveniment, at) => buildDosarProfile(row).notificari.unshift({ canal: "SIA GEAP", destinatar, eveniment, trimisaLa: formatDateTime(at.slice(0, 10), at.slice(11, 16)), status: "livrata" });
   const distSupervisors = (row) => `Supervizorii subdiviziunii ${row.subdiviziune}`;
+  /* dist-mode-v1 (2026-10-30, user-approved): HOW the case reached its holder — `row.distribuire = { mode: "aleatoriu" |
+     "manual", by, at }` — shown on the assignment (header „Specialist”, list cells, trajectory, journal), never on the
+     status; text only (eKYC wording „aleatoriu” / „de supervizor”, js/ekyc.js). Seeded cases derive it deterministically:
+     ?distribuire=automata|manuala when set, else the case number — so both kinds are visible. Distribution / redistribution actions write `row.distribuire`. Undistributed
+     cases have none. */
+  const distSupervisorFor = (row) => {
+    const sups = (dossierDb?.specialisti || []).filter((p) => p.rol === "Supervizor" && p.id !== row.specialist?.id);
+    return sups.length ? sups[hashValue(`${row.id}|sup`) % sups.length] : personFromName("Supervizor");
+  };
+  const distRecordOf = (row) => {
+    if (!row?.specialist || row.nedistribuit) return null;
+    if (row.distribuire) return row.distribuire;
+    /* every seeded service has „Distribuire automată” = Nu today, so the past is derived from the case number (≈ 3 in 5
+       at random — the setting may have changed since); ?distribuire= / ?rapoarte= (US-325 demos) decide for all */
+    const forced = REDIST_PARAMS.get("distribuire") || REDIST_PARAMS.get("rapoarte");
+    const auto = forced ? caseAutoDist(row) : hashValue(`${row.id}|dist`) % 5 < 3;
+    const at = `${row.dataDepunerii}T11:30:00`;
+    return auto ? { mode: "aleatoriu", by: null, at } : { mode: "manual", by: distSupervisorFor(row), at };
+  };
+  const distShortDate = (iso) => parseIsoDate(String(iso).slice(0, 10))?.toLocaleDateString("ro-RO", { day: "numeric", month: "short", year: "numeric" }).replace(/ /g, "\u00a0") || "";
+  /* header caption „Distribuit aleatoriu · 8 iul. 2026” / „Distribuit manual · Elena Caragia · 8 iul. 2026” */
+  const distCaption = (rec) => (rec ? `Distribuit <strong>${rec.mode === "aleatoriu" ? "aleatoriu" : "manual"}</strong>${rec.mode === "aleatoriu" ? "" : ` · ${escapeHtml(rec.by?.nume || "supervizor")}`} · ${escapeHtml(distShortDate(rec.at))}` : "");
+  /* list cell second line „aleatoriu” / „manual · Elena Caragia” */
+  const distListHtml = (rec) => (rec ? `<strong>${rec.mode === "aleatoriu" ? "aleatoriu" : "manual"}</strong>${rec.mode === "aleatoriu" ? "" : ` · ${escapeHtml(rec.by?.nume || "supervizor")}`}` : "");
+  const distListLine = (rec) => (rec ? (rec.mode === "aleatoriu" ? "aleatoriu" : `manual · ${rec.by?.nume || "supervizor"}`) : "");
+  /* the facet „Mod distribuire” */
+  const distModeLabel = (row) => { const rec = distRecordOf(row); return rec ? (rec.mode === "aleatoriu" ? "Aleatoriu" : "Manual") : ""; };
+  const distRecordSet = (row, mode, by, at) => { row.distribuire = { mode, by: mode === "manual" ? (typeof by === "string" ? personFromName(by) : by) : null, at }; };
   /* the case leaves its executant: „Dosare nedistribuite”, substatut „Spre distribuire”, the term stays (US-296 AC-07 / 09,
      US-297 AC-05 / 06 / 10) */
   const distUnassign = (row, { motiv, from, at, tx, by = "SIA GEAP", detail = "", reason = "" }) => {
     const cf = caseFlowOf(row);
     row.specialist = null;
     row.nedistribuit = true;
+    delete row.distribuire;
     row.status = "depus";
     if (cf) cf.state.stateId = cf.flow.order?.[0] || "node5";
     row.nedist = { motiv, from: from?.nume || "—", at, tx: tx.id, prev: tx.prev, detail, reason };
@@ -4506,6 +4542,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (pick) {
         row.specialist = { id: pick.id, nume: pick.nume, initiale: pick.initiale, color: pick.color };
         row.repartizatDe = personFromName("SIA GEAP");
+        distRecordSet(row, "aleatoriu", null, at);
         cf.state.log.unshift({ at, user: "SIA GEAP", type: "Dosar redistribuit automat", status: "Reușit", detail: `Tip distribuire: Redistribuire. ${from?.nume || "—"} → ${pick.nume}. Decizia anterioară: ${tx.prev}. Raportul de distribuire ${report.id}. Termenul de examinare rămâne ${formatLongDate(row.termenExaminare)}.` });
         /* AC-10 */
         distNotify(row, pick.nume, "Dosar distribuit către dvs.", at);
@@ -5141,6 +5178,7 @@ document.addEventListener("DOMContentLoaded", () => {
         row.specialist = person || row.specialist;
         row.repartizatDe = personFromName(me);
         row.nedistribuit = false;
+        distRecordSet(row, "manual", me, now);
         detail = `Repartizat către ${person?.nume || "—"}. Instrucțiuni: ${values.instructiuni}`;
         break;
       }
@@ -5268,16 +5306,19 @@ document.addEventListener("DOMContentLoaded", () => {
     if (to) {
       row.specialist = { id: to.id, nume: to.nume, initiale: to.initiale, color: to.color };
       row.repartizatDe = personFromName(me);
+      /* dist-mode-v1: „Automat” = the engine's random pick (aleatoriu); „Manual” = by the supervisor */
+      distRecordSet(row, mode === "automat" ? "aleatoriu" : "manual", me, now);
       /* AC-12: the new responsible is notified */
       profile.notificari.unshift({ canal: "SIA GEAP", destinatar: to.nume, eveniment: "Dosar redistribuit către dvs.", trimisaLa: formatDateTime(now.slice(0, 10), now.slice(11, 16)), status: "livrata" });
       state.log.unshift({
         at: now, user: me, type: "Dosar redistribuit", status: "Reușit",
         /* AC-14 reason + author (the row's user); AC-10 complexity recalculated with today's policy; AC-13 the term stays */
-        detail: `${from?.nume || "—"} → ${to.nume} · ${mode === "manual" ? "manual" : "automat"}. Motiv: ${values.motiv} ${link} Complexitate recalculată: ${redistComplexity(row)} normo-ore, cu politica în vigoare. ${term}`
+        detail: `${from?.nume || "—"} → ${to.nume} · ${mode === "manual" ? `manual, de ${me}` : "aleatoriu"}. Motiv: ${values.motiv} ${link} Complexitate recalculată: ${redistComplexity(row)} normo-ore, cu politica în vigoare. ${term}`
       });
     } else {
       row.specialist = null;
       row.nedistribuit = true;
+      delete row.distribuire;
       row.status = "depus";
       state.stateId = "node5";
       row.nedist = { motiv: mode === "automat" ? "Fără candidat la redistribuire" : "Trimis de supervizor", from: from?.nume || "—", at: now, tx: tx.id, prev: tx.prev, detail: values.motiv };
@@ -5336,7 +5377,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const { to } = refuseCase(row, motiv, me, now);
     closeDosarProfil();
     showShellToast(to
-      ? `Dosarul ${row.nrDosar} a fost redistribuit automat. Supervizorii subdiviziunii au fost notificați.`
+      ? `Dosarul ${row.nrDosar} a fost redistribuit aleatoriu. Supervizorii subdiviziunii au fost notificați.`
       : `Dosarul ${row.nrDosar} a trecut în „Dosare nedistribuite”, cu substatutul „Spre distribuire”. Supervizorii subdiviziunii au fost notificați.`, "success", "Dosar refuzat");
   };
   /* bulk (AC-03 / AC-17 / AC-18): the selected cases of „Dosarele subdiviziunii” that may still be redistributed */
@@ -6910,7 +6951,7 @@ document.addEventListener("DOMContentLoaded", () => {
         <span class="avatar avatar--xs avatar--initials e-permits-workplace__person-avatar" style="background:${escapeHtml(person.color || "#0058d2")}">${escapeHtml(person.initiale || "")}</span>
         <span class="e-permits-workplace__person-copy">
           <span class="e-permits-workplace__person-name">${escapeHtml(person.nume)}</span>
-          ${subtitle ? `<span class="e-permits-workplace__person-role">${escapeHtml(subtitle)}</span>` : ""}${extraHtml}
+          ${subtitle ? `<span class="e-permits-workplace__person-role">${subtitle.html ?? escapeHtml(subtitle)}</span>` : ""}${extraHtml}
         </span>
       </span>
     `;
@@ -7041,7 +7082,8 @@ document.addEventListener("DOMContentLoaded", () => {
         return renderTablePerson(row.initiatDe);
       /* US-295 „Dosarele subdiviziunii”: who holds the case */
       case "specialist":
-        return renderTablePerson(row.specialist);
+        /* dist-mode-v1: „aleatoriu” / „manual · <supervizor>” under the name */
+        return renderTablePerson(row.specialist, { html: distListHtml(distRecordOf(row)) });
       /* dist-actions-v1 „Dosare nedistribuite”: why the case is here — reason over „previous executant · date” */
       case "motivNedistribuire":
         return `<span class="e-permits-workplace__date-stack"><span>${escapeHtml(row.nedist?.motiv || "Dosar nou")}</span>${row.nedist ? `<span class="e-permits-workplace__date-meta">${escapeHtml(`${row.nedist.from} · ${formatLongDate(row.nedist.at)}`)}</span>` : ""}</span>`;
@@ -7346,9 +7388,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     syncWorkplaceBulk();
 
-    if (workplaceFieldCount) {
-      workplaceFieldCount.innerHTML = `<strong>${workplaceDb.fieldCount || view.columns.length}</strong> câmpuri`;
-    }
+    /* no „N câmpuri” counter in the toolbar (removed 2026-10-31: inaccurate, Figma comment 1989598889) */
 
     /* ghiseu-autosave-csv-v1: a registry with ONE export format names it on the icon button (name + tooltip,
        e.g. „Exportă CSV”, view.exportLabel); the click calls the registry's exportRows (no format menu — the Ghișeu
@@ -8751,7 +8791,8 @@ document.addEventListener("DOMContentLoaded", () => {
      A log entry written at the same moment as a report (the first assignment, „Dosar redistribuit (automat)”) IS that event:
      it is merged (retitled, `distReport` set), never doubled. Manual distribution has no report → its plain event.
      Newest first (AC-04); each item keeps `idx` = its place in the full list (the audit detail + the filter use it). */
-  const DIST_EVENT = { Distribuire: "Dosarul a fost distribuit automat", Redistribuire: "Dosarul a fost redistribuit automat" };
+  /* dist-mode-v1: the engine's choice reads „aleatoriu” (user-approved wording, as eKYC) */
+  const DIST_EVENT = { Distribuire: "Dosarul a fost distribuit aleatoriu", Redistribuire: "Dosarul a fost redistribuit aleatoriu" };
   const dosarJournalItems = (row) => {
     const log = (caseFlowOf(row)?.state.log || []).map((item) => ({ ...item }));
     const merged = new Set();
@@ -8869,8 +8910,7 @@ document.addEventListener("DOMContentLoaded", () => {
         ["Încercări", escapeHtml(String(record.mlog.attempts))],
         ["Identificator MLog", record.mlog.id ? copy(record.mlog.id) : dash],
         ...(record.mlog.error ? [["Ultima eroare", escapeHtml(record.mlog.error)]] : [])
-      ])}
-      ${renderReadOnlyNote()}`;
+      ])}`;
     modal.querySelector("[data-dosar-detail-buttons]").innerHTML = '<button class="btn btn-primary btn-rounded" type="button" data-dosar-detail-close>Închide</button>';
     window.__modal?.open?.("#dosar-detail-modal");
   };
@@ -8915,11 +8955,21 @@ document.addEventListener("DOMContentLoaded", () => {
     `;
   };
   /* AC-09/10: newest first by default; one button flips the order */
+  /* sort-chip-v1 (2026-10-30): the same „Sortează” chip + menu / phone sheet as the Dosare section of the act card */
+  const SVC_EV_SORT_KEYS = [{ value: "date", label: "Data" }];
+  const svcEvSortOrders = () => [{ value: "desc", label: "Cele mai noi" }, { value: "asc", label: "Cele mai vechi" }];
   const renderSvcEventsSort = () => {
     const desc = svcEventsState.sort === "desc";
-    return `<button class="btn btn-neutral btn-sm" type="button" data-svc-events-sort aria-label="Ordinea: ${desc ? "cele mai noi primele" : "cele mai vechi primele"}">
-      <svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-arrow-${desc ? "down" : "up"}"></use></svg><span>${desc ? "Cele mai noi" : "Cele mai vechi"}</span>
-    </button>`;
+    return window.GEAPSortSheet.controlHtml({ id: "svc-events-sort", triggerAttr: "data-svc-events-sort", ariaLabel: `Sortează: Data, ${desc ? "cele mai noi primele" : "cele mai vechi primele"}`, menuLabel: "Sortează evenimentele", label: "Data", keys: SVC_EV_SORT_KEYS, orders: svcEvSortOrders, current: { key: "date", order: svcEventsState.sort }, keyAttr: "data-svc-events-sort-key", orderAttr: "data-svc-events-sort-dir" });
+  };
+  const bindSvcEventsSort = () => {
+    const trigger = permitsProfilePanel?.querySelector("[data-svc-events-sort]");
+    if (!trigger) return;
+    window.GEAPSortSheet.bind(trigger, {
+      title: "Sortează", sprite: "assets/icons/sprite.svg", keys: SVC_EV_SORT_KEYS, orders: svcEvSortOrders,
+      current: () => ({ key: "date", order: svcEventsState.sort }),
+      apply: ({ order }) => { svcEventsState.sort = order; svcEventsState.shown = SVC_EVENTS_PAGE; refreshSvcEvents(); permitsProfilePanel.querySelector("[data-svc-events-sort]")?.focus(); }
+    });
   };
   const refreshSvcEvents = () => {
     const service = getServiceByCode(serviceProfileState.code);
@@ -8933,7 +8983,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const toggle = permitsProfilePanel.querySelector('[data-sf-toggle="jurnal"]');
     if (toggle) toggle.outerHTML = renderSfToggle("jurnal", service);
     const sort = permitsProfilePanel.querySelector("[data-svc-events-sort]");
-    if (sort) sort.outerHTML = renderSvcEventsSort();
+    if (sort) { sort.closest(".e-permits-stack__menu-wrap").outerHTML = renderSvcEventsSort(); bindSvcEventsSort(); }
   };
 
   /* Roles and users keep no audit trail in the demo data — derive one from their dates */
@@ -14616,6 +14666,7 @@ document.addEventListener("DOMContentLoaded", () => {
     body.setAttribute("aria-labelledby", `passport-tab-${serviceProfileState.tabKey}`);
     body.innerHTML = renderServiceTabBody(service, serviceProfileState.tabKey);
     syncStackMetaRows(body);
+    if (serviceProfileState.tabKey === "events") bindSvcEventsSort();
     if (serviceProfileState.tabKey === "settings") { cfg2LastCount = cfg2Changes(service).length; cfg2Spy(); }
     header.hidden = false;
   };
@@ -17850,6 +17901,36 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   };
 
+  /* stack-menu-flip-v1 (2026-10-30): a ⋮ menu opens under its button and flips upward (.is-open-up) when the
+     viewport has no room below but has above — at every width; when neither side fits, it takes the larger side and
+     scrolls inside (--stack-menu-max). Same rule as act-row.js fitMenu / CabEvo.fitMenu. Fixed menus place themselves. */
+  const fitStackMenu = (menu, trigger) => {
+    menu.classList.remove("is-open-up");
+    menu.style.removeProperty("--stack-menu-max");
+    const fixed = menu.hasAttribute("data-stack-menu-fixed");
+    if (menu.hidden || (!fixed && !menu.matches(".e-permits-stack__menu-wrap > .e-permits-stack__menu"))) return;
+    const edge = 16, gap = fixed ? 4 : 8;
+    const t = trigger.getBoundingClientRect();
+    const height = menu.getBoundingClientRect().height;
+    const below = window.innerHeight - t.bottom - gap - edge;
+    const above = t.top - gap - edge;
+    const up = height > below && above > below;
+    const room = Math.floor(up ? above : below);
+    const shown = height > room ? room : height;
+    if (height > room) menu.style.setProperty("--stack-menu-max", `${room}px`);
+    if (fixed) {
+      /* fixed (clipping table / toolbar): top / left are set by the opener; only the vertical side flips here */
+      menu.style.top = `${Math.round(up ? t.top - gap - shown : t.bottom + gap)}px`;
+      menu.style.left = `${Math.max(8, t.right - menu.offsetWidth)}px`;
+    } else menu.classList.toggle("is-open-up", up);
+  };
+  window.addEventListener("resize", () => {
+    document.querySelectorAll("[data-stack-menu]:not([hidden])").forEach((menu) => {
+      const trigger = document.querySelector(`[data-stack-menu-trigger][aria-controls="${menu.id}"]`);
+      if (trigger) fitStackMenu(menu, trigger);
+    });
+  });
+
   /* one handler for every stacked list (passport, user / role permissions):
      open / close the overflow menu; its items keep their own data-* actions */
   document.addEventListener("click", (event) => {
@@ -17862,14 +17943,9 @@ document.addEventListener("DOMContentLoaded", () => {
       menu.hidden = !willOpen;
       menuTrigger.setAttribute("aria-expanded", String(willOpen));
       /* a menu inside a clipping toolbar (registry header) opens fixed, under its button, right-aligned */
-      if (willOpen && menu.hasAttribute("data-stack-menu-fixed")) {
-        const r = menuTrigger.getBoundingClientRect();
-        menu.style.top = `${r.bottom + 4}px`;
-        menu.style.left = `${Math.max(8, r.right - menu.offsetWidth)}px`;
-      }
-
       if (willOpen) {
-        menu.querySelector("[role='menuitem']")?.focus();
+        fitStackMenu(menu, menuTrigger);
+        menu.querySelector("[role='menuitem']")?.focus({ preventScroll: true });
       }
 
       return;
@@ -17923,8 +17999,11 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    if (event.target.closest("[data-svc-events-sort]")) {
-      svcEventsState.sort = svcEventsState.sort === "desc" ? "asc" : "desc"; svcEventsState.shown = SVC_EVENTS_PAGE;
+    const svcSortDir = event.target.closest("[data-svc-events-sort-dir]");
+    if (svcSortDir || event.target.closest("[data-svc-events-sort-key]")) {
+      if (svcSortDir) svcEventsState.sort = svcSortDir.dataset.svcEventsSortDir;
+      svcEventsState.shown = SVC_EVENTS_PAGE;
+      closeStackMenus?.();
       refreshSvcEvents(); permitsProfilePanel.querySelector("[data-svc-events-sort]")?.focus();
       return;
     }
@@ -20058,6 +20137,11 @@ document.addEventListener("DOMContentLoaded", () => {
            dossiers' statuses / alerts / decisions from workplaceDb */
         if (!workplaceDb?.statuses && dossierDb) workplaceDb = dossierDb;
         applyDemoCaseState(linkedRow);
+        /* deep-link-nav-v1: a role whose menu has no dossier list (Administrator central opens on „Utilizatori”) reaches
+           dossiers through „Registru Dosare” (or „Toate registrele” when the role has no such item) — never highlight an Administrare item for a dossier */
+        const activeNav = document.querySelector("[data-nav-item].is-active");
+        const groupLabel = activeNav?.closest(".e-permits-shell__nav-group")?.querySelector(".e-permits-shell__group-label")?.textContent.trim();
+        if (activeNav && groupLabel && !["Locul de muncă", "Sarcini", "Registre"].includes(groupLabel)) setActiveNav(document.querySelector('[data-nav-item][data-nav-id="reg-dosare"]') ? "reg-dosare" : "registre");
         openDosarProfil(linkedRow, match[2] || "general");
         return;
       }
@@ -20075,11 +20159,15 @@ document.addEventListener("DOMContentLoaded", () => {
       match = hash.match(/^#utilizator\/([^/]+)(?:\/([^/]+))?$/);
       const linkedUser = match && getUserById(match[1]);
       if (linkedUser) {
-        setActiveNav("users");
+        /* roles without „Utilizatori” (Supervisor) reach a person's absences / distribution tabs from „Încărcarea echipei” */
+        const userNav = ["users", "incarcarea-echipei", "absente"].find((id) => document.querySelector(`[data-nav-item][data-nav-id="${id}"]`));
+        if (userNav) setActiveNav(userNav);
+        else document.querySelectorAll("[data-nav-item].is-active").forEach((link) => { link.classList.remove("is-active"); link.removeAttribute("aria-current"); });
         activeRegistry = "users";
         workplaceDb = usersDb;
         workplaceState.rows = usersDb.runtimeRows || [];
         openUserProfile(linkedUser, match[2] || "general");
+        if (userProfilePanel) { if (userNav) delete userProfilePanel.dataset.topbarTitle; else userProfilePanel.dataset.topbarTitle = "Utilizatori"; } /* a role with no menu item for it (direct link): the bar names the section, nothing is highlighted */
         return;
       }
 
@@ -21067,6 +21155,7 @@ document.addEventListener("DOMContentLoaded", () => {
     };
     const openProfilePanel = () => {
       hideShellPages();
+      if (dosarProfilPanel) delete dosarProfilPanel.dataset.topbarTitle; /* a page without a menu item sets it again */
       dosarProfilState.returnTo = "dossiers";
       if (dosarProfilPanel) dosarProfilPanel.hidden = false;
       shell.classList.add("is-dosar-profile-open");
@@ -21078,17 +21167,21 @@ document.addEventListener("DOMContentLoaded", () => {
       renderEmptyState, renderNoResults, renderPassportEmpty, renderCopyCode, renderProfileCopyCode, renderListCode,
       renderInfoNote, renderNotice, renderFoSelectControl, showShellToast, askConfirm, exportCsv,
       renderToggle, renderCheckOption, requiredMark, renderPassportBlock, renderSumList, renderUserRoles, renderHeaderStatus,
+      /* jurnalizare-v1 (js/jurnalizare.js): the drawer step strip of „Șablon nou” */
+      renderStepStrip,
       registerChangeSource, changesStatusAttrs, changeValue,
       setActiveNav, writeHash, restorePageHash, renderWorkplace, getVisibleRows, workplaceState,
       showRegistry: showProductRegistry, hideShellPages, openProfilePanel, closeProfile: closeDosarProfil,
       /* a link that lands on a registry with filters already applied (eKYC alert → Sesiuni istorice) */
-      setRegistryFilters: (kind, applied) => { getFilterState(kind).applied = { ...applied }; saveFilterState(kind); },
+      setRegistryFilters: (kind, applied) => { const st = getFilterState(kind); st.applied = { ...applied }; st.draft = null; saveFilterState(kind); },
       currentAssignment: () => getRoleAssignments().find((item) => item.id === activeAssignmentId) || null,
       els: { workplacePanel, workplaceTitle, workplaceRefresh, dosarProfilPanel, dosarProfilTitleRow, dosarProfilSummary, dosarProfilTabs, dosarProfilPanelBody },
       /* for modules: the service passport and its settings (US-221), the signed-in user */
       getServiceByCode, serviceConfig, getAuthorityById, servicesStore: () => servicesStore, currentUserName, localIsoNow, renderBreadcrumbs,
       /* registre-v1 (js/registre.js): Registru Dosare reads the BO dossiers (rows + status labels / tones) */
       dossierStore: () => dossierDb,
+      /* dist-mode-v1: the distribution record of a dossier, as list text / facet value */
+      distListLine: (row) => distListLine(distRecordOf(row)), distListHtml: (row) => distListHtml(distRecordOf(row)), distModeLabel: (row) => distModeLabel(row),
       /* US-255 (js/ghiseu.js „Dosare suspendate”): the suspension record of a case (reason, term, days left) */
       dosarSuspension,
       /* registre-v2 (js/registre-admin.js): the menu redrawn after a publish / grant / deprecation (the active item
@@ -21107,6 +21200,30 @@ document.addEventListener("DOMContentLoaded", () => {
     if (product?.init) product.init(shellApi);
     window.GEAPShellApi = shellApi;
   }
+
+  /* topbar-title-v1 (2026-10-30, user): the top bar is never empty. While a profile / detail page (its own page header +
+     tabs) replaces the list, the bar shows the section name = the label of the active menu item; the list pages keep
+     their own view title (same style, js sets it on render) */
+  const syncTopbarTitle = () => {
+    if (!workplaceTitle || !workplacePanel || !workplacePanel.hidden) return;
+    if (workplaceRefresh) workplaceRefresh.hidden = true; /* the refresh belongs to the list */
+    const active = document.querySelector("[data-nav-item].is-active");
+    /* a page with no menu item (the avatar menu „Profilul meu”) names itself: data-topbar-title on the open panel */
+    const own = active ? "" : document.querySelector("[data-topbar-title]:not([hidden])")?.dataset.topbarTitle || "";
+    const label = own || active?.dataset.navLabel || active?.querySelector(".e-permits-shell__nav-text")?.textContent.trim();
+    if (label && workplaceTitle.textContent !== label) workplaceTitle.textContent = label;
+  };
+  let topbarTitleQueued = false;
+  const queueTopbarTitle = () => {
+    if (topbarTitleQueued) return;
+    topbarTitleQueued = true;
+    queueMicrotask(() => { topbarTitleQueued = false; syncTopbarTitle(); });
+  };
+  const topbarObserver = new MutationObserver(queueTopbarTitle);
+  topbarObserver.observe(shell, { attributes: true, attributeFilter: ["class"] });
+  if (workplacePanel) topbarObserver.observe(workplacePanel, { attributes: true, attributeFilter: ["hidden"] });
+  if (shellNav) topbarObserver.observe(shellNav, { subtree: true, childList: true, attributes: true, attributeFilter: ["class"] });
+  window.addEventListener("hashchange", queueTopbarTitle);
 
   setupNavTooltips();
   void (async () => {

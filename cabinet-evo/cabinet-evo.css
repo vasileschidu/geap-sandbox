@@ -651,11 +651,16 @@
   transition: background-color 140ms var(--motion-easing-standard, cubic-bezier(0.4, 0, 0.2, 1));
 }
 
-.cab-doc.is-clickable:is(:hover, :focus-visible, :has([aria-expanded="true"]), :has(:focus-visible)) {
+/* row-vs-control-v1 (2026-10-30): the band is off while the pointer is on an inner control (its own hover) */
+.cab-doc.is-clickable:is(:hover:not(:has(:is(button, a, [role="button"], .copy-value):hover)), :focus-visible, :has([aria-expanded="true"])) {
   background: var(--color-background-base-tertiary-hover, #e8e8e8);
 }
 
 /* the card is the control (no „Detalii” button, no-lone-detalii-v1): the row focus ring inside the card */
+.cab-doc.is-clickable :is(button:not(:disabled), a[href], [role="button"], .copy-value) {
+  cursor: pointer;
+}
+
 .cab-doc.is-clickable:focus-visible {
   outline: var(--border-width-2, 2px) solid var(--focus-ring, var(--blue-sky-500, #3379db));
   outline-offset: calc(var(--border-width-2, 2px) * -1);

@@ -57,6 +57,8 @@ lesson into the sections above when it has proved itself twice. Never delete a l
 - No monospace — except rule-builder keywords as `code.e-permits-doc-kw` tokens.
 - Applicant types: icon + full name in forms/read-only views; plain codes in stacked list meta.
 - Hover visible everywhere; open button keeps focus ring (`aria-expanded`); no toast for toggles.
+- Any clickable element = `cursor: pointer` + visible hover (hover-audit flags „no-pointer”); a clickable row with inner controls: band on the row only, the control's own hover on the control (components.md › Row vs inner control).
+- The shell top bar always shows the active section name (profiles too: `setActiveNav` + `syncTopbarTitle`).
 - Last row without divider; truncated text gets a tooltip; dates „8 iulie 2026”.
 - Opening animations use `animation-fill-mode: backwards` (never `both`) and open modals drop
   their layer — otherwise hover stops repainting in GPU Chrome.

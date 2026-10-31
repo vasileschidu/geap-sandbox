@@ -484,6 +484,12 @@
               "label": "Șabloane de notificare",
               "iconAsset": "assets/icons/notification.svg",
               "shellView": "ntpl-registry"
+            },
+            {
+              "id": "sabloane-jurnalizare",
+              "label": "Șabloane de jurnalizare",
+              "iconAsset": "assets/icons/checklist.svg",
+              "shellView": "jurnalizare-registry"
             }
           ]
         },

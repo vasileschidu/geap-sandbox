@@ -2065,8 +2065,8 @@ body {
 }
 
 .e-permits-shell__nav--specialist [data-workplace-view="office"] .e-permits-shell__nav-icon::before {
-  mask-image: url("../assets/icons/sidebar-folder-download.svg");
-  -webkit-mask-image: url("../assets/icons/sidebar-folder-download.svg");
+  mask-image: url("../assets/icons/sidebar-building.svg");
+  -webkit-mask-image: url("../assets/icons/sidebar-building.svg");
 }
 
 .e-permits-shell__nav--specialist [data-workplace-view="print"] .e-permits-shell__nav-icon::before {
@@ -2623,7 +2623,8 @@ body {
   text-overflow: clip;
 }
 
-.e-permits-workplace__table tbody tr:not(.e-permits-workplace__group-row):hover td {
+/* row-vs-control-v1 (2026-10-30): on a row that opens something, the band is off while the pointer is on an inner control */
+.e-permits-workplace__table tbody tr:not(.e-permits-workplace__group-row, [data-workplace-row-open]:has(:is(button, a, [role="button"], .copy-value):hover)):hover td {
   background: var(--color-background-base-secondary-hover, #e7e7e7);
 }
 
@@ -2631,6 +2632,10 @@ body {
    button) — pointer, the hover band on keyboard focus too, and the focus ring drawn inside the cells (the pinned
    sticky cells would paint over an outline on the tr) */
 .e-permits-workplace__table tbody tr[data-workplace-row-open] {
+  cursor: pointer;
+}
+
+.e-permits-workplace__table tbody tr[data-workplace-row-open] :is(button:not(:disabled), a[href], [role="button"], .copy-value) {
   cursor: pointer;
 }
 
@@ -2953,6 +2958,14 @@ td .e-permits-workplace__date-stack > .e-permits-workplace__date-meta:not(:has(.
   font-size: var(--font-size-fs-12, 12px);
   font-weight: var(--font-weight-fw-regular, 400);
   line-height: var(--line-height-lh-16, 16px);
+}
+
+/* dist-mode-v1: the distribution method word („aleatoriu” / „manual”) one step bolder and darker (base text colour), same size */
+.e-permits-workplace__person-role strong,
+.e-permits-workplace__source strong,
+.e-permits-page-header__meta-caption strong {
+  color: var(--color-text-base-default, #121212);
+  font-weight: var(--font-weight-fw-medium, 500);
 }
 
 /* Tags = Tag · Small (the library status tag, css/tag.css + GEAPTag, audit-fix-v5) — no BO tag of its own */

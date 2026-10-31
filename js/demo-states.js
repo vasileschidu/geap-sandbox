@@ -644,6 +644,9 @@
     "dset-02a": absUser(ADMIN, "user-2", "distribution", async (h) => { await distEditOpen(h); await h.fill("#abs-norm", "120"); await h.click(`${absModal} [data-abs-dist-save]`); }),
     "dset-02b": absUser(ADMIN, "user-2", "distribution", async (h) => { await distEditOpen(h); await h.fill("#abs-norm", "60"); await h.fill("#abs-norm-reason", ""); await h.click(`${absModal} [data-abs-dist-save]`); }),
     "dset-02c": absUser(ADMIN, "user-2", "distribution", async (h) => { await distEditOpen(h); await h.click(`${absModal} [data-abs-comp-add]`); await h.choose(`${absModal} select[data-abs-comp-field="service"][data-abs-comp-i="2"]`, "Autorizație sanitară de funcționare"); await h.click(`${absModal} [data-abs-dist-save]`); }),
+    "dset-02e": absUser(ADMIN, "user-2", "distribution", async (h) => { await distEditOpen(h); await h.click(`${absModal} [data-abs-rt-select="0"] [data-abs-rt-button]`); await h.wait(250); }),
+    "dset-02f": absUser(ADMIN, "user-2", "distribution", async (h) => { await distEditOpen(h); await h.click(`${absModal} [data-abs-rt-select="0"] [data-abs-rt-button]`); await h.click(`${absModal} [data-abs-rt-select="0"] [data-abs-rt-option="Eliberare"]`); await h.click(`${absModal} [data-abs-rt-select="0"] [data-abs-rt-option="Prelungire"]`); await h.click(`${absModal} .e-permits-user-create__section-title`); await h.wait(250); }),
+    "dset-02g": absUser(ADMIN, "user-2", "distribution", async (h) => { await distEditOpen(h); await h.click(`${absModal} [data-abs-rt-select="0"] [data-abs-rt-button]`); await h.click(`${absModal} [data-abs-rt-select="0"] [data-abs-rt-option="Eliberare"]`); await h.click(`${absModal} [data-abs-rt-select="0"] [data-abs-rt-option="Prelungire"]`); await h.click(`${absModal} [data-abs-rt-select="0"] [data-abs-rt-option="Reperfectare"]`); await h.click(`${absModal} .e-permits-user-create__section-title`); await h.wait(250); }),
     "dset-02d": absUser(ADMIN, "user-2", "distribution", async (h) => { await distEditOpen(h); await h.fill("#abs-norm", "100"); await h.click(`${absModal} [data-abs-comp-remove="1"]`); await h.click(`${absModal} [data-abs-dist-save]`); await h.find(".toast"); }),
     "dset-03": absMine(SPEC, "distribuire"),
     "dset-04": absUser(SUP, "user-3", "distribution"),
@@ -1380,6 +1383,31 @@
     "dos-06o": dos(SUP, "inExaminare", "general", { candidati: "0" }, async (h) => { await redistOpen(h); await h.click("#case-action-modal [data-case-choice='automat']"); }),
     "dos-06p": subList(async (h) => { for (let i = 0; i < 3; i += 1) await h.nth("[data-workplace-select-row]", i); await h.click("[data-workplace-redistribute]"); await h.click("#case-action-modal [data-case-choice='automat']"); }),
     "dos-06n": subList(async (h) => { for (let i = 0; i < 3; i += 1) await h.nth("[data-workplace-select-row]", i); await h.click("[data-workplace-redistribute]"); await h.click("#case-action-modal [data-case-choice='automat']"); await h.fill("#case-motiv", "Echilibrarea încărcării în subdiviziune."); await h.click("#case-action-modal [data-case-submit]"); await h.find(".toast"); }),
+
+    /* ---- dist-mode-v1 (2026-10-30): random vs manual distribution, shown on the assignment ----
+       07 profile, distributed at random (header „Specialist” caption, trajectory „aleatoriu · Sistem”, Repartizat de SIA
+       GEAP) · 07a the same, by a supervisor · 07b „Dosarele subdiviziunii”: the Specialist cell's second line + the facet
+       „Mod distribuire: Aleatoriu” applied · 07c Jurnal: „Distribuit aleatoriu către …” (SIA GEAP) · 07d Jurnal, manual ·
+       07e Registru Dosare filtered on „Mod distribuire: Manual” (actor cell's second line) */
+    "dos-07": dos(SPEC, "inExaminare", "general", { distribuire: "automata" }),
+    "dos-07a": dos(SPEC, "inExaminare", "general", { distribuire: "manuala" }),
+    "dos-07b": subList(async (h) => {
+      /* desktop: the facet waits in „Mai multe” until it holds a value */
+      if (!ekPhone()) {
+        await ekFilterOpen(h);
+        if (!document.querySelector('[data-filter-facet="modDistribuire"]')) { await h.click("[data-filter-more]"); await h.click('[data-filter-more-facet="modDistribuire"]'); }
+        else await h.click('[data-filter-facet="modDistribuire"]');
+        await ekTick(h, ["Aleatoriu"]); await h.click("[data-filter-confirm]"); await ekCommit(h);
+        return;
+      }
+      await ekPick("modDistribuire", ["Aleatoriu"])(h);
+    }),
+    "dos-07c": dos(SPEC, "inExaminare", "jurnal", { distribuire: "automata" }),
+    "dos-07d": dos(SPEC, "inExaminare", "jurnal", { distribuire: "manuala" }),
+    "dos-07e": { flow: "back-office", as: SUP, hash: "#reg-dosare", ready: "[data-registry-kind='reg-dosare'] tr[data-workplace-row]", run: async (h) => {
+      window.GEAPShellApi.setRegistryFilters("reg-dosare", { modDistribuire: ["Manual"] });
+      document.querySelector('[data-nav-item][data-nav-id="reg-dosare"]').click(); await h.wait(600);
+    } },
 
     /* ---- dist-actions-v1 (2026-10-27) · US-296 Refuzul executantului (Azure 96013) ----
        ref-01 the executant's menu: „Refuză dosarul” red, last (AC-01) · 01a the Supervisor: no refusal (AC-01) · 02 the
@@ -3620,8 +3648,99 @@
     /* ---- Administrare › Calendar zile nelucrătoare (Feature 93686, US-283…288, js/calendar-admin.js + js/working-days.js,
        calendar-v1 2026-10-26): cal-01 listă · 02 adaugă · 03 editează · 04 șterge · 05 generează anul · 06 jurnal +
        recalculare · 07 termenele dosarelor în zile lucrătoare. Demo switches: calendar=eroare · calendar=autoritate */
-    ...calDemoStates()
+    ...calDemoStates(),
+
+    /* ---- Administrare › Șabloane de jurnalizare (Feature 93589, US-257…261, js/jurnalizare.js, jurnalizare-v1
+       2026-10-30): log-01 listă (US-258) · 02 șablon nou (US-257) · 03 editor (US-259) · 04 activare /
+       dezactivare (US-260) · 05 istoric (US-261). Demo switch jurnalizare=vizualizare|fara-creare|fara-editare|
+       fara-activare|gol|eroare */
+    ...logDemoStates()
   };
+
+  function logDemoStates() {
+    const ADMIN = "ansp-central-admin", LOCAL = "ansp-local-admin";
+    const LIST = "[data-registry-kind='jurnalizare'] tr[data-workplace-row], [data-registry-kind='jurnalizare'] .e-permits-empty";
+    const list = (run, params, as = ADMIN) => ({ flow: "back-office", as, hash: "#sabloane-jurnalizare", ...(params ? { params } : {}), ready: LIST, delay: 900, run });
+    const ed = (id, tab = "mesaj", run, params) => ({ flow: "back-office", as: ADMIN, hash: `#sablon-jurnalizare/${id}/${tab}`, ...(params ? { params } : {}), ready: "#lgt-panel", delay: 900, run });
+    const seq = (...steps) => async (h) => { for (const step of steps) await step(h); };
+    const D = "[data-lgt-drawer]";
+    /* the row is scrolled into view first: a menu of a row under the fold opens off screen */
+    const MENU = (id) => async (h) => { (await h.find(`tr[data-workplace-row="${id}"]`)).scrollIntoView({ block: "center" }); await h.wait(250); await h.click(`tr[data-workplace-row="${id}"] [data-stack-menu-trigger]`); await h.wait(200); };
+    const nou = async (h) => { await h.click('[data-workplace-add-product="lgt-new"]'); await h.find(`${D} #lgt-c-name`); };
+    const next = async (h) => { await h.click(`${D} [data-lgt-next]`); };
+    const step1 = async (h) => {
+      await h.fill("#lgt-c-name", "Dosar transmis spre avizare", { leave: false });
+      await h.choose(`${D} select[data-lgt-field="action"]`, "Notificare");
+    };
+    const step2 = (text) => async (h) => { await h.fill("#lgt-c-message", text, { leave: false }); };
+    const GOOD = "Dosarul {{CaseNumber}} pentru serviciul {{ServiceCode}} a fost transmis spre avizare.";
+    const filter = (applied) => async (h) => {
+      window.GEAPShellApi.setRegistryFilters("jurnalizare", applied);
+      document.querySelector('[data-nav-item][data-nav-id="sabloane-jurnalizare"]').click(); await h.wait(700);
+      const bar = document.querySelector("[data-workplace-filters]");
+      const toggle = document.querySelector("[data-workplace-filter-toggle]");
+      if (bar?.hidden && toggle && toggle.getClientRects().length && !toggle.classList.contains("e-permits-filter-trigger--icon")) { toggle.click(); await h.wait(400); }
+    };
+    const typeMsg = (text) => async (h) => { await h.fill("#lgt-message", text, { leave: false }); };
+    return {
+      /* US-258 — list */
+      "log-01": list(),
+      "log-01a": list(async (h) => { await h.click('[data-workplace-tab="active"]'); await h.wait(300); }),
+      "log-01b": list(async (h) => { await h.fill("[data-workplace-search]", "SUSPENDAT"); await h.wait(300); }),
+      "log-01c": list(async (h) => { await h.fill("[data-workplace-search]", "zzz"); await h.wait(300); }),
+      "log-01d": list(filter({ nivel: ["Critic", "Eroare"] })),
+      "log-01e": list(MENU("lgt-case-suspended")),
+      "log-01f": list(null, { jurnalizare: "gol" }),
+      "log-01g": { flow: "back-office", as: LOCAL, hash: "#sabloane-jurnalizare", ready: "[data-reg-page]:not([hidden]) .e-permits-empty", delay: 900 },
+      "log-01h": list(MENU("lgt-case-suspended"), { jurnalizare: "vizualizare" }),
+      /* stack-menu-flip-v1: the LAST row's ⋮ menu has no room below → opens upward */
+      "log-01j": list(async (h) => { const rows = [...document.querySelectorAll("[data-registry-kind='jurnalizare'] tr[data-workplace-row]")]; const last = rows[rows.length - 1]; last.scrollIntoView({ block: "end" }); await h.wait(250); await h.click(`tr[data-workplace-row="${last.dataset.workplaceRow}"] [data-stack-menu-trigger]`); await h.wait(200); }),
+      "log-01i": list(async (h) => { await h.click('[data-workplace-sort="nivel"]'); await h.wait(300); }),
+      /* US-257 — create (drawer: Setări · Mesaj · Revizuire) */
+      "log-02": list(nou),
+      "log-02a": list(seq(nou, next)),
+      "log-02b": list(seq(nou, async (h) => { await h.fill("#lgt-c-name", "Dosar transmis spre avizare", { leave: false }); }, async (h) => { await h.choose(`${D} select[data-lgt-field="destination"]`, "Jurnal + MLog"); })),
+      "log-02c": list(seq(nou, step1, async (h) => { await h.fill("#lgt-c-code", "geap.dosar-avizare", { leave: false }); }, next)),
+      "log-02d": list(seq(nou, step1, async (h) => { await h.fill("#lgt-c-code", "GEAP.CASE.SUSPENDED", { leave: false }); }, next)),
+      "log-02e": list(seq(nou, async (h) => { await h.choose(`${D} select[data-lgt-field="copyFrom"]`, "lgt-case-suspended"); })),
+      "log-02f": list(seq(nou, step1, next, async (h) => { await h.click(`${D} [aria-controls="lgt-c-picker"]`); })),
+      "log-02g": list(seq(nou, step1, next, step2("Cererea lui {{ApplicantName}} ({{ApplicantIdnp}}) a fost transmisă."), next)),
+      "log-02h": list(seq(nou, step1, next, step2("Plata {{PaymentId}} pentru dosarul {{CaseNumber}} a fost primită."), next)),
+      "log-02i": list(seq(nou, step1, next, next)),
+      "log-02j": list(seq(nou, step1, next, step2(`${"Dosarul {{CaseNumber}} a fost transmis spre avizare. ".repeat(19)}`))),
+      "log-02k": list(seq(nou, step1, next, step2(GOOD), next)),
+      "log-02l": list(seq(nou, step1, next, step2(GOOD), next, async (h) => { await h.click(`${D} [data-lgt-create]`); await h.find("#lgt-panel"); })),
+      "log-02m": list(seq(nou, step1, next, step2(GOOD), next, async (h) => { await h.click(`${D} [data-lgt-create]`); }), { jurnalizare: "eroare" }),
+      /* US-259 — editor (Mesaj · Setări · Istoric) */
+      "log-03": ed("lgt-case-suspended"),
+      "log-03a": ed("lgt-access-denied"),
+      "log-03b": ed("lgt-case-suspended", "setari"),
+      "log-03c": ed("lgt-access-denied", "setari"),
+      "log-03d": ed("lgt-access-denied", "setari", async () => { window.GEAPJurnalizare.tryLockedChange(); }),
+      "log-03e": ed("lgt-supplement"),
+      "log-03f": ed("lgt-case-suspended", "mesaj", typeMsg("Dosarul {{CaseNumber}} a fost suspendat până la {{SuspendedUntil}}. Temei: {{LegalBasis}}.")),
+      "log-03g": ed("lgt-case-suspended", "mesaj", seq(typeMsg("Dosarul {{CaseNumber}} a fost suspendat."), async (h) => { document.querySelector('[data-nav-item][data-nav-id="classifiers"]').click(); await h.wait(450); })),
+      "log-03h": ed("lgt-case-suspended", "mesaj", seq(typeMsg("Dosarul {{CaseNumber}} a fost suspendat."), async (h) => { await h.click("[data-lgt-save]"); }), { jurnalizare: "eroare" }),
+      "log-03i": ed("lgt-case-suspended", "mesaj", null, { jurnalizare: "vizualizare" }),
+      "log-03j": ed("lgt-case-suspended", "mesaj", async (h) => { await h.click('[aria-controls="lgt-picker"]'); }),
+      "log-03k": ed("lgt-case-suspended", "setari", seq(async (h) => { await h.choose('#lgt-panel select[data-lgt-field="level"]', "Critic"); })),
+      "log-03l": ed("lgt-case-suspended", "setari", seq(async (h) => { await h.choose('#lgt-panel select[data-lgt-field="level"]', "Critic"); }, async (h) => { await h.click("[data-lgt-save]"); }, async (h) => { await h.click('[data-lgt-tab="istoric"]'); })),
+      "log-03m": ed("lgt-case-suspended", "setari", seq(async (h) => { await h.choose('#lgt-panel select[data-lgt-field="level"]', "Critic"); }, async (h) => { await h.fill("#lgt-name", "Dosar suspendat temporar", { leave: false }); }, async (h) => { await h.click("[data-profile-changes]"); })),
+      "log-03n": ed("lgt-case-suspended", "mesaj", seq(typeMsg(""), async (h) => { await h.click("[data-lgt-save]"); })),
+      /* US-260 — activate / deactivate */
+      "log-04": list(MENU("lgt-supplement")),
+      "log-04a": list(seq(MENU("lgt-supplement"), async (h) => { await h.click('[data-lgt-row-toggle="lgt-supplement"]'); })),
+      "log-04b": list(seq(MENU("lgt-case-suspended"), async (h) => { await h.click('[data-lgt-row-toggle="lgt-case-suspended"]'); })),
+      "log-04c": list(seq(MENU("lgt-case-suspended"), async (h) => { await h.click('[data-lgt-row-toggle="lgt-case-suspended"]'); }, async (h) => { await h.click("[data-service-confirm-ok]"); })),
+      "log-04d": ed("lgt-case-suspended", "setari", async (h) => { await h.click("#lgt-panel .switch-wrapper"); }),
+      "log-04e": list(MENU("lgt-case-suspended"), { jurnalizare: "fara-activare" }),
+      "log-04f": list(seq(MENU("lgt-auth-failed"), async (h) => { await h.click('[data-lgt-row-toggle="lgt-auth-failed"]'); })),
+      "log-04g": ed("lgt-supplement", "setari", async (h) => { await h.click("#lgt-panel .switch-wrapper"); }),
+      /* US-261 — history */
+      "log-05": ed("lgt-case-suspended", "istoric"),
+      "log-05a": ed("lgt-auth-login", "istoric")
+    };
+  }
 
   function calDemoStates() {
     const ADMIN = "ansp-central-admin", LOCAL = "ansp-local-admin", SPEC = "ansp-specialist-chisinau";
@@ -3891,6 +4010,13 @@
       "reg-01": page("#registre"),
       "reg-01a": page("#registre", SPEC),
       "reg-01b": page("#registre", LOCAL),
+      /* registers-30-v1 (30 registers, user decision 2026-10-31): menu = ONE item „Registre” (active inside every register);
+         catalog = search + library tabs per object (Toate grouped by object, sorted by „Poziția în listă”); header switcher */
+      "reg-01c": page("#registre", ADMIN, async (h) => { await h.fill("[data-reg-cat-search]", "ANSA", { leave: false }); await h.wait(200); }),
+      "reg-01d": page("#registre", ADMIN, async (h) => { await h.click('[data-reg-cat-tab="Permit"]'); }),
+      "reg-01g": reg("reg-acte", ADMIN, async (h) => { await h.click("[data-reg-switch-trigger]"); await h.wait(200); }),
+      /* the switcher searched (captured at 375 too: the picker inside the phone screen, search 48) */
+      "reg-01h": reg("reg-acte", ADMIN, async (h) => { await h.click("[data-reg-switch-trigger]"); await h.fill("[data-reg-switch-search]", "aviz", { leave: false }); await h.wait(200); }),
       /* Registru Dosare (US-194): admin — every ANSP dossier, ⋮ with the configured actions */
       "reg-02": reg("reg-dosare"),
       "reg-02a": reg("reg-dosare", SPEC),
@@ -3972,7 +4098,25 @@
         await h.click("[data-dosar-profil-crumb-back]"); await h.wait(400);
       }),
       "reg-17j": { flow: "back-office", as: GHISEU, hash: "#registru/reg-acte/act-045/generale", ready: "[data-reg-page]:not([hidden]) .e-permits-empty" },
-      "reg-17k": { flow: "back-office", as: SPEC, hash: "#registru/reg-acte/act-006", ready: CARD }
+      "reg-17k": { flow: "back-office", as: SPEC, hash: "#registru/reg-acte/act-006", ready: CARD },
+      /* act-card-tabs-v1 (US-318…322): tab contents. reg-17 = Date generale (printed document), reg-17a = Date specifice
+         grouped by the passport sections, reg-17b = Dosare (4, one active), reg-17d = Plăți (3), reg-17e = Istoria with the
+         current act only (AC-10); edge states below */
+      "reg-17l": card("reg-acte", "act-078", "generale"),
+      /* sort-chip-v1: the Jurnal's „Sortează” chip + its open menu (same control as reg-17m) */
+      "reg-17f1": card("reg-acte", "act-045", "jurnal", ADMIN, async (h) => { await h.click("[data-reg-ev-sort]"); await h.wait(300); }),
+      "reg-17m": card("reg-acte", "act-045", "dosare", ADMIN, async (h) => { await h.click("[data-reg-act-sort]"); await h.wait(300); }),
+      "reg-17s": card("reg-acte", "act-045", "dosare", ADMIN, async (h) => { await h.click("[data-reg-act-sort]"); await h.wait(300);
+        const item = document.querySelector('#reg-act-sort-menu:not([hidden]) [data-reg-sort-key="process"]');
+        if (item) item.click(); else { document.querySelector('input[name="geap-sort-sheet-key"][value="process"]')?.click(); await h.wait(100); document.querySelector(".e-permits-filter-sheet__apply")?.click(); }
+        await h.wait(400); }),
+      "reg-17n": card("reg-acte", "act-001", "plati"),
+      "reg-17o": card("reg-acte", "act-075", "istoria"),
+      "reg-17p": card("reg-acte", "act-045", "specifice", ADMIN, async (h) => { await h.click("[data-reg-act-mdocs]"); await h.wait(1400); }),
+      "reg-17q": card("reg-acte", "act-002", "specifice"),
+      "reg-17t": card("reg-acte", "act-045", "plati", ADMIN, async (h) => { await h.click('[data-reg-note="np-055"]'); await h.wait(500); }),
+      "reg-17u": card("reg-acte", "act-075", "istoria", ADMIN, async (h) => { await h.click('[data-reg-act-data="act-074"]'); await h.wait(600); }),
+      "reg-17r": card("reg-acte", "act-045", "dosare", ADMIN, async (h) => { await h.click('[data-reg-open-dossier="D-2026-006451"]'); await h.wait(900); })
     };
   }
 
@@ -4009,14 +4153,18 @@
     const at = (step) => async (h) => { await h.find(`${W}.is-active [data-gh-panel="${step}"]`); await h.wait(300); };
     /* „Nou” on the list → the act search; an act's ⋮ → a post-process starts the draft at „Date titular” */
     const nou = async (h) => { await h.click('[data-workplace-add-product="ofc-new"]'); await at("intent")(h); };
-    const actMenu = (id) => async (h) => { await h.click(`${W} [data-fo-intent-act="${id}"] [data-fo-intent-trigger]`); await h.wait(250); };
+    /* search-first (ofc-search-first-v1): an act is on screen only after a search — reveal it by a word of its name */
+    const ACT_Q = { "act-izvoras": "Izvoraș", "act-ofc-gustul": "ASF-2025-03318", "act-ofc-biogel": "BioClean Gel" };
+    const reveal = (id) => async (h) => { if (!document.querySelector(`${W} [data-fo-intent-act="${id}"]`)) await search(ACT_Q[id] || id)(h); };
+    const actMenu = (id) => async (h) => { await reveal(id)(h); await h.click(`${W} [data-fo-intent-act="${id}"] [data-fo-intent-trigger]`); await h.wait(250); };
     /* oficiu-v3 (US-242 AC-11): ⋮ › a post-process asks „Inițiezi <tip>?” (ask); „Inițiază” creates the draft (choose) */
     /* start-dialog-v1 (2026-10-29): the shared „Before you start” dialog (#start-dialog) replaces „Inițiezi <tip>?” */
     const ask = (id, type) => seq(actMenu(id), async (h) => { await actMenuPick(`[data-fo-intent-act="${id}"] [data-fo-intent-postprocess="${type}"]`)(h); await h.find("#start-dialog.is-active [data-start-dialog-start]"); await h.wait(300); });
     const choose = (id, type) => seq(ask(id, type), async (h) => { await h.click("#start-dialog.is-active [data-start-dialog-start]"); }, at("identificare"));
     const save = async (h) => { await h.click(`${W} [data-gh-save]`); await h.wait(400); };
-    const search = (q) => async (h) => { await h.fill("#gh-ofc-q", q, { leave: false }); await h.wait(700); };
-    const service = (text) => async (h) => { await h.click("#fo-gh-ofc-service"); await h.click("#fo-gh-ofc-service-list .e-permits-fo-select__option", text); await h.wait(400); };
+    const search = (q) => async (h) => { await h.fill("#gh-ofc-q", q, { leave: false }); await h.wait(1000); };
+    const service = (text) => async (h) => { await h.click("#fo-gh-ofc-service"); await h.click("#fo-gh-ofc-service-list .e-permits-fo-select__option", text); await h.wait(700); };
+    /* results wait = debounce 300 + simulated load 400; ofc-02d freezes the load (?latency=freeze) to show the skeleton */
     /* a real file into the decision's boxed PDF field: the FO document modal, „Încarcă” tab */
     const upload = (name, size = 480000) => async (h) => {
       await h.click(`${W} [data-gh-ofc-pdf] [data-fo-open-doc-modal]`); await h.wait(300);
@@ -4060,10 +4208,14 @@
 
       /* US-242 — „Nou” → the act search (AC-02…09) */
       "ofc-02": ofcList(nou),
-      "ofc-02a": ofcList(seq(nou, search("1008600031457"))),
-      "ofc-02b": ofcList(seq(nou, search("zzz"))),
-      "ofc-02c": ofcList(seq(nou, service("biocide"))),
-      "ofc-02d": ofcList(seq(nou, actMenu("act-izvoras"))),
+      /* search-first (2026-10-31): start = empty state only · a query → results · a service → 20 + „Se afișează 20 din N” · no match · loading */
+      "ofc-02a": ofcList(seq(nou, search("Gustul"))),
+      "ofc-02a2": ofcList(seq(nou, search("1008600031457"))),
+      "ofc-02b": ofcList(seq(nou, service("sanitară"))),
+      "ofc-02b2": ofcList(seq(nou, service("biocide"))),
+      "ofc-02c": ofcList(seq(nou, search("zzzz"))),
+      "ofc-02d": ofcList(seq(nou, service("sanitară")), { latency: "freeze" }),
+      "ofc-02d2": ofcList(seq(nou, actMenu("act-izvoras"))),
       "ofc-02e": ofcList(seq(nou, search("BIO-2023"), actMenu("act-ofc-biogel"))),
       /* AC-01: the Specialist ghișeu (desk permission only) opening #oficiu/nou */
       "ofc-02f": ofc("#oficiu/nou", null, null, "ansp-ghiseu-chisinau"),

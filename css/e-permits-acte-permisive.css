@@ -1438,10 +1438,6 @@
   padding-top: 0;
 }
 
-.e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-shell.is-user-profile-open .e-permits-workplace__title-row--shell {
-  display: none;
-}
-
 .e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-user-profile {
   box-sizing: border-box;
   display: flex;
@@ -15723,10 +15719,6 @@ a.e-permits-fo-lib-item__title:is(:hover, :focus) {
   padding-top: 0;
 }
 
-.e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-shell.is-dosar-profile-open .e-permits-workplace__title-row--shell {
-  display: none;
-}
-
 .e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-dosar-profil {
   box-sizing: border-box;
   display: flex;
@@ -17443,6 +17435,23 @@ a.e-permits-fo-lib-item__title:is(:hover, :focus) {
 }
 
 
+/* dist-mode-v1 (2026-10-30): an optional 12/16 tertiary line under a meta value (GEAPPageHeader.meta captionHtml —
+   „Specialist” → „Distribuit aleatoriu · 8 iul. 2026”). The row aligns to the top then, and the separator before a
+   captioned item stays on the label + value band (the same height as its neighbours'), not on the taller item. */
+.e-permits-page-header__meta:has(.e-permits-page-header__meta-item--caption) {
+  align-items: flex-start;
+}
+
+.e-permits-page-header__meta-item--caption::before {
+  top: calc((var(--line-height-lh-16, 16px) + var(--spacing-4, 4px) + var(--spacing-24, 24px)) / 2);
+}
+
+.e-permits-page-header__meta-caption {
+  color: var(--color-text-base-tertiary, #757575);
+  font: var(--font-weight-fw-regular, 400) var(--font-size-fs-12, 12px) / var(--line-height-lh-16, 16px) var(--font-family-primary-font, Onest), sans-serif;
+  min-width: 0;
+}
+
 /* tabs: 40px items (tab-item-s), 14/20, no inter-tab gap, one full-width track line */
 .e-permits-page-header__tabs {
   box-sizing: border-box;
@@ -17586,12 +17595,6 @@ a.e-permits-fo-lib-item__title:is(:hover, :focus) {
 .e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-shell.is-role-profile-open .e-permits-shell__content {
   grid-row: 2;
   padding-top: 0;
-}
-
-.e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-shell.is-clas-profile-open .e-permits-workplace__title-row--shell,
-.e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-shell.is-ntpl-profile-open .e-permits-workplace__title-row--shell,
-.e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-shell.is-role-profile-open .e-permits-workplace__title-row--shell {
-  display: none;
 }
 
 /* the top bar keeps its tools on the right when no title row shows (profiles: the page header breadcrumb is the
@@ -17947,10 +17950,6 @@ a.e-permits-fo-lib-item__title:is(:hover, :focus) {
 }
 
 /* service profile: top bar carries "Înapoi la servicii" like the other profiles */
-.e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-shell.is-service-profile-open .e-permits-workplace__title-row--shell {
-  display: none;
-}
-
 /* the library .status-tag capitalises every word; passport values are prose */
 .e-permits-passport__panel .status-tag:not(.status-tag--small),
 .e-permits-passport__sync-summary .status-tag:not(.status-tag--small) {
@@ -18275,6 +18274,18 @@ a.e-permits-fo-lib-item__title:is(:hover, :focus) {
 .e-permits-stack__menu-wrap > .e-permits-stack__menu {
   right: 0;
   top: calc(100% + var(--spacing-8, 8px));
+}
+
+/* no room below the ⋮ in the viewport → opens upward, scrolls inside when neither side fits
+   (js fitStackMenu, stack-menu-flip-v1) */
+.e-permits-stack__menu-wrap > .e-permits-stack__menu.is-open-up:not([data-stack-menu-fixed]) {
+  bottom: calc(100% + var(--spacing-8, 8px));
+  top: auto;
+}
+
+.e-permits-stack__menu-wrap > .e-permits-stack__menu[style*="--stack-menu-max"] {
+  max-height: var(--stack-menu-max);
+  overflow-y: auto;
 }
 
 /* the menu itself is .e-permits-fo-intent-menu (post-process menu); only
@@ -20663,18 +20674,27 @@ button.e-permits-steps-strip__cell:focus-visible {
 /* Row hover — ONE rule for every stacked list (2026-10-14, user: „hover on document rows looks cut
    off … at least full width”): the fill covers the row edge to edge inside the card, follows the
    card's inner corners on the first / last row, the dividers above and below the hovered row hide
-   (one clean band), and a row whose ⋮ is open — or whose control has keyboard focus — keeps it. */
+   (one clean band), and a row whose ⋮ is open keeps it.
+   row-vs-control-v1 (2026-10-30, user, system-wide): the hover sits exactly on the element under the cursor — pointer on
+   the row (not on a control) = the band; pointer on an inner button / link / ⋮ / copy value = ONLY that control's own
+   hover, the band is off; the same for keyboard focus (the row's own ring when the row is focused, the control's ring
+   when the control is) */
 .e-permits-stack__item.is-clickable {
   transition: background-color 140ms var(--motion-easing-standard, cubic-bezier(0.4, 0, 0.2, 1));
 }
 
-.e-permits-stack__item.is-clickable:is(:hover, :focus-visible, :has([aria-expanded="true"]), :has(:focus-visible)) {
+.e-permits-stack__item.is-clickable:is(:hover:not(:has(:is(button, a, [role="button"], .copy-value):hover)), :focus-visible, :has([aria-expanded="true"])) {
   background: var(--color-background-base-tertiary, #f1f1f1);
 }
 
-.e-permits-stack__item.is-clickable:is(:hover, :focus-visible, :has([aria-expanded="true"]), :has(:focus-visible))::before,
-.e-permits-stack__item.is-clickable:is(:hover, :focus-visible, :has([aria-expanded="true"]), :has(:focus-visible)) + .e-permits-stack__item::before {
+.e-permits-stack__item.is-clickable:is(:hover:not(:has(:is(button, a, [role="button"], .copy-value):hover)), :focus-visible, :has([aria-expanded="true"]))::before,
+.e-permits-stack__item.is-clickable:is(:hover:not(:has(:is(button, a, [role="button"], .copy-value):hover)), :focus-visible, :has([aria-expanded="true"])) + .e-permits-stack__item::before {
   border-top-color: transparent;
+}
+
+/* the controls inside a clickable row keep their own pointer */
+.e-permits-stack__item.is-clickable :is(button:not(:disabled), a[href], [role="button"], .copy-value) {
+  cursor: pointer;
 }
 
 /* a row that is itself the control (tabindex — no-lone-detalii-v1, tariffs, classifiers): the hover band + the focus
@@ -20684,9 +20704,9 @@ button.e-permits-steps-strip__cell:focus-visible {
   outline-offset: calc(var(--border-width-2, 2px) * -1);
 }
 
-/* on the grey band the grey „Detalii” would melt into it → white until the pointer is on it */
-.e-permits-stack__item.is-clickable:is(:hover, :has([aria-expanded="true"]), :has(:focus-visible)) .btn-neutral.e-permits-stack__action:not(:hover, :active),
-.e-permits-stack__item.is-clickable:is(:hover, :focus-visible, :has([aria-expanded="true"]), :has(:focus-visible)) .btn-neutral.e-permits-stack__menu-trigger:not(:hover, :active, [aria-expanded="true"]) {
+/* on the grey band the grey „Detalii” would melt into it → white until the pointer is on it (only while the band is on) */
+.e-permits-stack__item.is-clickable:is(:hover:not(:has(:is(button, a, [role="button"], .copy-value):hover)), :has([aria-expanded="true"])) .btn-neutral.e-permits-stack__action:not(:hover, :active),
+.e-permits-stack__item.is-clickable:is(:hover:not(:has(:is(button, a, [role="button"], .copy-value):hover)), :focus-visible, :has([aria-expanded="true"])) .btn-neutral.e-permits-stack__menu-trigger:not(:hover, :active, [aria-expanded="true"]) {
   background: var(--color-background-base-default, #fff);
 }
 
@@ -22711,8 +22731,19 @@ body[data-fo-postprocess] .e-permits-fo-form__roles .e-permits-fo-selected-role_
   transition: background-color 120ms ease;
 }
 
-.e-permits-timeline__item.is-clickable:hover {
+.e-permits-timeline__item.is-clickable:is(:hover:not(:has(:is(a, .copy-value):hover)), :has(.e-permits-timeline__link:focus-visible)) {
   background: var(--color-background-base-tertiary, #f1f1f1);
+}
+
+/* row-vs-control-v1 (2026-10-30): the keyboard focus ring sits on the WHOLE row (the title button is its tab stop;
+   Enter / Space open the details natively) */
+.e-permits-timeline__item.is-clickable:has(.e-permits-timeline__link:focus-visible) {
+  outline: var(--border-width-2, 2px) solid var(--focus-ring, var(--blue-sky-500, #3379db));
+  outline-offset: calc(var(--border-width-2, 2px) * -1);
+}
+
+.e-permits-timeline__item.is-clickable :is(a[href], .copy-value) {
+  cursor: pointer;
 }
 
 .e-permits-timeline__link {
@@ -22730,11 +22761,15 @@ body[data-fo-postprocess] .e-permits-fo-form__roles .e-permits-fo-selected-role_
   text-underline-offset: 3px;
 }
 
-.e-permits-timeline__item.is-clickable:hover .e-permits-timeline__link {
+.e-permits-timeline__item.is-clickable:is(:hover, :has(.e-permits-timeline__link:focus-visible)) .e-permits-timeline__link {
   text-decoration-color: currentColor;
 }
 
 .e-permits-timeline__link:focus-visible {
+  outline: none; /* the ring is drawn on the clickable row (above); a lone link keeps it below */
+}
+
+.e-permits-timeline__item:not(.is-clickable) .e-permits-timeline__link:focus-visible {
   outline: var(--border-width-2, 2px) solid var(--focus-ring, var(--blue-sky-500));
   outline-offset: 2px;
 }

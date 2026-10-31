@@ -211,7 +211,22 @@
   }
 
   /* ================================================================ distribution settings (US-291) */
-  const distOf = (person) => S.dist[person?.id] || { norm: "", normReason: "", start: "", competences: [] };
+  /* a competence = one service + the request types it covers (rt = array, empty = every type; the old string form still reads);
+     one row per service (dist-comp-multi-v1) — legacy duplicates of a service merge into one */
+  const rtList = (c) => (Array.isArray(c?.rt) ? c.rt : c?.rt && c.rt !== "*" ? [c.rt] : []);
+  const normComps = (list) => {
+    const out = [];
+    (list || []).forEach((c) => {
+      const prev = out.find((x) => x.service === c.service);
+      if (!prev) { out.push({ service: c.service, rt: [...rtList(c)] }); return; }
+      prev.rt = !prev.rt.length || !rtList(c).length ? [] : [...new Set([...prev.rt, ...rtList(c)])];
+    });
+    return out;
+  };
+  const distOf = (person) => {
+    const d = S.dist[person?.id];
+    return d ? { ...d, competences: normComps(d.competences) } : { norm: "", normReason: "", start: "", competences: [] };
+  };
   const normOf = (person) => { const n = num(distOf(person).norm); return n >= 1 && n <= 100 ? n : 100; };
   /* AC-08: novice = less than 6 months since „Data începerii în distribuire” */
   const noviceMonth = (person, day = caseToday()) => {
@@ -225,7 +240,7 @@
   const DOSSIER_RT = { Eliberare: "Emitere primară", Duplicat: "Duplicat" };
   const competentFor = (person, row) => {
     const list = distOf(person).competences || [];
-    return !list.length || list.some((c) => c.service === row.serviciu && (!c.rt || c.rt === row.tipDosar));
+    return !list.length || list.some((c) => c.service === row.serviciu && (!rtList(c).length || rtList(c).includes(row.tipDosar)));
   };
 
   /* ================================================================ policy (US-289) */
@@ -559,10 +574,35 @@
     const f = form;
     const person = personById(f.person);
     const e = f.errors;
+    const order = RTS();
+    const rtOrdered = (c) => order.filter((t) => rtList(c).includes(t));
+    const rtSummary = (c) => {
+      const sel = rtOrdered(c);
+      const text = sel.join(", ");
+      return !sel.length ? "Toate tipurile" : text.length > 28 ? `${sel.length} tipuri` : text;
+    };
+    const rtMulti = (c, i) => `
+      <div class="e-permits-fo-subgen-select e-permits-abs-rt" data-abs-rt-select="${i}">
+        <button id="abs-comp-rt-${i}" class="e-permits-fo-subgen-select__button" type="button" aria-haspopup="listbox" aria-expanded="false" aria-controls="abs-comp-rt-${i}-menu" aria-label="Tipul de solicitare, competența ${i + 1}" data-abs-rt-button>
+          <span class="e-permits-fo-subgen-select__value" data-abs-rt-value>${esc(rtSummary(c))}</span>
+          ${icon("chevron-bottom", "icon")}
+        </button>
+        <div class="e-permits-fo-subgen-select__menu" id="abs-comp-rt-${i}-menu" hidden>
+          <ul class="e-permits-fo-subgen-select__list" role="listbox" aria-multiselectable="true" aria-label="Tipul de solicitare">
+            ${[["*", "Toate tipurile"], ...order.map((t) => [t, t])].map(([v, t]) => {
+              const on = v === "*" ? !rtList(c).length : rtList(c).includes(v);
+              return `<li class="e-permits-fo-subgen-select__option${on ? " is-selected" : ""}" role="option" aria-selected="${on}" data-abs-rt-option="${esc(v)}" tabindex="-1">
+                <span class="checkbox checkbox--medium" aria-hidden="true"><input class="checkbox-input" type="checkbox" tabindex="-1"${on ? " checked" : ""}><span class="checkbox-custom"></span></span>
+                <span>${esc(t)}</span>
+              </li>`;
+            }).join("")}
+          </ul>
+        </div>
+      </div>`;
     const rows = f.v.competences.map((c, i) => `
       <li class="e-permits-abs-comp__row" data-abs-comp="${i}">
         ${select(`abs-comp-svc-${i}`, `data-abs-comp-field="service" data-abs-comp-i="${i}" aria-label="Serviciul, competența ${i + 1}"`, SERVICES().map((s) => [s, s]), c.service, { placeholder: "Alege serviciul", error: Boolean(e[`c${i}`]) })}
-        ${select(`abs-comp-rt-${i}`, `data-abs-comp-field="rt" data-abs-comp-i="${i}" aria-label="Tipul de solicitare, competența ${i + 1}"`, [["*", "Toate tipurile"], ...RTS().map((t) => [t, t])], c.rt || "*")}
+        ${rtMulti(c, i)}
         <button class="btn btn-text-destructive btn-sm btn-icon-only" type="button" aria-label="Elimină competența ${i + 1}" data-tooltip-label="Elimină competența" data-abs-comp-remove="${i}">${icon("delete")}</button>
         ${e[`c${i}`] ? `<div class="e-permits-abs-comp__error">${fieldError(e[`c${i}`])}</div>` : ""}
       </li>`).join("");
@@ -578,12 +618,17 @@
             ${textarea("abs-norm-reason", f.v.normReason, 'data-abs-dist="normReason"', { error: Boolean(e.normReason), placeholder: "De ex. program redus, jumătate de normă" })}
             ${e.normReason ? fieldError(e.normReason) : fieldHint("Obligatoriu când norma este sub 100%.")}
           </div>
-          <div class="e-permits-fo-field e-permits-user-create__field e-permits-user-create__field--12 e-permits-abs-comp">
-            <span class="e-permits-cfg-ro__label" id="abs-comp-label">Competențe</span>
-            ${rows ? `<div class="e-permits-abs-comp__head" aria-hidden="true"><span>Serviciul</span><span>Tipul de solicitare</span></div><ul class="e-permits-abs-comp__list" role="list" aria-labelledby="abs-comp-label">${rows}</ul>` : ""}
-            <div><button class="btn btn-neutral btn-sm" type="button" data-abs-comp-add>${icon("plus-large")}<span>Adaugă competență</span></button></div>
-            ${fieldHint(rows ? "Competențele sunt preferințe de distribuire; nu limitează accesul la dosare." : "Fără competențe, specialistul este competent la toate serviciile și tipurile de solicitare.")}
-          </div>
+          <section class="e-permits-user-create__section e-permits-abs-comp-section" aria-labelledby="abs-comp-label">
+            <!-- the explanation = the „ⓘ” hint next to the title (as the FO role groups), not an info notice (user 2026-10-31) -->
+            <div class="e-permits-fo-form__role-title e-permits-abs-comp-title">
+              <h3 class="e-permits-user-create__section-title" id="abs-comp-label">Competențe</h3>
+              <button class="e-permits-fo-role-info" type="button" aria-label="Detalii despre competențe" data-tooltip-hint="Competențele sunt preferințe de distribuire: nu limitează accesul la dosare. Fără competențe, specialistul este competent la toate serviciile."><svg class="icon" width="16" height="16" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-circle-info-filled"></use></svg></button>
+            </div>
+            <div class="e-permits-user-create__section-content e-permits-abs-comp">
+              ${rows ? `<div class="e-permits-abs-comp__table"><div class="e-permits-abs-comp__head" aria-hidden="true"><span>Serviciul</span><span>Tipul de solicitare</span></div><ul class="e-permits-abs-comp__list" role="list" aria-labelledby="abs-comp-label">${rows}</ul></div>` : ""}
+              <div><button class="btn btn-neutral btn-sm" type="button" data-abs-comp-add>${icon("plus-large")}<span>Adaugă competență</span></button></div>
+            </div>
+          </section>
         </div>`,
       footer: footer("data-abs-dist-save")
     });
@@ -597,6 +642,52 @@
     f.v.start = start.value;
     return start;
   };
+  /* the request-type multi-select (dist-comp-multi-v1): „Toate tipurile” = nothing picked; a specific type unchecks „Toate”,
+     clearing every type returns to „Toate”; the menu stays open while ticking (outside click / Esc / the button closes) */
+  function setRtOpen(root, open) {
+    root.classList.toggle("is-open", open);
+    root.querySelector("[data-abs-rt-button]").setAttribute("aria-expanded", String(open));
+    const menu = root.querySelector(".e-permits-fo-subgen-select__menu");
+    menu.hidden = !open;
+    if (open) placeRtMenu(root);
+    else { menu.classList.remove("is-open-up"); menu.removeAttribute("style"); }
+  }
+  /* comp-menu-fixed-v1 (2026-10-31): the open list is `position: fixed` on the button's rect (never cropped by the dialog
+     footer / body), flips up when there is no room below, max-height + scroll inside; follows a scroll / resize */
+  function placeRtMenu(root) {
+    const menu = root.querySelector(".e-permits-fo-subgen-select__menu");
+    if (!menu || menu.hidden) return;
+    const r = root.querySelector("[data-abs-rt-button]").getBoundingClientRect();
+    const gap = 4, edge = 8;
+    const below = window.innerHeight - r.bottom - gap - edge, above = r.top - gap - edge;
+    const need = menu.querySelectorAll("[data-abs-rt-option]").length * 40 + 8;
+    const up = below < Math.min(need, 240) && above > below;
+    menu.classList.toggle("is-open-up", up);
+    Object.assign(menu.style, {
+      position: "fixed", left: `${Math.round(r.left)}px`, width: `${Math.round(r.width)}px`,
+      top: up ? "auto" : `${Math.round(r.bottom + gap)}px`, bottom: up ? `${Math.round(window.innerHeight - r.top + gap)}px` : "auto",
+      maxHeight: `${Math.round(Math.max(120, up ? above : below))}px`, zIndex: "1000"
+    });
+  }
+  const placeOpenRt = () => document.querySelectorAll(".e-permits-abs-rt.is-open").forEach(placeRtMenu);
+  window.addEventListener("resize", placeOpenRt);
+  document.addEventListener("scroll", placeOpenRt, true);
+  function toggleRt(root, type) {
+    const c = form.v.competences[Number(root.dataset.absRtSelect)];
+    if (!c) return;
+    const order = RTS();
+    const cur = rtList(c);
+    c.rt = type === "*" ? [] : order.filter((t) => (t === type ? !cur.includes(t) : cur.includes(t)));
+    root.querySelectorAll("[data-abs-rt-option]").forEach((o) => {
+      const v = o.dataset.absRtOption;
+      const on = v === "*" ? !c.rt.length : c.rt.includes(v);
+      o.classList.toggle("is-selected", on);
+      o.setAttribute("aria-selected", String(on));
+      o.querySelector(".checkbox-input").checked = on;
+    });
+    const text = c.rt.join(", ");
+    root.querySelector("[data-abs-rt-value]").textContent = !c.rt.length ? "Toate tipurile" : text.length > 28 ? `${c.rt.length} tipuri` : text;
+  }
   function saveDist() {
     const f = form;
     const start = readDistForm();
@@ -608,9 +699,8 @@
     const seen = new Set();
     f.v.competences.forEach((c, i) => {
       if (!c.service) { e[`c${i}`] = "Alegeți serviciul."; return; }
-      const k = `${c.service}|${c.rt || ""}`;
-      if (seen.has(k)) e[`c${i}`] = "Competența există deja.";
-      seen.add(k);
+      if (seen.has(c.service)) e[`c${i}`] = "Serviciul este deja adăugat.";
+      seen.add(c.service);
     });
     f.errors = e;
     if (Object.keys(e).length) {
@@ -625,8 +715,8 @@
       return;
     }
     const before = distOf(person);
-    const after = { norm: n && Number(n) === 100 ? "" : n, normReason: n && Number(n) < 100 ? String(f.v.normReason).trim() : "", start: f.v.start, competences: f.v.competences.map((c) => ({ service: c.service, rt: c.rt === "*" ? "" : c.rt || "" })) };
-    const compText = (list) => (list.length ? list.map((c) => `${c.service}${c.rt ? ` · ${c.rt}` : ""}`).join("; ") : "toate serviciile");
+    const after = { norm: n && Number(n) === 100 ? "" : n, normReason: n && Number(n) < 100 ? String(f.v.normReason).trim() : "", start: f.v.start, competences: f.v.competences.map((c) => ({ service: c.service, rt: RTS().filter((t) => rtList(c).includes(t)) })) };
+    const compText = (list) => (list.length ? list.map((c) => `${c.service}${rtList(c).length ? ` · ${rtList(c).join(", ")}` : ""}`).join("; ") : "toate serviciile");
     const changes = [
       ["Norma de încărcare", `${before.norm || 100}%`, `${after.norm || 100}%`],
       ["Motivul normei", before.normReason || "—", after.normReason || "—"],
@@ -736,8 +826,8 @@
     ];
     const comps = d.competences || [];
     const compList = comps.length
-      ? A().renderStackedList?.("Competențe", [{ label: "", items: comps.map((c) => ({ plainTitle: c.service, title: esc(c.service), meta: [esc(c.rt || "Toate tipurile de solicitare")] })) }], { meta: roCount(comps.length, "competență", "competențe") }) || ""
-      : `<section class="e-permits-dosar-profil__section"><div class="e-permits-dosar-profil__section-heading"><h2 class="e-permits-dosar-profil__section-title">Competențe</h2></div>${window.GEAPEmptyState?.render({ title: "Competent la toate serviciile", text: "Fără competențe completate, specialistul este competent la toate serviciile și tipurile de solicitare.", icon: "checkmark-large", compact: true }) || ""}</section>`;
+      ? A().renderStackedList?.("Competențe", [{ label: "", items: comps.map((c) => ({ plainTitle: c.service, title: esc(c.service), meta: [esc(rtList(c).length ? rtList(c).join(", ") : "Toate tipurile de solicitare")] })) }], { meta: roCount(comps.length, "competență", "competențe") }) || ""
+      : `<section class="e-permits-dosar-profil__section"><div class="e-permits-dosar-profil__section-heading"><h2 class="e-permits-dosar-profil__section-title">Competențe</h2></div>${window.GEAPEmptyState?.render({ title: "Competent la toate serviciile", text: "Nicio competență nu a fost completată.", icon: "checkmark-large", compact: true }) || ""}</section>`;
     return `
       <div class="e-permits-abs-tab" data-abs-root="distribution" data-abs-person="${esc(person.id)}" data-abs-context="${esc(context)}">
         ${U().renderInfoNote?.(`Distribuirea automată ține cont de normă, de data începerii și de competențe. Competențele sunt preferințe de distribuire: nu limitează accesul la dosare.${edit ? "" : " Datele se modifică de supervizor sau de administrator."}`) || ""}
@@ -782,6 +872,7 @@
       A().setActiveNav?.("");
       document.querySelectorAll("[data-nav-item].is-active").forEach((link) => { link.classList.remove("is-active"); link.removeAttribute("aria-current"); });
       A().openProfilePanel?.();
+      if (A().els?.dosarProfilPanel) A().els.dosarProfilPanel.dataset.topbarTitle = "Profilul meu"; /* reached from the avatar menu: no sidebar item */
       renderMyProfile();
       A().writeHash?.(`#profilul-meu/${myTab}`, { push });
       A().els?.dosarProfilPanel?.scrollIntoView?.({ block: "start" });
@@ -1614,7 +1705,12 @@
     const distEdit = t.closest("[data-abs-dist-edit]");
     if (distEdit) { openDist(distEdit.dataset.absDistEdit); return; }
     if (t.closest("[data-abs-dist-save]")) { saveDist(); return; }
-    if (t.closest("[data-abs-comp-add]")) { readDistForm(); form.v.competences.push({ service: "", rt: "" }); renderDist(`#abs-comp-svc-${form.v.competences.length - 1}`); return; }
+    const rtBtn = t.closest("[data-abs-rt-button]");
+    const rtOpt = t.closest("[data-abs-rt-option]");
+    document.querySelectorAll(".e-permits-abs-rt.is-open").forEach((r) => { if (!r.contains(t)) setRtOpen(r, false); });
+    if (rtBtn) { const r = rtBtn.closest(".e-permits-abs-rt"); setRtOpen(r, !r.classList.contains("is-open")); return; }
+    if (rtOpt && form?.kind === "dist") { toggleRt(rtOpt.closest(".e-permits-abs-rt"), rtOpt.dataset.absRtOption); return; }
+    if (t.closest("[data-abs-comp-add]")) { readDistForm(); form.v.competences.push({ service: "", rt: [] }); renderDist(`#abs-comp-svc-${form.v.competences.length - 1}`); return; }
     const compRemove = t.closest("[data-abs-comp-remove]");
     if (compRemove) { readDistForm(); form.v.competences.splice(Number(compRemove.dataset.absCompRemove), 1); form.errors = {}; renderDist("[data-abs-comp-add]"); return; }
     const teamCases = t.closest("[data-abs-team-cases]");
@@ -1654,6 +1750,20 @@
     }
     if (t.matches("input[data-abs-pol]")) polSet(t);
   });
+  /* request-type multi-select keys: ↓ / Enter opens, ↑ ↓ move, Space / Enter tick, Esc closes (and keeps the dialog open) */
+  document.addEventListener("keydown", (event) => {
+    const root = event.target.closest?.(".e-permits-abs-rt");
+    if (!root) return;
+    const opts = [...root.querySelectorAll("[data-abs-rt-option]")];
+    const btn = root.querySelector("[data-abs-rt-button]");
+    const onOpt = event.target.closest("[data-abs-rt-option]");
+    if (event.key === "Escape" && root.classList.contains("is-open")) { event.preventDefault(); event.stopPropagation(); setRtOpen(root, false); btn.focus(); return; }
+    if (event.target === btn && ["ArrowDown", "ArrowUp"].includes(event.key)) { event.preventDefault(); setRtOpen(root, true); opts[0]?.focus(); return; }
+    if (!onOpt) return;
+    const i = opts.indexOf(onOpt);
+    if (event.key === "ArrowDown" || event.key === "ArrowUp") { event.preventDefault(); opts[(i + (event.key === "ArrowDown" ? 1 : -1) + opts.length) % opts.length].focus(); }
+    else if (event.key === " " || event.key === "Enter") { event.preventDefault(); toggleRt(root, onOpt.dataset.absRtOption); }
+  }, true);
   /* profile tabs of the module pages: ← → Home End (the shell does it for its own strips) */
   document.addEventListener("keydown", (event) => {
     const tabBtn = event.target.closest?.("[data-abs-my-tab], [data-abs-pol-tab]");

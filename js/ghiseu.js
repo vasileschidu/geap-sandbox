@@ -1275,7 +1275,7 @@
     if (S.mode === OFC_KIND) {
       S.cur.channel = OFC;
       S.step = STEP_INDEX.intent;
-      S.actsQuery = ""; S.ofcService = ""; S.actCleared = false;
+      S.actsQuery = ""; S.ofcService = ""; S.ofcLoading = false; S.actCleared = false;
       document.getElementById(START_ID)?.classList.contains("is-active") && closeStart();
     }
     closeSheet();
@@ -1702,7 +1702,7 @@
     : "");
 
   /* the FO search sizes: library Search input Medium (40) on desktop, Large (48) at ≤720 */
-  const searchSize = () => (window.matchMedia("(max-width: 720px)").matches ? "large" : "medium");
+  const searchSize = () => (window.matchMedia("(max-width: 760px)").matches ? "large" : "medium");
   /* IDNP / IDNO = the „Cod cadastral” search input with its submit, without the leading magnifier (user
      2026-10-15: plain code inputs, not search fields): the arrow asks
      MConnect (disabled until 13 digits; Enter = the arrow, js/search.js), the spinner while it answers,
@@ -2935,14 +2935,55 @@
       pendingText: busy ? `· dosar ${busy.nr}. Un alt postproces se inițiază după finalizarea acestuia.` : ""
     }) || "";
   }
+  /* search-first (ofc-search-first-v1, 2026-10-31, Figma comment A. Pascalov: „search first, then show the acts; there will
+     be many”): nothing is listed on open. Results = a query of ≥ 3 characters (an act number, a 13-digit IDNP / IDNO
+     are longer) or a chosen service; max OFC_MAX rows + „Se afișează 20 din N”; loading = skeleton rows */
+  const OFC_MAX = 20, OFC_MIN_CHARS = 3, OFC_DEBOUNCE_MS = 300, OFC_LOAD_MS = 400;
+  const ofcReady = () => Boolean(S.ofcService) || String(S.actsQuery || "").trim().length >= OFC_MIN_CHARS;
+  const ofcMatching = () => {
+    const q = fold(String(S.actsQuery || "").trim());
+    return ofcActs().filter((a) => (!S.ofcService || a.service === S.ofcService) && (q.length < OFC_MIN_CHARS || ofcActText(a).includes(q)));
+  };
+  function ofcResultsHtml() {
+    const E = window.GEAPEmptyState;
+    if (S.ofcLoading) {
+      const row = `<li class="e-permits-gh-ofc__skeleton-row"><span class="skeleton skeleton--text e-permits-gh-ofc__skeleton-title"></span><span class="skeleton skeleton--text"></span><span class="skeleton skeleton--text e-permits-gh-ofc__skeleton-meta"></span></li>`;
+      return `<ul class="e-permits-fo-intent__list" aria-hidden="true" data-gh-ofc-skeleton>${row.repeat(3)}</ul>`;
+    }
+    if (!ofcReady()) return E?.render({ title: "Căutați actul permisiv", text: "Introduceți numărul actului, IDNP sau IDNO al titularului, sau alegeți serviciul.", icon: "search" }) || "";
+    const found = ofcMatching();
+    if (!found.length) return E?.noResults?.("Niciun act nu corespunde căutării", { text: "Verificați numărul actului, IDNP-ul sau IDNO-ul titularului ori schimbați serviciul." }) || "";
+    const rows = found.slice(0, OFC_MAX).map((act) => ofcActRowHtml(act)).join("");
+    const more = found.length > OFC_MAX ? `<p class="e-permits-gh-ofc__more">Se afișează ${OFC_MAX} din ${found.length}. Rafinați căutarea pentru a restrânge rezultatele.</p>` : "";
+    return `<p class="e-permits-fo-intent__acts-title" id="gh-acts-title">Acte permisive emise de autoritate</p><ul class="e-permits-fo-intent__list">${rows}</ul>${more}`;
+  }
+  /* redraws only the results (the fields keep their focus); a ready query / service shows the skeleton first */
+  let ofcTimer = 0, ofcLoadTimer = 0;
+  function ofcRefresh({ immediate = false } = {}) {
+    window.clearTimeout(ofcTimer); window.clearTimeout(ofcLoadTimer);
+    const box = S.page?.querySelector("[data-gh-ofc-results]");
+    if (!box) return;
+    const live = S.page.querySelector("[data-gh-acts-live]");
+    const paint = () => {
+      box.innerHTML = ofcResultsHtml();
+      box.toggleAttribute("aria-busy", Boolean(S.ofcLoading));
+      if (live && !S.ofcLoading) { const n = ofcReady() ? ofcMatching().length : 0; live.textContent = !ofcReady() ? "" : n ? `${plural(n, "act găsit", "acte găsite")}.` : "Niciun rezultat."; }
+    };
+    const run = () => {
+      if (!ofcReady()) { S.ofcLoading = false; paint(); return; }
+      S.ofcLoading = true; paint();
+      if (live) live.textContent = "Se caută…";
+      if (params.get("latency") === "freeze") return; /* demo: the skeleton stays (as Cabinet) */
+      ofcLoadTimer = window.setTimeout(() => { S.ofcLoading = false; paint(); }, OFC_LOAD_MS);
+    };
+    /* below the threshold the start state returns at once; only a ready query waits for the debounce */
+    if (immediate || !ofcReady()) run(); else ofcTimer = window.setTimeout(run, OFC_DEBOUNCE_MS);
+  }
   function ofcIntentHtml(d) {
+    S.ofcLoading = false;
     const all = ofcActs();
     const titles = [...new Map(all.map((a) => [a.service, serviceOf(a.service)?.title || a.service])).entries()];
     const svcTitle = titles.find(([code]) => code === S.ofcService)?.[1] || "";
-    const acts = all.filter((a) => !S.ofcService || a.service === S.ofcService);
-    const q = fold(S.actsQuery || "");
-    const matches = (act) => !q || ofcActText(act).includes(q);
-    S.actsMatches = acts.filter(matches).length;
     const select = R().fieldHtml({ id: "gh-ofc-service", type: "select", label: "Denumirea serviciului", span: 6, value: svcTitle || "Toate serviciile", options: ["Toate serviciile", ...titles.map(([, title]) => title)] });
     const search = `
       <div class="e-permits-fo-field e-permits-fo-field--span-6">
@@ -2953,8 +2994,6 @@
           <div class="btn-group"><span class="spinner spinner--extra-small spinner--brand" aria-hidden="true"></span><button type="button" class="btn-icon clear" aria-label="Șterge căutarea"><svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-cross-small"></use></svg></button></div>
         </div>
       </div>`;
-    const rows = acts.map((act) => ofcActRowHtml(act, `data-gh-act-text="${esc(ofcActText(act))}"${matches(act) ? "" : " hidden"}`)).join("");
-    const E = window.GEAPEmptyState;
     return `
       <div class="e-permits-fo-intent__inner e-permits-gh-intent" data-gh-intent>
         <header class="e-permits-fo-intent__header">
@@ -2964,14 +3003,7 @@
         ${S.actCleared ? U().renderNotice?.("info", "Actul sau postprocesul ales anterior a fost anulat. Alegeți din nou.") || "" : ""}
         <div class="e-permits-gh-acts-search e-permits-gh-ofc">
           <div class="e-permits-fo-form__section-body e-permits-gh-ofc__filters">${select}${search}</div>
-          <section class="e-permits-fo-intent__acts" aria-labelledby="gh-acts-title">
-            <p class="e-permits-fo-intent__acts-title" id="gh-acts-title">Acte permisive emise de autoritate</p>
-            ${rows ? `<ul class="e-permits-fo-intent__list">${rows}</ul>` : ""}
-            <div data-gh-acts-none${!rows || (q && !S.actsMatches) ? "" : " hidden"}>${!rows
-              ? E?.render({ title: "Nu există acte permisive emise", text: "Actele emise de autoritate pentru serviciile cu pașaport publicat apar aici.", icon: "permission", compact: true }) || ""
-              /* AC-06 */
-              : E?.noResults?.("Nu există acte permisive care să corespundă căutării.", { text: "Caută după numărul actului, IDNP-ul sau IDNO-ul titularului.", bare: true, compact: true }) || ""}</div>
-          </section>
+          <section class="e-permits-fo-intent__acts" aria-labelledby="gh-acts-title" data-gh-ofc-results${S.ofcLoading ? ' aria-busy="true"' : ""}>${ofcResultsHtml()}</section>
           <p class="u-visually-hidden" role="status" aria-live="polite" data-gh-acts-live></p>
         </div>
       </div>`;
@@ -3464,8 +3496,7 @@
       if (button.id === "fo-gh-ofc-service") {
         const title = select.querySelector(".e-permits-fo-select__option.is-selected")?.dataset.value || "";
         S.ofcService = ofcActs().find((a) => serviceOf(a.service)?.title === title)?.service || "";
-        render({ focusTitle: false });
-        S.page.querySelector("#fo-gh-ofc-service")?.focus();
+        ofcRefresh({ immediate: true });
         return;
       }
       S.dirty = true;
@@ -3590,7 +3621,10 @@
   }
   function onInput(event) {
     /* the acts search filters the picker; it is not a change of the draft */
-    if (event.target.matches?.("[data-gh-acts-search]")) { filterActs(event.target); return; }
+    if (event.target.matches?.("[data-gh-acts-search]")) {
+      if (S.cur && isOfc(S.cur)) { S.actsQuery = event.target.value; ofcRefresh(); return; }
+      filterActs(event.target); return;
+    }
     S.dirty = true;
 
     const t = event.target;

@@ -142,6 +142,23 @@
   white-space: nowrap;
 }
 
+/* dist-mode-v1 (2026-10-30): an optional 12/16 tertiary line under a meta value (GEAPPageHeader.meta captionHtml —
+   „Specialist” → „Distribuit aleatoriu · 8 iul. 2026”). The row aligns to the top then, and the separator before a
+   captioned item stays on the label + value band (the same height as its neighbours'), not on the taller item. */
+.e-permits-page-header__meta:has(.e-permits-page-header__meta-item--caption) {
+  align-items: flex-start;
+}
+
+.e-permits-page-header__meta-item--caption::before {
+  top: calc((var(--line-height-lh-16, 16px) + var(--spacing-4, 4px) + var(--spacing-24, 24px)) / 2);
+}
+
+.e-permits-page-header__meta-caption {
+  color: var(--color-text-base-tertiary, #757575);
+  font: var(--font-weight-fw-regular, 400) var(--font-size-fs-12, 12px) / var(--line-height-lh-16, 16px) var(--font-family-primary-font, Onest), sans-serif;
+  min-width: 0;
+}
+
 /* ---- Detail sections (Figma 8993:39453): 20 under the header, 48 heading over the grey card.
    Source: the back-office scoped rules, e-permits-acte-permisive.css :16496–16670 ---- */
 .e-permits-page-header ~ .e-permits-dosar-profil__panel {

@@ -465,9 +465,9 @@
       if (count) { count.hidden = !appliedCount; count.textContent = String(appliedCount); }
       markTrigger(appliedCount);
       const facets = cfg.facets();
-      /* the chips show only after the button is clicked; the button's badge keeps telling
-         how many values are applied while the bar is closed */
-      const show = (state.open || pending()) && facets.length > 0;
+      /* the chips show after the button is clicked, and STAY while any filter is applied (applied-visible-v1,
+         user 2026-10-31: „3 on the button, but where are the filters?”): active filters are always visible */
+      const show = (state.open || pending() || appliedCount > 0) && facets.length > 0;
       bar.hidden = !show;
       if (toggle) {
         const none = !facets.length;

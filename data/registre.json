@@ -91,6 +91,15 @@
      "filter": "multi"
     },
     {
+     "key": "modDistribuire",
+     "label": "Mod distribuire",
+     "width": 140,
+     "align": "left",
+     "visible": false,
+     "sortable": false,
+     "filter": "multi"
+    },
+    {
      "key": "depus",
      "label": "Data depunerii",
      "width": 160,
@@ -1593,6 +1602,1408 @@
     },
     "versions": [],
     "grants": []
+   },
+   {
+    "id": "reg-acteansp",
+    "code": "Permit.Authority.AutorizatiiSanitareANSP",
+    "object": "Permit",
+    "scope": "Authority",
+    "authority": "ANSP",
+    "service": null,
+    "parent": "reg-acte",
+    "names": {
+     "ro": "Autorizații sanitare ANSP",
+     "ru": "",
+     "en": ""
+    },
+    "description": "Autorizațiile sanitare de funcționare și avizele sanitare emise de ANSP.",
+    "position": 10,
+    "status": "Publicat",
+    "version": "v1.0.0",
+    "publishedVersion": "v1.0.0",
+    "createdAt": "2026-07-03T09:00:00",
+    "createdBy": "Anastasia Cojocaru",
+    "editedAt": "2026-07-03T09:00:00",
+    "editedBy": "Anastasia Cojocaru",
+    "config": {
+     "copyColumnsOf": "reg-acte",
+     "predefinedFilter": null
+    },
+    "versions": [
+     {
+      "version": "v1.0.0",
+      "at": "2026-07-03T09:00:00",
+      "note": "Autorizațiile sanitare de funcționare și avizele sanitare emise de ANSP.",
+      "by": "Anastasia Cojocaru",
+      "type": "Prima publicare",
+      "drop": {
+       "columns": [],
+       "actions": []
+      }
+     }
+    ],
+    "grants": [
+     {
+      "role": "central-admin",
+      "authority": null,
+      "at": "2026-07-03T09:00:00",
+      "by": "Anastasia Cojocaru"
+     },
+     {
+      "role": "specialist",
+      "authority": "ANSP",
+      "at": "2026-07-03T09:00:00",
+      "by": "Anastasia Cojocaru"
+     },
+     {
+      "role": "supervisor",
+      "authority": "ANSP",
+      "at": "2026-07-03T09:00:00",
+      "by": "Anastasia Cojocaru"
+     },
+     {
+      "role": "director",
+      "authority": "ANSP",
+      "at": "2026-07-03T09:00:00",
+      "by": "Anastasia Cojocaru"
+     }
+    ]
+   },
+   {
+    "id": "reg-acteansa",
+    "code": "Permit.Authority.ActePermisiveANSA",
+    "object": "Permit",
+    "scope": "Authority",
+    "authority": "ANSA",
+    "service": null,
+    "parent": "reg-acte",
+    "names": {
+     "ro": "Acte permisive ANSA",
+     "ru": "",
+     "en": ""
+    },
+    "description": "Autorizațiile sanitar-veterinare, certificatele de conformitate și avizele emise de ANSA.",
+    "position": 11,
+    "status": "Publicat",
+    "version": "v1.0.0",
+    "publishedVersion": "v1.0.0",
+    "createdAt": "2026-08-08T10:13:00",
+    "createdBy": "Vasile Schidu",
+    "editedAt": "2026-08-08T10:13:00",
+    "editedBy": "Vasile Schidu",
+    "config": {
+     "copyColumnsOf": "reg-acte",
+     "predefinedFilter": null
+    },
+    "versions": [
+     {
+      "version": "v1.0.0",
+      "at": "2026-08-08T10:13:00",
+      "note": "Autorizațiile sanitar-veterinare, certificatele de conformitate și avizele emise de ANSA.",
+      "by": "Vasile Schidu",
+      "type": "Prima publicare",
+      "drop": {
+       "columns": [],
+       "actions": []
+      }
+     }
+    ],
+    "grants": [
+     {
+      "role": "central-admin",
+      "authority": null,
+      "at": "2026-08-08T10:13:00",
+      "by": "Vasile Schidu"
+     }
+    ]
+   },
+   {
+    "id": "reg-licenteanta",
+    "code": "Permit.Authority.LicenteSiAutorizatiiDeTransportANTA",
+    "object": "Permit",
+    "scope": "Authority",
+    "authority": "ANTA",
+    "service": null,
+    "parent": "reg-acte",
+    "names": {
+     "ro": "Licențe și autorizații de transport ANTA",
+     "ru": "",
+     "en": ""
+    },
+    "description": "Licențele de transport rutier de persoane și autorizațiile de taxi emise de ANTA.",
+    "position": 12,
+    "status": "Publicat",
+    "version": "v1.0.0",
+    "publishedVersion": "v1.0.0",
+    "createdAt": "2026-09-13T11:26:00",
+    "createdBy": "Ion Popescu",
+    "editedAt": "2026-09-13T11:26:00",
+    "editedBy": "Ion Popescu",
+    "config": {
+     "copyColumnsOf": "reg-acte",
+     "predefinedFilter": null
+    },
+    "versions": [
+     {
+      "version": "v1.0.0",
+      "at": "2026-09-13T11:26:00",
+      "note": "Licențele de transport rutier de persoane și autorizațiile de taxi emise de ANTA.",
+      "by": "Ion Popescu",
+      "type": "Prima publicare",
+      "drop": {
+       "columns": [],
+       "actions": []
+      }
+     }
+    ],
+    "grants": [
+     {
+      "role": "central-admin",
+      "authority": null,
+      "at": "2026-09-13T11:26:00",
+      "by": "Ion Popescu"
+     },
+     {
+      "role": "specialist",
+      "authority": "ANTA",
+      "at": "2026-09-13T11:26:00",
+      "by": "Ion Popescu"
+     }
+    ]
+   },
+   {
+    "id": "reg-acteam",
+    "code": "Permit.Authority.AutorizatiiDeMediu",
+    "object": "Permit",
+    "scope": "Authority",
+    "authority": "AM",
+    "service": null,
+    "parent": "reg-acte",
+    "names": {
+     "ro": "Autorizații de mediu",
+     "ru": "",
+     "en": ""
+    },
+    "description": "Autorizațiile pentru folosința specială a apei și gestionarea deșeurilor, emise de Agenția de Mediu.",
+    "position": 13,
+    "status": "Publicat",
+    "version": "v1.0.0",
+    "publishedVersion": "v1.0.0",
+    "createdAt": "2026-07-18T12:39:00",
+    "createdBy": "Mariana Rusu",
+    "editedAt": "2026-07-18T12:39:00",
+    "editedBy": "Mariana Rusu",
+    "config": {
+     "copyColumnsOf": "reg-acte",
+     "predefinedFilter": null
+    },
+    "versions": [
+     {
+      "version": "v1.0.0",
+      "at": "2026-07-18T12:39:00",
+      "note": "Autorizațiile pentru folosința specială a apei și gestionarea deșeurilor, emise de Agenția de Mediu.",
+      "by": "Mariana Rusu",
+      "type": "Prima publicare",
+      "drop": {
+       "columns": [],
+       "actions": []
+      }
+     }
+    ],
+    "grants": [
+     {
+      "role": "central-admin",
+      "authority": null,
+      "at": "2026-07-18T12:39:00",
+      "by": "Mariana Rusu"
+     }
+    ]
+   },
+   {
+    "id": "reg-licenteasp",
+    "code": "Permit.Authority.LicentePentruAlcoolASP",
+    "object": "Permit",
+    "scope": "Authority",
+    "authority": "ASP",
+    "service": null,
+    "parent": "reg-acte",
+    "names": {
+     "ro": "Licențe pentru alcool ASP",
+     "ru": "",
+     "en": ""
+    },
+    "description": "Licențele pentru producerea alcoolului etilic și autorizațiile de comerț cu produse alcoolice.",
+    "position": 14,
+    "status": "Publicat",
+    "version": "v1.0.0",
+    "publishedVersion": "v1.0.0",
+    "createdAt": "2026-08-23T13:52:00",
+    "createdBy": "Anastasia Cojocaru",
+    "editedAt": "2026-08-23T13:52:00",
+    "editedBy": "Anastasia Cojocaru",
+    "config": {
+     "copyColumnsOf": "reg-acte",
+     "predefinedFilter": null
+    },
+    "versions": [
+     {
+      "version": "v1.0.0",
+      "at": "2026-08-23T13:52:00",
+      "note": "Licențele pentru producerea alcoolului etilic și autorizațiile de comerț cu produse alcoolice.",
+      "by": "Anastasia Cojocaru",
+      "type": "Prima publicare",
+      "drop": {
+       "columns": [],
+       "actions": []
+      }
+     }
+    ],
+    "grants": [
+     {
+      "role": "central-admin",
+      "authority": null,
+      "at": "2026-08-23T13:52:00",
+      "by": "Anastasia Cojocaru"
+     }
+    ]
+   },
+   {
+    "id": "reg-licente",
+    "code": "Permit.Global.Licente",
+    "object": "Permit",
+    "scope": "Global",
+    "authority": null,
+    "service": null,
+    "parent": "reg-acte",
+    "names": {
+     "ro": "Licențe",
+     "ru": "",
+     "en": ""
+    },
+    "description": "Toate licențele emise, de la toate autoritățile, cu titularul și termenul de valabilitate.",
+    "position": 15,
+    "status": "Publicat",
+    "version": "v1.0.0",
+    "publishedVersion": "v1.0.0",
+    "createdAt": "2026-09-04T14:05:00",
+    "createdBy": "Vasile Schidu",
+    "editedAt": "2026-09-04T14:05:00",
+    "editedBy": "Vasile Schidu",
+    "config": {
+     "copyColumnsOf": "reg-acte",
+     "predefinedFilter": {
+      "logic": "and",
+      "rules": [
+       {
+        "column": "tip",
+        "op": "is",
+        "value": "Licență"
+       }
+      ]
+     }
+    },
+    "versions": [
+     {
+      "version": "v1.0.0",
+      "at": "2026-09-04T14:05:00",
+      "note": "Toate licențele emise, de la toate autoritățile, cu titularul și termenul de valabilitate.",
+      "by": "Vasile Schidu",
+      "type": "Prima publicare",
+      "drop": {
+       "columns": [],
+       "actions": []
+      }
+     }
+    ],
+    "grants": [
+     {
+      "role": "central-admin",
+      "authority": null,
+      "at": "2026-09-04T14:05:00",
+      "by": "Vasile Schidu"
+     }
+    ]
+   },
+   {
+    "id": "reg-certificate",
+    "code": "Permit.Global.CertificateDeConformitate",
+    "object": "Permit",
+    "scope": "Global",
+    "authority": null,
+    "service": null,
+    "parent": "reg-acte",
+    "names": {
+     "ro": "Certificate de conformitate",
+     "ru": "",
+     "en": ""
+    },
+    "description": "Certificatele de conformitate pentru produse alimentare și titularii lor.",
+    "position": 16,
+    "status": "Publicat",
+    "version": "v1.0.0",
+    "publishedVersion": "v1.0.0",
+    "createdAt": "2026-07-09T15:18:00",
+    "createdBy": "Ion Popescu",
+    "editedAt": "2026-07-09T15:18:00",
+    "editedBy": "Ion Popescu",
+    "config": {
+     "copyColumnsOf": "reg-acte",
+     "predefinedFilter": {
+      "logic": "and",
+      "rules": [
+       {
+        "column": "tip",
+        "op": "is",
+        "value": "Certificat"
+       }
+      ]
+     }
+    },
+    "versions": [
+     {
+      "version": "v1.0.0",
+      "at": "2026-07-09T15:18:00",
+      "note": "Certificatele de conformitate pentru produse alimentare și titularii lor.",
+      "by": "Ion Popescu",
+      "type": "Prima publicare",
+      "drop": {
+       "columns": [],
+       "actions": []
+      }
+     }
+    ],
+    "grants": [
+     {
+      "role": "central-admin",
+      "authority": null,
+      "at": "2026-07-09T15:18:00",
+      "by": "Ion Popescu"
+     }
+    ]
+   },
+   {
+    "id": "reg-actesuspendate",
+    "code": "Permit.Global.ActeSuspendate",
+    "object": "Permit",
+    "scope": "Global",
+    "authority": null,
+    "service": null,
+    "parent": "reg-acte",
+    "names": {
+     "ro": "Acte suspendate",
+     "ru": "",
+     "en": ""
+    },
+    "description": "Actele permisive cu valabilitatea suspendată, pentru urmărirea reluării sau a retragerii.",
+    "position": 17,
+    "status": "Publicat",
+    "version": "v1.0.0",
+    "publishedVersion": "v1.0.0",
+    "createdAt": "2026-08-14T09:31:00",
+    "createdBy": "Mariana Rusu",
+    "editedAt": "2026-08-14T09:31:00",
+    "editedBy": "Mariana Rusu",
+    "config": {
+     "copyColumnsOf": "reg-acte",
+     "predefinedFilter": {
+      "logic": "and",
+      "rules": [
+       {
+        "column": "status",
+        "op": "is",
+        "value": "Suspendat"
+       }
+      ]
+     }
+    },
+    "versions": [
+     {
+      "version": "v1.0.0",
+      "at": "2026-08-14T09:31:00",
+      "note": "Actele permisive cu valabilitatea suspendată, pentru urmărirea reluării sau a retragerii.",
+      "by": "Mariana Rusu",
+      "type": "Prima publicare",
+      "drop": {
+       "columns": [],
+       "actions": []
+      }
+     }
+    ],
+    "grants": [
+     {
+      "role": "central-admin",
+      "authority": null,
+      "at": "2026-08-14T09:31:00",
+      "by": "Mariana Rusu"
+     }
+    ]
+   },
+   {
+    "id": "reg-acteexpirate",
+    "code": "Permit.Global.ActeExpirate",
+    "object": "Permit",
+    "scope": "Global",
+    "authority": null,
+    "service": null,
+    "parent": "reg-acte",
+    "names": {
+     "ro": "Acte expirate",
+     "ru": "",
+     "en": ""
+    },
+    "description": "Actele permisive expirate, pentru notificarea titularilor și reînnoire.",
+    "position": 18,
+    "status": "Publicat",
+    "version": "v1.0.0",
+    "publishedVersion": "v1.0.0",
+    "createdAt": "2026-09-19T10:44:00",
+    "createdBy": "Anastasia Cojocaru",
+    "editedAt": "2026-09-19T10:44:00",
+    "editedBy": "Anastasia Cojocaru",
+    "config": {
+     "copyColumnsOf": "reg-acte",
+     "predefinedFilter": {
+      "logic": "and",
+      "rules": [
+       {
+        "column": "status",
+        "op": "is",
+        "value": "Expirat"
+       }
+      ]
+     }
+    },
+    "versions": [
+     {
+      "version": "v1.0.0",
+      "at": "2026-09-19T10:44:00",
+      "note": "Actele permisive expirate, pentru notificarea titularilor și reînnoire.",
+      "by": "Anastasia Cojocaru",
+      "type": "Prima publicare",
+      "drop": {
+       "columns": [],
+       "actions": []
+      }
+     }
+    ],
+    "grants": [
+     {
+      "role": "central-admin",
+      "authority": null,
+      "at": "2026-09-19T10:44:00",
+      "by": "Anastasia Cojocaru"
+     }
+    ]
+   },
+   {
+    "id": "reg-acteretrase",
+    "code": "Permit.Global.ActeRetraseSiAnulate",
+    "object": "Permit",
+    "scope": "Global",
+    "authority": null,
+    "service": null,
+    "parent": "reg-acte",
+    "names": {
+     "ro": "Acte retrase și anulate",
+     "ru": "",
+     "en": ""
+    },
+    "description": "Actele permisive retrase sau anulate, cu temeiul și data deciziei.",
+    "position": 19,
+    "status": "Publicat",
+    "version": "v1.0.0",
+    "publishedVersion": "v1.0.0",
+    "createdAt": "2026-07-24T11:57:00",
+    "createdBy": "Vasile Schidu",
+    "editedAt": "2026-07-24T11:57:00",
+    "editedBy": "Vasile Schidu",
+    "config": {
+     "copyColumnsOf": "reg-acte",
+     "predefinedFilter": {
+      "logic": "or",
+      "rules": [
+       {
+        "column": "status",
+        "op": "is",
+        "value": "Retras"
+       },
+       {
+        "column": "status",
+        "op": "is",
+        "value": "Anulat"
+       }
+      ]
+     }
+    },
+    "versions": [
+     {
+      "version": "v1.0.0",
+      "at": "2026-07-24T11:57:00",
+      "note": "Actele permisive retrase sau anulate, cu temeiul și data deciziei.",
+      "by": "Vasile Schidu",
+      "type": "Prima publicare",
+      "drop": {
+       "columns": [],
+       "actions": []
+      }
+     }
+    ],
+    "grants": [
+     {
+      "role": "central-admin",
+      "authority": null,
+      "at": "2026-07-24T11:57:00",
+      "by": "Vasile Schidu"
+     }
+    ]
+   },
+   {
+    "id": "reg-noteansp",
+    "code": "PaymentOrder.Authority.NoteDePlataANSP",
+    "object": "Invoice",
+    "scope": "Authority",
+    "authority": "ANSP",
+    "service": null,
+    "parent": "reg-note",
+    "names": {
+     "ro": "Note de plată ANSP",
+     "ru": "",
+     "en": ""
+    },
+    "description": "Notele de plată emise de ANSP și subdiviziunile ei, cu statutul plății MPay.",
+    "position": 20,
+    "status": "Publicat",
+    "version": "v1.0.0",
+    "publishedVersion": "v1.0.0",
+    "createdAt": "2026-08-05T12:10:00",
+    "createdBy": "Ion Popescu",
+    "editedAt": "2026-08-05T12:10:00",
+    "editedBy": "Ion Popescu",
+    "config": {
+     "copyColumnsOf": "reg-note",
+     "predefinedFilter": null
+    },
+    "versions": [
+     {
+      "version": "v1.0.0",
+      "at": "2026-08-05T12:10:00",
+      "note": "Notele de plată emise de ANSP și subdiviziunile ei, cu statutul plății MPay.",
+      "by": "Ion Popescu",
+      "type": "Prima publicare",
+      "drop": {
+       "columns": [],
+       "actions": []
+      }
+     }
+    ],
+    "grants": [
+     {
+      "role": "central-admin",
+      "authority": null,
+      "at": "2026-08-05T12:10:00",
+      "by": "Ion Popescu"
+     },
+     {
+      "role": "specialist",
+      "authority": "ANSP",
+      "at": "2026-08-05T12:10:00",
+      "by": "Ion Popescu"
+     },
+     {
+      "role": "supervisor",
+      "authority": "ANSP",
+      "at": "2026-08-05T12:10:00",
+      "by": "Ion Popescu"
+     },
+     {
+      "role": "director",
+      "authority": "ANSP",
+      "at": "2026-08-05T12:10:00",
+      "by": "Ion Popescu"
+     }
+    ]
+   },
+   {
+    "id": "reg-noteansa",
+    "code": "PaymentOrder.Authority.NoteDePlataANSA",
+    "object": "Invoice",
+    "scope": "Authority",
+    "authority": "ANSA",
+    "service": null,
+    "parent": "reg-note",
+    "names": {
+     "ro": "Note de plată ANSA",
+     "ru": "",
+     "en": ""
+    },
+    "description": "Notele de plată emise de ANSA pentru autorizări și certificări.",
+    "position": 21,
+    "status": "Publicat",
+    "version": "v1.0.0",
+    "publishedVersion": "v1.0.0",
+    "createdAt": "2026-09-10T13:23:00",
+    "createdBy": "Mariana Rusu",
+    "editedAt": "2026-09-10T13:23:00",
+    "editedBy": "Mariana Rusu",
+    "config": {
+     "copyColumnsOf": "reg-note",
+     "predefinedFilter": null
+    },
+    "versions": [
+     {
+      "version": "v1.0.0",
+      "at": "2026-09-10T13:23:00",
+      "note": "Notele de plată emise de ANSA pentru autorizări și certificări.",
+      "by": "Mariana Rusu",
+      "type": "Prima publicare",
+      "drop": {
+       "columns": [],
+       "actions": []
+      }
+     }
+    ],
+    "grants": [
+     {
+      "role": "central-admin",
+      "authority": null,
+      "at": "2026-09-10T13:23:00",
+      "by": "Mariana Rusu"
+     }
+    ]
+   },
+   {
+    "id": "reg-noteanta",
+    "code": "PaymentOrder.Authority.NoteDePlataANTA",
+    "object": "Invoice",
+    "scope": "Authority",
+    "authority": "ANTA",
+    "service": null,
+    "parent": "reg-note",
+    "names": {
+     "ro": "Note de plată ANTA",
+     "ru": "",
+     "en": ""
+    },
+    "description": "Notele de plată pentru licențele și autorizațiile de transport ANTA.",
+    "position": 22,
+    "status": "Publicat",
+    "version": "v1.0.0",
+    "publishedVersion": "v1.0.0",
+    "createdAt": "2026-07-15T14:36:00",
+    "createdBy": "Anastasia Cojocaru",
+    "editedAt": "2026-07-15T14:36:00",
+    "editedBy": "Anastasia Cojocaru",
+    "config": {
+     "copyColumnsOf": "reg-note",
+     "predefinedFilter": null
+    },
+    "versions": [
+     {
+      "version": "v1.0.0",
+      "at": "2026-07-15T14:36:00",
+      "note": "Notele de plată pentru licențele și autorizațiile de transport ANTA.",
+      "by": "Anastasia Cojocaru",
+      "type": "Prima publicare",
+      "drop": {
+       "columns": [],
+       "actions": []
+      }
+     }
+    ],
+    "grants": [
+     {
+      "role": "central-admin",
+      "authority": null,
+      "at": "2026-07-15T14:36:00",
+      "by": "Anastasia Cojocaru"
+     },
+     {
+      "role": "specialist",
+      "authority": "ANTA",
+      "at": "2026-07-15T14:36:00",
+      "by": "Anastasia Cojocaru"
+     }
+    ]
+   },
+   {
+    "id": "reg-noteneachitate",
+    "code": "PaymentOrder.Global.NoteDePlataNeachitate",
+    "object": "Invoice",
+    "scope": "Global",
+    "authority": null,
+    "service": null,
+    "parent": "reg-note",
+    "names": {
+     "ro": "Note de plată neachitate",
+     "ru": "",
+     "en": ""
+    },
+    "description": "Notele de plată neachitate sau achitate parțial, pentru notificarea solicitanților.",
+    "position": 23,
+    "status": "Publicat",
+    "version": "v1.0.0",
+    "publishedVersion": "v1.0.0",
+    "createdAt": "2026-08-20T15:49:00",
+    "createdBy": "Vasile Schidu",
+    "editedAt": "2026-08-20T15:49:00",
+    "editedBy": "Vasile Schidu",
+    "config": {
+     "copyColumnsOf": "reg-note",
+     "predefinedFilter": {
+      "logic": "or",
+      "rules": [
+       {
+        "column": "statutNota",
+        "op": "is",
+        "value": "Neachitată"
+       },
+       {
+        "column": "statutNota",
+        "op": "is",
+        "value": "Parțial achitată"
+       }
+      ]
+     }
+    },
+    "versions": [
+     {
+      "version": "v1.0.0",
+      "at": "2026-08-20T15:49:00",
+      "note": "Notele de plată neachitate sau achitate parțial, pentru notificarea solicitanților.",
+      "by": "Vasile Schidu",
+      "type": "Prima publicare",
+      "drop": {
+       "columns": [],
+       "actions": []
+      }
+     }
+    ],
+    "grants": [
+     {
+      "role": "central-admin",
+      "authority": null,
+      "at": "2026-08-20T15:49:00",
+      "by": "Vasile Schidu"
+     }
+    ]
+   },
+   {
+    "id": "reg-rambursari",
+    "code": "PaymentOrder.Global.Rambursari",
+    "object": "Invoice",
+    "scope": "Global",
+    "authority": null,
+    "service": null,
+    "parent": "reg-note",
+    "names": {
+     "ro": "Rambursări",
+     "ru": "",
+     "en": ""
+    },
+    "description": "Notele de plată rambursate, cu tranzacția MPay și motivul rambursării.",
+    "position": 24,
+    "status": "Publicat",
+    "version": "v1.0.0",
+    "publishedVersion": "v1.0.0",
+    "createdAt": "2026-09-25T09:02:00",
+    "createdBy": "Ion Popescu",
+    "editedAt": "2026-09-25T09:02:00",
+    "editedBy": "Ion Popescu",
+    "config": {
+     "copyColumnsOf": "reg-note",
+     "predefinedFilter": {
+      "logic": "and",
+      "rules": [
+       {
+        "column": "statutNota",
+        "op": "is",
+        "value": "Rambursată"
+       }
+      ]
+     }
+    },
+    "versions": [
+     {
+      "version": "v1.0.0",
+      "at": "2026-09-25T09:02:00",
+      "note": "Notele de plată rambursate, cu tranzacția MPay și motivul rambursării.",
+      "by": "Ion Popescu",
+      "type": "Prima publicare",
+      "drop": {
+       "columns": [],
+       "actions": []
+      }
+     }
+    ],
+    "grants": [
+     {
+      "role": "central-admin",
+      "authority": null,
+      "at": "2026-09-25T09:02:00",
+      "by": "Ion Popescu"
+     }
+    ]
+   },
+   {
+    "id": "reg-noteexpirate",
+    "code": "PaymentOrder.Global.NoteDePlataExpirate",
+    "object": "Invoice",
+    "scope": "Global",
+    "authority": null,
+    "service": null,
+    "parent": "reg-note",
+    "names": {
+     "ro": "Note de plată expirate",
+     "ru": "",
+     "en": ""
+    },
+    "description": "Notele de plată al căror termen de achitare a trecut fără plată.",
+    "position": 25,
+    "status": "Publicat",
+    "version": "v1.0.0",
+    "publishedVersion": "v1.0.0",
+    "createdAt": "2026-07-06T10:15:00",
+    "createdBy": "Mariana Rusu",
+    "editedAt": "2026-07-06T10:15:00",
+    "editedBy": "Mariana Rusu",
+    "config": {
+     "copyColumnsOf": "reg-note",
+     "predefinedFilter": {
+      "logic": "and",
+      "rules": [
+       {
+        "column": "statutNota",
+        "op": "is",
+        "value": "Expirată"
+       }
+      ]
+     }
+    },
+    "versions": [
+     {
+      "version": "v1.0.0",
+      "at": "2026-07-06T10:15:00",
+      "note": "Notele de plată al căror termen de achitare a trecut fără plată.",
+      "by": "Mariana Rusu",
+      "type": "Prima publicare",
+      "drop": {
+       "columns": [],
+       "actions": []
+      }
+     }
+    ],
+    "grants": [
+     {
+      "role": "central-admin",
+      "authority": null,
+      "at": "2026-07-06T10:15:00",
+      "by": "Mariana Rusu"
+     }
+    ]
+   },
+   {
+    "id": "reg-avizeansp",
+    "code": "Expertise.Authority.AvizeSanitareANSP",
+    "object": "Expertise",
+    "scope": "Authority",
+    "authority": "ANSP",
+    "service": null,
+    "parent": "reg-avize",
+    "names": {
+     "ro": "Avize sanitare ANSP",
+     "ru": "",
+     "en": ""
+    },
+    "description": "Avizele sanitare cerute ANSP în examinarea dosarelor altor autorități.",
+    "position": 26,
+    "status": "Publicat",
+    "version": "v1.0.0",
+    "publishedVersion": "v1.0.0",
+    "createdAt": "2026-08-11T11:28:00",
+    "createdBy": "Anastasia Cojocaru",
+    "editedAt": "2026-08-11T11:28:00",
+    "editedBy": "Anastasia Cojocaru",
+    "config": {
+     "copyColumnsOf": "reg-avize",
+     "predefinedFilter": null
+    },
+    "versions": [
+     {
+      "version": "v1.0.0",
+      "at": "2026-08-11T11:28:00",
+      "note": "Avizele sanitare cerute ANSP în examinarea dosarelor altor autorități.",
+      "by": "Anastasia Cojocaru",
+      "type": "Prima publicare",
+      "drop": {
+       "columns": [],
+       "actions": []
+      }
+     }
+    ],
+    "grants": [
+     {
+      "role": "central-admin",
+      "authority": null,
+      "at": "2026-08-11T11:28:00",
+      "by": "Anastasia Cojocaru"
+     },
+     {
+      "role": "specialist",
+      "authority": "ANSP",
+      "at": "2026-08-11T11:28:00",
+      "by": "Anastasia Cojocaru"
+     },
+     {
+      "role": "supervisor",
+      "authority": "ANSP",
+      "at": "2026-08-11T11:28:00",
+      "by": "Anastasia Cojocaru"
+     },
+     {
+      "role": "director",
+      "authority": "ANSP",
+      "at": "2026-08-11T11:28:00",
+      "by": "Anastasia Cojocaru"
+     }
+    ]
+   },
+   {
+    "id": "reg-avizeansa",
+    "code": "Expertise.Authority.AvizeANSA",
+    "object": "Expertise",
+    "scope": "Authority",
+    "authority": "ANSA",
+    "service": null,
+    "parent": "reg-avize",
+    "names": {
+     "ro": "Avize ANSA",
+     "ru": "",
+     "en": ""
+    },
+    "description": "Avizele sanitar-veterinare eliberate de ANSA pentru dosarele în examinare.",
+    "position": 27,
+    "status": "Publicat",
+    "version": "v1.0.0",
+    "publishedVersion": "v1.0.0",
+    "createdAt": "2026-09-16T12:41:00",
+    "createdBy": "Vasile Schidu",
+    "editedAt": "2026-09-16T12:41:00",
+    "editedBy": "Vasile Schidu",
+    "config": {
+     "copyColumnsOf": "reg-avize",
+     "predefinedFilter": null
+    },
+    "versions": [
+     {
+      "version": "v1.0.0",
+      "at": "2026-09-16T12:41:00",
+      "note": "Avizele sanitar-veterinare eliberate de ANSA pentru dosarele în examinare.",
+      "by": "Vasile Schidu",
+      "type": "Prima publicare",
+      "drop": {
+       "columns": [],
+       "actions": []
+      }
+     }
+    ],
+    "grants": [
+     {
+      "role": "central-admin",
+      "authority": null,
+      "at": "2026-09-16T12:41:00",
+      "by": "Vasile Schidu"
+     }
+    ]
+   },
+   {
+    "id": "reg-avizeam",
+    "code": "Expertise.Authority.AvizeDeMediu",
+    "object": "Expertise",
+    "scope": "Authority",
+    "authority": "AM",
+    "service": null,
+    "parent": "reg-avize",
+    "names": {
+     "ro": "Avize de mediu",
+     "ru": "",
+     "en": ""
+    },
+    "description": "Avizele de mediu cerute Agenției de Mediu, cu concluzia și termenul de valabilitate.",
+    "position": 28,
+    "status": "Publicat",
+    "version": "v1.0.0",
+    "publishedVersion": "v1.0.0",
+    "createdAt": "2026-07-21T13:54:00",
+    "createdBy": "Ion Popescu",
+    "editedAt": "2026-07-21T13:54:00",
+    "editedBy": "Ion Popescu",
+    "config": {
+     "copyColumnsOf": "reg-avize",
+     "predefinedFilter": null
+    },
+    "versions": [
+     {
+      "version": "v1.0.0",
+      "at": "2026-07-21T13:54:00",
+      "note": "Avizele de mediu cerute Agenției de Mediu, cu concluzia și termenul de valabilitate.",
+      "by": "Ion Popescu",
+      "type": "Prima publicare",
+      "drop": {
+       "columns": [],
+       "actions": []
+      }
+     }
+    ],
+    "grants": [
+     {
+      "role": "central-admin",
+      "authority": null,
+      "at": "2026-07-21T13:54:00",
+      "by": "Ion Popescu"
+     }
+    ]
+   },
+   {
+    "id": "reg-avizeinlucru",
+    "code": "Expertise.Global.AvizeInLucru",
+    "object": "Expertise",
+    "scope": "Global",
+    "authority": null,
+    "service": null,
+    "parent": "reg-avize",
+    "names": {
+     "ro": "Avize în lucru",
+     "ru": "",
+     "en": ""
+    },
+    "description": "Avizele cerute și încă nefinalizate, pentru urmărirea termenelor de răspuns.",
+    "position": 29,
+    "status": "Publicat",
+    "version": "v1.0.0",
+    "publishedVersion": "v1.0.0",
+    "createdAt": "2026-08-26T14:07:00",
+    "createdBy": "Mariana Rusu",
+    "editedAt": "2026-08-26T14:07:00",
+    "editedBy": "Mariana Rusu",
+    "config": {
+     "copyColumnsOf": "reg-avize",
+     "predefinedFilter": {
+      "logic": "and",
+      "rules": [
+       {
+        "column": "statut",
+        "op": "is",
+        "value": "În lucru"
+       }
+      ]
+     }
+    },
+    "versions": [
+     {
+      "version": "v1.0.0",
+      "at": "2026-08-26T14:07:00",
+      "note": "Avizele cerute și încă nefinalizate, pentru urmărirea termenelor de răspuns.",
+      "by": "Mariana Rusu",
+      "type": "Prima publicare",
+      "drop": {
+       "columns": [],
+       "actions": []
+      }
+     }
+    ],
+    "grants": [
+     {
+      "role": "central-admin",
+      "authority": null,
+      "at": "2026-08-26T14:07:00",
+      "by": "Mariana Rusu"
+     }
+    ]
+   },
+   {
+    "id": "reg-avizenefavorabile",
+    "code": "Expertise.Global.AvizeNefavorabile",
+    "object": "Expertise",
+    "scope": "Global",
+    "authority": null,
+    "service": null,
+    "parent": "reg-avize",
+    "names": {
+     "ro": "Avize nefavorabile",
+     "ru": "",
+     "en": ""
+    },
+    "description": "Avizele nefavorabile, cu autoritatea avizatoare și dosarul afectat.",
+    "position": 30,
+    "status": "Publicat",
+    "version": "v1.0.0",
+    "publishedVersion": "v1.0.0",
+    "createdAt": "2026-09-07T15:20:00",
+    "createdBy": "Anastasia Cojocaru",
+    "editedAt": "2026-09-07T15:20:00",
+    "editedBy": "Anastasia Cojocaru",
+    "config": {
+     "copyColumnsOf": "reg-avize",
+     "predefinedFilter": {
+      "logic": "and",
+      "rules": [
+       {
+        "column": "statut",
+        "op": "is",
+        "value": "Nefavorabil"
+       }
+      ]
+     }
+    },
+    "versions": [
+     {
+      "version": "v1.0.0",
+      "at": "2026-09-07T15:20:00",
+      "note": "Avizele nefavorabile, cu autoritatea avizatoare și dosarul afectat.",
+      "by": "Anastasia Cojocaru",
+      "type": "Prima publicare",
+      "drop": {
+       "columns": [],
+       "actions": []
+      }
+     }
+    ],
+    "grants": [
+     {
+      "role": "central-admin",
+      "authority": null,
+      "at": "2026-09-07T15:20:00",
+      "by": "Anastasia Cojocaru"
+     }
+    ]
+   },
+   {
+    "id": "reg-expertize",
+    "code": "Expertise.Global.ExpertizeTehniceAleProiectelor",
+    "object": "Expertise",
+    "scope": "Global",
+    "authority": null,
+    "service": null,
+    "parent": "reg-avize",
+    "names": {
+     "ro": "Expertize tehnice ale proiectelor",
+     "ru": "",
+     "en": ""
+    },
+    "description": "Expertizele tehnice ale proiectelor cerute în procedura de autorizare a construcțiilor.",
+    "position": 31,
+    "status": "Publicat",
+    "version": "v1.0.0",
+    "publishedVersion": "v1.0.0",
+    "createdAt": "2026-07-12T09:33:00",
+    "createdBy": "Vasile Schidu",
+    "editedAt": "2026-07-12T09:33:00",
+    "editedBy": "Vasile Schidu",
+    "config": {
+     "copyColumnsOf": "reg-avize",
+     "predefinedFilter": {
+      "logic": "and",
+      "rules": [
+       {
+        "column": "tip",
+        "op": "contains",
+        "value": "Expertiză"
+       }
+      ]
+     }
+    },
+    "versions": [
+     {
+      "version": "v1.0.0",
+      "at": "2026-07-12T09:33:00",
+      "note": "Expertizele tehnice ale proiectelor cerute în procedura de autorizare a construcțiilor.",
+      "by": "Vasile Schidu",
+      "type": "Prima publicare",
+      "drop": {
+       "columns": [],
+       "actions": []
+      }
+     }
+    ],
+    "grants": [
+     {
+      "role": "central-admin",
+      "authority": null,
+      "at": "2026-07-12T09:33:00",
+      "by": "Vasile Schidu"
+     }
+    ]
+   },
+   {
+    "id": "reg-dosarerespinse",
+    "code": "Case.Global.DosareRespinse",
+    "object": "Case",
+    "scope": "Global",
+    "authority": null,
+    "service": null,
+    "parent": "reg-dosare",
+    "names": {
+     "ro": "Dosare respinse",
+     "ru": "",
+     "en": ""
+    },
+    "description": "Dosarele respinse, cu motivul respingerii, pentru contestații și statistică.",
+    "position": 32,
+    "status": "Publicat",
+    "version": "v1.0.0",
+    "publishedVersion": "v1.0.0",
+    "createdAt": "2026-08-17T10:46:00",
+    "createdBy": "Ion Popescu",
+    "editedAt": "2026-08-17T10:46:00",
+    "editedBy": "Ion Popescu",
+    "config": {
+     "copyColumnsOf": "reg-dosare",
+     "predefinedFilter": {
+      "logic": "and",
+      "rules": [
+       {
+        "column": "statut",
+        "op": "is",
+        "value": "Respins"
+       }
+      ]
+     }
+    },
+    "versions": [
+     {
+      "version": "v1.0.0",
+      "at": "2026-08-17T10:46:00",
+      "note": "Dosarele respinse, cu motivul respingerii, pentru contestații și statistică.",
+      "by": "Ion Popescu",
+      "type": "Prima publicare",
+      "drop": {
+       "columns": [],
+       "actions": []
+      }
+     }
+    ],
+    "grants": [
+     {
+      "role": "central-admin",
+      "authority": null,
+      "at": "2026-08-17T10:46:00",
+      "by": "Ion Popescu"
+     }
+    ]
+   },
+   {
+    "id": "reg-dosaresemnare",
+    "code": "Case.Global.DosareSpreSemnare",
+    "object": "Case",
+    "scope": "Global",
+    "authority": null,
+    "service": null,
+    "parent": "reg-dosare",
+    "names": {
+     "ro": "Dosare spre semnare",
+     "ru": "",
+     "en": ""
+    },
+    "description": "Dosarele care așteaptă semnătura conducătorului, din toate subdiviziunile.",
+    "position": 33,
+    "status": "Publicat",
+    "version": "v1.0.0",
+    "publishedVersion": "v1.0.0",
+    "createdAt": "2026-09-22T11:59:00",
+    "createdBy": "Mariana Rusu",
+    "editedAt": "2026-09-22T11:59:00",
+    "editedBy": "Mariana Rusu",
+    "config": {
+     "copyColumnsOf": "reg-dosare",
+     "predefinedFilter": {
+      "logic": "and",
+      "rules": [
+       {
+        "column": "statut",
+        "op": "is",
+        "value": "Spre semnare"
+       }
+      ]
+     }
+    },
+    "versions": [
+     {
+      "version": "v1.0.0",
+      "at": "2026-09-22T11:59:00",
+      "note": "Dosarele care așteaptă semnătura conducătorului, din toate subdiviziunile.",
+      "by": "Mariana Rusu",
+      "type": "Prima publicare",
+      "drop": {
+       "columns": [],
+       "actions": []
+      }
+     }
+    ],
+    "grants": [
+     {
+      "role": "central-admin",
+      "authority": null,
+      "at": "2026-09-22T11:59:00",
+      "by": "Mariana Rusu"
+     }
+    ]
+   },
+   {
+    "id": "reg-dosareeliberate",
+    "code": "Case.Global.DosareEliberate",
+    "object": "Case",
+    "scope": "Global",
+    "authority": null,
+    "service": null,
+    "parent": "reg-dosare",
+    "names": {
+     "ro": "Dosare eliberate",
+     "ru": "",
+     "en": ""
+    },
+    "description": "Dosarele finalizate cu actul eliberat, pentru arhivare și raportare.",
+    "position": 34,
+    "status": "Publicat",
+    "version": "v1.0.0",
+    "publishedVersion": "v1.0.0",
+    "createdAt": "2026-07-03T12:12:00",
+    "createdBy": "Anastasia Cojocaru",
+    "editedAt": "2026-07-03T12:12:00",
+    "editedBy": "Anastasia Cojocaru",
+    "config": {
+     "copyColumnsOf": "reg-dosare",
+     "predefinedFilter": {
+      "logic": "and",
+      "rules": [
+       {
+        "column": "statut",
+        "op": "is",
+        "value": "Eliberat"
+       }
+      ]
+     }
+    },
+    "versions": [
+     {
+      "version": "v1.0.0",
+      "at": "2026-07-03T12:12:00",
+      "note": "Dosarele finalizate cu actul eliberat, pentru arhivare și raportare.",
+      "by": "Anastasia Cojocaru",
+      "type": "Prima publicare",
+      "drop": {
+       "columns": [],
+       "actions": []
+      }
+     }
+    ],
+    "grants": [
+     {
+      "role": "central-admin",
+      "authority": null,
+      "at": "2026-07-03T12:12:00",
+      "by": "Anastasia Cojocaru"
+     }
+    ]
    }
   ]
  },
@@ -1693,6 +3104,20 @@
      "Capacitatea",
      "48 locuri"
     ]
+   ],
+   "printed": {
+    "series": "AS",
+    "number": "0300000"
+   },
+   "origin": "Emitere primară",
+   "dossiers": [
+    {
+     "nr": "D-2024-003686",
+     "process": "Emitere primară",
+     "status": "eliberat",
+     "submitted": "2024-04-18T09:30:00",
+     "specialist": "Elena Caragia"
+    }
    ]
   },
   {
@@ -1741,6 +3166,23 @@
      "Destinația terenului",
      "Obiectiv comercial"
     ]
+   ],
+   "origin": "Emitere primară",
+   "dossiers": [
+    {
+     "nr": "D-2025-004279",
+     "process": "Emitere primară",
+     "status": "eliberat",
+     "submitted": "2025-05-02T09:31:00",
+     "specialist": "Mihai Grosu"
+    },
+    {
+     "nr": "D-2026-005607",
+     "process": "Reperfectare",
+     "status": "eliberat",
+     "submitted": "2026-02-08T11:10:00",
+     "specialist": "Stela Bradu"
+    }
    ]
   },
   {
@@ -1787,6 +3229,16 @@
      "Cod exploatație",
      "MD186793"
     ]
+   ],
+   "origin": "Emitere primară",
+   "dossiers": [
+    {
+     "nr": "D-2024-004074",
+     "process": "Emitere primară",
+     "status": "eliberat",
+     "submitted": "2024-09-18T09:32:00",
+     "specialist": "Stela Bradu"
+    }
    ]
   },
   {
@@ -1829,6 +3281,23 @@
      "Lotul",
      "L-2753/24"
     ]
+   ],
+   "origin": "Emitere primară",
+   "dossiers": [
+    {
+     "nr": "D-2025-004108",
+     "process": "Emitere primară",
+     "status": "eliberat",
+     "submitted": "2025-04-25T09:33:00",
+     "specialist": "Andrei Lazăr"
+    },
+    {
+     "nr": "D-2026-007003",
+     "process": "Prelungire",
+     "status": "inExaminare",
+     "submitted": "2026-10-17T10:05:00",
+     "specialist": "Elena Caragia"
+    }
    ]
   },
   {
@@ -1871,6 +3340,20 @@
      "Numărul de locuri",
      "112"
     ]
+   ],
+   "printed": {
+    "series": "AS",
+    "number": "0316444"
+   },
+   "origin": "Emitere primară",
+   "dossiers": [
+    {
+     "nr": "D-2024-001325",
+     "process": "Emitere primară",
+     "status": "eliberat",
+     "submitted": "2024-07-25T09:34:00",
+     "specialist": "Tamara Bragagiu"
+    }
    ]
   },
   {
@@ -1913,6 +3396,16 @@
      "Tipul transportului",
      "Regulat suburban"
     ]
+   ],
+   "origin": "Emitere primară",
+   "dossiers": [
+    {
+     "nr": "D-2026-002557",
+     "process": "Emitere primară",
+     "status": "eliberat",
+     "submitted": "2025-12-16T09:35:00",
+     "specialist": "Elena Caragia"
+    }
    ]
   },
   {
@@ -1960,6 +3453,23 @@
      "Marca autovehiculului",
      "Hyundai Ioniq"
     ]
+   ],
+   "origin": "Emitere primară",
+   "dossiers": [
+    {
+     "nr": "D-2025-003690",
+     "process": "Emitere primară",
+     "status": "eliberat",
+     "submitted": "2025-08-31T09:36:00",
+     "specialist": "Mihai Grosu"
+    },
+    {
+     "nr": "D-2026-005642",
+     "process": "Reperfectare",
+     "status": "eliberat",
+     "submitted": "2026-02-13T11:10:00",
+     "specialist": "Stela Bradu"
+    }
    ]
   },
   {
@@ -2002,6 +3512,16 @@
      "Volumul anual",
      "7 000 m³"
     ]
+   ],
+   "origin": "Emitere primară",
+   "dossiers": [
+    {
+     "nr": "D-2025-004556",
+     "process": "Emitere primară",
+     "status": "eliberat",
+     "submitted": "2025-04-17T09:37:00",
+     "specialist": "Stela Bradu"
+    }
    ]
   },
   {
@@ -2044,6 +3564,20 @@
      "Cantitatea anuală",
      "772 t"
     ]
+   ],
+   "printed": {
+    "series": "AS",
+    "number": "0332888"
+   },
+   "origin": "Emitere primară",
+   "dossiers": [
+    {
+     "nr": "D-2024-002552",
+     "process": "Emitere primară",
+     "status": "eliberat",
+     "submitted": "2024-04-19T09:38:00",
+     "specialist": "Andrei Lazăr"
+    }
    ]
   },
   {
@@ -2086,6 +3620,16 @@
      "Depozit autorizat",
      "da"
     ]
+   ],
+   "origin": "Emitere primară",
+   "dossiers": [
+    {
+     "nr": "D-2025-004110",
+     "process": "Emitere primară",
+     "status": "eliberat",
+     "submitted": "2025-06-15T09:39:00",
+     "specialist": "Tamara Bragagiu"
+    }
    ]
   },
   {
@@ -2127,6 +3671,23 @@
      "Suprafața comercială",
      "220 m²"
     ]
+   ],
+   "origin": "Emitere primară",
+   "dossiers": [
+    {
+     "nr": "D-2025-002756",
+     "process": "Emitere primară",
+     "status": "eliberat",
+     "submitted": "2025-01-12T09:40:00",
+     "specialist": "Elena Caragia"
+    },
+    {
+     "nr": "D-2026-007010",
+     "process": "Prelungire",
+     "status": "inExaminare",
+     "submitted": "2026-10-10T10:05:00",
+     "specialist": "Stela Bradu"
+    }
    ]
   },
   {
@@ -2179,6 +3740,23 @@
      "Capacitatea",
      "63 locuri"
     ]
+   ],
+   "origin": "Emitere primară",
+   "dossiers": [
+    {
+     "nr": "D-2026-004227",
+     "process": "Emitere primară",
+     "status": "eliberat",
+     "submitted": "2026-03-15T09:41:00",
+     "specialist": "Mihai Grosu"
+    },
+    {
+     "nr": "D-2026-005677",
+     "process": "Reperfectare",
+     "status": "eliberat",
+     "submitted": "2026-09-25T11:10:00",
+     "specialist": "Stela Bradu"
+    }
    ]
   },
   {
@@ -2221,6 +3799,20 @@
      "Destinația terenului",
      "Depozit"
     ]
+   ],
+   "printed": {
+    "series": "AS",
+    "number": "0349332"
+   },
+   "origin": "Emitere primară",
+   "dossiers": [
+    {
+     "nr": "D-2024-001594",
+     "process": "Emitere primară",
+     "status": "eliberat",
+     "submitted": "2024-10-27T09:42:00",
+     "specialist": "Stela Bradu"
+    }
    ]
   },
   {
@@ -2266,6 +3858,16 @@
      "Cod exploatație",
      "MD453000"
     ]
+   ],
+   "origin": "Emitere primară",
+   "dossiers": [
+    {
+     "nr": "D-2026-002339",
+     "process": "Emitere primară",
+     "status": "eliberat",
+     "submitted": "2026-03-24T09:43:00",
+     "specialist": "Andrei Lazăr"
+    }
    ]
   },
   {
@@ -2308,6 +3910,16 @@
      "Lotul",
      "L-2663/25"
     ]
+   ],
+   "origin": "Emitere primară",
+   "dossiers": [
+    {
+     "nr": "D-2024-001179",
+     "process": "Emitere primară",
+     "status": "eliberat",
+     "submitted": "2024-10-15T09:44:00",
+     "specialist": "Tamara Bragagiu"
+    }
    ]
   },
   {
@@ -2350,6 +3962,16 @@
      "Numărul de locuri",
      "104"
     ]
+   ],
+   "origin": "Emitere primară",
+   "dossiers": [
+    {
+     "nr": "D-2025-001098",
+     "process": "Emitere primară",
+     "status": "eliberat",
+     "submitted": "2025-11-12T09:45:00",
+     "specialist": "Elena Caragia"
+    }
    ]
   },
   {
@@ -2398,6 +4020,27 @@
      "Tipul transportului",
      "Ocazional"
     ]
+   ],
+   "printed": {
+    "series": "AS",
+    "number": "0365776"
+   },
+   "origin": "Emitere primară",
+   "dossiers": [
+    {
+     "nr": "D-2025-001811",
+     "process": "Emitere primară",
+     "status": "eliberat",
+     "submitted": "2025-07-08T09:46:00",
+     "specialist": "Mihai Grosu"
+    },
+    {
+     "nr": "D-2026-005712",
+     "process": "Reperfectare",
+     "status": "eliberat",
+     "submitted": "2026-04-03T11:10:00",
+     "specialist": "Stela Bradu"
+    }
    ]
   },
   {
@@ -2439,6 +4082,23 @@
      "Marca autovehiculului",
      "Hyundai Ioniq"
     ]
+   ],
+   "origin": "Emitere primară",
+   "dossiers": [
+    {
+     "nr": "D-2026-003547",
+     "process": "Emitere primară",
+     "status": "eliberat",
+     "submitted": "2026-02-22T09:47:00",
+     "specialist": "Stela Bradu"
+    },
+    {
+     "nr": "D-2026-007017",
+     "process": "Prelungire",
+     "status": "inExaminare",
+     "submitted": "2026-10-15T10:05:00",
+     "specialist": "Tamara Bragagiu"
+    }
    ]
   },
   {
@@ -2481,6 +4141,16 @@
      "Volumul anual",
      "67 000 m³"
     ]
+   ],
+   "origin": "Emitere primară",
+   "dossiers": [
+    {
+     "nr": "D-2026-001517",
+     "process": "Emitere primară",
+     "status": "eliberat",
+     "submitted": "2025-12-14T09:48:00",
+     "specialist": "Andrei Lazăr"
+    }
    ]
   },
   {
@@ -2523,6 +4193,16 @@
      "Cantitatea anuală",
      "255 t"
     ]
+   ],
+   "origin": "Emitere primară",
+   "dossiers": [
+    {
+     "nr": "D-2025-002051",
+     "process": "Emitere primară",
+     "status": "eliberat",
+     "submitted": "2025-08-02T09:49:00",
+     "specialist": "Tamara Bragagiu"
+    }
    ]
   },
   {
@@ -2565,6 +4245,20 @@
      "Depozit autorizat",
      "da"
     ]
+   ],
+   "printed": {
+    "series": "AS",
+    "number": "0382220"
+   },
+   "origin": "Emitere primară",
+   "dossiers": [
+    {
+     "nr": "D-2025-003389",
+     "process": "Emitere primară",
+     "status": "eliberat",
+     "submitted": "2025-02-14T09:30:00",
+     "specialist": "Elena Caragia"
+    }
    ]
   },
   {
@@ -2613,6 +4307,23 @@
      "Suprafața comercială",
      "65 m²"
     ]
+   ],
+   "origin": "Emitere primară",
+   "dossiers": [
+    {
+     "nr": "D-2024-002234",
+     "process": "Emitere primară",
+     "status": "eliberat",
+     "submitted": "2024-11-14T09:31:00",
+     "specialist": "Mihai Grosu"
+    },
+    {
+     "nr": "D-2025-005747",
+     "process": "Reperfectare",
+     "status": "eliberat",
+     "submitted": "2025-04-19T11:10:00",
+     "specialist": "Stela Bradu"
+    }
    ]
   },
   {
@@ -2659,6 +4370,16 @@
      "Capacitatea",
      "28 locuri"
     ]
+   ],
+   "origin": "Emitere primară",
+   "dossiers": [
+    {
+     "nr": "D-2026-003461",
+     "process": "Emitere primară",
+     "status": "eliberat",
+     "submitted": "2026-07-08T09:32:00",
+     "specialist": "Stela Bradu"
+    }
    ]
   },
   {
@@ -2701,6 +4422,16 @@
      "Destinația terenului",
      "Obiectiv comercial"
     ]
+   ],
+   "origin": "Emitere primară",
+   "dossiers": [
+    {
+     "nr": "D-2025-004187",
+     "process": "Emitere primară",
+     "status": "eliberat",
+     "submitted": "2025-07-17T09:33:00",
+     "specialist": "Andrei Lazăr"
+    }
    ]
   },
   {
@@ -2746,6 +4477,27 @@
      "Cod exploatație",
      "MD226361"
     ]
+   ],
+   "printed": {
+    "series": "AS",
+    "number": "0398664"
+   },
+   "origin": "Emitere primară",
+   "dossiers": [
+    {
+     "nr": "D-2024-002180",
+     "process": "Emitere primară",
+     "status": "eliberat",
+     "submitted": "2024-11-16T09:34:00",
+     "specialist": "Tamara Bragagiu"
+    },
+    {
+     "nr": "D-2026-007024",
+     "process": "Prelungire",
+     "status": "inExaminare",
+     "submitted": "2026-10-20T10:05:00",
+     "specialist": "Mihai Grosu"
+    }
    ]
   },
   {
@@ -2788,6 +4540,16 @@
      "Lotul",
      "L-2616/24"
     ]
+   ],
+   "origin": "Emitere primară",
+   "dossiers": [
+    {
+     "nr": "D-2025-004174",
+     "process": "Emitere primară",
+     "status": "eliberat",
+     "submitted": "2025-12-03T09:35:00",
+     "specialist": "Elena Caragia"
+    }
    ]
   },
   {
@@ -2836,6 +4598,23 @@
      "Numărul de locuri",
      "68"
     ]
+   ],
+   "origin": "Emitere primară",
+   "dossiers": [
+    {
+     "nr": "D-2025-001795",
+     "process": "Emitere primară",
+     "status": "eliberat",
+     "submitted": "2024-12-20T09:36:00",
+     "specialist": "Mihai Grosu"
+    },
+    {
+     "nr": "D-2025-005782",
+     "process": "Reperfectare",
+     "status": "eliberat",
+     "submitted": "2025-10-12T11:10:00",
+     "specialist": "Stela Bradu"
+    }
    ]
   },
   {
@@ -2878,6 +4657,16 @@
      "Tipul transportului",
      "Regulat interraional"
     ]
+   ],
+   "origin": "Emitere primară",
+   "dossiers": [
+    {
+     "nr": "D-2024-004222",
+     "process": "Emitere primară",
+     "status": "eliberat",
+     "submitted": "2024-10-07T09:37:00",
+     "specialist": "Stela Bradu"
+    }
    ]
   },
   {
@@ -2919,6 +4708,20 @@
      "Marca autovehiculului",
      "Hyundai Ioniq"
     ]
+   ],
+   "printed": {
+    "series": "AS",
+    "number": "0415108"
+   },
+   "origin": "Emitere primară",
+   "dossiers": [
+    {
+     "nr": "D-2025-004130",
+     "process": "Emitere primară",
+     "status": "eliberat",
+     "submitted": "2025-01-22T09:38:00",
+     "specialist": "Andrei Lazăr"
+    }
    ]
   },
   {
@@ -2961,6 +4764,16 @@
      "Volumul anual",
      "40 000 m³"
     ]
+   ],
+   "origin": "Emitere primară",
+   "dossiers": [
+    {
+     "nr": "D-2025-002829",
+     "process": "Emitere primară",
+     "status": "eliberat",
+     "submitted": "2025-06-22T09:39:00",
+     "specialist": "Tamara Bragagiu"
+    }
    ]
   },
   {
@@ -3003,6 +4816,16 @@
      "Cantitatea anuală",
      "800 t"
     ]
+   ],
+   "origin": "Emitere primară",
+   "dossiers": [
+    {
+     "nr": "D-2026-001951",
+     "process": "Emitere primară",
+     "status": "eliberat",
+     "submitted": "2026-06-11T09:40:00",
+     "specialist": "Elena Caragia"
+    }
    ]
   },
   {
@@ -3050,6 +4873,30 @@
      "Depozit autorizat",
      "da"
     ]
+   ],
+   "origin": "Emitere primară",
+   "dossiers": [
+    {
+     "nr": "D-2024-004169",
+     "process": "Emitere primară",
+     "status": "eliberat",
+     "submitted": "2024-08-01T09:41:00",
+     "specialist": "Mihai Grosu"
+    },
+    {
+     "nr": "D-2025-005817",
+     "process": "Reperfectare",
+     "status": "eliberat",
+     "submitted": "2025-01-28T11:10:00",
+     "specialist": "Stela Bradu"
+    },
+    {
+     "nr": "D-2026-007031",
+     "process": "Prelungire",
+     "status": "inExaminare",
+     "submitted": "2026-10-13T10:05:00",
+     "specialist": "Andrei Lazăr"
+    }
    ]
   },
   {
@@ -3092,6 +4939,20 @@
      "Suprafața comercială",
      "139 m²"
     ]
+   ],
+   "printed": {
+    "series": "AS",
+    "number": "0431552"
+   },
+   "origin": "Emitere primară",
+   "dossiers": [
+    {
+     "nr": "D-2026-004793",
+     "process": "Emitere primară",
+     "status": "eliberat",
+     "submitted": "2026-05-11T09:42:00",
+     "specialist": "Stela Bradu"
+    }
    ]
   },
   {
@@ -3138,6 +4999,16 @@
      "Capacitatea",
      "96 locuri"
     ]
+   ],
+   "origin": "Emitere primară",
+   "dossiers": [
+    {
+     "nr": "D-2026-001449",
+     "process": "Emitere primară",
+     "status": "eliberat",
+     "submitted": "2026-04-24T09:43:00",
+     "specialist": "Andrei Lazăr"
+    }
    ]
   },
   {
@@ -3180,6 +5051,16 @@
      "Destinația terenului",
      "Obiectiv comercial"
     ]
+   ],
+   "origin": "Emitere primară",
+   "dossiers": [
+    {
+     "nr": "D-2026-003490",
+     "process": "Emitere primară",
+     "status": "eliberat",
+     "submitted": "2026-09-10T09:44:00",
+     "specialist": "Tamara Bragagiu"
+    }
    ]
   },
   {
@@ -3225,6 +5106,16 @@
      "Cod exploatație",
      "MD802678"
     ]
+   ],
+   "origin": "Emitere primară",
+   "dossiers": [
+    {
+     "nr": "D-2025-004461",
+     "process": "Emitere primară",
+     "status": "eliberat",
+     "submitted": "2024-12-11T09:45:00",
+     "specialist": "Elena Caragia"
+    }
    ]
   },
   {
@@ -3267,6 +5158,20 @@
      "Lotul",
      "L-4222/24"
     ]
+   ],
+   "printed": {
+    "series": "AS",
+    "number": "0447996"
+   },
+   "origin": "Emitere primară",
+   "dossiers": [
+    {
+     "nr": "D-2026-002302",
+     "process": "Emitere primară",
+     "status": "eliberat",
+     "submitted": "2026-07-31T09:46:00",
+     "specialist": "Mihai Grosu"
+    }
    ]
   },
   {
@@ -3309,6 +5214,16 @@
      "Numărul de locuri",
      "107"
     ]
+   ],
+   "origin": "Emitere primară",
+   "dossiers": [
+    {
+     "nr": "D-2026-003508",
+     "process": "Emitere primară",
+     "status": "eliberat",
+     "submitted": "2026-06-14T09:47:00",
+     "specialist": "Stela Bradu"
+    }
    ]
   },
   {
@@ -3351,6 +5266,23 @@
      "Tipul transportului",
      "Regulat interraional"
     ]
+   ],
+   "origin": "Emitere primară",
+   "dossiers": [
+    {
+     "nr": "D-2024-004388",
+     "process": "Emitere primară",
+     "status": "eliberat",
+     "submitted": "2024-06-04T09:48:00",
+     "specialist": "Andrei Lazăr"
+    },
+    {
+     "nr": "D-2026-007038",
+     "process": "Prelungire",
+     "status": "inExaminare",
+     "submitted": "2026-10-18T10:05:00",
+     "specialist": "Elena Caragia"
+    }
    ]
   },
   {
@@ -3393,6 +5325,16 @@
      "Marca autovehiculului",
      "Toyota Prius"
     ]
+   ],
+   "origin": "Emitere primară",
+   "dossiers": [
+    {
+     "nr": "D-2025-002901",
+     "process": "Emitere primară",
+     "status": "eliberat",
+     "submitted": "2025-07-11T09:49:00",
+     "specialist": "Tamara Bragagiu"
+    }
    ]
   },
   {
@@ -3435,6 +5377,20 @@
      "Volumul anual",
      "30 000 m³"
     ]
+   ],
+   "printed": {
+    "series": "AS",
+    "number": "0464440"
+   },
+   "origin": "Emitere primară",
+   "dossiers": [
+    {
+     "nr": "D-2025-004342",
+     "process": "Emitere primară",
+     "status": "eliberat",
+     "submitted": "2025-04-09T09:30:00",
+     "specialist": "Elena Caragia"
+    }
    ]
   },
   {
@@ -3477,6 +5433,16 @@
      "Cantitatea anuală",
      "799 t"
     ]
+   ],
+   "origin": "Emitere primară",
+   "dossiers": [
+    {
+     "nr": "D-2026-003485",
+     "process": "Emitere primară",
+     "status": "eliberat",
+     "submitted": "2026-07-29T09:31:00",
+     "specialist": "Mihai Grosu"
+    }
    ]
   },
   {
@@ -3518,6 +5484,16 @@
      "Depozit autorizat",
      "da"
     ]
+   ],
+   "origin": "Emitere primară",
+   "dossiers": [
+    {
+     "nr": "D-2026-001264",
+     "process": "Emitere primară",
+     "status": "eliberat",
+     "submitted": "2026-08-22T09:32:00",
+     "specialist": "Stela Bradu"
+    }
    ]
   },
   {
@@ -3560,6 +5536,16 @@
      "Suprafața comercială",
      "204 m²"
     ]
+   ],
+   "origin": "Emitere primară",
+   "dossiers": [
+    {
+     "nr": "D-2026-001550",
+     "process": "Emitere primară",
+     "status": "eliberat",
+     "submitted": "2025-12-24T09:33:00",
+     "specialist": "Andrei Lazăr"
+    }
    ]
   },
   {
@@ -3616,6 +5602,41 @@
      "Capacitatea",
      "88 locuri"
     ]
+   ],
+   "printed": {
+    "series": "AS",
+    "number": "0480884"
+   },
+   "origin": "Emitere primară",
+   "dossiers": [
+    {
+     "nr": "D-2025-003450",
+     "process": "Emitere primară",
+     "status": "eliberat",
+     "submitted": "2025-01-29T09:34:00",
+     "specialist": "Tamara Bragagiu"
+    },
+    {
+     "nr": "D-2025-005908",
+     "process": "Suspendare valabilitate",
+     "status": "eliberat",
+     "submitted": "2025-08-30T11:10:00",
+     "specialist": "Elena Caragia"
+    },
+    {
+     "nr": "D-2025-006450",
+     "process": "Contestație",
+     "status": "respins",
+     "submitted": "2025-09-22T13:40:00",
+     "specialist": "Elena Caragia"
+    },
+    {
+     "nr": "D-2026-006451",
+     "process": "Reluare valabilitate",
+     "status": "inExaminare",
+     "submitted": "2026-10-14T10:25:00",
+     "specialist": "Stela Bradu"
+    }
    ]
   },
   {
@@ -3668,6 +5689,23 @@
      "Destinația terenului",
      "Construcție locativă"
     ]
+   ],
+   "origin": "Emitere primară",
+   "dossiers": [
+    {
+     "nr": "D-2024-003511",
+     "process": "Emitere primară",
+     "status": "eliberat",
+     "submitted": "2024-11-30T09:35:00",
+     "specialist": "Elena Caragia"
+    },
+    {
+     "nr": "D-2025-005915",
+     "process": "Suspendare valabilitate",
+     "status": "eliberat",
+     "submitted": "2025-05-26T11:10:00",
+     "specialist": "Mihai Grosu"
+    }
    ]
   },
   {
@@ -3729,6 +5767,30 @@
      "Cod exploatație",
      "MD439935"
     ]
+   ],
+   "origin": "Emitere primară",
+   "dossiers": [
+    {
+     "nr": "D-2026-004394",
+     "process": "Emitere primară",
+     "status": "eliberat",
+     "submitted": "2026-07-19T09:36:00",
+     "specialist": "Mihai Grosu"
+    },
+    {
+     "nr": "D-2026-005922",
+     "process": "Reperfectare",
+     "status": "eliberat",
+     "submitted": "2026-10-02T11:10:00",
+     "specialist": "Stela Bradu"
+    },
+    {
+     "nr": "D-2026-005923",
+     "process": "Suspendare valabilitate",
+     "status": "eliberat",
+     "submitted": "2026-09-16T11:11:00",
+     "specialist": "Andrei Lazăr"
+    }
    ]
   },
   {
@@ -3781,6 +5843,23 @@
      "Lotul",
      "L-7063/25"
     ]
+   ],
+   "origin": "Emitere primară",
+   "dossiers": [
+    {
+     "nr": "D-2025-003386",
+     "process": "Emitere primară",
+     "status": "eliberat",
+     "submitted": "2025-04-21T09:37:00",
+     "specialist": "Stela Bradu"
+    },
+    {
+     "nr": "D-2025-005929",
+     "process": "Suspendare valabilitate",
+     "status": "eliberat",
+     "submitted": "2025-06-26T11:10:00",
+     "specialist": "Andrei Lazăr"
+    }
    ]
   },
   {
@@ -3833,6 +5912,27 @@
      "Numărul de locuri",
      "110"
     ]
+   ],
+   "printed": {
+    "series": "AS",
+    "number": "0497328"
+   },
+   "origin": "Emitere primară",
+   "dossiers": [
+    {
+     "nr": "D-2025-002538",
+     "process": "Emitere primară",
+     "status": "eliberat",
+     "submitted": "2024-12-16T09:38:00",
+     "specialist": "Andrei Lazăr"
+    },
+    {
+     "nr": "D-2025-005936",
+     "process": "Suspendare valabilitate",
+     "status": "eliberat",
+     "submitted": "2025-05-18T11:10:00",
+     "specialist": "Tamara Bragagiu"
+    }
    ]
   },
   {
@@ -3884,6 +5984,23 @@
      "Tipul transportului",
      "Regulat interraional"
     ]
+   ],
+   "origin": "Emitere primară",
+   "dossiers": [
+    {
+     "nr": "D-2025-001007",
+     "process": "Emitere primară",
+     "status": "eliberat",
+     "submitted": "2025-05-16T09:39:00",
+     "specialist": "Tamara Bragagiu"
+    },
+    {
+     "nr": "D-2025-005943",
+     "process": "Suspendare valabilitate",
+     "status": "eliberat",
+     "submitted": "2025-08-19T11:10:00",
+     "specialist": "Elena Caragia"
+    }
    ]
   },
   {
@@ -3936,6 +6053,23 @@
      "Marca autovehiculului",
      "Toyota Prius"
     ]
+   ],
+   "origin": "Emitere primară",
+   "dossiers": [
+    {
+     "nr": "D-2024-002979",
+     "process": "Emitere primară",
+     "status": "eliberat",
+     "submitted": "2024-08-27T09:40:00",
+     "specialist": "Elena Caragia"
+    },
+    {
+     "nr": "D-2024-005950",
+     "process": "Suspendare valabilitate",
+     "status": "eliberat",
+     "submitted": "2024-12-21T11:10:00",
+     "specialist": "Mihai Grosu"
+    }
    ]
   },
   {
@@ -3994,6 +6128,30 @@
      "Volumul anual",
      "66 000 m³"
     ]
+   ],
+   "origin": "Emitere primară",
+   "dossiers": [
+    {
+     "nr": "D-2024-001465",
+     "process": "Emitere primară",
+     "status": "eliberat",
+     "submitted": "2024-05-15T09:41:00",
+     "specialist": "Mihai Grosu"
+    },
+    {
+     "nr": "D-2024-005957",
+     "process": "Reperfectare",
+     "status": "eliberat",
+     "submitted": "2024-08-20T11:10:00",
+     "specialist": "Stela Bradu"
+    },
+    {
+     "nr": "D-2024-005958",
+     "process": "Suspendare valabilitate",
+     "status": "eliberat",
+     "submitted": "2024-10-30T11:11:00",
+     "specialist": "Andrei Lazăr"
+    }
    ]
   },
   {
@@ -4043,6 +6201,20 @@
      "Cantitatea anuală",
      "174 t"
     ]
+   ],
+   "printed": {
+    "series": "AS",
+    "number": "0513772"
+   },
+   "origin": "Emitere primară",
+   "dossiers": [
+    {
+     "nr": "D-2023-002544",
+     "process": "Emitere primară",
+     "status": "eliberat",
+     "submitted": "2023-03-01T09:42:00",
+     "specialist": "Stela Bradu"
+    }
    ]
   },
   {
@@ -4091,6 +6263,16 @@
      "Depozit autorizat",
      "da"
     ]
+   ],
+   "origin": "Emitere primară",
+   "dossiers": [
+    {
+     "nr": "D-2024-002987",
+     "process": "Emitere primară",
+     "status": "eliberat",
+     "submitted": "2024-03-28T09:43:00",
+     "specialist": "Andrei Lazăr"
+    }
    ]
   },
   {
@@ -4140,6 +6322,16 @@
      "Suprafața comercială",
      "183 m²"
     ]
+   ],
+   "origin": "Emitere primară",
+   "dossiers": [
+    {
+     "nr": "D-2024-001030",
+     "process": "Emitere primară",
+     "status": "eliberat",
+     "submitted": "2024-07-07T09:44:00",
+     "specialist": "Tamara Bragagiu"
+    }
    ]
   },
   {
@@ -4193,6 +6385,16 @@
      "Capacitatea",
      "12 locuri"
     ]
+   ],
+   "origin": "Emitere primară",
+   "dossiers": [
+    {
+     "nr": "D-2023-004044",
+     "process": "Emitere primară",
+     "status": "eliberat",
+     "submitted": "2023-03-27T09:45:00",
+     "specialist": "Elena Caragia"
+    }
    ]
   },
   {
@@ -4248,6 +6450,27 @@
      "Destinația terenului",
      "Depozit"
     ]
+   ],
+   "printed": {
+    "series": "AS",
+    "number": "0530216"
+   },
+   "origin": "Emitere primară",
+   "dossiers": [
+    {
+     "nr": "D-2024-001820",
+     "process": "Emitere primară",
+     "status": "eliberat",
+     "submitted": "2024-02-09T09:46:00",
+     "specialist": "Mihai Grosu"
+    },
+    {
+     "nr": "D-2024-005992",
+     "process": "Reperfectare",
+     "status": "eliberat",
+     "submitted": "2024-12-11T11:10:00",
+     "specialist": "Stela Bradu"
+    }
    ]
   },
   {
@@ -4301,6 +6524,16 @@
      "Cod exploatație",
      "MD803625"
     ]
+   ],
+   "origin": "Emitere primară",
+   "dossiers": [
+    {
+     "nr": "D-2024-004160",
+     "process": "Emitere primară",
+     "status": "eliberat",
+     "submitted": "2024-01-31T09:47:00",
+     "specialist": "Stela Bradu"
+    }
    ]
   },
   {
@@ -4350,6 +6583,16 @@
      "Lotul",
      "L-2580/24"
     ]
+   ],
+   "origin": "Emitere primară",
+   "dossiers": [
+    {
+     "nr": "D-2023-003165",
+     "process": "Emitere primară",
+     "status": "eliberat",
+     "submitted": "2023-01-17T09:48:00",
+     "specialist": "Andrei Lazăr"
+    }
    ]
   },
   {
@@ -4399,6 +6642,16 @@
      "Numărul de locuri",
      "70"
     ]
+   ],
+   "origin": "Emitere primară",
+   "dossiers": [
+    {
+     "nr": "D-2024-004408",
+     "process": "Emitere primară",
+     "status": "eliberat",
+     "submitted": "2024-04-27T09:49:00",
+     "specialist": "Tamara Bragagiu"
+    }
    ]
   },
   {
@@ -4447,6 +6700,20 @@
      "Tipul transportului",
      "Regulat interraional"
     ]
+   ],
+   "printed": {
+    "series": "AS",
+    "number": "0546660"
+   },
+   "origin": "Emitere primară",
+   "dossiers": [
+    {
+     "nr": "D-2024-002746",
+     "process": "Emitere primară",
+     "status": "eliberat",
+     "submitted": "2024-04-04T09:30:00",
+     "specialist": "Elena Caragia"
+    }
    ]
   },
   {
@@ -4498,6 +6765,23 @@
      "Marca autovehiculului",
      "Toyota Prius"
     ]
+   ],
+   "origin": "Emitere primară",
+   "dossiers": [
+    {
+     "nr": "D-2026-004385",
+     "process": "Emitere primară",
+     "status": "eliberat",
+     "submitted": "2026-06-14T09:31:00",
+     "specialist": "Mihai Grosu"
+    },
+    {
+     "nr": "D-2026-006027",
+     "process": "Retragere act permisiv",
+     "status": "eliberat",
+     "submitted": "2026-10-11T11:10:00",
+     "specialist": "Stela Bradu"
+    }
    ]
   },
   {
@@ -4549,6 +6833,23 @@
      "Volumul anual",
      "65 000 m³"
     ]
+   ],
+   "origin": "Emitere primară",
+   "dossiers": [
+    {
+     "nr": "D-2025-004156",
+     "process": "Emitere primară",
+     "status": "eliberat",
+     "submitted": "2025-03-20T09:32:00",
+     "specialist": "Stela Bradu"
+    },
+    {
+     "nr": "D-2025-006034",
+     "process": "Retragere act permisiv",
+     "status": "eliberat",
+     "submitted": "2025-06-28T11:10:00",
+     "specialist": "Andrei Lazăr"
+    }
    ]
   },
   {
@@ -4600,6 +6901,23 @@
      "Cantitatea anuală",
      "192 t"
     ]
+   ],
+   "origin": "Emitere primară",
+   "dossiers": [
+    {
+     "nr": "D-2025-001836",
+     "process": "Emitere primară",
+     "status": "eliberat",
+     "submitted": "2025-10-29T09:33:00",
+     "specialist": "Andrei Lazăr"
+    },
+    {
+     "nr": "D-2026-006041",
+     "process": "Retragere act permisiv",
+     "status": "eliberat",
+     "submitted": "2026-01-12T11:10:00",
+     "specialist": "Tamara Bragagiu"
+    }
    ]
   },
   {
@@ -4650,6 +6968,27 @@
      "Depozit autorizat",
      "da"
     ]
+   ],
+   "printed": {
+    "series": "AS",
+    "number": "0563104"
+   },
+   "origin": "Emitere primară",
+   "dossiers": [
+    {
+     "nr": "D-2025-004088",
+     "process": "Emitere primară",
+     "status": "eliberat",
+     "submitted": "2025-05-07T09:34:00",
+     "specialist": "Tamara Bragagiu"
+    },
+    {
+     "nr": "D-2026-006048",
+     "process": "Retragere act permisiv",
+     "status": "eliberat",
+     "submitted": "2026-01-23T11:10:00",
+     "specialist": "Elena Caragia"
+    }
    ]
   },
   {
@@ -4701,6 +7040,23 @@
      "Suprafața comercială",
      "137 m²"
     ]
+   ],
+   "origin": "Emitere primară",
+   "dossiers": [
+    {
+     "nr": "D-2025-003159",
+     "process": "Emitere primară",
+     "status": "eliberat",
+     "submitted": "2025-06-27T09:35:00",
+     "specialist": "Elena Caragia"
+    },
+    {
+     "nr": "D-2025-006055",
+     "process": "Retragere act permisiv",
+     "status": "eliberat",
+     "submitted": "2025-08-28T11:10:00",
+     "specialist": "Mihai Grosu"
+    }
    ]
   },
   {
@@ -4762,6 +7118,30 @@
      "Capacitatea",
      "140 locuri"
     ]
+   ],
+   "origin": "Emitere primară",
+   "dossiers": [
+    {
+     "nr": "D-2024-002451",
+     "process": "Emitere primară",
+     "status": "eliberat",
+     "submitted": "2024-08-15T09:36:00",
+     "specialist": "Mihai Grosu"
+    },
+    {
+     "nr": "D-2025-006062",
+     "process": "Reperfectare",
+     "status": "eliberat",
+     "submitted": "2025-05-07T11:10:00",
+     "specialist": "Stela Bradu"
+    },
+    {
+     "nr": "D-2025-006063",
+     "process": "Retragere act permisiv",
+     "status": "eliberat",
+     "submitted": "2025-06-07T11:11:00",
+     "specialist": "Andrei Lazăr"
+    }
    ]
   },
   {
@@ -4812,6 +7192,16 @@
      "Destinația terenului",
      "Construcție locativă"
     ]
+   ],
+   "origin": "Emitere primară",
+   "dossiers": [
+    {
+     "nr": "D-2025-004290",
+     "process": "Emitere primară",
+     "status": "eliberat",
+     "submitted": "2025-02-16T09:37:00",
+     "specialist": "Stela Bradu"
+    }
    ]
   },
   {
@@ -4867,6 +7257,20 @@
      "Cod exploatație",
      "MD381362"
     ]
+   ],
+   "printed": {
+    "series": "AS",
+    "number": "0579548"
+   },
+   "origin": "Emitere primară",
+   "dossiers": [
+    {
+     "nr": "D-2026-003547",
+     "process": "Emitere primară",
+     "status": "eliberat",
+     "submitted": "2026-09-18T09:38:00",
+     "specialist": "Andrei Lazăr"
+    }
    ]
   },
   {
@@ -4918,6 +7322,16 @@
      "Lotul",
      "L-7266/23"
     ]
+   ],
+   "origin": "Emitere primară",
+   "dossiers": [
+    {
+     "nr": "D-2024-002046",
+     "process": "Emitere primară",
+     "status": "eliberat",
+     "submitted": "2024-11-10T09:39:00",
+     "specialist": "Tamara Bragagiu"
+    }
    ]
   },
   {
@@ -4969,6 +7383,16 @@
      "Numărul de locuri",
      "97"
     ]
+   ],
+   "origin": "Emitere primară",
+   "dossiers": [
+    {
+     "nr": "D-2025-004123",
+     "process": "Emitere primară",
+     "status": "eliberat",
+     "submitted": "2025-01-09T09:40:00",
+     "specialist": "Elena Caragia"
+    }
    ]
   },
   {
@@ -5025,6 +7449,396 @@
      "Tipul transportului",
      "Regulat interraional"
     ]
+   ],
+   "origin": "Emitere primară",
+   "dossiers": [
+    {
+     "nr": "D-2025-003862",
+     "process": "Emitere primară",
+     "status": "eliberat",
+     "submitted": "2025-01-31T09:41:00",
+     "specialist": "Mihai Grosu"
+    },
+    {
+     "nr": "D-2025-006097",
+     "process": "Reperfectare",
+     "status": "eliberat",
+     "submitted": "2025-11-05T11:10:00",
+     "specialist": "Stela Bradu"
+    }
+   ]
+  },
+  {
+   "id": "act-073",
+   "nr": "AUT-2019-000412",
+   "name": "Autorizație sanitară de funcționare",
+   "type": "Autorizație",
+   "authority": "ANSP",
+   "subdivision": "CSP Chișinău",
+   "beneficiary": {
+    "kind": "PJ",
+    "name": "SRL Lactis",
+    "idno": "1007600412377",
+    "representative": "Natalia Cojocaru",
+    "address": "mun. Chișinău, str. Alba Iulia 20",
+    "phone": "+373 69 214 530",
+    "email": "office@lactis.md"
+   },
+   "place": "mun. Chișinău, str. Alba Iulia 20",
+   "tacit": false,
+   "statusChange": {
+    "at": "2021-09-02T14:05:00",
+    "reason": "Înlocuit prin reperfectare de actul AUT-2021-001377"
+   },
+   "fields": [
+    [
+     "Tipul activității",
+     "Comerț cu produse alimentare"
+    ],
+    [
+     "Suprafața încăperilor",
+     "186 m²"
+    ],
+    [
+     "Capacitatea",
+     "24 locuri"
+    ]
+   ],
+   "origin": "Emitere primară",
+   "dossier": "D-2019-005412",
+   "status": "Anulat",
+   "issued": "2019-04-11T11:20:00",
+   "validUntil": "2024-04-10",
+   "versions": [
+    {
+     "v": 1,
+     "event": "Emitere",
+     "at": "2019-04-11T11:20:00",
+     "reason": "Act emis la finalizarea examinării dosarului."
+    },
+    {
+     "v": 2,
+     "event": "Anulare",
+     "at": "2021-09-02T14:05:00",
+     "reason": "Înlocuit prin reperfectare de actul AUT-2021-001377"
+    }
+   ],
+   "dossiers": [
+    {
+     "nr": "D-2019-005412",
+     "process": "Emitere primară",
+     "status": "eliberat",
+     "submitted": "2019-03-24T09:42:00",
+     "specialist": "Stela Bradu"
+    }
+   ]
+  },
+  {
+   "id": "act-074",
+   "nr": "AUT-2021-001377",
+   "name": "Autorizație sanitară de funcționare",
+   "type": "Autorizație",
+   "authority": "ANSP",
+   "subdivision": "CSP Chișinău",
+   "beneficiary": {
+    "kind": "PJ",
+    "name": "SRL Lactis",
+    "idno": "1007600412377",
+    "representative": "Natalia Cojocaru",
+    "address": "mun. Chișinău, str. Alba Iulia 20",
+    "phone": "+373 69 214 530",
+    "email": "office@lactis.md"
+   },
+   "place": "mun. Chișinău, str. Alba Iulia 20",
+   "tacit": false,
+   "statusChange": null,
+   "fields": [
+    [
+     "Tipul activității",
+     "Comerț cu produse alimentare"
+    ],
+    [
+     "Suprafața încăperilor",
+     "186 m²"
+    ],
+    [
+     "Capacitatea",
+     "24 locuri"
+    ]
+   ],
+   "origin": "Reperfectare",
+   "prev": "act-073",
+   "dossier": "D-2021-006377",
+   "status": "Expirat",
+   "issued": "2021-09-02T14:05:00",
+   "validUntil": "2024-04-10",
+   "versions": [
+    {
+     "v": 1,
+     "event": "Emitere",
+     "at": "2021-09-02T14:05:00",
+     "reason": "Act generat prin reperfectare din actul anterior."
+    },
+    {
+     "v": 2,
+     "event": "Expirare",
+     "at": "2024-04-11T00:05:00",
+     "reason": "Termenul de valabilitate a expirat.",
+     "system": true
+    }
+   ],
+   "dossiers": [
+    {
+     "nr": "D-2021-006377",
+     "process": "Reperfectare",
+     "status": "eliberat",
+     "submitted": "2021-08-14T09:43:00",
+     "specialist": "Andrei Lazăr"
+    }
+   ]
+  },
+  {
+   "id": "act-075",
+   "nr": "AUT-2024-000988",
+   "name": "Autorizație sanitară de funcționare",
+   "type": "Autorizație",
+   "authority": "ANSP",
+   "subdivision": "CSP Chișinău",
+   "beneficiary": {
+    "kind": "PJ",
+    "name": "SRL Lactis",
+    "idno": "1007600412377",
+    "representative": "Natalia Cojocaru",
+    "address": "mun. Chișinău, str. Alba Iulia 20",
+    "phone": "+373 69 214 530",
+    "email": "office@lactis.md"
+   },
+   "place": "mun. Chișinău, str. Alba Iulia 20",
+   "tacit": false,
+   "statusChange": {
+    "at": "2025-06-17T15:30:00",
+    "reason": "Înlocuit prin duplicat de actul AUT-2025-003310"
+   },
+   "fields": [
+    [
+     "Tipul activității",
+     "Comerț cu produse alimentare"
+    ],
+    [
+     "Suprafața încăperilor",
+     "186 m²"
+    ],
+    [
+     "Capacitatea",
+     "24 locuri"
+    ]
+   ],
+   "origin": "Prelungire",
+   "prev": "act-074",
+   "dossier": "D-2024-005988",
+   "status": "Anulat",
+   "issued": "2024-03-28T09:40:00",
+   "validUntil": "2029-03-27",
+   "printed": {
+    "series": "AS",
+    "number": "0412988"
+   },
+   "versions": [
+    {
+     "v": 1,
+     "event": "Emitere",
+     "at": "2024-03-28T09:40:00",
+     "reason": "Act generat prin prelungire din actul anterior."
+    },
+    {
+     "v": 2,
+     "event": "Anulare",
+     "at": "2025-06-17T15:30:00",
+     "reason": "Înlocuit prin duplicat de actul AUT-2025-003310"
+    }
+   ],
+   "dossiers": [
+    {
+     "nr": "D-2024-005988",
+     "process": "Prelungire",
+     "status": "eliberat",
+     "submitted": "2024-03-08T09:44:00",
+     "specialist": "Tamara Bragagiu"
+    }
+   ]
+  },
+  {
+   "id": "act-076",
+   "nr": "AUT-2025-003310",
+   "name": "Autorizație sanitară de funcționare",
+   "type": "Autorizație",
+   "authority": "ANSP",
+   "subdivision": "CSP Chișinău",
+   "beneficiary": {
+    "kind": "PJ",
+    "name": "SRL Lactis",
+    "idno": "1007600412377",
+    "representative": "Natalia Cojocaru",
+    "address": "mun. Chișinău, str. Alba Iulia 20",
+    "phone": "+373 69 214 530",
+    "email": "office@lactis.md"
+   },
+   "place": "mun. Chișinău, str. Alba Iulia 20",
+   "tacit": false,
+   "statusChange": {
+    "at": "2026-05-12T10:10:00",
+    "reason": "Înlocuit prin reperfectare de actul AUT-2026-001144"
+   },
+   "fields": [
+    [
+     "Tipul activității",
+     "Comerț cu produse alimentare"
+    ],
+    [
+     "Suprafața încăperilor",
+     "186 m²"
+    ],
+    [
+     "Capacitatea",
+     "24 locuri"
+    ]
+   ],
+   "origin": "Emitere duplicat",
+   "prev": "act-075",
+   "dossier": "D-2025-008310",
+   "status": "Anulat",
+   "issued": "2025-06-17T15:30:00",
+   "validUntil": "2029-03-27",
+   "versions": [
+    {
+     "v": 1,
+     "event": "Emitere",
+     "at": "2025-06-17T15:30:00",
+     "reason": "Act generat prin emitere duplicat din actul anterior."
+    },
+    {
+     "v": 2,
+     "event": "Anulare",
+     "at": "2026-05-12T10:10:00",
+     "reason": "Înlocuit prin reperfectare de actul AUT-2026-001144"
+    }
+   ],
+   "dossiers": [
+    {
+     "nr": "D-2025-008310",
+     "process": "Emitere duplicat",
+     "status": "eliberat",
+     "submitted": "2025-05-27T09:45:00",
+     "specialist": "Elena Caragia"
+    }
+   ]
+  },
+  {
+   "id": "act-077",
+   "nr": "AUT-2026-001144",
+   "name": "Autorizație sanitară de funcționare",
+   "type": "Autorizație",
+   "authority": "ANSP",
+   "subdivision": "CSP Chișinău",
+   "beneficiary": {
+    "kind": "PJ",
+    "name": "SRL Lactis",
+    "idno": "1007600412377",
+    "representative": "Natalia Cojocaru",
+    "address": "mun. Chișinău, str. Alba Iulia 20",
+    "phone": "+373 69 214 530",
+    "email": "office@lactis.md"
+   },
+   "place": "mun. Chișinău, str. Alba Iulia 20",
+   "tacit": false,
+   "statusChange": null,
+   "fields": [
+    [
+     "Tipul activității",
+     "Comerț cu produse alimentare"
+    ],
+    [
+     "Suprafața încăperilor",
+     "186 m²"
+    ],
+    [
+     "Capacitatea",
+     "24 locuri"
+    ]
+   ],
+   "origin": "Reperfectare",
+   "prev": "act-076",
+   "dossier": "D-2026-006144",
+   "status": "Valabil",
+   "issued": "2026-05-12T10:10:00",
+   "validUntil": "2029-03-27",
+   "versions": [
+    {
+     "v": 1,
+     "event": "Emitere",
+     "at": "2026-05-12T10:10:00",
+     "reason": "Act generat prin reperfectare din actul anterior."
+    }
+   ],
+   "dossiers": [
+    {
+     "nr": "D-2026-006144",
+     "process": "Reperfectare",
+     "status": "eliberat",
+     "submitted": "2026-04-20T09:46:00",
+     "specialist": "Mihai Grosu"
+    }
+   ]
+  },
+  {
+   "id": "act-078",
+   "nr": "LIC-2026-000207",
+   "name": "Licență pentru producerea alcoolului etilic",
+   "type": "Licență",
+   "authority": "ASP",
+   "subdivision": "",
+   "beneficiary": {
+    "kind": "PF",
+    "name": "Sergiu Moraru",
+    "idnp": "2003501207714",
+    "address": "or. Soroca, str. Ștefan cel Mare 12",
+    "phone": "+373 68 402 117",
+    "email": "sergiu.moraru@mail.md"
+   },
+   "place": "or. Soroca, str. Ștefan cel Mare 12",
+   "origin": "Emitere primară",
+   "dossier": "D-2026-005207",
+   "status": "Valabil",
+   "tacit": true,
+   "issued": "2026-03-03T16:00:00",
+   "validUntil": "",
+   "statusChange": null,
+   "fields": [
+    [
+     "Capacitatea de producție",
+     "40 000 dal / an"
+    ],
+    [
+     "Depozit autorizat",
+     "da"
+    ]
+   ],
+   "versions": [
+    {
+     "v": 1,
+     "event": "Emitere",
+     "at": "2026-03-03T16:00:00",
+     "reason": "Act emis la finalizarea examinării dosarului."
+    }
+   ],
+   "dossiers": [
+    {
+     "nr": "D-2026-005207",
+     "process": "Emitere primară",
+     "status": "eliberat",
+     "submitted": "2026-02-08T09:47:00",
+     "specialist": "Stela Bradu"
+    }
    ]
   }
  ],
@@ -7023,6 +9837,113 @@
     "at": "2026-08-28T15:03:00",
     "reason": "Cererea a fost retrasă înainte de examinare."
    }
+  },
+  {
+   "id": "np-055",
+   "nr": "NP-2025-000981",
+   "ref": {
+    "kind": "dosar",
+    "nr": "D-2025-003450"
+   },
+   "service": "Autorizație sanitară de funcționare",
+   "authority": "ANSP",
+   "subdivision": "CSP Chișinău",
+   "payer": {
+    "kind": "PJ",
+    "name": "SA Termoenergia",
+    "id": "1008210439793"
+   },
+   "lines": [
+    {
+     "label": "Taxă de examinare",
+     "amount": 560
+    }
+   ],
+   "total": 560,
+   "paid": 560,
+   "currency": "MDL",
+   "method": "Card bancar",
+   "confirmedBy": "Mihai Grosu",
+   "issued": "2025-02-10T09:12:00",
+   "due": "2025-03-12T23:59:00",
+   "paidAt": "2025-02-11T18:40:00",
+   "status": "Achitată",
+   "mpay": {
+    "id": "MPAY-2025-7790055",
+    "status": "Finalizată cu succes",
+    "at": "2025-02-11T18:40:00"
+   },
+   "refund": null
+  },
+  {
+   "id": "np-056",
+   "nr": "NP-2026-001310",
+   "ref": {
+    "kind": "act",
+    "nr": "AUT-2025-002828"
+   },
+   "service": "Autorizație sanitară de funcționare",
+   "authority": "ANSP",
+   "subdivision": "CSP Chișinău",
+   "payer": {
+    "kind": "PJ",
+    "name": "SA Termoenergia",
+    "id": "1008210439793"
+   },
+   "lines": [
+    {
+     "label": "Taxă anuală de licență",
+     "amount": 1800
+    }
+   ],
+   "total": 1800,
+   "paid": 1800,
+   "currency": "MDL",
+   "method": "Card bancar",
+   "confirmedBy": "Mihai Grosu",
+   "issued": "2026-02-24T08:00:00",
+   "due": "2026-03-26T23:59:00",
+   "paidAt": "2026-03-02T12:15:00",
+   "status": "Achitată",
+   "mpay": {
+    "id": "MPAY-2026-7790056",
+    "status": "Finalizată cu succes",
+    "at": "2026-03-02T12:15:00"
+   },
+   "refund": null
+  },
+  {
+   "id": "np-057",
+   "nr": "NP-2026-004902",
+   "ref": {
+    "kind": "act",
+    "nr": "AUT-2025-002828"
+   },
+   "service": "Autorizație sanitară de funcționare",
+   "authority": "ANSP",
+   "subdivision": "CSP Chișinău",
+   "payer": {
+    "kind": "PJ",
+    "name": "SA Termoenergia",
+    "id": "1008210439793"
+   },
+   "lines": [
+    {
+     "label": "Taxă anuală de licență",
+     "amount": 1800
+    }
+   ],
+   "total": 1800,
+   "paid": 0,
+   "currency": "MDL",
+   "method": "",
+   "confirmedBy": "Mihai Grosu",
+   "issued": "2026-09-24T08:00:00",
+   "due": "2026-10-24T23:59:00",
+   "paidAt": "",
+   "status": "Neachitată",
+   "mpay": null,
+   "refund": null
   }
  ],
  "avize": [

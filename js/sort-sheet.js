@@ -156,5 +156,17 @@
   }, true);
   PHONE.addEventListener("change", () => close(false));
 
-  window.GEAPSortSheet = { menuHtml, bind, close: () => close(false), isOpen: () => !!cur };
+  /* the whole „Sortează” control (sort-chip-v1, 2026-10-30): chip (icon-sort + current key) + the dropdown menu, one markup
+     for every list / journal — cfg = menuHtml's + { triggerAttr, ariaLabel, menuLabel, sprite }. The caller wires
+     the clicks on keyAttr / orderAttr and calls bind(trigger, …) after each render for the phone sheet. */
+  function controlHtml({ id = "geap-sort", triggerAttr, ariaLabel, menuLabel = "Sortează", label, sprite = "assets/icons/sprite.svg", ...menu }) {
+    return `<div class="e-permits-stack__menu-wrap">
+      <button type="button" class="chip e-permits-filter-trigger e-permits-sort-trigger" aria-haspopup="menu" aria-expanded="false" aria-controls="${esc(id)}-menu" aria-label="${esc(ariaLabel)}" data-stack-menu-trigger ${triggerAttr}>
+        <span class="chip__icon"><svg class="icon" aria-hidden="true"><use href="${esc(sprite)}#icon-sort"></use></svg></span><span class="chip__label">${esc(label)}</span>
+      </button>
+      <ul class="e-permits-fo-intent-menu e-permits-stack__menu e-permits-sort-menu" id="${esc(id)}-menu" role="menu" aria-label="${esc(menuLabel)}" hidden data-stack-menu>${menuHtml({ id, ...menu })}</ul>
+    </div>`;
+  }
+
+  window.GEAPSortSheet = { menuHtml, controlHtml, bind, close: () => close(false), isOpen: () => !!cur };
 })();

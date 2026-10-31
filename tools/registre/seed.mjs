@@ -206,6 +206,7 @@ const registers = [
       col("subdiviziune", "Autoritate / Subdiviziune", 196, { sortable: true, filter: "multi" }),
       col("statut", "Statut dosar", 152, { sortable: true, filter: "multi" }),
       col("actor", "Actor responsabil", 176, { sortable: true, filter: "multi" }),
+      col("modDistribuire", "Mod distribuire", 140, { visible: false, filter: "multi" }),
       col("depus", "Data depunerii", 160, { sortable: true, filter: "date" }),
       col("termen", "Termen de examinare", 176, { sortable: true, filter: "date" }),
       col("tip", "Tip solicitare", 140, { visible: false, filter: "multi" })
@@ -305,6 +306,35 @@ const by = (i) => USERS[i % USERS.length];
 const grant = (role, authority, at, who, extra = {}) => ({ role, authority: authority || null, at, by: who, ...extra });
 const ver = (version, at, note, who, o = {}) => ({ version, at, note, by: who, type: o.type || "Publicare", drop: { columns: o.columns || [], actions: o.actions || [] } });
 const DOSARE_LATER = ["push", "archive", "strike", "anonymize"];
+/* [id, object, scope, authority, name, description, predefined rules [column, op, value][], logic, roles with the grant] */
+const LOCAL_ROLES = ["specialist", "supervisor", "director"];
+const SCALE = [
+  ["reg-acteansp", "Permit", "Authority", "ANSP", "Autorizații sanitare ANSP", "Autorizațiile sanitare de funcționare și avizele sanitare emise de ANSP.", null, null, LOCAL_ROLES],
+  ["reg-acteansa", "Permit", "Authority", "ANSA", "Acte permisive ANSA", "Autorizațiile sanitar-veterinare, certificatele de conformitate și avizele emise de ANSA."],
+  ["reg-licenteanta", "Permit", "Authority", "ANTA", "Licențe și autorizații de transport ANTA", "Licențele de transport rutier de persoane și autorizațiile de taxi emise de ANTA.", null, null, ["specialist"]],
+  ["reg-acteam", "Permit", "Authority", "AM", "Autorizații de mediu", "Autorizațiile pentru folosința specială a apei și gestionarea deșeurilor, emise de Agenția de Mediu."],
+  ["reg-licenteasp", "Permit", "Authority", "ASP", "Licențe pentru alcool ASP", "Licențele pentru producerea alcoolului etilic și autorizațiile de comerț cu produse alcoolice."],
+  ["reg-licente", "Permit", "Global", null, "Licențe", "Toate licențele emise, de la toate autoritățile, cu titularul și termenul de valabilitate.", [["tip", "is", "Licență"]]],
+  ["reg-certificate", "Permit", "Global", null, "Certificate de conformitate", "Certificatele de conformitate pentru produse alimentare și titularii lor.", [["tip", "is", "Certificat"]]],
+  ["reg-actesuspendate", "Permit", "Global", null, "Acte suspendate", "Actele permisive cu valabilitatea suspendată, pentru urmărirea reluării sau a retragerii.", [["status", "is", "Suspendat"]]],
+  ["reg-acteexpirate", "Permit", "Global", null, "Acte expirate", "Actele permisive expirate, pentru notificarea titularilor și reînnoire.", [["status", "is", "Expirat"]]],
+  ["reg-acteretrase", "Permit", "Global", null, "Acte retrase și anulate", "Actele permisive retrase sau anulate, cu temeiul și data deciziei.", [["status", "is", "Retras"], ["status", "is", "Anulat"]], "or"],
+  ["reg-noteansp", "Invoice", "Authority", "ANSP", "Note de plată ANSP", "Notele de plată emise de ANSP și subdiviziunile ei, cu statutul plății MPay.", null, null, LOCAL_ROLES],
+  ["reg-noteansa", "Invoice", "Authority", "ANSA", "Note de plată ANSA", "Notele de plată emise de ANSA pentru autorizări și certificări."],
+  ["reg-noteanta", "Invoice", "Authority", "ANTA", "Note de plată ANTA", "Notele de plată pentru licențele și autorizațiile de transport ANTA.", null, null, ["specialist"]],
+  ["reg-noteneachitate", "Invoice", "Global", null, "Note de plată neachitate", "Notele de plată neachitate sau achitate parțial, pentru notificarea solicitanților.", [["statutNota", "is", "Neachitată"], ["statutNota", "is", "Parțial achitată"]], "or"],
+  ["reg-rambursari", "Invoice", "Global", null, "Rambursări", "Notele de plată rambursate, cu tranzacția MPay și motivul rambursării.", [["statutNota", "is", "Rambursată"]]],
+  ["reg-noteexpirate", "Invoice", "Global", null, "Note de plată expirate", "Notele de plată al căror termen de achitare a trecut fără plată.", [["statutNota", "is", "Expirată"]]],
+  ["reg-avizeansp", "Expertise", "Authority", "ANSP", "Avize sanitare ANSP", "Avizele sanitare cerute ANSP în examinarea dosarelor altor autorități.", null, null, LOCAL_ROLES],
+  ["reg-avizeansa", "Expertise", "Authority", "ANSA", "Avize ANSA", "Avizele sanitar-veterinare eliberate de ANSA pentru dosarele în examinare."],
+  ["reg-avizeam", "Expertise", "Authority", "AM", "Avize de mediu", "Avizele de mediu cerute Agenției de Mediu, cu concluzia și termenul de valabilitate."],
+  ["reg-avizeinlucru", "Expertise", "Global", null, "Avize în lucru", "Avizele cerute și încă nefinalizate, pentru urmărirea termenelor de răspuns.", [["statut", "is", "În lucru"]]],
+  ["reg-avizenefavorabile", "Expertise", "Global", null, "Avize nefavorabile", "Avizele nefavorabile, cu autoritatea avizatoare și dosarul afectat.", [["statut", "is", "Nefavorabil"]]],
+  ["reg-expertize", "Expertise", "Global", null, "Expertize tehnice ale proiectelor", "Expertizele tehnice ale proiectelor cerute în procedura de autorizare a construcțiilor.", [["tip", "contains", "Expertiză"]]],
+  ["reg-dosarerespinse", "Case", "Global", null, "Dosare respinse", "Dosarele respinse, cu motivul respingerii, pentru contestații și statistică.", [["statut", "is", "Respins"]]],
+  ["reg-dosaresemnare", "Case", "Global", null, "Dosare spre semnare", "Dosarele care așteaptă semnătura conducătorului, din toate subdiviziunile.", [["statut", "is", "Spre semnare"]]],
+  ["reg-dosareeliberate", "Case", "Global", null, "Dosare eliberate", "Dosarele finalizate cu actul eliberat, pentru arhivare și raportare.", [["statut", "is", "Eliberat"]]]
+];
 const admin = {
   /* the BO roles a register can be granted to (Feature 89940; local = visible to an Administrator local, AC-07) */
   roles: [
@@ -471,9 +501,94 @@ const admin = {
       names: { ro: "Avize expirate", ru: "", en: "" }, description: "Proiect abandonat: avizele expirate se văd în Registru Avize, cu filtrul de statut.",
       position: 6, status: "Depreciat", version: "v1.0.0", publishedVersion: null, createdAt: "2026-08-01T10:00:00", createdBy: by(2), editedAt: "2026-08-20T09:30:00", editedBy: by(2),
       config: { columns: [], predefinedFilter: null }, versions: [], grants: []
-    }
+    },
+    /* registers-30-v1 (2026-10-31, Figma comment GEAP 2.0 12701:424523 „we can have 30 accessible registers”): 25 published
+       registers on the same four source objects, so the BO menu (pins / recents), the catalog „Toate registrele” (search,
+       object chips, groups) and the header switcher are tested at scale. Deterministic, appended at the end. */
+    ...SCALE.map(([id, object, scope, authority, ro, description, rules, logic, roles], i) => {
+      const base = { Case: "reg-dosare", Permit: "reg-acte", Invoice: "reg-note", Expertise: "reg-avize" }[object];
+      const code = `${{ Case: "Case", Permit: "Permit", Invoice: "PaymentOrder", Expertise: "Expertise" }[object]}.${scope}.${ro.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^A-Za-z0-9 ]/g, "").split(" ").map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join("")}`;
+      const at = `2026-${pad(7 + (i % 3), 2)}-${pad(3 + ((i * 5) % 24), 2)}T${pad(9 + (i % 7), 2)}:${pad((i * 13) % 60, 2)}:00`;
+      return {
+        id, code, object, scope, authority, service: null, parent: base,
+        names: { ro, ru: "", en: "" }, description,
+        position: 10 + i, status: "Publicat", version: "v1.0.0", publishedVersion: "v1.0.0", createdAt: at, createdBy: by(i), editedAt: at, editedBy: by(i),
+        config: { copyColumnsOf: base, predefinedFilter: rules ? { logic: logic || "and", rules: rules.map(([column, op, value]) => ({ column, op, value })) } : null },
+        versions: [ver("v1.0.0", at, description, by(i), { type: "Prima publicare" })],
+        grants: [grant("central-admin", null, at, by(i)), ...(roles || []).map((role) => grant(role, authority, at, by(i)))]
+      };
+    })
   ]
 };
+
+/* act-card-tabs-v1 (2026-10-30, Feature 96367 · US-318…322) — appended AFTER every random draw (no rnd() below), so the
+   records above stay byte-identical. Adds: the printed document (US-318 AC-12) on every 4th act; the act's dossiers
+   (US-320: the issuing one + post-processes, at most one active); the chain of acts generated one from another (US-322:
+   `origin` = the process that generated the act, `prev` = the act it was generated from); recurring notes (US-321). */
+const PROCESS_OF_VERSION = { Reperfectare: "Reperfectare", Suspendare: "Suspendare valabilitate", Retragere: "Retragere act permisiv" };
+const shift = (isoValue, days, h = 10, m = 15) => isoT(daysFrom(new Date(isoValue), days, h, m));
+const dossierNr = (year, n) => `D-${year}-${pad(5000 + n, 6)}`;
+const chainAct = (id, nr, extra) => ({
+  id, nr, name: "Autorizație sanitară de funcționare", type: "Autorizație", authority: "ANSP", subdivision: "CSP Chișinău",
+  beneficiary: { kind: "PJ", name: "SRL Lactis", idno: "1007600412377", representative: "Natalia Cojocaru", address: "mun. Chișinău, str. Alba Iulia 20", phone: "+373 69 214 530", email: "office@lactis.md" },
+  place: "mun. Chișinău, str. Alba Iulia 20", tacit: false, statusChange: null,
+  fields: [["Tipul activității", "Comerț cu produse alimentare"], ["Suprafața încăperilor", "186 m²"], ["Capacitatea", "24 locuri"]],
+  ...extra
+});
+/* SRL Lactis: emitere 2019 → reperfectare 2021 → prelungire 2024 → duplicat 2025 → reperfectare 2026 (US-322 AC-03) */
+const CHAIN = [
+  chainAct("act-073", "AUT-2019-000412", { origin: "Emitere primară", dossier: dossierNr(2019, 412), status: "Anulat", issued: "2019-04-11T11:20:00", validUntil: "2024-04-10", statusChange: { at: "2021-09-02T14:05:00", reason: "Înlocuit prin reperfectare de actul AUT-2021-001377" } }),
+  chainAct("act-074", "AUT-2021-001377", { origin: "Reperfectare", prev: "act-073", dossier: dossierNr(2021, 1377), status: "Expirat", issued: "2021-09-02T14:05:00", validUntil: "2024-04-10" }),
+  chainAct("act-075", "AUT-2024-000988", { origin: "Prelungire", prev: "act-074", dossier: dossierNr(2024, 988), status: "Anulat", issued: "2024-03-28T09:40:00", validUntil: "2029-03-27", printed: { series: "AS", number: "0412988" }, statusChange: { at: "2025-06-17T15:30:00", reason: "Înlocuit prin duplicat de actul AUT-2025-003310" } }),
+  chainAct("act-076", "AUT-2025-003310", { origin: "Emitere duplicat", prev: "act-075", dossier: dossierNr(2025, 3310), status: "Anulat", issued: "2025-06-17T15:30:00", validUntil: "2029-03-27", statusChange: { at: "2026-05-12T10:10:00", reason: "Înlocuit prin reperfectare de actul AUT-2026-001144" } }),
+  chainAct("act-077", "AUT-2026-001144", { origin: "Reperfectare", prev: "act-076", dossier: dossierNr(2026, 1144), status: "Valabil", issued: "2026-05-12T10:10:00", validUntil: "2029-03-27" }),
+  /* no subdivision + unlimited validity + PF holder + tacit approval (US-318 AC-08 / AC-09 / AC-11 / AC-14) */
+  {
+    id: "act-078", nr: "LIC-2026-000207", name: "Licență pentru producerea alcoolului etilic", type: "Licență", authority: "ASP", subdivision: "",
+    beneficiary: { kind: "PF", name: "Sergiu Moraru", idnp: "2003501207714", address: "or. Soroca, str. Ștefan cel Mare 12", phone: "+373 68 402 117", email: "sergiu.moraru@mail.md" },
+    place: "or. Soroca, str. Ștefan cel Mare 12", origin: "Emitere primară", dossier: dossierNr(2026, 207), status: "Valabil", tacit: true,
+    issued: "2026-03-03T16:00:00", validUntil: "", statusChange: null, fields: [["Capacitatea de producție", "40 000 dal / an"], ["Depozit autorizat", "da"]]
+  }
+];
+CHAIN.forEach((act) => {
+  const versions = [{ v: 1, event: "Emitere", at: act.issued, reason: act.origin === "Emitere primară" ? "Act emis la finalizarea examinării dosarului." : `Act generat prin ${act.origin.toLocaleLowerCase("ro")} din actul anterior.` }];
+  if (act.status === "Anulat") versions.push({ v: 2, event: "Anulare", at: act.statusChange.at, reason: act.statusChange.reason });
+  if (act.status === "Expirat") versions.push({ v: 2, event: "Expirare", at: `${act.validUntil}T00:05:00`.replace(/^(\d{4}-\d{2}-)(\d{2})/, (s, ym, d) => `${ym}${pad(Number(d) + 1)}`), reason: "Termenul de valabilitate a expirat.", system: true });
+  acts.push({ ...act, versions });
+});
+acts.forEach((act, i) => {
+  if (i % 4 === 0 && !act.printed && i < 72) act.printed = { series: "AS", number: pad(300000 + i * 4111, 7) };
+  act.origin ||= "Emitere primară";
+  /* the issuing dossier (finalised, Eliberat) + one dossier per post-process of the act's versions */
+  const sp = (k) => SPECIALISTS[(i + k) % SPECIALISTS.length];
+  const list = [{ nr: act.dossier, process: act.origin, status: "eliberat", submitted: shift(act.issued, -18 - (i % 9), 9, 30 + (i % 20)), specialist: sp(0) }];
+  act.versions.slice(1).forEach((v, k) => {
+    const process = PROCESS_OF_VERSION[v.event];
+    if (process) list.push({ nr: dossierNr(new Date(v.at).getFullYear(), 600 + i * 7 + k), process, status: "eliberat", submitted: shift(v.at, -6 - (i % 5), 11, 10 + k), specialist: sp(k + 1) });
+  });
+  /* demo act-045 (Suspendat): a rejected appeal + the active resumption request; every 7th running act: a renewal in examination */
+  if (act.id === "act-045") {
+    list.push({ nr: dossierNr(2025, 1450), process: "Contestație", status: "respins", submitted: "2025-09-22T13:40:00", specialist: "Elena Caragia" });
+    list.push({ nr: dossierNr(2026, 1451), process: "Reluare valabilitate", status: "inExaminare", submitted: "2026-10-14T10:25:00", specialist: "Stela Bradu" });
+  } else if (act.status === "Valabil" && i % 7 === 3) {
+    list.push({ nr: dossierNr(2026, 2000 + i), process: "Prelungire", status: "inExaminare", submitted: shift("2026-10-20T10:00:00", -(i % 12), 10, 5), specialist: sp(2) });
+  }
+  act.dossiers = list;
+});
+/* US-321: the payment notes of act-045 (the issuing dossier's fee + two annual fees) and of the chain's current act */
+const act045 = acts.find((a) => a.id === "act-045");
+const extraNote = (id, nr, ref, act, fee, status, issued, paidAt, extra = {}) => ({
+  id, nr, ref, service: act.name, authority: act.authority, subdivision: act.subdivision,
+  payer: act.beneficiary.kind === "PJ" ? { kind: "PJ", name: act.beneficiary.name, id: act.beneficiary.idno } : { kind: "PF", name: act.beneficiary.name, id: act.beneficiary.idnp },
+  lines: [{ label: fee[0], amount: fee[1] }], total: fee[1], paid: paidAt ? fee[1] : 0, currency: "MDL",
+  method: paidAt ? "Card bancar" : "", confirmedBy: "Mihai Grosu", issued, due: shift(issued, 30, 23, 59), paidAt: paidAt || "", status,
+  mpay: paidAt ? { id: `MPAY-${issued.slice(0, 4)}-${pad(7790000 + Number(id.slice(3)), 7)}`, status: "Finalizată cu succes", at: paidAt } : null, refund: null, ...extra
+});
+notes.push(
+  extraNote("np-055", "NP-2025-000981", { kind: "dosar", nr: act045.dossier }, act045, FEES[0], "Achitată", "2025-02-10T09:12:00", "2025-02-11T18:40:00"),
+  extraNote("np-056", "NP-2026-001310", { kind: "act", nr: act045.nr }, act045, FEES[3], "Achitată", "2026-02-24T08:00:00", "2026-03-02T12:15:00"),
+  extraNote("np-057", "NP-2026-004902", { kind: "act", nr: act045.nr }, act045, FEES[3], "Neachitată", "2026-09-24T08:00:00", "", { due: "2026-10-24T23:59:00" })
+);
 
 const out = {
   _comment: "Registers module, phase 1 (registre-v1) + the AdminPortal builder data (registre-v2). Generated by tools/registre/seed.mjs — do not edit by hand.",

@@ -12,8 +12,8 @@
 }
 
 .e-permits-shell__nav--specialist [data-nav-id="dosare-suspendate"] .e-permits-shell__nav-icon::before {
-  mask-image: url("../assets/icons/sidebar-folder-download.svg");
-  -webkit-mask-image: url("../assets/icons/sidebar-folder-download.svg");
+  mask-image: url("../assets/icons/sidebar-folder-delete.svg");
+  -webkit-mask-image: url("../assets/icons/sidebar-folder-delete.svg");
 }
 
 .e-permits-shell__nav--specialist [data-nav-id="acte-spre-eliberare"] .e-permits-shell__nav-icon::before {
@@ -26,10 +26,10 @@
   -webkit-mask-image: url("../assets/icons/sidebar-folder-shared.svg");
 }
 
-/* «Dosare inițiate din oficiu» (Feature 95769): the item keeps the icon it had as a dossier view (`office`) */
+/* «Dosare inițiate din oficiu» (Feature 95769): the authority's building + an outgoing arrow (user 2026-10-30) */
 .e-permits-shell__nav--specialist [data-nav-id="office"] .e-permits-shell__nav-icon::before {
-  mask-image: url("../assets/icons/sidebar-folder-download.svg");
-  -webkit-mask-image: url("../assets/icons/sidebar-folder-download.svg");
+  mask-image: url("../assets/icons/sidebar-building.svg");
+  -webkit-mask-image: url("../assets/icons/sidebar-building.svg");
 }
 
 /* registry „Dosare noi” (and «Dosare inițiate din oficiu», the same list shape): no checkbox column — the pinned
@@ -612,3 +612,53 @@
   padding-bottom: 0;
 }
 
+
+/* Din oficiu, search-first (ofc-search-first-v1, 2026-10-31): the results area. „Se afișează 20 din N” = 12/16 tertiary
+   line under the list; the loading rows = the ONE .skeleton in the act row's frame (placement only) */
+.e-permits-gh-ofc__more {
+  color: var(--color-text-base-tertiary, #757575);
+  font-size: var(--font-size-fs-12, 12px);
+  line-height: var(--line-height-lh-16, 16px);
+  margin: 0;
+}
+
+.e-permits-gh-ofc__skeleton-row {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-12, 12px);
+  padding: var(--spacing-12, 12px);
+  border: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
+  border-radius: var(--border-radius-12, 12px);
+}
+
+.e-permits-gh-ofc__skeleton-title {
+  width: 40%;
+}
+
+.e-permits-gh-ofc__skeleton-meta {
+  width: 60%;
+}
+
+/* the search sits in a FORM field (label above): the clear ✕ keeps the field's own right padding (12) instead of the
+   toolbar search's 5 inset (ofc-search-first-v4); the text never runs under it */
+.e-permits-gh-ofc .e-permits-fo-field .search-input.e-permits-workplace__search .btn-group {
+  right: var(--spacing-12, 12px);
+}
+
+.e-permits-gh-ofc .e-permits-fo-field .search-input.e-permits-workplace__search.has-value .input {
+  padding-right: calc(var(--spacing-24, 24px) + var(--spacing-12, 12px) + var(--spacing-12, 12px));
+}
+
+/* phones: the act search is a 48 field with 16/24 text (the BO list search is a fixed 40 — registries have no phone) */
+@media (max-width: 760px) {
+  .e-permits-gh-ofc .e-permits-fo-field .search-input.e-permits-workplace__search {
+    height: var(--spacing-48, 48px);
+    min-height: var(--spacing-48, 48px);
+  }
+
+  .e-permits-gh-ofc .e-permits-fo-field .search-input.e-permits-workplace__search .input,
+  .e-permits-gh-ofc .e-permits-fo-field .search-input.e-permits-workplace__search .input::placeholder {
+    font-size: var(--font-size-fs-16, 16px);
+    line-height: var(--line-height-lh-24, 24px);
+  }
+}

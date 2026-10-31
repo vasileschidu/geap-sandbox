@@ -107,7 +107,10 @@ for (const state of STATES) {
       let cl = 0, cr = innerWidth;
       for (let p = el.parentElement; p && p !== document.body; p = p.parentElement) { const ox = getComputedStyle(p).overflowX; if (/(auto|scroll|hidden|clip)/.test(ox) && p.scrollWidth > p.clientWidth) { const b = p.getBoundingClientRect(); cl = Math.max(cl, b.left); cr = Math.min(cr, b.right); break; } }
       const vl = Math.max(r.left, cl), vr = Math.min(r.right, cr);
-      const x = vl + Math.min(Math.max(vr - vl, 0) / 2, 24), y = r.top + r.height / 2;
+      let x = vl + Math.min(Math.max(vr - vl, 0) / 2, 24); const y = r.top + r.height / 2;
+      /* row-vs-control-v1: a row that holds its own controls is measured where the pointer is on the ROW (not on a descendant control) */
+      const isCtl = (n) => n && n !== el && el.contains(n) && n.closest('button, a[href], [role=button], .copy-value, input, select, textarea') && el.contains(n.closest('button, a[href], [role=button], .copy-value, input, select, textarea')) && n.closest('button, a[href], [role=button], .copy-value, input, select, textarea') !== el;
+      if (isCtl(document.elementFromPoint(x, y))) { for (const f of [0.5, 0.6, 0.4, 0.7, 0.3, 0.8]) { const nx = vl + (vr - vl) * f; if (!isCtl(document.elementFromPoint(nx, y))) { x = nx; break; } } }
       const top = document.elementFromPoint(x, y);
       const name = (el.getAttribute('aria-label') || el.textContent || el.getAttribute('placeholder') || '').trim().replace(/\\s+/g, ' ').slice(0, 40);
       const id = el.tagName.toLowerCase() + (el.className && typeof el.className === 'string' ? '.' + el.className.trim().split(/\\s+/).slice(0, 2).join('.') : '');
@@ -124,13 +127,16 @@ for (const state of STATES) {
     await send("Input.dispatchMouseEvent", { type: "mouseMoved", x: info.x, y: info.y });
     await sleep(260); // transitions
     const after = await ev(`(${STYLE})(window.__hoverTargets[${i}])`);
+    /* any clickable element shows the pointer (2026-10-30 rule): the cursor under the mouse on a button / link / clickable row */
+    const cur = await ev(`(() => { const el = window.__hoverTargets[${i}]; const u = document.elementFromPoint(${info.x}, ${info.y}); if (!u || !el.isConnected || !(el === u || el.contains(u))) return ''; const clickable = el.matches('button:not(:disabled), a[href], [role=button], [role=menuitem], [data-stack-row-open], .is-clickable, tr[data-workplace-row-open], [data-svc-event], .chip, label.checkbox, label.radio') && !el.matches('[aria-disabled=true]'); return clickable ? getComputedStyle(u).cursor + ' on ' + u.tagName.toLowerCase() + '.' + String(u.className).slice(0, 30) : ''; })()`);
+    if (cur && !/^(pointer|text|grab|move|zoom)/.test(cur) && !info.covered) findings.push({ kind: "no-pointer", ...info, name: info.name + " → " + cur });
     if (info.covered) findings.push({ kind: "covered", ...info });
     else if (before === after && info.focused) focusedSkipped.push("focused · " + info.id + " „" + info.name + "”");
     else if (info.byDesign && (before === after || info.byDesign.startsWith("under"))) focusedSkipped.push(info.byDesign + " · " + info.id + " „" + info.name + "”");
     else if (before === after) findings.push({ kind: "no-hover", ...info });
   }
   report.push({ state, checked: count, findings });
-  console.log(`${state}: ${count} interactive · ${findings.filter((f) => f.kind === "no-hover").length} without hover · ${findings.filter((f) => f.kind === "covered").length} covered`);
+  console.log(`${state}: ${count} interactive · ${findings.filter((f) => f.kind === "no-hover").length} without hover · ${findings.filter((f) => f.kind === "covered").length} covered · ${findings.filter((f) => f.kind === "no-pointer").length} without pointer`);
   for (const f of findings) console.log(`   ${f.kind.padEnd(8)} ${f.id}  „${f.name}”${f.covered ? "  ← under " + f.covered : ""}`);
   const under = focusedSkipped.filter((f) => f.startsWith("under"));
   for (const f of focusedSkipped.filter((x) => !x.startsWith("under"))) console.log(`   (not counted: ${f})`);
