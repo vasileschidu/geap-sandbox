@@ -20740,11 +20740,9 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       if (serviceRowEl && activeRegistry === "authorities") {
-        /* an authority row lists its services */
-        const authority = getAuthorityById(serviceRowEl.dataset.workplaceRow);
-        showServiceRegistry("services", servicesRegistryLabel);
-        workplaceState.query = authority?.name || "";
-        renderWorkplace();
+        /* aut-v1 (2026-11-02, user bug: the row opened „Configurări servicii”): an authority row opens the
+           authority's own profile (js/autoritati.js, US-89 AC-24/25) */
+        window.GEAPAutoritati?.openAuthority(serviceRowEl.dataset.workplaceRow);
         return;
       }
 
@@ -21158,6 +21156,7 @@ document.addEventListener("DOMContentLoaded", () => {
       setActiveNav, writeHash, restorePageHash, renderWorkplace, getVisibleRows, workplaceState,
       showRegistry: showProductRegistry, hideShellPages, openProfilePanel, closeProfile: closeDosarProfil,
       /* a link that lands on a registry with filters already applied (eKYC alert → Sesiuni istorice) */
+      registryFilters: (kind) => ({ ...getFilterState(kind).applied }),
       setRegistryFilters: (kind, applied) => { const st = getFilterState(kind); st.applied = { ...applied }; st.draft = null; saveFilterState(kind); },
       currentAssignment: () => getRoleAssignments().find((item) => item.id === activeAssignmentId) || null,
       els: { workplacePanel, workplaceTitle, workplaceRefresh, dosarProfilPanel, dosarProfilTitleRow, dosarProfilSummary, dosarProfilTabs, dosarProfilPanelBody },

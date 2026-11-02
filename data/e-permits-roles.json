@@ -436,13 +436,13 @@
               "id": "authorities",
               "label": "Autorități",
               "iconAsset": "assets/icons/admin-authority.svg",
-              "shellView": "authorities-registry"
+              "shellView": "autoritati-registry"
             },
             {
               "id": "subdivisions",
               "label": "Subdiviziuni",
               "iconAsset": "assets/icons/admin-subdivision.svg",
-              "shellView": "role-placeholder"
+              "shellView": "subdiviziuni-registry"
             },
             {
               "id": "classifiers",
@@ -516,6 +516,12 @@
               "id": "absente",
               "label": "Absențe",
               "shellView": "absente-registry"
+            },
+            {
+              "id": "subdivisions",
+              "label": "Subdiviziuni",
+              "iconAsset": "assets/icons/admin-subdivision.svg",
+              "shellView": "subdiviziuni-registry"
             },
             {
               "id": "classifiers",

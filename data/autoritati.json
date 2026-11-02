@@ -1,0 +1,1090 @@
+{
+  "_comment": "Administrarea autorităților și subdiviziunilor (Feature 89938, US-87…96, US-112). Seed for js/autoritati.js. source RSSP = synced (read-only except Tip + Subdiviziuni); GEAP = created manually (US-88). rssp = the mock RSSP answer per IDNO for a sync (US-87). mconnect = the mock MConnect answer per IDNO (US-88 / US-90).",
+  "lastSync": {
+    "at": "2026-11-02T03:00:12",
+    "mode": "automată"
+  },
+  "types": [
+    "Autoritatea de audit",
+    "Autoritatea de prestare servicii",
+    "Autoritatea de avizare"
+  ],
+  "subTypes": [
+    "Subdiviziune de prestare servicii",
+    "Subdiviziune de avizare"
+  ],
+  "approvedBy": [
+    "De Supervizor",
+    "De Director",
+    "De Specialist"
+  ],
+  "raioane": [
+    {
+      "name": "Municipiul Chișinău",
+      "localities": [
+        {
+          "name": "Chișinău",
+          "streets": [
+            "bd. Ștefan cel Mare și Sfânt",
+            "str. Vasile Alecsandri",
+            "str. Columna",
+            "str. Mitropolit Dosoftei",
+            "str. Cosmonauților"
+          ]
+        },
+        {
+          "name": "Durlești",
+          "streets": [
+            "str. Cartușa",
+            "str. Nicolae Testemițanu"
+          ]
+        },
+        {
+          "name": "Codru",
+          "streets": [
+            "str. Costiujeni"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Municipiul Bălți",
+      "localities": [
+        {
+          "name": "Bălți",
+          "streets": [
+            "str. Independenței",
+            "str. Ștefan cel Mare",
+            "str. 31 August 1989"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Raionul Cahul",
+      "localities": [
+        {
+          "name": "Cahul",
+          "streets": [
+            "str. Republicii",
+            "str. Mihai Viteazul"
+          ]
+        },
+        {
+          "name": "Giurgiulești",
+          "streets": [
+            "str. Portului"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Raionul Orhei",
+      "localities": [
+        {
+          "name": "Orhei",
+          "streets": [
+            "str. Vasile Lupu",
+            "str. Constantin Negruzzi"
+          ]
+        },
+        {
+          "name": "Peresecina",
+          "streets": [
+            "str. Centrală"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Raionul Ungheni",
+      "localities": [
+        {
+          "name": "Ungheni",
+          "streets": [
+            "str. Națională",
+            "str. Decebal"
+          ]
+        },
+        {
+          "name": "Sculeni",
+          "streets": [
+            "str. Prutului"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Raionul Soroca",
+      "localities": [
+        {
+          "name": "Soroca",
+          "streets": [
+            "str. Independenței"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Raionul Edineț",
+      "localities": [
+        {
+          "name": "Edineț",
+          "streets": [
+            "str. Independenței"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "UTA Găgăuzia",
+      "localities": [
+        {
+          "name": "Comrat",
+          "streets": [
+            "str. Lenin",
+            "str. Pobedî"
+          ]
+        }
+      ]
+    }
+  ],
+  "authorities": [
+    {
+      "id": "aut-ansp",
+      "idno": "1003600150066",
+      "code": "ANSP",
+      "nameRo": "Agenția Națională pentru Sănătate Publică",
+      "nameRu": "Национальное агентство общественного здоровья",
+      "nameEn": "National Agency for Public Health",
+      "descRo": "Supraveghează starea de sănătate publică și eliberează actele permisive sanitare.",
+      "descRu": "",
+      "descEn": "",
+      "address": "mun. Chișinău, str. Gheorghe Asachi 67A",
+      "email": "office@ansp.gov.md",
+      "website": "https://ansp.gov.md",
+      "lat": "47.0105",
+      "lng": "28.8148",
+      "postal": "MD-2028",
+      "phones": [
+        "+37322574501",
+        "+37322574502"
+      ],
+      "logo": {
+        "name": "ansp-logo.svg",
+        "size": "18 KB"
+      },
+      "accounts": [
+        {
+          "iban": "MD24TRPCCC518430A01427AA",
+          "bic": "TREZMD2X"
+        }
+      ],
+      "type": "Autoritatea de prestare servicii",
+      "active": true,
+      "published": true,
+      "source": "RSSP",
+      "lastSync": "2026-11-02T03:00:12",
+      "createdAt": "2026-03-04T10:12:00",
+      "createdBy": "SIA GEAP"
+    },
+    {
+      "id": "aut-lrsp",
+      "idno": "1003600150011",
+      "code": "LRSP",
+      "nameRo": "Laboratorul de Referință în Sănătate Publică",
+      "nameRu": "",
+      "nameEn": "Public Health Reference Laboratory",
+      "descRo": "",
+      "descRu": "",
+      "descEn": "",
+      "address": "mun. Chișinău, str. Gheorghe Asachi 67A",
+      "email": "lrsp@ansp.gov.md",
+      "website": "",
+      "lat": "",
+      "lng": "",
+      "postal": "MD-2028",
+      "phones": [
+        "+37322574560"
+      ],
+      "logo": null,
+      "accounts": [],
+      "type": "Autoritatea de audit",
+      "active": true,
+      "published": true,
+      "source": "RSSP",
+      "lastSync": "2026-11-02T03:00:12",
+      "createdAt": "2026-03-04T10:12:00",
+      "createdBy": "SIA GEAP"
+    },
+    {
+      "id": "aut-mec",
+      "idno": "1006601000037",
+      "code": "MEC",
+      "nameRo": "Ministerul Economiei",
+      "nameRu": "Министерство экономики",
+      "nameEn": "Ministry of Economy",
+      "descRo": "",
+      "descRu": "",
+      "descEn": "",
+      "address": "mun. Chișinău, Piața Marii Adunări Naționale 1",
+      "email": "secretariat@mec.gov.md",
+      "website": "https://mec.gov.md",
+      "lat": "47.0245",
+      "lng": "28.8322",
+      "postal": "MD-2033",
+      "phones": [
+        "+37322250500"
+      ],
+      "logo": null,
+      "accounts": [],
+      "type": "Autoritatea de prestare servicii",
+      "active": true,
+      "published": true,
+      "source": "RSSP",
+      "lastSync": "2026-11-02T03:00:12",
+      "createdAt": "2026-03-04T10:12:00",
+      "createdBy": "SIA GEAP"
+    },
+    {
+      "id": "aut-amdm",
+      "idno": "1006601000200",
+      "code": "AMDM",
+      "nameRo": "Agenția Medicamentului și Dispozitivelor Medicale",
+      "nameRu": "",
+      "nameEn": "Medicines and Medical Devices Agency",
+      "descRo": "",
+      "descRu": "",
+      "descEn": "",
+      "address": "mun. Chișinău, str. Korolenko 2/1",
+      "email": "office@amdm.gov.md",
+      "website": "https://amdm.gov.md",
+      "lat": "",
+      "lng": "",
+      "postal": "MD-2028",
+      "phones": [
+        "+37322884301"
+      ],
+      "logo": null,
+      "accounts": [],
+      "type": "Autoritatea de prestare servicii",
+      "active": true,
+      "published": true,
+      "source": "RSSP",
+      "lastSync": "2026-11-02T03:00:12",
+      "createdAt": "2026-03-04T10:12:00",
+      "createdBy": "SIA GEAP"
+    },
+    {
+      "id": "aut-am",
+      "idno": "1018601000010",
+      "code": "AM",
+      "nameRo": "Agenția de Mediu",
+      "nameRu": "Агентство окружающей среды",
+      "nameEn": "Environmental Agency",
+      "descRo": "",
+      "descRu": "",
+      "descEn": "",
+      "address": "mun. Chișinău, str. Mitropolit Dosoftei 156A",
+      "email": "office@am.gov.md",
+      "website": "https://am.gov.md",
+      "lat": "",
+      "lng": "",
+      "postal": "MD-2004",
+      "phones": [
+        "+37322204300"
+      ],
+      "logo": null,
+      "accounts": [],
+      "type": "Autoritatea de avizare",
+      "active": true,
+      "published": true,
+      "source": "RSSP",
+      "lastSync": "2026-11-02T03:00:12",
+      "createdAt": "2026-03-04T10:12:00",
+      "createdBy": "SIA GEAP"
+    },
+    {
+      "id": "aut-ansa",
+      "idno": "1013601000123",
+      "code": "ANSA",
+      "nameRo": "Agenția Națională pentru Siguranța Alimentelor",
+      "nameRu": "",
+      "nameEn": "",
+      "descRo": "",
+      "descRu": "",
+      "descEn": "",
+      "address": "mun. Chișinău, str. Mihail Kogălniceanu 63",
+      "email": "info@ansa.gov.md",
+      "website": "https://ansa.gov.md",
+      "lat": "",
+      "lng": "",
+      "postal": "MD-2009",
+      "phones": [
+        "+37322264646"
+      ],
+      "logo": null,
+      "accounts": [],
+      "type": "Autoritatea de prestare servicii",
+      "active": true,
+      "published": true,
+      "source": "RSSP",
+      "lastSync": "2026-11-02T03:00:12",
+      "createdAt": "2026-03-04T10:12:00",
+      "createdBy": "SIA GEAP"
+    },
+    {
+      "id": "aut-inm",
+      "idno": "1003600087341",
+      "code": "INM",
+      "nameRo": "Institutul Național de Metrologie",
+      "nameRu": "",
+      "nameEn": "National Institute of Metrology",
+      "descRo": "",
+      "descRu": "",
+      "descEn": "",
+      "address": "mun. Chișinău, str. Eugen Coca 28",
+      "email": "info@inm.gov.md",
+      "website": "https://inm.gov.md",
+      "lat": "",
+      "lng": "",
+      "postal": "MD-2064",
+      "phones": [
+        "+37322903101"
+      ],
+      "logo": null,
+      "accounts": [],
+      "type": "Autoritatea de prestare servicii",
+      "active": true,
+      "published": true,
+      "source": "RSSP",
+      "lastSync": "2026-11-02T03:00:12",
+      "createdAt": "2026-03-04T10:12:00",
+      "createdBy": "SIA GEAP"
+    },
+    {
+      "id": "aut-anta",
+      "idno": "1012601000117",
+      "code": "ANTA",
+      "nameRo": "Agenția Națională Transport Auto",
+      "nameRu": "",
+      "nameEn": "National Road Transport Agency",
+      "descRo": "",
+      "descRu": "",
+      "descEn": "",
+      "address": "mun. Chișinău, bd. Dacia 80/3",
+      "email": "office@anta.gov.md",
+      "website": "https://anta.gov.md",
+      "lat": "",
+      "lng": "",
+      "postal": "MD-2026",
+      "phones": [
+        "+37322740121"
+      ],
+      "logo": null,
+      "accounts": [],
+      "type": "Autoritatea de prestare servicii",
+      "active": true,
+      "published": true,
+      "source": "RSSP",
+      "lastSync": "2026-11-02T03:00:12",
+      "createdAt": "2026-03-04T10:12:00",
+      "createdBy": "SIA GEAP"
+    },
+    {
+      "id": "aut-asp",
+      "idno": "1017601000212",
+      "code": "ASP",
+      "nameRo": "Agenția Servicii Publice",
+      "nameRu": "",
+      "nameEn": "Public Services Agency",
+      "descRo": "",
+      "descRu": "",
+      "descEn": "",
+      "address": "mun. Chișinău, str. Puškin 42",
+      "email": "office@asp.gov.md",
+      "website": "https://asp.gov.md",
+      "lat": "",
+      "lng": "",
+      "postal": "MD-2012",
+      "phones": [
+        "+37322504504"
+      ],
+      "logo": null,
+      "accounts": [],
+      "type": "Autoritatea de prestare servicii",
+      "active": true,
+      "published": true,
+      "source": "RSSP",
+      "lastSync": "2026-11-02T03:00:12",
+      "createdAt": "2026-03-04T10:12:00",
+      "createdBy": "SIA GEAP"
+    },
+    {
+      "id": "aut-igsu",
+      "idno": "1006601000150",
+      "code": "IGSU",
+      "nameRo": "Inspectoratul General pentru Situații de Urgență",
+      "nameRu": "",
+      "nameEn": "",
+      "descRo": "Avizează proiectele din punctul de vedere al securității la incendiu.",
+      "descRu": "",
+      "descEn": "",
+      "address": "mun. Chișinău, str. Gheorghe Asachi 69",
+      "email": "dse@dse.md",
+      "website": "https://dse.md",
+      "lat": "",
+      "lng": "",
+      "postal": "MD-2028",
+      "phones": [
+        "+37322733000"
+      ],
+      "logo": null,
+      "accounts": [],
+      "type": "Autoritatea de avizare",
+      "active": true,
+      "published": true,
+      "source": "GEAP",
+      "lastSync": null,
+      "createdAt": "2026-05-12T09:40:00",
+      "createdBy": "Vasile Schidu"
+    },
+    {
+      "id": "aut-pmc",
+      "idno": "1007601010220",
+      "code": "PMC",
+      "nameRo": "Primăria municipiului Chișinău",
+      "nameRu": "",
+      "nameEn": "Chișinău City Hall",
+      "descRo": "",
+      "descRu": "",
+      "descEn": "",
+      "address": "mun. Chișinău, bd. Ștefan cel Mare și Sfânt 83",
+      "email": "office@pmc.md",
+      "website": "https://chisinau.md",
+      "lat": "47.0263",
+      "lng": "28.8352",
+      "postal": "MD-2012",
+      "phones": [
+        "+37322201401"
+      ],
+      "logo": null,
+      "accounts": [
+        {
+          "iban": "MD18TRPCCC518430A00203AA",
+          "bic": "TREZMD2X"
+        }
+      ],
+      "type": "Autoritatea de prestare servicii",
+      "active": true,
+      "published": true,
+      "source": "GEAP",
+      "lastSync": null,
+      "createdAt": "2026-06-02T14:20:00",
+      "createdBy": "Anastasia Cojocaru"
+    },
+    {
+      "id": "aut-anre",
+      "idno": "1003600101236",
+      "code": "ANRE",
+      "nameRo": "Agenția Națională pentru Reglementare în Energetică",
+      "nameRu": "",
+      "nameEn": "",
+      "descRo": "",
+      "descRu": "",
+      "descEn": "",
+      "address": "mun. Chișinău, str. Columna 90",
+      "email": "anre@anre.md",
+      "website": "",
+      "lat": "",
+      "lng": "",
+      "postal": "",
+      "phones": [
+        "+37322852901"
+      ],
+      "logo": null,
+      "accounts": [],
+      "type": "Autoritatea de prestare servicii",
+      "active": true,
+      "published": false,
+      "source": "GEAP",
+      "mconnectMissing": [
+        "address"
+      ],
+      "lastSync": null,
+      "createdAt": "2026-10-28T11:05:00",
+      "createdBy": "Vasile Schidu"
+    },
+    {
+      "id": "aut-ccv",
+      "idno": "1004600062281",
+      "code": "CC",
+      "nameRo": "Consiliul Concurenței",
+      "nameRu": "",
+      "nameEn": "Competition Council",
+      "descRo": "",
+      "descRu": "",
+      "descEn": "",
+      "address": "mun. Chișinău, str. Alexei Mateevici 109/1",
+      "email": "office@competition.md",
+      "website": "https://competition.md",
+      "lat": "",
+      "lng": "",
+      "postal": "MD-2009",
+      "phones": [
+        "+37322243041"
+      ],
+      "logo": null,
+      "accounts": [],
+      "type": "Autoritatea de audit",
+      "active": false,
+      "published": true,
+      "source": "GEAP",
+      "lastSync": null,
+      "createdAt": "2026-04-18T16:00:00",
+      "createdBy": "Vasile Schidu"
+    }
+  ],
+  "subdivisions": [
+    {
+      "id": "sub-ansp-central",
+      "authorityId": "aut-ansp",
+      "name": "Administrația centrală",
+      "nameEn": "Central administration",
+      "nameRu": "Центральный аппарат",
+      "type": "Subdiviziune de prestare servicii",
+      "prefix": "ANSP-C",
+      "active": true,
+      "raion": "Municipiul Chișinău",
+      "localitate": "Chișinău",
+      "strada": "str. Columna",
+      "casa": "67A",
+      "bloc": "",
+      "etaj": "",
+      "oficiu": "",
+      "postal": "MD-2028",
+      "approvedBy": "De Director",
+      "phone": "+37322574501",
+      "email": "central@ansp.gov.md",
+      "raioane": [
+        "Municipiul Chișinău"
+      ]
+    },
+    {
+      "id": "sub-csp-chisinau",
+      "authorityId": "aut-ansp",
+      "name": "CSP Chișinău",
+      "nameEn": "Public Health Centre Chișinău",
+      "nameRu": "ЦОЗ Кишинэу",
+      "type": "Subdiviziune de prestare servicii",
+      "prefix": "CSP-CH",
+      "active": true,
+      "raion": "Municipiul Chișinău",
+      "localitate": "Chișinău",
+      "strada": "str. Cosmonauților",
+      "casa": "6",
+      "bloc": "",
+      "etaj": "2",
+      "oficiu": "214",
+      "postal": "MD-2005",
+      "approvedBy": "De Supervizor",
+      "phone": "+37322726300",
+      "email": "csp.chisinau@ansp.gov.md",
+      "raioane": [
+        "Municipiul Chișinău",
+        "Raionul Orhei"
+      ]
+    },
+    {
+      "id": "sub-csp-balti",
+      "authorityId": "aut-ansp",
+      "name": "CSP Bălți",
+      "nameEn": "Public Health Centre Bălți",
+      "nameRu": "ЦОЗ Бельцы",
+      "type": "Subdiviziune de prestare servicii",
+      "prefix": "CSP-BL",
+      "active": true,
+      "raion": "Municipiul Bălți",
+      "localitate": "Bălți",
+      "strada": "str. Independenței",
+      "casa": "1",
+      "bloc": "",
+      "etaj": "",
+      "oficiu": "",
+      "postal": "MD-3100",
+      "approvedBy": "De Supervizor",
+      "phone": "+37323122110",
+      "email": "csp.balti@ansp.gov.md",
+      "raioane": [
+        "Municipiul Bălți",
+        "Raionul Soroca",
+        "Raionul Edineț"
+      ]
+    },
+    {
+      "id": "sub-csp-cahul",
+      "authorityId": "aut-ansp",
+      "name": "CSP Cahul",
+      "nameEn": "Public Health Centre Cahul",
+      "nameRu": "ЦОЗ Кагул",
+      "type": "Subdiviziune de prestare servicii",
+      "prefix": "CSP-CA",
+      "active": true,
+      "raion": "Raionul Cahul",
+      "localitate": "Cahul",
+      "strada": "str. Republicii",
+      "casa": "10",
+      "bloc": "",
+      "etaj": "",
+      "oficiu": "",
+      "postal": "MD-3909",
+      "approvedBy": "De Specialist",
+      "phone": "+37329923450",
+      "email": "",
+      "raioane": [
+        "Raionul Cahul",
+        "UTA Găgăuzia"
+      ]
+    },
+    {
+      "id": "sub-csp-orhei",
+      "authorityId": "aut-ansp",
+      "name": "CSP Orhei",
+      "nameEn": "Public Health Centre Orhei",
+      "nameRu": "ЦОЗ Орхей",
+      "type": "Subdiviziune de prestare servicii",
+      "prefix": "",
+      "active": false,
+      "inactiveCause": "manual",
+      "raion": "Raionul Orhei",
+      "localitate": "Orhei",
+      "strada": "",
+      "casa": "",
+      "bloc": "",
+      "etaj": "",
+      "oficiu": "",
+      "postal": "",
+      "approvedBy": "De Supervizor",
+      "phone": "",
+      "email": "",
+      "raioane": []
+    },
+    {
+      "id": "sub-anta-central",
+      "authorityId": "aut-anta",
+      "name": "Administrația centrală",
+      "nameEn": "Central administration",
+      "nameRu": "Центральный аппарат",
+      "type": "Subdiviziune de prestare servicii",
+      "prefix": "ANTA",
+      "active": true,
+      "raion": "Municipiul Chișinău",
+      "localitate": "Chișinău",
+      "strada": "",
+      "casa": "",
+      "bloc": "",
+      "etaj": "",
+      "oficiu": "",
+      "postal": "MD-2026",
+      "approvedBy": "De Director",
+      "phone": "+37322740121",
+      "email": "",
+      "raioane": []
+    },
+    {
+      "id": "sub-anta-nord",
+      "authorityId": "aut-anta",
+      "name": "Direcția regională Nord",
+      "nameEn": "North regional directorate",
+      "nameRu": "Северное управление",
+      "type": "Subdiviziune de prestare servicii",
+      "prefix": "ANTA-N",
+      "active": true,
+      "raion": "Municipiul Bălți",
+      "localitate": "Bălți",
+      "strada": "str. 31 August 1989",
+      "casa": "12",
+      "bloc": "",
+      "etaj": "",
+      "oficiu": "",
+      "postal": "",
+      "approvedBy": "De Supervizor",
+      "phone": "",
+      "email": "nord@anta.gov.md",
+      "raioane": [
+        "Municipiul Bălți",
+        "Raionul Soroca"
+      ]
+    },
+    {
+      "id": "sub-anta-sud",
+      "authorityId": "aut-anta",
+      "name": "Direcția regională Sud",
+      "nameEn": "South regional directorate",
+      "nameRu": "Южное управление",
+      "type": "Subdiviziune de prestare servicii",
+      "prefix": "ANTA-S",
+      "active": true,
+      "raion": "Raionul Cahul",
+      "localitate": "Cahul",
+      "strada": "",
+      "casa": "",
+      "bloc": "",
+      "etaj": "",
+      "oficiu": "",
+      "postal": "",
+      "approvedBy": "De Supervizor",
+      "phone": "",
+      "email": "",
+      "raioane": [
+        "Raionul Cahul"
+      ]
+    },
+    {
+      "id": "sub-asp-central",
+      "authorityId": "aut-asp",
+      "name": "Aparatul central",
+      "nameEn": "Central office",
+      "nameRu": "Центральный аппарат",
+      "type": "Subdiviziune de prestare servicii",
+      "prefix": "ASP",
+      "active": true,
+      "raion": "Municipiul Chișinău",
+      "localitate": "Chișinău",
+      "strada": "",
+      "casa": "42",
+      "bloc": "",
+      "etaj": "",
+      "oficiu": "",
+      "postal": "MD-2012",
+      "approvedBy": "De Director",
+      "phone": "+37322504504",
+      "email": "",
+      "raioane": []
+    },
+    {
+      "id": "sub-asp-cm",
+      "authorityId": "aut-asp",
+      "name": "Centrul multifuncțional Chișinău",
+      "nameEn": "One-stop centre Chișinău",
+      "nameRu": "Многофункциональный центр Кишинэу",
+      "type": "Subdiviziune de prestare servicii",
+      "prefix": "ASP-CM",
+      "active": true,
+      "raion": "Municipiul Chișinău",
+      "localitate": "Chișinău",
+      "strada": "str. Vasile Alecsandri",
+      "casa": "1",
+      "bloc": "",
+      "etaj": "",
+      "oficiu": "",
+      "postal": "",
+      "approvedBy": "De Specialist",
+      "phone": "",
+      "email": "",
+      "raioane": [
+        "Municipiul Chișinău"
+      ]
+    },
+    {
+      "id": "sub-am-centru",
+      "authorityId": "aut-am",
+      "name": "Inspecția de mediu Centru",
+      "nameEn": "Environmental inspection Centre",
+      "nameRu": "Экологическая инспекция Центр",
+      "type": "Subdiviziune de avizare",
+      "prefix": "AM-C",
+      "active": true,
+      "raion": "Municipiul Chișinău",
+      "localitate": "Chișinău",
+      "strada": "str. Mitropolit Dosoftei",
+      "casa": "156A",
+      "bloc": "",
+      "etaj": "",
+      "oficiu": "",
+      "postal": "MD-2004",
+      "approvedBy": "De Supervizor",
+      "phone": "+37322204310",
+      "email": "centru@am.gov.md",
+      "raioane": [
+        "Municipiul Chișinău",
+        "Raionul Orhei",
+        "Raionul Ungheni"
+      ]
+    },
+    {
+      "id": "sub-am-nord",
+      "authorityId": "aut-am",
+      "name": "Inspecția de mediu Nord",
+      "nameEn": "Environmental inspection North",
+      "nameRu": "Экологическая инспекция Север",
+      "type": "Subdiviziune de avizare",
+      "prefix": "AM-N",
+      "active": true,
+      "raion": "Municipiul Bălți",
+      "localitate": "Bălți",
+      "strada": "",
+      "casa": "",
+      "bloc": "",
+      "etaj": "",
+      "oficiu": "",
+      "postal": "",
+      "approvedBy": "De Supervizor",
+      "phone": "",
+      "email": "",
+      "raioane": [
+        "Municipiul Bălți"
+      ]
+    },
+    {
+      "id": "sub-am-sud",
+      "authorityId": "aut-am",
+      "name": "Inspecția de mediu Sud",
+      "nameEn": "Environmental inspection South",
+      "nameRu": "Экологическая инспекция Юг",
+      "type": "Subdiviziune de avizare",
+      "prefix": "AM-S",
+      "active": true,
+      "raion": "Raionul Cahul",
+      "localitate": "Cahul",
+      "strada": "",
+      "casa": "",
+      "bloc": "",
+      "etaj": "",
+      "oficiu": "",
+      "postal": "",
+      "approvedBy": "De Supervizor",
+      "phone": "",
+      "email": "",
+      "raioane": [
+        "Raionul Cahul"
+      ]
+    },
+    {
+      "id": "sub-igsu-ch",
+      "authorityId": "aut-igsu",
+      "name": "Direcția SU Chișinău",
+      "nameEn": "Emergency Directorate Chișinău",
+      "nameRu": "Управление ЧС Кишинэу",
+      "type": "Subdiviziune de avizare",
+      "prefix": "SU-CH",
+      "active": true,
+      "raion": "Municipiul Chișinău",
+      "localitate": "Chișinău",
+      "strada": "",
+      "casa": "69",
+      "bloc": "",
+      "etaj": "",
+      "oficiu": "",
+      "postal": "",
+      "approvedBy": "De Supervizor",
+      "phone": "",
+      "email": "",
+      "raioane": [
+        "Municipiul Chișinău"
+      ]
+    },
+    {
+      "id": "sub-igsu-bl",
+      "authorityId": "aut-igsu",
+      "name": "Direcția SU Bălți",
+      "nameEn": "Emergency Directorate Bălți",
+      "nameRu": "Управление ЧС Бельцы",
+      "type": "Subdiviziune de avizare",
+      "prefix": "SU-BL",
+      "active": true,
+      "raion": "Municipiul Bălți",
+      "localitate": "Bălți",
+      "strada": "",
+      "casa": "",
+      "bloc": "",
+      "etaj": "",
+      "oficiu": "",
+      "postal": "",
+      "approvedBy": "De Supervizor",
+      "phone": "",
+      "email": "",
+      "raioane": [
+        "Municipiul Bălți"
+      ]
+    },
+    {
+      "id": "sub-mec-lic",
+      "authorityId": "aut-mec",
+      "name": "Direcția licențiere",
+      "nameEn": "Licensing directorate",
+      "nameRu": "Управление лицензирования",
+      "type": "Subdiviziune de prestare servicii",
+      "prefix": "MEC-L",
+      "active": true,
+      "raion": "Municipiul Chișinău",
+      "localitate": "Chișinău",
+      "strada": "",
+      "casa": "",
+      "bloc": "",
+      "etaj": "",
+      "oficiu": "",
+      "postal": "",
+      "approvedBy": "De Director",
+      "phone": "",
+      "email": "",
+      "raioane": []
+    },
+    {
+      "id": "sub-inm-lab",
+      "authorityId": "aut-inm",
+      "name": "Laboratorul de metrologie legală",
+      "nameEn": "Legal metrology laboratory",
+      "nameRu": "Лаборатория законодательной метрологии",
+      "type": "Subdiviziune de prestare servicii",
+      "prefix": "INM-L",
+      "active": true,
+      "raion": "Municipiul Chișinău",
+      "localitate": "Chișinău",
+      "strada": "",
+      "casa": "28",
+      "bloc": "",
+      "etaj": "",
+      "oficiu": "",
+      "postal": "",
+      "approvedBy": "De Supervizor",
+      "phone": "",
+      "email": "",
+      "raioane": []
+    },
+    {
+      "id": "sub-inm-nord",
+      "authorityId": "aut-inm",
+      "name": "Filiala Nord",
+      "nameEn": "North branch",
+      "nameRu": "Северный филиал",
+      "type": "Subdiviziune de prestare servicii",
+      "prefix": "INM-N",
+      "active": true,
+      "raion": "Municipiul Bălți",
+      "localitate": "Bălți",
+      "strada": "",
+      "casa": "",
+      "bloc": "",
+      "etaj": "",
+      "oficiu": "",
+      "postal": "",
+      "approvedBy": "De Supervizor",
+      "phone": "",
+      "email": "",
+      "raioane": []
+    },
+    {
+      "id": "sub-ccv-ctrl",
+      "authorityId": "aut-ccv",
+      "name": "Direcția control",
+      "nameEn": "Control directorate",
+      "nameRu": "Управление контроля",
+      "type": "Subdiviziune de prestare servicii",
+      "prefix": "",
+      "active": false,
+      "inactiveCause": "authority",
+      "raion": "Municipiul Chișinău",
+      "localitate": "Chișinău",
+      "strada": "",
+      "casa": "",
+      "bloc": "",
+      "etaj": "",
+      "oficiu": "",
+      "postal": "",
+      "approvedBy": "De Director",
+      "phone": "",
+      "email": "",
+      "raioane": []
+    },
+    {
+      "id": "sub-ccv-arhiva",
+      "authorityId": "aut-ccv",
+      "name": "Serviciul arhivă",
+      "nameEn": "Archive service",
+      "nameRu": "Архивная служба",
+      "type": "Subdiviziune de prestare servicii",
+      "prefix": "",
+      "active": false,
+      "inactiveCause": "manual",
+      "raion": "Municipiul Chișinău",
+      "localitate": "Chișinău",
+      "strada": "",
+      "casa": "",
+      "bloc": "",
+      "etaj": "",
+      "oficiu": "",
+      "postal": "",
+      "approvedBy": "De Supervizor",
+      "phone": "",
+      "email": "",
+      "raioane": []
+    }
+  ],
+  "rssp": {
+    "1006601000037": {
+      "changes": {
+        "website": "https://mec.gov.md/ro",
+        "phones": [
+          "+37322250500",
+          "+37322250501"
+        ]
+      }
+    },
+    "1013601000123": {
+      "changes": {
+        "email": "office@ansa.gov.md",
+        "nameEn": "National Food Safety Agency"
+      }
+    },
+    "1003600087341": {
+      "changes": {
+        "active": false
+      }
+    },
+    "1006601000150": {
+      "changes": {
+        "nameRo": "Inspectoratul General pentru Situații de Urgență al MAI",
+        "code": "IGSU",
+        "address": "mun. Chișinău, str. Gheorghe Asachi 69"
+      }
+    },
+    "1017601000212": {
+      "error": "Răspuns invalid de la RSSP: câmpul Telefon nu are formatul E.164"
+    },
+    "1004600062281": {
+      "changes": {
+        "active": true
+      }
+    }
+  },
+  "mconnect": {
+    "1003600101236": {
+      "nameRo": "Agenția Națională pentru Reglementare în Energetică",
+      "code": "ANRE"
+    },
+    "1002600031114": {
+      "nameRo": "Agenția pentru Supraveghere Tehnică",
+      "code": "AST",
+      "address": "mun. Chișinău, str. Mihail Kogălniceanu 78"
+    },
+    "1009600012345": {
+      "nameRo": "Inspectoratul de Stat al Muncii"
+    },
+    "1006601000150": {
+      "nameRo": "Inspectoratul General pentru Situații de Urgență",
+      "code": "IGSU",
+      "address": "mun. Chișinău, str. Gheorghe Asachi 69"
+    },
+    "1007601010220": {
+      "nameRo": "Primăria municipiului Chișinău",
+      "code": "PMC",
+      "address": "mun. Chișinău, bd. Ștefan cel Mare și Sfânt 83"
+    },
+    "1004600062281": {
+      "nameRo": "Consiliul Concurenței",
+      "code": "CC",
+      "address": "mun. Chișinău, str. Alexei Mateevici 109/1"
+    }
+  }
+}

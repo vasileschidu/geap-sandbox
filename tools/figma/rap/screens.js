@@ -96,9 +96,30 @@ const listScreen = async (S, mobile) => {
   setP(se, { "Clear Button": !!S.search.value, Placeholder: S.search.value || S.search.placeholder }); tb.appendChild(se);
   if (mobile) se.layoutSizingHorizontal = "FILL"; else se.resize(387, se.height);
   let fb = null;
-  if (!S.filter.hidden) { const fbSet = await getL("filterBtn");
-  fb = fbSet.children.find(c => c.name === `Type=${mobile ? "Icon only" : "Label"}, State=${S.filter.expanded ? "Open" : "Default"}, Count=${S.filter.count ? "On" : "Off"}`).createInstance(); fb.name = "Filtru"; tb.appendChild(fb);
-  if (S.filter.count) { const cnt = nested(fb, n => n.type === "INSTANCE" && n.name === "Count"); setP(cnt, { "Counter Value": String(S.filter.count) }); } }
+  // „Filtru” / „Filtre” trigger = the library filter-chip (Components lk-03f6 9901c458), Mode=Off + Leading, icon
+  // „filter-2, sort”; only height (40 desktop / 48 phones) and radius (radius-6 = the Medium Button) overridden; open =
+  // State=Focus; active = the Mode=On paints + Counter Badge (library gap: no On + icon + count variant). 2026-10-21
+  const filterChip = async ({ label, h, focus, count }) => {
+    const set = await figma.importComponentSetByKeyAsync("9901c4588e6e177c05302554597d7b4324d9fdc1");
+    const V = (n) => set.children.find(c => c.name === n);
+    const c = V(`🎚️ Mode=Off, 🎚️ State=${focus ? "Focus" : "Default"}, 📍 Icon=Leading`).createInstance();
+    const onN = V("🎚️ Mode=On, 🎚️ State=Default, 📍 Icon=None"), onL = V("🎚️ Mode=On, 🎚️ State=Default, 📍 Icon=Leading");
+    const P = {}; for (const k of Object.keys(c.componentProperties)) { if (k.startsWith("⌨️ Label")) P[k] = label; if (k.startsWith("👁️ Counter Badge")) P[k] = !!count; if (k.startsWith("👁️ Indicator")) P[k] = false; }
+    c.setProperties(P); c.name = "Filter chip";
+    const ic = c.children.find(x => x.type === "INSTANCE" && !/notification/.test(x.name)); const keep = JSON.parse(JSON.stringify(ic.children[0].fills));
+    ic.swapComponent(await figma.importComponentByKeyAsync("7b2354831ab59c47c20f73c7e60b3e601c1460fb"));
+    ic.children[0].fills = count ? JSON.parse(JSON.stringify(onL.children.find(x => x.type === "INSTANCE").children[0].fills)) : keep;
+    if (count) {
+      c.fills = JSON.parse(JSON.stringify(onN.fills));
+      const lab = c.children.find(x => x.type === "TEXT"); await figma.loadFontAsync(lab.fontName); lab.fills = JSON.parse(JSON.stringify(onN.children.find(x => x.type === "TEXT").fills));
+      const bt = c.findOne(x => x.type === "TEXT" && x.name === "Badge label"); await figma.loadFontAsync(bt.fontName); bt.characters = String(count);
+    }
+    const r6 = await figma.variables.importVariableByKeyAsync("5c211831294ec4aee7827d006133784193921c22");
+    for (const k of ["topLeftRadius", "topRightRadius", "bottomLeftRadius", "bottomRightRadius"]) c.setBoundVariable(k, r6);
+    return c;
+  };
+  if (!S.filter.hidden) { fb = await filterChip({ label: "Filtru", h: 40, focus: !!S.filter.expanded, count: S.filter.count }); tb.appendChild(fb);
+    fb.resize(fb.width, 40); fb.layoutSizingVertical = "FIXED"; fb.layoutSizingHorizontal = "HUG"; }
   // facet bar
   let chipNodes = {};
   const chip = async (ch) => {
@@ -110,10 +131,12 @@ const listScreen = async (S, mobile) => {
     chipNodes[ch.label] = c; return c;
   };
   if (S.bar && S.bar.sheets) {
-    const fr = await AL("Filter chips (phone)", "VERTICAL", { gap: 4, pad: [12, 0, 4, 0] }); put(main, fr, { fillW: true });
+    const fr = await AL("Filter chips (phone)", "VERTICAL", { gap: 4, pad: [16, 0, 4, 0] }); put(main, fr, { fillW: true });
     const sc = await AL("Chip row · horizontal scroll", "HORIZONTAL", { pad: [0, 0, 0, 16] }); put(fr, sc, { fillW: true }); sc.clipsContent = true; sc.counterAxisSizingMode = "AUTO";
     const row = await AL("Chips", "HORIZONTAL", { gap: 8, align: "CENTER" }); sc.appendChild(row);
-    for (const ch of S.bar.chips) row.appendChild(await chip(ch));
+    // phones: ONE „Filtre” chip (no facet chips — they live in the bottom sheet; user 2026-10-21, code phone-toolbar-v2)
+    { const all = S.bar.chips.find(c => c.all) || { label: "Filtre" }; const fc = await filterChip({ label: all.label, h: 48, focus: !!(all.open || S.filter.expanded), count: all.n });
+      row.appendChild(fc); fc.resize(fc.width, 48); fc.layoutSizingVertical = "FIXED"; fc.layoutSizingHorizontal = "HUG"; }
     if (S.bar.meta.length) { const meta = await AL("Meta", "HORIZONTAL", { gap: 8, align: "CENTER", pad: [0, 16, 0, 16] }); meta.minHeight = 32; put(fr, meta, { fillW: true });
       for (const m of S.bar.meta) { if (m.k === "text-span") meta.appendChild(await TX(m.t, "small", "text/base/tertiary", { name: "Meta text" })); else { const b = await inst("btnTC", { Style: "Strict", Icon: "None", Size: "Small", State: "Default" }); setP(b, { Label: m.t }); b.name = m.t; meta.appendChild(b); } } }
   } else if (S.bar) {
@@ -173,25 +196,12 @@ const listScreen = async (S, mobile) => {
       rowsOut.push(ri.id);
     }
     if (mobile) { sc.primaryAxisSizingMode = "AUTO"; }
-    // pagination
-    const pg = await AL("Pagination", "HORIZONTAL", { align: "CENTER", pad: mobile ? [16, 16, 16, 16] : [12, 16, 12, 16] }); put(reg, pg, { fillW: true }); pg.primaryAxisAlignItems = "SPACE_BETWEEN";
-    if (!mobile) {
-      const left = await AL("Summary", "HORIZONTAL", { gap: 24, align: "CENTER" }); pg.appendChild(left);
-      const st = await TX(S.summary, "small", "text/base/secondary", { name: "Results" }); left.appendChild(st);
-      const m = S.summary.match(/^Showing (\d+) to (\d+) of (\d+) results$/); if (m) { const s500 = await L.ts("small500"); await figma.loadFontAsync(s500.fontName); let pos = 0; for (const num of [m[1], m[2], m[3]]) { const at = S.summary.indexOf(" " + num, pos) + 1; await st.setRangeTextStyleIdAsync(at, at + num.length, s500.id); st.setRangeFills(at, at + num.length, [await L.paint(st, "text/base/default")]); pos = at + num.length; } }
-      const size = await AL("Rows per page", "HORIZONTAL", { gap: 8, align: "CENTER" }); left.appendChild(size);
-      size.appendChild(await TX("Rows per page:", "small", "text/base/secondary", { name: "Label" }));
-      const sel = await inst("select", { Style: "Default", State: "Filled", Size: "Medium" }); setP(sel, { Label: false, Placeholder: S.pageSize || "16" }); sel.resize(69, sel.height); sel.name = "Rows per page select"; size.appendChild(sel);
-    }
-    const pgn = await inst("pagination", { Breakpoint: "Desktop" }); pgn.name = "Pager"; pg.appendChild(pgn);
-    const cont = pgn.children.find(c => c.name === "Container");
-    const pages = (S.pages || []).filter(p => /^\d+$/.test(p.t));
-    if (mobile || !pages.length) { cont.visible = false; pgn.layoutSizingHorizontal = "FILL"; pgn.primaryAxisAlignItems = "SPACE_BETWEEN"; }
-    else cont.children.forEach((it, i) => { it.visible = i < pages.length; if (i < pages.length) { setP(it, { Type: pages[i].active ? "Selected" : "Unselected" }); } });
-    const prev = pgn.children[0], next = pgn.children[pgn.children.length - 1];
-    const dir = (S.pages || []).filter(p => !/^\d+$/.test(p.t));
-    if (dir[0] && dir[0].disabled) setP(prev, { State: "Disabled" });
-    if (dir[1] && dir[1].disabled) setP(next, { State: "Disabled" });
+    // pagination = local „Pager · compact” 22396:14841 (rap-table-flat + pager-compact-v2, 2026-10-23): desktop range · „Acte pe
+    // pagină: [16 ⌄]” · ‹ 1 2 3 … N ›; phones only „Anterior” / „Următor”; host 16 0 (phones 16), under the table's last line
+    const pg = await AL("Pagination", "HORIZONTAL", { align: "CENTER", pad: mobile ? [16, 16, 16, 16] : [16, 0, 16, 0] }); put(reg, pg, { fillW: true });
+    const pset = await figma.getNodeByIdAsync("22396:14841");
+    const pgn = pset.children.find(c => c.name === (mobile ? "Screen=Phone" : "Screen=Desktop")).createInstance(); pgn.name = "Pager"; pg.appendChild(pgn); pgn.layoutSizingHorizontal = "FILL";
+    // per-state numbers (total / last page) = overrides on Range + the last page item (see tools/figma/rap-table-flat/blocks.js)
   } else if (S.empty) {
     const eHost = mobile ? await AL("Empty inset", "VERTICAL", { pad: [S.bar && S.bar.sheets ? 16 : 0, 16, 0, 16] }) : inset; if (mobile) put(main, eHost, { fillW: true });
     const es = (await getL("empty")).children.find(c => c.name === "Style=Box").createInstance(); es.name = "Empty state"; put(eHost, es, { fillW: true });
@@ -209,7 +219,7 @@ const listScreen = async (S, mobile) => {
     if (!pc) { const base = await getL("popover"); pc = base.clone(); sec.appendChild(pc); pc.name = name; pc.x = base.x + 320 * (sec.children.filter(c => c.name.startsWith("Facet filter · popover ·")).length); pc.y = base.y;
       const list = pc.children.find(c => c.name === "Options"); for (const c of [...list.children]) c.remove();
       if (S.pop.search) { const hd = await AL("Head", "VERTICAL", { pad: [8, 8, 0, 8] }); pc.insertChild(0, hd); hd.layoutSizingHorizontal = "FILL"; const se = await inst("search", { State: "Default", Size: "Medium", Button: "False" }); setP(se, { "Clear Button": false, Placeholder: S.pop.search }); put(hd, se, { fillW: true }); }
-      const opts = await getL("facetOpt"); for (const o of S.pop.options) { const i = opts.children.find(x => x.name === "Content=Text, State=Default, Size=Popover").createInstance(); i.name = "Option · " + o.v; put(list, i, { fillW: true }); setP(i, { Value: o.v }); i.isExposedInstance = true; }
+      const opts = await getL("facetOpt"); for (const o of S.pop.options) { const i = opts.children.find(x => x.name === "Content=Text, State=Default, Size=Desktop").createInstance(); i.name = "Option · " + o.v; put(list, i, { fillW: true }); setP(i, { Value: o.v }); i.isExposedInstance = true; }
       pc.description = "Facet popover for " + S.pop.label + (S.pop.search ? " (search above the list: facet with > 7 values)" : "") + ". Same surface as Facet filter · popover."; }
     S.pop._comp = pc.id;
   }

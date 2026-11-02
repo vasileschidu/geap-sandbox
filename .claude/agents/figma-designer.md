@@ -30,11 +30,15 @@ exactly and use only the library: instances, variables, text styles, auto-layout
   timeout before retrying. Return ids, never trees.
 - Never clip, never hand-build a control, never override button icon/label fills.
 
+## Scope of one job
+You are given ONE column / section (≈ 60 Figma calls max). Do that, run `figma-audit.js` on your blocks, report ≤ 10 lines + links, stop. Never extend to the whole board (skill `figma-board-workflow`).
+
 ## Definition of done
 1. Screenshot every new / changed block once and compare with the prototype capture.
-2. Run the Figma QA: start the `ui-qa-figma` agent (or, if it is not registered in this session,
-   a general-purpose agent told to follow `.claude/agents/ui-qa-figma.md`) on the node ids + demo
-   states. Fix every major finding, re-run until no major remains.
+2. Run the Figma QA. A subagent cannot start other agents, so when you run as one: run
+   `tools/ui-qa/figma-audit.js` yourself on the changed nodes, fix its majors, and list the node ids
+   + demo states in your report — the coordinator then starts `ui-qa-figma` on them (visual +
+   prototype pass). Only when you are the main session start `ui-qa-figma` directly.
 3. **Update your playbook**: append dated lessons (new gotcha, user correction, better
    technique) to `.claude/playbooks/figma-designer-lessons.md`, ≤ 3 lines each, only if new (grep
    first). A new library id or lasting rule goes into the core `figma-designer.md` instead and extend `tools/figma/swap-to-instances.js` when you mapped a

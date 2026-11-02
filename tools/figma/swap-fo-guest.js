@@ -265,7 +265,7 @@ for (const rid of ROOTS) {
       const ik = /^Înainte|Continuă$|Trimite/.test(label) ? "right" : /^Adaugă fișier/.test(label) && style === "Strict" ? "upload" : /^Vezi/.test(label) ? "eye" : /^Înapoi/.test(label) ? "left" : null;
       if ((lead || trail) && ik) { const px = sz === "Small" ? "16" : "20"; const slot = prop(i, (lead ? "🔄 Leading Icon: " : "🔄 Trailing Icon: ") + px); if (slot) i.setProperties({ [slot]: (await ic(ik)).id }); }
     }
-    i.name = "btn · " + label.slice(0, 40); const fill = b.width > 400 || (OPT.mobile && b.width >= 280); // mobile CTAs are full width place(b, i); if (fill) { try { i.layoutSizingHorizontal = "FILL"; } catch (e) {} } push("btn");
+    i.name = "btn · " + label.slice(0, 40); const fill = b.width > 400 || (OPT.mobile && b.width >= 280); /* mobile CTAs are full width */ place(b, i); if (fill) { try { i.layoutSizingHorizontal = "FILL"; } catch (e) {} } push("btn");
   }
   if (OPT.mobile) for (const c of ra(root, (n) => n.type === "FRAME" && (!n.layoutMode || n.layoutMode === "NONE") && n.children.some((k) => k.type === "INSTANCE" && /^btn · /.test(k.name)))) if (fixBanner(c)) push("m-banner");
   // 8 · small tags (Opțional, Gratuit, Acum, #1)

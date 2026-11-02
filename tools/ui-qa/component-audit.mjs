@@ -11,6 +11,7 @@
 //   1b. button-paint (v2, major) — any control (or [tabindex=0] / [onclick] element) that paints like a button (fill /
 //      box border / inset ring + radius or side padding, at a button size) without the library `.btn`; documented
 //      exceptions = spec.buttonPaint.allow (with a reason).
+//   12. sort-trigger (major) — a standalone sort button that is not the shared sort chip (see components.md „Sort trigger”).
 //   2. sizes — fields: phones (≤760) 48 high with 16/24 text, desktop 40, icons inside a field at the library size
 //      (48 → 24, 40 → 20); v2 buttons: `.btn` 32 / 40 / 48 high, own icon 16 (Small) / 20 (Medium, Large) as in
 //      css/button-icons.css; tags: Small (20) everywhere.
@@ -646,6 +647,16 @@ const PAGE_LIB = (spec, documentedList) => {
         }
       }
     }
+    /* 12. sort-trigger (sort-trigger-v1, 2026-11-02): a standalone sort button = the ONE chip
+       `.chip.e-permits-filter-trigger.e-permits-sort-trigger` (icon-sort + key, never selected, no chevron); table column sorts stay */
+    for (const el of qsa("button, [role=button]")) {
+      if (ignored(el) || !vis(el) || el.closest("th, [role=columnheader], .e-permits-sort-sheet, .e-permits-sort-menu")) continue;
+      const label = el.getAttribute("aria-label") || "";
+      const hasSortIcon = !!el.querySelector("use[href$='#icon-sort']");
+      const isChip = el.matches(".chip.e-permits-filter-trigger.e-permits-sort-trigger");
+      if (!isChip && (/^Sortează[: ]/.test(label) || hasSortIcon) && !el.matches("[data-workplace-sort], [data-rgv-sort]") && !el.closest(".e-permits-sort-menu, [role=menu]")) add("major", "sort-trigger", el, `${el.className.toString().slice(0, 60)} — not the shared sort chip`, "chip e-permits-filter-trigger e-permits-sort-trigger (GEAPSortSheet.controlHtml)");
+      else if (isChip && (el.classList.contains("is-selected") || el.querySelector(".chip__badge:not([hidden]), .e-permits-workplace__filter-caret"))) add("major", "sort-trigger", el, "sort chip selected / with badge or chevron", "never black, no chevron");
+    }
     /* 6. action icons: „Editează…” = icon-edit, „Elimină… / Șterge…” = icon-delete, icon = label colour */
     const AI = spec.actionIcons;
     if (AI) {
@@ -696,6 +707,33 @@ const PAGE_LIB = (spec, documentedList) => {
         const k = sig(el); const g = groups.get(k); if (g) g.n++; else groups.set(k, { el, n: 1 });
       }
       for (const [k, { el, n }] of groups) { counts.converge++; add("minor", "converge", el, `${name}: ${k.slice(0, 120)}${n > 1 ? ` ×${n}` : ""}`, `${F.canonical.slice(0, 3).join(" / ")} — ${F.fix || ""}`, { family: name }); }
+    }
+    /* 12. redundant-heading-border (2026-11-02): a section heading with a visible bottom border whose next visible sibling
+       already has its own border or fill = two lines for one edge. Heading border stays only before plain content (rows, fields, text) or an alert. */
+    {
+      const H = spec.headingBorder || {};
+      const heads = qsa(H.selector || "h1, h2, h3, h4, [class*=section-title], [class*=section-heading], [class*=section-header]");
+      for (const el of heads) {
+        if (!vis(el) || ignored(el)) continue;
+        const cs = getComputedStyle(el);
+        if (!(parseFloat(cs.borderBottomWidth) > 0 && cs.borderBottomStyle !== "none" && !/rgba\([^)]*,\s*0\)$/.test(cs.borderBottomColor))) continue;
+        if (borderSides(cs) >= 3 || (H.allow && el.closest(H.allow))) continue; /* the heading is itself a framed box */
+        /* the heading row may be wrapped (title inside a heading row) — look from the element that carries the border */
+        let nx = el.nextElementSibling; while (nx && !vis(nx)) nx = nx.nextElementSibling;
+        if (!nx) continue;
+        if (nx.matches(H.alerts || ".message, .info-box, .e-permits-fo-notice, .e-permits-fo-infobox, .e-permits-fo-authorization-card, [role=alert]")) continue;
+        /* an unpainted wrapper (section body, content slot) is looked through to its first visible child */
+        const paintOf = (n) => { const c = getComputedStyle(n); const w = []; if (borderSides(c) >= 3) w.push(`border ${c.borderTopWidth} ${c.borderTopColor}`); if (!transparent(c.backgroundColor) && c.backgroundColor !== bgOf(n)) w.push(`fill ${c.backgroundColor}`); return w; };
+        let why = paintOf(nx);
+        for (let d = 0; d < 3 && !why.length && !nx.matches(H.alerts || ".message, .info-box, .e-permits-fo-notice, .e-permits-fo-infobox, .e-permits-fo-authorization-card, [role=alert]"); d++) {
+          let ch = nx.firstElementChild; while (ch && !vis(ch)) ch = ch.nextElementSibling;
+          if (!ch) break; nx = ch; why = paintOf(nx);
+        }
+        if (why.length && nx.matches(H.skipNext || "label, input, select, textarea, button, .btn, .chip, .tag, .status-tag, .badge, .switch, .switch-track, .segmented-control, .checkbox, .radio, .e-permits-fo-input, .e-permits-fo-select, [data-fo-select], [role=switch], [role=tab], [role=tablist], [role=option], [role=radio], [role=checkbox], .e-permits-stack__item")) continue; /* a control / selected row is plain content, not a container */
+        if (!why.length || nx.matches(H.alerts || ".message, .info-box, .e-permits-fo-notice, .e-permits-fo-infobox, .e-permits-fo-authorization-card, [role=alert]")) continue;
+        counts.headBorder = (counts.headBorder || 0) + 1;
+        add("major", "redundant-heading-border", el, `heading border-bottom ${cs.borderBottomWidth} above .${ownClasses(nx).slice(0, 2).join(".") || nx.tagName.toLowerCase()} (${why.join(" · ")})`, "heading border OFF when a bordered / filled container follows; the gap comes from the 8/16/24 rhythm");
+      }
     }
     return { viewport: `${window.innerWidth}`, phone, counts, findings };
   };

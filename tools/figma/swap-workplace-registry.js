@@ -170,7 +170,7 @@ for (const rid of ROOTS) {
   }
   for (const f of raw(/^Button$/)) {
     if (f.removed) continue; const t = T(f);
-    if (t === "Filtrare avansată") {
+    if (/^Filtrare( avansată)?$/.test(t)) {
       // disabled in code = faded label (opacity on the button or a light text colour)
       const tx = f.findOne((x) => x.type === "TEXT"); const c = tx && tx.fills[0] && tx.fills[0].color; const lum = c ? 0.3 * c.r + 0.59 * c.g + 0.11 * c.b : 0;
       const dis = f.opacity < 1 || lum > 0.55; // read BEFORE put() removes f

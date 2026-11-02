@@ -516,6 +516,7 @@
       window.GEAPToast?.show({ type: "error", message: `${FAIL}.`, duration: 0, key: "abs-fail" });
       return;
     }
+    const edited = Boolean(f.id);
     const rec = { type: f.v.type, from: f.v.from, to: f.v.to || null, reason: String(f.v.reason || "").trim() };
     if (f.id) {
       const a = S.list.find((x) => x.id === f.id);
@@ -533,7 +534,7 @@
     S.notice = open && (!rec.to || rec.to >= today()) ? { person: owner.id, open, abs: absenceLine(rec) } : null;
     closeModal();
     rerenderAll();
-    U().showShellToast?.("Absența a fost salvată.");
+    U().showShellToast?.(edited ? "Absența a fost modificată." : "Absența a fost salvată.");
   }
 
   function confirmDelete(id) {
@@ -745,17 +746,29 @@
     const v = (a) => (field === "to" ? a.to || "9999-12-31" : a.from);
     return [...list].sort((a, b) => (dir === "asc" ? 1 : -1) * v(a).localeCompare(v(b)) || a.id.localeCompare(b.id));
   };
+  /* sort-trigger-v1 (2026-11-02): the one „Sortează” chip + menu / phone sheet (js/sort-sheet.js), keys De la / Până la */
+  const SORT_KEYS = [{ value: "from", label: "De la" }, { value: "to", label: "Până la" }];
+  const sortOrders = () => [{ value: "desc", label: "Cele mai recente" }, { value: "asc", label: "Cele mai vechi" }];
+  const sortCur = () => { const [key, order] = sortState.key.split("-"); return { key, order }; };
   const sortMenu = (personId) => {
-    const label = SORTS.find(([k]) => k === sortState.key)?.[1] || "";
-    const id = `abs-sort-${String(personId).replace(/[^a-z0-9-]/gi, "")}`;
-    return `
-      <div class="e-permits-stack__menu-wrap e-permits-abs-sort">
-        <button class="btn btn-neutral btn-sm" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="${id}" aria-label="Sortează: ${esc(label)}" data-tooltip-label="Sortează" data-stack-menu-trigger>${icon("sort")}<span>${esc(label.split(",")[0])}</span></button>
-        <ul class="e-permits-fo-intent-menu e-permits-stack__menu" id="${id}" role="menu" aria-label="Sortează absențele" hidden data-stack-menu>
-          ${SORTS.map(([k, t]) => `<li role="none"><button class="e-permits-fo-intent-menu__item" type="button" role="menuitem"${k === sortState.key ? ' aria-current="true"' : ""} data-abs-sort="${k}">${icon(k.endsWith("desc") ? "arrow-down" : "arrow-up", "icon")}<span>${esc(t)}</span>${k === sortState.key ? icon("checkmark-small", "icon e-permits-abs-sort__check") : ""}</button></li>`).join("")}
-        </ul>
-      </div>`;
+    const cur = sortCur();
+    const label = SORT_KEYS.find((k) => k.value === cur.key).label;
+    const order = sortOrders().find((o) => o.value === cur.order).label.toLowerCase();
+    return window.GEAPSortSheet?.controlHtml({
+      id: `abs-sort-${String(personId).replace(/[^a-z0-9-]/gi, "")}`, triggerAttr: "data-abs-sort-trigger", ariaLabel: `Sortează: ${label}, ${order}`,
+      menuLabel: "Sortează absențele", label, keys: SORT_KEYS, orders: sortOrders, current: cur, keyAttr: "data-abs-sort-key", orderAttr: "data-abs-sort-order"
+    }) || "";
   };
+  function bindSorts() {
+    if (!window.GEAPSortSheet) return;
+    document.querySelectorAll("[data-abs-sort-trigger]:not([data-sort-sheet-bound])").forEach((trigger) => {
+      window.GEAPSortSheet.bind(trigger, {
+        title: "Sortează", sprite: "assets/icons/sprite.svg", keys: SORT_KEYS, orders: sortOrders, current: sortCur,
+        apply: ({ key, order }) => { sortState.key = `${key}-${order}`; rerenderAll(); document.querySelector("[data-abs-sort-trigger]")?.focus(); }
+      });
+    });
+  }
+  new MutationObserver(bindSorts).observe(document.body, { childList: true, subtree: true });
   function noticeHtml(person, { context }) {
     const n = S.notice;
     if (!n || n.person !== person.id) return "";
@@ -958,13 +971,32 @@
     };
   }
   window.GEAPShellRegistries = window.GEAPShellRegistries || {};
+  /* AC-07: absences lie ahead as often as behind — the date facets offer the next 7 / 30 days too */
+  const ABS_PRESETS = ["azi", "7z", "30z", "u7z", "u30z", "an"];
+  /* AC-14: the applied filters as text for the audit entry („Tipul absenței: Delegație · De la: 1 – 30 nov.”) */
+  const filtersText = () => {
+    const reg = window.GEAPShellRegistries[ABS_KIND];
+    const applied = A().registryFilters?.(ABS_KIND) || {};
+    const out = [];
+    (reg.facets || []).forEach((f) => {
+      const values = applied[f.key];
+      if (!values?.length) return;
+      out.push(`${f.label}: ${f.type === "date" ? (window.GEAPFacetFilter?.dateText(values[0], today()) || values[0]) : values.join(", ")}`);
+    });
+    const tab = A().workplaceState?.tabKey;
+    out.push(`fila: ${tab === "trecute" ? "Trecute" : tab === "toate" ? "Toate" : "În curs și viitoare"}`);
+    const q = A().workplaceState?.query;
+    if (q) out.push(`căutare: „${q}”`);
+    return out.join(" · ");
+  };
   window.GEAPShellRegistries[ABS_KIND] = {
     build: absRegistryDb,
     get facets() {
       const w = who();
       return [
         { key: "tip", label: "Tipul absenței", get: (r) => r.tip },
-        { key: "from", label: "Perioadă (De la)", type: "date", get: (r) => r.from },
+        { key: "from", label: "Perioadă (De la)", type: "date", presets: ABS_PRESETS, today, get: (r) => r.from },
+        { key: "to", label: "Perioadă (Până la)", type: "date", presets: ABS_PRESETS, today, get: (r) => r.to },
         ...(w.central ? [{ key: "autoritate", label: "Autoritate", get: (r) => r.autoritate }] : []),
         ...(w.central || w.local ? [{ key: "subdiviziune", label: "Subdiviziune", get: (r) => r.subdiviziune }] : [])
       ];
@@ -1013,7 +1045,7 @@
     exportRows: (rows) => {
       A().exportCsv?.("absente.csv", ["Utilizator", "Subdiviziune", "Tipul absenței", "De la", "Până la", "Motiv", "Înregistrat de"],
         rows.map((r) => [r.utilizator, r.subdiviziune, r.tip, ddmmyyyy(r.from), ddmmyyyy(r.to), r.motiv, r.inregistrat]));
-      audit(null, "Export listă absențe", `${roCount(rows.length, "rând", "rânduri")} · căutare „${A().workplaceState?.query || ""}”.`);
+      audit(null, "Export listă absențe", `${roCount(rows.length, "rând", "rânduri")} · filtre: ${filtersText()}.`);
       U().showShellToast?.(`Lista a fost exportată (${roCount(rows.length, "absență", "absențe")}).`);
     }
   };
@@ -1689,13 +1721,13 @@
     if (edit) { openAbsence({ id: edit.dataset.absEdit }); return; }
     const del = t.closest("[data-abs-delete]");
     if (del) { confirmDelete(del.dataset.absDelete); return; }
-    const sort = t.closest("[data-abs-sort]");
-    if (sort) {
-      sortState.key = sort.dataset.absSort;
-      const root = sort.closest("[data-abs-root]");
-      const person = root?.dataset.absPerson;
+    const sortPick = t.closest("[data-abs-sort-key], [data-abs-sort-order]");
+    if (sortPick) {
+      const cur = sortCur();
+      const key = sortPick.dataset.absSortKey || cur.key;
+      sortState.key = `${key}-${sortPick.dataset.absSortOrder || (sortPick.dataset.absSortKey ? "desc" : cur.order)}`;
       rerenderAll();
-      document.querySelector(`[data-abs-person="${person}"] .e-permits-abs-sort [data-stack-menu-trigger]`)?.focus();
+      document.querySelector("[data-abs-sort-trigger]")?.focus();
       return;
     }
     if (t.closest("[data-abs-save]")) { saveAbsence(); return; }

@@ -820,6 +820,7 @@
     "tokenAllow": ["--color-background-base-inverse-on-color"], "_tokenAllow": "css/token-fix.css defines the one base token main.css leaves undefined in the light theme (library-adopt-v4)"
   },
   "fixHints": {
+    "redundant-heading-border": "Section heading followed by a bordered / filled container: border-bottom OFF (shared :has(+ container) rule in css/e-permits-acte-permisive.css „Heading border rule”, or the --no-border modifier); the space comes from the 8/16/24 rhythm (components.md › Section header rows).",
     "radio-private": "Build it from the ONE radio: label.radio.radio--{medium|small} > input.radio-input + span.radio-custom (+ .radio-texts); decorative = span.radio[aria-hidden] > .radio-custom in an owner with aria-checked / .is-selected (components.md › Radio).",
     "radio-size": "Add .radio--medium (24, dot 12, 16/24 text) or .radio--small (20, dot 10, 14/20 text) and delete the product width / height / dot overrides — css/radio.css sizes it.",
     "radio-colour": "Delete the product repaint; css/radio.css paints default b2b2b2 · selected brand · disabled d9d9d9 on f1f1f1 · error danger.",

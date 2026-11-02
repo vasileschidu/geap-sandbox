@@ -56,7 +56,7 @@ const COLLECT = `(() => {
 const all = {};
 for (const st of states) for (const w of widths) {
   await send("Emulation.setDeviceMetricsOverride", { width: w, height: w < 500 ? 812 : 900, deviceScaleFactor: 2, mobile: w < 500 });
-  await send("Page.navigate", { url: `${BASE}/e-permits-acte-permisive.html?state=${st}` });
+  await send("Page.navigate", { url: `${BASE}/${arg("page","e-permits-acte-permisive.html")}?state=${st}` });
   for (let i = 0; i < 120; i++) { await sleep(150); if (await ev("document.documentElement.dataset.demoState")) break; }
   await sleep(1200);
   const info = await ev(COLLECT);

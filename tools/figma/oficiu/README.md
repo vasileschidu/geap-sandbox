@@ -31,3 +31,10 @@ Index card „Card · Ex officio initiation” 13562:636588 on 📍 Start here �
   08g :33113 · 08h :33127 · 09g :33141 · 09h :33155 · 10a :33169 · 11 :33183 · 11a :33197 · 12 :33211. 06 screen recaptured (Atașat Da/Nu).
 - act pick = oficiu-v3 (confirm dialog «Inițiezi …?»): no act-search footer, no Salvează schița on the act search.
 - `ofc/trash` now uses ref 13525:626685 (the old ref lived on another page).
+
+## ofc-search-first-v4 (2026-10-31)
+- Column 02 (17 blocks) is search-first: 02 = select + search + boxed empty state `Empty state · boxed` 12250:339726 (Size Default); 02a search „Gustul” (field State Focus + clear); 02b service → 20 rows; 02c no match (boxed); 02d loading skeleton (flat bars, background/base/tertiary — no gradient).
+- Old states renamed: old 02a → **02a2** (IDNO search), old 02c → **02b2** (service filter), old 02d → **02d2** (post-process menu). Old „No act found” block deleted (= new 02c). 02l = clone of the new 02.
+- Arrows: 02 → 02a „Type 3+ characters”, 02 → 02b „Choose service” (one cursor on the search field), 02a → 02d2 „Postprocese”; anchors on the block's right edge (+8 / +40 / +8).
+- The search field = library text-input with Leading Icon on (20/search 38:1998) + Clear Button on Filled/Focus states. Old screens 02a2 / 02b2 / 02d2 / 02e / 02g / 02h / 02h2 / 02i got the same field fix only; their lists were not recaptured.
+- Capture gotchas: `shot.mjs <state> --fit` (a state after `--fit` is eaten as its value); a capture can land on another page (find by name `cap · …`, move into 13377:576836 before `ofc/run`); `ofc/post` takes the SCREEN node ids.

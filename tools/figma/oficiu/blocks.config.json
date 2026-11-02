@@ -24,14 +24,17 @@
    "sec": "13377:576828",
    "chip": "02",
    "title": "Act search (US-242)",
-   "line": "„Nou” opens the act search; an act's menu offers the configured post-processes; confirming one creates the draft.",
+   "line": "„Nou” opens the act search (search first); an act's menu offers the configured post-processes; confirming one creates the draft.",
    "states": [
     "ofc-02",
     "ofc-02a",
-    "ofc-02c",
+    "ofc-02a2",
     "ofc-02b",
-    "ofc-02l",
+    "ofc-02b2",
+    "ofc-02c",
     "ofc-02d",
+    "ofc-02d2",
+    "ofc-02l",
     "ofc-02h",
     "ofc-02h2",
     "ofc-02i",
@@ -217,28 +220,28 @@
   ],
   "ofc-02": [
    "Act search",
-   "The window opens on the act search: service select and one live search over act number, IDNP and IDNO. Acts without a configured post-process have no menu.\nSearch by name, object and service: not in US-242 — PO to confirm.",
+   "The window opens search-first: the service select and the search field over act number, IDNP and IDNO, with the dashed empty state „Căutați actul permisiv”. No list until three characters or a service.\nSearch by name, object and service: not in US-242 — PO to confirm.",
    "US-242 AC-02…05"
   ],
   "ofc-02a": [
-   "Search by IDNO",
-   "Typing an IDNO narrows the list to that company's acts as you type.\nSearch by name, object and service: not in US-242 — PO to confirm.",
+   "Search · results",
+   "Typing at least three characters (here „Gustul”) lists the matching acts. The field shows a clear button inside; the list narrows as you type.",
    "US-242 AC-04"
   ],
   "ofc-02c": [
-   "Filtered by service",
-   "Choosing a service in „Denumirea serviciului” keeps only that service's acts.",
-   "US-242 AC-03"
-  ],
-  "ofc-02b": [
    "No act found",
-   "No match shows „Nu există acte permisive care să corespundă căutării.”.",
+   "No match shows the dashed empty state „Niciun act nu corespunde căutării” with a hint to check the number or change the service.",
    "US-242 AC-06"
   ],
+  "ofc-02b": [
+   "Service chosen · 20 rows",
+   "Choosing a service lists its acts, at most 20 rows, with „Se afișează 20 din 27” and a hint to refine the search.",
+   "US-242 AC-03"
+  ],
   "ofc-02d": [
-   "Post-process menu",
-   "The act's menu lists only the ex-officio types configured for the act's status; Retragere is red and last.",
-   "US-242 AC-07/08"
+   "Loading results",
+   "While the list loads, three skeleton cards hold the place of the rows.",
+   "US-242 AC-03"
   ],
   "ofc-02e": [
    "Menu on a suspended act",
@@ -499,6 +502,21 @@
    "Draft created",
    "„Începe” in the „Before you start” dialog creates the draft: the number, «Schiță» and the save time appear in the header and „Date titular” opens.",
    "US-242 AC-11/13"
+  ],
+  "ofc-02a2": [
+   "Search by IDNO",
+   "Typing an IDNO narrows the list to that company's acts as you type.\nSearch by name, object and service: not in US-242 — PO to confirm.",
+   "US-242 AC-04"
+  ],
+  "ofc-02b2": [
+   "Filtered by service",
+   "Choosing a service in „Denumirea serviciului” keeps only that service's acts.",
+   "US-242 AC-03"
+  ],
+  "ofc-02d2": [
+   "Post-process menu",
+   "The act's menu lists only the ex-officio types configured for the act's status; Retragere is red and last.",
+   "US-242 AC-07/08"
   ]
  }
 }

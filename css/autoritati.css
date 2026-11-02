@@ -1,0 +1,281 @@
+/* =====================================================================================
+   Administrarea autorităților și subdiviziunilor (aut-v1, 2026-11-02; js/autoritati.js, Feature 89938).
+   Page glue only — every control is a library / documented component (components.md › „Autorități și
+   subdiviziuni”). Tokens only.
+   ===================================================================================== */
+
+/* ---- the authorities list: „Ultima sincronizare” + notices above the toolbar (the calendar intro rhythm) */
+.e-permits-workplace:not([data-registry-kind="autoritati"]) > [data-aut-intro],
+.e-permits-workplace:not([data-registry-kind="autoritati"]) .e-permits-aut-tool {
+  display: none;
+}
+
+.e-permits-workplace[data-registry-kind="autoritati"] {
+  grid-template-rows: auto auto minmax(0, 1fr) auto;
+}
+
+.e-permits-aut-intro {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-12, 12px);
+  padding: var(--spacing-16, 16px) var(--spacing-16, 16px) var(--spacing-8, 8px);
+}
+
+.e-permits-aut-intro[hidden],
+.e-permits-aut-intro__notices[hidden] {
+  display: none;
+}
+
+.e-permits-aut-intro__text {
+  margin: 0;
+  color: var(--color-text-base-secondary, #383838);
+  font-size: var(--font-size-fs-14, 14px);
+  line-height: var(--line-height-lh-20, 20px);
+}
+
+.e-permits-aut-intro__text strong {
+  color: var(--color-text-base-default, #121212);
+  font-weight: var(--font-weight-fw-medium, 500);
+}
+
+.e-permits-aut-intro__notices {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-8, 8px);
+}
+
+.e-permits-aut-intro__notices > .message,
+.e-permits-aut__notices > .message,
+.e-permits-aut__notices > .info-box,
+.e-permits-aut-form-note > .message,
+.e-permits-aut-form-note > .info-box {
+  margin: 0;
+}
+
+/* the toolbar has room for „Sincronizează din RSSP”: no „N câmpuri” here */
+.e-permits-workplace[data-registry-kind="autoritati"] .e-permits-workplace__field-count,
+.e-permits-workplace[data-registry-kind="autoritati"] .e-permits-workplace__table-tools > .e-permits-workplace__tool-divider,
+.e-permits-workplace[data-registry-kind="subdiviziuni"] .e-permits-workplace__field-count {
+  display: none;
+}
+
+/* no checkbox column: the pinned first column (IDNO / Denumire) carries the divider and column 2 is not pinned — the
+   calendar / registers rule; the base rule would pin column 2 at the checkbox offset over column 1 */
+.e-permits-workplace:is([data-registry-kind="autoritati"], [data-registry-kind="subdiviziuni"]) .e-permits-workplace__table :is(th, td):nth-child(1) {
+  border-right: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
+  left: 0;
+  position: sticky;
+  z-index: 7;
+}
+
+.e-permits-workplace:is([data-registry-kind="autoritati"], [data-registry-kind="subdiviziuni"]) .e-permits-workplace__table th:nth-child(1) {
+  z-index: 9;
+}
+
+.e-permits-workplace:is([data-registry-kind="autoritati"], [data-registry-kind="subdiviziuni"]) .e-permits-workplace__table :is(th, td):nth-child(2) {
+  border-right: 0;
+  left: auto;
+  position: static;
+  z-index: auto;
+}
+
+/* group rows (one cell, colspan) are not a pinned column */
+.e-permits-workplace[data-registry-kind="subdiviziuni"] .e-permits-workplace__table .e-permits-workplace__group-row td:nth-child(1) {
+  border-right: 0;
+}
+
+/* ---- notices over a profile tab / the sync report: one stack, 8 apart, 24 above the first section */
+.e-permits-aut__notices {
+  display: grid;
+  gap: var(--spacing-8, 8px);
+  margin-bottom: var(--spacing-24, 24px);
+}
+
+/* a notice inside the drawer form: above the first section, full width */
+.e-permits-aut-form-note {
+  display: grid;
+  gap: var(--spacing-8, 8px);
+}
+
+.e-permits-user-create__section-content > .e-permits-aut-form-note {
+  grid-column: 1 / -1;
+}
+
+/* ---- repeatable rows in the drawer (Telefon, Conturi bancare, the raion picker): field(s) + the trailing control,
+   bottom-aligned on the input (labels above); „Adaugă …” under the rows */
+.e-permits-aut-repeat {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--spacing-16, 16px);
+  margin-top: var(--spacing-16, 16px);
+}
+
+.e-permits-aut-repeat__row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+  gap: var(--spacing-12, 12px);
+  width: 100%;
+}
+
+.e-permits-aut-repeat__row--account {
+  grid-template-columns: minmax(0, 3fr) minmax(0, 2fr) auto;
+}
+
+.e-permits-aut-repeat__row > .e-permits-fo-field {
+  min-width: 0;
+}
+
+/* the trailing button sits on the input line: label line (20) + its gap (8) */
+.e-permits-aut-repeat__remove {
+  margin-top: calc(var(--line-height-lh-20, 20px) + var(--spacing-8, 8px));
+}
+
+/* the first phone has no remove button: it keeps the full width */
+.e-permits-aut-repeat__row:not(:has(.e-permits-aut-repeat__remove)) {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+/* ---- Localități subordonate: the chosen raioane = a bordered list, one row each with its trash */
+.e-permits-aut-chiplist {
+  display: flex;
+  flex-direction: column;
+  margin: var(--spacing-16, 16px) 0 0;
+  padding: 0;
+  list-style: none;
+  border: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
+  border-radius: var(--border-radius-12, 12px);
+}
+
+.e-permits-aut-chiplist__item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-12, 12px);
+  padding: var(--spacing-8, 8px) var(--spacing-8, 8px) var(--spacing-8, 8px) var(--spacing-16, 16px);
+  color: var(--color-text-base-default, #121212);
+  font-size: var(--font-size-fs-14, 14px);
+  line-height: var(--line-height-lh-20, 20px);
+}
+
+.e-permits-aut-chiplist__item + .e-permits-aut-chiplist__item {
+  border-top: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
+}
+
+/* ---- Logo: the picked file as one row (icon · name · size · trash) */
+.e-permits-aut-logo {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--spacing-8, 8px);
+}
+
+.e-permits-aut-logo__file {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-12, 12px);
+  width: 100%;
+  padding: var(--spacing-8, 8px) var(--spacing-8, 8px) var(--spacing-8, 8px) var(--spacing-16, 16px);
+  border: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
+  border-radius: var(--border-radius-12, 12px);
+  color: var(--color-icon-base-secondary, #383838);
+}
+
+.e-permits-aut-logo__name {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  color: var(--color-text-base-default, #121212);
+  font-size: var(--font-size-fs-14, 14px);
+  line-height: var(--line-height-lh-20, 20px);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.e-permits-aut-logo__meta {
+  color: var(--color-text-base-tertiary, #757575);
+  font-size: var(--font-size-fs-12, 12px);
+  line-height: var(--line-height-lh-16, 16px);
+}
+
+/* ---- the inactivation confirm: the subdivisions that follow the authority */
+.e-permits-aut-confirm {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-16, 16px);
+}
+
+.e-permits-aut-confirm > .message {
+  margin: 0;
+}
+
+.e-permits-aut-cascade {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-8, 8px);
+}
+
+.e-permits-aut-cascade__title {
+  margin: 0;
+  color: var(--color-text-base-default, #121212);
+  font-size: var(--font-size-fs-14, 14px);
+  font-weight: var(--font-weight-fw-semibold, 600);
+  line-height: var(--line-height-lh-20, 20px);
+}
+
+.e-permits-aut-cascade__list {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: var(--spacing-4, 4px) var(--spacing-16, 16px);
+  list-style: none;
+  background: var(--color-background-base-secondary, #f6f6f6);
+  border-radius: var(--border-radius-12, 12px);
+}
+
+.e-permits-aut-cascade__item {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-12, 12px);
+  padding: var(--spacing-8, 8px) 0;
+  color: var(--color-text-base-default, #121212);
+  font-size: var(--font-size-fs-14, 14px);
+  line-height: var(--line-height-lh-20, 20px);
+}
+
+.e-permits-aut-cascade__item + .e-permits-aut-cascade__item {
+  border-top: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
+}
+
+.e-permits-aut-cascade__item .icon {
+  flex: 0 0 auto;
+  color: var(--color-icon-base-tertiary, #757575);
+}
+
+/* the sync report in the library dialog: the stacked lists one after another */
+.e-permits-reg-modal--aut-report .e-permits-dosar-profil__section + .e-permits-dosar-profil__section {
+  margin-top: var(--spacing-24, 24px);
+}
+
+@media (max-width: 760px) {
+  .e-permits-aut-intro {
+    padding: var(--spacing-16, 16px) var(--spacing-16, 16px) 0;
+  }
+
+  /* phones: the inputs are 48 with a 24 label line */
+  .e-permits-aut-repeat__remove {
+    margin-top: calc(var(--line-height-lh-24, 24px) + var(--spacing-8, 8px));
+    min-width: var(--spacing-48, 48px);
+    min-height: var(--spacing-48, 48px);
+  }
+
+  .e-permits-aut-repeat__row--account {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .e-permits-aut-repeat__row--account > .e-permits-fo-field:nth-child(2) {
+    grid-column: 1 / 2;
+    grid-row: 2;
+  }
+}

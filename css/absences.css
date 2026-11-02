@@ -107,16 +107,6 @@
   margin-top: 0;
 }
 
-/* sort menu items: label then the trailing check of the chosen order (aria-current) */
-.e-permits-abs-sort .e-permits-fo-intent-menu__item > span {
-  flex: 1 1 auto;
-}
-
-.e-permits-abs-sort__check {
-  color: var(--color-icon-base-default, #121212);
-  flex: none;
-}
-
 /* ---- „Setări de distribuire” dialog: competence rows = service + request type + remove */
 .e-permits-abs-comp-section {
   grid-column: 1 / -1;
@@ -679,6 +669,12 @@
 
 .e-permits-abs-kind > .icon {
   flex: 0 0 auto;
+}
+
+/* abs-kind-gap-v2 (user 2026-11-02: icon too close to the title, „more organic as in other places”): a list title's
+   leading icon sits 8 from its text — the stack title row's own rhythm (--spacing-8) */
+.e-permits-stack__title > .e-permits-abs-kind {
+  gap: var(--spacing-8, 8px);
 }
 
 .e-permits-abs-kind--brand > .icon { color: var(--color-text-brand-on-secondary, #0058d2); }

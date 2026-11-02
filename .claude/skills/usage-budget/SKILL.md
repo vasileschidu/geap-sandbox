@@ -5,6 +5,8 @@ description: Keep Claude usage low in this project — which model each agent jo
 
 # Usage budget (GEAP prototype + Figma)
 
+> Building a whole board / page / flow in Figma? Follow the `figma-board-workflow` skill (block list, conversion pre-check, one agent per column, Opus for column 1 then Sonnet).
+
 Measured 2026-10-26 (claude.ai usage panel, last 24 h): figma-designer 49 %, proto-engineer 40 %,
 figma-a MCP 35 %, sessions running 8 h+, and the playbook read in parts 32× (up to 46k tokens each).
 The rules below target exactly those.

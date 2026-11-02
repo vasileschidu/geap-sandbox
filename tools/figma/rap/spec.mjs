@@ -1,4 +1,5 @@
 // RAP public registry — DOM spec per demo state × width, the input of the Figma builders (tools/figma/rap/*.js).
+// NOTE (mdocs-rap-v1): act document pages come from tools/figma/rap/mdoc-spec.js (MDocs modules), not from the old .rap-act-doc read below.
 // Reads the rendered code (rap-evo/index.html?state=<id> or ?<params>): list toolbar, filter bar, facet popover,
 // company summary, table rows, pagination, empty state, act profile (header meta, beneficiary, details, authority),
 // not-found; + boxes / computed styles of the key elements (geometry check).

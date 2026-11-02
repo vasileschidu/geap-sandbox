@@ -192,6 +192,10 @@
     }
     const width = head ? head.cells.length : 0;
     const isAligned = (row) => !!width && row.cells.length === width && ![...row.cells].some((c) => c.colSpan > 1);
+    /* an empty body (only a full-width empty-state row, no data row): nothing scrolls under a pinned column, so no
+       edge cell / segment / shadow — the header must not carry a lone shadow line (pin-empty-v1) */
+    const hasData = [...table.rows].some((row) => row.parentElement?.tagName !== "THEAD" && row !== head && isAligned(row));
+    if (!hasData) { start = -1; end = -1; startSpan = null; endSpan = null; }
     [...table.rows].forEach((row) => {
       const aligned = isAligned(row);
       [...row.cells].forEach((cell, i) => {
@@ -210,7 +214,7 @@
     const flow = getComputedStyle(table.parentElement).display;
     const bs = getComputedStyle(box);
     const tableW = table.getBoundingClientRect().width / k + (parseFloat(bs.paddingLeft) || 0) + (parseFloat(bs.paddingRight) || 0);
-    const scrolls = width > 0 && box.scrollWidth - box.clientWidth > SLACK
+    const scrolls = width > 0 && hasData && box.scrollWidth - box.clientWidth > SLACK
       && tableW > box.clientWidth + SLACK && tableW >= box.scrollWidth - SLACK - 1
       && (flow === "block" || flow === "flow-root");
     const edges = { start: scrolls && start === -1, end: scrolls && end === -1, aligned: isAligned };

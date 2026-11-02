@@ -74,7 +74,7 @@ gets better; never delete a lesson, rewrite it if it was wrong.
 | RAP row (Câmp / Coloană / Titlu tabel) | `10949:277452` | |
 | header-evo-desktop / -mobile (lib sets) | `11077:1058` / `11153:1253` | imported; mobile used inside `Cabinet / Antet mobil`. **EVO site header = Components doJ7tDY0PlQ0PqMgbpFVIC 912:18991 (desktop set ef41893a…: 1248px Anonymous 2977f6f3… / Authenticated 28bbd8f8…) + 1210:5257 (mobile set e0e8b836…: Default Anonymous aa2d4163… / Authenticated 1dd7a663…)** — RAP = Anonymous, Cabinet = Authenticated, phones show search + ☰ (2026-10-22) |
 | search-input-rectangular | `9285:37474` | State Default/Filled/Focus…, `👁️ Clear Button`, `⌨️ Placeholder` |
-| filter-chip | `1244:34029` | Mono Selection; `👁️ Counter Badge` + „Badge label” text; Filtre = Icon Leading + 20/filter (key d7ef1839…) |
+| filter-chip | `1244:34029` | Mono Selection; `👁️ Counter Badge` + „Badge label” text; Filtre = Icon Leading + Foundations „filter-2, sort” 9644:319 (= code icon-filter-lines) — NEVER 20/filter (sliders), user 2026-10-30 + 2026-11-02 |
 | contextual-menu / selection-menu | `9646:4478` / `9625:34945` | ≤ 6 options each; items `.menu-item-action` `62:4943` (Leading Element=Icon for icons) |
 | pagination-item | set `212:7429` | Type Selected/Unselected; pager arrows = button-text-rectangular Strict Icon=Only + `🔄 Leading Icon: 20` = 20/chevron-left/right |
 | tooltip / toast / banner / info-box | `275:24285` / `10038:35031` / `10582:50841` / `5611:64071` | imported 2026-10-12 |

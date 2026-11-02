@@ -4,7 +4,11 @@
 // dataModalScreen: the profile page + scrim + library modal (Medium) whose .content-slot is swapped to „RAP / Modal / Data
 // modal content” (dmContent: Breakpoint × Subtitle Plain / Collapsed / Expanded) with the section cards in its Sections slot.
 // docModalScreen: the profile page + scrim + „RAP / Document / Document modal” whose canvas instance is swapped to „RAP /
-// Document / Doc canvas” (canvas: Pages with „RAP / Document / A4 act page” instances in the Pages slot, or Loading / Error).
+// Document / Doc canvas” (canvas: Pages slot, or Loading / Error).
+// mdocs-rap-v1 (2026-10-26): the act pages are no longer „RAP / Document / A4 act page” (retired to the Archive section 22520:227036 with the
+// watermark + page row). docModalScreen's Pages slot is filled by tools/figma/rap/mdocs-act.js (stored „rap”/„mdocsAct”): MDocs „Template · Permit”
+// instances (RAP copy of the GEAP set, map in „mdocs”/„map”) filled from tools/figma/rap/mdoc-spec.js (DOM → modules, act rows as ordered items).
+// ensureA4Row / a4Inst below are legacy and must not be used for new states.
 const { AL, TX, put, fillV, strokeV, pad, sp, rad, inst, setP, getL } = L;
 const nested = (i, f) => i.findOne(f);
 const sec = async () => await getL("compSection");

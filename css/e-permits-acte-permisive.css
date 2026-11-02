@@ -22944,6 +22944,33 @@ button.e-permits-steps-strip__cell:hover,
   padding-top: 0;
 }
 
+/* Heading border rule (2026-11-02, user, whole project): a section heading's bottom border is OFF when the block right
+   under it already has its own border or fill — two lines for one edge. The heading → container space is the rhythm
+   (8 in the drawers, 16 in the FO form), never padding + gap doubled. Border stays ON before plain content (rows, fields,
+   text) and before an alert (Section rule 2026-10-16). Audit: component-audit „redundant-heading-border” — a new bordered
+   container under a heading gets its class added to the two lists below.
+   Drawer / panel sections (`.e-permits-user-create__section-title`): */
+.e-permits-user-create__section-title:has(+ :is(.e-permits-user-create__combo-card, .e-permits-user-create__combo-form, .e-permits-empty, .e-permits-ntpl-card, .e-permits-builder__schema, .e-permits-dosar-profil__table-scroll, .e-permits-dosar-profil__card), + .e-permits-user-create__section-content > :is(.e-permits-user-create__combo-card, .e-permits-user-create__combo-form, .e-permits-empty, .e-permits-ntpl-card, .e-permits-builder__schema, .e-permits-dosar-profil__table-scroll):first-child) {
+  border-bottom: 0;
+  min-height: 0;
+  padding-bottom: var(--spacing-8, 8px);
+}
+
+.e-permits-user-create__section-title:has(+ .e-permits-user-create__section-content > :is(.e-permits-user-create__combo-card, .e-permits-user-create__combo-form, .e-permits-empty, .e-permits-ntpl-card, .e-permits-builder__schema, .e-permits-dosar-profil__table-scroll):first-child) + .e-permits-user-create__section-content {
+  padding-top: 0;
+}
+
+/* FO form section header (title + description): */
+.e-permits-fo-section-header:has(+ .e-permits-fo-form__section-body > .e-permits-fo-doc-field--boxed:first-child, + .e-permits-fo-form__section-body > :first-child > .e-permits-fo-doc-field--boxed:first-child),
+.e-permits-fo-section-header:has(+ :is(.e-permits-fo-doc-field--boxed)) {
+  border-bottom: 0;
+  padding-bottom: 0;
+}
+
+.e-permits-fo-section-header:has(+ .e-permits-fo-form__section-body > .e-permits-fo-doc-field--boxed:first-child, + .e-permits-fo-form__section-body > :first-child > .e-permits-fo-doc-field--boxed:first-child) + .e-permits-fo-form__section-body {
+  padding-top: var(--spacing-16, 16px);
+}
+
 /* Section rule (2026-10-16, user, whole project): an alert / notice (banner .message, .info-box, the FO
    notice / infobox) right under a section header with a divider — directly, or as the first child of a block
    that is not the section body — keeps the divider and gets the section's normal header → content gap (24 =

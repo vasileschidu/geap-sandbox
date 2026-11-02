@@ -18,7 +18,10 @@ hosts = hosts.concat(page.findAll(n => n.type === "FRAME" && n.layoutMode === "G
 const out = { hosts: hosts.length, done: [], skipped: [] };
 const rel = (n, host) => { const a = n.absoluteTransform, h = host.absoluteTransform; return { x: Math.round(a[0][2] - h[0][2]), y: Math.round(a[1][2] - h[1][2]), w: Math.round(n.width), h: Math.round(n.height) }; };
 const ROW_RX = /^(tr|Row \d+|Row|Header row|is-inactive)\b/;
-const cellLike = (n, host) => n.visible !== false && !isMarker(n) && !/^(Pinned column|Sticky placeholder)/.test(n.name) && n.height < 240 &&
+// spanning rows (empty / loading states, colspan = all columns) are never pinned: they stay in the grid, full width
+// (2026-10-24 reg-16 empty-state-unpin-v1 — the pass had moved 4 empty states into a 168 px pinned slot → blank body)
+const spanning = (n) => (n.gridColumnSpan || 1) > 1 || ("findOne" in n && !!n.findOne((x) => /^Empty state/.test(x.name)));
+const cellLike = (n, host) => n.visible !== false && !isMarker(n) && !spanning(n) && !/^(Pinned column|Sticky placeholder)/.test(n.name) && n.height < 240 &&
   (host.layoutMode === "GRID" ? n.parent === host : (ROW_RX.test(n.parent.name) && (n.parent.parent === host || n.parent.parent.parent === host)));
 for (const host of hosts) {
   if (out.done.length >= LIMIT) break;
