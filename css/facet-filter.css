@@ -1087,3 +1087,19 @@ html.is-filter-sheet-open .e-permits-fo-testcfg {
     gap: var(--spacing-4, 4px);
   }
 }
+
+/* sheet-sticky-head-v1 (user 2026-11-04): in the all-filters sheet an open section's title (and its search, right under
+   it) stick to the top of the scrolling sheet until that section's list ends — the next section pushes them out */
+.e-permits-filter-sheet__section-head {
+  background: var(--color-background-base-default, #fff);
+  position: sticky;
+  top: 0;
+  z-index: 2;
+}
+
+.e-permits-filter-sheet__section .e-permits-filter-sheet__search {
+  background: var(--color-background-base-default, #fff);
+  position: sticky;
+  top: var(--sheet-head-h, 56px);
+  z-index: 1;
+}

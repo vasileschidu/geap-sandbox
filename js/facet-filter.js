@@ -781,7 +781,14 @@
       else body.innerHTML = `<div class="e-permits-filter-sheet__sections">${cfg.facets().map(sectionHtml).join("")}</div>`;
       initPickers(body);
       syncSheetFooter();
+      stickSheetHeads(body);
     };
+    /* sheet-sticky-head-v1 (user 2026-11-04): an open section's title + its search stay at the top of the sheet while
+       its (long) list scrolls, until the section ends — the next section pushes them out (sticky in the section) */
+    const stickSheetHeads = (root) => root?.querySelectorAll(".e-permits-filter-sheet__section").forEach((section) => {
+      const head = section.querySelector(".e-permits-filter-sheet__section-head");
+      if (head) section.style.setProperty("--sheet-head-h", `${head.offsetHeight}px`);
+    });
 
     const ensureSheet = () => {
       if (sheetEl) return;
@@ -893,6 +900,7 @@
             panel.hidden = !open;
           });
           if (open) initPickers(panel);
+          stickSheetHeads(sheetEl);
         }
       });
       sheetEl.addEventListener("change", (event) => {
