@@ -1,7 +1,7 @@
 (() => {
   "use strict";
 
-  const DATA_URL = "../data/rap-evo.json?v=rap-filter-v2";
+  const DATA_URL = "../data/rap-evo.json?v=rap-data-v1";
   /* the shared authorities / subdivisions source (BO „Autorități”, US-87…96): names + codes win over the RAP list */
   const AUTHORITIES_URL = "../data/autoritati.json?v=rap-filter-v1";
   /* RAP API failures for the demo (US-141 AC-02/03 + Risks / AC-20): ?rapapi=eroare-autoritati, eroare-tipuri,
@@ -11,23 +11,58 @@
   /* „Filtru” = the shared facet filter (js/facet-filter.js), US-141 (rap-filter-v1, 2026-11-04): AND across facets, OR
      inside one, together with the search; the lists hold only values with ≥ 1 act in the registry (AC-02/03) */
   const beneficiaryType = (record) => (record.beneficiary.type === "person" ? "Persoană fizică" : "Persoană juridică");
-  /* „Aprobat tacit” in the Statut facet (US-141 AC-06): a pseudo-status = acts with Aprobare tacită = true,
-     whatever their status; the six values are always offered, in the story's order */
+  /* Statut (US-141 AC-06): the statuses in the story's order + the pseudo-status „Aprobat tacit” = acts with Aprobare
+     tacită = true whatever their status (a separate on/off chip was tried in rap-g and taken back, user 2026-11-04) */
   const STATUS_VALUES = ["Valabil", "Suspendat", "Expirat", "Retras", "Anulat", "Aprobat tacit"];
-  /* order = importance for a public visitor (user 2026-11-04): Statut · Autoritate emitentă · Denumire act (the table column's name — the story says „Tip act”, user 2026-11-04) · Data emiterii ·
-     Data expirării inline (inlineMax 5); the secondary facets wait in „Mai multe” until they hold a value. The two dates
-     = plain De la / Până la ranges (US-141 AC-07/08, one end allowed; `presets: []`), applied chip „Emis: 01.01.2026 –
-     30.06.2026” / „Expiră până la 31.12.2027” (`chip`) + × (a combined „Perioadă” chip was tried and dropped the same day) */
+  /* the act's service (Serviciu facet, rap-g): the RSSP service family of the act name */
+  const SERVICE_RULES = [
+    [/sanitar-veterinar|fitosanitar|uz veterinar|sanitar-veterinară/i, "Siguranța alimentelor"],
+    [/sanitar|biocide|cosmetice|contactul cu alimentele|contactului cu alimentele/i, "Autorizare sanitară"],
+    [/medicament|farmaceutic|dispozitiv/i, "Medicamente și dispozitive medicale"],
+    [/alcool|tutun|bere/i, "Alcool și tutun"],
+    [/energi|gaz|petrolier/i, "Energetică"],
+    [/comunicații|frecvențe|numerotare/i, "Comunicații electronice"],
+    [/taxi|transportator|transport rutier|dimensiuni sau mase/i, "Transport rutier"],
+    [/incendiu/i, "Securitate la incendiu"],
+    [/mediu|deșeuri|emisiile|apei|arbori|ozon|subsol|zăcăminte|pescuit|forestier/i, "Mediu și resurse naturale"],
+    [/urbanism|construire|desființare|amplasare|publicit|proiect/i, "Urbanism și construcții"],
+    [/comerț|alimentație publică|pieței|ambulant/i, "Comerț și alimentație publică"],
+    [/conformitate|metrolog|măsurare|origine/i, "Metrologie și conformitate"],
+    [/bancar|valutar|asigurare|creditare|broker/i, "Servicii financiare"],
+    [/audiovizual/i, "Audiovizual"],
+    [/caracter personal/i, "Protecția datelor"],
+    [/vamal|antrepozit|agent economic autorizat/i, "Vamă"],
+    [/accize|casă și de control/i, "Fiscalitate"],
+    [/muncă|forței de muncă/i, "Muncă și ocupare"],
+    [/aerian|zbor|aeronav/i, "Aviație civilă"],
+    [/nav/i, "Transport naval"],
+    [/arme/i, "Arme și muniții"],
+    [/radiații/i, "Activități nucleare și radiologice"],
+    [/aprobării tacite/i, "Aprobare tacită"]
+  ];
+  const serviceOf = (name) => (SERVICE_RULES.find(([re]) => re.test(name)) || [null, "Alte acte permisive"])[1];
+  /* the address filter (rap-g, Alexandru's comment: „like the FO address”): Raion / municipiu → Localitate → Stradă */
+  const PATH_SEP = " › ";
+  const addressTree = () => (state.config?.registry?.addresses || []).map((r) => ({
+    name: r.raion,
+    children: r.localities.map((l) => ({ name: l.name, children: l.streets.map((street) => ({ name: street })) }))
+  }));
+  /* order (user 2026-11-04, the smart search already finds act numbers, companies / IDNO, addresses, authorities and act
+     names): inline Statut · Autoritate emitentă · Data emiterii · Data expirării; „Mai multe” = Denumire act ·
+     Subdiviziune · Serviciu (the cascade: their options follow the ticked authorities / subdivisions) · Adresă (Raion →
+     Localitate → Stradă) · Tip beneficiar — a facet with a value shows as its own chip group. Dates = plain De la / Până
+     la ranges (US-141 AC-07/08) */
   const FACETS = [
-    { key: "status", label: "Statut", get: (record) => [record.status, ...((record.markings || []).includes("Aprobat tacit") ? ["Aprobat tacit"] : [])] },
+    { key: "status", label: "Statut", get: (record) => [record.status, ...(isTacit(record) ? [TACIT_MARK] : [])] },
     { key: "autoritate", label: "Autoritate emitentă", search: true, get: (record) => record.authority.name, unavailable: () => (API_ERRORS.has("eroare-autoritati") ? LIST_UNAVAILABLE : null) },
-    { key: "denumire", label: "Denumire act", search: true, get: (record) => record.permit.name, unavailable: () => (API_ERRORS.has("eroare-tipuri") ? LIST_UNAVAILABLE : null) },
     { key: "emitere", label: "Data emiterii", chip: "Emis", type: "date", presets: [], get: (record) => record.dates.issued },
     { key: "expirare", label: "Data expirării", chip: "Expiră", type: "date", presets: [], get: (record) => record.dates.expires },
-    { key: "beneficiar", label: "Tip beneficiar", get: beneficiaryType },
-    { key: "subdiviziune", label: "Subdiviziune", search: true, get: (record) => record.profile?.office || "" },
-    /* set only by an address suggestion (rap-suggest-v1): applied chip „Adresă: <address>” + × */
-    { key: "adresa", label: "Adresă", pickOnly: true, showValue: true, get: (record) => record.address }
+    { key: "denumire", label: "Denumire act", search: true, inMore: true, get: (record) => record.permit.name, unavailable: () => (API_ERRORS.has("eroare-tipuri") ? LIST_UNAVAILABLE : null) },
+    { key: "subdiviziune", label: "Subdiviziune", search: true, inMore: true, get: (record) => record.profile?.office || "" },
+    { key: "serviciu", label: "Serviciu", search: true, inMore: true, get: (record) => record.service },
+    { key: "adresa", label: "Adresă", type: "path", inMore: true, levels: ["Raion / municipiu", "Localitate", "Stradă"], tree: addressTree,
+      chipText: (path) => (path.length > 1 ? path.slice(1).join(", ") : path[0]), get: (record) => (record.addressPath || []).join(PATH_SEP) },
+    { key: "beneficiar", label: "Tip beneficiar", inMore: true, get: beneficiaryType }
   ];
   const facetOf = (key) => FACETS.find((f) => f.key === key);
   const state = {
@@ -81,7 +116,7 @@
     listView: document.querySelector("[data-rap-list-view]"),
     profileView: document.querySelector("[data-rap-profile-view]"),
     companySummary: document.querySelector("[data-rap-company-summary]"),
-    reset: document.querySelector("[data-rap-reset]")
+    live: document.querySelector("[data-rap-live]")
   };
 
   let searchTimer;
@@ -136,10 +171,21 @@
   const expandRecords = (seedRecords, total, registry, registryAddresses) => {
     /* the act's object / activity address (the search + suggestions, rap-suggest-v1): the seed's own, else one of the
        registry's addresses (a few acts share each, so „Adrese” can say how many) */
-    const places = (registryAddresses || []).flatMap((p) => p.streets.map((street) => `${p.locality}, ${street}`));
-    const addressOf = (k) => (places.length ? `${places[(k * 7) % places.length]} ${1 + ((k * 13) % 9) * 4}` : "");
+    /* every street of the Raion → Localitate → Stradă tree; the act's address = „<raion>[, <localitate>], <stradă> <nr>” */
+    const streets = (registryAddresses || []).flatMap((r) => r.localities.flatMap((l) => l.streets.map((street) => [r.raion, l.name, street])));
+    const addressText = ([raion, locality, street], nr) => `${raion}${raion.endsWith(locality) ? "" : `, ${locality}`}, ${street}${nr ? ` ${nr}` : ""}`;
+    const pathOfText = (text) => {
+      for (const [raion, locality, street] of streets) if (text.includes(raion) && text.includes(locality) && text.includes(street)) return [raion, locality, street];
+      return null;
+    };
     const withDates = (record, k = 0) => {
-      record.address = record.profile?.document?.address || addressOf(k);
+      const own = record.profile?.document?.address;
+      const path = (record.addressPath?.length && record.addressPath) || (own && pathOfText(own)) || (streets.length ? streets[(k * 7) % streets.length] : null);
+      record.addressPath = path || [];
+      record.address = own || (path ? addressText(path, 1 + ((k * 13) % 9) * 4) : "");
+      record.addressStreet = path ? addressText(path) : "";
+      record.service = serviceOf(record.permit.name);
+      if (record.profile?.document && !own) record.profile.document = { ...record.profile.document, address: record.address };
       const issued = isoDay(record.permit.issuedAt);
       const expires = isoDay(record.permit.validThrough);
       record.dates = { issued, expires };
@@ -151,38 +197,68 @@
       return seedRecords.slice(0, total).map((seed, i) => withDates(structuredClone(seed), i));
     }
 
-    return Array.from({ length: total }, (_, index) => {
-      const seed = seedRecords[index % seedRecords.length];
-      const cycle = Math.floor(index / seedRecords.length);
-      if (cycle === 0) {
-        return withDates(structuredClone(seed), index);
-      }
-
-      const record = structuredClone(seed);
-      record.id = `${seed.id}-${cycle + 1}`;
-      /* the k-th copy: act name k (cycling through every type), issued by one of that type's authorities */
-      const k = index - seedRecords.length;
-      const type = registry.types.length ? registry.types[k % registry.types.length] : null;
-      const authority = type
-        ? registry.byCode.get(type.authorities[Math.floor(k / registry.types.length) % type.authorities.length])
-        : registry.pool[k % registry.pool.length];
-      if (type) record.permit.name = type.name;
-      if (authority) {
-        record.authority = { code: authority.code, name: authority.name };
-        const offices = authority.subdivisions || [];
-        record.profile = { ...(record.profile || {}), office: offices.length ? offices[cycle % offices.length] : record.profile?.office };
-      }
-      const shift = -((cycle * 23) % 700);
-      const issued = isoDay(seed.permit.issuedAt);
-      const expires = isoDay(seed.permit.validThrough);
-      if (issued) record.permit.issuedAt = `emis ${shortDate(shiftIso(issued, shift))}`;
-      if (expires) record.permit.validThrough = shortDate(shiftIso(expires, shift));
-      if (record.profile) {
-        delete record.profile.issuedDate; delete record.profile.validFrom; delete record.profile.validUntil;
-        if (record.profile.document) record.profile.document = { ...record.profile.document, address: addressOf(index) };
-      }
-      return withDates(record, index);
+    /* realistic-data-v1 (user review 2026-11-04: „what is this data?”): the seed acts, then generated acts — many
+       different beneficiaries (SRL / SA / ÎI with a 13-digit IDNO, PF anonymised „V*** C***”), each act name issued by
+       its own authority (registry.actTypes → issuers; primării only in their municipality), the office = the issuer's
+       subdivision of that place when it has one, numbers in the issuer's format („ANSP-2026-01187”, „LIC-2025-2231”,
+       „AMDM-10-2026-0118”), dossier „GEAP-<year>-009-0xxxx”, issue dates 2019 … today, validity by act kind, statuses
+       mostly Valabil (expired → Expirat). A seeded random, so every load and every demo state sees the same registry. */
+    let seedValue = 141;
+    const rand = () => { seedValue = (seedValue + 0x6d2b79f5) | 0; let t = Math.imul(seedValue ^ (seedValue >>> 15), 1 | seedValue); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
+    const pickOf = (list) => list[Math.floor(rand() * list.length)];
+    const digits = (n) => Array.from({ length: n }, () => Math.floor(rand() * 10)).join("");
+    const STEMS = ["Agro", "Vin", "Moldo", "Eco", "Nord", "Prut", "Codru", "Nistru", "Bio", "Tehno", "Lacto", "Pan", "Farm", "Construct", "Trans", "Auto", "Energo", "Medi", "Dental", "Alim", "Viti", "Euro", "Basarab", "Dacia", "Floare", "Grâu", "Lumina", "Stejar", "Izvor", "Răzeni", "Carpat", "Delta", "Orizont", "Tezaur", "Real", "Optim", "Prim", "Sigma", "Vector", "Alfa"];
+    const ENDS = ["com", "prod", "serv", "grup", "lux", "plus", "trans", "tehnica", "farm", "med", "construct", "impex", "nord", "sud", "vin", "lact", "agro", "market", "logistic", "consult"];
+    const FORMS = [["S.R.L.", 0.72], ["S.A.", 0.1], ["Î.I.", 0.18]];
+    const form = () => { let x = rand(); for (const [name, w] of FORMS) { if ((x -= w) < 0) return name; } return "S.R.L."; };
+    const used = new Set();
+    const companies = Array.from({ length: 260 }, () => {
+      let name;
+      do { name = `${pickOf(STEMS)}${pickOf(ENDS)}`.toUpperCase(); } while (used.has(name));
+      used.add(name);
+      const f = form();
+      return { type: "company", name: f === "Î.I." ? `Î.I. ${name}` : `${name} ${f}`, identifierType: "IDNO", identifier: `10${digits(11)}` };
     });
+    const LETTERS = "ABCDEFGHIJLMNOPRSTUVZ";
+    const person = () => ({ type: "person", name: `${pickOf([...LETTERS])}*** ${pickOf([...LETTERS])}***`, identifierType: "IDNP", identifier: `${digits(2)}•••••••••${digits(2)}` });
+    /* a few busy companies hold many acts, most hold one or two */
+    const beneficiary = () => (rand() < 0.16 ? person() : companies[Math.floor(Math.pow(rand(), 1.8) * companies.length)]);
+    const PRIMARII = { PMC: "Chișinău", PMB: "Bălți", PCAHUL: "Cahul", PCOMRAT: "Comrat", PORHEI: "Orhei", PUNGHENI: "Ungheni", PSOROCA: "Soroca", PEDINET: "Edineț", PHINCESTI: "Hîncești", PSTRASENI: "Strășeni", PCAUSENI: "Căușeni" };
+    const YEARS = (name) => (/urbanism/i.test(name) ? 2 : /construire|desființare/i.test(name) ? 2 : /notificare|înregistrare|certificat de origine/i.test(name) ? 10 : /licență/i.test(name) ? 5 : 1 + Math.floor(rand() * 5));
+    const TODAY = "2026-11-04";
+    const START = Date.UTC(2019, 0, 1);
+    const SPAN = (Date.UTC(2026, 10, 3) - START) / 86400000;
+    const numberOf = (code, name, year) => (code === "AMDM" ? `AMDM-10-${year}-${digits(4)}` : /^licență/i.test(name) ? `LIC-${year}-${digits(4)}` : `${code}-${year}-${digits(5)}`);
+    const generated = Array.from({ length: Math.max(0, total - seedRecords.length) }, (_, k) => {
+      const type = registry.types[k % registry.types.length];
+      const authority = registry.byCode.get(pickOf(type.authorities));
+      const town = PRIMARII[authority.code];
+      const places = town ? streets.filter(([, locality]) => locality === town) : streets;
+      const path = pickOf(places.length ? places : streets);
+      const offices = authority.subdivisions || [];
+      const office = offices.find((o) => o.includes(path[1])) || offices[0] || "";
+      const issuedIso = new Date(START + Math.floor(rand() * SPAN) * 86400000).toISOString().slice(0, 10);
+      const expiresIso = shiftIso(issuedIso, Math.round(YEARS(type.name) * 365.25) - 1);
+      const year = issuedIso.slice(0, 4);
+      const x = rand();
+      const status = expiresIso < TODAY ? "Expirat" : x < 0.04 ? "Suspendat" : x < 0.07 ? "Retras" : x < 0.1 ? "Anulat" : "Valabil";
+      const tacit = status === "Valabil" && rand() < 0.06;
+      const address = addressText(path, 1 + Math.floor(rand() * 120));
+      return {
+        id: `rap-${String(10001 + k)}`,
+        beneficiary: beneficiary(),
+        permit: { name: type.name, number: numberOf(authority.code, type.name, year), paperNumber: `GEAP-${year}-009-0${digits(4)}`, issuedAt: `emis ${shortDate(issuedIso)}`, validThrough: shortDate(expiresIso) },
+        authority: { code: authority.code, name: authority.name },
+        status,
+        markings: tacit ? [TACIT_MARK] : [],
+        addressPath: path,
+        profile: { office, ...(tacit ? { tacitApprovalDate: shortDate(shiftIso(issuedIso, -2)) } : {}), document: { address, activity: serviceOf(type.name), fields: [] } }
+      };
+    });
+    /* newest first, as a public register lists them */
+    return [...seedRecords.map((seed) => structuredClone(seed)), ...generated]
+      .map((record, index) => withDates(record, index))
+      .sort((a, b) => b.dates.issued.localeCompare(a.dates.issued));
   };
 
   const statusTone = (status) => ({
@@ -546,6 +622,7 @@
     if (key === except || !values?.length) return true;
     const facet = facetOf(key);
     if (facet?.type === "date") return window.GEAPFacetFilter.dateMatch(values[0], facet.get(record));
+    if (facet?.type === "path") { const own = `${facet.get(record)}${PATH_SEP}`; return own.startsWith(`${values[0]}${PATH_SEP}`); }
     return !facet || facetValues(facet, record).some((value) => values.includes(value));
   });
 
@@ -592,6 +669,11 @@
     elements.companySummary.hidden = false;
   };
 
+  /* rap-g (Alexandru: „agenția mediului” must find the authority): every word of the query must occur, a word of 5+
+     letters by its stem (the first 5 letters — Romanian endings: mediului → mediu); the whole phrase still wins */
+  const searchMatch = (text, query) => text.includes(query) || query.split(/\s+/).filter(Boolean)
+    .every((word) => text.includes(word.length >= 5 ? word.slice(0, 5) : word));
+
   /* the search + company view, before the facets (the facet options are counted on it) */
   const matchesSearch = (record) => {
     const query = normalize(state.search);
@@ -604,10 +686,11 @@
       record.authority.code,
       record.authority.name,
       record.status,
-      record.address
+      record.address,
+      record.service
     ].join(" "));
     /* the company view lists the company's own (seed) records only */
-    return (!query || searchable.includes(query))
+    return (!query || searchMatch(searchable, query))
       && (!state.companyFilter || (record.beneficiary.identifier === state.companyFilter.identifier
         && state.config.records.some((seed) => seed.id === record.id)));
   };
@@ -671,24 +754,7 @@
     }).trim();
   };
 
-  /* „Resetează” in the toolbar row (desktop, user 2026-11-04): while a filter or a search is active; clears both */
-  const syncResetButton = () => {
-    if (elements.reset) elements.reset.hidden = !(totalActiveFilters() || state.search);
-  };
-  const resetAll = () => {
-    window.clearTimeout(searchTimer);
-    state.search = "";
-    state.companyFilter = null;
-    elements.search.value = "";
-    syncSearchState();
-    const url = new URL(window.location.href);
-    if (url.searchParams.has("idno")) { url.searchParams.delete("idno"); window.history.replaceState({ rapCompanyIdno: null }, "", url); }
-    if (facetFilter) facetFilter.clearAll(); else { state.page = 1; applyFilters(); }
-    elements.search.focus();
-  };
-
   const render = () => {
-    syncResetButton();
     renderCompanySummary();
     renderTable();
     renderPagination();
@@ -709,12 +775,19 @@
 
   /* a facet is offered when the registry has at least two values for it (as in the BO) */
   const availableFacets = () => FACETS.filter((facet) => {
-    if (facet.pickOnly) return Boolean(state.filter.applied[facet.key]?.length);
-    if (state.filter.applied[facet.key]?.length || facet.type === "date" || facet.key === "status" || facet.unavailable?.()) return true;
+    if (state.filter.applied[facet.key]?.length || ["date", "path", "toggle"].includes(facet.type) || facet.key === "status" || facet.unavailable?.()) return true;
     const seen = new Set();
     for (const record of state.records) { for (const value of facetValues(facet, record)) seen.add(value); if (seen.size > 1) return true; }
     return false;
   });
+
+  /* screen readers hear the result count after a filter change (the visible line went, AC-17 = the pager summary) */
+  const resultsWord = (n) => (n === 1 ? "1 rezultat găsit" : `${n}${n % 100 === 0 || n % 100 >= 20 ? " de" : ""} rezultate găsite`);
+  const announceCount = () => {
+    if (!elements.live) return;
+    elements.live.textContent = "";
+    window.setTimeout(() => { elements.live.textContent = filterApiDown() ? "" : resultsWord(state.filteredRecords.length); }, 50);
+  };
 
   const initFacetFilter = () => {
     facetFilter = window.GEAPFacetFilter.create({
@@ -733,26 +806,33 @@
       /* phones: one scrolling chip row + bottom sheets with a live „Arată N rezultate” */
       mobileSheets: true,
       preview: (selection) => state.records.filter((record) => matchesSearch(record) && matchesFacets(record, null, selection)).length,
-      apply: () => { state.page = 1; applyFilters(); },
+      apply: () => { state.page = 1; applyFilters(); announceCount(); },
       scrollers: [elements.tableScroller],
       /* US-141 AC-13: the applied filters stay visible as chips while active — desktop and phones; the trigger never
          hides them. User 2026-11-04: chips = label + count (dates: the period) + × that clears that filter (AC-14);
-         desktop dropdowns apply as you tick (liveApply, no „Aplică”), phones keep the sheet + „Arată N rezultate”.
+         desktop: ticks / dates only change the draft, ONE „Aplică filtre” at the end of the chips row applies it
+         (masterApply, US-141 user flow); phones keep the sheet + „Arată N rezultate”.
          The story's wording (AC-09, AC-15, AC-17) */
       hideOnToggle: false,
-      chipClose: true,
-      /* desktop: „Resetează” sits in the toolbar row after „Filtru” (data-rap-reset); phones: in the applied line */
+      /* rap-g: an applied facet = grey pill group [the chip: label + count, tooltip = every value][round ×] — EVO-WEB 3.0
+         22622:26715 (AC-13/14) */
+      chipGroup: true,
+      cascade: { autoritate: ["subdiviziune", "serviciu"], subdiviziune: ["serviciu"] },
+      /* desktop: „Resetează” = the chips row's button slot (masterApply); phones: in the applied line */
       barClearDesktop: false,
-      liveApply: true,
+      masterApply: true,
       phoneChips: true,
-      inlineMax: 5,
+      inlineMax: 4,
+      /* rap-compact-v1 (user): desktop chips 36, the slot a Small button; search + Filtru stay 40 */
+      compact: true,
       text: {
         apply: "Aplică filtre",
         /* user 2026-11-04: „Resetează” (the story's AC-15 says „Resetează filtrele” — the screen-reader name) */
         clear: "Resetează",
         clearName: "Resetează filtrele",
-        /* AC-17: „14 rezultate găsite”, hidden at 0 (the AC-18 message says it) */
-        results: (n) => (!n || filterApiDown() ? "" : n === 1 ? "1 rezultat găsit" : `${n}${n % 100 === 0 || n % 100 >= 20 ? " de" : ""} rezultate găsite`),
+        /* AC-17 (user 2026-11-04): no visible count line — the pager says „Se afișează 1–16 din N”; the count is announced
+           (aria-live, `announceCount`) after every apply */
+        results: () => "",
         rangeOrder: "Data de început nu poate fi ulterioară datei de sfârșit."
       }
     });
@@ -925,17 +1005,29 @@
     const acts = new Map();
     const companies = new Map();
     const addresses = new Map();
+    const authorities = new Map();
+    const names = new Map();
     for (const record of state.records) {
-      if (acts.size < SUGGEST_MAX && !acts.has(record.permit.number) && normalize(`${record.permit.number} ${record.permit.name}`).includes(q)) acts.set(record.permit.number, record);
+      if (authorities.size < SUGGEST_MAX && !authorities.has(record.authority.name) && searchMatch(normalize(`${record.authority.name} ${record.authority.code}`), q)) authorities.set(record.authority.name, record);
+      if (acts.size < SUGGEST_MAX && !acts.has(record.permit.number) && normalize(`${record.permit.number} ${record.permit.paperNumber}`).includes(q)) acts.set(record.permit.number, record);
+      if (searchMatch(normalize(record.permit.name), q)) names.set(record.permit.name, (names.get(record.permit.name) || 0) + 1);
       if (record.beneficiary.type === "company" && !companies.has(record.beneficiary.identifier) && companies.size < SUGGEST_MAX
         && normalize(`${record.beneficiary.name} ${record.beneficiary.identifier}`).includes(q)) companies.set(record.beneficiary.identifier, record);
-      if (record.address && normalize(record.address).includes(q)) addresses.set(record.address, (addresses.get(record.address) || 0) + 1);
+      if (record.addressStreet && normalize(record.addressStreet).includes(q)) {
+        const entry = addresses.get(record.addressStreet) || { n: 0, path: record.addressPath };
+        entry.n += 1;
+        addresses.set(record.addressStreet, entry);
+      }
     }
     const items = [];
-    if (acts.size) items.push({ group: "Acte" }, ...[...acts.values()].map((record) => ({ kind: "act", record, text: markMatch(record.permit.number, query), meta: markMatch(record.permit.name, query) })));
+    /* „Acte” = act names (Denumire act; pick → that filter), „Numere de act” = one act by its number / dossier (→ profile) */
+    const topNames = [...names.entries()].slice(0, SUGGEST_MAX);
+    if (topNames.length) items.push({ group: "Acte" }, ...topNames.map(([name, n]) => ({ kind: "name", name, text: markMatch(name, query), meta: n === 1 ? "1 act" : `${n}${n % 100 === 0 || n % 100 >= 20 ? " de" : ""} acte` })));
+    if (acts.size) items.push({ group: "Numere de act" }, ...[...acts.values()].map((record) => ({ kind: "act", record, text: markMatch(record.permit.number, query), meta: escapeHtml(record.permit.name) })));
+    if (authorities.size) items.push({ group: "Autorități" }, ...[...authorities.values()].map((record) => ({ kind: "authority", record, text: markMatch(record.authority.name, query), meta: markMatch(record.authority.code, query) })));
     if (companies.size) items.push({ group: "Companii" }, ...[...companies.values()].map((record) => ({ kind: "company", record, text: markMatch(record.beneficiary.name, query), meta: `IDNO ${markMatch(record.beneficiary.identifier, query)}` })));
     const topAddresses = [...addresses.entries()].slice(0, SUGGEST_MAX);
-    if (topAddresses.length) items.push({ group: "Adrese" }, ...topAddresses.map(([address, n]) => ({ kind: "address", address, text: markMatch(address, query), meta: n === 1 ? "1 act" : `${n}${n % 100 === 0 || n % 100 >= 20 ? " de" : ""} acte` })));
+    if (topAddresses.length) items.push({ group: "Adrese" }, ...topAddresses.map(([address, { n, path }]) => ({ kind: "address", address, path, text: markMatch(address, query), meta: n === 1 ? "1 act" : `${n}${n % 100 === 0 || n % 100 >= 20 ? " de" : ""} acte` })));
     return items;
   };
   const setSuggestActive = (i) => {
@@ -975,16 +1067,22 @@
     closeSuggest();
     if (item.kind === "act") { openProfile(item.record.id); return; }
     if (item.kind === "company") { showCompanyPermits(item.record); return; }
-    /* an address: the „Adresă” filter, the typed text goes (it was the way to find the address) */
+    /* an address → the „Adresă” filter (street level); an authority → the „Autoritate emitentă” filter; the typed text
+       goes (it was the way to find them) */
     window.clearTimeout(searchTimer);
     state.search = "";
     state.companyFilter = null;
     elements.search.value = "";
     syncSearchState();
-    state.filter.applied = { ...state.filter.applied, adresa: [item.address] };
+    state.filter.applied = item.kind === "authority"
+      ? { ...state.filter.applied, autoritate: [...new Set([...(state.filter.applied.autoritate || []), item.record.authority.name])] }
+      : item.kind === "name"
+        ? { ...state.filter.applied, denumire: [...new Set([...(state.filter.applied.denumire || []), item.name])] }
+        : { ...state.filter.applied, adresa: [item.path.join(PATH_SEP)] };
     state.filter.draft = null;
     state.page = 1;
     applyFilters();
+    announceCount();
   };
   const bindSuggest = () => {
     elements.search.closest(".search-input")?.appendChild(suggestEl);
@@ -1034,7 +1132,6 @@
     });
 
     elements.searchClear.addEventListener("click", clearSearch);
-    elements.reset?.addEventListener("click", resetAll);
 
     /* the table's scroll cue follows scroll / resize */
     elements.tableScroller?.addEventListener("scroll", syncTableOverflow, { passive: true });

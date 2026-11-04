@@ -4121,3 +4121,7 @@ For any „research how other products do it” step, search Mobbin (mcp__mobbin
 - 2026-11-04 · A page without the FO stylesheet (RAP) needs the FO field shell for the date facet's De la / Până la:
   restate it in css/fo-field-parts.css (+ js/input-date-picker.js), never load e-permits-acte-permisive.css on RAP.
   Long demo data: real authorities / act names in data/rap-evo.json › registry, merged at runtime with data/autoritati.json.
+- 2026-11-04 · RAP master apply (rap-master-apply-v2): live-apply was replaced the same day by ONE button slot at the end of
+  the chips row (pending → primary „Aplică filtre”, applied → neutral „Resetează”, else none; Medium 40 = chip height).
+  Popover ticks write the draft directly (`syncDraft`), an invalid range is tracked in `invalidDates` (declared at the
+  top of `create` — render() reads it). Demo helpers must click the master after picks (rap-01d / fm1 broke silently).

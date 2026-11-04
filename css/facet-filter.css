@@ -962,3 +962,134 @@ html.is-filter-sheet-open .e-permits-fo-testcfg {
 .e-permits-filter-sheet .e-permits-workplace__filter-list > .e-permits-workplace__filter-separator {
   margin: var(--spacing-8, 8px) var(--spacing-16, 16px);
 }
+
+/* masterApply (rap-master-apply-v2, 2026-11-04, RAP US-141): ONE button slot ends the chips row — library Medium 40
+   (= the chips), primary „Aplică filtre” while changes are pending, neutral „Resetează” while filters are applied,
+   else nothing; 8 after the last chip (the chips' gap) */
+.e-permits-workplace__filter-chips > .e-permits-workplace__filter-apply {
+  flex: 0 0 auto;
+}
+
+/* ==========================================================================
+   chipGroup (rap-chip-group-v2, 2026-11-04 = EVO-WEB 3.0 YrIzksVgFqtPqDd5z9zY5h 22622:26715): a facet holding values =
+   a grey pill group — secondary fill, radius full, padding 0 4 0 0 (the chip touches the left / top / bottom edges),
+   gap 2 — of [the selected chip, unchanged: label + numbered badge + caret; tooltip = every value] + [the × = the
+   library icon-only text button, round 32 · icon 16 (phones 40 · 20, the library button-icon sizes), transparent on the grey, hover tertiary-hover,
+   active one step darker, the focus ring]. Un-applied chips stay plain.
+   Path facet (Adresă): the library breadcrumb (Toate › levels › the level being chosen), the library search, radio rows
+   with a chevron when a level follows.
+   ========================================================================== */
+.e-permits-workplace__filter-group {
+  align-items: center;
+  background-color: var(--color-background-base-secondary, #f5f5f5);
+  border-radius: var(--border-radius-full, 9999px);
+  display: inline-flex;
+  gap: var(--spacing-4, 4px); /* user 2026-11-04: 4 between the chip and the ×, as the right padding */
+  max-width: 100%;
+  min-width: 0;
+  padding: 0 var(--spacing-4, 4px) 0 0;
+}
+
+.e-permits-workplace__filter-group > .chip {
+  max-width: 100%;
+  min-width: 0;
+}
+
+.e-permits-workplace__filter-group > .chip .chip__label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* the × = EVO-WEB 3.0 22622:26715: a 32 CIRCLE, transparent on the grey group, the 10px cross (Foundations
+   20/cross-small drawn at 16 = our icon-cross-large at 16), darker grey circle on hover (chip-x-figma-v1) */
+.e-permits-workplace__filter-group > .e-permits-workplace__filter-group-close.btn.btn-icon-only {
+  border-radius: var(--border-radius-full, 9999px);
+}
+
+.e-permits-workplace__filter-group-close.btn {
+  border-radius: var(--border-radius-full, 9999px);
+  color: var(--color-icon-base-default, #121212);
+  flex: 0 0 auto;
+}
+
+.e-permits-workplace__filter-group-close.btn:hover {
+  background-color: var(--color-background-base-tertiary-hover, #e7e7e7);
+}
+
+.e-permits-workplace__filter-group-close.btn:active {
+  background-color: var(--color-background-base-tertiary-active, #d9d9d9);
+}
+
+@media (max-width: 760px) {
+  .e-permits-workplace__filter-group-close.btn {
+    height: var(--spacing-40, 40px);
+    min-height: var(--spacing-40, 40px);
+    width: var(--spacing-40, 40px);
+  }
+
+  /* the library button-icon size of Medium 40 (css/button-icons.css: 20) */
+  .e-permits-workplace__filter-group-close.btn .icon {
+    height: var(--icon-size-medium, 20px);
+    width: var(--icon-size-medium, 20px);
+  }
+
+  .e-permits-workplace__filters.is-sheets > .e-permits-workplace__filter-chips > .e-permits-workplace__filter-group > .chip {
+    max-width: calc(100% - var(--spacing-40, 40px) - var(--spacing-6, 6px));
+  }
+}
+
+
+/* the title of a popover without a list search (dates, address, list error — rap-g): 14/20 medium, 12 16 0 */
+.e-permits-workplace__filter-pop-title {
+  color: var(--color-text-base-default, #121212);
+  font-size: var(--font-size-fs-14, 14px);
+  font-weight: var(--font-weight-fw-medium, 500);
+  line-height: var(--line-height-lh-20, 20px);
+  margin: 0;
+  padding: var(--spacing-12, 12px) var(--spacing-16, 16px) 0;
+}
+
+.e-permits-workplace__filter-path-crumbs {
+  padding: var(--spacing-12, 12px) var(--spacing-12, 12px) var(--spacing-4, 4px);
+}
+
+.e-permits-workplace__filter-path-next {
+  color: var(--color-icon-base-tertiary, #757575);
+  flex: 0 0 var(--icon-size-medium, 20px);
+  height: var(--icon-size-medium, 20px);
+  margin-left: auto;
+  width: var(--icon-size-medium, 20px);
+}
+
+.e-permits-filter-sheet .e-permits-workplace__filter-path-crumbs {
+  padding-left: var(--spacing-16, 16px);
+  padding-right: var(--spacing-16, 16px);
+}
+
+/* compact bar (rap-compact-v1, 2026-11-04, user: „more compact chips”): desktop facet chips + „Mai multe” 36 high (the
+   trigger's `--sm` height), 14/20, padding 0 8 0 12, caret 16; the chip group's × 28 round (icon 16), gap 4, right
+   padding 4; the button slot = library Small (set in js). Phones keep the 48 sheet look. */
+@media (min-width: 761px) {
+  .e-permits-workplace__filters--compact .chip.e-permits-workplace__filter-chip {
+    height: calc(var(--spacing-40, 40px) - 2 * var(--border-width-2, 2px));
+    min-height: 0;
+    padding: 0 var(--spacing-8, 8px) 0 var(--spacing-12, 12px);
+  }
+
+  .e-permits-workplace__filters--compact .e-permits-workplace__filter-caret {
+    height: var(--spacing-16, 16px);
+    width: var(--spacing-16, 16px);
+  }
+
+  .e-permits-workplace__filters--compact .e-permits-workplace__filter-group {
+    gap: var(--spacing-4, 4px);
+  }
+
+  .e-permits-workplace__filters--compact .e-permits-workplace__filter-group > .e-permits-workplace__filter-group-close.btn {
+    height: var(--spacing-28, 28px);
+    min-height: 0;
+    width: var(--spacing-28, 28px);
+  }
+}

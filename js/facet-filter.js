@@ -37,16 +37,30 @@
                                     (RAP US-141 AC-13) — the trigger then only moves the focus to the first chip
      phoneChips                     (default false) phones: the applied chips (label + count / period) stay in the bar
                                     above the „N rezultate · Șterge” line; a chip opens its facet's sheet
-     chipClose                      (default false) an applied checklist chip = label + count badge + the library chip ×
-                                    (clears that facet at once — US-141 AC-14); date chips always have their ×; a facet
-                                    with `showValue` and one value reads „<label>: <value>”
-     liveApply                      (default false) desktop: a popover applies as you tick (150 ms debounce; a date facet
-                                    when its period is valid — the range error blocks only that facet); no Confirmă /
-                                    „Aplică filtrele”, the popover stays open (Esc / outside click close it), its footer
-                                    = „Resetează” (that facet). Phones keep the sheet + live „Arată N rezultate”.
+     chipGroup                      (default false, rap-chip-group-v2 = EVO-WEB 3.0 22622:26715) a facet holding values =
+                                    a grey pill group (secondary fill, padding 0 4 0 0, gap 2) of [the selected chip,
+                                    unchanged: label + numbered badge + caret (dates: the period; path: the last two
+                                    levels); its tooltip lists every value] + [a round × 32 (phones 40) „Șterge filtrul
+                                    <Facet>”]; un-applied chips stay plain
+     cascade: { parent: [children] } a value removed from the parent drops the children's values that no longer have rows
+                                    (draft + sheet); the children's options follow the parents' values (RAP
+                                    Autoritate → Subdiviziune → Serviciu)
+     masterApply                    (default false) desktop: a tick / date in a popover goes straight into the bar's DRAFT
+                                    (no per-popover Confirmă; footer = „Resetează” for that facet; Esc / outside click
+                                    keep the draft); ONE button slot ends the chips row: changes pending → primary Medium
+                                    „Aplică filtre” (applies the whole draft; an invalid range reopens its facet — AC-09);
+                                    applied + nothing pending → neutral Medium „Resetează” (all filters); else nothing.
+                                    Results / count change only on apply; a chip × still removes its facet at once.
+                                    Phones keep the sheet + live „Arată N rezultate”.
+   Facet types besides checklist / date: `type: "path"` (+ `levels`, `tree()` → [{ name, children }], optional
+   `chipText(path)`) = a drill-down cascade (Raion → Localitate → Stradă): crumbs, the library search, radio rows; the
+   value is ONE token „a › b › c” (pages match its prefix). A facet with `inMore: true` waits in „Mai multe” (unless it
+   holds a value) whatever `inlineMax` says.
    Every product: the checklist puts the values ticked when it OPENED first, the menu separator, then the rest (order
    frozen while ticking — selected-first-v1, 2026-11-04).
      inlineMax                      facets shown as chips before „Mai multe” (default 4)
+     compact                        (default false) desktop chips 36 high (the trigger's `--sm` height), the chip group /
+                                    „Mai multe” / the button slot (library Small) to match; phones unchanged
      barClearDesktop                (default true) false = no clear button in the desktop bar (the page has its own,
                                     RAP „Resetează” in the toolbar row); phones keep it in the applied line
      text: { apply, clear, clearName, results(n), rangeOrder }
@@ -300,10 +314,13 @@
       ...(cfg.text || {})
     };
     const hideOnToggle = cfg.hideOnToggle !== false;
+    const invalidDates = new Set(); /* masterApply: date facets whose typed range is not valid (blocks „Aplică filtre”) */
     const inlineMax = cfg.inlineMax || INLINE_MAX;
     const unavailableOf = (facet) => (typeof facet?.unavailable === "function" ? facet.unavailable() : facet?.unavailable) || null;
     const unavailableHtml = (text) => `<div class="e-permits-workplace__filter-unavailable">${window.GEAPEmptyState.render({ title: text, text: "", icon: "circle-error", bare: true, compact: true })}</div>`;
-    const phoneMode = cfg.mobileSheets !== false; /* every list since phone-toolbar-v2 */
+    const phoneMode = cfg.mobileSheets !== false;
+    /* compact (rap-compact-v1): the bar's chips 36 (the trigger's --sm height), desktop only — css/facet-filter.css */
+    if (cfg.compact) cfg.bar?.classList.add("e-permits-workplace__filters--compact"); /* every list since phone-toolbar-v2 */
     if (phoneMode) wireSearchStates(); /* no-op where js/search.js already runs (the BO) */
     const bar = cfg.bar;
     const toggle = cfg.toggle;
@@ -401,16 +418,32 @@
         </button>
         <button class="chip__close" type="button" aria-label="Elimină filtrul ${escapeHtml(label)}" ${clearAttr}="${escapeHtml(facet.key)}"><svg class="icon" aria-hidden="true"><use href="${sprite}#icon-cross-small"></use></svg></button>
       </div>`;
-    /* chipClose: label + the numbered badge (never the values) + × */
-    const valueChipHtml = (facet, values, open) => {
-      const n = values.length;
-      /* a facet with `showValue` and ONE value (RAP „Adresă”, set by a search suggestion) reads „Adresă: <value>” */
-      if (facet.showValue && n === 1) {
-        const text = `${facet.label}: ${values[0]}`;
-        return closeChipHtml(facet, open, `<span class="e-permits-workplace__filter-chip-text" data-cell-tooltip>${escapeHtml(text)}</span>`, text, "data-filter-facet-clear");
-      }
-      return closeChipHtml(facet, open, `<span class="e-permits-workplace__filter-chip-text">${escapeHtml(facet.label)}</span><span class="badge badge--lg badge--solid-light">${n}</span>`,
-        facet.label, "data-filter-facet-clear", `${facet.label}: ${n} ${n === 1 ? "valoare selectată" : "valori selectate"}`);
+    /* ---- chipGroup (rap-chip-group-v1): a facet holding values = grey group [selected chip][outside ×] ---- */
+    const isPath = (facet) => facet?.type === "path";
+    const PATH_SEP = " › ";
+    const valuesText = (facet, values) => {
+      if (isDate(facet)) return facet.chip ? chipDateText(facet, values[0]) : `${facet.label}: ${dateText(values[0], todayOf(facet))}`;
+      if (isPath(facet)) { const path = String(values[0]).split(PATH_SEP); return facet.chipText ? facet.chipText(path) : path.slice(-2).join(", "); }
+      return facet.label;
+    };
+    const valuesTip = (facet, values) => (isDate(facet) || isPath(facet) ? `${facet.label}: ${valuesText(facet, values)}` : `${facet.label}: ${values.join(", ")}`);
+    const groupChipHtml = (facet, values, open) => `<div class="e-permits-workplace__filter-group" role="group" aria-label="${escapeHtml(facet.label)}">
+        <button class="chip is-selected e-permits-workplace__filter-chip" type="button" aria-haspopup="dialog" aria-expanded="${open}" aria-label="${escapeHtml(valuesTip(facet, values))}" data-tooltip-text="${escapeHtml(valuesTip(facet, values))}" data-filter-facet="${escapeHtml(facet.key)}">
+          <span class="chip__label">${escapeHtml(valuesText(facet, values))}</span>
+          ${isDate(facet) || isPath(facet) ? "" : `<span class="badge badge--lg badge--solid-light">${values.length}</span>`}
+          <svg class="icon e-permits-workplace__filter-caret" aria-hidden="true"><use href="${sprite}#icon-chevron-${open ? "top" : "bottom"}"></use></svg>
+        </button>
+        <button class="btn btn-text-neutral btn-sm btn-icon-only e-permits-workplace__filter-group-close" type="button" aria-label="Șterge filtrul ${escapeHtml(facet.label)}" data-filter-facet-clear="${escapeHtml(facet.key)}"><svg class="icon" aria-hidden="true"><use href="${sprite}#icon-cross-large"></use></svg></button>
+      </div>`;
+    /* cascade: values of the children that no longer have rows under the parents go (draft / sheet selection) */
+    const pruneCascade = (sel) => {
+      Object.entries(cfg.cascade || {}).forEach(([, children]) => children.forEach((childKey) => {
+        if (!sel[childKey]?.length) return;
+        const child = facetByKey(childKey);
+        const live = new Set(cfg.options(child, sel).filter((o) => o.count > 0).map((o) => o.value));
+        sel[childKey] = sel[childKey].filter((v) => live.has(v));
+        if (!sel[childKey].length) delete sel[childKey];
+      }));
     };
     /* De la / Până la = the library date picker in the FO field shell (as the BO drawers) */
     const dateFieldHtml = (id, label, iso, today, key, part) => {
@@ -503,8 +536,8 @@
     const initPickers = (scope) => window.GEAPDatePicker?.init(scope);
     const pickerOpen = (scope) => !!scope?.querySelector("[data-date-picker].is-open");
 
-    /* the popover footer: Confirmă + Șterge (draft model) | „Resetează” only (liveApply) */
-    const footerButtons = () => (cfg.liveApply
+    /* the popover footer: Confirmă + Șterge (draft model) | „Resetează” only (masterApply) */
+    const footerButtons = () => (cfg.masterApply
       ? '<button class="btn btn-text-neutral btn-sm" type="button" data-filter-reset>Resetează</button>'
       : `<button class="btn btn-primary btn-sm" type="button" data-filter-confirm>Confirmă</button>
         <button class="btn btn-neutral btn-sm" type="button" data-filter-reset>
@@ -555,15 +588,23 @@
       }
       if (!show) { bar.innerHTML = ""; return; }
       /* the first few facets are chips; the rest wait in "Mai multe" until they hold a value */
-      const inline = facets.filter((f, i) => i < inlineMax || draft[f.key]?.length);
+      const inline = facets.filter((f, i) => (!f.inMore && i < inlineMax) || draft[f.key]?.length);
       const more = facets.filter((f) => !inline.includes(f));
-      const chip = (facet) => (isDate(facet)
-        ? dateChipHtml(facet, draft[facet.key]?.[0], edit?.key === facet.key)
-        : cfg.chipClose && draft[facet.key]?.length
-          ? valueChipHtml(facet, draft[facet.key], edit?.key === facet.key)
-          : chipHtml(facet, draft[facet.key]?.length || 0, edit?.key === facet.key));
+      const chip = (facet) => {
+        const open = edit?.key === facet.key;
+        const values = draft[facet.key] || [];
+        if (cfg.chipGroup && values.length) return groupChipHtml(facet, values, open);
+        if (isDate(facet)) return dateChipHtml(facet, values[0], open);
+        if (isPath(facet)) return chipHtml(facet, 0, open);
+        return chipHtml(facet, values.length, open);
+      };
       const resultLine = resultsText(cfg.total());
       const isPending = pending();
+      /* masterApply: ONE button slot at the end of the chips row (rap-master-apply-v2) — changes pending → primary Medium
+         „Aplică filtre”; filters applied, nothing pending → neutral Medium „Resetează” (all filters); else no button */
+      const master = !cfg.masterApply ? ""
+        : isPending ? `<button class="btn btn-primary ${cfg.compact ? "btn-sm" : "btn-md"} e-permits-workplace__filter-apply" type="button" data-filter-slot data-filter-commit>${escapeHtml(TEXT.apply)}</button>`
+          : appliedCount ? `<button class="btn btn-neutral ${cfg.compact ? "btn-sm" : "btn-md"} e-permits-workplace__filter-apply" type="button" data-filter-slot${TEXT.clearName ? ` aria-label="${escapeHtml(TEXT.clearName)}"` : ""} data-filter-clear-all>${escapeHtml(TEXT.clear)}</button>` : "";
       bar.innerHTML = `
       <div class="e-permits-workplace__filter-chips">
         ${inline.map(chip).join("")}
@@ -571,16 +612,17 @@
           <span class="chip__label">Mai multe</span>
           <svg class="icon e-permits-workplace__filter-caret" aria-hidden="true"><use href="${sprite}#icon-chevron-${moreOpen ? "top" : "bottom"}"></use></svg>
         </button>` : ""}
+        ${master}
       </div>
       <div class="e-permits-workplace__filter-meta" aria-live="polite">
-        ${isPending ? `
+        ${isPending && !cfg.masterApply ? `
           <span class="e-permits-workplace__filter-hint">Filtre neaplicate</span>
           <button class="btn btn-text-neutral btn-sm" type="button" data-filter-discard>Renunță</button>
           <button class="btn btn-primary btn-sm" type="button" data-filter-commit>${escapeHtml(TEXT.apply)}</button>
-        ` : appliedCount ? `
+        ` : appliedCount && (!isPending || cfg.masterApply) ? `
           ${resultLine ? `<span class="e-permits-workplace__filter-result">${escapeHtml(resultLine)}</span>` : ""}
           ${cfg.barClearDesktop === false ? "" : clearButton()}
-        ` : cfg.liveApply ? "" : '<span class="e-permits-workplace__filter-hint">Alege valorile, apoi aplică filtrele.</span>'}
+        ` : cfg.masterApply ? "" : '<span class="e-permits-workplace__filter-hint">Alege valorile, apoi aplică filtrele.</span>'}
       </div>
     `;
     };
@@ -630,7 +672,7 @@
       if (chipsEl) {
         const applied = cfg.state().applied;
         const chipsHtml = cfg.phoneChips ? cfg.allFacets().filter((f) => applied[f.key]?.length)
-          .map((f) => (isDate(f) ? dateChipHtml(f, applied[f.key][0], false) : cfg.chipClose ? valueChipHtml(f, applied[f.key], false) : chipHtml(f, applied[f.key].length, false))).join("") : "";
+          .map((f) => (cfg.chipGroup ? groupChipHtml(f, applied[f.key], false) : isDate(f) ? dateChipHtml(f, applied[f.key][0], false) : chipHtml(f, applied[f.key].length, false))).join("") : "";
         if (chipsEl.dataset.html !== chipsHtml) { chipsEl.innerHTML = chipsHtml; chipsEl.dataset.html = chipsHtml; }
         chipsEl.hidden = !chipsHtml;
       }
@@ -672,6 +714,7 @@
     const sheetFacetHtml = (facet) => {
       const unavailable = unavailableOf(facet);
       if (unavailable) return unavailableHtml(unavailable);
+      if (isPath(facet)) return pathBodyHtml(facet, sheet.paths[facet.key] || pathOf(sheet.sel[facet.key]), sheet.pathQuery[facet.key] || "", "sheet");
       if (isDate(facet)) return dateBodyHtml(facet, sheet.dates[facet.key] || dateEditOf(facet, sheet.sel[facet.key]?.[0]), "sheet");
       const many = wantsSearch(facet, cfg.options(facet, sheet.sel).length);
       return `
@@ -686,7 +729,9 @@
       <ul class="e-permits-workplace__filter-list e-permits-filter-sheet__list" role="list" data-sheet-list="${escapeHtml(facet.key)}">${sheetOptionsHtml(facet)}</ul>`;
     };
 
-    const sectionSummary = (facet) => (isDate(facetByKey(facet.key))
+    const sectionSummary = (facet) => (sheet.sel[facet.key]?.length && isPath(facetByKey(facet.key))
+      ? valuesText(facetByKey(facet.key), sheet.sel[facet.key])
+      : isDate(facetByKey(facet.key))
       ? dateText(sheet.sel[facet.key]?.[0], todayOf(facetByKey(facet.key)))
       : (sheet.sel[facet.key] || []).join(", "));
     const syncSectionSummary = (key) => {
@@ -760,7 +805,7 @@
       const applied = cfg.state().applied;
       const facets = cfg.facets();
       sheet = {
-        kind, key, opener, sel: copySel(applied), query: {},
+        kind, key, opener, sel: copySel(applied), query: {}, paths: {}, pathQuery: {},
         pinned: Object.fromEntries(Object.entries(applied).map(([k, v]) => [k, new Set(v || [])])),
         /* date facets: what the period controls show ({ preset, from, to }) */
         dates: Object.fromEntries(cfg.allFacets().filter(isDate).map((f) => [f.key, dateEditOf(f, applied[f.key]?.[0])])),
@@ -808,6 +853,13 @@
     function wireSheet() {
       sheetEl.addEventListener("click", (event) => {
         if (!sheet) return;
+        const pathTo = event.target.closest("[data-filter-path-to]");
+        if (pathTo) {
+          const key = pathTo.dataset.filterPathKey;
+          const path = (sheet.paths[key] || pathOf(sheet.sel[key])).slice(0, Number(pathTo.dataset.filterPathTo));
+          setSheetPath(key, path);
+          return;
+        }
         if (event.target.closest("[data-sheet-close]")) { closeSheet(); return; }
         if (event.target.closest("[data-sheet-apply]")) { applySheet(); return; }
         if (event.target.closest("[data-sheet-reset]")) {
@@ -816,6 +868,12 @@
           sheetEl.querySelectorAll("[data-filter-option], [data-filter-date-preset]").forEach((box) => { box.checked = false; });
           sheetMorph(sheetEl, () => sheetEl.querySelectorAll("[data-filter-range]").forEach((range) => { clearFieldErrors(range); range.hidden = !range.hasAttribute("data-filter-range-fixed"); range.querySelectorAll("[data-filter-date-input]").forEach((input) => { input.value = ""; input.closest("[data-date-picker]").dataset.selected = ""; }); }));
           sheetEl.querySelectorAll("[data-sheet-summary]").forEach((el) => { el.textContent = ""; el.hidden = true; });
+          sheetEl.querySelectorAll("[data-filter-path]").forEach((box) => {
+            const key = box.dataset.filterPath;
+            if (sheet.kind === "facet" && key !== sheet.key) return;
+            sheet.paths[key] = []; sheet.pathQuery[key] = "";
+            box.parentElement.innerHTML = pathBodyHtml(facetByKey(key), [], "", "sheet");
+          });
           syncSheetFooter();
           sheetEl.querySelector("[data-sheet-apply]").focus();
           return;
@@ -839,6 +897,13 @@
       });
       sheetEl.addEventListener("change", (event) => {
         if (!sheet) return;
+        const pathPick = event.target.closest("[data-filter-path-pick]");
+        if (pathPick) {
+          const key = pathPick.dataset.filterPathKey;
+          const path = (sheet.paths[key] || pathOf(sheet.sel[key])).slice(0, Number(pathPick.dataset.filterPathLevel));
+          setSheetPath(key, [...path, pathPick.value]);
+          return;
+        }
         const preset = event.target.closest("[data-filter-date-preset]");
         const dayInput = event.target.closest("[data-filter-date-input]");
         if (preset || dayInput) {
@@ -862,10 +927,20 @@
         const values = new Set(sheet.sel[key] || []);
         if (box.checked) values.add(box.value); else values.delete(box.value);
         if (values.size) sheet.sel[key] = [...values]; else delete sheet.sel[key];
+        pruneCascade(sheet.sel);
+        Object.keys(cfg.cascade || {}).forEach((k) => (cfg.cascade[k] || []).forEach(syncSectionSummary));
         syncSectionSummary(key);
         syncSheetFooter();
       });
       sheetEl.addEventListener("input", (event) => {
+        const pathSearch = event.target.closest("[data-filter-path-search]");
+        if (pathSearch && sheet) {
+          const key = pathSearch.dataset.filterPathKey;
+          sheet.pathQuery[key] = pathSearch.value;
+          sheetHold(sheetEl, true);
+          sheetEl.querySelector(`[data-filter-path-list="${CSS.escape(key)}"]`).innerHTML = pathRowsHtml(facetByKey(key), sheet.paths[key] || pathOf(sheet.sel[key]), pathSearch.value);
+          return;
+        }
         const field = event.target.closest("[data-filter-search]");
         if (!field || !sheet) return;
         const key = field.dataset.sheetFacet;
@@ -903,6 +978,9 @@
        right-aligned with its chip instead, then clamped inside the gutters; no room below but room
        above → it opens above the chip (facet-popover-v2) */
     const GUTTER = 16;
+    /* the live anchor of the open popover: its chip, else „Mai multe” (facets opened from there), else the trigger —
+       never a node kept from before a render() (detached → the popover jumped to the top-left, rap-g) */
+    const anchorFor = (key) => (key && bar?.querySelector(`[data-filter-facet="${CSS.escape(key)}"]`)) || bar?.querySelector("[data-filter-more]") || toggle;
     const place = (anchor) => {
       /* the date chip's inner button sits inside the chip's 1px border → anchor to the chip itself (8 under, left edges equal) */
       const r = (anchor.closest(".e-permits-workplace__filter-chip") || anchor).getBoundingClientRect();
@@ -926,7 +1004,6 @@
     const close = (restoreFocus = true) => {
       if (sheet) closeSheet(restoreFocus);
       if (!popover || popover.hidden) return;
-      if (cfg.liveApply && liveTimer) liveCommit(true);
       const key = edit?.key;
       const wasMore = moreOpen;
       popover.hidden = true;
@@ -941,7 +1018,7 @@
     const renderOptions = () => {
       const facet = cfg.allFacets().find((f) => f.key === edit.key);
       const q = fold(edit.query);
-      const options = pinnedFirst(cfg.options(facet).filter((o) => !q || fold(o.value).includes(q)), edit.pinned);
+      const options = pinnedFirst(cfg.options(facet, cfg.masterApply ? draftOf() : undefined).filter((o) => !q || fold(o.value).includes(q)), edit.pinned);
       return options.length ? options.map((o) => {
         if (!o) return SEPARATOR;
         const tag = tagOf(o.value, facet);
@@ -958,6 +1035,85 @@
 
     /* the date popover: presets + „Interval personalizat” (wider: two pickers side by side); its calendar
        opens out of the popover, so this popover does not clip */
+    /* ---- path facet (drill-down cascade): crumbs · search · radio rows of the current level ---- */
+    const pathOf = (values) => (values?.[0] ? String(values[0]).split(PATH_SEP) : []);
+    const nodeAt = (facet, path) => {
+      let nodes = facet.tree();
+      for (const name of path) { const node = nodes.find((n) => n.name === name); if (!node?.children?.length) return { nodes, leaf: true }; nodes = node.children; }
+      return { nodes, leaf: false };
+    };
+    /* the level shown: the children of the path, or — at a leaf — its siblings with the leaf ticked */
+    const pathLevel = (facet, path) => {
+      const at = nodeAt(facet, path);
+      return at.leaf || path.length >= facet.levels.length ? { level: path.length - 1, nodes: nodeAt(facet, path.slice(0, -1)).nodes } : { level: path.length, nodes: at.nodes };
+    };
+    const pathRowsHtml = (facet, path, query) => {
+      const { level, nodes } = pathLevel(facet, path);
+      const q = fold(query);
+      const rows = nodes.filter((n) => !q || fold(n.name).includes(q));
+      const name = `geap-path-${facet.key}`;
+      return rows.length ? rows.map((n) => `<li>
+          <label class="e-permits-workplace__filter-option">
+            <span class="radio radio--small"><input class="radio-input" type="radio" name="${name}" value="${escapeHtml(n.name)}"${path[level] === n.name ? " checked" : ""} data-filter-path-pick data-filter-path-key="${escapeHtml(facet.key)}" data-filter-path-level="${level}"><span class="radio-custom" aria-hidden="true"></span></span>
+            <span class="e-permits-workplace__filter-option-label">${escapeHtml(n.name)}</span>${n.children?.length ? `<svg class="icon e-permits-workplace__filter-path-next" aria-hidden="true"><use href="${sprite}#icon-chevron-right"></use></svg>` : ""}
+          </label></li>`).join("") : noMatchHtml();
+    };
+    const pathBodyHtml = (facet, path, query, where) => {
+      const { level } = pathLevel(facet, path);
+      /* the ONE library breadcrumb (js/breadcrumbs.js): Toate › <chosen levels> › the level being chosen (current) */
+      const key = escapeHtml(facet.key);
+      const crumbs = [{ label: "Toate", button: true, attr: `data-filter-path-to="0" data-filter-path-key="${key}"` },
+        ...path.slice(0, level).map((name, i) => ({ label: name, button: true, attr: `data-filter-path-to="${i + 1}" data-filter-path-key="${key}"` })),
+        { label: facet.levels[level] }];
+      return `
+        <div class="e-permits-workplace__filter-path" data-filter-path="${key}">
+          <div class="e-permits-workplace__filter-path-crumbs">${window.GEAPBreadcrumbs?.html(crumbs, { mobile: false, label: facet.label }) || ""}</div>
+          <div class="${where === "sheet" ? "e-permits-filter-sheet__search" : "e-permits-workplace__filter-head"}">
+            <div class="search-input medium rectangular e-permits-workplace__search${query ? " has-value is-ready" : ""}">
+              <span class="icon-search" aria-hidden="true"><svg class="icon" width="20" height="20"><use href="${sprite}#icon-search"></use></svg></span>
+              <input class="input" type="search" placeholder="Caută: ${escapeHtml(facet.levels[level].toLocaleLowerCase("ro"))}" aria-label="Caută: ${escapeHtml(facet.levels[level])}" value="${escapeHtml(query)}" data-filter-path-search data-filter-path-key="${escapeHtml(facet.key)}">
+              ${searchActions()}
+            </div>
+          </div>
+          <ul class="e-permits-workplace__filter-list${where === "sheet" ? " e-permits-filter-sheet__list" : ""}" role="list" data-filter-path-list="${escapeHtml(facet.key)}">${pathRowsHtml(facet, path, query)}</ul>
+        </div>`;
+    };
+    const setSheetPath = (key, path) => {
+      sheet.paths[key] = path;
+      sheet.pathQuery[key] = "";
+      if (path.length) sheet.sel[key] = [path.join(PATH_SEP)]; else delete sheet.sel[key];
+      const host = sheetEl.querySelector(`[data-filter-path="${CSS.escape(key)}"]`)?.parentElement;
+      if (host) sheetMorph(sheetEl, () => { host.innerHTML = pathBodyHtml(facetByKey(key), path, "", "sheet"); });
+      syncSectionSummary(key);
+      syncSheetFooter();
+    };
+    const openPathFacet = (facet, anchor) => {
+      edit = { key: facet.key, values: new Set(), query: "", anchor, pathMode: true, path: pathOf(draftOf()[facet.key]) };
+      popover.classList.remove("e-permits-workplace__filter-pop--date");
+      popover.setAttribute("role", "dialog");
+      popover.setAttribute("aria-label", `Filtru: ${facet.label}`);
+      const paint = () => {
+        popover.innerHTML = `${popTitle(facet)}${pathBodyHtml(facet, edit.path, edit.query, "pop")}
+        <div class="e-permits-workplace__filter-footer">${footerButtons()}</div>`;
+      };
+      edit.paint = paint;
+      paint();
+      lockWidth(false);
+      popover.hidden = false;
+      render();
+      place(anchorFor(facet.key));
+      requestAnimationFrame(() => popover.querySelector("[data-filter-path-search]")?.focus());
+    };
+    const setPopoverPath = (path) => {
+      edit.path = path;
+      edit.query = "";
+      edit.paint();
+      if (cfg.masterApply) syncDraft();
+      popover.querySelector("[data-filter-path-search]")?.focus();
+    };
+
+    /* the popovers without a list search name their facet on top (dates, address, list error — rap-g) */
+    const popTitle = (facet) => `<p class="e-permits-workplace__filter-pop-title">${escapeHtml(facet.label)}</p>`;
     /* a facet whose list could not be loaded: the message only (no list, no footer) */
     const openUnavailable = (facet, anchor, text) => {
       edit = { key: facet.key, values: new Set(), query: "", anchor, unavailable: true };
@@ -965,11 +1121,11 @@
       popover.setAttribute("role", "dialog");
       popover.setAttribute("aria-label", `Filtru: ${facet.label}`);
       popover.setAttribute("tabindex", "-1");
-      popover.innerHTML = unavailableHtml(text);
+      popover.innerHTML = `${popTitle(facet)}${unavailableHtml(text)}`;
       lockWidth(false);
       popover.hidden = false;
       render();
-      place(bar.querySelector(`[data-filter-facet="${CSS.escape(facet.key)}"]`) || anchor);
+      place(anchorFor(facet.key));
       requestAnimationFrame(() => popover.focus());
     };
 
@@ -979,6 +1135,7 @@
       popover.setAttribute("role", "dialog");
       popover.setAttribute("aria-label", `Filtru: ${facet.label}`);
       popover.innerHTML = `
+      ${popTitle(facet)}
       ${dateBodyHtml(facet, edit.date, "pop")}
       <div class="e-permits-workplace__filter-footer">
         ${footerButtons()}
@@ -988,7 +1145,7 @@
       popover.hidden = false;
       initPickers(popover);
       render();
-      place(bar.querySelector(`[data-filter-facet="${CSS.escape(facet.key)}"]`) || anchor);
+      place(anchorFor(facet.key));
       requestAnimationFrame(() => (popover.querySelector("[data-filter-date-preset]:checked") || popover.querySelector("[data-filter-date-preset]"))?.focus());
     };
 
@@ -999,6 +1156,7 @@
       moreOpen = false;
       const unavailable = unavailableOf(facet);
       if (unavailable) { openUnavailable(facet, anchor, unavailable); return; }
+      if (isPath(facet)) { openPathFacet(facet, anchor); return; }
       if (isDate(facet)) { openDateFacet(facet, anchor); return; }
       popover.classList.remove("e-permits-workplace__filter-pop--date");
       edit = { key, values: new Set(draftOf()[key] || []), query: "", anchor };
@@ -1024,7 +1182,7 @@
       popover.hidden = false;
       render();
       lockWidth(true);
-      place(bar.querySelector(`[data-filter-facet="${CSS.escape(key)}"]`) || bar.querySelector("[data-filter-more]") || anchor);
+      place(anchorFor(key));
       requestAnimationFrame(() => (popover.querySelector("[data-filter-search]") || popover.querySelector("[data-filter-option]") || popover.querySelector("[data-filter-confirm]"))?.focus());
     };
 
@@ -1035,7 +1193,7 @@
       popover.classList.remove("e-permits-workplace__filter-pop--date");
       const facets = cfg.facets();
       const draft = draftOf();
-      const inline = facets.filter((f, i) => i < inlineMax || draft[f.key]?.length);
+      const inline = facets.filter((f, i) => (!f.inMore && i < inlineMax) || draft[f.key]?.length);
       popover.setAttribute("role", "menu");
       popover.setAttribute("aria-label", "Mai multe filtre");
       popover.innerHTML = `<div class="e-permits-workplace__filter-list">${facets.filter((f) => !inline.includes(f)).map((f) => `
@@ -1043,13 +1201,18 @@
       lockWidth(false);
       popover.hidden = false;
       render();
-      place(bar.querySelector("[data-filter-more]") || anchor);
+      place(anchorFor(null));
       requestAnimationFrame(() => popover.querySelector("[data-filter-more-facet]")?.focus());
     };
 
     /* popover "Confirmă": the facet goes into the draft; nothing is queried yet */
     const confirmFacet = () => {
       const draft = draftOf();
+      if (edit.pathMode) {
+        if (edit.path.length) draft[edit.key] = [edit.path.join(PATH_SEP)]; else delete draft[edit.key];
+        close();
+        return;
+      }
       if (edit.date) {
         const res = readDate(popover, edit.key, edit.date, true);
         if (!res.ok) { popover.querySelector(".e-permits-fo-input.is-error input")?.focus(); return; }
@@ -1070,36 +1233,32 @@
       state.draft = null;
       save();
       cfg.apply();
-      bar?.querySelector("[data-filter-clear-all], [data-filter-facet]")?.focus();
+      bar?.querySelector("[data-filter-slot], [data-filter-clear-all], [data-filter-facet]")?.focus();
     };
 
     const discard = () => { cfg.state().draft = null; render(); };
 
-    /* liveApply: the open popover's facet goes straight into the applied filter (debounced); the popover stays open and
-       follows its chip (which may grow a badge / move out of „Mai multe”) */
-    let liveTimer = 0;
-    const liveCommit = (now = false) => {
-      window.clearTimeout(liveTimer);
-      const run = () => {
-        if (!edit) return;
-        const key = edit.key;
-        const state = cfg.state();
-        const next = { ...state.applied };
-        if (edit.date) {
-          const res = readDate(popover, key, edit.date, true);
-          if (!res.ok) return;
-          if (res.token) next[key] = [res.token]; else delete next[key];
-        } else if (edit.values.size) next[key] = [...edit.values]; else delete next[key];
-        state.applied = next;
-        state.draft = null;
-        save();
-        cfg.apply();
-        if (!popover.hidden) place(bar.querySelector(`[data-filter-facet="${CSS.escape(key)}"]`) || bar.querySelector("[data-filter-more]") || edit.anchor);
-      };
-      if (now) run(); else liveTimer = window.setTimeout(run, 150);
+    /* masterApply: the open popover's facet goes straight into the DRAFT (the chips follow; results wait for „Aplică
+       filtre”); an invalid range keeps its old draft value and blocks the master button (AC-09) */
+    const syncDraft = () => {
+      if (!edit) return;
+      const key = edit.key;
+      const draft = draftOf();
+      if (edit.date) {
+        const res = readDate(popover, key, edit.date, true);
+        if (!res.ok) { invalidDates.add(key); render(); return; }
+        invalidDates.delete(key);
+        if (res.token) draft[key] = [res.token]; else delete draft[key];
+      } else if (edit.pathMode) {
+        if (edit.path.length) draft[key] = [edit.path.join(PATH_SEP)]; else delete draft[key];
+      } else if (edit.values.size) draft[key] = [...edit.values]; else delete draft[key];
+      pruneCascade(draft);
+      render();
+      if (!popover.hidden) place(anchorFor(key));
     };
 
     const clearAll = () => {
+      invalidDates.clear();
       const state = cfg.state();
       state.applied = {};
       state.draft = null;
@@ -1109,6 +1268,8 @@
 
     function wirePopover() {
       popover.addEventListener("change", (event) => {
+        const pathPick = event.target.closest("[data-filter-path-pick]");
+        if (pathPick && edit?.pathMode) { setPopoverPath([...edit.path.slice(0, Number(pathPick.dataset.filterPathLevel)), pathPick.value]); return; }
         if (edit?.date) {
           const preset = event.target.closest("[data-filter-date-preset]");
           const dayInput = event.target.closest("[data-filter-date-input]");
@@ -1124,15 +1285,20 @@
             if (iso === "") edit.date[dayInput.dataset.filterDatePart] = "";
             clearFieldErrors(dayInput.closest("[data-filter-range]"));
           }
-          if (cfg.liveApply) liveCommit(true);
+          if (cfg.masterApply) syncDraft();
           return;
         }
         const box = event.target.closest("[data-filter-option]");
         if (!box || !edit) return;
         if (box.checked) edit.values.add(box.value); else edit.values.delete(box.value);
-        if (cfg.liveApply) liveCommit();
+        if (cfg.masterApply) syncDraft();
       });
       popover.addEventListener("input", (event) => {
+        if (event.target.closest("[data-filter-path-search]") && edit?.pathMode) {
+          edit.query = event.target.value;
+          popover.querySelector("[data-filter-path-list]").innerHTML = pathRowsHtml(facetByKey(edit.key), edit.path, edit.query);
+          return;
+        }
         if (!event.target.closest("[data-filter-search]") || !edit) return;
         edit.query = event.target.value;
         popover.querySelector("[data-filter-list]").innerHTML = renderOptions();
@@ -1141,7 +1307,10 @@
         const moreFacet = event.target.closest("[data-filter-more-facet]");
         if (moreFacet) { openFacet(moreFacet.dataset.filterMoreFacet, bar.querySelector("[data-filter-more]")); return; }
         if (!edit) return;
+        const pathTo = event.target.closest("[data-filter-path-to]");
+        if (pathTo && edit.pathMode) { setPopoverPath(edit.path.slice(0, Number(pathTo.dataset.filterPathTo))); return; }
         if (event.target.closest("[data-filter-confirm]")) { confirmFacet(); return; }
+        if (event.target.closest("[data-filter-reset]") && edit.pathMode) { setPopoverPath([]); return; }
         if (event.target.closest("[data-filter-reset]") && edit.date) {
           edit.date = blankDate(facetByKey(edit.key));
           popover.querySelectorAll("[data-filter-date-preset]").forEach((radio) => { radio.checked = false; });
@@ -1149,13 +1318,13 @@
           clearFieldErrors(range);
           range.hidden = !range.hasAttribute("data-filter-range-fixed");
           range.querySelectorAll("[data-filter-date-input]").forEach((input) => { input.value = ""; input.closest("[data-date-picker]").dataset.selected = ""; });
-          if (cfg.liveApply) liveCommit(true);
+          if (cfg.masterApply) syncDraft();
           return;
         }
         if (event.target.closest("[data-filter-reset]")) {
           edit.values.clear();
           popover.querySelectorAll("[data-filter-option]").forEach((box) => { box.checked = false; });
-          if (cfg.liveApply) liveCommit(true);
+          if (cfg.masterApply) syncDraft();
         }
       });
       popover.addEventListener("keydown", (event) => {
@@ -1172,7 +1341,7 @@
           next?.focus();
           return;
         }
-        if (event.key === "Enter" && edit && !edit.unavailable && !event.target.closest("button")) { event.preventDefault(); if (cfg.liveApply) { liveCommit(true); close(); } else confirmFacet(); }
+        if (event.key === "Enter" && edit && !edit.unavailable && !event.target.closest("button")) { event.preventDefault(); if (cfg.masterApply) { syncDraft(); close(); } else confirmFacet(); }
       });
     }
 
@@ -1194,9 +1363,12 @@
 
     /* a chip × : that facet goes at once (applied + draft), as „Șterge filtrele” does for all */
     const clearFacet = (key) => {
+      invalidDates.delete(key);
       const state = cfg.state();
       delete state.applied[key];
       if (state.draft) delete state.draft[key];
+      pruneCascade(state.applied);
+      if (state.draft) pruneCascade(state.draft);
       if (edit?.key === key) close(false);
       save();
       cfg.apply();
@@ -1208,11 +1380,16 @@
       if (chipClear) { clearFacet(chipClear.dataset.filterDateClear || chipClear.dataset.filterFacetClear); return; }
       if (event.target.closest("[data-filter-clear-all]")) {
         clearAll();
-        /* phones: the line with the button goes away — focus the icon-only „Filtre” */
-        if (isPhone()) toggle?.focus();
+        /* phones: the line with the button goes away — focus the icon-only „Filtre”; desktop: the first chip */
+        if (isPhone()) toggle?.focus(); else bar?.querySelector("[data-filter-facet]")?.focus();
         return;
       }
-      if (event.target.closest("[data-filter-commit]")) { commit(); return; }
+      const commitBtn = event.target.closest("[data-filter-commit]");
+      if (commitBtn) {
+        /* AC-09: an invalid range blocks the apply — back to its field */
+        if (invalidDates.size) { const key = [...invalidDates][0]; openFacet(key, bar.querySelector(`[data-filter-facet="${CSS.escape(key)}"]`)); return; }
+        close(false); commit(); return;
+      }
       if (event.target.closest("[data-filter-discard]")) { discard(); return; }
       const more = event.target.closest("[data-filter-more]");
       if (more) { if (moreOpen) close(); else openMore(more); return; }
@@ -1236,6 +1413,25 @@
       close(false);
     });
     window.addEventListener("resize", () => close(false));
+    /* scroll (window or any scrolling ancestor, capture): the open popover follows its anchor in the next frame (place()
+       flips it above when there is no room below) and closes once the anchor leaves the viewport (pop-follow-v1) */
+    let followFrame = 0;
+    document.addEventListener("scroll", (event) => {
+      if (!popover || popover.hidden) return;
+      /* only the page or a scrolling ANCESTOR of the anchor moves it — the popover's own list (wheel, keys, touch)
+         scrolls freely, never repositions / closes it (pop-follow-v2, user: „the list can no longer be scrolled”) */
+      const anchorNow = anchorFor(moreOpen ? null : edit?.key);
+      const t = event.target;
+      if (t !== document && !(t instanceof Element && anchorNow && t.contains(anchorNow))) return;
+      window.cancelAnimationFrame(followFrame);
+      followFrame = window.requestAnimationFrame(() => {
+        if (popover.hidden) return;
+        const anchor = anchorFor(moreOpen ? null : edit?.key);
+        const r = anchor?.getBoundingClientRect();
+        if (!r || r.bottom < 0 || r.top > window.innerHeight) { close(false); return; }
+        place(anchor);
+      });
+    }, { capture: true, passive: true });
     (cfg.scrollers || []).forEach((el) => el?.addEventListener("scroll", () => close(false), { passive: true }));
 
     return { render, close, clearAll };

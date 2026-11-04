@@ -3177,21 +3177,26 @@
       /* phones (≤760, facet filter phone mode): no toolbar button, a chip opens its bottom sheet and
          „Arată N rezultate” applies it — no „Confirmă” / „Aplică filtrele” */
       const phone = () => window.matchMedia("(max-width: 760px)").matches;
-      /* the end of a facet choice: phones „Arată N rezultate”; desktop = the live result, then Esc closes the dropdown */
+      /* the end of a facet choice: phones „Arată N rezultate”; desktop = Esc closes the dropdown, the draft stays */
       const done = async (h) => {
         if (phone()) { await h.click("[data-sheet-apply]"); await h.wait(400); return; }
         await h.wait(350);
         document.querySelector(".e-permits-workplace__filter-pop:not([hidden])")?.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
         await h.wait(150);
       };
+      /* „Aprobat tacit” = a Statut value again (AC-06; the separate chip of rap-g was taken back) */
+      const tacitOn = async (h) => { await pick("status", ["Aprobat tacit"])(h); };
       const pick = (facet, values) => async (h) => {
         await ffFacet(h, facet);
         for (const value of values) await h.click(`[data-filter-option][value="${value}"]`);
         await done(h);
       };
       const open = async (h) => { if (!phone()) await h.click("[data-rap-filter-toggle]"); };
-      /* RAP desktop applies as you tick (liveApply, 2026-11-04): no „Aplică filtre” — kept as a no-op guard */
-      const commit = async (h) => { const btn = [...document.querySelectorAll("[data-filter-commit]")].find((el) => el.getClientRects().length); if (!phone() && btn) await h.click("[data-filter-commit]"); };
+      /* RAP desktop (masterApply, 2026-11-04): the ONE „Aplică filtre” at the end of the chips row applies the draft */
+      const commit = async (h) => {
+        const btn = [...document.querySelectorAll("[data-filter-commit]")].find((el) => el.getClientRects().length);
+        if (!phone() && btn && btn.getAttribute("aria-disabled") !== "true") { await h.click("[data-filter-commit]"); await h.wait(300); }
+      };
       return {
         "rap-01": rap(null),
         "rap-01a": rap(open),
@@ -3208,7 +3213,7 @@
         "rap-01s": rap(async (h) => { await open(h); await ffFacet(h, "denumire"); await h.fill("[data-filter-search]", "licenta", { leave: false }); await h.wait(600); }),
         "rap-01t": rap(async (h) => {
           await open(h); await ffFacet(h, "autoritate");
-          await h.click('[data-filter-option][value="Agenția Servicii Publice"]');
+          await h.click('[data-filter-option][value="Agenția de Mediu"]');
           await h.fill("[data-filter-search]", "agentia", { leave: false }); await h.wait(600);
         }),
         "rap-01u": rap(async (h) => { await open(h); await ffFacet(h, "autoritate"); await h.fill("[data-filter-search]", "zzz", { leave: false }); await h.wait(600); }),
@@ -3219,7 +3224,7 @@
         "rap-01d": rap(async (h) => {
           /* the lists offer only values that still have rows (no dead ends), so the empty result comes from one filter +
              a search that matches nothing */
-          await open(h); await pick("beneficiar", ["Persoană fizică"])(h); await h.fill("[data-rap-search]", "zzzz", { leave: false }); await h.wait(600);
+          await open(h); await pick("beneficiar", ["Persoană fizică"])(h); await commit(h); await h.fill("[data-rap-search]", "zzzz", { leave: false }); await h.wait(600);
         }),
         /* phones (≤760): the facet filter's phone mode — ONE „Filtre” pill (2026-10-20, no facet chips) →
            the all-filters sheet; 04a / 04b open it on Statut / Autoritate (search when > 7 values), 04c
@@ -3275,10 +3280,11 @@
             "rap-f03e": RAPAPI("eroare-tipuri", async (h) => { await open(h); await ffFacet(h, "denumire"); await h.wait(200); }),
             "rap-f04": rap(ANSA),
             /* chip-count-v1: three authorities ticked → „Autoritate emitentă (3)” + × (no values on the chip) */
-            "rap-f04b": rap(async (h) => { await open(h); await pick("autoritate", ["Agenția Națională pentru Siguranța Alimentelor", "Agenția Servicii Publice", "Inspectoratul General pentru Situații de Urgență"])(h); await commit(h); }),
+            "rap-f04b": rap(async (h) => { await open(h); await pick("autoritate", ["Agenția Națională pentru Siguranța Alimentelor", "Agenția de Mediu", "Inspectoratul General pentru Situații de Urgență"])(h); await commit(h); }),
             "rap-f05": rap(async (h) => { await open(h); await pick("denumire", ["Permis de folosință specială a apei"])(h); await commit(h); }),
             "rap-f06": rap(async (h) => { await open(h); await ffFacet(h, "status"); await h.wait(200); }),
-            "rap-f06a": rap(async (h) => { await open(h); await pick("status", ["Aprobat tacit"])(h); await commit(h); }),
+            /* rap-g: „Aprobare tacită” = its own on/off chip (phones: the checkbox row in its sheet section) */
+            "rap-f06a": rap(async (h) => { await open(h); await tacitOn(h); await commit(h); }),
             "rap-f07": rap(async (h) => { await open(h); await range("emitere", "2026-01-01", "")(h); await commit(h); }),
             "rap-f07a": rap(async (h) => { await open(h); await day(h, "emitere", "2026-01-01", ""); }),
             "rap-f08": rap(async (h) => { await open(h); await range("expirare", "", "2027-12-31")(h); await commit(h); }),
@@ -3299,14 +3305,14 @@
             }),
             /* selected-first-v1: the Autoritate list reopened with 3 ticked — the ticked ones on top, a divider, the rest */
             "rap-f04c": rap(async (h) => {
-              await open(h); await pick("autoritate", ["Agenția Națională pentru Siguranța Alimentelor", "Agenția Servicii Publice", "Inspectoratul General pentru Situații de Urgență"])(h); await commit(h);
+              await open(h); await pick("autoritate", ["Agenția Națională pentru Siguranța Alimentelor", "Agenția de Mediu", "Inspectoratul General pentru Situații de Urgență"])(h); await commit(h);
               if (phone()) { await h.click('[data-rap-filters] [data-filter-facet="autoritate"]'); await h.wait(400); return; }
               await h.click('[data-filter-facet="autoritate"]'); await h.wait(200);
             }),
             "rap-f15": rap(async (h) => {
               await open(h); await pick("status", ["Valabil"])(h); await range("emitere", "2024-01-01", "")(h); await commit(h);
               await nextPage(h); await nextPage(h);
-              await h.click(phone() ? "[data-rap-filters] [data-filter-clear-all]" : "[data-rap-reset]"); await h.wait(300);
+              await h.click("[data-rap-filters] [data-filter-clear-all]"); await h.wait(300);
             }),
             "rap-f16": rap(async (h) => { await ANSA(h); await nextPage(h); }),
             /* „Data emiterii” popover with both dates filled (desktop: wide enough for two full date fields) · both date
@@ -3315,11 +3321,7 @@
             "rap-f07b": rap(async (h) => { await open(h); await day(h, "emitere", "2026-01-01", "2026-06-30"); }),
             "rap-f07c": rap(async (h) => { await open(h); await range("emitere", "2024-01-01", "2024-12-31")(h); await range("expirare", "", "2029-12-31")(h); await commit(h); }),
             "rap-fm": rap(async (h) => { await open(h); if (!phone()) await h.click("[data-filter-more]"); else { await h.click("[data-filter-all]"); await h.wait(400); } }),
-            "rap-fm1": rap(async (h) => {
-              await open(h); await ffFacet(h, "subdiviziune");
-              await h.fill("[data-filter-search]", "CSP B", { leave: false }); await h.wait(400);
-              await h.click("[data-filter-option]"); await done(h);
-            }),
+            "rap-fm1": rap(async (h) => { await open(h); await pick("beneficiar", ["Persoană juridică"])(h); await commit(h); }),
             /* search suggestions (rap-suggest-v1): „chis” → Acte / Companii / Adrese groups · ↓ highlights the first ·
                an address picked → „Adresă: …” chip + × · nothing matches → „Nicio potrivire” */
             "rap-fs1": rap(async (h) => { await h.fill("[data-rap-search]", "chis", { leave: false }); await h.wait(600); }),
@@ -3329,6 +3331,46 @@
               await h.click('.rap-suggest [data-rap-suggest-i]:not(.is-disabled):last-of-type'); await h.wait(400);
             }),
             "rap-fs3": rap(async (h) => { await h.fill("[data-rap-search]", "zzqx", { leave: false }); await h.wait(600); }),
+            /* masterApply button slot: f17 changes pending (Statut + Autoritate ticked, results unchanged) → „Aplică filtre”;
+               f17a applied, nothing pending → grey „Resetează”; f01 nothing applied → no button */
+            "rap-f17": rap(async (h) => { await open(h); await pick("status", ["Valabil"])(h); await pick("autoritate", ["Agenția de Mediu"])(h); }),
+            "rap-f17a": rap(async (h) => { await open(h); await pick("status", ["Valabil"])(h); await pick("autoritate", ["Agenția de Mediu"])(h); await commit(h); }),
+            /* rap-g (Alexandru's RAP comments + user review): g01 applied chip groups (EVO-WEB 22622:26715: [chip label +
+               count, tooltip = the values][round ×]) · g02 cascade: an authority ticked, „Mai multe” open (Subdiviziune,
+               Serviciu live there) · g03 Subdiviziune = only that authority's subdivisions · g04 Serviciu narrowed by the
+               authority · g05 Statut „Aprobat tacit” · g06 search „agenția mediului” (word stems) · g07 suggestions with
+               „Autorități” · g08 an authority picked from them · g09 Adresă popover (Raion → Localitate → Stradă) on Bălți ·
+               g10 the address applied („Bălți, str. …”) · g11 a popover open, then the page scrolled: it follows its chip */
+            "rap-g01": rap(async (h) => { await open(h); await pick("autoritate", ["Agenția Națională pentru Siguranța Alimentelor", "Agenția de Mediu"])(h); await pick("status", ["Valabil"])(h); await commit(h); }),
+            "rap-g02": rap(async (h) => { await open(h); await pick("autoritate", ["Agenția Națională pentru Sănătate Publică"])(h); if (phone()) { await h.click("[data-filter-all]"); await h.wait(400); } else await h.click("[data-filter-more]"); await h.wait(200); }),
+            "rap-g03": rap(async (h) => { await open(h); await pick("autoritate", ["Agenția Națională pentru Sănătate Publică"])(h); await ffFacet(h, "subdiviziune"); await h.wait(300); }),
+            "rap-g04": rap(async (h) => { await open(h); await pick("autoritate", ["Inspectoratul General pentru Situații de Urgență"])(h); await ffFacet(h, "serviciu"); await h.wait(300); }),
+            "rap-g05": rap(async (h) => { await open(h); await tacitOn(h); await commit(h); }),
+            "rap-g06": rap(async (h) => { await h.fill("[data-rap-search]", "agenția mediului"); await h.wait(500); document.querySelector(".rap-suggest")?.setAttribute("hidden", ""); }),
+            "rap-g07": rap(async (h) => { await h.fill("[data-rap-search]", "agenția mediului", { leave: false }); await h.wait(600); }),
+            "rap-g08": rap(async (h) => {
+              await h.fill("[data-rap-search]", "agenția mediului", { leave: false }); await h.wait(600);
+              await h.click('.rap-suggest [data-rap-suggest-i="0"]'); await h.wait(400);
+            }),
+            "rap-g09": rap(async (h) => {
+              await open(h); await ffFacet(h, "adresa");
+              await h.click('[data-filter-path-pick][value="mun. Bălți"]'); await h.wait(200);
+              await h.click('[data-filter-path-pick][value="Bălți"]'); await h.wait(200);
+            }),
+            "rap-g10": rap(async (h) => {
+              await open(h); await ffFacet(h, "adresa");
+              await h.click('[data-filter-path-pick][value="mun. Bălți"]'); await h.wait(150);
+              await h.click('[data-filter-path-pick][value="Bălți"]'); await h.wait(150);
+              await h.click('[data-filter-path-pick][value="str. Independenței"]'); await h.wait(150);
+              await done(h); await commit(h);
+            }),
+            "rap-g11": rap(async (h) => { await open(h); await ffFacet(h, "autoritate"); await h.wait(200); window.scrollBy(0, 120); await h.wait(300); }),
+            /* smart search by act name: „licență alcool” → the „Acte” group (Denumire act values) · g13 one picked → its chip */
+            "rap-g12": rap(async (h) => { await h.fill("[data-rap-search]", "licență alcool", { leave: false }); await h.wait(600); }),
+            "rap-g13": rap(async (h) => {
+              await h.fill("[data-rap-search]", "licență alcool", { leave: false }); await h.wait(600);
+              await h.click('.rap-suggest [data-rap-suggest-i="0"]'); await h.wait(400);
+            }),
             "rap-f18": rap(async (h) => { await open(h); await range("emitere", "2030-01-01", "")(h); await commit(h); }),
             "rap-f19": rap(async (h) => { await open(h); await pick("beneficiar", ["Persoană fizică"])(h); await commit(h); }),
             "rap-f20": RAPAPI("eroare-filtrare", async (h) => { await open(h); await pick("status", ["Valabil"])(h); await commit(h); })
@@ -3340,13 +3382,7 @@
         "rap-01f": rap(async (h) => { await h.hover('tr[data-record-id="rap-0001"] .status-tag--brand'); }),
         /* US-141: „Aprobat tacit” as a value of the Statut facet (acts with Aprobare tacită = true) */
         "rap-01h": rap(async (h) => {
-          if (window.matchMedia("(max-width: 760px)").matches) {
-            /* phones: „Filtre” → the all-filters sheet, Statut open (facet filter phone mode) */
-            await ffFacet(h, "status");
-            await h.click('[data-filter-option][value="Aprobat tacit"]'); await h.click("[data-sheet-apply]"); await h.wait(400);
-            return;
-          }
-          await open(h); await pick("status", ["Aprobat tacit"])(h); await commit(h);
+          await open(h); await tacitOn(h); await commit(h);
         }),
         /* the shared EVO header (evo-header-v1, Figma Components 912:18991 / 1210:5257): menus open. Desktop: Servicii ⌄
            (≤1100 „Meniu ⌄”) mega menu; phones: ☰ → the full-screen menu (State=Active) */

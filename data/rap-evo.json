@@ -130,14 +130,14 @@
       },
       "permit": {
         "name": "Licenţă pentru fabricarea alcoolului etilic, a berii și a producţiei alcoolice, cu excepţia vinului, produselor obținute pe bază de must și a produselor a căror fabricare este autorizată în conformitate cu Legea viei și vinului nr. 57/2006",
-        "number": "P-8988/2026",
-        "paperNumber": "C382137/2026",
+        "number": "LIC-2026-0412",
+        "paperNumber": "GEAP-2026-009-04121",
         "validThrough": "3 iulie 2030",
         "issuedAt": "emis 4 iulie 2026"
       },
       "authority": {
-        "code": "ASP",
-        "name": "Agenția Servicii Publice"
+        "code": "MEC",
+        "name": "Ministerul Economiei"
       },
       "status": "Valabil",
       "markings": [
@@ -183,14 +183,14 @@
       },
       "permit": {
         "name": "Autorizație de funcționare – comerț",
-        "number": "P-8991/2026",
-        "paperNumber": "C383032/2026",
+        "number": "PMC-2025-00187",
+        "paperNumber": "GEAP-2025-009-00412",
         "validThrough": "4 ian. 2030",
         "issuedAt": "emis 4 ian. 2025"
       },
       "authority": {
-        "code": "ANSP",
-        "name": "Agenția Națională pentru Sănătate Publică"
+        "code": "PMC",
+        "name": "Primăria municipiului Chișinău"
       },
       "status": "Valabil",
       "profile": {
@@ -230,14 +230,14 @@
       },
       "permit": {
         "name": "Autorizație de funcționare – comerț",
-        "number": "P-8992/2026",
-        "paperNumber": "C383033/2026",
+        "number": "PMC-2025-00193",
+        "paperNumber": "GEAP-2025-009-00431",
         "validThrough": "5 ian. 2030",
         "issuedAt": "emis 5 ian. 2025"
       },
       "authority": {
-        "code": "ASP",
-        "name": "Agenția Servicii Publice"
+        "code": "PMC",
+        "name": "Primăria municipiului Chișinău"
       },
       "status": "Suspendat",
       "profile": {
@@ -275,14 +275,14 @@
       },
       "permit": {
         "name": "Licență pentru fabricarea alcoolului etilic, a berii și a băuturilor alcoolice",
-        "number": "P-8993/2026",
-        "paperNumber": "C383034/2026",
+        "number": "LIC-2025-0021",
+        "paperNumber": "GEAP-2025-009-00447",
         "validThrough": "6 ian. 2030",
         "issuedAt": "emis 6 ian. 2025"
       },
       "authority": {
-        "code": "ANRE",
-        "name": "Agenția Națională pentru Reglementare în Energetică"
+        "code": "MEC",
+        "name": "Ministerul Economiei"
       },
       "status": "Expirat",
       "profile": {
@@ -300,14 +300,14 @@
       },
       "permit": {
         "name": "Autorizație de funcționare – comerț",
-        "number": "P-8994/2026",
-        "paperNumber": "C383035/2026",
+        "number": "PMC-2025-00205",
+        "paperNumber": "GEAP-2025-009-00458",
         "validThrough": "7 ian. 2030",
         "issuedAt": "emis 7 ian. 2025"
       },
       "authority": {
-        "code": "ANSP",
-        "name": "Agenția Națională pentru Sănătate Publică"
+        "code": "PMC",
+        "name": "Primăria municipiului Chișinău"
       },
       "status": "Retras",
       "profile": {
@@ -326,14 +326,14 @@
       },
       "permit": {
         "name": "Permis de folosință specială a apei",
-        "number": "P-8995/2026",
-        "paperNumber": "C383036/2026",
+        "number": "AM-2025-00034",
+        "paperNumber": "GEAP-2025-009-00470",
         "validThrough": "8 ian. 2030",
         "issuedAt": "emis 8 ian. 2025"
       },
       "authority": {
-        "code": "CA",
-        "name": "Consiliul Audiovizualului"
+        "code": "AM",
+        "name": "Agenția de Mediu"
       },
       "status": "Anulat",
       "profile": {
@@ -351,14 +351,14 @@
       },
       "permit": {
         "name": "Licență pentru fabricarea alcoolului etilic, a berii și a băuturilor alcoolice",
-        "number": "P-8996/2026",
-        "paperNumber": "C383037/2026",
+        "number": "LIC-2025-0029",
+        "paperNumber": "GEAP-2025-009-00483",
         "validThrough": "9 ian. 2030",
         "issuedAt": "emis 9 ian. 2025"
       },
       "authority": {
-        "code": "ANRE",
-        "name": "Agenția Națională pentru Reglementare în Energetică"
+        "code": "MEC",
+        "name": "Ministerul Economiei"
       },
       "status": "Anulat",
       "profile": {
@@ -376,14 +376,14 @@
       },
       "permit": {
         "name": "Notificare unitate comercială",
-        "number": "P-8997/2026",
-        "paperNumber": "C383038/2026",
+        "number": "PMB-2025-00061",
+        "paperNumber": "GEAP-2025-009-00495",
         "validThrough": "10 ian. 2030",
         "issuedAt": "emis 10 ian. 2025"
       },
       "authority": {
-        "code": "CNPDCP",
-        "name": "Centrul Național pentru Protecția Datelor cu Caracter Personal"
+        "code": "PMB",
+        "name": "Primăria municipiului Bălți"
       },
       "status": "Valabil",
       "profile": {
@@ -401,14 +401,14 @@
       },
       "permit": {
         "name": "Permis de folosință specială a apei",
-        "number": "P-8998/2026",
-        "paperNumber": "C383039/2026",
+        "number": "AM-2025-00041",
+        "paperNumber": "GEAP-2025-009-00502",
         "validThrough": "11 ian. 2030",
         "issuedAt": "emis 11 ian. 2025"
       },
       "authority": {
-        "code": "CA",
-        "name": "Consiliul Audiovizualului"
+        "code": "AM",
+        "name": "Agenția de Mediu"
       },
       "status": "Anulat",
       "profile": {
@@ -426,14 +426,14 @@
       },
       "permit": {
         "name": "Notificare unitate comercială",
-        "number": "P-8999/2026",
-        "paperNumber": "C383040/2026",
+        "number": "PMC-2025-00231",
+        "paperNumber": "GEAP-2025-009-00516",
         "validThrough": "12 ian. 2030",
         "issuedAt": "emis 12 ian. 2025"
       },
       "authority": {
-        "code": "SFS",
-        "name": "Serviciul Fiscal de Stat"
+        "code": "PMC",
+        "name": "Primăria municipiului Chișinău"
       },
       "status": "Valabil",
       "profile": {
@@ -451,14 +451,14 @@
       },
       "permit": {
         "name": "Notificare unitate comercială",
-        "number": "P-9000/2026",
-        "paperNumber": "C383041/2026",
+        "number": "PMB-2025-00068",
+        "paperNumber": "GEAP-2025-009-00529",
         "validThrough": "13 ian. 2030",
         "issuedAt": "emis 13 ian. 2025"
       },
       "authority": {
-        "code": "CNPDCP",
-        "name": "Centrul Național pentru Protecția Datelor cu Caracter Personal"
+        "code": "PMB",
+        "name": "Primăria municipiului Bălți"
       },
       "status": "Valabil",
       "profile": {
@@ -476,14 +476,14 @@
       },
       "permit": {
         "name": "Notificare unitate comercială",
-        "number": "P-9001/2026",
-        "paperNumber": "C383042/2026",
+        "number": "PCAHUL-2025-00017",
+        "paperNumber": "GEAP-2025-009-00541",
         "validThrough": "14 ian. 2030",
         "issuedAt": "emis 14 ian. 2025"
       },
       "authority": {
-        "code": "BNM",
-        "name": "Banca Națională a Moldovei"
+        "code": "PCAHUL",
+        "name": "Primăria municipiului Cahul"
       },
       "status": "Valabil",
       "profile": {
@@ -501,14 +501,14 @@
       },
       "permit": {
         "name": "Notificare unitate comercială",
-        "number": "P-9002/2026",
-        "paperNumber": "C383043/2026",
+        "number": "PMC-2025-00246",
+        "paperNumber": "GEAP-2025-009-00556",
         "validThrough": "15 ian. 2030",
         "issuedAt": "emis 15 ian. 2025"
       },
       "authority": {
-        "code": "SFS",
-        "name": "Serviciul Fiscal de Stat"
+        "code": "PMC",
+        "name": "Primăria municipiului Chișinău"
       },
       "status": "Valabil",
       "profile": {
@@ -526,14 +526,14 @@
       },
       "permit": {
         "name": "Notificare unitate comercială",
-        "number": "P-9003/2026",
-        "paperNumber": "C383044/2026",
+        "number": "PORHEI-2025-00022",
+        "paperNumber": "GEAP-2025-009-00563",
         "validThrough": "16 ian. 2030",
         "issuedAt": "emis 16 ian. 2025"
       },
       "authority": {
-        "code": "BNM",
-        "name": "Banca Națională a Moldovei"
+        "code": "PORHEI",
+        "name": "Primăria municipiului Orhei"
       },
       "status": "Valabil",
       "profile": {
@@ -551,8 +551,8 @@
       },
       "permit": {
         "name": "Autorizația pentru importul, exportul sau reexportul substanțelor care distrug stratul de ozon, al produselor și al echipamentului care conțin asemenea substanțe",
-        "number": "P-9015/2026",
-        "paperNumber": "C384410/2026",
+        "number": "AM-2026-00318",
+        "paperNumber": "GEAP-2026-009-04402",
         "validThrough": "11 aug. 2027",
         "issuedAt": "emis 12 aug. 2026"
       },
@@ -802,8 +802,8 @@
       },
       "permit": {
         "name": "Autorizație sanitară de funcționare",
-        "number": "P-9031/2026",
-        "paperNumber": "C384702/2026",
+        "number": "ANSP-2026-01187",
+        "paperNumber": "GEAP-2026-009-04470",
         "validThrough": "20 aug. 2031",
         "issuedAt": "emis 21 aug. 2026"
       },
@@ -992,10 +992,34 @@
     "BNM": {
       "phone": "022 000 107",
       "email": "contact@bnm.demo.gov.md"
+    },
+    "MEC": {
+      "phone": "022 000 108",
+      "email": "contact@mec.demo.gov.md"
+    },
+    "PMC": {
+      "phone": "022 000 109",
+      "email": "contact@pmc.demo.gov.md"
+    },
+    "PMB": {
+      "phone": "022 000 110",
+      "email": "contact@pmb.demo.gov.md"
+    },
+    "PCAHUL": {
+      "phone": "022 000 111",
+      "email": "contact@pcahul.demo.gov.md"
+    },
+    "PORHEI": {
+      "phone": "022 000 112",
+      "email": "contact@porhei.demo.gov.md"
+    },
+    "AM": {
+      "phone": "022 000 113",
+      "email": "contact@am.demo.gov.md"
     }
   },
   "registry": {
-    "_comment": "US-141 AC-02: the RAP API's issuing authorities (+ subdivisions = the office that issued the act). Real Moldovan public authorities, the same names / codes as data/autoritati.json (merged at runtime, autoritati.json wins). The demo registry spreads its padded acts over every authority except `noActs` — those never reach the „Autoritate emitentă” facet (≥ 1 active act). `actTypes` (US-141 AC-03 „Tip act”): real permit types, each with the authorities that issue it — the padded acts cycle through them.",
+    "_comment": "US-141 AC-02: the RAP API's issuing authorities (+ subdivisions = the office that issued the act). Real Moldovan public authorities, the same names / codes as data/autoritati.json (merged at runtime, autoritati.json wins). The demo registry spreads its padded acts over every authority except `noActs` — those never reach the „Autoritate emitentă” facet (≥ 1 active act). `actTypes` (US-141 AC-03 „Tip act”): real permit types, each with the authorities that issue it — the padded acts cycle through them. `addresses` = Raion / municipiu → Localitate → Stradă (the address filter cascade + the padded acts' addresses).",
     "noActs": [
       "ANACEC",
       "ANCD",
@@ -1719,7 +1743,6 @@
       {
         "name": "Licență pentru fabricarea alcoolului etilic, a berii și a băuturilor alcoolice",
         "authorities": [
-          "ANRE",
           "MEC"
         ]
       },
@@ -2223,12 +2246,12 @@
       {
         "name": "Act de constatare a aprobării tacite",
         "authorities": [
-          "ASP",
           "ANSP",
           "ANSA",
           "PMC",
           "PMB",
-          "IGSU"
+          "IGSU",
+          "AM"
         ]
       },
       {
@@ -2289,135 +2312,215 @@
           "PSTRASENI",
           "PCAUSENI"
         ]
-      },
-      {
-        "name": "Eliberarea actelor de identitate pentru persoanele juridice străine — certificat de înregistrare a filialei",
-        "authorities": [
-          "ASP"
-        ]
-      },
-      {
-        "name": "Licență pentru activitatea notarială privată",
-        "authorities": [
-          "ASP"
-        ]
       }
     ],
     "addresses": [
       {
-        "locality": "mun. Chișinău",
-        "streets": [
-          "bd. Ștefan cel Mare și Sfânt",
-          "str. Vasile Alecsandri",
-          "str. Columna",
-          "str. Mitropolit Dosoftei",
-          "str. Calea Ieșilor",
-          "bd. Dacia",
-          "str. Ismail"
+        "raion": "mun. Chișinău",
+        "localities": [
+          {
+            "name": "Chișinău",
+            "streets": [
+              "bd. Ștefan cel Mare și Sfânt",
+              "str. Vasile Alecsandri",
+              "str. Columna",
+              "str. Mitropolit Dosoftei",
+              "str. Calea Ieșilor",
+              "bd. Dacia",
+              "str. Ismail",
+              "str. Alba Iulia"
+            ]
+          },
+          {
+            "name": "Durlești",
+            "streets": [
+              "str. Cartușa",
+              "str. Nicolae Testemițanu"
+            ]
+          },
+          {
+            "name": "Cricova",
+            "streets": [
+              "str. Ungureanu",
+              "str. Chișinăului"
+            ]
+          },
+          {
+            "name": "Codru",
+            "streets": [
+              "str. Costiujeni"
+            ]
+          }
         ]
       },
       {
-        "locality": "mun. Bălți",
-        "streets": [
-          "str. Ștefan cel Mare",
-          "str. Independenței",
-          "str. Decebal",
-          "str. Sfântul Nicolae"
+        "raion": "mun. Bălți",
+        "localities": [
+          {
+            "name": "Bălți",
+            "streets": [
+              "str. Ștefan cel Mare",
+              "str. Independenței",
+              "str. Decebal",
+              "str. Sfântul Nicolae"
+            ]
+          }
         ]
       },
       {
-        "locality": "mun. Cahul",
-        "streets": [
-          "str. Republicii",
-          "bd. Victoriei",
-          "str. Mihai Viteazul"
+        "raion": "mun. Cahul",
+        "localities": [
+          {
+            "name": "Cahul",
+            "streets": [
+              "str. Republicii",
+              "bd. Victoriei",
+              "str. Mihai Viteazul"
+            ]
+          }
         ]
       },
       {
-        "locality": "mun. Comrat",
-        "streets": [
-          "str. Lenin",
-          "str. Pobedî",
-          "str. Galațan"
+        "raion": "UTA Găgăuzia",
+        "localities": [
+          {
+            "name": "Comrat",
+            "streets": [
+              "str. Lenin",
+              "str. Pobedî",
+              "str. Galațan"
+            ]
+          },
+          {
+            "name": "Ceadîr-Lunga",
+            "streets": [
+              "str. Lenin",
+              "str. Biruinței"
+            ]
+          }
         ]
       },
       {
-        "locality": "mun. Orhei",
-        "streets": [
-          "str. Vasile Mahu",
-          "str. Alexandru cel Bun",
-          "str. Unirii"
+        "raion": "r-nul Orhei",
+        "localities": [
+          {
+            "name": "Orhei",
+            "streets": [
+              "str. Vasile Mahu",
+              "str. Alexandru cel Bun",
+              "str. Unirii"
+            ]
+          },
+          {
+            "name": "Peresecina",
+            "streets": [
+              "str. Centrală"
+            ]
+          }
         ]
       },
       {
-        "locality": "mun. Ungheni",
-        "streets": [
-          "str. Națională",
-          "str. Decebal",
-          "str. Barbu Lăutaru"
+        "raion": "r-nul Ungheni",
+        "localities": [
+          {
+            "name": "Ungheni",
+            "streets": [
+              "str. Națională",
+              "str. Decebal",
+              "str. Barbu Lăutaru"
+            ]
+          },
+          {
+            "name": "Sculeni",
+            "streets": [
+              "str. Prutului"
+            ]
+          }
         ]
       },
       {
-        "locality": "mun. Soroca",
-        "streets": [
-          "str. Independenței",
-          "str. Ștefan cel Mare",
-          "str. Alexandru cel Bun"
+        "raion": "r-nul Soroca",
+        "localities": [
+          {
+            "name": "Soroca",
+            "streets": [
+              "str. Independenței",
+              "str. Ștefan cel Mare",
+              "str. Alexandru cel Bun"
+            ]
+          }
         ]
       },
       {
-        "locality": "mun. Edineț",
-        "streets": [
-          "str. Independenței",
-          "str. Movileu"
+        "raion": "r-nul Edineț",
+        "localities": [
+          {
+            "name": "Edineț",
+            "streets": [
+              "str. Independenței",
+              "str. Movileu"
+            ]
+          }
         ]
       },
       {
-        "locality": "mun. Hîncești",
-        "streets": [
-          "str. Mihalcea Hîncu",
-          "str. Chișinăului"
+        "raion": "r-nul Hîncești",
+        "localities": [
+          {
+            "name": "Hîncești",
+            "streets": [
+              "str. Mihalcea Hîncu",
+              "str. Chișinăului"
+            ]
+          },
+          {
+            "name": "Lăpușna",
+            "streets": [
+              "str. Ștefan cel Mare"
+            ]
+          }
         ]
       },
       {
-        "locality": "mun. Strășeni",
-        "streets": [
-          "str. Ștefan cel Mare",
-          "str. Mihai Eminescu"
+        "raion": "r-nul Strășeni",
+        "localities": [
+          {
+            "name": "Strășeni",
+            "streets": [
+              "str. Ștefan cel Mare",
+              "str. Mihai Eminescu"
+            ]
+          }
         ]
       },
       {
-        "locality": "or. Ialoveni",
-        "streets": [
-          "str. Alexandru cel Bun",
-          "str. Văii"
+        "raion": "r-nul Ialoveni",
+        "localities": [
+          {
+            "name": "Ialoveni",
+            "streets": [
+              "str. Alexandru cel Bun",
+              "str. Văii"
+            ]
+          },
+          {
+            "name": "Costești",
+            "streets": [
+              "str. Mihai Eminescu"
+            ]
+          }
         ]
       },
       {
-        "locality": "or. Căușeni",
-        "streets": [
-          "str. Mihai Eminescu",
-          "str. Tighina"
-        ]
-      },
-      {
-        "locality": "s. Lăpușna, r-nul Hîncești",
-        "streets": [
-          "str. Ștefan cel Mare"
-        ]
-      },
-      {
-        "locality": "s. Cricova, mun. Chișinău",
-        "streets": [
-          "str. Ungureanu",
-          "str. Chișinăului"
-        ]
-      },
-      {
-        "locality": "or. Durlești, mun. Chișinău",
-        "streets": [
-          "str. Cartușa",
-          "str. Nicolae Testemițanu"
+        "raion": "r-nul Căușeni",
+        "localities": [
+          {
+            "name": "Căușeni",
+            "streets": [
+              "str. Mihai Eminescu",
+              "str. Tighina"
+            ]
+          }
         ]
       }
     ]
