@@ -1,0 +1,54 @@
+/* ==========================================================================
+   Sticky section headers — PHONES ONLY (sticky-sections-v1, 2026-11-04, user-approved pattern)
+   Long pages with ≥ 3 sections: each section's header sticks while its section is on screen; the next header
+   pushes the previous one out (position: sticky inside its own section, so they never stack). Compact: the
+   section title only (40–48 high), page background, a 1px divider only while stuck (.is-stuck). Real headings
+   stay headings (visual only). Desktop unchanged.
+   Markup: add `sticky-section-head` to the section's FIRST child heading (h2 or its heading row). js/sticky-sections.js
+   turns it on per scroll container (≥ 3 visible heads → `.sticky-sections-root`), measures the sticky chrome above
+   (EVO header, FO step bar, BO page-header tabs → --sticky-sections-top), the bleed to the container edges and the
+   stuck state. A sticky search / filter bar adds --sticky-toolbar-h (set on :root by its owner; default 0).
+   ========================================================================== */
+
+@media (max-width: 760px) {
+  /* focused fields / anchor jumps stop under the chrome + the stuck header, never under them */
+  .sticky-sections-root {
+    scroll-padding-top: calc(var(--sticky-sections-top, 0px) + var(--sticky-toolbar-h, 0px) + var(--sticky-section-h, var(--spacing-48, 48px)) + var(--spacing-8, 8px));
+  }
+
+  .sticky-sections-root .sticky-section-head {
+    position: sticky;
+    top: calc(var(--sticky-sections-top, 0px) + var(--sticky-toolbar-h, 0px));
+    /* above in-form layers (≤ 6) and cards, under the page chrome (20) and every menu / dialog */
+    z-index: 8;
+  }
+
+  /* the page background runs edge to edge of the scroll container, so nothing peeks in the gutters */
+  .sticky-sections-root .sticky-section-head::before,
+  .sticky-sections-root .sticky-section-head::after {
+    content: "";
+    left: calc(var(--sticky-section-bleed-start, var(--spacing-16, 16px)) * -1);
+    pointer-events: none;
+    position: absolute;
+    right: calc(var(--sticky-section-bleed-end, var(--spacing-16, 16px)) * -1);
+  }
+
+  .sticky-sections-root .sticky-section-head::before {
+    background: var(--color-background-base-default, #fff);
+    bottom: 0;
+    top: 0;
+    z-index: -1;
+  }
+
+  /* the divider: only while stuck; on a heading that already has its bottom border it lies exactly over it */
+  .sticky-sections-root .sticky-section-head::after {
+    background: var(--color-border-base-default, #d9d9d9);
+    bottom: calc(var(--sticky-section-border, 0px) * -1);
+    height: var(--border-width-1, 1px);
+    opacity: 0;
+  }
+
+  .sticky-sections-root .sticky-section-head.is-stuck::after {
+    opacity: 1;
+  }
+}

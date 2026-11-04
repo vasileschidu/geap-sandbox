@@ -465,7 +465,7 @@
     els.dosarProfilTabs.innerHTML = tabsHtml(A_TABS, { subdiviziuni: subsOf(a.id).length });
     panelBody(els, P.tab === "subdiviziuni" ? authoritySubsTab(a) : P.tab === "jurnal" ? journalTab(a) : authorityInfoTab(a));
   }
-  const card = (title, rows) => A().renderInfoCard?.(title, rows.filter(Boolean)) || "";
+  const card = (title, rows) => A().renderInfoCard?.(title, rows.filter(Boolean), { sticky: true }) || ""; /* phones: sticky section headers */
   const val = (v) => (v === null || v === undefined || v === "" ? dash : esc(v));
   function authorityNotices(a) {
     return [

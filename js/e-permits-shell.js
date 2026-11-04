@@ -3103,9 +3103,10 @@ document.addEventListener("DOMContentLoaded", () => {
     `;
   }).join("");
 
-  const renderInfoCard = (title, rows) => `
+  /* { sticky: true } = the phone sticky section header (css/sticky-sections.css) — long profiles only */
+  const renderInfoCard = (title, rows, { sticky = false } = {}) => `
     <section class="e-permits-dosar-profil__section">
-      <h2 class="e-permits-dosar-profil__section-title">${escapeHtml(title)}</h2>
+      <h2 class="e-permits-dosar-profil__section-title${sticky ? " sticky-section-head" : ""}">${escapeHtml(title)}</h2>
       <div class="e-permits-dosar-profil__card">
         ${rows.map(([label, valueHtml]) => `
           <div class="e-permits-dosar-profil__row">

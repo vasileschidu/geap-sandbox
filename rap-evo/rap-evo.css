@@ -1405,3 +1405,34 @@ tr:hover .rap-act-link {
 .e-permits-fo-intent-menu.e-permits-workplace__filter-pop {
   z-index: 15;
 }
+
+/* phones: the quick-return toolbar (rap-quick-return-v1, rap-evo.js › bindQuickReturn): sticky 8 under the top; stuck =
+   a white band (base-default) edge to edge, 8 above / below the row, 1px divider (border-default) — drawn by ::before so
+   the flow never moves; hidden = slid up out of view (200 ms, none with reduced motion) */
+@media (max-width: 760px) {
+  .rap-main .rap-toolbar {
+    position: sticky;
+    top: var(--spacing-8, 8px);
+    transition: transform 200ms ease;
+    z-index: 12;
+  }
+
+  .rap-main .rap-toolbar.is-stuck::before {
+    background-color: var(--color-background-base-default, #fff);
+    border-bottom: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
+    content: "";
+    inset: calc(-1 * var(--spacing-8, 8px)) calc(-1 * var(--spacing-16, 16px));
+    position: absolute;
+    z-index: -1;
+  }
+
+  .rap-main .rap-toolbar.is-hidden {
+    transform: translateY(calc(-100% - 2 * var(--spacing-8, 8px)));
+  }
+}
+
+@media (max-width: 760px) and (prefers-reduced-motion: reduce) {
+  .rap-main .rap-toolbar {
+    transition: none;
+  }
+}

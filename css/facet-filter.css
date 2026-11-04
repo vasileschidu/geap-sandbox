@@ -1069,8 +1069,8 @@ html.is-filter-sheet-open .e-permits-fo-testcfg {
 }
 
 /* compact bar (rap-compact-v1, 2026-11-04, user: „more compact chips”): desktop facet chips + „Mai multe” 36 high (the
-   trigger's `--sm` height), 14/20, padding 0 8 0 12, caret 16; the chip group's × 28 round (icon 16), gap 4, right
-   padding 4; the button slot = library Small (set in js). Phones keep the 48 sheet look. */
+   trigger's `--sm` height), 14/20, padding 0 8 0 12, caret 16; the chip group's × stays the library Small 32 (component-audit: buttons
+   are 32 / 40 / 48), gap 4, right padding 4; the button slot = library Small (set in js). Phones keep the 48 sheet look. */
 @media (min-width: 761px) {
   .e-permits-workplace__filters--compact .chip.e-permits-workplace__filter-chip {
     height: calc(var(--spacing-40, 40px) - 2 * var(--border-width-2, 2px));
@@ -1085,11 +1085,5 @@ html.is-filter-sheet-open .e-permits-fo-testcfg {
 
   .e-permits-workplace__filters--compact .e-permits-workplace__filter-group {
     gap: var(--spacing-4, 4px);
-  }
-
-  .e-permits-workplace__filters--compact .e-permits-workplace__filter-group > .e-permits-workplace__filter-group-close.btn {
-    height: var(--spacing-28, 28px);
-    min-height: 0;
-    width: var(--spacing-28, 28px);
   }
 }

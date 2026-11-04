@@ -14890,7 +14890,8 @@ a.e-permits-fo-lib-item__title:is(:hover, :focus) {
   /* focus moves, anchor jumps and scrollIntoView stop below the sticky step bar, never under it
      (--fo-step-bar-height = the visible bar's height, set by the FO script) */
   html:has(body.is-fo-request-mode .e-permits-fo-request:not([hidden]) > .e-permits-fo-mobile-progress) {
-    scroll-padding-top: calc(env(safe-area-inset-top, var(--spacing-0, 0px)) + var(--fo-step-bar-height, var(--spacing-48, 48px)) + var(--spacing-8, 8px));
+    /* + the stuck section header when the step has sticky section headers (css/sticky-sections.css, sets the var) */
+    scroll-padding-top: calc(env(safe-area-inset-top, var(--spacing-0, 0px)) + var(--fo-step-bar-height, var(--spacing-48, 48px)) + var(--sticky-section-h, var(--spacing-0, 0px)) + var(--spacing-8, 8px));
   }
 
   .e-permits-fo-mobile-progress__row {

@@ -2996,7 +2996,7 @@
           return `
           <section class="${sectionClasses}" ${section.title ? `aria-labelledby="fo-${escapeFrontOfficeHtml(section.id)}-title"` : `aria-label="${escapeFrontOfficeHtml(section.id)}"`}>
             ${section.title ? `
-              <div class="e-permits-fo-section-header${section.noBorder ? " e-permits-fo-section-header--no-border" : ""}">
+              <div class="e-permits-fo-section-header${section.noBorder ? " e-permits-fo-section-header--no-border" : ""}${section.secDesc ? "" : " sticky-section-head"}">
                 <h2 id="fo-${escapeFrontOfficeHtml(section.id)}-title">${escapeFrontOfficeHtml(section.title)}</h2>
                 ${section.secDesc ? `<p class="e-permits-fo-section-header__desc">${escapeFrontOfficeHtml(section.secDesc)}</p>` : ""}
               </div>
@@ -6354,7 +6354,7 @@
     function postprocessSectionHtml(id, title, body, { desc = "" } = {}) {
       return `
         <section class="e-permits-fo-form__section" aria-labelledby="fo-pp-${id}-title" data-fo-pp-section="${id}">
-          <div class="e-permits-fo-section-header">
+          <div class="e-permits-fo-section-header${desc ? "" : " sticky-section-head"}">
             <h2 id="fo-pp-${id}-title">${escapeFrontOfficeHtml(title)}</h2>
             ${desc ? `<p class="e-permits-fo-section-header__desc">${escapeFrontOfficeHtml(desc)}</p>` : ""}
           </div>
@@ -6392,7 +6392,7 @@
       const step = frontOfficeSchema?.steps?.find((item) => Number(item.index) === 2);
       return (step?.sections || []).map((section) => `
         <section class="e-permits-fo-form__section" aria-labelledby="fo-pp-${escapeFrontOfficeHtml(section.id)}-title" data-fo-pp-section="${escapeFrontOfficeHtml(section.id)}">
-          <div class="e-permits-fo-section-header${section.noBorder ? " e-permits-fo-section-header--no-border" : ""}">
+          <div class="e-permits-fo-section-header${section.noBorder ? " e-permits-fo-section-header--no-border" : ""}${section.secDesc ? "" : " sticky-section-head"}">
             <h2 id="fo-pp-${escapeFrontOfficeHtml(section.id)}-title">${escapeFrontOfficeHtml(section.title || "Obiectul autorizat")}</h2>
             ${section.secDesc ? `<p class="e-permits-fo-section-header__desc">${escapeFrontOfficeHtml(section.secDesc)}</p>` : ""}
           </div>

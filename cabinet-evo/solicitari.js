@@ -912,7 +912,7 @@
   }
 
   function historyHtml(dosar) {
-    return window.GEAPEventTimeline?.html("Istoric", historyEvents(dosar), { titleId: "sm-sec-istoric", sectionAttrs: 'aria-labelledby="sm-sec-istoric"' }) || "";
+    return window.GEAPEventTimeline?.html("Istoric", historyEvents(dosar), { titleId: "sm-sec-istoric", sectionAttrs: 'aria-labelledby="sm-sec-istoric"', headingClass: "sticky-section-head" }) || "";
   }
 
   /* The BO dossier's trajectory (cabinet-header-v1; user: „the header as in … Dosarele”): GEAPTrajectory.html({ steps }) —

@@ -4125,3 +4125,16 @@ For any „research how other products do it” step, search Mobbin (mcp__mobbin
   the chips row (pending → primary „Aplică filtre”, applied → neutral „Resetează”, else none; Medium 40 = chip height).
   Popover ticks write the draft directly (`syncDraft`), an invalid range is tracked in `invalidDates` (declared at the
   top of `create` — render() reads it). Demo helpers must click the master after picks (rap-01d / fm1 broke silently).
+- 2026-11-04 · Sticky section headers (phones, sticky-sections-v1): ONE class `sticky-section-head` + css/js sticky-sections; the JS measures
+  the sticky chrome per scroll container (BO = canvas-surface, page header top −218 + 258 = 40 visible) — never hardcode 64/44/40. Bleed bg +
+  stuck divider = ::before/::after (no layout shift); the FO html:has() scroll-padding rule out-specifies a generic one → add the var to it.
+- 2026-11-04 · RAP rap-g … rap-qr (Alexandru's comments + 10 user corrections in one session). Bugs worth remembering:
+  (1) a popover placed from an `anchor` captured before `render()` → detached node → rect 0,0 → popover at the top-left:
+  always re-resolve the anchor from the live bar (`anchorFor(key)`). (2) a capture-phase `scroll` listener must only react
+  to the page / an ANCESTOR of the anchor, never the popover's own list. (3) sorting generated data moved the seed rows
+  off page 1 → demo states that clicked a seed row broke; open seeds by `?act=` instead.
+- 2026-11-04 · Sticky quick-return bar without layout shift: `position: sticky; top: 8` always on phones, the stuck look
+  (white band edge to edge + divider) on `::before` with negative inset, hide = `translateY`; demo scrolls must stay
+  under the page's max scroll (a 16-row phone list is only ~500 px of scroll) or the „scroll up” never happens.
+- 2026-11-04 · component-audit rejects a 28 px icon-only button (library 32 / 40 / 48) and a 20 icon in a 32 button
+  (16): size custom buttons only by the library classes; a deviation from Figma goes to the report, not the CSS.

@@ -3219,7 +3219,8 @@
         "rap-01u": rap(async (h) => { await open(h); await ffFacet(h, "autoritate"); await h.fill("[data-filter-search]", "zzz", { leave: false }); await h.wait(600); }),
         /* search results („alcool”) — Figma EVO-WEB block rap-01q */
         "rap-01q": rap(async (h) => { await h.fill("[data-rap-search]", "alcool"); await h.wait(500); }),
-        "rap-01g": rap(async (h) => { await h.click('[data-record-id="rap-0002"] a'); await h.wait(300); await h.click("[data-rap-company-permits]"); await h.wait(300); }),
+        /* the list is newest first (realistic-data-v1): the company view starts from MOLDAGROTEH's act profile */
+        "rap-01g": { page: RAP, params: { act: "rap-0002" }, ready: "[data-rap-profile-view]:not([hidden]) h1", run: async (h) => { await h.click("[data-rap-company-permits]"); await h.wait(400); } },
         /* company view („Vezi toate (N)”): the company card + the act counts in a separate grey card */
         "rap-01d": rap(async (h) => {
           /* the lists offer only values that still have rows (no dead ends), so the empty result comes from one filter +
@@ -3370,6 +3371,11 @@
             "rap-g13": rap(async (h) => {
               await h.fill("[data-rap-search]", "licență alcool", { leave: false }); await h.wait(600);
               await h.click('.rap-suggest [data-rap-suggest-i="0"]'); await h.wait(400);
+            }),
+            /* phones: quick-return toolbar — scrolled down (bar hidden), then up a little: the search row back, stuck on top */
+            "rap-g14": rap(async (h) => {
+              window.scrollTo(0, 200); await h.wait(250); window.scrollTo(0, 420); await h.wait(250);
+              window.scrollTo(0, 330); await h.wait(450);
             }),
             "rap-f18": rap(async (h) => { await open(h); await range("emitere", "2030-01-01", "")(h); await commit(h); }),
             "rap-f19": rap(async (h) => { await open(h); await pick("beneficiar", ["Persoană fizică"])(h); await commit(h); }),

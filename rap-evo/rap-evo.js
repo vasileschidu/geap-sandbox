@@ -1114,6 +1114,44 @@
     elements.search.addEventListener("blur", () => window.setTimeout(() => { if (document.activeElement !== elements.search) closeSuggest(); }, 150));
   };
 
+  /* phones (≤ 760): quick-return toolbar (rap-quick-return-v1, 2026-11-04, user): the EVO header and the title scroll
+     away, the search row sticks at the top (white, 1px divider, no chip row), hides on scroll DOWN and slides back on the
+     first scroll UP; never hides while the search has focus or a sheet is open. `--sticky-toolbar-h` on :root = its
+     visible height (0 when hidden / not stuck) for anything that sticks below it. Desktop unchanged. */
+  const bindQuickReturn = () => {
+    const bar = document.querySelector(".rap-toolbar");
+    if (!bar) return;
+    const phone = window.matchMedia("(max-width: 760px)");
+    let lastY = window.scrollY;
+    let hidden = false;
+    let frame = 0;
+    const setHeight = (stuck) => document.documentElement.style.setProperty("--sticky-toolbar-h", stuck && !hidden ? `${Math.round(bar.offsetHeight + 16)}px` : "0px");
+    const sync = () => {
+      frame = 0;
+      if (!phone.matches || state.activeRecord) {
+        bar.classList.remove("is-stuck", "is-hidden");
+        hidden = false;
+        setHeight(false);
+        lastY = window.scrollY;
+        return;
+      }
+      const y = window.scrollY;
+      const stuck = y > 0 && bar.getBoundingClientRect().top <= 8.5;
+      bar.classList.toggle("is-stuck", stuck);
+      const locked = bar.contains(document.activeElement) || document.documentElement.classList.contains("is-filter-sheet-open");
+      if (!stuck || locked) hidden = false;
+      else if (y > lastY + 4) hidden = true;
+      else if (y < lastY - 4) hidden = false;
+      bar.classList.toggle("is-hidden", hidden);
+      lastY = y;
+      setHeight(stuck);
+    };
+    window.addEventListener("scroll", () => { if (!frame) frame = window.requestAnimationFrame(sync); }, { passive: true });
+    bar.addEventListener("focusin", sync);
+    phone.addEventListener("change", sync);
+    sync();
+  };
+
   const bindEvents = () => {
     elements.search.addEventListener("input", () => {
       window.clearTimeout(searchTimer);
@@ -1234,6 +1272,7 @@
       initFacetFilter();
       bindEvents();
       bindSuggest();
+      bindQuickReturn();
       applyFilters();
       syncViewFromUrl();
     } catch (error) {

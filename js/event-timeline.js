@@ -103,7 +103,7 @@
 
   const emptyHtml = (title, message, options) => `
     <section class="e-permits-dosar-profil__section"${options.sectionAttrs ? ` ${options.sectionAttrs}` : ""}>
-      <div class="e-permits-dosar-profil__section-heading">
+      <div class="e-permits-dosar-profil__section-heading${options.headingClass ? ` ${esc(options.headingClass)}` : ""}">
         <h2 class="e-permits-dosar-profil__section-title"${options.titleId ? ` id="${esc(options.titleId)}"` : ""}>${esc(title)}</h2>
       </div>
       ${window.GEAPEmptyState.render({ text: message, actionHtml: "", icon: "page-text" })}
@@ -117,7 +117,7 @@
 
     return `
       <section class="e-permits-dosar-profil__section"${options.sectionAttrs ? ` ${options.sectionAttrs}` : ""}>
-        <div class="e-permits-dosar-profil__section-heading">
+        <div class="e-permits-dosar-profil__section-heading${options.headingClass ? ` ${esc(options.headingClass)}` : ""}">
           <h2 class="e-permits-dosar-profil__section-title"${options.titleId ? ` id="${esc(options.titleId)}"` : ""}>${esc(title)}</h2>
           ${options.meta ? `<span class="e-permits-dosar-profil__section-meta">${esc(options.meta)}</span>` : ""}
           ${options.actionHtml || ""}

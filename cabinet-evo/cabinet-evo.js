@@ -1067,7 +1067,7 @@
     events.sort((a, b) => (a.at > b.at ? -1 : a.at < b.at ? 1 : 0));
     if (act.status === "valabil" && act.validUntil) events.unshift({ at: isoOf(act.validUntil), type: "Sfârșitul valabilității", status: "Urmează" });
     if (act.status === "suspendat" && profile.suspendedUntil) events.unshift({ at: isoOf(profile.suspendedUntil), type: "Reluarea valabilității", status: "Urmează" });
-    return window.GEAPEventTimeline?.html("Istoric", events, { titleId: "cab-act-history", sectionAttrs: 'aria-labelledby="cab-act-history"' }) || "";
+    return window.GEAPEventTimeline?.html("Istoric", events, { titleId: "cab-act-history", sectionAttrs: 'aria-labelledby="cab-act-history"', headingClass: "sticky-section-head" }) || "";
   }
 
   function detailPanel() {
@@ -1544,7 +1544,7 @@
   function profileSection(id, title, body, { attrs = "" } = {}) {
     return `
       <section class="e-permits-dosar-profil__section cab-section" aria-labelledby="${id}"${attrs ? ` ${attrs}` : ""}>
-        <h2 class="e-permits-dosar-profil__section-title" id="${id}">${escape(title)}</h2>
+        <h2 class="e-permits-dosar-profil__section-title sticky-section-head" id="${id}">${escape(title)}</h2>
         ${body}
       </section>`;
   }
