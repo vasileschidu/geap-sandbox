@@ -115,14 +115,13 @@
     return {
       kind: KIND_A,
       fixedWidths: true,
-      fieldCount: 8,
+      fieldCount: 7,
       /* US-89 AC-04: by Denumire, ascending */
       defaultSort: "denumire",
       defaultSortDirection: "asc",
       columns: {
         idno: { label: "IDNO", width: 168, sortable: true },
-        denumire: { label: "Denumire", width: 288, sortable: true },
-        cod: { label: "Cod", width: 96, sortable: true },
+        denumire: { label: "Denumire", width: 360, sortable: true },
         website: { label: "Website", width: 168 },
         tip: { label: "Tip", width: 232, fill: true, sortable: true },
         telefon: { label: "Telefon", width: 160 },
@@ -135,7 +134,7 @@
           title: "Autorități",
           selectable: false,
           searchPlaceholder: "Caută după IDNO, denumire, cod, tip sau adresă",
-          columns: ["idno", "denumire", "cod", "website", "tip", "telefon", "adresa", "activ", ...(central ? ["actiuni"] : [])],
+          columns: ["idno", "denumire", "website", "tip", "telefon", "adresa", "activ", ...(central ? ["actiuni"] : [])],
           primaryAction: central ? { id: "aut-new", label: "Adaugă autoritate" } : null,
           toolbarLabel: "Filtrare autorități",
           exportLabel: "Exportă CSV"
@@ -159,6 +158,13 @@
     const html = U().renderRowActions?.({ menu: items, label: a.nameRo }) || "";
     return html ? `<span class="e-permits-workplace__row-actions">${html.replace("hidden data-stack-menu>", "hidden data-stack-menu data-stack-menu-fixed>")}</span>` : "";
   };
+  /* a multi-value cell (aut-more-v1): first value + library Badge solid-neutral „+N” (= Users › Roluri) */
+  const multiValue = (values, label) => {
+    const list = (values || []).filter(Boolean);
+    if (!list.length) return "";
+    const all = list.join(", ");
+    return `<span class="e-permits-workplace__user-roles"><span data-cell-tooltip="${esc(list[0])}">${esc(list[0])}</span>${list.length > 1 ? `<span class="badge badge--solid-neutral badge--lg" data-tag-more tabindex="0" data-cell-tooltip="${esc(all)}" data-cell-tooltip-always aria-label="${esc(`${label}: ${all}`)}">+${list.length - 1}</span>` : ""}</span>`;
+  };
   window.GEAPShellRegistries = window.GEAPShellRegistries || {};
   window.GEAPShellRegistries[KIND_A] = {
     build: authoritiesDb,
@@ -174,15 +180,21 @@
     sortValue: (row, key) => String(row[key] ?? ""),
     renderCell: (row, key) => {
       switch (key) {
-        case "idno": return row.idno ? (A().renderListCode?.(row.idno, { label: `Copiază IDNO ${row.idno}` }) || esc(row.idno)) : dash;
+        /* same two-line cell as the dosar number (renderNrDosar): copy code + `__source` line */
+        case "idno": return `
+          <div class="e-permits-workplace__case-cell">
+            ${row.idno ? (A().renderListCode?.(row.idno, { label: `Copiază IDNO ${row.idno}` }) || esc(row.idno)) : `<span>${dash}</span>`}
+            <span class="e-permits-workplace__source"><span data-cell-tooltip="${esc(row.sursa)}">${esc(isRssp(row.a) ? "RSSP" : "Creată manual")}</span></span>
+          </div>`;
         case "denumire": return `
           <div class="e-permits-workplace__case-cell">
             <span data-cell-tooltip="${esc(row.denumire)}">${esc(row.denumire)}</span>
-            <span class="e-permits-workplace__source"><span data-cell-tooltip="${esc(row.sursa)}">${esc(isRssp(row.a) ? "RSSP" : "Creată manual")}</span></span>
+            <span class="e-permits-workplace__source"><span data-cell-tooltip="${esc(row.cod)}">${esc(row.cod)}</span></span>
           </div>`;
         /* AC-06: empty optional cells stay empty */
         case "website": return row.website ? `<span data-cell-tooltip="${esc(row.website)}">${esc(row.website.replace(/^https?:\/\//, ""))}</span>` : "";
-        case "telefon": return row.telefon ? `<span data-cell-tooltip="${esc(row.telefoane.join(", "))}">${esc(row.telefon)}${row.telefoane.length > 1 ? ` <span class="e-permits-workplace__date-meta">+${row.telefoane.length - 1}</span>` : ""}</span>` : "";
+        /* more than one number: the first + the canonical „+N” of the Users roles column (tooltip lists them all) */
+        case "telefon": return row.telefon ? multiValue(row.telefoane, "Telefon") : "";
         case "tip": return row.tip ? `<span data-cell-tooltip="${esc(row.tip)}">${esc(row.tip)}</span>` : dash;
         case "adresa": return `<span data-cell-tooltip="${esc(row.adresa)}">${esc(row.adresa)}</span>`;
         case "activ": return yesNo(row.activ === "Da");
@@ -199,7 +211,7 @@
       /* US-89 AC-09 */
       if (query || filtered) return E?.noResults?.("Nu s-au găsit rezultate pentru criteriile introduse", { text: "Caută după IDNO, denumire, cod, tip sau adresă ori schimbă filtrele.", bare: true, actionHtml: filtered ? '<button class="btn btn-neutral btn-sm" type="button" data-filter-clear-all>Șterge filtrele</button>' : "" });
       /* AC-07 */
-      return E?.render({ title: "Nu există autorități înregistrate", text: "Autoritățile se creează la sincronizarea serviciilor din RSSP sau manual.", icon: "business", bare: true, actionHtml: '<button class="btn btn-primary btn-sm" type="button" data-workplace-add-product="aut-new">' + icon("plus-large", 20, "icon small") + "<span>Adaugă autoritate</span></button>" });
+      return E?.render({ title: "Nu există autorități înregistrate", text: "Autoritățile se creează la sincronizarea serviciilor din RSSP sau manual.", icon: "admin-authority", bare: true, actionHtml: '<button class="btn btn-primary btn-sm" type="button" data-workplace-add-product="aut-new">' + icon("plus-large", 20, "icon small") + "<span>Adaugă autoritate</span></button>" });
     },
     exportRows: (rows) => exportCsv(rows, "autoritati.csv", ["IDNO", "Denumire", "Cod", "Website", "Tip", "Telefon", "Adresă", "Activ"], (r) => [r.idno, r.denumire, r.cod, r.website, r.tip, r.telefoane.join(" "), r.adresa, r.activ], "autorități"),
     exportState: () => (who().central && S.data && D().authorities.length ? {} : { hidden: true })
@@ -288,7 +300,7 @@
       if (!who().admin) return E?.render({ title: "Acces interzis", text: DENIED, icon: "lock", bare: true });
       /* US-95 AC-11 */
       if (query || filtered) return E?.noResults?.("Nu au fost găsite rezultate pentru criteriile selectate", { text: "Caută după denumirea afișată ori schimbă filtrele.", bare: true, actionHtml: filtered ? '<button class="btn btn-neutral btn-sm" type="button" data-filter-clear-all>Șterge filtrele</button>' : "" });
-      return E?.render({ title: "Nu există subdiviziuni", text: "Subdiviziunile se creează manual, pentru o autoritate activă.", icon: "building", bare: true, actionHtml: '<button class="btn btn-primary btn-sm" type="button" data-workplace-add-product="sub-new">' + icon("plus-large", 20, "icon small") + "<span>Adaugă subdiviziune</span></button>" });
+      return E?.render({ title: "Nu există subdiviziuni", text: "Subdiviziunile se creează manual, pentru o autoritate activă.", icon: "admin-subdivision", bare: true, actionHtml: '<button class="btn btn-primary btn-sm" type="button" data-workplace-add-product="sub-new">' + icon("plus-large", 20, "icon small") + "<span>Adaugă subdiviziune</span></button>" });
     },
     exportRows: (rows) => exportCsv(rows, "subdiviziuni.csv", ["Autoritatea", "Denumire", "Denumirea afișată", "Raionul", "Localitate", "Adresa", "Telefonul", "Adresa de e-mail", "Aprobat de", "Activ"], (r) => [r.autoritate, r.denumire, r.afisata, r.raion, r.localitate, r.adresa, r.telefon, r.email, r.aprobat, r.activ], "subdiviziuni"),
     exportState: () => (who().admin && S.data && D().subdivisions.some(canSeeSub) ? {} : { hidden: true })
@@ -313,42 +325,42 @@
   }
   const refreshLists = () => { refreshIfOpen(KIND_A, NAV_A); refreshIfOpen(KIND_S, NAV_S); };
 
-  /* ---------------------------------------------------------------- list chrome: „Ultima sincronizare” + „Sincronizează din RSSP” */
-  function lastSyncHtml() {
-    /* US-89 AC-11 / AC-12, US-112 AC-06 */
-    const value = S.lastSync ? `${esc(stamp(S.lastSync.at))} · ${esc(S.lastSync.mode)}` : "Niciodată sincronizat";
-    return `<p class="e-permits-aut-intro__text">Ultima sincronizare reușită din RSSP: <strong>${value}</strong></p>`;
-  }
-  function introNotes() {
-    const notes = [];
-    if (syncBusy()) notes.push(U().renderNotice?.("info", `<strong>Sincronizare din RSSP în curs</strong> (${esc(S.syncing.mode === "automată" ? "automată, pornită de SIA GEAP" : `pornită de ${S.syncing.by}`)} la ${esc(String(S.syncing.at).slice(11, 16))}). „Sincronizează din RSSP” revine la finalizarea ei.`, { icon: "time" }) || "");
-    if (RSSP_MODE === "auto-esuat" && !S.autoNoteClosed) notes.push(U().renderNotice?.("warning", "<strong>Sincronizarea automată din 2 noiembrie 2026, 03:00 nu a pornit:</strong> RSSP indisponibil. Evenimentul este în Jurnalul Evenimentelor (MLog); sincronizarea se reia la următorul ciclu programat.") || "");
-    return notes.join("");
+  /* ---------------------------------------------------------------- list chrome: sync meta + „Sincronizează din RSSP”
+     sync-meta-v1 (2026-11-02, user: not a line above the toolbar — small, next to the button): the last successful sync
+     as the „Salvat …” status meta (`.e-permits-fo-draft-status` 12/16 secondary + 16 icon), immediately left of the sync
+     button; the full sentence in the plain tooltip + for screen readers. US-89 AC-11/12/13, US-112 AC-06/07. */
+  const MON = ["ian.", "feb.", "mar.", "apr.", "mai", "iun.", "iul.", "aug.", "sept.", "oct.", "nov.", "dec."];
+  const shortStamp = (iso) => { const [y, m, d] = String(iso).slice(0, 10).split("-").map(Number); return `${d} ${MON[m - 1]}${y === new Date().getFullYear() ? "" : ` ${y}`}, ${String(iso).slice(11, 16)}`; };
+  const MODE_SHORT = { "automată": "automat", "manuală": "manual", "individuală": "individual" };
+  function syncMetaHtml() {
+    const last = S.lastSync;
+    const lastLong = last ? `Ultima sincronizare reușită din RSSP: ${stamp(last.at)} (${last.mode}).` : "Autoritățile nu au fost sincronizate niciodată din RSSP.";
+    let tone = "ok", iconName = "time", short = last ? `Sincronizat ${shortStamp(last.at)} · ${MODE_SHORT[last.mode] || last.mode}` : "Niciodată sincronizat", long = lastLong;
+    if (!last) { tone = "none"; iconName = "time"; }
+    /* US-112 AC-07: the failed automatic run (the central admins are also notified, header bell) */
+    if (RSSP_MODE === "auto-esuat") {
+      tone = "warning"; iconName = "circle-error";
+      short = "Sincronizare automată eșuată · 03:00";
+      long = `Sincronizarea automată din 2 noiembrie 2026, 03:00 nu a pornit: RSSP indisponibil. Se reia la următorul ciclu programat. ${lastLong}`;
+    }
+    /* sync-meta-v2 (user): no tooltip repeating the line — the full sentence only for screen readers */
+    return `<p class="e-permits-fo-draft-status e-permits-aut-sync-meta e-permits-aut-sync-meta--${tone}" data-aut-sync-meta>
+      <span class="e-permits-fo-draft-status__saved" aria-hidden="true">${icon(iconName, 16)}<span>${esc(short)}</span></span>
+      <span class="u-visually-hidden">${esc(long)}</span>
+    </p>`;
   }
   function syncButtonHtml() {
     const busy = syncBusy();
-    return `<button class="btn btn-neutral btn-sm e-permits-workplace__primary-action e-permits-aut-tool" type="button" data-aut-sync-all${busy ? ` aria-disabled="true" data-tooltip-reason="${esc(SYNC_BUSY)}"` : ""}>${busy ? '<span class="spinner spinner--extra-small spinner--neutral" aria-hidden="true"></span>' : icon("rotate-arrow", 20, "icon small")}<span>${busy ? "Sincronizare în curs…" : "Sincronizează din RSSP"}</span></button>`;
+    const reason = busy ? `${SYNC_BUSY}${S.syncing.mode === "automată" ? " (sincronizare automată, pornită de SIA GEAP)" : ""}` : "";
+    return `<button class="btn btn-neutral btn-sm e-permits-workplace__primary-action e-permits-aut-tool" type="button" data-aut-sync-all${busy ? ` aria-disabled="true" data-tooltip-reason="${esc(reason)}"` : ""}>${busy ? '<span class="spinner spinner--extra-small spinner--neutral" aria-hidden="true"></span>' : icon("rotate-arrow", 20, "icon small")}<span>${busy ? "Sincronizare în curs…" : "Sincronizează din RSSP"}</span></button>`;
   }
   function syncChrome() {
     const reg = document.querySelector("[data-workplace]");
     if (!reg) return;
     const on = reg.dataset.registryKind === KIND_A && who().central && Boolean(S.data);
-    let intro = reg.querySelector("[data-aut-intro]");
-    if (on && !intro) {
-      reg.insertAdjacentHTML("afterbegin", '<div class="e-permits-aut-intro" data-aut-intro><div data-aut-intro-sync></div><div class="e-permits-aut-intro__notices" data-aut-intro-notes></div></div>');
-      intro = reg.querySelector("[data-aut-intro]");
-    }
-    if (intro) {
-      intro.hidden = !on;
-      if (on) {
-        intro.querySelector("[data-aut-intro-sync]").innerHTML = lastSyncHtml();
-        const notes = intro.querySelector("[data-aut-intro-notes]");
-        notes.innerHTML = introNotes();
-        notes.hidden = !notes.innerHTML.trim();
-      }
-    }
-    reg.querySelectorAll("[data-aut-sync-all]").forEach((b) => b.remove());
-    if (on) reg.querySelector("[data-workplace-add-product]")?.insertAdjacentHTML("beforebegin", syncButtonHtml());
+    reg.querySelectorAll("[data-aut-sync]").forEach((b) => b.remove());
+    /* sync-meta-v2: the meta line directly UNDER the button, right-aligned to it */
+    if (on) reg.querySelector("[data-workplace-add-product]")?.insertAdjacentHTML("beforebegin", `<div class="e-permits-aut-sync" data-aut-sync>${syncButtonHtml()}${syncMetaHtml()}</div>`);
   }
   const observeRegistry = () => {
     const reg = document.querySelector("[data-workplace]");
@@ -356,7 +368,7 @@
     reg.dataset.autObserved = "1";
     new MutationObserver(() => syncChrome()).observe(reg, { attributes: true, attributeFilter: ["data-registry-kind"] });
     const tbody = reg.querySelector("[data-workplace-rows]");
-    if (tbody) new MutationObserver(() => { if (reg.dataset.registryKind === KIND_A && !reg.querySelector("[data-aut-sync-all]")) syncChrome(); }).observe(tbody, { childList: true });
+    if (tbody) new MutationObserver(() => { if (reg.dataset.registryKind === KIND_A && !reg.querySelector("[data-aut-sync]")) syncChrome(); }).observe(tbody, { childList: true });
   };
 
   /* „Acces interzis” (US-89 AC-01, US-90 AC-01, US-95 AC-01, US-94 AC-01a, US-96 AC-01a) */
@@ -613,6 +625,8 @@
     drawer.addEventListener("click", onDrawerClick);
     drawer.addEventListener("input", onDrawerInput);
     drawer.addEventListener("change", onDrawerChange);
+    /* Localități subordonate: the shared FO multi-select reports its picks (no re-render: the menu stays open) */
+    drawer.addEventListener("fo-multiselect-change", (event) => { if (F && F.mode === "sub") { F.v.raioane = event.detail.values; F.dirty = true; } });
     return drawer;
   }
   function openDrawer(state) {
@@ -818,7 +832,7 @@
       title: () => "Adaugă autoritate",
       subtitle: () => (F.step === 1 ? "Autoritățile specifice GEAP, neacoperite de RSSP. Datele de bază vin din MConnect, după IDNO." : `IDNO ${F.v.idno} · datele preluate din MConnect sunt read-only`),
       steps: () => A().renderStepStrip?.(AUTH_STEPS, { step: F.step, maxStep: F.step }, "data-aut-goto") || "",
-      body: () => (F.step === 1 ? createStep1() : `${F.errors.form ? `<div class="e-permits-aut-form-note">${U().renderNotice?.("danger", esc(F.errors.form), { role: "alert" }) || ""}</div>` : ""}${authorityForm(F.v, { create: true })}`),
+      body: () => (F.step === 1 ? createStep1() : `${F.errors.form ? `<div class="e-permits-aut-form-note">${U().renderNotice?.("error", esc(F.errors.form), { role: "alert" }) || ""}</div>` : ""}${authorityForm(F.v, { create: true })}`),
       footer: () => (F.step === 1
         ? `<div class="modal-buttons"><button class="btn btn-neutral btn-rounded" type="button" data-aut-drawer-close>Închide</button><button class="btn btn-primary btn-rounded" type="button" data-aut-mconnect-fetch${F.v.idno && !idnoProblem(F.v.idno) && !F.busy ? "" : ` aria-disabled="true" data-tooltip-reason="${esc(F.busy ? "Se interoghează MConnect…" : "Introdu un IDNO de 13 cifre.")}"`}>${F.busy ? '<span class="spinner spinner--extra-small spinner--neutral" aria-hidden="true"></span>' : ""}<span>Extrage MConnect</span></button></div>`
         : footer("Salvează", "data-aut-create-save", { cancel: "Închide" }))
@@ -849,7 +863,7 @@
       ${section("Identificare", grid(
         textField("idno", "IDNO", v.idno, { required: true, max: 13, inputmode: "numeric", placeholder: "13 cifre", error: problem, hint: "Codul fiscal al autorității. Verificăm dacă nu există deja în GEAP, apoi extragem datele din MConnect.", autofocus: true })
       ))}
-      ${F.mcError ? `<div class="e-permits-aut-form-note">${U().renderNotice?.("danger", F.mcError, { role: "alert" }) || ""}</div>` : ""}`;
+      ${F.mcError ? `<div class="e-permits-aut-form-note">${U().renderNotice?.("error", F.mcError, { role: "alert" }) || ""}</div>` : ""}`;
   }
   function mconnectAnswer(idno) {
     if (params.get("mconnect") === "indisponibil") return { error: "<strong>MConnect este indisponibil.</strong> Nu am putut prelua datele; nu s-a înregistrat nimic. Încearcă din nou peste câteva minute." };
@@ -1049,13 +1063,13 @@
   }
 
   /* ---------------------------------------------------------------- subdivision form (US-93 / US-94) */
-  const emptySub = (authorityId = "") => ({ name: "", nameEn: "", nameRu: "", authorityId, type: "", prefix: "", active: true, raion: "", localitate: "", strada: "", casa: "", bloc: "", etaj: "", oficiu: "", postal: "", approvedBy: "", phone: "", email: "", raioane: [], raionPick: "" });
+  const emptySub = (authorityId = "") => ({ name: "", nameEn: "", nameRu: "", authorityId, type: "", prefix: "", active: true, raion: "", localitate: "", strada: "", casa: "", bloc: "", etaj: "", oficiu: "", postal: "", approvedBy: "", phone: "", email: "", raioane: [] });
   function startSub({ id = "", authorityId = "", from = "list" } = {}) {
     if (!who().admin) return;
     if (id) {
       const s = subOf(id);
       if (!s || !canSeeSub(s)) { showDenied("Subdiviziuni"); return; }
-      openDrawer({ mode: "sub", id, from, base: clone(s), v: { ...clone(s), raionPick: "" }, lockAuthority: true });
+      openDrawer({ mode: "sub", id, from, base: clone(s), v: clone(s), lockAuthority: true });
       return;
     }
     const local = who().local;
@@ -1070,10 +1084,8 @@
     const options = D().authorities.filter((a) => a.active && (who().central || a.id === who().authorityId)).sort((x, y) => x.nameRo.localeCompare(y.nameRo, "ro")).map((a) => [a.id, a.nameRo]);
     const raion = raionOf(v.raion);
     const locality = localityOf(v.raion, v.localitate);
-    const raioaneItems = (v.raioane || []).map((r) => `
-      <li class="e-permits-aut-chiplist__item"><span>${esc(r)}</span><button class="btn btn-neutral btn-sm btn-icon-only" type="button" aria-label="Elimină raionul ${esc(r)}" data-tooltip-label="Elimină" data-sub-raion-remove="${esc(r)}">${icon("delete", 20, "icon small")}</button></li>`).join("");
     return `
-      ${e.form ? `<div class="e-permits-aut-form-note">${U().renderNotice?.("danger", esc(e.form), { role: "alert" }) || ""}</div>` : ""}
+      ${e.form ? `<div class="e-permits-aut-form-note">${U().renderNotice?.("error", esc(e.form), { role: "alert" }) || ""}</div>` : ""}
       ${section("Date generale", grid(
         textField("name", "Denumirea subdiviziunii", v.name, { required: true, max: 250, error: e.name, autofocus: !editing }),
         textField("nameEn", "Denumirea (EN)", v.nameEn, { required: true, max: 250, span: 6, error: e.nameEn }),
@@ -1103,12 +1115,7 @@
         textField("phone", "Telefonul", v.phone, { span: 6, error: e.phone, inputmode: "tel", placeholder: "+37322123456", max: 12 }),
         textField("email", "Adresa de e-mail", v.email, { span: 6, error: e.email, inputmode: "email", placeholder: "utilizator@domeniu.md", max: 254 })
       ))}
-      ${section("Localități subordonate", `
-        <div class="e-permits-aut-repeat__row e-permits-aut-repeat__row--pick">
-          ${selectField("raionPick", "Raion din aria de competență", D().raioane.map((r) => r.name), v.raionPick, { placeholder: "Alege raionul", error: e.raionPick, span: 0 })}
-          <button class="btn btn-secondary btn-md e-permits-aut-repeat__remove" type="button" data-sub-raion-add>${icon("plus-large", 20, "icon small")}<span>Adaugă</span></button>
-        </div>
-        ${raioaneItems ? `<ul class="e-permits-aut-chiplist" role="list">${raioaneItems}</ul>` : `<p class="e-permits-fo-field__hint">Opțional. Fără raioane, subdiviziunea nu este luată în considerare la atribuirea automată a dosarelor după localitate.</p>`}`)}`;
+      ${section("Localități subordonate", grid(`<div class="e-permits-user-create__field">${window.GEAPFormRender?.fieldHtml({ id: "sub-raioane", type: "multiselect", label: "Raioane din aria de competență", options: D().raioane.map((r) => r.name), value: v.raioane || [], placeholder: "Alege raioanele", countOne: "raion selectat", countMany: "raioane selectate", removeLabel: "Elimină raionul", searchLabel: "Caută raion", searchAria: "Caută raion", hint: "Opțional. Fără raioane, subdiviziunea nu este luată în considerare la atribuirea automată a dosarelor după localitate.", span: 12 }) || ""}</div>`))}`;
   }
   function validateSub(v) {
     const e = {};
@@ -1134,7 +1141,6 @@
       return;
     }
     const data = { ...clone(v) };
-    delete data.raionPick;
     if (editing) {
       const keys = ["name", "nameEn", "nameRu", "type", "prefix", ...ADDR_KEYS, "approvedBy", "phone", "email"];
       const changed = keys.filter((k) => String(editing[k] || "") !== String(data[k] || ""));
@@ -1213,7 +1219,6 @@
     /* US-93 AC-17 / AC-18, US-94 AC-06 / AC-07: the address cascade resets what depends on it */
     if (key === "raion") { F.v.localitate = ""; F.v.strada = ""; }
     if (key === "localitate") F.v.strada = "";
-    if (key === "raionPick") { delete F.errors.raionPick; }
     /* US-94 AC-10a: changing the type of an existing subdivision asks first */
     if (key === "type" && F.mode === "sub" && F.id && prev && prev !== t.value) {
       U().askConfirm?.({ title: "Schimbi tipul subdiviziunii?", text: "Modificarea tipului subdiviziunii poate afecta vizibilitatea acesteia în procesele de avizare pentru dosarele în curs. Confirmați modificarea?", confirmLabel: "Confirmă", cancelLabel: "Anulează" }, () => renderDrawer(`#aut-${key}`));
@@ -1269,16 +1274,6 @@
     if (ar) { F.v.accounts.splice(Number(ar.dataset.autAccountRemove), 1); F.errors = {}; F.dirty = true; renderDrawer(); drawer.querySelector("[data-aut-account-add]")?.focus(); return; }
     if (t.closest("[data-aut-logo-pick]")) { drawer.querySelector("[data-aut-logo-input]")?.click(); return; }
     if (t.closest("[data-aut-logo-remove]")) { F.v.logo = null; F.dirty = true; renderDrawer(); drawer.querySelector("[data-aut-logo-pick]")?.focus(); return; }
-    if (t.closest("[data-sub-raion-add]")) {
-      const r = F.v.raionPick;
-      if (!r) { F.errors.raionPick = "Alege un raion din listă."; renderDrawer("#aut-raionPick"); return; }
-      /* US-94 AC-12 */
-      if (F.v.raioane.includes(r)) { F.errors.raionPick = `${r} este deja adăugat.`; renderDrawer("#aut-raionPick"); return; }
-      F.v.raioane.push(r); F.v.raionPick = ""; F.dirty = true; renderDrawer("#aut-raionPick");
-      return;
-    }
-    const rr = t.closest("[data-sub-raion-remove]");
-    if (rr) { F.v.raioane = F.v.raioane.filter((x) => x !== rr.dataset.subRaionRemove); F.dirty = true; renderDrawer("#aut-raionPick"); }
   }
   /* US-90 AC-05: a sync that starts while the edit drawer is open locks it at once */
   function lockOpenForms() {

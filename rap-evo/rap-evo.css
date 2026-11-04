@@ -126,10 +126,13 @@ a {
   z-index: 10;
 }
 
+/* search-wide-v1 (user 2026-11-04): grows into the free toolbar room, 20rem … 32.5rem (320 … 520) — „Filtru”,
+   „Resetează” stay on the row at 1280 / 1440, the placeholder „Caută după nr. act, IDNO, companie sau adresă” fits */
 .rap-search {
-  flex: 0 0 387px;
+  flex: 1 1 32.5rem;
   margin: 0;
-  width: 387px;
+  max-width: 32.5rem;
+  min-width: 20rem;
 }
 
 .rap-search.search-input.medium,
@@ -1297,3 +1300,120 @@ tr:hover .rap-act-link {
 /* the profile header (breadcrumb → title 8, the details): css/bo-profile-parts.css + „Act profile header” above */
 
 /* phones: every search is 48 · 16/24 · icon 24 — the shared rule in css/field-sizes.css (audit-fix-v1) */
+
+/* „Resetează” in the toolbar row (user 2026-11-04): 8 after „Filtru” (the row's gap is 16), the library text button
+   Medium 40; only while a filter / search is active (hidden). Phones: hidden — the applied line has it */
+.rap-toolbar > .rap-reset {
+  flex: 0 0 auto;
+  margin-left: calc(var(--spacing-8, 8px) - var(--spacing-16, 16px));
+}
+
+.rap-toolbar > .rap-reset[hidden] {
+  display: none;
+}
+
+@media (max-width: 760px) {
+  .rap-toolbar > .rap-reset {
+    display: none;
+  }
+}
+
+/* ==========================================================================
+   Search suggestions (rap-suggest-v1, 2026-11-04) — rap-evo.js › „search suggestions”
+   The dropdown surface (radius 12 + „dropdown-effect”, as `.e-permits-workplace__filter-pop` in css/facet-filter.css,
+   the „Dropdown surface” literal has no token) at the field's width, 4 under it; items = the ONE dropdown item
+   (css/dropdown.css: 40 · 14/20 desktop, 48 · 16/24 phones) with the value + a tertiary meta; group headers 12/16
+   medium tertiary; the matched part semibold; the highlighted option = the item hover.
+   ========================================================================== */
+.rap-search .rap-suggest {
+  background-color: var(--color-background-base-default, #fff);
+  border: 0;
+  border-radius: var(--border-radius-12, 12px);
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.05), 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  box-sizing: border-box;
+  left: 0;
+  list-style: none;
+  margin: 0;
+  max-height: min(28rem, calc(100vh - 12rem));
+  overflow-y: auto;
+  position: absolute;
+  right: 0;
+  top: calc(100% + var(--spacing-4, 4px));
+  width: auto;
+  z-index: 40;
+}
+
+.rap-search .rap-suggest[hidden] {
+  display: none;
+}
+
+.rap-suggest__group {
+  color: var(--color-text-base-tertiary, #757575);
+  font-size: var(--font-size-fs-12, 12px);
+  font-weight: var(--font-weight-fw-medium, 500);
+  line-height: var(--line-height-lh-16, 16px);
+  padding: var(--spacing-8, 8px) var(--spacing-8, 8px) var(--spacing-4, 4px);
+}
+
+.rap-suggest__item {
+  align-items: center;
+  color: var(--color-text-base-default, #121212);
+  cursor: pointer;
+  display: flex;
+  min-width: 0;
+}
+
+.rap-suggest__item:hover,
+.rap-suggest__item.is-active {
+  background-color: var(--color-background-base-tertiary, #f1f1f1);
+}
+
+.rap-suggest__item.is-disabled {
+  background: transparent;
+  color: var(--color-text-base-tertiary, #757575);
+  cursor: default;
+}
+
+.rap-suggest__text {
+  flex: 0 1 auto;
+  font-weight: var(--font-weight-fw-regular, 400);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rap-suggest__meta {
+  color: var(--color-text-base-tertiary, #757575);
+  flex: 1 1 0;
+  font-weight: var(--font-weight-fw-regular, 400);
+  min-width: 0;
+  overflow: hidden;
+  text-align: right;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* a short meta (IDNO, „5 acte”) never shrinks; the value before it takes the cut (tooltip) */
+.rap-suggest__meta--fixed {
+  flex: 0 0 auto;
+  margin-left: auto;
+}
+
+.rap-suggest__item:has(.rap-suggest__meta--fixed) .rap-suggest__text {
+  flex: 1 1 auto;
+}
+
+.rap-suggest strong {
+  font-weight: var(--font-weight-fw-semibold, 600);
+}
+
+@media (max-width: 760px) {
+  .rap-suggest__group {
+    padding: var(--spacing-8, 8px) var(--spacing-16, 16px) var(--spacing-4, 4px);
+  }
+
+  .rap-suggest__meta {
+    font-size: var(--font-size-fs-14, 14px);
+  }
+}

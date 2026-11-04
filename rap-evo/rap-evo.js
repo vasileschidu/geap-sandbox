@@ -1,18 +1,35 @@
 (() => {
   "use strict";
 
-  const DATA_URL = "../data/rap-evo.json?v=act-fields-v1";
-  /* „Filtru” = the BO advanced filter (js/facet-filter.js): one facet per column that
-     makes sense to filter, values read from the records (no new data) */
+  const DATA_URL = "../data/rap-evo.json?v=rap-filter-v2";
+  /* the shared authorities / subdivisions source (BO „Autorități”, US-87…96): names + codes win over the RAP list */
+  const AUTHORITIES_URL = "../data/autoritati.json?v=rap-filter-v1";
+  /* RAP API failures for the demo (US-141 AC-02/03 + Risks / AC-20): ?rapapi=eroare-autoritati, eroare-tipuri,
+     eroare-filtrare (comma-separated) */
+  const API_ERRORS = new Set((new URLSearchParams(window.location.search).get("rapapi") || "").split(",").map((v) => v.trim()).filter(Boolean));
+  const LIST_UNAVAILABLE = "Lista nu este disponibilă momentan.";
+  /* „Filtru” = the shared facet filter (js/facet-filter.js), US-141 (rap-filter-v1, 2026-11-04): AND across facets, OR
+     inside one, together with the search; the lists hold only values with ≥ 1 act in the registry (AC-02/03) */
   const beneficiaryType = (record) => (record.beneficiary.type === "person" ? "Persoană fizică" : "Persoană juridică");
-  /* „Aprobat tacit” in the Statut facet (US-141): a pseudo-status = acts with Aprobare tacită = true,
-     whatever their status */
+  /* „Aprobat tacit” in the Statut facet (US-141 AC-06): a pseudo-status = acts with Aprobare tacită = true,
+     whatever their status; the six values are always offered, in the story's order */
+  const STATUS_VALUES = ["Valabil", "Suspendat", "Expirat", "Retras", "Anulat", "Aprobat tacit"];
+  /* order = importance for a public visitor (user 2026-11-04): Statut · Autoritate emitentă · Denumire act (the table column's name — the story says „Tip act”, user 2026-11-04) · Data emiterii ·
+     Data expirării inline (inlineMax 5); the secondary facets wait in „Mai multe” until they hold a value. The two dates
+     = plain De la / Până la ranges (US-141 AC-07/08, one end allowed; `presets: []`), applied chip „Emis: 01.01.2026 –
+     30.06.2026” / „Expiră până la 31.12.2027” (`chip`) + × (a combined „Perioadă” chip was tried and dropped the same day) */
   const FACETS = [
     { key: "status", label: "Statut", get: (record) => [record.status, ...((record.markings || []).includes("Aprobat tacit") ? ["Aprobat tacit"] : [])] },
-    { key: "denumire", label: "Denumire act", search: true, get: (record) => record.permit.name },
-    { key: "autoritate", label: "Autoritate", search: true, get: (record) => record.authority.name },
-    { key: "beneficiar", label: "Tip beneficiar", get: beneficiaryType }
+    { key: "autoritate", label: "Autoritate emitentă", search: true, get: (record) => record.authority.name, unavailable: () => (API_ERRORS.has("eroare-autoritati") ? LIST_UNAVAILABLE : null) },
+    { key: "denumire", label: "Denumire act", search: true, get: (record) => record.permit.name, unavailable: () => (API_ERRORS.has("eroare-tipuri") ? LIST_UNAVAILABLE : null) },
+    { key: "emitere", label: "Data emiterii", chip: "Emis", type: "date", presets: [], get: (record) => record.dates.issued },
+    { key: "expirare", label: "Data expirării", chip: "Expiră", type: "date", presets: [], get: (record) => record.dates.expires },
+    { key: "beneficiar", label: "Tip beneficiar", get: beneficiaryType },
+    { key: "subdiviziune", label: "Subdiviziune", search: true, get: (record) => record.profile?.office || "" },
+    /* set only by an address suggestion (rap-suggest-v1): applied chip „Adresă: <address>” + × */
+    { key: "adresa", label: "Adresă", pickOnly: true, showValue: true, get: (record) => record.address }
   ];
+  const facetOf = (key) => FACETS.find((f) => f.key === key);
   const state = {
     config: null,
     records: [],
@@ -63,7 +80,8 @@
     filterCount: document.querySelector("[data-rap-filter-count]"),
     listView: document.querySelector("[data-rap-list-view]"),
     profileView: document.querySelector("[data-rap-profile-view]"),
-    companySummary: document.querySelector("[data-rap-company-summary]")
+    companySummary: document.querySelector("[data-rap-company-summary]"),
+    reset: document.querySelector("[data-rap-reset]")
   };
 
   let searchTimer;
@@ -81,21 +99,89 @@
     .replace(/[\u0300-\u036f]/g, "")
     .toLocaleLowerCase("ro");
 
-  const expandRecords = (seedRecords, total) => {
+  /* „4 ian. 2025” / „emis 3 iulie 2030” → ISO day (the date facets match on it) */
+  const MONTH_INDEX = { ian: 1, feb: 2, mar: 3, apr: 4, mai: 5, iun: 6, iul: 7, aug: 8, sep: 9, sept: 9, oct: 10, nov: 11, noi: 11, dec: 12 };
+  const MONTH_SHORT = ["ian.", "feb.", "mar.", "apr.", "mai", "iun.", "iul.", "aug.", "sept.", "oct.", "nov.", "dec."];
+  const isoDay = (text) => {
+    const m = /(\d{1,2})\s+([a-zăâîșț]+)\.?\s+(\d{4})/iu.exec(String(text || ""));
+    const month = m && MONTH_INDEX[m[2].toLowerCase().slice(0, 4)] || (m && MONTH_INDEX[m[2].toLowerCase().slice(0, 3)]);
+    return month ? `${m[3]}-${String(month).padStart(2, "0")}-${m[1].padStart(2, "0")}` : "";
+  };
+  const shiftIso = (iso, days) => {
+    const [y, mo, d] = iso.split("-").map(Number);
+    return new Date(Date.UTC(y, mo - 1, d + days)).toISOString().slice(0, 10);
+  };
+  const shortDate = (iso) => { const [y, mo, d] = iso.split("-").map(Number); return `${d} ${MONTH_SHORT[mo - 1]} ${y}`; };
+
+  /* the issuing authorities of the registry (US-141 AC-02; real Moldovan public authorities + their subdivisions):
+     data/rap-evo.json › registry, merged with data/autoritati.json (the BO module's source: its names win, its extra
+     authorities / subdivisions join). `noActs` authorities get no act → they never reach the facet. */
+  const buildRegistry = (config, shared) => {
+    const byCode = new Map((config.registry?.authorities || []).map((a) => [a.code, { code: a.code, name: a.name, subdivisions: [...(a.subdivisions || [])] }]));
+    (shared?.authorities || []).filter((a) => a.code && a.active !== false).forEach((a) => {
+      const entry = byCode.get(a.code) || { code: a.code, name: a.nameRo, subdivisions: [] };
+      entry.name = a.nameRo || entry.name;
+      (shared.subdivisions || []).filter((sub) => sub.authorityId === a.id && sub.active !== false).forEach((sub) => { if (!entry.subdivisions.includes(sub.name)) entry.subdivisions.push(sub.name); });
+      byCode.set(a.code, entry);
+    });
+    const noActs = new Set(config.registry?.noActs || []);
+    /* the act names (Denumire act, AC-03) with the authorities that issue them */
+    const types = (config.registry?.actTypes || []).map((t) => ({ name: t.name, authorities: t.authorities.filter((code) => byCode.has(code) && !noActs.has(code)) })).filter((t) => t.authorities.length);
+    return { byCode, types, pool: [...byCode.values()].filter((a) => !noActs.has(a.code)) };
+  };
+
+  /* the demo registry: the seed acts as they are, then copies spread over every authority (and one of its
+     subdivisions as the issuing office) with issue / expiry dates moved back a few days per copy, so the
+     authority list is long and the date ranges have something to find */
+  const expandRecords = (seedRecords, total, registry, registryAddresses) => {
+    /* the act's object / activity address (the search + suggestions, rap-suggest-v1): the seed's own, else one of the
+       registry's addresses (a few acts share each, so „Adrese” can say how many) */
+    const places = (registryAddresses || []).flatMap((p) => p.streets.map((street) => `${p.locality}, ${street}`));
+    const addressOf = (k) => (places.length ? `${places[(k * 7) % places.length]} ${1 + ((k * 13) % 9) * 4}` : "");
+    const withDates = (record, k = 0) => {
+      record.address = record.profile?.document?.address || addressOf(k);
+      const issued = isoDay(record.permit.issuedAt);
+      const expires = isoDay(record.permit.validThrough);
+      record.dates = { issued, expires };
+      const known = registry.byCode.get(record.authority.code);
+      if (known) record.authority.name = known.name;
+      return record;
+    };
     if (seedRecords.length >= total) {
-      return seedRecords.slice(0, total);
+      return seedRecords.slice(0, total).map((seed, i) => withDates(structuredClone(seed), i));
     }
 
     return Array.from({ length: total }, (_, index) => {
       const seed = seedRecords[index % seedRecords.length];
       const cycle = Math.floor(index / seedRecords.length);
       if (cycle === 0) {
-        return structuredClone(seed);
+        return withDates(structuredClone(seed), index);
       }
 
       const record = structuredClone(seed);
       record.id = `${seed.id}-${cycle + 1}`;
-      return record;
+      /* the k-th copy: act name k (cycling through every type), issued by one of that type's authorities */
+      const k = index - seedRecords.length;
+      const type = registry.types.length ? registry.types[k % registry.types.length] : null;
+      const authority = type
+        ? registry.byCode.get(type.authorities[Math.floor(k / registry.types.length) % type.authorities.length])
+        : registry.pool[k % registry.pool.length];
+      if (type) record.permit.name = type.name;
+      if (authority) {
+        record.authority = { code: authority.code, name: authority.name };
+        const offices = authority.subdivisions || [];
+        record.profile = { ...(record.profile || {}), office: offices.length ? offices[cycle % offices.length] : record.profile?.office };
+      }
+      const shift = -((cycle * 23) % 700);
+      const issued = isoDay(seed.permit.issuedAt);
+      const expires = isoDay(seed.permit.validThrough);
+      if (issued) record.permit.issuedAt = `emis ${shortDate(shiftIso(issued, shift))}`;
+      if (expires) record.permit.validThrough = shortDate(shiftIso(expires, shift));
+      if (record.profile) {
+        delete record.profile.issuedDate; delete record.profile.validFrom; delete record.profile.validUntil;
+        if (record.profile.document) record.profile.document = { ...record.profile.document, address: addressOf(index) };
+      }
+      return withDates(record, index);
     });
   };
 
@@ -408,7 +494,10 @@
         </span>
         <span class="rap-beneficiary__copy">
           <span class="rap-beneficiary__name rap-clamp" data-cell-tooltip="${escapeHtml(record.beneficiary.name)}">${escapeHtml(record.beneficiary.name)}</span>
-          ${isMaskedValue(record.beneficiary.identifier)
+          ${record.beneficiary.type === "person"
+            /* US-141 AC-19 / US-145: a PF beneficiary = „V*** C***”; the IDNP (even masked) is never shown in the list */
+            ? '<span class="rap-beneficiary__identifier rap-ellipsis">Persoană fizică</span>'
+            : isMaskedValue(record.beneficiary.identifier)
             ? `<span class="rap-beneficiary__identifier rap-ellipsis" data-cell-tooltip="${escapeHtml(record.beneficiary.identifier)}">${escapeHtml(record.beneficiary.identifier)}</span>`
             : copyValue(record.beneficiary.identifier, `Copiază ${record.beneficiary.identifierType || "IDNO"} ${record.beneficiary.identifier}`, { compact: true, className: "rap-beneficiary__identifier" })}
         </span>
@@ -455,7 +544,8 @@
   const facetValues = (facet, record) => [].concat(facet.get(record) ?? []).filter(Boolean);
   const matchesFacets = (record, except = null, selection = state.filter.applied) => Object.entries(selection).every(([key, values]) => {
     if (key === except || !values?.length) return true;
-    const facet = FACETS.find((f) => f.key === key);
+    const facet = facetOf(key);
+    if (facet?.type === "date") return window.GEAPFacetFilter.dateMatch(values[0], facet.get(record));
     return !facet || facetValues(facet, record).some((value) => values.includes(value));
   });
 
@@ -507,13 +597,14 @@
     const query = normalize(state.search);
     const searchable = normalize([
       record.beneficiary.name,
-      record.beneficiary.identifier,
+      record.beneficiary.type === "person" ? "" : record.beneficiary.identifier, /* AC-19: no PF IDNP, not even to search */
       record.permit.name,
       record.permit.number,
       record.permit.paperNumber,
       record.authority.code,
       record.authority.name,
-      record.status
+      record.status,
+      record.address
     ].join(" "));
     /* the company view lists the company's own (seed) records only */
     return (!query || searchable.includes(query))
@@ -521,8 +612,12 @@
         && state.config.records.some((seed) => seed.id === record.id)));
   };
 
+  /* AC-20: the RAP API fails on applying filters (demo ?rapapi=eroare-filtrare) → the system message, no list
+     (the bar with „Resetează filtrele” stays, so the visitor can go back to the full list) */
+  const filterApiDown = () => API_ERRORS.has("eroare-filtrare") && totalActiveFilters() > 0;
+
   const applyFilters = () => {
-    state.filteredRecords = state.records.filter((record) => matchesSearch(record) && matchesFacets(record));
+    state.filteredRecords = filterApiDown() ? [] : state.records.filter((record) => matchesSearch(record) && matchesFacets(record));
 
     const totalPages = Math.max(1, Math.ceil(state.filteredRecords.length / state.pageSize));
     state.page = Math.min(state.page, totalPages);
@@ -550,12 +645,15 @@
     window.requestAnimationFrame(syncTableOverflow);
 
     if (rows.length === 0) {
-      /* the shared empty state (js/empty-state.js); filters applied → the bar's „Șterge filtrele” */
+      /* the shared empty state (js/empty-state.js); filters applied → US-141 AC-18 wording + „Resetează filtrele”;
+         the API down on applying them → AC-20 system message */
       const filters = totalActiveFilters();
-      elements.empty.innerHTML = window.GEAPEmptyState.noResults("Ne pare rău, nu am găsit niciun rezultat", {
-        text: filters ? "Modificați căutarea sau ștergeți filtrele aplicate." : "Verificați ortografia sau încercați alți termeni.",
-        actionHtml: filters ? '<button class="btn btn-neutral btn-sm" type="button" data-filter-clear-all>Șterge filtrele</button>' : ""
-      });
+      const reset = '<button class="btn btn-neutral btn-sm" type="button" aria-label="Resetează filtrele" data-filter-clear-all>Resetează</button>';
+      elements.empty.innerHTML = filterApiDown()
+        ? window.GEAPEmptyState.render({ title: "Serviciul nu este disponibil momentan", text: "Vă rugăm să încercați mai târziu.", icon: "circle-error", actionHtml: reset })
+        : filters
+          ? window.GEAPEmptyState.noResults("Nu au fost găsite acte pentru filtrele aplicate.", { text: "Modificați criteriile de filtrare și încercați din nou.", actionHtml: reset })
+          : window.GEAPEmptyState.noResults("Ne pare rău, nu am găsit niciun rezultat", { text: "Verificați ortografia sau încercați alți termeni." });
     }
   };
 
@@ -573,7 +671,24 @@
     }).trim();
   };
 
+  /* „Resetează” in the toolbar row (desktop, user 2026-11-04): while a filter or a search is active; clears both */
+  const syncResetButton = () => {
+    if (elements.reset) elements.reset.hidden = !(totalActiveFilters() || state.search);
+  };
+  const resetAll = () => {
+    window.clearTimeout(searchTimer);
+    state.search = "";
+    state.companyFilter = null;
+    elements.search.value = "";
+    syncSearchState();
+    const url = new URL(window.location.href);
+    if (url.searchParams.has("idno")) { url.searchParams.delete("idno"); window.history.replaceState({ rapCompanyIdno: null }, "", url); }
+    if (facetFilter) facetFilter.clearAll(); else { state.page = 1; applyFilters(); }
+    elements.search.focus();
+  };
+
   const render = () => {
+    syncResetButton();
     renderCompanySummary();
     renderTable();
     renderPagination();
@@ -588,12 +703,14 @@
       for (const value of new Set(facetValues(facet, record))) counts.set(value, (counts.get(value) || 0) + 1);
     }
     for (const value of selection[facet.key] || []) if (!counts.has(value)) counts.set(value, 0);
+    if (facet.key === "status") return STATUS_VALUES.map((value) => ({ value, count: counts.get(value) || 0 }));
     return [...counts.entries()].map(([value, count]) => ({ value, count })).sort((a, b) => a.value.localeCompare(b.value, "ro", { numeric: true }));
   };
 
   /* a facet is offered when the registry has at least two values for it (as in the BO) */
   const availableFacets = () => FACETS.filter((facet) => {
-    if (state.filter.applied[facet.key]?.length) return true;
+    if (facet.pickOnly) return Boolean(state.filter.applied[facet.key]?.length);
+    if (state.filter.applied[facet.key]?.length || facet.type === "date" || facet.key === "status" || facet.unavailable?.()) return true;
     const seen = new Set();
     for (const record of state.records) { for (const value of facetValues(facet, record)) seen.add(value); if (seen.size > 1) return true; }
     return false;
@@ -617,7 +734,27 @@
       mobileSheets: true,
       preview: (selection) => state.records.filter((record) => matchesSearch(record) && matchesFacets(record, null, selection)).length,
       apply: () => { state.page = 1; applyFilters(); },
-      scrollers: [elements.tableScroller]
+      scrollers: [elements.tableScroller],
+      /* US-141 AC-13: the applied filters stay visible as chips while active — desktop and phones; the trigger never
+         hides them. User 2026-11-04: chips = label + count (dates: the period) + × that clears that filter (AC-14);
+         desktop dropdowns apply as you tick (liveApply, no „Aplică”), phones keep the sheet + „Arată N rezultate”.
+         The story's wording (AC-09, AC-15, AC-17) */
+      hideOnToggle: false,
+      chipClose: true,
+      /* desktop: „Resetează” sits in the toolbar row after „Filtru” (data-rap-reset); phones: in the applied line */
+      barClearDesktop: false,
+      liveApply: true,
+      phoneChips: true,
+      inlineMax: 5,
+      text: {
+        apply: "Aplică filtre",
+        /* user 2026-11-04: „Resetează” (the story's AC-15 says „Resetează filtrele” — the screen-reader name) */
+        clear: "Resetează",
+        clearName: "Resetează filtrele",
+        /* AC-17: „14 rezultate găsite”, hidden at 0 (the AC-18 message says it) */
+        results: (n) => (!n || filterApiDown() ? "" : n === 1 ? "1 rezultat găsit" : `${n}${n % 100 === 0 || n % 100 >= 20 ? " de" : ""} rezultate găsite`),
+        rangeOrder: "Data de început nu poate fi ulterioară datei de sfârșit."
+      }
     });
   };
 
@@ -636,6 +773,7 @@
 
   const clearSearch = () => {
     window.clearTimeout(searchTimer);
+    closeSuggest();
     state.search = "";
     state.companyFilter = null;
     state.page = 1;
@@ -757,6 +895,127 @@
     applyFilters();
   };
 
+  /* ---- search suggestions (rap-suggest-v1, 2026-11-04, user; beyond US-140 — PO proposal) ----
+     From 2 characters, 200 ms after typing: a dropdown under the search (the menu surface + the ONE dropdown item,
+     css/dropdown.css: 40 desktop / 48 · 16/24 phones), groups „Acte” (nr + name) · „Companii” (name + IDNO) ·
+     „Adrese” (address + how many acts), ≤ 5 each, the matched part semibold. ARIA combobox + listbox, ↑ / ↓ / Enter /
+     Esc. An act → its profile; a company → the company view; an address → the „Adresă” filter (chip + ×). Enter with
+     nothing highlighted = the normal full-text search (the list already follows the field). */
+  const SUGGEST_MIN = 2;
+  const SUGGEST_MAX = 5;
+  let suggestTimer = 0;
+  let suggestItems = [];
+  let suggestActive = -1;
+  const suggestEl = document.createElement("ul");
+  suggestEl.className = "e-permits-fo-intent-menu rap-suggest";
+  suggestEl.id = "rap-suggest";
+  suggestEl.setAttribute("role", "listbox");
+  suggestEl.setAttribute("aria-label", "Sugestii de căutare");
+  suggestEl.hidden = true;
+  /* the typed text in semibold inside a value (case- and diacritics-insensitive; one char → one folded char) */
+  const markMatch = (text, query) => {
+    const chars = [...String(text)];
+    const folded = chars.map((c) => normalize(c) || c).join("");
+    const at = folded.indexOf(normalize(query));
+    if (at < 0 || !query) return escapeHtml(text);
+    return `${escapeHtml(chars.slice(0, at).join(""))}<strong>${escapeHtml(chars.slice(at, at + query.length).join(""))}</strong>${escapeHtml(chars.slice(at + query.length).join(""))}`;
+  };
+  const buildSuggestions = (query) => {
+    const q = normalize(query);
+    const acts = new Map();
+    const companies = new Map();
+    const addresses = new Map();
+    for (const record of state.records) {
+      if (acts.size < SUGGEST_MAX && !acts.has(record.permit.number) && normalize(`${record.permit.number} ${record.permit.name}`).includes(q)) acts.set(record.permit.number, record);
+      if (record.beneficiary.type === "company" && !companies.has(record.beneficiary.identifier) && companies.size < SUGGEST_MAX
+        && normalize(`${record.beneficiary.name} ${record.beneficiary.identifier}`).includes(q)) companies.set(record.beneficiary.identifier, record);
+      if (record.address && normalize(record.address).includes(q)) addresses.set(record.address, (addresses.get(record.address) || 0) + 1);
+    }
+    const items = [];
+    if (acts.size) items.push({ group: "Acte" }, ...[...acts.values()].map((record) => ({ kind: "act", record, text: markMatch(record.permit.number, query), meta: markMatch(record.permit.name, query) })));
+    if (companies.size) items.push({ group: "Companii" }, ...[...companies.values()].map((record) => ({ kind: "company", record, text: markMatch(record.beneficiary.name, query), meta: `IDNO ${markMatch(record.beneficiary.identifier, query)}` })));
+    const topAddresses = [...addresses.entries()].slice(0, SUGGEST_MAX);
+    if (topAddresses.length) items.push({ group: "Adrese" }, ...topAddresses.map(([address, n]) => ({ kind: "address", address, text: markMatch(address, query), meta: n === 1 ? "1 act" : `${n}${n % 100 === 0 || n % 100 >= 20 ? " de" : ""} acte` })));
+    return items;
+  };
+  const setSuggestActive = (i) => {
+    const options = [...suggestEl.querySelectorAll("[data-rap-suggest-i]")];
+    suggestActive = options.length ? (i + options.length) % options.length : -1;
+    options.forEach((el, n) => el.classList.toggle("is-active", n === suggestActive));
+    const active = options[suggestActive];
+    if (active) { elements.search.setAttribute("aria-activedescendant", active.id); active.scrollIntoView({ block: "nearest" }); }
+    else elements.search.removeAttribute("aria-activedescendant");
+  };
+  const closeSuggest = () => {
+    window.clearTimeout(suggestTimer);
+    suggestEl.hidden = true;
+    suggestActive = -1;
+    elements.search.setAttribute("aria-expanded", "false");
+    elements.search.removeAttribute("aria-activedescendant");
+  };
+  const openSuggest = () => {
+    const query = elements.search.value.trim();
+    if (query.length < SUGGEST_MIN || state.activeRecord) { closeSuggest(); return; }
+    suggestItems = buildSuggestions(query);
+    let n = -1;
+    suggestEl.innerHTML = suggestItems.length ? suggestItems.map((item) => (item.group
+      ? `<li class="rap-suggest__group" role="presentation">${escapeHtml(item.group)}</li>`
+      : `<li class="e-permits-fo-intent-menu__item rap-suggest__item" role="option" aria-selected="false" id="rap-suggest-${n += 1}" data-rap-suggest-i="${n}">
+          <span class="rap-suggest__text" data-cell-tooltip>${item.text}</span><span class="rap-suggest__meta${item.kind === "act" ? "" : " rap-suggest__meta--fixed"}" data-cell-tooltip>${item.meta}</span>
+        </li>`)).join("")
+      : '<li class="e-permits-fo-intent-menu__item rap-suggest__item is-disabled" role="option" aria-disabled="true" aria-selected="false"><span class="rap-suggest__text">Nicio potrivire</span></li>';
+    suggestItems = suggestItems.filter((item) => !item.group);
+    suggestEl.hidden = false;
+    suggestActive = -1;
+    elements.search.setAttribute("aria-expanded", "true");
+  };
+  const pickSuggestion = (i) => {
+    const item = suggestItems[i];
+    if (!item) return;
+    closeSuggest();
+    if (item.kind === "act") { openProfile(item.record.id); return; }
+    if (item.kind === "company") { showCompanyPermits(item.record); return; }
+    /* an address: the „Adresă” filter, the typed text goes (it was the way to find the address) */
+    window.clearTimeout(searchTimer);
+    state.search = "";
+    state.companyFilter = null;
+    elements.search.value = "";
+    syncSearchState();
+    state.filter.applied = { ...state.filter.applied, adresa: [item.address] };
+    state.filter.draft = null;
+    state.page = 1;
+    applyFilters();
+  };
+  const bindSuggest = () => {
+    elements.search.closest(".search-input")?.appendChild(suggestEl);
+    elements.search.setAttribute("role", "combobox");
+    elements.search.setAttribute("aria-autocomplete", "list");
+    elements.search.setAttribute("aria-controls", suggestEl.id);
+    elements.search.setAttribute("aria-expanded", "false");
+    elements.search.addEventListener("input", () => {
+      window.clearTimeout(suggestTimer);
+      suggestTimer = window.setTimeout(openSuggest, 200);
+    });
+    elements.search.addEventListener("keydown", (event) => {
+      if (suggestEl.hidden) { if (event.key === "ArrowDown" && elements.search.value.trim().length >= SUGGEST_MIN) { openSuggest(); setSuggestActive(0); event.preventDefault(); } return; }
+      if (event.key === "ArrowDown" || event.key === "ArrowUp") { event.preventDefault(); setSuggestActive(suggestActive + (event.key === "ArrowDown" ? 1 : -1)); return; }
+      if (event.key === "Escape") { event.preventDefault(); closeSuggest(); return; }
+      if (event.key === "Enter") { event.preventDefault(); if (suggestActive >= 0) pickSuggestion(suggestActive); else closeSuggest(); }
+    });
+    /* pointerdown keeps the focus in the field while an option is picked */
+    suggestEl.addEventListener("pointerdown", (event) => event.preventDefault());
+    suggestEl.addEventListener("click", (event) => {
+      const option = event.target.closest("[data-rap-suggest-i]");
+      if (option) pickSuggestion(Number(option.dataset.rapSuggestI));
+    });
+    suggestEl.addEventListener("pointermove", (event) => {
+      const option = event.target.closest("[data-rap-suggest-i]");
+      if (option && Number(option.dataset.rapSuggestI) !== suggestActive) setSuggestActive(Number(option.dataset.rapSuggestI));
+    });
+    document.addEventListener("pointerdown", (event) => { if (!suggestEl.hidden && !event.target.closest(".rap-search")) closeSuggest(); });
+    elements.search.addEventListener("blur", () => window.setTimeout(() => { if (document.activeElement !== elements.search) closeSuggest(); }, 150));
+  };
+
   const bindEvents = () => {
     elements.search.addEventListener("input", () => {
       window.clearTimeout(searchTimer);
@@ -775,6 +1034,7 @@
     });
 
     elements.searchClear.addEventListener("click", clearSearch);
+    elements.reset?.addEventListener("click", resetAll);
 
     /* the table's scroll cue follows scroll / resize */
     elements.tableScroller?.addEventListener("scroll", syncTableOverflow, { passive: true });
@@ -867,13 +1127,16 @@
       }
 
       state.config = await response.json();
-      state.records = expandRecords(state.config.records, state.config.meta.totalResults);
+      const shared = await fetch(AUTHORITIES_URL).then((r) => (r.ok ? r.json() : null)).catch(() => null);
+      state.registry = buildRegistry(state.config, shared);
+      state.records = expandRecords(state.config.records, state.config.meta.totalResults, state.registry, state.config.registry?.addresses);
       state.page = state.config.pagination.initialPage;
       state.pageSize = state.config.pagination.defaultPageSize;
       elements.title.textContent = state.config.page.title;
       elements.search.placeholder = state.config.page.searchPlaceholder;
       initFacetFilter();
       bindEvents();
+      bindSuggest();
       applyFilters();
       syncViewFromUrl();
     } catch (error) {

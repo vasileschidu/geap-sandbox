@@ -32,6 +32,29 @@
                                     sheets' live „Arată N rezultate”; falls back to total())
      sort                           the page's sort control (its wrapper element, in the toolbar row next to
                                     the trigger) — phones only: shown as an icon-only square (icon-sort)
+     hideOnToggle                   (default true) the trigger clicked again hides the applied chips too
+                                    (filter-toggle-hide-v1); false = applied chips stay while any filter is active
+                                    (RAP US-141 AC-13) — the trigger then only moves the focus to the first chip
+     phoneChips                     (default false) phones: the applied chips (label + count / period) stay in the bar
+                                    above the „N rezultate · Șterge” line; a chip opens its facet's sheet
+     chipClose                      (default false) an applied checklist chip = label + count badge + the library chip ×
+                                    (clears that facet at once — US-141 AC-14); date chips always have their ×; a facet
+                                    with `showValue` and one value reads „<label>: <value>”
+     liveApply                      (default false) desktop: a popover applies as you tick (150 ms debounce; a date facet
+                                    when its period is valid — the range error blocks only that facet); no Confirmă /
+                                    „Aplică filtrele”, the popover stays open (Esc / outside click close it), its footer
+                                    = „Resetează” (that facet). Phones keep the sheet + live „Arată N rezultate”.
+   Every product: the checklist puts the values ticked when it OPENED first, the menu separator, then the rest (order
+   frozen while ticking — selected-first-v1, 2026-11-04).
+     inlineMax                      facets shown as chips before „Mai multe” (default 4)
+     barClearDesktop                (default true) false = no clear button in the desktop bar (the page has its own,
+                                    RAP „Resetează” in the toolbar row); phones keep it in the applied line
+     text: { apply, clear, clearName, results(n), rangeOrder }
+                                    page wording (defaults „Aplică filtrele”, „Șterge filtrele”, „N rezultate”, the
+                                    BO range message); `results` returning "" hides the count (RAP: 0 → hidden)
+   A facet may set `unavailable: "<message>"` (or a function → message | null): its list could not be loaded
+   (RAP API error, US-141 AC-02/03) — the chip stays, its popover / sheet section shows the message only.
+   A date facet with `presets: []` is a plain De la / Până la range (no radio rows); empty = no filter.
    }) → { render, close, clearAll }
 
    Phone toolbar (phone-toolbar-v2, 2026-10-21, user: „make the filter icon-only and put it in the same row as
@@ -269,6 +292,17 @@
   };
 
   function create(cfg) {
+    const TEXT = {
+      apply: "Aplică filtrele",
+      clear: "Șterge filtrele",
+      results: null,
+      rangeOrder: "Data „Până la” nu poate fi anterioară datei „De la”.",
+      ...(cfg.text || {})
+    };
+    const hideOnToggle = cfg.hideOnToggle !== false;
+    const inlineMax = cfg.inlineMax || INLINE_MAX;
+    const unavailableOf = (facet) => (typeof facet?.unavailable === "function" ? facet.unavailable() : facet?.unavailable) || null;
+    const unavailableHtml = (text) => `<div class="e-permits-workplace__filter-unavailable">${window.GEAPEmptyState.render({ title: text, text: "", icon: "circle-error", bare: true, compact: true })}</div>`;
     const phoneMode = cfg.mobileSheets !== false; /* every list since phone-toolbar-v2 */
     if (phoneMode) wireSearchStates(); /* no-op where js/search.js already runs (the BO) */
     const bar = cfg.bar;
@@ -336,19 +370,47 @@
     const isDate = (facet) => facet?.type === "date";
     const todayOf = (facet) => (facet?.today ? facet.today() : cfg.today ? cfg.today() : localToday());
     const facetByKey = (key) => cfg.allFacets().find((f) => f.key === key);
+    /* a date facet with `chip` („Emis”): „Emis: 01.01.2026 – 30.06.2026” / „Emis de la …” / „Emis până la …” (RAP, the
+       story's ZZ.LL.AAAA) */
+    const dotDay = (iso) => iso.split("-").reverse().join(".");
+    const chipDateText = (facet, token) => {
+      const range = parseDateToken(token, todayOf(facet));
+      if (!range) return "";
+      const name = facet.chip || facet.label;
+      if (range.from && range.to) return `${name}: ${dotDay(range.from)} – ${dotDay(range.to)}`;
+      return range.from ? `${name} de la ${dotDay(range.from)}` : `${name} până la ${dotDay(range.to)}`;
+    };
     const presetsOf = (facet) => (facet.presets || DEFAULT_PRESETS).filter((id) => DATE_PRESETS[id]);
+    /* `presets: []` = a plain De la / Până la range (RAP US-141 AC-07/08): no radio rows, always „custom” */
+    const rangeOnly = (facet) => !!facet && isDate(facet) && !presetsOf(facet).length;
+    const blankDate = (facet) => ({ preset: rangeOnly(facet) ? CUSTOM : "", from: "", to: "" });
+    const dateSet = (facet, d) => !!d && (rangeOnly(facet) ? !!(d.from || d.to) : !!d.preset);
     /* the chip with a period: library chip „with close” (group of the chip button + ×) */
     const dateChipHtml = (facet, token, open) => {
       const text = dateText(token, todayOf(facet));
       if (!text) return chipHtml(facet, 0, open);
-      const label = `${facet.label}: ${text}`;
-      return `<div class="chip is-selected e-permits-workplace__filter-chip e-permits-workplace__filter-chip--date" role="group" aria-label="${escapeHtml(facet.label)}">
-        <button class="chip__label" type="button" aria-haspopup="dialog" aria-expanded="${open}" data-filter-facet="${escapeHtml(facet.key)}">
-          <span class="e-permits-workplace__filter-chip-text" data-cell-tooltip>${escapeHtml(label)}</span>
+      /* a facet with `chip` („Emis”) reads „Emis: 01.01.2026 – 30.06.2026” / „Emis până la …” (RAP, the story's ZZ.LL.AAAA) */
+      const label = facet.chip ? chipDateText(facet, token) : `${facet.label}: ${text}`;
+      return closeChipHtml(facet, open, `<span class="e-permits-workplace__filter-chip-text" data-cell-tooltip>${escapeHtml(label)}</span>`, label, "data-filter-date-clear");
+    };
+    /* the library chip „with close” as a group: the chip button (opens the popover) + × (clears that facet at once) */
+    const closeChipHtml = (facet, open, inner, label, clearAttr, name = "") => `<div class="chip is-selected e-permits-workplace__filter-chip e-permits-workplace__filter-chip--date${clearAttr === "data-filter-facet-clear" ? " e-permits-workplace__filter-chip--value" : ""}" role="group" aria-label="${escapeHtml(facet.label)}">
+        <button class="chip__label" type="button" aria-haspopup="dialog" aria-expanded="${open}"${name ? ` aria-label="${escapeHtml(name)}"` : ""} data-filter-facet="${escapeHtml(facet.key)}">
+          ${inner}
           <svg class="icon e-permits-workplace__filter-caret" aria-hidden="true"><use href="${sprite}#icon-chevron-${open ? "top" : "bottom"}"></use></svg>
         </button>
-        <button class="chip__close" type="button" aria-label="Șterge filtrul ${escapeHtml(facet.label)}" data-filter-date-clear="${escapeHtml(facet.key)}"><svg class="icon" aria-hidden="true"><use href="${sprite}#icon-cross-small"></use></svg></button>
+        <button class="chip__close" type="button" aria-label="Elimină filtrul ${escapeHtml(label)}" ${clearAttr}="${escapeHtml(facet.key)}"><svg class="icon" aria-hidden="true"><use href="${sprite}#icon-cross-small"></use></svg></button>
       </div>`;
+    /* chipClose: label + the numbered badge (never the values) + × */
+    const valueChipHtml = (facet, values, open) => {
+      const n = values.length;
+      /* a facet with `showValue` and ONE value (RAP „Adresă”, set by a search suggestion) reads „Adresă: <value>” */
+      if (facet.showValue && n === 1) {
+        const text = `${facet.label}: ${values[0]}`;
+        return closeChipHtml(facet, open, `<span class="e-permits-workplace__filter-chip-text" data-cell-tooltip>${escapeHtml(text)}</span>`, text, "data-filter-facet-clear");
+      }
+      return closeChipHtml(facet, open, `<span class="e-permits-workplace__filter-chip-text">${escapeHtml(facet.label)}</span><span class="badge badge--lg badge--solid-light">${n}</span>`,
+        facet.label, "data-filter-facet-clear", `${facet.label}: ${n} ${n === 1 ? "valoare selectată" : "valori selectate"}`);
     };
     /* De la / Până la = the library date picker in the FO field shell (as the BO drawers) */
     const dateFieldHtml = (id, label, iso, today, key, part) => {
@@ -389,12 +451,13 @@
             <span class="radio radio--small"><input class="radio-input" type="radio" name="${name}" value="${id}"${d.preset === id ? " checked" : ""} data-filter-date-preset="${escapeHtml(key)}"><span class="radio-custom" aria-hidden="true"></span></span>
             <span class="e-permits-workplace__filter-option-label">${escapeHtml(label)}</span>
           </label>`;
+      const only = rangeOnly(facet);
       return `
-        <div class="e-permits-workplace__filter-list e-permits-workplace__filter-dates${where === "sheet" ? " e-permits-filter-sheet__list" : ""}" role="radiogroup" aria-label="${escapeHtml(facet.label)}">
+        ${only ? "" : `<div class="e-permits-workplace__filter-list e-permits-workplace__filter-dates${where === "sheet" ? " e-permits-filter-sheet__list" : ""}" role="radiogroup" aria-label="${escapeHtml(facet.label)}">
           ${presetsOf(facet).map((id) => row(id, DATE_PRESETS[id].label)).join("")}
           ${row(CUSTOM, "Interval personalizat")}
-        </div>
-        <div class="e-permits-workplace__filter-range" role="group" aria-label="Interval personalizat · ${escapeHtml(facet.label)}" data-filter-range="${escapeHtml(key)}"${d.preset === CUSTOM ? "" : " hidden"}>
+        </div>`}
+        <div class="e-permits-workplace__filter-range${only ? " e-permits-workplace__filter-range--only" : ""}" role="group" aria-label="${only ? "" : "Interval personalizat · "}${escapeHtml(facet.label)}" data-filter-range="${escapeHtml(key)}"${only ? " data-filter-range-fixed" : ""}${d.preset === CUSTOM ? "" : " hidden"}>
           ${dateFieldHtml(`${name}-from`, "De la", d.from, today, key, "from")}
           ${dateFieldHtml(`${name}-to`, "Până la", d.to, today, key, "to")}
           <div class="e-permits-workplace__filter-range-errors" data-filter-range-errors></div>
@@ -402,7 +465,7 @@
     };
     const dateEditOf = (facet, token) => {
       const range = parseDateToken(token, todayOf(facet));
-      return { preset: range?.preset || "", from: range?.preset === CUSTOM ? range.from : "", to: range?.preset === CUSTOM ? range.to : "" };
+      return { preset: range?.preset || (rangeOnly(facet) ? CUSTOM : ""), from: range?.preset === CUSTOM ? range.from : "", to: range?.preset === CUSTOM ? range.to : "" };
     };
     /* the message goes under BOTH fields (one line at the range's width, not 4 lines under one column) */
     const fieldError = (input, text) => {
@@ -432,13 +495,25 @@
       const fail = (input, text) => { ok = false; if (show && input) fieldError(input, text); };
       if (from === null) fail(fromInput, "Introduceți data în formatul ZZ/LL/AAAA.");
       if (to === null) fail(toInput, "Introduceți data în formatul ZZ/LL/AAAA.");
-      if (ok && !from && !to) fail(fromInput, "Alegeți cel puțin o dată.");
-      if (ok && from && to && to < from) fail(toInput, "Data „Până la” nu poate fi anterioară datei „De la”.");
+      /* a plain range left empty = no period (no filter); a „custom” choice needs at least one end */
+      if (ok && !from && !to) { if (range?.hasAttribute("data-filter-range-fixed")) return { ok: true, token: null }; fail(fromInput, "Alegeți cel puțin o dată."); }
+      if (ok && from && to && to < from) fail(toInput, TEXT.rangeOrder);
       return ok ? { ok, token: dateToken(from, to) } : { ok, token: null };
     };
     const initPickers = (scope) => window.GEAPDatePicker?.init(scope);
     const pickerOpen = (scope) => !!scope?.querySelector("[data-date-picker].is-open");
 
+    /* the popover footer: Confirmă + Șterge (draft model) | „Resetează” only (liveApply) */
+    const footerButtons = () => (cfg.liveApply
+      ? '<button class="btn btn-text-neutral btn-sm" type="button" data-filter-reset>Resetează</button>'
+      : `<button class="btn btn-primary btn-sm" type="button" data-filter-confirm>Confirmă</button>
+        <button class="btn btn-neutral btn-sm" type="button" data-filter-reset>
+          <svg class="icon" width="16" height="16" aria-hidden="true"><use href="${sprite}#icon-cross-small"></use></svg>
+          <span>Șterge</span>
+        </button>`);
+    /* „Șterge filtrele” / the page's word (RAP „Resetează”, its full name for screen readers: `text.clearName`) */
+    const clearButton = () => `<button class="btn btn-text-neutral btn-sm" type="button"${TEXT.clearName ? ` aria-label="${escapeHtml(TEXT.clearName)}"` : ""} data-filter-clear-all>${escapeHtml(TEXT.clear)}</button>`;
+    const resultsText = (n) => (TEXT.results ? TEXT.results(n) : n === 1 ? "1 rezultat" : `${n} rezultate`);
     const chipHtml = (facet, n, open) => `<button class="chip${n ? " is-selected" : ""} e-permits-workplace__filter-chip" type="button" aria-haspopup="dialog" aria-expanded="${open}" data-filter-facet="${escapeHtml(facet.key)}"${n ? ` aria-label="${escapeHtml(facet.label)}: ${n} ${n === 1 ? "valoare selectată" : "valori selectate"}"` : ""}>
         <span class="chip__label">${escapeHtml(facet.label)}</span>
         ${n ? `<span class="badge badge--lg badge--solid-light">${n}</span>` : ""}
@@ -466,8 +541,11 @@
       markTrigger(appliedCount);
       const facets = cfg.facets();
       /* the chips show after the button is clicked, and STAY while any filter is applied (applied-visible-v1,
-         user 2026-10-31: „3 on the button, but where are the filters?”): active filters are always visible */
-      const show = (state.open || pending() || appliedCount > 0) && facets.length > 0;
+         user 2026-10-31: „3 on the button, but where are the filters?”) — unless the user closed them with the button
+         again (filter-toggle-hide-v1, user 2026-11-04: „when active, clicking Filtre again hides the chips”; the
+         black button + count badge still say filters are on) */
+      if (!appliedCount || !hideOnToggle) state.collapsed = false;
+      const show = (state.open || pending() || (appliedCount > 0 && !state.collapsed)) && facets.length > 0;
       bar.hidden = !show;
       if (toggle) {
         const none = !facets.length;
@@ -477,13 +555,15 @@
       }
       if (!show) { bar.innerHTML = ""; return; }
       /* the first few facets are chips; the rest wait in "Mai multe" until they hold a value */
-      const inline = facets.filter((f, i) => i < INLINE_MAX || draft[f.key]?.length);
+      const inline = facets.filter((f, i) => i < inlineMax || draft[f.key]?.length);
       const more = facets.filter((f) => !inline.includes(f));
       const chip = (facet) => (isDate(facet)
         ? dateChipHtml(facet, draft[facet.key]?.[0], edit?.key === facet.key)
-        : chipHtml(facet, draft[facet.key]?.length || 0, edit?.key === facet.key));
+        : cfg.chipClose && draft[facet.key]?.length
+          ? valueChipHtml(facet, draft[facet.key], edit?.key === facet.key)
+          : chipHtml(facet, draft[facet.key]?.length || 0, edit?.key === facet.key));
+      const resultLine = resultsText(cfg.total());
       const isPending = pending();
-      const total = cfg.total();
       bar.innerHTML = `
       <div class="e-permits-workplace__filter-chips">
         ${inline.map(chip).join("")}
@@ -496,11 +576,11 @@
         ${isPending ? `
           <span class="e-permits-workplace__filter-hint">Filtre neaplicate</span>
           <button class="btn btn-text-neutral btn-sm" type="button" data-filter-discard>Renunță</button>
-          <button class="btn btn-primary btn-sm" type="button" data-filter-commit>Aplică filtrele</button>
+          <button class="btn btn-primary btn-sm" type="button" data-filter-commit>${escapeHtml(TEXT.apply)}</button>
         ` : appliedCount ? `
-          <span class="e-permits-workplace__filter-result">${total === 1 ? "1 rezultat" : `${total} rezultate`}</span>
-          <button class="btn btn-text-neutral btn-sm" type="button" data-filter-clear-all>Șterge filtrele</button>
-        ` : '<span class="e-permits-workplace__filter-hint">Alege valorile, apoi aplică filtrele.</span>'}
+          ${resultLine ? `<span class="e-permits-workplace__filter-result">${escapeHtml(resultLine)}</span>` : ""}
+          ${cfg.barClearDesktop === false ? "" : clearButton()}
+        ` : cfg.liveApply ? "" : '<span class="e-permits-workplace__filter-hint">Alege valorile, apoi aplică filtrele.</span>'}
       </div>
     `;
     };
@@ -541,23 +621,43 @@
       bar.hidden = !appliedCount;
       let meta = bar.querySelector(":scope > [data-filter-phone-meta]");
       if (!meta) {
-        bar.innerHTML = '<div class="e-permits-workplace__filter-meta" aria-live="polite" data-filter-phone-meta></div>';
+        bar.innerHTML = '<div class="e-permits-workplace__filter-chips" data-filter-phone-chips hidden></div><div class="e-permits-workplace__filter-meta" aria-live="polite" data-filter-phone-meta></div>';
         meta = bar.querySelector("[data-filter-phone-meta]");
       }
+      /* phoneChips (RAP US-141 AC-13): the applied filters stay visible as chips (label + count / period, ×); a chip
+         opens its facet's sheet */
+      const chipsEl = bar.querySelector(":scope > [data-filter-phone-chips]");
+      if (chipsEl) {
+        const applied = cfg.state().applied;
+        const chipsHtml = cfg.phoneChips ? cfg.allFacets().filter((f) => applied[f.key]?.length)
+          .map((f) => (isDate(f) ? dateChipHtml(f, applied[f.key][0], false) : cfg.chipClose ? valueChipHtml(f, applied[f.key], false) : chipHtml(f, applied[f.key].length, false))).join("") : "";
+        if (chipsEl.dataset.html !== chipsHtml) { chipsEl.innerHTML = chipsHtml; chipsEl.dataset.html = chipsHtml; }
+        chipsEl.hidden = !chipsHtml;
+      }
+      const line = TEXT.results ? TEXT.results(cfg.total()) : resultsLabel(cfg.total());
       const html = appliedCount ? `
-        <span class="e-permits-workplace__filter-result">${resultsLabel(cfg.total())}</span>
-        <button class="btn btn-text-neutral btn-sm" type="button" data-filter-clear-all>Șterge filtrele</button>` : "";
+        ${line ? `<span class="e-permits-workplace__filter-result">${escapeHtml(line)}</span>` : ""}
+        ${clearButton()}` : "";
       if (meta.dataset.html !== html) { meta.innerHTML = html; meta.dataset.html = html; }
     };
 
+    /* selected-first-v1 (2026-11-04, user): the values ticked when the list OPENED come first, then a separator (the
+       menu divider), then the rest in the page's order — frozen while the user ticks, so nothing jumps */
+    const pinnedFirst = (options, pinned) => {
+      const top = options.filter((o) => pinned.has(o.value));
+      const rest = options.filter((o) => !pinned.has(o.value));
+      return top.length && rest.length ? [...top, null, ...rest] : [...top, ...rest];
+    };
+    const SEPARATOR = '<li class="e-permits-workplace__filter-separator" role="separator" aria-hidden="true"></li>';
     const sheetOptionsHtml = (facet) => {
       const values = new Set(sheet.sel[facet.key] || []);
       const q = fold(sheet.query[facet.key]);
       const all = cfg.options(facet, sheet.sel);
       /* values ticked in the sheet stay listed even when the other facets leave them no rows */
       values.forEach((v) => { if (!all.some((o) => o.value === v)) all.push({ value: v, count: 0 }); });
-      const options = all.filter((o) => !q || fold(o.value).includes(q));
+      const options = pinnedFirst(all.filter((o) => !q || fold(o.value).includes(q)), sheet.pinned[facet.key] || new Set());
       return options.length ? options.map((o) => {
+        if (!o) return SEPARATOR;
         const tag = tagOf(o.value, facet);
         return `
         <li>
@@ -570,6 +670,8 @@
     };
 
     const sheetFacetHtml = (facet) => {
+      const unavailable = unavailableOf(facet);
+      if (unavailable) return unavailableHtml(unavailable);
       if (isDate(facet)) return dateBodyHtml(facet, sheet.dates[facet.key] || dateEditOf(facet, sheet.sel[facet.key]?.[0]), "sheet");
       const many = wantsSearch(facet, cfg.options(facet, sheet.sel).length);
       return `
@@ -623,7 +725,7 @@
       const n = cfg.preview ? cfg.preview(copySel(sheet.sel)) : cfg.total();
       sheetEl.querySelector("[data-sheet-apply]").textContent = `Arată ${resultsLabel(n)}`;
       /* a date facet with a period being typed (not valid yet) still has something to reset */
-      const datesSet = (key) => (key ? [key] : Object.keys(sheet.dates)).some((k) => sheet.dates[k]?.preset);
+      const datesSet = (key) => (key ? [key] : Object.keys(sheet.dates)).some((k) => dateSet(facetByKey(k), sheet.dates[k]));
       const empty = sheet.kind === "facet" ? !(sheet.sel[sheet.key] || []).length && !datesSet(sheet.key) : !selCount(sheet.sel) && !datesSet();
       sheetEl.querySelector("[data-sheet-reset]").disabled = empty;
     };
@@ -659,6 +761,7 @@
       const facets = cfg.facets();
       sheet = {
         kind, key, opener, sel: copySel(applied), query: {},
+        pinned: Object.fromEntries(Object.entries(applied).map(([k, v]) => [k, new Set(v || [])])),
         /* date facets: what the period controls show ({ preset, from, to }) */
         dates: Object.fromEntries(cfg.allFacets().filter(isDate).map((f) => [f.key, dateEditOf(f, applied[f.key]?.[0])])),
         /* all filters: the sections that hold a value start open; none → the first one */
@@ -709,9 +812,9 @@
         if (event.target.closest("[data-sheet-apply]")) { applySheet(); return; }
         if (event.target.closest("[data-sheet-reset]")) {
           if (sheet.kind === "facet") delete sheet.sel[sheet.key]; else sheet.sel = {};
-          Object.keys(sheet.dates).forEach((key) => { if (sheet.kind !== "facet" || key === sheet.key) sheet.dates[key] = { preset: "", from: "", to: "" }; });
+          Object.keys(sheet.dates).forEach((key) => { if (sheet.kind !== "facet" || key === sheet.key) sheet.dates[key] = blankDate(facetByKey(key)); });
           sheetEl.querySelectorAll("[data-filter-option], [data-filter-date-preset]").forEach((box) => { box.checked = false; });
-          sheetMorph(sheetEl, () => sheetEl.querySelectorAll("[data-filter-range]").forEach((range) => { clearFieldErrors(range); range.hidden = true; range.querySelectorAll("[data-filter-date-input]").forEach((input) => { input.value = ""; input.closest("[data-date-picker]").dataset.selected = ""; }); }));
+          sheetMorph(sheetEl, () => sheetEl.querySelectorAll("[data-filter-range]").forEach((range) => { clearFieldErrors(range); range.hidden = !range.hasAttribute("data-filter-range-fixed"); range.querySelectorAll("[data-filter-date-input]").forEach((input) => { input.value = ""; input.closest("[data-date-picker]").dataset.selected = ""; }); }));
           sheetEl.querySelectorAll("[data-sheet-summary]").forEach((el) => { el.textContent = ""; el.hidden = true; });
           syncSheetFooter();
           sheetEl.querySelector("[data-sheet-apply]").focus();
@@ -823,6 +926,7 @@
     const close = (restoreFocus = true) => {
       if (sheet) closeSheet(restoreFocus);
       if (!popover || popover.hidden) return;
+      if (cfg.liveApply && liveTimer) liveCommit(true);
       const key = edit?.key;
       const wasMore = moreOpen;
       popover.hidden = true;
@@ -837,8 +941,9 @@
     const renderOptions = () => {
       const facet = cfg.allFacets().find((f) => f.key === edit.key);
       const q = fold(edit.query);
-      const options = cfg.options(facet).filter((o) => !q || fold(o.value).includes(q));
+      const options = pinnedFirst(cfg.options(facet).filter((o) => !q || fold(o.value).includes(q)), edit.pinned);
       return options.length ? options.map((o) => {
+        if (!o) return SEPARATOR;
         const tag = tagOf(o.value, facet);
         return `
         <li>
@@ -853,6 +958,21 @@
 
     /* the date popover: presets + „Interval personalizat” (wider: two pickers side by side); its calendar
        opens out of the popover, so this popover does not clip */
+    /* a facet whose list could not be loaded: the message only (no list, no footer) */
+    const openUnavailable = (facet, anchor, text) => {
+      edit = { key: facet.key, values: new Set(), query: "", anchor, unavailable: true };
+      popover.classList.remove("e-permits-workplace__filter-pop--date");
+      popover.setAttribute("role", "dialog");
+      popover.setAttribute("aria-label", `Filtru: ${facet.label}`);
+      popover.setAttribute("tabindex", "-1");
+      popover.innerHTML = unavailableHtml(text);
+      lockWidth(false);
+      popover.hidden = false;
+      render();
+      place(bar.querySelector(`[data-filter-facet="${CSS.escape(facet.key)}"]`) || anchor);
+      requestAnimationFrame(() => popover.focus());
+    };
+
     const openDateFacet = (facet, anchor) => {
       edit = { key: facet.key, values: new Set(), query: "", anchor, date: dateEditOf(facet, draftOf()[facet.key]?.[0]) };
       popover.classList.add("e-permits-workplace__filter-pop--date");
@@ -861,11 +981,7 @@
       popover.innerHTML = `
       ${dateBodyHtml(facet, edit.date, "pop")}
       <div class="e-permits-workplace__filter-footer">
-        <button class="btn btn-primary btn-sm" type="button" data-filter-confirm>Confirmă</button>
-        <button class="btn btn-neutral btn-sm" type="button" data-filter-reset>
-          <svg class="icon" width="16" height="16" aria-hidden="true"><use href="${sprite}#icon-cross-small"></use></svg>
-          <span>Șterge</span>
-        </button>
+        ${footerButtons()}
       </div>
     `;
       lockWidth(false);
@@ -881,9 +997,12 @@
       if (!facet) return;
       ensurePopover();
       moreOpen = false;
+      const unavailable = unavailableOf(facet);
+      if (unavailable) { openUnavailable(facet, anchor, unavailable); return; }
       if (isDate(facet)) { openDateFacet(facet, anchor); return; }
       popover.classList.remove("e-permits-workplace__filter-pop--date");
       edit = { key, values: new Set(draftOf()[key] || []), query: "", anchor };
+      edit.pinned = new Set(edit.values);
       const many = wantsSearch(facet, cfg.options(facet).length);
       popover.setAttribute("role", "dialog");
       popover.setAttribute("aria-label", `Filtru: ${facet.label}`);
@@ -898,11 +1017,7 @@
         </div>` : ""}
       <ul class="e-permits-workplace__filter-list" role="list" data-filter-list>${renderOptions()}</ul>
       <div class="e-permits-workplace__filter-footer">
-        <button class="btn btn-primary btn-sm" type="button" data-filter-confirm>Confirmă</button>
-        <button class="btn btn-neutral btn-sm" type="button" data-filter-reset>
-          <svg class="icon" width="16" height="16" aria-hidden="true"><use href="${sprite}#icon-cross-small"></use></svg>
-          <span>Șterge</span>
-        </button>
+        ${footerButtons()}
       </div>
     `;
       lockWidth(false);
@@ -920,7 +1035,7 @@
       popover.classList.remove("e-permits-workplace__filter-pop--date");
       const facets = cfg.facets();
       const draft = draftOf();
-      const inline = facets.filter((f, i) => i < INLINE_MAX || draft[f.key]?.length);
+      const inline = facets.filter((f, i) => i < inlineMax || draft[f.key]?.length);
       popover.setAttribute("role", "menu");
       popover.setAttribute("aria-label", "Mai multe filtre");
       popover.innerHTML = `<div class="e-permits-workplace__filter-list">${facets.filter((f) => !inline.includes(f)).map((f) => `
@@ -960,6 +1075,30 @@
 
     const discard = () => { cfg.state().draft = null; render(); };
 
+    /* liveApply: the open popover's facet goes straight into the applied filter (debounced); the popover stays open and
+       follows its chip (which may grow a badge / move out of „Mai multe”) */
+    let liveTimer = 0;
+    const liveCommit = (now = false) => {
+      window.clearTimeout(liveTimer);
+      const run = () => {
+        if (!edit) return;
+        const key = edit.key;
+        const state = cfg.state();
+        const next = { ...state.applied };
+        if (edit.date) {
+          const res = readDate(popover, key, edit.date, true);
+          if (!res.ok) return;
+          if (res.token) next[key] = [res.token]; else delete next[key];
+        } else if (edit.values.size) next[key] = [...edit.values]; else delete next[key];
+        state.applied = next;
+        state.draft = null;
+        save();
+        cfg.apply();
+        if (!popover.hidden) place(bar.querySelector(`[data-filter-facet="${CSS.escape(key)}"]`) || bar.querySelector("[data-filter-more]") || edit.anchor);
+      };
+      if (now) run(); else liveTimer = window.setTimeout(run, 150);
+    };
+
     const clearAll = () => {
       const state = cfg.state();
       state.applied = {};
@@ -982,13 +1121,16 @@
           if (dayInput) {
             const iso = typedDay(dayInput.value);
             if (iso !== null) edit.date[dayInput.dataset.filterDatePart] = iso;
+            if (iso === "") edit.date[dayInput.dataset.filterDatePart] = "";
             clearFieldErrors(dayInput.closest("[data-filter-range]"));
           }
+          if (cfg.liveApply) liveCommit(true);
           return;
         }
         const box = event.target.closest("[data-filter-option]");
         if (!box || !edit) return;
         if (box.checked) edit.values.add(box.value); else edit.values.delete(box.value);
+        if (cfg.liveApply) liveCommit();
       });
       popover.addEventListener("input", (event) => {
         if (!event.target.closest("[data-filter-search]") || !edit) return;
@@ -1001,17 +1143,19 @@
         if (!edit) return;
         if (event.target.closest("[data-filter-confirm]")) { confirmFacet(); return; }
         if (event.target.closest("[data-filter-reset]") && edit.date) {
-          edit.date = { preset: "", from: "", to: "" };
+          edit.date = blankDate(facetByKey(edit.key));
           popover.querySelectorAll("[data-filter-date-preset]").forEach((radio) => { radio.checked = false; });
           const range = popover.querySelector("[data-filter-range]");
           clearFieldErrors(range);
-          range.hidden = true;
+          range.hidden = !range.hasAttribute("data-filter-range-fixed");
           range.querySelectorAll("[data-filter-date-input]").forEach((input) => { input.value = ""; input.closest("[data-date-picker]").dataset.selected = ""; });
+          if (cfg.liveApply) liveCommit(true);
           return;
         }
         if (event.target.closest("[data-filter-reset]")) {
           edit.values.clear();
           popover.querySelectorAll("[data-filter-option]").forEach((box) => { box.checked = false; });
+          if (cfg.liveApply) liveCommit(true);
         }
       });
       popover.addEventListener("keydown", (event) => {
@@ -1028,7 +1172,7 @@
           next?.focus();
           return;
         }
-        if (event.key === "Enter" && edit && !event.target.closest("button")) { event.preventDefault(); confirmFacet(); }
+        if (event.key === "Enter" && edit && !edit.unavailable && !event.target.closest("button")) { event.preventDefault(); if (cfg.liveApply) { liveCommit(true); close(); } else confirmFacet(); }
       });
     }
 
@@ -1038,13 +1182,17 @@
       const state = cfg.state();
       const visible = !bar.hidden;
       if (visible && pending()) { bar.querySelector("[data-filter-commit]")?.focus(); return; }
+      /* hideOnToggle false: applied filters keep the bar open — the trigger goes to the first chip */
+      if (visible && !hideOnToggle && appliedEntries().length) { state.open = true; bar.querySelector("[data-filter-facet]")?.focus(); return; }
       state.open = !visible;
+      /* filter-toggle-hide-v1: closing hides the applied chips too; opening shows them again */
+      state.collapsed = visible;
       save();
       render();
       if (state.open) bar.querySelector("[data-filter-facet]")?.focus();
     });
 
-    /* the date chip × : that period goes at once (applied + draft), as „Șterge filtrele” does for all */
+    /* a chip × : that facet goes at once (applied + draft), as „Șterge filtrele” does for all */
     const clearFacet = (key) => {
       const state = cfg.state();
       delete state.applied[key];
@@ -1052,12 +1200,12 @@
       if (edit?.key === key) close(false);
       save();
       cfg.apply();
-      bar?.querySelector(`[data-filter-facet="${CSS.escape(key)}"]`)?.focus();
+      (bar?.querySelector(`[data-filter-facet="${CSS.escape(key)}"]`) || (isPhone() ? toggle : null))?.focus();
     };
 
     bar?.addEventListener("click", (event) => {
-      const dateClear = event.target.closest("[data-filter-date-clear]");
-      if (dateClear) { clearFacet(dateClear.dataset.filterDateClear); return; }
+      const chipClear = event.target.closest("[data-filter-date-clear], [data-filter-facet-clear]");
+      if (chipClear) { clearFacet(chipClear.dataset.filterDateClear || chipClear.dataset.filterFacetClear); return; }
       if (event.target.closest("[data-filter-clear-all]")) {
         clearAll();
         /* phones: the line with the button goes away — focus the icon-only „Filtre” */

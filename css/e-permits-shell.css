@@ -2802,6 +2802,17 @@ body {
   z-index: 8;
 }
 
+/* empty-table-v1: no data row → no header row; the empty state is centred in the whole card, both ways */
+.e-permits-workplace__table:has(> tbody > .e-permits-empty-row:only-child) {
+  height: 100%;
+}
+
+.e-permits-workplace__table .e-permits-empty-row:only-child > .e-permits-empty-cell {
+  border-bottom: 0 !important;
+  height: 100% !important;
+  vertical-align: middle;
+}
+
 /* an empty table wider than its view: the empty state stays in the visible part
    (--workplace-view-width = the scroller's width, set by the shell) */
 .e-permits-workplace__table .e-permits-empty-cell > .e-permits-empty {
@@ -3094,12 +3105,9 @@ td .e-permits-workplace__date-stack > .e-permits-workplace__date-meta:not(:has(.
   flex-shrink: 0;
 }
 
-.e-permits-workplace__user-role-more {
+/* „+N” overflow = library Badge solid-neutral lg (no own style) */
+.e-permits-workplace__user-roles > .badge {
   flex: 0 0 auto;
-  color: var(--color-text-base-default, #121212);
-  font-size: var(--font-size-fs-12, 12px);
-  font-weight: var(--font-weight-fw-medium, 500);
-  line-height: var(--line-height-lh-16, 16px);
 }
 
 .e-permits-workplace.is-users-registry .e-permits-workplace__table th:nth-child(1),
@@ -3309,7 +3317,7 @@ td .e-permits-workplace__date-stack > .e-permits-workplace__date-meta:not(:has(.
   width: 100%;
   display: grid;
   grid-template-columns: repeat(12, minmax(0, 1fr));
-  gap: var(--spacing-32, 32px);
+  gap: var(--spacing-24, 24px); /* compact form rhythm, all drawers + forms (user 2026-11-03) */
 }
 
 .e-permits-user-create__field {

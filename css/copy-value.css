@@ -161,12 +161,21 @@
   margin-inline-start: var(--spacing-4, 4px);
 }
 
-/* ---- the tooltip (one shared node: the library plain tooltip, 12/16, padding 4 8, radius 4) -------------------- */
+/* ---- the tooltip (the ONE tooltip body, css/tooltip.css; own node only for the „Copiază → ✓ Copiat” morph) ------- */
 
-/* centred on the element: JS writes the centre x, the tooltip pulls itself back by half its width — so it keeps its
-   centre while its width animates between „Copiază” and „✓ Copiat” */
+/* edge-aligned (tooltip-edge-v1): JS writes the anchored edge x (GEAPTooltip.align) — start = its left edge, end = its
+   right edge (pull back by the full width), center = the centre (last resort) — so the anchored edge stays put while
+   the width animates between „Copiază” and „✓ Copiat” */
 .copy-value__tooltip {
   pointer-events: none;
+  translate: 0 0;
+}
+
+.copy-value__tooltip[data-align="end"] {
+  translate: -100% 0;
+}
+
+.copy-value__tooltip[data-align="center"] {
   translate: -50% 0;
 }
 
@@ -175,10 +184,10 @@
   transform: translateY(calc(var(--spacing-4, 4px) * -1));
 }
 
-/* unsafe centre: while the width animates the active label stays centred and is revealed from both sides */
+/* text left-aligned: while the width animates the active label stays on the left padding and is revealed to the right */
 .copy-value__tip {
   display: grid;
-  justify-items: unsafe center;
+  justify-items: start;
   overflow: hidden;
   position: relative;
   white-space: nowrap;
@@ -189,17 +198,16 @@
   transition: width calc(var(--motion-duration-md, 0.3s) * 0.75) var(--motion-easing-decelerate, cubic-bezier(0, 0, 0.2, 1));
 }
 
-/* the labels share the cell; only the active one is in flow (it sets the width), the others sit centred on it */
+/* the labels share the cell; only the active one is in flow (it sets the width), the others sit on its left padding */
 /* user 2026-10-21: „Copiază” slides a little to the LEFT while fading out, „Copiat” (check + text) fades in in place */
 .copy-value__tip-label {
-  left: 50%;
+  left: var(--spacing-8, 8px);
   opacity: 0;
   position: absolute;
   top: var(--spacing-4, 4px);
   transition:
     opacity calc(var(--motion-duration-md, 0.3s) * 0.75) var(--motion-easing-decelerate, cubic-bezier(0, 0, 0.2, 1)),
     transform calc(var(--motion-duration-md, 0.3s) * 0.75) var(--motion-easing-decelerate, cubic-bezier(0, 0, 0.2, 1));
-  translate: -50% 0;
   visibility: hidden;
 }
 
@@ -209,7 +217,6 @@
   position: relative;
   top: auto;
   transform: none;
-  translate: none;
   visibility: visible;
 }
 

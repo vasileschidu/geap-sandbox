@@ -23,7 +23,7 @@
   const money = (amount) => `${Number(amount || 0).toLocaleString("ro-RO", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} MDL`;
   const day = (iso) => String(iso || "").slice(0, 10);
   const daysAgo = (iso) => Math.round((new Date(`${TODAY}T00:00:00Z`) - new Date(`${day(iso)}T00:00:00Z`)) / 86400000);
-  const supplementUrl = (dosar) => `${FO}?${new URLSearchParams({ flow: "full", solicitant: C.SUBJECT, suplinire: dosar.nr }).toString()}#request-step-2`;
+  const supplementUrl = (dosar) => `${FO}?${new URLSearchParams({ flow: "full", solicitant: C.SUBJECT, suplinire: dosar.nr, ...(C.params.get("pps") ? { pps: C.params.get("pps") } : {}) }).toString()}#request-step-2`;
   const draftUrl = (dosar) => `${FO}?${new URLSearchParams({ flow: "full", solicitant: C.SUBJECT, schita: dosar.nr }).toString()}#request`;
   const dosarUrl = (dosar) => cabUrl("solicitari", {}, `#dosar/${dosar.id}`);
   /* the same rules as solicitari.js: a draft past its removal day is removed; an expired suplinire = resumed */
@@ -91,10 +91,10 @@
   }
 
   async function init() {
-    const data = await (await fetch("../data/cabinet-evo-solicitari.json?v=type-first-v1")).json();
+    const data = await (await fetch("../data/cabinet-evo-solicitari.json?v=pps-suplinire-v1")).json();
     const perspective = data.perspectives?.[C.SUBJECT] || { dosare: [] };
     const ro = perspective.readOnly || null;
-    const notes = (perspective.dosare || [])
+    const notes = (perspective.dosare || []).map(C.withScenario)
       .flatMap((dosar) => eventsOf(dosar, data.services || {}).map((note) => ({ ...note, nr: dosar.nr, dosar })))
       .filter((note) => note.at && (!ro || day(note.at) <= ro.since))
       .sort((a, b) => String(b.at).localeCompare(String(a.at)));

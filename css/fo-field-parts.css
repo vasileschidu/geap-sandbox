@@ -1,0 +1,162 @@
+/* ==========================================================================
+   FO field shell — restated for pages WITHOUT the FO / BO stylesheet (rap-filter-v1, 2026-11-04)
+
+   The shared facet filter's date facet (js/facet-filter.js › dateFieldHtml) draws „De la” / „Până la”
+   in the FO field shell (`.e-permits-fo-field` › label + `.e-permits-fo-input--with-action` with the
+   library date picker `.date-picker__field` + `.e-permits-fo-input__icon-button`, error =
+   `.message--inline.e-permits-fo-field__error`). The BO, Cabinet and eKYC pages load
+   css/e-permits-acte-permisive.css, which owns these rules; the public RAP page does not (it would
+   restyle the page), so the SAME values are restated here — copied from e-permits-acte-permisive.css
+   (lines „.e-permits-fo-field”, „.e-permits-fo-input”, „error state for the full-flow input”, „Library
+   date picker … inside the full-flow field shell”, „Field error — Figma GEAP 2.0 text-input”).
+   Loaded by rap-evo/index.html only. Change both together (the BO file is the source).
+   ========================================================================== */
+.e-permits-fo-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-8, 8px);
+  min-width: 0;
+  padding: 0;
+}
+
+.e-permits-fo-field label {
+  align-items: center;
+  color: var(--color-text-base-secondary, #383838);
+  cursor: default;
+  display: inline-flex;
+  font-size: var(--font-size-fs-14, 14px);
+  font-weight: var(--font-weight-fw-regular, 400);
+  gap: var(--spacing-4, 4px);
+  height: var(--line-height-lh-20, 20px);
+  line-height: var(--line-height-lh-20, 20px);
+  margin: 0;
+  min-width: 0;
+  padding: 0;
+}
+
+.e-permits-fo-input {
+  align-items: center;
+  background: var(--color-background-base-default, #fff);
+  border: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
+  border-radius: var(--border-radius-8, 8px);
+  box-sizing: border-box;
+  cursor: text;
+  display: flex;
+  gap: var(--spacing-8, 8px);
+  height: var(--spacing-40, 40px);
+  overflow: hidden;
+  padding: 0 var(--spacing-12, 12px);
+  width: 100%;
+}
+
+.e-permits-fo-input:hover {
+  border-color: var(--color-border-base-tertiary, #444);
+  box-shadow: inset 0 0 0 var(--border-width-1, 1px) var(--color-border-base-tertiary, #444);
+}
+
+.e-permits-fo-input:focus-within {
+  border-color: var(--color-border-brand-default, #0058d2);
+  box-shadow: inset 0 0 0 var(--border-width-1, 1px) var(--color-border-brand-default, #0058d2), 0 0 0 var(--spacing-4, 4px) var(--blue-sky-200, #ccdef6);
+}
+
+.e-permits-fo-input input {
+  appearance: none;
+  background: transparent;
+  border: 0;
+  color: var(--color-text-base-default, #121212);
+  flex: 1 1 auto;
+  font: inherit;
+  font-size: var(--font-size-fs-14, 14px);
+  font-weight: var(--font-weight-fw-regular, 400);
+  line-height: var(--line-height-lh-20, 20px);
+  min-width: 0;
+  outline: none;
+  overflow: hidden;
+  padding: 0;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.e-permits-fo-input input::placeholder {
+  color: var(--color-text-base-tertiary, #757575);
+  opacity: 1;
+}
+
+.e-permits-fo-input .icon {
+  color: var(--color-text-base-default, #121212);
+  flex: 0 0 auto;
+}
+
+.e-permits-fo-input.is-error {
+  border-color: var(--color-border-danger-default, #d92d20);
+}
+
+.e-permits-fo-input.is-error:hover {
+  border-color: var(--color-border-danger-default, #d92d20);
+  box-shadow: inset 0 0 0 var(--border-width-1, 1px) var(--color-border-danger-default, #d92d20);
+}
+
+.e-permits-fo-input.is-error:focus-within {
+  border-color: var(--color-border-danger-default, #d92d20);
+  box-shadow: inset 0 0 0 var(--border-width-1, 1px) var(--color-border-danger-default, #d92d20), 0 0 0 var(--spacing-4, 4px) var(--red-100, #fee4e2);
+}
+
+/* the library date picker inside the field shell: the field fills its column, the trigger is a bare icon button */
+.e-permits-fo-field .date-picker__field {
+  max-width: none;
+}
+
+.e-permits-fo-input__icon-button {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  border-radius: var(--border-radius-4, 4px);
+  color: var(--color-icon-base-default, #121212);
+  cursor: pointer;
+  display: inline-flex;
+  flex: 0 0 auto;
+  justify-content: center;
+  padding: 0;
+}
+
+.e-permits-fo-input__icon-button:hover {
+  background: var(--color-background-base-tertiary, #f1f1f1);
+}
+
+.e-permits-fo-input__icon-button:focus-visible {
+  box-shadow: 0 0 0 var(--spacing-4, 4px) var(--blue-sky-200, #ccdef6);
+  outline: 0;
+}
+
+.message--inline.e-permits-fo-field__error {
+  align-items: flex-start;
+  color: var(--color-text-danger-default, #d92d20);
+  font-size: var(--font-size-fs-14, 14px);
+  font-weight: var(--font-weight-fw-regular, 400);
+  gap: var(--spacing-4, 4px);
+  line-height: var(--line-height-lh-20, 20px);
+}
+
+.message--inline.e-permits-fo-field__error .icon {
+  color: var(--color-icon-danger-default, #d92d20);
+  flex: 0 0 var(--spacing-20, 20px);
+  height: var(--spacing-20, 20px);
+  width: var(--spacing-20, 20px);
+}
+
+/* phones ≤760: fields 48 · 16/24 (user rule 2026-10-18, as the FO block „Phones” in the BO file) */
+@media (max-width: 760px) {
+  .e-permits-fo-input {
+    font-size: var(--font-size-fs-16, 16px);
+    height: var(--spacing-48, 48px);
+    line-height: var(--line-height-lh-24, 24px);
+    padding-left: var(--spacing-16, 16px);
+    padding-right: var(--spacing-16, 16px);
+  }
+
+  .e-permits-fo-input input {
+    font-size: var(--font-size-fs-16, 16px);
+    line-height: var(--line-height-lh-24, 24px);
+    min-height: var(--spacing-24, 24px);
+  }
+}

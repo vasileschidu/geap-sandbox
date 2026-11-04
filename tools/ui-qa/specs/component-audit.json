@@ -247,9 +247,9 @@
       "[data-gh-close-sheet]"
     ]
   },
-  "_tooltip": "Tooltips (rule 8, tooltip-one-v1, 2026-10-21, user: „do as you recommend” on the audit's ONE tooltip runtime). tooltip-private (major): a visible element whose class names a tooltip and is not the library .tooltip (js/icon-tooltip.js, #icon-tooltip) or the copy-value tooltip. tooltip-title (major): a native title= on an interactive element — the plain tooltip reads aria-label / data-tooltip-label, cut text = data-cell-tooltip, extra information = data-tooltip-text / -hint. titleExempt: iframes (title = the accessible name, not a tooltip).",
+  "_tooltip": "Tooltips (rule 8, tooltip-one-v1, 2026-10-21, user: „do as you recommend” on the audit's ONE tooltip runtime). tooltip-private (major): a visible element whose class names a tooltip and is not the library .tooltip (js/icon-tooltip.js, #icon-tooltip) or the copy-value tooltip. tooltip-title (major): a native title= on an interactive element — the plain tooltip reads aria-label / data-tooltip-label, cut text = data-cell-tooltip, extra information = data-tooltip-text / -hint. titleExempt: iframes (title = the accessible name, not a tooltip). tooltip-edge-v1 (2026-11-02, user: „use the small one, left or right depending on the position, not center” + „only the body, no arrow, a bit smaller”): tooltip-arrow (major) = a visible .tooltip-arrow; tooltip-look (major) = tooltip text not left-aligned; tooltip-centered (major) = a tooltip above / below its trigger that is neither on the trigger's left edge nor on its right edge while one of those fits (8 screen edge, 16 right gutter).",
   "tooltip": {
-    "allow": [".tooltip", ".tooltip-inner", ".tooltip-arrow", ".tooltip-close", "#icon-tooltip", ".copy-value__tooltip", ".copy-value__tooltip *", ".cell__copy-tooltip"],
+    "allow": [".tooltip", ".tooltip-inner", ".tooltip-close", "#icon-tooltip", ".copy-value__tooltip", ".copy-value__tooltip *", ".cell__copy-tooltip"],
     "interactive": "button, a[href], [role=button], [role=link], [role=tab], [role=menuitem], [role=option], [role=switch], [role=checkbox], [role=radio], input, select, textarea, summary, [tabindex]:not([tabindex='-1'])",
     "titleExempt": ["iframe"]
   },
@@ -355,6 +355,7 @@
     "minRadius": 4,
     "minPaddingX": 8,
     "allow": [
+      { "selector": ".badge[data-tag-more]", "reason": "the library Badge „+N” overflow counter is focusable only to show its tooltip (badge-more-v1); it is a count, not a control" },
       {
         "selector": ".e-permits-builder__library-item",
         "reason": "Form Builder / Process Designer palette tile = a drag source (inventory row „Form Builder”: `__library-item`), not a button"
@@ -464,13 +465,13 @@
   "_interactions": "v2 step „interactions”: per state the auditor clicks up to `maxTriggers` visible, distinct menu / drawer / disclosure triggers (and, on desktop, hovers `maxTooltips` tooltip triggers), finds the surface that opened (newly visible `surfaces`, or the trigger's aria-controls target), audits it with every rule, closes it (Escape, trigger again, else reloads the state). Findings carry `interaction`. --no-interactions turns it off.",
   "interactions": {
     "triggers": "[aria-haspopup]:not([aria-haspopup=false]), [aria-expanded=false], [data-stack-menu-trigger], [data-cab-menu-trigger]",
-    "tooltips": "[data-tooltip-label], [data-tooltip-text], [data-cell-tooltip], [data-sm-tip]",
+    "tooltips": "[data-tooltip-label], [data-tooltip-text], [data-cell-tooltip], [data-tooltip-hint], .copy-value__button, [data-sm-tip]",
     "surfaces": "[role=menu], [role=listbox], [role=dialog], [role=tooltip], [role=region], menu, .tooltip, .modal-overlay, .bottom-sheet, .dropdown, [data-stack-menu], .e-permits-fo-intent-menu, .cab-menu, .e-permits-dropdown, [class*='popover'], [class*='__menu'], [class*='-menu'], [class*='drawer'], [class*='sheet'], [class*='tooltip'], [class*='__panel']",
     "skipWithin": ".e-permits-shell__nav, .e-permits-fo-testcfg",
     "maxTriggers": 8,
     "maxTooltips": 3,
     "openWait": 350,
-    "hoverWait": 450
+    "hoverWait": 1200
   },
   "_families": "v2 rule converge (minor): ONE canonical implementation per pattern family. Runtime: every visible element of the family (`selector` and / or own class matching `classPattern`, restricted to `tags`) that is not inside a `canonical` (or an `allow` with its reason) is reported once per distinct class signature. Static (--static): every class defined in product CSS matching `static.pattern` that does not start with a canonical class. `menu-item` canonical also takes the item list of css/dropdown.css (the ONE dropdown item).",
   "families": {
@@ -820,6 +821,10 @@
     "tokenAllow": ["--color-background-base-inverse-on-color"], "_tokenAllow": "css/token-fix.css defines the one base token main.css leaves undefined in the light theme (library-adopt-v4)"
   },
   "fixHints": {
+    "tooltip-arrow": "No arrow on any tooltip: use the shared runtime (js/icon-tooltip.js data-tooltip-label / -text / -hint / data-cell-tooltip) — css/tooltip.css hides .tooltip-arrow; never add a private arrow.",
+    "tooltip-look": "The ONE tooltip body: .tooltip.tooltip--small.tooltip--plain + css/tooltip.css (12/16 left-aligned, padding 4 8, radius 4, --gray-900, --shadow-200).",
+    "tooltip-centered": "Place it with GEAPTooltip.align(rect, width, height, side): left edge on the trigger's left edge, right edge on its right edge near the right 16 gutter, centred only when neither fits (components.md › Tooltip).",
+    "empty-table-header": "Table with 0 data rows shows no header row: css/empty-state.css „empty-table-v1” hides thead when the body is only tr.e-permits-empty-row (GEAPEmptyState.tableRow); a list that renders its own table follows the same rule.",
     "redundant-heading-border": "Section heading followed by a bordered / filled container: border-bottom OFF (shared :has(+ container) rule in css/e-permits-acte-permisive.css „Heading border rule”, or the --no-border modifier); the space comes from the 8/16/24 rhythm (components.md › Section header rows).",
     "radio-private": "Build it from the ONE radio: label.radio.radio--{medium|small} > input.radio-input + span.radio-custom (+ .radio-texts); decorative = span.radio[aria-hidden] > .radio-custom in an owner with aria-checked / .is-selected (components.md › Radio).",
     "radio-size": "Add .radio--medium (24, dot 12, 16/24 text) or .radio--small (20, dot 10, 14/20 text) and delete the product width / height / dot overrides — css/radio.css sizes it.",

@@ -1,0 +1,26 @@
+/* The ONE tooltip (tooltip-edge-v1, 2026-11-02) — the BODY of the Components Small tooltip (Figma 210:3897,
+   Size=Small), no arrow, a step smaller than the library Small (user: „only the body, no arrow, a bit smaller,
+   close to what we have now”). Shown by js/icon-tooltip.js (#icon-tooltip) and js/copy-value.js
+   (.copy-value__tooltip, the „Copiază → ✓ Copiat” morph); both are `.tooltip.tooltip--small.tooltip--plain`.
+   - library Small:  `--gray-900` fill, white text, radius 4, drop shadow → kept (shadow = `--shadow-200`);
+   - exactly the library Small body since tooltip-figma-v1 (user 2026-11-03 „as in Figma”): padding 8 12 · 14/20
+     (the earlier „a step smaller” 4 8 · 12/16 read as the old tooltip);
+   - text LEFT-aligned (main.css centres the plain tooltip), max 240, wraps.
+   Placement (JS, `GEAPTooltip.align`): left edge on the trigger's left edge, right edge on its right edge near the
+   right 16 gutter, centred only when neither fits; 4 from the trigger. */
+.tooltip.tooltip--plain .tooltip-inner {
+  background: var(--gray-900, #1e1e1e);
+  border-radius: var(--border-radius-4, 4px);
+  box-shadow: var(--shadow-200, 0 1px 3px rgba(0, 0, 0, 0.08), 0 3px 8px rgba(0, 0, 0, 0.08), 0 0 0.5px rgba(0, 0, 0, 0.18));
+  color: var(--white, #ffffff);
+  font-size: var(--font-size-fs-14, 14px);
+  line-height: var(--line-height-lh-20, 20px);
+  overflow-wrap: break-word;
+  padding: var(--spacing-8, 8px) var(--spacing-12, 12px);
+  text-align: start;
+}
+
+/* no arrow on any tooltip */
+.tooltip.tooltip--plain .tooltip-arrow {
+  display: none;
+}

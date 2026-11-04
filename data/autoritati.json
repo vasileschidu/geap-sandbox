@@ -147,6 +147,411 @@
           ]
         }
       ]
+    },
+    {
+      "name": "Raionul Anenii Noi",
+      "localities": [
+        {
+          "name": "Anenii Noi",
+          "streets": [
+            "str. Ștefan cel Mare",
+            "str. Păcii",
+            "str. Mărțișor"
+          ]
+        },
+        {
+          "name": "Cojușna",
+          "streets": [
+            "str. Centrală"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Raionul Basarabeasca",
+      "localities": [
+        {
+          "name": "Basarabeasca",
+          "streets": [
+            "str. Independenței",
+            "str. Alexandru cel Bun",
+            "str. Libertății"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Raionul Briceni",
+      "localities": [
+        {
+          "name": "Briceni",
+          "streets": [
+            "str. Mihai Eminescu",
+            "str. Mărțișor",
+            "str. 31 August"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Raionul Cantemir",
+      "localities": [
+        {
+          "name": "Cantemir",
+          "streets": [
+            "str. Păcii",
+            "str. Libertății",
+            "str. Ștefan cel Mare"
+          ]
+        },
+        {
+          "name": "Boșcana",
+          "streets": [
+            "str. Centrală"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Raionul Călărași",
+      "localities": [
+        {
+          "name": "Călărași",
+          "streets": [
+            "str. Alexandru cel Bun",
+            "str. 31 August",
+            "str. Independenței"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Raionul Căușeni",
+      "localities": [
+        {
+          "name": "Căușeni",
+          "streets": [
+            "str. Mărțișor",
+            "str. Ștefan cel Mare",
+            "str. Mihai Eminescu"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Raionul Cimișlia",
+      "localities": [
+        {
+          "name": "Cimișlia",
+          "streets": [
+            "str. Libertății",
+            "str. Independenței",
+            "str. Păcii"
+          ]
+        },
+        {
+          "name": "Cornești",
+          "streets": [
+            "str. Centrală"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Raionul Criuleni",
+      "localities": [
+        {
+          "name": "Criuleni",
+          "streets": [
+            "str. 31 August",
+            "str. Mihai Eminescu",
+            "str. Alexandru cel Bun"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Raionul Dondușeni",
+      "localities": [
+        {
+          "name": "Dondușeni",
+          "streets": [
+            "str. Ștefan cel Mare",
+            "str. Păcii",
+            "str. Mărțișor"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Raionul Drochia",
+      "localities": [
+        {
+          "name": "Drochia",
+          "streets": [
+            "str. Independenței",
+            "str. Alexandru cel Bun",
+            "str. Libertății"
+          ]
+        },
+        {
+          "name": "Cojușna",
+          "streets": [
+            "str. Centrală"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Raionul Dubăsari",
+      "localities": [
+        {
+          "name": "Cocieri",
+          "streets": [
+            "str. Mihai Eminescu",
+            "str. Mărțișor",
+            "str. 31 August"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Raionul Fălești",
+      "localities": [
+        {
+          "name": "Fălești",
+          "streets": [
+            "str. Păcii",
+            "str. Libertății",
+            "str. Ștefan cel Mare"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Raionul Florești",
+      "localities": [
+        {
+          "name": "Florești",
+          "streets": [
+            "str. Alexandru cel Bun",
+            "str. 31 August",
+            "str. Independenței"
+          ]
+        },
+        {
+          "name": "Boșcana",
+          "streets": [
+            "str. Centrală"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Raionul Glodeni",
+      "localities": [
+        {
+          "name": "Glodeni",
+          "streets": [
+            "str. Mărțișor",
+            "str. Ștefan cel Mare",
+            "str. Mihai Eminescu"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Raionul Hîncești",
+      "localities": [
+        {
+          "name": "Hîncești",
+          "streets": [
+            "str. Libertății",
+            "str. Independenței",
+            "str. Păcii"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Raionul Ialoveni",
+      "localities": [
+        {
+          "name": "Ialoveni",
+          "streets": [
+            "str. 31 August",
+            "str. Mihai Eminescu",
+            "str. Alexandru cel Bun"
+          ]
+        },
+        {
+          "name": "Cornești",
+          "streets": [
+            "str. Centrală"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Raionul Leova",
+      "localities": [
+        {
+          "name": "Leova",
+          "streets": [
+            "str. Ștefan cel Mare",
+            "str. Păcii",
+            "str. Mărțișor"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Raionul Nisporeni",
+      "localities": [
+        {
+          "name": "Nisporeni",
+          "streets": [
+            "str. Independenței",
+            "str. Alexandru cel Bun",
+            "str. Libertății"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Raionul Ocnița",
+      "localities": [
+        {
+          "name": "Ocnița",
+          "streets": [
+            "str. Mihai Eminescu",
+            "str. Mărțișor",
+            "str. 31 August"
+          ]
+        },
+        {
+          "name": "Cojușna",
+          "streets": [
+            "str. Centrală"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Raionul Rezina",
+      "localities": [
+        {
+          "name": "Rezina",
+          "streets": [
+            "str. Păcii",
+            "str. Libertății",
+            "str. Ștefan cel Mare"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Raionul Rîșcani",
+      "localities": [
+        {
+          "name": "Rîșcani",
+          "streets": [
+            "str. Alexandru cel Bun",
+            "str. 31 August",
+            "str. Independenței"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Raionul Sîngerei",
+      "localities": [
+        {
+          "name": "Sîngerei",
+          "streets": [
+            "str. Mărțișor",
+            "str. Ștefan cel Mare",
+            "str. Mihai Eminescu"
+          ]
+        },
+        {
+          "name": "Boșcana",
+          "streets": [
+            "str. Centrală"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Raionul Strășeni",
+      "localities": [
+        {
+          "name": "Strășeni",
+          "streets": [
+            "str. Libertății",
+            "str. Independenței",
+            "str. Păcii"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Raionul Șoldănești",
+      "localities": [
+        {
+          "name": "Șoldănești",
+          "streets": [
+            "str. 31 August",
+            "str. Mihai Eminescu",
+            "str. Alexandru cel Bun"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Raionul Ștefan Vodă",
+      "localities": [
+        {
+          "name": "Ștefan Vodă",
+          "streets": [
+            "str. Ștefan cel Mare",
+            "str. Păcii",
+            "str. Mărțișor"
+          ]
+        },
+        {
+          "name": "Cornești",
+          "streets": [
+            "str. Centrală"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Raionul Taraclia",
+      "localities": [
+        {
+          "name": "Taraclia",
+          "streets": [
+            "str. Independenței",
+            "str. Alexandru cel Bun",
+            "str. Libertății"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Raionul Telenești",
+      "localities": [
+        {
+          "name": "Telenești",
+          "streets": [
+            "str. Mihai Eminescu",
+            "str. Mărțișor",
+            "str. 31 August"
+          ]
+        }
+      ]
     }
   ],
   "authorities": [
@@ -542,6 +947,1566 @@
       "source": "GEAP",
       "lastSync": null,
       "createdAt": "2026-04-18T16:00:00",
+      "createdBy": "Vasile Schidu"
+    },
+    {
+      "id": "aut-app",
+      "idno": "1003600299264",
+      "code": "APP",
+      "nameRo": "Agenția Proprietății Publice",
+      "nameRu": "Агентство публичной собственности",
+      "nameEn": "Public Property Agency",
+      "descRo": "Gestionează patrimoniul public și eliberează acordurile privind bunurile statului.",
+      "descRu": "",
+      "descEn": "",
+      "address": "mun. Chișinău, str. Alexei Mateevici 60",
+      "email": "office@app.gov.md",
+      "website": "https://app.gov.md",
+      "lat": "47.0325",
+      "lng": "28.8985",
+      "postal": "MD-2009",
+      "phones": [
+        "+37322704966"
+      ],
+      "logo": null,
+      "accounts": [],
+      "type": "Autoritatea de prestare servicii",
+      "active": true,
+      "published": true,
+      "source": "RSSP",
+      "lastSync": "2026-11-02T03:00:12",
+      "createdAt": "2026-09-11T17:20:00",
+      "createdBy": "SIA GEAP"
+    },
+    {
+      "id": "aut-aam",
+      "idno": "1003600992760",
+      "code": "AAM",
+      "nameRo": "Agenția „Apele Moldovei”",
+      "nameRu": "Агентство «Апеле Молдовей»",
+      "nameEn": "Moldova Waters Agency",
+      "descRo": "Eliberează autorizațiile privind gospodărirea apelor și avizele hidrotehnice.",
+      "descRu": "",
+      "descEn": "",
+      "address": "mun. Chișinău, str. Constantin Tănase 9",
+      "email": "office@apelemoldovei.gov.md",
+      "website": "https://apelemoldovei.gov.md",
+      "lat": "47.0035",
+      "lng": "28.8261",
+      "postal": "MD-2005",
+      "phones": [
+        "+37322127228",
+        "+37322706315"
+      ],
+      "logo": {
+        "name": "aam-logo.svg",
+        "size": "24 KB"
+      },
+      "accounts": [],
+      "type": "Autoritatea de prestare servicii",
+      "active": true,
+      "published": true,
+      "source": "RSSP",
+      "lastSync": "2026-11-02T03:00:12",
+      "createdAt": "2026-08-24T08:40:00",
+      "createdBy": "SIA GEAP"
+    },
+    {
+      "id": "aut-agrm",
+      "idno": "1003600892318",
+      "code": "AGRM",
+      "nameRo": "Agenția Geologică a Republicii Moldova",
+      "nameRu": "Геологическое агентство Республики Молдова",
+      "nameEn": "Geological Agency of the Republic of Moldova",
+      "descRo": "Autorizează lucrările geologice și folosirea subsolului.",
+      "descRu": "",
+      "descEn": "",
+      "address": "mun. Chișinău, str. Constantin Tănase 9",
+      "email": "office@agrm.gov.md",
+      "website": "https://agrm.gov.md",
+      "lat": "47.0041",
+      "lng": "28.8763",
+      "postal": "MD-2005",
+      "phones": [
+        "+37322231709",
+        "+37322744839"
+      ],
+      "logo": null,
+      "accounts": [],
+      "type": "Autoritatea de prestare servicii",
+      "active": true,
+      "published": true,
+      "source": "RSSP",
+      "lastSync": "2026-11-02T03:00:12",
+      "createdAt": "2026-08-25T16:47:00",
+      "createdBy": "SIA GEAP"
+    },
+    {
+      "id": "aut-ipm",
+      "idno": "1003600339009",
+      "code": "IPM",
+      "nameRo": "Inspectoratul pentru Protecția Mediului",
+      "nameRu": "Инспекция по охране окружающей среды",
+      "nameEn": "Environmental Protection Inspectorate",
+      "descRo": "Avizează proiectele din punctul de vedere al protecției mediului și eliberează autorizații de mediu.",
+      "descRu": "",
+      "descEn": "",
+      "address": "mun. Chișinău, str. Albișoara 42",
+      "email": "office@ipm.gov.md",
+      "website": "https://ipm.gov.md",
+      "lat": "47.0090",
+      "lng": "28.8591",
+      "postal": "MD-2005",
+      "phones": [
+        "+37322444769",
+        "+37322811167"
+      ],
+      "logo": {
+        "name": "ipm-logo.svg",
+        "size": "35 KB"
+      },
+      "accounts": [
+        {
+          "iban": "MD88TRPCCC558086A20056AA",
+          "bic": "TREZMD2X"
+        }
+      ],
+      "type": "Autoritatea de avizare",
+      "active": true,
+      "published": true,
+      "source": "RSSP",
+      "lastSync": "2026-11-02T03:00:12",
+      "createdAt": "2026-05-20T12:24:00",
+      "createdBy": "SIA GEAP"
+    },
+    {
+      "id": "aut-anranr",
+      "idno": "1006601202354",
+      "code": "ANRANR",
+      "nameRo": "Agenția Națională pentru Reglementarea Activităților Nucleare și Radiologice",
+      "nameRu": "Национальное агентство по регулированию ядерной и радиологической деятельности",
+      "nameEn": "National Agency for the Regulation of Nuclear and Radiological Activities",
+      "descRo": "Autorizează activitățile cu surse de radiații ionizante.",
+      "descRu": "",
+      "descEn": "",
+      "address": "mun. Chișinău, str. Vasile Alecsandri 78",
+      "email": "office@anranr.gov.md",
+      "website": "https://anranr.gov.md",
+      "lat": "47.0072",
+      "lng": "28.8820",
+      "postal": "MD-2012",
+      "phones": [
+        "+37322643481"
+      ],
+      "logo": null,
+      "accounts": [],
+      "type": "Autoritatea de prestare servicii",
+      "active": true,
+      "published": true,
+      "source": "RSSP",
+      "lastSync": "2026-11-02T03:00:12",
+      "createdAt": "2026-03-19T11:41:00",
+      "createdBy": "SIA GEAP"
+    },
+    {
+      "id": "aut-isc",
+      "idno": "1006601231630",
+      "code": "ISC",
+      "nameRo": "Inspectoratul de Stat în Construcții",
+      "nameRu": "Государственная инспекция по строительству",
+      "nameEn": "State Construction Inspectorate",
+      "descRo": "Controlează calitatea în construcții și avizează începerea lucrărilor.",
+      "descRu": "",
+      "descEn": "",
+      "address": "mun. Chișinău, str. Alexei Mateevici 60",
+      "email": "office@isc.gov.md",
+      "website": "https://isc.gov.md",
+      "lat": "47.0115",
+      "lng": "28.8541",
+      "postal": "MD-2009",
+      "phones": [
+        "+37322100325",
+        "+37322799248"
+      ],
+      "logo": {
+        "name": "isc-logo.svg",
+        "size": "17 KB"
+      },
+      "accounts": [],
+      "type": "Autoritatea de avizare",
+      "active": true,
+      "published": true,
+      "source": "RSSP",
+      "lastSync": "2026-11-02T03:00:12",
+      "createdAt": "2026-04-16T13:22:00",
+      "createdBy": "SIA GEAP"
+    },
+    {
+      "id": "aut-aap",
+      "idno": "1006601282742",
+      "code": "AAP",
+      "nameRo": "Agenția Achiziții Publice",
+      "nameRu": "Агентство публичных закупок",
+      "nameEn": "Public Procurement Agency",
+      "descRo": "Monitorizează procedurile de achiziții publice.",
+      "descRu": "",
+      "descEn": "",
+      "address": "mun. Chișinău, bd. Ștefan cel Mare și Sfânt 73",
+      "email": "office@tender.gov.md",
+      "website": "https://tender.gov.md",
+      "lat": "47.0357",
+      "lng": "28.7871",
+      "postal": "MD-2001",
+      "phones": [
+        "+37322888097"
+      ],
+      "logo": null,
+      "accounts": [
+        {
+          "iban": "MD25TRPCCC827475A28816AA",
+          "bic": "TREZMD2X"
+        }
+      ],
+      "type": "Autoritatea de audit",
+      "active": true,
+      "published": true,
+      "source": "RSSP",
+      "lastSync": "2026-11-02T03:00:12",
+      "createdAt": "2026-02-18T15:28:00",
+      "createdBy": "SIA GEAP"
+    },
+    {
+      "id": "aut-atur",
+      "idno": "1003600421128",
+      "code": "ATUR",
+      "nameRo": "Agenția Turismului",
+      "nameRu": "Агентство туризма",
+      "nameEn": "Tourism Agency",
+      "descRo": "Eliberează licențe și certificate de clasificare în turism.",
+      "descRu": "",
+      "descEn": "",
+      "address": "mun. Chișinău, str. Alexei Mateevici 60",
+      "email": "office@turism.gov.md",
+      "website": "https://turism.gov.md",
+      "lat": "47.0065",
+      "lng": "28.8989",
+      "postal": "MD-2009",
+      "phones": [
+        "+37322349910"
+      ],
+      "logo": null,
+      "accounts": [
+        {
+          "iban": "MD90TRPCCC721091A97444AA",
+          "bic": "TREZMD2X"
+        }
+      ],
+      "type": "Autoritatea de prestare servicii",
+      "active": true,
+      "published": true,
+      "source": "RSSP",
+      "lastSync": "2026-11-02T03:00:12",
+      "createdAt": "2026-03-14T12:29:00",
+      "createdBy": "SIA GEAP"
+    },
+    {
+      "id": "aut-agepi",
+      "idno": "1006601506583",
+      "code": "AGEPI",
+      "nameRo": "Agenția de Stat pentru Proprietatea Intelectuală",
+      "nameRu": "Государственное агентство по интеллектуальной собственности",
+      "nameEn": "State Agency on Intellectual Property",
+      "descRo": "Înregistrează mărci, invenții și desene industriale.",
+      "descRu": "",
+      "descEn": "",
+      "address": "mun. Chișinău, str. Andrei Doga 24/1",
+      "email": "office@agepi.gov.md",
+      "website": "https://agepi.gov.md",
+      "lat": "47.0566",
+      "lng": "28.8735",
+      "postal": "MD-2024",
+      "phones": [
+        "+37322553612"
+      ],
+      "logo": null,
+      "accounts": [
+        {
+          "iban": "MD62TRPCCC888647A46229AA",
+          "bic": "TREZMD2X"
+        }
+      ],
+      "type": "Autoritatea de prestare servicii",
+      "active": true,
+      "published": true,
+      "source": "RSSP",
+      "lastSync": "2026-11-02T03:00:12",
+      "createdAt": "2026-04-24T16:53:00",
+      "createdBy": "SIA GEAP"
+    },
+    {
+      "id": "aut-aipa",
+      "idno": "1003600245869",
+      "code": "AIPA",
+      "nameRo": "Agenția de Intervenție și Plăți pentru Agricultură",
+      "nameRu": "Агентство интервенций и платежей в сельском хозяйстве",
+      "nameEn": "Agency for Interventions and Payments in Agriculture",
+      "descRo": "Gestionează subvențiile pentru agricultori.",
+      "descRu": "",
+      "descEn": "",
+      "address": "mun. Chișinău, bd. Ștefan cel Mare și Sfânt 162",
+      "email": "office@aipa.gov.md",
+      "website": "https://aipa.gov.md",
+      "lat": "47.0204",
+      "lng": "28.7859",
+      "postal": "MD-2004",
+      "phones": [
+        "+37322222611"
+      ],
+      "logo": null,
+      "accounts": [],
+      "type": "Autoritatea de prestare servicii",
+      "active": true,
+      "published": true,
+      "source": "RSSP",
+      "lastSync": "2026-11-02T03:00:12",
+      "createdAt": "2026-03-20T10:19:00",
+      "createdBy": "SIA GEAP"
+    },
+    {
+      "id": "aut-moldsilva",
+      "idno": "1006601642810",
+      "code": "MOLDSILVA",
+      "nameRo": "Agenția „Moldsilva”",
+      "nameRu": "Агентство «Moldsilva»",
+      "nameEn": "Moldsilva Agency",
+      "descRo": "Eliberează autorizațiile de tăiere și avizele silvice.",
+      "descRu": "",
+      "descEn": "",
+      "address": "mun. Chișinău, str. Calea Moșilor 2",
+      "email": "office@moldsilva.gov.md",
+      "website": "https://moldsilva.gov.md",
+      "lat": "47.0550",
+      "lng": "28.8894",
+      "postal": "MD-2009",
+      "phones": [
+        "+37322320610"
+      ],
+      "logo": null,
+      "accounts": [
+        {
+          "iban": "MD84TRPCCC334447A31190AA",
+          "bic": "TREZMD2X"
+        }
+      ],
+      "type": "Autoritatea de prestare servicii",
+      "active": true,
+      "published": true,
+      "source": "RSSP",
+      "lastSync": "2026-11-02T03:00:12",
+      "createdAt": "2026-07-12T16:27:00",
+      "createdBy": "SIA GEAP"
+    },
+    {
+      "id": "aut-onvv",
+      "idno": "1003600611908",
+      "code": "ONVV",
+      "nameRo": "Oficiul Național al Viei și Vinului",
+      "nameRu": "Национальное бюро винограда и вина",
+      "nameEn": "National Office of Vine and Wine",
+      "descRo": "Certifică originea și calitatea produselor vitivinicole.",
+      "descRu": "",
+      "descEn": "",
+      "address": "mun. Chișinău, bd. Ștefan cel Mare și Sfânt 162",
+      "email": "office@onvv.gov.md",
+      "website": "https://onvv.gov.md",
+      "lat": "47.0284",
+      "lng": "28.8467",
+      "postal": "MD-2004",
+      "phones": [
+        "+37322938755"
+      ],
+      "logo": null,
+      "accounts": [],
+      "type": "Autoritatea de prestare servicii",
+      "active": true,
+      "published": true,
+      "source": "RSSP",
+      "lastSync": "2026-11-02T03:00:12",
+      "createdAt": "2026-01-21T14:18:00",
+      "createdBy": "SIA GEAP"
+    },
+    {
+      "id": "aut-sfs",
+      "idno": "1006601766825",
+      "code": "SFS",
+      "nameRo": "Serviciul Fiscal de Stat",
+      "nameRu": "Государственная налоговая служба",
+      "nameEn": "State Tax Service",
+      "descRo": "Administrează impozitele și taxele și eliberează certificate fiscale.",
+      "descRu": "",
+      "descEn": "",
+      "address": "mun. Chișinău, str. Constantin Tănase 9",
+      "email": "office@sfs.md",
+      "website": "https://sfs.md",
+      "lat": "47.0351",
+      "lng": "28.7862",
+      "postal": "MD-2068",
+      "phones": [
+        "+37322905960"
+      ],
+      "logo": null,
+      "accounts": [
+        {
+          "iban": "MD84TRPCCC755823A15743AA",
+          "bic": "TREZMD2X"
+        }
+      ],
+      "type": "Autoritatea de audit",
+      "active": true,
+      "published": true,
+      "source": "RSSP",
+      "lastSync": "2026-10-27T03:00:08",
+      "createdAt": "2026-09-16T08:20:00",
+      "createdBy": "SIA GEAP"
+    },
+    {
+      "id": "aut-sv",
+      "idno": "1003600762610",
+      "code": "SV",
+      "nameRo": "Serviciul Vamal",
+      "nameRu": "Таможенная служба",
+      "nameEn": "Customs Service",
+      "descRo": "Eliberează autorizații vamale și certificate de origine.",
+      "descRu": "",
+      "descEn": "",
+      "address": "mun. Chișinău, str. Hristo Botev 3",
+      "email": "office@customs.gov.md",
+      "website": "https://customs.gov.md",
+      "lat": "47.0460",
+      "lng": "28.8494",
+      "postal": "MD-2012",
+      "phones": [
+        "+37322111473"
+      ],
+      "logo": null,
+      "accounts": [],
+      "type": "Autoritatea de prestare servicii",
+      "active": true,
+      "published": true,
+      "source": "RSSP",
+      "lastSync": "2026-11-02T03:00:12",
+      "createdAt": "2026-04-13T10:18:00",
+      "createdBy": "SIA GEAP"
+    },
+    {
+      "id": "aut-igp",
+      "idno": "1003600581677",
+      "code": "IGP",
+      "nameRo": "Inspectoratul General al Poliției",
+      "nameRu": "Генеральная инспекция полиции",
+      "nameEn": "General Police Inspectorate",
+      "descRo": "Avizează proiectele privind siguranța circulației și autorizează activități private de securitate.",
+      "descRu": "",
+      "descEn": "",
+      "address": "mun. Chișinău, str. Tiraspol 11/1",
+      "email": "office@politia.md",
+      "website": "https://politia.md",
+      "lat": "47.0187",
+      "lng": "28.8590",
+      "postal": "MD-2004",
+      "phones": [
+        "+37322211161"
+      ],
+      "logo": null,
+      "accounts": [
+        {
+          "iban": "MD99TRPCCC139886A25841AA",
+          "bic": "TREZMD2X"
+        }
+      ],
+      "type": "Autoritatea de avizare",
+      "active": true,
+      "published": true,
+      "source": "RSSP",
+      "lastSync": "2026-11-02T03:00:12",
+      "createdAt": "2026-01-23T12:43:00",
+      "createdBy": "SIA GEAP"
+    },
+    {
+      "id": "aut-igpf",
+      "idno": "1003600061131",
+      "code": "IGPF",
+      "nameRo": "Inspectoratul General al Poliției de Frontieră",
+      "nameRu": "Генеральная инспекция пограничной полиции",
+      "nameEn": "General Border Police Inspectorate",
+      "descRo": "Avizează activitățile din zona de frontieră.",
+      "descRu": "",
+      "descEn": "",
+      "address": "mun. Chișinău, str. Petru Rareș 21",
+      "email": "office@border.gov.md",
+      "website": "https://border.gov.md",
+      "lat": "47.0000",
+      "lng": "28.7944",
+      "postal": "MD-2005",
+      "phones": [
+        "+37322543612",
+        "+37322987912"
+      ],
+      "logo": null,
+      "accounts": [
+        {
+          "iban": "MD23TRPCCC212559A32341AA",
+          "bic": "TREZMD2X"
+        }
+      ],
+      "type": "Autoritatea de avizare",
+      "active": true,
+      "published": true,
+      "source": "RSSP",
+      "lastSync": "2026-11-02T03:00:12",
+      "createdAt": "2026-05-19T17:45:00",
+      "createdBy": "SIA GEAP"
+    },
+    {
+      "id": "aut-igm",
+      "idno": "1003600157789",
+      "code": "IGM",
+      "nameRo": "Inspectoratul General pentru Migrație",
+      "nameRu": "Генеральная инспекция по миграции",
+      "nameEn": "General Inspectorate for Migration",
+      "descRo": "Eliberează permise de ședere și de muncă pentru străini.",
+      "descRu": "",
+      "descEn": "",
+      "address": "mun. Chișinău, str. Ion Creangă 2",
+      "email": "office@igm.gov.md",
+      "website": "https://igm.gov.md",
+      "lat": "47.0170",
+      "lng": "28.8752",
+      "postal": "MD-2068",
+      "phones": [
+        "+37322775821"
+      ],
+      "logo": null,
+      "accounts": [
+        {
+          "iban": "MD75TRPCCC743692A05935AA",
+          "bic": "TREZMD2X"
+        }
+      ],
+      "type": "Autoritatea de prestare servicii",
+      "active": true,
+      "published": true,
+      "source": "RSSP",
+      "lastSync": "2026-11-02T03:00:12",
+      "createdAt": "2026-02-16T10:23:00",
+      "createdBy": "SIA GEAP"
+    },
+    {
+      "id": "aut-if",
+      "idno": "1006601556831",
+      "code": "IF",
+      "nameRo": "Inspecția Financiară",
+      "nameRu": "Финансовая инспекция",
+      "nameEn": "Financial Inspection",
+      "descRo": "Efectuează controlul financiar public.",
+      "descRu": "",
+      "descEn": "",
+      "address": "mun. Chișinău, str. Constantin Tănase 9",
+      "email": "office@if.gov.md",
+      "website": "https://if.gov.md",
+      "lat": "47.0513",
+      "lng": "28.8449",
+      "postal": "MD-2005",
+      "phones": [
+        "+37322874246"
+      ],
+      "logo": null,
+      "accounts": [
+        {
+          "iban": "MD67TRPCCC512736A52918AA",
+          "bic": "TREZMD2X"
+        }
+      ],
+      "type": "Autoritatea de audit",
+      "active": true,
+      "published": true,
+      "source": "RSSP",
+      "lastSync": "2026-11-02T03:00:12",
+      "createdAt": "2026-07-28T14:44:00",
+      "createdBy": "SIA GEAP"
+    },
+    {
+      "id": "aut-apc",
+      "idno": "1006601327220",
+      "code": "APC",
+      "nameRo": "Agenția pentru Protecția Consumatorilor și Supraveghere a Pieței",
+      "nameRu": "Агентство по защите прав потребителей и надзору за рынком",
+      "nameEn": "Consumer Protection and Market Surveillance Agency",
+      "descRo": "Supraveghează piața produselor nealimentare și protecția consumatorilor.",
+      "descRu": "",
+      "descEn": "",
+      "address": "mun. Chișinău, str. Alexei Mateevici 60",
+      "email": "office@apc.gov.md",
+      "website": "https://apc.gov.md",
+      "lat": "47.0550",
+      "lng": "28.8399",
+      "postal": "MD-2009",
+      "phones": [
+        "+37322889350"
+      ],
+      "logo": null,
+      "accounts": [],
+      "type": "Autoritatea de audit",
+      "active": true,
+      "published": true,
+      "source": "RSSP",
+      "lastSync": "2026-11-02T03:00:12",
+      "createdAt": "2026-08-20T08:45:00",
+      "createdBy": "SIA GEAP"
+    },
+    {
+      "id": "aut-aac",
+      "idno": "1003600604442",
+      "code": "AAC",
+      "nameRo": "Autoritatea Aeronautică Civilă",
+      "nameRu": "Гражданская авиационная администрация",
+      "nameEn": "Civil Aviation Authority",
+      "descRo": "Eliberează certificate de aeronavigabilitate și licențe aeronautice.",
+      "descRu": "",
+      "descEn": "",
+      "address": "mun. Chișinău, str. Aeroportului 80",
+      "email": "office@caa.md",
+      "website": "https://caa.md",
+      "lat": "47.0021",
+      "lng": "28.8946",
+      "postal": "MD-2026",
+      "phones": [
+        "+37322110954"
+      ],
+      "logo": null,
+      "accounts": [],
+      "type": "Autoritatea de prestare servicii",
+      "active": true,
+      "published": true,
+      "source": "RSSP",
+      "lastSync": "2026-11-02T03:00:12",
+      "createdAt": "2026-01-18T09:35:00",
+      "createdBy": "SIA GEAP"
+    },
+    {
+      "id": "aut-anav",
+      "idno": "1003600342054",
+      "code": "ANAV",
+      "nameRo": "Agenția Navală",
+      "nameRu": "Морское агентство",
+      "nameEn": "Naval Agency",
+      "descRo": "Înmatriculează navele și eliberează documente de navigație.",
+      "descRu": "",
+      "descEn": "",
+      "address": "mun. Chișinău, str. Portului 1",
+      "email": "office@naval.gov.md",
+      "website": "https://naval.gov.md",
+      "lat": "47.0126",
+      "lng": "28.8308",
+      "postal": "MD-2010",
+      "phones": [
+        "+37322804492"
+      ],
+      "logo": null,
+      "accounts": [],
+      "type": "Autoritatea de prestare servicii",
+      "active": true,
+      "published": true,
+      "source": "RSSP",
+      "lastSync": "2026-11-02T03:00:12",
+      "createdAt": "2026-04-25T13:35:00",
+      "createdBy": "SIA GEAP"
+    },
+    {
+      "id": "aut-anrceti",
+      "idno": "1003600573941",
+      "code": "ANRCETI",
+      "nameRo": "Agenția Națională pentru Reglementare în Comunicații Electronice și Tehnologia Informației",
+      "nameRu": "Национальное агентство по регулированию в электронных коммуникациях и информационных технологиях",
+      "nameEn": "National Agency for Regulation in Electronic Communications and Information Technology",
+      "descRo": "Licențiază activitățile din comunicații electronice și poștale.",
+      "descRu": "",
+      "descEn": "",
+      "address": "mun. Chișinău, bd. Ștefan cel Mare și Sfânt 134",
+      "email": "office@anrceti.md",
+      "website": "https://anrceti.md",
+      "lat": "47.0316",
+      "lng": "28.7914",
+      "postal": "MD-2012",
+      "phones": [
+        "+37322343084",
+        "+37322252083"
+      ],
+      "logo": null,
+      "accounts": [
+        {
+          "iban": "MD37TRPCCC531212A98525AA",
+          "bic": "TREZMD2X"
+        }
+      ],
+      "type": "Autoritatea de prestare servicii",
+      "active": true,
+      "published": true,
+      "source": "RSSP",
+      "lastSync": "2026-11-02T03:00:12",
+      "createdAt": "2026-05-21T17:56:00",
+      "createdBy": "SIA GEAP"
+    },
+    {
+      "id": "aut-ca",
+      "idno": "1006601560018",
+      "code": "CA",
+      "nameRo": "Consiliul Audiovizualului",
+      "nameRu": "Аудиовизуальный совет",
+      "nameEn": "Audiovisual Council",
+      "descRo": "Licențiază radiodifuzorii și retransmisia serviciilor media.",
+      "descRu": "",
+      "descEn": "",
+      "address": "mun. Chișinău, str. Alexei Mateevici 60",
+      "email": "office@audiovizual.md",
+      "website": "https://audiovizual.md",
+      "lat": "47.0445",
+      "lng": "28.7905",
+      "postal": "MD-2009",
+      "phones": [
+        "+37322236525"
+      ],
+      "logo": null,
+      "accounts": [],
+      "type": "Autoritatea de prestare servicii",
+      "active": true,
+      "published": true,
+      "source": "RSSP",
+      "lastSync": "2026-11-02T03:00:12",
+      "createdAt": "2026-06-10T09:47:00",
+      "createdBy": "SIA GEAP"
+    },
+    {
+      "id": "aut-cnpf",
+      "idno": "1006601725259",
+      "code": "CNPF",
+      "nameRo": "Comisia Națională a Pieței Financiare",
+      "nameRu": "Национальная комиссия по финансовому рынку",
+      "nameEn": "National Commission for Financial Market",
+      "descRo": "Autorizează participanții la piața financiară nebancară.",
+      "descRu": "",
+      "descEn": "",
+      "address": "mun. Chișinău, bd. Ștefan cel Mare și Sfânt 77",
+      "email": "office@cnpf.md",
+      "website": "https://cnpf.md",
+      "lat": "47.0474",
+      "lng": "28.8291",
+      "postal": "MD-2012",
+      "phones": [
+        "+37322136745",
+        "+37322703069"
+      ],
+      "logo": null,
+      "accounts": [
+        {
+          "iban": "MD50TRPCCC617308A23156AA",
+          "bic": "TREZMD2X"
+        }
+      ],
+      "type": "Autoritatea de prestare servicii",
+      "active": true,
+      "published": true,
+      "source": "RSSP",
+      "lastSync": "2026-09-14T03:00:05",
+      "createdAt": "2026-03-10T16:56:00",
+      "createdBy": "SIA GEAP"
+    },
+    {
+      "id": "aut-cnpdcp",
+      "idno": "1003600393343",
+      "code": "CNPDCP",
+      "nameRo": "Centrul Național pentru Protecția Datelor cu Caracter Personal",
+      "nameRu": "Национальный центр по защите персональных данных",
+      "nameEn": "National Centre for Personal Data Protection",
+      "descRo": "Supraveghează prelucrarea datelor cu caracter personal.",
+      "descRu": "",
+      "descEn": "",
+      "address": "mun. Chișinău, str. Serghei Lazo 48",
+      "email": "office@datepersonale.md",
+      "website": "https://datepersonale.md",
+      "lat": "47.0200",
+      "lng": "28.8724",
+      "postal": "MD-2004",
+      "phones": [
+        "+37322893814",
+        "+37322286789"
+      ],
+      "logo": null,
+      "accounts": [
+        {
+          "iban": "MD70TRPCCC316867A50905AA",
+          "bic": "TREZMD2X"
+        }
+      ],
+      "type": "Autoritatea de audit",
+      "active": true,
+      "published": true,
+      "source": "RSSP",
+      "lastSync": "2026-11-02T03:00:12",
+      "createdAt": "2026-09-14T14:59:00",
+      "createdBy": "SIA GEAP"
+    },
+    {
+      "id": "aut-cnam",
+      "idno": "1006601648045",
+      "code": "CNAM",
+      "nameRo": "Compania Națională de Asigurări în Medicină",
+      "nameRu": "Национальная компания медицинского страхования",
+      "nameEn": "National Health Insurance Company",
+      "descRo": "Contractează prestatorii de servicii medicale.",
+      "descRu": "",
+      "descEn": "",
+      "address": "mun. Chișinău, str. Vlaicu Pârcălab 3",
+      "email": "office@cnam.md",
+      "website": "https://cnam.md",
+      "lat": "47.0411",
+      "lng": "28.8498",
+      "postal": "MD-2012",
+      "phones": [
+        "+37322852003"
+      ],
+      "logo": null,
+      "accounts": [
+        {
+          "iban": "MD81TRPCCC512675A10670AA",
+          "bic": "TREZMD2X"
+        }
+      ],
+      "type": "Autoritatea de prestare servicii",
+      "active": true,
+      "published": true,
+      "source": "RSSP",
+      "lastSync": "2026-10-27T03:00:08",
+      "createdAt": "2026-03-28T16:59:00",
+      "createdBy": "SIA GEAP"
+    },
+    {
+      "id": "aut-cnas",
+      "idno": "1006601148293",
+      "code": "CNAS",
+      "nameRo": "Casa Națională de Asigurări Sociale",
+      "nameRu": "Национальная касса социального страхования",
+      "nameEn": "National Social Insurance House",
+      "descRo": "Eliberează certificate privind drepturile de asigurări sociale.",
+      "descRu": "",
+      "descEn": "",
+      "address": "mun. Chișinău, str. Vasile Alecsandri 2",
+      "email": "office@cnas.md",
+      "website": "https://cnas.md",
+      "lat": "47.0398",
+      "lng": "28.8125",
+      "postal": "MD-2012",
+      "phones": [
+        "+37322994869"
+      ],
+      "logo": null,
+      "accounts": [
+        {
+          "iban": "MD95TRPCCC517462A17497AA",
+          "bic": "TREZMD2X"
+        }
+      ],
+      "type": "Autoritatea de prestare servicii",
+      "active": true,
+      "published": true,
+      "source": "RSSP",
+      "lastSync": "2026-11-02T03:00:12",
+      "createdAt": "2026-07-10T08:27:00",
+      "createdBy": "SIA GEAP"
+    },
+    {
+      "id": "aut-moldac",
+      "idno": "1006601810110",
+      "code": "MOLDAC",
+      "nameRo": "Centrul Național de Acreditare",
+      "nameRu": "Национальный центр аккредитации",
+      "nameEn": "National Accreditation Centre",
+      "descRo": "Acreditează organismele de evaluare a conformității.",
+      "descRu": "",
+      "descEn": "",
+      "address": "mun. Chișinău, str. Vasile Alecsandri 78",
+      "email": "office@acreditare.md",
+      "website": "https://acreditare.md",
+      "lat": "47.0076",
+      "lng": "28.8494",
+      "postal": "MD-2012",
+      "phones": [
+        "+37322645185"
+      ],
+      "logo": null,
+      "accounts": [
+        {
+          "iban": "MD54TRPCCC372314A15435AA",
+          "bic": "TREZMD2X"
+        }
+      ],
+      "type": "Autoritatea de prestare servicii",
+      "active": true,
+      "published": true,
+      "source": "RSSP",
+      "lastSync": "2026-11-02T03:00:12",
+      "createdAt": "2026-06-15T09:15:00",
+      "createdBy": "SIA GEAP"
+    },
+    {
+      "id": "aut-age",
+      "idno": "1006601510990",
+      "code": "AGE",
+      "nameRo": "Agenția de Guvernare Electronică",
+      "nameRu": "Агентство электронного правительства",
+      "nameEn": "E-Governance Agency",
+      "descRo": "Administrează platformele guvernamentale partajate.",
+      "descRu": "",
+      "descEn": "",
+      "address": "mun. Chișinău, str. Vasile Alecsandri 78",
+      "email": "office@egov.md",
+      "website": "https://egov.md",
+      "lat": "47.0508",
+      "lng": "28.8851",
+      "postal": "MD-2012",
+      "phones": [
+        "+37322948852",
+        "+37322963470"
+      ],
+      "logo": null,
+      "accounts": [
+        {
+          "iban": "MD51TRPCCC301676A59350AA",
+          "bic": "TREZMD2X"
+        }
+      ],
+      "type": "Autoritatea de audit",
+      "active": true,
+      "published": true,
+      "source": "RSSP",
+      "lastSync": "2026-11-02T03:00:12",
+      "createdAt": "2026-01-11T12:18:00",
+      "createdBy": "SIA GEAP"
+    },
+    {
+      "id": "aut-ansc",
+      "idno": "1006601657797",
+      "code": "ANSC",
+      "nameRo": "Agenția Națională pentru Soluționarea Contestațiilor",
+      "nameRu": "Национальное агентство по рассмотрению жалоб",
+      "nameEn": "National Agency for Solving Complaints",
+      "descRo": "Examinează contestațiile privind achizițiile publice.",
+      "descRu": "",
+      "descEn": "",
+      "address": "mun. Chișinău, bd. Ștefan cel Mare și Sfânt 73",
+      "email": "office@ansc.md",
+      "website": "https://ansc.md",
+      "lat": "47.0409",
+      "lng": "28.7871",
+      "postal": "MD-2001",
+      "phones": [
+        "+37322640738"
+      ],
+      "logo": null,
+      "accounts": [
+        {
+          "iban": "MD21TRPCCC640574A06517AA",
+          "bic": "TREZMD2X"
+        }
+      ],
+      "type": "Autoritatea de audit",
+      "active": true,
+      "published": true,
+      "source": "RSSP",
+      "lastSync": "2026-11-02T03:00:12",
+      "createdAt": "2026-06-26T14:38:00",
+      "createdBy": "SIA GEAP"
+    },
+    {
+      "id": "aut-ipsd",
+      "idno": "1003600226257",
+      "code": "IPSD",
+      "nameRo": "Inspectoratul pentru Supravegherea Produselor Nealimentare și Protecția Consumatorilor din Republica Moldova",
+      "nameRu": "",
+      "nameEn": "Inspectorate for Non-Food Product Surveillance and Consumer Protection",
+      "descRo": "Verifică conformitatea produselor nealimentare.",
+      "descRu": "",
+      "descEn": "",
+      "address": "mun. Chișinău, str. Alexei Mateevici 60",
+      "email": "office@ipsd.gov.md",
+      "website": "https://ipsd.gov.md",
+      "lat": "",
+      "lng": "",
+      "postal": "MD-2009",
+      "phones": [
+        "+37322193083",
+        "+37322103236"
+      ],
+      "logo": null,
+      "accounts": [],
+      "type": "Autoritatea de avizare",
+      "active": false,
+      "published": true,
+      "source": "GEAP",
+      "lastSync": null,
+      "createdAt": "2026-01-20T09:32:00",
+      "createdBy": "Vasile Schidu"
+    },
+    {
+      "id": "aut-ancd",
+      "idno": "1003600906162",
+      "code": "ANCD",
+      "nameRo": "Agenția Națională pentru Cercetare și Dezvoltare",
+      "nameRu": "",
+      "nameEn": "National Agency for Research and Development",
+      "descRo": "Gestionează programele naționale de cercetare.",
+      "descRu": "",
+      "descEn": "",
+      "address": "mun. Chișinău, str. Academiei 3",
+      "email": "office@ancd.gov.md",
+      "website": "https://ancd.gov.md",
+      "lat": "",
+      "lng": "",
+      "postal": "MD-2028",
+      "phones": [
+        "+37322238058",
+        "+37322199636"
+      ],
+      "logo": null,
+      "accounts": [],
+      "type": "Autoritatea de audit",
+      "active": true,
+      "published": true,
+      "source": "GEAP",
+      "lastSync": null,
+      "createdAt": "2026-09-24T08:32:00",
+      "createdBy": "Vasile Schidu"
+    },
+    {
+      "id": "aut-armo",
+      "idno": "1006601186512",
+      "code": "ARMO",
+      "nameRo": "Agenția Rezerve Materiale și Ajutor Umanitar",
+      "nameRu": "",
+      "nameEn": "Agency for Material Reserves and Humanitarian Aid",
+      "descRo": "Gestionează rezervele materiale de stat.",
+      "descRu": "",
+      "descEn": "",
+      "address": "mun. Chișinău, str. Calea Basarabiei 11",
+      "email": "office@armo.gov.md",
+      "website": "https://armo.gov.md",
+      "lat": "",
+      "lng": "",
+      "postal": "MD-2019",
+      "phones": [
+        "+37322279850"
+      ],
+      "logo": null,
+      "accounts": [],
+      "type": "Autoritatea de prestare servicii",
+      "active": false,
+      "published": true,
+      "source": "GEAP",
+      "lastSync": null,
+      "createdAt": "2026-09-19T15:40:00",
+      "createdBy": "Vasile Schidu"
+    },
+    {
+      "id": "aut-csdu",
+      "idno": "1006601667762",
+      "code": "CSDU",
+      "nameRo": "Comitetul pentru Situații Excepționale al Consiliului Municipal",
+      "nameRu": "",
+      "nameEn": "",
+      "descRo": "",
+      "descRu": "",
+      "descEn": "",
+      "address": "mun. Chișinău, bd. Ștefan cel Mare și Sfânt 83",
+      "email": "",
+      "website": "",
+      "lat": "",
+      "lng": "",
+      "postal": "MD-2001",
+      "phones": [],
+      "logo": null,
+      "accounts": [],
+      "type": "Autoritatea de avizare",
+      "active": false,
+      "published": true,
+      "source": "GEAP",
+      "lastSync": null,
+      "createdAt": "2026-07-16T15:17:00",
+      "createdBy": "Vasile Schidu"
+    },
+    {
+      "id": "aut-pmb",
+      "idno": "1003600981803",
+      "code": "PMB",
+      "nameRo": "Primăria municipiului Bălți",
+      "nameRu": "Примэрия муниципия Бэлць",
+      "nameEn": "Bălți Municipality Hall",
+      "descRo": "Eliberează certificate de urbanism și autorizații de construire în municipiul Bălți.",
+      "descRu": "",
+      "descEn": "",
+      "address": "mun. Bălți, str. Ștefan cel Mare 38",
+      "email": "primaria@balti.md",
+      "website": "https://balti.md",
+      "lat": "",
+      "lng": "",
+      "postal": "MD-3100",
+      "phones": [
+        "+37323193740",
+        "+37323124770"
+      ],
+      "logo": null,
+      "accounts": [
+        {
+          "iban": "MD60TRPCCC698058A38292AA",
+          "bic": "TREZMD2X"
+        }
+      ],
+      "type": "Autoritatea de prestare servicii",
+      "active": true,
+      "published": true,
+      "source": "RSSP",
+      "lastSync": "2026-11-02T03:00:12",
+      "createdAt": "2026-07-27T14:53:00",
+      "createdBy": "SIA GEAP"
+    },
+    {
+      "id": "aut-pcahul",
+      "idno": "1006601471391",
+      "code": "PCAHUL",
+      "nameRo": "Primăria municipiului Cahul",
+      "nameRu": "",
+      "nameEn": "Cahul Municipality Hall",
+      "descRo": "Eliberează certificate de urbanism și autorizații de construire.",
+      "descRu": "",
+      "descEn": "",
+      "address": "mun. Cahul, str. Ștefan cel Mare 1",
+      "email": "primaria@cahul.md",
+      "website": "https://cahul.md",
+      "lat": "",
+      "lng": "",
+      "postal": "MD-3900",
+      "phones": [
+        "+37329922094"
+      ],
+      "logo": null,
+      "accounts": [
+        {
+          "iban": "MD38TRPCCC127842A28136AA",
+          "bic": "TREZMD2X"
+        }
+      ],
+      "type": "Autoritatea de prestare servicii",
+      "active": true,
+      "published": true,
+      "source": "RSSP",
+      "lastSync": "2026-11-02T03:00:12",
+      "createdAt": "2026-07-27T13:42:00",
+      "createdBy": "SIA GEAP"
+    },
+    {
+      "id": "aut-pcomrat",
+      "idno": "1006601261815",
+      "code": "PCOMRAT",
+      "nameRo": "Primăria orașului Comrat",
+      "nameRu": "",
+      "nameEn": "Comrat City Hall",
+      "descRo": "Eliberează certificate de urbanism și autorizații de construire în Comrat.",
+      "descRu": "",
+      "descEn": "",
+      "address": "mun. Comrat, str. Lenin 175",
+      "email": "primaria@comrat.md",
+      "website": "https://comrat.md",
+      "lat": "",
+      "lng": "",
+      "postal": "MD-3800",
+      "phones": [
+        "+37329889691"
+      ],
+      "logo": null,
+      "accounts": [
+        {
+          "iban": "MD10TRPCCC247259A50836AA",
+          "bic": "TREZMD2X"
+        }
+      ],
+      "type": "Autoritatea de prestare servicii",
+      "active": true,
+      "published": true,
+      "source": "RSSP",
+      "lastSync": "2026-11-02T03:00:12",
+      "createdAt": "2026-04-22T17:25:00",
+      "createdBy": "SIA GEAP"
+    },
+    {
+      "id": "aut-porhei",
+      "idno": "1003600395552",
+      "code": "PORHEI",
+      "nameRo": "Primăria municipiului Orhei",
+      "nameRu": "",
+      "nameEn": "Orhei Municipality Hall",
+      "descRo": "Eliberează autorizații de construire și de funcționare.",
+      "descRu": "",
+      "descEn": "",
+      "address": "mun. Orhei, str. Vasile Lupu 3",
+      "email": "primaria@orhei.md",
+      "website": "https://orhei.md",
+      "lat": "",
+      "lng": "",
+      "postal": "MD-3500",
+      "phones": [
+        "+37323510918",
+        "+37323515422"
+      ],
+      "logo": null,
+      "accounts": [
+        {
+          "iban": "MD76TRPCCC161149A15812AA",
+          "bic": "TREZMD2X"
+        }
+      ],
+      "type": "Autoritatea de prestare servicii",
+      "active": true,
+      "published": true,
+      "source": "RSSP",
+      "lastSync": "2026-11-02T03:00:12",
+      "createdAt": "2026-06-13T14:59:00",
+      "createdBy": "SIA GEAP"
+    },
+    {
+      "id": "aut-pungheni",
+      "idno": "1006601733279",
+      "code": "PUNGHENI",
+      "nameRo": "Primăria municipiului Ungheni",
+      "nameRu": "",
+      "nameEn": "Ungheni Municipality Hall",
+      "descRo": "Eliberează autorizații de construire și de funcționare.",
+      "descRu": "",
+      "descEn": "",
+      "address": "mun. Ungheni, str. Națională 7",
+      "email": "primaria@ungheni.md",
+      "website": "https://ungheni.md",
+      "lat": "",
+      "lng": "",
+      "postal": "MD-3600",
+      "phones": [
+        "+37323643222"
+      ],
+      "logo": null,
+      "accounts": [
+        {
+          "iban": "MD69TRPCCC688968A72668AA",
+          "bic": "TREZMD2X"
+        }
+      ],
+      "type": "Autoritatea de prestare servicii",
+      "active": true,
+      "published": true,
+      "source": "RSSP",
+      "lastSync": "2026-11-02T03:00:12",
+      "createdAt": "2026-01-10T08:29:00",
+      "createdBy": "SIA GEAP"
+    },
+    {
+      "id": "aut-psoroca",
+      "idno": "1003600949011",
+      "code": "PSOROCA",
+      "nameRo": "Primăria municipiului Soroca",
+      "nameRu": "",
+      "nameEn": "Soroca Municipality Hall",
+      "descRo": "Eliberează autorizații de construire și de funcționare.",
+      "descRu": "",
+      "descEn": "",
+      "address": "mun. Soroca, str. Independenței 12",
+      "email": "primaria@soroca.md",
+      "website": "https://soroca.md",
+      "lat": "",
+      "lng": "",
+      "postal": "MD-3000",
+      "phones": [
+        "+37323035844"
+      ],
+      "logo": null,
+      "accounts": [],
+      "type": "Autoritatea de prestare servicii",
+      "active": true,
+      "published": true,
+      "source": "GEAP",
+      "lastSync": null,
+      "createdAt": "2026-09-17T14:19:00",
+      "createdBy": "Vasile Schidu"
+    },
+    {
+      "id": "aut-pedinet",
+      "idno": "1003600912809",
+      "code": "PEDINET",
+      "nameRo": "Primăria municipiului Edineț",
+      "nameRu": "",
+      "nameEn": "Edineț Municipality Hall",
+      "descRo": "Eliberează autorizații de construire și de funcționare.",
+      "descRu": "",
+      "descEn": "",
+      "address": "mun. Edineț, str. Independenței 2",
+      "email": "primaria@edinet.md",
+      "website": "https://edinet.md",
+      "lat": "",
+      "lng": "",
+      "postal": "MD-4601",
+      "phones": [
+        "+37324675138"
+      ],
+      "logo": null,
+      "accounts": [],
+      "type": "Autoritatea de prestare servicii",
+      "active": false,
+      "published": true,
+      "source": "GEAP",
+      "lastSync": null,
+      "createdAt": "2026-06-19T11:24:00",
+      "createdBy": "Vasile Schidu"
+    },
+    {
+      "id": "aut-phincesti",
+      "idno": "1003600994062",
+      "code": "PHINCESTI",
+      "nameRo": "Primăria orașului Hîncești",
+      "nameRu": "",
+      "nameEn": "Hîncești City Hall",
+      "descRo": "Eliberează autorizații de construire.",
+      "descRu": "",
+      "descEn": "",
+      "address": "or. Hîncești, str. Mihai Eminescu 1",
+      "email": "primaria@hincesti.md",
+      "website": "https://hincesti.md",
+      "lat": "",
+      "lng": "",
+      "postal": "MD-3401",
+      "phones": [
+        "+37326913715"
+      ],
+      "logo": null,
+      "accounts": [],
+      "type": "Autoritatea de prestare servicii",
+      "active": true,
+      "published": true,
+      "source": "GEAP",
+      "lastSync": null,
+      "createdAt": "2026-07-10T17:46:00",
+      "createdBy": "Vasile Schidu"
+    },
+    {
+      "id": "aut-pstraseni",
+      "idno": "1006601403359",
+      "code": "PSTRASENI",
+      "nameRo": "Primăria orașului Strășeni",
+      "nameRu": "",
+      "nameEn": "Strășeni City Hall",
+      "descRo": "Eliberează autorizații de construire.",
+      "descRu": "",
+      "descEn": "",
+      "address": "or. Strășeni, str. Ștefan cel Mare 33",
+      "email": "primaria@straseni.md",
+      "website": "https://straseni.md",
+      "lat": "",
+      "lng": "",
+      "postal": "MD-3701",
+      "phones": [
+        "+37323716540"
+      ],
+      "logo": null,
+      "accounts": [],
+      "type": "Autoritatea de prestare servicii",
+      "active": true,
+      "published": true,
+      "source": "GEAP",
+      "lastSync": null,
+      "createdAt": "2026-05-12T12:17:00",
+      "createdBy": "Vasile Schidu"
+    },
+    {
+      "id": "aut-pialoveni",
+      "idno": "1003600837761",
+      "code": "PIALOVENI",
+      "nameRo": "Primăria orașului Ialoveni",
+      "nameRu": "",
+      "nameEn": "Ialoveni City Hall",
+      "descRo": "Eliberează autorizații de construire.",
+      "descRu": "",
+      "descEn": "",
+      "address": "or. Ialoveni, str. Alexandru cel Bun 13",
+      "email": "primaria@ialoveni.md",
+      "website": "https://ialoveni.md",
+      "lat": "",
+      "lng": "",
+      "postal": "MD-6801",
+      "phones": [
+        "+37326893085",
+        "+37326824660"
+      ],
+      "logo": null,
+      "accounts": [],
+      "type": "Autoritatea de prestare servicii",
+      "active": true,
+      "published": true,
+      "source": "GEAP",
+      "lastSync": null,
+      "createdAt": "2026-02-11T15:39:00",
+      "createdBy": "Vasile Schidu"
+    },
+    {
+      "id": "aut-pcauseni",
+      "idno": "1006601334815",
+      "code": "PCAUSENI",
+      "nameRo": "Primăria orașului Căușeni",
+      "nameRu": "",
+      "nameEn": "Căușeni City Hall",
+      "descRo": "Eliberează autorizații de construire.",
+      "descRu": "",
+      "descEn": "",
+      "address": "or. Căușeni, str. Ștefan cel Mare 1",
+      "email": "primaria@causeni.md",
+      "website": "https://causeni.md",
+      "lat": "",
+      "lng": "",
+      "postal": "MD-4301",
+      "phones": [
+        "+37324359603",
+        "+37324353549"
+      ],
+      "logo": null,
+      "accounts": [],
+      "type": "Autoritatea de prestare servicii",
+      "active": true,
+      "published": true,
+      "source": "GEAP",
+      "lastSync": null,
+      "createdAt": "2026-06-16T08:46:00",
+      "createdBy": "Vasile Schidu"
+    },
+    {
+      "id": "aut-pdrochia",
+      "idno": "1003600151973",
+      "code": "PDROCHIA",
+      "nameRo": "Primăria orașului Drochia",
+      "nameRu": "",
+      "nameEn": "Drochia City Hall",
+      "descRo": "Eliberează autorizații de construire.",
+      "descRu": "",
+      "descEn": "",
+      "address": "or. Drochia, str. Independenței 3",
+      "email": "primaria@drochia.md",
+      "website": "https://drochia.md",
+      "lat": "",
+      "lng": "",
+      "postal": "MD-5201",
+      "phones": [
+        "+37325244277"
+      ],
+      "logo": null,
+      "accounts": [],
+      "type": "Autoritatea de prestare servicii",
+      "active": true,
+      "published": true,
+      "source": "GEAP",
+      "lastSync": null,
+      "createdAt": "2026-03-13T11:28:00",
+      "createdBy": "Vasile Schidu"
+    },
+    {
+      "id": "aut-pfloresti",
+      "idno": "1006601877592",
+      "code": "PFLORESTI",
+      "nameRo": "Primăria orașului Florești",
+      "nameRu": "",
+      "nameEn": "Florești City Hall",
+      "descRo": "Eliberează autorizații de construire.",
+      "descRu": "",
+      "descEn": "",
+      "address": "or. Florești, str. Ștefan cel Mare 5",
+      "email": "primaria@floresti.md",
+      "website": "https://floresti.md",
+      "lat": "",
+      "lng": "",
+      "postal": "MD-5001",
+      "phones": [
+        "+37325069969"
+      ],
+      "logo": null,
+      "accounts": [],
+      "type": "Autoritatea de prestare servicii",
+      "active": true,
+      "published": true,
+      "source": "GEAP",
+      "lastSync": null,
+      "createdAt": "2026-03-27T09:18:00",
+      "createdBy": "Vasile Schidu"
+    },
+    {
+      "id": "aut-prezina",
+      "idno": "1006601552418",
+      "code": "PREZINA",
+      "nameRo": "Primăria orașului Rezina",
+      "nameRu": "",
+      "nameEn": "Rezina City Hall",
+      "descRo": "Eliberează autorizații de construire.",
+      "descRu": "",
+      "descEn": "",
+      "address": "or. Rezina, str. Ștefan cel Mare 2",
+      "email": "primaria@rezina.md",
+      "website": "https://rezina.md",
+      "lat": "",
+      "lng": "",
+      "postal": "MD-5401",
+      "phones": [
+        "+37325471819",
+        "+37325431090"
+      ],
+      "logo": null,
+      "accounts": [],
+      "type": "Autoritatea de prestare servicii",
+      "active": true,
+      "published": true,
+      "source": "GEAP",
+      "lastSync": null,
+      "createdAt": "2026-07-15T15:40:00",
+      "createdBy": "Vasile Schidu"
+    },
+    {
+      "id": "aut-panii",
+      "idno": "1006601247334",
+      "code": "PANII",
+      "nameRo": "Primăria orașului Anenii Noi",
+      "nameRu": "",
+      "nameEn": "Anenii Noi City Hall",
+      "descRo": "Eliberează autorizații de construire.",
+      "descRu": "",
+      "descEn": "",
+      "address": "or. Anenii Noi, str. Suvorov 6",
+      "email": "primaria@aneniinoi.md",
+      "website": "https://aneniinoi.md",
+      "lat": "",
+      "lng": "",
+      "postal": "MD-6501",
+      "phones": [
+        "+37326555974",
+        "+37326592830"
+      ],
+      "logo": null,
+      "accounts": [],
+      "type": "Autoritatea de prestare servicii",
+      "active": true,
+      "published": true,
+      "source": "GEAP",
+      "lastSync": null,
+      "createdAt": "2026-08-22T17:28:00",
       "createdBy": "Vasile Schidu"
     }
   ],
@@ -1019,6 +2984,4209 @@
       "phone": "",
       "email": "",
       "raioane": []
+    },
+    {
+      "id": "sub-csp-anenii-noi",
+      "authorityId": "aut-ansp",
+      "name": "CSP Anenii Noi",
+      "nameEn": "Public Health Centre Anenii Noi",
+      "nameRu": "ЦОЗ Анений-Ной",
+      "type": "Subdiviziune de prestare servicii",
+      "prefix": "CSP-AN",
+      "active": true,
+      "raion": "Raionul Anenii Noi",
+      "localitate": "Anenii Noi",
+      "strada": "str. Ștefan cel Mare",
+      "casa": "75",
+      "bloc": "",
+      "etaj": "",
+      "oficiu": "5",
+      "postal": "MD-6501",
+      "approvedBy": "De Supervizor",
+      "phone": "+37326546786",
+      "email": "csp.aneniinoi@ansp.gov.md",
+      "raioane": [
+        "Raionul Anenii Noi"
+      ]
+    },
+    {
+      "id": "sub-csp-basarabeasca",
+      "authorityId": "aut-ansp",
+      "name": "CSP Basarabeasca",
+      "nameEn": "Public Health Centre Basarabeasca",
+      "nameRu": "ЦОЗ Басарабяска",
+      "type": "Subdiviziune de prestare servicii",
+      "prefix": "CSP-BS",
+      "active": true,
+      "raion": "Raionul Basarabeasca",
+      "localitate": "Basarabeasca",
+      "strada": "str. Independenței",
+      "casa": "89",
+      "bloc": "",
+      "etaj": "",
+      "oficiu": "",
+      "postal": "MD-4801",
+      "approvedBy": "De Specialist",
+      "phone": "+37329780454",
+      "email": "csp.basarabeasca@ansp.gov.md",
+      "raioane": [
+        "Raionul Basarabeasca"
+      ]
+    },
+    {
+      "id": "sub-csp-briceni",
+      "authorityId": "aut-ansp",
+      "name": "CSP Briceni",
+      "nameEn": "Public Health Centre Briceni",
+      "nameRu": "ЦОЗ Бричаны",
+      "type": "Subdiviziune de prestare servicii",
+      "prefix": "CSP-BR",
+      "active": true,
+      "raion": "Raionul Briceni",
+      "localitate": "Briceni",
+      "strada": "str. Mihai Eminescu",
+      "casa": "97",
+      "bloc": "",
+      "etaj": "2",
+      "oficiu": "",
+      "postal": "MD-4701",
+      "approvedBy": "De Director",
+      "phone": "+37324710061",
+      "email": "csp.briceni@ansp.gov.md",
+      "raioane": [
+        "Raionul Briceni"
+      ]
+    },
+    {
+      "id": "sub-csp-cantemir",
+      "authorityId": "aut-ansp",
+      "name": "CSP Cantemir",
+      "nameEn": "Public Health Centre Cantemir",
+      "nameRu": "ЦОЗ Кантемир",
+      "type": "Subdiviziune de prestare servicii",
+      "prefix": "",
+      "active": false,
+      "raion": "Raionul Cantemir",
+      "localitate": "Cantemir",
+      "strada": "str. Păcii",
+      "casa": "51",
+      "bloc": "",
+      "etaj": "2",
+      "oficiu": "",
+      "postal": "MD-7301",
+      "approvedBy": "De Supervizor",
+      "phone": "",
+      "email": "",
+      "raioane": [],
+      "inactiveCause": "manual"
+    },
+    {
+      "id": "sub-csp-calarasi",
+      "authorityId": "aut-ansp",
+      "name": "CSP Călărași",
+      "nameEn": "Public Health Centre Călărași",
+      "nameRu": "ЦОЗ Каларашь",
+      "type": "Subdiviziune de prestare servicii",
+      "prefix": "CSP-CL",
+      "active": true,
+      "raion": "Raionul Călărași",
+      "localitate": "Călărași",
+      "strada": "str. Alexandru cel Bun",
+      "casa": "21",
+      "bloc": "",
+      "etaj": "2",
+      "oficiu": "10",
+      "postal": "MD-4201",
+      "approvedBy": "De Director",
+      "phone": "+37324444417",
+      "email": "csp.calarasi@ansp.gov.md",
+      "raioane": [
+        "Raionul Călărași"
+      ]
+    },
+    {
+      "id": "sub-csp-causeni",
+      "authorityId": "aut-ansp",
+      "name": "CSP Căușeni",
+      "nameEn": "Public Health Centre Căușeni",
+      "nameRu": "ЦОЗ Кэушень",
+      "type": "Subdiviziune de prestare servicii",
+      "prefix": "CSP-CS",
+      "active": true,
+      "raion": "Raionul Căușeni",
+      "localitate": "Căușeni",
+      "strada": "str. Mărțișor",
+      "casa": "50",
+      "bloc": "",
+      "etaj": "",
+      "oficiu": "",
+      "postal": "MD-4301",
+      "approvedBy": "De Supervizor",
+      "phone": "+37324375119",
+      "email": "csp.causeni@ansp.gov.md",
+      "raioane": [
+        "Raionul Căușeni"
+      ]
+    },
+    {
+      "id": "sub-csp-cimislia",
+      "authorityId": "aut-ansp",
+      "name": "CSP Cimișlia",
+      "nameEn": "Public Health Centre Cimișlia",
+      "nameRu": "ЦОЗ Чимишлия",
+      "type": "Subdiviziune de prestare servicii",
+      "prefix": "CSP-CM",
+      "active": true,
+      "raion": "Raionul Cimișlia",
+      "localitate": "Cimișlia",
+      "strada": "str. Libertății",
+      "casa": "116",
+      "bloc": "",
+      "etaj": "",
+      "oficiu": "",
+      "postal": "MD-4101",
+      "approvedBy": "De Director",
+      "phone": "+37324146461",
+      "email": "csp.cimislia@ansp.gov.md",
+      "raioane": [
+        "Raionul Cimișlia"
+      ]
+    },
+    {
+      "id": "sub-csp-criuleni",
+      "authorityId": "aut-ansp",
+      "name": "CSP Criuleni",
+      "nameEn": "Public Health Centre Criuleni",
+      "nameRu": "ЦОЗ Криуляны",
+      "type": "Subdiviziune de prestare servicii",
+      "prefix": "CSP-CR",
+      "active": true,
+      "raion": "Raionul Criuleni",
+      "localitate": "Criuleni",
+      "strada": "str. 31 August",
+      "casa": "102",
+      "bloc": "",
+      "etaj": "",
+      "oficiu": "",
+      "postal": "MD-4901",
+      "approvedBy": "De Supervizor",
+      "phone": "+37324827097",
+      "email": "csp.criuleni@ansp.gov.md",
+      "raioane": [
+        "Raionul Criuleni"
+      ]
+    },
+    {
+      "id": "sub-csp-donduseni",
+      "authorityId": "aut-ansp",
+      "name": "CSP Dondușeni",
+      "nameEn": "Public Health Centre Dondușeni",
+      "nameRu": "ЦОЗ Дондюшаны",
+      "type": "Subdiviziune de prestare servicii",
+      "prefix": "CSP-DN",
+      "active": false,
+      "raion": "Raionul Dondușeni",
+      "localitate": "Dondușeni",
+      "strada": "str. Ștefan cel Mare",
+      "casa": "13",
+      "bloc": "",
+      "etaj": "",
+      "oficiu": "",
+      "postal": "MD-5101",
+      "approvedBy": "De Specialist",
+      "phone": "+37325180645",
+      "email": "",
+      "raioane": [],
+      "inactiveCause": "manual"
+    },
+    {
+      "id": "sub-csp-drochia",
+      "authorityId": "aut-ansp",
+      "name": "CSP Drochia",
+      "nameEn": "Public Health Centre Drochia",
+      "nameRu": "ЦОЗ Дрокия",
+      "type": "Subdiviziune de prestare servicii",
+      "prefix": "CSP-DR",
+      "active": true,
+      "raion": "Raionul Drochia",
+      "localitate": "Drochia",
+      "strada": "str. Independenței",
+      "casa": "74",
+      "bloc": "",
+      "etaj": "1",
+      "oficiu": "5",
+      "postal": "MD-5201",
+      "approvedBy": "De Specialist",
+      "phone": "+37325253250",
+      "email": "csp.drochia@ansp.gov.md",
+      "raioane": [
+        "Raionul Drochia"
+      ]
+    },
+    {
+      "id": "sub-csp-dubasari",
+      "authorityId": "aut-ansp",
+      "name": "CSP Dubăsari",
+      "nameEn": "Public Health Centre Dubăsari",
+      "nameRu": "ЦОЗ Кочиеры",
+      "type": "Subdiviziune de prestare servicii",
+      "prefix": "CSP-DB",
+      "active": true,
+      "raion": "Raionul Dubăsari",
+      "localitate": "Cocieri",
+      "strada": "str. Mihai Eminescu",
+      "casa": "97",
+      "bloc": "",
+      "etaj": "",
+      "oficiu": "",
+      "postal": "MD-4501",
+      "approvedBy": "De Supervizor",
+      "phone": "+37324814546",
+      "email": "csp.dubasari@ansp.gov.md",
+      "raioane": [
+        "Raionul Dubăsari",
+        "Raionul Fălești"
+      ]
+    },
+    {
+      "id": "sub-csp-falesti",
+      "authorityId": "aut-ansp",
+      "name": "CSP Fălești",
+      "nameEn": "Public Health Centre Fălești",
+      "nameRu": "ЦОЗ Фалешты",
+      "type": "Subdiviziune de prestare servicii",
+      "prefix": "CSP-FL",
+      "active": true,
+      "raion": "Raionul Fălești",
+      "localitate": "Fălești",
+      "strada": "str. Păcii",
+      "casa": "92",
+      "bloc": "",
+      "etaj": "2",
+      "oficiu": "",
+      "postal": "MD-5901",
+      "approvedBy": "De Director",
+      "phone": "+37325944836",
+      "email": "csp.falesti@ansp.gov.md",
+      "raioane": [
+        "Raionul Fălești"
+      ]
+    },
+    {
+      "id": "sub-csp-floresti",
+      "authorityId": "aut-ansp",
+      "name": "CSP Florești",
+      "nameEn": "Public Health Centre Florești",
+      "nameRu": "ЦОЗ Флорешты",
+      "type": "Subdiviziune de prestare servicii",
+      "prefix": "CSP-FR",
+      "active": true,
+      "raion": "Raionul Florești",
+      "localitate": "Florești",
+      "strada": "str. Alexandru cel Bun",
+      "casa": "80",
+      "bloc": "",
+      "etaj": "",
+      "oficiu": "",
+      "postal": "MD-5001",
+      "approvedBy": "De Supervizor",
+      "phone": "+37325010853",
+      "email": "csp.floresti@ansp.gov.md",
+      "raioane": [
+        "Raionul Florești"
+      ]
+    },
+    {
+      "id": "sub-csp-glodeni",
+      "authorityId": "aut-ansp",
+      "name": "CSP Glodeni",
+      "nameEn": "Public Health Centre Glodeni",
+      "nameRu": "ЦОЗ Глодяны",
+      "type": "Subdiviziune de prestare servicii",
+      "prefix": "CSP-GL",
+      "active": true,
+      "raion": "Raionul Glodeni",
+      "localitate": "Glodeni",
+      "strada": "str. Mărțișor",
+      "casa": "55",
+      "bloc": "",
+      "etaj": "2",
+      "oficiu": "",
+      "postal": "MD-5701",
+      "approvedBy": "De Director",
+      "phone": "+37324973512",
+      "email": "csp.glodeni@ansp.gov.md",
+      "raioane": [
+        "Raionul Glodeni"
+      ]
+    },
+    {
+      "id": "sub-csp-hincesti",
+      "authorityId": "aut-ansp",
+      "name": "CSP Hîncești",
+      "nameEn": "Public Health Centre Hîncești",
+      "nameRu": "ЦОЗ Хынчешты",
+      "type": "Subdiviziune de prestare servicii",
+      "prefix": "CSP-HN",
+      "active": true,
+      "raion": "Raionul Hîncești",
+      "localitate": "Hîncești",
+      "strada": "str. Libertății",
+      "casa": "77",
+      "bloc": "",
+      "etaj": "",
+      "oficiu": "",
+      "postal": "MD-3401",
+      "approvedBy": "De Director",
+      "phone": "+37326923247",
+      "email": "csp.hincesti@ansp.gov.md",
+      "raioane": [
+        "Raionul Hîncești"
+      ]
+    },
+    {
+      "id": "sub-csp-ialoveni",
+      "authorityId": "aut-ansp",
+      "name": "CSP Ialoveni",
+      "nameEn": "Public Health Centre Ialoveni",
+      "nameRu": "ЦОЗ Яловены",
+      "type": "Subdiviziune de prestare servicii",
+      "prefix": "CSP-IL",
+      "active": true,
+      "raion": "Raionul Ialoveni",
+      "localitate": "Ialoveni",
+      "strada": "str. 31 August",
+      "casa": "71",
+      "bloc": "",
+      "etaj": "2",
+      "oficiu": "",
+      "postal": "MD-6801",
+      "approvedBy": "De Director",
+      "phone": "+37326842936",
+      "email": "csp.ialoveni@ansp.gov.md",
+      "raioane": [
+        "Raionul Ialoveni"
+      ]
+    },
+    {
+      "id": "sub-csp-leova",
+      "authorityId": "aut-ansp",
+      "name": "CSP Leova",
+      "nameEn": "Public Health Centre Leova",
+      "nameRu": "ЦОЗ Леова",
+      "type": "Subdiviziune de prestare servicii",
+      "prefix": "CSP-LV",
+      "active": true,
+      "raion": "Raionul Leova",
+      "localitate": "Leova",
+      "strada": "str. Ștefan cel Mare",
+      "casa": "76",
+      "bloc": "",
+      "etaj": "",
+      "oficiu": "",
+      "postal": "MD-6301",
+      "approvedBy": "De Director",
+      "phone": "+37326364998",
+      "email": "csp.leova@ansp.gov.md",
+      "raioane": [
+        "Raionul Leova"
+      ]
+    },
+    {
+      "id": "sub-csp-nisporeni",
+      "authorityId": "aut-ansp",
+      "name": "CSP Nisporeni",
+      "nameEn": "Public Health Centre Nisporeni",
+      "nameRu": "ЦОЗ Ниспорены",
+      "type": "Subdiviziune de prestare servicii",
+      "prefix": "CSP-NS",
+      "active": true,
+      "raion": "Raionul Nisporeni",
+      "localitate": "Nisporeni",
+      "strada": "str. Independenței",
+      "casa": "17",
+      "bloc": "",
+      "etaj": "",
+      "oficiu": "27",
+      "postal": "MD-6401",
+      "approvedBy": "De Specialist",
+      "phone": "+37326445449",
+      "email": "csp.nisporeni@ansp.gov.md",
+      "raioane": [
+        "Raionul Nisporeni",
+        "Raionul Ocnița"
+      ]
+    },
+    {
+      "id": "sub-csp-ocnita",
+      "authorityId": "aut-ansp",
+      "name": "CSP Ocnița",
+      "nameEn": "Public Health Centre Ocnița",
+      "nameRu": "ЦОЗ Окница",
+      "type": "Subdiviziune de prestare servicii",
+      "prefix": "",
+      "active": false,
+      "raion": "Raionul Ocnița",
+      "localitate": "Ocnița",
+      "strada": "str. Mihai Eminescu",
+      "casa": "110",
+      "bloc": "",
+      "etaj": "",
+      "oficiu": "",
+      "postal": "MD-7101",
+      "approvedBy": "De Supervizor",
+      "phone": "+37327117088",
+      "email": "csp.ocnita@ansp.gov.md",
+      "raioane": [],
+      "inactiveCause": "manual"
+    },
+    {
+      "id": "sub-csp-rezina",
+      "authorityId": "aut-ansp",
+      "name": "CSP Rezina",
+      "nameEn": "Public Health Centre Rezina",
+      "nameRu": "ЦОЗ Резина",
+      "type": "Subdiviziune de prestare servicii",
+      "prefix": "CSP-RZ",
+      "active": true,
+      "raion": "Raionul Rezina",
+      "localitate": "Rezina",
+      "strada": "str. Păcii",
+      "casa": "109",
+      "bloc": "",
+      "etaj": "",
+      "oficiu": "",
+      "postal": "MD-5401",
+      "approvedBy": "De Director",
+      "phone": "+37325496087",
+      "email": "csp.rezina@ansp.gov.md",
+      "raioane": [
+        "Raionul Rezina"
+      ]
+    },
+    {
+      "id": "sub-csp-riscani",
+      "authorityId": "aut-ansp",
+      "name": "CSP Rîșcani",
+      "nameEn": "Public Health Centre Rîșcani",
+      "nameRu": "ЦОЗ Рышканы",
+      "type": "Subdiviziune de prestare servicii",
+      "prefix": "CSP-RS",
+      "active": true,
+      "raion": "Raionul Rîșcani",
+      "localitate": "Rîșcani",
+      "strada": "str. Alexandru cel Bun",
+      "casa": "25",
+      "bloc": "",
+      "etaj": "",
+      "oficiu": "25",
+      "postal": "MD-5601",
+      "approvedBy": "De Specialist",
+      "phone": "+37325661064",
+      "email": "csp.riscani@ansp.gov.md",
+      "raioane": [
+        "Raionul Rîșcani"
+      ]
+    },
+    {
+      "id": "sub-csp-singerei",
+      "authorityId": "aut-ansp",
+      "name": "CSP Sîngerei",
+      "nameEn": "Public Health Centre Sîngerei",
+      "nameRu": "ЦОЗ Сынжерей",
+      "type": "Subdiviziune de prestare servicii",
+      "prefix": "CSP-SG",
+      "active": true,
+      "raion": "Raionul Sîngerei",
+      "localitate": "Sîngerei",
+      "strada": "str. Mărțișor",
+      "casa": "103",
+      "bloc": "",
+      "etaj": "",
+      "oficiu": "",
+      "postal": "MD-6201",
+      "approvedBy": "De Director",
+      "phone": "+37326284351",
+      "email": "csp.singerei@ansp.gov.md",
+      "raioane": [
+        "Raionul Sîngerei"
+      ]
+    },
+    {
+      "id": "sub-csp-straseni",
+      "authorityId": "aut-ansp",
+      "name": "CSP Strășeni",
+      "nameEn": "Public Health Centre Strășeni",
+      "nameRu": "ЦОЗ Страшены",
+      "type": "Subdiviziune de prestare servicii",
+      "prefix": "CSP-ST",
+      "active": true,
+      "raion": "Raionul Strășeni",
+      "localitate": "Strășeni",
+      "strada": "str. Libertății",
+      "casa": "79",
+      "bloc": "",
+      "etaj": "",
+      "oficiu": "",
+      "postal": "MD-3701",
+      "approvedBy": "De Director",
+      "phone": "+37323722534",
+      "email": "csp.straseni@ansp.gov.md",
+      "raioane": [
+        "Raionul Strășeni"
+      ]
+    },
+    {
+      "id": "sub-csp-soldanesti",
+      "authorityId": "aut-ansp",
+      "name": "CSP Șoldănești",
+      "nameEn": "Public Health Centre Șoldănești",
+      "nameRu": "ЦОЗ Шолдэнешты",
+      "type": "Subdiviziune de prestare servicii",
+      "prefix": "CSP-SD",
+      "active": true,
+      "raion": "Raionul Șoldănești",
+      "localitate": "Șoldănești",
+      "strada": "str. 31 August",
+      "casa": "21",
+      "bloc": "",
+      "etaj": "",
+      "oficiu": "",
+      "postal": "MD-7201",
+      "approvedBy": "De Supervizor",
+      "phone": "+37327281700",
+      "email": "csp.soldanesti@ansp.gov.md",
+      "raioane": [
+        "Raionul Șoldănești"
+      ]
+    },
+    {
+      "id": "sub-csp-stefan-voda",
+      "authorityId": "aut-ansp",
+      "name": "CSP Ștefan Vodă",
+      "nameEn": "Public Health Centre Ștefan Vodă",
+      "nameRu": "ЦОЗ Штефан-Водэ",
+      "type": "Subdiviziune de prestare servicii",
+      "prefix": "CSP-SV",
+      "active": true,
+      "raion": "Raionul Ștefan Vodă",
+      "localitate": "Ștefan Vodă",
+      "strada": "str. Ștefan cel Mare",
+      "casa": "37",
+      "bloc": "",
+      "etaj": "3",
+      "oficiu": "",
+      "postal": "MD-4201",
+      "approvedBy": "De Supervizor",
+      "phone": "+37324240202",
+      "email": "csp.stefanvoda@ansp.gov.md",
+      "raioane": [
+        "Raionul Ștefan Vodă",
+        "Raionul Taraclia"
+      ]
+    },
+    {
+      "id": "sub-csp-taraclia",
+      "authorityId": "aut-ansp",
+      "name": "CSP Taraclia",
+      "nameEn": "Public Health Centre Taraclia",
+      "nameRu": "ЦОЗ Тараклия",
+      "type": "Subdiviziune de prestare servicii",
+      "prefix": "CSP-TR",
+      "active": true,
+      "raion": "Raionul Taraclia",
+      "localitate": "Taraclia",
+      "strada": "str. Independenței",
+      "casa": "37",
+      "bloc": "",
+      "etaj": "",
+      "oficiu": "",
+      "postal": "MD-6101",
+      "approvedBy": "De Supervizor",
+      "phone": "+37329418269",
+      "email": "csp.taraclia@ansp.gov.md",
+      "raioane": [
+        "Raionul Taraclia"
+      ]
+    },
+    {
+      "id": "sub-csp-telenesti",
+      "authorityId": "aut-ansp",
+      "name": "CSP Telenești",
+      "nameEn": "Public Health Centre Telenești",
+      "nameRu": "ЦОЗ Теленешты",
+      "type": "Subdiviziune de prestare servicii",
+      "prefix": "CSP-TL",
+      "active": true,
+      "raion": "Raionul Telenești",
+      "localitate": "Telenești",
+      "strada": "str. Mihai Eminescu",
+      "casa": "12",
+      "bloc": "",
+      "etaj": "3",
+      "oficiu": "",
+      "postal": "MD-5801",
+      "approvedBy": "De Director",
+      "phone": "+37325865117",
+      "email": "csp.telenesti@ansp.gov.md",
+      "raioane": [
+        "Raionul Telenești"
+      ]
+    },
+    {
+      "id": "sub-csp-comrat",
+      "authorityId": "aut-ansp",
+      "name": "CSP Comrat",
+      "nameEn": "Public Health Centre Comrat",
+      "nameRu": "ЦОЗ Комрат",
+      "type": "Subdiviziune de prestare servicii",
+      "prefix": "CSP-CO",
+      "active": true,
+      "raion": "UTA Găgăuzia",
+      "localitate": "Comrat",
+      "strada": "str. Lenin",
+      "casa": "104",
+      "bloc": "",
+      "etaj": "",
+      "oficiu": "",
+      "postal": "MD-3800",
+      "approvedBy": "De Supervizor",
+      "phone": "+37329823251",
+      "email": "csp.comrat@ansp.gov.md",
+      "raioane": [
+        "UTA Găgăuzia"
+      ]
+    },
+    {
+      "id": "sub-directia-pentru-siguranta-alimentelor-an",
+      "authorityId": "aut-ansa",
+      "name": "Direcția pentru siguranța alimentelor Anenii Noi",
+      "nameEn": "Food Safety Directorate Anenii Noi",
+      "nameRu": "Управление по безопасности пищевых продуктов Анений-Ной",
+      "type": "Subdiviziune de prestare servicii",
+      "prefix": "ANSA-AN",
+      "active": true,
+      "raion": "Raionul Anenii Noi",
+      "localitate": "Anenii Noi",
+      "strada": "str. Ștefan cel Mare",
+      "casa": "8",
+      "bloc": "",
+      "etaj": "",
+      "oficiu": "28",
+      "postal": "MD-6501",
+      "approvedBy": "De Specialist",
+      "phone": "+37326528446",
+      "email": "dsa.aneniinoi@ansa.gov.md",
+      "raioane": [
+        "Raionul Anenii Noi"
+      ]
+    },
+    {
+      "id": "sub-directia-pentru-siguranta-alimentelor-br",
+      "authorityId": "aut-ansa",
+      "name": "Direcția pentru siguranța alimentelor Briceni",
+      "nameEn": "Food Safety Directorate Briceni",
+      "nameRu": "Управление по безопасности пищевых продуктов Бричаны",
+      "type": "Subdiviziune de prestare servicii",
+      "prefix": "ANSA-BR",
+      "active": true,
+      "raion": "Raionul Briceni",
+      "localitate": "Briceni",
+      "strada": "str. Mihai Eminescu",
+      "casa": "31",
+      "bloc": "",
+      "etaj": "",
+      "oficiu": "",
+      "postal": "MD-4701",
+      "approvedBy": "De Specialist",
+      "phone": "+37324766629",
+      "email": "dsa.briceni@ansa.gov.md",
+      "raioane": [
+        "Raionul Briceni"
+      ]
+    },
+    {
+      "id": "sub-directia-pentru-siguranta-alimentelor-ca",
+      "authorityId": "aut-ansa",
+      "name": "Direcția pentru siguranța alimentelor Călărași",
+      "nameEn": "Food Safety Directorate Călărași",
+      "nameRu": "Управление по безопасности пищевых продуктов Каларашь",
+      "type": "Subdiviziune de prestare servicii",
+      "prefix": "ANSA-CL",
+      "active": true,
+      "raion": "Raionul Călărași",
+      "localitate": "Călărași",
+      "strada": "str. Alexandru cel Bun",
+      "casa": "11",
+      "bloc": "",
+      "etaj": "",
+      "oficiu": "",
+      "postal": "MD-4201",
+      "approvedBy": "De Director",
+      "phone": "+37324428407",
+      "email": "dsa.calarasi@ansa.gov.md",
+      "raioane": [
+        "Raionul Călărași"
+      ]
+    },
+    {
+      "id": "sub-directia-pentru-siguranta-alimentelor-ca-2",
+      "authorityId": "aut-ansa",
+      "name": "Direcția pentru siguranța alimentelor Căușeni",
+      "nameEn": "Food Safety Directorate Căușeni",
+      "nameRu": "Управление по безопасности пищевых продуктов Кэушень",
+      "type": "Subdiviziune de prestare servicii",
+      "prefix": "ANSA-CS",
+      "active": true,
+      "raion": "Raionul Căușeni",
+      "localitate": "Căușeni",
+      "strada": "str. Mărțișor",
+      "casa": "26",
+      "bloc": "",
+      "etaj": "",
+      "oficiu": "",
+      "postal": "MD-4301",
+      "approvedBy": "De Specialist",
+      "phone": "+37324386827",
+      "email": "dsa.causeni@ansa.gov.md",
+      "raioane": [
+        "Raionul Căușeni"
+      ]
+    },
+    {
+      "id": "sub-directia-pentru-siguranta-alimentelor-ci",
+      "authorityId": "aut-ansa",
+      "name": "Direcția pentru siguranța alimentelor Cimișlia",
+      "nameEn": "Food Safety Directorate Cimișlia",
+      "nameRu": "Управление по безопасности пищевых продуктов Чимишлия",
+      "type": "Subdiviziune de prestare servicii",
+      "prefix": "ANSA-CM",
+      "active": true,
+      "raion": "Raionul Cimișlia",
+      "localitate": "Cimișlia",
+      "strada": "str. Libertății",
+      "casa": "109",
+      "bloc": "",
+      "etaj": "1",
+      "oficiu": "",
+      "postal": "MD-4101",
+      "approvedBy": "De Director",
+      "phone": "+37324112346",
+      "email": "dsa.cimislia@ansa.gov.md",
+      "raioane": [
+        "Raionul Cimișlia"
+      ]
+    },
+    {
+      "id": "sub-directia-pentru-siguranta-alimentelor-dr",
+      "authorityId": "aut-ansa",
+      "name": "Direcția pentru siguranța alimentelor Drochia",
+      "nameEn": "Food Safety Directorate Drochia",
+      "nameRu": "Управление по безопасности пищевых продуктов Дрокия",
+      "type": "Subdiviziune de prestare servicii",
+      "prefix": "ANSA-DR",
+      "active": true,
+      "raion": "Raionul Drochia",
+      "localitate": "Drochia",
+      "strada": "str. Independenței",
+      "casa": "101",
+      "bloc": "",
+      "etaj": "",
+      "oficiu": "",
+      "postal": "MD-5201",
+      "approvedBy": "De Director",
+      "phone": "+37325278797",
+      "email": "dsa.drochia@ansa.gov.md",
+      "raioane": [
+        "Raionul Drochia"
+      ]
+    },
+    {
+      "id": "sub-directia-pentru-siguranta-alimentelor-fa",
+      "authorityId": "aut-ansa",
+      "name": "Direcția pentru siguranța alimentelor Fălești",
+      "nameEn": "Food Safety Directorate Fălești",
+      "nameRu": "Управление по безопасности пищевых продуктов Фалешты",
+      "type": "Subdiviziune de prestare servicii",
+      "prefix": "ANSA-FL",
+      "active": true,
+      "raion": "Raionul Fălești",
+      "localitate": "Fălești",
+      "strada": "str. Păcii",
+      "casa": "85",
+      "bloc": "",
+      "etaj": "",
+      "oficiu": "",
+      "postal": "MD-5901",
+      "approvedBy": "De Supervizor",
+      "phone": "+37325917151",
+      "email": "dsa.falesti@ansa.gov.md",
+      "raioane": [
+        "Raionul Fălești"
+      ]
+    },
+    {
+      "id": "sub-directia-pentru-siguranta-alimentelor-fl",
+      "authorityId": "aut-ansa",
+      "name": "Direcția pentru siguranța alimentelor Florești",
+      "nameEn": "Food Safety Directorate Florești",
+      "nameRu": "Управление по безопасности пищевых продуктов Флорешты",
+      "type": "Subdiviziune de prestare servicii",
+      "prefix": "ANSA-FR",
+      "active": true,
+      "raion": "Raionul Florești",
+      "localitate": "Florești",
+      "strada": "str. Alexandru cel Bun",
+      "casa": "22",
+      "bloc": "",
+      "etaj": "",
+      "oficiu": "",
+      "postal": "MD-5001",
+      "approvedBy": "De Director",
+      "phone": "+37325021515",
+      "email": "dsa.floresti@ansa.gov.md",
+      "raioane": [
+        "Raionul Florești"
+      ]
+    },
+    {
+      "id": "sub-directia-pentru-siguranta-alimentelor-gl",
+      "authorityId": "aut-ansa",
+      "name": "Direcția pentru siguranța alimentelor Glodeni",
+      "nameEn": "Food Safety Directorate Glodeni",
+      "nameRu": "Управление по безопасности пищевых продуктов Глодяны",
+      "type": "Subdiviziune de prestare servicii",
+      "prefix": "ANSA-GL",
+      "active": true,
+      "raion": "Raionul Glodeni",
+      "localitate": "Glodeni",
+      "strada": "str. Mărțișor",
+      "casa": "107",
+      "bloc": "",
+      "etaj": "",
+      "oficiu": "",
+      "postal": "MD-5701",
+      "approvedBy": "De Director",
+      "phone": "+37324955934",
+      "email": "dsa.glodeni@ansa.gov.md",
+      "raioane": [
+        "Raionul Glodeni"
+      ]
+    },
+    {
+      "id": "sub-directia-pentru-siguranta-alimentelor-hi",
+      "authorityId": "aut-ansa",
+      "name": "Direcția pentru siguranța alimentelor Hîncești",
+      "nameEn": "Food Safety Directorate Hîncești",
+      "nameRu": "Управление по безопасности пищевых продуктов Хынчешты",
+      "type": "Subdiviziune de prestare servicii",
+      "prefix": "ANSA-HN",
+      "active": true,
+      "raion": "Raionul Hîncești",
+      "localitate": "Hîncești",
+      "strada": "str. Libertății",
+      "casa": "83",
+      "bloc": "",
+      "etaj": "2",
+      "oficiu": "",
+      "postal": "MD-3401",
+      "approvedBy": "De Supervizor",
+      "phone": "+37326910120",
+      "email": "dsa.hincesti@ansa.gov.md",
+      "raioane": [
+        "Raionul Hîncești"
+      ]
+    },
+    {
+      "id": "sub-directia-pentru-siguranta-alimentelor-ia",
+      "authorityId": "aut-ansa",
+      "name": "Direcția pentru siguranța alimentelor Ialoveni",
+      "nameEn": "Food Safety Directorate Ialoveni",
+      "nameRu": "Управление по безопасности пищевых продуктов Яловены",
+      "type": "Subdiviziune de prestare servicii",
+      "prefix": "ANSA-IL",
+      "active": true,
+      "raion": "Raionul Ialoveni",
+      "localitate": "Ialoveni",
+      "strada": "str. 31 August",
+      "casa": "94",
+      "bloc": "",
+      "etaj": "",
+      "oficiu": "10",
+      "postal": "MD-6801",
+      "approvedBy": "De Supervizor",
+      "phone": "+37326843022",
+      "email": "dsa.ialoveni@ansa.gov.md",
+      "raioane": [
+        "Raionul Ialoveni"
+      ]
+    },
+    {
+      "id": "sub-directia-pentru-siguranta-alimentelor-le",
+      "authorityId": "aut-ansa",
+      "name": "Direcția pentru siguranța alimentelor Leova",
+      "nameEn": "Food Safety Directorate Leova",
+      "nameRu": "Управление по безопасности пищевых продуктов Леова",
+      "type": "Subdiviziune de prestare servicii",
+      "prefix": "ANSA-LV",
+      "active": true,
+      "raion": "Raionul Leova",
+      "localitate": "Leova",
+      "strada": "str. Ștefan cel Mare",
+      "casa": "19",
+      "bloc": "",
+      "etaj": "3",
+      "oficiu": "",
+      "postal": "MD-6301",
+      "approvedBy": "De Specialist",
+      "phone": "+37326325504",
+      "email": "dsa.leova@ansa.gov.md",
+      "raioane": [
+        "Raionul Leova"
+      ]
+    },
+    {
+      "id": "sub-directia-pentru-siguranta-alimentelor-ni",
+      "authorityId": "aut-ansa",
+      "name": "Direcția pentru siguranța alimentelor Nisporeni",
+      "nameEn": "Food Safety Directorate Nisporeni",
+      "nameRu": "Управление по безопасности пищевых продуктов Ниспорены",
+      "type": "Subdiviziune de prestare servicii",
+      "prefix": "ANSA-NS",
+      "active": true,
+      "raion": "Raionul Nisporeni",
+      "localitate": "Nisporeni",
+      "strada": "str. Independenței",
+      "casa": "88",
+      "bloc": "",
+      "etaj": "",
+      "oficiu": "",
+      "postal": "MD-6401",
+      "approvedBy": "De Specialist",
+      "phone": "+37326461960",
+      "email": "dsa.nisporeni@ansa.gov.md",
+      "raioane": [
+        "Raionul Nisporeni"
+      ]
+    },
+    {
+      "id": "sub-directia-pentru-siguranta-alimentelor-oc",
+      "authorityId": "aut-ansa",
+      "name": "Direcția pentru siguranța alimentelor Ocnița",
+      "nameEn": "Food Safety Directorate Ocnița",
+      "nameRu": "Управление по безопасности пищевых продуктов Окница",
+      "type": "Subdiviziune de prestare servicii",
+      "prefix": "ANSA-OC",
+      "active": true,
+      "raion": "Raionul Ocnița",
+      "localitate": "Ocnița",
+      "strada": "str. Mihai Eminescu",
+      "casa": "37",
+      "bloc": "",
+      "etaj": "",
+      "oficiu": "",
+      "postal": "MD-7101",
+      "approvedBy": "De Specialist",
+      "phone": "+37327117439",
+      "email": "dsa.ocnita@ansa.gov.md",
+      "raioane": [
+        "Raionul Ocnița"
+      ]
+    },
+    {
+      "id": "sub-directia-pentru-siguranta-alimentelor-re",
+      "authorityId": "aut-ansa",
+      "name": "Direcția pentru siguranța alimentelor Rezina",
+      "nameEn": "Food Safety Directorate Rezina",
+      "nameRu": "Управление по безопасности пищевых продуктов Резина",
+      "type": "Subdiviziune de prestare servicii",
+      "prefix": "ANSA-RZ",
+      "active": true,
+      "raion": "Raionul Rezina",
+      "localitate": "Rezina",
+      "strada": "str. Păcii",
+      "casa": "116",
+      "bloc": "",
+      "etaj": "3",
+      "oficiu": "",
+      "postal": "MD-5401",
+      "approvedBy": "De Specialist",
+      "phone": "+37325475398",
+      "email": "dsa.rezina@ansa.gov.md",
+      "raioane": [
+        "Raionul Rezina"
+      ]
+    },
+    {
+      "id": "sub-directia-pentru-siguranta-alimentelor-ri",
+      "authorityId": "aut-ansa",
+      "name": "Direcția pentru siguranța alimentelor Rîșcani",
+      "nameEn": "Food Safety Directorate Rîșcani",
+      "nameRu": "Управление по безопасности пищевых продуктов Рышканы",
+      "type": "Subdiviziune de prestare servicii",
+      "prefix": "ANSA-RS",
+      "active": true,
+      "raion": "Raionul Rîșcani",
+      "localitate": "Rîșcani",
+      "strada": "str. Alexandru cel Bun",
+      "casa": "55",
+      "bloc": "",
+      "etaj": "",
+      "oficiu": "",
+      "postal": "MD-5601",
+      "approvedBy": "De Supervizor",
+      "phone": "+37325665933",
+      "email": "dsa.riscani@ansa.gov.md",
+      "raioane": [
+        "Raionul Rîșcani"
+      ]
+    },
+    {
+      "id": "sub-directia-pentru-siguranta-alimentelor-si",
+      "authorityId": "aut-ansa",
+      "name": "Direcția pentru siguranța alimentelor Sîngerei",
+      "nameEn": "Food Safety Directorate Sîngerei",
+      "nameRu": "Управление по безопасности пищевых продуктов Сынжерей",
+      "type": "Subdiviziune de prestare servicii",
+      "prefix": "ANSA-SG",
+      "active": true,
+      "raion": "Raionul Sîngerei",
+      "localitate": "Sîngerei",
+      "strada": "str. Mărțișor",
+      "casa": "23",
+      "bloc": "",
+      "etaj": "",
+      "oficiu": "",
+      "postal": "MD-6201",
+      "approvedBy": "De Specialist",
+      "phone": "+37326246139",
+      "email": "dsa.singerei@ansa.gov.md",
+      "raioane": [
+        "Raionul Sîngerei"
+      ]
+    },
+    {
+      "id": "sub-directia-pentru-siguranta-alimentelor-st",
+      "authorityId": "aut-ansa",
+      "name": "Direcția pentru siguranța alimentelor Strășeni",
+      "nameEn": "Food Safety Directorate Strășeni",
+      "nameRu": "Управление по безопасности пищевых продуктов Страшены",
+      "type": "Subdiviziune de prestare servicii",
+      "prefix": "ANSA-ST",
+      "active": true,
+      "raion": "Raionul Strășeni",
+      "localitate": "Strășeni",
+      "strada": "str. Libertății",
+      "casa": "31",
+      "bloc": "",
+      "etaj": "2",
+      "oficiu": "",
+      "postal": "MD-3701",
+      "approvedBy": "De Director",
+      "phone": "+37323721053",
+      "email": "dsa.straseni@ansa.gov.md",
+      "raioane": [
+        "Raionul Strășeni"
+      ]
+    },
+    {
+      "id": "sub-directia-pentru-siguranta-alimentelor-so",
+      "authorityId": "aut-ansa",
+      "name": "Direcția pentru siguranța alimentelor Șoldănești",
+      "nameEn": "Food Safety Directorate Șoldănești",
+      "nameRu": "Управление по безопасности пищевых продуктов Шолдэнешты",
+      "type": "Subdiviziune de prestare servicii",
+      "prefix": "ANSA-SD",
+      "active": true,
+      "raion": "Raionul Șoldănești",
+      "localitate": "Șoldănești",
+      "strada": "str. 31 August",
+      "casa": "95",
+      "bloc": "",
+      "etaj": "",
+      "oficiu": "",
+      "postal": "MD-7201",
+      "approvedBy": "De Specialist",
+      "phone": "+37327291752",
+      "email": "dsa.soldanesti@ansa.gov.md",
+      "raioane": [
+        "Raionul Șoldănești"
+      ]
+    },
+    {
+      "id": "sub-directia-pentru-siguranta-alimentelor-st-2",
+      "authorityId": "aut-ansa",
+      "name": "Direcția pentru siguranța alimentelor Ștefan Vodă",
+      "nameEn": "Food Safety Directorate Ștefan Vodă",
+      "nameRu": "Управление по безопасности пищевых продуктов Штефан-Водэ",
+      "type": "Subdiviziune de prestare servicii",
+      "prefix": "ANSA-SV",
+      "active": true,
+      "raion": "Raionul Ștefan Vodă",
+      "localitate": "Ștefan Vodă",
+      "strada": "str. Ștefan cel Mare",
+      "casa": "100",
+      "bloc": "",
+      "etaj": "",
+      "oficiu": "",
+      "postal": "MD-4201",
+      "approvedBy": "De Supervizor",
+      "phone": "+37324256030",
+      "email": "dsa.stefanvoda@ansa.gov.md",
+      "raioane": [
+        "Raionul Ștefan Vodă"
+      ]
+    },
+    {
+      "id": "sub-directia-pentru-siguranta-alimentelor-ta",
+      "authorityId": "aut-ansa",
+      "name": "Direcția pentru siguranța alimentelor Taraclia",
+      "nameEn": "Food Safety Directorate Taraclia",
+      "nameRu": "Управление по безопасности пищевых продуктов Тараклия",
+      "type": "Subdiviziune de prestare servicii",
+      "prefix": "ANSA-TR",
+      "active": false,
+      "raion": "Raionul Taraclia",
+      "localitate": "Taraclia",
+      "strada": "str. Independenței",
+      "casa": "91",
+      "bloc": "",
+      "etaj": "",
+      "oficiu": "",
+      "postal": "MD-6101",
+      "approvedBy": "De Specialist",
+      "phone": "",
+      "email": "",
+      "raioane": [
+        "Raionul Taraclia"
+      ],
+      "inactiveCause": "manual"
+    },
+    {
+      "id": "sub-directia-pentru-siguranta-alimentelor-te",
+      "authorityId": "aut-ansa",
+      "name": "Direcția pentru siguranța alimentelor Telenești",
+      "nameEn": "Food Safety Directorate Telenești",
+      "nameRu": "Управление по безопасности пищевых продуктов Теленешты",
+      "type": "Subdiviziune de prestare servicii",
+      "prefix": "ANSA-TL",
+      "active": true,
+      "raion": "Raionul Telenești",
+      "localitate": "Telenești",
+      "strada": "str. Mihai Eminescu",
+      "casa": "87",
+      "bloc": "",
+      "etaj": "",
+      "oficiu": "",
+      "postal": "MD-5801",
+      "approvedBy": "De Specialist",
+      "phone": "+37325831938",
+      "email": "dsa.telenesti@ansa.gov.md",
+      "raioane": [
+        "Raionul Telenești"
+      ]
+    },
+    {
+      "id": "sub-directia-pentru-siguranta-alimentelor-du",
+      "authorityId": "aut-ansa",
+      "name": "Direcția pentru siguranța alimentelor Dubăsari",
+      "nameEn": "Food Safety Directorate Dubăsari",
+      "nameRu": "Управление по безопасности пищевых продуктов Кочиеры",
+      "type": "Subdiviziune de prestare servicii",
+      "prefix": "ANSA-DB",
+      "active": true,
+      "raion": "Raionul Dubăsari",
+      "localitate": "Cocieri",
+      "strada": "str. Mihai Eminescu",
+      "casa": "78",
+      "bloc": "",
+      "etaj": "",
+      "oficiu": "",
+      "postal": "MD-4501",
+      "approvedBy": "De Director",
+      "phone": "+37324846623",
+      "email": "dsa.dubasari@ansa.gov.md",
+      "raioane": [
+        "Raionul Dubăsari"
+      ]
+    },
+    {
+      "id": "sub-directia-pentru-siguranta-alimentelor-cr",
+      "authorityId": "aut-ansa",
+      "name": "Direcția pentru siguranța alimentelor Criuleni",
+      "nameEn": "Food Safety Directorate Criuleni",
+      "nameRu": "Управление по безопасности пищевых продуктов Криуляны",
+      "type": "Subdiviziune de prestare servicii",
+      "prefix": "ANSA-CR",
+      "active": true,
+      "raion": "Raionul Criuleni",
+      "localitate": "Criuleni",
+      "strada": "str. 31 August",
+      "casa": "26",
+      "bloc": "",
+      "etaj": "",
+      "oficiu": "",
+      "postal": "MD-4901",
+      "approvedBy": "De Supervizor",
+      "phone": "+37324832952",
+      "email": "dsa.criuleni@ansa.gov.md",
+      "raioane": [
+        "Raionul Criuleni"
+      ]
+    },
+    {
+      "id": "sub-directia-pentru-siguranta-alimentelor-mu",
+      "authorityId": "aut-ansa",
+      "name": "Direcția pentru siguranța alimentelor mun. Chișinău",
+      "nameEn": "Food Safety Directorate Chișinău",
+      "nameRu": "",
+      "type": "Subdiviziune de prestare servicii",
+      "prefix": "ANSA-CH",
+      "active": true,
+      "raion": "Municipiul Chișinău",
+      "localitate": "Chișinău",
+      "strada": "bd. Ștefan cel Mare și Sfânt",
+      "casa": "101",
+      "bloc": "",
+      "etaj": "",
+      "oficiu": "",
+      "postal": "MD-2004",
+      "approvedBy": "De Supervizor",
+      "phone": "+37322501921",
+      "email": "dsa.chisinau@ansa.gov.md",
+      "raioane": [
+        "Municipiul Chișinău"
+      ]
+    },
+    {
+      "id": "sub-directia-pentru-siguranta-alimentelor-mu-2",
+      "authorityId": "aut-ansa",
+      "name": "Direcția pentru siguranța alimentelor mun. Bălți",
+      "nameEn": "Food Safety Directorate Bălți",
+      "nameRu": "",
+      "type": "Subdiviziune de prestare servicii",
+      "prefix": "ANSA-BL",
+      "active": true,
+      "raion": "Municipiul Bălți",
+      "localitate": "Bălți",
+      "strada": "str. Independenței",
+      "casa": "74",
+      "bloc": "",
+      "etaj": "",
+      "oficiu": "29",
+      "postal": "MD-3100",
+      "approvedBy": "De Director",
+      "phone": "+37323122200",
+      "email": "dsa.balti@ansa.gov.md",
+      "raioane": [
+        "Municipiul Bălți"
+      ]
+    },
+    {
+      "id": "sub-directia-pentru-siguranta-alimentelor-ca-3",
+      "authorityId": "aut-ansa",
+      "name": "Direcția pentru siguranța alimentelor Cahul",
+      "nameEn": "Food Safety Directorate Cahul",
+      "nameRu": "",
+      "type": "Subdiviziune de prestare servicii",
+      "prefix": "ANSA-CA",
+      "active": true,
+      "raion": "Raionul Cahul",
+      "localitate": "Cahul",
+      "strada": "str. Republicii",
+      "casa": "50",
+      "bloc": "",
+      "etaj": "",
+      "oficiu": "",
+      "postal": "MD-3900",
+      "approvedBy": "De Specialist",
+      "phone": "+37329948482",
+      "email": "dsa.cahul@ansa.gov.md",
+      "raioane": [
+        "Raionul Cahul"
+      ]
+    },
+    {
+      "id": "sub-directia-pentru-siguranta-alimentelor-or",
+      "authorityId": "aut-ansa",
+      "name": "Direcția pentru siguranța alimentelor Orhei",
+      "nameEn": "Food Safety Directorate Orhei",
+      "nameRu": "",
+      "type": "Subdiviziune de prestare servicii",
+      "prefix": "ANSA-OR",
+      "active": true,
+      "raion": "Raionul Orhei",
+      "localitate": "Orhei",
+      "strada": "str. Vasile Lupu",
+      "casa": "69",
+      "bloc": "",
+      "etaj": "2",
+      "oficiu": "",
+      "postal": "MD-3500",
+      "approvedBy": "De Specialist",
+      "phone": "+37323573003",
+      "email": "dsa.orhei@ansa.gov.md",
+      "raioane": [
+        "Raionul Orhei"
+      ]
+    },
+    {
+      "id": "sub-directia-pentru-siguranta-alimentelor-un",
+      "authorityId": "aut-ansa",
+      "name": "Direcția pentru siguranța alimentelor Ungheni",
+      "nameEn": "Food Safety Directorate Ungheni",
+      "nameRu": "",
+      "type": "Subdiviziune de prestare servicii",
+      "prefix": "ANSA-UN",
+      "active": true,
+      "raion": "Raionul Ungheni",
+      "localitate": "Ungheni",
+      "strada": "str. Națională",
+      "casa": "54",
+      "bloc": "",
+      "etaj": "2",
+      "oficiu": "",
+      "postal": "MD-3600",
+      "approvedBy": "De Specialist",
+      "phone": "+37323618976",
+      "email": "dsa.ungheni@ansa.gov.md",
+      "raioane": [
+        "Raionul Ungheni"
+      ]
+    },
+    {
+      "id": "sub-directia-pentru-siguranta-alimentelor-so-2",
+      "authorityId": "aut-ansa",
+      "name": "Direcția pentru siguranța alimentelor Soroca",
+      "nameEn": "Food Safety Directorate Soroca",
+      "nameRu": "",
+      "type": "Subdiviziune de prestare servicii",
+      "prefix": "ANSA-SO",
+      "active": true,
+      "raion": "Raionul Soroca",
+      "localitate": "Soroca",
+      "strada": "str. Independenței",
+      "casa": "78",
+      "bloc": "",
+      "etaj": "2",
+      "oficiu": "",
+      "postal": "MD-3000",
+      "approvedBy": "De Specialist",
+      "phone": "+37323051042",
+      "email": "dsa.soroca@ansa.gov.md",
+      "raioane": [
+        "Raionul Soroca"
+      ]
+    },
+    {
+      "id": "sub-directia-pentru-siguranta-alimentelor-ed",
+      "authorityId": "aut-ansa",
+      "name": "Direcția pentru siguranța alimentelor Edineț",
+      "nameEn": "Food Safety Directorate Edineț",
+      "nameRu": "",
+      "type": "Subdiviziune de prestare servicii",
+      "prefix": "ANSA-ED",
+      "active": true,
+      "raion": "Raionul Edineț",
+      "localitate": "Edineț",
+      "strada": "str. Independenței",
+      "casa": "72",
+      "bloc": "",
+      "etaj": "",
+      "oficiu": "",
+      "postal": "MD-4601",
+      "approvedBy": "De Supervizor",
+      "phone": "+37324657892",
+      "email": "dsa.edinet@ansa.gov.md",
+      "raioane": [
+        "Raionul Edineț"
+      ]
+    },
+    {
+      "id": "sub-inspectoratul-pentru-situatii-de-urgenta",
+      "authorityId": "aut-igsu",
+      "name": "Inspectoratul pentru Situații de Urgență Anenii Noi",
+      "nameEn": "Emergency Situations Inspectorate Anenii Noi",
+      "nameRu": "Инспекторат по чрезвычайным ситуациям Анений-Ной",
+      "type": "Subdiviziune de avizare",
+      "prefix": "SU-AN",
+      "active": true,
+      "raion": "Raionul Anenii Noi",
+      "localitate": "Anenii Noi",
+      "strada": "str. Ștefan cel Mare",
+      "casa": "115",
+      "bloc": "",
+      "etaj": "1",
+      "oficiu": "",
+      "postal": "MD-6501",
+      "approvedBy": "De Specialist",
+      "phone": "+37326567453",
+      "email": "isu.aneniinoi@dse.md",
+      "raioane": [
+        "Raionul Anenii Noi"
+      ]
+    },
+    {
+      "id": "sub-inspectoratul-pentru-situatii-de-urgenta-2",
+      "authorityId": "aut-igsu",
+      "name": "Inspectoratul pentru Situații de Urgență Basarabeasca",
+      "nameEn": "Emergency Situations Inspectorate Basarabeasca",
+      "nameRu": "Инспекторат по чрезвычайным ситуациям Басарабяска",
+      "type": "Subdiviziune de avizare",
+      "prefix": "SU-BS",
+      "active": true,
+      "raion": "Raionul Basarabeasca",
+      "localitate": "Basarabeasca",
+      "strada": "str. Independenței",
+      "casa": "83",
+      "bloc": "",
+      "etaj": "",
+      "oficiu": "4",
+      "postal": "MD-4801",
+      "approvedBy": "De Supervizor",
+      "phone": "+37329724087",
+      "email": "isu.basarabeasca@dse.md",
+      "raioane": [
+        "Raionul Basarabeasca"
+      ]
+    },
+    {
+      "id": "sub-inspectoratul-pentru-situatii-de-urgenta-3",
+      "authorityId": "aut-igsu",
+      "name": "Inspectoratul pentru Situații de Urgență Briceni",
+      "nameEn": "Emergency Situations Inspectorate Briceni",
+      "nameRu": "Инспекторат по чрезвычайным ситуациям Бричаны",
+      "type": "Subdiviziune de avizare",
+      "prefix": "SU-BR",
+      "active": true,
+      "raion": "Raionul Briceni",
+      "localitate": "Briceni",
+      "strada": "str. Mihai Eminescu",
+      "casa": "44",
+      "bloc": "",
+      "etaj": "",
+      "oficiu": "1",
+      "postal": "MD-4701",
+      "approvedBy": "De Supervizor",
+      "phone": "+37324723617",
+      "email": "isu.briceni@dse.md",
+      "raioane": [
+        "Raionul Briceni"
+      ]
+    },
+    {
+      "id": "sub-inspectoratul-pentru-situatii-de-urgenta-4",
+      "authorityId": "aut-igsu",
+      "name": "Inspectoratul pentru Situații de Urgență Călărași",
+      "nameEn": "Emergency Situations Inspectorate Călărași",
+      "nameRu": "Инспекторат по чрезвычайным ситуациям Каларашь",
+      "type": "Subdiviziune de avizare",
+      "prefix": "SU-CL",
+      "active": true,
+      "raion": "Raionul Călărași",
+      "localitate": "Călărași",
+      "strada": "str. Alexandru cel Bun",
+      "casa": "106",
+      "bloc": "",
+      "etaj": "3",
+      "oficiu": "11",
+      "postal": "MD-4201",
+      "approvedBy": "De Supervizor",
+      "phone": "+37324421559",
+      "email": "isu.calarasi@dse.md",
+      "raioane": [
+        "Raionul Călărași"
+      ]
+    },
+    {
+      "id": "sub-inspectoratul-pentru-situatii-de-urgenta-5",
+      "authorityId": "aut-igsu",
+      "name": "Inspectoratul pentru Situații de Urgență Căușeni",
+      "nameEn": "Emergency Situations Inspectorate Căușeni",
+      "nameRu": "Инспекторат по чрезвычайным ситуациям Кэушень",
+      "type": "Subdiviziune de avizare",
+      "prefix": "SU-CS",
+      "active": true,
+      "raion": "Raionul Căușeni",
+      "localitate": "Căușeni",
+      "strada": "str. Mărțișor",
+      "casa": "28",
+      "bloc": "",
+      "etaj": "",
+      "oficiu": "",
+      "postal": "MD-4301",
+      "approvedBy": "De Director",
+      "phone": "+37324323023",
+      "email": "isu.causeni@dse.md",
+      "raioane": [
+        "Raionul Căușeni"
+      ]
+    },
+    {
+      "id": "sub-inspectoratul-pentru-situatii-de-urgenta-6",
+      "authorityId": "aut-igsu",
+      "name": "Inspectoratul pentru Situații de Urgență Cimișlia",
+      "nameEn": "Emergency Situations Inspectorate Cimișlia",
+      "nameRu": "Инспекторат по чрезвычайным ситуациям Чимишлия",
+      "type": "Subdiviziune de avizare",
+      "prefix": "SU-CM",
+      "active": true,
+      "raion": "Raionul Cimișlia",
+      "localitate": "Cimișlia",
+      "strada": "str. Libertății",
+      "casa": "81",
+      "bloc": "",
+      "etaj": "",
+      "oficiu": "",
+      "postal": "MD-4101",
+      "approvedBy": "De Specialist",
+      "phone": "+37324140362",
+      "email": "isu.cimislia@dse.md",
+      "raioane": [
+        "Raionul Cimișlia"
+      ]
+    },
+    {
+      "id": "sub-inspectoratul-pentru-situatii-de-urgenta-7",
+      "authorityId": "aut-igsu",
+      "name": "Inspectoratul pentru Situații de Urgență Dondușeni",
+      "nameEn": "Emergency Situations Inspectorate Dondușeni",
+      "nameRu": "Инспекторат по чрезвычайным ситуациям Дондюшаны",
+      "type": "Subdiviziune de avizare",
+      "prefix": "SU-DN",
+      "active": true,
+      "raion": "Raionul Dondușeni",
+      "localitate": "Dondușeni",
+      "strada": "str. Ștefan cel Mare",
+      "casa": "57",
+      "bloc": "",
+      "etaj": "",
+      "oficiu": "",
+      "postal": "MD-5101",
+      "approvedBy": "De Specialist",
+      "phone": "+37325123000",
+      "email": "isu.donduseni@dse.md",
+      "raioane": [
+        "Raionul Dondușeni"
+      ]
+    },
+    {
+      "id": "sub-inspectoratul-pentru-situatii-de-urgenta-8",
+      "authorityId": "aut-igsu",
+      "name": "Inspectoratul pentru Situații de Urgență Drochia",
+      "nameEn": "Emergency Situations Inspectorate Drochia",
+      "nameRu": "Инспекторат по чрезвычайным ситуациям Дрокия",
+      "type": "Subdiviziune de avizare",
+      "prefix": "SU-DR",
+      "active": true,
+      "raion": "Raionul Drochia",
+      "localitate": "Drochia",
+      "strada": "str. Independenței",
+      "casa": "78",
+      "bloc": "",
+      "etaj": "",
+      "oficiu": "",
+      "postal": "MD-5201",
+      "approvedBy": "De Specialist",
+      "phone": "+37325280262",
+      "email": "isu.drochia@dse.md",
+      "raioane": [
+        "Raionul Drochia"
+      ]
+    },
+    {
+      "id": "sub-inspectoratul-pentru-situatii-de-urgenta-9",
+      "authorityId": "aut-igsu",
+      "name": "Inspectoratul pentru Situații de Urgență Dubăsari",
+      "nameEn": "Emergency Situations Inspectorate Dubăsari",
+      "nameRu": "Инспекторат по чрезвычайным ситуациям Кочиеры",
+      "type": "Subdiviziune de avizare",
+      "prefix": "SU-DB",
+      "active": false,
+      "raion": "Raionul Dubăsari",
+      "localitate": "Cocieri",
+      "strada": "str. Mihai Eminescu",
+      "casa": "111",
+      "bloc": "",
+      "etaj": "",
+      "oficiu": "",
+      "postal": "MD-4501",
+      "approvedBy": "De Specialist",
+      "phone": "",
+      "email": "",
+      "raioane": [
+        "Raionul Dubăsari"
+      ],
+      "inactiveCause": "manual"
+    },
+    {
+      "id": "sub-inspectoratul-pentru-situatii-de-urgenta-10",
+      "authorityId": "aut-igsu",
+      "name": "Inspectoratul pentru Situații de Urgență Florești",
+      "nameEn": "Emergency Situations Inspectorate Florești",
+      "nameRu": "Инспекторат по чрезвычайным ситуациям Флорешты",
+      "type": "Subdiviziune de avizare",
+      "prefix": "SU-FR",
+      "active": true,
+      "raion": "Raionul Florești",
+      "localitate": "Florești",
+      "strada": "str. Alexandru cel Bun",
+      "casa": "12",
+      "bloc": "",
+      "etaj": "",
+      "oficiu": "",
+      "postal": "MD-5001",
+      "approvedBy": "De Specialist",
+      "phone": "+37325089293",
+      "email": "isu.floresti@dse.md",
+      "raioane": [
+        "Raionul Florești"
+      ]
+    },
+    {
+      "id": "sub-inspectoratul-pentru-situatii-de-urgenta-11",
+      "authorityId": "aut-igsu",
+      "name": "Inspectoratul pentru Situații de Urgență Glodeni",
+      "nameEn": "Emergency Situations Inspectorate Glodeni",
+      "nameRu": "Инспекторат по чрезвычайным ситуациям Глодяны",
+      "type": "Subdiviziune de avizare",
+      "prefix": "SU-GL",
+      "active": true,
+      "raion": "Raionul Glodeni",
+      "localitate": "Glodeni",
+      "strada": "str. Mărțișor",
+      "casa": "82",
+      "bloc": "",
+      "etaj": "",
+      "oficiu": "",
+      "postal": "MD-5701",
+      "approvedBy": "De Director",
+      "phone": "+37324980771",
+      "email": "isu.glodeni@dse.md",
+      "raioane": [
+        "Raionul Glodeni"
+      ]
+    },
+    {
+      "id": "sub-inspectoratul-pentru-situatii-de-urgenta-12",
+      "authorityId": "aut-igsu",
+      "name": "Inspectoratul pentru Situații de Urgență Hîncești",
+      "nameEn": "Emergency Situations Inspectorate Hîncești",
+      "nameRu": "Инспекторат по чрезвычайным ситуациям Хынчешты",
+      "type": "Subdiviziune de avizare",
+      "prefix": "SU-HN",
+      "active": true,
+      "raion": "Raionul Hîncești",
+      "localitate": "Hîncești",
+      "strada": "str. Libertății",
+      "casa": "69",
+      "bloc": "",
+      "etaj": "",
+      "oficiu": "",
+      "postal": "MD-3401",
+      "approvedBy": "De Supervizor",
+      "phone": "+37326983305",
+      "email": "isu.hincesti@dse.md",
+      "raioane": [
+        "Raionul Hîncești"
+      ]
+    },
+    {
+      "id": "sub-inspectoratul-pentru-situatii-de-urgenta-13",
+      "authorityId": "aut-igsu",
+      "name": "Inspectoratul pentru Situații de Urgență Leova",
+      "nameEn": "Emergency Situations Inspectorate Leova",
+      "nameRu": "Инспекторат по чрезвычайным ситуациям Леова",
+      "type": "Subdiviziune de avizare",
+      "prefix": "SU-LV",
+      "active": true,
+      "raion": "Raionul Leova",
+      "localitate": "Leova",
+      "strada": "str. Ștefan cel Mare",
+      "casa": "46",
+      "bloc": "",
+      "etaj": "",
+      "oficiu": "",
+      "postal": "MD-6301",
+      "approvedBy": "De Director",
+      "phone": "+37326360243",
+      "email": "isu.leova@dse.md",
+      "raioane": [
+        "Raionul Leova"
+      ]
+    },
+    {
+      "id": "sub-inspectoratul-pentru-situatii-de-urgenta-14",
+      "authorityId": "aut-igsu",
+      "name": "Inspectoratul pentru Situații de Urgență Nisporeni",
+      "nameEn": "Emergency Situations Inspectorate Nisporeni",
+      "nameRu": "Инспекторат по чрезвычайным ситуациям Ниспорены",
+      "type": "Subdiviziune de avizare",
+      "prefix": "SU-NS",
+      "active": true,
+      "raion": "Raionul Nisporeni",
+      "localitate": "Nisporeni",
+      "strada": "str. Independenței",
+      "casa": "8",
+      "bloc": "",
+      "etaj": "",
+      "oficiu": "",
+      "postal": "MD-6401",
+      "approvedBy": "De Specialist",
+      "phone": "+37326451733",
+      "email": "isu.nisporeni@dse.md",
+      "raioane": [
+        "Raionul Nisporeni"
+      ]
+    },
+    {
+      "id": "sub-inspectoratul-pentru-situatii-de-urgenta-15",
+      "authorityId": "aut-igsu",
+      "name": "Inspectoratul pentru Situații de Urgență Ocnița",
+      "nameEn": "Emergency Situations Inspectorate Ocnița",
+      "nameRu": "Инспекторат по чрезвычайным ситуациям Окница",
+      "type": "Subdiviziune de avizare",
+      "prefix": "SU-OC",
+      "active": true,
+      "raion": "Raionul Ocnița",
+      "localitate": "Ocnița",
+      "strada": "str. Mihai Eminescu",
+      "casa": "7",
+      "bloc": "",
+      "etaj": "",
+      "oficiu": "",
+      "postal": "MD-7101",
+      "approvedBy": "De Supervizor",
+      "phone": "+37327147500",
+      "email": "isu.ocnita@dse.md",
+      "raioane": [
+        "Raionul Ocnița"
+      ]
+    },
+    {
+      "id": "sub-inspectoratul-pentru-situatii-de-urgenta-16",
+      "authorityId": "aut-igsu",
+      "name": "Inspectoratul pentru Situații de Urgență Rîșcani",
+      "nameEn": "Emergency Situations Inspectorate Rîșcani",
+      "nameRu": "Инспекторат по чрезвычайным ситуациям Рышканы",
+      "type": "Subdiviziune de avizare",
+      "prefix": "SU-RS",
+      "active": true,
+      "raion": "Raionul Rîșcani",
+      "localitate": "Rîșcani",
+      "strada": "str. Alexandru cel Bun",
+      "casa": "118",
+      "bloc": "",
+      "etaj": "",
+      "oficiu": "",
+      "postal": "MD-5601",
+      "approvedBy": "De Director",
+      "phone": "+37325629660",
+      "email": "isu.riscani@dse.md",
+      "raioane": [
+        "Raionul Rîșcani"
+      ]
+    },
+    {
+      "id": "sub-inspectoratul-pentru-situatii-de-urgenta-17",
+      "authorityId": "aut-igsu",
+      "name": "Inspectoratul pentru Situații de Urgență Sîngerei",
+      "nameEn": "Emergency Situations Inspectorate Sîngerei",
+      "nameRu": "Инспекторат по чрезвычайным ситуациям Сынжерей",
+      "type": "Subdiviziune de avizare",
+      "prefix": "SU-SG",
+      "active": true,
+      "raion": "Raionul Sîngerei",
+      "localitate": "Sîngerei",
+      "strada": "str. Mărțișor",
+      "casa": "26",
+      "bloc": "",
+      "etaj": "",
+      "oficiu": "",
+      "postal": "MD-6201",
+      "approvedBy": "De Supervizor",
+      "phone": "+37326210872",
+      "email": "isu.singerei@dse.md",
+      "raioane": [
+        "Raionul Sîngerei"
+      ]
+    },
+    {
+      "id": "sub-inspectoratul-pentru-situatii-de-urgenta-18",
+      "authorityId": "aut-igsu",
+      "name": "Inspectoratul pentru Situații de Urgență Strășeni",
+      "nameEn": "Emergency Situations Inspectorate Strășeni",
+      "nameRu": "Инспекторат по чрезвычайным ситуациям Страшены",
+      "type": "Subdiviziune de avizare",
+      "prefix": "SU-ST",
+      "active": true,
+      "raion": "Raionul Strășeni",
+      "localitate": "Strășeni",
+      "strada": "str. Libertății",
+      "casa": "90",
+      "bloc": "",
+      "etaj": "",
+      "oficiu": "",
+      "postal": "MD-3701",
+      "approvedBy": "De Supervizor",
+      "phone": "+37323753397",
+      "email": "isu.straseni@dse.md",
+      "raioane": [
+        "Raionul Strășeni"
+      ]
+    },
+    {
+      "id": "sub-inspectoratul-pentru-situatii-de-urgenta-19",
+      "authorityId": "aut-igsu",
+      "name": "Inspectoratul pentru Situații de Urgență Ștefan Vodă",
+      "nameEn": "Emergency Situations Inspectorate Ștefan Vodă",
+      "nameRu": "Инспекторат по чрезвычайным ситуациям Штефан-Водэ",
+      "type": "Subdiviziune de avizare",
+      "prefix": "SU-SV",
+      "active": true,
+      "raion": "Raionul Ștefan Vodă",
+      "localitate": "Ștefan Vodă",
+      "strada": "str. Ștefan cel Mare",
+      "casa": "63",
+      "bloc": "",
+      "etaj": "2",
+      "oficiu": "",
+      "postal": "MD-4201",
+      "approvedBy": "De Supervizor",
+      "phone": "+37324217695",
+      "email": "isu.stefanvoda@dse.md",
+      "raioane": [
+        "Raionul Ștefan Vodă"
+      ]
+    },
+    {
+      "id": "sub-inspectoratul-pentru-situatii-de-urgenta-20",
+      "authorityId": "aut-igsu",
+      "name": "Inspectoratul pentru Situații de Urgență Taraclia",
+      "nameEn": "Emergency Situations Inspectorate Taraclia",
+      "nameRu": "Инспекторат по чрезвычайным ситуациям Тараклия",
+      "type": "Subdiviziune de avizare",
+      "prefix": "SU-TR",
+      "active": true,
+      "raion": "Raionul Taraclia",
+      "localitate": "Taraclia",
+      "strada": "str. Independenței",
+      "casa": "80",
+      "bloc": "",
+      "etaj": "",
+      "oficiu": "",
+      "postal": "MD-6101",
+      "approvedBy": "De Supervizor",
+      "phone": "+37329441087",
+      "email": "isu.taraclia@dse.md",
+      "raioane": [
+        "Raionul Taraclia"
+      ]
+    },
+    {
+      "id": "sub-inspectoratul-pentru-situatii-de-urgenta-21",
+      "authorityId": "aut-igsu",
+      "name": "Inspectoratul pentru Situații de Urgență Telenești",
+      "nameEn": "Emergency Situations Inspectorate Telenești",
+      "nameRu": "Инспекторат по чрезвычайным ситуациям Теленешты",
+      "type": "Subdiviziune de avizare",
+      "prefix": "SU-TL",
+      "active": true,
+      "raion": "Raionul Telenești",
+      "localitate": "Telenești",
+      "strada": "str. Mihai Eminescu",
+      "casa": "1",
+      "bloc": "",
+      "etaj": "",
+      "oficiu": "",
+      "postal": "MD-5801",
+      "approvedBy": "De Director",
+      "phone": "+37325839387",
+      "email": "isu.telenesti@dse.md",
+      "raioane": [
+        "Raionul Telenești"
+      ]
+    },
+    {
+      "id": "sub-inspectoratul-pentru-situatii-de-urgenta-22",
+      "authorityId": "aut-igsu",
+      "name": "Inspectoratul pentru Situații de Urgență Cahul",
+      "nameEn": "Emergency Situations Inspectorate Cahul",
+      "nameRu": "",
+      "type": "Subdiviziune de avizare",
+      "prefix": "SU-CA",
+      "active": true,
+      "raion": "Raionul Cahul",
+      "localitate": "Cahul",
+      "strada": "str. Republicii",
+      "casa": "6",
+      "bloc": "",
+      "etaj": "",
+      "oficiu": "",
+      "postal": "MD-3900",
+      "approvedBy": "De Specialist",
+      "phone": "+37329990567",
+      "email": "isu.cahul@dse.md",
+      "raioane": [
+        "Raionul Cahul"
+      ]
+    },
+    {
+      "id": "sub-inspectoratul-pentru-situatii-de-urgenta-23",
+      "authorityId": "aut-igsu",
+      "name": "Inspectoratul pentru Situații de Urgență Orhei",
+      "nameEn": "Emergency Situations Inspectorate Orhei",
+      "nameRu": "",
+      "type": "Subdiviziune de avizare",
+      "prefix": "SU-OR",
+      "active": true,
+      "raion": "Raionul Orhei",
+      "localitate": "Orhei",
+      "strada": "str. Vasile Lupu",
+      "casa": "4",
+      "bloc": "",
+      "etaj": "",
+      "oficiu": "",
+      "postal": "MD-3500",
+      "approvedBy": "De Supervizor",
+      "phone": "+37323541350",
+      "email": "isu.orhei@dse.md",
+      "raioane": [
+        "Raionul Orhei"
+      ]
+    },
+    {
+      "id": "sub-inspectoratul-pentru-situatii-de-urgenta-24",
+      "authorityId": "aut-igsu",
+      "name": "Inspectoratul pentru Situații de Urgență Ungheni",
+      "nameEn": "Emergency Situations Inspectorate Ungheni",
+      "nameRu": "",
+      "type": "Subdiviziune de avizare",
+      "prefix": "SU-UN",
+      "active": true,
+      "raion": "Raionul Ungheni",
+      "localitate": "Ungheni",
+      "strada": "str. Națională",
+      "casa": "20",
+      "bloc": "",
+      "etaj": "",
+      "oficiu": "17",
+      "postal": "MD-3600",
+      "approvedBy": "De Director",
+      "phone": "+37323646877",
+      "email": "isu.ungheni@dse.md",
+      "raioane": [
+        "Raionul Ungheni"
+      ]
+    },
+    {
+      "id": "sub-inspectoratul-pentru-situatii-de-urgenta-25",
+      "authorityId": "aut-igsu",
+      "name": "Inspectoratul pentru Situații de Urgență Soroca",
+      "nameEn": "Emergency Situations Inspectorate Soroca",
+      "nameRu": "",
+      "type": "Subdiviziune de avizare",
+      "prefix": "SU-SO",
+      "active": true,
+      "raion": "Raionul Soroca",
+      "localitate": "Soroca",
+      "strada": "str. Independenței",
+      "casa": "93",
+      "bloc": "",
+      "etaj": "",
+      "oficiu": "",
+      "postal": "MD-3000",
+      "approvedBy": "De Specialist",
+      "phone": "+37323077461",
+      "email": "isu.soroca@dse.md",
+      "raioane": [
+        "Raionul Soroca"
+      ]
+    },
+    {
+      "id": "sub-inspectoratul-pentru-situatii-de-urgenta-26",
+      "authorityId": "aut-igsu",
+      "name": "Inspectoratul pentru Situații de Urgență Edineț",
+      "nameEn": "Emergency Situations Inspectorate Edineț",
+      "nameRu": "",
+      "type": "Subdiviziune de avizare",
+      "prefix": "SU-ED",
+      "active": true,
+      "raion": "Raionul Edineț",
+      "localitate": "Edineț",
+      "strada": "str. Independenței",
+      "casa": "63",
+      "bloc": "",
+      "etaj": "",
+      "oficiu": "",
+      "postal": "MD-4601",
+      "approvedBy": "De Supervizor",
+      "phone": "+37324699776",
+      "email": "isu.edinet@dse.md",
+      "raioane": [
+        "Raionul Edineț"
+      ]
+    },
+    {
+      "id": "sub-oficiul-teritorial-anenii-noi",
+      "authorityId": "aut-asp",
+      "name": "Oficiul teritorial Anenii Noi",
+      "nameEn": "Anenii Noi Territorial Office",
+      "nameRu": "Территориальное бюро Анений-Ной",
+      "type": "Subdiviziune de prestare servicii",
+      "prefix": "OT-AN",
+      "active": true,
+      "raion": "Raionul Anenii Noi",
+      "localitate": "Anenii Noi",
+      "strada": "str. Ștefan cel Mare",
+      "casa": "32",
+      "bloc": "",
+      "etaj": "",
+      "oficiu": "8",
+      "postal": "MD-6501",
+      "approvedBy": "De Director",
+      "phone": "+37326515670",
+      "email": "ot.aneniinoi@asp.md",
+      "raioane": [
+        "Raionul Anenii Noi"
+      ]
+    },
+    {
+      "id": "sub-oficiul-teritorial-basarabeasca",
+      "authorityId": "aut-asp",
+      "name": "Oficiul teritorial Basarabeasca",
+      "nameEn": "Basarabeasca Territorial Office",
+      "nameRu": "Территориальное бюро Басарабяска",
+      "type": "Subdiviziune de prestare servicii",
+      "prefix": "OT-BS",
+      "active": true,
+      "raion": "Raionul Basarabeasca",
+      "localitate": "Basarabeasca",
+      "strada": "str. Independenței",
+      "casa": "64",
+      "bloc": "",
+      "etaj": "",
+      "oficiu": "",
+      "postal": "MD-4801",
+      "approvedBy": "De Supervizor",
+      "phone": "+37329728115",
+      "email": "ot.basarabeasca@asp.md",
+      "raioane": [
+        "Raionul Basarabeasca"
+      ]
+    },
+    {
+      "id": "sub-oficiul-teritorial-cantemir",
+      "authorityId": "aut-asp",
+      "name": "Oficiul teritorial Cantemir",
+      "nameEn": "Cantemir Territorial Office",
+      "nameRu": "Территориальное бюро Кантемир",
+      "type": "Subdiviziune de prestare servicii",
+      "prefix": "OT-CT",
+      "active": true,
+      "raion": "Raionul Cantemir",
+      "localitate": "Cantemir",
+      "strada": "str. Păcii",
+      "casa": "55",
+      "bloc": "",
+      "etaj": "",
+      "oficiu": "",
+      "postal": "MD-7301",
+      "approvedBy": "De Director",
+      "phone": "+37327331457",
+      "email": "ot.cantemir@asp.md",
+      "raioane": [
+        "Raionul Cantemir"
+      ]
+    },
+    {
+      "id": "sub-oficiul-teritorial-calarasi",
+      "authorityId": "aut-asp",
+      "name": "Oficiul teritorial Călărași",
+      "nameEn": "Călărași Territorial Office",
+      "nameRu": "Территориальное бюро Каларашь",
+      "type": "Subdiviziune de prestare servicii",
+      "prefix": "OT-CL",
+      "active": true,
+      "raion": "Raionul Călărași",
+      "localitate": "Călărași",
+      "strada": "str. Alexandru cel Bun",
+      "casa": "103",
+      "bloc": "",
+      "etaj": "",
+      "oficiu": "",
+      "postal": "MD-4201",
+      "approvedBy": "De Supervizor",
+      "phone": "+37324479947",
+      "email": "ot.calarasi@asp.md",
+      "raioane": [
+        "Raionul Călărași"
+      ]
+    },
+    {
+      "id": "sub-oficiul-teritorial-cimislia",
+      "authorityId": "aut-asp",
+      "name": "Oficiul teritorial Cimișlia",
+      "nameEn": "Cimișlia Territorial Office",
+      "nameRu": "Территориальное бюро Чимишлия",
+      "type": "Subdiviziune de prestare servicii",
+      "prefix": "OT-CM",
+      "active": true,
+      "raion": "Raionul Cimișlia",
+      "localitate": "Cimișlia",
+      "strada": "str. Libertății",
+      "casa": "38",
+      "bloc": "",
+      "etaj": "",
+      "oficiu": "",
+      "postal": "MD-4101",
+      "approvedBy": "De Specialist",
+      "phone": "+37324199865",
+      "email": "ot.cimislia@asp.md",
+      "raioane": [
+        "Raionul Cimișlia"
+      ]
+    },
+    {
+      "id": "sub-oficiul-teritorial-criuleni",
+      "authorityId": "aut-asp",
+      "name": "Oficiul teritorial Criuleni",
+      "nameEn": "Criuleni Territorial Office",
+      "nameRu": "Территориальное бюро Криуляны",
+      "type": "Subdiviziune de prestare servicii",
+      "prefix": "OT-CR",
+      "active": true,
+      "raion": "Raionul Criuleni",
+      "localitate": "Criuleni",
+      "strada": "str. 31 August",
+      "casa": "48",
+      "bloc": "",
+      "etaj": "",
+      "oficiu": "",
+      "postal": "MD-4901",
+      "approvedBy": "De Specialist",
+      "phone": "+37324851969",
+      "email": "ot.criuleni@asp.md",
+      "raioane": [
+        "Raionul Criuleni"
+      ]
+    },
+    {
+      "id": "sub-oficiul-teritorial-drochia",
+      "authorityId": "aut-asp",
+      "name": "Oficiul teritorial Drochia",
+      "nameEn": "Drochia Territorial Office",
+      "nameRu": "Территориальное бюро Дрокия",
+      "type": "Subdiviziune de prestare servicii",
+      "prefix": "OT-DR",
+      "active": true,
+      "raion": "Raionul Drochia",
+      "localitate": "Drochia",
+      "strada": "str. Independenței",
+      "casa": "16",
+      "bloc": "",
+      "etaj": "2",
+      "oficiu": "",
+      "postal": "MD-5201",
+      "approvedBy": "De Specialist",
+      "phone": "+37325229026",
+      "email": "ot.drochia@asp.md",
+      "raioane": [
+        "Raionul Drochia"
+      ]
+    },
+    {
+      "id": "sub-oficiul-teritorial-dubasari",
+      "authorityId": "aut-asp",
+      "name": "Oficiul teritorial Dubăsari",
+      "nameEn": "Dubăsari Territorial Office",
+      "nameRu": "Территориальное бюро Кочиеры",
+      "type": "Subdiviziune de prestare servicii",
+      "prefix": "OT-DB",
+      "active": true,
+      "raion": "Raionul Dubăsari",
+      "localitate": "Cocieri",
+      "strada": "str. Mihai Eminescu",
+      "casa": "96",
+      "bloc": "",
+      "etaj": "",
+      "oficiu": "21",
+      "postal": "MD-4501",
+      "approvedBy": "De Director",
+      "phone": "+37324874649",
+      "email": "ot.dubasari@asp.md",
+      "raioane": [
+        "Raionul Dubăsari"
+      ]
+    },
+    {
+      "id": "sub-oficiul-teritorial-floresti",
+      "authorityId": "aut-asp",
+      "name": "Oficiul teritorial Florești",
+      "nameEn": "Florești Territorial Office",
+      "nameRu": "Территориальное бюро Флорешты",
+      "type": "Subdiviziune de prestare servicii",
+      "prefix": "OT-FR",
+      "active": true,
+      "raion": "Raionul Florești",
+      "localitate": "Florești",
+      "strada": "str. Alexandru cel Bun",
+      "casa": "43",
+      "bloc": "",
+      "etaj": "2",
+      "oficiu": "",
+      "postal": "MD-5001",
+      "approvedBy": "De Director",
+      "phone": "+37325040726",
+      "email": "ot.floresti@asp.md",
+      "raioane": [
+        "Raionul Florești"
+      ]
+    },
+    {
+      "id": "sub-oficiul-teritorial-glodeni",
+      "authorityId": "aut-asp",
+      "name": "Oficiul teritorial Glodeni",
+      "nameEn": "Glodeni Territorial Office",
+      "nameRu": "Территориальное бюро Глодяны",
+      "type": "Subdiviziune de prestare servicii",
+      "prefix": "OT-GL",
+      "active": true,
+      "raion": "Raionul Glodeni",
+      "localitate": "Glodeni",
+      "strada": "str. Mărțișor",
+      "casa": "39",
+      "bloc": "",
+      "etaj": "",
+      "oficiu": "",
+      "postal": "MD-5701",
+      "approvedBy": "De Director",
+      "phone": "+37324955186",
+      "email": "ot.glodeni@asp.md",
+      "raioane": [
+        "Raionul Glodeni"
+      ]
+    },
+    {
+      "id": "sub-oficiul-teritorial-ialoveni",
+      "authorityId": "aut-asp",
+      "name": "Oficiul teritorial Ialoveni",
+      "nameEn": "Ialoveni Territorial Office",
+      "nameRu": "Территориальное бюро Яловены",
+      "type": "Subdiviziune de prestare servicii",
+      "prefix": "OT-IL",
+      "active": true,
+      "raion": "Raionul Ialoveni",
+      "localitate": "Ialoveni",
+      "strada": "str. 31 August",
+      "casa": "54",
+      "bloc": "",
+      "etaj": "",
+      "oficiu": "",
+      "postal": "MD-6801",
+      "approvedBy": "De Supervizor",
+      "phone": "+37326819400",
+      "email": "ot.ialoveni@asp.md",
+      "raioane": [
+        "Raionul Ialoveni"
+      ]
+    },
+    {
+      "id": "sub-oficiul-teritorial-leova",
+      "authorityId": "aut-asp",
+      "name": "Oficiul teritorial Leova",
+      "nameEn": "Leova Territorial Office",
+      "nameRu": "Территориальное бюро Леова",
+      "type": "Subdiviziune de prestare servicii",
+      "prefix": "OT-LV",
+      "active": false,
+      "raion": "Raionul Leova",
+      "localitate": "Leova",
+      "strada": "str. Ștefan cel Mare",
+      "casa": "13",
+      "bloc": "",
+      "etaj": "",
+      "oficiu": "",
+      "postal": "MD-6301",
+      "approvedBy": "De Supervizor",
+      "phone": "",
+      "email": "ot.leova@asp.md",
+      "raioane": [],
+      "inactiveCause": "manual"
+    },
+    {
+      "id": "sub-oficiul-teritorial-ocnita",
+      "authorityId": "aut-asp",
+      "name": "Oficiul teritorial Ocnița",
+      "nameEn": "Ocnița Territorial Office",
+      "nameRu": "Территориальное бюро Окница",
+      "type": "Subdiviziune de prestare servicii",
+      "prefix": "OT-OC",
+      "active": true,
+      "raion": "Raionul Ocnița",
+      "localitate": "Ocnița",
+      "strada": "str. Mihai Eminescu",
+      "casa": "90",
+      "bloc": "",
+      "etaj": "1",
+      "oficiu": "17",
+      "postal": "MD-7101",
+      "approvedBy": "De Director",
+      "phone": "+37327153927",
+      "email": "ot.ocnita@asp.md",
+      "raioane": [
+        "Raionul Ocnița"
+      ]
+    },
+    {
+      "id": "sub-oficiul-teritorial-rezina",
+      "authorityId": "aut-asp",
+      "name": "Oficiul teritorial Rezina",
+      "nameEn": "Rezina Territorial Office",
+      "nameRu": "Территориальное бюро Резина",
+      "type": "Subdiviziune de prestare servicii",
+      "prefix": "OT-RZ",
+      "active": true,
+      "raion": "Raionul Rezina",
+      "localitate": "Rezina",
+      "strada": "str. Păcii",
+      "casa": "51",
+      "bloc": "",
+      "etaj": "3",
+      "oficiu": "",
+      "postal": "MD-5401",
+      "approvedBy": "De Supervizor",
+      "phone": "+37325485469",
+      "email": "ot.rezina@asp.md",
+      "raioane": [
+        "Raionul Rezina"
+      ]
+    },
+    {
+      "id": "sub-oficiul-teritorial-singerei",
+      "authorityId": "aut-asp",
+      "name": "Oficiul teritorial Sîngerei",
+      "nameEn": "Sîngerei Territorial Office",
+      "nameRu": "Территориальное бюро Сынжерей",
+      "type": "Subdiviziune de prestare servicii",
+      "prefix": "OT-SG",
+      "active": true,
+      "raion": "Raionul Sîngerei",
+      "localitate": "Sîngerei",
+      "strada": "str. Mărțișor",
+      "casa": "32",
+      "bloc": "",
+      "etaj": "",
+      "oficiu": "",
+      "postal": "MD-6201",
+      "approvedBy": "De Director",
+      "phone": "+37326276121",
+      "email": "ot.singerei@asp.md",
+      "raioane": [
+        "Raionul Sîngerei"
+      ]
+    },
+    {
+      "id": "sub-oficiul-teritorial-straseni",
+      "authorityId": "aut-asp",
+      "name": "Oficiul teritorial Strășeni",
+      "nameEn": "Strășeni Territorial Office",
+      "nameRu": "Территориальное бюро Страшены",
+      "type": "Subdiviziune de prestare servicii",
+      "prefix": "OT-ST",
+      "active": true,
+      "raion": "Raionul Strășeni",
+      "localitate": "Strășeni",
+      "strada": "str. Libertății",
+      "casa": "87",
+      "bloc": "",
+      "etaj": "3",
+      "oficiu": "",
+      "postal": "MD-3701",
+      "approvedBy": "De Supervizor",
+      "phone": "+37323744486",
+      "email": "ot.straseni@asp.md",
+      "raioane": [
+        "Raionul Strășeni"
+      ]
+    },
+    {
+      "id": "sub-oficiul-teritorial-stefan-voda",
+      "authorityId": "aut-asp",
+      "name": "Oficiul teritorial Ștefan Vodă",
+      "nameEn": "Ștefan Vodă Territorial Office",
+      "nameRu": "Территориальное бюро Штефан-Водэ",
+      "type": "Subdiviziune de prestare servicii",
+      "prefix": "OT-SV",
+      "active": true,
+      "raion": "Raionul Ștefan Vodă",
+      "localitate": "Ștefan Vodă",
+      "strada": "str. Ștefan cel Mare",
+      "casa": "111",
+      "bloc": "",
+      "etaj": "3",
+      "oficiu": "",
+      "postal": "MD-4201",
+      "approvedBy": "De Specialist",
+      "phone": "+37324225939",
+      "email": "ot.stefanvoda@asp.md",
+      "raioane": [
+        "Raionul Ștefan Vodă"
+      ]
+    },
+    {
+      "id": "sub-oficiul-teritorial-taraclia",
+      "authorityId": "aut-asp",
+      "name": "Oficiul teritorial Taraclia",
+      "nameEn": "Taraclia Territorial Office",
+      "nameRu": "Территориальное бюро Тараклия",
+      "type": "Subdiviziune de prestare servicii",
+      "prefix": "OT-TR",
+      "active": true,
+      "raion": "Raionul Taraclia",
+      "localitate": "Taraclia",
+      "strada": "str. Independenței",
+      "casa": "120",
+      "bloc": "",
+      "etaj": "",
+      "oficiu": "",
+      "postal": "MD-6101",
+      "approvedBy": "De Supervizor",
+      "phone": "+37329477259",
+      "email": "ot.taraclia@asp.md",
+      "raioane": [
+        "Raionul Taraclia"
+      ]
+    },
+    {
+      "id": "sub-oficiul-teritorial-balti",
+      "authorityId": "aut-asp",
+      "name": "Oficiul teritorial Bălți",
+      "nameEn": "Bălți Territorial Office",
+      "nameRu": "",
+      "type": "Subdiviziune de prestare servicii",
+      "prefix": "OT-BL",
+      "active": true,
+      "raion": "Municipiul Bălți",
+      "localitate": "Bălți",
+      "strada": "str. Independenței",
+      "casa": "103",
+      "bloc": "",
+      "etaj": "3",
+      "oficiu": "",
+      "postal": "MD-3100",
+      "approvedBy": "De Supervizor",
+      "phone": "+37323121312",
+      "email": "ot.balti@asp.md",
+      "raioane": [
+        "Municipiul Bălți"
+      ]
+    },
+    {
+      "id": "sub-oficiul-teritorial-cahul",
+      "authorityId": "aut-asp",
+      "name": "Oficiul teritorial Cahul",
+      "nameEn": "Cahul Territorial Office",
+      "nameRu": "",
+      "type": "Subdiviziune de prestare servicii",
+      "prefix": "OT-CA",
+      "active": true,
+      "raion": "Raionul Cahul",
+      "localitate": "Cahul",
+      "strada": "str. Republicii",
+      "casa": "66",
+      "bloc": "",
+      "etaj": "",
+      "oficiu": "",
+      "postal": "MD-3900",
+      "approvedBy": "De Supervizor",
+      "phone": "+37329924917",
+      "email": "ot.cahul@asp.md",
+      "raioane": [
+        "Raionul Cahul"
+      ]
+    },
+    {
+      "id": "sub-oficiul-teritorial-orhei",
+      "authorityId": "aut-asp",
+      "name": "Oficiul teritorial Orhei",
+      "nameEn": "Orhei Territorial Office",
+      "nameRu": "",
+      "type": "Subdiviziune de prestare servicii",
+      "prefix": "OT-OR",
+      "active": true,
+      "raion": "Raionul Orhei",
+      "localitate": "Orhei",
+      "strada": "str. Vasile Lupu",
+      "casa": "56",
+      "bloc": "",
+      "etaj": "",
+      "oficiu": "16",
+      "postal": "MD-3500",
+      "approvedBy": "De Specialist",
+      "phone": "+37323523180",
+      "email": "ot.orhei@asp.md",
+      "raioane": [
+        "Raionul Orhei"
+      ]
+    },
+    {
+      "id": "sub-oficiul-teritorial-ungheni",
+      "authorityId": "aut-asp",
+      "name": "Oficiul teritorial Ungheni",
+      "nameEn": "Ungheni Territorial Office",
+      "nameRu": "",
+      "type": "Subdiviziune de prestare servicii",
+      "prefix": "OT-UN",
+      "active": true,
+      "raion": "Raionul Ungheni",
+      "localitate": "Ungheni",
+      "strada": "str. Națională",
+      "casa": "91",
+      "bloc": "",
+      "etaj": "",
+      "oficiu": "",
+      "postal": "MD-3600",
+      "approvedBy": "De Director",
+      "phone": "+37323621295",
+      "email": "ot.ungheni@asp.md",
+      "raioane": [
+        "Raionul Ungheni"
+      ]
+    },
+    {
+      "id": "sub-oficiul-teritorial-soroca",
+      "authorityId": "aut-asp",
+      "name": "Oficiul teritorial Soroca",
+      "nameEn": "Soroca Territorial Office",
+      "nameRu": "",
+      "type": "Subdiviziune de prestare servicii",
+      "prefix": "OT-SO",
+      "active": true,
+      "raion": "Raionul Soroca",
+      "localitate": "Soroca",
+      "strada": "str. Independenței",
+      "casa": "81",
+      "bloc": "",
+      "etaj": "3",
+      "oficiu": "",
+      "postal": "MD-3000",
+      "approvedBy": "De Supervizor",
+      "phone": "+37323029780",
+      "email": "ot.soroca@asp.md",
+      "raioane": [
+        "Raionul Soroca"
+      ]
+    },
+    {
+      "id": "sub-oficiul-teritorial-edinet",
+      "authorityId": "aut-asp",
+      "name": "Oficiul teritorial Edineț",
+      "nameEn": "Edineț Territorial Office",
+      "nameRu": "",
+      "type": "Subdiviziune de prestare servicii",
+      "prefix": "OT-ED",
+      "active": true,
+      "raion": "Raionul Edineț",
+      "localitate": "Edineț",
+      "strada": "str. Independenței",
+      "casa": "120",
+      "bloc": "",
+      "etaj": "",
+      "oficiu": "",
+      "postal": "MD-4601",
+      "approvedBy": "De Supervizor",
+      "phone": "+37324627768",
+      "email": "ot.edinet@asp.md",
+      "raioane": [
+        "Raionul Edineț"
+      ]
+    },
+    {
+      "id": "sub-oficiul-teritorial-chisinau-directia-cad",
+      "authorityId": "aut-asp",
+      "name": "Oficiul teritorial Chișinău — Direcția cadastru, înregistrarea bunurilor imobile și evidența drepturilor patrimoniale (sectorul Râșcani)",
+      "nameEn": "Chișinău Territorial Office — Directorate of Cadastre, Real Estate Registration and Property Rights Records (Râșcani sector)",
+      "nameRu": "",
+      "type": "Subdiviziune de prestare servicii",
+      "prefix": "ASP-RS-CH",
+      "active": true,
+      "raion": "Municipiul Chișinău",
+      "localitate": "Chișinău",
+      "strada": "bd. Ștefan cel Mare și Sfânt",
+      "casa": "87",
+      "bloc": "",
+      "etaj": "",
+      "oficiu": "",
+      "postal": "MD-2004",
+      "approvedBy": "De Specialist",
+      "phone": "+37322643640",
+      "email": "cadastru.rascani@asp.md",
+      "raioane": [
+        "Municipiul Chișinău"
+      ]
+    },
+    {
+      "id": "sub-oficiul-cadastral-botanica",
+      "authorityId": "aut-asp",
+      "name": "Oficiul cadastral Botanica",
+      "nameEn": "Botanica Cadastre Office",
+      "nameRu": "Кадастровое бюро Ботаника",
+      "type": "Subdiviziune de prestare servicii",
+      "prefix": "ASP-BT",
+      "active": true,
+      "raion": "Municipiul Chișinău",
+      "localitate": "Chișinău",
+      "strada": "bd. Ștefan cel Mare și Sfânt",
+      "casa": "76",
+      "bloc": "",
+      "etaj": "",
+      "oficiu": "21",
+      "postal": "MD-2004",
+      "approvedBy": "De Director",
+      "phone": "+37322305290",
+      "email": "botanica@asp.md",
+      "raioane": [
+        "Municipiul Chișinău"
+      ]
+    },
+    {
+      "id": "sub-oficiul-cadastral-buiucani",
+      "authorityId": "aut-asp",
+      "name": "Oficiul cadastral Buiucani",
+      "nameEn": "Buiucani Cadastre Office",
+      "nameRu": "Кадастровое бюро Буюкань",
+      "type": "Subdiviziune de prestare servicii",
+      "prefix": "ASP-BU",
+      "active": true,
+      "raion": "Municipiul Chișinău",
+      "localitate": "Chișinău",
+      "strada": "bd. Ștefan cel Mare și Sfânt",
+      "casa": "1",
+      "bloc": "",
+      "etaj": "",
+      "oficiu": "",
+      "postal": "MD-2004",
+      "approvedBy": "De Director",
+      "phone": "+37322579207",
+      "email": "buiucani@asp.md",
+      "raioane": [
+        "Municipiul Chișinău"
+      ]
+    },
+    {
+      "id": "sub-oficiul-cadastral-ciocana",
+      "authorityId": "aut-asp",
+      "name": "Oficiul cadastral Ciocana",
+      "nameEn": "Ciocana Cadastre Office",
+      "nameRu": "Кадастровое бюро Чокана",
+      "type": "Subdiviziune de prestare servicii",
+      "prefix": "ASP-CI",
+      "active": false,
+      "raion": "Municipiul Chișinău",
+      "localitate": "Chișinău",
+      "strada": "bd. Ștefan cel Mare și Sfânt",
+      "casa": "112",
+      "bloc": "",
+      "etaj": "",
+      "oficiu": "",
+      "postal": "MD-2004",
+      "approvedBy": "De Specialist",
+      "phone": "",
+      "email": "",
+      "raioane": [
+        "Municipiul Chișinău"
+      ],
+      "inactiveCause": "manual"
+    },
+    {
+      "id": "sub-agentia-teritoriala-ungheni",
+      "authorityId": "aut-anta",
+      "name": "Agenția Teritorială Ungheni",
+      "nameEn": "Ungheni Territorial Agency",
+      "nameRu": "",
+      "type": "Subdiviziune de prestare servicii",
+      "prefix": "ANTA-UN",
+      "active": true,
+      "raion": "Raionul Ungheni",
+      "localitate": "Ungheni",
+      "strada": "str. Națională",
+      "casa": "37",
+      "bloc": "",
+      "etaj": "",
+      "oficiu": "",
+      "postal": "MD-3600",
+      "approvedBy": "De Specialist",
+      "phone": "+37323644034",
+      "email": "anta.ungheni@anta.gov.md",
+      "raioane": [
+        "Raionul Ungheni"
+      ]
+    },
+    {
+      "id": "sub-agentia-teritoriala-orhei",
+      "authorityId": "aut-anta",
+      "name": "Agenția Teritorială Orhei",
+      "nameEn": "Orhei Territorial Agency",
+      "nameRu": "",
+      "type": "Subdiviziune de prestare servicii",
+      "prefix": "ANTA-OR",
+      "active": true,
+      "raion": "Raionul Orhei",
+      "localitate": "Orhei",
+      "strada": "str. Vasile Lupu",
+      "casa": "33",
+      "bloc": "",
+      "etaj": "2",
+      "oficiu": "",
+      "postal": "MD-3500",
+      "approvedBy": "De Director",
+      "phone": "+37323555541",
+      "email": "anta.orhei@anta.gov.md",
+      "raioane": [
+        "Raionul Orhei"
+      ]
+    },
+    {
+      "id": "sub-agentia-teritoriala-hincesti",
+      "authorityId": "aut-anta",
+      "name": "Agenția Teritorială Hîncești",
+      "nameEn": "Hîncești Territorial Agency",
+      "nameRu": "",
+      "type": "Subdiviziune de prestare servicii",
+      "prefix": "ANTA-HN",
+      "active": true,
+      "raion": "Raionul Hîncești",
+      "localitate": "Hîncești",
+      "strada": "str. Libertății",
+      "casa": "116",
+      "bloc": "",
+      "etaj": "",
+      "oficiu": "",
+      "postal": "MD-3401",
+      "approvedBy": "De Director",
+      "phone": "+37326925193",
+      "email": "anta.hincesti@anta.gov.md",
+      "raioane": [
+        "Raionul Hîncești"
+      ]
+    },
+    {
+      "id": "sub-agentia-teritoriala-comrat",
+      "authorityId": "aut-anta",
+      "name": "Agenția Teritorială Comrat",
+      "nameEn": "Comrat Territorial Agency",
+      "nameRu": "",
+      "type": "Subdiviziune de prestare servicii",
+      "prefix": "ANTA-CO",
+      "active": true,
+      "raion": "UTA Găgăuzia",
+      "localitate": "Comrat",
+      "strada": "str. Lenin",
+      "casa": "85",
+      "bloc": "",
+      "etaj": "",
+      "oficiu": "",
+      "postal": "MD-3800",
+      "approvedBy": "De Supervizor",
+      "phone": "+37329826470",
+      "email": "anta.comrat@anta.gov.md",
+      "raioane": [
+        "UTA Găgăuzia"
+      ]
+    },
+    {
+      "id": "sub-laboratorul-de-metrologie-legala",
+      "authorityId": "aut-inm",
+      "name": "Laboratorul de metrologie legală",
+      "nameEn": "Legal Metrology Laboratory",
+      "nameRu": "",
+      "type": "Subdiviziune de prestare servicii",
+      "prefix": "INM-LML",
+      "active": true,
+      "raion": "Municipiul Chișinău",
+      "localitate": "Chișinău",
+      "strada": "bd. Ștefan cel Mare și Sfânt",
+      "casa": "93",
+      "bloc": "",
+      "etaj": "3",
+      "oficiu": "12",
+      "postal": "MD-2004",
+      "approvedBy": "De Supervizor",
+      "phone": "+37322561834",
+      "email": "lml@metrologie.md",
+      "raioane": [
+        "Municipiul Chișinău"
+      ]
+    },
+    {
+      "id": "sub-laboratorul-de-metrologie-cahul",
+      "authorityId": "aut-inm",
+      "name": "Laboratorul de metrologie Cahul",
+      "nameEn": "Cahul Metrology Laboratory",
+      "nameRu": "",
+      "type": "Subdiviziune de prestare servicii",
+      "prefix": "INM-CA",
+      "active": true,
+      "raion": "Raionul Cahul",
+      "localitate": "Cahul",
+      "strada": "str. Republicii",
+      "casa": "78",
+      "bloc": "",
+      "etaj": "",
+      "oficiu": "",
+      "postal": "MD-3900",
+      "approvedBy": "De Director",
+      "phone": "+37329921517",
+      "email": "cahul@metrologie.md",
+      "raioane": [
+        "Raionul Cahul"
+      ]
+    },
+    {
+      "id": "sub-directia-licentiere-si-acreditare",
+      "authorityId": "aut-mec",
+      "name": "Direcția licențiere și acreditare",
+      "nameEn": "Licensing and Accreditation Directorate",
+      "nameRu": "",
+      "type": "Subdiviziune de prestare servicii",
+      "prefix": "MEC-LA",
+      "active": true,
+      "raion": "Municipiul Chișinău",
+      "localitate": "Chișinău",
+      "strada": "bd. Ștefan cel Mare și Sfânt",
+      "casa": "25",
+      "bloc": "",
+      "etaj": "",
+      "oficiu": "",
+      "postal": "MD-2004",
+      "approvedBy": "De Director",
+      "phone": "+37322119894",
+      "email": "licentiere@mec.gov.md",
+      "raioane": [
+        "Municipiul Chișinău"
+      ]
+    },
+    {
+      "id": "sub-directia-invatamant-general",
+      "authorityId": "aut-mec",
+      "name": "Direcția învățământ general",
+      "nameEn": "General Education Directorate",
+      "nameRu": "",
+      "type": "Subdiviziune de prestare servicii",
+      "prefix": "MEC-IG",
+      "active": true,
+      "raion": "Municipiul Chișinău",
+      "localitate": "Chișinău",
+      "strada": "bd. Ștefan cel Mare și Sfânt",
+      "casa": "112",
+      "bloc": "",
+      "etaj": "",
+      "oficiu": "",
+      "postal": "MD-2004",
+      "approvedBy": "De Specialist",
+      "phone": "+37322727750",
+      "email": "invatamant@mec.gov.md",
+      "raioane": [
+        "Municipiul Chișinău"
+      ]
+    },
+    {
+      "id": "sub-laboratorul-de-control-al-medicamentelor",
+      "authorityId": "aut-amdm",
+      "name": "Laboratorul de control al medicamentelor",
+      "nameEn": "Medicines Control Laboratory",
+      "nameRu": "",
+      "type": "Subdiviziune de prestare servicii",
+      "prefix": "AMDM-LC",
+      "active": true,
+      "raion": "Municipiul Chișinău",
+      "localitate": "Chișinău",
+      "strada": "bd. Ștefan cel Mare și Sfânt",
+      "casa": "116",
+      "bloc": "",
+      "etaj": "",
+      "oficiu": "",
+      "postal": "MD-2004",
+      "approvedBy": "De Specialist",
+      "phone": "+37322257828",
+      "email": "lab@amdm.gov.md",
+      "raioane": [
+        "Municipiul Chișinău"
+      ]
+    },
+    {
+      "id": "sub-directia-autorizare-farmacii",
+      "authorityId": "aut-amdm",
+      "name": "Direcția autorizare farmacii",
+      "nameEn": "Pharmacy Authorisation Directorate",
+      "nameRu": "",
+      "type": "Subdiviziune de prestare servicii",
+      "prefix": "AMDM-AF",
+      "active": true,
+      "raion": "Municipiul Chișinău",
+      "localitate": "Chișinău",
+      "strada": "bd. Ștefan cel Mare și Sfânt",
+      "casa": "38",
+      "bloc": "",
+      "etaj": "",
+      "oficiu": "",
+      "postal": "MD-2004",
+      "approvedBy": "De Director",
+      "phone": "+37322531073",
+      "email": "farmacii@amdm.gov.md",
+      "raioane": [
+        "Municipiul Chișinău"
+      ]
+    },
+    {
+      "id": "sub-directia-avize-de-mediu",
+      "authorityId": "aut-am",
+      "name": "Direcția avize de mediu",
+      "nameEn": "Environmental Opinions Directorate",
+      "nameRu": "",
+      "type": "Subdiviziune de avizare",
+      "prefix": "AM-AM",
+      "active": true,
+      "raion": "Municipiul Chișinău",
+      "localitate": "Chișinău",
+      "strada": "bd. Ștefan cel Mare și Sfânt",
+      "casa": "75",
+      "bloc": "",
+      "etaj": "",
+      "oficiu": "",
+      "postal": "MD-2004",
+      "approvedBy": "De Specialist",
+      "phone": "+37322174775",
+      "email": "avize@mediu.gov.md",
+      "raioane": [
+        "Municipiul Chișinău"
+      ]
+    },
+    {
+      "id": "sub-departamentul-audit-tehnic",
+      "authorityId": "aut-lrsp",
+      "name": "Departamentul audit tehnic",
+      "nameEn": "Technical Audit Department",
+      "nameRu": "",
+      "type": "Subdiviziune de prestare servicii",
+      "prefix": "LRSP-AT",
+      "active": true,
+      "raion": "Municipiul Chișinău",
+      "localitate": "Chișinău",
+      "strada": "bd. Ștefan cel Mare și Sfânt",
+      "casa": "40",
+      "bloc": "",
+      "etaj": "2",
+      "oficiu": "",
+      "postal": "MD-2004",
+      "approvedBy": "De Supervizor",
+      "phone": "+37322702775",
+      "email": "audit@lrsp.md",
+      "raioane": [
+        "Municipiul Chișinău"
+      ]
+    },
+    {
+      "id": "sub-directia-licente",
+      "authorityId": "aut-anre",
+      "name": "Direcția licențe",
+      "nameEn": "Licensing Directorate",
+      "nameRu": "",
+      "type": "Subdiviziune de prestare servicii",
+      "prefix": "ANRE-L",
+      "active": true,
+      "raion": "Municipiul Chișinău",
+      "localitate": "Chișinău",
+      "strada": "bd. Ștefan cel Mare și Sfânt",
+      "casa": "75",
+      "bloc": "",
+      "etaj": "",
+      "oficiu": "11",
+      "postal": "MD-2004",
+      "approvedBy": "De Director",
+      "phone": "+37322105142",
+      "email": "licente@anre.md",
+      "raioane": [
+        "Municipiul Chișinău"
+      ]
+    },
+    {
+      "id": "sub-directia-energie-electrica",
+      "authorityId": "aut-anre",
+      "name": "Direcția energie electrică",
+      "nameEn": "Electricity Directorate",
+      "nameRu": "",
+      "type": "Subdiviziune de prestare servicii",
+      "prefix": "ANRE-EE",
+      "active": true,
+      "raion": "Municipiul Chișinău",
+      "localitate": "Chișinău",
+      "strada": "bd. Ștefan cel Mare și Sfânt",
+      "casa": "41",
+      "bloc": "",
+      "etaj": "",
+      "oficiu": "",
+      "postal": "MD-2004",
+      "approvedBy": "De Supervizor",
+      "phone": "+37322383311",
+      "email": "ee@anre.md",
+      "raioane": [
+        "Municipiul Chișinău"
+      ]
+    },
+    {
+      "id": "sub-directia-arhitectura-si-urbanism-sectoru",
+      "authorityId": "aut-pmc",
+      "name": "Direcția arhitectură și urbanism — sectorul Centru",
+      "nameEn": "Architecture and Urbanism Directorate — Centru sector",
+      "nameRu": "",
+      "type": "Subdiviziune de prestare servicii",
+      "prefix": "PMC-CE",
+      "active": true,
+      "raion": "Municipiul Chișinău",
+      "localitate": "Chișinău",
+      "strada": "bd. Ștefan cel Mare și Sfânt",
+      "casa": "70",
+      "bloc": "",
+      "etaj": "",
+      "oficiu": "",
+      "postal": "MD-2004",
+      "approvedBy": "De Director",
+      "phone": "+37322853209",
+      "email": "urbanism.centru@chisinau.md",
+      "raioane": [
+        "Municipiul Chișinău"
+      ]
+    },
+    {
+      "id": "sub-directia-arhitectura-si-urbanism-sectoru-2",
+      "authorityId": "aut-pmc",
+      "name": "Direcția arhitectură și urbanism — sectorul Botanica",
+      "nameEn": "Architecture and Urbanism Directorate — Botanica sector",
+      "nameRu": "",
+      "type": "Subdiviziune de prestare servicii",
+      "prefix": "PMC-BO",
+      "active": true,
+      "raion": "Municipiul Chișinău",
+      "localitate": "Chișinău",
+      "strada": "bd. Ștefan cel Mare și Sfânt",
+      "casa": "8",
+      "bloc": "",
+      "etaj": "",
+      "oficiu": "",
+      "postal": "MD-2004",
+      "approvedBy": "De Director",
+      "phone": "+37322465631",
+      "email": "urbanism.botanica@chisinau.md",
+      "raioane": [
+        "Municipiul Chișinău"
+      ]
+    },
+    {
+      "id": "sub-directia-arhitectura-si-urbanism-sectoru-3",
+      "authorityId": "aut-pmc",
+      "name": "Direcția arhitectură și urbanism — sectorul Buiucani",
+      "nameEn": "Architecture and Urbanism Directorate — Buiucani sector",
+      "nameRu": "",
+      "type": "Subdiviziune de prestare servicii",
+      "prefix": "PMC-BU",
+      "active": true,
+      "raion": "Municipiul Chișinău",
+      "localitate": "Chișinău",
+      "strada": "bd. Ștefan cel Mare și Sfânt",
+      "casa": "17",
+      "bloc": "",
+      "etaj": "",
+      "oficiu": "",
+      "postal": "MD-2004",
+      "approvedBy": "De Specialist",
+      "phone": "+37322746980",
+      "email": "urbanism.buiucani@chisinau.md",
+      "raioane": [
+        "Municipiul Chișinău"
+      ]
+    },
+    {
+      "id": "sub-directia-arhitectura-si-urbanism-sectoru-4",
+      "authorityId": "aut-pmc",
+      "name": "Direcția arhitectură și urbanism — sectorul Ciocana",
+      "nameEn": "Architecture and Urbanism Directorate — Ciocana sector",
+      "nameRu": "",
+      "type": "Subdiviziune de prestare servicii",
+      "prefix": "PMC-CI",
+      "active": true,
+      "raion": "Municipiul Chișinău",
+      "localitate": "Chișinău",
+      "strada": "bd. Ștefan cel Mare și Sfânt",
+      "casa": "22",
+      "bloc": "",
+      "etaj": "3",
+      "oficiu": "",
+      "postal": "MD-2004",
+      "approvedBy": "De Director",
+      "phone": "+37322755877",
+      "email": "urbanism.ciocana@chisinau.md",
+      "raioane": [
+        "Municipiul Chișinău"
+      ]
+    },
+    {
+      "id": "sub-directia-arhitectura-si-urbanism-sectoru-5",
+      "authorityId": "aut-pmc",
+      "name": "Direcția arhitectură și urbanism — sectorul Rîșcani",
+      "nameEn": "Architecture and Urbanism Directorate — Rîșcani sector",
+      "nameRu": "",
+      "type": "Subdiviziune de prestare servicii",
+      "prefix": "",
+      "active": false,
+      "raion": "Municipiul Chișinău",
+      "localitate": "Chișinău",
+      "strada": "bd. Ștefan cel Mare și Sfânt",
+      "casa": "110",
+      "bloc": "",
+      "etaj": "",
+      "oficiu": "",
+      "postal": "MD-2004",
+      "approvedBy": "De Specialist",
+      "phone": "+37322865591",
+      "email": "urbanism.riscani@chisinau.md",
+      "raioane": [
+        "Municipiul Chișinău"
+      ],
+      "inactiveCause": "manual"
+    },
+    {
+      "id": "sub-directia-generala-arhitectura-urbanism-s",
+      "authorityId": "aut-pmc",
+      "name": "Direcția generală arhitectură, urbanism și relații funciare",
+      "nameEn": "General Directorate of Architecture, Urbanism and Land Relations",
+      "nameRu": "",
+      "type": "Subdiviziune de prestare servicii",
+      "prefix": "PMC-DGAURF",
+      "active": true,
+      "raion": "Municipiul Chișinău",
+      "localitate": "Chișinău",
+      "strada": "bd. Ștefan cel Mare și Sfânt",
+      "casa": "91",
+      "bloc": "",
+      "etaj": "",
+      "oficiu": "",
+      "postal": "MD-2004",
+      "approvedBy": "De Supervizor",
+      "phone": "+37322859707",
+      "email": "dgaurf@chisinau.md",
+      "raioane": [
+        "Municipiul Chișinău"
+      ]
+    },
+    {
+      "id": "sub-serviciul-autorizare-activitati-comercia",
+      "authorityId": "aut-pmc",
+      "name": "Serviciul autorizare activități comerciale",
+      "nameEn": "Commercial Activity Permits Service",
+      "nameRu": "",
+      "type": "Subdiviziune de prestare servicii",
+      "prefix": "PMC-AC",
+      "active": true,
+      "raion": "Municipiul Chișinău",
+      "localitate": "Chișinău",
+      "strada": "bd. Ștefan cel Mare și Sfânt",
+      "casa": "73",
+      "bloc": "",
+      "etaj": "",
+      "oficiu": "",
+      "postal": "MD-2004",
+      "approvedBy": "De Supervizor",
+      "phone": "+37322937148",
+      "email": "comert@chisinau.md",
+      "raioane": [
+        "Municipiul Chișinău"
+      ]
+    },
+    {
+      "id": "sub-serviciul-urbanism-si-arhitectura-balti",
+      "authorityId": "aut-pmb",
+      "name": "Serviciul urbanism și arhitectură Bălți",
+      "nameEn": "Urbanism and Architecture Service Bălți",
+      "nameRu": "",
+      "type": "Subdiviziune de prestare servicii",
+      "prefix": "URB-MB",
+      "active": true,
+      "raion": "Municipiul Bălți",
+      "localitate": "Bălți",
+      "strada": "str. Independenței",
+      "casa": "48",
+      "bloc": "",
+      "etaj": "",
+      "oficiu": "",
+      "postal": "MD-3100",
+      "approvedBy": "De Supervizor",
+      "phone": "+37323112706",
+      "email": "urbanism@balti.md",
+      "raioane": [
+        "Municipiul Bălți"
+      ]
+    },
+    {
+      "id": "sub-serviciul-autorizare-activitati-comercia-2",
+      "authorityId": "aut-pmb",
+      "name": "Serviciul autorizare activități comerciale Bălți",
+      "nameEn": "Commercial Permits Service Bălți",
+      "nameRu": "",
+      "type": "Subdiviziune de prestare servicii",
+      "prefix": "COM-MB",
+      "active": true,
+      "raion": "Municipiul Bălți",
+      "localitate": "Bălți",
+      "strada": "str. Independenței",
+      "casa": "11",
+      "bloc": "",
+      "etaj": "",
+      "oficiu": "",
+      "postal": "MD-3100",
+      "approvedBy": "De Specialist",
+      "phone": "+37323183116",
+      "email": "comert@balti.md",
+      "raioane": [
+        "Municipiul Bălți"
+      ]
+    },
+    {
+      "id": "sub-serviciul-urbanism-si-arhitectura-cahul",
+      "authorityId": "aut-pcahul",
+      "name": "Serviciul urbanism și arhitectură Cahul",
+      "nameEn": "Urbanism and Architecture Service Cahul",
+      "nameRu": "",
+      "type": "Subdiviziune de prestare servicii",
+      "prefix": "URB-CA",
+      "active": true,
+      "raion": "Raionul Cahul",
+      "localitate": "Cahul",
+      "strada": "str. Republicii",
+      "casa": "89",
+      "bloc": "",
+      "etaj": "",
+      "oficiu": "",
+      "postal": "MD-3900",
+      "approvedBy": "De Supervizor",
+      "phone": "+37329963793",
+      "email": "urbanism@cahul.md",
+      "raioane": [
+        "Raionul Cahul"
+      ]
+    },
+    {
+      "id": "sub-serviciul-autorizare-activitati-comercia-3",
+      "authorityId": "aut-pcahul",
+      "name": "Serviciul autorizare activități comerciale Cahul",
+      "nameEn": "Commercial Permits Service Cahul",
+      "nameRu": "",
+      "type": "Subdiviziune de prestare servicii",
+      "prefix": "COM-CAH",
+      "active": true,
+      "raion": "Raionul Cahul",
+      "localitate": "Cahul",
+      "strada": "str. Republicii",
+      "casa": "28",
+      "bloc": "",
+      "etaj": "",
+      "oficiu": "",
+      "postal": "MD-3900",
+      "approvedBy": "De Specialist",
+      "phone": "+37329964085",
+      "email": "comert@cahul.md",
+      "raioane": [
+        "Raionul Cahul"
+      ]
+    },
+    {
+      "id": "sub-serviciul-urbanism-si-arhitectura-comrat",
+      "authorityId": "aut-pcomrat",
+      "name": "Serviciul urbanism și arhitectură Comrat",
+      "nameEn": "Urbanism and Architecture Service Comrat",
+      "nameRu": "",
+      "type": "Subdiviziune de prestare servicii",
+      "prefix": "URB-CO",
+      "active": true,
+      "raion": "UTA Găgăuzia",
+      "localitate": "Comrat",
+      "strada": "str. Lenin",
+      "casa": "93",
+      "bloc": "",
+      "etaj": "3",
+      "oficiu": "",
+      "postal": "MD-3800",
+      "approvedBy": "De Director",
+      "phone": "+37329869341",
+      "email": "urbanism@comrat.md",
+      "raioane": [
+        "UTA Găgăuzia"
+      ]
+    },
+    {
+      "id": "sub-serviciul-urbanism-si-arhitectura-orhei",
+      "authorityId": "aut-porhei",
+      "name": "Serviciul urbanism și arhitectură Orhei",
+      "nameEn": "Urbanism and Architecture Service Orhei",
+      "nameRu": "",
+      "type": "Subdiviziune de prestare servicii",
+      "prefix": "URB-OR",
+      "active": true,
+      "raion": "Raionul Orhei",
+      "localitate": "Orhei",
+      "strada": "str. Vasile Lupu",
+      "casa": "51",
+      "bloc": "",
+      "etaj": "3",
+      "oficiu": "",
+      "postal": "MD-3500",
+      "approvedBy": "De Supervizor",
+      "phone": "+37323566284",
+      "email": "urbanism@orhei.md",
+      "raioane": [
+        "Raionul Orhei"
+      ]
+    },
+    {
+      "id": "sub-serviciul-autorizare-activitati-comercia-4",
+      "authorityId": "aut-porhei",
+      "name": "Serviciul autorizare activități comerciale Orhei",
+      "nameEn": "Commercial Permits Service Orhei",
+      "nameRu": "",
+      "type": "Subdiviziune de prestare servicii",
+      "prefix": "COM-ORH",
+      "active": true,
+      "raion": "Raionul Orhei",
+      "localitate": "Orhei",
+      "strada": "str. Vasile Lupu",
+      "casa": "5",
+      "bloc": "",
+      "etaj": "",
+      "oficiu": "",
+      "postal": "MD-3500",
+      "approvedBy": "De Supervizor",
+      "phone": "+37323538735",
+      "email": "comert@orhei.md",
+      "raioane": [
+        "Raionul Orhei"
+      ]
+    },
+    {
+      "id": "sub-serviciul-urbanism-si-arhitectura-unghen",
+      "authorityId": "aut-pungheni",
+      "name": "Serviciul urbanism și arhitectură Ungheni",
+      "nameEn": "Urbanism and Architecture Service Ungheni",
+      "nameRu": "",
+      "type": "Subdiviziune de prestare servicii",
+      "prefix": "URB-UN",
+      "active": true,
+      "raion": "Raionul Ungheni",
+      "localitate": "Ungheni",
+      "strada": "str. Națională",
+      "casa": "3",
+      "bloc": "",
+      "etaj": "3",
+      "oficiu": "",
+      "postal": "MD-3600",
+      "approvedBy": "De Supervizor",
+      "phone": "+37323694008",
+      "email": "urbanism@ungheni.md",
+      "raioane": [
+        "Raionul Ungheni"
+      ]
+    },
+    {
+      "id": "sub-serviciul-urbanism-si-arhitectura-soroca",
+      "authorityId": "aut-psoroca",
+      "name": "Serviciul urbanism și arhitectură Soroca",
+      "nameEn": "Urbanism and Architecture Service Soroca",
+      "nameRu": "",
+      "type": "Subdiviziune de prestare servicii",
+      "prefix": "URB-SO",
+      "active": true,
+      "raion": "Raionul Soroca",
+      "localitate": "Soroca",
+      "strada": "str. Independenței",
+      "casa": "54",
+      "bloc": "",
+      "etaj": "",
+      "oficiu": "",
+      "postal": "MD-3000",
+      "approvedBy": "De Supervizor",
+      "phone": "+37323060014",
+      "email": "urbanism@soroca.md",
+      "raioane": [
+        "Raionul Soroca"
+      ]
+    },
+    {
+      "id": "sub-serviciul-urbanism-si-arhitectura-edinet",
+      "authorityId": "aut-pedinet",
+      "name": "Serviciul urbanism și arhitectură Edineț",
+      "nameEn": "Urbanism and Architecture Service Edineț",
+      "nameRu": "",
+      "type": "Subdiviziune de prestare servicii",
+      "prefix": "",
+      "active": false,
+      "raion": "Raionul Edineț",
+      "localitate": "Edineț",
+      "strada": "str. Independenței",
+      "casa": "68",
+      "bloc": "",
+      "etaj": "",
+      "oficiu": "13",
+      "postal": "MD-4601",
+      "approvedBy": "De Supervizor",
+      "phone": "+37324666798",
+      "email": "",
+      "raioane": [],
+      "inactiveCause": "authority"
+    },
+    {
+      "id": "sub-serviciul-urbanism-si-arhitectura-hinces",
+      "authorityId": "aut-phincesti",
+      "name": "Serviciul urbanism și arhitectură Hîncești",
+      "nameEn": "Urbanism and Architecture Service Hîncești",
+      "nameRu": "",
+      "type": "Subdiviziune de prestare servicii",
+      "prefix": "URB-HN",
+      "active": true,
+      "raion": "Raionul Hîncești",
+      "localitate": "Hîncești",
+      "strada": "str. Libertății",
+      "casa": "87",
+      "bloc": "",
+      "etaj": "",
+      "oficiu": "5",
+      "postal": "MD-3401",
+      "approvedBy": "De Director",
+      "phone": "+37326956274",
+      "email": "urbanism@hincesti.md",
+      "raioane": [
+        "Raionul Hîncești"
+      ]
+    },
+    {
+      "id": "sub-serviciul-urbanism-si-arhitectura-strase",
+      "authorityId": "aut-pstraseni",
+      "name": "Serviciul urbanism și arhitectură Strășeni",
+      "nameEn": "Urbanism and Architecture Service Strășeni",
+      "nameRu": "",
+      "type": "Subdiviziune de prestare servicii",
+      "prefix": "URB-ST",
+      "active": true,
+      "raion": "Raionul Strășeni",
+      "localitate": "Strășeni",
+      "strada": "str. Libertății",
+      "casa": "118",
+      "bloc": "",
+      "etaj": "3",
+      "oficiu": "",
+      "postal": "MD-3701",
+      "approvedBy": "De Supervizor",
+      "phone": "+37323738063",
+      "email": "urbanism@straseni.md",
+      "raioane": [
+        "Raionul Strășeni"
+      ]
+    },
+    {
+      "id": "sub-serviciul-urbanism-si-arhitectura-ialove",
+      "authorityId": "aut-pialoveni",
+      "name": "Serviciul urbanism și arhitectură Ialoveni",
+      "nameEn": "Urbanism and Architecture Service Ialoveni",
+      "nameRu": "",
+      "type": "Subdiviziune de prestare servicii",
+      "prefix": "URB-IL",
+      "active": true,
+      "raion": "Raionul Ialoveni",
+      "localitate": "Ialoveni",
+      "strada": "str. 31 August",
+      "casa": "59",
+      "bloc": "",
+      "etaj": "",
+      "oficiu": "4",
+      "postal": "MD-6801",
+      "approvedBy": "De Director",
+      "phone": "+37326874580",
+      "email": "urbanism@ialoveni.md",
+      "raioane": [
+        "Raionul Ialoveni"
+      ]
+    },
+    {
+      "id": "sub-serviciul-urbanism-si-arhitectura-causen",
+      "authorityId": "aut-pcauseni",
+      "name": "Serviciul urbanism și arhitectură Căușeni",
+      "nameEn": "Urbanism and Architecture Service Căușeni",
+      "nameRu": "",
+      "type": "Subdiviziune de prestare servicii",
+      "prefix": "URB-CS",
+      "active": true,
+      "raion": "Raionul Căușeni",
+      "localitate": "Căușeni",
+      "strada": "str. Mărțișor",
+      "casa": "15",
+      "bloc": "",
+      "etaj": "",
+      "oficiu": "",
+      "postal": "MD-4301",
+      "approvedBy": "De Specialist",
+      "phone": "+37324371965",
+      "email": "urbanism@causeni.md",
+      "raioane": [
+        "Raionul Căușeni"
+      ]
+    },
+    {
+      "id": "sub-inspectia-ecologica-chisinau",
+      "authorityId": "aut-ipm",
+      "name": "Inspecția ecologică Chișinău",
+      "nameEn": "Chișinău Ecological Inspection",
+      "nameRu": "",
+      "type": "Subdiviziune de avizare",
+      "prefix": "IPM-CH",
+      "active": true,
+      "raion": "Municipiul Chișinău",
+      "localitate": "Chișinău",
+      "strada": "bd. Ștefan cel Mare și Sfânt",
+      "casa": "34",
+      "bloc": "",
+      "etaj": "3",
+      "oficiu": "",
+      "postal": "MD-2004",
+      "approvedBy": "De Supervizor",
+      "phone": "+37322176271",
+      "email": "chisinau@ipm.gov.md",
+      "raioane": [
+        "Municipiul Chișinău"
+      ]
+    },
+    {
+      "id": "sub-inspectia-ecologica-balti",
+      "authorityId": "aut-ipm",
+      "name": "Inspecția ecologică Bălți",
+      "nameEn": "Bălți Ecological Inspection",
+      "nameRu": "",
+      "type": "Subdiviziune de avizare",
+      "prefix": "IPM-BL",
+      "active": true,
+      "raion": "Municipiul Bălți",
+      "localitate": "Bălți",
+      "strada": "str. Independenței",
+      "casa": "62",
+      "bloc": "",
+      "etaj": "",
+      "oficiu": "",
+      "postal": "MD-3100",
+      "approvedBy": "De Director",
+      "phone": "+37323170941",
+      "email": "ipm.balti@ipm.gov.md",
+      "raioane": [
+        "Municipiul Bălți"
+      ]
+    },
+    {
+      "id": "sub-inspectia-in-constructii-balti",
+      "authorityId": "aut-isc",
+      "name": "Inspecția în construcții Bălți",
+      "nameEn": "Bălți Construction Inspection",
+      "nameRu": "",
+      "type": "Subdiviziune de avizare",
+      "prefix": "ISC-BL",
+      "active": true,
+      "raion": "Municipiul Bălți",
+      "localitate": "Bălți",
+      "strada": "str. Independenței",
+      "casa": "81",
+      "bloc": "",
+      "etaj": "2",
+      "oficiu": "",
+      "postal": "MD-3100",
+      "approvedBy": "De Director",
+      "phone": "+37323161887",
+      "email": "isc.balti@isc.gov.md",
+      "raioane": [
+        "Municipiul Bălți"
+      ]
+    },
+    {
+      "id": "sub-inspectia-ecologica-cahul",
+      "authorityId": "aut-ipm",
+      "name": "Inspecția ecologică Cahul",
+      "nameEn": "Cahul Ecological Inspection",
+      "nameRu": "",
+      "type": "Subdiviziune de avizare",
+      "prefix": "IPM-CA",
+      "active": true,
+      "raion": "Raionul Cahul",
+      "localitate": "Cahul",
+      "strada": "str. Republicii",
+      "casa": "67",
+      "bloc": "",
+      "etaj": "",
+      "oficiu": "",
+      "postal": "MD-3900",
+      "approvedBy": "De Director",
+      "phone": "+37329951974",
+      "email": "ipm.cahul@ipm.gov.md",
+      "raioane": [
+        "Raionul Cahul"
+      ]
+    },
+    {
+      "id": "sub-inspectia-in-constructii-cahul",
+      "authorityId": "aut-isc",
+      "name": "Inspecția în construcții Cahul",
+      "nameEn": "Cahul Construction Inspection",
+      "nameRu": "",
+      "type": "Subdiviziune de avizare",
+      "prefix": "ISC-CA",
+      "active": true,
+      "raion": "Raionul Cahul",
+      "localitate": "Cahul",
+      "strada": "str. Republicii",
+      "casa": "21",
+      "bloc": "",
+      "etaj": "",
+      "oficiu": "",
+      "postal": "MD-3900",
+      "approvedBy": "De Specialist",
+      "phone": "+37329969341",
+      "email": "isc.cahul@isc.gov.md",
+      "raioane": [
+        "Raionul Cahul"
+      ]
+    },
+    {
+      "id": "sub-inspectia-ecologica-orhei",
+      "authorityId": "aut-ipm",
+      "name": "Inspecția ecologică Orhei",
+      "nameEn": "Orhei Ecological Inspection",
+      "nameRu": "",
+      "type": "Subdiviziune de avizare",
+      "prefix": "IPM-OR",
+      "active": true,
+      "raion": "Raionul Orhei",
+      "localitate": "Orhei",
+      "strada": "str. Vasile Lupu",
+      "casa": "109",
+      "bloc": "",
+      "etaj": "2",
+      "oficiu": "",
+      "postal": "MD-3500",
+      "approvedBy": "De Specialist",
+      "phone": "+37323583592",
+      "email": "ipm.orhei@ipm.gov.md",
+      "raioane": [
+        "Raionul Orhei"
+      ]
+    },
+    {
+      "id": "sub-inspectia-in-constructii-orhei",
+      "authorityId": "aut-isc",
+      "name": "Inspecția în construcții Orhei",
+      "nameEn": "Orhei Construction Inspection",
+      "nameRu": "",
+      "type": "Subdiviziune de avizare",
+      "prefix": "ISC-OR",
+      "active": true,
+      "raion": "Raionul Orhei",
+      "localitate": "Orhei",
+      "strada": "str. Vasile Lupu",
+      "casa": "111",
+      "bloc": "",
+      "etaj": "3",
+      "oficiu": "",
+      "postal": "MD-3500",
+      "approvedBy": "De Director",
+      "phone": "+37323573594",
+      "email": "isc.orhei@isc.gov.md",
+      "raioane": [
+        "Raionul Orhei"
+      ]
+    },
+    {
+      "id": "sub-inspectia-ecologica-soroca",
+      "authorityId": "aut-ipm",
+      "name": "Inspecția ecologică Soroca",
+      "nameEn": "Soroca Ecological Inspection",
+      "nameRu": "",
+      "type": "Subdiviziune de avizare",
+      "prefix": "IPM-SO",
+      "active": true,
+      "raion": "Raionul Soroca",
+      "localitate": "Soroca",
+      "strada": "str. Independenței",
+      "casa": "108",
+      "bloc": "",
+      "etaj": "",
+      "oficiu": "",
+      "postal": "MD-3000",
+      "approvedBy": "De Director",
+      "phone": "+37323054773",
+      "email": "ipm.soroca@ipm.gov.md",
+      "raioane": [
+        "Raionul Soroca"
+      ]
+    },
+    {
+      "id": "sub-inspectia-in-constructii-soroca",
+      "authorityId": "aut-isc",
+      "name": "Inspecția în construcții Soroca",
+      "nameEn": "Soroca Construction Inspection",
+      "nameRu": "",
+      "type": "Subdiviziune de avizare",
+      "prefix": "ISC-SO",
+      "active": true,
+      "raion": "Raionul Soroca",
+      "localitate": "Soroca",
+      "strada": "str. Independenței",
+      "casa": "49",
+      "bloc": "",
+      "etaj": "1",
+      "oficiu": "",
+      "postal": "MD-3000",
+      "approvedBy": "De Specialist",
+      "phone": "+37323034787",
+      "email": "isc.soroca@isc.gov.md",
+      "raioane": [
+        "Raionul Soroca"
+      ]
+    },
+    {
+      "id": "sub-inspectia-ecologica-ungheni",
+      "authorityId": "aut-ipm",
+      "name": "Inspecția ecologică Ungheni",
+      "nameEn": "Ungheni Ecological Inspection",
+      "nameRu": "",
+      "type": "Subdiviziune de avizare",
+      "prefix": "IPM-UN",
+      "active": true,
+      "raion": "Raionul Ungheni",
+      "localitate": "Ungheni",
+      "strada": "str. Națională",
+      "casa": "29",
+      "bloc": "",
+      "etaj": "",
+      "oficiu": "",
+      "postal": "MD-3600",
+      "approvedBy": "De Specialist",
+      "phone": "+37323622571",
+      "email": "ipm.ungheni@ipm.gov.md",
+      "raioane": [
+        "Raionul Ungheni"
+      ]
+    },
+    {
+      "id": "sub-inspectia-in-constructii-ungheni",
+      "authorityId": "aut-isc",
+      "name": "Inspecția în construcții Ungheni",
+      "nameEn": "Ungheni Construction Inspection",
+      "nameRu": "",
+      "type": "Subdiviziune de avizare",
+      "prefix": "ISC-UN",
+      "active": true,
+      "raion": "Raionul Ungheni",
+      "localitate": "Ungheni",
+      "strada": "str. Națională",
+      "casa": "20",
+      "bloc": "",
+      "etaj": "",
+      "oficiu": "",
+      "postal": "MD-3600",
+      "approvedBy": "De Supervizor",
+      "phone": "+37323668959",
+      "email": "isc.ungheni@isc.gov.md",
+      "raioane": [
+        "Raionul Ungheni"
+      ]
+    },
+    {
+      "id": "sub-inspectia-ecologica-hincesti",
+      "authorityId": "aut-ipm",
+      "name": "Inspecția ecologică Hîncești",
+      "nameEn": "Hîncești Ecological Inspection",
+      "nameRu": "",
+      "type": "Subdiviziune de avizare",
+      "prefix": "IPM-HN",
+      "active": true,
+      "raion": "Raionul Hîncești",
+      "localitate": "Hîncești",
+      "strada": "str. Libertății",
+      "casa": "113",
+      "bloc": "",
+      "etaj": "",
+      "oficiu": "",
+      "postal": "MD-3401",
+      "approvedBy": "De Specialist",
+      "phone": "+37326916912",
+      "email": "ipm.hincesti@ipm.gov.md",
+      "raioane": [
+        "Raionul Hîncești"
+      ]
+    },
+    {
+      "id": "sub-inspectia-in-constructii-hincesti",
+      "authorityId": "aut-isc",
+      "name": "Inspecția în construcții Hîncești",
+      "nameEn": "Hîncești Construction Inspection",
+      "nameRu": "",
+      "type": "Subdiviziune de avizare",
+      "prefix": "ISC-HN",
+      "active": false,
+      "raion": "Raionul Hîncești",
+      "localitate": "Hîncești",
+      "strada": "str. Libertății",
+      "casa": "66",
+      "bloc": "",
+      "etaj": "2",
+      "oficiu": "",
+      "postal": "MD-3401",
+      "approvedBy": "De Specialist",
+      "phone": "+37326951941",
+      "email": "isc.hincesti@isc.gov.md",
+      "raioane": [
+        "Raionul Hîncești"
+      ],
+      "inactiveCause": "manual"
+    },
+    {
+      "id": "sub-inspectia-in-constructii-chisinau",
+      "authorityId": "aut-isc",
+      "name": "Inspecția în construcții Chișinău",
+      "nameEn": "Chișinău Construction Inspection",
+      "nameRu": "",
+      "type": "Subdiviziune de avizare",
+      "prefix": "ISC-CH",
+      "active": true,
+      "raion": "Municipiul Chișinău",
+      "localitate": "Chișinău",
+      "strada": "bd. Ștefan cel Mare și Sfânt",
+      "casa": "119",
+      "bloc": "",
+      "etaj": "",
+      "oficiu": "",
+      "postal": "MD-2004",
+      "approvedBy": "De Supervizor",
+      "phone": "+37322117876",
+      "email": "chisinau@isc.gov.md",
+      "raioane": [
+        "Municipiul Chișinău"
+      ]
+    },
+    {
+      "id": "sub-bazinul-hidrografic-centru",
+      "authorityId": "aut-aam",
+      "name": "Bazinul hidrografic Centru",
+      "nameEn": "Centru River Basin",
+      "nameRu": "",
+      "type": "Subdiviziune de prestare servicii",
+      "prefix": "AAM-CE",
+      "active": true,
+      "raion": "Municipiul Chișinău",
+      "localitate": "Chișinău",
+      "strada": "bd. Ștefan cel Mare și Sfânt",
+      "casa": "70",
+      "bloc": "",
+      "etaj": "3",
+      "oficiu": "",
+      "postal": "MD-2004",
+      "approvedBy": "De Specialist",
+      "phone": "+37322743410",
+      "email": "bazin.centru@apelemoldovei.gov.md",
+      "raioane": [
+        "Municipiul Chișinău"
+      ]
+    },
+    {
+      "id": "sub-bazinul-hidrografic-nord",
+      "authorityId": "aut-aam",
+      "name": "Bazinul hidrografic Nord",
+      "nameEn": "Nord River Basin",
+      "nameRu": "",
+      "type": "Subdiviziune de prestare servicii",
+      "prefix": "AAM-NO",
+      "active": true,
+      "raion": "Municipiul Chișinău",
+      "localitate": "Chișinău",
+      "strada": "bd. Ștefan cel Mare și Sfânt",
+      "casa": "45",
+      "bloc": "",
+      "etaj": "1",
+      "oficiu": "",
+      "postal": "MD-2004",
+      "approvedBy": "De Specialist",
+      "phone": "+37322762817",
+      "email": "bazin.nord@apelemoldovei.gov.md",
+      "raioane": [
+        "Municipiul Chișinău"
+      ]
+    },
+    {
+      "id": "sub-bazinul-hidrografic-sud",
+      "authorityId": "aut-aam",
+      "name": "Bazinul hidrografic Sud",
+      "nameEn": "Sud River Basin",
+      "nameRu": "",
+      "type": "Subdiviziune de prestare servicii",
+      "prefix": "AAM-SU",
+      "active": true,
+      "raion": "Municipiul Chișinău",
+      "localitate": "Chișinău",
+      "strada": "bd. Ștefan cel Mare și Sfânt",
+      "casa": "82",
+      "bloc": "",
+      "etaj": "",
+      "oficiu": "",
+      "postal": "MD-2004",
+      "approvedBy": "De Supervizor",
+      "phone": "+37322967587",
+      "email": "bazin.sud@apelemoldovei.gov.md",
+      "raioane": [
+        "Municipiul Chișinău"
+      ]
+    },
+    {
+      "id": "sub-ocolul-silvic-nord",
+      "authorityId": "aut-moldsilva",
+      "name": "Ocolul silvic Nord",
+      "nameEn": "Nord Forestry District",
+      "nameRu": "",
+      "type": "Subdiviziune de prestare servicii",
+      "prefix": "MS-N",
+      "active": true,
+      "raion": "Municipiul Chișinău",
+      "localitate": "Chișinău",
+      "strada": "bd. Ștefan cel Mare și Sfânt",
+      "casa": "117",
+      "bloc": "",
+      "etaj": "",
+      "oficiu": "12",
+      "postal": "MD-2004",
+      "approvedBy": "De Supervizor",
+      "phone": "+37322131986",
+      "email": "ocol.nord@moldsilva.gov.md",
+      "raioane": [
+        "Municipiul Chișinău"
+      ]
+    },
+    {
+      "id": "sub-ocolul-silvic-centru",
+      "authorityId": "aut-moldsilva",
+      "name": "Ocolul silvic Centru",
+      "nameEn": "Centru Forestry District",
+      "nameRu": "",
+      "type": "Subdiviziune de prestare servicii",
+      "prefix": "MS-C",
+      "active": true,
+      "raion": "Municipiul Chișinău",
+      "localitate": "Chișinău",
+      "strada": "bd. Ștefan cel Mare și Sfânt",
+      "casa": "14",
+      "bloc": "",
+      "etaj": "1",
+      "oficiu": "",
+      "postal": "MD-2004",
+      "approvedBy": "De Specialist",
+      "phone": "+37322998953",
+      "email": "ocol.centru@moldsilva.gov.md",
+      "raioane": [
+        "Municipiul Chișinău"
+      ]
+    },
+    {
+      "id": "sub-ocolul-silvic-sud",
+      "authorityId": "aut-moldsilva",
+      "name": "Ocolul silvic Sud",
+      "nameEn": "Sud Forestry District",
+      "nameRu": "",
+      "type": "Subdiviziune de prestare servicii",
+      "prefix": "MS-S",
+      "active": true,
+      "raion": "Municipiul Chișinău",
+      "localitate": "Chișinău",
+      "strada": "bd. Ștefan cel Mare și Sfânt",
+      "casa": "53",
+      "bloc": "",
+      "etaj": "",
+      "oficiu": "",
+      "postal": "MD-2004",
+      "approvedBy": "De Director",
+      "phone": "+37322750205",
+      "email": "ocol.sud@moldsilva.gov.md",
+      "raioane": [
+        "Municipiul Chișinău"
+      ]
+    },
+    {
+      "id": "sub-directia-migratie-si-azil-chisinau",
+      "authorityId": "aut-igm",
+      "name": "Direcția migrație și azil Chișinău",
+      "nameEn": "Chișinău Migration and Asylum Directorate",
+      "nameRu": "",
+      "type": "Subdiviziune de prestare servicii",
+      "prefix": "IGM-CH",
+      "active": true,
+      "raion": "Municipiul Chișinău",
+      "localitate": "Chișinău",
+      "strada": "bd. Ștefan cel Mare și Sfânt",
+      "casa": "65",
+      "bloc": "",
+      "etaj": "",
+      "oficiu": "",
+      "postal": "MD-2004",
+      "approvedBy": "De Specialist",
+      "phone": "+37322263070",
+      "email": "chisinau@igm.gov.md",
+      "raioane": [
+        "Municipiul Chișinău"
+      ]
+    },
+    {
+      "id": "sub-directia-migratie-si-azil-balti",
+      "authorityId": "aut-igm",
+      "name": "Direcția migrație și azil Bălți",
+      "nameEn": "Bălți Migration and Asylum Directorate",
+      "nameRu": "",
+      "type": "Subdiviziune de prestare servicii",
+      "prefix": "IGM-BL",
+      "active": true,
+      "raion": "Municipiul Bălți",
+      "localitate": "Bălți",
+      "strada": "str. Independenței",
+      "casa": "33",
+      "bloc": "",
+      "etaj": "",
+      "oficiu": "",
+      "postal": "MD-3100",
+      "approvedBy": "De Specialist",
+      "phone": "+37323141618",
+      "email": "balti@igm.gov.md",
+      "raioane": [
+        "Municipiul Bălți"
+      ]
+    },
+    {
+      "id": "sub-biroul-vamal-chisinau",
+      "authorityId": "aut-sv",
+      "name": "Biroul vamal Chișinău",
+      "nameEn": "Chișinău Customs Office",
+      "nameRu": "",
+      "type": "Subdiviziune de prestare servicii",
+      "prefix": "SV-CH",
+      "active": true,
+      "raion": "Municipiul Chișinău",
+      "localitate": "Chișinău",
+      "strada": "bd. Ștefan cel Mare și Sfânt",
+      "casa": "71",
+      "bloc": "",
+      "etaj": "",
+      "oficiu": "",
+      "postal": "MD-2004",
+      "approvedBy": "De Supervizor",
+      "phone": "+37322854733",
+      "email": "bv.chisinau@customs.gov.md",
+      "raioane": [
+        "Municipiul Chișinău"
+      ]
+    },
+    {
+      "id": "sub-biroul-vamal-cahul",
+      "authorityId": "aut-sv",
+      "name": "Biroul vamal Cahul",
+      "nameEn": "Cahul Customs Office",
+      "nameRu": "",
+      "type": "Subdiviziune de prestare servicii",
+      "prefix": "SV-CA",
+      "active": true,
+      "raion": "Raionul Cahul",
+      "localitate": "Cahul",
+      "strada": "str. Republicii",
+      "casa": "104",
+      "bloc": "",
+      "etaj": "",
+      "oficiu": "",
+      "postal": "MD-3900",
+      "approvedBy": "De Specialist",
+      "phone": "+37329917434",
+      "email": "bv.cahul@customs.gov.md",
+      "raioane": [
+        "Raionul Cahul"
+      ]
+    },
+    {
+      "id": "sub-biroul-vamal-balti",
+      "authorityId": "aut-sv",
+      "name": "Biroul vamal Bălți",
+      "nameEn": "Bălți Customs Office",
+      "nameRu": "",
+      "type": "Subdiviziune de prestare servicii",
+      "prefix": "SV-BL",
+      "active": true,
+      "raion": "Municipiul Bălți",
+      "localitate": "Bălți",
+      "strada": "str. Independenței",
+      "casa": "23",
+      "bloc": "",
+      "etaj": "",
+      "oficiu": "",
+      "postal": "MD-3100",
+      "approvedBy": "De Specialist",
+      "phone": "+37323152183",
+      "email": "bv.balti@customs.gov.md",
+      "raioane": [
+        "Municipiul Bălți"
+      ]
+    },
+    {
+      "id": "sub-inspectoratul-fiscal-principal-de-stat-d",
+      "authorityId": "aut-sfs",
+      "name": "Inspectoratul Fiscal Principal de Stat — direcția Chișinău",
+      "nameEn": "State Tax Inspectorate — Chișinău directorate",
+      "nameRu": "",
+      "type": "Subdiviziune de prestare servicii",
+      "prefix": "SFS-CH",
+      "active": true,
+      "raion": "Municipiul Chișinău",
+      "localitate": "Chișinău",
+      "strada": "bd. Ștefan cel Mare și Sfânt",
+      "casa": "53",
+      "bloc": "",
+      "etaj": "1",
+      "oficiu": "",
+      "postal": "MD-2004",
+      "approvedBy": "De Specialist",
+      "phone": "+37322760374",
+      "email": "ifps.chisinau@sfs.md",
+      "raioane": [
+        "Municipiul Chișinău"
+      ]
+    },
+    {
+      "id": "sub-inspectoratul-fiscal-principal-de-stat-d-2",
+      "authorityId": "aut-sfs",
+      "name": "Inspectoratul Fiscal Principal de Stat — direcția Bălți",
+      "nameEn": "State Tax Inspectorate — Bălți directorate",
+      "nameRu": "",
+      "type": "Subdiviziune de prestare servicii",
+      "prefix": "SFS-BL",
+      "active": true,
+      "raion": "Municipiul Bălți",
+      "localitate": "Bălți",
+      "strada": "str. Independenței",
+      "casa": "5",
+      "bloc": "",
+      "etaj": "3",
+      "oficiu": "",
+      "postal": "MD-3100",
+      "approvedBy": "De Director",
+      "phone": "+37323167092",
+      "email": "ifps.balti@sfs.md",
+      "raioane": [
+        "Municipiul Bălți"
+      ]
     }
   ],
   "rssp": {

@@ -304,7 +304,11 @@
      icon-only „Filtre” in the search row (phone-toolbar-v2, `data-filter-all`; no facet chips) → the all-filters sheet with THAT facet's section
      open and the others folded (so a value click can only hit this facet) */
   const ffFacet = async (h, facet) => {
-    if (!window.matchMedia("(max-width: 760px)").matches) { await h.click(`[data-filter-facet="${facet}"]`); return; }
+    if (!window.matchMedia("(max-width: 760px)").matches) {
+      /* a facet behind „Mai multe” (cfg inlineMax): the menu first */
+      if (!document.querySelector(`[data-filter-facet="${facet}"]`) && document.querySelector("[data-filter-more]")) { await h.click("[data-filter-more]"); await h.click(`[data-filter-more-facet="${facet}"]`); return; }
+      await h.click(`[data-filter-facet="${facet}"]`); return;
+    }
     const SHEET = '.e-permits-filter-sheet.is-all[aria-hidden="false"]';
     if (!document.querySelector(SHEET)) { await h.click("[data-filter-all]"); await h.find(`${SHEET} .bottom-sheet__panel`); await h.wait(400); }
     document.querySelectorAll(`${SHEET} [data-sheet-toggle][aria-expanded="true"]`).forEach((t) => { if (t.dataset.sheetToggle !== facet) t.click(); });
@@ -623,6 +627,7 @@
     "abs-05": absList(SUP),
     "abs-05a": absList(SUP, async (h) => { await h.fill("[data-workplace-search]", "Popescu", { leave: false }); }),
     "abs-05b": absList(SUP, async (h) => { await h.click('[data-workplace-tab="trecute"]'); }),
+    "abs-05o": absList(SUP, async (h) => { await h.fill("[data-workplace-search]", "zzzz", { leave: false }); }),
     "abs-05c": absList(LOCAL),
     "abs-05d": absList(ADMIN),
     "abs-05e": absList(SUP, async (h) => { await h.nth("[data-registry-kind='absente'] [data-abs-edit]", 0); await h.find(`${absModal} #abs-type`); }),
@@ -1634,6 +1639,71 @@
     "fo-s4b": supplementS4("#request-step-2", {}, async (h) => { await h.click("[data-fo-supplement-next]"); await h.find("[data-fo-step-panel='2']:not([hidden]) h1"); }),
     "fo-s4c": supplementS4("#request-step-2", { s5: "eroare" }, async (h) => { await h.click("[data-fo-supplement-next]"); await h.find("[data-fo-supplement-error]"); }),
     "fo-s4d": supplementS4("#suplinire", { suplinire: "GEAP-2026-009-09999" }),
+    /* ---- pps-… Suplinire informații for a POST-PROCESS request (2026-11-03; US-24 88527 S1–S9, US-25 88528 S4,
+       US-26 88529 S5, US-20 88480 S6, US-27 88530 S7, US-15 88156 MSign, US-28 88531 S8, US-19 88207 S9): the
+       Reperfectare of ASF-2026-04521 (Cafeneaua „Izvoraș”, SRL Global Trader, GEAP-2026-009-04571) suspended by CSP
+       Bălți. ?pps=info|expirat|trimis = the seed scenario (cabinet-evo-solicitari.json › scenarios). 01 Cabinet list
+       (+ ⋮) · 02 request profile · 02a notification · 02b the act's profile · 03 S4 · 04 S5 · 05 S6 · 06 S7 · 07 S8 ·
+       08 back in Cabinet · 09 term expired · 10 request unknown / already sent ---- */
+    ...(() => {
+      const NR = "GEAP-2026-009-04571";
+      const fo = (run, params = {}) => ({ page: PP_FO, flow: "full", hash: "#suplinire", params: { solicitant: "pj-global-trader", suplinire: NR, pps: "info", ...params }, ready: "#fo-supplement-title", run: async (h) => { await clearToasts(h); if (run) await run(h); } });
+      const panel = (n) => `[data-fo-step-panel='${n}']:not([hidden]) h1`;
+      const toS5 = async (h) => { await h.click("[data-fo-supplement-next]"); await h.find(panel(2)); await h.wait(300); };
+      const toS6 = async (h) => { await toS5(h); await h.click("[data-fo-step-panel='2'] [data-fo-next='step-2']"); await h.find(panel(3)); await h.wait(300); };
+      const toS7 = async (h) => { await toS6(h); await h.click("[data-fo-step-panel='3'] [data-fo-next='step-3']"); await h.find(panel(4)); await h.wait(300); };
+      const sign = async (h) => { await h.click("[data-fo-supp-sign]"); await h.find("[data-fo-supp-send]"); await h.wait(200); };
+      const send = async (h) => { await h.click("[data-fo-supp-send]"); await h.find(panel(7)); await h.wait(400); };
+      /* the stepper row (hidden on phones — the same click, dispatched) */
+      const stepRow = async (h, n) => { document.querySelector(`[data-fo-screen='request'] [data-fo-step='${n}'] .e-permits-fo-stepper__row`).click(); await h.wait(400); };
+      const status = async (h) => { await h.scroll("[data-fo-supp-status]:not([hidden])"); };
+      const cab = (run, params = {}, hash = "") => sm(run, { pps: "info", ...params }, hash);
+      const row = async (h) => { await smFind(h, "d-izvoras-reperf"); };
+      const note = (text) => async (h) => { await h.scroll(".nt-item", text); };
+      return {
+        "pps-01": cab(row),
+        "pps-01a": cab(smMenu("d-izvoras-reperf")),
+        "pps-02": cab(null, {}, "#dosar/d-izvoras-reperf"),
+        "pps-02a": { page: CAB, params: { view: "notificari", pps: "info" }, ready: ".nt-item, .cab-state", run: note("Autoritatea a cerut informații suplimentare") },
+        "pps-02b": { page: CAB, params: { pps: "info" }, ready: "[data-cab-card]", run: async (h) => { await h.click("[data-cab-card='act-izvoras'] .e-permits-fo-lib-item__title"); await h.wait(300); } },
+        "pps-03": fo(),
+        "pps-03a": fo(async (h) => { await h.click("[data-fo-supplement-next]"); await h.find("[data-fo-supplement-error]"); }, { s5: "eroare" }),
+        "pps-04": fo(toS5),
+        /* US-26 AC-02: the object name emptied → „Înainte” stops with the inline message */
+        "pps-04a": fo(async (h) => { await toS5(h); await h.fill("#fo-object-name", "", { leave: false }); await h.click("[data-fo-step-panel='2'] [data-fo-next='step-2']"); await h.wait(300); }),
+        /* US-26 AC-04: Raion / Municipiu locked (scrolled to the address) */
+        "pps-04b": fo(async (h) => { await toS5(h); await h.scroll("[data-fo-step-panel='2'] [data-fo-cascade-raion]"); }),
+        "pps-05": fo(toS6),
+        /* US-20 AC-06: the requested document's file removed → „Înainte” → required */
+        "pps-05a": fo(async (h) => { await toS6(h); await h.click("[data-fo-doc-field='pp-change-docs'] .e-permits-fo-doc-attached-item__remove"); await h.click("[data-fo-step-panel='3'] [data-fo-next='step-3']"); await h.wait(300); }),
+        "pps-06": fo(toS7),
+        "pps-06a": fo(async (h) => { await toS7(h); await sign(h); await status(h); }),
+        /* US-24 AC-16: signed, back to S6, forward again → re-sign */
+        "pps-06b": fo(async (h) => { await toS7(h); await sign(h); await h.click("[data-fo-step-panel='4'] [data-fo-prev='step-4']"); await h.find(panel(3)); await h.click("[data-fo-step-panel='3'] [data-fo-next='step-3']"); await h.find(panel(4)); await status(h); }),
+        /* US-24 AC-17: MSign fails once */
+        "pps-06c": fo(async (h) => { await toS7(h); await h.click("[data-fo-supp-sign]"); await h.wait(200); await status(h); }, { msign: "eroare" }),
+        /* US-24 AC-15: „Confirmare” from the stepper before signing */
+        "pps-06d": fo(async (h) => { await toS7(h); await stepRow(h, 7); await status(h); }),
+        /* US-24 AC-13: back on S5, the object name emptied, then S7 from the stepper */
+        "pps-06e": fo(async (h) => { await toS5(h); await h.fill("#fo-object-name", "", { leave: false }); await stepRow(h, 4); await h.find(panel(4)); await status(h); }),
+        /* US-24 AC-21: the dossier does not reach the BO */
+        "pps-06f": fo(async (h) => { await toS7(h); await sign(h); await h.click("[data-fo-supp-send]"); await h.wait(300); await status(h); }, { retransmitere: "eroare" }),
+        /* US-27 AC-14: the signed request opens in the viewer (Descarcă) */
+        "pps-06g": fo(async (h) => { await toS7(h); await sign(h); await h.click("[data-fo-supp-form] [data-fo-doc-open]"); await h.find("#fo-certificate-modal.is-active"); await h.wait(300); }),
+        "pps-07": fo(async (h) => { await toS7(h); await sign(h); await send(h); }),
+        /* US-24 AC-20 / US-28 AC-04: back in Solicitările mele — success toast, „În derulare”, countdown gone */
+        "pps-08": cab(row, { pps: "trimis", suplinit: NR }),
+        "pps-08a": cab(async (h) => { await h.scroll("[data-sm-profile] .cab-timeline, [data-sm-profile]", "Informații suplimentare trimise"); }, { pps: "trimis" }, "#dosar/d-izvoras-reperf"),
+        "pps-08b": { page: CAB, params: { view: "notificari", pps: "trimis" }, ready: ".nt-item, .cab-state", run: note("Informațiile au fost transmise") },
+        /* US-24 AC-03 / US-19 AC-06: the term passed → „În derulare”, no suplinire action (list, profile, FO link) */
+        "pps-09": cab(row, { pps: "expirat" }),
+        "pps-09a": cab(null, { pps: "expirat" }, "#dosar/d-izvoras-reperf"),
+        "pps-09b": fo(null, { pps: "expirat" }),
+        /* a number the BO does not know · a link opened after the information was sent */
+        "pps-10": fo(null, { suplinire: "GEAP-2026-009-09998" }),
+        "pps-10a": fo(null, { pps: "trimis" })
+      };
+    })(),
     /* header instance switcher open (FOD 756:25276): trigger keeps the focus ring, menu right-aligned under it */
     "fo-01s": foReq(1, {}, async (h) => { await h.click("[data-fo-avatar-trigger]"); await h.find("[data-fo-avatar-dropdown]:not([hidden])"); }),
     "fo-02": foReq(1),
@@ -1986,7 +2056,8 @@
       await h.click("[data-fo-avatar-trigger]");
       await h.click("[data-fo-avatar-proxy-toggle]");
       await h.click("[data-fo-avatar-role][data-fo-subject-id='mpower-pj-nord-agro']");
-      await h.find("[data-fo-intent-empty]");
+      /* intent-skip-empty-v1: an identity without acts goes straight to the new request (step 1) */
+      await h.find("[data-fo-step-panel='1']:not([hidden]) h1");
     }),
     /* ---- US-54 Adresă prin cod cadastral (adr-): Form Designer › Address pattern › Data
        („Cod cadastral” row) and the request form, service 09 step 2 „Detalii solicitare” ---- */
@@ -3106,14 +3177,21 @@
       /* phones (≤760, facet filter phone mode): no toolbar button, a chip opens its bottom sheet and
          „Arată N rezultate” applies it — no „Confirmă” / „Aplică filtrele” */
       const phone = () => window.matchMedia("(max-width: 760px)").matches;
+      /* the end of a facet choice: phones „Arată N rezultate”; desktop = the live result, then Esc closes the dropdown */
+      const done = async (h) => {
+        if (phone()) { await h.click("[data-sheet-apply]"); await h.wait(400); return; }
+        await h.wait(350);
+        document.querySelector(".e-permits-workplace__filter-pop:not([hidden])")?.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
+        await h.wait(150);
+      };
       const pick = (facet, values) => async (h) => {
         await ffFacet(h, facet);
         for (const value of values) await h.click(`[data-filter-option][value="${value}"]`);
-        await h.click(phone() ? "[data-sheet-apply]" : "[data-filter-confirm]");
-        if (phone()) await h.wait(400);
+        await done(h);
       };
       const open = async (h) => { if (!phone()) await h.click("[data-rap-filter-toggle]"); };
-      const commit = async (h) => { if (!phone()) await h.click("[data-filter-commit]"); };
+      /* RAP desktop applies as you tick (liveApply, 2026-11-04): no „Aplică filtre” — kept as a no-op guard */
+      const commit = async (h) => { const btn = [...document.querySelectorAll("[data-filter-commit]")].find((el) => el.getClientRects().length); if (!phone() && btn) await h.click("[data-filter-commit]"); };
       return {
         "rap-01": rap(null),
         "rap-01a": rap(open),
@@ -3139,10 +3217,9 @@
         "rap-01g": rap(async (h) => { await h.click('[data-record-id="rap-0002"] a'); await h.wait(300); await h.click("[data-rap-company-permits]"); await h.wait(300); }),
         /* company view („Vezi toate (N)”): the company card + the act counts in a separate grey card */
         "rap-01d": rap(async (h) => {
-          /* phones: the sheet lists only values that still have rows (no dead ends), so the empty
-             result comes from one filter + a search that matches nothing */
-          if (phone()) { await pick("beneficiar", ["Persoană fizică"])(h); await h.fill("[data-rap-search]", "zzzz", { leave: false }); await h.wait(600); return; }
-          await open(h); await pick("status", ["Suspendat"])(h); await pick("beneficiar", ["Persoană fizică"])(h); await commit(h);
+          /* the lists offer only values that still have rows (no dead ends), so the empty result comes from one filter +
+             a search that matches nothing */
+          await open(h); await pick("beneficiar", ["Persoană fizică"])(h); await h.fill("[data-rap-search]", "zzzz", { leave: false }); await h.wait(600);
         }),
         /* phones (≤760): the facet filter's phone mode — ONE „Filtre” pill (2026-10-20, no facet chips) →
            the all-filters sheet; 04a / 04b open it on Statut / Autoritate (search when > 7 values), 04c
@@ -3169,6 +3246,94 @@
             }),
           };
         })(),
+        /* US-141 (rap-filter-v1, 2026-11-04) — one state per AC, desktop = chips → popover → Confirmă → „Aplică filtre”,
+           phones = „Filtre” → sheet section → „Arată N rezultate” (the same ids). f02 / f03 long lists (≥ 1 act only; 4
+           registry authorities have none), -e = the RAP API list error; f07 / f08 one-ended ranges; f09 De la after Până la;
+           f10 AND of three facets; f11 + search; f12 „Aplică filtre” with nothing left; f13 the trigger clicked again (chips
+           stay); f14 × on one chip; f15 „Resetează filtrele” from page 3; f16 page 2 keeps the filters; f18 no result;
+           f19 PF anonymised; f20 the API down on applying */
+        ...(() => {
+          const RAPAPI = (value, run) => ({ ...rap(run), params: { rapapi: value } });
+          const day = async (h, facet, from, to) => { if (!document.querySelector(`[data-filter-date-input="${facet}"]`)) await ffFacet(h, facet); if (from) await ffDay(h, facet, "from", from); if (to) await ffDay(h, facet, "to", to); };
+          const ok = done;
+          const range = (facet, from, to) => async (h) => { await day(h, facet, from, to); await ok(h); };
+          const three = async (h) => {
+            await open(h);
+            await pick("status", ["Valabil"])(h);
+            await pick("autoritate", ["Agenția Națională pentru Siguranța Alimentelor"])(h);
+            await range("emitere", "2024-06-01", "")(h);
+            await commit(h);
+          };
+          /* the next page: the phone pager's „›” step, the desktop pager's next link */
+          const nextPage = async (h) => { const sel = [...document.querySelectorAll('[data-pager-step="next"], .pagination__link--next')].find((el) => el.getClientRects().length); if (sel) { sel.click(); await h.wait(400); } };
+          const ANSA = async (h) => { await open(h); await pick("autoritate", ["Agenția Națională pentru Siguranța Alimentelor"])(h); await commit(h); };
+          return {
+            "rap-f01": rap(open),
+            "rap-f02": rap(async (h) => { await open(h); await ffFacet(h, "autoritate"); await h.wait(200); }),
+            "rap-f02e": RAPAPI("eroare-autoritati", async (h) => { await open(h); await ffFacet(h, "autoritate"); await h.wait(200); }),
+            "rap-f03": rap(async (h) => { await open(h); await ffFacet(h, "denumire"); await h.wait(200); }),
+            "rap-f03e": RAPAPI("eroare-tipuri", async (h) => { await open(h); await ffFacet(h, "denumire"); await h.wait(200); }),
+            "rap-f04": rap(ANSA),
+            /* chip-count-v1: three authorities ticked → „Autoritate emitentă (3)” + × (no values on the chip) */
+            "rap-f04b": rap(async (h) => { await open(h); await pick("autoritate", ["Agenția Națională pentru Siguranța Alimentelor", "Agenția Servicii Publice", "Inspectoratul General pentru Situații de Urgență"])(h); await commit(h); }),
+            "rap-f05": rap(async (h) => { await open(h); await pick("denumire", ["Permis de folosință specială a apei"])(h); await commit(h); }),
+            "rap-f06": rap(async (h) => { await open(h); await ffFacet(h, "status"); await h.wait(200); }),
+            "rap-f06a": rap(async (h) => { await open(h); await pick("status", ["Aprobat tacit"])(h); await commit(h); }),
+            "rap-f07": rap(async (h) => { await open(h); await range("emitere", "2026-01-01", "")(h); await commit(h); }),
+            "rap-f07a": rap(async (h) => { await open(h); await day(h, "emitere", "2026-01-01", ""); }),
+            "rap-f08": rap(async (h) => { await open(h); await range("expirare", "", "2027-12-31")(h); await commit(h); }),
+            /* desktop: the error shows as soon as the second date is entered (live), nothing is applied; phones: on „Arată” */
+            "rap-f09": rap(async (h) => { await open(h); await day(h, "emitere", "2026-05-10", "2026-03-01"); if (phone()) await h.click("[data-sheet-apply]"); await h.wait(300); }),
+            "rap-f10": rap(three),
+            "rap-f11": rap(async (h) => { await h.fill("[data-rap-search]", "notificare"); await h.wait(400); await open(h); await pick("status", ["Valabil"])(h); await commit(h); }),
+            "rap-f12": rap(async (h) => {
+              await open(h); await pick("status", ["Valabil"])(h); await commit(h);
+              await pick("status", ["Valabil"])(h); /* untick it: nothing left → the full list, no error */
+              await commit(h);
+            }),
+            "rap-f13": rap(async (h) => { await three(h); if (!phone()) { await h.click("[data-rap-filter-toggle]"); await h.wait(200); } }),
+            /* AC-14: × on the Statut chip removes that filter, the other two stay */
+            "rap-f14": rap(async (h) => {
+              await three(h);
+              await h.click('[data-filter-facet-clear="status"]'); await h.wait(300);
+            }),
+            /* selected-first-v1: the Autoritate list reopened with 3 ticked — the ticked ones on top, a divider, the rest */
+            "rap-f04c": rap(async (h) => {
+              await open(h); await pick("autoritate", ["Agenția Națională pentru Siguranța Alimentelor", "Agenția Servicii Publice", "Inspectoratul General pentru Situații de Urgență"])(h); await commit(h);
+              if (phone()) { await h.click('[data-rap-filters] [data-filter-facet="autoritate"]'); await h.wait(400); return; }
+              await h.click('[data-filter-facet="autoritate"]'); await h.wait(200);
+            }),
+            "rap-f15": rap(async (h) => {
+              await open(h); await pick("status", ["Valabil"])(h); await range("emitere", "2024-01-01", "")(h); await commit(h);
+              await nextPage(h); await nextPage(h);
+              await h.click(phone() ? "[data-rap-filters] [data-filter-clear-all]" : "[data-rap-reset]"); await h.wait(300);
+            }),
+            "rap-f16": rap(async (h) => { await ANSA(h); await nextPage(h); }),
+            /* „Data emiterii” popover with both dates filled (desktop: wide enough for two full date fields) · both date
+               facets applied = two chips „Emis: …” + „Expiră până la …” · „Mai multe” open (Tip beneficiar, Subdiviziune) · a
+               value applied from „Mai multe” (its chip joins the row) */
+            "rap-f07b": rap(async (h) => { await open(h); await day(h, "emitere", "2026-01-01", "2026-06-30"); }),
+            "rap-f07c": rap(async (h) => { await open(h); await range("emitere", "2024-01-01", "2024-12-31")(h); await range("expirare", "", "2029-12-31")(h); await commit(h); }),
+            "rap-fm": rap(async (h) => { await open(h); if (!phone()) await h.click("[data-filter-more]"); else { await h.click("[data-filter-all]"); await h.wait(400); } }),
+            "rap-fm1": rap(async (h) => {
+              await open(h); await ffFacet(h, "subdiviziune");
+              await h.fill("[data-filter-search]", "CSP B", { leave: false }); await h.wait(400);
+              await h.click("[data-filter-option]"); await done(h);
+            }),
+            /* search suggestions (rap-suggest-v1): „chis” → Acte / Companii / Adrese groups · ↓ highlights the first ·
+               an address picked → „Adresă: …” chip + × · nothing matches → „Nicio potrivire” */
+            "rap-fs1": rap(async (h) => { await h.fill("[data-rap-search]", "chis", { leave: false }); await h.wait(600); }),
+            "rap-fs1a": rap(async (h) => { await h.fill("[data-rap-search]", "farm", { leave: false }); await h.wait(600); }),
+            "rap-fs2": rap(async (h) => {
+              await h.fill("[data-rap-search]", "bălți", { leave: false }); await h.wait(600);
+              await h.click('.rap-suggest [data-rap-suggest-i]:not(.is-disabled):last-of-type'); await h.wait(400);
+            }),
+            "rap-fs3": rap(async (h) => { await h.fill("[data-rap-search]", "zzqx", { leave: false }); await h.wait(600); }),
+            "rap-f18": rap(async (h) => { await open(h); await range("emitere", "2030-01-01", "")(h); await commit(h); }),
+            "rap-f19": rap(async (h) => { await open(h); await pick("beneficiar", ["Persoană fizică"])(h); await commit(h); }),
+            "rap-f20": RAPAPI("eroare-filtrare", async (h) => { await open(h); await pick("status", ["Valabil"])(h); await commit(h); })
+          };
+        })(),
         /* a very long act name (Figma comment A. 1968942771): one line + ellipsis, the full name in the
            shared tooltip on hover · a tacitly approved act: only the blue „Aprobare tacită” badge in Statut */
         "rap-01e": rap(async (h) => { await h.scroll('tr[data-record-id="rap-0015"]'); await h.hover('tr[data-record-id="rap-0015"] .rap-act-link'); await h.wait(300); }),
@@ -3181,7 +3346,7 @@
             await h.click('[data-filter-option][value="Aprobat tacit"]'); await h.click("[data-sheet-apply]"); await h.wait(400);
             return;
           }
-          await open(h); await pick("status", ["Aprobat tacit"])(h); await h.click("[data-filter-commit]");
+          await open(h); await pick("status", ["Aprobat tacit"])(h); await commit(h);
         }),
         /* the shared EVO header (evo-header-v1, Figma Components 912:18991 / 1210:5257): menus open. Desktop: Servicii ⌄
            (≤1100 „Meniu ⌄”) mega menu; phones: ☰ → the full-screen menu (State=Active) */
@@ -3498,7 +3663,7 @@
     "ek-22d": ek("#ek-clients", null, { params: { ek: "eroare" }, ready: ".e-permits-empty-cell" }),
     "ek-22e": ek("#ek-clients", null, { params: { ek: "incarcare" }, ready: ".e-permits-empty-cell" }),
     /* multi-value tag cell: one line, „+N” with every value in the tooltip (focus shows it at once) */
-    "ek-22f": ekList("#ek-clients", async (h) => { const el = await h.focus('tr[data-workplace-row="maib-app"] .e-permits-workplace__user-role-more:not([hidden])'); el.dispatchEvent(new FocusEvent("focusin", { bubbles: true })); await h.wait(300); }),
+    "ek-22f": ekList("#ek-clients", async (h) => { const el = await h.focus('tr[data-workplace-row="maib-app"] [data-tag-more]:not([hidden])'); el.dispatchEvent(new FocusEvent("focusin", { bubbles: true })); await h.wait(300); }),
     "ek-23": ekDet("#ek-client/maib-app/configuratie"),
     "ek-23a": ekDet("#ek-client/maib-app/jurnal"),
     "ek-23b": ekDet("#ek-client/maib-app/configuratie", async (h) => { await h.click('[data-ekcfg="client-toggle"]'); }),
@@ -3715,6 +3880,13 @@
       await h.fill("#aut-casa", "12");
       await h.choose('[data-aut-field="approvedBy"]', "De Supervizor");
     };
+    /* Localități subordonate: open the shared multi-select, tick the raioane, Confirmă (keepOpen = leave the menu open) */
+    const pickRaioane = async (h, names, keepOpen = false) => {
+      await h.click("#fo-sub-raioane"); await h.wait(250);
+      for (const n of names) { const o = await h.find(`#fo-sub-raioane-menu [data-value="${n}"]`); o.dispatchEvent(new MouseEvent("mousedown", { bubbles: true, cancelable: true })); await h.wait(150); }
+      if (!keepOpen) { await h.click("#fo-sub-raioane-menu [data-fo-subgen-confirm]"); await h.wait(250); }
+      const body = document.querySelector("[data-aut-drawer] .drawer__body"); if (body) { body.scrollTop = body.scrollHeight; await h.wait(150); }
+    };
     const editSub = async (h) => { await h.click(".e-permits-page-header [data-sub-edit]"); await h.find(`${DRAWER} #aut-name`); };
     return {
       /* US-89 — list, search, filters, empty, access */
@@ -3785,12 +3957,14 @@
       "aut-08d": denied(SPEC, "#subdivisions"),
       "aut-08e": denied(LOCAL, "#subdiviziune/sub-anta-nord/general"),
       "aut-08f": listS(search("bălți")),
+      "aut-08g": listS(null, { subdiviziuni: "gol" }),
       /* US-93 — create a subdivision */
       "aut-09": listS(addSubList),
       "aut-09a": listS(addSubList, null, LOCAL),
       "aut-09b": prof("aut-ansp", "subdiviziuni", async (h) => { await h.click("#aut-panel [data-sub-new-for]"); await h.find(`${DRAWER} #aut-name`); }),
       "aut-09c": listS(seq(addSubList, save("[data-sub-save]"))),
-      "aut-09d": listS(seq(addSubList, async (h) => { await h.choose('[data-aut-field="raionPick"]', "Raionul Ungheni"); await h.click("[data-sub-raion-add]"); await h.choose('[data-aut-field="raionPick"]', "Raionul Ungheni"); await h.click("[data-sub-raion-add]"); })),
+      "aut-09h": listS(seq(addSubList, async (h) => { await pickRaioane(h, ["Raionul Ungheni", "Municipiul Bălți"], true); })),
+      "aut-09d": listS(seq(addSubList, async (h) => { await pickRaioane(h, ["Raionul Ungheni", "Municipiul Bălți"]); })),
       "aut-09e": prof("aut-ansp", "subdiviziuni", seq(async (h) => { await h.click("#aut-panel [data-sub-new-for]"); await h.find(`${DRAWER} #aut-name`); }, fillSub("CSP Bălți"), save("[data-sub-save]"), async (h) => { await h.find(CONFIRM); })),
       "aut-09f": listS(seq(addSubList, async (h) => { await h.choose('[data-aut-field="authorityId"]', "aut-ansp"); }, fillSub(), save("[data-sub-save]"), async (h) => { await h.find(PROFILE); })),
       "aut-09g": prof("aut-ansp", "subdiviziuni", seq(async (h) => { await h.click("#aut-panel [data-sub-new-for]"); await h.find(`${DRAWER} #aut-name`); }, fillSub(), save("[data-sub-save]"), async (h) => { await h.find(PROFILE); })),
@@ -3804,6 +3978,8 @@
       "aut-10f": sub("sub-csp-chisinau", "general", seq(editSub, async (h) => { await h.fill("#aut-casa", "8"); }, save("[data-sub-save]"))),
       "aut-10g": sub("sub-csp-chisinau", "general", null, null, LOCAL),
       /* the subdivision profile opened from the authority's tab: the top-bar chevron goes back to the authority */
+      "aut-10i": sub("sub-csp-chisinau", "general", seq(editSub, async (h) => { await pickRaioane(h, ["Raionul Orhei"], true); })),
+      "aut-10j": sub("sub-csp-chisinau", "general", seq(editSub, async (h) => { await pickRaioane(h, ["Raionul Orhei"]); }, save("[data-sub-save]"))),
       "aut-10h": prof("aut-ansp", "subdiviziuni", async (h) => { await h.click('#aut-panel [data-sub-open="sub-csp-balti"] .e-permits-stack__title'); await h.find(PROFILE); await h.wait(300); }),
       /* US-96 — activate / inactivate a subdivision */
       "aut-11": listS(seq(rowMenu("sub-csp-cahul"), async (h) => { await h.click('[data-sub-deactivate="sub-csp-cahul"]'); await h.find(CONFIRM); })),

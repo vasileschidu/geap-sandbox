@@ -43,7 +43,23 @@
           "object": "Cafeneaua „Izvoraș”, mun. Bălți", "address": "mun. Bălți, str. Independenței 12", "caem": "I 56.10 Restaurante",
           "subdivision": "CSP Bălți", "status": "schita", "created": "2026-10-08T16:40", "actId": "act-izvoras", "prevActNr": "ASF-2026-04521",
           "draft": { "step": 2, "stepLabel": "Detalii solicitare", "expires": "2026-11-07" },
-          "documents": []
+          "documents": [],
+          "scenarios": {
+            "_note": "pps-… (suplinire for a POST-PROCESS, US-24…28 + US-19): ?pps=info|expirat|trimis turns this draft into the filed reperfectare suspended by CSP Bălți (one reperfectare per act, so the draft is the same request). pps = the base, pps:<value> on top. Read by CabEvo.withScenario (Cabinet) and loadFrontOfficeSupplement (FO).",
+            "pps": {
+              "status": "info", "draft": null, "submitted": "2026-10-01T11:30", "suspended": "2026-10-08", "examTerm": "2026-10-29",
+              "info": {
+                "until": "2026-10-22",
+                "category": "Documente adiționale incorecte/incomplete",
+                "reason": "Decizia de redenumire anexată nu este semnată de asociatul unic. Anexați decizia semnată și verificați ca denumirea obiectului din cerere să coincidă cu cea din decizie.",
+                "docField": "pp-change-docs"
+              },
+              "form": { "reason": "Modificare administrativă fără necesitatea inspecției", "objectName": "Cafeneaua „Izvoraș”", "subgen": "Cafenea cu meniu cald" },
+              "files": { "pp-change-docs": { "name": "Decizie-redenumire-Izvoras.pdf", "size": "214 KB", "at": "1 octombrie 2026, 11:24" } }
+            },
+            "pps:expirat": { "submitted": "2026-09-15T10:10", "suspended": "2026-09-22", "examTerm": "2026-10-20", "info": { "until": "2026-10-06" } },
+            "pps:trimis": { "status": "derulare", "supplemented": "2026-10-12T14:10", "examTerm": "2026-10-19" }
+          }
         },
         {
           "id": "d-fresh", "nr": "GEAP-2026-009-04502", "service": "09", "tip": "Eliberare",

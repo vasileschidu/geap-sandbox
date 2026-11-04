@@ -77,6 +77,15 @@ const C = {
   status: await g("12241:493506"),      // Header status (State Default/Hover/Focus × Size Caption/Inline; Text) — 2026-10-21
 };
 const SMALL_500 = await figma.importStyleByKeyAsync("057521fde838188af42abf69eb3789f676421047"); // Desktop/Body/Small 500 (bold lead)
+// 2026-11-02 (aut-board pre-check): the Filtrare / Filtre chip icon = Foundations „filter-2, sort” 9644:319 (= code icon-filter-lines),
+// NEVER 20/filter 6432:30210 (key d7ef1839…, the sliders glyph — it was imported here until 2026-11-02). swapComponent leaves the glyph
+// black and unbound → re-bind every vector fill to icon/base/default (VariableID:1296:335).
+const FILTER_ICON = async (ic) => {
+  ic.swapComponent(await g("9644:319"));
+  const v = await figma.variables.getVariableByIdAsync("VariableID:1296:335");
+  for (const vec of ic.findAll((x) => /VECTOR|BOOLEAN_OPERATION|ELLIPSE|RECTANGLE/.test(x.type) && Array.isArray(x.fills) && x.fills.length))
+    vec.fills = vec.fills.map((p) => p.type === "SOLID" ? figma.variables.setBoundVariableForPaint(p, "color", v) : p);
+};
 const P = {
   edit: await g("10317:33373"),         // „Editează” Neutral Small with pen
   menu: await g("10317:33419"),         // ⋮ = button-filled-rectangular Neutral Icon-only Small, grey (no-continue-btn-v1, 2026-10-21; was Strict)
@@ -91,7 +100,7 @@ const P = {
 const V = (set, want) => set.children.find((c) => Object.entries(want).every(([k, v]) => c.name.includes(`${k}=${v}`)));
 for (const f of [["Onest", "Regular"], ["Onest", "Medium"], ["JetBrains Mono", "Regular"]]) await figma.loadFontAsync({ family: f[0], style: f[1] }).catch(() => {});
 const loadAll = async (t) => { for (const s of t.getStyledTextSegments(["fontName"])) await figma.loadFontAsync(s.fontName); };
-const textOf = (n) => (n.findAll ? n.findAll((x) => x.type === "TEXT").map((x) => x.characters).join(" ").trim() : "");
+const textOf = (n) => (n.type === "TEXT" ? n.characters.trim() : n.findAll ? n.findAll((x) => x.type === "TEXT").map((x) => x.characters).join(" ").trim() : "");
 const isErr = (f) => { const s = f.strokes && f.strokes[0]; return Boolean(s && s.type === "SOLID" && s.color.r > 0.7 && s.color.g < 0.4); };
 const setLabel = (i, t) => { const k = Object.keys(i.componentProperties).find((x) => x.startsWith("⌨️ Label")); if (k) i.setProperties({ [k]: t }); };
 const place = (old, inst, fill) => {
@@ -107,7 +116,8 @@ const place = (old, inst, fill) => {
 const absorbField = async (inst) => {
   const parent = inst.parent; if (!parent || !("children" in parent)) return;
   const kids = parent.children, i = kids.indexOf(inst);
-  const lbl = kids.slice(0, i).reverse().find((k) => k.type === "FRAME" && /^(Label|Text)$/.test(k.name) && k.findOne && k.findOne((t) => t.type === "TEXT"));
+  /* FO captures (2026-11-03): the label is a lowercase „label” frame with a „fo-required” star, or a bare TEXT */
+  const lbl = kids.slice(0, i).reverse().find((k) => (k.type === "FRAME" && /^(label|text)$/i.test(k.name) && k.findOne && k.findOne((t) => t.type === "TEXT")) || (k.type === "TEXT" && k === kids[i - 1]));
   /* only the plain text right after the control (hint / error paragraphs); stop at anything
      interactive (a row of buttons, chips, tokens…) — never absorb or delete controls */
   const after = [];
@@ -123,7 +133,7 @@ const absorbField = async (inst) => {
     if (t) inst.swapComponent(t);
   }
   const hasAssist = inst.mainComponent.children.some((c) => /inline-message|Assistive/i.test(c.name));
-  inst.setProperties({ "👁️ Label#132:24": Boolean(lbl), "👁️ Mandatory Star#316:0": Boolean(lbl && lbl.findOne((x) => /obligatoriu/i.test(x.name))), "👁️ Assistive Text#143:22": Boolean(afterText && hasAssist) });
+  inst.setProperties({ "👁️ Label#132:24": Boolean(lbl), "👁️ Mandatory Star#316:0": Boolean(lbl && lbl.findOne && lbl.findOne((x) => /obligatoriu|required/i.test(x.name))), "👁️ Assistive Text#143:22": Boolean(afterText && hasAssist) });
   if (lbl) { const lt = inst.findOne((t) => t.type === "TEXT" && t.name === "Label"); if (lt) { await loadAll(lt); lt.characters = textOf(lbl); } lbl.remove(); }
   if (afterText && hasAssist) { const msg = inst.children.find((c) => /inline-message|Assistive/i.test(c.name)); const mt = msg && msg.findOne((t) => t.type === "TEXT"); if (mt) { await loadAll(mt); mt.characters = afterText; } for (const a of after) a.remove(); }
 };
@@ -268,7 +278,7 @@ for (const rid of ROOTS) {
         const i = v.createInstance(); for (const t of i.findAll((x) => x.type === "TEXT")) await loadAll(t);
         const label = isTrig ? "Filtrare" : txt.replace(/\s*\d+\s*$/, "").trim();
         i.setProperties({ "⌨️ Label#217:90": label, "👁️ Counter Badge#439:0": Boolean(cnt) }); if (cnt) i.findOne((x) => x.name === "Badge label").characters = cnt;
-        if (isTrig) { const ic = i.children.find((x) => x.type === "INSTANCE" && /^\d+\//.test(x.name)); ic.swapComponent(await figma.importComponentByKeyAsync("d7ef1839769646e2b2d27b2a54d4b38787bcd775"));
+        if (isTrig) { const ic = i.children.find((x) => x.type === "INSTANCE" && /^\d+\//.test(x.name)); await FILTER_ICON(ic);
           const bo = h <= 37; if (bo) ic.resize(16, 16); i.layoutSizingVertical = "FIXED"; i.resize(i.width, bo ? 36 : 40);
           const rv = await figma.variables.importVariableByKeyAsync(bo ? "5c211831294ec4aee7827d006133784193921c22" : "dc82cc9d79935ad111db3189faf87c70772bed75");
           for (const k of ["topLeftRadius", "topRightRadius", "bottomLeftRadius", "bottomRightRadius"]) i.setBoundVariable(k, rv); }
@@ -447,16 +457,38 @@ for (const rid of ROOTS) {
         const i = (await g(pdIds.segCompact)).createInstance(); i.name = "Mode"; place(f, i); done.push("pd-modes"); continue;
       }
     }
-    if (/^(RSSP|SIA GEAP|Inactiv|Nepublicat|Tabel|Configurat)$/.test(txt) && h <= 24 && f.children?.length === 1 && f.children[0].type === "TEXT") {
+    // 2026-11-02 (aut-board pre-check): only a frame WITH a background is a tag — the BO registry source caption
+    // (`.e-permits-workplace__source` „RSSP” / „Creată manual” under the name, 12/16 tertiary text, no fill) stays text.
+    if (/^(RSSP|SIA GEAP|Inactiv|Nepublicat|Tabel|Configurat)$/.test(txt) && h <= 24 && f.children?.length === 1 && f.children[0].type === "TEXT" && Array.isArray(f.fills) && f.fills.some((p) => p.visible !== false && (p.opacity ?? 1) > 0.01)) {
       const i = V(C.tag, { "Type": "Subtle", "Style": txt === "SIA GEAP" ? "Brand" : "Neutral", "Icon": "None", "Size": "Small" }).createInstance();
       i.setProperties({ "⌨️ Label#387:32": txt }); i.name = "tag · " + txt; place(f, i); done.push("tag"); continue;
     }
   }
   for (const i of fields) await absorbField(i);
+  /* 2026-11-02 (aut-board pre-check, BO registries after figma.root „reg”/„post”): reg/swap turns the toolbar „Filtrare” into
+     button-filled-rectangular Neutral (`btn · Filtrare`) — the frame rule above never sees it. → library filter-chip 1244:34029
+     Unselected · Mono Selection · Icon Leading, BO 36 / radius-6, icon „filter-2, sort”. Sort headers captured as a rotated
+     chevron (`Icon:transform` with the 20/chevron-bottom glyph at 20/20) → 20/chevron-top at 0/0 (= lgt/listfix). Raw drawers
+     (`Dialog` with a `Navigation - …` step strip) are reported: run the drawer step (tools/figma/jurnalizare/drawer.js). */
+  for (const b of root.findAll((n) => n.type === "INSTANCE" && /^btn · (Filtrare|Filtre)( avansată)?$/.test(n.name))) {
+    const FC = await g("1244:34029"); const v = FC.children.find((c) => c.name === "🎚️ State=Unselected, 🎚️ Type=Mono Selection, 📍 Icon=Leading");
+    const i = v.createInstance(); for (const t of i.findAll((x) => x.type === "TEXT")) await loadAll(t);
+    i.setProperties({ "⌨️ Label#217:90": "Filtrare", "👁️ Counter Badge#439:0": false });
+    await FILTER_ICON(i.children.find((x) => x.type === "INSTANCE" && /^\d+\/|filter/.test(x.name))); 
+    const par = b.parent; par.insertChild(par.children.indexOf(b), i); i.layoutSizingVertical = "FIXED"; i.resize(i.width, 36);
+    const rv = await figma.variables.importVariableByKeyAsync("5c211831294ec4aee7827d006133784193921c22");
+    for (const k of ["topLeftRadius", "topRightRadius", "bottomLeftRadius", "bottomRightRadius"]) i.setBoundVariable(k, rv);
+    i.name = "filter chip · Filtrare"; b.remove(); done.push("filter-trigger-btn");
+  }
+  for (const f of root.findAll((n) => n.type === "FRAME" && n.name === "Icon:transform")) {
+    const ch = f.children[0]; if (!ch || ch.type !== "INSTANCE" || !/chevron-bottom/.test(ch.name) || Math.round(ch.x) !== 20) continue;
+    const n = (await figma.importComponentByKeyAsync("0e1e17107763411570b607bddc5de7061afdcb15")).createInstance(); f.appendChild(n); n.x = 0; n.y = 0; ch.remove(); f.name = "Sort icon"; done.push("sort-icon");
+  }
+  const rawDrawers = root.findAll((n) => n.type === "FRAME" && n.name === "Dialog" && n.findOne((x) => /^Header$/.test(x.name)) && n.findOne((x) => x.name === "Footer")).map((n) => "Dialog (raw drawer → jurnalizare/drawer.js) " + n.id);
   // code tokens: the capture brings the system mono font → the design system's JetBrains Mono
   for (const t of root.findAll((x) => x.type === "TEXT")) { const segs = t.getStyledTextSegments(["fontName"]); if (segs.some((s) => /Mono|Menlo|Consolas/.test(s.fontName.family) && s.fontName.family !== "JetBrains Mono")) { t.fontName = { family: "JetBrains Mono", style: "Regular" }; done.push("mono"); } }
   const left = root.findAll((n) => n.type === "FRAME" && (/^(Button\b|Button - |Text Input)/.test(n.name) || (n.name === "message" && n.findOne((x) => x.name === "banner__icon")))).map((n) => `${n.name.slice(0, 40)} (${n.id})`);
   const counts = {}; done.forEach((d) => { counts[d] = (counts[d] || 0) + 1; });
-  report[rid] = { counts, unmapped: left.slice(0, 20), innerShadow: await globalThis.NO_INNER_SHADOW([root]) }; // no INNER_SHADOW anywhere (2026-10-24)
+  report[rid] = { counts, unmapped: [...rawDrawers, ...left].slice(0, 20), innerShadow: await globalThis.NO_INNER_SHADOW([root]) }; // no INNER_SHADOW anywhere (2026-10-24)
 }
 return report;

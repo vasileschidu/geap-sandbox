@@ -92,3 +92,9 @@ li:has(> .e-permits-empty:only-child) {
   justify-content: center;
   margin-top: var(--spacing-20, 20px);
 }
+
+/* empty-table-v1 (2026-11-02): a table whose body is only the empty state shows no column header row — the empty
+   state is centred in the card, horizontally and vertically (the toolbar above stays). */
+table:has(> tbody > .e-permits-empty-row:only-child) > thead {
+  display: none;
+}

@@ -20,7 +20,8 @@
 //   4. copy — copy-variant / copy-in-list / missing-copy (spec.copy).
 //   5. back navigation — crumb-trail / back-link (spec.backNav).
 //   6. action icons — action-icon / action-icon-colour (spec.actionIcons).
-//   8. tooltips — tooltip-private / tooltip-title (spec.tooltip): ONE runtime, js/icon-tooltip.js (tooltip-one-v1).
+//   8. tooltips — tooltip-private / tooltip-title / tooltip-arrow / tooltip-look / tooltip-centered (spec.tooltip): ONE
+//      runtime, js/icon-tooltip.js (tooltip-one-v1), ONE look css/tooltip.css, edge-aligned (tooltip-edge-v1).
 //   9. drawers — drawer-private (spec.drawer): ONE drawer, .drawer-overlay > aside.drawer (drawer-v1).
 //   10. skeletons — skeleton-private (spec.skeleton): ONE .skeleton + --text / --input / --block / --circle (skeleton-v1).
 //   11. radios — radio-private / radio-size / radio-colour / radio-text (spec.radio): ONE radio = Figma Components 13:34
@@ -542,6 +543,30 @@ const PAGE_LIB = (spec, documentedList) => {
         if (!vis(el) || ignored(el) || el.matches(allowTip) || el.closest(allowTip)) continue;
         add("major", "tooltip-private", el, [...el.classList].filter((c) => /tooltip/.test(c)).join("."), "the library .tooltip via js/icon-tooltip.js (data-tooltip-label / -text / -hint / -reason, data-cell-tooltip)");
       }
+      /* tooltip-edge-v1 (2026-11-02, user: „the small one, left or right depending on the position, not center” + „only
+         the body, no arrow”): a visible tooltip has no arrow (tooltip-arrow, major), left-aligned text (tooltip-look,
+         major) and, above / below its trigger, sits on the trigger's left edge — or its right edge near the right 16
+         gutter; centred while one of those fits = tooltip-centered (major). The trigger = `tip.__tooltipTarget`
+         (js/icon-tooltip.js, js/copy-value.js) or the hovered [data-ca-trigger]. */
+      const vwT = document.documentElement.clientWidth || window.innerWidth;
+      for (const tipEl of qsa(".tooltip")) {
+        if (!vis(tipEl) || ignored(tipEl)) continue;
+        const arrow = tipEl.querySelector(".tooltip-arrow");
+        if (arrow && vis(arrow)) add("major", "tooltip-arrow", arrow, "a visible tooltip arrow", "no arrow on any tooltip — the body of the Components Small tooltip only (css/tooltip.css)");
+        const innerEl = tipEl.querySelector(".tooltip-inner") || tipEl;
+        const ta = getComputedStyle(innerEl).textAlign;
+        if (!/^(start|left)$/.test(ta)) add("major", "tooltip-look", innerEl, `text-align ${ta}`, "left-aligned text (css/tooltip.css)");
+        const trg = tipEl.__tooltipTarget || document.querySelector("[data-ca-trigger]");
+        if (!trg || !trg.isConnected || trg.contains(tipEl)) continue;
+        const tr = trg.getBoundingClientRect(); const r = tipEl.getBoundingClientRect();
+        const vertical = r.bottom <= tr.top + 1 || r.top >= tr.bottom - 1;
+        if (!vertical) continue;
+        const startX = tr.left < 0 ? 8 : tr.left, endX = Math.min(tr.right, vwT - 8);
+        const onStart = Math.abs(r.left - startX) <= 1.5, onEnd = Math.abs(r.right - endX) <= 1.5;
+        if (onStart || onEnd) continue;
+        const startFits = startX + r.width <= vwT - 16, endFits = endX - r.width >= 8;
+        if (startFits || endFits) add("major", "tooltip-centered", tipEl, `left ${Math.round(r.left)} / right ${Math.round(r.right)} vs trigger ${Math.round(tr.left)}–${Math.round(tr.right)}`, `edge-aligned: left edge on the trigger's left edge${startFits ? "" : ", or right edge on its right edge"} (GEAPTooltip.align)`);
+      }
       for (const el of qsa(TT.interactive)) {
         if (!el.hasAttribute("title") || !el.getAttribute("title").trim() || ignored(el) || !vis(el) || TT.titleExempt.some((s) => el.matches(s))) continue;
         add("major", "tooltip-title", el, `title="${el.getAttribute("title").slice(0, 40)}"`, "data-tooltip-label / data-tooltip-text / data-cell-tooltip (js/icon-tooltip.js) — or no title when it repeats the visible text / aria-label");
@@ -734,6 +759,17 @@ const PAGE_LIB = (spec, documentedList) => {
         counts.headBorder = (counts.headBorder || 0) + 1;
         add("major", "redundant-heading-border", el, `heading border-bottom ${cs.borderBottomWidth} above .${ownClasses(nx).slice(0, 2).join(".") || nx.tagName.toLowerCase()} (${why.join(" · ")})`, "heading border OFF when a bordered / filled container follows; the gap comes from the 8/16/24 rhythm");
       }
+    }
+    /* 13. empty-table-header (empty-table-v1, 2026-11-02): a table with a visible column header row but 0 data rows
+       (only the full-width empty-state row, or nothing) = major; the empty state stands alone, centred in the card. */
+    for (const table of qsa("table")) {
+      if (!vis(table) || ignored(table)) continue;
+      const head = table.tHead?.rows[0];
+      if (!head || !vis(head)) continue;
+      const data = [...table.tBodies].flatMap((b) => [...b.rows]).filter((r) => vis(r) && !r.matches(".e-permits-empty-row") && !r.querySelector(":scope > td[colspan] > .e-permits-empty:only-child"));
+      if (data.length) continue;
+      counts.emptyHead = (counts.emptyHead || 0) + 1;
+      add("major", "empty-table-header", head, `column header row visible over an empty body (${head.cells.length} columns, 0 data rows)`, "no header row while the table has no data rows; the empty state (GEAPEmptyState) is centred in the card");
     }
     return { viewport: `${window.innerWidth}`, phone, counts, findings };
   };

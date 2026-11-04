@@ -795,16 +795,37 @@ html.is-filter-sheet-open .e-permits-fo-testcfg {
   white-space: nowrap;
 }
 
+/* the chip × (chip-close-v2, 2026-11-04, user: „the × is too small”): the library chip close (round, transparent,
+   hover fill, focus ring) at a bigger hit area — 24 with icon 20 on desktop, 32 with icon 24 on phones; icon = the
+   chip label colour. Date chips everywhere + the RAP count chips (`chipClose`) */
 .e-permits-workplace__filter-chip--date .chip__close {
   color: inherit;
   cursor: pointer;
   flex: 0 0 auto;
+  height: var(--spacing-24, 24px);
   padding: 0;
+  width: var(--spacing-24, 24px);
 }
 
 .e-permits-workplace__filter-chip--date .chip__close .icon {
-  height: var(--spacing-16, 16px);
-  width: var(--spacing-16, 16px);
+  height: var(--icon-size-medium, 20px);
+  width: var(--icon-size-medium, 20px);
+}
+
+@media (max-width: 760px) {
+  .e-permits-workplace__filter-chip--date .chip__close {
+    height: var(--spacing-32, 32px);
+    width: var(--spacing-32, 32px);
+  }
+
+  .e-permits-workplace__filter-chip--date .chip__close .icon {
+    height: var(--icon-size-default, 24px);
+    width: var(--icon-size-default, 24px);
+  }
+
+  .chip.e-permits-workplace__filter-chip--date {
+    padding-right: var(--spacing-4, 4px);
+  }
 }
 
 /* on the black chip: one step lighter than the chip's own hover (the library blue-sky-200 was white on pale blue) */
@@ -878,4 +899,66 @@ html.is-filter-sheet-open .e-permits-fo-testcfg {
 /* the chip button itself takes the chip's hover colour (the whole chip lightens; the button is the hovered element) */
 .chip.is-selected.e-permits-workplace__filter-chip--date .chip__label:hover {
   background-color: var(--color-background-base-inverse-default-hover, #383838);
+}
+
+/* ==========================================================================
+   Applied value chips + list errors (rap-filter-v1, 2026-11-04, RAP US-141 AC-02/03/13/14; cfg opt-in
+   `valueChips` / `phoneChips`, a facet `unavailable`, a date facet with `presets: []`)
+   - count chip (`chipClose`) = the date chip's library „chip with close” group (`--date` look) + `--value`: the facet
+     label + the numbered badge (chip-count-v1: never the values) + ×;
+   - phones: the applied chips wrap above the „N rezultate găsite · Resetează filtrele” line, 8 apart;
+   - a facet whose list could not be loaded: the compact bare empty state (circle-error) in the popover / sheet;
+   - a plain range (no presets): De la / Până la start at the popover's top padding.
+   ========================================================================== */
+
+@media (max-width: 760px) {
+  .e-permits-workplace__filters.is-sheets > .e-permits-workplace__filter-chips {
+    flex-wrap: wrap;
+    gap: var(--spacing-8, 8px);
+    padding-bottom: var(--spacing-4, 4px);
+  }
+
+  .e-permits-workplace__filters.is-sheets > .e-permits-workplace__filter-chips[hidden] {
+    display: none;
+  }
+}
+
+.e-permits-workplace__filter-unavailable {
+  padding: var(--spacing-12, 12px);
+}
+
+.e-permits-workplace__filter-pop:has(> .e-permits-workplace__filter-unavailable):focus-visible {
+  outline: none;
+}
+
+.e-permits-workplace__filter-range--only {
+  padding-top: var(--spacing-12, 12px);
+}
+
+.e-permits-filter-sheet .e-permits-workplace__filter-range--only {
+  padding-top: var(--spacing-8, 8px);
+}
+
+/* a plain De la / Până la date facet (`presets: []`, RAP Data emiterii / Data expirării): the desktop popover is wide
+   enough for two full date fields (ZZ/LL/AAAA + calendar icon) side by side — 2 × 11rem + 12 between + 16 each side;
+   phones = the sheet, full width */
+.e-permits-fo-intent-menu.e-permits-workplace__filter-pop--date:has(.e-permits-workplace__filter-range--only) {
+  width: calc(2 * 11rem + var(--spacing-12, 12px) + 2 * var(--spacing-16, 16px));
+}
+
+.e-permits-workplace__filter-pop--date .e-permits-workplace__filter-range--only {
+  gap: var(--spacing-8, 8px) var(--spacing-12, 12px);
+  padding: var(--spacing-16, 16px);
+}
+
+/* selected-first-v1: ticked values on top, then the menu divider (as .e-permits-fo-intent-menu__separator), then the rest */
+.e-permits-workplace__filter-list > .e-permits-workplace__filter-separator {
+  border-top: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
+  list-style: none;
+  margin: var(--spacing-4, 4px) var(--spacing-8, 8px);
+  padding: 0;
+}
+
+.e-permits-filter-sheet .e-permits-workplace__filter-list > .e-permits-workplace__filter-separator {
+  margin: var(--spacing-8, 8px) var(--spacing-16, 16px);
 }

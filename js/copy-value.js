@@ -29,10 +29,12 @@
      </span>
    compact = `copy-value copy-value--compact`, no svg.
 
-   Feedback = ONE shared library plain tooltip (.tooltip.tooltip--small.tooltip--plain), above the element and centred on
-   it (4 away; below when there is no room): „Copiază” on hover (600 ms, at once while warm / on keyboard focus) → on a
+   Feedback = the ONE tooltip body (.tooltip.tooltip--small.tooltip--plain + css/tooltip.css), above the element, 4 away
+   (below when there is no room), placed by the shared GEAPTooltip.align (tooltip-edge-v1: left edge on the element's
+   left edge, right edge on its right edge near the right gutter, centred only as a last resort; text left-aligned).
+   Its own node only for the label morph: „Copiază” on hover (600 ms, at once while warm / on keyboard focus) → on a
    copy „Copiază” slides 8 to the left while fading out, „✓ Copiat” (green 20 check + 12/16 text) fades in, and the box
-   width grows to fit it around the same centre (225 ms, decelerate; an instant swap with prefers-reduced-motion),
+   width grows to fit it from the anchored edge (225 ms, decelerate; an instant swap with prefers-reduced-motion),
    stays 1 500 ms, then fades out. A polite live region says
    „Copiat”. Clipboard: navigator.clipboard → execCommand("copy") on a hidden textarea → the value text is selected
    and the tooltip says to press Ctrl+C / ⌘C. The click is handled in the CAPTURE phase on the document and stopped
@@ -114,7 +116,7 @@
     selection.addRange(range);
   }
 
-  /* ---- tooltip (one shared node, the library plain tooltip) ------------------------------------ */
+  /* ---- tooltip (the ONE tooltip body, own node for the morph) ---------------------------------- */
   let tip = null;
   let inner = null;
   let live = null;
@@ -126,8 +128,8 @@
 
   const reduced = () => Boolean(REDUCED?.matches);
 
-  /* the three labels share one cell: the active one is in flow (sets the width), the others sit centred on top of it,
-     transparent — so a switch is a cross-fade + slide while the width animates around the same centre */
+  /* the three labels share one cell: the active one is in flow (sets the width), the others sit on its left padding,
+     transparent — so a switch is a cross-fade + slide while the width animates from the anchored edge */
   const ensureTip = () => {
     if (tip) return tip;
     tip = document.createElement("div");
@@ -160,8 +162,9 @@
 
   const labels = () => [...inner.querySelectorAll(".copy-value__tip-label")];
 
-  /* above the element, centred on it (translate −50% in CSS); below when there is no room above. The centre is
-     clamped with the WIDEST label, so a width change never pushes the tooltip into the screen edge */
+  /* above the element (below when there is no room), aligned by the shared GEAPTooltip.align with the WIDEST label, so
+     the „Copiat” width change never pushes it into the screen edge. JS writes the anchored edge x: start = the left
+     edge, end = the right edge (CSS translate −100 %), center = the centre (−50 %) — the box grows from that edge */
   const place = () => {
     if (!tip || !target || !target.isConnected) return;
     const rect = target.getBoundingClientRect();
@@ -169,14 +172,19 @@
     const cs = getComputedStyle(inner);
     const padX = parseFloat(cs.paddingLeft) + parseFloat(cs.paddingRight);
     const widest = Math.max(inner.offsetWidth, ...labels().filter((label) => label.dataset.tip !== "select" || label.classList.contains("is-active")).map((label) => label.offsetWidth + padX));
-    let top = rect.top - GAP - height;
-    const below = top < EDGE;
-    if (below) top = rect.bottom + GAP;
-    tip.classList.toggle("is-below", below);
-    const half = widest / 2;
-    const centre = Math.max(EDGE + half, Math.min(rect.left + rect.width / 2, window.innerWidth - EDGE - half));
-    tip.style.top = `${Math.round(top + window.scrollY)}px`;
-    tip.style.left = `${Math.round(centre + window.scrollX)}px`;
+    const vw = document.documentElement.clientWidth || window.innerWidth;
+    const fallback = () => {
+      const top = rect.top - GAP - height >= EDGE ? rect.top - GAP - height : rect.bottom + GAP;
+      const start = rect.left + widest <= vw - 2 * EDGE; /* the right 16 gutter */
+      return { top, left: start ? rect.left : Math.max(EDGE, rect.right - widest), side: top < rect.top ? "top" : "bottom", align: start ? "start" : "end" };
+    };
+    const at = window.GEAPTooltip?.align ? window.GEAPTooltip.align(rect, widest, height, "top", GAP) : fallback();
+    tip.classList.toggle("is-below", at.side === "bottom");
+    tip.dataset.align = at.align;
+    tip.__tooltipTarget = target; /* read by tools/ui-qa/component-audit.mjs (tooltip-centered) */
+    const x = at.align === "end" ? at.left + widest : at.align === "center" ? at.left + widest / 2 : at.left;
+    tip.style.top = `${Math.round(at.top + window.scrollY)}px`;
+    tip.style.left = `${Math.round(x + window.scrollX)}px`;
   };
 
   const setKind = (kind, animate) => {

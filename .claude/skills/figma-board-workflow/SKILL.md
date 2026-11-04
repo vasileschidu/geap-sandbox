@@ -32,8 +32,8 @@ tabs = grey track line UNDER the blue line; textareas = library text area (re-ap
 the audit script does not flag captured textareas.
 
 ## 4. One agent per column / section (rule C) — models (rule D)
-- **Column 1 of a new board = `opus`** (design decisions, structure, block format, arrows pattern, Start here skeleton).
-- **Every following column = `sonnet`**, a NEW agent each time (an agent cannot change model mid-run, and a
+- **Every column that builds screens = `opus`** (user 2026-11-02: Sonnet misses conversion/judgement issues in Figma builds). Column 1 also sets structure, block format, arrows pattern, Start here skeleton.
+- **Every column = a NEW agent** (an agent cannot change model mid-run, and a
   fresh agent has a small context — every call re-sends everything the agent has seen).
 - Cap: ≈ 60 Figma calls per agent, one screen per call for heavy captures. Then it reports and ends.
 - One agent per Figma page at a time. Brief with exact node ids, state ids, scripts (`tools/figma/<topic>/README.md`),
@@ -60,5 +60,5 @@ pending decisions) and tell the user "safe to /clear". Never clear while agents 
 |---|---|---|
 | Pre-check (3 states) | coordinator inline / sonnet | 10–20 |
 | Column 1 | opus | ≤ 60 |
-| Columns 2…n | sonnet, fresh agent each | ≤ 60 each |
+| Columns 2…n | opus, fresh agent each | ≤ 60 each |
 | Finish (arrows, Start here, index, audit) | sonnet | ≤ 40 |

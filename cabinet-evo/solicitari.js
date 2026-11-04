@@ -148,6 +148,8 @@
      the FO never asks again in whose name (user rule 2026-10-13). */
   function foUrl(dosar, kind) {
     const query = new URLSearchParams({ flow: "full", solicitant: C.SUBJECT });
+    /* the demo scenario travels to the FO and back (pps-…) */
+    if (params.get("pps")) query.set("pps", params.get("pps"));
     if (kind === "draft") {
       query.set("schita", dosar.nr);
       if (dosar.pp && dosar.actId) { query.set("pp", dosar.pp); query.set("act", dosar.actId); }
@@ -892,7 +894,7 @@
     events.push((examining && !resumed ? open : done)(addDays(dosar.submitted, 1), "În examinare la autoritate", { ...authority, detail: examining && !resumed ? term : "" }));
     if (resumed) {
       events.push(done(dosar.suspended, "Informații suplimentare solicitate", { ...authority, detail: dosar.info?.until ? `Examinarea a fost suspendată până la ${longDate(dosar.info.until)}.` : "Examinarea a fost suspendată." }));
-      if (dosar.supplemented) events.push(done(dosar.supplemented, "Informații transmise", { ...applicant, detail: "Prin formularul de suplinire." }));
+      if (dosar.supplemented) events.push(done(dosar.supplemented, "Informații suplimentare trimise", { ...applicant, detail: "Semnate prin MSign, prin formularul de suplinire." }));
       else if (dosar.resumed?.kind === "expirat") events.push(done(dosar.info?.until, "Suspendare încheiată", { detail: "Termenul de suplinire a expirat; informațiile cerute nu au fost transmise." }));
       if (examining) events.push(open(dosar.supplemented || dosar.resumed?.at, "Examinare reluată", { ...authority, detail: term }));
     }
@@ -1823,6 +1825,15 @@
       paid.justAdded = true;
       state.toast = `Plata de ${money(paid.payment.amount)} pentru dosarul ${paid.nr} a fost confirmată. Dosarul a revenit în examinare.`;
     }
+    /* US-28 AC-04 / US-24 AC-20 (pps-…): back from the suplinire confirmation (S8 „Mergi la Solicitările mele”,
+       ?suplinit=<nr>) — the request is „În derulare” again (countdown gone, new term); the library success toast */
+    const supplemented = state.dosare.find((dosar) => dosar.nr === params.get("suplinit") && (dosar.supplemented || dosar.status === "info"));
+    if (supplemented) {
+      /* a request without a demo scenario (the initial-request suplinire, fo-s4…): the same result, computed */
+      if (supplemented.status === "info") Object.assign(supplemented, { status: "derulare", supplemented: `${TODAY}T14:10`, examTerm: addWorkdays(TODAY, 5) });
+      supplemented.justAdded = true;
+      state.toast = `Informațiile pentru dosarul ${supplemented.nr} au fost trimise. Examinarea a fost reluată.`;
+    }
     if (params.get("nota") === "expirata") {
       state.dosare.filter((dosar) => dosar.status === "achitare" && dosar.payment).forEach((dosar) => {
         dosar.payment = { ...dosar.payment, status: "Expirat", due: addDays(TODAY, -2) };
@@ -1839,7 +1850,7 @@
     if (first.skeleton) { state.firstLoading = true; renderFirstLoad(); }
     try {
       const [data, fo] = await Promise.all([
-        fetch("../data/cabinet-evo-solicitari.json?v=type-first-v1").then((response) => { if (!response.ok) throw new Error(String(response.status)); return response.json(); }),
+        fetch("../data/cabinet-evo-solicitari.json?v=pps-suplinire-v1").then((response) => { if (!response.ok) throw new Error(String(response.status)); return response.json(); }),
         fetch("../data/acte-permisive.json?v=cabinet-audit-fix-v1").then((response) => response.json()).catch(() => null),
       ]);
       state.data = data;
@@ -1851,7 +1862,7 @@
       state.perspective = data.perspectives[C.SUBJECT] || { dosare: [] };
       let deleted = [];
       try { deleted = JSON.parse(sessionStorage.getItem(DELETED_KEY) || "[]"); } catch { deleted = []; }
-      const all = (state.perspective.dosare || []).filter((dosar) => !deleted.includes(dosar.id)).map((dosar) => normalize({ ...dosar }));
+      const all = (state.perspective.dosare || []).filter((dosar) => !deleted.includes(dosar.id)).map((dosar) => normalize({ ...C.withScenario(dosar) }));
       state.removed = all.filter(autoRemoved);
       state.dosare = all.filter((dosar) => !autoRemoved(dosar));
       applyReturns();

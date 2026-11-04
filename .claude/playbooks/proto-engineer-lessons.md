@@ -4085,3 +4085,39 @@ For any „research how other products do it” step, search Mobbin (mcp__mobbin
 - 2026-11-02 · BO profile header on phones: 2 labelled buttons + ⋮ wrap the ⋮ onto its own line — keep ONE primary + ⋮
   and move secondary actions (sync, MConnect) into the ⋮. askConfirm has no cancel callback: watch the confirm modal close
   without its OK click to revert a select (subdivision type change).
+- 2026-11-02 · Empty table (user, aut-01d): no data row = no header row + empty state centred both ways. One shared CSS
+  (`table:has(> tbody > .e-permits-empty-row:only-child) > thead {display:none}` in empty-state.css, + `height:100%` on the
+  workplace table/cell) fixed every registry; module icons need a sprite symbol (`icon-admin-authority/-subdivision`, stroke
+  currentColor, square viewBox) because the nav icons are CSS masks. component-audit rule 13 `empty-table-header` (proved by disabling the CSS).
+- 2026-11-02 · Tooltip look + edge alignment (tooltip-edge-v1; user: „Components 210:3897 Small, left or right, not center”,
+  then mid-job „only the body, no arrow, a bit smaller”): ONE body in css/tooltip.css (main.css untouchable) + `GEAPTooltip.align`
+  shared by icon-tooltip.js and copy-value.js (copy keeps its node for the morph; anchors via CSS translate 0/−100%/−50%).
+- 2026-11-02 · Edge-aligned popups: measure the box at `left: 0` first (an absolute box near the right edge shrink-wraps
+  narrower), and anchor a trigger cut by a sideways-scrolled table to the visible edge (8 in) — else at 375 every table
+  tooltip falls back to „center”. `--shadow-*` are NOT defined in CSS: always `var(--shadow-200, <value>)`.
+- 2026-11-02 · Figma MCP without get_design_context: decode the get_screenshot PNG with a 20-line node zlib decoder
+  (no PIL here) to read fill / radius / shadow spread from pixels. Component-audit hovers waited 450 ms < the 600 ms tooltip
+  delay, so no tooltip was ever audited → hoverWait 1200 + hint / copy triggers in `interactions.tooltips`.
+- 2026-11-02 badge-more-v1 / sync-meta-v3: „+N” overflow = library `badge badge--solid-neutral badge--lg` (sm/md are 10/14 dots), hook = `[data-tag-more]`, never a private class; a meta line that must not widen a toolbar = `position:absolute` under a wrapper with `padding-bottom` (toolbar `> *` forces `margin-block:0`, so margins do nothing); `.e-permits-fo-draft-status__saved .icon` is green by default, override it for quiet meta.
+- 2026-11-02 · BO subdivision „Localități subordonate”: user rejected select + Adaugă + trash list; use the FO multi-select (`GEAPFormRender.fieldHtml({type:"multiselect", value:[…]})`) wrapped in `.e-permits-user-create__field` (grid child, else phones collapse); host syncs via bubbling `fo-multiselect-change` (no re-render). Demo options need a `mousedown` dispatch, not `click`.
+- 2026-11-03 · pps-suplinire-v1 (suplinire for a post-process). A demo scenario that changes ONE seed record across
+  pages (Cabinet list / notifications / act profile + FO) = `scenarios: { pps: {…}, "pps:<v>": {…} }` on the record +
+  ?pps=<v> merged on load (`CabEvo.withScenario`, FO `supplementScenario`); cabUrl / foUrl carry the param. No global seed change, no broken states.
+- 2026-11-03 · The post-process S5 never validated the repeated primary fields (only `data-fo-pp-required`) — an
+  emptied „Denumirea obiectului” passed. Probe the real „Înainte” after emptying a required field; pps adds the check.
+- 2026-11-03 · Capture tool: full-page shots of FO states paint the sticky header / mobile progress mid-page and fake
+  big gaps — measure spacing with a CDP probe (scratch probe.mjs: state, width, expression) before „fixing” it.
+- 2026-11-03 · Mobile progress counted hidden stepper items („Pasul 4 din 7” in flows without Plată); it now counts
+  visible items. Supplement mode: `body[data-fo-supplement]` hooks in setFrontOfficeStep / navigateToFrontOfficeStep
+  / draft status — check the body flag, never a later `let` (TDZ at boot).
+- 2026-11-04 · RAP US-141 (rap-filter-v2): 7 course corrections in one job (value chips → count chips, × removed → × back,
+  Perioadă group → two date facets, Confirmă → live apply). Every variant went in as a cfg OPT-IN of js/facet-filter.js
+  (`hideOnToggle`, `chipClose`, `liveApply`, `phoneChips`, `barClearDesktop`, `text`, facet `unavailable` / `presets: []`
+  / `chip` / `showValue`) so BO / Cabinet / eKYC never moved; delete a rejected variant's code the same turn (no dead options).
+- 2026-11-04 · Live-apply popover: commit straight into `applied` WITHOUT the commit()'s focus move (it stole focus from the
+  open popover) and re-`place()` it after `cfg.apply()` re-renders the bar (the chip grows a badge / leaves „Mai multe”);
+  flush a pending debounced tick in `close()`. With live narrowing, facet-only „no result” demos are impossible (dead
+  ends hidden) — build empty states from a facet + a search / a future date.
+- 2026-11-04 · A page without the FO stylesheet (RAP) needs the FO field shell for the date facet's De la / Până la:
+  restate it in css/fo-field-parts.css (+ js/input-date-picker.js), never load e-permits-acte-permisive.css on RAP.
+  Long demo data: real authorities / act names in data/rap-evo.json › registry, merged at runtime with data/autoritati.json.

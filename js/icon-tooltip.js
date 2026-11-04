@@ -1,10 +1,12 @@
 /* GEAPTooltip — the ONE tooltip runtime of the product (tooltip-one-v1, 2026-10-21).
    Every tooltip is the library `.tooltip` (main.css), one shared node `#icon-tooltip` appended to <body>.
-   Two looks, both library:
-   - plain   `.tooltip.tooltip--small.tooltip--plain` — no arrow, 12/16, padding 4 8, radius 4, `--gray-900`;
-             names a control or shows a cut / abbreviated text;
-   - hint    `.tooltip.tooltip--small.tooltip--{top|bottom}-center` + `.tooltip-arrow` — 14/20, padding 8 12,
-             radius 6, max 240; an explanation (a sentence) next to a control or a mark.
+   ONE look (tooltip-edge-v1, 2026-11-02, user: „use the small one, left or right depending on the position, not
+   center” + „only the body, no arrow, a bit smaller”): the BODY of the Components Small tooltip (210:3897), no arrow —
+   `.tooltip.tooltip--small.tooltip--plain` + css/tooltip.css: `--gray-900`, white 12/16 text LEFT-aligned, padding 4 8,
+   radius 4, `--shadow-200`, max 240 (wraps). Hints (`data-tooltip-hint`) use the same body; only their behaviour differs.
+   Alignment (`alignTooltip`, shared with js/copy-value.js): never centred on the trigger — above / below, its LEFT
+   edge on the trigger's left edge; when that would cross the right 16 gutter, its RIGHT edge on the trigger's right
+   edge; centred (clamped 8 from the edges) only when neither fits. Left / right placements stay vertically centred.
 
    What opts an element in (read in this order, the innermost matching element wins):
    - `data-tooltip-reason="…"`  why a control is unavailable (any element, text buttons too) — plain;
@@ -34,8 +36,8 @@
   const CLIP_DELAY = 1000;
   const WARM_WINDOW = 400;
   const GAP = 4;
-  const HINT_GAP = 0; /* the library .tooltip box keeps 8 of padding around the bubble = the arrow's room; the arrow tip lands ~4 from the target */
   const EDGE = 8;
+  const GUTTER = 16; /* the right page gutter an edge-aligned tooltip may not cross */
   const CONTROL = "button, a[href], [role='button']";
   const EXPLICIT = "[data-tooltip-reason], [data-tooltip-hint], [data-tooltip-text], [data-cell-tooltip]";
 
@@ -128,7 +130,8 @@
     tip = document.createElement("div");
     tip.id = "icon-tooltip";
     tip.setAttribute("role", "tooltip");
-    tip.innerHTML = '<div class="tooltip-inner"></div><div class="tooltip-arrow"></div>';
+    tip.className = "tooltip tooltip--small tooltip--plain";
+    tip.innerHTML = '<div class="tooltip-inner"></div>';
     tip.hidden = true;
     document.body.appendChild(tip);
     return tip;
@@ -139,46 +142,50 @@
     return ["top", "bottom", "left", "right"].includes(want) ? want : kind === "hint" ? "top" : "bottom";
   };
 
-  const place = () => {
-    if (!tip || !target) return;
-    const rect = target.getBoundingClientRect();
-    if (rect.bottom < 0 || rect.top > window.innerHeight || !target.isConnected) { hide(); return; }
-    const box = tip.getBoundingClientRect();
-    const gap = kind === "hint" ? HINT_GAP : GAP;
-    const vw = window.innerWidth;
+  /* tooltip-edge-v1: where a box of `width` × `height` goes next to `rect` on `side` (flipped when there is no room).
+     Above / below: left edge on the trigger's left edge („start”), else right edge on its right edge („end”), else
+     centred and clamped („center”, last resort). Returns viewport coordinates. */
+  const alignTooltip = (rect, width, height, wantSide = "bottom", gap = GAP) => {
+    const vw = document.documentElement.clientWidth || window.innerWidth;
     const vh = window.innerHeight;
-    let side = sideOf(target);
+    let side = wantSide;
     const room = {
-      top: rect.top - gap - box.height >= EDGE,
-      bottom: rect.bottom + gap + box.height <= vh - EDGE,
-      left: rect.left - gap - box.width >= EDGE,
-      right: rect.right + gap + box.width <= vw - EDGE
+      top: rect.top - gap - height >= EDGE,
+      bottom: rect.bottom + gap + height <= vh - EDGE,
+      left: rect.left - gap - width >= EDGE,
+      right: rect.right + gap + width <= vw - EDGE
     };
     const flip = { top: "bottom", bottom: "top", left: "right", right: "left" };
     if (!room[side] && room[flip[side]]) side = flip[side];
     let top;
     let left;
+    let align = "middle"; /* left / right placements: vertically centred */
     if (side === "top" || side === "bottom") {
-      top = side === "top" ? rect.top - gap - box.height : rect.bottom + gap;
-      left = rect.left + rect.width / 2 - box.width / 2;
+      top = side === "top" ? rect.top - gap - height : rect.bottom + gap;
+      /* a trigger cut by the viewport (a table scrolled sideways) anchors to the visible edge: 8 in from the screen */
+      const startX = rect.left < 0 ? EDGE : rect.left;
+      const endX = Math.min(rect.right, vw - EDGE);
+      if (startX + width <= vw - GUTTER) { left = startX; align = "start"; }
+      else if (endX - width >= EDGE) { left = endX - width; align = "end"; }
+      else { left = Math.max(EDGE, Math.min(rect.left + rect.width / 2 - width / 2, vw - EDGE - width)); align = "center"; }
     } else {
-      left = side === "left" ? rect.left - gap - box.width : rect.right + gap;
-      top = rect.top + rect.height / 2 - box.height / 2;
+      left = side === "left" ? rect.left - gap - width : rect.right + gap;
+      left = Math.max(EDGE, Math.min(left, vw - EDGE - width));
+      top = rect.top + rect.height / 2 - height / 2;
     }
-    left = Math.max(EDGE, Math.min(left, vw - EDGE - box.width));
-    top = Math.max(EDGE, Math.min(top, vh - EDGE - box.height));
+    top = Math.max(EDGE, Math.min(top, vh - EDGE - height));
+    return { top, left, side, align };
+  };
+
+  const place = () => {
+    if (!tip || !target) return;
+    const rect = target.getBoundingClientRect();
+    if (rect.bottom < 0 || rect.top > window.innerHeight || !target.isConnected) { hide(); return; }
+    tip.style.left = "0px"; /* measure at full width: near the right edge the box would shrink-wrap narrower */
+    const box = tip.getBoundingClientRect();
+    const { top, left, side, align } = alignTooltip(rect, box.width, box.height, sideOf(target));
     tip.dataset.side = side;
-    if (kind === "hint") {
-      /* the library arrow classes: tooltip--top-center = above the target (arrow on the bubble's bottom edge) */
-      tip.classList.remove("tooltip--top-center", "tooltip--bottom-center", "tooltip--left-center", "tooltip--right-center");
-      tip.classList.add(`tooltip--${side}-center`);
-      const arrow = tip.querySelector(".tooltip-arrow");
-      /* the arrow points at the target's centre even when the bubble is clamped (geometry only) */
-      if (side === "top" || side === "bottom") {
-        const x = rect.left + rect.width / 2 - left;
-        arrow.style.left = `${Math.round(Math.max(20, Math.min(x, box.width - 20)))}px`;
-      } else arrow.style.left = "";
-    }
+    tip.dataset.align = align;
     tip.style.top = `${Math.round(top + window.scrollY)}px`;
     tip.style.left = `${Math.round(left + window.scrollX)}px`;
   };
@@ -191,8 +198,8 @@
     if (target && target !== el) target.removeAttribute("aria-describedby");
     target = el;
     kind = kindOf(el);
-    tip.className = kind === "hint" ? "tooltip tooltip--small tooltip--top-center" : "tooltip tooltip--small tooltip--plain";
-    tip.querySelector(".tooltip-arrow").hidden = kind !== "hint";
+    tip.dataset.kind = kind;
+    tip.__tooltipTarget = el; /* read by tools/ui-qa/component-audit.mjs (tooltip-centered) */
     tip.querySelector(".tooltip-inner").textContent = label;
     if (kind === "hint" && !el.hasAttribute("aria-describedby") && !(el.getAttribute("aria-label") || "").includes(label)) { el.setAttribute("aria-describedby", tip.id); el.__tipDescribed = true; }
     tip.hidden = false;
@@ -205,7 +212,7 @@
     if (tip && !tip.hidden) lastHiddenAt = performance.now();
     if (target?.__tipDescribed) { target.removeAttribute("aria-describedby"); target.__tipDescribed = false; }
     target = null;
-    if (tip) { tip.classList.remove("show"); tip.hidden = true; }
+    if (tip) { tip.classList.remove("show"); tip.hidden = true; tip.__tooltipTarget = null; }
   };
 
   const delayOf = (el) => {
@@ -303,7 +310,7 @@
   window.addEventListener("resize", hide);
   window.addEventListener("blur", hide);
 
-  const api = { show: (el) => el && show(el), hide, refresh: () => place() };
+  const api = { show: (el) => el && show(el), hide, refresh: () => place(), align: alignTooltip };
   window.GEAPTooltip = api;
   window.GEAPIconTooltip = api; /* older name (name-expand, breadcrumbs) */
 })();

@@ -4,52 +4,65 @@
    subdiviziuni”). Tokens only.
    ===================================================================================== */
 
-/* ---- the authorities list: „Ultima sincronizare” + notices above the toolbar (the calendar intro rhythm) */
-.e-permits-workplace:not([data-registry-kind="autoritati"]) > [data-aut-intro],
-.e-permits-workplace:not([data-registry-kind="autoritati"]) .e-permits-aut-tool {
+/* ---- the authorities list toolbar (sync-meta-v1): the last sync = the „Salvat …” status meta (12/16 secondary,
+   icon 16) immediately left of „Sincronizează din RSSP”; both only on this registry */
+.e-permits-workplace:not([data-registry-kind="autoritati"]) .e-permits-aut-sync {
   display: none;
 }
 
-.e-permits-workplace[data-registry-kind="autoritati"] {
-  grid-template-rows: auto auto minmax(0, 1fr) auto;
+/* sync-meta-v2 (user 2026-11-02): button + the meta line under it, right-aligned to the button; the toolbar grows to
+   hold it and its other controls stay top-aligned on the button line */
+.e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-workplace[data-registry-kind="autoritati"] .e-permits-workplace__header {
+  grid-template-rows: auto auto auto;
 }
 
-.e-permits-aut-intro {
+.e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-workplace[data-registry-kind="autoritati"] .e-permits-workplace__toolbar {
+  height: auto;
+  min-height: var(--spacing-56, 56px);
+}
+
+@media (min-width: 761px) {
+  .e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-workplace[data-registry-kind="autoritati"] .e-permits-workplace__toolbar > * {
+    align-self: flex-start;
+  }
+}
+
+/* the wrapper is exactly the button wide; the meta hangs under it, right edge = the button's right edge, and may
+   reach left under the neighbouring controls without widening the toolbar (sync-meta-v3) */
+.e-permits-aut-sync {
+  position: relative;
   display: flex;
+  flex: 0 0 auto;
   flex-direction: column;
-  gap: var(--spacing-12, 12px);
-  padding: var(--spacing-16, 16px) var(--spacing-16, 16px) var(--spacing-8, 8px);
+  align-items: flex-end;
+  padding-bottom: calc(var(--line-height-lh-16, 16px) + var(--spacing-4, 4px));
 }
 
-.e-permits-aut-intro[hidden],
-.e-permits-aut-intro__notices[hidden] {
-  display: none;
-}
-
-.e-permits-aut-intro__text {
+.e-permits-aut-sync-meta {
+  position: absolute;
+  bottom: 0;
+  right: 0;
   margin: 0;
-  color: var(--color-text-base-secondary, #383838);
-  font-size: var(--font-size-fs-14, 14px);
-  line-height: var(--line-height-lh-20, 20px);
+  cursor: default;
+  white-space: nowrap;
 }
 
-.e-permits-aut-intro__text strong {
-  color: var(--color-text-base-default, #121212);
-  font-weight: var(--font-weight-fw-medium, 500);
+.e-permits-aut-sync-meta .e-permits-fo-draft-status__saved {
+  min-width: 0;
 }
 
-.e-permits-aut-intro__notices {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-8, 8px);
+.e-permits-aut-sync-meta .e-permits-fo-draft-status__saved > span {
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.e-permits-aut-intro__notices > .message,
-.e-permits-aut__notices > .message,
-.e-permits-aut__notices > .info-box,
-.e-permits-aut-form-note > .message,
-.e-permits-aut-form-note > .info-box {
-  margin: 0;
+/* quiet outline icon in the text colour (sync-meta-v3); the failed run keeps the warning tone, outline too */
+.e-permits-aut-sync-meta .e-permits-fo-draft-status__saved .icon {
+  color: var(--color-icon-base-secondary, #383838);
+}
+
+.e-permits-aut-sync-meta--warning .e-permits-fo-draft-status__saved .icon {
+  color: var(--color-icon-warning-default, #dc6803);
 }
 
 /* the toolbar has room for „Sincronizează din RSSP”: no „N câmpuri” here */
@@ -102,13 +115,13 @@
 }
 
 /* ---- repeatable rows in the drawer (Telefon, Conturi bancare, the raion picker): field(s) + the trailing control,
-   bottom-aligned on the input (labels above); „Adaugă …” under the rows */
+   bottom-aligned on the input (labels above); „Adaugă …” under the rows as its own row, on the form rhythm (24,
+   same as the field grid — no extra margin, user 2026-11-03) */
 .e-permits-aut-repeat {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: var(--spacing-16, 16px);
-  margin-top: var(--spacing-16, 16px);
+  gap: var(--spacing-24, 24px);
 }
 
 .e-permits-aut-repeat__row {
@@ -135,32 +148,6 @@
 /* the first phone has no remove button: it keeps the full width */
 .e-permits-aut-repeat__row:not(:has(.e-permits-aut-repeat__remove)) {
   grid-template-columns: minmax(0, 1fr);
-}
-
-/* ---- Localități subordonate: the chosen raioane = a bordered list, one row each with its trash */
-.e-permits-aut-chiplist {
-  display: flex;
-  flex-direction: column;
-  margin: var(--spacing-16, 16px) 0 0;
-  padding: 0;
-  list-style: none;
-  border: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
-  border-radius: var(--border-radius-12, 12px);
-}
-
-.e-permits-aut-chiplist__item {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--spacing-12, 12px);
-  padding: var(--spacing-8, 8px) var(--spacing-8, 8px) var(--spacing-8, 8px) var(--spacing-16, 16px);
-  color: var(--color-text-base-default, #121212);
-  font-size: var(--font-size-fs-14, 14px);
-  line-height: var(--line-height-lh-20, 20px);
-}
-
-.e-permits-aut-chiplist__item + .e-permits-aut-chiplist__item {
-  border-top: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
 }
 
 /* ---- Logo: the picked file as one row (icon · name · size · trash) */
@@ -259,8 +246,17 @@
 }
 
 @media (max-width: 760px) {
-  .e-permits-aut-intro {
-    padding: var(--spacing-16, 16px) var(--spacing-16, 16px) 0;
+  /* phones: the meta under the toolbar row, left-aligned (:root beats the phone filter-row child sizing) */
+  :root .e-permits-aut-sync {
+    display: contents;
+  }
+
+  :root .e-permits-aut-sync > .e-permits-aut-sync-meta {
+    position: static;
+    flex: 1 0 100%;
+    grid-column: 1 / -1;
+    justify-self: start;
+    order: 99;
   }
 
   /* phones: the inputs are 48 with a 24 label line */

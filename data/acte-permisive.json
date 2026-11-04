@@ -1147,7 +1147,8 @@
                 "phone": "60 123 456",
                 "email": "izvoras@globaltrader.md",
                 "caem": "56.10"
-              }
+              },
+              "scenarios": { "pps": { "pending": { "type": "reperfectare", "dossier": "GEAP-2026-009-04571", "since": "01.10.2026" } } }
             },
             {
               "id": "act-izvoras-alcool",

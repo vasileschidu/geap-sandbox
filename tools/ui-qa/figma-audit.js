@@ -37,7 +37,8 @@
 //  fractional           (2026-10-16) a frame / instance / text (outside instances) with a non-whole x, y, width or height
 //                       (user rule: whole pixels only) — fix the cause (odd centring space, FILL split, captured fractions)
 //  tight-gap            (2026-10-16) a vertical auto-layout gap < 8 next to a block-like child (notice / message / card /
-//                       field / document / identity / authorization card, or a filled / stroked frame with radius ≥ 8)
+//                       field / document / identity / authorization card, or a filled / stroked frame with radius ≥ 8); a block right
+//                       under a `Section header` instance is exempt (padding, no gap — the heading's own 11 px inset, 2026-11-02)
 //  filter-icon-sliders  (2026-11-02, user: „again wrong icon”) a „20/filter” (SLIDERS glyph) inside a chip / button whose
 //                       name or label says Filtr* — must be Foundations „filter-2, sort” 9644:319 (= code icon-filter-lines);
 //                       swapComponent the nested icon, keep the colour binding
@@ -193,7 +194,9 @@ for (const rid of ROOTS) {
     if (!inInst && n.type === "FRAME" && n.layoutMode === "VERTICAL" && n.itemSpacing < 8 && n.primaryAxisAlignItems !== "SPACE_BETWEEN") {
       const kids = n.children.filter((k) => k.visible !== false && k.layoutPositioning !== "ABSOLUTE");
       const blocky = (k) => (k.type === "INSTANCE" && /message|info-note|inline-message|Document|Identity card|Authorization card|New request|Act row|lookup|select|text-input|search/i.test(k.name)) || (k.type === "FRAME" && typeof k.cornerRadius === "number" && k.cornerRadius >= 8 && ((Array.isArray(k.fills) && k.fills.some((p) => p.visible !== false)) || (Array.isArray(k.strokes) && k.strokes.some((p) => p.visible !== false))));
-      if (kids.length > 1 && kids.some(blocky)) add("tight-gap", n, `gap ${n.itemSpacing} [${kids.map((k) => k.name.slice(0, 14)).join(", ").slice(0, 80)}]`);
+      /* padding, no gap (2026-11-02, aut col 04): a block right under a section-header instance (its 48 heading = 11 px own inset) stacks at gap 0 */
+      const padded = (k, i, arr) => i > 0 && arr[i - 1].type === "INSTANCE" && /^Section header|section-heading/i.test(arr[i - 1].name);
+      if (kids.length > 1 && kids.some((k, i, arr) => blocky(k) && !padded(k, i, arr))) add("tight-gap", n, `gap ${n.itemSpacing} [${kids.map((k) => k.name.slice(0, 14)).join(", ").slice(0, 80)}]`);
     }
     // Filtre / Filtrare chip icon = filter-2 (lines), never 20/filter (sliders) (2026-10-30 / 2026-11-02)
     if (n.type === "INSTANCE" && n.name === "20/filter") {

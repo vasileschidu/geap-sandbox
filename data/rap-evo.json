@@ -2,7 +2,7 @@
   "schemaVersion": "1.0.0",
   "page": {
     "title": "Registrul actelor permisive",
-    "searchPlaceholder": "Caută după nr. dosar sau denumire"
+    "searchPlaceholder": "Caută după nr. act, IDNO, companie sau adresă"
   },
   "meta": {
     "totalResults": 1567,
@@ -90,32 +90,32 @@
     ],
     "authorities": [
       {
-        "code": "ASP",
-        "name": "Agenția Servicii Publice"
-      },
-      {
         "code": "ANSP",
         "name": "Agenția Națională pentru Sănătate Publică"
       },
       {
+        "code": "ANSA",
+        "name": "Agenția Națională pentru Siguranța Alimentelor"
+      },
+      {
+        "code": "AMDM",
+        "name": "Agenția Medicamentului și Dispozitivelor Medicale"
+      },
+      {
         "code": "ANRE",
-        "name": "Autoritatea Națională de Reglementare în Energetică"
+        "name": "Agenția Națională pentru Reglementare în Energetică"
       },
       {
-        "code": "CNA",
-        "name": "Consiliul Național al Audiovizualului"
+        "code": "ANRCETI",
+        "name": "Agenția Națională pentru Reglementare în Comunicații Electronice și Tehnologia Informației"
       },
       {
-        "code": "CNP",
-        "name": "Centrul Național pentru Protecția Datelor"
+        "code": "ANTA",
+        "name": "Agenția Națională Transport Auto"
       },
       {
-        "code": "ANAF",
-        "name": "Agenția Națională de Administrare Fiscală"
-      },
-      {
-        "code": "BCR",
-        "name": "Banca Comercială Română"
+        "code": "IGSU",
+        "name": "Inspectoratul General pentru Situații de Urgență"
       }
     ]
   },
@@ -124,7 +124,7 @@
       "id": "rap-0001",
       "beneficiary": {
         "type": "person",
-        "name": "S. V***",
+        "name": "S*** V***",
         "identifierType": "IDNP",
         "identifier": "00•••••••••09"
       },
@@ -282,7 +282,7 @@
       },
       "authority": {
         "code": "ANRE",
-        "name": "Autoritatea Națională de Reglementare în Energetică"
+        "name": "Agenția Națională pentru Reglementare în Energetică"
       },
       "status": "Expirat",
       "profile": {
@@ -332,8 +332,8 @@
         "issuedAt": "emis 8 ian. 2025"
       },
       "authority": {
-        "code": "CNA",
-        "name": "Consiliul Național al Audiovizualului"
+        "code": "CA",
+        "name": "Consiliul Audiovizualului"
       },
       "status": "Anulat",
       "profile": {
@@ -358,7 +358,7 @@
       },
       "authority": {
         "code": "ANRE",
-        "name": "Autoritatea Națională de Reglementare în Energetică"
+        "name": "Agenția Națională pentru Reglementare în Energetică"
       },
       "status": "Anulat",
       "profile": {
@@ -382,8 +382,8 @@
         "issuedAt": "emis 10 ian. 2025"
       },
       "authority": {
-        "code": "CNP",
-        "name": "Centrul Național pentru Protecția Datelor"
+        "code": "CNPDCP",
+        "name": "Centrul Național pentru Protecția Datelor cu Caracter Personal"
       },
       "status": "Valabil",
       "profile": {
@@ -395,7 +395,7 @@
       "id": "rap-0009",
       "beneficiary": {
         "type": "person",
-        "name": "A. L***",
+        "name": "A*** L***",
         "identifierType": "IDNP",
         "identifier": "27•••••••••09"
       },
@@ -407,8 +407,8 @@
         "issuedAt": "emis 11 ian. 2025"
       },
       "authority": {
-        "code": "CNA",
-        "name": "Consiliul Național al Audiovizualului"
+        "code": "CA",
+        "name": "Consiliul Audiovizualului"
       },
       "status": "Anulat",
       "profile": {
@@ -432,8 +432,8 @@
         "issuedAt": "emis 12 ian. 2025"
       },
       "authority": {
-        "code": "ANAF",
-        "name": "Agenția Națională de Administrare Fiscală"
+        "code": "SFS",
+        "name": "Serviciul Fiscal de Stat"
       },
       "status": "Valabil",
       "profile": {
@@ -445,7 +445,7 @@
       "id": "rap-0011",
       "beneficiary": {
         "type": "person",
-        "name": "S. V***",
+        "name": "S*** V***",
         "identifierType": "IDNP",
         "identifier": "00•••••••••09"
       },
@@ -457,8 +457,8 @@
         "issuedAt": "emis 13 ian. 2025"
       },
       "authority": {
-        "code": "CNP",
-        "name": "Centrul Național pentru Protecția Datelor"
+        "code": "CNPDCP",
+        "name": "Centrul Național pentru Protecția Datelor cu Caracter Personal"
       },
       "status": "Valabil",
       "profile": {
@@ -470,7 +470,7 @@
       "id": "rap-0012",
       "beneficiary": {
         "type": "person",
-        "name": "A. L***",
+        "name": "A*** L***",
         "identifierType": "IDNP",
         "identifier": "27•••••••••09"
       },
@@ -482,8 +482,8 @@
         "issuedAt": "emis 14 ian. 2025"
       },
       "authority": {
-        "code": "BCR",
-        "name": "Banca Comercială Română"
+        "code": "BNM",
+        "name": "Banca Națională a Moldovei"
       },
       "status": "Valabil",
       "profile": {
@@ -495,7 +495,7 @@
       "id": "rap-0013",
       "beneficiary": {
         "type": "person",
-        "name": "S. V***",
+        "name": "S*** V***",
         "identifierType": "IDNP",
         "identifier": "00•••••••••09"
       },
@@ -507,8 +507,8 @@
         "issuedAt": "emis 15 ian. 2025"
       },
       "authority": {
-        "code": "ANAF",
-        "name": "Agenția Națională de Administrare Fiscală"
+        "code": "SFS",
+        "name": "Serviciul Fiscal de Stat"
       },
       "status": "Valabil",
       "profile": {
@@ -520,7 +520,7 @@
       "id": "rap-0014",
       "beneficiary": {
         "type": "person",
-        "name": "S. V***",
+        "name": "S*** V***",
         "identifierType": "IDNP",
         "identifier": "00•••••••••09"
       },
@@ -532,8 +532,8 @@
         "issuedAt": "emis 16 ian. 2025"
       },
       "authority": {
-        "code": "BCR",
-        "name": "Banca Comercială Română"
+        "code": "BNM",
+        "name": "Banca Națională a Moldovei"
       },
       "status": "Valabil",
       "profile": {
@@ -826,46 +826,136 @@
             {
               "title": "Datele economice ale unității",
               "fields": [
-                ["Obiectul autorizat", "Farmacia „Familia” nr. 3"],
-                ["Tipul unității", "Farmacie comunitară"],
-                ["Raionul", "mun. Chișinău"],
-                ["Localitatea", "or. Chișinău, sect. Botanica"],
-                ["Adresa desfășurării activității", "bd. Dacia 27/1, MD-2038"],
-                ["Codul cadastral", "0100313.142.01.004"],
-                ["Forma de proprietate", "Privată"],
-                ["Regimul de lucru", "Luni – Duminică, 08:00 – 21:00"],
-                ["Data controlului de stat", "2 august 2026"],
-                ["Numărul procesului-verbal de control", "PV-ANSP-2026/1187"],
-                ["Rezultatul controlului", "Conform cerințelor sanitare"],
-                ["Persoana responsabilă de unitate", "Farmacist-diriginte"]
+                [
+                  "Obiectul autorizat",
+                  "Farmacia „Familia” nr. 3"
+                ],
+                [
+                  "Tipul unității",
+                  "Farmacie comunitară"
+                ],
+                [
+                  "Raionul",
+                  "mun. Chișinău"
+                ],
+                [
+                  "Localitatea",
+                  "or. Chișinău, sect. Botanica"
+                ],
+                [
+                  "Adresa desfășurării activității",
+                  "bd. Dacia 27/1, MD-2038"
+                ],
+                [
+                  "Codul cadastral",
+                  "0100313.142.01.004"
+                ],
+                [
+                  "Forma de proprietate",
+                  "Privată"
+                ],
+                [
+                  "Regimul de lucru",
+                  "Luni – Duminică, 08:00 – 21:00"
+                ],
+                [
+                  "Data controlului de stat",
+                  "2 august 2026"
+                ],
+                [
+                  "Numărul procesului-verbal de control",
+                  "PV-ANSP-2026/1187"
+                ],
+                [
+                  "Rezultatul controlului",
+                  "Conform cerințelor sanitare"
+                ],
+                [
+                  "Persoana responsabilă de unitate",
+                  "Farmacist-diriginte"
+                ]
               ]
             },
             {
               "title": "Genul de activitate",
               "fields": [
-                ["Codul CAEM (1)", "47.73 — Comerț cu amănuntul al produselor farmaceutice, în magazine specializate"],
-                ["Subgenul de activitate (1)", "Comercializarea medicamentelor cu și fără prescripție medicală"],
-                ["Codul CAEM (2)", "47.74 — Comerț cu amănuntul al articolelor medicale și ortopedice"],
-                ["Subgenul de activitate (2)", "Articole ortopedice și dispozitive medicale de uz individual"],
-                ["Codul CAEM (3)", "47.75 — Comerț cu amănuntul al produselor cosmetice și de toaletă"],
-                ["Subgenul de activitate (3)", "Produse cosmetice și de igienă personală"],
-                ["Prepararea medicamentelor magistrale", "Da"],
-                ["Substanțe stupefiante și psihotrope", "Nu"],
-                ["Comercializare la distanță", "Nu"],
-                ["Livrare la domiciliu", "Da"]
+                [
+                  "Codul CAEM (1)",
+                  "47.73 — Comerț cu amănuntul al produselor farmaceutice, în magazine specializate"
+                ],
+                [
+                  "Subgenul de activitate (1)",
+                  "Comercializarea medicamentelor cu și fără prescripție medicală"
+                ],
+                [
+                  "Codul CAEM (2)",
+                  "47.74 — Comerț cu amănuntul al articolelor medicale și ortopedice"
+                ],
+                [
+                  "Subgenul de activitate (2)",
+                  "Articole ortopedice și dispozitive medicale de uz individual"
+                ],
+                [
+                  "Codul CAEM (3)",
+                  "47.75 — Comerț cu amănuntul al produselor cosmetice și de toaletă"
+                ],
+                [
+                  "Subgenul de activitate (3)",
+                  "Produse cosmetice și de igienă personală"
+                ],
+                [
+                  "Prepararea medicamentelor magistrale",
+                  "Da"
+                ],
+                [
+                  "Substanțe stupefiante și psihotrope",
+                  "Nu"
+                ],
+                [
+                  "Comercializare la distanță",
+                  "Nu"
+                ],
+                [
+                  "Livrare la domiciliu",
+                  "Da"
+                ]
               ]
             },
             {
               "title": "Suprafața/Volumul/Capacitatea",
               "fields": [
-                ["Suprafața totală/Volumul", "142,5"],
-                ["Unități de măsură", "m²"],
-                ["Suprafața sălii de deservire", "64 m²"],
-                ["Suprafața depozitului", "38 m²"],
-                ["Capacitatea (nr. locuri de lucru, nr. copii, etc.)", "6 locuri de lucru"],
-                ["Numărul de angajați", "9"],
-                ["Numărul caselor de marcat", "3"],
-                ["Spații frigorifice", "2 frigidere farmaceutice, 1 200 l"]
+                [
+                  "Suprafața totală/Volumul",
+                  "142,5"
+                ],
+                [
+                  "Unități de măsură",
+                  "m²"
+                ],
+                [
+                  "Suprafața sălii de deservire",
+                  "64 m²"
+                ],
+                [
+                  "Suprafața depozitului",
+                  "38 m²"
+                ],
+                [
+                  "Capacitatea (nr. locuri de lucru, nr. copii, etc.)",
+                  "6 locuri de lucru"
+                ],
+                [
+                  "Numărul de angajați",
+                  "9"
+                ],
+                [
+                  "Numărul caselor de marcat",
+                  "3"
+                ],
+                [
+                  "Spații frigorifice",
+                  "2 frigidere farmaceutice, 1 200 l"
+                ]
               ]
             }
           ]
@@ -887,21 +977,1449 @@
       "phone": "022 000 103",
       "email": "contact@anre.demo.gov.md"
     },
-    "CNA": {
+    "CA": {
       "phone": "022 000 104",
-      "email": "contact@cna.demo.gov.md"
+      "email": "contact@ca.demo.gov.md"
     },
-    "CNP": {
+    "CNPDCP": {
       "phone": "022 000 105",
-      "email": "contact@cnp.demo.gov.md"
+      "email": "contact@cnpdcp.demo.gov.md"
     },
-    "ANAF": {
+    "SFS": {
       "phone": "022 000 106",
-      "email": "contact@anaf.demo.gov.md"
+      "email": "contact@sfs.demo.gov.md"
     },
-    "BCR": {
+    "BNM": {
       "phone": "022 000 107",
-      "email": "contact@bcr.demo.md"
+      "email": "contact@bnm.demo.gov.md"
     }
+  },
+  "registry": {
+    "_comment": "US-141 AC-02: the RAP API's issuing authorities (+ subdivisions = the office that issued the act). Real Moldovan public authorities, the same names / codes as data/autoritati.json (merged at runtime, autoritati.json wins). The demo registry spreads its padded acts over every authority except `noActs` — those never reach the „Autoritate emitentă” facet (≥ 1 active act). `actTypes` (US-141 AC-03 „Tip act”): real permit types, each with the authorities that issue it — the padded acts cycle through them.",
+    "noActs": [
+      "ANACEC",
+      "ANCD",
+      "ANDRL",
+      "STISC"
+    ],
+    "authorities": [
+      {
+        "code": "ANSP",
+        "name": "Agenția Națională pentru Sănătate Publică",
+        "subdivisions": [
+          "Administrația centrală",
+          "CSP Chișinău",
+          "CSP Bălți",
+          "CSP Comrat",
+          "CSP Anenii Noi",
+          "CSP Basarabeasca",
+          "CSP Briceni",
+          "CSP Cahul",
+          "CSP Cantemir",
+          "CSP Călărași",
+          "CSP Căușeni",
+          "CSP Cimișlia",
+          "CSP Criuleni",
+          "CSP Dondușeni",
+          "CSP Drochia",
+          "CSP Dubăsari",
+          "CSP Edineț",
+          "CSP Fălești",
+          "CSP Florești",
+          "CSP Glodeni",
+          "CSP Hîncești",
+          "CSP Ialoveni",
+          "CSP Leova",
+          "CSP Nisporeni",
+          "CSP Ocnița",
+          "CSP Orhei",
+          "CSP Rezina",
+          "CSP Rîșcani",
+          "CSP Sîngerei",
+          "CSP Soroca",
+          "CSP Strășeni",
+          "CSP Șoldănești",
+          "CSP Ștefan Vodă",
+          "CSP Taraclia",
+          "CSP Telenești",
+          "CSP Ungheni"
+        ]
+      },
+      {
+        "code": "ANSA",
+        "name": "Agenția Națională pentru Siguranța Alimentelor",
+        "subdivisions": [
+          "Aparatul central",
+          "Subdiviziunea teritorială pentru siguranța alimentelor Chișinău",
+          "Subdiviziunea teritorială pentru siguranța alimentelor Bălți",
+          "Subdiviziunea teritorială pentru siguranța alimentelor Comrat",
+          "Subdiviziunea teritorială pentru siguranța alimentelor Anenii Noi",
+          "Subdiviziunea teritorială pentru siguranța alimentelor Basarabeasca",
+          "Subdiviziunea teritorială pentru siguranța alimentelor Briceni",
+          "Subdiviziunea teritorială pentru siguranța alimentelor Cahul",
+          "Subdiviziunea teritorială pentru siguranța alimentelor Cantemir",
+          "Subdiviziunea teritorială pentru siguranța alimentelor Călărași",
+          "Subdiviziunea teritorială pentru siguranța alimentelor Căușeni",
+          "Subdiviziunea teritorială pentru siguranța alimentelor Cimișlia",
+          "Subdiviziunea teritorială pentru siguranța alimentelor Criuleni",
+          "Subdiviziunea teritorială pentru siguranța alimentelor Dondușeni",
+          "Subdiviziunea teritorială pentru siguranța alimentelor Drochia",
+          "Subdiviziunea teritorială pentru siguranța alimentelor Dubăsari",
+          "Subdiviziunea teritorială pentru siguranța alimentelor Edineț",
+          "Subdiviziunea teritorială pentru siguranța alimentelor Fălești",
+          "Subdiviziunea teritorială pentru siguranța alimentelor Florești",
+          "Subdiviziunea teritorială pentru siguranța alimentelor Glodeni",
+          "Subdiviziunea teritorială pentru siguranța alimentelor Hîncești",
+          "Subdiviziunea teritorială pentru siguranța alimentelor Ialoveni",
+          "Subdiviziunea teritorială pentru siguranța alimentelor Leova",
+          "Subdiviziunea teritorială pentru siguranța alimentelor Nisporeni",
+          "Subdiviziunea teritorială pentru siguranța alimentelor Ocnița",
+          "Subdiviziunea teritorială pentru siguranța alimentelor Orhei",
+          "Subdiviziunea teritorială pentru siguranța alimentelor Rezina",
+          "Subdiviziunea teritorială pentru siguranța alimentelor Rîșcani",
+          "Subdiviziunea teritorială pentru siguranța alimentelor Sîngerei",
+          "Subdiviziunea teritorială pentru siguranța alimentelor Soroca",
+          "Subdiviziunea teritorială pentru siguranța alimentelor Strășeni",
+          "Subdiviziunea teritorială pentru siguranța alimentelor Șoldănești",
+          "Subdiviziunea teritorială pentru siguranța alimentelor Ștefan Vodă",
+          "Subdiviziunea teritorială pentru siguranța alimentelor Taraclia",
+          "Subdiviziunea teritorială pentru siguranța alimentelor Telenești",
+          "Subdiviziunea teritorială pentru siguranța alimentelor Ungheni"
+        ]
+      },
+      {
+        "code": "AMDM",
+        "name": "Agenția Medicamentului și Dispozitivelor Medicale",
+        "subdivisions": [
+          "Direcția autorizare activitate farmaceutică",
+          "Direcția dispozitive medicale"
+        ]
+      },
+      {
+        "code": "ANRE",
+        "name": "Agenția Națională pentru Reglementare în Energetică",
+        "subdivisions": [
+          "Direcția licențiere",
+          "Oficiul teritorial Bălți",
+          "Oficiul teritorial Cahul"
+        ]
+      },
+      {
+        "code": "ANRCETI",
+        "name": "Agenția Națională pentru Reglementare în Comunicații Electronice și Tehnologia Informației",
+        "subdivisions": [
+          "Direcția autorizare",
+          "Direcția resurse de numerotare"
+        ]
+      },
+      {
+        "code": "ANTA",
+        "name": "Agenția Națională Transport Auto",
+        "subdivisions": [
+          "Administrația centrală",
+          "Direcția regională Nord",
+          "Direcția regională Sud",
+          "Direcția regională Centru"
+        ]
+      },
+      {
+        "code": "IGSU",
+        "name": "Inspectoratul General pentru Situații de Urgență",
+        "subdivisions": [
+          "Aparatul central",
+          "Direcția SU Chișinău",
+          "Direcția SU Bălți",
+          "Direcția SU Comrat",
+          "Direcția SU Anenii Noi",
+          "Direcția SU Basarabeasca",
+          "Direcția SU Briceni",
+          "Direcția SU Cahul",
+          "Direcția SU Cantemir",
+          "Direcția SU Călărași",
+          "Direcția SU Căușeni",
+          "Direcția SU Cimișlia",
+          "Direcția SU Criuleni",
+          "Direcția SU Dondușeni",
+          "Direcția SU Drochia",
+          "Direcția SU Dubăsari",
+          "Direcția SU Edineț",
+          "Direcția SU Fălești",
+          "Direcția SU Florești",
+          "Direcția SU Glodeni",
+          "Direcția SU Hîncești",
+          "Direcția SU Ialoveni",
+          "Direcția SU Leova",
+          "Direcția SU Nisporeni",
+          "Direcția SU Ocnița",
+          "Direcția SU Orhei",
+          "Direcția SU Rezina",
+          "Direcția SU Rîșcani",
+          "Direcția SU Sîngerei",
+          "Direcția SU Soroca",
+          "Direcția SU Strășeni",
+          "Direcția SU Șoldănești",
+          "Direcția SU Ștefan Vodă",
+          "Direcția SU Taraclia",
+          "Direcția SU Telenești",
+          "Direcția SU Ungheni"
+        ]
+      },
+      {
+        "code": "IPM",
+        "name": "Inspectoratul pentru Protecția Mediului",
+        "subdivisions": [
+          "Aparatul central",
+          "Inspecția de mediu Centru",
+          "Inspecția de mediu Nord",
+          "Inspecția de mediu Sud"
+        ]
+      },
+      {
+        "code": "AM",
+        "name": "Agenția de Mediu",
+        "subdivisions": [
+          "Inspecția de mediu Centru",
+          "Inspecția de mediu Nord",
+          "Inspecția de mediu Sud"
+        ]
+      },
+      {
+        "code": "CNAM",
+        "name": "Compania Națională de Asigurări în Medicină",
+        "subdivisions": [
+          "Aparatul central",
+          "Agenția teritorială Centru",
+          "Agenția teritorială Nord",
+          "Agenția teritorială Sud",
+          "Agenția teritorială Est",
+          "Agenția teritorială Vest",
+          "Agenția teritorială UTA Găgăuzia"
+        ]
+      },
+      {
+        "code": "ASP",
+        "name": "Agenția Servicii Publice",
+        "subdivisions": [
+          "Aparatul central",
+          "Direcția teritorială Centru",
+          "Direcția teritorială Nord",
+          "Direcția teritorială Sud",
+          "Direcția teritorială Est",
+          "Direcția teritorială Vest",
+          "Direcția teritorială UTA Găgăuzia",
+          "Centrul multifuncțional Chișinău",
+          "Centrul multifuncțional Bălți",
+          "Centrul multifuncțional Comrat",
+          "Centrul multifuncțional Anenii Noi",
+          "Centrul multifuncțional Basarabeasca",
+          "Centrul multifuncțional Briceni",
+          "Centrul multifuncțional Cahul",
+          "Centrul multifuncțional Cantemir",
+          "Centrul multifuncțional Călărași",
+          "Centrul multifuncțional Căușeni",
+          "Centrul multifuncțional Cimișlia",
+          "Centrul multifuncțional Criuleni",
+          "Centrul multifuncțional Dondușeni",
+          "Centrul multifuncțional Drochia",
+          "Centrul multifuncțional Dubăsari",
+          "Centrul multifuncțional Edineț",
+          "Centrul multifuncțional Fălești",
+          "Centrul multifuncțional Florești",
+          "Centrul multifuncțional Glodeni",
+          "Centrul multifuncțional Hîncești",
+          "Centrul multifuncțional Ialoveni",
+          "Centrul multifuncțional Leova",
+          "Centrul multifuncțional Nisporeni",
+          "Centrul multifuncțional Ocnița",
+          "Centrul multifuncțional Orhei",
+          "Centrul multifuncțional Rezina",
+          "Centrul multifuncțional Rîșcani",
+          "Centrul multifuncțional Sîngerei",
+          "Centrul multifuncțional Soroca",
+          "Centrul multifuncțional Strășeni",
+          "Centrul multifuncțional Șoldănești",
+          "Centrul multifuncțional Ștefan Vodă",
+          "Centrul multifuncțional Taraclia",
+          "Centrul multifuncțional Telenești",
+          "Centrul multifuncțional Ungheni"
+        ]
+      },
+      {
+        "code": "APP",
+        "name": "Agenția Proprietății Publice",
+        "subdivisions": [
+          "Aparatul central",
+          "Oficiul cadastral teritorial Chișinău",
+          "Oficiul cadastral teritorial Bălți",
+          "Oficiul cadastral teritorial Cahul"
+        ]
+      },
+      {
+        "code": "ISM",
+        "name": "Inspectoratul de Stat al Muncii",
+        "subdivisions": [
+          "Aparatul central",
+          "Inspecția teritorială de muncă Centru",
+          "Inspecția teritorială de muncă Nord",
+          "Inspecția teritorială de muncă Sud"
+        ]
+      },
+      {
+        "code": "AST",
+        "name": "Agenția pentru Supraveghere Tehnică",
+        "subdivisions": [
+          "Direcția supraveghere construcții",
+          "Direcția securitate industrială",
+          "Direcția teritorială Nord",
+          "Direcția teritorială Sud"
+        ]
+      },
+      {
+        "code": "BNM",
+        "name": "Banca Națională a Moldovei",
+        "subdivisions": [
+          "Departamentul licențiere"
+        ]
+      },
+      {
+        "code": "CNPF",
+        "name": "Comisia Națională a Pieței Financiare",
+        "subdivisions": [
+          "Direcția autorizare",
+          "Direcția supraveghere asigurări"
+        ]
+      },
+      {
+        "code": "SFS",
+        "name": "Serviciul Fiscal de Stat",
+        "subdivisions": [
+          "Aparatul central",
+          "Direcția deservire fiscală Centru",
+          "Direcția deservire fiscală Nord",
+          "Direcția deservire fiscală Sud"
+        ]
+      },
+      {
+        "code": "SV",
+        "name": "Serviciul Vamal",
+        "subdivisions": [
+          "Aparatul central",
+          "Biroul vamal Centru",
+          "Biroul vamal Nord",
+          "Biroul vamal Sud"
+        ]
+      },
+      {
+        "code": "CA",
+        "name": "Consiliul Audiovizualului",
+        "subdivisions": [
+          "Direcția licențe audiovizuale"
+        ]
+      },
+      {
+        "code": "CNPDCP",
+        "name": "Centrul Național pentru Protecția Datelor cu Caracter Personal",
+        "subdivisions": [
+          "Direcția evidență operatori"
+        ]
+      },
+      {
+        "code": "MEC",
+        "name": "Ministerul Economiei",
+        "subdivisions": [
+          "Direcția licențiere"
+        ]
+      },
+      {
+        "code": "LRSP",
+        "name": "Laboratorul de Referință în Sănătate Publică",
+        "subdivisions": [
+          "Laboratorul central"
+        ]
+      },
+      {
+        "code": "INM",
+        "name": "Institutul Național de Metrologie",
+        "subdivisions": [
+          "Laboratorul de metrologie legală",
+          "Filiala Nord"
+        ]
+      },
+      {
+        "code": "CC",
+        "name": "Consiliul Concurenței",
+        "subdivisions": [
+          "Direcția control"
+        ]
+      },
+      {
+        "code": "ANOFM",
+        "name": "Agenția Națională pentru Ocuparea Forței de Muncă",
+        "subdivisions": [
+          "Aparatul central",
+          "Subdiviziunea teritorială pentru ocuparea forței de muncă Chișinău",
+          "Subdiviziunea teritorială pentru ocuparea forței de muncă Bălți",
+          "Subdiviziunea teritorială pentru ocuparea forței de muncă Comrat",
+          "Subdiviziunea teritorială pentru ocuparea forței de muncă Anenii Noi",
+          "Subdiviziunea teritorială pentru ocuparea forței de muncă Basarabeasca",
+          "Subdiviziunea teritorială pentru ocuparea forței de muncă Briceni",
+          "Subdiviziunea teritorială pentru ocuparea forței de muncă Cahul",
+          "Subdiviziunea teritorială pentru ocuparea forței de muncă Cantemir",
+          "Subdiviziunea teritorială pentru ocuparea forței de muncă Călărași",
+          "Subdiviziunea teritorială pentru ocuparea forței de muncă Căușeni",
+          "Subdiviziunea teritorială pentru ocuparea forței de muncă Cimișlia",
+          "Subdiviziunea teritorială pentru ocuparea forței de muncă Criuleni"
+        ]
+      },
+      {
+        "code": "AGRM",
+        "name": "Agenția pentru Geologie și Resurse Minerale",
+        "subdivisions": [
+          "Direcția licențe subsol"
+        ]
+      },
+      {
+        "code": "AAC",
+        "name": "Autoritatea Aeronautică Civilă",
+        "subdivisions": [
+          "Direcția certificare"
+        ]
+      },
+      {
+        "code": "ANRM",
+        "name": "Agenția Navală a Republicii Moldova",
+        "subdivisions": [
+          "Căpitănia portului Giurgiulești"
+        ]
+      },
+      {
+        "code": "AIPA",
+        "name": "Agenția de Intervenție și Plăți pentru Agricultură",
+        "subdivisions": [
+          "Aparatul central",
+          "Oficiul teritorial Bălți",
+          "Oficiul teritorial Cahul",
+          "Oficiul teritorial Comrat",
+          "Oficiul teritorial Edineț",
+          "Oficiul teritorial Hîncești",
+          "Oficiul teritorial Orhei",
+          "Oficiul teritorial Soroca",
+          "Oficiul teritorial Ungheni",
+          "Oficiul teritorial Căușeni",
+          "Oficiul teritorial Florești"
+        ]
+      },
+      {
+        "code": "AGEPI",
+        "name": "Agenția de Stat pentru Proprietatea Intelectuală",
+        "subdivisions": [
+          "Direcția mărci și desene industriale"
+        ]
+      },
+      {
+        "code": "ARM",
+        "name": "Agenția Rezerve Materiale",
+        "subdivisions": [
+          "Aparatul central"
+        ]
+      },
+      {
+        "code": "AAP",
+        "name": "Agenția Achiziții Publice",
+        "subdivisions": [
+          "Direcția monitorizare"
+        ]
+      },
+      {
+        "code": "AAM",
+        "name": "Agenția „Apele Moldovei”",
+        "subdivisions": [
+          "Aparatul central",
+          "Direcția bazinului hidrografic Prut",
+          "Direcția bazinului hidrografic Nistru"
+        ]
+      },
+      {
+        "code": "MOLDSILVA",
+        "name": "Agenția „Moldsilva”",
+        "subdivisions": [
+          "Aparatul central",
+          "Întreprinderea silvică Chișinău",
+          "Întreprinderea silvică Orhei",
+          "Întreprinderea silvică Edineț",
+          "Întreprinderea silvică Cahul"
+        ]
+      },
+      {
+        "code": "IGP",
+        "name": "Inspectoratul General al Poliției",
+        "subdivisions": [
+          "Direcția arme și muniții",
+          "Inspectoratul de poliție Bălți",
+          "Inspectoratul de poliție Cahul"
+        ]
+      },
+      {
+        "code": "ANRANR",
+        "name": "Agenția Națională pentru Reglementarea Activităților Nucleare și Radiologice",
+        "subdivisions": [
+          "Direcția autorizare"
+        ]
+      },
+      {
+        "code": "CCI",
+        "name": "Camera de Comerț și Industrie",
+        "subdivisions": [
+          "Aparatul central",
+          "Filiala Bălți",
+          "Filiala Cahul",
+          "Filiala Comrat",
+          "Filiala Ungheni"
+        ]
+      },
+      {
+        "code": "ANPCSP",
+        "name": "Agenția pentru Protecția Consumatorilor și Supravegherea Pieței",
+        "subdivisions": [
+          "Aparatul central",
+          "Direcția teritorială Nord",
+          "Direcția teritorială Sud"
+        ]
+      },
+      {
+        "code": "AND",
+        "name": "Administrația Națională a Drumurilor",
+        "subdivisions": [
+          "Direcția autorizații drumuri"
+        ]
+      },
+      {
+        "code": "PMC",
+        "name": "Primăria municipiului Chișinău",
+        "subdivisions": [
+          "Direcția generală arhitectură, urbanism și relații funciare",
+          "Direcția comerț, alimentație publică și prestări servicii",
+          "Pretura sectorului Botanica",
+          "Pretura sectorului Buiucani",
+          "Pretura sectorului Centru",
+          "Pretura sectorului Ciocana",
+          "Pretura sectorului Rîșcani"
+        ]
+      },
+      {
+        "code": "PMB",
+        "name": "Primăria municipiului Bălți",
+        "subdivisions": [
+          "Direcția arhitectură și urbanism",
+          "Serviciul comerț"
+        ]
+      },
+      {
+        "code": "PCAHUL",
+        "name": "Primăria municipiului Cahul",
+        "subdivisions": [
+          "Serviciul arhitectură și urbanism"
+        ]
+      },
+      {
+        "code": "PCOMRAT",
+        "name": "Primăria municipiului Comrat",
+        "subdivisions": [
+          "Serviciul arhitectură și urbanism"
+        ]
+      },
+      {
+        "code": "PORHEI",
+        "name": "Primăria municipiului Orhei",
+        "subdivisions": [
+          "Serviciul arhitectură și urbanism"
+        ]
+      },
+      {
+        "code": "PUNGHENI",
+        "name": "Primăria municipiului Ungheni",
+        "subdivisions": [
+          "Serviciul arhitectură și urbanism"
+        ]
+      },
+      {
+        "code": "PSOROCA",
+        "name": "Primăria municipiului Soroca",
+        "subdivisions": [
+          "Serviciul arhitectură și urbanism"
+        ]
+      },
+      {
+        "code": "PEDINET",
+        "name": "Primăria municipiului Edineț",
+        "subdivisions": [
+          "Serviciul arhitectură și urbanism"
+        ]
+      },
+      {
+        "code": "PHINCESTI",
+        "name": "Primăria municipiului Hîncești",
+        "subdivisions": [
+          "Serviciul arhitectură și urbanism"
+        ]
+      },
+      {
+        "code": "PSTRASENI",
+        "name": "Primăria municipiului Strășeni",
+        "subdivisions": [
+          "Serviciul arhitectură și urbanism"
+        ]
+      },
+      {
+        "code": "PCAUSENI",
+        "name": "Primăria orașului Căușeni",
+        "subdivisions": [
+          "Serviciul arhitectură și urbanism"
+        ]
+      },
+      {
+        "code": "ANACEC",
+        "name": "Agenția Națională de Asigurare a Calității în Educație și Cercetare",
+        "subdivisions": [
+          "Direcția evaluare externă"
+        ]
+      },
+      {
+        "code": "ANCD",
+        "name": "Agenția Națională pentru Cercetare și Dezvoltare",
+        "subdivisions": [
+          "Direcția programe"
+        ]
+      },
+      {
+        "code": "ANDRL",
+        "name": "Agenția de Dezvoltare Regională și Locală",
+        "subdivisions": [
+          "Aparatul central"
+        ]
+      },
+      {
+        "code": "STISC",
+        "name": "Serviciul Tehnologia Informației și Securitate Cibernetică",
+        "subdivisions": [
+          "Aparatul central"
+        ]
+      }
+    ],
+    "actTypes": [
+      {
+        "name": "Autorizație sanitară de funcționare",
+        "authorities": [
+          "ANSP"
+        ]
+      },
+      {
+        "name": "Autorizație sanitară pentru activități cu factori de risc pentru sănătatea publică",
+        "authorities": [
+          "ANSP"
+        ]
+      },
+      {
+        "name": "Aviz sanitar pentru produse cosmetice și de igienă personală",
+        "authorities": [
+          "ANSP"
+        ]
+      },
+      {
+        "name": "Certificat de înregistrare a produselor biocide",
+        "authorities": [
+          "ANSP"
+        ]
+      },
+      {
+        "name": "Aviz sanitar pentru materia primă și produsele destinate contactului cu alimentele",
+        "authorities": [
+          "ANSP",
+          "LRSP"
+        ]
+      },
+      {
+        "name": "Autorizație sanitar-veterinară de funcționare",
+        "authorities": [
+          "ANSA"
+        ]
+      },
+      {
+        "name": "Înregistrare sanitar-veterinară a unităților din domeniul alimentar",
+        "authorities": [
+          "ANSA"
+        ]
+      },
+      {
+        "name": "Certificat fitosanitar pentru export",
+        "authorities": [
+          "ANSA"
+        ]
+      },
+      {
+        "name": "Certificat sanitar-veterinar pentru import, export și tranzit",
+        "authorities": [
+          "ANSA"
+        ]
+      },
+      {
+        "name": "Autorizație de import al produselor de uz fitosanitar și al fertilizanților",
+        "authorities": [
+          "ANSA"
+        ]
+      },
+      {
+        "name": "Licență pentru activitatea farmaceutică",
+        "authorities": [
+          "AMDM"
+        ]
+      },
+      {
+        "name": "Autorizație de punere pe piață a medicamentului",
+        "authorities": [
+          "AMDM"
+        ]
+      },
+      {
+        "name": "Certificat de înregistrare a dispozitivelor medicale",
+        "authorities": [
+          "AMDM"
+        ]
+      },
+      {
+        "name": "Autorizație pentru importul medicamentelor neautorizate",
+        "authorities": [
+          "AMDM"
+        ]
+      },
+      {
+        "name": "Licență pentru distribuția gazelor naturale",
+        "authorities": [
+          "ANRE"
+        ]
+      },
+      {
+        "name": "Licență pentru furnizarea energiei electrice",
+        "authorities": [
+          "ANRE"
+        ]
+      },
+      {
+        "name": "Licență pentru producerea energiei termice",
+        "authorities": [
+          "ANRE"
+        ]
+      },
+      {
+        "name": "Licență pentru comerțul cu ridicata al produselor petroliere principale",
+        "authorities": [
+          "ANRE"
+        ]
+      },
+      {
+        "name": "Licență pentru fabricarea alcoolului etilic, a berii și a băuturilor alcoolice",
+        "authorities": [
+          "ANRE",
+          "MEC"
+        ]
+      },
+      {
+        "name": "Licență de utilizare a canalelor sau frecvențelor radio",
+        "authorities": [
+          "ANRCETI"
+        ]
+      },
+      {
+        "name": "Licență de utilizare a resurselor de numerotare",
+        "authorities": [
+          "ANRCETI"
+        ]
+      },
+      {
+        "name": "Notificare privind furnizarea rețelelor și serviciilor de comunicații electronice",
+        "authorities": [
+          "ANRCETI"
+        ]
+      },
+      {
+        "name": "Licență pentru transport rutier de persoane în regim de taxi",
+        "authorities": [
+          "ANTA"
+        ]
+      },
+      {
+        "name": "Certificat de transportator rutier",
+        "authorities": [
+          "ANTA"
+        ]
+      },
+      {
+        "name": "Autorizație pentru transport rutier internațional de mărfuri",
+        "authorities": [
+          "ANTA"
+        ]
+      },
+      {
+        "name": "Autorizație de transport rutier de persoane prin servicii ocazionale",
+        "authorities": [
+          "ANTA"
+        ]
+      },
+      {
+        "name": "Aviz de securitate la incendiu",
+        "authorities": [
+          "IGSU"
+        ]
+      },
+      {
+        "name": "Autorizație de funcționare din punct de vedere al securității la incendiu",
+        "authorities": [
+          "IGSU"
+        ]
+      },
+      {
+        "name": "Licență pentru activitatea de proiectare, montare și deservire a sistemelor de protecție contra incendiilor",
+        "authorities": [
+          "IGSU"
+        ]
+      },
+      {
+        "name": "Autorizație de mediu pentru folosința specială a apei",
+        "authorities": [
+          "AM",
+          "AAM"
+        ]
+      },
+      {
+        "name": "Autorizație integrată de mediu",
+        "authorities": [
+          "AM"
+        ]
+      },
+      {
+        "name": "Autorizație pentru gestionarea deșeurilor",
+        "authorities": [
+          "AM",
+          "IPM"
+        ]
+      },
+      {
+        "name": "Autorizație pentru emisiile de poluanți în aer de la surse staționare",
+        "authorities": [
+          "AM",
+          "IPM"
+        ]
+      },
+      {
+        "name": "Acord de mediu",
+        "authorities": [
+          "AM"
+        ]
+      },
+      {
+        "name": "Autorizație pentru tăierea arborilor și arbuștilor din afara fondului forestier",
+        "authorities": [
+          "IPM",
+          "MOLDSILVA"
+        ]
+      },
+      {
+        "name": "Autorizație de folosire a subsolului",
+        "authorities": [
+          "AGRM"
+        ]
+      },
+      {
+        "name": "Licență pentru prospecțiunea și explorarea zăcămintelor minerale utile",
+        "authorities": [
+          "AGRM"
+        ]
+      },
+      {
+        "name": "Autorizație de pescuit comercial",
+        "authorities": [
+          "AAM"
+        ]
+      },
+      {
+        "name": "Autorizație de exploatare a fondului forestier",
+        "authorities": [
+          "MOLDSILVA"
+        ]
+      },
+      {
+        "name": "Certificat de urbanism pentru proiectare",
+        "authorities": [
+          "PMC",
+          "PMB",
+          "PCAHUL",
+          "PCOMRAT",
+          "PORHEI",
+          "PUNGHENI",
+          "PSOROCA",
+          "PEDINET",
+          "PHINCESTI",
+          "PSTRASENI",
+          "PCAUSENI"
+        ]
+      },
+      {
+        "name": "Certificat de urbanism informativ",
+        "authorities": [
+          "PMC",
+          "PMB",
+          "PCAHUL",
+          "PCOMRAT",
+          "PORHEI",
+          "PUNGHENI",
+          "PSOROCA",
+          "PEDINET",
+          "PHINCESTI",
+          "PSTRASENI",
+          "PCAUSENI"
+        ]
+      },
+      {
+        "name": "Autorizație de construire",
+        "authorities": [
+          "PMC",
+          "PMB",
+          "PCAHUL",
+          "PCOMRAT",
+          "PORHEI",
+          "PUNGHENI",
+          "PSOROCA",
+          "PEDINET",
+          "PHINCESTI",
+          "PSTRASENI",
+          "PCAUSENI"
+        ]
+      },
+      {
+        "name": "Autorizație de desființare",
+        "authorities": [
+          "PMC",
+          "PMB",
+          "PCAHUL",
+          "PCOMRAT",
+          "PORHEI",
+          "PUNGHENI",
+          "PSOROCA",
+          "PEDINET",
+          "PHINCESTI",
+          "PSTRASENI",
+          "PCAUSENI"
+        ]
+      },
+      {
+        "name": "Autorizație de funcționare a unității de comerț",
+        "authorities": [
+          "PMC",
+          "PMB",
+          "PCAHUL",
+          "PCOMRAT",
+          "PORHEI",
+          "PUNGHENI",
+          "PSOROCA",
+          "PEDINET",
+          "PHINCESTI",
+          "PSTRASENI",
+          "PCAUSENI"
+        ]
+      },
+      {
+        "name": "Notificare privind inițierea activității de comerț",
+        "authorities": [
+          "PMC",
+          "PMB",
+          "PCAHUL",
+          "PCOMRAT",
+          "PORHEI",
+          "PUNGHENI",
+          "PSOROCA",
+          "PEDINET",
+          "PHINCESTI",
+          "PSTRASENI",
+          "PCAUSENI",
+          "ANPCSP"
+        ]
+      },
+      {
+        "name": "Autorizație pentru amplasarea publicității exterioare",
+        "authorities": [
+          "PMC",
+          "PMB",
+          "PCAHUL",
+          "PCOMRAT",
+          "PORHEI",
+          "PUNGHENI",
+          "PSOROCA",
+          "PEDINET",
+          "PHINCESTI",
+          "PSTRASENI",
+          "PCAUSENI"
+        ]
+      },
+      {
+        "name": "Autorizație pentru desfășurarea comerțului ambulant",
+        "authorities": [
+          "PMC",
+          "PMB",
+          "PCAHUL",
+          "PCOMRAT",
+          "PORHEI",
+          "PUNGHENI",
+          "PSOROCA",
+          "PEDINET",
+          "PHINCESTI",
+          "PSTRASENI",
+          "PCAUSENI"
+        ]
+      },
+      {
+        "name": "Autorizație de funcționare a unității de alimentație publică",
+        "authorities": [
+          "PMC",
+          "PMB",
+          "PCAHUL",
+          "PCOMRAT",
+          "PORHEI",
+          "PUNGHENI",
+          "PSOROCA",
+          "PEDINET",
+          "PHINCESTI",
+          "PSTRASENI",
+          "PCAUSENI"
+        ]
+      },
+      {
+        "name": "Certificat de conformitate a produselor",
+        "authorities": [
+          "INM",
+          "ANPCSP"
+        ]
+      },
+      {
+        "name": "Certificat de aprobare de model al mijlocului de măsurare",
+        "authorities": [
+          "INM"
+        ]
+      },
+      {
+        "name": "Autorizație de verificare metrologică",
+        "authorities": [
+          "INM"
+        ]
+      },
+      {
+        "name": "Certificat de atestare tehnico-profesională a diriginților de șantier",
+        "authorities": [
+          "AST"
+        ]
+      },
+      {
+        "name": "Autorizație de exploatare a obiectelor industriale periculoase",
+        "authorities": [
+          "AST"
+        ]
+      },
+      {
+        "name": "Permis de exploatare a instalațiilor de ridicat și a ascensoarelor",
+        "authorities": [
+          "AST"
+        ]
+      },
+      {
+        "name": "Licență bancară",
+        "authorities": [
+          "BNM"
+        ]
+      },
+      {
+        "name": "Licență pentru activitatea de schimb valutar în numerar",
+        "authorities": [
+          "BNM"
+        ]
+      },
+      {
+        "name": "Licență pentru activitatea de asigurare",
+        "authorities": [
+          "CNPF"
+        ]
+      },
+      {
+        "name": "Licență pentru activitatea organizațiilor de creditare nebancară",
+        "authorities": [
+          "CNPF"
+        ]
+      },
+      {
+        "name": "Licență de broker de asigurare",
+        "authorities": [
+          "CNPF"
+        ]
+      },
+      {
+        "name": "Licență de emisie a serviciului media audiovizual",
+        "authorities": [
+          "CA"
+        ]
+      },
+      {
+        "name": "Autorizație de retransmisie a serviciilor media audiovizuale",
+        "authorities": [
+          "CA"
+        ]
+      },
+      {
+        "name": "Înregistrare ca operator de date cu caracter personal",
+        "authorities": [
+          "CNPDCP"
+        ]
+      },
+      {
+        "name": "Autorizație pentru transmiterea transfrontalieră a datelor cu caracter personal",
+        "authorities": [
+          "CNPDCP"
+        ]
+      },
+      {
+        "name": "Autorizație de antrepozit vamal",
+        "authorities": [
+          "SV"
+        ]
+      },
+      {
+        "name": "Statut de agent economic autorizat",
+        "authorities": [
+          "SV"
+        ]
+      },
+      {
+        "name": "Înregistrare ca plătitor de accize",
+        "authorities": [
+          "SFS"
+        ]
+      },
+      {
+        "name": "Autorizație pentru utilizarea mașinilor de casă și de control",
+        "authorities": [
+          "SFS"
+        ]
+      },
+      {
+        "name": "Licență pentru activitatea agențiilor private de ocupare a forței de muncă",
+        "authorities": [
+          "ANOFM"
+        ]
+      },
+      {
+        "name": "Autorizație de muncă pentru cetățeni străini",
+        "authorities": [
+          "ANOFM"
+        ]
+      },
+      {
+        "name": "Aviz privind securitatea și sănătatea în muncă la darea în exploatare",
+        "authorities": [
+          "ISM"
+        ]
+      },
+      {
+        "name": "Certificat de operator aerian",
+        "authorities": [
+          "AAC"
+        ]
+      },
+      {
+        "name": "Autorizație de zbor pentru aeronave fără pilot",
+        "authorities": [
+          "AAC"
+        ]
+      },
+      {
+        "name": "Certificat de înregistrare a navei",
+        "authorities": [
+          "ANRM"
+        ]
+      },
+      {
+        "name": "Autorizație de plată pentru subvenționarea producătorilor agricoli",
+        "authorities": [
+          "AIPA"
+        ]
+      },
+      {
+        "name": "Certificat de înregistrare a mărcii",
+        "authorities": [
+          "AGEPI"
+        ]
+      },
+      {
+        "name": "Licență pentru păstrarea și comercializarea armelor și munițiilor",
+        "authorities": [
+          "IGP"
+        ]
+      },
+      {
+        "name": "Permis de deținere și port-armă",
+        "authorities": [
+          "IGP"
+        ]
+      },
+      {
+        "name": "Autorizație pentru desfășurarea activităților cu surse de radiații ionizante",
+        "authorities": [
+          "ANRANR"
+        ]
+      },
+      {
+        "name": "Certificat de origine a mărfurilor",
+        "authorities": [
+          "CCI"
+        ]
+      },
+      {
+        "name": "Autorizație de amplasare a construcțiilor în zona drumului public",
+        "authorities": [
+          "AND"
+        ]
+      },
+      {
+        "name": "Autorizație de transport rutier al mărfurilor cu dimensiuni sau mase depășite",
+        "authorities": [
+          "AND",
+          "ANTA"
+        ]
+      },
+      {
+        "name": "Autorizație de concentrare economică",
+        "authorities": [
+          "CC"
+        ]
+      },
+      {
+        "name": "Licență pentru comerțul cu ridicata al medicamentelor de uz veterinar",
+        "authorities": [
+          "ANSA"
+        ]
+      },
+      {
+        "name": "Autorizație de funcționare a pieței",
+        "authorities": [
+          "PMC",
+          "PMB",
+          "PCAHUL",
+          "PCOMRAT",
+          "PORHEI",
+          "PUNGHENI",
+          "PSOROCA",
+          "PEDINET",
+          "PHINCESTI",
+          "PSTRASENI",
+          "PCAUSENI"
+        ]
+      },
+      {
+        "name": "Act de constatare a aprobării tacite",
+        "authorities": [
+          "ASP",
+          "ANSP",
+          "ANSA",
+          "PMC",
+          "PMB",
+          "IGSU"
+        ]
+      },
+      {
+        "name": "Înregistrarea patrimoniului public în Registrul bunurilor imobile",
+        "authorities": [
+          "APP"
+        ]
+      },
+      {
+        "name": "Aviz de evaluare a conformității documentației de proiect",
+        "authorities": [
+          "APP",
+          "AST"
+        ]
+      },
+      {
+        "name": "Certificat de evaluare a rezervelor materiale de stat",
+        "authorities": [
+          "ARM"
+        ]
+      },
+      {
+        "name": "Înregistrarea operatorilor economici în Registrul achizițiilor publice",
+        "authorities": [
+          "AAP"
+        ]
+      },
+      {
+        "name": "Certificat de asigurat pentru asigurarea obligatorie de asistență medicală",
+        "authorities": [
+          "CNAM"
+        ]
+      },
+      {
+        "name": "Licență pentru activitatea de import și comercializare a dispozitivelor medicale pentru diagnosticare in vitro, inclusiv reactivi, calibratori și materiale de control destinate laboratoarelor medicale",
+        "authorities": [
+          "AMDM"
+        ]
+      },
+      {
+        "name": "Autorizația pentru importul, exportul sau reexportul substanțelor care distrug stratul de ozon și al produselor care le conțin, precum și al gazelor fluorurate cu efect de seră și al echipamentelor care le conțin",
+        "authorities": [
+          "AM"
+        ]
+      },
+      {
+        "name": "Autorizație de funcționare pentru prestarea serviciilor de alimentație publică cu desfacerea băuturilor alcoolice și a produselor din tutun în incinta unităților de comerț",
+        "authorities": [
+          "PMC",
+          "PMB",
+          "PCAHUL",
+          "PCOMRAT",
+          "PORHEI",
+          "PUNGHENI",
+          "PSOROCA",
+          "PEDINET",
+          "PHINCESTI",
+          "PSTRASENI",
+          "PCAUSENI"
+        ]
+      },
+      {
+        "name": "Eliberarea actelor de identitate pentru persoanele juridice străine — certificat de înregistrare a filialei",
+        "authorities": [
+          "ASP"
+        ]
+      },
+      {
+        "name": "Licență pentru activitatea notarială privată",
+        "authorities": [
+          "ASP"
+        ]
+      }
+    ],
+    "addresses": [
+      {
+        "locality": "mun. Chișinău",
+        "streets": [
+          "bd. Ștefan cel Mare și Sfânt",
+          "str. Vasile Alecsandri",
+          "str. Columna",
+          "str. Mitropolit Dosoftei",
+          "str. Calea Ieșilor",
+          "bd. Dacia",
+          "str. Ismail"
+        ]
+      },
+      {
+        "locality": "mun. Bălți",
+        "streets": [
+          "str. Ștefan cel Mare",
+          "str. Independenței",
+          "str. Decebal",
+          "str. Sfântul Nicolae"
+        ]
+      },
+      {
+        "locality": "mun. Cahul",
+        "streets": [
+          "str. Republicii",
+          "bd. Victoriei",
+          "str. Mihai Viteazul"
+        ]
+      },
+      {
+        "locality": "mun. Comrat",
+        "streets": [
+          "str. Lenin",
+          "str. Pobedî",
+          "str. Galațan"
+        ]
+      },
+      {
+        "locality": "mun. Orhei",
+        "streets": [
+          "str. Vasile Mahu",
+          "str. Alexandru cel Bun",
+          "str. Unirii"
+        ]
+      },
+      {
+        "locality": "mun. Ungheni",
+        "streets": [
+          "str. Națională",
+          "str. Decebal",
+          "str. Barbu Lăutaru"
+        ]
+      },
+      {
+        "locality": "mun. Soroca",
+        "streets": [
+          "str. Independenței",
+          "str. Ștefan cel Mare",
+          "str. Alexandru cel Bun"
+        ]
+      },
+      {
+        "locality": "mun. Edineț",
+        "streets": [
+          "str. Independenței",
+          "str. Movileu"
+        ]
+      },
+      {
+        "locality": "mun. Hîncești",
+        "streets": [
+          "str. Mihalcea Hîncu",
+          "str. Chișinăului"
+        ]
+      },
+      {
+        "locality": "mun. Strășeni",
+        "streets": [
+          "str. Ștefan cel Mare",
+          "str. Mihai Eminescu"
+        ]
+      },
+      {
+        "locality": "or. Ialoveni",
+        "streets": [
+          "str. Alexandru cel Bun",
+          "str. Văii"
+        ]
+      },
+      {
+        "locality": "or. Căușeni",
+        "streets": [
+          "str. Mihai Eminescu",
+          "str. Tighina"
+        ]
+      },
+      {
+        "locality": "s. Lăpușna, r-nul Hîncești",
+        "streets": [
+          "str. Ștefan cel Mare"
+        ]
+      },
+      {
+        "locality": "s. Cricova, mun. Chișinău",
+        "streets": [
+          "str. Ungureanu",
+          "str. Chișinăului"
+        ]
+      },
+      {
+        "locality": "or. Durlești, mun. Chișinău",
+        "streets": [
+          "str. Cartușa",
+          "str. Nicolae Testemițanu"
+        ]
+      }
+    ]
   }
 }

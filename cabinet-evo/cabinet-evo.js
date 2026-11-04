@@ -27,7 +27,7 @@
      office uses (acte-permisive.json → intent): status × post-process
      matrix, the service passport (allows), paper acts and acts with a
      post-process already in progress. The perspective is ?as=<subject>. */
-  const GEAP_URL = "../data/acte-permisive.json?v=start-dialog-v2";
+  const GEAP_URL = "../data/acte-permisive.json?v=pps-suplinire-v1";
   const FO_URL = "../e-permits-acte-permisive.html";
 
   const els = {
@@ -75,6 +75,22 @@
      permisive (this file) and the public catalog (catalog.js). ?as=<subject> is the
      perspective, ?auth=0 a visitor without an MPass session (catalog only). */
   const params = new URLSearchParams(window.location.search);
+  /* demo scenarios (pps-…, 2026-11-03): a seed record may carry `scenarios: { pps: {…}, "pps:<value>": {…} }` — with
+     ?pps=<value> the base layer, then the value's layer, are merged over the record (plain objects one level deep).
+     The same record then reads the same in Solicitările mele, Notificări, Actele mele and the FO (suplinire). */
+  function withScenario(item) {
+    const value = params.get("pps");
+    const layers = item?.scenarios;
+    if (!value || !layers) return item;
+    const out = { ...item };
+    [layers.pps, layers[`pps:${value}`]].forEach((layer) => {
+      Object.entries(layer || {}).forEach(([key, val]) => {
+        const plain = (x) => x && typeof x === "object" && !Array.isArray(x);
+        out[key] = plain(val) && plain(out[key]) ? { ...out[key], ...val } : val;
+      });
+    });
+    return out;
+  }
   const VIEWS = {
     solicitari: { title: "Solicitările mele" },
     acte: { title: "Actele mele permisive" },
@@ -90,6 +106,8 @@
   function cabUrl(view, extra = {}, hash = "") {
     const next = new URLSearchParams({ view });
     if (params.get("as")) next.set("as", params.get("as"));
+    /* the demo scenario (pps-…) stays on while the user moves around the cabinet */
+    if (params.get("pps")) next.set("pps", params.get("pps"));
     if (!AUTH) next.set("auth", "0");
     Object.entries(extra).forEach(([key, value]) => { if (value !== undefined && value !== null && value !== "") next.set(key, value); });
     return `?${next.toString()}${hash}`;
@@ -598,7 +616,7 @@
     const config = data.frontOfficeFlows?.[0]?.intent || {};
     const subjectId = SUBJECT;
     /* demo only (?acte=multe): the subject's acts + numbered copies, so the list paginates (> 10) */
-    const own = config.acts?.[subjectId] || [];
+    const own = (config.acts?.[subjectId] || []).map(withScenario);
     const source = params.get("acte") === "multe"
       ? [...own, ...own.flatMap((act, round) => [1, 2].map((n) => ({ ...act, id: `${act.id}-${n}`, number: `${act.number}/${n}`, name: act.name.replace(/,/, ` ${n + 1},`), pending: null, ...(round + n) % 3 ? {} : { status: "expirat", statusLabel: "Expirat" } })))]
       : own;
@@ -918,6 +936,19 @@
     const pair = (primary, requestId) => `${seeRequest(requestId, !primary)}${primary}`;
     if (act.pending) {
       const id = state.dosarIdByNr[act.pending.dossier];
+      /* pps-… (US-24 AC-01, US-19 AC-06): the post-process in progress waits for information from the holder → the
+         same warning alert as the request's own, with its „Completează informația” (FOD2 S4); an expired term = no
+         action (the BO resumed the examination, US-24 AC-03) */
+      const waiting = (state.perspective?.dosare || []).find((dosar) => dosar.nr === act.pending.dossier && dosar.status === "info");
+      if (waiting && waiting.info?.until >= state.today) {
+        const href = `${FO_URL}?${new URLSearchParams({ flow: "full", solicitant: SUBJECT, suplinire: waiting.nr, ...(params.get("pps") ? { pps: params.get("pps") } : {}) })}#request-step-2`;
+        return {
+          tone: "warning", icon: "icon-warning-filled",
+          title: `Trimiteți informațiile cerute până la ${escape(longDate(waiting.info.until))}`,
+          text: `Solicitarea de ${escape(String(act.pendingLabel).toLowerCase())} este suspendată: autoritatea a cerut informații suplimentare. Până atunci nu puteți iniția alt postproces.`,
+          actions: pair(`<a class="btn btn-primary btn-md btn-rounded" href="${escape(href)}" data-cab-alert-supplement>${icon("icon-page-upload")}<span>Completează informația</span></a>`, id),
+        };
+      }
       const since = act.pending.since ? `, depusă pe ${escape(longDate(isoOf(act.pending.since)))}` : "";
       return {
         tone: "warning", icon: "icon-time-filled",
@@ -1794,7 +1825,7 @@
   /* ---------- shared with solicitari.js and catalog.js ---------- */
   window.CabEvo = {
     firstLoad, listLoader, setBusy, setToolbarLoading, maskResultCount, listSkeletonHtml, profileSkeletonHtml, skeletonRows,
-    VIEW, AUTH, SUBJECT, SPRITE, params,
+    VIEW, AUTH, SUBJECT, SPRITE, params, withScenario,
     icon, escape, copyValueHtml, closeMenus, cabUrl, longDate, longDateTime, setHeaderTitle, restrictionHtml, pagerHtml,
     docRowHtml, docContentHtml, openDocModal, closeDocModal, signedTagHtml,
     actGroups, newTabAttrs, pageHeader, profileHeader, notFoundHtml, pageAddress, modifiedClick, syncHeaderMeta, watchHeaderActions, identityCardHtml, tagHtml, tacitTagHtml, ACT_TONE, detailRow, detailCard, profileSection,
@@ -1837,13 +1868,13 @@
     applyView();
     /* Finalizat-Aprobat dosare ↔ their act („Vezi solicitarea” / „Vezi actul”) */
     try {
-      const sm = await (await fetch("../data/cabinet-evo-solicitari.json?v=type-first-v1")).json();
+      const sm = await (await fetch("../data/cabinet-evo-solicitari.json?v=pps-suplinire-v1")).json();
       (sm.perspectives?.[SUBJECT]?.dosare || [])
         .filter((dosar) => dosar.actId && dosar.status === "finalizat" && dosar.result === "aprobat" && !dosar.decisionOnly)
         .forEach((dosar) => { if (!state.dosarByAct[dosar.actId]) { state.dosarByAct[dosar.actId] = dosar.id; state.dosarNrByAct[dosar.actId] = dosar.nr; } });
       state.help = sm.help || {};
       state.restriction = sm.perspectives?.[SUBJECT]?.readOnly || null;
-      state.perspective = sm.perspectives?.[SUBJECT] || null;
+      state.perspective = sm.perspectives?.[SUBJECT] ? { ...sm.perspectives[SUBJECT], dosare: (sm.perspectives[SUBJECT].dosare || []).map(withScenario) } : null;
       state.today = sm.today || state.today;
       state.appealDays = sm.appealDays || state.appealDays;
       (state.perspective?.dosare || []).forEach((dosar) => {

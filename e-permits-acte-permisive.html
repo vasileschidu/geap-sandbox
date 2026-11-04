@@ -11,21 +11,21 @@
   <link rel="stylesheet" href="css/button-icons.css?v=button-label-v1">
   <link rel="stylesheet" href="css/radio.css?v=radio-v1">
   <link rel="stylesheet" href="css/skeleton.css?v=skeleton-v1">
-  <link rel="stylesheet" href="css/e-permits-shell.css?v=search-one-v3">
+  <link rel="stylesheet" href="css/e-permits-shell.css?v=form-gap-24">
   <link rel="stylesheet" href="css/act-view.css?v=docked-v2">
   <link rel="stylesheet" href="css/table-pin-shadow.css?v=table-pin-clip-v1">
-  <link rel="stylesheet" href="css/facet-filter.css?v=search-one-v3">
+  <link rel="stylesheet" href="css/facet-filter.css?v=rap-filter-v2">
   <link rel="stylesheet" href="css/drawer.css?v=notif-drawer-v3">
   <link rel="stylesheet" href="css/notif-drawer.css?v=notif-drawer-v4">
-  <link rel="stylesheet" href="css/e-permits-acte-permisive.css?v=hdr-border-v1">
+  <link rel="stylesheet" href="css/e-permits-acte-permisive.css?v=pp-holder-grey-v1">
   <link rel="stylesheet" href="css/doc-preview.css?v=sig-pinned-desktop-v1">
   <link rel="stylesheet" href="css/page-reveal.css?v=skeleton-v1">
   <link rel="stylesheet" href="msupport/msupport.css?v=20260925-anon">
-  <link rel="stylesheet" href="css/empty-state.css?v=empty-v3">
+  <link rel="stylesheet" href="css/empty-state.css?v=empty-v4">
   <link rel="stylesheet" href="css/form-builder.css?v=requestor-scenarios-v1">
   <link rel="stylesheet" href="css/process-designer.css?v=pd-settings-page-v2">
   <link rel="stylesheet" href="css/ghiseu.css?v=search-one-v3">
-  <link rel="stylesheet" href="css/bo-dossier-flows.css?v=act-card-v1">
+  <link rel="stylesheet" href="css/bo-dossier-flows.css?v=pps-suplinire-v1">
   <link rel="stylesheet" href="css/registre.css?v=search-one-v3">
   <link rel="stylesheet" href="css/calendar.css?v=calendar-views-v8">
   <!-- menu-flip-v3: Administrare › Șabloane de jurnalizare (Feature 93589, US-257…261) -->
@@ -36,12 +36,13 @@
   <link rel="stylesheet" href="css/alert-card.css?v=cards-radius-20-final">
   <link rel="stylesheet" href="css/absences.css?v=abs-sort-v1">
   <!-- aut-v1: Administrare › Autorități + Subdiviziuni (Feature 89938, US-87…96, US-112) -->
-  <link rel="stylesheet" href="css/autoritati.css?v=aut-v4">
+  <link rel="stylesheet" href="css/autoritati.css?v=aut-v18">
   <link rel="stylesheet" href="css/name-expand.css?v=name-expand-align-v1">
   <link rel="stylesheet" href="css/trajectory.css?v=cards-radius-20-final">
   <link rel="stylesheet" href="css/dropdown.css?v=menu-40-v1">
   <link rel="stylesheet" href="css/sort-sheet.css?v=radio-v1">
-  <link rel="stylesheet" href="css/copy-value.css?v=copy-wrap-v1">
+  <link rel="stylesheet" href="css/copy-value.css?v=tooltip-edge-v1">
+  <link rel="stylesheet" href="css/tooltip.css?v=tooltip-figma-v1">
   <link rel="stylesheet" href="css/breadcrumbs.css?v=breadcrumb-single-back-v1">
   <link rel="stylesheet" href="css/pager.css?v=pager-check-24-v1">
   <link rel="stylesheet" href="css/tag.css?v=tag-violet-border-v1">
@@ -52,14 +53,14 @@
   <!-- ?state=<id> opens the screen a Figma frame shows (js/demo-states.js) -->
   <script src="js/tag.js?v=audit-fix-v5"></script>
   <script src="js/pager.js?v=pager-compact-v4"></script>
-  <script src="js/copy-value.js?v=copy-wrap-v1"></script>
+  <script src="js/copy-value.js?v=tooltip-edge-v1"></script>
   <script src="js/start-dialog.js?v=start-dialog-v8"></script>
   <script src="js/breadcrumbs.js?v=breadcrumb-single-back-v1"></script>
   <script src="js/page-header.js?v=back-chevron-v3"></script>
   <script src="js/empty-state.js?v=empty-v3"></script>
   <script src="js/trajectory.js?v=trajectory-phone-even-v1"></script>
   <script src="js/event-timeline.js?v=machete-mdocs-v1"></script>
-  <script src="js/demo-states.js?v=aut-v2"></script>
+  <script src="js/demo-states.js?v=rap-filter-v2"></script>
   <script src="js/demo-links.js?v=links-v4"></script>
   <!-- the working-days engine (Administrare › Calendar), before the shell seeds the dossier deadlines; after
        demo-links.js, which clears the stored calendar changes for a demo link before the engine reads them -->
@@ -71,7 +72,7 @@
   <script src="js/modal.js" defer></script>
   <script src="js/toast.js?v=toast-v3" defer></script>
   <script src="js/dropdown-select.js" defer></script>
-  <script src="js/icon-tooltip.js?v=doc-card-hover-v2" defer></script>
+  <script src="js/icon-tooltip.js?v=tooltip-edge-v1" defer></script>
   <script src="js/drawer.js?v=drawer-v1" defer></script>
   <script src="js/notif-drawer.js?v=notif-drawer-v4" defer></script>
   <script src="js/name-expand.js?v=header-actions-below-v1" defer></script>
@@ -83,7 +84,7 @@
   <script src="js/fo-grid.js?v=doc-upload-v1" defer></script>
   <!-- the act row (FO #intent, Ghișeu, EVO Cabinet) — one renderer, before the FO script that uses it -->
   <script src="js/act-row.js?v=ghiseu-picker-toast-v1" defer></script>
-  <script src="js/e-permits-acte-permisive.js?v=start-dialog-v2" defer></script>
+  <script src="js/e-permits-acte-permisive.js?v=pp-holder-grey-v2" defer></script>
   <!-- Form Builder (after the FO renderer it shares) -->
   <script src="js/form-builder.js?v=destructive-red-v1" defer></script>
   <script src="core/process-model.js?v=pd-bend-v2" defer></script>
@@ -96,7 +97,7 @@
   <script src="js/jurnalizare.js?v=search-one-v3" defer></script>
   <script src="js/alert-card.js?v=act-alert-card-v2" defer></script>
   <script src="js/absences.js?v=abs-sort-v1" defer></script>
-  <script src="js/autoritati.js?v=aut-v4" defer></script>
+  <script src="js/autoritati.js?v=aut-v16" defer></script>
   <script src="js/doc-preview.js?v=outcome-icon-v1" defer></script>
   <script src="js/page-reveal.js?v=skeleton-v1" defer></script>
 </head>
@@ -3572,10 +3573,10 @@
   <script src="core/classifiers.js?v=action-icons-v1"></script>
   <script src="core/permissions.js?v=clas-v1"></script>
   <script src="core/case-flow.js?v=bo-dossier-flows-v1"></script>
-  <script src="js/facet-filter.js?v=applied-visible-v1"></script>
+  <script src="js/facet-filter.js?v=rap-filter-v2"></script>
   <script src="js/sort-sheet.js?v=row-ctl-v5"></script>
   <script src="js/act-view.js?v=docked-v2"></script>
-  <script src="js/e-permits-shell.js?v=aut-v1"></script>
+  <script src="js/e-permits-shell.js?v=aut-v2"></script>
 
   <!-- Instance switch warning modal -->
   <div class="e-permits-fo-instance-switch-modal" data-fo-instance-switch-modal hidden aria-modal="true" role="dialog" aria-labelledby="fo-instance-switch-title" aria-describedby="fo-instance-switch-description">

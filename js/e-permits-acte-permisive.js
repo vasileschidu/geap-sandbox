@@ -194,7 +194,8 @@
       /* once paid, the request is filed — the Finalizare step must not claim
          it is still "Salvat ca schiță" */
       const isSubmitted = Boolean(frontOfficeRequestScreen?.querySelector("[data-fo-step-panel='7']:not([hidden])"));
-      const shouldShow = frontOfficeDraftCreated && frontOfficeRequestScreen && !frontOfficeRequestScreen.hidden && !isSubmitted;
+      /* a suplinire (pps-…) works on a filed request: no draft */
+      const shouldShow = frontOfficeDraftCreated && frontOfficeRequestScreen && !frontOfficeRequestScreen.hidden && !isSubmitted && !document.body.dataset.foSupplement;
       frontOfficeHeaderDraft.hidden = !shouldShow;
       if (!shouldShow) {
         frontOfficeHeaderDraft.innerHTML = "";
@@ -255,8 +256,37 @@
         ${extraHtml}`;
     }
 
+    /* pp-caption-v1 (user 2026-11-03, GOV.UK heading caption): a post-process shows WHAT is being done to WHICH act
+       above every step title — „Reperfectare · ASF-2026-04521 · Cafeneaua „Izvoraș”” — instead of a card inside a step */
+    function postprocessCaptionText(ctx = frontOfficePostprocess) {
+      if (!ctx) return "";
+      return [ctx.pp.requestType || ctx.pp.label, ctx.act.number, ctx.act.name].filter(Boolean).join(" · ");
+    }
+    /* pp-context-v1 (user 2026-11-03): the caption sits in a grey context strip — permit icon, the line, and the
+       „ⓘ” of „Solicitant ⓘ” (the library hint toggletip, js/icon-tooltip.js `data-tooltip-hint`: hover, focus, tap,
+       Esc) with the act's details. The essential line stays visible; the hint only adds detail. */
+    function postprocessContextHint(ctx = frontOfficePostprocess) {
+      if (!ctx) return "";
+      const { act, pp, service } = ctx;
+      const issuer = [service?.authority || act.authority, act.subdivision].filter(Boolean).join(" · ");
+      return [
+        `${pp.requestType || pp.label} pentru actul permisiv ${act.number}${service?.title ? ` („${service.title}”)` : ""}.`,
+        issuer ? `Emis de ${issuer}.` : "",
+        act.validUntil ? `Valabil până la ${foDocLongDate(act.validUntil)}.` : "",
+        "Datele actului se preiau automat."
+      ].filter(Boolean).join(" ");
+    }
     function requestHeaderHtml({ id, title }) {
+      const caption = postprocessCaptionText();
+      const hint = caption ? postprocessContextHint() : "";
       return `
+        ${caption ? `<div class="e-permits-fo-pp-context">
+          <svg class="icon e-permits-fo-pp-context__icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-permission"></use></svg>
+          <p class="e-permits-fo-pp-context__text">${escapeFrontOfficeHtml(caption)}</p>
+          <button class="e-permits-fo-role-info e-permits-fo-pp-context__info" type="button" aria-label="Detalii despre actul permisiv" data-tooltip-hint="${escapeFrontOfficeHtml(hint)}">
+            <svg class="icon" width="16" height="16" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-circle-info-filled"></use></svg>
+          </button>
+        </div>` : ""}
         <h1 id="${escapeFrontOfficeHtml(id)}" tabindex="-1">${escapeFrontOfficeHtml(title)}</h1>
       `;
     }
@@ -278,7 +308,7 @@
 
     function saveFrontOfficeDraft({ toast = false } = {}) {
       /* US-21: drafts live in EVO Cabinet — a guest (no account) has none */
-      if (frontOfficeGuest) return;
+      if (frontOfficeGuest || document.body.dataset.foSupplement) return;
       const isNewDraft = !frontOfficeDraftCreated;
       frontOfficeDraftCreated = true;
       frontOfficeDraftSavedAt = new Date();
@@ -2753,20 +2783,23 @@
       const id = fieldId(field.id);
       const options = Array.isArray(field.options) ? field.options : [];
       const placeholder = field.placeholder || "Alege opțiunile";
+      /* preselected values (field.value = array) and own texts (countOne / countMany / removeLabel / searchLabel) */
+      const picked = new Set(Array.isArray(field.value) ? field.value : []);
+      const searchLabel = field.searchLabel || "Caută";
       return `
         <div class="${fieldClass(field)}" data-fo-subgen>
           ${labelHtml(id, field)}
-          <div class="e-permits-fo-subgen-select" data-fo-subgen-select data-placeholder="${escapeFrontOfficeHtml(placeholder)}" data-count-one="opțiune selectată" data-count-many="opțiuni selectate" data-remove-label="Elimină opțiunea">
+          <div class="e-permits-fo-subgen-select" data-fo-subgen-select data-placeholder="${escapeFrontOfficeHtml(placeholder)}" data-count-one="${escapeFrontOfficeHtml(field.countOne || "opțiune selectată")}" data-count-many="${escapeFrontOfficeHtml(field.countMany || "opțiuni selectate")}" data-remove-label="${escapeFrontOfficeHtml(field.removeLabel || "Elimină opțiunea")}">
             <button id="${escapeFrontOfficeHtml(id)}" class="e-permits-fo-subgen-select__button" type="button" aria-haspopup="listbox" aria-expanded="false" aria-controls="${escapeFrontOfficeHtml(id)}-menu"${field.readOnly ? " disabled" : ""} data-fo-subgen-button>
               <span class="e-permits-fo-subgen-select__value e-permits-fo-subgen-select__value--placeholder" data-fo-subgen-value>${escapeFrontOfficeHtml(placeholder)}</span>
               <svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-chevron-bottom"></use></svg>
             </button>
             <div class="e-permits-fo-subgen-select__menu" id="${escapeFrontOfficeHtml(id)}-menu" data-fo-subgen-menu hidden>
-              <div class="e-permits-fo-subgen-select__search"><svg class="icon" width="24" height="24" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-search"></use></svg><input type="search" placeholder="Caută" aria-label="Caută în opțiuni" data-fo-subgen-search></div>
+              <div class="e-permits-fo-subgen-select__search"><svg class="icon" width="24" height="24" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-search"></use></svg><input type="search" placeholder="${escapeFrontOfficeHtml(searchLabel)}" aria-label="${escapeFrontOfficeHtml(field.searchAria || "Caută în opțiuni")}" data-fo-subgen-search></div>
               <ul class="e-permits-fo-subgen-select__list" role="listbox" aria-labelledby="${escapeFrontOfficeHtml(id)}" aria-multiselectable="true" data-fo-subgen-list>
                 ${options.map((value) => `
-                  <li class="e-permits-fo-subgen-select__option" role="option" aria-selected="false" data-value="${escapeFrontOfficeHtml(value)}" tabindex="-1">
-                    <span class="checkbox checkbox--medium" aria-hidden="true"><input class="checkbox-input" type="checkbox" tabindex="-1"><span class="checkbox-custom"></span></span>
+                  <li class="e-permits-fo-subgen-select__option${picked.has(value) ? " is-selected" : ""}" role="option" aria-selected="${picked.has(value)}" data-value="${escapeFrontOfficeHtml(value)}" tabindex="-1">
+                    <span class="checkbox checkbox--medium" aria-hidden="true"><input class="checkbox-input" type="checkbox" tabindex="-1"${picked.has(value) ? " checked" : ""}><span class="checkbox-custom"></span></span>
                     <span>${escapeFrontOfficeHtml(value)}</span>
                   </li>`).join("")}
               </ul>
@@ -3663,7 +3696,7 @@
       if (!panel || !step || !body) return;
       const esc = escapeFrontOfficeHtml;
       const filedNr = (step.summary?.rows || []).find((row) => row.label === "Numărul dosarului")?.value || "";
-      const solicitariHref = frontOfficeSolicitariUrl({ depus: filedNr });
+      const solicitariHref = step.returnHref || frontOfficeSolicitariUrl({ depus: filedNr });
       if (step.lead) step = { ...step, lead: { ...step.lead, href: solicitariHref } };
       if (step.action) step = { ...step, action: { ...step.action, label: "Mergi la Solicitările mele", href: solicitariHref } };
 
@@ -3781,10 +3814,12 @@
 
     function updateFrontOfficeMobileProgress(step) {
       if (!frontOfficeMobileProgress) return;
-      const items = Array.from(frontOfficeStepperItems);
+      /* only the steps of this flow (a post-process without a fee / a suplinire hide some): „Pasul 3 din 5” */
+      const items = Array.from(frontOfficeStepperItems).filter((item) => !item.hidden);
       const total = Math.max(items.length || frontOfficeStepPanels.length || 1, 1);
-      const activeStep = Math.max(1, Math.min(Number(step) || 1, total));
-      const activeItem = items.find((item) => Number(item.dataset.foStep) === activeStep) || items[activeStep - 1];
+      const position = items.findIndex((item) => Number(item.dataset.foStep) === Number(step));
+      const activeStep = position > -1 ? position + 1 : Math.max(1, Math.min(Number(step) || 1, total));
+      const activeItem = items[activeStep - 1];
       const label = activeItem?.querySelector(".e-permits-fo-stepper__label")?.textContent.trim() || `Pasul ${activeStep}`;
 
       frontOfficeMobileProgress.style.setProperty("--fo-mobile-progress-current", String(activeStep));
@@ -3971,7 +4006,9 @@
 
     function subjectRolesHtml(subject) {
       const representative = representativeForSubject(subject);
-      const changeable = subjectIsChangeable();
+      /* pp-holder-grey-v1 (user 2026-11-03): in a post-process the applicant is the act's holder and cannot be changed —
+         the Solicitant card is grey (not actionable), like Reprezentant; the bordered card stays for the full flow */
+      const changeable = subjectIsChangeable() && !frontOfficePostprocess;
       const changeableClass = changeable ? " e-permits-fo-selected-role--changeable" : "";
       if (!representative) {
         return `
@@ -4425,7 +4462,7 @@
     let frontOfficePaid = new URLSearchParams(location.search).get("paid") === "1";
     let frontOfficePaymentNoticeShown = false;
     /* a post-process (?pp=…) is known from the URL before its state is set on load */
-    const frontOfficeFinishBlocked = (step) => Number(step) === 7 && !frontOfficePostprocess && !new URLSearchParams(location.search).get("pp") && !frontOfficePaid;
+    const frontOfficeFinishBlocked = (step) => Number(step) === 7 && !frontOfficePostprocess && !new URLSearchParams(location.search).get("pp") && !frontOfficePaid && !document.body.dataset.foSupplement;
     function setFrontOfficeStep(step, { focus = true, scroll = true } = {}) {
       if (frontOfficeFinishBlocked(step)) {
         step = 6;
@@ -4464,6 +4501,8 @@
       });
 
       updateFrontOfficeMobileProgress(step);
+      /* the suplinire wizard (pps-…): signature voided on a step back, S7 redrawn */
+      if (document.body.dataset.foSupplement) onFrontOfficeSupplementStep(Number(step));
       /* steps re-render their footers: a guest never gets „Salvează ca schiță” (US-21) */
       syncGuestWizardChrome();
 
@@ -5099,7 +5138,7 @@
     function syncGuestWizardChrome() {
       /* US-21: a draft lives only in EVO Cabinet — a guest has none */
       frontOfficeRequestScreen?.querySelectorAll(".e-permits-fo-draft-button").forEach((button) => {
-        button.hidden = Boolean(frontOfficeGuest);
+        button.hidden = Boolean(frontOfficeGuest) || Boolean(document.body.dataset.foSupplement);
       });
     }
 
@@ -5615,11 +5654,15 @@
        post-process, or "Dumneavoastră nu aveți acte emise pentru serviciul
        dat." when there are none; "Solicitare nouă" is there in both cases.
        The notarial-proxy path has no acts of its own and goes straight on. */
+    /* intent-skip-empty-v1 (user 2026-11-03): „Ce vrei să soliciți?” only when the applicant HAS acts with a
+       post-process for this service — with none there is nothing to choose, so the request starts at once
+       (no empty „Solicitare nouă / sau / nu aveți acte” step) */
     function frontOfficeShouldShowIntent(subject) {
       return Boolean(
         frontOfficeIntentConfig()
         && subject
         && subject.scenario !== "notarial-proxy"
+        && intentActs(subject).length > 0
       );
     }
 
@@ -5774,37 +5817,111 @@
     const SUPPLEMENT_SEEN = "e-permits-fo-suplinire-s4";
     let frontOfficeSupplement = null;
     let frontOfficeSupplementFailed = false;
+    /* the suplinire wizard (pps-…, 2026-11-03): signed (S7), the signature voided by a step back (US-24 AC-16), sent (S8),
+       one status notice on S7 (msign-error · unsigned · retransmit-error), the demo failures already shown once */
+    const frontOfficeSupp = { signed: false, voided: false, sent: false, notice: "", msignFailed: false, retransmitFailed: false };
+    const suppParam = (key) => new URLSearchParams(location.search).get(key) || "";
+    const isFrontOfficeSupplementMode = () => Boolean(document.body.dataset.foSupplement);
+    const SUPP_MONTHS = ["ianuarie", "februarie", "martie", "aprilie", "mai", "iunie", "iulie", "august", "septembrie", "octombrie", "noiembrie", "decembrie"];
+    const supplementLongDay = (iso) => { if (!iso) return ""; const d = new Date(`${iso.slice(0, 10)}T00:00:00`); return `${d.getDate()} ${SUPP_MONTHS[d.getMonth()]} ${d.getFullYear()}`; };
+    /* the Cabinet seed's demo scenario (?pps=…): the same merge as CabEvo.withScenario, so the FO reads the request
+       exactly as Solicitările mele shows it */
+    function supplementScenario(item) {
+      const value = suppParam("pps");
+      const layers = item?.scenarios;
+      if (!value || !layers) return item;
+      const out = { ...item };
+      const plain = (x) => x && typeof x === "object" && !Array.isArray(x);
+      [layers.pps, layers[`pps:${value}`]].forEach((layer) => Object.entries(layer || {}).forEach(([key, val]) => { out[key] = plain(val) && plain(out[key]) ? { ...out[key], ...val } : val; }));
+      return out;
+    }
     async function loadFrontOfficeSupplement() {
       if (frontOfficeSupplement) return frontOfficeSupplement;
       let data = null;
       try { data = await (await fetch("data/cabinet-evo-solicitari.json", { cache: "no-store" })).json(); } catch { data = null; }
-      const dosar = Object.values(data?.perspectives || {}).flatMap((p) => p.dosare || []).find((d) => d.nr === frontOfficeSupplementNr) || null;
+      const raw = Object.values(data?.perspectives || {}).flatMap((p) => p.dosare || []).find((d) => d.nr === frontOfficeSupplementNr) || null;
+      const dosar = raw ? supplementScenario(raw) : null;
       const service = dosar ? data.services?.[dosar.service] : null;
-      frontOfficeSupplement = { nr: frontOfficeSupplementNr, dosar, service };
+      frontOfficeSupplement = { nr: frontOfficeSupplementNr, dosar, service, today: data?.today || "", help: service ? data.help?.[service.authority] || null : null };
       return frontOfficeSupplement;
+    }
+    /* open = the supplement can be sent · expired = the term passed, the BO resumed the examination (US-24 AC-03) ·
+       closed = already sent / no longer suspended · unknown = the BO does not know the number */
+    function supplementStatus() {
+      const { dosar, today } = frontOfficeSupplement || {};
+      if (!dosar) return "unknown";
+      if (dosar.info?.until && today && dosar.info.until < today) return "expired";
+      return dosar.status === "info" ? "open" : "closed";
+    }
+    function supplementDaysLeft() {
+      const { dosar, today } = frontOfficeSupplement || {};
+      if (!dosar?.info?.until || !today) return null;
+      return Math.round((new Date(`${dosar.info.until}T00:00:00Z`) - new Date(`${today}T00:00:00Z`)) / 86400000);
+    }
+    function supplementCabinetUrl(extra = {}) {
+      const query = new URLSearchParams({ view: "solicitari" });
+      const solicitant = suppParam("solicitant");
+      if (solicitant) query.set("as", solicitant);
+      Object.entries(extra).forEach(([key, value]) => { if (value) query.set(key, value); });
+      return `cabinet-evo/index.html?${query.toString()}`;
+    }
+    /* the suspended request read-only — S4 (US-25 AC-01…05) and S7 „Date despre motivul suspendării” (US-27 AC-01):
+       Număr dosar, Autoritatea emitentă, Subdiviziunea, Tipul solicitării (+ the act of a post-process, as context),
+       Motivul suspendării (exactly the specialist's text), Examinare suspendată până la (US-24 AC-05) */
+    function supplementCaseRows() {
+      const esc = escapeFrontOfficeHtml;
+      const { dosar, service } = frontOfficeSupplement || {};
+      const info = dosar?.info || {};
+      const ppDef = dosar?.pp ? postprocessConfig().postProcesses?.[dosar.pp] : null;
+      const tip = dosar ? (ppDef ? `${ppDef.requestType || dosar.tip} act permisiv` : dosar.tip) : "";
+      const requestType = [service?.title, tip].filter(Boolean).join(" · ");
+      const left = supplementDaysLeft();
+      const leftText = left === null || left < 0 || supplementStatus() !== "open" ? "" : left === 0 ? "expiră azi" : left === 1 ? "o zi rămasă" : `${left} zile rămase`;
+      /* supp-s4-card-v1 (user 2026-11-03): the canonical BO details card rows (as „Detalii solicitare”), several values
+         = .e-permits-passport__row-lines */
+      const summaryRow = (label, values) => {
+        const vals = values.filter((v) => v !== "");
+        const value = vals.length > 1 ? `<span class="e-permits-passport__row-lines">${vals.map((v) => `<span class="e-permits-passport__row-line">${v}</span>`).join("")}</span>` : (vals[0] || "—");
+        return `<div class="e-permits-dosar-profil__row"><span class="e-permits-dosar-profil__row-label" data-cell-tooltip>${esc(label)}</span><span class="e-permits-dosar-profil__row-value">${value}</span></div>`;
+      };
+      return [
+        summaryRow("Număr dosar", [esc(dosar?.nr || frontOfficeSupplementNr || "—")]),
+        summaryRow("Autoritatea emitentă", [esc(service?.authorityName || "—")]),
+        summaryRow("Subdiviziunea de procesare", [esc(dosar?.subdivision || "Nedefinit")]),
+        summaryRow("Tipul solicitării", [esc(requestType || "Nedefinit")]),
+        dosar?.prevActNr ? summaryRow("Actul permisiv", [esc(dosar.prevActNr), dosar.object ? esc(dosar.object) : ""].filter(Boolean)) : "",
+        summaryRow("Motivul suspendării", info.category || info.reason ? [info.category ? `<strong>${esc(info.category)}</strong>` : "", info.reason ? esc(info.reason) : ""].filter(Boolean) : ["—"]),
+        summaryRow("Examinare suspendată până la", info.until ? [esc(supplementLongDay(info.until)), leftText ? esc(leftText) : ""].filter(Boolean) : ["—"])
+      ].join("");
     }
     function renderFrontOfficeSupplement({ error = false } = {}) {
       const body = frontOfficeSupplementScreen?.querySelector("[data-fo-supplement-body]");
       if (!body || !frontOfficeSupplement) return;
       const esc = escapeFrontOfficeHtml;
-      const { dosar, service } = frontOfficeSupplement;
+      const { dosar } = frontOfficeSupplement;
       const info = dosar?.info || {};
-      const longDay = (iso) => { if (!iso) return ""; const d = new Date(`${iso.slice(0, 10)}T00:00:00`); return `${d.getDate()} ${["ianuarie", "februarie", "martie", "aprilie", "mai", "iunie", "iulie", "august", "septembrie", "octombrie", "noiembrie", "decembrie"][d.getMonth()]} ${d.getFullYear()}`; };
-      const requestType = [service?.title, dosar?.tip].filter(Boolean).join(" · ");
-      const rows = [
-        summaryRow("Număr dosar", [esc(dosar?.nr || frontOfficeSupplementNr || "—")]),
-        summaryRow("Autoritatea emitentă", [esc(service?.authorityName || "—")]),
-        summaryRow("Subdiviziunea de procesare", [esc(dosar?.subdivision || "Nedefinit")]),
-        summaryRow("Tipul solicitării", [esc(requestType || "Nedefinit")]),
-        summaryRow("Motivul suspendării", info.category || info.reason ? [info.category ? `<strong>${esc(info.category)}</strong>` : "", info.reason ? esc(info.reason) : ""].filter(Boolean) : ["—"])
-      ].join("");
+      const status = supplementStatus();
+      /* supp-s4-card-v1: the status = the EVO Cabinet profile alert card (Solicitările mele, js/alert-card.js) */
+      const card = (tone, title, text, role = "status") => window.GEAPAlertCard?.html({ tone, title, text, role, id: "fo-supp-alert", sprite: "assets/icons/sprite.svg", className: "e-permits-fo-supp-alert" }) || "";
+      const notice = {
+        open: () => card("warning", "Examinarea dosarului este suspendată", `Completați informațiile cerute${info.until ? ` până la ${esc(supplementLongDay(info.until))}` : ""}; pe pașii următori actualizați cererea și actele, apoi semnați.`),
+        expired: () => card("warning", `Termenul de suplinire a expirat${info.until ? ` pe ${esc(supplementLongDay(info.until))}` : ""}`, "Autoritatea a reluat examinarea cu datele depuse; informațiile nu mai pot fi trimise de aici.", "alert"),
+        closed: () => card("info", `Informațiile cerute au fost deja trimise${dosar?.supplemented ? ` pe ${esc(supplementLongDay(dosar.supplemented))}` : ""}`, "Dosarul este din nou în examinare; nu trebuie să faceți nimic acum."),
+        unknown: () => card("danger", `Nu am găsit dosarul ${esc(frontOfficeSupplementNr || "")}`, "Deschideți suplinirea din EVO Cabinet › Solicitările mele sau contactați autoritatea emitentă.", "alert")
+      }[status]();
+      const footer = status === "open"
+        ? foStepFooterHtml({ backAttrs: "data-fo-supplement-back", backLabel: "Înapoi la Solicitările mele", nextLabel: "Continuă", nextAttrs: "data-fo-supplement-next" })
+        : foStepFooterHtml({ customHtml: `<a class="btn btn-primary e-permits-fo-finish__cta" href="${esc(supplementCabinetUrl({ pps: suppParam("pps") }))}" data-fo-supplement-cabinet><span>Mergi la Solicitările mele</span></a>` });
       body.innerHTML = `
         <header class="e-permits-fo-intent__header">
           <h1 id="fo-supplement-title" tabindex="-1">Motivul suspendării</h1>
           ${frontOfficeSelectedSubject?.name ? `<p class="e-permits-fo-intent__subject"><span class="e-permits-fo-intent__subject-label">Solicitant</span><span class="e-permits-fo-intent__subject-name">${esc(frontOfficeSelectedSubject.name)}</span></p>` : ""}
         </header>
-        ${foUi().renderNotice?.("warning", `<strong>Examinarea dosarului este suspendată.</strong> Completați informațiile cerute${info.until ? ` până la ${esc(longDay(info.until))}` : ""}; pe pasul următor actualizați datele cererii.`) || ""}
-        ${foSummarySectionHtml({ title: "Dosarul suspendat", bodyHtml: rows })}
+        ${notice || ""}
+        <section class="e-permits-fo-pp-request" aria-labelledby="fo-supp-case-title">
+          <h2 class="e-permits-dosar-profil__section-title" id="fo-supp-case-title">Dosarul suspendat</h2>
+          <div class="e-permits-dosar-profil__card">${supplementCaseRows()}</div>
+        </section>
         ${error ? `
           <div class="e-permits-fo-supplement__retry" data-fo-supplement-error>
             ${foUi().renderNotice?.("error", "<strong>Formularul cererii nu s-a încărcat.</strong> Datele dosarului se păstrează. Încercați din nou.", { role: "alert" }) || ""}
@@ -5813,36 +5930,343 @@
               <span>Reîncercați</span>
             </button>
           </div>` : ""}
-        ${foStepFooterHtml({ backAttrs: "data-fo-supplement-back", backLabel: "Înapoi la Solicitările mele", nextLabel: "Continuă", nextAttrs: "data-fo-supplement-next" })}`;
+        ${footer}`;
     }
     async function showFrontOfficeSupplement({ focus = true } = {}) {
       if (!frontOfficeSupplementScreen) return;
       await loadFrontOfficeSupplement();
+      /* S4 is a step back too: a signed request must be signed again (US-24 AC-16) */
+      if (frontOfficeSupp.signed) { frontOfficeSupp.signed = false; frontOfficeSupp.voided = true; }
       renderFrontOfficeSupplement();
       if (window.location.hash !== "#suplinire") history.replaceState(null, "", "#suplinire");
       setFrontOfficeScreen("supplement", { focus });
     }
     /* S4 → S5: the request form; ?s5=eroare fails the first time (AC-07 error path) */
     function continueFrontOfficeSupplement() {
-      if (new URLSearchParams(location.search).get("s5") === "eroare" && !frontOfficeSupplementFailed) {
+      if (suppParam("s5") === "eroare" && !frontOfficeSupplementFailed) {
         frontOfficeSupplementFailed = true;
         renderFrontOfficeSupplement({ error: true });
         frontOfficeSupplementScreen?.querySelector("[data-fo-supplement-retry]")?.focus();
         return;
       }
       try { sessionStorage.setItem(SUPPLEMENT_SEEN, frontOfficeSupplementNr); } catch { /* private mode */ }
-      history.replaceState(null, "", "#request-step-2");
       /* the request already exists (it is being supplemented): no „Cererea a fost creată ca schiță” */
       frontOfficeDraftCreated = true;
-      showFrontOfficeRequest({ step: 2 });
+      enterFrontOfficeSupplementWizard(2);
     }
     frontOfficeSupplementScreen?.addEventListener("click", (event) => {
       if (event.target.closest("[data-fo-supplement-next], [data-fo-supplement-retry]")) { continueFrontOfficeSupplement(); return; }
-      if (event.target.closest("[data-fo-supplement-back]")) {
-        const solicitant = new URLSearchParams(location.search).get("solicitant");
-        window.location.href = `cabinet-evo/index.html?view=solicitari${solicitant ? `&as=${encodeURIComponent(solicitant)}` : ""}`;
-      }
+      if (event.target.closest("[data-fo-supplement-back]")) window.location.href = supplementCabinetUrl({ pps: suppParam("pps") });
     });
+
+    /* ===================================================================
+       Suplinire wizard (pps-…, 2026-11-03) — US-24 (generic S4–S9), US-26 S5, US-20 S6, US-27 S7, US-15 MSign,
+       US-28 S8. The request wizard of the suspended request's service / post-process, with ONLY the supplement
+       steps: 1 Motivul suspendării (the S4 screen) · 2 Detalii solicitare (S5) · 3 Acte necesare (S6) · 4 Verificare
+       și semnare (S7) · 7 Confirmare (S8, numbered 5). Date solicitant, Livrare and Plată are not in the flow
+       (US-27 AC-06 / 07); no drafts (the request is filed). A post-process request (dosar.pp + actId) runs the
+       post-process renderers (renderPostprocessStep2 / 3, renderPostprocessReview), prefilled with what was filed
+       (dosar.form / dosar.files); Raion / Municipiu and Țara are locked, the address search is off (US-26 AC-04).
+       Demo: ?pps=info|expirat|trimis, ?s5=eroare, ?msign=eroare, ?retransmitere=eroare.
+       =================================================================== */
+    document.addEventListener("input", (event) => {
+      const field = event.target.closest?.("[data-fo-step-panel='2'] .e-permits-fo-field");
+      if (!field?.querySelector("[data-fo-supp-error]") || !String(event.target.value || "").trim()) return;
+      field.querySelector("[data-fo-supp-error]")?.remove();
+      field.querySelector(".is-error")?.classList.remove("is-error");
+    });
+    function enterFrontOfficeSupplementWizard(step = 2) {
+      const dosar = frontOfficeSupplement?.dosar;
+      if (!dosar) return;
+      document.body.dataset.foSupplement = dosar.nr;
+      const found = dosar.pp && dosar.actId ? findPostprocessAct(dosar.actId) : null;
+      const def = found ? postprocessConfig().postProcesses?.[dosar.pp] : null;
+      if (found && def && !frontOfficePostprocess) {
+        selectFrontOfficeSubject(found.subjectId);
+        startFrontOfficePostprocess(found.act, { id: dosar.pp, ...def }, { step, beforeShow: prefillFrontOfficeSupplement });
+      } else {
+        const hash = frontOfficeStepHash(step);
+        if (window.location.hash !== hash) history.replaceState(null, "", hash);
+        if (step === 4) populateFrontOfficeStep4();
+        showFrontOfficeRequest({ step });
+      }
+      applyFrontOfficeSupplementStepper();
+      updateFrontOfficeMobileProgress(step);
+    }
+    function applyFrontOfficeSupplementStepper() {
+      if (!isFrontOfficeSupplementMode()) return;
+      const set = (n, label, number) => {
+        const item = document.querySelector(`[data-fo-screen='request'] [data-fo-step='${n}']`);
+        if (!item) return;
+        const text = item.querySelector(".e-permits-fo-stepper__label");
+        if (text && label) text.textContent = label;
+        const num = item.querySelector(".e-permits-fo-stepper__number-text");
+        if (num && number) num.textContent = number;
+      };
+      set(1, "Motivul suspendării");
+      set(7, "Confirmare", "5");
+      [5, 6].forEach((n) => { const item = document.querySelector(`[data-fo-screen='request'] [data-fo-step='${n}']`); if (item) item.hidden = true; });
+    }
+    /* the request as filed (US-26 AC-01): the act prefill of the post-process + what the applicant changed, the files
+       attached at filing, the specialist's request shown where it applies */
+    function prefillFrontOfficeSupplement() {
+      const { dosar } = frontOfficeSupplement || {};
+      if (!dosar) return;
+      const esc = escapeFrontOfficeHtml;
+      const form = dosar.form || {};
+      const panel2 = document.querySelector("[data-fo-step-panel='2']");
+      const panel3 = document.querySelector("[data-fo-step-panel='3']");
+      const pick = (root, value) => {
+        const option = [...(root?.querySelectorAll(".e-permits-fo-select__option") || [])].find((o) => (o.dataset.value || o.textContent.trim()) === value);
+        option?.click();
+      };
+      if (form.reason) pick(panel2?.querySelector("[data-fo-pp-select='pp-reason']"), form.reason);
+      const name = panel2?.querySelector("#fo-object-name");
+      if (name && form.objectName) { name.value = form.objectName; name.dispatchEvent(new Event("input", { bubbles: true })); }
+      if (form.subgen) {
+        const subgen = [...(panel2?.querySelectorAll(".e-permits-fo-subgen-select__option") || [])].find((o) => (o.dataset.value || o.textContent).trim() === form.subgen);
+        if (subgen && !subgen.classList.contains("is-selected")) {
+          subgen.dispatchEvent(new MouseEvent("mousedown", { bubbles: true, cancelable: true }));
+          subgen.closest("[data-fo-subgen-select]")?.querySelector(".e-permits-fo-subgen-select__confirm, [data-fo-subgen-confirm]")?.click();
+        }
+      }
+      /* US-26 AC-04: Raion / Municipiu (and the country above it) cannot change — that would move the dossier to
+         another subdivision; the address search (which fills them) is off */
+      panel2?.querySelectorAll("[data-fo-cascade-address]").forEach((root, index) => {
+        root.querySelector("[data-fo-address-search]")?.closest(".e-permits-fo-field")?.setAttribute("hidden", "");
+        const hintId = `fo-supp-district-hint-${index}`;
+        [root.querySelector("[data-fo-country-select]"), root.querySelector("[data-fo-cascade-raion]")].forEach((select) => {
+          if (!select) return;
+          select.classList.add("is-disabled");
+          const button = select.querySelector(".e-permits-fo-select__button");
+          if (button) { button.disabled = true; button.setAttribute("aria-describedby", hintId); }
+        });
+        root.querySelector("[data-fo-cascade-raion]")?.closest(".e-permits-fo-field")?.insertAdjacentHTML("beforeend", `<p class="e-permits-fo-field__hint" id="${hintId}">Nu se modifică în suplinire: dosarul rămâne la ${esc(dosar.subdivision || "aceeași subdiviziune")}.</p>`);
+      });
+      /* what the specialist asked for, on top of the form (S5) */
+      const info = dosar.info || {};
+      if (info.reason && panel2 && !panel2.querySelector("[data-fo-supp-reminder]")) {
+        const anchor = panel2.querySelector(":scope > .e-permits-fo-form__header");
+        anchor?.insertAdjacentHTML("afterend", (foUi().renderNotice?.("warning", `<strong>Ce a cerut autoritatea:</strong> ${esc(info.reason)}`, { className: "e-permits-fo-supp-reminder" }) || "").replace("<div ", "<div data-fo-supp-reminder "));
+      }
+      /* the files attached at filing (US-24 AC-09: add, replace or complete) */
+      Object.entries(dosar.files || {}).forEach(([fieldId, file]) => {
+        const files = panel3?.querySelector(`[data-fo-doc-field='${fieldId}'] [data-fo-doc-field-files]`);
+        if (files && !files.querySelector("[data-fo-doc]")) foDocAttachFileItem(files, file.name, file.size, { at: file.at });
+      });
+      /* the document the specialist asked for: an accent tag + the request inside its field (S6) */
+      const asked = info.docField && panel3?.querySelector(`[data-fo-doc-field='${info.docField}']`);
+      if (asked && !asked.querySelector("[data-fo-supp-asked]")) {
+        asked.querySelector(".e-permits-fo-doc-field__label")?.insertAdjacentHTML("beforeend", ` <span class="status-tag status-tag--accent is-strong status-tag--small e-permits-fo-doc-tag" data-fo-supp-asked>Cerut de autoritate</span>`);
+        asked.querySelector(".e-permits-fo-doc-field__row")?.insertAdjacentHTML("afterend", foUi().renderNotice?.("warning", esc(info.reason), { className: "e-permits-fo-supp-asked-note" }) || "");
+      }
+      document.activeElement?.blur?.();
+    }
+    /* the required fields of S5 still empty (US-24 AC-13 / US-27 AC-08: S7 then says so and cannot be signed) */
+    function supplementMissingRequired() {
+      const panel = document.querySelector("[data-fo-step-panel='2']");
+      if (!panel || !frontOfficePostprocess) return false;
+      return [...panel.querySelectorAll("[data-fo-pp-required='true']")].some((control) => {
+        const field = control.closest(".e-permits-fo-field");
+        if (!field || field.closest("[hidden]")) return false;
+        return control.matches("[data-fo-select]")
+          ? Boolean(control.querySelector("[data-fo-select-value]")?.classList.contains("e-permits-fo-select__value--placeholder"))
+          : !String(control.value || "").trim();
+      }) || !String(panel.querySelector("#fo-object-name")?.value || "").trim();
+    }
+    /* S7 (US-27): no Date solicitant; „Date despre motivul suspendării” first; the persistent guide (AC-08); the
+       request to sign as the shared document card (AC-09 preview, AC-14 the signed file opens + downloads); MSign →
+       „Trimite informațiile”; every status as one inline notice above the buttons */
+    function decorateFrontOfficeSupplementReview() {
+      const panel = document.querySelector("[data-fo-step-panel='4']");
+      const container = panel?.querySelector("[data-fo-review-sections]");
+      if (!container || !frontOfficeSupplement?.dosar) return;
+      const esc = escapeFrontOfficeHtml;
+      const { dosar } = frontOfficeSupplement;
+      panel.querySelector(":scope > .e-permits-fo-infobox")?.remove();
+      container.querySelector(".e-permits-fo-summary-section--applicant")?.remove();
+      container.querySelectorAll("[data-fo-supp-section]").forEach((el) => el.remove());
+      container.querySelectorAll(".e-permits-fo-summary-section__heading").forEach((h) => {
+        if (/^Detalii (solicitare|serviciu)$/.test(h.textContent.trim())) h.textContent = "Date despre cerere";
+        if (h.textContent.trim() === "Acte necesare") h.textContent = "Atașamente";
+      });
+      /* service / type / act are already in „Date despre motivul suspendării” */
+      container.querySelectorAll(".e-permits-fo-summary-row").forEach((row) => {
+        if (/^(Serviciul|Tip solicitare|Numărul actului permisiv)$/.test(row.querySelector(".e-permits-fo-summary-row__label")?.textContent.trim() || "")) row.remove();
+      });
+      container.insertAdjacentHTML("afterbegin", foSummarySectionHtml({ title: "Date despre motivul suspendării", bodyHtml: supplementCaseRows() }).replace('class="e-permits-fo-summary-section"', 'class="e-permits-fo-summary-section" data-fo-supp-section'));
+      const signer = frontOfficeSelectedSubject?.representative?.name || frontOfficeSchema?.authenticatedUser?.name || "";
+      const formDoc = {
+        sursa: "generat", tip: "Cererea de suplinire a informațiilor", fisier: `cerere-suplinire-${dosar.nr}.pdf`, size: "86 KB",
+        verb: frontOfficeSupp.signed ? "Semnat" : "Generat", at: foDocStampNow(), de: frontOfficeSupp.signed ? signer : "", semnat: frontOfficeSupp.signed
+      };
+      container.insertAdjacentHTML("beforeend", foSummarySectionHtml({
+        title: frontOfficeSupp.signed ? "Cererea semnată" : "Cererea de semnat",
+        docs: true,
+        bodyHtml: `<div class="e-permits-fo-confirm-file e-permits-fo-confirm-file--doc e-permits-fo-confirm-file--system" data-fo-supp-form data-fo-doc="${esc(JSON.stringify(formDoc))}">${foDocIconHtml(formDoc, "e-permits-fo-confirm-file__icon")}${foDocContentHtml(formDoc, { open: true })}</div>`
+      }).replace('class="e-permits-fo-summary-section"', 'class="e-permits-fo-summary-section" data-fo-supp-section'));
+      panel.querySelector("[data-fo-supp-guide]")?.remove();
+      panel.querySelector(":scope > .e-permits-fo-form__header")?.insertAdjacentHTML("afterend", (foUi().renderNotice?.("info", "Selectați pasul necesar pentru a corecta datele necesare: „Detalii solicitare” sau „Acte necesare”. Datele solicitantului, livrarea și taxele nu se modifică la suplinire.") || "").replace("<div ", "<div data-fo-supp-guide "));
+      const missing = supplementMissingRequired();
+      const help = frontOfficeSupplement.help;
+      const tone = (key) => ({
+        "msign-error": ["error", "<strong>MSign nu răspunde acum.</strong> Cererea nu a fost semnată; datele ei rămân neschimbate. Încercați din nou."],
+        unsigned: ["error", "Nu puteți continua fără a semna cererea."],
+        "retransmit-error": ["error", `<strong>Informațiile nu au ajuns la autoritate.</strong> Cererea semnată se păstrează. Încercați din nou sau contactați ${esc(frontOfficeSupplement.service?.authority || "autoritatea emitentă")}${help ? `: ${esc(help.phone)}, ${esc(help.email)}` : ""}.`]
+      }[key]);
+      const notes = [
+        missing ? foUi().renderNotice?.("error", "<strong>Completați câmpurile obligatorii.</strong> Reveniți la pasul „Detalii solicitare”, apoi semnați cererea.", { role: "alert" }) : "",
+        !missing && frontOfficeSupp.voided && !frontOfficeSupp.signed ? foUi().renderNotice?.("warning", "Semnătura a fost anulată, deoarece ați revenit la un pas anterior. Semnați din nou cererea.") : "",
+        frontOfficeSupp.signed && !frontOfficeSupp.notice ? foUi().renderNotice?.("success", "Cererea a fost semnată prin MSign. Trimiteți informațiile autorității.") : "",
+        frontOfficeSupp.notice ? foUi().renderNotice?.(tone(frontOfficeSupp.notice)[0], tone(frontOfficeSupp.notice)[1], { role: "alert" }) : ""
+      ].filter(Boolean).join("");
+      panel.querySelector("[data-fo-supp-status]")?.remove();
+      container.insertAdjacentHTML("afterend", `<div class="e-permits-fo-supp-status" data-fo-supp-status${notes ? "" : " hidden"}>${notes}</div>`);
+      const footer = panel.querySelector(".e-permits-fo-form__footer");
+      if (footer) {
+        footer.innerHTML = `
+          <div class="e-permits-fo-form__actions">
+            <div class="e-permits-fo-form__actions-primary e-permits-fo-form__actions-primary--sign">
+              <button class="btn btn-neutral btn-icon-only e-permits-fo-back-button" type="button" aria-label="Înapoi la Acte necesare" data-fo-prev="step-4">
+                <svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-arrow-left"></use></svg>
+              </button>
+              ${frontOfficeSupp.signed
+                ? `<button class="btn btn-primary e-permits-fo-next" type="button" data-fo-supp-send><span>Trimite informațiile</span><svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-arrow-left"></use></svg></button>`
+                : `<button class="btn btn-badge btn-badge--primary btn-badge--msign e-permits-fo-sign-button" type="button" data-fo-supp-sign${missing ? " disabled" : ""}>
+                    <span class="btn-badge__logo" aria-hidden="true"><img src="assets/logos/m-platforms/m-sign.svg" alt=""></span>
+                    <span class="btn-badge__label">Semnează prin msign</span>
+                  </button>`}
+            </div>
+          </div>`;
+      }
+    }
+    /* S8 (US-28): the generic confirmation (AC-01, the US text), no Certificat constatator (AC-02), the request back
+       „În derulare” (AC-04) — the shared Finalizare renderer; „Mergi la Solicitările mele” returns with ?suplinit=<nr>
+       (the Cabinet success toast, memory „success on return = toast”) */
+    function renderFrontOfficeSupplementFinish() {
+      const { dosar, service, today } = frontOfficeSupplement;
+      const ctx = frontOfficePostprocess;
+      const href = supplementCabinetUrl({ pps: suppParam("pps") ? "trimis" : "", suplinit: dosar.nr });
+      renderFrontOfficeStep7FromSchema({ steps: [{
+        id: "finish",
+        title: "Informațiile au fost trimise",
+        returnHref: href,
+        lead: { text: `Dosarul nr. ${dosar.nr} a fost retransmis specialistului pentru reluarea examinării. Veți fi notificat despre evoluția dosarului în EVO Cabinet →`, link: "Solicitările mele" },
+        action: { label: "Mergi la Solicitările mele", href },
+        tracker: [
+          { label: "Depusă", state: "done" },
+          { label: "Informații suplimentare", state: "done" },
+          { label: "Examinare", state: "current" },
+          { label: "Decizie", state: "todo" }
+        ],
+        summary: { rows: [
+          { label: "Numărul dosarului", value: dosar.nr, copy: true },
+          { label: "Tip solicitare", value: ctx ? `${ctx.pp.requestType || ctx.pp.label} act permisiv` : dosar.tip },
+          ...(dosar.prevActNr ? [{ label: "Numărul actului permisiv", value: dosar.prevActNr }] : []),
+          { label: "Autoritatea", value: [service?.authority, dosar.subdivision].filter(Boolean).join(" / ") },
+          { label: "Informații trimise", value: supplementLongDay(today) || "—" }
+        ] },
+        timeline: { title: "Statutul dosarului", items: [
+          { title: "Informații trimise", text: "Semnate prin MSign și transmise autorității", state: "done" },
+          { title: "Examinare reluată", text: "Specialistul verifică datele actualizate; termenul de examinare se recalculează", state: "current", tag: "Acum" },
+          { title: "Decizie", text: ctx ? postprocessResultText(ctx) : "Autoritatea emite decizia", state: "todo" }
+        ] }
+      }] });
+    }
+    /* every step change of the wizard: a step back from S7 after signing voids the signature (US-24 AC-16); S7 redraws */
+    function onFrontOfficeSupplementStep(step) {
+      if ((step === 2 || step === 3) && frontOfficeSupp.signed) { frontOfficeSupp.signed = false; frontOfficeSupp.voided = true; }
+      if (step !== 4) frontOfficeSupp.notice = "";
+      if (step === 4) decorateFrontOfficeSupplementReview();
+    }
+    /* the stepper of the wizard: 1 = the S4 screen; Livrare / Plată are not there; Confirmare only by „Trimite” */
+    function navigateFrontOfficeSupplementStep(step) {
+      if (frontOfficeSupp.sent) return true;
+      if (step === 1) { showFrontOfficeSupplement(); return true; }
+      if (step === 5 || step === 6) return true;
+      if (step === 7) {
+        frontOfficeSupp.notice = frontOfficeSupp.signed ? "" : "unsigned";
+        if (Number(document.querySelector("[data-fo-step].is-active")?.dataset.foStep) !== 4) navigateToFrontOfficeStep(4);
+        decorateFrontOfficeSupplementReview();
+        document.querySelector("[data-fo-supp-status]")?.scrollIntoView({ block: "center" });
+        return true;
+      }
+      return false;
+    }
+    document.addEventListener("click", (event) => {
+      if (!isFrontOfficeSupplementMode()) return;
+      /* S5 „Înapoi” → S4 */
+      if (event.target.closest("[data-fo-step-panel='2'] [data-fo-prev='step-2']")) {
+        event.stopImmediatePropagation();
+        showFrontOfficeSupplement();
+        return;
+      }
+      /* S5 „Înainte” (US-26 AC-02 / AC-06): the post-process check of its own fields + the required text fields of the
+         repeated primary form (Denumirea obiectului…) — „Câmpul este obligatoriu” under each, focus on the first */
+      const formNext = event.target.closest("[data-fo-step-panel='2'] [data-fo-next='step-2']");
+      if (formNext && frontOfficePostprocess) {
+        const panel = formNext.closest("[data-fo-step-panel='2']");
+        panel.querySelectorAll("[data-fo-supp-error]").forEach((el) => el.remove());
+        let first = null;
+        panel.querySelectorAll(".e-permits-fo-field").forEach((field) => {
+          if (field.closest("[hidden]") || !field.querySelector(":scope > label .e-permits-fo-required, :scope > .e-permits-fo-field__label-counter .e-permits-fo-required")) return;
+          const control = field.querySelector(":scope > .e-permits-fo-input input:not([type=hidden]):not(:disabled), :scope > .e-permits-fo-textarea textarea");
+          if (!control || control.matches("[data-fo-pp-required]") || String(control.value || "").trim()) return;
+          control.closest(".e-permits-fo-input, .e-permits-fo-textarea")?.classList.add("is-error");
+          field.insertAdjacentHTML("beforeend", `<p class="message message--inline e-permits-fo-field__error" data-fo-supp-error role="alert"><svg class="icon" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-circle-error-filled"></use></svg><span>Câmpul este obligatoriu</span></p>`);
+          first ||= control;
+        });
+        const ppValid = validatePostprocessStep2();
+        if (first || !ppValid) {
+          event.stopImmediatePropagation();
+          if (first) { first.scrollIntoView({ block: "center" }); first.focus({ preventScroll: true }); }
+        }
+        return;
+      }
+      /* S6 „Înainte”: required documents (US-20 AC-06, the FO's own check and messages) */
+      const docsNext = event.target.closest("[data-fo-step-panel='3'] [data-fo-next='step-3']");
+      if (docsNext) {
+        const panel = docsNext.closest("[data-fo-step-panel='3']");
+        panel.dataset.foDocsChecked = "1";
+        foDocWatch(panel);
+        const missing = foDocSyncRequired(panel, { announce: true });
+        if (!missing.length) { delete panel.dataset.foDocsChecked; return; }
+        event.stopImmediatePropagation();
+        const summary = panel.querySelector("[data-fo-docs-summary]");
+        summary?.scrollIntoView({ block: "center" });
+        summary?.focus({ preventScroll: true });
+        return;
+      }
+      /* S7 MSign (US-15): ?msign=eroare fails once (US-24 AC-17) */
+      if (event.target.closest("[data-fo-supp-sign]")) {
+        if (suppParam("msign") === "eroare" && !frontOfficeSupp.msignFailed) {
+          frontOfficeSupp.msignFailed = true;
+          frontOfficeSupp.notice = "msign-error";
+        } else {
+          frontOfficeSupp.signed = true;
+          frontOfficeSupp.voided = false;
+          frontOfficeSupp.notice = "";
+        }
+        decorateFrontOfficeSupplementReview();
+        document.querySelector(frontOfficeSupp.signed ? "[data-fo-supp-send]" : "[data-fo-supp-sign]")?.focus({ preventScroll: true });
+        return;
+      }
+      /* S7 → S8; ?retransmitere=eroare: the dossier does not reach the BO once (US-24 AC-21) */
+      if (event.target.closest("[data-fo-supp-send]")) {
+        if (suppParam("retransmitere") === "eroare" && !frontOfficeSupp.retransmitFailed) {
+          frontOfficeSupp.retransmitFailed = true;
+          frontOfficeSupp.notice = "retransmit-error";
+          decorateFrontOfficeSupplementReview();
+          document.querySelector("[data-fo-supp-status]")?.scrollIntoView({ block: "center" });
+          return;
+        }
+        frontOfficeSupp.sent = true;
+        frontOfficeSupp.notice = "";
+        renderFrontOfficeSupplementFinish();
+        history.replaceState(null, "", frontOfficeStepHash(7));
+        showFrontOfficeRequest({ step: 7 });
+      }
+    }, true);
 
     function closeFrontOfficeIntentMenus(except = null) {
       frontOfficeIntentScreen?.querySelectorAll("[data-fo-intent-trigger]").forEach((trigger) => {
@@ -5955,7 +6379,7 @@
               <span>Salvează ca schiță</span>
             </button>
             <div class="e-permits-fo-form__actions-primary">
-              ${step > 2 ? `<button class="btn btn-neutral btn-icon-only e-permits-fo-back-button" type="button" aria-label="Înapoi" data-fo-prev="step-${step}"><svg class="icon" width="24" height="24" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-arrow-left"></use></svg></button>` : ""}
+              ${step > 2 || document.body.dataset.foSupplement ? `<button class="btn btn-neutral btn-icon-only e-permits-fo-back-button" type="button" aria-label="${step === 2 && document.body.dataset.foSupplement ? "Înapoi la Motivul suspendării" : "Înapoi"}" data-fo-prev="step-${step}"><svg class="icon" width="24" height="24" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-arrow-left"></use></svg></button>` : ""}
               <button class="btn btn-primary e-permits-fo-next" type="button" data-fo-next="step-${step}"><span>Înainte</span><svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-arrow-left"></use></svg></button>
             </div>
           </div>
@@ -5973,9 +6397,16 @@
             ${section.secDesc ? `<p class="e-permits-fo-section-header__desc">${escapeFrontOfficeHtml(section.secDesc)}</p>` : ""}
           </div>
           <div class="e-permits-fo-form__section-body${section.layout === "single" ? " e-permits-fo-form__section-body--single" : ""}">
-            ${(section.fields || []).map(stepFieldHtml).join("")}
+            ${(section.fields || []).map(postprocessFieldHtml).join("")}
           </div>
         </section>`).join("");
+    }
+
+    /* pp-address-a-v1 (user 2026-11-03: „Adaugă codul cadastral” here is wrong): a post-process changes an act whose
+       address is already known — the address is the simple pattern A (Address pattern A04 „Adresă aleasă”), filled
+       from the act; no cadastral toggle / code hint (that is the primary request's Form Designer option) */
+    function postprocessFieldHtml(field) {
+      return field?.type === "cascade-address" ? cascadeAddressHtml({ ...field, cadastral: null }) : stepFieldHtml(field);
     }
 
     function postprocessStep2BodyHtml(ctx) {
@@ -5989,7 +6420,7 @@
         const cascade = frontOfficeSchema?.steps?.find((item) => Number(item.index) === 2)?.sections?.find((s) => s.id === "economic-address")?.fields?.[0];
         const types = postprocessConfig().activityTypes10 || [];
         return `
-          ${cascade ? postprocessSectionHtml("activity-address", "Adresa desfășurării activității", cascadeAddressHtml({ ...cascade, phone: null, email: null })) : ""}
+          ${cascade ? postprocessSectionHtml("activity-address", "Adresa desfășurării activității", cascadeAddressHtml({ ...cascade, phone: null, email: null, cadastral: null })) : ""}
           ${postprocessSectionHtml("activity-type", "Tipul activității", `
             ${postprocessSelectHtml({ id: "pp-activity-type", label: "Tipul activității", required: true, options: types, value: act.activityType || "" })}
             <div class="${fieldClass({ span: 6 })}" data-fo-pp-hemp hidden>${labelHtml("fo-pp-area", { label: "Suprafața totală a terenului conform titlului de folosire a terenului", required: true })}<div class="e-permits-fo-input"><input id="fo-pp-area" type="text" inputmode="decimal" placeholder="0,00"></div></div>
@@ -6040,31 +6471,21 @@
       return "";
     }
 
+    /* pp-caption-v1: step 1 „Date solicitant” shows only the applicant — the request context is the caption above
+       the title (and the „Detalii solicitare” rows on Verificare); the old card is removed if a re-render left one */
     function renderPostprocessStep1(ctx = frontOfficePostprocess) {
       const panel = document.querySelector("[data-fo-step-panel='1']");
       if (!panel || !ctx) return;
       panel.querySelector("[data-fo-pp-request]")?.remove();
-      const header = panel.querySelector(":scope > .e-permits-fo-form__header");
-      const card = document.createElement("section");
-      card.className = "e-permits-fo-form__section e-permits-fo-pp-request";
-      card.dataset.foPpRequest = "";
-      card.setAttribute("aria-labelledby", "fo-pp-request-title");
-      card.innerHTML = `
-        <h2 id="fo-pp-request-title">Detalii solicitare</h2>
-        <div class="e-permits-fo-form__section-body">
-          ${postprocessReadonly("Serviciul", ctx.service.title || ctx.act.service, 12)}
-          ${postprocessReadonly("Tip solicitare", ctx.pp.requestType || ctx.pp.label, 6)}
-          ${postprocessReadonly("Numărul actului permisiv", ctx.act.number, 6)}
-        </div>`;
-      header?.insertAdjacentElement("afterend", card);
+      /* pp-holder-grey-v1: the roles may have been drawn before the post-process started — the holder is not changeable */
+      panel.querySelectorAll(".e-permits-fo-selected-role--changeable").forEach((card) => card.classList.remove("e-permits-fo-selected-role--changeable"));
     }
 
     function renderPostprocessStep2(ctx = frontOfficePostprocess) {
       const panel = document.querySelector("[data-fo-step-panel='2']");
       if (!panel || !ctx) return;
       panel.innerHTML = `
-        <header class="e-permits-fo-form__header"><h1 id="fo-request-step-2-title" tabindex="-1">Detalii solicitare</h1></header>
-        <p class="e-permits-fo-pp-lead">${escapeFrontOfficeHtml(ctx.pp.requestType || ctx.pp.label)} · ${escapeFrontOfficeHtml(ctx.act.number)} · ${escapeFrontOfficeHtml(ctx.act.name)}</p>
+        <header class="e-permits-fo-form__header">${requestHeaderHtml({ id: "fo-request-step-2-title", title: "Detalii solicitare" })}</header>
         ${postprocessStep2BodyHtml(ctx)}
         ${postprocessFooterHtml(2)}`;
       initFrontOfficeDynamicControls(panel);
@@ -6103,7 +6524,7 @@
         ? requiredMarkerHtml()
         : `<span class="status-tag status-tag--neutral is-subtle status-tag--small e-permits-fo-doc-tag e-permits-fo-optional-tag">Opțional</span>`;
       return `
-        <div class="e-permits-fo-doc-field" data-fo-doc-field="${escapeFrontOfficeHtml(id)}">
+        <div class="e-permits-fo-doc-field" data-fo-doc-field="${escapeFrontOfficeHtml(id)}"${required ? " data-fo-doc-required" : ""}>
           <div class="e-permits-fo-doc-field__row">
             <div class="e-permits-fo-doc-field__info">
               <span class="e-permits-fo-doc-field__label">${escapeFrontOfficeHtml(label)} ${req}</span>
@@ -6230,6 +6651,9 @@
       ].join("");
       const visibleIn = (el, root) => { for (let n = el; n && n !== root; n = n.parentElement) if (n.hidden) return false; return true; };
       const fieldValue = (field) => {
+        /* a subgenre multi-select reads as the names picked, not its „1 subgen selectat” summary */
+        const subgens = [...field.querySelectorAll(".e-permits-fo-subgen-select__option.is-selected")].map((o) => (o.dataset.value || o.textContent).trim());
+        if (subgens.length) return subgens.join(", ");
         const v = field.querySelector("[data-fo-caem-value], [data-fo-subgen-value], [data-fo-select-value]")?.textContent?.trim()
           || field.querySelector("input:not([type=checkbox]):not([type=file]):not([type=search]), textarea")?.value?.trim()
           || field.querySelector(".e-permits-fo-input__value")?.textContent?.trim() || "";
@@ -6303,16 +6727,17 @@
       if (paymentItem) paymentItem.hidden = skip;
       if (finishNumber) finishNumber.textContent = skip ? "6" : "7";
       const title = document.querySelector(".e-permits-fo-auth__service-title-row h1");
+      applyFrontOfficeSupplementStepper();
       if (active && frontOfficePostprocess) {
         const { service, pp } = frontOfficePostprocess;
         document.title = `${service.code || ""} · ${pp.requestType || pp.label} — ${service.shortTitle || service.title || ""}`;
-        if (title) setFoServiceTitle(title, service.title);
+        if (title) setFoServiceTitle(title, `${pp.requestType || pp.label} · ${service.title}`);
       } else if (frontOfficeSchema) {
         setServiceHeaderFromSchema(frontOfficeSchema);
       }
     }
 
-    function startFrontOfficePostprocess(act, pp, { step = 1 } = {}) {
+    function startFrontOfficePostprocess(act, pp, { step = 1, beforeShow = null } = {}) {
       if (!act || !pp) return;
       frontOfficePostprocess = { act, pp, service: postprocessService(act) };
       document.body.dataset.foPostprocess = pp.id;
@@ -6325,6 +6750,8 @@
       updateFrontOfficeRequestHeaders();
       const hash = frontOfficeStepHash(step);
       if (window.location.hash !== hash) history.replaceState(null, "", hash);
+      /* the suplinire wizard fills in what was filed before the step shows (pps-…) */
+      beforeShow?.();
       if (step === 4) renderPostprocessReview();
       showFrontOfficeRequest({ step });
     }
@@ -6343,6 +6770,7 @@
         renderFrontOfficeStep5FromSchema(frontOfficeSchema);
         renderFrontOfficeStep7FromSchema(frontOfficeSchema);
       }
+      updateFrontOfficeRequestHeaders(); /* drops the post-process caption (pp-caption-v1) */
     }
 
     document.addEventListener("fo-select-change", (event) => {
@@ -6501,6 +6929,7 @@
       const targetStep = Number(step);
       const panel = document.querySelector(`[data-fo-step-panel="${targetStep}"]`);
       if (!panel || targetStep < 1) return false;
+      if (document.body.dataset.foSupplement && navigateFrontOfficeSupplementStep(targetStep)) return true;
       /* a guest's step 1 is the guest „Date solicitant” (typed data kept) */
       if (frontOfficeGuest && targetStep === 1) {
         showFrontOfficeGuest({ focus, reset: false });
@@ -6650,6 +7079,14 @@
       /* at once, so nothing that routes by the step hash while the schema loads opens S5 (and a new-draft toast) */
       history.replaceState(null, "", "#suplinire");
       frontOfficeSchemaLoadPromise.then(() => showFrontOfficeSupplement({ focus: false }));
+    } else if (frontOfficeSupplementNr && bootStep) {
+      /* a reload inside the suplinire wizard: back on the same step (a closed / expired / unknown request → S4 says why) */
+      frontOfficeDraftCreated = true;
+      frontOfficeSchemaLoadPromise.then(async () => {
+        await loadFrontOfficeSupplement();
+        if (supplementStatus() === "open" && bootStep <= 4) enterFrontOfficeSupplementWizard(Math.max(2, bootStep));
+        else showFrontOfficeSupplement({ focus: false });
+      });
     } else if (bootStep) {
       showFrontOfficeRequest({ focus: false, step: bootStep });
     }
@@ -7360,7 +7797,7 @@
       const label = field?.querySelector(".e-permits-fo-doc-field__label, .e-permits-fo-field__label, label");
       if (!label) return el?.closest?.("[data-fo-other-doc-card]")?.querySelector("[data-fo-other-doc-name]")?.value.trim() || (el?.closest?.("[data-fo-other-doc-list]") ? "Document suplimentar" : "");
       const copy = label.cloneNode(true);
-      copy.querySelectorAll(".e-permits-fo-required, .e-permits-fo-optional-tag, .u-visually-hidden").forEach((x) => x.remove());
+      copy.querySelectorAll(".e-permits-fo-required, .e-permits-fo-optional-tag, .u-visually-hidden, [data-fo-supp-asked]").forEach((x) => x.remove());
       return copy.textContent.replace(/\s+/g, " ").trim();
     }
     /* „12.03.2026” → „12 martie 2026” (product date format) */
@@ -9340,6 +9777,7 @@
 
       let activeIndex = 0;
       let visibleOptions = options.slice();
+      let ready = false;
 
       options.forEach((option) => {
         option.dataset.searchText = normalizeComboboxText(option.dataset.value || option.textContent || "");
@@ -9382,6 +9820,8 @@
           });
           chips.appendChild(chip);
         });
+        /* hosts (e.g. the BO subdivision form) keep their own model in sync */
+        if (ready) root.dispatchEvent(new CustomEvent("fo-multiselect-change", { bubbles: true, detail: { values: selected.map((o) => o.dataset.value || "") } }));
       }
 
       function setActive(index) {
@@ -9488,6 +9928,7 @@
       };
 
       updateSummary();
+      ready = true;
     }
 
     document.querySelectorAll("[data-fo-subgen-select]").forEach(initSubgenMultiSelect);

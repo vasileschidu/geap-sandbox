@@ -15775,7 +15775,7 @@ a.e-permits-fo-lib-item__title:is(:hover, :focus) {
   padding: 0 0 var(--spacing-16, 16px);
 }
 
-.e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-dosar-profil__section-title {
+:is(.e-permits-front-office-page[data-demo-flow="back-office"], .e-permits-fo-pp-request) .e-permits-dosar-profil__section-title {
   align-items: center;
   box-sizing: border-box;
   color: var(--color-text-base-default, #121212);
@@ -15865,7 +15865,7 @@ a.e-permits-fo-lib-item__title:is(:hover, :focus) {
   padding-right: var(--spacing-12, 12px);
 }
 
-.e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-dosar-profil__card {
+:is(.e-permits-front-office-page[data-demo-flow="back-office"], .e-permits-fo-pp-request) .e-permits-dosar-profil__card {
   /* same surface as the timeline, stack group heads and preview frame; one card radius 20 at every width (cards-radius-20-final) */
   background: var(--color-background-base-secondary, #f5f5f5);
   border: 0;
@@ -15878,7 +15878,7 @@ a.e-permits-fo-lib-item__title:is(:hover, :focus) {
   width: 100%;
 }
 
-.e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-dosar-profil__row {
+:is(.e-permits-front-office-page[data-demo-flow="back-office"], .e-permits-fo-pp-request) .e-permits-dosar-profil__row {
   align-items: center;
   border-bottom: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
   box-sizing: border-box;
@@ -15888,18 +15888,18 @@ a.e-permits-fo-lib-item__title:is(:hover, :focus) {
   padding: var(--spacing-8, 8px) 0;
 }
 
-.e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-dosar-profil__row:last-child {
+:is(.e-permits-front-office-page[data-demo-flow="back-office"], .e-permits-fo-pp-request) .e-permits-dosar-profil__row:last-child {
   border-bottom: 0;
 }
 
-.e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-dosar-profil__row-label {
+:is(.e-permits-front-office-page[data-demo-flow="back-office"], .e-permits-fo-pp-request) .e-permits-dosar-profil__row-label {
   color: var(--color-text-base-secondary, #383838);
   flex: 0 0 256px;
   font: 400 14px/20px var(--font-family-primary-font, Onest), sans-serif;
   max-width: 340px;
 }
 
-.e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-dosar-profil__row-value {
+:is(.e-permits-front-office-page[data-demo-flow="back-office"], .e-permits-fo-pp-request) .e-permits-dosar-profil__row-value {
   align-items: center;
   color: var(--color-text-base-default, #121212);
   display: flex;
@@ -22671,7 +22671,7 @@ body[data-fo-postprocess] .e-permits-fo-form__roles .e-permits-fo-selected-role_
 }
 
 /* spacing inside a v2 card: 24 between fields (the white-card form rhythm), 16 inside a
-   switch group; the drawer keeps its 32 */
+   switch group */
 .e-permits-cfg2 .e-permits-user-create__grid {
   gap: var(--spacing-24, 24px);
 }
@@ -25219,3 +25219,50 @@ body:has(:is([aria-haspopup]:not([aria-haspopup="false"]), [role="combobox"], .j
 .e-permits-fo-doc-modal__drop-zone.is-dragover {
   background: var(--color-background-base-tertiary, #f1f1f1);
 }
+
+/* pp-details-card-v4 (user 2026-11-03): „Detalii solicitare” keeps the BO title (48, no divider) but no left / right
+   inset — the heading lines up with the FO step headings, the card under it */
+/* doubled class = beats the scoped BO rule (:is(…) counts its most specific argument) on every FO screen, S4 included */
+.e-permits-fo-pp-request .e-permits-dosar-profil__section-title.e-permits-dosar-profil__section-title.e-permits-dosar-profil__section-title {
+  padding-left: 0;
+  padding-right: 0;
+}
+
+/* pp-context-v1 (user 2026-11-03): the post-process context strip above every step title — what is being done
+   to which act; grey surface, permit icon, one line (wraps on phones), the „ⓘ” hint toggletip; 16 above the H1 */
+.e-permits-fo-pp-context {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-8, 8px);
+  width: fit-content;
+  max-width: 100%;
+  box-sizing: border-box;
+  margin: 0 0 var(--spacing-16, 16px);
+  padding: var(--spacing-8, 8px) var(--spacing-12, 12px);
+  background: var(--color-background-base-secondary, #f5f5f5);
+  border-radius: var(--border-radius-12, 12px);
+}
+
+.e-permits-fo-pp-context__icon {
+  flex: 0 0 auto;
+  color: var(--color-icon-base-secondary, #383838);
+}
+
+.e-permits-fo-pp-context__text {
+  min-width: 0;
+  margin: 0;
+  color: var(--color-text-base-default, #121212);
+  font-size: var(--font-size-fs-14, 14px);
+  line-height: var(--line-height-lh-20, 20px);
+  overflow-wrap: anywhere;
+}
+
+.e-permits-fo-pp-context__info {
+  flex: 0 0 auto;
+}
+
+/* supp-s4-card-v1: a row with several values keeps its label on the first line (as in BO) */
+.e-permits-fo-pp-request .e-permits-dosar-profil__row:has(.e-permits-passport__row-lines) {
+  align-items: flex-start;
+}
+

@@ -106,6 +106,30 @@
   gap: var(--spacing-16, 16px);
 }
 
+/* ---- pps-… suplinire wizard (2026-11-03, components.md › „Suplinire informații — wizard”). No drafts in a
+   suplinire: the step footer's navigation keeps its right edge without „Salvează ca schiță” (also a guest). The S7
+   status notices sit as one stack between the summary and the buttons; the specialist's note inside the requested
+   document field = 8 under its row (the field rhythm). */
+.e-permits-fo-form__actions--with-draft:not(:has(> .e-permits-fo-draft-button:not([hidden]))) {
+  justify-content: flex-end;
+}
+
+.e-permits-fo-supp-status {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-8, 8px);
+  padding-bottom: var(--spacing-32, 32px);
+}
+
+/* the review keeps its 32 rhythm to the notices (not the 120 run-out it has above the footer) */
+.e-permits-fo-step-panel[data-fo-step-panel="4"] [data-fo-review-sections]:has(+ .e-permits-fo-supp-status:not([hidden])) {
+  padding-bottom: var(--spacing-32, 32px);
+}
+
+.e-permits-fo-doc-field > .e-permits-fo-supp-asked-note {
+  margin-top: var(--spacing-8, 8px);
+}
+
 /* ---- US-295 „Redistribuie dosarul” reads as a transfer (redist-transfer-v1, 2026-10-25):
    „Responsabil actual” → „Responsabil nou” on one row, the arrow centred on the controls (a subgrid
    shares the label row and the control row between both fields, so a two-line label never shifts it),

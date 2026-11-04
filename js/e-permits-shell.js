@@ -6793,7 +6793,7 @@ document.addEventListener("DOMContentLoaded", () => {
     return `
       <div class="e-permits-workplace__user-roles" data-tag-fit>
         ${roles.map((role, i) => (i < 2 ? renderTag(role, "neutral") : renderTag(role, "neutral").replace(/^(\s*<\w+)/, "$1 hidden"))).join("")}
-        ${roles.length > 1 ? `<span class="e-permits-workplace__user-role-more" tabindex="0" data-cell-tooltip="${escapeHtml(roles.join(", "))}" data-cell-tooltip-always aria-label="${escapeHtml(`${label}: ${roles.join(", ")}`)}"${remaining ? "" : " hidden"}>+${remaining}</span>` : ""}
+        ${roles.length > 1 ? `<span class="badge badge--solid-neutral badge--lg" data-tag-more tabindex="0" data-cell-tooltip="${escapeHtml(roles.join(", "))}" data-cell-tooltip-always aria-label="${escapeHtml(`${label}: ${roles.join(", ")}`)}"${remaining ? "" : " hidden"}>+${remaining}</span>` : ""}
       </div>
     `;
   };
@@ -6804,7 +6804,7 @@ document.addEventListener("DOMContentLoaded", () => {
     root.querySelectorAll("[data-tag-fit]").forEach((box) => {
       const avail = box.clientWidth;
       if (!avail) return;
-      const more = box.querySelector(".e-permits-workplace__user-role-more");
+      const more = box.querySelector("[data-tag-more]");
       const tags = [...box.children].filter((el) => el !== more);
       if (!more || tags.length < 2) return;
       const gap = parseFloat(getComputedStyle(box).columnGap) || 0;
@@ -6854,7 +6854,7 @@ document.addEventListener("DOMContentLoaded", () => {
       /* a tag row folded to „first tag + N” (fitTagRows) needs at least the first tag, the gap and the badge */
       cell.querySelectorAll("[data-tag-fit]").forEach((box) => {
         const first = box.querySelector(".status-tag, .tag");
-        const more = box.querySelector(".e-permits-workplace__user-role-more");
+        const more = box.querySelector("[data-tag-more]");
         if (!first) return;
         let need = first.getBoundingClientRect().width;
         if (more && box.querySelectorAll(".status-tag, .tag").length > 1) {
