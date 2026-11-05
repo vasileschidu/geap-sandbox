@@ -1108,3 +1108,15 @@ html.is-filter-sheet-open .e-permits-fo-testcfg {
   top: var(--sheet-head-h, 56px);
   z-index: 1;
 }
+
+/* „Resetează” chip: × first, then the label — the chip's icon side gets the library 12 (chip:has(.chip__icon)), the label
+   side the chip's 16 (user 2026-11-05) */
+.chip.e-permits-workplace__filter-chip.e-permits-workplace__filter-reset {
+  padding: 0 var(--spacing-16, 16px) 0 var(--spacing-12, 12px);
+}
+
+@media (min-width: 761px) {
+  .e-permits-workplace__filters--compact .chip.e-permits-workplace__filter-chip.e-permits-workplace__filter-reset {
+    padding: 0 var(--spacing-12, 12px) 0 var(--spacing-8, 8px);
+  }
+}

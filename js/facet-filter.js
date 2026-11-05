@@ -625,11 +625,11 @@
          „Aplică filtre”; filters applied, nothing pending → neutral Medium „Resetează” (all filters); else no button */
       const master = !cfg.masterApply ? ""
         : isPending ? `<button class="btn btn-primary ${cfg.compact ? "btn-sm" : "btn-md"} e-permits-workplace__filter-apply" type="button" data-filter-slot data-filter-commit>${escapeHtml(TEXT.apply)}</button>`
-          /* „Resetează” = a filter chip (grey, the chips' size) with a trailing × in the caret's place (user 2026-11-05:
+          /* „Resetează” = a filter chip (grey, the chips' size) with a LEADING × (user 2026-11-05: „× then Resetează”; first:
              „a different type of button, similar to chips, with an x”) */
           : appliedCount ? `<button class="chip e-permits-workplace__filter-chip e-permits-workplace__filter-apply e-permits-workplace__filter-reset" type="button" data-filter-slot${TEXT.clearName ? ` aria-label="${escapeHtml(TEXT.clearName)}"` : ""} data-filter-clear-all>
-        <span class="chip__label">${escapeHtml(TEXT.clear)}</span>
         <svg class="icon e-permits-workplace__filter-caret" aria-hidden="true"><use href="${sprite}#icon-cross-large"></use></svg>
+        <span class="chip__label">${escapeHtml(TEXT.clear)}</span>
       </button>` : "";
       bar.innerHTML = `
       <div class="e-permits-workplace__filter-chips">

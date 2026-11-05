@@ -551,6 +551,28 @@ a {
   text-align: left;
 }
 
+/* a long act number / IDNO cuts with „…” (+ the „Copiază <value>” hint) in every browser (user 2026-11-05 screenshot:
+   „PUNGHENI-2026-47718” ran into the next column): the compact copy wrap is a BLOCK flex box in the cell stack, so its
+   width is the cell's and the button's max-width: 100% resolves (an inline-flex box sized by its content never cut it);
+   the button still hugs the value, so the hover wrap stays around the number */
+.rap-cell-stack > .copy-value--compact,
+.rap-beneficiary__copy > .copy-value--compact {
+  display: flex;
+  min-width: 0;
+  width: 100%;
+}
+
+.rap-cell-stack > .copy-value--compact .copy-value__button,
+.rap-beneficiary__copy > .copy-value--compact .copy-value__button {
+  max-width: calc(100% - 2 * var(--copy-pad-inline, 8px));
+}
+
+.rap-cell-stack > .copy-value--compact .copy-value__text,
+.rap-beneficiary__copy > .copy-value--compact .copy-value__text {
+  flex: 0 1 auto;
+  min-width: 0;
+}
+
 .rap-ellipsis {
   display: block;
   min-width: 0;
