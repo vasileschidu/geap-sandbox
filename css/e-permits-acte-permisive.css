@@ -8848,6 +8848,24 @@ a.e-permits-fo-lib-item__title:is(:hover, :focus) {
   text-overflow: ellipsis;
 }
 
+/* file-middle-cut-v1: the split file name — head cuts with „…”, tail (last 6 + extension) never shrinks */
+.e-permits-fo-doc-meta__part--split {
+  display: inline-flex;
+  overflow: visible;
+}
+
+.e-permits-fo-doc-meta__file-head {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.e-permits-fo-doc-meta__file-tail {
+  flex: none;
+  white-space: nowrap;
+}
+
 /* the issuer = MDocs „createdByName”, often long („Instituția Publică "AGENȚIA DE GUVERNARE ELECTRONICĂ"”, user
    2026-11-05): it takes the rest of the date line and cuts there (+ tooltip) instead of dropping to a line of its own;
    it wraps only when less than 48 is left */
