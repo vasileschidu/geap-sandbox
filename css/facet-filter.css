@@ -984,10 +984,12 @@ html.is-filter-sheet-open .e-permits-fo-testcfg {
   background-color: var(--color-background-base-secondary, #f5f5f5);
   border-radius: var(--border-radius-full, 9999px);
   display: inline-flex;
-  gap: var(--spacing-4, 4px); /* user 2026-11-04: 4 between the chip and the ×, as the right padding */
+  /* user 2026-11-05: the × sits with the SAME 2 on every side — 2 to the chip, 2 to the group's top / right / bottom —
+     so the × circle = the chip height − 2 × 2 (desktop 36 → 32, phones 48 → 44) */
+  gap: var(--spacing-2, 2px);
   max-width: 100%;
   min-width: 0;
-  padding: 0 var(--spacing-4, 4px) 0 0;
+  padding: 0 var(--spacing-2, 2px) 0 0;
 }
 
 .e-permits-workplace__filter-group > .chip {
@@ -1027,11 +1029,13 @@ html.is-filter-sheet-open .e-permits-fo-testcfg {
      right after the chip, 4 between them and 4 to the group's right edge — at the phone control size 40 / icon 20.
      (0,4,0): the library `.btn.btn-sm.btn-icon-only` (0,3,0) would keep it a 32 flex-basis */
   .e-permits-workplace__filter-group > .e-permits-workplace__filter-group-close.btn.btn-icon-only {
-    flex: 0 0 var(--spacing-40, 40px);
-    height: var(--spacing-40, 40px);
-    min-height: var(--spacing-40, 40px);
+    --chip-x: calc(var(--spacing-48, 48px) - 2 * var(--spacing-2, 2px));
+    flex: 0 0 var(--chip-x);
+    height: var(--chip-x);
+    min-height: 0;
+    min-width: 0;
     padding: 0;
-    width: var(--spacing-40, 40px);
+    width: var(--chip-x);
   }
 
   /* the library button-icon size of Medium 40 (css/button-icons.css: 20) */
@@ -1041,7 +1045,7 @@ html.is-filter-sheet-open .e-permits-fo-testcfg {
   }
 
   .e-permits-workplace__filters.is-sheets > .e-permits-workplace__filter-chips > .e-permits-workplace__filter-group > .chip {
-    max-width: calc(100% - var(--spacing-40, 40px) - 2 * var(--spacing-4, 4px));
+    max-width: calc(100% - var(--spacing-48, 48px));
   }
 }
 
@@ -1089,7 +1093,7 @@ html.is-filter-sheet-open .e-permits-fo-testcfg {
   }
 
   .e-permits-workplace__filters--compact .e-permits-workplace__filter-group {
-    gap: var(--spacing-4, 4px);
+    gap: var(--spacing-2, 2px);
   }
 }
 
