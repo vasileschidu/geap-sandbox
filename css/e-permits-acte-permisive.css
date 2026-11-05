@@ -8841,10 +8841,19 @@ a.e-permits-fo-lib-item__title:is(:hover, :focus) {
   white-space: nowrap;
 }
 
-.e-permits-fo-doc-meta__part--file {
+.e-permits-fo-doc-meta__part--file,
+.e-permits-fo-doc-meta__part--issuer {
   flex: 0 1 auto;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+/* the issuer = MDocs „createdByName”, often long („Instituția Publică "AGENȚIA DE GUVERNARE ELECTRONICĂ"”, user
+   2026-11-05): it takes the rest of the date line and cuts there (+ tooltip) instead of dropping to a line of its own;
+   it wraps only when less than 48 is left */
+.e-permits-fo-doc-meta__part--issuer {
+  flex: 1 1 0;
+  min-width: calc(var(--fo-doc-meta-sep) + var(--spacing-48, 48px));
 }
 
 /* ===== document card layout (2026-10-15, user) — every width:

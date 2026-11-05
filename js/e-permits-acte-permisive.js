@@ -7676,10 +7676,11 @@
        part's ::before, so a wrapped line never starts or ends with a dot (see CSS „document meta”). */
     function foDocMetaLines(doc) {
       const esc = escapeFrontOfficeHtml;
-      const part = (text, mod = "") => `<span class="e-permits-fo-doc-meta__part${mod ? ` e-permits-fo-doc-meta__part--${mod}` : ""}"${mod === "file" ? " data-cell-tooltip" : ""}>${esc(text)}</span>`;
+      /* the file name and the issuer („de <instituție>”) cut with „…” and show in full on hover (user 2026-11-05) */
+      const part = (text, mod = "") => `<span class="e-permits-fo-doc-meta__part${mod ? ` e-permits-fo-doc-meta__part--${mod}` : ""}"${mod === "file" || mod === "issuer" ? " data-cell-tooltip" : ""}>${esc(text)}</span>`;
       const file = doc.fisier && doc.fisier !== doc.tip && doc.fisier !== `${doc.nr}.pdf` ? doc.fisier : "";
       const head = [file ? part(file, "file") : "", doc.size ? part(doc.size) : ""].filter(Boolean);
-      const stamp = [doc.at ? part(`${doc.verb || (doc.sursa === "mdocs" ? "Emis" : doc.sursa === "generat" ? "Generat" : "Încărcat")} ${doc.at}`) : "", doc.de ? part(`de ${doc.de}`) : ""].filter(Boolean);
+      const stamp = [doc.at ? part(`${doc.verb || (doc.sursa === "mdocs" ? "Emis" : doc.sursa === "generat" ? "Generat" : "Încărcat")} ${doc.at}`) : "", doc.de ? part(`de ${doc.de}`, "issuer") : ""].filter(Boolean);
       /* a number gets its own line next to a file name (the file would ellipsize to nothing), else it leads the size */
       return (file ? [doc.nr ? [part(doc.nr)] : [], head, stamp] : [[doc.nr ? part(doc.nr) : "", ...head].filter(Boolean), stamp]).filter((line) => line.length);
     }
@@ -7771,10 +7772,10 @@
     }
 
     const FO_DOC_LIBRARY = [
-      { type: "emis", sursa: "mdocs", title: 'Extras Registru de Stat - "Vita-Plant" SRL', badge: "Activă", emis: "12.03.2026", authority: "ASP", fisier: "extras-registru-vita-plant.pdf", size: "310 KB", at: "12 martie 2026, 10:14", semnat: true },
-      { type: "emis", sursa: "mdocs", title: 'Extras Registru de Stat - "Eco-Farm" SRL', emis: "15.05.2025", authority: "ASP", fisier: "extras-registru-eco-farm.pdf", size: "296 KB", at: "15 mai 2025, 09:02", semnat: true },
-      { type: "emis", sursa: "mdocs", title: 'Aviz sanitar - "Global Trader" SRL', emis: "18.05.2025", authority: "ANSP", fisier: "aviz-sanitar-global-trader.pdf", size: "412 KB", at: "18 mai 2025, 14:40", semnat: true },
-      { type: "emis", sursa: "mdocs", title: 'Autorizație sanitară de funcționare - "Global Trader" SRL', emis: "06.04.2024", authority: "ANSP", fisier: "autorizatie-sanitara-global-trader.pdf", size: "538 KB", at: "6 aprilie 2024, 11:25", semnat: true },
+      { type: "emis", sursa: "mdocs", title: 'Extras Registru de Stat - "Vita-Plant" SRL', badge: "Activă", emis: "12.03.2026", authority: "Instituția Publică \"AGENȚIA SERVICII PUBLICE\"", fisier: "extras-registru-vita-plant.pdf", size: "310 KB", at: "12 martie 2026, 10:14", semnat: true },
+      { type: "emis", sursa: "mdocs", title: 'Extras Registru de Stat - "Eco-Farm" SRL', emis: "15.05.2025", authority: "Instituția Publică \"AGENȚIA SERVICII PUBLICE\"", fisier: "extras-registru-eco-farm.pdf", size: "296 KB", at: "15 mai 2025, 09:02", semnat: true },
+      { type: "emis", sursa: "mdocs", title: 'Aviz sanitar - "Global Trader" SRL', emis: "18.05.2025", authority: "Agenția Națională pentru Sănătate Publică", fisier: "aviz-sanitar-global-trader.pdf", size: "412 KB", at: "18 mai 2025, 14:40", semnat: true },
+      { type: "emis", sursa: "mdocs", title: 'Autorizație sanitară de funcționare - "Global Trader" SRL', emis: "06.04.2024", authority: "Agenția Națională pentru Sănătate Publică", fisier: "autorizatie-sanitara-global-trader.pdf", size: "538 KB", at: "6 aprilie 2024, 11:25", semnat: true },
       { type: "uploaded", sursa: "upload", tip: "Copia actului de proprietate", fileName: "copia-actului-de-proprietate.pdf", size: "1.8 MB", at: "2 martie 2026, 16:08" },
       { type: "uploaded", sursa: "upload", tip: "Planul încăperilor", fileName: "planul-incaperilor.pdf", size: "2.7 MB", at: "2 martie 2026, 16:11" },
       { type: "uploaded", sursa: "upload", tip: "Design arhitectural", fileName: "design-architectural.docx", size: "1.5 MB", at: "28 februarie 2026, 12:47" },
