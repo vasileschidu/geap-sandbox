@@ -1595,13 +1595,18 @@
   function docContentHtml(doc) {
     const source = DOC_SOURCES[doc.sursa];
     const lines = docMetaLines(doc);
+    /* the tags move as one group under a long title (doc-title-2-lines-v1); source tag only for MDocs — the icon says
+       uploaded / generated (user 2026-11-05) */
+    const tags = [
+      source && doc.sursa === "mdocs" ? `<span class="status-tag status-tag--neutral is-subtle status-tag--small e-permits-fo-doc-tag">${escape(source.tag)}</span>` : "",
+      doc.semnat ? signedTagHtml() : "",
+      ...(doc.tags || []).map(([label, tone]) => `<span class="status-tag ${TAG_TONES[tone] || TAG_TONES.neutral} status-tag--small e-permits-fo-doc-tag">${escape(label)}</span>`)
+    ].filter(Boolean);
     return `
       <div class="e-permits-fo-lib-item__content">
         <div class="e-permits-fo-lib-item__title-row e-permits-fo-doc-title-row">
           <span class="e-permits-fo-lib-item__title" data-cell-tooltip>${escape(doc.tip)}</span>
-          ${source ? `<span class="status-tag status-tag--neutral is-subtle status-tag--small e-permits-fo-doc-tag">${escape(source.tag)}</span>` : ""}
-          ${doc.semnat ? signedTagHtml() : ""}
-          ${(doc.tags || []).map(([label, tone]) => `<span class="status-tag ${TAG_TONES[tone] || TAG_TONES.neutral} status-tag--small e-permits-fo-doc-tag">${escape(label)}</span>`).join("")}
+          ${tags.length ? `<span class="e-permits-fo-doc-tags">${tags.join("")}</span>` : ""}
         </div>
         ${lines.length ? `<div class="e-permits-fo-lib-item__meta e-permits-fo-doc-meta">${lines.map((line) => `<span class="e-permits-fo-doc-meta__line">${line.join("")}</span>`).join("")}</div>` : ""}
       </div>`;

@@ -3644,7 +3644,7 @@ document.addEventListener("DOMContentLoaded", () => {
       plainTitle: doc.tip,
       title: escapeHtml(doc.tip),
       leadHtml: `<img class="e-permits-fo-lib-item__icon" src="assets/icons/${docSource(doc).icon}" width="24" height="24" alt="">`,
-      badges: [renderTag(docSource(doc).tag, "neutral"), ...(doc.semnat ? [SIGNED_TAG_HTML] : []), ...(doc.tags || []).map(([label, tone]) => renderTag(label, tone))],
+      badges: [...(doc.sursa === "mdocs" ? [renderTag(docSource(doc).tag, "neutral")] : []), ...(doc.semnat ? [SIGNED_TAG_HTML] : []), ...(doc.tags || []).map(([label, tone]) => renderTag(label, tone))],
       meta: [
         ...(nr ? [renderListCode(nr, { meta: true })] : []),
         /* the file name, unless it is just the number again (ellipsizes on phones, full name in the tooltip) */

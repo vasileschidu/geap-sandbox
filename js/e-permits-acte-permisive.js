@@ -7607,7 +7607,7 @@
       const titleRow = (tag) => `
             <div class="e-permits-fo-lib-item__title-row e-permits-fo-doc-title-row">
               <span class="e-permits-fo-lib-item__title" data-cell-tooltip>${esc(title)}</span>
-              ${tag ? `<span class="status-tag status-tag--neutral is-subtle status-tag--small e-permits-fo-doc-tag">${esc(foDocSource({ sursa: "generat" }).tag)}</span>` : ""}
+              ${"" /* no „Generat” tag — the blue icon says it (user 2026-11-05) */}
             </div>`;
       if (error) {
         const msgId = `fo-finish-doc-error-${++foFinishDocSeq}`;
@@ -7726,13 +7726,18 @@
     function foDocContentHtml(doc, { titleClass = "", open = false, openAttrs = "" } = {}) {
       const esc = escapeFrontOfficeHtml;
       const lines = foDocMetaLines(doc);
+      /* source tag only for MDocs (user 2026-11-05: „remove Generat and Încărcat, the icon is enough” — grey icon =
+         uploaded; the blue icon is shared by MDocs and generated, so MDocs keeps its tag) */
+      const tags = [
+        doc.sursa === "mdocs" ? `<span class="status-tag status-tag--neutral is-subtle status-tag--small e-permits-fo-doc-tag">${esc(foDocSource(doc).tag)}</span>` : "",
+        doc.semnat ? FO_DOC_SIGNED_TAG : "",
+        doc.badge ? `<span class="e-permits-fo-lib-item__badge">${esc(doc.badge)}</span>` : ""
+      ].filter(Boolean);
       return `
         <div class="e-permits-fo-lib-item__content">
           <div class="e-permits-fo-lib-item__title-row e-permits-fo-doc-title-row">
             ${foDocNameHtml(doc, { titleClass, open, openAttrs })}
-            <span class="status-tag status-tag--neutral is-subtle status-tag--small e-permits-fo-doc-tag">${esc(foDocSource(doc).tag)}</span>
-            ${doc.semnat ? FO_DOC_SIGNED_TAG : ""}
-            ${doc.badge ? `<span class="e-permits-fo-lib-item__badge">${esc(doc.badge)}</span>` : ""}
+            ${tags.length ? `<span class="e-permits-fo-doc-tags">${tags.join("")}</span>` : ""}
           </div>
           ${foDocMetaHtml(lines)}
         </div>`;

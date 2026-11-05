@@ -8899,14 +8899,33 @@ a.e-permits-fo-lib-item__title:is(:hover, :focus) {
   row-gap: var(--spacing-4, 4px);
 }
 
-.e-permits-fo-doc-title-row > .e-permits-fo-lib-item__title {
-  flex: 1 1 var(--spacing-64, 64px);
-  max-width: max-content;
+/* doc-title-2-lines-v1 (user 2026-11-05): a name that fits next to its tags keeps them on its line; a longer one sends
+   the tags UNDER it (flex-wrap on the name's one-line width) and wraps to at most 2 lines, then „…” + the full name in
+   the tooltip (data-cell-tooltip, clip = scrollHeight). The name button (.e-permits-fo-doc-name) clamps the same way. */
+.e-permits-fo-doc-title-row > .e-permits-fo-lib-item__title,
+.e-permits-fo-doc-title-row > .e-permits-fo-doc-name {
+  -webkit-box-orient: vertical;
+  display: -webkit-box;
+  flex: 0 1 auto;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  max-width: 100%;
   min-width: 0;
+  overflow-wrap: anywhere;
+  white-space: normal;
 }
 
 .e-permits-fo-doc-title-row > :not(.e-permits-fo-lib-item__title) {
   flex: none;
+}
+
+/* the tags move as ONE group (all next to the name, or all under it); a group wider than the card wraps inside */
+.e-permits-fo-doc-tags {
+  align-items: center;
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-4, 4px) var(--spacing-8, 8px);
+  max-width: 100%;
 }
 
 /* doc-name-open-v1 (2026-10-25, GEAP 2.0 11818:21893): the document NAME opens the document viewer. On a card that is not
