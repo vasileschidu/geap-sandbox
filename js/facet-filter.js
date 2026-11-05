@@ -54,7 +54,7 @@
                                     Phones keep the sheet + live „Arată N rezultate”.
    Facet types besides checklist / date: `type: "path"` (+ `levels`, `tree()` → [{ name, children }], optional
    `chipText(path)`) = a drill-down cascade (Raion → Localitate → Stradă): crumbs, the library search, radio rows; the
-   value is ONE token „a › b › c” (pages match its prefix). A facet with `inMore: true` waits in „Mai multe” (unless it
+   value is ONE token „a › b › c” (pages match its prefix). `multiLeaf: true` (+ `leafPlural`) = the last level is checkboxes, values = one path per leaf. A facet with `inMore: true` waits in „Mai multe” (unless it
    holds a value) whatever `inlineMax` says. `promoteWhen(draft) → boolean` on a facet (RAP Subdiviziune: an Autoritate is
    ticked) shows it as a chip, in its place of the facets order, while true and under „Mai multe” otherwise (rap-promote-v1).
    Every product: the checklist puts the values ticked when it OPENED first, the menu separator, then the rest (order
@@ -435,10 +435,19 @@
     const PATH_SEP = " › ";
     const valuesText = (facet, values) => {
       if (isDate(facet)) return facet.chip ? chipDateText(facet, values[0]) : `${facet.label}: ${dateText(values[0], todayOf(facet))}`;
-      if (isPath(facet)) { const path = String(values[0]).split(PATH_SEP); return facet.chipText ? facet.chipText(path) : path.slice(-2).join(", "); }
+      if (isPath(facet)) {
+        const path = String(values[0]).split(PATH_SEP);
+        const text = (p) => (facet.chipText ? facet.chipText(p) : p.slice(-2).join(", "));
+        /* multiLeaf: several leaves (streets) of one locality → „Chișinău · 3 străzi” */
+        return manyLeaves(facet, values) ? `${path[path.length - 2]} · ${values.length} ${facet.leafPlural || "elemente"}` : text(path);
+      }
       return facet.label;
     };
-    const valuesTip = (facet, values) => (isDate(facet) || isPath(facet) ? `${facet.label}: ${valuesText(facet, values)}` : `${facet.label}: ${values.join(", ")}`);
+    const manyLeaves = (facet, values) => !!facet.multiLeaf && values.length > 1;
+    const valuesTip = (facet, values) => {
+      if (isPath(facet) && manyLeaves(facet, values)) { const paths = values.map((v) => String(v).split(PATH_SEP)); return `${facet.label}: ${paths[0][paths[0].length - 2]}: ${paths.map((p) => p[p.length - 1]).join(", ")}`; }
+      return isDate(facet) || isPath(facet) ? `${facet.label}: ${valuesText(facet, values)}` : `${facet.label}: ${values.join(", ")}`;
+    };
     const groupChipHtml = (facet, values, open) => `<div class="e-permits-workplace__filter-group" role="group" aria-label="${escapeHtml(facet.label)}">
         <button class="chip is-selected e-permits-workplace__filter-chip" type="button" aria-haspopup="dialog" aria-expanded="${open}" aria-label="${escapeHtml(valuesTip(facet, values))}" data-tooltip-text="${escapeHtml(valuesTip(facet, values))}" data-filter-facet="${escapeHtml(facet.key)}">
           <span class="chip__label">${escapeHtml(valuesText(facet, values))}</span>
@@ -731,7 +740,7 @@
     const sheetFacetHtml = (facet) => {
       const unavailable = unavailableOf(facet);
       if (unavailable) return unavailableHtml(unavailable);
-      if (isPath(facet)) return pathBodyHtml(facet, sheet.paths[facet.key] || pathOf(sheet.sel[facet.key]), sheet.pathQuery[facet.key] || "", "sheet");
+      if (isPath(facet)) return pathBodyHtml(facet, sheet.paths[facet.key] || pathOf(facet, sheet.sel[facet.key]), sheet.pathQuery[facet.key] || "", "sheet", sheetPathCtx(facet));
       if (isDate(facet)) return dateBodyHtml(facet, sheet.dates[facet.key] || dateEditOf(facet, sheet.sel[facet.key]?.[0]), "sheet");
       const many = wantsSearch(facet, cfg.options(facet, sheet.sel).length);
       return `
@@ -829,7 +838,7 @@
       const applied = cfg.state().applied;
       const facets = cfg.facets();
       sheet = {
-        kind, key, opener, sel: copySel(applied), query: {}, paths: {}, pathQuery: {},
+        kind, key, opener, sel: copySel(applied), query: {}, paths: {}, pathQuery: {}, pathPinned: {},
         pinned: Object.fromEntries(Object.entries(applied).map(([k, v]) => [k, new Set(v || [])])),
         /* date facets: what the period controls show ({ preset, from, to }) */
         dates: Object.fromEntries(cfg.allFacets().filter(isDate).map((f) => [f.key, dateEditOf(f, applied[f.key]?.[0])])),
@@ -880,7 +889,7 @@
         const pathTo = event.target.closest("[data-filter-path-to]");
         if (pathTo) {
           const key = pathTo.dataset.filterPathKey;
-          const path = (sheet.paths[key] || pathOf(sheet.sel[key])).slice(0, Number(pathTo.dataset.filterPathTo));
+          const path = (sheet.paths[key] || pathOf(facetByKey(key), sheet.sel[key])).slice(0, Number(pathTo.dataset.filterPathTo));
           setSheetPath(key, path);
           return;
         }
@@ -895,7 +904,7 @@
           sheetEl.querySelectorAll("[data-filter-path]").forEach((box) => {
             const key = box.dataset.filterPath;
             if (sheet.kind === "facet" && key !== sheet.key) return;
-            sheet.paths[key] = []; sheet.pathQuery[key] = "";
+            sheet.paths[key] = []; sheet.pathQuery[key] = ""; sheet.pathPinned[key] = new Set();
             box.parentElement.innerHTML = pathBodyHtml(facetByKey(key), [], "", "sheet");
           });
           syncSheetFooter();
@@ -925,8 +934,22 @@
         const pathPick = event.target.closest("[data-filter-path-pick]");
         if (pathPick) {
           const key = pathPick.dataset.filterPathKey;
-          const path = (sheet.paths[key] || pathOf(sheet.sel[key])).slice(0, Number(pathPick.dataset.filterPathLevel));
+          const path = (sheet.paths[key] || pathOf(facetByKey(key), sheet.sel[key])).slice(0, Number(pathPick.dataset.filterPathLevel));
           setSheetPath(key, [...path, pathPick.value]);
+          return;
+        }
+        /* multiLeaf: a street ticked / unticked — the value list follows, the list itself stays put */
+        const pathStreet = event.target.closest("[data-filter-path-street]");
+        if (pathStreet) {
+          const key = pathStreet.dataset.filterPathKey;
+          const facet = facetByKey(key);
+          const st = pathState(facet, sheet.sel[key]);
+          const streets = new Set(st.streets);
+          if (pathStreet.checked) streets.add(pathStreet.value); else streets.delete(pathStreet.value);
+          const vals = pathValues(facet, sheet.paths[key] || st.path, [...streets]);
+          if (vals.length) sheet.sel[key] = vals; else delete sheet.sel[key];
+          syncSectionSummary(key);
+          syncSheetFooter();
           return;
         }
         const preset = event.target.closest("[data-filter-date-preset]");
@@ -963,7 +986,7 @@
           const key = pathSearch.dataset.filterPathKey;
           sheet.pathQuery[key] = pathSearch.value;
           sheetHold(sheetEl, true);
-          sheetEl.querySelector(`[data-filter-path-list="${CSS.escape(key)}"]`).innerHTML = pathRowsHtml(facetByKey(key), sheet.paths[key] || pathOf(sheet.sel[key]), pathSearch.value);
+          sheetEl.querySelector(`[data-filter-path-list="${CSS.escape(key)}"]`).innerHTML = pathRowsHtml(facetByKey(key), sheet.paths[key] || pathOf(facetByKey(key), sheet.sel[key]), pathSearch.value, sheetPathCtx(facetByKey(key)));
           return;
         }
         const field = event.target.closest("[data-filter-search]");
@@ -1061,7 +1084,26 @@
     /* the date popover: presets + „Interval personalizat” (wider: two pickers side by side); its calendar
        opens out of the popover, so this popover does not clip */
     /* ---- path facet (drill-down cascade): crumbs · search · radio rows of the current level ---- */
-    const pathOf = (values) => (values?.[0] ? String(values[0]).split(PATH_SEP) : []);
+    /* multiLeaf (opt-in, RAP „Adresă”): the facet's values = one full path per leaf (street) of ONE locality; Raion and
+       Localitate stay one drill-down path, the last level = library checkboxes. No leaf ticked = the whole locality. */
+    const leafMulti = (facet) => !!facet?.multiLeaf;
+    const pathState = (facet, values) => {
+      const paths = (values || []).map((v) => String(v).split(PATH_SEP));
+      const first = paths[0];
+      if (!first) return { path: [], streets: [] };
+      if (leafMulti(facet) && first.length === facet.levels.length) {
+        const prefix = first.slice(0, -1);
+        return { path: prefix, streets: paths.filter((p) => p.length === first.length && prefix.every((n, i) => p[i] === n)).map((p) => p[p.length - 1]) };
+      }
+      return { path: first, streets: [] };
+    };
+    const pathOf = (facet, values) => pathState(facet, values).path;
+    const pathValues = (facet, path, streets) => (streets.length ? streets.map((s) => [...path, s].join(PATH_SEP)) : path.length ? [path.join(PATH_SEP)] : []);
+    const sheetPathCtx = (facet) => {
+      const st = pathState(facet, sheet.sel[facet.key]);
+      sheet.pathPinned[facet.key] ||= new Set(st.streets);
+      return { streets: st.streets, pinned: sheet.pathPinned[facet.key] };
+    };
     const nodeAt = (facet, path) => {
       let nodes = facet.tree();
       for (const name of path) { const node = nodes.find((n) => n.name === name); if (!node?.children?.length) return { nodes, leaf: true }; nodes = node.children; }
@@ -1072,18 +1114,27 @@
       const at = nodeAt(facet, path);
       return at.leaf || path.length >= facet.levels.length ? { level: path.length - 1, nodes: nodeAt(facet, path.slice(0, -1)).nodes } : { level: path.length, nodes: at.nodes };
     };
-    const pathRowsHtml = (facet, path, query) => {
+    const pathRowsHtml = (facet, path, query, ctx = {}) => {
       const { level, nodes } = pathLevel(facet, path);
       const q = fold(query);
       const rows = nodes.filter((n) => !q || fold(n.name).includes(q));
       const name = `geap-path-${facet.key}`;
+      if (leafMulti(facet) && level === facet.levels.length - 1) {
+        const ticked = new Set(ctx.streets || []);
+        const list = pinnedFirst(rows.map((n) => ({ value: n.name })), ctx.pinned || new Set());
+        return list.length ? list.map((o) => o ? `<li>
+          <label class="e-permits-workplace__filter-option">
+            <span class="checkbox checkbox--medium"><input class="checkbox-input" type="checkbox" value="${escapeHtml(o.value)}"${ticked.has(o.value) ? " checked" : ""} data-filter-path-street data-filter-path-key="${escapeHtml(facet.key)}"><span class="checkbox-custom" aria-hidden="true"></span></span>
+            <span class="e-permits-workplace__filter-option-label">${escapeHtml(o.value)}</span>
+          </label></li>` : SEPARATOR).join("") : noMatchHtml();
+      }
       return rows.length ? rows.map((n) => `<li>
           <label class="e-permits-workplace__filter-option">
             <span class="radio radio--small"><input class="radio-input" type="radio" name="${name}" value="${escapeHtml(n.name)}"${path[level] === n.name ? " checked" : ""} data-filter-path-pick data-filter-path-key="${escapeHtml(facet.key)}" data-filter-path-level="${level}"><span class="radio-custom" aria-hidden="true"></span></span>
             <span class="e-permits-workplace__filter-option-label">${escapeHtml(n.name)}</span>${n.children?.length ? `<svg class="icon e-permits-workplace__filter-path-next" aria-hidden="true"><use href="${sprite}#icon-chevron-right"></use></svg>` : ""}
           </label></li>`).join("") : noMatchHtml();
     };
-    const pathBodyHtml = (facet, path, query, where) => {
+    const pathBodyHtml = (facet, path, query, where, ctx = {}) => {
       const { level } = pathLevel(facet, path);
       /* the ONE library breadcrumb (js/breadcrumbs.js): Toate › <chosen levels> › the level being chosen (current) */
       const key = escapeHtml(facet.key);
@@ -1100,25 +1151,28 @@
               ${searchActions()}
             </div>
           </div>
-          <ul class="e-permits-workplace__filter-list${where === "sheet" ? " e-permits-filter-sheet__list" : ""}" role="list" data-filter-path-list="${escapeHtml(facet.key)}">${pathRowsHtml(facet, path, query)}</ul>
+          <ul class="e-permits-workplace__filter-list${where === "sheet" ? " e-permits-filter-sheet__list" : ""}" role="list" data-filter-path-list="${escapeHtml(facet.key)}">${pathRowsHtml(facet, path, query, ctx)}</ul>
         </div>`;
     };
     const setSheetPath = (key, path) => {
+      /* going up to another locality clears the streets of the previous one (one locality at a time) */
       sheet.paths[key] = path;
       sheet.pathQuery[key] = "";
+      sheet.pathPinned[key] = new Set();
       if (path.length) sheet.sel[key] = [path.join(PATH_SEP)]; else delete sheet.sel[key];
       const host = sheetEl.querySelector(`[data-filter-path="${CSS.escape(key)}"]`)?.parentElement;
-      if (host) sheetMorph(sheetEl, () => { host.innerHTML = pathBodyHtml(facetByKey(key), path, "", "sheet"); });
+      if (host) sheetMorph(sheetEl, () => { host.innerHTML = pathBodyHtml(facetByKey(key), path, "", "sheet", sheetPathCtx(facetByKey(key))); });
       syncSectionSummary(key);
       syncSheetFooter();
     };
     const openPathFacet = (facet, anchor) => {
-      edit = { key: facet.key, values: new Set(), query: "", anchor, pathMode: true, path: pathOf(draftOf()[facet.key]) };
+      const st = pathState(facet, draftOf()[facet.key]);
+      edit = { key: facet.key, values: new Set(), query: "", anchor, pathMode: true, path: st.path, streets: new Set(st.streets), pinned: new Set(st.streets) };
       popover.classList.remove("e-permits-workplace__filter-pop--date");
       popover.setAttribute("role", "dialog");
       popover.setAttribute("aria-label", `Filtru: ${facet.label}`);
       const paint = () => {
-        popover.innerHTML = `${popTitle(facet)}${pathBodyHtml(facet, edit.path, edit.query, "pop")}
+        popover.innerHTML = `${popTitle(facet)}${pathBodyHtml(facet, edit.path, edit.query, "pop", { streets: [...edit.streets], pinned: edit.pinned })}
         <div class="e-permits-workplace__filter-footer">${footerButtons()}</div>`;
       };
       edit.paint = paint;
@@ -1129,8 +1183,11 @@
       place(anchorFor(facet.key));
       requestAnimationFrame(() => popover.querySelector("[data-filter-path-search]")?.focus());
     };
+    const editPathValues = () => pathValues(facetByKey(edit.key), edit.path, [...edit.streets]);
     const setPopoverPath = (path) => {
       edit.path = path;
+      edit.streets = new Set(); /* another locality / level: its streets start empty */
+      edit.pinned = new Set();
       edit.query = "";
       edit.paint();
       if (cfg.masterApply) syncDraft();
@@ -1234,7 +1291,8 @@
     const confirmFacet = () => {
       const draft = draftOf();
       if (edit.pathMode) {
-        if (edit.path.length) draft[edit.key] = [edit.path.join(PATH_SEP)]; else delete draft[edit.key];
+        const vals = editPathValues();
+        if (vals.length) draft[edit.key] = vals; else delete draft[edit.key];
         close();
         return;
       }
@@ -1275,7 +1333,8 @@
         invalidDates.delete(key);
         if (res.token) draft[key] = [res.token]; else delete draft[key];
       } else if (edit.pathMode) {
-        if (edit.path.length) draft[key] = [edit.path.join(PATH_SEP)]; else delete draft[key];
+        const vals = editPathValues();
+        if (vals.length) draft[key] = vals; else delete draft[key];
       } else if (edit.values.size) draft[key] = [...edit.values]; else delete draft[key];
       pruneCascade(draft);
       render();
@@ -1295,6 +1354,12 @@
       popover.addEventListener("change", (event) => {
         const pathPick = event.target.closest("[data-filter-path-pick]");
         if (pathPick && edit?.pathMode) { setPopoverPath([...edit.path.slice(0, Number(pathPick.dataset.filterPathLevel)), pathPick.value]); return; }
+        const pathStreet = event.target.closest("[data-filter-path-street]");
+        if (pathStreet && edit?.pathMode) {
+          if (pathStreet.checked) edit.streets.add(pathStreet.value); else edit.streets.delete(pathStreet.value);
+          if (cfg.masterApply) syncDraft();
+          return;
+        }
         if (edit?.date) {
           const preset = event.target.closest("[data-filter-date-preset]");
           const dayInput = event.target.closest("[data-filter-date-input]");
@@ -1321,7 +1386,7 @@
       popover.addEventListener("input", (event) => {
         if (event.target.closest("[data-filter-path-search]") && edit?.pathMode) {
           edit.query = event.target.value;
-          popover.querySelector("[data-filter-path-list]").innerHTML = pathRowsHtml(facetByKey(edit.key), edit.path, edit.query);
+          popover.querySelector("[data-filter-path-list]").innerHTML = pathRowsHtml(facetByKey(edit.key), edit.path, edit.query, { streets: [...edit.streets], pinned: edit.pinned });
           return;
         }
         if (!event.target.closest("[data-filter-search]") || !edit) return;

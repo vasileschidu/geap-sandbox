@@ -3441,6 +3441,20 @@
             /* h05: the date field formats while typing — „0411” → „04/11/” (the „/” comes by itself; 04112031 → 04/11/2031) */
             /* filters applied, nothing pending: „Resetează” = a grey filter chip with × (user 2026-11-05) */
             "rap-h06": rap(async (h) => { await open(h); await pick("autoritate", ["Agenția Națională pentru Sănătate Publică"])(h); await h.wait(200); await h.click("[data-filter-commit]"); await h.wait(300); }),
+            /* h07: Adresă at the street level, 2 streets ticked (several streets of one locality — multiLeaf) · h08: applied → „Bălți · 2 străzi” */
+            ...(() => {
+              const streets = async (h) => {
+                await open(h); await ffFacet(h, "adresa");
+                await h.click('[data-filter-path-pick][value="mun. Bălți"]'); await h.wait(150);
+                await h.click('[data-filter-path-pick][value="Bălți"]'); await h.wait(150);
+                const boxes = [...document.querySelectorAll("[data-filter-path-street]")].filter((b) => b.offsetParent);
+                for (const box of boxes.slice(0, 2)) { await h.click(`[data-filter-path-street][value="${box.value}"]`); await h.wait(100); }
+              };
+              return {
+                "rap-h07": rap(async (h) => { await streets(h); await h.wait(200); }),
+                "rap-h08": rap(async (h) => { await streets(h); await done(h); await commit(h); })
+              };
+            })(),
             "rap-h05": rap(async (h) => { await open(h); await ffFacet(h, "expirare"); await h.fill('[data-filter-date-input="expirare"][data-filter-date-part="from"]', "0411", { leave: false }); await h.wait(250); }),
             ...(() => {
               const calendar = (drill) => rap(async (h) => {

@@ -1023,9 +1023,14 @@ html.is-filter-sheet-open .e-permits-fo-testcfg {
 }
 
 @media (max-width: 760px) {
-  .e-permits-workplace__filter-group-close.btn {
+  /* phones (user 2026-11-05 „the × on mobile is wrong — same spacing and padding”): the same group as desktop — a round ×
+     right after the chip, 4 between them and 4 to the group's right edge — at the phone control size 40 / icon 20.
+     (0,4,0): the library `.btn.btn-sm.btn-icon-only` (0,3,0) would keep it a 32 flex-basis */
+  .e-permits-workplace__filter-group > .e-permits-workplace__filter-group-close.btn.btn-icon-only {
+    flex: 0 0 var(--spacing-40, 40px);
     height: var(--spacing-40, 40px);
     min-height: var(--spacing-40, 40px);
+    padding: 0;
     width: var(--spacing-40, 40px);
   }
 
@@ -1036,7 +1041,7 @@ html.is-filter-sheet-open .e-permits-fo-testcfg {
   }
 
   .e-permits-workplace__filters.is-sheets > .e-permits-workplace__filter-chips > .e-permits-workplace__filter-group > .chip {
-    max-width: calc(100% - var(--spacing-40, 40px) - var(--spacing-6, 6px));
+    max-width: calc(100% - var(--spacing-40, 40px) - 2 * var(--spacing-4, 4px));
   }
 }
 

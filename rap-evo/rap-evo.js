@@ -61,7 +61,7 @@
     { key: "expirare", label: "Data expirării", chip: "Expiră", type: "date", presets: [], get: (record) => record.dates.expires },
     { key: "denumire", label: "Denumire act", search: true, inMore: true, get: (record) => record.permit.name, unavailable: () => (API_ERRORS.has("eroare-tipuri") ? LIST_UNAVAILABLE : null) },
     { key: "serviciu", label: "Serviciu", search: true, inMore: true, get: (record) => record.service },
-    { key: "adresa", label: "Adresă", type: "path", inMore: true, levels: ["Raion / municipiu", "Localitate", "Stradă"], tree: addressTree,
+    { key: "adresa", label: "Adresă", type: "path", multiLeaf: true, leafPlural: "străzi", inMore: true, levels: ["Raion / municipiu", "Localitate", "Stradă"], tree: addressTree,
       chipText: (path) => (path.length > 1 ? path.slice(1).join(", ") : path[0]), get: (record) => (record.addressPath || []).join(PATH_SEP) },
     { key: "beneficiar", label: "Tip beneficiar", inMore: true, get: beneficiaryType }
   ];
@@ -643,7 +643,7 @@
     if (key === except || !values?.length) return true;
     const facet = facetOf(key);
     if (facet?.type === "date") return window.GEAPFacetFilter.dateMatch(values[0], facet.get(record));
-    if (facet?.type === "path") { const own = `${facet.get(record)}${PATH_SEP}`; return own.startsWith(`${values[0]}${PATH_SEP}`); }
+    if (facet?.type === "path") { const own = `${facet.get(record)}${PATH_SEP}`; return values.some((value) => own.startsWith(`${value}${PATH_SEP}`)); }
     return !facet || facetValues(facet, record).some((value) => values.includes(value));
   });
 
