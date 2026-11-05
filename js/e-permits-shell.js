@@ -1159,6 +1159,138 @@ document.addEventListener("DOMContentLoaded", () => {
   const getRoleAssignments = () =>
     (rolesDb?.groups || []).flatMap((group) => group.assignments || []);
 
+  /* ---- Context de lucru (role-context-v1, 2026-11-04): US-81 landing · US-82 „Schimbă rolul” -------------------
+     js/bo-context.js owns the signed-in user's (rol, autoritate, subdiviziune) cards and the session; here they
+     become role assignments (menu + header line), the „Schimbă rolul” dialog and the landing page. The context only
+     filters what is shown: the rights stay the sum of every combination (US-81 AC-30/31, US-82 AC-07). */
+  const boContext = !product ? window.GEAPBoContext || null : null;
+  const CONTEXT_DENIED = "Nu aveți permisiunea de a accesa această pagină.";
+  const contextSwitchOpen = document.querySelector("[data-ctx-switch-open]");
+  const contextModal = document.getElementById("ctx-switch-modal");
+  let contextModel = null;
+
+  const mergeContextAssignments = async () => {
+    try { await boContext.load(); } catch (error) { console.warn(error); return; }
+    const user = boContext.currentUser();
+    const signedIn = Boolean(boContext.session()?.user);
+    contextModel = boContext.model(user);
+    const known = new Map(getRoleAssignments().map((assignment) => [assignment.id, assignment]));
+    const extra = [];
+    contextModel.cards.forEach((card) => {
+      const base = known.get(card.id);
+      if (base) {
+        if (card.headerMeta) base.headerMeta = card.headerMeta;
+        return;
+      }
+      extra.push({
+        id: card.id, roleId: card.roleId, roleLabel: card.roleLabel, menuProfile: card.menuProfile,
+        instanceLabel: boContext.metaOf(card) || card.authorityShort, headerMeta: boContext.headerMetaOf(card),
+        icon: card.icon || undefined, iconAsset: card.iconAsset || undefined,
+        ...(card.authorityShort ? { authority: card.authorityShort.toLowerCase() } : {})
+      });
+    });
+    if (extra.length) rolesDb.groups.push({ id: "context-session", label: "", assignments: extra });
+    if (signedIn && contextModel.cards.length && !contextModel.cards.some((card) => card.id === rolesDb.defaultAssignmentId)) {
+      rolesDb.defaultAssignmentId = contextModel.cards[0].id;
+    }
+    /* the signed-in person in the header + account menu */
+    if (signedIn && user) {
+      document.querySelectorAll(".e-permits-shell__user-name, .e-permits-shell__profile-name").forEach((el) => { el.textContent = user.name; });
+      document.querySelectorAll(".e-permits-shell__user-avatar, .e-permits-shell__profile-avatar").forEach((el) => { el.dataset.initials = user.initials; });
+      document.querySelectorAll(".e-permits-shell__profile-email").forEach((el) => { el.textContent = user.email; });
+    }
+    /* US-82 AC-02: one combination → no switch */
+    if (contextSwitchOpen) contextSwitchOpen.hidden = contextModel.cards.length < 2;
+  };
+
+  const showContextDenied = () => {
+    document.querySelectorAll("[data-nav-item].is-active").forEach((link) => { link.classList.remove("is-active"); link.removeAttribute("aria-current"); });
+    const body = renderEmptyState({ title: "Acces interzis", text: CONTEXT_DENIED, icon: "lock" });
+    if (window.GEAPRegistre?.showPage) window.GEAPRegistre.showPage("Pagina de start", body);
+    else showRolePlaceholder("Pagina de start");
+  };
+
+  /* US-81 AC-24…27 (also after a switch, US-82 AC-06): Back Office → the role's dashboard (none in the prototype)
+     or its first workplace folder, else the role's start page; AdminPortal → „Configurări servicii”, else the first
+     granted Administrare menu, else „Nu aveți permisiunea…” */
+  const landContext = () => {
+    const links = [...(shellNav?.querySelectorAll("[data-nav-item]") || [])];
+    if (!links.length) return;
+    const groupOf = (link) => link.closest(".e-permits-shell__nav-group")?.querySelector(".e-permits-shell__group-label")?.textContent.trim() || "";
+    const portal = boContext.session()?.portal || (new URLSearchParams(window.location.search).get("portal") === "admin" ? "admin" : "bo");
+    const target = portal === "admin"
+      ? links.find((link) => link.dataset.navId === "service-config") || links.find((link) => groupOf(link) === "Administrare")
+      : links.find((link) => link.dataset.navId === "dashboard") || links.find((link) => groupOf(link) === "Locul de muncă");
+    if (target) target.click();
+    else if (portal === "admin") showContextDenied();
+  };
+
+  /* US-82 AC-03: unsaved edits on the open page (header „● N modificări nesalvate”, the Setări save bar) */
+  const pageHasUnsaved = () => [...document.querySelectorAll("[data-profile-changes], [data-cfg2-bar]:not([hidden])")]
+    .some((el) => el.getClientRects().length > 0);
+
+  const renderContextSwitch = (notice = "") => {
+    const body = contextModal?.querySelector("[data-ctx-switch-body]");
+    if (!body || !contextModel) return;
+    /* choice-cards-v1: the FO identity-choice cards; the current context = a Small „Rol curent” tag next to the role */
+    body.innerHTML = `${notice}${boContext.listHtml(contextModel, { activeId: activeAssignmentId, heading: "h3", idPrefix: "ctx-switch", tagHtml: renderTag("Rol curent", "info") })}`;
+  };
+  const openContextSwitch = () => {
+    if (!boContext || !contextModal || !contextModel) return;
+    const open = () => {
+      renderContextSwitch();
+      window.__modal?.open?.("#ctx-switch-modal");
+      /* focus lands on the current context (marked), not on × */
+      window.requestAnimationFrame(() => contextModal.querySelector("[data-ctx-card]:not([aria-current='true'])")?.focus());
+    };
+    if (pageHasUnsaved()) {
+      askConfirm({
+        title: "Aveți modificări nesalvate",
+        text: "Aveți modificări nesalvate. Dacă continuați, acestea vor fi pierdute. Continuați?",
+        confirmLabel: "Continuare",
+        cancelLabel: "Anulare",
+        destructive: true
+      }, open);
+      return;
+    }
+    open();
+  };
+  const chooseContext = (cardId) => {
+    const user = boContext.currentUser();
+    /* the active card: nothing changes, nothing is logged (US-82 AC-10) */
+    if (cardId === activeAssignmentId) {
+      window.__modal?.close?.("#ctx-switch-modal");
+      return;
+    }
+    /* US-82 AC-08: the server checks the card is still one of the user's combinations */
+    const current = boContext.model(user, { revoked: boContext.revokedId() });
+    const next = current.cards.find((card) => card.id === cardId);
+    if (!next) {
+      contextModel = current;
+      renderContextSwitch(renderNotice("error", "<strong>Acces interzis.</strong> Combinația aleasă nu vă mai este atribuită. Lista a fost actualizată.", { role: "alert" }));
+      if (contextSwitchOpen) contextSwitchOpen.hidden = current.cards.length < 2;
+      contextModal?.querySelector("[data-ctx-card]:not([aria-current='true'])")?.focus();
+      return;
+    }
+    const previous = contextModel.cards.find((card) => card.id === activeAssignmentId);
+    window.__modal?.close?.("#ctx-switch-modal");
+    boContext.setContext(next.id);
+    /* US-82 AC-09: MLog + the user's own journal: who, previous context, new context, when */
+    boContext.audit(user, "Context schimbat", `${previous ? `Din ${boContext.labelOf(previous)} în` : "Context nou:"} ${boContext.labelOf(next)}.`);
+    applyRoleAssignment(next.id, { closeMenu: false });
+    landContext();
+    restorePageHash();
+    userTrigger?.focus();
+  };
+  contextSwitchOpen?.addEventListener("click", (event) => {
+    event.preventDefault();
+    openContextSwitch();
+  });
+  contextModal?.addEventListener("click", (event) => {
+    const card = event.target.closest("[data-ctx-card]:not([aria-current='true'])");
+    if (card) chooseContext(card.dataset.ctxCard);
+  });
+
   const renderConfiguredIcon = (item, className = "icon") => {
     if (item.iconAsset) {
       return `<img class="${className}" src="${escapeHtml(item.iconAsset)}" alt="">`;
@@ -1223,6 +1355,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const renderRoleGroups = () => {
     if (!rolesDb || !roleGroupsPanel) {
+      return;
+    }
+
+    /* role-context-v1 (US-82): the back office switches the context in the „Schimbă rolul” dialog
+       (#ctx-switch-modal, same cards as the login screen) — the menu keeps only its entry. Products (eKYC) keep
+       the inline groups. */
+    if (boContext) {
+      roleGroupsPanel.hidden = true;
+      roleGroupsPanel.innerHTML = "";
       return;
     }
 
@@ -1336,6 +1477,23 @@ document.addEventListener("DOMContentLoaded", () => {
     if (userMeta) {
       userMeta.textContent = assignment.headerMeta || `${assignment.roleLabel} • ${assignment.instanceLabel}`;
     }
+    /* „Schimbă rolul” in the account menu names the active role (user 2026-11-04: „not clear what role is active”) */
+    const currentCard = contextModel?.cards.find((card) => card.id === assignment.id);
+    document.querySelectorAll("[data-ctx-current]").forEach((el) => {
+      el.textContent = `Rol curent: ${currentCard ? boContext.labelOf(currentCard) : [assignment.roleLabel, assignment.instanceLabel].filter(Boolean).join(" · ")}`;
+    });
+
+    /* US-81 AC-25: a role with neither dashboard nor workplace folder (no menu) → „Nu aveți permisiunea…” */
+    if (boContext && !rolesDb?.menus?.[assignment.menuProfile]) {
+      if (shellNav) shellNav.innerHTML = "";
+      renderRoleGroups();
+      showContextDenied();
+      if (closeMenu) {
+        closeUserMenu();
+        userTrigger?.focus();
+      }
+      return;
+    }
 
     const defaultItem = renderShellNav(assignment.menuProfile);
     renderRoleGroups();
@@ -1375,6 +1533,7 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       rolesDb = await response.json();
+      if (boContext) await mergeContextAssignments();
       const storedAssignment = window.sessionStorage.getItem("e-permits-back-office-assignment");
       const assignmentExists = getRoleAssignments().some((item) => item.id === storedAssignment);
       const initialAssignment = assignmentExists ? storedAssignment : rolesDb.defaultAssignmentId;
@@ -8989,6 +9148,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const userEvents = (user) => [
     /* absences-dist-v1: the absence / distribution-settings changes of this person (js/absences.js), newest first */
     ...(window.GEAPShellUserEvents?.(user) || []),
+    /* role-context-v1: sign-ins with the chosen context + context switches (US-81 AC-33, US-82 AC-09) */
+    ...(window.GEAPBoContext?.userEvents?.(user) || []),
     /* dist-actions-v1 (US-297 AC-13): the cases SIA GEAP moved when a role was revoked / the account deactivated */
     ...(user.distEvents || []),
     user.ultimaConectare && { at: user.ultimaConectare, user: user.numeComplet, type: "Autentificare prin MPass", status: "Reușit", detail: "" },
@@ -17874,6 +18035,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const logout = event.target.closest(".e-permits-shell__profile-logout");
     if (!logout) return;
     event.preventDefault();
+    window.GEAPBoContext?.endSession?.();
     window.location.assign(product?.logoutUrl || "bo-login.html?ended=logout");
   });
 
@@ -21252,6 +21414,8 @@ document.addEventListener("DOMContentLoaded", () => {
       /* the role's default page is drawn; now open the page the address names */
       routeFromHash();
     }
+    /* US-81 AC-24…27: right after the login (or the single combination applied automatically) */
+    if (boContext?.consumeFresh() && activeAssignmentId) landContext();
   })();
   syncExpandedState();
 

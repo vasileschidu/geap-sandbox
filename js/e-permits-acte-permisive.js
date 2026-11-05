@@ -732,76 +732,33 @@
           <span>${escapeFrontOfficeHtml(badgeData.label || "Împuternicire")}</span>
         </span>
       ` : "";
-      return `
-        <button class="e-permits-fo-auth__role-item${isAuthorization ? " is-authorization" : ""}${selectable ? "" : " is-disabled"}" type="button" data-fo-open-request data-fo-subject-id="${escapeFrontOfficeHtml(subject.id)}" ${selectable ? "" : "disabled aria-disabled=\"true\""}>
-          <span class="e-permits-fo-auth__role-row">
-            ${subjectAvatarHtml(subject, "e-permits-fo-auth__role-avatar", { forceInitials: true })}
-            <span class="e-permits-fo-auth__role-text">
-              ${badge ? `
-                <span class="e-permits-fo-auth__role-heading">
-                  <span class="e-permits-fo-auth__role-name">${escapeFrontOfficeHtml(subject.name)}</span>
-                  ${badge}
-                </span>
-              ` : `<span class="e-permits-fo-auth__role-name">${escapeFrontOfficeHtml(subject.name)}</span>`}
-              ${isAuthorization ? authorizationRoleMetaHtml(subject) : subjectMetaHtml(subject)}
-              ${roleBlockedNoteHtml(subject)}
-            </span>
-            <svg class="e-permits-fo-auth__role-arrow icon" width="20" height="20" aria-hidden="true">
-              <use href="assets/icons/sprite.svg#icon-chevron-right"></use>
-            </svg>
-          </span>
-        </button>
-      `;
+      /* choice-cards-v1: the shared card renderer (js/choice-cards.js) — also the BO context screen + dialog */
+      return window.GEAPChoiceCards.item({
+        name: subject.name,
+        className: `${isAuthorization ? "is-authorization" : ""}${selectable ? "" : " is-disabled"}`.trim(),
+        attrs: `data-fo-open-request data-fo-subject-id="${escapeFrontOfficeHtml(subject.id)}"`,
+        disabled: !selectable,
+        avatarHtml: subjectAvatarHtml(subject, "e-permits-fo-auth__role-avatar", { forceInitials: true }),
+        badgeHtml: badge,
+        metaHtml: isAuthorization ? authorizationRoleMetaHtml(subject) : subjectMetaHtml(subject),
+        extraHtml: roleBlockedNoteHtml(subject)
+      });
     }
 
     function renderRoleCollapsePreview(subjects) {
-      const previewSubjects = subjects.slice(0, 4);
-      return `
-        <span class="e-permits-fo-auth__role-collapse-preview" aria-hidden="true">
-          <span class="e-permits-fo-auth__role-collapse-stack">
-            ${previewSubjects.map((subject, index) => {
-              if (index === 3 && subjects.length > 4) {
-                return `<span class="avatar avatar--sm avatar--initials e-permits-fo-auth__role-collapse-avatar e-permits-fo-auth__role-collapse-avatar--counter">+${escapeFrontOfficeHtml(subjects.length - 3)}</span>`;
-              }
-              return subjectInitialsAvatarHtml(subject, "e-permits-fo-auth__role-collapse-avatar");
-            }).join("")}
-          </span>
-          <span class="e-permits-fo-auth__role-collapse-arrow">
-            <svg class="icon" width="16" height="16">
-              <use href="assets/icons/sprite.svg#icon-chevron-bottom"></use>
-            </svg>
-          </span>
-        </span>
-      `;
+      return window.GEAPChoiceCards.collapsePreview(subjects.slice(0, 4).map((subject) => subjectInitialsAvatarHtml(subject, "e-permits-fo-auth__role-collapse-avatar")), subjects.length);
     }
 
     function renderRoleGroup(title, subjects, options = {}) {
       if (!subjects.length) return "";
       const collapseAfter = Number(options.collapseAfter) || 0;
       const shouldCollapse = collapseAfter > 0 && subjects.length > collapseAfter;
-      const visibleSubjects = shouldCollapse ? [] : subjects;
-      const hiddenSubjects = shouldCollapse ? subjects : [];
-      return `
-        <section class="e-permits-fo-auth__role-group${shouldCollapse ? " is-collapsible" : ""}" aria-label="${escapeFrontOfficeHtml(title)}" ${shouldCollapse ? "data-fo-role-collapse-group" : ""}>
-          <h2 class="e-permits-fo-auth__role-group-title">${escapeFrontOfficeHtml(title)}</h2>
-          ${visibleSubjects.length ? `
-            <div class="e-permits-fo-auth__role-group-list">
-              ${visibleSubjects.map(renderRoleButton).join("")}
-            </div>
-          ` : ""}
-          ${shouldCollapse ? `
-            <button class="e-permits-fo-auth__role-collapse-toggle" type="button" aria-expanded="false" data-fo-role-collapse-toggle>
-              <span class="e-permits-fo-auth__role-collapse-label" data-fo-role-collapse-label>Arată mai multe</span>
-              ${renderRoleCollapsePreview(hiddenSubjects)}
-            </button>
-            <div class="e-permits-fo-auth__role-collapse" data-fo-role-collapse-panel>
-              <div class="e-permits-fo-auth__role-group-list">
-                ${hiddenSubjects.map(renderRoleButton).join("")}
-              </div>
-            </div>
-          ` : ""}
-        </section>
-      `;
+      return window.GEAPChoiceCards.group({
+        title,
+        itemsHtml: subjects.map(renderRoleButton),
+        collapsible: shouldCollapse,
+        previewHtml: shouldCollapse ? renderRoleCollapsePreview(subjects) : ""
+      });
     }
 
     function renderRoleCluster(subjects) {
@@ -7586,17 +7543,8 @@
     });
 
     document.addEventListener("click", async (event) => {
-      const roleCollapseToggle = event.target.closest("[data-fo-role-collapse-toggle]");
-      if (roleCollapseToggle) {
-        event.preventDefault();
-        const group = roleCollapseToggle.closest("[data-fo-role-collapse-group]");
-        const label = roleCollapseToggle.querySelector("[data-fo-role-collapse-label]");
-        const isExpanded = !group?.classList.contains("is-expanded");
-        group?.classList.toggle("is-expanded", isExpanded);
-        roleCollapseToggle.setAttribute("aria-expanded", String(isExpanded));
-        if (label) label.textContent = isExpanded ? "Arată mai puține" : "Arată mai multe";
-        return;
-      }
+      /* the collapse toggle („Cu împuternicire MPower”) is handled by js/choice-cards.js */
+      if (event.target.closest("[data-fo-role-collapse-toggle]")) return;
 
       const button = event.target.closest("[data-fo-open-request]");
       if (!button || button.disabled || button.getAttribute("aria-disabled") === "true") return;

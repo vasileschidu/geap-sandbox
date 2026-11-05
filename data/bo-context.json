@@ -1,0 +1,157 @@
+{
+  "_comment": "US-81 / US-82 (role-context-v1, 2026-11-04): the (rol, autoritate, subdiviziune) combinations of the MPass identities used by the BO login demo (bo-login.html?mpass=ok&as=<id>). Authority / subdivision names + active flags come from data/autoritati.json (AC-04: from GEAP, not MPass). A combination with id = a data/e-permits-roles.json assignment keeps that assignment's menu / header line; others take the role's menuProfile below. Delegations (US-79): only status Activă inside [from, to] are shown (AC-14).",
+  "roles": {
+    "specialist": { "label": "Specialist", "menuProfile": "specialist", "icon": "user-account" },
+    "operator-ghiseu": { "label": "Specialist ghișeu", "menuProfile": "ghiseu", "icon": "store" },
+    "supervisor": { "label": "Supervizor", "menuProfile": "supervisor", "icon": "people" },
+    "director": { "label": "Director", "menuProfile": "specialist", "icon": "stamp" },
+    "central-admin": { "label": "Administrator central", "menuProfile": "central-admin", "icon": "shield-user" },
+    "local-admin": { "label": "Administrator local", "menuProfile": "local-admin", "icon": "shield-user" },
+    "auditor": { "label": "Auditor", "menuProfile": null, "icon": "checklist" },
+    "inspector-principal": { "label": "Inspector principal pentru controlul oficial al siguranței alimentelor și al produselor de origine animală", "menuProfile": "specialist", "icon": "checklist" },
+    "operator-registru": { "label": "Operator registru", "menuProfile": "specialist", "icon": "books", "active": false }
+  },
+  "users": [
+    {
+      "id": "activ",
+      "name": "Anastasia Cojocaru",
+      "initials": "AC",
+      "idnp": "2990000000001",
+      "email": "anastasia.cojocaru@egov.md",
+      "status": "Activ",
+      "note": "many combinations across two authorities + an inactive subdivision (CSP Orhei) and an inactive role that must not show",
+      "combinations": [
+        { "id": "ansp-specialist-chisinau", "role": "specialist", "authority": "aut-ansp", "subdivision": "sub-csp-chisinau" },
+        { "id": "ansp-specialist-balti", "role": "specialist", "authority": "aut-ansp", "subdivision": "sub-csp-balti" },
+        { "id": "ansp-ghiseu-chisinau", "role": "operator-ghiseu", "authority": "aut-ansp", "subdivision": "sub-csp-chisinau" },
+        { "id": "ansp-supervisor-chisinau", "role": "supervisor", "authority": "aut-ansp", "subdivision": "sub-csp-chisinau" },
+        { "id": "ansp-director-chisinau", "role": "director", "authority": "aut-ansp", "subdivision": "sub-csp-chisinau" },
+        { "id": "ansp-central-admin", "role": "central-admin", "authority": "aut-ansp", "subdivision": "sub-ansp-central" },
+        { "id": "ansp-local-admin", "role": "local-admin", "authority": "aut-ansp" },
+        { "id": "ansp-specialist-orhei", "role": "specialist", "authority": "aut-ansp", "subdivision": "sub-csp-orhei" },
+        { "id": "ansp-registru-chisinau", "role": "operator-registru", "authority": "aut-ansp", "subdivision": "sub-csp-chisinau" },
+        { "id": "anta-specialist-chisinau", "role": "specialist", "authority": "aut-anta", "subdivision": "sub-anta-central", "headerMeta": "Specialist • ANTA" }
+      ],
+      "delegations": []
+    },
+    {
+      "id": "unic",
+      "name": "Valeriu Mănăscrută",
+      "initials": "VM",
+      "idnp": "2118421010044",
+      "email": "valeriu.manascruta@ansp.gov.md",
+      "status": "Activ",
+      "note": "one combination: straight into the BO, no selection screen, no „Schimbă rolul”",
+      "combinations": [
+        { "id": "vm-specialist-chisinau", "role": "specialist", "authority": "aut-ansp", "subdivision": "sub-csp-chisinau", "headerMeta": "Specialist • Chișinău" }
+      ],
+      "delegations": []
+    },
+    {
+      "id": "fara-autoritate",
+      "name": "Irina Rusu",
+      "initials": "IR",
+      "idnp": "2118421010046",
+      "email": "irina.rusu@ansp.gov.md",
+      "status": "Activ",
+      "note": "combinations without an authority (Administrator central, Auditor) + one in ANSP",
+      "combinations": [
+        { "id": "ir-central-admin", "role": "central-admin", "headerMeta": "Administrator central" },
+        { "id": "ir-auditor", "role": "auditor", "headerMeta": "Auditor" },
+        { "id": "ir-supervisor-balti", "role": "supervisor", "authority": "aut-ansp", "subdivision": "sub-csp-balti", "headerMeta": "Supervizor • Bălți" }
+      ],
+      "delegations": []
+    },
+    {
+      "id": "fara-subdiviziune",
+      "name": "Andrei Munteanu",
+      "initials": "AM",
+      "idnp": "2118421010045",
+      "email": "andrei.munteanu@ansp.gov.md",
+      "status": "Activ",
+      "note": "a role without a subdivision (card = role only) next to roles in subdivisions; AdminPortal without „Configurări servicii” → first granted menu",
+      "combinations": [
+        { "id": "am-local-admin", "role": "local-admin", "authority": "aut-ansp", "headerMeta": "Administrator local • ANSP" },
+        { "id": "am-supervisor-cahul", "role": "supervisor", "authority": "aut-ansp", "subdivision": "sub-csp-cahul", "headerMeta": "Supervizor • Cahul" },
+        { "id": "am-specialist-cahul", "role": "specialist", "authority": "aut-ansp", "subdivision": "sub-csp-cahul", "headerMeta": "Specialist • Cahul" }
+      ],
+      "delegations": []
+    },
+    {
+      "id": "delegat",
+      "name": "Mihai Grosu",
+      "initials": "MG",
+      "idnp": "2000002238471",
+      "email": "mihai.grosu@ansp.gov.md",
+      "status": "Activ",
+      "note": "own combinations + delegations: one active and current (shown), one planned, one expired, one revoked (not shown)",
+      "combinations": [
+        { "id": "mg-specialist-chisinau", "role": "specialist", "authority": "aut-ansp", "subdivision": "sub-csp-chisinau", "headerMeta": "Specialist • Chișinău" },
+        { "id": "mg-ghiseu-cahul", "role": "operator-ghiseu", "authority": "aut-ansp", "subdivision": "sub-csp-cahul", "headerMeta": "Specialist ghișeu • Cahul" }
+      ],
+      "delegations": [
+        { "id": "mg-del-supervisor", "role": "supervisor", "authority": "aut-ansp", "subdivision": "sub-csp-chisinau", "status": "Activă", "from": "2026-10-20", "to": "2026-12-31", "by": "Elena Caragia" },
+        { "id": "mg-del-ansa", "role": "specialist", "authority": "aut-ansa", "status": "Activă", "from": "2026-11-01", "to": "2026-11-30", "by": "Ion Rotaru" },
+        { "id": "mg-del-director", "role": "director", "authority": "aut-ansp", "subdivision": "sub-csp-chisinau", "status": "Planificată", "from": "2027-01-10", "to": "2027-01-24", "by": "Victor Ceban" },
+        { "id": "mg-del-anta", "role": "specialist", "authority": "aut-anta", "subdivision": "sub-anta-nord", "status": "Activă", "from": "2026-09-01", "to": "2026-09-30", "by": "Ion Rotaru" },
+        { "id": "mg-del-revocata", "role": "supervisor", "authority": "aut-ansp", "subdivision": "sub-csp-balti", "status": "Revocată", "from": "2026-10-01", "to": "2026-12-31", "by": "Elena Caragia" }
+      ]
+    },
+    {
+      "id": "nume-lungi",
+      "name": "Dumitru Gheorghe",
+      "initials": "DG",
+      "idnp": "2118421010049",
+      "email": "dumitru.gheorghe@ansa.gov.md",
+      "status": "Activ",
+      "note": "long role + subdivision names (the card title wraps to 2 lines, then ellipsis + tooltip)",
+      "combinations": [
+        { "id": "dg-inspector-1", "role": "inspector-principal", "authority": "aut-ansa", "subdivision": "sub-directia-pentru-siguranta-alimentelor-an", "headerMeta": "Inspector principal • ANSA" },
+        { "id": "dg-specialist-2", "role": "specialist", "authority": "aut-ansa", "subdivision": "sub-directia-pentru-siguranta-alimentelor-br", "headerMeta": "Specialist • ANSA" }
+      ],
+      "delegations": []
+    },
+    {
+      "id": "auditor",
+      "name": "Laura Mihăescu",
+      "initials": "LM",
+      "idnp": "2118421010050",
+      "email": "laura.mihaescu@ansp.gov.md",
+      "status": "Activ",
+      "note": "one combination whose role has no dashboard and no workplace folder → „Nu aveți permisiunea…”",
+      "combinations": [
+        { "id": "lm-auditor", "role": "auditor", "authority": "aut-ansp", "subdivision": "sub-ansp-central", "headerMeta": "Auditor • ANSP" }
+      ],
+      "delegations": []
+    },
+    {
+      "id": "inactiv",
+      "name": "Sergiu Bălăceanu",
+      "initials": "SB",
+      "idnp": "2118421010047",
+      "email": "sergiu.balaceanu@ansp.gov.md",
+      "status": "Inactiv",
+      "note": "status Inactiv: cannot sign in (AC-03), even with combinations",
+      "combinations": [
+        { "id": "sb-specialist-chisinau", "role": "specialist", "authority": "aut-ansp", "subdivision": "sub-csp-chisinau" },
+        { "id": "sb-supervisor-chisinau", "role": "supervisor", "authority": "aut-ansp", "subdivision": "sub-csp-chisinau" }
+      ],
+      "delegations": []
+    },
+    {
+      "id": "fara-rol",
+      "name": "Carmen Toma",
+      "initials": "CT",
+      "idnp": "2118421010048",
+      "email": "carmen.toma@ansp.gov.md",
+      "status": "Activ",
+      "note": "active account without any active combination (her only role is deactivated, her delegation expired) → AC-01",
+      "combinations": [
+        { "id": "ct-registru", "role": "operator-registru", "authority": "aut-ansp", "subdivision": "sub-csp-chisinau" }
+      ],
+      "delegations": [
+        { "id": "ct-del-old", "role": "specialist", "authority": "aut-ansp", "subdivision": "sub-csp-chisinau", "status": "Expirată", "from": "2026-06-01", "to": "2026-06-30", "by": "Elena Caragia" }
+      ]
+    }
+  ]
+}

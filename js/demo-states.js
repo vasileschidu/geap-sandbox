@@ -76,6 +76,9 @@
   const absRowMenu = (i = 0) => async (h) => { await h.nth("[data-abs-root] .e-permits-stack__item [data-stack-menu-trigger]", i); };
   const distEditOpen = async (h) => { await h.click("[data-abs-dist-edit]"); await h.find(`${absModal} #abs-norm`); };
   const teamMenu = (name) => async (h) => { const row = [...document.querySelectorAll("[data-registry-kind='echipa'] tr[data-workplace-row]")].find((r) => r.textContent.includes(name)); row?.scrollIntoView({ block: "center", inline: "end" }); await h.wait(200); row?.querySelector("[data-stack-menu-trigger]")?.click(); await h.wait(400); };
+  /* role-context-v1 (US-82): the account menu → „Schimbă rolul” (→ the dialog, or first the unsaved-edits warning) */
+  const ctxMenuItem = async (h) => { await h.click("[data-user-menu] .e-permits-shell__user-trigger"); await h.click("[data-ctx-switch-open]"); };
+  const ctxOpen = async (h) => { await ctxMenuItem(h); await h.find("#ctx-switch-modal.is-active [data-ctx-card]"); await h.wait(300); };
   /* Setări: jump to a section from the section list */
   const cfgNav = (key) => async (h) => { await h.click(`[data-cfg2-nav="${key}"]`); await h.wait(500); };
   const bio = (tab, run) => svc(tab, run, BIO);
@@ -1508,6 +1511,59 @@
     "auth-05a": { page: "bo-login.html", params: { ended: "logout" }, ready: "[data-bo-login] h1" },
     "auth-05b": { page: "bo-login.html", params: { ended: "logout", portal: "admin" }, ready: "[data-bo-login] h1" },
     "auth-06": { page: "bo-login.html", params: { ended: "expired" }, ready: "[data-bo-login] h1" },
+    /* ---- US-81 Selectarea rolului și a subdiviziunii la autentificare (role-context-v1, data/bo-context.json):
+       07 several combinations, two authorities (ANSP: 7 cards incl. a role without subdivision; ANTA) — an inactive
+       subdivision (CSP Orhei) and a deactivated role are left out · 07a the same in AdminPortal · 08 combinations
+       without authority (group „Fără autoritate” first) · 08a a role without subdivision · 09 „Delegări”: only the
+       Activă + current ones (a planned, an expired and a revoked one stay out) · 10 one combination → straight in (the
+       login redirects to the BO) · 11 no role · 12 inactive account · 13 „Ieșire” → the login page · 14 a card chosen
+       → the BO landing · 15 role without dashboard / folder → „Nu aveți permisiunea…” · 16 AdminPortal → „Configurări
+       servicii” · 16a AdminPortal without it → the first granted menu · 17 idle on the screen (?idle=4 s instead of
+       15 min) → session expired */
+    "auth-07": { page: "bo-login.html", params: { mpass: "ok", as: "activ", today: "2026-11-04" }, ready: "[data-ctx-list]" },
+    /* choice-cards-v1: the search (from 8 combinations, PO proposal) — diacritics-insensitive match / no match; a
+       collapsed group opened */
+    "auth-07b": { page: "bo-login.html", params: { mpass: "ok", as: "activ", today: "2026-11-04" }, ready: "[data-ctx-list]", run: async (h) => { await h.fill("[data-ctx-search]", "chisinau", { leave: false }); } },
+    "auth-07c": { page: "bo-login.html", params: { mpass: "ok", as: "activ", today: "2026-11-04" }, ready: "[data-ctx-list]", run: async (h) => { await h.fill("[data-ctx-search]", "vamal", { leave: false }); } },
+    "auth-07d": { page: "bo-login.html", params: { mpass: "ok", as: "nume-lungi", today: "2026-11-04" }, ready: "[data-ctx-list]" },
+    "ctx-02e": { flow: "back-office", as: "dg-specialist-2", params: { ctxUser: "nume-lungi" }, run: ctxOpen },
+    "auth-09a": { page: "bo-login.html", params: { mpass: "ok", as: "delegat", today: "2026-11-04" }, ready: "[data-ctx-list]", run: async (h) => { await h.click("[data-ctx-group='delegari'] [data-fo-role-collapse-toggle]"); } },
+    "auth-07a": { page: "bo-login.html", params: { mpass: "ok", as: "activ", portal: "admin", today: "2026-11-04" }, ready: "[data-ctx-list]" },
+    "auth-08": { page: "bo-login.html", params: { mpass: "ok", as: "fara-autoritate", today: "2026-11-04" }, ready: "[data-ctx-list]" },
+    "auth-08a": { page: "bo-login.html", params: { mpass: "ok", as: "fara-subdiviziune", today: "2026-11-04" }, ready: "[data-ctx-list]" },
+    "auth-09": { page: "bo-login.html", params: { mpass: "ok", as: "delegat", today: "2026-11-04" }, ready: "[data-ctx-list]" },
+    "auth-10": { page: "bo-login.html", params: { mpass: "ok", as: "unic", today: "2026-11-04" }, ready: "[data-bo-login] h1" },
+    "auth-11": { page: "bo-login.html", params: { mpass: "ok", as: "fara-rol", today: "2026-11-04" }, ready: "[data-bo-login] h1" },
+    "auth-12": { page: "bo-login.html", params: { mpass: "ok", as: "inactiv", today: "2026-11-04" }, ready: "[data-bo-login] h1" },
+    "auth-13": { page: "bo-login.html", params: { mpass: "ok", as: "activ", today: "2026-11-04" }, ready: "[data-ctx-list]", run: async (h) => { await h.click("[data-bo-signout]"); } },
+    "auth-14": { page: "bo-login.html", params: { mpass: "ok", as: "activ", today: "2026-11-04" }, ready: "[data-ctx-list]", run: async (h) => { await h.click("[data-ctx-card]", "Supervizor"); } },
+    "auth-15": { flow: "back-office", as: "lm-auditor", params: { ctxUser: "auditor", ctxFresh: "1" }, ready: "[data-reg-page]:not([hidden]) .e-permits-empty, [data-reg-page]:not([hidden])" },
+    "auth-16": { flow: "back-office", as: ADMIN, params: { ctxUser: "activ", ctxFresh: "1", portal: "admin" }, ready: ".e-permits-shell__user-trigger", delay: 1500 },
+    "auth-16a": { flow: "back-office", as: "am-local-admin", params: { ctxUser: "fara-subdiviziune", ctxFresh: "1", portal: "admin" }, ready: ".e-permits-shell__user-trigger", delay: 1500 },
+    "auth-17": { page: "bo-login.html", params: { mpass: "ok", as: "activ", idle: "4", today: "2026-11-04" }, ready: "[data-ctx-list]", run: async (h) => { await h.wait(5000); } },
+
+    /* ---- US-82 Comutarea rolului și subdiviziunii în sesiune (role-context-v1): 01 the account menu with „Schimbă
+       rolul” · 01a one combination → no entry (AC-02) · 02 the dialog, current context marked (AC-04) · 02a with
+       „Delegări” · 02b combinations without authority · 03 a card chosen → switched, landing reloaded (AC-05/06) · 04
+       unsaved edits → the warning first (AC-03) · 04a „Anulare” → no dialog, edits kept · 05 a combination withdrawn
+       meanwhile → „Acces interzis” (AC-08) · 06 the switch in the user's journal (AC-09) */
+    "ctx-01": { flow: "back-office", as: SPEC, run: async (h) => { await h.click("[data-user-menu] .e-permits-shell__user-trigger"); await h.find("[data-ctx-switch-open]"); } },
+    "ctx-01a": { flow: "back-office", as: "vm-specialist-chisinau", params: { ctxUser: "unic" }, run: async (h) => { await h.click("[data-user-menu] .e-permits-shell__user-trigger"); } },
+    "ctx-02": { flow: "back-office", as: SPEC, run: ctxOpen },
+    /* the current role's group closed: „Rol curent: …” above the list + the tag on the closed header (2026-11-04) */
+    "ctx-02g": { flow: "back-office", as: SPEC, run: async (h) => { await ctxOpen(h); await h.click("#ctx-switch-modal .e-permits-fo-auth__role-group.is-expanded [data-fo-role-collapse-toggle]"); await h.wait(400); } },
+    "ctx-02a": { flow: "back-office", as: "mg-specialist-chisinau", params: { ctxUser: "delegat", today: "2026-11-04" }, run: ctxOpen },
+    "ctx-02b": { flow: "back-office", as: "ir-central-admin", params: { ctxUser: "fara-autoritate" }, run: ctxOpen },
+    "ctx-02c": { flow: "back-office", as: SPEC, run: async (h) => { await ctxOpen(h); await h.fill("#ctx-switch-modal [data-ctx-search]", "transport", { leave: false }); } },
+    "ctx-02d": { flow: "back-office", as: "mg-specialist-chisinau", params: { ctxUser: "delegat", today: "2026-11-04" }, run: async (h) => { await ctxOpen(h); await h.click("#ctx-switch-modal [data-ctx-group='delegari'] [data-fo-role-collapse-toggle]"); } },
+    "ctx-03": { flow: "back-office", as: SPEC, run: async (h) => { await ctxOpen(h); await h.click("#ctx-switch-modal [data-ctx-card]", "Supervizor"); await h.wait(600); } },
+    "ctx-04": { flow: "back-office", as: ADMIN, hash: "#utilizator/user-1/permissions", run: async (h) => { await h.nth("[data-perm-switch]", 0); await h.wait(300); await ctxMenuItem(h); await h.find("#service-confirm-modal.is-active"); } },
+    "ctx-04a": { flow: "back-office", as: ADMIN, hash: "#utilizator/user-1/permissions", run: async (h) => { await h.nth("[data-perm-switch]", 0); await h.wait(300); await ctxMenuItem(h); await h.click("#service-confirm-modal .modal--footer [data-close]"); await h.wait(300); } },
+    "ctx-05": { flow: "back-office", as: "mg-specialist-chisinau", params: { ctxUser: "delegat", ctxRevoked: "mg-del-supervisor", today: "2026-11-04" }, run: async (h) => { await ctxOpen(h); await h.click("#ctx-switch-modal [data-ctx-group='delegari'] [data-fo-role-collapse-toggle]"); await h.click("#ctx-switch-modal [data-ctx-card='mg-del-supervisor']"); await h.find("#ctx-switch-modal [role='alert']"); } },
+    "ctx-06": { flow: "back-office", as: "mg-specialist-chisinau", params: { ctxUser: "delegat", today: "2026-11-04" }, run: async (h) => {
+      await ctxOpen(h); await h.click("#ctx-switch-modal [data-ctx-group='delegari'] [data-fo-role-collapse-toggle]"); await h.click("#ctx-switch-modal [data-ctx-card='mg-del-supervisor']"); await h.wait(600);
+      await h.hash("#utilizator/user-1/events");
+    } },
 
     /* ---- Administrare › Tarife (Figma page "BO -> Tarife") ---- */
     "trf-01": trf(),
@@ -3377,6 +3433,23 @@
               window.scrollTo(0, 200); await h.wait(250); window.scrollTo(0, 420); await h.wait(250);
               window.scrollTo(0, 330); await h.wait(450);
             }),
+            /* rap-h (2026-11-05, PO + tester comments): h01 the search finds a value the service publishes in RAP („bere”) ·
+               h02 an Autoritate ticked → the „Subdiviziune” chip appears right after it (no authority: under „Mai multe”) ·
+               h03 / h04 the date picker of „Data expirării” (De la): the year grid / the month grid (title = button → drill-up) */
+            "rap-h01": rap(async (h) => { await h.fill("[data-rap-search]", "bere", { leave: false }); await h.wait(600); document.querySelector(".rap-suggest")?.setAttribute("hidden", ""); }),
+            "rap-h02": rap(async (h) => { await open(h); await pick("autoritate", ["Agenția Națională pentru Sănătate Publică"])(h); await h.wait(200); }),
+            /* h05: the date field formats while typing — „0411” → „04/11/” (the „/” comes by itself; 04112031 → 04/11/2031) */
+            /* filters applied, nothing pending: „Resetează” = a grey filter chip with × (user 2026-11-05) */
+            "rap-h06": rap(async (h) => { await open(h); await pick("autoritate", ["Agenția Națională pentru Sănătate Publică"])(h); await h.wait(200); await h.click("[data-filter-commit]"); await h.wait(300); }),
+            "rap-h05": rap(async (h) => { await open(h); await ffFacet(h, "expirare"); await h.fill('[data-filter-date-input="expirare"][data-filter-date-part="from"]', "0411", { leave: false }); await h.wait(250); }),
+            ...(() => {
+              const calendar = (drill) => rap(async (h) => {
+                await open(h); await ffFacet(h, "expirare");
+                await h.click("[data-filter-range] .js-date-picker-toggle"); await h.wait(250);
+                for (let i = 0; i < drill; i += 1) { await h.click(".date-picker-panel:not([hidden]) .js-date-picker-title"); await h.wait(200); }
+              });
+              return { "rap-h03": calendar(2), "rap-h04": calendar(1) };
+            })(),
             "rap-f18": rap(async (h) => { await open(h); await range("emitere", "2030-01-01", "")(h); await commit(h); }),
             "rap-f19": rap(async (h) => { await open(h); await pick("beneficiar", ["Persoană fizică"])(h); await commit(h); }),
             "rap-f20": RAPAPI("eroare-filtrare", async (h) => { await open(h); await pick("status", ["Valabil"])(h); await commit(h); })

@@ -55,7 +55,8 @@
    Facet types besides checklist / date: `type: "path"` (+ `levels`, `tree()` → [{ name, children }], optional
    `chipText(path)`) = a drill-down cascade (Raion → Localitate → Stradă): crumbs, the library search, radio rows; the
    value is ONE token „a › b › c” (pages match its prefix). A facet with `inMore: true` waits in „Mai multe” (unless it
-   holds a value) whatever `inlineMax` says.
+   holds a value) whatever `inlineMax` says. `promoteWhen(draft) → boolean` on a facet (RAP Subdiviziune: an Autoritate is
+   ticked) shows it as a chip, in its place of the facets order, while true and under „Mai multe” otherwise (rap-promote-v1).
    Every product: the checklist puts the values ticked when it OPENED first, the menu separator, then the rest (order
    frozen while ticking — selected-first-v1, 2026-11-04).
      inlineMax                      facets shown as chips before „Mai multe” (default 4)
@@ -374,6 +375,17 @@
       if (n) toggle.setAttribute("aria-label", triggerName(label, n)); else toggle.removeAttribute("aria-label");
     };
     const appliedEntries = () => Object.entries(cfg.state().applied).filter(([, values]) => values?.length);
+    /* the facets shown as chips: the first `inlineMax` that are not `inMore`, any facet holding a value, and a facet with
+       `promoteWhen(draft)` (RAP: Subdiviziune once an Autoritate is ticked) while that is true — otherwise it waits in
+       „Mai multe”. Promoted facets do not use up an `inlineMax` slot; with no `promoteWhen` this is the old rule. */
+    const inlineFacets = (facets, draft) => {
+      const plain = facets.filter((f) => typeof f.promoteWhen !== "function");
+      return facets.filter((f) => {
+        if (draft[f.key]?.length) return true;
+        if (typeof f.promoteWhen === "function") return !!f.promoteWhen(draft);
+        return !f.inMore && plain.indexOf(f) < inlineMax;
+      });
+    };
     const draftOf = () => { const st = cfg.state(); if (!st.draft) st.draft = JSON.parse(JSON.stringify(st.applied)); return st.draft; };
     const sameSelection = (a = {}, b = {}) => {
       const norm = (o) => JSON.stringify(Object.keys(o).filter((k) => o[k]?.length).sort().map((k) => [k, [...o[k]].sort()]));
@@ -588,7 +600,7 @@
       }
       if (!show) { bar.innerHTML = ""; return; }
       /* the first few facets are chips; the rest wait in "Mai multe" until they hold a value */
-      const inline = facets.filter((f, i) => (!f.inMore && i < inlineMax) || draft[f.key]?.length);
+      const inline = inlineFacets(facets, draft);
       const more = facets.filter((f) => !inline.includes(f));
       const chip = (facet) => {
         const open = edit?.key === facet.key;
@@ -604,7 +616,12 @@
          „Aplică filtre”; filters applied, nothing pending → neutral Medium „Resetează” (all filters); else no button */
       const master = !cfg.masterApply ? ""
         : isPending ? `<button class="btn btn-primary ${cfg.compact ? "btn-sm" : "btn-md"} e-permits-workplace__filter-apply" type="button" data-filter-slot data-filter-commit>${escapeHtml(TEXT.apply)}</button>`
-          : appliedCount ? `<button class="btn btn-neutral ${cfg.compact ? "btn-sm" : "btn-md"} e-permits-workplace__filter-apply" type="button" data-filter-slot${TEXT.clearName ? ` aria-label="${escapeHtml(TEXT.clearName)}"` : ""} data-filter-clear-all>${escapeHtml(TEXT.clear)}</button>` : "";
+          /* „Resetează” = a filter chip (grey, the chips' size) with a trailing × in the caret's place (user 2026-11-05:
+             „a different type of button, similar to chips, with an x”) */
+          : appliedCount ? `<button class="chip e-permits-workplace__filter-chip e-permits-workplace__filter-apply e-permits-workplace__filter-reset" type="button" data-filter-slot${TEXT.clearName ? ` aria-label="${escapeHtml(TEXT.clearName)}"` : ""} data-filter-clear-all>
+        <span class="chip__label">${escapeHtml(TEXT.clear)}</span>
+        <svg class="icon e-permits-workplace__filter-caret" aria-hidden="true"><use href="${sprite}#icon-cross-large"></use></svg>
+      </button>` : "";
       bar.innerHTML = `
       <div class="e-permits-workplace__filter-chips">
         ${inline.map(chip).join("")}
@@ -1201,7 +1218,7 @@
       popover.classList.remove("e-permits-workplace__filter-pop--date");
       const facets = cfg.facets();
       const draft = draftOf();
-      const inline = facets.filter((f, i) => (!f.inMore && i < inlineMax) || draft[f.key]?.length);
+      const inline = inlineFacets(facets, draft);
       popover.setAttribute("role", "menu");
       popover.setAttribute("aria-label", "Mai multe filtre");
       popover.innerHTML = `<div class="e-permits-workplace__filter-list">${facets.filter((f) => !inline.includes(f)).map((f) => `

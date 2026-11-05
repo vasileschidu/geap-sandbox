@@ -1,0 +1,113 @@
+/* The BO list search — ONE look (search-one-v1, moved here by choice-cards-v1 2026-11-04 so the BO login context
+   screen, which does not load e-permits-shell.css, draws the same field). Library `.search-input.medium.rectangular`
+   + `.e-permits-workplace__search` (+ `.e-permits-list-search--fill` to span its column). Phones: css/field-sizes.css.
+   Loaded right after e-permits-shell.css (BO page, e-permits-shell.html) and on bo-login.html. */
+
+.e-permits-workplace__search {
+  height: 36px;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-8, 8px);
+  padding: 0 var(--spacing-12, 12px);
+  border: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
+  border-radius: var(--border-radius-8, 8px);
+  background: var(--white);
+  color: var(--color-icon-base-tertiary, #757575);
+  transition: border-color 120ms ease, box-shadow 120ms ease;
+}
+
+.e-permits-workplace__search:focus-within {
+  border-color: var(--color-border-brand-default, #0058d2);
+  box-shadow: 0 0 0 4px var(--blue-sky-100, #e8f0fb);
+}
+
+.e-permits-workplace__search input {
+  width: 100%;
+  min-width: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--color-text-base-default, #121212);
+  font: inherit;
+  font-size: var(--font-size-fs-14, 14px);
+  line-height: var(--line-height-lh-20, 20px);
+}
+
+.e-permits-workplace__search {
+  width: 100%;
+  min-width: 0;
+  max-width: none;
+  height: 40px;
+  min-height: 40px;
+  padding: 0;
+  border: var(--border-width-2, 2px) solid transparent;
+  border-radius: var(--border-radius-8, 8px);
+  background: var(--color-background-base-default, #fff);
+  box-shadow: inset 0 0 0 1px var(--color-border-base-default, #d9d9d9);
+  color: var(--color-icon-base-tertiary, #757575);
+}
+
+.e-permits-workplace__search:hover:has(.input:not(:disabled):not([readonly])) {
+  border-color: var(--color-border-base-tertiary, #b2b2b2);
+  box-shadow: none;
+}
+
+.e-permits-workplace__search:focus-within:has(.input:not(:disabled):not([readonly])) {
+  border-color: var(--color-border-brand-default, #0058d2);
+  box-shadow: 0 0 0 4px var(--blue-sky-200, #ccdef6);
+}
+
+.e-permits-workplace__search .icon-search {
+  left: 12px;
+  width: 20px;
+  height: 20px;
+  color: var(--color-icon-base-tertiary, #757575);
+}
+
+.e-permits-workplace__search.search-input:has(.icon-search) .input {
+  padding-left: var(--spacing-40, 40px);
+  padding-right: var(--spacing-12, 12px);
+}
+
+/* with a value the library clear (x) shows at the right: keep the text clear of it */
+.e-permits-workplace__search.search-input.has-value .input {
+  padding-right: var(--spacing-40, 40px);
+}
+
+/* ONE search look (search-one-v1): the clear × sits 12 from the field's outer edge, as in the RAP search — the library
+   draws it 4 inside a 2px border (~6 from the edge). Searches with a submit (.btn-search) keep the library inset. */
+.e-permits-workplace__search.search-input:not(:has(.btn-search)) .btn-group {
+  right: calc(var(--spacing-12, 12px) - var(--border-width-2, 2px));
+}
+
+.e-permits-fo-field .e-permits-workplace__search.search-input:not(:has(.btn-search)) .btn-group {
+  right: calc(var(--spacing-12, 12px) - var(--border-width-1, 1px));
+}
+
+/* typing spinner and clear (x) share one 20px slot: the spinner is 16 + 2 inset, so it
+   sits centred where the x appears, not 4px further right */
+.search-input .btn-group .spinner {
+  box-sizing: border-box;
+  height: var(--spacing-16, 16px);
+  margin: var(--spacing-2, 2px);
+  width: var(--spacing-16, 16px);
+}
+
+/* one clear button only — the library x, never the browser's own */
+.search-input .input::-webkit-search-cancel-button,
+.search-input .input::-webkit-search-decoration {
+  appearance: none;
+  display: none;
+}
+
+.e-permits-workplace__search .input {
+  font-size: var(--font-size-fs-14, 14px);
+  line-height: var(--line-height-lh-20, 20px);
+  color: var(--color-text-base-default, #121212);
+}
+
+.e-permits-workplace__search .input::placeholder {
+  color: var(--color-text-base-tertiary, #757575);
+  font-size: var(--font-size-fs-14, 14px);
+  line-height: var(--line-height-lh-20, 20px);
+}

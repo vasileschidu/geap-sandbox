@@ -4138,3 +4138,21 @@ For any „research how other products do it” step, search Mobbin (mcp__mobbin
   under the page's max scroll (a 16-row phone list is only ~500 px of scroll) or the „scroll up” never happens.
 - 2026-11-04 · component-audit rejects a 28 px icon-only button (library 32 / 40 / 48) and a 20 icon in a 32 button
   (16): size custom buttons only by the library classes; a deviation from Figma goes to the report, not the CSS.
+- 2026-11-04 · role-context-v1 (US-81/82): a component needed on bo-login (no e-permits-shell.css: it has html/body rules)
+  → move its rules into a small shared file (css/role-card.css) loaded by every page that renders it, never load shell CSS
+  on the login. One renderer (`GEAPBoContext.listHtml`) feeds both the login screen and the dialog = „same cards” AC by construction.
+- 2026-11-04 · Demo states that end on ANOTHER page (login → shell redirect, „Ieșire”, idle expiry) report NOT READY in
+  capture.mjs (demoState never set) — expected; check the json `url`. For the landing itself add a shell-side state with
+  `?ctxUser=&ctxFresh=1` (session without login). Phone-hidden `ready` selectors (sidebar `.is-active`) → DEMO-ERROR on 375.
+- 2026-11-04 · choice-cards-v1 (user: „EXACT copy of the FO identity choice screen”). When the brief says „reuse the role
+  card”, ASK which screen is the model before building — I picked the BO menu card, the user wanted the FO choice cards.
+  Shared-renderer move: the FO toggle handler had to MOVE into js/choice-cards.js (two document handlers = double toggle =
+  no-op). `display:flex` items need explicit `[hidden]{display:none}` before a search can hide them. Fold-search traps:
+  „anta” matches „Sănătate” — pick demo queries that match one group only.
+- 2026-11-04 · choice-cards-v2 (user: compact cards, no cropped titles, no intro text, smaller title, „the real search”).
+  A product look that a second page needs (BO list search on bo-login) = MOVE its rules to a small shared file loaded
+  where the original sat (right after e-permits-shell.css) — check no later rule in the old file targets it first.
+  Variant of a shared card = an option on the renderer (`compact`) + a (0,2,0) modifier; title wrap = line-clamp 2 +
+  `data-cell-tooltip` (icon-tooltip.js detects scrollHeight clipping). Test long names with a demo user built for it.
+- 2026-11-05 · RAP search fields / Subdiviziune promote / date drill-up + typing: generated data must NOT consume the seeded `rand` (derive from k) or every demo record shifts. A shared widget (js/input-date-picker.js) is upgraded at init from the plain markup (one place, every date field) — re-query containers you inject (`let`, not `const`). New library-part classes need the components.md row with full `.class` names AND a `buttonPaint.allow` entry (component-audit).
+- 2026-11-05 · Facet option `promoteWhen(draft)` (inlineFacets in facet-filter.js): promoted facets do not use an `inlineMax` slot. capture.mjs without `--page` screenshots a stale-looking page; use code-audit `--page rap-evo/index.html` for RAP shots. Real typing check = CDP `Input.insertText` script (scratch), not synthetic events.

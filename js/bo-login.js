@@ -1,7 +1,11 @@
 /* Pagina de logare în SIA GEAP — Back Office / Admin Portal (2026-10-06)
    US-105 Autentificare prin MPass · US-110 Delogare explicită ·
    US-107 (sesiune expirată) and US-109 (MPass indisponibil) as the reasons shown here.
-   Query: ?portal=admin · ?ended=logout|expired · ?mpass=ok&as=activ|fara-cont · ?mpass=down
+   US-81 Selectarea rolului și a subdiviziunii (role-context-v1, 2026-11-04): after MPass the user's
+   (rol, autoritate, subdiviziune) combinations decide — none → refusal, inactive → refusal, one → straight in,
+   several → the context screen (js/bo-context.js renders the cards, the same as the US-82 dialog).
+   Query: ?portal=admin · ?ended=logout|expired · ?mpass=ok&as=<data/bo-context.json user id>|fara-cont · ?mpass=down
+          · ?idle=<seconds> (demo: the 15-minute idle limit of the context screen, AC-32)
           · ?view=redirecting|retrying|unavailable (a frozen state, for the Figma links) */
 (() => {
   "use strict";
@@ -15,11 +19,13 @@
   const EKYC = params.get("product") === "ekyc";
   const BRAND = EKYC ? "EVO eKYC" : "SIA GEAP";
   const PRODUCT = EKYC ? "Consolă de administrare" : { bo: "Back Office", admin: "Admin Portal" }[portal];
+  /* the shell opens the landing page of the chosen context itself (US-81 AC-24…27, js/e-permits-shell.js) */
   const HOME = EKYC
     ? "e-permits-acte-permisive.html?flow=ekyc"
     : portal === "admin"
-    ? "e-permits-acte-permisive.html?flow=back-office#users"
+    ? "e-permits-acte-permisive.html?flow=back-office&portal=admin"
     : "e-permits-acte-permisive.html?flow=back-office";
+  const CTX = window.GEAPBoContext;
   /* the parameters that keep the product / portal across MPass and logout */
   const keep = (url) => {
     if (portal === "admin") url.searchParams.set("portal", "admin");
@@ -38,6 +44,12 @@
   document.title = `Autentificare · ${BRAND} ${PRODUCT}`;
   /* the shared inline-note geometry is scoped to the back office */
   card.dataset.demoFlow = "back-office";
+  /* the page scrolls like the FO full flow (user 2026-11-04 „scrolling behaviour is different”): the document
+     scrolls under the sticky header (body data-demo-flow="full"), the main band = viewport − header */
+  const header = document.querySelector(".e-permits-fo-auth__header");
+  const syncHeader = () => document.documentElement.style.setProperty("--fo-header-height", `${header?.offsetHeight || 0}px`);
+  syncHeader();
+  if (header) new ResizeObserver(syncHeader).observe(header);
 
   const icon = (name, size = 20) => `<svg class="icon" width="${size}" height="${size}" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-${name}"></use></svg>`;
   const notice = (tone, iconName, html) => `
@@ -136,7 +148,46 @@
     }
   };
 
+  /* who MPass confirmed + „Ieșire” — the end of every refusal card */
+  const identityHtml = (who) => `
+        <div class="bo-login__identity">
+          <span class="bo-login__identity-label">Autentificat în MPass ca</span>
+          <span class="bo-login__identity-value">${who.name} · IDNP ${masked(who.idnp)}</span>
+        </div>`;
+  const signoutHtml = `
+        <button class="btn btn-neutral btn-rounded" type="button" data-bo-signout>
+          <span>Ieșire</span>
+          ${icon("logout")}
+        </button>`;
+  const refusal = (title, text, who) => `
+      <div class="e-permits-fo-auth__content">
+        <div class="e-permits-fo-auth__title-group">
+          <span class="bo-login__state-icon bo-login__state-icon--danger">${icon("lock", 36)}</span>
+          <h1 id="bo-login-title">${title}</h1>
+        </div>
+        <p class="e-permits-fo-auth__description">${text}</p>
+        ${identityHtml(who)}
+        <div class="e-permits-fo-auth__separator" aria-hidden="true"></div>
+        ${signoutHtml}
+      </div>`;
+  /* US-81 AC-01: an active account without any active combination */
+  VIEWS.noRole = (who) => refusal(`Nu puteți intra în ${PRODUCT}`, "Nu aveți niciun rol atribuit. Contactați administratorul.", who);
+  /* US-81 AC-03: an inactive account never reaches the context screen */
+  VIEWS.inactive = (who) => refusal("Contul este inactiv", "Contul dumneavoastră în SIA GEAP este inactiv și nu permite autentificarea. Pentru reactivare, contactați administratorul.", who);
+  /* US-81 AC-08…19: every card at once, grouped by authority, delegations apart; „Ieșire” ends the session (AC-20) */
+  /* choice-cards-v1: the FO identity choice screen („Cum vrei să depui cererea?”) — same card, copy block, groups */
+  VIEWS.context = ({ model }) => `
+      <div class="e-permits-fo-auth__content e-permits-fo-auth__content--choice">
+        <div class="e-permits-fo-auth__choice-copy">
+          <h1 id="bo-login-title">Cu ce rol lucrați?</h1>
+        </div>
+        ${CTX.listHtml(model, { heading: "h2", idPrefix: "bo-ctx" })}
+        <div class="e-permits-fo-auth__separator" aria-hidden="true"></div>
+        ${signoutHtml}
+      </div>`;
+
   const show = (view, arg) => {
+    card.classList.toggle("e-permits-fo-auth__card--choice", view === "context");
     card.innerHTML = VIEWS[view](arg);
     card.dataset.boView = view;
   };
@@ -163,9 +214,13 @@
 
   card.addEventListener("click", (event) => {
     if (event.target.closest("[data-bo-mpass]")) { goToMpass(); return; }
+    /* AC-22 / AC-23: a card applies the context at once — no confirmation — and opens the main interface */
+    const ctxCard = event.target.closest("[data-ctx-card]:not([aria-current='true'])");
+    if (ctxCard && pendingUser) { enter(pendingUser, ctxCard.dataset.ctxCard); return; }
     if (event.target.closest("[data-bo-retry]")) { window.clearTimeout(retryTimer); runRetries(1); return; }
     /* „Ieșire” from the refusal ends the MPass session too (SLO) and returns to the login page */
     if (event.target.closest("[data-bo-signout]")) {
+      CTX?.endSession();
       const next = new URL(window.location.href);
       next.search = "";
       next.searchParams.set("ended", "logout");
@@ -173,6 +228,43 @@
       window.location.assign(next.href);
     }
   });
+
+  /* ---- US-81: the GEAP account behind the MPass identity decides what comes next ---- */
+  let pendingUser = null;
+  const enter = (user, cardId) => {
+    const card = CTX.model(user).cards.find((item) => item.id === cardId);
+    if (!card) return;
+    CTX.setContext(card.id, { fresh: true });
+    /* AC-33: the sign-in is logged with the chosen role, authority and subdivision */
+    CTX.audit(user, "Autentificare prin MPass", `${PRODUCT} · context ales: ${CTX.labelOf(card)}.`);
+    stopIdle?.();
+    show("processing");
+    window.location.replace(HOME);
+  };
+  let stopIdle = null;
+  const routeIdentity = (id) => {
+    const user = CTX.userById(id);
+    if (!user) { show("denied"); return; }
+    const who = { name: user.name, idnp: user.idnp };
+    if (user.status !== "Activ") { show("inactive", who); return; }
+    const model = CTX.model(user);
+    if (!model.cards.length) { show("noRole", who); return; }
+    CTX.startSession(user.id, portal);
+    /* AC-06 / AC-07: one combination → applied automatically, no screen */
+    if (model.cards.length === 1) { enter(user, model.cards[0].id); return; }
+    /* AC-08: several → the context screen, nothing pre-selected (AC-29) */
+    pendingUser = user;
+    show("context", { who, model });
+    const idle = Number(params.get("idle"));
+    stopIdle = CTX.watchIdle(() => {
+      CTX.endSession();
+      const next = new URL(window.location.href);
+      next.search = "";
+      next.searchParams.set("ended", "expired");
+      keep(next);
+      window.location.replace(next.href);
+    }, idle > 0 ? idle * 1000 : undefined);
+  };
 
   /* entry */
   const view = params.get("view");
@@ -184,14 +276,13 @@
   else if (mpass === "down") runRetries(1);
   else if (mpass === "ok" && params.get("as") === "fara-cont") show("denied");
   else if (mpass === "ok") {
-    /* US-105 AC-09: an active account lands in the workplace of its first role
-       (eKYC: the processing screen first, then the Dashboard — US-UI-02) */
-    if (EKYC) {
+    /* US-105 AC-09 (eKYC: the processing screen first, then the Dashboard — US-UI-02) */
+    if (EKYC || !CTX) {
       show("processing");
       window.setTimeout(() => window.location.replace(HOME), 900);
     } else {
-      show("login", { busy: true });
-      window.location.replace(HOME);
+      show("processing");
+      CTX.load().then(() => routeIdentity(params.get("as") || CTX.DEFAULT_USER)).catch((error) => { console.warn(error); show("denied"); });
     }
   } else show("login");
 

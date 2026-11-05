@@ -1,0 +1,82 @@
+/* ==========================================================================
+   Date picker — month / year grids (drill-up, 2026-11-05; tester comment: „picking 2031 means clicking month by month”)
+   js/input-date-picker.js turns the title of a plain picker into a button: day grid → month grid (year ‹ ›) → year
+   grid (12 per page ‹ ›). Grid + option base styles are the library's (main.css); this file adds the title button and
+   the states the library lacks (hover, today, disabled, focus). Hover on white = tertiary, on brand = brand hover.
+   ========================================================================== */
+.date-picker__title {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  border-radius: var(--border-radius-6);
+  color: var(--color-text-base-default);
+  cursor: pointer;
+  display: inline-flex;
+  flex: 1 1 0;
+  font-family: inherit;
+  gap: var(--spacing-4);
+  height: 40px;
+  justify-content: center;
+  min-width: 0;
+  padding: 0 var(--spacing-8);
+}
+
+.date-picker__title:hover:not(:disabled) {
+  background: var(--color-background-base-tertiary);
+}
+
+.date-picker__title:focus-visible {
+  outline: 2px solid var(--color-border-brand-default);
+  outline-offset: 2px;
+}
+
+/* the year grid is the top of the drill-up: nothing to open from its title */
+.date-picker__title:disabled {
+  cursor: default;
+}
+
+.date-picker__title:disabled .icon {
+  display: none;
+}
+
+.date-picker__option {
+  border-width: 1.5px; /* = the day cell's ring */
+  box-sizing: border-box;
+  font-family: inherit;
+}
+
+.date-picker__option:hover:not(:disabled):not(.is-selected) {
+  background: var(--color-background-base-tertiary);
+}
+
+.date-picker__option.is-selected:hover:not(:disabled) {
+  background: var(--color-background-brand-default-hover);
+}
+
+.date-picker__option:focus-visible {
+  outline: 2px solid var(--color-border-brand-default);
+  outline-offset: 2px;
+}
+
+.date-picker__option.is-today:not(.is-selected) {
+  border-color: var(--color-border-brand-default);
+  color: var(--color-text-brand-default);
+}
+
+.date-picker__option:disabled {
+  color: var(--color-text-disabled-default);
+  cursor: not-allowed;
+}
+
+/* same hover for the nav arrows and the days where the page does not load the app stylesheet (RAP, Cabinet) */
+.date-picker__nav:hover:not(:disabled) {
+  background: var(--color-background-base-tertiary-hover);
+}
+
+.date-picker__day:hover:not(:disabled):not(.is-outside):not(.is-selected):not(.is-range-start):not(.is-range-end) {
+  background: var(--color-background-base-tertiary);
+}
+
+.date-picker__day:is(.is-selected, .is-range-start, .is-range-end):hover:not(:disabled) {
+  background: var(--color-background-brand-default-hover);
+}

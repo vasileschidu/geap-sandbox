@@ -48,17 +48,18 @@
     children: r.localities.map((l) => ({ name: l.name, children: l.streets.map((street) => ({ name: street })) }))
   }));
   /* order (user 2026-11-04, the smart search already finds act numbers, companies / IDNO, addresses, authorities and act
-     names): inline Statut · Autoritate emitentă · Data emiterii · Data expirării; „Mai multe” = Denumire act ·
+     names): inline Statut · Autoritate emitentă (+ Subdiviziune as soon as an authority is ticked, rap-promote-v1) · Data eliberării · Data expirării; „Mai multe” = Denumire act ·
      Subdiviziune · Serviciu (the cascade: their options follow the ticked authorities / subdivisions) · Adresă (Raion →
      Localitate → Stradă) · Tip beneficiar — a facet with a value shows as its own chip group. Dates = plain De la / Până
      la ranges (US-141 AC-07/08) */
   const FACETS = [
     { key: "status", label: "Statut", get: (record) => [record.status, ...(isTacit(record) ? [TACIT_MARK] : [])] },
     { key: "autoritate", label: "Autoritate emitentă", search: true, get: (record) => record.authority.name, unavailable: () => (API_ERRORS.has("eroare-autoritati") ? LIST_UNAVAILABLE : null) },
-    { key: "emitere", label: "Data emiterii", chip: "Emis", type: "date", presets: [], get: (record) => record.dates.issued },
+    /* Subdiviziune: a chip right after Autoritate while one is ticked (promoteWhen, js/facet-filter.js), else under „Mai multe” */
+    { key: "subdiviziune", label: "Subdiviziune", search: true, inMore: true, promoteWhen: (draft) => (draft.autoritate || []).length > 0, get: (record) => record.profile?.office || "" },
+    { key: "emitere", label: "Data eliberării", chip: "Eliberat", type: "date", presets: [], get: (record) => record.dates.issued },
     { key: "expirare", label: "Data expirării", chip: "Expiră", type: "date", presets: [], get: (record) => record.dates.expires },
     { key: "denumire", label: "Denumire act", search: true, inMore: true, get: (record) => record.permit.name, unavailable: () => (API_ERRORS.has("eroare-tipuri") ? LIST_UNAVAILABLE : null) },
-    { key: "subdiviziune", label: "Subdiviziune", search: true, inMore: true, get: (record) => record.profile?.office || "" },
     { key: "serviciu", label: "Serviciu", search: true, inMore: true, get: (record) => record.service },
     { key: "adresa", label: "Adresă", type: "path", inMore: true, levels: ["Raion / municipiu", "Localitate", "Stradă"], tree: addressTree,
       chipText: (path) => (path.length > 1 ? path.slice(1).join(", ") : path[0]), get: (record) => (record.addressPath || []).join(PATH_SEP) },
@@ -229,6 +230,26 @@
     const START = Date.UTC(2019, 0, 1);
     const SPAN = (Date.UTC(2026, 10, 3) - START) / 86400000;
     const numberOf = (code, name, year) => (code === "AMDM" ? `AMDM-10-${year}-${digits(4)}` : /^licență/i.test(name) ? `LIC-${year}-${digits(4)}` : `${code}-${year}-${digits(5)}`);
+    /* rap-search-fields-v1 (2026-11-05, Figma comment: the search must find what each service publishes in RAP): the fields
+       „Publicare în RAP” of a service puts on the act (label + value) — 1–2 plausible ones per service group for the
+       generated acts. Picked from k (NOT from rand, so the seeded registry and every demo record stay as they were). */
+    const spaced = (n) => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+    const PUBLISHED = {
+      "Alcool și tutun": [["Categoria produsului", ["Bere", "Vinuri", "Băuturi spirtoase", "Produse din tutun"]], ["Capacitatea de producție", (k) => `${spaced((20 + (k * 53) % 180) * 1000)} dal / an`]],
+      "Comerț și alimentație publică": [["Tipul unității comerciale", ["Magazin", "Restaurant", "Cafenea", "Piață", "Comerț ambulant"]], ["Suprafața comercială", (k) => `${20 + (k * 37) % 480} m²`]],
+      "Urbanism și construcții": [["Obiectul autorizat", ["Casă de locuit", "Bloc de locuințe", "Spațiu comercial", "Depozit", "Panou publicitar"]], ["Suprafața construită", (k) => `${60 + (k * 41) % 940} m²`]],
+      "Autorizare sanitară": [["Tipul activității", ["Producere alimente", "Depozitare produse alimentare", "Cosmetice", "Servicii de înfrumusețare"]]],
+      "Medicamente și dispozitive medicale": [["Tipul activității", ["Farmacie", "Depozit farmaceutic", "Import de medicamente", "Dispozitive medicale"]]],
+      "Energetică": [["Tipul activității", ["Furnizare gaze naturale", "Stație de alimentare", "Depozit de produse petroliere", "Producere energie electrică"]], ["Capacitatea", (k) => `${1 + (k * 7) % 48} MW`]],
+      "Transport rutier": [["Categoria transportului", ["Taxi", "Marfă", "Pasageri", "Transport internațional"]], ["Numărul de vehicule", (k) => String(1 + (k * 5) % 24)]],
+      "Mediu și resurse naturale": [["Resursa", ["Apă", "Deșeuri", "Emisii în atmosferă", "Subsol", "Resurse forestiere"]], ["Volumul anual", (k) => `${spaced((5 + (k * 29) % 90) * 100)} m³`]],
+      "Securitate la incendiu": [["Tipul obiectivului", ["Clădire administrativă", "Depozit", "Obiectiv industrial", "Spațiu comercial"]]],
+      "Metrologie și conformitate": [["Tipul produsului", ["Mijloace de măsurare", "Jucării", "Echipamente electrice", "Materiale de construcție"]]],
+      "Servicii financiare": [["Tipul serviciului", ["Casă de schimb valutar", "Organizație de creditare", "Broker de asigurare", "Servicii de plată"]]]
+    };
+    const DEFAULT_PUBLISHED = [["Domeniul de activitate", (k, service) => service]];
+    const publishedFields = (service, k) => (PUBLISHED[service] || DEFAULT_PUBLISHED).slice(0, k % 3 === 0 ? 1 : 2)
+      .map(([label, source], i) => [label, typeof source === "function" ? source(k, service) : source[(k * 7 + i * 3) % source.length]]);
     const generated = Array.from({ length: Math.max(0, total - seedRecords.length) }, (_, k) => {
       const type = registry.types[k % registry.types.length];
       const authority = registry.byCode.get(pickOf(type.authorities));
@@ -252,7 +273,7 @@
         status,
         markings: tacit ? [TACIT_MARK] : [],
         addressPath: path,
-        profile: { office, ...(tacit ? { tacitApprovalDate: shortDate(shiftIso(issuedIso, -2)) } : {}), document: { address, activity: serviceOf(type.name), fields: [] } }
+        profile: { office, ...(tacit ? { tacitApprovalDate: shortDate(shiftIso(issuedIso, -2)) } : {}), document: { address, activity: serviceOf(type.name), fields: publishedFields(serviceOf(type.name), k) } }
       };
     });
     /* newest first, as a public register lists them */
@@ -674,6 +695,16 @@
   const searchMatch = (text, query) => text.includes(query) || query.split(/\s+/).filter(Boolean)
     .every((word) => text.includes(word.length >= 5 ? word.slice(0, 5) : word));
 
+  /* rap-search-fields-v1: every VALUE (never a label) the service publishes on the act — the published activity, the flat
+     fields [label, value] and the configured sections (text, a list of values or a grid's rows) */
+  const valuesOf = (value) => (Array.isArray(value) ? value.flatMap(valuesOf) : value && typeof value === "object" ? valuesOf(value.rows ?? value.value) : value == null ? [] : [String(value)]);
+  const publishedValues = (record) => {
+    const doc = record.profile?.document || {};
+    const fieldValue = (field) => valuesOf(Array.isArray(field) ? field[1] : field?.rows ?? field?.value);
+    return [doc.activity, ...(doc.fields || []).flatMap(fieldValue), ...(doc.sections || []).flatMap((section) => (section.fields || []).flatMap(fieldValue))]
+      .filter(Boolean);
+  };
+
   /* the search + company view, before the facets (the facet options are counted on it) */
   const matchesSearch = (record) => {
     const query = normalize(state.search);
@@ -687,7 +718,9 @@
       record.authority.name,
       record.status,
       record.address,
-      record.service
+      record.service,
+      /* rap-search-fields-v1: the fields the service publishes in RAP (values only) + the published activity */
+      ...publishedValues(record)
     ].join(" "));
     /* the company view lists the company's own (seed) records only */
     return (!query || searchMatch(searchable, query))

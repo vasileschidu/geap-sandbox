@@ -1,0 +1,318 @@
+/* Role / context card — ONE card for the BO role switch (2026-11-04, role-context-v1).
+   Moved out of css/e-permits-shell.css so the BO login context screen (bo-login.html, US-81) and the
+   in-session „Schimbă rolul” dialog (US-82) render the SAME card (US-81 AC-19). Loaded by
+   e-permits-acte-permisive.html, e-permits-shell.html and bo-login.html. */
+
+.e-permits-shell__role-group,
+.e-permits-shell__role-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.e-permits-shell__role-group {
+  gap: 0;
+}
+
+.e-permits-shell__role-group-title {
+  color: var(--color-text-base-secondary, #383838);
+  font-size: var(--font-size-fs-14, 14px);
+  font-weight: var(--font-weight-fw-medium, 500);
+  line-height: var(--line-height-lh-20, 20px);
+  margin: 0;
+  overflow: hidden;
+  /* no top padding: the panel's 20px and the 24px between institutions are the space above */
+  padding: 0 0 var(--spacing-12, 12px);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  width: 100%;
+}
+
+.e-permits-shell__role-list {
+  gap: var(--spacing-6, 6px);
+}
+
+.e-permits-shell__role-card {
+  align-items: center;
+  background: var(--color-background-base-default, #fff);
+  border: var(--border-width-1) solid var(--color-border-base-default, #d9d9d9);
+  border-radius: var(--border-radius-12, 12px);
+  color: var(--color-text-base-default, #121212);
+  cursor: pointer;
+  display: flex;
+  gap: var(--spacing-12, 12px);
+  /* 8/12 + 1px for the 2px the selected card's border takes (keeps one card size) */
+  padding: calc(var(--spacing-8, 8px) + var(--border-width-1, 1px)) calc(var(--spacing-12, 12px) + var(--border-width-1, 1px));
+  text-align: left;
+  transition: background-color 100ms ease, border-color 100ms ease, box-shadow 100ms ease;
+  width: 100%;
+}
+
+/* instance / role switch: one real 1px grey border, kept on hover; hover only fills
+   the inside grey; focus = the system ring, 2px white + blue focus ring; the selected
+   card = 2px brand (border + 1px inner line) on brand-secondary */
+.e-permits-shell__role-card:hover {
+  background: var(--color-background-base-tertiary, #f1f1f1);
+}
+
+.e-permits-shell__role-card:focus-visible {
+  outline: none;
+  position: relative;
+  z-index: 1;
+  box-shadow:
+    0 0 0 var(--border-width-2, 2px) var(--color-background-base-default, #fff),
+    0 0 0 4px var(--focus-ring, var(--blue-sky-500, #3379db));
+}
+
+.e-permits-shell__role-card.is-active {
+  background: var(--color-background-brand-secondary, #e8f0fb);
+  border-color: var(--color-border-brand-default, #0058d2);
+  box-shadow: inset 0 0 0 var(--border-width-1) var(--color-border-brand-default, #0058d2);
+}
+
+.e-permits-shell__role-card.is-active:focus-visible {
+  box-shadow:
+    inset 0 0 0 var(--border-width-1) var(--color-border-brand-default, #0058d2),
+    0 0 0 var(--border-width-2, 2px) var(--color-background-base-default, #fff),
+    0 0 0 4px var(--focus-ring, var(--blue-sky-500, #3379db));
+}
+
+.e-permits-shell__role-card.is-active:hover {
+  background: var(--color-background-brand-secondary-hover, #ccdef6);
+}
+
+.e-permits-shell__role-card-icon {
+  align-items: center;
+  background: var(--blue-sky-200, #ccdef6);
+  border-radius: var(--border-radius-full, 999px);
+  color: var(--color-icon-brand-default, #0058d2);
+  display: inline-flex;
+  flex: 0 0 32px;
+  height: 32px;
+  justify-content: center;
+  width: 32px;
+}
+
+/* collapsible institution (> 3 roles): the full-flow role collapse
+   (.e-permits-fo-auth__role-collapse-*, e-permits-acte-permisive.css). Toggle 6px under
+   the title, cards 6px under the toggle when open */
+.e-permits-shell__role-group.is-collapsible {
+  gap: var(--spacing-6, 6px);
+}
+
+/* title → toggle stays 12px (6 + the 6px gap) */
+.e-permits-shell__role-group.is-collapsible .e-permits-shell__role-group-title {
+  padding-bottom: var(--spacing-6, 6px);
+}
+
+/* the collapse clips (overflow: hidden) — 4px of room so a card's focus ring isn't cut */
+.e-permits-shell__role-group .e-permits-fo-auth__role-collapse {
+  margin: calc(var(--spacing-4, 4px) * -1);
+  width: auto;
+}
+
+.e-permits-shell__role-group .e-permits-fo-auth__role-collapse > .e-permits-shell__role-list {
+  padding: var(--spacing-4, 4px);
+}
+
+/* badges in the stack = the role card's own icon circle */
+.e-permits-fo-auth__role-collapse-avatar.e-permits-shell__role-card-icon {
+  background: var(--blue-sky-200, #ccdef6);
+  color: var(--color-icon-brand-default, #0058d2);
+}
+
+.e-permits-shell__role-card-icon img,
+.e-permits-shell__role-card-icon svg {
+  display: block;
+  height: 20px;
+  width: 20px;
+}
+
+.e-permits-shell__role-card-copy {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: var(--spacing-2, 2px);
+  min-width: 0;
+}
+
+.e-permits-shell__role-card-name {
+  color: var(--color-text-base-default, #121212);
+  font-size: var(--font-size-fs-14, 14px);
+  font-weight: var(--font-weight-fw-medium, 500);
+  line-height: var(--line-height-lh-20, 20px);
+}
+
+.e-permits-shell__role-card-meta {
+  color: var(--color-text-base-secondary, #383838);
+  font-size: var(--font-size-fs-12, 12px);
+  font-weight: var(--font-weight-fw-regular, 400);
+  line-height: var(--line-height-lh-16, 16px);
+}
+
+.e-permits-shell__role-card-check {
+  color: var(--color-icon-brand-default, #0058d2);
+  display: none;
+  flex: 0 0 20px;
+}
+
+.e-permits-shell__role-card.is-active .e-permits-shell__role-card-check {
+  display: block;
+}
+
+/* ---- Context screen + „Schimbă rolul” dialog (role-context-v1 → choice-cards-v1, 2026-11-04) -------------------
+   The cards / groups are the FO identity-choice parts (js/choice-cards.js, classes in e-permits-acte-permisive.css).
+   Only the hidden state (a search hides cards / groups) and the search block live here. */
+/* choice-cards-v1 (back 2026-11-05): the FO cards; hidden = a search hides cards / groups */
+.e-permits-fo-auth__role-item[hidden],
+.e-permits-fo-auth__role-group[hidden] {
+  display: none;
+}
+
+/* a title without a badge stays inside the text column (one line, „…” + tooltip); the subdivision line reads at the
+   FO meta size (the „IDNO …” line: 14/20) → card = 70 */
+.e-permits-fo-auth__role-text > .e-permits-fo-auth__role-name {
+  max-width: 100%;
+}
+
+[data-ctx-card] .e-permits-fo-auth__role-meta {
+  font-size: var(--font-size-fs-14, 14px);
+  line-height: var(--line-height-lh-20, 20px);
+}
+
+/* the toggle that carries the group name (titleInToggle): building icon 20 tertiary · name in the default text
+   colour, one line + „…” (tooltip) · badge stack · chevron */
+.e-permits-fo-auth__role-collapse-toggle--title {
+  color: var(--color-text-base-default, #121212);
+  justify-content: flex-start;
+}
+
+.e-permits-fo-auth__role-collapse-toggle--title .e-permits-fo-auth__role-collapse-label {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.e-permits-fo-auth__role-collapse-icon {
+  color: var(--color-icon-base-tertiary, #757575);
+  display: inline-flex;
+  flex: 0 0 20px;
+}
+
+/* 16 between groups (= search → first group, user 2026-11-04 „huge gap”); the 12 toggle → cards lives inside the
+   collapse, so a closed group adds nothing */
+/* (0,2,0): beats the FO list's 24 on pages that load css/e-permits-acte-permisive.css after this file */
+.e-permits-fo-auth__role-list[data-ctx-list] {
+  gap: var(--spacing-16, 16px);
+}
+
+[data-ctx-list] > .e-permits-fo-auth__role-group {
+  gap: 0;
+}
+
+/* (a padding inside the 0fr track would still hold 12 open → the margin comes only with the open state) */
+[data-ctx-list] .e-permits-fo-auth__role-collapse {
+  transition: grid-template-rows 220ms ease, opacity 180ms ease, margin-top 220ms ease;
+}
+
+[data-ctx-list] > .e-permits-fo-auth__role-group.is-expanded > .e-permits-fo-auth__role-collapse {
+  margin-top: var(--spacing-12, 12px);
+}
+
+/* the active role, readable with every group closed (user 2026-11-04): the line above the dialog list and the
+   „Rol curent” tag on a CLOSED group's header (open, the row itself carries it) */
+.e-permits-ctx-current {
+  color: var(--color-text-base-secondary, #383838);
+  font-size: var(--font-size-fs-14, 14px);
+  line-height: var(--line-height-lh-20, 20px);
+  margin: 0;
+}
+
+.e-permits-ctx-current strong {
+  color: var(--color-text-base-default, #121212);
+  font-weight: var(--font-weight-fw-medium, 500);
+}
+
+.e-permits-ctx-group__current {
+  display: inline-flex;
+  flex: 0 0 auto;
+}
+
+.is-expanded .e-permits-ctx-group__current {
+  display: none;
+}
+
+/* „Schimbă rolul” in the account menu: label over „Rol curent: …” (12/16 tertiary, one line + „…”) */
+.e-permits-shell__profile-link-text {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.e-permits-shell__profile-link-meta {
+  color: var(--color-text-base-tertiary, #757575);
+  font-size: var(--font-size-fs-12, 12px);
+  font-weight: var(--font-weight-fw-regular, 400);
+  line-height: var(--line-height-lh-16, 16px);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.e-permits-shell__profile-link-meta:empty {
+  display: none;
+}
+
+/* the current role's card (user 2026-11-05): brand-secondary fill + a 1.5 brand stroke, NOT a control — no hover, no
+   pointer, no chevron (an arrow / hover read as „go somewhere”; this card is where you already are). The 1.5 border
+   keeps the card's outer size: padding − 0.5 */
+.e-permits-fo-auth__role-item[data-ctx-card][aria-current="true"] {
+  background: var(--color-background-brand-secondary, #e8f0fb);
+  border: var(--border-width-1-5, 1.5px) solid var(--color-border-brand-default, #0058d2);
+  cursor: default;
+  padding: calc(var(--spacing-16, 16px) - (var(--border-width-1-5, 1.5px) - var(--border-width-1, 1px))) calc(var(--spacing-24, 24px) - (var(--border-width-1-5, 1.5px) - var(--border-width-1, 1px))) calc(var(--spacing-16, 16px) - (var(--border-width-1-5, 1.5px) - var(--border-width-1, 1px))) calc(var(--spacing-16, 16px) - (var(--border-width-1-5, 1.5px) - var(--border-width-1, 1px)));
+}
+
+.e-permits-fo-auth__role-item[data-ctx-card][aria-current="true"] .e-permits-fo-auth__role-arrow {
+  visibility: hidden;
+}
+
+/* the list search (from 8 combinations): field · „Nicio potrivire” · live line, 12 apart (= the Ghișeu act picker) */
+.e-permits-context-search {
+  display: grid;
+  gap: var(--spacing-12, 12px);
+  width: 100%;
+}
+
+/* 16 between the search block and the first group (the parent stacks at 24) */
+.e-permits-context-search + [data-ctx-list] {
+  margin-top: calc(var(--spacing-16, 16px) - var(--spacing-24, 24px));
+}
+
+.e-permits-ctx-modal .e-permits-context-search + [data-ctx-list] {
+  margin-top: 0;
+}
+
+.e-permits-context-search > [hidden] {
+  display: none;
+}
+
+/* the BO account menu: the inline groups give way to „Schimbă rolul” (US-82); a menu item stays out with
+   one combination (AC-02) — these rules beat their own display: flex / inline-flex */
+.e-permits-shell__role-groups[hidden],
+.e-permits-shell__profile-link[hidden] {
+  display: none;
+}
+
+/* the dialog body: notice (US-82 AC-08) · search · groups, 16 apart */
+.e-permits-ctx-modal [data-ctx-switch-body] {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-16, 16px);
+}
+
+/* no footer under the list (a row switches at once): the library body's 4px bottom (made for a footer) → the
+   dialog's side padding, so the card doesn't sit on the dialog edge (user 2026-11-04) */
+.e-permits-ctx-modal .modal-content[data-ctx-switch-body] {
+  padding-bottom: var(--spacing-20, 20px);
+}
