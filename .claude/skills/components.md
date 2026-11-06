@@ -12162,6 +12162,16 @@ itself (`offFor`). Every operation is written to the widget's audit trail (tab �
 - Demo switch `?widget=fara-permisiune|gol|incarcare|eroare|eroare-date|supervizor|fara-acces`; demo `wid-01…09b`
   (widget-v2: + `wid-03t` full width, `wid-03t1` / `wid-08p` „Mărește”).
 
+### Editor page width — only when two columns (editor-wide-v1, 2026-11-06, user)
+
+Modifier `.e-permits-editor-wide` on the two-column grid `.e-permits-ntpl-content` (form | preview / dictionary / chart).
+The profile panel that directly holds it (`.e-permits-dosar-profil__panel` / `.e-permits-user-profile__panel`
+`:has(> .e-permits-editor-wide)`, css/e-permits-acte-permisive.css) becomes fluid to the BO gutter (16) with max-width
+1600, centred beyond. Used by: Notificări › Șabloane Texte (ntpl-02), KPI Definiție + Ținta (kpi-04 / 04a / 06 / 06d), the KPI
+create sheet two-column steps (`.e-permits-kpi-editor__page:has(> .e-permits-editor-wide)`); widgets reuse the same class.
+Columns keep the ntpl ratio (form 7fr | helper 5fr; `.e-permits-kpi-content--preview` = form minmax(360px, 5fr) | chart 7fr).
+One-column tabs (Alerte, Istoric, Valori proprii, lists) never get it — they keep the profile width (1024).
+
 ### Charts: no overlapping labels (kpi-band-v2, 2026-11-06, user: „make sure we never have overlaps”)
 
 Every chart / band / sparkline (eKYC dashboard classes `.e-permits-chart`, `.e-permits-meter`, `.e-permits-ekyc-band`) follows

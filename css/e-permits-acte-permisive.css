@@ -19644,6 +19644,15 @@ a.e-permits-fo-lib-item__title:is(:hover, :focus) {
   max-width: 1280px;
 }
 
+/* Editor page width — only when two columns (editor-wide-v1, 2026-11-06, user: „can be a max width but go wider if we have
+   space”; Grafana / Retool / Linear: data-dense editors are fluid with a generous cap). A profile panel that holds a
+   two-column editor grid marked `.e-permits-editor-wide` (form | preview / dictionary / chart — ntpl Texte, KPI Definiție /
+   Ținta, widgets) is fluid to the BO page gutter (16, the panel's own `calc(100% − 32px)`), capped at 1600 and centred
+   beyond. One-column tabs (lists, timelines, Istoric, Alerte, Valori proprii) never get it: they keep the profile width. */
+.e-permits-front-office-page[data-demo-flow="back-office"] :is(.e-permits-dosar-profil__panel, .e-permits-user-profile__panel):has(> .e-permits-editor-wide) {
+  max-width: calc(var(--spacing-40, 40px) * 40);
+}
+
 .e-permits-ntpl-card {
   background: var(--color-background-base-default, #fff);
   border: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);

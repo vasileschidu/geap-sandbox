@@ -12996,7 +12996,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     return `
       ${renderNtplUnpublishedBanner(tpl)}
-      <div class="e-permits-ntpl-content">
+      <div class="e-permits-ntpl-content e-permits-editor-wide">
         <div class="e-permits-ntpl-content__main">
           <div class="e-permits-ntpl-content__bar">
             <div class="segmented-control" role="radiogroup" aria-label="Limba conținutului">

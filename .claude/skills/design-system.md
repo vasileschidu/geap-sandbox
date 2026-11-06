@@ -711,3 +711,10 @@ background: var(--color-background-base-default);
 `border/danger/secondary` (red 200 / 800), `border/brand/secondary` (blue-sky 200 / 800) — Foundations
 „1. Semantic Colors”, stroke scope; CSS `--color-border-<tone>-secondary`. Same role as
 `border/base/secondary` (gray 300). Used by Subtle tags.
+
+### Editor page width — only when two columns (2026-11-06, user)
+- A BO profile panel that holds a two-column editor grid (form | preview / dictionary / chart) is fluid to the BO page
+  gutter (16 each side) and capped at **1600** (`calc(var(--spacing-40) * 40)`), centred beyond. Mark the grid
+  `.e-permits-ntpl-content.e-permits-editor-wide`; the panel picks it up with `:has(> .e-permits-editor-wide)`.
+- One-column tabs / screens (lists, timelines, Istoric, Alerte, Valori proprii) keep the normal profile width (1024;
+  ntpl tabs 1280). Never put the wide width on a whole page.
