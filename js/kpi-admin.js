@@ -22,7 +22,7 @@
        builder: `.e-permits-doc-rule` / `.e-permits-doc-cond` / `code.e-permits-doc-kw`);
      · charts = the eKYC dashboard SVG (`.e-permits-chart`, bars, axis, legend tray; target band = the eKYC
        „Banda de decizie” meter + axis); value cards = the eKYC KPI cards (`.e-permits-kpi-grid`).
-   New parts (components.md › „KPI”): the data dictionary panel `.e-permits-kpi-dict`; compositions documented: value
+   Data dictionary = the Permisiuni stacked list (collapsible groups); compositions documented (components.md › „KPI”): value
    check card, global-vs-own value pair.
    Routes: #kpi (list) · #kpi/<id>/<definitie|tinta|valori|alerte|istoric>.
    Demo switch ?kpi= (comma list): fara-permisiune · gol · incarcare · eroare (every save fails) · numitor-zero.
@@ -469,7 +469,7 @@
   }
   const calcKey = (v) => JSON.stringify([v.source, v.num, v.hasDen, v.den, v.dateColumn, v.format, v.valueType, v.unit]);
 
-  /* ================================================================ data dictionary panel (new: .e-permits-kpi-dict) */
+  /* ================================================================ data dictionary (the Permisiuni stacked list) */
   function usageOf(v) {
     const used = {};
     const add = (key, label) => { if (key) (used[key] = used[key] || []).push(label); };
@@ -480,11 +480,18 @@
     Object.keys(used).forEach((k) => { used[k] = [...new Set(used[k])]; });
     return used;
   }
+  /* the dictionary = the Permisiuni stacked list (renderPermGroup): collapsible groups with a count, standard stack rows
+     (name · type · description, usage = Small tags in the tag slot, a used field = the selected row); a search opens every
+     group with matches */
   function dictionaryHtml(st, v, idp) {
     const src = sourceOf(v.source);
+    const heading = (meta) => `
+      <div class="e-permits-dosar-profil__section-heading">
+        <h2 class="e-permits-dosar-profil__section-title" id="${idp}-dict-title">Dicționarul de date</h2>
+        ${meta ? `<span class="e-permits-dosar-profil__section-meta">${esc(meta)}</span>` : ""}
+      </div>`;
     if (!src) {
-      return `<section class="e-permits-kpi-dict" aria-labelledby="${idp}-dict-title">
-        <h3 class="e-permits-kpi-dict__title" id="${idp}-dict-title">Dicționarul de date</h3>
+      return `<section class="e-permits-dosar-profil__section e-permits-stack-section" aria-labelledby="${idp}-dict-title">${heading("")}
         ${E()?.render({ title: "Alegeți sursa de date", text: "Dicționarul arată câmpurile sursei, cu tipul și descrierea lor.", icon: "book", compact: true }) || ""}
       </section>`;
     }
@@ -493,38 +500,42 @@
     const fields = fieldsOf(v.source);
     const match = fields.filter((f) => !q || fold(`${f.label} ${f.desc}`).includes(q));
     const groups = [...new Set(match.map((f) => f.group))].map((g) => [g, match.filter((f) => f.group === g)]);
-    const body = groups.length ? groups.map(([group, list]) => {
+    const body = groups.length ? `<div class="e-permits-stack e-permits-reg-editor__stack">${groups.map(([group, list]) => {
       const open = Boolean(q) || !st.dictClosed.has(group);
       return `
-        <section class="e-permits-dtpl-fields__group">
-          <button class="e-permits-dtpl-fields__head" type="button" aria-expanded="${open}" data-kpi-dict-group="${esc(group)}">
-            <span class="e-permits-dtpl-fields__title">${esc(group)}</span>
-            <span class="e-permits-page-header__tab-count">${list.length}</span>
-            ${icon(open ? "chevron-top" : "chevron-bottom", 16)}
-          </button>
-          ${open ? `<ul class="e-permits-kpi-dict__list" role="list">${list.map((f) => `
-            <li class="e-permits-kpi-dict__item${used[f.key] ? " is-used" : ""}">
-              <div class="e-permits-kpi-dict__row">
-                <span class="e-permits-kpi-dict__name">${esc(f.label)}</span>
-                <span class="e-permits-kpi-dict__type">${esc(TYPE_LABEL[f.type] || f.type)}</span>
-              </div>
-              <p class="e-permits-kpi-dict__desc">${esc(f.desc)}</p>
-              ${used[f.key] ? `<div class="e-permits-kpi-dict__tags">${used[f.key].map((u) => tag(u, "brand")).join("")}</div>` : ""}
-            </li>`).join("")}</ul>` : ""}
-        </section>`;
-    }).join("") : E()?.noResults?.("Niciun câmp nu corespunde căutării", { text: "Caută după denumirea sau descrierea câmpului.", bare: true, compact: true }) || "";
+        <div class="e-permits-stack__group${open ? " is-open" : " is-collapsed"}">
+          <h3 class="e-permits-stack__group-label e-permits-stack__group-label--toggle">
+            <button class="e-permits-stack__group-toggle" type="button" data-kpi-dict-group="${esc(group)}" aria-expanded="${open ? "true" : "false"}"${q ? " disabled" : ""}>
+              <span class="e-permits-stack__group-name">${esc(group)}</span>
+              <span class="badge badge--lg badge--solid-light e-permits-stack__group-count" aria-label="${plural(list.length, "câmp", "câmpuri")}">${list.length}</span>
+              ${icon("chevron-bottom", 16).replace('class="icon small"', 'class="icon small e-permits-stack__group-chevron"')}
+            </button>
+          </h3>
+          ${open ? `<ul class="e-permits-stack__list" role="list">${list.map((f) => {
+            const row = A().renderStackItem?.({
+              plainTitle: f.label,
+              title: esc(f.label),
+              badges: (used[f.key] || []).map((u) => tag(u, "brand")),
+              meta: [esc(TYPE_LABEL[f.type] || f.type)],
+              meta2: [esc(f.desc)]
+            }) || "";
+            return used[f.key] ? row.replace('<li class="e-permits-stack__item', '<li class="e-permits-stack__item is-selected') : row;
+          }).join("")}</ul>` : ""}
+        </div>`;
+    }).join("")}</div>` : E()?.noResults?.("Niciun câmp nu corespunde căutării", { text: "Caută după denumirea sau descrierea câmpului.", compact: true }) || "";
     return `
-      <section class="e-permits-kpi-dict" aria-labelledby="${idp}-dict-title">
-        <div class="e-permits-kpi-dict__head">
-          <h3 class="e-permits-kpi-dict__title" id="${idp}-dict-title">Dicționarul de date</h3>
-          <p class="e-permits-dtpl-fields__hint">${esc(`${src.name} · ${src.version} · ${plural(fields.length, "câmp", "câmpuri")}`)}</p>
+      <section class="e-permits-dosar-profil__section e-permits-stack-section" aria-labelledby="${idp}-dict-title">
+        ${heading(`${src.name} · ${src.version} · ${plural(fields.length, "câmp", "câmpuri")}`)}
+        <div class="e-permits-pay__toolbar">
+          <div class="e-permits-pay__tools">
+            <div class="search-input medium rectangular e-permits-workplace__search e-permits-list-search e-permits-pay__search${st.dictQuery ? " has-value is-ready" : ""}">
+              <span class="icon-search" aria-hidden="true">${icon("search")}</span>
+              <input class="input" type="search" id="${idp}-dict-search" placeholder="Caută în dicționar" aria-label="Caută în dicționarul de date" autocomplete="off" value="${esc(st.dictQuery || "")}" data-kpi-dict-search>
+              <div class="btn-group"><button type="button" class="btn-icon clear" aria-label="Șterge căutarea" data-kpi-dict-clear>${icon("cross-small", 16)}</button></div>
+            </div>
+          </div>
         </div>
-        <div class="search-input medium rectangular e-permits-workplace__search e-permits-list-search e-permits-list-search--fill${st.dictQuery ? " has-value is-ready" : ""}">
-          <span class="icon-search" aria-hidden="true">${icon("search")}</span>
-          <input class="input" type="search" id="${idp}-dict-search" placeholder="Caută în dicționar" aria-label="Caută în dicționarul de date" autocomplete="off" value="${esc(st.dictQuery || "")}" data-kpi-dict-search>
-          <div class="btn-group"><button type="button" class="btn-icon clear" aria-label="Șterge căutarea" data-kpi-dict-clear>${icon("cross-small", 16)}</button></div>
-        </div>
-        <div class="e-permits-dtpl-fields__groups">${body}</div>
+        ${body}
       </section>`;
   }
 
