@@ -355,7 +355,7 @@
     "minRadius": 4,
     "minPaddingX": 8,
     "allow": [
-      { "selector": ".date-picker__option", "reason": "month / year cell of the library date picker drill-up grid (components.md › Date Picker); its today ring = the day cell's, not a button" },
+      { "selector": ".date-picker__option", "reason": "month / year cell of the library date picker „advanced” header grids (components.md › Date Picker); its today ring = the day cell's, not a button" },
       { "selector": ".badge[data-tag-more]", "reason": "the library Badge „+N” overflow counter is focusable only to show its tooltip (badge-more-v1); it is a count, not a control" },
       {
         "selector": ".e-permits-builder__library-item",

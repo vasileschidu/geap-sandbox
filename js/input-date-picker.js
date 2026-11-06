@@ -1,13 +1,10 @@
 /* Date picker — library. Pickers present at load are wired on DOMContentLoaded; content
    rendered later (drawers, modals) calls window.GEAPDatePicker.init(root). Romanian month
    names with data-locale="ro". Picking a day fires a bubbling "change" on the input;
-   the ISO value is on the picker's data-selected. */
+   the ISO value is on the picker's data-selected. A plain picker's header = `‹ [Month ⌄] [Year ⌄] ›` (two dropdown lists). */
 (() => {
   const allPickers = () => Array.from(document.querySelectorAll("[data-date-picker]"));
   const monthsRo = ["Ianuarie", "Februarie", "Martie", "Aprilie", "Mai", "Iunie", "Iulie", "August", "Septembrie", "Octombrie", "Noiembrie", "Decembrie"];
-
-  /* the month grid (drill-up, 2026-11-05): short Romanian names fit the 4 × 3 grid */
-  const monthsRoShort = ["Ian", "Feb", "Mar", "Apr", "Mai", "Iun", "Iul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
   const months = [
     "Jan",
@@ -93,7 +90,7 @@
     if (!container) return;
     container.innerHTML = "";
     const picked = (state.type === "range" ? [state.rangeStart, state.rangeEnd] : [state.selected]).filter(Boolean);
-    (state.monthsShort || state.months || months).forEach((monthName, index) => {
+    (state.months || months).forEach((monthName, index) => {
       const button = document.createElement("button");
       button.type = "button";
       button.className = "date-picker__option";
@@ -114,11 +111,9 @@
     });
   };
 
-  const buildYearView = (state, container, setView, onSelect, drill) => {
+  const buildYearView = (state, container, setView, onSelect) => {
     if (!container) return;
     const rangeSize = 12;
-    /* the shown year in the 2nd row (4 back, 7 ahead): expiry / validity dates are mostly in the coming years, so
-       e.g. 2031 is on the first page from 2026 (user 2026-11-05) */
     if (state.yearRangeStart == null) {
       state.yearRangeStart = state.year - 4;
     }
@@ -136,7 +131,7 @@
       button.addEventListener("click", (event) => {
         event.stopPropagation();
         state.year = yearValue;
-        setView(drill ? "month" : "day");
+        setView("day");
         if (typeof onSelect === "function") onSelect();
       });
       container.appendChild(button);
@@ -252,41 +247,130 @@
       today: picker.dataset.today || toISODate(now.getFullYear(), now.getMonth(), now.getDate()),
       min: picker.dataset.min || "",
       yearRangeStart: null,
-      months: picker.dataset.locale === "ro" ? monthsRo : months,
-      monthsShort: picker.dataset.locale === "ro" ? monthsRoShort : null
+      months: picker.dataset.locale === "ro" ? monthsRo : months
     };
 
-    /* Drill-up (2026-11-05, tester: „picking 2031 means clicking month by month”): a plain picker (title only) gets
-       the title as a button — day grid → month grid (year ‹ ›) → year grid (12 per page ‹ ›); a year → the month grid,
-       a month → the day grid. Pickers that already carry the month / year grids (the „advanced” header) are left alone. */
+    /* Month + year dropdowns (dp-select-v1, 2026-11-06; user: the drill-up „is bad UX”): a plain picker (title only) gets
+       `‹  [Noiembrie ⌄] [2026 ⌄]  ›` — two independent small text buttons, each opening a library dropdown list (month names;
+       years from data-min's year, else this year − 100 … + 10) over the day grid, which never changes view. A month / year
+       changes only that part. Pickers that carry their own month / year grids (the „advanced” header) are left alone. */
     const ro = picker.dataset.locale === "ro";
     const L = ro
-      ? { month: "Alege luna", year: "Alege anul", prev: ["Luna anterioară", "Anul anterior", "Anii anteriori"], next: ["Luna următoare", "Anul următor", "Anii următori"] }
-      : { month: "Choose month", year: "Choose year", prev: ["Previous month", "Previous year", "Previous years"], next: ["Next month", "Next year", "Next years"] };
-    let titleBtn = null;
-    let titleText = null;
+      ? { month: "Alege luna", year: "Alege anul", prev: "Luna anterioară", next: "Luna următoare" }
+      : { month: "Choose month", year: "Choose year", prev: "Previous month", next: "Next month" };
     const plainTitle = picker.querySelector(".date-picker__header .js-date-picker-label");
+    const triggers = {};
+    const closeMenus = () => picker.querySelectorAll(".date-picker__select.is-open").forEach((wrap) => wrap.__dpClose?.(false));
     if (plainTitle && !picker.querySelector(".js-date-picker-months")) {
-      const daysGrid = daysContainer.closest(".date-picker__grid");
-      daysGrid.insertAdjacentHTML("afterend", `
-        <div class="date-picker__grid date-picker__grid--months" data-view="month" hidden><div class="date-picker__months js-date-picker-months"></div></div>
-        <div class="date-picker__grid date-picker__grid--years" data-view="year" hidden><div class="date-picker__years js-date-picker-years"></div></div>`);
-      monthsContainer = picker.querySelector(".js-date-picker-months");
-      yearsContainer = picker.querySelector(".js-date-picker-years");
       const navUse = picker.querySelector(".date-picker__nav use");
-      const caret = navUse ? `<svg class="icon small" aria-hidden="true"><use href="${(navUse.getAttribute("href") || "").split("#")[0]}#icon-chevron-bottom-small"></use></svg>` : "";
-      titleBtn = document.createElement("button");
-      titleBtn.type = "button";
-      titleBtn.className = "date-picker__month date-picker__title js-date-picker-title";
-      titleBtn.innerHTML = `<span class="js-date-picker-label" aria-live="polite" aria-atomic="true"></span>${caret}`;
-      plainTitle.replaceWith(titleBtn);
-      titleText = titleBtn.querySelector(".js-date-picker-label");
-      label = titleText;
+      const sprite = (navUse?.getAttribute("href") || "").split("#")[0];
+      const uid = `${picker.id || (picker.querySelector(".js-date-picker-input")?.id) || "dp"}-${Math.random().toString(36).slice(2, 7)}`;
+      const part = (kind) => `<span class="date-picker__select" data-dp-select="${kind}">
+          <button type="button" class="btn btn-text-strict btn-sm date-picker__select-trigger" aria-haspopup="listbox" aria-expanded="false" aria-controls="${uid}-${kind}" aria-label="${L[kind]}"><span class="js-date-picker-${kind}-label"></span><svg class="icon small" aria-hidden="true"><use href="${sprite}#icon-chevron-bottom-small"></use></svg></button>
+          <ul class="date-picker__menu" id="${uid}-${kind}" role="listbox" aria-label="${L[kind]}" hidden></ul>
+        </span>`;
+      const group = document.createElement("div");
+      group.className = "date-picker__selects date-picker__selects--menus";
+      group.innerHTML = part("month") + part("year");
+      plainTitle.replaceWith(group);
+      label = null;
+      picker.querySelectorAll(".js-date-picker-prev").forEach((b) => b.setAttribute("aria-label", L.prev));
+      picker.querySelectorAll(".js-date-picker-next").forEach((b) => b.setAttribute("aria-label", L.next));
+      group.querySelectorAll(".date-picker__select").forEach((wrap) => {
+        const kind = wrap.dataset.dpSelect;
+        const trigger = wrap.querySelector(".date-picker__select-trigger");
+        const menu = wrap.querySelector(".date-picker__menu");
+        let typed = "";
+        let typedTimer = 0;
+        const entries = () => {
+          if (kind === "month") {
+            return state.months.map((name, index) => ({ value: index, text: name, disabled: !!state.min && `${state.year}-${pad(index + 1)}-31` < state.min }));
+          }
+          const first = state.min ? Number(state.min.slice(0, 4)) : Number(state.today.slice(0, 4)) - 100;
+          const last = Number(state.today.slice(0, 4)) + 10;
+          const out = [];
+          for (let y = Math.min(first, state.year); y <= Math.max(last, state.year); y += 1) out.push({ value: y, text: String(y) });
+          return out;
+        };
+        const options = () => Array.from(menu.querySelectorAll('[role="option"]:not([aria-disabled="true"])'));
+        const focusOption = (option) => { if (!option) return; option.focus(); option.scrollIntoView({ block: "nearest" }); };
+        const closeMenu = (refocus) => {
+          wrap.classList.remove("is-open");
+          menu.hidden = true;
+          trigger.setAttribute("aria-expanded", "false");
+          if (refocus) trigger.focus();
+        };
+        wrap.__dpClose = closeMenu;
+        const choose = (option) => {
+          if (kind === "month") state.month = Number(option.dataset.value); else state.year = Number(option.dataset.value);
+          closeMenu(true);
+          render();
+        };
+        const openMenu = () => {
+          closeMenus();
+          const current = kind === "month" ? state.month : state.year;
+          menu.innerHTML = "";
+          entries().forEach((entry) => {
+            const item = document.createElement("li");
+            const selected = entry.value === current;
+            item.className = `date-picker__menu-item${selected ? " is-selected" : ""}`;
+            item.setAttribute("role", "option");
+            item.setAttribute("aria-selected", String(selected));
+            item.tabIndex = -1;
+            item.dataset.value = String(entry.value);
+            item.textContent = entry.text;
+            if (entry.disabled) { item.classList.add("is-disabled"); item.setAttribute("aria-disabled", "true"); }
+            menu.appendChild(item);
+          });
+          menu.hidden = false;
+          wrap.classList.add("is-open");
+          trigger.setAttribute("aria-expanded", "true");
+          /* the selected value centred in the list, focus on it */
+          const selectedItem = menu.querySelector(".is-selected");
+          if (selectedItem) {
+            menu.scrollTop = selectedItem.offsetTop - (menu.clientHeight - selectedItem.offsetHeight) / 2;
+            selectedItem.focus({ preventScroll: true });
+          }
+        };
+        trigger.addEventListener("click", (event) => {
+          event.stopPropagation();
+          if (wrap.classList.contains("is-open")) closeMenu(false); else openMenu();
+        });
+        trigger.addEventListener("keydown", (event) => {
+          if (event.key === "ArrowDown" || event.key === "ArrowUp") { event.preventDefault(); if (!wrap.classList.contains("is-open")) openMenu(); }
+        });
+        menu.addEventListener("click", (event) => {
+          event.stopPropagation();
+          const option = event.target.closest('[role="option"]');
+          if (option && option.getAttribute("aria-disabled") !== "true") choose(option);
+        });
+        menu.addEventListener("keydown", (event) => {
+          const list = options();
+          const at = list.indexOf(document.activeElement);
+          /* keys of the list stay in the list: a host popover (RAP facet) confirms + closes on Enter / Esc */
+          if (event.key !== "Tab") event.stopPropagation();
+          const go = (next) => { event.preventDefault(); focusOption(list[Math.max(0, Math.min(list.length - 1, next))]); };
+          if (event.key === "Escape") { event.preventDefault(); event.stopPropagation(); closeMenu(true); }
+          else if (event.key === "ArrowDown") go(at + 1);
+          else if (event.key === "ArrowUp") go(at - 1);
+          else if (event.key === "Home") go(0);
+          else if (event.key === "End") go(list.length - 1);
+          else if (event.key === "Enter" || event.key === " ") { event.preventDefault(); if (at > -1) choose(list[at]); }
+          else if (event.key === "Tab") closeMenu(false);
+          else if (event.key.length === 1 && !event.ctrlKey && !event.metaKey && !event.altKey) {
+            /* type-ahead: the typed prefix (month names: letters, years: digits), reset after a pause */
+            typed += event.key.toLocaleLowerCase();
+            clearTimeout(typedTimer);
+            typedTimer = setTimeout(() => { typed = ""; }, 700);
+            const hit = list.find((option) => option.textContent.toLocaleLowerCase().startsWith(typed));
+            if (hit) { event.preventDefault(); focusOption(hit); }
+          }
+        });
+        triggers[kind] = trigger;
+      });
     }
-    const refocusTitle = () => { if (titleBtn) titleBtn.focus(); };
 
     const viewGrids = picker.querySelectorAll(".date-picker__grid[data-view]");
-    const viewIndex = { day: 0, month: 1, year: 2 };
 
     const setView = (view) => {
       state.view = view;
@@ -299,18 +383,12 @@
     };
 
     const syncLabels = () => {
-      if (label) {
-        const view = titleBtn ? state.view : "day";
-        label.textContent = view === "month" ? String(state.year)
-          : view === "year" ? `${state.yearRangeStart ?? state.year - 4} – ${(state.yearRangeStart ?? state.year - 4) + 11}`
-          : `${state.months[state.month]} ${state.year}`;
+      if (triggers.month) {
+        picker.querySelector(".js-date-picker-month-label").textContent = state.months[state.month];
+        picker.querySelector(".js-date-picker-year-label").textContent = String(state.year);
       }
-      if (titleBtn) {
-        titleBtn.setAttribute("aria-label", state.view === "day" ? L.month : L.year);
-        titleBtn.disabled = state.view === "year";
-        const i = viewIndex[state.view] ?? 0;
-        picker.querySelectorAll(".js-date-picker-prev").forEach((b) => b.setAttribute("aria-label", L.prev[i]));
-        picker.querySelectorAll(".js-date-picker-next").forEach((b) => b.setAttribute("aria-label", L.next[i]));
+      if (label) {
+        label.textContent = `${state.months[state.month]} ${state.year}`;
       }
       if (monthLabel) {
         monthLabel.textContent = state.months[state.month];
@@ -347,6 +425,7 @@
     const open = () => {
       if (!panel) return;
       applyResponsive();
+      closeMenus();
       picker.classList.add("is-open");
       panel.hidden = false;
       panel.setAttribute("aria-hidden", "false");
@@ -376,8 +455,8 @@
     const render = () => {
       syncLabels();
       buildDayView(state, daysContainer, state.type);
-      buildMonthView(state, monthsContainer, setView, () => { ensureOpen(); refocusTitle(); });
-      buildYearView(state, yearsContainer, setView, () => { ensureOpen(); refocusTitle(); }, !!titleBtn);
+      buildMonthView(state, monthsContainer, setView, ensureOpen);
+      buildYearView(state, yearsContainer, setView, ensureOpen);
       syncLabels();
       syncInput();
     };
@@ -480,11 +559,6 @@
       }
     });
 
-    titleBtn?.addEventListener("click", (event) => {
-      event.stopPropagation();
-      setView(state.view === "day" ? "month" : "year");
-    });
-
     picker.querySelectorAll(".js-date-picker-month-toggle").forEach((button) => {
       button.addEventListener("click", (event) => {
         event.stopPropagation();
@@ -501,6 +575,7 @@
 
     picker.querySelectorAll(".js-date-picker-prev").forEach((button) => {
       button.addEventListener("click", () => {
+        closeMenus();
         if (state.view === "year") {
           state.yearRangeStart = (state.yearRangeStart ?? state.year) - 12;
         } else if (state.view === "month") {
@@ -518,6 +593,7 @@
 
     picker.querySelectorAll(".js-date-picker-next").forEach((button) => {
       button.addEventListener("click", () => {
+        closeMenus();
         if (state.view === "year") {
           state.yearRangeStart = (state.yearRangeStart ?? state.year) + 12;
         } else if (state.view === "month") {
@@ -593,6 +669,13 @@
     render();
     setView(state.view);
   };
+
+  /* an open month / year list closes on a press anywhere outside it (focus stays where the press put it) */
+  document.addEventListener("pointerdown", (event) => {
+    document.querySelectorAll(".date-picker__select.is-open").forEach((wrap) => {
+      if (!wrap.contains(event.target)) wrap.__dpClose?.(false);
+    });
+  });
 
   document.addEventListener("click", (event) => {
     allPickers().forEach((picker) => {

@@ -3435,7 +3435,7 @@
             }),
             /* rap-h (2026-11-05, PO + tester comments): h01 the search finds a value the service publishes in RAP („bere”) ·
                h02 an Autoritate ticked → the „Subdiviziune” chip appears right after it (no authority: under „Mai multe”) ·
-               h03 / h04 the date picker of „Data expirării” (De la): the year grid / the month grid (title = button → drill-up) */
+               h03 / h04 the date picker of „Data expirării” (De la): the YEAR list / the MONTH list open (dp-select-v1: ‹ [Noi ⌄] [2026 ⌄] ›, no drill-up) */
             "rap-h01": rap(async (h) => { await h.fill("[data-rap-search]", "bere", { leave: false }); await h.wait(600); document.querySelector(".rap-suggest")?.setAttribute("hidden", ""); }),
             "rap-h02": rap(async (h) => { await open(h); await pick("autoritate", ["Agenția Națională pentru Sănătate Publică"])(h); await h.wait(200); }),
             /* h05: the date field formats while typing — „0411” → „04/11/” (the „/” comes by itself; 04112031 → 04/11/2031) */
@@ -3457,12 +3457,12 @@
             })(),
             "rap-h05": rap(async (h) => { await open(h); await ffFacet(h, "expirare"); await h.fill('[data-filter-date-input="expirare"][data-filter-date-part="from"]', "0411", { leave: false }); await h.wait(250); }),
             ...(() => {
-              const calendar = (drill) => rap(async (h) => {
+              const calendar = (kind) => rap(async (h) => {
                 await open(h); await ffFacet(h, "expirare");
                 await h.click("[data-filter-range] .js-date-picker-toggle"); await h.wait(250);
-                for (let i = 0; i < drill; i += 1) { await h.click(".date-picker-panel:not([hidden]) .js-date-picker-title"); await h.wait(200); }
+                await h.click(`.date-picker-panel:not([hidden]) [data-dp-select="${kind}"] .date-picker__select-trigger`); await h.wait(200);
               });
-              return { "rap-h03": calendar(2), "rap-h04": calendar(1) };
+              return { "rap-h03": calendar("year"), "rap-h04": calendar("month") };
             })(),
             /* rap-load-v1 (2026-11-06): the simulated server wait, frozen (?rapdelay=hold) — h09 „Aplică filtre” (desktop; on a phone
                the sheet's „Arată N rezultate”, the sheet stays open with the loading button) · h10 a search · h11 „Resetează” */

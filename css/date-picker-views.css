@@ -1,42 +1,101 @@
 /* ==========================================================================
-   Date picker — month / year grids (drill-up, 2026-11-05; tester comment: „picking 2031 means clicking month by month”)
-   js/input-date-picker.js turns the title of a plain picker into a button: day grid → month grid (year ‹ ›) → year
-   grid (12 per page ‹ ›). Grid + option base styles are the library's (main.css); this file adds the title button and
-   the states the library lacks (hover, today, disabled, focus). Hover on white = tertiary, on brand = brand hover.
+   Date picker — month + year dropdowns (dp-select-v1, 2026-11-06; replaces the drill-up grids of 2026-11-05)
+   js/input-date-picker.js turns the title of a plain picker into `‹  [Noiembrie ⌄] [2026 ⌄]  ›`: two Small library text
+   buttons (`btn btn-text-strict btn-sm`), each opening a dropdown list over the day grid (the grid never changes view).
+   Items = „Dropdown item” (css/dropdown.css: 40, phones 48 · 16/24); the surface is the „Dropdown surface” look
+   restated here (RAP / Cabinet load no product stylesheet). Also holds the hover states the library lacks (option of the
+   „advanced” header grids, nav arrows, days). Hover on white = tertiary, on brand = brand hover.
    ========================================================================== */
-.date-picker__title {
-  align-items: center;
-  background: transparent;
-  border: 0;
-  border-radius: var(--border-radius-6);
-  color: var(--color-text-base-default);
-  cursor: pointer;
-  display: inline-flex;
+.date-picker {
+  position: relative;
+}
+
+.date-picker__selects--menus {
   flex: 1 1 0;
-  font-family: inherit;
-  gap: var(--spacing-4);
-  height: 40px;
   justify-content: center;
   min-width: 0;
-  padding: 0 var(--spacing-8);
 }
 
-.date-picker__title:hover:not(:disabled) {
-  background: var(--color-background-base-tertiary);
+.date-picker__select {
+  display: inline-flex;
+  position: relative;
 }
 
-.date-picker__title:focus-visible {
-  outline: 2px solid var(--color-border-brand-default);
-  outline-offset: 2px;
+/* Small 32 trigger: label 14/20 medium + chevron 16 (css/button-icons.css); hover = text-button hover, open = pressed + ring */
+.date-picker__select-trigger.btn.btn-sm {
+  border-radius: var(--border-radius-6);
+  cursor: pointer;
+  min-height: var(--spacing-32);
 }
 
-/* the year grid is the top of the drill-up: nothing to open from its title */
-.date-picker__title:disabled {
+.date-picker__select-trigger.btn:hover:not(:disabled) {
+  background-color: var(--color-background-base-tertiary-hover);
+}
+
+.date-picker__select-trigger.btn:active:not(:disabled),
+.date-picker__select-trigger.btn[aria-expanded="true"] {
+  background-color: var(--color-background-base-tertiary-active);
+}
+
+.date-picker__select-trigger.btn[aria-expanded="true"] {
+  box-shadow: 0 0 0 var(--spacing-2) var(--color-background-base-default), 0 0 0 calc(var(--spacing-2) * 2.5) var(--focus-ring, var(--blue-sky-500));
+}
+
+/* the list: anchored under its trigger, at most 7 items (280) tall, scrolls */
+.date-picker__menu {
+  background: var(--color-background-base-default);
+  border-radius: var(--border-radius-12);
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.05), 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  box-sizing: border-box;
   cursor: default;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+  left: 0;
+  list-style: none;
+  margin: 0;
+  max-height: calc(var(--spacing-40) * 7);
+  min-width: 100%;
+  overflow-y: auto;
+  padding: var(--spacing-4);
+  position: absolute;
+  top: calc(100% + var(--spacing-4));
+  width: max-content;
+  z-index: 2;
 }
 
-.date-picker__title:disabled .icon {
+.date-picker__menu[hidden] {
   display: none;
+}
+
+.date-picker__menu-item {
+  color: var(--color-text-base-secondary);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.date-picker__menu-item:hover,
+.date-picker__menu-item:focus-visible {
+  background: var(--color-background-base-tertiary);
+  outline: none;
+}
+
+.date-picker__menu-item:hover:focus-visible {
+  background: var(--color-background-base-tertiary-hover);
+}
+
+.date-picker__menu-item.is-selected {
+  color: var(--color-text-brand-default);
+  font-weight: var(--font-weight-fw-medium);
+}
+
+.date-picker__menu-item.is-disabled {
+  color: var(--color-text-disabled-default);
+  cursor: not-allowed;
+}
+
+.date-picker__menu-item.is-disabled:hover {
+  background: transparent;
 }
 
 .date-picker__option {
