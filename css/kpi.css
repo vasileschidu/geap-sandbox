@@ -94,7 +94,7 @@
 /* ---- Zone band = bullet graph (kpi-band-v6, 2026-11-06, user): the eKYC stacked meter `--lg` (12) = the zones; the current
    value = a 2px dark tick crossing the bar (white halo) + a static VALUE CALLOUT = the library tooltip Small with its arrow on
    top (Components 210:3897), in its chart variant (user 2026-11-06: „more compact and rounder”): body `--gray-900`, pill
-   (radius full), padding 4 8 (24 high), 12/16 medium white; arrow 12 wide · 6 tall, tip 4 under the bar. Variant by room:
+   (radius 8), padding 4 8 (24 high), 12/16 medium white; arrow 12 wide · 6 tall, tip 4 under the bar. Variant by room:
    top-centre, else top-left / top-right (arrow 14 from the body edge) — fitBandLabels. No shadow (it sits in a card).
    An explicit user exception to the hover-tooltip rule (body only, edge-aligned): components.md › „Chart value callout”.
    The marker SVG (48) starts 2 above the bar top (gap 16 + bar 12 + 2 back); the legend follows 16 under the callout. */
@@ -121,9 +121,11 @@
   fill: var(--gray-900, #1e1e1e);
 }
 
-/* the chart value callout variant: a pill (radius full → half the 24 height) */
+/* the chart value callout variant: radius 8 (user 2026-11-06: rounder than the library 4, not a pill — an SVG rx of
+   999 clamps rx and ry separately and turns the body into an ellipse) */
 .e-permits-kpi-band__bubble {
-  rx: var(--border-radius-full, 999px);
+  rx: var(--border-radius-8, 8px);
+  ry: var(--border-radius-8, 8px);
 }
 
 .e-permits-kpi-band__label {
