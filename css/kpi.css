@@ -90,3 +90,42 @@
 .e-permits-kpi-editor .e-permits-ntpl-content__preview {
   top: 0;
 }
+
+/* ---- Zone band = bullet graph (kpi-band-v3, 2026-11-06, user: „marker barely visible, too much space”): the eKYC stacked
+   meter `--lg` (12) is the zones; the current value = a 2px dark tick crossing the bar (2 over each edge, white 1px halo so it
+   reads on red / green) + a dark caret 4 under the bar pointing up + „Acum …” 14/20 medium under the caret, anchored away
+   from the nearer edge. The marker SVG (48 high) overlaps the bar: it starts 2 above the bar top (gap 16 + bar 12 + 2 back);
+   its label ends 16 above the legend (the card gap). components.md › „Charts: no overlapping labels”. */
+.e-permits-kpi-band__marker {
+  display: block;
+  height: var(--spacing-48, 48px);
+  margin-top: calc((var(--spacing-16, 16px) + var(--spacing-12, 12px) + var(--spacing-2, 2px)) * -1);
+  overflow: visible;
+  width: 100%;
+}
+
+.e-permits-kpi-band__halo {
+  stroke: var(--color-background-base-default, #fff);
+  stroke-width: var(--border-width-4, 4px);
+}
+
+.e-permits-kpi-band__tick {
+  stroke: var(--color-text-base-default, #121212);
+  stroke-width: var(--border-width-2, 2px);
+}
+
+.e-permits-kpi-band__caret {
+  fill: var(--color-text-base-default, #121212);
+}
+
+.e-permits-kpi-band__label {
+  fill: var(--color-text-base-default, #121212);
+  font-family: var(--font-family-primary-font, Onest);
+  font-size: var(--font-size-fs-14, 14px);
+  font-weight: var(--font-weight-fw-medium, 500);
+}
+
+/* label → legend = 16: the marker box ends 2 under the label, the card gap (16) does the rest */
+.e-permits-kpi-band.has-marker > .e-permits-meter-legend {
+  margin-top: calc(var(--spacing-2, 2px) * -1);
+}

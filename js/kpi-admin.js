@@ -255,34 +255,52 @@
      „Acum …” anchored away from the nearer edge (start in the left half, end in the right half), so it cannot leave the
      card or meet another label. components.md › „Charts: no overlapping labels”. */
   const niceMax = (v) => { if (!(v > 0)) return 1; const step = 10 ** Math.floor(Math.log10(v)); return Math.ceil(v / step * 2) / 2 * step; };
+  /* the zoomed start: a „nice” tick under min(current value, the lowest zone edge) minus half the visible span — the zones
+     stay readable (80–100 % instead of a red bar over 90 % of the width) */
+  const niceStart = (lo, hi) => {
+    const span = Math.max(hi - lo, 1e-9);
+    const raw = lo - span * 0.5;
+    if (raw <= 0) return 0;
+    const step = 10 ** Math.floor(Math.log10(span)) / 2;
+    return Math.max(0, Math.floor(raw / step) * step);
+  };
   function bandHtml(k, t, { title = "Zonele valorii", meta = "", current = null } = {}) {
     if (!hasTarget(t) || Number.isNaN(Number(t.target))) return '<div hidden data-kpi-band></div>';
     const T = Number(t.target);
     const th = Number(t.threshold || 0);
     const cur = current === null || current === undefined || current === "" || Number.isNaN(Number(current)) ? null : Number(current);
     const max = k.format === "percent" ? 100 : niceMax(Math.max(T + th, T * 1.5, cur ?? 0) * 1.1);
-    const segs = k.direction === "up"
-      ? [[Math.min(T, max), "danger"], [Math.max(0, Math.min(th, max - T)), "warning"], [Math.max(0, max - T - th), "success"]]
-      : [[Math.max(0, T - th), "success"], [Math.min(th, T), "warning"], [Math.max(0, max - T), "danger"]];
+    const edge = k.direction === "up" ? T : Math.max(0, T - th);
+    const min = niceStart(Math.min(cur ?? edge, edge), max);
+    /* the zones as intervals, clipped to the visible domain [min, max] */
+    const zonesAt = k.direction === "up"
+      ? [[0, T, "danger"], [T, T + th, "warning"], [T + th, max, "success"]]
+      : [[0, Math.max(0, T - th), "success"], [Math.max(0, T - th), T, "warning"], [T, max, "danger"]];
+    const segs = zonesAt.map(([from, to, tone]) => [Math.max(0, Math.min(to, max) - Math.max(from, min)), tone]);
     const ranges = zoneRanges(k, t);
     let marker = "";
     if (cur !== null) {
-      const x = (Math.min(max, Math.max(0, cur)) / max) * 100;
-      const z = zone(k.direction, cur, T, th);
+      const x = ((Math.min(max, Math.max(min, cur)) - min) / (max - min)) * 100;
       marker = `
-          <svg class="e-permits-ekyc-band__axis" role="img" aria-label="${esc(`Valoarea curentă ${fmt(k, cur)}${z ? `, ${ZONES[z][0]}` : ""}`)}" focusable="false">
-            <line class="e-permits-ekyc-band__tick" x1="${x.toFixed(2)}%" x2="${x.toFixed(2)}%" y1="0" y2="8"></line>
-            <text class="e-permits-ekyc-band__label is-threshold" x="${x.toFixed(2)}%" y="22" text-anchor="${x < 50 ? "start" : "end"}">${esc(`Acum ${fmt(k, cur)}`)}</text>
+          <svg class="e-permits-kpi-band__marker" aria-hidden="true" focusable="false">
+            <svg x="${x.toFixed(2)}%" overflow="visible">
+              <line class="e-permits-kpi-band__halo" x1="0" x2="0" y1="0" y2="16"></line>
+              <line class="e-permits-kpi-band__tick" x1="0" x2="0" y1="0" y2="16"></line>
+              <polygon class="e-permits-kpi-band__caret" points="-5,24 0,18 5,24"></polygon>
+            </svg>
+            <text class="e-permits-kpi-band__label" x="${x.toFixed(2)}%" y="42" text-anchor="${x < 50 ? "start" : "end"}">${esc(`Acum ${fmt(k, cur)}`)}</text>
           </svg>`;
     }
+    const z = cur === null ? null : zone(k.direction, cur, T, th);
+    const label = `Domeniul afișat ${fmt(k, min)} – ${fmt(k, max)}. ${ranges.map(([l, , r]) => `${l} ${r}`).join(", ")}${cur !== null ? `. Valoarea curentă ${fmt(k, cur)}${z ? `, ${ZONES[z][0]}` : ""}` : ""}`;
     return `
       <section class="e-permits-dosar-profil__section" aria-label="${esc(title)}" data-kpi-band>
         <div class="e-permits-dosar-profil__section-heading">
           <h2 class="e-permits-dosar-profil__section-title">${esc(title)}</h2>
           ${meta ? `<span class="e-permits-dosar-profil__section-meta">${esc(meta)}</span>` : ""}
         </div>
-        <div class="e-permits-chart e-permits-ekyc-band">
-          ${meter(segs, { max, label: ranges.map(([l, , r]) => `${l} ${r}`).join(", ") })}${marker}
+        <div class="e-permits-chart e-permits-ekyc-band e-permits-kpi-band${marker ? " has-marker" : ""}">
+          ${meter(segs, { max: max - min, label })}${marker}
           ${legend(ranges.map(([l, tone, r]) => [`${l} · ${r}`, tone]))}
         </div>
       </section>`;

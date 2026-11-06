@@ -12060,9 +12060,11 @@ creation.
 - **Target zones** — Favorabil / Avertizare / Critic (Feature 96498 „Culoare”): beyond the target by more than the
   threshold = favourable, within the threshold on the good side = warning (approach alert), past the target on the bad
   side = critical (exceeded alert). Drawn as a bullet graph on the eKYC decision band: meter `--lg` = zones only, NO
-  labels at the thresholds; the ranges = the legend tray under the bar („Critic · sub 92%”…); the current value = one
-  tick + „Acum 87,4%” under the bar, anchored start in the left half / end in the right half (see „Charts: no
-  overlapping labels”). Domain: 0–100 for %, otherwise a „nice” max ≥ 1.1 × the largest of target + threshold, 1.5 × target, value.
+  labels at the thresholds; the ranges = the legend tray under the bar („Critic · sub 92%”…); the current value (kpi-band-v3)
+  = `svg.e-permits-kpi-band__marker` over the bar: 2px dark tick crossing it (`__tick` text-default + `__halo` 4px white),
+  dark caret 4 under the bar (`__caret`), „Acum 87,4%” 14/20 medium (`__label`) under the caret, anchored start in the left
+  half / end in the right half; card `.e-permits-kpi-band.has-marker`, label → legend 16. Domain zoomed: from a nice tick
+  under min(value, lowest zone edge) minus half the span, to 100 % (or a nice max); the domain is in the aria-label.
 - **Global vs own (composition)** — two `.e-permits-kpi` cards in one `.e-permits-kpi-grid`: „Ținta globală” (meta
   „prag … · înlocuită în ANSP / se aplică în ANSP”) next to „Ținta ANSP” (meta „valoare proprie” or „fără valoare
   proprie…”); then the own values stacked list (title „Autoritate” / „Subdiviziune · CSP Bălți” / „Rol · Supervizor”
@@ -12179,8 +12181,8 @@ the bullet-graph practice (Stephen Few; Grafana / Datadog / Stripe threshold bar
 - never print labels at data-driven positions that can meet (thresholds, targets): the exact values go into the legend tray
   under the chart (one item per zone / series, it wraps — gap 4 / 16, never overlaps);
 - an axis keeps only evenly spaced labels (first · middle · last, as the column chart), never threshold-positioned ones;
-- the ONE positioned label is the current value: a tick + „Acum …” anchored away from the nearer edge (start < 50 %,
-  end ≥ 50 %), so it never leaves the card;
+- the ONE positioned label is the current value: tick + caret + „Acum …” anchored away from the nearer edge (start < 50 %,
+  end ≥ 50 %), so it never leaves the card; zoom the domain so the zones stay readable;
 - verification: `node --experimental-websocket --no-warnings tools/ui-qa/chart-overlap.mjs --states <ids>` (1440 · 1280 ·
   375, text boxes inside chart cards: intersections + labels outside the card) must report `TOTAL 0`.
 
