@@ -4281,6 +4281,9 @@
       /* US-401 — edit */
       "kpi-04": prof("kpi-t01"),
       "kpi-04a": prof("kpi-t01", "tinta"),
+      /* the band label near the edges: centred on the marker, shifted inside the card (?kpi=marker-stanga / marker-dreapta) */
+      "kpi-04j": prof("kpi-t01", "tinta", null, { kpi: "marker-stanga" }),
+      "kpi-04k": prof("kpi-t01", "tinta", null, { kpi: "marker-dreapta" }),
       "kpi-04b": prof("kpi-t01", "tinta", async (h) => { await h.fill("#kpi-e-target", "92", { leave: false }); await h.click('#kpi-panel [data-kpi-role][value="Director"]'); }),
       "kpi-04c": prof("kpi-t01", "definitie", seq(async (h) => { await h.fill("#kpi-e-name-ro", "", { leave: false }); }, async (h) => { await h.click("[data-kpi-save]"); })),
       "kpi-04d": prof("kpi-t01", "tinta", seq(async (h) => { await h.fill("#kpi-e-target", "92", { leave: false }); }, async (h) => { await h.click("[data-profile-changes]"); })),

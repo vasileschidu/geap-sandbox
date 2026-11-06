@@ -12083,9 +12083,9 @@ creation.
   threshold = favourable, within the threshold on the good side = warning (approach alert), past the target on the bad
   side = critical (exceeded alert). Drawn as a bullet graph on the eKYC decision band: meter `--lg` = zones only, NO
   labels at the thresholds; the ranges = the legend tray under the bar („Critic · sub 92%”…); the current value (kpi-band-v3)
-  = `svg.e-permits-kpi-band__marker` over the bar: 2px dark tick crossing it (`__tick` text-default + `__halo` 4px white),
-  dark caret 4 under the bar (`__caret`), „Acum 87,4%” 14/20 medium (`__label`) under the caret, anchored start in the left
-  half / end in the right half; card `.e-permits-kpi-band.has-marker`, label → legend 16. Domain zoomed: from a nice tick
+  = `svg.e-permits-kpi-band__marker` over the bar: 2px dark tick crossing it (`__tick` text-default + `__halo` 4px white) +
+  the chart value callout „Acum 87,4%” (`__caret` arrow + `__bubble` + `__label`, see „Chart value callout”); card
+  `.e-permits-kpi-band.has-marker`, callout → legend 16. Domain zoomed: from a nice tick
   under min(value, lowest zone edge) minus half the span, to 100 % (or a nice max); the domain is in the aria-label.
 - **Global vs own (composition)** — two `.e-permits-kpi` cards in one `.e-permits-kpi-grid`: „Ținta globală” (meta
   „prag … · înlocuită în ANSP / se aplică în ANSP”) next to „Ținta ANSP” (meta „valoare proprie” or „fără valoare
@@ -12195,6 +12195,17 @@ The profile panel that directly holds it (`.e-permits-dosar-profil__panel` / `.e
 create sheet two-column steps (`.e-permits-kpi-editor__page:has(> .e-permits-editor-wide)`); widgets reuse the same class.
 Columns keep the ntpl ratio (form 7fr | helper 5fr; `.e-permits-kpi-content--preview` = form minmax(360px, 5fr) | chart 7fr).
 One-column tabs (Alerte, Istoric, Valori proprii, lists) never get it — they keep the profile width (1024).
+
+### Chart value callout — library Small tooltip with arrow, static (kpi-band-v6, 2026-11-06, user)
+
+The ONE place a tooltip shape keeps its arrow: the current value under a zone band („Acum 87,4%”) is an ALWAYS-VISIBLE
+callout (readable without hover), not a hover tooltip — an explicit user exception to „Tooltip Small, body only, edge-aligned”.
+Look = the library Small tooltip with the arrow on top (Figma Components 210:3897, Size=Small, rows 3–4; main.css
+`.tooltip--small .tooltip-inner` + `.tooltip-arrow`): body `--gray-900`, radius 6, padding 8 12 (36 high), text 14/20
+white; arrow = the 14 px square at 45° (≈ 20 wide, 10 tall), tip 4 under the bar, on the value. Variant by room
+(`fitBandLabels` in js/kpi-admin.js, after layout + on resize): top-centre; when the centred body would leave the card →
+top-left / top-right (arrow 19 from the body edge, like the library's 20 + 7 inside the 8 wrapper). Drawn in the marker SVG
+(`.e-permits-kpi-band__caret` / `__bubble` / `__label`), no shadow (it sits inside a card). Demo kpi-04a, edges kpi-04j / kpi-04k.
 
 ### Charts: no overlapping labels (kpi-band-v2, 2026-11-06, user: „make sure we never have overlaps”)
 

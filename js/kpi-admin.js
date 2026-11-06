@@ -280,15 +280,18 @@
     const ranges = zoneRanges(k, t);
     let marker = "";
     if (cur !== null) {
-      const x = ((Math.min(max, Math.max(min, cur)) - min) / (max - min)) * 100;
+      /* demo: ?kpi=marker-stanga / marker-dreapta pins the marker to an edge (label clamping check) */
+      const at = demo.has("marker-stanga") ? min : demo.has("marker-dreapta") ? max : Math.min(max, Math.max(min, cur));
+      const x = ((at - min) / (max - min)) * 100;
       marker = `
           <svg class="e-permits-kpi-band__marker" aria-hidden="true" focusable="false">
             <svg x="${x.toFixed(2)}%" overflow="visible">
               <line class="e-permits-kpi-band__halo" x1="0" x2="0" y1="0" y2="16"></line>
               <line class="e-permits-kpi-band__tick" x1="0" x2="0" y1="0" y2="16"></line>
-              <polygon class="e-permits-kpi-band__caret" points="-5,24 0,18 5,24"></polygon>
+              <polygon class="e-permits-kpi-band__caret" points="-10,28 0,18 10,28"></polygon>
+              <rect class="e-permits-kpi-band__bubble" x="${-Math.round((`Acum ${fmt(k, cur)}`.length * 8 + 24) / 2)}" y="28" width="${`Acum ${fmt(k, cur)}`.length * 8 + 24}" height="36" rx="6"></rect>
             </svg>
-            <text class="e-permits-kpi-band__label" x="${x.toFixed(2)}%" y="42" text-anchor="${x < 50 ? "start" : "end"}">${esc(`Acum ${fmt(k, cur)}`)}</text>
+            <text class="e-permits-kpi-band__label" x="${x.toFixed(2)}%" y="51" text-anchor="middle" data-kpi-x="${x.toFixed(2)}">${esc(`Acum ${fmt(k, cur)}`)}</text>
           </svg>`;
     }
     const z = cur === null ? null : zone(k.direction, cur, T, th);
@@ -305,6 +308,34 @@
         </div>
       </section>`;
   }
+  /* „Acum …” = an always-visible value callout in the library tooltip Small look (gray-900 bubble, r4, 8 12, 14/20 white) with
+     its arrow on the value; centred on the marker, near an edge the bubble shifts inside the card while the arrow stays. SVG text
+     cannot measure itself in CSS, so every drawn band is fitted once laid out (and on resize): x = clamp(cx − w / 2, 0, W − w) */
+  function fitBandLabels(scope = document) {
+    scope.querySelectorAll?.(".e-permits-kpi-band__label[data-kpi-x]").forEach((t) => {
+      const svg = t.ownerSVGElement;
+      const W = svg?.getBoundingClientRect().width || 0;
+      if (!W) return;
+      /* the library Small tooltip with its arrow on top (main.css .tooltip--bottom-left / -center / -right: 14 square at
+         45°, 20 + 7 from the wrapper edge = 19 from the body edge): top-centre by default; when the centred body would leave
+         the card, the top-left / top-right variant — the arrow stays on the value, the body moves to its side */
+      const w = t.getComputedTextLength() + 24;
+      const cx = (W * Number(t.dataset.kpiX)) / 100;
+      const ARROW = 19;
+      const left = cx - w / 2 >= 0 && cx + w / 2 <= W ? cx - w / 2 : cx < W / 2 ? cx - ARROW : cx - (w - ARROW);
+      t.dataset.kpiVariant = cx - w / 2 >= 0 && cx + w / 2 <= W ? "top-center" : cx < W / 2 ? "top-left" : "top-right";
+      const rect = svg.querySelector(".e-permits-kpi-band__bubble");
+      if (rect) { rect.setAttribute("x", (left - cx).toFixed(1)); rect.setAttribute("width", w.toFixed(1)); }
+      t.setAttribute("text-anchor", "start");
+      t.setAttribute("x", (left + 12).toFixed(1));
+    });
+  }
+  let fitQueued = false;
+  const queueFit = () => { if (fitQueued) return; fitQueued = true; requestAnimationFrame(() => { fitQueued = false; fitBandLabels(); }); };
+  new MutationObserver((list) => { if (list.some((m) => [...m.addedNodes].some((n) => n.nodeType === 1 && (n.matches?.(".e-permits-kpi-band__marker, [data-kpi-band]") || n.querySelector?.(".e-permits-kpi-band__marker"))))) queueFit(); })
+    .observe(document.documentElement, { childList: true, subtree: true });
+  window.addEventListener("resize", queueFit);
+
   /* the column chart of the eKYC „Tendință sesiuni”: one bar per month, coloured by its zone (brand without a target) */
   function trendChart(k, series, t) {
     const vals = series.map((p) => p.value).filter((v) => v !== null && v !== undefined);

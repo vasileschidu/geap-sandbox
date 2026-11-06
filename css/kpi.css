@@ -91,14 +91,16 @@
   top: 0;
 }
 
-/* ---- Zone band = bullet graph (kpi-band-v3, 2026-11-06, user: „marker barely visible, too much space”): the eKYC stacked
-   meter `--lg` (12) is the zones; the current value = a 2px dark tick crossing the bar (2 over each edge, white 1px halo so it
-   reads on red / green) + a dark caret 4 under the bar pointing up + „Acum …” 14/20 medium under the caret, anchored away
-   from the nearer edge. The marker SVG (48 high) overlaps the bar: it starts 2 above the bar top (gap 16 + bar 12 + 2 back);
-   its label ends 16 above the legend (the card gap). components.md › „Charts: no overlapping labels”. */
+/* ---- Zone band = bullet graph (kpi-band-v6, 2026-11-06, user): the eKYC stacked meter `--lg` (12) = the zones; the current
+   value = a 2px dark tick crossing the bar (white halo) + a static VALUE CALLOUT = the library tooltip Small WITH its arrow on
+   top (Components 210:3897 Small, rows 3–4; main.css `.tooltip--small` + `.tooltip-arrow`): body `--gray-900`, radius 6,
+   padding 8 12 (36 high), 14/20 white; arrow = the 14 square at 45° (≈ 20 wide · 10 tall), tip 4 under the bar. Variant by
+   room: top-centre, else top-left / top-right (arrow 19 from the body edge) — fitBandLabels. No shadow (it sits in a card).
+   An explicit user exception to the hover-tooltip rule (body only, edge-aligned): components.md › „Chart value callout”.
+   The marker SVG (64) starts 2 above the bar top (gap 16 + bar 12 + 2 back); the legend follows 16 under the callout. */
 .e-permits-kpi-band__marker {
   display: block;
-  height: var(--spacing-48, 48px);
+  height: var(--spacing-64, 64px);
   margin-top: calc((var(--spacing-16, 16px) + var(--spacing-12, 12px) + var(--spacing-2, 2px)) * -1);
   overflow: visible;
   width: 100%;
@@ -114,18 +116,13 @@
   stroke-width: var(--border-width-2, 2px);
 }
 
-.e-permits-kpi-band__caret {
-  fill: var(--color-text-base-default, #121212);
+.e-permits-kpi-band__caret,
+.e-permits-kpi-band__bubble {
+  fill: var(--gray-900, #1e1e1e);
 }
 
 .e-permits-kpi-band__label {
-  fill: var(--color-text-base-default, #121212);
+  fill: var(--white, #ffffff);
   font-family: var(--font-family-primary-font, Onest);
   font-size: var(--font-size-fs-14, 14px);
-  font-weight: var(--font-weight-fw-medium, 500);
-}
-
-/* label → legend = 16: the marker box ends 2 under the label, the card gap (16) does the rest */
-.e-permits-kpi-band.has-marker > .e-permits-meter-legend {
-  margin-top: calc(var(--spacing-2, 2px) * -1);
 }
