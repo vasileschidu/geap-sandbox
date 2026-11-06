@@ -18,7 +18,7 @@
    codes, MDocs picker, facet-filter popover options, pager size, language). Each class is listed once here
    (0,1,0) and its own rule no longer declares a size — only colours / layout of its parts. Loaded after the
    product CSS (before modal-phone.css), so on equal specificity this file wins.
-   Not here on purpose: the phone bottom sheets (facet-filter sheet rows 44 — excluded below, the sort sheet 48,
+   Not here on purpose: the phone bottom sheets (the facet-filter sheet rows are in — sheet-rows-48-v1; the sort sheet 48,
    the instance-switcher sheet) — they are sheets, not dropdowns; the identity cards of the account menus; the
    date picker day grid.
    ========================================================================== */
@@ -91,8 +91,8 @@
 
 /* ===== Phones (≤ 760): touch items for EVERY menu (menu-40-v1, 2026-10-29) =====
    Moved here from the act / request action-menu scope of e-permits-acte-permisive.css („Row action menu on phones”,
-   action-menu-v1) and widened to all the item classes above. The facet-filter bottom sheet shares
-   `.e-permits-workplace__filter-option` but is a sheet (44 rows, 14/20) — left out. */
+   action-menu-v1) and widened to all the item classes above. The facet-filter bottom sheet rows follow it too
+   (sheet-rows-48-v1, 2026-11-06, user): checklist, path and radio rows = 48 · 16/24, no sheet override. */
 @media (max-width: 760px) {
   :is(
     .e-permits-fo-intent-menu,
@@ -102,7 +102,7 @@
     .e-permits-fo-address-search__list,
     .e-permits-fo-phone__code-list,
     .e-permits-fo-mdocs__list,
-    .e-permits-workplace__filter-list:not(:where(.e-permits-filter-sheet__list)),
+    .e-permits-workplace__filter-list,
     .e-permits-shell__help-list,
     .e-permits-shell__profile-links
   ) {
@@ -118,7 +118,7 @@
     .e-permits-fo-address-search__option,
     .e-permits-fo-phone__code-option,
     .e-permits-fo-mdocs__option,
-    .e-permits-workplace__filter-option:not(:where(.e-permits-filter-sheet__list *)),
+    .e-permits-workplace__filter-option,
     .e-permits-workplace__filter-more-item,
     .e-permits-shell__help-link,
     .e-permits-shell__profile-link

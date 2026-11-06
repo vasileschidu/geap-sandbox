@@ -768,6 +768,7 @@ const PAGE_LIB = (spec, documentedList) => {
       if (!head || !vis(head)) continue;
       const data = [...table.tBodies].flatMap((b) => [...b.rows]).filter((r) => vis(r) && !r.matches(".e-permits-empty-row") && !r.querySelector(":scope > td[colspan] > .e-permits-empty:only-child"));
       if (data.length) continue;
+      if (table.querySelector("tbody .skeleton")) continue; /* loading (rap-load-v1): skeleton rows keep the header, they are not an empty table */
       counts.emptyHead = (counts.emptyHead || 0) + 1;
       add("major", "empty-table-header", head, `column header row visible over an empty body (${head.cells.length} columns, 0 data rows)`, "no header row while the table has no data rows; the empty state (GEAPEmptyState) is centred in the card");
     }

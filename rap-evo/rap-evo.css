@@ -463,6 +463,42 @@ a {
   background: var(--rap-hover);
 }
 
+/* Loading rows (rap-load-v1, 2026-11-06): the ONE `.skeleton` placed in the row's cells — same columns, 56 high like a
+   one-line row (two 20 line slots + the cell's 8 / 8); every bar is the text's own 14 high inside a 20 line slot, so the
+   first real row lands where the first skeleton row was. Not interactive: no pointer, no hover band. */
+.rap-table tbody tr.rap-skeleton-row {
+  cursor: default;
+}
+
+.rap-table tbody tr.rap-skeleton-row:hover td {
+  background: transparent;
+}
+
+.rap-skeleton-row .skeleton--text {
+  height: 1em;
+  margin-block: calc((var(--line-height-lh-20, 20px) - 1em) / 2);
+  width: 70%;
+}
+
+.rap-skeleton-row .rap-beneficiary__copy,
+.rap-skeleton-row .rap-cell-stack {
+  gap: var(--spacing-0, 0px);
+}
+
+.rap-skeleton-row .rap-beneficiary__copy {
+  flex: 1 1 auto;
+}
+
+.rap-skeleton-row .rap-beneficiary__copy .skeleton--text:last-child,
+.rap-skeleton-row .rap-cell-stack .skeleton--text:last-child {
+  width: 45%;
+}
+
+.rap-skeleton-row .skeleton--circle {
+  height: var(--icon-size-default, 24px);
+  width: var(--icon-size-default, 24px);
+}
+
 /* keyboard focus ring (rap-table-flat-v2): a box-shadow on the `tr` is never painted in a collapsed table (the cells
    cover it) → the library ring (2 px `--focus-ring`) drawn INSIDE the cells: top + bottom on every cell, the sides on
    the first / last (the BO registry pattern, css/e-permits-shell.css › data-workplace-row-open) — inset, so the

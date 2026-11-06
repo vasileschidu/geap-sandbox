@@ -14,7 +14,7 @@
   /* Statut (US-141 AC-06): the statuses in the story's order + the pseudo-status „Aprobat tacit” = acts with Aprobare
      tacită = true whatever their status (a separate on/off chip was tried in rap-g and taken back, user 2026-11-04) */
   const STATUS_VALUES = ["Valabil", "Suspendat", "Expirat", "Retras", "Anulat", "Aprobat tacit"];
-  /* the act's service (Serviciu facet, rap-g): the RSSP service family of the act name */
+  /* the act's service (Domeniu facet, rap-g; the key stays „serviciu”): the RSSP service family of the act name */
   const SERVICE_RULES = [
     [/sanitar-veterinar|fitosanitar|uz veterinar|sanitar-veterinară/i, "Siguranța alimentelor"],
     [/sanitar|biocide|cosmetice|contactul cu alimentele|contactului cu alimentele/i, "Autorizare sanitară"],
@@ -49,7 +49,7 @@
   }));
   /* order (user 2026-11-04, the smart search already finds act numbers, companies / IDNO, addresses, authorities and act
      names): inline Statut · Autoritate emitentă (+ Subdiviziune as soon as an authority is ticked, rap-promote-v1) · Data eliberării · Data expirării; „Mai multe” = Denumire act ·
-     Subdiviziune · Serviciu (the cascade: their options follow the ticked authorities / subdivisions) · Adresă (Raion →
+     Subdiviziune · Domeniu (the cascade: their options follow the ticked authorities / subdivisions) · Adresă (Raion →
      Localitate → Stradă) · Tip beneficiar — a facet with a value shows as its own chip group. Dates = plain De la / Până
      la ranges (US-141 AC-07/08) */
   const FACETS = [
@@ -60,7 +60,7 @@
     { key: "emitere", label: "Data eliberării", chip: "Eliberat", type: "date", presets: [], get: (record) => record.dates.issued },
     { key: "expirare", label: "Data expirării", chip: "Expiră", type: "date", presets: [], get: (record) => record.dates.expires },
     { key: "denumire", label: "Denumire act", search: true, inMore: true, get: (record) => record.permit.name, unavailable: () => (API_ERRORS.has("eroare-tipuri") ? LIST_UNAVAILABLE : null) },
-    { key: "serviciu", label: "Serviciu", search: true, inMore: true, get: (record) => record.service },
+    { key: "serviciu", label: "Domeniu", search: true, inMore: true, get: (record) => record.service },
     { key: "adresa", label: "Adresă", type: "path", multiLeaf: true, leafPlural: "străzi", inMore: true, levels: ["Raion / municipiu", "Localitate", "Stradă"], tree: addressTree,
       chipText: (path) => (path.length > 1 ? path.slice(1).join(", ") : path[0]), get: (record) => (record.addressPath || []).join(PATH_SEP) },
     { key: "beneficiar", label: "Tip beneficiar", inMore: true, get: beneficiaryType }
@@ -822,6 +822,47 @@
     window.setTimeout(() => { elements.live.textContent = filterApiDown() ? "" : resultsWord(state.filteredRecords.length); }, 50);
   };
 
+  /* rap-load-v1 (2026-11-06, user): a re-query of the list (Aplică filtre, Resetează, a chip ×, the phone sheet, the search /
+     a suggestion) simulates the server — 1–2 s (random) with the table as skeleton rows (the ONE `.skeleton`, same columns
+     and row height), the clicked button in the library loading state (js/facet-filter.js `loading`), no pager, aria-live
+     „Se încarcă rezultatele…” then the count. Latest action wins. Demo links answer at once (0 ms) so every rap-* state
+     stays deterministic; `?rapdelay=hold` freezes the wait (rap-h09 / rap-h10), `?rapdelay=<ms>` sets it. */
+  const LOAD_MS = [1000, 2000];
+  const SKELETON_ROWS = 8;
+  const loadMs = () => {
+    const param = new URLSearchParams(window.location.search).get("rapdelay");
+    if (param === "hold") return Infinity;
+    if (param !== null && param !== "" && Number.isFinite(Number(param))) return Number(param);
+    if (document.documentElement.dataset.demoLink) return 0;
+    return Math.round(LOAD_MS[0] + Math.random() * (LOAD_MS[1] - LOAD_MS[0]));
+  };
+  const skeletonBar = '<span class="skeleton skeleton--text"></span>';
+  const skeletonRowHtml = `
+    <tr class="rap-skeleton-row" aria-hidden="true">
+      <td><div class="rap-beneficiary"><span class="skeleton skeleton--circle"></span><span class="rap-beneficiary__copy">${skeletonBar}${skeletonBar}</span></div></td>
+      <td>${skeletonBar}</td>
+      <td>${skeletonBar}</td>
+      <td><span class="rap-cell-stack">${skeletonBar}${skeletonBar}</span></td>
+      <td><span class="rap-cell-stack">${skeletonBar}${skeletonBar}</span></td>
+      <td>${skeletonBar}</td>
+      <td></td>
+    </tr>`;
+  const startLoading = () => {
+    elements.empty.hidden = true;
+    document.querySelector(".rap-register").hidden = false;
+    if (!elements.tableBody.querySelector(".rap-skeleton-row")) elements.tableBody.innerHTML = skeletonRowHtml.repeat(SKELETON_ROWS);
+    elements.pagination.innerHTML = "";
+    elements.tableScroller?.setAttribute("aria-busy", "true");
+    if (elements.live) elements.live.textContent = "Se încarcă rezultatele…";
+  };
+  const stopLoading = () => {
+    elements.tableScroller?.removeAttribute("aria-busy");
+    render();
+    if (elements.live) elements.live.textContent = "";
+  };
+  /* the page's own re-queries (search) share the facet filter's wait */
+  const requery = (fn) => (facetFilter ? facetFilter.defer(fn) : fn());
+
   const initFacetFilter = () => {
     facetFilter = window.GEAPFacetFilter.create({
       bar: elements.filterBar,
@@ -839,7 +880,8 @@
       /* phones: one scrolling chip row + bottom sheets with a live „Arată N rezultate” */
       mobileSheets: true,
       preview: (selection) => state.records.filter((record) => matchesSearch(record) && matchesFacets(record, null, selection)).length,
-      apply: () => { state.page = 1; applyFilters(); announceCount(); },
+      apply: () => { elements.tableScroller?.removeAttribute("aria-busy"); state.page = 1; applyFilters(); announceCount(); },
+      loading: { ms: loadMs, start: startLoading, stop: stopLoading },
       scrollers: [elements.tableScroller],
       /* US-141 AC-13: the applied filters stay visible as chips while active — desktop and phones; the trigger never
          hides them. User 2026-11-04: chips = label + count (dates: the period) + × that clears that filter (AC-14);
@@ -896,7 +938,7 @@
     const url = new URL(window.location.href);
     url.searchParams.delete("idno");
     window.history.replaceState({ rapCompanyIdno: null }, "", url);
-    applyFilters();
+    requery(() => { applyFilters(); announceCount(); });
     elements.search.focus();
   };
 
@@ -1114,8 +1156,7 @@
         : { ...state.filter.applied, adresa: [item.path.join(PATH_SEP)] };
     state.filter.draft = null;
     state.page = 1;
-    applyFilters();
-    announceCount();
+    requery(() => { elements.tableScroller?.removeAttribute("aria-busy"); applyFilters(); announceCount(); });
   };
   const bindSuggest = () => {
     elements.search.closest(".search-input")?.appendChild(suggestEl);
@@ -1190,15 +1231,20 @@
       window.clearTimeout(searchTimer);
       syncSearchState();
       searchTimer = window.setTimeout(() => {
-        state.search = elements.search.value.trim();
-        state.companyFilter = null;
-        state.page = 1;
+        const query = elements.search.value.trim();
         const url = new URL(window.location.href);
         if (url.searchParams.has("idno")) {
           url.searchParams.delete("idno");
           window.history.replaceState({ rapCompanyIdno: null }, "", url);
         }
-        applyFilters();
+        requery(() => {
+          elements.tableScroller?.removeAttribute("aria-busy");
+          state.search = query;
+          state.companyFilter = null;
+          state.page = 1;
+          applyFilters();
+          announceCount();
+        });
       }, 120);
     });
 
@@ -1281,7 +1327,7 @@
     let paginationResizeTimer;
     window.addEventListener("resize", () => {
       window.clearTimeout(paginationResizeTimer);
-      paginationResizeTimer = window.setTimeout(renderPagination, 100);
+      paginationResizeTimer = window.setTimeout(() => { if (!elements.tableScroller?.hasAttribute("aria-busy")) renderPagination(); }, 100);
     });
 
     /* the language switch lives in the shared EVO header (js/evo-header.js, evo-header-v1) */

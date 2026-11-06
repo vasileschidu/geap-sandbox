@@ -3464,6 +3464,23 @@
               });
               return { "rap-h03": calendar(2), "rap-h04": calendar(1) };
             })(),
+            /* rap-load-v1 (2026-11-06): the simulated server wait, frozen (?rapdelay=hold) — h09 „Aplică filtre” (desktop; on a phone
+               the sheet's „Arată N rezultate”, the sheet stays open with the loading button) · h10 a search · h11 „Resetează” */
+            "rap-h09": { ...rap(async (h) => { await open(h); await pick("autoritate", ["Agenția Națională pentru Sănătate Publică"])(h); if (!phone()) { await h.click("[data-filter-commit]"); } await h.wait(250); }), params: { rapdelay: "hold" } },
+            "rap-h10": { ...rap(async (h) => { await h.fill("[data-rap-search]", "bere", { leave: false }); await h.wait(450); document.querySelector(".rap-suggest")?.setAttribute("hidden", ""); }), params: { rapdelay: "hold" } },
+            "rap-h11": rap(async (h) => {
+              await open(h); await pick("autoritate", ["Agenția Națională pentru Sănătate Publică"])(h); await h.wait(200); await commit(h);
+              const url = new URL(window.location.href); url.searchParams.set("rapdelay", "hold"); window.history.replaceState(window.history.state, "", url);
+              await h.click("[data-filter-clear-all]"); await h.wait(250);
+            }),
+            /* h12: phone sheet / desktop popover reopened on a facet with 2 values applied — ticked first, the separator after them */
+            "rap-h12": rap(async (h) => {
+              await open(h); await ffFacet(h, "autoritate");
+              const values = [...document.querySelectorAll('[data-filter-option]')].filter((el) => el.offsetParent).slice(0, 2).map((el) => el.value);
+              for (const value of values) await h.click(`[data-filter-option][value="${value}"]`);
+              await done(h); await commit(h);
+              if (phone()) { await h.click('[data-filter-facet="autoritate"]'); await h.wait(500); } else { await ffFacet(h, "autoritate"); await h.wait(300); }
+            }),
             "rap-f18": rap(async (h) => { await open(h); await range("emitere", "2030-01-01", "")(h); await commit(h); }),
             "rap-f19": rap(async (h) => { await open(h); await pick("beneficiar", ["Persoană fizică"])(h); await commit(h); }),
             "rap-f20": RAPAPI("eroare-filtrare", async (h) => { await open(h); await pick("status", ["Valabil"])(h); await commit(h); })

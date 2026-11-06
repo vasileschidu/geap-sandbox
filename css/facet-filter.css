@@ -515,16 +515,10 @@ html.is-filter-sheet-open {
   padding: var(--spacing-0, 0px) var(--spacing-8, 8px);
 }
 
-/* 44px rows (touch), the value on the sheet's 16 inset — a sheet, not a dropdown: it keeps its own rows
-   (regular 14/20, radius 8), the dropdown item size does not apply; box → value 12 = the library
-   checkbox / radio gap (was 10 until facet-popover-v2) */
+/* rows = the ONE phone option size (css/dropdown.css: 48 · 16/24, radius 8, box → value 12; sheet-rows-48-v1) — only the
+   label's bottom margin of the library is dropped here */
 .e-permits-filter-sheet__list .e-permits-workplace__filter-option {
-  border-radius: var(--border-radius-8, 8px);
-  font-weight: var(--font-weight-fw-regular, 400);
-  gap: var(--spacing-12, 12px);
-  margin: var(--spacing-0, 0px); /* the library label's 6px bottom margin */
-  min-height: calc(var(--spacing-40, 40px) + var(--spacing-4, 4px));
-  padding: var(--spacing-12, 12px) var(--spacing-8, 8px);
+  margin: var(--spacing-0, 0px);
 }
 
 /* header: title · „Resetează” (text) · ×; sticky footer: „Arată N rezultate” (primary, full width —
@@ -1123,4 +1117,30 @@ html.is-filter-sheet-open .e-permits-fo-testcfg {
   .e-permits-workplace__filters--compact .chip.e-permits-workplace__filter-chip.e-permits-workplace__filter-reset {
     padding: 0 var(--spacing-12, 12px) 0 var(--spacing-8, 8px);
   }
+}
+
+/* Loading (rap-load-v1, 2026-11-06): „Resetează” (the chip, the phone line's text button) while its re-query waits — the
+   library button loading state (label hidden, the 16 spinner of `.btn-neutral.btn-loading`, no pointer events); the
+   primary „Aplică filtre” and the sheet's „Arată N rezultate” use `.btn-primary.btn-loading` itself */
+[data-filter-clear-all][aria-busy="true"] {
+  color: transparent !important;
+  pointer-events: none;
+  position: relative;
+}
+
+[data-filter-clear-all][aria-busy="true"] > * {
+  visibility: hidden;
+}
+
+[data-filter-clear-all][aria-busy="true"]::after {
+  animation: spin 1s linear infinite;
+  border: var(--border-width-2, 2px) solid var(--color-text-base-default, #000);
+  border-radius: 50%;
+  border-top-color: transparent;
+  content: "";
+  height: var(--spacing-16, 16px);
+  inset: 0;
+  margin: auto;
+  position: absolute;
+  width: var(--spacing-16, 16px);
 }

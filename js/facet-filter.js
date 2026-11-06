@@ -44,7 +44,12 @@
                                     <Facet>”]; un-applied chips stay plain
      cascade: { parent: [children] } a value removed from the parent drops the children's values that no longer have rows
                                     (draft + sheet); the children's options follow the parents' values (RAP
-                                    Autoritate → Subdiviziune → Serviciu)
+                                    Autoritate → Subdiviziune → Domeniu)
+     loading                        (opt-in, rap-load-v1) simulated server wait: `{ ms: () => number (0 = none, Infinity = hold),
+                                    start(source), stop() }`. Every re-query (Aplică filtre, Resetează, a chip ×, the phone
+                                    sheet „Arată N rezultate”, and `ctl.defer(fn)` for the page's search) first calls `start`
+                                    (the page shows its skeleton), shows the clicked button in the library loading state
+                                    (aria-busy), and runs `cfg.apply` after `ms`; a new action cancels the previous one.
      masterApply                    (default false) desktop: a tick / date in a popover goes straight into the bar's DRAFT
                                     (no per-popover Confirmă; footer = „Resetează” for that facet; Esc / outside click
                                     keep the draft); ONE button slot ends the chips row: changes pending → primary Medium
@@ -315,6 +320,9 @@
       ...(cfg.text || {})
     };
     const hideOnToggle = cfg.hideOnToggle !== false;
+    /* loading (opt-in): ONE pending re-query — { source: "commit" | "clear" | "facet" | "sheet" | "search" }; latest wins */
+    let busy = null;
+    let busyTimer = 0;
     const invalidDates = new Set(); /* masterApply: date facets whose typed range is not valid (blocks „Aplică filtre”) */
     const inlineMax = cfg.inlineMax || INLINE_MAX;
     const unavailableOf = (facet) => (typeof facet?.unavailable === "function" ? facet.unavailable() : facet?.unavailable) || null;
@@ -566,7 +574,8 @@
           <span>Șterge</span>
         </button>`);
     /* „Șterge filtrele” / the page's word (RAP „Resetează”, its full name for screen readers: `text.clearName`) */
-    const clearButton = () => `<button class="btn btn-text-neutral btn-sm" type="button"${TEXT.clearName ? ` aria-label="${escapeHtml(TEXT.clearName)}"` : ""} data-filter-clear-all>${escapeHtml(TEXT.clear)}</button>`;
+    const busyAttrs = (source) => (busy?.source === source ? ' aria-busy="true"' : "");
+    const clearButton = () => `<button class="btn btn-text-neutral btn-sm" type="button"${busyAttrs("clear")}${TEXT.clearName ? ` aria-label="${escapeHtml(TEXT.clearName)}"` : ""} data-filter-clear-all>${escapeHtml(TEXT.clear)}</button>`;
     const resultsText = (n) => (TEXT.results ? TEXT.results(n) : n === 1 ? "1 rezultat" : `${n} rezultate`);
     const chipHtml = (facet, n, open) => `<button class="chip${n ? " is-selected" : ""} e-permits-workplace__filter-chip" type="button" aria-haspopup="dialog" aria-expanded="${open}" data-filter-facet="${escapeHtml(facet.key)}"${n ? ` aria-label="${escapeHtml(facet.label)}: ${n} ${n === 1 ? "valoare selectată" : "valori selectate"}"` : ""}>
         <span class="chip__label">${escapeHtml(facet.label)}</span>
@@ -624,10 +633,10 @@
       /* masterApply: ONE button slot at the end of the chips row (rap-master-apply-v2) — changes pending → primary Medium
          „Aplică filtre”; filters applied, nothing pending → neutral Medium „Resetează” (all filters); else no button */
       const master = !cfg.masterApply ? ""
-        : isPending ? `<button class="btn btn-primary ${cfg.compact ? "btn-sm" : "btn-md"} e-permits-workplace__filter-apply" type="button" data-filter-slot data-filter-commit>${escapeHtml(TEXT.apply)}</button>`
+        : isPending ? `<button class="btn btn-primary ${cfg.compact ? "btn-sm" : "btn-md"}${busy?.source === "commit" ? " btn-loading" : ""} e-permits-workplace__filter-apply" type="button"${busyAttrs("commit")} data-filter-slot data-filter-commit>${escapeHtml(TEXT.apply)}</button>`
           /* „Resetează” = a filter chip (grey, the chips' size) with a LEADING × (user 2026-11-05: „× then Resetează”; first:
              „a different type of button, similar to chips, with an x”) */
-          : appliedCount ? `<button class="chip e-permits-workplace__filter-chip e-permits-workplace__filter-apply e-permits-workplace__filter-reset" type="button" data-filter-slot${TEXT.clearName ? ` aria-label="${escapeHtml(TEXT.clearName)}"` : ""} data-filter-clear-all>
+          : appliedCount ? `<button class="chip e-permits-workplace__filter-chip e-permits-workplace__filter-apply e-permits-workplace__filter-reset" type="button"${busyAttrs("clear")} data-filter-slot${TEXT.clearName ? ` aria-label="${escapeHtml(TEXT.clearName)}"` : ""} data-filter-clear-all>
         <svg class="icon e-permits-workplace__filter-caret" aria-hidden="true"><use href="${sprite}#icon-cross-large"></use></svg>
         <span class="chip__label">${escapeHtml(TEXT.clear)}</span>
       </button>` : "";
@@ -858,6 +867,7 @@
 
     const closeSheet = (restoreFocus = true) => {
       if (!sheet) return;
+      if (busy?.source === "sheet") cancelBusy(true);
       const { kind, key, opener } = sheet;
       sheet = null;
       sheetTimer = sheetHide(sheetEl, () => !!sheet);
@@ -872,15 +882,19 @@
       /* a custom period that is not valid blocks „Arată” and shows why */
       const invalid = Object.keys(sheet.dates).filter((key) => sheetEl.querySelector(`[data-filter-range="${CSS.escape(key)}"]`) && !readDate(sheetEl, key, sheet.dates[key], true).ok);
       if (invalid.length) { sheetEl.querySelector(".e-permits-fo-input.is-error input")?.focus(); return; }
-      const state = cfg.state();
-      state.applied = copySel(sheet.sel);
-      state.draft = null;
-      save();
-      const { kind, key } = sheet;
-      sheet = null;
-      sheetTimer = sheetHide(sheetEl, () => !!sheet);
-      cfg.apply();
-      (kind === "facet" ? bar?.querySelector(`[data-filter-facet="${CSS.escape(key)}"]`) : toggle)?.focus();
+      if (busy?.source === "sheet") return;
+      defer("sheet", () => {
+        if (!sheet) return;
+        const state = cfg.state();
+        state.applied = copySel(sheet.sel);
+        state.draft = null;
+        save();
+        const { kind, key } = sheet;
+        sheet = null;
+        sheetTimer = sheetHide(sheetEl, () => !!sheet);
+        cfg.apply();
+        (kind === "facet" ? bar?.querySelector(`[data-filter-facet="${CSS.escape(key)}"]`) : toggle)?.focus();
+      });
     };
 
     function wireSheet() {
@@ -1009,7 +1023,7 @@
 
     phoneQuery?.addEventListener("change", () => {
       closeSheet(false);
-      cfg.state().draft = null;
+      if (!busy) cfg.state().draft = null; /* a wait in progress keeps the draft its button is waiting for */
       if (popover && !popover.hidden) close(false); else render();
     });
 
@@ -1308,8 +1322,36 @@
       close();
     };
 
+    /* loading (opt-in, rap-load-v1): every re-query waits `cfg.loading.ms()` (a simulated server) — the page shows its
+       skeleton (`start`), the clicked button the library loading state (`btn-loading` + aria-busy), then `fn` runs; a new
+       action cancels the previous wait (latest wins); no `loading` option or 0 ms = `fn` at once */
+    const setSheetBusy = (on) => {
+      const button = sheetEl?.querySelector("[data-sheet-apply]");
+      if (!button) return;
+      button.classList.toggle("btn-loading", on);
+      if (on) button.setAttribute("aria-busy", "true"); else button.removeAttribute("aria-busy");
+    };
+    const cancelBusy = (notify) => {
+      window.clearTimeout(busyTimer);
+      busyTimer = 0;
+      const was = busy;
+      busy = null;
+      if (!was) return;
+      setSheetBusy(false);
+      if (notify) { cfg.loading?.stop?.(); render(); }
+    };
+    const defer = (source, fn) => {
+      const ms = cfg.loading?.ms?.() || 0;
+      cancelBusy(false);
+      if (!(ms > 0)) { fn(); return; }
+      busy = { source };
+      cfg.loading.start?.(source);
+      if (source === "sheet") setSheetBusy(true); else render();
+      if (ms !== Infinity) busyTimer = window.setTimeout(() => { busyTimer = 0; busy = null; setSheetBusy(false); fn(); }, ms);
+    };
+
     /* bar "Aplică filtrele": one query for everything that changed */
-    const commit = () => {
+    const commit = () => defer("commit", () => {
       const state = cfg.state();
       state.applied = JSON.parse(JSON.stringify(draftOf()));
       Object.keys(state.applied).forEach((k) => { if (!state.applied[k]?.length) delete state.applied[k]; });
@@ -1317,7 +1359,7 @@
       save();
       cfg.apply();
       bar?.querySelector("[data-filter-slot], [data-filter-clear-all], [data-filter-facet]")?.focus();
-    };
+    });
 
     const discard = () => { cfg.state().draft = null; render(); };
 
@@ -1341,14 +1383,17 @@
       if (!popover.hidden) place(anchorFor(key));
     };
 
-    const clearAll = () => {
+    const clearAll = () => defer("clear", () => {
       invalidDates.clear();
       const state = cfg.state();
       state.applied = {};
       state.draft = null;
       save();
+      const held = document.activeElement;
       cfg.apply();
-    };
+      /* phones: the line with the button goes away — focus the icon-only „Filtre”; desktop: the first chip */
+      if (!held || held === document.body || bar?.contains(held)) { if (isPhone()) toggle?.focus(); else bar?.querySelector("[data-filter-facet]")?.focus(); }
+    });
 
     function wirePopover() {
       popover.addEventListener("change", (event) => {
@@ -1461,23 +1506,24 @@
       if (state.draft) pruneCascade(state.draft);
       if (edit?.key === key) close(false);
       save();
-      cfg.apply();
-      (bar?.querySelector(`[data-filter-facet="${CSS.escape(key)}"]`) || (isPhone() ? toggle : null))?.focus();
+      defer("facet", () => {
+        cfg.apply();
+        (bar?.querySelector(`[data-filter-facet="${CSS.escape(key)}"]`) || (isPhone() ? toggle : null))?.focus();
+      });
     };
 
     bar?.addEventListener("click", (event) => {
       const chipClear = event.target.closest("[data-filter-date-clear], [data-filter-facet-clear]");
       if (chipClear) { clearFacet(chipClear.dataset.filterDateClear || chipClear.dataset.filterFacetClear); return; }
       if (event.target.closest("[data-filter-clear-all]")) {
-        clearAll();
-        /* phones: the line with the button goes away — focus the icon-only „Filtre”; desktop: the first chip */
-        if (isPhone()) toggle?.focus(); else bar?.querySelector("[data-filter-facet]")?.focus();
+        if (busy?.source !== "clear") clearAll();
         return;
       }
       const commitBtn = event.target.closest("[data-filter-commit]");
       if (commitBtn) {
         /* AC-09: an invalid range blocks the apply — back to its field */
         if (invalidDates.size) { const key = [...invalidDates][0]; openFacet(key, bar.querySelector(`[data-filter-facet="${CSS.escape(key)}"]`)); return; }
+        if (busy?.source === "commit") return;
         close(false); commit(); return;
       }
       if (event.target.closest("[data-filter-discard]")) { discard(); return; }
@@ -1524,7 +1570,8 @@
     }, { capture: true, passive: true });
     (cfg.scrollers || []).forEach((el) => el?.addEventListener("scroll", () => close(false), { passive: true }));
 
-    return { render, close, clearAll };
+    /* `defer(fn)`: the page's own re-query (search) goes through the same simulated wait */
+    return { render, close, clearAll, defer: (fn, source = "search") => defer(source, fn), cancelBusy: () => cancelBusy(false) };
   }
 
   window.GEAPFacetFilter = { create, dateMatch, dateText, DATE_PRESETS };
