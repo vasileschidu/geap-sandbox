@@ -510,13 +510,13 @@
      group with matches */
   function dictionaryHtml(st, v, idp) {
     const src = sourceOf(v.source);
-    const heading = (meta) => `
+    /* heading = the left column's section heading (title only, same baseline); the source line = subtitle under it */
+    const heading = () => `
       <div class="e-permits-dosar-profil__section-heading">
         <h2 class="e-permits-dosar-profil__section-title" id="${idp}-dict-title">Dicționarul de date</h2>
-        ${meta ? `<span class="e-permits-dosar-profil__section-meta">${esc(meta)}</span>` : ""}
       </div>`;
     if (!src) {
-      return `<section class="e-permits-dosar-profil__section e-permits-stack-section" aria-labelledby="${idp}-dict-title">${heading("")}
+      return `<section class="e-permits-dosar-profil__section e-permits-stack-section" aria-labelledby="${idp}-dict-title">${heading()}
         ${E()?.render({ title: "Alegeți sursa de date", text: "Dicționarul arată câmpurile sursei, cu tipul și descrierea lor.", icon: "book", compact: true }) || ""}
       </section>`;
     }
@@ -540,9 +540,9 @@
             const row = A().renderStackItem?.({
               plainTitle: f.label,
               title: esc(f.label),
-              badges: (used[f.key] || []).map((u) => tag(u, "brand")),
-              meta: [esc(TYPE_LABEL[f.type] || f.type)],
-              meta2: [esc(f.desc)]
+              /* compact row: the type = a Small neutral tag right after the name (the stack row's tag slot), usage tags after it */
+              badges: [tag(TYPE_LABEL[f.type] || f.type, "neutral"), ...(used[f.key] || []).map((u) => tag(u, "brand"))],
+              meta: [esc(f.desc)]
             }) || "";
             return used[f.key] ? row.replace('<li class="e-permits-stack__item', '<li class="e-permits-stack__item is-selected') : row;
           }).join("")}</ul>` : ""}
@@ -550,14 +550,13 @@
     }).join("")}</div>` : E()?.noResults?.("Niciun câmp nu corespunde căutării", { text: "Caută după denumirea sau descrierea câmpului.", compact: true }) || "";
     return `
       <section class="e-permits-dosar-profil__section e-permits-stack-section" aria-labelledby="${idp}-dict-title">
-        ${heading(`${src.name} · ${src.version} · ${plural(fields.length, "câmp", "câmpuri")}`)}
+        ${heading()}
         <div class="e-permits-pay__toolbar">
-          <div class="e-permits-pay__tools">
-            <div class="search-input medium rectangular e-permits-workplace__search e-permits-list-search e-permits-pay__search${st.dictQuery ? " has-value is-ready" : ""}">
-              <span class="icon-search" aria-hidden="true">${icon("search")}</span>
-              <input class="input" type="search" id="${idp}-dict-search" placeholder="Caută în dicționar" aria-label="Caută în dicționarul de date" autocomplete="off" value="${esc(st.dictQuery || "")}" data-kpi-dict-search>
-              <div class="btn-group"><button type="button" class="btn-icon clear" aria-label="Șterge căutarea" data-kpi-dict-clear>${icon("cross-small", 16)}</button></div>
-            </div>
+          <p class="e-permits-dtpl-fields__hint">${esc(`${src.name} · ${src.version} · ${plural(fields.length, "câmp", "câmpuri")}`)}</p>
+          <div class="search-input medium rectangular e-permits-workplace__search e-permits-list-search e-permits-list-search--fill${st.dictQuery ? " has-value is-ready" : ""}">
+            <span class="icon-search" aria-hidden="true">${icon("search")}</span>
+            <input class="input" type="search" id="${idp}-dict-search" placeholder="Caută în dicționar" aria-label="Caută în dicționarul de date" autocomplete="off" value="${esc(st.dictQuery || "")}" data-kpi-dict-search>
+            <div class="btn-group"><button type="button" class="btn-icon clear" aria-label="Șterge căutarea" data-kpi-dict-clear>${icon("cross-small", 16)}</button></div>
           </div>
         </div>
         ${body}

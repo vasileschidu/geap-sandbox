@@ -83,3 +83,9 @@
     padding-inline: var(--spacing-16, 16px);
   }
 }
+
+/* in the create sheet the scroller is the sheet body itself: the sticky right column sticks at its top edge, so both
+   columns' first headings stay on one line (the ntpl 24 offset belongs to the page scroll) */
+.e-permits-kpi-editor .e-permits-ntpl-content__preview {
+  top: 0;
+}

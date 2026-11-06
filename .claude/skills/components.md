@@ -12048,7 +12048,7 @@ creation.
   is-collapsed) › `h3.e-permits-stack__group-label--toggle` › `button.e-permits-stack__group-toggle[aria-expanded]`
   (`__group-name` · count badge `badge badge--lg badge--solid-light e-permits-stack__group-count` · `__group-chevron`;
   `[data-kpi-dict-group]`; disabled while searching — a search opens every group with matches) › `ul.e-permits-stack__list`
-  of `renderStackItem` rows (title = field, meta = type · description, usage = brand Small tags in the tag slot; a used field
+  of `renderStackItem` rows (title = field + the type as a Small neutral tag in the tag slot, then the usage brand Small tags; meta = the description, one line, wraps; a used field
   = the selected row `.is-selected` of `.e-permits-reg-editor__stack`). No source → compact empty state; no match →
   `noResults`. No own CSS (the former `.e-permits-kpi-dict` was removed).
 - **Value check (composition)** — section „Verificarea valorii” + `btn-secondary btn-sm` „Verifică valoarea”
