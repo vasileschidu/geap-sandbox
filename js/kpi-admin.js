@@ -288,10 +288,10 @@
             <svg x="${x.toFixed(2)}%" overflow="visible">
               <line class="e-permits-kpi-band__halo" x1="0" x2="0" y1="0" y2="16"></line>
               <line class="e-permits-kpi-band__tick" x1="0" x2="0" y1="0" y2="16"></line>
-              <polygon class="e-permits-kpi-band__caret" points="-10,28 0,18 10,28"></polygon>
-              <rect class="e-permits-kpi-band__bubble" x="${-Math.round((`Acum ${fmt(k, cur)}`.length * 8 + 24) / 2)}" y="28" width="${`Acum ${fmt(k, cur)}`.length * 8 + 24}" height="36" rx="6"></rect>
+              <polygon class="e-permits-kpi-band__caret" points="-6,24 0,18 6,24"></polygon>
+              <rect class="e-permits-kpi-band__bubble" x="${-Math.round((`Acum ${fmt(k, cur)}`.length * 7 + 16) / 2)}" y="24" width="${`Acum ${fmt(k, cur)}`.length * 7 + 16}" height="24"></rect>
             </svg>
-            <text class="e-permits-kpi-band__label" x="${x.toFixed(2)}%" y="51" text-anchor="middle" data-kpi-x="${x.toFixed(2)}">${esc(`Acum ${fmt(k, cur)}`)}</text>
+            <text class="e-permits-kpi-band__label" x="${x.toFixed(2)}%" y="40" text-anchor="middle" data-kpi-x="${x.toFixed(2)}">${esc(`Acum ${fmt(k, cur)}`)}</text>
           </svg>`;
     }
     const z = cur === null ? null : zone(k.direction, cur, T, th);
@@ -319,15 +319,17 @@
       /* the library Small tooltip with its arrow on top (main.css .tooltip--bottom-left / -center / -right: 14 square at
          45°, 20 + 7 from the wrapper edge = 19 from the body edge): top-centre by default; when the centred body would leave
          the card, the top-left / top-right variant — the arrow stays on the value, the body moves to its side */
-      const w = t.getComputedTextLength() + 24;
+      /* chart value callout variant (user 2026-11-06): pill body, padding 4 8, 12/16 medium; the arrow 14 from the body edge
+         (past the 12 pill radius) in the top-left / top-right variants */
+      const w = t.getComputedTextLength() + 16;
       const cx = (W * Number(t.dataset.kpiX)) / 100;
-      const ARROW = 19;
+      const ARROW = 14;
       const left = cx - w / 2 >= 0 && cx + w / 2 <= W ? cx - w / 2 : cx < W / 2 ? cx - ARROW : cx - (w - ARROW);
       t.dataset.kpiVariant = cx - w / 2 >= 0 && cx + w / 2 <= W ? "top-center" : cx < W / 2 ? "top-left" : "top-right";
       const rect = svg.querySelector(".e-permits-kpi-band__bubble");
       if (rect) { rect.setAttribute("x", (left - cx).toFixed(1)); rect.setAttribute("width", w.toFixed(1)); }
       t.setAttribute("text-anchor", "start");
-      t.setAttribute("x", (left + 12).toFixed(1));
+      t.setAttribute("x", (left + 8).toFixed(1));
     });
   }
   let fitQueued = false;

@@ -12200,11 +12200,12 @@ One-column tabs (Alerte, Istoric, Valori proprii, lists) never get it — they k
 
 The ONE place a tooltip shape keeps its arrow: the current value under a zone band („Acum 87,4%”) is an ALWAYS-VISIBLE
 callout (readable without hover), not a hover tooltip — an explicit user exception to „Tooltip Small, body only, edge-aligned”.
-Look = the library Small tooltip with the arrow on top (Figma Components 210:3897, Size=Small, rows 3–4; main.css
-`.tooltip--small .tooltip-inner` + `.tooltip-arrow`): body `--gray-900`, radius 6, padding 8 12 (36 high), text 14/20
-white; arrow = the 14 px square at 45° (≈ 20 wide, 10 tall), tip 4 under the bar, on the value. Variant by room
-(`fitBandLabels` in js/kpi-admin.js, after layout + on resize): top-centre; when the centred body would leave the card →
-top-left / top-right (arrow 19 from the body edge, like the library's 20 + 7 inside the 8 wrapper). Drawn in the marker SVG
+Look = the library Small tooltip with the arrow on top (Figma Components 210:3897, Size=Small, rows 3–4) in its
+**chart value callout variant** (2026-11-06, user: „more compact and rounder” — this callout only, never the global tooltip):
+body `--gray-900` pill (`--border-radius-full`), padding 4 8 (24 high), text 12/16 medium 500 white; arrow scaled to the
+body = 12 wide · 6 tall, tip 4 under the bar, on the value. Variant by room (`fitBandLabels` in js/kpi-admin.js, after
+layout + on resize): top-centre; when the centred body would leave the card → top-left / top-right (arrow 14 from the
+body edge, past the pill radius). Drawn in the marker SVG
 (`.e-permits-kpi-band__caret` / `__bubble` / `__label`), no shadow (it sits inside a card). Demo kpi-04a, edges kpi-04j / kpi-04k.
 
 ### Charts: no overlapping labels (kpi-band-v2, 2026-11-06, user: „make sure we never have overlaps”)

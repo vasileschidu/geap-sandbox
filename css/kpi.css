@@ -92,15 +92,15 @@
 }
 
 /* ---- Zone band = bullet graph (kpi-band-v6, 2026-11-06, user): the eKYC stacked meter `--lg` (12) = the zones; the current
-   value = a 2px dark tick crossing the bar (white halo) + a static VALUE CALLOUT = the library tooltip Small WITH its arrow on
-   top (Components 210:3897 Small, rows 3–4; main.css `.tooltip--small` + `.tooltip-arrow`): body `--gray-900`, radius 6,
-   padding 8 12 (36 high), 14/20 white; arrow = the 14 square at 45° (≈ 20 wide · 10 tall), tip 4 under the bar. Variant by
-   room: top-centre, else top-left / top-right (arrow 19 from the body edge) — fitBandLabels. No shadow (it sits in a card).
+   value = a 2px dark tick crossing the bar (white halo) + a static VALUE CALLOUT = the library tooltip Small with its arrow on
+   top (Components 210:3897), in its chart variant (user 2026-11-06: „more compact and rounder”): body `--gray-900`, pill
+   (radius full), padding 4 8 (24 high), 12/16 medium white; arrow 12 wide · 6 tall, tip 4 under the bar. Variant by room:
+   top-centre, else top-left / top-right (arrow 14 from the body edge) — fitBandLabels. No shadow (it sits in a card).
    An explicit user exception to the hover-tooltip rule (body only, edge-aligned): components.md › „Chart value callout”.
-   The marker SVG (64) starts 2 above the bar top (gap 16 + bar 12 + 2 back); the legend follows 16 under the callout. */
+   The marker SVG (48) starts 2 above the bar top (gap 16 + bar 12 + 2 back); the legend follows 16 under the callout. */
 .e-permits-kpi-band__marker {
   display: block;
-  height: var(--spacing-64, 64px);
+  height: var(--spacing-48, 48px);
   margin-top: calc((var(--spacing-16, 16px) + var(--spacing-12, 12px) + var(--spacing-2, 2px)) * -1);
   overflow: visible;
   width: 100%;
@@ -121,8 +121,14 @@
   fill: var(--gray-900, #1e1e1e);
 }
 
+/* the chart value callout variant: a pill (radius full → half the 24 height) */
+.e-permits-kpi-band__bubble {
+  rx: var(--border-radius-full, 999px);
+}
+
 .e-permits-kpi-band__label {
   fill: var(--white, #ffffff);
   font-family: var(--font-family-primary-font, Onest);
-  font-size: var(--font-size-fs-14, 14px);
+  font-size: var(--font-size-fs-12, 12px);
+  font-weight: var(--font-weight-fw-medium, 500);
 }
