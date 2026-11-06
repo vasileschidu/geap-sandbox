@@ -4199,3 +4199,7 @@ For any „research how other products do it” step, search Mobbin (mcp__mobbin
   Registre full-screen sheet like the widget builder. Charts: never label threshold positions (they collide) — legend +
   one edge-anchored value label; `tools/ui-qa/chart-overlap.mjs` must report 0. Clickable timeline rows = `openAttrs` →
   `#dosar-detail-modal` info cards. Commit only own paths (`git commit -- <paths>`) while another agent works in the repo.
+- 2026-11-06 · System-wide modal rule (full height + Google scroll cue): ONE auto-attaching script (MutationObserver over the
+  document + ResizeObserver per body) and a 0-high sibling inserted between body and footer, so renderers that rewrite body /
+  footer innerHTML never wipe it and no `:last-child` rule moves. Prove „no regression” with a with/without diff (CDP
+  `Network.setBlockedURLs` on the new files) of dialog geometry on a tall viewport: only the ex-64vh modals change.

@@ -1,0 +1,87 @@
+/* =====================================================================================
+   Long modal — full height + scroll cue (modal-scroll-v1, 2026-11-06; rule for ALL modals, user: „when we have a
+   longer modal, make it full height with some padding only; if there is stuff to scroll, do as Google does: an arrow
+   with grey background … centred, a little transparent-to-white gradient, and the arrow disappears when the scroll
+   finishes”). components.md › „Long modal — full height + scroll cue”. JS: js/modal-scroll.js (auto-attaches).
+
+   1. Desktop / tablet (≥ 761): every library modal hugs its content up to the viewport minus 24 above and 24 below
+      (the outer spacing the A4 viewers and the Ghișeu dialog already use); header + footer stay, the body
+      (`.modal-content`) is the only scroller — replaces the library 64vh content window. The FO dialog shell (document
+      picker / upload) gets the same cap. Phones (≤ 760) keep css/modal-phone.css (16 top gap, body scrolls).
+   2. Every width: while the body can scroll further down, a 64 fade (transparent → the surface colour) over the bottom
+      of the body + the library Medium 40 round neutral icon-only button (arrow down, icon 20, grey fill, no border —
+      user 2026-11-06: arrow not chevron, lighter edge, longer fade, bigger button; „Derulează în jos”) centred 8 above
+      the body's bottom edge. Fades out within 8 of the end; none when nothing scrolls.
+   ===================================================================================== */
+@media (min-width: 761px) {
+  .modal-overlay > .modal:not(.modal--fullscreen, .e-permits-builder):has(> .modal-content) {
+    display: flex;
+    flex-direction: column;
+    max-height: calc(100dvh - var(--spacing-24, 24px) * 2);
+  }
+
+  .modal-overlay > .modal:not(.modal--fullscreen, .e-permits-builder):has(> .modal-content) > :not(.modal-content) {
+    flex: 0 0 auto;
+  }
+
+  .modal-overlay > .modal:not(.modal--fullscreen, .e-permits-builder):has(> .modal-content) > .modal-content {
+    flex: 1 1 auto;
+    max-height: none;
+    min-height: 0;
+    overscroll-behavior: contain;
+  }
+
+  .e-permits-fo-doc-modal-overlay > .e-permits-fo-doc-modal {
+    max-height: calc(100dvh - var(--spacing-24, 24px) * 2);
+  }
+}
+
+/* ---- the cue: a 0-high strip right after the scrolling body; its parts paint upwards over the body ---- */
+.e-permits-scroll-cue {
+  flex: 0 0 auto;
+  height: 0;
+  opacity: 0;
+  pointer-events: none;
+  position: relative;
+  transition: opacity 150ms ease, visibility 0s linear 150ms;
+  visibility: hidden;
+  z-index: 3;
+}
+
+.e-permits-scroll-cue.is-visible {
+  opacity: 1;
+  transition: opacity 150ms ease, visibility 0s;
+  visibility: visible;
+}
+
+.e-permits-scroll-cue__fade {
+  align-items: flex-end;
+  background: linear-gradient(to bottom, transparent, var(--color-background-base-default, #fff));
+  /* stops above the body's 1px scroll hairline (has-scroll-below), so the line stays visible */
+  bottom: var(--border-width-1, 1px);
+  box-sizing: border-box;
+  display: flex;
+  height: var(--spacing-64, 64px);
+  justify-content: center;
+  left: 0;
+  padding-bottom: var(--spacing-8, 8px);
+  pointer-events: none;
+  position: absolute;
+  right: 0;
+}
+
+/* the grey fill alone marks the button: no edge (the library neutral border is transparent; restated for every page) */
+.e-permits-scroll-cue__btn.btn.btn-neutral {
+  border-color: transparent;
+}
+
+.e-permits-scroll-cue.is-visible .e-permits-scroll-cue__btn {
+  pointer-events: auto;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .e-permits-scroll-cue,
+  .e-permits-scroll-cue.is-visible {
+    transition: none;
+  }
+}

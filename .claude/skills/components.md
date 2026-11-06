@@ -215,6 +215,7 @@ but this doc previously described it wrongly, see the entry.
 | Tabs | `.tabs .tab-buttons .tab-button.active` | `tabs.html` | app (partial) |
 | Modal | `.modal-overlay.is-active > .modal` | `modals.html` | app (partial) |
 | Modals on phones (≤760, every dialog family, 2026-10-19) | bottom sheet: 16 top gap (scrim), 0 sides / bottom, top radius 16, hug up to `100dvh − 16`; 16 inner padding; compact header / scrolling body / footer with two equal-half buttons (wrap → primary on top) + safe-area bottom; A4 page full width; header (2026-10-20): no drag handle, title 16 from the top, title + × on the first line, × 40 · icon 24, 8 under the sheet header; title 20/32 semibold on every phone dialog / sheet / drawer (2026-10-21) | `css/modal-phone.css` (loaded last); section „Modals on phones — maximum content space” | app |
+| **Long modal — full height + scroll cue** (modal-scroll-v1/v2, 2026-11-06, rule for ALL modals) | desktop ≥ 761: every library `.modal` with a `.modal-content` hugs its content up to `100dvh − 2 × --spacing-24` (header + footer fixed, body scrolls; the library 64vh window is gone), FO dialog shell the same cap; phones keep the sheet. Scroll cue (auto, every width): `div.e-permits-scroll-cue(.is-visible)[data-scroll-cue]` inserted right after the scrolling body > `.e-permits-scroll-cue__fade` (64, transparent → `--color-background-base-default`) > library `button.btn.btn-neutral.btn-md.btn-icon-only.btn-rounded.e-permits-scroll-cue__btn` (40 round, `icon-arrow-down` 20, no border, aria-label „Derulează în jos”); click = smooth scroll 80 % of the body; gone within 8 of the end / when nothing scrolls; not on A4 viewers or the builders | `css/modal-scroll.css` + `js/modal-scroll.js` (`GEAPModalScroll.refresh()`); section „Long modal — full height + scroll cue”; demo modal-scroll-01 / 01a / 02 / 03 | app |
 | Badge | `.badge` + style + size | `badge.html` | app |
 | „+N” overflow counter (badge-more-v1, 2026-11-02) | library `span.badge.badge--solid-neutral.badge--lg[data-tag-more][tabindex=0]` (20 high, 12/16) after the tags / first value, tooltip `data-cell-tooltip` + `aria-label`; no private class. Users roles + eKYC use-cases (`renderUserRoles` / `fitTagRows`), Autorități multi-value cells (`multiCell`) | `js/e-permits-shell.js`, `js/autoritati.js` | app |
 | Chip | `.chip` + `.is-selected/.is-disabled` | `chip.html` | app |
@@ -953,6 +954,7 @@ no JS. **Undesigned:** `:hover` (Figma has Default/Focus only).
 
 Sizes: `--sm` 320 · `--md` 590 · `--lg` 720 · `--fullscreen`.
 Padding: header `24px 48px 0 32px` · content `24px 20px 40px 32px`, `max-height: calc(64vh - 4px)` · footer `12px 20px 24px`.
+Since modal-scroll-v1 (2026-11-06) the 64vh window is replaced on desktop by the full-height rule + scroll cue (section „Long modal — full height + scroll cue”).
 
 - **`.modal--simple` does not mean "no footer"** — it only hides `.modal-image-wrapper`.
 - `--fade` / `--slide` / `--zoom` only take effect combined with `.is-active`.
@@ -1190,6 +1192,26 @@ the same sizes. Not covered: the full-screen editors' own bars (Form Builder, `.
   `css/modal-phone.css` § 7b, markup unchanged. At 320 „Descarcă” + „Închide” fit 140 + 140 on one line. Every other
   dialog footer (confirmations, forms, drawers) keeps Large 48 on phones; desktop viewers keep 48. Measured: pp-01m,
   rap-03l, dos-04s, sm-05f, gh-10d at 375 / 320 = 40 · 14/20; 1440 identical before / after; usr-u03e confirm still 48.
+
+### Long modal — full height + scroll cue (modal-scroll-v1, 2026-11-06; v2 same day)
+
+User: „when we have a longer modal, make it full height with some padding only; if there is stuff to scroll, do as
+Google does: an arrow with grey background … centred, a little transparent-to-white gradient, and the arrow disappears
+when the scroll finishes. Rule for all modals that are longer.” v2 (user review): arrow not chevron, no dark edge,
+longer fade, bigger button. **One shared implementation** — `css/modal-scroll.css` + `js/modal-scroll.js`, loaded right
+before `css/modal-phone.css` on the BO page, `e-permits-shell.html`, `clasificatoare.html`, Cabinet, RAP (+ act records
+preview). No page code: the script finds every open dialog itself.
+
+| Part | Rule |
+|---|---|
+| Height (≥ 761) | library `.modal-overlay > .modal:has(> .modal-content)` (not `--fullscreen`, not the builders) = flex column, `max-height: calc(100dvh − 2 × --spacing-24)` (the outer spacing of the A4 viewers and the Ghișeu dialog); header / footer `flex: none`; `.modal-content` `flex: 1 1 auto; max-height: none; min-height: 0` = the only scroller. Short modals still hug. FO dialog shell `.e-permits-fo-doc-modal` the same cap (was `min(800, 90vh)`). Docked act panel / A4 viewers keep their own rules. Phones: `css/modal-phone.css` (unchanged) |
+| Families with the cue | library `.modal` (body `.modal-content`) except `.e-permits-detail-modal--doc` (A4 viewer, pinned signature card) and `.e-permits-builder`; FO shell (list / upload body, Cabinet filters) except the A4 viewers; phone `.bottom-sheet__panel` (body `.bottom-sheet__content`) |
+| Cue | `div.e-permits-scroll-cue` (0 high, right after the body, before the footer) > `.e-permits-scroll-cue__fade` 64 high, `linear-gradient(transparent → --color-background-base-default)`, ends 1 above the body edge so the `has-scroll-below` hairline stays; centred library Medium round neutral icon-only button `btn btn-neutral btn-md btn-icon-only btn-rounded e-permits-scroll-cue__btn` (40, `icon-arrow-down` 20, border transparent, 8 above the edge, `tabindex=-1`, aria-label „Derulează în jos”) |
+| Behaviour | shown (`.is-visible`, 150 ms opacity) while more than 8 px is left below; hidden at the end, when nothing scrolls, when the dialog closes; click = `scrollBy(80 % of the body)` smooth (instant with reduced motion); re-measured on scroll, ResizeObserver, any DOM / class / hidden / aria change (tabs, accordions, async content), image loads, resize. `GEAPModalScroll.refresh()` forces a pass |
+
+Demo (open at 1440, 1280 × 720 and 375): `modal-scroll-01` KPI alert detail (cue) · `-01a` scrolled to the end (no cue) ·
+`-02` export dialog (short, hugs, no cue) · `-03` Jurnal event detail (long; phone reference). Also `fo-04d` (FO picker),
+`rap-04a` (phone filter sheet), `gh-07` (Ghișeu request sheet).
 
 ### Modals on phones — maximum content space (2026-10-19)
 

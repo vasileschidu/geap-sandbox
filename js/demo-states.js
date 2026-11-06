@@ -4016,6 +4016,11 @@
        05 phone reference (scrolled to «Mai vechi»; every state is also captured at 375) */
     ...notifDemoStates(),
 
+    /* ---- Long modal — full height + scroll cue (modal-scroll-v1, 2026-11-06, every modal; css/modal-scroll.css +
+       js/modal-scroll.js): modal-scroll-01 long (KPI alert detail, cue visible) · 01a scrolled to the end (cue gone) ·
+       02 short (export dialog, hugs, no cue) · 03 phone reference (Jurnal event detail — open at 375) */
+    ...modalScrollDemoStates(),
+
     /* ---- Registre — BackOffice registers, phase 1 (Epic 89620, js/registre.js, registre-v1 2026-10-23) ----
        reg-01 catalog · 02 Dosare · 03 Acte · 04 Note de plată · 05 Avize · 06–09 record cards · 10 Push Case ·
        11 Arhivare · 12 Radiere · 13 Anonimizare + redactare · 14 acces interzis · 15 câmp-sursă dispărut · 16 gol ·
@@ -4908,6 +4913,21 @@
       "reg-17t": card("reg-acte", "act-045", "plati", ADMIN, async (h) => { await h.click('[data-reg-note="np-055"]'); await h.wait(500); }),
       "reg-17u": card("reg-acte", "act-075", "istoria", ADMIN, async (h) => { await h.click('[data-reg-act-data="act-074"]'); await h.wait(600); }),
       "reg-17r": card("reg-acte", "act-045", "dosare", ADMIN, async (h) => { await h.click('[data-reg-open-dossier="D-2026-006451"]'); await h.wait(900); })
+    };
+  }
+
+  function modalScrollDemoStates() {
+    const LOCAL = "ansp-local-admin", ADMIN = "ansp-central-admin";
+    const KPI = "#dosar-detail-modal";
+    const kpiAlert = (run) => ({ flow: "back-office", as: LOCAL, hash: "#kpi/kpi-t01/alerte", ready: "#kpi-panel", delay: 900,
+      run: async (h) => { await h.click('#kpi-panel [data-kpi-alert="0"] .e-permits-timeline__link'); await h.find(`${KPI}.is-active`); await h.wait(300); if (run) await run(h); } });
+    return {
+      "modal-scroll-01": kpiAlert(),
+      "modal-scroll-01a": kpiAlert(async (h) => { const body = await h.find(`${KPI}.is-active .modal-content`); body.scrollTop = body.scrollHeight; await h.wait(400); }),
+      "modal-scroll-02": { flow: "back-office", as: "ansp-ghiseu-chisinau", hash: "#dosare-noi", ready: "[data-registry-kind='ghiseu'] tr[data-workplace-row]",
+        run: async (h) => { await h.click("[data-workplace-export]"); await h.find("#case-action-modal.is-active"); await h.wait(300); } },
+      "modal-scroll-03": { flow: "back-office", as: ADMIN, hash: `#serviciu/${SVC}/events`,
+        run: async (h) => { await h.click("[data-svc-event] .e-permits-timeline__link"); await h.find(".modal-overlay.is-active .modal-content"); await h.wait(300); } }
     };
   }
 
