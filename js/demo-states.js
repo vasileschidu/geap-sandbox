@@ -4277,6 +4277,7 @@
       "kpi-03j": list(seq(nou, step1, next, step2, next, next, async (h) => { await h.click(`${C} [data-kpi-create]`); }), { kpi: "eroare" }),
       "kpi-03k": list(nou, null, LOCAL),
       "kpi-03l": list(seq(MENU("kpi-t02"), async (h) => { await h.click('[data-kpi-row-clone="kpi-t02"]'); await h.find(`${C} #kpi-c-name-ro`); })),
+      "kpi-03n": list(seq(nou, step1)),
       "kpi-03m": list(seq(nou, step1, next, step2, async (h) => { await h.fill(`${C} [data-kpi-dict-search]`, "finaliz"); })),
       /* US-401 — edit */
       "kpi-04": prof("kpi-t01"),

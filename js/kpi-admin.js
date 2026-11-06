@@ -1557,7 +1557,19 @@
       <div class="e-permits-ntpl-content__main">${main}</div>
       ${aside ? `<aside class="e-permits-ntpl-content__preview"${attr ? ` ${attr}` : ""}>${aside}</aside>` : ""}
     </div>`;
-  function stepIdentity() { return twoCols(cardSection("Identificare", identityFields(C.v, C.errors, C.idp, { isNew: true })), ""); }
+  /* step 1 keeps the two columns of the next steps: the right one = the codes already used in the chosen domain (avoid a
+     duplicate code) + the code rule and the next free code */
+  function codesContext() {
+    const d = C.v.domain;
+    const head = `<div class="e-permits-dosar-profil__section-heading"><h2 class="e-permits-dosar-profil__section-title">Coduri existente în domeniu</h2></div>`;
+    if (!d) return `<section class="e-permits-dosar-profil__section">${head}${E()?.render({ title: "Alegeți domeniul", text: "Aici apar codurile KPI deja folosite în domeniu, ca să nu le repetați.", icon: "checklist", compact: true }) || ""}</section>`;
+    const list = kpis().filter((k) => domainOf(k.code) === d).sort((a, b) => (a.code < b.code ? -1 : 1));
+    const rule = U().renderInfoNote?.(`Codul = litera domeniului, cratimă și două cifre, de exemplu ${esc(`${d}-04`)}. Următorul cod liber: <strong>${esc(nextCode(d))}</strong>. Codul nu se mai schimbă după creare.`) || "";
+    return list.length
+      ? A().renderStackedList?.("Coduri existente în domeniu", [{ label: "", items: list.map((k) => ({ plainTitle: k.code, title: esc(`${k.code} · ${k.names.ro}`), meta: [esc(levelText(k)), esc(STATE(k)[0])] })) }], { meta: `${domainName(d)} · ${plural(list.length, "cod", "coduri")}`, introHtml: "" }) + rule || ""
+      : `<section class="e-permits-dosar-profil__section">${head}${E()?.render({ title: `Niciun KPI în domeniul ${domainName(d)}`, text: "Codul propus este primul din domeniu.", icon: "checklist", compact: true }) || ""}</section>${rule}`;
+  }
+  function stepIdentity() { return twoCols(cardSection("Identificare", identityFields(C.v, C.errors, C.idp, { isNew: true })), codesContext()); }
   function stepCalc() {
     return twoCols(`
       ${calcSections(C.v, C.errors, C.idp).map(([title, body]) => cardSection(title, body)).join("")}

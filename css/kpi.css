@@ -58,19 +58,31 @@
    „editor page width” (`.e-permits-editor-wide`, css/e-permits-acte-permisive.css); one-column tabs keep the profile width. The form is
    the wide column when the right one is a helper (dictionary); when the right column is a chart / preview the columns flip
    (`.e-permits-kpi-content--preview`: form minmax(360px, 5fr) · preview 7fr). Sticky right column, stacked ≤ 1100 (ntpl). */
-/* the create sheet's page: the editor page width (components.md › „Editor page width — only when two columns”) when the
-   step shows two columns; a one-column step keeps the sheet's single width */
-.e-permits-kpi-editor .e-permits-reg-editor__single.e-permits-kpi-editor__page:has(> .e-permits-editor-wide) {
-  max-width: calc(var(--spacing-40, 40px) * 40);
-}
-
 .e-permits-kpi-content--preview {
   grid-template-columns: minmax(360px, 5fr) minmax(0, 7fr);
 }
 
-/* the create sheet: the step strip on the sheet's 24 gutter (as the widget builder) */
-.e-permits-kpi-editor .e-permits-steps-strip {
-  padding-inline: var(--spacing-24, 24px);
+/* ---- the create sheet = ONE container (kpi-wizard-v1, 2026-11-06, user: „too many different widths”; Stripe / Shopify /
+   Linear / GOV.UK multi-step create): header, step strip, step content and the footer bar share one left and right edge =
+   the editor page width (1600, components.md › „Editor page width”) centred in the sheet, never less than the 24 gutter;
+   the × sits on that right edge. Every step = the same two columns (form | context / preview). Phones: one column, 16. */
+.e-permits-kpi-editor .e-permits-reg-editor__header .e-permits-page-header__body {
+  padding-left: max(var(--spacing-24, 24px), calc((100% - var(--spacing-40, 40px) * 40) / 2 + var(--spacing-24, 24px)));
+  padding-right: calc(max(var(--spacing-24, 24px), calc((100% - var(--spacing-40, 40px) * 40) / 2 + var(--spacing-24, 24px))) + var(--spacing-32, 32px) + var(--spacing-16, 16px));
+}
+
+.e-permits-kpi-editor .e-permits-steps-strip,
+.e-permits-kpi-editor .e-permits-reg-editor__bar,
+.e-permits-kpi-editor .e-permits-reg-editor__single.e-permits-kpi-editor__page {
+  padding-inline: max(var(--spacing-24, 24px), calc((100% - var(--spacing-40, 40px) * 40) / 2 + var(--spacing-24, 24px)));
+}
+
+.e-permits-kpi-editor .e-permits-reg-editor__single.e-permits-kpi-editor__page {
+  max-width: none;
+}
+
+.e-permits-kpi-editor .e-permits-reg-editor__close {
+  right: max(var(--spacing-24, 24px), calc((100% - var(--spacing-40, 40px) * 40) / 2 + var(--spacing-24, 24px)));
 }
 
 @media (max-width: 1100px) {
@@ -80,8 +92,24 @@
 }
 
 @media (max-width: 760px) {
-  .e-permits-kpi-editor .e-permits-steps-strip {
+  .e-permits-kpi-editor .e-permits-steps-strip,
+  .e-permits-kpi-editor .e-permits-reg-editor__bar,
+  .e-permits-kpi-editor .e-permits-reg-editor__single.e-permits-kpi-editor__page {
     padding-inline: var(--spacing-16, 16px);
+  }
+
+  .e-permits-kpi-editor .e-permits-reg-editor__header .e-permits-page-header__body {
+    padding-left: var(--spacing-16, 16px);
+    padding-right: calc(var(--spacing-16, 16px) + var(--spacing-32, 32px) + var(--spacing-8, 8px));
+  }
+
+  .e-permits-kpi-editor .e-permits-reg-editor__close {
+    right: var(--spacing-16, 16px);
+  }
+
+  /* a wrapped bar keeps its actions on the container's right edge */
+  .e-permits-kpi-editor .e-permits-cfg2__bar-actions {
+    margin-left: auto;
   }
 }
 
