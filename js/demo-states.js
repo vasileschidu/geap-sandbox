@@ -4045,7 +4045,14 @@
        Subdiviziuni · 08 lista subdiviziunilor (US-95) · 09 adaugă subdiviziune (US-93) · 10 editează (US-94) ·
        11 activare / inactivare subdiviziune (US-96). Demo switches: rssp=indisponibil|intrerupt|in-curs|auto-esuat|
        niciodata · mconnect=indisponibil · autoritati=gol · subdiviziuni=gol · duplicat=1 · conflict=1 */
-    ...autDemoStates()
+    ...autDemoStates(),
+
+    /* ---- Administrare › KPI (Feature 96500 „Gestionarea KPI”, js/kpi-admin.js, kpi-v1 2026-11-06; no child stories in
+       Azure — split per the Traceability titles): kpi-01 listă (US-400) · 02 fără permisiune · 03 creare (US-399) ·
+       04 editare (US-401) · 05 dezactivare / activare (US-402) · 06 moștenire + dezactivare pentru autoritate (US-519) ·
+       07 valori proprii (US-520) · 08 alerte + notificare (US-521). Demo switch kpi=fara-permisiune|gol|incarcare|
+       eroare|numitor-zero|verificare-lenta */
+    ...kpiDemoStates()
   };
 
   function autDemoStates() {
@@ -4191,6 +4198,108 @@
       "aut-11": listS(seq(rowMenu("sub-csp-cahul"), async (h) => { await h.click('[data-sub-deactivate="sub-csp-cahul"]'); await h.find(CONFIRM); })),
       "aut-11a": listS(seq(rowMenu("sub-csp-cahul"), async (h) => { await h.click('[data-sub-deactivate="sub-csp-cahul"]'); await h.find(CONFIRM); }, yes, async (h) => { await h.find(".toast"); })),
       "aut-11b": sub("sub-csp-orhei", "general", seq(headMenu, async (h) => { await h.click("[data-sub-activate]"); await h.find(CONFIRM); }))
+    };
+  }
+
+  function kpiDemoStates() {
+    const ADMIN = "ansp-central-admin", LOCAL = "ansp-local-admin", SPEC = "ansp-specialist-chisinau";
+    const LIST = "[data-registry-kind='kpi'] tr[data-workplace-row], [data-registry-kind='kpi'] .e-permits-empty";
+    const list = (run, params, as = ADMIN) => ({ flow: "back-office", as, hash: "#kpi", ...(params ? { params } : {}), ready: LIST, delay: 900, run });
+    const prof = (id, tab = "definitie", run, params, as = ADMIN) => ({ flow: "back-office", as, hash: `#kpi/${id}/${tab}`, ...(params ? { params } : {}), ready: "#kpi-panel", delay: 900, run });
+    const seq = (...steps) => async (h) => { for (const step of steps) await step(h); };
+    const C = "[data-kpi-drawer='create']";
+    const O = "[data-kpi-drawer='own']";
+    const CONFIRM = "[data-service-confirm-ok]";
+    const MENU = (id) => async (h) => { (await h.find(`tr[data-workplace-row="${id}"]`)).scrollIntoView({ block: "center" }); await h.wait(250); await h.click(`tr[data-workplace-row="${id}"] [data-stack-menu-trigger]`); await h.wait(200); };
+    const nou = async (h) => { await h.click('[data-workplace-add-product="kpi-new"]'); await h.find(`${C} #kpi-c-domain`); };
+    const next = async (h) => { await h.click(`${C} [data-kpi-next]`); await h.wait(200); };
+    const step1 = async (h) => {
+      await h.choose(`${C} select[data-kpi-field="domain"]`, "T");
+      await h.fill("#kpi-c-name-ro", "Dosare finalizate în 5 zile", { leave: false });
+    };
+    const source = async (h) => { await h.choose(`${C} select[data-kpi-field="source"]`, "reg-dosare"); };
+    const step2 = async (h) => {
+      await source(h);
+      await h.click(`${C} [data-kpi-rule-add="num"]`);
+      await h.choose(`${C} select[data-kpi-rule="num|0"][data-kpi-rule-part="column"]`, "statut");
+      await h.choose(`${C} select[data-kpi-rule="num|0"][data-kpi-rule-part="value"]`, "Finalizat");
+      await h.click(`${C} [data-kpi-field="hasDen"]`);
+      await h.choose(`${C} select[data-kpi-field="dateColumn"]`, "finalizat");
+    };
+    const verify = async (h) => { await h.click(`${C} [data-kpi-verify]`); await h.wait(1300); };
+    const step3 = async (h) => { await h.fill("#kpi-c-target", "85", { leave: false }); await h.fill("#kpi-c-threshold", "5", { leave: false }); await h.click(`${C} [data-kpi-role][value="Supervizor"]`); };
+    const filter = (applied) => async (h) => {
+      window.GEAPShellApi.setRegistryFilters("kpi", applied);
+      document.querySelector('[data-nav-item][data-nav-id="kpi"]').click(); await h.wait(700);
+      const bar = document.querySelector("[data-workplace-filters]");
+      const toggle = document.querySelector("[data-workplace-filter-toggle]");
+      if (bar?.hidden && toggle && toggle.getClientRects().length && !toggle.classList.contains("e-permits-filter-trigger--icon")) { toggle.click(); await h.wait(400); }
+    };
+    return {
+      /* US-400 — list */
+      "kpi-01": list(),
+      "kpi-01a": list(async (h) => { await h.click('[data-workplace-tab="globale"]'); await h.wait(300); }),
+      "kpi-01b": list(async (h) => { await h.fill("[data-workplace-search]", "termen"); await h.wait(300); }),
+      "kpi-01c": list(async (h) => { await h.fill("[data-workplace-search]", "zzz"); await h.wait(300); }),
+      "kpi-01d": list(filter({ format: ["Procent"] })),
+      "kpi-01e": list(null, { kpi: "gol" }),
+      "kpi-01f": { flow: "back-office", as: ADMIN, hash: "#kpi", params: { kpi: "incarcare" }, ready: "[data-registry-kind='kpi'] .e-permits-empty", delay: 900 },
+      "kpi-01g": list(MENU("kpi-t01")),
+      "kpi-01h": list(null, null, LOCAL),
+      "kpi-01i": list(async (h) => { await h.click('[data-workplace-tab="autoritati"]'); await h.wait(300); }),
+      /* Feature AC — the menu only with „Gestionarea KPI” */
+      "kpi-02": { flow: "back-office", as: SPEC, hash: "#kpi", ready: "[data-reg-page]:not([hidden]) .e-permits-empty", delay: 900 },
+      "kpi-02a": { flow: "back-office", as: ADMIN, hash: "#kpi", params: { kpi: "fara-permisiune" }, ready: "[data-reg-page]:not([hidden]) .e-permits-empty", delay: 900 },
+      /* US-399 — create */
+      "kpi-03": list(nou),
+      "kpi-03a": list(seq(nou, next)),
+      "kpi-03b": list(seq(nou, step1, next, step2)),
+      "kpi-03c": list(seq(nou, step1, next, step2, async (h) => { await h.choose(`${C} select[data-kpi-field="den.source"]`, "reg-acte"); }, next)),
+      "kpi-03d": list(seq(nou, step1, next, step2, verify, async (h) => { (await h.find(`${C} [data-kpi-verify]`)).scrollIntoView({ block: "start" }); await h.wait(200); })),
+      "kpi-03e": list(seq(nou, step1, next, step2, async (h) => { await h.click(`${C} [data-kpi-verify]`); (await h.find(`${C} [data-kpi-verify]`)).scrollIntoView({ block: "start" }); await h.wait(200); }), { kpi: "verificare-lenta" }),
+      "kpi-03f": list(seq(nou, step1, next, step2, verify, async (h) => { (await h.find(`${C} [data-kpi-verify]`)).scrollIntoView({ block: "start" }); await h.wait(200); }), { kpi: "numitor-zero" }),
+      "kpi-03g": list(seq(nou, step1, next, step2, verify, next, step3)),
+      "kpi-03h": list(seq(nou, step1, next, step2, verify, next, step3, next)),
+      "kpi-03i": list(seq(nou, step1, next, step2, verify, next, step3, next, async (h) => { await h.click(`${C} [data-kpi-create]`); await h.find("#kpi-panel"); })),
+      "kpi-03j": list(seq(nou, step1, next, step2, next, next, async (h) => { await h.click(`${C} [data-kpi-create]`); }), { kpi: "eroare" }),
+      "kpi-03k": list(nou, null, LOCAL),
+      "kpi-03l": list(seq(MENU("kpi-t02"), async (h) => { await h.click('[data-kpi-row-clone="kpi-t02"]'); await h.find(`${C} #kpi-c-name-ro`); })),
+      "kpi-03m": list(seq(nou, step1, next, step2, async (h) => { await h.fill(`${C} [data-kpi-dict-search]`, "finaliz"); })),
+      /* US-401 — edit */
+      "kpi-04": prof("kpi-t01"),
+      "kpi-04a": prof("kpi-t01", "tinta"),
+      "kpi-04b": prof("kpi-t01", "tinta", async (h) => { await h.fill("#kpi-e-target", "92", { leave: false }); await h.click('#kpi-panel [data-kpi-role][value="Director"]'); }),
+      "kpi-04c": prof("kpi-t01", "definitie", seq(async (h) => { await h.fill("#kpi-e-name-ro", "", { leave: false }); }, async (h) => { await h.click("[data-kpi-save]"); })),
+      "kpi-04d": prof("kpi-t01", "tinta", seq(async (h) => { await h.fill("#kpi-e-target", "92", { leave: false }); }, async (h) => { await h.click("[data-profile-changes]"); })),
+      "kpi-04e": prof("kpi-t01", "tinta", seq(async (h) => { await h.fill("#kpi-e-target", "92", { leave: false }); }, async (h) => { await h.click("[data-kpi-save]"); }, async (h) => { await h.click('[data-kpi-tab="istoric"]'); })),
+      "kpi-04f": prof("kpi-t02", "definitie", async (h) => { await h.fill("#kpi-panel [data-kpi-dict-search]", "durat", { leave: false }); }),
+      "kpi-04g": prof("kpi-c03"),
+      "kpi-04h": prof("kpi-d02", "definitie", null, null, LOCAL),
+      "kpi-04i": prof("kpi-t01", "definitie", async (h) => { await h.click('#kpi-panel [data-kpi-field="hasDen"]'); await h.choose('#kpi-panel select[data-kpi-field="format"]', "percent"); await h.click("[data-kpi-save]"); }),
+      /* US-402 — deactivate / activate */
+      "kpi-05": list(seq(MENU("kpi-v01"), async (h) => { await h.click('[data-kpi-row-toggle="kpi-v01"]'); })),
+      "kpi-05a": list(seq(MENU("kpi-v01"), async (h) => { await h.click('[data-kpi-row-toggle="kpi-v01"]'); }, async (h) => { await h.click(CONFIRM); })),
+      "kpi-05b": prof("kpi-v01", "tinta", async (h) => { await h.click("#kpi-panel [data-kpi-active]"); }),
+      /* US-519 — inheritance, deactivation for the authority */
+      "kpi-06": prof("kpi-t01", "definitie", null, null, LOCAL),
+      "kpi-06a": list(seq(MENU("kpi-c01"), async (h) => { await h.click('[data-kpi-row-auth="kpi-c01"]'); }), null, LOCAL),
+      "kpi-06b": prof("kpi-v02", "valori", null, null, LOCAL),
+      "kpi-06c": prof("kpi-t01", "valori"),
+      "kpi-06d": prof("kpi-t01", "tinta", null, null, LOCAL),
+      /* US-520 — own values */
+      "kpi-07": prof("kpi-t01", "valori", null, null, LOCAL),
+      "kpi-07a": prof("kpi-c02", "valori", async (h) => { await h.click("#kpi-panel [data-kpi-own-add]"); await h.find(`${O} #kpi-o-target`); }, null, LOCAL),
+      "kpi-07b": prof("kpi-c02", "valori", seq(async (h) => { await h.click("#kpi-panel [data-kpi-own-add]"); await h.find(`${O} #kpi-o-target`); }, async (h) => { await h.click(`${O} [data-kpi-own-save]`); }), null, LOCAL),
+      "kpi-07c": prof("kpi-t01", "valori", async (h) => { await h.click('#kpi-panel [data-kpi-own-edit="own-2"]'); await h.find(`${O} #kpi-o-target`); }, null, LOCAL),
+      "kpi-07d": prof("kpi-t01", "valori", seq(async (h) => { const edit = await h.find('#kpi-panel [data-kpi-own-edit="own-3"]'); edit.closest(".e-permits-stack__item").querySelector("[data-stack-menu-trigger]").click(); await h.wait(300); }, async (h) => { await h.click('#kpi-panel [data-kpi-own-remove="own-3"]'); }), null, LOCAL),
+      "kpi-07e": prof("kpi-c02", "valori", seq(async (h) => { await h.click("#kpi-panel [data-kpi-own-add]"); await h.find(`${O} #kpi-o-target`); }, async (h) => { await h.fill("#kpi-o-target", "6", { leave: false }); await h.fill("#kpi-o-threshold", "1", { leave: false }); }, async (h) => { await h.click(`${O} [data-kpi-own-save]`); }), null, LOCAL),
+      /* US-521 — alerts + notification of the responsible roles */
+      "kpi-08": prof("kpi-t01", "alerte", null, null, LOCAL),
+      "kpi-08a": prof("kpi-t01", "alerte"),
+      "kpi-08b": prof("kpi-v01", "alerte"),
+      "kpi-08c": prof("kpi-v02", "alerte", null, null, LOCAL),
+      "kpi-08d": list(async (h) => { await h.click(".e-permits-shell__icon-button--notification"); await h.find("#notif-drawer [data-notif-body]"); }, null, LOCAL),
+      "kpi-08e": prof("kpi-t01", "istoric")
     };
   }
 

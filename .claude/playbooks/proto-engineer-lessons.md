@@ -4173,3 +4173,11 @@ For any „research how other products do it” step, search Mobbin (mcp__mobbin
 - 2026-11-06 · upload-modal-v1 (picker uploads in the modal, single vs multi): moving an async step INTO a dialog breaks every demo that clicks its confirm right after the change event — 16 demos fixed at once by `h.click("[…submit]:not(:disabled)")` (waitFor polls until enabled); demos that relied on the old place (gh-06e in-field uploading, gh-07h .docx on a JPG/PNG/PDF box now validated) must be re-pointed. Run a regression capture of every state that greps the hook.
 - 2026-11-06 · Two FO overlays at the library z 1000: a viewer opened FROM the picker rendered under it (viewer earlier in DOM) → `body:has(picker:not([hidden])) #viewer { z-index: calc(1000 + 1) }`; Esc / Închide close only the viewer. The library `.dropzone--active` reads an undefined `--blue-sky-50` → use `--blue-sky-100`.
 - 2026-11-06 · Phone file inputs: never `capture` (skips the OS sheet: iOS Photo Library / Take Photo / Choose File); `multiple` only on multi fields; the OS sheet is „native, not ours” — document it, show the step before it (chooser focused) as the demo state.
+- 2026-11-06 · KPI (kpi-v1, Feature 96500, no child stories → split per Traceability titles): a whole admin module with ONE
+  new component (`.e-permits-kpi-dict`); everything else composed from jurnalizare (registry + profile + drawer + step strip),
+  the Registre „Filtru predefinit” rule-builder markup (own `data-kpi-rule*` hooks) and eKYC chart classes (bars, meter, band, KPI cards).
+- 2026-11-06 · A redraw on `change` / `focusout` of a TEXT input in a drawer rebuilds the footer under the pointer and eats the
+  click that caused the blur („Continuă” needs two clicks). Text fields only update the draft; refresh just the dependent
+  piece (`[data-kpi-band]` outerHTML on `input`); full redraws only for selects / checkboxes.
+- 2026-11-06 · hover-audit on a drawer state right after a step change reported library footer buttons „no-hover” (drawer still
+  animating); a second run was 0 — re-run before fixing. Items inside a closed ⋮ of a STACKED list need the row's trigger first.

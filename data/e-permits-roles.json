@@ -490,6 +490,12 @@
               "label": "Șabloane de jurnalizare",
               "iconAsset": "assets/icons/checklist.svg",
               "shellView": "jurnalizare-registry"
+            },
+            {
+              "id": "kpi",
+              "label": "KPI",
+              "iconAsset": "assets/icons/chart.svg",
+              "shellView": "kpi-registry"
             }
           ]
         },
@@ -539,6 +545,12 @@
               "label": "Calendar",
               "iconAsset": "assets/icons/calendar.svg",
               "shellView": "calendar-registry"
+            },
+            {
+              "id": "kpi",
+              "label": "KPI",
+              "iconAsset": "assets/icons/chart.svg",
+              "shellView": "kpi-registry"
             }
           ]
         },

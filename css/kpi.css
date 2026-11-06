@@ -1,0 +1,150 @@
+/* =====================================================================================
+   Administrare › KPI — page glue + the data dictionary panel (kpi-v1, 2026-11-06; Feature 96500 „Gestionarea KPI”)
+   The list is the BO registry (js/kpi-admin.js → window.GEAPShellRegistries.kpi), the profile the shared profile panel
+   with ntpl cards, „Creează KPI” / „Valoare proprie” the ONE drawer, charts the eKYC dashboard SVG. Here: the menu icon,
+   the pinned first column, the value + zone tag cell and the ONE new component — the data dictionary of a data source
+   (`.e-permits-kpi-dict`, components.md › „KPI — data dictionary panel”).
+   ===================================================================================== */
+
+/* menu icon (the BO side menu draws icons as 20 masks per data-nav-id) */
+.e-permits-shell__nav--specialist [data-nav-id="kpi"] .e-permits-shell__nav-icon::before {
+  mask-image: url("../assets/icons/chart.svg");
+  mask-size: var(--icon-size-medium, 20px) var(--icon-size-medium, 20px);
+  -webkit-mask-image: url("../assets/icons/chart.svg");
+  -webkit-mask-size: var(--icon-size-medium, 20px) var(--icon-size-medium, 20px);
+}
+
+/* no checkbox column: the pinned first column (Cod) carries the divider, column 2 scrolls (the registers' rule) */
+.e-permits-workplace[data-registry-kind="kpi"] .e-permits-workplace__table th:nth-child(1),
+.e-permits-workplace[data-registry-kind="kpi"] .e-permits-workplace__table td:nth-child(1) {
+  border-right: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
+  left: 0;
+  position: sticky;
+  z-index: 7;
+}
+
+.e-permits-workplace[data-registry-kind="kpi"] .e-permits-workplace__table th:nth-child(1) {
+  z-index: 9;
+}
+
+.e-permits-workplace[data-registry-kind="kpi"] .e-permits-workplace__table th:nth-child(2),
+.e-permits-workplace[data-registry-kind="kpi"] .e-permits-workplace__table td:nth-child(2) {
+  border-right: 0;
+  left: auto;
+  position: static;
+  z-index: auto;
+}
+
+/* „Valoarea curentă”: the value, then its zone as a Small tag */
+.e-permits-kpi-cell {
+  align-items: center;
+  display: inline-flex;
+  gap: var(--spacing-8, 8px);
+  white-space: nowrap;
+}
+
+/* ---- Data dictionary panel (new, 2026-11-06): the fields of the chosen data source — name, type, semantic description
+   and where the KPI uses them („ca în modulul Registre”: the dtpl „Coloane disponibile” groups, read-only rows).
+   White card = the ntpl card (border 1, radius 16, padding 20); groups = `.e-permits-dtpl-fields__head` toggles;
+   rows are information, not controls: no hover, no pointer. A used field gets the secondary fill + brand Small tags. */
+.e-permits-kpi-dict {
+  background: var(--color-background-base-default, #fff);
+  border: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
+  border-radius: var(--border-radius-16, 16px);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-12, 12px);
+  min-width: 0;
+  padding: var(--spacing-20, 20px);
+}
+
+.e-permits-kpi-dict__head {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4, 4px);
+}
+
+.e-permits-kpi-dict__title {
+  color: var(--color-text-base-default, #121212);
+  font-size: var(--font-size-fs-16, 16px);
+  font-weight: var(--font-weight-fw-medium, 500);
+  line-height: var(--line-height-lh-24, 24px);
+  margin: 0;
+}
+
+.e-permits-kpi-dict__list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4, 4px);
+  list-style: none;
+  margin: 0;
+  padding: 0 0 var(--spacing-8, 8px);
+}
+
+.e-permits-kpi-dict__item {
+  border-radius: var(--border-radius-8, 8px);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4, 4px);
+  padding: var(--spacing-8, 8px) var(--spacing-12, 12px);
+}
+
+.e-permits-kpi-dict__item.is-used {
+  background: var(--color-background-base-secondary, #f5f5f5);
+}
+
+.e-permits-kpi-dict__row {
+  align-items: baseline;
+  display: flex;
+  gap: var(--spacing-8, 8px);
+  justify-content: space-between;
+  min-width: 0;
+}
+
+.e-permits-kpi-dict__name {
+  color: var(--color-text-base-default, #121212);
+  font-size: var(--font-size-fs-14, 14px);
+  font-weight: var(--font-weight-fw-medium, 500);
+  line-height: var(--line-height-lh-20, 20px);
+  min-width: 0;
+}
+
+.e-permits-kpi-dict__type {
+  color: var(--color-text-base-tertiary, #757575);
+  flex: 0 0 auto;
+  font-size: var(--font-size-fs-12, 12px);
+  line-height: var(--line-height-lh-16, 16px);
+}
+
+.e-permits-kpi-dict__desc {
+  color: var(--color-text-base-secondary, #383838);
+  font-size: var(--font-size-fs-12, 12px);
+  line-height: var(--line-height-lh-16, 16px);
+  margin: 0;
+}
+
+.e-permits-kpi-dict__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-4, 4px);
+}
+
+/* phones (≤760): only the actions column stays pinned (the registers' / Ghișeu pattern); the card pads 16 */
+@media (max-width: 760px) {
+  .e-permits-workplace[data-registry-kind="kpi"] .e-permits-workplace__table th:nth-child(1),
+  .e-permits-workplace[data-registry-kind="kpi"] .e-permits-workplace__table td:nth-child(1) {
+    border-right: 0;
+    left: auto;
+    position: static;
+    z-index: auto;
+  }
+
+  .e-permits-kpi-dict {
+    padding: var(--spacing-16, 16px);
+  }
+
+  .e-permits-kpi-dict__name {
+    font-size: var(--font-size-fs-16, 16px);
+    line-height: var(--line-height-lh-24, 24px);
+  }
+}
