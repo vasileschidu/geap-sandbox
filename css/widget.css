@@ -1,0 +1,779 @@
+/* =====================================================================================
+   Administrare › Widgete (widget-v1, 2026-11-06; Feature 96501 „Configurarea widget-urilor”)
+   The list is the BO registry (js/widget-admin.js → window.GEAPShellRegistries.widgete), the profile the shared
+   profile panel, the builder the Registre full-screen sheet with the step strip, dialogs the library modal. Here:
+   the menu icon, the pinned first column, and the NEW parts documented in components.md › „Widgete”:
+     · the chart-type gallery (`.e-permits-wid-types`: the selectable option card, radio variant, + a 24 type glyph);
+     · the widget card (`.e-permits-chart.e-permits-wid-card`: head / body / foot / loading) + the preview block;
+     · the chart types of js/widget-charts.js, in the eKYC chart style: series palette, plot heights, line / area,
+       target line, control limits, category rows, donut, heat map, funnel, treemap, tile, tables;
+     · the version comparison (`.e-permits-wid-compare`).
+   ===================================================================================== */
+
+/* menu icon (the BO side menu draws icons as 20 masks per data-nav-id) */
+.e-permits-shell__nav--specialist [data-nav-id="widgete"] .e-permits-shell__nav-icon::before {
+  mask-image: url("../assets/icons/dot-grid.svg");
+  mask-size: var(--icon-size-medium, 20px) var(--icon-size-medium, 20px);
+  -webkit-mask-image: url("../assets/icons/dot-grid.svg");
+  -webkit-mask-size: var(--icon-size-medium, 20px) var(--icon-size-medium, 20px);
+}
+
+/* no checkbox column: the pinned first column (ID) carries the divider, column 2 scrolls (the KPI / registers' rule) */
+.e-permits-workplace[data-registry-kind="widgete"] .e-permits-workplace__table th:nth-child(1),
+.e-permits-workplace[data-registry-kind="widgete"] .e-permits-workplace__table td:nth-child(1) {
+  border-right: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
+  left: 0;
+  position: sticky;
+  z-index: 7;
+}
+
+.e-permits-workplace[data-registry-kind="widgete"] .e-permits-workplace__table th:nth-child(1) {
+  z-index: 9;
+}
+
+.e-permits-workplace[data-registry-kind="widgete"] .e-permits-workplace__table th:nth-child(2),
+.e-permits-workplace[data-registry-kind="widgete"] .e-permits-workplace__table td:nth-child(2) {
+  border-right: 0;
+  left: auto;
+  position: static;
+  z-index: auto;
+}
+
+/* ---- the builder sheet: the step strip under the sheet header, on the sheet's 24 gutter ---- */
+.e-permits-wid-editor .e-permits-steps-strip {
+  padding-inline: var(--spacing-24, 24px);
+}
+
+/* ---- Chart-type gallery (new): 11 option cards in a radiogroup — the selectable option card, radio variant
+   (`.e-permits-fo-delivery-option--radio`: white, 1px ring, r12, 12/16 padding, 2px brand ring when chosen,
+   tertiary hover) with a 40 glyph tile instead of the 24 icon. A type the configuration cannot use stays visible,
+   disabled, its line = the reason (Klaviyo / Shopify pattern). */
+.e-permits-wid-types {
+  border: 0;
+  margin: 0;
+  min-width: 0;
+  padding: 0;
+}
+
+.e-permits-wid-types__grid {
+  display: grid;
+  gap: var(--spacing-12, 12px);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.e-permits-wid-types > .e-permits-fo-field__error {
+  margin-top: var(--spacing-8, 8px);
+}
+
+.e-permits-wid-type__glyph {
+  align-items: center;
+  background: var(--color-background-brand-secondary, #e8f0fb);
+  border-radius: var(--border-radius-8, 8px);
+  display: inline-flex;
+  flex: 0 0 var(--spacing-40, 40px);
+  height: var(--spacing-40, 40px);
+  justify-content: center;
+  width: var(--spacing-40, 40px);
+}
+
+.e-permits-wid-type.is-disabled {
+  cursor: not-allowed;
+}
+
+.e-permits-wid-type.is-disabled .e-permits-wid-type__glyph {
+  background: var(--color-background-base-secondary, #f5f5f5);
+}
+
+.e-permits-wid-type.is-disabled .e-permits-fo-delivery-option__title,
+.e-permits-wid-type.is-disabled .e-permits-fo-delivery-option__description {
+  color: var(--color-text-disabled-default, #b2b2b2);
+}
+
+/* the 24 glyphs: brand + light brand, in the chart colours */
+.e-permits-wid-glyph__a { fill: var(--color-icon-brand-default, #0058d2); }
+.e-permits-wid-glyph__b { fill: var(--blue-sky-300, #99bced); }
+
+.e-permits-wid-glyph__line {
+  fill: none;
+  stroke: var(--color-icon-brand-default, #0058d2);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: var(--border-width-2, 2px);
+}
+
+.e-permits-wid-glyph__limit {
+  stroke: var(--color-icon-danger-default, #d92d20);
+  stroke-dasharray: var(--spacing-2, 2px) var(--spacing-2, 2px);
+  stroke-width: var(--border-width-1-5, 1.5px);
+}
+
+.e-permits-wid-glyph__ring-a,
+.e-permits-wid-glyph__ring-b {
+  fill: none;
+  stroke-width: var(--border-width-4, 4px);
+}
+
+.e-permits-wid-glyph__ring-a { stroke: var(--color-icon-brand-default, #0058d2); }
+.e-permits-wid-glyph__ring-b { stroke: var(--blue-sky-300, #99bced); }
+
+.e-permits-wid-type.is-disabled :is(.e-permits-wid-glyph__a, .e-permits-wid-glyph__b) { fill: var(--color-icon-disabled-default, #b2b2b2); }
+.e-permits-wid-type.is-disabled :is(.e-permits-wid-glyph__line, .e-permits-wid-glyph__ring-a, .e-permits-wid-glyph__ring-b, .e-permits-wid-glyph__limit) { stroke: var(--color-icon-disabled-default, #b2b2b2); }
+
+/* Aria de vizibilitate: the library radio group (Small), one option per line — NOT inside `.e-permits-fo-field` (its
+   `label { gap: 4 }` out-specifies the ONE radio's gap 12): label line · group · error, 8 apart */
+.e-permits-wid-vis-field {
+  display: grid;
+  gap: var(--spacing-8, 8px);
+}
+
+.e-permits-wid-vis {
+  display: grid;
+  gap: var(--spacing-12, 12px);
+}
+
+/* ---- the preview block (builder right column · profile aside): heading + data line + Actualizează, card, size line,
+   the „fără acces” switch */
+.e-permits-wid-preview {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-16, 16px);
+  min-width: 0;
+}
+
+.e-permits-wid-preview__head {
+  align-items: flex-start;
+  display: flex;
+  gap: var(--spacing-12, 12px);
+  justify-content: space-between;
+}
+
+.e-permits-wid-preview__heading {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4, 4px);
+  min-width: 0;
+}
+
+/* ---- the widget card (new): the eKYC chart card with the widget's own title / subtitle — as on a dashboard */
+.e-permits-wid-card {
+  min-width: 0;
+}
+
+.e-permits-wid-card__head {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-8, 8px);
+  min-width: 0;
+}
+
+.e-permits-wid-card__title {
+  color: var(--color-text-base-default, #121212);
+  font-size: var(--font-size-fs-16, 16px);
+  font-weight: var(--font-weight-fw-medium, 500);
+  line-height: var(--line-height-lh-24, 24px);
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.e-permits-wid-card__subtitle {
+  color: var(--color-text-base-secondary, #383838);
+  font-size: var(--font-size-fs-14, 14px);
+  line-height: var(--line-height-lh-20, 20px);
+  margin: 0;
+}
+
+.e-permits-wid-card__body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-16, 16px);
+  min-width: 0;
+}
+
+.e-permits-wid-card__foot {
+  color: var(--color-text-base-tertiary, #757575);
+  font-size: var(--font-size-fs-12, 12px);
+  line-height: var(--line-height-lh-16, 16px);
+  margin: 0;
+}
+
+.e-permits-wid-card__loading {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-12, 12px);
+}
+
+/* ---- chart types (js/widget-charts.js) ----
+   plot heights = „Înălțimea implicită”: Mică 120 · Medie 160 (the eKYC plot) · Mare 240 */
+.e-permits-wid-plot--small { height: calc(var(--spacing-40, 40px) * 3); }
+.e-permits-wid-plot--medium { height: calc(var(--spacing-40, 40px) * 4); }
+.e-permits-wid-plot--large { height: calc(var(--spacing-40, 40px) * 6); }
+
+.e-permits-wid-plot--bare {
+  border-bottom: 0;
+}
+
+/* the series palette (categorical, „paleta SIA GEAP”): s1 = brand … s6 = neutral; zones keep the eKYC tones */
+.e-permits-wid-s1 { --wid-series: var(--color-background-brand-default, #0058d2); --wid-series-hover: var(--color-background-brand-default-hover, #0046a8); }
+.e-permits-wid-s2 { --wid-series: var(--purple-600, #7e37f9); --wid-series-hover: var(--purple-700, #652cc7); }
+.e-permits-wid-s3 { --wid-series: var(--magenta-600, #aa18ce); --wid-series-hover: var(--magenta-700, #8813a5); }
+.e-permits-wid-s4 { --wid-series: var(--blue-sky-800, #00357e); --wid-series-hover: var(--blue-sky-900, #00295a); }
+.e-permits-wid-s5 { --wid-series: var(--purple-800, #4c2195); --wid-series-hover: var(--purple-900, #36166a); }
+.e-permits-wid-s6 { --wid-series: var(--color-icon-base-tertiary, #757575); --wid-series-hover: var(--gray-500, #616161); }
+
+.e-permits-wid-fill { fill: var(--wid-series); }
+
+.e-permits-meter-legend__dot:is(.e-permits-wid-s1, .e-permits-wid-s2, .e-permits-wid-s3, .e-permits-wid-s4, .e-permits-wid-s5, .e-permits-wid-s6) {
+  background: var(--wid-series);
+}
+
+/* Bare / Bare suprapuse on a date axis, Linie, Diagramă de control: the plot is a row of slots (the eKYC plot box:
+   baseline border, plot height); a drilling slot is a button — hover = the tertiary band behind the bar + the bar's
+   darker step, keyboard ring on the slot */
+.e-permits-wid-cols {
+  border-bottom: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
+  display: flex;
+  overflow: hidden;
+  width: 100%;
+}
+
+.e-permits-wid-cols__slot {
+  background: transparent;
+  border: 0;
+  color: inherit;
+  border-radius: var(--border-radius-4, 4px) var(--border-radius-4, 4px) 0 0;
+  display: block;
+  flex: 1 1 0;
+  height: 100%;
+  min-width: 0;
+  padding: 0;
+}
+
+button.e-permits-wid-cols__slot {
+  cursor: pointer;
+}
+
+button.e-permits-wid-cols__slot:hover {
+  background: var(--color-background-base-tertiary, #f1f1f1);
+}
+
+button.e-permits-wid-cols__slot:focus-visible {
+  box-shadow: inset 0 0 0 var(--border-width-2, 2px) var(--focus-ring, #3379db);
+  outline: none;
+}
+
+.e-permits-wid-cols__svg {
+  display: block;
+  height: 100%;
+  overflow: hidden;
+  width: 100%;
+}
+
+button.e-permits-wid-cols__slot:hover .e-permits-chart__bar--brand { fill: var(--color-background-brand-default-hover, #0046a8); }
+button.e-permits-wid-cols__slot:hover .e-permits-chart__bar--success { fill: var(--green-700, #027948); }
+button.e-permits-wid-cols__slot:hover .e-permits-chart__bar--warning { fill: var(--apricot-600, #dc6803); }
+button.e-permits-wid-cols__slot:hover .e-permits-chart__bar--danger { fill: var(--red-700, #b32318); }
+button.e-permits-wid-cols__slot:hover .e-permits-wid-fill { fill: var(--wid-series-hover); }
+
+/* target line of a KPI («Ținta») and the control-chart lines */
+.e-permits-wid-target {
+  stroke: var(--color-text-base-default, #121212);
+  stroke-dasharray: var(--spacing-4, 4px) var(--spacing-4, 4px);
+  stroke-width: var(--border-width-2, 2px);
+}
+
+.e-permits-wid-mean {
+  stroke: var(--color-icon-base-tertiary, #757575);
+  stroke-width: var(--border-width-1-5, 1.5px);
+}
+
+.e-permits-wid-limit {
+  stroke: var(--color-icon-danger-default, #d92d20);
+  stroke-dasharray: var(--spacing-4, 4px) var(--spacing-4, 4px);
+  stroke-width: var(--border-width-1-5, 1.5px);
+}
+
+/* legend keys that are lines, not dots */
+.e-permits-meter-legend__dot:is(.e-permits-wid-legend__target, .e-permits-wid-legend__mean, .e-permits-wid-legend__limit) {
+  border-radius: 0;
+  height: var(--border-width-2, 2px);
+  width: var(--spacing-12, 12px);
+}
+
+.e-permits-wid-legend__target { background: var(--color-text-base-default, #121212); }
+.e-permits-wid-legend__mean { background: var(--color-icon-base-tertiary, #757575); }
+.e-permits-wid-legend__limit { background: var(--color-icon-danger-default, #d92d20); }
+
+/* a legend item that drills (donut): the whole line is the button; grey tray → its hover step */
+.e-permits-wid-legend__btn {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  border-radius: var(--border-radius-6, 6px);
+  color: inherit;
+  cursor: pointer;
+  display: flex;
+  font: inherit;
+  gap: var(--spacing-6, 6px);
+  margin: 0 calc(var(--spacing-8, 8px) * -1);
+  padding: var(--spacing-4, 4px) var(--spacing-8, 8px);
+  text-align: left;
+  width: calc(100% + var(--spacing-16, 16px));
+}
+
+.e-permits-wid-legend__btn:hover {
+  background: var(--color-background-base-secondary-hover, #ebebeb);
+}
+
+.e-permits-wid-legend__btn:focus-visible {
+  box-shadow: 0 0 0 var(--border-width-2, 2px) var(--color-background-base-default, #fff), 0 0 0 var(--border-width-4, 4px) var(--focus-ring, #3379db);
+  outline: none;
+}
+
+/* a vertical legend next to the donut: one line per category, the value right */
+.e-permits-wid-legend--list {
+  align-self: stretch;
+  flex: 1 1 calc(var(--spacing-40, 40px) * 4);
+  flex-direction: column;
+  flex-wrap: nowrap;
+}
+
+.e-permits-wid-legend--list li {
+  display: flex;
+}
+
+.e-permits-wid-legend--list strong {
+  margin-left: auto;
+}
+
+/* Linie sau arie / Diagramă de control: the lines are drawn in a stretched viewBox layer UNDER the plot (lines keep
+   their width with non-scaling-stroke), the dots and the guide lines in the plot itself (percent coordinates) */
+.e-permits-wid-plot-wrap {
+  position: relative;
+}
+
+.e-permits-wid-layer {
+  height: calc(100% - var(--border-width-1, 1px));
+  left: 0;
+  overflow: visible;
+  pointer-events: none;
+  position: absolute;
+  top: 0;
+  width: 100%;
+}
+
+.e-permits-wid-line {
+  fill: none;
+  stroke: var(--wid-series);
+  stroke-linejoin: round;
+  stroke-width: var(--border-width-2, 2px);
+}
+
+.e-permits-wid-area {
+  fill: var(--color-background-brand-secondary, #e8f0fb);
+}
+
+.e-permits-wid-dot {
+  fill: var(--color-background-base-default, #fff);
+  stroke: var(--wid-series);
+  stroke-width: var(--border-width-2, 2px);
+}
+
+.e-permits-wid-dot.is-out {
+  fill: var(--color-icon-danger-default, #d92d20);
+  stroke: var(--color-icon-danger-default, #d92d20);
+}
+
+/* Bare (categories) / Pâlnie: one row per category — label · bar · value; a drill row is a button with the list hover */
+.e-permits-wid-rows,
+.e-permits-wid-funnel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4, 4px);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.e-permits-wid-rows__row {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  border-radius: var(--border-radius-8, 8px);
+  box-sizing: border-box;
+  color: inherit;
+  display: grid;
+  font: inherit;
+  gap: var(--spacing-12, 12px);
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
+  margin: 0 calc(var(--spacing-8, 8px) * -1);
+  min-height: var(--spacing-32, 32px);
+  padding: var(--spacing-4, 4px) var(--spacing-8, 8px);
+  text-align: left;
+  width: calc(100% + var(--spacing-16, 16px));
+}
+
+button.e-permits-wid-rows__row {
+  cursor: pointer;
+}
+
+button.e-permits-wid-rows__row:hover {
+  background: var(--color-background-base-tertiary, #f1f1f1);
+}
+
+button.e-permits-wid-rows__row:focus-visible {
+  box-shadow: 0 0 0 var(--border-width-2, 2px) var(--color-background-base-default, #fff), 0 0 0 var(--border-width-4, 4px) var(--focus-ring, #3379db);
+  outline: none;
+}
+
+.e-permits-wid-rows__label {
+  color: var(--color-text-base-secondary, #383838);
+  font-size: var(--font-size-fs-14, 14px);
+  line-height: var(--line-height-lh-20, 20px);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.e-permits-wid-rows__value {
+  align-items: baseline;
+  color: var(--color-text-base-default, #121212);
+  display: inline-flex;
+  font-size: var(--font-size-fs-14, 14px);
+  font-weight: var(--font-weight-fw-medium, 500);
+  gap: var(--spacing-6, 6px);
+  justify-content: flex-end;
+  line-height: var(--line-height-lh-20, 20px);
+  white-space: nowrap;
+}
+
+.e-permits-wid-funnel__bar {
+  display: block;
+  height: var(--spacing-24, 24px);
+  width: 100%;
+}
+
+/* Sectoare sau inel: the ring (viewBox 42, stroke 6) + the total in the centre, the list legend beside it */
+.e-permits-wid-donut {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-24, 24px);
+}
+
+.e-permits-wid-donut__chart {
+  flex: none;
+  height: calc(var(--spacing-40, 40px) * 4);
+  position: relative;
+  width: calc(var(--spacing-40, 40px) * 4);
+}
+
+.e-permits-wid-donut--small .e-permits-wid-donut__chart {
+  height: calc(var(--spacing-40, 40px) * 3);
+  width: calc(var(--spacing-40, 40px) * 3);
+}
+
+.e-permits-wid-donut--large .e-permits-wid-donut__chart {
+  height: calc(var(--spacing-40, 40px) * 5);
+  width: calc(var(--spacing-40, 40px) * 5);
+}
+
+.e-permits-wid-donut__svg {
+  display: block;
+  height: 100%;
+  width: 100%;
+}
+
+.e-permits-wid-donut__track {
+  fill: none;
+  stroke: var(--color-background-base-default-active, #d9d9d9);
+}
+
+.e-permits-wid-arc {
+  fill: none;
+  stroke: var(--wid-series);
+}
+
+.e-permits-wid-donut__center {
+  align-items: center;
+  color: var(--color-text-base-tertiary, #757575);
+  display: flex;
+  flex-direction: column;
+  font-size: var(--font-size-fs-12, 12px);
+  inset: 0;
+  justify-content: center;
+  line-height: var(--line-height-lh-16, 16px);
+  position: absolute;
+}
+
+.e-permits-wid-donut__center strong {
+  color: var(--color-text-base-default, #121212);
+  font-size: var(--font-size-fs-20, 20px);
+  font-weight: var(--font-weight-fw-semibold, 600);
+  line-height: var(--line-height-lh-26, 26px);
+}
+
+/* Hartă de căldură: a real table, cells on the brand ramp (5 steps; 4 + 5 carry white text) */
+.e-permits-wid-heat-wrap {
+  overflow-x: auto;
+}
+
+.e-permits-wid-heat {
+  border-collapse: separate;
+  border-spacing: var(--spacing-2, 2px);
+  width: 100%;
+}
+
+.e-permits-wid-heat th {
+  color: var(--color-text-base-tertiary, #757575);
+  font-size: var(--font-size-fs-12, 12px);
+  font-weight: var(--font-weight-fw-regular, 400);
+  line-height: var(--line-height-lh-16, 16px);
+  padding: 0 var(--spacing-2, 2px) var(--spacing-4, 4px);
+  text-align: center;
+  white-space: nowrap;
+}
+
+.e-permits-wid-heat tbody th {
+  max-width: calc(var(--spacing-40, 40px) * 2);
+  overflow: hidden;
+  padding: 0 var(--spacing-8, 8px) 0 0;
+  text-align: left;
+  text-overflow: ellipsis;
+}
+
+.e-permits-wid-heat td {
+  padding: 0;
+}
+
+.e-permits-wid-heat__cell {
+  background: var(--color-background-base-secondary, #f5f5f5);
+  border: 0;
+  border-radius: var(--border-radius-4, 4px);
+  box-sizing: border-box;
+  color: var(--color-text-base-default, #121212);
+  display: flex;
+  align-items: center;
+  font: inherit;
+  font-size: var(--font-size-fs-12, 12px);
+  justify-content: center;
+  line-height: var(--line-height-lh-16, 16px);
+  min-height: var(--spacing-32, 32px);
+  min-width: var(--spacing-32, 32px);
+  padding: 0 var(--spacing-4, 4px);
+  width: 100%;
+}
+
+.e-permits-wid-heat__cell.is-l1 { background: var(--blue-sky-100, #e8f0fb); }
+.e-permits-wid-heat__cell.is-l2 { background: var(--blue-sky-200, #ccdef6); }
+.e-permits-wid-heat__cell.is-l3 { background: var(--blue-sky-300, #99bced); }
+.e-permits-wid-heat__cell.is-l4 { background: var(--blue-sky-500, #3379db); color: var(--color-text-base-inverse-on-color, #fff); }
+.e-permits-wid-heat__cell.is-l5 { background: var(--color-background-brand-default, #0058d2); color: var(--color-text-base-inverse-on-color, #fff); }
+
+/* a drilling cell: a transparent button filling the coloured cell (the colour is the data, on the span); hover = the
+   button takes the next step of the ramp itself (the element under the pointer changes), ring inset */
+.e-permits-wid-heat__btn {
+  align-self: stretch;
+  background: transparent;
+  border: 0;
+  border-radius: var(--border-radius-4, 4px);
+  color: inherit;
+  cursor: pointer;
+  flex: 1 1 auto;
+  font: inherit;
+  padding: 0 var(--spacing-4, 4px);
+}
+
+.e-permits-wid-heat__btn:focus-visible {
+  box-shadow: inset 0 0 0 var(--border-width-2, 2px) var(--focus-ring, #3379db);
+  outline: none;
+}
+
+.e-permits-wid-heat__cell > .e-permits-wid-heat__btn:hover { background: var(--color-background-base-tertiary-hover, #e5e5e5); }
+.e-permits-wid-heat__cell.is-l1 > .e-permits-wid-heat__btn:hover { background: var(--blue-sky-200, #ccdef6); }
+.e-permits-wid-heat__cell.is-l2 > .e-permits-wid-heat__btn:hover { background: var(--blue-sky-300, #99bced); }
+.e-permits-wid-heat__cell.is-l3 > .e-permits-wid-heat__btn:hover { background: var(--blue-sky-400, #669be4); }
+.e-permits-wid-heat__cell.is-l4 > .e-permits-wid-heat__btn:hover { background: var(--color-background-brand-default, #0058d2); }
+.e-permits-wid-heat__cell.is-l5 > .e-permits-wid-heat__btn:hover { background: var(--color-background-brand-default-hover, #0046a8); }
+
+.e-permits-wid-heat__cell:has(> .e-permits-wid-heat__btn) {
+  padding: 0;
+}
+
+.e-permits-wid-heat__key {
+  border-radius: var(--border-radius-4, 4px);
+  display: inline-block;
+  height: var(--spacing-8, 8px);
+  width: var(--spacing-16, 16px);
+}
+
+.e-permits-wid-heat__key.is-l1 { background: var(--blue-sky-100, #e8f0fb); }
+.e-permits-wid-heat__key.is-l2 { background: var(--blue-sky-200, #ccdef6); }
+.e-permits-wid-heat__key.is-l3 { background: var(--blue-sky-300, #99bced); }
+.e-permits-wid-heat__key.is-l4 { background: var(--blue-sky-500, #3379db); }
+.e-permits-wid-heat__key.is-l5 { background: var(--color-background-brand-default, #0058d2); }
+
+/* Treemap: tiles in the series palette, 2px card-coloured gaps, white labels on the big ones */
+.e-permits-wid-tile-rect {
+  stroke: var(--color-background-base-default, #fff);
+  stroke-width: var(--border-width-2, 2px);
+}
+
+.e-permits-wid-treemap__label,
+.e-permits-wid-treemap__value {
+  fill: var(--color-text-base-inverse-on-color, #fff);
+  font-family: var(--font-family-primary-font, Onest);
+  font-size: var(--font-size-fs-12, 12px);
+  pointer-events: none;
+}
+
+.e-permits-wid-treemap__label {
+  font-weight: var(--font-weight-fw-medium, 500);
+}
+
+/* Plăcuță simplă: the eKYC KPI card; a drill tile holds one transparent button that IS the card's padding box — hover
+   = the button's own fill (secondary → its hover step), the keyboard ring on the button */
+.e-permits-wid-single:has(> .e-permits-wid-single__btn) {
+  padding: 0;
+}
+
+.e-permits-wid-single__btn {
+  background: transparent;
+  border: 0;
+  border-radius: var(--border-radius-16, 16px);
+  color: inherit;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  font: inherit;
+  gap: var(--spacing-4, 4px);
+  padding: var(--spacing-16, 16px) var(--spacing-20, 20px);
+  text-align: left;
+  width: 100%;
+}
+
+.e-permits-wid-single__btn:hover {
+  background: var(--color-background-base-secondary-hover, #ebebeb);
+}
+
+.e-permits-wid-single__btn:focus-visible {
+  box-shadow: 0 0 0 var(--border-width-2, 2px) var(--color-background-base-default, #fff), 0 0 0 var(--border-width-4, 4px) var(--focus-ring, #3379db);
+  outline: none;
+}
+
+/* Tabel agregat / Tabel cu filtru: the card table, content-sized columns, height = „Înălțimea implicită” */
+.e-permits-wid-table-wrap--small { max-height: calc(var(--spacing-40, 40px) * 4); }
+.e-permits-wid-table-wrap--medium { max-height: calc(var(--spacing-40, 40px) * 6); }
+.e-permits-wid-table-wrap--large { max-height: calc(var(--spacing-40, 40px) * 9); }
+
+.e-permits-reg-table__table.e-permits-wid-table {
+  table-layout: auto;
+}
+
+.e-permits-wid-table :is(th, td):last-child {
+  width: auto;
+}
+
+.e-permits-wid-table :is(th, td) {
+  white-space: nowrap;
+}
+
+/* a value / record number that drills = the library link on a button (reset like the calendar intro link) */
+.e-permits-wid-table__drill {
+  background: none;
+  border: 0;
+  cursor: pointer;
+  display: inline;
+  font-size: inherit;
+  line-height: inherit;
+  padding: 0;
+}
+
+.e-permits-wid-table--agg td,
+.e-permits-wid-table--agg .e-permits-wid-table__num {
+  text-align: right;
+}
+
+.e-permits-wid-table--agg .e-permits-wid-table__num .e-permits-workplace__th-content {
+  justify-content: flex-end;
+}
+
+/* ---- Compară versiuni (new): pickers card · changed fields · the two widgets side by side ---- */
+.e-permits-wid-compare {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-16, 16px);
+}
+
+.e-permits-wid-compare__grid {
+  display: grid;
+  gap: var(--spacing-16, 16px);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.e-permits-wid-compare__col {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-8, 8px);
+  min-width: 0;
+}
+
+.e-permits-wid-compare__label {
+  color: var(--color-text-base-secondary, #383838);
+  font-size: var(--font-size-fs-14, 14px);
+  font-weight: var(--font-weight-fw-medium, 500);
+  line-height: var(--line-height-lh-20, 20px);
+  margin: 0;
+}
+
+/* the version window: details card · the widget · the configuration blocks */
+.e-permits-reg-modal--wid-version [data-case-modal-body] {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-16, 16px);
+}
+
+@media (max-width: 1100px) {
+  .e-permits-wid-compare__grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  /* the profile stacks: the widget first, its configuration under it */
+  .e-permits-wid-config > .e-permits-ntpl-content__preview {
+    order: -1;
+    position: static;
+  }
+}
+
+/* phones (≤760): one gallery column, the sheet gutter 16, the pinned ID column released (registers' rule) */
+@media (max-width: 760px) {
+  .e-permits-workplace[data-registry-kind="widgete"] .e-permits-workplace__table th:nth-child(1),
+  .e-permits-workplace[data-registry-kind="widgete"] .e-permits-workplace__table td:nth-child(1) {
+    border-right: 0;
+    left: auto;
+    position: static;
+    z-index: auto;
+  }
+
+  .e-permits-wid-editor .e-permits-steps-strip {
+    padding-inline: var(--spacing-16, 16px);
+  }
+
+  .e-permits-wid-types__grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .e-permits-wid-card__title {
+    font-size: var(--font-size-fs-16, 16px);
+  }
+
+  .e-permits-wid-rows__label,
+  .e-permits-wid-rows__value {
+    font-size: var(--font-size-fs-16, 16px);
+    line-height: var(--line-height-lh-24, 24px);
+  }
+
+  .e-permits-wid-rows__row {
+    min-height: var(--spacing-48, 48px);
+  }
+}

@@ -110,7 +110,7 @@
     if (S.data) return Promise.resolve(S.data);
     if (demo.has("incarcare")) return new Promise(() => {});
     if (!S.loading) {
-      S.loading = fetch("data/kpi.json?v=kpi-v1").then((r) => r.json()).then((json) => {
+      S.loading = fetch("data/kpi.json?v=widget-v1").then((r) => r.json()).then((json) => {
         if (demo.has("gol")) { json.kpis = []; json.alerts = []; }
         json.inherit = json.inherit || {};
         json.history = json.history || {};
@@ -1787,6 +1787,10 @@
     load, openProfile, openCreate, refreshList, perms: () => who(),
     list: (w = who()) => allKpis().filter((k) => visible(k, w)),
     get: kpiOf,
+    /* the published data sources and their fields (widgets pick the same sources, Feature 96501) */
+    sources: () => D().sources.filter((src) => src.status === "Publicat"),
+    fields: (src) => fieldsOf(src),
+    calculatedAt: () => D().calculatedAt,
     /* the value in a perimeter ("all" or an authority id): { cur, prev, num, den, pnum, pden } — cur null = n/a */
     value: (id, per) => { const k = kpiOf(id); return k ? valuesOf(k, per || perimeterOf(k)) : null; },
     series: (id, per) => { const k = kpiOf(id); return k ? seriesOf(k, per || perimeterOf(k)) : []; },

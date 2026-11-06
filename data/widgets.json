@@ -1,0 +1,338 @@
+{
+  "_comment": "Administrare › Widgete (widget-v1, 2026-11-06; Feature 96501 „Configurarea widget-urilor”). Seed of the widget catalogue: global widgets (Administrator central) + authority / service widgets, their published versions (a version without `config` = the current configuration) and the audit trail. Sources and KPIs come from data/kpi.json through window.GEAPKpi; values are aggregated in js/widget-admin.js (deterministic mock of US-409 on the data of 6 noiembrie 2026, 06:00).",
+  "calculatedAt": "2026-11-06T06:00:00",
+  "widgets": [
+    {
+      "id": "WGT-0001", "level": "Global", "status": "Publicat",
+      "createdAt": "2026-09-14T10:20:00", "createdBy": "Anastasia Cojocaru", "updatedAt": "2026-11-03T15:42:00", "updatedBy": "Anastasia Cojocaru",
+      "config": {
+        "titles": { "ro": "Dosare examinate", "ru": "Рассмотренные дела", "en": "Examined files" },
+        "subtitles": { "ro": "Dosarele examinate, pe autorități", "ru": "Рассмотренные дела по органам", "en": "Examined files by authority" },
+        "source": "reg-dosare", "type": "bars", "kpi": "", "measure": "count", "column": "",
+        "primary": "autoritate", "secondary": "", "dateGroup": "", "order": "source",
+        "filter": { "logic": "and", "rules": [{ "column": "finalizat", "op": "notEmpty", "value": "" }] },
+        "compare": "prevWeek", "format": "number", "threshold": { "on": true, "value": "10", "below": "warning" },
+        "width": "third", "height": "medium", "drill": true, "visibility": "authority"
+      },
+      "versions": [
+        { "nr": 1, "version": 1, "type": "Prima publicare", "note": "Widget nou pentru tabloul de bord al directorilor.", "at": "2026-09-15T09:05:00", "by": "Anastasia Cojocaru",
+          "config": {
+            "titles": { "ro": "Dosare examinate", "ru": "Рассмотренные дела", "en": "Examined files" },
+            "subtitles": { "ro": "Dosarele examinate în lună", "ru": "Рассмотренные дела за месяц", "en": "Files examined this month" },
+            "source": "reg-dosare", "type": "bars", "kpi": "", "measure": "count", "column": "",
+            "primary": "autoritate", "secondary": "", "dateGroup": "", "order": "alpha",
+            "filter": { "logic": "and", "rules": [{ "column": "finalizat", "op": "notEmpty", "value": "" }] },
+            "compare": "prevMonth", "format": "number", "threshold": { "on": false, "value": "", "below": "warning" },
+            "width": "half", "height": "medium", "drill": true, "visibility": "authority"
+          } },
+        { "nr": 2, "version": 2, "type": "Publicare", "note": "Ordinea ca în sursa de date și praguri de culoare la 10 dosare.", "at": "2026-10-08T11:30:00", "by": "Anastasia Cojocaru",
+          "config": {
+            "titles": { "ro": "Dosare examinate", "ru": "Рассмотренные дела", "en": "Examined files" },
+            "subtitles": { "ro": "Dosarele examinate în lună", "ru": "Рассмотренные дела за месяц", "en": "Files examined this month" },
+            "source": "reg-dosare", "type": "bars", "kpi": "", "measure": "count", "column": "",
+            "primary": "autoritate", "secondary": "", "dateGroup": "", "order": "source",
+            "filter": { "logic": "and", "rules": [{ "column": "finalizat", "op": "notEmpty", "value": "" }] },
+            "compare": "prevMonth", "format": "number", "threshold": { "on": true, "value": "10", "below": "warning" },
+            "width": "half", "height": "medium", "drill": true, "visibility": "authority"
+          } },
+        { "nr": 3, "version": 3, "type": "Publicare", "note": "Comparație cu săptămâna precedentă, lățime de o treime.", "at": "2026-11-03T15:42:00", "by": "Anastasia Cojocaru" }
+      ],
+      "history": [
+        { "at": "2026-11-03T15:42:00", "by": "Anastasia Cojocaru", "role": "Administrator central", "event": "Publicarea widget-ului", "detail": "Versiunea 3 · Comparație cu săptămâna precedentă, lățime de o treime." },
+        { "at": "2026-11-03T15:38:00", "by": "Anastasia Cojocaru", "role": "Administrator central", "event": "Modificarea widget-ului", "detail": "Perioada de comparație: Luna precedentă → Săptămâna precedentă · Lățimea implicită: Jumătate → O treime · Subtitlu și descriere (RO)" },
+        { "at": "2026-10-08T11:30:00", "by": "Anastasia Cojocaru", "role": "Administrator central", "event": "Publicarea widget-ului", "detail": "Versiunea 2 · Ordinea ca în sursa de date și praguri de culoare la 10 dosare." },
+        { "at": "2026-09-15T09:05:00", "by": "Anastasia Cojocaru", "role": "Administrator central", "event": "Publicarea widget-ului", "detail": "Versiunea 1 · Widget nou pentru tabloul de bord al directorilor." },
+        { "at": "2026-09-14T10:20:00", "by": "Anastasia Cojocaru", "role": "Administrator central", "event": "Crearea widget-ului", "detail": "Ciornă · Global · Registru Dosare · Bare" }
+      ]
+    },
+    {
+      "id": "WGT-0002", "level": "Global", "status": "Publicat",
+      "createdAt": "2026-10-01T09:00:00", "createdBy": "Anastasia Cojocaru", "updatedAt": "2026-10-20T10:15:00", "updatedBy": "Anastasia Cojocaru",
+      "config": {
+        "titles": { "ro": "Dosare finalizate din cele examinate", "ru": "Завершённые из рассмотренных дел", "en": "Files completed out of examined" },
+        "subtitles": { "ro": "Procentul dosarelor finalizate din cele examinate, pe luni", "ru": "Доля завершённых дел по месяцам", "en": "Share of completed files by month" },
+        "source": "reg-dosare", "type": "bars", "kpi": "kpi-t01", "measure": "", "column": "",
+        "primary": "finalizat", "secondary": "", "dateGroup": "month", "order": "source",
+        "filter": { "logic": "and", "rules": [] },
+        "compare": "prevMonth", "format": "percent", "threshold": { "on": false, "value": "", "below": "warning" },
+        "width": "half", "height": "medium", "drill": true, "visibility": "authority"
+      },
+      "versions": [
+        { "nr": 1, "version": 1, "type": "Prima publicare", "note": "KPI „Cereri procesate în termen” pe luni, cu linia țintei.", "at": "2026-10-02T08:40:00", "by": "Anastasia Cojocaru",
+          "config": {
+            "titles": { "ro": "Dosare finalizate din cele examinate", "ru": "Завершённые из рассмотренных дел", "en": "Files completed out of examined" },
+            "subtitles": { "ro": "Procentul dosarelor finalizate din cele examinate, pe săptămâni", "ru": "Доля завершённых дел по неделям", "en": "Share of completed files by week" },
+            "source": "reg-dosare", "type": "bars", "kpi": "kpi-t01", "measure": "", "column": "",
+            "primary": "finalizat", "secondary": "", "dateGroup": "week", "order": "source",
+            "filter": { "logic": "and", "rules": [] },
+            "compare": "prevWeek", "format": "percent", "threshold": { "on": false, "value": "", "below": "warning" },
+            "width": "half", "height": "medium", "drill": true, "visibility": "authority"
+          } },
+        { "nr": 2, "version": 2, "type": "Publicare", "note": "Grupare pe luni în loc de săptămâni.", "at": "2026-10-20T10:15:00", "by": "Anastasia Cojocaru" }
+      ],
+      "history": [
+        { "at": "2026-10-20T10:15:00", "by": "Anastasia Cojocaru", "role": "Administrator central", "event": "Publicarea widget-ului", "detail": "Versiunea 2 · Grupare pe luni în loc de săptămâni." },
+        { "at": "2026-10-02T08:40:00", "by": "Anastasia Cojocaru", "role": "Administrator central", "event": "Publicarea widget-ului", "detail": "Versiunea 1 · KPI „Cereri procesate în termen” pe luni, cu linia țintei." },
+        { "at": "2026-10-01T09:00:00", "by": "Anastasia Cojocaru", "role": "Administrator central", "event": "Crearea widget-ului", "detail": "Ciornă · Global · Registru Dosare · Bare · KPI T-01" }
+      ]
+    },
+    {
+      "id": "WGT-0003", "level": "Global", "status": "Publicat",
+      "createdAt": "2026-10-05T14:00:00", "createdBy": "Anastasia Cojocaru", "updatedAt": "2026-10-06T09:12:00", "updatedBy": "Anastasia Cojocaru",
+      "config": {
+        "titles": { "ro": "Dosare întârziate la examinare", "ru": "Дела с просроченным рассмотрением", "en": "Files overdue for examination" },
+        "subtitles": { "ro": "Dosarele cu termenul de examinare depășit, pe autorități și servicii", "ru": "Просроченные дела по органам и услугам", "en": "Overdue files by authority and service" },
+        "source": "reg-dosare", "type": "stacked", "kpi": "", "measure": "count", "column": "",
+        "primary": "autoritate", "secondary": "serviciu", "dateGroup": "", "order": "valueDesc",
+        "filter": { "logic": "and", "rules": [{ "column": "inTermen", "op": "is", "value": "Nu" }] },
+        "compare": "prevWeek", "format": "number", "threshold": { "on": false, "value": "", "below": "warning" },
+        "width": "half", "height": "medium", "drill": true, "visibility": "authority"
+      },
+      "versions": [
+        { "nr": 1, "version": 1, "type": "Prima publicare", "note": "Dosarele întârziate, pe servicii.", "at": "2026-10-06T09:12:00", "by": "Anastasia Cojocaru" }
+      ],
+      "history": [
+        { "at": "2026-10-06T09:12:00", "by": "Anastasia Cojocaru", "role": "Administrator central", "event": "Publicarea widget-ului", "detail": "Versiunea 1 · Dosarele întârziate, pe servicii." },
+        { "at": "2026-10-05T14:00:00", "by": "Anastasia Cojocaru", "role": "Administrator central", "event": "Crearea widget-ului", "detail": "Ciornă · Global · Registru Dosare · Bare suprapuse" }
+      ]
+    },
+    {
+      "id": "WGT-0004", "level": "Global", "status": "Publicat",
+      "createdAt": "2026-10-09T11:00:00", "createdBy": "Anastasia Cojocaru", "updatedAt": "2026-10-09T11:40:00", "updatedBy": "Anastasia Cojocaru",
+      "config": {
+        "titles": { "ro": "Dosare depuse, pe autorități și luni", "ru": "Поданные дела по органам и месяцам", "en": "Files submitted by authority and month" },
+        "subtitles": { "ro": "Unde și când se depun cele mai multe dosare", "ru": "Где и когда подают больше всего дел", "en": "Where and when most files are submitted" },
+        "source": "reg-dosare", "type": "heatmap", "kpi": "", "measure": "count", "column": "",
+        "primary": "autoritate", "secondary": "depus", "dateGroup": "month", "order": "source",
+        "filter": { "logic": "and", "rules": [] },
+        "compare": "", "format": "number", "threshold": { "on": false, "value": "", "below": "warning" },
+        "width": "full", "height": "medium", "drill": true, "visibility": "global"
+      },
+      "versions": [
+        { "nr": 1, "version": 1, "type": "Prima publicare", "note": "Harta de căldură a depunerilor.", "at": "2026-10-09T11:40:00", "by": "Anastasia Cojocaru" }
+      ],
+      "history": [
+        { "at": "2026-10-09T11:40:00", "by": "Anastasia Cojocaru", "role": "Administrator central", "event": "Publicarea widget-ului", "detail": "Versiunea 1 · Harta de căldură a depunerilor." },
+        { "at": "2026-10-09T11:00:00", "by": "Anastasia Cojocaru", "role": "Administrator central", "event": "Crearea widget-ului", "detail": "Ciornă · Global · Registru Dosare · Hartă de căldură" }
+      ]
+    },
+    {
+      "id": "WGT-0005", "level": "Global", "status": "Ciornă",
+      "createdAt": "2026-11-04T16:05:00", "createdBy": "Anastasia Cojocaru", "updatedAt": "2026-11-05T09:20:00", "updatedBy": "Anastasia Cojocaru",
+      "config": {
+        "titles": { "ro": "Durata medie de procesare", "ru": "", "en": "" },
+        "subtitles": { "ro": "Media zilelor de la depunere la finalizare, pe luni", "ru": "", "en": "" },
+        "source": "reg-dosare", "type": "line", "kpi": "", "measure": "avg", "column": "durata",
+        "primary": "finalizat", "secondary": "", "dateGroup": "month", "order": "source",
+        "filter": { "logic": "and", "rules": [] },
+        "compare": "sameLastYear", "format": "duration", "threshold": { "on": false, "value": "", "below": "warning" },
+        "width": "half", "height": "medium", "drill": true, "visibility": "authority"
+      },
+      "versions": [],
+      "history": [
+        { "at": "2026-11-05T09:20:00", "by": "Anastasia Cojocaru", "role": "Administrator central", "event": "Modificarea widget-ului", "detail": "Perioada de comparație: — → Aceeași perioadă a anului precedent" },
+        { "at": "2026-11-04T16:05:00", "by": "Anastasia Cojocaru", "role": "Administrator central", "event": "Crearea widget-ului", "detail": "Ciornă · Global · Registru Dosare · Linie sau arie" }
+      ]
+    },
+    {
+      "id": "WGT-0006", "level": "Autoritate", "authority": "ansp", "status": "Publicat",
+      "createdAt": "2026-10-12T10:00:00", "createdBy": "Victor Lungu", "updatedAt": "2026-10-12T10:30:00", "updatedBy": "Victor Lungu",
+      "config": {
+        "titles": { "ro": "Dosarele ANSP pe statut", "ru": "Дела ANSP по статусу", "en": "ANSP files by status" },
+        "subtitles": { "ro": "Structura dosarelor din lucru și finalizate", "ru": "Структура дел", "en": "Structure of files" },
+        "source": "reg-dosare", "type": "pie", "kpi": "", "measure": "count", "column": "",
+        "primary": "statut", "secondary": "", "dateGroup": "", "order": "valueDesc",
+        "filter": { "logic": "and", "rules": [] },
+        "compare": "prevMonth", "format": "number", "threshold": { "on": false, "value": "", "below": "warning" },
+        "width": "third", "height": "medium", "drill": true, "visibility": "subdivision"
+      },
+      "versions": [
+        { "nr": 1, "version": 1, "type": "Prima publicare", "note": "Structura pe statut pentru supervizori.", "at": "2026-10-12T10:30:00", "by": "Victor Lungu" }
+      ],
+      "history": [
+        { "at": "2026-10-12T10:30:00", "by": "Victor Lungu", "role": "Administrator local · ANSP", "event": "Publicarea widget-ului", "detail": "Versiunea 1 · Structura pe statut pentru supervizori." },
+        { "at": "2026-10-12T10:00:00", "by": "Victor Lungu", "role": "Administrator local · ANSP", "event": "Crearea widget-ului", "detail": "Ciornă · Autoritate ANSP · Registru Dosare · Sectoare sau inel" }
+      ]
+    },
+    {
+      "id": "WGT-0007", "level": "Global", "status": "Publicat",
+      "createdAt": "2026-09-20T13:00:00", "createdBy": "Anastasia Cojocaru", "updatedAt": "2026-11-05T17:02:00", "updatedBy": "Anastasia Cojocaru",
+      "config": {
+        "titles": { "ro": "Dosare pe servicii și statut", "ru": "Дела по услугам и статусу", "en": "Files by service and status" },
+        "subtitles": { "ro": "Tabel agregat: serviciile pe rânduri, statutul pe coloane", "ru": "Сводная таблица", "en": "Aggregate table" },
+        "source": "reg-dosare", "type": "aggTable", "kpi": "", "measure": "count", "column": "",
+        "primary": "serviciu", "secondary": "statut", "dateGroup": "", "order": "valueDesc",
+        "filter": { "logic": "and", "rules": [] },
+        "compare": "prevQuarter", "format": "number", "threshold": { "on": false, "value": "", "below": "warning" },
+        "width": "full", "height": "large", "drill": true, "visibility": "authority"
+      },
+      "versions": [
+        { "nr": 1, "version": 1, "type": "Prima publicare", "note": "Tabel agregat pe servicii.", "at": "2026-09-21T09:00:00", "by": "Anastasia Cojocaru",
+          "config": {
+            "titles": { "ro": "Dosare pe servicii", "ru": "Дела по услугам", "en": "Files by service" },
+            "subtitles": { "ro": "Tabel agregat pe servicii", "ru": "Сводная таблица", "en": "Aggregate table" },
+            "source": "reg-dosare", "type": "aggTable", "kpi": "", "measure": "count", "column": "",
+            "primary": "serviciu", "secondary": "", "dateGroup": "", "order": "alpha",
+            "filter": { "logic": "and", "rules": [] },
+            "compare": "prevMonth", "format": "number", "threshold": { "on": false, "value": "", "below": "warning" },
+            "width": "full", "height": "large", "drill": true, "visibility": "authority"
+          } },
+        { "nr": 2, "version": 2, "type": "Publicare", "note": "Statutul dosarului ca a doua grupare.", "at": "2026-10-14T12:20:00", "by": "Anastasia Cojocaru",
+          "config": {
+            "titles": { "ro": "Dosare pe servicii și statut", "ru": "Дела по услугам и статусу", "en": "Files by service and status" },
+            "subtitles": { "ro": "Tabel agregat: serviciile pe rânduri, statutul pe coloane", "ru": "Сводная таблица", "en": "Aggregate table" },
+            "source": "reg-dosare", "type": "aggTable", "kpi": "", "measure": "count", "column": "",
+            "primary": "serviciu", "secondary": "statut", "dateGroup": "", "order": "valueDesc",
+            "filter": { "logic": "and", "rules": [] },
+            "compare": "prevMonth", "format": "number", "threshold": { "on": false, "value": "", "below": "warning" },
+            "width": "full", "height": "large", "drill": true, "visibility": "authority"
+          } }
+      ],
+      "history": [
+        { "at": "2026-11-05T17:02:00", "by": "Anastasia Cojocaru", "role": "Administrator central", "event": "Modificarea widget-ului", "detail": "Perioada de comparație: Luna precedentă → Trimestrul precedent" },
+        { "at": "2026-10-14T12:20:00", "by": "Anastasia Cojocaru", "role": "Administrator central", "event": "Publicarea widget-ului", "detail": "Versiunea 2 · Statutul dosarului ca a doua grupare." },
+        { "at": "2026-09-21T09:00:00", "by": "Anastasia Cojocaru", "role": "Administrator central", "event": "Publicarea widget-ului", "detail": "Versiunea 1 · Tabel agregat pe servicii." },
+        { "at": "2026-09-20T13:00:00", "by": "Anastasia Cojocaru", "role": "Administrator central", "event": "Crearea widget-ului", "detail": "Ciornă · Global · Registru Dosare · Tabel agregat" }
+      ]
+    },
+    {
+      "id": "WGT-0008", "level": "Autoritate", "authority": "ansp", "status": "Publicat",
+      "createdAt": "2026-10-16T09:30:00", "createdBy": "Victor Lungu", "updatedAt": "2026-10-16T10:00:00", "updatedBy": "Victor Lungu",
+      "config": {
+        "titles": { "ro": "Parcursul dosarelor ANSP", "ru": "Путь дел ANSP", "en": "ANSP file journey" },
+        "subtitles": { "ro": "De la depunere la finalizare", "ru": "От подачи до завершения", "en": "From submission to completion" },
+        "source": "reg-dosare", "type": "funnel", "kpi": "", "measure": "count", "column": "",
+        "primary": "statut", "secondary": "", "dateGroup": "", "order": "source",
+        "filter": { "logic": "and", "rules": [] },
+        "compare": "", "format": "number", "threshold": { "on": false, "value": "", "below": "warning" },
+        "width": "third", "height": "medium", "drill": true, "visibility": "authority"
+      },
+      "versions": [
+        { "nr": 1, "version": 1, "type": "Prima publicare", "note": "Pâlnia dosarelor pentru director.", "at": "2026-10-16T10:00:00", "by": "Victor Lungu" }
+      ],
+      "history": [
+        { "at": "2026-10-16T10:00:00", "by": "Victor Lungu", "role": "Administrator local · ANSP", "event": "Publicarea widget-ului", "detail": "Versiunea 1 · Pâlnia dosarelor pentru director." },
+        { "at": "2026-10-16T09:30:00", "by": "Victor Lungu", "role": "Administrator local · ANSP", "event": "Crearea widget-ului", "detail": "Ciornă · Autoritate ANSP · Registru Dosare · Pâlnie" }
+      ]
+    },
+    {
+      "id": "WGT-0009", "level": "Global", "status": "Publicat", "offFor": ["ansp"],
+      "createdAt": "2026-10-10T15:00:00", "createdBy": "Anastasia Cojocaru", "updatedAt": "2026-10-10T15:30:00", "updatedBy": "Anastasia Cojocaru",
+      "config": {
+        "titles": { "ro": "Încasări pe servicii", "ru": "Поступления по услугам", "en": "Revenue by service" },
+        "subtitles": { "ro": "Suma notelor de plată achitate", "ru": "Сумма оплаченных счетов", "en": "Paid invoices" },
+        "source": "reg-note", "type": "treemap", "kpi": "", "measure": "sum", "column": "suma",
+        "primary": "serviciu", "secondary": "", "dateGroup": "", "order": "valueDesc",
+        "filter": { "logic": "and", "rules": [{ "column": "statutNota", "op": "is", "value": "Achitată" }] },
+        "compare": "prevYear", "format": "amount", "threshold": { "on": false, "value": "", "below": "warning" },
+        "width": "half", "height": "medium", "drill": true, "visibility": "authority"
+      },
+      "versions": [
+        { "nr": 1, "version": 1, "type": "Prima publicare", "note": "Încasările pe servicii.", "at": "2026-10-10T15:30:00", "by": "Anastasia Cojocaru" }
+      ],
+      "history": [
+        { "at": "2026-10-28T11:00:00", "by": "Victor Lungu", "role": "Administrator local · ANSP", "event": "Dezactivat pentru autoritate", "detail": "ANSP" },
+        { "at": "2026-10-10T15:30:00", "by": "Anastasia Cojocaru", "role": "Administrator central", "event": "Publicarea widget-ului", "detail": "Versiunea 1 · Încasările pe servicii." },
+        { "at": "2026-10-10T15:00:00", "by": "Anastasia Cojocaru", "role": "Administrator central", "event": "Crearea widget-ului", "detail": "Ciornă · Global · Registru note de plată · Treemap" }
+      ]
+    },
+    {
+      "id": "WGT-0010", "level": "Autoritate", "authority": "ansp", "status": "Ciornă",
+      "createdAt": "2026-11-02T14:10:00", "createdBy": "Victor Lungu", "updatedAt": "2026-11-02T14:40:00", "updatedBy": "Victor Lungu",
+      "config": {
+        "titles": { "ro": "Durata procesării sub control", "ru": "", "en": "" },
+        "subtitles": { "ro": "Media săptămânală și limitele de control", "ru": "", "en": "" },
+        "source": "reg-dosare", "type": "control", "kpi": "", "measure": "avg", "column": "durata",
+        "primary": "finalizat", "secondary": "", "dateGroup": "week", "order": "source",
+        "filter": { "logic": "and", "rules": [] },
+        "compare": "", "format": "duration", "threshold": { "on": false, "value": "", "below": "warning" },
+        "width": "twoThirds", "height": "medium", "drill": true, "visibility": "subdivision"
+      },
+      "versions": [],
+      "history": [
+        { "at": "2026-11-02T14:10:00", "by": "Victor Lungu", "role": "Administrator local · ANSP", "event": "Crearea widget-ului", "detail": "Ciornă · Autoritate ANSP · Registru Dosare · Diagramă de control" }
+      ]
+    },
+    {
+      "id": "WGT-0011", "level": "Global", "status": "Publicat",
+      "createdAt": "2026-10-03T10:00:00", "createdBy": "Anastasia Cojocaru", "updatedAt": "2026-10-03T10:25:00", "updatedBy": "Anastasia Cojocaru",
+      "config": {
+        "titles": { "ro": "Cereri depuse", "ru": "Поданные заявления", "en": "Applications submitted" },
+        "subtitles": { "ro": "Luna curentă, față de luna precedentă", "ru": "Текущий месяц", "en": "This month" },
+        "source": "reg-dosare", "type": "tile", "kpi": "kpi-v01", "measure": "", "column": "",
+        "primary": "", "secondary": "", "dateGroup": "", "order": "source",
+        "filter": { "logic": "and", "rules": [] },
+        "compare": "prevMonth", "format": "number", "threshold": { "on": false, "value": "", "below": "warning" },
+        "width": "third", "height": "small", "drill": true, "visibility": "authority"
+      },
+      "versions": [
+        { "nr": 1, "version": 1, "type": "Prima publicare", "note": "Plăcuța KPI V-01.", "at": "2026-10-03T10:25:00", "by": "Anastasia Cojocaru" }
+      ],
+      "history": [
+        { "at": "2026-10-03T10:25:00", "by": "Anastasia Cojocaru", "role": "Administrator central", "event": "Publicarea widget-ului", "detail": "Versiunea 1 · Plăcuța KPI V-01." },
+        { "at": "2026-10-03T10:00:00", "by": "Anastasia Cojocaru", "role": "Administrator central", "event": "Crearea widget-ului", "detail": "Ciornă · Global · Registru Dosare · Plăcuță simplă · KPI V-01" }
+      ]
+    },
+    {
+      "id": "WGT-0012", "level": "Serviciu", "authority": "ansp", "service": "003000118", "status": "Publicat",
+      "createdAt": "2026-10-21T12:00:00", "createdBy": "Victor Lungu", "updatedAt": "2026-10-21T12:20:00", "updatedBy": "Victor Lungu",
+      "config": {
+        "titles": { "ro": "Dosare suspendate — autorizație sanitară", "ru": "Приостановленные дела", "en": "Suspended files" },
+        "subtitles": { "ro": "Dosarele serviciului 003000118 aflate în suspendare", "ru": "Приостановленные дела услуги", "en": "Suspended files of the service" },
+        "source": "reg-dosare", "type": "rowTable", "kpi": "", "measure": "", "column": "",
+        "primary": "", "secondary": "", "dateGroup": "", "order": "valueDesc",
+        "filter": { "logic": "and", "rules": [{ "column": "statut", "op": "is", "value": "Suspendat" }, { "column": "serviciu", "op": "is", "value": "Autorizație sanitară de funcționare" }] },
+        "compare": "", "format": "number", "threshold": { "on": false, "value": "", "below": "warning" },
+        "width": "twoThirds", "height": "large", "drill": true, "visibility": "subdivision"
+      },
+      "versions": [
+        { "nr": 1, "version": 1, "type": "Prima publicare", "note": "Lista dosarelor suspendate ale serviciului.", "at": "2026-10-21T12:20:00", "by": "Victor Lungu" }
+      ],
+      "history": [
+        { "at": "2026-10-21T12:20:00", "by": "Victor Lungu", "role": "Administrator local · ANSP", "event": "Publicarea widget-ului", "detail": "Versiunea 1 · Lista dosarelor suspendate ale serviciului." },
+        { "at": "2026-10-21T12:00:00", "by": "Victor Lungu", "role": "Administrator local · ANSP", "event": "Crearea widget-ului", "detail": "Ciornă · Serviciu 003000118 · Registru Dosare · Tabel cu filtru pe sursa de date" }
+      ]
+    },
+    {
+      "id": "WGT-0013", "level": "Global", "status": "Dezactivat",
+      "createdAt": "2026-08-28T09:00:00", "createdBy": "Anastasia Cojocaru", "updatedAt": "2026-10-30T16:00:00", "updatedBy": "Anastasia Cojocaru",
+      "config": {
+        "titles": { "ro": "Acte emise pe trimestre", "ru": "Выданные акты по кварталам", "en": "Acts issued by quarter" },
+        "subtitles": { "ro": "Actele permisive emise, pe trimestre", "ru": "Выданные разрешительные акты", "en": "Permits issued" },
+        "source": "reg-acte", "type": "bars", "kpi": "", "measure": "count", "column": "",
+        "primary": "emis", "secondary": "", "dateGroup": "quarter", "order": "source",
+        "filter": { "logic": "and", "rules": [] },
+        "compare": "prevYear", "format": "number", "threshold": { "on": false, "value": "", "below": "warning" },
+        "width": "half", "height": "medium", "drill": true, "visibility": "global"
+      },
+      "versions": [
+        { "nr": 1, "version": 1, "type": "Prima publicare", "note": "Actele emise pe trimestre.", "at": "2026-08-29T10:00:00", "by": "Anastasia Cojocaru" }
+      ],
+      "history": [
+        { "at": "2026-10-30T16:00:00", "by": "Anastasia Cojocaru", "role": "Administrator central", "event": "Dezactivarea widget-ului", "detail": "Înlocuit de raportul trimestrial." },
+        { "at": "2026-08-29T10:00:00", "by": "Anastasia Cojocaru", "role": "Administrator central", "event": "Publicarea widget-ului", "detail": "Versiunea 1 · Actele emise pe trimestre." },
+        { "at": "2026-08-28T09:00:00", "by": "Anastasia Cojocaru", "role": "Administrator central", "event": "Crearea widget-ului", "detail": "Ciornă · Global · Registrul actelor permisive · Bare" }
+      ]
+    },
+    {
+      "id": "WGT-0014", "level": "Autoritate", "authority": "anta", "status": "Publicat",
+      "createdAt": "2026-10-22T09:00:00", "createdBy": "Mihai Ceban", "updatedAt": "2026-10-22T09:15:00", "updatedBy": "Mihai Ceban",
+      "config": {
+        "titles": { "ro": "Licențe de transport emise", "ru": "Выданные лицензии", "en": "Transport licences issued" },
+        "subtitles": { "ro": "Licențele ANTA, pe luni", "ru": "Лицензии ANTA по месяцам", "en": "ANTA licences by month" },
+        "source": "reg-acte", "type": "line", "kpi": "", "measure": "count", "column": "",
+        "primary": "emis", "secondary": "", "dateGroup": "month", "order": "source",
+        "filter": { "logic": "and", "rules": [{ "column": "tipAct", "op": "is", "value": "Licență" }] },
+        "compare": "prevMonth", "format": "number", "threshold": { "on": false, "value": "", "below": "warning" },
+        "width": "half", "height": "medium", "drill": true, "visibility": "authority"
+      },
+      "versions": [
+        { "nr": 1, "version": 1, "type": "Prima publicare", "note": "Licențele emise pe luni.", "at": "2026-10-22T09:15:00", "by": "Mihai Ceban" }
+      ],
+      "history": [
+        { "at": "2026-10-22T09:15:00", "by": "Mihai Ceban", "role": "Administrator local · ANTA", "event": "Publicarea widget-ului", "detail": "Versiunea 1 · Licențele emise pe luni." },
+        { "at": "2026-10-22T09:00:00", "by": "Mihai Ceban", "role": "Administrator local · ANTA", "event": "Crearea widget-ului", "detail": "Ciornă · Autoritate ANTA · Registrul actelor permisive · Linie sau arie" }
+      ]
+    }
+  ]
+}

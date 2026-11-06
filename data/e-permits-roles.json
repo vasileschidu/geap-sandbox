@@ -301,6 +301,12 @@
               "id": "distribuire",
               "label": "Distribuire",
               "shellView": "distribuire-page"
+            },
+            {
+              "id": "widgete",
+              "label": "Widgete",
+              "iconAsset": "assets/icons/dot-grid.svg",
+              "shellView": "widgete-registry"
             }
           ]
         }
@@ -496,6 +502,12 @@
               "label": "KPI",
               "iconAsset": "assets/icons/chart.svg",
               "shellView": "kpi-registry"
+            },
+            {
+              "id": "widgete",
+              "label": "Widgete",
+              "iconAsset": "assets/icons/dot-grid.svg",
+              "shellView": "widgete-registry"
             }
           ]
         },
@@ -551,6 +563,12 @@
               "label": "KPI",
               "iconAsset": "assets/icons/chart.svg",
               "shellView": "kpi-registry"
+            },
+            {
+              "id": "widgete",
+              "label": "Widgete",
+              "iconAsset": "assets/icons/dot-grid.svg",
+              "shellView": "widgete-registry"
             }
           ]
         },

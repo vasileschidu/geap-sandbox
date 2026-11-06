@@ -26,6 +26,7 @@
         ["Dosar", [
           ["nr", "Nr. dosar", "text", "Numărul unic al dosarului, atribuit la depunere."],
           ["serviciu", "Serviciu", "enum", "Serviciul public solicitat, din Pașaportul Serviciului.", ["Autorizație sanitară de funcționare", "Autorizarea produselor biocide", "Certificat de conformitate igienică"]],
+          ["autoritate", "Autoritate", "enum", "Autoritatea care examinează dosarul.", ["ANSP", "ANTA", "ANSA", "AMDM", "AM"]],
           ["tip", "Tip solicitare", "enum", "Cerere inițială, modificare, prelungire sau duplicat.", ["Inițială", "Modificare", "Prelungire", "Duplicat"]],
           ["canal", "Canal de depunere", "enum", "Online (eFiling), la ghișeu sau din oficiu.", ["Online", "Ghișeu", "Din oficiu"]],
           ["statut", "Statut dosar", "enum", "Statutul curent al dosarului; cererile retrase se numără separat de cele respinse.", ["Depus", "În examinare", "Suspendat", "Finalizat", "Respins", "Retras"]],

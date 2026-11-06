@@ -4181,3 +4181,16 @@ For any „research how other products do it” step, search Mobbin (mcp__mobbin
   piece (`[data-kpi-band]` outerHTML on `input`); full redraws only for selects / checkboxes.
 - 2026-11-06 · hover-audit on a drawer state right after a step change reported library footer buttons „no-hover” (drawer still
   animating); a second run was 0 — re-run before fixing. Items inside a closed ⋮ of a STACKED list need the row's trigger first.
+- 2026-11-06 · Widgets (widget-v1, Feature 96501): 11 chart types in the eKYC SVG style without a chart lib — percent-coordinate
+  SVG for bars / dots / guides, a stretched `viewBox 0 0 100 100 preserveAspectRatio=none` layer + `vector-effect:
+  non-scaling-stroke` for polylines / areas, a 42 viewBox ring with `pathLength=100` for donuts; no inline styles needed.
+- 2026-11-06 · Clickable chart parts: component-audit (static) rejects `role=button` on SVG — make the plot a row of real
+  `<button>` slots (each holding its own SVG bar), draw lines / dots / target in `pointer-events: none` layers ABOVE the
+  slots (not „covered”), and drill donut / treemap through legend-line buttons.
+- 2026-11-06 · Demo data for time axes: independent hash draws per period look like noise — derive one level per series and
+  vary ±15 % per period (+ one deliberate spike for a control chart); heat maps in a 300 px preview: last 6 periods, short labels.
+- 2026-11-06 · A library radio group inside `.e-permits-fo-field` gets `label { gap: 4 }` (0,1,1 beats `.radio` gap 12) →
+  component-audit „radio-text” major. Wrap radio groups in a plain grid (`.e-permits-wid-vis-field`), not the fo-field.
+- 2026-11-06 · Data-coloured clickable cells (heat map, KPI tile): the fill sits on the wrapper, the button inside is transparent
+  (else „button-paint”) AND takes its own hover fill (hover-audit compares the element under the pointer — a parent
+  `:has(:hover)` reads as no-hover). Disabled radio options: `aria-disabled` on the label, or the audit wants a pointer.

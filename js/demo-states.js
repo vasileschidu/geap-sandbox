@@ -4052,7 +4052,15 @@
        04 editare (US-401) · 05 dezactivare / activare (US-402) · 06 moștenire + dezactivare pentru autoritate (US-519) ·
        07 valori proprii (US-520) · 08 alerte + notificare (US-521). Demo switch kpi=fara-permisiune|gol|incarcare|
        eroare|numitor-zero|verificare-lenta */
-    ...kpiDemoStates()
+    ...kpiDemoStates(),
+
+    /* ---- Administrare › Widgete (Feature 96501 „Configurarea widget-urilor”, js/widget-admin.js, widget-v1 2026-11-06;
+       no child stories in Azure — split per the Traceability titles): wid-01 listă (US-404) · 02 fără permisiune ·
+       03 creare cu previzualizare, galeria de tipuri, fiecare tip (US-403) · 04 editare (US-405) · 05 publicare (US-406) ·
+       06 dezactivare / activare (US-407) · 07 versiuni, comparare, restaurare (US-408) · 08 agregarea pe sursă, perimetru,
+       fără acces, actualizare, trecere în detaliu (US-409) · 09 clonare. Demo switch widget=fara-permisiune|gol|incarcare|
+       eroare|eroare-date|supervizor|fara-acces */
+    ...widDemoStates()
   };
 
   function autDemoStates() {
@@ -4300,6 +4308,139 @@
       "kpi-08c": prof("kpi-v02", "alerte", null, null, LOCAL),
       "kpi-08d": list(async (h) => { await h.click(".e-permits-shell__icon-button--notification"); await h.find("#notif-drawer [data-notif-body]"); }, null, LOCAL),
       "kpi-08e": prof("kpi-t01", "istoric")
+    };
+  }
+
+  function widDemoStates() {
+    const ADMIN = "ansp-central-admin", LOCAL = "ansp-local-admin", SPEC = "ansp-specialist-chisinau", SUP = "ansp-supervisor-chisinau";
+    const LIST = "[data-registry-kind='widgete'] tr[data-workplace-row], [data-registry-kind='widgete'] .e-permits-empty";
+    const list = (run, params, as = ADMIN) => ({ flow: "back-office", as, hash: "#widgete", ...(params ? { params } : {}), ready: LIST, delay: 900, run });
+    const prof = (id, tab = "configurare", run, params, as = ADMIN) => ({ flow: "back-office", as, hash: `#widget/${id}/${tab}`, ...(params ? { params } : {}), ready: "#wid-panel", delay: 900, run });
+    const seq = (...steps) => async (h) => { for (const step of steps) await step(h); };
+    const ED = "[data-wid-editor]";
+    const CONFIRM = "[data-service-confirm-ok]";
+    const MENU = (id) => async (h) => { (await h.find(`tr[data-workplace-row="${id}"]`)).scrollIntoView({ block: "center" }); await h.wait(250); await h.click(`tr[data-workplace-row="${id}"] [data-stack-menu-trigger]`); await h.wait(200); };
+    const HMENU = async (h) => { await h.click("[data-dosar-profil] .e-permits-page-header__actions [data-stack-menu-trigger]"); await h.wait(200); };
+    const nou = async (h) => { await h.click('[data-workplace-add-product="wid-new"]'); await h.find(`${ED} #wid-e-title-ro`); };
+    const next = async (h) => { await h.click(`${ED} [data-wid-next]`); await h.wait(250); };
+    const step1 = async (h) => { await h.fill("#wid-e-title-ro", "Dosare pe servicii", { leave: false }); await h.choose(`${ED} select[data-wid-field="source"]`, "reg-dosare"); };
+    const pick = (type) => async (h) => { await h.click(`${ED} .e-permits-wid-type:has(input[value="${type}"])`); await h.wait(300); };
+    const gallery = seq(nou, step1, next);
+    const typeState = (type, ...more) => list(seq(gallery, pick(type), ...more, async (h) => { (await h.find(`${ED} .e-permits-wid-type:has(input[value="${type}"])`)).scrollIntoView({ block: "center" }); }));
+    const toStep4 = seq(gallery, pick("bars"), next, next);
+    const edit = (id, step = 1) => async (h) => { await h.click("[data-wid-edit]"); await h.find(`${ED} [data-wid-ed-main]`); for (let s = 1; s < step; s += 1) await next(h); };
+    const filter = (applied) => async (h) => {
+      window.GEAPShellApi.setRegistryFilters("widgete", applied);
+      document.querySelector('[data-nav-item][data-nav-id="widgete"]').click(); await h.wait(700);
+      const bar = document.querySelector("[data-workplace-filters]");
+      const toggle = document.querySelector("[data-workplace-filter-toggle]");
+      if (bar?.hidden && toggle && toggle.getClientRects().length && !toggle.classList.contains("e-permits-filter-trigger--icon")) { toggle.click(); await h.wait(400); }
+    };
+    /* a closed ⋮ hides its items (h.find needs visible ones): open it through the version row's trigger */
+    const verMenu = (nr) => async (h) => { await h.find("#wid-panel tbody tr"); const tr = [...document.querySelectorAll("#wid-panel tbody tr")].find((r) => r.cells[0]?.textContent.trim() === String(nr)); tr.scrollIntoView({ block: "center" }); await h.wait(200); tr.querySelector("[data-stack-menu-trigger]").click(); await h.wait(300); };
+    const publishNote = (text) => async (h) => { await h.fill("#wid-publish-note", text, { leave: false }); await h.click("[data-wid-publish-confirm]"); };
+    return {
+      /* US-404 — list */
+      "wid-01": list(),
+      "wid-01a": list(async (h) => { await h.click('[data-workplace-tab="globale"]'); await h.wait(300); }),
+      "wid-01b": list(async (h) => { await h.fill("[data-workplace-search]", "dosare"); await h.wait(300); }),
+      "wid-01c": list(async (h) => { await h.fill("[data-workplace-search]", "zzz"); await h.wait(300); }),
+      "wid-01d": list(filter({ tip: ["Bare"] })),
+      "wid-01e": list(null, { widget: "gol" }),
+      "wid-01f": { flow: "back-office", as: ADMIN, hash: "#widgete", params: { widget: "incarcare" }, ready: "[data-registry-kind='widgete'] .e-permits-empty", delay: 900 },
+      "wid-01g": list(MENU("WGT-0003")),
+      "wid-01h": list(null, null, LOCAL),
+      "wid-01i": list(null, { widget: "supervizor" }, SUP),
+      /* Feature AC — the menu only with „Gestionarea widget-urilor” */
+      "wid-02": { flow: "back-office", as: SPEC, hash: "#widgete", ready: "[data-reg-page]:not([hidden]) .e-permits-empty", delay: 900 },
+      "wid-02a": { flow: "back-office", as: ADMIN, hash: "#widgete", params: { widget: "fara-permisiune" }, ready: "[data-reg-page]:not([hidden]) .e-permits-empty", delay: 900 },
+      "wid-02b": { flow: "back-office", as: SUP, hash: "#widgete", ready: "[data-reg-page]:not([hidden]) .e-permits-empty", delay: 900 },
+      /* US-403 — create in steps with the live preview */
+      "wid-03": list(nou),
+      "wid-03a": list(seq(nou, next)),
+      "wid-03b": list(gallery),
+      "wid-03c": typeState("bars"),
+      "wid-03d": typeState("stacked"),
+      "wid-03e": typeState("line"),
+      "wid-03f": typeState("pie"),
+      "wid-03g": typeState("aggTable"),
+      "wid-03h": typeState("heatmap"),
+      "wid-03i": typeState("funnel"),
+      "wid-03j": typeState("treemap"),
+      "wid-03k": typeState("control"),
+      "wid-03l": typeState("tile"),
+      "wid-03m": typeState("rowTable"),
+      "wid-03m1": list(seq(gallery, pick("rowTable"), next, async (h) => { await h.click(`${ED} [data-wid-rule-add]`); await h.choose(`${ED} select[data-wid-rule="0"][data-wid-rule-part="column"]`, "statut"); await h.choose(`${ED} select[data-wid-rule="0"][data-wid-rule-part="value"]`, "Suspendat"); })),
+      "wid-03n": list(seq(gallery, async (h) => { await h.choose(`${ED} select[data-wid-field="kpi"]`, "kpi-t01"); }, pick("bars"))),
+      "wid-03n1": list(seq(gallery, async (h) => { await h.choose(`${ED} select[data-wid-field="kpi"]`, "kpi-t01"); }, pick("line"))),
+      "wid-03o": list(seq(gallery, pick("heatmap"), next, async (h) => { await h.choose(`${ED} select[data-wid-field="secondary"]`, ""); }, next)),
+      "wid-03p": list(seq(gallery, pick("bars"), next, async (h) => { await h.choose(`${ED} select[data-wid-field="measure"]`, "sum"); }, next)),
+      "wid-03q": list(seq(gallery, pick("bars"), next, async (h) => { await h.choose(`${ED} select[data-wid-field="primary"]`, "autoritate"); await h.choose(`${ED} select[data-wid-field="order"]`, "valueDesc"); await h.click(`${ED} [data-wid-rule-add]`); await h.choose(`${ED} select[data-wid-rule="0"][data-wid-rule-part="column"]`, "inTermen"); await h.choose(`${ED} select[data-wid-rule="0"][data-wid-rule-part="value"]`, "Nu"); await h.choose(`${ED} select[data-wid-field="compare"]`, "prevWeek"); })),
+      "wid-03r": list(seq(toStep4, async (h) => { await h.click(`${ED} [data-wid-field="threshold.on"]`); await h.fill("#wid-e-threshold", "100", { leave: false }); })),
+      "wid-03r1": list(seq(toStep4, async (h) => { await h.scroll("[data-wid-editor] #wid-e-visibility"); }), null, LOCAL),
+      "wid-03r2": list(seq(toStep4, async (h) => { await h.scroll("[data-wid-editor] #wid-e-visibility"); }), { widget: "supervizor" }, SUP),
+      "wid-03s": list(seq(toStep4, next)),
+      "wid-03t": list(seq(gallery, pick("bars"), async (h) => { await h.click(`${ED} [data-wid-goto="1"]`); await h.fill("#wid-e-title-ru", "Дела по услугам", { leave: false }); await h.fill("#wid-e-title-en", "Files by service", { leave: false }); }, next, next, next, next)),
+      "wid-03u": list(seq(gallery, pick("bars"), async (h) => { await h.click(`${ED} [data-wid-goto="1"]`); await h.fill("#wid-e-title-ru", "Дела по услугам", { leave: false }); await h.fill("#wid-e-title-en", "Files by service", { leave: false }); }, next, next, next, next, async (h) => { await h.click(`${ED} [data-wid-ed-publish]`); await h.find("#wid-publish-note"); })),
+      "wid-03v": list(seq(gallery, pick("bars"), async (h) => { await h.click(`${ED} [data-wid-goto="1"]`); await h.fill("#wid-e-title-ru", "Дела по услугам", { leave: false }); await h.fill("#wid-e-title-en", "Files by service", { leave: false }); }, next, next, next, next, async (h) => { await h.click(`${ED} [data-wid-ed-publish]`); await h.find("#wid-publish-note"); }, publishNote("Widget nou pentru directori."), async (h) => { await h.find("#wid-panel"); })),
+      "wid-03w": list(seq(gallery, pick("bars"), async (h) => { await h.click(`${ED} [data-wid-save]`); await h.find("#wid-panel"); })),
+      "wid-03x": list(seq(gallery, pick("bars"), async (h) => { await h.click(`${ED} [data-wid-save]`); }), { widget: "eroare" }),
+      "wid-03y": list(seq(gallery, pick("bars"), async (h) => { await h.click(`${ED} [data-wid-ed-close]`); })),
+      /* US-405 — edit */
+      "wid-04": prof("WGT-0005"),
+      "wid-04a": prof("WGT-0005", "configurare", edit("WGT-0005")),
+      "wid-04b": prof("WGT-0001", "configurare", seq(edit("WGT-0001", 3), async (h) => { await h.choose(`${ED} select[data-wid-field="compare"]`, "prevMonth"); })),
+      "wid-04c": prof("WGT-0001", "configurare", seq(edit("WGT-0001", 3), async (h) => { await h.choose(`${ED} select[data-wid-field="compare"]`, "prevMonth"); }, async (h) => { await h.click(`${ED} [data-wid-save]`); await h.find("#wid-panel"); })),
+      "wid-04d": prof("WGT-0001", "configurare", seq(edit("WGT-0001", 3), async (h) => { await h.choose(`${ED} select[data-wid-field="compare"]`, "prevMonth"); }, async (h) => { await h.click(`${ED} .e-permits-reg-editor__close`); })),
+      "wid-04e": prof("WGT-0001", "configurare", null, null, LOCAL),
+      "wid-04f": prof("WGT-0007"),
+      "wid-04g": prof("WGT-0006", "configurare", edit("WGT-0006", 4), null, LOCAL),
+      /* US-406 — publish */
+      "wid-05": prof("WGT-0007", "configurare", async (h) => { await h.click("[data-wid-publish]"); await h.find("#wid-publish-note"); }),
+      "wid-05a": prof("WGT-0005", "configurare", async (h) => { await h.click("[data-wid-publish]"); await h.find("#wid-publish-note"); }),
+      "wid-05b": prof("WGT-0007", "configurare", seq(async (h) => { await h.click("[data-wid-publish]"); await h.find("#wid-publish-note"); }, publishNote("Comparație cu trimestrul precedent."), async (h) => { await h.click('[data-wid-tab="versiuni"]'); })),
+      "wid-05c": prof("WGT-0007", "configurare", seq(async (h) => { await h.click("[data-wid-publish]"); await h.find("#wid-publish-note"); }, async (h) => { await h.click("[data-wid-publish-confirm]"); })),
+      "wid-05d": prof("WGT-0001", "configurare", null, { widget: "eroare-date" }),
+      "wid-05e": prof("WGT-0010", "configurare", null, { widget: "eroare-date" }, LOCAL),
+      /* US-407 — deactivate / activate */
+      "wid-06": list(seq(MENU("WGT-0003"), async (h) => { await h.click('[data-wid-row-toggle="WGT-0003"]'); })),
+      "wid-06a": list(seq(MENU("WGT-0003"), async (h) => { await h.click('[data-wid-row-toggle="WGT-0003"]'); }, async (h) => { await h.click(CONFIRM); })),
+      "wid-06b": prof("WGT-0013"),
+      "wid-06c": prof("WGT-0013", "configurare", seq(HMENU, async (h) => { await h.click("[data-wid-toggle]"); })),
+      "wid-06d": list(seq(MENU("WGT-0001"), async (h) => { await h.click('[data-wid-row-auth="WGT-0001"]'); }), null, LOCAL),
+      "wid-06e": prof("WGT-0009", "configurare", null, null, LOCAL),
+      /* US-408 — versions, compare, restore */
+      "wid-07": prof("WGT-0001", "versiuni"),
+      "wid-07a": prof("WGT-0001", "versiuni", verMenu(1)),
+      "wid-07b": prof("WGT-0001", "versiuni", seq(verMenu(1), async (h) => { await h.click('[data-wid-ver-view="1"]'); })),
+      "wid-07c": prof("WGT-0001", "versiuni", async (h) => { await h.click("[data-wid-compare-open]"); await h.scroll("#wid-compare-title"); }),
+      "wid-07d": prof("WGT-0001", "versiuni", seq(verMenu(1), async (h) => { await h.click('[data-wid-ver-compare="1"]'); await h.scroll("#wid-compare-title"); })),
+      "wid-07e": prof("WGT-0001", "versiuni", seq(verMenu(1), async (h) => { await h.click('[data-wid-ver-restore="1"]'); await h.find("#wid-restore-note"); })),
+      "wid-07f": prof("WGT-0001", "versiuni", seq(verMenu(1), async (h) => { await h.click('[data-wid-ver-restore="1"]'); await h.fill("#wid-restore-note", "Revenim la lățimea de jumătate.", { leave: false }); await h.click("[data-wid-restore-confirm]"); })),
+      "wid-07g": prof("WGT-0001", "istoric"),
+      "wid-07h": prof("WGT-0007", "versiuni", async (h) => { await h.click("[data-wid-compare-open]"); await h.scroll("#wid-compare-title"); }),
+      "wid-07i": prof("WGT-0005", "versiuni"),
+      /* US-409 — aggregation on the source: every type on real data, perimeter, no access, refresh, drill-down */
+      "wid-08": prof("WGT-0003"),
+      "wid-08a": prof("WGT-0007"),
+      "wid-08b": prof("WGT-0004"),
+      "wid-08c": prof("WGT-0001", "configurare", async (h) => { await h.click("#wid-panel [data-wid-noaccess]"); }),
+      "wid-08d": prof("WGT-0001", "configurare", async (h) => { await h.click("#wid-panel [data-wid-refresh]"); await h.wait(100); }),
+      "wid-08e": prof("WGT-0001", "configurare", async (h) => { await h.click("#wid-panel [data-wid-drill]"); }),
+      "wid-08f": prof("WGT-0004", "configurare", null, null, LOCAL),
+      "wid-08g": prof("WGT-0002"),
+      "wid-08h": prof("WGT-0011"),
+      "wid-08i": prof("WGT-0009"),
+      "wid-08j": prof("WGT-0008"),
+      "wid-08k": prof("WGT-0010"),
+      "wid-08l": prof("WGT-0006"),
+      "wid-08m": prof("WGT-0012"),
+      "wid-08n": prof("WGT-0005"),
+      "wid-08o": prof("WGT-0001", "configurare", null, { widget: "fara-acces" }),
+      /* clone (Feature AC: a new Ciornă with another ID) */
+      "wid-09": list(seq(MENU("WGT-0001"), async (h) => { await h.click('[data-wid-row-clone="WGT-0001"]'); await h.find(`${ED} #wid-e-title-ro`); })),
+      "wid-09a": list(seq(MENU("WGT-0004"), async (h) => { await h.click('[data-wid-row-clone="WGT-0004"]'); await h.find(`${ED} #wid-e-title-ro`); }, next, next, next), null, LOCAL),
+      "wid-09b": list(seq(MENU("WGT-0001"), async (h) => { await h.click('[data-wid-row-clone="WGT-0001"]'); await h.find(`${ED} #wid-e-title-ro`); }, async (h) => { await h.click(`${ED} [data-wid-save]`); await h.find("#wid-panel"); }))
     };
   }
 
