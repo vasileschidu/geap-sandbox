@@ -372,7 +372,7 @@
   const cfgDocs = async (h) => {
     const name = document.querySelector("[data-fo-step-panel='2'] #fo-object-name");
     if (name) name.value = "Cafeneaua „La Izvor”";
-    await h.click("[data-fo-step-panel='3'] [data-fo-open-doc-modal]"); await h.wait(300); await h.click("[data-fo-doc-modal-list] .e-permits-fo-lib-item"); await h.click("[data-fo-doc-modal-submit]"); await h.wait(300);
+    await h.click("[data-fo-step-panel='3'] [data-fo-open-doc-modal]"); await h.wait(300); await h.click("[data-fo-doc-modal-list] .e-permits-fo-lib-item"); await h.click("[data-fo-doc-modal-submit]:not(:disabled)"); await h.wait(300);
     await h.click("[data-fo-step-panel='3'] [data-fo-doc-field]:nth-of-type(2) [data-fo-open-doc-modal]"); await h.wait(300);
     await h.click('[data-fo-doc-tab="upload"]');
     const input = document.querySelector("[data-fo-doc-file-input]");
@@ -380,7 +380,7 @@
     files.items.add(new File(["%PDF-1.4"], "planul-incaperilor-parter.pdf", { type: "application/pdf" }));
     input.files = files.files;
     input.dispatchEvent(new Event("change", { bubbles: true }));
-    await h.wait(200); await h.click("[data-fo-doc-modal-submit]"); await h.wait(300);
+    await h.wait(200); await h.click("[data-fo-doc-modal-submit]:not(:disabled)"); await h.wait(300);
   };
   /* doc-upload-v1 · a file of a given size (real bytes: the size check reads File.size) and the picker's upload path */
   const duFile = (name, mb, type = "application/pdf") => new File([new Uint8Array(Math.round(mb * 1048576))], name, { type });
@@ -393,14 +393,31 @@
     files.items.add(file);
     input.files = files.files;
     input.dispatchEvent(new Event("change", { bubbles: true }));
-    await h.wait(200); await h.click("[data-fo-doc-modal-submit]"); await h.wait(300);
+    await h.wait(200); await h.click("[data-fo-doc-modal-submit]:not(:disabled)"); await h.wait(300);
   };
+  /* upload-modal-v1 (2026-11-06) · the picker on „Încarcă fișier” for a field, then files picked from the device */
+  const upOpen = async (h, fieldSel) => {
+    await h.click(`[data-fo-step-panel='3'] ${fieldSel} [data-fo-open-doc-modal]`); await h.wait(300);
+    const tab = document.querySelector('[data-fo-doc-tab="upload"]');
+    if (tab && tab.getBoundingClientRect().height) { tab.click(); await h.wait(350); }
+  };
+  const upPick = async (h, files) => {
+    const input = document.querySelector("[data-fo-doc-file-input]");
+    const list = new DataTransfer();
+    files.forEach((f) => list.items.add(f));
+    input.files = list.files;
+    input.dispatchEvent(new Event("change", { bubbles: true }));
+    await h.wait(150);
+  };
+  const upDone = (h, n) => h.find(`[data-fo-doc-upload-preview] .is-uploaded[data-fo-modal-file]${n > 1 ? `:nth-of-type(${n})` : ""}`);
+  const upHygiene = "[data-fo-doc-field='hygiene-certificates']";
+  const upCert = (name) => duFile(name, 0.6);
   /* field 1 uploaded (after its progress) + field 3 from MDocs: both predefined → the file × (file-remove-x-v1) */
   const duAttached = async (h) => {
     await duPick(h, "[data-fo-doc-field='property-deed']", duFile("contract-locatiune.pdf", 1.8));
     await h.find("[data-fo-step-panel='3'] [data-fo-doc-field='property-deed'] [data-fo-doc]");
     await h.click("[data-fo-step-panel='3'] [data-fo-doc-field='state-registry-extract'] [data-fo-open-doc-modal]"); await h.wait(300);
-    await h.click("[data-fo-doc-modal-list] .e-permits-fo-lib-item"); await h.click("[data-fo-doc-modal-submit]"); await h.wait(300);
+    await h.click("[data-fo-doc-modal-list] .e-permits-fo-lib-item"); await h.click("[data-fo-doc-modal-submit]:not(:disabled)"); await h.wait(300);
     document.activeElement?.blur?.();
   };
   /* one „Alte documente” card, named, with an uploaded file or an MDocs document */
@@ -410,7 +427,7 @@
     const field = "[data-fo-other-doc-card] [data-fo-doc-field]";
     if (kind === "mdocs") {
       await h.click(`[data-fo-step-panel='3'] ${field} [data-fo-open-doc-modal]`); await h.wait(300);
-      await h.click("[data-fo-doc-modal-list] .e-permits-fo-lib-item"); await h.click("[data-fo-doc-modal-submit]"); await h.wait(300);
+      await h.click("[data-fo-doc-modal-list] .e-permits-fo-lib-item"); await h.click("[data-fo-doc-modal-submit]:not(:disabled)"); await h.wait(300);
     } else {
       await duPick(h, field, duFile("certificat-conformitate.pdf", 0.9));
       await h.find(`[data-fo-step-panel='3'] ${field} [data-fo-doc]`);
@@ -1784,7 +1801,7 @@
         files.items.add(new File(["%PDF-1.4"], "procura-notariala-nord-agro.pdf", { type: "application/pdf" }));
         input.files = files.files;
         input.dispatchEvent(new Event("change", { bubbles: true }));
-        await h.wait(200); await h.click("[data-fo-doc-modal-submit]"); await h.wait(400);
+        await h.wait(200); await h.click("[data-fo-doc-modal-submit]:not(:disabled)"); await h.wait(400);
         document.activeElement?.blur?.();
       };
       /* Verificare through the stepper row (hidden on phones: the same click, dispatched) */
@@ -1840,14 +1857,14 @@
        documents titled by type */
     "fo-04d": foReq(3, {}, async (h) => { await h.click("[data-fo-step-panel='3'] [data-fo-open-doc-modal]"); await h.wait(400); }),
     "fo-04e": foReq(3, {}, async (h) => { await h.click("[data-fo-step-panel='3'] [data-fo-open-doc-modal]"); await h.wait(300); await h.click("[data-fo-doc-modal-list] .e-permits-fo-lib-item"); }),
-    "fo-04f": foReq(3, {}, async (h) => { await h.click("[data-fo-step-panel='3'] [data-fo-open-doc-modal]"); await h.wait(300); await h.click("[data-fo-doc-modal-list] .e-permits-fo-lib-item"); await h.click("[data-fo-doc-modal-submit]"); await h.wait(300); }),
+    "fo-04f": foReq(3, {}, async (h) => { await h.click("[data-fo-step-panel='3'] [data-fo-open-doc-modal]"); await h.wait(300); await h.click("[data-fo-doc-modal-list] .e-permits-fo-lib-item"); await h.click("[data-fo-doc-modal-submit]:not(:disabled)"); await h.wait(300); }),
     /* doc-name-open-v1: the attached document's NAME (hover = underline, fo-04f1) opens the FO document viewer (fo-04f2);
        doc-card-hover-v1: the whole card is the target — fo-04f1 = the hovered card (darker grey + underlined name) */
-    "fo-04f1": foReq(3, {}, async (h) => { await h.click("[data-fo-step-panel='3'] [data-fo-open-doc-modal]"); await h.wait(300); await h.click("[data-fo-doc-modal-list] .e-permits-fo-lib-item"); await h.click("[data-fo-doc-modal-submit]"); await h.wait(300); (await h.find("[data-fo-step-panel='3'] .e-permits-fo-doc-name")).setAttribute("data-demo-hover", ""); }),
-    "fo-04f2": foReq(3, {}, async (h) => { await h.click("[data-fo-step-panel='3'] [data-fo-open-doc-modal]"); await h.wait(300); await h.click("[data-fo-doc-modal-list] .e-permits-fo-lib-item"); await h.click("[data-fo-doc-modal-submit]"); await h.wait(300); await h.click("[data-fo-step-panel='3'] .e-permits-fo-doc-name"); await h.find("#fo-certificate-modal.is-active [data-fo-cert-canvas]"); }),
+    "fo-04f1": foReq(3, {}, async (h) => { await h.click("[data-fo-step-panel='3'] [data-fo-open-doc-modal]"); await h.wait(300); await h.click("[data-fo-doc-modal-list] .e-permits-fo-lib-item"); await h.click("[data-fo-doc-modal-submit]:not(:disabled)"); await h.wait(300); (await h.find("[data-fo-step-panel='3'] .e-permits-fo-doc-name")).setAttribute("data-demo-hover", ""); }),
+    "fo-04f2": foReq(3, {}, async (h) => { await h.click("[data-fo-step-panel='3'] [data-fo-open-doc-modal]"); await h.wait(300); await h.click("[data-fo-doc-modal-list] .e-permits-fo-lib-item"); await h.click("[data-fo-doc-modal-submit]:not(:disabled)"); await h.wait(300); await h.click("[data-fo-step-panel='3'] .e-permits-fo-doc-name"); await h.find("#fo-certificate-modal.is-active [data-fo-cert-canvas]"); }),
     /* Acte necesare with both document kinds side by side: MDocs (blue) in the first field, an uploaded PDF (grey) in the second — one card surface (2026-10-15) */
     "fo-04g": foReq(3, {}, async (h) => {
-      await h.click("[data-fo-step-panel='3'] [data-fo-open-doc-modal]"); await h.wait(300); await h.click("[data-fo-doc-modal-list] .e-permits-fo-lib-item"); await h.click("[data-fo-doc-modal-submit]"); await h.wait(300);
+      await h.click("[data-fo-step-panel='3'] [data-fo-open-doc-modal]"); await h.wait(300); await h.click("[data-fo-doc-modal-list] .e-permits-fo-lib-item"); await h.click("[data-fo-doc-modal-submit]:not(:disabled)"); await h.wait(300);
       await h.click("[data-fo-step-panel='3'] [data-fo-doc-field]:nth-of-type(2) [data-fo-open-doc-modal]"); await h.wait(300);
       await h.click('[data-fo-doc-tab="upload"]');
       const input = document.querySelector("[data-fo-doc-file-input]");
@@ -1855,7 +1872,7 @@
       files.items.add(new File(["%PDF-1.4"], "planul-incaperilor-parter.pdf", { type: "application/pdf" }));
       input.files = files.files;
       input.dispatchEvent(new Event("change", { bubbles: true }));
-      await h.wait(200); await h.click("[data-fo-doc-modal-submit]"); await h.wait(300);
+      await h.wait(200); await h.click("[data-fo-doc-modal-submit]:not(:disabled)"); await h.wait(300);
       await h.scroll("[data-fo-step-panel='3'] .e-permits-fo-mdocs__attachment");
     }),
     /* „Configurare flux” keeps the step (2026-10-15): step 3 with an MDocs document + an uploaded PDF and
@@ -1883,9 +1900,52 @@
        error until „Înainte”; was the replace-mode picker, removed) · du6 / du7 „Alte documente” › Elimină = the FO confirm (uploaded file / MDocs link) · du8 „Înainte”
        with required documents missing (inline errors + summary, „Înainte” unavailable) · du9 MDocs does not answer
        (tab unavailable + notice, upload works) · du10 RSSPA does not answer (error + „Reîncercați”) */
-    "fo-04du1": foReq(3, { incarcare: "pauza" }, async (h) => { await duPick(h, "[data-fo-doc-field='floor-plan']", duFile("planul-incaperilor-parter.pdf", 2.4)); await h.wait(700); await h.scroll("[data-fo-step-panel='3'] [data-fo-doc-uploading]"); }),
-    "fo-04du2": foReq(3, {}, async (h) => { await duPick(h, "[data-fo-doc-field='floor-plan']", duFile("planul-incaperilor.heic", 3.1, "image/heic")); await h.scroll("[data-fo-step-panel='3'] [data-fo-doc-error]"); }),
-    "fo-04du3": foReq(3, {}, async (h) => { await duPick(h, "[data-fo-doc-field='property-deed']", duFile("contract-locatiune-scanat.pdf", 72)); await h.scroll("[data-fo-step-panel='3'] [data-fo-doc-error]"); }),
+    /* upload-modal-v1 (2026-11-06): uploading + rejected files live IN the picker now → du1–du3 show the picker */
+    "fo-04du1": foReq(3, { incarcare: "pauza" }, async (h) => { await upOpen(h, "[data-fo-doc-field='floor-plan']"); await upPick(h, [duFile("planul-incaperilor-parter.pdf", 2.4)]); await h.wait(700); }),
+    "fo-04du2": foReq(3, {}, async (h) => { await upOpen(h, "[data-fo-doc-field='floor-plan']"); await upPick(h, [duFile("planul-incaperilor.heic", 3.1, "image/heic")]); document.activeElement?.blur?.(); }),
+    "fo-04du3": foReq(3, {}, async (h) => { await upOpen(h, "[data-fo-doc-field='property-deed']"); await upPick(h, [duFile("contract-locatiune-scanat.pdf", 72)]); document.activeElement?.blur?.(); }),
+    /* upload-modal-v1 (2026-11-06) · „Încarcă fișier” single vs multiple — components.md › „Upload from computer —
+       single vs multiple”; each id at 1440 and 375. Single = „Schița spațiului” (1 file); multi = „Certificate de
+       instruire igienică” (maxFiles 5, user 2026-11-06). up1 single empty · up2 single uploading (held
+       62 %) · up3 single done (drop zone hidden, „Adaugă fișier” enabled) · up4 single rejected type (card Error +
+       message, drop zone back) · up5 multi 3 files: done + uploading (held) + rejected over 60 MB, „2 din 5” · up6 multi
+       at the max (5 done: drop zone hidden + note, „Adaugă 5 fișiere”) · up7 drag-over (library dropzone Active) ·
+       up8 after „Adaugă 3 fișiere”: the field's document cards + „Adaugă fișier” (not full) · up9 the phone chooser
+       focused = the step before the OS source sheet (system sheet, native, not ours: iOS „Photo Library / Take Photo /
+       Choose File”, Android Camera / Files / Gallery — the prototype cannot show it) · up10 single done → × (drop
+       zone back, the chooser focused) */
+    "fo-04up1": foReq(3, {}, async (h) => { await upOpen(h, "[data-fo-doc-field='floor-plan']"); document.activeElement?.blur?.(); }),
+    "fo-04up2": foReq(3, { incarcare: "pauza" }, async (h) => { await upOpen(h, "[data-fo-doc-field='floor-plan']"); await upPick(h, [duFile("planul-incaperilor-parter.pdf", 2.4)]); await h.wait(900); document.activeElement?.blur?.(); }),
+    "fo-04up3": foReq(3, {}, async (h) => { await upOpen(h, "[data-fo-doc-field='floor-plan']"); await upPick(h, [duFile("planul-incaperilor-parter.pdf", 2.4)]); await upDone(h, 1); await h.wait(300); document.activeElement?.blur?.(); }),
+    "fo-04up4": foReq(3, {}, async (h) => { await upOpen(h, "[data-fo-doc-field='floor-plan']"); await upPick(h, [duFile("planul-incaperilor.heic", 3.1, "image/heic")]); document.activeElement?.blur?.(); }),
+    "fo-04up5": foReq(3, { incarcare: "pauza-ultimul" }, async (h) => {
+      await upOpen(h, upHygiene); await upPick(h, [upCert("certificat-instruire-ion-rusu.pdf")]); await upDone(h, 1);
+      await upPick(h, [upCert("certificat-instruire-maria-ceban.pdf"), duFile("certificat-instruire-scanat-color.pdf", 72)]); await h.wait(900); document.activeElement?.blur?.();
+    }),
+    "fo-04up6": foReq(3, {}, async (h) => {
+      await upOpen(h, upHygiene);
+      await upPick(h, ["ion-rusu", "maria-ceban", "andrei-lupu", "elena-cojocaru", "victor-munteanu"].map((n) => upCert(`certificat-instruire-${n}.pdf`)));
+      await h.find("[data-fo-doc-modal-submit]:not(:disabled)"); await h.wait(300); document.activeElement?.blur?.();
+    }),
+    "fo-04up7": foReq(3, {}, async (h) => {
+      await upOpen(h, "[data-fo-doc-field='floor-plan']"); document.activeElement?.blur?.();
+      document.querySelector("[data-fo-doc-drop-zone]").dispatchEvent(new DragEvent("dragover", { bubbles: true, cancelable: true }));
+    }),
+    "fo-04up8": foReq(3, {}, async (h) => {
+      await upOpen(h, upHygiene);
+      await upPick(h, ["ion-rusu", "maria-ceban", "andrei-lupu"].map((n) => upCert(`certificat-instruire-${n}.pdf`)));
+      await h.click("[data-fo-doc-modal-submit]:not(:disabled)"); await h.wait(300);
+      await h.scroll(`[data-fo-step-panel='3'] ${upHygiene}`); document.activeElement?.blur?.();
+    }),
+    "fo-04up9": foReq(3, {}, async (h) => { await upOpen(h, "[data-fo-doc-field='floor-plan']"); [...document.querySelectorAll("[data-fo-doc-choose]")].find((b) => b.getClientRects().length)?.focus(); }),
+    /* up11 a done file in the picker hovered (whole card, name underlined; the × keeps its own hover) · up12 its name
+       clicked = the FO document viewer (A4) over the picker; „Închide” returns to the picker */
+    "fo-04up11": foReq(3, {}, async (h) => { await upOpen(h, "[data-fo-doc-field='floor-plan']"); await upPick(h, [duFile("planul-incaperilor-parter.pdf", 2.4)]); await upDone(h, 1); await h.wait(300); document.activeElement?.blur?.(); (await h.find("[data-fo-doc-upload-preview] .e-permits-fo-doc-name")).setAttribute("data-demo-hover", ""); }),
+    "fo-04up12": foReq(3, {}, async (h) => { await upOpen(h, "[data-fo-doc-field='floor-plan']"); await upPick(h, [duFile("planul-incaperilor-parter.pdf", 2.4)]); await upDone(h, 1); await h.wait(300); await h.click("[data-fo-doc-upload-preview] .e-permits-fo-doc-name"); await h.find("#fo-certificate-modal.is-active"); await h.wait(300); }),
+    "fo-04up10": foReq(3, {}, async (h) => {
+      await upOpen(h, "[data-fo-doc-field='floor-plan']"); await upPick(h, [duFile("planul-incaperilor-parter.pdf", 2.4)]); await upDone(h, 1);
+      await h.click("[data-fo-doc-upload-preview] [data-fo-modal-file-remove]"); await h.wait(200);
+    }),
     "fo-04du4": foReq(3, {}, async (h) => { await duAttached(h); await h.scroll("[data-fo-step-panel='3'] [data-fo-doc-field='property-deed']"); }),
     "fo-04du5": foReq(3, {}, async (h) => { await duAttached(h); await h.click("[data-fo-step-panel='3'] [data-fo-doc-field='property-deed'] .e-permits-fo-document-remove"); await h.wait(300); await h.scroll("[data-fo-step-panel='3'] [data-fo-doc-field='property-deed']"); }),
     /* other-doc-saved-v1: „Elimină” exists only on a SAVED „Alte documente” entry → saved first, then the confirm */
@@ -1935,7 +1995,7 @@
         input.files = files.files;
         input.dispatchEvent(new Event("change", { bubbles: true }));
         await h.wait(200);
-        await h.click("[data-fo-doc-modal-submit]");
+        await h.click("[data-fo-doc-modal-submit]:not(:disabled)");
       };
       const me = fill({ "#fo-guest-idnp": "2004001234567", "#fo-guest-surname": "Popescu", "#fo-guest-firstname": "Ion", "#fo-guest-phone": "60999999", "#fo-guest-email": "ion.popescu@gmail.com" });
       const represented = fill({ "#fo-guest-rep-idnp": "2990000000011", "#fo-guest-rep-surname": "Popescu", "#fo-guest-rep-firstname": "Maria" });
@@ -2712,7 +2772,7 @@
             input.files = files.files;
             input.dispatchEvent(new Event("change", { bubbles: true }));
             await h.wait(200);
-            await h.click("[data-fo-doc-modal-submit]");
+            await h.click("[data-fo-doc-modal-submit]:not(:disabled)");
           };
           /* two dates: „Data contractului” (≤ azi) and „Data specificației” (≥ the contract) — US-49 / US-41 */
           const twoDates = async (h) => {
@@ -4652,7 +4712,7 @@
       files.items.add(new File([new Uint8Array(size)], name, { type: name.endsWith(".pdf") ? "application/pdf" : "application/octet-stream" }));
       input.files = files.files;
       input.dispatchEvent(new Event("change", { bubbles: true }));
-      await h.wait(200); await h.click("[data-fo-doc-modal-submit]"); await h.wait(500);
+      await h.wait(200); await h.click("[data-fo-doc-modal-submit]:not(:disabled)"); await h.wait(500);
       await h.scroll(`${W} [data-gh-ofc-pdf]`);
     };
     const headerMenu = async (h) => { await h.click(`${W} .e-permits-gh-sheet__actions [data-stack-menu-trigger]`); await h.wait(250); };
@@ -4837,7 +4897,7 @@
       files.items.add(new File([new Uint8Array(size)], name, { type: name.endsWith(".pdf") ? "application/pdf" : "application/octet-stream" }));
       input.files = files.files;
       input.dispatchEvent(new Event("change", { bubbles: true }));
-      await h.wait(200); await h.click("[data-fo-doc-modal-submit]"); await h.wait(500);
+      await h.wait(200); await h.click("[data-fo-doc-modal-submit]:not(:disabled)"); await h.wait(500);
     };
     /* other-doc-saved-v1: „Adaugă fișier” on the first desk document without a file → the FO picker, on a tab */
     const ghPicker = (tab) => async (h) => {
@@ -5015,8 +5075,8 @@
         files.items.add(new File([new Uint8Array(2400000)], "planul-incaperilor-parter.pdf", { type: "application/pdf" }));
         input.files = files.files;
         input.dispatchEvent(new Event("change", { bubbles: true }));
-        await h.wait(200); await h.click("[data-fo-doc-modal-submit]"); await h.wait(900);
-        await h.scroll("#gh-request-modal [data-fo-doc-uploading]");
+        /* upload-modal-v1: the upload runs in the picker (held at 62 %) */
+        await h.wait(900); document.activeElement?.blur?.();
       }), { incarcare: "pauza" }),
       "gh-06l": gh("#ghiseu/gh-4790/documente", ghOtherEdit),
       "gh-06m": gh("#ghiseu/gh-4790/documente", ghOtherSaved),
@@ -5049,7 +5109,7 @@
       "gh-07a1": gh("#ghiseu/gh-4790/verificare", async (h) => { await h.click("[data-gh-paper]"); await h.find("#dosar-detail-modal.is-active .e-permits-empty"); }, { mdocs: "incarcare" }),
       "gh-07a2": gh("#ghiseu/gh-4790/verificare", async (h) => { await h.click("[data-gh-paper]"); const canvas = await h.find("#dosar-detail-modal.is-active [data-dosar-doc-canvas]"); await h.wait(200); const pages = canvas.querySelectorAll(".e-permits-doc-page"); canvas.scrollTop += pages[pages.length - 1].getBoundingClientRect().top - canvas.getBoundingClientRect().top - 16; }),
       "gh-07a3": gh("#ghiseu/gh-4790/verificare", seq(ghReady, async (h) => { await h.click('[data-gh-preview="signed"]'); await h.find("#dosar-detail-modal.is-active [data-dosar-doc-canvas]"); })),
-      "gh-07h": gh("#ghiseu/gh-4790/verificare", seq(async (h) => { await ghPaper(h); }, ghUpload("[data-gh-olograf]", "cerere-semnata.docx", 240000))),
+      "gh-07h": gh("#ghiseu/gh-4790/verificare", seq(async (h) => { await ghPaper(h); }, ghUpload("[data-gh-olograf]", "cerere-semnata.pdf", 240000))),
       "gh-07i": gh("#ghiseu/gh-4790/verificare", seq(async (h) => { await ghPaper(h); await h.click("[data-gh-msign]"); }), { msignerr: "1" }),
       /* US-16 Livrare */
       "gh-08": gh("#ghiseu/gh-4790/verificare", seq(ghReady, next)),

@@ -639,7 +639,8 @@
             {
               "id": "hygiene-certificates",
               "label": "Certificate de instruire igienică ale personalului",
-              "description": "Opțional la depunere — poate fi solicitat ulterior.",
+              "description": "Opțional la depunere — poate fi solicitat ulterior. Până la 5 fișiere.",
+              "maxFiles": 5,
               "required": false,
               "inputType": "file-upload",
               "accept": "JPG, PNG, PDF, XLS, ZIP, DOCX",

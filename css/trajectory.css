@@ -469,3 +469,41 @@
     width: max-content;
   }
 }
+
+/* ---- phones: 6 steps fit horizontally (trajectory-phone-fit-v1, 2026-11-06; user: „make it horizontal with 6 steps, as it
+   was before”). While the trajectory is horizontal on a phone the labels are the caption size (12/16) and the date / who
+   lines are visually hidden (they show again in the stacked list), so the words fit the even pitch; the stacked list
+   keeps 14/20. ---- */
+@media (max-width: 760px) {
+  /* the steps get the card's full width: no border / background / side padding (the --bare look) while horizontal */
+  .e-permits-trajectory:not(.e-permits-trajectory--vertical, .e-permits-trajectory--bare, .is-stacked) {
+    background: none;
+    border-color: transparent;
+    border-radius: 0;
+    padding-inline: 0;
+  }
+
+  .e-permits-trajectory:not(.e-permits-trajectory--vertical):not(.is-stacked) .e-permits-trajectory__label {
+    font-size: var(--font-size-fs-12, 12px);
+    line-height: var(--line-height-lh-16, 16px);
+  }
+
+  /* the current step's pill: sides 2 (4 in the stacked list / on desktop) */
+  .e-permits-trajectory:not(.e-permits-trajectory--vertical):not(.is-stacked) .e-permits-trajectory__step:is(.is-current, .is-paused, .is-attention) .e-permits-trajectory__label {
+    padding-inline: var(--spacing-2, 2px);
+  }
+
+  .e-permits-trajectory:not(.e-permits-trajectory--vertical):not(.is-stacked) .e-permits-trajectory__meta {
+    border: 0;
+    clip: rect(0 0 0 0);
+    clip-path: inset(50%);
+    height: 1px;
+    margin: -1px;
+    min-width: 0;
+    overflow: visible;
+    padding: 0;
+    position: absolute;
+    white-space: nowrap;
+    width: 1px;
+  }
+}

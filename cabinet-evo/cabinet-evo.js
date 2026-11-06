@@ -1598,7 +1598,7 @@
     /* the tags move as one group under a long title (doc-title-2-lines-v1); source tag only for MDocs — the icon says
        uploaded / generated (user 2026-11-05) */
     const tags = [
-      source && doc.sursa === "mdocs" ? `<span class="status-tag status-tag--neutral is-subtle status-tag--small e-permits-fo-doc-tag">${escape(source.tag)}</span>` : "",
+      /* no source tag (user 2026-11-06) — the blue document icon says it */
       doc.semnat ? signedTagHtml() : "",
       ...(doc.tags || []).map(([label, tone]) => `<span class="status-tag ${TAG_TONES[tone] || TAG_TONES.neutral} status-tag--small e-permits-fo-doc-tag">${escape(label)}</span>`)
     ].filter(Boolean);

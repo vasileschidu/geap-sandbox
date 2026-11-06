@@ -2995,7 +2995,7 @@
               <svg class="icon" width="24" height="24"><use href="assets/icons/sprite.svg#icon-cloud-upload"></use></svg>
             </span>
             <span class="e-permits-fo-file-drop__copy">
-              <span><span>Drag and drop or</span> <strong>choose files</strong></span>
+              <span><span>Trageți fișierele aici sau</span> <strong>alegeți de pe dispozitiv</strong></span>
               <small>Un singur fișier ${escapeFrontOfficeHtml(doc.accept || "JPG, PNG, PDF, XLS, ZIP, DOCX")} <span aria-hidden="true">•</span> max ${escapeFrontOfficeHtml(doc.maxSize || "60 MB")}</small>
             </span>
             <button class="btn btn-secondary btn-md e-permits-fo-upload-button" type="button" aria-label="Încarcă fișier" data-fo-upload-trigger>
@@ -3051,9 +3051,13 @@
           ? `<span class="e-permits-fo-required" aria-label="obligatoriu"><svg class="icon" width="12" height="12" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-asterisk"></use></svg></span>`
           : `<span class="status-tag status-tag--neutral is-subtle status-tag--small e-permits-fo-doc-tag e-permits-fo-optional-tag">Opțional</span>`;
         const fieldId = (doc.id || "").replace(/[^a-z0-9-]/gi, "-");
+        /* upload-modal-v1 (2026-11-06): a document that takes several files (`maxFiles`; demo `?fisiere=N` on
+           „Certificate de instruire igienică” — no story sets it yet) → the multi picker; „Adaugă fișier” stays until full */
+        const demoMax = doc.id === "hygiene-certificates" ? Number(new URLSearchParams(location.search).get("fisiere")) : 0;
+        const maxFiles = Math.max(1, Number(doc.maxFiles) || demoMax || 1);
         return `
           ${doc.separator ? `<hr class="e-permits-fo-documents__separator">` : ""}
-          <div class="e-permits-fo-doc-field" data-fo-doc-field="${escapeFrontOfficeHtml(fieldId)}"${doc.required ? " data-fo-doc-required" : ""}>
+          <div class="e-permits-fo-doc-field${maxFiles > 1 ? " e-permits-fo-doc-field--multi" : ""}" data-fo-doc-field="${escapeFrontOfficeHtml(fieldId)}"${doc.required ? " data-fo-doc-required" : ""}${maxFiles > 1 ? ` data-fo-doc-max="${maxFiles}"` : ""}>
             <div class="e-permits-fo-doc-field__row">
               <div class="e-permits-fo-doc-field__info">
                 <span class="e-permits-fo-doc-field__label">
@@ -7737,7 +7741,7 @@
       /* source tag only for MDocs (user 2026-11-05: „remove Generat and Încărcat, the icon is enough” — grey icon =
          uploaded; the blue icon is shared by MDocs and generated, so MDocs keeps its tag) */
       const tags = [
-        doc.sursa === "mdocs" ? `<span class="status-tag status-tag--neutral is-subtle status-tag--small e-permits-fo-doc-tag">${esc(foDocSource(doc).tag)}</span>` : "",
+        /* no source tag (user 2026-11-06: „remove MDocs badge, no need”) — the blue document icon says it */
         doc.semnat ? FO_DOC_SIGNED_TAG : "",
         doc.badge ? `<span class="e-permits-fo-lib-item__badge">${esc(doc.badge)}</span>` : ""
       ].filter(Boolean);
@@ -7802,7 +7806,12 @@
 
     let foDocModalField = null;
     let foDocModalSelectedLib = null;
-    let foDocModalPendingFile = null;
+    /* upload-modal-v1 (2026-11-06): files picked from the device upload INSIDE the picker; one entry per file
+       { id, file, state: "uploading" | "done" | "error", message, el } — „Adaugă …” attaches the done ones */
+    let foDocModalFiles = [];
+    let foDocModalMax = 1;
+    let foDocModalTaken = 0;
+    let foDocModalSeq = 0;
 
     const foDocOverlay = document.querySelector("[data-fo-doc-modal-overlay]");
     const foDocModalList = foDocOverlay?.querySelector("[data-fo-doc-modal-list]");
@@ -7855,8 +7864,20 @@
     function foDocUpdateSubmit() {
       const activePanel = foDocOverlay?.querySelector("[data-fo-doc-panel]:not([hidden])");
       const isLibrary = activePanel?.dataset.foDocPanel === "library";
-      const canSubmit = isLibrary ? !!foDocModalSelectedLib : !!foDocModalPendingFile;
-      if (foDocSubmitBtn) foDocSubmitBtn.disabled = !canSubmit;
+      const done = foDocModalFiles.filter((f) => f.state === "done").length;
+      const uploading = foDocModalFiles.some((f) => f.state === "uploading");
+      const canSubmit = isLibrary ? !!foDocModalSelectedLib : done > 0 && !uploading;
+      if (foDocSubmitBtn) {
+        foDocSubmitBtn.disabled = !canSubmit;
+        /* multi: „Adaugă N fișiere”; single and the library tab: „Adaugă fișier” */
+        /* the count = every valid file (uploading + done): the label does not change when an upload finishes */
+        foDocSubmitBtn.textContent = !isLibrary && foDocModalMax > 1 ? foDocFilesLabel(foDocModalFiles.filter((f) => f.state !== "error").length) : "Adaugă fișier";
+      }
+    }
+    function foDocFilesLabel(n) {
+      if (n < 1) return "Adaugă fișiere";
+      if (n === 1) return "Adaugă 1 fișier";
+      return `Adaugă ${n}${n % 100 >= 20 || n % 100 === 0 ? " de" : ""} fișiere`;
     }
 
     /* the two panels are very different heights, so the shell is animated from
@@ -7895,9 +7916,18 @@
       if (!foDocOverlay) return;
       foDocModalField = fieldEl;
       foDocModalSelectedLib = null;
-      foDocModalPendingFile = null;
+      foDocModalFiles = [];
       if (foDocUploadPreview) { foDocUploadPreview.innerHTML = ""; foDocUploadPreview.hidden = true; }
       if (foDocFileInput) foDocFileInput.value = "";
+      /* upload-modal-v1 · single (max 1) vs multiple (data-fo-doc-max > 1): the slots left = max − files already in
+         the field; `multiple` only on multi fields, never `capture` (phones: the OS source sheet offers camera,
+         library and files) */
+      foDocModalMax = Math.max(1, Number(fieldEl?.dataset.foDocMax) || 1);
+      foDocModalTaken = foDocModalMax > 1 ? (fieldEl?.querySelectorAll("[data-fo-doc-field-files] [data-fo-doc]").length || 0) : 0;
+      if (foDocFileInput) {
+        foDocFileInput.multiple = foDocModalMax > 1;
+        foDocFileInput.removeAttribute("capture");
+      }
       const subtitleEl = foDocOverlay.querySelector("[data-fo-doc-modal-subtitle]");
       if (subtitleEl) subtitleEl.textContent = label || "";
       foDocRenderLibrary("");
@@ -7912,7 +7942,7 @@
       const captions = foDocOverlay.querySelectorAll(".e-permits-fo-doc-modal__drop-captions > span");
       captions.forEach((span) => { span.dataset.foDefault ??= span.textContent; });
       const [types, size] = (fieldEl?.dataset.foDocLimits || "").split("|");
-      if (captions[0]) captions[0].textContent = types ? `${Number(fieldEl.dataset.foDocMax) > 1 ? `Până la ${fieldEl.dataset.foDocMax} fișiere` : "Un singur fișier"}: ${types}` : captions[0].dataset.foDefault;
+      if (captions[0]) captions[0].textContent = `${foDocModalMax > 1 ? `Până la ${foDocModalMax} fișiere` : "Un singur fișier"}: ${types || captions[0].dataset.foDefault.replace(/^[^:]*:\s*/, "")}`;
       if (captions[1]) captions[1].textContent = size ? `Mărime maximă: ${size}` : captions[1].dataset.foDefault;
       const tabs = foDocOverlay.querySelector(".e-permits-fo-doc-modal__tabs");
       if (tabs) tabs.hidden = uploadOnly;
@@ -7921,6 +7951,7 @@
       const titleEl = foDocOverlay.querySelector("#fo-doc-modal-title");
       if (titleEl) titleEl.textContent = "Adaugă fișier";
       if (foDocSubmitBtn) foDocSubmitBtn.textContent = "Adaugă fișier";
+      foDocModalRenderUpload();
       /* AC-04 · MDocs does not answer (demo `?mdocs=indisponibil`): its tab is unavailable with the reason, a
          warning notice says why, the device upload keeps working */
       const mdocsDown = !uploadOnly && foDocDemo("mdocs") === "indisponibil";
@@ -7945,7 +7976,8 @@
       document.body.style.overflow = "";
       foDocModalField = null;
       foDocModalSelectedLib = null;
-      foDocModalPendingFile = null;
+      foDocModalFiles.forEach((f) => window.clearTimeout(f.timer));
+      foDocModalFiles = [];
     }
 
     /* a field's value = the shared document card; the card keeps its shape in data-fo-doc (the
@@ -8010,9 +8042,6 @@
        Scope: the request's step 3 (main + guest wizard) and the Ghișeu „Acte necesare” step (other-doc-saved-v1). */
     const FO_DOC_EXTENSIONS = ["JPG", "PNG", "PDF", "XLS", "XLSX", "ZIP", "RAR", "DOCX", "DOC"];
     const FO_DOC_MAX_MB = 60;
-    /* other-doc-saved-v1 (2026-10-25, user: „in ALL files, also in the document upload pattern”): the Ghișeu
-       „Acte necesare” step (`[data-gh-docs]`) runs the same checks + Uploading card — one upload flow */
-    const foDocUploadFlow = (el) => Boolean(el?.closest?.("[data-fo-step-panel='3'], [data-gh-docs]"));
     const foDocDemo = (key) => new URLSearchParams(location.search).get(key) || "";
     function foDocFileProblem(file) {
       const ext = (String(file?.name || "").match(/\.([a-z0-9]+)$/i)?.[1] || "").toUpperCase();
@@ -8030,7 +8059,6 @@
     function foDocMetaPartsHtml(parts) {
       return `<div class="e-permits-fo-lib-item__meta e-permits-fo-doc-meta"><span class="e-permits-fo-doc-meta__line">${parts.map((part) => `<span class="e-permits-fo-doc-meta__part">${part}</span>`).join("")}</span></div>`;
     }
-    let foDocErrorSeq = 0;
     /* the document field's error = the FO input field error (text-input Destructive: 20 circle-error-filled + 14/20
        danger, 4 apart, 8 under the control) — never inside the card (doc-error-outside-v1, user on GEAP D08) */
     function foDocFieldErrorHtml(id, message, attrs = "") {
@@ -8056,74 +8084,8 @@
       groups.forEach((el) => el.remove());
       foDocSyncDescribedBy(container.closest("[data-fo-doc-field]"));
     }
-    /* AC-03 · the rejected file under its document = the document card Error state (library file-item Error: name +
-       size + ×, danger stroke) and, 8 under the card, the field error message; × closes both; whatever was attached
-       before stays */
-    function foDocShowFileError(container, file, message) {
-      container.querySelectorAll("[data-fo-doc-error]").forEach((el) => el.remove());
-      const id = `fo-doc-error-${foDocErrorSeq += 1}`;
-      const group = document.createElement("div");
-      group.className = "e-permits-fo-doc-error";
-      group.dataset.foDocError = "";
-      group.innerHTML = `
-        <div class="e-permits-fo-file-item is-error">
-          ${foDocIconHtml({ sursa: "upload" })}
-          <div class="e-permits-fo-lib-item__content">
-            ${foDocTitleRowHtml(file.name)}
-            ${foDocMetaPartsHtml([escapeFrontOfficeHtml(formatFoFileSize(file.size))])}
-          </div>
-          <button class="btn btn-strict btn-sm btn-icon-only e-permits-fo-document-remove" type="button" aria-label="Închide mesajul pentru ${escapeFrontOfficeHtml(file.name)}" aria-describedby="${id}" data-fo-doc-error-close>
-            <svg class="icon" width="16" height="16" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-cross-large-16"></use></svg>
-          </button>
-        </div>
-        ${foDocFieldErrorHtml(id, message, ' role="alert"')}`;
-      container.appendChild(group);
-      foDocSyncDescribedBy(container.closest("[data-fo-doc-field]"));
-    }
-    /* AC-03 · file-item Uploading: spinner in the icon slot, name · size · percent, × cancels, progress line;
-       on 100 % the shared document card takes its place (the previous file stays until then).
-       Demo `?incarcare=pauza` holds it at 62 %. */
-    function foDocStartUpload(container, file) {
-      foDocClearFileError(container);
-      container.querySelectorAll("[data-fo-doc-uploading]").forEach((el) => el.remove());
-      const size = formatFoFileSize(file.size);
-      const item = document.createElement("div");
-      item.className = "e-permits-fo-file-item is-uploading";
-      item.dataset.foDocUploading = "";
-      item.innerHTML = `
-        <span class="e-permits-fo-lib-item__icon e-permits-fo-file-item__spinner" aria-hidden="true"><span class="spinner spinner--small spinner--brand"></span></span>
-        <div class="e-permits-fo-lib-item__content">
-          ${foDocTitleRowHtml(file.name)}
-          ${foDocMetaPartsHtml([escapeFrontOfficeHtml(size), `Se încarcă <span data-fo-upload-percent>0</span>%`])}
-        </div>
-        <button class="btn btn-strict btn-sm btn-icon-only e-permits-fo-document-remove" type="button" aria-label="Anulează încărcarea fișierului ${escapeFrontOfficeHtml(file.name)}" data-fo-upload-cancel>
-          <svg class="icon" width="16" height="16" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-cross-large-16"></use></svg>
-        </button>
-        <div class="e-permits-fo-file-item__progress" role="progressbar" aria-label="Încărcarea fișierului ${escapeFrontOfficeHtml(file.name)}" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div class="e-permits-fo-file-item__progress-bar"></div></div>`;
-      container.appendChild(item);
-      const bar = item.querySelector(".e-permits-fo-file-item__progress-bar");
-      const track = item.querySelector("[role=progressbar]");
-      const label = item.querySelector("[data-fo-upload-percent]");
-      const hold = foDocDemo("incarcare") === "pauza" ? 62 : 101;
-      let progress = 0;
-      const step = () => {
-        if (!item.isConnected) return;
-        progress = Math.min(100, progress + 4 + Math.random() * 8, hold);
-        bar.style.width = `${progress}%`;
-        track.setAttribute("aria-valuenow", String(Math.round(progress)));
-        label.textContent = String(Math.round(progress));
-        if (progress >= 100) {
-          window.setTimeout(() => {
-            if (!item.isConnected) return;
-            item.remove();
-            foDocAttachFileItem(container, file.name, size);
-          }, 200);
-          return;
-        }
-        if (progress < hold) window.setTimeout(step, 90);
-      };
-      window.setTimeout(step, 60);
-    }
+    /* upload-modal-v1 (2026-11-06): the Uploading / rejected-file cards moved INTO the picker (foDocModalFileHtml);
+       the field only ever receives done files (foDocAttachFileItem) */
     /* AC-06 · required documents: inline „Documentul este obligatoriu.” under each missing one + ONE summary
        notice at the top of the step (the Ghișeu Verificare wording); „Înainte” stays unavailable (aria-disabled +
        reason) until every required document has a file; the step re-checks itself while the errors show */
@@ -8186,6 +8148,165 @@
       new MutationObserver(() => { if (panel.dataset.foDocsChecked) foDocSyncRequired(panel); }).observe(panel, { childList: true, subtree: true });
     }
 
+    /* ===== upload-modal-v1 (2026-11-06) · „Încarcă fișier” — single vs multiple, upload inside the picker =====
+       components.md › „Upload from computer — single vs multiple”. Every file is checked on pick (type + size, the
+       field's own limits when it has them), valid ones upload at once (library file-item Uploading = the shared
+       document card with spinner + progress), rejected ones show the document card Error + the FO field error under
+       it. Slots taken = uploading + done (errors never count); the drop zone hides when they reach the max (single:
+       1 file → hidden; multi: the max note instead), compact once a multi list exists. Demo `?incarcare=pauza` holds
+       every upload at 62 %, `?incarcare=pauza-ultimul` holds all but the first file of the session. */
+    function foDocModalProblem(file) {
+      const [types, size] = (foDocModalField?.dataset.foDocLimits || "").split("|");
+      if (!types) return foDocFileProblem(file);
+      const allowed = types.split(",").map((t) => t.trim().toUpperCase()).filter(Boolean);
+      const ext = (String(file?.name || "").match(/\.([a-z0-9]+)$/i)?.[1] || "").toUpperCase();
+      if (!allowed.includes(ext === "JPEG" ? "JPG" : ext)) return `Nu puteți atașa fișierul. Se permit doar extensiile ${allowed.join(", ")}.`;
+      const mb = parseFloat(size) || FO_DOC_MAX_MB;
+      if (Number(file?.size) > mb * 1048576) return `Nu puteți atașa fișiere mai mari decât ${mb} MB.`;
+      return "";
+    }
+    const foDocModalSlots = () => foDocModalTaken + foDocModalFiles.filter((f) => f.state !== "error").length;
+    const foDocModalChooser = () => [...(foDocOverlay?.querySelectorAll("[data-fo-doc-choose]") || [])].find((b) => b.getClientRects().length);
+    function foDocModalAnnounce(text) {
+      const live = foDocOverlay?.querySelector("[data-fo-doc-upload-status]");
+      if (!live) return;
+      live.textContent = "";
+      window.setTimeout(() => { live.textContent = text; }, 50);
+    }
+    function foDocModalFileHtml(entry) {
+      const name = escapeFrontOfficeHtml(entry.file.name);
+      const size = escapeFrontOfficeHtml(formatFoFileSize(entry.file.size));
+      const x = (label) => `<button class="btn btn-strict btn-sm btn-icon-only e-permits-fo-document-remove" type="button" aria-label="${label}" data-fo-modal-file-remove="${entry.id}"${entry.state === "error" ? ` aria-describedby="${entry.id}-error"` : ""}>
+          <svg class="icon" width="16" height="16" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-cross-large-16"></use></svg>
+        </button>`;
+      if (entry.state === "uploading") {
+        return `<div class="e-permits-fo-file-item is-uploading e-permits-fo-doc-modal__file" data-fo-modal-file="${entry.id}">
+          <span class="e-permits-fo-lib-item__icon e-permits-fo-file-item__spinner" aria-hidden="true"><span class="spinner spinner--small spinner--brand"></span></span>
+          <div class="e-permits-fo-lib-item__content">
+            ${foDocTitleRowHtml(entry.file.name)}
+            ${foDocMetaPartsHtml([size, `Se încarcă <span data-fo-upload-percent>${Math.round(entry.progress || 0)}</span>%`])}
+          </div>
+          ${x(`Anulează încărcarea fișierului ${name}`)}
+          <div class="e-permits-fo-file-item__progress" role="progressbar" aria-label="Încărcarea fișierului ${name}" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${Math.round(entry.progress || 0)}"><div class="e-permits-fo-file-item__progress-bar"></div></div>
+        </div>`;
+      }
+      if (entry.state === "error") {
+        return `<div class="e-permits-fo-doc-error e-permits-fo-doc-modal__file" data-fo-modal-file="${entry.id}">
+          <div class="e-permits-fo-file-item is-error">
+            ${foDocIconHtml({ sursa: "upload" })}
+            <div class="e-permits-fo-lib-item__content">
+              ${foDocTitleRowHtml(entry.file.name)}
+              ${foDocMetaPartsHtml([size])}
+            </div>
+            ${x(`Elimină fișierul respins ${name}`)}
+          </div>
+          ${foDocFieldErrorHtml(`${entry.id}-error`, entry.message)}
+        </div>`;
+      }
+      const doc = { sursa: "upload", tip: entry.file.name, size: formatFoFileSize(entry.file.size), verb: "Încărcat", at: entry.at };
+      return `<div class="e-permits-fo-file-item is-uploaded e-permits-fo-doc-modal__file" data-fo-modal-file="${entry.id}">
+          ${foDocIconHtml(doc)}
+          ${foDocContentHtml(doc, { titleClass: "e-permits-fo-file-item__name", open: true })}
+          ${x(`Elimină ${name}`)}
+        </div>`;
+    }
+    /* (re)draw one entry in place; the focus stays on its × when the state changes. A done file = the shared document
+       card with the open name (whole-card hover, Enter / click → the FO document viewer over the picker; × apart);
+       uploading / rejected cards have no name button → not clickable */
+    function foDocModalDrawFile(entry) {
+      const box = document.createElement("div");
+      box.innerHTML = foDocModalFileHtml(entry).trim();
+      const next = box.firstElementChild;
+      const hadFocus = entry.el?.contains(document.activeElement);
+      if (entry.el?.isConnected) entry.el.replaceWith(next); else foDocUploadPreview?.appendChild(next);
+      entry.el = next;
+      if (entry.state === "uploading") next.querySelector(".e-permits-fo-file-item__progress-bar").style.width = `${entry.progress || 0}%`;
+      if (hadFocus) next.querySelector("[data-fo-modal-file-remove]")?.focus();
+    }
+    /* drop zone · counter · max note · list visibility · submit */
+    function foDocModalRenderUpload() {
+      if (!foDocOverlay) return;
+      const multi = foDocModalMax > 1;
+      const full = foDocModalSlots() >= foDocModalMax;
+      const drop = foDocOverlay.querySelector("[data-fo-doc-drop]");
+      const zone = foDocOverlay.querySelector("[data-fo-doc-drop-zone]");
+      if (drop) drop.hidden = full;
+      zone?.classList.toggle("is-compact", multi && foDocModalFiles.length > 0);
+      const note = foDocOverlay.querySelector("[data-fo-doc-max-note]");
+      if (note) {
+        const show = multi && full;
+        const html = show ? foUi().renderNotice?.("info", `<strong>Ați atins numărul maxim de fișiere (${foDocModalMax}).</strong> Eliminați un fișier ca să adăugați altul.`) || "" : "";
+        if (note.dataset.foShown !== String(show)) { note.innerHTML = html; note.dataset.foShown = String(show); }
+        note.hidden = !show;
+      }
+      const count = foDocOverlay.querySelector("[data-fo-doc-count]");
+      if (count) {
+        count.hidden = !multi || !foDocModalFiles.length;
+        count.textContent = `${foDocModalSlots()} din ${foDocModalMax} fișiere`;
+      }
+      if (foDocUploadPreview) foDocUploadPreview.hidden = !foDocModalFiles.length;
+      foDocUpdateSubmit();
+    }
+    function foDocModalStartUpload(entry) {
+      const demo = foDocDemo("incarcare");
+      const first = foDocModalFiles.find((f) => f.state !== "error") === entry;
+      const hold = demo === "pauza" || (demo === "pauza-ultimul" && !first) ? 62 : 101;
+      entry.progress = 0;
+      const step = () => {
+        if (!foDocModalFiles.includes(entry)) return;
+        entry.progress = Math.min(100, entry.progress + 4 + Math.random() * 8, hold);
+        const bar = entry.el?.querySelector(".e-permits-fo-file-item__progress-bar");
+        if (bar) bar.style.width = `${entry.progress}%`;
+        entry.el?.querySelector("[role=progressbar]")?.setAttribute("aria-valuenow", String(Math.round(entry.progress)));
+        const pct = entry.el?.querySelector("[data-fo-upload-percent]");
+        if (pct) pct.textContent = String(Math.round(entry.progress));
+        if (entry.progress >= 100) {
+          entry.timer = window.setTimeout(() => {
+            if (!foDocModalFiles.includes(entry)) return;
+            entry.state = "done";
+            entry.at = foDocStampNow();
+            foDocModalDrawFile(entry);
+            foDocModalAnnounce(`${entry.file.name} încărcat.`);
+            foDocModalRenderUpload();
+          }, 200);
+          return;
+        }
+        if (entry.progress < hold) entry.timer = window.setTimeout(step, 90);
+      };
+      entry.timer = window.setTimeout(step, 60);
+    }
+    function foDocModalAddFiles(files) {
+      if (!foDocOverlay || !foDocUploadPreview) return;
+      /* single: a new pick replaces whatever the picker holds (the slot is one); multi: errors of the last pick stay
+         until their × */
+      if (foDocModalMax === 1) {
+        foDocModalFiles.forEach((f) => { window.clearTimeout(f.timer); f.el?.remove(); });
+        foDocModalFiles = [];
+      }
+      const added = [];
+      files.forEach((file) => {
+        const entry = { id: `fo-modal-file-${foDocModalSeq += 1}`, file, state: "uploading", message: "" };
+        const problem = foDocModalProblem(file);
+        if (problem) Object.assign(entry, { state: "error", message: problem });
+        else if (foDocModalSlots() >= foDocModalMax) {
+          Object.assign(entry, { state: "error", message: foDocModalMax === 1 ? "Se permite un singur fișier." : `Se permit cel mult ${foDocModalMax} fișiere.` });
+        }
+        foDocModalFiles.push(entry);
+        foDocModalDrawFile(entry);
+        added.push(entry);
+      });
+      added.filter((f) => f.state === "uploading").forEach(foDocModalStartUpload);
+      const ok = added.filter((f) => f.state === "uploading").length;
+      const bad = added.filter((f) => f.state === "error");
+      foDocModalAnnounce([
+        ok ? `Se încarcă ${ok === 1 ? "1 fișier" : `${ok} fișiere`}.` : "",
+        ...bad.map((f) => `${f.file.name}: ${f.message}`),
+      ].filter(Boolean).join(" "));
+      foDocModalRenderUpload();
+      /* the zone may have hidden under the focus → the first new file's × */
+      if (!foDocModalChooser() || foDocOverlay.querySelector("[data-fo-doc-drop]")?.hidden) added[0]?.el?.querySelector("[data-fo-modal-file-remove]")?.focus();
+    }
+
     if (foDocOverlay) {
       foDocOverlay.querySelector("[data-fo-doc-modal-close]")?.addEventListener("click", foDocCloseModal);
       foDocOverlay.querySelector("[data-fo-doc-modal-cancel]")?.addEventListener("click", foDocCloseModal);
@@ -8201,13 +8322,17 @@
       dropZone?.addEventListener("drop", (event) => {
         event.preventDefault();
         dropZone.classList.remove("is-dragover");
-        const file = event.dataTransfer?.files?.[0];
-        if (!file || !foDocFileInput) return;
-        const files = new DataTransfer();
-        files.items.add(file);
-        foDocFileInput.files = files.files;
-        foDocFileInput.dispatchEvent(new Event("change", { bubbles: true }));
+        /* upload-modal-v1: every dropped file goes through the same checks (single field: the first one, the rest
+           get „Se permite un singur fișier.”) */
+        const dropped = [...(event.dataTransfer?.files || [])];
+        if (dropped.length) foDocModalAddFiles(dropped);
       });
+      /* the drop zone's own controls (desktop link „choose files”, phone button „Încarcă fișier”) open the file
+         chooser; a click on the rest of the zone does it through the label */
+      foDocOverlay.querySelectorAll("[data-fo-doc-choose]").forEach((btn) => btn.addEventListener("click", (event) => {
+        event.preventDefault();
+        foDocFileInput?.click();
+      }));
 
       foDocSearchInput?.addEventListener("input", () => {
         foDocModalSelectedLib = null;
@@ -8216,15 +8341,24 @@
       });
 
       foDocFileInput?.addEventListener("change", () => {
-        const file = foDocFileInput.files?.[0];
-        if (!file) return;
-        foDocModalPendingFile = file;
-        if (foDocUploadPreview) {
-          foDocUploadPreview.hidden = false;
-          const preview = { sursa: "upload", tip: file.name, size: formatFoFileSize(file.size) };
-          foDocUploadPreview.innerHTML = `<div class="e-permits-fo-file-item is-uploaded e-permits-fo-doc-modal__preview-item">${foDocIconHtml(preview)}${foDocContentHtml(preview, { titleClass: "e-permits-fo-file-item__name" })}</div>`;
-        }
-        foDocUpdateSubmit();
+        const files = [...(foDocFileInput.files || [])];
+        foDocFileInput.value = "";
+        if (files.length) foDocModalAddFiles(files);
+      });
+      /* × on a modal file: cancels the upload / removes the file / closes the error; focus → the next file's ×,
+         else the chooser (the drop zone is back when a slot frees up) */
+      foDocUploadPreview?.addEventListener("click", (event) => {
+        const x = event.target.closest("[data-fo-modal-file-remove]");
+        if (!x) return;
+        const i = foDocModalFiles.findIndex((f) => f.id === x.dataset.foModalFileRemove);
+        if (i < 0) return;
+        const [entry] = foDocModalFiles.splice(i, 1);
+        window.clearTimeout(entry.timer);
+        entry.el?.remove();
+        foDocModalAnnounce(`${entry.file.name} eliminat.`);
+        foDocModalRenderUpload();
+        const next = foDocModalFiles[i] || foDocModalFiles[i - 1];
+        (next?.el?.querySelector("[data-fo-modal-file-remove]") || foDocModalChooser())?.focus();
       });
 
       foDocSubmitBtn?.addEventListener("click", () => {
@@ -8234,13 +8368,10 @@
         const activePanel = foDocOverlay.querySelector("[data-fo-doc-panel]:not([hidden])");
         if (activePanel?.dataset.foDocPanel === "library" && foDocModalSelectedLib) {
           foDocAttachMdocsItem(filesContainer, foDocModalSelectedLib);
-        } else if (activePanel?.dataset.foDocPanel === "upload" && foDocModalPendingFile) {
-          /* doc-upload-v1: on the request's step 3 the file is checked first, then uploaded with progress */
-          if (foDocUploadFlow(foDocModalField)) {
-            const problem = foDocFileProblem(foDocModalPendingFile);
-            if (problem) foDocShowFileError(filesContainer, foDocModalPendingFile, problem);
-            else foDocStartUpload(filesContainer, foDocModalPendingFile);
-          } else foDocAttachFileItem(filesContainer, foDocModalPendingFile.name, formatFoFileSize(foDocModalPendingFile.size));
+        } else if (activePanel?.dataset.foDocPanel === "upload") {
+          /* upload-modal-v1: the files were checked and uploaded in the picker — the done ones become the field's
+             document cards (rejected ones stay behind, never reach the form) */
+          foDocModalFiles.filter((f) => f.state === "done").forEach((f) => foDocAttachFileItem(filesContainer, f.file.name, formatFoFileSize(f.file.size)));
         }
         foDocCloseModal();
       });

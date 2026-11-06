@@ -8946,6 +8946,31 @@ a.e-permits-fo-lib-item__title:is(:hover, :focus) {
   max-width: 100%;
 }
 
+/* doc-title-one-line-v1 (user 2026-11-06, = Figma Document · card desktop): above phones the name and its tags share ONE
+   row — the name hugs its text (one line + „…” only when it does not fit, full name in the tooltip), the tags sit right
+   after it and never wrap. Phones keep doc-title-2-lines-v1 (tags under the name). */
+@media (min-width: 761px) {
+  :is(.e-permits-fo-file-item, .e-permits-fo-mdocs__attachment, .e-permits-fo-lib-item, .e-permits-fo-confirm-file--doc) > .e-permits-fo-lib-item__content > .e-permits-fo-doc-title-row {
+    flex-wrap: nowrap;
+  }
+
+  .e-permits-fo-doc-title-row > .e-permits-fo-lib-item__title,
+  .e-permits-fo-doc-title-row > .e-permits-fo-doc-name {
+    display: block;
+    flex: 0 1 auto;
+    -webkit-line-clamp: unset;
+    line-clamp: unset;
+    overflow: hidden;
+    overflow-wrap: normal;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .e-permits-fo-doc-title-row > .e-permits-fo-doc-tags {
+    flex-wrap: nowrap;
+  }
+}
+
 /* doc-name-open-v1 (2026-10-25, GEAP 2.0 11818:21893): the document NAME opens the document viewer. On a card that is not
    itself clickable (field values with ×, Verificare, previous act) the name is a real button with the library Link classes
    (`.link.link-strict.link-sm.link-no-underline`: strict-hover colour, the library focus outline) + the card title type
@@ -21040,7 +21065,7 @@ button.e-permits-steps-strip__cell:focus-visible {
    page (2026-10-16) so both products draw one notice. FO „Acte necesare” (summary / RSSPA error) and the document
    picker's „MDocs nu răspunde” notice too (doc-upload-v1, 2026-10-24). „Date solicitant” notes (MNotify without
    contact data, RSUD / MPower down) sit in `.e-permits-fo-requestor-note` (requestor-scenarios-v1, 2026-10-25). */
-:is([data-demo-flow="back-office"], .e-permits-fo-intent-act, .e-permits-fo-documents, .e-permits-fo-doc-modal__down, .e-permits-fo-requestor-note, .e-permits-start-dialog) :is(.info-box.e-permits-info-note, .message.message--subtle:not(.message--inline)) {
+:is([data-demo-flow="back-office"], .e-permits-fo-intent-act, .e-permits-fo-documents, .e-permits-fo-doc-modal__down, .e-permits-fo-doc-modal__max, .e-permits-fo-requestor-note, .e-permits-start-dialog) :is(.info-box.e-permits-info-note, .message.message--subtle:not(.message--inline)) {
   align-items: flex-start;
   animation: none;
   border-radius: var(--border-radius-12, 12px);
@@ -21051,7 +21076,7 @@ button.e-permits-steps-strip__cell:focus-visible {
   padding: var(--spacing-12, 12px) var(--spacing-16, 16px);
 }
 
-:is([data-demo-flow="back-office"], .e-permits-fo-intent-act, .e-permits-fo-documents, .e-permits-fo-doc-modal__down, .e-permits-fo-requestor-note, .e-permits-start-dialog) :is(.e-permits-info-note .info-box__icon, .message--subtle:not(.message--inline) .banner__icon) {
+:is([data-demo-flow="back-office"], .e-permits-fo-intent-act, .e-permits-fo-documents, .e-permits-fo-doc-modal__down, .e-permits-fo-doc-modal__max, .e-permits-fo-requestor-note, .e-permits-start-dialog) :is(.e-permits-info-note .info-box__icon, .message--subtle:not(.message--inline) .banner__icon) {
   align-items: center;
   display: inline-flex;
   flex: 0 0 20px;
@@ -21061,12 +21086,12 @@ button.e-permits-steps-strip__cell:focus-visible {
   width: 20px;
 }
 
-:is([data-demo-flow="back-office"], .e-permits-fo-intent-act, .e-permits-fo-documents, .e-permits-fo-doc-modal__down, .e-permits-fo-requestor-note, .e-permits-start-dialog) :is(.e-permits-info-note .info-box__icon, .message--subtle:not(.message--inline) .banner__icon) .icon {
+:is([data-demo-flow="back-office"], .e-permits-fo-intent-act, .e-permits-fo-documents, .e-permits-fo-doc-modal__down, .e-permits-fo-doc-modal__max, .e-permits-fo-requestor-note, .e-permits-start-dialog) :is(.e-permits-info-note .info-box__icon, .message--subtle:not(.message--inline) .banner__icon) .icon {
   height: 20px;
   width: 20px;
 }
 
-:is([data-demo-flow="back-office"], .e-permits-fo-intent-act, .e-permits-fo-documents, .e-permits-fo-doc-modal__down, .e-permits-fo-requestor-note, .e-permits-start-dialog) .message--subtle:not(.message--inline) .banner__content {
+:is([data-demo-flow="back-office"], .e-permits-fo-intent-act, .e-permits-fo-documents, .e-permits-fo-doc-modal__down, .e-permits-fo-doc-modal__max, .e-permits-fo-requestor-note, .e-permits-start-dialog) .message--subtle:not(.message--inline) .banner__content {
   display: flex;
   flex: 1 1 auto;
   flex-direction: column;
@@ -21075,7 +21100,7 @@ button.e-permits-steps-strip__cell:focus-visible {
   padding: 0;
 }
 
-:is([data-demo-flow="back-office"], .e-permits-fo-intent-act, .e-permits-fo-documents, .e-permits-fo-doc-modal__down, .e-permits-fo-requestor-note, .e-permits-start-dialog) :is(.e-permits-info-note .info-box__content, .e-permits-info-note .info-box__content p, .message--subtle:not(.message--inline) .banner__text) {
+:is([data-demo-flow="back-office"], .e-permits-fo-intent-act, .e-permits-fo-documents, .e-permits-fo-doc-modal__down, .e-permits-fo-doc-modal__max, .e-permits-fo-requestor-note, .e-permits-start-dialog) :is(.e-permits-info-note .info-box__content, .e-permits-info-note .info-box__content p, .message--subtle:not(.message--inline) .banner__text) {
   color: var(--color-text-base-default, #121212);
   font-family: var(--font-family-primary-font, Onest);
   font-size: var(--font-size-fs-14, 14px);
@@ -21084,7 +21109,7 @@ button.e-permits-steps-strip__cell:focus-visible {
   margin: 0;
 }
 
-:is([data-demo-flow="back-office"], .e-permits-fo-intent-act, .e-permits-fo-documents, .e-permits-fo-doc-modal__down, .e-permits-fo-requestor-note, .e-permits-start-dialog) :is(.e-permits-info-note, .message--subtle:not(.message--inline)) strong {
+:is([data-demo-flow="back-office"], .e-permits-fo-intent-act, .e-permits-fo-documents, .e-permits-fo-doc-modal__down, .e-permits-fo-doc-modal__max, .e-permits-fo-requestor-note, .e-permits-start-dialog) :is(.e-permits-info-note, .message--subtle:not(.message--inline)) strong {
   font-weight: var(--font-weight-fw-medium, 500);
 }
 
@@ -25267,6 +25292,108 @@ body:has(:is([aria-haspopup]:not([aria-haspopup="false"]), [role="combobox"], .j
   background: var(--color-background-base-tertiary, #f1f1f1);
 }
 
+/* ===== upload-modal-v1 (2026-11-06) · „Încarcă fișier” single vs multiple (components.md › „Upload from computer —
+   single vs multiple”). Files upload INSIDE the picker; the file rows are the shared document card (Uploading /
+   Done / Error); only placement + the drop zone's states are new here. */
+.e-permits-fo-doc-modal__upload-content {
+  gap: var(--spacing-16, 16px);
+}
+
+.e-permits-fo-doc-modal__down {
+  margin-bottom: 0;
+}
+
+/* drop zone + its captions = one group (8 apart, as before); hidden when the slots are full */
+.e-permits-fo-doc-modal__drop {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-8, 8px);
+}
+
+.e-permits-fo-doc-modal__drop[hidden],
+.e-permits-fo-doc-modal__max[hidden],
+.e-permits-fo-doc-modal__count[hidden] {
+  display: none;
+}
+
+/* drag-over = the library dropzone Active (`.dropzone--active`: brand border on the lightest brand fill; the library
+   reads an undefined --blue-sky-50 → the defined blue-sky-100) */
+.e-permits-fo-doc-modal__drop-zone.is-dragover {
+  background: var(--blue-sky-100, #e8f0fb);
+  border-color: var(--color-border-brand-default, #0058d2);
+}
+
+/* „choose files” = the library Link (a real button: Tab reaches the chooser); only the button chrome is reset */
+.e-permits-fo-doc-modal__drop-link.link {
+  appearance: none;
+  background: none;
+  border: 0;
+  font-family: inherit;
+  padding: 0;
+}
+
+/* the phone chooser button shows on phones only (≤760 below) */
+.e-permits-fo-doc-modal__device.btn {
+  display: none;
+}
+
+/* multi, once the list exists: the zone shrinks to one row (icon · text) so the list gets the room */
+.e-permits-fo-doc-modal__drop-zone.is-compact {
+  flex-direction: row;
+  gap: var(--spacing-16, 16px);
+  min-height: 0;
+  padding: var(--spacing-16, 16px) var(--spacing-24, 24px);
+}
+
+/* the counter of a multi field („2 din 4 fișiere”) = a list caption, 8 above the list */
+.e-permits-fo-doc-modal__count {
+  color: var(--color-text-base-secondary, #383838);
+  font-size: var(--font-size-fs-14, 14px);
+  font-weight: var(--font-weight-fw-medium, 500);
+  line-height: var(--line-height-lh-20, 20px);
+  margin: 0 0 calc(var(--spacing-8, 8px) - var(--spacing-16, 16px));
+}
+
+/* the files: shared document cards 8 apart; the rejected one = card Error + the FO field error 8 under it */
+.e-permits-fo-doc-modal__upload-preview > .e-permits-fo-file-item {
+  flex: none;
+}
+
+/* a step-3 document that takes several files keeps „Adaugă fișier” next to its cards until the max (`is-full`) */
+.e-permits-fo-doc-field--multi:not(.e-permits-fo-doc-field--boxed):not(.is-full) .e-permits-fo-doc-field__add {
+  display: inline-flex;
+}
+
+/* phones (≤760): no drag & drop — the drop zone is just the „Încarcă fișier” button (Large 48 · 16/24); a tap opens
+   the OS source sheet (native, not ours); the list scrolls in the sheet body, the footer stays */
+@media (max-width: 760px) {
+  .e-permits-fo-doc-modal .e-permits-fo-doc-modal__drop-zone,
+  .e-permits-fo-doc-modal .e-permits-fo-doc-modal__drop-zone:hover,
+  .e-permits-fo-doc-modal .e-permits-fo-doc-modal__drop-zone:focus-within,
+  .e-permits-fo-doc-modal .e-permits-fo-doc-modal__drop-zone.is-compact {
+    background: none;
+    border: 0;
+    box-shadow: none;
+    cursor: default;
+    min-height: 0;
+    padding: 0;
+  }
+
+  .e-permits-fo-doc-modal :is(.e-permits-fo-doc-modal__drop-icon, .e-permits-fo-doc-modal__drop-text) {
+    display: none;
+  }
+
+  .e-permits-fo-doc-modal .e-permits-fo-doc-modal__device.btn {
+    display: inline-flex;
+    font-size: var(--font-size-fs-16, 16px);
+    height: var(--spacing-48, 48px);
+    justify-content: center;
+    line-height: var(--line-height-lh-24, 24px);
+    padding: var(--spacing-0, 0px) var(--spacing-20, 20px) var(--spacing-0, 0px) var(--spacing-16, 16px);
+    width: 100%;
+  }
+}
+
 /* pp-details-card-v4 (user 2026-11-03): „Detalii solicitare” keeps the BO title (48, no divider) but no left / right
    inset — the heading lines up with the FO step headings, the card under it */
 /* doubled class = beats the scoped BO rule (:is(…) counts its most specific argument) on every FO screen, S4 included */
@@ -25313,3 +25440,9 @@ body:has(:is([aria-haspopup]:not([aria-haspopup="false"]), [role="combobox"], .j
   align-items: flex-start;
 }
 
+
+/* upload-modal-v1 · a done file's name in the picker opens the FO document viewer OVER the picker (both overlays sit at
+   the library 1000; the viewer comes first in the DOM) — closing it returns to the picker */
+body:has(.e-permits-fo-doc-modal-overlay:not([hidden])) #fo-certificate-modal {
+  z-index: calc(1000 + 1);
+}

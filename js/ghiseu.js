@@ -96,7 +96,7 @@
         { id: "property-deed", label: "Copia actului de proprietate / contractului de locațiune", description: "Actul ce confirmă dreptul asupra imobilului unde se desfășoară activitatea.", required: true },
         { id: "floor-plan", label: "Schița spațiului / planul încăperilor", description: "Plan cu amplasarea încăperilor și destinația lor.", required: true },
         { id: "state-registry-extract", label: "Extras din Registrul de Stat al persoanelor juridice", description: "Confirmă înregistrarea companiei. Se caută în MDocs după IDNO.", required: true, onlyPJ: true },
-        { id: "hygiene-certificates", label: "Certificate de instruire igienică ale personalului", description: "Opțional la depunere — poate fi solicitat ulterior.", required: false }
+        { id: "hygiene-certificates", label: "Certificate de instruire igienică ale personalului", description: "Opțional la depunere — poate fi solicitat ulterior. Până la 5 fișiere.", required: false, maxFiles: 5 }
       ]
     },
     biocid: {

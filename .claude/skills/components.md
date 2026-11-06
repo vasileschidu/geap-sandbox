@@ -361,6 +361,7 @@ but this doc previously described it wrongly, see the entry.
 | FO field group (one component = several fields: IDNO + denumire, consent + IDNP + Nume + Prenume, Persoana de contact) | `.e-permits-fo-field-group` (whole row; the section's 12-col grid + gaps inside; 1 column ≤860) · `--stack` (flex column, gap 20 — contact) | `idnoFieldHtml`, `idnpFieldHtml` (rsp), `contactPersonHtml({ prefix })` | app |
 | Registry lookup by a 13-digit code (IDNO → RSUD, IDNP → RSP) | ONE helper `createRegistryLookup({ input, hint, targets, find, … })` (+ `setRegistryValue`): hint → `__loading` message, targets → input skeleton (`is-srre-loading`), fill read-only with green check + `is-srre-new`, not found → FO field error. Markup hooks `[data-fo-registry-lookup][data-fo-registry=rsud|rsp]`, `[data-fo-registry-code]`, `[data-fo-registry-target=name|last|first]`, `[data-fo-digits]` + `[data-fo-digits-counter]` (n/13), `[data-fo-lookup-consent]` | guest IDNO (G1b/G3/G5) + Form Builder IDNO / IDNP; `?registru=asteptare` | app |
 | **Document upload — FO „Acte necesare” states** (doc-upload-v1, 2026-10-24, US-20) | uploading `.e-permits-fo-file-item.is-uploading` (`.e-permits-fo-file-item__spinner` + library `spinner spinner--small spinner--brand`, `.e-permits-fo-file-item__progress[role=progressbar]`) · rejected file `.e-permits-fo-doc-error` = `.e-permits-fo-file-item.is-error` + the FO field error `.message--inline.e-permits-fo-field__error` 8 under the card (outside it; required error the same, last in the field) · × `btn btn-strict btn-sm btn-icon-only e-permits-fo-document-remove` · attached file × (no „Înlocuiește” since file-remove-x-v1) · whole-card target = name `.stretched-link` (hover tertiary-hover + underline, focus ring on the card) · „Alte documente” edit → saved → edit (`.e-permits-fo-doc-card.is-saved`, `__header` „Anulează” / „Salvează” pills, saved `.e-permits-fo-doc-field__actions` „Editează” + red „Elimină”) · one plus `icon-plus-large` · step rhythm 32 between documents / 16 row → file; the edit card compact (16 / 16, label → field 8) · required summary `renderNotice("error", …, { className: "e-permits-fo-docs-summary" })` · RSSPA down `.e-permits-fo-docs-down` + `btn btn-outline-strict btn-md e-permits-fo-docs-retry` · picker MDocs-down slot `.e-permits-fo-doc-modal__down` · hooks `[data-fo-doc-required]`, `[data-fo-other-doc-name]`, `[data-fo-other-doc-card]`; delete confirm = the FO confirm `GEAPFoRepeat.confirm` | section „Document upload — FO „Acte necesare” states” (+ „The pattern — apply it anywhere”); demo `fo-04du1`…`fo-04du16`, `gh-06c`…`gh-06o` | app |
+| **Upload from computer — single vs multiple** (upload-modal-v1, 2026-11-06) | picker „Încarcă fișier”: files upload in the modal; rows `.e-permits-fo-file-item.e-permits-fo-doc-modal__file[data-fo-modal-file]` (uploading / done = open name → viewer over the picker / error `.e-permits-fo-doc-error`) · `.e-permits-fo-doc-modal__drop[data-fo-doc-drop]` (hidden at the max) · `__drop-zone.is-compact` / `.is-dragover` · `button.link.link-primary.link-lg.e-permits-fo-doc-modal__drop-link[data-fo-doc-choose]` · phone `btn btn-secondary btn-md e-permits-fo-doc-modal__device` · `.e-permits-fo-doc-modal__count` · `.e-permits-fo-doc-modal__max` (renderNotice info) · live region `[data-fo-doc-upload-status]` · confirm „Adaugă N fișiere” · step-3 `.e-permits-fo-doc-field--multi[data-fo-doc-max]` | section „Upload from computer — single vs multiple”; demo `fo-04up1`…`fo-04up12` | app |
 | Boxed doc field with several files | `.e-permits-fo-doc-field--boxed.e-permits-fo-doc-field--multi` (button stays until `is-full`) + `data-fo-upload-only` (picker without MDocs), `data-fo-doc-accept`, `data-fo-doc-max`, `data-fo-doc-limits` (modal captions) | Form Builder „Fișier” | app |
 | Form Builder · hidden field marker | `p.e-permits-builder__hidden-marker` (dashed 1px border/base/default, r8, 40 high, `icon-data-access` + „Ascuns” + name · value, ellipsis + title) — Build canvas only; the FO renders `<input type="hidden" data-fo-hidden>` | „Câmp ascuns” card | app |
 | Editable grid (FO, US-33…39) — **library gap: no editable table in the library** | `.e-permits-fo-grid[data-fo-grid][data-units]` > `__label` · hint · group note (`renderInfoNote`) · `__frame` > library `table.table.table--subtle.e-permits-fo-grid__table` (explicit ARIA roles; `th`/`td` `colspan` = width units 2·3·4) > `tr.e-permits-fo-grid__row(.is-editing)` (`__index` · `__cell[data-col][data-type]` = `__cell-label` + `button.__value` or the FO field · `__actions` = `__actions-compact` icon buttons + `__actions-full` labelled) · `tr.__detail` (nested grid) · `tr.__empty` (`GEAPEmptyState`) · `__foot` (`.e-permits-fo-add-activity` + `__limit` + library `.pagination--compact`) · `.is-cards` (cards) | `GEAPFoRepeat.gridHtml` / `bind` / `validate` / `fill` / `layout` / `escape`; confirm `[data-fo-grid-confirm]` | app |
@@ -6797,6 +6798,15 @@ suplimentare” from 390 (stacks at 375 — was horizontal and uneven before); 5
 eKYC ek-05 are even at 600–760 and stack at 375 as before. The Cabinet visually-hidden phone meta needs `min-width: 0`
 (else the step text `min-width: min-content` widens it and the page).
 
+**Phones — 6 steps fit (trajectory-phone-fit-v1, 2026-11-06; user: „make it horizontal with 6 steps, as before”).** While a
+trajectory is horizontal on ≤ 760 (`:not(.is-stacked)`): labels = caption 12/16 (stacked list keeps 14/20), the date / who
+lines are visually hidden (shown again when stacked), the current-step pill sides 2 (4 elsewhere), and the card loses its
+border colour, background, radius and side padding (the `--bare` look, vertical padding 12) so the steps get the full width
+(Cabinet `.cab-status` keeps its own 16 padding and chrome). Marker icon stays 24 (the 20 step was not needed). FO fo-08b
+(Depusă · Plată · Verificare · Decizie · Emis · Livrare) is horizontal from 364 up, stacks at 360 / 320; pp-10f, sm-04b
+horizontal at 375 and 320; BO dos-01 (Examinare / Coordonare side by side) and eKYC ek-05g (7 long labels) still stack —
+their words cannot keep 8 apart.
+
 **Variants:** `--vertical` (long step texts: FO „Statutul dosarului”; the Cabinet „Istoric” left for the event timeline, istoric-jurnal-v1) · `--bare`
 (inside another card: no background / border / radius / padding; no caller since request-trajectory-v1). No hover
 (not interactive).
@@ -10961,8 +10971,8 @@ Code: `foOtherDocSave / foOtherDocEdit / foOtherDocCancel / foOtherDocShowSaved`
 
 | State (US-20) | What shows | Code |
 |---|---|---|
-| **Uploading** (AC-03) | library file-item Uploading = the shared document card (`.e-permits-fo-file-item.is-uploading[data-fo-doc-uploading]`): library `spinner spinner--small spinner--brand` in the 24 icon slot (`.e-permits-fo-file-item__spinner`), title = file name, meta „size · Se încarcă N%”, × = library `btn btn-strict btn-sm btn-icon-only` (+ the `.e-permits-fo-document-remove` placement hook, `[data-fo-upload-cancel]`, „Anulează încărcarea fișierului …”; on phones it stays on the title line), progress line on the bottom edge (`.e-permits-fo-file-item__progress[role=progressbar]` + `__progress-bar`, grey track). At 100 % the card becomes the attached document card; the previous file of the field stays until then. | `foDocStartUpload(container, file)` |
-| **Wrong type / over 60 MB** (AC-03) | checked client-side on the picker's „Adaugă fișier” BEFORE the upload; the rejected file shows UNDER its document as `.e-permits-fo-doc-error[data-fo-doc-error]` (flex column, gap 8) = the document card Error state `.e-permits-fo-file-item.is-error` (grey card, 1.5 danger stroke inside — inset shadow —, file name, size, × = the same library icon-only Strict `[data-fo-doc-error-close]`) + **OUTSIDE the card, 8 under it, the FO input field error** `span.message.message--inline.message--error.e-permits-fo-field__error[role=alert]` (section „Field error message”: 20 `circle-error-filled`, 4 gap, 14/20 regular `--color-text-danger-default`; same on phones) — never a message inside the card (doc-error-outside-v1, user on GEAP D08 12930:464911). × removes card + message; a document that arrives (upload / MDocs) clears both (`foDocClearFileError`). Texts = the AC: „Nu puteți atașa fișierul. Se permit doar extensiile JPG, PNG, PDF, XLS, XLSX, ZIP, RAR, DOCX, DOC.” · „Nu puteți atașa fișiere mai mari decât 60 MB.” (AC writes „60Mb”). A file already attached stays; „Adaugă fișier” stays visible next to a lone error card. Other documents are never touched. | `foDocFileProblem(file)`, `foDocShowFileError(container, file, message)`; `FO_DOC_EXTENSIONS`, `FO_DOC_MAX_MB` |
+| **Uploading** (AC-03) | **moved into the picker by upload-modal-v1 (2026-11-06) — section „Upload from computer”; below = the card look.** library file-item Uploading = the shared document card (`.e-permits-fo-file-item.is-uploading[data-fo-doc-uploading]`): library `spinner spinner--small spinner--brand` in the 24 icon slot (`.e-permits-fo-file-item__spinner`), title = file name, meta „size · Se încarcă N%”, × = library `btn btn-strict btn-sm btn-icon-only` (+ the `.e-permits-fo-document-remove` placement hook, `[data-fo-upload-cancel]`, „Anulează încărcarea fișierului …”; on phones it stays on the title line), progress line on the bottom edge (`.e-permits-fo-file-item__progress[role=progressbar]` + `__progress-bar`, grey track). At 100 % the card becomes the attached document card; the previous file of the field stays until then. | `foDocStartUpload(container, file)` |
+| **Wrong type / over 60 MB** (AC-03) | **since upload-modal-v1 (2026-11-06) checked on pick and shown IN the picker (section „Upload from computer”)**; before: checked on the picker's „Adaugă fișier”; the rejected file showed UNDER its document as `.e-permits-fo-doc-error[data-fo-doc-error]` (flex column, gap 8) = the document card Error state `.e-permits-fo-file-item.is-error` (grey card, 1.5 danger stroke inside — inset shadow —, file name, size, × = the same library icon-only Strict `[data-fo-doc-error-close]`) + **OUTSIDE the card, 8 under it, the FO input field error** `span.message.message--inline.message--error.e-permits-fo-field__error[role=alert]` (section „Field error message”: 20 `circle-error-filled`, 4 gap, 14/20 regular `--color-text-danger-default`; same on phones) — never a message inside the card (doc-error-outside-v1, user on GEAP D08 12930:464911). × removes card + message; a document that arrives (upload / MDocs) clears both (`foDocClearFileError`). Texts = the AC: „Nu puteți atașa fișierul. Se permit doar extensiile JPG, PNG, PDF, XLS, XLSX, ZIP, RAR, DOCX, DOC.” · „Nu puteți atașa fișiere mai mari decât 60 MB.” (AC writes „60Mb”). A file already attached stays; „Adaugă fișier” stays visible next to a lone error card. Other documents are never touched. | `foDocFileProblem(file)`, `foDocShowFileError(container, file, message)`; `FO_DOC_EXTENSIONS`, `FO_DOC_MAX_MB` |
 | **Predefined document attached** (AC-05) | the file card with its × (file-remove-x-v1, 2026-10-25, user: „Înlocuiește doesn't make sense” — was a labelled „Înlocuiește” + a replace-mode picker, both removed): × removes the file, the FIELD stays; „Adaugă fișier” comes back and gets the focus. One document per field: an upload replaces an MDocs link and the other way round. | `foDocAttachFileItem` / `foDocAttachMdocsItem`, `foDocFocusAdd` |
 | **„Alte documente” › Elimină** (AC-07 / AC-08) | edit → Salvează → saved lifecycle above; each card = name + description + the SAME „Adaugă fișier” picker (MDocs or device), its file gets the ×; the saved one's red „Elimină” asks first in the FO confirm dialog (`[data-fo-grid-confirm]`, `GEAPFoRepeat.confirm`): „Elimini documentul?” · „„<name>” se elimină din cerere, împreună cu fișierul încărcat.” / „… se elimină din cerere. Documentul rămâne în librăria MDocs.” / no file „… se elimină din cerere.” · „Anulează” + red „Elimină documentul”; focus back to the trash (cancel) or „Adaugă document” (done). | the other-docs delegate in js/e-permits-acte-permisive.js; `GEAPFoRepeat.confirm` (js/fo-grid.js) |
 | **Required document missing** (AC-06) | „Înainte” checks; every required document without a file gets `.is-error` + the same field error `span.message.message--inline.message--error.e-permits-fo-field__error[data-fo-doc-required-error]` „Documentul este obligatoriu.” LAST in the field, 8 under the button row (desktop) / the full-width button (phones) — the place of every document field error (`margin-top: calc(8 − 16)` against the field's 16 stack); ONE summary at the top of the step = `renderNotice("error", "<strong>Lipsesc documente obligatorii.</strong> A; B.", { role: "alert", className: "e-permits-fo-docs-summary" })` (the Ghișeu Verificare wording), focus moves to it; „Înainte” = `aria-disabled="true"` + `data-tooltip-reason="Atașați documentele obligatorii."` until every required document has a file — the step re-checks itself on every change (MutationObserver), errors and summary go away as documents arrive. Required fields carry `[data-fo-doc-required]`. | `foDocSyncRequired(panel)`, `foDocMissing`, `foDocSetFieldError`, capture listener on `[data-fo-next='step-3']` |
@@ -10991,6 +11001,65 @@ Code: `foOtherDocSave / foOtherDocEdit / foOtherDocCancel / foOtherDocShowSaved`
 - **Gap:** conditional documents (US-225 „Afișează” / „Setează ca obligatoriu”, AC-25–29) are NOT in the FO: the FO
   step reads `data/acte-permisive.json`, the rules live in the service passport (`data/e-permits-services.json`) — a
   demo-only rule in the FO schema would be a second source of truth.
+
+### Upload from computer — single vs multiple (upload-modal-v1, 2026-11-06)
+
+User: „explore the upload flow when I upload something from my computer: single and multiple. If only one file is
+allowed, hide the upload area; if multiple, leave it and show the files in the modal.” Same picker (`.e-permits-fo-doc-modal`,
+tab „Încarcă fișier”), every part an existing component; files now **upload inside the picker** (they used to upload in
+the field after „Adaugă fișier” — doc-upload-v1's in-field Uploading / rejected cards are gone, the field only receives
+done files).
+
+**Research (short):** GOV.UK Design System „File upload” (+ its multiple-files research: one control, list of chosen files
+with remove, errors per file, „Drag and drop or choose files” only where drag exists); Carbon „File uploader” (upload starts
+on selection, per-file uploading / complete / invalid with ×, invalid files stay listed until removed, submit waits for
+uploads); Atlassian / Material (inline per-file progress + error, live announcements); Google Drive / Apple Files
+(upload starts at once, the list is the progress view; on phones the OS sheet picks the source). Mobbin was not reachable
+from this session (MCP not authorised) — no screen references taken from it.
+
+**Rules**
+| | Single (max 1) | Multiple (`data-fo-doc-max` > 1) |
+|---|---|---|
+| Drop zone | shown while empty; **hidden** once a file is uploading / done; back after × | stays, **compact** (`.is-compact`: one row icon · text) once the list exists; **hidden** at the max with the info notice „Ați atins numărul maxim de fișiere (N). Eliminați un fișier ca să adăugați altul.” |
+| Captions | „Un singur fișier: <types>” · „Mărime maximă: …” | „Până la N fișiere: <types>” · size |
+| Counter | — | `.e-permits-fo-doc-modal__count` „2 din 4 fișiere” (14/20 medium secondary, 8 above the list) = files already in the field + uploading + done (errors never count) |
+| Picking | starts the upload at once; a new pick replaces what the picker holds; several dropped → the first, the rest „Se permite un singur fișier.” | every file at once; over the max → those files get „Se permit cel mult N fișiere.” |
+| Confirm (footer, Medium 40 desktop / 48 phones) | „Adaugă fișier”, enabled only when the file is done | „Adaugă N fișiere” (valid files; „1 fișier”, „20 de fișiere”), enabled when ≥ 1 is done and none is uploading |
+| After confirm | the field shows the done files as the shared document cards (× each); rejected files never reach the form | same; „Adaugă fișier” stays in the field until `is-full` |
+
+- **File rows** = the shared document card (`.e-permits-fo-file-item.e-permits-fo-doc-modal__file[data-fo-modal-file]`):
+  **Uploading** (library Small spinner in the icon slot, „size · Se încarcă N%”, progress line `[role=progressbar]`, ×
+  „Anulează încărcarea …”) → **Done** (`is-uploaded`, grey icon, „size · Încărcat <date>”, × „Elimină …”) or **Error**
+  (`.e-permits-fo-doc-error` = card `is-error` + the FO field error 8 under it, × „Elimină fișierul respins …”, described
+  by the message). Uploading / Error cards are not clickable.
+- **Done row = the document card target:** the name is `foDocContentHtml(doc, { open: true })` (stretched link) → whole-card
+  hover (tertiary-hover + underline + pointer), Tab / Enter → the FO document viewer `#fo-certificate-modal` (A4) **over the
+  picker** (z-index +1 while the picker is open); „Închide” / Esc returns to the picker with its files. The × keeps its own
+  hover and never opens the viewer.
+- **Validation per file** on pick: type + size (`foDocModalProblem`: the field's `data-fo-doc-limits` when it has them,
+  else `FO_DOC_EXTENSIONS` / 60 MB). Mixed picks: valid files upload, invalid ones show their error and wait for ×.
+- **Drag-over** (`.is-dragover`) = the library dropzone Active: brand border + `--blue-sky-100` fill.
+- **Keyboard / screen reader:** „choose files” is a real library Link button (`button.link.link-primary.link-lg
+  [data-fo-doc-choose]`); one `sr-only` `role=status` live region `[data-fo-doc-upload-status]` says „Se încarcă N fișiere.”,
+  „<name> încărcat.”, „<name>: <error>”, „<name> eliminat.”; focus after × → the next file's ×, else the chooser.
+- **Phones (≤ 760):** no drag text, no dashed zone — only `btn btn-secondary btn-md e-permits-fo-doc-modal__device`
+  „Încarcă fișier” (+ icon-upload) at 48 · 16/24 full width; the list scrolls in the sheet body, the footer stays pinned.
+  The tap opens the **system sheet (native, not ours)**: iOS „Photo Library / Take Photo / Choose File”, Android Camera /
+  Files / Gallery. We only make the input right: `accept` = allowed types, `multiple` only on multi fields, **never
+  `capture`** (it would skip the sheet and force the camera). Figma shows that step as a native iOS sheet mock.
+- **Multi on step 3:** a document with `maxFiles` in the schema (no story sets one yet — demo `?fisiere=N` on
+  „Certificate de instruire igienică”) renders `.e-permits-fo-doc-field--multi[data-fo-doc-max]`; Form Builder „Fișier”
+  already sets `data-fo-doc-max`.
+- Code: `foDocModalAddFiles`, `foDocModalStartUpload`, `foDocModalFileHtml`, `foDocModalDrawFile`, `foDocModalRenderUpload`,
+  `foDocFilesLabel`, `foDocModalProblem` (js/e-permits-acte-permisive.js); CSS block „upload-modal-v1” in
+  css/e-permits-acte-permisive.css. Demo holds: `?incarcare=pauza` (every upload at 62 %), `?incarcare=pauza-ultimul`
+  (all but the first file).
+- **Demo** (1440 + 375): `fo-04up1` single empty · `fo-04up2` single uploading · `fo-04up3` single done (zone hidden) ·
+  `fo-04up4` single error · `fo-04up5` multi 3 files (done + uploading + error, „2 din 4”) · `fo-04up6` multi at max ·
+  `fo-04up7` drag-over · `fo-04up8` field after „Adaugă 3 fișiere” · `fo-04up9` phone chooser focused (step before the
+  system sheet) · `fo-04up10` single done → × (zone back) · `fo-04up11` done row hover · `fo-04up12` viewer opened from the
+  picker. `fo-04du1`–`du3`, `gh-06e` now show the picker states.
+- **Open:** the zone text „Drag and drop or choose files” is still English (library copy) — Romanian wording for the PO.
 
 ### No download in document rows (2026-10-20, user — product-wide rule)
 
