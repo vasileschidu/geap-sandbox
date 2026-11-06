@@ -121,6 +121,13 @@
   fill: var(--gray-900, #1e1e1e);
 }
 
+/* the arrow tip rounded by 1 (user 2026-11-06: „too sharp”): a same-colour 2px round-join stroke */
+.e-permits-kpi-band__caret {
+  stroke: var(--gray-900, #1e1e1e);
+  stroke-linejoin: round;
+  stroke-width: var(--border-width-2, 2px);
+}
+
 /* the chart value callout variant: radius 8 (user 2026-11-06: rounder than the library 4, not a pill — an SVG rx of
    999 clamps rx and ry separately and turns the body into an ellipse) */
 .e-permits-kpi-band__bubble {
