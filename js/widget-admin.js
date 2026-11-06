@@ -13,16 +13,16 @@
 
    No new engine — the KPI / Registre patterns:
      · list = the BO registry (`window.GEAPShellRegistries.widgete`, menu `shellView: "widgete-registry"`);
-     · profile = the shared profile panel: tabs Configurare (passport blocks + live preview aside) · Versiuni (the
-       Registre versions table + „Compară versiuni”) · Istoric (GEAPEventTimeline = the audit trail);
-     · „Widget nou” / „Editează” / „Clonează” = the Registre full-screen sheet (`.e-permits-ntpl-sheet.e-permits-reg-editor`)
-       with the step strip, the form left and the live preview right (`__grid--2`), the cfg2 save bar;
+     · profile = the shared profile panel (1280, the ntpl template editor): tabs Configurare (settings form 5fr + BIG
+       sticky preview 7fr; read-only = passport blocks + preview) · Versiuni (GEAPEventTimeline „Versiuni publicate” +
+       „Compară versiuni”) · Istoric (GEAPEventTimeline = the audit trail); „Widget nou” / „Clonează” = the same page
+       without an ID (#widget/nou[/din-<id>]);
      · publish / restore / version view = the library dialog (#case-action-modal via GEAPRegistre.openModal);
        deactivate = askConfirm (destructive);
      · charts = js/widget-charts.js (the eKYC SVG chart style, 11 types).
    New (components.md › „Widgete”): the chart-type gallery `.e-permits-wid-types`, the widget card head / states, the
    version comparison `.e-permits-wid-compare`, the chart types of js/widget-charts.js.
-   Routes: #widgete (list) · #widget/<id>/<configurare|versiuni|istoric>.
+   Routes: #widgete (list) · #widget/<id>/<configurare|versiuni|istoric> · #widget/nou[/din-<id>].
    Demo switch ?widget= (comma list): fara-permisiune · gol · incarcare · eroare (every save fails) · eroare-date (the
    preview does not load) · supervizor (the Supervisor holds „Gestionarea widget-urilor”) · fara-acces (preview as a
    user without access to the source).
@@ -458,24 +458,29 @@
       ].filter(Boolean);
       if (foot.length && !compact) body += `<p class="e-permits-wid-card__foot">${foot.map(esc).join(" · ")}</p>`;
     }
-    return `<article class="e-permits-chart e-permits-wid-card" aria-label="Previzualizarea widget-ului ${esc(title)}">${head}<div class="e-permits-wid-card__body" aria-live="polite">${body}</div></article>`;
+    return `<article class="e-permits-chart e-permits-wid-card${compact ? "" : ` e-permits-wid-card--${v.width || "full"}`}" aria-label="Previzualizarea widget-ului ${esc(title)}">${head}<div class="e-permits-wid-card__body" aria-live="polite">${body}</div></article>`;
   }
-  /* the preview block: heading + data line + „Actualizează” + „Ca utilizator fără acces la sursă” + the card */
-  function previewHtml(v, st, { idp, titleTag = "h2" } = {}) {
+  /* the preview block (the ntpl preview aside): heading row „Previzualizare” + meta line (perimeter · data · size ·
+     area) | „Actualizează” (secondary Small) + „Mărește” (icon-only); „Previzualizează ca” = the library segmented control
+     (the ntpl „E-mail / Mobil” switch); the card at the widget's chosen width of the dashboard row */
+  function previewHtml(v, st, { idp } = {}) {
     const per = perimeter();
     const at = st.refreshedAt ? `actualizat la ${time(st.refreshedAt)}` : `date din ${longDate(D().calculatedAt)}, 06:00`;
+    const as = st.noAccess ? "fara-acces" : "acces";
     return `
       <section class="e-permits-wid-preview" aria-labelledby="${idp}-preview-title">
-        <div class="e-permits-wid-preview__head">
-          <div class="e-permits-wid-preview__heading">
-            <${titleTag} class="e-permits-reg-editor__props-title" id="${idp}-preview-title">Previzualizare</${titleTag}>
-            <p class="e-permits-dtpl-fields__hint">${esc(`Perimetrul dvs.: ${per.text} · ${at}`)}</p>
+        <div class="e-permits-dosar-profil__section-heading">
+          <h2 class="e-permits-dosar-profil__section-title" id="${idp}-preview-title">Previzualizare</h2>
+          <div class="e-permits-passport__heading-tools">
+            <button class="btn btn-secondary btn-sm${st.refreshing ? " btn-loading" : ""}" type="button" data-wid-refresh${st.refreshing ? ' aria-busy="true" disabled' : ""}>${icon("rotate-arrow", 16)}<span>Actualizează</span></button>
+            <button class="btn btn-neutral btn-sm btn-icon-only" type="button" aria-label="Mărește previzualizarea" data-tooltip-label="Mărește" aria-haspopup="dialog" data-wid-zoom>${icon("resize", 16)}</button>
           </div>
-          <button class="btn btn-neutral btn-sm${st.refreshing ? " btn-loading" : ""}" type="button" data-wid-refresh${st.refreshing ? ' aria-busy="true" disabled' : ""}>${icon("rotate-arrow", 16)}<span>Actualizează</span></button>
         </div>
-        ${cardHtml(v, { st })}
-        <p class="e-permits-dtpl-fields__hint">${esc(`Lățime: ${label(WIDTHS, v.width) || "—"} · Înălțime: ${label(HEIGHTS, v.height) || "—"} · Aria: ${label(VIS, v.visibility) || "—"}`)}</p>
-        ${U().renderToggle?.({ label: "Ca utilizator fără acces la sursă", description: "Cifrele rămân, în limita ariei de vizibilitate, dar fără trecere în detaliu spre dosare sau spre sursa de date.", checked: Boolean(st.noAccess), attrs: "data-wid-noaccess" }) || ""}
+        <p class="e-permits-dosar-profil__section-meta e-permits-wid-preview__meta">${esc(`Perimetrul dvs.: ${per.text} · ${at} · Lățime: ${label(WIDTHS, v.width) || "—"} · Înălțime: ${label(HEIGHTS, v.height) || "—"} · Aria: ${label(VIS, v.visibility) || "—"}`)}</p>
+        <div class="segmented-control" role="radiogroup" aria-label="Previzualizează ca">
+          ${[["acces", "Utilizator cu acces la sursă"], ["fara-acces", "Fără acces la sursă"]].map(([k, l]) => `<button class="segment-item${as === k ? " is-selected" : ""}" type="button" role="radio" aria-checked="${as === k}" data-wid-viewas="${k}">${l}</button>`).join("")}
+        </div>
+        <div class="e-permits-wid-preview__stage">${cardHtml(v, { st })}</div>
       </section>`;
   }
 
@@ -516,7 +521,8 @@
   }
   const grid = (...parts) => `<div class="e-permits-user-create__grid">${parts.join("")}</div>`;
   const full = (html) => (html ? `<div class="e-permits-user-create__field e-permits-user-create__field--12">${html}</div>` : "");
-  const section = (title, body, { id = "" } = {}) => `<section class="e-permits-user-create__section"${id ? ` aria-labelledby="${id}"` : ""}><h3 class="e-permits-user-create__section-title"${id ? ` id="${id}"` : ""}>${esc(title)}</h3><div class="e-permits-user-create__section-content">${body}</div></section>`;
+  /* a settings group = the ntpl / KPI profile card: section heading + `.e-permits-ntpl-card` */
+  const section = (title, body) => `<section class="e-permits-dosar-profil__section"><div class="e-permits-dosar-profil__section-heading"><h2 class="e-permits-dosar-profil__section-title">${esc(title)}</h2></div><div class="e-permits-ntpl-card">${body}</div></section>`;
 
   /* ---- the rule builder (the Registre „Filtru predefinit” markup, own hooks data-wid-rule*) */
   const kw = (text) => `<code class="e-permits-doc-kw">${esc(text)}</code>`;
@@ -581,7 +587,6 @@
   }
 
   /* ---- the five steps (Feature user flow, step 2) */
-  const STEPS = ["Date", "Tip", "Date afișate", "Aspect și acces", "Revizuire"];
   function stepData(v, e, idp) {
     return `
       ${section("Titlu și descriere", grid(
@@ -607,7 +612,7 @@
       ))}`;
   }
   function stepCalc(v, e, idp) {
-    if (!v.type) return E()?.render({ title: "Alegeți mai întâi tipul widget-ului", text: "Câmpurile acestui pas depind de tip.", icon: "chart", compact: true, actionHtml: '<button class="btn btn-secondary btn-sm" type="button" data-wid-goto="2">Alege tipul</button>' }) || "";
+    if (!v.type) return section("Date afișate", E()?.render({ title: "Alegeți mai întâi tipul widget-ului", text: "Măsura, criteriile, filtrul și comparația depind de tip.", icon: "chart", compact: true, bare: true }) || "");
     const prim = DATE_AXIS.includes(v.type) ? dateCols(v.source) : catCols(v.source);
     const secOpts = catCols(v.source).filter((f) => f.key !== v.primary);
     const measure = v.kpi
@@ -653,16 +658,6 @@
           ${e.visibility ? errorHtml(`${idp}-visibility`, e.visibility) : ""}
         </div>
         ${U().renderInfoNote?.("Aria de vizibilitate nu lărgește perimetrul de date al rolului: utilizatorul nu vede niciodată mai mult decât permite rolul lui.") || ""}`)}`;
-  }
-  function stepReview(v, idp, { isNew }) {
-    const goto = (n) => `<button class="btn btn-text-primary btn-sm" type="button" data-wid-goto="${n}">Modifică</button>`;
-    const problems = publishProblems(v);
-    return `
-      ${problems.length
-        ? U().renderNotice?.("warning", `<strong>Widget-ul se poate salva ca ciornă, dar nu se poate publica încă.</strong> ${problems.map(esc).join(" ")}`) || ""
-        : U().renderNotice?.("success", "<strong>Combinația este compatibilă și previzualizarea se încarcă fără eroare.</strong> Widget-ul se poate publica.") || ""}
-      ${readBlocks(v, { goto, isNew })}
-      ${U().renderInfoNote?.(`Widget-ul se salvează la nivelul <strong>${esc(levelOfText(v))}</strong>${isNew ? ", în statutul Ciornă" : ""}. Utilizatorii BackOffice văd doar ultima versiune publicată.`) || ""}`;
   }
   /* the generated level (Feature model: Global / Autoritate / Serviciu) */
   function levelOf(v, me = who()) {
@@ -884,28 +879,70 @@
     }, apply);
   }
 
-  /* ================================================================ PROFILE (US-405 · US-406 · US-408) */
-  const P = { id: null, tab: "configurare", noAccess: demo.has("fara-acces"), refreshing: false, refreshedAt: "", compare: null };
+  /* ================================================================ PROFILE = the editor page (US-403 · US-405 · US-406 · US-408)
+     widget-v2 (user: „make it full, as in Notificări › Șabloane”): create and edit on the shared profile page, the
+     ntpl editor structure — 1280 column, tabs Configurare · Versiuni · Istoric, `.e-permits-ntpl-content` with the
+     settings form (5fr, ≥ 360) and the BIG sticky preview (7fr; Asana / Sentry / Twenty chart editors); under 1100 the
+     preview stacks first. Header: unsaved status · „Salvează” / „Salvează ciorna” · „Publică” · ⋮. A read-only widget
+     (a global one for an authority) = passport blocks + the preview. */
+  const P = { id: null, tab: "configurare", isNew: false, from: "", draft: null, base: null, errors: {}, saveError: false, noAccess: demo.has("fara-acces"), refreshing: false, refreshedAt: "", compare: null };
   const TABS = [["configurare", "Configurare"], ["versiuni", "Versiuni"], ["istoric", "Istoric"]];
-  const profileOpen = () => Boolean(P.id) && !document.querySelector("[data-dosar-profil]")?.hidden && A().els?.dosarProfilPanelBody?.id === "wid-panel";
+  const IDP = "wid-e";
+  const profileOpen = () => (Boolean(P.id) || P.isNew) && !document.querySelector("[data-dosar-profil]")?.hidden && A().els?.dosarProfilPanelBody?.id === "wid-panel";
+  const editable = (w = widgetOf(P.id)) => P.isNew || (Boolean(w) && canEdit(w) && w.status !== "Dezactivat");
+  const pageDirty = () => Boolean(P.draft) && (P.isNew ? Boolean(P.draft.titles.ro || P.draft.source || P.from) : !same(P.draft, P.base));
   async function openProfile(id, tab = "configurare", { push = true } = {}) {
     await load();
     const w = widgetOf(id);
     if (!who().has || !w || !visible(w)) { showDenied(); return; }
-    if (P.id !== id) P.compare = null;
-    P.id = id;
+    if (P.id !== id || P.isNew) { P.compare = null; P.errors = {}; P.saveError = false; P.draft = clone(w.config); P.base = clone(w.config); }
+    P.id = id; P.isNew = false; P.from = "";
     P.tab = TABS.some(([t]) => t === tab) ? tab : "configurare";
+    show(`#widget/${id}/${P.tab}`, push);
+  }
+  /* „Widget nou” / „Clonează”: the same page without an ID (generated at the first save) */
+  async function openNew({ from = "" } = {}) {
+    await load();
+    if (!canCreate()) return;
+    const src = from ? widgetOf(from) : null;
+    const me = who();
+    const v = src ? clone(src.config) : blankConfig();
+    if (src) {
+      v.titles.ro = `${v.titles.ro} (copie)`.slice(0, TITLE_MAX);
+      /* a copy never reaches wider than its new author's role */
+      if (visOptions(me).find((o) => o.key === v.visibility)?.disabled) v.visibility = defaultVis(me);
+    }
+    Object.assign(P, { id: null, isNew: true, from: src?.id || "", tab: "configurare", draft: v, base: clone(v), errors: {}, saveError: false, compare: null });
+    show(src ? `#widget/nou/din-${src.id}` : "#widget/nou", true);
+    requestAnimationFrame(() => document.querySelector(`#${IDP}-title-ro`)?.focus({ preventScroll: true }));
+  }
+  function show(hash, push) {
     A().setActiveNav?.(NAV);
     A().openProfilePanel?.();
+    registerChangeSource();
     renderProfile();
-    A().writeHash?.(`#widget/${id}/${P.tab}`, { push });
+    A().writeHash?.(hash, { push });
     A().els?.dosarProfilPanel?.scrollIntoView?.({ block: "start" });
   }
-  function closeProfile() { P.id = null; document.querySelector(`[data-nav-item][data-nav-id="${NAV}"]`)?.click(); }
+  function closeProfile() { P.id = null; P.isNew = false; P.draft = null; document.querySelector(`[data-nav-item][data-nav-id="${NAV}"]`)?.click(); }
+  const changedFields = () => {
+    if (!P.draft || P.isNew) return {};
+    const out = {};
+    const a = configRows(P.base);
+    const b = configRows(P.draft);
+    ["data", "calc", "look"].forEach((g) => a[g].forEach(([lbl, val], i) => { if (val !== b[g][i][1]) out[lbl] = [val, b[g][i][1]]; }));
+    return out;
+  };
   function headerActions(w) {
     const me = who();
     const mine = authName(me.authority);
-    const canPub = canEdit(w) && w.status !== "Dezactivat" && (!w.versions.length || unpublished(w));
+    if (P.isNew) {
+      return `
+        <button class="btn btn-secondary btn-sm" type="button" data-wid-save>Salvează ciorna</button>
+        <button class="btn btn-primary btn-sm" type="button" data-wid-publish>Publică</button>`;
+    }
+    const d = pageDirty();
+    const canPub = editable(w) && (!w.versions.length || unpublished(w) || d);
     const menu = [
       canCreate() && { label: "Clonează", icon: "copy", attrs: "data-wid-clone" },
       canAuth(w) && w.status === "Publicat" && (isOffFor(w, me.authority)
@@ -914,33 +951,45 @@
       canEdit(w) && (w.status === "Dezactivat" ? { label: "Activează", icon: "rotate-arrow", attrs: "data-wid-toggle" } : { label: "Dezactivează", icon: "pause", attrs: "data-wid-toggle" })
     ].filter(Boolean);
     return `
-      ${canEdit(w) && w.status !== "Dezactivat" ? `<button class="btn btn-secondary btn-sm" type="button" data-wid-edit>${icon("edit", 16)}<span>Editează</span></button>` : ""}
+      ${editable(w) ? `<button class="btn btn-secondary btn-sm" type="button" data-wid-save${d ? "" : ' aria-disabled="true" data-tooltip-reason="Nu există modificări de salvat."'}>Salvează</button>` : ""}
       ${canPub ? '<button class="btn btn-primary btn-sm" type="button" data-wid-publish>Publică</button>' : ""}
       ${(U().renderStackMenu?.(menu, w.config.titles.ro) || "").replace("hidden data-stack-menu>", "hidden data-stack-menu data-stack-menu-fixed>")}`;
   }
-  function renderProfile({ keep = "" } = {}) {
-    const w = widgetOf(P.id);
-    const els = A().els || {};
-    if (!w || !els.dosarProfilTitleRow) return;
-    const [statut, tone] = statusOf(w);
-    const lv = lastVersion(w);
-    els.dosarProfilTitleRow.innerHTML = A().renderPageHeaderTop({
+  function headerTop(w) {
+    const n = Object.keys(changedFields()).length;
+    const status = n
+      ? A().renderHeaderStatus?.(n === 1 ? "1 modificare nesalvată" : `${n} modificări nesalvate`, "warning", A().changesStatusAttrs?.("wid-draft")) || ""
+      : w && unpublished(w) && w.status !== "Dezactivat" ? A().renderHeaderStatus?.("Modificări nepublicate", "warning") || "" : "";
+    const me = who();
+    return A().renderPageHeaderTop({
       back: { label: TITLE, attr: "data-wid-back" },
-      title: w.config.titles.ro,
+      title: P.isNew ? (P.from ? "Clonează widget-ul" : "Widget nou") : w.config.titles.ro,
       actions: headerActions(w),
-      status: unpublished(w) && w.status !== "Dezactivat" ? A().renderHeaderStatus?.("Modificări nepublicate", "warning") || "" : "",
-      caption: w.updatedAt ? `Modificat ${longDate(w.updatedAt)}, ${time(w.updatedAt)} · ${w.updatedBy || ""}` : ""
+      status,
+      caption: P.isNew ? (P.from ? `Copie a ${P.from} · primește un ID nou la salvare` : "ID-ul se generează la prima salvare") : w.updatedAt ? `Modificat ${longDate(w.updatedAt)}, ${time(w.updatedAt)} · ${w.updatedBy || ""}` : ""
     });
+  }
+  function renderProfile({ keep = "" } = {}) {
+    const w = P.isNew ? null : widgetOf(P.id);
+    const els = A().els || {};
+    if ((!w && !P.isNew) || !els.dosarProfilTitleRow) return;
+    const active = document.activeElement;
+    const keepSel = keep || (active && els.dosarProfilPanelBody?.contains(active) && active.id ? `#${CSS.escape(active.id)}` : "");
+    const caret = active && "selectionStart" in active ? [active.selectionStart, active.selectionEnd] : null;
+    els.dosarProfilTitleRow.innerHTML = headerTop(w);
+    const lv = w ? lastVersion(w) : null;
+    const [statut, tone] = w ? statusOf(w) : ["Ciornă", "neutral"];
     els.dosarProfilSummary.innerHTML = A().renderPageHeaderMeta([
-      ["ID", A().renderProfileCopyCode?.(w.id, `Copiază ${w.id}`) || esc(w.id)],
-      ["Tip", esc(typeLabel(w.config.type))],
-      ["Nivel", esc(levelText(w))],
+      ["ID", w ? A().renderProfileCopyCode?.(w.id, `Copiază ${w.id}`) || esc(w.id) : "se generează la salvare"],
+      ["Tip", esc(typeLabel((P.draft || w.config).type) || "—")],
+      ["Nivel", esc(w ? levelText(w) : levelOfText(P.draft))],
       ["Statut", tag(statut, tone)],
       ["Versiune publicată", lv ? esc(String(lv.version)) : "nepublicat"]
     ]);
     A().watchPageHeaderMeta?.(els.dosarProfilSummary);
-    const counts = { versiuni: w.versions.length, istoric: Math.min(w.history.length, 100) };
-    els.dosarProfilTabs.innerHTML = TABS.map(([id, text]) => {
+    const tabs = P.isNew ? TABS.slice(0, 1) : TABS;
+    const counts = w ? { versiuni: w.versions.length, istoric: Math.min(w.history.length, 100) } : {};
+    els.dosarProfilTabs.innerHTML = tabs.map(([id, text]) => {
       const on = id === P.tab;
       return `<button class="tab-button${on ? " active" : ""}" id="wid-tab-${id}" type="button" role="tab" aria-controls="wid-panel" aria-selected="${on}" tabindex="${on ? 0 : -1}" data-wid-tab="${id}"><span>${text}</span>${counts[id] ? A().renderPageHeaderTabCount?.(counts[id]) || "" : ""}</button>`;
     }).join("");
@@ -948,74 +997,74 @@
     body.id = "wid-panel";
     body.setAttribute("role", "tabpanel");
     body.setAttribute("aria-labelledby", `wid-tab-${P.tab}`);
-    body.innerHTML = `${notices(w)}${P.tab === "versiuni" ? versionsTab(w) : P.tab === "istoric" ? historyTab(w) : configTab(w)}`;
-    if (keep) document.querySelector(keep)?.focus?.({ preventScroll: true });
+    body.innerHTML = `${notices(w)}${P.tab === "versiuni" && w ? versionsTab(w) : P.tab === "istoric" && w ? historyTab(w) : configTab(w)}`;
+    if (keepSel) {
+      const el = document.querySelector(keepSel);
+      el?.focus?.({ preventScroll: true });
+      if (caret && el && "setSelectionRange" in el) { try { el.setSelectionRange(caret[0], caret[1]); } catch { /* not text */ } }
+    }
   }
   function notices(w) {
     const me = who();
     const mine = authName(me.authority);
-    const list = [
+    const list = w ? [
+      P.saveError && U().renderNotice?.("error", esc(SAVE_FAILED), { role: "alert" }),
       w.status === "Dezactivat" && U().renderNotice?.("warning", `<strong>Widget dezactivat.</strong> Nu apare în tablourile de bord și nu poate fi adăugat. Configurația și versiunile se păstrează${canEdit(w) ? "; „Activează” din meniul ⋮ îl readuce" : ""}.`),
       w.status === "Ciornă" && U().renderInfoNote?.("<strong>Ciornă.</strong> Widget-ul apare la alcătuirea tablourilor de bord după prima publicare."),
       w.status === "Publicat" && unpublished(w) && U().renderNotice?.("warning", `<strong>Modificări nepublicate.</strong> Utilizatorii BackOffice văd în continuare versiunea ${esc(String(lastVersion(w).version))}.`),
       !me.central && w.level === "Global" && isOffFor(w, me.authority) && U().renderNotice?.("warning", `<strong>Dezactivat pentru ${esc(mine)}.</strong> Widget-ul global nu apare în tablourile de bord ale ${esc(mine)}.`),
       !me.central && w.level === "Global" && P.tab === "configurare" && U().renderInfoNote?.(`Widget global, creat de Administratorul central: îl vedeți doar pentru citire. Îl puteți clona la nivelul ${esc(mine)} sau îl puteți dezactiva pentru ${esc(mine)}.`)
-    ].filter(Boolean).join("");
-    return list ? `<div class="e-permits-reg-notices">${list}</div>` : "";
+    ] : [P.saveError && U().renderNotice?.("error", esc(SAVE_FAILED), { role: "alert" })];
+    const html = list.filter(Boolean).join("");
+    return html ? `<div class="e-permits-reg-notices">${html}</div>` : "";
   }
+  /* Configurare: the form (settings) + the BIG preview — or, read-only, the passport blocks + the preview */
   function configTab(w) {
+    if (!editable(w)) {
+      return `
+        <div class="e-permits-ntpl-content e-permits-wid-config e-permits-editor-wide">
+          <div class="e-permits-ntpl-content__main">${readBlocks(w.config)}</div>
+          <aside class="e-permits-ntpl-content__preview" data-wid-preview>${previewHtml(w.config, P, { idp: "wid-p" })}</aside>
+        </div>`;
+    }
+    const v = P.draft;
+    const e = P.errors;
     return `
-      <div class="e-permits-ntpl-content e-permits-wid-config">
-        <div class="e-permits-ntpl-content__main">${readBlocks(w.config)}</div>
-        <aside class="e-permits-ntpl-content__preview">${previewHtml(w.config, P, { idp: "wid-p" })}</aside>
+      <div class="e-permits-ntpl-content e-permits-wid-config e-permits-editor-wide">
+        <div class="e-permits-ntpl-content__main e-permits-wid-form">
+          ${stepData(v, e, IDP)}${stepType(v, e, IDP)}${stepCalc(v, e, IDP)}${stepLook(v, e, IDP)}
+        </div>
+        <aside class="e-permits-ntpl-content__preview" data-wid-preview>${previewHtml(v, P, { idp: IDP })}</aside>
       </div>`;
   }
+  /* the preview follows a typed value without a full redraw (the field keeps its caret) */
+  function refreshPreviewOnly() {
+    const box = document.querySelector("#wid-panel [data-wid-preview]");
+    if (box && P.draft) box.innerHTML = previewHtml(editable() ? P.draft : widgetOf(P.id).config, P, { idp: editable() ? IDP : "wid-p" });
+  }
+  const reheader = () => { const els = A().els || {}; if (els.dosarProfilTitleRow && (P.id || P.isNew)) els.dosarProfilTitleRow.innerHTML = headerTop(P.isNew ? null : widgetOf(P.id)); };
 
-  /* ---- Versiuni (US-408): the Registre versions table + „Compară versiuni” */
+  /* ---- Versiuni (US-408): the ONE version history of the back office = GEAPEventTimeline („Versiuni publicate”, as
+     Șabloane de notificare / Servicii / MDocs); an entry opens its version window (Compară · Restaurează · Închide) */
   function versionsTab(w) {
-    if (!w.versions.length) {
-      return `<section class="e-permits-dosar-profil__section"><div class="e-permits-dosar-profil__section-heading"><h2 class="e-permits-dosar-profil__section-title">Versiuni publicate</h2></div>${E()?.render({ title: "Nicio versiune publicată", text: "Istoricul versiunilor începe la prima publicare a widget-ului.", icon: "history" }) || ""}</section>`;
-    }
     const cur = lastVersion(w);
     const list = [...w.versions].reverse();
-    const rows = list.map((v) => {
-      const isCurrent = v.nr === cur.nr;
-      const menu = [
-        { label: "Vizualizează", icon: "eye-open", attrs: `data-wid-ver-view="${v.nr}"` },
-        !isCurrent && { label: "Compară cu versiunea în vigoare", icon: "copy", attrs: `data-wid-ver-compare="${v.nr}"` },
-        !isCurrent && canEdit(w) && w.status !== "Dezactivat" && { label: "Restaurează", icon: "rotate-arrow", attrs: `data-wid-ver-restore="${v.nr}"` }
-      ].filter(Boolean);
-      return `
-        <tr>
-          <td>${v.nr}</td>
-          <td><span class="e-permits-reg-version">${esc(String(v.version))}${isCurrent ? tag("în vigoare", "brand") : ""}</span></td>
-          <td><span data-cell-tooltip="${esc(v.type)}">${esc(v.type)}</span></td>
-          <td><span data-cell-tooltip="${esc(v.note)}">${esc(v.note)}</span></td>
-          <td>${twoLines(esc(longDate(v.at)), esc(time(v.at)))}</td>
-          <td><span data-cell-tooltip="${esc(v.by)}">${esc(v.by)}</span></td>
-          <td class="e-permits-reg-table__action">${(U().renderStackMenu?.(menu, `Versiunea ${v.version}`) || "").replace("hidden data-stack-menu>", "hidden data-stack-menu data-stack-menu-fixed>")}</td>
-        </tr>`;
-    }).join("");
-    const compareBtn = w.versions.length + (unpublished(w) ? 1 : 0) > 1 && !P.compare ? `<button class="btn btn-secondary btn-sm" type="button" data-wid-compare-open>${icon("history", 16)}<span>Compară versiuni</span></button>` : "";
+    const n = w.versions.length;
+    const compareBtn = n + (unpublished(w) ? 1 : 0) > 1 && !P.compare ? `<button class="btn btn-secondary btn-sm" type="button" data-wid-compare-open>${icon("history", 16)}<span>Compară versiuni</span></button>` : "";
+    const events = list.map((v) => ({
+      at: v.at,
+      user: v.by,
+      type: `Versiunea ${v.version}${v.nr === cur.nr ? " · curentă" : ""}${/^Restaurare/.test(v.type) ? ` · ${v.type.toLocaleLowerCase("ro")}` : ""}`,
+      status: "Reușit",
+      detail: v.note
+    }));
     return `
-      ${U().renderInfoNote?.(`Utilizatorii BackOffice văd doar ultima versiune publicată: <strong>${esc(String(cur.version))}</strong>. Fiecare publicare crește versiunea cu 1; restaurarea publică o versiune nouă cu configurația celei alese.`) || ""}
-      <section class="e-permits-dosar-profil__section" aria-labelledby="wid-versions-title">
-        <div class="e-permits-dosar-profil__section-heading">
-          <h2 class="e-permits-dosar-profil__section-title" id="wid-versions-title">Versiuni publicate</h2>
-          <div class="e-permits-passport__heading-tools"><span class="e-permits-dosar-profil__section-meta">${esc(plural(w.versions.length, "versiune", "versiuni"))}</span>${compareBtn}</div>
-        </div>
-        <div class="e-permits-workplace__table-wrap e-permits-reg-table">
-          <table class="e-permits-workplace__table e-permits-reg-table__table e-permits-reg-table__table--versions">
-            <caption class="u-visually-hidden">Versiunile publicate ale widget-ului ${esc(w.config.titles.ro)}</caption>
-            <thead><tr>${["Nr.", "Versiune", "Tipul modificării", "Ce s-a schimbat", "Data", "Autor"].map((h) => `<th scope="col"><span class="e-permits-workplace__th-content"><span>${h}</span></span></th>`).join("")}<th scope="col"><span class="u-visually-hidden">Acțiuni</span></th></tr></thead>
-            <tbody>${rows}</tbody>
-          </table>
-        </div>
-      </section>
+      ${n ? U().renderInfoNote?.(`Utilizatorii BackOffice văd doar ultima versiune publicată: <strong>${esc(String(cur.version))}</strong>. Fiecare publicare crește versiunea cu 1; restaurarea publică o versiune nouă cu configurația celei alese.`) || "" : ""}
+      ${window.GEAPEventTimeline?.html("Versiuni publicate", events, { meta: n ? plural(n, "versiune", "versiuni") : "", actionHtml: compareBtn, empty: "Widget-ul nu a fost publicat încă.", openAttrs: (item, i) => `data-wid-ver-view="${list[i].nr}" aria-haspopup="dialog"` }) || ""}
       ${P.compare ? compareHtml(w) : ""}`;
   }
   /* the configurations that can be compared: every published version + the saved, unpublished configuration */
-  const compareChoices = (w) => [...[...w.versions].reverse().map((v) => [String(v.nr), `Versiunea ${v.version} · ${longDate(v.at)}${v.nr === lastVersion(w).nr ? " (în vigoare)" : ""}`, v.config]), ...(unpublished(w) ? [["draft", "Modificările nepublicate", w.config]] : [])];
+  const compareChoices = (w) => [...[...w.versions].reverse().map((v) => [String(v.nr), `Versiunea ${v.version} · ${longDate(v.at)}${v.nr === lastVersion(w).nr ? " (curentă)" : ""}`, v.config]), ...(unpublished(w) ? [["draft", "Modificările nepublicate", w.config]] : [])];
   /* field-level diff (Plane / Snowflake compare: before → after, only what changed) */
   /* → [{ label, before, after }] — before / after are already-escaped text („—” for an empty field) */
   function diffRows(a, b) {
@@ -1036,6 +1085,8 @@
     : c.after === "—" ? `<span class="e-permits-event-diff__before">${c.before}</span>`
     : `<span class="e-permits-event-diff"><span class="e-permits-event-diff__before">${c.before}</span><span aria-hidden="true">→</span><span class="u-visually-hidden">devine</span><strong>${c.after}</strong></span>`);
   const changesList = (changes, title = "Modificări") => A().renderStackedList?.(`${title} (${changes.length})`, [{ label: "", items: changes.map((c) => ({ plainTitle: c.label, title: esc(c.label), meta: [diffHtml(c)] })) }], { className: "e-permits-wid-changes" }) || "";
+  /* „Compară versiuni” — blocks 24 apart (section rhythm, padding without gap), label → its widget 8; the changes = the
+     same „Modificări (N)” list as the publish dialog */
   function compareHtml(w) {
     const choices = compareChoices(w);
     const pick = (key) => choices.find(([k]) => k === key) || choices[0];
@@ -1069,21 +1120,22 @@
     return window.GEAPEventTimeline?.html("Jurnalul de audit", events, { meta: events.length ? "Cele mai noi primele" : "", empty: "Pentru acest widget nu s-au înregistrat încă operații." }) || "";
   }
 
-  /* ---- version view · restore (the library dialog) */
+  /* ---- version window (Compară · Restaurează · Închide) · restore (the library dialog) */
   const versionOf = (w, nr) => w.versions.find((v) => String(v.nr) === String(nr)) || null;
   function openVersion(nr) {
     const w = widgetOf(P.id);
     const v = versionOf(w, nr);
     if (!v) return;
+    const isCurrent = v.nr === lastVersion(w).nr;
     G().openModal?.({
       kind: "wid-version",
-      title: `Versiunea ${v.version}`,
+      title: `Versiunea ${v.version}${isCurrent ? " · curentă" : ""}`,
       subtitle: w.config.titles.ro,
       body: `
         <div class="e-permits-dosar-profil__card">${[["Tipul modificării", esc(v.type)], ["Data", esc(`${longDate(v.at)}, ${time(v.at)}`)], ["Autor", esc(v.by)], ["Ce s-a schimbat", esc(v.note)]].map((r) => G().detailRow?.(r) || "").join("")}</div>
         ${cardHtml(v.config, { st: { noAccess: true }, compact: true })}
         ${readBlocks(v.config)}`,
-      footer: '<div class="modal-buttons"><button class="btn btn-primary btn-rounded" type="button" data-case-close>Închide</button></div>'
+      footer: `<div class="modal-buttons">${isCurrent ? "" : `<button class="btn btn-neutral btn-rounded" type="button" data-wid-ver-compare="${v.nr}">Compară cu versiunea curentă</button>${canEdit(w) && w.status !== "Dezactivat" ? `<button class="btn btn-neutral btn-rounded" type="button" data-wid-ver-restore="${v.nr}">${icon("rotate-arrow")}<span>Restaurează</span></button>` : ""}`}<button class="btn btn-primary btn-rounded" type="button" data-case-close>Închide</button></div>`
     });
   }
   let restoring = null;
@@ -1099,7 +1151,7 @@
       title: `Restaurare versiune ${v.version}`,
       subtitle: w.config.titles.ro,
       body: `
-        ${U().renderNotice?.(unpublished(w) ? "warning" : "info", `<strong>Versiunea ${next} reia configurația versiunii ${v.version}.</strong> Utilizatorii BackOffice o văd imediat după restaurare.${unpublished(w) ? " Modificările nepublicate se pierd." : ""}`) || ""}
+        ${U().renderNotice?.(unpublished(w) || pageDirty() ? "warning" : "info", `<strong>Versiunea ${next} reia configurația versiunii ${v.version}.</strong> Utilizatorii BackOffice o văd imediat după restaurare.${unpublished(w) || pageDirty() ? " Modificările nepublicate se pierd." : ""}`) || ""}
         ${changes.length ? changesList(changes) : ""}
         ${areaField("wid-restore-note", "restoreNote", "Ce s-a schimbat", "", { required: true, placeholder: "De ce reveniți la această versiune", hint: "Apare în istoricul versiunilor." })}`,
       footer: '<div class="modal-buttons"><button class="btn btn-neutral btn-rounded" type="button" data-case-close>Anulează</button><button class="btn btn-primary btn-rounded" type="button" data-wid-restore-confirm>Restaurează</button></div>'
@@ -1132,25 +1184,25 @@
     w.status = "Publicat";
     audit(w, "restore", `Versiunea ${v.version} → versiunea ${next} · ${note}`);
     restoring = null;
-    P.compare = null;
+    P.compare = null; P.draft = clone(w.config); P.base = clone(w.config);
     G().closeModal?.();
     renderProfile();
     refreshList();
     toast(`Versiunea ${v.version} a fost restaurată ca versiunea ${next}.`);
   }
 
-  /* ---- publish (US-406): problems block it, otherwise version + 1 */
+  /* ---- publish (US-406): problems block it (also shown inline in the form), otherwise version + 1 */
   let publishing = null;
-  function openPublish(id, { fromEditor = false } = {}) {
-    const w = id ? widgetOf(id) : null;
-    const v = fromEditor ? ED.v : w?.config;
-    if (!v) return;
-    publishing = { id, fromEditor };
+  function openPublish() {
+    if (!P.draft && !P.id) return;
+    publishing = { id: P.id };
+    const v = editable() ? P.draft : widgetOf(P.id).config;
+    if (editable() && publishProblems(v).length) { P.errors = validate(v); renderProfile(); }
     renderPublish();
   }
   function renderPublish() {
     const w = publishing.id ? widgetOf(publishing.id) : null;
-    const v = publishing.fromEditor ? ED.v : w.config;
+    const v = editable(w) ? P.draft : w.config;
     const problems = publishProblems(v);
     const cur = w ? lastVersion(w) : null;
     const next = (cur?.version || 0) + 1;
@@ -1173,231 +1225,138 @@
   }
   function confirmPublish(button) {
     if (!publishing) return;
-    const fromEditor = publishing.fromEditor;
-    const v = fromEditor ? ED.v : widgetOf(publishing.id).config;
-    if (button.getAttribute("aria-disabled") === "true") {
-      const w = publishing.id ? widgetOf(publishing.id) : null;
-      if (w) audit(w, "rejected", publishProblems(v).join(" "));
-      return;
-    }
+    const w0 = publishing.id ? widgetOf(publishing.id) : null;
+    const v = editable(w0) ? P.draft : w0.config;
+    if (button.getAttribute("aria-disabled") === "true") { if (w0) audit(w0, "rejected", publishProblems(v).join(" ")); return; }
     const field = document.querySelector("#wid-publish-note");
     const note = field?.value.trim() || "";
     if (!note) { setModalError(field, "Descrieți ce s-a schimbat."); return; }
     if (demo.has("eroare")) { G().closeModal?.(); toast(SAVE_FAILED, "error"); publishing = null; return; }
-    let w = publishing.id ? widgetOf(publishing.id) : null;
-    if (fromEditor) w = saveEditor({ silent: true });
-    if (!w) return;
+    const w = editable(w0) ? savePage({ silent: true }) : w0;
+    if (!w) { G().closeModal?.(); return; }
     const next = (lastVersion(w)?.version || 0) + 1;
     w.versions.push({ nr: w.versions.length + 1, version: next, type: next === 1 ? "Prima publicare" : "Publicare", note, at: nowIso(), by: userName(), config: clone(w.config) });
     w.status = "Publicat";
     audit(w, "publish", `Versiunea ${next} · ${note}`);
     publishing = null;
     G().closeModal?.();
-    if (fromEditor) closeEditor(true);
     toast(`Versiunea ${next} a widget-ului „${w.config.titles.ro}” a fost publicată.`);
-    if (fromEditor || !profileOpen()) openProfile(w.id, "configurare"); else renderProfile();
+    openProfile(w.id, "configurare", { push: false });
     refreshList();
   }
 
-  /* ================================================================ the builder sheet (US-403 create · US-405 edit · clone) */
-  let sheet = null;
-  let ED = null;
-  function ensureSheet() {
-    if (sheet) return sheet;
-    document.body.insertAdjacentHTML("beforeend", `
-      <div class="e-permits-ntpl-sheet e-permits-reg-editor e-permits-wid-editor" data-wid-editor hidden>
-        <div class="e-permits-ntpl-sheet__scrim" aria-hidden="true"></div>
-        <div class="e-permits-ntpl-sheet__panel e-permits-reg-editor__panel" role="dialog" aria-modal="true" aria-labelledby="wid-ed-title" tabindex="-1">
-          <button class="modal-close e-permits-reg-editor__close" type="button" aria-label="Închide constructorul" data-wid-ed-close>${icon("cross-large", 16)}</button>
-          <header class="e-permits-page-header e-permits-reg-editor__header">
-            <div class="e-permits-page-header__body"><div class="e-permits-page-header__top" data-wid-ed-top></div></div>
-          </header>
-          <nav class="e-permits-steps-strip" aria-label="Pașii widget-ului" data-wid-ed-steps></nav>
-          <div class="e-permits-reg-editor__body" data-wid-ed-body></div>
-          <div class="e-permits-cfg2__bar e-permits-reg-editor__bar" role="region" aria-label="Salvarea widget-ului" data-wid-ed-bar></div>
-        </div>
-      </div>`);
-    sheet = document.querySelector("[data-wid-editor]");
-    window.addEventListener("keydown", (event) => {
-      if (event.key !== "Escape" || sheet.hidden) return;
-      if (document.querySelector(".modal-overlay.is-active, [data-stack-menu]:not([hidden]), .e-permits-fo-select__list:not([hidden])")) return;
-      if (sheet.querySelector("[aria-expanded='true']")) return;
-      event.preventDefault();
-      closeEditor();
-    });
-    return sheet;
-  }
-  function openEditor({ id = "", from = "", step = 1 } = {}) {
-    if (!canCreate()) return;
-    const w = id ? widgetOf(id) : null;
-    if (w && !canEdit(w)) return;
-    const src = from ? widgetOf(from) : null;
-    const me = who();
-    let v = w ? clone(w.config) : src ? clone(src.config) : blankConfig();
-    if (src) {
-      v.titles.ro = `${v.titles.ro} (copie)`.slice(0, TITLE_MAX);
-      /* a copy never reaches wider than its new author's role */
-      if (visOptions(me).find((o) => o.key === v.visibility)?.disabled) v.visibility = defaultVis(me);
-    }
-    ED = { mode: w ? "edit" : src ? "clone" : "new", id: w?.id || "", from: src?.id || "", step: w ? step : 1, maxStep: w || src ? 5 : 1, v, base: clone(v), errors: {}, saveError: false, noAccess: demo.has("fara-acces"), refreshing: false, refreshedAt: "", back: document.activeElement };
-    const el = ensureSheet();
-    renderEditor();
-    el.hidden = false;
-    document.documentElement.classList.add("is-reg-editor-open");
-    requestAnimationFrame(() => el.querySelector(ED.mode === "edit" ? ".e-permits-reg-editor__main input, .e-permits-reg-editor__main button" : `#wid-e-title-ro`)?.focus({ preventScroll: true }));
-  }
-  const edDirty = () => ED && (ED.mode !== "edit" ? Boolean(ED.v.titles.ro || ED.v.source || ED.from) : !same(ED.v, ED.base));
-  function closeEditor(force = false) {
-    if (!sheet || sheet.hidden || !ED) return;
-    const close = () => {
-      sheet.hidden = true;
-      document.documentElement.classList.remove("is-reg-editor-open");
-      const back = ED?.back;
-      ED = null;
-      if (back?.isConnected) back.focus({ preventScroll: true });
-    };
-    if (force || !edDirty()) { close(); return; }
-    U().askConfirm?.({ title: ED.mode === "edit" ? "Renunțați la modificări?" : "Renunțați la widget-ul nou?", text: ED.mode === "edit" ? "Modificările nesalvate ale widget-ului se pierd." : "Datele completate nu se păstrează.", confirmLabel: "Renunță", cancelLabel: "Continuă editarea", destructive: true }, close);
-  }
-  function renderEditor({ keep = "", body = true } = {}) {
-    if (!ED) return;
-    const el = ensureSheet();
-    const active = document.activeElement;
-    const keepSel = keep || (active && el.contains(active) && active.id ? `#${CSS.escape(active.id)}` : "");
-    const caret = active && "selectionStart" in active ? [active.selectionStart, active.selectionEnd] : null;
-    const main = el.querySelector(".e-permits-reg-editor__main");
-    const scroll = main ? main.scrollTop : 0;
-    const w = ED.id ? widgetOf(ED.id) : null;
-    const me = who();
-    const title = ED.mode === "edit" ? "Editează widget-ul" : ED.mode === "clone" ? "Clonează widget-ul" : "Widget nou";
-    /* the sheet's own header: title + caption, the × closes (no top-bar back marker under a full-screen sheet) */
-    el.querySelector("[data-wid-ed-top]").innerHTML = window.GEAPPageHeader?.top({
-      title,
-      titleId: "wid-ed-title",
-      caption: w ? `${w.id} · ${levelText(w)} · ${w.status}` : ED.mode === "clone" ? `Copie a ${ED.from} · primește un ID nou la salvare · nivel ${levelOfText(ED.v)}` : me.central ? "Nivel Global · ID-ul se generează la prima salvare" : `Nivel ${levelOfText(ED.v)} · ID-ul se generează la prima salvare`
-    }) || "";
-    el.querySelector("[data-wid-ed-steps]").innerHTML = A().renderStepStrip?.(STEPS, ED, "data-wid-goto") || "";
-    if (body) {
-      const idp = "wid-e";
-      const form = [() => stepData(ED.v, ED.errors, idp), () => stepType(ED.v, ED.errors, idp), () => stepCalc(ED.v, ED.errors, idp), () => stepLook(ED.v, ED.errors, idp), () => stepReview(ED.v, idp, { isNew: ED.mode !== "edit" })][ED.step - 1]();
-      el.querySelector("[data-wid-ed-body]").innerHTML = `
-        <div class="e-permits-reg-editor__grid e-permits-reg-editor__grid--2">
-          <div class="e-permits-reg-editor__main" data-wid-ed-main>
-            ${ED.saveError ? `<div class="e-permits-reg-notices">${U().renderNotice?.("error", esc(SAVE_FAILED), { role: "alert" }) || ""}</div>` : ""}
-            <div class="e-permits-clas-create e-permits-wid-form">${form}</div>
-          </div>
-          <div class="e-permits-reg-editor__props" data-wid-ed-preview>${previewHtml(ED.v, ED, { idp: "wid-e" })}</div>
-        </div>`;
-    }
-    renderBar();
-    const m2 = el.querySelector(".e-permits-reg-editor__main");
-    if (m2) m2.scrollTop = keep === "@top" ? 0 : scroll;
-    if (keepSel && keepSel !== "@top") {
-      const target = el.querySelector(keepSel);
-      target?.focus?.({ preventScroll: true });
-      if (caret && target && "setSelectionRange" in target) { try { target.setSelectionRange(caret[0], caret[1]); } catch { /* not text */ } }
-    }
-  }
-  function renderBar() {
-    const n = ED.mode === "edit" ? changedCount() : 0;
-    const status = n ? A().renderHeaderStatus?.(n === 1 ? "1 modificare nesalvată" : `${n} modificări nesalvate`, "warning") || "" : "";
-    sheet.querySelector("[data-wid-ed-bar]").innerHTML = `
-      <p class="e-permits-cfg2__bar-text" aria-live="polite"><span class="e-permits-reg-editor__saved">${esc(`Pasul ${ED.step} din ${STEPS.length} · ${STEPS[ED.step - 1]}`)}</span>${status ? ` ${status}` : ""}</p>
-      <div class="e-permits-cfg2__bar-actions">
-        ${ED.step > 1 ? '<button class="btn btn-neutral btn-sm" type="button" data-wid-prev>Înapoi</button>' : '<button class="btn btn-neutral btn-sm" type="button" data-wid-ed-close>Anulează</button>'}
-        <button class="btn btn-neutral btn-sm" type="button" data-wid-save>${ED.mode === "edit" ? "Salvează" : "Salvează ciorna"}</button>
-        ${ED.step < STEPS.length ? '<button class="btn btn-primary btn-sm" type="button" data-wid-next>Continuă</button>' : '<button class="btn btn-primary btn-sm" type="button" data-wid-ed-publish>Publică</button>'}
-      </div>`;
-  }
-  const FIELD_LABELS = () => {
-    const out = {};
-    const rows = configRows(ED.base);
-    const now = configRows(ED.v);
-    ["data", "calc", "look"].forEach((g) => rows[g].forEach(([lbl, val], i) => { if (val !== now[g][i][1]) out[lbl] = [val, now[g][i][1]]; }));
-    return out;
-  };
-  const changedCount = () => Object.keys(FIELD_LABELS()).length;
+  /* ---- save (US-403 „Salvează ciorna” · US-405 „Salvează”): step „Date” (title + source) is the minimum of a draft */
   const ERROR_SEL = { "titles.ro": "title-ro", source: "source", type: "type", kpi: "kpi", measure: "measure", column: "column", primary: "primary", secondary: "secondary", dateGroup: "dategroup", filter: "rule-col-0", "threshold.value": "threshold", visibility: "visibility" };
-  const errorSel = (key) => { const m = /^rule\.(\d+)$/.exec(key); return m ? `#wid-e-rule-value-${m[1]}` : `#wid-e-${ERROR_SEL[key] || key}`; };
+  const errorSel = (key) => { const m = /^rule\.(\d+)$/.exec(key); return m ? `#${IDP}-rule-value-${m[1]}` : `#${IDP}-${ERROR_SEL[key] || key}`; };
   function showFirstError(errors) {
     const key = Object.keys(errors)[0];
-    ED.step = STEP_OF(key);
-    renderEditor({ keep: key === "type" ? "#wid-e-type input:not(:disabled)" : key === "visibility" ? "#wid-e-visibility input:not(:disabled)" : errorSel(key) });
-    sheet.querySelector(errorSel(key))?.closest(".e-permits-fo-field, .e-permits-doc-cond, .e-permits-wid-types, .e-permits-user-create__section")?.scrollIntoView({ block: "center" });
+    renderProfile({ keep: key === "type" ? `#${IDP}-type input:not(:disabled)` : key === "visibility" ? `#${IDP}-visibility input:not(:disabled)` : errorSel(key) });
+    document.querySelector(errorSel(key))?.closest(".e-permits-fo-field, .e-permits-doc-cond, .e-permits-wid-types, .e-permits-dosar-profil__section")?.scrollIntoView({ block: "center" });
   }
-  function goStep(target) {
-    for (let s = ED.step; s < target; s += 1) {
-      if (s > 4) break;
-      const errors = validate(ED.v, { steps: [s] });
-      if (Object.keys(errors).length) { ED.errors = errors; showFirstError(errors); return; }
-    }
-    ED.errors = {};
-    ED.step = target;
-    ED.maxStep = Math.max(ED.maxStep, target);
-    renderEditor({ keep: "@top" });
-    sheet.querySelector("[data-wid-next], [data-wid-ed-publish]")?.focus({ preventScroll: true });
-  }
-  /* „Salvează ciorna” / „Salvează”: step 1 is the minimum (title + source); the rest may stay incomplete in a draft */
-  function saveEditor({ silent = false } = {}) {
-    const errors = validate(ED.v, { steps: [1] });
-    if (Object.keys(errors).length) { ED.errors = errors; showFirstError(errors); return null; }
-    if (demo.has("eroare")) { ED.saveError = true; renderEditor(); return null; }
+  function savePage({ silent = false } = {}) {
+    const errors = validate(P.draft, { steps: [1] });
+    if (Object.keys(errors).length) { P.errors = errors; showFirstError(errors); return null; }
+    if (demo.has("eroare")) { P.saveError = true; renderProfile(); return null; }
     const me = who();
-    let w = ED.id ? widgetOf(ED.id) : null;
+    let w = P.isNew ? null : widgetOf(P.id);
     if (w) {
-      const changed = FIELD_LABELS();
-      w.config = clone(ED.v);
-      const lv = levelOf(w.config);
-      if (w.level !== "Global") Object.assign(w, lv);
+      const changed = changedFields();
+      w.config = clone(P.draft);
+      if (w.level !== "Global") Object.assign(w, levelOf(w.config));
       if (Object.keys(changed).length) audit(w, "edit", Object.entries(changed).map(([lbl, [a, b]]) => `${lbl}: ${a.replace(/<[^>]+>/g, "") || "—"} → ${b.replace(/<[^>]+>/g, "") || "—"}`).join(" · "));
-      ED.base = clone(ED.v);
     } else {
       const nums = all().map((x) => Number(x.id.split("-")[1]) || 0);
       const id = `WGT-${String((nums.length ? Math.max(...nums) : 0) + 1).padStart(4, "0")}`;
-      w = { id, ...levelOf(ED.v, me), status: "Ciornă", offFor: [], createdAt: nowIso(), createdBy: userName(), updatedAt: nowIso(), updatedBy: userName(), config: clone(ED.v), versions: [], history: [] };
+      w = { id, ...levelOf(P.draft, me), status: "Ciornă", offFor: [], createdAt: nowIso(), createdBy: userName(), updatedAt: nowIso(), updatedBy: userName(), config: clone(P.draft), versions: [], history: [] };
       all().push(w);
-      audit(w, ED.from ? "clone" : "create", ED.from ? `Din ${ED.from} · ${levelText(w)}` : `Ciornă · ${levelText(w)} · ${sourceName(w.config.source)}${w.config.type ? ` · ${typeLabel(w.config.type)}` : ""}`);
-      ED.id = id; ED.mode = "edit"; ED.base = clone(ED.v);
+      audit(w, P.from ? "clone" : "create", P.from ? `Din ${P.from} · ${levelText(w)}` : `Ciornă · ${levelText(w)} · ${sourceName(w.config.source)}${w.config.type ? ` · ${typeLabel(w.config.type)}` : ""}`);
     }
+    const wasNew = P.isNew;
+    Object.assign(P, { id: w.id, isNew: false, from: "", errors: {}, saveError: false, base: clone(P.draft) });
     if (!silent) {
-      closeEditor(true);
-      toast(`Ciorna widget-ului ${w.id} a fost salvată.`);
-      openProfile(w.id, "configurare");
+      renderProfile({ keep: "[data-wid-save]" });
+      A().writeHash?.(`#widget/${w.id}/configurare`, { push: false });
+      toast(wasNew ? `Ciorna widget-ului ${w.id} a fost salvată.` : "Modificările au fost salvate.");
       refreshList();
     }
     return w;
   }
+  function discard() {
+    if (P.isNew) { closeProfile(); return; }
+    const w = widgetOf(P.id);
+    P.draft = clone(w.config); P.base = clone(w.config); P.errors = {}; P.saveError = false;
+    renderProfile();
+  }
+  /* the unsaved status opens the shared review modal (as KPI / Registre): undo one field, discard, save */
+  let changeSourceDone = false;
+  const registerChangeSource = () => {
+    if (changeSourceDone || !A().registerChangeSource) return;
+    changeSourceDone = true;
+    A().registerChangeSource("wid-draft", () => {
+      if (!P.draft || P.isNew) return null;
+      return {
+        name: P.draft.titles.ro, applies: "se aplică după Salvează", emptyText: "Widget-ul este salvat.", groups: ["Configurare"],
+        entries: () => Object.entries(changedFields()).map(([lbl, [a, b]]) => ({ undo: lbl, group: "Configurare", title: lbl, tag: ["Modificat", "brand"], detail: `${a.replace(/<[^>]+>/g, "") || "—"} → ${b.replace(/<[^>]+>/g, "") || "—"}` })),
+        undo: () => discard(),
+        discard,
+        save: () => savePage()
+      };
+    });
+  };
+  /* leaving the page with unsaved edits (menu, back chevron, browser) */
+  let leaving = false;
+  function guardLeave(event, proceed) {
+    if (leaving || !profileOpen() || !pageDirty()) return false;
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    U().askConfirm?.({
+      title: P.isNew ? "Renunțați la widget-ul nou?" : "Există modificări nesalvate. Părăsiți widget-ul?",
+      text: P.isNew ? "Datele completate nu se păstrează." : "Modificările nesalvate ale widget-ului se pierd.",
+      confirmLabel: "Renunță",
+      cancelLabel: "Continuă editarea",
+      destructive: true
+    }, () => { P.draft = null; P.isNew = false; leaving = true; try { proceed(); } finally { leaving = false; } });
+    return true;
+  }
+  document.addEventListener("click", (event) => {
+    const nav = event.target.closest?.("[data-nav-item]");
+    if (nav) { guardLeave(event, () => nav.click()); return; }
+    const back = event.target.closest?.("[data-wid-back]");
+    if (back) guardLeave(event, () => closeProfile());
+  }, true);
+  window.addEventListener("beforeunload", (event) => { if (profileOpen() && pageDirty()) { event.preventDefault(); event.returnValue = ""; } });
+
+  /* ---- „Mărește”: the preview at the dialog's width (wide tables, heat maps) */
+  function openZoom() {
+    const v = editable() ? P.draft : widgetOf(P.id)?.config;
+    if (!v) return;
+    G().openModal?.({
+      kind: "wid-zoom",
+      title: v.titles.ro || "Previzualizare",
+      subtitle: `Previzualizare · ${label(WIDTHS, "full")}`,
+      body: cardHtml({ ...v, width: "full" }, { st: P }),
+      footer: '<div class="modal-buttons"><button class="btn btn-primary btn-rounded" type="button" data-case-close>Închide</button></div>'
+    });
+    document.querySelector("#case-action-modal .modal")?.classList.replace("modal--md", "modal--lg");
+  }
 
   /* ================================================================ events */
-  const inEditor = (el) => sheet && ED && sheet.contains(el);
   const profileRoot = () => (profileOpen() ? A().els?.dosarProfilPanel || document.querySelector("[data-dosar-profil]") : null);
-  /* the preview state a control belongs to (editor or profile) */
-  const previewState = (el) => (inEditor(el) ? ED : P);
-  const rerenderFor = (el, opts) => (inEditor(el) ? renderEditor(opts) : renderProfile(opts));
-  function refreshPreview(el) {
-    const st = previewState(el);
-    st.refreshing = true;
-    rerenderFor(el, { keep: "[data-wid-refresh]" });
-    window.setTimeout(() => {
-      st.refreshing = false; st.refreshedAt = nowIso();
-      if (st === ED && !ED) return;
-      if (st === ED) renderEditor({ keep: "[data-wid-refresh]" }); else if (profileOpen()) renderProfile({ keep: "[data-wid-refresh]" });
-    }, 900);
-  }
-  /* only the preview column follows a typed value (a full redraw on input would steal the caret) */
-  function refreshEditorPreview() {
-    const box = sheet?.querySelector("[data-wid-ed-preview]");
-    if (box && ED) box.innerHTML = previewHtml(ED.v, ED, { idp: "wid-e" });
+  const inPage = (el) => { const root = profileRoot(); return Boolean(root && root.contains(el) && P.draft && editable()); };
+  function refreshPreview() {
+    P.refreshing = true;
+    refreshPreviewOnly();
+    window.setTimeout(() => { P.refreshing = false; P.refreshedAt = nowIso(); if (profileOpen()) refreshPreviewOnly(); }, 900);
   }
   document.addEventListener("click", (event) => {
     const t = event.target;
     if (!t.closest) return;
     /* list */
-    if (t.closest('[data-workplace-add-product="wid-new"], [data-wid-new]')) { event.preventDefault(); load().then(() => openEditor()); return; }
+    if (t.closest('[data-workplace-add-product="wid-new"], [data-wid-new]')) { event.preventDefault(); openNew(); return; }
     const rowEdit = t.closest("[data-wid-row-edit]");
-    if (rowEdit) { load().then(() => openEditor({ id: rowEdit.dataset.widRowEdit })); return; }
+    if (rowEdit) { openProfile(rowEdit.dataset.widRowEdit, "configurare"); return; }
     const rowClone = t.closest("[data-wid-row-clone]");
-    if (rowClone) { load().then(() => openEditor({ from: rowClone.dataset.widRowClone })); return; }
+    if (rowClone) { openNew({ from: rowClone.dataset.widRowClone }); return; }
     const rowToggle = t.closest("[data-wid-row-toggle]");
     if (rowToggle) { const w = widgetOf(rowToggle.dataset.widRowToggle); if (w) setStatus(w, w.status === "Dezactivat", refreshList); return; }
     const rowAuth = t.closest("[data-wid-row-auth]");
@@ -1405,93 +1364,85 @@
     /* drill-down (preview): what the click opens on a dashboard */
     const drill = t.closest("[data-wid-drill]");
     if (drill) {
-      const v = inEditor(drill) ? ED.v : widgetOf(P.id)?.config;
+      const v = P.draft || widgetOf(P.id)?.config;
       if (v) toast(`Pe tabloul de bord, clicul deschide înregistrările „${drill.dataset.widDrill}” (${drill.dataset.widDrillValue}) în ${sourceName(v.source)}.`, "info");
       return;
     }
-    if (t.closest("[data-wid-refresh]")) { refreshPreview(t); return; }
+    if (t.closest("[data-wid-refresh]")) { refreshPreview(); return; }
+    if (t.closest("[data-wid-zoom]")) { openZoom(); return; }
+    const as = t.closest("[data-wid-viewas]");
+    if (as) { P.noAccess = as.dataset.widViewas === "fara-acces"; refreshPreviewOnly(); document.querySelector(`[data-wid-viewas="${as.dataset.widViewas}"]`)?.focus(); return; }
     /* dialogs */
     const pub = t.closest("[data-wid-publish-confirm]");
     if (pub) { confirmPublish(pub); return; }
     if (t.closest("[data-wid-restore-confirm]")) { confirmRestore(); return; }
-
-    /* the builder sheet */
-    if (inEditor(t)) {
-      if (t.closest("[data-wid-ed-close]")) { event.preventDefault(); closeEditor(); return; }
-      if (t.closest("[data-wid-prev]")) { ED.errors = {}; ED.step -= 1; renderEditor({ keep: "@top" }); return; }
-      if (t.closest("[data-wid-next]")) { goStep(ED.step + 1); return; }
-      const goto = t.closest("[data-wid-goto]");
-      if (goto) { const n = Number(goto.dataset.widGoto); if (n < ED.step) { ED.errors = {}; ED.step = n; renderEditor({ keep: "@top" }); } else goStep(n); return; }
-      if (t.closest("[data-wid-save]")) { saveEditor(); return; }
-      if (t.closest("[data-wid-ed-publish]")) { openPublish(ED.id, { fromEditor: true }); return; }
-      if (t.closest("[data-wid-rule-add]")) { ED.v.filter.rules.push({ column: "", op: "is", value: "" }); delete ED.errors.filter; renderEditor({ keep: `#wid-e-rule-col-${ED.v.filter.rules.length - 1}` }); return; }
-      const rm = t.closest("[data-wid-rule-remove]");
-      if (rm) { ED.v.filter.rules.splice(Number(rm.dataset.widRuleRemove), 1); Object.keys(ED.errors).filter((k) => k.startsWith("rule.")).forEach((k) => delete ED.errors[k]); renderEditor({ keep: "[data-wid-rule-add]" }); return; }
-      return;
-    }
+    const vcmp = t.closest("[data-wid-ver-compare]");
+    if (vcmp) { const w = widgetOf(P.id); G().closeModal?.(); P.compare = { a: vcmp.dataset.widVerCompare, b: String(lastVersion(w).nr) }; renderProfile(); document.querySelector("#wid-compare-title")?.scrollIntoView({ block: "start" }); return; }
+    const vrs = t.closest("[data-wid-ver-restore]");
+    if (vrs) { openRestore(vrs.dataset.widVerRestore); return; }
     /* profile */
     const root = profileRoot();
     if (!root || !root.contains(t)) return;
     const tab = t.closest("[data-wid-tab]");
-    if (tab) { P.tab = tab.dataset.widTab; renderProfile({ keep: `#wid-tab-${P.tab}` }); A().writeHash?.(`#widget/${P.id}/${P.tab}`, { push: false }); return; }
-    if (t.closest("[data-wid-edit]")) { openEditor({ id: P.id, step: 1 }); return; }
-    if (t.closest("[data-wid-publish]")) { openPublish(P.id); return; }
-    if (t.closest("[data-wid-clone]")) { openEditor({ from: P.id }); return; }
-    if (t.closest("[data-wid-toggle]")) { const w = widgetOf(P.id); setStatus(w, w.status === "Dezactivat", () => { renderProfile(); refreshList(); }); return; }
+    if (tab) { P.tab = tab.dataset.widTab; renderProfile({ keep: `#wid-tab-${P.tab}` }); if (P.id) A().writeHash?.(`#widget/${P.id}/${P.tab}`, { push: false }); return; }
+    const sv = t.closest("[data-wid-save]");
+    if (sv) { if (sv.getAttribute("aria-disabled") !== "true") savePage(); return; }
+    if (t.closest("[data-wid-publish]")) { openPublish(); return; }
+    if (t.closest("[data-wid-clone]")) { openNew({ from: P.id }); return; }
+    if (t.closest("[data-wid-toggle]")) { const w = widgetOf(P.id); setStatus(w, w.status === "Dezactivat", () => { if (w.status !== "Dezactivat") { P.draft = clone(w.config); P.base = clone(w.config); } renderProfile(); refreshList(); }); return; }
     if (t.closest("[data-wid-auth]")) { const w = widgetOf(P.id); setAuthActive(w, isOffFor(w, who().authority), () => { renderProfile(); refreshList(); }); return; }
     const view = t.closest("[data-wid-ver-view]");
     if (view) { openVersion(view.dataset.widVerView); return; }
-    const cmp = t.closest("[data-wid-ver-compare]");
-    if (cmp) { const w = widgetOf(P.id); P.compare = { a: cmp.dataset.widVerCompare, b: String(lastVersion(w).nr) }; renderProfile(); document.querySelector("#wid-compare-title")?.scrollIntoView({ block: "start" }); return; }
-    const rs = t.closest("[data-wid-ver-restore]");
-    if (rs) { openRestore(rs.dataset.widVerRestore); return; }
     if (t.closest("[data-wid-compare-open]")) {
       const w = widgetOf(P.id);
       const ch = compareChoices(w);
-      P.compare = { a: ch[1]?.[0] || ch[0][0], b: ch[0][0] };
-      if (unpublished(w)) P.compare = { a: String(lastVersion(w).nr), b: "draft" };
+      P.compare = unpublished(w) ? { a: String(lastVersion(w).nr), b: "draft" } : { a: ch[1]?.[0] || ch[0][0], b: ch[0][0] };
       renderProfile({ keep: "#wid-cmp-a" });
       return;
     }
     if (t.closest("[data-wid-compare-close]")) { P.compare = null; renderProfile({ keep: "[data-wid-compare-open]" }); return; }
-    if (t.closest("[data-wid-back]")) { event.preventDefault(); closeProfile(); }
+    if (t.closest("[data-wid-back]")) { event.preventDefault(); closeProfile(); return; }
+    if (!inPage(t)) return;
+    /* the form */
+    if (t.closest("[data-wid-rule-add]")) { P.draft.filter.rules.push({ column: "", op: "is", value: "" }); delete P.errors.filter; renderProfile({ keep: `#${IDP}-rule-col-${P.draft.filter.rules.length - 1}` }); return; }
+    const rm = t.closest("[data-wid-rule-remove]");
+    if (rm) { P.draft.filter.rules.splice(Number(rm.dataset.widRuleRemove), 1); Object.keys(P.errors).filter((k) => k.startsWith("rule.")).forEach((k) => delete P.errors[k]); renderProfile({ keep: "[data-wid-rule-add]" }); }
   });
   document.addEventListener("keydown", (event) => {
     const tab = event.target.closest?.("[data-wid-tab]");
     if (!tab || !["ArrowLeft", "ArrowRight"].includes(event.key)) return;
-    const i = TABS.findIndex(([id]) => id === tab.dataset.widTab);
-    const next = TABS[(i + (event.key === "ArrowRight" ? 1 : TABS.length - 1)) % TABS.length][0];
+    const tabs = P.isNew ? TABS.slice(0, 1) : TABS;
+    const i = tabs.findIndex(([id]) => id === tab.dataset.widTab);
+    const next = tabs[(i + (event.key === "ArrowRight" ? 1 : tabs.length - 1)) % tabs.length][0];
     event.preventDefault();
     P.tab = next;
     renderProfile({ keep: `#wid-tab-${next}` });
   });
-  /* typing: the draft follows without a redraw (counters live); only the preview column is redrawn */
+  /* typing: the draft follows without a redraw (counters live); the preview + header follow */
   document.addEventListener("input", (event) => {
     const el = event.target;
-    if (!el.closest || !inEditor(el)) return;
+    if (!el.closest || !inPage(el)) return;
     const rule = el.closest("[data-wid-rule]");
-    if (rule && el.tagName === "INPUT") { ED.v.filter.rules[Number(rule.dataset.widRule)].value = el.value; refreshEditorPreview(); renderBar(); return; }
+    if (rule && el.tagName === "INPUT") { P.draft.filter.rules[Number(rule.dataset.widRule)].value = el.value; refreshPreviewOnly(); reheader(); return; }
     const field = el.closest("[data-wid-field]");
-    if (!field || field.tagName === "SELECT" || field.type === "checkbox") return;
-    setPath(ED.v, field.dataset.widField, field.value);
-    const count = sheet.querySelector(`[data-wid-count="${field.id}"]`);
+    if (!field || field.tagName === "SELECT" || field.type === "checkbox" || field.dataset.widField.startsWith("cmp.")) return;
+    setPath(P.draft, field.dataset.widField, field.value);
+    const count = document.querySelector(`[data-wid-count="${field.id}"]`);
     if (count) { const max = field.tagName === "TEXTAREA" ? TEXT_MAX : TITLE_MAX; count.textContent = `${field.value.length}/${max}`; count.classList.toggle("is-over", field.value.length > max); }
-    refreshEditorPreview();
-    renderBar();
+    refreshPreviewOnly();
+    reheader();
   });
   document.addEventListener("change", (event) => {
     const el = event.target;
     if (!el.closest) return;
-    /* „Ca utilizator fără acces la sursă” — a view switch of the preview, never a toast */
-    if (el.matches("[data-wid-noaccess]")) { const st = previewState(el); st.noAccess = el.checked; rerenderFor(el, { keep: "[data-wid-noaccess]" }); return; }
     /* the comparison pickers (profile) */
     if (el.matches('[data-wid-field="cmp.a"], [data-wid-field="cmp.b"]')) { P.compare = { ...P.compare, [el.dataset.widField.slice(4)]: el.value }; renderProfile({ keep: `#wid-cmp-${el.dataset.widField.slice(4)}` }); return; }
-    if (!inEditor(el)) return;
-    const v = ED.v;
+    if (!inPage(el)) return;
+    const v = P.draft;
     const fid = (node) => node.closest(".e-permits-fo-field, .e-permits-doc-cond__cell, .e-permits-doc-cond__join")?.querySelector("button[id], input[id]")?.id || "";
     if (el.matches("[data-wid-type]")) {
       v.type = el.value;
-      delete ED.errors.type;
+      delete P.errors.type;
       /* sensible defaults so the preview draws at once (Shopify „recommended”): a compatible primary criterion … */
       if (DATE_AXIS.includes(v.type) && !isDate(v.source, v.primary)) { v.primary = dateCols(v.source)[0]?.key || ""; v.dateGroup = v.dateGroup || "month"; }
       else if (NEEDS_PRIMARY(v.type) && !v.primary) v.primary = fieldsOf(v.source).find((f) => f.type === "enum")?.key || "";
@@ -1499,10 +1450,10 @@
       if (v.type === "heatmap" && !v.secondary) { v.secondary = dateCols(v.source)[0]?.key || ""; v.dateGroup = v.dateGroup || "month"; }
       if (!SECONDARY[v.type]) v.secondary = "";
       if (!needsDateGroup(v)) v.dateGroup = "";
-      renderEditor({ keep: `#wid-e-type input[value="${el.value}"]` });
+      renderProfile({ keep: `#${IDP}-type input[value="${el.value}"]` });
       return;
     }
-    if (el.matches("[data-wid-vis]")) { v.visibility = el.value; delete ED.errors.visibility; renderEditor({ keep: `#wid-e-visibility input[value="${el.value}"]` }); return; }
+    if (el.matches("[data-wid-vis]")) { v.visibility = el.value; delete P.errors.visibility; renderProfile({ keep: `#${IDP}-visibility input[value="${el.value}"]` }); return; }
     const rule = el.closest("[data-wid-rule]");
     if (rule) {
       const i = Number(rule.dataset.widRule);
@@ -1512,30 +1463,30 @@
       r[which] = el.value;
       if (which === "column") r.value = "";
       if (which === "op" && NO_VALUE.includes(r.op)) r.value = "";
-      delete ED.errors[`rule.${i}`];
-      renderEditor({ keep: fid(el) ? `#${CSS.escape(fid(el))}` : "" });
+      delete P.errors[`rule.${i}`];
+      renderProfile({ keep: fid(el) ? `#${CSS.escape(fid(el))}` : "" });
       return;
     }
-    if (el.matches("[data-wid-rule-logic]")) { v.filter.logic = el.value; renderEditor({ keep: fid(el) ? `#${CSS.escape(fid(el))}` : "" }); return; }
+    if (el.matches("[data-wid-rule-logic]")) { v.filter.logic = el.value; renderProfile({ keep: fid(el) ? `#${CSS.escape(fid(el))}` : "" }); return; }
     const field = el.closest("[data-wid-field]");
     if (!field || (field.tagName !== "SELECT" && field.type !== "checkbox")) return;
     const key = field.dataset.widField;
     const value = field.type === "checkbox" ? field.checked : field.value;
     const old = getPath(v, key);
     setPath(v, key, value);
-    delete ED.errors[key];
+    delete P.errors[key];
     if (key === "source" && value !== old) {
       /* a new source: its columns replace the old ones; a KPI of another source drops */
-      const keep = (col) => (fieldOf(value, col) ? col : "");
-      v.column = keep(v.column); v.primary = keep(v.primary); v.secondary = keep(v.secondary);
+      const keepCol = (col) => (fieldOf(value, col) ? col : "");
+      v.column = keepCol(v.column); v.primary = keepCol(v.primary); v.secondary = keepCol(v.secondary);
       v.filter.rules = v.filter.rules.filter((r) => fieldOf(value, r.column));
       if (v.kpi && kpiOf(v.kpi)?.source !== value) v.kpi = "";
     }
-    if (key === "kpi") { delete ED.errors.type; if (value && v.type && !KPI_TYPES.includes(v.type)) v.type = ""; }
+    if (key === "kpi") { delete P.errors.type; if (value && v.type && !KPI_TYPES.includes(v.type)) v.type = ""; }
     if (key === "measure") { if (!measureColumns(v).some((f) => f.key === v.column)) v.column = ""; if (value === "count") v.column = ""; }
     if (key === "column") { const t = fieldOf(v.source, value)?.type; if (t === "duration" && v.measure !== "distinct") v.format = "duration"; else if (t === "amount") v.format = "amount"; else if (["duration", "amount"].includes(v.format)) v.format = "number"; }
     if (key === "primary" || key === "secondary") { if (needsDateGroup(v) && !v.dateGroup) v.dateGroup = "month"; if (!needsDateGroup(v)) v.dateGroup = ""; }
-    renderEditor({ keep: fid(field) ? `#${CSS.escape(fid(field))}` : `[data-wid-field="${key}"]` });
+    renderProfile({ keep: fid(field) ? `#${CSS.escape(fid(field))}` : `[data-wid-field="${key}"]` });
   });
 
   /* ---------------------------------------------------------------- routes + denied (Feature AC) */
@@ -1550,9 +1501,10 @@
       if (nav && who().has) nav.click(); else showDenied();
       return true;
     }
-    const m = /^#widget\/([^/]+)(?:\/([a-z]+))?$/.exec(h);
+    const m = /^#widget\/([^/]+)(?:\/([a-zA-Z0-9-]+))?$/.exec(h);
     if (!m) return false;
     if (!who().has) { showDenied(); return true; }
+    if (m[1] === "nou") { if (!P.isNew) openNew({ from: (m[2] || "").replace(/^din-/, "") }); return true; }
     load().then(() => openProfile(decodeURIComponent(m[1]), m[2] || "configurare", { push: false }));
     return true;
   });
@@ -1573,7 +1525,7 @@
 
   /* ---------------------------------------------------------------- for dashboards (Features 96586 / 96498), demo states */
   window.GEAPWidgets = {
-    load, openProfile, openEditor, refreshList, perms: () => who(),
+    load, openProfile, openNew, refreshList, perms: () => who(),
     list: () => widgets(),
     get: widgetOf,
     /* Feature AC: BackOffice users see only the last published version */

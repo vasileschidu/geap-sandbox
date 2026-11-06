@@ -39,9 +39,24 @@
   z-index: auto;
 }
 
-/* ---- the builder sheet: the step strip under the sheet header, on the sheet's 24 gutter ---- */
-.e-permits-wid-editor .e-permits-steps-strip {
-  padding-inline: var(--spacing-24, 24px);
+/* ---- the editor page (widget-v2): the shared editor width `.e-permits-editor-wide` (fluid, cap 1600, ONLY on the two-
+   column Configurare; Versiuni / Istoric keep the profile width); settings 5fr (≥ 360) · BIG preview 7fr (Asana /
+   Sentry / Twenty chart editors); the preview stacks first under 1100 ---- */
+
+@media (min-width: 1101px) {
+  .e-permits-ntpl-content.e-permits-wid-config {
+    grid-template-columns: minmax(360px, 5fr) minmax(0, 7fr);
+  }
+}
+
+/* the card at the widget's chosen width of a dashboard row („Rând întreg” = the whole preview) */
+.e-permits-wid-card--third { width: calc(100% / 3); }
+.e-permits-wid-card--half { width: 50%; }
+.e-permits-wid-card--twoThirds { width: calc(100% * 2 / 3); }
+.e-permits-wid-card--full { width: 100%; }
+
+.e-permits-wid-card {
+  box-sizing: border-box;
 }
 
 /* ---- Chart-type gallery (new): 11 option cards in a radiogroup — the selectable option card, radio variant
@@ -137,20 +152,6 @@
   display: flex;
   flex-direction: column;
   gap: var(--spacing-16, 16px);
-  min-width: 0;
-}
-
-.e-permits-wid-preview__head {
-  align-items: flex-start;
-  display: flex;
-  gap: var(--spacing-12, 12px);
-  justify-content: space-between;
-}
-
-.e-permits-wid-preview__heading {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-4, 4px);
   min-width: 0;
 }
 
@@ -678,6 +679,19 @@ button.e-permits-wid-rows__row:focus-visible {
   white-space: nowrap;
 }
 
+/* the category column wraps (2 lines, then the tooltip) instead of forcing a sideways scroll */
+.e-permits-wid-table--agg tbody th {
+  min-width: calc(var(--spacing-40, 40px) * 3);
+  white-space: normal;
+}
+
+.e-permits-wid-table--agg tbody th > span {
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  display: -webkit-box;
+  overflow: hidden;
+}
+
 /* a value / record number that drills = the library link on a button (reset like the calendar intro link) */
 .e-permits-wid-table__drill {
   background: none;
@@ -699,10 +713,14 @@ button.e-permits-wid-rows__row:focus-visible {
 }
 
 /* ---- Compară versiuni (new): pickers card · changed fields · the two widgets side by side ---- */
-.e-permits-wid-compare {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-16, 16px);
+/* the section's own rhythm: heading → pickers card as every section; then the blocks 24 apart (margin, the section has
+   no gap — padding without gap); the „Modificări (N)” section inside drops its own 24 bottom padding */
+.e-permits-wid-compare > :not(.e-permits-dosar-profil__section-heading) + * {
+  margin-top: var(--spacing-24, 24px);
+}
+
+.e-permits-wid-compare > .e-permits-wid-changes {
+  padding-bottom: 0;
 }
 
 .e-permits-wid-compare__grid {
@@ -756,8 +774,9 @@ button.e-permits-wid-rows__row:focus-visible {
     z-index: auto;
   }
 
-  .e-permits-wid-editor .e-permits-steps-strip {
-    padding-inline: var(--spacing-16, 16px);
+  /* phones: the card takes the full width (a dashboard stacks its widgets) */
+  .e-permits-wid-card:is(.e-permits-wid-card--third, .e-permits-wid-card--half, .e-permits-wid-card--twoThirds) {
+    width: 100%;
   }
 
   .e-permits-wid-types__grid {
@@ -791,4 +810,79 @@ button.e-permits-wid-rows__row:focus-visible {
 
 :is(.e-permits-reg-modal--wid-publish, .e-permits-reg-modal--wid-restore) .e-permits-wid-changes .e-permits-dosar-profil__section-title {
   padding: 0;
+}
+
+/* ---- Charts: no overlapping labels (widget-v2; components.md › „Charts: no overlapping labels”) ----
+   axis = one tick per slot, centred, thinned by GEAPWidgetCharts.fit(); end ticks aligned to the plot edge */
+.e-permits-chart__axis.e-permits-wid-axis {
+  justify-content: flex-start;
+}
+
+.e-permits-wid-axis__tick {
+  display: flex;
+  flex: 1 1 0;
+  justify-content: center;
+  min-width: 0;
+  white-space: nowrap;
+}
+
+.e-permits-wid-axis__tick.is-start { justify-content: flex-start; }
+.e-permits-wid-axis__tick.is-end { justify-content: flex-end; }
+
+.e-permits-wid-axis__tick.is-thinned > span,
+.e-permits-wid-card text.is-hidden {
+  visibility: hidden;
+}
+
+/* category labels (rows, funnel, heat-map rows): 2 lines, then the ellipsis + tooltip (data-cell-tooltip) */
+.e-permits-wid-rows__label,
+.e-permits-wid-heat tbody th > span {
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  display: -webkit-box;
+  overflow: hidden;
+  white-space: normal;
+}
+
+/* legends wrap with 8 between rows and items */
+.e-permits-wid-card .e-permits-meter-legend--tray {
+  gap: var(--spacing-8, 8px);
+}
+
+/* narrow cards („O treime”): the list legend's label wraps, the heat-map key line wraps */
+.e-permits-wid-legend--list li > span:not(.e-permits-meter-legend__dot),
+.e-permits-wid-legend--list .e-permits-wid-legend__btn > span:not(.e-permits-meter-legend__dot) {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.e-permits-wid-legend--list :is(li, .e-permits-wid-legend__btn) {
+  flex-wrap: wrap;
+}
+
+.e-permits-wid-card .e-permits-meter-legend--tray li {
+  flex-wrap: wrap;
+}
+
+/* the preview heading = the BO section heading (48 row, title + tools on the 12 inset); the meta line under it on the
+   same 12 inset, 8 to the segmented control (the block's 16 gap minus the heading's own space) */
+.e-permits-wid-preview__meta {
+  margin: calc(var(--spacing-16, 16px) * -1 + var(--spacing-4, 4px)) 0 0;
+  padding-inline: var(--spacing-12, 12px);
+}
+
+/* the settings column (≥ 360, 5fr): one gallery column; two when the column is wide (stacked layout ≤ 1100) */
+.e-permits-wid-config .e-permits-wid-types__grid {
+  grid-template-columns: repeat(auto-fill, minmax(calc(var(--spacing-40, 40px) * 7), 1fr));
+}
+
+/* „Previzualizează ca” hugs its two options (the ntpl „E-mail / Mobil” switch) */
+.e-permits-wid-preview > .segmented-control {
+  align-self: flex-start;
+}
+
+/* aggregate table: the category cells are data on white, not header cells */
+.e-permits-wid-table--agg tbody th {
+  background: var(--color-background-base-default, #fff);
+  font-weight: var(--font-weight-fw-regular, 400);
 }

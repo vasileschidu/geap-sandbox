@@ -46,12 +46,9 @@
     return legend(items);
   }
   const seriesLegend = (m) => legend([...m.series.map((s, i) => ({ label: s.label, dot: sClass(i) })), ...(m.target ? [{ label: m.target.label, dot: "e-permits-wid-legend__target" }] : [])]);
-  const axis = (cats) => {
-    const n = cats.length;
-    if (!n) return "";
-    const picks = n <= 3 ? cats : [cats[0], cats[Math.floor((n - 1) / 2)], cats[n - 1]];
-    return `<div class="e-permits-chart__axis" aria-hidden="true">${picks.map((c) => `<span>${esc(c.label)}</span>`).join("")}</div>`;
-  };
+  /* the category axis: one label per slot, centred under it (the slots' flex); `fit()` thins them to every k-th so two
+     neighbours are ≥ 8 apart, and keeps the end labels inside the plot — never rotated, never overlapping */
+  const axis = (cats) => (cats.length ? `<div class="e-permits-chart__axis e-permits-wid-axis" aria-hidden="true">${cats.map((c) => `<span class="e-permits-wid-axis__tick"><span>${esc(c.label)}</span></span>`).join("")}</div>` : "");
   const ariaOf = (m) => esc(m.cats.map((c) => `${c.label} ${m.fmt(c.value)}`).join(", "));
   const targetSvg = (m, top) => (m.target ? `<line class="e-permits-wid-target" x1="0" x2="100%" y1="${pct(top)}" y2="${pct(top)}"></line>` : "");
 
@@ -59,7 +56,7 @@
      the plot = a row of slots, one per category: a real <button> when it drills (hover = the list band behind the bar +
      the darker bar), a plain span otherwise; each slot holds its own SVG bar (x 22–78 % of the slot, eKYC proportions) */
   const slot = (m, c, value, inner, label = c.label) => (m.drill
-    ? `<button class="e-permits-wid-cols__slot" type="button"${drillAttrs(m, label, value)} aria-label="${esc(`${label}: ${m.fmt(value)} — deschide înregistrările`)}">${inner}</button>`
+    ? `<button class="e-permits-wid-cols__slot" type="button"${drillAttrs(m, label, value)} aria-label="${esc(`${label}: ${m.fmt(value)} — deschide înregistrările`)}" data-tooltip-label="${esc(`${label}: ${m.fmt(value)}`)}">${inner}</button>`
     : `<span class="e-permits-wid-cols__slot">${inner}</span>`);
   function columns(m, { stacked = false } = {}) {
     const n = m.cats.length;
@@ -70,7 +67,7 @@
       if (!stacked) {
         const y = 100 - (c.value / top) * 100;
         const tone = m.tone?.(c.value) || "brand";
-        const label = n <= 8 ? `<text class="e-permits-ekyc-band__label" x="50%" y="${pct(Math.max(8, y - 3))}" text-anchor="middle">${esc(m.fmt(c.value))}</text>` : "";
+        const label = `<text class="e-permits-ekyc-band__label" data-wid-fit="value" x="50%" y="${pct(Math.max(8, y - 3))}" text-anchor="middle">${esc(m.fmt(c.value))}</text>`;
         bars = `<rect class="e-permits-chart__bar--${tone}" x="22%" y="${pct(y)}" width="56%" height="100%" rx="4"></rect>${label}`;
       } else {
         /* stacked: the top segment first (rounded, down to the baseline), the lower ones square on top of it */
@@ -258,7 +255,7 @@
     const tiles = out.map((t) => {
       const name = t.h > 30 ? fit(t.label, t.w) : "";
       const val = t.h > 30 ? fit(`${m.fmt(t.value)} · ${share(t.value, total)}`, t.w) : "";
-      return `<rect class="e-permits-wid-fill e-permits-wid-tile-rect ${sClass(t.i)}" x="${pct(t.x)}" y="${pct(t.y)}" width="${pct(t.w)}" height="${pct(t.h)}"></rect>${name ? `<text class="e-permits-wid-treemap__label" x="${pct(t.x + 1.5)}" y="${pct(t.y + 14)}">${esc(name)}</text>` : ""}${val ? `<text class="e-permits-wid-treemap__value" x="${pct(t.x + 1.5)}" y="${pct(t.y + 28)}">${esc(val)}</text>` : ""}`;
+      return `<rect class="e-permits-wid-fill e-permits-wid-tile-rect ${sClass(t.i)}" data-wid-tile="${t.i}" x="${pct(t.x)}" y="${pct(t.y)}" width="${pct(t.w)}" height="${pct(t.h)}"></rect>${name ? `<text class="e-permits-wid-treemap__label" data-wid-fit="tile" data-wid-tile="${t.i}" x="${pct(t.x + 1.5)}" y="${pct(t.y + 14)}">${esc(name)}</text>` : ""}${val ? `<text class="e-permits-wid-treemap__value" data-wid-fit="tile" data-wid-tile="${t.i}" x="${pct(t.x + 1.5)}" y="${pct(t.y + 28)}">${esc(val)}</text>` : ""}`;
     }).join("");
     return `
       <svg class="${PLOT(m, "e-permits-wid-plot--bare")}" role="img" aria-label="${ariaOf(m)}" focusable="false">${tiles}</svg>
@@ -324,5 +321,56 @@
   };
   const glyph = (type) => `<svg class="e-permits-wid-glyph" viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" focusable="false">${G[type] || ""}</svg>`;
 
-  window.GEAPWidgetCharts = { render, glyph, series: sClass, nf };
+  /* ---------------------------------------------------------------- fit(): no overlapping labels, at any width
+     (components.md › „Charts: no overlapping labels”). Measured after every render / resize:
+     · axis: the smallest step k (1, 2, 3, 4, 6, 12) for which the widest label + 8 fits k slots; the others hidden; the
+       first / last visible label aligned to the plot edge when wider than its slot (never sticks out of the card);
+     · bar value labels: shown only when every one fits its slot (−4) and clears the top; else none (the slot tooltip has it);
+     · treemap labels: shown only inside their tile (−4). */
+  const GAP = 8;
+  function fit(root) {
+    if (!root) return;
+    root.querySelectorAll(".e-permits-wid-axis").forEach((ax) => {
+      const ticks = [...ax.children];
+      if (!ticks.length) return;
+      ticks.forEach((t) => t.classList.remove("is-thinned", "is-start", "is-end"));
+      const slotW = ax.clientWidth / ticks.length;
+      const widest = Math.max(...ticks.map((t) => t.firstElementChild.getBoundingClientRect().width));
+      /* an edge label aligned to the plot edge reaches (widest − slot / 2) further in: its neighbour must clear that too */
+      const edge = widest > slotW;
+      const fits = (step) => widest + GAP <= step * slotW && (!edge || step * slotW + slotW / 2 - widest / 2 >= widest + GAP);
+      const k = [1, 2, 3, 4, 6, 12].find((step) => step < ticks.length && fits(step)) || ticks.length;
+      const shownIdx = ticks.map((t, i) => i).filter((i) => i % k === 0);
+      ticks.forEach((t, i) => t.classList.toggle("is-thinned", i % k !== 0));
+      if (edge) {
+        ticks[0].classList.add("is-start");
+        const last = shownIdx[shownIdx.length - 1];
+        /* the last shown label: to the end edge when it would stick out (its neighbour cleared by the same rule) */
+        if (shownIdx.length > 1 && last * slotW + slotW / 2 + widest / 2 > ax.clientWidth) ticks[last].classList.add("is-end");
+      }
+    });
+    root.querySelectorAll(".e-permits-wid-cols").forEach((plot) => {
+      const values = [...plot.querySelectorAll('[data-wid-fit="value"]')];
+      values.forEach((t) => t.classList.remove("is-hidden"));
+      const top = plot.getBoundingClientRect().top;
+      const fits = values.every((t) => { const b = t.getBoundingClientRect(); const slotW = t.closest(".e-permits-wid-cols__slot").getBoundingClientRect().width; return b.width <= slotW - 4 && b.top >= top; });
+      if (!fits) values.forEach((t) => t.classList.add("is-hidden"));
+    });
+    root.querySelectorAll('text[data-wid-fit="tile"]').forEach((t) => {
+      t.classList.remove("is-hidden");
+      const tile = t.ownerSVGElement.querySelector(`rect[data-wid-tile="${t.dataset.widTile}"]`);
+      const a = t.getBoundingClientRect();
+      const b = tile.getBoundingClientRect();
+      if (a.left < b.left || a.right > b.right - 4 || a.top < b.top || a.bottom > b.bottom - 4) t.classList.add("is-hidden");
+    });
+  }
+  /* every card re-fits when its width changes (preview width, window, „Mărește”) */
+  const observer = "ResizeObserver" in window ? new ResizeObserver((entries) => entries.forEach((e) => fit(e.target))) : null;
+  const watch = (scope = document) => scope.querySelectorAll(".e-permits-wid-card").forEach((card) => { fit(card); if (observer && !card.dataset.widFitWatched) { card.dataset.widFitWatched = "1"; observer.observe(card); } });
+  if ("MutationObserver" in window) {
+    let queued = false;
+    new MutationObserver(() => { if (!queued) { queued = true; requestAnimationFrame(() => { queued = false; watch(); }); } }).observe(document.documentElement, { childList: true, subtree: true });
+  }
+
+  window.GEAPWidgetCharts = { render, glyph, series: sClass, nf, fit, watch };
 })();

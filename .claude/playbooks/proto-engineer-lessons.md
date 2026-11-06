@@ -4203,3 +4203,8 @@ For any „research how other products do it” step, search Mobbin (mcp__mobbin
   document + ResizeObserver per body) and a 0-high sibling inserted between body and footer, so renderers that rewrite body /
   footer innerHTML never wipe it and no `:last-child` rule moves. Prove „no regression” with a with/without diff (CDP
   `Network.setBlockedURLs` on the new files) of dialog geometry on a tall viewport: only the ex-64vh modals change.
+- 2026-11-06 · components.md inventory rows are markdown table cells: an unescaped `|` inside backticks (`--a|b`) splits the cell
+  and component-audit stops resolving every class after it (drill buttons suddenly „non-library-control”). Write `\|`.
+- 2026-11-06 · Widgets v2 (user): builders follow the ntpl editor page (profile, `.e-permits-editor-wide`, settings 5fr | big
+  sticky preview 7fr), not a full-screen sheet; version histories = GEAPEventTimeline + openAttrs window, never a table; chart
+  labels go through a measured fit() (thin / hide / edge-align) + a bounding-box overlap check at 1440 / 1280 / 375 × ⅓ · ½ · 1.
