@@ -4208,3 +4208,6 @@ For any „research how other products do it” step, search Mobbin (mcp__mobbin
 - 2026-11-06 · Widgets v2 (user): builders follow the ntpl editor page (profile, `.e-permits-editor-wide`, settings 5fr | big
   sticky preview 7fr), not a full-screen sheet; version histories = GEAPEventTimeline + openAttrs window, never a table; chart
   labels go through a measured fit() (thin / hide / edge-align) + a bounding-box overlap check at 1440 / 1280 / 375 × ⅓ · ½ · 1.
+- 2026-11-06 · Picker tabs → animated segmented control with icons: keep the old `data-fo-doc-tab` hook so ~20 demo states
+  still work, mirror `is-selected` + `aria-checked` + tabindex in the switch fn. Phone label wrapped at 170px segments →
+  nowrap + padding 8. macOS `sed -i ''` needs the empty suffix (a bare `-i` aborted the multi-file bump halfway).

@@ -6942,6 +6942,107 @@
   width: 16px;
 }
 
+/* source switch (upload-modal-v1, 2026-11-06, user): the animated library segmented control with icons under the
+   header; hugs its segments on desktop, full width + equal segments on phones (modal-phone.css) */
+.e-permits-fo-doc-modal__source {
+  display: flex;
+  flex-shrink: 0;
+  padding: var(--spacing-16, 16px) var(--spacing-24, 24px) var(--spacing-0, 0px);
+}
+
+.e-permits-fo-doc-modal__source[hidden] {
+  display: none;
+}
+
+.e-permits-fo-doc-modal__panel {
+  animation: e-permits-fo-doc-panel-in 220ms cubic-bezier(0.16, 1, 0.3, 1) backwards;
+}
+
+@keyframes e-permits-fo-doc-panel-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .e-permits-fo-doc-modal.is-tab-animating {
+    transition: none;
+  }
+
+  .e-permits-fo-doc-modal__panel {
+    animation: none;
+  }
+}
+
+.e-permits-fo-doc-modal__header {
+  align-items: flex-start;
+  box-sizing: border-box;
+  display: flex;
+  gap: var(--spacing-12, 12px);
+  flex-shrink: 0;
+  justify-content: center;
+  padding: var(--spacing-24, 24px);
+}
+
+.e-permits-fo-doc-modal__header-text {
+  display: flex;
+  flex: 1 1 0;
+  flex-direction: column;
+  gap: var(--spacing-8, 8px);
+  min-width: 0;
+}
+
+.e-permits-fo-doc-modal__title {
+  color: var(--color-text-base-default, #121212);
+  font-size: var(--font-size-fs-24, 24px);
+  font-weight: var(--font-weight-fw-semibold, 600);
+  letter-spacing: -0.24px;
+  line-height: var(--line-height-lh-32, 32px);
+  margin: 0;
+}
+
+.e-permits-fo-doc-modal__subtitle {
+  color: var(--color-text-base-tertiary, #757575);
+  font-size: var(--font-size-fs-14, 14px);
+  font-weight: var(--font-weight-fw-regular, 400);
+  line-height: var(--line-height-lh-20, 20px);
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.e-permits-fo-doc-modal__close {
+  align-items: center;
+  appearance: none;
+  background: var(--color-background-base-tertiary, #f1f1f1);
+  border: none;
+  border-radius: var(--border-radius-full, 999px);
+  color: var(--color-text-base-default, #121212);
+  cursor: pointer;
+  display: flex;
+  flex-shrink: 0;
+  height: 32px;
+  justify-content: center;
+  padding: var(--spacing-8, 8px);
+  width: 32px;
+}
+
+.e-permits-fo-doc-modal__close:hover {
+  background: #e5e5e5;
+}
+
+.e-permits-fo-doc-modal__close .icon {
+  height: 16px;
+  width: 16px;
+}
+
 .e-permits-fo-doc-modal__tabs {
   border-bottom: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
   flex-shrink: 0;
@@ -25261,14 +25362,10 @@ body:has(:is([aria-haspopup]:not([aria-haspopup="false"]), [role="combobox"], .j
   outline: none;
 }
 
-/* AC-04 · MDocs does not answer: its tab is unavailable (reason in the tooltip); the notice sits over the drop zone */
-.e-permits-fo-doc-modal__tabs .tab-button[aria-disabled="true"] {
+/* AC-04 · MDocs does not answer: its segment is unavailable (reason in the tooltip); the notice sits over the drop zone */
+.e-permits-fo-doc-modal__source .segment-item[aria-disabled="true"] {
   color: var(--color-text-disabled-default, #b2b2b2);
   cursor: not-allowed;
-}
-
-.e-permits-fo-doc-modal__tabs .tab-button[aria-disabled="true"] .icon {
-  color: var(--color-icon-disabled-default, #b2b2b2);
 }
 
 .e-permits-fo-doc-modal__down {

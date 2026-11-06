@@ -7893,7 +7893,12 @@
         !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
       const fromHeight = shouldAnimate ? modal.getBoundingClientRect().height : 0;
 
-      foDocOverlay?.querySelectorAll("[data-fo-doc-tab]").forEach((t) => t.classList.toggle("active", t.dataset.foDocTab === tab));
+      foDocOverlay?.querySelectorAll("[data-fo-doc-tab]").forEach((t) => {
+        const on = t.dataset.foDocTab === tab;
+        t.classList.toggle("is-selected", on);
+        t.setAttribute("aria-checked", String(on));
+        t.tabIndex = on ? 0 : -1;
+      });
       foDocOverlay?.querySelectorAll("[data-fo-doc-panel]").forEach((p) => { p.hidden = p.dataset.foDocPanel !== tab; });
       foDocUpdateSubmit();
       if (!shouldAnimate) return;
@@ -7944,7 +7949,7 @@
       const [types, size] = (fieldEl?.dataset.foDocLimits || "").split("|");
       if (captions[0]) captions[0].textContent = `${foDocModalMax > 1 ? `Până la ${foDocModalMax} fișiere` : "Un singur fișier"}: ${types || captions[0].dataset.foDefault.replace(/^[^:]*:\s*/, "")}`;
       if (captions[1]) captions[1].textContent = size ? `Mărime maximă: ${size}` : captions[1].dataset.foDefault;
-      const tabs = foDocOverlay.querySelector(".e-permits-fo-doc-modal__tabs");
+      const tabs = foDocOverlay.querySelector(".e-permits-fo-doc-modal__source");
       if (tabs) tabs.hidden = uploadOnly;
       /* file-remove-x-v1 (2026-10-25, user: „Înlocuiește doesn't make sense”): no replace mode — a file goes with its
          ×, a new one comes with „Adaugă fișier”; the picker is always „Adaugă fișier” */

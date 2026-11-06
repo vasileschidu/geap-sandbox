@@ -888,7 +888,7 @@ actually shorter.
 
 App screens override this per scope — `.permits-profile__tabs` (gap 24, 36px, no chrome),
 `.e-permits-dosar-profil__tabs` and `.e-permits-user-profile__tabs` (48px, inset focus
-ring), `.e-permits-fo-doc-modal__tabs` (no bottom border). Match the scope you are editing.
+ring), `.e-permits-fo-doc-modal__tabs` (removed 2026-11-06 — the picker's source switch is now a segmented control). Match the scope you are editing.
 
 Panels: app screens generally do **not** use `.tab-panels` — they toggle
 `data-*-panel` divs with the `hidden` attribute.
@@ -11028,6 +11028,16 @@ Code: `foOtherDocSave / foOtherDocEdit / foOtherDocCancel / foOtherDocShowSaved`
   demo-only rule in the FO schema would be a second source of truth.
 
 ### Upload from computer — single vs multiple (upload-modal-v1, 2026-11-06)
+
+**Source switch = segmented control with icons (2026-11-06, user; replaces the regular tabs).** Under the header,
+`div.e-permits-fo-doc-modal__source` (padding 16 24 0, phones 16 · `--modal-phone-inset` · 0; `hidden` for upload-only
+fields) > the animated library control `.segmented-control.is-animated[role=radiogroup][aria-label="Sursa fișierului"]`
+(`initAnimatedSegmentedControls`, same as „Soliciți în numele”) > `button.segment-item[role=radio][aria-checked]
+[data-fo-doc-tab=library|upload][aria-controls=fo-doc-panel-…]`, roving tabindex, ← → Home / End. Items: icon 16
+(`.icon.small`, gap 8 via `.segment-item:has(> .icon)`) + label — **`icon-search` „Caută în librărie”** · **`icon-upload`
+„Încarcă fișier”**. Desktop hugs its segments (library 40 items); phones: full width, equal segments, track 48 (4 + 40
+items), 16/24, nowrap (css/modal-phone.css). `foDocSwitchTab` mirrors `is-selected` / `aria-checked` / tabindex and
+shows the panels (`#fo-doc-panel-library` / `-upload`); MDocs down = library segment `aria-disabled` + reason tooltip.
 
 User: „explore the upload flow when I upload something from my computer: single and multiple. If only one file is
 allowed, hide the upload area; if multiple, leave it and show the files in the modal.” Same picker (`.e-permits-fo-doc-modal`,
