@@ -12140,7 +12140,12 @@ itself (`offFor`). Every operation is written to the widget's audit trail (tab �
   (`.e-permits-reg-changes` rows: brand Small tag „Modificat” + „before → after”) or an info note, then the two widget
   cards side by side (`__grid` 2 columns, 1 ≤1100, gap 16; `__label` 14/20 medium). Opened from the heading button or
   a version's ⋮ „Compară cu versiunea în vigoare”.
-- **Publish** = library dialog: current → new version, problems (required fields, compatibility, RU / EN titles, a
+- **„Modificări (N)” (widget-v2, user)** — ONE renderer `changesList` for publish, restore and „Compară versiuni”: the stacked
+  list (`renderStackedList`, `.e-permits-wid-changes`; field = row title, last row without divider) with the Jurnal /
+  RSSP-sync value `.e-permits-event-diff` (old `__before` muted + struck through → new); no „Modificat” tag, no grey
+  key-value card. In the dialogs the heading sits on the notice's edge, 8 to the list, blocks 16 apart.
+- **Publish** = library dialog: ONE info notice with the version fact („Versiunea 3 o înlocuiește pe versiunea 2. …” /
+  „Prima publicare: versiunea 1. …”; error notice when blocked) → „Modificări (N)” → required „Ce s-a schimbat”; problems (required fields, compatibility, RU / EN titles, a
   preview that loads) = error notice + „Publică” `aria-disabled` with reason; otherwise the changed fields + required
   „Ce s-a schimbat”. **Restore** = dialog with the changes vs the version in force, a warning when unpublished changes
   are lost, required note → version + 1.

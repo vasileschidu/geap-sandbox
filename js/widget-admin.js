@@ -1017,16 +1017,25 @@
   /* the configurations that can be compared: every published version + the saved, unpublished configuration */
   const compareChoices = (w) => [...[...w.versions].reverse().map((v) => [String(v.nr), `Versiunea ${v.version} · ${longDate(v.at)}${v.nr === lastVersion(w).nr ? " (în vigoare)" : ""}`, v.config]), ...(unpublished(w) ? [["draft", "Modificările nepublicate", w.config]] : [])];
   /* field-level diff (Plane / Snowflake compare: before → after, only what changed) */
+  /* → [{ label, before, after }] — before / after are already-escaped text („—” for an empty field) */
   function diffRows(a, b) {
     const ra = configRows(a);
     const rb = configRows(b);
+    const text = (html) => html.replace(/<[^>]+>/g, "").trim() || "—";
     const out = [];
     ["data", "calc", "look"].forEach((group) => ra[group].forEach(([lbl, va], i) => {
       const vb = rb[group][i][1];
-      if (va !== vb) out.push([lbl, `${tag("Modificat", "brand")}<span>${va.replace(/<[^>]+>/g, "") || "—"} → ${vb.replace(/<[^>]+>/g, "") || "—"}</span>`]);
+      if (va !== vb) out.push({ label: lbl, before: text(va), after: text(vb) });
     }));
     return out;
   }
+  /* „Modificări (N)”: the stacked list (field on its own line, no divider under the last row) with the Jurnal /
+     RSSP-sync change value `.e-permits-event-diff` — previous value muted + struck through → new value. One renderer for
+     the publish and restore dialogs and „Compară versiuni”. */
+  const diffHtml = (c) => (c.before === "—" ? `<strong>${c.after}</strong>`
+    : c.after === "—" ? `<span class="e-permits-event-diff__before">${c.before}</span>`
+    : `<span class="e-permits-event-diff"><span class="e-permits-event-diff__before">${c.before}</span><span aria-hidden="true">→</span><span class="u-visually-hidden">devine</span><strong>${c.after}</strong></span>`);
+  const changesList = (changes, title = "Modificări") => A().renderStackedList?.(`${title} (${changes.length})`, [{ label: "", items: changes.map((c) => ({ plainTitle: c.label, title: esc(c.label), meta: [diffHtml(c)] })) }], { className: "e-permits-wid-changes" }) || "";
   function compareHtml(w) {
     const choices = compareChoices(w);
     const pick = (key) => choices.find(([k]) => k === key) || choices[0];
@@ -1047,7 +1056,7 @@
         ${ka === kb
           ? U().renderInfoNote?.("Alegeți două versiuni diferite.") || ""
           : changes.length
-            ? `<div class="e-permits-dosar-profil__card e-permits-reg-changes" aria-label="Câmpurile modificate">${changes.map((r) => G().detailRow?.(r) || "").join("")}</div>`
+            ? changesList(changes)
             : U().renderInfoNote?.("Cele două versiuni au aceeași configurație.") || ""}
         <div class="e-permits-wid-compare__grid">
           <div class="e-permits-wid-compare__col"><p class="e-permits-wid-compare__label">${esc(la)}</p>${cardHtml(ca, { st: { noAccess: true }, compact: true })}</div>
@@ -1090,9 +1099,8 @@
       title: `Restaurare versiune ${v.version}`,
       subtitle: w.config.titles.ro,
       body: `
-        <p class="e-permits-passport__lead">${esc(`Configurația versiunii ${v.version} devine versiunea nouă ${next}, publicată. Utilizatorii BackOffice o văd imediat.`)}</p>
-        ${unpublished(w) ? U().renderNotice?.("warning", "<strong>Modificările nepublicate se pierd.</strong> Ciorna curentă este înlocuită de configurația restaurată.") || "" : ""}
-        ${changes.length ? `<div class="e-permits-dosar-profil__card e-permits-reg-changes" aria-label="Ce se schimbă față de versiunea în vigoare">${changes.map((r) => G().detailRow?.(r) || "").join("")}</div>` : ""}
+        ${U().renderNotice?.(unpublished(w) ? "warning" : "info", `<strong>Versiunea ${next} reia configurația versiunii ${v.version}.</strong> Utilizatorii BackOffice o văd imediat după restaurare.${unpublished(w) ? " Modificările nepublicate se pierd." : ""}`) || ""}
+        ${changes.length ? changesList(changes) : ""}
         ${areaField("wid-restore-note", "restoreNote", "Ce s-a schimbat", "", { required: true, placeholder: "De ce reveniți la această versiune", hint: "Apare în istoricul versiunilor." })}`,
       footer: '<div class="modal-buttons"><button class="btn btn-neutral btn-rounded" type="button" data-case-close>Anulează</button><button class="btn btn-primary btn-rounded" type="button" data-wid-restore-confirm>Restaurează</button></div>'
     });
@@ -1153,15 +1161,12 @@
       title: "Publicare widget",
       subtitle: v.titles.ro || "Widget nou",
       body: `
-        <p class="e-permits-passport__lead">Versiunea în vigoare: <strong>${esc(cur ? String(cur.version) : "—")}</strong> · versiunea nouă: <strong>${next}</strong></p>
         ${problems.length
           ? U().renderNotice?.("error", `<strong>Widget-ul nu se poate publica.</strong> ${problems.map(esc).join(" ")}`, { role: "alert" }) || ""
-          : cur
-            ? changes.length
-              ? `${U().renderNotice?.("warning", `<strong>Configurația se schimbă față de versiunea ${esc(String(cur.version))}.</strong> ${esc(plural(changes.length, "câmp modificat", "câmpuri modificate"))}: utilizatorii BackOffice văd noua versiune imediat după publicare.`) || ""}
-                 <div class="e-permits-dosar-profil__card e-permits-reg-changes">${changes.map((r) => G().detailRow?.(r) || "").join("")}</div>`
-              : U().renderInfoNote?.("Configurația este aceeași ca în versiunea în vigoare.") || ""
-            : U().renderInfoNote?.("<strong>Prima publicare.</strong> Widget-ul devine disponibil la alcătuirea tablourilor de bord.") || ""}
+          : U().renderNotice?.("info", cur
+            ? `<strong>Versiunea ${next} o înlocuiește pe versiunea ${esc(String(cur.version))}.</strong> ${changes.length ? "Utilizatorii BackOffice văd noua versiune imediat după publicare." : "Configurația este aceeași ca în versiunea în vigoare."}`
+            : `<strong>Prima publicare: versiunea ${next}.</strong> Widget-ul devine disponibil la alcătuirea tablourilor de bord.`) || ""}
+        ${!problems.length && changes.length ? changesList(changes) : ""}
         ${areaField("wid-publish-note", "publishNote", "Ce s-a schimbat", note, { required: true, placeholder: "De ex. comparație cu săptămâna precedentă", hint: "Apare în istoricul versiunilor." })}`,
       footer: `<div class="modal-buttons"><button class="btn btn-neutral btn-rounded" type="button" data-case-close>Anulează</button><button class="btn btn-primary btn-rounded" type="button" data-wid-publish-confirm${problems.length ? ' aria-disabled="true" data-tooltip-reason="Rezolvați mai întâi problemele de mai sus."' : ""}>Publică</button></div>`
     });
