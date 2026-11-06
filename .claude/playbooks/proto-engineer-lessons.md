@@ -4194,3 +4194,8 @@ For any „research how other products do it” step, search Mobbin (mcp__mobbin
 - 2026-11-06 · Data-coloured clickable cells (heat map, KPI tile): the fill sits on the wrapper, the button inside is transparent
   (else „button-paint”) AND takes its own hover fill (hover-audit compares the element under the pointer — a parent
   `:has(:hover)` reads as no-hover). Disabled radio options: `aria-disabled` on the label, or the audit wants a pointer.
+- 2026-11-06 · KPI follow-ups (user): helpers = the existing container (dictionary = Permisiuni stacked list, not a new card);
+  wide editors = ntpl-02 page width 1280 + `.e-permits-ntpl-content` (preview column wide when it is a chart); create = the
+  Registre full-screen sheet like the widget builder. Charts: never label threshold positions (they collide) — legend +
+  one edge-anchored value label; `tools/ui-qa/chart-overlap.mjs` must report 0. Clickable timeline rows = `openAttrs` →
+  `#dosar-detail-modal` info cards. Commit only own paths (`git commit -- <paths>`) while another agent works in the repo.

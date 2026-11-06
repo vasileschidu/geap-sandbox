@@ -4215,7 +4215,7 @@
     const list = (run, params, as = ADMIN) => ({ flow: "back-office", as, hash: "#kpi", ...(params ? { params } : {}), ready: LIST, delay: 900, run });
     const prof = (id, tab = "definitie", run, params, as = ADMIN) => ({ flow: "back-office", as, hash: `#kpi/${id}/${tab}`, ...(params ? { params } : {}), ready: "#kpi-panel", delay: 900, run });
     const seq = (...steps) => async (h) => { for (const step of steps) await step(h); };
-    const C = "[data-kpi-drawer='create']";
+    const C = "[data-kpi-editor]";
     const O = "[data-kpi-drawer='own']";
     const CONFIRM = "[data-service-confirm-ok]";
     const MENU = (id) => async (h) => { (await h.find(`tr[data-workplace-row="${id}"]`)).scrollIntoView({ block: "center" }); await h.wait(250); await h.click(`tr[data-workplace-row="${id}"] [data-stack-menu-trigger]`); await h.wait(200); };
@@ -4307,7 +4307,11 @@
       "kpi-08b": prof("kpi-v01", "alerte"),
       "kpi-08c": prof("kpi-v02", "alerte", null, null, LOCAL),
       "kpi-08d": list(async (h) => { await h.click(".e-permits-shell__icon-button--notification"); await h.find("#notif-drawer [data-notif-body]"); }, null, LOCAL),
-      "kpi-08e": prof("kpi-t01", "istoric")
+      "kpi-08e": prof("kpi-t01", "istoric"),
+      /* the details: an Istoric event (Modificări old → new) · an alert (band + notified + the alert's events) · the bell link */
+      "kpi-08f": prof("kpi-t01", "istoric", async (h) => { await h.click('#kpi-panel [data-kpi-event="3"] .e-permits-timeline__link'); await h.find("#dosar-detail-modal.is-active"); }),
+      "kpi-08g": prof("kpi-t01", "alerte", async (h) => { await h.click('#kpi-panel [data-kpi-alert="0"] .e-permits-timeline__link'); await h.find("#dosar-detail-modal.is-active"); }, null, LOCAL),
+      "kpi-08h": list(seq(async (h) => { await h.click(".e-permits-shell__icon-button--notification"); await h.find("#notif-drawer [data-notif-body]"); }, async (h) => { await h.click('#notif-drawer a[href="#kpi/kpi-t01/alerte/0"]'); await h.find("#dosar-detail-modal.is-active"); }), null, LOCAL)
     };
   }
 

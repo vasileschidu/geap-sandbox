@@ -249,19 +249,32 @@
       ? [["Favorabil", "success", `până la ${f(Math.max(0, T - th))}`], ["Avertizare", "warning", `${f(Math.max(0, T - th))} – ${f(T)}`], ["Critic", "danger", `peste ${f(T)}`]]
       : [["Favorabil", "success", `până la ${f(T)}`], ["Critic", "danger", `peste ${f(T)}`]];
   }
-  /* „Banda de decizie” of the eKYC config: the stacked meter + an axis with the target and the threshold */
-  function bandHtml(k, t, { title = "Zonele valorii", meta = "" } = {}) {
+  /* the zone band = a bullet graph (Stephen Few; Grafana / Datadog threshold bars): the eKYC stacked meter shows the zones
+     only; the thresholds are NEVER printed at their positions (they collided: „92%95%100%”) — they go into the legend under
+     the bar, one item per zone, which wraps. The one positioned label is the current value: a tick under the bar and
+     „Acum …” anchored away from the nearer edge (start in the left half, end in the right half), so it cannot leave the
+     card or meet another label. components.md › „Charts: no overlapping labels”. */
+  const niceMax = (v) => { if (!(v > 0)) return 1; const step = 10 ** Math.floor(Math.log10(v)); return Math.ceil(v / step * 2) / 2 * step; };
+  function bandHtml(k, t, { title = "Zonele valorii", meta = "", current = null } = {}) {
     if (!hasTarget(t) || Number.isNaN(Number(t.target))) return '<div hidden data-kpi-band></div>';
     const T = Number(t.target);
     const th = Number(t.threshold || 0);
-    const max = k.format === "percent" ? 100 : Math.max(T * 2, T + th * 2, 1);
-    const pctX = (x) => `${((Math.min(max, Math.max(0, x)) / max) * 100).toFixed(2)}%`;
+    const cur = current === null || current === undefined || current === "" || Number.isNaN(Number(current)) ? null : Number(current);
+    const max = k.format === "percent" ? 100 : niceMax(Math.max(T + th, T * 1.5, cur ?? 0) * 1.1);
     const segs = k.direction === "up"
-      ? [[T, "danger"], [th, "warning"], [max - T - th, "success"]]
-      : [[Math.max(0, T - th), "success"], [Math.min(th, T), "warning"], [max - T, "danger"]];
-    const marks = k.direction === "up" ? [T, ...(th ? [T + th] : [])] : [...(th ? [Math.max(0, T - th)] : []), T];
-    const ticks = [[0, fmt(k, 0), "start"], ...marks.map((m) => [m, fmt(k, m), "middle"]), [max, fmt(k, max), "end"]];
+      ? [[Math.min(T, max), "danger"], [Math.max(0, Math.min(th, max - T)), "warning"], [Math.max(0, max - T - th), "success"]]
+      : [[Math.max(0, T - th), "success"], [Math.min(th, T), "warning"], [Math.max(0, max - T), "danger"]];
     const ranges = zoneRanges(k, t);
+    let marker = "";
+    if (cur !== null) {
+      const x = (Math.min(max, Math.max(0, cur)) / max) * 100;
+      const z = zone(k.direction, cur, T, th);
+      marker = `
+          <svg class="e-permits-ekyc-band__axis" role="img" aria-label="${esc(`Valoarea curentă ${fmt(k, cur)}${z ? `, ${ZONES[z][0]}` : ""}`)}" focusable="false">
+            <line class="e-permits-ekyc-band__tick" x1="${x.toFixed(2)}%" x2="${x.toFixed(2)}%" y1="0" y2="8"></line>
+            <text class="e-permits-ekyc-band__label is-threshold" x="${x.toFixed(2)}%" y="22" text-anchor="${x < 50 ? "start" : "end"}">${esc(`Acum ${fmt(k, cur)}`)}</text>
+          </svg>`;
+    }
     return `
       <section class="e-permits-dosar-profil__section" aria-label="${esc(title)}" data-kpi-band>
         <div class="e-permits-dosar-profil__section-heading">
@@ -269,10 +282,7 @@
           ${meta ? `<span class="e-permits-dosar-profil__section-meta">${esc(meta)}</span>` : ""}
         </div>
         <div class="e-permits-chart e-permits-ekyc-band">
-          ${meter(segs, { max, label: ranges.map(([l, , r]) => `${l} ${r}`).join(", ") })}
-          <svg class="e-permits-ekyc-band__axis" aria-hidden="true" focusable="false">
-            ${ticks.map(([x, label, anchor]) => `<line class="e-permits-ekyc-band__tick" x1="${pctX(x)}" x2="${pctX(x)}" y1="0" y2="6"></line><text class="e-permits-ekyc-band__label${x > 0 && x < max ? " is-threshold" : ""}" x="${pctX(x)}" y="22" text-anchor="${anchor}">${esc(label)}</text>`).join("")}
-          </svg>
+          ${meter(segs, { max, label: ranges.map(([l, , r]) => `${l} ${r}`).join(", ") })}${marker}
           ${legend(ranges.map(([l, tone, r]) => [`${l} · ${r}`, tone]))}
         </div>
       </section>`;
@@ -320,6 +330,21 @@
         ${kpiCard(t.own ? "Ținta proprie" : "Ținta", hasTarget(t) ? esc(fmt(k, t.target)) : "—", hasTarget(t) ? `prag de apropiere ${esc(fmtThreshold(k, t.threshold) || "—")}` : "fără țintă: fără alerte")}
       </ul>
       ${checkedAt ? `<p class="e-permits-fo-field__hint">${esc(checkedAt)}</p>` : ""}`;
+  }
+
+  /* the right (wide, ≈7fr) column of a target form = the preview: the zone band with the current value + the value cards and
+     the 12-month trend coloured by the draft target; `[data-kpi-preview]` is redrawn while the target is typed */
+  function targetPreview(k, t, val, series, { title = "Zonele valorii" } = {}) {
+    const chart = val
+      ? `<section class="e-permits-dosar-profil__section">
+          <div class="e-permits-dosar-profil__section-heading"><h2 class="e-permits-dosar-profil__section-title">Valoarea față de țintă</h2></div>
+          <div class="e-permits-chart">${valueCards(k, val, t)}${series?.length ? trendChart(k, series, t) : ""}</div>
+        </section>`
+      : `<section class="e-permits-dosar-profil__section">
+          <div class="e-permits-dosar-profil__section-heading"><h2 class="e-permits-dosar-profil__section-title">Valoarea față de țintă</h2></div>
+          ${E()?.render({ title: "Valoarea nu a fost verificată", text: "Verificați valoarea la pasul „Calcul” ca s-o vedeți aici față de țintă.", icon: "calculator", compact: true }) || ""}
+        </section>`;
+    return `${bandHtml(k, t, { title, current: val?.cur ?? null })}${chart}`;
   }
 
   /* ---------------------------------------------------------------- shared markup: form pieces (BO form vocabulary) */
@@ -888,9 +913,9 @@
   }
 
   /* ---------------------------------------------------------------- audit (Feature AC: every operation) */
-  function audit(k, kind, detail = "") {
+  function audit(k, kind, detail = "", changes = null) {
     const list = (D().history[k.id] = D().history[k.id] || []);
-    list.unshift({ at: nowIso(), by: userName(), role: roleLabel(), event: EVENTS[kind], detail });
+    list.unshift({ at: nowIso(), by: userName(), role: roleLabel(), event: EVENTS[kind], detail, ...(changes ? { changes } : {}) });
     if (["create", "clone", "edit", "on", "off"].includes(kind)) { k.updatedAt = nowIso(); k.updatedBy = userName(); }
   }
 
@@ -1090,15 +1115,38 @@
       </div>`;
   }
   function targetTab(k) {
-    if (!canEdit(k)) return `${readTarget(k)}${bandHtml(k, { target: k.target, threshold: k.threshold }, { title: "Zonele valorii globale" })}`;
+    const w = who();
+    const per = perimeterOf(k, w);
+    const val = isPlanned(k) ? null : valuesOf(k, per);
+    const series = isPlanned(k) ? [] : seriesOf(k, per);
+    const two = (main, aside) => `
+      <div class="e-permits-ntpl-content e-permits-kpi-content--preview">
+        <div class="e-permits-ntpl-content__main">${main}</div>
+        <aside class="e-permits-ntpl-content__preview" data-kpi-preview>${aside}</aside>
+      </div>`;
+    if (!canEdit(k)) {
+      const t = targetFor(k, w.local ? w.authority : null);
+      return two(readTarget(k), targetPreview(k, t, val, series, { title: t.own ? `Zonele valorii în ${authName(w.authority)}` : "Zonele valorii" }));
+    }
     const v = P.draft;
-    const kk = asKpi(v, k);
-    return `
+    return two(`
       ${cardSection("Ținta și pragurile", targetFields(v, P.errors, P.idp, P.check))}
-      ${bandHtml(kk, { target: kk.target, threshold: kk.threshold })}
       ${cardSection("Criterii de setare", criteriaFields(v, P.idp))}
       ${cardSection("Responsabili", rolesFields(v, P.idp))}
-      ${canToggle(k) ? cardSection("Stare", U().renderToggle?.({ label: "Activ", description: k.level === "Global" ? "Un KPI inactiv nu se calculează și nu generează alerte în nicio autoritate. Se aplică imediat." : "Un KPI inactiv nu se calculează și nu generează alerte. Se aplică imediat.", checked: k.status === "Activ", attrs: "data-kpi-active" }) || "") : ""}`;
+      ${canToggle(k) ? cardSection("Stare", U().renderToggle?.({ label: "Activ", description: k.level === "Global" ? "Un KPI inactiv nu se calculează și nu generează alerte în nicio autoritate. Se aplică imediat." : "Un KPI inactiv nu se calculează și nu generează alerte. Se aplică imediat.", checked: k.status === "Activ", attrs: "data-kpi-active" }) || "") : ""}`,
+      profilePreview());
+  }
+  function profilePreview() {
+    const k = kpiOf(P.id);
+    const kk = asKpi(P.draft, k);
+    const per = perimeterOf(k);
+    return isPlanned(k) ? bandHtml(kk, { target: kk.target, threshold: kk.threshold }) : targetPreview(kk, { target: kk.target, threshold: kk.threshold }, valuesOf(k, per), seriesOf(k, per));
+  }
+  function createPreview() {
+    const kk = asKpi(C.v);
+    const ok = C.check && C.check.key === calcKey(C.v);
+    const val = ok ? { cur: C.check.values[0], prev: C.check.values[1], num: C.check.values[2], den: C.check.values[3], pnum: C.check.values[4], pden: C.check.values[5] } : null;
+    return targetPreview(kk, { target: kk.target, threshold: kk.threshold }, val, ok ? C.check.series : []);
   }
 
   /* ---- Valori proprii (US-519 / US-520) — the authority's state + own values; the central admin sees every authority */
@@ -1174,6 +1222,7 @@
     const off = k.status !== "Activ" || (w.local && k.level === "Global" && inheritOf(k, w.authority)?.active === false);
     const offNote = off ? U().renderNotice?.("warning", w.local && k.status === "Activ" ? `KPI-ul este dezactivat pentru ${esc(mine)}: nu generează alerte în ${esc(mine)}.` : "KPI-ul nu este activ: nu generează alerte.") : "";
     const events = alertsOf(k).map((a) => ({
+      idx: D().alerts.indexOf(a),
       at: a.at,
       user: "SIA GEAP",
       role: "Calculul zilnic, 06:00",
@@ -1185,12 +1234,95 @@
     }));
     return `
       <div class="e-permits-reg-notices">${[offNote, rules].filter(Boolean).join("")}</div>
-      ${window.GEAPEventTimeline?.html("Alertele generate", events, { meta: events.length ? "Cele mai noi primele" : "", empty: off || !hasTarget(t) ? "KPI-ul nu a generat alerte." : "KPI-ul nu a generat încă alerte: valoarea este în zona favorabilă." }) || ""}`;
+      ${window.GEAPEventTimeline?.html("Alertele generate", events, { openAttrs: (item) => `data-kpi-alert="${item.idx}"`, meta: events.length ? "Cele mai noi primele" : "", empty: off || !hasTarget(t) ? "KPI-ul nu a generat alerte." : "KPI-ul nu a generat încă alerte: valoarea este în zona favorabilă." }) || ""}`;
   }
   function historyTab(k) {
     const events = (D().history[k.id] || []).slice(0, 100).map((h) => ({ at: h.at, user: h.by, role: h.role, type: h.event, status: "Reușit", detail: h.detail || "" }));
-    return window.GEAPEventTimeline?.html("Istoricul modificărilor", events, { meta: events.length ? "Cele mai noi primele" : "", empty: "Pentru acest KPI nu s-au înregistrat încă modificări." }) || "";
+    return window.GEAPEventTimeline?.html("Istoricul modificărilor", events, { meta: events.length ? "Cele mai noi primele" : "", empty: "Pentru acest KPI nu s-au înregistrat încă modificări.", openAttrs: (item, i) => `data-kpi-event="${i}"` }) || "";
   }
+
+  /* ================================================================ event + alert details (the Jurnal audit-event pattern:
+     `#dosar-detail-modal` with info cards; rows = GEAPEventTimeline items with openAttrs — pointer + hover on the row) */
+  const evId = (seed) => `EV-KPI-${String(hash(seed)).padStart(10, "0").slice(0, 10)}`;
+  const corrId = (seed) => `COR-${(hash(`c:${seed}`) >>> 0).toString(16).toUpperCase().padStart(8, "0")}`;
+  const stampText = (iso) => `${longDate(iso)}, ${time(iso)}`;
+  const addMinutes = (iso, m) => { const d = new Date(iso); d.setMinutes(d.getMinutes() + m); return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}:00`; };
+  /* „Modificări (N)” = the widget publish / compare list: stacked rows, previous value struck through → new value */
+  const diffHtml = (c) => (c.before === "—" || !c.before ? `<strong>${esc(c.after)}</strong>`
+    : c.after === "—" || !c.after ? `<span class="e-permits-event-diff__before">${esc(c.before)}</span>`
+    : `<span class="e-permits-event-diff"><span class="e-permits-event-diff__before">${esc(c.before)}</span><span aria-hidden="true">→</span><span class="u-visually-hidden">devine</span><strong>${esc(c.after)}</strong></span>`);
+  const changesOf = (h) => h.changes || String(h.detail || "").split(" · ").map((part) => /^(.+?): (.+?) → (.+)$/.exec(part)).filter(Boolean).map(([, label, before, after]) => ({ label, before, after }));
+  function openModal(title, subtitle, body, buttons) {
+    const modal = document.querySelector("#dosar-detail-modal");
+    if (!modal) return;
+    modal.querySelector("[data-dosar-detail-title]").textContent = title;
+    modal.querySelector("[data-dosar-detail-subtitle]").textContent = subtitle;
+    modal.querySelector("[data-dosar-detail-body]").innerHTML = body;
+    modal.querySelector("[data-dosar-detail-buttons]").innerHTML = buttons;
+    window.__modal?.open?.("#dosar-detail-modal");
+  }
+  const closeBtn = '<button class="btn btn-primary btn-rounded" type="button" data-dosar-detail-close>Închide</button>';
+  function openEventDetail(k, index) {
+    const h = (D().history[k.id] || [])[Number(index)];
+    if (!h) return;
+    const info = (title, rows) => A().renderInfoCard?.(title, rows) || "";
+    const changes = changesOf(h);
+    const where = /· (.+)$/.exec(h.role || "")?.[1] || (k.level === "Global" ? "Toate autoritățile (Global)" : authName(k.authority));
+    const seed = `${k.id}:${h.at}:${h.event}`;
+    openModal(h.event, k.names.ro, `
+      ${info("Date generale", [
+        ["Acțiunea", esc(h.event)], ["KPI", esc(`${k.code} · ${k.names.ro}`)], ["Data și ora", esc(stampText(h.at))],
+        ["Autor", esc(h.by)], ["Rolul", esc(String(h.role || "").replace(/ · .+$/, ""))], ["Autoritate", esc(where)],
+        ...(!changes.length && h.detail ? [["Detalii", esc(h.detail)]] : [])
+      ])}
+      ${changes.length ? A().renderStackedList?.(`Modificări (${changes.length})`, [{ label: "", items: changes.map((c) => ({ plainTitle: c.label, title: esc(c.label), meta: [diffHtml(c)] })) }]) || "" : ""}
+      ${info("Corelare", [["Identificator eveniment", U().renderCopyCode?.(evId(seed), `Copiază ${evId(seed)}`) || esc(evId(seed))], ["Identificator de corelare", U().renderCopyCode?.(corrId(seed), `Copiază ${corrId(seed)}`) || esc(corrId(seed))]])}`, closeBtn);
+  }
+  function openAlertDetail(index) {
+    const a = D().alerts[Number(index)];
+    const k = a ? kpiOf(a.kpi) : null;
+    if (!a || !k) return;
+    const info = (title, rows) => A().renderInfoCard?.(title, rows) || "";
+    const z = a.kind === "exceeded" ? "critic" : "avertizare";
+    const t = { target: a.target, threshold: a.threshold, own: a.own };
+    const d = new Date(a.at);
+    const sent = addMinutes(a.at, 1);
+    /* the same alert's story: triggered → notified once → back in the favourable zone (when a later calculation says so) */
+    const later = D().alerts.filter((x) => x.kpi === a.kpi && x.authority === a.authority && x.at > a.at).sort((x, y) => (x.at < y.at ? -1 : 1))[0];
+    const story = [
+      ...(later ? [{ at: addMinutes(later.at, -1440 * 2), user: "SIA GEAP", role: "Calculul zilnic, 06:00", type: "Revenită în zona favorabilă", status: "Reușit", detail: "Valoarea a ieșit din zona alertei; o alertă nouă se poate declanșa la următoarea apropiere sau depășire." }]
+        : [{ at: "", user: "SIA GEAP", type: "Revenire în zona favorabilă", status: "Urmează", detail: "Când calculul zilnic arată valoarea în zona favorabilă." }]),
+      { at: sent, user: "SIA GEAP", role: "Notificări", type: "Notificare trimisă", status: "Reușit", detail: `${a.roles.join(", ")} — ${plural(a.recipients, "destinatar", "destinatari")}, în SIA GEAP și pe e-mail, o singură dată.` },
+      { at: a.at, user: "SIA GEAP", role: "Calculul zilnic, 06:00", type: `Alertă declanșată · ${ALERT_KIND[a.kind]}`, status: z === "critic" ? "Critic" : "Avertizare", tone: z === "critic" ? "danger" : "pending", statusTag: false, detail: dot(`Valoarea ${fmt(k, a.value)}, ținta ${fmt(k, a.target)}, prag ${fmtThreshold(k, a.threshold)}`) }
+    ];
+    const kk = { ...k, target: a.target, threshold: a.threshold };
+    openModal(ALERT_KIND[a.kind], k.names.ro, `
+      ${info("Date generale", [
+        ["KPI", esc(`${k.code} · ${k.names.ro}`)], ["Zona", tag(ZONES[z][0], ZONES[z][1])], ["Valoarea măsurată", esc(fmt(k, a.value))],
+        ["Ținta", esc(`${fmt(k, a.target)}${a.own ? " · valoare proprie" : ""}`)], ["Pragul de apropiere", esc(fmtThreshold(k, a.threshold) || "—")],
+        ["Perioada", esc(`${RO_MONTHS[d.getMonth()]} ${d.getFullYear()}, până la ${longDate(a.at)}`)], ["Autoritate", esc(authOf(a.authority)?.long || authName(a.authority))],
+        ["Data declanșării", esc(stampText(a.at))]
+      ])}
+      ${bandHtml(kk, t, { title: "Valoarea față de țintă", current: a.value })}
+      ${info("Notificați", [["Roluri", esc(a.roles.join(", "))], ["Destinatari", esc(plural(a.recipients, "persoană", "persoane"))], ["Canale", "SIA GEAP și e-mail"], ["Trimisă", esc(`${stampText(sent)} · o singură dată`)]])}
+      <section class="e-permits-dosar-profil__section">
+        <div class="e-permits-dosar-profil__section-heading"><h2 class="e-permits-dosar-profil__section-title">Evenimentele aceleiași alerte</h2></div>
+        ${window.GEAPEventTimeline?.listHtml(story) || ""}
+      </section>`,
+      `<button class="btn btn-secondary btn-rounded" type="button" data-kpi-alert-kpi="${esc(k.id)}">Deschide KPI</button>${closeBtn}`);
+  }
+  document.addEventListener("click", (event) => {
+    const t = event.target;
+    if (!t.closest) return;
+    const open = t.closest("[data-kpi-alert-kpi]");
+    if (open) { window.__modal?.close?.("#dosar-detail-modal"); openProfile(open.dataset.kpiAlertKpi, "alerte"); return; }
+    const root = profileRoot();
+    if (!root || !root.contains(t)) return;
+    const ev = t.closest("[data-kpi-event]");
+    if (ev) { openEventDetail(kpiOf(P.id), ev.dataset.kpiEvent); return; }
+    const al = t.closest("[data-kpi-alert]");
+    if (al) openAlertDetail(al.dataset.kpiAlert);
+  });
 
   /* ---- save / discard (US-401) */
   function save() {
@@ -1215,7 +1347,8 @@
       k.values = { ...(k.values || {}), [per]: P.check.values };
     }
     const show = (key, val) => (key === "recalc" || key === "hasDen" ? (val ? "Da" : "Nu") : Array.isArray(val) ? val.join(", ") || "—" : typeof val === "object" ? "modificat" : String(val ?? "") || "—");
-    audit(k, "edit", keys.map((key) => (["num", "den"].includes(key) ? DRAFT_LABELS[key][0] : `${DRAFT_LABELS[key][0]}: ${show(key, before[key])} → ${show(key, v[key])}`)).join(" · "));
+    const changes = keys.map((key) => ({ label: DRAFT_LABELS[key][0], before: ["num", "den"].includes(key) ? rulesText({ ...before, [key]: before[key] }, key) : show(key, before[key]), after: ["num", "den"].includes(key) ? rulesText({ ...P.draft, source: v.source }, key) : show(key, v[key]) }));
+    audit(k, "edit", keys.map((key) => DRAFT_LABELS[key][0]).join(" · "), changes);
     P.draft = draftOf(k); P.saveError = false;
     renderProfile({ keep: "[data-kpi-save]" });
     toast("Modificările au fost salvate.");
@@ -1314,41 +1447,77 @@
     return `${letter}-${pad((used.length ? Math.max(...used) : 0) + 1)}`;
   };
 
+  /* „Creează KPI” / „Clonează KPI” = the Registre full-screen sheet (`.e-permits-ntpl-sheet.e-permits-reg-editor`, as the
+     widget builder): own header + step strip + the save bar; the body = the ntpl page width (1280) with the ntpl two-column
+     grid — Calcul: form | dictionary (helper, form wide), Ținta: form | preview (preview wide), Revizuire: blocks | preview */
+  let sheet = null;
+  function ensureSheet() {
+    if (sheet) return sheet;
+    document.body.insertAdjacentHTML("beforeend", `
+      <div class="e-permits-ntpl-sheet e-permits-reg-editor e-permits-kpi-editor" data-kpi-editor hidden>
+        <div class="e-permits-ntpl-sheet__scrim" aria-hidden="true" data-kpi-close></div>
+        <div class="e-permits-ntpl-sheet__panel e-permits-reg-editor__panel" role="dialog" aria-modal="true" aria-labelledby="kpi-ed-title" tabindex="-1">
+          <button class="modal-close e-permits-reg-editor__close" type="button" aria-label="Închide" data-kpi-close>${icon("cross-large", 16)}</button>
+          <header class="e-permits-page-header e-permits-reg-editor__header">
+            <div class="e-permits-page-header__body"><div class="e-permits-page-header__top" data-kpi-ed-top></div></div>
+          </header>
+          <nav class="e-permits-steps-strip" aria-label="Pașii creării" data-kpi-steps></nav>
+          <div class="e-permits-reg-editor__body" data-kpi-ed-body></div>
+          <div class="e-permits-cfg2__bar e-permits-reg-editor__bar" role="region" aria-label="Pașii KPI-ului" data-kpi-ed-bar></div>
+        </div>
+      </div>`);
+    sheet = document.querySelector("[data-kpi-editor]");
+    window.addEventListener("keydown", (event) => {
+      if (event.key !== "Escape" || sheet.hidden) return;
+      if (document.querySelector(".modal-overlay.is-active, [data-stack-menu]:not([hidden]), .e-permits-fo-select__list:not([hidden])")) return;
+      if (sheet.querySelector("[aria-expanded='true']:not(.e-permits-stack__group-toggle)")) return;
+      event.preventDefault();
+      closeCreate();
+    });
+    return sheet;
+  }
+  const scroller = () => sheet?.querySelector("[data-kpi-ed-scroll]");
   function openCreate(fromId = "") {
     if (!canCreate()) return;
     const src = fromId ? kpiOf(fromId) : null;
     const v = src ? { ...draftOf(src), nameRo: `${src.names.ro} (copie)`.slice(0, NAME_MAX), code: nextCode(domainOf(src.code)) } : blankDraft();
-    C = { step: 1, maxStep: 1, errors: {}, saveError: false, v, from: src?.id || "", check: null, checking: false, dictQuery: "", dictClosed: new Set(fieldsOf(v.source).map((f) => f.group)), idp: "kpi-c", codeTouched: Boolean(src) };
-    const d = ensureDrawer("create", { steps: true });
-    d.querySelector(".drawer__title").textContent = src ? "Clonează KPI" : "KPI nou";
+    C = { step: 1, maxStep: 1, errors: {}, saveError: false, v, from: src?.id || "", check: null, checking: false, dictQuery: "", dictClosed: new Set(), idp: "kpi-c", codeTouched: Boolean(src), back: document.activeElement };
+    const el = ensureSheet();
     renderCreate();
-    openDrawer(d, src ? "#kpi-c-name-ro" : "#kpi-c-domain");
+    el.hidden = false;
+    document.documentElement.classList.add("is-reg-editor-open");
+    requestAnimationFrame(() => el.querySelector(src ? "#kpi-c-name-ro" : "#kpi-c-domain")?.focus({ preventScroll: true }));
   }
   function closeCreate(force = false) {
-    const d = drawers.create;
-    if (!d || d.hidden) return;
-    const v = C?.v;
-    const touched = v && (C.from || v.nameRo || v.code || v.source);
-    const close = () => { C = null; shutDrawer(d); };
+    if (!sheet || sheet.hidden || !C) return;
+    const v = C.v;
+    const touched = C.from || v.nameRo || v.code || v.source;
+    const close = () => {
+      const back = C?.back;
+      C = null;
+      sheet.hidden = true;
+      document.documentElement.classList.remove("is-reg-editor-open");
+      if (back?.isConnected) back.focus({ preventScroll: true });
+    };
     if (force || !touched) { close(); return; }
-    U().askConfirm?.({ title: "Renunțați la KPI-ul nou?", text: "Datele completate nu se păstrează.", confirmLabel: "Renunță", destructive: true }, close);
+    U().askConfirm?.({ title: "Renunțați la KPI-ul nou?", text: "Datele completate nu se păstrează.", confirmLabel: "Renunță", cancelLabel: "Continuă editarea", destructive: true }, close);
   }
-  function stepIdentity() { return drawerSection("Identificare", identityFields(C.v, C.errors, C.idp, { isNew: true })); }
+  const twoCols = (main, aside, { preview = false, attr = "" } = {}) => `
+    <div class="e-permits-ntpl-content${preview ? " e-permits-kpi-content--preview" : ""}">
+      <div class="e-permits-ntpl-content__main">${main}</div>
+      ${aside ? `<aside class="e-permits-ntpl-content__preview"${attr ? ` ${attr}` : ""}>${aside}</aside>` : ""}
+    </div>`;
+  function stepIdentity() { return twoCols(cardSection("Identificare", identityFields(C.v, C.errors, C.idp, { isNew: true })), ""); }
   function stepCalc() {
-    const [first, ...rest] = calcSections(C.v, C.errors, C.idp).map(([title, body]) => drawerSection(title, body));
-    return `
-      ${first}
-      ${C.v.source ? dictionaryHtml(C, C.v, C.idp) : ""}
-      ${rest.join("")}
-      ${C.v.source ? checkSection(C, C.v, C.idp) : ""}`;
+    return twoCols(`
+      ${calcSections(C.v, C.errors, C.idp).map(([title, body]) => cardSection(title, body)).join("")}
+      ${C.v.source ? checkSection(C, C.v, C.idp) : ""}`, dictionaryHtml(C, C.v, C.idp));
   }
   function stepTarget() {
-    const k = asKpi(C.v);
-    return `
-      ${drawerSection("Ținta și pragurile", targetFields(C.v, C.errors, C.idp, C.check))}
-      ${bandHtml(k, { target: k.target, threshold: k.threshold })}
-      ${drawerSection("Criterii de setare", criteriaFields(C.v, C.idp))}
-      ${drawerSection("Responsabili", rolesFields(C.v, C.idp))}`;
+    return twoCols(`
+      ${cardSection("Ținta și pragurile", targetFields(C.v, C.errors, C.idp, C.check))}
+      ${cardSection("Criterii de setare", criteriaFields(C.v, C.idp))}
+      ${cardSection("Responsabili", rolesFields(C.v, C.idp))}`, createPreview(), { preview: true, attr: "data-kpi-preview" });
   }
   function stepReview() {
     const v = C.v;
@@ -1357,7 +1526,7 @@
     const goto = (n) => `<button class="btn btn-text-primary btn-sm" type="button" data-kpi-goto="${n}">Modifică</button>`;
     const block = (title, rows, n) => A().renderPassportBlock?.(title, rows, { actionHtml: goto(n) }) || "";
     const checked = C.check && C.check.key === calcKey(v);
-    return `
+    return twoCols(`
       ${block("Identificare", [
         ["Cod", esc(v.code)], ["Domeniu", esc(domainName(v.domain))], ["Denumire (RO)", esc(v.nameRo.trim())],
         ["Denumire (RU)", v.nameRu ? esc(v.nameRu) : dash], ["Denumire (EN)", v.nameEn ? esc(v.nameEn) : dash]
@@ -1375,25 +1544,35 @@
       ], 3)}
       ${U().renderInfoNote?.(w.central
         ? "KPI-ul se creează <strong>activ</strong>, la nivelul <strong>Global</strong>, și este moștenit de toate autoritățile."
-        : `KPI-ul se creează <strong>activ</strong>, la nivelul autorității <strong>${esc(authName(w.authority))}</strong>, și se aplică doar în ${esc(authName(w.authority))}.`) || ""}`;
+        : `KPI-ul se creează <strong>activ</strong>, la nivelul autorității <strong>${esc(authName(w.authority))}</strong>, și se aplică doar în ${esc(authName(w.authority))}.`) || ""}`, createPreview(), { preview: true });
   }
   function renderCreate({ keep = "" } = {}) {
-    const d = drawers.create;
-    if (!C || !d) return;
+    if (!C || !sheet) return;
     const active = document.activeElement;
-    const keepSel = keep || (active && d.contains(active) && active.id ? `#${CSS.escape(active.id)}` : "");
+    const keepSel = keep || (active && sheet.contains(active) && active.id ? `#${CSS.escape(active.id)}` : "");
     const caret = active && "selectionStart" in active ? [active.selectionStart, active.selectionEnd] : null;
+    const scroll = scroller()?.scrollTop || 0;
     const w = who();
-    d.querySelector("[data-kpi-subtitle]").textContent = w.central ? "Nivel Global · moștenit de toate autoritățile" : `Nivel Autoritate · ${authName(w.authority)}`;
-    d.querySelector("[data-kpi-steps]").innerHTML = A().renderStepStrip?.(STEPS, C, "data-kpi-goto") || "";
-    const body = d.querySelector("[data-kpi-drawer-body]");
-    body.innerHTML = `${C.saveError ? `<div class="e-permits-reg-notices">${U().renderNotice?.("error", esc(SAVE_FAILED), { role: "alert" }) || ""}</div>` : ""}<div class="e-permits-clas-create e-permits-kpi-form">${[stepIdentity, stepCalc, stepTarget, stepReview][C.step - 1]()}</div>`;
-    d.querySelector("[data-kpi-summary]").textContent = `Pasul ${C.step} din ${STEPS.length} · ${STEPS[C.step - 1]}`;
-    d.querySelector("[data-kpi-buttons]").innerHTML = `
-      ${C.step === 1 ? '<button class="btn btn-neutral btn-rounded" type="button" data-kpi-close>Anulează</button>' : '<button class="btn btn-neutral btn-rounded" type="button" data-kpi-prev>Înapoi</button>'}
-      ${C.step < STEPS.length ? '<button class="btn btn-primary btn-rounded" type="button" data-kpi-next>Continuă</button>' : '<button class="btn btn-primary btn-rounded" type="button" data-kpi-create>Creează KPI</button>'}`;
-    if (keepSel) {
-      const el = d.querySelector(keepSel);
+    sheet.querySelector("[data-kpi-ed-top]").innerHTML = window.GEAPPageHeader?.top({
+      title: C.from ? "Clonează KPI" : "KPI nou",
+      titleId: "kpi-ed-title",
+      caption: w.central ? "Nivel Global · moștenit de toate autoritățile" : `Nivel Autoritate · ${authName(w.authority)}`
+    }) || `<h1 class="e-permits-page-header__title" id="kpi-ed-title">${C.from ? "Clonează KPI" : "KPI nou"}</h1>`;
+    sheet.querySelector("[data-kpi-steps]").innerHTML = A().renderStepStrip?.(STEPS, C, "data-kpi-goto") || "";
+    sheet.querySelector("[data-kpi-ed-body]").innerHTML = `
+      <div class="e-permits-reg-editor__single e-permits-kpi-editor__page" data-kpi-ed-scroll>
+        ${C.saveError ? `<div class="e-permits-reg-notices">${U().renderNotice?.("error", esc(SAVE_FAILED), { role: "alert" }) || ""}</div>` : ""}
+        ${[stepIdentity, stepCalc, stepTarget, stepReview][C.step - 1]()}
+      </div>`;
+    sheet.querySelector("[data-kpi-ed-bar]").innerHTML = `
+      <p class="e-permits-cfg2__bar-text" aria-live="polite">${esc(`Pasul ${C.step} din ${STEPS.length} · ${STEPS[C.step - 1]}`)}</p>
+      <div class="e-permits-cfg2__bar-actions">
+        ${C.step === 1 ? '<button class="btn btn-neutral btn-sm" type="button" data-kpi-close>Anulează</button>' : '<button class="btn btn-neutral btn-sm" type="button" data-kpi-prev>Înapoi</button>'}
+        ${C.step < STEPS.length ? '<button class="btn btn-primary btn-sm" type="button" data-kpi-next>Continuă</button>' : '<button class="btn btn-primary btn-sm" type="button" data-kpi-create>Creează KPI</button>'}
+      </div>`;
+    if (scroller() && keep !== "@top") scroller().scrollTop = scroll;
+    if (keepSel && keepSel !== "@top") {
+      const el = sheet.querySelector(keepSel);
       el?.focus?.({ preventScroll: true });
       if (caret && el && "setSelectionRange" in el) { try { el.setSelectionRange(caret[0], caret[1]); } catch { /* not text */ } }
     }
@@ -1405,23 +1584,23 @@
       if (Object.keys(errors).length) {
         C.step = s; C.errors = errors;
         renderCreate({ keep: firstErrorSel(C.idp, errors) });
-        showError(drawers.create, firstErrorSel(C.idp, errors));
+        showError(sheet, firstErrorSel(C.idp, errors));
         return;
       }
     }
     C.errors = {};
     C.step = target;
     C.maxStep = Math.max(C.maxStep, target);
-    renderCreate();
-    drawers.create.querySelector(".drawer__body").scrollTop = 0;
-    drawers.create.querySelector("[data-kpi-create], [data-kpi-next]")?.focus();
+    renderCreate({ keep: "@top" });
+    if (scroller()) scroller().scrollTop = 0;
+    sheet.querySelector("[data-kpi-create], [data-kpi-next]")?.focus({ preventScroll: true });
   }
   function create() {
     for (const s of [1, 2, 3]) {
       const errors = validate(C.v, { steps: [s] });
-      if (Object.keys(errors).length) { C.step = s; C.errors = errors; renderCreate({ keep: firstErrorSel(C.idp, errors) }); showError(drawers.create, firstErrorSel(C.idp, errors)); return; }
+      if (Object.keys(errors).length) { C.step = s; C.errors = errors; renderCreate({ keep: firstErrorSel(C.idp, errors) }); showError(sheet, firstErrorSel(C.idp, errors)); return; }
     }
-    if (demo.has("eroare")) { C.saveError = true; renderCreate(); drawers.create.querySelector(".drawer__body").scrollTop = 0; return; }
+    if (demo.has("eroare")) { C.saveError = true; renderCreate({ keep: "@top" }); if (scroller()) scroller().scrollTop = 0; return; }
     const w = who();
     const v = C.v;
     const id = `kpi-${v.code.toLowerCase().replace(/[^a-z0-9]+/g, "")}`;
@@ -1476,7 +1655,7 @@
           textField("kpi-o-target", "target", "Ținta", v.target, { required: true, span: 6, unit, numeric: true, hint: hasTarget(k) ? `Ținta globală: ${fmt(k, k.target)}.` : "KPI-ul nu are țintă globală.", error: e.target }),
           textField("kpi-o-threshold", "threshold", "Pragul de apropiere", v.threshold, { span: 6, unit: k.format === "percent" ? "p.p." : unit, numeric: true, hint: hasTarget(k) ? dot(`Pragul global: ${fmtThreshold(k, k.threshold) || "—"}`) : "", error: e.threshold })
         ))}
-        ${bandHtml(kk, { target: kk.target, threshold: kk.threshold })}
+        ${bandHtml(kk, { target: kk.target, threshold: kk.threshold }, { current: valuesOf(k, w.authority).cur })}
       </div>`;
     d.querySelector("[data-kpi-summary]").textContent = "";
     d.querySelector("[data-kpi-buttons]").innerHTML = `
@@ -1536,7 +1715,7 @@
   const profileRoot = () => (profileOpen() ? A().els?.dosarProfilPanel || document.querySelector("[data-dosar-profil]") : null);
   /* which form state a control belongs to: the create drawer, the own-value drawer or the profile */
   function ctxOf(el) {
-    if (drawers.create && C && drawers.create.contains(el)) return { st: C, v: C.v, render: renderCreate, root: drawers.create };
+    if (sheet && C && sheet.contains(el)) return { st: C, v: C.v, render: renderCreate, root: sheet };
     if (drawers.own && O && drawers.own.contains(el)) return { st: O, v: O.v, render: renderOwn, root: drawers.own, own: true };
     const root = profileRoot();
     if (root && root.contains(el) && P.draft) return { st: P, v: P.draft, render: renderProfile, root, profile: true };
@@ -1585,8 +1764,7 @@
       if (avg) { v.target = avg.dataset.kpiUseAvg; delete st.errors.target; render({ keep: `#${st.idp}-target` }); afterEdit(ctx); return; }
     }
     /* create drawer */
-    const cd = drawers.create;
-    if (cd && cd.contains(t) && C) {
+    if (sheet && sheet.contains(t) && C) {
       if (t.closest("[data-kpi-prev]")) { C.errors = {}; C.step -= 1; renderCreate(); return; }
       if (t.closest("[data-kpi-next]")) { goStep(C.step + 1); return; }
       const goto = t.closest("[data-kpi-goto]");
@@ -1613,10 +1791,12 @@
   });
   /* the target band follows the typed target / threshold without a redraw (the field keeps focus and caret) */
   function refreshBand(ctx) {
+    const preview = ctx.root.querySelector("[data-kpi-preview]");
+    if (preview) { preview.innerHTML = ctx.profile ? profilePreview() : createPreview(); return; }
     const band = ctx.root.querySelector("[data-kpi-band]");
     if (!band) return;
     let html;
-    if (ctx.own) { const k = kpiOf(O.k); const kk = { ...k, target: num(O.v.target), threshold: num(O.v.threshold) }; html = bandHtml(kk, { target: kk.target, threshold: kk.threshold }); }
+    if (ctx.own) { const k = kpiOf(O.k); const kk = { ...k, target: num(O.v.target), threshold: num(O.v.threshold) }; html = bandHtml(kk, { target: kk.target, threshold: kk.threshold }, { current: valuesOf(k, who().authority).cur }); }
     else { const kk = asKpi(ctx.v, ctx.profile ? kpiOf(P.id) || {} : {}); html = bandHtml(kk, { target: kk.target, threshold: kk.threshold }); }
     band.outerHTML = html;
   }
@@ -1753,7 +1933,7 @@
         title: a.kind === "exceeded" ? `KPI-ul „${k.names.ro}” a depășit ținta` : `KPI-ul „${k.names.ro}” se apropie de țintă`,
         line: `${k.code} · ${fmt(k, a.value)}, ținta ${fmt(k, a.target)} · ${authName(a.authority)} · trimisă și pe e-mail`,
         at: a.at,
-        href: `#kpi/${encodeURIComponent(k.id)}/alerte`
+        href: `#kpi/${encodeURIComponent(k.id)}/alerte/${D().alerts.indexOf(a)}`
       };
     }).filter(Boolean);
   });
@@ -1770,10 +1950,11 @@
       if (nav && who().has) nav.click(); else showDenied();
       return true;
     }
-    const m = /^#kpi\/([^/]+)(?:\/([a-z]+))?$/.exec(hash);
+    const m = /^#kpi\/([^/]+)(?:\/([a-z]+))?(?:\/(\d+))?$/.exec(hash);
     if (!m) return false;
     if (!who().has) { showDenied(); return true; }
-    load().then(() => openProfile(decodeURIComponent(m[1]), m[2] || "definitie", { push: false }));
+    /* a bell notification = #kpi/<id>/alerte/<n>: the profile's Alerte tab + the alert's detail */
+    load().then(() => openProfile(decodeURIComponent(m[1]), m[2] || "definitie", { push: false })).then(() => { if (m[2] === "alerte" && m[3]) openAlertDetail(m[3]); });
     return true;
   });
   /* Feature AC: the menu item exists only with „Gestionarea KPI” — the roles.json menus give it to the two administrators;

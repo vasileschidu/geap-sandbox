@@ -53,3 +53,33 @@
   }
 
 }
+
+/* ---- page width + grid (kpi-wide-v1, 2026-11-06, user: „too narrow”): the notification-template editor's page (ntpl-02:
+   `.e-permits-ntpl-profile .e-permits-user-profile__panel` max-width 1280) and its `.e-permits-ntpl-content` grid. The form is
+   the wide column when the right one is a helper (dictionary); when the right column is a chart / preview the columns flip
+   (`.e-permits-kpi-content--preview`: form minmax(360px, 5fr) · preview 7fr). Sticky right column, stacked ≤ 1100 (ntpl). */
+.e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-dosar-profil__panel#kpi-panel,
+.e-permits-kpi-editor .e-permits-reg-editor__single.e-permits-kpi-editor__page {
+  max-width: calc(var(--spacing-40, 40px) * 32);
+}
+
+.e-permits-kpi-content--preview {
+  grid-template-columns: minmax(360px, 5fr) minmax(0, 7fr);
+}
+
+/* the create sheet: the step strip on the sheet's 24 gutter (as the widget builder) */
+.e-permits-kpi-editor .e-permits-steps-strip {
+  padding-inline: var(--spacing-24, 24px);
+}
+
+@media (max-width: 1100px) {
+  .e-permits-kpi-content--preview {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 760px) {
+  .e-permits-kpi-editor .e-permits-steps-strip {
+    padding-inline: var(--spacing-16, 16px);
+  }
+}
