@@ -4220,12 +4220,15 @@
     const list = (run, params, as = ADMIN) => ({ flow: "back-office", as, hash: "#kpi", ...(params ? { params } : {}), ready: LIST, delay: 900, run });
     const prof = (id, tab = "definitie", run, params, as = ADMIN) => ({ flow: "back-office", as, hash: `#kpi/${id}/${tab}`, ...(params ? { params } : {}), ready: "#kpi-panel", delay: 900, run });
     const seq = (...steps) => async (h) => { for (const step of steps) await step(h); };
-    const C = "[data-kpi-editor]";
+    /* kpi-page-v1 (2026-11-07): „Creează KPI” = the profile page (#kpi/nou), tabs Definiție · Ținta și responsabili */
+    const C = "#kpi-panel";
     const O = "[data-kpi-drawer='own']";
     const CONFIRM = "[data-service-confirm-ok]";
     const MENU = (id) => async (h) => { (await h.find(`tr[data-workplace-row="${id}"]`)).scrollIntoView({ block: "center" }); await h.wait(250); await h.click(`tr[data-workplace-row="${id}"] [data-stack-menu-trigger]`); await h.wait(200); };
     const nou = async (h) => { await h.click('[data-workplace-add-product="kpi-new"]'); await h.find(`${C} #kpi-c-domain`); };
-    const next = async (h) => { await h.click(`${C} [data-kpi-next]`); await h.wait(200); };
+    const tab = (id) => async (h) => { await h.click(`[data-kpi-tab="${id}"]`); await h.wait(250); };
+    const createBtn = async (h) => { await h.click("[data-kpi-create]"); await h.wait(300); };
+    const to = (sel) => async (h) => { (await h.find(sel)).scrollIntoView({ block: "start" }); await h.wait(200); };
     const step1 = async (h) => {
       await h.choose(`${C} select[data-kpi-field="domain"]`, "T");
       await h.fill("#kpi-c-name-ro", "Dosare finalizate în 5 zile", { leave: false });
@@ -4265,21 +4268,23 @@
       "kpi-02a": { flow: "back-office", as: ADMIN, hash: "#kpi", params: { kpi: "fara-permisiune" }, ready: "[data-reg-page]:not([hidden]) .e-permits-empty", delay: 900 },
       /* US-399 — create */
       "kpi-03": list(nou),
-      "kpi-03a": list(seq(nou, next)),
-      "kpi-03b": list(seq(nou, step1, next, step2)),
-      "kpi-03c": list(seq(nou, step1, next, step2, async (h) => { await h.choose(`${C} select[data-kpi-field="den.source"]`, "reg-acte"); }, next)),
-      "kpi-03d": list(seq(nou, step1, next, step2, verify, async (h) => { (await h.find(`${C} [data-kpi-verify]`)).scrollIntoView({ block: "start" }); await h.wait(200); })),
-      "kpi-03e": list(seq(nou, step1, next, step2, async (h) => { await h.click(`${C} [data-kpi-verify]`); (await h.find(`${C} [data-kpi-verify]`)).scrollIntoView({ block: "start" }); await h.wait(200); }), { kpi: "verificare-lenta" }),
-      "kpi-03f": list(seq(nou, step1, next, step2, verify, async (h) => { (await h.find(`${C} [data-kpi-verify]`)).scrollIntoView({ block: "start" }); await h.wait(200); }), { kpi: "numitor-zero" }),
-      "kpi-03g": list(seq(nou, step1, next, step2, verify, next, step3)),
-      "kpi-03h": list(seq(nou, step1, next, step2, verify, next, step3, next)),
-      "kpi-03i": list(seq(nou, step1, next, step2, verify, next, step3, next, async (h) => { await h.click(`${C} [data-kpi-create]`); await h.find("#kpi-panel"); })),
-      "kpi-03j": list(seq(nou, step1, next, step2, next, next, async (h) => { await h.click(`${C} [data-kpi-create]`); }), { kpi: "eroare" }),
+      "kpi-03a": list(seq(nou, createBtn)),
+      "kpi-03b": list(seq(nou, step1, step2, to(`${C} #kpi-c-source`))),
+      "kpi-03c": list(seq(nou, step1, step2, async (h) => { await h.choose(`${C} select[data-kpi-field="den.source"]`, "reg-acte"); }, createBtn)),
+      "kpi-03d": list(seq(nou, step1, step2, verify, to(`${C} [data-kpi-verify]`))),
+      "kpi-03e": list(seq(nou, step1, step2, async (h) => { await h.click(`${C} [data-kpi-verify]`); }, to(`${C} [data-kpi-verify]`)), { kpi: "verificare-lenta" }),
+      "kpi-03f": list(seq(nou, step1, step2, verify, to(`${C} [data-kpi-verify]`)), { kpi: "numitor-zero" }),
+      "kpi-03g": list(seq(nou, step1, step2, verify, tab("tinta"), step3)),
+      "kpi-03h": list(seq(nou, step1, step2, tab("tinta"), async (h) => { await h.fill("#kpi-c-threshold", "5", { leave: false }); }, createBtn)),
+      "kpi-03i": list(seq(nou, step1, step2, verify, tab("tinta"), step3, async (h) => { await h.click("[data-kpi-create]"); await h.find("#kpi-panel #kpi-e-name-ro, #kpi-panel .e-permits-passport"); })),
+      "kpi-03j": list(seq(nou, step1, step2, createBtn), { kpi: "eroare" }),
       "kpi-03k": list(nou, null, LOCAL),
       "kpi-03l": list(seq(MENU("kpi-t02"), async (h) => { await h.click('[data-kpi-row-clone="kpi-t02"]'); await h.find(`${C} #kpi-c-name-ro`); })),
       "kpi-03n": list(seq(nou, step1)),
-      "kpi-03m": list(seq(nou, step1, next, step2, async (h) => { await h.fill(`${C} [data-kpi-dict-search]`, "finaliz"); })),
-      /* US-401 — edit */
+      "kpi-03m": list(seq(nou, step1, step2, async (h) => { await h.fill(`${C} [data-kpi-dict-search]`, "finaliz"); })),
+      "kpi-03o": list(seq(nou, step1, async (h) => { await h.click("[data-topbar-back]"); await h.find(".modal-overlay.is-active"); await h.wait(300); })),
+      "kpi-03p": { flow: "back-office", as: ADMIN, hash: "#kpi/nou/tinta", ready: "#kpi-panel #kpi-c-target", delay: 900 },
+
       "kpi-04": prof("kpi-t01"),
       "kpi-04a": prof("kpi-t01", "tinta"),
       /* the band label near the edges: centred on the marker, shifted inside the card (?kpi=marker-stanga / marker-dreapta) */
@@ -4309,6 +4314,7 @@
       "kpi-07b": prof("kpi-c02", "valori", seq(async (h) => { await h.click("#kpi-panel [data-kpi-own-add]"); await h.find(`${O} #kpi-o-target`); }, async (h) => { await h.click(`${O} [data-kpi-own-save]`); }), null, LOCAL),
       "kpi-07c": prof("kpi-t01", "valori", async (h) => { await h.click('#kpi-panel [data-kpi-own-edit="own-2"]'); await h.find(`${O} #kpi-o-target`); }, null, LOCAL),
       "kpi-07d": prof("kpi-t01", "valori", seq(async (h) => { const edit = await h.find('#kpi-panel [data-kpi-own-edit="own-3"]'); edit.closest(".e-permits-stack__item").querySelector("[data-stack-menu-trigger]").click(); await h.wait(300); }, async (h) => { await h.click('#kpi-panel [data-kpi-own-remove="own-3"]'); }), null, LOCAL),
+      "kpi-07f": prof("kpi-t01", "valori", seq(async (h) => { await h.click("#kpi-panel [data-kpi-own-add]"); await h.find(`${O} #kpi-o-target`); }, async (h) => { await h.choose(`${O} select[data-kpi-field="level"]`, "Rol"); await h.wait(200); }), null, LOCAL),
       "kpi-07e": prof("kpi-c02", "valori", seq(async (h) => { await h.click("#kpi-panel [data-kpi-own-add]"); await h.find(`${O} #kpi-o-target`); }, async (h) => { await h.fill("#kpi-o-target", "6", { leave: false }); await h.fill("#kpi-o-threshold", "1", { leave: false }); }, async (h) => { await h.click(`${O} [data-kpi-own-save]`); }), null, LOCAL),
       /* US-521 — alerts + notification of the responsible roles */
       "kpi-08": prof("kpi-t01", "alerte", null, null, LOCAL),

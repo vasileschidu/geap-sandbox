@@ -102,7 +102,7 @@
       "hasDen": true,
       "den": { "source": "reg-dosare", "logic": "and", "rules": [{ "column": "statut", "op": "is", "value": "Finalizat" }] },
       "dateColumn": "finalizat", "valueType": "Flux", "format": "percent", "unit": "zile", "direction": "up",
-      "target": 90, "threshold": 5, "criteria": ["Serviciu", "Subdiviziune"], "roles": ["Supervizor", "Director", "Administrator local"], "recalc": false,
+      "target": 90, "threshold": 5, "criteria": ["Serviciu", "Subdiviziune", "Specialist"], "roles": ["Supervizor", "Director", "Administrator local"], "recalc": false,
       "values": { "all": [88.6, 91.4, 1784, 2013, 1903, 2082], "ansp": [87.4, 91.2, 412, 471, 455, 499], "anta": [90.8, 91.7, 208, 229, 221, 241] },
       "updatedAt": "2026-10-28T11:20:00", "updatedBy": "Anastasia Cojocaru"
     },
@@ -116,7 +116,7 @@
       "hasDen": false,
       "den": { "source": "", "logic": "and", "rules": [] },
       "dateColumn": "finalizat", "valueType": "Flux", "format": "duration", "unit": "zile", "direction": "down",
-      "target": 5, "threshold": 1, "criteria": ["Serviciu"], "roles": ["Supervizor"], "recalc": false,
+      "target": 5, "threshold": 1, "criteria": ["Serviciu", "Specialist"], "roles": ["Supervizor"], "recalc": false,
       "values": { "all": [4.6, 4.9], "ansp": [4.3, 4.8], "anta": [5.4, 5.1] },
       "updatedAt": "2026-10-21T09:05:00", "updatedBy": "Anastasia Cojocaru"
     },

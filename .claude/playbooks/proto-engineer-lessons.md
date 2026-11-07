@@ -4213,3 +4213,10 @@ For any „research how other products do it” step, search Mobbin (mcp__mobbin
   nowrap + padding 8. macOS `sed -i ''` needs the empty suffix (a bare `-i` aborted the multi-file bump halfway).
 - 2026-11-07 · Segmented icons: ONE shared rule `.segment-item > .icon` (css/e-permits-acte-permisive.css) = 20 (`--icon-size-medium`, Figma segmented); doc-picker svg keeps `.icon.small` in markup but the rule wins. Process Designer modes/views keep their own 16 overrides. Empty title = medium 500.
 - 2026-11-07 · Chart baseline „not visible” (user): the 1px `border-bottom` was there (#d9d9d9, plot border-box 160) — the real defect was `rect height="100%"` from y=top: bars within 4px of the plot top ended just past the clip and showed rounded BOTTOM corners on the line. Fix in CSS (`rect[height="100%"] { height: 200% }`, SVG geometry is CSS) — no JS change. Bar columns only render with a date axis (WGT-0002 wid-08g, WGT-0013 wid-06b); other wid-* are lines/rows. BSD `sed -i` needs a suffix arg — use `perl -pi -e`; scratchpad files can be overwritten by sibling agents (use a unique subfolder).
+- 2026-11-07 · KPI create sheet → profile page (user): „create” in BO admin = the same profile page without an ID (`P.isNew`,
+  `#x/nou[/din-<id>]`, own route regex BEFORE the `#x/<id>` one), header ONE primary, back chevron + askConfirm guard; keep
+  the old field id prefix (kpi-c-*) so demo states only swap the container selector. Stepper dropped when the edit page already shows the sections unordered.
+- 2026-11-07 · hover-audit „no-hover” on page-header buttons in states that scroll the page (kpi-03b/03d, wid-03n too) is a tool
+  artefact — the same buttons pass in unscrolled states; prove with the unscrolled twin before touching CSS.
+- 2026-11-07 · Ambiguous US terms (KPI „Specialist” criterion): map them onto the Feature's own data model (levels Autoritate /
+  Subdiviziune / Rol), gate the level by its criterion like the existing ones, and mark it „Proposal for PO” in components.md.
