@@ -245,12 +245,13 @@
         </footer>`;
     }
     /* the FO header draft status („Salvat ca schiță · 14:32”), for other hosts; extraHtml after the time */
-    function foDraftStatusHtml({ time = "", datetime = "", extraHtml = "" } = {}) {
+    /* label: the BO desk supplement says „Salvat” (it is not a draft, US-254) */
+    function foDraftStatusHtml({ time = "", datetime = "", extraHtml = "", label = "Salvat ca schiță" } = {}) {
       const esc = escapeFrontOfficeHtml;
       return `
         <span class="e-permits-fo-draft-status__saved">
           <svg class="icon" width="16" height="16" aria-hidden="true"><use href="assets/icons/sprite.svg?v=draft-icons-v1#icon-cloud-upload-success"></use></svg>
-          <span class="e-permits-fo-draft-status__label">Salvat ca schiță</span>
+          <span class="e-permits-fo-draft-status__label">${esc(label)}</span>
         </span>
         ${time ? `<span class="e-permits-fo-draft-status__dot" aria-hidden="true"></span><time class="e-permits-fo-draft-status__time" datetime="${esc(datetime)}">${esc(time)}</time>` : ""}
         ${extraHtml}`;

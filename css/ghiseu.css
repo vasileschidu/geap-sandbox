@@ -130,7 +130,10 @@
 /* Verificare: notes, documents with their actions, sign row, retry */
 .e-permits-gh .e-permits-info-note + .e-permits-gh__notices,
 .e-permits-gh .e-permits-info-note + .e-permits-gh__review,
-.e-permits-gh .e-permits-gh__notices + .e-permits-gh__review {
+.e-permits-gh .e-permits-gh__notices + .e-permits-gh__review,
+/* suplinire-bo-v1: the supplement's step note above the form section / the documents */
+.e-permits-gh .e-permits-gh__notices + .e-permits-fo-form__section,
+.e-permits-gh .e-permits-gh__notices + .e-permits-fo-documents {
   margin-top: var(--spacing-24, 24px);
 }
 

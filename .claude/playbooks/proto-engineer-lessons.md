@@ -4220,3 +4220,11 @@ For any „research how other products do it” step, search Mobbin (mcp__mobbin
   artefact — the same buttons pass in unscrolled states; prove with the unscrolled twin before touching CSS.
 - 2026-11-07 · Ambiguous US terms (KPI „Specialist” criterion): map them onto the Feature's own data model (levels Autoritate /
   Subdiviziune / Rol), gate the level by its criterion like the existing ones, and mark it „Proposal for PO” in components.md.
+- 2026-11-07 · suplinire-bo-v1 (US-250…254): the brief called „Suplinire” an examiner replacement — in GEAP it is supplementing
+  the information of a SUSPENDED dossier („Suspendat” · „Suplinire info”). Read the stories before trusting a brief's summary;
+  the reassign / „Redistribuie” patterns it pointed to were irrelevant.
+- 2026-11-07 · A third mode of the Ghișeu wizard (after Din oficiu) without touching STEPS: reuse the desk step indices with
+  per-mode labels (identificare = „Mesajul Specialistului”) + `visibleSteps` per mode. Inserting a STEPS entry shifts every
+  numeric `step` in data/ghiseu.json seeds and saved localStorage drafts.
+- 2026-11-07 · Demo traps: the FO doc picker refuses a wrong extension / > 60 MB itself (submit disabled) → states stop after
+  choosing the file; capture.mjs `--prefix` only matches one-dash ids and waits 15 s (long flows = „NOT READY”, not broken).

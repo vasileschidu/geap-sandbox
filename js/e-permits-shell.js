@@ -5443,6 +5443,30 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   };
 
+  /* US-253 (js/ghiseu.js „Suplinire informații” at the desk): the confirmed supplement resumes the case — back to the
+     step / status it was suspended from (the engine's reiaExaminarea), the remaining examination term kept, the
+     responsible specialist notified (MNotify + internal) and the applicant (MNotify); the row leaves „Dosare suspendate”.
+     No toast, no profile redraw: the desk window closes and says it itself. Returns the specialist's name, or null. */
+  const resumeSuspendedCase = (id, { by = currentUserName(), detail = "" } = {}) => {
+    const row = (dossierDb?.runtimeRows || []).find((entry) => entry.id === id);
+    const cf = row && caseFlowOf(row);
+    if (!cf?.state.suspended) return null;
+    const now = localIsoNow();
+    Object.assign(cf.state, caseFlow.apply(cf.flow, cf.state, "reiaExaminarea", { vars: cf.state.vars }));
+    row.alerte = [...row.alerte.filter((alert) => alert !== "suspendat"), "dupaSuspendare"];
+    row.status = caseFlow.listStatus(cf.flow, cf.state);
+    cf.state.log.unshift({ at: now, user: by, type: "Suplinire informații — ghișeu", status: "Reușit", detail: detail || "Informația a fost suplinită; termenul de examinare a fost reluat." });
+    const profile = buildDosarProfile(row);
+    const stamp = formatDateTime(now.slice(0, 10), now.slice(11, 16));
+    if (row.specialist?.nume) {
+      profile.notificari.unshift({ canal: "SIA GEAP", destinatar: row.specialist.nume, eveniment: "Informația a fost suplinită", trimisaLa: stamp, status: "livrata" });
+      profile.notificari.unshift({ canal: "MNotify", destinatar: row.specialist.nume, eveniment: "Informația a fost suplinită", trimisaLa: stamp, status: "livrata" });
+    }
+    profile.notificari.unshift({ canal: "MNotify", destinatar: row.companie || row.numeSolicitant, eveniment: "Informația a fost suplinită", trimisaLa: stamp, status: "livrata" });
+    syncCaseRowInList(row);
+    return row.specialist?.nume || "";
+  };
+
   /* US-295: one case, separately (AC-03); returns { to, queued } — `to` = the new responsible,
      `queued` = the case went to „Dosare nedistribuite” (AC-08 / AC-18) */
   const redistributeCase = (row, values, me, now) => {
@@ -21330,7 +21354,7 @@ document.addEventListener("DOMContentLoaded", () => {
       /* dist-mode-v1: the distribution record of a dossier, as list text / facet value */
       distListLine: (row) => distListLine(distRecordOf(row)), distListHtml: (row) => distListHtml(distRecordOf(row)), distModeLabel: (row) => distModeLabel(row),
       /* US-255 (js/ghiseu.js „Dosare suspendate”): the suspension record of a case (reason, term, days left) */
-      dosarSuspension,
+      dosarSuspension, resumeSuspendedCase,
       /* registre-v2 (js/registre-admin.js): the menu redrawn after a publish / grant / deprecation (the active item
          kept), the permissions of a role from the Roles screen (Feature 89940), the single-choice chips */
       refreshNav: () => {

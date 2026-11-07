@@ -5245,6 +5245,77 @@
       "gh-s01e": ghSusp(async (h) => { await h.click("[data-workplace-export]"); await h.click("#case-action-modal.is-active [data-gh-export-confirm]"); await h.find(".toast"); await h.wait(300); }),
       "gh-s01f": { flow: "back-office", as: "ansp-specialist-chisinau", hash: "#dosare-suspendate", ready: "[data-registry-kind='ghsusp'] .e-permits-empty" },
       "gh-s01g": ghSusp(async (h) => { await h.click("[data-registry-kind='ghsusp'] tr[data-workplace-row]"); await h.scroll(".e-permits-dosar-profil__section", "Motivul suspendării"); }),
+      /* ---- Suplinire informații la ghișeu (Feature 95770: US-250 … US-254, suplinire-bo-v1, 2026-11-07). Entry = the
+         „Dosare suspendate” row's ONE labelled action (US-250 AC-03); the window = the desk request window in its third
+         mode. sup-01 the list (hover on the action) · 02 „Mesajul Specialistului” (US-250 AC-04, US-251 AC-02) · 02a no
+         permission (AC-01) · 02b a dossier that is not suspended (US-250 AC-02) · 03 the filed form prefilled (US-251
+         AC-03) · 03a required emptied + Înainte (AC-04 / AC-06) · 03b a Form Designer rule on blur (AC-05) · 03c
+         „Salvează” on an invalid step (US-254 AC-03) · 03d saved (US-254 AC-04 toast) · 04 Atașamente (US-251 AC-07) ·
+         04a the Specialist's documents missing · 05 Verificare: the updated request + olograf + MSign (US-252 AC-02 /
+         05 / 08 / 15) · 05a MDocs down (AC-06) · 05b signed (AC-10) · 05c MSign cancelled (AC-11) · 05d MSign down
+         (AC-13) · 05e data changed after signing + olograf (AC-12 / AC-20) · 05f wrong extension (AC-17) · 05g > 60 MB
+         (AC-18) · 05h no MSign / no olograf in the service settings (AC-14 / AC-19) · 05i Înainte without the signed
+         scan (AC-16) · 06 confirmation blocked (US-253 AC-02) · 06a ready · 06b the error (AC-08) · 06c confirmed →
+         back on the list + the success toast, the row gone (AC-03 / AC-06) · 07 saved → „Continuă suplinirea” (US-254
+         AC-05) · 07a reopened at the saved step · 08 „Istoricul suplinirii” (the audit entries) */
+      ...(() => {
+        const SUP_READY = "#gh-request-modal.is-active [data-gh-panel]";
+        const sup = (run, params = {}) => ({ flow: "back-office", as: GH, hash: "#dosare-suspendate", params: { ghseed: "1", ...params }, ready: "[data-registry-kind='ghsusp'] tr[data-workplace-row]", run: async (h) => {
+          await h.click("[data-registry-kind='ghsusp'] [data-gh-sup]");
+          await h.find(SUP_READY); await h.wait(400);
+          if (run) await run(h);
+        } });
+        const at = (id) => async (h) => { await h.find(`#gh-request-modal.is-active [data-gh-panel="${id}"]`); await h.wait(400); };
+        const toDetalii = seq(next, at("detalii"));
+        const toDocs = seq(toDetalii, next, at("documente"));
+        const specialistDoc = async (h) => { await ghUpload('#gh-request-modal [data-gh-doc="suplimentar"]', "plan-incaperi-legenda.pdf")(h); };
+        const toVerif = seq(toDocs, specialistDoc, next, at("verificare"));
+        const olograf = (name = "cerere-actualizata-semnata.pdf", size) => ghUpload("[data-gh-olograf]", name, size);
+        /* a file the picker refuses (US-252 AC-17 / AC-18): the error shows under it, „Adaugă fișier” stays disabled */
+        const olografRefused = (name, size = 1200000) => async (h) => {
+          await h.click("[data-gh-olograf] [data-fo-open-doc-modal]"); await h.wait(300);
+          const input = document.querySelector("[data-fo-doc-file-input]");
+          const files = new DataTransfer();
+          files.items.add(new File([new Uint8Array(size)], name, { type: name.endsWith(".pdf") ? "application/pdf" : "application/octet-stream" }));
+          input.files = files.files;
+          input.dispatchEvent(new Event("change", { bubbles: true }));
+          await h.wait(400);
+        };
+        const sign = async (h) => { await h.click("[data-gh-msign]"); await h.click("[data-gh-msign-ok]"); await h.wait(400); };
+        const toConfirm = seq(toVerif, olograf(), sign, next, at("confirmare"));
+        const scrollTo = (sel) => async (h) => { (await h.find(sel)).scrollIntoView({ block: "center" }); await h.wait(300); document.activeElement?.blur?.(); };
+        const save = async (h) => { await h.click("#gh-request-modal [data-gh-save]"); await h.wait(400); };
+        return {
+          "gh-sup-01": ghSusp(async (h) => { await h.hover("[data-registry-kind='ghsusp'] [data-gh-sup]"); await h.wait(400); }, { ghseed: "1" }),
+          "gh-sup-02": sup(),
+          "gh-sup-02a": { flow: "back-office", as: "ansp-specialist-chisinau", hash: "#suplinire-ghiseu/D-2026-000001", ready: "#gh-start-modal.is-active .e-permits-empty" },
+          "gh-sup-02b": { flow: "back-office", as: GH, hash: "#suplinire-ghiseu/D-2026-999999", ready: "#gh-start-modal.is-active .e-permits-empty" },
+          "gh-sup-03": sup(toDetalii),
+          "gh-sup-03a": sup(seq(toDetalii, async (h) => { await h.fill("#fo-gh-obiect", ""); await h.click("[data-gh-next]"); await h.wait(300); })),
+          "gh-sup-03b": sup(seq(toDetalii, async (h) => { await h.fill("#fo-gh-obiect", "Ab"); await h.wait(300); })),
+          "gh-sup-03c": sup(seq(toDetalii, async (h) => { await h.fill("#fo-gh-obiect", "", { leave: false }); await save(h); })),
+          "gh-sup-03d": sup(seq(toDetalii, async (h) => { await h.fill("#fo-gh-obiect", "Cafeneaua „La Izvor” — terasa de vară", { leave: false }); await save(h); await h.find(".toast"); })),
+          "gh-sup-04": sup(toDocs),
+          "gh-sup-04a": sup(seq(toDocs, next)),
+          "gh-sup-05": sup(toVerif),
+          "gh-sup-05a": sup(seq(toVerif, scrollTo("#gh-request-modal [data-gh-paper]")), { mdocs: "0" }),
+          "gh-sup-05b": sup(seq(toVerif, olograf(), sign, scrollTo("#gh-request-modal [data-gh-preview='signed']"))),
+          "gh-sup-05c": sup(seq(toVerif, async (h) => { await h.click("[data-gh-msign]"); await h.click("[data-gh-msign-cancel]"); await h.wait(400); }, scrollTo("#gh-request-modal [data-gh-msign]"))),
+          "gh-sup-05d": sup(seq(toVerif, async (h) => { await h.click("[data-gh-msign]"); await h.wait(400); }, scrollTo("#gh-request-modal [data-gh-msign]")), { msignerr: "1" }),
+          "gh-sup-05e": sup(seq(toVerif, olograf(), sign, async (h) => { await h.click(`#gh-request-modal [data-gh-goto="${window.GEAPGhiseu.steps.indexOf("detalii")}"]`); await h.find('#gh-request-modal [data-gh-panel="detalii"]'); await h.fill("#fo-gh-obiect", "Cafeneaua „La Izvor” — sala nouă", { leave: false }); await h.click("[data-gh-next]"); await at("documente")(h); await h.click("[data-gh-next]"); await at("verificare")(h); })),
+          "gh-sup-05f": sup(seq(toVerif, olografRefused("cerere-semnata.docx"))),
+          "gh-sup-05g": sup(seq(toVerif, olografRefused("cerere-semnata.pdf", 64 * 1024 * 1024))),
+          "gh-sup-05h": sup(seq(toVerif, scrollTo("#gh-request-modal [data-gh-next]")), { msign: "0", olograf: "0" }),
+          "gh-sup-05i": sup(seq(toVerif, sign, async (h) => { await h.click("[data-gh-next]"); await h.wait(300); })),
+          "gh-sup-06": sup(seq(toVerif, olograf(), async (h) => { await h.click(`#gh-request-modal [data-gh-goto="${window.GEAPGhiseu.steps.indexOf("confirmare")}"]`); await at("confirmare")(h); })),
+          "gh-sup-06a": sup(toConfirm),
+          "gh-sup-06b": sup(seq(toConfirm, async (h) => { await h.click("[data-gh-submit]"); await h.wait(400); }), { depunere: "eroare" }),
+          "gh-sup-06c": sup(seq(toConfirm, async (h) => { await h.click("[data-gh-submit]"); await h.find("[data-registry-kind='ghsusp'] tr[data-workplace-row]"); await h.find(".toast"); await h.wait(300); })),
+          "gh-sup-07": sup(seq(toDocs, save, async (h) => { await h.click("#gh-request-modal [data-gh-sheet-close]"); await h.find("[data-registry-kind='ghsusp'] [data-gh-sup]"); await h.wait(400); document.querySelector(".toast [data-toast-close], .toast .toast__close")?.click(); })),
+          "gh-sup-07a": sup(seq(toDocs, save, async (h) => { await h.click("#gh-request-modal [data-gh-sheet-close]"); await h.find("[data-registry-kind='ghsusp'] [data-gh-sup]"); await h.wait(300); await h.click("[data-registry-kind='ghsusp'] [data-gh-sup]"); await at("documente")(h); })),
+          "gh-sup-08": sup(seq(toDetalii, async (h) => { await h.fill("#fo-gh-obiect", "Cafeneaua „La Izvor” — terasa de vară", { leave: false }); await save(h); await h.click("#gh-request-modal .e-permits-gh-sheet__actions [data-stack-menu-trigger]"); await h.wait(200); await h.click("[data-gh-history]"); await h.find("#case-action-modal.is-active"); await h.wait(300); }))
+        };
+      })(),
       /* ghiseu-picker-toast-v1: a dossier submitted (gh-10a) → „Înapoi la Dosare noi” → the list with the library success toast */
       "gh-01t": gh("#ghiseu/gh-4771/plata", seq(async (h) => { await h.click("[data-gh-mpay]"); }, next, async (h) => { await h.click("[data-gh-submit]"); await h.wait(400); await h.click("[data-gh-close-sheet]"); await h.find("[data-registry-kind='ghiseu'] tr[data-workplace-row]"); await h.find(".toast"); await h.wait(300); })),
       /* US-233 small modal „Dosar nou” (one screen): empty, list search, service, PF / PJ found, not found
