@@ -391,6 +391,23 @@ button.e-permits-wid-cols__slot:hover .e-permits-wid-fill { fill: var(--wid-seri
   padding: 0;
 }
 
+/* one shared track set per list so every bar starts and ends on the same line: the label takes its one-line width up to half
+   the card (then wraps to 2 lines, ellipsis + tooltip), the bar shrinks first (min 80), the value is auto; phones: the label
+   goes on its own line above the bar (rows are subgrids of the list) */
+.e-permits-wid-rows,
+.e-permits-wid-funnel {
+  display: grid;
+  grid-template-columns: fit-content(50%) minmax(var(--spacing-80, 80px), 1fr) auto;
+  row-gap: var(--spacing-4, 4px);
+}
+
+.e-permits-wid-rows > li,
+.e-permits-wid-funnel > li {
+  display: grid;
+  grid-column: 1 / -1;
+  grid-template-columns: subgrid;
+}
+
 .e-permits-wid-rows__row {
   align-items: center;
   background: transparent;
@@ -401,7 +418,8 @@ button.e-permits-wid-cols__slot:hover .e-permits-wid-fill { fill: var(--wid-seri
   display: grid;
   font: inherit;
   gap: var(--spacing-12, 12px);
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
+  grid-column: 1 / -1;
+  grid-template-columns: subgrid;
   margin: 0 calc(var(--spacing-8, 8px) * -1);
   min-height: var(--spacing-32, 32px);
   padding: var(--spacing-4, 4px) var(--spacing-8, 8px);
@@ -789,8 +807,18 @@ button.e-permits-wid-rows__row:focus-visible {
     line-height: var(--line-height-lh-24, 24px);
   }
 
+  .e-permits-wid-rows,
+  .e-permits-wid-funnel {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
   .e-permits-wid-rows__row {
     min-height: var(--spacing-48, 48px);
+    row-gap: var(--spacing-4, 4px);
+  }
+
+  .e-permits-wid-rows__label {
+    grid-column: 1 / -1;
   }
 }
 

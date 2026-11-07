@@ -12307,3 +12307,9 @@ the bullet-graph practice (Stephen Few; Grafana / Datadog / Stripe threshold bar
 - verification: `node --experimental-websocket --no-warnings tools/ui-qa/chart-overlap.mjs --states <ids>` (1440 · 1280 ·
   375, text boxes inside chart cards: intersections + labels outside the card) must report `TOTAL 0`.
 
+
+### Form grid rule + widget preview split (form-grid-v1, 2026-11-07)
+- Form section bodies use the ONE grid `.e-permits-user-create__grid` (12 tracks, gap 24, phones 16 and one column): paired / short fields `--6` (RU | EN, dates, short selects), long / primary fields (RO name, textareas, Sursa de date, rule builders, notices) `--12`; fields fill their cell, no fixed widths, never `--4` / `--8` pairs (KPI + widget create / profile verified at 1280 / 1440 / 1920 / 375).
+- `.e-permits-ntpl-content--preview` (widget create sheet + widget profile Configurare) = form `1fr` | preview `1fr`, stacked ≤ 1100; the preview card fills the column (chosen width stays in the meta line). KPI keeps 5fr / 7fr (`.e-permits-kpi-content--preview`).
+- „Mărește” (preview zoom) = `btn btn-secondary btn-sm btn-icon-only` + sprite `icon-enlarge` (Foundations „enlarge”, 20 viewBox, shown at 16), same size as „Actualizează”.
+- Bar rows (`.e-permits-wid-rows`, `.e-permits-wid-funnel`): list = grid `fit-content(50%) minmax(80px, 1fr) auto`, rows are subgrids (bars align); label one line while it fits, then 2 lines + tooltip; phones: label above the bar.

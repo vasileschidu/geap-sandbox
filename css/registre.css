@@ -523,9 +523,9 @@
   top: 0;
 }
 
-/* the preview is the wide column (a chart / preview, not a helper): form minmax(360px, 5fr) · preview 7fr */
+/* the preview is a chart, not a helper: form half | preview half (user 2026-11-07), stacks below 1100 */
 .e-permits-ntpl-content.e-permits-ntpl-content--preview {
-  grid-template-columns: minmax(360px, 5fr) minmax(0, 7fr);
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
 }
 
 @media (max-width: 1100px) {

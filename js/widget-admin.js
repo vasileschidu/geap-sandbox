@@ -489,14 +489,14 @@
           <h2 class="e-permits-dosar-profil__section-title" id="${idp}-preview-title">Previzualizare</h2>
           <div class="e-permits-passport__heading-tools">
             <button class="btn btn-secondary btn-sm${st.refreshing ? " btn-loading" : ""}" type="button" data-wid-refresh${st.refreshing ? ' aria-busy="true" disabled' : ""}>${icon("rotate-arrow", 16)}<span>Actualizează</span></button>
-            <button class="btn btn-neutral btn-sm btn-icon-only" type="button" aria-label="Mărește previzualizarea" data-tooltip-label="Mărește" aria-haspopup="dialog" data-wid-zoom>${icon("resize", 16)}</button>
+            <button class="btn btn-secondary btn-sm btn-icon-only" type="button" aria-label="Mărește previzualizarea" data-tooltip-label="Mărește" aria-haspopup="dialog" data-wid-zoom>${icon("enlarge", 16)}</button>
           </div>
         </div>
         <p class="e-permits-dosar-profil__section-meta e-permits-wid-preview__meta">${esc(`Perimetrul dvs.: ${per.text} · ${at} · Lățime: ${label(WIDTHS, v.width) || "—"} · Înălțime: ${label(HEIGHTS, v.height) || "—"} · Aria: ${label(VIS, v.visibility) || "—"}`)}</p>
         <div class="segmented-control" role="radiogroup" aria-label="Previzualizează ca">
           ${[["acces", "Utilizator cu acces la sursă"], ["fara-acces", "Fără acces la sursă"]].map(([k, l]) => `<button class="segment-item${as === k ? " is-selected" : ""}" type="button" role="radio" aria-checked="${as === k}" data-wid-viewas="${k}">${l}</button>`).join("")}
         </div>
-        <div class="e-permits-wid-preview__stage">${cardHtml(v, { st })}</div>
+        <div class="e-permits-wid-preview__stage">${cardHtml({ ...v, width: "full" }, { st })}</div>
       </section>`;
   }
 
