@@ -4240,6 +4240,8 @@
       await h.choose(`${C} select[data-kpi-field="dateColumn"]`, "finalizat");
     };
     const verify = async (h) => { await h.click(`${C} [data-kpi-verify]`); await h.wait(1300); };
+    const kpub = async (h) => { await h.click("[data-dosar-profil] [data-kpi-publish]"); await h.find("#kpi-publish-note"); };
+    const kver = (nr) => async (h) => { await h.click(`#kpi-panel [data-kpi-ver-view="${nr}"]`); await h.find("#case-action-modal.is-active [data-case-modal-body]"); };
     const step3 = async (h) => { await h.fill("#kpi-c-target", "85", { leave: false }); await h.fill("#kpi-c-threshold", "5", { leave: false }); await h.click(`${C} [data-kpi-role][value="Supervizor"]`); };
     const filter = (applied) => async (h) => {
       window.GEAPShellApi.setRegistryFilters("kpi", applied);
@@ -4273,8 +4275,9 @@
       "kpi-03f": list(seq(nou, step1, next, step2, verify, async (h) => { (await h.find(`${C} [data-kpi-verify]`)).scrollIntoView({ block: "start" }); await h.wait(200); }), { kpi: "numitor-zero" }),
       "kpi-03g": list(seq(nou, step1, next, step2, verify, next, step3)),
       "kpi-03h": list(seq(nou, step1, next, step2, verify, next, step3, next)),
-      "kpi-03i": list(seq(nou, step1, next, step2, verify, next, step3, next, async (h) => { await h.click(`${C} [data-kpi-create]`); await h.find("#kpi-panel"); })),
-      "kpi-03j": list(seq(nou, step1, next, step2, next, next, async (h) => { await h.click(`${C} [data-kpi-create]`); }), { kpi: "eroare" }),
+      /* kpi-publish-v1: the last step publishes (publish dialog → version 1), „Salvează ciorna” keeps a Ciornă */
+      "kpi-03i": list(seq(nou, step1, next, step2, verify, next, step3, next, async (h) => { await h.click(`${C} [data-kpi-publish]`); await h.fill("#kpi-publish-note", "KPI nou pentru supervizori.", { leave: false }); await h.click("[data-kpi-publish-confirm]"); await h.find("#kpi-panel"); })),
+      "kpi-03j": list(seq(nou, step1, next, step2, next, next, async (h) => { await h.click(`${C} [data-kpi-draft]`); }), { kpi: "eroare" }),
       "kpi-03k": list(nou, null, LOCAL),
       "kpi-03l": list(seq(MENU("kpi-t02"), async (h) => { await h.click('[data-kpi-row-clone="kpi-t02"]'); await h.find(`${C} #kpi-c-name-ro`); })),
       "kpi-03n": list(seq(nou, step1)),
@@ -4321,9 +4324,28 @@
       "kpi-08d": list(async (h) => { await h.click(".e-permits-shell__icon-button--notification"); await h.find("#notif-drawer [data-notif-body]"); }, null, LOCAL),
       "kpi-08e": prof("kpi-t01", "istoric"),
       /* the details: an Istoric event (Modificări old → new) · an alert (band + notified + the alert's events) · the bell link */
-      "kpi-08f": prof("kpi-t01", "istoric", async (h) => { await h.click('#kpi-panel [data-kpi-event="3"] .e-permits-timeline__link'); await h.find("#dosar-detail-modal.is-active"); }),
+      "kpi-08f": prof("kpi-t01", "istoric", async (h) => { await h.click('#kpi-panel [data-kpi-event="4"] .e-permits-timeline__link'); await h.find("#dosar-detail-modal.is-active"); }),
       "kpi-08g": prof("kpi-t01", "alerte", async (h) => { await h.click('#kpi-panel [data-kpi-alert="0"] .e-permits-timeline__link'); await h.find("#dosar-detail-modal.is-active"); }, null, LOCAL),
-      "kpi-08h": list(seq(async (h) => { await h.click(".e-permits-shell__icon-button--notification"); await h.find("#notif-drawer [data-notif-body]"); }, async (h) => { await h.click('#notif-drawer a[href="#kpi/kpi-t01/alerte/0"]'); await h.find("#dosar-detail-modal.is-active"); }), null, LOCAL)
+      "kpi-08h": list(seq(async (h) => { await h.click(".e-permits-shell__icon-button--notification"); await h.find("#notif-drawer [data-notif-body]"); }, async (h) => { await h.click('#notif-drawer a[href="#kpi/kpi-t01/alerte/0"]'); await h.find("#dosar-detail-modal.is-active"); }), null, LOCAL),
+
+      /* kpi-publish-v1 (PO: „Publicare cum avem pentru altele”) — draft · publish · versions, the widget model */
+      "kpi-09": prof("kpi-d01"),
+      "kpi-09a": prof("kpi-d01", "definitie", async (h) => { await h.click("[data-kpi-pending]"); await h.wait(400); }),
+      "kpi-09b": prof("kpi-d01", "definitie", kpub),
+      "kpi-09c": prof("kpi-d01", "definitie", seq(kpub, async (h) => { await h.click("[data-kpi-publish-confirm]"); })),
+      "kpi-09d": prof("kpi-d01", "definitie", seq(kpub, async (h) => { await h.fill("#kpi-publish-note", "Ținta scade la 8%; directorul primește alertele.", { leave: false }); await h.click("[data-kpi-publish-confirm]"); await h.wait(500); })),
+      "kpi-09e": prof("kpi-t01", "tinta", seq(async (h) => { await h.fill("#kpi-e-target", "92", { leave: false }); }, async (h) => { await h.click("[data-kpi-save]"); await h.wait(300); })),
+      "kpi-09f": prof("kpi-t01", "versiuni"),
+      "kpi-09g": prof("kpi-t01", "versiuni", kver(1)),
+      "kpi-09h": prof("kpi-t01", "versiuni", async (h) => { await h.click("[data-kpi-compare-open]"); await h.scroll("#kpi-compare-title"); }),
+      "kpi-09i": prof("kpi-d01", "versiuni", async (h) => { await h.click("[data-kpi-compare-open]"); await h.scroll("#kpi-compare-title"); }),
+      "kpi-09j": prof("kpi-t01", "versiuni", seq(kver(1), async (h) => { await h.click('[data-kpi-ver-restore="1"]'); await h.find("#kpi-restore-note"); })),
+      "kpi-09k": prof("kpi-t01", "versiuni", seq(kver(1), async (h) => { await h.click('[data-kpi-ver-restore="1"]'); await h.fill("#kpi-restore-note", "Revenim la ținta de 85% până la finalul anului.", { leave: false }); await h.click("[data-kpi-restore-confirm]"); await h.wait(500); })),
+      "kpi-09l": prof("kpi-d01", "istoric"),
+      "kpi-09m": list(seq(nou, step1, next, step2, verify, next, step3, next, async (h) => { await h.click(`${C} [data-kpi-publish]`); await h.find("#kpi-publish-note"); })),
+      "kpi-09n": list(seq(nou, step1, async (h) => { await h.click(`${C} [data-kpi-draft]`); await h.find("#kpi-panel"); await h.wait(300); })),
+      "kpi-09o": prof("kpi-t01", "definitie", async (h) => { await h.click("[data-dosar-profil] .e-permits-page-header__actions [data-stack-menu-trigger]"); await h.wait(200); }),
+      "kpi-09p": list(async (h) => { (await h.find('tr[data-workplace-row="kpi-d01"]')).scrollIntoView({ block: "center" }); await h.wait(200); })
     };
   }
 

@@ -4254,3 +4254,8 @@ For any „research how other products do it” step, search Mobbin (mcp__mobbin
 - 2026-11-07 · Existing „N modificări nepublicate” trigger = `data-…-pending` + `openPendingChanges` (shell) — export it on GEAPShellApi instead of building a new dialog. Seed JSON compare ≠ runtime `unpublished()`: probe which record really shows the status.
 - 2026-11-07 · Widgets: donut = 50/50 grid, ring fluid (aspect-ratio 1) + `@container` stack (card = `container-type: inline-size`); preview heading = grid (title + tools row 1 centred, meta row 2 full width, `__titles` display: contents) per the Figma, not a two-part left/right (user rejected). Treemap = svg radius 6 + overflow hidden, tiles `rx` 2. chart-overlap now clips ellipsized text and skips same-node rects.
 - 2026-11-07 · widget legends: ONE rule in widget.css — `li`/drill-button nowrap, dot `flex: none` + `margin-top: 6` (first line), only the TEXT wraps; list (donut) legends centre the dot; treemap = `legend(…, { wrap: true })` (full-width wrapping tray), never `vertical` outside the donut.
+- 2026-11-07 · KPI publishing = the widget model without touching the calculation code: the object's OWN fields stay the
+  published (live) version, `k.pending` = the saved draft, `k.versions[].config` = snapshots in one normalised shape
+  (`fromDraft(draftOf(k))`); edit base = `draftOf(savedOf(k))`. Seed only the differing fields (`set` / `pending`) in JSON.
+- 2026-11-07 · Shell chains: `grep -c … && next` stops the chain when the count is 0 (exit 1) — my `?v=` bumps silently did not
+  run. Use `;` between independent steps and re-check with `git status --short <files>`.

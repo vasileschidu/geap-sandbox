@@ -94,7 +94,8 @@
   const EVENTS = {
     create: "Crearea KPI", clone: "Clonarea KPI", edit: "Modificarea KPI", on: "Activarea KPI", off: "Dezactivarea KPI",
     authOn: "Activat pentru autoritate", authOff: "Dezactivat pentru autoritate",
-    ownAdd: "Valoare proprie adăugată", ownEdit: "Valoare proprie modificată", ownDel: "Valoare proprie eliminată"
+    ownAdd: "Valoare proprie adăugată", ownEdit: "Valoare proprie modificată", ownDel: "Valoare proprie eliminată",
+    publish: "Publicarea KPI", rejected: "Publicare respinsă", restore: "Restaurarea unei versiuni"
   };
 
   /* ---------------------------------------------------------------- demo switches + who */
@@ -116,11 +117,12 @@
     if (S.data) return Promise.resolve(S.data);
     if (demo.has("incarcare")) return new Promise(() => {});
     if (!S.loading) {
-      S.loading = fetch("data/kpi.json?v=kpi-page-v1").then((r) => r.json()).then((json) => {
+      S.loading = fetch("data/kpi.json?v=kpi-publish-v1").then((r) => r.json()).then((json) => {
         if (demo.has("gol")) { json.kpis = []; json.alerts = []; }
         json.inherit = json.inherit || {};
         json.history = json.history || {};
         S.data = json;
+        json.kpis.forEach(seedVersions);
         window.GEAPNotifDrawer?.sync?.();
         return json;
       }).catch(() => { S.data = { kpis: [], sources: [], authorities: [], services: [], roles: [], domains: [], inherit: {}, alerts: [], history: {} }; return S.data; });
@@ -142,6 +144,9 @@
   const domainOf = (code) => String(code || "").split("-")[0];
   const domainName = (letter) => D().domains.find(([l]) => l === letter)?.[1] || letter;
   const isPlanned = (k) => k.status === "Planificat";
+  /* kpi-publish-v1: a KPI saved as a draft and never published („Salvează ciorna”, as widgets) */
+  const isDraftK = (k) => k.status === "Ciornă";
+  const noCalc = (k) => isPlanned(k) || isDraftK(k);
   const inheritOf = (k, authId) => (authId ? D().inherit[authId]?.[k.id] || null : null);
   const ensureInherit = (k, authId) => {
     D().inherit[authId] = D().inherit[authId] || {};
@@ -187,7 +192,7 @@
     return { cur: arr[0] ?? null, prev: arr[1] ?? null, num: arr[2], den: arr[3], pnum: arr[4], pden: arr[5] };
   }
   /* „n/a” at a zero denominator (Feature AC); „—” while the KPI is planned or has no value */
-  const valueText = (k, val) => (isPlanned(k) ? "—" : val === null || val === undefined ? "n/a" : fmt(k, val));
+  const valueText = (k, val) => (noCalc(k) ? "—" : val === null || val === undefined ? "n/a" : fmt(k, val));
   /* the 12 monthly values (last = the current month so far, the one before = the previous period) — derived once from the
      seed, deterministic; widgets (Feature 96501) read it through GEAPKpi.series */
   function seriesOf(k, per) {
@@ -197,7 +202,7 @@
     for (let i = 11; i >= 0; i -= 1) {
       const d = new Date(today.getFullYear(), today.getMonth() - i, 1);
       let value;
-      if (isPlanned(k)) value = null;
+      if (noCalc(k)) value = null;
       else if (i === 0) value = cur;
       else if (i === 1) value = prev;
       else {
@@ -220,7 +225,8 @@
   const canCreate = () => who().has;
   const canEdit = (k) => { const w = who(); return w.has && !!k && (w.central || (k.level === "Autoritate" && k.authority === w.authority)); };
   const canInherit = (k) => { const w = who(); return w.has && w.local && !!k && k.level === "Global"; };
-  const canToggle = (k) => canEdit(k) && !isPlanned(k);
+  const canToggle = (k) => canEdit(k) && !noCalc(k);
+  const canPublish = (k) => canEdit(k) && !isPlanned(k);
 
   /* ---------------------------------------------------------------- shared markup: charts (eKYC dashboard style) */
   const meter = (segments, { label = "", max = 1 } = {}) => {
@@ -421,13 +427,13 @@
         ${error ? errorHtml(id, error) : counter ? hintRow(id, hint, count, max) : hint ? `<p class="e-permits-fo-field__hint" id="${id}-hint">${esc(hint)}</p>` : ""}
       </div>`;
   }
-  function areaField(id, key, label, value, { hint = "" } = {}) {
+  function areaField(id, key, label, value, { hint = "", required = false, error = "", placeholder = "" } = {}) {
     const count = String(value || "").length;
     return `
       <div class="e-permits-fo-field e-permits-user-create__field e-permits-user-create__field--12">
-        <label for="${id}">${esc(label)}</label>
-        <div class="e-permits-fo-textarea"><textarea id="${id}" rows="3" aria-describedby="${id}-hint" spellcheck="true" data-kpi-field="${key}">${esc(value)}</textarea></div>
-        ${hintRow(id, hint, count, TEXT_MAX)}
+        <label for="${id}">${esc(label)}${required ? req() : ""}</label>
+        <div class="e-permits-fo-textarea${error ? " is-error" : ""}"><textarea id="${id}" rows="3" aria-describedby="${error ? `${id}-error` : `${id}-hint`}"${required ? ' aria-required="true"' : ""}${error ? ' aria-invalid="true"' : ""}${placeholder ? ` placeholder="${esc(placeholder)}"` : ""} spellcheck="true" data-kpi-field="${key}">${esc(value)}</textarea></div>
+        ${error ? errorHtml(id, error) : hintRow(id, hint, count, TEXT_MAX)}
       </div>`;
   }
   function selectField(id, key, label, options, value, { required = false, placeholder = "", hint = "", error = "", span = 6, disabled = false } = {}) {
@@ -817,6 +823,7 @@
   /* ================================================================ LIST (US-400) */
   const STATE = (k, w = who()) => {
     if (isPlanned(k)) return ["Planificat", "warning"];
+    if (isDraftK(k)) return ["Ciornă", "neutral"];
     if (k.status !== "Activ") return ["Inactiv", "neutral"];
     if (w.local && k.level === "Global" && inheritOf(k, w.authority)?.active === false) return [`Dezactivat în ${authName(w.authority)}`, "neutral"];
     return ["Activ", "success"];
@@ -832,6 +839,7 @@
       id: k.id, cod: k.code, denumire: k.names.ro, domeniu: domainName(domainOf(k.code)), sursa: sourceName(k.source), format: formatLabel(k),
       tinta: hasTarget(t) ? fmt(k, t.target) : "", tintaProprie: t.own, valoare: valueText(k, val.cur), valoareNum: val.cur, zona: zone(k.direction, val.cur, t.target, t.threshold),
       nivel: k.level === "Global" ? "Global" : "Autoritate", autoritate: k.level === "Global" ? "" : authName(k.authority), stare, stareTone: tone,
+      versiune: lastVersion(k) ? String(lastVersion(k).version) : "", nepublicat: unpublished(k),
       actualizat: k.updatedAt || "", k
     };
   };
@@ -843,7 +851,7 @@
     return {
       kind: KIND,
       fixedWidths: true,
-      fieldCount: 9,
+      fieldCount: 10,
       defaultSort: "cod",
       defaultSortDirection: "asc",
       columns: {
@@ -855,6 +863,7 @@
         valoare: { label: "Valoarea curentă", width: 176, sortable: true },
         nivel: { label: "Nivel", width: 168, sortable: true },
         stare: { label: "Stare", width: 168, sortable: true },
+        versiune: { label: "Versiune", width: 168, sortable: true },
         actualizat: { label: "Actualizat", width: 184, sortable: true },
         ...(menu ? { actiuni: { label: "", width: 56, pin: "end" } } : {})
       },
@@ -863,7 +872,7 @@
           title: TITLE,
           selectable: false,
           searchPlaceholder: "Caută după cod sau denumire",
-          columns: ["cod", "denumire", "sursa", "format", "tinta", "valoare", "nivel", "stare", "actualizat", ...(menu ? ["actiuni"] : [])],
+          columns: ["cod", "denumire", "sursa", "format", "tinta", "valoare", "nivel", "stare", "versiune", "actualizat", ...(menu ? ["actiuni"] : [])],
           tabs: w.central
             ? [{ id: "toate", label: "Toate", filter: "all" }, { id: "globale", label: "Globale", filter: "level:global" }, { id: "autoritati", label: "Ale autorităților", filter: "level:authority" }]
             : [{ id: "toate", label: "Toate", filter: "all" }, { id: "globale", label: "Moștenite", filter: "level:global" }, { id: "autoritati", label: `Ale ${mine}`, filter: "level:authority" }],
@@ -881,6 +890,7 @@
     valoare: (r) => (r.valoareNum === null || r.valoareNum === undefined ? "" : String(Math.round(r.valoareNum * 10)).padStart(12, "0")),
     nivel: (r) => `${r.nivel === "Global" ? 0 : 1}${r.autoritate}`,
     stare: (r) => r.stare,
+    versiune: (r) => String(r.versiune || 0).padStart(4, "0"),
     actualizat: (r) => r.actualizat || "0000"
   };
   function rowMenu(row) {
@@ -916,7 +926,7 @@
     searchText: (row) => `${row.cod} ${row.denumire} ${fold(row.cod)} ${fold(row.denumire)}`,
     sortValue: (row, key) => String(SORT[key]?.(row) ?? row[key] ?? ""),
     filterToken: (row, token) => (token === "level:global" ? row.nivel === "Global" : token === "level:authority" ? row.nivel !== "Global" : true),
-    rowClass: (row) => (row.stareTone === "success" ? "" : "is-inactive"),
+    rowClass: (row) => (row.stareTone === "success" || row.stare === "Ciornă" ? "" : "is-inactive"),
     renderCell: (row, key) => {
       switch (key) {
         case "cod": return `<span data-cell-tooltip="${esc(row.cod)}">${esc(row.cod)}</span>`;
@@ -931,6 +941,8 @@
         }
         case "nivel": return row.nivel === "Global" ? "Global" : twoLines("Autoritate", esc(row.autoritate));
         case "stare": return tag(row.stare, row.stareTone);
+        /* the widget list's „Versiune”: the published version, „modificări nepublicate” under it while a saved draft waits */
+        case "versiune": return row.versiune ? (row.nepublicat ? twoLines(esc(row.versiune), "modificări nepublicate") : esc(row.versiune)) : twoLines(dash, "nepublicat");
         case "actualizat": return row.actualizat ? twoLines(esc(longDate(row.actualizat)), esc(`${time(row.actualizat)} · ${row.k.updatedBy || ""}`)) : dash;
         case "actiuni": return rowMenu(row);
         default: return esc(row[key] ?? "") || dash;
@@ -962,8 +974,8 @@
     A().renderWorkplace?.();
   }
   function exportCsv(rows) {
-    const head = ["Cod", "Denumire", "Sursa de date", "Format", "Ținta", "Valoarea curentă", "Nivel", "Stare", "Actualizat"];
-    const lines = rows.map((r) => [r.cod, r.denumire, r.sursa, r.format, r.tinta || "-", r.valoare, r.nivel === "Global" ? "Global" : `Autoritate ${r.autoritate}`, r.stare, r.actualizat ? `${longDate(r.actualizat)} ${time(r.actualizat)}` : "-"]);
+    const head = ["Cod", "Denumire", "Sursa de date", "Format", "Ținta", "Valoarea curentă", "Nivel", "Stare", "Versiune", "Actualizat"];
+    const lines = rows.map((r) => [r.cod, r.denumire, r.sursa, r.format, r.tinta || "-", r.valoare, r.nivel === "Global" ? "Global" : `Autoritate ${r.autoritate}`, r.stare, r.versiune || "-", r.actualizat ? `${longDate(r.actualizat)} ${time(r.actualizat)}` : "-"]);
     const cell = (v) => `"${String(v ?? "").replace(/"/g, '""')}"`;
     const blob = new Blob([`﻿${[head, ...lines].map((l) => l.map(cell).join(";")).join("\r\n")}`], { type: "text/csv;charset=utf-8" });
     const a = Object.assign(document.createElement("a"), { href: URL.createObjectURL(blob), download: "kpi.csv" });
@@ -973,10 +985,27 @@
   }
 
   /* ---------------------------------------------------------------- audit (Feature AC: every operation) */
+  /* kpi-publish-v1: every operation also goes to the platform's unique Jurnalul de audit (GEAPEventTimeline.log = the US-262
+     record, object KPI + code + version), as widgets */
+  const journalEvent = (h) => ({ at: h.at, user: h.by, role: h.role, type: h.event, status: h.event === EVENTS.rejected ? "Eșuat" : "Reușit", detail: h.detail || "" });
+  const versionAt = (k, at) => (k.versions || []).filter((x) => String(x.at || "") <= String(at)).pop()?.version || 0;
+  const journalCtx = (k, h) => {
+    const v = versionAt(k, h.at);
+    return {
+      module: "BackOffice",
+      authority: /· (.+)$/.exec(h.role || "")?.[1] || (k.level === "Global" ? "" : authName(k.authority)),
+      objectType: "KPI",
+      objectId: k.code,
+      objectVersion: v ? `versiunea ${v}` : "ciornă",
+      related: h.event === EVENTS.publish || h.event === EVENTS.restore ? [{ module: "Calculul KPI", type: "Ultima versiune publicată, folosită la calculul zilnic și în alerte", user: "SIA GEAP" }] : []
+    };
+  };
   function audit(k, kind, detail = "", changes = null) {
     const list = (D().history[k.id] = D().history[k.id] || []);
-    list.unshift({ at: nowIso(), by: userName(), role: roleLabel(), event: EVENTS[kind], detail, ...(changes ? { changes } : {}) });
-    if (["create", "clone", "edit", "on", "off"].includes(kind)) { k.updatedAt = nowIso(); k.updatedBy = userName(); }
+    const h = { at: nowIso(), by: userName(), role: roleLabel(), event: EVENTS[kind], detail, ...(changes ? { changes } : {}) };
+    list.unshift(h);
+    window.GEAPEventTimeline?.log?.(journalEvent(h), journalCtx(k, h));
+    if (["create", "clone", "edit", "on", "off", "publish", "restore"].includes(kind)) { k.updatedAt = nowIso(); k.updatedBy = userName(); }
   }
 
   /* ---------------------------------------------------------------- activate / deactivate (US-402, US-519) */
@@ -1020,19 +1049,19 @@
   }
 
   /* ================================================================ PROFILE (US-401 · US-519 · US-520 · US-521) */
-  const P = { id: null, tab: "definitie", draft: null, errors: {}, saveError: false, check: null, checking: false, dictQuery: "", dictClosed: new Set(), idp: "kpi-e" };
+  const P = { id: null, tab: "definitie", draft: null, errors: {}, saveError: false, check: null, checking: false, dictQuery: "", dictClosed: new Set(), idp: "kpi-e", compare: null };
   const tabsOf = (k) => {
     const w = who();
     return [
       ["definitie", "Definiție"], ["tinta", "Ținta și responsabili"],
       ...(k.level === "Global" ? [["valori", w.central ? "Autorități" : "Valori proprii"]] : []),
-      ["alerte", "Alerte"], ["istoric", "Istoric"]
+      ["alerte", "Alerte"], ["versiuni", "Versiuni"], ["istoric", "Istoric"]
     ];
   };
   const changedKeys = () => {
     const k = kpiOf(P.id);
     if (!k || !P.draft || !canEdit(k)) return [];
-    const base = draftOf(k);
+    const base = draftOf(savedOf(k));
     return Object.keys(DRAFT_LABELS).filter((key) => !same(base[key], P.draft[key]));
   };
   const dirty = () => changedKeys().length > 0;
@@ -1043,7 +1072,7 @@
     const k = kpiOf(id);
     if (!who().has || !k || !visible(k)) { showDenied(); return; }
     if (P.id !== id || !P.draft) {
-      Object.assign(P, { draft: draftOf(k), errors: {}, saveError: false, checking: false, dictQuery: "", dictClosed: new Set() });
+      Object.assign(P, { draft: draftOf(savedOf(k)), errors: {}, saveError: false, checking: false, dictQuery: "", dictClosed: new Set(), compare: null });
       P.check = null;
     }
     registerChangeSource();
@@ -1059,21 +1088,36 @@
     P.id = null; P.draft = null;
     document.querySelector(`[data-nav-item][data-nav-id="${NAV}"]`)?.click();
   }
+  /* kpi-publish-v1 (PO: „Publicare cum avem pentru altele”): the widget profile header — Salvează (the draft) · Publică ·
+     ⋮; max 2 visible actions */
   function headerActions(k) {
-    if (!canEdit(k)) return "";
+    const w = who();
+    const mine = authName(w.authority);
     const d = dirty();
+    const canPub = canPublish(k) && (!lastVersion(k) || unpublished(k) || d);
+    const menu = [
+      canCreate() && { label: "Clonează", icon: "copy", attrs: "data-kpi-clone" },
+      canInherit(k) && !noCalc(k) && k.status === "Activ" && (inheritOf(k, w.authority)?.active === false
+        ? { label: `Activează pentru ${mine}`, icon: "rotate-arrow", attrs: "data-kpi-auth" }
+        : { label: `Dezactivează pentru ${mine}`, icon: "pause", attrs: "data-kpi-auth" }),
+      canToggle(k) && (k.status === "Activ" ? { label: "Dezactivează", icon: "pause", attrs: "data-kpi-toggle" } : { label: "Activează", icon: "rotate-arrow", attrs: "data-kpi-toggle" })
+    ].filter(Boolean);
     return `
-      ${d ? '<button class="btn btn-neutral btn-sm" type="button" data-kpi-discard>Renunță</button>' : ""}
-      <button class="btn btn-primary btn-sm" type="button" data-kpi-save${d ? "" : ' aria-disabled="true" data-tooltip-reason="Nu există modificări de salvat."'}>Salvează</button>`;
+      ${canEdit(k) ? `<button class="btn btn-secondary btn-sm" type="button" data-kpi-save${d ? "" : ' aria-disabled="true" data-tooltip-reason="Nu există modificări de salvat."'}>Salvează</button>` : ""}
+      ${canPub ? '<button class="btn btn-primary btn-sm" type="button" data-kpi-publish>Publică</button>' : ""}
+      ${menu.length ? (U().renderStackMenu?.(menu, k.names.ro) || "").replace("hidden data-stack-menu>", "hidden data-stack-menu data-stack-menu-fixed>") : ""}`;
   }
   function headerTop(k) {
     const n = changedKeys().length;
+    const status = n
+      ? A().renderHeaderStatus?.(n === 1 ? "1 modificare nesalvată" : `${n} modificări nesalvate`, "warning", A().changesStatusAttrs?.("kpi-draft")) || ""
+      : canEdit(k) && unpublished(k) ? A().renderHeaderStatus?.("Modificări nepublicate", "warning", 'data-kpi-pending aria-haspopup="dialog" data-tooltip-text="Vezi modificările"') || "" : "";
     return A().renderPageHeaderTop({
       back: { label: TITLE, attr: "data-kpi-back" },
       title: k.names.ro,
       actions: headerActions(k),
-      status: n ? A().renderHeaderStatus?.(n === 1 ? "1 modificare nesalvată" : `${n} modificări nesalvate`, "warning", A().changesStatusAttrs?.("kpi-draft")) || "" : "",
-      caption: k.updatedAt ? `Actualizat ${longDate(k.updatedAt)}, ${time(k.updatedAt)} · ${k.updatedBy || ""}` : ""
+      status,
+      caption: k.updatedAt ? `Modificat ${longDate(k.updatedAt)}, ${time(k.updatedAt)} · ${k.updatedBy || ""}` : ""
     });
   }
   function renderProfile({ keep = "" } = {}) {
@@ -1095,11 +1139,12 @@
       ["Nivel", esc(levelText(k))],
       ["Stare", tag(stare, tone)],
       ["Valoarea curentă", `${esc(valueText(k, val.cur))}${z ? ` ${tag(ZONES[z][0], ZONES[z][1])}` : ""}`],
-      ["Ultima calculare", esc(`${longDate(D().calculatedAt)}, ${time(D().calculatedAt)}`)]
+      ["Ultima calculare", noCalc(k) ? dash : esc(`${longDate(D().calculatedAt)}, ${time(D().calculatedAt)}`)],
+      ["Versiune publicată", lastVersion(k) ? esc(String(lastVersion(k).version)) : "nepublicat"]
     ]);
     A().watchPageHeaderMeta?.(els.dosarProfilSummary);
     const alerts = alertsOf(k);
-    const count = { alerte: alerts.length, istoric: Math.min((D().history[k.id] || []).length, 100), valori: w.local && k.level === "Global" ? (inheritOf(k, w.authority)?.own || []).length : 0 };
+    const count = { alerte: alerts.length, versiuni: (k.versions || []).length, istoric: Math.min((D().history[k.id] || []).length, 100), valori: w.local && k.level === "Global" ? (inheritOf(k, w.authority)?.own || []).length : 0 };
     const tabs = tabsOf(k);
     els.dosarProfilTabs.innerHTML = tabs.map(([id, label]) => {
       const on = id === P.tab;
@@ -1111,7 +1156,7 @@
     body.id = "kpi-panel";
     body.setAttribute("role", "tabpanel");
     body.setAttribute("aria-labelledby", `kpi-tab-${P.tab}`);
-    const pane = { definitie: definitionTab, tinta: targetTab, valori: valuesTab, alerte: alertsTab, istoric: historyTab }[P.tab] || definitionTab;
+    const pane = { definitie: definitionTab, tinta: targetTab, valori: valuesTab, alerte: alertsTab, versiuni: versionsTab, istoric: historyTab }[P.tab] || definitionTab;
     body.innerHTML = `${notices(k)}${pane(k)}`;
     if (keepSel) {
       const el = document.querySelector(keepSel);
@@ -1126,6 +1171,8 @@
       P.saveError && U().renderNotice?.("error", esc(SAVE_FAILED), { role: "alert" }),
       isPlanned(k) && U().renderNotice?.("warning", "<strong>KPI planificat:</strong> datele lui nu sunt încă înregistrate în SIA GEAP. Nu se calculează și nu se poate publica."),
       k.status === "Inactiv" && U().renderNotice?.("warning", "<strong>KPI-ul este inactiv:</strong> nu se calculează și nu generează alerte."),
+      isDraftK(k) && U().renderInfoNote?.("<strong>Ciornă.</strong> KPI-ul se calculează, generează alerte și poate fi adăugat în widget-uri după prima publicare."),
+      !isDraftK(k) && canEdit(k) && unpublished(k) && U().renderNotice?.("warning", `<strong>Modificări nepublicate.</strong> Calculul zilnic și alertele folosesc în continuare versiunea ${esc(String(lastVersion(k).version))}.`),
       w.local && k.level === "Global" && k.status === "Activ" && inheritOf(k, w.authority)?.active === false && U().renderNotice?.("warning", `<strong>KPI-ul este dezactivat pentru ${esc(mine)}:</strong> nu se calculează pentru ${esc(mine)} și nu generează alerte în ${esc(mine)}.`),
       w.local && k.level === "Global" && ["definitie", "tinta"].includes(P.tab) && U().renderInfoNote?.(`KPI global, stabilit de Administratorul central și moștenit de ${esc(mine)}. Valorile globale nu se modifică aici: în tabul „Valori proprii” îl puteți dezactiva pentru ${esc(mine)} sau îi puteți stabili valori proprii.`)
     ].filter(Boolean).join("");
@@ -1136,7 +1183,7 @@
     const per = perimeterOf(k, w);
     const t = targetFor(k, w.local ? w.authority : null);
     const val = valuesOf(k, per);
-    if (isPlanned(k)) return "";
+    if (noCalc(k)) return "";
     return `
       <section class="e-permits-dosar-profil__section">
         <div class="e-permits-dosar-profil__section-heading">
@@ -1384,10 +1431,13 @@
     if (al) openAlertDetail(al.dataset.kpiAlert);
   });
 
-  /* ---- save / discard (US-401) */
-  function save() {
+  /* ---- save / discard (US-401) — kpi-publish-v1: „Salvează” keeps the edits as the saved, UNPUBLISHED configuration
+     (k.pending); the live KPI (k's own fields) keeps calculating with the published version until „Publică”. A KPI never
+     published (Ciornă) or planned has no live version: its edits are written on it directly. */
+  function save({ silent = false } = {}) {
     const k = kpiOf(P.id);
-    if (!k || !canEdit(k) || !dirty()) return;
+    if (!k || !canEdit(k)) return false;
+    if (!dirty()) return true;
     P.errors = validate(P.draft, { selfId: k.id });
     if (Object.keys(P.errors).length) {
       const first = Object.keys(P.errors)[0];
@@ -1395,23 +1445,270 @@
       renderProfile({ keep: firstErrorSel(P.idp, P.errors) });
       showError(A().els?.dosarProfilPanelBody, firstErrorSel(P.idp, P.errors));
       A().writeHash?.(`#kpi/${k.id}/${P.tab}`, { push: false });
-      return;
+      return false;
     }
-    if (demo.has("eroare")) { P.saveError = true; renderProfile(); return; }
+    if (demo.has("eroare")) { P.saveError = true; renderProfile(); return false; }
     const keys = changedKeys();
     const v = P.draft;
-    const before = draftOf(k);
-    Object.assign(k, fromDraft(v, k));
-    if (keys.some((key) => ["source", "num", "hasDen", "den", "dateColumn", "format", "valueType", "unit"].includes(key)) && P.check?.key === calcKey(v)) {
-      const per = perimeterOf(k);
-      k.values = { ...(k.values || {}), [per]: P.check.values };
+    const before = savedCfg(k);
+    const cfg = fromDraft(v, k);
+    const calcChanged = keys.some((key) => ["source", "num", "hasDen", "den", "dateColumn", "format", "valueType", "unit"].includes(key)) && P.check?.key === calcKey(v);
+    if (lastVersion(k)) {
+      k.pending = same(cfg, liveCfg(k)) ? null : cfg;
+      if (calcChanged) k.pendingValues = { ...(k.pendingValues || {}), [perimeterOf(k)]: P.check.values };
+      if (!k.pending) delete k.pendingValues;
+    } else {
+      Object.assign(k, cfg);
+      if (calcChanged) k.values = { ...(k.values || {}), [perimeterOf(k)]: P.check.values };
     }
-    const show = (key, val) => (key === "recalc" || key === "hasDen" ? (val ? "Da" : "Nu") : Array.isArray(val) ? val.join(", ") || "—" : typeof val === "object" ? "modificat" : String(val ?? "") || "—");
-    const changes = keys.map((key) => ({ label: DRAFT_LABELS[key][0], before: ["num", "den"].includes(key) ? rulesText({ ...before, [key]: before[key] }, key) : show(key, before[key]), after: ["num", "den"].includes(key) ? rulesText({ ...P.draft, source: v.source }, key) : show(key, v[key]) }));
-    audit(k, "edit", keys.map((key) => DRAFT_LABELS[key][0]).join(" · "), changes);
-    P.draft = draftOf(k); P.saveError = false;
-    renderProfile({ keep: "[data-kpi-save]" });
-    toast("Modificările au fost salvate.");
+    const changes = diffRows(before, cfg);
+    audit(k, "edit", changes.map((c) => c.label).join(" · "), changes);
+    P.draft = draftOf(savedOf(k)); P.saveError = false;
+    if (!silent) {
+      renderProfile({ keep: "[data-kpi-save]" });
+      toast("Modificările au fost salvate.");
+      refreshList();
+    }
+    return true;
+  }
+  /* the configuration of a KPI = what a version keeps (the fromDraft shape, without the code) */
+  const liveCfg = (k) => fromDraft(draftOf(k), k);
+  const savedCfg = (k) => k.pending || liveCfg(k);
+  const savedOf = (k) => ({ ...k, ...savedCfg(k) });
+  const lastVersion = (k) => (k.versions || [])[(k.versions || []).length - 1] || null;
+  const unpublished = (k) => Boolean(k.pending) && Boolean(lastVersion(k)) && !same(k.pending, liveCfg(k));
+  /* seed: data/kpi.json keeps per version only the fields that differed from today's published configuration („set”) and
+     the saved draft as the changed fields („pending”); every version also writes its „Publicarea KPI” into the Istoric */
+  function seedVersions(k) {
+    if (noCalc(k)) { k.versions = []; return; }
+    const live = liveCfg(k);
+    const seed = k.versions?.length ? k.versions : [{ at: k.updatedAt || D().calculatedAt, by: k.updatedBy || "Anastasia Cojocaru", note: "Prima publicare a KPI-ului." }];
+    k.versions = seed.map((v, i) => ({ nr: i + 1, version: i + 1, type: v.type || (i ? "Publicare" : "Prima publicare"), note: v.note || "", at: v.at, by: v.by, config: { ...clone(live), ...clone(v.set || {}) } }));
+    if (k.pending) k.pending = { ...clone(live), ...clone(k.pending) };
+    const hist = (D().history[k.id] = D().history[k.id] || []);
+    const role = k.level === "Global" ? "Administrator central" : `Administrator local · ${authName(k.authority)}`;
+    k.versions.forEach((v) => { if (!hist.some((h) => h.event === EVENTS.publish && h.at === v.at)) hist.push({ at: v.at, by: v.by, role, event: EVENTS.publish, detail: `Versiunea ${v.version} · ${v.note}` }); });
+    hist.sort((a, b) => (a.at < b.at) - (a.at > b.at));
+  }
+  /* field-level diff of two configurations → [{ label, before, after }] (plain text, „—” for an empty field) */
+  function cfgRows(cfg) {
+    const v = draftOf({ ...cfg, code: "" });
+    const kk = asKpi(v);
+    const yes = (b) => (b ? "Da" : "Nu");
+    const text = {
+      nameRo: v.nameRo, nameRu: v.nameRu, nameEn: v.nameEn, desc: v.desc, definition: v.definition, source: sourceName(v.source),
+      num: v.source ? `${measureText(v)} · ${rulesText(v, "num")}` : "", hasDen: yes(v.hasDen), den: v.hasDen ? rulesText(v, "den") : "",
+      dateColumn: fieldOf(v.source, v.dateColumn)?.label || "", valueType: v.valueType, format: formatLabel(kk), unit: v.format === "duration" ? v.unit : "",
+      direction: DIRECTIONS.find(([d]) => d === v.direction)?.[1] || "", recalc: yes(v.recalc),
+      target: hasTarget(kk) ? fmt(kk, kk.target) : "Fără țintă", threshold: fmtThreshold(kk, kk.threshold), criteria: v.criteria.join(", "), roles: v.roles.join(", ")
+    };
+    return Object.keys(DRAFT_LABELS).map((key) => [DRAFT_LABELS[key][0], String(text[key] ?? "")]);
+  }
+  function diffRows(a, b) {
+    const rb = cfgRows(b);
+    return cfgRows(a).map(([lbl, va], i) => [lbl, va, rb[i][1]]).filter(([, va, vb]) => va !== vb).map(([lbl, va, vb]) => ({ label: lbl, before: va || "—", after: vb || "—" }));
+  }
+  /* „Modificări (N)” = the widget publish / restore / compare list (`.e-permits-wid-changes`) */
+  const changesList = (changes, title = "Modificări") => A().renderStackedList?.(`${title} (${changes.length})`, [{ label: "", items: changes.map((c) => ({ plainTitle: c.label, title: esc(c.label), meta: [diffHtml(c)] })) }], { className: "e-permits-wid-changes" }) || "";
+
+  /* ---- Versiuni (the widget tab): GEAPEventTimeline „Versiuni publicate”; an entry opens its version window */
+  function versionsTab(k) {
+    const cur = lastVersion(k);
+    const list = [...(k.versions || [])].reverse();
+    const n = list.length;
+    const compareBtn = n + (unpublished(k) ? 1 : 0) > 1 && !P.compare ? `<button class="btn btn-secondary btn-sm" type="button" data-kpi-compare-open>${icon("history", 16)}<span>Compară versiuni</span></button>` : "";
+    const events = list.map((v) => ({
+      at: v.at,
+      user: v.by,
+      type: `Versiunea ${v.version}${v.nr === cur.nr ? " · curentă" : ""}${/^Restaurare/.test(v.type) ? ` · ${v.type.toLocaleLowerCase("ro")}` : ""}`,
+      status: "Reușit",
+      detail: v.note
+    }));
+    return `
+      ${n ? U().renderInfoNote?.(`Calculul zilnic, alertele și widget-urile folosesc doar ultima versiune publicată: <strong>${esc(String(cur.version))}</strong>. Fiecare publicare crește versiunea cu 1; restaurarea publică o versiune nouă cu configurația celei alese.`) || "" : ""}
+      ${window.GEAPEventTimeline?.html("Versiuni publicate", events, { meta: n ? plural(n, "versiune", "versiuni") : "", actionHtml: compareBtn, empty: isPlanned(k) ? "Un KPI planificat nu se publică." : "KPI-ul nu a fost publicat încă.", openAttrs: (item, i) => `data-kpi-ver-view="${list[i].nr}" aria-haspopup="dialog"` }) || ""}
+      ${P.compare && n ? compareHtml(k) : ""}`;
+  }
+  const compareChoices = (k) => [...[...k.versions].reverse().map((v) => [String(v.nr), `Versiunea ${v.version} · ${longDate(v.at)}${v.nr === lastVersion(k).nr ? " (curentă)" : ""}`, v.config]), ...(unpublished(k) ? [["draft", "Modificările nepublicate", k.pending]] : [])];
+  function compareHtml(k) {
+    const choices = compareChoices(k);
+    const pick = (key) => choices.find(([c]) => c === key) || choices[0];
+    const [ka, , ca] = pick(P.compare.a);
+    const [kb, , cb] = pick(P.compare.b);
+    const opts = choices.map(([c, l]) => [c, l]);
+    const changes = ka === kb ? [] : diffRows(ca, cb);
+    return `
+      <section class="e-permits-dosar-profil__section e-permits-wid-compare" aria-labelledby="kpi-compare-title">
+        <div class="e-permits-dosar-profil__section-heading">
+          <h2 class="e-permits-dosar-profil__section-title" id="kpi-compare-title">Compară versiuni</h2>
+          <div class="e-permits-passport__heading-tools"><button class="btn btn-neutral btn-sm" type="button" data-kpi-compare-close>Închide comparația</button></div>
+        </div>
+        <div class="e-permits-ntpl-card">${grid(
+          selectField("kpi-cmp-a", "cmp.a", "Versiunea de bază", opts, ka, { span: 6 }),
+          selectField("kpi-cmp-b", "cmp.b", "Comparată cu", opts, kb, { span: 6 })
+        )}</div>
+        ${ka === kb
+          ? U().renderInfoNote?.("Alegeți două versiuni diferite.") || ""
+          : changes.length ? changesList(changes) : U().renderInfoNote?.("Cele două versiuni au aceeași configurație.") || ""}
+      </section>`;
+  }
+  /* ---- version window (Compară · Restaurează · Închide) · restore — the widget dialogs */
+  const versionOf = (k, nr) => (k.versions || []).find((v) => String(v.nr) === String(nr)) || null;
+  function openVersion(nr) {
+    const k = kpiOf(P.id);
+    const v = k && versionOf(k, nr);
+    if (!v) return;
+    const isCurrent = v.nr === lastVersion(k).nr;
+    const as = { ...k, ...clone(v.config) };
+    G().openModal?.({
+      kind: "kpi-version",
+      title: `Versiunea ${v.version}${isCurrent ? " · curentă" : ""}`,
+      subtitle: k.names.ro,
+      body: `
+        <div class="e-permits-dosar-profil__card">${[["Tipul modificării", esc(v.type)], ["Data", esc(`${longDate(v.at)}, ${time(v.at)}`)], ["Autor", esc(v.by)], ["Ce s-a schimbat", esc(v.note)]].map((r) => G().detailRow?.(r) || "").join("")}</div>
+        ${readDefinition(as)}
+        ${readTarget(as)}`,
+      footer: `<div class="modal-buttons">${isCurrent ? "" : `<button class="btn btn-neutral btn-rounded" type="button" data-kpi-ver-compare="${v.nr}">Compară cu versiunea curentă</button>${canPublish(k) ? `<button class="btn btn-neutral btn-rounded" type="button" data-kpi-ver-restore="${v.nr}">${icon("rotate-arrow")}<span>Restaurează</span></button>` : ""}`}<button class="btn btn-primary btn-rounded" type="button" data-case-close>Închide</button></div>`
+    });
+  }
+  let restoring = null;
+  function openRestore(nr) {
+    const k = kpiOf(P.id);
+    const v = k && versionOf(k, nr);
+    if (!v || !canPublish(k)) return;
+    restoring = { id: k.id, nr: v.nr };
+    const next = lastVersion(k).version + 1;
+    const lost = unpublished(k) || dirty();
+    const changes = diffRows(lastVersion(k).config, v.config);
+    G().openModal?.({
+      kind: "kpi-restore",
+      title: `Restaurare versiune ${v.version}`,
+      subtitle: k.names.ro,
+      body: `
+        ${U().renderNotice?.(lost ? "warning" : "info", `<strong>Versiunea ${next} reia configurația versiunii ${v.version}.</strong> Calculul zilnic și alertele o folosesc imediat după restaurare.${lost ? " Modificările nepublicate se pierd." : ""}`) || ""}
+        ${changes.length ? changesList(changes) : ""}
+        ${areaField("kpi-restore-note", "restoreNote", "Ce s-a schimbat", "", { required: true, placeholder: "De ce reveniți la această versiune", hint: "Apare în istoricul versiunilor." })}`,
+      footer: '<div class="modal-buttons"><button class="btn btn-neutral btn-rounded" type="button" data-case-close>Anulează</button><button class="btn btn-primary btn-rounded" type="button" data-kpi-restore-confirm>Restaurează</button></div>'
+    });
+  }
+  function setModalError(field, message) {
+    if (!field) return;
+    const box = field.closest(".e-permits-fo-textarea");
+    box?.classList.add("is-error");
+    field.setAttribute("aria-invalid", "true");
+    const wrap = field.closest(".e-permits-fo-field");
+    wrap.querySelector(".e-permits-fo-field__error")?.remove();
+    wrap.querySelector(".e-permits-fo-field__hint")?.setAttribute("hidden", "");
+    wrap.insertAdjacentHTML("beforeend", errorHtml(field.id, message));
+    field.setAttribute("aria-describedby", `${field.id}-error`);
+    field.focus();
+    field.addEventListener("input", () => { box?.classList.remove("is-error"); field.removeAttribute("aria-invalid"); wrap.querySelector(".e-permits-fo-field__error")?.remove(); wrap.querySelector(".e-permits-fo-field__hint")?.removeAttribute("hidden"); field.setAttribute("aria-describedby", `${field.id}-hint`); }, { once: true });
+  }
+  function confirmRestore() {
+    if (!restoring) return;
+    const field = document.querySelector("#kpi-restore-note");
+    const note = field?.value.trim() || "";
+    if (!note) { setModalError(field, "Descrieți ce s-a schimbat."); return; }
+    const k = kpiOf(restoring.id);
+    const v = versionOf(k, restoring.nr);
+    restoring = null;
+    if (demo.has("eroare")) { G().closeModal?.(); toast(SAVE_FAILED, "error"); return; }
+    const next = lastVersion(k).version + 1;
+    const cfg = clone(v.config);
+    Object.assign(k, clone(cfg));
+    k.pending = null; delete k.pendingValues;
+    k.versions.push({ nr: k.versions.length + 1, version: next, type: `Restaurare (din versiunea ${v.version})`, note, at: nowIso(), by: userName(), config: cfg });
+    audit(k, "restore", `Versiunea ${v.version} → versiunea ${next} · ${note}`);
+    Object.assign(P, { compare: null, draft: draftOf(savedOf(k)), errors: {}, check: null });
+    G().closeModal?.();
+    renderProfile();
+    refreshList();
+    toast(`Versiunea ${v.version} a fost restaurată ca versiunea ${next}.`);
+  }
+
+  /* ---- publish (the widget flow): „Modificări nepublicate” → the shared pending-changes dialog; „Publică” → the publish
+     dialog (problems block it, required „Ce s-a schimbat”) → version + 1, success toast */
+  let publishing = null;
+  function openPending() {
+    const k = kpiOf(P.id);
+    const last = k && lastVersion(k);
+    if (!last) return;
+    const changes = diffRows(liveCfg(k), savedCfg(k)).map((c) => ({ area: c.label, detail: `${c.before} → ${c.after}`, at: k.updatedAt || "", user: k.updatedBy || "", status: "Modificat" }));
+    A().openPendingChanges?.({ subject: `${k.names.ro} · față de versiunea ${last.version}`, changes, onPublish: canPublish(k) ? () => openPublish() : null });
+  }
+  function openPublish({ create = false } = {}) {
+    if (create) {
+      for (const st of [1, 2, 3]) {
+        const errors = validate(C.v, { steps: [st] });
+        if (Object.keys(errors).length) { C.step = st; C.errors = errors; renderCreate({ keep: firstErrorSel(C.idp, errors) }); showError(sheet, firstErrorSel(C.idp, errors)); return; }
+      }
+      publishing = { create: true };
+    } else {
+      const k = kpiOf(P.id);
+      if (!k || !canPublish(k)) return;
+      publishing = { id: k.id };
+      const errors = validate(P.draft, { selfId: k.id });
+      if (Object.keys(errors).length) { P.errors = errors; renderProfile(); }
+    }
+    renderPublish();
+  }
+  function renderPublish() {
+    const k = publishing.create ? null : kpiOf(publishing.id);
+    const v = publishing.create ? C.v : P.draft;
+    const problems = publishing.create ? [] : Object.values(validate(v, { selfId: k.id }));
+    const cur = k ? lastVersion(k) : null;
+    const next = (cur?.version || 0) + 1;
+    const changes = cur ? diffRows(cur.config, fromDraft(v, k)) : [];
+    const note = document.querySelector("#kpi-publish-note")?.value || "";
+    const w = who();
+    G().openModal?.({
+      kind: "kpi-publish",
+      title: "Publicare KPI",
+      subtitle: v.nameRo.trim() || "KPI nou",
+      body: `
+        ${problems.length
+          ? U().renderNotice?.("error", `<strong>KPI-ul nu se poate publica.</strong> ${problems.map(esc).join(" ")}`, { role: "alert" }) || ""
+          : U().renderNotice?.("info", cur
+            ? `<strong>Versiunea ${next} o înlocuiește pe versiunea ${esc(String(cur.version))}.</strong> ${changes.length ? "Calculul zilnic, alertele și widget-urile folosesc noua versiune imediat după publicare." : "Configurația este aceeași ca în versiunea în vigoare."}`
+            : `<strong>Prima publicare: versiunea ${next}.</strong> KPI-ul devine activ ${w.central || (k && k.level === "Global") ? "la nivelul Global" : `în ${esc(authName(w.authority))}`}: se calculează zilnic, generează alerte și poate fi adăugat în widget-uri.`) || ""}
+        ${!problems.length && changes.length ? changesList(changes) : ""}
+        ${areaField("kpi-publish-note", "publishNote", "Ce s-a schimbat", note, { required: true, placeholder: "De ex. ținta crescută la 92%", hint: "Apare în istoricul versiunilor." })}`,
+      footer: `<div class="modal-buttons"><button class="btn btn-neutral btn-rounded" type="button" data-case-close>Anulează</button><button class="btn btn-primary btn-rounded" type="button" data-kpi-publish-confirm${problems.length ? ' aria-disabled="true" data-tooltip-reason="Rezolvați mai întâi problemele de mai sus."' : ""}>Publică</button></div>`
+    });
+  }
+  /* the live KPI takes the saved configuration (+ the values checked with it); the version keeps a copy */
+  function publishKpi(k, note) {
+    const cfg = clone(savedCfg(k));
+    Object.assign(k, clone(cfg));
+    if (k.pendingValues) { k.values = { ...(k.values || {}), ...k.pendingValues }; delete k.pendingValues; }
+    k.pending = null;
+    const next = (lastVersion(k)?.version || 0) + 1;
+    k.versions = k.versions || [];
+    k.versions.push({ nr: k.versions.length + 1, version: next, type: next === 1 ? "Prima publicare" : "Publicare", note, at: nowIso(), by: userName(), config: cfg });
+    if (isDraftK(k)) k.status = "Activ";
+    audit(k, "publish", `Versiunea ${next} · ${note}`);
+    return next;
+  }
+  function confirmPublish(button) {
+    if (!publishing) return;
+    const k0 = publishing.create ? null : kpiOf(publishing.id);
+    if (button.getAttribute("aria-disabled") === "true") { if (k0) audit(k0, "rejected", Object.values(validate(P.draft, { selfId: k0.id })).join(" ")); return; }
+    const field = document.querySelector("#kpi-publish-note");
+    const note = field?.value.trim() || "";
+    if (!note) { setModalError(field, "Descrieți ce s-a schimbat."); return; }
+    if (demo.has("eroare")) { G().closeModal?.(); toast(SAVE_FAILED, "error"); publishing = null; return; }
+    const create = publishing.create;
+    publishing = null;
+    let k = k0;
+    if (create) k = createKpi();
+    else if (!save({ silent: true })) { G().closeModal?.(); return; }
+    const next = publishKpi(k, note);
+    G().closeModal?.();
+    if (create) { closeCreate(true); P.draft = null; }
+    else P.draft = draftOf(savedOf(k));
+    toast(`Versiunea ${next} a KPI-ului „${k.names.ro}” a fost publicată.`);
+    openProfile(k.id, create ? "definitie" : P.tab, { push: create });
+    refreshList();
   }
   function fromDraft(v, base = {}) {
     return {
@@ -1424,7 +1721,7 @@
   function discard() {
     const k = kpiOf(P.id);
     if (!k) return;
-    P.draft = draftOf(k); P.errors = {}; P.saveError = false;
+    P.draft = draftOf(savedOf(k)); P.errors = {}; P.saveError = false;
     renderProfile();
   }
   let changeSourceDone = false;
@@ -1432,14 +1729,14 @@
   const changeSource = () => {
     const k = kpiOf(P.id);
     if (!k || !P.draft) return null;
-    const base = draftOf(k);
+    const base = draftOf(savedOf(k));
     const show = (key, val) => (key === "recalc" || key === "hasDen" ? (val ? "Da" : "Nu") : Array.isArray(val) ? val.join(", ") || "—" : typeof val === "object" ? "condiții modificate" : A().changeValue?.(val) ?? String(val));
     return {
       name: k.names.ro, applies: "se aplică după Salvează", emptyText: "KPI-ul este salvat.", groups: ["Definiție", "Ținta și responsabili"],
       entries: () => changedKeys().map((key) => ({ undo: key, group: DRAFT_LABELS[key][1], title: DRAFT_LABELS[key][0], tag: ["Modificat", "brand"], detail: ["num", "den"].includes(key) ? "Calculul a fost modificat" : `${show(key, base[key])} → ${show(key, P.draft[key])}` })),
       undo: (key) => { P.draft[key] = clone(base[key]); delete P.errors[key]; renderProfile(); },
       discard,
-      save
+      save: () => save()
     };
   };
 
@@ -1614,9 +1911,9 @@
         ["Ținta", v.target !== "" ? esc(fmt(k, k.target)) : "Fără țintă: fără alerte"], ["Pragul de apropiere", v.threshold !== "" ? esc(fmtThreshold(k, k.threshold)) : dash],
         ["Criterii de setare", v.criteria.length ? esc(v.criteria.join(", ")) : dash], ["Roluri responsabile", v.roles.length ? esc(v.roles.join(", ")) : dash]
       ], 3)}
-      ${U().renderInfoNote?.(w.central
-        ? "KPI-ul se creează <strong>activ</strong>, la nivelul <strong>Global</strong>, și este moștenit de toate autoritățile."
-        : `KPI-ul se creează <strong>activ</strong>, la nivelul autorității <strong>${esc(authName(w.authority))}</strong>, și se aplică doar în ${esc(authName(w.authority))}.`) || ""}`, createPreview(), { preview: true });
+      ${U().renderInfoNote?.(`${w.central
+        ? "„Publică” creează KPI-ul <strong>activ</strong>, versiunea 1, la nivelul <strong>Global</strong>; este moștenit de toate autoritățile."
+        : `„Publică” creează KPI-ul <strong>activ</strong>, versiunea 1, la nivelul autorității <strong>${esc(authName(w.authority))}</strong>; se aplică doar în ${esc(authName(w.authority))}.`} „Salvează ciorna” îl păstrează nepublicat: nu se calculează până la prima publicare.`) || ""}`, createPreview(), { preview: true });
   }
   function renderCreate({ keep = "" } = {}) {
     if (!C || !sheet) return;
@@ -1640,7 +1937,8 @@
       <p class="e-permits-cfg2__bar-text" aria-live="polite">${esc(`Pasul ${C.step} din ${STEPS.length} · ${STEPS[C.step - 1]}`)}</p>
       <div class="e-permits-cfg2__bar-actions">
         ${C.step === 1 ? '<button class="btn btn-neutral btn-md" type="button" data-kpi-close>Anulează</button>' : '<button class="btn btn-neutral btn-md" type="button" data-kpi-prev>Înapoi</button>'}
-        ${C.step < STEPS.length ? '<button class="btn btn-primary btn-md" type="button" data-kpi-next>Continuă</button>' : '<button class="btn btn-primary btn-md" type="button" data-kpi-create>Creează KPI</button>'}
+        <button class="btn btn-neutral btn-md" type="button" data-kpi-draft>Salvează ciorna</button>
+        ${C.step < STEPS.length ? '<button class="btn btn-primary btn-md" type="button" data-kpi-next>Continuă</button>' : '<button class="btn btn-primary btn-md" type="button" data-kpi-publish>Publică</button>'}
       </div>`;
     if (scroller() && keep !== "@top") scroller().scrollTop = scroll;
     if (keepSel && keepSel !== "@top") {
@@ -1665,27 +1963,36 @@
     C.maxStep = Math.max(C.maxStep, target);
     renderCreate({ keep: "@top" });
     if (scroller()) scroller().scrollTop = 0;
-    sheet.querySelector("[data-kpi-create], [data-kpi-next]")?.focus({ preventScroll: true });
+    sheet.querySelector("[data-kpi-publish], [data-kpi-next]")?.focus({ preventScroll: true });
   }
-  function create() {
-    for (const s of [1, 2, 3]) {
-      const errors = validate(C.v, { steps: [s] });
-      if (Object.keys(errors).length) { C.step = s; C.errors = errors; renderCreate({ keep: firstErrorSel(C.idp, errors) }); showError(sheet, firstErrorSel(C.idp, errors)); return; }
-    }
-    if (demo.has("eroare")) { C.saveError = true; renderCreate({ keep: "@top" }); if (scroller()) scroller().scrollTop = 0; return; }
+  /* kpi-publish-v1 — the widget create flow: „Salvează ciorna” (step Identificare is the minimum) creates a Ciornă without
+     a version, opened on its profile; „Publică” (last step, steps 1–3 valid) opens the publish dialog and creates it as
+     version 1 (createKpi + publishKpi in confirmPublish) */
+  function createKpi() {
     const w = who();
     const v = C.v;
     const id = `kpi-${v.code.toLowerCase().replace(/[^a-z0-9]+/g, "")}`;
-    const k = { id, level: w.central ? "Global" : "Autoritate", ...(w.central ? {} : { authority: w.authority }), status: "Activ", ...fromDraft(v), code: v.code.trim() };
-    const vals = C.check && C.check.key === calcKey(v) ? C.check.values : calcDraft(v);
-    k.values = w.central
-      ? Object.fromEntries([["all", vals], ...D().authorities.map((a) => [a.id, calcDraft({ ...v, source: `${v.source}:${a.id}` }).map((x, i) => (x === null ? null : i < 2 && vals[i] !== null ? round1((x + vals[i]) / 2) : x))])])
-      : { [w.authority]: vals };
+    const k = { id, level: w.central ? "Global" : "Autoritate", ...(w.central ? {} : { authority: w.authority }), status: "Ciornă", ...fromDraft(v), code: v.code.trim(), versions: [] };
+    if (v.source) {
+      const vals = C.check && C.check.key === calcKey(v) ? C.check.values : calcDraft(v);
+      k.values = w.central
+        ? Object.fromEntries([["all", vals], ...D().authorities.map((a) => [a.id, calcDraft({ ...v, source: `${v.source}:${a.id}` }).map((x, i) => (x === null ? null : i < 2 && vals[i] !== null ? round1((x + vals[i]) / 2) : x))])])
+        : { [w.authority]: vals };
+    }
     allKpis().push(k);
-    audit(k, C.from ? "clone" : "create", C.from ? `din ${kpiOf(C.from)?.code || ""} · ${levelText(k)}` : `${levelText(k)} · ${sourceName(k.source)} · ${formatLabel(k)}`);
+    audit(k, C.from ? "clone" : "create", C.from ? `din ${kpiOf(C.from)?.code || ""} · ${levelText(k)}` : `Ciornă · ${levelText(k)}${k.source ? ` · ${sourceName(k.source)}` : ""} · ${formatLabel(k)}`);
+    return k;
+  }
+  function saveDraftKpi() {
+    const errors = validate(C.v, { steps: [1] });
+    if (Object.keys(errors).length) { C.step = 1; C.errors = errors; renderCreate({ keep: firstErrorSel(C.idp, errors) }); showError(sheet, firstErrorSel(C.idp, errors)); return; }
+    if (demo.has("eroare")) { C.saveError = true; renderCreate({ keep: "@top" }); if (scroller()) scroller().scrollTop = 0; return; }
+    const k = createKpi();
     closeCreate(true);
-    toast("KPI-ul a fost creat.");
-    openProfile(id, "definitie");
+    P.draft = null;
+    toast(`Ciorna KPI-ului ${k.code} a fost salvată.`);
+    openProfile(k.id, "definitie");
+    refreshList();
   }
 
   /* ---- „Valoare proprie” (US-520) */
@@ -1812,6 +2119,16 @@
     const rowAuth = t.closest("[data-kpi-row-auth]");
     if (rowAuth) { const k = kpiOf(rowAuth.dataset.kpiRowAuth); if (k) setAuthActive(k, inheritOf(k, who().authority)?.active === false, (ok) => { if (ok) refreshList(); }); return; }
 
+    /* dialogs (publish · restore · version window) */
+    const pub = t.closest("[data-kpi-publish-confirm]");
+    if (pub) { confirmPublish(pub); return; }
+    if (t.closest("[data-kpi-restore-confirm]")) { confirmRestore(); return; }
+    const vcmp = t.closest("[data-kpi-ver-compare]");
+    if (vcmp) { const k = kpiOf(P.id); G().closeModal?.(); P.compare = { a: vcmp.dataset.kpiVerCompare, b: String(lastVersion(k).nr) }; renderProfile(); document.querySelector("#kpi-compare-title")?.scrollIntoView({ block: "start" }); return; }
+    const vrs = t.closest("[data-kpi-ver-restore]");
+    if (vrs) { openRestore(vrs.dataset.kpiVerRestore); return; }
+    if (t.closest("[data-kpi-pending]")) { openPending(); return; }
+
     const ctx = ctxOf(t);
     /* shared form controls (drawer + profile) */
     if (ctx) {
@@ -1841,7 +2158,8 @@
       if (t.closest("[data-kpi-next]")) { goStep(C.step + 1); return; }
       const goto = t.closest("[data-kpi-goto]");
       if (goto) { goStep(Number(goto.dataset.kpiGoto)); return; }
-      if (t.closest("[data-kpi-create]")) { create(); return; }
+      if (t.closest("[data-kpi-draft]")) { saveDraftKpi(); return; }
+      if (t.closest("[data-kpi-publish]")) { openPublish({ create: true }); return; }
       return;
     }
     /* own-value drawer */
@@ -1853,7 +2171,20 @@
     const tab = t.closest("[data-kpi-tab]");
     if (tab) { P.tab = tab.dataset.kpiTab; renderProfile({ keep: `#kpi-tab-${P.tab}` }); A().writeHash?.(`#kpi/${P.id}/${P.tab}`, { push: false }); return; }
     if (t.closest("[data-kpi-save]")) { if (t.closest("[data-kpi-save]").getAttribute("aria-disabled") !== "true") save(); return; }
-    if (t.closest("[data-kpi-discard]")) { discard(); return; }
+    if (t.closest("[data-kpi-publish]")) { openPublish(); return; }
+    if (t.closest("[data-kpi-clone]")) { openCreate(P.id); return; }
+    if (t.closest("[data-kpi-toggle]")) { const k = kpiOf(P.id); setStatus(k, k.status !== "Activ", (ok) => { if (ok) { renderProfile(); refreshList(); } }); return; }
+    if (t.closest("[data-kpi-auth]")) { const k = kpiOf(P.id); setAuthActive(k, inheritOf(k, who().authority)?.active === false, (ok) => { if (ok) { renderProfile(); refreshList(); } }); return; }
+    const view = t.closest("[data-kpi-ver-view]");
+    if (view) { openVersion(view.dataset.kpiVerView); return; }
+    if (t.closest("[data-kpi-compare-open]")) {
+      const k = kpiOf(P.id);
+      const ch = compareChoices(k);
+      P.compare = unpublished(k) ? { a: String(lastVersion(k).nr), b: "draft" } : { a: ch[1]?.[0] || ch[0][0], b: ch[0][0] };
+      renderProfile({ keep: "#kpi-cmp-a" });
+      return;
+    }
+    if (t.closest("[data-kpi-compare-close]")) { P.compare = null; renderProfile({ keep: "[data-kpi-compare-open]" }); return; }
     if (t.closest("[data-kpi-own-add]")) { openOwn(); return; }
     const ownEdit = t.closest("[data-kpi-own-edit]");
     if (ownEdit) { openOwn(ownEdit.dataset.kpiOwnEdit); return; }
@@ -1890,6 +2221,11 @@
   document.addEventListener("input", (event) => {
     const el = event.target;
     if (!el.closest) return;
+    if (el.matches("#kpi-publish-note, #kpi-restore-note")) {
+      const count = document.querySelector(`[data-kpi-count="${el.id}"]`);
+      if (count) { count.textContent = `${el.value.length}/${TEXT_MAX}`; count.classList.toggle("is-over", el.value.length > TEXT_MAX); }
+      return;
+    }
     const ctx = ctxOf(el);
     if (!ctx) return;
     if (el.matches("[data-kpi-dict-search]")) {
@@ -1937,6 +2273,7 @@
       setAuthActive(k, on, () => renderProfile({ keep: "[data-kpi-auth-active]" }));
       return;
     }
+    if (el.matches('[data-kpi-field="cmp.a"], [data-kpi-field="cmp.b"]')) { P.compare = { ...P.compare, [el.dataset.kpiField.slice(4)]: el.value }; renderProfile({ keep: `#kpi-cmp-${el.dataset.kpiField.slice(4)}` }); return; }
     const ctx = ctxOf(el);
     if (!ctx) return;
     const { st, v, render } = ctx;

@@ -104,7 +104,12 @@
       "dateColumn": "finalizat", "valueType": "Flux", "format": "percent", "unit": "zile", "direction": "up",
       "target": 90, "threshold": 5, "criteria": ["Serviciu", "Subdiviziune", "Specialist"], "roles": ["Supervizor", "Director", "Administrator local"], "recalc": false,
       "values": { "all": [88.6, 91.4, 1784, 2013, 1903, 2082], "ansp": [87.4, 91.2, 412, 471, 455, 499], "anta": [90.8, 91.7, 208, 229, 221, 241] },
-      "updatedAt": "2026-10-28T11:20:00", "updatedBy": "Anastasia Cojocaru"
+      "updatedAt": "2026-10-28T11:20:00", "updatedBy": "Anastasia Cojocaru",
+      "versions": [
+        { "at": "2026-09-30T15:36:00", "by": "Anastasia Cojocaru", "note": "Prima publicare a KPI-ului.", "set": { "target": 85, "roles": ["Supervizor", "Director"] } },
+        { "at": "2026-10-14T10:05:00", "by": "Anastasia Cojocaru", "note": "Ținta crescută la 90%, după rezultatele din septembrie.", "set": { "roles": ["Supervizor", "Director"] } },
+        { "at": "2026-10-28T11:24:00", "by": "Anastasia Cojocaru", "note": "Administratorul local primește și el alertele." }
+      ]
     },
     {
       "id": "kpi-t02", "code": "T-02", "level": "Global", "status": "Activ",
@@ -216,7 +221,9 @@
       "dateColumn": "depus", "valueType": "Flux", "format": "percent", "unit": "zile", "direction": "down",
       "target": 10, "threshold": 2, "criteria": ["Subdiviziune"], "roles": ["Supervizor"], "recalc": true,
       "values": { "all": [7.6, 8.1, 174, 2284, 177, 2190], "ansp": [7.2, 7.9, 92, 1284, 94, 1190], "anta": [9.4, 8.7, 41, 436, 35, 402] },
-      "updatedAt": "2026-10-20T16:15:00", "updatedBy": "Anastasia Cojocaru"
+      "updatedAt": "2026-11-05T14:10:00", "updatedBy": "Anastasia Cojocaru",
+      "versions": [{ "at": "2026-10-20T16:17:00", "by": "Anastasia Cojocaru", "note": "Prima publicare a KPI-ului." }],
+      "pending": { "target": 8, "roles": ["Supervizor", "Director"] }
     },
     {
       "id": "kpi-d02", "code": "D-02", "level": "Global", "status": "Activ",
@@ -292,7 +299,11 @@
       { "at": "2026-10-29T09:41:00", "by": "Victor Lungu", "role": "Administrator local · ANSP", "event": "Valoare proprie adăugată", "detail": "ANSP · Subdiviziune CSP Bălți: ținta 85%, prag 5 p.p." },
       { "at": "2026-10-29T09:38:00", "by": "Victor Lungu", "role": "Administrator local · ANSP", "event": "Valoare proprie adăugată", "detail": "ANSP · Autoritate: ținta 92%, prag 3 p.p." },
       { "at": "2026-10-28T11:20:00", "by": "Anastasia Cojocaru", "role": "Administrator central", "event": "Modificarea KPI", "detail": "Roluri responsabile: Supervizor, Director → Supervizor, Director, Administrator local" },
+      { "at": "2026-10-14T10:02:00", "by": "Anastasia Cojocaru", "role": "Administrator central", "event": "Modificarea KPI", "detail": "Ținta: 85% → 90%" },
       { "at": "2026-09-30T15:30:00", "by": "Anastasia Cojocaru", "role": "Administrator central", "event": "Crearea KPI", "detail": "Global · Registru Dosare · Procent" }
+    ],
+    "kpi-d01": [
+      { "at": "2026-11-05T14:10:00", "by": "Anastasia Cojocaru", "role": "Administrator central", "event": "Modificarea KPI", "detail": "Ținta: 10% → 8% · Roluri responsabile: Supervizor → Supervizor, Director" }
     ],
     "kpi-v02": [
       { "at": "2026-10-29T09:30:00", "by": "Victor Lungu", "role": "Administrator local · ANSP", "event": "Dezactivat pentru autoritate", "detail": "ANSP" },

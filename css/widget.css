@@ -801,9 +801,9 @@ button.e-permits-wid-rows__row:focus-visible {
   margin: 0;
 }
 
-/* the version / publish / restore windows: notice · „Modificări (N)” · note field (the version window: details card ·
+/* the version / publish / restore windows (widgets + KPI, kpi-publish-v1): notice · „Modificări (N)” · note field (the version window: details card ·
    the widget · the configuration blocks), 16 apart */
-.e-permits-reg-modal:is(.e-permits-reg-modal--wid-version, .e-permits-reg-modal--wid-publish, .e-permits-reg-modal--wid-restore) [data-case-modal-body] {
+.e-permits-reg-modal:is(.e-permits-reg-modal--wid-version, .e-permits-reg-modal--wid-publish, .e-permits-reg-modal--wid-restore, .e-permits-reg-modal--kpi-version, .e-permits-reg-modal--kpi-publish, .e-permits-reg-modal--kpi-restore) [data-case-modal-body] {
   display: flex;
   flex-direction: column;
   gap: var(--spacing-16, 16px);
@@ -868,15 +868,15 @@ button.e-permits-wid-rows__row:focus-visible {
 
 /* „Modificări (N)” in the publish / restore windows: the modal's own 16 rhythm (no section padding + gap), the heading on
    the notice's left edge (the page's 12 heading inset does not apply in a dialog), 8 to the list */
-:is(.e-permits-reg-modal--wid-publish, .e-permits-reg-modal--wid-restore) .e-permits-wid-changes {
+:is(.e-permits-reg-modal--wid-publish, .e-permits-reg-modal--wid-restore, .e-permits-reg-modal--kpi-publish, .e-permits-reg-modal--kpi-restore) .e-permits-wid-changes {
   padding-bottom: 0;
 }
 
-:is(.e-permits-reg-modal--wid-publish, .e-permits-reg-modal--wid-restore) .e-permits-wid-changes > .e-permits-dosar-profil__section-heading {
+:is(.e-permits-reg-modal--wid-publish, .e-permits-reg-modal--wid-restore, .e-permits-reg-modal--kpi-publish, .e-permits-reg-modal--kpi-restore) .e-permits-wid-changes > .e-permits-dosar-profil__section-heading {
   padding: 0 0 var(--spacing-8, 8px);
 }
 
-:is(.e-permits-reg-modal--wid-publish, .e-permits-reg-modal--wid-restore) .e-permits-wid-changes .e-permits-dosar-profil__section-title {
+:is(.e-permits-reg-modal--wid-publish, .e-permits-reg-modal--wid-restore, .e-permits-reg-modal--kpi-publish, .e-permits-reg-modal--kpi-restore) .e-permits-wid-changes .e-permits-dosar-profil__section-title {
   padding: 0;
 }
 
