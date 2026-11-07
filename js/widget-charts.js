@@ -37,8 +37,8 @@
   const legend = (items, { vertical = false } = {}) => `
     <ul class="e-permits-meter-legend e-permits-meter-legend--tray${vertical ? " e-permits-wid-legend--list" : ""}" role="list">
       ${items.map((it) => `<li>${it.button
-        ? `<button class="e-permits-wid-legend__btn" type="button"${it.button}><span class="e-permits-meter-legend__dot ${it.dot}" aria-hidden="true"></span><span>${esc(it.label)}</span>${it.value ? `<strong>${esc(it.value)}</strong>` : ""}${it.pct ? `<span class="e-permits-meter-legend__pct">${esc(it.pct)}</span>` : ""}</button>`
-        : `<span class="e-permits-meter-legend__dot ${it.dot}" aria-hidden="true"></span><span>${esc(it.label)}</span>${it.value ? `<strong>${esc(it.value)}</strong>` : ""}${it.pct ? `<span class="e-permits-meter-legend__pct">${esc(it.pct)}</span>` : ""}`}</li>`).join("")}
+        ? `<button class="e-permits-wid-legend__btn" type="button"${it.button}><span class="e-permits-meter-legend__dot ${it.dot}" aria-hidden="true"></span><span${vertical ? ` data-tooltip-label="${esc(it.label)}"` : ""}>${esc(it.label)}</span>${it.value ? `<strong>${esc(it.value)}</strong>` : ""}${it.pct ? `<span class="e-permits-meter-legend__pct">${esc(it.pct)}</span>` : ""}</button>`
+        : `<span class="e-permits-meter-legend__dot ${it.dot}" aria-hidden="true"></span><span${vertical ? ` data-tooltip-label="${esc(it.label)}"` : ""}>${esc(it.label)}</span>${it.value ? `<strong>${esc(it.value)}</strong>` : ""}${it.pct ? `<span class="e-permits-meter-legend__pct">${esc(it.pct)}</span>` : ""}`}</li>`).join("")}
     </ul>`;
   const toneDot = (tone) => `e-permits-meter-legend__dot--${tone}`;
   /* the legend of a single-series chart: thresholds (zones) or the measure, + the KPI target */
@@ -271,7 +271,7 @@
       return `<rect class="e-permits-wid-fill e-permits-wid-tile-rect ${sClass(t.i)}" data-wid-tile="${t.i}" x="${pct(t.x)}" y="${pct(t.y)}" width="${pct(t.w)}" height="${pct(t.h)}"></rect>${name ? `<text class="e-permits-wid-treemap__label" data-wid-fit="tile" data-wid-tile="${t.i}" x="${pct(t.x + 1.5)}" y="${pct(t.y + 14)}">${esc(name)}</text>` : ""}${val ? `<text class="e-permits-wid-treemap__value" data-wid-fit="tile" data-wid-tile="${t.i}" x="${pct(t.x + 1.5)}" y="${pct(t.y + 28)}">${esc(val)}</text>` : ""}`;
     }).join("");
     return `
-      <svg class="${PLOT(m, "e-permits-wid-plot--bare")}" role="img" aria-label="${ariaOf(m)}" focusable="false">${tiles}</svg>
+      <svg class="${PLOT(m, "e-permits-wid-plot--bare e-permits-wid-treemap")}" role="img" aria-label="${ariaOf(m)}" focusable="false">${tiles}</svg>
       ${legend(m.cats.map((c, i) => ({ label: c.label, value: m.fmt(c.value), dot: sClass(i), button: m.drill ? `${drillAttrs(m, c.label, c.value)} aria-label="${esc(`${c.label}: ${m.fmt(c.value)} — deschide înregistrările`)}"` : "" })), { vertical: true })}`;
   }
 

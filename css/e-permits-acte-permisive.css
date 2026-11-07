@@ -19999,7 +19999,10 @@ a.e-permits-fo-lib-item__title:is(:hover, :focus) {
 
 /* preview — the message as the recipient sees it */
 .e-permits-ntpl-content__preview {
+  /* the sticky column ends 48 above the bottom of its scroller: the last card never sits flush on the footer / viewport */
+  box-sizing: border-box;
   min-width: 0;
+  padding-bottom: var(--spacing-48, 48px);
   position: sticky;
   top: var(--spacing-24, 24px);
 }

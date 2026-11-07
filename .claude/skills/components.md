@@ -12196,7 +12196,7 @@ column), format and thresholds; the read-only rows swap them for „Ținta”. H
   gap 12. A type the configuration cannot use (no date column for Linie / Control / Hartă) stays visible: `.is-disabled`, input disabled, not-allowed cursor, disabled text + grey glyph, the
   description line = the reason. Choosing a type pre-fills a compatible primary criterion (date for Linie / Control,
   date secondary for Hartă, `statut` secondary for Bare suprapuse) so the preview draws at once.
-- **Widget preview heading (2026-11-07).** `Previzualizare` + actions on the title row (Actualizează secondary Small + „Mărește” = `btn-neutral btn-sm btn-icon-only`, grey); the data line `.e-permits-wid-preview__meta` sits directly under the title (4), 16 to the segmented control (desktop; phones keep the stacked heading).
+- **Widget preview heading (2026-11-07, Figma wid-08 14968:48906).** Row 1 = `Previzualizare` (fills) + actions (Actualizează secondary Small + „Mărește” = `btn-neutral btn-sm btn-icon-only`, grey), centred, 16 apart; row 2 = `.e-permits-wid-preview__meta` („Perimetru: …”) full width, 12 below row 1 (grid; `__titles` is `display: contents`). Same on phones. **Right column (sticky `.e-permits-ntpl-content__preview`) ends with padding-bottom 48** (0 when the profile stacks it first). **Donut** = 50 / 50 grid: ring fluid in the left half (max 320), list legend right (label ellipsis + tooltip); stacks above the list when the card is ≤ 520 wide (container query).
 - **„Modificări nepublicate” header status** (widget profile) = `renderHeaderStatus(..., 'data-wid-pending aria-haspopup="dialog" data-tooltip-text="Vezi modificările"')` → shared `openPendingChanges` (`#pending-changes-modal`, exported on `GEAPShellApi`): published version vs saved config, old → new, footer Închide · Publică. Demo `wid-04h`.
 - **Widget card — NEW `.e-permits-chart.e-permits-wid-card`** (as on a dashboard): `__head` (title 16/24 medium ·
   subtitle 14/20 secondary, gap 8 — breathing-space rule) · `__body` (flex column, gap 16: the chart, axis, legend tray) · `__foot` 12/16
@@ -12205,7 +12205,7 @@ column), format and thresholds; the read-only rows swap them for „Ținta”. H
   („Actualizează”) = `.skeleton--block` at the plot height + a text skeleton; source error (`?widget=eroare-date`) =
   empty state `warning-filled` — and publication is blocked.
 - **Preview block `.e-permits-wid-preview`** (the ntpl preview aside, gap 16): the BO section heading (h2 „Previzualizare”,
-  48 row, 12 inset) + `__meta` (`.e-permits-dosar-profil__section-meta` „Perimetrul dvs.: … · date din … · Lățime … ·
+  48 row, 12 inset) + `__meta` (`.e-permits-dosar-profil__section-meta` „Perimetru: … · date din … · Lățime … ·
   Înălțime … · Aria …”, same inset, 4 under the heading) | heading tools: „Actualizează” (secondary Small, rotate-arrow → `btn-loading`) + „Mărește” (`btn-neutral btn-sm btn-icon-only`,
   icon-resize, tooltip; opens the card full-width in the library dialog, `modal--lg`); „Previzualizează ca” = the library
   `.segmented-control` (the ntpl „E-mail / Mobil” switch): Utilizator cu acces la sursă · Fără acces la sursă (drill-down

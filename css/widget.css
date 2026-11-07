@@ -50,6 +50,7 @@
 .e-permits-wid-card--half { width: 50%; }
 .e-permits-wid-card--twoThirds { width: calc(100% * 2 / 3); }
 .e-permits-wid-card--full { width: 100%; }
+.e-permits-wid-card { container-type: inline-size; }
 
 .e-permits-wid-card {
   box-sizing: border-box;
@@ -357,6 +358,7 @@ button.e-permits-wid-cols__slot:hover .e-permits-wid-fill { fill: var(--wid-seri
   align-self: stretch;
   flex: 1 1 calc(var(--spacing-40, 40px) * 4);
   flex-direction: column;
+  min-width: 0;
   flex-wrap: nowrap;
 }
 
@@ -497,26 +499,33 @@ button.e-permits-wid-rows__row:focus-visible {
 /* Sectoare sau inel: the ring (viewBox 42, stroke 6) + the total in the centre, the list legend beside it */
 .e-permits-wid-donut {
   align-items: center;
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
   gap: var(--spacing-24, 24px);
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
 }
 
+/* 50 / 50: the ring is centred in its half and fills it (square, capped), the legend takes the other half */
 .e-permits-wid-donut__chart {
-  flex: none;
-  height: calc(var(--spacing-40, 40px) * 4);
+  aspect-ratio: 1;
+  justify-self: center;
+  max-width: calc(var(--spacing-40, 40px) * 8);
   position: relative;
-  width: calc(var(--spacing-40, 40px) * 4);
+  width: 100%;
 }
 
-.e-permits-wid-donut--small .e-permits-wid-donut__chart {
-  height: calc(var(--spacing-40, 40px) * 3);
-  width: calc(var(--spacing-40, 40px) * 3);
+.e-permits-wid-donut > .e-permits-wid-legend--list {
+  align-self: center;
 }
 
-.e-permits-wid-donut--large .e-permits-wid-donut__chart {
-  height: calc(var(--spacing-40, 40px) * 5);
-  width: calc(var(--spacing-40, 40px) * 5);
+/* narrow cards (a third, phones): the ring above the list */
+@container (max-width: 520px) {
+  .e-permits-wid-donut {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .e-permits-wid-donut__chart {
+    max-width: calc(var(--spacing-40, 40px) * 6);
+  }
 }
 
 .e-permits-wid-donut__svg {
@@ -654,8 +663,16 @@ button.e-permits-wid-rows__row:focus-visible {
 .e-permits-wid-heat__key.is-l4 { background: var(--blue-sky-500, #3379db); }
 .e-permits-wid-heat__key.is-l5 { background: var(--color-background-brand-default, #0058d2); }
 
+/* the treemap as a whole: outer corners 6, the tiles 2 inside */
+.e-permits-wid-treemap {
+  border-radius: var(--border-radius-6, 6px);
+  overflow: hidden;
+}
+
 /* Treemap: tiles in the series palette, 2px card-coloured gaps, white labels on the big ones */
 .e-permits-wid-tile-rect {
+  rx: var(--border-radius-2, 2px);
+  ry: var(--border-radius-2, 2px);
   stroke: var(--color-background-base-default, #fff);
   stroke-width: var(--border-width-2, 2px);
 }
@@ -800,6 +817,7 @@ button.e-permits-wid-rows__row:focus-visible {
   /* the profile stacks: the widget first, its configuration under it */
   .e-permits-wid-config > .e-permits-ntpl-content__preview {
     order: -1;
+    padding-bottom: 0;
     position: static;
   }
 }
@@ -900,33 +918,62 @@ button.e-permits-wid-rows__row:focus-visible {
 }
 
 /* narrow cards („O treime”): the list legend's label wraps, the heat-map key line wraps */
-.e-permits-wid-legend--list li > span:not(.e-permits-meter-legend__dot),
-.e-permits-wid-legend--list .e-permits-wid-legend__btn > span:not(.e-permits-meter-legend__dot) {
+.e-permits-wid-legend--list li > span:not(.e-permits-meter-legend__dot, .e-permits-meter-legend__pct),
+.e-permits-wid-legend--list .e-permits-wid-legend__btn > span:not(.e-permits-meter-legend__dot, .e-permits-meter-legend__pct) {
   min-width: 0;
-  overflow-wrap: anywhere;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .e-permits-wid-legend--list :is(li, .e-permits-wid-legend__btn) {
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
+}
+
+.e-permits-wid-legend--list :is(strong, .e-permits-meter-legend__pct, .e-permits-meter-legend__dot) {
+  flex: none;
 }
 
 .e-permits-wid-card .e-permits-meter-legend--tray li {
   flex-wrap: wrap;
 }
 
-/* the preview heading = the BO section heading (48 row, title + tools on the 12 inset); the meta line under it on the
-   same 12 inset, 8 to the segmented control (the block's 16 gap minus the heading's own space) */
-.e-permits-wid-preview__meta {
-  margin: calc(var(--spacing-16, 16px) * -1 + var(--spacing-4, 4px)) 0 0;
-  padding-inline: var(--spacing-12, 12px);
+/* the preview heading (Figma wid-08): row 1 = title (fills) + actions, centred, 16 apart; row 2 = the data line, full
+   width under the whole row, 12 below it (its own row, so it may run under the buttons' column) */
+.e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-wid-preview > .e-permits-dosar-profil__section-heading:has(> .e-permits-passport__heading-tools) {
+  align-items: center;
+  box-sizing: border-box;
+  column-gap: var(--spacing-16, 16px);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  height: auto;
+  min-height: 0;
+  padding-bottom: 0;
+  row-gap: 0;
 }
 
-/* desktop: the 48 (+4) heading row centres the title, so the data line is pulled up under the title as its subtitle
-   (4 gap; the block's 16 gap to the segmented control stays) */
-@media (min-width: 761px) {
-  .e-permits-wid-preview__meta {
-    margin-top: calc(var(--spacing-16, 16px) * -2 + var(--spacing-4, 4px));
-  }
+.e-permits-wid-preview__titles {
+  display: contents;
+}
+
+.e-permits-wid-preview__titles > .e-permits-dosar-profil__section-title {
+  grid-column: 1;
+  grid-row: 1;
+}
+
+.e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-wid-preview > .e-permits-dosar-profil__section-heading > .e-permits-passport__heading-tools {
+  align-items: center;
+  gap: var(--spacing-8, 8px);
+  grid-column: 2;
+  grid-row: 1;
+  margin: 0;
+}
+
+.e-permits-wid-preview__titles > .e-permits-wid-preview__meta {
+  grid-column: 1 / -1;
+  grid-row: 2;
+  margin: 0;
+  padding: var(--spacing-12, 12px) var(--spacing-12, 12px) 0;
 }
 
 /* the settings column (≥ 360, 5fr): one gallery column; two when the column is wide (stacked layout ≤ 1100) */

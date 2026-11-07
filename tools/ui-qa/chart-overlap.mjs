@@ -37,11 +37,14 @@ const CHECK = `(() => {
     for (let n; (n = tw.nextNode());) {
       if (!n.nodeValue.trim() || !n.parentElement || !vis(n.parentElement) || n.parentElement.closest(".sr-only,.u-visually-hidden,.visually-hidden")) continue;
       const range = document.createRange(); range.selectNodeContents(n);
-      [...range.getClientRects()].forEach((r) => { if (r.width && r.height) boxes.push({ ci, text: n.nodeValue.trim().slice(0, 40), r: { l: r.left, t: r.top, rt: r.right, b: r.bottom } }); });
+      /* ellipsized / clipped text (overflow hidden) only counts inside its clipping box */
+      const clip = n.parentElement.closest("[class]") && getComputedStyle(n.parentElement).overflow === "hidden" ? n.parentElement.getBoundingClientRect() : null;
+      [...range.getClientRects()].forEach((r) => { if (r.width && r.height) boxes.push({ ci, node: n, text: n.nodeValue.trim().slice(0, 40), r: { l: clip ? Math.max(r.left, clip.left) : r.left, t: r.top, rt: clip ? Math.min(r.right, clip.right) : r.right, b: r.bottom } }); });
     }
   });
   const overlaps = [];
   for (let i = 0; i < boxes.length; i++) for (let j = i + 1; j < boxes.length; j++) {
+    if (boxes[i].node === boxes[j].node) continue; /* two line rects of one text node never collide */
     const a = boxes[i].r, b = boxes[j].r;
     const w = Math.min(a.rt, b.rt) - Math.max(a.l, b.l), h = Math.min(a.b, b.b) - Math.max(a.t, b.t);
     if (w > 1 && h > 1) overlaps.push(boxes[i].text + "  ×  " + boxes[j].text);
