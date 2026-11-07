@@ -4247,3 +4247,4 @@ For any „research how other products do it” step, search Mobbin (mcp__mobbin
   probe before fixing; a KPI heat map needs its own min…max ramp (rates all land on l4/l5) and rounded cells to fit ½ width.
 - 2026-11-07 · Committing beside another agent: replay my edits as scripts (scratchpad *_patch.py) on `git show HEAD:file`, then
   `git hash-object -w` + `git update-index --cacheinfo` — only my hunks reach the index, their working-tree changes stay.
+- 2026-11-07 Sheet footer (`.e-permits-reg-editor__bar`: KPI, widget, Registre) = `btn-md` 40 desktop; phones 48 · 16/24 via one rule in registre.css (btn-md has no phone size), actions wrap + nowrap labels (3 buttons wrapped a label to 66px). BSD sed: `-i ''` and `-E` (no `\|`).

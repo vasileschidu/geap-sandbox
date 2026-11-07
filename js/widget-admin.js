@@ -1169,9 +1169,9 @@
     sheet.querySelector("[data-wid-ed-bar]").innerHTML = `
       <p class="e-permits-cfg2__bar-text" aria-live="polite">${esc(`Pasul ${P.step} din ${STEPS.length} · ${STEPS[P.step - 1]}`)}</p>
       <div class="e-permits-cfg2__bar-actions">
-        ${P.step === 1 ? '<button class="btn btn-neutral btn-sm" type="button" data-wid-ed-close>Anulează</button>' : '<button class="btn btn-neutral btn-sm" type="button" data-wid-prev>Înapoi</button>'}
-        <button class="btn btn-neutral btn-sm" type="button" data-wid-save>Salvează ciorna</button>
-        ${P.step < STEPS.length ? '<button class="btn btn-primary btn-sm" type="button" data-wid-next>Continuă</button>' : '<button class="btn btn-primary btn-sm" type="button" data-wid-publish>Publică</button>'}
+        ${P.step === 1 ? '<button class="btn btn-neutral btn-md" type="button" data-wid-ed-close>Anulează</button>' : '<button class="btn btn-neutral btn-md" type="button" data-wid-prev>Înapoi</button>'}
+        <button class="btn btn-neutral btn-md" type="button" data-wid-save>Salvează ciorna</button>
+        ${P.step < STEPS.length ? '<button class="btn btn-primary btn-md" type="button" data-wid-next>Continuă</button>' : '<button class="btn btn-primary btn-md" type="button" data-wid-publish>Publică</button>'}
       </div>`;
     if (sheetScroller() && keep !== "@top") sheetScroller().scrollTop = scroll;
     if (keepSel && keepSel !== "@top") {

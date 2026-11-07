@@ -1639,8 +1639,8 @@
     sheet.querySelector("[data-kpi-ed-bar]").innerHTML = `
       <p class="e-permits-cfg2__bar-text" aria-live="polite">${esc(`Pasul ${C.step} din ${STEPS.length} · ${STEPS[C.step - 1]}`)}</p>
       <div class="e-permits-cfg2__bar-actions">
-        ${C.step === 1 ? '<button class="btn btn-neutral btn-sm" type="button" data-kpi-close>Anulează</button>' : '<button class="btn btn-neutral btn-sm" type="button" data-kpi-prev>Înapoi</button>'}
-        ${C.step < STEPS.length ? '<button class="btn btn-primary btn-sm" type="button" data-kpi-next>Continuă</button>' : '<button class="btn btn-primary btn-sm" type="button" data-kpi-create>Creează KPI</button>'}
+        ${C.step === 1 ? '<button class="btn btn-neutral btn-md" type="button" data-kpi-close>Anulează</button>' : '<button class="btn btn-neutral btn-md" type="button" data-kpi-prev>Înapoi</button>'}
+        ${C.step < STEPS.length ? '<button class="btn btn-primary btn-md" type="button" data-kpi-next>Continuă</button>' : '<button class="btn btn-primary btn-md" type="button" data-kpi-create>Creează KPI</button>'}
       </div>`;
     if (scroller() && keep !== "@top") scroller().scrollTop = scroll;
     if (keepSel && keepSel !== "@top") {

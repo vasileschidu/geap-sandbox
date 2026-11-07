@@ -1234,8 +1234,8 @@
     editor.querySelector("[data-rga-editor-bar]").innerHTML = `
       <p class="e-permits-cfg2__bar-text" aria-live="polite">${n ? A().renderHeaderStatus?.(n === 1 ? "1 modificare nesalvată" : `${n} modificări nesalvate`, "warning", A().changesStatusAttrs?.("registre-config") || "") || "" : '<span class="e-permits-reg-editor__saved">Nicio modificare nesalvată</span>'}${E.footerError && errs ? ` · <span class="e-permits-cfg2__bar-error">${esc(E.footerError)}</span>` : ""}</p>
       <div class="e-permits-cfg2__bar-actions">
-        <button class="btn btn-neutral btn-sm" type="button" data-rga-editor-close>Anulează</button>
-        <button class="btn btn-primary btn-sm" type="button" data-rga-editor-save>Salvează</button>
+        <button class="btn btn-neutral btn-md" type="button" data-rga-editor-close>Anulează</button>
+        <button class="btn btn-primary btn-md" type="button" data-rga-editor-save>Salvează</button>
       </div>`;
   }
 
