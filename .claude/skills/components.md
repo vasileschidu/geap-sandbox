@@ -147,6 +147,26 @@ instance in the file. Follow the surrounding CSS instead.
 
 ---
 
+### 0.6 Rules learned on 2026-11-07 (KPI + widgets) — check before every two-column / chart / config screen
+
+| Rule | What to do | Where |
+|---|---|---|
+| Two-column editor screens = 50/50 | form | side column `minmax(0,1fr) minmax(0,1fr)`, stacked ≤ 1100; editor width 1600 only when two columns | `.e-permits-kpi-content--split`, `.e-permits-ntpl-content--preview` (css/kpi.css, css/registre.css) |
+| Right (sticky) column breathing space | 48 bottom padding so the scroll ends with room | widget / KPI sheets + profiles |
+| Preview header | row 1 = title + actions („Actualizează” secondary Small + „Mărește” NEUTRAL icon-only Small, Foundations `expand-315, enlarge` = `icon-enlarge`) vertically centred, gap 16; row 2 = scope line „Perimetru: …” (never „Perimetrul dvs.”) full width, 12 below | js/widget-admin.js |
+| Preview card | FILLS the preview column; the chosen width (Jumătate / Treime) only as text in the scope line | widget preview, „Mărește” modal |
+| Bar charts | bars rounded TOP only (rect `height="200%"` clipped by the plot), square bottom on a 1 px `--color-border-base-secondary` baseline; stacked segments flat | widget-charts.js, kpi trendChart, ekyc |
+| Bar-row lists | one shared grid per list: label (one line up to ½ card) · 1fr track · value; narrow → label wraps max 2 + ellipsis + tooltip; phones label above bar | widget-charts.js |
+| Donut | card body 50/50 donut | legend; stacked ≤ 520 px card | widget-charts.js |
+| Treemap / heatmap | inner corners 2, whole chart clipped to 6 | widget-charts.js |
+| Legends | dot never wraps alone (dot `flex: none`, text wraps); wrapping legends full width, left-aligned | css/widget.css |
+| Collapsible group lists (Permisiuni, data dictionaries) | white rows, grey on hover + open, count badge after the name, chevron right (down collapsed) — ONE shared rule | stack-group header |
+| Review steps | „Editează” neutral + pen (never blue „Modifică”) | KPI / Jurnalizare / Clasificatoare / Șabloane reviews |
+| Sheet + drawer footers | Medium 40 desktop, 48 phones (`btn-md` + phone block in css/registre.css; drawers no longer forced to 48) | all create sheets / drawers |
+| Every configuration object publishes the same way | draft („Salvează”) → „Publică” dialog with required „Ce s-a schimbat” → toast, version +1; clickable „● Modificări nepublicate” → shared pending-changes dialog; „Versiuni” tab (compare, restore with note); Istoric + Jurnal entries; create ends with „Salvează ciorna” / „Publică” | widgets, KPI, Șabloane, Servicii — copy widget-admin.js |
+| Type / option cards | `Widget type card`: padding 12, gap 16, r12, tile 36 r8 brand-secondary, title 14/20 medium, description 12/16 tertiary; selected = 2 px brand border, no extra ring | css/widget.css (Figma 14876:99443) |
+| A user screenshot may be Figma, an old cache or code | reproduce in headless Chrome first (`tools/figma/kpi/shot.mjs`); bump `?v=` on every CSS/JS change | — |
+
 ## 1. How the class system works
 
 ```

@@ -62,3 +62,21 @@ pending decisions) and tell the user "safe to /clear". Never clear while agents 
 | Column 1 | opus | ≤ 60 |
 | Columns 2…n | opus, fresh agent each | ≤ 60 each |
 | Finish (arrows, Start here, index, audit) | sonnet | ≤ 40 |
+
+## Lessons 2026-11-07 (KPI + widgets boards) — put ALL of these in every column brief
+
+**Before Figma:** push the code (`git push -q sandbox HEAD:main HEAD:vasile/front-office-flow-and-classifiers-pilot`) — the blocks' „Prototype ↗” links must open the current code. Code first, Figma after; when code changes later, re-check the blocks.
+
+**Every block must pass (audit `tools/ui-qa/figma-audit.js` — use the FILE version, the stored `uiqa/auditfull` lags):**
+1. Pure auto-layout: captures turn CSS sticky into ABSOLUTE layers + empty „Sticky placeholder” frames → put them in flow, delete placeholders (`tools/figma/quality-sweep/absolute-in-flow.js`). ABSOLUTE only for overlays (scrim + dialog, open menus, toasts, cursors, scroll cue). Rule `absolute-in-flow`.
+2. Everything FILL (`fill-pass.js`); test a screen at 1280 / 1920. Two-column screens = HORIZONTAL row of two FILL VERTICAL columns, ratio = code (50/50 on KPI + widgets).
+3. Forms = auto-layout GRID, 2 equal columns, gap 24; pairs span 1, long fields span 2; no fixed field widths.
+4. Tab bars keep the grey 1 px track line (rule `tabs-track`); tables = [Table scroll (clip) | Pinned column] row.
+5. Empty states = „Empty state · boxed” 11311:6217 only; group lists = svc/stack-group-header set 14838:20508 (Default white / Hover / Open grey); counters = `Text input · counter` 14937:45455; stepper current = light-blue band, completed = as the code (underlined, dark).
+6. Charts = local components in „Charts & widgets” (🧩 Local components), resizable; bars rounded top, square bottom, grey baseline; no image or raw-capture icons (broken icons = a leftover capture).
+7. Screenshot-compare EVERY block with its code state before reporting; same data → same look in every block (reset width overrides on instances).
+8. Cleanup at job end: delete raw captures („cap · …”), staging / „Build assets” sections, loose placeholders; nothing temporary stays on a board page.
+9. Captures one at a time (parallel captures produced wrong states).
+
+**User-facing:** Figma comment replies via REST (`~/.figma_token_agile`, POST `/v1/files/<key>/comments` with `comment_id`), short, „✅ Rezolvat — …” + Figma node links only, after the change is in Figma. Close Azure items only after the user's OK: comment „Design gata în Figma: [links]”, state Closed, assigned alex.pascalov@alfasoft.md.
+
