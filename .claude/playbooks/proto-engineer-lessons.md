@@ -4211,3 +4211,4 @@ For any „research how other products do it” step, search Mobbin (mcp__mobbin
 - 2026-11-06 · Picker tabs → animated segmented control with icons: keep the old `data-fo-doc-tab` hook so ~20 demo states
   still work, mirror `is-selected` + `aria-checked` + tabindex in the switch fn. Phone label wrapped at 170px segments →
   nowrap + padding 8. macOS `sed -i ''` needs the empty suffix (a bare `-i` aborted the multi-file bump halfway).
+- 2026-11-07 · Segmented icons: ONE shared rule `.segment-item > .icon` (css/e-permits-acte-permisive.css) = 20 (`--icon-size-medium`, Figma segmented); doc-picker svg keeps `.icon.small` in markup but the rule wins. Process Designer modes/views keep their own 16 overrides. Empty title = medium 500.

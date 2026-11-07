@@ -4642,7 +4642,7 @@
    paint and on resize (`is-snap`), and only then adds `is-ready` — before that the selected item
    keeps the library fill. Separators stay the library rule (hidden next to the selected item). */
 /* a segment with a leading icon (PF / PJ: person-filled / business-filled, the registry applicant icons,
-   2026-10-16): 16px, 8 before the label, currentColor = the label colour in every state */
+   2026-10-16; 20 since segmented-icon-20, = Figma Components segmented): 20px, 8 before the label, currentColor = the label colour in every state */
 .segment-item:has(> .icon) {
   gap: var(--spacing-8, 8px);
 }
@@ -4650,8 +4650,8 @@
 .segment-item > .icon {
   color: currentColor;
   flex: none;
-  height: var(--spacing-16, 16px);
-  width: var(--spacing-16, 16px);
+  height: var(--icon-size-medium, 20px);
+  width: var(--icon-size-medium, 20px);
 }
 
 .segmented-control.is-animated {
