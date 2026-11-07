@@ -474,6 +474,71 @@
   }
 }
 
+/* ---- the create sheet on the editor page width = ONE container (`.e-permits-reg-editor--page`, sheet-page-v1,
+   2026-11-07; the KPI create sheet rule of css/kpi.css made shared for the widget builder — user: „do as in KPIs”;
+   Stripe / Shopify / Linear / GOV.UK multi-step create). Header, step strip, step content
+   (`.e-permits-reg-editor__single.e-permits-reg-editor__page`) and the footer bar share one left and right edge = the
+   editor page width (1600, components.md › „Editor page width”) centred in the sheet, never less than the 24 gutter;
+   the × sits on that right edge. Each step = `.e-permits-ntpl-content` (+ `--preview`: form 5fr ≥ 360 | sticky preview
+   7fr; stacked ≤ 1100). Phones: one column, gutter 16. */
+.e-permits-reg-editor--page .e-permits-reg-editor__header .e-permits-page-header__body {
+  padding-left: max(var(--spacing-24, 24px), calc((100% - var(--spacing-40, 40px) * 40) / 2 + var(--spacing-24, 24px)));
+  padding-right: calc(max(var(--spacing-24, 24px), calc((100% - var(--spacing-40, 40px) * 40) / 2 + var(--spacing-24, 24px))) + var(--spacing-32, 32px) + var(--spacing-16, 16px));
+}
+
+.e-permits-reg-editor--page .e-permits-steps-strip,
+.e-permits-reg-editor--page .e-permits-reg-editor__bar,
+.e-permits-reg-editor--page .e-permits-reg-editor__single.e-permits-reg-editor__page {
+  padding-inline: max(var(--spacing-24, 24px), calc((100% - var(--spacing-40, 40px) * 40) / 2 + var(--spacing-24, 24px)));
+}
+
+.e-permits-reg-editor--page .e-permits-reg-editor__single.e-permits-reg-editor__page {
+  max-width: none;
+}
+
+.e-permits-reg-editor--page .e-permits-reg-editor__close {
+  right: max(var(--spacing-24, 24px), calc((100% - var(--spacing-40, 40px) * 40) / 2 + var(--spacing-24, 24px)));
+}
+
+/* the scroller is the sheet body itself: the sticky right column sticks at its top edge (the ntpl 24 offset belongs to
+   the page scroll), so both columns' first headings stay on one line */
+.e-permits-reg-editor--page .e-permits-ntpl-content__preview {
+  top: 0;
+}
+
+/* the preview is the wide column (a chart / preview, not a helper): form minmax(360px, 5fr) · preview 7fr */
+.e-permits-ntpl-content.e-permits-ntpl-content--preview {
+  grid-template-columns: minmax(360px, 5fr) minmax(0, 7fr);
+}
+
+@media (max-width: 1100px) {
+  .e-permits-ntpl-content.e-permits-ntpl-content--preview {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 760px) {
+  .e-permits-reg-editor--page .e-permits-steps-strip,
+  .e-permits-reg-editor--page .e-permits-reg-editor__bar,
+  .e-permits-reg-editor--page .e-permits-reg-editor__single.e-permits-reg-editor__page {
+    padding-inline: var(--spacing-16, 16px);
+  }
+
+  .e-permits-reg-editor--page .e-permits-reg-editor__header .e-permits-page-header__body {
+    padding-left: var(--spacing-16, 16px);
+    padding-right: calc(var(--spacing-16, 16px) + var(--spacing-32, 32px) + var(--spacing-8, 8px));
+  }
+
+  .e-permits-reg-editor--page .e-permits-reg-editor__close {
+    right: var(--spacing-16, 16px);
+  }
+
+  /* a wrapped bar keeps its actions on the container's right edge */
+  .e-permits-reg-editor--page .e-permits-cfg2__bar-actions {
+    margin-left: auto;
+  }
+}
+
 /* =====================================================================================
    registers-30-v1 (2026-10-31, GEAP 2.0 comment 12701:424523 „30 registers”; user decision: ONE menu item „Registre”)
    components.md › „Registre — BackOffice registers › At scale: catalog + switcher”.

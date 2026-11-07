@@ -21339,6 +21339,8 @@ document.addEventListener("DOMContentLoaded", () => {
       renderToggle, renderCheckOption, requiredMark, renderPassportBlock, renderSumList, renderUserRoles, renderHeaderStatus,
       /* jurnalizare-v1 (js/jurnalizare.js): the drawer step strip of „Șablon nou” */
       renderStepStrip,
+      /* widget-audit-v1 (js/widget-admin.js): an Istoric entry opens its unique-journal record (US-262 detail) */
+      openAuditEventDetail,
       registerChangeSource, changesStatusAttrs, changeValue,
       setActiveNav, writeHash, restorePageHash, renderWorkplace, getVisibleRows, workplaceState,
       showRegistry: showProductRegistry, hideShellPages, openProfilePanel, closeProfile: closeDosarProfil,

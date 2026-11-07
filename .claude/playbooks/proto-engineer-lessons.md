@@ -4236,3 +4236,14 @@ For any „research how other products do it” step, search Mobbin (mcp__mobbin
 - 2026-11-07 · Collapsible stacked group header = ONE rule (white, grey on hover + open, open+hover tertiary-hover) on
   `.e-permits-stack__group-toggle[aria-expanded]`; review-step „Modifică” = `btn-text-neutral btn-sm` + pen „Editează”.
   Shared scratchpad is shared with other agents — keep own probes in a subfolder.
+- 2026-11-07 · Widget create = the KPI create sheet (sheet-page-v1): the user's screenshot came from the SANDBOX (old v1 sheet, narrow
+  preview rail) while local HEAD already had the profile page — check `git log sandbox/main -- <file>` before trusting „today it does X”.
+  Shared the KPI page-width sheet rules as `.e-permits-reg-editor--page` + `__page` + `.e-permits-ntpl-content--preview` in registre.css (KPI files untouched).
+- 2026-11-07 · Reusing ONE state object (P) for a profile page AND a create sheet: one `rerender()` that picks the container, `inSheet(el)` checked
+  before the profile root in the click handler, snapshot P before opening (`beforeCreate`) so Anulează restores the page under the sheet.
+- 2026-11-07 · Global audit „Jurnal” in the prototype = the US-262 unique journal: `GEAPEventTimeline.log(event, ctx)` (shared list,
+  `journal()`), the module's Istoric rows get `context` + `openAttrs` → `GEAPShellApi.openAuditEventDetail` (exported). No journal page exists.
+- 2026-11-07 · chart-overlap „overlaps” on 2-line clamped labels = the hidden 3rd line's client rect (overflow clipped) — measure with a
+  probe before fixing; a KPI heat map needs its own min…max ramp (rates all land on l4/l5) and rounded cells to fit ½ width.
+- 2026-11-07 · Committing beside another agent: replay my edits as scripts (scratchpad *_patch.py) on `git show HEAD:file`, then
+  `git hash-object -w` + `git update-index --cacheinfo` — only my hunks reach the index, their working-tree changes stay.

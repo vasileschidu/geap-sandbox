@@ -14,7 +14,9 @@
    GEAPWidgetCharts.render(model) → HTML of the widget body. The model comes from the aggregation in
    js/widget-admin.js (US-409): { type, fmt(v), cats: [{ key, label, value, prev, parts: [{ key, value }] }],
    series: [{ key, label }], dateAxis, tone(v) → success | warning | danger | null, target: { value, label } | null,
-   drill (bool), height, rows / columns (row table), single (tile), limits (control chart), measureLabel }.
+   drill (bool), height, rows / columns (row table), single (tile), limits (control chart), measureLabel,
+   kpi (bool) + kpiCurrent (the KPI's overall value) — a KPI works on EVERY type (Feature 96501 rev 18): axis charts draw
+   the target line, tables add a „Zona” tag column, every type without an axis gets the value + „Ținta” legend line }.
    GEAPWidgetCharts.glyph(type) → the 24 glyph of a type card.
    ===================================================================================== */
 (function () {
@@ -45,6 +47,12 @@
     if (m.target) items.push({ label: m.target.label, dot: "e-permits-wid-legend__target" });
     return legend(items);
   }
+  /* KPI on a type without an axis (sectors, heat map, funnel, treemap, tables): the KPI's overall value + „Ținta …” */
+  const kpiLegend = (m) => (m.target || m.kpi ? legend([
+    ...(Number.isFinite(m.kpiCurrent) ? [{ label: "Valoarea KPI", value: m.fmt(m.kpiCurrent), dot: toneDot(m.tone?.(m.kpiCurrent) || "brand") }] : []),
+    ...(m.target ? [{ label: m.target.label, dot: "e-permits-wid-legend__target" }] : [])
+  ]) : "");
+  const zoneOf = (m, v) => { const tone = m.tone?.(v); const z = (m.zones || []).find(([, t]) => t === tone); return z && m.kpi ? window.GEAPTag?.html(z[0], tone) || esc(z[0]) : ""; };
   const seriesLegend = (m) => legend([...m.series.map((s, i) => ({ label: s.label, dot: sClass(i) })), ...(m.target ? [{ label: m.target.label, dot: "e-permits-wid-legend__target" }] : [])]);
   /* the category axis: one label per slot, centred under it (the slots' flex); `fit()` thins them to every k-th so two
      neighbours are ≥ 8 apart, and keeps the end labels inside the plot — never rotated, never overlapping */
@@ -165,7 +173,7 @@
       <div class="e-permits-wid-donut e-permits-wid-donut--${m.height || "medium"}">
         <div class="e-permits-wid-donut__chart">
           <svg class="e-permits-wid-donut__svg" viewBox="0 0 42 42" role="img" aria-label="${ariaOf(m)}" focusable="false"><circle class="e-permits-wid-donut__track" cx="21" cy="21" r="15.9155" stroke-width="6"></circle>${arcs}</svg>
-          <span class="e-permits-wid-donut__center"><strong>${esc(m.fmt(total))}</strong><span>total</span></span>
+          <span class="e-permits-wid-donut__center"><strong>${esc(m.fmt(m.kpi && Number.isFinite(m.kpiCurrent) ? m.kpiCurrent : total))}</strong><span>${m.kpi ? "KPI" : "total"}</span></span>
         </div>
         ${legend(m.cats.map((c, i) => ({ label: c.label, value: m.fmt(c.value), pct: share(c.value, total), dot: sClass(i), button: m.drill ? `${drillAttrs(m, c.label, c.value)} aria-label="${esc(`${c.label}: ${m.fmt(c.value)} — deschide înregistrările`)}"` : "" })), { vertical: true })}
       </div>`;
@@ -174,13 +182,14 @@
   /* ---------------------------------------------------------------- Tabel agregat */
   function aggTable(m) {
     const hasSeries = m.series.length > 0;
-    const head = [m.axisLabel || "Categorie", ...(hasSeries ? m.series.map((s) => s.label) : []), hasSeries ? "Total" : m.measureLabel || "Valoare", ...(m.compareLabel ? [m.compareLabel] : [])];
+    const zones = Boolean(m.kpi && m.zones?.length);
+    const head = [m.axisLabel || "Categorie", ...(hasSeries ? m.series.map((s) => s.label) : []), hasSeries && !m.kpi ? "Total" : m.kpi ? "Valoare" : m.measureLabel || "Valoare", ...(zones ? ["Zona"] : []), ...(m.compareLabel ? [m.compareLabel] : [])];
     const cell = (c, v) => (m.drill ? `<button class="link link-primary link-sm e-permits-wid-table__drill" type="button"${drillAttrs(m, c, v)}>${esc(m.fmt(v))}</button>` : esc(m.fmt(v)));
     const body = m.cats.map((c) => {
-      const total = hasSeries ? c.parts.reduce((s, p) => s + p.value, 0) : c.value;
+      const total = hasSeries && !m.kpi ? c.parts.reduce((s, p) => s + p.value, 0) : c.value;
       const prev = c.prev;
       const delta = m.compareLabel && prev ? `${total >= prev ? "▲" : "▼"} ${Math.abs(Math.round(((total - prev) / prev) * 100))}%` : "—";
-      return `<tr><th scope="row"><span data-cell-tooltip="${esc(c.label)}">${esc(c.label)}</span></th>${hasSeries ? c.parts.map((p, j) => `<td>${cell(`${c.label} · ${m.series[j].label}`, p.value)}</td>`).join("") : ""}<td><strong>${cell(c.label, total)}</strong></td>${m.compareLabel ? `<td>${esc(delta)}</td>` : ""}</tr>`;
+      return `<tr><th scope="row"><span data-cell-tooltip="${esc(c.label)}">${esc(c.label)}</span></th>${hasSeries ? c.parts.map((p, j) => `<td>${cell(`${c.label} · ${m.series[j].label}`, p.value)}</td>`).join("") : ""}<td><strong>${cell(c.label, total)}</strong></td>${zones ? `<td>${zoneOf(m, total) || '<span class="e-permits-workplace__dash">—</span>'}</td>` : ""}${m.compareLabel ? `<td>${esc(delta)}</td>` : ""}</tr>`;
     }).join("");
     return `
       <div class="e-permits-workplace__table-wrap e-permits-reg-table e-permits-wid-table-wrap e-permits-wid-table-wrap--${m.height || "medium"}">
@@ -196,7 +205,11 @@
   function heatmap(m) {
     const all = m.cats.flatMap((c) => c.parts.map((p) => p.value));
     const hi = max(all) || 1;
-    const level = (v) => (v <= 0 ? 0 : Math.min(5, Math.max(1, Math.ceil((v / hi) * 5))));
+    /* a KPI (a rate close to its peers): the ramp spans its own min … max, else every cell is dark; the cell shows the
+       rounded value (the exact one is in the label) so the 6 columns fit a half-width card */
+    const lo = m.kpi ? Math.min(...all.filter((v) => Number.isFinite(v))) : 0;
+    const level = (v) => (v <= 0 ? 0 : m.kpi ? (hi === lo ? 3 : 1 + Math.min(4, Math.floor(((v - lo) / (hi - lo)) * 5))) : Math.min(5, Math.max(1, Math.ceil((v / hi) * 5))));
+    const show = (v) => (m.kpi ? m.fmt(Math.round(v)) : m.fmt(v));
     return `
       <div class="e-permits-wid-heat-wrap">
         <table class="e-permits-wid-heat">
@@ -206,7 +219,7 @@
             const cls = `e-permits-wid-heat__cell is-l${level(p.value)}`;
             const label = `${c.label} · ${m.series[j].label}`;
             /* the colour is the data: it sits on the cell; the drill button inside is transparent (never a painted button) */
-            return `<td><span class="${cls}">${m.drill ? `<button class="e-permits-wid-heat__btn" type="button"${drillAttrs(m, label, p.value)} aria-label="${esc(`${label}: ${m.fmt(p.value)} — deschide înregistrările`)}">${esc(m.fmt(p.value))}</button>` : esc(m.fmt(p.value))}</span></td>`;
+            return `<td><span class="${cls}">${m.drill ? `<button class="e-permits-wid-heat__btn" type="button"${drillAttrs(m, label, p.value)} aria-label="${esc(`${label}: ${m.fmt(p.value)} — deschide înregistrările`)}">${esc(show(p.value))}</button>` : esc(show(p.value))}</span></td>`;
           }).join("")}</tr>`).join("")}</tbody>
         </table>
       </div>
@@ -288,7 +301,13 @@
       </div>`;
   }
 
+  /* the types without an axis show a KPI as its value + „Ținta” under the chart (the axis types draw the target line) */
+  const NO_AXIS = ["pie", "aggTable", "heatmap", "funnel", "treemap", "rowTable"];
   function render(m) {
+    const body = draw(m);
+    return m.kpi && NO_AXIS.includes(m.type) ? `${body}${kpiLegend(m)}` : body;
+  }
+  function draw(m) {
     switch (m.type) {
       case "bars": return m.dateAxis ? columns(m) : rows(m);
       case "stacked": return !m.series.length ? (m.dateAxis ? columns(m) : rows(m)) : m.dateAxis ? columns(m, { stacked: true }) : rows(m, { stacked: true });

@@ -150,8 +150,8 @@
         { "nr": 1, "version": 1, "type": "Prima publicare", "note": "Structura pe statut pentru supervizori.", "at": "2026-10-12T10:30:00", "by": "Victor Lungu" }
       ],
       "history": [
-        { "at": "2026-10-12T10:30:00", "by": "Victor Lungu", "role": "Administrator local · ANSP", "event": "Publicarea widget-ului", "detail": "Versiunea 1 · Structura pe statut pentru supervizori." },
-        { "at": "2026-10-12T10:00:00", "by": "Victor Lungu", "role": "Administrator local · ANSP", "event": "Crearea widget-ului", "detail": "Ciornă · Autoritate ANSP · Registru Dosare · Sectoare sau inel" }
+        { "at": "2026-10-12T10:30:00", "by": "Victor Lungu", "role": "Utilizator cu permisiunea «Gestionarea widget-urilor» · ANSP", "event": "Publicarea widget-ului", "detail": "Versiunea 1 · Structura pe statut pentru supervizori." },
+        { "at": "2026-10-12T10:00:00", "by": "Victor Lungu", "role": "Utilizator cu permisiunea «Gestionarea widget-urilor» · ANSP", "event": "Crearea widget-ului", "detail": "Ciornă · Autoritate ANSP · Registru Dosare · Sectoare sau inel" }
       ]
     },
     {
@@ -211,8 +211,8 @@
         { "nr": 1, "version": 1, "type": "Prima publicare", "note": "Pâlnia dosarelor pentru director.", "at": "2026-10-16T10:00:00", "by": "Victor Lungu" }
       ],
       "history": [
-        { "at": "2026-10-16T10:00:00", "by": "Victor Lungu", "role": "Administrator local · ANSP", "event": "Publicarea widget-ului", "detail": "Versiunea 1 · Pâlnia dosarelor pentru director." },
-        { "at": "2026-10-16T09:30:00", "by": "Victor Lungu", "role": "Administrator local · ANSP", "event": "Crearea widget-ului", "detail": "Ciornă · Autoritate ANSP · Registru Dosare · Pâlnie" }
+        { "at": "2026-10-16T10:00:00", "by": "Victor Lungu", "role": "Utilizator cu permisiunea «Gestionarea widget-urilor» · ANSP", "event": "Publicarea widget-ului", "detail": "Versiunea 1 · Pâlnia dosarelor pentru director." },
+        { "at": "2026-10-16T09:30:00", "by": "Victor Lungu", "role": "Utilizator cu permisiunea «Gestionarea widget-urilor» · ANSP", "event": "Crearea widget-ului", "detail": "Ciornă · Autoritate ANSP · Registru Dosare · Pâlnie" }
       ]
     },
     {
@@ -231,7 +231,7 @@
         { "nr": 1, "version": 1, "type": "Prima publicare", "note": "Încasările pe servicii.", "at": "2026-10-10T15:30:00", "by": "Anastasia Cojocaru" }
       ],
       "history": [
-        { "at": "2026-10-28T11:00:00", "by": "Victor Lungu", "role": "Administrator local · ANSP", "event": "Dezactivat pentru autoritate", "detail": "ANSP" },
+        { "at": "2026-10-28T11:00:00", "by": "Victor Lungu", "role": "Utilizator cu permisiunea «Gestionarea widget-urilor» · ANSP", "event": "Dezactivat pentru autoritate", "detail": "ANSP" },
         { "at": "2026-10-10T15:30:00", "by": "Anastasia Cojocaru", "role": "Administrator central", "event": "Publicarea widget-ului", "detail": "Versiunea 1 · Încasările pe servicii." },
         { "at": "2026-10-10T15:00:00", "by": "Anastasia Cojocaru", "role": "Administrator central", "event": "Crearea widget-ului", "detail": "Ciornă · Global · Registru note de plată · Treemap" }
       ]
@@ -250,7 +250,7 @@
       },
       "versions": [],
       "history": [
-        { "at": "2026-11-02T14:10:00", "by": "Victor Lungu", "role": "Administrator local · ANSP", "event": "Crearea widget-ului", "detail": "Ciornă · Autoritate ANSP · Registru Dosare · Diagramă de control" }
+        { "at": "2026-11-02T14:10:00", "by": "Victor Lungu", "role": "Utilizator cu permisiunea «Gestionarea widget-urilor» · ANSP", "event": "Crearea widget-ului", "detail": "Ciornă · Autoritate ANSP · Registru Dosare · Diagramă de control" }
       ]
     },
     {
@@ -289,8 +289,8 @@
         { "nr": 1, "version": 1, "type": "Prima publicare", "note": "Lista dosarelor suspendate ale serviciului.", "at": "2026-10-21T12:20:00", "by": "Victor Lungu" }
       ],
       "history": [
-        { "at": "2026-10-21T12:20:00", "by": "Victor Lungu", "role": "Administrator local · ANSP", "event": "Publicarea widget-ului", "detail": "Versiunea 1 · Lista dosarelor suspendate ale serviciului." },
-        { "at": "2026-10-21T12:00:00", "by": "Victor Lungu", "role": "Administrator local · ANSP", "event": "Crearea widget-ului", "detail": "Ciornă · Serviciu 003000118 · Registru Dosare · Tabel cu filtru pe sursa de date" }
+        { "at": "2026-10-21T12:20:00", "by": "Victor Lungu", "role": "Utilizator cu permisiunea «Gestionarea widget-urilor» · ANSP", "event": "Publicarea widget-ului", "detail": "Versiunea 1 · Lista dosarelor suspendate ale serviciului." },
+        { "at": "2026-10-21T12:00:00", "by": "Victor Lungu", "role": "Utilizator cu permisiunea «Gestionarea widget-urilor» · ANSP", "event": "Crearea widget-ului", "detail": "Ciornă · Serviciu 003000118 · Registru Dosare · Tabel cu filtru pe sursa de date" }
       ]
     },
     {
@@ -330,8 +330,8 @@
         { "nr": 1, "version": 1, "type": "Prima publicare", "note": "Licențele emise pe luni.", "at": "2026-10-22T09:15:00", "by": "Mihai Ceban" }
       ],
       "history": [
-        { "at": "2026-10-22T09:15:00", "by": "Mihai Ceban", "role": "Administrator local · ANTA", "event": "Publicarea widget-ului", "detail": "Versiunea 1 · Licențele emise pe luni." },
-        { "at": "2026-10-22T09:00:00", "by": "Mihai Ceban", "role": "Administrator local · ANTA", "event": "Crearea widget-ului", "detail": "Ciornă · Autoritate ANTA · Registrul actelor permisive · Linie sau arie" }
+        { "at": "2026-10-22T09:15:00", "by": "Mihai Ceban", "role": "Utilizator cu permisiunea «Gestionarea widget-urilor» · ANTA", "event": "Publicarea widget-ului", "detail": "Versiunea 1 · Licențele emise pe luni." },
+        { "at": "2026-10-22T09:00:00", "by": "Mihai Ceban", "role": "Utilizator cu permisiunea «Gestionarea widget-urilor» · ANTA", "event": "Crearea widget-ului", "detail": "Ciornă · Autoritate ANTA · Registrul actelor permisive · Linie sau arie" }
       ]
     }
   ]

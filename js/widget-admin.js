@@ -15,8 +15,11 @@
      · list = the BO registry (`window.GEAPShellRegistries.widgete`, menu `shellView: "widgete-registry"`);
      · profile = the shared profile panel (1280, the ntpl template editor): tabs Configurare (settings form 5fr + BIG
        sticky preview 7fr; read-only = passport blocks + preview) · Versiuni (GEAPEventTimeline „Versiuni publicate” +
-       „Compară versiuni”) · Istoric (GEAPEventTimeline = the audit trail); „Widget nou” / „Clonează” = the same page
-       without an ID (#widget/nou[/din-<id>]);
+       „Compară versiuni”) · Istoric (GEAPEventTimeline = the audit trail; every operation also goes to the unique
+       Jurnalul de audit via GEAPEventTimeline.log, an entry opens its record);
+     · „Widget nou” / „Clonează” = the create sheet (sheet-page-v1: the KPI create sheet on the editor page width, 5 steps,
+       each form 5fr | preview 7fr); the first save opens the new widget's profile page;
+     · a KPI from the catalogue works on every type (Feature 96501 rev 18);
      · publish / restore / version view = the library dialog (#case-action-modal via GEAPRegistre.openModal);
        deactivate = askConfirm (destructive);
      · charts = js/widget-charts.js (the eKYC SVG chart style, 11 types).
@@ -109,7 +112,6 @@
   const SECONDARY = { heatmap: "required", stacked: "optional", line: "optional", aggTable: "optional" };
   const ORDERED = ["bars", "stacked", "pie", "funnel", "aggTable", "rowTable"];
   const DATE_AXIS = ["line", "control"];
-  const KPI_TYPES = ["bars", "line", "control", "tile", "aggTable"];
   const STATUS_TONE = { "Ciornă": "neutral", "Publicat": "success", "Dezactivat": "neutral" };
   const EVENTS = {
     create: "Crearea widget-ului", clone: "Clonarea widget-ului", edit: "Modificarea widget-ului", publish: "Publicarea widget-ului",
@@ -130,7 +132,9 @@
     return { central, local, supervisor, has, authority: central ? null : a.authority || "ansp", subdivision: supervisor ? a.instanceLabel || "" : "", roleLabel: a.roleLabel || "", roleId: a.roleId || "" };
   }
   const authName = (id) => ({ ansp: "ANSP", anta: "ANTA" }[id] || String(id || "").toUpperCase());
-  const roleLabel = () => { const w = who(); return w.central ? w.roleLabel || "Administrator central" : `${w.roleLabel || "Administrator local"} · ${authName(w.authority)}`; };
+  /* Feature 96501 rev 18: the actor is „a user with «Gestionarea widget-urilor»” at its authority level — never a role
+     name the Feature does not use; the journal keeps the signed-in role's own label */
+  const roleLabel = () => { const w = who(); return w.central ? w.roleLabel || "Administrator central" : `${w.supervisor ? w.roleLabel || "Supervizor" : "Utilizator cu permisiunea «Gestionarea widget-urilor»"} · ${authName(w.authority)}`; };
 
   /* ---------------------------------------------------------------- data */
   const S = { data: null, loading: null };
@@ -139,7 +143,7 @@
     if (demo.has("incarcare")) return new Promise(() => {});
     if (!S.loading) {
       S.loading = Promise.all([
-        fetch("data/widgets.json?v=widget-v1").then((r) => r.json()),
+        fetch("data/widgets.json?v=widget-v3").then((r) => r.json()),
         K().load ? K().load() : Promise.resolve(null)
       ]).then(([json]) => {
         if (demo.has("gol")) json.widgets = [];
@@ -204,7 +208,6 @@
   /* why a type cannot be chosen now (the gallery's disabled reason) */
   function typeProblem(type, v) {
     if (!v.source) return "";
-    if (v.kpi && !KPI_TYPES.includes(type)) return "Nu se folosește cu un KPI din catalog.";
     if ((DATE_AXIS.includes(type) || type === "heatmap") && !dateCols(v.source).length) return "Sursa nu are o coloană de dată.";
     return "";
   }
@@ -346,6 +349,9 @@
       const authority = per.scope === "all" ? null : me.authority;
       model.tone = (x) => ({ favorabil: "success", avertizare: "warning", critic: "danger" }[K().zone?.(k.id, x, authority)] || null);
       model.zones = model.target ? [["Favorabil", "success"], ["Avertizare", "warning"], ["Critic", "danger"]] : null;
+      /* Feature rev 18: a KPI on any type — its overall value (tables / sectors / heat map … show it next to „Ținta”) */
+      model.kpi = true;
+      model.kpiCurrent = K().value?.(k.id, per.scope === "all" ? "all" : me.authority)?.cur ?? null;
     } else if (v.threshold?.on && v.threshold.value !== "") {
       const th = Number(String(v.threshold.value).replace(",", "."));
       model.tone = (x) => (x >= th ? "success" : v.threshold.below);
@@ -377,7 +383,7 @@
         if (x.type === "date") return `${(hash(`${x.key}${i}`) % 27) + 1} ${RO_MONTHS[9 + (i % 2)]} 2026`;
         return "—";
       }));
-      model.fmt = (x) => String(x);
+      model.fmt = k ? fmtFn(v, 0) : (x) => String(x);
       return model;
     }
     const prim = categoriesOf(v, v.primary, per, me);
@@ -395,6 +401,9 @@
       const value = k ? kpiVal(c.key, i, prim.length) : sec.length && !avgLike ? parts.reduce((a, p) => a + p.value, 0) : model.dateAxis ? timeVal("series", c.key, i) : val(c.key);
       return { key: c.key, label: c.label, value, prev: prevOf(value, c.key), parts };
     });
+    /* a KPI split by the secondary criterion (Bare suprapuse): the segments share the category's KPI value — a rate is
+       never summed across segments */
+    if (k && v.type === "stacked") cats.forEach((c) => { const sum = c.parts.reduce((a, p) => a + (p.value || 0), 0); if (sum && c.value !== null) c.parts = c.parts.map((p) => ({ ...p, value: round1((c.value * p.value) / sum) })); });
     /* Pâlnie: each stage keeps a part of the one before (a parcours, not independent counts) */
     if (v.type === "funnel") { let last = null; cats = cats.map((c, i) => { const value = i === 0 ? c.value : Math.round(last * (0.55 + (hash(`f${c.key}`) % 35) / 100)); last = value; return { ...c, value }; }); }
     /* Ordinea categoriilor — never on a date axis */
@@ -419,6 +428,13 @@
     model.compareTotal = v.compare && !avgLike ? { cur: grand, prev: cats.reduce((a, c) => a + (c.prev || 0), 0) } : null;
     return model;
   }
+  /* the KPI target as the widget shows it (Feature rev 18: „Ținta”, the target value, the KPI name) */
+  const kpiTargetText = (v, me = who()) => {
+    const k = kpiOf(v.kpi);
+    if (!k) return "";
+    const t = K().target?.(k.id, me.central ? null : me.authority);
+    return t && t.target !== null && t.target !== undefined && t.target !== "" ? K().format(k.id, Number(t.target)) : "fără țintă";
+  };
   const measureText = (v) => {
     if (kpiOf(v.kpi)) return `KPI ${kpiOf(v.kpi).code} · ${kpiOf(v.kpi).names.ro}`;
     if (!v.measure) return "";
@@ -607,8 +623,8 @@
     return `
       ${section("Tipul widget-ului", typeGallery(v, e, idp))}
       ${section("KPI din catalog", grid(
-        selectField(`${idp}-kpi`, "kpi", "KPI din catalog", [["", "Fără KPI"], ...kpiOptions], v.kpi, { span: 12, hint: kpiOptions.length ? "Opțional. Un singur KPI pe widget, din KPI-urile active ale sursei alese." : "Sursa aleasă nu are KPI-uri active în catalog.", error: e.kpi, disabled: !kpiOptions.length }),
-        k ? full(U().renderInfoNote?.(`Valoarea, formatul, ținta, perioada țintei și pragurile vin din KPI-ul <strong>${esc(k.code)} · ${esc(k.names.ro)}</strong>. Widget-ul arată linia țintei cu sintagma „Ținta”, iar „Ce se măsoară” și „Coloana măsurată” nu se completează.`) || "") : ""
+        selectField(`${idp}-kpi`, "kpi", "KPI din catalog", [["", "Fără KPI"], ...kpiOptions], v.kpi, { span: 12, hint: kpiOptions.length ? "Opțional, pe orice tip. Un singur KPI pe widget, din KPI-urile active ale sursei alese." : "Sursa aleasă nu are KPI-uri active în catalog.", error: e.kpi, disabled: !kpiOptions.length }),
+        k ? full(U().renderInfoNote?.(`Valoarea, formatul, ținta, perioada țintei și pragurile vin din KPI-ul <strong>${esc(k.code)} · ${esc(k.names.ro)}</strong>, calculat pe fiecare categorie a criteriilor widget-ului. Widget-ul arată „Ținta ${esc(kpiTargetText(v) || "—")}”; „Ce se măsoară” și „Coloana măsurată” nu se completează.`) || "") : ""
       ))}`;
   }
   function stepCalc(v, e, idp) {
@@ -616,7 +632,7 @@
     const prim = DATE_AXIS.includes(v.type) ? dateCols(v.source) : catCols(v.source);
     const secOpts = catCols(v.source).filter((f) => f.key !== v.primary);
     const measure = v.kpi
-      ? full(U().renderInfoNote?.(`Se măsoară KPI-ul <strong>${esc(kpiOf(v.kpi)?.names.ro || "")}</strong>: numărătorul, numitorul și formatul vin din KPI.`) || "")
+      ? ""
       : v.type === "rowTable"
         ? full(U().renderInfoNote?.("Tabelul cu filtru afișează direct rândurile sursei care trec de filtru, fără măsură și fără grupare.") || "")
         : `${selectField(`${idp}-measure`, "measure", "Ce se măsoară", MEASURES, v.measure, { required: true, hint: v.measure === "count" ? "Numără înregistrările." : "Calculul se face pe coloana măsurată.", error: e.measure })}${usesColumn(v) ? selectField(`${idp}-column`, "column", "Coloana măsurată", measureColumns(v).map((f) => [f.key, f.label]), v.column, { required: true, placeholder: "Alegeți coloana", hint: ["sum", "avg"].includes(v.measure) ? "Doar coloane numerice sau de durată." : "", error: e.column }) : ""}`;
@@ -627,7 +643,7 @@
       ORDERED.includes(v.type) && !isDate(v.source, v.primary) ? selectField(`${idp}-order`, "order", "Ordinea categoriilor", ORDERS, v.order, {}) : ""
     ) : v.type === "rowTable" ? grid(selectField(`${idp}-order`, "order", "Ordinea rândurilor", ORDERS, v.order, { span: 12, hint: "Rândurile se ordonează după data înregistrării." })) : "";
     return `
-      ${section("Ce se măsoară", grid(measure))}
+      ${measure ? section("Ce se măsoară", grid(measure)) : ""}
       ${groups ? section(v.type === "rowTable" ? "Rândurile" : "Gruparea", groups) : ""}
       ${section("Filtru suplimentar", `${ruleBuilder(v, e, idp)}<p class="e-permits-fo-field__hint">Se adaugă la condițiile sursei; perioada vine din filtrul tabloului de bord.</p>`)}
       ${section("Comparație", grid(selectField(`${idp}-compare`, "compare", "Perioada de comparație", [["", "Fără comparație"], ...COMPARES], v.compare, { span: 12 })))}`;
@@ -684,7 +700,7 @@
       ],
       calc: [
         ["Tip", d(typeLabel(v.type))], ["KPI din catalog", k ? esc(`${k.code} · ${k.names.ro}`) : dash],
-        ["Ce se măsoară", usesMeasure(v) ? d(label(MEASURES, v.measure)) : dash], ["Coloana măsurată", usesColumn(v) ? d(fieldOf(v.source, v.column)?.label) : dash],
+        ...(k ? [["Ținta", d(kpiTargetText(v))]] : [["Ce se măsoară", usesMeasure(v) ? d(label(MEASURES, v.measure)) : dash], ["Coloana măsurată", usesColumn(v) ? d(fieldOf(v.source, v.column)?.label) : dash]]),
         ["Criteriul principal", NEEDS_PRIMARY(v.type) ? d(fieldOf(v.source, v.primary)?.label) : dash], ["Criteriul secundar", SECONDARY[v.type] ? d(fieldOf(v.source, v.secondary)?.label) : dash],
         ["Gruparea datei", needsDateGroup(v) ? d(label(DATE_GROUPS, v.dateGroup)) : dash], ["Ordinea categoriilor", ORDERED.includes(v.type) ? d(label(ORDERS, v.order)) : dash],
         ["Filtru suplimentar", d(rulesText(v))], ["Perioada de comparație", d(label(COMPARES, v.compare))]
@@ -695,6 +711,16 @@
         ["Trecerea în detaliu", v.drill ? "Da" : "Nu"], ["Aria de vizibilitate", d(label(VIS, v.visibility))]
       ]
     };
+  }
+  /* the rows of two configurations side by side, matched by label (a KPI swaps the measure rows for „Ținta”) */
+  function rowPairs(a, b) {
+    const out = [];
+    ["data", "calc", "look"].forEach((g) => {
+      const mb = new Map(b[g]);
+      const ma = new Map(a[g]);
+      [...new Set([...a[g].map(([l]) => l), ...b[g].map(([l]) => l)])].forEach((lbl) => out.push([lbl, ma.has(lbl) ? ma.get(lbl) : dash, mb.has(lbl) ? mb.get(lbl) : dash]));
+    });
+    return out;
   }
   function readBlocks(v, { goto = null } = {}) {
     const rows = configRows(v);
@@ -833,9 +859,30 @@
     toast(`Am exportat ${plural(rows.length, "widget", "widget-uri")} în widgete.csv.`);
   }
 
-  /* ---------------------------------------------------------------- audit (Feature AC: every operation) */
+  /* ---------------------------------------------------------------- audit (Feature AC: every operation)
+     Feature 96501 rev 18: each operation (create · clone · edit · publish · rejected publication · deactivate · activate ·
+     per-authority (de)activation · restore) is written to the widget's Istoric AND to the platform's unique Jurnalul de
+     audit (GEAPEventTimeline.log = the US-262 record: actor, role, authority, object Widget + ID + version, correlation,
+     MLog transmission). The Istoric entry opens that record. */
+  const journalEvent = (h) => ({ at: h.at, user: h.by, role: h.role, type: h.event, status: h.event === EVENTS.rejected ? "Eșuat" : "Reușit", detail: h.detail || "" });
+  /* the version in force when the event happened (seed events too) */
+  const versionAt = (w, at) => w.versions.filter((x) => String(x.at || "") <= String(at)).pop()?.version || 0;
+  const journalCtx = (w, h) => {
+    const auth = /· (ANSP|ANTA)$/.exec(h.role || "")?.[1] || (w.level === "Global" ? "" : authName(w.authority));
+    const v = versionAt(w, h.at);
+    return {
+      module: "BackOffice",
+      authority: auth,
+      objectType: "Widget",
+      objectId: w.id,
+      objectVersion: v ? `versiunea ${v}` : "ciornă",
+      related: h.event === EVENTS.publish || h.event === EVENTS.restore ? [{ module: "Tablouri de bord", type: "Ultima versiune publicată, disponibilă pe tablourile de bord", user: "SIA GEAP" }] : []
+    };
+  };
   function audit(w, kind, detail = "") {
-    w.history.unshift({ at: nowIso(), by: userName(), role: roleLabel(), event: EVENTS[kind], detail });
+    const h = { at: nowIso(), by: userName(), role: roleLabel(), event: EVENTS[kind], detail };
+    w.history.unshift(h);
+    window.GEAPEventTimeline?.log?.(journalEvent(h), journalCtx(w, h));
     if (!["authOn", "authOff", "rejected"].includes(kind)) { w.updatedAt = nowIso(); w.updatedBy = userName(); }
   }
 
@@ -900,7 +947,11 @@
     P.tab = TABS.some(([t]) => t === tab) ? tab : "configurare";
     show(`#widget/${id}/${P.tab}`, push);
   }
-  /* „Widget nou” / „Clonează”: the same page without an ID (generated at the first save) */
+  /* „Widget nou” / „Clonează” = the create sheet (sheet-page-v1, 2026-11-07, user: „do as in KPIs”): the Registre
+     full-screen sheet on the editor page width, step strip Date · Tip · Date afișate · Aspect și acces · Revizuire, every
+     step = form 5fr | the BIG sticky preview 7fr; the ID is generated at the first save, then the widget opens on its
+     profile page (editing stays there) */
+  let beforeCreate = null;
   async function openNew({ from = "" } = {}) {
     await load();
     if (!canCreate()) return;
@@ -912,9 +963,13 @@
       /* a copy never reaches wider than its new author's role */
       if (visOptions(me).find((o) => o.key === v.visibility)?.disabled) v.visibility = defaultVis(me);
     }
-    Object.assign(P, { id: null, isNew: true, from: src?.id || "", tab: "configurare", draft: v, base: clone(v), errors: {}, saveError: false, compare: null });
-    show(src ? `#widget/nou/din-${src.id}` : "#widget/nou", true);
-    requestAnimationFrame(() => document.querySelector(`#${IDP}-title-ro`)?.focus({ preventScroll: true }));
+    beforeCreate = { ...P, back: document.activeElement };
+    Object.assign(P, { id: null, isNew: true, from: src?.id || "", tab: "configurare", draft: v, base: clone(v), errors: {}, saveError: false, compare: null, step: 1, maxStep: src ? STEPS.length : 1 });
+    const el = ensureSheet();
+    renderCreate();
+    el.hidden = false;
+    document.documentElement.classList.add("is-reg-editor-open");
+    requestAnimationFrame(() => el.querySelector(`#${IDP}-title-ro`)?.focus({ preventScroll: true }));
   }
   function show(hash, push) {
     A().setActiveNav?.(NAV);
@@ -930,7 +985,7 @@
     const out = {};
     const a = configRows(P.base);
     const b = configRows(P.draft);
-    ["data", "calc", "look"].forEach((g) => a[g].forEach(([lbl, val], i) => { if (val !== b[g][i][1]) out[lbl] = [val, b[g][i][1]]; }));
+    rowPairs(a, b).forEach(([lbl, va, vb]) => { if (va !== vb) out[lbl] = [va, vb]; });
     return out;
   };
   function headerActions(w) {
@@ -1022,7 +1077,7 @@
   function configTab(w) {
     if (!editable(w)) {
       return `
-        <div class="e-permits-ntpl-content e-permits-wid-config e-permits-editor-wide">
+        <div class="e-permits-ntpl-content e-permits-ntpl-content--preview e-permits-wid-config e-permits-editor-wide">
           <div class="e-permits-ntpl-content__main">${readBlocks(w.config)}</div>
           <aside class="e-permits-ntpl-content__preview" data-wid-preview>${previewHtml(w.config, P, { idp: "wid-p" })}</aside>
         </div>`;
@@ -1030,7 +1085,7 @@
     const v = P.draft;
     const e = P.errors;
     return `
-      <div class="e-permits-ntpl-content e-permits-wid-config e-permits-editor-wide">
+      <div class="e-permits-ntpl-content e-permits-ntpl-content--preview e-permits-wid-config e-permits-editor-wide">
         <div class="e-permits-ntpl-content__main e-permits-wid-form">
           ${stepData(v, e, IDP)}${stepType(v, e, IDP)}${stepCalc(v, e, IDP)}${stepLook(v, e, IDP)}
         </div>
@@ -1039,10 +1094,129 @@
   }
   /* the preview follows a typed value without a full redraw (the field keeps its caret) */
   function refreshPreviewOnly() {
-    const box = document.querySelector("#wid-panel [data-wid-preview]");
+    const box = creating() ? sheet.querySelector("[data-wid-preview]") : document.querySelector("#wid-panel [data-wid-preview]");
     if (box && P.draft) box.innerHTML = previewHtml(editable() ? P.draft : widgetOf(P.id).config, P, { idp: editable() ? IDP : "wid-p" });
   }
-  const reheader = () => { const els = A().els || {}; if (els.dosarProfilTitleRow && (P.id || P.isNew)) els.dosarProfilTitleRow.innerHTML = headerTop(P.isNew ? null : widgetOf(P.id)); };
+  const reheader = () => { const els = A().els || {}; if (!creating() && els.dosarProfilTitleRow && P.id) els.dosarProfilTitleRow.innerHTML = headerTop(widgetOf(P.id)); };
+
+  /* ================================================================ CREATE SHEET (US-403) — the KPI create sheet structure
+     (`.e-permits-ntpl-sheet.e-permits-reg-editor.e-permits-reg-editor--page`, css/registre.css): header, step strip,
+     content and footer bar on one edge; × / Anulează / Esc with data → the leave confirmation */
+  const STEPS = ["Date", "Tip", "Date afișate", "Aspect și acces", "Revizuire"];
+  let sheet = null;
+  const creating = () => Boolean(P.isNew && sheet && !sheet.hidden);
+  const inSheet = (el) => creating() && sheet.contains(el);
+  function ensureSheet() {
+    if (sheet) return sheet;
+    document.body.insertAdjacentHTML("beforeend", `
+      <div class="e-permits-ntpl-sheet e-permits-reg-editor e-permits-reg-editor--page e-permits-wid-editor" data-wid-editor hidden>
+        <div class="e-permits-ntpl-sheet__scrim" aria-hidden="true" data-wid-ed-close></div>
+        <div class="e-permits-ntpl-sheet__panel e-permits-reg-editor__panel" role="dialog" aria-modal="true" aria-labelledby="wid-ed-title" tabindex="-1">
+          <button class="modal-close e-permits-reg-editor__close" type="button" aria-label="Închide" data-wid-ed-close>${icon("cross-large", 16)}</button>
+          <header class="e-permits-page-header e-permits-reg-editor__header">
+            <div class="e-permits-page-header__body"><div class="e-permits-page-header__top" data-wid-ed-top></div></div>
+          </header>
+          <nav class="e-permits-steps-strip" aria-label="Pașii creării" data-wid-ed-steps></nav>
+          <div class="e-permits-reg-editor__body" data-wid-ed-body></div>
+          <div class="e-permits-cfg2__bar e-permits-reg-editor__bar" role="region" aria-label="Pașii widget-ului" data-wid-ed-bar></div>
+        </div>
+      </div>`);
+    sheet = document.querySelector("[data-wid-editor]");
+    window.addEventListener("keydown", (event) => {
+      if (event.key !== "Escape" || !creating()) return;
+      if (document.querySelector(".modal-overlay.is-active, [data-stack-menu]:not([hidden]), .e-permits-fo-select__list:not([hidden])")) return;
+      if (sheet.querySelector("[aria-expanded='true']")) return;
+      event.preventDefault();
+      closeCreate();
+    });
+    return sheet;
+  }
+  const sheetScroller = () => sheet?.querySelector("[data-wid-ed-scroll]");
+  /* Revizuire: whether it can be published + the passport blocks („Editează” → the step) */
+  function stepReview(v) {
+    const goto = (n) => `<button class="btn btn-text-neutral btn-sm" type="button" data-wid-goto="${n}">${icon("edit", 16)}<span>Editează</span></button>`;
+    const problems = publishProblems(v);
+    return `
+      ${problems.length
+        ? U().renderNotice?.("warning", `<strong>Widget-ul se poate salva ca ciornă, dar nu se poate publica încă.</strong> ${problems.map(esc).join(" ")}`) || ""
+        : U().renderInfoNote?.("<strong>Combinația este compatibilă și previzualizarea se încarcă fără eroare.</strong> Widget-ul se poate publica.") || ""}
+      ${readBlocks(v, { goto })}
+      ${U().renderInfoNote?.(`Widget-ul se salvează la nivelul <strong>${esc(levelOfText(v))}</strong>, în statutul Ciornă. Utilizatorii BackOffice văd doar ultima versiune publicată.`) || ""}`;
+  }
+  function renderCreate({ keep = "" } = {}) {
+    if (!P.isNew || !sheet || !P.draft) return;
+    const active = document.activeElement;
+    const keepSel = keep || (active && sheet.contains(active) && active.id ? `#${CSS.escape(active.id)}` : "");
+    const caret = active && "selectionStart" in active ? [active.selectionStart, active.selectionEnd] : null;
+    const scroll = sheetScroller()?.scrollTop || 0;
+    const v = P.draft;
+    const e = P.errors;
+    sheet.querySelector("[data-wid-ed-top]").innerHTML = window.GEAPPageHeader?.top({
+      title: P.from ? "Clonează widget-ul" : "Widget nou",
+      titleId: "wid-ed-title",
+      caption: P.from ? `Copie a ${P.from} · nivel ${levelOfText(v)} · primește un ID nou la salvare` : `Nivel ${levelOfText(v)} · ID-ul se generează la prima salvare`
+    }) || `<h1 class="e-permits-page-header__title" id="wid-ed-title">${P.from ? "Clonează widget-ul" : "Widget nou"}</h1>`;
+    sheet.querySelector("[data-wid-ed-steps]").innerHTML = A().renderStepStrip?.(STEPS, P, "data-wid-goto") || "";
+    const form = [() => stepData(v, e, IDP), () => stepType(v, e, IDP), () => stepCalc(v, e, IDP), () => stepLook(v, e, IDP), () => stepReview(v)][P.step - 1]();
+    sheet.querySelector("[data-wid-ed-body]").innerHTML = `
+      <div class="e-permits-reg-editor__single e-permits-reg-editor__page" data-wid-ed-scroll>
+        ${P.saveError ? `<div class="e-permits-reg-notices">${U().renderNotice?.("error", esc(SAVE_FAILED), { role: "alert" }) || ""}</div>` : ""}
+        <div class="e-permits-ntpl-content e-permits-ntpl-content--preview e-permits-wid-create">
+          <div class="e-permits-ntpl-content__main e-permits-wid-form">${form}</div>
+          <aside class="e-permits-ntpl-content__preview" data-wid-preview>${previewHtml(v, P, { idp: IDP })}</aside>
+        </div>
+      </div>`;
+    sheet.querySelector("[data-wid-ed-bar]").innerHTML = `
+      <p class="e-permits-cfg2__bar-text" aria-live="polite">${esc(`Pasul ${P.step} din ${STEPS.length} · ${STEPS[P.step - 1]}`)}</p>
+      <div class="e-permits-cfg2__bar-actions">
+        ${P.step === 1 ? '<button class="btn btn-neutral btn-sm" type="button" data-wid-ed-close>Anulează</button>' : '<button class="btn btn-neutral btn-sm" type="button" data-wid-prev>Înapoi</button>'}
+        <button class="btn btn-neutral btn-sm" type="button" data-wid-save>Salvează ciorna</button>
+        ${P.step < STEPS.length ? '<button class="btn btn-primary btn-sm" type="button" data-wid-next>Continuă</button>' : '<button class="btn btn-primary btn-sm" type="button" data-wid-publish>Publică</button>'}
+      </div>`;
+    if (sheetScroller() && keep !== "@top") sheetScroller().scrollTop = scroll;
+    if (keepSel && keepSel !== "@top") {
+      const el = sheet.querySelector(keepSel);
+      el?.focus?.({ preventScroll: true });
+      if (caret && el && "setSelectionRange" in el) { try { el.setSelectionRange(caret[0], caret[1]); } catch { /* not text */ } }
+    }
+  }
+  /* forward = every step on the way is checked (the same rules as „Salvează ciorna” / „Publică”); back = free */
+  function goStep(target) {
+    if (target < 1 || target > STEPS.length) return;
+    for (let s = P.step; s < target && s <= 4; s += 1) {
+      const errors = validate(P.draft, { steps: [s] });
+      if (Object.keys(errors).length) { P.errors = errors; showFirstError(errors); return; }
+    }
+    P.errors = {};
+    P.step = target;
+    P.maxStep = Math.max(P.maxStep, target);
+    renderCreate({ keep: "@top" });
+    if (sheetScroller()) sheetScroller().scrollTop = 0;
+    sheet.querySelector("[data-wid-next], [data-wid-publish]")?.focus({ preventScroll: true });
+  }
+  function hideSheet() {
+    if (!sheet || sheet.hidden) return;
+    sheet.hidden = true;
+    document.documentElement.classList.remove("is-reg-editor-open");
+  }
+  /* × / Anulează / Esc: with data → „Renunțați la widget-ul nou?” (destructive); the page under it comes back as it was */
+  function closeCreate(force = false) {
+    if (!creating()) return;
+    const close = () => {
+      const back = beforeCreate?.back;
+      hideSheet();
+      const prev = beforeCreate || {};
+      delete prev.back;
+      Object.assign(P, { id: null, isNew: false, from: "", draft: null, base: null, errors: {}, saveError: false, ...prev, step: 1, maxStep: 1 });
+      if (P.id && !P.draft) P.isNew = false;
+      beforeCreate = null;
+      if (back?.isConnected) back.focus({ preventScroll: true });
+    };
+    if (force || !pageDirty()) { close(); return; }
+    U().askConfirm?.({ title: P.from ? "Renunțați la copia widget-ului?" : "Renunțați la widget-ul nou?", text: "Datele completate nu se păstrează.", confirmLabel: "Renunță", cancelLabel: "Continuă editarea", destructive: true }, close);
+  }
+  /* one redraw for the form, wherever it is (the create sheet or the profile page) */
+  const rerender = (opts) => (creating() ? renderCreate(opts) : renderProfile(opts));
 
   /* ---- Versiuni (US-408): the ONE version history of the back office = GEAPEventTimeline („Versiuni publicate”, as
      Șabloane de notificare / Servicii / MDocs); an entry opens its version window (Compară · Restaurează · Închide) */
@@ -1072,10 +1246,7 @@
     const rb = configRows(b);
     const text = (html) => html.replace(/<[^>]+>/g, "").trim() || "—";
     const out = [];
-    ["data", "calc", "look"].forEach((group) => ra[group].forEach(([lbl, va], i) => {
-      const vb = rb[group][i][1];
-      if (va !== vb) out.push({ label: lbl, before: text(va), after: text(vb) });
-    }));
+    rowPairs(ra, rb).forEach(([lbl, va, vb]) => { if (va !== vb) out.push({ label: lbl, before: text(va), after: text(vb) }); });
     return out;
   }
   /* „Modificări (N)”: the stacked list (field on its own line, no divider under the last row) with the Jurnal /
@@ -1116,8 +1287,17 @@
       </section>`;
   }
   function historyTab(w) {
-    const events = w.history.slice(0, 100).map((h) => ({ at: h.at, user: h.by, role: h.role, type: h.event, status: h.event === EVENTS.rejected ? "Respins" : "Reușit", ...(h.event === EVENTS.rejected ? { tone: "danger" } : {}), detail: h.detail || "" }));
-    return window.GEAPEventTimeline?.html("Jurnalul de audit", events, { meta: events.length ? "Cele mai noi primele" : "", empty: "Pentru acest widget nu s-au înregistrat încă operații." }) || "";
+    const T = window.GEAPEventTimeline;
+    const events = w.history.slice(0, 100).map((h) => ({ at: h.at, user: h.by, role: h.role, type: h.event, status: h.event === EVENTS.rejected ? "Respins" : "Reușit", ...(h.event === EVENTS.rejected ? { tone: "danger" } : {}), detail: h.detail || "", context: T?.contextOf?.(T.audit(journalEvent(h), journalCtx(w, h))) }));
+    return T?.html("Jurnalul de audit", events, { meta: events.length ? "Cele mai noi primele · Jurnalizat prin MLog" : "", empty: "Pentru acest widget nu s-au înregistrat încă operații.", openAttrs: (item, i) => `data-wid-event="${i}"` }) || "";
+  }
+  /* an Istoric entry → its record in the unique Jurnalul de audit (the shell's US-262 event detail) */
+  function openJournal(i) {
+    const w = widgetOf(P.id);
+    const h = w?.history[Number(i)];
+    if (!h) return;
+    const record = window.GEAPEventTimeline.audit(journalEvent(h), journalCtx(w, h));
+    A().openAuditEventDetail?.(record, { title: h.event, general: [["Denumirea evenimentului", esc(h.event)], ["Widget", esc(`${w.id} · ${w.config.titles.ro}`)]] });
   }
 
   /* ---- version window (Compară · Restaurează · Închide) · restore (the library dialog) */
@@ -1197,7 +1377,7 @@
     if (!P.draft && !P.id) return;
     publishing = { id: P.id };
     const v = editable() ? P.draft : widgetOf(P.id).config;
-    if (editable() && publishProblems(v).length) { P.errors = validate(v); renderProfile(); }
+    if (editable() && publishProblems(v).length) { P.errors = validate(v); rerender(); }
     renderPublish();
   }
   function renderPublish() {
@@ -1250,13 +1430,15 @@
   const errorSel = (key) => { const m = /^rule\.(\d+)$/.exec(key); return m ? `#${IDP}-rule-value-${m[1]}` : `#${IDP}-${ERROR_SEL[key] || key}`; };
   function showFirstError(errors) {
     const key = Object.keys(errors)[0];
-    renderProfile({ keep: key === "type" ? `#${IDP}-type input:not(:disabled)` : key === "visibility" ? `#${IDP}-visibility input:not(:disabled)` : errorSel(key) });
-    document.querySelector(errorSel(key))?.closest(".e-permits-fo-field, .e-permits-doc-cond, .e-permits-wid-types, .e-permits-dosar-profil__section")?.scrollIntoView({ block: "center" });
+    const keep = key === "type" ? `#${IDP}-type input:not(:disabled)` : key === "visibility" ? `#${IDP}-visibility input:not(:disabled)` : errorSel(key);
+    if (creating()) { P.step = STEP_OF(key); P.maxStep = Math.max(P.maxStep, P.step); renderCreate({ keep }); }
+    else renderProfile({ keep });
+    (creating() ? sheet : document).querySelector(errorSel(key))?.closest(".e-permits-fo-field, .e-permits-doc-cond, .e-permits-wid-types, .e-permits-dosar-profil__section")?.scrollIntoView({ block: "center" });
   }
   function savePage({ silent = false } = {}) {
     const errors = validate(P.draft, { steps: [1] });
     if (Object.keys(errors).length) { P.errors = errors; showFirstError(errors); return null; }
-    if (demo.has("eroare")) { P.saveError = true; renderProfile(); return null; }
+    if (demo.has("eroare")) { P.saveError = true; rerender(); return null; }
     const me = who();
     let w = P.isNew ? null : widgetOf(P.id);
     if (w) {
@@ -1272,10 +1454,12 @@
       audit(w, P.from ? "clone" : "create", P.from ? `Din ${P.from} · ${levelText(w)}` : `Ciornă · ${levelText(w)} · ${sourceName(w.config.source)}${w.config.type ? ` · ${typeLabel(w.config.type)}` : ""}`);
     }
     const wasNew = P.isNew;
-    Object.assign(P, { id: w.id, isNew: false, from: "", errors: {}, saveError: false, base: clone(P.draft) });
+    Object.assign(P, { id: w.id, isNew: false, from: "", errors: {}, saveError: false, base: clone(P.draft), compare: null });
+    /* a new widget leaves the create sheet: from now on it is edited on its profile page */
+    if (wasNew) { hideSheet(); beforeCreate = null; }
     if (!silent) {
-      renderProfile({ keep: "[data-wid-save]" });
-      A().writeHash?.(`#widget/${w.id}/configurare`, { push: false });
+      if (wasNew) openProfile(w.id, "configurare");
+      else { renderProfile({ keep: "[data-wid-save]" }); A().writeHash?.(`#widget/${w.id}/configurare`, { push: false }); }
       toast(wasNew ? `Ciorna widget-ului ${w.id} a fost salvată.` : "Modificările au fost salvate.");
       refreshList();
     }
@@ -1324,7 +1508,7 @@
     const back = event.target.closest?.("[data-wid-back]");
     if (back) guardLeave(event, () => closeProfile());
   }, true);
-  window.addEventListener("beforeunload", (event) => { if (profileOpen() && pageDirty()) { event.preventDefault(); event.returnValue = ""; } });
+  window.addEventListener("beforeunload", (event) => { if ((profileOpen() || creating()) && pageDirty()) { event.preventDefault(); event.returnValue = ""; } });
 
   /* ---- „Mărește”: the preview at the dialog's width (wide tables, heat maps) */
   function openZoom() {
@@ -1342,11 +1526,11 @@
 
   /* ================================================================ events */
   const profileRoot = () => (profileOpen() ? A().els?.dosarProfilPanel || document.querySelector("[data-dosar-profil]") : null);
-  const inPage = (el) => { const root = profileRoot(); return Boolean(root && root.contains(el) && P.draft && editable()); };
+  const inPage = (el) => { if (inSheet(el)) return Boolean(P.draft); const root = profileRoot(); return Boolean(root && root.contains(el) && P.draft && editable()); };
   function refreshPreview() {
     P.refreshing = true;
     refreshPreviewOnly();
-    window.setTimeout(() => { P.refreshing = false; P.refreshedAt = nowIso(); if (profileOpen()) refreshPreviewOnly(); }, 900);
+    window.setTimeout(() => { P.refreshing = false; P.refreshedAt = nowIso(); if (profileOpen() || creating()) refreshPreviewOnly(); }, 900);
   }
   document.addEventListener("click", (event) => {
     const t = event.target;
@@ -1380,33 +1564,46 @@
     if (vcmp) { const w = widgetOf(P.id); G().closeModal?.(); P.compare = { a: vcmp.dataset.widVerCompare, b: String(lastVersion(w).nr) }; renderProfile(); document.querySelector("#wid-compare-title")?.scrollIntoView({ block: "start" }); return; }
     const vrs = t.closest("[data-wid-ver-restore]");
     if (vrs) { openRestore(vrs.dataset.widVerRestore); return; }
-    /* profile */
-    const root = profileRoot();
-    if (!root || !root.contains(t)) return;
-    const tab = t.closest("[data-wid-tab]");
-    if (tab) { P.tab = tab.dataset.widTab; renderProfile({ keep: `#wid-tab-${P.tab}` }); if (P.id) A().writeHash?.(`#widget/${P.id}/${P.tab}`, { push: false }); return; }
-    const sv = t.closest("[data-wid-save]");
-    if (sv) { if (sv.getAttribute("aria-disabled") !== "true") savePage(); return; }
-    if (t.closest("[data-wid-publish]")) { openPublish(); return; }
-    if (t.closest("[data-wid-clone]")) { openNew({ from: P.id }); return; }
-    if (t.closest("[data-wid-toggle]")) { const w = widgetOf(P.id); setStatus(w, w.status === "Dezactivat", () => { if (w.status !== "Dezactivat") { P.draft = clone(w.config); P.base = clone(w.config); } renderProfile(); refreshList(); }); return; }
-    if (t.closest("[data-wid-auth]")) { const w = widgetOf(P.id); setAuthActive(w, isOffFor(w, who().authority), () => { renderProfile(); refreshList(); }); return; }
-    const view = t.closest("[data-wid-ver-view]");
-    if (view) { openVersion(view.dataset.widVerView); return; }
-    if (t.closest("[data-wid-compare-open]")) {
-      const w = widgetOf(P.id);
-      const ch = compareChoices(w);
-      P.compare = unpublished(w) ? { a: String(lastVersion(w).nr), b: "draft" } : { a: ch[1]?.[0] || ch[0][0], b: ch[0][0] };
-      renderProfile({ keep: "#wid-cmp-a" });
-      return;
+    /* the create sheet */
+    if (inSheet(t)) {
+      if (t.closest("[data-wid-ed-close]")) { event.preventDefault(); closeCreate(); return; }
+      if (t.closest("[data-wid-prev]")) { goStep(P.step - 1); return; }
+      if (t.closest("[data-wid-next]")) { goStep(P.step + 1); return; }
+      const g = t.closest("[data-wid-goto]");
+      if (g) { goStep(Number(g.dataset.widGoto)); return; }
+      if (t.closest("[data-wid-save]")) { savePage(); return; }
+      if (t.closest("[data-wid-publish]")) { openPublish(); return; }
+    } else {
+      /* profile */
+      const root = profileRoot();
+      if (!root || !root.contains(t)) return;
+      const tab = t.closest("[data-wid-tab]");
+      if (tab) { P.tab = tab.dataset.widTab; renderProfile({ keep: `#wid-tab-${P.tab}` }); if (P.id) A().writeHash?.(`#widget/${P.id}/${P.tab}`, { push: false }); return; }
+      const sv = t.closest("[data-wid-save]");
+      if (sv) { if (sv.getAttribute("aria-disabled") !== "true") savePage(); return; }
+      if (t.closest("[data-wid-publish]")) { openPublish(); return; }
+      if (t.closest("[data-wid-clone]")) { openNew({ from: P.id }); return; }
+      if (t.closest("[data-wid-toggle]")) { const w = widgetOf(P.id); setStatus(w, w.status === "Dezactivat", () => { if (w.status !== "Dezactivat") { P.draft = clone(w.config); P.base = clone(w.config); } renderProfile(); refreshList(); }); return; }
+      if (t.closest("[data-wid-auth]")) { const w = widgetOf(P.id); setAuthActive(w, isOffFor(w, who().authority), () => { renderProfile(); refreshList(); }); return; }
+      const view = t.closest("[data-wid-ver-view]");
+      if (view) { openVersion(view.dataset.widVerView); return; }
+      const ev = t.closest("[data-wid-event]");
+      if (ev) { openJournal(ev.dataset.widEvent); return; }
+      if (t.closest("[data-wid-compare-open]")) {
+        const w = widgetOf(P.id);
+        const ch = compareChoices(w);
+        P.compare = unpublished(w) ? { a: String(lastVersion(w).nr), b: "draft" } : { a: ch[1]?.[0] || ch[0][0], b: ch[0][0] };
+        renderProfile({ keep: "#wid-cmp-a" });
+        return;
+      }
+      if (t.closest("[data-wid-compare-close]")) { P.compare = null; renderProfile({ keep: "[data-wid-compare-open]" }); return; }
+      if (t.closest("[data-wid-back]")) { event.preventDefault(); closeProfile(); return; }
     }
-    if (t.closest("[data-wid-compare-close]")) { P.compare = null; renderProfile({ keep: "[data-wid-compare-open]" }); return; }
-    if (t.closest("[data-wid-back]")) { event.preventDefault(); closeProfile(); return; }
     if (!inPage(t)) return;
     /* the form */
-    if (t.closest("[data-wid-rule-add]")) { P.draft.filter.rules.push({ column: "", op: "is", value: "" }); delete P.errors.filter; renderProfile({ keep: `#${IDP}-rule-col-${P.draft.filter.rules.length - 1}` }); return; }
+    if (t.closest("[data-wid-rule-add]")) { P.draft.filter.rules.push({ column: "", op: "is", value: "" }); delete P.errors.filter; rerender({ keep: `#${IDP}-rule-col-${P.draft.filter.rules.length - 1}` }); return; }
     const rm = t.closest("[data-wid-rule-remove]");
-    if (rm) { P.draft.filter.rules.splice(Number(rm.dataset.widRuleRemove), 1); Object.keys(P.errors).filter((k) => k.startsWith("rule.")).forEach((k) => delete P.errors[k]); renderProfile({ keep: "[data-wid-rule-add]" }); }
+    if (rm) { P.draft.filter.rules.splice(Number(rm.dataset.widRuleRemove), 1); Object.keys(P.errors).filter((k) => k.startsWith("rule.")).forEach((k) => delete P.errors[k]); rerender({ keep: "[data-wid-rule-add]" }); }
   });
   document.addEventListener("keydown", (event) => {
     const tab = event.target.closest?.("[data-wid-tab]");
@@ -1450,10 +1647,10 @@
       if (v.type === "heatmap" && !v.secondary) { v.secondary = dateCols(v.source)[0]?.key || ""; v.dateGroup = v.dateGroup || "month"; }
       if (!SECONDARY[v.type]) v.secondary = "";
       if (!needsDateGroup(v)) v.dateGroup = "";
-      renderProfile({ keep: `#${IDP}-type input[value="${el.value}"]` });
+      rerender({ keep: `#${IDP}-type input[value="${el.value}"]` });
       return;
     }
-    if (el.matches("[data-wid-vis]")) { v.visibility = el.value; delete P.errors.visibility; renderProfile({ keep: `#${IDP}-visibility input[value="${el.value}"]` }); return; }
+    if (el.matches("[data-wid-vis]")) { v.visibility = el.value; delete P.errors.visibility; rerender({ keep: `#${IDP}-visibility input[value="${el.value}"]` }); return; }
     const rule = el.closest("[data-wid-rule]");
     if (rule) {
       const i = Number(rule.dataset.widRule);
@@ -1464,10 +1661,10 @@
       if (which === "column") r.value = "";
       if (which === "op" && NO_VALUE.includes(r.op)) r.value = "";
       delete P.errors[`rule.${i}`];
-      renderProfile({ keep: fid(el) ? `#${CSS.escape(fid(el))}` : "" });
+      rerender({ keep: fid(el) ? `#${CSS.escape(fid(el))}` : "" });
       return;
     }
-    if (el.matches("[data-wid-rule-logic]")) { v.filter.logic = el.value; renderProfile({ keep: fid(el) ? `#${CSS.escape(fid(el))}` : "" }); return; }
+    if (el.matches("[data-wid-rule-logic]")) { v.filter.logic = el.value; rerender({ keep: fid(el) ? `#${CSS.escape(fid(el))}` : "" }); return; }
     const field = el.closest("[data-wid-field]");
     if (!field || (field.tagName !== "SELECT" && field.type !== "checkbox")) return;
     const key = field.dataset.widField;
@@ -1482,11 +1679,11 @@
       v.filter.rules = v.filter.rules.filter((r) => fieldOf(value, r.column));
       if (v.kpi && kpiOf(v.kpi)?.source !== value) v.kpi = "";
     }
-    if (key === "kpi") { delete P.errors.type; if (value && v.type && !KPI_TYPES.includes(v.type)) v.type = ""; }
+    if (key === "kpi") delete P.errors.type;
     if (key === "measure") { if (!measureColumns(v).some((f) => f.key === v.column)) v.column = ""; if (value === "count") v.column = ""; }
     if (key === "column") { const t = fieldOf(v.source, value)?.type; if (t === "duration" && v.measure !== "distinct") v.format = "duration"; else if (t === "amount") v.format = "amount"; else if (["duration", "amount"].includes(v.format)) v.format = "number"; }
     if (key === "primary" || key === "secondary") { if (needsDateGroup(v) && !v.dateGroup) v.dateGroup = "month"; if (!needsDateGroup(v)) v.dateGroup = ""; }
-    renderProfile({ keep: fid(field) ? `#${CSS.escape(fid(field))}` : `[data-wid-field="${key}"]` });
+    rerender({ keep: fid(field) ? `#${CSS.escape(fid(field))}` : `[data-wid-field="${key}"]` });
   });
 
   /* ---------------------------------------------------------------- routes + denied (Feature AC) */
@@ -1504,7 +1701,11 @@
     const m = /^#widget\/([^/]+)(?:\/([a-zA-Z0-9-]+))?$/.exec(h);
     if (!m) return false;
     if (!who().has) { showDenied(); return true; }
-    if (m[1] === "nou") { if (!P.isNew) openNew({ from: (m[2] || "").replace(/^din-/, "") }); return true; }
+    /* a direct link to the create sheet: the list under it, then the sheet */
+    if (m[1] === "nou") {
+      if (!creating()) { document.querySelector(`[data-nav-item][data-nav-id="${NAV}"]`)?.click(); openNew({ from: (m[2] || "").replace(/^din-/, "") }); }
+      return true;
+    }
     load().then(() => openProfile(decodeURIComponent(m[1]), m[2] || "configurare", { push: false }));
     return true;
   });

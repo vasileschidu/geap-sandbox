@@ -41,13 +41,9 @@
 
 /* ---- the editor page (widget-v2): the shared editor width `.e-permits-editor-wide` (fluid, cap 1600, ONLY on the two-
    column Configurare; Versiuni / Istoric keep the profile width); settings 5fr (≥ 360) · BIG preview 7fr (Asana /
-   Sentry / Twenty chart editors); the preview stacks first under 1100 ---- */
-
-@media (min-width: 1101px) {
-  .e-permits-ntpl-content.e-permits-wid-config {
-    grid-template-columns: minmax(360px, 5fr) minmax(0, 7fr);
-  }
-}
+   Sentry / Twenty chart editors) = the shared `.e-permits-ntpl-content--preview` (css/registre.css), also on every step of
+   the create sheet (`.e-permits-wid-create`, the KPI create sheet structure). The profile's preview stacks first under
+   1100; in the create sheet the step's form stays first (the KPI sheet order). ---- */
 
 /* the card at the widget's chosen width of a dashboard row („Rând întreg” = the whole preview) */
 .e-permits-wid-card--third { width: calc(100% / 3); }
@@ -872,7 +868,7 @@ button.e-permits-wid-rows__row:focus-visible {
 }
 
 /* the settings column (≥ 360, 5fr): one gallery column; two when the column is wide (stacked layout ≤ 1100) */
-.e-permits-wid-config .e-permits-wid-types__grid {
+:is(.e-permits-wid-config, .e-permits-wid-create) .e-permits-wid-types__grid {
   grid-template-columns: repeat(auto-fill, minmax(calc(var(--spacing-40, 40px) * 7), 1fr));
 }
 
@@ -885,4 +881,9 @@ button.e-permits-wid-rows__row:focus-visible {
 .e-permits-wid-table--agg tbody th {
   background: var(--color-background-base-default, #fff);
   font-weight: var(--font-weight-fw-regular, 400);
+}
+
+/* Aria de vizibilitate: the note under the radio group keeps the 16 rhythm (it sat flush under the group) */
+.e-permits-wid-vis-field + .info-box {
+  margin-top: var(--spacing-16, 16px);
 }

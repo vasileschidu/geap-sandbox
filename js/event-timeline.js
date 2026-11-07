@@ -196,8 +196,20 @@
         : { state: "Expediat", attempts: 1, id: `MLOG-${hex(hash(`${seed}mlog`)).toUpperCase()}`, error: "" }
     };
   }
+  /* the unique audit journal of the session (widget-audit-v1, 2026-11-07; Feature 96501 rev 18 „Fiecare operație … se
+     înregistrează în Jurnalul de audit”): log(event, ctx) = audit() + kept in ONE shared list (newest first), so a module
+     that also keeps its own Istoric writes the same record to the platform journal; journal() reads it back
+     (window.GEAPEventTimeline.journal() — demo / QA probe). The prototype has no journal page: an Istoric entry opens
+     its record (the shell's audit event detail: context, correlation, MLog transmission). */
+  const JOURNAL = [];
+  function log(event = {}, ctx = {}) {
+    const record = audit(event, ctx);
+    JOURNAL.unshift({ ...record, title: event.type || "" });
+    return record;
+  }
+  const journal = () => JOURNAL.slice();
   /* the second stamp line of a row: where it happened + the correlation id (short) */
   const contextOf = (record) => [record.module !== "BackOffice" ? record.module : "", record.authority, record.subdivision, `ID corelare ${record.correlation}`];
 
-  window.GEAPEventTimeline = { html, listHtml, TONES, audit, contextOf };
+  window.GEAPEventTimeline = { html, listHtml, TONES, audit, contextOf, log, journal };
 })();
