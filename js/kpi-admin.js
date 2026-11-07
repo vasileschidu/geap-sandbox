@@ -1152,7 +1152,7 @@
   function definitionTab(k) {
     if (!canEdit(k)) {
       return `
-        <div class="e-permits-ntpl-content e-permits-editor-wide">
+        <div class="e-permits-ntpl-content e-permits-kpi-content--split e-permits-editor-wide">
           <div class="e-permits-ntpl-content__main">${valueSection(k)}${readDefinition(k)}</div>
           <aside class="e-permits-ntpl-content__preview">${dictionaryHtml(P, draftOf(k), P.idp)}</aside>
         </div>`;
@@ -1165,7 +1165,7 @@
       if (vals) P.check = { key: calcKey(draftOf(k)), values: vals, series: seriesOf(k, per), label: `Ultima calculare: ${longDate(D().calculatedAt)}, 06:00.` };
     }
     return `
-      <div class="e-permits-ntpl-content e-permits-editor-wide">
+      <div class="e-permits-ntpl-content e-permits-kpi-content--split e-permits-editor-wide">
         <div class="e-permits-ntpl-content__main">
           ${cardSection("Identificare", identityFields(v, e, P.idp, { isNew: false }))}
           ${calcSections(v, e, P.idp).map(([title, body]) => cardSection(title, body)).join("")}
@@ -1180,7 +1180,7 @@
     const val = isPlanned(k) ? null : valuesOf(k, per);
     const series = isPlanned(k) ? [] : seriesOf(k, per);
     const two = (main, aside) => `
-      <div class="e-permits-ntpl-content e-permits-kpi-content--preview e-permits-editor-wide">
+      <div class="e-permits-ntpl-content e-permits-kpi-content--split e-permits-kpi-content--preview e-permits-editor-wide">
         <div class="e-permits-ntpl-content__main">${main}</div>
         <aside class="e-permits-ntpl-content__preview" data-kpi-preview>${aside}</aside>
       </div>`;
@@ -1563,7 +1563,7 @@
     U().askConfirm?.({ title: "Renunțați la KPI-ul nou?", text: "Datele completate nu se păstrează.", confirmLabel: "Renunță", cancelLabel: "Continuă editarea", destructive: true }, close);
   }
   const twoCols = (main, aside, { preview = false, attr = "" } = {}) => `
-    <div class="e-permits-ntpl-content${preview ? " e-permits-kpi-content--preview" : ""}${aside ? " e-permits-editor-wide" : ""}">
+    <div class="e-permits-ntpl-content${aside ? " e-permits-kpi-content--split" : ""}${preview ? " e-permits-kpi-content--preview" : ""}${aside ? " e-permits-editor-wide" : ""}">
       <div class="e-permits-ntpl-content__main">${main}</div>
       ${aside ? `<aside class="e-permits-ntpl-content__preview"${attr ? ` ${attr}` : ""}>${aside}</aside>` : ""}
     </div>`;

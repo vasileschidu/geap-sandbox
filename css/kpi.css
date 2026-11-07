@@ -85,13 +85,16 @@
   right: max(var(--spacing-24, 24px), calc((100% - var(--spacing-40, 40px) * 40) / 2 + var(--spacing-24, 24px)));
 }
 
-/* the create sheet = half | half on every step, like the widget sheet (user 2026-11-07: „let's do 50/50”) */
+/* every KPI two-column screen (create sheet steps + profile tabs Definiție / Ținta) = half | half, like the widget sheet
+   (user 2026-11-07: „let's do 50/50”, then „here also 50/50” on the Definiție tab) */
+.e-permits-ntpl-content.e-permits-kpi-content--split,
 .e-permits-kpi-editor .e-permits-ntpl-content,
 .e-permits-kpi-editor .e-permits-ntpl-content.e-permits-kpi-content--preview {
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
 }
 
 @media (max-width: 1100px) {
+  .e-permits-ntpl-content.e-permits-kpi-content--split,
   .e-permits-kpi-editor .e-permits-ntpl-content,
   .e-permits-kpi-editor .e-permits-ntpl-content.e-permits-kpi-content--preview {
     grid-template-columns: minmax(0, 1fr);
