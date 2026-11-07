@@ -27,3 +27,4 @@ Loop, page by page (never the whole file in one call):
 Report: per page the before → after counts per gate rule, PASS / FAIL per block, local components created (ids), what
 could not be fixed and why. Append lessons (≤ 3 lines each) to `.claude/playbooks/figma-designer-lessons.md`; save scripts under
 `tools/figma/quality-sweep/`. Don't touch pages another job is building (ask the caller).
+- Tabs track line (user 2026-11-07, „border missing… do rule for future”): every tab bar has the grey 1 px bottom track line (stroke bottom 1, INSIDE, `border/base/default`) on the bar or its full-width wrapper; the selected tab's blue line sits on it. Captures drop it — add it after every capture; figma-audit rule `tabs-track` flags it.

@@ -42,6 +42,8 @@
 //  filter-icon-sliders  (2026-11-02, user: „again wrong icon”) a „20/filter” (SLIDERS glyph) inside a chip / button whose
 //                       name or label says Filtr* — must be Foundations „filter-2, sort” 9644:319 (= code icon-filter-lines);
 //                       swapComponent the nested icon, keep the colour binding
+//  tabs-track           (2026-11-07, user) a tab bar without the grey 1 px bottom track line (border/base/default) on itself or
+//                       its wrapper — the selected tab's blue line sits on top of it
 //  redundant-heading-border (2026-11-02, user, whole project) a heading / section-header / section title whose BOTTOM border is
 //                       on while the block right under it (next sibling, or its first child) has its own border or fill (bordered
 //                       card / wrap, grey card, upload box, code block). Two lines for one edge: turn the border Off (component
@@ -145,6 +147,12 @@ for (const rid of ROOTS) {
   for (const n of nodes) {
     const inInst = insideInstance(n);
     if (n.visible !== false && "fills" in n && Array.isArray(n.fills) && !/shadow|fade|scrim/i.test(n.name) && n.fills.some((p) => p.visible !== false && String(p.type).startsWith("GRADIENT"))) add("gradient-fill", n, "gradient fill — remove; draw dividers as a 1 px stroke");
+    // tabs-track (2026-11-07, user: „border missing” under profile tabs): a tab bar (frame with ≥ 2 „tab…” instances) needs the
+    // grey 1 px track line (border/base/default, bottom, INSIDE) on itself or its wrapper — the selected tab's blue line sits on it
+    if (n.type === "FRAME" && !inInst && n.children && n.children.filter((k) => k.type === "INSTANCE" && /^tab\b/i.test(k.name)).length >= 2) {
+      const line = (x) => x && Array.isArray(x.strokes) && x.strokes.some((q) => q.visible !== false) && (x.strokeBottomWeight || 0) >= 1;
+      if (!line(n) && !line(n.parent)) add("tabs-track", n, "tab bar without the grey bottom track line — stroke bottom 1 INSIDE, border/base/default, on the bar or its full-width wrapper");
+    }
     if (n.type === "FRAME" && !inInst) {
       if (CONTROL.test(n.name)) add("raw-control", n, "frame named like a control — use the library instance");
       else if (CAPTURED_CONTROL.test(n.name)) add("raw-control", n, "captured control (textarea / input / select…) — swap for the library instance");

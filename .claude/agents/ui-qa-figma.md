@@ -74,3 +74,4 @@ Write `tools/ui-qa/out/figma/qa.json` — an array of
 "observation", "evidence": ["node id / screenshot"], "fix": "which component / variable / text
 style / spacing token to use" }` and reply with: counts by severity, the major findings one line
 each (with node ids), and the false positives you dropped.
+- Tabs track line (user 2026-11-07, „border missing… do rule for future”): every tab bar has the grey 1 px bottom track line (stroke bottom 1, INSIDE, `border/base/default`) on the bar or its full-width wrapper; the selected tab's blue line sits on it. Captures drop it — add it after every capture; figma-audit rule `tabs-track` flags it.
