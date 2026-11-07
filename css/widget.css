@@ -934,8 +934,40 @@ button.e-permits-wid-rows__row:focus-visible {
   flex: none;
 }
 
+/* one shared legend rule: the dot stays beside its text (first line), the TEXT wraps */
 .e-permits-wid-card .e-permits-meter-legend--tray li {
+  align-items: flex-start;
+  flex-wrap: nowrap;
+  min-width: 0;
+}
+
+.e-permits-wid-card .e-permits-meter-legend--tray :is(li, .e-permits-wid-legend__btn) > .e-permits-meter-legend__dot {
+  flex: none;
+  margin-top: var(--spacing-6, 6px);
+}
+
+.e-permits-wid-card .e-permits-meter-legend--tray :is(li, .e-permits-wid-legend__btn) > span:not(.e-permits-meter-legend__dot, .e-permits-meter-legend__pct, .e-permits-wid-heat__key) {
+  min-width: 0;
+}
+
+/* the heat-map key keeps its own wrapping line */
+.e-permits-wid-card .e-permits-meter-legend--tray li:has(> .e-permits-wid-heat__key) {
+  align-items: center;
   flex-wrap: wrap;
+}
+
+/* wrapping legend (treemap): full card width, items flow left-aligned, drill buttons are plain items */
+.e-permits-wid-legend--wrap {
+  align-self: stretch;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+}
+
+.e-permits-wid-legend--wrap .e-permits-wid-legend__btn {
+  align-items: flex-start;
+  margin: 0;
+  width: auto;
 }
 
 /* the preview heading (Figma wid-08): row 1 = title (fills) + actions, centred, 16 apart; row 2 = the data line, full
@@ -995,4 +1027,13 @@ button.e-permits-wid-rows__row:focus-visible {
 /* Aria de vizibilitate: the note under the radio group keeps the 16 rhythm (it sat flush under the group) */
 .e-permits-wid-vis-field + .info-box {
   margin-top: var(--spacing-16, 16px);
+}
+
+/* single-line list legends (donut) centre the dot on their one line */
+.e-permits-wid-card .e-permits-wid-legend--list :is(li, .e-permits-wid-legend__btn) {
+  align-items: center;
+}
+
+.e-permits-wid-card .e-permits-wid-legend--list :is(li, .e-permits-wid-legend__btn) > .e-permits-meter-legend__dot {
+  margin-top: 0;
 }

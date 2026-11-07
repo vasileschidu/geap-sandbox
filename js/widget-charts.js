@@ -34,8 +34,8 @@
   /* a drill-down target: a real button (HTML) or an SVG element with role=button; „fără acces” = plain */
   const drillAttrs = (m, label, value) => (m.drill ? ` data-wid-drill="${esc(label)}" data-wid-drill-value="${esc(m.fmt(value))}"` : "");
 
-  const legend = (items, { vertical = false } = {}) => `
-    <ul class="e-permits-meter-legend e-permits-meter-legend--tray${vertical ? " e-permits-wid-legend--list" : ""}" role="list">
+  const legend = (items, { vertical = false, wrap = false } = {}) => `
+    <ul class="e-permits-meter-legend e-permits-meter-legend--tray${vertical ? " e-permits-wid-legend--list" : ""}${wrap ? " e-permits-wid-legend--wrap" : ""}" role="list">
       ${items.map((it) => `<li>${it.button
         ? `<button class="e-permits-wid-legend__btn" type="button"${it.button}><span class="e-permits-meter-legend__dot ${it.dot}" aria-hidden="true"></span><span${vertical ? ` data-tooltip-label="${esc(it.label)}"` : ""}>${esc(it.label)}</span>${it.value ? `<strong>${esc(it.value)}</strong>` : ""}${it.pct ? `<span class="e-permits-meter-legend__pct">${esc(it.pct)}</span>` : ""}</button>`
         : `<span class="e-permits-meter-legend__dot ${it.dot}" aria-hidden="true"></span><span${vertical ? ` data-tooltip-label="${esc(it.label)}"` : ""}>${esc(it.label)}</span>${it.value ? `<strong>${esc(it.value)}</strong>` : ""}${it.pct ? `<span class="e-permits-meter-legend__pct">${esc(it.pct)}</span>` : ""}`}</li>`).join("")}
@@ -272,7 +272,7 @@
     }).join("");
     return `
       <svg class="${PLOT(m, "e-permits-wid-plot--bare e-permits-wid-treemap")}" role="img" aria-label="${ariaOf(m)}" focusable="false">${tiles}</svg>
-      ${legend(m.cats.map((c, i) => ({ label: c.label, value: m.fmt(c.value), dot: sClass(i), button: m.drill ? `${drillAttrs(m, c.label, c.value)} aria-label="${esc(`${c.label}: ${m.fmt(c.value)} — deschide înregistrările`)}"` : "" })), { vertical: true })}`;
+      ${legend(m.cats.map((c, i) => ({ label: c.label, value: m.fmt(c.value), dot: sClass(i), button: m.drill ? `${drillAttrs(m, c.label, c.value)} aria-label="${esc(`${c.label}: ${m.fmt(c.value)} — deschide înregistrările`)}"` : "" })), { wrap: true })}`;
   }
 
   /* ---------------------------------------------------------------- Plăcuță simplă */
