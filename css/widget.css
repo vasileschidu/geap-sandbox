@@ -56,8 +56,8 @@
 }
 
 /* ---- Chart-type gallery (new): 11 option cards in a radiogroup — the selectable option card, radio variant
-   (`.e-permits-fo-delivery-option--radio`: white, 1px ring, r12, 12/16 padding, 2px brand ring when chosen,
-   tertiary hover) with a 40 glyph tile instead of the 24 icon. A type the configuration cannot use stays visible,
+   (`.e-permits-fo-delivery-option--radio`: white, 1px ring, r12, 12 padding, 2px brand ring when chosen,
+   tertiary hover) with a 36 glyph tile instead of the 24 icon. A type the configuration cannot use stays visible,
    disabled, its line = the reason (Klaviyo / Shopify pattern). */
 .e-permits-wid-types {
   border: 0;
@@ -76,15 +76,41 @@
   margin-top: var(--spacing-8, 8px);
 }
 
+/* Figma „Widget type card” GEAP 14876:99443: padding 12 all round, gap 16, items centred; glyph tile 36 / r8 / glyph 24;
+   text column gap 4 — title 14/20 medium, description 12/16 tertiary, wraps */
+.e-permits-wid-type.e-permits-fo-delivery-option {
+  align-items: center;
+  min-height: 0;
+  padding: var(--spacing-12, 12px);
+}
+
+.e-permits-wid-type .e-permits-fo-delivery-option__content {
+  align-items: center;
+}
+
+.e-permits-wid-type .e-permits-fo-delivery-option__copy {
+  gap: var(--spacing-4, 4px);
+}
+
+.e-permits-wid-type .e-permits-fo-delivery-option__title-row {
+  min-height: 0;
+}
+
+.e-permits-wid-type .e-permits-fo-delivery-option__description {
+  color: var(--color-text-base-tertiary, #757575);
+  font-size: var(--font-size-fs-12, 12px);
+  line-height: var(--line-height-lh-16, 16px);
+}
+
 .e-permits-wid-type__glyph {
   align-items: center;
   background: var(--color-background-brand-secondary, #e8f0fb);
   border-radius: var(--border-radius-8, 8px);
   display: inline-flex;
-  flex: 0 0 var(--spacing-40, 40px);
-  height: var(--spacing-40, 40px);
+  flex: 0 0 calc(var(--spacing-12, 12px) * 3);
+  height: calc(var(--spacing-12, 12px) * 3);
   justify-content: center;
-  width: var(--spacing-40, 40px);
+  width: calc(var(--spacing-12, 12px) * 3);
 }
 
 .e-permits-wid-type.is-disabled {
@@ -893,6 +919,14 @@ button.e-permits-wid-rows__row:focus-visible {
 .e-permits-wid-preview__meta {
   margin: calc(var(--spacing-16, 16px) * -1 + var(--spacing-4, 4px)) 0 0;
   padding-inline: var(--spacing-12, 12px);
+}
+
+/* desktop: the 48 (+4) heading row centres the title, so the data line is pulled up under the title as its subtitle
+   (4 gap; the block's 16 gap to the segmented control stays) */
+@media (min-width: 761px) {
+  .e-permits-wid-preview__meta {
+    margin-top: calc(var(--spacing-16, 16px) * -2 + var(--spacing-4, 4px));
+  }
 }
 
 /* the settings column (≥ 360, 5fr): one gallery column; two when the column is wide (stacked layout ≤ 1100) */

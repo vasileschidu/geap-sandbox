@@ -21341,7 +21341,7 @@ document.addEventListener("DOMContentLoaded", () => {
       renderStepStrip,
       /* widget-audit-v1 (js/widget-admin.js): an Istoric entry opens its unique-journal record (US-262 detail) */
       openAuditEventDetail,
-      registerChangeSource, changesStatusAttrs, changeValue,
+      registerChangeSource, changesStatusAttrs, changeValue, openPendingChanges,
       setActiveNav, writeHash, restorePageHash, renderWorkplace, getVisibleRows, workplaceState,
       showRegistry: showProductRegistry, hideShellPages, openProfilePanel, closeProfile: closeDosarProfil,
       /* a link that lands on a registry with filters already applied (eKYC alert → Sesiuni istorice) */

@@ -489,7 +489,7 @@
           <h2 class="e-permits-dosar-profil__section-title" id="${idp}-preview-title">Previzualizare</h2>
           <div class="e-permits-passport__heading-tools">
             <button class="btn btn-secondary btn-sm${st.refreshing ? " btn-loading" : ""}" type="button" data-wid-refresh${st.refreshing ? ' aria-busy="true" disabled' : ""}>${icon("rotate-arrow", 16)}<span>Actualizează</span></button>
-            <button class="btn btn-secondary btn-sm btn-icon-only" type="button" aria-label="Mărește previzualizarea" data-tooltip-label="Mărește" aria-haspopup="dialog" data-wid-zoom>${icon("enlarge", 16)}</button>
+            <button class="btn btn-neutral btn-sm btn-icon-only" type="button" aria-label="Mărește previzualizarea" data-tooltip-label="Mărește" aria-haspopup="dialog" data-wid-zoom>${icon("enlarge", 16)}</button>
           </div>
         </div>
         <p class="e-permits-dosar-profil__section-meta e-permits-wid-preview__meta">${esc(`Perimetrul dvs.: ${per.text} · ${at} · Lățime: ${label(WIDTHS, v.width) || "—"} · Înălțime: ${label(HEIGHTS, v.height) || "—"} · Aria: ${label(VIS, v.visibility) || "—"}`)}</p>
@@ -1014,7 +1014,7 @@
     const n = Object.keys(changedFields()).length;
     const status = n
       ? A().renderHeaderStatus?.(n === 1 ? "1 modificare nesalvată" : `${n} modificări nesalvate`, "warning", A().changesStatusAttrs?.("wid-draft")) || ""
-      : w && unpublished(w) && w.status !== "Dezactivat" ? A().renderHeaderStatus?.("Modificări nepublicate", "warning") || "" : "";
+      : w && unpublished(w) && w.status !== "Dezactivat" ? A().renderHeaderStatus?.("Modificări nepublicate", "warning", 'data-wid-pending aria-haspopup="dialog" data-tooltip-text="Vezi modificările"') || "" : "";
     const me = who();
     return A().renderPageHeaderTop({
       back: { label: TITLE, attr: "data-wid-back" },
@@ -1373,6 +1373,15 @@
 
   /* ---- publish (US-406): problems block it (also shown inline in the form), otherwise version + 1 */
   let publishing = null;
+  /* „Modificări nepublicate” in the profile header → the shared pending-changes dialog (as Servicii / Șabloane): the
+     difference between the published version and the saved configuration, Publică continues to the publish dialog */
+  function openPending() {
+    const w = widgetOf(P.id);
+    const last = w && lastVersion(w);
+    if (!last) return;
+    const changes = diffRows(last.config, w.config).map((c) => ({ area: c.label, detail: `${c.before} → ${c.after}`, at: w.updatedAt || "", user: w.updatedBy || "", status: "Modificat" }));
+    A().openPendingChanges?.({ subject: `${w.config.titles.ro} · față de versiunea ${last.version}`, changes, onPublish: editable(w) ? () => openPublish() : null });
+  }
   function openPublish() {
     if (!P.draft && !P.id) return;
     publishing = { id: P.id };
@@ -1575,6 +1584,7 @@
       if (t.closest("[data-wid-publish]")) { openPublish(); return; }
     } else {
       /* profile */
+      if (t.closest("[data-wid-pending]")) { openPending(); return; }
       const root = profileRoot();
       if (!root || !root.contains(t)) return;
       const tab = t.closest("[data-wid-tab]");

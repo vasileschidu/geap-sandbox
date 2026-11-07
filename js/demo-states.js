@@ -4434,6 +4434,7 @@
       "wid-04d": prof("WGT-0001", "configurare", seq(async (h) => { await h.choose(`${ED} select[data-wid-field="compare"]`, "prevMonth"); }, async (h) => { document.querySelector('[data-nav-item][data-nav-id="widgete"]').click(); await h.find("#service-confirm-modal.is-active [data-service-confirm-ok]"); })),
       "wid-04e": prof("WGT-0001", "configurare", null, null, AUTH),
       "wid-04f": prof("WGT-0007"),
+      "wid-04h": prof("WGT-0007", "configurare", async (h) => { await h.click("[data-wid-pending]"); await h.wait(400); }),
       "wid-04g": prof("WGT-0006", "configurare", to("#wid-e-visibility"), null, AUTH),
       /* US-406 — publish */
       "wid-05": prof("WGT-0007", "configurare", publish),
