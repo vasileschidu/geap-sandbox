@@ -231,7 +231,7 @@
    baseline border, plot height); a drilling slot is a button — hover = the tertiary band behind the bar + the bar's
    darker step, keyboard ring on the slot */
 .e-permits-wid-cols {
-  border-bottom: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
+  border-bottom: var(--border-width-1, 1px) solid var(--color-border-base-secondary, #b2b2b2);
   display: flex;
   overflow: hidden;
   width: 100%;
