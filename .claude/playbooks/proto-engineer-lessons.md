@@ -4228,3 +4228,4 @@ For any „research how other products do it” step, search Mobbin (mcp__mobbin
   numeric `step` in data/ghiseu.json seeds and saved localStorage drafts.
 - 2026-11-07 · Demo traps: the FO doc picker refuses a wrong extension / > 60 MB itself (submit disabled) → states stop after
   choosing the file; capture.mjs `--prefix` only matches one-dash ids and waits 15 s (long flows = „NOT READY”, not broken).
+- 2026-11-07 · Bars „bottom always 0 round” (user, again): a CSS `height: 200%` on `rect` is a geometry property (not honoured everywhere, and the shipped fix sat behind a stale `?v=`) → the bar rect is now WRITTEN `height="200%" rx="4"` in the markup (widget-charts.js, ekyc.js); CSS rule only covers legacy `height="100%"` (kpi-admin.js trendChart still needs `200%` in its attribute). Probe: every `rect[rx]` bottom ≥ svg bottom, all chart families + synthetic columns 1…114.

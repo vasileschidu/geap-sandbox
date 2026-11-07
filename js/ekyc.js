@@ -1705,7 +1705,7 @@
       const placed = segs.map(([count, tone]) => { const y0 = cum; cum += count; return { tone, y0, y1: cum }; });
       const top = placed[placed.length - 1];
       const pctOf = (v) => ((v / max) * 100).toFixed(2);
-      const head = `<rect class="e-permits-chart__bar e-permits-chart__bar--${top.tone}" x="${x}%" y="${(100 - pctOf(top.y1)).toFixed(2)}%" width="${width}%" height="100%" rx="4"></rect>`;
+      const head = `<rect class="e-permits-chart__bar e-permits-chart__bar--${top.tone}" x="${x}%" y="${(100 - pctOf(top.y1)).toFixed(2)}%" width="${width}%" height="200%" rx="4"></rect>`;
       const rest = placed.slice(0, -1).map((p) => `<rect class="e-permits-chart__bar e-permits-chart__bar--${p.tone}" x="${x}%" y="${(100 - pctOf(p.y1)).toFixed(2)}%" width="${width}%" height="${(pctOf(p.y1) - pctOf(p.y0)).toFixed(2)}%"></rect>`).join("");
       return head + rest;
     }).join("");

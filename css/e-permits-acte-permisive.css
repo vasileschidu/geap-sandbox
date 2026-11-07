@@ -23886,9 +23886,10 @@ a.btn:focus-visible {
   width: 100%;
 }
 
-/* bars are drawn `height="100%"` from their top down (rounded top, rx 4) and clipped by the plot at the baseline; a bar
-   within 4px of the plot top ended just past the clip and showed its rounded BOTTOM corners on the baseline. Taller
-   rects push the corners far below the clip, so every bar sits flat on the 1px baseline (kpi / eKYC / widget charts) */
+/* BARS = rounded top (rx 4), square bottom ON the baseline, always. A bar rect is drawn from its top down far past the
+   plot (`height="200%"`, set in the markup by widget-charts.js / ekyc.js) and clipped by the plot, so its rounded bottom
+   corners are never visible, whatever its height. This rule does the same for markup still written `height="100%"`
+   (the KPI trend chart, js/kpi-admin.js) where the browser honours CSS geometry; new charts use 200% in the attribute */
 .e-permits-chart__plot rect[height="100%"],
 .e-permits-wid-cols__svg rect[height="100%"] {
   height: 200%;

@@ -68,12 +68,12 @@
         const y = 100 - (c.value / top) * 100;
         const tone = m.tone?.(c.value) || "brand";
         const label = `<text class="e-permits-ekyc-band__label" data-wid-fit="value" x="50%" y="${pct(Math.max(8, y - 3))}" text-anchor="middle">${esc(m.fmt(c.value))}</text>`;
-        bars = `<rect class="e-permits-chart__bar--${tone}" x="22%" y="${pct(y)}" width="56%" height="100%" rx="4"></rect>${label}`;
+        bars = `<rect class="e-permits-chart__bar--${tone}" x="22%" y="${pct(y)}" width="56%" height="200%" rx="4"></rect>${label}`;
       } else {
-        /* stacked: the top segment first (rounded, down to the baseline), the lower ones square on top of it */
+        /* stacked: the top segment first (rounded top; its rect runs 200% = far under the baseline, clipped by the plot, so the bottom corners never show), the lower ones square on top */
         let acc = 0;
         const segs = c.parts.map((p, j) => { const from = acc; acc += p.value; return { ...p, j, from, to: acc }; }).filter((sg) => sg.value > 0);
-        const rect = (sg, rounded) => `<rect class="e-permits-wid-fill ${sClass(sg.j)}" x="22%" y="${pct(100 - (sg.to / top) * 100)}" width="56%" height="${rounded ? "100%" : pct(((sg.to - sg.from) / top) * 100)}"${rounded ? ' rx="4"' : ""}></rect>`;
+        const rect = (sg, rounded) => `<rect class="e-permits-wid-fill ${sClass(sg.j)}" x="22%" y="${pct(100 - (sg.to / top) * 100)}" width="56%" height="${rounded ? "200%" : pct(((sg.to - sg.from) / top) * 100)}"${rounded ? ' rx="4"' : ""}></rect>`;
         bars = segs.length ? rect(segs[segs.length - 1], true) + segs.slice(0, -1).reverse().map((sg) => rect(sg, false)).join("") : "";
       }
       return slot(m, c, totals[i], `<svg class="e-permits-wid-cols__svg" aria-hidden="true" focusable="false">${bars}</svg>`);
