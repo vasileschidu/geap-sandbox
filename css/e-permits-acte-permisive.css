@@ -23886,6 +23886,14 @@ a.btn:focus-visible {
   width: 100%;
 }
 
+/* bars are drawn `height="100%"` from their top down (rounded top, rx 4) and clipped by the plot at the baseline; a bar
+   within 4px of the plot top ended just past the clip and showed its rounded BOTTOM corners on the baseline. Taller
+   rects push the corners far below the clip, so every bar sits flat on the 1px baseline (kpi / eKYC / widget charts) */
+.e-permits-chart__plot rect[height="100%"],
+.e-permits-wid-cols__svg rect[height="100%"] {
+  height: 200%;
+}
+
 .e-permits-chart__axis {
   color: var(--color-text-base-tertiary, #757575);
   display: flex;
