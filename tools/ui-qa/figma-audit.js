@@ -44,6 +44,16 @@
 //                       swapComponent the nested icon, keep the colour binding
 //  tabs-track           (2026-11-07, user) a tab bar without the grey 1 px bottom track line (border/base/default) on itself or
 //                       its wrapper — the selected tab's blue line sits on top of it
+//  absolute-in-flow     (2026-11-07, user: „why not auto-layout and absolute position?”) an ABSOLUTE child of an auto-layout
+//                       frame (outside instances) that is not a true overlay (overlay / modal / dialog / drawer / sheet / scrim /
+//                       menu / dropdown / popover / tooltip / cursor / scroll cue / close / anchor) — captures turn CSS sticky /
+//                       positioned elements into ABSOLUTE layers + empty „Sticky placeholder …” frames (also flagged): put the
+//                       content in flow (columns = VERTICAL stacks side by side in a HORIZONTAL row), delete the placeholder
+//  fixed-width-container (2026-11-07, user: „do all FILL so it's responsive”, minor) a frame outside instances with ≥ 2
+//                       children, FIXED width, in flow inside a VERTICAL / HORIZONTAL auto-layout parent whose content box is
+//                       wider than it — containers / columns / cards / lists / tables FILL (two columns = FILL + layoutGrow =
+//                       the code ratio); FIXED only for icons, avatars, hugging buttons, the sidebar nav, screens, overlays.
+//                       Fix: tools/figma/quality-sweep/fill-pass.js
 //  redundant-heading-border (2026-11-02, user, whole project) a heading / section-header / section title whose BOTTOM border is
 //                       on while the block right under it (next sibling, or its first child) has its own border or fill (bordered
 //                       card / wrap, grey card, upload box, code block). Two lines for one edge: turn the border Off (component
@@ -80,6 +90,7 @@ const CONTROL = /^(Button\b|Button - |Text Input|Input\b|Select\b|Checkbox|Tag$|
 const CAPTURED_CONTROL = /(^|[\s_-])(textarea|text-area|fo-input|fo-select|fo-textarea|input|select|checkbox|radio|switch|toggle)($|[\s_-])/i;
 // shape of an input / textarea drawn by hand: bordered, rounded 4–16, ≥ 32 high, holds text, no auto-sized label row
 const looksLikeField = (n) => Array.isArray(n.strokes) && n.strokes.some((s) => s.visible !== false) && typeof n.cornerRadius === "number" && n.cornerRadius >= 4 && n.cornerRadius <= 16 && n.height >= 32 && n.width >= 120 && n.width <= 1000 && !/^(Band|Block|Note|Screen|Stage)/.test(n.name) && "children" in n && n.children.some((c) => c.type === "TEXT") && n.children.length <= 4;
+const ABS_OK = /(overlay|modal|dialog|drawer|sheet|scrim|backdrop|menu|dropdown|popover|tooltip|cursor|pointer|scroll ?cue|close|anchor|focus ring|toast|listbox|picker)/i; // absolute-in-flow allow-list
 const MENU_RX = /(\bmenu\b|dropdown|drop-down|popover|listbox|list ?box|\boptions\b|select list|combobox|picker|flyout|suggestions?\b|autocomplete|contextual-menu|selection-menu)/i;
 const MENU_EXCL = /(menu[ -]?item|\bitems?\b|· action|button|btn|trigger|anchor|show menu|\bicon|chevron|caret|label|wrap\b|wrapper|\btabs?\b|sidebar|navigation|\bnav\b|header|\boption\b|· (profile|role|more)( \/|$)|kbd|badge|separator|divider|title|tooltip|toast|modal|drawer|scrim|overlay|backdrop|\bscreen|\bblock\b|\bnote\b|stage|flow|connector|arrow|marker|search|input|cell|container|collapsed|expanded)/i;
 const styleNames = {};
@@ -153,6 +164,10 @@ for (const rid of ROOTS) {
       const line = (x) => x && Array.isArray(x.strokes) && x.strokes.some((q) => q.visible !== false) && (x.strokeBottomWeight || 0) >= 1;
       if (!line(n) && !line(n.parent)) add("tabs-track", n, "tab bar without the grey bottom track line — stroke bottom 1 INSIDE, border/base/default, on the bar or its full-width wrapper");
     }
+    // absolute-in-flow (2026-11-07, user): ABSOLUTE only for real overlays; sticky captures go into flow
+    if (!inInst && n.visible !== false && n.type !== "CONNECTOR" && n.layoutPositioning === "ABSOLUTE" && n.parent && n.parent.type !== "INSTANCE" && !ABS_OK.test(n.parent.name) && (n.parent.layoutMode === "VERTICAL" || n.parent.layoutMode === "HORIZONTAL" || n.parent.layoutMode === "GRID") && !ABS_OK.test(n.name)) add("absolute-in-flow", n, "ABSOLUTE child of an auto-layout frame that is not an overlay — put it in flow (VERTICAL / HORIZONTAL stacks), no absolute positioning");
+    if (!inInst && n.type === "FRAME" && n.visible !== false && n.layoutPositioning !== "ABSOLUTE" && n.layoutSizingHorizontal === "FIXED" && n.children && n.children.length >= 2 && n.parent && (n.parent.layoutMode === "VERTICAL" || n.parent.layoutMode === "HORIZONTAL") && !/^(Block|Screens|Screen pair|Row)\b/.test(n.parent.name) && !/(icon|avatar|button|btn|sidebar|nav|overlay|scrim|modal|dialog|drawer|sheet|menu|dropdown|popover|tooltip|cursor|separator|dot|badge|tag)/i.test(n.name) && n.parent.width - (n.parent.paddingLeft || 0) - (n.parent.paddingRight || 0) > n.width + 1) add("fixed-width-container", n, `FIXED ${Math.round(n.width)} in a ${Math.round(n.parent.width)} parent — set FILL (minor)`);
+    if (!inInst && n.type === "FRAME" && /^Sticky placeholder/i.test(n.name)) add("absolute-in-flow", n, "captured „Sticky placeholder” — move the sticky content into flow and delete the placeholder");
     if (n.type === "FRAME" && !inInst) {
       if (CONTROL.test(n.name)) add("raw-control", n, "frame named like a control — use the library instance");
       else if (CAPTURED_CONTROL.test(n.name)) add("raw-control", n, "captured control (textarea / input / select…) — swap for the library instance");
