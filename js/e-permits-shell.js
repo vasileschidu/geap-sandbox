@@ -12241,7 +12241,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const d = s.values;
     const copyFrom = d.start === "copy" ? getClassifier(d.copiatDinId) : null;
     const extras = clasCreateExtras(d);
-    const goto = (n) => `<button class="btn btn-text-primary btn-sm" type="button" data-clas-create-goto="${n}">Modifică</button>`;
+    const goto = (n) => `<button class="btn btn-text-neutral btn-sm" type="button" data-clas-create-goto="${n}"><svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-edit"></use></svg><span>Editează</span></button>`;
     const valid = d.csv?.parsed ? d.csv.parsed.rows.filter((r) => r.cod && r.denRo).length : 0;
     const sursa = copyFrom ? "Intern (copie)" : CLAS_SOURCE[d.sursa];
     const initial = copyFrom ? `${s.subset.size} copiate din „${escapeHtml(copyFrom.denumire)}”` : d.sursa !== "intern" ? "Se preiau la prima sincronizare" : d.valoriStart === "csv" ? `${valid} din fișierul ${escapeHtml(d.csv?.name || "")}` : "Niciuna — le adaugi după creare";
@@ -13386,7 +13386,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const renderNtplCreateStep4 = (c) => {
     const d = c.values, ro = d.texts.ro;
     const channels = ntplCreateChannels(c);
-    const goto = (n) => `<button class="btn btn-text-primary btn-sm" type="button" data-ntpl-c-goto="${n}">Modifică</button>`;
+    const goto = (n) => `<button class="btn btn-text-neutral btn-sm" type="button" data-ntpl-c-goto="${n}"><svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-edit"></use></svg><span>Editează</span></button>`;
     const langs = NTPL_LANGS.filter(([v]) => d.texts[v].subject.trim() || d.texts[v].bodyText.trim() || d.texts[v].plain.trim()).map(([v]) => v.toUpperCase());
     return `
       ${renderPassportBlock("Setări", [

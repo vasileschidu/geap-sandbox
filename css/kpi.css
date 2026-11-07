@@ -1,7 +1,7 @@
 /* =====================================================================================
    Administrare › KPI — page glue + the data dictionary panel (kpi-v1, 2026-11-06; Feature 96500 „Gestionarea KPI”)
    The list is the BO registry (js/kpi-admin.js → window.GEAPShellRegistries.kpi), the profile the shared profile panel
-   with ntpl cards (also „Creează KPI”, the same page without a code — kpi-page-v1), „Valoare proprie” the ONE drawer, charts the eKYC dashboard SVG. Here: the menu icon,
+   with ntpl cards, „Creează KPI” / „Valoare proprie” the ONE drawer, charts the eKYC dashboard SVG. Here: the menu icon,
    the pinned first column and the value + zone tag cell. The data dictionary is the Permisiuni stacked list (no CSS here).
    ===================================================================================== */
 
@@ -62,10 +62,61 @@
   grid-template-columns: minmax(360px, 5fr) minmax(0, 7fr);
 }
 
+/* ---- the create sheet = ONE container (kpi-wizard-v1, 2026-11-06, user: „too many different widths”; Stripe / Shopify /
+   Linear / GOV.UK multi-step create): header, step strip, step content and the footer bar share one left and right edge =
+   the editor page width (1600, components.md › „Editor page width”) centred in the sheet, never less than the 24 gutter;
+   the × sits on that right edge. Every step = the same two columns (form | context / preview). Phones: one column, 16. */
+.e-permits-kpi-editor .e-permits-reg-editor__header .e-permits-page-header__body {
+  padding-left: max(var(--spacing-24, 24px), calc((100% - var(--spacing-40, 40px) * 40) / 2 + var(--spacing-24, 24px)));
+  padding-right: calc(max(var(--spacing-24, 24px), calc((100% - var(--spacing-40, 40px) * 40) / 2 + var(--spacing-24, 24px))) + var(--spacing-32, 32px) + var(--spacing-16, 16px));
+}
+
+.e-permits-kpi-editor .e-permits-steps-strip,
+.e-permits-kpi-editor .e-permits-reg-editor__bar,
+.e-permits-kpi-editor .e-permits-reg-editor__single.e-permits-kpi-editor__page {
+  padding-inline: max(var(--spacing-24, 24px), calc((100% - var(--spacing-40, 40px) * 40) / 2 + var(--spacing-24, 24px)));
+}
+
+.e-permits-kpi-editor .e-permits-reg-editor__single.e-permits-kpi-editor__page {
+  max-width: none;
+}
+
+.e-permits-kpi-editor .e-permits-reg-editor__close {
+  right: max(var(--spacing-24, 24px), calc((100% - var(--spacing-40, 40px) * 40) / 2 + var(--spacing-24, 24px)));
+}
+
 @media (max-width: 1100px) {
   .e-permits-kpi-content--preview {
     grid-template-columns: minmax(0, 1fr);
   }
+}
+
+@media (max-width: 760px) {
+  .e-permits-kpi-editor .e-permits-steps-strip,
+  .e-permits-kpi-editor .e-permits-reg-editor__bar,
+  .e-permits-kpi-editor .e-permits-reg-editor__single.e-permits-kpi-editor__page {
+    padding-inline: var(--spacing-16, 16px);
+  }
+
+  .e-permits-kpi-editor .e-permits-reg-editor__header .e-permits-page-header__body {
+    padding-left: var(--spacing-16, 16px);
+    padding-right: calc(var(--spacing-16, 16px) + var(--spacing-32, 32px) + var(--spacing-8, 8px));
+  }
+
+  .e-permits-kpi-editor .e-permits-reg-editor__close {
+    right: var(--spacing-16, 16px);
+  }
+
+  /* a wrapped bar keeps its actions on the container's right edge */
+  .e-permits-kpi-editor .e-permits-cfg2__bar-actions {
+    margin-left: auto;
+  }
+}
+
+/* in the create sheet the scroller is the sheet body itself: the sticky right column sticks at its top edge, so both
+   columns' first headings stay on one line (the ntpl 24 offset belongs to the page scroll) */
+.e-permits-kpi-editor .e-permits-ntpl-content__preview {
+  top: 0;
 }
 
 /* ---- Zone band = bullet graph (kpi-band-v6, 2026-11-06, user): the eKYC stacked meter `--lg` (12) = the zones; the current
@@ -117,4 +168,25 @@
   font-family: var(--font-family-primary-font, Onest);
   font-size: var(--font-size-fs-12, 12px);
   font-weight: var(--font-weight-fw-medium, 500);
+}
+
+/* phones: the dictionary's long source line does not fit next to its title — the meta goes under the title (the shared
+   phone section-heading order: title, then meta), so the title never wraps (kpi-sheet-v2, 2026-11-07) */
+@media (max-width: 760px) {
+  html:not([data-product="ekyc"]) .e-permits-front-office-page[data-demo-flow="back-office"] [aria-labelledby$="-dict-title"] > .e-permits-dosar-profil__section-heading {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 0;
+    height: auto;
+    padding-bottom: var(--spacing-16, 16px);
+  }
+
+  /* the meta keeps the title's 12 inset (one left edge), 4 under it */
+  html:not([data-product="ekyc"]) .e-permits-front-office-page[data-demo-flow="back-office"] [aria-labelledby$="-dict-title"] > .e-permits-dosar-profil__section-heading .e-permits-dosar-profil__section-title {
+    padding-bottom: var(--spacing-4, 4px);
+  }
+
+  [aria-labelledby$="-dict-title"] > .e-permits-dosar-profil__section-heading .e-permits-dosar-profil__section-meta {
+    padding-left: var(--spacing-12, 12px);
+  }
 }

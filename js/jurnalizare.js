@@ -697,7 +697,7 @@
   }
   function stepReview() {
     const v = C.v;
-    const goto = (n) => `<button class="btn btn-text-primary btn-sm" type="button" data-lgt-goto="${n}">Modifică</button>`;
+    const goto = (n) => `<button class="btn btn-text-neutral btn-sm" type="button" data-lgt-goto="${n}"><svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-edit"></use></svg><span>Editează</span></button>`;
     const block = (title, rows, n) => A().renderPassportBlock?.(title, rows, { actionHtml: goto(n) }) || "";
     const copy = v.copyFrom ? tplOf(v.copyFrom) : null;
     return `

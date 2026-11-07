@@ -18685,8 +18685,13 @@ a.e-permits-fo-lib-item__title:is(:hover, :focus) {
 }
 
 
-/* the heading is the toggle: full width, chevron at the end */
+/* the heading is the toggle: full width, chevron at the end.
+   Collapsible group header = ONE rule for every collapsible stacked group list (Permisiuni, KPI data dictionary, request-type
+   flow steps; group-toggle-v1, 2026-11-07, user + Figma 14789:23406): WHITE by default, grey (tertiary) on hover AND while
+   the group is open; an open group under the pointer = tertiary-hover (still a visible hover). Static (non-toggle) group
+   labels keep the secondary fill. */
 .e-permits-stack__group-label--toggle {
+  background: var(--color-background-base-default, #fff);
   padding: 0;
 }
 
@@ -18705,8 +18710,13 @@ a.e-permits-fo-lib-item__title:is(:hover, :focus) {
   width: 100%;
 }
 
-.e-permits-stack__group-toggle:hover {
+.e-permits-stack__group-toggle:hover,
+.e-permits-stack__group-toggle[aria-expanded="true"] {
   background: var(--color-background-base-tertiary, #f1f1f1);
+}
+
+.e-permits-stack__group-toggle[aria-expanded="true"]:hover:not(:disabled) {
+  background: var(--color-background-base-tertiary-hover, #e0e0e0);
 }
 
 .e-permits-stack__group-toggle:focus-visible {
@@ -21752,15 +21762,13 @@ body.is-ntpl-sheet-open {
   margin: 0;
 }
 
-.e-permits-perms .e-permits-stack__group-toggle:disabled {
+/* while searching every matching group is open and the toggle is disabled: no pointer, no hover, no chevron
+   (any collapsible stacked group list — Permisiuni, KPI dictionary) */
+.e-permits-stack__group-toggle:disabled {
   cursor: default;
 }
 
-.e-permits-perms .e-permits-stack__group-toggle:disabled:hover {
-  background: transparent;
-}
-
-.e-permits-perms .e-permits-stack__group-toggle:disabled .e-permits-stack__group-chevron {
+.e-permits-stack__group-toggle:disabled .e-permits-stack__group-chevron {
   visibility: hidden;
 }
 

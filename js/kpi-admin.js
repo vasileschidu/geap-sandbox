@@ -16,7 +16,7 @@
        Activează / Dezactivează (· pentru autoritate);
      · profile = the shared profile panel: tabs Definiție · Ținta și responsabili · Valori proprii (Autorități for the
        central admin) · Alerte · Istoric; editable form = the BO form vocabulary in ntpl cards, read-only = passport blocks;
-     · „Creează KPI” = the profile page without a code (#kpi/nou, tabs Definiție · Ținta și responsabili, kpi-page-v1);
+     · „Creează KPI” = the ONE drawer + step strip (Identificare · Calcul · Ținta și responsabili · Revizuire);
        „Valoare proprie” = the ONE drawer;
      · filters of the numerator / denominator = the Registre „Filtru predefinit” rule builder markup (Documente rule
        builder: `.e-permits-doc-rule` / `.e-permits-doc-cond` / `code.e-permits-doc-kw`);
@@ -24,7 +24,7 @@
        „Banda de decizie” meter + axis); value cards = the eKYC KPI cards (`.e-permits-kpi-grid`).
    Data dictionary = the Permisiuni stacked list (collapsible groups); compositions documented (components.md › „KPI”): value
    check card, global-vs-own value pair.
-   Routes: #kpi (list) · #kpi/nou[/din-<id>][/<tab>] (create / clone) · #kpi/<id>/<definitie|tinta|valori|alerte|istoric>.
+   Routes: #kpi (list) · #kpi/<id>/<definitie|tinta|valori|alerte|istoric>.
    Demo switch ?kpi= (comma list): fara-permisiune · gol · incarcare · eroare (every save fails) · numitor-zero.
    Who: Administrator central = global level, every KPI; Administrator local = own authority (ANSP); others: no menu,
    direct address → „Nu aveți permisiunea de a accesa această pagină.”.
@@ -357,7 +357,7 @@
       const width = (w * 0.56).toFixed(2);
       const top = (100 - (p.value / max) * 100).toFixed(2);
       const tone = ZONES[zone(k.direction, p.value, t.target, t.threshold)]?.[1] || "brand";
-      return `<rect class="e-permits-chart__bar e-permits-chart__bar--${tone}" x="${x}%" y="${top}%" width="${width}%" height="100%" rx="4"></rect>`;
+      return `<rect class="e-permits-chart__bar e-permits-chart__bar--${tone}" x="${x}%" y="${top}%" width="${width}%" height="200%" rx="4"></rect>`;
     }).join("");
     const ranges = hasTarget(t) ? zoneRanges(k, t) : null;
     return `
@@ -399,7 +399,7 @@
         </section>`
       : `<section class="e-permits-dosar-profil__section">
           <div class="e-permits-dosar-profil__section-heading"><h2 class="e-permits-dosar-profil__section-title">Valoarea față de țintă</h2></div>
-          ${E()?.render({ title: "Valoarea nu a fost verificată", text: "Verificați valoarea în tabul „Definiție” ca s-o vedeți aici față de țintă.", icon: "calculator", compact: true }) || ""}
+          ${E()?.render({ title: "Valoarea nu a fost verificată", text: "Verificați valoarea la pasul „Calcul” ca s-o vedeți aici față de țintă.", icon: "calculator", compact: true }) || ""}
         </section>`;
     return `${bandHtml(k, t, { title, current: val?.cur ?? null })}${chart}`;
   }
@@ -1020,7 +1020,7 @@
   }
 
   /* ================================================================ PROFILE (US-401 · US-519 · US-520 · US-521) */
-  const P = { id: null, tab: "definitie", isNew: false, from: "", codeTouched: false, draft: null, errors: {}, saveError: false, check: null, checking: false, dictQuery: "", dictClosed: new Set(), idp: "kpi-e" };
+  const P = { id: null, tab: "definitie", draft: null, errors: {}, saveError: false, check: null, checking: false, dictQuery: "", dictClosed: new Set(), idp: "kpi-e" };
   const tabsOf = (k) => {
     const w = who();
     return [
@@ -1031,19 +1031,19 @@
   };
   const changedKeys = () => {
     const k = kpiOf(P.id);
-    if (P.isNew || !k || !P.draft || !canEdit(k)) return [];
+    if (!k || !P.draft || !canEdit(k)) return [];
     const base = draftOf(k);
     return Object.keys(DRAFT_LABELS).filter((key) => !same(base[key], P.draft[key]));
   };
   const dirty = () => changedKeys().length > 0;
-  const profileOpen = () => (Boolean(P.id) || P.isNew) && !document.querySelector("[data-dosar-profil]")?.hidden && A().els?.dosarProfilPanelBody?.id === "kpi-panel";
+  const profileOpen = () => Boolean(P.id) && !document.querySelector("[data-dosar-profil]")?.hidden && A().els?.dosarProfilPanelBody?.id === "kpi-panel";
 
   async function openProfile(id, tab = "definitie", { push = true } = {}) {
     await load();
     const k = kpiOf(id);
     if (!who().has || !k || !visible(k)) { showDenied(); return; }
-    if (P.id !== id || !P.draft || P.isNew) {
-      Object.assign(P, { isNew: false, from: "", codeTouched: false, idp: "kpi-e", draft: draftOf(k), errors: {}, saveError: false, checking: false, dictQuery: "", dictClosed: new Set() });
+    if (P.id !== id || !P.draft) {
+      Object.assign(P, { draft: draftOf(k), errors: {}, saveError: false, checking: false, dictQuery: "", dictClosed: new Set() });
       P.check = null;
     }
     registerChangeSource();
@@ -1056,11 +1056,10 @@
     A().els?.dosarProfilPanel?.scrollIntoView?.({ block: "start" });
   }
   function closeProfile() {
-    P.id = null; P.draft = null; P.isNew = false; P.from = "";
+    P.id = null; P.draft = null;
     document.querySelector(`[data-nav-item][data-nav-id="${NAV}"]`)?.click();
   }
   function headerActions(k) {
-    if (P.isNew) return '<button class="btn btn-primary btn-sm" type="button" data-kpi-create>Creează KPI</button>';
     if (!canEdit(k)) return "";
     const d = dirty();
     return `
@@ -1069,15 +1068,6 @@
   }
   function headerTop(k) {
     const n = changedKeys().length;
-    const w = who();
-    if (P.isNew) {
-      return A().renderPageHeaderTop({
-        back: { label: TITLE, attr: "data-kpi-back" },
-        title: P.from ? "Clonează KPI" : "KPI nou",
-        actions: headerActions(null),
-        caption: P.from ? `Copie a ${kpiOf(P.from)?.code || P.from} · se creează activ` : w.central ? "Nivel Global · moștenit de toate autoritățile · se creează activ" : `Nivel Autoritate · ${authName(w.authority)} · se creează activ`
-      });
-    }
     return A().renderPageHeaderTop({
       back: { label: TITLE, attr: "data-kpi-back" },
       title: k.names.ro,
@@ -1087,7 +1077,6 @@
     });
   }
   function renderProfile({ keep = "" } = {}) {
-    if (P.isNew) { renderNew({ keep }); return; }
     const k = kpiOf(P.id);
     const els = A().els || {};
     if (!k || !els.dosarProfilTitleRow) return;
@@ -1124,40 +1113,6 @@
     body.setAttribute("aria-labelledby", `kpi-tab-${P.tab}`);
     const pane = { definitie: definitionTab, tinta: targetTab, valori: valuesTab, alerte: alertsTab, istoric: historyTab }[P.tab] || definitionTab;
     body.innerHTML = `${notices(k)}${pane(k)}`;
-    if (keepSel) {
-      const el = document.querySelector(keepSel);
-      el?.focus?.({ preventScroll: true });
-      if (caret && el && "setSelectionRange" in el) { try { el.setSelectionRange(caret[0], caret[1]); } catch { /* not text */ } }
-    }
-  }
-  /* the create page: header, meta, the two tabs, the panel (shares the profile's elements and focus keeping) */
-  function renderNew({ keep = "" } = {}) {
-    const els = A().els || {};
-    if (!P.draft || !els.dosarProfilTitleRow) return;
-    const active = document.activeElement;
-    const keepSel = keep || (active && els.dosarProfilPanelBody?.contains(active) && active.id ? `#${CSS.escape(active.id)}` : "");
-    const caret = active && "selectionStart" in active ? [active.selectionStart, active.selectionEnd] : null;
-    const w = who();
-    const v = P.draft;
-    const checked = P.check && P.check.key === calcKey(v);
-    els.dosarProfilTitleRow.innerHTML = headerTop(null);
-    els.dosarProfilSummary.innerHTML = A().renderPageHeaderMeta([
-      ["Cod", v.code ? esc(v.code) : "se alege la Identificare"],
-      ["Nivel", esc(w.central ? "Global" : `Autoritate · ${authName(w.authority)}`)],
-      ["Stare", "activ la creare"],
-      ["Valoarea verificată", checked ? esc(valueText(asKpi(v), P.check.values[0])) : "neverificată"]
-    ]);
-    A().watchPageHeaderMeta?.(els.dosarProfilSummary);
-    els.dosarProfilTabs.innerHTML = NEW_TABS.map(([id, label]) => {
-      const on = id === P.tab;
-      return `<button class="tab-button${on ? " active" : ""}" id="kpi-tab-${id}" type="button" role="tab" aria-controls="kpi-panel" aria-selected="${on}" tabindex="${on ? 0 : -1}" data-kpi-tab="${id}"><span>${label}</span></button>`;
-    }).join("");
-    const body = els.dosarProfilPanelBody;
-    body.id = "kpi-panel";
-    body.setAttribute("role", "tabpanel");
-    body.setAttribute("aria-labelledby", `kpi-tab-${P.tab}`);
-    const note = P.saveError ? `<div class="e-permits-reg-notices">${U().renderNotice?.("error", esc(SAVE_FAILED), { role: "alert" }) || ""}</div>` : "";
-    body.innerHTML = `${note}${P.tab === "tinta" ? newTargetTab() : newDefinitionTab()}`;
     if (keepSel) {
       const el = document.querySelector(keepSel);
       el?.focus?.({ preventScroll: true });
@@ -1248,10 +1203,10 @@
     return isPlanned(k) ? bandHtml(kk, { target: kk.target, threshold: kk.threshold }) : targetPreview(kk, { target: kk.target, threshold: kk.threshold }, valuesOf(k, per), seriesOf(k, per));
   }
   function createPreview() {
-    const kk = asKpi(P.draft);
-    const ok = P.check && P.check.key === calcKey(P.draft);
-    const val = ok ? { cur: P.check.values[0], prev: P.check.values[1], num: P.check.values[2], den: P.check.values[3], pnum: P.check.values[4], pden: P.check.values[5] } : null;
-    return targetPreview(kk, { target: kk.target, threshold: kk.threshold }, val, ok ? P.check.series : []);
+    const kk = asKpi(C.v);
+    const ok = C.check && C.check.key === calcKey(C.v);
+    const val = ok ? { cur: C.check.values[0], prev: C.check.values[1], num: C.check.values[2], den: C.check.values[3], pnum: C.check.values[4], pden: C.check.values[5] } : null;
+    return targetPreview(kk, { target: kk.target, threshold: kk.threshold }, val, ok ? C.check.series : []);
   }
 
   /* ---- Valori proprii (US-519 / US-520) — the authority's state + own values; the central admin sees every authority */
@@ -1491,22 +1446,16 @@
   /* ---- leaving with unsaved edits */
   let leaving = false;
   function guardLeave(event, proceed) {
-    if (leaving || !profileOpen() || !(P.isNew ? newTouched() : dirty())) return false;
+    if (leaving || !profileOpen() || !dirty()) return false;
     event.preventDefault();
     event.stopImmediatePropagation();
-    U().askConfirm?.(P.isNew ? {
-      title: "Renunțați la KPI-ul nou?",
-      text: "Datele completate nu se păstrează.",
-      confirmLabel: "Renunță",
-      cancelLabel: "Continuă editarea",
-      destructive: true
-    } : {
+    U().askConfirm?.({
       title: "Există modificări nesalvate. Părăsiți KPI-ul?",
       text: "Modificările nesalvate ale KPI-ului se pierd.",
       confirmLabel: "Părăsește KPI-ul",
       cancelLabel: "Rămâi în KPI",
       destructive: true
-    }, () => { P.draft = null; P.isNew = false; leaving = true; try { proceed(); } finally { leaving = false; } });
+    }, () => { P.draft = null; leaving = true; try { proceed(); } finally { leaving = false; } });
     return true;
   }
   document.addEventListener("click", (event) => {
@@ -1515,12 +1464,14 @@
     const back = event.target.closest?.("[data-kpi-back]");
     if (back && guardLeave(event, () => closeProfile())) return;
   }, true);
-  window.addEventListener("beforeunload", (event) => { if (profileOpen() && (P.isNew ? newTouched() : dirty())) { event.preventDefault(); event.returnValue = ""; } });
+  window.addEventListener("beforeunload", (event) => { if (profileOpen() && dirty()) { event.preventDefault(); event.returnValue = ""; } });
 
-  /* ================================================================ „Creează KPI” = the profile page (US-399) + the „Valoare proprie” drawer (US-520) */
+  /* ================================================================ drawers: „Creează KPI” (US-399) + „Valoare proprie” (US-520) */
+  const STEPS = ["Identificare", "Calcul", "Ținta și responsabili", "Revizuire"];
+  let C = null;
   let O = null;
   const drawers = {};
-  function ensureDrawer(name) {
+  function ensureDrawer(name, { steps = false } = {}) {
     if (drawers[name]) return drawers[name];
     const wrap = document.createElement("div");
     wrap.innerHTML = `
@@ -1534,6 +1485,7 @@
             </div>
             <button class="modal-close" type="button" aria-label="Închide" data-kpi-close>${icon("cross-large", 16)}</button>
           </header>
+          ${steps ? '<nav class="e-permits-steps-strip" aria-label="Pașii creării" data-kpi-steps></nav>' : ""}
           <div class="drawer__body" data-kpi-drawer-body></div>
           <footer class="drawer__footer">
             <span class="e-permits-rt__summary" data-kpi-summary aria-live="polite"></span>
@@ -1555,91 +1507,185 @@
     return `${letter}-${pad((used.length ? Math.max(...used) : 0) + 1)}`;
   };
 
-  /* „Creează KPI” / „Clonează KPI” (kpi-page-v1, 2026-11-07, user: „a profile page like widget create”) = the widget editor
-     pattern: the shared profile page without a code yet (`#kpi/nou`, clone `#kpi/nou/din-<id>`), the BO top-bar back chevron to
-     the list, header „KPI nou” + ONE primary „Creează KPI”, the tabs of the edit page that exist before creation (Definiție ·
-     Ținta și responsabili — the same two-column `.e-permits-editor-wide` grids). No step strip: the edit page already shows
-     the same sections side by side without an order, the target only needs the format (defaulted) — not genuinely sequential
-     (Stripe / Datadog / Geckoboard create = one page with sections); a failed „Creează KPI” opens the tab of the first error. */
-  const NEW_TABS = [["definitie", "Definiție"], ["tinta", "Ținta și responsabili"]];
-  const newTouched = () => P.isNew && Boolean(P.draft && (P.from || P.draft.nameRo || P.draft.code || P.draft.source));
-  const newHash = () => `#kpi/nou${P.from ? `/din-${P.from}` : ""}/${P.tab}`;
-  async function openNew(fromId = "", { push = true, tab = "definitie" } = {}) {
-    await load();
-    if (!canCreate()) { if (!who().has) showDenied(); return; }
+  /* „Creează KPI” / „Clonează KPI” = the Registre full-screen sheet (`.e-permits-ntpl-sheet.e-permits-reg-editor`, as the
+     widget builder): own header + step strip + the save bar; the body = the ntpl page width (1280) with the ntpl two-column
+     grid — Calcul: form | dictionary (helper, form wide), Ținta: form | preview (preview wide), Revizuire: blocks | preview */
+  let sheet = null;
+  function ensureSheet() {
+    if (sheet) return sheet;
+    document.body.insertAdjacentHTML("beforeend", `
+      <div class="e-permits-ntpl-sheet e-permits-reg-editor e-permits-kpi-editor" data-kpi-editor hidden>
+        <div class="e-permits-ntpl-sheet__scrim" aria-hidden="true" data-kpi-close></div>
+        <div class="e-permits-ntpl-sheet__panel e-permits-reg-editor__panel" role="dialog" aria-modal="true" aria-labelledby="kpi-ed-title" tabindex="-1">
+          <button class="modal-close e-permits-reg-editor__close" type="button" aria-label="Închide" data-kpi-close>${icon("cross-large", 16)}</button>
+          <header class="e-permits-page-header e-permits-reg-editor__header">
+            <div class="e-permits-page-header__body"><div class="e-permits-page-header__top" data-kpi-ed-top></div></div>
+          </header>
+          <nav class="e-permits-steps-strip" aria-label="Pașii creării" data-kpi-steps></nav>
+          <div class="e-permits-reg-editor__body" data-kpi-ed-body></div>
+          <div class="e-permits-cfg2__bar e-permits-reg-editor__bar" role="region" aria-label="Pașii KPI-ului" data-kpi-ed-bar></div>
+        </div>
+      </div>`);
+    sheet = document.querySelector("[data-kpi-editor]");
+    window.addEventListener("keydown", (event) => {
+      if (event.key !== "Escape" || sheet.hidden) return;
+      if (document.querySelector(".modal-overlay.is-active, [data-stack-menu]:not([hidden]), .e-permits-fo-select__list:not([hidden])")) return;
+      if (sheet.querySelector("[aria-expanded='true']:not(.e-permits-stack__group-toggle)")) return;
+      event.preventDefault();
+      closeCreate();
+    });
+    return sheet;
+  }
+  const scroller = () => sheet?.querySelector("[data-kpi-ed-scroll]");
+  function openCreate(fromId = "") {
+    if (!canCreate()) return;
     const src = fromId ? kpiOf(fromId) : null;
     const v = src ? { ...draftOf(src), nameRo: `${src.names.ro} (copie)`.slice(0, NAME_MAX), code: nextCode(domainOf(src.code)) } : blankDraft();
-    registerChangeSource();
-    Object.assign(P, { id: null, isNew: true, from: src?.id || "", tab: NEW_TABS.some(([t]) => t === tab) ? tab : "definitie", draft: v, errors: {}, saveError: false, check: null, checking: false, dictQuery: "", dictClosed: new Set(), idp: "kpi-c", codeTouched: Boolean(src) });
-    A().setActiveNav?.(NAV);
-    A().openProfilePanel?.();
-    renderProfile();
-    A().writeHash?.(newHash(), { push });
-    A().els?.dosarProfilPanel?.scrollIntoView?.({ block: "start" });
-    requestAnimationFrame(() => document.querySelector(src ? "#kpi-c-name-ro" : "#kpi-c-domain")?.focus({ preventScroll: true }));
+    C = { step: 1, maxStep: 1, errors: {}, saveError: false, v, from: src?.id || "", check: null, checking: false, dictQuery: "", dictClosed: new Set(), idp: "kpi-c", codeTouched: Boolean(src), back: document.activeElement };
+    const el = ensureSheet();
+    renderCreate();
+    el.hidden = false;
+    document.documentElement.classList.add("is-reg-editor-open");
+    requestAnimationFrame(() => el.querySelector(src ? "#kpi-c-name-ro" : "#kpi-c-domain")?.focus({ preventScroll: true }));
   }
-  /* the right column of Definiție while creating: the codes already used in the chosen domain (avoid a duplicate code) +
-     the code rule and the next free code, above the data dictionary */
+  function closeCreate(force = false) {
+    if (!sheet || sheet.hidden || !C) return;
+    const v = C.v;
+    const touched = C.from || v.nameRo || v.code || v.source;
+    const close = () => {
+      const back = C?.back;
+      C = null;
+      sheet.hidden = true;
+      document.documentElement.classList.remove("is-reg-editor-open");
+      if (back?.isConnected) back.focus({ preventScroll: true });
+    };
+    if (force || !touched) { close(); return; }
+    U().askConfirm?.({ title: "Renunțați la KPI-ul nou?", text: "Datele completate nu se păstrează.", confirmLabel: "Renunță", cancelLabel: "Continuă editarea", destructive: true }, close);
+  }
+  const twoCols = (main, aside, { preview = false, attr = "" } = {}) => `
+    <div class="e-permits-ntpl-content${preview ? " e-permits-kpi-content--preview" : ""}${aside ? " e-permits-editor-wide" : ""}">
+      <div class="e-permits-ntpl-content__main">${main}</div>
+      ${aside ? `<aside class="e-permits-ntpl-content__preview"${attr ? ` ${attr}` : ""}>${aside}</aside>` : ""}
+    </div>`;
+  /* step 1 keeps the two columns of the next steps: the right one = the codes already used in the chosen domain (avoid a
+     duplicate code) + the code rule and the next free code */
   function codesContext() {
-    const d = P.draft.domain;
+    const d = C.v.domain;
     const head = `<div class="e-permits-dosar-profil__section-heading"><h2 class="e-permits-dosar-profil__section-title">Coduri existente în domeniu</h2></div>`;
     if (!d) return `<section class="e-permits-dosar-profil__section">${head}${E()?.render({ title: "Alegeți domeniul", text: "Aici apar codurile KPI deja folosite în domeniu, ca să nu le repetați.", icon: "checklist", compact: true }) || ""}</section>`;
     const list = kpis().filter((k) => domainOf(k.code) === d).sort((a, b) => (a.code < b.code ? -1 : 1));
     const rule = U().renderInfoNote?.(`Codul = litera domeniului, cratimă și două cifre, de exemplu ${esc(`${d}-\u206004`)}. Următorul cod liber: <strong>${esc(nextCode(d))}</strong>. Codul nu se mai schimbă după creare.`) || "";
     return list.length
-      ? `${A().renderStackedList?.("Coduri existente în domeniu", [{ label: "", items: list.map((k) => ({ plainTitle: k.code, title: esc(`${k.code} · ${k.names.ro}`), meta: [esc(levelText(k)), esc(STATE(k)[0])] })) }], { meta: `${domainName(d)} · ${plural(list.length, "cod", "coduri")}`, introHtml: "" }) || ""}${rule}`
+      ? A().renderStackedList?.("Coduri existente în domeniu", [{ label: "", items: list.map((k) => ({ plainTitle: k.code, title: esc(`${k.code} · ${k.names.ro}`), meta: [esc(levelText(k)), esc(STATE(k)[0])] })) }], { meta: `${domainName(d)} · ${plural(list.length, "cod", "coduri")}`, introHtml: "" }) + rule || ""
       : `<section class="e-permits-dosar-profil__section">${head}${E()?.render({ title: `Niciun KPI în domeniul ${domainName(d)}`, text: "Codul propus este primul din domeniu.", icon: "checklist", compact: true }) || ""}</section>${rule}`;
   }
-  function newDefinitionTab() {
-    const v = P.draft;
-    return `
-      <div class="e-permits-ntpl-content e-permits-editor-wide">
-        <div class="e-permits-ntpl-content__main">
-          ${cardSection("Identificare", identityFields(v, P.errors, P.idp, { isNew: true }))}
-          ${calcSections(v, P.errors, P.idp).map(([title, body]) => cardSection(title, body)).join("")}
-          ${v.source ? checkSection(P, v, P.idp) : ""}
-        </div>
-        <aside class="e-permits-ntpl-content__preview e-permits-kpi-aside">${codesContext()}${dictionaryHtml(P, v, P.idp)}</aside>
-      </div>`;
+  function stepIdentity() { return twoCols(cardSection("Identificare", identityFields(C.v, C.errors, C.idp, { isNew: true })), codesContext()); }
+  function stepCalc() {
+    return twoCols(`
+      ${calcSections(C.v, C.errors, C.idp).map(([title, body]) => cardSection(title, body)).join("")}
+      ${C.v.source ? checkSection(C, C.v, C.idp) : ""}`, dictionaryHtml(C, C.v, C.idp));
   }
-  function newTargetTab() {
-    const v = P.draft;
-    return `
-      <div class="e-permits-ntpl-content e-permits-kpi-content--preview e-permits-editor-wide">
-        <div class="e-permits-ntpl-content__main">
-          ${cardSection("Ținta și pragurile", targetFields(v, P.errors, P.idp, P.check))}
-          ${cardSection("Criterii de setare", criteriaFields(v, P.idp))}
-          ${cardSection("Responsabili", rolesFields(v, P.idp))}
-        </div>
-        <aside class="e-permits-ntpl-content__preview" data-kpi-preview>${createPreview()}</aside>
+  function stepTarget() {
+    return twoCols(`
+      ${cardSection("Ținta și pragurile", targetFields(C.v, C.errors, C.idp, C.check))}
+      ${cardSection("Criterii de setare", criteriaFields(C.v, C.idp))}
+      ${cardSection("Responsabili", rolesFields(C.v, C.idp))}`, createPreview(), { preview: true, attr: "data-kpi-preview" });
+  }
+  function stepReview() {
+    const v = C.v;
+    const k = asKpi(v);
+    const w = who();
+    const goto = (n) => `<button class="btn btn-text-neutral btn-sm" type="button" data-kpi-goto="${n}"><svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-edit"></use></svg><span>Editează</span></button>`;
+    const block = (title, rows, n) => A().renderPassportBlock?.(title, rows, { actionHtml: goto(n) }) || "";
+    const checked = C.check && C.check.key === calcKey(v);
+    return twoCols(`
+      ${block("Identificare", [
+        ["Cod", esc(v.code)], ["Domeniu", esc(domainName(v.domain))], ["Denumire (RO)", esc(v.nameRo.trim())],
+        ["Denumire (RU)", v.nameRu ? esc(v.nameRu) : dash], ["Denumire (EN)", v.nameEn ? esc(v.nameEn) : dash]
+      ], 1)}
+      ${block("Calcul", [
+        ["Sursa de date", esc(sourceName(v.source))], ["Numărător", esc(`${measureText(v)} · ${rulesText(v, "num")}`)],
+        ["Numitor", v.hasDen ? esc(rulesText(v, "den")) : dash], ["Data de referință", esc(fieldOf(v.source, v.dateColumn)?.label || "")],
+        ["Tip de valoare", esc(v.valueType)], ["Format", esc(formatLabel(k))], ["Direcție", esc(DIRECTIONS.find(([d]) => d === v.direction)?.[1] || "")],
+        ["Recalculare la schimbarea statutului", v.recalc ? "Da" : "Nu"],
+        ["Valoarea verificată", checked ? esc(`${valueText(k, C.check.values[0])} acum · ${valueText(k, C.check.values[1])} în perioada precedentă`) : "Neverificată"]
+      ], 2)}
+      ${block("Ținta și responsabili", [
+        ["Ținta", v.target !== "" ? esc(fmt(k, k.target)) : "Fără țintă: fără alerte"], ["Pragul de apropiere", v.threshold !== "" ? esc(fmtThreshold(k, k.threshold)) : dash],
+        ["Criterii de setare", v.criteria.length ? esc(v.criteria.join(", ")) : dash], ["Roluri responsabile", v.roles.length ? esc(v.roles.join(", ")) : dash]
+      ], 3)}
+      ${U().renderInfoNote?.(w.central
+        ? "KPI-ul se creează <strong>activ</strong>, la nivelul <strong>Global</strong>, și este moștenit de toate autoritățile."
+        : `KPI-ul se creează <strong>activ</strong>, la nivelul autorității <strong>${esc(authName(w.authority))}</strong>, și se aplică doar în ${esc(authName(w.authority))}.`) || ""}`, createPreview(), { preview: true });
+  }
+  function renderCreate({ keep = "" } = {}) {
+    if (!C || !sheet) return;
+    const active = document.activeElement;
+    const keepSel = keep || (active && sheet.contains(active) && active.id ? `#${CSS.escape(active.id)}` : "");
+    const caret = active && "selectionStart" in active ? [active.selectionStart, active.selectionEnd] : null;
+    const scroll = scroller()?.scrollTop || 0;
+    const w = who();
+    sheet.querySelector("[data-kpi-ed-top]").innerHTML = window.GEAPPageHeader?.top({
+      title: C.from ? "Clonează KPI" : "KPI nou",
+      titleId: "kpi-ed-title",
+      caption: w.central ? "Nivel Global · moștenit de toate autoritățile" : `Nivel Autoritate · ${authName(w.authority)}`
+    }) || `<h1 class="e-permits-page-header__title" id="kpi-ed-title">${C.from ? "Clonează KPI" : "KPI nou"}</h1>`;
+    sheet.querySelector("[data-kpi-steps]").innerHTML = A().renderStepStrip?.(STEPS, C, "data-kpi-goto") || "";
+    sheet.querySelector("[data-kpi-ed-body]").innerHTML = `
+      <div class="e-permits-reg-editor__single e-permits-kpi-editor__page" data-kpi-ed-scroll>
+        ${C.saveError ? `<div class="e-permits-reg-notices">${U().renderNotice?.("error", esc(SAVE_FAILED), { role: "alert" }) || ""}</div>` : ""}
+        ${[stepIdentity, stepCalc, stepTarget, stepReview][C.step - 1]()}
       </div>`;
+    sheet.querySelector("[data-kpi-ed-bar]").innerHTML = `
+      <p class="e-permits-cfg2__bar-text" aria-live="polite">${esc(`Pasul ${C.step} din ${STEPS.length} · ${STEPS[C.step - 1]}`)}</p>
+      <div class="e-permits-cfg2__bar-actions">
+        ${C.step === 1 ? '<button class="btn btn-neutral btn-sm" type="button" data-kpi-close>Anulează</button>' : '<button class="btn btn-neutral btn-sm" type="button" data-kpi-prev>Înapoi</button>'}
+        ${C.step < STEPS.length ? '<button class="btn btn-primary btn-sm" type="button" data-kpi-next>Continuă</button>' : '<button class="btn btn-primary btn-sm" type="button" data-kpi-create>Creează KPI</button>'}
+      </div>`;
+    if (scroller() && keep !== "@top") scroller().scrollTop = scroll;
+    if (keepSel && keepSel !== "@top") {
+      const el = sheet.querySelector(keepSel);
+      el?.focus?.({ preventScroll: true });
+      if (caret && el && "setSelectionRange" in el) { try { el.setSelectionRange(caret[0], caret[1]); } catch { /* not text */ } }
+    }
+  }
+  function goStep(target) {
+    for (let s = C.step; s < target; s += 1) {
+      if (s > 3) break;
+      const errors = validate(C.v, { steps: [s] });
+      if (Object.keys(errors).length) {
+        C.step = s; C.errors = errors;
+        renderCreate({ keep: firstErrorSel(C.idp, errors) });
+        showError(sheet, firstErrorSel(C.idp, errors));
+        return;
+      }
+    }
+    C.errors = {};
+    C.step = target;
+    C.maxStep = Math.max(C.maxStep, target);
+    renderCreate({ keep: "@top" });
+    if (scroller()) scroller().scrollTop = 0;
+    sheet.querySelector("[data-kpi-create], [data-kpi-next]")?.focus({ preventScroll: true });
   }
   function create() {
-    const errors = validate(P.draft, { steps: [1, 2, 3] });
-    if (Object.keys(errors).length) {
-      P.errors = errors;
-      const first = Object.keys(errors)[0];
-      P.tab = STEP_OF(first) === 3 ? "tinta" : "definitie";
-      renderProfile({ keep: firstErrorSel(P.idp, errors) });
-      showError(A().els?.dosarProfilPanelBody, firstErrorSel(P.idp, errors));
-      A().writeHash?.(newHash(), { push: false });
-      return;
+    for (const s of [1, 2, 3]) {
+      const errors = validate(C.v, { steps: [s] });
+      if (Object.keys(errors).length) { C.step = s; C.errors = errors; renderCreate({ keep: firstErrorSel(C.idp, errors) }); showError(sheet, firstErrorSel(C.idp, errors)); return; }
     }
-    if (demo.has("eroare")) { P.saveError = true; renderProfile({ keep: "[data-kpi-create]" }); A().els?.dosarProfilPanel?.scrollIntoView?.({ block: "start" }); return; }
+    if (demo.has("eroare")) { C.saveError = true; renderCreate({ keep: "@top" }); if (scroller()) scroller().scrollTop = 0; return; }
     const w = who();
-    const v = P.draft;
+    const v = C.v;
     const id = `kpi-${v.code.toLowerCase().replace(/[^a-z0-9]+/g, "")}`;
     const k = { id, level: w.central ? "Global" : "Autoritate", ...(w.central ? {} : { authority: w.authority }), status: "Activ", ...fromDraft(v), code: v.code.trim() };
-    const vals = P.check && P.check.key === calcKey(v) ? P.check.values : calcDraft(v);
+    const vals = C.check && C.check.key === calcKey(v) ? C.check.values : calcDraft(v);
     k.values = w.central
       ? Object.fromEntries([["all", vals], ...D().authorities.map((a) => [a.id, calcDraft({ ...v, source: `${v.source}:${a.id}` }).map((x, i) => (x === null ? null : i < 2 && vals[i] !== null ? round1((x + vals[i]) / 2) : x))])])
       : { [w.authority]: vals };
     allKpis().push(k);
-    audit(k, P.from ? "clone" : "create", P.from ? `din ${kpiOf(P.from)?.code || ""} · ${levelText(k)}` : `${levelText(k)} · ${sourceName(k.source)} · ${formatLabel(k)}`);
-    Object.assign(P, { isNew: false, from: "", draft: null, idp: "kpi-e", codeTouched: false });
+    audit(k, C.from ? "clone" : "create", C.from ? `din ${kpiOf(C.from)?.code || ""} · ${levelText(k)}` : `${levelText(k)} · ${sourceName(k.source)} · ${formatLabel(k)}`);
+    closeCreate(true);
     toast("KPI-ul a fost creat.");
-    refreshList();
-    openProfile(id, "definitie", { push: false });
+    openProfile(id, "definitie");
   }
 
   /* ---- „Valoare proprie” (US-520) */
@@ -1741,6 +1787,7 @@
   const profileRoot = () => (profileOpen() ? A().els?.dosarProfilPanel || document.querySelector("[data-dosar-profil]") : null);
   /* which form state a control belongs to: the create drawer, the own-value drawer or the profile */
   function ctxOf(el) {
+    if (sheet && C && sheet.contains(el)) return { st: C, v: C.v, render: renderCreate, root: sheet };
     if (drawers.own && O && drawers.own.contains(el)) return { st: O, v: O.v, render: renderOwn, root: drawers.own, own: true };
     const root = profileRoot();
     if (root && root.contains(el) && P.draft) return { st: P, v: P.draft, render: renderProfile, root, profile: true };
@@ -1749,17 +1796,17 @@
   const reheader = () => {
     const k = kpiOf(P.id);
     const els = A().els || {};
-    if ((k || P.isNew) && els.dosarProfilTitleRow) els.dosarProfilTitleRow.innerHTML = headerTop(k);
+    if (k && els.dosarProfilTitleRow) els.dosarProfilTitleRow.innerHTML = headerTop(k);
   };
   document.addEventListener("click", (event) => {
     const t = event.target;
     if (!t.closest) return;
     /* list */
-    if (t.closest('[data-workplace-add-product="kpi-new"], [data-kpi-new]')) { event.preventDefault(); openNew(); return; }
+    if (t.closest('[data-workplace-add-product="kpi-new"], [data-kpi-new]')) { event.preventDefault(); load().then(() => openCreate()); return; }
     const rowEdit = t.closest("[data-kpi-row-edit]");
     if (rowEdit) { openProfile(rowEdit.dataset.kpiRowEdit, "definitie"); return; }
     const rowClone = t.closest("[data-kpi-row-clone]");
-    if (rowClone) { openNew(rowClone.dataset.kpiRowClone); return; }
+    if (rowClone) { openCreate(rowClone.dataset.kpiRowClone); return; }
     const rowToggle = t.closest("[data-kpi-row-toggle]");
     if (rowToggle) { const k = kpiOf(rowToggle.dataset.kpiRowToggle); if (k) setStatus(k, k.status !== "Activ", (ok) => { if (ok) refreshList(); }); return; }
     const rowAuth = t.closest("[data-kpi-row-auth]");
@@ -1769,7 +1816,7 @@
     /* shared form controls (drawer + profile) */
     if (ctx) {
       const { st, v, render } = ctx;
-      if (t.closest("[data-kpi-close]") && ctx.own) { closeOwn(); return; }
+      if (t.closest("[data-kpi-close]") && !ctx.profile) { if (ctx.own) closeOwn(); else closeCreate(); return; }
       const group = t.closest("[data-kpi-dict-group]");
       if (group) { const g = group.dataset.kpiDictGroup; if (st.dictClosed.has(g)) st.dictClosed.delete(g); else st.dictClosed.add(g); render({ keep: `[data-kpi-dict-group="${CSS.escape(g)}"]` }); return; }
       if (t.closest("[data-kpi-dict-clear]")) { st.dictQuery = ""; render({ keep: "[data-kpi-dict-search]" }); return; }
@@ -1784,9 +1831,18 @@
         afterEdit(ctx);
         return;
       }
-      if (t.closest("[data-kpi-verify]")) { runCheck(st, v, render, ctx.profile && !P.isNew ? perimeterOf(kpiOf(P.id)) : "all"); return; }
+      if (t.closest("[data-kpi-verify]")) { runCheck(st, v, render, ctx.profile ? perimeterOf(kpiOf(P.id)) : "all"); return; }
       const avg = t.closest("[data-kpi-use-avg]");
       if (avg) { v.target = avg.dataset.kpiUseAvg; delete st.errors.target; render({ keep: `#${st.idp}-target` }); afterEdit(ctx); return; }
+    }
+    /* create drawer */
+    if (sheet && sheet.contains(t) && C) {
+      if (t.closest("[data-kpi-prev]")) { C.errors = {}; C.step -= 1; renderCreate(); return; }
+      if (t.closest("[data-kpi-next]")) { goStep(C.step + 1); return; }
+      const goto = t.closest("[data-kpi-goto]");
+      if (goto) { goStep(Number(goto.dataset.kpiGoto)); return; }
+      if (t.closest("[data-kpi-create]")) { create(); return; }
+      return;
     }
     /* own-value drawer */
     const od = drawers.own;
@@ -1795,8 +1851,7 @@
     const root = profileRoot();
     if (!root || !root.contains(t)) return;
     const tab = t.closest("[data-kpi-tab]");
-    if (tab) { P.tab = tab.dataset.kpiTab; renderProfile({ keep: `#kpi-tab-${P.tab}` }); A().writeHash?.(P.isNew ? newHash() : `#kpi/${P.id}/${P.tab}`, { push: false }); return; }
-    if (t.closest("[data-kpi-create]") && P.isNew) { create(); return; }
+    if (tab) { P.tab = tab.dataset.kpiTab; renderProfile({ keep: `#kpi-tab-${P.tab}` }); A().writeHash?.(`#kpi/${P.id}/${P.tab}`, { push: false }); return; }
     if (t.closest("[data-kpi-save]")) { if (t.closest("[data-kpi-save]").getAttribute("aria-disabled") !== "true") save(); return; }
     if (t.closest("[data-kpi-discard]")) { discard(); return; }
     if (t.closest("[data-kpi-own-add]")) { openOwn(); return; }
@@ -1809,12 +1864,12 @@
   /* the target band follows the typed target / threshold without a redraw (the field keeps focus and caret) */
   function refreshBand(ctx) {
     const preview = ctx.root.querySelector("[data-kpi-preview]");
-    if (preview) { preview.innerHTML = P.isNew ? createPreview() : profilePreview(); return; }
+    if (preview) { preview.innerHTML = ctx.profile ? profilePreview() : createPreview(); return; }
     const band = ctx.root.querySelector("[data-kpi-band]");
     if (!band) return;
     let html;
     if (ctx.own) { const k = kpiOf(O.k); const kk = { ...k, target: num(O.v.target), threshold: num(O.v.threshold) }; html = bandHtml(kk, { target: kk.target, threshold: kk.threshold }, { current: valuesOf(k, who().authority).cur }); }
-    else { const kk = asKpi(ctx.v, ctx.profile && !P.isNew ? kpiOf(P.id) || {} : {}); html = bandHtml(kk, { target: kk.target, threshold: kk.threshold }); }
+    else { const kk = asKpi(ctx.v, ctx.profile ? kpiOf(P.id) || {} : {}); html = bandHtml(kk, { target: kk.target, threshold: kk.threshold }); }
     band.outerHTML = html;
   }
   /* after a structural edit in the profile: header (status + Salvează) follows */
@@ -1823,8 +1878,8 @@
     const tab = event.target.closest?.("[data-kpi-tab]");
     if (!tab || !["ArrowLeft", "ArrowRight"].includes(event.key)) return;
     const k = kpiOf(P.id);
-    if (!k && !P.isNew) return;
-    const tabs = P.isNew ? NEW_TABS : tabsOf(k);
+    if (!k) return;
+    const tabs = tabsOf(k);
     const i = tabs.findIndex(([id]) => id === tab.dataset.kpiTab);
     const next = tabs[(i + (event.key === "ArrowRight" ? 1 : tabs.length - 1)) % tabs.length][0];
     event.preventDefault();
@@ -1856,7 +1911,7 @@
     if (!field || field.tagName === "SELECT" || field.type === "checkbox") return;
     const key = field.dataset.kpiField;
     setPath(ctx.v, key, field.value);
-    if (key === "code" && ctx.st === P && P.isNew) P.codeTouched = true;
+    if (key === "code" && ctx.st === C) C.codeTouched = true;
     if (key === "target" || key === "threshold") refreshBand(ctx);
     const count = ctx.root.querySelector(`[data-kpi-count="${field.id}"]`);
     if (count) { const max = field.tagName === "TEXTAREA" ? TEXT_MAX : NAME_MAX; count.textContent = `${field.value.length}/${max}`; count.classList.toggle("is-over", field.value.length > max); }
@@ -1926,12 +1981,12 @@
       v.dateColumn = keepCol(v.dateColumn);
       if (!v.den.source || v.den.source === old) { v.den.source = value; v.den.rules = v.den.rules.filter((r) => fieldOf(value, r.column)); }
       delete st.errors["den.source"];
-      if (st.dictClosed && st === P && P.isNew) st.dictClosed = new Set(fieldsOf(value).map((f) => f.group));
+      if (st.dictClosed && st === C) st.dictClosed = new Set(fieldsOf(value).map((f) => f.group));
     }
     if (key === "den.source") { delete st.errors["den.source"]; if (value !== v.source) v.den.rules = []; }
     if (key === "hasDen" && value && !v.den.source) v.den.source = v.source;
     if (key === "num.measure" && value === "count") v.num.column = "";
-    if (key === "domain" && st === P && P.isNew && (!P.codeTouched || !v.code)) { v.code = nextCode(value); delete st.errors.code; }
+    if (key === "domain" && st === C && (!C.codeTouched || !v.code)) { v.code = nextCode(value); delete st.errors.code; }
     if (ctx.own && key === "level") { v.subdivision = ""; v.role = ""; }
     render({ keep: fid(field) ? `#${CSS.escape(fid(field))}` : `[data-kpi-field="${key}"]` });
     afterEdit(ctx);
@@ -1967,13 +2022,6 @@
       if (nav && who().has) nav.click(); else showDenied();
       return true;
     }
-    /* the create page: #kpi/nou[/din-<id>][/<tab>] */
-    const n = /^#kpi\/nou(?:\/din-([^/]+))?(?:\/([a-z]+))?$/.exec(hash);
-    if (n) {
-      if (!who().has) { showDenied(); return true; }
-      openNew(n[1] ? decodeURIComponent(n[1]) : "", { push: false, tab: n[2] || "definitie" });
-      return true;
-    }
     const m = /^#kpi\/([^/]+)(?:\/([a-z]+))?(?:\/(\d+))?$/.exec(hash);
     if (!m) return false;
     if (!who().has) { showDenied(); return true; }
@@ -2000,7 +2048,7 @@
 
   /* ---------------------------------------------------------------- for widgets (Feature 96501), demo states, probes */
   window.GEAPKpi = {
-    load, openProfile, openNew, openCreate: openNew, refreshList, perms: () => who(),
+    load, openProfile, openCreate, refreshList, perms: () => who(),
     list: (w = who()) => allKpis().filter((k) => visible(k, w)),
     get: kpiOf,
     /* the published data sources and their fields (widgets pick the same sources, Feature 96501) */
