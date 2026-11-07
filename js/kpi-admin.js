@@ -1731,8 +1731,8 @@
       </div>`;
     d.querySelector("[data-kpi-summary]").textContent = "";
     d.querySelector("[data-kpi-buttons]").innerHTML = `
-      <button class="btn btn-neutral btn-rounded" type="button" data-kpi-close>Anulează</button>
-      <button class="btn btn-primary btn-rounded" type="button" data-kpi-own-save>Salvează</button>`;
+      <button class="btn btn-neutral btn-md btn-rounded" type="button" data-kpi-close>Anulează</button>
+      <button class="btn btn-primary btn-md btn-rounded" type="button" data-kpi-own-save>Salvează</button>`;
     if (keepSel) d.querySelector(keepSel)?.focus?.({ preventScroll: true });
   }
   function saveOwn() {

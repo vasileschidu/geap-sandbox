@@ -12,8 +12,8 @@
      phones      Figma stacks them (Vertical Stack, gap 12); the product keeps its phone rule (css/modal-phone.css § 4:
                  two equal halves that wrap, primary on top, footer 12 · 16 · max(16, safe area)) — Large 48 / 16/24
                  (the viewers 40, modal-phone.css § 7b)
-     side panels drawers (`.drawer__footer`) and the template sheet (`.e-permits-ntpl-sheet`) are not modals: Large 48
-                 at every width (open question to the user, modal-footer-medium-v1)
+     drawers (`.drawer__footer`): Medium 40 on desktop like modals, 48 on phones (drawer-footer-md-v1);
+                 the template sheet (`.e-permits-ntpl-sheet`) keeps Large 48 at every width
 
    Covers: the library `.modal--footer > .modal-buttons` (BO askConfirm, passport / case / detail modals incl. the
    dossier document viewer, eKYC `openModal`, Ghișeu, Process Designer leave, RAP / Cabinet „Vizualizare act”, FO
@@ -63,15 +63,15 @@
   width: var(--icon-size-medium, 20px);
 }
 
-/* ---- side panels (drawers, the template sheet) keep Large 48 · 16/24 · sides 20 at every width (0,3,0) ---- */
-:is(.drawer__footer, .e-permits-ntpl-sheet) .modal-buttons .btn {
+/* ---- the template sheet keeps Large 48 · 16/24 · sides 20 at every width; drawers (`.drawer__footer`) are Medium 40 on desktop, 48 on phones ---- */
+.e-permits-ntpl-sheet .modal-buttons .btn {
   font-size: var(--font-size-fs-16, 16px);
   height: var(--spacing-48, 48px);
   line-height: var(--line-height-lh-24, 24px);
   padding: var(--spacing-0, 0px) var(--spacing-20, 20px);
 }
 
-:is(.drawer__footer, .e-permits-ntpl-sheet) .modal-buttons .btn:has(> .icon:first-child) {
+.e-permits-ntpl-sheet .modal-buttons .btn:has(> .icon:first-child) {
   padding: var(--spacing-0, 0px) var(--spacing-20, 20px) var(--spacing-0, 0px) var(--spacing-16, 16px);
 }
 
