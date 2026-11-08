@@ -18357,8 +18357,9 @@ a.e-permits-fo-lib-item__title:is(:hover, :focus) {
   margin-left: var(--spacing-12, 12px);
 }
 
+/* stack-title-center-v1 (2026-11-08, GEAP 2.0 15054:61373): tags sit on the title's vertical centre */
 .e-permits-stack__title-row {
-  align-items: flex-start;
+  align-items: center;
   display: flex;
   flex-wrap: wrap;
   gap: var(--spacing-8, 8px) var(--spacing-12, 12px);

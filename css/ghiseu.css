@@ -663,3 +663,9 @@
     line-height: var(--line-height-lh-24, 24px);
   }
 }
+
+/* sup-title-inset-v1 (2026-11-08, GEAP 2.0 15009:57292): Suplinire step titles share the 12 inset of the section
+   headings below them (summary-section heading), so every title on the step starts on one line */
+#gh-request-modal.is-sup .e-permits-fo-form__header {
+  padding-inline: var(--spacing-12, 12px);
+}

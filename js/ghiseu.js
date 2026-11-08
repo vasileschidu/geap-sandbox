@@ -1693,6 +1693,7 @@
     ov.querySelector("[data-gh-header]").innerHTML = sheetHeaderHtml(d);
     const intent = STEPS[S.step].id === "intent";
     ov.classList.toggle("is-intent", intent);
+    ov.classList.toggle("is-sup", isSup(d)); /* sup-title-inset-v1: Suplinire step titles inset like the section headings */
     ov.querySelector("[data-gh-body]").innerHTML = intent ? `
       <div class="e-permits-fo-intent e-permits-gh-intent__screen" data-gh-panel="intent">${panel}</div>` : `
       ${progressHtml(d)}
