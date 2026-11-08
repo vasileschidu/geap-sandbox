@@ -4267,3 +4267,4 @@ For any „research how other products do it” step, search Mobbin (mcp__mobbin
   category so Înainte passed. Fix the state's data pick (`sup(run, params, pick)` + `withDocsRequired`), never invent a rule or weaken the check.
 - `.btn-badge` has `width: min(100%, var(--badge-button-width))` (= auto → invalid) and it shrank in a flex row, clipping a long label:
   in a flex container set `flex: 0 0 auto; max-width: 100%; width: auto` on it (css/ghiseu.css `.e-permits-gh__sign .btn-badge`).
+- 2026-11-08 · Ghișeu modals (#case-action-modal, outside .e-permits-gh): stacked-list meta lines started with „·” because only the shell panels call `syncStackMetaRows` — `openModal` now observes the body and calls it; inline „ · ” inside free text (`e.detail`) = ` · ` so the dot stays with the word before.

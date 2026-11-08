@@ -4016,7 +4016,12 @@
     sub.textContent = subtitle; sub.hidden = !subtitle;
     overlay.querySelector("[data-case-modal-body]").innerHTML = body;
     overlay.querySelector("[data-case-modal-footer]").innerHTML = footer;
-    R().bind?.(overlay.querySelector("[data-case-modal-body]"));
+    const modalBody = overlay.querySelector("[data-case-modal-body]");
+    R().bind?.(modalBody);
+    /* a wrapped stacked-list meta line never starts with „·” (shell syncStackMetaRows watches only its own panels) */
+    const syncMeta = () => A().syncStackMetaRows?.(modalBody);
+    if (!overlay.dataset.ghMetaWatch && "ResizeObserver" in window) { overlay.dataset.ghMetaWatch = "1"; new ResizeObserver(() => requestAnimationFrame(syncMeta)).observe(modalBody); }
+    requestAnimationFrame(syncMeta);
     if (!overlay.dataset.ghBound) {
       overlay.dataset.ghBound = "1";
       overlay.addEventListener("click", onModalClick);
@@ -4167,7 +4172,7 @@
       subtitle: "Jurnalul de audit",
       body: items.length ? `
         <div class="e-permits-stack"><ul class="e-permits-stack__list" role="list">
-          ${items.map((e) => A().renderStackItem?.({ title: esc(e.action), meta: [esc(stamp(e.at)), esc(e.user)], meta2: [e.detail, e.step != null && STEPS[e.step] && !String(e.detail).includes("Pasul") ? `Pasul „${stepLabel(d, STEPS[e.step].id)}”` : "", e.persoana ? `Persoana vizată: ${e.persoana}` : ""].filter(Boolean).map(esc), badges: e.personal ? [tagHtml("Date personale", "neutral")] : [] }) || "").join("")}
+          ${items.map((e) => A().renderStackItem?.({ title: esc(e.action), meta: [esc(stamp(e.at)), esc(e.user)], meta2: [e.detail == null ? e.detail : String(e.detail).replace(/ · /g, "\u00A0· "), e.step != null && STEPS[e.step] && !String(e.detail).includes("Pasul") ? `Pasul „${stepLabel(d, STEPS[e.step].id)}”` : "", e.persoana ? `Persoana vizată: ${e.persoana}` : ""].filter(Boolean).map(esc), badges: e.personal ? [tagHtml("Date personale", "neutral")] : [] }) || "").join("")}
         </ul></div>`
         : window.GEAPEmptyState?.render({ title: "Nicio acțiune înregistrată în această sesiune", text: "Acțiunile seed-ului au fost înregistrate înainte de prototip.", icon: "history", compact: true }) || "",
       footer: '<div class="modal-buttons"><button class="btn btn-primary btn-rounded" type="button" data-case-close>Închide</button></div>'
