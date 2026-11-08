@@ -19482,8 +19482,8 @@ document.addEventListener("DOMContentLoaded", () => {
     return `
       <p class="e-permits-cfg2__bar-text" aria-live="polite">${renderHeaderStatus(changesCountLabel(n), "warning", changesStatusAttrs("service-settings"))}${e ? ` · <span class="e-permits-cfg2__bar-error">${e === 1 ? "1 câmp de corectat" : `${e} câmpuri de corectat`}</span>` : ""}</p>
       <div class="e-permits-cfg2__bar-actions">
-        <button class="btn btn-neutral btn-sm" type="button" data-cfg2-discard>Renunță</button>
-        <button class="btn btn-primary btn-sm" type="button" data-cfg2-save>Salvează</button>
+        <button class="btn btn-neutral btn-md" type="button" data-cfg2-discard>Renunță</button>
+        <button class="btn btn-primary btn-md" type="button" data-cfg2-save>Salvează</button>
       </div>`;
   };
   const cfg2NavDot = (key, changed, errs) => errs.has(key)

@@ -8,6 +8,33 @@
   font-weight: var(--font-weight-fw-regular, 400);
 }
 
+/* phones: logo + „SIA GEAP Back Office” on ONE row (logo left, title right, centred), like desktop; the EVO phone header
+   stacks them in two grid rows because it carries the avatar, the login bar has none */
+@media (max-width: 720px) {
+  .e-permits-fo-auth__brandbar-inner:has(.bo-login__product) {
+    grid-template-columns: 1fr;
+    grid-template-rows: 64px;
+  }
+
+  .e-permits-fo-auth__brandbar-inner:has(.bo-login__product) .e-permits-fo-auth__service-heading {
+    align-items: center;
+    display: flex;
+    gap: var(--spacing-16, 16px);
+    grid-column: 1;
+    grid-row: 1;
+    min-width: 0;
+  }
+
+  .e-permits-fo-auth__brandbar-inner:has(.bo-login__product) .e-permits-fo-auth__service-title-wrap {
+    border: 0;
+    flex: 1 1 auto;
+    margin: 0;
+    min-height: 0;
+    min-width: 0;
+    padding: 0;
+  }
+}
+
 /* state icon in place of the lock: 36px, tone colour (same footprint as __lock) */
 .bo-login__state-icon {
   display: inline-flex;

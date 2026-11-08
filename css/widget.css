@@ -1037,3 +1037,15 @@ button.e-permits-wid-rows__row:focus-visible {
 .e-permits-wid-card .e-permits-wid-legend--list :is(li, .e-permits-wid-legend__btn) > .e-permits-meter-legend__dot {
   margin-top: 0;
 }
+
+/* heat map on phones: a two-line row label (12/16) needs breathing room, so the rows are 40 high and the labels
+   never touch each other (the label still clamps to 2 lines + tooltip) */
+@media (max-width: 760px) {
+  .e-permits-wid-heat__cell {
+    min-height: var(--spacing-40, 40px);
+  }
+
+  .e-permits-wid-heat tbody th {
+    vertical-align: middle;
+  }
+}

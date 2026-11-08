@@ -4259,3 +4259,6 @@ For any „research how other products do it” step, search Mobbin (mcp__mobbin
   (`fromDraft(draftOf(k))`); edit base = `draftOf(savedOf(k))`. Seed only the differing fields (`set` / `pending`) in JSON.
 - 2026-11-07 · Shell chains: `grep -c … && next` stops the chain when the count is 0 (exit 1) — my `?v=` bumps silently did not
   run. Use `;` between independent steps and re-check with `git status --short <files>`.
+- 2026-11-08 Sticky save bars (`.e-permits-cfg2__bar`: service Setări in shell.js `cfg2BarHtml`, eKYC `pageBar` in ekyc-config.js; registre / kpi / widget bars were already md) = `btn-md`; phones 48 · 16/24 via one rule on `.e-permits-cfg2__bar-actions .btn.btn-md`. Page-header Salvează/Renunță (user, role, template, clasificator) stay Small by design.
+- 2026-11-08 Heat map on phones: 2-line row labels (12/16) touched at 32 rows → rows 40 on ≤760 (label column untouched, desktop unchanged). `sed -i` on macOS needs `-i ''`; check the diff after.
+- 2026-11-08 The BO login phone brand bar inherits the EVO 2-row grid (logo row + title row with borders); override scoped by `:has(.bo-login__product)` in css/bo-login.css, not in the shared header.

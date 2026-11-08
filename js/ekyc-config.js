@@ -415,8 +415,8 @@
     return `
       <p class="e-permits-cfg2__bar-text" aria-live="polite">${text}${e ? ` · <span class="e-permits-cfg2__bar-error">${e === 1 ? "1 câmp de corectat" : `${e} câmpuri de corectat`}</span>` : ""}</p>
       <div class="e-permits-cfg2__bar-actions">
-        <button class="btn btn-neutral btn-sm" type="button" data-ekcfg-page-cancel>Anulează</button>
-        <button class="btn btn-primary btn-sm" type="button" data-ekcfg-submit>${esc(def.submit(F))}</button>
+        <button class="btn btn-neutral btn-md" type="button" data-ekcfg-page-cancel>Anulează</button>
+        <button class="btn btn-primary btn-md" type="button" data-ekcfg-submit>${esc(def.submit(F))}</button>
       </div>`;
   };
   /* „● N modificări nesalvate” in the save bar → the shell's review („Modificări nesalvate”):
