@@ -11,6 +11,11 @@
 /* phones: logo + „SIA GEAP Back Office” on ONE row (logo left, title right, centred), like desktop; the EVO phone header
    stacks them in two grid rows because it carries the avatar, the login bar has none */
 @media (max-width: 720px) {
+  /* the one-row bar keeps the desktop bottom border (the shared phone rule drops it for the EVO two-row header) */
+  .e-permits-fo-auth__brandbar:has(.bo-login__product) {
+    border-bottom: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
+  }
+
   .e-permits-fo-auth__brandbar-inner:has(.bo-login__product) {
     grid-template-columns: 1fr;
     grid-template-rows: 64px;
