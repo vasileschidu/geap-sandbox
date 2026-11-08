@@ -175,6 +175,14 @@
   flex: 1 1 280px;
 }
 
+/* the sign button hugs its label (the longer „Reîncercați semnarea prin MSign” included) and never shrinks under it;
+   on a container too narrow for both it drops under the text, full width at most */
+.e-permits-gh__sign .btn-badge {
+  flex: 0 0 auto;
+  max-width: 100%;
+  width: auto;
+}
+
 .e-permits-gh__retry .message {
   flex: 1 1 320px;
 }

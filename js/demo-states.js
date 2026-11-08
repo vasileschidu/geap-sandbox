@@ -5305,8 +5305,14 @@
          AC-05) · 07a reopened at the saved step · 08 „Istoricul suplinirii” (the audit entries) */
       ...(() => {
         const SUP_READY = "#gh-request-modal.is-active [data-gh-panel]";
-        const sup = (run, params = {}) => ({ flow: "back-office", as: GH, hash: "#dosare-suspendate", params: { ghseed: "1", ...params }, ready: "[data-registry-kind='ghsusp'] tr[data-workplace-row]", run: async (h) => {
-          await h.click("[data-registry-kind='ghsusp'] [data-gh-sup]");
+        /* pick = open a dossier whose suspension asks for documents (US-251: the Specialist's documents are required
+           unless the request data alone was wrong), instead of the first row */
+        const withDocsRequired = () => [...document.querySelectorAll("[data-registry-kind='ghsusp'] [data-gh-sup]")].find((b) => {
+          const row = window.GEAPShellApi.dossierStore().runtimeRows.find((r) => r.id === b.dataset.ghSup);
+          return !/^Date incorecte/.test(window.GEAPShellApi.dosarSuspension(row)?.categorie || "");
+        });
+        const sup = (run, params = {}, pick) => ({ flow: "back-office", as: GH, hash: "#dosare-suspendate", params: { ghseed: "1", ...params }, ready: "[data-registry-kind='ghsusp'] tr[data-workplace-row]", run: async (h) => {
+          if (pick) pick().click(); else await h.click("[data-registry-kind='ghsusp'] [data-gh-sup]");
           await h.find(SUP_READY); await h.wait(400);
           if (run) await run(h);
         } });
@@ -5341,7 +5347,7 @@
           "gh-sup-03c": sup(seq(toDetalii, async (h) => { await h.fill("#fo-gh-obiect", "", { leave: false }); await save(h); })),
           "gh-sup-03d": sup(seq(toDetalii, async (h) => { await h.fill("#fo-gh-obiect", "Cafeneaua „La Izvor” — terasa de vară", { leave: false }); await save(h); await h.find(".toast"); })),
           "gh-sup-04": sup(toDocs),
-          "gh-sup-04a": sup(seq(toDocs, next)),
+          "gh-sup-04a": sup(seq(toDocs, next, async (h) => { await h.wait(300); }), {}, withDocsRequired),
           "gh-sup-05": sup(toVerif),
           "gh-sup-05a": sup(seq(toVerif, scrollTo("#gh-request-modal [data-gh-paper]")), { mdocs: "0" }),
           "gh-sup-05b": sup(seq(toVerif, olograf(), sign, scrollTo("#gh-request-modal [data-gh-preview='signed']"))),

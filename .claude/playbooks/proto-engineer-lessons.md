@@ -4262,3 +4262,8 @@ For any „research how other products do it” step, search Mobbin (mcp__mobbin
 - 2026-11-08 Sticky save bars (`.e-permits-cfg2__bar`: service Setări in shell.js `cfg2BarHtml`, eKYC `pageBar` in ekyc-config.js; registre / kpi / widget bars were already md) = `btn-md`; phones 48 · 16/24 via one rule on `.e-permits-cfg2__bar-actions .btn.btn-md`. Page-header Salvează/Renunță (user, role, template, clasificator) stay Small by design.
 - 2026-11-08 Heat map on phones: 2-line row labels (12/16) touched at 32 rows → rows 40 on ≤760 (label column untouched, desktop unchanged). `sed -i` on macOS needs `-i ''`; check the diff after.
 - 2026-11-08 The BO login phone brand bar inherits the EVO 2-row grid (logo row + title row with borders); override scoped by `:has(.bo-login__product)` in css/bo-login.css, not in the shared header.
+- 2026-11-08 · suplinire gh-sup-04a / 05d. (1) A demo state that must show a validation error depends on the SEED row: US-251 makes the
+  Specialist's documents „Condiționat” (required unless the category is „Date incorecte…” → `d.sup.docRequired`), the first row had that
+  category so Înainte passed. Fix the state's data pick (`sup(run, params, pick)` + `withDocsRequired`), never invent a rule or weaken the check.
+- `.btn-badge` has `width: min(100%, var(--badge-button-width))` (= auto → invalid) and it shrank in a flex row, clipping a long label:
+  in a flex container set `flex: 0 0 auto; max-width: 100%; width: auto` on it (css/ghiseu.css `.e-permits-gh__sign .btn-badge`).

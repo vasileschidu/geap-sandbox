@@ -2882,7 +2882,7 @@
           <p class="e-permits-fo-doc-field__desc">Semnați cererea validată cu semnătura dvs., în numele solicitantului. MSign semnează documentul cererii în format JSON.</p>
           <button class="btn btn-badge btn-badge--primary btn-badge--msign" type="button" data-gh-msign>
             <span class="btn-badge__logo" aria-hidden="true"><img src="assets/logos/m-platforms/m-sign.svg" alt=""></span>
-            <span class="btn-badge__label">${S.notice === "msign-error" ? "Reîncercați semnarea prin msign" : "Semnează prin msign"}</span>
+            <span class="btn-badge__label">${S.notice === "msign-error" ? "Reîncercați semnarea prin MSign" : "Semnează prin MSign"}</span>
           </button>
         </div>
         ${errSlot("msign")}`) : "";
