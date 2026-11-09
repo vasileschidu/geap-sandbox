@@ -167,6 +167,12 @@
   align-items: center;
 }
 
+/* an open row ⋮ menu paints over the next category group row (group-row cells are z 8 !important; the shell lifts the
+   menu cell only to 8 → the later group row covered „Dezactivează”) */
+.e-permits-workplace[data-registry-kind="rapoarte"] .e-permits-workplace__table td.e-permits-workplace__actions-cell:has([data-stack-menu]:not([hidden])) {
+  z-index: 9;
+}
+
 /* ---- the report card: name + „ⓘ” description button on one line ---- */
 .e-permits-rpt-card__title-row {
   align-items: center;
@@ -311,6 +317,11 @@
   background: var(--color-background-base-default, #fff);
   color: var(--color-text-base-default, #121212);
   font-weight: var(--font-weight-fw-medium, 500);
+}
+
+/* a table without a total row (Acces) keeps the RAP divider under its last row (rap-table-flat-v1) */
+.e-permits-workplace__table.e-permits-rpt-table:not(:has(tfoot)) tbody tr:last-child > td {
+  border-bottom: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
 }
 
 /* the total closes the table: the stronger line above, the RAP divider under it (as the RAP last row) */

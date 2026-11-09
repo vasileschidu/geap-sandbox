@@ -106,7 +106,11 @@
   /* „no-operand” formulas work on the records of a row: per row a value, aggregated by avg / sum */
   const RECORD_AGG = { "f-avg": "avg", "f-count": "sum" };
   const STATUS_TONE = { "Ciornă": "neutral", "Publicat": "success", "Dezactivat": "neutral" };
-  const EVENTS = { create: "Crearea raportului", edit: "Modificarea raportului", formula: "Adăugarea unei formule" };
+  const EVENTS = {
+    create: "Crearea raportului", clone: "Clonarea raportului", edit: "Modificarea raportului", formula: "Adăugarea unei formule",
+    publish: "Publicarea raportului", rejected: "Publicare respinsă", restore: "Restaurarea unei versiuni", off: "Dezactivarea raportului",
+    on: "Activarea raportului", grant: "Acordarea accesului", revoke: "Retragerea accesului"
+  };
   const isMeasure = (c) => c && (c.dataType === "numeric" || c.dataType === "value");
   const isDim = (c) => c && (c.dataType === "text" || c.dataType === "temporal");
 
@@ -143,25 +147,31 @@
     if (S.data) return Promise.resolve(S.data);
     if (!S.loading) {
       S.loading = Promise.all([
-        fetch("data/rapoarte.json?v=rpt-v1").then((r) => r.json()),
+        fetch("data/rapoarte.json?v=rpt-v2").then((r) => r.json()),
         K().load ? K().load() : Promise.resolve(null)
       ]).then(([json]) => {
         if (demo.has("gol")) json.reports = [];
         json.reports.forEach((r) => {
           r.config = normal(r.config);
           r.history = r.history || [];
-          r.versions = (r.versions || []).map((v) => ({ ...v, config: normal(v.config || clone(r.config)) }));
+          r.versions = (r.versions || []).map((v) => {
+            const config = normal(v.config || clone(r.config));
+            /* the seed of an older version names the columns it did not have yet (part 2: Versiuni, restore) */
+            if (v.without) config.columns = config.columns.filter((c) => !v.without.includes(c.id));
+            return { ...v, type: v.type || (v.version === 1 ? "Prima publicare" : "Publicare"), config };
+          });
+          r.grants = r.grants || [];
           /* the seed of a report with unpublished changes names the columns its last version did not have yet */
           const last = r.versions[r.versions.length - 1];
           if (last && r.unpublishedColumns) last.config.columns = last.config.columns.filter((c) => !r.unpublishedColumns.includes(c.id));
         });
         S.data = json;
         return json;
-      }).catch(() => { S.data = { reports: [], formulas: [], authorities: [] }; return S.data; });
+      }).catch(() => { S.data = { reports: [], formulas: [], authorities: [], roles: [] }; return S.data; });
     }
     return S.loading;
   }
-  const D = () => S.data || { reports: [], formulas: [], authorities: [] };
+  const D = () => S.data || { reports: [], formulas: [], authorities: [], roles: [] };
   const all = () => D().reports;
   const reportOf = (id) => all().find((r) => r.id === id) || null;
   const visible = (r, me = who()) => me.central || r.config.level === "Global" || r.config.authorities.includes(me.authority);
@@ -571,7 +581,11 @@
           </div>
           ${e.authorities ? errorHtml(`${idp}-authorities`, e.authorities) : `<p class="e-permits-fo-field__hint">Una sau mai multe; raportul se vede doar în autoritățile alese.</p>`}`, { required: true })
       : labelled(`${idp}-auth-label`, "Autoritate", `<div class="e-permits-cfg-ro" aria-labelledby="${idp}-auth-label">${esc(authName(me.authority))} · ${esc(D().authorities.find((a) => a.id === me.authority)?.long || "")}</div><p class="e-permits-fo-field__hint">Raportul se creează la nivelul autorității tale.</p>`)) : "";
+    const fromPicker = idp === IDP && P.isNew && cloneSources().length
+      ? section("Punctul de plecare", grid(selectField(`${idp}-from`, "data-rpt-from", "Raportul sursă", cloneSources().map((r) => [r.id, `${r.id} · ${r.config.names.ro}`]), P.from, { span: 12, placeholder: "Raport gol", hint: P.from ? "Copia primește coloanele, formulele și structura raportului sursă; o modifici independent." : "Opțional: alege un raport existent ca să-l clonezi." })))
+      : "";
     return `
+      ${fromPicker}
       ${section("Categoria și sursa de date", grid(
         full(labelled(`${idp}-category-label`, "Categoria raportului", optionCards(`${idp}-category`, `${idp}-category`, "data-rpt-category", CATEGORIES, v.category, { error: e.category, legend: "Categoria raportului" }), { required: true })),
         selectField(`${idp}-source`, 'data-rpt-field="source"', "Sursa de date", sources().map((s) => [s.id, `${s.name} · ${s.version}`]), v.source, { required: true, span: 12, placeholder: "Alege sursa de date", hint: "Doar sursele de date publicate. Coloanele, filtrele și formulele folosesc câmpurile ei.", error: e.source }),
@@ -855,17 +869,19 @@
      the widget profile: editor width, tabs Configurare · Versiuni · Istoric; Configurare = the three sections of the
      create sheet in one column (form 1fr) + the sticky preview (1fr); read-only = passport blocks + the preview */
   const P = { id: null, tab: "configurare", isNew: false, draft: null, base: null, errors: {}, saveError: false, step: 1, maxStep: 1 };
-  const TABS = [["configurare", "Configurare"], ["versiuni", "Versiuni"], ["istoric", "Istoric"]];
+  const ALL_TABS = [["configurare", "Configurare"], ["versiuni", "Versiuni"], ["acces", "Acces"], ["istoric", "Istoric"]];
+  /* „Acces” shows only when part 2 provides HOOKS.accessTab */
+  const tabsNow = () => ALL_TABS.filter(([t]) => t !== "acces" || HOOKS.accessTab);
   const profileOpen = () => (Boolean(P.id) || P.isNew) && !document.querySelector("[data-dosar-profil]")?.hidden && A().els?.dosarProfilPanelBody?.id === "rpt-panel";
   const editable = (r = reportOf(P.id)) => P.isNew || (Boolean(r) && canEdit(r) && r.status !== "Dezactivat");
-  const pageDirty = () => Boolean(P.draft) && (P.isNew ? Boolean(P.draft.names.ro || P.draft.source || P.draft.columns.length) : !same(P.draft, P.base));
+  const pageDirty = () => Boolean(P.draft) && (P.isNew ? Boolean(P.from || P.draft.names.ro || P.draft.source || P.draft.columns.length) : !same(P.draft, P.base));
   async function openProfile(id, tab = "configurare", { push = true } = {}) {
     await load();
     const r = reportOf(id);
     if (!who().has || !r || !visible(r)) { showDenied(); return; }
     if (P.id !== id || P.isNew) { P.errors = {}; P.saveError = false; P.totalTouched = false; P.draft = clone(r.config); P.base = clone(r.config); }
     P.id = id; P.isNew = false;
-    P.tab = TABS.some(([t]) => t === tab) ? tab : "configurare";
+    P.tab = tabsNow().some(([t]) => t === tab) ? tab : "configurare";
     show(`#raport/${id}/${P.tab}`, push);
   }
   function show(hash, push) {
@@ -926,8 +942,8 @@
       ["Versiune publicată", lv ? esc(String(lv.version)) : "nepublicat"]
     ]);
     A().watchPageHeaderMeta?.(els.dosarProfilSummary);
-    const counts = { versiuni: r.versions.length, istoric: Math.min(r.history.length, 100) };
-    els.dosarProfilTabs.innerHTML = TABS.map(([id, text]) => {
+    const counts = { versiuni: r.versions.length, acces: r.grants.filter((g) => !g.revokedAt).length, istoric: Math.min(r.history.length, 100) };
+    els.dosarProfilTabs.innerHTML = tabsNow().map(([id, text]) => {
       const on = id === P.tab;
       return `<button class="tab-button${on ? " active" : ""}" id="rpt-tab-${id}" type="button" role="tab" aria-controls="rpt-panel" aria-selected="${on}" tabindex="${on ? 0 : -1}" data-rpt-tab="${id}"><span>${text}</span>${counts[id] ? A().renderPageHeaderTabCount?.(counts[id]) || "" : ""}</button>`;
     }).join("");
@@ -935,7 +951,7 @@
     body.id = "rpt-panel";
     body.setAttribute("role", "tabpanel");
     body.setAttribute("aria-labelledby", `rpt-tab-${P.tab}`);
-    body.innerHTML = `${notices(r)}${P.tab === "versiuni" ? (HOOKS.versionsTab?.(r) || versionsTab(r)) : P.tab === "istoric" ? (HOOKS.historyTab?.(r) || historyTab(r)) : configTab(r)}`;
+    body.innerHTML = `${notices(r)}${P.tab === "versiuni" ? (HOOKS.versionsTab?.(r) || versionsTab(r)) : P.tab === "acces" && HOOKS.accessTab ? HOOKS.accessTab(r) : P.tab === "istoric" ? (HOOKS.historyTab?.(r) || historyTab(r)) : configTab(r)}`;
     A().syncStackMetaRows?.(body);
     if (keepSel) {
       const el = document.querySelector(keepSel);
@@ -1025,17 +1041,28 @@
     return sheet;
   }
   const sheetScroller = () => sheet?.querySelector("[data-rpt-ed-scroll]");
-  async function openNew() {
+  /* Feature: „inițiază un raport nou sau clonează un raport existent … prin alegerea raportului sursă” — the copy takes
+     the columns, formulas and structure of the source; any other user than the central gets it at his authority */
+  function cloneConfig(src, me = who()) {
+    const v = normal(clone(src.config));
+    v.names.ro = `${v.names.ro} (copie)`.slice(0, NAME_MAX);
+    if (!me.central) { v.level = "Autoritate"; v.authorities = [me.authority]; }
+    return v;
+  }
+  const cloneSources = () => reports().filter((r) => r.config.columns.length);
+  async function openNew({ from = "" } = {}) {
     await load();
     if (!canCreate()) return;
+    const src = from ? reportOf(from) : null;
+    if (from && (!src || !visible(src))) return;
     beforeCreate = { ...P, back: document.activeElement };
-    const v = blankConfig();
-    Object.assign(P, { id: null, isNew: true, tab: "configurare", draft: v, base: clone(v), errors: {}, saveError: false, totalTouched: false, step: 1, maxStep: 1 });
+    const v = src ? cloneConfig(src) : blankConfig();
+    Object.assign(P, { id: null, isNew: true, from: src?.id || "", tab: "configurare", draft: v, base: clone(v), errors: {}, saveError: false, totalTouched: Boolean(src), step: 1, maxStep: src ? STEPS.length : 1 });
     const el = ensureSheet();
     renderCreate();
     el.hidden = false;
     document.documentElement.classList.add("is-reg-editor-open");
-    requestAnimationFrame(() => el.querySelector(`#${IDP}-category input`)?.focus({ preventScroll: true }));
+    requestAnimationFrame(() => el.querySelector(src ? `#${IDP}-name-ro` : `#${IDP}-category input`)?.focus({ preventScroll: true }));
   }
   function renderCreate({ keep = "" } = {}) {
     if (!P.isNew || !sheet || !P.draft) return;
@@ -1046,10 +1073,10 @@
     const v = P.draft;
     const e = P.errors;
     sheet.querySelector("[data-rpt-ed-top]").innerHTML = window.GEAPPageHeader?.top({
-      title: "Raport nou",
+      title: P.from ? "Clonează raportul" : "Raport nou",
       titleId: "rpt-ed-title",
-      caption: `Nivel ${levelText(v)} · ID-ul se generează la prima salvare`
-    }) || '<h1 class="e-permits-page-header__title" id="rpt-ed-title">Raport nou</h1>';
+      caption: P.from ? `Copie a ${P.from} · Nivel ${levelText(v)} · primește un ID nou la salvare` : `Nivel ${levelText(v)} · ID-ul se generează la prima salvare`
+    }) || `<h1 class="e-permits-page-header__title" id="rpt-ed-title">${P.from ? "Clonează raportul" : "Raport nou"}</h1>`;
     sheet.querySelector("[data-rpt-ed-steps]").innerHTML = A().renderStepStrip?.(STEPS, P, "data-rpt-goto") || "";
     const form = [() => stepGeneral(v, e, IDP), () => stepColumns(v, e, IDP), () => stepStructure(v, e, IDP), () => stepReview(v)][P.step - 1]();
     sheet.querySelector("[data-rpt-ed-body]").innerHTML = `
@@ -1102,13 +1129,13 @@
       hideSheet();
       const prev = beforeCreate || {};
       delete prev.back;
-      Object.assign(P, { id: null, isNew: false, draft: null, base: null, errors: {}, saveError: false, ...prev, step: 1, maxStep: 1 });
+      Object.assign(P, { id: null, isNew: false, from: "", draft: null, base: null, errors: {}, saveError: false, ...prev, step: 1, maxStep: 1 });
       if (P.id && !P.draft) P.isNew = false;
       beforeCreate = null;
       if (back?.isConnected) back.focus({ preventScroll: true });
     };
     if (force || !pageDirty()) { close(); return; }
-    U().askConfirm?.({ title: "Renunți la raportul nou?", text: "Datele completate nu se păstrează.", confirmLabel: "Renunță", cancelLabel: "Continuă editarea", destructive: true }, close);
+    U().askConfirm?.({ title: P.from ? "Renunți la copia raportului?" : "Renunți la raportul nou?", text: "Datele completate nu se păstrează.", confirmLabel: "Renunță", cancelLabel: "Continuă editarea", destructive: true }, close);
   }
   const rerender = (opts) => (creating() ? renderCreate(opts) : renderProfile(opts));
 
@@ -1126,7 +1153,7 @@
     else renderProfile({ keep });
     (creating() ? sheet : document).querySelector(errorSel(key))?.closest(".e-permits-fo-field, .e-permits-doc-cond, .e-permits-wid-types, .e-permits-stack__item, .e-permits-dosar-profil__section")?.scrollIntoView({ block: "center" });
   }
-  function savePage() {
+  function savePage({ silent = false } = {}) {
     const errors = validate(P.draft, { steps: [1] });
     if (Object.keys(errors).length) { P.errors = errors; showFirstError(errors); return null; }
     if (demo.has("eroare")) { P.saveError = true; rerender(); return null; }
@@ -1138,15 +1165,17 @@
     } else {
       const nums = all().map((x) => Number(x.id.split("-")[1]) || 0);
       const id = `RPT-${String((nums.length ? Math.max(...nums) : 0) + 1).padStart(4, "0")}`;
-      r = { id, status: "Ciornă", createdAt: nowIso(), createdBy: userName(), updatedAt: nowIso(), updatedBy: userName(), config: clone(P.draft), versions: [], history: [] };
+      r = { id, status: "Ciornă", createdAt: nowIso(), createdBy: userName(), updatedAt: nowIso(), updatedBy: userName(), config: clone(P.draft), versions: [], history: [], grants: [] };
       all().push(r);
-      audit(r, "create", `Ciornă · ${levelText(r.config)} · ${sourceName(r.config.source)}`);
+      if (P.from) audit(r, "clone", `Din ${P.from} · ${levelText(r.config)}`);
+      else audit(r, "create", `Ciornă · ${levelText(r.config)} · ${sourceName(r.config.source)}`);
     }
     const wasNew = P.isNew;
-    Object.assign(P, { id: r.id, isNew: false, errors: {}, saveError: false, base: clone(P.draft) });
+    const wasClone = P.from;
+    Object.assign(P, { id: r.id, isNew: false, from: "", errors: {}, saveError: false, base: clone(P.draft) });
     if (wasNew) { hideSheet(); beforeCreate = null; openProfile(r.id, "configurare"); }
     else { renderProfile({ keep: "[data-rpt-save]" }); A().writeHash?.(`#raport/${r.id}/configurare`, { push: false }); }
-    toast(wasNew ? `Ciorna raportului ${r.id} a fost salvată.` : "Modificările au fost salvate.");
+    if (!silent) toast(wasNew ? (wasClone ? `Copia raportului ${wasClone} a fost salvată ca ${r.id}, în statutul Ciornă.` : `Ciorna raportului ${r.id} a fost salvată.`) : "Modificările au fost salvate.");
     refreshList();
     return r;
   }
@@ -1610,6 +1639,7 @@
     if (row && event.target === row && (event.key === "Enter" || event.key === " ") && inPage(row)) { event.preventDefault(); openColumn(row.dataset.rptCol); return; }
     const tab = event.target.closest?.("[data-rpt-tab]");
     if (!tab || !["ArrowLeft", "ArrowRight"].includes(event.key)) return;
+    const TABS = tabsNow();
     const i = TABS.findIndex(([id]) => id === tab.dataset.rptTab);
     const next = TABS[(i + (event.key === "ArrowRight" ? 1 : TABS.length - 1)) % TABS.length][0];
     event.preventDefault();
@@ -1633,6 +1663,14 @@
     if (!el.closest || !inPage(el) || el.closest("[data-rpt-drawer]")) return;
     const v = P.draft;
     const fid = (node) => node.closest(".e-permits-fo-field, .e-permits-doc-cond__cell")?.querySelector("button[id], input[id]")?.id || "";
+    if (el.matches("[data-rpt-from]") && creating()) {
+      const src = reportOf(el.value);
+      P.from = src?.id || "";
+      P.draft = src ? cloneConfig(src) : blankConfig();
+      P.base = clone(P.draft); P.errors = {}; P.totalTouched = Boolean(src); P.maxStep = src ? STEPS.length : 1;
+      renderCreate({ keep: `#${IDP}-from` });
+      return;
+    }
     if (el.matches("[data-rpt-category]")) { v.category = el.value; delete P.errors.category; rerender({ keep: `#${IDP}-category input[value="${el.value}"]` }); reheader(); return; }
     if (el.matches("[data-rpt-level]")) { v.level = el.value; if (v.level === "Global") v.authorities = []; delete P.errors.authorities; rerender({ keep: `#${IDP}-level input[value="${el.value}"]` }); reheader(); return; }
     if (el.matches("[data-rpt-auth]")) {
@@ -1719,7 +1757,9 @@
     list: () => reports(), all: () => all(), get: reportOf,
     formulas: () => formulas(),
     audit, lastVersion, unpublished, canEdit, canCreate, validate, publishProblems, configRows, readBlocks, cardHtml,
-    levelText, sourceName,
+    levelText, sourceName, authName, authorities: () => D().authorities, roles: () => D().roles || [],
+    save: (opts) => savePage(opts), dirty: () => pageDirty(), editable: (r) => editable(r), visible: (r) => visible(r),
+    ui: { textField, areaField, selectField, errorHtml, setFieldError, grid, req },
     rerender: () => { if (creating()) renderCreate(); else if (profileOpen()) renderProfile(); },
     state: () => P,
     hooks: HOOKS,

@@ -6,6 +6,17 @@
     { "id": "ansa", "name": "ANSA", "long": "Agenția Națională pentru Siguranța Alimentelor" },
     { "id": "amdm", "name": "AMDM", "long": "Agenția Medicamentului și Dispozitivelor Medicale" }
   ],
+  "_roles": "rpt-v2 (part 2): the BO roles an access grant names (the Registre roles, data/registre.json › admin.roles); a grant without authority = all the report's authorities (Feature AC).",
+  "roles": [
+    { "id": "central-admin", "label": "Administrator central" },
+    { "id": "local-admin", "label": "Administrator local" },
+    { "id": "specialist", "label": "Specialist" },
+    { "id": "supervisor", "label": "Supervizor" },
+    { "id": "director", "label": "Director" },
+    { "id": "operator-ghiseu", "label": "Specialist ghișeu" },
+    { "id": "expert", "label": "Expert" },
+    { "id": "auditor", "label": "Auditor" }
+  ],
   "formulas": [
     {
       "id": "f-pct",
@@ -76,8 +87,13 @@
         "totalRow": true
       },
       "versions": [
-        { "nr": 1, "version": 1, "at": "2026-10-21T10:00:00", "by": "Anastasia Cojocaru", "note": "Prima versiune: depuse, finalizate, procentul în termen." },
+        { "nr": 1, "version": 1, "at": "2026-10-21T10:00:00", "by": "Anastasia Cojocaru", "note": "Prima versiune: depuse, finalizate, procentul în termen.", "without": ["c6"] },
         { "nr": 2, "version": 2, "at": "2026-11-03T15:42:00", "by": "Anastasia Cojocaru", "note": "Adăugată durata medie de procesare." }
+      ],
+      "grants": [
+        { "id": "RPT-0001-g1", "role": "specialist", "authority": null, "at": "2026-10-21T10:05:00", "by": "Anastasia Cojocaru" },
+        { "id": "RPT-0001-g2", "role": "supervisor", "authority": null, "at": "2026-10-21T10:05:00", "by": "Anastasia Cojocaru" },
+        { "id": "RPT-0001-g3", "role": "director", "authority": "ansp", "at": "2026-10-29T12:40:00", "by": "Anastasia Cojocaru" }
       ],
       "history": [
         { "at": "2026-11-03T15:42:00", "by": "Anastasia Cojocaru", "role": "Administrator central", "event": "Publicarea raportului", "detail": "Versiunea 2 · Adăugată durata medie de procesare." },
@@ -108,6 +124,9 @@
       },
       "versions": [
         { "nr": 1, "version": 1, "at": "2026-10-23T09:10:00", "by": "Anastasia Cojocaru", "note": "Raport statistic trimestrial." }
+      ],
+      "grants": [
+        { "id": "RPT-0002-g1", "role": "director", "authority": null, "at": "2026-10-23T09:15:00", "by": "Anastasia Cojocaru" }
       ],
       "history": [
         { "at": "2026-10-23T09:10:00", "by": "Anastasia Cojocaru", "role": "Administrator central", "event": "Publicarea raportului", "detail": "Versiunea 1 · Raport statistic trimestrial." },
@@ -190,6 +209,9 @@
       "versions": [
         { "nr": 1, "version": 1, "at": "2026-10-24T15:00:00", "by": "Mihai Ceban", "note": "Prima versiune." }
       ],
+      "grants": [
+        { "id": "RPT-0005-g1", "role": "specialist", "authority": "anta", "at": "2026-10-24T15:10:00", "by": "Mihai Ceban" }
+      ],
       "history": [
         { "at": "2026-10-24T15:00:00", "by": "Mihai Ceban", "role": "Utilizator cu permisiunea «Gestionarea rapoartelor» · ANTA", "event": "Publicarea raportului", "detail": "Versiunea 1" },
         { "at": "2026-10-24T13:00:00", "by": "Mihai Ceban", "role": "Utilizator cu permisiunea «Gestionarea rapoartelor» · ANTA", "event": "Crearea raportului", "detail": "Ciornă · Autoritate ANTA · Registru Avize" }
@@ -219,6 +241,9 @@
       "versions": [
         { "nr": 1, "version": 1, "at": "2026-10-28T09:00:00", "by": "Anastasia Cojocaru", "note": "Prima versiune." }
       ],
+      "grants": [
+        { "id": "RPT-0006-g1", "role": "supervisor", "authority": "ansp", "at": "2026-10-28T09:20:00", "by": "Anastasia Cojocaru" }
+      ],
       "unpublishedColumns": ["c5"],
       "history": [
         { "at": "2026-11-07T11:30:00", "by": "Anastasia Cojocaru", "role": "Administrator central", "event": "Modificarea raportului", "detail": "Coloane: + Zile în perioadă" },
@@ -232,12 +257,12 @@
       "createdAt": "2026-11-08T09:15:00", "createdBy": "Anastasia Cojocaru",
       "updatedAt": "2026-11-08T09:15:00", "updatedBy": "Anastasia Cojocaru",
       "config": {
-        "names": { "ro": "Raport dosare suspendate pe specialist", "ru": "", "en": "" },
+        "names": { "ro": "Raport dosare suspendate pe specialist", "ru": "Отчёт о приостановленных делах по специалистам", "en": "Suspended files by specialist" },
         "descriptions": { "ro": "", "ru": "", "en": "" },
         "category": "tabelar", "source": "reg-dosare", "level": "Global", "authorities": [],
         "columns": [
-          { "id": "c1", "names": { "ro": "Specialist", "ru": "", "en": "" }, "kind": "source", "field": "specialist", "dataType": "text", "header": "", "total": "sum" },
-          { "id": "c2", "names": { "ro": "Suspendate", "ru": "", "en": "" }, "kind": "calc", "formula": "f-count", "operands": {}, "dataType": "numeric", "header": "", "total": "sum" }
+          { "id": "c1", "names": { "ro": "Specialist", "ru": "Специалист", "en": "Specialist" }, "kind": "source", "field": "specialist", "dataType": "text", "header": "", "total": "sum" },
+          { "id": "c2", "names": { "ro": "Suspendate", "ru": "Приостановлено", "en": "Suspended" }, "kind": "calc", "formula": "f-count", "operands": {}, "dataType": "numeric", "header": "", "total": "sum" }
         ],
         "groupBy": "",
         "filters": [],
