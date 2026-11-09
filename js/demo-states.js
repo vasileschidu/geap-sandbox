@@ -4065,7 +4065,13 @@
        06 dezactivare / activare (US-407) · 07 versiuni, comparare, restaurare (US-408) · 08 agregarea pe sursă, perimetru,
        fără acces, actualizare, trecere în detaliu (US-409) · 09 clonare. Demo switch widget=fara-permisiune|gol|incarcare|
        eroare|eroare-date|supervizor|fara-acces */
-    ...widDemoStates()
+    ...widDemoStates(),
+
+    /* ---- Administrare › Rapoarte (Feature 96502 „Constructor de rapoarte”, js/rapoarte-admin.js, rpt-v1 2026-11-09;
+       part 1 of 2): rpt-01 listă (US-467) · 02 fără permisiune · 03 creare: date generale, constructorul de coloane,
+       formule, antet pe două niveluri, structură, revizuire, erori (US-466) · 04 profilul / editarea (US-468).
+       Demo switch raport=fara-permisiune|gol|eroare */
+    ...rptDemoStates()
   };
 
   function autDemoStates() {
@@ -4525,6 +4531,99 @@
       /* audit (Feature rev 18): every operation also goes to the unique Jurnalul de audit (US-262 record, MLog) — the
          Istoric entry opens it */
       "wid-09c": prof("WGT-0007", "configurare", seq(publish, publishNote("Comparație cu trimestrul precedent."), async (h) => { await h.wait(400); await h.click('[data-wid-tab="istoric"]'); await h.wait(250); await h.click('#wid-panel [data-wid-event="0"] .e-permits-timeline__link'); await h.find("#dosar-detail-modal.is-active, #dosar-detail-modal[aria-hidden='false']"); }))
+    };
+  }
+
+  function rptDemoStates() {
+    const ADMIN = "ansp-central-admin", AUTH = "ansp-local-admin", SPEC = "ansp-specialist-chisinau";
+    const LIST = "[data-registry-kind='rapoarte'] tr[data-workplace-row], [data-registry-kind='rapoarte'] .e-permits-empty";
+    const list = (run, params, as = ADMIN) => ({ flow: "back-office", as, hash: "#rapoarte", ...(params ? { params } : {}), ready: LIST, delay: 900, run });
+    const prof = (id, tab = "configurare", run, params, as = ADMIN) => ({ flow: "back-office", as, hash: `#raport/${id}/${tab}`, ...(params ? { params } : {}), ready: "#rpt-panel", delay: 900, run });
+    const seq = (...steps) => async (h) => { for (const step of steps) await step(h); };
+    const C = "[data-rpt-editor]";
+    const DR = "[data-rpt-drawer]";
+    const MENU = (id) => async (h) => { (await h.find(`tr[data-workplace-row="${id}"]`)).scrollIntoView({ block: "center" }); await h.wait(250); await h.click(`tr[data-workplace-row="${id}"] [data-stack-menu-trigger]`); await h.wait(200); };
+    const nou = async (h) => { await h.click('[data-workplace-add-product="rpt-new"]'); await h.find(`${C} #rpt-e-name-ro`); };
+    const next = async (h) => { await h.click(`${C} [data-rpt-next]`); await h.wait(250); };
+    const at = (sel) => async (h) => { await h.scroll(`${C} ${sel}`); };
+    const step1 = async (h) => {
+      await h.click(`${C} .e-permits-wid-type:has(input[value="tabelar"])`);
+      await h.choose(`${C} select[data-rpt-field="source"]`, "reg-dosare");
+      await h.fill("#rpt-e-name-ro", "Raport dosare finalizate pe serviciu", { leave: false });
+    };
+    const langs = async (h) => { await h.fill("#rpt-e-name-ru", "Отчёт о завершённых делах", { leave: false }); await h.fill("#rpt-e-name-en", "Closed files by service", { leave: false }); };
+    const dict = async (h) => { await h.click(`${C} [data-rpt-add="source"]`); await h.find(`${DR} #rpt-dict-search`); };
+    const addF = (...keys) => async (h) => { for (const k of keys) await h.click(`${DR} [data-rpt-dict-add="${k}"]`); };
+    const done = async (h) => { await h.click(`${DR} .drawer__footer [data-rpt-drawer-close]`); await h.wait(300); };
+    const openCol = (id) => async (h) => { await h.click(`${C} [data-rpt-col="${id}"] .e-permits-stack__title`); await h.find(`${DR} #rpt-c-name-ro`); };
+    const saveCol = async (h) => { await h.click(`${DR} [data-rpt-col-save]`); await h.wait(300); };
+    const header = (id, text, total) => seq(openCol(id), async (h) => { await h.fill("#rpt-c-header", text, { leave: false }); if (total) await h.click(`${DR} #rpt-c-total input[value="${total}"]`); }, saveCol);
+    const rename = (id, text) => seq(openCol(id), async (h) => { await h.fill("#rpt-c-name-ro", text, { leave: false }); }, saveCol);
+    const numeric = (id) => seq(openCol(id), async (h) => { await h.choose(`${DR} select[data-rpt-col-field="dataType"]`, "numeric"); }, saveCol);
+    /* step 2 with source columns: Serviciu · Depuse · Finalizate · în termen (numeric counts) */
+    const cols = seq(dict, addF("serviciu", "depus", "finalizat", "inTermen"), done, numeric("c2"), numeric("c3"), numeric("c4"), rename("c2", "Depuse"), rename("c3", "Finalizate"), rename("c4", "în termen"));
+    const twoLevel = seq(header("c2", "Dosare"), header("c3", "Dosare"), header("c4", "Dosare", "incl"));
+    const calc = seq(async (h) => { await h.click(`${C} [data-rpt-add="calc"]`); await h.find(`${DR} #rpt-c-name-ro`); }, async (h) => { await h.choose(`${DR} select[data-rpt-col-field="formula"]`, "f-pct"); await h.fill("#rpt-c-name-ro", "Finalizate în termen, %", { leave: false }); await h.choose(`${DR} select[data-rpt-col-op="A"]`, "c4"); await h.choose(`${DR} select[data-rpt-col-op="B"]`, "c3"); });
+    const built = seq(nou, step1, next, cols, twoLevel, calc, saveCol);
+    /* + „Autoritate” (c6) moved to the first place: the column the rows are grouped by */
+    const byAuth = seq(dict, addF("autoritate"), done, ...[1, 2, 3, 4, 5].map(() => async (h) => { await h.click(`${C} [data-rpt-col-move="c6|-1"]`); }));
+    return {
+      /* US-467 — list (grouped by category), search, filters, empty, row menu */
+      "rpt-01": list(),
+      "rpt-01a": list(null, null, AUTH),
+      "rpt-01b": list(async (h) => { await h.fill("[data-workplace-search]", "dosare"); await h.wait(300); }),
+      "rpt-01c": list(async (h) => { await h.fill("[data-workplace-search]", "zzz"); await h.wait(300); }),
+      "rpt-01d": list(async (h) => {
+        window.GEAPShellApi.setRegistryFilters("rapoarte", { categorie: ["Rapoarte statistice"] });
+        document.querySelector('[data-nav-item][data-nav-id="rapoarte"]').click(); await h.wait(700);
+        const bar = document.querySelector("[data-workplace-filters]");
+        const toggle = document.querySelector("[data-workplace-filter-toggle]");
+        if (bar?.hidden && toggle && toggle.getClientRects().length && !toggle.classList.contains("e-permits-filter-trigger--icon")) { toggle.click(); await h.wait(400); }
+      }),
+      "rpt-01e": list(null, { raport: "gol" }),
+      "rpt-01f": list(MENU("RPT-0001")),
+      /* Feature AC — the menu only with „Gestionarea rapoartelor” */
+      "rpt-02": { flow: "back-office", as: SPEC, hash: "#rapoarte", ready: "[data-reg-page]:not([hidden]) .e-permits-empty", delay: 900 },
+      "rpt-02a": { flow: "back-office", as: ADMIN, hash: "#rapoarte", params: { raport: "fara-permisiune" }, ready: "[data-reg-page]:not([hidden]) .e-permits-empty", delay: 900 },
+      /* US-466 — create: 1 Date generale */
+      "rpt-03": list(nou),
+      "rpt-03a": list(seq(nou, next)),
+      "rpt-03b": list(seq(nou, step1, langs, async (h) => { await h.click(`${C} .e-permits-wid-type:has(input[value="Autoritate"])`); await h.click(`${C} [data-rpt-auth="ansp"]`); await h.click(`${C} [data-rpt-auth="ansa"]`); }, at("#rpt-e-authorities"))),
+      "rpt-03c": list(seq(nou, step1), null, AUTH),
+      /* 2 Coloane: empty, the dictionary panel, source columns, a column panel, the calculated column + formula picker,
+         the two-level header with an „Inclusiv” column, a manual column, column errors, „Formulă nouă” */
+      "rpt-03d": list(seq(nou, step1, next)),
+      "rpt-03e": list(seq(nou, step1, next, dict)),
+      "rpt-03f": list(seq(nou, step1, next, dict, addF("serviciu", "depus", "finalizat"), done)),
+      "rpt-03g": list(seq(nou, step1, next, cols, openCol("c4"), async (h) => { await h.fill("#rpt-c-header", "Dosare", { leave: false }); await h.click(`${DR} #rpt-c-total input[value="incl"]`); })),
+      "rpt-03h": list(seq(nou, step1, next, cols, twoLevel, calc)),
+      "rpt-03i": list(seq(built, at("[data-rpt-preview]"))),
+      "rpt-03j": list(seq(built, async (h) => { await h.click(`${C} [data-rpt-add="manual"]`); await h.fill("#rpt-c-name-ro", "Corecții raportate", { leave: false }); }, saveCol)),
+      "rpt-03k": list(seq(nou, step1, next, async (h) => { await h.click(`${C} [data-rpt-add="calc"]`); await h.find(`${DR} #rpt-c-name-ro`); await h.click(`${DR} [data-rpt-col-save]`); })),
+      "rpt-03l": list(seq(built, async (h) => { await h.click(`${C} [data-rpt-col-remove="c3"]`); await h.click("#service-confirm-modal.is-active [data-service-confirm-ok]"); await h.wait(300); }, next)),
+      "rpt-03m": list(seq(nou, step1, next, async (h) => { await h.click(`${C} [data-rpt-add="calc"]`); await h.find(`${DR} #rpt-c-name-ro`); await h.click(`${DR} [data-rpt-formula-new]`); await h.find("#rpt-fx-name"); })),
+      "rpt-03n": list(seq(nou, step1, next, async (h) => { await h.click(`${C} [data-rpt-add="calc"]`); await h.find(`${DR} #rpt-c-name-ro`); await h.click(`${DR} [data-rpt-formula-new]`); await h.find("#rpt-fx-name"); await h.click("[data-rpt-fx-confirm]"); })),
+      /* 3 Structură: grouping + subtotals, filters, total row; a filter error */
+      "rpt-03o": list(seq(built, byAuth, next, async (h) => { await h.choose(`${C} select[data-rpt-field="groupBy"]`, "c6"); await h.click(`${C} [data-rpt-filter-add]`); await h.choose(`${C} select[data-rpt-filter="0"][data-rpt-filter-part="field"]`, "depus"); await h.click(`${C} [data-rpt-filter-add]`); await h.choose(`${C} select[data-rpt-filter="1"][data-rpt-filter-part="field"]`, "statut"); await h.choose(`${C} select[data-rpt-filter="1"][data-rpt-filter-part="type"]`, "multi"); })),
+      "rpt-03p": list(seq(built, next, async (h) => { await h.click(`${C} [data-rpt-filter-add]`); }, next)),
+      /* 4 Revizuire; save the draft → the profile */
+      "rpt-03q": list(seq(built, byAuth, next, async (h) => { await h.choose(`${C} select[data-rpt-field="groupBy"]`, "c6"); }, next)),
+      "rpt-03r": list(seq(nou, step1, langs, next, cols, twoLevel, calc, saveCol, next, next, async (h) => { await h.click(`${C} [data-rpt-save]`); await h.find("#rpt-panel"); await h.wait(300); })),
+      "rpt-03s": list(seq(nou, step1, async (h) => { await h.click(`${C} [data-rpt-save]`); }), { raport: "eroare" }),
+      "rpt-03t": list(seq(nou, step1, async (h) => { await h.click(`${C} .e-permits-reg-editor__close`); await h.find("#service-confirm-modal.is-active [data-service-confirm-ok]"); })),
+      /* US-468 — the profile (Configurare editable + preview; Versiuni / Istoric minimal until part 2) */
+      "rpt-04": prof("RPT-0001"),
+      "rpt-04a": prof("RPT-0002"),
+      "rpt-04b": prof("RPT-0006"),
+      "rpt-04c": prof("RPT-0001", "configurare", null, null, AUTH),
+      "rpt-04d": prof("RPT-0003", "configurare", null, null, AUTH),
+      "rpt-04e": prof("RPT-0001", "versiuni"),
+      "rpt-04f": prof("RPT-0001", "istoric"),
+      "rpt-04g": prof("RPT-0001", "configurare", async (h) => { await h.fill("#rpt-e-name-ro", "Raport dosare finalizate pe serviciu și lună", { leave: false }); }),
+      "rpt-04h": prof("RPT-0002", "configurare", async (h) => { await h.click("#rpt-panel [data-rpt-zoom]"); await h.find("#case-action-modal.is-active .e-permits-rpt-table"); }),
+      "rpt-04i": prof("RPT-0002", "configurare", async (h) => { await h.click('#rpt-panel [data-rpt-col="c5"] .e-permits-stack__title'); await h.find(`${DR} #rpt-c-name-ro`); }),
+      "rpt-04j": prof("RPT-0004"),
+      "rpt-04k": prof("RPT-0007", "configurare", async (h) => { await h.scroll("#rpt-panel [data-rpt-preview]"); })
     };
   }
 

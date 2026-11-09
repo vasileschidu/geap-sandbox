@@ -14,6 +14,8 @@ const PAGE = arg("page", "e-permits-acte-permisive.html");
 const OUT = arg("out", path.join("tools/persona-test/out", new Date().toISOString().slice(0, 16).replace(/[:T]/g, "-")));
 const CHROME = arg("chrome", "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome");
 const HIDE = arg("hide", ".e-permits-fo-testcfg, .msup-bubble");
+// --wait <ms>: how long a state may run before „NOT READY” (long builder flows need more than the default 15 s)
+const WAIT = Number(arg("wait", 15000));
 const VIEWPORTS = [
   { name: "desktop", width: Number(arg("width", 1440)), height: 900, mobile: false, scale: 1 },
   { name: "mobile", width: 375, height: 812, mobile: true, scale: 2 },
@@ -75,7 +77,7 @@ for (const st of states) {
     await send("Emulation.setTouchEmulationEnabled", { enabled: vp.mobile });
     await send("Page.navigate", { url: `${BASE}/${PAGE}?state=${st}` });
     let ready = false;
-    for (let i = 0; i < 100 && !ready; i++) { await sleep(150); ready = !!(await evaluate("document.documentElement.dataset.demoState")); }
+    for (let i = 0; i < WAIT / 150 && !ready; i++) { await sleep(150); ready = !!(await evaluate("document.documentElement.dataset.demoState")); }
     await sleep(900);
     // no motion; prototype-only overlays (flow config tool, support greeting bubble) are hidden so they don't cover the screen
     await evaluate(`(() => { const s = document.getElementById("__pt") || document.head.appendChild(Object.assign(document.createElement("style"), { id: "__pt" })); s.textContent = "*,*::before,*::after{transition:none!important;animation:none!important;caret-color:transparent!important} ${HIDE}{display:none!important}"; })()`);
