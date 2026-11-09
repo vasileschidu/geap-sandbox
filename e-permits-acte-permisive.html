@@ -20,7 +20,7 @@
   <link rel="stylesheet" href="css/date-picker-views.css?v=dp-select-v1">
   <link rel="stylesheet" href="css/drawer.css?v=notif-drawer-v3">
   <link rel="stylesheet" href="css/notif-drawer.css?v=notif-drawer-v4">
-  <link rel="stylesheet" href="css/e-permits-acte-permisive.css?v=doc-tabs-gap-v1">
+  <link rel="stylesheet" href="css/e-permits-acte-permisive.css?v=fo-footer-row-v1">
   <link rel="stylesheet" href="css/doc-preview.css?v=sig-pinned-desktop-v1">
   <link rel="stylesheet" href="css/page-reveal.css?v=skeleton-v1">
   <link rel="stylesheet" href="msupport/msupport.css?v=20260925-anon">
@@ -38,7 +38,7 @@
   <!-- widget-v1: Administrare › Widgete (Feature 96501 „Configurarea widget-urilor”) -->
   <link rel="stylesheet" href="css/widget.css?v=pal-grid-fit">
   <!-- rpt-v1: Administrare › Rapoarte (Feature 96502 „Constructor de rapoarte”) -->
-  <link rel="stylesheet" href="css/rapoarte.css?v=rpt-v1">
+  <link rel="stylesheet" href="css/rapoarte.css?v=rpt-fix-v1">
   <!-- calendar-views-v3: „Listă / Calendar · Cronologie” switch (library segmented, compact) -->
   <link rel="stylesheet" href="css/view-switch.css?v=calendar-views-v9">
   <!-- absences-dist-v1: the Alert card (open dossiers after saving an absence) + the absences / distribution glue -->
@@ -73,7 +73,7 @@
   <script src="js/trajectory.js?v=trajectory-phone-even-v1"></script>
   <script src="js/event-timeline.js?v=widget-sheet-v1"></script>
   <script src="js/sticky-sections.js?v=sticky-sections-v1" defer></script>
-  <script src="js/demo-states.js?v=rpt-v1"></script>
+  <script src="js/demo-states.js?v=rpt-fix-v1"></script>
   <script src="js/demo-links.js?v=links-v4"></script>
   <script src="js/bo-context.js?v=copy-tu-v2"></script>
   <!-- the working-days engine (Administrare › Calendar), before the shell seeds the dossier deadlines; after
@@ -99,7 +99,7 @@
   <!-- the act row (FO #intent, Ghișeu, EVO Cabinet) — one renderer, before the FO script that uses it -->
   <script src="js/act-row.js?v=ghiseu-picker-toast-v1" defer></script>
   <script src="js/choice-cards.js?v=choice-cards-v7" defer></script>
-  <script src="js/e-permits-acte-permisive.js?v=copy-tu-v2" defer></script>
+  <script src="js/e-permits-acte-permisive.js?v=fo-footer-row-v1" defer></script>
   <!-- Form Builder (after the FO renderer it shares) -->
   <script src="js/form-builder.js?v=copy-tu-v2" defer></script>
   <script src="core/process-model.js?v=copy-tu-v2" defer></script>
@@ -113,7 +113,7 @@
   <script src="js/kpi-admin.js?v=copy-tu-v2" defer></script>
   <script src="js/widget-charts.js?v=chart-palette-v4" defer></script>
   <script src="js/widget-admin.js?v=copy-tu-v2" defer></script>
-  <script src="js/rapoarte-admin.js?v=rpt-v1" defer></script>
+  <script src="js/rapoarte-admin.js?v=rpt-fix-v1" defer></script>
   <script src="js/alert-card.js?v=act-alert-card-v2" defer></script>
   <script src="js/absences.js?v=copy-tu-v2" defer></script>
   <script src="js/autoritati.js?v=copy-tu-v2" defer></script>
@@ -1686,7 +1686,7 @@
 
               <footer class="e-permits-fo-form__footer e-permits-fo-form__footer--actions-only">
                 <div class="e-permits-fo-form__actions e-permits-fo-form__actions--with-draft">
-                  <button class="btn btn-text-neutral e-permits-fo-draft-button" type="button">
+                  <button class="btn btn-text-neutral e-permits-fo-draft-button" type="button" aria-label="Salvează ca schiță">
                     <svg class="icon e-permits-fo-draft-button__icon" width="20" height="20" aria-hidden="true">
                       <use href="assets/icons/sprite.svg?v=draft-icons-v1#icon-cloud-upload-draft"></use>
                     </svg>
@@ -1810,7 +1810,7 @@
 
               <footer class="e-permits-fo-form__footer e-permits-fo-form__footer--actions-only">
                 <div class="e-permits-fo-form__actions e-permits-fo-form__actions--with-draft">
-                  <button class="btn btn-text-neutral e-permits-fo-draft-button" type="button">
+                  <button class="btn btn-text-neutral e-permits-fo-draft-button" type="button" aria-label="Salvează ca schiță">
                     <svg class="icon e-permits-fo-draft-button__icon" width="20" height="20" aria-hidden="true">
                       <use href="assets/icons/sprite.svg?v=draft-icons-v1#icon-cloud-upload-draft"></use>
                     </svg>
@@ -1884,7 +1884,7 @@
 
               <footer class="e-permits-fo-form__footer e-permits-fo-form__footer--actions-only e-permits-fo-delivery__footer">
                 <div class="e-permits-fo-form__actions e-permits-fo-form__actions--with-draft">
-                  <button class="btn btn-text-neutral e-permits-fo-draft-button" type="button">
+                  <button class="btn btn-text-neutral e-permits-fo-draft-button" type="button" aria-label="Salvează ca schiță">
                     <svg class="icon e-permits-fo-draft-button__icon" width="20" height="20" aria-hidden="true">
                       <use href="assets/icons/sprite.svg?v=draft-icons-v1#icon-cloud-upload-draft"></use>
                     </svg>
@@ -3623,7 +3623,7 @@
   <script src="js/facet-filter.js?v=copy-tu-v2"></script>
   <script src="js/sort-sheet.js?v=row-ctl-v5"></script>
   <script src="js/act-view.js?v=copy-tu-v2"></script>
-  <script src="js/e-permits-shell.js?v=copy-tu-v2"></script>
+  <script src="js/e-permits-shell.js?v=menu-align-v1"></script>
 
   <!-- Instance switch warning modal -->
   <div class="e-permits-fo-instance-switch-modal" data-fo-instance-switch-modal hidden aria-modal="true" role="dialog" aria-labelledby="fo-instance-switch-title" aria-describedby="fo-instance-switch-description">

@@ -229,7 +229,7 @@
       return `
         <footer class="e-permits-fo-form__footer e-permits-fo-form__footer--actions-only">
           <div class="e-permits-fo-form__actions${draftAttrs ? " e-permits-fo-form__actions--with-draft" : ""}">
-            ${draftAttrs ? `<button class="btn btn-text-neutral e-permits-fo-draft-button" type="button" ${draftAttrs}>
+            ${draftAttrs ? `<button class="btn btn-text-neutral e-permits-fo-draft-button" type="button" aria-label="Salvează ca schiță" ${draftAttrs}>
               <svg class="icon e-permits-fo-draft-button__icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg?v=draft-icons-v1#icon-cloud-upload-draft"></use></svg>
               <span>Salvează ca schiță</span>
             </button>` : ""}
@@ -2967,7 +2967,7 @@
         `;}).join("")}
         <footer class="e-permits-fo-form__footer e-permits-fo-form__footer--actions-only">
           <div class="e-permits-fo-form__actions e-permits-fo-form__actions--with-draft">
-            <button class="btn btn-text-neutral e-permits-fo-draft-button" type="button">
+            <button class="btn btn-text-neutral e-permits-fo-draft-button" type="button" aria-label="Salvează ca schiță">
               <svg class="icon e-permits-fo-draft-button__icon" width="20" height="20" aria-hidden="true">
                       <use href="assets/icons/sprite.svg?v=draft-icons-v1#icon-cloud-upload-draft"></use>
                     </svg>
@@ -3113,7 +3113,7 @@
         </section>
         <footer class="e-permits-fo-form__footer e-permits-fo-form__footer--actions-only">
           <div class="e-permits-fo-form__actions e-permits-fo-form__actions--with-draft">
-            <button class="btn btn-text-neutral e-permits-fo-draft-button" type="button">
+            <button class="btn btn-text-neutral e-permits-fo-draft-button" type="button" aria-label="Salvează ca schiță">
               <svg class="icon e-permits-fo-draft-button__icon" width="20" height="20" aria-hidden="true">
                       <use href="assets/icons/sprite.svg?v=draft-icons-v1#icon-cloud-upload-draft"></use>
                     </svg>
@@ -6337,7 +6337,7 @@
       return `
         <footer class="e-permits-fo-form__footer e-permits-fo-form__footer--actions-only">
           <div class="e-permits-fo-form__actions e-permits-fo-form__actions--with-draft">
-            <button class="btn btn-text-neutral e-permits-fo-draft-button" type="button">
+            <button class="btn btn-text-neutral e-permits-fo-draft-button" type="button" aria-label="Salvează ca schiță">
               <svg class="icon e-permits-fo-draft-button__icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg?v=draft-icons-v1#icon-cloud-upload-draft"></use></svg>
               <span>Salvează ca schiță</span>
             </button>
@@ -8647,7 +8647,7 @@
       if (footer) {
         footer.innerHTML = `
           <div class="e-permits-fo-form__actions e-permits-fo-form__actions--confirmation">
-            <button class="btn btn-text-neutral e-permits-fo-draft-button" type="button">
+            <button class="btn btn-text-neutral e-permits-fo-draft-button" type="button" aria-label="Salvează ca schiță">
               <svg class="icon e-permits-fo-draft-button__icon" width="20" height="20" aria-hidden="true">
                       <use href="assets/icons/sprite.svg?v=draft-icons-v1#icon-cloud-upload-draft"></use>
                     </svg>

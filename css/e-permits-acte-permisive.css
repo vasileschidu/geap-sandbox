@@ -15447,6 +15447,28 @@ a.e-permits-fo-lib-item__title:is(:hover, :focus) {
 }
 
 @media (max-width: 760px) {
+  /* FO step footer (fo-footer-one-row-v1): „Salvează ca schiță” = library icon-only Large (48 square, icon 20 = Large rule, grey
+     hover) on phones — the label is hidden (aria-label + library tooltip name it), so the draft button, back and
+     „Înainte” share ONE row */
+  .e-permits-fo-draft-button.btn {
+    flex: 0 0 var(--spacing-48, 48px);
+    gap: 0;
+    height: var(--spacing-48, 48px);
+    justify-content: center;
+    padding: 0;
+    width: var(--spacing-48, 48px);
+  }
+
+  .e-permits-fo-draft-button.btn > span {
+    display: none;
+  }
+
+  .e-permits-fo-form__actions--with-draft > .e-permits-fo-form__actions-primary {
+    flex: 1 1 auto;
+    justify-content: flex-end;
+    min-width: 0;
+  }
+
   /* „Caută adresa” (product search input, size Large here): FO mobile fields are 48 / 16px */
   .e-permits-fo-cascade-address__search.e-permits-workplace__search,
   .e-permits-fo-cadastral-search.e-permits-workplace__search {
@@ -15476,9 +15498,14 @@ a.e-permits-fo-lib-item__title:is(:hover, :focus) {
 
   /* audit-fix-v2: „Salvează ca schiță” (library text button) keeps one line; when it and the step navigation do
      not fit on one line, the navigation moves to its own row on the right (row gap 12) */
-  .e-permits-fo-form__actions:is(.e-permits-fo-form__actions--with-draft, .e-permits-fo-form__actions--confirmation) {
+  .e-permits-fo-form__actions.e-permits-fo-form__actions--confirmation {
     flex-wrap: wrap;
     row-gap: var(--spacing-12, 12px);
+  }
+
+  /* fo-footer-one-row-v1: with the draft button icon-only the footer is always ONE row */
+  .e-permits-fo-form__actions--with-draft .e-permits-fo-next {
+    width: auto;
   }
 
   .e-permits-fo-draft-button.btn {
