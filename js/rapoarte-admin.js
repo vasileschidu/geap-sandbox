@@ -416,15 +416,30 @@
     const total = v.totalRow && cols.some(isMeasure) ? aggregateRows(v, blocks.flatMap((b) => b.rows)) : null;
     return { groupCol, blocks, total };
   }
+  /* group edges (rpt-group-edges-v1, 2026-11-09, user: „another separator, full, also vertical ones”; Excel / Sheets /
+     Ant Design / MUI grouped headers): a 1px solid vertical at the left of a group's first column and of the first column
+     after it (and at the right of a group that ends the table) — header (both rows) + body + subtotal + total; none between
+     the columns of a group or between ungrouped columns. → per column index: [left edge, right edge] */
+  function groupEdges(cols) {
+    const h = (c) => String(c?.header || "").trim();
+    return cols.map((c, i) => {
+      const prev = cols[i - 1];
+      const left = i > 0 && h(c) !== h(prev) && Boolean(h(c) || h(prev));
+      const right = i === cols.length - 1 && Boolean(h(c));
+      return [left, right];
+    });
+  }
+  const edgeCls = (edges, i) => [edges[i]?.[0] ? "is-gl" : "", edges[i]?.[1] ? "is-gr" : ""].filter(Boolean);
   /* the head: a common header (Antetul comun) spans its consecutive columns on row 1; the others span both rows */
   function headHtml(v) {
     const cols = v.columns;
+    const edges = groupEdges(cols);
     const two = cols.some((c) => String(c.header || "").trim());
     const cellBody = (c) => {
       const incl = c.total === "incl" && isMeasure(c);
       return `<span class="e-permits-workplace__th-content e-permits-rpt-table__th"><span class="e-permits-rpt-table__th-text">${incl ? '<span class="e-permits-rpt-table__eyebrow">inclusiv</span>' : ""}<span>${esc(colName(c))}</span></span>${c.kind === "manual" ? tag("Manual", "warning") : ""}</span>`;
     };
-    const thCls = (c, extra = "") => { const cls = [isMeasure(c) ? "e-permits-wid-table__num" : "e-permits-rpt-table__text-head", c.total === "incl" && isMeasure(c) ? "is-incl" : "", extra].filter(Boolean).join(" "); return cls ? ` class="${cls}"` : ""; };
+    const thCls = (c, extra = "") => { const i = cols.indexOf(c); const cls = [isMeasure(c) ? "e-permits-wid-table__num" : "e-permits-rpt-table__text-head", c.total === "incl" && isMeasure(c) ? "is-incl" : "", ...edgeCls(edges, i), extra].filter(Boolean).join(" "); return cls ? ` class="${cls}"` : ""; };
     if (!two) return `<tr>${cols.map((c) => `<th scope="col"${thCls(c)}>${cellBody(c)}</th>`).join("")}</tr>`;
     const top = [];
     const bottom = [];
@@ -432,18 +447,19 @@
       const h = String(c.header || "").trim();
       if (!h) { top.push(`<th scope="col" rowspan="2"${thCls(c)}>${cellBody(c)}</th>`); return; }
       const prev = cols[i - 1];
-      if (prev && String(prev.header || "").trim() === h && top.length) top[top.length - 1] = top[top.length - 1].replace(/colspan="(\d+)"/, (m, n) => `colspan="${Number(n) + 1}"`);
-      else top.push(`<th scope="colgroup" colspan="1" class="e-permits-rpt-table__span"><span class="e-permits-workplace__th-content"><span>${esc(h)}</span></span></th>`);
+      if (prev && String(prev.header || "").trim() === h && top.length) top[top.length - 1] = top[top.length - 1].replace(/colspan="(\d+)"/, (m, n) => `colspan="${Number(n) + 1}"`).replace(/ data-last/, i === cols.length - 1 ? " is-gr data-last" : " data-last");
+      else top.push(`<th scope="colgroup" colspan="1" class="e-permits-rpt-table__span${edges[i][0] ? " is-gl" : ""}${i === cols.length - 1 ? " is-gr" : ""} data-last"><span class="e-permits-workplace__th-content"><span>${esc(h)}</span></span></th>`);
       bottom.push(`<th scope="col"${thCls(c, "e-permits-rpt-table__sub")}>${cellBody(c)}</th>`);
     });
-    return `<tr>${top.join("")}</tr><tr>${bottom.join("")}</tr>`;
+    return `<tr>${top.map((x) => x.replace(" data-last", "")).join("")}</tr><tr>${bottom.join("")}</tr>`;
   }
   function tableHtml(v) {
     const m = previewModel(v);
     const cols = v.columns;
     const labelCol = cols.find((c) => !isMeasure(c));
+    const edges = groupEdges(cols);
     const cell = (c, vals, { label: lbl = "" } = {}) => {
-      const cls = [isMeasure(c) ? "" : "e-permits-rpt-table__text", c.total === "incl" && isMeasure(c) ? "is-incl" : "", c.kind === "manual" ? "is-manual" : ""].filter(Boolean).join(" ");
+      const cls = [isMeasure(c) ? "" : "e-permits-rpt-table__text", c.total === "incl" && isMeasure(c) ? "is-incl" : "", c.kind === "manual" ? "is-manual" : "", ...edgeCls(edges, cols.indexOf(c))].filter(Boolean).join(" ");
       const content = lbl && c === labelCol ? `<strong>${esc(lbl)}</strong>` : lbl && !isMeasure(c) ? "" : fmtCell(v, c, vals?.[c.id]);
       return `<td${cls ? ` class="${cls}"` : ""}>${content}</td>`;
     };

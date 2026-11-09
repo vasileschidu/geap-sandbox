@@ -272,7 +272,20 @@
   border-left: var(--border-width-1, 1px) dashed var(--color-border-base-default, #d9d9d9);
 }
 
-/* the common header (level 1) spans its columns, centred, with the divider under it (inside the grey band) */
+/* group edges (rpt-group-edges-v1, 2026-11-09, user; Excel / Google Sheets / Ant Design / MUI grouped headers): a solid 1px
+   vertical at each group boundary — the left of a group's first column and of the first column after it, the right of a
+   group that ends the table — through both header rows, the body, the subtotals and the total; none inside a group or
+   between ungrouped columns. A boundary on an „inclusiv” column replaces its dashed divider (solid = group, dashed =
+   „din care” inside a group). The full-width group label rows („Autoritate: ANSP”) are section breaks: no vertical. */
+.e-permits-workplace__table.e-permits-rpt-table :is(th, td).is-gl {
+  border-left: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
+}
+
+.e-permits-workplace__table.e-permits-rpt-table :is(th, td).is-gr {
+  border-right: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
+}
+
+/* the common header (level 1) spans its columns, centred, with the full-width divider under it (inside the grey band) */
 .e-permits-workplace__table.e-permits-rpt-table thead th.e-permits-rpt-table__span {
   border-bottom: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
   text-align: center;
@@ -317,11 +330,6 @@
   background: var(--color-background-base-default, #fff);
   color: var(--color-text-base-default, #121212);
   font-weight: var(--font-weight-fw-medium, 500);
-}
-
-/* a table without a total row (Acces) keeps the RAP divider under its last row (rap-table-flat-v1) */
-.e-permits-workplace__table.e-permits-rpt-table:not(:has(tfoot)) tbody tr:last-child > td {
-  border-bottom: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
 }
 
 /* the total closes the table: the stronger line above, the RAP divider under it (as the RAP last row) */

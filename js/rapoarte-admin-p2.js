@@ -10,8 +10,7 @@
        rpt-restore · rpt-version · rpt-grant); the changes = the widget „Modificări (N)” stacked list (`.e-permits-wid-changes`
        + `.e-permits-event-diff`); „Ce s-a schimbat” = the library textarea, required;
      · Versiuni / Istoric = `GEAPEventTimeline` (an entry opens its version window / its unique-journal record);
-     · Acces = the Registre access tab (`.e-permits-reg-access` + `.e-permits-reg-table__table--access`) in the RAP flat
-       table look of the preview (`.e-permits-rpt-table-wrap` + `.e-permits-rpt-table`), lone grey trash → askConfirm, the grant dialog = the Registre „Acordă acces” form (Autoritate optional, roles = renderCheckOption);
+     · Acces = the shell stacked list (one item per grant, „Revocă” red → askConfirm) + the boxed empty state, the grant dialog = the Registre „Acordă acces” form (Autoritate optional, roles = renderCheckOption);
      · Dezactivează (red by label) / Activează = the widget status pair, askConfirm destructive for Dezactivează.
    Interpretations (components.md › Rapoarte › Open for PO / BA): a grant without authority = every authority of the
    report (all authorities for a Global one); a copy does not take the source's access grants or versions; a local user
@@ -274,44 +273,38 @@
      ca la registre”; „o acordare fără autoritate dă acces în toate autoritățile”) — the Registre access tab */
   const canGrant = (r) => R().canEdit(r);
   const allAuthText = (r) => (r.config.level === "Global" ? "Toate autoritățile" : "Toate autoritățile raportului");
+  /* rpt-access-stack-v1 (2026-11-09, user): the grants = the shell stacked list (as BO Utilizatori / Servicii), not a table —
+     one item per grant: title = the role, Small tag = the authority (or „Toate autoritățile”), meta = „Acordat de … ·
+     8 iulie 2026, 10:05”, the lone destructive action „Revocă” (outline red); empty = the boxed empty state + „Acordă acces” */
   function accessTab(r) {
     const list = activeGrants(r);
-    const add = canGrant(r) ? `<button class="btn btn-secondary btn-sm" type="button" data-rpt-grant>${icon("plus-large", 16)}<span>Acordă acces</span></button>` : "";
-    const rows = list.map((g) => `
-      <tr>
-        <td><span data-cell-tooltip="${esc(roleLabel(g.role))}">${esc(roleLabel(g.role))}</span></td>
-        <td>${g.authority ? `<span data-tooltip-text="${esc(authLong(g.authority))}">${esc(R().authName(g.authority))}</span>` : esc(allAuthText(r))}</td>
-        <td>${A().renderDateTime?.(g.at) || esc(`${longDate(g.at)}, ${time(g.at)}`)}</td>
-        <td><span data-cell-tooltip="${esc(g.by)}">${esc(g.by)}</span></td>
-        <td class="e-permits-reg-table__action">${canGrant(r) ? `<button class="btn btn-neutral btn-sm btn-icon-only" type="button" aria-label="Retrage accesul: ${esc(roleLabel(g.role))}, ${esc(g.authority ? R().authName(g.authority) : allAuthText(r).toLocaleLowerCase("ro"))}" data-tooltip-label="Retrage accesul" data-rpt-revoke="${esc(g.id)}">${icon("delete", 16)}</button>` : ""}</td>
-      </tr>`).join("");
+    const manage = canGrant(r);
+    const add = manage ? `<button class="btn btn-secondary btn-sm" type="button" data-rpt-grant>${icon("plus-large", 16)}<span>Acordă acces</span></button>` : "";
     const note = [
       "Accesul intră în vigoare imediat și nu face parte din versiunea raportului. Un rol fără autoritate are acces în toate autoritățile raportului.",
       r.status === "Ciornă" ? " Raportul apare în meniul «Rapoarte» al acestor roluri după prima publicare." : "",
       r.status === "Dezactivat" ? " Raportul este dezactivat: nu apare în meniu nici pentru rolurile cu acces." : "",
-      !canGrant(r) ? " Accesul la acest raport îl gestionează Administratorul central." : ""
+      !manage ? " Accesul la acest raport îl gestionează Administratorul central." : ""
     ].join("");
+    const items = list.map((g) => {
+      const where = g.authority ? R().authName(g.authority) : allAuthText(r);
+      return {
+        plainTitle: `${roleLabel(g.role)} · ${where}`,
+        title: esc(roleLabel(g.role)),
+        badges: [window.GEAPTag?.html(where, g.authority ? "brand" : "neutral") || esc(where)],
+        meta: [esc(`Acordat de ${g.by}`), esc(`${longDate(g.at)}, ${time(g.at)}`)],
+        ...(manage ? { action: { label: "Revocă", attrs: `aria-label="Revocă accesul: ${esc(roleLabel(g.role))}, ${esc(where)}" data-rpt-revoke="${esc(g.id)}"` } } : {})
+      };
+    });
     return `
-      <section class="e-permits-dosar-profil__section e-permits-stack-section">
-        <div class="e-permits-dosar-profil__section-heading">
-          <h2 class="e-permits-dosar-profil__section-title">Acces</h2>
-          <div class="e-permits-passport__heading-tools">
-            <span class="e-permits-dosar-profil__section-meta">${esc(plural(list.length, "acordare", "acordări"))}</span>
-            ${list.length ? add : ""}
-          </div>
-        </div>
-        <div class="e-permits-reg-access">
-          ${U().renderInfoNote?.(note) || ""}
-          ${list.length ? `
-            <div class="e-permits-workplace__table-wrap e-permits-rpt-table-wrap">
-              <table class="e-permits-workplace__table e-permits-reg-table__table e-permits-reg-table__table--access e-permits-rpt-table">
-                <caption class="u-visually-hidden">Acordările de acces ale raportului ${esc(nameOf(r))}</caption>
-                <thead><tr><th scope="col">Rol</th><th scope="col">Autoritate</th><th scope="col">Acordat la</th><th scope="col">Acordat de</th><th scope="col"><span class="u-visually-hidden">Acțiuni</span></th></tr></thead>
-                <tbody>${rows}</tbody>
-              </table>
-            </div>` : window.GEAPEmptyState?.render({ title: "Niciun rol nu are acces", text: "Raportul nu apare în meniul «Rapoarte» al utilizatorilor până nu acorzi acces cel puțin unui rol.", icon: "lock", compact: true, actionHtml: add }) || ""}
-        </div>
-      </section>`;
+      <div class="e-permits-reg-notices">${U().renderInfoNote?.(note) || ""}</div>
+      ${A().renderStackedList?.("Acces", [{ label: "", items }], {
+        meta: list.length ? plural(list.length, "acordare", "acordări") : "",
+        actionHtml: add,
+        empty: "Niciun rol nu are acces. Raportul nu apare în meniul «Rapoarte» al utilizatorilor până nu acorzi acces cel puțin unui rol.",
+        icon: "lock",
+        className: "e-permits-rpt-access"
+      }) || ""}`;
   }
   /* „Acordă acces” = the Registre grant form in the library dialog: Autoritate (optional; fixed for a local user) + roles */
   const GR = { id: null, authority: "", roles: [] };
@@ -389,15 +382,15 @@
     if (!g || !canGrant(r)) return;
     const where = g.authority ? R().authName(g.authority) : allAuthText(r).toLocaleLowerCase("ro");
     U().askConfirm?.({
-      title: `Retragi accesul rolului „${roleLabel(g.role)}”?`,
+      title: `Revoci accesul rolului „${roleLabel(g.role)}”?`,
       text: `Rolul „${roleLabel(g.role)}” (${where}) nu mai vede raportul „${nameOf(r)}” în meniul «Rapoarte». Rapoartele generate deja nu se modifică.`,
-      confirmLabel: "Retrage accesul",
+      confirmLabel: "Revocă",
       destructive: true
     }, () => {
       g.revokedAt = nowIso(); g.revokedBy = userName();
       R().audit(r, "revoke", `${roleLabel(g.role)} · ${g.authority ? R().authName(g.authority) : allAuthText(r)}`);
       R().rerender();
-      toast(`Accesul rolului „${roleLabel(g.role)}” a fost retras.`);
+      toast(`Accesul rolului „${roleLabel(g.role)}” a fost revocat.`);
     });
   }
 
