@@ -86,7 +86,7 @@
         "primary": "autoritate", "secondary": "serviciu", "dateGroup": "", "order": "valueDesc",
         "filter": { "logic": "and", "rules": [{ "column": "inTermen", "op": "is", "value": "Nu" }] },
         "compare": "prevWeek", "format": "number", "threshold": { "on": false, "value": "", "below": "warning" },
-        "width": "half", "height": "medium", "drill": true, "visibility": "authority"
+        "width": "half", "height": "medium", "drill": true, "visibility": "authority", "palette": "violet"
       },
       "versions": [
         { "nr": 1, "version": 1, "type": "Prima publicare", "note": "Dosarele întârziate, pe servicii.", "at": "2026-10-06T09:12:00", "by": "Anastasia Cojocaru" }
@@ -106,7 +106,7 @@
         "primary": "autoritate", "secondary": "depus", "dateGroup": "month", "order": "source",
         "filter": { "logic": "and", "rules": [] },
         "compare": "", "format": "number", "threshold": { "on": false, "value": "", "below": "warning" },
-        "width": "full", "height": "medium", "drill": true, "visibility": "global"
+        "width": "full", "height": "medium", "drill": true, "visibility": "global", "palette": "mixed"
       },
       "versions": [
         { "nr": 1, "version": 1, "type": "Prima publicare", "note": "Harta de căldură a depunerilor.", "at": "2026-10-09T11:40:00", "by": "Anastasia Cojocaru" }
@@ -164,7 +164,7 @@
         "primary": "serviciu", "secondary": "statut", "dateGroup": "", "order": "valueDesc",
         "filter": { "logic": "and", "rules": [] },
         "compare": "prevQuarter", "format": "number", "threshold": { "on": false, "value": "", "below": "warning" },
-        "width": "full", "height": "large", "drill": true, "visibility": "authority"
+        "width": "full", "height": "large", "drill": true, "visibility": "authority", "palette": "indigo"
       },
       "versions": [
         { "nr": 1, "version": 1, "type": "Prima publicare", "note": "Tabel agregat pe servicii.", "at": "2026-09-21T09:00:00", "by": "Anastasia Cojocaru",

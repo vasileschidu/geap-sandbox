@@ -103,6 +103,13 @@
     ["global", "Global", "Toate datele, din toate autoritățile."]
   ];
   const BELOW = [["warning", "Portocaliu (avertizare)"], ["danger", "Roșu (critic)"]];
+  /* „Culori” (chart-palette-v2, 2026-11-09, user: the admin chooses the graph colours from a limited, brand-harmonious
+     range, one palette per widget) — the class `.e-permits-wid--pal-<key>` on the card re-defines series s1…s5 + the heat
+     ramp (css/widget.css); s6 „Altele” and the KPI zones never change */
+  const PALETTES = [["blue", "Albastru (implicită)"], ["indigo", "Indigo"], ["violet", "Violet"], ["sky", "Cer"], ["mixed", "Mixt"], ["neutral", "Neutru"]];
+  const palKey = (v) => (PALETTES.some(([k]) => k === v?.palette) ? v.palette : "blue");
+  const swatches = (key) => `<span class="e-permits-wid-pal e-permits-wid--pal-${key}" aria-hidden="true">${[1, 2, 3, 4, 5].map((n) => `<span class="e-permits-wid-pal__swatch e-permits-wid-s${n}"></span>`).join("")}</span>`;
+  const isPhone = () => Boolean(window.matchMedia?.("(max-width: 760px)").matches);
   const OPS = [["is", "este"], ["isNot", "nu este"], ["contains", "conține"], ["empty", "este gol"], ["notEmpty", "are valoare"]];
   const NO_VALUE = ["empty", "notEmpty"];
   const NUMERIC = ["number", "duration", "amount"];
@@ -143,7 +150,7 @@
     if (demo.has("incarcare")) return new Promise(() => {});
     if (!S.loading) {
       S.loading = Promise.all([
-        fetch("data/widgets.json?v=widget-v3").then((r) => r.json()),
+        fetch("data/widgets.json?v=widget-v4").then((r) => r.json()),
         K().load ? K().load() : Promise.resolve(null)
       ]).then(([json]) => {
         if (demo.has("gol")) json.widgets = [];
@@ -151,6 +158,8 @@
           w.offFor = w.offFor || [];
           w.history = w.history || [];
           w.versions = (w.versions || []).map((v) => ({ ...v, config: v.config || clone(w.config) }));
+          /* a configuration saved before „Culori” reads as the default palette */
+          [w.config, ...w.versions.map((v) => v.config)].forEach((c) => { c.palette = palKey(c); });
         });
         S.data = json;
         return json;
@@ -197,7 +206,7 @@
   const blankConfig = () => ({
     titles: { ro: "", ru: "", en: "" }, subtitles: { ro: "", ru: "", en: "" }, source: "", type: "", kpi: "", measure: "count", column: "",
     primary: "", secondary: "", dateGroup: "", order: "source", filter: { logic: "and", rules: [] }, compare: "",
-    format: "number", threshold: { on: false, value: "", below: "warning" }, width: "half", height: "medium", drill: true, visibility: defaultVis()
+    format: "number", threshold: { on: false, value: "", below: "warning" }, width: "half", height: "medium", palette: "blue", drill: true, visibility: defaultVis()
   });
   const dateCols = (src) => fieldsOf(src).filter((f) => f.type === "date");
   const catCols = (src) => fieldsOf(src).filter((f) => f.type === "enum" || f.type === "date");
@@ -474,7 +483,7 @@
       ].filter(Boolean);
       if (foot.length && !compact) body += `<p class="e-permits-wid-card__foot">${foot.map(esc).join(" · ")}</p>`;
     }
-    return `<article class="e-permits-chart e-permits-wid-card${compact ? "" : ` e-permits-wid-card--${v.width || "full"}`}" aria-label="Previzualizarea widget-ului ${esc(title)}">${head}<div class="e-permits-wid-card__body" aria-live="polite">${body}</div></article>`;
+    return `<article class="e-permits-chart e-permits-wid-card e-permits-wid--pal-${palKey(v)}${compact ? "" : ` e-permits-wid-card--${v.width || "full"}`}" aria-label="Previzualizarea widget-ului ${esc(title)}">${head}<div class="e-permits-wid-card__body" aria-live="polite">${body}</div></article>`;
   }
   /* the preview block (the ntpl preview aside): heading row „Previzualizare” + meta line (perimeter · data · size ·
      area) | „Actualizează” (secondary Small) + „Mărește” (icon-only); „Previzualizează ca” = the library segmented control
@@ -657,11 +666,20 @@
     const look = k
       ? full(U().renderInfoNote?.(`Formatul și pragurile vin din KPI-ul <strong>${esc(k.names.ro)}</strong>: verde favorabil, portocaliu la apropierea de țintă, roșu după depășirea ei.`) || "")
       : `${selectField(`${idp}-format`, "format", "Format", formats, v.format, { span: 12 })}
-         ${full(U().renderToggle?.({ label: "Culori după prag", description: "Valorile de la prag în sus sunt verzi, cele de sub prag au culoarea aleasă. Fără prag, widget-ul folosește paleta SIA GEAP.", checked: Boolean(v.threshold.on), attrs: 'data-wid-field="threshold.on"' }) || "")}
+         ${full(U().renderToggle?.({ label: "Culori după prag", description: "Valorile de la prag în sus sunt verzi, cele de sub prag au culoarea aleasă. Fără prag, widget-ul folosește culorile alese mai jos.", checked: Boolean(v.threshold.on), attrs: 'data-wid-field="threshold.on"' }) || "")}
          ${v.threshold.on ? `${textField(`${idp}-threshold`, "threshold.value", "Pragul", v.threshold.value, { span: 6, unit, numeric: true, required: true, error: e["threshold.value"] })}${selectField(`${idp}-below`, "threshold.below", "Culoarea sub prag", BELOW, v.threshold.below, {})}` : ""}`;
     const vis = visOptions();
+    const radio = isPhone() ? "radio--medium" : "radio--small";
+    const palette = full(`
+      <div class="e-permits-wid-vis-field e-permits-wid-pal-field">
+        <span class="e-permits-cfg-ro__label" id="${idp}-palette-label">Culori</span>
+        <div class="radio-group e-permits-wid-pal-options" role="radiogroup" aria-labelledby="${idp}-palette-label" aria-describedby="${idp}-palette-hint" id="${idp}-palette">
+          ${PALETTES.map(([key, name]) => `<label class="radio ${radio}"><input class="radio-input" type="radio" name="${idp}-pal" value="${key}"${palKey(v) === key ? " checked" : ""} data-wid-pal><span class="radio-custom" aria-hidden="true"></span><span class="radio-texts"><span class="radio-label">${esc(name)}</span><span class="radio-description">${swatches(key)}</span></span></label>`).join("")}
+        </div>
+        <p class="e-permits-fo-field__hint" id="${idp}-palette-hint">Zonele KPI păstrează verde / galben / roșu.</p>
+      </div>`);
     return `
-      ${section("Format, praguri și culori", grid(look))}
+      ${section("Format, praguri și culori", grid(look, palette))}
       ${section("Dimensiunile implicite", grid(
         selectField(`${idp}-width`, "width", "Lățimea implicită", WIDTHS, v.width, { required: true }),
         selectField(`${idp}-height`, "height", "Înălțimea implicită", HEIGHTS, v.height, { required: true })
@@ -690,7 +708,8 @@
 
   /* ---- read-only passport blocks (profile, review, version view) */
   const rulesText = (v) => (v.filter.rules?.length ? v.filter.rules.map((r) => `${fieldOf(v.source, r.column)?.label || r.column} ${label(OPS, r.op)}${NO_VALUE.includes(r.op) ? "" : ` „${r.value}”`}`).join(v.filter.logic === "or" ? " sau " : " și ") : "");
-  const thresholdText = (v) => (kpiOf(v.kpi) ? "Din KPI" : v.threshold.on ? `Verde de la ${v.threshold.value}, ${label(BELOW, v.threshold.below).toLocaleLowerCase("ro")} sub prag` : "Paleta SIA GEAP, fără prag");
+  const thresholdText = (v) => (kpiOf(v.kpi) ? "Din KPI" : v.threshold.on ? `Verde de la ${v.threshold.value}, ${label(BELOW, v.threshold.below).toLocaleLowerCase("ro")} sub prag` : "Fără prag");
+  const paletteHtml = (v) => `<span class="e-permits-wid-pal-value">${swatches(palKey(v))}<span>${esc(label(PALETTES, palKey(v)))}</span></span>`;
   /* one row per field of the model; a field the type does not use reads „—” */
   function configRows(v) {
     const k = kpiOf(v.kpi);
@@ -708,7 +727,7 @@
         ["Filtru suplimentar", d(rulesText(v))], ["Perioada de comparație", d(label(COMPARES, v.compare))]
       ],
       look: [
-        ["Format", k ? "Din KPI" : d(label(FORMATS, v.format))], ["Praguri și culori", esc(thresholdText(v))],
+        ["Format", k ? "Din KPI" : d(label(FORMATS, v.format))], ["Praguri", esc(thresholdText(v))], ["Culori", paletteHtml(v)],
         ["Lățimea implicită", d(label(WIDTHS, v.width))], ["Înălțimea implicită", d(label(HEIGHTS, v.height))],
         ["Trecerea în detaliu", v.drill ? "Da" : "Nu"], ["Aria de vizibilitate", d(label(VIS, v.visibility))]
       ]
@@ -1662,6 +1681,7 @@
       rerender({ keep: `#${IDP}-type input[value="${el.value}"]` });
       return;
     }
+    if (el.matches("[data-wid-pal]")) { v.palette = el.value; rerender({ keep: `#${IDP}-palette input[value="${el.value}"]` }); return; }
     if (el.matches("[data-wid-vis]")) { v.visibility = el.value; delete P.errors.visibility; rerender({ keep: `#${IDP}-visibility input[value="${el.value}"]` }); return; }
     const rule = el.closest("[data-wid-rule]");
     if (rule) {

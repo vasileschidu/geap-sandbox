@@ -4458,6 +4458,13 @@
       "wid-04f": prof("WGT-0007"),
       "wid-04h": prof("WGT-0007", "configurare", async (h) => { await h.click("[data-wid-pending]"); await h.wait(400); }),
       "wid-04g": prof("WGT-0006", "configurare", to("#wid-e-visibility"), null, AUTH),
+      /* „Culori” (chart-palette-v2): step 4 with Indigo chosen (preview redrawn), a profile with a non-default palette
+         (Violet, stacked bars; Mixt, heat map), the Culori change among the unpublished changes, the review step */
+      "wid-04p": list(seq(typed("stacked"), upTo(4), async (h) => { await h.click(`${C} #wid-e-palette input[value="indigo"]`); await h.wait(250); }, at("#wid-e-palette"))),
+      "wid-04q": prof("WGT-0003"),
+      "wid-04r": prof("WGT-0004"),
+      "wid-04s": prof("WGT-0003", "configurare", async (h) => { await h.click(`${ED} #wid-e-palette input[value="sky"]`); await h.wait(250); await h.scroll(`${ED} #wid-e-palette`); }),
+      "wid-04t": list(seq(typed("stacked"), upTo(4), async (h) => { await h.click(`${C} #wid-e-palette input[value="neutral"]`); await h.wait(250); }, next)),
       /* US-406 — publish */
       "wid-05": prof("WGT-0007", "configurare", publish),
       "wid-05a": prof("WGT-0005", "configurare", publish),

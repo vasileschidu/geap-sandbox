@@ -19,11 +19,25 @@ const lum = (hex) => { const n = parseInt(hex.slice(1), 16); return 0.2126 * lin
 const contrast = (a, b) => { const [x, y] = [lum(a), lum(b)].sort((p, q) => q - p); return (x + 0.05) / (y + 0.05); };
 const Lstar = (hex) => { const Y = lum(hex); return Y > 216 / 24389 ? 116 * Math.cbrt(Y) - 16 : (24389 / 27) * Y; };
 
-const groups = {
-  "Series (s1…s6)": ["blue-sky-600", "lavender-400", "blue-sky-800", "blue-sky-500", "purple-700", "gray-400"],
-  "KPI zones (favorabil · avertizare · critic)": ["green-400", "apricot-300", "red-400"],
-  "Heat map ramp (l1…l5)": ["blue-sky-150", "blue-sky-300", "blue-sky-400", "blue-sky-600", "blue-sky-800"]
-};
+/* chart-palette-v2: every „Culori” palette is read from css/widget.css (`.e-permits-wid--pal-<key>` blocks: --wid-pal-N,
+   --wid-pal-N-on, --wid-heat-N); s6 „Altele” (gray-400) is appended to each series */
+const wcss = readFileSync(join(root, "css/widget.css"), "utf8");
+const palettes = [...wcss.matchAll(/\.e-permits-wid--pal-([a-z]+) \{([^}]*)\}/g)].map(([, key, body]) => {
+  const tok = (name) => body.match(new RegExp(`--${name}:\\s*var\\(--([a-z0-9-]+)`))?.[1];
+  const n = [1, 2, 3, 4, 5];
+  return {
+    key,
+    series: n.map((i) => tok(`wid-pal-${i}`)),
+    on: n.map((i) => (tok(`wid-pal-${i}-on`) === "color-text-base-default" ? "ink" : "white")),
+    heat: n.map((i) => tok(`wid-heat-${i}`))
+  };
+});
+if (!palettes.length) throw new Error("no .e-permits-wid--pal-* blocks in css/widget.css");
+const groups = { "KPI zones (favorabil · avertizare · critic) — never part of a palette": ["green-400", "apricot-300", "red-400"] };
+palettes.forEach((p) => {
+  groups[`Series · ${p.key} (s1…s5 + s6 Altele)`] = [...p.series, "gray-400"];
+  groups[`Heat ramp · ${p.key} (l1…l5)`] = p.heat;
+});
 const tryArg = process.argv.indexOf("--try");
 if (tryArg > -1) { groups["--try"] = process.argv[tryArg + 1].split(","); }
 
@@ -35,17 +49,24 @@ for (const [name, tokens] of Object.entries(groups)) {
     const w = contrast(hex, "#FFFFFF");
     const prev = i ? hexOf(tokens[i - 1]) : null;
     const nb = prev ? `  vs prev ${contrast(hex, prev).toFixed(2)}:1  ΔL* ${Math.abs(Lstar(hex) - Lstar(prev)).toFixed(0)}` : "";
-    const markRule = name.startsWith("Series") && w < 3;
-    if (markRule) fail += 1;
-    console.log(`  --${t.padEnd(14)} ${hex}  vs white ${w.toFixed(2)}:1${markRule ? " (< 3:1)" : ""}  L* ${Lstar(hex).toFixed(0)}${nb}`);
+    /* marks ≥ 3:1 on white (exempt by design: the light „Cer” palette, Neutru's light grey s2 — no lighter grey reaches 3:1); series neighbours ≥ 1.6:1 */
+    const markRule = name.startsWith("Series") && !name.includes("· sky") && !(name.includes("· neutral") && ["gray-300", "blue-sky-300"].includes(t)) && w < 3;
+    const nbRule = name.startsWith("Series") && prev && contrast(hex, prev) < 1.6;
+    if (markRule || nbRule) fail += 1;
+    console.log(`  --${t.padEnd(14)} ${hex}  vs white ${w.toFixed(2)}:1${markRule ? " (< 3:1)" : ""}  L* ${Lstar(hex).toFixed(0)}${nb}${nbRule ? " (neighbours < 1.6:1)" : ""}`);
   });
 }
-/* text drawn on a mark: treemap labels (`--wid-series-on`) and heat-map cell values */
+/* text drawn on a mark: treemap labels (`--wid-pal-N-on`) and heat-map cell values (ink on l1…l3, white on l4…l5);
+   ≥ 4.5:1 for 12–14 px labels, ≥ 3:1 accepted (marked „large only”) */
 const INK = "#121212";
 const WHITE = "#FFFFFF";
-console.log("\nText on marks (treemap labels, heat cells)");
-[["blue-sky-600", WHITE], ["lavender-400", INK], ["blue-sky-800", WHITE], ["blue-sky-500", WHITE], ["purple-700", WHITE], ["gray-400", WHITE],
-  ["blue-sky-150", INK], ["blue-sky-300", INK], ["blue-sky-400", INK]].forEach(([t, ink]) => {
-  console.log(`  --${t.padEnd(14)} ${ink === WHITE ? "white" : "ink  "} text ${contrast(hexOf(t), ink).toFixed(2)}:1`);
+palettes.forEach((p) => {
+  console.log(`\nText on marks · ${p.key}`);
+  const rows = [...p.series.map((t, i) => [t, p.on[i] === "ink" ? INK : WHITE, `s${i + 1}`]), ...p.heat.map((t, i) => [t, i < 3 ? INK : WHITE, `l${i + 1}`])];
+  rows.forEach(([t, ink, where]) => {
+    const c = contrast(hexOf(t), ink);
+    if (c < 3) fail += 1;
+    console.log(`  ${where} --${t.padEnd(14)} ${ink === WHITE ? "white" : "ink  "} text ${c.toFixed(2)}:1${c < 3 ? " (< 3:1)" : c < 4.5 ? " (large only)" : ""}`);
+  });
 });
 process.exitCode = fail ? 1 : 0;

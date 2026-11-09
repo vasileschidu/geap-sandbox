@@ -243,12 +243,130 @@
    without hue (colour-blind safe); every mark ≥ 3:1 on white; s6 „Altele” = neutral grey; hover = one step darker;
    `--wid-series-on` = the text drawn on a mark (treemap labels). Series = brand · lavender-400 · blue-sky-800 ·
    blue-sky-500 · purple-700 · gray-400. */
-.e-permits-wid-s1 { --wid-series: var(--color-background-brand-default, #0058d2); --wid-series-hover: var(--color-background-brand-default-hover, #0046a8); --wid-series-on: var(--color-text-base-inverse-on-color, #fff); }
-.e-permits-wid-s2 { --wid-series: var(--lavender-400, #9a79ef); --wid-series-hover: var(--lavender-500, #784cea); --wid-series-on: var(--color-text-base-default, #121212); }
-.e-permits-wid-s3 { --wid-series: var(--blue-sky-800, #00357e); --wid-series-hover: var(--blue-sky-900, #00295a); --wid-series-on: var(--color-text-base-inverse-on-color, #fff); }
-.e-permits-wid-s4 { --wid-series: var(--blue-sky-500, #3379db); --wid-series-hover: var(--blue-sky-600, #0058d2); --wid-series-on: var(--color-text-base-inverse-on-color, #fff); }
-.e-permits-wid-s5 { --wid-series: var(--purple-700, #652cc7); --wid-series-hover: var(--purple-800, #4c2195); --wid-series-on: var(--color-text-base-inverse-on-color, #fff); }
+.e-permits-wid-s1 { --wid-series: var(--wid-pal-1, var(--color-background-brand-default, #0058d2)); --wid-series-hover: var(--wid-pal-1-hover, var(--color-background-brand-default-hover, #0046a8)); --wid-series-on: var(--wid-pal-1-on, var(--color-text-base-inverse-on-color, #fff)); }
+.e-permits-wid-s2 { --wid-series: var(--wid-pal-2, var(--lavender-400, #9a79ef)); --wid-series-hover: var(--wid-pal-2-hover, var(--lavender-500, #784cea)); --wid-series-on: var(--wid-pal-2-on, var(--color-text-base-default, #121212)); }
+.e-permits-wid-s3 { --wid-series: var(--wid-pal-3, var(--blue-sky-800, #00357e)); --wid-series-hover: var(--wid-pal-3-hover, var(--blue-sky-900, #00295a)); --wid-series-on: var(--wid-pal-3-on, var(--color-text-base-inverse-on-color, #fff)); }
+.e-permits-wid-s4 { --wid-series: var(--wid-pal-4, var(--blue-sky-500, #3379db)); --wid-series-hover: var(--wid-pal-4-hover, var(--blue-sky-600, #0058d2)); --wid-series-on: var(--wid-pal-4-on, var(--color-text-base-inverse-on-color, #fff)); }
+.e-permits-wid-s5 { --wid-series: var(--wid-pal-5, var(--purple-700, #652cc7)); --wid-series-hover: var(--wid-pal-5-hover, var(--purple-800, #4c2195)); --wid-series-on: var(--wid-pal-5-on, var(--color-text-base-inverse-on-color, #fff)); }
 .e-permits-wid-s6 { --wid-series: var(--gray-400, #757575); --wid-series-hover: var(--gray-500, #616161); --wid-series-on: var(--color-text-base-inverse-on-color, #fff); }
+
+/* „Culori” — the palette the admin chooses per widget (chart-palette-v2, 2026-11-09, user: a limited, brand-harmonious
+   range). `.e-permits-wid--pal-<key>` on the widget card (and on the editor's swatch rows) re-defines s1…s5
+   (`--wid-pal-N` / `-hover` = one step darker / `-on` = text on the mark) and the heat ramp (`--wid-heat-N` / `-hover`,
+   light → dark, ink text on l1…l3, white on l4…l5). s6 „Altele” and the KPI zones are never part of a palette. Only the
+   Foundations primitives (Foundations has no teal / cyan ramp → „Cer” = the light blue-sky range); every palette is
+   checked by `node tools/ui-qa/chart-palette.mjs` (neighbours ≥ 1.6:1, marks ≥ 3:1 on white except the light „Cer” and Neutru's light grey s2 + light brand s4: no fifth grey stays apart from s6 „Altele”). */
+.e-permits-wid--pal-blue {
+  --wid-pal-1: var(--blue-sky-600, #0058d2); --wid-pal-1-hover: var(--blue-sky-700, #0046a8); --wid-pal-1-on: var(--color-text-base-inverse-on-color, #fff);
+  --wid-pal-2: var(--lavender-400, #9a79ef); --wid-pal-2-hover: var(--lavender-500, #784cea); --wid-pal-2-on: var(--color-text-base-default, #121212);
+  --wid-pal-3: var(--blue-sky-800, #00357e); --wid-pal-3-hover: var(--blue-sky-900, #00295a); --wid-pal-3-on: var(--color-text-base-inverse-on-color, #fff);
+  --wid-pal-4: var(--blue-sky-500, #3379db); --wid-pal-4-hover: var(--blue-sky-600, #0058d2); --wid-pal-4-on: var(--color-text-base-inverse-on-color, #fff);
+  --wid-pal-5: var(--purple-700, #652cc7); --wid-pal-5-hover: var(--purple-800, #4c2195); --wid-pal-5-on: var(--color-text-base-inverse-on-color, #fff);
+  --wid-heat-1: var(--blue-sky-150, #d6e5f8); --wid-heat-1-hover: var(--blue-sky-200, #ccdef6);
+  --wid-heat-2: var(--blue-sky-300, #99bced); --wid-heat-2-hover: var(--blue-sky-400, #669be4);
+  --wid-heat-3: var(--blue-sky-400, #669be4); --wid-heat-3-hover: var(--blue-sky-500, #3379db);
+  --wid-heat-4: var(--blue-sky-600, #0058d2); --wid-heat-4-hover: var(--blue-sky-700, #0046a8);
+  --wid-heat-5: var(--blue-sky-800, #00357e); --wid-heat-5-hover: var(--blue-sky-900, #00295a);
+}
+
+.e-permits-wid--pal-indigo {
+  --wid-pal-1: var(--lavender-600, #561fe5); --wid-pal-1-hover: var(--lavender-700, #4519b7); --wid-pal-1-on: var(--color-text-base-inverse-on-color, #fff);
+  --wid-pal-2: var(--lavender-400, #9a79ef); --wid-pal-2-hover: var(--lavender-500, #784cea); --wid-pal-2-on: var(--color-text-base-default, #121212);
+  --wid-pal-3: var(--lavender-800, #341389); --wid-pal-3-hover: var(--lavender-900, #240c66); --wid-pal-3-on: var(--color-text-base-inverse-on-color, #fff);
+  --wid-pal-4: var(--lavender-500, #784cea); --wid-pal-4-hover: var(--lavender-600, #561fe5); --wid-pal-4-on: var(--color-text-base-inverse-on-color, #fff);
+  --wid-pal-5: var(--lavender-900, #240c66); --wid-pal-5-hover: var(--lavender-800, #341389); --wid-pal-5-on: var(--color-text-base-inverse-on-color, #fff);
+  --wid-heat-1: var(--lavender-200, #ddd2fa); --wid-heat-1-hover: var(--lavender-300, #bba5f5);
+  --wid-heat-2: var(--lavender-300, #bba5f5); --wid-heat-2-hover: var(--lavender-400, #9a79ef);
+  --wid-heat-3: var(--lavender-400, #9a79ef); --wid-heat-3-hover: var(--lavender-500, #784cea);
+  --wid-heat-4: var(--lavender-600, #561fe5); --wid-heat-4-hover: var(--lavender-700, #4519b7);
+  --wid-heat-5: var(--lavender-800, #341389); --wid-heat-5-hover: var(--lavender-900, #240c66);
+}
+
+.e-permits-wid--pal-violet {
+  --wid-pal-1: var(--purple-700, #652cc7); --wid-pal-1-hover: var(--purple-800, #4c2195); --wid-pal-1-on: var(--color-text-base-inverse-on-color, #fff);
+  --wid-pal-2: var(--purple-500, #985ffa); --wid-pal-2-hover: var(--purple-600, #7e37f9); --wid-pal-2-on: var(--color-text-base-default, #121212);
+  --wid-pal-3: var(--purple-900, #36166a); --wid-pal-3-hover: var(--purple-800, #4c2195); --wid-pal-3-on: var(--color-text-base-inverse-on-color, #fff);
+  --wid-pal-4: var(--purple-600, #7e37f9); --wid-pal-4-hover: var(--purple-700, #652cc7); --wid-pal-4-on: var(--color-text-base-inverse-on-color, #fff);
+  --wid-pal-5: var(--purple-800, #4c2195); --wid-pal-5-hover: var(--purple-900, #36166a); --wid-pal-5-on: var(--color-text-base-inverse-on-color, #fff);
+  --wid-heat-1: var(--purple-200, #ddd2fa); --wid-heat-1-hover: var(--purple-300, #cbaffd);
+  --wid-heat-2: var(--purple-300, #cbaffd); --wid-heat-2-hover: var(--purple-400, #b287fb);
+  --wid-heat-3: var(--purple-500, #985ffa); --wid-heat-3-hover: var(--purple-600, #7e37f9);
+  --wid-heat-4: var(--purple-700, #652cc7); --wid-heat-4-hover: var(--purple-800, #4c2195);
+  --wid-heat-5: var(--purple-900, #36166a); --wid-heat-5-hover: var(--purple-800, #4c2195);
+}
+
+.e-permits-wid--pal-sky {
+  --wid-pal-1: var(--blue-sky-500, #3379db); --wid-pal-1-hover: var(--blue-sky-600, #0058d2); --wid-pal-1-on: var(--color-text-base-default, #121212);
+  --wid-pal-2: var(--blue-sky-300, #99bced); --wid-pal-2-hover: var(--blue-sky-400, #669be4); --wid-pal-2-on: var(--color-text-base-default, #121212);
+  --wid-pal-3: var(--blue-sky-700, #0046a8); --wid-pal-3-hover: var(--blue-sky-800, #00357e); --wid-pal-3-on: var(--color-text-base-inverse-on-color, #fff);
+  --wid-pal-4: var(--blue-sky-400, #669be4); --wid-pal-4-hover: var(--blue-sky-500, #3379db); --wid-pal-4-on: var(--color-text-base-default, #121212);
+  --wid-pal-5: var(--blue-sky-900, #00295a); --wid-pal-5-hover: var(--blue-sky-800, #00357e); --wid-pal-5-on: var(--color-text-base-inverse-on-color, #fff);
+  --wid-heat-1: var(--blue-sky-150, #d6e5f8); --wid-heat-1-hover: var(--blue-sky-200, #ccdef6);
+  --wid-heat-2: var(--blue-sky-300, #99bced); --wid-heat-2-hover: var(--blue-sky-400, #669be4);
+  --wid-heat-3: var(--blue-sky-400, #669be4); --wid-heat-3-hover: var(--blue-sky-500, #3379db);
+  --wid-heat-4: var(--blue-sky-500, #3379db); --wid-heat-4-hover: var(--blue-sky-600, #0058d2);
+  --wid-heat-5: var(--blue-sky-700, #0046a8); --wid-heat-5-hover: var(--blue-sky-800, #00357e);
+}
+
+.e-permits-wid--pal-mixed {
+  --wid-pal-1: var(--blue-sky-600, #0058d2); --wid-pal-1-hover: var(--blue-sky-700, #0046a8); --wid-pal-1-on: var(--color-text-base-inverse-on-color, #fff);
+  --wid-pal-2: var(--lavender-400, #9a79ef); --wid-pal-2-hover: var(--lavender-500, #784cea); --wid-pal-2-on: var(--color-text-base-default, #121212);
+  --wid-pal-3: var(--purple-800, #4c2195); --wid-pal-3-hover: var(--purple-900, #36166a); --wid-pal-3-on: var(--color-text-base-inverse-on-color, #fff);
+  --wid-pal-4: var(--blue-sky-500, #3379db); --wid-pal-4-hover: var(--blue-sky-600, #0058d2); --wid-pal-4-on: var(--color-text-base-inverse-on-color, #fff);
+  --wid-pal-5: var(--lavender-600, #561fe5); --wid-pal-5-hover: var(--lavender-700, #4519b7); --wid-pal-5-on: var(--color-text-base-inverse-on-color, #fff);
+  --wid-heat-1: var(--blue-sky-150, #d6e5f8); --wid-heat-1-hover: var(--blue-sky-200, #ccdef6);
+  --wid-heat-2: var(--blue-sky-300, #99bced); --wid-heat-2-hover: var(--blue-sky-400, #669be4);
+  --wid-heat-3: var(--lavender-400, #9a79ef); --wid-heat-3-hover: var(--lavender-500, #784cea);
+  --wid-heat-4: var(--lavender-600, #561fe5); --wid-heat-4-hover: var(--lavender-700, #4519b7);
+  --wid-heat-5: var(--lavender-800, #341389); --wid-heat-5-hover: var(--lavender-900, #240c66);
+}
+
+.e-permits-wid--pal-neutral {
+  --wid-pal-1: var(--blue-sky-600, #0058d2); --wid-pal-1-hover: var(--blue-sky-700, #0046a8); --wid-pal-1-on: var(--color-text-base-inverse-on-color, #fff);
+  --wid-pal-2: var(--gray-300, #b2b2b2); --wid-pal-2-hover: var(--gray-400, #757575); --wid-pal-2-on: var(--color-text-base-default, #121212);
+  --wid-pal-3: var(--gray-800, #2c2c2c); --wid-pal-3-hover: var(--gray-900, #1e1e1e); --wid-pal-3-on: var(--color-text-base-inverse-on-color, #fff);
+  --wid-pal-4: var(--blue-sky-300, #99bced); --wid-pal-4-hover: var(--blue-sky-400, #669be4); --wid-pal-4-on: var(--color-text-base-default, #121212);
+  --wid-pal-5: var(--gray-600, #444444); --wid-pal-5-hover: var(--gray-700, #383838); --wid-pal-5-on: var(--color-text-base-inverse-on-color, #fff);
+  --wid-heat-1: var(--gray-200, #f1f1f1); --wid-heat-1-hover: var(--gray-250, #d9d9d9);
+  --wid-heat-2: var(--gray-250, #d9d9d9); --wid-heat-2-hover: var(--gray-300, #b2b2b2);
+  --wid-heat-3: var(--gray-300, #b2b2b2); --wid-heat-3-hover: var(--gray-400, #757575);
+  --wid-heat-4: var(--gray-500, #616161); --wid-heat-4-hover: var(--gray-600, #444444);
+  --wid-heat-5: var(--gray-700, #383838); --wid-heat-5-hover: var(--gray-800, #2c2c2c);
+}
+
+/* the editor's palette options (`.e-permits-wid-pal-options`: the ONE radio, Small desktop / Medium phones) and the
+   read-only value „Culori” (`.e-permits-wid-pal-value`): five 16 rounded swatches in the palette's s1…s5, 4 apart */
+.e-permits-wid-pal {
+  display: inline-flex;
+  flex: none;
+  gap: var(--spacing-4, 4px);
+  vertical-align: middle;
+}
+
+.e-permits-wid-pal__swatch {
+  background: var(--wid-series);
+  border-radius: var(--border-radius-4, 4px);
+  height: var(--spacing-16, 16px);
+  width: var(--spacing-16, 16px);
+}
+
+.e-permits-wid-pal-options {
+  display: grid;
+  gap: var(--spacing-16, 16px) var(--spacing-24, 24px);
+  grid-template-columns: repeat(auto-fill, minmax(calc(var(--spacing-40, 40px) * 5), 1fr));
+}
+
+.e-permits-wid-pal-options .radio-description {
+  display: flex;
+  padding-top: var(--spacing-4, 4px);
+}
+
+.e-permits-wid-pal-value {
+  align-items: center;
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-8, 8px);
+}
 
 /* KPI zones (Favorabil / Avertizare / Critic): the status meaning kept, two steps lighter than the status icons
    (calm bars: green-400 · apricot-300 · red-400, hover one step darker), the same tone on bars, meter bands, legend dots,
@@ -645,11 +763,11 @@ button.e-permits-wid-rows__row:focus-visible {
 
 /* the heat ramp: sequential on the brand blue, light → brand → dark (blue-sky 150 · 300 · 400 · 600 · 800); dark text on
    the light three, white on brand and darker */
-.e-permits-wid-heat__cell.is-l1 { background: var(--blue-sky-150, #d6e5f8); }
-.e-permits-wid-heat__cell.is-l2 { background: var(--blue-sky-300, #99bced); }
-.e-permits-wid-heat__cell.is-l3 { background: var(--blue-sky-400, #669be4); }
-.e-permits-wid-heat__cell.is-l4 { background: var(--color-background-brand-default, #0058d2); color: var(--color-text-base-inverse-on-color, #fff); }
-.e-permits-wid-heat__cell.is-l5 { background: var(--blue-sky-800, #00357e); color: var(--color-text-base-inverse-on-color, #fff); }
+.e-permits-wid-heat__cell.is-l1 { background: var(--wid-heat-1, var(--blue-sky-150, #d6e5f8)); }
+.e-permits-wid-heat__cell.is-l2 { background: var(--wid-heat-2, var(--blue-sky-300, #99bced)); }
+.e-permits-wid-heat__cell.is-l3 { background: var(--wid-heat-3, var(--blue-sky-400, #669be4)); }
+.e-permits-wid-heat__cell.is-l4 { background: var(--wid-heat-4, var(--color-background-brand-default, #0058d2)); color: var(--color-text-base-inverse-on-color, #fff); }
+.e-permits-wid-heat__cell.is-l5 { background: var(--wid-heat-5, var(--blue-sky-800, #00357e)); color: var(--color-text-base-inverse-on-color, #fff); }
 
 /* a drilling cell: a transparent button filling the coloured cell (the colour is the data, on the span); hover = the
    button takes the next step of the ramp itself (the element under the pointer changes), ring inset */
@@ -671,11 +789,11 @@ button.e-permits-wid-rows__row:focus-visible {
 }
 
 .e-permits-wid-heat__cell > .e-permits-wid-heat__btn:hover { background: var(--color-background-base-tertiary-hover, #e5e5e5); }
-.e-permits-wid-heat__cell.is-l1 > .e-permits-wid-heat__btn:hover { background: var(--blue-sky-200, #ccdef6); }
-.e-permits-wid-heat__cell.is-l2 > .e-permits-wid-heat__btn:hover { background: var(--blue-sky-400, #669be4); }
-.e-permits-wid-heat__cell.is-l3 > .e-permits-wid-heat__btn:hover { background: var(--blue-sky-500, #3379db); }
-.e-permits-wid-heat__cell.is-l4 > .e-permits-wid-heat__btn:hover { background: var(--color-background-brand-default-hover, #0046a8); }
-.e-permits-wid-heat__cell.is-l5 > .e-permits-wid-heat__btn:hover { background: var(--blue-sky-900, #00295a); }
+.e-permits-wid-heat__cell.is-l1 > .e-permits-wid-heat__btn:hover { background: var(--wid-heat-1-hover, var(--blue-sky-200, #ccdef6)); }
+.e-permits-wid-heat__cell.is-l2 > .e-permits-wid-heat__btn:hover { background: var(--wid-heat-2-hover, var(--blue-sky-400, #669be4)); }
+.e-permits-wid-heat__cell.is-l3 > .e-permits-wid-heat__btn:hover { background: var(--wid-heat-3-hover, var(--blue-sky-500, #3379db)); }
+.e-permits-wid-heat__cell.is-l4 > .e-permits-wid-heat__btn:hover { background: var(--wid-heat-4-hover, var(--color-background-brand-default-hover, #0046a8)); }
+.e-permits-wid-heat__cell.is-l5 > .e-permits-wid-heat__btn:hover { background: var(--wid-heat-5-hover, var(--blue-sky-900, #00295a)); }
 
 .e-permits-wid-heat__cell:has(> .e-permits-wid-heat__btn) {
   padding: 0;
@@ -688,11 +806,11 @@ button.e-permits-wid-rows__row:focus-visible {
   width: var(--spacing-16, 16px);
 }
 
-.e-permits-wid-heat__key.is-l1 { background: var(--blue-sky-150, #d6e5f8); }
-.e-permits-wid-heat__key.is-l2 { background: var(--blue-sky-300, #99bced); }
-.e-permits-wid-heat__key.is-l3 { background: var(--blue-sky-400, #669be4); }
-.e-permits-wid-heat__key.is-l4 { background: var(--color-background-brand-default, #0058d2); }
-.e-permits-wid-heat__key.is-l5 { background: var(--blue-sky-800, #00357e); }
+.e-permits-wid-heat__key.is-l1 { background: var(--wid-heat-1, var(--blue-sky-150, #d6e5f8)); }
+.e-permits-wid-heat__key.is-l2 { background: var(--wid-heat-2, var(--blue-sky-300, #99bced)); }
+.e-permits-wid-heat__key.is-l3 { background: var(--wid-heat-3, var(--blue-sky-400, #669be4)); }
+.e-permits-wid-heat__key.is-l4 { background: var(--wid-heat-4, var(--color-background-brand-default, #0058d2)); }
+.e-permits-wid-heat__key.is-l5 { background: var(--wid-heat-5, var(--blue-sky-800, #00357e)); }
 
 /* the treemap as a whole: outer corners 6, the tiles 2 inside */
 .e-permits-wid-treemap {
@@ -1078,5 +1196,18 @@ button.e-permits-wid-rows__row:focus-visible {
 
   .e-permits-wid-heat tbody th {
     vertical-align: middle;
+  }
+}
+
+/* „Culori” on phones: one palette per row, the ONE phone option size 48 · 16/24 (the radio is rendered Medium ≤ 760) */
+@media (max-width: 760px) {
+  .e-permits-wid-pal-options {
+    gap: var(--spacing-8, 8px);
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .e-permits-wid-pal-options > .radio {
+    align-content: center;
+    min-height: var(--spacing-48, 48px);
   }
 }
