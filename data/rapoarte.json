@@ -1,0 +1,252 @@
+{
+  "_comment": "Administrare › Rapoarte (rpt-v1, 2026-11-09; Feature 96502 „Constructor de rapoarte”, child stories US-466…471 not in Azure yet). Seed of the report catalogue: global reports (Administrator central) + authority reports (one or more authorities), the formula set (Feature model «Formula») and the authorities a report can be assigned to. Data sources + their dictionary = the published sources of data/kpi.json (GEAPKpi.sources / fields, the Registre data dictionary). Column kinds: source (Din sursa de date) · calc (Calculată, formula + operands = report column ids) · manual (Completată manual). Data types: numeric · value (Valoric) · temporal · text. total: sum (Se adună în total) · incl (Inclusiv = a breakdown of the nearest «Se adună» column to its left). The preview values are demo values derived in js/rapoarte-admin.js.",
+  "authorities": [
+    { "id": "ansp", "name": "ANSP", "long": "Agenția Națională pentru Sănătate Publică" },
+    { "id": "anta", "name": "ANTA", "long": "Agenția Națională Transport Auto" },
+    { "id": "ansa", "name": "ANSA", "long": "Agenția Națională pentru Siguranța Alimentelor" },
+    { "id": "amdm", "name": "AMDM", "long": "Agenția Medicamentului și Dispozitivelor Medicale" }
+  ],
+  "formulas": [
+    {
+      "id": "f-pct",
+      "names": { "ro": "Procentul de dosare finalizate în termen", "ru": "Процент дел, завершённых в срок", "en": "Share of files closed on time" },
+      "expr": "(A / B) × 100",
+      "operands": [
+        { "key": "A", "label": "Dosare finalizate în termen", "types": ["numeric"] },
+        { "key": "B", "label": "Total dosare finalizate", "types": ["numeric"] }
+      ],
+      "format": "percent"
+    },
+    {
+      "id": "f-avg",
+      "names": { "ro": "Durata medie de procesare", "ru": "Средняя продолжительность обработки", "en": "Average processing time" },
+      "expr": "MEDIE(Data finalizării − Data depunerii)",
+      "operands": [],
+      "sources": ["reg-dosare"],
+      "format": "days"
+    },
+    {
+      "id": "f-sum",
+      "names": { "ro": "Suma", "ru": "Сумма", "en": "Sum" },
+      "expr": "A + B",
+      "operands": [
+        { "key": "A", "label": "Primul termen", "types": ["numeric", "value"] },
+        { "key": "B", "label": "Al doilea termen", "types": ["numeric", "value"] }
+      ],
+      "format": "amount"
+    },
+    {
+      "id": "f-count",
+      "names": { "ro": "Număr", "ru": "Количество", "en": "Count" },
+      "expr": "NUMĂR(înregistrări)",
+      "operands": [],
+      "format": "int"
+    },
+    {
+      "id": "f-days",
+      "names": { "ro": "Diferența de zile", "ru": "Разница в днях", "en": "Difference in days" },
+      "expr": "A − B",
+      "operands": [
+        { "key": "A", "label": "Data de sfârșit", "types": ["temporal"] },
+        { "key": "B", "label": "Data de început", "types": ["temporal"] }
+      ],
+      "format": "days"
+    }
+  ],
+  "reports": [
+    {
+      "id": "RPT-0001",
+      "status": "Publicat",
+      "createdAt": "2026-10-20T09:00:00", "createdBy": "Anastasia Cojocaru",
+      "updatedAt": "2026-11-03T15:42:00", "updatedBy": "Anastasia Cojocaru",
+      "config": {
+        "names": { "ro": "Raport dosare finalizate pe serviciu", "ru": "Отчёт о завершённых делах по услугам", "en": "Closed files by service" },
+        "descriptions": { "ro": "Se numără dosarele depuse și finalizate în perioada aleasă, pe fiecare serviciu; procentul în termen se calculează din dosarele finalizate.", "ru": "", "en": "" },
+        "category": "tabelar", "source": "reg-dosare", "level": "Global", "authorities": [],
+        "columns": [
+          { "id": "c1", "names": { "ro": "Serviciu", "ru": "Услуга", "en": "Service" }, "kind": "source", "field": "serviciu", "dataType": "text", "header": "", "total": "sum" },
+          { "id": "c2", "names": { "ro": "Depuse", "ru": "Поданы", "en": "Submitted" }, "kind": "source", "field": "depus", "dataType": "numeric", "header": "Dosare", "total": "sum" },
+          { "id": "c3", "names": { "ro": "Finalizate", "ru": "Завершены", "en": "Closed" }, "kind": "source", "field": "finalizat", "dataType": "numeric", "header": "Dosare", "total": "sum" },
+          { "id": "c4", "names": { "ro": "în termen", "ru": "в срок", "en": "on time" }, "kind": "source", "field": "inTermen", "dataType": "numeric", "header": "Dosare", "total": "incl" },
+          { "id": "c5", "names": { "ro": "Finalizate în termen, %", "ru": "Завершены в срок, %", "en": "Closed on time, %" }, "kind": "calc", "formula": "f-pct", "operands": { "A": "c4", "B": "c3" }, "dataType": "numeric", "header": "", "total": "sum" },
+          { "id": "c6", "names": { "ro": "Durata medie, zile", "ru": "Средняя длительность, дни", "en": "Average time, days" }, "kind": "calc", "formula": "f-avg", "operands": {}, "dataType": "numeric", "header": "", "total": "sum" }
+        ],
+        "groupBy": "",
+        "filters": [ { "field": "depus", "type": "date" }, { "field": "statut", "type": "multi" } ],
+        "totalRow": true
+      },
+      "versions": [
+        { "nr": 1, "version": 1, "at": "2026-10-21T10:00:00", "by": "Anastasia Cojocaru", "note": "Prima versiune: depuse, finalizate, procentul în termen." },
+        { "nr": 2, "version": 2, "at": "2026-11-03T15:42:00", "by": "Anastasia Cojocaru", "note": "Adăugată durata medie de procesare." }
+      ],
+      "history": [
+        { "at": "2026-11-03T15:42:00", "by": "Anastasia Cojocaru", "role": "Administrator central", "event": "Publicarea raportului", "detail": "Versiunea 2 · Adăugată durata medie de procesare." },
+        { "at": "2026-11-03T15:30:00", "by": "Anastasia Cojocaru", "role": "Administrator central", "event": "Modificarea raportului", "detail": "Coloane: + Durata medie, zile" },
+        { "at": "2026-10-21T10:00:00", "by": "Anastasia Cojocaru", "role": "Administrator central", "event": "Publicarea raportului", "detail": "Versiunea 1" },
+        { "at": "2026-10-20T09:00:00", "by": "Anastasia Cojocaru", "role": "Administrator central", "event": "Crearea raportului", "detail": "Ciornă · Global · Registru Dosare" }
+      ]
+    },
+    {
+      "id": "RPT-0002",
+      "status": "Publicat",
+      "createdAt": "2026-10-22T11:00:00", "createdBy": "Anastasia Cojocaru",
+      "updatedAt": "2026-10-23T09:10:00", "updatedBy": "Anastasia Cojocaru",
+      "config": {
+        "names": { "ro": "Raport cereri depuse pe autoritate", "ru": "Отчёт о поданных заявлениях по органам", "en": "Applications submitted by authority" },
+        "descriptions": { "ro": "Cererile depuse în perioada aleasă, pe autoritate și serviciu; cererile pe hârtie se raportează manual de autoritate.", "ru": "", "en": "" },
+        "category": "statistic", "source": "reg-dosare", "level": "Global", "authorities": [],
+        "columns": [
+          { "id": "c1", "names": { "ro": "Autoritate", "ru": "Орган", "en": "Authority" }, "kind": "source", "field": "autoritate", "dataType": "text", "header": "", "total": "sum" },
+          { "id": "c2", "names": { "ro": "Serviciu", "ru": "Услуга", "en": "Service" }, "kind": "source", "field": "serviciu", "dataType": "text", "header": "", "total": "sum" },
+          { "id": "c3", "names": { "ro": "Total", "ru": "Всего", "en": "Total" }, "kind": "source", "field": "nr", "dataType": "numeric", "header": "Cereri depuse", "total": "sum" },
+          { "id": "c4", "names": { "ro": "online", "ru": "онлайн", "en": "online" }, "kind": "source", "field": "canal", "dataType": "numeric", "header": "Cereri depuse", "total": "incl" },
+          { "id": "c5", "names": { "ro": "Pe hârtie", "ru": "На бумаге", "en": "On paper" }, "kind": "manual", "dataType": "numeric", "header": "Cereri depuse", "total": "sum" }
+        ],
+        "groupBy": "c1",
+        "filters": [ { "field": "depus", "type": "date" }, { "field": "autoritate", "type": "multi" }, { "field": "canal", "type": "single" } ],
+        "totalRow": true
+      },
+      "versions": [
+        { "nr": 1, "version": 1, "at": "2026-10-23T09:10:00", "by": "Anastasia Cojocaru", "note": "Raport statistic trimestrial." }
+      ],
+      "history": [
+        { "at": "2026-10-23T09:10:00", "by": "Anastasia Cojocaru", "role": "Administrator central", "event": "Publicarea raportului", "detail": "Versiunea 1 · Raport statistic trimestrial." },
+        { "at": "2026-10-22T11:00:00", "by": "Anastasia Cojocaru", "role": "Administrator central", "event": "Crearea raportului", "detail": "Ciornă · Global · Registru Dosare" }
+      ]
+    },
+    {
+      "id": "RPT-0003",
+      "status": "Ciornă",
+      "createdAt": "2026-11-05T14:00:00", "createdBy": "Victor Lungu",
+      "updatedAt": "2026-11-06T10:20:00", "updatedBy": "Victor Lungu",
+      "config": {
+        "names": { "ro": "Raport plăți încasate pe serviciu", "ru": "", "en": "" },
+        "descriptions": { "ro": "Notele de plată emise și sumele încasate, pe serviciu.", "ru": "", "en": "" },
+        "category": "tabelar", "source": "reg-note", "level": "Autoritate", "authorities": ["ansp"],
+        "columns": [
+          { "id": "c1", "names": { "ro": "Serviciu", "ru": "", "en": "" }, "kind": "source", "field": "serviciu", "dataType": "text", "header": "", "total": "sum" },
+          { "id": "c2", "names": { "ro": "Note emise", "ru": "", "en": "" }, "kind": "source", "field": "nr", "dataType": "numeric", "header": "", "total": "sum" },
+          { "id": "c3", "names": { "ro": "Emisă", "ru": "", "en": "" }, "kind": "source", "field": "suma", "dataType": "value", "header": "Suma, MDL", "total": "sum" },
+          { "id": "c4", "names": { "ro": "achitată", "ru": "", "en": "" }, "kind": "source", "field": "suma", "dataType": "value", "header": "Suma, MDL", "total": "incl" },
+          { "id": "c5", "names": { "ro": "Rest de încasat, MDL", "ru": "", "en": "" }, "kind": "manual", "dataType": "value", "header": "", "total": "sum" }
+        ],
+        "groupBy": "",
+        "filters": [ { "field": "emisa", "type": "date" } ],
+        "totalRow": true
+      },
+      "versions": [],
+      "history": [
+        { "at": "2026-11-06T10:20:00", "by": "Victor Lungu", "role": "Utilizator cu permisiunea «Gestionarea rapoartelor» · ANSP", "event": "Modificarea raportului", "detail": "Coloane: + Rest de încasat, MDL" },
+        { "at": "2026-11-05T14:00:00", "by": "Victor Lungu", "role": "Utilizator cu permisiunea «Gestionarea rapoartelor» · ANSP", "event": "Crearea raportului", "detail": "Ciornă · Autoritate ANSP · Registru note de plată" }
+      ]
+    },
+    {
+      "id": "RPT-0004",
+      "status": "Dezactivat",
+      "createdAt": "2026-09-30T10:00:00", "createdBy": "Anastasia Cojocaru",
+      "updatedAt": "2026-10-28T16:00:00", "updatedBy": "Anastasia Cojocaru",
+      "config": {
+        "names": { "ro": "Raport acte permisive emise pe tip", "ru": "Отчёт о выданных разрешительных документах по типам", "en": "Permits issued by type" },
+        "descriptions": { "ro": "Actele emise în perioada aleasă, pe tip și status; aprobările tacite se văd separat.", "ru": "", "en": "" },
+        "category": "statistic", "source": "reg-acte", "level": "Global", "authorities": [],
+        "columns": [
+          { "id": "c1", "names": { "ro": "Status", "ru": "Статус", "en": "Status" }, "kind": "source", "field": "status", "dataType": "text", "header": "", "total": "sum" },
+          { "id": "c2", "names": { "ro": "Tip act", "ru": "Тип документа", "en": "Permit type" }, "kind": "source", "field": "tipAct", "dataType": "text", "header": "", "total": "sum" },
+          { "id": "c3", "names": { "ro": "Emise", "ru": "Выданы", "en": "Issued" }, "kind": "source", "field": "emis", "dataType": "numeric", "header": "Acte", "total": "sum" },
+          { "id": "c4", "names": { "ro": "prin aprobare tacită", "ru": "молчаливым согласием", "en": "tacit approval" }, "kind": "source", "field": "aprobareTacita", "dataType": "numeric", "header": "Acte", "total": "incl" }
+        ],
+        "groupBy": "c1",
+        "filters": [ { "field": "emis", "type": "date" }, { "field": "tipAct", "type": "multi" } ],
+        "totalRow": true
+      },
+      "versions": [
+        { "nr": 1, "version": 1, "at": "2026-10-01T09:00:00", "by": "Anastasia Cojocaru", "note": "Prima versiune." }
+      ],
+      "history": [
+        { "at": "2026-10-28T16:00:00", "by": "Anastasia Cojocaru", "role": "Administrator central", "event": "Dezactivarea raportului", "detail": "Înlocuit de rapoartele statistice predefinite." },
+        { "at": "2026-10-01T09:00:00", "by": "Anastasia Cojocaru", "role": "Administrator central", "event": "Publicarea raportului", "detail": "Versiunea 1" },
+        { "at": "2026-09-30T10:00:00", "by": "Anastasia Cojocaru", "role": "Administrator central", "event": "Crearea raportului", "detail": "Ciornă · Global · Registrul actelor permisive" }
+      ]
+    },
+    {
+      "id": "RPT-0005",
+      "status": "Publicat",
+      "createdAt": "2026-10-24T13:00:00", "createdBy": "Mihai Ceban",
+      "updatedAt": "2026-10-24T15:00:00", "updatedBy": "Mihai Ceban",
+      "config": {
+        "names": { "ro": "Raport avize emise pe tip", "ru": "Отчёт о выданных заключениях по типам", "en": "Approvals issued by type" },
+        "descriptions": { "ro": "Avizele solicitate și emise, cu durata medie a avizării.", "ru": "", "en": "" },
+        "category": "tabelar", "source": "reg-avize", "level": "Autoritate", "authorities": ["anta"],
+        "columns": [
+          { "id": "c1", "names": { "ro": "Tip aviz", "ru": "Тип заключения", "en": "Approval type" }, "kind": "source", "field": "tip", "dataType": "text", "header": "", "total": "sum" },
+          { "id": "c2", "names": { "ro": "Solicitate", "ru": "Запрошены", "en": "Requested" }, "kind": "source", "field": "solicitat", "dataType": "numeric", "header": "Avize", "total": "sum" },
+          { "id": "c3", "names": { "ro": "Emise", "ru": "Выданы", "en": "Issued" }, "kind": "source", "field": "emis", "dataType": "numeric", "header": "Avize", "total": "sum" },
+          { "id": "c4", "names": { "ro": "Durata medie, zile", "ru": "Средняя длительность, дни", "en": "Average time, days" }, "kind": "source", "field": "durata", "dataType": "numeric", "header": "", "total": "sum" }
+        ],
+        "groupBy": "",
+        "filters": [ { "field": "solicitat", "type": "date" }, { "field": "statut", "type": "multi" } ],
+        "totalRow": true
+      },
+      "versions": [
+        { "nr": 1, "version": 1, "at": "2026-10-24T15:00:00", "by": "Mihai Ceban", "note": "Prima versiune." }
+      ],
+      "history": [
+        { "at": "2026-10-24T15:00:00", "by": "Mihai Ceban", "role": "Utilizator cu permisiunea «Gestionarea rapoartelor» · ANTA", "event": "Publicarea raportului", "detail": "Versiunea 1" },
+        { "at": "2026-10-24T13:00:00", "by": "Mihai Ceban", "role": "Utilizator cu permisiunea «Gestionarea rapoartelor» · ANTA", "event": "Crearea raportului", "detail": "Ciornă · Autoritate ANTA · Registru Avize" }
+      ]
+    },
+    {
+      "id": "RPT-0006",
+      "status": "Publicat",
+      "createdAt": "2026-10-27T10:00:00", "createdBy": "Anastasia Cojocaru",
+      "updatedAt": "2026-11-07T11:30:00", "updatedBy": "Anastasia Cojocaru",
+      "config": {
+        "names": { "ro": "Raport durata procesării pe subdiviziune", "ru": "Отчёт о длительности обработки по подразделениям", "en": "Processing time by subdivision" },
+        "descriptions": { "ro": "Dosarele finalizate pe subdiviziune, cu prima depunere, ultima finalizare și durata medie.", "ru": "", "en": "" },
+        "category": "statistic", "source": "reg-dosare", "level": "Autoritate", "authorities": ["ansp", "ansa"],
+        "columns": [
+          { "id": "c1", "names": { "ro": "Subdiviziune", "ru": "Подразделение", "en": "Subdivision" }, "kind": "source", "field": "subdiviziune", "dataType": "text", "header": "", "total": "sum" },
+          { "id": "c2", "names": { "ro": "Finalizate", "ru": "Завершены", "en": "Closed" }, "kind": "source", "field": "finalizat", "dataType": "numeric", "header": "", "total": "sum" },
+          { "id": "c3", "names": { "ro": "Prima depunere", "ru": "Первая подача", "en": "First submission" }, "kind": "source", "field": "depus", "dataType": "temporal", "header": "Perioada", "total": "sum" },
+          { "id": "c4", "names": { "ro": "Ultima finalizare", "ru": "Последнее завершение", "en": "Last closure" }, "kind": "source", "field": "finalizat", "dataType": "temporal", "header": "Perioada", "total": "sum" },
+          { "id": "c5", "names": { "ro": "Zile în perioadă", "ru": "Дней в периоде", "en": "Days in period" }, "kind": "calc", "formula": "f-days", "operands": { "A": "c4", "B": "c3" }, "dataType": "numeric", "header": "Perioada", "total": "sum" },
+          { "id": "c6", "names": { "ro": "Durata medie, zile", "ru": "Средняя длительность, дни", "en": "Average time, days" }, "kind": "calc", "formula": "f-avg", "operands": {}, "dataType": "numeric", "header": "", "total": "sum" }
+        ],
+        "groupBy": "",
+        "filters": [ { "field": "finalizat", "type": "date" }, { "field": "subdiviziune", "type": "multi" } ],
+        "totalRow": true
+      },
+      "versions": [
+        { "nr": 1, "version": 1, "at": "2026-10-28T09:00:00", "by": "Anastasia Cojocaru", "note": "Prima versiune." }
+      ],
+      "unpublishedColumns": ["c5"],
+      "history": [
+        { "at": "2026-11-07T11:30:00", "by": "Anastasia Cojocaru", "role": "Administrator central", "event": "Modificarea raportului", "detail": "Coloane: + Zile în perioadă" },
+        { "at": "2026-10-28T09:00:00", "by": "Anastasia Cojocaru", "role": "Administrator central", "event": "Publicarea raportului", "detail": "Versiunea 1" },
+        { "at": "2026-10-27T10:00:00", "by": "Anastasia Cojocaru", "role": "Administrator central", "event": "Crearea raportului", "detail": "Ciornă · Autoritate ANSP, ANSA · Registru Dosare" }
+      ]
+    },
+    {
+      "id": "RPT-0007",
+      "status": "Ciornă",
+      "createdAt": "2026-11-08T09:15:00", "createdBy": "Anastasia Cojocaru",
+      "updatedAt": "2026-11-08T09:15:00", "updatedBy": "Anastasia Cojocaru",
+      "config": {
+        "names": { "ro": "Raport dosare suspendate pe specialist", "ru": "", "en": "" },
+        "descriptions": { "ro": "", "ru": "", "en": "" },
+        "category": "tabelar", "source": "reg-dosare", "level": "Global", "authorities": [],
+        "columns": [
+          { "id": "c1", "names": { "ro": "Specialist", "ru": "", "en": "" }, "kind": "source", "field": "specialist", "dataType": "text", "header": "", "total": "sum" },
+          { "id": "c2", "names": { "ro": "Suspendate", "ru": "", "en": "" }, "kind": "calc", "formula": "f-count", "operands": {}, "dataType": "numeric", "header": "", "total": "sum" }
+        ],
+        "groupBy": "",
+        "filters": [],
+        "totalRow": true
+      },
+      "versions": [],
+      "history": [
+        { "at": "2026-11-08T09:15:00", "by": "Anastasia Cojocaru", "role": "Administrator central", "event": "Crearea raportului", "detail": "Ciornă · Global · Registru Dosare" }
+      ]
+    }
+  ]
+}

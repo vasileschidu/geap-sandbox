@@ -508,6 +508,12 @@
               "label": "Widgete",
               "iconAsset": "assets/icons/dot-grid.svg",
               "shellView": "widgete-registry"
+            },
+            {
+              "id": "rapoarte",
+              "label": "Rapoarte",
+              "iconAsset": "assets/icons/page-text.svg",
+              "shellView": "rapoarte-registry"
             }
           ]
         },
@@ -569,6 +575,12 @@
               "label": "Widgete",
               "iconAsset": "assets/icons/dot-grid.svg",
               "shellView": "widgete-registry"
+            },
+            {
+              "id": "rapoarte",
+              "label": "Rapoarte",
+              "iconAsset": "assets/icons/page-text.svg",
+              "shellView": "rapoarte-registry"
             }
           ]
         },
