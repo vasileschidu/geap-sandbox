@@ -106,8 +106,19 @@
   /* „Culori” (chart-palette-v2, 2026-11-09, user: the admin chooses the graph colours from a limited, brand-harmonious
      range, one palette per widget) — the class `.e-permits-wid--pal-<key>` on the card re-defines series s1…s5 + the heat
      ramp (css/widget.css); s6 „Altele” and the KPI zones never change */
-  const PALETTES = [["blue", "Albastru (implicită)"], ["indigo", "Indigo"], ["violet", "Violet"], ["sky", "Cer"], ["mixed", "Mixt"], ["neutral", "Neutru"]];
-  const palKey = (v) => (PALETTES.some(([k]) => k === v?.palette) ? v.palette : "blue");
+  /* chart-palette-v4 (2026-11-09, user: „more various, not just one colour range”): six CATEGORICAL palettes (five hue
+     families each); the v2 single-hue keys are migrated (blue → default, sky → calm, mixed → intense, violet → warm,
+     indigo → cool) */
+  const PALETTES = [["default", "Implicită"], ["calm", "Calmă"], ["intense", "Intensă"], ["warm", "Caldă"], ["cool", "Rece"], ["neutral", "Neutră"]];
+  const PAL_V2 = { blue: "default", sky: "calm", mixed: "intense", violet: "warm", indigo: "cool" };
+  const palKey = (v) => { const k = PAL_V2[v?.palette] || v?.palette; return PALETTES.some(([key]) => key === k) ? k : "default"; };
+  /* chart-status-v1: the widget's coloured dimension is a status (fixed colours, js/widget-charts.js STATUS_COLOURS) →
+     „Culori” is disabled with the reason, the read-only rows say „După status” */
+  const statusColours = (v) => {
+    const W = window.GEAPWidgetCharts;
+    if (!W?.isStatusDim || !v?.source) return false;
+    return (["bars", "stacked", "pie", "treemap"].includes(v.type) && W.isStatusDim(v.source, v.primary)) || (["stacked", "line"].includes(v.type) && W.isStatusDim(v.source, v.secondary));
+  };
   const swatches = (key) => `<span class="e-permits-wid-pal e-permits-wid--pal-${key}" aria-hidden="true">${[1, 2, 3, 4, 5].map((n) => `<span class="e-permits-wid-pal__swatch e-permits-wid-s${n}"></span>`).join("")}</span>`;
   const isPhone = () => Boolean(window.matchMedia?.("(max-width: 760px)").matches);
   const OPS = [["is", "este"], ["isNot", "nu este"], ["contains", "conține"], ["empty", "este gol"], ["notEmpty", "are valoare"]];
@@ -150,7 +161,7 @@
     if (demo.has("incarcare")) return new Promise(() => {});
     if (!S.loading) {
       S.loading = Promise.all([
-        fetch("data/widgets.json?v=widget-v4").then((r) => r.json()),
+        fetch("data/widgets.json?v=widget-v5").then((r) => r.json()),
         K().load ? K().load() : Promise.resolve(null)
       ]).then(([json]) => {
         if (demo.has("gol")) json.widgets = [];
@@ -206,7 +217,7 @@
   const blankConfig = () => ({
     titles: { ro: "", ru: "", en: "" }, subtitles: { ro: "", ru: "", en: "" }, source: "", type: "", kpi: "", measure: "count", column: "",
     primary: "", secondary: "", dateGroup: "", order: "source", filter: { logic: "and", rules: [] }, compare: "",
-    format: "number", threshold: { on: false, value: "", below: "warning" }, width: "half", height: "medium", palette: "blue", drill: true, visibility: defaultVis()
+    format: "number", threshold: { on: false, value: "", below: "warning" }, width: "half", height: "medium", palette: "default", drill: true, visibility: defaultVis()
   });
   const dateCols = (src) => fieldsOf(src).filter((f) => f.type === "date");
   const catCols = (src) => fieldsOf(src).filter((f) => f.type === "enum" || f.type === "date");
@@ -423,6 +434,11 @@
       else if (v.order === "alpha") cats.sort((a, b) => a.label.localeCompare(b.label, "ro"));
     }
     model.cats = cats;
+    /* Status dimensions = fixed colours (chart-status-v1): the categories (bars / sectors / treemap) and the series (stacked,
+       lines) of a status field take the value's fixed colour; other fields keep the palette */
+    const W = window.GEAPWidgetCharts;
+    if (W?.isStatusDim?.(v.source, v.primary) && ["bars", "stacked", "pie", "treemap"].includes(v.type)) model.catStatus = cats.map((c) => W.statusClass(v.source, v.primary, c.label));
+    if (W?.isStatusDim?.(v.source, v.secondary) && model.series.length) model.seriesStatus = model.series.map((s) => W.statusClass(v.source, v.secondary, s.label));
     const grand = cats.reduce((a, c) => a + (c.value || 0), 0);
     model.fmt = fmtFn(v, grand);
     if (v.type === "control") {
@@ -669,14 +685,15 @@
          ${full(U().renderToggle?.({ label: "Culori după prag", description: "Valorile de la prag în sus sunt verzi, cele de sub prag au culoarea aleasă. Fără prag, widget-ul folosește culorile alese mai jos.", checked: Boolean(v.threshold.on), attrs: 'data-wid-field="threshold.on"' }) || "")}
          ${v.threshold.on ? `${textField(`${idp}-threshold`, "threshold.value", "Pragul", v.threshold.value, { span: 6, unit, numeric: true, required: true, error: e["threshold.value"] })}${selectField(`${idp}-below`, "threshold.below", "Culoarea sub prag", BELOW, v.threshold.below, {})}` : ""}`;
     const vis = visOptions();
+    const byStatus = statusColours(v);
     const palette = full(`
       <div class="e-permits-wid-vis-field e-permits-wid-pal-field">
         <span class="e-permits-cfg-ro__label" id="${idp}-palette-label">Culori</span>
         <fieldset class="e-permits-wid-types" id="${idp}-palette" aria-describedby="${idp}-palette-hint">
           <legend class="u-visually-hidden">Culori</legend>
           <div class="e-permits-wid-types__grid e-permits-wid-pal-grid">${PALETTES.map(([key, name]) => `
-            <label class="e-permits-fo-delivery-option e-permits-fo-delivery-option--radio e-permits-wid-type${palKey(v) === key ? " is-selected" : ""}">
-              <input class="e-permits-fo-delivery-option__input" type="radio" name="${idp}-pal" value="${key}"${palKey(v) === key ? " checked" : ""} data-wid-pal>
+            <label class="e-permits-fo-delivery-option e-permits-fo-delivery-option--radio e-permits-wid-type${byStatus ? " is-disabled" : palKey(v) === key ? " is-selected" : ""}">
+              <input class="e-permits-fo-delivery-option__input" type="radio" name="${idp}-pal" value="${key}"${palKey(v) === key && !byStatus ? " checked" : ""}${byStatus ? " disabled" : ""} data-wid-pal>
               <span class="e-permits-fo-delivery-option__content">
                 <span class="e-permits-fo-delivery-option__copy">
                   <span class="e-permits-fo-delivery-option__title-row"><span class="e-permits-fo-delivery-option__title">${esc(name)}</span></span>
@@ -686,7 +703,7 @@
               <span class="radio radio--small e-permits-fo-delivery-option__radio" aria-hidden="true"><span class="radio-custom"></span></span>
             </label>`).join("")}</div>
         </fieldset>
-        <p class="e-permits-fo-field__hint" id="${idp}-palette-hint">Zonele KPI păstrează verde / galben / roșu.</p>
+        <p class="e-permits-fo-field__hint" id="${idp}-palette-hint">${byStatus ? "Culorile urmează statusurile (aceleași ca etichetele din tabele)." : "Zonele KPI păstrează verde / galben / roșu."}</p>
       </div>`);
     return `
       ${section("Format, praguri și culori", grid(look, palette))}
@@ -719,7 +736,7 @@
   /* ---- read-only passport blocks (profile, review, version view) */
   const rulesText = (v) => (v.filter.rules?.length ? v.filter.rules.map((r) => `${fieldOf(v.source, r.column)?.label || r.column} ${label(OPS, r.op)}${NO_VALUE.includes(r.op) ? "" : ` „${r.value}”`}`).join(v.filter.logic === "or" ? " sau " : " și ") : "");
   const thresholdText = (v) => (kpiOf(v.kpi) ? "Din KPI" : v.threshold.on ? `Verde de la ${v.threshold.value}, ${label(BELOW, v.threshold.below).toLocaleLowerCase("ro")} sub prag` : "Fără prag");
-  const paletteHtml = (v) => `<span class="e-permits-wid-pal-value">${swatches(palKey(v))}<span>${esc(label(PALETTES, palKey(v)))}</span></span>`;
+  const paletteHtml = (v) => (statusColours(v) ? "După status" : `<span class="e-permits-wid-pal-value">${swatches(palKey(v))}<span>${esc(label(PALETTES, palKey(v)))}</span></span>`);
   /* one row per field of the model; a field the type does not use reads „—” */
   function configRows(v) {
     const k = kpiOf(v.kpi);

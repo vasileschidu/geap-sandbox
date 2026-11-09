@@ -27,6 +27,20 @@
   const SERIES = 6;
   /* the series palette: categorical (s1 = brand … s6 = neutral „Altele”); zones = the calmer --wid-zone-* tones (css/widget.css, chart-palette-v1) */
   const sClass = (i) => `e-permits-wid-s${(i % SERIES) + 1}`;
+  /* Status dimensions = fixed colours (chart-status-v1, 2026-11-09): a status value keeps ONE colour system-wide, the tone
+     of its tag in the tables at chart weight (css/widget.css `.e-permits-wid-st-<tone>`); key = „<source>.<field>”. Not
+     per widget, not editable; a palette never changes them; unknown values keep the palette order, „Altele” = s6 */
+  const STATUS_COLOURS = {
+    "reg-dosare.statut": { "Depus": "info", "În examinare": "brand", "Suspendat": "warning", "Finalizat": "success", "Respins": "danger", "Retras": "neutral" },
+    "reg-acte.status": { "Valabil": "success", "Aprobare tacită": "brand", "Suspendat": "warning", "Retras": "danger", "Anulat": "danger-light", "Expirat": "neutral" },
+    "reg-note.statutNota": { "Emisă": "brand", "Achitată": "success", "Parțial achitată": "warning", "Neachitată": "danger", "Anulată": "neutral" },
+    "reg-avize.statut": { "Solicitat": "brand", "Emis": "success", "Refuzat": "danger" }
+  };
+  const isStatusDim = (source, field) => Boolean(source && field && STATUS_COLOURS[`${source}.${field}`]);
+  const statusClass = (source, field, value) => { const t = STATUS_COLOURS[`${source}.${field}`]?.[value]; return t ? `e-permits-wid-st-${t}` : ""; };
+  /* the colour class of series j / category i: the fixed status colour when the model carries one, else the palette */
+  const serCls = (m, j) => m.seriesStatus?.[j] || (m.series?.[j]?.label === "Altele" ? sClass(SERIES - 1) : sClass(j));
+  const catCls = (m, i) => m.catStatus?.[i] || (m.cats?.[i]?.label === "Altele" ? sClass(SERIES - 1) : sClass(i));
   const max = (list) => Math.max(0, ...list.filter((v) => Number.isFinite(v)));
   const nf = (v) => Number(v).toLocaleString("ro-MD", { maximumFractionDigits: 0 });
   const share = (v, total) => (total ? `${Math.round((v / total) * 100)}%` : "0%");
@@ -43,6 +57,7 @@
   const toneDot = (tone) => `e-permits-meter-legend__dot--${tone}`;
   /* the legend of a single-series chart: thresholds (zones) or the measure, + the KPI target */
   function baseLegend(m) {
+    if (m.catStatus?.some(Boolean) && !m.zones?.length) return legend([...m.cats.map((c, i) => ({ label: c.label, dot: catCls(m, i) })), ...(m.target ? [{ label: m.target.label, dot: "e-permits-wid-legend__target" }] : [])], { wrap: true });
     const items = m.zones?.length ? m.zones.map(([label, tone]) => ({ label, dot: toneDot(tone) })) : [{ label: m.measureLabel || "Valoare", dot: toneDot("brand") }];
     if (m.target) items.push({ label: m.target.label, dot: "e-permits-wid-legend__target" });
     return legend(items);
@@ -53,7 +68,7 @@
     ...(m.target ? [{ label: m.target.label, dot: "e-permits-wid-legend__target" }] : [])
   ]) : "");
   const zoneOf = (m, v) => { const tone = m.tone?.(v); const z = (m.zones || []).find(([, t]) => t === tone); return z && m.kpi ? window.GEAPTag?.html(z[0], tone) || esc(z[0]) : ""; };
-  const seriesLegend = (m) => legend([...m.series.map((s, i) => ({ label: s.label, dot: sClass(i) })), ...(m.target ? [{ label: m.target.label, dot: "e-permits-wid-legend__target" }] : [])]);
+  const seriesLegend = (m) => legend([...m.series.map((s, i) => ({ label: s.label, dot: serCls(m, i) })), ...(m.target ? [{ label: m.target.label, dot: "e-permits-wid-legend__target" }] : [])]);
   /* the category axis: one label per slot, centred under it (the slots' flex); `fit()` thins them to every k-th so two
      neighbours are ≥ 8 apart, and keeps the end labels inside the plot — never rotated, never overlapping */
   const axis = (cats) => (cats.length ? `<div class="e-permits-chart__axis e-permits-wid-axis" aria-hidden="true">${cats.map((c) => `<span class="e-permits-wid-axis__tick"><span>${esc(c.label)}</span></span>`).join("")}</div>` : "");
@@ -76,12 +91,13 @@
         const y = 100 - (c.value / top) * 100;
         const tone = m.tone?.(c.value) || "brand";
         const label = `<text class="e-permits-ekyc-band__label" data-wid-fit="value" x="50%" y="${pct(Math.max(8, y - 3))}" text-anchor="middle">${esc(m.fmt(c.value))}</text>`;
-        bars = `<rect class="e-permits-chart__bar--${tone}" x="22%" y="${pct(y)}" width="56%" height="200%" rx="4"></rect>${label}`;
+        const st = !m.tone && m.catStatus?.[i];
+        bars = `<rect class="${st ? `e-permits-wid-fill ${st}` : `e-permits-chart__bar--${tone}`}" x="22%" y="${pct(y)}" width="56%" height="200%" rx="4"></rect>${label}`;
       } else {
         /* stacked: the top segment first (rounded top; its rect runs 200% = far under the baseline, clipped by the plot, so the bottom corners never show), the lower ones square on top */
         let acc = 0;
         const segs = c.parts.map((p, j) => { const from = acc; acc += p.value; return { ...p, j, from, to: acc }; }).filter((sg) => sg.value > 0);
-        const rect = (sg, rounded) => `<rect class="e-permits-wid-fill ${sClass(sg.j)}" x="22%" y="${pct(100 - (sg.to / top) * 100)}" width="56%" height="${rounded ? "200%" : pct(((sg.to - sg.from) / top) * 100)}"${rounded ? ' rx="4"' : ""}></rect>`;
+        const rect = (sg, rounded) => `<rect class="e-permits-wid-fill ${serCls(m, sg.j)}" x="22%" y="${pct(100 - (sg.to / top) * 100)}" width="56%" height="${rounded ? "200%" : pct(((sg.to - sg.from) / top) * 100)}"${rounded ? ' rx="4"' : ""}></rect>`;
         bars = segs.length ? rect(segs[segs.length - 1], true) + segs.slice(0, -1).reverse().map((sg) => rect(sg, false)).join("") : "";
       }
       return slot(m, c, totals[i], `<svg class="e-permits-wid-cols__svg" aria-hidden="true" focusable="false">${bars}</svg>`);
@@ -105,8 +121,8 @@
       let x = 0;
       const cuts = [];
       const fills = stacked
-        ? c.parts.map((p, j) => { if (p.value <= 0) return ""; const width = (p.value / top) * 100; const r = `<rect class="e-permits-wid-fill ${sClass(j)}" x="${pct(x)}" y="0" width="${pct(width)}" height="100%"></rect>`; x += width; cuts.push(x); return r; }).join("")
-        : `<rect class="e-permits-meter__fill--${m.tone?.(c.value) || "brand"}" x="0" y="0" width="${pct((c.value / top) * 100)}" height="100%"></rect>`;
+        ? c.parts.map((p, j) => { if (p.value <= 0) return ""; const width = (p.value / top) * 100; const r = `<rect class="e-permits-wid-fill ${serCls(m, j)}" x="${pct(x)}" y="0" width="${pct(width)}" height="100%"></rect>`; x += width; cuts.push(x); return r; }).join("")
+        : `<rect class="${!m.tone && m.catStatus?.[i] ? `e-permits-wid-fill ${m.catStatus[i]}` : `e-permits-meter__fill--${m.tone?.(c.value) || "brand"}`}" x="0" y="0" width="${pct((c.value / top) * 100)}" height="100%"></rect>`;
       const gaps = stacked ? cuts.slice(0, -1).map((at) => `<line class="e-permits-meter__gap" x1="${pct(at)}" x2="${pct(at)}" y1="0" y2="100%"></line>`).join("") : "";
       const target = m.target ? `<line class="e-permits-wid-target e-permits-wid-target--v" x1="${pct((m.target.value / top) * 100)}" x2="${pct((m.target.value / top) * 100)}" y1="0" y2="100%"></line>` : "";
       const inner = `
@@ -133,11 +149,11 @@
     const layers = lines.map((vals, j) => {
       const pts = vals.map((v, i) => `${X(i).toFixed(2)},${Y(v).toFixed(2)}`).join(" ");
       const area = lines.length === 1 && !control ? `<polygon class="e-permits-wid-area" points="${X(0).toFixed(2)},100 ${pts} ${X(n - 1).toFixed(2)},100"></polygon>` : "";
-      return `<svg class="e-permits-wid-layer ${sClass(j)}" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true" focusable="false">${area}<polyline class="e-permits-wid-line" points="${pts}" vector-effect="non-scaling-stroke"></polyline></svg>`;
+      return `<svg class="e-permits-wid-layer ${m.series.length ? serCls(m, j) : sClass(j)}" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true" focusable="false">${area}<polyline class="e-permits-wid-line" points="${pts}" vector-effect="non-scaling-stroke"></polyline></svg>`;
     }).join("");
     const dots = lines.map((vals, j) => vals.map((v, i) => {
       const out = lim && (v > lim.ucl || v < lim.lcl);
-      return `<circle class="e-permits-wid-dot ${sClass(j)}${out ? " is-out" : ""}" cx="${pct(X(i))}" cy="${pct(Y(v))}" r="3"></circle>`;
+      return `<circle class="e-permits-wid-dot ${m.series.length ? serCls(m, j) : sClass(j)}${out ? " is-out" : ""}" cx="${pct(X(i))}" cy="${pct(Y(v))}" r="3"></circle>`;
     }).join("")).join("");
     const limits = lim ? `
       <line class="e-permits-wid-limit" x1="0" x2="100%" y1="${pct(Y(lim.ucl))}" y2="${pct(Y(lim.ucl))}"></line>
@@ -165,7 +181,7 @@
     const arcs = m.cats.map((c, i) => {
       const len = total ? (c.value / total) * 100 : 0;
       const dash = Math.max(0, len - (m.cats.length > 1 ? 0.8 : 0));
-      const arc = `<circle class="e-permits-wid-arc ${sClass(i)}" cx="21" cy="21" r="15.9155" stroke-width="6" pathLength="100" stroke-dasharray="${dash.toFixed(2)} ${(100 - dash).toFixed(2)}" stroke-dashoffset="${(25 - off).toFixed(2)}"></circle>`;
+      const arc = `<circle class="e-permits-wid-arc ${catCls(m, i)}" cx="21" cy="21" r="15.9155" stroke-width="6" pathLength="100" stroke-dasharray="${dash.toFixed(2)} ${(100 - dash).toFixed(2)}" stroke-dashoffset="${(25 - off).toFixed(2)}"></circle>`;
       off += len;
       return arc;
     }).join("");
@@ -175,7 +191,7 @@
           <svg class="e-permits-wid-donut__svg" viewBox="0 0 42 42" role="img" aria-label="${ariaOf(m)}" focusable="false"><circle class="e-permits-wid-donut__track" cx="21" cy="21" r="15.9155" stroke-width="6"></circle>${arcs}</svg>
           <span class="e-permits-wid-donut__center"><strong>${esc(m.fmt(m.kpi && Number.isFinite(m.kpiCurrent) ? m.kpiCurrent : total))}</strong><span>${m.kpi ? "KPI" : "total"}</span></span>
         </div>
-        ${legend(m.cats.map((c, i) => ({ label: c.label, value: m.fmt(c.value), pct: share(c.value, total), dot: sClass(i), button: m.drill ? `${drillAttrs(m, c.label, c.value)} aria-label="${esc(`${c.label}: ${m.fmt(c.value)} — deschide înregistrările`)}"` : "" })), { vertical: true })}
+        ${legend(m.cats.map((c, i) => ({ label: c.label, value: m.fmt(c.value), pct: share(c.value, total), dot: catCls(m, i), button: m.drill ? `${drillAttrs(m, c.label, c.value)} aria-label="${esc(`${c.label}: ${m.fmt(c.value)} — deschide înregistrările`)}"` : "" })), { vertical: true })}
       </div>`;
   }
 
@@ -268,11 +284,11 @@
     const tiles = out.map((t) => {
       const name = t.h > 30 ? fit(t.label, t.w) : "";
       const val = t.h > 30 ? fit(`${m.fmt(t.value)} · ${share(t.value, total)}`, t.w) : "";
-      return `<rect class="e-permits-wid-fill e-permits-wid-tile-rect ${sClass(t.i)}" data-wid-tile="${t.i}" x="${pct(t.x)}" y="${pct(t.y)}" width="${pct(t.w)}" height="${pct(t.h)}"></rect>${name ? `<text class="e-permits-wid-treemap__label ${sClass(t.i)}" data-wid-fit="tile" data-wid-tile="${t.i}" x="${pct(t.x + 1.5)}" y="${pct(t.y + 14)}">${esc(name)}</text>` : ""}${val ? `<text class="e-permits-wid-treemap__value ${sClass(t.i)}" data-wid-fit="tile" data-wid-tile="${t.i}" x="${pct(t.x + 1.5)}" y="${pct(t.y + 28)}">${esc(val)}</text>` : ""}`;
+      return `<rect class="e-permits-wid-fill e-permits-wid-tile-rect ${catCls(m, t.i)}" data-wid-tile="${t.i}" x="${pct(t.x)}" y="${pct(t.y)}" width="${pct(t.w)}" height="${pct(t.h)}"></rect>${name ? `<text class="e-permits-wid-treemap__label ${catCls(m, t.i)}" data-wid-fit="tile" data-wid-tile="${t.i}" x="${pct(t.x + 1.5)}" y="${pct(t.y + 14)}">${esc(name)}</text>` : ""}${val ? `<text class="e-permits-wid-treemap__value ${catCls(m, t.i)}" data-wid-fit="tile" data-wid-tile="${t.i}" x="${pct(t.x + 1.5)}" y="${pct(t.y + 28)}">${esc(val)}</text>` : ""}`;
     }).join("");
     return `
       <svg class="${PLOT(m, "e-permits-wid-plot--bare e-permits-wid-treemap")}" role="img" aria-label="${ariaOf(m)}" focusable="false">${tiles}</svg>
-      ${legend(m.cats.map((c, i) => ({ label: c.label, value: m.fmt(c.value), dot: sClass(i), button: m.drill ? `${drillAttrs(m, c.label, c.value)} aria-label="${esc(`${c.label}: ${m.fmt(c.value)} — deschide înregistrările`)}"` : "" })), { wrap: true })}`;
+      ${legend(m.cats.map((c, i) => ({ label: c.label, value: m.fmt(c.value), dot: catCls(m, i), button: m.drill ? `${drillAttrs(m, c.label, c.value)} aria-label="${esc(`${c.label}: ${m.fmt(c.value)} — deschide înregistrările`)}"` : "" })), { wrap: true })}`;
   }
 
   /* ---------------------------------------------------------------- Plăcuță simplă */
@@ -391,5 +407,5 @@
     new MutationObserver(() => { if (!queued) { queued = true; requestAnimationFrame(() => { queued = false; watch(); }); } }).observe(document.documentElement, { childList: true, subtree: true });
   }
 
-  window.GEAPWidgetCharts = { render, glyph, series: sClass, nf, fit, watch };
+  window.GEAPWidgetCharts = { render, glyph, series: sClass, nf, fit, watch, STATUS_COLOURS, isStatusDim, statusClass };
 })();
