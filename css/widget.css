@@ -166,7 +166,7 @@
 
 .e-permits-wid-vis {
   display: grid;
-  gap: var(--spacing-12, 12px);
+  gap: var(--spacing-16, 16px);
 }
 
 /* ---- the preview block (builder right column · profile aside): heading + data line + Actualizează, card, size line,
@@ -1162,9 +1162,10 @@ button.e-permits-wid-rows__row:focus-visible {
   font-weight: var(--font-weight-fw-regular, 400);
 }
 
-/* Aria de vizibilitate: the note under the radio group keeps the 16 rhythm (it sat flush under the group) */
-.e-permits-wid-vis-field + .info-box {
-  margin-top: var(--spacing-16, 16px);
+/* Aria de vizibilitate: the note sits 24 under the radio group (vis-spacing-v2, 2026-11-09: the BO info-note rule
+   `:is([data-demo-flow=back-office] …) .info-box { margin: 0 }` out-specified the old 16 → it sat flush) */
+.e-permits-wid-vis-field + .info-box.e-permits-info-note.e-permits-info-note {
+  margin-top: var(--spacing-24, 24px);
 }
 
 /* single-line list legends (donut) centre the dot on their one line */
@@ -1185,5 +1186,25 @@ button.e-permits-wid-rows__row:focus-visible {
 
   .e-permits-wid-heat tbody th {
     vertical-align: middle;
+  }
+}
+
+/* „Culori”: the six palette cards sit 3 per row on desktop (pal-grid-3, 2026-11-09), 2 on tablets, 1 on phones */
+:is(.e-permits-wid-config, .e-permits-wid-create) .e-permits-wid-types__grid.e-permits-wid-pal-grid,
+.e-permits-wid-types__grid.e-permits-wid-pal-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+@media (max-width: 1100px) {
+  :is(.e-permits-wid-config, .e-permits-wid-create) .e-permits-wid-types__grid.e-permits-wid-pal-grid,
+  .e-permits-wid-types__grid.e-permits-wid-pal-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 760px) {
+  :is(.e-permits-wid-config, .e-permits-wid-create) .e-permits-wid-types__grid.e-permits-wid-pal-grid,
+  .e-permits-wid-types__grid.e-permits-wid-pal-grid {
+    grid-template-columns: minmax(0, 1fr);
   }
 }

@@ -674,7 +674,7 @@
         <span class="e-permits-cfg-ro__label" id="${idp}-palette-label">Culori</span>
         <fieldset class="e-permits-wid-types" id="${idp}-palette" aria-describedby="${idp}-palette-hint">
           <legend class="u-visually-hidden">Culori</legend>
-          <div class="e-permits-wid-types__grid">${PALETTES.map(([key, name]) => `
+          <div class="e-permits-wid-types__grid e-permits-wid-pal-grid">${PALETTES.map(([key, name]) => `
             <label class="e-permits-fo-delivery-option e-permits-fo-delivery-option--radio e-permits-wid-type${palKey(v) === key ? " is-selected" : ""}">
               <input class="e-permits-fo-delivery-option__input" type="radio" name="${idp}-pal" value="${key}"${palKey(v) === key ? " checked" : ""} data-wid-pal>
               <span class="e-permits-fo-delivery-option__content">

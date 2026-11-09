@@ -608,3 +608,21 @@
     grid-template-columns: var(--spacing-40, 40px) minmax(0, 1fr);
   }
 }
+
+/* sheet-header-inset-v1 (2026-11-09, user: „wrong header lr padding”): on desktop the header title, the step strip and
+   the × sit 12 inside the page edge — on the line of the section headings (their 12 inset) and of the preview's
+   „Actualizează / Mărește” row; the content cards and the footer bar keep the page edge */
+@media (min-width: 761px) {
+  .e-permits-reg-editor--page .e-permits-reg-editor__header .e-permits-page-header__body {
+    padding-left: calc(max(var(--spacing-24, 24px), calc((100% - var(--spacing-40, 40px) * 40) / 2 + var(--spacing-24, 24px))) + var(--spacing-12, 12px));
+    padding-right: calc(max(var(--spacing-24, 24px), calc((100% - var(--spacing-40, 40px) * 40) / 2 + var(--spacing-24, 24px))) + var(--spacing-12, 12px) + var(--spacing-32, 32px) + var(--spacing-16, 16px));
+  }
+
+  .e-permits-reg-editor--page .e-permits-steps-strip {
+    padding-inline: calc(max(var(--spacing-24, 24px), calc((100% - var(--spacing-40, 40px) * 40) / 2 + var(--spacing-24, 24px))) + var(--spacing-12, 12px));
+  }
+
+  .e-permits-reg-editor--page .e-permits-reg-editor__close {
+    right: calc(max(var(--spacing-24, 24px), calc((100% - var(--spacing-40, 40px) * 40) / 2 + var(--spacing-24, 24px))) + var(--spacing-12, 12px));
+  }
+}
