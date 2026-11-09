@@ -1228,3 +1228,9 @@ button.e-permits-wid-rows__row:focus-visible {
     grid-template-columns: minmax(0, 1fr);
   }
 }
+
+/* horizontal bars in widgets (bars, stacked, KPI rows): a 4 corner like the vertical bars, not the meter's pill
+   (bar-radius-4, 2026-11-09, user: „I don't like full round”) */
+.e-permits-wid-rows .e-permits-meter {
+  border-radius: var(--border-radius-4, 4px);
+}
