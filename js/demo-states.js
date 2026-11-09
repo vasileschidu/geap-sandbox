@@ -5048,7 +5048,9 @@
     const ask = (id, type) => seq(actMenu(id), async (h) => { await actMenuPick(`[data-fo-intent-act="${id}"] [data-fo-intent-postprocess="${type}"]`)(h); await h.find("#start-dialog.is-active [data-start-dialog-start]"); await h.wait(300); });
     const choose = (id, type) => seq(ask(id, type), async (h) => { await h.click("#start-dialog.is-active [data-start-dialog-start]"); }, at("identificare"));
     const save = async (h) => { await h.click(`${W} [data-gh-save]`); await h.wait(400); };
-    const search = (q) => async (h) => { await h.fill("#gh-ofc-q", q, { leave: false }); await h.wait(1000); };
+    const typed = (q) => async (h) => { await h.fill("#gh-ofc-q", q, { leave: false }); await h.wait(300); };
+    const search = (q) => async (h) => { await typed(q)(h); await h.click("#gh-ofc-q ~ .btn-group .btn-search:not([disabled])"); await h.wait(1000); };
+    const more = async (h) => { await h.click("[data-gh-ofc-more]"); await h.wait(400); };
     const service = (text) => async (h) => { await h.click("#fo-gh-ofc-service"); await h.click("#fo-gh-ofc-service-list .e-permits-fo-select__option", text); await h.wait(700); };
     /* results wait = debounce 300 + simulated load 400; ofc-02d freezes the load (?latency=freeze) to show the skeleton */
     /* a real file into the decision's boxed PDF field: the FO document modal, „Încarcă” tab */
@@ -5098,6 +5100,8 @@
       "ofc-02a": ofcList(seq(nou, search("Gustul"))),
       "ofc-02a2": ofcList(seq(nou, search("1008600031457"))),
       "ofc-02b": ofcList(seq(nou, service("sanitară"))),
+      "ofc-02b3": ofcList(seq(nou, service("sanitară"), more)),
+      "ofc-02a3": ofcList(seq(nou, typed("1008600031457"))),
       "ofc-02b2": ofcList(seq(nou, service("biocide"))),
       "ofc-02c": ofcList(seq(nou, search("zzzz"))),
       "ofc-02d": ofcList(seq(nou, service("sanitară")), { latency: "freeze" }),

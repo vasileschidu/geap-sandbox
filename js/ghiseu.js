@@ -1319,7 +1319,7 @@
     if (S.mode === OFC_KIND) {
       S.cur.channel = OFC;
       S.step = STEP_INDEX.intent;
-      S.actsQuery = ""; S.ofcService = ""; S.ofcLoading = false; S.actCleared = false;
+      S.actsQuery = ""; S.ofcQuery = ""; S.ofcShown = 20; S.ofcService = ""; S.ofcLoading = false; S.actCleared = false;
       document.getElementById(START_ID)?.classList.contains("is-active") && closeStart();
     }
     closeSheet();
@@ -3211,9 +3211,10 @@
      be many”): nothing is listed on open. Results = a query of ≥ 3 characters (an act number, a 13-digit IDNP / IDNO
      are longer) or a chosen service; max OFC_MAX rows + „Se afișează 20 din N”; loading = skeleton rows */
   const OFC_MAX = 20, OFC_MIN_CHARS = 3, OFC_DEBOUNCE_MS = 300, OFC_LOAD_MS = 400;
-  const ofcReady = () => Boolean(S.ofcService) || String(S.actsQuery || "").trim().length >= OFC_MIN_CHARS;
+  /* ofc-search-submit-v1 (2026-11-09): the typed text (S.actsQuery) runs only on the arrow / Enter → S.ofcQuery */
+  const ofcReady = () => Boolean(S.ofcService) || String(S.ofcQuery || "").trim().length >= OFC_MIN_CHARS;
   const ofcMatching = () => {
-    const q = fold(String(S.actsQuery || "").trim());
+    const q = fold(String(S.ofcQuery || "").trim());
     return ofcActs().filter((a) => (!S.ofcService || a.service === S.ofcService) && (q.length < OFC_MIN_CHARS || ofcActText(a).includes(q)));
   };
   function ofcResultsHtml() {
@@ -3225,9 +3226,12 @@
     if (!ofcReady()) return E?.render({ title: "Caută actul permisiv", text: "Introdu numărul actului, IDNP sau IDNO al titularului, sau alege serviciul.", icon: "search" }) || "";
     const found = ofcMatching();
     if (!found.length) return E?.noResults?.("Niciun act nu corespunde căutării", { text: "Verifică numărul actului, IDNP-ul sau IDNO-ul titularului ori schimbă serviciul." }) || "";
-    const rows = found.slice(0, OFC_MAX).map((act) => ofcActRowHtml(act)).join("");
-    const more = found.length > OFC_MAX ? `<p class="e-permits-gh-ofc__more">Se afișează ${OFC_MAX} din ${found.length}. Rafinează căutarea pentru a restrânge rezultatele.</p>` : "";
-    return `<p class="e-permits-fo-intent__acts-title" id="gh-acts-title">Acte permisive emise de autoritate</p><ul class="e-permits-fo-intent__list">${rows}</ul>${more}`;
+    const shown = Math.min(S.ofcShown || OFC_MAX, found.length);
+    const rows = found.slice(0, shown).map((act) => ofcActRowHtml(act)).join("");
+    const hint = !S.ofcQuery && found.length > shown ? " Caută după număr, IDNP sau IDNO ca să restrângi lista." : "";
+    const more = found.length > OFC_MAX ? `<p class="e-permits-gh-ofc__more">Se afișează ${shown} din ${found.length}.${hint}</p>` : "";
+    const btn = found.length > shown ? `<div class="e-permits-gh-ofc__load-more"><button class="btn btn-text-primary btn-md" type="button" data-gh-ofc-more>Afișează mai multe</button></div>` : "";
+    return `<p class="e-permits-fo-intent__acts-title" id="gh-acts-title">Acte permisive emise de autoritate</p><ul class="e-permits-fo-intent__list">${rows}</ul>${more}${btn}`;
   }
   /* redraws only the results (the fields keep their focus); a ready query / service shows the skeleton first */
   let ofcTimer = 0, ofcLoadTimer = 0;
@@ -3239,6 +3243,9 @@
     const paint = () => {
       box.innerHTML = ofcResultsHtml();
       box.toggleAttribute("aria-busy", Boolean(S.ofcLoading));
+      const sf = S.page.querySelector(".e-permits-gh-ofc__filters .search-input");
+      sf?.classList.toggle("loading", Boolean(S.ofcLoading));
+      sf?.querySelector(".btn-search")?.toggleAttribute("disabled", Boolean(S.ofcLoading) || String(S.actsQuery || "").trim().length < OFC_MIN_CHARS);
       if (live && !S.ofcLoading) { const n = ofcReady() ? ofcMatching().length : 0; live.textContent = !ofcReady() ? "" : n ? `${plural(n, "act găsit", "acte găsite")}.` : "Niciun rezultat."; }
     };
     const run = () => {
@@ -3248,8 +3255,23 @@
       if (params.get("latency") === "freeze") return; /* demo: the skeleton stays (as Cabinet) */
       ofcLoadTimer = window.setTimeout(() => { S.ofcLoading = false; paint(); }, OFC_LOAD_MS);
     };
-    /* below the threshold the start state returns at once; only a ready query waits for the debounce */
-    if (immediate || !ofcReady()) run(); else ofcTimer = window.setTimeout(run, OFC_DEBOUNCE_MS);
+    run();
+  }
+  /* the submit (arrow / Enter) commits the typed text; „Afișează mai multe” appends the next OFC_MAX rows, focus → the first new one */
+  function ofcSearchSubmit() {
+    if (S.ofcLoading || String(S.actsQuery || "").trim().length < OFC_MIN_CHARS) return;
+    S.ofcQuery = String(S.actsQuery).trim(); S.ofcShown = OFC_MAX;
+    ofcRefresh();
+  }
+  function ofcMore() {
+    const total = ofcMatching().length, before = S.ofcShown || OFC_MAX;
+    S.ofcShown = Math.min(before + OFC_MAX, total);
+    const box = S.page.querySelector("[data-gh-ofc-results]");
+    box.innerHTML = ofcResultsHtml();
+    const row = box.querySelectorAll(".e-permits-fo-intent__list > li, .e-permits-fo-intent__list > [data-fo-intent-act]")[before];
+    if (row) { row.setAttribute("tabindex", "-1"); row.focus({ preventScroll: false }); }
+    const live = S.page.querySelector("[data-gh-acts-live]");
+    if (live) live.textContent = `Se afișează ${S.ofcShown} din ${total}.`;
   }
   function ofcIntentHtml(d) {
     S.ofcLoading = false;
@@ -3263,7 +3285,7 @@
         <div class="search-input ${searchSize()} rectangular e-permits-workplace__search e-permits-list-search e-permits-list-search--fill${S.actsQuery ? " has-value is-ready" : ""}">
           <span class="icon-search" aria-hidden="true">${icon("search")}</span>
           <input class="input" id="gh-ofc-q" type="search" placeholder="De ex. ASF-2025-03318 sau 1008600031457" autocomplete="off" value="${esc(S.actsQuery || "")}" data-gh-acts-search>
-          <div class="btn-group"><span class="spinner spinner--extra-small spinner--brand" aria-hidden="true"></span><button type="button" class="btn-icon clear" aria-label="Șterge căutarea"><svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-cross-small"></use></svg></button></div>
+          <div class="btn-group"><span class="spinner spinner--extra-small spinner--brand" aria-hidden="true"></span><button type="button" class="btn-icon clear" aria-label="Șterge căutarea"><svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-cross-small"></use></svg></button><button type="button" class="btn btn-primary btn-search" aria-label="Caută"${String(S.actsQuery || "").trim().length < OFC_MIN_CHARS ? " disabled" : ""} data-gh-ofc-submit><svg class="icon medium" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-arrow-left"></use></svg></button></div>
         </div>
       </div>`;
     return `
@@ -3772,7 +3794,7 @@
       if (button.id === "fo-gh-ofc-service") {
         const title = select.querySelector(".e-permits-fo-select__option.is-selected")?.dataset.value || "";
         S.ofcService = ofcActs().find((a) => serviceOf(a.service)?.title === title)?.service || "";
-        ofcRefresh({ immediate: true });
+        S.ofcShown = OFC_MAX; ofcRefresh({ immediate: true });
         return;
       }
       S.dirty = true;
@@ -3792,6 +3814,8 @@
     if (t.closest("[data-gh-start-cancel]") && !d) { closeStart(); return; }
     if (!d) return;
     /* the intent screen: the post-process menus + „Solicitare nouă” (a choice starts the request) */
+    if (t.closest("[data-gh-ofc-submit]")) { ofcSearchSubmit(); return; }
+    if (t.closest("[data-gh-ofc-more]")) { ofcMore(); return; }
     const trigger = t.closest("[data-fo-intent-trigger]");
     if (trigger) { toggleIntentMenu(trigger); return; }
     const ppItem = t.closest("[data-fo-intent-postprocess]");
@@ -3904,7 +3928,12 @@
   function onInput(event) {
     /* the acts search filters the picker; it is not a change of the draft */
     if (event.target.matches?.("[data-gh-acts-search]")) {
-      if (S.cur && isOfc(S.cur)) { S.actsQuery = event.target.value; ofcRefresh(); return; }
+      if (S.cur && isOfc(S.cur)) {
+        S.actsQuery = event.target.value;
+        event.target.closest(".search-input")?.querySelector(".btn-search")?.toggleAttribute("disabled", Boolean(S.ofcLoading) || S.actsQuery.trim().length < OFC_MIN_CHARS);
+        if (!S.actsQuery.trim() && S.ofcQuery) { S.ofcQuery = ""; S.ofcShown = OFC_MAX; ofcRefresh({ immediate: true }); }
+        return;
+      }
       filterActs(event.target); return;
     }
     S.dirty = true;

@@ -4280,3 +4280,5 @@ For any „research how other products do it” step, search Mobbin (mcp__mobbin
   („Dezactivezi …?”), instructions imperative („Alege”). „către dvs.” → „către tine” must not leave a period in titles.
 - 2026-11-09 · Never split copy by product/`demoFlow` (foTu was undone the same day): one string for every context; only
   MDocs/PDF bodies + notification template bodies stay formal. Cache bump = every page that loads a changed JS file.
+- 2026-11-09 · Din oficiu search submit + „Afișează mai multe” (ofc-submit-v2): typed text (`S.actsQuery`) ≠ committed query (`S.ofcQuery`); results read only the committed one. Check for name clashes before adding a function in the ghiseu.js IIFE (`ofcSubmit` already existed = silent override).
+- 2026-11-09 · BSD sed (macOS): `-i ''` and no `\|` alternation — use perl -pi for the `?v=` bumps in the 5 pages and verify with grep -c.
