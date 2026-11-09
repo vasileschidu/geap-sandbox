@@ -79,6 +79,15 @@
   max-width: calc(var(--spacing-40, 40px) * 9);
 }
 
+/* rpt-add-menu-v2 (user: the menu covered its button): an in-flow stack menu (not the fixed one — inside the transformed
+   sheet panel a fixed menu was offset over the trigger), left-aligned under the button 8 apart, flips above when there is
+   no room (fitStackMenu `.is-open-up`); the trigger keeps its pressed + focus-ring open look */
+.e-permits-rpt-add > .e-permits-stack__menu.e-permits-rpt-add-menu {
+  left: 0;
+  right: auto;
+  z-index: 20;
+}
+
 .e-permits-fo-intent-menu__item.e-permits-rpt-add-menu__item {
   align-items: flex-start;
   text-align: left;
@@ -270,15 +279,12 @@
   color: var(--color-text-base-secondary, #4d4d4d);
 }
 
-.e-permits-rpt-table :is(th, td).is-incl {
-  border-left: var(--border-width-1, 1px) dashed var(--color-border-base-default, #d9d9d9);
-}
 
 /* group edges (rpt-group-edges-v1, 2026-11-09, user; Excel / Google Sheets / Ant Design / MUI grouped headers): a solid 1px
    vertical at each group boundary — the left of a group's first column and of the first column after it, the right of a
    group that ends the table — through both header rows, the body, the subtotals and the total; none inside a group or
-   between ungrouped columns. A boundary on an „inclusiv” column replaces its dashed divider (solid = group, dashed =
-   „din care” inside a group). The full-width group label rows („Autoritate: ANSP”) are section breaks: no vertical. */
+   between ungrouped columns. An „inclusiv” column has no divider of its own (rpt-incl-v2, user: the dashed line was not
+   understood) — only its small „inclusiv” label above the name. The full-width group label rows („Autoritate: ANSP”) are section breaks: no vertical. */
 .e-permits-workplace__table.e-permits-rpt-table :is(th, td).is-gl {
   border-left: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
 }
@@ -298,11 +304,42 @@
   margin-inline: auto;
 }
 
-/* rpt-col-link-v1 (2026-11-09, user; Salesforce / Google Ads / Zoho report builders): the column of the hovered / focused
-   list item or preview header, or of the open column panel, is tinted in the preview — its header (incl. the group
-   header above it) and every body / subtotal / total cell — light brand (the selected list row's colour) */
-.e-permits-rpt-preview .e-permits-workplace__table.e-permits-rpt-table tr > :is(th, td).is-col-hl {
-  background: var(--color-background-brand-secondary, #e6eefb);
+/* rpt-edge-v2 (2026-11-09, user: „full edge to edge at every width”): in the report card (preview, profile, zoom, version
+   window) the table breaks out of the card's 24 side padding to the card's edges; the first / last cells take that 24
+   so their text stays on the title's line. The sideways cue = the shared box-edge shadow of js/table-pin-shadow.js
+   (the two-level head is handled there: the first full body row is the column row). */
+.e-permits-rpt-card .e-permits-workplace__table-wrap.e-permits-rpt-table-wrap {
+  margin-inline: calc(var(--spacing-24, 24px) * -1);
+}
+
+.e-permits-rpt-card .e-permits-workplace__table.e-permits-rpt-table :is(th, td).is-c0,
+.e-permits-rpt-card .e-permits-workplace__table.e-permits-rpt-table tr.e-permits-rpt-table__group > th {
+  padding-left: var(--spacing-24, 24px);
+}
+
+.e-permits-rpt-card .e-permits-workplace__table.e-permits-rpt-table :is(th, td).is-cn {
+  padding-right: var(--spacing-24, 24px);
+}
+
+/* rpt-col-ring-v1 (2026-11-09, user: „the tint isn't visible enough”): the column of the hovered / focused list item or
+   preview header, or of the open column panel = ONE rectangle in the focus-ring colour and width (Focus Ring: 3 of
+   `--focus-ring` inside a 2 white offset, design-system › Focus Ring) around the whole column — group header row to the
+   total — radius 4 at the corners; drawn INSIDE the scroll box (absolute, it scrolls with the table, never clipped),
+   above the cells, no pointer events. No tint (the ring alone reads clearly). Geometry from js (`--ring-x/y/w/h`). */
+.e-permits-workplace__table-wrap.e-permits-rpt-table-wrap {
+  position: relative;
+}
+
+.e-permits-rpt-col-ring {
+  border-radius: var(--border-radius-4, 4px);
+  box-shadow: inset 0 0 0 var(--border-width-3, 3px) var(--focus-ring, #3379db), inset 0 0 0 calc(var(--border-width-3, 3px) + var(--border-width-2, 2px)) var(--color-background-base-default, #fff);
+  height: var(--ring-h, 0);
+  left: var(--ring-x, 0);
+  pointer-events: none;
+  position: absolute;
+  top: var(--ring-y, 0);
+  width: var(--ring-w, 0);
+  z-index: 5;
 }
 
 /* the editor's header = a button over the whole header cell → its list item (keyboard: Tab, Enter); the look stays the

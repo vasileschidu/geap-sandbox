@@ -429,7 +429,8 @@
       return [left, right];
     });
   }
-  const edgeCls = (edges, i) => [edges[i]?.[0] ? "is-gl" : "", edges[i]?.[1] ? "is-gr" : ""].filter(Boolean);
+  /* + the table's first / last column (rpt-edge-v2: they carry the card's 24 inset) */
+  const edgeCls = (edges, i) => [edges[i]?.[0] ? "is-gl" : "", edges[i]?.[1] ? "is-gr" : "", i === 0 ? "is-c0" : "", i === edges.length - 1 ? "is-cn" : ""].filter(Boolean);
   /* the head: a common header (Antetul comun) spans its consecutive columns on row 1; the others span both rows */
   function headHtml(v, { link = false } = {}) {
     const cols = v.columns;
@@ -449,8 +450,8 @@
       const h = String(c.header || "").trim();
       if (!h) { top.push(`<th scope="col" rowspan="2"${thCls(c)}>${cellBody(c)}</th>`); return; }
       const prev = cols[i - 1];
-      if (prev && String(prev.header || "").trim() === h && top.length) top[top.length - 1] = top[top.length - 1].replace(/colspan="(\d+)"/, (m, n) => `colspan="${Number(n) + 1}"`).replace(/ data-last/, i === cols.length - 1 ? " is-gr data-last" : " data-last").replace(/data-rpt-cells="([^"]*)"/, (m, ids) => `data-rpt-cells="${ids} ${esc(c.id)}"`);
-      else top.push(`<th scope="colgroup" colspan="1" class="e-permits-rpt-table__span${edges[i][0] ? " is-gl" : ""}${i === cols.length - 1 ? " is-gr" : ""} data-last" data-rpt-cells="${esc(c.id)}"><span class="e-permits-workplace__th-content"><span>${esc(h)}</span></span></th>`);
+      if (prev && String(prev.header || "").trim() === h && top.length) top[top.length - 1] = top[top.length - 1].replace(/colspan="(\d+)"/, (m, n) => `colspan="${Number(n) + 1}"`).replace(/ data-last/, i === cols.length - 1 ? " is-gr is-cn data-last" : " data-last").replace(/data-rpt-cells="([^"]*)"/, (m, ids) => `data-rpt-cells="${ids} ${esc(c.id)}"`);
+      else top.push(`<th scope="colgroup" colspan="1" class="e-permits-rpt-table__span${edges[i][0] ? " is-gl" : ""}${i === 0 ? " is-c0" : ""}${i === cols.length - 1 ? " is-gr is-cn" : ""} data-last" data-rpt-cells="${esc(c.id)}"><span class="e-permits-workplace__th-content"><span>${esc(h)}</span></span></th>`);
       bottom.push(`<th scope="col"${thCls(c, "e-permits-rpt-table__sub")}>${cellBody(c)}</th>`);
     });
     return `<tr>${top.map((x) => x.replace(" data-last", "")).join("")}</tr><tr>${bottom.join("")}</tr>`;
@@ -646,7 +647,7 @@
     const add = () => `
       <div class="e-permits-stack__menu-wrap e-permits-rpt-add">
         <button class="btn btn-secondary btn-sm e-permits-stack__menu-trigger" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="${idp}-add-menu" data-stack-menu-trigger data-rpt-add-trigger>${icon("plus-large", 16)}<span>Adaugă coloană</span>${icon("chevron-bottom", 16)}</button>
-        <ul class="e-permits-fo-intent-menu e-permits-stack__menu e-permits-rpt-add-menu" id="${idp}-add-menu" role="menu" aria-label="Tipul coloanei" hidden data-stack-menu data-stack-menu-fixed data-stack-menu-align="start">
+        <ul class="e-permits-fo-intent-menu e-permits-stack__menu e-permits-rpt-add-menu" id="${idp}-add-menu" role="menu" aria-label="Tipul coloanei" hidden data-stack-menu>
           ${ADD_ITEMS.map(([kind, ic, text, desc]) => {
             const off = kind === "source" && !v.source;
             return `<li role="none"><button class="e-permits-fo-intent-menu__item e-permits-rpt-add-menu__item" type="button" role="menuitem" data-rpt-add="${kind}"${off ? ' aria-disabled="true" data-tooltip-reason="Alege mai întâi sursa de date."' : ""}>${icon(ic)}<span class="e-permits-rpt-add-menu__text"><span class="e-permits-rpt-add-menu__title">${esc(text)}</span><span class="e-permits-rpt-add-menu__desc">${esc(off ? "Alege mai întâi sursa de date (pasul 1)." : desc)}</span></span></button></li>`;
@@ -663,13 +664,11 @@
         rowAttrs: `data-rpt-col="${esc(c.id)}" data-index="${i}" tabindex="0" data-stack-row-open aria-haspopup="dialog" aria-label="Coloana ${esc(colName(c))}, poziția ${i + 1} — deschide setările"`,
         badges: [tag(kt, kTone), c.total === "incl" && isMeasure(c) ? tag("Inclusiv", "neutral") : "", err ? tag("De corectat", "danger") : ""].filter(Boolean),
         meta: columnMeta(v, c),
-        /* rpt-col-list-v2 (user): no ↑ ↓ — the drag handle + ONE ⋮ (Mută la stânga / la dreapta, Elimină red) */
-        actionsHtml: U().renderStackMenu?.([
-          { label: "Mută la stânga", icon: "arrow-left", attrs: `data-rpt-col-move="${esc(c.id)}|-1"${i === 0 ? ' aria-disabled="true" data-tooltip-reason="Este prima coloană."' : ""}` },
-          { label: "Mută la dreapta", icon: "arrow-right", attrs: `data-rpt-col-move="${esc(c.id)}|1"${i === last ? ' aria-disabled="true" data-tooltip-reason="Este ultima coloană."' : ""}` },
-          { separator: true },
-          { label: "Elimină", icon: "delete", attrs: `data-rpt-col-remove="${esc(c.id)}"` }
-        ], `Coloana ${colName(c)}`) || ""
+        /* rpt-col-list-v4 (user: „bring back arrows”): the original controls — ↑ / ↓ (disabled at the ends) + the red trash */
+        actionsHtml: `
+          <button class="btn btn-strict btn-sm btn-icon-only" type="button" aria-label="Mută „${esc(colName(c))}” mai sus" data-tooltip-label="Mută mai sus" data-rpt-col-move="${esc(c.id)}|-1"${i === 0 ? " disabled" : ""}>${icon("arrow-up", 16)}</button>
+          <button class="btn btn-strict btn-sm btn-icon-only" type="button" aria-label="Mută „${esc(colName(c))}” mai jos" data-tooltip-label="Mută mai jos" data-rpt-col-move="${esc(c.id)}|1"${i === last ? " disabled" : ""}>${icon("arrow-down", 16)}</button>
+          <button class="btn btn-text-destructive btn-sm btn-icon-only" type="button" aria-label="Elimină coloana „${esc(colName(c))}”" data-tooltip-label="Elimină coloana" data-rpt-col-remove="${esc(c.id)}">${icon("delete", 16)}</button>`
       }) || "").replace('<li class="e-permits-stack__item', '<li draggable="true" class="e-permits-stack__item');
     }).join("")}</ul></div>
       ${add()}`
@@ -682,7 +681,7 @@
         </div>
         ${list}
       </section>
-      ${cols.length ? U().renderInfoNote?.("Trage o coloană de mâner (sau alege ⋮ › Mută la stânga / la dreapta) ca s-o muți. Când treci peste o coloană, ea se evidențiază în previzualizare. Coloanele cu același <strong>antet comun</strong>, puse una lângă alta, formează antetul pe două niveluri.") || "" : ""}`;
+      ${cols.length ? U().renderInfoNote?.("Trage o coloană de mâner (sau folosește ↑ ↓) ca s-o muți. Când treci peste o coloană, ea se evidențiază în previzualizare. Coloanele cu același <strong>antet comun</strong>, puse una lângă alta, formează antetul pe două niveluri.") || "" : ""}`;
   }
   /* Structură: Gruparea rândurilor · Filtre · Rândul de total */
   const kw = (text) => `<code class="e-permits-doc-kw">${esc(text)}</code>`;
@@ -1640,7 +1639,7 @@
     const add = t.closest("[data-rpt-add]");
     if (add) { if (add.getAttribute("aria-disabled") !== "true") addKind(add.dataset.rptAdd); return; }
     const mv = t.closest("[data-rpt-col-move]");
-    if (mv) { if (mv.getAttribute("aria-disabled") === "true") return; const [id, by] = mv.dataset.rptColMove.split("|"); if (move(P.draft.columns, id, Number(by))) { afterColumnsChange(`[data-rpt-col="${CSS.escape(id)}"] [data-stack-menu-trigger]`); syncColHl({ scroll: true }); } return; }
+    if (mv) { const [id, by] = mv.dataset.rptColMove.split("|"); if (move(P.draft.columns, id, Number(by))) { afterColumnsChange(`[data-rpt-col-move="${CSS.escape(`${id}|${by}`)}"]:not(:disabled), [data-rpt-col="${CSS.escape(id)}"]`); syncColHl({ scroll: true }); } return; }
     const rm = t.closest("[data-rpt-col-remove]");
     if (rm) {
       const id = rm.dataset.rptColRemove;
@@ -1660,7 +1659,7 @@
   });
   /* rpt-col-link-v1 (2026-11-09, user; Salesforce / Google Ads / Zoho report builders): the column list ↔ the live preview.
      Hover / focus of a list item or its preview header, and the column whose panel is open, tint that column in the
-     preview (header incl. its group header + every body cell, `.is-col-hl`); focusing an item (or opening its panel)
+     preview (one focus-ring rectangle `.e-permits-rpt-col-ring` around the whole column); focusing an item (or opening its panel)
      scrolls the preview sideways to it; a preview header button focuses its list item. */
   let hlHover = "";
   const hlTarget = () => hlHover || (DR?.mode === "col" && DR.colId) || "";
@@ -1668,16 +1667,24 @@
     const root = creating() ? sheet : document.querySelector("#rpt-panel");
     if (!root) return;
     const id = hlTarget();
-    root.querySelectorAll("[data-rpt-preview] .is-col-hl").forEach((el) => el.classList.remove("is-col-hl"));
+    root.querySelectorAll("[data-rpt-preview] .e-permits-rpt-col-ring").forEach((el) => el.remove());
     root.querySelectorAll("[data-rpt-col].is-selected").forEach((el) => el.classList.remove("is-selected"));
     /* the column whose panel is open = the selected list item (the Registre column list's brand-secondary row) */
     const open = DR?.mode === "col" && DR.colId;
     if (open) root.querySelector(`[data-rpt-col="${CSS.escape(open)}"]`)?.classList.add("is-selected");
     if (!id) return;
-    const cells = [...root.querySelectorAll(`[data-rpt-preview] [data-rpt-cell="${CSS.escape(id)}"]`), ...[...root.querySelectorAll("[data-rpt-preview] [data-rpt-cells]")].filter((th) => th.dataset.rptCells.split(" ").includes(id))];
-    cells.forEach((el) => el.classList.add("is-col-hl"));
     const head = root.querySelector(`[data-rpt-preview] th[data-rpt-cell="${CSS.escape(id)}"]`);
     const wrap = head?.closest(".e-permits-rpt-table-wrap");
+    /* rpt-col-ring-v1 (user: the tint was too faint): ONE focus-ring rectangle around the whole column — group header row
+       to the total — drawn inside the scroll box (it scrolls with the table, never clipped) */
+    const table = head?.closest("table");
+    if (table && wrap) {
+      const ring = document.createElement("span");
+      ring.className = "e-permits-rpt-col-ring";
+      ring.setAttribute("aria-hidden", "true");
+      [["--ring-x", table.offsetLeft + head.offsetLeft], ["--ring-y", table.offsetTop], ["--ring-w", head.offsetWidth], ["--ring-h", table.offsetHeight]].forEach(([k, px]) => ring.style.setProperty(k, `${px}px`));
+      wrap.prepend(ring);
+    }
     if (scroll && head && wrap) {
       const w = wrap.getBoundingClientRect();
       const r = head.getBoundingClientRect();

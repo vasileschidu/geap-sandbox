@@ -61,10 +61,14 @@
   };
 
   /* the first row whose cells are one per column: thead first, else the first body row */
+  /* a two-level head (a group header with colspan over a second row — Rapoarte, rpt-edge-v1) has no thead row with one
+     cell per column: the first full BODY row is the column row then (the second head row has fewer cells) */
   const columnRow = (table) => {
     const rows = [...table.rows];
-    return rows.find((row) => row.parentElement?.tagName === "THEAD" && ![...row.cells].some((c) => c.colSpan > 1))
-      || rows.find((row) => row.cells.length && ![...row.cells].some((c) => c.colSpan > 1))
+    const plain = (row) => row.cells.length && ![...row.cells].some((c) => c.colSpan > 1);
+    return rows.find((row) => row.parentElement?.tagName === "THEAD" && row.parentElement.rows.length === 1 && plain(row))
+      || rows.find((row) => row.parentElement?.tagName !== "THEAD" && plain(row))
+      || rows.find(plain)
       || null;
   };
 
