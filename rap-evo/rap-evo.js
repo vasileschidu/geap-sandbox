@@ -766,10 +766,10 @@
       const filters = totalActiveFilters();
       const reset = '<button class="btn btn-neutral btn-sm" type="button" aria-label="Resetează filtrele" data-filter-clear-all>Resetează</button>';
       elements.empty.innerHTML = filterApiDown()
-        ? window.GEAPEmptyState.render({ title: "Serviciul nu este disponibil momentan", text: "Vă rugăm să încercați mai târziu.", icon: "circle-error", actionHtml: reset })
+        ? window.GEAPEmptyState.render({ title: "Serviciul nu este disponibil momentan", text: "Încearcă mai târziu.", icon: "circle-error", actionHtml: reset })
         : filters
-          ? window.GEAPEmptyState.noResults("Nu au fost găsite acte pentru filtrele aplicate.", { text: "Modificați criteriile de filtrare și încercați din nou.", actionHtml: reset })
-          : window.GEAPEmptyState.noResults("Ne pare rău, nu am găsit niciun rezultat", { text: "Verificați ortografia sau încercați alți termeni." });
+          ? window.GEAPEmptyState.noResults("Nu au fost găsite acte pentru filtrele aplicate.", { text: "Modifică criteriile de filtrare și încearcă din nou.", actionHtml: reset })
+          : window.GEAPEmptyState.noResults("Ne pare rău, nu am găsit niciun rezultat", { text: "Verifică ortografia sau încearcă alți termeni." });
     }
   };
 
@@ -1357,7 +1357,7 @@
     } catch (error) {
       console.error(error);
       elements.empty.hidden = false;
-      elements.empty.innerHTML = window.GEAPEmptyState.render({ title: "Datele nu au putut fi încărcate", text: "Reîncărcați pagina sau încercați mai târziu.", icon: "circle-error" });
+      elements.empty.innerHTML = window.GEAPEmptyState.render({ title: "Datele nu au putut fi încărcate", text: "Reîncarcă pagina sau încearcă mai târziu.", icon: "circle-error" });
       document.querySelector(".rap-register").hidden = true;
     }
   };

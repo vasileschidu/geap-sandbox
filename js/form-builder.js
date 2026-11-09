@@ -230,7 +230,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const PRESETS = {
     none: { label: "Fără", pattern: "" },
     email: { label: "Email", pattern: "^[^\\s@]+@[^\\s@]+\\.[^\\s@]{2,}$", message: "Adresa email nu este validă.", sample: "ion.popescu@exemplu.md" },
-    phone: { label: "Telefon (+373)", pattern: "^\\+373[0-9]{8}$", message: "Introduceți numărul în formatul +37300000000.", sample: "+37369123456" },
+    phone: { label: "Telefon (+373)", pattern: "^\\+373[0-9]{8}$", message: "Introdu numărul în formatul +37300000000.", sample: "+37369123456" },
     idnp: { label: "IDNP", pattern: "^[0-9]{13}$", message: "IDNP-ul are 13 cifre.", sample: "2002001234567", inputmode: "numeric" },
     idno: { label: "IDNO", pattern: "^[0-9]{13}$", message: "IDNO-ul are 13 cifre.", sample: "1003600012345", inputmode: "numeric" },
     plate: { label: "Nr. de înmatriculare (MD)", pattern: "^([A-Z]{3} [0-9]{3}|[A-Z]{2} [A-Z]{2} [0-9]{3}|[A-Z] [0-9]{3} [A-Z]{2})$", message: "Formatul: AAA 000, AA AA 000 sau A 000 AA.", sample: "ABC 123" },
@@ -573,7 +573,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (field.type === "radio" || field.type === "checklist" || field.type === "segment") {
       const options = field.options || [];
       if (options.length < 2) push(T_DATA, "options", "Adaugă cel puțin două opțiuni.");
-      else if (field.type === "segment" && options.length > 5) push(T_DATA, "options", "Comutatorul are cel mult 5 opțiuni; pentru mai multe folosiți butoane radio.");
+      else if (field.type === "segment" && options.length > 5) push(T_DATA, "options", "Comutatorul are cel mult 5 opțiuni; pentru mai multe folosește butoane radio.");
       else if (options.some((option) => !String(option.label || "").trim())) push(T_DATA, "options", "O opțiune nu are text.");
     }
   }
@@ -640,7 +640,7 @@ document.addEventListener("DOMContentLoaded", () => {
     allChildren().forEach(({ step, section, container, child }) => checkRules(child, "child", `${fieldName(container)} › ${fieldName(child)}`, `${tr(step.title)} › ${tr(section.title) || "Secțiune"}`));
     dateRuleCycles().forEach((id) => {
       const found = findField(id);
-      if (found) issues.push({ level: "error", kind: "field", id, tab: T_VAL, prop: "dateRules", name: fieldName(found.field), where: `${tr(found.step.title)} › ${tr(found.section.title) || "Secțiune"}`, message: "Regulile de dată formează un cerc: păstrați regula doar pe unul dintre câmpuri (cealaltă e reciprocă)." });
+      if (found) issues.push({ level: "error", kind: "field", id, tab: T_VAL, prop: "dateRules", name: fieldName(found.field), where: `${tr(found.step.title)} › ${tr(found.section.title) || "Secțiune"}`, message: "Regulile de dată formează un cerc: păstrează regula doar pe unul dintre câmpuri (cealaltă e reciprocă)." });
     });
     logicCycles().forEach((id) => {
       const found = findField(id) || findChild(id);
@@ -1094,7 +1094,7 @@ document.addEventListener("DOMContentLoaded", () => {
       ...(index < total - 1 ? [{ label: "Mută mai jos", icon: "arrow-down", attrs: `data-fb-sec-act="down" data-id="${section.id}"` }] : []),
       { label: "Șterge secțiunea", icon: "delete", danger: true, attrs: `data-fb-sec-act="delete" data-id="${section.id}"` },
     ];
-    const empty = !section.fields.length ? window.GEAPEmptyState?.render({ title: "Secțiune goală", text: "Trageți un câmp aici sau alegeți o componentă din bibliotecă.", icon: "templates", compact: true, bare: true }) || "" : "";
+    const empty = !section.fields.length ? window.GEAPEmptyState?.render({ title: "Secțiune goală", text: "Trage un câmp aici sau alege o componentă din bibliotecă.", icon: "templates", compact: true, bare: true }) || "" : "";
     return `
       <section class="e-permits-builder__step-section${selected ? " is-section-selected" : ""}${errors.length ? " has-issue" : ""}" data-builder-section data-section-id="${section.id}" aria-label="Secțiunea ${esc(title || "fără titlu")}">
         <div class="e-permits-builder__section-bar">
@@ -1614,7 +1614,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const sources = ruleSources(target);
     const content = kind === "section" || NO_VALUE.includes(target.type);
     if (kind === "field" && target.type === "hidden" && target.hiddenSource !== "rule") {
-      return group("Reguli de comportament", `${ui().renderInfoNote?.("Un câmp ascuns nu se afișează, deci nu are reguli de afișare. Ca regulile să-i seteze valoarea, alegeți Date › Sursa valorii = „Din regulă”.") || ""}<div><button class="btn btn-secondary btn-sm" type="button" data-builder-prop-tab="data">Deschide Date</button></div>`);
+      return group("Reguli de comportament", `${ui().renderInfoNote?.("Un câmp ascuns nu se afișează, deci nu are reguli de afișare. Ca regulile să-i seteze valoarea, alege Date › Sursa valorii = „Din regulă”.") || ""}<div><button class="btn btn-secondary btn-sm" type="button" data-builder-prop-tab="data">Deschide Date</button></div>`);
     }
     const actions = content || kind === "child" ? ACTIONS_VISIBILITY : target.type === "hidden" ? ACTIONS_SET : ACTIONS_INPUT;
     const what = kind === "section" ? "această secțiune" : content ? "această notă" : "acest câmp";
@@ -1765,7 +1765,7 @@ document.addEventListener("DOMContentLoaded", () => {
         ${grid(`
           ${inputField({ prop: "messages.min", label: langLabel("Sub minim"), value: tr(m.min, state.lang), i18nProp: true, placeholder: inGrid ? "Trebuie cel puțin {min} rânduri." : "Adaugă cel puțin {min}." })}
           ${inputField({ prop: "messages.max", label: langLabel("La maxim"), value: tr(m.max, state.lang), i18nProp: true, placeholder: inGrid ? "Maximum {max} rânduri." : "Maximum {max} elemente." })}
-          ${inputField({ prop: "messages.duplicate", label: langLabel("Valoare repetată"), value: tr(m.duplicate, state.lang), i18nProp: true, placeholder: "Dvstră ați înregistrat deja această valoare." })}
+          ${inputField({ prop: "messages.duplicate", label: langLabel("Valoare repetată"), value: tr(m.duplicate, state.lang), i18nProp: true, placeholder: "Ai înregistrat deja această valoare." })}
           ${inputField({ prop: "messages.group", label: langLabel("Îndrumare la grupare"), value: tr(m.group, state.lang), i18nProp: true, placeholder: `Toate ${inGrid ? "rândurile" : "elementele"} au aceeași grupă la „{coloana}”: {grup}.`, hint: "{min}, {max}, {coloana} și {grup} se înlocuiesc. Gol = textul standard." })}
         `)}`)}
       ${group("Verificare la depunere", ui().renderInfoNote?.("Serverul repetă aceleași verificări pe rânduri (minim, duplicate, grupă, câmpuri), chiar dacă verificarea din browser e ocolită (US-36 AC-05).") || "")}`;
@@ -1959,7 +1959,7 @@ document.addEventListener("DOMContentLoaded", () => {
           ${inputField({ prop: "validation.min", label: "Minim", value: v.min ?? "", numeric: true, span: 6 })}
           ${inputField({ prop: "validation.max", label: "Maxim", value: v.max ?? "", numeric: true, span: 6, error: err("validation.max") })}
         `))}
-        ${group("Mesaj", `${message("Introduceți o valoare între {min} și {max}.")}<p class="e-permits-fo-field__hint">{min} și {max} se înlocuiesc cu limitele.</p>${order}`)}`;
+        ${group("Mesaj", `${message("Introdu o valoare între {min} și {max}.")}<p class="e-permits-fo-field__hint">{min} și {max} se înlocuiesc cu limitele.</p>${order}`)}`;
     }
     if (t === "email") {
       return `
@@ -2003,7 +2003,7 @@ document.addEventListener("DOMContentLoaded", () => {
           ${inputField({ prop: "validation.minSelected", label: "Minim bifate", value: v.minSelected ?? "", numeric: true, span: 6 })}
           ${inputField({ prop: "validation.maxSelected", label: "Maxim bifate", value: v.maxSelected ?? "", numeric: true, span: 6, error: err("validation.maxSelected") })}
         `))}
-        ${group("Mesaj", `${message("Selectați cel puțin {min} opțiuni.")}${order}`)}`;
+        ${group("Mesaj", `${message("Selectează cel puțin {min} opțiuni.")}${order}`)}`;
     }
     if (t === "checkbox") return group("Regulă", `${ui().renderInfoNote?.("Obligatoriu = solicitantul trebuie să bifeze caseta pentru a continua.") || ""}${order}`);
     if (t === "idnp" || t === "idno") {
@@ -2421,7 +2421,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (el.publish) {
       if (n) {
         el.publish.setAttribute("aria-disabled", "true");
-        el.publish.dataset.tooltipReason = `Corectați ${n} ${n === 1 ? "eroare" : "erori"} înainte de publicare.`;
+        el.publish.dataset.tooltipReason = `Corectează ${n} ${n === 1 ? "eroare" : "erori"} înainte de publicare.`;
       } else {
         el.publish.removeAttribute("aria-disabled");
         delete el.publish.dataset.tooltipReason;
@@ -2447,8 +2447,8 @@ document.addEventListener("DOMContentLoaded", () => {
           </div>
         </div>
         <div class="e-permits-builder__inline-actions">
-          <button class="btn btn-secondary btn-sm" type="button" data-fb-preview-validate${state.device === "mobile" ? ' aria-disabled="true" data-tooltip-reason="Pe ecranul de telefon apăsați „Înainte” în formular."' : ""}>Validează</button>
-          <button class="btn btn-neutral btn-sm" type="button" data-fb-preview-fill${state.device === "mobile" ? ' aria-disabled="true" data-tooltip-reason="Pe ecranul de telefon completați direct câmpurile."' : ""}>Completează cu date de test</button>
+          <button class="btn btn-secondary btn-sm" type="button" data-fb-preview-validate${state.device === "mobile" ? ' aria-disabled="true" data-tooltip-reason="Pe ecranul de telefon apasă „Înainte” în formular."' : ""}>Validează</button>
+          <button class="btn btn-neutral btn-sm" type="button" data-fb-preview-fill${state.device === "mobile" ? ' aria-disabled="true" data-tooltip-reason="Pe ecranul de telefon completează direct câmpurile."' : ""}>Completează cu date de test</button>
           <button class="btn btn-neutral btn-sm" type="button" data-fb-preview-clear>Golește</button>
         </div>
       </div>`;
@@ -2705,7 +2705,7 @@ document.addEventListener("DOMContentLoaded", () => {
       case "money": {
         const n = Number(String(v).replace(",", "."));
         if (Number.isNaN(n)) return "Introdu un număr.";
-        if ((val.min !== "" && val.min != null && n < Number(val.min)) || (val.max !== "" && val.max != null && n > Number(val.max))) return (custom || `Introduceți o valoare între ${val.min ?? "…"} și ${val.max || "…"}.`).replace("{min}", val.min ?? "").replace("{max}", val.max ?? "");
+        if ((val.min !== "" && val.min != null && n < Number(val.min)) || (val.max !== "" && val.max != null && n > Number(val.max))) return (custom || `Introdu o valoare între ${val.min ?? "…"} și ${val.max || "…"}.`).replace("{min}", val.min ?? "").replace("{max}", val.max ?? "");
         return "";
       }
       case "idnp":
@@ -2720,8 +2720,8 @@ document.addEventListener("DOMContentLoaded", () => {
       case "date": return dateProblem(field, v);
       case "checklist":
       case "multiselect": {
-        if (val.minSelected && v.length < Number(val.minSelected)) return (custom || "Selectați cel puțin {min} opțiuni.").replace("{min}", val.minSelected);
-        if (val.maxSelected && v.length > Number(val.maxSelected)) return `Selectați cel mult ${val.maxSelected} opțiuni.`;
+        if (val.minSelected && v.length < Number(val.minSelected)) return (custom || "Selectează cel puțin {min} opțiuni.").replace("{min}", val.minSelected);
+        if (val.maxSelected && v.length > Number(val.maxSelected)) return `Selectează cel mult ${val.maxSelected} opțiuni.`;
         return "";
       }
       default: return "";
@@ -2869,7 +2869,7 @@ document.addEventListener("DOMContentLoaded", () => {
       label: i18n("Activitățile desfășurate"), labelHidden: true, required: true, span: 12,
       itemTitle: i18n("Activitate"), addLabel: i18n("Adaugă altă activitate"), note: i18n("Codurile CAEM se prezintă în dependență de activitățile înregistrate în RSUD."),
       rowRules: { minRows: 1, maxRows: "", defaultRows: 1, allowRemove: true, keyColumn: "bf-caem-code", groupColumn: "bf-caem-code" },
-      messages: { min: i18n("Adaugă cel puțin o activitate."), max: i18n(), duplicate: i18n("Dvstră ați înregistrat deja acest cod CAEM."), group: i18n("Într-o solicitare pot fi selectate doar coduri ale unei secțiuni: {grup}.") },
+      messages: { min: i18n("Adaugă cel puțin o activitate."), max: i18n(), duplicate: i18n("Ai înregistrat deja acest cod CAEM."), group: i18n("Într-o solicitare pot fi selectate doar coduri ale unei secțiuni: {grup}.") },
       fields: [
         { id: "bf-caem-code", type: "select", key: "CodCaem", label: i18n("Codul CAEM"), help: i18n(), placeholder: i18n("Selectează cod CAEM"), required: true, readOnly: false, span: 12, dataSource: { mode: "existing", classifierId: "reg_caem", template: "code-name", search: true } },
         { id: "bf-caem-sub", type: "multiselect", key: "SubgenActivitate", label: i18n("Subgen de activitate"), help: i18n(), placeholder: i18n("Alege subgen de activitate"), required: true, readOnly: false, span: 12, noOptionsText: i18n("Niciun subgen disponibil pentru acest cod CAEM."), dataSource: { mode: "existing", classifierId: "reg_caem_subgen", template: "name", cascade: true, parentFieldId: "bf-caem-code", filterColumn: "caem_code" }, validation: { minSelected: 1, maxSelected: "", message: i18n() } },
@@ -2945,7 +2945,7 @@ document.addEventListener("DOMContentLoaded", () => {
         ${changed && !preset.system ? '<button class="btn btn-secondary btn-sm" type="button" data-fb-preset-act="push">Salvează în sursă</button>' : ""}
         <button class="btn btn-neutral btn-sm" type="button" data-fb-preset-act="detach">Detașează</button>
       </div>
-      ${changed && preset.system ? '<p class="e-permits-fo-field__hint">Componentele de sistem nu se modifică din formular; salvați o copie cu ⋮ › Salvează ca componentă.</p>' : ""}`);
+      ${changed && preset.system ? '<p class="e-permits-fo-field__hint">Componentele de sistem nu se modifică din formular; salvează o copie cu ⋮ › Salvează ca componentă.</p>' : ""}`);
   }
 
   function presetAction(act) {
@@ -2986,7 +2986,7 @@ document.addEventListener("DOMContentLoaded", () => {
         ui().showShellToast?.(`Componenta „${preset.name}” a trecut la versiunea ${preset.version}.`, "success");
       };
       if (!others.length) { run(); return; }
-      ui().askConfirm?.({ title: `Actualizați componenta „${preset.name}”?`, text: `${others.length} ${others.length === 1 ? "alt câmp o folosește și va primi" : "alte câmpuri o folosesc și vor primi"} propunerea de actualizare.`, confirmLabel: "Actualizează componenta" }, run);
+      ui().askConfirm?.({ title: `Actualizezi componenta „${preset.name}”?`, text: `${others.length} ${others.length === 1 ? "alt câmp o folosește și va primi" : "alte câmpuri o folosesc și vor primi"} propunerea de actualizare.`, confirmLabel: "Actualizează componenta" }, run);
     }
   }
 
@@ -3141,7 +3141,7 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
     const count = (step.sections || []).reduce((n, section) => n + section.fields.length, 0);
-    ui().askConfirm?.({ title: `Ștergeți pasul „${tr(step.title)}”?`, text: count ? `Secțiunile și cele ${count} câmpuri ale pasului vor fi pierdute.` : "Pasul nu are câmpuri.", confirmLabel: "Șterge pasul", destructive: true }, () => {
+    ui().askConfirm?.({ title: `Ștergi pasul „${tr(step.title)}”?`, text: count ? `Secțiunile și cele ${count} câmpuri ale pasului vor fi pierdute.` : "Pasul nu are câmpuri.", confirmLabel: "Șterge pasul", destructive: true }, () => {
       checkpoint();
       form.steps = form.steps.filter((item) => item.id !== id);
       state.stepId = serviceSteps()[0].id;
@@ -3175,7 +3175,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!found) return;
     const readers = usedIn(id);
     if (readers.length && !confirmed) {
-      ui().askConfirm?.({ title: `Ștergeți câmpul „${fieldName(found.field)}”?`, text: `Regulile din ${readers.map((item) => `„${item.name}”`).join(", ")} citesc acest câmp și vor trebui corectate.`, confirmLabel: "Șterge câmpul", destructive: true }, () => deleteField(id, { confirmed: true }));
+      ui().askConfirm?.({ title: `Ștergi câmpul „${fieldName(found.field)}”?`, text: `Regulile din ${readers.map((item) => `„${item.name}”`).join(", ")} citesc acest câmp și vor trebui corectate.`, confirmLabel: "Șterge câmpul", destructive: true }, () => deleteField(id, { confirmed: true }));
       return;
     }
     checkpoint();
@@ -3385,7 +3385,7 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
     const title = tr(found.section.title) || "fără titlu";
-    ui().askConfirm?.({ title: "Ștergeți secțiunea?", text: `Sigur ștergeți secțiunea «${title}»? Câmpurile din secțiune vor fi pierdute.`, confirmLabel: "Șterge secțiunea", destructive: true }, () => {
+    ui().askConfirm?.({ title: "Ștergi secțiunea?", text: `Sigur ștergi secțiunea «${title}»? Câmpurile din secțiune vor fi pierdute.`, confirmLabel: "Șterge secțiunea", destructive: true }, () => {
       checkpoint();
       found.step.sections = found.step.sections.filter((item) => item.id !== id);
       state.sel = { kind: "step", id: found.step.id };
@@ -3459,7 +3459,7 @@ document.addEventListener("DOMContentLoaded", () => {
       };
       const configured = current && (current.classifierId || current.saved || (current.values || []).some((item) => item.label));
       if (configured && current.mode !== value) {
-        ui().askConfirm?.({ title: "Schimbați sursa opțiunilor?", text: "Configurația actuală a sursei se pierde.", confirmLabel: "Schimbă sursa", destructive: true }, apply);
+        ui().askConfirm?.({ title: "Schimbi sursa opțiunilor?", text: "Configurația actuală a sursei se pierde.", confirmLabel: "Schimbă sursa", destructive: true }, apply);
         renderPanel();
         return;
       }

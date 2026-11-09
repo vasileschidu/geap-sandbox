@@ -317,6 +317,8 @@
       clear: "Șterge filtrele",
       results: null,
       rangeOrder: "Data „Până la” nu poate fi anterioară datei „De la”.",
+      dateFormat: "Introdu data în formatul ZZ/LL/AAAA.",
+      dateNeeded: "Alege cel puțin o dată.",
       ...(cfg.text || {})
     };
     const hideOnToggle = cfg.hideOnToggle !== false;
@@ -555,10 +557,10 @@
       const to = typedDay(toInput?.value);
       let ok = true;
       const fail = (input, text) => { ok = false; if (show && input) fieldError(input, text); };
-      if (from === null) fail(fromInput, "Introduceți data în formatul ZZ/LL/AAAA.");
-      if (to === null) fail(toInput, "Introduceți data în formatul ZZ/LL/AAAA.");
+      if (from === null) fail(fromInput, TEXT.dateFormat);
+      if (to === null) fail(toInput, TEXT.dateFormat);
       /* a plain range left empty = no period (no filter); a „custom” choice needs at least one end */
-      if (ok && !from && !to) { if (range?.hasAttribute("data-filter-range-fixed")) return { ok: true, token: null }; fail(fromInput, "Alegeți cel puțin o dată."); }
+      if (ok && !from && !to) { if (range?.hasAttribute("data-filter-range-fixed")) return { ok: true, token: null }; fail(fromInput, TEXT.dateNeeded); }
       if (ok && from && to && to < from) fail(toInput, TEXT.rangeOrder);
       return ok ? { ok, token: dateToken(from, to) } : { ok, token: null };
     };

@@ -53,11 +53,11 @@
     .replaceAll("'", "&#039;");
 
   const MDOCS_DELAY = 900;
-  const MDOCS_UNAVAILABLE = "Documentul nu poate fi generat momentan. Vă rugăm să încercați mai târziu.";
+  const MDOCS_UNAVAILABLE = "Documentul nu poate fi generat momentan. Încearcă mai târziu.";
   const MDOCS_ERRORS = {
     indisponibil: MDOCS_UNAVAILABLE,
     sablon: MDOCS_UNAVAILABLE,
-    date: "Datele actului nu sunt disponibile momentan. Vă rugăm să încercați mai târziu."
+    date: "Datele actului nu sunt disponibile momentan. Încearcă mai târziu."
   };
   const ACT_FIELDS_SHOWN = 8;
   const ACT_FIELDS_LIMIT = 10;

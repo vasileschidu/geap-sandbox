@@ -118,7 +118,7 @@
       "idnp": "2118421010050",
       "email": "laura.mihaescu@ansp.gov.md",
       "status": "Activ",
-      "note": "one combination whose role has no dashboard and no workplace folder → „Nu aveți permisiunea…”",
+      "note": "one combination whose role has no dashboard and no workplace folder → „Nu ai permisiunea…”",
       "combinations": [
         { "id": "lm-auditor", "role": "auditor", "authority": "aut-ansp", "subdivision": "sub-ansp-central", "headerMeta": "Auditor • ANSP" }
       ],

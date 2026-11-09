@@ -752,12 +752,12 @@
     const empty = window.GEAPEmptyState;
     if (!empty) return "";
     if (view === "loading") return empty.render({ loading: true, bare: true, title: "Se generează documentul", text: "MDocs completează macheta cu datele dosarului. Poate dura câteva secunde." });
-    if (view === "acces") return empty.render({ bare: true, icon: "lock", title: "Acces interzis", text: "Nu aveți drept de acces la dosarul acestui document." });
+    if (view === "acces") return empty.render({ bare: true, icon: "lock", title: "Acces interzis", text: "Nu ai drept de acces la dosarul acestui document." });
     return empty.render({
       bare: true,
       icon: "circle-error",
-      text: "Documentul nu a putut fi generat. Încercați din nou.",
-      actionHtml: retryAttrs ? `<button class="btn btn-strict btn-sm" type="button" ${retryAttrs}><svg class="icon small" aria-hidden="true"><use href="${ASSETS}icons/sprite.svg#icon-rotate-arrow"></use></svg><span>Reîncercați</span></button>` : ""
+      text: "Documentul nu a putut fi generat. Încearcă din nou.",
+      actionHtml: retryAttrs ? `<button class="btn btn-strict btn-sm" type="button" ${retryAttrs}><svg class="icon small" aria-hidden="true"><use href="${ASSETS}icons/sprite.svg#icon-rotate-arrow"></use></svg><span>Reîncearcă</span></button>` : ""
     });
   };
 

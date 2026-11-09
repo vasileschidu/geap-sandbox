@@ -205,7 +205,7 @@
     return `
       ${active ? `<p class="e-permits-ctx-current">Rol curent: <strong>${esc(active.roleLabel)}</strong>${[active.authorityShort, active.subdivisionLabel].filter(Boolean).map((part) => ` · ${esc(part)}`).join("")}</p>` : ""}
       ${m.cards.length >= SEARCH_MIN ? searchHtml(idPrefix) : ""}
-      <div class="e-permits-fo-auth__role-list" aria-label="Alegeți rolul" data-ctx-list>
+      <div class="e-permits-fo-auth__role-list" aria-label="Alege rolul" data-ctx-list>
         ${all.map((g, index) => groupHtml(g.key, g.title, g.cards, { activeId, heading, tagHtml, expanded: index === openIndex })).join("")}
       </div>`;
   };

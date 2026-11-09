@@ -382,10 +382,10 @@
        search / filters */
     els.empty.innerHTML = loading || permits.length ? "" : state.permits.length
       ? window.GEAPEmptyState.noResults("Niciun act permisiv nu corespunde căutării", {
-        text: state.query.trim() ? "Verificați ortografia sau încercați alți termeni." : "Alegeți alte valori sau resetați filtrele.",
+        text: state.query.trim() ? "Verifică ortografia sau încearcă alți termeni." : "Alege alte valori sau resetează filtrele.",
         actionHtml: '<button class="btn btn-neutral btn-sm" type="button" data-cab-reset>Resetează filtrele</button>'
       })
-      : window.GEAPEmptyState.render({ title: "Nu aveți acte permisive", text: "Actele emise pe numele dvs. apar aici.", icon: "permission" });
+      : window.GEAPEmptyState.render({ title: "Nu ai acte permisive", text: "Actele emise pe numele tău apar aici.", icon: "permission" });
     /* no acts at all: nothing to search or filter */
     if (els.toolbar) els.toolbar.hidden = !state.permits.length;
     syncSearchState();
@@ -427,7 +427,7 @@
     const name = state.geap?.subject?.name || "beneficiar";
     [els.toolbar, els.filterBar, els.list, els.pager, els.empty].forEach((el) => { if (el) el.hidden = true; });
     els.restriction.hidden = false;
-    els.restriction.innerHTML = restrictionHtml(state.restriction, `Actele permisive ale ${name} nu mai sunt disponibile pentru dumneavoastră: vizualizarea, descărcarea formularului și postprocesele rămân doar la beneficiar. Pentru acces, cereți beneficiarului o împuternicire nouă în MPower.`);
+    els.restriction.innerHTML = restrictionHtml(state.restriction, `Actele permisive ale ${name} nu mai sunt disponibile pentru tine: vizualizarea, descărcarea formularului și postprocesele rămân doar la beneficiar. Pentru acces, cere beneficiarului o împuternicire nouă în MPower.`);
   }
 
   /* the list pager = the shared GEAPPager (js/pager.js, audit-fix-v3): „1–10 din 23” · pages · „10 pe pagină ⌄”;
@@ -944,8 +944,8 @@
         const href = `${FO_URL}?${new URLSearchParams({ flow: "full", solicitant: SUBJECT, suplinire: waiting.nr, ...(params.get("pps") ? { pps: params.get("pps") } : {}) })}#request-step-2`;
         return {
           tone: "warning", icon: "icon-warning-filled",
-          title: `Trimiteți informațiile cerute până la ${escape(longDate(waiting.info.until))}`,
-          text: `Solicitarea de ${escape(String(act.pendingLabel).toLowerCase())} este suspendată: autoritatea a cerut informații suplimentare. Până atunci nu puteți iniția alt postproces.`,
+          title: `Trimite informațiile cerute până la ${escape(longDate(waiting.info.until))}`,
+          text: `Solicitarea de ${escape(String(act.pendingLabel).toLowerCase())} este suspendată: autoritatea a cerut informații suplimentare. Până atunci nu poți iniția alt postproces.`,
           actions: pair(`<a class="btn btn-primary btn-md btn-rounded" href="${escape(href)}" data-cab-alert-supplement>${icon("icon-page-upload")}<span>Completează informația</span></a>`, id),
         };
       }
@@ -1221,7 +1221,7 @@
     panel.innerHTML = notFoundHtml({
       back: { label: "Actele mele permisive", href: actsListUrl(), attr: "data-cab-back" },
       title: ACT_NOT_FOUND,
-      text: "Linkul nu mai este valabil sau actul nu figurează printre actele dvs.",
+      text: "Linkul nu mai este valabil sau actul nu figurează printre actele tale.",
     });
     document.title = `${ACT_NOT_FOUND} · EVO Cabinet`;
     window.scrollTo(0, 0);
@@ -1931,6 +1931,6 @@
     setBusy(els.list, els.loadingStatus, false);
     setToolbarLoading(els.toolbar, false);
     els.empty.hidden = false;
-    els.empty.innerHTML = window.GEAPEmptyState.render({ title: "A apărut o eroare", text: "Actele permisive nu au fost încărcate. Încercați din nou.", icon: "circle-error" });
+    els.empty.innerHTML = window.GEAPEmptyState.render({ title: "A apărut o eroare", text: "Actele permisive nu au fost încărcate. Încearcă din nou.", icon: "circle-error" });
   });
 })();

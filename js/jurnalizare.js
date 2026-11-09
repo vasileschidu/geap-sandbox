@@ -46,7 +46,7 @@
   const NAV = "sabloane-jurnalizare";
   const TITLE = "Șabloane de jurnalizare";
   /* US-258 AC-02 */
-  const DENIED = "Nu aveți acces la această secțiune.";
+  const DENIED = "Nu ai acces la această secțiune.";
   const NAME_MAX = 250;
   const CODE_MAX = 100;
   const TEXT_MAX = 1000;
@@ -104,7 +104,7 @@
   const tokensOf = (text) => [...String(text || "").matchAll(/\{\{\s*([A-Za-z0-9_]+)\s*\}\}/g)].map((m) => m[1]);
   function messageError(text, fields) {
     const value = String(text || "");
-    if (!value.trim()) return "Completați textul mesajului.";
+    if (!value.trim()) return "Completează textul mesajului.";
     if (value.length > TEXT_MAX) return `Textul mesajului poate avea cel mult ${TEXT_MAX} de caractere.`;
     const tokens = [...new Set(tokensOf(value))];
     if (tokens.some((t) => personalFields().includes(t))) return "Textul mesajului nu poate conține câmpuri cu date personale.";
@@ -114,7 +114,7 @@
   }
   function nameError(name) {
     const value = String(name || "").trim();
-    if (!value) return "Completați denumirea.";
+    if (!value) return "Completează denumirea.";
     if (value.length > NAME_MAX) return `Denumirea poate avea cel mult ${NAME_MAX} de caractere.`;
     return "";
   }
@@ -143,7 +143,7 @@
     </div>
     <div class="e-permits-ntpl-preview__mail-body">${String(message || "").trim()
       ? `<p>${fillSample(message)}</p>`
-      : E()?.render({ title: "Textul mesajului este gol", text: "Scrieți textul care apare în jurnal pentru acest eveniment.", icon: "page-text", bare: true, compact: true }) || ""}</div>`;
+      : E()?.render({ title: "Textul mesajului este gol", text: "Scrie textul care apare în jurnal pentru acest eveniment.", icon: "page-text", bare: true, compact: true }) || ""}</div>`;
   const previewNote = '<p class="e-permits-ntpl-preview__note">Previzualizare cu valori de exemplu.</p>';
 
   /* „Inserează câmp” — the ntpl stack-menu picker; inserts at the caret of the message */
@@ -307,7 +307,7 @@
       if (query || filtered) return E()?.noResults?.("Nu s-au găsit rezultate", { text: "Caută după cod sau denumire, sau schimbă filtrele.", bare: true });
       return E()?.render({
         title: "Nu există șabloane de jurnalizare.",
-        text: can("create") ? "Creați primul șablon cu „Șablon nou”." : "",
+        text: can("create") ? "Creează primul șablon cu „Șablon nou”." : "",
         icon: "checklist",
         bare: true,
         actionHtml: can("create") ? '<button class="btn btn-primary btn-sm" type="button" data-lgt-new>Șablon nou</button>' : ""
@@ -365,7 +365,7 @@
     if (on) { apply(); return; }
     const used = !isSystem(t) && t.usedIn ? ` Șablonul este folosit în ${plural(t.usedIn, "proces", "procese")}: pașii lor de jurnal nu vor înregistra nimic.` : "";
     U().askConfirm?.({
-      title: `Dezactivați șablonul „${t.name}”?`,
+      title: `Dezactivezi șablonul „${t.name}”?`,
       text: `Evenimentul nu va mai fi înregistrat în jurnal și nu va fi transmis în MLog.${used}`,
       confirmLabel: "Dezactivează",
       destructive: true
@@ -530,7 +530,7 @@
     const d = P.draft;
     const errors = {};
     const n = nameError(d.name); if (n) errors.name = n;
-    if (!d.action) errors.action = "Alegeți acțiunea.";
+    if (!d.action) errors.action = "Alege acțiunea.";
     const m = messageError(d.message, fieldsFor(t)); if (m) errors.message = m;
     return errors;
   }
@@ -593,7 +593,7 @@
     event.preventDefault();
     event.stopImmediatePropagation();
     U().askConfirm?.({
-      title: "Există modificări nesalvate. Părăsiți editorul?",
+      title: "Există modificări nesalvate. Părăsești editorul?",
       text: "Modificările nesalvate ale șablonului se pierd.",
       confirmLabel: "Părăsește editorul",
       cancelLabel: "Rămâi în editor",
@@ -658,7 +658,7 @@
       if (window.GEAPDrawer?.close) window.GEAPDrawer.close(drawer); else { drawer.hidden = true; document.body.classList.remove("is-drawer-open"); }
     };
     if (force || !touched) { close(); return; }
-    U().askConfirm?.({ title: "Renunțați la șablonul nou?", text: "Datele completate nu se păstrează.", confirmLabel: "Renunță", destructive: true }, close);
+    U().askConfirm?.({ title: "Renunți la șablonul nou?", text: "Datele completate nu se păstrează.", confirmLabel: "Renunță", destructive: true }, close);
   }
   function stepSettings() {
     const v = C.v, e = C.errors, L = S.data || {};
@@ -672,7 +672,7 @@
         selectField("lgt-c-level", "level", "Nivel", opts(L.levels || []), v.level, { required: true }),
         selectField("lgt-c-destination", "destination", "Destinație", opts(L.destinations || []), v.destination, { required: true }),
         full(mlogNotice(v.destination)),
-        selectField("lgt-c-action", "action", "Acțiune", opts(L.actions || []), v.action, { required: true, placeholder: "Alegeți acțiunea", error: e.action }),
+        selectField("lgt-c-action", "action", "Acțiune", opts(L.actions || []), v.action, { required: true, placeholder: "Alege acțiunea", error: e.action }),
         full(U().renderCheckOption?.({ label: "Evenimentul privește date personale", checked: v.personal, attrs: 'data-lgt-field="personal"' }) || "")
       ))}`;
   }
@@ -736,7 +736,7 @@
     if (step === 1) {
       const n = nameError(v.name); if (n) errors.name = n;
       const c = codeError(v.code); if (c) errors.code = c;
-      if (!v.action) errors.action = "Alegeți acțiunea.";
+      if (!v.action) errors.action = "Alege acțiunea.";
     }
     if (step === 2) { const m = messageError(v.message, processFields()); if (m) errors.message = m; }
     return errors;

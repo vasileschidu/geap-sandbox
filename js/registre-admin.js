@@ -33,7 +33,7 @@
   const dash = '<span class="e-permits-workplace__dash">—</span>';
   const KIND = "registre-admin";
   const NAV = "registre-config";
-  const DENIED = "Nu aveți permisiunea de a accesa această pagină.";
+  const DENIED = "Nu ai permisiunea de a accesa această pagină.";
   const MAX_ACTIONS = 12;
   const plural = (n, one, many) => G().plural?.(n, one, many) || `${n} ${n === 1 ? one : many}`;
   const stamp = (v) => G().stamp?.(v) || String(v || "");
@@ -239,7 +239,7 @@
     setTimeout(() => URL.revokeObjectURL(a.href), 1000);
   }
 
-  /* „Nu aveți permisiunea…” — an address typed by a role without the right (US-147 AC-01 / AC-21) */
+  /* „Nu ai permisiunea…” — an address typed by a role without the right (US-147 AC-01 / AC-21) */
   function showDenied(title = "Registre") {
     document.querySelectorAll("[data-nav-item].is-active").forEach((link) => { link.classList.remove("is-active"); link.removeAttribute("aria-current"); });
     G().showPage?.(title, window.GEAPEmptyState?.render({ title: "Acces interzis", text: DENIED, icon: "lock" }) || DENIED);
@@ -617,7 +617,7 @@
         return `
           ${section("Perimetru", grid(local
             ? roField("Autoritate", esc(authorityName(auth)))
-            : selectField("authority", "Autoritate", (data()?.authorities || []).map((a) => [a.code, `${a.name} (${a.code})`]), v.authority, { placeholder: "Toate autoritățile", hint: "Lăsați gol pentru a acorda rolul în toate autoritățile" })))}
+            : selectField("authority", "Autoritate", (data()?.authorities || []).map((a) => [a.code, `${a.name} (${a.code})`]), v.authority, { placeholder: "Toate autoritățile", hint: "Lasă gol pentru a acorda rolul în toate autoritățile" })))}
           ${section("Roluri", `
             <div class="e-permits-fo-field e-permits-reg-roles">
               <span class="e-permits-cfg-ro__label" id="rga-roles-label">Rol${req()}</span>
@@ -700,10 +700,10 @@
   function saveCreate() {
     const v = D.v;
     const e = {};
-    if (!v.object) e.object = "Alegeți obiectul-sursă";
+    if (!v.object) e.object = "Alege obiectul-sursă";
     if (!v.ro.trim()) e.ro = "Denumirea este obligatorie";
-    if (v.scope === "Authority" && !v.authority) e.authority = "Alegeți autoritatea";
-    if (v.scope === "Service" && !v.service) e.service = "Alegeți serviciul";
+    if (v.scope === "Authority" && !v.authority) e.authority = "Alege autoritatea";
+    if (v.scope === "Service" && !v.service) e.service = "Alege serviciul";
     const code = codeOf(v.object || "Case", v.scope, v.ro);
     if (!e.ro && v.object && G().catalog().records.some((r) => r.code === code)) e.code = "Există deja un registru cu acest cod";
     /* AC-12: a local administrator never creates a global register (the option is not offered either) */
@@ -750,7 +750,7 @@
     const e = {};
     if (!v.ro.trim()) e.ro = "Denumirea este obligatorie";
     const pos = String(v.position).trim();
-    if (!/^\d{1,3}$/.test(pos) || Number(pos) > 999) e.position = "Introduceți un număr între 0 și 999";
+    if (!/^\d{1,3}$/.test(pos) || Number(pos) > 999) e.position = "Introdu un număr între 0 și 999";
     D.errors = e;
     if (Object.keys(e).length) { renderDrawer(); drawer.querySelector(`#rga-${e.ro ? "ro" : "position"}`)?.focus(); return; }
     const rec = recordOf(D.id);
@@ -912,7 +912,7 @@
     if (!restoring) return;
     const field = document.querySelector("#rgv-restore-note");
     const note = field?.value.trim() || "";
-    if (!note) { setModalError(field, "Descrieți ce s-a schimbat."); return; }
+    if (!note) { setModalError(field, "Descrie ce s-a schimbat."); return; }
     const rec = recordOf(restoring.id);
     const v = versionOf(rec, restoring.nr);
     const next = nextVersion(rec);
@@ -1048,7 +1048,7 @@
       renderPublish("#rgp-publish-note");
       return;
     }
-    if (!note) { setModalError(field, "Descrieți ce s-a schimbat."); return; }
+    if (!note) { setModalError(field, "Descrie ce s-a schimbat."); return; }
     const next = nextVersion(rec);
     const first = !rec.publishedVersion;
     rec.published = clone(rec.config);
@@ -1118,7 +1118,7 @@
     if (!g) return;
     U().askConfirm?.({
       title: "Retrage accesul",
-      text: `Retrageți acest acces la registru? Rolul „${roleLabel(g.role)}” (${g.authority || "toate autoritățile"}) pierde imediat accesul la „${rec.names.ro}”.`,
+      text: `Retragi acest acces la registru? Rolul „${roleLabel(g.role)}” (${g.authority || "toate autoritățile"}) pierde imediat accesul la „${rec.names.ro}”.`,
       confirmLabel: "Confirmă",
       destructive: true
     }, () => {
@@ -1680,7 +1680,7 @@
     E.draft.actions.forEach((a) => {
       const e = {};
       if (!String(a.label || "").trim()) e.label = "Denumirea acțiunii este obligatorie";
-      if (a.type !== "open" && !a.target) e.target = a.type === "form" ? "Alegeți formularul" : a.type === "custom" ? "Alegeți controlul" : "Alegeți procesul";
+      if (a.type !== "open" && !a.target) e.target = a.type === "form" ? "Alege formularul" : a.type === "custom" ? "Alege controlul" : "Alege procesul";
       if (Object.keys(e).length) errors.actions[a.key] = e;
     });
     return errors;
@@ -1691,13 +1691,13 @@
     const nOther = Object.keys(errors.columns).length + Object.keys(errors.actions).length;
     E.errors = errors;
     if (nRules || nOther) {
-      E.footerError = nRules && E.tab === "filtru" ? "Corectați regulile marcate mai jos înainte de salvare." : nRules ? "Corectați regulile din tabul „Filtru” înainte de salvare." : Object.keys(errors.actions).length ? "Corectați acțiunile marcate înainte de salvare." : "Corectați coloanele marcate înainte de salvare.";
+      E.footerError = nRules && E.tab === "filtru" ? "Corectează regulile marcate mai jos înainte de salvare." : nRules ? "Corectează regulile din tabul „Filtru” înainte de salvare." : Object.keys(errors.actions).length ? "Corectează acțiunile marcate înainte de salvare." : "Corectează coloanele marcate înainte de salvare.";
       /* go where the first problem is */
       if (!nRules && E.tab === "filtru") E.tab = Object.keys(errors.columns).length ? "coloane" : "actiuni";
       if (E.tab === "coloane" && !Object.keys(errors.columns).length && nRules) E.tab = "filtru";
       if (E.tab === "actiuni" && Object.keys(errors.actions).length && !errors.actions[E.selAct]) E.selAct = Object.keys(errors.actions)[0];
       if (E.tab === "coloane" && Object.keys(errors.columns).length && !errors.columns[E.selCol]) E.selCol = Object.keys(errors.columns)[0];
-      E.footerError = E.tab === "filtru" ? "Corectați regulile marcate mai jos înainte de salvare." : E.footerError;
+      E.footerError = E.tab === "filtru" ? "Corectează regulile marcate mai jos înainte de salvare." : E.footerError;
       renderEditor();
       editor.querySelector('[aria-invalid="true"], .e-permits-fo-select.is-error .e-permits-fo-select__button')?.focus();
       return;

@@ -158,10 +158,10 @@
     updateValue() {
       if (this.isMultiple) {
         const values = this.options.filter(o => o.classList.contains('is-selected')).map(o => o.textContent);
-        this.valueNode.textContent = values.join(', ') || 'Selectați...';
+        this.valueNode.textContent = values.join(', ') || 'Selectează...';
       } else {
         const selected = this.options.find(o => o.classList.contains('is-selected'));
-        this.valueNode.textContent = selected ? selected.textContent : 'Selectați...';
+        this.valueNode.textContent = selected ? selected.textContent : 'Selectează...';
       }
     }
 

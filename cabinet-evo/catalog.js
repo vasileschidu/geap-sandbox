@@ -38,18 +38,18 @@
      current instance travels with the session (?solicitant=), no second identity pick.
      An instance the service does not accept (applicant type) still chooses (S3). */
   function requestTarget(service) {
-    if (!C.AUTH) return { href: `${FO}?flow=full`, hint: "Vă autentificați cu MPass, apoi completați cererea." };
+    if (!C.AUTH) return { href: `${FO}?flow=full`, hint: "Te autentifici cu MPass, apoi completezi cererea." };
     const subject = state.subject;
     const accepted = subject && (!service.applicants?.length || service.applicants.includes(subject.type));
     if (!accepted) {
       return { href: `${FO}?flow=full#choice-authenticated`, hint: subject
-        ? `Serviciul nu poate fi solicitat în numele ${subject.name}. Alegeți în numele cui depuneți cererea.`
-        : "Alegeți în numele cui depuneți cererea." };
+        ? `Serviciul nu poate fi solicitat în numele ${subject.name}. Alege în numele cui depui cererea.`
+        : "Alege în numele cui depui cererea." };
     }
     const query = new URLSearchParams({ flow: "full", solicitant: subject.id });
     const hasActs = state.acts.some((act) => act.service === service.id);
-    if (hasActs) return { href: `${FO}?${query.toString()}#intent`, hint: `Depuneți ca ${subject.name}, care are deja acte emise pentru acest serviciu — alegeți o solicitare nouă sau o acțiune pe un act existent. Puteți schimba ulterior.` };
-    return { href: `${FO}?${query.toString()}#request`, hint: `Depuneți ca ${subject.name}. Puteți schimba ulterior.` };
+    if (hasActs) return { href: `${FO}?${query.toString()}#intent`, hint: `Depui ca ${subject.name}, care are deja acte emise pentru acest serviciu — alege o solicitare nouă sau o acțiune pe un act existent. Poți schimba ulterior.` };
+    return { href: `${FO}?${query.toString()}#request`, hint: `Depui ca ${subject.name}. Poți schimba ulterior.` };
   }
 
   function onlineTag(service) {
@@ -216,7 +216,7 @@
       route();
     } catch (error) {
       console.warn("[catalog]", error);
-      root.innerHTML = `<div class="cab-state" role="alert">${fixAssets(window.GEAPEmptyState.render({ title: "A apărut o eroare", text: "Catalogul serviciilor nu a fost încărcat. Încercați din nou.", icon: "circle-error" }))}</div>`;
+      root.innerHTML = `<div class="cab-state" role="alert">${fixAssets(window.GEAPEmptyState.render({ title: "A apărut o eroare", text: "Catalogul serviciilor nu a fost încărcat. Încearcă din nou.", icon: "circle-error" }))}</div>`;
     }
     document.documentElement.dataset.catReady = "true";
   }

@@ -31,7 +31,7 @@
   const icon = (name, cls = "icon small") => `<svg class="${cls}" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-${name}"></use></svg>`;
   const tag = (label, tone = "neutral", attrs = "") => window.GEAPTag?.html(label, tone, attrs ? { attrs } : undefined) || esc(label);
   const dash = '<span class="e-permits-workplace__dash">—</span>';
-  const DENIED = "Nu aveți permisiunea de a accesa această pagină.";
+  const DENIED = "Nu ai permisiunea de a accesa această pagină.";
   const STORE = "e-permits-absences";
   const FAIL = "Operația nu a putut fi efectuată";
   const off = (key) => (params.get("fara") || "").split(",").map((k) => k.trim()).includes(key);
@@ -475,7 +475,7 @@
             ${f.errors.reason ? fieldError(f.errors.reason) : ""}
           </div>
           <div class="e-permits-user-create__field e-permits-user-create__field--12">
-            ${U().renderInfoNote?.("În perioada absenței, utilizatorul nu primește dosare noi la distribuirea automată. Dosarele deschise rămân la el; le puteți delega sau redistribui.") || ""}
+            ${U().renderInfoNote?.("În perioada absenței, utilizatorul nu primește dosare noi la distribuirea automată. Dosarele deschise rămân la el; le poți delega sau redistribui.") || ""}
           </div>
         </div>`,
       footer: footer("data-abs-save")
@@ -493,11 +493,11 @@
     if (f.pickPerson) f.v.person = document.querySelector('#case-action-modal select[data-abs-field="person"]')?.value || f.v.person;
     f.v.reason = document.getElementById("abs-reason")?.value ?? f.v.reason;
     const e = {};
-    if (f.pickPerson && !f.v.person) e.person = "Alegeți utilizatorul.";
-    if (!f.v.type) e.type = "Indicați tipul absenței.";
-    if (from.bad) e.from = "Introduceți o dată validă (ZZ/LL/AAAA).";
-    else if (!f.v.from) e.from = "Indicați data de început a absenței.";
-    if (to.bad) e.to = "Introduceți o dată validă (ZZ/LL/AAAA).";
+    if (f.pickPerson && !f.v.person) e.person = "Alege utilizatorul.";
+    if (!f.v.type) e.type = "Indică tipul absenței.";
+    if (from.bad) e.from = "Introdu o dată validă (ZZ/LL/AAAA).";
+    else if (!f.v.from) e.from = "Indică data de început a absenței.";
+    if (to.bad) e.to = "Introdu o dată validă (ZZ/LL/AAAA).";
     else if (f.v.to && f.v.from && f.v.to < f.v.from) e.to = "Data de sfârșit nu poate fi anterioară datei de început.";
     if (String(f.v.reason || "").length > 500) e.reason = "Motivul nu poate depăși 500 de caractere.";
     if (!e.from && !e.to && f.v.person && f.v.from) {
@@ -542,7 +542,7 @@
     const owner = personById(a?.person);
     if (!a || !canManage(owner)) return;
     U().askConfirm?.({
-      title: "Sigur doriți să ștergeți absența?",
+      title: "Sigur vrei să ștergi absența?",
       text: `${owner.name} · ${absenceLine(a)}. Pentru această perioadă, utilizatorul poate primi din nou dosare noi. Ștergerea rămâne în Jurnalul de audit.`,
       confirmLabel: "Șterge",
       destructive: true
@@ -694,12 +694,12 @@
     const start = readDistForm();
     const e = {};
     const n = f.v.norm;
-    if (n && (!/^\d{1,3}$/.test(n) || Number(n) < 1 || Number(n) > 100)) e.norm = "Introduceți un număr întreg între 1 și 100.";
-    else if (n && Number(n) < 100 && !String(f.v.normReason || "").trim()) e.normReason = "Indicați motivul normei sub 100%.";
-    if (start.bad) e.start = "Introduceți o dată validă (ZZ/LL/AAAA).";
+    if (n && (!/^\d{1,3}$/.test(n) || Number(n) < 1 || Number(n) > 100)) e.norm = "Introdu un număr întreg între 1 și 100.";
+    else if (n && Number(n) < 100 && !String(f.v.normReason || "").trim()) e.normReason = "Indică motivul normei sub 100%.";
+    if (start.bad) e.start = "Introdu o dată validă (ZZ/LL/AAAA).";
     const seen = new Set();
     f.v.competences.forEach((c, i) => {
-      if (!c.service) { e[`c${i}`] = "Alegeți serviciul."; return; }
+      if (!c.service) { e[`c${i}`] = "Alege serviciul."; return; }
       if (seen.has(c.service)) e[`c${i}`] = "Serviciul este deja adăugat.";
       seen.add(c.service);
     });
@@ -729,7 +729,7 @@
     persist();
     closeModal();
     rerenderAll();
-    U().showShellToast?.(changes.length ? "Setările de distribuire au fost salvate." : "Nu ați modificat nimic.", changes.length ? "success" : "info");
+    U().showShellToast?.(changes.length ? "Setările de distribuire au fost salvate." : "Nu ai modificat nimic.", changes.length ? "success" : "info");
   }
 
   /* ================================================================ permission per person */
@@ -779,9 +779,9 @@
       canDelegate ? `<button class="btn ${canRedistribute ? "btn-text-strict" : "btn-outline-strict"} btn-md btn-rounded" type="button" data-abs-delegate>Deleagă rol</button>` : "",
       canRedistribute ? `<button class="btn btn-primary btn-md btn-rounded" type="button" data-abs-redistribute="${esc(person.id)}">Redistribuie</button>` : ""
     ].join("");
-    const how = canDelegate && canRedistribute ? "Delegați rolul pe perioada absenței sau redistribuiți dosarele."
-      : canRedistribute ? "Redistribuiți dosarele pe perioada absenței."
-        : canDelegate ? "Delegați rolul pe perioada absenței. Supervizorul subdiviziunii poate redistribui dosarele."
+    const how = canDelegate && canRedistribute ? "Deleagă rolul pe perioada absenței sau redistribuie dosarele."
+      : canRedistribute ? "Redistribuie dosarele pe perioada absenței."
+        : canDelegate ? "Deleagă rolul pe perioada absenței. Supervizorul subdiviziunii poate redistribui dosarele."
           : "Supervizorul subdiviziunii poate redistribui dosarele.";
     return window.GEAPAlertCard?.html({
       tone: "warning", id: "abs-open-cases", sprite: "assets/icons/sprite.svg", titleTag: "h3",
@@ -1570,12 +1570,12 @@
     const scope = { level: POL.level, authority: POL.authority, rt: POL.rt };
     const o = polScope(clone(POL.draft), scope);
     const isNum = (s) => /^\d+([.,]\d+)?$/.test(String(s).trim());
-    if (filled(o.window) && (!/^\d+$/.test(String(o.window).trim()) || Number(o.window) < 1)) e.window = "Introduceți un număr întreg de luni, cel puțin 1.";
-    if (filled(o.maxLoad) && (!isNum(o.maxLoad) || num(o.maxLoad) <= 0)) e.maxLoad = "Introduceți un număr mai mare decât 0.";
-    ["coef", ...FACTORS.map(([id]) => `f_${id}`)].forEach((k) => { if (filled(o[k]) && !isNum(o[k])) e[k] = "Introduceți un număr de cel puțin 0."; });
+    if (filled(o.window) && (!/^\d+$/.test(String(o.window).trim()) || Number(o.window) < 1)) e.window = "Introdu un număr întreg de luni, cel puțin 1.";
+    if (filled(o.maxLoad) && (!isNum(o.maxLoad) || num(o.maxLoad) <= 0)) e.maxLoad = "Introdu un număr mai mare decât 0.";
+    ["coef", ...FACTORS.map(([id]) => `f_${id}`)].forEach((k) => { if (filled(o[k]) && !isNum(o[k])) e[k] = "Introdu un număr de cel puțin 0."; });
     if (filled(o.ramp)) {
       const vals = o.ramp.map((x) => String(x ?? "").trim());
-      if (vals.some((x) => x === "")) e.ramp = "Completați toate cele 6 luni sau lăsați rampa goală (moștenită).";
+      if (vals.some((x) => x === "")) e.ramp = "Completează toate cele 6 luni sau lasă rampa goală (moștenită).";
       else if (vals.some((x) => !/^\d+$/.test(x) || Number(x) > 100)) e.ramp = "Fiecare lună: un procent între 0 și 100.";
     }
     return e;
@@ -1584,7 +1584,7 @@
     POL.errors = polValidate();
     if (Object.keys(POL.errors).length) {
       renderPolicy(`#abs-pol-${Object.keys(POL.errors)[0]}`);
-      window.GEAPToast?.show({ type: "error", message: "Corectați câmpurile marcate, apoi salvați.", key: "abs-pol-err" });
+      window.GEAPToast?.show({ type: "error", message: "Corectează câmpurile marcate, apoi salvează.", key: "abs-pol-err" });
       return;
     }
     const changes = polChanges();

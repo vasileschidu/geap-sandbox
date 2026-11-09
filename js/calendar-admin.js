@@ -8,7 +8,7 @@
      · window.GEAPShellRegistries.calendar — the BO registry engine (search „după dată sau motiv”, Filtre: Tip eveniment ·
        Domeniu de aplicare · Sursă, sort, pager, export CSV); the YEAR filter = the status tabs (current year −1 … +2,
        US-283 AC-03); the menu item `shellView: "calendar-registry"` (data/e-permits-roles.json);
-     · window.GEAPShellRoutes — #calendar; a role without the right gets „Nu aveți permisiunea…” (AC-01);
+     · window.GEAPShellRoutes — #calendar; a role without the right gets „Nu ai permisiunea…” (AC-01);
      · the library dialog #case-action-modal through window.GEAPRegistre.openModal (add / edit / delete / generate /
        recalculation preview / journal), the case-dialog form markup (.e-permits-case-form + FO field shell + library
        date picker + fo-select), toasts, the event timeline.
@@ -23,7 +23,7 @@
        then the toast and a journal entry (the Feature says the preview is out of scope — PO question 5);
      · deadlines read in working days („3 zile lucrătoare rămase”, shell renderTermen).
    Permissions (demo roles): Administrator central = view + edit; Administrator local = view only (no buttons, no ⋮,
-   export kept — AC-09/10); any other role = „Nu aveți permisiunea de a accesa această pagină.”.
+   export kept — AC-09/10); any other role = „Nu ai permisiunea de a accesa această pagină.”.
    Demo switches: ?calendar=eroare (every write fails: „Operația nu a putut fi efectuată”, AC-12) ·
    ?calendar=autoritate (the chosen authority was removed meanwhile, US-284 AC-10).
    ===================================================================================== */
@@ -34,7 +34,7 @@
   const NAV = "calendar";
   const TITLE = "Calendar zile nelucrătoare";
   const DESCRIPTION = "Excepții de la regula „luni-vineri lucrătoare”: sărbători legale și zile transferate. Termenele de examinare se calculează după acest calendar.";
-  const DENIED = "Nu aveți permisiunea de a accesa această pagină.";
+  const DENIED = "Nu ai permisiunea de a accesa această pagină.";
   const FAILED = "Operația nu a putut fi efectuată";
   const REASON_MAX = 200;
   /* the clock of these dossiers is running or paused (US-288 AC-01); schiță / semnat / final have none */
@@ -405,7 +405,7 @@
         <div class="e-permits-user-create__grid">
           ${dateField("date", "Data")}
           ${selectField("type", "Tip eveniment", Object.entries(TYPES), { required: true, placeholder: "Alege tipul" })}
-          ${selectField("authority", "Domeniu de aplicare", authorities().map((a) => [a.code, a.name]), { placeholder: NATIONAL, hint: "Lăsați gol pentru o zi valabilă în toată țara sau alegeți autoritatea pentru care se aplică.", span: 12 })}
+          ${selectField("authority", "Domeniu de aplicare", authorities().map((a) => [a.code, a.name]), { placeholder: NATIONAL, hint: "Lasă gol pentru o zi valabilă în toată țara sau alege autoritatea pentru care se aplică.", span: 12 })}
           ${reasonField()}
         </div>
       </div>`;
@@ -456,11 +456,11 @@
     const errors = {};
     const reason = v.reason.trim();
     const d = toDate(v.date);
-    if (!v.date) errors.date = "Indicați data";
-    else if (!d || v.date === "invalid") errors.date = "Indicați data în formatul ZZ/LL/AAAA";
+    if (!v.date) errors.date = "Indică data";
+    else if (!d || v.date === "invalid") errors.date = "Indică data în formatul ZZ/LL/AAAA";
     else if (d.getFullYear() < 2000 || d.getFullYear() > 2100) errors.date = "Data trebuie să fie între anii 2000 și 2100";
-    if (!v.type) errors.type = "Alegeți tipul evenimentului";
-    if (!reason) errors.reason = "Indicați motivul";
+    if (!v.type) errors.type = "Alege tipul evenimentului";
+    if (!reason) errors.reason = "Indică motivul";
     else if (reason.length > REASON_MAX) errors.reason = `Motivul nu poate depăși ${REASON_MAX} de caractere`;
     if (v.authority && (demo === "autoritate" || !authorities().some((a) => a.code === v.authority))) errors.authority = "Autoritatea selectată nu există";
     if (!errors.date && !errors.type && !v.authority) {

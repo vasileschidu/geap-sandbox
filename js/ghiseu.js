@@ -57,7 +57,7 @@
   const DATA_URL = "data/ghiseu.json";
   const LOOKUP_MS = 900;
   const NOTIFY_BEFORE_DAYS = 7;
-  const NO_RIGHTS = "Nu aveți permisiunea de a accesa această pagină.";
+  const NO_RIGHTS = "Nu ai permisiunea de a accesa această pagină.";
   const REQUIRED = "Câmpul este obligatoriu.";
 
   /* the steps, in the order of the stories (Feature 95768 § User Flow) */
@@ -1048,7 +1048,7 @@
   (window.GEAPNotifSources = window.GEAPNotifSources || []).push(() => ofcNotices().map((d) => ({
     id: `ofc:${d.id}`,
     title: `Schița ${d.nr} se elimină automat la ${longDate(retentionEnd(d))}`,
-    line: `${d.requestType}: finalizați schița până atunci · trimisă și prin MNotify`,
+    line: `${d.requestType}: finalizează schița până atunci · trimisă și prin MNotify`,
     at: `${String(d.notified).slice(0, 10)}T08:00:00`, /* the morning retention job */
     href: `#oficiu/${encodeURIComponent(d.id)}`
   })));
@@ -1228,7 +1228,7 @@
       const nr = S.submittedNr;
       S.submittedNr = null;
       /* din oficiu (US-246 AC-07): distributed to the initiator at once */
-      const text = S.mode === OFC_KIND ? `Dosarul ${nr} a fost depus și distribuit către dvs.` : `Dosarul ${nr} a fost depus și trimis la distribuire.`;
+      const text = S.mode === OFC_KIND ? `Dosarul ${nr} a fost depus și distribuit către tine.` : `Dosarul ${nr} a fost depus și trimis la distribuire.`;
       setTimeout(() => U().showShellToast?.(text, "success"), 0);
     }
     if (S.closeToast) {
@@ -1237,7 +1237,7 @@
       setTimeout(() => U().showShellToast?.(text, "success"), 0);
     }
   }
-  /* × / Esc / scrim: the pending autosave runs now, then the window closes — no „Salvați schița?” dialog any more
+  /* × / Esc / scrim: the pending autosave runs now, then the window closes — no „Salvezi schița?” dialog any more
      (ghiseu-autosave-csv-v1: with autosave there is nothing unsaved to lose) */
   function requestCloseSheet() {
     autosave();
@@ -1330,7 +1330,7 @@
     const ofc = S.mode === OFC_KIND;
     /* a draft opens in its own list's window (a desk request under #oficiu/… or the other way round = not found);
        an ex-officio draft is the initiator's own (US-249 AC-04) */
-    if (!saved || isOfc(saved) !== ofc || (ofc && saved.by !== userName())) { renderMessage({ title: "Cererea nu a fost găsită", text: `Verificați numărul cererii în lista ${listOf().name}.`, icon: "search" }); return; }
+    if (!saved || isOfc(saved) !== ofc || (ofc && saved.by !== userName())) { renderMessage({ title: "Cererea nu a fost găsită", text: `Verifică numărul cererii în lista ${listOf().name}.`, icon: "search" }); return; }
     if (saved.removed) {
       renderMessage({
         /* no numbers in a dialog header (product rule): the ex-officio window names the list instead */
@@ -1418,7 +1418,7 @@
     render();
   }
   /* US-252 AC-05 / AC-06 / AC-21: entering Verificare generates the updated request (MDocs, the service's print template);
-     ?mdocs=0 = MDocs does not answer the first time → „Nu s-a putut genera formularul” + „Reîncercați” */
+     ?mdocs=0 = MDocs does not answer the first time → „Nu s-a putut genera formularul” + „Reîncearcă” */
   function supEnterVerificare(d) {
     audit("Intrare în pasul Verificare", d, "Rezumatul suplinirii afișat · reușită");
     if (d.review.paper) return;
@@ -1503,7 +1503,7 @@
     const ok = list.every((x) => x.ok);
     return `
       ${stepHeader("Confirmarea suplinirii")}
-      ${S.notice === "submit-error" ? `<div class="e-permits-gh__notices">${U().renderNotice?.("error", "A apărut o eroare. Suplinirea nu a putut fi finalizată. Încercați din nou.", { role: "alert" }) || ""}</div>` : ""}
+      ${S.notice === "submit-error" ? `<div class="e-permits-gh__notices">${U().renderNotice?.("error", "A apărut o eroare. Suplinirea nu a putut fi finalizată. Încearcă din nou.", { role: "alert" }) || ""}</div>` : ""}
       <div class="e-permits-fo-review e-permits-gh__review">
         ${summarySection("Condițiile confirmării", list.map((x) => detailRow(x.label, tagHtml(x.ok ? "Îndeplinită" : "Neîndeplinită", x.ok ? "success" : "danger"))).join(""))}
         ${summarySection("După confirmare", [
@@ -1514,7 +1514,7 @@
           summaryRow("Notificări", ["Specialistului: MNotify și notificare internă SIA GEAP", "Solicitantului: MNotify"])
         ].join(""))}
       </div>
-      ${footerHtml(d, { next: S.notice === "submit-error" ? "Reîncercați" : "Confirmă suplinirea", nextAttrs: "data-gh-submit", nextDisabled: !ok })}`;
+      ${footerHtml(d, { next: S.notice === "submit-error" ? "Reîncearcă" : "Confirmă suplinirea", nextAttrs: "data-gh-submit", nextDisabled: !ok })}`;
   }
   /* US-253 AC-03…07 / AC-10 / AC-11: the dossier goes back to the responsible Specialist (status, substatus and the
      remaining term restored by the shell), the notifications and the MConnect event; the window closes over «Dosare
@@ -1879,12 +1879,12 @@
     };
     if ((d.maxStep || 0) <= STEP_INDEX.identificare && !Object.keys(d.docs || {}).length) { doIt(); return; }
     U().askConfirm?.(ofc ? {
-      title: "Schimbați actul sau postprocesul?",
+      title: "Schimbi actul sau postprocesul?",
       text: `Detaliile, decizia autorității și documentele pentru „${d.requestType}” se pierd. Titularul se preia din actul ales.`,
       confirmLabel: "Schimbă actul",
       destructive: true
     } : {
-      title: "Schimbați procesul?",
+      title: "Schimbi procesul?",
       text: `Datele din „Detalii serviciu”, documentele și verificarea pentru „${d.requestType}” se pierd. Solicitantul și datele de contact rămân.`,
       confirmLabel: "Schimbă procesul",
       destructive: true
@@ -1938,7 +1938,7 @@
      no red error on the code, no „introdus manual” hint under every field. It shows once a lookup could not
      reach the registry (a slot in the „manual” state) and only while the registry is down; the manual values
      keep their „Introdus manual” tag on the role cards / Verificare for the specialist. */
-  const DOWN_NOTICE = "<strong>Registrul de stat nu răspunde acum.</strong> Completați datele manual. Datele introduse manual se verifică la examinare.";
+  const DOWN_NOTICE = "<strong>Registrul de stat nu răspunde acum.</strong> Completează datele manual. Datele introduse manual se verifică la examinare.";
   const downNoticeHtml = (slots) => (mconnectDown() && slots.some((slot) => slot?.state === "manual")
     ? U().renderNotice?.("warning", DOWN_NOTICE, { className: "e-permits-gh__down-notice" }) || ""
     : "");
@@ -2010,12 +2010,12 @@
       const procuraOption = d.procura ? option : option.replace('class="checkbox ', 'class="checkbox checkbox--error ');
       body = `<div class="e-permits-gh__basis-body">
         ${U().renderNotice?.("warning", b.manual
-          ? "<strong>Legătura nu se poate confirma electronic</strong> cât timp registrul de stat nu răspunde. Verificați procura pe hârtie prezentată de reprezentant."
-          : `<strong>Legătura nu este confirmată electronic.</strong> ${esc(filer)} nu este ${d.personType === "PJ" ? "administrator în RSUD și nu are" : "împuternicit în MPower de"} ${d.personType === "PJ" ? `împuternicire MPower pentru ${esc(holder)}` : esc(holder)}. Verificați procura pe hârtie prezentată de reprezentant.`) || ""}
+          ? "<strong>Legătura nu se poate confirma electronic</strong> cât timp registrul de stat nu răspunde. Verifică procura pe hârtie prezentată de reprezentant."
+          : `<strong>Legătura nu este confirmată electronic.</strong> ${esc(filer)} nu este ${d.personType === "PJ" ? "administrator în RSUD și nu are" : "împuternicit în MPower de"} ${d.personType === "PJ" ? `împuternicire MPower pentru ${esc(holder)}` : esc(holder)}. Verifică procura pe hârtie prezentată de reprezentant.`) || ""}
         <div class="e-permits-check-options e-permits-gh__procura">
           ${procuraOption}
         </div>
-        ${d.procura ? errSlot("procura") : `<span class="message message--inline message--error e-permits-fo-field__error" id="gh-err-procura" data-gh-err="procura" role="alert">${ERR_ICON}<span>Legătura nu este confirmată electronic. Bifați «Prin procură», după verificarea procurii pe hârtie.</span></span>`}
+        ${d.procura ? errSlot("procura") : `<span class="message message--inline message--error e-permits-fo-field__error" id="gh-err-procura" data-gh-err="procura" role="alert">${ERR_ICON}<span>Legătura nu este confirmată electronic. Bifează «Prin procură», după verificarea procurii pe hârtie.</span></span>`}
         ${d.procura ? procuraUploadHtml() : ""}
       </div>`;
     }
@@ -2033,7 +2033,7 @@
         <div class="e-permits-fo-doc-field__row">
           <div class="e-permits-fo-doc-field__info">
             <span class="e-permits-fo-doc-field__label">${esc(PROCURA_DOC.label)} ${req()}</span>
-            <p class="e-permits-fo-doc-field__desc">Atașați-o aici sau la pasul „Acte necesare”.</p>
+            <p class="e-permits-fo-doc-field__desc">Atașeaz-o aici sau la pasul „Acte necesare”.</p>
           </div>
           <button class="btn btn-strict btn-md" type="button" data-fo-open-doc-modal data-fo-doc-label="${esc(PROCURA_DOC.label)}">${icon("upload", 20, "icon medium")}<span>Adaugă fișier</span></button>
         </div>
@@ -2221,7 +2221,7 @@
           subjectLabel: "Solicitant",
           subjectName: holderName(d),
           changeAttrs: 'data-gh-goto="0" aria-label="Schimbă solicitantul sau serviciul"',
-          noticeHtml: S.actCleared ? U().renderNotice?.("info", "Serviciul sau solicitantul s-a schimbat: procesul ales anterior a fost anulat. Alegeți din nou.") || "" : "",
+          noticeHtml: S.actCleared ? U().renderNotice?.("info", "Serviciul sau solicitantul s-a schimbat: procesul ales anterior a fost anulat. Alege din nou.") || "" : "",
           newRequest: { title: "Solicitare nouă", text: "Cerere pentru un act permisiv nou (emitere primară)" },
           newAttrs: "data-gh-intent-new",
           actsTitle: "Acte emise pentru acest serviciu",
@@ -2432,7 +2432,7 @@
       const codeErr = (kind, value, state, len = 13) => {
         if (!value) return REQUIRED;
         if (value.length !== len) return `${kind === "company" ? "IDNO" : "IDNP"}-ul are 13 cifre.`;
-        if (!state) return S.lookups[kind]?.code === value && !mconnectDown() ? NOT_FOUND_MSG : `Căutați ${kind === "company" ? "IDNO" : "IDNP"}-ul în registru.`;
+        if (!state) return S.lookups[kind]?.code === value && !mconnectDown() ? NOT_FOUND_MSG : `Caută ${kind === "company" ? "IDNO" : "IDNP"}-ul în registru.`;
         return "";
       };
       const check = (kind, slot, code) => {
@@ -2449,7 +2449,7 @@
       }
       if (!picker && d.personType === "PF" && d.rep.on) check("rep", d.rep, d.rep.idnp);
       /* AC-21: no electronic link and no „Prin procură” (in the request's first step) */
-      if (!picker && !errs.length && needsProcura(d) && !d.procura) errs.push({ key: "procura", focus: "[data-gh-procura]", msg: "Legătura nu este confirmată electronic. Bifați «Prin procură», după verificarea procurii pe hârtie." });
+      if (!picker && !errs.length && needsProcura(d) && !d.procura) errs.push({ key: "procura", focus: "[data-gh-procura]", msg: "Legătura nu este confirmată electronic. Bifează «Prin procură», după verificarea procurii pe hârtie." });
     }
     return errs;
   }
@@ -2520,7 +2520,7 @@
     } else if (form.address && raion && subdivisionFor(d)) {
       field = readonlyField({ id: "gh-subdiv", label: "Procesat de subdiviziunea", value: subdivisionFor(d), span: 12, required: true, hint: `Completată după raionul adresei obiectului autorizat (${raion}).` });
     } else {
-      const hint = raion ? `Raionul ${raion} nu se află în localitățile subordonate ale niciunei subdiviziuni: alegeți subdiviziunea.` : "Obiectul nu are adresă: alegeți subdiviziunea de examinare.";
+      const hint = raion ? `Raionul ${raion} nu se află în localitățile subordonate ale niciunei subdiviziuni: alege subdiviziunea.` : "Obiectul nu are adresă: alege subdiviziunea de examinare.";
       field = R().fieldHtml({ id: "gh-subdiv", type: "select", label: "Procesat de subdiviziunea", required: true, span: 12, placeholder: "Selectează subdiviziunea", value: subs.some((s) => s.name === d.details.subdivision) ? d.details.subdivision : "", options: subs.map((s) => s.name), hint }) + errSlot("subdiv");
     }
     return `<div data-gh-block="subdivision" class="e-permits-gh__block">${field}</div>`;
@@ -2548,7 +2548,7 @@
     if (isSup(d)) {
       return `
       ${stepHeader("Date despre cerere")}
-      <div class="e-permits-gh__notices">${U().renderInfoNote?.("Formularul cererii depuse, precompletat cu datele dosarului. Corectați datele indicate în mesajul Specialistului.") || ""}</div>
+      <div class="e-permits-gh__notices">${U().renderInfoNote?.("Formularul cererii depuse, precompletat cu datele dosarului. Corectează datele indicate în mesajul Specialistului.") || ""}</div>
       ${section(form.address ? "Obiectul autorizat" : "Produsul", `<div class="e-permits-fo-form__section-body">${fields}${form.address ? address : ""}</div>`, { id: "gh-obj-title" })}
       ${footerHtml(d)}`;
     }
@@ -2558,7 +2558,7 @@
         <div class="e-permits-check-options e-permits-gh__reductions" role="group" aria-label="Reduceri aplicate">
           ${reds.map((r) => U().renderCheckOption?.({ label: `${r.label} — ${r.type === "procent" ? `${r.value}%` : mdl(r.value)} din „${desk.fees?.[r.fee]?.name || ""}”`, checked: d.details.reductions.includes(r.id), attrs: `data-gh-reduction="${esc(r.id)}"` }) || "").join("")}
         </div>
-        <p class="e-permits-fo-field__hint">Fără bifă = „Fără reduceri”. Valoarea și tipul reducerii vin din tarif și nu se modifică; bifați doar reducerile confirmate de documentele prezentate.</p>
+        <p class="e-permits-fo-field__hint">Fără bifă = „Fără reduceri”. Valoarea și tipul reducerii vin din tarif și nu se modifică; bifează doar reducerile confirmate de documentele prezentate.</p>
       </div>`, { id: "gh-red-title" }) : "";
     return `
       ${stepHeader("Detalii serviciu")}${act ? U().renderInfoNote?.(`Postproces „${esc(d.requestType)}” pe ${esc(act.nr)}: datele actului sunt precompletate.`) || "" : ""}
@@ -2633,7 +2633,7 @@
     refreshPayment(d);
   }
   /* the Form Designer validations of a field (US-251 AC-05): required, then the configured minimum length */
-  const fieldError = (f, value) => (f.required && !value ? REQUIRED : f.minLength && value && value.length < f.minLength ? `Introduceți cel puțin ${f.minLength} caractere.` : "");
+  const fieldError = (f, value) => (f.required && !value ? REQUIRED : f.minLength && value && value.length < f.minLength ? `Introdu cel puțin ${f.minLength} caractere.` : "");
   function checkDetalii(d) {
     if (isOfc(d)) return checkDetaliiOfc(d);
     const errs = [];
@@ -2663,7 +2663,7 @@
           </div>
           <button class="btn btn-secondary btn-md e-permits-fo-doc-field__add" type="button" data-fo-open-doc-modal data-fo-doc-label="${esc(doc.label)}">${icon("plus-large")}Adaugă fișier</button>
         </div>
-        ${doc.id === "procura" && !(S.cur?.docs?.procura || []).length ? U().renderNotice?.("info", "<strong>Procura pe hârtie a fost verificată la inițiere.</strong> Atașați copia ei scanată.") || "" : ""}
+        ${doc.id === "procura" && !(S.cur?.docs?.procura || []).length ? U().renderNotice?.("info", "<strong>Procura pe hârtie a fost verificată la inițiere.</strong> Atașează copia ei scanată.") || "" : ""}
         <div class="e-permits-fo-doc-field__files" data-fo-doc-field-files></div>
         ${docErrSlot(`doc-${doc.id}`)}
       </div>`;
@@ -2672,7 +2672,7 @@
     const title = stepLabel(d, "documente");
     return `
       ${stepHeader(title)}
-      ${isSup(d) ? `<div class="e-permits-gh__notices">${U().renderInfoNote?.("Atașați documentele cerute de Specialist. Documentele depuse cu cererea rămân în dosar; înlocuiți-le doar dacă mesajul o cere.") || ""}</div>` : ""}
+      ${isSup(d) ? `<div class="e-permits-gh__notices">${U().renderInfoNote?.("Atașează documentele cerute de Specialist. Documentele depuse cu cererea rămân în dosar; înlocuiește-le doar dacă mesajul o cere.") || ""}</div>` : ""}
       <section class="e-permits-fo-documents" aria-label="${esc(title)}" data-gh-docs>
         ${docsOf(d).map(docFieldHtml).join("")}
         <hr class="e-permits-fo-documents__separator">
@@ -2838,25 +2838,25 @@
     if (isOfc(d)) {
       return `
         ${stepHeader("Verificare")}
-        <div class="e-permits-gh__notices">${U().renderInfoNote?.("Pentru corecții, navigați la pasul corespunzător din bara de progres.") || ""}</div>
+        <div class="e-permits-gh__notices">${U().renderInfoNote?.("Pentru corecții, navighează la pasul corespunzător din bara de progres.") || ""}</div>
         ${ofcReviewHtml(d)}
         ${footerHtml(d)}`;
     }
     const st = settingsOf(d.service);
     const voided = d.review.voided || [];
     const notices = [
-      voided.includes("sign") ? U().renderNotice?.("warning", "Semnătura a fost anulată. Resemnați cererea pentru a continua.") : "",
-      voided.includes("olograf") ? U().renderNotice?.("warning", "Cererea semnată olograf a fost anulată. Atașați din nou cererea semnată olograf pentru a continua.") : ""
+      voided.includes("sign") ? U().renderNotice?.("warning", "Semnătura a fost anulată. Semnează din nou cererea pentru a continua.") : "",
+      voided.includes("olograf") ? U().renderNotice?.("warning", "Cererea semnată olograf a fost anulată. Atașează din nou cererea semnată olograf pentru a continua.") : ""
     ].filter(Boolean).join("");
     const paper = d.review.paper
       ? docCard(paperDoc(d), 'data-gh-preview="paper"')
       : S.notice === "mdocs-error"
-      ? `<div class="e-permits-gh__retry">${U().renderNotice?.("error", "<strong>Nu s-a putut genera formularul.</strong> MDocs nu a răspuns; datele cererii nu s-au pierdut.", { role: "alert" })}<button class="btn btn-strict btn-sm" type="button" data-gh-paper>${icon("rotate-arrow", 20, "icon small")}<span>Reîncercați</span></button></div>`
+      ? `<div class="e-permits-gh__retry">${U().renderNotice?.("error", "<strong>Nu s-a putut genera formularul.</strong> MDocs nu a răspuns; datele cererii nu s-au pierdut.", { role: "alert" })}<button class="btn btn-strict btn-sm" type="button" data-gh-paper>${icon("rotate-arrow", 20, "icon small")}<span>Reîncearcă</span></button></div>`
       : `<div class="e-permits-fo-doc-field">
           <div class="e-permits-fo-doc-field__row">
             <div class="e-permits-fo-doc-field__info">
               <span class="e-permits-fo-doc-field__label">Formularul de tipar al cererii</span>
-              <p class="e-permits-fo-doc-field__desc">Se generează prin MDocs după șablonul serviciului, cu datele de mai sus${isSup(d) ? "" : " și textul consimțământului. Tipăriți-l și dați-l solicitantului spre semnare"}.</p>
+              <p class="e-permits-fo-doc-field__desc">Se generează prin MDocs după șablonul serviciului, cu datele de mai sus${isSup(d) ? "" : " și textul consimțământului. Tipărește-l și dă-l solicitantului spre semnare"}.</p>
             </div>
             <button class="btn btn-secondary btn-md e-permits-fo-doc-field__add" type="button" data-gh-paper>${icon("page-text")}${isSup(d) ? "Generează cererea actualizată" : "Generează cererea pe hârtie"}</button>
           </div>
@@ -2880,10 +2880,10 @@
       ? `${U().renderNotice?.("success", "Cererea a fost semnată.") || ""}${docCard(signedDoc(d), 'data-gh-preview="signed"')}`
       : `${S.notice === "msign-error" ? `${U().renderNotice?.("error", "<strong>MSign nu răspunde acum.</strong> Cererea nu a fost semnată, datele ei rămân neschimbate.", { role: "alert" }) || ""}` : S.notice === "msign-cancel" ? U().renderNotice?.("warning", "Semnarea a fost anulată în MSign: cererea rămâne nesemnată.") || "" : ""}
         <div class="e-permits-gh__sign">
-          <p class="e-permits-fo-doc-field__desc">Semnați cererea validată cu semnătura dvs., în numele solicitantului. MSign semnează documentul cererii în format JSON.</p>
+          <p class="e-permits-fo-doc-field__desc">Semnează cererea validată cu semnătura ta, în numele solicitantului. MSign semnează documentul cererii în format JSON.</p>
           <button class="btn btn-badge btn-badge--primary btn-badge--msign" type="button" data-gh-msign>
             <span class="btn-badge__logo" aria-hidden="true"><img src="assets/logos/m-platforms/m-sign.svg" alt=""></span>
-            <span class="btn-badge__label">${S.notice === "msign-error" ? "Reîncercați semnarea prin MSign" : "Semnează prin MSign"}</span>
+            <span class="btn-badge__label">${S.notice === "msign-error" ? "Reîncearcă semnarea prin MSign" : "Semnează prin MSign"}</span>
           </button>
         </div>
         ${errSlot("msign")}`) : "";
@@ -2891,7 +2891,7 @@
        and signing blocks are FO Verificare summary sections too (heading 48, the content right under it; no divider, no
        24 body inset) inside the review, so the whole step keeps the FO summary rhythm: 32 between sections, 8 between the
        items of a section, 32 above the footer */
-    const signDesc = [st.olograf ? "atașați cererea semnată de solicitant" : "", st.msign ? "semnați cererea prin MSign" : ""].filter(Boolean).join(" și ").replace(/^./, (c) => c.toUpperCase()) + " — cerute de setările serviciului.";
+    const signDesc = [st.olograf ? "atașează cererea semnată de solicitant" : "", st.msign ? "semnează cererea prin MSign" : ""].filter(Boolean).join(" și ").replace(/^./, (c) => c.toUpperCase()) + " — cerute de setările serviciului.";
     const block = (title, bodyHtml) => R().summarySectionHtml?.({ title, bodyHtml, docs: true }) || "";
     /* US-252 AC-05 / AC-07: the updated request (generated on entry) replaces the request signed before the supplement */
     const supNote = isSup(d) && d.sup?.signedBefore && d.review.paper ? U().renderInfoNote?.("Cererea semnată la depunere se anulează la confirmarea suplinirii; cererea actualizată o înlocuiește în dosar.") || "" : "";
@@ -2918,7 +2918,7 @@
       if (JSON.stringify(doc) === JSON.stringify(S.cur.review.olograf)) return;
       /* AC-15 / AC-16: validated on upload, the file is not kept */
       const name = doc.fisier || doc.tip || "";
-      const error = !OLOGRAF_EXT.test(name) ? "Nu puteți atașa fișierul. Se permit doar extensiile JPG, PNG, PDF." : sizeMb(doc.size) > 60 ? "Nu puteți atașa fișiere mai mari decât 60Mb." : "";
+      const error = !OLOGRAF_EXT.test(name) ? "Nu poți atașa fișierul. Se permit doar extensiile JPG, PNG, PDF." : sizeMb(doc.size) > 60 ? "Nu poți atașa fișiere mai mari decât 60Mb." : "";
       if (error) { obs.disconnect(); el.remove(); obs.observe(box, { childList: true, subtree: true }); setErr("olograf", error, field); return; }
       S.cur.review.olograf = { ...doc, tip: "Cererea semnată olograf" };
       S.cur.review.voided = (S.cur.review.voided || []).filter((x) => x !== "olograf");
@@ -2932,9 +2932,9 @@
     if (isOfc(d)) return [];
     const st = settingsOf(d.service);
     const errs = [];
-    if (!d.review.paper) errs.push({ key: "paper", focus: "[data-gh-paper]", msg: isSup(d) ? "Generați cererea actualizată." : "Generați cererea pe hârtie: solicitantul o semnează olograf." });
+    if (!d.review.paper) errs.push({ key: "paper", focus: "[data-gh-paper]", msg: isSup(d) ? "Generează cererea actualizată." : "Generează cererea pe hârtie: solicitantul o semnează olograf." });
     if (st.olograf && !d.review.olograf) errs.push({ key: "olograf", focus: "[data-gh-olograf] [data-fo-open-doc-modal]", msg: REQUIRED, field: "[data-gh-olograf]" });
-    if (st.msign && !d.review.signed) errs.push({ key: "msign", focus: "[data-gh-msign]", msg: "Nu puteți continua fără a semna cererea." });
+    if (st.msign && !d.review.signed) errs.push({ key: "msign", focus: "[data-gh-msign]", msg: "Nu poți continua fără a semna cererea." });
     return errs;
   }
 
@@ -2952,7 +2952,7 @@
       st.paperRelease ? { id: "pickup", title: "Ridicare de la ghișeul autorității", description: `${who} ridică actul pe hârtie de la ghișeul autorității emitente.`, icon: "icon-store", selected: d.delivery.mode === "ghiseu", badges: [{ label: "Gratuit", tone: "outline" }] } : null,
       st.mdelivery && !ofc ? {
         id: "courier", title: "Livrare prin MDelivery", description: `Actul pe hârtie se livrează la adresa indicată. Taxa MDelivery (${mdl(S.data.mdelivery.amount)}) se adaugă pe nota de plată.`, icon: "icon-car", selected: d.delivery.mode === "mdelivery", badges: [{ label: "Cu plată", tone: "warning" }],
-        address: { title: "Adresa livrării", required: true, icon: "icon-map-pin", label: "Adresa de livrare", value: d.delivery.address || addressText(d.details.address) || "Adăugați adresa livrării", editLabel: "Editează adresa livrării", cancelLabel: "Anulează", saveLabel: "Salvează", form: { id: "gh-delivery-address", type: "cascade-address", span: 12, cadastral: { visible: false } } }
+        address: { title: "Adresa livrării", required: true, icon: "icon-map-pin", label: "Adresa de livrare", value: d.delivery.address || addressText(d.details.address) || "Adaugă adresa livrării", editLabel: "Editează adresa livrării", cancelLabel: "Anulează", saveLabel: "Salvează", form: { id: "gh-delivery-address", type: "cascade-address", span: 12, cadastral: { visible: false } } }
       } : null
     ].filter(Boolean);
     return {
@@ -2985,7 +2985,7 @@
     const method = root.querySelector("input[name='fo-delivery-paper-method']:checked")?.value;
     d.delivery.mode = paper && method === "pickup" ? "ghiseu" : paper && method === "courier" ? "mdelivery" : "evo";
     const value = root.querySelector("[data-fo-delivery-address-value]")?.textContent.trim() || "";
-    d.delivery.address = value && value !== "Adăugați adresa livrării" ? value : "";
+    d.delivery.address = value && value !== "Adaugă adresa livrării" ? value : "";
     const cascade = root.querySelector("[data-fo-delivery-address] [data-fo-cascade-address]");
     const parts = cascade ? readAddress(cascade) : null;
     if (parts?.district) d.delivery.addressParts = parts;
@@ -2993,7 +2993,7 @@
   }
   function checkLivrare(d) {
     if (d.delivery.mode !== "mdelivery" || d.delivery.address) return [];
-    return [{ key: "livrare", focus: "[data-fo-delivery-address-edit]", msg: "Adăugați adresa livrării MDelivery." }];
+    return [{ key: "livrare", focus: "[data-fo-delivery-address-edit]", msg: "Adaugă adresa livrării MDelivery." }];
   }
 
   /* ================================================================ step 7 · Notă de plată (US-237) */
@@ -3013,7 +3013,7 @@
   const NOTE_TAG = { "Emisă": "accent", "Achitată": "success", "Expirată": "danger", "Anulată": "neutral" };
   function stepPlata(d) {
     const p = d.payment;
-    if (!p) return `${stepHeader("Notă de plată")}<div class="e-permits-fo-payment__body">${U().renderNotice?.("info", "<strong>Cererea nu are taxe de achitat.</strong> Treceți la confirmarea depunerii.") || ""}</div>${footerHtml(d)}`;
+    if (!p) return `${stepHeader("Notă de plată")}<div class="e-permits-fo-payment__body">${U().renderNotice?.("info", "<strong>Cererea nu are taxe de achitat.</strong> Treci la confirmarea depunerii.") || ""}</div>${footerHtml(d)}`;
     const svc = serviceOf(d.service);
     const incomplete = p.lines.some((l) => !l.account);
     const step = {
@@ -3049,7 +3049,7 @@
       ${stepHeader("Notă de plată")}
       <div class="e-permits-fo-payment__body">
         ${state || ""}
-        ${incomplete ? U().renderNotice?.("error", "<strong>Configurarea taxei este incompletă.</strong> Pentru asistență, contactați autoritatea emitentă.", { role: "alert" }) || "" : ""}
+        ${incomplete ? U().renderNotice?.("error", "<strong>Configurarea taxei este incompletă.</strong> Pentru asistență, contactează autoritatea emitentă.", { role: "alert" }) || "" : ""}
         ${R().paymentStepBodyHtml?.(step, { downloadAttrs: 'data-gh-download="note"', extraActionsHtml: extra, summaryLabel: "Detaliile notei de plată", summaryVariant: "profile" }) || ""}
         ${history ? summarySection("Note de plată anterioare", history) : ""}
         ${blocked ? U().renderNotice?.("info", "<strong>Confirmarea depunerii se deblochează după statutul „Achitată”.</strong>") || "" : ""}
@@ -3096,7 +3096,7 @@
     const ok = list.every((x) => x.ok);
     return `
       ${stepHeader("Confirmarea depunerii")}
-      ${S.notice === "submit-error" ? `<div class="e-permits-gh__notices">${U().renderNotice?.("error", "A apărut o eroare. Depunerea nu a putut fi finalizată. Încercați din nou.", { role: "alert" }) || ""}</div>` : ""}
+      ${S.notice === "submit-error" ? `<div class="e-permits-gh__notices">${U().renderNotice?.("error", "A apărut o eroare. Depunerea nu a putut fi finalizată. Încearcă din nou.", { role: "alert" }) || ""}</div>` : ""}
       <div class="e-permits-fo-review e-permits-gh__review">
       ${summarySection("Condițiile depunerii", list.map((x) => detailRow(x.label, tagHtml(x.ok ? "Îndeplinită" : "Neîndeplinită", x.ok ? "success" : "danger"))).join(""))}
       ${summarySection(isOfc(d) ? "Dosarul" : "Cererea", [
@@ -3107,7 +3107,7 @@
         detailRow("Termen de examinare", esc(isOfc(d) ? ofcTermLabel(d) : termOf(d)?.label || "—"))
       ].join(""))}
       </div>
-      ${footerHtml(d, { next: S.notice === "submit-error" ? "Reîncercați" : "Confirmă depunerea", nextAttrs: "data-gh-submit", nextDisabled: !ok })}`;
+      ${footerHtml(d, { next: S.notice === "submit-error" ? "Reîncearcă" : "Confirmă depunerea", nextAttrs: "data-gh-submit", nextDisabled: !ok })}`;
   }
   function confirmedHtml(d) {
     if (isOfc(d)) return ofcConfirmedHtml(d);
@@ -3171,7 +3171,7 @@
     const dt = new Date(Number(m[3]), Number(m[2]) - 1, Number(m[1]));
     return dt.getDate() === Number(m[1]) && dt.getMonth() === Number(m[2]) - 1 ? `${m[3]}-${pad(m[2])}-${pad(m[1])}` : "";
   };
-  const DATE_MSG = "Introduceți data în formatul ZZ/LL/AAAA.";
+  const DATE_MSG = "Introdu data în formatul ZZ/LL/AAAA.";
   const OFC_TEMEI = ["Decizie administrativă a autorității", "Hotărâre judecătorească"];
   /* the post-process's own data (the published form of each ex-officio type, US-244 AC-02) */
   const OFC_FIELDS = {
@@ -3222,11 +3222,11 @@
       const row = `<li class="e-permits-gh-ofc__skeleton-row"><span class="skeleton skeleton--text e-permits-gh-ofc__skeleton-title"></span><span class="skeleton skeleton--text"></span><span class="skeleton skeleton--text e-permits-gh-ofc__skeleton-meta"></span></li>`;
       return `<ul class="e-permits-fo-intent__list" aria-hidden="true" data-gh-ofc-skeleton>${row.repeat(3)}</ul>`;
     }
-    if (!ofcReady()) return E?.render({ title: "Căutați actul permisiv", text: "Introduceți numărul actului, IDNP sau IDNO al titularului, sau alegeți serviciul.", icon: "search" }) || "";
+    if (!ofcReady()) return E?.render({ title: "Caută actul permisiv", text: "Introdu numărul actului, IDNP sau IDNO al titularului, sau alege serviciul.", icon: "search" }) || "";
     const found = ofcMatching();
-    if (!found.length) return E?.noResults?.("Niciun act nu corespunde căutării", { text: "Verificați numărul actului, IDNP-ul sau IDNO-ul titularului ori schimbați serviciul." }) || "";
+    if (!found.length) return E?.noResults?.("Niciun act nu corespunde căutării", { text: "Verifică numărul actului, IDNP-ul sau IDNO-ul titularului ori schimbă serviciul." }) || "";
     const rows = found.slice(0, OFC_MAX).map((act) => ofcActRowHtml(act)).join("");
-    const more = found.length > OFC_MAX ? `<p class="e-permits-gh-ofc__more">Se afișează ${OFC_MAX} din ${found.length}. Rafinați căutarea pentru a restrânge rezultatele.</p>` : "";
+    const more = found.length > OFC_MAX ? `<p class="e-permits-gh-ofc__more">Se afișează ${OFC_MAX} din ${found.length}. Rafinează căutarea pentru a restrânge rezultatele.</p>` : "";
     return `<p class="e-permits-fo-intent__acts-title" id="gh-acts-title">Acte permisive emise de autoritate</p><ul class="e-permits-fo-intent__list">${rows}</ul>${more}`;
   }
   /* redraws only the results (the fields keep their focus); a ready query / service shows the skeleton first */
@@ -3270,9 +3270,9 @@
       <div class="e-permits-fo-intent__inner e-permits-gh-intent" data-gh-intent>
         <header class="e-permits-fo-intent__header">
           <h1 id="gh-intent-title" tabindex="-1">Inițiere dosar din oficiu</h1>
-          <p class="e-permits-fo-intent__subject"><span class="e-permits-fo-intent__subject-label">Găsiți actul permisiv și alegeți din meniul lui postprocesul hotărât de autoritate.</span></p>
+          <p class="e-permits-fo-intent__subject"><span class="e-permits-fo-intent__subject-label">Găsește actul permisiv și alege din meniul lui postprocesul hotărât de autoritate.</span></p>
         </header>
-        ${S.actCleared ? U().renderNotice?.("info", "Actul sau postprocesul ales anterior a fost anulat. Alegeți din nou.") || "" : ""}
+        ${S.actCleared ? U().renderNotice?.("info", "Actul sau postprocesul ales anterior a fost anulat. Alege din nou.") || "" : ""}
         <div class="e-permits-gh-acts-search e-permits-gh-ofc">
           <div class="e-permits-fo-form__section-body e-permits-gh-ofc__filters">${select}${search}</div>
           <section class="e-permits-fo-intent__acts" aria-labelledby="gh-acts-title" data-gh-ofc-results${S.ofcLoading ? ' aria-busy="true"' : ""}>${ofcResultsHtml()}</section>
@@ -3297,7 +3297,7 @@
           <div class="e-permits-fo-form__role-group">${R().roleGroupTitleHtml?.("Titular", { hint: "Titularul actului permisiv ales, preluat din act. Se schimbă doar alegând alt act: ⋮ › „Schimbă actul sau postprocesul”." }) || ""}${card}</div>
         </div>
       </section>
-      ${section("Date de contact", `<div class="e-permits-fo-form__section-body">${phone}${email}</div>`, { id: "gh-contact-title", desc: "Preluate din actul permisiv. Actualizați-le dacă s-au schimbat." })}
+      ${section("Date de contact", `<div class="e-permits-fo-form__section-body">${phone}${email}</div>`, { id: "gh-contact-title", desc: "Preluate din actul permisiv. Actualizează-le dacă s-au schimbat." })}
       ${footerHtml(d)}`;
   }
   function checkContactOfc(d) {
@@ -3352,14 +3352,14 @@
     const hint = (f) => (f.key === "until" && d.requestType === "Prelungire" ? `După ${longDate(act?.valabilPana)}, data actuală de expirare.` : f.key === "until" ? "Data până la care actul permisiv nu este valabil." : "");
     const typeFields = (OFC_FIELDS[d.requestType] || []).map((f) => R().fieldHtml({
       id: `gh-ofc-${f.key}`, type: f.type, label: f.label, required: true, span: f.span, value: o.fields[f.key] || "", hint: hint(f),
-      ...(f.type === "textarea" ? { rows: 3, maxLength: 500, charCounter: true, placeholder: "Descrieți pe scurt motivul" } : {})
+      ...(f.type === "textarea" ? { rows: 3, maxLength: 500, charCounter: true, placeholder: "Descrie pe scurt motivul" } : {})
     })).join("");
     return `
       ${stepHeader("Detalii serviciu")}${U().renderInfoNote?.(`Postproces din oficiu „${esc(d.requestType)}” pe ${esc(act?.nr || "")}: datele actului sunt precompletate.`) || ""}
       ${section("Datele actului permisiv", `<div class="e-permits-fo-form__section-body">${actFields}</div>`, { id: "gh-ofc-act-title" })}
       ${section("Detaliile postprocesului", `<div class="e-permits-fo-form__section-body">${typeFields}</div>`, { id: "gh-ofc-pp-title" })}
       ${ofcDecisionHtml(d)}
-      ${section("Examinare", `<div class="e-permits-fo-form__section-body">${readonlyField({ id: "gh-subdiv", label: "Procesat de subdiviziunea", value: d.details.subdivision || ofcSubdivision(), span: 12, hint: "Subdiviziunea dvs. la inițierea dosarului." })}</div>`, { id: "gh-exam-title" })}
+      ${section("Examinare", `<div class="e-permits-fo-form__section-body">${readonlyField({ id: "gh-subdiv", label: "Procesat de subdiviziunea", value: d.details.subdivision || ofcSubdivision(), span: 12, hint: "Subdiviziunea ta la inițierea dosarului." })}</div>`, { id: "gh-exam-title" })}
       ${footerHtml(d)}`;
   }
   function bindOfcDecision(block) {
@@ -3387,7 +3387,7 @@
       if (!doc) { if (dec.file) { dec.file = null; S.dirty = true; } return; }
       if (JSON.stringify({ ...doc, tip: "Decizia autorității" }) === JSON.stringify(dec.file)) return;
       const name = doc.fisier || doc.tip || "";
-      const error = !/\.pdf$/i.test(name) ? "Nu puteți atașa fișierul. Se permite doar formatul PDF." : sizeMb(doc.size) > 60 ? "Nu puteți atașa fișiere mai mari decât 60Mb." : "";
+      const error = !/\.pdf$/i.test(name) ? "Nu poți atașa fișierul. Se permite doar formatul PDF." : sizeMb(doc.size) > 60 ? "Nu poți atașa fișiere mai mari decât 60Mb." : "";
       if (error) { obs.disconnect(); el.remove(); obs.observe(box, { childList: true, subtree: true }); setErr("ofc-pdf", error, field); return; }
       dec.file = { ...doc, tip: "Decizia autorității" };
       S.dirty = true;
@@ -3446,7 +3446,7 @@
     else if (!o.decision.date) errs.push({ input: "#fo-gh-ofc-dec-date", msg: REQUIRED, step });
     else if (o.decision.date > today) errs.push({ input: "#fo-gh-ofc-dec-date", msg: "Data deciziei nu poate fi în viitor.", step });
     if (!o.decision.temei) errs.push({ input: "#fo-gh-ofc-temei", select: true, msg: REQUIRED, step });
-    if (o.decision.mode === "pdf" && !o.decision.file) errs.push({ key: "ofc-pdf", focus: "[data-gh-ofc-pdf] [data-fo-open-doc-modal]", msg: "Atașați decizia în format PDF.", field: "[data-gh-ofc-pdf]", step });
+    if (o.decision.mode === "pdf" && !o.decision.file) errs.push({ key: "ofc-pdf", focus: "[data-gh-ofc-pdf] [data-fo-open-doc-modal]", msg: "Atașează decizia în format PDF.", field: "[data-gh-ofc-pdf]", step });
     if (o.decision.mode !== "pdf" && !o.decision.content) errs.push({ input: "#fo-gh-ofc-content", msg: REQUIRED, step });
     return errs;
   }
@@ -3527,7 +3527,7 @@
     const act = ofcActOf(d);
     return `
       <div class="e-permits-gh__finish">
-        ${R().finishHeroHtml?.({ title: "Dosarul a fost depus cu succes.", leadHtml: '<p class="e-permits-fo-finish__lead">Dosarul a fost transmis spre procesare și distribuit automat către dvs. Îl găsiți în „Dosarele mele”.</p>' }) || ""}
+        ${R().finishHeroHtml?.({ title: "Dosarul a fost depus cu succes.", leadHtml: '<p class="e-permits-fo-finish__lead">Dosarul a fost transmis spre procesare și distribuit automat către tine. Îl găsești în „Dosarele mele”.</p>' }) || ""}
         <div class="e-permits-fo-finish__content">
           <section class="e-permits-dosar-profil__card" aria-label="Dosarul depus">
             ${detailRow("Numărul dosarului", R().copyValueHtml?.(d.nr, { ariaLabel: `Copiază numărul dosarului ${d.nr}` }) || esc(d.nr))}
@@ -3565,9 +3565,9 @@
   const CHECKS = { initiere: (d) => (isOfc(d) || isSup(d) ? [] : checkPicker(d)), intent: (d) => (isSup(d) ? [] : isOfc(d) ? checkOfcAct(d) : checkProcess(d)), identificare: (d) => (isSup(d) ? [] : isOfc(d) ? checkContactOfc(d) : [...dataCheckInitiere(d), ...checkContact(d)]), detalii: checkDetalii, documente: checkDocumente, verificare: checkVerificare, livrare: checkLivrare, plata: () => [], confirmare: () => [] };
   const CHECK = STEPS.map((step) => CHECKS[step.id]);
   /* the picker: a service, and a process (Emitere primară is preselected) */
-  const PROCESS_MSG = "Alegeți „Solicitare nouă” sau un postproces pe un act emis.";
+  const PROCESS_MSG = "Alege „Solicitare nouă” sau un postproces pe un act emis.";
   /* din oficiu, the act search (US-242): an act and its post-process must be chosen before „Înainte” / „Salvează schița” */
-  const checkOfcAct = (d) => (!d.act || !d.requestType ? [{ key: "ofc-act", focus: "#gh-ofc-q", msg: "Alegeți actul permisiv și, din meniul ⋮ al actului, postprocesul." }] : []);
+  const checkOfcAct = (d) => (!d.act || !d.requestType ? [{ key: "ofc-act", focus: "#gh-ofc-q", msg: "Alege actul permisiv și, din meniul ⋮ al actului, postprocesul." }] : []);
   const checkProcess = (d) => (!d.process || (d.process === "post" && (!d.act || !d.requestType)) ? [{ key: "process", focus: "[data-gh-intent-new]", msg: PROCESS_MSG }] : []);
   function checkPicker(d) {
     if (!d.service) return [{ key: "serviciu", focus: "#fo-gh-serviciu", msg: REQUIRED }];
@@ -3576,9 +3576,9 @@
   }
   function dataCheckInitiere(d) {
     const errs = [];
-    if (!isIdentified(d)) errs.push({ key: "process", msg: "Identificați solicitantul în „Inițiere cerere”.", toast: true });
+    if (!isIdentified(d)) errs.push({ key: "process", msg: "Identifică solicitantul în „Inițiere cerere”.", toast: true });
     if (d.rep.on && d.personType === "PF" && !filled(d.rep, ["nume", "prenume"])) errs.push({ input: '[data-gh-code="rep"]', msg: REQUIRED });
-    if (needsProcura(d) && !d.procura) errs.push({ key: "procura", msg: "Legătura nu este confirmată electronic. Bifați «Prin procură», după verificarea procurii pe hârtie." });
+    if (needsProcura(d) && !d.procura) errs.push({ key: "procura", msg: "Legătura nu este confirmată electronic. Bifează «Prin procură», după verificarea procurii pe hârtie." });
     if (checkProcess(d).length) errs.push({ key: "process", msg: `${PROCESS_MSG.replace(/\.$/, "")} în „Inițiere cerere”.`, toast: true });
     return errs;
   }
@@ -3681,7 +3681,7 @@
       for (let i = 0; i < STEP_INDEX.verificare; i += 1) {
         const errs = i === from ? [] : CHECK[i](d);
         if (errs.length) {
-          U().showShellToast?.("Completați câmpurile obligatorii înainte de a reveni la verificare.", "error");
+          U().showShellToast?.("Completează câmpurile obligatorii înainte de a reveni la verificare.", "error");
           S.step = i; d.maxStep = Math.max(d.maxStep || 0, i);
           render();
           showErrors(validateStep(i), { focus: true });
@@ -3943,7 +3943,7 @@
 
   /* ---------------------------------------------------------------- Verificare actions */
   /* MDocs generates the form on demand: the preview opens loading, then shows the page or the MDocs error
-     (the step keeps its inline error + „Reîncercați” after the dialog is closed) */
+     (the step keeps its inline error + „Reîncearcă” after the dialog is closed) */
   function generatePaper() {
     const d = S.cur;
     const run = (S.paperRun || 0) + 1;
@@ -3984,7 +3984,7 @@
       /* no request / dossier number in a dialog header (product rule) */
       subtitle: "Documentul cererii în format JSON",
       body: `
-        <p class="e-permits-passport__lead">Semnați cererea cu semnătura dvs. electronică, în numele solicitantului ${esc(holderName(d))}. SIA GEAP verifică semnătura după întoarcerea din MSign.</p>
+        <p class="e-permits-passport__lead">Semnează cererea cu semnătura ta electronică, în numele solicitantului ${esc(holderName(d))}. SIA GEAP verifică semnătura după întoarcerea din MSign.</p>
         <div class="e-permits-dosar-profil__card">
           ${summaryRow("Document", [esc(`cerere-${d.nr}.json`), "6 KB"])}
           ${summaryRow("Semnatar", [esc(userName()), "Specialist ghișeu · CSP Chișinău"])}
@@ -4063,7 +4063,7 @@
     /* US-248 (din oficiu): the confirmation AC-02 asks, no reason field; the button stays red */
     if (isOfc(d)) {
       U().askConfirm?.({
-        title: "Sigur doriți să eliminați schița dosarului?",
+        title: "Sigur vrei să elimini schița dosarului?",
         text: `Schița ${d.nr} dispare din „Dosare inițiate din oficiu”, iar cererea primește statutul „Schiță”, substatutul „Eliminat”.`,
         confirmLabel: "Elimină schița",
         destructive: true
@@ -4074,7 +4074,7 @@
       ? U().renderNotice?.("warning", `Nota de plată ${esc(d.payment.nr)} (${esc(d.payment.status)}) primește statutul „Anulată”.`) || "" : "";
     openModal({
       kind: "remove",
-      title: "Sigur doriți să eliminați schița cererii?",
+      title: "Sigur vrei să elimini schița cererii?",
       subtitle: `${d.nr} · ${serviceOf(d.service)?.title || ""}`,
       body: `
         <p class="e-permits-passport__lead">Schița dispare din „Dosare noi”, iar cererea primește statutul „Schiță”, substatutul „Eliminat”. Eliminarea se înregistrează în Jurnalul de audit.</p>
@@ -4186,7 +4186,7 @@
      request number lives on the page), the grey canvas with the A4 page(s) of GEAPDocPreview (js/doc-preview.js:
      2-column table that fits the page, continuation pages „Pagina k din n”, zoom to the canvas width, print =
      the pages only), „Printează” (printer icon) + „Descarcă” (icon-export). The paper request is generated by
-     MDocs on demand: loading → ready, or the MDocs error with „Reîncercați” (?mdocs=0 fails once,
+     MDocs on demand: loading → ready, or the MDocs error with „Reîncearcă” (?mdocs=0 fails once,
      ?mdocs=incarcare stays loading). */
   const MDOCS_DELAY = 900;
   const docRow = ([label, value]) => `<tr><td>${esc(label)}</td><td>${esc(value || "—")}</td></tr>`;
@@ -4293,7 +4293,7 @@
       ? `<div class="e-permits-doc-peek__canvas e-permits-detail-modal__preview" data-dosar-doc-canvas role="document" aria-label="${esc(title)}">${previewPage(kind)}</div>${previewSignature(kind)}`
       : `<div class="e-permits-doc-peek__canvas e-permits-detail-modal__preview e-permits-doc-peek__canvas--state">${view === "loading"
         ? window.GEAPEmptyState?.render({ loading: true, bare: true, title: "Se generează cererea", text: "MDocs completează formularul de tipar cu datele cererii. Poate dura câteva secunde." }) || ""
-        : window.GEAPEmptyState?.render({ bare: true, icon: "circle-error", title: "Nu s-a putut genera cererea", text: "MDocs nu a răspuns. Datele cererii nu s-au pierdut.", actionHtml: `<button class="btn btn-strict btn-sm" type="button" data-gh-paper-retry>${icon("rotate-arrow", 20, "icon small")}<span>Reîncercați</span></button>` }) || ""}</div>`;
+        : window.GEAPEmptyState?.render({ bare: true, icon: "circle-error", title: "Nu s-a putut genera cererea", text: "MDocs nu a răspuns. Datele cererii nu s-au pierdut.", actionHtml: `<button class="btn btn-strict btn-sm" type="button" data-gh-paper-retry>${icon("rotate-arrow", 20, "icon small")}<span>Reîncearcă</span></button>` }) || ""}</div>`;
     m.querySelector("[data-dosar-detail-buttons]").innerHTML = view === "ready"
       ? `${kind === "paper" ? `<button class="btn btn-neutral btn-rounded" type="button" data-gh-print>${window.GEAPDocPreview?.printIcon() || ""}<span>Printează</span></button>` : ""}
         <button class="btn btn-primary btn-rounded" type="button" data-gh-download="${kind}">${icon("export", 20, "icon small")}<span>Descarcă</span></button>`

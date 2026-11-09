@@ -34,7 +34,7 @@
   const KIND_S = "subdiviziuni";
   const NAV_A = "authorities";
   const NAV_S = "subdivisions";
-  const DENIED = "Nu aveți permisiunea de a accesa această pagină.";
+  const DENIED = "Nu ai permisiunea de a accesa această pagină.";
   const MONTHS = ["ianuarie", "februarie", "martie", "aprilie", "mai", "iunie", "iulie", "august", "septembrie", "octombrie", "noiembrie", "decembrie"];
   const pad = (n) => String(n).padStart(2, "0");
   const nowIso = () => { const d = new Date(); return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`; };
@@ -649,7 +649,7 @@
   function requestClose() {
     if (!F) return;
     if (!F.dirty || F.locked) { closeDrawer(); return; }
-    U().askConfirm?.({ title: "Închizi fără salvare?", text: "Modificările nesalvate vor fi pierdute. Continuați?", confirmLabel: "Da", cancelLabel: "Nu", destructive: true }, closeDrawer);
+    U().askConfirm?.({ title: "Închizi fără salvare?", text: "Modificările nesalvate vor fi pierdute. Continui?", confirmLabel: "Da", cancelLabel: "Nu", destructive: true }, closeDrawer);
   }
   function renderDrawer(focusSel = "") {
     if (!F) return;
@@ -1047,7 +1047,7 @@
     const authority = authOf(s.authorityId);
     if (on && authority && !authority.active) { toast(`Autoritatea ${authority.code} este inactivă: activează întâi autoritatea.`, "info"); return; }
     U().askConfirm?.({
-      title: on ? `Confirmați reactivarea subdiviziunii ${s.name}?` : `Confirmați inactivarea subdiviziunii ${s.name}?`,
+      title: on ? `Confirmi reactivarea subdiviziunii ${s.name}?` : `Confirmi inactivarea subdiviziunii ${s.name}?`,
       text: on ? "Subdiviziunea redevine selectabilă la utilizatori și în configurarea serviciilor." : "Nu va mai putea fi aleasă la utilizatori sau în configurarea serviciilor; lucrul pe dosarele existente continuă.",
       confirmLabel: "Confirmă",
       cancelLabel: "Anulează",
@@ -1132,12 +1132,12 @@
     if (Object.keys(F.errors).length) { renderDrawer(); focusFirstError(); return; }
     const editing = F.id ? subOf(F.id) : null;
     /* US-94 AC-20 */
-    if (editing && params.get("conflict") === "1") { F.errors = { form: "Datele au fost modificate de alt utilizator. Reîncărcați pagina pentru a vizualiza versiunea curentă." }; renderDrawer("top"); return; }
+    if (editing && params.get("conflict") === "1") { F.errors = { form: "Datele au fost modificate de alt utilizator. Reîncarcă pagina pentru a vizualiza versiunea curentă." }; renderDrawer("top"); return; }
     /* US-93 AC-25 / US-94 AC-18: non-blocking duplicate warning */
     const nameChanged = !editing || fold(editing.name) !== fold(v.name);
     const dup = nameChanged && D().subdivisions.some((s) => s.id !== F.id && s.authorityId === v.authorityId && fold(s.name) === fold(v.name));
     if (dup && !confirmedDup) {
-      U().askConfirm?.({ title: "Denumire existentă", text: "Există deja o subdiviziune cu această denumire în cadrul autorității. Confirmați salvarea?", confirmLabel: "Confirmă", cancelLabel: "Anulează" }, () => saveSub({ confirmedDup: true }));
+      U().askConfirm?.({ title: "Denumire existentă", text: "Există deja o subdiviziune cu această denumire în cadrul autorității. Confirmi salvarea?", confirmLabel: "Confirmă", cancelLabel: "Anulează" }, () => saveSub({ confirmedDup: true }));
       return;
     }
     const data = { ...clone(v) };
@@ -1221,7 +1221,7 @@
     if (key === "localitate") F.v.strada = "";
     /* US-94 AC-10a: changing the type of an existing subdivision asks first */
     if (key === "type" && F.mode === "sub" && F.id && prev && prev !== t.value) {
-      U().askConfirm?.({ title: "Schimbi tipul subdiviziunii?", text: "Modificarea tipului subdiviziunii poate afecta vizibilitatea acesteia în procesele de avizare pentru dosarele în curs. Confirmați modificarea?", confirmLabel: "Confirmă", cancelLabel: "Anulează" }, () => renderDrawer(`#aut-${key}`));
+      U().askConfirm?.({ title: "Schimbi tipul subdiviziunii?", text: "Modificarea tipului subdiviziunii poate afecta vizibilitatea acesteia în procesele de avizare pentru dosarele în curs. Confirmi modificarea?", confirmLabel: "Confirmă", cancelLabel: "Anulează" }, () => renderDrawer(`#aut-${key}`));
       watchCancel(() => { if (F) { F.v.type = prev; renderDrawer(`#aut-${key}`); } });
     }
     renderDrawer(`#aut-${key}`);
@@ -1286,7 +1286,7 @@
     if (syncBusy()) { toast(SYNC_BUSY, "info"); return; }
     const one = ids && ids.length === 1 ? authOf(ids[0]) : null;
     U().askConfirm?.({
-      title: one ? `Confirmați sincronizarea autorității ${one.code} din RSSP?` : "Confirmați sincronizarea autorităților din RSSP?",
+      title: one ? `Confirmi sincronizarea autorității ${one.code} din RSSP?` : "Confirmi sincronizarea autorităților din RSSP?",
       text: one ? "Datele autorității se actualizează din RSSP după IDNO. Tipul și subdiviziunile nu se modifică." : "GEAP actualizează din RSSP, după IDNO, toate autoritățile care au IDNO. Nu se creează autorități noi; tipul și subdiviziunile nu se modifică.",
       confirmLabel: "Da",
       cancelLabel: "Nu"

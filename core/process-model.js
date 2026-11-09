@@ -492,7 +492,7 @@
     E2: "O ieșire a Deciziei nu are element-țintă asociat.",
     E3: "Atenție: Sub-procesul referă un proces inexistent.",
     E4: "Câmpul este obligatoriu.",
-    PUBLISH: "Nu se poate publica: schema conține erori. Corectați și încercați din nou."
+    PUBLISH: "Nu se poate publica: schema conține erori. Corectează și încearcă din nou."
   };
   var TYPE_LABEL = { start: "Start", end: "Sfârșit", activity: "Activitate", decision: "Decizie", event: "Eveniment intermediar", subprocess: "Sub-proces" };
   function nameOf(state, def) {

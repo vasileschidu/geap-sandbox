@@ -66,7 +66,7 @@
   const NAV = "widgete";
   const TITLE = "Widgete";
   /* Feature 96501 AC (Feature 89940 wording) — word for word */
-  const DENIED = "Nu aveți permisiunea de a accesa această pagină.";
+  const DENIED = "Nu ai permisiunea de a accesa această pagină.";
   const EMPTY_LIST = "Nu există widget-uri.";
   const NO_MATCH = "Nicio potrivire găsită.";
   const SAVE_FAILED = "Widget-ul nu a putut fi salvat.";
@@ -206,7 +206,7 @@
     return VIS.map(([key, text, desc], i) => ({
       key, text, desc,
       disabled: i >= reach,
-      reason: i >= reach ? (key === "global" ? "Doar Administratorul central dă widget-urilor aria globală." : `Depășește perimetrul rolului dvs. (${me.subdivision || authName(me.authority)}).`) : ""
+      reason: i >= reach ? (key === "global" ? "Doar Administratorul central dă widget-urilor aria globală." : `Depășește perimetrul rolului tău (${me.subdivision || authName(me.authority)}).`) : ""
     }));
   }
   const defaultVis = (me = who()) => (me.supervisor ? "subdivision" : "authority");
@@ -241,35 +241,35 @@
   function validate(v, { steps = [1, 2, 3, 4] } = {}) {
     const e = {};
     if (steps.includes(1)) {
-      if (!String(v.titles.ro || "").trim()) e["titles.ro"] = "Completați titlul în limba română.";
+      if (!String(v.titles.ro || "").trim()) e["titles.ro"] = "Completează titlul în limba română.";
       else if (v.titles.ro.length > TITLE_MAX) e["titles.ro"] = `Titlul poate avea cel mult ${TITLE_MAX} de caractere.`;
-      if (!v.source) e.source = "Alegeți sursa de date.";
+      if (!v.source) e.source = "Alege sursa de date.";
     }
     if (steps.includes(2)) {
-      if (!v.type) e.type = "Alegeți tipul widget-ului.";
+      if (!v.type) e.type = "Alege tipul widget-ului.";
       else if (typeProblem(v.type, v)) e.type = `${typeLabel(v.type)}: ${typeProblem(v.type, v).toLocaleLowerCase("ro")}`;
       if (v.kpi && kpiOf(v.kpi)?.source !== v.source) e.kpi = "KPI-ul folosește altă sursă de date decât widget-ul.";
     }
     if (steps.includes(3) && v.type) {
       if (usesMeasure(v)) {
-        if (!v.measure) e.measure = "Alegeți ce se măsoară.";
+        if (!v.measure) e.measure = "Alege ce se măsoară.";
         else if (usesColumn(v)) {
-          if (!v.column) e.column = "Alegeți coloana măsurată.";
+          if (!v.column) e.column = "Alege coloana măsurată.";
           /* Feature: „suma se calculează doar pe o coloană numerică” */
           else if (!measureColumns(v).some((f) => f.key === v.column)) e.column = ["sum", "avg"].includes(v.measure) ? "Suma și media se calculează doar pe o coloană numerică sau de durată." : "Coloana nu se potrivește cu măsura aleasă.";
         }
       }
       if (NEEDS_PRIMARY(v.type)) {
-        if (!v.primary) e.primary = "Alegeți criteriul principal.";
+        if (!v.primary) e.primary = "Alege criteriul principal.";
         /* Feature: „graficul cu linie cere o coloană de dată pe axă”; diagrama de control = o coloană de dată */
         else if (DATE_AXIS.includes(v.type) && !isDate(v.source, v.primary)) e.primary = `${typeLabel(v.type)} cere o coloană de dată pe axă.`;
       }
       if (SECONDARY[v.type] === "required" && !v.secondary) e.secondary = "Harta de căldură cere și criteriul secundar.";
       else if (v.secondary && v.secondary === v.primary) e.secondary = "Criteriul secundar trebuie să fie altă coloană decât cel principal.";
-      if (needsDateGroup(v) && !v.dateGroup) e.dateGroup = "Alegeți gruparea datei.";
+      if (needsDateGroup(v) && !v.dateGroup) e.dateGroup = "Alege gruparea datei.";
       (v.filter.rules || []).forEach((r, i) => {
-        if (!r.column) e[`rule.${i}`] = "Alegeți coloana.";
-        else if (!NO_VALUE.includes(r.op) && !String(r.value || "").trim()) e[`rule.${i}`] = "Completați valoarea.";
+        if (!r.column) e[`rule.${i}`] = "Alege coloana.";
+        else if (!NO_VALUE.includes(r.op) && !String(r.value || "").trim()) e[`rule.${i}`] = "Completează valoarea.";
         else if (!fieldOf(v.source, r.column)) e[`rule.${i}`] = "Coloana nu există în sursa aleasă.";
       });
       if (v.type === "rowTable" && !(v.filter.rules || []).length) e.filter = "Tabelul cu filtru cere cel puțin o condiție.";
@@ -277,10 +277,10 @@
     if (steps.includes(4)) {
       if (!v.kpi && v.threshold.on) {
         const t = Number(String(v.threshold.value).replace(",", "."));
-        if (v.threshold.value === "" || Number.isNaN(t) || t < 0) e["threshold.value"] = "Introduceți pragul, un număr pozitiv.";
+        if (v.threshold.value === "" || Number.isNaN(t) || t < 0) e["threshold.value"] = "Introdu pragul, un număr pozitiv.";
       }
-      if (!v.visibility) e.visibility = "Alegeți aria de vizibilitate.";
-      else if (visOptions().find((o) => o.key === v.visibility)?.disabled) e.visibility = "Aria aleasă depășește perimetrul rolului dvs.";
+      if (!v.visibility) e.visibility = "Alege aria de vizibilitate.";
+      else if (visOptions().find((o) => o.key === v.visibility)?.disabled) e.visibility = "Aria aleasă depășește perimetrul rolului tău";
     }
     return e;
   }
@@ -289,9 +289,9 @@
   function publishProblems(v) {
     const e = validate(v);
     const out = Object.entries(e).map(([key, msg]) => (key.startsWith("rule.") ? `Filtru suplimentar: ${msg.toLocaleLowerCase("ro")}` : msg));
-    if (!String(v.titles.ru || "").trim()) out.push("Completați titlul în limba rusă: este obligatoriu la publicare.");
-    if (!String(v.titles.en || "").trim()) out.push("Completați titlul în limba engleză: este obligatoriu la publicare.");
-    if (!out.length && demo.has("eroare-date")) out.push("Previzualizarea nu se încarcă: sursa de date nu a răspuns. Reîncercați „Actualizează”.");
+    if (!String(v.titles.ru || "").trim()) out.push("Completează titlul în limba rusă: este obligatoriu la publicare.");
+    if (!String(v.titles.en || "").trim()) out.push("Completează titlul în limba engleză: este obligatoriu la publicare.");
+    if (!out.length && demo.has("eroare-date")) out.push("Previzualizarea nu se încarcă: sursa de date nu a răspuns. Apasă din nou „Actualizează”.");
     return [...new Set(out)];
   }
 
@@ -469,8 +469,8 @@
   /* ================================================================ the widget card (preview, as on a dashboard) */
   /* what the preview misses, in the order of the form (Plane „Configure widget”: the preview says what is missing) */
   function missingOf(v) {
-    if (!v.source) return ["Alegeți sursa de date", "Previzualizarea folosește datele reale ale sursei, în perimetrul dvs."];
-    if (!v.type) return ["Alegeți tipul widget-ului", "Previzualizarea apare imediat ce alegeți un tip."];
+    if (!v.source) return ["Alege sursa de date", "Previzualizarea folosește datele reale ale sursei, în perimetrul tău."];
+    if (!v.type) return ["Alege tipul widget-ului", "Previzualizarea apare imediat ce alegi un tip."];
     const e = validate(v, { steps: [2, 3] });
     const key = Object.keys(e)[0];
     if (!key) return null;
@@ -488,14 +488,14 @@
     const missing = missingOf(v);
     if (missing) body = E()?.render({ title: missing[0], text: missing[1], icon: "chart", compact: true, bare: true }) || "";
     else if (st.refreshing) body = `<div class="e-permits-wid-card__loading" aria-hidden="true"><span class="skeleton skeleton--block e-permits-wid-plot--${v.height || "medium"}"></span><span class="skeleton skeleton--text"></span></div><p class="u-visually-hidden" role="status">Se actualizează datele widget-ului…</p>`;
-    else if (demo.has("eroare-date")) body = E()?.render({ title: "Datele nu s-au încărcat", text: "Sursa de date nu a răspuns. Reîncercați „Actualizează”: un widget se publică doar dacă se încarcă fără eroare.", icon: "warning-filled", compact: true, bare: true }) || "";
+    else if (demo.has("eroare-date")) body = E()?.render({ title: "Datele nu s-au încărcat", text: "Sursa de date nu a răspuns. Apasă din nou „Actualizează”: un widget se publică doar dacă se încarcă fără eroare.", icon: "warning-filled", compact: true, bare: true }) || "";
     else {
       const m = aggregate(v, me);
       if (st.noAccess) m.drill = false;
       body = CH().render?.(m) || "";
       const foot = [
         m.compareTotal && m.compareTotal.prev ? `${m.compareTotal.cur >= m.compareTotal.prev ? "▲" : "▼"} ${nf(Math.abs(((m.compareTotal.cur - m.compareTotal.prev) / m.compareTotal.prev) * 100), 1)}% față de ${COMPARE_SHORT[v.compare]}` : "",
-        v.drill && !st.noAccess ? `Clic pe o valoare: înregistrările ei în ${sourceName(v.source)}.` : v.drill ? "Fără trecere în detaliu: nu aveți acces la sursa de date." : ""
+        v.drill && !st.noAccess ? `Clic pe o valoare: înregistrările ei în ${sourceName(v.source)}.` : v.drill ? "Fără trecere în detaliu: nu ai acces la sursa de date." : ""
       ].filter(Boolean);
       if (foot.length && !compact) body += `<p class="e-permits-wid-card__foot">${foot.map(esc).join(" · ")}</p>`;
     }
@@ -600,7 +600,7 @@
           : i === 1 ? `<li class="e-permits-doc-cond__join e-permits-doc-kwselect" data-fo-list-min="120">${sel(`${idp}-logic`, "data-wid-rule-logic", "și", [["and", "și"], ["or", "sau"]], block.logic || "and", { lbl: "Combinarea condițiilor" })}</li>`
           : `<li class="e-permits-doc-cond__join">${kw(block.logic === "or" ? "sau" : "și")}</li>`}${condRow(r, i)}`).join("")}</ol>
         <div class="e-permits-doc-rule__foot">${add}</div>
-      </div>` : `${E()?.render({ title: "Fără filtru suplimentar", text: v.type === "rowTable" ? "Tabelul cu filtru afișează rândurile sursei care trec de condiții: adăugați cel puțin una." : "Widget-ul ia toate înregistrările sursei din perioada tabloului de bord.", icon: "filter", compact: true, actionHtml: add }) || ""}${e.filter ? errorHtml(`${idp}-filter`, e.filter) : ""}`;
+      </div>` : `${E()?.render({ title: "Fără filtru suplimentar", text: v.type === "rowTable" ? "Tabelul cu filtru afișează rândurile sursei care trec de condiții: adaugă cel puțin una." : "Widget-ul ia toate înregistrările sursei din perioada tabloului de bord.", icon: "filter", compact: true, actionHtml: add }) || ""}${e.filter ? errorHtml(`${idp}-filter`, e.filter) : ""}`;
   }
 
   /* ---- the chart-type gallery (NEW `.e-permits-wid-types`: the selectable option card, radio variant, + a type glyph) */
@@ -641,7 +641,7 @@
         textField(`${idp}-sub-en`, "subtitles.en", "Subtitlu și descriere (EN)", v.subtitles.en, { span: 6 })
       ))}
       ${section("Sursa de date", grid(
-        selectField(`${idp}-source`, "source", "Sursa de date", sources().map((s) => [s.id, s.name]), v.source, { required: true, span: 12, placeholder: "Alegeți sursa de date", hint: "Doar sursele de date publicate. Widget-ul preia coloanele permise, condițiile și trecerea în detaliu ale sursei.", error: e.source })
+        selectField(`${idp}-source`, "source", "Sursa de date", sources().map((s) => [s.id, s.name]), v.source, { required: true, span: 12, placeholder: "Alege sursa de date", hint: "Doar sursele de date publicate. Widget-ul preia coloanele permise, condițiile și trecerea în detaliu ale sursei.", error: e.source })
       ))}`;
   }
   function stepType(v, e, idp) {
@@ -655,18 +655,18 @@
       ))}`;
   }
   function stepCalc(v, e, idp) {
-    if (!v.type) return section("Date afișate", E()?.render({ title: "Alegeți mai întâi tipul widget-ului", text: "Măsura, criteriile, filtrul și comparația depind de tip.", icon: "chart", compact: true, bare: true }) || "");
+    if (!v.type) return section("Date afișate", E()?.render({ title: "Alege mai întâi tipul widget-ului", text: "Măsura, criteriile, filtrul și comparația depind de tip.", icon: "chart", compact: true, bare: true }) || "");
     const prim = DATE_AXIS.includes(v.type) ? dateCols(v.source) : catCols(v.source);
     const secOpts = catCols(v.source).filter((f) => f.key !== v.primary);
     const measure = v.kpi
       ? ""
       : v.type === "rowTable"
         ? full(U().renderInfoNote?.("Tabelul cu filtru afișează direct rândurile sursei care trec de filtru, fără măsură și fără grupare.") || "")
-        : `${selectField(`${idp}-measure`, "measure", "Ce se măsoară", MEASURES, v.measure, { required: true, hint: v.measure === "count" ? "Numără înregistrările." : "Calculul se face pe coloana măsurată.", error: e.measure })}${usesColumn(v) ? selectField(`${idp}-column`, "column", "Coloana măsurată", measureColumns(v).map((f) => [f.key, f.label]), v.column, { required: true, placeholder: "Alegeți coloana", hint: ["sum", "avg"].includes(v.measure) ? "Doar coloane numerice sau de durată." : "", error: e.column }) : ""}`;
+        : `${selectField(`${idp}-measure`, "measure", "Ce se măsoară", MEASURES, v.measure, { required: true, hint: v.measure === "count" ? "Numără înregistrările." : "Calculul se face pe coloana măsurată.", error: e.measure })}${usesColumn(v) ? selectField(`${idp}-column`, "column", "Coloana măsurată", measureColumns(v).map((f) => [f.key, f.label]), v.column, { required: true, placeholder: "Alege coloana", hint: ["sum", "avg"].includes(v.measure) ? "Doar coloane numerice sau de durată." : "", error: e.column }) : ""}`;
     const groups = NEEDS_PRIMARY(v.type) ? grid(
-      selectField(`${idp}-primary`, "primary", "Criteriul principal", prim.map((f) => [f.key, f.label]), v.primary, { required: true, placeholder: "Alegeți coloana", hint: DATE_AXIS.includes(v.type) ? "O coloană de dată: axa timpului." : "Categoriile axei.", error: e.primary }),
-      SECONDARY[v.type] ? selectField(`${idp}-secondary`, "secondary", "Criteriul secundar", [...(SECONDARY[v.type] === "optional" ? [["", "Fără criteriu secundar"]] : []), ...secOpts.map((f) => [f.key, f.label])], v.secondary, { required: SECONDARY[v.type] === "required", placeholder: SECONDARY[v.type] === "required" ? "Alegeți coloana" : "", hint: v.type === "heatmap" ? "A doua axă a hărții." : "Împarte fiecare categorie în serii colorate.", error: e.secondary }) : "",
-      needsDateGroup(v) ? selectField(`${idp}-dategroup`, "dateGroup", "Gruparea datei", DATE_GROUPS, v.dateGroup, { required: true, placeholder: "Alegeți gruparea", error: e.dateGroup }) : "",
+      selectField(`${idp}-primary`, "primary", "Criteriul principal", prim.map((f) => [f.key, f.label]), v.primary, { required: true, placeholder: "Alege coloana", hint: DATE_AXIS.includes(v.type) ? "O coloană de dată: axa timpului." : "Categoriile axei.", error: e.primary }),
+      SECONDARY[v.type] ? selectField(`${idp}-secondary`, "secondary", "Criteriul secundar", [...(SECONDARY[v.type] === "optional" ? [["", "Fără criteriu secundar"]] : []), ...secOpts.map((f) => [f.key, f.label])], v.secondary, { required: SECONDARY[v.type] === "required", placeholder: SECONDARY[v.type] === "required" ? "Alege coloana" : "", hint: v.type === "heatmap" ? "A doua axă a hărții." : "Împarte fiecare categorie în serii colorate.", error: e.secondary }) : "",
+      needsDateGroup(v) ? selectField(`${idp}-dategroup`, "dateGroup", "Gruparea datei", DATE_GROUPS, v.dateGroup, { required: true, placeholder: "Alege gruparea", error: e.dateGroup }) : "",
       ORDERED.includes(v.type) && !isDate(v.source, v.primary) ? selectField(`${idp}-order`, "order", "Ordinea categoriilor", ORDERS, v.order, {}) : ""
     ) : v.type === "rowTable" ? grid(selectField(`${idp}-order`, "order", "Ordinea rândurilor", ORDERS, v.order, { span: 12, hint: "Rândurile se ordonează după data înregistrării." })) : "";
     return `
@@ -884,7 +884,7 @@
       if (!S.data) return E()?.render({ title: "Se încarcă widget-urile…", loading: true, bare: true });
       /* Feature AC — the exact texts (render keeps the full stop) */
       if (query || filtered) return E()?.render({ title: NO_MATCH, text: "Caută după ID sau titlu, sau schimbă filtrele.", icon: "search", bare: true });
-      return E()?.render({ title: EMPTY_LIST, text: canCreate() ? "Creați primul widget cu „Widget nou”." : "", icon: "chart", bare: true, actionHtml: canCreate() ? '<button class="btn btn-primary btn-sm" type="button" data-wid-new>Widget nou</button>' : "" });
+      return E()?.render({ title: EMPTY_LIST, text: canCreate() ? "Creează primul widget cu „Widget nou”." : "", icon: "chart", bare: true, actionHtml: canCreate() ? '<button class="btn btn-primary btn-sm" type="button" data-wid-new>Widget nou</button>' : "" });
     },
     exportRows: (rows) => exportCsv(rows),
     exportState: () => (who().has ? {} : { hidden: true })
@@ -946,10 +946,10 @@
     };
     if (on) { apply(); return; }
     U().askConfirm?.({
-      title: `Dezactivați widget-ul „${w.config.titles.ro}”?`,
+      title: `Dezactivezi widget-ul „${w.config.titles.ro}”?`,
       text: w.level === "Global"
-        ? "Widget-ul dispare din tablourile de bord ale tuturor autorităților și nu mai poate fi adăugat. Nimic nu se șterge: configurația și versiunile se păstrează, îl puteți activa oricând."
-        : `Widget-ul dispare din tablourile de bord ale ${authName(w.authority)} și nu mai poate fi adăugat. Nimic nu se șterge: configurația și versiunile se păstrează, îl puteți activa oricând.`,
+        ? "Widget-ul dispare din tablourile de bord ale tuturor autorităților și nu mai poate fi adăugat. Nimic nu se șterge: configurația și versiunile se păstrează, îl poți activa oricând."
+        : `Widget-ul dispare din tablourile de bord ale ${authName(w.authority)} și nu mai poate fi adăugat. Nimic nu se șterge: configurația și versiunile se păstrează, îl poți activa oricând.`,
       confirmLabel: "Dezactivează",
       destructive: true
     }, apply);
@@ -967,8 +967,8 @@
     };
     if (on) { apply(); return; }
     U().askConfirm?.({
-      title: `Dezactivați widget-ul „${w.config.titles.ro}” pentru ${mine}?`,
-      text: `Widget-ul global dispare din tablourile de bord ale ${mine}. Celelalte autorități nu sunt afectate; îl puteți activa oricând pentru ${mine}.`,
+      title: `Dezactivezi widget-ul „${w.config.titles.ro}” pentru ${mine}?`,
+      text: `Widget-ul global dispare din tablourile de bord ale ${mine}. Celelalte autorități nu sunt afectate; îl poți activa oricând pentru ${mine}.`,
       confirmLabel: `Dezactivează pentru ${mine}`,
       destructive: true
     }, apply);
@@ -1116,7 +1116,7 @@
       w.status === "Ciornă" && U().renderInfoNote?.("<strong>Ciornă.</strong> Widget-ul apare la alcătuirea tablourilor de bord după prima publicare."),
       w.status === "Publicat" && unpublished(w) && U().renderNotice?.("warning", `<strong>Modificări nepublicate.</strong> Utilizatorii BackOffice văd în continuare versiunea ${esc(String(lastVersion(w).version))}.`),
       !me.central && w.level === "Global" && isOffFor(w, me.authority) && U().renderNotice?.("warning", `<strong>Dezactivat pentru ${esc(mine)}.</strong> Widget-ul global nu apare în tablourile de bord ale ${esc(mine)}.`),
-      !me.central && w.level === "Global" && P.tab === "configurare" && U().renderInfoNote?.(`Widget global, creat de Administratorul central: îl vedeți doar pentru citire. Îl puteți clona la nivelul ${esc(mine)} sau îl puteți dezactiva pentru ${esc(mine)}.`)
+      !me.central && w.level === "Global" && P.tab === "configurare" && U().renderInfoNote?.(`Widget global, creat de Administratorul central: îl vezi doar pentru citire. Îl poți clona la nivelul ${esc(mine)} sau îl poți dezactiva pentru ${esc(mine)}.`)
     ] : [P.saveError && U().renderNotice?.("error", esc(SAVE_FAILED), { role: "alert" })];
     const html = list.filter(Boolean).join("");
     return html ? `<div class="e-permits-reg-notices">${html}</div>` : "";
@@ -1247,7 +1247,7 @@
     sheet.hidden = true;
     document.documentElement.classList.remove("is-reg-editor-open");
   }
-  /* × / Anulează / Esc: with data → „Renunțați la widget-ul nou?” (destructive); the page under it comes back as it was */
+  /* × / Anulează / Esc: with data → „Renunți la widget-ul nou?” (destructive); the page under it comes back as it was */
   function closeCreate(force = false) {
     if (!creating()) return;
     const close = () => {
@@ -1261,7 +1261,7 @@
       if (back?.isConnected) back.focus({ preventScroll: true });
     };
     if (force || !pageDirty()) { close(); return; }
-    U().askConfirm?.({ title: P.from ? "Renunțați la copia widget-ului?" : "Renunțați la widget-ul nou?", text: "Datele completate nu se păstrează.", confirmLabel: "Renunță", cancelLabel: "Continuă editarea", destructive: true }, close);
+    U().askConfirm?.({ title: P.from ? "Renunți la copia widget-ului?" : "Renunți la widget-ul nou?", text: "Datele completate nu se păstrează.", confirmLabel: "Renunță", cancelLabel: "Continuă editarea", destructive: true }, close);
   }
   /* one redraw for the form, wherever it is (the create sheet or the profile page) */
   const rerender = (opts) => (creating() ? renderCreate(opts) : renderProfile(opts));
@@ -1324,7 +1324,7 @@
           selectField("wid-cmp-b", "cmp.b", "Comparată cu", opts, kb, { span: 6 })
         )}</div>
         ${ka === kb
-          ? U().renderInfoNote?.("Alegeți două versiuni diferite.") || ""
+          ? U().renderInfoNote?.("Alege două versiuni diferite.") || ""
           : changes.length
             ? changesList(changes)
             : U().renderInfoNote?.("Cele două versiuni au aceeași configurație.") || ""}
@@ -1381,7 +1381,7 @@
       body: `
         ${U().renderNotice?.(unpublished(w) || pageDirty() ? "warning" : "info", `<strong>Versiunea ${next} reia configurația versiunii ${v.version}.</strong> Utilizatorii BackOffice o văd imediat după restaurare.${unpublished(w) || pageDirty() ? " Modificările nepublicate se pierd." : ""}`) || ""}
         ${changes.length ? changesList(changes) : ""}
-        ${areaField("wid-restore-note", "restoreNote", "Ce s-a schimbat", "", { required: true, placeholder: "De ce reveniți la această versiune", hint: "Apare în istoricul versiunilor." })}`,
+        ${areaField("wid-restore-note", "restoreNote", "Ce s-a schimbat", "", { required: true, placeholder: "De ce revii la această versiune", hint: "Apare în istoricul versiunilor." })}`,
       footer: '<div class="modal-buttons"><button class="btn btn-neutral btn-rounded" type="button" data-case-close>Anulează</button><button class="btn btn-primary btn-rounded" type="button" data-wid-restore-confirm>Restaurează</button></div>'
     });
   }
@@ -1402,7 +1402,7 @@
     if (!restoring) return;
     const field = document.querySelector("#wid-restore-note");
     const note = field?.value.trim() || "";
-    if (!note) { setModalError(field, "Descrieți ce s-a schimbat."); return; }
+    if (!note) { setModalError(field, "Descrie ce s-a schimbat."); return; }
     const w = widgetOf(restoring.id);
     const v = versionOf(w, restoring.nr);
     if (demo.has("eroare")) { G().closeModal?.(); toast(SAVE_FAILED, "error"); restoring = null; return; }
@@ -1457,7 +1457,7 @@
             : `<strong>Prima publicare: versiunea ${next}.</strong> Widget-ul devine disponibil la alcătuirea tablourilor de bord.`) || ""}
         ${!problems.length && changes.length ? changesList(changes) : ""}
         ${areaField("wid-publish-note", "publishNote", "Ce s-a schimbat", note, { required: true, placeholder: "De ex. comparație cu săptămâna precedentă", hint: "Apare în istoricul versiunilor." })}`,
-      footer: `<div class="modal-buttons"><button class="btn btn-neutral btn-rounded" type="button" data-case-close>Anulează</button><button class="btn btn-primary btn-rounded" type="button" data-wid-publish-confirm${problems.length ? ' aria-disabled="true" data-tooltip-reason="Rezolvați mai întâi problemele de mai sus."' : ""}>Publică</button></div>`
+      footer: `<div class="modal-buttons"><button class="btn btn-neutral btn-rounded" type="button" data-case-close>Anulează</button><button class="btn btn-primary btn-rounded" type="button" data-wid-publish-confirm${problems.length ? ' aria-disabled="true" data-tooltip-reason="Rezolvă mai întâi problemele de mai sus."' : ""}>Publică</button></div>`
     });
   }
   function confirmPublish(button) {
@@ -1467,7 +1467,7 @@
     if (button.getAttribute("aria-disabled") === "true") { if (w0) audit(w0, "rejected", publishProblems(v).join(" ")); return; }
     const field = document.querySelector("#wid-publish-note");
     const note = field?.value.trim() || "";
-    if (!note) { setModalError(field, "Descrieți ce s-a schimbat."); return; }
+    if (!note) { setModalError(field, "Descrie ce s-a schimbat."); return; }
     if (demo.has("eroare")) { G().closeModal?.(); toast(SAVE_FAILED, "error"); publishing = null; return; }
     const w = editable(w0) ? savePage({ silent: true }) : w0;
     if (!w) { G().closeModal?.(); return; }
@@ -1551,7 +1551,7 @@
     event.preventDefault();
     event.stopImmediatePropagation();
     U().askConfirm?.({
-      title: P.isNew ? "Renunțați la widget-ul nou?" : "Există modificări nesalvate. Părăsiți widget-ul?",
+      title: P.isNew ? "Renunți la widget-ul nou?" : "Există modificări nesalvate. Părăsești widget-ul?",
       text: P.isNew ? "Datele completate nu se păstrează." : "Modificările nesalvate ale widget-ului se pierd.",
       confirmLabel: "Renunță",
       cancelLabel: "Continuă editarea",

@@ -111,7 +111,7 @@
         if (Number.isNaN(n)) return "Introdu un număr.";
         const min = col.min !== "" && col.min != null ? Number(col.min) : null;
         const max = col.max !== "" && col.max != null ? Number(col.max) : null;
-        if ((min != null && n < min) || (max != null && n > max)) return fillText(custom || "Introduceți o valoare între {min} și {max}.", { min: min ?? "…", max: max ?? "…" });
+        if ((min != null && n < min) || (max != null && n > max)) return fillText(custom || "Introdu o valoare între {min} și {max}.", { min: min ?? "…", max: max ?? "…" });
         return "";
       }
       case "text": {
@@ -125,8 +125,8 @@
         return "";
       }
       case "multiselect": {
-        if (col.minSelected && value.length < Number(col.minSelected)) return fillText(custom || (Number(col.minSelected) === 1 ? "Alege cel puțin o opțiune." : "Selectați cel puțin {min} opțiuni."), { min: col.minSelected });
-        if (col.maxSelected && value.length > Number(col.maxSelected)) return `Selectați cel mult ${col.maxSelected} opțiuni.`;
+        if (col.minSelected && value.length < Number(col.minSelected)) return fillText(custom || (Number(col.minSelected) === 1 ? "Alege cel puțin o opțiune." : "Selectează cel puțin {min} opțiuni."), { min: col.minSelected });
+        if (col.maxSelected && value.length > Number(col.maxSelected)) return `Selectează cel mult ${col.maxSelected} opțiuni.`;
         return "";
       }
       default: return "";
@@ -606,7 +606,7 @@
         /* key column: a value already in another row is refused (US-36 AC-03) */
         if (!message && rules.key === col.key && !isEmpty(values[col.key])) {
           const mine = JSON.stringify(values[col.key]).toLowerCase();
-          if (state.rows.some((other) => other !== row && JSON.stringify(readRow(other)[col.key] ?? "").toLowerCase() === mine)) message = def.texts.duplicate || "Dvstră ați înregistrat deja această valoare.";
+          if (state.rows.some((other) => other !== row && JSON.stringify(readRow(other)[col.key] ?? "").toLowerCase() === mine)) message = def.texts.duplicate || "Ai înregistrat deja această valoare.";
         }
         if (!message) return;
         count += 1;
@@ -1083,7 +1083,7 @@
           let message = checkValue(child, valueOf(item, child));
           if (!message && child.key === rules.key) {
             const mine = valueOf(item, child);
-            if (!isEmpty(mine) && items().some((other) => other !== item && JSON.stringify(valueOf(other, child)) === JSON.stringify(mine))) message = def.texts.duplicate || "Dvstră ați înregistrat deja această valoare.";
+            if (!isEmpty(mine) && items().some((other) => other !== item && JSON.stringify(valueOf(other, child)) === JSON.stringify(mine))) message = def.texts.duplicate || "Ai înregistrat deja această valoare.";
           }
           if (!message) return;
           count += 1;

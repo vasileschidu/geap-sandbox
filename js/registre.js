@@ -916,7 +916,7 @@
 
   /* „Acces interzis” — an address typed by hand for a register the role has no grant for (AC-01) */
   /* US-317 AC-01: the act card's own wording for a role without access to the acts register */
-  const NO_PERMISSION = "Nu aveți permisiunea de a accesa această pagină.";
+  const NO_PERMISSION = "Nu ai permisiunea de a accesa această pagină.";
   function showDenied(title, text = "Rolul tău nu are acces la acest registru. Accesul se acordă de Administratorul central, per rol.") {
     /* no menu item stands for a register the role cannot open */
     document.querySelectorAll("[data-nav-item].is-active").forEach((link) => { link.classList.remove("is-active"); link.removeAttribute("aria-current"); });

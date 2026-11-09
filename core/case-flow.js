@@ -223,11 +223,11 @@
       return out;
     }
     if (!lane.role) {
-      out.note = "Acest pas aparține rolului " + lane.title + ". Dosarul așteaptă acțiunea lui; nu puteți acționa din back office.";
+      out.note = "Acest pas aparține rolului " + lane.title + ". Dosarul așteaptă acțiunea lui; nu poți acționa din back office.";
     } else if (lane.role !== ctx.role) {
-      out.note = "Acest pas aparține rolului " + lane.title + ". Nu puteți acționa din rolul dvs.";
+      out.note = "Acest pas aparține rolului " + lane.title + ". Nu poți acționa din rolul tău.";
     } else if (ROLE_BANS[ctx.role] === "*") {
-      out.note = "Rolul dvs. are acces doar la vizualizare.";
+      out.note = "Rolul tău are acces doar la vizualizare.";
     }
     var mayAct = lane.role && lane.role === ctx.role && ROLE_BANS[ctx.role] !== "*";
 
@@ -263,7 +263,7 @@
        + the case has a responsible). AC-01 / AC-02. */
     if (ctx.canRedistribute && lane && lane.role === "specialist" && !banned(ctx.role, "redistribuire")) {
       out.items.push({ id: "redistribuie", label: "Redistribuie", kind: "operation", icon: "people", form: "redistribuire", disabled: false, reason: "", target: "Alt specialist al subdiviziunii · termenul nu se resetează" });
-      if (!mayAct) out.note = "Pasul aparține Specialistului. Puteți redistribui dosarul altui specialist al subdiviziunii.";
+      if (!mayAct) out.note = "Pasul aparține Specialistului. Poți redistribui dosarul altui specialist al subdiviziunii.";
     }
     if (state.stateId === "node16") {
       /* the applicant pays in MPay; the prototype simulates the confirmation */

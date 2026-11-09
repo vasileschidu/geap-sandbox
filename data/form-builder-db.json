@@ -43,12 +43,12 @@
             {
               "id": "sec-activity",
               "title": { "ro": "Activitatea", "ru": "", "en": "" },
-              "description": { "ro": "Datele despre activitatea pe care o notificați.", "ru": "", "en": "" },
+              "description": { "ro": "Datele despre activitatea pe care o notifici.", "ru": "", "en": "" },
               "showTitle": true,
               "showSeparator": true,
               "fields": [
                 { "id": "fld-start", "type": "date", "key": "DataInceperii", "published": true, "label": { "ro": "Data începerii activității", "ru": "", "en": "" }, "span": 4, "required": true, "dateMin": { "mode": "today", "value": "" }, "dateMax": { "mode": "none", "value": "" }, "validation": { "message": { "ro": "", "ru": "", "en": "" } } },
-                { "id": "fld-alcohol", "type": "radio", "key": "ComertAlcool", "published": true, "label": { "ro": "Comercializați băuturi alcoolice?", "ru": "", "en": "" }, "span": 12, "required": true, "orientation": "horizontal", "options": [ { "value": "da", "label": "Da" }, { "value": "nu", "label": "Nu" } ] },
+                { "id": "fld-alcohol", "type": "radio", "key": "ComertAlcool", "published": true, "label": { "ro": "Comercializezi băuturi alcoolice?", "ru": "", "en": "" }, "span": 12, "required": true, "orientation": "horizontal", "options": [ { "value": "da", "label": "Da" }, { "value": "nu", "label": "Nu" } ] },
                 { "id": "fld-phone", "type": "phone", "key": "TelefonObiect", "published": true, "label": { "ro": "Telefonul obiectului", "ru": "", "en": "" }, "placeholder": { "ro": "60 999 999", "ru": "", "en": "" }, "span": 6, "required": false, "phoneKind": "any" },
                 { "id": "fld-email", "type": "email", "key": "EmailObiect", "published": true, "label": { "ro": "Email-ul obiectului", "ru": "", "en": "" }, "placeholder": { "ro": "obiect@exemplu.md", "ru": "", "en": "" }, "span": 6, "required": false },
                 { "id": "fld-note", "type": "info", "key": "NotaTermen", "published": true, "tone": "neutral", "text": { "ro": "Notificarea se depune cu cel puțin 5 zile lucrătoare înainte de începerea activității.", "ru": "", "en": "" }, "span": 12 },
@@ -203,7 +203,7 @@
                       "en": ""
                     },
                     "duplicate": {
-                      "ro": "Dvstră ați înregistrat deja acest cod CAEM.",
+                      "ro": "Ai înregistrat deja acest cod CAEM.",
                       "ru": "",
                       "en": ""
                     },

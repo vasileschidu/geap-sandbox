@@ -27,7 +27,7 @@
    Routes: #kpi (list) · #kpi/<id>/<definitie|tinta|valori|alerte|istoric>.
    Demo switch ?kpi= (comma list): fara-permisiune · gol · incarcare · eroare (every save fails) · numitor-zero.
    Who: Administrator central = global level, every KPI; Administrator local = own authority (ANSP); others: no menu,
-   direct address → „Nu aveți permisiunea de a accesa această pagină.”.
+   direct address → „Nu ai permisiunea de a accesa această pagină.”.
    For widgets (Feature 96501): window.GEAPKpi — list / get / value / series / zone / format / target.
    ===================================================================================== */
 (function () {
@@ -65,7 +65,7 @@
   const NAV = "kpi";
   const TITLE = "KPI";
   /* Feature 96500 AC (Feature 89940 wording) */
-  const DENIED = "Nu aveți permisiunea de a accesa această pagină.";
+  const DENIED = "Nu ai permisiunea de a accesa această pagină.";
   const SAVE_FAILED = "KPI-ul nu a putut fi salvat.";
   /* Feature 96500 AC — word for word */
   const SAME_SOURCE = "Numărătorul și numitorul trebuie să folosească aceeași sursă de date.";
@@ -405,7 +405,7 @@
         </section>`
       : `<section class="e-permits-dosar-profil__section">
           <div class="e-permits-dosar-profil__section-heading"><h2 class="e-permits-dosar-profil__section-title">Valoarea față de țintă</h2></div>
-          ${E()?.render({ title: "Valoarea nu a fost verificată", text: "Verificați valoarea la pasul „Calcul” ca s-o vedeți aici față de țintă.", icon: "calculator", compact: true }) || ""}
+          ${E()?.render({ title: "Valoarea nu a fost verificată", text: "Verifică valoarea la pasul „Calcul” ca s-o vezi aici față de țintă.", icon: "calculator", compact: true }) || ""}
         </section>`;
     return `${bandHtml(k, t, { title, current: val?.cur ?? null })}${chart}`;
   }
@@ -494,41 +494,41 @@
     const e = {};
     if (steps.includes(1)) {
       if (!selfId) {
-        if (!v.domain) e.domain = "Alegeți domeniul.";
+        if (!v.domain) e.domain = "Alege domeniul.";
         if (!CODE_RE.test(String(v.code || "").trim())) e.code = "Codul are forma literei domeniului, o cratimă și două cifre, de exemplu T-04.";
         else if (v.domain && domainOf(v.code) !== v.domain) e.code = `Codul începe cu litera domeniului: ${v.domain}-.`;
         else if (allKpis().some((k) => k.code === v.code.trim() && k.id !== selfId)) e.code = "Există deja un KPI cu acest cod.";
       }
-      if (!String(v.nameRo || "").trim()) e.nameRo = "Completați denumirea în limba română.";
+      if (!String(v.nameRo || "").trim()) e.nameRo = "Completează denumirea în limba română.";
       else if (v.nameRo.length > NAME_MAX) e.nameRo = `Denumirea poate avea cel mult ${NAME_MAX} de caractere.`;
     }
     if (steps.includes(2)) {
-      if (!v.source) e.source = "Alegeți sursa de date.";
-      if (v.source && v.num.measure !== "count" && !v.num.column) e["num.column"] = "Alegeți coloana pe care se calculează suma sau media.";
+      if (!v.source) e.source = "Alege sursa de date.";
+      if (v.source && v.num.measure !== "count" && !v.num.column) e["num.column"] = "Alege coloana pe care se calculează suma sau media.";
       const ruleErrors = (part, src) => {
         (v[part].rules || []).forEach((r, i) => {
-          if (!r.column) e[`${part}.rule.${i}`] = "Alegeți coloana.";
-          else if (!NO_VALUE.includes(r.op) && !String(r.value || "").trim()) e[`${part}.rule.${i}`] = "Completați valoarea.";
+          if (!r.column) e[`${part}.rule.${i}`] = "Alege coloana.";
+          else if (!NO_VALUE.includes(r.op) && !String(r.value || "").trim()) e[`${part}.rule.${i}`] = "Completează valoarea.";
           else if (!fieldOf(src, r.column)) e[`${part}.rule.${i}`] = "Coloana nu există în sursa aleasă.";
         });
       };
       if (v.source) ruleErrors("num", v.source);
       if (v.hasDen) {
-        if (!v.den.source) e["den.source"] = "Alegeți sursa de date a numitorului.";
+        if (!v.den.source) e["den.source"] = "Alege sursa de date a numitorului.";
         /* Feature AC: different sources never save */
         else if (v.den.source !== v.source) e["den.source"] = SAME_SOURCE;
         else ruleErrors("den", v.source);
       }
-      if (v.format === "percent" && !v.hasDen) e.hasDen = "Un procent se calculează față de un numitor: bifați „Raportează la un numitor”.";
-      if (!v.dateColumn) e.dateColumn = "Alegeți data de referință.";
+      if (v.format === "percent" && !v.hasDen) e.hasDen = "Un procent se calculează față de un numitor: bifează „Raportează la un numitor”.";
+      if (!v.dateColumn) e.dateColumn = "Alege data de referință.";
     }
     if (steps.includes(3)) {
       const t = num(v.target);
       const th = num(v.threshold);
-      if (v.target !== "" && (Number.isNaN(t) || t < 0)) e.target = "Introduceți un număr pozitiv.";
+      if (v.target !== "" && (Number.isNaN(t) || t < 0)) e.target = "Introdu un număr pozitiv.";
       else if (v.format === "percent" && t > 100) e.target = "Procentul poate fi cel mult 100.";
       if (v.threshold !== "") {
-        if (Number.isNaN(th) || th < 0) e.threshold = "Introduceți un număr pozitiv.";
+        if (Number.isNaN(th) || th < 0) e.threshold = "Introdu un număr pozitiv.";
         else if (v.target === "") e.threshold = "Pragul de apropiere se stabilește doar împreună cu ținta.";
         else if (v.direction === "down" && th >= t) e.threshold = "Pragul de apropiere trebuie să fie mai mic decât ținta.";
       }
@@ -582,7 +582,7 @@
       </div>`;
     if (!src) {
       return `<section class="e-permits-dosar-profil__section e-permits-stack-section" aria-labelledby="${idp}-dict-title">${heading()}
-        ${E()?.render({ title: "Alegeți sursa de date", text: "Dicționarul arată câmpurile sursei, cu tipul și descrierea lor.", icon: "book", compact: true }) || ""}
+        ${E()?.render({ title: "Alege sursa de date", text: "Dicționarul arată câmpurile sursei, cu tipul și descrierea lor.", icon: "book", compact: true }) || ""}
       </section>`;
     }
     const q = fold(st.dictQuery || "").trim();
@@ -671,7 +671,7 @@
   function identityFields(v, e, idp, { isNew }) {
     const domains = D().domains.map(([l, n]) => [l, `${n} (${l}-)`]);
     return grid(
-      isNew ? selectField(`${idp}-domain`, "domain", "Domeniu", domains, v.domain, { required: true, placeholder: "Alegeți domeniul", error: e.domain }) : "",
+      isNew ? selectField(`${idp}-domain`, "domain", "Domeniu", domains, v.domain, { required: true, placeholder: "Alege domeniul", error: e.domain }) : "",
       isNew ? textField(`${idp}-code`, "code", "Cod", v.code, { required: true, span: 6, hint: "Codul catalogului: litera domeniului, cratimă, două cifre. Nu se schimbă după creare.", error: e.code }) : "",
       textField(`${idp}-name-ro`, "nameRo", "Denumire (RO)", v.nameRo, { required: true, max: NAME_MAX, counter: true, hint: "Numele afișat utilizatorilor, de exemplu „Cereri procesate în termen”.", error: e.nameRo }),
       textField(`${idp}-name-ru`, "nameRu", "Denumire (RU)", v.nameRu, { span: 6, hint: "Obligatorie la publicare." }),
@@ -687,21 +687,21 @@
     const dateCols = fields.filter((f) => f.type === "date").map((f) => [f.key, f.label]);
     const measureHint = v.num.measure === "count" ? "Numără înregistrările care trec de filtru." : "Suma și media se calculează doar pe coloane numerice și durate.";
     const out = [["Sursa", grid(
-      selectField(`${idp}-source`, "source", "Sursa de date", sourceOptions(), v.source, { required: true, span: 12, placeholder: "Alegeți sursa de date", hint: "Doar sursele de date publicate. Numărătorul și numitorul folosesc aceeași sursă.", error: e.source })
+      selectField(`${idp}-source`, "source", "Sursa de date", sourceOptions(), v.source, { required: true, span: 12, placeholder: "Alege sursa de date", hint: "Doar sursele de date publicate. Numărătorul și numitorul folosesc aceeași sursă.", error: e.source })
     )]];
     if (!v.source) return out;
     out.push(["Numărătorul", `${grid(
       selectField(`${idp}-measure`, "num.measure", "Ce se calculează", MEASURES, v.num.measure, { required: true, hint: measureHint }),
-      v.num.measure === "count" ? "" : selectField(`${idp}-num-column`, "num.column", "Coloana", numericCols, v.num.column, { required: true, placeholder: "Alegeți coloana", error: e["num.column"] }),
+      v.num.measure === "count" ? "" : selectField(`${idp}-num-column`, "num.column", "Coloana", numericCols, v.num.column, { required: true, placeholder: "Alege coloana", error: e["num.column"] }),
       full(ruleBuilder(v, e, "num", idp))
     )}`]);
     out.push(["Numitorul", grid(
       full(`${U().renderCheckOption?.({ label: "Raportează la un numitor (pentru procente și rate)", checked: v.hasDen, attrs: 'data-kpi-field="hasDen"' }) || ""}${e.hasDen ? errorHtml(`${idp}-hasden`, e.hasDen) : ""}`),
-      v.hasDen ? selectField(`${idp}-den-source`, "den.source", "Sursa de date a numitorului", sourceOptions(), v.den.source, { required: true, span: 12, placeholder: "Alegeți sursa de date", hint: "Aceeași sursă ca numărătorul; diferă doar filtrul.", error: e["den.source"] }) : "",
+      v.hasDen ? selectField(`${idp}-den-source`, "den.source", "Sursa de date a numitorului", sourceOptions(), v.den.source, { required: true, span: 12, placeholder: "Alege sursa de date", hint: "Aceeași sursă ca numărătorul; diferă doar filtrul.", error: e["den.source"] }) : "",
       v.hasDen && v.den.source === v.source ? full(ruleBuilder(v, e, "den", idp)) : ""
     )]);
     out.push(["Perioada și afișarea", grid(
-      selectField(`${idp}-date`, "dateColumn", "Data de referință", dateCols, v.dateColumn, { required: true, placeholder: "Alegeți coloana de dată", hint: "Data după care o înregistrare intră în perioadă.", error: e.dateColumn }),
+      selectField(`${idp}-date`, "dateColumn", "Data de referință", dateCols, v.dateColumn, { required: true, placeholder: "Alege coloana de dată", hint: "Data după care o înregistrare intră în perioadă.", error: e.dateColumn }),
       selectField(`${idp}-type`, "valueType", "Tip de valoare", VALUE_TYPES, v.valueType, { required: true, hint: v.valueType === "Stoc" ? "Câte înregistrări sunt la momentul calculului." : "Câte înregistrări au intrat în perioadă." }),
       selectField(`${idp}-format`, "format", "Format", FORMATS, v.format, { required: true }),
       v.format === "duration" ? selectField(`${idp}-unit`, "unit", "Unitatea duratei", UNITS.map((u) => [u, u]), v.unit, { required: true, hint: "Zilele urmează tipul zilelor din configurarea procesului." }) : "",
@@ -749,12 +749,12 @@
     else if (st.check) {
       const val = { cur: st.check.values[0], prev: st.check.values[1], num: st.check.values[2], den: st.check.values[3], pnum: st.check.values[4], pden: st.check.values[5] };
       body = `
-        ${stale ? U().renderNotice?.("warning", "Ați schimbat calculul după verificare: verificați din nou valoarea.") || "" : ""}
+        ${stale ? U().renderNotice?.("warning", "Ai schimbat calculul după verificare: verifică din nou valoarea.") || "" : ""}
         <div class="e-permits-chart">
           ${valueCards(k, val, t, { checkedAt: st.check.label })}
           ${trendChart(k, st.check.series, t)}
         </div>`;
-    } else body = E()?.render({ title: "Valoarea nu a fost verificată", text: "Verificați valoarea curentă și pe cea a perioadei precedente înainte de salvare.", icon: "calculator", compact: true }) || "";
+    } else body = E()?.render({ title: "Valoarea nu a fost verificată", text: "Verifică valoarea curentă și pe cea a perioadei precedente înainte de salvare.", icon: "calculator", compact: true }) || "";
     return `
       <section class="e-permits-dosar-profil__section" aria-labelledby="${idp}-check-title">
         <div class="e-permits-dosar-profil__section-heading">
@@ -957,7 +957,7 @@
       if (query || filtered) return E()?.render({ title: NO_MATCH, text: "Caută după cod sau denumire, sau schimbă filtrele.", icon: "search", bare: true });
       return E()?.render({
         title: EMPTY_LIST,
-        text: canCreate() ? "Creați primul KPI cu „Creează KPI”." : "",
+        text: canCreate() ? "Creează primul KPI cu „Creează KPI”." : "",
         icon: "chart",
         bare: true,
         actionHtml: canCreate() ? '<button class="btn btn-primary btn-sm" type="button" data-kpi-new>Creează KPI</button>' : ""
@@ -1019,10 +1019,10 @@
     };
     if (on) { apply(); return; }
     U().askConfirm?.({
-      title: `Dezactivați KPI-ul „${k.names.ro}”?`,
+      title: `Dezactivezi KPI-ul „${k.names.ro}”?`,
       text: k.level === "Global"
-        ? "KPI-ul nu se mai calculează și nu mai generează alerte în nicio autoritate. Configurarea se păstrează: îl puteți activa oricând."
-        : `KPI-ul nu se mai calculează și nu mai generează alerte în ${authName(k.authority)}. Configurarea se păstrează: îl puteți activa oricând.`,
+        ? "KPI-ul nu se mai calculează și nu mai generează alerte în nicio autoritate. Configurarea se păstrează: îl poți activa oricând."
+        : `KPI-ul nu se mai calculează și nu mai generează alerte în ${authName(k.authority)}. Configurarea se păstrează: îl poți activa oricând.`,
       confirmLabel: "Dezactivează",
       destructive: true
     }, apply);
@@ -1041,7 +1041,7 @@
     };
     if (on) { apply(); return; }
     U().askConfirm?.({
-      title: `Dezactivați KPI-ul „${k.names.ro}” pentru ${mine}?`,
+      title: `Dezactivezi KPI-ul „${k.names.ro}” pentru ${mine}?`,
       text: `${mine} nu va mai folosi acest KPI global: nu se calculează pentru ${mine} și nu generează alerte în ${mine}. Celelalte autorități nu sunt afectate, iar valorile proprii se păstrează.`,
       confirmLabel: `Dezactivează pentru ${mine}`,
       destructive: true
@@ -1174,7 +1174,7 @@
       isDraftK(k) && U().renderInfoNote?.("<strong>Ciornă.</strong> KPI-ul se calculează, generează alerte și poate fi adăugat în widget-uri după prima publicare."),
       !isDraftK(k) && canEdit(k) && unpublished(k) && U().renderNotice?.("warning", `<strong>Modificări nepublicate.</strong> Calculul zilnic și alertele folosesc în continuare versiunea ${esc(String(lastVersion(k).version))}.`),
       w.local && k.level === "Global" && k.status === "Activ" && inheritOf(k, w.authority)?.active === false && U().renderNotice?.("warning", `<strong>KPI-ul este dezactivat pentru ${esc(mine)}:</strong> nu se calculează pentru ${esc(mine)} și nu generează alerte în ${esc(mine)}.`),
-      w.local && k.level === "Global" && ["definitie", "tinta"].includes(P.tab) && U().renderInfoNote?.(`KPI global, stabilit de Administratorul central și moștenit de ${esc(mine)}. Valorile globale nu se modifică aici: în tabul „Valori proprii” îl puteți dezactiva pentru ${esc(mine)} sau îi puteți stabili valori proprii.`)
+      w.local && k.level === "Global" && ["definitie", "tinta"].includes(P.tab) && U().renderInfoNote?.(`KPI global, stabilit de Administratorul central și moștenit de ${esc(mine)}. Valorile globale nu se modifică aici: în tabul „Valori proprii” îl poți dezactiva pentru ${esc(mine)} sau îi poți stabili valori proprii.`)
     ].filter(Boolean).join("");
     return list ? `<div class="e-permits-reg-notices">${list}</div>` : "";
   }
@@ -1281,7 +1281,7 @@
     })) }], { meta: plural(own.length, "valoare", "valori"), actionHtml: add }) || ""
       : `<section class="e-permits-dosar-profil__section">
           <div class="e-permits-dosar-profil__section-heading"><h2 class="e-permits-dosar-profil__section-title">Valorile proprii</h2>${add ? `<div class="e-permits-passport__heading-tools">${add}</div>` : ""}</div>
-          ${E()?.render({ title: `${mine} folosește valorile globale`, text: `Adăugați o valoare proprie pe ${["autoritate", k.criteria?.includes("Subdiviziune") && "subdiviziune", k.criteria?.includes("Specialist") && "rol (fiecare specialist)"].filter(Boolean).join(", ").replace(/, ([^,]*)$/, " sau $1")}: ea înlocuiește ținta globală doar în autoritatea dvs.`, icon: "chart" }) || ""}
+          ${E()?.render({ title: `${mine} folosește valorile globale`, text: `Adaugă o valoare proprie pe ${["autoritate", k.criteria?.includes("Subdiviziune") && "subdiviziune", k.criteria?.includes("Specialist") && "rol (fiecare specialist)"].filter(Boolean).join(", ").replace(/, ([^,]*)$/, " sau $1")}: ea înlocuiește ținta globală doar în autoritatea ta.`, icon: "chart" }) || ""}
         </section>`;
     return `
       ${planned ? "" : cardSection(`Stare în ${mine}`, U().renderToggle?.({ label: `Activ pentru ${mine}`, description: `Dezactivat, KPI-ul nu se calculează pentru ${mine} și nu generează alerte în ${mine}. Se aplică imediat.`, checked: inh.active !== false && k.status === "Activ", disabled: k.status !== "Activ", attrs: "data-kpi-auth-active" }) || "")}
@@ -1310,7 +1310,7 @@
     });
     return `
       ${A().renderStackedList?.("Moștenirea în autorități", [{ label: "", items }], { meta: plural(items.length, "autoritate", "autorități") }) || ""}
-      ${U().renderInfoNote?.("Un KPI global este moștenit de toate autoritățile. Fiecare autoritate îl poate dezactiva pentru ea și îi poate stabili valori proprii, doar în autoritatea ei; valorile globale le modificați doar dvs.") || ""}`;
+      ${U().renderInfoNote?.("Un KPI global este moștenit de toate autoritățile. Fiecare autoritate îl poate dezactiva pentru ea și îi poate stabili valori proprii, doar în autoritatea ei; valorile globale le modifici doar tu.") || ""}`;
   }
 
   /* ---- Alerte (US-521) */
@@ -1548,7 +1548,7 @@
           selectField("kpi-cmp-b", "cmp.b", "Comparată cu", opts, kb, { span: 6 })
         )}</div>
         ${ka === kb
-          ? U().renderInfoNote?.("Alegeți două versiuni diferite.") || ""
+          ? U().renderInfoNote?.("Alege două versiuni diferite.") || ""
           : changes.length ? changesList(changes) : U().renderInfoNote?.("Cele două versiuni au aceeași configurație.") || ""}
       </section>`;
   }
@@ -1587,7 +1587,7 @@
       body: `
         ${U().renderNotice?.(lost ? "warning" : "info", `<strong>Versiunea ${next} reia configurația versiunii ${v.version}.</strong> Calculul zilnic și alertele o folosesc imediat după restaurare.${lost ? " Modificările nepublicate se pierd." : ""}`) || ""}
         ${changes.length ? changesList(changes) : ""}
-        ${areaField("kpi-restore-note", "restoreNote", "Ce s-a schimbat", "", { required: true, placeholder: "De ce reveniți la această versiune", hint: "Apare în istoricul versiunilor." })}`,
+        ${areaField("kpi-restore-note", "restoreNote", "Ce s-a schimbat", "", { required: true, placeholder: "De ce revii la această versiune", hint: "Apare în istoricul versiunilor." })}`,
       footer: '<div class="modal-buttons"><button class="btn btn-neutral btn-rounded" type="button" data-case-close>Anulează</button><button class="btn btn-primary btn-rounded" type="button" data-kpi-restore-confirm>Restaurează</button></div>'
     });
   }
@@ -1608,7 +1608,7 @@
     if (!restoring) return;
     const field = document.querySelector("#kpi-restore-note");
     const note = field?.value.trim() || "";
-    if (!note) { setModalError(field, "Descrieți ce s-a schimbat."); return; }
+    if (!note) { setModalError(field, "Descrie ce s-a schimbat."); return; }
     const k = kpiOf(restoring.id);
     const v = versionOf(k, restoring.nr);
     restoring = null;
@@ -1673,7 +1673,7 @@
             : `<strong>Prima publicare: versiunea ${next}.</strong> KPI-ul devine activ ${w.central || (k && k.level === "Global") ? "la nivelul Global" : `în ${esc(authName(w.authority))}`}: se calculează zilnic, generează alerte și poate fi adăugat în widget-uri.`) || ""}
         ${!problems.length && changes.length ? changesList(changes) : ""}
         ${areaField("kpi-publish-note", "publishNote", "Ce s-a schimbat", note, { required: true, placeholder: "De ex. ținta crescută la 92%", hint: "Apare în istoricul versiunilor." })}`,
-      footer: `<div class="modal-buttons"><button class="btn btn-neutral btn-rounded" type="button" data-case-close>Anulează</button><button class="btn btn-primary btn-rounded" type="button" data-kpi-publish-confirm${problems.length ? ' aria-disabled="true" data-tooltip-reason="Rezolvați mai întâi problemele de mai sus."' : ""}>Publică</button></div>`
+      footer: `<div class="modal-buttons"><button class="btn btn-neutral btn-rounded" type="button" data-case-close>Anulează</button><button class="btn btn-primary btn-rounded" type="button" data-kpi-publish-confirm${problems.length ? ' aria-disabled="true" data-tooltip-reason="Rezolvă mai întâi problemele de mai sus."' : ""}>Publică</button></div>`
     });
   }
   /* the live KPI takes the saved configuration (+ the values checked with it); the version keeps a copy */
@@ -1695,7 +1695,7 @@
     if (button.getAttribute("aria-disabled") === "true") { if (k0) audit(k0, "rejected", Object.values(validate(P.draft, { selfId: k0.id })).join(" ")); return; }
     const field = document.querySelector("#kpi-publish-note");
     const note = field?.value.trim() || "";
-    if (!note) { setModalError(field, "Descrieți ce s-a schimbat."); return; }
+    if (!note) { setModalError(field, "Descrie ce s-a schimbat."); return; }
     if (demo.has("eroare")) { G().closeModal?.(); toast(SAVE_FAILED, "error"); publishing = null; return; }
     const create = publishing.create;
     publishing = null;
@@ -1747,7 +1747,7 @@
     event.preventDefault();
     event.stopImmediatePropagation();
     U().askConfirm?.({
-      title: "Există modificări nesalvate. Părăsiți KPI-ul?",
+      title: "Există modificări nesalvate. Părăsești KPI-ul?",
       text: "Modificările nesalvate ale KPI-ului se pierd.",
       confirmLabel: "Părăsește KPI-ul",
       cancelLabel: "Rămâi în KPI",
@@ -1857,7 +1857,7 @@
       if (back?.isConnected) back.focus({ preventScroll: true });
     };
     if (force || !touched) { close(); return; }
-    U().askConfirm?.({ title: "Renunțați la KPI-ul nou?", text: "Datele completate nu se păstrează.", confirmLabel: "Renunță", cancelLabel: "Continuă editarea", destructive: true }, close);
+    U().askConfirm?.({ title: "Renunți la KPI-ul nou?", text: "Datele completate nu se păstrează.", confirmLabel: "Renunță", cancelLabel: "Continuă editarea", destructive: true }, close);
   }
   const twoCols = (main, aside, { preview = false, attr = "" } = {}) => `
     <div class="e-permits-ntpl-content${aside ? " e-permits-kpi-content--split" : ""}${preview ? " e-permits-kpi-content--preview" : ""}${aside ? " e-permits-editor-wide" : ""}">
@@ -1869,7 +1869,7 @@
   function codesContext() {
     const d = C.v.domain;
     const head = `<div class="e-permits-dosar-profil__section-heading"><h2 class="e-permits-dosar-profil__section-title">Coduri existente în domeniu</h2></div>`;
-    if (!d) return `<section class="e-permits-dosar-profil__section">${head}${E()?.render({ title: "Alegeți domeniul", text: "Aici apar codurile KPI deja folosite în domeniu, ca să nu le repetați.", icon: "checklist", compact: true }) || ""}</section>`;
+    if (!d) return `<section class="e-permits-dosar-profil__section">${head}${E()?.render({ title: "Alege domeniul", text: "Aici apar codurile KPI deja folosite în domeniu, ca să nu le repeți.", icon: "checklist", compact: true }) || ""}</section>`;
     const list = kpis().filter((k) => domainOf(k.code) === d).sort((a, b) => (a.code < b.code ? -1 : 1));
     const rule = U().renderInfoNote?.(`Codul = litera domeniului, cratimă și două cifre, de exemplu ${esc(`${d}-\u206004`)}. Următorul cod liber: <strong>${esc(nextCode(d))}</strong>. Codul nu se mai schimbă după creare.`) || "";
     return list.length
@@ -2026,8 +2026,8 @@
       <div class="e-permits-clas-create e-permits-kpi-form">
         ${drawerSection("Unde se aplică", grid(
           selectField("kpi-o-level", "level", "Nivel", levels, v.level, { required: true, span: v.level === "Autoritate" ? 12 : 6 }),
-          v.level === "Subdiviziune" ? selectField("kpi-o-subdivision", "subdivision", "Subdiviziune", (authOf(w.authority)?.subdivisions || []).map((s) => [s, s]), v.subdivision, { required: true, placeholder: "Alegeți subdiviziunea", error: e.subdivision }) : "",
-          v.level === "Rol" ? selectField("kpi-o-role", "role", "Rol", SPEC_ROLES(D().roles).map((r) => [r, r]), v.role, { required: true, placeholder: "Alegeți rolul", hint: "Criteriul „Specialist”: ținta se aplică fiecărui specialist cu acest rol, pe dosarele lui.", error: e.role }) : "",
+          v.level === "Subdiviziune" ? selectField("kpi-o-subdivision", "subdivision", "Subdiviziune", (authOf(w.authority)?.subdivisions || []).map((s) => [s, s]), v.subdivision, { required: true, placeholder: "Alege subdiviziunea", error: e.subdivision }) : "",
+          v.level === "Rol" ? selectField("kpi-o-role", "role", "Rol", SPEC_ROLES(D().roles).map((r) => [r, r]), v.role, { required: true, placeholder: "Alege rolul", hint: "Criteriul „Specialist”: ținta se aplică fiecărui specialist cu acest rol, pe dosarele lui.", error: e.role }) : "",
           k.criteria?.includes("Serviciu") ? selectField("kpi-o-service", "service", "Serviciu", [["", "Toate serviciile"], ...D().services], v.service, { span: 12, hint: "Criteriul de setare „Serviciu”: ținta se poate stabili pe un serviciu al autorității." }) : ""
         ))}
         ${drawerSection("Ținta și pragul", grid(
@@ -2047,14 +2047,14 @@
     const w = who();
     const v = O.v;
     const e = {};
-    if (v.level === "Subdiviziune" && !v.subdivision) e.subdivision = "Alegeți subdiviziunea.";
-    if (v.level === "Rol" && !v.role) e.role = "Alegeți rolul.";
+    if (v.level === "Subdiviziune" && !v.subdivision) e.subdivision = "Alege subdiviziunea.";
+    if (v.level === "Rol" && !v.role) e.role = "Alege rolul.";
     const t = num(v.target);
     const th = num(v.threshold);
-    if (v.target === "") e.target = "Completați ținta.";
-    else if (Number.isNaN(t) || t < 0) e.target = "Introduceți un număr pozitiv.";
+    if (v.target === "") e.target = "Completează ținta.";
+    else if (Number.isNaN(t) || t < 0) e.target = "Introdu un număr pozitiv.";
     else if (k.format === "percent" && t > 100) e.target = "Procentul poate fi cel mult 100.";
-    if (v.threshold !== "" && (Number.isNaN(th) || th < 0)) e.threshold = "Introduceți un număr pozitiv.";
+    if (v.threshold !== "" && (Number.isNaN(th) || th < 0)) e.threshold = "Introdu un număr pozitiv.";
     else if (v.threshold !== "" && k.direction === "down" && th >= t) e.threshold = "Pragul de apropiere trebuie să fie mai mic decât ținta.";
     const inh = ensureInherit(k, w.authority);
     const scope = (o) => `${o.level}|${o.subdivision || ""}|${o.role || ""}|${o.service || ""}`;
@@ -2077,7 +2077,7 @@
     const o = inh?.own.find((x) => x.id === ownId);
     if (!o) return;
     U().askConfirm?.({
-      title: "Eliminați valoarea proprie?",
+      title: "Elimini valoarea proprie?",
       text: `Pentru ${ownTitle(o)} se va aplica din nou ținta globală${hasTarget(k) ? ` (${fmt(k, k.target)})` : ""}.`,
       confirmLabel: "Elimină",
       destructive: true

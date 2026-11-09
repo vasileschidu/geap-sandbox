@@ -835,7 +835,7 @@
             "user": "Anastasia Cojocaru",
             "type": "Eroare la sincronizare",
             "status": "Eșuat",
-            "detail": "Cod 003000023: Serviciul RSSP este momentan indisponibil. Încercați mai târziu."
+            "detail": "Cod 003000023: Serviciul RSSP este momentan indisponibil. Încearcă mai târziu."
           }
         ],
         "notificationTemplates": [
@@ -1526,7 +1526,7 @@
             "user": "SIA GEAP",
             "type": "Eroare la sincronizare",
             "status": "Eșuat",
-            "detail": "Sincronizare automată · Cod 003000245: Serviciul RSSP este momentan indisponibil. Încercați mai târziu."
+            "detail": "Sincronizare automată · Cod 003000245: Serviciul RSSP este momentan indisponibil. Încearcă mai târziu."
           },
           {
             "at": "2026-05-02T11:05:00",

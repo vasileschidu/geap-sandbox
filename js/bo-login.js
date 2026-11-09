@@ -130,11 +130,11 @@
       <div class="e-permits-fo-auth__content">
         <div class="e-permits-fo-auth__title-group">
           <span class="bo-login__state-icon bo-login__state-icon--danger">${icon("lock", 36)}</span>
-          <h1 id="bo-login-title">Aveți nevoie de permisiune de acces</h1>
+          <h1 id="bo-login-title">Ai nevoie de permisiune de acces</h1>
         </div>
         <p class="e-permits-fo-auth__description">${EKYC
-          ? "Contul dumneavoastră MPass nu are un rol în EVO eKYC. Pentru acces, contactați administratorul platformei la suport.ekyc@egov.md."
-          : "Nu aveți un cont activ în cadrul SIA GEAP. Pentru acordarea drepturilor de acces, vă rugăm să contactați administratorul local."}</p>
+          ? "Contul tău MPass nu are un rol în EVO eKYC. Pentru acces, contactează administratorul platformei la suport.ekyc@egov.md."
+          : "Nu ai un cont activ în cadrul SIA GEAP. Pentru acordarea drepturilor de acces, contactează administratorul local."}</p>
         <div class="bo-login__identity">
           <span class="bo-login__identity-label">Autentificat în MPass ca</span>
           <span class="bo-login__identity-value">${who.name} · IDNP ${masked(who.idnp)}</span>
@@ -171,15 +171,15 @@
         ${signoutHtml}
       </div>`;
   /* US-81 AC-01: an active account without any active combination */
-  VIEWS.noRole = (who) => refusal(`Nu puteți intra în ${PRODUCT}`, "Nu aveți niciun rol atribuit. Contactați administratorul.", who);
+  VIEWS.noRole = (who) => refusal(`Nu poți intra în ${PRODUCT}`, "Nu ai niciun rol atribuit. Contactează administratorul.", who);
   /* US-81 AC-03: an inactive account never reaches the context screen */
-  VIEWS.inactive = (who) => refusal("Contul este inactiv", "Contul dumneavoastră în SIA GEAP este inactiv și nu permite autentificarea. Pentru reactivare, contactați administratorul.", who);
+  VIEWS.inactive = (who) => refusal("Contul este inactiv", "Contul tău în SIA GEAP este inactiv și nu permite autentificarea. Pentru reactivare, contactează administratorul.", who);
   /* US-81 AC-08…19: every card at once, grouped by authority, delegations apart; „Ieșire” ends the session (AC-20) */
   /* choice-cards-v1: the FO identity choice screen („Cum vrei să depui cererea?”) — same card, copy block, groups */
   VIEWS.context = ({ model }) => `
       <div class="e-permits-fo-auth__content e-permits-fo-auth__content--choice">
         <div class="e-permits-fo-auth__choice-copy">
-          <h1 id="bo-login-title">Cu ce rol lucrați?</h1>
+          <h1 id="bo-login-title">Cu ce rol lucrezi?</h1>
         </div>
         ${CTX.listHtml(model, { heading: "h2", idPrefix: "bo-ctx" })}
         <div class="e-permits-fo-auth__separator" aria-hidden="true"></div>

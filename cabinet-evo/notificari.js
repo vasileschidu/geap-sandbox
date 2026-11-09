@@ -39,7 +39,7 @@
     const open = { label: "Vezi dosarul", href: dosarUrl(dosar) };
     if (dosar.status === "schita") {
       const removed = removedDraft(dosar);
-      list.push({ kind: "draft-saved", at: dosar.created, icon: "icon-cloud-upload-success", tone: "neutral", title: "Schița a fost salvată", text: `${what}. O puteți continua până pe ${longDate(dosar.draft?.expires)}, apoi se elimină automat.`, action: removed ? null : { label: "Continuă schița", href: draftUrl(dosar) } });
+      list.push({ kind: "draft-saved", at: dosar.created, icon: "icon-cloud-upload-success", tone: "neutral", title: "Schița a fost salvată", text: `${what}. O poți continua până pe ${longDate(dosar.draft?.expires)}, apoi se elimină automat.`, action: removed ? null : { label: "Continuă schița", href: draftUrl(dosar) } });
       /* US-29 AC-02: removed automatically → the applicant is notified (the link explains it in Solicitările mele) */
       if (removed) list.push({ kind: "draft-removed", at: `${nextDay(dosar.draft.expires)}T00:00`, icon: "icon-delete", tone: "neutral", title: "Schița a fost eliminată automat", text: `${what}. Termenul de păstrare a schiței a expirat pe ${longDate(dosar.draft.expires)}; datele nu mai pot fi recuperate.`, action: { label: "Vezi detalii", href: dosarUrl(dosar) } });
       return list;
@@ -52,7 +52,7 @@
       const active = dosar.status === "info" && dosar.info?.until >= TODAY;
       list.push({
         kind: "info-requested", at: dosar.suspended, icon: "icon-warning-filled", tone: "warning", title: "Autoritatea a cerut informații suplimentare",
-        text: `${what}. Trimiteți-le până la ${longDate(dosar.info?.until)}.`,
+        text: `${what}. Trimite-le până la ${longDate(dosar.info?.until)}.`,
         details: [["Motivul suspendării", dosar.info?.category], ["Neconformități depistate", dosar.info?.reason]].filter(([, value]) => value),
         action: active ? { label: "Suplinire informații", href: supplementUrl(dosar) } : open,
       });
@@ -62,7 +62,7 @@
     /* US-24 AC-03 / Feature 95770: the suplinire term expired → the BO resumed the examination; the applicant is notified */
     const expired = dosar.resumed?.kind === "expirat" || (dosar.status === "info" && dosar.info?.until < TODAY);
     if (expired) list.push({ kind: "supplement-expired", at: dosar.resumed?.at || `${nextDay(dosar.info.until)}T00:00`, icon: "icon-time", tone: "neutral", title: "Termenul de suplinire a expirat", text: `${what}. Informațiile cerute nu au fost transmise până pe ${longDate(dosar.info?.until)}; autoritatea a reluat examinarea cu documentele depuse.`, action: open });
-    if (dosar.status === "achitare" && dosar.payment) list.push({ at: dosar.payment.created, icon: "icon-credit-card", tone: "warning", title: "Aveți o notă de plată de achitat", text: `${money(dosar.payment.amount)} · nota ${dosar.payment.nr} · până la ${longDate(dosar.payment.due)}.`, action: { label: "Achitare", pay: dosar } });
+    if (dosar.status === "achitare" && dosar.payment) list.push({ at: dosar.payment.created, icon: "icon-credit-card", tone: "warning", title: "Ai o notă de plată de achitat", text: `${money(dosar.payment.amount)} · nota ${dosar.payment.nr} · până la ${longDate(dosar.payment.due)}.`, action: { label: "Achitare", pay: dosar } });
     if (dosar.payment?.paid && dosar.feeDuringExam) list.push({ at: dosar.payment.paid, icon: "icon-credit-card", tone: "success", title: "Plata a fost confirmată", text: `${money(dosar.payment.amount)} · nota ${dosar.payment.nr}. Dosarul a revenit în examinare.`, action: open });
     if (dosar.status === "finalizat" && dosar.result === "aprobat") list.push({ at: dosar.finalized, icon: dosar.decisionOnly ? "icon-page-text" : "icon-permission", tone: "success", title: dosar.decisionOnly ? "Decizia a fost emisă" : "Actul permisiv a fost emis", text: what, action: dosar.actId && !dosar.decisionOnly ? { label: "Vezi actul", href: cabUrl("acte", { act: dosar.actId }) } : open });
     if (dosar.status === "finalizat" && dosar.result === "respins") list.push({ at: dosar.finalized, icon: "icon-circle-error-filled", tone: "danger", title: "Solicitarea a fost respinsă", text: `${what}. Motivul este în decizia din profilul dosarului.`, action: open });
@@ -102,13 +102,13 @@
     root.innerHTML = `
       <section class="cab-intro" aria-labelledby="nt-title">
         <h1 class="text-heading-h2" id="nt-title" tabindex="-1">Notificări</h1>
-        <p class="text-body-sm">Evenimentele solicitărilor dumneavoastră — le primiți și prin e-mail / SMS (MNotify).</p>
+        <p class="text-body-sm">Evenimentele solicitărilor tale — le primești și prin e-mail / SMS (MNotify).</p>
       </section>
-      ${ro ? C.restrictionHtml(ro, "Nu mai primiți notificări noi pentru solicitările acestui beneficiar; vedeți doar notificările primite până la acea dată, fără acțiuni.") : ""}
+      ${ro ? C.restrictionHtml(ro, "Nu mai primești notificări noi pentru solicitările acestui beneficiar; vezi doar notificările primite până la acea dată, fără acțiuni.") : ""}
       <div class="nt-lead" data-nt-lead></div>
       ${notes.length
         ? `<section class="e-permits-stack sm-list nt-list" aria-label="Notificări"><ul class="e-permits-stack__list" role="list">${notes.map((note, index) => itemHtml(note, index, Boolean(ro))).join("")}</ul></section>`
-        : `<div class="cab-state">${window.GEAPEmptyState.render({ title: "Nu aveți notificări", text: "Evenimentele solicitărilor apar aici.", icon: "notification" })}</div>`}`;
+        : `<div class="cab-state">${window.GEAPEmptyState.render({ title: "Nu ai notificări", text: "Evenimentele solicitărilor apar aici.", icon: "notification" })}</div>`}`;
 
     /* US-135 AC-02 / AC-11: the notification's link → MPay (the Solicitările mele stand-in); AC-14: an expired
        fee shows the message and nothing is redirected */
@@ -137,7 +137,7 @@
   const params = C.params;
   init().catch((error) => {
     console.warn("[notificari]", error);
-    root.innerHTML = `<div class="cab-state" role="alert">${window.GEAPEmptyState.render({ title: "A apărut o eroare", text: "Notificările nu au fost încărcate. Încercați din nou.", icon: "circle-error" })}</div>`;
+    root.innerHTML = `<div class="cab-state" role="alert">${window.GEAPEmptyState.render({ title: "A apărut o eroare", text: "Notificările nu au fost încărcate. Încearcă din nou.", icon: "circle-error" })}</div>`;
     document.documentElement.dataset.ntReady = "true";
   });
 })();

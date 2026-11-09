@@ -42,6 +42,7 @@
 
     const demoFlow = currentDemoFlow();
     document.body.dataset.demoFlow = demoFlow;
+    /* copy-tu (user + PO 2026-11-09): every UI text speaks „tu” — FO, Cabinet, RAP, back office, Ghișeu, admin. */
 
     const frontOfficeAuthButton = document.querySelector("[data-fo-authenticate]");
     const frontOfficeAuthScreen = document.querySelector("[data-fo-screen='auth']");
@@ -786,7 +787,7 @@
       ].join("");
       /* MPower does not answer (?mpower=eroare): own identities only + the US-159 AC-10 message */
       if (schema?.mpowerUnavailable) {
-        roleList.insertAdjacentHTML("beforeend", `<div class="e-permits-fo-requestor-note">${foUi().renderNotice?.("error", "<strong>A apărut o eroare.</strong> Verificarea drepturilor de reprezentare nu a putut fi efectuată. Încercați din nou.", { role: "alert" }) || ""}</div>`);
+        roleList.insertAdjacentHTML("beforeend", `<div class="e-permits-fo-requestor-note">${foUi().renderNotice?.("error", "<strong>A apărut o eroare.</strong> Verificarea drepturilor de reprezentare nu a putut fi efectuată. Încearcă din nou.", { role: "alert" }) || ""}</div>`);
       }
 
       /* No identity at all can start this request. Say why, rather than
@@ -1204,7 +1205,7 @@
       const addressMode = !cadastralOn ? "a" : cadastral.required ? "c" : "b";
       const reqAttr = (key) => ((parts[key]?.required ?? PART_REQUIRED[key]) ? ` data-fo-address-required="${key}"` : "");
       const searchHint = cadastralOn
-        ? "Căutați o adresă salvată sau introduceți un cod cadastral și alegeți „Caută codul cadastral” din listă."
+        ? "Caută o adresă salvată sau introdu un cod cadastral și alege „Caută codul cadastral” din listă."
         : "Selectarea unei adrese existente pre-completează toate câmpurile";
       const searchId = `fo-casc-search-${uid}`;
       /* with „Cod cadastral” on, the search takes a code too — its label / placeholder say so */
@@ -1345,7 +1346,7 @@
       const pick = field.mode === "select";
       const mappingJson = escapeFrontOfficeHtml(JSON.stringify(field.mapping || {}));
       const placeholder = pick ? field.placeholder || "Selectează subdiviziunea" : "Va fi sugerată după raion";
-      const hint = pick ? field.hint || "" : field.hint || "Selectați raionul pentru a sugera subdiviziunea automat.";
+      const hint = pick ? field.hint || "" : field.hint || "Selectează raionul pentru a sugera subdiviziunea automat.";
       return `
         <div class="${fieldClass(field)} e-permits-fo-subdivision-field" data-fo-subdivision${pick ? ' data-fo-subdivision-mode="select"' : ` data-fo-subdivision-mapping="${mappingJson}"`}>
           ${labelHtml(id, field)}
@@ -1541,9 +1542,9 @@
       /* free text instead of a classifier select (AC-17 foreign address, AC-23 „Introdu manual”):
          an FO input box after the select, which is hidden; the label points at whichever is shown */
       const FREE = {
-        district: { el: raionEl, placeholder: "Introduceți raionul sau regiunea" },
-        locality: { el: localitateEl, placeholder: "Introduceți orașul sau localitatea" },
-        street: { el: stradaEl, placeholder: "Introduceți strada" },
+        district: { el: raionEl, placeholder: "Introdu raionul sau regiunea" },
+        locality: { el: localitateEl, placeholder: "Introdu orașul sau localitatea" },
+        street: { el: stradaEl, placeholder: "Introdu strada" },
       };
       function setFree(key, on) {
         const conf = FREE[key];
@@ -1759,7 +1760,7 @@
       }
 
       /* the address checked by „Înainte”: a required, visible part left empty → its message + red
-         frame (only Țara + Raion by default, AC-04); a required „Cod cadastral” → „Introduceți codul
+         frame (only Țara + Raion by default, AC-04); a required „Cod cadastral” → „Introdu codul
          cadastral.” Returns the first field with an error, or null. */
       function validate() {
         root.querySelectorAll(".e-permits-fo-field").forEach(clearAddressError);
@@ -1786,7 +1787,7 @@
           focusable?.setAttribute("aria-invalid", "true");
           focusable?.setAttribute("aria-describedby", errorId);
           focusable?.setAttribute("data-fo-address-err", "");
-          fieldEl.insertAdjacentHTML("beforeend", `<p class="message message--inline e-permits-fo-field__error" id="${escapeFrontOfficeHtml(errorId)}" data-fo-address-error><svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-circle-error-filled"></use></svg><span>${escapeFrontOfficeHtml(`${isSelect ? "Selectați" : "Introduceți"} ${label}.`)}</span></p>`);
+          fieldEl.insertAdjacentHTML("beforeend", `<p class="message message--inline e-permits-fo-field__error" id="${escapeFrontOfficeHtml(errorId)}" data-fo-address-error><svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-circle-error-filled"></use></svg><span>${escapeFrontOfficeHtml(`${isSelect ? "Selectează" : "Introdu"} ${label}.`)}</span></p>`);
           first ||= fieldEl;
         });
         return first;
@@ -1901,9 +1902,9 @@
       const MESSAGES = {
         loading: { tone: "e-permits-fo-field__loading", text: "Se caută adresa în Registrul de Stat al Bunurilor Imobile…" },
         success: { tone: "message--success e-permits-fo-field__success", icon: "icon-circle-checkmark-filled", text: "Adresa a fost completată din Registrul de Stat al Bunurilor Imobile." },
-        invalid: { tone: "message--error", icon: "icon-circle-error-filled", text: "Codul nu este valid, corectați." },
-        unavailable: { tone: "message--warning e-permits-fo-field__warning", icon: "icon-warning-filled", text: "Adresă indisponibilă. Puteți completa adresa manual." },
-        required: { tone: "message--error", icon: "icon-circle-error-filled", text: "Introduceți codul cadastral." },
+        invalid: { tone: "message--error", icon: "icon-circle-error-filled", text: "Codul nu este valid, corectează-l." },
+        unavailable: { tone: "message--warning e-permits-fo-field__warning", icon: "icon-warning-filled", text: "Adresă indisponibilă. Poți completa adresa manual." },
+        required: { tone: "message--error", icon: "icon-circle-error-filled", text: "Introdu codul cadastral." },
       };
 
       /* mode B: „Cod cadastral” waits behind „Adaugă codul cadastral” and opens on that button or
@@ -1934,7 +1935,7 @@
       function setDown(on) {
         root.querySelector(":scope > [data-fo-srre-down]")?.remove();
         if (!on) return;
-        root.insertAdjacentHTML("afterbegin", foUi().renderNotice?.("warning", "<strong>Registrul de Stat al Bunurilor Imobile nu răspunde acum.</strong> Completați adresa manual. Adresa introdusă manual se verifică la examinare.", { className: "e-permits-fo-cascade-address__down" }) || "");
+        root.insertAdjacentHTML("afterbegin", foUi().renderNotice?.("warning", "<strong>Registrul de Stat al Bunurilor Imobile nu răspunde acum.</strong> Completează adresa manual. Adresa introdusă manual se verifică la examinare.", { className: "e-permits-fo-cascade-address__down" }) || "");
         root.querySelector(":scope > .e-permits-fo-cascade-address__down")?.setAttribute("data-fo-srre-down", "");
       }
 
@@ -2287,7 +2288,7 @@
           if (hint) { hint.textContent = `Autoselectată din raionul adresei (${raionValue}).`; hint.hidden = false; }
         } else {
           select?.clearValue("Va fi sugerată după raion");
-          if (hint) { hint.textContent = "Selectați raionul pentru a sugera subdiviziunea automat."; hint.hidden = false; }
+          if (hint) { hint.textContent = "Selectează raionul pentru a sugera subdiviziunea automat."; hint.hidden = false; }
         }
       });
     }
@@ -2996,7 +2997,7 @@
               <svg class="icon" width="24" height="24"><use href="assets/icons/sprite.svg#icon-cloud-upload"></use></svg>
             </span>
             <span class="e-permits-fo-file-drop__copy">
-              <span><span>Trageți fișierele aici sau</span> <strong>alegeți de pe dispozitiv</strong></span>
+              <span><span>${"Trage fișierele aici sau"}</span> <strong>${"alege de pe dispozitiv"}</strong></span>
               <small>Un singur fișier ${escapeFrontOfficeHtml(doc.accept || "JPG, PNG, PDF, XLS, ZIP, DOCX")} <span aria-hidden="true">•</span> max ${escapeFrontOfficeHtml(doc.maxSize || "60 MB")}</small>
             </span>
             <button class="btn btn-secondary btn-md e-permits-fo-upload-button" type="button" aria-label="Încarcă fișier" data-fo-upload-trigger>
@@ -3077,7 +3078,7 @@
       }
 
       /* doc-upload-v1 · US-20 AC-01: the list comes from RSSPA; when it does not answer, the step shows the error +
-         „Reîncercați” instead of the list (demo `?rsspa=indisponibil`; the retry answers) and „Înainte” waits */
+         „Reîncearcă” instead of the list (demo `?rsspa=indisponibil`; the retry answers) and „Înainte” waits */
       const registryDown = new URLSearchParams(location.search).get("rsspa") === "indisponibil" && !panel.dataset.foDocsRetried;
       const nextBlocked = registryDown ? ' aria-disabled="true" data-tooltip-reason="Lista actelor necesare nu s-a încărcat."' : "";
       panel.innerHTML = `
@@ -3089,7 +3090,7 @@
           ${foUi().renderNotice?.("error", "<strong>Lista actelor necesare nu s-a încărcat.</strong> Registrul serviciilor publice nu răspunde acum. Datele introduse se păstrează.", { role: "alert", className: "e-permits-fo-docs-down" }) || ""}
           <button class="btn btn-outline-strict btn-md e-permits-fo-docs-retry" type="button" data-fo-docs-retry>
             <svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-rotate-arrow"></use></svg>
-            <span>Reîncercați</span>
+            <span>Reîncearcă</span>
           </button>` : `
           ${step.documents.map(documentItemHtml).join("")}
           <hr class="e-permits-fo-documents__separator">
@@ -3674,7 +3675,7 @@
         : "";
 
       /* US-18 AC-06/07: the certificate is shown only when the service issues one (?cert=none hides it);
-         a failed generation shows the error + „Reîncercați” (?cert=error) */
+         a failed generation shows the error + „Reîncearcă” (?cert=error) */
       const certMode = new URLSearchParams(location.search).get("cert") || "";
       const doc = step.document && certMode === "none" ? "" : step.document && certMode === "error" && !frontOfficeCertRetried
         ? foFinishDocHtml({ title: step.document.title || "", error: "Nu a putut fi generat.", actionAttrs: "data-fo-finish-document-retry" })
@@ -5435,7 +5436,7 @@
     }
 
     /* US-18 AC-07: „Vezi documentul” → the certificate, with „Descarcă”; ?cert=unavailable = the file
-       cannot be downloaded (error + „Reîncercați”).
+       cannot be downloaded (error + „Reîncearcă”).
        2026-10-20 (user: no download in document rows, only in the document modal): the same modal is the FO
        document viewer — the post-process previous act („Detalii” on its card) sets `certView`
        ({ modalTitle, kicker, title, lead, rows, file }); null = the certificate. */
@@ -5492,17 +5493,17 @@
           ] }]
         };
         certModal.querySelector("[data-fo-cert-body]").innerHTML = `
-          ${downloadError ? `<div class="message message--subtle banner--error" role="alert"><span class="banner__icon"><svg class="icon" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-circle-error-filled"></use></svg></span><div class="banner__content"><p class="banner__text">Fișierul nu este disponibil momentan. Încercați din nou.</p></div></div>` : ""}
+          ${downloadError ? `<div class="message message--subtle banner--error" role="alert"><span class="banner__icon"><svg class="icon" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-circle-error-filled"></use></svg></span><div class="banner__content"><p class="banner__text">${"Fișierul nu este disponibil momentan. Încearcă din nou."}</p></div></div>` : ""}
           <div class="e-permits-doc-peek__canvas e-permits-detail-modal__preview" data-fo-cert-canvas role="document" aria-label="Certificat constatator">${window.GEAPDocPreview.mdocsHtml(spec)}</div>
           ${window.GEAPDocPreview.signatureHtml({ by: "SIA GEAP", at: value("Data depunerii") })}`;
-        certModal.querySelector("[data-fo-cert-download] span").textContent = downloadError ? "Reîncercați" : "Descarcă";
+        certModal.querySelector("[data-fo-cert-download] span").textContent = downloadError ? "Reîncearcă" : "Descarcă";
         const canvas = certModal.querySelector("[data-fo-cert-canvas]");
         window.GEAPDocPreview.paginate(canvas);
         requestAnimationFrame(() => window.GEAPDocPreview.fit(canvas));
         return;
       }
       certModal.querySelector("[data-fo-cert-body]").innerHTML = `
-        ${downloadError ? `<div class="message message--subtle banner--error" role="alert"><span class="banner__icon"><svg class="icon" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-circle-error-filled"></use></svg></span><div class="banner__content"><p class="banner__text">Fișierul nu este disponibil momentan. Încercați din nou.</p></div></div>` : ""}
+        ${downloadError ? `<div class="message message--subtle banner--error" role="alert"><span class="banner__icon"><svg class="icon" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-circle-error-filled"></use></svg></span><div class="banner__content"><p class="banner__text">${"Fișierul nu este disponibil momentan. Încearcă din nou."}</p></div></div>` : ""}
         <div class="e-permits-fo-cert">
           <p class="e-permits-fo-cert__kicker">${esc(view.kicker)}</p>
           <h3 class="e-permits-fo-cert__title">${esc(view.title)}</h3>
@@ -5511,7 +5512,7 @@
             ${rows.map((row) => `<div class="e-permits-fo-summary-row"><span class="e-permits-fo-summary-row__label">${esc(row.label || "")}</span><div class="e-permits-fo-summary-row__value">${esc(row.value || "")}</div></div>`).join("")}
           </div>
         </div>`;
-      certModal.querySelector("[data-fo-cert-download] span").textContent = downloadError ? "Reîncercați" : "Descarcă";
+      certModal.querySelector("[data-fo-cert-download] span").textContent = downloadError ? "Reîncearcă" : "Descarcă";
     };
     document.addEventListener("click", (event) => {
       if (event.target.closest("[data-fo-finish-document-retry]")) {
@@ -5613,12 +5614,12 @@
 
     /* US-191: after identification the intermediate screen is always shown
        (it cannot be skipped) — with the identity's acts that still have a
-       post-process, or "Dumneavoastră nu aveți acte emise pentru serviciul
+       post-process, or "Nu ai acte emise pentru serviciul
        dat." when there are none; "Solicitare nouă" is there in both cases.
        The notarial-proxy path has no acts of its own and goes straight on. */
     /* intent-skip-empty-v1 (user 2026-11-03): „Ce vrei să soliciți?” only when the applicant HAS acts with a
        post-process for this service — with none there is nothing to choose, so the request starts at once
-       (no empty „Solicitare nouă / sau / nu aveți acte” step) */
+       (no empty „Solicitare nouă / sau / nu ai acte” step) */
     function frontOfficeShouldShowIntent(subject) {
       return Boolean(
         frontOfficeIntentConfig()
@@ -5697,7 +5698,7 @@
     /* the whole „Ce vrei să soliciți?” screen body — FO #intent and the Ghișeu request window (2026-10-15):
        header (title + „<label> <name> · Schimbă”), optional notice, „Solicitare nouă”, „sau”, the acts list
        (rows from foActRowHtml) or the shared empty state */
-    function foIntentHtml({ title = "Ce vrei să soliciți?", titleId = "fo-intent-title", subjectLabel = "Solicitant", subjectName = "", subjectMeta = "", changeAttrs = "data-fo-back-choice", noticeHtml = "", newRequest = {}, newAttrs = "data-fo-intent-new", separator = "sau", actsTitle = "Acte emise pentru acest serviciu", actsId = "fo-intent-acts-title", rowsHtml = "", emptyTitle = "Dumneavoastră nu aveți acte emise pentru serviciul dat", emptyAttrs = "data-fo-intent-empty", listHeadHtml = "" } = {}) {
+    function foIntentHtml({ title = "Ce vrei să soliciți?", titleId = "fo-intent-title", subjectLabel = "Solicitant", subjectName = "", subjectMeta = "", changeAttrs = "data-fo-back-choice", noticeHtml = "", newRequest = {}, newAttrs = "data-fo-intent-new", separator = "sau", actsTitle = "Acte emise pentru acest serviciu", actsId = "fo-intent-acts-title", rowsHtml = "", emptyTitle = "Nu ai acte emise pentru serviciul dat", emptyAttrs = "data-fo-intent-empty", listHeadHtml = "" } = {}) {
       const esc = escapeFrontOfficeHtml;
       return `
         <header class="e-permits-fo-intent__header">
@@ -5720,7 +5721,7 @@
           ${rowsHtml ? listHeadHtml : "" /* above the rows (the Ghișeu acts search, ghiseu-picker-toast-v1) */}
           ${rowsHtml
             ? `<ul class="e-permits-fo-intent__list">${rowsHtml}</ul>`
-            : `<div ${emptyAttrs}>${window.GEAPEmptyState.render({ title: String(emptyTitle).replace(/\.$/, ""), text: "Un act apare aici după ce este emis. Pentru un act nou, alegeți „Solicitare nouă”.", icon: "permission" })}</div>`}
+            : `<div ${emptyAttrs}>${window.GEAPEmptyState.render({ title: String(emptyTitle).replace(/\.$/, ""), text: "Un act apare aici după ce este emis. Pentru un act nou, alege „Solicitare nouă”.", icon: "permission" })}</div>`}
         </section>`;
     }
 
@@ -5754,7 +5755,7 @@
         separator: config.separator || "sau",
         actsTitle: config.actsTitle,
         rowsHtml: acts.map(intentActHtml).join(""),
-        emptyTitle: config.emptyText || "Dumneavoastră nu aveți acte emise pentru serviciul dat."
+        emptyTitle: config.emptyText || "Nu ai acte emise pentru serviciul dat."
       });
     }
 
@@ -5773,7 +5774,7 @@
        (AC-03, „Nedefinit”), Tipul solicitării = the service name · request type (AC-04, „Nedefinit”), Motivul
        suspendării = exactly what the BO specialist recorded (AC-05, „—”). „Continuă” opens S5 = the request form of
        that service / post-process (AC-07; here the FO request at step 2); ?s5=eroare = the form does not load once →
-       message + „Reîncercați”. Data: the Cabinet seed (data/cabinet-evo-solicitari.json), the same record the
+       message + „Reîncearcă”. Data: the Cabinet seed (data/cabinet-evo-solicitari.json), the same record the
        Cabinet profile shows. bo-dossier-flows-v1. */
     const frontOfficeSupplementNr = new URLSearchParams(location.search).get("suplinire") || "";
     const SUPPLEMENT_SEEN = "e-permits-fo-suplinire-s4";
@@ -5866,10 +5867,10 @@
       /* supp-s4-card-v1: the status = the EVO Cabinet profile alert card (Solicitările mele, js/alert-card.js) */
       const card = (tone, title, text, role = "status") => window.GEAPAlertCard?.html({ tone, title, text, role, id: "fo-supp-alert", sprite: "assets/icons/sprite.svg", className: "e-permits-fo-supp-alert" }) || "";
       const notice = {
-        open: () => card("warning", "Examinarea dosarului este suspendată", `Completați informațiile cerute${info.until ? ` până la ${esc(supplementLongDay(info.until))}` : ""}; pe pașii următori actualizați cererea și actele, apoi semnați.`),
+        open: () => card("warning", "Examinarea dosarului este suspendată", `Completează informațiile cerute${info.until ? ` până la ${esc(supplementLongDay(info.until))}` : ""}; pe pașii următori actualizează cererea și actele, apoi semnează.`),
         expired: () => card("warning", `Termenul de suplinire a expirat${info.until ? ` pe ${esc(supplementLongDay(info.until))}` : ""}`, "Autoritatea a reluat examinarea cu datele depuse; informațiile nu mai pot fi trimise de aici.", "alert"),
-        closed: () => card("info", `Informațiile cerute au fost deja trimise${dosar?.supplemented ? ` pe ${esc(supplementLongDay(dosar.supplemented))}` : ""}`, "Dosarul este din nou în examinare; nu trebuie să faceți nimic acum."),
-        unknown: () => card("danger", `Nu am găsit dosarul ${esc(frontOfficeSupplementNr || "")}`, "Deschideți suplinirea din EVO Cabinet › Solicitările mele sau contactați autoritatea emitentă.", "alert")
+        closed: () => card("info", `Informațiile cerute au fost deja trimise${dosar?.supplemented ? ` pe ${esc(supplementLongDay(dosar.supplemented))}` : ""}`, "Dosarul este din nou în examinare; nu trebuie să faci nimic acum."),
+        unknown: () => card("danger", `Nu am găsit dosarul ${esc(frontOfficeSupplementNr || "")}`, "Deschide suplinirea din EVO Cabinet › Solicitările mele sau contactează autoritatea emitentă.", "alert")
       }[status]();
       const footer = status === "open"
         ? foStepFooterHtml({ backAttrs: "data-fo-supplement-back", backLabel: "Înapoi la Solicitările mele", nextLabel: "Continuă", nextAttrs: "data-fo-supplement-next" })
@@ -5886,10 +5887,10 @@
         </section>
         ${error ? `
           <div class="e-permits-fo-supplement__retry" data-fo-supplement-error>
-            ${foUi().renderNotice?.("error", "<strong>Formularul cererii nu s-a încărcat.</strong> Datele dosarului se păstrează. Încercați din nou.", { role: "alert" }) || ""}
+            ${foUi().renderNotice?.("error", "<strong>Formularul cererii nu s-a încărcat.</strong> Datele dosarului se păstrează. Încearcă din nou.", { role: "alert" }) || ""}
             <button class="btn btn-outline-strict btn-md" type="button" data-fo-supplement-retry>
               <svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-rotate-arrow"></use></svg>
-              <span>Reîncercați</span>
+              <span>Reîncearcă</span>
             </button>
           </div>` : ""}
         ${footer}`;
@@ -6068,18 +6069,18 @@
         bodyHtml: `<div class="e-permits-fo-confirm-file e-permits-fo-confirm-file--doc e-permits-fo-confirm-file--system" data-fo-supp-form data-fo-doc="${esc(JSON.stringify(formDoc))}">${foDocIconHtml(formDoc, "e-permits-fo-confirm-file__icon")}${foDocContentHtml(formDoc, { open: true })}</div>`
       }).replace('class="e-permits-fo-summary-section"', 'class="e-permits-fo-summary-section" data-fo-supp-section'));
       panel.querySelector("[data-fo-supp-guide]")?.remove();
-      panel.querySelector(":scope > .e-permits-fo-form__header")?.insertAdjacentHTML("afterend", (foUi().renderNotice?.("info", "Selectați pasul necesar pentru a corecta datele necesare: „Detalii solicitare” sau „Acte necesare”. Datele solicitantului, livrarea și taxele nu se modifică la suplinire.") || "").replace("<div ", "<div data-fo-supp-guide "));
+      panel.querySelector(":scope > .e-permits-fo-form__header")?.insertAdjacentHTML("afterend", (foUi().renderNotice?.("info", "Selectează pasul necesar pentru a corecta datele necesare: „Detalii solicitare” sau „Acte necesare”. Datele solicitantului, livrarea și taxele nu se modifică la suplinire.") || "").replace("<div ", "<div data-fo-supp-guide "));
       const missing = supplementMissingRequired();
       const help = frontOfficeSupplement.help;
       const tone = (key) => ({
-        "msign-error": ["error", "<strong>MSign nu răspunde acum.</strong> Cererea nu a fost semnată; datele ei rămân neschimbate. Încercați din nou."],
-        unsigned: ["error", "Nu puteți continua fără a semna cererea."],
-        "retransmit-error": ["error", `<strong>Informațiile nu au ajuns la autoritate.</strong> Cererea semnată se păstrează. Încercați din nou sau contactați ${esc(frontOfficeSupplement.service?.authority || "autoritatea emitentă")}${help ? `: ${esc(help.phone)}, ${esc(help.email)}` : ""}.`]
+        "msign-error": ["error", "<strong>MSign nu răspunde acum.</strong> Cererea nu a fost semnată; datele ei rămân neschimbate. Încearcă din nou."],
+        unsigned: ["error", "Nu poți continua fără a semna cererea."],
+        "retransmit-error": ["error", `<strong>Informațiile nu au ajuns la autoritate.</strong> Cererea semnată se păstrează. Încearcă din nou sau contactează ${esc(frontOfficeSupplement.service?.authority || "autoritatea emitentă")}${help ? `: ${esc(help.phone)}, ${esc(help.email)}` : ""}.`]
       }[key]);
       const notes = [
-        missing ? foUi().renderNotice?.("error", "<strong>Completați câmpurile obligatorii.</strong> Reveniți la pasul „Detalii solicitare”, apoi semnați cererea.", { role: "alert" }) : "",
-        !missing && frontOfficeSupp.voided && !frontOfficeSupp.signed ? foUi().renderNotice?.("warning", "Semnătura a fost anulată, deoarece ați revenit la un pas anterior. Semnați din nou cererea.") : "",
-        frontOfficeSupp.signed && !frontOfficeSupp.notice ? foUi().renderNotice?.("success", "Cererea a fost semnată prin MSign. Trimiteți informațiile autorității.") : "",
+        missing ? foUi().renderNotice?.("error", "<strong>Completează câmpurile obligatorii.</strong> Revino la pasul „Detalii solicitare”, apoi semnează cererea.", { role: "alert" }) : "",
+        !missing && frontOfficeSupp.voided && !frontOfficeSupp.signed ? foUi().renderNotice?.("warning", "Semnătura a fost anulată, deoarece ai revenit la un pas anterior. Semnează din nou cererea.") : "",
+        frontOfficeSupp.signed && !frontOfficeSupp.notice ? foUi().renderNotice?.("success", "Cererea a fost semnată prin MSign. Trimite informațiile autorității.") : "",
         frontOfficeSupp.notice ? foUi().renderNotice?.(tone(frontOfficeSupp.notice)[0], tone(frontOfficeSupp.notice)[1], { role: "alert" }) : ""
       ].filter(Boolean).join("");
       panel.querySelector("[data-fo-supp-status]")?.remove();
@@ -6113,7 +6114,7 @@
         id: "finish",
         title: "Informațiile au fost trimise",
         returnHref: href,
-        lead: { text: `Dosarul nr. ${dosar.nr} a fost retransmis specialistului pentru reluarea examinării. Veți fi notificat despre evoluția dosarului în EVO Cabinet →`, link: "Solicitările mele" },
+        lead: { text: `Dosarul nr. ${dosar.nr} a fost retransmis specialistului pentru reluarea examinării. Vei fi notificat despre evoluția dosarului în EVO Cabinet →`, link: "Solicitările mele" },
         action: { label: "Mergi la Solicitările mele", href },
         tracker: [
           { label: "Depusă", state: "done" },
@@ -6328,7 +6329,7 @@
     function postprocessReasonHtml(sectionTitle, reasons, { label = "Motivul", sectionId = "reason" } = {}) {
       return postprocessSectionHtml(sectionId, sectionTitle, `
         ${postprocessSelectHtml({ id: "pp-reason", label, required: true, options: reasons })}
-        ${postprocessTextareaHtml({ id: "pp-reason-other", label: "Specificați motivul", hidden: true, attrs: "data-fo-pp-other", placeholder: "Descrieți pe scurt motivul" })}
+        ${postprocessTextareaHtml({ id: "pp-reason-other", label: "Specifică motivul", hidden: true, attrs: "data-fo-pp-other", placeholder: "Descrie pe scurt motivul" })}
       `);
     }
 
@@ -7604,7 +7605,7 @@
        11777:28258: „this should also be the file component”) = the shared FO document card (`.e-permits-fo-mdocs__attachment`
        + blue generated icon + title row + a 12/20 note line in the text column + a labelled `btn-neutral btn-sm` action, the
        document cards' „Detalii” look). Error = the library file-item Error: same card, 1.5 danger stroke, the message in the
-       note line (danger), the action `btn-outline-strict btn-sm` „Reîncercați” (rotate arrow; a lone recovery action) named „Reîncercați generarea certificatului” and described by the message. */
+       note line (danger), the action `btn-outline-strict btn-sm` „Reîncearcă” (rotate arrow; a lone recovery action) named „Reîncearcă generarea certificatului” and described by the message. */
     let foFinishDocSeq = 0;
     function foFinishDocHtml({ title, textHtml = "", error = "", actionLabel = "Vezi documentul", actionAttrs = "" }) {
       const esc = escapeFrontOfficeHtml;
@@ -7623,9 +7624,9 @@
             ${titleRow(false)}
             <p class="e-permits-fo-finish-doc-card__note" id="${msgId}" role="alert">${esc(error)}</p>
           </div>
-          <button class="btn btn-outline-strict btn-sm" type="button" aria-label="Reîncercați generarea certificatului" aria-describedby="${msgId}" ${actionAttrs}>
+          <button class="btn btn-outline-strict btn-sm" type="button" aria-label="${"Reîncearcă generarea certificatului"}" aria-describedby="${msgId}" ${actionAttrs}>
             <svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-rotate-arrow"></use></svg>
-            <span>Reîncercați</span>
+            <span>${"Reîncearcă"}</span>
           </button>
         </div>`;
       }
@@ -7968,7 +7969,7 @@
       }
       const downSlot = foDocOverlay.querySelector("[data-fo-doc-mdocs-down]");
       if (downSlot) {
-        downSlot.innerHTML = mdocsDown ? foUi().renderNotice?.("warning", "<strong>Librăria MDocs nu răspunde acum.</strong> Încărcați fișierul de pe dispozitiv.") || "" : "";
+        downSlot.innerHTML = mdocsDown ? foUi().renderNotice?.("warning", "<strong>Librăria MDocs nu răspunde acum.</strong> Încarcă fișierul de pe dispozitiv.") || "" : "";
         downSlot.hidden = !mdocsDown;
       }
       foDocSwitchTab(uploadOnly || mdocsDown ? "upload" : "library", { animate: false });
@@ -8051,8 +8052,8 @@
     const foDocDemo = (key) => new URLSearchParams(location.search).get(key) || "";
     function foDocFileProblem(file) {
       const ext = (String(file?.name || "").match(/\.([a-z0-9]+)$/i)?.[1] || "").toUpperCase();
-      if (!FO_DOC_EXTENSIONS.includes(ext === "JPEG" ? "JPG" : ext)) return `Nu puteți atașa fișierul. Se permit doar extensiile ${FO_DOC_EXTENSIONS.join(", ")}.`;
-      if (Number(file?.size) > FO_DOC_MAX_MB * 1048576) return `Nu puteți atașa fișiere mai mari decât ${FO_DOC_MAX_MB} MB.`;
+      if (!FO_DOC_EXTENSIONS.includes(ext === "JPEG" ? "JPG" : ext)) return `${"Nu poți atașa fișierul."} Se permit doar extensiile ${FO_DOC_EXTENSIONS.join(", ")}.`;
+      if (Number(file?.size) > FO_DOC_MAX_MB * 1048576) return `${"Nu poți atașa"} fișiere mai mari decât ${FO_DOC_MAX_MB} MB.`;
       return "";
     }
     /* file-remove-x-v1: after a file's ×, focus goes to the field's „Adaugă fișier” (shown again once the field is empty) */
@@ -8138,7 +8139,7 @@
       if (button) {
         if (missing.length) {
           button.setAttribute("aria-disabled", "true");
-          button.dataset.tooltipReason = "Atașați documentele obligatorii.";
+          button.dataset.tooltipReason = "Atașează documentele obligatorii.";
         } else {
           button.removeAttribute("aria-disabled");
           delete button.dataset.tooltipReason;
@@ -8166,9 +8167,9 @@
       if (!types) return foDocFileProblem(file);
       const allowed = types.split(",").map((t) => t.trim().toUpperCase()).filter(Boolean);
       const ext = (String(file?.name || "").match(/\.([a-z0-9]+)$/i)?.[1] || "").toUpperCase();
-      if (!allowed.includes(ext === "JPEG" ? "JPG" : ext)) return `Nu puteți atașa fișierul. Se permit doar extensiile ${allowed.join(", ")}.`;
+      if (!allowed.includes(ext === "JPEG" ? "JPG" : ext)) return `${"Nu poți atașa fișierul."} Se permit doar extensiile ${allowed.join(", ")}.`;
       const mb = parseFloat(size) || FO_DOC_MAX_MB;
-      if (Number(file?.size) > mb * 1048576) return `Nu puteți atașa fișiere mai mari decât ${mb} MB.`;
+      if (Number(file?.size) > mb * 1048576) return `${"Nu poți atașa"} fișiere mai mari decât ${mb} MB.`;
       return "";
     }
     const foDocModalSlots = () => foDocModalTaken + foDocModalFiles.filter((f) => f.state !== "error").length;
@@ -8241,7 +8242,7 @@
       const note = foDocOverlay.querySelector("[data-fo-doc-max-note]");
       if (note) {
         const show = multi && full;
-        const html = show ? foUi().renderNotice?.("info", `<strong>Ați atins numărul maxim de fișiere (${foDocModalMax}).</strong> Eliminați un fișier ca să adăugați altul.`) || "" : "";
+        const html = show ? foUi().renderNotice?.("info", `<strong>Ai atins numărul maxim de fișiere (${foDocModalMax}).</strong> Elimină un fișier ca să adaugi altul.`) || "" : "";
         if (note.dataset.foShown !== String(show)) { note.innerHTML = html; note.dataset.foShown = String(show); }
         note.hidden = !show;
       }
@@ -8418,7 +8419,7 @@
       summary?.focus({ preventScroll: true });
     }, true);
 
-    /* doc-upload-v1 · AC-01 „Reîncercați”: the list loads again, every answer of the other steps stays */
+    /* doc-upload-v1 · AC-01 „Reîncearcă”: the list loads again, every answer of the other steps stays */
     document.addEventListener("click", (event) => {
       const retry = event.target.closest("[data-fo-docs-retry]");
       if (!retry) return;
@@ -9170,7 +9171,7 @@
         const cadastral = searchRoot.foCadastral;
         const raw = input.value.trim();
         if (cadastral && !raw) {
-          renderSuggestions(cadastral.savedCodes(), { empty: "Nu aveți coduri cadastrale salvate. Codurile folosite în cererile dvs. apar aici." });
+          renderSuggestions(cadastral.savedCodes(), { empty: "Nu ai coduri cadastrale salvate. Codurile folosite în cererile tale apar aici." });
           return;
         }
         /* a code typed here is sent only on request: the first row says so explicitly

@@ -43,11 +43,11 @@
   /* ---- the BO seed: what a back-office user is told about (dossiers distributed / redistributed to them, terms
      running out, payments confirmed, documents supplemented, acts signed) — deterministic from the dossier seed ---- */
   const KINDS = [
-    { kind: "distribuit", statuses: ["depus", "inExaminare"], tab: "general", title: () => "Dosar nou distribuit către dvs.", line: (r) => `${r.nrDosar} · ${r.serviciu}` },
+    { kind: "distribuit", statuses: ["depus", "inExaminare"], tab: "general", title: () => "Dosar nou distribuit către tine", line: (r) => `${r.nrDosar} · ${r.serviciu}` },
     { kind: "termen", statuses: ["inExaminare"], tab: "general", title: () => "Termenul de examinare expiră în 2 zile lucrătoare", line: (r) => `${r.nrDosar} · ${r.serviciu}` },
     { kind: "plata", statuses: ["asteaptaPlata", "inExaminare"], tab: "taxe", title: () => "Plata a fost confirmată în MPay", line: (r) => `${r.nrDosar} · ${r.numeSolicitant || r.serviciu}` },
     { kind: "suplinire", statuses: ["inExaminare", "depus"], tab: "documente", title: () => "Solicitantul a completat dosarul", line: (r) => `${r.nrDosar} · documente noi încărcate` },
-    { kind: "redistribuit", statuses: ["inExaminare", "depus"], tab: "general", title: () => "Dosar redistribuit către dvs.", line: (r) => `${r.nrDosar} · ${r.serviciu}` },
+    { kind: "redistribuit", statuses: ["inExaminare", "depus"], tab: "general", title: () => "Dosar redistribuit către tine", line: (r) => `${r.nrDosar} · ${r.serviciu}` },
     { kind: "act", statuses: ["semnat", "eliberat"], tab: "decizie", title: (r) => `Actul permisiv ${r.nrActEmis || ""} a fost semnat`.replace("  ", " "), line: (r) => `${r.nrDosar} · ${r.serviciu}` }
   ];
   const UNREAD = new Set([0, 1, 2, 4, 6, 7, 9, 15, 22]);
@@ -147,8 +147,8 @@
     </li>`;
 
   const emptyHtml = (unreadTab) => window.GEAPEmptyState?.render(unreadTab
-    ? { title: "Nu aveți notificări necitite", text: "Toate notificările au fost citite. Le găsiți în «Toate».", icon: "notification", compact: true }
-    : { title: "Nu aveți notificări", text: "Aici apar dosarele distribuite către dvs., termenele care expiră și plățile confirmate.", icon: "notification", compact: true }) || "";
+    ? { title: "Nu ai notificări necitite", text: "Toate notificările au fost citite. Le găsești în «Toate».", icon: "notification", compact: true }
+    : { title: "Nu ai notificări", text: "Aici apar dosarele distribuite către tine, termenele care expiră și plățile confirmate.", icon: "notification", compact: true }) || "";
 
   const tabButtonsHtml = (count) => [["toate", "Toate"], ["necitite", "Necitite"]].map(([id, label]) => {
           const on = state.tab === id;

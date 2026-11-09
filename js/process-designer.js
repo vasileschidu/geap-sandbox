@@ -751,7 +751,7 @@ document.addEventListener("DOMContentLoaded", () => {
       ${warnings.length ? `<li role="none" class="e-permits-builder__issues-head">Avertismente</li>${warnings.map(row).join("")}` : ""}`;
     if (n) {
       el.publish.setAttribute("aria-disabled", "true");
-      el.publish.dataset.tooltipReason = `Corectați ${n} ${n === 1 ? "eroare" : "erori"} înainte de publicare.`;
+      el.publish.dataset.tooltipReason = `Corectează ${n} ${n === 1 ? "eroare" : "erori"} înainte de publicare.`;
     } else {
       el.publish.removeAttribute("aria-disabled");
       delete el.publish.dataset.tooltipReason;
@@ -4278,7 +4278,7 @@ document.addEventListener("DOMContentLoaded", () => {
         </div>
         <div class="modal--footer"><div class="modal-buttons">
           <button class="btn btn-neutral btn-rounded" type="button" data-close>Anulează</button>
-          <button class="btn btn-primary btn-rounded" type="button" data-pd-publish-confirm${blocked ? ` aria-disabled="true" data-tooltip-reason="Corectați ${errors.length} ${errors.length === 1 ? "eroare" : "erori"} înainte de publicare."` : ""}>Publică</button>
+          <button class="btn btn-primary btn-rounded" type="button" data-pd-publish-confirm${blocked ? ` aria-disabled="true" data-tooltip-reason="Corectează ${errors.length} ${errors.length === 1 ? "eroare" : "erori"} înainte de publicare."` : ""}>Publică</button>
         </div></div>
       </div>`;
     window.__modal?.open?.("#pd-publish-modal");

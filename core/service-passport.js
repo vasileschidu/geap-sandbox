@@ -20,7 +20,7 @@
   /* US-111 texts, verbatim where the story gives them */
   var MESSAGES = {
     required: "Câmpul «Cod serviciu RSSP» este obligatoriu.",
-    unavailable: "Serviciul RSSP este momentan indisponibil. Încercați mai târziu.",
+    unavailable: "Serviciul RSSP este momentan indisponibil. Încearcă mai târziu.",
     notFound: function (code) { return "Serviciul cu codul " + code + " nu a fost găsit în RSSP."; },
     invalid: "RSSP a returnat un răspuns invalid: structura datelor nu corespunde contractului GET api/public-service/code/{cod}."
   };
@@ -480,7 +480,7 @@
      RSSP și cu eAPL"). eAPL only enriches an existing service with its local
      data; a new service is always created from RSSP (US-111). */
   var EAPL_MESSAGES = {
-    unavailable: "Serviciul eAPL este momentan indisponibil. Încercați mai târziu.",
+    unavailable: "Serviciul eAPL este momentan indisponibil. Încearcă mai târziu.",
     notFound: function (code) { return "Serviciul cu codul " + code + " nu a fost găsit în eAPL."; },
     newService: "Un serviciu nou se creează doar din RSSP. Alege sursa RSSP sau RSSP + eAPL."
   };

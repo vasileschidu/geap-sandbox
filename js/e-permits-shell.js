@@ -1164,7 +1164,7 @@ document.addEventListener("DOMContentLoaded", () => {
      become role assignments (menu + header line), the „Schimbă rolul” dialog and the landing page. The context only
      filters what is shown: the rights stay the sum of every combination (US-81 AC-30/31, US-82 AC-07). */
   const boContext = !product ? window.GEAPBoContext || null : null;
-  const CONTEXT_DENIED = "Nu aveți permisiunea de a accesa această pagină.";
+  const CONTEXT_DENIED = "Nu ai permisiunea de a accesa această pagină.";
   const contextSwitchOpen = document.querySelector("[data-ctx-switch-open]");
   const contextModal = document.getElementById("ctx-switch-modal");
   let contextModel = null;
@@ -1212,7 +1212,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   /* US-81 AC-24…27 (also after a switch, US-82 AC-06): Back Office → the role's dashboard (none in the prototype)
      or its first workplace folder, else the role's start page; AdminPortal → „Configurări servicii”, else the first
-     granted Administrare menu, else „Nu aveți permisiunea…” */
+     granted Administrare menu, else „Nu ai permisiunea…” */
   const landContext = () => {
     const links = [...(shellNav?.querySelectorAll("[data-nav-item]") || [])];
     if (!links.length) return;
@@ -1245,8 +1245,8 @@ document.addEventListener("DOMContentLoaded", () => {
     };
     if (pageHasUnsaved()) {
       askConfirm({
-        title: "Aveți modificări nesalvate",
-        text: "Aveți modificări nesalvate. Dacă continuați, acestea vor fi pierdute. Continuați?",
+        title: "Ai modificări nesalvate",
+        text: "Ai modificări nesalvate. Dacă continui, acestea vor fi pierdute. Continui?",
         confirmLabel: "Continuare",
         cancelLabel: "Anulare",
         destructive: true
@@ -1267,7 +1267,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const next = current.cards.find((card) => card.id === cardId);
     if (!next) {
       contextModel = current;
-      renderContextSwitch(renderNotice("error", "<strong>Acces interzis.</strong> Combinația aleasă nu vă mai este atribuită. Lista a fost actualizată.", { role: "alert" }));
+      renderContextSwitch(renderNotice("error", "<strong>Acces interzis.</strong> Combinația aleasă nu îți mai este atribuită. Lista a fost actualizată.", { role: "alert" }));
       if (contextSwitchOpen) contextSwitchOpen.hidden = current.cards.length < 2;
       contextModal?.querySelector("[data-ctx-card]:not([aria-current='true'])")?.focus();
       return;
@@ -1483,7 +1483,7 @@ document.addEventListener("DOMContentLoaded", () => {
       el.textContent = `Rol curent: ${currentCard ? boContext.labelOf(currentCard) : [assignment.roleLabel, assignment.instanceLabel].filter(Boolean).join(" · ")}`;
     });
 
-    /* US-81 AC-25: a role with neither dashboard nor workplace folder (no menu) → „Nu aveți permisiunea…” */
+    /* US-81 AC-25: a role with neither dashboard nor workplace folder (no menu) → „Nu ai permisiunea…” */
     if (boContext && !rolesDb?.menus?.[assignment.menuProfile]) {
       if (shellNav) shellNav.innerHTML = "";
       renderRoleGroups();
@@ -3876,7 +3876,7 @@ document.addEventListener("DOMContentLoaded", () => {
   /* machete-mdocs-v1 (2026-10-25, Feature 96074 US-306…US-311): the dossier documents MDocs generates = the standard
      template (GEAPDocPreview.mdocsHtml) — Cererea depusă (US-307), the notification PDF (US-308, Notificări tab), the
      signed refusal decision (US-309), the signed act (US-310), the certificat constatator (US-311). Projects, uploads,
-     extracts and payment confirmations keep the plain page below. Demo: ?mdocs=eroare (AC-14, once — „Reîncercați”
+     extracts and payment confirmations keep the plain page below. Demo: ?mdocs=eroare (AC-14, once — „Reîncearcă”
      generates) · acces (no right on the dossier: „Acces interzis”, logged „Refuzat”) · incarcare (stays loading). */
   const DOSAR_OBJECT_ADDRESS = "mun. Chișinău, str. Alba Iulia 20";
   const dosarMdocBase = (row) => ({
@@ -4413,9 +4413,9 @@ document.addEventListener("DOMContentLoaded", () => {
      deterministic per case, on the dossiers' clock (dossierDb.today), so the BO profile, the Ghișeu
      „Dosare suspendate” list and the applicant's S4 read the same reason and term. */
   const SUSP_SEED_REASONS = [
-    ["Documente adiționale incorecte/incomplete", "Planul încăperilor anexat nu este lizibil și nu indică destinația spațiilor de depozitare. Încărcați planul la o rezoluție mai bună, cu legenda încăperilor."],
-    ["Date incorecte în cerere", "Adresa obiectului din cerere nu corespunde cu adresa din contractul de locațiune. Corectați adresa sau anexați actul adițional la contract."],
-    ["Lipsa unui act necesar", "Lipsește avizul de mediu pentru activitatea declarată. Anexați avizul emis de Agenția de Mediu."]
+    ["Documente adiționale incorecte/incomplete", "Planul încăperilor anexat nu este lizibil și nu indică destinația spațiilor de depozitare. Încarcă planul la o rezoluție mai bună, cu legenda încăperilor."],
+    ["Date incorecte în cerere", "Adresa obiectului din cerere nu corespunde cu adresa din contractul de locațiune. Corectează adresa sau anexează actul adițional la contract."],
+    ["Lipsa unui act necesar", "Lipsește avizul de mediu pentru activitatea declarată. Anexează avizul emis de Agenția de Mediu."]
   ];
   const dosarSuspension = (row) => {
     const cf = caseFlowOf(row);
@@ -4703,7 +4703,7 @@ document.addEventListener("DOMContentLoaded", () => {
         distRecordSet(row, "aleatoriu", null, at);
         cf.state.log.unshift({ at, user: "SIA GEAP", type: "Dosar redistribuit automat", status: "Reușit", detail: `Tip distribuire: Redistribuire. ${from?.nume || "—"} → ${pick.nume}. Decizia anterioară: ${tx.prev}. Raportul de distribuire ${report.id}. Termenul de examinare rămâne ${formatLongDate(row.termenExaminare)}.` });
         /* AC-10 */
-        distNotify(row, pick.nume, "Dosar distribuit către dvs.", at);
+        distNotify(row, pick.nume, "Dosar distribuit către tine", at);
         return { to: pick };
       }
     }
@@ -5040,7 +5040,7 @@ document.addEventListener("DOMContentLoaded", () => {
           : `<p class="e-permits-fo-field__hint">${mode === "manual" ? `Specialiștii activi ai subdiviziunii ${escapeHtml(rows[0]?.subdiviziune || "")}, fără responsabilul actual${(() => { const away = window.GEAPAbsences?.absentNames?.(rows[0]?.subdiviziune) || []; return away.length ? ` și fără cei absenți azi (${escapeHtml(away.join(", "))})` : ""; })()}.`
             : `Automat: SIA GEAP alege ${d.bulk ? "pentru fiecare dosar " : ""}specialistul competent cu cea mai mică încărcare, fără responsabilul actual și fără cei absenți azi.`}</p>`;
         const warning = mode === "manual" && lacking.length
-          ? caseNotice(`<strong>${escapeHtml(chosen.nume)}</strong> nu are competență pentru ${lacking.length === rows.length ? `serviciul „${escapeHtml(row.serviciu)}”` : `${lacking.length} din dosarele selectate`}. Puteți continua redistribuirea.`, "warning")
+          ? caseNotice(`<strong>${escapeHtml(chosen.nume)}</strong> nu are competență pentru ${lacking.length === rows.length ? `serviciul „${escapeHtml(row.serviciu)}”` : `${lacking.length} din dosarele selectate`}. Poți continua redistribuirea.`, "warning")
           : mode === "automat" && unplaced
             ? caseNotice(unplaced < rows.length
               ? `<strong>Niciun specialist competent disponibil pentru ${roCount(unplaced, "dosar", "dosare")}.</strong> ${unplaced > 1 ? "Acestea trec" : "Acesta trece"} în „Dosare nedistribuite”, iar supervizorii sunt notificați.`
@@ -5102,7 +5102,7 @@ document.addEventListener("DOMContentLoaded", () => {
             <div class="e-permits-case-term">
               <div class="e-permits-case-term__field">${caseReadonly("Termenul de examinare", formatLongDate(row.termenExaminare), 0)}</div>
               ${caseNotice(auto
-                ? "SIA GEAP alege automat alt specialist al subdiviziunii, fără dvs. Dacă nu rămâne niciun candidat, dosarul trece în „Dosare nedistribuite”. Supervizorii subdiviziunii sunt notificați."
+                ? "SIA GEAP alege automat alt specialist al subdiviziunii, fără tine. Dacă nu rămâne niciun candidat, dosarul trece în „Dosare nedistribuite”. Supervizorii subdiviziunii sunt notificați."
                 : "Dosarul trece în „Dosare nedistribuite”, cu substatutul „Spre distribuire”, iar supervizorii subdiviziunii sunt notificați.", "info", { title: "Termenul nu se resetează" })}
             </div>
           </div>
@@ -5257,7 +5257,7 @@ document.addEventListener("DOMContentLoaded", () => {
       next: item.kind === "operation" ? "" : item.target,
       confirmText: item.kind === "return"
         ? "Dosarul se întoarce la un pas anterior al fluxului."
-        : `Confirmați acțiunea „${item.label}”.`,
+        : `Confirmă acțiunea „${item.label}”.`,
       values: {
         instructiuni: "Spre examinare",
         choice: item.form === "redistribuire" ? "manual" : "aprobare",
@@ -5491,7 +5491,7 @@ document.addEventListener("DOMContentLoaded", () => {
       /* dist-mode-v1: „Automat” = the engine's random pick (aleatoriu); „Manual” = by the supervisor */
       distRecordSet(row, mode === "automat" ? "aleatoriu" : "manual", me, now);
       /* AC-12: the new responsible is notified */
-      profile.notificari.unshift({ canal: "SIA GEAP", destinatar: to.nume, eveniment: "Dosar redistribuit către dvs.", trimisaLa: formatDateTime(now.slice(0, 10), now.slice(11, 16)), status: "livrata" });
+      profile.notificari.unshift({ canal: "SIA GEAP", destinatar: to.nume, eveniment: "Dosar redistribuit către tine", trimisaLa: formatDateTime(now.slice(0, 10), now.slice(11, 16)), status: "livrata" });
       state.log.unshift({
         at: now, user: me, type: "Dosar redistribuit", status: "Reușit",
         /* AC-14 reason + author (the row's user); AC-10 complexity recalculated with today's policy; AC-13 the term stays */
@@ -5522,7 +5522,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (REDIST_PARAMS.get("redistribuire") === "eroare") {
       rows.forEach((row) => caseFlowOf(row)?.state.log.unshift({ at: now, user: me, type: "Redistribuire", status: "Eșuat", detail: `Responsabilul a rămas ${row.specialist?.nume || "—"}. Motiv: ${values.motiv}` }));
       if (!bulk && rows[0]) renderDosarProfil(rows[0]);
-      showShellToast("Responsabilul dosarului rămâne neschimbat. Încercați din nou.", "error", "Operația nu a putut fi efectuată");
+      showShellToast("Responsabilul dosarului rămâne neschimbat. Încearcă din nou.", "error", "Operația nu a putut fi efectuată");
       return;
     }
     const results = rows.map((row) => redistributeCase(row, values, me, now)).filter(Boolean);
@@ -5553,7 +5553,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (REDIST_PARAMS.get("refuz") === "eroare") {
       caseFlowOf(row).state.log.unshift({ at: now, user: me, type: "Refuzul dosarului", status: "Eșuat", detail: `Dosarul a rămas la ${row.specialist?.nume || "—"}. Motivul refuzului: ${motiv}` });
       renderDosarProfil(row);
-      showShellToast("Dosarul rămâne la dvs. Încercați din nou.", "error", "Operația nu a putut fi efectuată");
+      showShellToast("Dosarul rămâne la tine. Încearcă din nou.", "error", "Operația nu a putut fi efectuată");
       return;
     }
     const { to } = refuseCase(row, motiv, me, now);
@@ -8800,7 +8800,7 @@ document.addEventListener("DOMContentLoaded", () => {
         user: SVC_EVENT_AUTOMATIC.test(type) && i % 2 === 0 ? "SIA GEAP" : SVC_EVENT_USERS[(seed + i) % SVC_EVENT_USERS.length],
         type,
         status: failed ? "Eșuat" : "Reușit",
-        detail: failed ? `Cod ${service.code}: Serviciul RSSP este momentan indisponibil. Încercați mai târziu.` : SVC_EVENT_SAMPLES[k][1](service, i),
+        detail: failed ? `Cod ${service.code}: Serviciul RSSP este momentan indisponibil. Încearcă mai târziu.` : SVC_EVENT_SAMPLES[k][1](service, i),
         changes: failed ? [] : SVC_EVENT_SAMPLES[k][2](service, i)
       });
     }
@@ -17984,7 +17984,7 @@ document.addEventListener("DOMContentLoaded", () => {
       /* US-201 AC-04: the story's text */
       askConfirm({
         title: "Activezi taxa?",
-        text: "Taxa devine din nou disponibilă pentru declanșare în dosarele noi. Continuați?",
+        text: "Taxa devine din nou disponibilă pentru declanșare în dosarele noi. Continui?",
         confirmLabel: "Activează"
       }, () => {
         tax.active = true;
@@ -17997,7 +17997,7 @@ document.addEventListener("DOMContentLoaded", () => {
       askConfirm({
         title: "Dezactivezi taxa?",
         /* US-201 AC-03 + AC-13: the story's text and how many dossiers use the tax */
-        text: `„${name}” este folosită în ${roCount(tax.usage || 0, "dosar", "dosare")}. O taxă inactivă nu mai poate fi declanșată în niciun dosar nou. Continuați?`,
+        text: `„${name}” este folosită în ${roCount(tax.usage || 0, "dosar", "dosare")}. O taxă inactivă nu mai poate fi declanșată în niciun dosar nou. Continui?`,
         confirmLabel: "Dezactivează",
         destructive: true
       }, () => {
@@ -18693,9 +18693,9 @@ document.addEventListener("DOMContentLoaded", () => {
     const doc = docs.find((x) => x.id === act.dataset.docId);
     if (!doc) return;
     const A = {
-      remove: { title: "Eliminați documentul?", text: "Sunteți sigur că doriți să eliminați documentul?", confirmLabel: "Elimină", destructive: true, run: () => docs.splice(docs.indexOf(doc), 1), log: "Eliminare document însoțitor", toast: "Documentul a fost eliminat." },
-      deactivate: { title: "Dezactivați documentul?", text: "Sunteți sigur că doriți să dezactivați documentul?", confirmLabel: "Dezactivează", destructive: true, run: () => { doc.state = "Inactiv"; }, log: "Dezactivare document însoțitor", toast: "Documentul a fost dezactivat." },
-      activate: { title: "Activați documentul?", text: "Sunteți sigur că doriți să activați documentul?", confirmLabel: "Activează", destructive: false, run: () => { doc.state = "Activ"; }, log: "Activare document însoțitor", toast: "Documentul a fost activat." }
+      remove: { title: "Elimini documentul?", text: "Sigur vrei să elimini documentul?", confirmLabel: "Elimină", destructive: true, run: () => docs.splice(docs.indexOf(doc), 1), log: "Eliminare document însoțitor", toast: "Documentul a fost eliminat." },
+      deactivate: { title: "Dezactivezi documentul?", text: "Sigur vrei să dezactivezi documentul?", confirmLabel: "Dezactivează", destructive: true, run: () => { doc.state = "Inactiv"; }, log: "Dezactivare document însoțitor", toast: "Documentul a fost dezactivat." },
+      activate: { title: "Activezi documentul?", text: "Sigur vrei să activezi documentul?", confirmLabel: "Activează", destructive: false, run: () => { doc.state = "Activ"; }, log: "Activare document însoțitor", toast: "Documentul a fost activat." }
     }[act.dataset.docAction];
     askConfirm(A, () => {
       A.run();

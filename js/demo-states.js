@@ -1534,7 +1534,7 @@
        without authority (group „Fără autoritate” first) · 08a a role without subdivision · 09 „Delegări”: only the
        Activă + current ones (a planned, an expired and a revoked one stay out) · 10 one combination → straight in (the
        login redirects to the BO) · 11 no role · 12 inactive account · 13 „Ieșire” → the login page · 14 a card chosen
-       → the BO landing · 15 role without dashboard / folder → „Nu aveți permisiunea…” · 16 AdminPortal → „Configurări
+       → the BO landing · 15 role without dashboard / folder → „Nu ai permisiunea…” · 16 AdminPortal → „Configurări
        servicii” · 16a AdminPortal without it → the first granted menu · 17 idle on the screen (?idle=4 s instead of
        15 min) → session expired */
     "auth-07": { page: "bo-login.html", params: { mpass: "ok", as: "activ", today: "2026-11-04" }, ready: "[data-ctx-list]" },
@@ -1706,7 +1706,7 @@
     "fo-01": { page: PP_FO, flow: "full", ready: "h1" },
     /* US-25 (Azure 88528) S4 „Motivul suspendării” (bo-dossier-flows-v1): s4 the Cabinet „Suplinire informații” link
        (#request-step-2 → S4 first) · s4a #suplinire directly · s4b „Continuă” → S5 (the request form) · s4c the form does
-       not load (?s5=eroare: message + „Reîncercați”) · s4d a request the BO data does not know (AC-01…05 deviations) */
+       not load (?s5=eroare: message + „Reîncearcă”) · s4d a request the BO data does not know (AC-01…05 deviations) */
     "fo-s4": supplementS4("#request-step-2"),
     "fo-s4a": supplementS4("#suplinire"),
     "fo-s4b": supplementS4("#request-step-2", {}, async (h) => { await h.click("[data-fo-supplement-next]"); await h.find("[data-fo-step-panel='2']:not([hidden]) h1"); }),
@@ -1899,7 +1899,7 @@
        „Înlocuiește”) · du5 the file × clicked: the field stays (AC-05), empty again with „Adaugă fișier” focused (no
        error until „Înainte”; was the replace-mode picker, removed) · du6 / du7 „Alte documente” › Elimină = the FO confirm (uploaded file / MDocs link) · du8 „Înainte”
        with required documents missing (inline errors + summary, „Înainte” unavailable) · du9 MDocs does not answer
-       (tab unavailable + notice, upload works) · du10 RSSPA does not answer (error + „Reîncercați”) */
+       (tab unavailable + notice, upload works) · du10 RSSPA does not answer (error + „Reîncearcă”) */
     /* upload-modal-v1 (2026-11-06): uploading + rejected files live IN the picker now → du1–du3 show the picker */
     "fo-04du1": foReq(3, { incarcare: "pauza" }, async (h) => { await upOpen(h, "[data-fo-doc-field='floor-plan']"); await upPick(h, [duFile("planul-incaperilor-parter.pdf", 2.4)]); await h.wait(700); }),
     "fo-04du2": foReq(3, {}, async (h) => { await upOpen(h, "[data-fo-doc-field='floor-plan']"); await upPick(h, [duFile("planul-incaperilor.heic", 3.1, "image/heic")]); document.activeElement?.blur?.(); }),
@@ -1969,7 +1969,7 @@
     "fo-07": foReq(6),
     "fo-08": foReq(7, { paid: "1" }),
     "fo-08a": foReq(7, { paid: "1", cert: "error" }),
-    /* finish-doc-error-filecard-v1: „Reîncercați” on the error card → the generated certificate card, focus on its action */
+    /* finish-doc-error-filecard-v1: „Reîncearcă” on the error card → the generated certificate card, focus on its action */
     "fo-08a1": foReq(7, { paid: "1", cert: "error" }, async (h) => { await h.click("[data-fo-finish-document-retry]"); }),
     "fo-08b": foReq(7, { paid: "1", cert: "none" }),
     "fo-08c": foReq(7),
@@ -3151,8 +3151,8 @@
     "sm-03c": smDosar("d-izvoras-reperf"),
     /* status-matrix gaps (2026-10-20, tools/persona-test/specs/cabinet-requests/STATUS-MATRIX.md):
        03d a draft removed automatically (the deep link from its notification → the list says why) · 03e „Continuă
-       schița” does not open → message + „Reîncercați” (US-29 AC-01) · 03f the first „Elimină schița” fails → the
-       message + „Reîncercați” in the dialog · 03g a draft with its payment note „În așteptare” (US-17, Taxe) · 03h a
+       schița” does not open → message + „Reîncearcă” (US-29 AC-01) · 03f the first „Elimină schița” fails → the
+       message + „Reîncearcă” in the dialog · 03g a draft with its payment note „În așteptare” (US-17, Taxe) · 03h a
        signed + paid draft waiting for the automatic submission (US-18 AC-09) */
     "sm-03d": sm(null, {}, "#dosar/d-cuptor"),
     "sm-03e": smDosar("d-spicul", async (h) => { await h.click('[data-sm-profile] [data-sm-alert] [data-sm-action="continue"]'); }, { redirectionare: "eroare" }),
@@ -3169,7 +3169,7 @@
     /* US-135 AC-14: the payment note expired (demo ?nota=expirata) — the message, no pay button (status unchanged) */
     "sm-04g": smDosar("d-sud", null, { nota: "expirata" }),
     "sm-04g1": sm(async (h) => { await h.scroll('[data-sm-card="d-sud"]'); }, { nota: "expirata" }),
-    /* US-24 AC-04: the redirect to the suplinire form fails (demo ?redirectionare=eroare) → profile: the non-auto-closing error toast + „Reîncercați” (sm-04h-error-toast-v1); row: the inline notice */
+    /* US-24 AC-04: the redirect to the suplinire form fails (demo ?redirectionare=eroare) → profile: the non-auto-closing error toast + „Reîncearcă” (sm-04h-error-toast-v1); row: the inline notice */
     "sm-04h": smDosar("d-nistru", async (h) => { await h.click('[data-sm-profile] [data-sm-alert] [data-sm-action="supplement"]'); }, { redirectionare: "eroare" }),
     "sm-04h1": sm(async (h) => { await h.scroll('[data-sm-card="d-nistru"]'); await h.click('[data-sm-card="d-nistru"] .e-permits-fo-intent-act__pending [data-sm-action="supplement"]'); }, { redirectionare: "eroare" }),
     /* 04i the suplinire term passed → back „În derulare” (US-24 AC-03) · 04j suplinire sent → examination resumed
@@ -4952,7 +4952,7 @@
 
       /* US-317 „Vizualizarea detaliilor actului” (Feature 96367): the act card — title «Act: <nr>», the 6 tabs of the model
          (Date generale default), «Închide» back to the register with search / filters / sort kept, read-only; Jurnal
-         evenimente only with the audit permission; no access → «Nu aveți permisiunea…» (role, authority perimeter) */
+         evenimente only with the audit permission; no access → «Nu ai permisiunea…» (role, authority perimeter) */
       "reg-17": { flow: "back-office", as: ADMIN, hash: "#registru/reg-acte/act-045", ready: CARD },
       "reg-17a": card("reg-acte", "act-045", "specifice"),
       "reg-17b": card("reg-acte", "act-045", "dosare"),
@@ -5153,7 +5153,7 @@
       "ofc-07": ofc("#oficiu/ofc-4736/verificare", next),
       "ofc-07a": ofc("#oficiu/ofc-4736/verificare", seq(next, async (h) => { await h.click(`${W} .e-permits-fo-delivery-paper`); await h.wait(400); })),
 
-      /* US-246 — the confirmation (no MSign, no note: AC-02/03), submitted (AC-04/05), error + Reîncercați (AC-08) */
+      /* US-246 — the confirmation (no MSign, no note: AC-02/03), submitted (AC-04/05), error + Reîncearcă (AC-08) */
       "ofc-08": ofc("#oficiu/ofc-4736/verificare", seq(next, at("livrare"), next)),
       "ofc-08a": ofc("#oficiu/ofc-4736/verificare", submitDraft),
       "ofc-08b": ofc("#oficiu/ofc-4736/verificare", submitDraft, { depunere: "eroare" }),
@@ -5439,7 +5439,7 @@
       "gh-02q": gh("#ghiseu/nou", async (h) => { await h.click("#fo-gh-serviciu"); await h.wait(300); }),
       /* the sheet autosaves (ghiseu-autosave-csv-v1, as the FO): an edit → 1 s later „Salvat ca schiță · hh:mm” in the
          header (gh-02o); × right after an edit closes straight to «Dosare noi», the row's „Data ultimei modificări” =
-         now (gh-02o1) — no „Salvați schița?” dialog any more. „Schimbă” on the identity reopens the picker (gh-02p) */
+         now (gh-02o1) — no „Salvezi schița?” dialog any more. „Schimbă” on the identity reopens the picker (gh-02p) */
       "gh-02o": gh("#ghiseu/gh-4812/detalii", seq(async (h) => { await h.fill("#fo-gh-obiect", "Cafeneaua „La Izvor”", { leave: false }); await h.wait(1500); })),
       "gh-02o1": gh("#ghiseu/gh-4812/detalii", seq(async (h) => { await h.fill("#fo-gh-obiect", "Cafeneaua „La Izvor”", { leave: false }); await h.click("[data-gh-sheet-close]"); await h.find("[data-registry-kind='ghiseu'] tr[data-workplace-row]"); await h.wait(400); })),
       "gh-02p": gh("#ghiseu/gh-4812/identificare", async (h) => { await h.click('#gh-request-modal .e-permits-fo-selected-role__change'); await h.find("#gh-start-modal.is-active [data-gh-panel]"); }),
@@ -5455,7 +5455,7 @@
       "gh-03h": gh("#ghiseu/nou", start(pjAdmin, "003000118", chooseAct("act-izvoras", "Prelungire"))),
       "gh-03i": gh("#ghiseu/nou", start(pjAdmin, "003000519")),
       /* „Prin procură” ticked: the FO boxed procură upload (empty · attached here · then Documente însoțitoare
-         shows it already attached, without the „atașați copia” notice) — 2026-10-16 */
+         shows it already attached, without the „atașează copia” notice) — 2026-10-16 */
       "gh-03j": gh("#ghiseu/nou", seq(start(pjNoLink), async (h) => { await h.click("[data-gh-procura]"); await h.scroll("[data-gh-procura-doc]"); })),
       "gh-03k": gh("#ghiseu/nou", seq(start(pjNoLink), async (h) => { await h.click("[data-gh-procura]"); }, ghUpload("[data-gh-procura-doc]", "procura-scan.pdf", 640000), async (h) => { await h.scroll("[data-gh-procura-doc]"); })),
       "gh-03l": gh("#ghiseu/nou", seq(start(pjNoLink), async (h) => { await h.click("[data-gh-procura]"); }, ghUpload("[data-gh-procura-doc]", "procura-scan.pdf", 640000), async (h) => { /* the stepper is hidden on phones: dispatch the row's click directly */ document.querySelector('#gh-request-modal [data-gh-step="4"] [data-gh-goto]').click(); await h.wait(400); await h.find('[data-gh-doc="procura"] [data-fo-doc]'); })),
@@ -5551,7 +5551,7 @@
       "gh-10a": gh("#ghiseu/gh-4771/plata", seq(async (h) => { await h.click("[data-gh-mpay]"); }, next, async (h) => { await h.click("[data-gh-submit]"); })),
       "gh-10b": gh("#ghiseu/gh-4765/plata", seq(next, async (h) => { await h.click("[data-gh-submit]"); }), { depunere: "eroare" }),
       "gh-10c": gh("#ghiseu/gh-4771/plata", seq(async (h) => { await h.click("[data-gh-mpay]"); }, next, async (h) => { await h.click("[data-gh-submit]"); }), { certerr: "1" }),
-      /* finish-doc-error-filecard-v1: „Reîncercați” → the generated certificate card, focus on „Vezi documentul” */
+      /* finish-doc-error-filecard-v1: „Reîncearcă” → the generated certificate card, focus on „Vezi documentul” */
       "gh-10c1": gh("#ghiseu/gh-4771/plata", seq(async (h) => { await h.click("[data-gh-mpay]"); }, next, async (h) => { await h.click("[data-gh-submit]"); }, async (h) => { await h.click("[data-gh-cert-retry]"); }), { certerr: "1" }),
       "gh-10d": gh("#ghiseu/gh-4771/plata", seq(async (h) => { await h.click("[data-gh-mpay]"); }, next, async (h) => { await h.click("[data-gh-submit]"); }, async (h) => { await h.click('[data-gh-preview="cert"]'); })),
       "gh-10e": gh("#ghiseu/gh-4805"),
