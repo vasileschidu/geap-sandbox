@@ -334,7 +334,7 @@
   --wid-heat-5: var(--gray-700, #383838); --wid-heat-5-hover: var(--gray-800, #2c2c2c);
 }
 
-/* the editor's palette options (`.e-permits-wid-pal-options`: the ONE radio, Small desktop / Medium phones) and the
+/* the editor's palette options (the type-card radio cards `.e-permits-wid-type`, swatches in the description) and the
    read-only value „Culori” (`.e-permits-wid-pal-value`): five 16 rounded swatches in the palette's s1…s5, 4 apart */
 .e-permits-wid-pal {
   display: inline-flex;
@@ -348,17 +348,6 @@
   border-radius: var(--border-radius-4, 4px);
   height: var(--spacing-16, 16px);
   width: var(--spacing-16, 16px);
-}
-
-.e-permits-wid-pal-options {
-  display: grid;
-  gap: var(--spacing-16, 16px) var(--spacing-24, 24px);
-  grid-template-columns: repeat(auto-fill, minmax(calc(var(--spacing-40, 40px) * 5), 1fr));
-}
-
-.e-permits-wid-pal-options .radio-description {
-  display: flex;
-  padding-top: var(--spacing-4, 4px);
 }
 
 .e-permits-wid-pal-value {
@@ -1196,18 +1185,5 @@ button.e-permits-wid-rows__row:focus-visible {
 
   .e-permits-wid-heat tbody th {
     vertical-align: middle;
-  }
-}
-
-/* „Culori” on phones: one palette per row, the ONE phone option size 48 · 16/24 (the radio is rendered Medium ≤ 760) */
-@media (max-width: 760px) {
-  .e-permits-wid-pal-options {
-    gap: var(--spacing-8, 8px);
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  .e-permits-wid-pal-options > .radio {
-    align-content: center;
-    min-height: var(--spacing-48, 48px);
   }
 }

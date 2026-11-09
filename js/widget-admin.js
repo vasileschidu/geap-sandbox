@@ -669,13 +669,23 @@
          ${full(U().renderToggle?.({ label: "Culori după prag", description: "Valorile de la prag în sus sunt verzi, cele de sub prag au culoarea aleasă. Fără prag, widget-ul folosește culorile alese mai jos.", checked: Boolean(v.threshold.on), attrs: 'data-wid-field="threshold.on"' }) || "")}
          ${v.threshold.on ? `${textField(`${idp}-threshold`, "threshold.value", "Pragul", v.threshold.value, { span: 6, unit, numeric: true, required: true, error: e["threshold.value"] })}${selectField(`${idp}-below`, "threshold.below", "Culoarea sub prag", BELOW, v.threshold.below, {})}` : ""}`;
     const vis = visOptions();
-    const radio = isPhone() ? "radio--medium" : "radio--small";
     const palette = full(`
       <div class="e-permits-wid-vis-field e-permits-wid-pal-field">
         <span class="e-permits-cfg-ro__label" id="${idp}-palette-label">Culori</span>
-        <div class="radio-group e-permits-wid-pal-options" role="radiogroup" aria-labelledby="${idp}-palette-label" aria-describedby="${idp}-palette-hint" id="${idp}-palette">
-          ${PALETTES.map(([key, name]) => `<label class="radio ${radio}"><input class="radio-input" type="radio" name="${idp}-pal" value="${key}"${palKey(v) === key ? " checked" : ""} data-wid-pal><span class="radio-custom" aria-hidden="true"></span><span class="radio-texts"><span class="radio-label">${esc(name)}</span><span class="radio-description">${swatches(key)}</span></span></label>`).join("")}
-        </div>
+        <fieldset class="e-permits-wid-types" id="${idp}-palette" aria-describedby="${idp}-palette-hint">
+          <legend class="u-visually-hidden">Culori</legend>
+          <div class="e-permits-wid-types__grid">${PALETTES.map(([key, name]) => `
+            <label class="e-permits-fo-delivery-option e-permits-fo-delivery-option--radio e-permits-wid-type${palKey(v) === key ? " is-selected" : ""}">
+              <input class="e-permits-fo-delivery-option__input" type="radio" name="${idp}-pal" value="${key}"${palKey(v) === key ? " checked" : ""} data-wid-pal>
+              <span class="e-permits-fo-delivery-option__content">
+                <span class="e-permits-fo-delivery-option__copy">
+                  <span class="e-permits-fo-delivery-option__title-row"><span class="e-permits-fo-delivery-option__title">${esc(name)}</span></span>
+                  <span class="e-permits-fo-delivery-option__description">${swatches(key)}</span>
+                </span>
+              </span>
+              <span class="radio radio--small e-permits-fo-delivery-option__radio" aria-hidden="true"><span class="radio-custom"></span></span>
+            </label>`).join("")}</div>
+        </fieldset>
         <p class="e-permits-fo-field__hint" id="${idp}-palette-hint">Zonele KPI păstrează verde / galben / roșu.</p>
       </div>`);
     return `
