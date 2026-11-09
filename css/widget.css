@@ -236,13 +236,42 @@
   border-bottom: 0;
 }
 
-/* the series palette (categorical, „paleta SIA GEAP”): s1 = brand … s6 = neutral; zones keep the eKYC tones */
-.e-permits-wid-s1 { --wid-series: var(--color-background-brand-default, #0058d2); --wid-series-hover: var(--color-background-brand-default-hover, #0046a8); }
-.e-permits-wid-s2 { --wid-series: var(--purple-600, #7e37f9); --wid-series-hover: var(--purple-700, #652cc7); }
-.e-permits-wid-s3 { --wid-series: var(--magenta-600, #aa18ce); --wid-series-hover: var(--magenta-700, #8813a5); }
-.e-permits-wid-s4 { --wid-series: var(--blue-sky-800, #00357e); --wid-series-hover: var(--blue-sky-900, #00295a); }
-.e-permits-wid-s5 { --wid-series: var(--purple-800, #4c2195); --wid-series-hover: var(--purple-900, #36166a); }
-.e-permits-wid-s6 { --wid-series: var(--color-icon-base-tertiary, #757575); --wid-series-hover: var(--gray-500, #616161); }
+/* the chart palette (chart-palette-v1, 2026-11-09; PO „pot să schimb culorile”, user: „nice and smooth, a range not too
+   wide, keeping our brand”) — ONE place for every widget / KPI chart (bars, stacked, line / area, control, donut, heat map,
+   funnel, treemap, tile, tables, legends). Check: `node tools/ui-qa/chart-palette.mjs` (contrast vs white + neighbours).
+   Series: analogous blue → violet only, anchored on the brand; neighbours alternate light / dark (ΔL* ≥ 16) so they part
+   without hue (colour-blind safe); every mark ≥ 3:1 on white; s6 „Altele” = neutral grey; hover = one step darker;
+   `--wid-series-on` = the text drawn on a mark (treemap labels). Series = brand · lavender-400 · blue-sky-800 ·
+   blue-sky-500 · purple-700 · gray-400. */
+.e-permits-wid-s1 { --wid-series: var(--color-background-brand-default, #0058d2); --wid-series-hover: var(--color-background-brand-default-hover, #0046a8); --wid-series-on: var(--color-text-base-inverse-on-color, #fff); }
+.e-permits-wid-s2 { --wid-series: var(--lavender-400, #9a79ef); --wid-series-hover: var(--lavender-500, #784cea); --wid-series-on: var(--color-text-base-default, #121212); }
+.e-permits-wid-s3 { --wid-series: var(--blue-sky-800, #00357e); --wid-series-hover: var(--blue-sky-900, #00295a); --wid-series-on: var(--color-text-base-inverse-on-color, #fff); }
+.e-permits-wid-s4 { --wid-series: var(--blue-sky-500, #3379db); --wid-series-hover: var(--blue-sky-600, #0058d2); --wid-series-on: var(--color-text-base-inverse-on-color, #fff); }
+.e-permits-wid-s5 { --wid-series: var(--purple-700, #652cc7); --wid-series-hover: var(--purple-800, #4c2195); --wid-series-on: var(--color-text-base-inverse-on-color, #fff); }
+.e-permits-wid-s6 { --wid-series: var(--gray-400, #757575); --wid-series-hover: var(--gray-500, #616161); --wid-series-on: var(--color-text-base-inverse-on-color, #fff); }
+
+/* KPI zones (Favorabil / Avertizare / Critic): the status meaning kept, two steps lighter than the status icons
+   (calm bars: green-400 · apricot-300 · red-400, hover one step darker), the same tone on bars, meter bands, legend dots,
+   the control limits and „în afara limitelor” dots; tags stay the library tags (same hue families); the zone is never
+   told by colour alone (legend + tags + value labels). Scoped to the widget card + the KPI band / trend (the eKYC dashboard keeps its tones). */
+:is(.e-permits-wid-card, .e-permits-kpi-band, .e-permits-kpi-trend) {
+  --wid-zone-success: var(--green-400, #68c199);
+  --wid-zone-success-hover: var(--green-500, #35ad77);
+  --wid-zone-warning: var(--apricot-300, #fec84b);
+  --wid-zone-warning-hover: var(--apricot-400, #fdb022);
+  --wid-zone-danger: var(--red-400, #f97066);
+  --wid-zone-danger-hover: var(--red-500, #f04438);
+}
+
+:is(.e-permits-wid-card, .e-permits-kpi-band, .e-permits-kpi-trend) :is(.e-permits-chart__bar--success, .e-permits-meter__fill--success) { fill: var(--wid-zone-success); }
+:is(.e-permits-wid-card, .e-permits-kpi-band, .e-permits-kpi-trend) :is(.e-permits-chart__bar--warning, .e-permits-meter__fill--warning) { fill: var(--wid-zone-warning); }
+:is(.e-permits-wid-card, .e-permits-kpi-band, .e-permits-kpi-trend) :is(.e-permits-chart__bar--danger, .e-permits-meter__fill--danger) { fill: var(--wid-zone-danger); }
+:is(.e-permits-wid-card, .e-permits-kpi-band, .e-permits-kpi-trend) .e-permits-meter-legend__dot--success { background: var(--wid-zone-success); }
+:is(.e-permits-wid-card, .e-permits-kpi-band, .e-permits-kpi-trend) .e-permits-meter-legend__dot--warning { background: var(--wid-zone-warning); }
+:is(.e-permits-wid-card, .e-permits-kpi-band, .e-permits-kpi-trend) .e-permits-meter-legend__dot--danger { background: var(--wid-zone-danger); }
+
+/* the KPI trend chart wrapper (kpi-admin.js trendChart): layout-neutral, only carries the zone tones */
+.e-permits-kpi-trend { display: contents; }
 
 .e-permits-wid-fill { fill: var(--wid-series); }
 
@@ -293,9 +322,9 @@ button.e-permits-wid-cols__slot:focus-visible {
 }
 
 button.e-permits-wid-cols__slot:hover .e-permits-chart__bar--brand { fill: var(--color-background-brand-default-hover, #0046a8); }
-button.e-permits-wid-cols__slot:hover .e-permits-chart__bar--success { fill: var(--green-700, #027948); }
-button.e-permits-wid-cols__slot:hover .e-permits-chart__bar--warning { fill: var(--apricot-600, #dc6803); }
-button.e-permits-wid-cols__slot:hover .e-permits-chart__bar--danger { fill: var(--red-700, #b32318); }
+button.e-permits-wid-cols__slot:hover .e-permits-chart__bar--success { fill: var(--wid-zone-success-hover); }
+button.e-permits-wid-cols__slot:hover .e-permits-chart__bar--warning { fill: var(--wid-zone-warning-hover); }
+button.e-permits-wid-cols__slot:hover .e-permits-chart__bar--danger { fill: var(--wid-zone-danger-hover); }
 button.e-permits-wid-cols__slot:hover .e-permits-wid-fill { fill: var(--wid-series-hover); }
 
 /* target line of a KPI («Ținta») and the control-chart lines */
@@ -311,7 +340,7 @@ button.e-permits-wid-cols__slot:hover .e-permits-wid-fill { fill: var(--wid-seri
 }
 
 .e-permits-wid-limit {
-  stroke: var(--color-icon-danger-default, #d92d20);
+  stroke: var(--wid-zone-danger);
   stroke-dasharray: var(--spacing-4, 4px) var(--spacing-4, 4px);
   stroke-width: var(--border-width-1-5, 1.5px);
 }
@@ -325,7 +354,7 @@ button.e-permits-wid-cols__slot:hover .e-permits-wid-fill { fill: var(--wid-seri
 
 .e-permits-wid-legend__target { background: var(--color-text-base-default, #121212); }
 .e-permits-wid-legend__mean { background: var(--color-icon-base-tertiary, #757575); }
-.e-permits-wid-legend__limit { background: var(--color-icon-danger-default, #d92d20); }
+.e-permits-wid-legend__limit { background: var(--wid-zone-danger); }
 
 /* a legend item that drills (donut): the whole line is the button; grey tray → its hover step */
 .e-permits-wid-legend__btn {
@@ -404,8 +433,8 @@ button.e-permits-wid-cols__slot:hover .e-permits-wid-fill { fill: var(--wid-seri
 }
 
 .e-permits-wid-dot.is-out {
-  fill: var(--color-icon-danger-default, #d92d20);
-  stroke: var(--color-icon-danger-default, #d92d20);
+  fill: var(--wid-zone-danger);
+  stroke: var(--wid-zone-danger);
 }
 
 /* Bare (categories) / Pâlnie: one row per category — label · bar · value; a drill row is a button with the list hover */
@@ -614,11 +643,13 @@ button.e-permits-wid-rows__row:focus-visible {
   width: 100%;
 }
 
-.e-permits-wid-heat__cell.is-l1 { background: var(--blue-sky-100, #e8f0fb); }
-.e-permits-wid-heat__cell.is-l2 { background: var(--blue-sky-200, #ccdef6); }
-.e-permits-wid-heat__cell.is-l3 { background: var(--blue-sky-300, #99bced); }
-.e-permits-wid-heat__cell.is-l4 { background: var(--blue-sky-500, #3379db); color: var(--color-text-base-inverse-on-color, #fff); }
-.e-permits-wid-heat__cell.is-l5 { background: var(--color-background-brand-default, #0058d2); color: var(--color-text-base-inverse-on-color, #fff); }
+/* the heat ramp: sequential on the brand blue, light → brand → dark (blue-sky 150 · 300 · 400 · 600 · 800); dark text on
+   the light three, white on brand and darker */
+.e-permits-wid-heat__cell.is-l1 { background: var(--blue-sky-150, #d6e5f8); }
+.e-permits-wid-heat__cell.is-l2 { background: var(--blue-sky-300, #99bced); }
+.e-permits-wid-heat__cell.is-l3 { background: var(--blue-sky-400, #669be4); }
+.e-permits-wid-heat__cell.is-l4 { background: var(--color-background-brand-default, #0058d2); color: var(--color-text-base-inverse-on-color, #fff); }
+.e-permits-wid-heat__cell.is-l5 { background: var(--blue-sky-800, #00357e); color: var(--color-text-base-inverse-on-color, #fff); }
 
 /* a drilling cell: a transparent button filling the coloured cell (the colour is the data, on the span); hover = the
    button takes the next step of the ramp itself (the element under the pointer changes), ring inset */
@@ -641,10 +672,10 @@ button.e-permits-wid-rows__row:focus-visible {
 
 .e-permits-wid-heat__cell > .e-permits-wid-heat__btn:hover { background: var(--color-background-base-tertiary-hover, #e5e5e5); }
 .e-permits-wid-heat__cell.is-l1 > .e-permits-wid-heat__btn:hover { background: var(--blue-sky-200, #ccdef6); }
-.e-permits-wid-heat__cell.is-l2 > .e-permits-wid-heat__btn:hover { background: var(--blue-sky-300, #99bced); }
-.e-permits-wid-heat__cell.is-l3 > .e-permits-wid-heat__btn:hover { background: var(--blue-sky-400, #669be4); }
-.e-permits-wid-heat__cell.is-l4 > .e-permits-wid-heat__btn:hover { background: var(--color-background-brand-default, #0058d2); }
-.e-permits-wid-heat__cell.is-l5 > .e-permits-wid-heat__btn:hover { background: var(--color-background-brand-default-hover, #0046a8); }
+.e-permits-wid-heat__cell.is-l2 > .e-permits-wid-heat__btn:hover { background: var(--blue-sky-400, #669be4); }
+.e-permits-wid-heat__cell.is-l3 > .e-permits-wid-heat__btn:hover { background: var(--blue-sky-500, #3379db); }
+.e-permits-wid-heat__cell.is-l4 > .e-permits-wid-heat__btn:hover { background: var(--color-background-brand-default-hover, #0046a8); }
+.e-permits-wid-heat__cell.is-l5 > .e-permits-wid-heat__btn:hover { background: var(--blue-sky-900, #00295a); }
 
 .e-permits-wid-heat__cell:has(> .e-permits-wid-heat__btn) {
   padding: 0;
@@ -657,11 +688,11 @@ button.e-permits-wid-rows__row:focus-visible {
   width: var(--spacing-16, 16px);
 }
 
-.e-permits-wid-heat__key.is-l1 { background: var(--blue-sky-100, #e8f0fb); }
-.e-permits-wid-heat__key.is-l2 { background: var(--blue-sky-200, #ccdef6); }
-.e-permits-wid-heat__key.is-l3 { background: var(--blue-sky-300, #99bced); }
-.e-permits-wid-heat__key.is-l4 { background: var(--blue-sky-500, #3379db); }
-.e-permits-wid-heat__key.is-l5 { background: var(--color-background-brand-default, #0058d2); }
+.e-permits-wid-heat__key.is-l1 { background: var(--blue-sky-150, #d6e5f8); }
+.e-permits-wid-heat__key.is-l2 { background: var(--blue-sky-300, #99bced); }
+.e-permits-wid-heat__key.is-l3 { background: var(--blue-sky-400, #669be4); }
+.e-permits-wid-heat__key.is-l4 { background: var(--color-background-brand-default, #0058d2); }
+.e-permits-wid-heat__key.is-l5 { background: var(--blue-sky-800, #00357e); }
 
 /* the treemap as a whole: outer corners 6, the tiles 2 inside */
 .e-permits-wid-treemap {
@@ -669,7 +700,7 @@ button.e-permits-wid-rows__row:focus-visible {
   overflow: hidden;
 }
 
-/* Treemap: tiles in the series palette, 2px card-coloured gaps, white labels on the big ones */
+/* Treemap: tiles in the series palette, 2px card-coloured gaps, labels on the big ones in the series' on-colour */
 .e-permits-wid-tile-rect {
   rx: var(--border-radius-2, 2px);
   ry: var(--border-radius-2, 2px);
@@ -679,7 +710,7 @@ button.e-permits-wid-rows__row:focus-visible {
 
 .e-permits-wid-treemap__label,
 .e-permits-wid-treemap__value {
-  fill: var(--color-text-base-inverse-on-color, #fff);
+  fill: var(--wid-series-on, var(--color-text-base-inverse-on-color, #fff));
   font-family: var(--font-family-primary-font, Onest);
   font-size: var(--font-size-fs-12, 12px);
   pointer-events: none;

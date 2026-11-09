@@ -366,10 +366,10 @@
       return `<rect class="e-permits-chart__bar e-permits-chart__bar--${tone}" x="${x}%" y="${top}%" width="${width}%" height="200%" rx="4"></rect>`;
     }).join("");
     const ranges = hasTarget(t) ? zoneRanges(k, t) : null;
-    return `
+    return `<div class="e-permits-kpi-trend">
       <svg class="e-permits-chart__plot" role="img" aria-label="Valoarea lunară în ultimele 12 luni: ${esc(series.map((p) => `${p.label} ${p.value === null ? "n/a" : fmt(k, p.value)}`).join(", "))}" focusable="false">${bars}</svg>
       <div class="e-permits-chart__axis" aria-hidden="true"><span>${esc(series[0].label)}</span><span>${esc(series[Math.floor(n / 2)].label)}</span><span>${esc(series[n - 1].label)}</span></div>
-      ${legend(ranges ? ranges.map(([l, tone, r]) => [`${l} · ${r}`, tone]) : [["Valoarea lunară", "brand"]])}`;
+      ${legend(ranges ? ranges.map(([l, tone, r]) => [`${l} · ${r}`, tone]) : [["Valoarea lunară", "brand"]])}</div>`;
   }
   /* KPI cards of the eKYC dashboard */
   const kpiCard = (label, value, meta, tone = "") => `

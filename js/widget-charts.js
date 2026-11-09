@@ -25,7 +25,7 @@
   const esc = (value) => String(value ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
   const pct = (v) => `${Number(v).toFixed(2)}%`;
   const SERIES = 6;
-  /* the series palette: categorical (s1 = brand … s6 = neutral „Altele”); zones keep the eKYC tones */
+  /* the series palette: categorical (s1 = brand … s6 = neutral „Altele”); zones = the calmer --wid-zone-* tones (css/widget.css, chart-palette-v1) */
   const sClass = (i) => `e-permits-wid-s${(i % SERIES) + 1}`;
   const max = (list) => Math.max(0, ...list.filter((v) => Number.isFinite(v)));
   const nf = (v) => Number(v).toLocaleString("ro-MD", { maximumFractionDigits: 0 });
@@ -268,7 +268,7 @@
     const tiles = out.map((t) => {
       const name = t.h > 30 ? fit(t.label, t.w) : "";
       const val = t.h > 30 ? fit(`${m.fmt(t.value)} · ${share(t.value, total)}`, t.w) : "";
-      return `<rect class="e-permits-wid-fill e-permits-wid-tile-rect ${sClass(t.i)}" data-wid-tile="${t.i}" x="${pct(t.x)}" y="${pct(t.y)}" width="${pct(t.w)}" height="${pct(t.h)}"></rect>${name ? `<text class="e-permits-wid-treemap__label" data-wid-fit="tile" data-wid-tile="${t.i}" x="${pct(t.x + 1.5)}" y="${pct(t.y + 14)}">${esc(name)}</text>` : ""}${val ? `<text class="e-permits-wid-treemap__value" data-wid-fit="tile" data-wid-tile="${t.i}" x="${pct(t.x + 1.5)}" y="${pct(t.y + 28)}">${esc(val)}</text>` : ""}`;
+      return `<rect class="e-permits-wid-fill e-permits-wid-tile-rect ${sClass(t.i)}" data-wid-tile="${t.i}" x="${pct(t.x)}" y="${pct(t.y)}" width="${pct(t.w)}" height="${pct(t.h)}"></rect>${name ? `<text class="e-permits-wid-treemap__label ${sClass(t.i)}" data-wid-fit="tile" data-wid-tile="${t.i}" x="${pct(t.x + 1.5)}" y="${pct(t.y + 14)}">${esc(name)}</text>` : ""}${val ? `<text class="e-permits-wid-treemap__value ${sClass(t.i)}" data-wid-fit="tile" data-wid-tile="${t.i}" x="${pct(t.x + 1.5)}" y="${pct(t.y + 28)}">${esc(val)}</text>` : ""}`;
     }).join("");
     return `
       <svg class="${PLOT(m, "e-permits-wid-plot--bare e-permits-wid-treemap")}" role="img" aria-label="${ariaOf(m)}" focusable="false">${tiles}</svg>
