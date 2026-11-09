@@ -4070,6 +4070,8 @@
     /* ---- Administrare › Rapoarte (Feature 96502 „Constructor de rapoarte”, js/rapoarte-admin.js, rpt-v1 2026-11-09;
        part 1 of 2): rpt-01 listă (US-467) · 02 fără permisiune · 03 creare: date generale, constructorul de coloane,
        formule, antet pe două niveluri, structură, revizuire, erori (US-466) · 04 profilul / editarea (US-468).
+       Part 2 (rpt-v2): 05 publicare (US-469) · 06 versiuni + restaurare (US-471) · 07 dezactivare / activare (US-470) ·
+       08 acces per Rol / Autoritate · 09 clonare · 10 Istoric.
        Demo switch raport=fara-permisiune|gol|eroare */
     ...rptDemoStates()
   };
@@ -4568,6 +4570,13 @@
     const calc = seq(async (h) => { await addKind("calc")(h); await h.find(`${DR} #rpt-c-name-ro`); }, async (h) => { await h.choose(`${DR} select[data-rpt-col-field="formula"]`, "f-pct"); await h.fill("#rpt-c-name-ro", "Finalizate în termen, %", { leave: false }); await h.choose(`${DR} select[data-rpt-col-op="A"]`, "c4"); await h.choose(`${DR} select[data-rpt-col-op="B"]`, "c3"); });
     const built = seq(nou, step1, next, cols, twoLevel, calc, saveCol);
     /* + „Autoritate” (c6) moved to the first place: the column the rows are grouped by */
+    /* part 2 helpers: the library dialog (#case-action-modal), the shell confirm, the header ⋮ */
+    const M = "#case-action-modal.is-active";
+    const OK = "#service-confirm-modal.is-active [data-service-confirm-ok]";
+    const PUB = async (h) => { await h.click("[data-dosar-profil] [data-rpt-publish]"); await h.find(`${M} [data-rpt-publish-confirm]`); };
+    const VER = (nr) => async (h) => { await h.click(`#rpt-panel [data-rpt-ver-view="${nr}"]`); await h.find(`${M} .e-permits-rpt-card`); };
+    const HMENU = async (h) => { await h.click("[data-dosar-profil] .e-permits-page-header__actions [data-stack-menu-trigger]"); await h.wait(200); };
+    const GRANT = async (h) => { await h.click("#rpt-panel [data-rpt-grant]"); await h.find(`${M} [data-rpt-grant-save]`); };
     const byAuth = seq(dict, addF("autoritate"), done, ...[1, 2, 3, 4, 5].map(() => async (h) => { await h.click(`${C} [data-rpt-col-move="c6|-1"]`); }));
     return {
       /* US-467 — list (grouped by category), search, filters, empty, row menu */
@@ -4628,7 +4637,49 @@
       "rpt-04h": prof("RPT-0002", "configurare", async (h) => { await h.click("#rpt-panel [data-rpt-zoom]"); await h.find("#case-action-modal.is-active .e-permits-rpt-table"); }),
       "rpt-04i": prof("RPT-0002", "configurare", async (h) => { await h.click('#rpt-panel [data-rpt-col="c5"] .e-permits-stack__title'); await h.find(`${DR} #rpt-c-name-ro`); }),
       "rpt-04j": prof("RPT-0004"),
-      "rpt-04k": prof("RPT-0007", "configurare", async (h) => { await h.scroll("#rpt-panel [data-rpt-preview]"); })
+      "rpt-04k": prof("RPT-0007", "configurare", async (h) => { await h.scroll("#rpt-panel [data-rpt-preview]"); }),
+
+      /* ---- part 2 (rpt-v2): US-469 publicarea · US-471 versiuni + restaurare · US-470 dezactivare / activare · acces per Rol /
+         Autoritate · clonare · Istoric (jurnalul de audit) */
+      "rpt-05a": prof("RPT-0007"),
+      "rpt-05b": prof("RPT-0007", "configurare", PUB),
+      "rpt-05c": prof("RPT-0006", "configurare", PUB),
+      "rpt-05d": prof("RPT-0003", "configurare", PUB, null, AUTH),
+      "rpt-05e": prof("RPT-0006", "configurare", seq(PUB, async (h) => { await h.click(`${M} [data-rpt-publish-confirm]`); await h.wait(200); })),
+      "rpt-05f": prof("RPT-0006", "configurare", seq(PUB, async (h) => { await h.fill("#rpt-publish-note", "Adăugată coloana „Zile în perioadă”.", { leave: false }); await h.click(`${M} [data-rpt-publish-confirm]`); await h.wait(500); })),
+      "rpt-05g": list(seq(nou, step1, langs, next, cols, twoLevel, calc, saveCol, next, next)),
+      "rpt-05h": list(seq(nou, step1, langs, next, cols, twoLevel, calc, saveCol, next, next, async (h) => { await h.click(`${C} [data-rpt-publish]`); await h.find(`${M} [data-rpt-publish-confirm]`); })),
+      "rpt-05i": prof("RPT-0001", "configurare", async (h) => { await h.fill("#rpt-e-name-ro", "Raport dosare finalizate pe serviciu și lună", { leave: false }); await h.wait(150); await h.click("[data-dosar-profil] [data-rpt-publish]"); await h.find(`${M} [data-rpt-publish-confirm]`); }),
+      "rpt-06a": prof("RPT-0001", "versiuni"),
+      "rpt-06b": prof("RPT-0001", "versiuni", VER(1)),
+      "rpt-06c": prof("RPT-0001", "versiuni", seq(VER(1), async (h) => { await h.click(`${M} [data-rpt-ver-restore="1"]`); await h.find("#rpt-restore-note"); })),
+      "rpt-06d": prof("RPT-0001", "versiuni", seq(VER(1), async (h) => { await h.click(`${M} [data-rpt-ver-restore="1"]`); await h.fill("#rpt-restore-note", "Durata medie se mută în raportul statistic.", { leave: false }); await h.click(`${M} [data-rpt-restore-confirm]`); await h.wait(500); })),
+      "rpt-06e": prof("RPT-0007", "versiuni"),
+      "rpt-06f": prof("RPT-0001", "versiuni", VER(1), null, AUTH),
+      "rpt-07a": list(MENU("RPT-0002")),
+      "rpt-07b": list(seq(MENU("RPT-0002"), async (h) => { await h.click('[data-rpt-row-toggle="RPT-0002"]'); await h.find(OK); })),
+      "rpt-07c": list(seq(MENU("RPT-0002"), async (h) => { await h.click('[data-rpt-row-toggle="RPT-0002"]'); await h.click(OK); await h.wait(500); })),
+      "rpt-07d": list(async (h) => {
+        window.GEAPShellApi.setRegistryFilters("rapoarte", { statut: ["Dezactivat"] });
+        document.querySelector('[data-nav-item][data-nav-id="rapoarte"]').click(); await h.wait(700);
+      }),
+      "rpt-07e": prof("RPT-0004", "configurare", HMENU),
+      "rpt-07f": prof("RPT-0004", "configurare", seq(HMENU, async (h) => { await h.click("[data-dosar-profil] [data-rpt-toggle]"); await h.wait(500); })),
+      "rpt-07g": list(MENU("RPT-0001"), null, AUTH),
+      "rpt-08a": prof("RPT-0001", "acces"),
+      "rpt-08b": prof("RPT-0001", "acces", GRANT),
+      "rpt-08c": prof("RPT-0001", "acces", seq(GRANT, async (h) => { await h.choose(`${M} select[data-rpt-grant-auth]`, "ansp"); await h.wait(200); await h.click(`${M} label:has([data-rpt-grant-role][value="expert"])`); await h.click(`${M} label:has([data-rpt-grant-role][value="auditor"])`); })),
+      "rpt-08d": prof("RPT-0001", "acces", seq(GRANT, async (h) => { await h.click(`${M} label:has([data-rpt-grant-role][value="expert"])`); await h.click(`${M} [data-rpt-grant-save]`); await h.wait(500); })),
+      "rpt-08e": prof("RPT-0001", "acces", async (h) => { await h.click('#rpt-panel [data-rpt-revoke="RPT-0001-g3"]'); await h.find(OK); }),
+      "rpt-08f": prof("RPT-0007", "acces"),
+      "rpt-08g": prof("RPT-0001", "acces", null, null, AUTH),
+      "rpt-08h": prof("RPT-0003", "acces", GRANT, null, AUTH),
+      "rpt-09a": list(seq(MENU("RPT-0001"), async (h) => { await h.click('[data-rpt-row-clone="RPT-0001"]'); await h.find(`${C} #rpt-e-name-ro`); })),
+      "rpt-09b": list(seq(MENU("RPT-0001"), async (h) => { await h.click('[data-rpt-row-clone="RPT-0001"]'); await h.find(`${C} #rpt-e-name-ro`); }), null, AUTH),
+      "rpt-09c": list(seq(nou, async (h) => { await h.choose(`${C} select[data-rpt-from]`, "RPT-0002"); await h.wait(300); })),
+      "rpt-09d": list(seq(MENU("RPT-0001"), async (h) => { await h.click('[data-rpt-row-clone="RPT-0001"]'); await h.find(`${C} #rpt-e-name-ro`); await h.click(`${C} [data-rpt-save]`); await h.find("#rpt-panel"); await h.wait(400); }), null, AUTH),
+      "rpt-10a": prof("RPT-0001", "istoric"),
+      "rpt-10b": prof("RPT-0001", "istoric", async (h) => { await h.click('#rpt-panel [data-rpt-event="0"]'); await h.wait(400); })
     };
   }
 
