@@ -443,7 +443,7 @@
       ${b.sub ? `<tr class="e-permits-rpt-table__subtotal">${cols.map((c) => cell(c, b.sub, { label: "Subtotal" })).join("")}</tr>` : ""}`).join("");
     const foot = m.total ? `<tfoot><tr class="e-permits-rpt-table__total">${cols.map((c) => cell(c, m.total, { label: "Total" })).join("")}</tr></tfoot>` : "";
     return `
-      <div class="e-permits-workplace__table-wrap e-permits-reg-table e-permits-rpt-table-wrap">
+      <div class="e-permits-workplace__table-wrap e-permits-rpt-table-wrap">
         <table class="e-permits-workplace__table e-permits-reg-table__table e-permits-wid-table e-permits-wid-table--agg e-permits-rpt-table">
           <caption class="u-visually-hidden">${esc(v.names.ro || "Raport")} — previzualizare cu date demonstrative</caption>
           <thead>${headHtml(v)}</thead>
@@ -604,10 +604,23 @@
   function stepColumns(v, e, idp) {
     const cols = v.columns;
     const last = cols.length - 1;
-    const add = (cls = "btn-text-primary") => `
-      <button class="btn ${cls} btn-sm" type="button" data-rpt-add="source"${v.source ? "" : ' aria-disabled="true" data-tooltip-reason="Alege mai întâi sursa de date."'}>${icon("plus-large", 16)}<span>Din sursa de date</span></button>
-      <button class="btn btn-text-primary btn-sm" type="button" data-rpt-add="calc">${icon("plus-large", 16)}<span>Calculată</span></button>
-      <button class="btn btn-text-primary btn-sm" type="button" data-rpt-add="manual">${icon("plus-large", 16)}<span>Completată manual</span></button>`;
+    /* „Adaugă coloană ▾” (rpt-add-menu-v1, 2026-11-09, user; Airtable / Notion / Retool „add field → choose type”): ONE
+       library secondary button (plus + label + chevron) opening the stack dropdown; items = icon + kind + one short line */
+    const ADD_ITEMS = [
+      ["source", "data-access", "Din sursa de date", "Un câmp din dicționarul sursei de date."],
+      ["calc", "calculator", "Calculată", "Rezultatul unei formule din setul de formule."],
+      ["manual", "edit", "Completată manual", "Fără valoare din sistem: se completează la generare."]
+    ];
+    const add = () => `
+      <div class="e-permits-stack__menu-wrap e-permits-rpt-add">
+        <button class="btn btn-secondary btn-sm e-permits-stack__menu-trigger" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="${idp}-add-menu" data-stack-menu-trigger data-rpt-add-trigger>${icon("plus-large", 16)}<span>Adaugă coloană</span>${icon("chevron-bottom", 16)}</button>
+        <ul class="e-permits-fo-intent-menu e-permits-stack__menu e-permits-rpt-add-menu" id="${idp}-add-menu" role="menu" aria-label="Tipul coloanei" hidden data-stack-menu data-stack-menu-fixed data-stack-menu-align="start">
+          ${ADD_ITEMS.map(([kind, ic, text, desc]) => {
+            const off = kind === "source" && !v.source;
+            return `<li role="none"><button class="e-permits-fo-intent-menu__item e-permits-rpt-add-menu__item" type="button" role="menuitem" data-rpt-add="${kind}"${off ? ' aria-disabled="true" data-tooltip-reason="Alege mai întâi sursa de date."' : ""}>${icon(ic)}<span class="e-permits-rpt-add-menu__text"><span class="e-permits-rpt-add-menu__title">${esc(text)}</span><span class="e-permits-rpt-add-menu__desc">${esc(off ? "Alege mai întâi sursa de date (pasul 1)." : desc)}</span></span></button></li>`;
+          }).join("")}
+        </ul>
+      </div>`;
     const list = cols.length ? `<div class="e-permits-stack e-permits-reg-editor__stack"><ul class="e-permits-stack__list" role="list" data-rpt-cols>${cols.map((c, i) => {
       const err = e[`col.${c.id}`];
       const [kt, kTone] = KIND_TAG[c.kind] || KIND_TAG.source;
@@ -624,8 +637,8 @@
           <button class="btn btn-text-destructive btn-sm btn-icon-only" type="button" aria-label="Elimină coloana „${esc(colName(c))}”" data-tooltip-label="Elimină coloana" data-rpt-col-remove="${esc(c.id)}">${icon("delete", 16)}</button>`
       }) || "").replace('<li class="e-permits-stack__item', '<li draggable="true" class="e-permits-stack__item');
     }).join("")}</ul></div>
-      <div class="e-permits-rpt-add" role="group" aria-label="Adaugă o coloană">${add()}</div>`
-      : `${E()?.render({ title: "Nicio coloană încă", text: v.source ? "Adaugă coloane din dicționarul sursei de date, calculate cu o formulă sau completate manual." : "Alege mai întâi sursa de date (pasul 1), apoi adaugă coloanele.", icon: "page-text", compact: true, actionHtml: `<div class="e-permits-rpt-add">${add()}</div>` }) || ""}${e.columns ? errorHtml(`${idp}-columns`, e.columns) : ""}`;
+      ${add()}`
+      : `${E()?.render({ title: "Nicio coloană încă", text: v.source ? "Adaugă coloane din dicționarul sursei de date, calculate cu o formulă sau completate manual." : "Alege mai întâi sursa de date (pasul 1), apoi adaugă coloanele.", icon: "page-text", compact: true, actionHtml: add() }) || ""}${e.columns ? errorHtml(`${idp}-columns`, e.columns) : ""}`;
     return `
       <section class="e-permits-dosar-profil__section e-permits-stack-section" aria-labelledby="${idp}-cols-title" id="${idp}-columns">
         <div class="e-permits-dosar-profil__section-heading">
@@ -1579,7 +1592,7 @@
       const id = rm.dataset.rptColRemove;
       const c = colOf(P.draft, id);
       const users = P.draft.columns.filter((x) => x.kind === "calc" && Object.values(x.operands || {}).includes(id));
-      const drop = () => { P.draft.columns = P.draft.columns.filter((x) => x.id !== id); users.forEach((u) => Object.keys(u.operands).forEach((k) => { if (u.operands[k] === id) u.operands[k] = ""; })); delete P.errors[`col.${id}`]; afterColumnsChange("[data-rpt-add]"); };
+      const drop = () => { P.draft.columns = P.draft.columns.filter((x) => x.id !== id); users.forEach((u) => Object.keys(u.operands).forEach((k) => { if (u.operands[k] === id) u.operands[k] = ""; })); delete P.errors[`col.${id}`]; afterColumnsChange("[data-rpt-add-trigger]"); };
       if (users.length) U().askConfirm?.({ title: `Elimini coloana „${colName(c)}”?`, text: `Formula ${users.length === 1 ? "coloanei" : "coloanelor"} ${users.map((u) => `„${colName(u)}”`).join(", ")} o folosește: va trebui să alegi altă coloană.`, confirmLabel: "Elimină", destructive: true }, drop);
       else drop();
       return;

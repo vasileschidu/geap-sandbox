@@ -59,20 +59,59 @@
   gap: var(--spacing-12, 12px);
 }
 
-/* the „+ Din sursa de date · + Calculată · + Completată manual” row under the column list (the „Adaugă condiție” buttons) */
+/* „Adaugă coloană ▾” under the column list (rpt-add-menu-v1): the library secondary button + the stack dropdown; the
+   button hugs its label, 16 under the list card (section rhythm) */
 .e-permits-rpt-add {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--spacing-8, 8px);
+  width: fit-content;
+}
+
+.e-permits-empty .e-permits-rpt-add {
+  margin-inline: auto;
 }
 
 .e-permits-stack-section > .e-permits-stack + .e-permits-rpt-add {
-  margin-top: var(--spacing-8, 8px);
+  margin-top: var(--spacing-16, 16px);
 }
 
-/* the empty state centres its action: the three add buttons wrap centred */
-.e-permits-empty .e-permits-rpt-add {
-  justify-content: center;
+/* the menu items: icon + two lines (kind · one short description) — the dropdown item size of css/dropdown.css, the
+   item grows with the second line; the icon sits on the first line */
+.e-permits-rpt-add-menu {
+  max-width: calc(var(--spacing-40, 40px) * 9);
+}
+
+.e-permits-fo-intent-menu__item.e-permits-rpt-add-menu__item {
+  align-items: flex-start;
+  text-align: left;
+}
+
+.e-permits-rpt-add-menu__text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.e-permits-rpt-add-menu__desc {
+  color: var(--color-text-base-tertiary, #757575);
+  font-size: var(--font-size-fs-12, 12px);
+  font-weight: var(--font-weight-fw-regular, 400);
+  line-height: var(--line-height-lh-16, 16px);
+  white-space: normal;
+}
+
+.e-permits-rpt-add-menu__item[aria-disabled="true"] {
+  cursor: not-allowed;
+}
+
+.e-permits-rpt-add-menu__item[aria-disabled="true"] :is(.icon, .e-permits-rpt-add-menu__title) {
+  color: var(--color-text-base-disabled, #b2b2b2);
+}
+
+@media (max-width: 760px) {
+  /* phones: 16/24 title (dropdown.css), the description 14/20 */
+  .e-permits-rpt-add-menu__desc {
+    font-size: var(--font-size-fs-14, 14px);
+    line-height: var(--line-height-lh-20, 20px);
+  }
 }
 
 /* filters: field · type · trash (two cells, not the rule's three) */
@@ -140,31 +179,58 @@
   margin: 0;
 }
 
-/* ---- the report preview table (new) — the widget card table + two header rows, group / subtotal / total rows ---- */
-.e-permits-rpt-table-wrap {
-  max-height: calc(var(--spacing-40, 40px) * 14);
+/* ---- the report preview table (new) = the RAP flat table (rap-table-flat-v1, components.md › RAP „Table”; rpt-table-flat-v1,
+   2026-11-09, user): no outer border / radius, the grey header band (library table-header „Subtle”: tertiary, 12/16 medium,
+   default text, 8 12), body rows ≥ 56 (8 12, 14/20) with the 1px divider; + two header rows, group / subtotal / total rows.
+   No inner vertical scroll and nothing sticky (a `th` is sticky in the BO registry — the group-row `th` slid over the first
+   row): the table shows at its full height, only sideways scroll. Rows are not interactive → no hover band. */
+.e-permits-workplace__table-wrap.e-permits-rpt-table-wrap {
+  background: var(--color-background-base-default, #fff);
+  border: 0;
+  border-radius: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
 }
 
-/* two header rows: the whole head sticks (not each th at top 0, the 2nd row would slide under the 1st) */
-.e-permits-rpt-table thead {
-  position: sticky;
-  top: 0;
-  z-index: 6;
+.e-permits-workplace__table.e-permits-rpt-table thead {
+  background: var(--color-background-base-tertiary, #f1f1f1);
+}
+
+.e-permits-workplace__table.e-permits-rpt-table th {
+  position: static;
 }
 
 .e-permits-workplace__table.e-permits-rpt-table thead th {
-  /* a table cell treats height as its minimum: the library 38 head, taller when the header wraps */
-  height: calc(var(--spacing-40, 40px) - var(--spacing-2, 2px));
-  padding-block: var(--spacing-8, 8px);
-  position: static;
+  background: var(--color-background-base-tertiary, #f1f1f1);
+  border-bottom: 0;
+  color: var(--color-text-base-default, #121212);
+  font-size: var(--font-size-fs-12, 12px);
+  font-weight: var(--font-weight-fw-medium, 500);
+  /* a table cell treats height as its minimum: the RAP 32 band (8 + 16 + 8), taller when the header wraps */
+  height: var(--spacing-32, 32px);
+  line-height: var(--line-height-lh-16, 16px);
+  padding: var(--spacing-8, 8px) var(--spacing-12, 12px);
   vertical-align: bottom;
+}
+
+.e-permits-workplace__table.e-permits-rpt-table :is(tbody, tfoot) td,
+.e-permits-workplace__table.e-permits-rpt-table tbody th {
+  font-size: var(--font-size-fs-14, 14px);
+  height: var(--spacing-56, 56px);
+  line-height: var(--line-height-lh-20, 20px);
+  padding: var(--spacing-8, 8px) var(--spacing-12, 12px);
+}
+
+/* not a list of records: no hover band (every row keeps its own fill) */
+.e-permits-workplace__table.e-permits-rpt-table tbody tr:hover > :is(td, th) {
+  background: var(--color-background-base-default, #fff);
 }
 
 /* headers wrap (a report has many columns): never wider than 12 × 16 */
 .e-permits-rpt-table thead th .e-permits-workplace__th-content {
   height: auto;
   max-width: calc(var(--spacing-16, 16px) * 12);
-  min-height: var(--spacing-24, 24px);
+  min-height: var(--spacing-16, 16px);
   white-space: normal;
 }
 
@@ -200,8 +266,8 @@
   border-left: var(--border-width-1, 1px) dashed var(--color-border-base-default, #d9d9d9);
 }
 
-/* the common header (level 1) spans its columns, centred, with the divider under it */
-.e-permits-rpt-table th.e-permits-rpt-table__span {
+/* the common header (level 1) spans its columns, centred, with the divider under it (inside the grey band) */
+.e-permits-workplace__table.e-permits-rpt-table thead th.e-permits-rpt-table__span {
   border-bottom: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
   text-align: center;
 }
@@ -223,27 +289,36 @@
   text-overflow: ellipsis;
 }
 
-/* group row: the grouping value across the table, on the secondary surface */
-.e-permits-wid-table--agg.e-permits-rpt-table tr.e-permits-rpt-table__group > th {
+/* group row: the grouping value across the table, on the secondary surface (lighter than the header band); every
+   group row and every subtotal row looks the same (fills set here, hover never changes them) */
+.e-permits-wid-table--agg.e-permits-rpt-table tr.e-permits-rpt-table__group > th,
+.e-permits-wid-table--agg.e-permits-rpt-table tbody tr.e-permits-rpt-table__group:hover > th {
   background: var(--color-background-base-secondary, #f7f7f7);
   color: var(--color-text-base-default, #121212);
+  font-size: var(--font-size-fs-12, 12px);
   font-weight: var(--font-weight-fw-medium, 500);
+  height: var(--spacing-32, 32px);
+  line-height: var(--line-height-lh-16, 16px);
   text-align: left;
 }
 
+/* the first group row meets the grey header band: a divider between them (the next ones sit under a row divider) */
+.e-permits-workplace__table.e-permits-rpt-table tbody > tr.e-permits-rpt-table__group:first-child > th {
+  border-top: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
+}
+
 .e-permits-rpt-table tr.e-permits-rpt-table__subtotal > td {
+  background: var(--color-background-base-default, #fff);
+  color: var(--color-text-base-default, #121212);
   font-weight: var(--font-weight-fw-medium, 500);
 }
 
-.e-permits-rpt-table tfoot tr.e-permits-rpt-table__total > td {
-  border-bottom: 0;
+/* the total closes the table: the stronger line above, the RAP divider under it (as the RAP last row) */
+.e-permits-workplace__table.e-permits-rpt-table tfoot tr.e-permits-rpt-table__total > td {
+  background: var(--color-background-base-default, #fff);
   border-top: var(--border-width-1, 1px) solid var(--color-border-base-secondary, #b2b2b2);
+  color: var(--color-text-base-default, #121212);
   font-weight: var(--font-weight-fw-semibold, 600);
-}
-
-/* a manual column: no values in the preview („—”), the „Manual” tag in its header */
-.e-permits-rpt-table td.is-manual {
-  background: var(--color-background-base-secondary, #f7f7f7);
 }
 
 @media (max-width: 760px) {

@@ -18093,7 +18093,10 @@ document.addEventListener("DOMContentLoaded", () => {
     if (fixed) {
       /* fixed (clipping table / toolbar): top / left are set by the opener; only the vertical side flips here */
       menu.style.top = `${Math.round(up ? t.top - gap - shown : t.bottom + gap)}px`;
-      menu.style.left = `${Math.max(8, t.right - menu.offsetWidth)}px`;
+      /* data-stack-menu-align="start": a left-placed trigger (e.g. „Adaugă coloană ▾”) opens the menu on its left edge */
+      menu.style.left = menu.dataset.stackMenuAlign === "start"
+        ? `${Math.max(8, Math.min(t.left, window.innerWidth - menu.offsetWidth - 8))}px`
+        : `${Math.max(8, t.right - menu.offsetWidth)}px`;
     } else menu.classList.toggle("is-open-up", up);
   };
   window.addEventListener("resize", () => {

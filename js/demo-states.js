@@ -4552,7 +4552,9 @@
       await h.fill("#rpt-e-name-ro", "Raport dosare finalizate pe serviciu", { leave: false });
     };
     const langs = async (h) => { await h.fill("#rpt-e-name-ru", "Отчёт о завершённых делах", { leave: false }); await h.fill("#rpt-e-name-en", "Closed files by service", { leave: false }); };
-    const dict = async (h) => { await h.click(`${C} [data-rpt-add="source"]`); await h.find(`${DR} #rpt-dict-search`); };
+    /* „Adaugă coloană ▾” (rpt-add-menu-v1): open the dropdown, then pick the kind */
+    const addKind = (kind, root = C) => async (h) => { await h.click(`${root} [data-rpt-add-trigger]`); await h.wait(150); await h.click(`${root} [data-rpt-add="${kind}"]`); };
+    const dict = async (h) => { await addKind("source")(h); await h.find(`${DR} #rpt-dict-search`); };
     const addF = (...keys) => async (h) => { for (const k of keys) await h.click(`${DR} [data-rpt-dict-add="${k}"]`); };
     const done = async (h) => { await h.click(`${DR} .drawer__footer [data-rpt-drawer-close]`); await h.wait(300); };
     const openCol = (id) => async (h) => { await h.click(`${C} [data-rpt-col="${id}"] .e-permits-stack__title`); await h.find(`${DR} #rpt-c-name-ro`); };
@@ -4563,7 +4565,7 @@
     /* step 2 with source columns: Serviciu · Depuse · Finalizate · în termen (numeric counts) */
     const cols = seq(dict, addF("serviciu", "depus", "finalizat", "inTermen"), done, numeric("c2"), numeric("c3"), numeric("c4"), rename("c2", "Depuse"), rename("c3", "Finalizate"), rename("c4", "în termen"));
     const twoLevel = seq(header("c2", "Dosare"), header("c3", "Dosare"), header("c4", "Dosare", "incl"));
-    const calc = seq(async (h) => { await h.click(`${C} [data-rpt-add="calc"]`); await h.find(`${DR} #rpt-c-name-ro`); }, async (h) => { await h.choose(`${DR} select[data-rpt-col-field="formula"]`, "f-pct"); await h.fill("#rpt-c-name-ro", "Finalizate în termen, %", { leave: false }); await h.choose(`${DR} select[data-rpt-col-op="A"]`, "c4"); await h.choose(`${DR} select[data-rpt-col-op="B"]`, "c3"); });
+    const calc = seq(async (h) => { await addKind("calc")(h); await h.find(`${DR} #rpt-c-name-ro`); }, async (h) => { await h.choose(`${DR} select[data-rpt-col-field="formula"]`, "f-pct"); await h.fill("#rpt-c-name-ro", "Finalizate în termen, %", { leave: false }); await h.choose(`${DR} select[data-rpt-col-op="A"]`, "c4"); await h.choose(`${DR} select[data-rpt-col-op="B"]`, "c3"); });
     const built = seq(nou, step1, next, cols, twoLevel, calc, saveCol);
     /* + „Autoritate” (c6) moved to the first place: the column the rows are grouped by */
     const byAuth = seq(dict, addF("autoritate"), done, ...[1, 2, 3, 4, 5].map(() => async (h) => { await h.click(`${C} [data-rpt-col-move="c6|-1"]`); }));
@@ -4598,11 +4600,14 @@
       "rpt-03g": list(seq(nou, step1, next, cols, openCol("c4"), async (h) => { await h.fill("#rpt-c-header", "Dosare", { leave: false }); await h.click(`${DR} #rpt-c-total input[value="incl"]`); })),
       "rpt-03h": list(seq(nou, step1, next, cols, twoLevel, calc)),
       "rpt-03i": list(seq(built, at("[data-rpt-preview]"))),
-      "rpt-03j": list(seq(built, async (h) => { await h.click(`${C} [data-rpt-add="manual"]`); await h.fill("#rpt-c-name-ro", "Corecții raportate", { leave: false }); }, saveCol)),
-      "rpt-03k": list(seq(nou, step1, next, async (h) => { await h.click(`${C} [data-rpt-add="calc"]`); await h.find(`${DR} #rpt-c-name-ro`); await h.click(`${DR} [data-rpt-col-save]`); })),
+      "rpt-03j": list(seq(built, async (h) => { await addKind("manual")(h); await h.fill("#rpt-c-name-ro", "Corecții raportate", { leave: false }); }, saveCol)),
+      /* rpt-add-menu-v1: „Adaugă coloană ▾” open (with columns · on the empty list) */
+      "rpt-03u": list(seq(built, async (h) => { await h.click(`${C} [data-rpt-add-trigger]`); await h.wait(250); })),
+      "rpt-03v": list(seq(nou, step1, next, async (h) => { await h.click(`${C} [data-rpt-add-trigger]`); await h.wait(250); })),
+      "rpt-03k": list(seq(nou, step1, next, async (h) => { await addKind("calc")(h); await h.find(`${DR} #rpt-c-name-ro`); await h.click(`${DR} [data-rpt-col-save]`); })),
       "rpt-03l": list(seq(built, async (h) => { await h.click(`${C} [data-rpt-col-remove="c3"]`); await h.click("#service-confirm-modal.is-active [data-service-confirm-ok]"); await h.wait(300); }, next)),
-      "rpt-03m": list(seq(nou, step1, next, async (h) => { await h.click(`${C} [data-rpt-add="calc"]`); await h.find(`${DR} #rpt-c-name-ro`); await h.click(`${DR} [data-rpt-formula-new]`); await h.find("#rpt-fx-name"); })),
-      "rpt-03n": list(seq(nou, step1, next, async (h) => { await h.click(`${C} [data-rpt-add="calc"]`); await h.find(`${DR} #rpt-c-name-ro`); await h.click(`${DR} [data-rpt-formula-new]`); await h.find("#rpt-fx-name"); await h.click("[data-rpt-fx-confirm]"); })),
+      "rpt-03m": list(seq(nou, step1, next, async (h) => { await addKind("calc")(h); await h.find(`${DR} #rpt-c-name-ro`); await h.click(`${DR} [data-rpt-formula-new]`); await h.find("#rpt-fx-name"); })),
+      "rpt-03n": list(seq(nou, step1, next, async (h) => { await addKind("calc")(h); await h.find(`${DR} #rpt-c-name-ro`); await h.click(`${DR} [data-rpt-formula-new]`); await h.find("#rpt-fx-name"); await h.click("[data-rpt-fx-confirm]"); })),
       /* 3 Structură: grouping + subtotals, filters, total row; a filter error */
       "rpt-03o": list(seq(built, byAuth, next, async (h) => { await h.choose(`${C} select[data-rpt-field="groupBy"]`, "c6"); await h.click(`${C} [data-rpt-filter-add]`); await h.choose(`${C} select[data-rpt-filter="0"][data-rpt-filter-part="field"]`, "depus"); await h.click(`${C} [data-rpt-filter-add]`); await h.choose(`${C} select[data-rpt-filter="1"][data-rpt-filter-part="field"]`, "statut"); await h.choose(`${C} select[data-rpt-filter="1"][data-rpt-filter-part="type"]`, "multi"); })),
       "rpt-03p": list(seq(built, next, async (h) => { await h.click(`${C} [data-rpt-filter-add]`); }, next)),
