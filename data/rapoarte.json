@@ -231,7 +231,7 @@
           { "id": "c2", "names": { "ro": "Finalizate", "ru": "Завершены", "en": "Closed" }, "kind": "source", "field": "finalizat", "dataType": "numeric", "header": "", "total": "sum" },
           { "id": "c3", "names": { "ro": "Prima depunere", "ru": "Первая подача", "en": "First submission" }, "kind": "source", "field": "depus", "dataType": "temporal", "header": "Perioada", "total": "sum" },
           { "id": "c4", "names": { "ro": "Ultima finalizare", "ru": "Последнее завершение", "en": "Last closure" }, "kind": "source", "field": "finalizat", "dataType": "temporal", "header": "Perioada", "total": "sum" },
-          { "id": "c5", "names": { "ro": "Zile în perioadă", "ru": "Дней в периоде", "en": "Days in period" }, "kind": "calc", "formula": "f-days", "operands": { "A": "c4", "B": "c3" }, "dataType": "numeric", "header": "Perioada", "total": "sum" },
+          { "id": "c5", "names": { "ro": "Zile", "ru": "Дней", "en": "Days" }, "kind": "calc", "formula": "f-days", "operands": { "A": "c4", "B": "c3" }, "dataType": "numeric", "header": "Perioada", "total": "sum" },
           { "id": "c6", "names": { "ro": "Durata medie, zile", "ru": "Средняя длительность, дни", "en": "Average time, days" }, "kind": "calc", "formula": "f-avg", "operands": {}, "dataType": "numeric", "header": "", "total": "sum" }
         ],
         "groupBy": "",
@@ -246,7 +246,7 @@
       ],
       "unpublishedColumns": ["c5"],
       "history": [
-        { "at": "2026-11-07T11:30:00", "by": "Anastasia Cojocaru", "role": "Administrator central", "event": "Modificarea raportului", "detail": "Coloane: + Zile în perioadă" },
+        { "at": "2026-11-07T11:30:00", "by": "Anastasia Cojocaru", "role": "Administrator central", "event": "Modificarea raportului", "detail": "Coloane: + Zile" },
         { "at": "2026-10-28T09:00:00", "by": "Anastasia Cojocaru", "role": "Administrator central", "event": "Publicarea raportului", "detail": "Versiunea 1" },
         { "at": "2026-10-27T10:00:00", "by": "Anastasia Cojocaru", "role": "Administrator central", "event": "Crearea raportului", "detail": "Ciornă · Autoritate ANSP, ANSA · Registru Dosare" }
       ]

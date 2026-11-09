@@ -147,7 +147,7 @@
     if (S.data) return Promise.resolve(S.data);
     if (!S.loading) {
       S.loading = Promise.all([
-        fetch("data/rapoarte.json?v=rpt-v2").then((r) => r.json()),
+        fetch("data/rapoarte.json?v=rpt-rows-48-v1").then((r) => r.json()),
         K().load ? K().load() : Promise.resolve(null)
       ]).then(([json]) => {
         if (demo.has("gol")) json.reports = [];
@@ -595,7 +595,7 @@
           <div class="e-permits-rpt-auths" role="group" aria-labelledby="${idp}-auth-label" id="${idp}-authorities">
             ${auths.map((a) => U().renderCheckOption?.({ label: `${a.name} · ${a.long}`, checked: v.authorities.includes(a.id), attrs: `data-rpt-auth="${esc(a.id)}"${e.authorities ? ' aria-invalid="true"' : ""}` }) || "").join("")}
           </div>
-          ${e.authorities ? errorHtml(`${idp}-authorities`, e.authorities) : `<p class="e-permits-fo-field__hint">Una sau mai multe; raportul se vede doar în autoritățile alese.</p>`}`, { required: true })
+          ${e.authorities ? errorHtml(`${idp}-authorities`, e.authorities) : ""}`, { required: true })
       : labelled(`${idp}-auth-label`, "Autoritate", `<div class="e-permits-cfg-ro" aria-labelledby="${idp}-auth-label">${esc(authName(me.authority))} · ${esc(D().authorities.find((a) => a.id === me.authority)?.long || "")}</div><p class="e-permits-fo-field__hint">Raportul se creează la nivelul autorității tale.</p>`)) : "";
     const fromPicker = idp === IDP && P.isNew && cloneSources().length
       ? section("Punctul de plecare", grid(selectField(`${idp}-from`, "data-rpt-from", "Raportul sursă", cloneSources().map((r) => [r.id, `${r.id} · ${r.config.names.ro}`]), P.from, { span: 12, placeholder: "Raport gol", hint: P.from ? "Copia primește coloanele, formulele și structura raportului sursă; o modifici independent." : "Opțional: alege un raport existent ca să-l clonezi." })))
@@ -684,7 +684,7 @@
   function filterRows(v, e, idp) {
     const fields = fieldsOf(v.source).filter((f) => (FILTER_SUPPORT[f.type] || []).length);
     const sel = (id, attrs, placeholder, opts, value, { error = false, lbl = "" } = {}) => U().renderFoSelectControl?.({ id, attrs, error, label: lbl, optionsHtml: `<option value=""${value ? "" : " selected"} disabled>${esc(placeholder)}</option>${opts.map(([val, l]) => `<option value="${esc(val)}"${val === value ? " selected" : ""}>${esc(l)}</option>`).join("")}` }) || "";
-    const add = `<button class="btn btn-text-primary btn-sm" type="button" data-rpt-filter-add${v.source ? "" : ' aria-disabled="true" data-tooltip-reason="Alege mai întâi sursa de date."'}>${icon("plus-large", 16)}<span>Adaugă filtru</span></button>`;
+    const add = `<button class="btn btn-secondary btn-sm" type="button" data-rpt-filter-add${v.source ? "" : ' aria-disabled="true" data-tooltip-reason="Alege mai întâi sursa de date."'}>${icon("plus-large", 16)}<span>Adaugă filtru</span></button>`;
     if (!v.filters.length) return E()?.render({ title: "Fără filtre", text: "Raportul se generează pe toate înregistrările sursei. Adaugă filtre pe câmpurile filtrabile: Text, Alegere unică, Alegere multiplă sau Interval de date.", icon: "filter", compact: true, actionHtml: add }) || "";
     return `
       <div class="e-permits-doc-rule e-permits-reg-editor__rule">
@@ -835,7 +835,8 @@
         case "sursa": return `<span data-cell-tooltip="${esc(row.sursa)}">${esc(row.sursa)}</span>`;
         case "nivel": return row.nivel === "Global" ? "Global" : twoLines(esc(row.nivel), `<span data-cell-tooltip="${esc(row.autoritate)}">${esc(row.autoritate)}</span>`);
         case "statut": return tag(row.statut, row.tone);
-        case "versiune": return row.versiune ? (row.nepublicat ? twoLines(esc(row.versiune), "modificări nepublicate") : esc(row.versiune)) : twoLines(dash, "nepublicat");
+        /* „modificări nepublicate” = the clickable pending status (every config object, components.md) → the shared dialog */
+        case "versiune": return row.versiune ? (row.nepublicat ? twoLines(esc(row.versiune), HOOKS.pending ? A().renderHeaderStatus?.("modificări nepublicate", "warning", `data-rpt-pending="${esc(row.id)}" aria-haspopup="dialog" data-tooltip-text="Vezi modificările" aria-label="Vezi modificările nepublicate ale ${esc(row.id)}"`) || "modificări nepublicate" : "modificări nepublicate") : esc(row.versiune)) : twoLines(dash, "nepublicat");
         case "modificat": return row.modificat ? twoLines(esc(longDate(row.modificat)), esc(`${time(row.modificat)} · ${row.r.updatedBy || ""}`)) : dash;
         case "actiuni": return rowMenu(row);
         default: return esc(row[key] ?? "") || dash;
@@ -931,7 +932,7 @@
     const n = changedLabels().length;
     const status = n
       ? A().renderHeaderStatus?.(n === 1 ? "1 modificare nesalvată" : `${n} modificări nesalvate`, "warning", A().changesStatusAttrs?.("rpt-draft")) || ""
-      : r && unpublished(r) && r.status !== "Dezactivat" ? A().renderHeaderStatus?.("Modificări nepublicate", "warning", "") || "" : "";
+      : r && unpublished(r) && r.status !== "Dezactivat" ? A().renderHeaderStatus?.("Modificări nepublicate", "warning", HOOKS.pending ? 'data-rpt-pending aria-haspopup="dialog" data-tooltip-text="Vezi modificările"' : "") || "" : "";
     return A().renderPageHeaderTop({
       back: { label: TITLE, attr: "data-rpt-back" },
       title: r.config.names.ro,
@@ -981,7 +982,7 @@
       P.saveError && U().renderNotice?.("error", esc(SAVE_FAILED), { role: "alert" }),
       r.status === "Dezactivat" && U().renderNotice?.("warning", "<strong>Raport dezactivat.</strong> Nu apare în meniul «Rapoarte» și nu se mai generează. Nimic nu s-a șters: configurația și versiunile se păstrează."),
       r.status === "Ciornă" && P.tab === "configurare" && U().renderInfoNote?.("<strong>Ciornă.</strong> Raportul apare în meniul «Rapoarte» după prima publicare."),
-      r.status === "Publicat" && unpublished(r) && U().renderNotice?.("warning", `<strong>Modificări nepublicate.</strong> Utilizatorii generează în continuare versiunea ${esc(String(lastVersion(r).version))}.`),
+      r.status === "Publicat" && unpublished(r) && U().renderNotice?.("warning", `<strong>Modificări nepublicate.</strong> Utilizatorii generează în continuare versiunea ${esc(String(lastVersion(r).version))}.${HOOKS.pending ? ' <button class="btn btn-text-primary btn-sm e-permits-rpt-pending-link" type="button" data-rpt-pending aria-haspopup="dialog">Vezi modificările</button>' : ""}`),
       !canEdit(r) && P.tab === "configurare" && U().renderInfoNote?.(r.config.level === "Global"
         ? "Raport global, creat de Administratorul central: îl vezi doar pentru citire."
         : `Raport comun pentru ${esc(r.config.authorities.map(authName).join(", "))}: îl modifică doar Administratorul central.`)

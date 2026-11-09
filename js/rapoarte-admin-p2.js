@@ -166,6 +166,25 @@
     R().openProfile(r.id, "configurare", { push: false }).then(() => refreshAll(r));
   }
 
+  /* „● Modificări nepublicate” (header status · list row · Configurare notice) → the shared pending-changes dialog
+     (`openPendingChanges`, as widgets / KPI / Servicii): published version vs the saved configuration, grouped Adăugat /
+     Modificat / Eliminat; „Publică” continues to the publish dialog (on the profile) */
+  function openPending(id) {
+    const r = R().get(id || st().id);
+    const last = r && R().lastVersion(r);
+    if (!last) return;
+    const changes = diffRows(last.config, r.config).map((c) => ({
+      area: strip(c.label), detail: c.before === "—" ? strip(c.after) : c.after === "—" ? strip(c.before) : `${strip(c.before)} → ${strip(c.after)}`,
+      status: c.before === "—" ? "Adăugat" : c.after === "—" ? "Eliminat" : "Modificat", at: r.updatedAt || "", user: r.updatedBy || ""
+    }));
+    const canPub = R().canEdit(r) && r.status !== "Dezactivat";
+    A().openPendingChanges?.({
+      subject: `${nameOf(r)} · față de versiunea ${last.version}`,
+      changes,
+      onPublish: canPub ? () => { const go = () => openPublish(); if (st().id === r.id && !st().isNew && document.querySelector("#rpt-panel")) go(); else R().openProfile(r.id, "configurare").then(go); } : null
+    });
+  }
+
   /* ================================================================ US-470 Dezactivarea / activarea
      nothing is deleted (Feature constraints): configuration, versions and access stay; reports generated earlier keep */
   function setStatus(r, on) {
@@ -428,6 +447,7 @@
     const H = R()?.hooks;
     if (!H) return false;
     H.publish = (draft, ctx = {}) => openPublish({ isNew: Boolean(ctx.isNew) });
+    H.pending = openPending;
     /* max 2 visible header actions (Salvează + Publică), the rest in ⋮ */
     H.headerActions = (r, ctx) => (ctx.editable && (!r.versions.length || R().unpublished(r) || ctx.dirty) ? '<button class="btn btn-primary btn-sm" type="button" data-rpt-publish>Publică</button>' : "");
     H.headerMenu = (r, ctx) => menuItems(r, ctx, "");
@@ -444,7 +464,9 @@
     if (!t.closest || !R()) return;
     const sheet = t.closest("[data-rpt-editor]");
     if (!sheet && t.closest("[data-rpt-publish]")) { openPublish(); return; }
-    const pub = t.closest("[data-rpt-publish-confirm]");
+    const pend = t.closest("[data-rpt-pending]");
+    if (pend) { event.stopPropagation(); openPending(pend.dataset.rptPending || ""); return; }
+        const pub = t.closest("[data-rpt-publish-confirm]");
     if (pub) { confirmPublish(pub); return; }
     const cl = t.closest("[data-rpt-clone], [data-rpt-row-clone]");
     if (cl) { R().openNew({ from: cl.dataset.rptClone || cl.dataset.rptRowClone }); return; }

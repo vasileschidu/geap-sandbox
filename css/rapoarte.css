@@ -222,7 +222,9 @@
 .e-permits-workplace__table.e-permits-rpt-table :is(tbody, tfoot) td,
 .e-permits-workplace__table.e-permits-rpt-table tbody th {
   font-size: var(--font-size-fs-14, 14px);
-  height: var(--spacing-56, 56px);
+  /* rpt-rows-48-v1 (2026-11-09, user: „rows too tall”): the next smaller row of the product tables = 48 (RAP 56 → the
+     spacing-48 step; 8 + 20 + 8 leaves room for the header tag), body · subtotal · total alike, every width */
+  height: var(--spacing-48, 48px);
   line-height: var(--line-height-lh-20, 20px);
   padding: var(--spacing-8, 8px) var(--spacing-12, 12px);
 }
@@ -332,10 +334,11 @@
   font-weight: var(--font-weight-fw-medium, 500);
 }
 
-/* the total closes the table: the stronger line above, the RAP divider under it (as the RAP last row) */
+/* the total closes the table (rpt-total-v2, 2026-11-09, user): the header band's grey, the row-divider colour above it at
+   1.5 (`--border-width-1-5`, user-requested weight), the RAP divider under it */
 .e-permits-workplace__table.e-permits-rpt-table tfoot tr.e-permits-rpt-table__total > td {
-  background: var(--color-background-base-default, #fff);
-  border-top: var(--border-width-1, 1px) solid var(--color-border-base-secondary, #b2b2b2);
+  background: var(--color-background-base-tertiary, #f1f1f1);
+  border-top: var(--border-width-1-5, 1.5px) solid var(--color-border-base-default, #d9d9d9);
   color: var(--color-text-base-default, #121212);
   font-weight: var(--font-weight-fw-semibold, 600);
 }
