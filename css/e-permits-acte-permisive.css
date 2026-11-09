@@ -25582,3 +25582,9 @@ body:has(:is([aria-haspopup]:not([aria-haspopup="false"]), [role="combobox"], .j
 body:has(.e-permits-fo-doc-modal-overlay:not([hidden])) #fo-certificate-modal {
   z-index: calc(1000 + 1);
 }
+
+/* doc-modal-tabs-gap-v1 (2026-11-09, user: „reduce gap above segmented controls”): when the source tabs follow the
+   header, the header drops its bottom padding — subtitle → tabs = the tabs' own 16 (was 24 + 16 = 40), desktop + phones */
+.e-permits-fo-doc-modal > .e-permits-fo-doc-modal__header:has(+ .e-permits-fo-doc-modal__source:not([hidden])) {
+  padding-bottom: var(--spacing-0, 0px);
+}
