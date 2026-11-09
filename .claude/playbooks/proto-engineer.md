@@ -56,6 +56,9 @@ lesson into the sections above when it has proved itself twice. Never delete a l
 - Button icon colour = label colour. „Editează” with pen; one labelled primary + ⋮ per row.
 - No monospace — except rule-builder keywords as `code.e-permits-doc-kw` tokens.
 - BO child page (any depth) = ONE quiet back chevron in the shell TOP BAR left of the top-bar title (`syncTopbarBack`, declared by `renderPageHeaderTop({ back })` → hidden marker), to the IMMEDIATE parent; never an arrow next to the H1, no BO breadcrumbs (they stay in FO / Cabinet / RAP). List category tabs = the product Status filter tabs, never the library page tabs. CSS for the BO page header lives in `e-permits-acte-permisive.css` (`bo-profile-parts.css` is only RAP / Cabinet).
+- Copy speaks „tu” everywhere (FO, Cabinet, RAP, BO, Ghișeu, admin): imperative Alege / Introdu, questions
+  „Dezactivezi …?”; never dumneavoastră / dvs. / -ți plural; only MDocs/PDF + notification template bodies stay formal
+  (components.md › Ton: tu; 2026-11-09).
 - Applicant types: icon + full name in forms/read-only views; plain codes in stacked list meta.
 - Hover visible everywhere; open button keeps focus ring (`aria-expanded`); no toast for toggles.
 - Any clickable element = `cursor: pointer` + visible hover (hover-audit flags „no-pointer”); a clickable row with inner controls: band on the row only, the control's own hover on the control (components.md › Row vs inner control).

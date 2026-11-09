@@ -4275,3 +4275,8 @@ For any „research how other products do it” step, search Mobbin (mcp__mobbin
 - 2026-11-09 · „Culori” options = the type radio cards (`.e-permits-wid-types__grid` + `.e-permits-wid-type`, no glyph), not bare radios: reuse the existing card component for any option set; swatches live in `__description`.
 - 2026-11-09 · chart-palette-v4 (user: palettes „too similar”, one hue each): categorical = 5 hue families per palette; pick sets by BRUTE FORCE over Foundations primitives (scratch script: neighbours incl. s6 ΔE ≥ 20 in normal + Machado deutan/protan, ΔL* ≥ 10, marks ≥ 3:1) — hand-picking kept failing (blue/lavender/magenta collapse under protanopia). Old keys migrated in `palKey`, not in every caller.
 - 2026-11-09 · chart-status-v1: status dimensions get fixed colours from ONE map (`GEAPWidgetCharts.STATUS_COLOURS`, „source.field” → value → tone class); the stacked default secondary is `statut`, so palette demo states must pick a non-status split first (`bySecondary("tip")`) or the „Culori” click hits a disabled card. Two danger values in one dimension (Retras/Anulat) need different lightness (red-700 / red-400), not 700/900.
+- 2026-11-09 · Copy „tu” sweep: polite forms hide behind nouns/adjectives (autorități, notificați, angajați, finalizați) —
+  scan with a regex + skip-list, then replace PHRASES, never bare words; confirmation titles become indicative questions
+  („Dezactivezi …?”), instructions imperative („Alege”). „către dvs.” → „către tine” must not leave a period in titles.
+- 2026-11-09 · Never split copy by product/`demoFlow` (foTu was undone the same day): one string for every context; only
+  MDocs/PDF bodies + notification template bodies stay formal. Cache bump = every page that loads a changed JS file.
