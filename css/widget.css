@@ -1234,3 +1234,9 @@ button.e-permits-wid-rows__row:focus-visible {
 .e-permits-wid-rows .e-permits-meter {
   border-radius: var(--border-radius-4, 4px);
 }
+
+/* …and every segment inside the bar keeps a soft 2 corner, so the cuts between parts are not razor-sharp */
+.e-permits-wid-rows .e-permits-meter__svg rect:not(.e-permits-meter__track) {
+  rx: var(--border-radius-2, 2px);
+  ry: var(--border-radius-2, 2px);
+}
