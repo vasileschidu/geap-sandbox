@@ -14332,25 +14332,25 @@ a.e-permits-fo-lib-item__title:is(:hover, :focus) {
    the library's 6px from the outer edge (submit 28 at Medium, 36 at Large). The btn-group is always
    shown: the submit is visible (disabled) while the field is empty; × with a value; the inline
    spinner only while SRRE answers (`.loading`). The text never runs under the actions. */
-.e-permits-fo-field .search-input.e-permits-fo-cadastral-search {
+:is(.e-permits-fo-field, .e-permits-gh-ofc__filters) .search-input.e-permits-fo-cadastral-search {
   --search-input-action-inset: calc(var(--spacing-4, 4px) + var(--border-width-1, 1px));
   --search-input-action-size: calc(var(--search-input-height) - (var(--search-input-action-inset) * 2) - (var(--border-width-1, 1px) * 2));
 }
 
 /* the library's 4px submit radius (8 − 4), not 8 − the grown inset */
-.e-permits-fo-field .search-input.e-permits-fo-cadastral-search .btn-search {
+:is(.e-permits-fo-field, .e-permits-gh-ofc__filters) .search-input.e-permits-fo-cadastral-search .btn-search {
   border-radius: calc(var(--border-radius-8, 8px) - var(--spacing-4, 4px));
 }
 
-.e-permits-fo-field .search-input.e-permits-fo-cadastral-search .btn-group {
+:is(.e-permits-fo-field, .e-permits-gh-ofc__filters) .search-input.e-permits-fo-cadastral-search .btn-group {
   display: flex;
 }
 
-.e-permits-fo-field .e-permits-workplace__search.search-input.e-permits-fo-cadastral-search:has(.icon-search) .input {
+:is(.e-permits-fo-field, .e-permits-gh-ofc__filters) .e-permits-workplace__search.search-input.e-permits-fo-cadastral-search:has(.icon-search) .input {
   padding-right: calc(var(--search-input-action-size) + var(--search-input-action-inset) + var(--spacing-12, 12px));
 }
 
-.e-permits-fo-field .e-permits-workplace__search.search-input.e-permits-fo-cadastral-search.has-value:has(.icon-search) .input {
+:is(.e-permits-fo-field, .e-permits-gh-ofc__filters) .e-permits-workplace__search.search-input.e-permits-fo-cadastral-search.has-value:has(.icon-search) .input {
   padding-right: calc(var(--search-input-action-size) + var(--search-input-action-inset) + var(--spacing-20, 20px) + var(--spacing-8, 8px) + var(--spacing-12, 12px));
 }
 

@@ -3282,7 +3282,7 @@
     const search = `
       <div class="e-permits-fo-field e-permits-fo-field--span-6">
         <label for="gh-ofc-q">Numărul actului, IDNP sau IDNO</label>
-        <div class="search-input ${searchSize()} rectangular e-permits-workplace__search e-permits-list-search e-permits-list-search--fill${S.actsQuery ? " has-value is-ready" : ""}">
+        <div class="search-input ${searchSize()} rectangular e-permits-workplace__search e-permits-list-search e-permits-list-search--fill e-permits-fo-cadastral-search${S.actsQuery ? " has-value is-ready" : ""}">
           <span class="icon-search" aria-hidden="true">${icon("search")}</span>
           <input class="input" id="gh-ofc-q" type="search" placeholder="De ex. ASF-2025-03318 sau 1008600031457" autocomplete="off" value="${esc(S.actsQuery || "")}" data-gh-acts-search>
           <div class="btn-group"><span class="spinner spinner--extra-small spinner--brand" aria-hidden="true"></span><button type="button" class="btn-icon clear" aria-label="Șterge căutarea"><svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-cross-small"></use></svg></button><button type="button" class="btn btn-primary btn-search" aria-label="Caută"${String(S.actsQuery || "").trim().length < OFC_MIN_CHARS ? " disabled" : ""} data-gh-ofc-submit><svg class="icon medium" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-arrow-left"></use></svg></button></div>
