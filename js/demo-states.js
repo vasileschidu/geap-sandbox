@@ -4577,7 +4577,9 @@
     const VER = (nr) => async (h) => { await h.click(`#rpt-panel [data-rpt-ver-view="${nr}"]`); await h.find(`${M} .e-permits-rpt-card`); };
     const HMENU = async (h) => { await h.click("[data-dosar-profil] .e-permits-page-header__actions [data-stack-menu-trigger]"); await h.wait(200); };
     const GRANT = async (h) => { await h.click("#rpt-panel [data-rpt-grant]"); await h.find(`${M} [data-rpt-grant-save]`); };
-    const byAuth = seq(dict, addF("autoritate"), done, ...[1, 2, 3, 4, 5].map(() => async (h) => { await h.click(`${C} [data-rpt-col-move="c6|-1"]`); }));
+    /* rpt-col-list-v2: move / remove live in the column's ⋮ */
+    const colMenu = (id) => async (h) => { await h.click(`${C} [data-rpt-col="${id}"] [data-stack-menu-trigger]`); await h.wait(150); };
+    const byAuth = seq(dict, addF("autoritate"), done, ...[1, 2, 3, 4, 5].map(() => async (h) => { await colMenu("c6")(h); await h.click(`${C} [data-rpt-col-move="c6|-1"]`); }));
     return {
       /* US-467 — list (grouped by category), search, filters, empty, row menu */
       "rpt-01": list(),
@@ -4613,8 +4615,12 @@
       /* rpt-add-menu-v1: „Adaugă coloană ▾” open (with columns · on the empty list) */
       "rpt-03u": list(seq(built, async (h) => { await h.click(`${C} [data-rpt-add-trigger]`); await h.wait(250); })),
       "rpt-03v": list(seq(nou, step1, next, async (h) => { await h.click(`${C} [data-rpt-add-trigger]`); await h.wait(250); })),
+      /* rpt-col-link-v1: a focused list item tints its preview column; the column ⋮ (Mută la stânga / la dreapta · Elimină) */
+      "rpt-03w": list(seq(built, async (h) => { const el = await h.find(`${C} [data-rpt-col="c3"] .e-permits-stack__title`); el.dispatchEvent(new MouseEvent("mouseover", { bubbles: true })); await h.wait(250); })),
+      "rpt-03x": list(seq(built, colMenu("c1"))),
+      "rpt-03y": list(seq(built, async (h) => { await h.click(`${C} [data-rpt-col-pick="c4"]`); await h.wait(500); })),
       "rpt-03k": list(seq(nou, step1, next, async (h) => { await addKind("calc")(h); await h.find(`${DR} #rpt-c-name-ro`); await h.click(`${DR} [data-rpt-col-save]`); })),
-      "rpt-03l": list(seq(built, async (h) => { await h.click(`${C} [data-rpt-col-remove="c3"]`); await h.click("#service-confirm-modal.is-active [data-service-confirm-ok]"); await h.wait(300); }, next)),
+      "rpt-03l": list(seq(built, colMenu("c3"), async (h) => { await h.click(`${C} [data-rpt-col-remove="c3"]`); await h.click("#service-confirm-modal.is-active [data-service-confirm-ok]"); await h.wait(300); }, next)),
       "rpt-03m": list(seq(nou, step1, next, async (h) => { await addKind("calc")(h); await h.find(`${DR} #rpt-c-name-ro`); await h.click(`${DR} [data-rpt-formula-new]`); await h.find("#rpt-fx-name"); })),
       "rpt-03n": list(seq(nou, step1, next, async (h) => { await addKind("calc")(h); await h.find(`${DR} #rpt-c-name-ro`); await h.click(`${DR} [data-rpt-formula-new]`); await h.find("#rpt-fx-name"); await h.click("[data-rpt-fx-confirm]"); })),
       /* 3 Structură: grouping + subtotals, filters, total row; a filter error */

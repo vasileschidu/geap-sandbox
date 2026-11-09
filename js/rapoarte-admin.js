@@ -431,15 +431,17 @@
   }
   const edgeCls = (edges, i) => [edges[i]?.[0] ? "is-gl" : "", edges[i]?.[1] ? "is-gr" : ""].filter(Boolean);
   /* the head: a common header (Antetul comun) spans its consecutive columns on row 1; the others span both rows */
-  function headHtml(v) {
+  function headHtml(v, { link = false } = {}) {
     const cols = v.columns;
     const edges = groupEdges(cols);
     const two = cols.some((c) => String(c.header || "").trim());
     const cellBody = (c) => {
       const incl = c.total === "incl" && isMeasure(c);
-      return `<span class="e-permits-workplace__th-content e-permits-rpt-table__th"><span class="e-permits-rpt-table__th-text">${incl ? '<span class="e-permits-rpt-table__eyebrow">inclusiv</span>' : ""}<span>${esc(colName(c))}</span></span>${c.kind === "manual" ? tag("Manual", "warning") : ""}</span>`;
+      const inner = `<span class="e-permits-workplace__th-content e-permits-rpt-table__th"><span class="e-permits-rpt-table__th-text">${incl ? '<span class="e-permits-rpt-table__eyebrow">inclusiv</span>' : ""}<span>${esc(colName(c))}</span></span>${c.kind === "manual" ? tag("Manual", "warning") : ""}</span>`;
+      /* rpt-col-link-v1: in the editor the header is a button → the column's item in „Coloanele raportului” */
+      return link ? `<button class="e-permits-rpt-table__col-btn" type="button" data-rpt-col-pick="${esc(c.id)}" aria-label="Coloana ${cols.indexOf(c) + 1}: ${esc(colName(c))}">${inner}</button>` : inner;
     };
-    const thCls = (c, extra = "") => { const i = cols.indexOf(c); const cls = [isMeasure(c) ? "e-permits-wid-table__num" : "e-permits-rpt-table__text-head", c.total === "incl" && isMeasure(c) ? "is-incl" : "", ...edgeCls(edges, i), extra].filter(Boolean).join(" "); return cls ? ` class="${cls}"` : ""; };
+    const thCls = (c, extra = "") => { const i = cols.indexOf(c); const cls = [isMeasure(c) ? "e-permits-wid-table__num" : "e-permits-rpt-table__text-head", c.total === "incl" && isMeasure(c) ? "is-incl" : "", ...edgeCls(edges, i), extra].filter(Boolean).join(" "); return `${cls ? ` class="${cls}"` : ""} data-rpt-cell="${esc(c.id)}"`; };
     if (!two) return `<tr>${cols.map((c) => `<th scope="col"${thCls(c)}>${cellBody(c)}</th>`).join("")}</tr>`;
     const top = [];
     const bottom = [];
@@ -447,13 +449,13 @@
       const h = String(c.header || "").trim();
       if (!h) { top.push(`<th scope="col" rowspan="2"${thCls(c)}>${cellBody(c)}</th>`); return; }
       const prev = cols[i - 1];
-      if (prev && String(prev.header || "").trim() === h && top.length) top[top.length - 1] = top[top.length - 1].replace(/colspan="(\d+)"/, (m, n) => `colspan="${Number(n) + 1}"`).replace(/ data-last/, i === cols.length - 1 ? " is-gr data-last" : " data-last");
-      else top.push(`<th scope="colgroup" colspan="1" class="e-permits-rpt-table__span${edges[i][0] ? " is-gl" : ""}${i === cols.length - 1 ? " is-gr" : ""} data-last"><span class="e-permits-workplace__th-content"><span>${esc(h)}</span></span></th>`);
+      if (prev && String(prev.header || "").trim() === h && top.length) top[top.length - 1] = top[top.length - 1].replace(/colspan="(\d+)"/, (m, n) => `colspan="${Number(n) + 1}"`).replace(/ data-last/, i === cols.length - 1 ? " is-gr data-last" : " data-last").replace(/data-rpt-cells="([^"]*)"/, (m, ids) => `data-rpt-cells="${ids} ${esc(c.id)}"`);
+      else top.push(`<th scope="colgroup" colspan="1" class="e-permits-rpt-table__span${edges[i][0] ? " is-gl" : ""}${i === cols.length - 1 ? " is-gr" : ""} data-last" data-rpt-cells="${esc(c.id)}"><span class="e-permits-workplace__th-content"><span>${esc(h)}</span></span></th>`);
       bottom.push(`<th scope="col"${thCls(c, "e-permits-rpt-table__sub")}>${cellBody(c)}</th>`);
     });
     return `<tr>${top.map((x) => x.replace(" data-last", "")).join("")}</tr><tr>${bottom.join("")}</tr>`;
   }
-  function tableHtml(v) {
+  function tableHtml(v, { link = false } = {}) {
     const m = previewModel(v);
     const cols = v.columns;
     const labelCol = cols.find((c) => !isMeasure(c));
@@ -461,7 +463,7 @@
     const cell = (c, vals, { label: lbl = "" } = {}) => {
       const cls = [isMeasure(c) ? "" : "e-permits-rpt-table__text", c.total === "incl" && isMeasure(c) ? "is-incl" : "", c.kind === "manual" ? "is-manual" : "", ...edgeCls(edges, cols.indexOf(c))].filter(Boolean).join(" ");
       const content = lbl && c === labelCol ? `<strong>${esc(lbl)}</strong>` : lbl && !isMeasure(c) ? "" : fmtCell(v, c, vals?.[c.id]);
-      return `<td${cls ? ` class="${cls}"` : ""}>${content}</td>`;
+      return `<td${cls ? ` class="${cls}"` : ""} data-rpt-cell="${esc(c.id)}">${content}</td>`;
     };
     const body = m.blocks.map((b) => `
       ${m.groupCol ? `<tr class="e-permits-rpt-table__group"><th scope="rowgroup" colspan="${cols.length}"><span data-cell-tooltip="${esc(b.group)}">${esc(`${colName(m.groupCol)}: ${b.group}`)}</span></th></tr>` : ""}
@@ -472,7 +474,7 @@
       <div class="e-permits-workplace__table-wrap e-permits-rpt-table-wrap">
         <table class="e-permits-workplace__table e-permits-reg-table__table e-permits-wid-table e-permits-wid-table--agg e-permits-rpt-table">
           <caption class="u-visually-hidden">${esc(v.names.ro || "Raport")} — previzualizare cu date demonstrative</caption>
-          <thead>${headHtml(v)}</thead>
+          <thead>${headHtml(v, { link })}</thead>
           <tbody>${body}</tbody>
           ${foot}
         </table>
@@ -480,7 +482,7 @@
   }
   /* the report as its user will see it: name + „ⓘ” with the description (Feature UX: „regulile raportului se văd sub un
      buton de informare”), the table, the manual-columns note, the filters / grouping line */
-  function cardHtml(v) {
+  function cardHtml(v, { link = false } = {}) {
     const name = v.names.ro || "Denumirea raportului";
     const info = v.descriptions.ro ? `<button class="e-permits-fo-role-info" type="button" aria-label="Despre raport" data-tooltip-hint="${esc(v.descriptions.ro)}">${icon("circle-info-filled", 16)}</button>` : "";
     const sub = [label(CATEGORIES, v.category), sourceName(v.source)].filter(Boolean).join(" · ");
@@ -488,7 +490,7 @@
     if (!v.source) body = E()?.render({ title: "Alege sursa de date", text: "Previzualizarea folosește câmpurile sursei, pe date demonstrative.", icon: "page-text", compact: true, bare: true }) || "";
     else if (!v.columns.length) body = E()?.render({ title: "Nicio coloană încă", text: "Adaugă coloane din sursa de date, calculate sau completate manual: raportul apare aici pe măsură ce îl construiești.", icon: "page-text", compact: true, bare: true }) || "";
     else {
-      body = tableHtml(v);
+      body = tableHtml(v, { link });
       if (v.columns.some((c) => c.kind === "manual")) body += U().renderInfoNote?.(`<strong>Coloane «Manual».</strong> ${esc(MANUAL_HINT)}`) || "";
     }
     const foot = [
@@ -520,7 +522,7 @@
             <button class="btn btn-neutral btn-sm btn-icon-only" type="button" aria-label="Mărește previzualizarea" data-tooltip-label="Mărește" aria-haspopup="dialog" data-rpt-zoom${v.columns.length ? "" : ' aria-disabled="true" data-tooltip-reason="Adaugă mai întâi coloane."'}>${icon("enlarge", 16)}</button>
           </div>
         </div>
-        <div class="e-permits-wid-preview__stage">${cardHtml(v)}</div>
+        <div class="e-permits-wid-preview__stage">${cardHtml(v, { link: idp === IDP })}</div>
       </section>`;
   }
 
@@ -661,10 +663,13 @@
         rowAttrs: `data-rpt-col="${esc(c.id)}" data-index="${i}" tabindex="0" data-stack-row-open aria-haspopup="dialog" aria-label="Coloana ${esc(colName(c))}, poziția ${i + 1} — deschide setările"`,
         badges: [tag(kt, kTone), c.total === "incl" && isMeasure(c) ? tag("Inclusiv", "neutral") : "", err ? tag("De corectat", "danger") : ""].filter(Boolean),
         meta: columnMeta(v, c),
-        actionsHtml: `
-          <button class="btn btn-strict btn-sm btn-icon-only" type="button" aria-label="Mută „${esc(colName(c))}” mai sus" data-tooltip-label="Mută mai sus" data-rpt-col-move="${esc(c.id)}|-1"${i === 0 ? " disabled" : ""}>${icon("arrow-up", 16)}</button>
-          <button class="btn btn-strict btn-sm btn-icon-only" type="button" aria-label="Mută „${esc(colName(c))}” mai jos" data-tooltip-label="Mută mai jos" data-rpt-col-move="${esc(c.id)}|1"${i === last ? " disabled" : ""}>${icon("arrow-down", 16)}</button>
-          <button class="btn btn-text-destructive btn-sm btn-icon-only" type="button" aria-label="Elimină coloana „${esc(colName(c))}”" data-tooltip-label="Elimină coloana" data-rpt-col-remove="${esc(c.id)}">${icon("delete", 16)}</button>`
+        /* rpt-col-list-v2 (user): no ↑ ↓ — the drag handle + ONE ⋮ (Mută la stânga / la dreapta, Elimină red) */
+        actionsHtml: U().renderStackMenu?.([
+          { label: "Mută la stânga", icon: "arrow-left", attrs: `data-rpt-col-move="${esc(c.id)}|-1"${i === 0 ? ' aria-disabled="true" data-tooltip-reason="Este prima coloană."' : ""}` },
+          { label: "Mută la dreapta", icon: "arrow-right", attrs: `data-rpt-col-move="${esc(c.id)}|1"${i === last ? ' aria-disabled="true" data-tooltip-reason="Este ultima coloană."' : ""}` },
+          { separator: true },
+          { label: "Elimină", icon: "delete", attrs: `data-rpt-col-remove="${esc(c.id)}"` }
+        ], `Coloana ${colName(c)}`) || ""
       }) || "").replace('<li class="e-permits-stack__item', '<li draggable="true" class="e-permits-stack__item');
     }).join("")}</ul></div>
       ${add()}`
@@ -677,7 +682,7 @@
         </div>
         ${list}
       </section>
-      ${cols.length ? U().renderInfoNote?.("Trage o coloană de mâner (sau folosește ↑ ↓) ca s-o muți. Coloanele cu același <strong>antet comun</strong>, puse una lângă alta, formează antetul pe două niveluri.") || "" : ""}`;
+      ${cols.length ? U().renderInfoNote?.("Trage o coloană de mâner (sau alege ⋮ › Mută la stânga / la dreapta) ca s-o muți. Când treci peste o coloană, ea se evidențiază în previzualizare. Coloanele cu același <strong>antet comun</strong>, puse una lângă alta, formează antetul pe două niveluri.") || "" : ""}`;
   }
   /* Structură: Gruparea rândurilor · Filtre · Rândul de total */
   const kw = (text) => `<code class="e-permits-doc-kw">${esc(text)}</code>`;
@@ -1021,6 +1026,7 @@
   function refreshPreviewOnly() {
     const box = creating() ? sheet.querySelector("[data-rpt-preview]") : document.querySelector("#rpt-panel [data-rpt-preview]");
     if (box && P.draft) box.innerHTML = previewHtml(editable() ? P.draft : reportOf(P.id).config, { idp: editable() ? IDP : "rpt-p" });
+    syncColHl();
   }
   const reheader = () => { const els = A().els || {}; if (!creating() && els.dosarProfilTitleRow && P.id) els.dosarProfilTitleRow.innerHTML = headerTop(reportOf(P.id)); };
 
@@ -1154,7 +1160,7 @@
     if (force || !pageDirty()) { close(); return; }
     U().askConfirm?.({ title: P.from ? "Renunți la copia raportului?" : "Renunți la raportul nou?", text: "Datele completate nu se păstrează.", confirmLabel: "Renunță", cancelLabel: "Continuă editarea", destructive: true }, close);
   }
-  const rerender = (opts) => (creating() ? renderCreate(opts) : renderProfile(opts));
+  const rerender = (opts) => { if (creating()) renderCreate(opts); else renderProfile(opts); syncColHl(); };
 
   /* ---------------------------------------------------------------- save (Salvează ciorna / Salvează) */
   const errorSel = (key) => {
@@ -1268,6 +1274,7 @@
     DR = { back: document.activeElement, errors: {}, query: "", closed: new Set(), ...state };
     const d = ensureDrawer();
     renderDrawer();
+    requestAnimationFrame(() => syncColHl({ scroll: true }));
     if (window.GEAPDrawer?.open) window.GEAPDrawer.open(d, { focus: d.querySelector("[data-rpt-autofocus]") || d.querySelector(".drawer") });
     else { d.hidden = false; document.body.classList.add("is-drawer-open"); requestAnimationFrame(() => (d.querySelector("[data-rpt-autofocus]") || d.querySelector(".drawer"))?.focus()); }
   }
@@ -1275,6 +1282,7 @@
     if (!drawer || drawer.hidden) return;
     const back = DR?.back;
     DR = null;
+    requestAnimationFrame(() => syncColHl());
     if (window.GEAPDrawer?.close) window.GEAPDrawer.close(drawer);
     else { drawer.hidden = true; document.body.classList.remove("is-drawer-open"); }
     if (back?.isConnected) back.focus({ preventScroll: true });
@@ -1632,7 +1640,7 @@
     const add = t.closest("[data-rpt-add]");
     if (add) { if (add.getAttribute("aria-disabled") !== "true") addKind(add.dataset.rptAdd); return; }
     const mv = t.closest("[data-rpt-col-move]");
-    if (mv) { const [id, by] = mv.dataset.rptColMove.split("|"); if (move(P.draft.columns, id, Number(by))) afterColumnsChange(`[data-rpt-col-move="${CSS.escape(`${id}|${by}`)}"]:not(:disabled), [data-rpt-col="${CSS.escape(id)}"]`); return; }
+    if (mv) { if (mv.getAttribute("aria-disabled") === "true") return; const [id, by] = mv.dataset.rptColMove.split("|"); if (move(P.draft.columns, id, Number(by))) { afterColumnsChange(`[data-rpt-col="${CSS.escape(id)}"] [data-stack-menu-trigger]`); syncColHl({ scroll: true }); } return; }
     const rm = t.closest("[data-rpt-col-remove]");
     if (rm) {
       const id = rm.dataset.rptColRemove;
@@ -1649,6 +1657,59 @@
     if (fadd) { if (fadd.getAttribute("aria-disabled") !== "true") { P.draft.filters.push({ field: "", type: "" }); rerender({ keep: `#${IDP}-filter-field-${P.draft.filters.length - 1}` }); refreshPreviewOnly(); } return; }
     const frm = t.closest("[data-rpt-filter-remove]");
     if (frm) { P.draft.filters.splice(Number(frm.dataset.rptFilterRemove), 1); Object.keys(P.errors).filter((k) => k.startsWith("filter.")).forEach((k) => delete P.errors[k]); rerender({ keep: "[data-rpt-filter-add]" }); reheader(); }
+  });
+  /* rpt-col-link-v1 (2026-11-09, user; Salesforce / Google Ads / Zoho report builders): the column list ↔ the live preview.
+     Hover / focus of a list item or its preview header, and the column whose panel is open, tint that column in the
+     preview (header incl. its group header + every body cell, `.is-col-hl`); focusing an item (or opening its panel)
+     scrolls the preview sideways to it; a preview header button focuses its list item. */
+  let hlHover = "";
+  const hlTarget = () => hlHover || (DR?.mode === "col" && DR.colId) || "";
+  function syncColHl({ scroll = false } = {}) {
+    const root = creating() ? sheet : document.querySelector("#rpt-panel");
+    if (!root) return;
+    const id = hlTarget();
+    root.querySelectorAll("[data-rpt-preview] .is-col-hl").forEach((el) => el.classList.remove("is-col-hl"));
+    root.querySelectorAll("[data-rpt-col].is-selected").forEach((el) => el.classList.remove("is-selected"));
+    /* the column whose panel is open = the selected list item (the Registre column list's brand-secondary row) */
+    const open = DR?.mode === "col" && DR.colId;
+    if (open) root.querySelector(`[data-rpt-col="${CSS.escape(open)}"]`)?.classList.add("is-selected");
+    if (!id) return;
+    const cells = [...root.querySelectorAll(`[data-rpt-preview] [data-rpt-cell="${CSS.escape(id)}"]`), ...[...root.querySelectorAll("[data-rpt-preview] [data-rpt-cells]")].filter((th) => th.dataset.rptCells.split(" ").includes(id))];
+    cells.forEach((el) => el.classList.add("is-col-hl"));
+    const head = root.querySelector(`[data-rpt-preview] th[data-rpt-cell="${CSS.escape(id)}"]`);
+    const wrap = head?.closest(".e-permits-rpt-table-wrap");
+    if (scroll && head && wrap) {
+      const w = wrap.getBoundingClientRect();
+      const r = head.getBoundingClientRect();
+      if (r.left < w.left) wrap.scrollLeft -= w.left - r.left;
+      else if (r.right > w.right) wrap.scrollLeft += r.right - w.right;
+    }
+  }
+  const colFromEvent = (t) => t.closest?.("[data-rpt-col]")?.dataset.rptCol || t.closest?.("[data-rpt-col-pick]")?.dataset.rptColPick || "";
+  document.addEventListener("mouseover", (event) => {
+    if (!P.draft || !inPage(event.target)) return;
+    const id = colFromEvent(event.target);
+    if (id !== hlHover) { hlHover = id; syncColHl(); }
+  });
+  document.addEventListener("focusin", (event) => {
+    if (!P.draft || !inPage(event.target)) return;
+    const id = colFromEvent(event.target);
+    if (id) { hlHover = id; syncColHl({ scroll: Boolean(event.target.closest("[data-rpt-col]")) }); }
+  });
+  document.addEventListener("focusout", (event) => {
+    if (!P.draft || !inPage(event.target) || !colFromEvent(event.target)) return;
+    requestAnimationFrame(() => { if (!colFromEvent(document.activeElement || document.body)) { hlHover = ""; syncColHl(); } });
+  });
+  document.addEventListener("click", (event) => {
+    const pick = event.target.closest?.("[data-rpt-col-pick]");
+    if (!pick || !inPage(pick)) return;
+    const root = creating() ? sheet : document.querySelector("#rpt-panel");
+    const item = root?.querySelector(`[data-rpt-col="${CSS.escape(pick.dataset.rptColPick)}"]`);
+    if (!item) return;
+    item.scrollIntoView({ block: "center", behavior: "smooth" });
+    item.focus({ preventScroll: true });
+    hlHover = pick.dataset.rptColPick;
+    syncColHl();
   });
   /* Enter / Space on a column row opens its panel (the stack row is the control) */
   document.addEventListener("keydown", (event) => {

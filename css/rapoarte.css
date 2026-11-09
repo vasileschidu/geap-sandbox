@@ -298,6 +298,43 @@
   margin-inline: auto;
 }
 
+/* rpt-col-link-v1 (2026-11-09, user; Salesforce / Google Ads / Zoho report builders): the column of the hovered / focused
+   list item or preview header, or of the open column panel, is tinted in the preview — its header (incl. the group
+   header above it) and every body / subtotal / total cell — light brand (the selected list row's colour) */
+.e-permits-rpt-preview .e-permits-workplace__table.e-permits-rpt-table tr > :is(th, td).is-col-hl {
+  background: var(--color-background-brand-secondary, #e6eefb);
+}
+
+/* the editor's header = a button over the whole header cell → its list item (keyboard: Tab, Enter); the look stays the
+   header's, hover = the tint, focus = the inset ring */
+.e-permits-rpt-table__col-btn {
+  align-items: flex-end;
+  background: transparent;
+  border: 0;
+  border-radius: var(--border-radius-4, 4px);
+  color: inherit;
+  cursor: pointer;
+  display: flex;
+  font: inherit;
+  margin: calc(var(--spacing-4, 4px) * -1);
+  padding: var(--spacing-4, 4px);
+  text-align: inherit;
+  width: calc(100% + var(--spacing-8, 8px));
+}
+
+.e-permits-wid-table__num > .e-permits-rpt-table__col-btn {
+  justify-content: flex-end;
+}
+
+.e-permits-rpt-table__col-btn:hover {
+  background: var(--color-background-brand-secondary-hover, #d6e4f8);
+}
+
+.e-permits-rpt-table__col-btn:focus-visible {
+  box-shadow: inset 0 0 0 var(--border-width-2, 2px) var(--focus-ring, #3379db);
+  outline: none;
+}
+
 /* text cells stay on the left in the right-aligned agg table */
 .e-permits-wid-table--agg.e-permits-rpt-table td.e-permits-rpt-table__text,
 .e-permits-wid-table--agg.e-permits-rpt-table th.e-permits-rpt-table__text-head {

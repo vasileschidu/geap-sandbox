@@ -8607,7 +8607,8 @@ document.addEventListener("DOMContentLoaded", () => {
      tempt with a single impossible action … it's misleading”): a ⋮ whose items are ALL unavailable (aria-disabled /
      disabled / item.disabled) is not rendered — the caller keeps its cell, so nothing shifts. One enabled item → the
      menu stays and the disabled ones keep their tooltip reason (components.md › Row actions). */
-  const stackMenuItemEnabled = (item) => !item.disabled && !/(^|\s)(aria-disabled="true"|disabled(?=[\s=>]|$))/.test(String(item.attrs || ""));
+  /* { separator: true } = the menu divider (.e-permits-fo-intent-menu__separator) — never an action */
+  const stackMenuItemEnabled = (item) => !item.separator && !item.disabled && !/(^|\s)(aria-disabled="true"|disabled(?=[\s=>]|$))/.test(String(item.attrs || ""));
   const stackMenuHasEnabled = (items = []) => items.some(stackMenuItemEnabled);
 
   const renderStackMenu = (items, label) => {
@@ -8622,7 +8623,7 @@ document.addEventListener("DOMContentLoaded", () => {
           <svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-more-vertical"></use></svg>
         </button>
         <ul class="e-permits-fo-intent-menu e-permits-stack__menu" id="${menuId}" role="menu" aria-label="Acțiuni: ${escapeHtml(label)}" hidden data-stack-menu>
-          ${items.map((item) => `
+          ${items.map((item) => item.separator ? '<li role="separator" class="e-permits-fo-intent-menu__separator"></li>' : `
             <li role="none">
               <button class="e-permits-fo-intent-menu__item${item.danger || isDestructiveLabel(item.label) ? " is-danger" : ""}" type="button" role="menuitem" ${item.attrs}>
                 <svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-${escapeHtml(actionIconFor(item.label) || item.icon || "edit")}"></use></svg>
