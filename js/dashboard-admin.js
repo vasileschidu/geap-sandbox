@@ -345,65 +345,97 @@
       ))}`;
   }
 
-  /* ================================================================ THE LAYOUT EDITOR (new — components.md › „Tablouri de bord”)
-     WYSIWYG at the real page width: a 12-column grid of the real widget cards (span 4 / 6 / 8 / 12), reading order = the
-     widget order. Each tile has a visible toolbar (Grafana / Metabase / HubSpot edit mode, but never drag-only — Atlassian
-     / Salesforce keyboard moves): drag handle (pointer) · position · title · ↑ ↓ (keyboard) · red remove; row 2 = the
-     library selects Lățime / Înălțime. „Editare · Previzualizare” (library segmented) hides the toolbars. Phones: one
-     column, every widget a full row, the same toolbar = a list. */
+  /* ================================================================ THE LAYOUT EDITOR (dash-v3, 2026-11-10, user + Mobbin: Sentry · Twenty ·
+     Salesforce · Xero dashboards; components.md › „Tablouri de bord”)
+     ONE WYSIWYG canvas: the edit view IS the final dashboard (no separate preview) — the end-user BackOffice shell as a
+     skeleton (sidebar, top bar with the dashboard name, tabs when the role has several dashboards) at the real 1440 screen,
+     zoomed to fit; the widget cards exactly as on the dashboard (no wrapper borders). Editing appears only on hover / focus
+     / drag: the shared grey hover surface (`.e-permits-hover-surface`, the calendar months), a floating toolbar (drag
+     handle + red remove), a bottom-right resize corner that snaps to 4 · 6 · 8 · 12 columns and Mică · Medie · Mare, the
+     12 column guides while dragging / resizing. Drag = iPhone-style live reflow (FLIP). Keyboard: the widget is focusable;
+     ← → ↑ ↓ move it, Shift + ← → change the width, Shift + ↑ ↓ the height (announced). Add = one widget at a time (the
+     picker), it lands at the end at its default size, scrolls into view and flashes. Phones: one widget per row, no
+     skeleton, no resize; the toolbar shows ↑ ↓ + remove. */
   const SPAN = { third: 4, half: 6, twoThirds: 8, full: 12 };
-  function tileBody(t, d, { compact = true } = {}) {
+  const WIDTH_KEYS = ["third", "half", "twoThirds", "full"];
+  const HEIGHT_KEYS = ["small", "medium", "large"];
+  const sizeText = (t) => `${SPAN[t.width] || 12}/12 · ${label(HEIGHTS(), t.height) || "Medie"}`;
+  function tileBody(t, d) {
     const info = widgetInfo(t.widget, d);
     if (!info.active) {
       return `<div class="e-permits-chart e-permits-wid-card e-permits-dsh-tile__off">${E()?.render({ title: "Widget dezactivat", text: `„${info.title}” nu mai este publicat și nu apare pe tablou. Elimină-l sau înlocuiește-l.`, icon: "warning-filled", compact: true, bare: true }) || ""}</div>`;
     }
-    return W().card?.({ ...info.cfg, width: t.width, height: t.height }, { compact }) || "";
+    return W().card?.({ ...info.cfg, width: t.width, height: t.height }, { compact: true }) || "";
   }
-  function layoutHtml(v, d, { edit = false, idp = idpNow() } = {}) {
+  function tileHtml(t, i, n, d, edit) {
+    const info = widgetInfo(t.widget, d);
+    const name = `${i + 1}. ${info.title}, ${sizeText(t)}${info.active ? "" : ", dezactivat"}`;
+    const tools = edit ? `
+      <div class="e-permits-dsh-tile__tools">
+        <button class="btn btn-neutral btn-sm btn-icon-only e-permits-dsh-tile__handle" type="button" tabindex="-1" aria-label="Mută „${esc(info.title)}”" data-tooltip-label="Trage ca să muți. Cu tastatura: săgețile mută, Shift + săgețile schimbă dimensiunea." data-dsh-handle>${icon("drag", 16)}</button>
+        <button class="btn btn-neutral btn-sm btn-icon-only e-permits-dsh-tile__step" type="button" aria-label="Mută „${esc(info.title)}” mai sus" data-tooltip-label="Mută mai sus" data-dsh-move="${t.widget}|-1"${i === 0 ? " disabled" : ""}>${icon("arrow-up", 16)}</button>
+        <button class="btn btn-neutral btn-sm btn-icon-only e-permits-dsh-tile__step" type="button" aria-label="Mută „${esc(info.title)}” mai jos" data-tooltip-label="Mută mai jos" data-dsh-move="${t.widget}|1"${i === n - 1 ? " disabled" : ""}>${icon("arrow-down", 16)}</button>
+        <button class="btn btn-text-destructive btn-sm btn-icon-only" type="button" aria-label="Elimină „${esc(info.title)}” de pe tablou" data-tooltip-label="Elimină de pe tablou" data-dsh-remove="${t.widget}">${icon("delete", 16)}</button>
+      </div>
+      <span class="e-permits-dsh-tile__resize" aria-hidden="true" data-dsh-resize>${icon("resize", 16)}</span>
+      <span class="e-permits-dsh-tile__size" aria-hidden="true">${tag(sizeText(t), "brand")}</span>` : "";
+    return `<div class="e-permits-dsh-tile e-permits-dsh-tile--${SPAN[t.width] ? t.width : "full"}${edit ? " e-permits-hover-surface is-editable" : ""}" role="listitem" data-dsh-tile="${t.widget}" data-index="${i}"${edit ? ` tabindex="0" aria-roledescription="widget mutabil" aria-label="${esc(name)}"` : ` aria-label="${esc(name)}"`}>${tileBody(t, d)}${tools}</div>`;
+  }
+  /* the end-user shell around the grid (desktop): skeleton sidebar + top bar with the dashboard name + tabs when the
+     role has several dashboards; aria-hidden, non-interactive, static skeletons (no shimmer: nothing is loading) */
+  function siblingsOf(v, d) {
+    const auth = d?.authority || (who().central ? null : who().authority);
+    return all().filter((x) => x.id !== d?.id && x.status === "Publicat" && (lastVersion(x)?.config.roles || []).some((r) => v.roles.some((m) => m.role === r.role)) && (!auth || assignedTo(x, auth)));
+  }
+  function layoutHtml(v, d, { edit = false } = {}) {
     const n = v.widgets.length;
-    const last = n - 1;
-    const view = edit && P.view === "preview" ? "preview" : edit ? "edit" : "read";
-    const tiles = v.widgets.map((t, i) => {
-      const info = widgetInfo(t.widget, d);
-      const bar = view === "edit" ? `
-        <div class="e-permits-dsh-tile__bar">
-          <div class="e-permits-dsh-tile__row">
-            <span class="e-permits-dsh-tile__handle" aria-hidden="true" data-dsh-handle data-tooltip-label="Trage pentru a muta">${icon("drag", 16)}</span>
-            <span class="e-permits-dsh-tile__n" aria-hidden="true">${i + 1}</span>
-            <p class="e-permits-dsh-tile__title" data-cell-tooltip="${esc(info.title)}">${esc(info.title)}</p>
-            ${info.active ? "" : tag("Dezactivat", "warning")}
-            <div class="e-permits-dsh-tile__actions">
-              <button class="btn btn-strict btn-sm btn-icon-only" type="button" aria-label="Mută „${esc(info.title)}” mai sus" data-tooltip-label="Mută mai sus" data-dsh-move="${t.widget}|-1"${i === 0 ? " disabled" : ""}>${icon("arrow-up", 16)}</button>
-              <button class="btn btn-strict btn-sm btn-icon-only" type="button" aria-label="Mută „${esc(info.title)}” mai jos" data-tooltip-label="Mută mai jos" data-dsh-move="${t.widget}|1"${i === last ? " disabled" : ""}>${icon("arrow-down", 16)}</button>
-              <button class="btn btn-text-destructive btn-sm btn-icon-only" type="button" aria-label="Elimină „${esc(info.title)}” de pe tablou" data-tooltip-label="Elimină de pe tablou" data-dsh-remove="${t.widget}">${icon("delete", 16)}</button>
+    const tiles = v.widgets.map((t, i) => tileHtml(t, i, n, d, edit)).join("");
+    const ghost = edit && n < MAX_WIDGETS ? `<div class="e-permits-dsh-ghost" role="listitem"><span class="e-permits-dsh-ghost__text">Adaugă widget-urile unul câte unul și aranjează-le aici.</span>${addButton(v)}</div>` : "";
+    const tabs = siblingsOf(v, d).length;
+    const body = n || edit
+      ? `<div class="e-permits-dsh-grid${edit ? " is-editing" : ""}" role="list" aria-label="Widget-urile tabloului de bord, în ordinea de citire" data-dsh-grid>
+          <div class="e-permits-dsh-guides" aria-hidden="true">${Array.from({ length: 12 }, () => "<span></span>").join("")}</div>
+          ${tiles}${ghost}
+        </div>`
+      : E()?.render({ title: "Niciun widget", text: "Tabloul de bord nu are încă widget-uri.", icon: "chart", compact: true }) || "";
+    return `
+      <div class="e-permits-dsh-stage" data-dsh-stage>
+        <div class="e-permits-dsh-frame" data-dsh-frame>
+          <div class="e-permits-dsh-frame__side" aria-hidden="true">
+            <div class="e-permits-dsh-frame__logo"><span class="skeleton skeleton--circle"></span><span class="skeleton skeleton--text"></span></div>
+            <div class="e-permits-dsh-frame__nav">
+              <span class="e-permits-dsh-frame__item is-active">${icon("home-line")}<span>Tablou de bord</span></span>
+              ${Array.from({ length: 6 }, () => '<span class="e-permits-dsh-frame__item"><span class="skeleton skeleton--circle"></span><span class="skeleton skeleton--text"></span></span>').join("")}
             </div>
           </div>
-          <div class="e-permits-user-create__grid e-permits-dsh-tile__sizes">
-            ${selectField(`${idp}-w-${t.widget}`, `data-dsh-size="${t.widget}|width"`, "Lățime", WIDTHS(), t.width, { span: 6 })}
-            ${selectField(`${idp}-h-${t.widget}`, `data-dsh-size="${t.widget}|height"`, "Înălțime", HEIGHTS(), t.height, { span: 6 })}
+          <div class="e-permits-dsh-frame__main">
+            <div class="e-permits-dsh-frame__top" aria-hidden="true"><span class="e-permits-dsh-frame__title">${esc(v.names.ro || "Tablou de bord")}</span><span class="e-permits-dsh-frame__user"><span class="skeleton skeleton--circle"></span><span class="skeleton skeleton--text"></span></span></div>
+            ${tabs ? `<div class="e-permits-dsh-frame__tabs" aria-hidden="true"><span class="e-permits-dsh-frame__tab is-active">${esc(v.names.ro || "Tablou de bord")}</span>${Array.from({ length: Math.min(tabs, 3) }, () => '<span class="e-permits-dsh-frame__tab"><span class="skeleton skeleton--text"></span></span>').join("")}</div>` : ""}
+            <div class="e-permits-dsh-frame__content">${body}</div>
           </div>
-        </div>` : "";
-      return `<div class="e-permits-dsh-tile e-permits-dsh-tile--${SPAN[t.width] ? t.width : "full"}" role="listitem" aria-label="${esc(`${i + 1}. ${info.title} · ${label(WIDTHS(), t.width)} · ${label(HEIGHTS(), t.height)}`)}" data-dsh-tile="${t.widget}" data-index="${i}">${bar}${tileBody(t, d)}</div>`;
-    }).join("");
-    if (!n) {
-      return view === "read"
-        ? E()?.render({ title: "Niciun widget", text: "Tabloul de bord nu are încă widget-uri.", icon: "chart", compact: true }) || ""
-        : E()?.render({ title: "Niciun widget încă", text: `Adaugă widget-uri publicate, cel mult ${MAX_WIDGETS}. Le ordonezi și le alegi lățimea și înălțimea aici.`, icon: "chart", actionHtml: addButton(v) }) || "";
-    }
-    return `<div class="e-permits-dsh-grid${view === "edit" ? " is-editing" : ""}" role="list" aria-label="Widget-urile tabloului de bord, în ordinea de citire" data-dsh-grid>${tiles}</div>`;
+        </div>
+      </div>`;
   }
   const addButton = (v) => `<button class="btn btn-secondary btn-sm" type="button" aria-haspopup="dialog" data-dsh-add${v.widgets.length >= MAX_WIDGETS ? ` aria-disabled="true" data-tooltip-reason="Un tablou de bord are cel mult ${MAX_WIDGETS} de widget-uri."` : ""}>${icon("plus-large", 16)}<span>Adaugă widget</span></button>`;
   function stepWidgets(v, e, idp, d) {
-    const n = v.widgets.length;
-    const tools = `
-      ${n ? `<div class="segmented-control e-permits-dsh-view" role="radiogroup" aria-label="Modul de lucru">${[["edit", "Editare"], ["preview", "Previzualizare"]].map(([k, l]) => `<button class="segment-item${(P.view || "edit") === k ? " is-selected" : ""}" type="button" role="radio" aria-checked="${(P.view || "edit") === k}" data-dsh-view="${k}">${l}</button>`).join("")}</div>` : ""}
-      ${n ? addButton(v) : ""}`;
     return `
       ${section("Widget-uri", `
         ${e.widgets ? `<div class="e-permits-reg-notices" id="${idp}-widgets">${U().renderNotice?.("error", esc(e.widgets), { role: "alert" }) || ""}</div>` : ""}
-        ${layoutHtml(v, d, { edit: true, idp })}
-        <p class="u-visually-hidden" aria-live="polite" data-dsh-live></p>`, { meta: `${n}/${MAX_WIDGETS}`, tools, card: false, cls: "e-permits-dsh-layout", id: `${idp}-layout-title` })}`;
+        ${layoutHtml(v, d, { edit: true })}
+        <p class="u-visually-hidden" aria-live="polite" data-dsh-live></p>`, { meta: `${v.widgets.length}/${MAX_WIDGETS}`, tools: addButton(v), card: false, cls: "e-permits-dsh-layout", id: `${idp}-layout-title` })}`;
   }
+  /* the canvas = the real 1440 screen, zoomed to the space it has (desktop); phones = 1 (one widget per row, no shell) */
+  const FRAME_W = 1440;
+  function fitFrames(root = document) {
+    root.querySelectorAll?.("[data-dsh-stage]").forEach((stage) => {
+      const z = isPhone() ? 1 : Math.min(1, stage.clientWidth / FRAME_W);
+      if (z > 0) stage.style.setProperty("--dsh-zoom", String(Math.round(z * 1000) / 1000));
+    });
+  }
+  const stageObserver = "ResizeObserver" in window ? new ResizeObserver((entries) => entries.forEach((en) => fitFrames(en.target.parentElement || document))) : null;
+  new MutationObserver(() => document.querySelectorAll("[data-dsh-stage]:not([data-dsh-fit])").forEach((s) => { s.dataset.dshFit = "1"; fitFrames(s.parentElement); stageObserver?.observe(s); })).observe(document.documentElement, { childList: true, subtree: true });
+  window.addEventListener("resize", () => fitFrames());
+  const zoomOf = (el) => Number(getComputedStyle(el.closest("[data-dsh-stage]") || document.documentElement).getPropertyValue("--dsh-zoom")) || 1;
 
   /* ---- read-only passport blocks (profile, review, version view) */
   function configRows(v, level = "Global") {
@@ -625,7 +657,7 @@
   }
 
   /* ================================================================ PROFILE = the editor page (US-544 · US-546 · US-548 · US-550) */
-  const P = { id: null, tab: "configurare", isNew: false, from: "", draft: null, base: null, errors: {}, saveError: false, compare: null, view: "edit", step: 1, maxStep: 1 };
+  const P = { id: null, tab: "configurare", isNew: false, from: "", draft: null, base: null, errors: {}, saveError: false, compare: null, step: 1, maxStep: 1 };
   const TABS = [["configurare", "Configurare"], ["versiuni", "Versiuni"], ["istoric", "Istoric"]];
   const profileOpen = () => (Boolean(P.id) || P.isNew) && !document.querySelector("[data-dosar-profil]")?.hidden && A().els?.dosarProfilPanelBody?.id === "dsh-panel";
   const editable = (d = dashOf(P.id)) => P.isNew || (Boolean(d) && canEdit(d) && d.status !== "Dezactivat");
@@ -635,7 +667,7 @@
     await load();
     const d = dashOf(id);
     if (!who().has || !d || !visible(d)) { showDenied(); return; }
-    if (P.id !== id || P.isNew) { P.compare = null; P.errors = {}; P.saveError = false; P.draft = clone(d.config); P.base = clone(d.config); P.view = "edit"; }
+    if (P.id !== id || P.isNew) { P.compare = null; P.errors = {}; P.saveError = false; P.draft = clone(d.config); P.base = clone(d.config); }
     P.id = id; P.isNew = false; P.from = "";
     P.tab = TABS.some(([t]) => t === tab) ? tab : "configurare";
     show(`#tablou/${id}/${P.tab}`, push);
@@ -658,7 +690,7 @@
       v.order = String(Math.max(0, ...mine.map((x) => Number(x.config.order) || 0)) + 1);
     }
     beforeCreate = { ...P, back: document.activeElement };
-    Object.assign(P, { id: null, isNew: true, from: src?.id || "", tab: "configurare", draft: v, base: clone(v), errors: {}, saveError: false, compare: null, view: "edit", step: 1, maxStep: src ? STEPS.length : 1 });
+    Object.assign(P, { id: null, isNew: true, from: src?.id || "", tab: "configurare", draft: v, base: clone(v), errors: {}, saveError: false, compare: null, step: 1, maxStep: src ? STEPS.length : 1 });
     const el = ensureSheet();
     renderCreate();
     el.hidden = false;
@@ -1142,105 +1174,96 @@
   }, true);
   window.addEventListener("beforeunload", (event) => { if ((profileOpen() || creating()) && pageDirty()) { event.preventDefault(); event.returnValue = ""; } });
 
-  /* ================================================================ „Adaugă widget” — the picker (library dialog)
-     search + the published widgets as „Widget type card” rows with a library checkbox (glyph tile = the type, title,
-     „tip · nivel · dimensiunea implicită”), the counter x/24; widgets already on the dashboard stay checked + disabled */
+  /* ================================================================ „Adaugă widget” — ONE at a time (dash-v3, user: „add one by one and
+     arrange like the iPhone home screen”): the library dialog with search + the published widgets as the „Widget type
+     card” radio cards (the chart-type gallery markup: glyph tile = type, title, „tip · nivel · lățime, înălțime”);
+     „Adaugă” puts the chosen one at the end of the board at its default size, scrolls to it and flashes it */
   let picking = null;
   const pickRoot = () => document.querySelector("#case-action-modal.is-active [data-dsh-pick-list]");
   function pickListHtml() {
     const v = P.draft;
     const d = P.id ? dashOf(P.id) : null;
-    const lvl = levelNow();
-    const auth = d?.authority || who().authority;
     const q = fold(picking.query.trim());
-    const items = pickable(lvl, auth).filter((w) => !q || fold(`${w.id} ${w.config.titles.ro} ${W().typeLabel?.(w.config.type) || ""}`).includes(q));
-    const total = v.widgets.length + picking.sel.size;
+    const items = pickable(levelNow(), d?.authority || who().authority).filter((w) => !q || fold(`${w.id} ${w.config.titles.ro} ${W().typeLabel?.(w.config.type) || ""}`).includes(q));
     if (!items.length) return E()?.render({ title: q ? NO_MATCH : "Niciun widget publicat", text: q ? "Caută după denumire, ID sau tip." : "Publică mai întâi widget-uri în Administrare › Widgete.", icon: q ? "search" : "chart", compact: true, bare: true }) || "";
     return `<fieldset class="e-permits-wid-types"><legend class="u-visually-hidden">Widget-uri publicate</legend><div class="e-permits-wid-types__grid">${items.map((w) => {
       const cfg = W().published(w.id);
       const on = v.widgets.some((t) => t.widget === w.id);
-      const chosen = picking.sel.has(w.id);
-      const full = !on && !chosen && total >= MAX_WIDGETS;
-      const desc = `${W().typeLabel?.(cfg.type) || ""} · ${W().levelText?.(w) || w.level} · ${label(WIDTHS(), cfg.width) || "—"}, ${(label(HEIGHTS(), cfg.height) || "—").toLocaleLowerCase("ro")}`;
-      const reason = on ? "Este deja pe tablou." : full ? `Ai ajuns la ${MAX_WIDGETS} de widget-uri.` : "";
+      const chosen = picking.sel === w.id;
+      const desc = on ? "Este deja pe tablou." : `${W().typeLabel?.(cfg.type) || ""} · ${W().levelText?.(w) || w.level} · ${SPAN[cfg.width] || 6}/12, ${(label(HEIGHTS(), cfg.height) || "Medie").toLocaleLowerCase("ro")}`;
       return `
-        <label class="e-permits-fo-delivery-option e-permits-fo-delivery-option--radio e-permits-wid-type e-permits-dsh-pick${on || chosen ? " is-selected" : ""}${on || full ? " is-disabled" : ""}">
+        <label class="e-permits-fo-delivery-option e-permits-fo-delivery-option--radio e-permits-wid-type${chosen ? " is-selected" : ""}${on ? " is-disabled" : ""}">
+          <input class="e-permits-fo-delivery-option__input" type="radio" name="dsh-pick" value="${esc(w.id)}"${chosen ? " checked" : ""}${on ? " disabled" : ""} aria-describedby="dsh-pick-${w.id}-desc" data-dsh-pick>
           <span class="e-permits-fo-delivery-option__content">
             <span class="e-permits-wid-type__glyph" aria-hidden="true">${window.GEAPWidgetCharts?.glyph?.(cfg.type) || ""}</span>
             <span class="e-permits-fo-delivery-option__copy">
               <span class="e-permits-fo-delivery-option__title-row"><span class="e-permits-fo-delivery-option__title">${esc(cfg.titles.ro)}</span></span>
-              <span class="e-permits-fo-delivery-option__description" id="dsh-pick-${w.id}-desc">${esc(reason || desc)}</span>
+              <span class="e-permits-fo-delivery-option__description" id="dsh-pick-${w.id}-desc">${esc(desc)}</span>
             </span>
           </span>
-          <span class="checkbox checkbox--medium e-permits-check-option e-permits-check-option--plain e-permits-dsh-pick__box${on || full ? " is-disabled" : ""}">
-            <input class="checkbox-input" type="checkbox" value="${esc(w.id)}" aria-describedby="dsh-pick-${w.id}-desc"${on || chosen ? " checked" : ""}${on || full ? " disabled" : ""} data-dsh-pick>
-            <span class="checkbox-custom" aria-hidden="true"><svg class="icon e-permits-check-option__tick" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-checkmark-small"></use></svg></span>
-          </span>
+          <span class="radio radio--small e-permits-fo-delivery-option__radio" aria-hidden="true"><span class="radio-custom"></span></span>
         </label>`;
     }).join("")}</div></fieldset>`;
   }
-  const pickCount = () => `<strong>${P.draft.widgets.length + picking.sel.size}</strong> din ${MAX_WIDGETS} pe tablou${picking.sel.size ? ` · ${picking.sel.size} ${picking.sel.size === 1 ? "nou" : "noi"}` : ""}`;
   function openPicker() {
     if (!P.draft || P.draft.widgets.length >= MAX_WIDGETS) return;
-    picking = { sel: new Set(), query: "", back: document.activeElement };
+    picking = { sel: "", query: "" };
     G().openModal?.({
       kind: "dsh-pick",
-      title: "Adaugă widget-uri",
-      subtitle: "Doar widget-urile publicate",
+      title: "Adaugă un widget",
+      subtitle: `Doar widget-urile publicate · ${P.draft.widgets.length} din ${MAX_WIDGETS} pe tablou`,
       body: `
-        <div class="e-permits-dsh-pick-head">
-          <div class="search-input medium rectangular e-permits-workplace__search e-permits-list-search e-permits-list-search--fill">
-            <span class="icon-search" aria-hidden="true">${icon("search")}</span>
-            <input class="input" type="search" placeholder="Caută după denumire, ID sau tip" aria-label="Caută widget-uri" autocomplete="off" id="dsh-pick-search" data-dsh-pick-search>
-            ${A().renderSearchActions?.() || '<div class="btn-group"><span class="spinner spinner--extra-small spinner--brand" aria-hidden="true"></span><button type="button" class="btn-icon clear" aria-label="Șterge căutarea"><svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-cross-small"></use></svg></button></div>'}
-          </div>
-          <p class="e-permits-dsh-pick-head__count" aria-live="polite" data-dsh-pick-count>${pickCount()}</p>
+        <div class="search-input medium rectangular e-permits-workplace__search e-permits-list-search e-permits-list-search--fill">
+          <span class="icon-search" aria-hidden="true">${icon("search")}</span>
+          <input class="input" type="search" placeholder="Caută după denumire, ID sau tip" aria-label="Caută widget-uri" autocomplete="off" id="dsh-pick-search" data-dsh-pick-search>
+          <div class="btn-group"><span class="spinner spinner--extra-small spinner--brand" aria-hidden="true"></span><button type="button" class="btn-icon clear" aria-label="Șterge căutarea"><svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-cross-small"></use></svg></button></div>
         </div>
         <div class="e-permits-dsh-pick-list" data-dsh-pick-list>${pickListHtml()}</div>`,
-      footer: '<div class="modal-buttons"><button class="btn btn-neutral btn-rounded" type="button" data-case-close>Anulează</button><button class="btn btn-primary btn-rounded" type="button" data-dsh-pick-confirm aria-disabled="true" data-tooltip-reason="Bifează cel puțin un widget.">Adaugă</button></div>'
+      footer: '<div class="modal-buttons"><button class="btn btn-neutral btn-rounded" type="button" data-case-close>Anulează</button><button class="btn btn-primary btn-rounded" type="button" data-dsh-pick-confirm aria-disabled="true" data-tooltip-reason="Alege un widget.">Adaugă</button></div>'
     });
     document.querySelector("#case-action-modal .modal")?.classList.replace("modal--md", "modal--lg");
     requestAnimationFrame(() => document.querySelector("#dsh-pick-search")?.focus());
   }
-  function syncPicker({ list = true } = {}) {
+  function syncPicker() {
     const root = pickRoot();
     if (!root || !picking) return;
-    if (list) { const top = root.scrollTop; root.innerHTML = pickListHtml(); root.scrollTop = top; }
-    document.querySelector("[data-dsh-pick-count]").innerHTML = pickCount();
+    const top = root.scrollTop;
+    root.innerHTML = pickListHtml();
+    root.scrollTop = top;
     const ok = document.querySelector("[data-dsh-pick-confirm]");
-    const n = picking.sel.size;
-    ok.textContent = n ? `Adaugă (${n})` : "Adaugă";
-    if (n) { ok.removeAttribute("aria-disabled"); ok.removeAttribute("data-tooltip-reason"); } else { ok.setAttribute("aria-disabled", "true"); ok.setAttribute("data-tooltip-reason", "Bifează cel puțin un widget."); }
+    if (picking.sel) { ok.removeAttribute("aria-disabled"); ok.removeAttribute("data-tooltip-reason"); } else { ok.setAttribute("aria-disabled", "true"); ok.setAttribute("data-tooltip-reason", "Alege un widget."); }
   }
   function confirmPicker() {
-    if (!picking?.sel.size) return;
-    /* each widget starts from its own default width and height (Feature assumption, Feature 96501) */
-    picking.sel.forEach((id) => { const cfg = W().published(id); P.draft.widgets.push({ widget: id, width: cfg?.width || "half", height: cfg?.height || "medium" }); });
-    const n = picking.sel.size;
+    if (!picking?.sel) return;
+    const id = picking.sel;
+    /* it starts from its own default width and height (Feature assumption, Feature 96501) */
+    const cfg = W().published(id);
+    P.draft.widgets.push({ widget: id, width: SPAN[cfg?.width] ? cfg.width : "half", height: cfg?.height || "medium" });
     picking = null;
     delete P.errors.widgets;
     G().closeModal?.();
-    P.view = "edit";
-    rerender({ keep: "[data-dsh-add]" });
+    rerender();
     reheader();
-    live(n === 1 ? "Un widget a fost adăugat la sfârșitul tabloului." : `${n} widget-uri au fost adăugate la sfârșitul tabloului.`);
+    flashTile(id, { scroll: true });
+    live(`„${widgetInfo(id).title}” a fost adăugat la sfârșitul tabloului, pe poziția ${P.draft.widgets.length}.`);
   }
   const live = (text) => { const el = (creating() ? sheet : document).querySelector("[data-dsh-live]"); if (el) el.textContent = text; };
+  const tileEl = (id) => (creating() ? sheet : document).querySelector(`[data-dsh-tile="${CSS.escape(id)}"]`);
+  /* the just-added / just-moved widget: scrolls into view, takes the focus and flashes the focus ring */
+  function flashTile(id, { scroll = false } = {}) {
+    requestAnimationFrame(() => {
+      const el = tileEl(id);
+      if (!el) return;
+      if (scroll) el.scrollIntoView({ block: "center", behavior: window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
+      el.focus({ preventScroll: true });
+      el.classList.add("is-flash");
+      if (!demo.has("hold")) window.setTimeout(() => el.classList.remove("is-flash"), 1800);
+    });
+  }
 
   /* ================================================================ events */
   const profileRoot = () => (profileOpen() ? A().els?.dosarProfilPanel || document.querySelector("[data-dosar-profil]") : null);
   const inPage = (el) => { if (inSheet(el)) return Boolean(P.draft); const root = profileRoot(); return Boolean(root && root.contains(el) && P.draft && editable()); };
-  function moveWidget(id, by) {
-    const list = P.draft.widgets;
-    const i = list.findIndex((t) => t.widget === id);
-    const j = i + by;
-    if (i < 0 || j < 0 || j >= list.length) return;
-    [list[i], list[j]] = [list[j], list[i]];
-    const end = j === 0 || j === list.length - 1;
-    rerender({ keep: `[data-dsh-move="${id}|${end ? -by : by}"]` });
-    reheader();
-    live(`„${widgetInfo(id).title}” este acum pe poziția ${j + 1} din ${list.length}.`);
-  }
   document.addEventListener("click", (event) => {
     const t = event.target;
     if (!t.closest) return;
@@ -1314,22 +1337,12 @@
       if (r && r.type !== type) { r.type = type; rerender({ keep: `#${idpNow()}-type-${role}-${type}` }); reheader(); }
       return;
     }
-    const vw = t.closest("[data-dsh-view]");
-    if (vw) { P.view = vw.dataset.dshView; rerender({ keep: `[data-dsh-view="${P.view}"]` }); return; }
     const add = t.closest("[data-dsh-add]");
     if (add) { if (add.getAttribute("aria-disabled") !== "true") openPicker(); return; }
     const mv = t.closest("[data-dsh-move]");
-    if (mv) { const [id, by] = mv.dataset.dshMove.split("|"); moveWidget(id, Number(by)); return; }
+    if (mv) { const [id, by] = mv.dataset.dshMove.split("|"); moveWidget(id, Number(by), { viaButton: true }); return; }
     const rm = t.closest("[data-dsh-remove]");
-    if (rm) {
-      const id = rm.dataset.dshRemove;
-      const i = v.widgets.findIndex((x) => x.widget === id);
-      v.widgets.splice(i, 1);
-      const next = v.widgets[Math.min(i, v.widgets.length - 1)];
-      rerender({ keep: next ? `[data-dsh-remove="${next.widget}"]` : "[data-dsh-add]" });
-      reheader();
-      live(`„${widgetInfo(id).title}” a fost eliminat de pe tablou.`);
-    }
+    if (rm) removeWidget(rm.dataset.dshRemove);
   });
   document.addEventListener("keydown", (event) => {
     const tab = event.target.closest?.("[data-dsh-tab]");
@@ -1355,7 +1368,7 @@
   document.addEventListener("change", (event) => {
     const el = event.target;
     if (!el.closest) return;
-    if (el.matches("[data-dsh-pick]") && picking) { if (el.checked) picking.sel.add(el.value); else picking.sel.delete(el.value); syncPicker(); document.querySelector(`[data-dsh-pick][value="${CSS.escape(el.value)}"]`)?.focus(); return; }
+    if (el.matches("[data-dsh-pick]") && picking) { picking.sel = el.value; syncPicker(); document.querySelector(`[data-dsh-pick][value="${CSS.escape(el.value)}"]`)?.focus(); return; }
     if (el.matches("[data-dsh-cmp]")) { P.compare = { ...P.compare, [el.dataset.dshCmp]: el.value }; renderProfile({ keep: `#dsh-cmp-${el.dataset.dshCmp}` }); return; }
     if (!inPage(el)) return;
     const v = P.draft;
@@ -1370,40 +1383,213 @@
       reheader();
       return;
     }
-    const size = el.closest("[data-dsh-size]");
-    if (size) {
-      const [id, key] = size.dataset.dshSize.split("|");
-      const t = v.widgets.find((x) => x.widget === id);
-      if (t) { t[key] = el.value; rerender({ keep: `#${idpNow()}-${key === "width" ? "w" : "h"}-${id}` }); reheader(); }
-    }
   });
 
-  /* drag & drop (pointer; the ↑ ↓ buttons are the keyboard twin): only the handle starts a drag */
-  let dragFrom = -1;
-  document.addEventListener("pointerdown", (event) => {
-    const h = event.target.closest?.("[data-dsh-handle]");
-    const tile = h?.closest("[data-dsh-tile]");
-    if (tile && inPage(tile)) tile.draggable = true;
-  });
-  function onDrag(event) {
-    const tile = event.target.closest?.("[data-dsh-tile]");
-    if (!tile || !inPage(tile)) { if (event.type === "dragend") dragFrom = -1; return; }
-    if (event.type === "dragstart") { if (!tile.draggable) return; dragFrom = Number(tile.dataset.index); event.dataTransfer.effectAllowed = "move"; event.dataTransfer.setData("text/plain", tile.dataset.dshTile); tile.classList.add("is-dragging"); return; }
-    if (event.type === "dragover" && dragFrom >= 0) { event.preventDefault(); document.querySelectorAll("[data-dsh-tile].is-drop-target").forEach((r) => { if (r !== tile) r.classList.remove("is-drop-target"); }); if (Number(tile.dataset.index) !== dragFrom) tile.classList.add("is-drop-target"); return; }
-    if (event.type === "drop" && dragFrom >= 0) {
-      event.preventDefault();
-      const to = Number(tile.dataset.index);
-      const [moved] = P.draft.widgets.splice(dragFrom, 1);
-      P.draft.widgets.splice(to, 0, moved);
-      dragFrom = -1;
-      rerender({ keep: `[data-dsh-move="${moved.widget}|${to === 0 ? 1 : -1}"]` });
-      reheader();
-      live(`„${widgetInfo(moved.widget).title}” este acum pe poziția ${to + 1}.`);
-      return;
-    }
-    if (event.type === "dragend") { dragFrom = -1; document.querySelectorAll("[data-dsh-tile].is-dragging, [data-dsh-tile].is-drop-target").forEach((r) => { r.classList.remove("is-dragging", "is-drop-target"); r.draggable = false; }); }
+  /* ================================================================ arranging: FLIP reflow, drag (handle), resize (corner), keyboard */
+  const reduced = () => Boolean(window.matchMedia?.("(prefers-reduced-motion: reduce)").matches);
+  const gridEl = () => (creating() ? sheet : document).querySelector("[data-dsh-grid].is-editing");
+  /* FLIP: the tiles that change place slide from where they were (motion token, standard easing) */
+  function flipTiles(grid, mutate, skip = null) {
+    if (!grid) { mutate(); return; }
+    const z = zoomOf(grid);
+    const key = (t) => t.dataset.dshTile || "ghost";
+    const before = new Map([...grid.querySelectorAll(":scope > [data-dsh-tile], :scope > .e-permits-dsh-ghost")].map((t) => [key(t), t.getBoundingClientRect()]));
+    mutate();
+    if (reduced()) return;
+    const after = gridEl() || grid;
+    after.querySelectorAll(":scope > [data-dsh-tile], :scope > .e-permits-dsh-ghost").forEach((t) => {
+      if (t === skip || !before.has(key(t))) return;
+      const b = before.get(key(t));
+      const n = t.getBoundingClientRect();
+      const dx = (b.left - n.left) / z;
+      const dy = (b.top - n.top) / z;
+      if (Math.abs(dx) < 1 && Math.abs(dy) < 1) return;
+      t.classList.remove("is-settling");
+      t.style.setProperty("--dsh-fx", `${dx}px`);
+      t.style.setProperty("--dsh-fy", `${dy}px`);
+      t.classList.add("is-flipping");
+      t.getBoundingClientRect();
+      requestAnimationFrame(() => {
+        t.classList.remove("is-flipping");
+        t.classList.add("is-settling");
+        t.style.removeProperty("--dsh-fx");
+        t.style.removeProperty("--dsh-fy");
+        t.addEventListener("transitionend", () => t.classList.remove("is-settling"), { once: true });
+      });
+    });
   }
-  ["dragstart", "dragover", "drop", "dragend"].forEach((type) => document.addEventListener(type, onDrag));
+  /* a model change on the board, redrawn with the FLIP reflow; focus stays on the widget */
+  function arrange(change, { focus = "", say = "" } = {}) {
+    flipTiles(gridEl(), () => { change(); rerender({ keep: focus ? `[data-dsh-tile="${CSS.escape(focus)}"]` : "" }); });
+    reheader();
+    if (say) live(say);
+  }
+  function moveWidget(id, by, { viaButton = false } = {}) {
+    const list = P.draft.widgets;
+    const i = list.findIndex((t) => t.widget === id);
+    const j = i + by;
+    if (i < 0 || j < 0 || j >= list.length) return;
+    arrange(() => { [list[i], list[j]] = [list[j], list[i]]; }, { focus: id, say: `„${widgetInfo(id).title}” este acum pe poziția ${j + 1} din ${list.length}.` });
+    if (viaButton) { const end = j === 0 || j === list.length - 1; tileEl(id)?.querySelector(`[data-dsh-move="${id}|${end ? -by : by}"]`)?.focus({ preventScroll: true }); }
+  }
+  function resizeWidget(id, axis, by) {
+    const t = P.draft.widgets.find((x) => x.widget === id);
+    if (!t) return;
+    const keys = axis === "width" ? WIDTH_KEYS : HEIGHT_KEYS;
+    const k = keys.indexOf(t[axis]) + by;
+    if (k < 0 || k >= keys.length) { live(axis === "width" ? "Lățimea este deja la limită." : "Înălțimea este deja la limită."); return; }
+    arrange(() => { t[axis] = keys[k]; }, { focus: id, say: `„${widgetInfo(id).title}”: ${sizeText(t)}.` });
+  }
+  function removeWidget(id) {
+    const v = P.draft;
+    const i = v.widgets.findIndex((x) => x.widget === id);
+    if (i < 0) return;
+    const next = v.widgets[i + 1] || v.widgets[i - 1];
+    arrange(() => { v.widgets.splice(i, 1); }, { focus: next?.widget || "", say: `„${widgetInfo(id).title}” a fost eliminat de pe tablou.` });
+    if (!next) (creating() ? sheet : document).querySelector("[data-dsh-add]")?.focus({ preventScroll: true });
+  }
+  /* keyboard: the focused widget — ← ↑ / → ↓ move it; Shift + ← → = width, Shift + ↑ ↓ = height */
+  document.addEventListener("keydown", (event) => {
+    const tile = event.target.matches?.("[data-dsh-tile].is-editable") ? event.target : null;
+    if (!tile || !inPage(tile) || !["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"].includes(event.key)) return;
+    event.preventDefault();
+    const id = tile.dataset.dshTile;
+    if (event.shiftKey) {
+      if (event.key === "ArrowLeft" || event.key === "ArrowRight") resizeWidget(id, "width", event.key === "ArrowRight" ? 1 : -1);
+      else resizeWidget(id, "height", event.key === "ArrowDown" ? 1 : -1);
+    } else moveWidget(id, event.key === "ArrowLeft" || event.key === "ArrowUp" ? -1 : 1);
+  });
+
+  /* pointer: the handle lifts the card (it follows the pointer, the others reflow around the grey slot it leaves); the
+     corner resizes, snapping to 4 · 6 · 8 · 12 columns and Mică · Medie · Mare (live label, target columns lit) */
+  const PLOT = { small: 3, medium: 4, large: 6 };
+  let act = null;
+  const tilesOf = (grid) => [...grid.querySelectorAll(":scope > [data-dsh-tile]")];
+  function startArrange(tile, kind, x, y) {
+    const grid = tile.closest("[data-dsh-grid]");
+    const r = tile.getBoundingClientRect();
+    const t = P.draft.widgets.find((w) => w.widget === tile.dataset.dshTile);
+    const card = tile.querySelector(".e-permits-wid-card");
+    const unit = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--spacing-40")) || 40;
+    act = { kind, tile, grid, id: tile.dataset.dshTile, offX: x - r.left, offY: y - r.top, z: zoomOf(tile), width: t.width, height: t.height, chrome: (card?.getBoundingClientRect().height || 0) - PLOT[t.height] * unit * zoomOf(tile), unit };
+    grid.classList.add("is-arranging");
+    tile.classList.add(kind === "move" ? "is-lifted" : "is-resizing");
+    if (kind === "resize") showTarget();
+  }
+  function showTarget() {
+    const a = act;
+    const g = a.grid.getBoundingClientRect();
+    const gap = (parseFloat(getComputedStyle(a.grid).columnGap) || 0) * a.z;
+    const colW = (g.width - 11 * gap) / 12;
+    const span = SPAN[a.width];
+    let start = Math.round((a.tile.getBoundingClientRect().left - g.left) / (colW + gap));
+    if (start + span > 12) start = 0;
+    a.grid.querySelectorAll(".e-permits-dsh-guides > span").forEach((s, i) => s.classList.toggle("is-target", i >= start && i < start + span));
+    const lbl = a.tile.querySelector(".e-permits-dsh-tile__size");
+    if (lbl) lbl.innerHTML = tag(sizeText(a), "brand");
+  }
+  function dragTo(x, y) {
+    const a = act;
+    const tiles = tilesOf(a.grid);
+    const others = tiles.filter((t) => t !== a.tile);
+    let idx = others.length;
+    for (let i = 0; i < others.length; i += 1) {
+      const r = others[i].getBoundingClientRect();
+      if (y < r.top || (y <= r.bottom && x < r.left + r.width / 2)) { idx = i; break; }
+    }
+    if (idx !== tiles.indexOf(a.tile)) {
+      flipTiles(a.grid, () => { a.grid.insertBefore(a.tile, others[idx] || a.grid.querySelector(":scope > .e-permits-dsh-ghost")); }, a.tile);
+    }
+    const slot = a.tile.getBoundingClientRect();
+    a.tile.style.setProperty("--dsh-dx", `${(x - a.offX - slot.left) / a.z}px`);
+    a.tile.style.setProperty("--dsh-dy", `${(y - a.offY - slot.top) / a.z}px`);
+  }
+  function resizeTo(x, y) {
+    const a = act;
+    const g = a.grid.getBoundingClientRect();
+    const gap = (parseFloat(getComputedStyle(a.grid).columnGap) || 0) * a.z;
+    const colW = (g.width - 11 * gap) / 12;
+    const r = a.tile.getBoundingClientRect();
+    const cols = (x - r.left + gap) / (colW + gap);
+    const width = WIDTH_KEYS.reduce((best, k) => (Math.abs(SPAN[k] - cols) < Math.abs(SPAN[best] - cols) ? k : best), WIDTH_KEYS[0]);
+    const h = y - r.top;
+    const height = HEIGHT_KEYS.reduce((best, k) => (Math.abs(a.chrome + PLOT[k] * a.unit * a.z - h) < Math.abs(a.chrome + PLOT[best] * a.unit * a.z - h) ? k : best), HEIGHT_KEYS[0]);
+    if (width !== a.width) { a.tile.classList.remove(`e-permits-dsh-tile--${a.width}`); a.tile.classList.add(`e-permits-dsh-tile--${width}`); a.width = width; }
+    if (height !== a.height) {
+      a.height = height;
+      const card = a.tile.querySelector(".e-permits-wid-card");
+      if (card) card.outerHTML = tileBody({ widget: a.id, width, height }, P.id ? dashOf(P.id) : null);
+    }
+    showTarget();
+  }
+  function endArrange(commit) {
+    const a = act;
+    act = null;
+    if (!a) return;
+    a.grid.classList.remove("is-arranging");
+    a.tile.classList.remove("is-lifted", "is-resizing");
+    a.tile.style.removeProperty("--dsh-dx");
+    a.tile.style.removeProperty("--dsh-dy");
+    if (!commit) { rerender({ keep: `[data-dsh-tile="${CSS.escape(a.id)}"]` }); return; }
+    if (a.kind === "move") {
+      const order = tilesOf(a.grid).map((t) => t.dataset.dshTile);
+      const before = P.draft.widgets.map((t) => t.widget).join("|");
+      P.draft.widgets.sort((p, q) => order.indexOf(p.widget) - order.indexOf(q.widget));
+      rerender({ keep: `[data-dsh-tile="${CSS.escape(a.id)}"]` });
+      reheader();
+      if (before !== order.join("|")) live(`„${widgetInfo(a.id).title}” este acum pe poziția ${order.indexOf(a.id) + 1} din ${order.length}.`);
+    } else {
+      const t = P.draft.widgets.find((w) => w.widget === a.id);
+      const changed = t.width !== a.width || t.height !== a.height;
+      t.width = a.width; t.height = a.height;
+      rerender({ keep: `[data-dsh-tile="${CSS.escape(a.id)}"]` });
+      reheader();
+      if (changed) live(`„${widgetInfo(a.id).title}”: ${sizeText(t)}.`);
+    }
+  }
+  document.addEventListener("pointerdown", (event) => {
+    if (event.button !== 0 || isPhone()) return;
+    const handle = event.target.closest?.("[data-dsh-handle]");
+    const corner = event.target.closest?.("[data-dsh-resize]");
+    const tile = (handle || corner)?.closest("[data-dsh-tile]");
+    if (!tile || !inPage(tile)) return;
+    event.preventDefault();
+    tile.focus({ preventScroll: true });
+    startArrange(tile, handle ? "move" : "resize", event.clientX, event.clientY);
+  });
+  document.addEventListener("pointermove", (event) => {
+    if (!act) return;
+    if (event.buttons === 0 && event.isTrusted) { endArrange(true); return; }
+    if (act.kind === "move") dragTo(event.clientX, event.clientY); else resizeTo(event.clientX, event.clientY);
+  });
+  document.addEventListener("pointerup", () => { if (act) endArrange(true); });
+  document.addEventListener("keydown", (event) => { if (act && event.key === "Escape") { event.preventDefault(); endArrange(false); } }, true);
+  window.addEventListener("blur", () => { if (act) endArrange(true); });
+
+  /* demo stills (js/demo-states.js): a drag in progress / a resize in progress, frozen */
+  const demoArrange = {
+    drag(id, to, dx = 40, dy = -24) {
+      const tile = tileEl(id);
+      if (!tile) return;
+      const r = tile.getBoundingClientRect();
+      startArrange(tile, "move", r.left + 40, r.top + 20);
+      const others = tilesOf(act.grid).filter((t) => t !== tile);
+      act.grid.insertBefore(tile, others[to] || act.grid.querySelector(":scope > .e-permits-dsh-ghost"));
+      tile.style.setProperty("--dsh-dx", `${dx}px`);
+      tile.style.setProperty("--dsh-dy", `${dy}px`);
+    },
+    resize(id, width, height) {
+      const tile = tileEl(id);
+      if (!tile) return;
+      const r = tile.getBoundingClientRect();
+      startArrange(tile, "resize", r.right, r.bottom);
+      if (width !== act.width) { tile.classList.remove(`e-permits-dsh-tile--${act.width}`); tile.classList.add(`e-permits-dsh-tile--${width}`); act.width = width; }
+      if (height !== act.height) { act.height = height; const card = tile.querySelector(".e-permits-wid-card"); if (card) card.outerHTML = tileBody({ widget: id, width, height }, P.id ? dashOf(P.id) : null); }
+      requestAnimationFrame(showTarget);
+    },
+    focus(id) { tileEl(id)?.focus(); },
+    flash(id) { flashTile(id, { scroll: true }); }
+  };
 
   /* ---------------------------------------------------------------- routes + denied (Feature AC) */
   function showDenied() {
@@ -1442,7 +1628,7 @@
 
   /* ---------------------------------------------------------------- for Feature 96498 (BO dashboard) + demo states */
   window.GEAPDashboards = {
-    load, openProfile, openNew, refreshList, perms: () => who(), list: () => dashboards(), get: dashOf, state: () => P,
+    load, openProfile, openNew, refreshList, perms: () => who(), list: () => dashboards(), get: dashOf, state: () => P, demo: demoArrange,
     /* Feature AC: the roles see the last published version; order = principal first, then „Ordinea” */
     forRole: (role, authority) => all().filter((d) => d.status === "Publicat" && assignedTo(d, authority) && !isOffFor(d, authority) && lastVersion(d)?.config.roles.some((r) => r.role === role))
   };

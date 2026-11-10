@@ -4721,8 +4721,11 @@
     const principal = (id, root = C) => async (h) => { await h.click(`${root} [data-dsh-role-type="${id}|principal"]`); await h.wait(150); };
     const allAuth = async (h) => { await h.click(`${C} .e-permits-dsh-auths__all label`); await h.wait(150); };
     const pick = async (h) => { await h.click("[data-dsh-add]"); await h.find(`${M} [data-dsh-pick-search]`); };
-    const tick = (...ids) => async (h) => { for (const id of ids) { await h.click(`${M} .e-permits-dsh-pick:has([data-dsh-pick][value="${id}"])`); await h.wait(120); } };
-    const addW = (...ids) => seq(pick, tick(...ids), async (h) => { await h.click(`${M} [data-dsh-pick-confirm]`); await h.wait(400); });
+    /* one widget at a time (dash-v3): choose its card, „Adaugă” → it lands at the end and flashes */
+    const choose = (id) => async (h) => { await h.click(`${M} .e-permits-wid-type:has([data-dsh-pick][value="${id}"])`); await h.wait(120); };
+    const addOne = (id) => seq(pick, choose(id), async (h) => { await h.click(`${M} [data-dsh-pick-confirm]`); await h.wait(450); });
+    const addW = (...ids) => seq(...ids.map(addOne));
+    const D = (fn) => async (h) => { fn(window.GEAPDashboards.demo); await h.wait(450); };
     const step2 = seq(role("expert"), principal("expert"), allAuth);
     const toStep3 = seq(nou, step1, next, step2, next);
     const built = seq(toStep3, addW("WGT-0011", "WGT-0001", "WGT-0002", "WGT-0007"));
@@ -4751,10 +4754,11 @@
       "dsh-03c": list(seq(nou, step1, next, next)),
       "dsh-03d": list(toStep3),
       "dsh-03e": list(seq(toStep3, pick)),
-      "dsh-03f": list(seq(toStep3, pick, tick("WGT-0011", "WGT-0001"), async (h) => { await h.fill(`${M} [data-dsh-pick-search]`, "dosare", { leave: false }); await h.wait(300); })),
+      "dsh-03f": list(seq(toStep3, pick, async (h) => { await h.fill(`${M} [data-dsh-pick-search]`, "dosare", { leave: false }); await h.wait(300); }, choose("WGT-0001"))),
       "dsh-03g": list(built),
-      "dsh-03h": list(seq(built, async (h) => { await h.choose(`${C} select[data-dsh-size="WGT-0007|height"]`, "medium"); await h.click(`${C} [data-dsh-move="WGT-0002|-1"]`); await h.wait(200); })),
-      "dsh-03i": list(seq(built, async (h) => { await h.click(`${C} [data-dsh-view="preview"]`); await h.wait(250); })),
+      /* keyboard: the focused widget — arrows move it, Shift + arrows resize it */
+      "dsh-03h": list(seq(built, async (h) => { const t = await h.find(`${C} [data-dsh-tile="WGT-0002"]`); t.focus(); t.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowLeft", bubbles: true })); await h.wait(400); document.activeElement.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowRight", shiftKey: true, bubbles: true })); await h.wait(450); })),
+      "dsh-03i": list(seq(built, D((d) => d.flash("WGT-0007"))), { tablou: "hold" }),
       "dsh-03j": list(seq(built, next)),
       "dsh-03k": list(seq(built, langs, next), null),
       "dsh-03l": list(seq(nou, step1, next), null, AUTH),
@@ -4762,8 +4766,11 @@
       /* US-544 — edit on the profile page (Configurare = settings + the layout editor) */
       "dsh-04": prof("DSH-0001"),
       "dsh-04a": prof("DSH-0001", "configurare", layout()),
-      "dsh-04b": prof("DSH-0001", "configurare", seq(layout(), async (h) => { await h.click('#dsh-panel [data-dsh-view="preview"]'); await h.wait(250); })),
-      "dsh-04c": prof("DSH-0001", "configurare", seq(async (h) => { await h.click('#dsh-panel [data-dsh-move="WGT-0006|-1"]'); await h.wait(200); await h.choose('#dsh-panel select[data-dsh-size="WGT-0003|width"]', "full"); await h.wait(200); }, layout())),
+      /* the canvas while arranging: hover / focus toolbar · drag in progress (iPhone reflow, grey slot) · resize in progress */
+      "dsh-04b": prof("DSH-0001", "configurare", seq(layout(), D((d) => d.focus("WGT-0001")))),
+      "dsh-04c": prof("DSH-0001", "configurare", seq(layout(), D((d) => d.drag("WGT-0006", 0)))),
+      "dsh-04l": prof("DSH-0001", "configurare", seq(layout(), D((d) => d.resize("WGT-0003", "twoThirds", "large")))),
+      "dsh-04m": prof("DSH-0001", "configurare", seq(D((d) => { d.focus("WGT-0006"); document.activeElement.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowUp", bubbles: true })); }), layout())),
       "dsh-04d": prof("DSH-0001", "configurare", seq(layout(), pick)),
       "dsh-04e": prof("DSH-0003", "configurare", layout()),
       "dsh-04f": prof("DSH-0001", "configurare", null, null, AUTH),

@@ -756,7 +756,7 @@
       on ? plural(on, "zi lucrătoare transferată", "zile lucrătoare transferate") : ""
     ].filter(Boolean);
     return `
-      <button class="e-permits-cal-mini" type="button" data-cal-month="${m}" data-cal-focus="month-${m}" aria-label="${esc(`${monthTitle(year, m)}${parts.length ? `: ${parts.join(", ")}` : ""}. Deschide luna`)}">
+      <button class="e-permits-cal-mini e-permits-hover-surface" type="button" data-cal-month="${m}" data-cal-focus="month-${m}" aria-label="${esc(`${monthTitle(year, m)}${parts.length ? `: ${parts.join(", ")}` : ""}. Deschide luna`)}">
         <span class="e-permits-cal-mini__title">${esc(cap(RO_MONTHS[m]))}</span>
         <span class="e-permits-cal-mini__grid" aria-hidden="true">${LETTERS.map((l, i) => `<span class="e-permits-cal-mini__wd${i > 4 ? " is-weekend" : ""}">${l}</span>`).join("")}${cells.join("")}</span>
       </button>`;

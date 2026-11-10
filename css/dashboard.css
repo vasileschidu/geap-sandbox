@@ -96,21 +96,166 @@
   gap: var(--spacing-8, 8px);
 }
 
-/* ---- the layout editor: 12 columns at the page's real width; reading order = widget order */
+/* ---- the layout canvas (dash-v3): ONE WYSIWYG view = the final dashboard inside a skeleton of the end-user BackOffice
+   shell, at the real 1440 screen zoomed to fit (`--dsh-zoom`, set by js from the stage width; phones = 1, no shell).
+   No wrapper borders: the cards look exactly as on the dashboard. */
+.e-permits-dsh-stage {
+  min-width: 0;
+  width: 100%;
+}
+
+.e-permits-dsh-frame {
+  display: grid;
+  grid-template-columns: calc(var(--spacing-32, 32px) * 8) minmax(0, 1fr);
+  width: calc(var(--spacing-40, 40px) * 36);
+  zoom: var(--dsh-zoom, 1);
+}
+
+.e-permits-dsh-frame .skeleton {
+  animation: none;
+}
+
+.e-permits-dsh-frame__side {
+  border-right: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-24, 24px);
+  padding: var(--spacing-16, 16px);
+}
+
+.e-permits-dsh-frame__logo,
+.e-permits-dsh-frame__user {
+  align-items: center;
+  display: flex;
+  gap: var(--spacing-12, 12px);
+}
+
+.e-permits-dsh-frame__logo .skeleton--circle {
+  height: var(--spacing-40, 40px);
+  width: var(--spacing-40, 40px);
+}
+
+.e-permits-dsh-frame__nav {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4, 4px);
+}
+
+.e-permits-dsh-frame__item {
+  align-items: center;
+  border-radius: var(--border-radius-8, 8px);
+  display: flex;
+  gap: var(--spacing-12, 12px);
+  height: var(--spacing-40, 40px);
+  padding: 0 var(--spacing-12, 12px);
+}
+
+.e-permits-dsh-frame__item .skeleton--circle {
+  height: var(--icon-size-medium, 20px);
+  width: var(--icon-size-medium, 20px);
+}
+
+.e-permits-dsh-frame__item.is-active {
+  background: var(--color-background-brand-secondary, #e8f0fb);
+  color: var(--color-text-brand-default, #0058d2);
+  font-size: var(--font-size-fs-14, 14px);
+  font-weight: var(--font-weight-fw-medium, 500);
+  line-height: var(--line-height-lh-20, 20px);
+}
+
+.e-permits-dsh-frame__main {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.e-permits-dsh-frame__top {
+  align-items: center;
+  border-bottom: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
+  display: flex;
+  gap: var(--spacing-16, 16px);
+  justify-content: space-between;
+  min-height: var(--spacing-64, 64px);
+  padding: 0 var(--spacing-24, 24px);
+}
+
+.e-permits-dsh-frame__title {
+  color: var(--color-text-base-default, #121212);
+  font-size: var(--font-size-fs-20, 20px);
+  font-weight: var(--font-weight-fw-medium, 500);
+  line-height: var(--line-height-lh-28, 28px);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.e-permits-dsh-frame__tabs {
+  align-items: center;
+  border-bottom: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
+  display: flex;
+  gap: var(--spacing-24, 24px);
+  min-height: var(--spacing-48, 48px);
+  padding: 0 var(--spacing-24, 24px);
+}
+
+.e-permits-dsh-frame__tab {
+  align-items: center;
+  align-self: stretch;
+  color: var(--color-text-brand-default, #0058d2);
+  display: flex;
+  font-size: var(--font-size-fs-14, 14px);
+  font-weight: var(--font-weight-fw-medium, 500);
+  line-height: var(--line-height-lh-20, 20px);
+}
+
+.e-permits-dsh-frame__tab.is-active {
+  box-shadow: inset 0 calc(var(--border-width-2, 2px) * -1) 0 var(--color-border-brand-default, #0058d2);
+}
+
+.e-permits-dsh-frame__content {
+  padding: var(--spacing-24, 24px);
+}
+
+/* the grid: 12 columns, reading order = widget order; the column guides show only while dragging / resizing */
 .e-permits-dsh-grid {
   align-items: start;
   display: grid;
   gap: var(--spacing-16, 16px);
   grid-template-columns: repeat(12, minmax(0, 1fr));
+  position: relative;
+}
+
+.e-permits-dsh-guides {
+  display: grid;
+  gap: inherit;
+  grid-template-columns: inherit;
+  inset: 0;
+  opacity: 0;
+  pointer-events: none;
+  position: absolute;
+  transition: opacity 180ms var(--motion-easing-decelerate, cubic-bezier(0, 0, 0.2, 1));
+}
+
+.e-permits-dsh-guides > span {
+  background: var(--color-background-base-secondary, #f5f5f5);
+  border-radius: var(--border-radius-8, 8px);
+  transition: background-color 120ms ease;
+}
+
+.e-permits-dsh-guides > span.is-target {
+  background: var(--color-background-brand-secondary, #e8f0fb);
+}
+
+.e-permits-dsh-grid.is-arranging .e-permits-dsh-guides {
+  opacity: 1;
 }
 
 .e-permits-dsh-tile {
-  border-radius: var(--border-radius-16, 16px);
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-8, 8px);
+  border-radius: var(--border-radius-24, 24px);
   grid-column: span 12;
   min-width: 0;
+  position: relative;
 }
 
 .e-permits-dsh-tile--third { grid-column: span 4; }
@@ -122,85 +267,135 @@
   width: 100%;
 }
 
-/* the toolbar: white card on the card's edge, row 1 = handle · n · title · actions, row 2 = the two library selects */
-.e-permits-dsh-tile__bar {
-  background: var(--color-background-base-default, #fff);
-  border: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
-  border-radius: var(--border-radius-16, 16px);
-  box-sizing: border-box;
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-8, 8px);
-  padding: var(--spacing-8, 8px) var(--spacing-12, 12px) var(--spacing-12, 12px);
+/* edit: the shared grey hover surface around the card (8 outset; gap 16 keeps 8 to the neighbours), also on keyboard
+   focus inside; the widget itself takes the focus (arrows move, Shift + arrows resize) = the calendar focus ring */
+.e-permits-dsh-tile.is-editable {
+  --hover-surface-outset: var(--spacing-8, 8px);
+  cursor: default;
 }
 
-.e-permits-dsh-tile__row {
-  align-items: center;
+.e-permits-dsh-tile.is-editable:focus-within::before,
+.e-permits-dsh-tile.is-editable.is-lifted::before,
+.e-permits-dsh-tile.is-editable.is-resizing::before {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.e-permits-dsh-tile.is-editable:focus-visible {
+  box-shadow: 0 0 0 var(--border-width-2, 2px) var(--color-background-base-default, #fff), 0 0 0 var(--border-width-4, 4px) var(--focus-ring, var(--blue-sky-500, #3379db));
+  outline: none;
+}
+
+/* the floating toolbar (Sentry): handle + red remove, top right on the card, fades in with the hover surface */
+.e-permits-dsh-tile__tools {
   display: flex;
   gap: var(--spacing-8, 8px);
-  min-width: 0;
+  opacity: 0;
+  pointer-events: none;
+  position: absolute;
+  right: var(--spacing-16, 16px);
+  top: var(--spacing-16, 16px);
+  transition: opacity 180ms var(--motion-easing-decelerate, cubic-bezier(0, 0, 0.2, 1));
+  z-index: 2;
+}
+
+.e-permits-dsh-tile.is-editable:is(:hover, :focus-within) .e-permits-dsh-tile__tools {
+  opacity: 1;
+  pointer-events: auto;
 }
 
 .e-permits-dsh-tile__handle {
-  align-items: center;
-  border-radius: var(--border-radius-8, 8px);
-  color: var(--color-icon-base-tertiary, #757575);
   cursor: grab;
-  display: inline-flex;
-  flex: none;
-  height: var(--spacing-32, 32px);
-  justify-content: center;
-  width: var(--spacing-24, 24px);
 }
 
-.e-permits-dsh-tile__handle:hover {
+.e-permits-dsh-tile__step {
+  display: none;
+}
+
+/* the resize corner: bottom right, snaps to 4 · 6 · 8 · 12 columns and Mică · Medie · Mare */
+.e-permits-dsh-tile__resize {
+  align-items: center;
+  border-radius: var(--border-radius-8, 8px);
+  bottom: var(--spacing-4, 4px);
+  color: var(--color-icon-base-tertiary, #757575);
+  cursor: nwse-resize;
+  display: inline-flex;
+  height: var(--spacing-24, 24px);
+  justify-content: center;
+  opacity: 0;
+  position: absolute;
+  right: var(--spacing-4, 4px);
+  transition: opacity 180ms var(--motion-easing-decelerate, cubic-bezier(0, 0, 0.2, 1));
+  width: var(--spacing-24, 24px);
+  z-index: 2;
+}
+
+.e-permits-dsh-tile.is-editable:is(:hover, :focus-within, .is-resizing) .e-permits-dsh-tile__resize {
+  opacity: 1;
+}
+
+.e-permits-dsh-tile__resize:hover {
   background: var(--color-background-base-tertiary, #f1f1f1);
   color: var(--color-icon-base-default, #121212);
 }
 
-.e-permits-dsh-tile__n {
-  color: var(--color-text-base-tertiary, #757575);
-  flex: none;
-  font-size: var(--font-size-fs-14, 14px);
-  font-variant-numeric: tabular-nums;
-  font-weight: var(--font-weight-fw-medium, 500);
-  line-height: var(--line-height-lh-20, 20px);
+/* the live size label while resizing („6/12 · Medie”) */
+.e-permits-dsh-tile__size {
+  bottom: var(--spacing-16, 16px);
+  display: none;
+  left: var(--spacing-16, 16px);
+  position: absolute;
+  z-index: 2;
 }
 
-.e-permits-dsh-tile__title {
-  color: var(--color-text-base-default, #121212);
-  flex: 1 1 auto;
-  font-size: var(--font-size-fs-14, 14px);
-  font-weight: var(--font-weight-fw-medium, 500);
-  line-height: var(--line-height-lh-20, 20px);
-  margin: 0;
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+.e-permits-dsh-tile.is-resizing .e-permits-dsh-tile__size {
+  display: block;
 }
 
-.e-permits-dsh-tile__row > .tag {
-  flex: none;
+/* drag: the card follows the pointer (lifted, shadow); its grey surface stays as the drop slot; the others reflow (FLIP) */
+.e-permits-dsh-tile.is-lifted {
+  z-index: 3;
 }
 
-.e-permits-dsh-tile__actions {
-  display: flex;
-  flex: none;
-  gap: var(--spacing-8, 8px);
+.e-permits-dsh-tile.is-lifted > .e-permits-wid-card {
+  transform: translate(var(--dsh-dx, 0px), var(--dsh-dy, 0px));
 }
 
-.e-permits-dsh-tile__sizes.e-permits-user-create__grid {
-  gap: var(--spacing-12, 12px);
+.e-permits-dsh-tile.is-lifted > .e-permits-dsh-tile__tools,
+.e-permits-dsh-tile.is-lifted > .e-permits-dsh-tile__resize {
+  opacity: 0;
 }
 
-/* drag (pointer): the dragged tile fades, the drop target gets the brand ring */
-.e-permits-dsh-tile.is-dragging {
-  opacity: 0.5;
+/* the editing controls are not part of the zoomed screen: they keep the library size (32 buttons, 14/20 labels) */
+.e-permits-dsh-tile__tools,
+.e-permits-dsh-tile__resize,
+.e-permits-dsh-tile__size,
+.e-permits-dsh-ghost > * {
+  zoom: calc(1 / var(--dsh-zoom, 1));
 }
 
-.e-permits-dsh-tile.is-drop-target {
-  box-shadow: 0 0 0 var(--border-width-2, 2px) var(--color-border-brand-default, #0058d2);
+.e-permits-dsh-tile.is-lifted > .e-permits-wid-card {
+  box-shadow: var(--drop-shadow-400);
+  cursor: grabbing;
+}
+
+.e-permits-dsh-tile.is-flipping {
+  transform: translate(var(--dsh-fx, 0px), var(--dsh-fy, 0px));
+  transition: none;
+}
+
+.e-permits-dsh-tile.is-settling {
+  transition: transform var(--motion-duration-md, 0.3s) var(--motion-easing-standard, cubic-bezier(0.4, 0, 0.2, 1));
+}
+
+/* the just-added widget: the focus ring flashes twice */
+.e-permits-dsh-tile.is-flash {
+  animation: dsh-flash 0.9s var(--motion-easing-standard, cubic-bezier(0.4, 0, 0.2, 1)) 2;
+}
+
+@keyframes dsh-flash {
+  0%, 100% { box-shadow: 0 0 0 var(--border-width-2, 2px) var(--color-background-base-default, #fff), 0 0 0 var(--border-width-4, 4px) var(--focus-ring, var(--blue-sky-500, #3379db)); }
+  50% { box-shadow: 0 0 0 var(--border-width-2, 2px) var(--color-background-base-default, #fff), 0 0 0 var(--border-width-4, 4px) transparent; }
 }
 
 /* a widget that is no longer published: the card frame + the compact empty state */
@@ -208,61 +403,88 @@
   justify-content: center;
 }
 
-/* below the full page width the thirds become halves; phones = one widget per row (the list) */
-@media (max-width: 1100px) {
-  .e-permits-dsh-tile--third,
-  .e-permits-dsh-tile--half { grid-column: span 6; }
-  .e-permits-dsh-tile--twoThirds { grid-column: span 12; }
+/* the end of the board: „Adaugă widget” ghost slot (Sentry / Twenty), dashed, one third wide */
+.e-permits-dsh-ghost {
+  align-items: center;
+  border: var(--border-width-1, 1px) dashed var(--color-border-base-secondary, #b2b2b2);
+  border-radius: var(--border-radius-16, 16px);
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-12, 12px);
+  grid-column: span 4;
+  justify-content: center;
+  min-height: calc(var(--spacing-40, 40px) * 5);
+  padding: var(--spacing-24, 24px);
+  text-align: center;
 }
 
+.e-permits-dsh-ghost__text {
+  color: var(--color-text-base-tertiary, #757575);
+  font-size: var(--font-size-fs-14, 14px);
+  line-height: var(--line-height-lh-20, 20px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .e-permits-dsh-tile.is-settling,
+  .e-permits-dsh-tile__tools,
+  .e-permits-dsh-tile__resize,
+  .e-permits-dsh-guides {
+    transition: none;
+  }
+
+  .e-permits-dsh-tile.is-flash {
+    animation: none;
+    box-shadow: 0 0 0 var(--border-width-2, 2px) var(--color-background-base-default, #fff), 0 0 0 var(--border-width-4, 4px) var(--focus-ring, var(--blue-sky-500, #3379db));
+  }
+}
+
+/* phones: no shell, one widget per row, no drag / resize; the toolbar = ↑ ↓ + remove, always visible */
 @media (max-width: 760px) {
+  .e-permits-dsh-frame {
+    display: block;
+    width: 100%;
+    zoom: 1;
+  }
+
+  .e-permits-dsh-frame__side,
+  .e-permits-dsh-frame__top,
+  .e-permits-dsh-frame__tabs {
+    display: none;
+  }
+
+  .e-permits-dsh-frame__content {
+    padding: 0;
+  }
+
   .e-permits-dsh-tile--third,
   .e-permits-dsh-tile--half,
   .e-permits-dsh-tile--twoThirds,
-  .e-permits-dsh-tile--full { grid-column: span 12; }
+  .e-permits-dsh-tile--full,
+  .e-permits-dsh-ghost { grid-column: span 12; }
 
-  .e-permits-dsh-tile__handle { display: none; }
+  .e-permits-dsh-tile__handle,
+  .e-permits-dsh-tile__resize { display: none; }
 
-  /* the two selects stay side by side in the tile (48 fields, 16/24) */
-  .e-permits-dsh-tile__sizes .e-permits-user-create__field--6 { grid-column: span 6; }
+  .e-permits-dsh-tile__step { display: inline-flex; }
+
+  .e-permits-dsh-tile.is-editable {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .e-permits-dsh-tile.is-editable > .e-permits-dsh-tile__tools { order: -1; }
+
+  .e-permits-dsh-tile__tools {
+    opacity: 1;
+    pointer-events: auto;
+    position: static;
+    justify-content: flex-end;
+    margin-bottom: var(--spacing-8, 8px);
+  }
 }
 
-/* touch screens: drag needs a mouse; ↑ ↓ remain */
-@media (hover: none) {
-  .e-permits-dsh-tile__handle { display: none; }
-}
-
-/* ---- the widget picker (library dialog): search + count, then the „Widget type card” rows with a checkbox */
-.e-permits-dsh-pick-head {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-8, 8px);
-}
-
-.e-permits-dsh-pick-head__count {
-  color: var(--color-text-base-secondary, #383838);
-  font-size: var(--font-size-fs-14, 14px);
-  line-height: var(--line-height-lh-20, 20px);
-  margin: 0;
-}
-
+/* ---- the widget picker (library dialog): search, then the „Widget type card” radio cards (one widget at a time) */
 .e-permits-dsh-pick-list {
   margin-top: var(--spacing-16, 16px);
-}
-
-.e-permits-dsh-pick__box {
-  flex: none;
-}
-
-/* the checkbox = the ONE product checkbox (renderCheckOption markup, plain): its own unchecked / checked / disabled /
-   focus look; the card only mirrors the focus as the radio cards do */
-.e-permits-dsh-pick:has(.checkbox-input:focus-visible) {
-  box-shadow:
-    inset 0 0 0 var(--border-width-2, 2px) var(--color-border-brand-default, #0058d2),
-    0 0 0 var(--border-width-2, 2px) var(--color-background-base-default, #fff),
-    0 0 0 calc(var(--border-width-2, 2px) * 2 + var(--border-width-1, 1px)) var(--blue-sky-500, #3379db);
-}
-
-.e-permits-dsh-pick.is-disabled.is-selected {
-  box-shadow: inset 0 0 0 var(--border-width-1, 1px) var(--color-border-base-default, #d9d9d9);
 }

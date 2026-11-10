@@ -244,25 +244,8 @@
   position: relative;
 }
 
-/* v7 (user): only the grey hover surface grows (0.96 → 1, 180 ms decelerate); the month content never moves. Gap 8 >
-   the 0 px the surface reaches past the card, so it never touches a neighbour */
-.e-permits-cal-mini::before {
-  background: var(--color-background-base-tertiary, #f1f1f1);
-  border-radius: inherit;
-  content: "";
-  inset: 0;
-  opacity: 0;
-  pointer-events: none;
-  position: absolute;
-  transform: scale(0.96);
-  transition: opacity 180ms var(--motion-easing-decelerate, cubic-bezier(0, 0, 0.2, 1)), transform 180ms var(--motion-easing-decelerate, cubic-bezier(0, 0, 0.2, 1));
-  z-index: -1;
-}
-
-.e-permits-cal-mini:hover::before {
-  opacity: 1;
-  transform: scale(1);
-}
+/* v7 (user): only the grey hover surface grows (0.96 → 1, 180 ms decelerate); the month content never moves = the shared
+   `.e-permits-hover-surface` (css/hover-surface.css, hover-surface-v1) on the month button */
 
 .e-permits-cal-mini:focus-visible {
   box-shadow: 0 0 0 var(--border-width-2, 2px) var(--color-background-base-default, #fff), 0 0 0 var(--border-width-4, 4px) var(--focus-ring, var(--blue-sky-500, #3379db));
@@ -854,8 +837,4 @@
     transition: none;
   }
 
-  .e-permits-cal-mini::before {
-    transform: none;
-    transition: none;
-  }
 }

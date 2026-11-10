@@ -1,0 +1,38 @@
+/* =====================================================================================
+   Hover surface — ONE grey hover background (hover-surface-v1, 2026-11-10; components.md › „Hover surface”)
+   Extracted from the calendar year view (`.e-permits-cal-mini::before`, calendar-views-v7, user): a `::before` in
+   `--color-background-base-tertiary` with the element's radius; hover (and keyboard focus inside) = opacity 0 → 1 +
+   scale 0.96 → 1, 180 ms decelerate; the content never moves. `--hover-surface-outset` lets the grey show AROUND a card
+   that has its own white fill (Tablouri de bord: 8, gap 16 keeps 8 to the neighbours); 0 = behind the element itself.
+   Users: calendar months (js/calendar-admin.js), dashboard layout tiles (js/dashboard-admin.js).
+   ===================================================================================== */
+.e-permits-hover-surface {
+  isolation: isolate;
+  position: relative;
+}
+
+.e-permits-hover-surface::before {
+  background: var(--color-background-base-tertiary, #f1f1f1);
+  border-radius: inherit;
+  content: "";
+  inset: calc(var(--hover-surface-outset, 0px) * -1);
+  opacity: 0;
+  pointer-events: none;
+  position: absolute;
+  transform: scale(0.96);
+  transition: opacity 180ms var(--motion-easing-decelerate, cubic-bezier(0, 0, 0.2, 1)), transform 180ms var(--motion-easing-decelerate, cubic-bezier(0, 0, 0.2, 1));
+  z-index: -1;
+}
+
+.e-permits-hover-surface:hover::before,
+.e-permits-hover-surface.is-hover-within:focus-within::before {
+  opacity: 1;
+  transform: scale(1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .e-permits-hover-surface::before {
+    transform: none;
+    transition: none;
+  }
+}
