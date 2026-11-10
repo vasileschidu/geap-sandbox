@@ -4311,3 +4311,5 @@ For any „research how other products do it” step, search Mobbin (mcp__mobbin
 
 - 2026-11-10 (Rapoarte): a removed feature leaves callers behind (`syncJump()` in a rAF → console errors in every state): grep every helper name after deleting, run capture for console errors. Preview „Mărește” = its own facet instance on the SHARED state object (applied in one = shown in the other), re-mounted after each refresh.
 - 2026-11-10 (tables): doubled lines come from `border-bottom` on a row + `border-top` on the next (total 1.5), and group-edge verticals on the outer columns; check computed border widths per row (`getComputedStyle`), not only the picture.
+
+- 2026-11-10 (Rapoarte filters): a „builder” (rule-look rows with selects) becomes the stacked list + drawer when the same data already has one (columns); reuse `renderStackItem`, the drag / move handlers keyed on `data-rpt-flt` and the drawer machinery (`DR.mode`) — ~120 lines, no new CSS except the chip outline and the radio list.

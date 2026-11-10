@@ -12446,6 +12446,12 @@ Autoritate (one or more authorities). **Reuse map** (no new engine):
   (4) „Previzualizare” + its data line = heading / subtitle pair, 4 apart, 16 to the card. (5) Table lines: exactly one 1px
   line between rows; no group-edge vertical on the first / last column; the row above the total has no bottom line.
   (6) Removed: the section jump links, the notes under the column list and the filter builder.
+- **Filters = a stacked list (rpt-filter-list-v1, 2026-11-10, user)** — „Filtre” is the SAME stacked list as „Coloanele raportului”
+  (heading + count, bordered card, items = handle · number · field name + Small type tag · meta „Câmp: … · Apare ca buton” /
+  „În «Mai multe»”, ↑ ↓ 🗑, same hover / drag / FLIP); no rule-builder look, no „și” (all filters AND). „Adaugă filtru” and a click
+  on an item open the filter drawer (`fltView`): searchable radio list of the source's filterable fields, then the type as radio
+  cards, „Adaugă filtrul” / „Salvează filtrul”. Hover / focus of an item outlines its chip in the preview (`.chip.is-linked`).
+  Empty: „Niciun filtru. Adaugă unul ca să apară deasupra tabelului.” Demo rpt-03o, rpt-03p, rpt-13*, rpt-14a / b / c.
 - **Filter rows hover (rpt-filter-hover-v1, 2026-11-10)** — each „Filtre la generare” row = `.e-permits-hover-surface.is-hover-within`
   (shared grey surface, kept while dragging), padding 8 16 + equal negative margin so the content stays put. The column list items
   already hover (`.e-permits-stack__item.is-clickable`). No overflow clip in the settings column (rpt-no-clip-v1).

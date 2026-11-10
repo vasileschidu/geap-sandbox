@@ -123,66 +123,18 @@
   }
 }
 
-/* filters sit directly in the section card (no second bordered container inside it) */
-.e-permits-doc-rule.e-permits-rpt-filters {
-  background: none;
-  border: 0;
-  border-radius: 0;
-  padding: 0;
+/* rpt-filter-list-v1: „Filtre” = the column list's stacked list (registre.css stack item rules: selected, dragging, drop line,
+   just-moved flash); the preview chip linked to the hovered / focused item gets the focus-style outline */
+.e-permits-rpt-fbar .chip.is-linked {
+  outline: var(--border-width-2, 2px) solid var(--focus-ring, #3379db);
+  outline-offset: 0;
 }
 
-/* filters (rpt-filter-order-v1): an item = head line (order handle + position · „În «Mai multe»” · ↑ ↓ 🗑) over the field
-   and the type, full width — the settings column is narrow next to the 8/12 preview */
-.e-permits-doc-cond.e-permits-rpt-filter {
-  grid-template-columns: minmax(0, 1fr);
-}
-
-/* rpt-filter-hover-v1 / v2 (user: „even padding all around, more spacing from «și»”): the shared grey hover surface
-   (.e-permits-hover-surface, hover / focus-within, kept while dragging); the row has the SAME 16 padding on all four sides
-   (always there — only the surface fades in, content never moves), no negative margins (the grey stays inside the guide
-   line and the card); the „și” connector has its own 8 above and below, outside the surface. */
-.e-permits-doc-cond.e-permits-rpt-filter {
-  border-radius: 0 var(--border-radius-16, 16px) var(--border-radius-16, 16px) 0;
-  padding: var(--spacing-16, 16px);
-}
-
-.e-permits-rpt-filters .e-permits-doc-cond__join {
-  margin-block: var(--spacing-8, 8px);
-}
-
-.e-permits-doc-cond.e-permits-rpt-filter.is-dragging::before {
-  opacity: 1;
-  transform: scale(1);
-}
-
-.e-permits-rpt-filter__head {
-  align-items: center;
-  display: flex;
-  gap: var(--spacing-8, 8px);
-  min-height: var(--spacing-32, 32px);
-}
-
-.e-permits-rpt-filter__actions {
-  display: inline-flex;
-  gap: var(--spacing-4, 4px);
-  margin-left: auto;
-}
-
-.e-permits-rpt-filter[draggable="true"] .e-permits-ekcfg-order__handle {
-  cursor: grab;
-}
-
-/* drag + drop + the moved flash = the column list's (registre.css stack item, rpt-move-v1) */
-.e-permits-doc-cond.e-permits-rpt-filter.is-dragging {
-  opacity: 0.5;
-}
-
-.e-permits-doc-cond.e-permits-rpt-filter.is-drop-target {
-  box-shadow: inset 0 var(--spacing-2, 2px) 0 var(--color-border-brand-default, #0058d2);
-}
-
-.e-permits-doc-cond.e-permits-rpt-filter.is-just-moved {
-  animation: e-permits-rpt-moved var(--motion-duration-lg, 0.5s) var(--motion-easing-decelerate, ease-out) var(--motion-duration-md, 0.3s) backwards;
+/* the field picker of the filter panel: one radio per source field (Small radio), 16 apart, under the search */
+.e-permits-rpt-fld-list {
+  display: grid;
+  gap: var(--spacing-16, 16px);
+  padding: var(--spacing-8, 8px) var(--spacing-0, 0px);
 }
 
 /* ---- the formula picker (new): the chosen formula's expression + result format, under the formula select ---- */

@@ -4566,6 +4566,14 @@
     /* „Adaugă coloană ▾” (rpt-add-menu-v1): open the dropdown, then pick the kind */
     const addKind = (kind, root = C) => async (h) => { await h.click(`${root} [data-rpt-add-trigger]`); await h.wait(150); await h.click(`${root} [data-rpt-add="${kind}"]`); };
     const dict = async (h) => { await addKind("source")(h); await h.find(`${DR} #rpt-dict-search`); };
+    /* rpt-filter-list-v1: „Adaugă filtru” = the panel: pick the field (radio), the type (radio card, when the field has more than one), „Adaugă filtrul” */
+    const fltAdd = (root, field, type) => async (h) => {
+      await h.click(`${root} [data-rpt-filter-add]`);
+      await h.click(`${DR} [data-rpt-flt-field][value="${field}"]`);
+      if (type) await h.click(`${DR} #rpt-f-type input[value="${type}"]`);
+      await h.click(`${DR} [data-rpt-flt-save]`);
+      await h.wait(300);
+    };
     const addF = (...keys) => async (h) => { for (const k of keys) await h.click(`${DR} [data-rpt-dict-add="${k}"]`); };
     const done = async (h) => { await h.click(`${DR} .drawer__footer [data-rpt-drawer-close]`); await h.wait(300); };
     const openCol = (id) => async (h) => { await h.click(`${C} [data-rpt-col="${id}"] .e-permits-stack__title`); await h.find(`${DR} #rpt-c-name-ro`); };
@@ -4592,7 +4600,7 @@
     const byAuth = seq(dict, addF("autoritate"), done, ...[1, 2, 3, 4, 5].map(() => async (h) => { await h.click(`${C} [data-rpt-col-move="c6|-1"]`); }));
     /* rpt-filters-v1: add a filter row in the profile; pick values in a preview facet (desktop popover → Confirmă, phones
        the sheet → Arată); apply the bar's draft (desktop) */
-    const fAdd = (i, field, type) => async (h) => { await h.click("#rpt-panel [data-rpt-filter-add]"); await h.choose(`#rpt-panel select[data-rpt-filter="${i}"][data-rpt-filter-part="field"]`, field); if (type) await h.choose(`#rpt-panel select[data-rpt-filter="${i}"][data-rpt-filter-part="type"]`, type); };
+    const fAdd = (i, field, type) => fltAdd("#rpt-panel", field, type);
     const fPick = (facet, values, preset) => async (h) => {
       await h.scroll("#rpt-panel [data-rpt-preview] .e-permits-rpt-card");
       await ffFacet(h, facet);
@@ -4650,8 +4658,8 @@
       "rpt-03m": list(seq(nou, step1, next, async (h) => { await addKind("calc")(h); await h.find(`${DR} #rpt-c-name-ro`); await h.click(`${DR} [data-rpt-formula-new]`); await h.find("#rpt-fx-name"); })),
       "rpt-03n": list(seq(nou, step1, next, async (h) => { await addKind("calc")(h); await h.find(`${DR} #rpt-c-name-ro`); await h.click(`${DR} [data-rpt-formula-new]`); await h.find("#rpt-fx-name"); await h.click("[data-rpt-fx-confirm]"); })),
       /* 3 Structură: grouping + subtotals, filters, total row; a filter error */
-      "rpt-03o": list(seq(built, byAuth, next, async (h) => { await h.choose(`${C} select[data-rpt-field="groupBy"]`, "c6"); await h.click(`${C} [data-rpt-filter-add]`); await h.choose(`${C} select[data-rpt-filter="0"][data-rpt-filter-part="field"]`, "depus"); await h.click(`${C} [data-rpt-filter-add]`); await h.choose(`${C} select[data-rpt-filter="1"][data-rpt-filter-part="field"]`, "statut"); await h.choose(`${C} select[data-rpt-filter="1"][data-rpt-filter-part="type"]`, "multi"); })),
-      "rpt-03p": list(seq(built, next, async (h) => { await h.click(`${C} [data-rpt-filter-add]`); }, next)),
+      "rpt-03o": list(seq(built, byAuth, next, async (h) => { await h.choose(`${C} select[data-rpt-field="groupBy"]`, "c6"); await fltAdd(C, "depus")(h); await fltAdd(C, "statut", "multi")(h); })),
+      "rpt-03p": list(seq(built, next, async (h) => { await h.click(`${C} [data-rpt-filter-add]`); await h.click(`${DR} [data-rpt-flt-save]`); await h.wait(300); })),
       /* 4 Revizuire; save the draft → the profile */
       "rpt-03q": list(seq(built, byAuth, next, async (h) => { await h.choose(`${C} select[data-rpt-field="groupBy"]`, "c6"); }, next)),
       "rpt-03r": list(seq(nou, step1, langs, next, cols, twoLevel, calc, saveCol, next, next, async (h) => { await h.click(`${C} [data-rpt-save]`); await h.find("#rpt-panel"); await h.wait(300); })),
@@ -4732,7 +4740,10 @@
       "rpt-13d": prof("RPT-0002", "configurare", seq(fAdd(3, "tip", "multi"), fAdd(4, "statut", "multi"), fAdd(5, "subdiviziune", "single"), async (h) => { if (!ekPhone()) { await h.click("#rpt-panel [data-filter-more]"); await h.wait(250); } else { await h.click("#rpt-panel [data-filter-all]"); await h.wait(500); } })),
       /* rpt-filter-order-v1: the filter order = the chips' order — „Subdiviziune” (6th, in «Mai multe») moved up twice with ↑
          becomes the 4th chip, „Tip solicitare” goes to «Mai multe» */
-      "rpt-14a": prof("RPT-0002", "configurare", seq(fAdd(3, "tip", "multi"), fAdd(4, "statut", "multi"), fAdd(5, "subdiviziune", "single"), async (h) => { await h.click('#rpt-panel [data-rpt-flt-move="5|-1"]'); await h.wait(450); await h.click('#rpt-panel [data-rpt-flt-move="4|-1"]'); await h.wait(450); await h.wait(600); }))
+      /* rpt-filter-list-v1: the filter list = the column list; a filter item opens the same panel (field + type) to edit */
+      "rpt-14b": prof("RPT-0002", "configurare", async (h) => { await h.scroll('#rpt-panel [data-rpt-flt="1"]'); await h.click('#rpt-panel [data-rpt-flt="1"] .e-permits-stack__title'); await h.wait(400); }),
+      "rpt-14c": prof("RPT-0002", "configurare", async (h) => { await h.click("#rpt-panel [data-rpt-filter-add]"); await h.click('[data-rpt-drawer] [data-rpt-flt-field][value="subdiviziune"]'); await h.wait(300); }),
+      "rpt-14a": prof("RPT-0002", "configurare", seq(fAdd(3, "tip", "multi"), fAdd(4, "statut", "multi"), fAdd(5, "subdiviziune", "single"), async (h) => { await h.click('#rpt-panel [data-rpt-flt-move="5|-1"]'); await h.wait(450); await h.click('#rpt-panel [data-rpt-flt-move="4|-1"]'); await h.wait(450); await h.scroll('#rpt-panel [data-rpt-flts]'); await h.wait(600); }))
     };
   }
 
