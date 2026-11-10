@@ -340,13 +340,22 @@
 /* rpt-col-ring-v3 (2026-11-10, user): the column outline is drawn ON its own cells, so it moves with them in the same frame
    (reorder FLIP): every cell of the column draws its left + right edge, its header cell (the second-row one for a grouped
    column — never across the group label) the top edge, its last cell the bottom edge — focus-ring colour, 3 wide, no
-   white offset. The ::after covers the cell's 1px row divider so the edges run unbroken (full-width group label rows
-   are section breaks). No overlay, no transition of its own. */
-.e-permits-rpt-preview .e-permits-workplace__table.e-permits-rpt-table :is(th, td).is-col-ring {
+   white offset; the ::after covers the cell's lines so the edges run unbroken, and continue across the full-width
+   group label rows (rpt-col-ring-v4). No overlay, no transition of its own. */
+.e-permits-rpt-preview .e-permits-workplace__table.e-permits-rpt-table :is(th, td).is-col-ring,
+.e-permits-rpt-preview .e-permits-workplace__table.e-permits-rpt-table tr.e-permits-rpt-table__group > th.is-col-ring-through {
+  /* the cells clip their overflow (ellipsis): clip — not hidden — with a 2 margin lets the ::after reach over the cell's
+     own lines while the text still ends in „…” */
+  overflow: clip;
+  overflow-clip-margin: var(--border-width-2, 2px);
   position: relative;
 }
 
-.e-permits-rpt-preview .e-permits-workplace__table.e-permits-rpt-table :is(th, td).is-col-ring::after {
+/* rpt-col-ring-v4 (user): the stroke sits ABOVE every table line — the ::after spans the cell's border box (row divider
+   under it, a group edge on its side, the Total's 1.5 line above it), z 2 over the in-flow cells; radius 8 on the four
+   outer corners */
+.e-permits-rpt-preview .e-permits-workplace__table.e-permits-rpt-table :is(th, td).is-col-ring::after,
+.e-permits-rpt-preview .e-permits-workplace__table.e-permits-rpt-table tr.e-permits-rpt-table__group > th.is-col-ring-through::after {
   bottom: calc(var(--border-width-1, 1px) * -1);
   box-shadow: inset var(--border-width-3, 3px) 0 0 var(--focus-ring, #3379db), inset calc(var(--border-width-3, 3px) * -1) 0 0 var(--focus-ring, #3379db);
   content: "";
@@ -355,24 +364,42 @@
   position: absolute;
   right: 0;
   top: 0;
-  z-index: 1;
+  z-index: 2;
+}
+
+.e-permits-rpt-preview .e-permits-workplace__table.e-permits-rpt-table :is(th, td).is-col-ring.is-gl::after {
+  left: calc(var(--border-width-1, 1px) * -1);
+}
+
+.e-permits-rpt-preview .e-permits-workplace__table.e-permits-rpt-table :is(th, td).is-col-ring.is-gr::after {
+  right: calc(var(--border-width-1, 1px) * -1);
+}
+
+.e-permits-rpt-preview .e-permits-workplace__table.e-permits-rpt-table tfoot td.is-col-ring::after {
+  top: calc(var(--border-width-1-5, 1.5px) * -1);
+}
+
+/* across a full-width group label row: only the two side edges, at the column (js sets --ring-x / --ring-w) */
+.e-permits-rpt-preview .e-permits-workplace__table.e-permits-rpt-table tr.e-permits-rpt-table__group > th.is-col-ring-through::after {
+  left: var(--ring-x, 0);
+  right: auto;
+  width: var(--ring-w, 0);
 }
 
 .e-permits-rpt-preview .e-permits-workplace__table.e-permits-rpt-table :is(th, td).is-col-ring.is-col-ring-top::after {
-  border-top-left-radius: var(--border-radius-4, 4px);
-  border-top-right-radius: var(--border-radius-4, 4px);
+  border-top-left-radius: var(--border-radius-8, 8px);
+  border-top-right-radius: var(--border-radius-8, 8px);
   box-shadow: inset var(--border-width-3, 3px) 0 0 var(--focus-ring, #3379db), inset calc(var(--border-width-3, 3px) * -1) 0 0 var(--focus-ring, #3379db), inset 0 var(--border-width-3, 3px) 0 var(--focus-ring, #3379db);
 }
 
 .e-permits-rpt-preview .e-permits-workplace__table.e-permits-rpt-table :is(th, td).is-col-ring.is-col-ring-bottom::after {
-  border-bottom-left-radius: var(--border-radius-4, 4px);
-  border-bottom-right-radius: var(--border-radius-4, 4px);
-  bottom: 0;
+  border-bottom-left-radius: var(--border-radius-8, 8px);
+  border-bottom-right-radius: var(--border-radius-8, 8px);
   box-shadow: inset var(--border-width-3, 3px) 0 0 var(--focus-ring, #3379db), inset calc(var(--border-width-3, 3px) * -1) 0 0 var(--focus-ring, #3379db), inset 0 calc(var(--border-width-3, 3px) * -1) 0 var(--focus-ring, #3379db);
 }
 
 .e-permits-rpt-preview .e-permits-workplace__table.e-permits-rpt-table :is(th, td).is-col-ring.is-col-ring-top.is-col-ring-bottom::after {
-  border-radius: var(--border-radius-4, 4px);
+  border-radius: var(--border-radius-8, 8px);
   box-shadow: inset 0 0 0 var(--border-width-3, 3px) var(--focus-ring, #3379db);
 }
 

@@ -1705,6 +1705,8 @@
         const dx = (before.cols[cid] ?? th.getBoundingClientRect().left) - th.getBoundingClientRect().left;
         if (Math.abs(dx) < 0.5) return;
         root.querySelectorAll(`[data-rpt-preview] [data-rpt-cell="${CSS.escape(cid)}"]`).forEach((cell) => cell.animate([{ transform: `translateX(${dx}px)` }, { transform: "none" }], opts));
+        /* the edges across the group label rows ride the same FLIP (their ::after) */
+        if (cid === id) root.querySelectorAll("[data-rpt-preview] .is-col-ring-through").forEach((th) => th.animate([{ transform: `translateX(${dx}px)` }, { transform: "none" }], { ...opts, pseudoElement: "::after" }));
       });
     }
     const item = root.querySelector(`[data-rpt-col="${CSS.escape(id)}"]`);
@@ -1726,6 +1728,7 @@
     if (!root) return;
     const id = hlTarget();
     root.querySelectorAll("[data-rpt-preview] .is-col-ring").forEach((el) => el.classList.remove("is-col-ring", "is-col-ring-top", "is-col-ring-bottom"));
+    root.querySelectorAll("[data-rpt-preview] .is-col-ring-through").forEach((el) => { el.classList.remove("is-col-ring-through"); el.style.removeProperty("--ring-x"); el.style.removeProperty("--ring-w"); });
     root.querySelectorAll("[data-rpt-col].is-selected").forEach((el) => el.classList.remove("is-selected"));
     /* the column whose panel is open = the selected list item (the Registre column list's brand-secondary row) */
     const open = DR?.mode === "col" && DR.colId;
@@ -1740,6 +1743,12 @@
     ringCells.forEach((el) => el.classList.add("is-col-ring"));
     head?.classList.add("is-col-ring-top");
     ringCells[ringCells.length - 1]?.classList.add("is-col-ring-bottom");
+    /* the full-width group label rows: the two side edges continue across them (a ::after placed at the column, css vars) */
+    if (head) root.querySelectorAll("[data-rpt-preview] tr.e-permits-rpt-table__group > th").forEach((th) => {
+      th.classList.add("is-col-ring-through");
+      th.style.setProperty("--ring-x", `${head.offsetLeft - th.offsetLeft}px`);
+      th.style.setProperty("--ring-w", `${head.offsetWidth}px`);
+    });
     if (scroll && head && wrap) {
       const w = wrap.getBoundingClientRect();
       const r = head.getBoundingClientRect();
