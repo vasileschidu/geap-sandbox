@@ -59,6 +59,7 @@ lesson into the sections above when it has proved itself twice. Never delete a l
 - Copy speaks „tu” everywhere (FO, Cabinet, RAP, BO, Ghișeu, admin): imperative Alege / Introdu, questions
   „Dezactivezi …?”; never dumneavoastră / dvs. / -ți plural; only MDocs/PDF + notification template bodies stay formal
   (components.md › Ton: tu; 2026-11-09).
+- Create/edit sheet header (desktop): left = right = top = bottom = `--spacing-24` (rule `sheet-header-pad-v2`, css/registre.css); never stack another inset (the old +12 `sheet-header-inset-v1` was wrong, 2026-11-10). Measure the four paddings after touching it.
 - Applicant types: icon + full name in forms/read-only views; plain codes in stacked list meta.
 - Hover visible everywhere; open button keeps focus ring (`aria-expanded`); no toast for toggles.
 - Any clickable element = `cursor: pointer` + visible hover (hover-audit flags „no-pointer”); a clickable row with inner controls: band on the row only, the control's own hover on the control (components.md › Row vs inner control).

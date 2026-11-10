@@ -609,20 +609,21 @@
   }
 }
 
-/* sheet-header-inset-v1 (2026-11-09, user: „wrong header lr padding”): on desktop the header title, the step strip and
-   the × sit 12 inside the page edge — on the line of the section headings (their 12 inset) and of the preview's
-   „Actualizează / Mărește” row; the content cards and the footer bar keep the page edge */
+/* sheet-header-pad-v2 (2026-11-10, user: „left/right padding = top/bottom”; replaces sheet-header-inset-v1 which pushed title,
+   steps and × 12 further in): on desktop the create / edit sheet header has ONE padding = --spacing-24 on all four sides —
+   title top 24, step strip bottom 24, title / steps left = × right = 24 from the content container edge (the sheet edge up to
+   1600, then the editor page width so the header stays on the body's left edge); × centred on the 32 title line.
+   Phones keep the sheet-header rule (title 16 from top, × 40). */
 @media (min-width: 761px) {
-  .e-permits-reg-editor--page .e-permits-reg-editor__header .e-permits-page-header__body {
-    padding-left: calc(max(var(--spacing-24, 24px), calc((100% - var(--spacing-40, 40px) * 40) / 2 + var(--spacing-24, 24px))) + var(--spacing-12, 12px));
-    padding-right: calc(max(var(--spacing-24, 24px), calc((100% - var(--spacing-40, 40px) * 40) / 2 + var(--spacing-24, 24px))) + var(--spacing-12, 12px) + var(--spacing-32, 32px) + var(--spacing-16, 16px));
+  .e-permits-reg-editor .e-permits-reg-editor__header .e-permits-page-header__body {
+    padding-top: var(--spacing-24, 24px);
   }
 
-  .e-permits-reg-editor--page .e-permits-steps-strip {
-    padding-inline: calc(max(var(--spacing-24, 24px), calc((100% - var(--spacing-40, 40px) * 40) / 2 + var(--spacing-24, 24px))) + var(--spacing-12, 12px));
+  .e-permits-reg-editor .e-permits-steps-strip {
+    padding-bottom: var(--spacing-24, 24px);
   }
 
-  .e-permits-reg-editor--page .e-permits-reg-editor__close {
-    right: calc(max(var(--spacing-24, 24px), calc((100% - var(--spacing-40, 40px) * 40) / 2 + var(--spacing-24, 24px))) + var(--spacing-12, 12px));
+  .e-permits-reg-editor .e-permits-reg-editor__close {
+    top: var(--spacing-24, 24px);
   }
 }

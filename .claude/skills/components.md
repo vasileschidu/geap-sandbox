@@ -12416,9 +12416,10 @@ Autoritate (one or more authorities). **Reuse map** (no new engine):
   report has Numeric / Valoric columns, disabled without them).
 - **Step 4 Revizuire** = can-publish notice + passport blocks (Date generale · Coloane · Structură) with „Editează” +
   level note (the widget review).
-- **Create sheet header** = the shared sheet-header-inset-v1 (css/registre.css, `.e-permits-reg-editor--page`): title, step strip
-  and × 12 inside the page edge on the section-heading line, × right = the „Mărește” right edge (verified 900 · 1100 · 1280 ·
-  1440 · 1920; phones the 16 gutter) — no Rapoarte variant.
+- **Create sheet header** = sheet-header-pad-v2 (css/registre.css, every `.e-permits-reg-editor`, desktop ≥ 761): ONE padding
+  `--spacing-24` on all four sides — title top 24, step strip bottom 24 (+ the divider), title / steps left = × right = 24 from the
+  content container edge (sheet edge up to 1600, then the editor page width = the body's left edge), × centred on the 32 title
+  line. Never add a „+12 inset” again. Phones: title 20/32 at 16 from top, × 40. Measured 1440 / 1920: 24/24/24/24, left 24 / 184.
 - **Preview** = the widget preview block (heading „Previzualizare” + „Mărește” → library dialog `modal--lg`; meta „Date
   demonstrative · Perimetru: … · <source> <version>”) with the report card: name + „ⓘ” (the description, hint tooltip),
   category · source, the **report preview table** (inventory row; RAP flat look — no border / radius, grey header band, rows 56, full
