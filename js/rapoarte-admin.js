@@ -563,7 +563,7 @@
   }
   const grid = (...parts) => `<div class="e-permits-user-create__grid">${parts.join("")}</div>`;
   const full = (html) => (html ? `<div class="e-permits-user-create__field e-permits-user-create__field--12">${html}</div>` : "");
-  const section = (title, body, { meta = "", id = "" } = {}) => `<section class="e-permits-dosar-profil__section"${id ? ` aria-labelledby="${id}"` : ""}><div class="e-permits-dosar-profil__section-heading"><h2 class="e-permits-dosar-profil__section-title"${id ? ` id="${id}"` : ""}>${esc(title)}</h2>${meta ? `<span class="e-permits-dosar-profil__section-meta" aria-live="polite">${esc(meta)}</span>` : ""}</div><div class="e-permits-ntpl-card">${body}</div></section>`;
+  const section = (title, body, { meta = "", id = "", anchor = "" } = {}) => `<section class="e-permits-dosar-profil__section"${id ? ` aria-labelledby="${id}"` : ""}${anchor ? ` id="rpt-j-${anchor}" data-rpt-sec="${anchor}"` : ""}><div class="e-permits-dosar-profil__section-heading"><h2 class="e-permits-dosar-profil__section-title"${id ? ` id="${id}"` : ""}>${esc(title)}</h2>${meta ? `<span class="e-permits-dosar-profil__section-meta" aria-live="polite">${esc(meta)}</span>` : ""}</div><div class="e-permits-ntpl-card">${body}</div></section>`;
   /* option cards (the widget type card, radio variant, no glyph) — categories, levels, column kinds */
   function optionCards(id, name, attr, options, value, { error = "", legend = "", cls = "" } = {}) {
     return `
@@ -587,7 +587,7 @@
 
   /* ================================================================ the steps (Feature UX: Date generale · Coloane · Structură) */
   const IDP = "rpt-e";
-  function stepGeneral(v, e, idp) {
+  function stepGeneral(v, e, idp, { jump = false } = {}) {
     const me = who();
     const auths = D().authorities;
     const level = me.central
@@ -634,7 +634,7 @@
     if (String(c.header || "").trim()) out.push(`Antet comun: ${c.header.trim()}`);
     return out.map(esc);
   }
-  function stepColumns(v, e, idp) {
+  function stepColumns(v, e, idp, { jump = false } = {}) {
     const cols = v.columns;
     const last = cols.length - 1;
     /* „Adaugă coloană ▾” (rpt-add-menu-v1, 2026-11-09, user; Airtable / Notion / Retool „add field → choose type”): ONE
@@ -674,7 +674,7 @@
       ${add()}`
       : `${E()?.render({ title: "Nicio coloană încă", text: v.source ? "Adaugă coloane din dicționarul sursei de date, calculate cu o formulă sau completate manual." : "Alege mai întâi sursa de date (pasul 1), apoi adaugă coloanele.", icon: "page-text", compact: true, actionHtml: add() }) || ""}${e.columns ? errorHtml(`${idp}-columns`, e.columns) : ""}`;
     return `
-      <section class="e-permits-dosar-profil__section e-permits-stack-section" aria-labelledby="${idp}-cols-title" id="${idp}-columns">
+      <section class="e-permits-dosar-profil__section e-permits-stack-section" aria-labelledby="${idp}-cols-title" id="${idp}-columns"${jump ? ' data-rpt-sec="columns"' : ""}>
         <div class="e-permits-dosar-profil__section-heading">
           <h2 class="e-permits-dosar-profil__section-title" id="${idp}-cols-title">Coloanele raportului</h2>
           <span class="e-permits-dosar-profil__section-meta" aria-live="polite">${esc(plural(cols.length, "coloană", "coloane"))}</span>
@@ -706,7 +706,7 @@
         <div class="e-permits-doc-rule__foot">${add}</div>
       </div>`;
   }
-  function stepStructure(v, e, idp) {
+  function stepStructure(v, e, idp, { jump = false } = {}) {
     /* rows are grouped by one Text column and listed by another: a single Text column has nothing to group */
     const groupable = v.columns.filter((c) => c.dataType === "text");
     const canGroup = groupable.length > 1;
@@ -714,15 +714,15 @@
     return `
       ${section("Gruparea rândurilor", grid(
         selectField(`${idp}-groupby`, 'data-rpt-field="groupBy"', "Grupează rândurile după", [["", "Fără grupare"], ...groupable.map((c) => [c.id, colName(c)])], v.groupBy, { span: 12, hint: canGroup ? "Opțional. Fiecare grup are un rând de subtotal." : "Adaugă cel puțin două coloane Text: rândurile se grupează după una și se listează după cealaltă.", error: e.groupBy, disabled: !canGroup && !v.groupBy })
-      ))}
-      ${section("Filtre", filterRows(v, e, idp))}
+      ), { anchor: jump ? "group" : "" })}
+      ${section("Filtre", filterRows(v, e, idp), { anchor: jump ? "filters" : "" })}
       ${section("Rândul de total", grid(full(U().renderToggle?.({
         label: "Rândul de total",
         description: measures ? "Implicit «Da» când raportul are coloane numerice sau valorice. Coloanele calculate se recalculează pe totaluri." : "Raportul nu are coloane numerice sau valorice: nu are ce aduna.",
         checked: measures && Boolean(v.totalRow),
         disabled: !measures,
         attrs: 'data-rpt-field="totalRow"'
-      }) || "")))}`;
+      }) || "")), { anchor: jump ? "total" : "" })}`;
   }
 
   /* ---- read-only passport blocks (profile of a report you cannot edit, review step) */
@@ -900,7 +900,7 @@
     await load();
     const r = reportOf(id);
     if (!who().has || !r || !visible(r)) { showDenied(); return; }
-    if (P.id !== id || P.isNew) { P.errors = {}; P.saveError = false; P.totalTouched = false; P.draft = clone(r.config); P.base = clone(r.config); }
+    if (P.id !== id || P.isNew) { P.jump = ""; P.errors = {}; P.saveError = false; P.totalTouched = false; P.draft = clone(r.config); P.base = clone(r.config); }
     P.id = id; P.isNew = false;
     P.tab = tabsNow().some(([t]) => t === tab) ? tab : "configurare";
     show(`#raport/${id}/${P.tab}`, push);
@@ -974,6 +974,7 @@
     body.setAttribute("aria-labelledby", `rpt-tab-${P.tab}`);
     body.innerHTML = `${notices(r)}${P.tab === "versiuni" ? (HOOKS.versionsTab?.(r) || versionsTab(r)) : P.tab === "acces" && HOOKS.accessTab ? HOOKS.accessTab(r) : P.tab === "istoric" ? (HOOKS.historyTab?.(r) || historyTab(r)) : configTab(r)}`;
     A().syncStackMetaRows?.(body);
+    requestAnimationFrame(() => { syncStick(); syncJump(); });
     if (keepSel) {
       const el = document.querySelector(keepSel);
       el?.focus?.({ preventScroll: true });
@@ -994,10 +995,53 @@
     const html = list.filter(Boolean).join("");
     return html ? `<div class="e-permits-reg-notices">${html}</div>` : "";
   }
+  /* rpt-split-v1 (2026-11-10, user): the settings column opens with section jump links = the library small tabs as anchors
+     (`.tabs.tabs--sm`, one per section; sticky at the top of the column, the current section follows the scroll) */
+  const JUMPS = [["columns", "Coloane"], ["group", "Grupare"], ["filters", "Filtre"], ["total", "Total"]];
+  function jumpNav() {
+    const cur = P.jump || "";
+    return `
+      <nav class="tabs tabs--sm e-permits-rpt-jump" aria-label="Secțiunile configurării">
+        <div class="tab-buttons">${JUMPS.map(([k, l]) => `<a class="tab-button${k === cur ? " active" : ""}" href="#rpt-j-${k}" data-rpt-jump="${k}"${k === cur ? ' aria-current="location"' : ""}>${esc(l)}</a>`).join("")}</div>
+      </nav>`;
+  }
+  function syncJump() {
+    const nav = document.querySelector("#rpt-panel .e-permits-rpt-jump");
+    if (!nav) return;
+    const line = nav.getBoundingClientRect().bottom + 24;
+    const secs = [...document.querySelectorAll("#rpt-panel [data-rpt-sec]")];
+    if (!secs.length) return;
+    /* above „Coloane” (Date generale) no link is current */
+    let cur = "";
+    secs.forEach((s) => { if (s.getBoundingClientRect().top <= line) cur = s.dataset.rptSec; });
+    /* the last section is short: at the end of the page it is the current one */
+    let sc = nav.parentElement;
+    while (sc && sc !== document.body && !/(auto|scroll)/.test(getComputedStyle(sc).overflowY)) sc = sc.parentElement;
+    if (!sc || sc === document.body) sc = document.scrollingElement;
+    if (sc && sc.scrollTop > 0 && sc.scrollTop + sc.clientHeight >= sc.scrollHeight - 2) cur = secs[secs.length - 1].dataset.rptSec;
+    if (P.jumpLock && performance.now() < P.jumpLock) cur = P.jump;
+    P.jump = cur;
+    nav.querySelectorAll("[data-rpt-jump]").forEach((a) => { const on = a.dataset.rptJump === cur; a.classList.toggle("active", on); if (on) a.setAttribute("aria-current", "location"); else a.removeAttribute("aria-current"); });
+  }
+  /* the sticky preview / jump links sit under the profile's pinned tab row and fit the scroller's height (measured: the BO
+     canvas scrolls under the shell top bar; in the create sheet the body scrolls) */
+  function syncStick() {
+    document.querySelectorAll(".e-permits-rpt-split").forEach((grid) => {
+      if (!grid.isConnected || !grid.offsetParent) return;
+      const tabs = grid.closest("[data-dosar-profil]")?.querySelector(".e-permits-page-header.is-sticky .e-permits-page-header__tabs");
+      const top = tabs ? tabs.offsetHeight : 0;
+      let sc = grid.parentElement;
+      while (sc && sc !== document.body && !/(auto|scroll)/.test(getComputedStyle(sc).overflowY)) sc = sc.parentElement;
+      const h = sc && sc !== document.body ? sc.clientHeight : window.innerHeight;
+      grid.style.setProperty("--rpt-stick-top", `${top}px`);
+      grid.style.setProperty("--rpt-stick-h", `${Math.max(h - top, 320)}px`);
+    });
+  }
+  window.addEventListener("resize", () => requestAnimationFrame(syncStick));
   function configTab(r) {
     if (!editable(r)) {
       return `
-        <div class="e-permits-ntpl-content e-permits-ntpl-content--preview e-permits-wid-config e-permits-rpt-config e-permits-editor-wide">
+        <div class="e-permits-ntpl-content e-permits-ntpl-content--preview e-permits-wid-config e-permits-rpt-config e-permits-rpt-split e-permits-editor-wide">
           <div class="e-permits-ntpl-content__main">${readBlocks(r.config)}</div>
           <aside class="e-permits-ntpl-content__preview" data-rpt-preview>${previewHtml(r.config, { idp: "rpt-p" })}</aside>
         </div>`;
@@ -1005,8 +1049,8 @@
     const v = P.draft;
     const e = P.errors;
     return `
-      <div class="e-permits-ntpl-content e-permits-ntpl-content--preview e-permits-wid-config e-permits-rpt-config e-permits-editor-wide">
-        <div class="e-permits-ntpl-content__main e-permits-rpt-form">${stepGeneral(v, e, IDP)}${stepColumns(v, e, IDP)}${stepStructure(v, e, IDP)}</div>
+      <div class="e-permits-ntpl-content e-permits-ntpl-content--preview e-permits-wid-config e-permits-rpt-config e-permits-rpt-split e-permits-editor-wide">
+        <div class="e-permits-ntpl-content__main e-permits-rpt-form">${jumpNav()}${stepGeneral(v, e, IDP, { jump: true })}${stepColumns(v, e, IDP, { jump: true })}${stepStructure(v, e, IDP, { jump: true })}</div>
         <aside class="e-permits-ntpl-content__preview" data-rpt-preview>${previewHtml(v, { idp: IDP })}</aside>
       </div>`;
   }
@@ -1104,7 +1148,7 @@
     sheet.querySelector("[data-rpt-ed-body]").innerHTML = `
       <div class="e-permits-reg-editor__single e-permits-reg-editor__page" data-rpt-ed-scroll>
         ${P.saveError ? `<div class="e-permits-reg-notices">${U().renderNotice?.("error", esc(SAVE_FAILED), { role: "alert" }) || ""}</div>` : ""}
-        <div class="e-permits-ntpl-content e-permits-ntpl-content--preview e-permits-wid-create e-permits-rpt-create">
+        <div class="e-permits-ntpl-content e-permits-ntpl-content--preview e-permits-wid-create e-permits-rpt-create${P.step === 2 || P.step === 3 ? " e-permits-rpt-split" : ""}">
           <div class="e-permits-ntpl-content__main e-permits-rpt-form">${form}</div>
           <aside class="e-permits-ntpl-content__preview" data-rpt-preview>${previewHtml(v, { idp: IDP })}</aside>
         </div>
@@ -1119,6 +1163,7 @@
         ${last ? pub : '<button class="btn btn-primary btn-md" type="button" data-rpt-next>Continuă</button>'}
       </div>`;
     A().syncStackMetaRows?.(sheet);
+    requestAnimationFrame(syncStick);
     if (sheetScroller() && keep !== "@top") sheetScroller().scrollTop = scroll;
     if (keepSel && keepSel !== "@top") {
       const el = sheet.querySelector(keepSel);
@@ -1635,6 +1680,15 @@
       const sv = t.closest("[data-rpt-save]");
       if (sv) { if (sv.getAttribute("aria-disabled") !== "true") savePage(); return; }
       if (t.closest("[data-rpt-back]")) { event.preventDefault(); closeProfile(); return; }
+      const jl = t.closest("[data-rpt-jump]");
+      if (jl) {
+        event.preventDefault();
+        P.jump = jl.dataset.rptJump;
+        P.jumpLock = performance.now() + 900;
+        syncJump();
+        document.querySelector(`#rpt-panel [data-rpt-sec="${CSS.escape(P.jump)}"]`)?.scrollIntoView({ block: "start", behavior: motionOk() ? "smooth" : "auto" });
+        return;
+      }
     }
     if (!inPage(t)) return;
     /* the form */
@@ -1754,6 +1808,12 @@
       else if (r.right > w.right) wrap.scrollLeft += r.right - w.right;
     }
   }
+  let jumpFrame = 0;
+  document.addEventListener("scroll", () => {
+    if (!profileOpen() || P.tab !== "configurare") return;
+    cancelAnimationFrame(jumpFrame);
+    jumpFrame = requestAnimationFrame(syncJump);
+  }, { capture: true, passive: true });
   const colFromEvent = (t) => t.closest?.("[data-rpt-col]")?.dataset.rptCol || t.closest?.("[data-rpt-col-pick]")?.dataset.rptColPick || "";
   document.addEventListener("mouseover", (event) => {
     if (!P.draft || !inPage(event.target) || performance.now() < hlLockUntil) return;

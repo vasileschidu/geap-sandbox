@@ -4699,7 +4699,11 @@
       "rpt-09c": list(seq(nou, async (h) => { await h.choose(`${C} select[data-rpt-from]`, "RPT-0002"); await h.wait(300); })),
       "rpt-09d": list(seq(MENU("RPT-0001"), async (h) => { await h.click('[data-rpt-row-clone="RPT-0001"]'); await h.find(`${C} #rpt-e-name-ro`); await h.click(`${C} [data-rpt-save]`); await h.find("#rpt-panel"); await h.wait(400); }), null, AUTH),
       "rpt-10a": prof("RPT-0001", "istoric"),
-      "rpt-10b": prof("RPT-0001", "istoric", async (h) => { await h.click('#rpt-panel [data-rpt-event="0"]'); await h.wait(400); })
+      "rpt-10b": prof("RPT-0001", "istoric", async (h) => { await h.click('#rpt-panel [data-rpt-event="0"]'); await h.wait(400); }),
+      /* rpt-split-v1: settings 4/12 | preview 8/12 (capture --width 1280 for the 1280 split); the jump link „Filtre” scrolled
+         the settings, the preview stays in view (sticky) */
+      "rpt-11a": prof("RPT-0002", "configurare", async (h) => { await h.click('#rpt-panel [data-rpt-jump="filters"]'); await h.wait(2500); }),
+      "rpt-11b": list(seq(built, next))
     };
   }
 
