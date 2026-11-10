@@ -1064,3 +1064,16 @@
     grid-column: 2 / -1;
   }
 }
+
+/* rpt-phone-cols-v1 (2026-11-10, QA: at 375 the two text columns took ~290 px, ~60 left for numbers): on phones a text
+   cell is at most 6 × 16 (ellipsis + the cell tooltip) and a header's floor is 5 × 16, so ≥ 2 numeric columns show next to
+   two text columns; the table still scrolls sideways with its edge shadow */
+@media (max-width: 760px) {
+  .e-permits-rpt-table thead th:not(.e-permits-rpt-table__span) {
+    min-width: calc(var(--spacing-16, 16px) * 5);
+  }
+
+  .e-permits-rpt-table td.e-permits-rpt-table__text:not(.e-permits-rpt-table__label) {
+    max-width: calc(var(--spacing-16, 16px) * 6);
+  }
+}

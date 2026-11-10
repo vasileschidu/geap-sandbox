@@ -12508,6 +12508,9 @@ Autoritate (one or more authorities). **Reuse map** (no new engine):
   ▤ la o coloană Text …”). **Create sheet** Structură keeps the fo-select (no column list on that step; same state; the
   toggle is on step 2). A grouping column that stops being groupable is cleared. Demo rpt-12a (moved to Serviciu = just
   turned on), rpt-12b (removed → summary).
+- **Phone table widths (rpt-phone-cols-v1, 2026-11-10, QA)** — ≤ 760: a text cell is at most 6 × 16 (ellipsis + cell tooltip;
+  the merged subtotal / total label excepted) and a header's floor is 5 × 16 (desktop 6 × 16), so two text columns leave ≥ 2
+  numeric columns visible at 375; nothing is pinned, the table scrolls sideways with its edge shadow (rpt-13a).
 - **Multi-level grouping (rpt-levels-v1, 2026-11-10, PO Alexandru: „autoritatea → subdiviziune → serviciu”; Salesforce „Group
   rows” / Excel subtotals)** — `config.groupBy` = an ORDERED array of up to 3 column ids (level 1 first; a legacy string is
   normalised to `[id]`); one Text column always stays ungrouped (the rows are listed by it). **Column list**: the group toggle
