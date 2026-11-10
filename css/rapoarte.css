@@ -772,7 +772,7 @@
 /* ---- rpt-cond-v1 (2026-11-10, PO: inline filters with „și / sau”; Notion / Airtable / Linear / Metabase): the condition
    builder in „Filtre”. Item = connector column (64: „Unde” code token / the „și / sau” token select, centred on the first
    field line) + 8 + the condition on the shared hover surface (padding 16 on every side, r12): lead (handle + position)
-   spanning the rows · Câmp (row 1) · Condiție | Valoare (row 2; a two-value pair takes its own row) · „Alege la generare” +
+   spanning the rows · Câmp (row 1) · Condiție | Valoare (row 2; a two-value pair takes its own row) · „Afișează filtru” +
    ↑ ↓ 🗑 (last row). A group = a bordered white sub-block (r12, 16) with its own items + „Adaugă condiție”. Phones: the
    connector sits above the condition. ---- */
 .e-permits-rpt-builder {
@@ -784,7 +784,7 @@
 .e-permits-rpt-conds {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-8, 8px);
+  gap: var(--spacing-16, 16px);
   list-style: none;
   margin: 0;
   padding: 0;
@@ -795,7 +795,7 @@
 .e-permits-rpt-cond-item {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-8, 8px);
+  gap: var(--spacing-16, 16px);
   min-width: 0;
 }
 
@@ -825,11 +825,23 @@
 .e-permits-rpt-cond {
   align-items: start;
   border-radius: var(--border-radius-12, 12px);
+  --hover-surface-outset: var(--spacing-8, 8px);
   display: grid;
   gap: var(--spacing-8, 8px) var(--spacing-12, 12px);
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   min-width: 0;
-  padding: var(--spacing-16, 16px);
+  padding: 0;
+}
+
+/* rpt-cond-v3 (2026-11-10, user review): the header (handle · number · ↑ ↓ 🗑) is the TOP row, „Afișează filtru” the
+   last; no inner padding — the grey hover surface is drawn OUTSIDE (outset 8) so the connector, header and inputs share
+   the column's left edge; the connector stays 16 above (8 clear of the surface) */
+.e-permits-rpt-cond__head {
+  align-items: center;
+  display: flex;
+  gap: var(--spacing-8, 8px);
+  grid-column: 1 / -1;
+  justify-content: space-between;
 }
 
 /* the condition's own width decides the layout (a group's conditions are narrower): Condiție and Valoare stack when the
@@ -838,7 +850,7 @@
   container-type: inline-size;
 }
 
-/* the foot: order lead (handle + position) + „Alege la generare” left, ↑ ↓ 🗑 right */
+/* the foot: order lead (handle + position) + „Afișează filtru” left, ↑ ↓ 🗑 right */
 .e-permits-rpt-cond__lead {
   align-items: center;
   cursor: grab;
@@ -884,10 +896,7 @@
 .e-permits-rpt-cond__foot {
   align-items: center;
   display: flex;
-  flex-wrap: wrap;
-  gap: var(--spacing-8, 8px);
   grid-column: 1 / -1;
-  justify-content: space-between;
 }
 
 .e-permits-rpt-cond__actions {
@@ -1026,4 +1035,13 @@
   .e-permits-rpt-table td.e-permits-rpt-table__text:not(.e-permits-rpt-table__label) {
     max-width: calc(var(--spacing-16, 16px) * 6);
   }
+}
+
+/* rpt-col-icon-v1 (2026-11-10, user): a column item's lead icon (library icon-columns, small 16 next to the 14 title, tertiary)
+   sits before the name on the title line */
+.e-permits-stack__title > svg.icon.e-permits-rpt-col-icon {
+  color: var(--color-text-base-tertiary, #757575);
+  flex: none;
+  margin-inline-end: var(--spacing-8, 8px);
+  vertical-align: middle;
 }

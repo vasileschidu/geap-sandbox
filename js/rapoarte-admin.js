@@ -93,7 +93,7 @@
     ["statistic", "Rapoarte statistice", "Indicatori agregați pe categorii, ca în formularele statistice."]
   ];
   /* rpt-rich-select-v1: the icons of the rich dropdown (Categoria) */
-  const CATEGORY_ICON = { tabelar: "list-bullets", statistic: "chart" };
+  const CATEGORY_ICON = { tabelar: "table", statistic: "chart" };
   /* Feature model «Coloana raportului»: Din sursa de date / Calculată (no manual columns — Feature comment, 2026-11) */
   const KINDS = [
     ["source", "Din sursa de date", "Valoarea unui câmp al sursei de date."],
@@ -103,7 +103,7 @@
   const DATA_TYPES = [["numeric", "Numeric"], ["value", "Valoric"], ["temporal", "Temporal"], ["text", "Text"]];
   const TOTALS = [["sum", "Se adună în total", "Valorile coloanei intră în subtotaluri și în rândul de total."], ["incl", "Inclusiv", "Detaliază coloana «Se adună în total» din stânga ei („din care”)."]];
   /* rpt-cond-v1 (2026-11-10, PO: inline filters with „și / sau”; Notion / Airtable / Linear / Metabase filter builder): a
-     condition = „Unde [Câmp] [Condiție] [Valoare]”; the operators follow the field's kind; „Alege la generare” leaves the
+     condition = „Unde [Câmp] [Condiție] [Valoare]”; the operators follow the field's kind; „Afișează filtru” leaves the
      value empty → the condition becomes a filter chip above the report (a Text condition „conține” = the search field above
      the chips, rpt-cond-text-v1; number fields always take a fixed value). rpt-cond-restore-v1 (2026-11-10, user decision):
      the PO's inline builder (Alexandru chat) is back — a Proposal for PO vs the Feature text („pe coloane, ca la registre”). */
@@ -171,7 +171,7 @@
     /* rpt-feature-v1: a legacy manual column is dropped (and emptied from the formulas that used it) */
     const gone = new Set((v.columns || []).filter((col) => col.kind === "manual").map((col) => col.id));
     v.columns = (v.columns || []).filter((col) => !gone.has(col.id)).map((col) => ({ names: { ro: "", ru: "", en: "" }, kind: "source", field: "", formula: "", operands: {}, dataType: "text", header: "", total: "sum", ...col, names: { ro: "", ru: "", en: "", ...col.names }, operands: Object.fromEntries(Object.entries(col.operands || {}).map(([k, id]) => [k, gone.has(id) ? "" : id])) }));
-    /* rpt-cond-v1: conditions + one-level groups; a legacy filter { field, type } = an „Alege la generare” condition (Text →
+    /* rpt-cond-v1: conditions + one-level groups; a legacy filter { field, type } = an „Afișează filtru” condition (Text →
        „conține”); a column filter of the rpt-feature-v1 build becomes one too */
     let seq = 0;
     const legacyOp = (t) => (t === "date" ? "between" : t === "text" ? "contains" : t ? "is" : "");
@@ -936,7 +936,7 @@
         plainTitle: colName(c),
         /* rpt-col-item-v2 (user: tags wrapped under the title in the narrow column): the kind / Grupare / Inclusiv = small
            secondary text right after the name, on its line (wraps with it); „De corectat” in the error colour; no tags */
-        title: `${esc(colName(c))}${[kt, v.groupBy.includes(c.id) ? "Grupare" : "", c.total === "incl" && isMeasure(c) ? "Inclusiv" : ""].filter(Boolean).map((x) => `<span class="e-permits-rpt-col-note"> · ${esc(x)}</span>`).join("")}${err ? '<span class="e-permits-rpt-col-note is-error"> · De corectat</span>' : ""}`,
+        title: `${icon("columns", 16).replace('class="icon small"', 'class="icon small e-permits-rpt-col-icon"')}${esc(colName(c))}${[kt, v.groupBy.includes(c.id) ? "Grupare" : "", c.total === "incl" && isMeasure(c) ? "Inclusiv" : ""].filter(Boolean).map((x) => `<span class="e-permits-rpt-col-note"> · ${esc(x)}</span>`).join("")}${err ? '<span class="e-permits-rpt-col-note is-error"> · De corectat</span>' : ""}`,
         leadHtml: orderLead(i + 1),
         rowAttrs: `data-rpt-col="${esc(c.id)}" data-index="${i}" tabindex="0" data-stack-row-open aria-haspopup="dialog" aria-label="Coloana ${esc(colName(c))}, poziția ${i + 1} — deschide setările"`,
         badges: [],
@@ -965,9 +965,9 @@
      the condition builder. Each item = the connector (row 1 „Unde” code token, rows 2+ the „și / sau” token select — ONE
      conjunction per level: changing one changes all at that level) 8 left of the condition, which sits on the shared hover
      surface (padding 16, r12): order lead (drag handle + position) · Câmp (fo-select) · Condiție (fo-select, by the field's
-     kind) · Valoare (multi-value menu / text / number / date picker(s) / N zile) · „Alege la generare” (checkbox) · ↑ ↓ 🗑.
+     kind) · Valoare (multi-value menu / text / number / date picker(s) / N zile) · „Afișează filtru” (checkbox) · ↑ ↓ 🗑.
      „Adaugă grup de condiții” = a bordered sub-block one level deep with its own connector (mixing și / sau). A condition with
-     „Alege la generare” has no value: it becomes a chip above the preview; the others restrict the report („Condiții: …”). */
+     „Afișează filtru” has no value: it becomes a chip above the preview; the others restrict the report („Condiții: …”). */
   const cid = (idp, c, part) => `${idp}-cf-${c.id}-${part}`;
   const condErr = (e, c) => e[`filter.${c.id}.field`] || e[`filter.${c.id}.value`] || "";
   function connector(idp, items, i, conj, scope) {
@@ -1020,7 +1020,7 @@
     const id = cid(idp, c, "value");
     const at = (part) => `data-rpt-cf="${esc(c.id)}|${part}"`;
     if (!k) return { html: `<div class="e-permits-doc-val is-empty e-permits-rpt-cond__slot" aria-hidden="true"><span>Valoare</span></div>` };
-    if (asking(v, c)) return { html: `<div class="e-permits-doc-val is-empty e-permits-rpt-cond__slot" id="${id}" data-cell-tooltip="Valoarea se alege la generarea raportului."><span>La generare</span></div>` };
+    if (asking(v, c)) return { html: `<div class="e-permits-doc-val is-empty e-permits-rpt-cond__slot" id="${id}" data-cell-tooltip="Valoarea se alege la generarea raportului."><span>Se alege în raport</span></div>` };
     if (k === "list") return { html: multiValues(id, c, f, err) };
     if (k === "text") return { html: textInput(id, at("value"), c.value, "Textul căutat", { placeholder: "Text", error: err }) };
     if (k === "number") {
@@ -1044,16 +1044,17 @@
     const ops = asking(v, c) ? (COND_OPS[k] || []).filter(([o]) => ASK_OPS[k].includes(o)) : COND_OPS[k] || [];
     const opSel = U().renderFoSelectControl?.({ id: cid(idp, c, "op"), attrs: `data-rpt-cf="${esc(c.id)}|op" aria-label="Condiția"`, optionsHtml: k ? ops.map(([o, l]) => `<option value="${o}"${opOf(v, c) === o ? " selected" : ""}>${esc(l)}</option>`).join("") : '<option value="" selected>Condiție</option>', disabled: !k || ops.length < 2 }) || "";
     const fieldSel = U().renderFoSelectControl?.({ id: cid(idp, c, "field"), attrs: `data-rpt-cf="${esc(c.id)}|field" aria-label="Câmpul"`, optionsHtml: `<option value=""${c.field ? "" : " selected"}>Alege câmpul</option>${fields.map((f) => `<option value="${esc(f.key)}"${f.key === c.field ? " selected" : ""}>${esc(f.label)}</option>`).join("")}`, error: Boolean(fe) }) || "";
-    const ask = U().renderCheckOption?.({ label: "Alege la generare", plain: true, checked: asking(v, c), disabled: !canAsk(v, c), reason: c.field ? NO_ASK : "Alege mai întâi câmpul.", attrs: `data-rpt-cond-ask="${esc(c.id)}"` }) || "";
+    const ask = U().renderCheckOption?.({ label: "Afișează filtru", plain: true, checked: asking(v, c), disabled: !canAsk(v, c), reason: c.field ? NO_ASK : "Alege mai întâi câmpul.", attrs: `data-rpt-cond-ask="${esc(c.id)}"` }) || "";
     return `
       <div class="e-permits-rpt-cond e-permits-hover-surface is-hover-within${fe || ve ? " has-error" : ""}" role="group" aria-label="Condiția ${i + 1}${c.field ? `: ${esc(fldLabel(v, c))}` : ""}">
+        <div class="e-permits-rpt-cond__head">
+          <span class="e-permits-rpt-cond__lead">${orderLead(i + 1)}</span>
+          <span class="e-permits-rpt-cond__actions">${moveBtns(c, i, last, `condiția „${esc(name)}”`)}<button class="btn btn-text-destructive btn-sm btn-icon-only" type="button" aria-label="Elimină condiția „${esc(name)}”" data-tooltip-label="Elimină condiția" data-rpt-cond-remove="${esc(c.id)}">${icon("delete", 16)}</button></span>
+        </div>
         <div class="e-permits-rpt-cond__cell e-permits-rpt-cond__field">${fieldSel}${fe ? errorHtml(cid(idp, c, "field"), fe) : ""}</div>
         <div class="e-permits-rpt-cond__cell e-permits-rpt-cond__op">${opSel}</div>
         <div class="e-permits-rpt-cond__cell e-permits-rpt-cond__val${val.wide ? " is-wide" : ""}">${val.html}${ve ? errorHtml(cid(idp, c, "value"), ve) : ""}</div>
-        <div class="e-permits-rpt-cond__foot">
-          <span class="e-permits-rpt-cond__lead">${orderLead(i + 1)}${ask}</span>
-          <span class="e-permits-rpt-cond__actions">${moveBtns(c, i, last, `condiția „${esc(name)}”`)}<button class="btn btn-text-destructive btn-sm btn-icon-only" type="button" aria-label="Elimină condiția „${esc(name)}”" data-tooltip-label="Elimină condiția" data-rpt-cond-remove="${esc(c.id)}">${icon("delete", 16)}</button></span>
-        </div>
+        <div class="e-permits-rpt-cond__foot">${ask}</div>
       </div>`;
   }
   function condItems(v, e, idp, items, conj, scope) {
@@ -2070,7 +2071,7 @@
   function fxFacets(ctx) {
     const v = fxConfig(ctx);
     if (!v) return [];
-    /* rpt-cond-v1: the chips = the „Alege la generare” conditions in the builder's order (key = the condition id); an asked
+    /* rpt-cond-v1: the chips = the „Afișează filtru” conditions in the builder's order (key = the condition id); an asked
        Text condition is the search field, not a chip */
     return askChips(v).map((c) => ({
       key: c.id,
@@ -2620,7 +2621,7 @@
       renderCreate({ keep: `#${IDP}-from` });
       return;
     }
-    /* rpt-cond-v1: field / condition / date values, the connector, „Alege la generare” */
+    /* rpt-cond-v1: field / condition / date values, the connector, „Afișează filtru” */
     if (el.matches("[data-rpt-conj]")) {
       const scope = el.dataset.rptConj;
       if (scope === "top") v.filterConj = el.value === "or" ? "or" : "and";

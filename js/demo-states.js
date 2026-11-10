@@ -4567,7 +4567,7 @@
     const addKind = (kind, root = C) => async (h) => { await h.click(`${root} [data-rpt-add-trigger]`); await h.wait(150); await h.click(`${root} [data-rpt-add="${kind}"]`); };
     const dict = async (h) => { await addKind("source")(h); await h.find(`${DR} #rpt-dict-search`); };
     /* rpt-filter-list-v1: „Adaugă filtru” = the panel: pick the field (radio), the type (radio card, when the field has more than one), „Adaugă filtrul” */
-    /* rpt-cond-v1: the inline condition builder — set condition <id> (field, then „Alege la generare” or op + value(s)) */
+    /* rpt-cond-v1: the inline condition builder — set condition <id> (field, then „Afișează filtru” or op + value(s)) */
     const setCond = (root, id, field, { op, values = [], value, value2, ask } = {}) => async (h) => {
       await h.choose(`${root} select[data-rpt-cf="${id}|field"]`, field);
       if (ask) await h.click(`${root} label:has([data-rpt-cond-ask="${id}"])`);
@@ -4581,7 +4581,7 @@
       if (value2 != null) await h.fill(`${root} input[data-rpt-cf="${id}|value2"]`, value2, { leave: false });
     };
     const condAdd = (root, scope = "top") => async (h) => { await h.click(`${root} [data-rpt-cond-add="${scope}"]`); };
-    /* the old „Adaugă filtru” = a condition with „Alege la generare” (id = the next free one) */
+    /* the old „Adaugă filtru” = a condition with „Afișează filtru” (id = the next free one) */
     const fltAdd = (root, field) => async (h) => {
       const ids = () => [...document.querySelectorAll(`${root} [data-rpt-ci]`)].map((el) => el.dataset.rptCi);
       const before = new Set(ids());
@@ -4666,7 +4666,7 @@
       "rpt-03g": list(seq(nou, step1, next, cols, openCol("c4"), async (h) => { await h.fill("#rpt-c-header", "Dosare", { leave: false }); await h.click(`${DR} #rpt-c-total input[value="incl"]`); })),
       "rpt-03h": list(seq(nou, step1, next, cols, twoLevel, calc)),
       "rpt-03i": list(seq(built, at("[data-rpt-preview]"))),
-      /* rpt-cond-text-v1: a Text condition „conține” with „Alege la generare” = the search field above the preview */
+      /* rpt-cond-text-v1: a Text condition „conține” with „Afișează filtru” = the search field above the preview */
       "rpt-03j": list(seq(nou, step1, next, dict, addF("nr", "serviciu"), done, next, condAdd(C), setCond(C, "f1", "nr", { ask: true }), async (h) => { await h.fill(`${C} [data-rpt-q]`, "104", { leave: false }); await h.wait(300); })),
       /* rpt-add-menu-v1: „Adaugă coloană ▾” open (with columns · on the empty list) */
       "rpt-03u": list(seq(built, async (h) => { await h.click(`${C} [data-rpt-add-trigger]`); await h.wait(250); })),
@@ -4762,7 +4762,7 @@
       "rpt-12e": list(seq(MENU("RPT-0008"), async (h) => { await h.click('[data-rpt-row-clone="RPT-0008"]'); await h.find(`${C} #rpt-e-name-ro`); await h.click(`${C} [data-rpt-goto="3"]`); await h.wait(400); })),
       /* rpt-cond-v1 (PO): the inline condition builder „Unde [Câmp] [Condiție] [Valoare]” with „și / sau” on RPT-0008 — AND rows
          (Autoritate este ANSP și Data depunerii în ultimele 120 zile), OR rows (the connector → „sau”), a group (Autoritate este
-         ANTA și Canal Online și (Tip solicitare este Inițială sau Durata > 20)), one „Alege la generare” chip applied (Statut dosar → Finalizat),
+         ANTA și Canal Online și (Tip solicitare este Inițială sau Durata > 20)), one „Afișează filtru” chip applied (Statut dosar → Finalizat),
          no match (Autoritate este AMDM) */
       "rpt-15a": prof("RPT-0008", "configurare", seq(condAdd(P15), setCond(P15, "f1", "autoritate", { values: ["ANSP"] }), condAdd(P15), setCond(P15, "f2", "depus", { op: "last", value: "120" }), async (h) => { await h.scroll(`${P15} [data-rpt-conds="top"]`); await h.wait(400); })),
       "rpt-15b": prof("RPT-0008", "configurare", seq(condAdd(P15), setCond(P15, "f1", "canal", { values: ["Online"] }), condAdd(P15), setCond(P15, "f2", "statut", { values: ["Finalizat"] }), async (h) => { await h.choose(`${P15} select[data-rpt-conj="top"]`, "or"); await h.scroll(`${P15} [data-rpt-conds="top"]`); await h.wait(400); })),
