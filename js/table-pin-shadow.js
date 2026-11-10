@@ -221,7 +221,10 @@
     const scrolls = width > 0 && hasData && box.scrollWidth - box.clientWidth > SLACK
       && tableW > box.clientWidth + SLACK && tableW >= box.scrollWidth - SLACK - 1
       && (flow === "block" || flow === "flow-root");
-    const edges = { start: scrolls && start === -1, end: scrolls && end === -1, aligned: isAligned };
+    /* the box-edge cue runs the FULL height (rpt-edge-v3, user: the header must look like the rows): every row but a
+       full-width one (group / empty-state row) — a two-level head's rows (partial colspans, fewer cells) count too */
+    const edgeRow = (row) => !!width && row.cells.length > 0 && ![...row.cells].some((c) => c.colSpan >= width && width > 1);
+    const edges = { start: scrolls && start === -1, end: scrolls && end === -1, aligned: edgeRow };
     syncRail(table, start > -1 && startSpan, end > -1 && endSpan, k, edges);
     box.classList.toggle(BOX, pinned);
     box.classList.toggle(EDGE_BOX, edges.start || edges.end);

@@ -312,6 +312,12 @@
   margin-inline: calc(var(--spacing-24, 24px) * -1);
 }
 
+/* rpt-table-top-v1 (user): a top border identical to the bottom one (the total row's 1px divider), across the whole
+   edge-to-edge width — separates the table from the card subtitle above (the card head has no border of its own) */
+.e-permits-workplace__table-wrap.e-permits-rpt-table-wrap {
+  border-top: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
+}
+
 .e-permits-rpt-card .e-permits-workplace__table.e-permits-rpt-table :is(th, td).is-c0,
 .e-permits-rpt-card .e-permits-workplace__table.e-permits-rpt-table tr.e-permits-rpt-table__group > th {
   padding-left: var(--spacing-24, 24px);
@@ -321,10 +327,20 @@
   padding-right: var(--spacing-24, 24px);
 }
 
+/* rpt-move-v1: the item just moved by ↑ ↓ / drag flashes the selected list tint (the Registre column list's
+   brand-secondary) and fades back — kept with reduced motion (it is the only cue then, so no movement, just the fade) */
+@keyframes e-permits-rpt-moved {
+  from { background: var(--color-background-brand-secondary, #e6eefb); }
+}
+
+.e-permits-reg-editor__stack .e-permits-stack__item.is-just-moved {
+  animation: e-permits-rpt-moved var(--motion-duration-lg, 0.5s) var(--motion-easing-decelerate, ease-out) var(--motion-duration-md, 0.3s) backwards;
+}
+
 /* rpt-col-ring-v1 (2026-11-09, user: „the tint isn't visible enough”): the column of the hovered / focused list item or
-   preview header, or of the open column panel = ONE rectangle in the focus-ring colour and width (Focus Ring: 3 of
-   `--focus-ring` inside a 2 white offset, design-system › Focus Ring) around the whole column — group header row to the
-   total — radius 4 at the corners; drawn INSIDE the scroll box (absolute, it scrolls with the table, never clipped),
+   preview header, or of the open column panel = ONE rectangle in the focus-ring colour and width (3 of `--focus-ring`,
+   design-system › Focus Ring, without the white offset — it sits on the cell edges) around the column's own header cell
+   (a grouped column: its second-row header, never the group label) down to the total — radius 4 at the corners; drawn INSIDE the scroll box (absolute, it scrolls with the table, never clipped),
    above the cells, no pointer events. No tint (the ring alone reads clearly). Geometry from js (`--ring-x/y/w/h`). */
 .e-permits-workplace__table-wrap.e-permits-rpt-table-wrap {
   position: relative;
@@ -332,7 +348,8 @@
 
 .e-permits-rpt-col-ring {
   border-radius: var(--border-radius-4, 4px);
-  box-shadow: inset 0 0 0 var(--border-width-3, 3px) var(--focus-ring, #3379db), inset 0 0 0 calc(var(--border-width-3, 3px) + var(--border-width-2, 2px)) var(--color-background-base-default, #fff);
+  /* rpt-col-ring-v2: the ring sits on the cell edges — no white offset inside it */
+  box-shadow: inset 0 0 0 var(--border-width-3, 3px) var(--focus-ring, #3379db);
   height: var(--ring-h, 0);
   left: var(--ring-x, 0);
   pointer-events: none;

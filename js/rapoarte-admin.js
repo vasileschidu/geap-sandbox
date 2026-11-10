@@ -1598,10 +1598,12 @@
     if (event.type === "drop" && dragFrom >= 0) {
       event.preventDefault();
       const to = Number(row.dataset.index);
+      const before = snapMove();
       const [moved] = P.draft.columns.splice(dragFrom, 1);
       P.draft.columns.splice(to, 0, moved);
       dragFrom = -1;
       afterColumnsChange(`[data-rpt-col="${CSS.escape(moved.id)}"]`);
+      playMove(before, moved.id);
       return;
     }
     if (event.type === "dragend") { dragFrom = -1; document.querySelectorAll("[data-rpt-col].is-dragging, [data-rpt-col].is-drop-target").forEach((r) => r.classList.remove("is-dragging", "is-drop-target")); }
@@ -1639,7 +1641,7 @@
     const add = t.closest("[data-rpt-add]");
     if (add) { if (add.getAttribute("aria-disabled") !== "true") addKind(add.dataset.rptAdd); return; }
     const mv = t.closest("[data-rpt-col-move]");
-    if (mv) { const [id, by] = mv.dataset.rptColMove.split("|"); if (move(P.draft.columns, id, Number(by))) { afterColumnsChange(`[data-rpt-col-move="${CSS.escape(`${id}|${by}`)}"]:not(:disabled), [data-rpt-col="${CSS.escape(id)}"]`); syncColHl({ scroll: true }); } return; }
+    if (mv) { const [id, by] = mv.dataset.rptColMove.split("|"); const before = snapMove(); if (move(P.draft.columns, id, Number(by))) { const at = P.draft.columns.findIndex((c) => c.id === id); const end = Number(by) < 0 ? at === 0 : at === P.draft.columns.length - 1; afterColumnsChange(end ? `[data-rpt-col-move="${CSS.escape(`${id}|${-Number(by)}`)}"]` : `[data-rpt-col-move="${CSS.escape(`${id}|${by}`)}"]`); playMove(before, id); } return; }
     const rm = t.closest("[data-rpt-col-remove]");
     if (rm) {
       const id = rm.dataset.rptColRemove;
@@ -1657,6 +1659,55 @@
     const frm = t.closest("[data-rpt-filter-remove]");
     if (frm) { P.draft.filters.splice(Number(frm.dataset.rptFilterRemove), 1); Object.keys(P.errors).filter((k) => k.startsWith("filter.")).forEach((k) => delete P.errors[k]); rerender({ keep: "[data-rpt-filter-add]" }); reheader(); }
   });
+  /* rpt-move-v1 (2026-11-10, user: „the move is hard to follow”; FLIP, Material / Notion reorder): ↑ ↓ and drag-and-drop
+     slide the list items to their new places (translateY) and the preview columns to theirs (translateX), duration /
+     easing = the motion tokens (--motion-duration-md, --motion-easing-standard); the moved item flashes the selected
+     tint, the focus stays on the same arrow (at an end: the other one), the preview ring follows and fades in; a polite live line says „<Nume>
+     mutată pe poziția N din M.”. prefers-reduced-motion: instant swap + the flash only. */
+  const motionOk = () => !window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+  const tokenMs = (name, fallback) => { const v = getComputedStyle(document.documentElement).getPropertyValue(name).trim(); const n = parseFloat(v); return Number.isFinite(n) ? (/ms$/.test(v) ? n : n * 1000) : fallback; };
+  const tokenEase = () => getComputedStyle(document.documentElement).getPropertyValue("--motion-easing-standard").trim() || "ease";
+  const moveRoot = () => (creating() ? sheet : document.querySelector("#rpt-panel"));
+  function snapMove() {
+    const root = moveRoot();
+    if (!root) return null;
+    const items = {};
+    root.querySelectorAll("[data-rpt-col]").forEach((el) => { items[el.dataset.rptCol] = el.getBoundingClientRect().top; });
+    const cols = {};
+    root.querySelectorAll("[data-rpt-preview] th[data-rpt-cell]").forEach((el) => { cols[el.dataset.rptCell] = el.getBoundingClientRect().left; });
+    return { items, cols };
+  }
+  let liveEl = null;
+  const announce = (text) => {
+    if (!liveEl) { liveEl = Object.assign(document.createElement("p"), { className: "u-visually-hidden" }); liveEl.setAttribute("aria-live", "polite"); document.body.append(liveEl); }
+    liveEl.textContent = "";
+    requestAnimationFrame(() => { liveEl.textContent = text; });
+  };
+  function playMove(before, id) {
+    const root = moveRoot();
+    if (!root || !before) return;
+    const anim = motionOk();
+    const opts = { duration: tokenMs("--motion-duration-md", 300), easing: tokenEase() };
+    if (anim) {
+      root.querySelectorAll("[data-rpt-col]").forEach((el) => {
+        const dy = (before.items[el.dataset.rptCol] ?? el.getBoundingClientRect().top) - el.getBoundingClientRect().top;
+        if (Math.abs(dy) > 0.5) el.animate([{ transform: `translateY(${dy}px)` }, { transform: "none" }], opts);
+      });
+      root.querySelectorAll("[data-rpt-preview] th[data-rpt-cell]").forEach((th) => {
+        const cid = th.dataset.rptCell;
+        const dx = (before.cols[cid] ?? th.getBoundingClientRect().left) - th.getBoundingClientRect().left;
+        if (Math.abs(dx) > 0.5) root.querySelectorAll(`[data-rpt-preview] [data-rpt-cell="${CSS.escape(cid)}"]`).forEach((cell) => cell.animate([{ transform: `translateX(${dx}px)` }, { transform: "none" }], opts));
+      });
+    }
+    const item = root.querySelector(`[data-rpt-col="${CSS.escape(id)}"]`);
+    if (item) { item.classList.remove("is-just-moved"); void item.offsetWidth; item.classList.add("is-just-moved"); setTimeout(() => item.classList.remove("is-just-moved"), tokenMs("--motion-duration-lg", 500) * 2); }
+    hlHover = id;
+    syncColHl({ scroll: true });
+    if (anim) root.querySelector("[data-rpt-preview] .e-permits-rpt-col-ring")?.animate([{ opacity: 0 }, { opacity: 1 }], opts);
+    const i = P.draft.columns.findIndex((c) => c.id === id);
+    if (i > -1) announce(`${colName(P.draft.columns[i])} mutată pe poziția ${i + 1} din ${P.draft.columns.length}.`);
+  }
+
   /* rpt-col-link-v1 (2026-11-09, user; Salesforce / Google Ads / Zoho report builders): the column list ↔ the live preview.
      Hover / focus of a list item or its preview header, and the column whose panel is open, tint that column in the
      preview (one focus-ring rectangle `.e-permits-rpt-col-ring` around the whole column); focusing an item (or opening its panel)
@@ -1682,7 +1733,10 @@
       const ring = document.createElement("span");
       ring.className = "e-permits-rpt-col-ring";
       ring.setAttribute("aria-hidden", "true");
-      [["--ring-x", table.offsetLeft + head.offsetLeft], ["--ring-y", table.offsetTop], ["--ring-w", head.offsetWidth], ["--ring-h", table.offsetHeight]].forEach(([k, px]) => ring.style.setProperty(k, `${px}px`));
+      /* rpt-col-ring-v2 (user): the column's OWN header cell down to the total — a grouped column starts at its second-row
+         header (never across the group label), an ungrouped one at the top */
+      const y = head.getBoundingClientRect().top - table.getBoundingClientRect().top;
+      [["--ring-x", table.offsetLeft + head.offsetLeft], ["--ring-y", table.offsetTop + y], ["--ring-w", head.offsetWidth], ["--ring-h", table.offsetHeight - y]].forEach(([k, px]) => ring.style.setProperty(k, `${px}px`));
       wrap.prepend(ring);
     }
     if (scroll && head && wrap) {
