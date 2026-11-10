@@ -600,7 +600,7 @@
           : i === 1 ? `<li class="e-permits-doc-cond__join e-permits-doc-kwselect" data-fo-list-min="120">${sel(`${idp}-logic`, "data-wid-rule-logic", "și", [["and", "și"], ["or", "sau"]], block.logic || "and", { lbl: "Combinarea condițiilor" })}</li>`
           : `<li class="e-permits-doc-cond__join">${kw(block.logic === "or" ? "sau" : "și")}</li>`}${condRow(r, i)}`).join("")}</ol>
         <div class="e-permits-doc-rule__foot">${add}</div>
-      </div>` : `${E()?.render({ title: "Fără filtru suplimentar", text: v.type === "rowTable" ? "Tabelul cu filtru afișează rândurile sursei care trec de condiții: adaugă cel puțin una." : "Widget-ul ia toate înregistrările sursei din perioada tabloului de bord.", icon: "filter", compact: true, actionHtml: add }) || ""}${e.filter ? errorHtml(`${idp}-filter`, e.filter) : ""}`;
+      </div>` : `${E()?.render({ title: "Fără filtru suplimentar", text: v.type === "rowTable" ? "Tabelul cu filtru afișează rândurile sursei care trec de condiții: adaugă cel puțin una." : "Widget-ul ia toate înregistrările sursei din perioada tabloului de bord.", icon: "filter-lines", compact: true, actionHtml: add }) || ""}${e.filter ? errorHtml(`${idp}-filter`, e.filter) : ""}`;
   }
 
   /* ---- the chart-type gallery (NEW `.e-permits-wid-types`: the selectable option card, radio variant, + a type glyph) */

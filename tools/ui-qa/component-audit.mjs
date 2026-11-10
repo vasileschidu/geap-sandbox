@@ -20,6 +20,7 @@
 //   4. copy — copy-variant / copy-in-list / missing-copy (spec.copy).
 //   5. back navigation — crumb-trail / back-link (spec.backNav).
 //   6. action icons — action-icon / action-icon-colour (spec.actionIcons).
+//  13. filter-icon (major): a visible sliders `#icon-filter` — the filter glyph is always `icon-filter-lines` (filter-2).
 //   8. tooltips — tooltip-private / tooltip-title / tooltip-arrow / tooltip-look / tooltip-centered (spec.tooltip): ONE
 //      runtime, js/icon-tooltip.js (tooltip-one-v1), ONE look css/tooltip.css, edge-aligned (tooltip-edge-v1).
 //   9. drawers — drawer-private (spec.drawer): ONE drawer, .drawer-overlay > aside.drawer (drawer-v1).
@@ -681,6 +682,15 @@ const PAGE_LIB = (spec, documentedList) => {
       const isChip = el.matches(".chip.e-permits-filter-trigger.e-permits-sort-trigger");
       if (!isChip && (/^Sortează[: ]/.test(label) || hasSortIcon) && !el.matches("[data-workplace-sort], [data-rgv-sort]") && !el.closest(".e-permits-sort-menu, [role=menu]")) add("major", "sort-trigger", el, `${el.className.toString().slice(0, 60)} — not the shared sort chip`, "chip e-permits-filter-trigger e-permits-sort-trigger (GEAPSortSheet.controlHtml)");
       else if (isChip && (el.classList.contains("is-selected") || el.querySelector(".chip__badge:not([hidden]), .e-permits-workplace__filter-caret"))) add("major", "sort-trigger", el, "sort chip selected / with badge or chevron", "never black, no chevron");
+    }
+    /* 13. filter-icon (filter-icon-v1, 2026-11-10, memory „Filtre = filter chip”): every filter glyph = Foundations filter-2
+       (lines, sprite `icon-filter-lines`), NEVER the sliders `icon-filter` / `20/filter` — chips, empty states, menus, buttons */
+    for (const u of qsa("use")) {
+      const href = u.getAttribute("href") || u.getAttribute("xlink:href") || "";
+      if (!/#icon-filter$/.test(href)) continue;
+      const svg = u.closest("svg");
+      if (!svg || ignored(svg) || !vis(svg)) continue;
+      add("major", "filter-icon", svg, "sliders glyph icon-filter", "icon-filter-lines (Foundations filter-2, lines)");
     }
     /* 6. action icons: „Editează…” = icon-edit, „Elimină… / Șterge…” = icon-delete, icon = label colour */
     const AI = spec.actionIcons;

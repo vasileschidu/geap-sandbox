@@ -861,7 +861,8 @@
     "inline-svg-icon": "icons come from the sprite: `<svg class=\"icon\"><use href=\"…#icon-name\"></use></svg>`; a missing glyph is added to the sprite once.",
     "role-button": "a clickable thing is a `<button type=\"button\">` (or a link) — never `role=button` on a div / span / li.",
     "native-title": "no native `title=` tooltips on controls: the library tooltip (`data-tooltip-label` + js/icon-tooltip.js) or a visible label.",
-    "monospace": "no monospace (memory „No monospace”): Onest everywhere; codes = neutral tag / copy value. Only rule-builder keywords `code.e-permits-doc-kw` are mono."
+    "filter-icon": "the filter glyph is ALWAYS Foundations filter-2 = sprite `icon-filter-lines` (three shortening lines), never the sliders `icon-filter` / Figma 20/filter (memory „Filtre = filter chip”): `icon(\"filter-lines\")`, empty states `icon: \"filter-lines\"`.",
+        "monospace": "no monospace (memory „No monospace”): Onest everywhere; codes = neutral tag / copy value. Only rule-builder keywords `code.e-permits-doc-kw` are mono."
   },
   "libraryStatic": [
     ".status-tag",

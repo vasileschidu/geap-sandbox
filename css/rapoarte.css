@@ -867,16 +867,24 @@
   padding: 0;
 }
 
+/* rpt-cond-v2 (user: narrow column): the connector is its own line ABOVE the condition (8 apart), the condition takes the
+   full width */
 .e-permits-rpt-cond-item {
-  display: grid;
+  display: flex;
+  flex-direction: column;
   gap: var(--spacing-8, 8px);
-  grid-template-columns: var(--spacing-64, 64px) minmax(0, 1fr);
+  min-width: 0;
 }
 
 .e-permits-rpt-cond-item__conn {
   align-items: flex-start;
   display: flex;
-  padding-top: var(--spacing-24, 24px);
+}
+
+/* the item whose menu is open paints above the next items (their surfaces isolate) */
+.e-permits-rpt-cond-item:has([data-stack-menu]:not([hidden])) {
+  position: relative;
+  z-index: 30;
 }
 
 .e-permits-rpt-cond-item.is-dragging {
@@ -896,7 +904,7 @@
   border-radius: var(--border-radius-12, 12px);
   display: grid;
   gap: var(--spacing-8, 8px) var(--spacing-12, 12px);
-  grid-template-columns: auto minmax(0, 1fr) minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   min-width: 0;
   padding: var(--spacing-16, 16px);
 }
@@ -907,14 +915,12 @@
   container-type: inline-size;
 }
 
+/* the foot: order lead (handle + position) + „Alege la generare” left, ↑ ↓ 🗑 right */
 .e-permits-rpt-cond__lead {
   align-items: center;
-  align-self: start;
   cursor: grab;
   display: flex;
-  grid-column: 1;
-  grid-row: 1 / span 3;
-  height: var(--spacing-40, 40px);
+  gap: var(--spacing-12, 12px);
 }
 
 .e-permits-rpt-cond__cell {
@@ -925,19 +931,19 @@
 }
 
 .e-permits-rpt-cond__field {
-  grid-column: 2 / -1;
+  grid-column: 1 / -1;
 }
 
 .e-permits-rpt-cond__op {
-  grid-column: 2;
+  grid-column: 1;
 }
 
 .e-permits-rpt-cond__val {
-  grid-column: 3;
+  grid-column: 2;
 }
 
 .e-permits-rpt-cond__val.is-wide {
-  grid-column: 2 / -1;
+  grid-column: 1 / -1;
 }
 
 .e-permits-rpt-cond__pair {
@@ -957,7 +963,7 @@
   display: flex;
   flex-wrap: wrap;
   gap: var(--spacing-8, 8px);
-  grid-column: 2 / -1;
+  grid-column: 1 / -1;
   justify-content: space-between;
 }
 
@@ -995,7 +1001,6 @@
 
 .e-permits-rpt-cgroup__add {
   display: flex;
-  padding-left: calc(var(--spacing-64, 64px) + var(--spacing-8, 8px));
 }
 
 .e-permits-rpt-conds__add {
@@ -1018,6 +1023,23 @@
   flex: 1 1 auto;
   min-width: 0;
   text-align: left;
+  white-space: normal;
+}
+
+/* rpt-cond-v2 (user): never narrower than the trigger, as wide as the longest value up to 360 / the screen (labels wrap to
+   2 lines, never cut); left edge on the trigger, `.is-flip-x` = right edge (set by js when it would leave the screen) */
+.e-permits-rpt-rich.e-permits-rpt-multi > .e-permits-stack__menu.e-permits-rpt-multi__menu {
+  left: 0;
+  max-width: var(--rpt-menu-max, min(calc(var(--spacing-40, 40px) * 9), calc(100vw - var(--spacing-32, 32px))));
+  min-width: min(100%, var(--rpt-menu-max, 100%));
+  right: auto;
+  width: max-content;
+  z-index: 30;
+}
+
+.e-permits-rpt-rich.e-permits-rpt-multi > .e-permits-stack__menu.e-permits-rpt-multi__menu.is-flip-x {
+  left: auto;
+  right: 0;
 }
 
 /* „Condiții: …” under the preview's data line (its own grid row, one line, tooltip with the whole sentence) */
@@ -1030,21 +1052,6 @@
 }
 
 @media (max-width: 760px) {
-  .e-permits-rpt-cond-item {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  .e-permits-rpt-cond-item__conn {
-    padding-top: var(--spacing-0, 0px);
-  }
-
-  .e-permits-rpt-cgroup__add {
-    padding-left: var(--spacing-0, 0px);
-  }
-
-  .e-permits-rpt-cond__lead {
-    height: var(--spacing-48, 48px);
-  }
 
   .e-permits-rpt-cond__slot {
     font-size: var(--font-size-fs-16, 16px);
@@ -1061,7 +1068,7 @@
 @container (max-width: 280px) {
   .e-permits-rpt-cond__op,
   .e-permits-rpt-cond__val {
-    grid-column: 2 / -1;
+    grid-column: 1 / -1;
   }
 }
 

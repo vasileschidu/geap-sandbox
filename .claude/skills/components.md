@@ -12446,6 +12446,17 @@ Autoritate (one or more authorities). **Reuse map** (no new engine):
   (4) „Previzualizare” + its data line = heading / subtitle pair, 4 apart, 16 to the card. (5) Table lines: exactly one 1px
   line between rows; no group-edge vertical on the first / last column; the row above the total has no bottom line.
   (6) Removed: the section jump links, the notes under the column list and the filter builder.
+- **Condition builder v2 (rpt-cond-v2, 2026-11-10, user review)** — supersedes the layout of rpt-cond-v1 below: the connector
+  („Unde” / „și / sau”) is its own line ABOVE each condition (8 apart, outside the surface); inside the surface: Câmp full
+  width → Condiție | Valoare (2 columns, stacked ≤ 280) → foot = order lead (handle + position) + „Alege la generare” left,
+  ↑ ↓ 🗑 right. Values menu `.e-permits-rpt-multi__menu`: min-width = trigger, `max-content` ≤ 360 / screen − 32, labels wrap
+  (never cut), left edge on the trigger or flipped to its right edge (js picks the side with room and caps the width,
+  `--rpt-menu-max`); items carry the PLAIN library checkbox (`span.checkbox.checkbox--medium` › `input.checkbox-input` +
+  `span.checkbox-custom`, as the facet checklist — no check-option paint); the item with an open menu is lifted
+  (`:has([data-stack-menu]:not([hidden]))` z 30) so the next rows never show through. Empty: „Nicio condiție” + „Adaugă o
+  condiție ca să limitezi rândurile raportului, de ex. «Canal de depunere este Online».” + „Adaugă condiție”; „Adaugă grup de
+  condiții” = `btn-text-primary btn-sm`, only from 2 conditions. Every filter glyph = `icon-filter-lines` (filter-2), never
+  the sliders `icon-filter` (component audit rule 13 `filter-icon`, major).
 - **Filters = the inline condition builder (rpt-cond-v1, 2026-11-10, PO Alexandru; Notion / Airtable / Linear / Metabase) —
   REPLACES the stacked filter list + filter drawer, the filter rows hover and the filter order bullets below (kept as
   history).** Model: `config.filters` = items `{ id, field, op, value, value2, values[], ask }` or one-level groups `{ id,

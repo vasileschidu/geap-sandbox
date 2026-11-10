@@ -663,7 +663,7 @@
           : i === 1 ? `<li class="e-permits-doc-cond__join e-permits-doc-kwselect" data-fo-list-min="120">${sel(`${idp}-${part}-logic`, `data-kpi-rule-logic="${part}"`, "și", [["and", "și"], ["or", "sau"]], block.logic || "and", { label: "Combinarea condițiilor" })}</li>`
           : `<li class="e-permits-doc-cond__join">${kw(block.logic === "or" ? "sau" : "și")}</li>`}${condRow(r, i)}`).join("")}</ol>
         <div class="e-permits-doc-rule__foot">${add}</div>
-      </div>` : E()?.render({ title: "Fără filtru", text: part === "num" ? "Fără filtru, numărătorul ia toate înregistrările sursei din perioadă." : "Fără filtru, numitorul ia toate înregistrările sursei din perioadă.", icon: "filter", compact: true, actionHtml: add }) || "";
+      </div>` : E()?.render({ title: "Fără filtru", text: part === "num" ? "Fără filtru, numărătorul ia toate înregistrările sursei din perioadă." : "Fără filtru, numitorul ia toate înregistrările sursei din perioadă.", icon: "filter-lines", compact: true, actionHtml: add }) || "";
   }
 
   /* ================================================================ form sections (create drawer + profile) */

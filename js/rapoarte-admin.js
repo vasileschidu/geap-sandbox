@@ -7,7 +7,7 @@
    PART 1 (this file, rpt-v1): the list (US-467), the create sheet (US-466: Date generale · Coloane · Structură ·
    Revizuire), the column builder (side panels: the data dictionary of the source + the column panel with the formula
    picker), the live preview table (two-level header, „Inclusiv” columns, group rows + subtotals, total row, calculated
-   cells formatted, manual columns marked), the profile page (US-468: Configurare editable + preview; Versiuni / Istoric
+   cells formatted), the profile page (US-468: Configurare editable + preview; Versiuni / Istoric
    = minimal timelines). PART 2 plugs in through `window.GEAPRapoarte.hooks` (see the end of the file): publish dialog,
    versions tab + restore, deactivate / activate, access grants, clone — every button of those actions is rendered only
    when its hook exists, so part 1 never shows a dead control.
@@ -27,14 +27,24 @@
    Routes: #rapoarte (list) · #raport/<id>/<configurare|versiuni|istoric> · #raport/nou.
    Demo switch ?raport= (comma list): fara-permisiune · gol · eroare (every save fails).
 
+   rpt-feature-v1 (2026-11-10, user: „make it match the Feature”) — aligned with the Feature text:
+     · column kinds = Din sursa de date / Calculată only (the Feature comment removed the manual columns);
+     · filters = per COLUMN, as in Registre (column panel: „Filtrabilă” + „Tipul filtrului” Text / Alegere unică /
+       Alegere multiplă / Interval de date, only the types the field supports); chips above the preview in column order
+       (first 4 + „Mai multe”), Text filters = the search field above them (the BO register search);
+     · grouping = ONE column, a subtotal per group;
+     · Nivel is generated: Global for the Administrator central (optional authorities, none = all), Autoritate (the
+       user's own) for anyone else; clone = same category (read-only on a copy);
+     · the formula set = the formulas of the reports the user can clone, on the same source; „Formulă nouă” for every
+       author, it enters the set when the report is saved; an identical formula is kept once.
+     (The PO-chat extras — multi-level grouping, și / sau conditions, fixed conditions — stay in git history:
+     rpt-levels-v1 910b8635, rpt-cond-v1 39c8a25d.)
+
    Interpretations (open for PO / BA — listed in components.md › „Rapoarte”):
-     · „Completată manual”: config only — the column exists, the preview shows „—” + a „Manual” tag; where the values are
-       stored and who enters them is the BA's open question (Feature comment 2);
      · „Inclusiv” = a breakdown of the nearest «Se adună în total» measure column to its left (the statistical form
        „Total, inclusiv: …”): its header is nested („inclusiv”), its values are parts of that column;
      · a «Numeric» column on a text / date source field = the number of records with a value in that field;
-     · the Administrator central chooses the level (Global / Autoritate + authorities); any other user creates at his
-       authority only; a report shared by several authorities is read-only for each of them.
+     · a Global report with no authority chosen = every authority; „identical formula” = same expression + format.
    ===================================================================================== */
 (function () {
   "use strict";
@@ -76,40 +86,26 @@
   const SAVE_FAILED = "Raportul nu a putut fi salvat.";
   const NAME_MAX = 150;
   const TEXT_MAX = 500;
-  const MANUAL_HINT = "Valorile se completează la generarea raportului.";
 
   /* ---------------------------------------------------------------- the Feature's classifiers */
   const CATEGORIES = [
     ["tabelar", "Rapoarte tabelare", "Rânduri din sursa de date, cu coloane, totaluri și subtotaluri."],
     ["statistic", "Rapoarte statistice", "Indicatori agregați pe categorii, ca în formularele statistice."]
   ];
-  /* rpt-rich-select-v1: the icons of the rich dropdowns (Categoria, Nivel) */
+  /* rpt-rich-select-v1: the icons of the rich dropdown (Categoria) */
   const CATEGORY_ICON = { tabelar: "list-bullets", statistic: "chart" };
-  const LEVEL_ICON = { Global: "globe", Autoritate: "business" };
-  const LEVELS = [
-    ["Global", "Global", "Pentru toate autoritățile; îl modifică doar Administratorul central."],
-    ["Autoritate", "Autoritate", "Pentru una sau mai multe autorități alese."]
-  ];
+  /* Feature model «Coloana raportului»: Din sursa de date / Calculată (no manual columns — Feature comment, 2026-11) */
   const KINDS = [
     ["source", "Din sursa de date", "Valoarea unui câmp al sursei de date."],
-    ["calc", "Calculată", "Rezultatul unei formule din setul de formule."],
-    ["manual", "Completată manual", "Fără valoare din sistem: se completează la generare."]
+    ["calc", "Calculată", "Rezultatul unei formule din setul de formule."]
   ];
-  const KIND_TAG = { source: ["Din sursă", "neutral"], calc: ["Calculată", "brand"], manual: ["Manual", "warning"] };
+  const KIND_TAG = { source: ["Din sursă", "neutral"], calc: ["Calculată", "brand"] };
   const DATA_TYPES = [["numeric", "Numeric"], ["value", "Valoric"], ["temporal", "Temporal"], ["text", "Text"]];
   const TOTALS = [["sum", "Se adună în total", "Valorile coloanei intră în subtotaluri și în rândul de total."], ["incl", "Inclusiv", "Detaliază coloana «Se adună în total» din stânga ei („din care”)."]];
-  /* rpt-cond-v1 (2026-11-10, PO: inline filters with „și / sau”; Notion / Airtable / Linear / Metabase filter builder): a
-     condition = „Unde [Câmp] [Condiție] [Valoare]”; the operators follow the field's kind; „Alege la generare” leaves the
-     value empty → the condition becomes a filter chip above the report (number fields always take a fixed value) */
-  const COND_KIND = { enum: "list", text: "text", date: "date", duration: "number", amount: "number", number: "number" };
-  const COND_OPS = {
-    list: [["is", "este"], ["not", "nu este"]],
-    text: [["contains", "conține"], ["is", "este"]],
-    date: [["between", "între"], ["before", "înainte de"], ["after", "după"], ["last", "în ultimele N zile"]],
-    number: [["eq", "="], ["neq", "≠"], ["gt", ">"], ["lt", "<"], ["between", "între"]]
-  };
-  const ASK_OPS = { list: ["is", "not"], text: ["is"], date: ["between"], number: [] };
-  const NO_ASK = "Un câmp numeric primește o valoare fixă: alege condiția și valoarea.";
+  /* rpt-feature-v1: the filter of a column = the Registre filter types (js/registre-admin.js FILTERS, registre.js
+     FILTER_SUPPORT): a field type offers only the types it supports; number / duration / sum fields are not filterable */
+  const FILTERS = [["text", "Text"], ["single", "Alegere unică"], ["multi", "Alegere multiplă"], ["date", "Interval de date"]];
+  const FILTER_SUPPORT = { text: ["text"], enum: ["single", "multi"], date: ["date"] };
   const FORMATS = [["int", "Număr întreg"], ["amount", "Sumă"], ["percent", "Procent"], ["days", "Zile"]];
   const RESULT_TEXT = { int: "Număr întreg", amount: "Sumă, cu două zecimale", percent: "Procent, cu o zecimală", days: "Zile întregi" };
   const FORMAT_TYPE = { int: "numeric", amount: "value", percent: "numeric", days: "numeric" };
@@ -125,14 +121,23 @@
   };
   const isMeasure = (c) => c && (c.dataType === "numeric" || c.dataType === "value");
   const isDim = (c) => c && (c.dataType === "text" || c.dataType === "temporal");
-  /* rpt-group-v1: rows group by a Text column from the source (numeric / calculated / manual columns have no group toggle) */
+  /* rpt-group-v1: rows group by a Text column from the source (numeric / calculated columns have no group toggle) */
   const groupable = (c) => Boolean(c) && c.kind === "source" && c.dataType === "text";
-  /* rpt-levels-v1 (2026-11-10, PO: „autoritatea → subdiviziune → serviciu”; Salesforce „Group rows” / Excel subtotals):
-     `groupBy` = an ORDERED list of up to 3 column ids (level 1 first); one Text column always stays ungrouped (the rows
-     are listed by it) */
-  const MAX_LEVELS = 3;
-  const levelCols = (v) => (v.groupBy || []).map((id) => colOf(v, id)).filter(groupable);
-  const levelsText = (v) => levelCols(v).map(colName).join(" › ");
+  /* rpt-feature-v1: Feature «Gruparea rândurilor» = ONE column („Coloana după care se formează grupurile”), a subtotal per
+     group. `groupBy` stays a list (the preview's bucketing works per level) holding at most one column id; one Text
+     column always stays ungrouped (the rows are listed by it). The 3-level version = rpt-levels-v1 in git history. */
+  const MAX_LEVELS = 1;
+  const levelCols = (v) => (v.groupBy || []).map((id) => colOf(v, id)).filter(groupable).slice(0, MAX_LEVELS);
+  const levelsText = (v) => levelCols(v).map(colName).join(", ");
+  /* the filter types a column offers (its source field's type) and the configured filters, in column order */
+  const filterTypes = (v, c) => (c && c.kind === "source" ? FILTER_SUPPORT[fieldOf(v.source, c.field)?.type] || [] : []);
+  const fltCols = (v) => v.columns.filter((c) => c.filter && filterTypes(v, c).includes(c.filter));
+  const chipCols = (v) => fltCols(v).filter((c) => c.filter !== "text");
+  const textCols = (v) => fltCols(v).filter((c) => c.filter === "text");
+  /* a filter the column no longer supports (other field / kind / source) is dropped */
+  const syncFilters = (v) => v.columns.forEach((c) => { if (c.filter && !filterTypes(v, c).includes(c.filter)) c.filter = null; });
+  /* the BO register search placeholder (registre.js searchPlaceholder) */
+  const searchText = (v) => `Caută după ${textCols(v).slice(0, 3).map((c) => colName(c).toLocaleLowerCase("ro")).join(", ")}`;
 
   const params = new URLSearchParams(window.location.search);
   const demo = new Set(String(params.get("raport") || "").split(",").map((s) => s.trim()).filter(Boolean));
@@ -153,17 +158,21 @@
   const blankConfig = (me = who()) => ({
     names: { ro: "", ru: "", en: "" }, descriptions: { ro: "", ru: "", en: "" },
     category: "", source: "", level: me.central ? "Global" : "Autoritate", authorities: me.central ? [] : [me.authority],
-    columns: [], groupBy: [], filters: [], totalRow: true
+    columns: [], groupBy: [], totalRow: true
   });
   const normal = (c) => {
     const base = blankConfig({ central: true });
     const v = { ...base, ...c, names: { ...base.names, ...c.names }, descriptions: { ...base.descriptions, ...c.descriptions } };
-    v.columns = (v.columns || []).map((col) => ({ names: { ro: "", ru: "", en: "" }, kind: "source", field: "", formula: "", operands: {}, dataType: "text", header: "", total: "sum", ...col, names: { ro: "", ru: "", en: "", ...col.names }, operands: { ...(col.operands || {}) } }));
-    /* rpt-cond-v1: conditions + one-level groups; a legacy filter { field, type } = an „Alege la generare” condition */
-    let seq = 0;
-    const cond = (f) => ({ id: f.id || `f${seq += 1}`, field: f.field || "", op: f.op || (f.type === "date" ? "between" : f.type ? "is" : ""), value: String(f.value ?? ""), value2: String(f.value2 ?? ""), values: [...(f.values || [])], ask: f.ask ?? Boolean(f.type) });
-    v.filters = (v.filters || []).map((f) => (f.group ? { id: f.id || `g${seq += 1}`, group: true, conj: f.conj === "or" ? "or" : "and", rules: (f.rules || []).filter((x) => !x.group).map(cond) } : cond(f))).filter((f) => !f.group || f.rules.length);
-    v.filterConj = v.filterConj === "or" ? "or" : "and";
+    /* rpt-feature-v1: a legacy manual column is dropped (and emptied from the formulas that used it) */
+    const gone = new Set((v.columns || []).filter((col) => col.kind === "manual").map((col) => col.id));
+    v.columns = (v.columns || []).filter((col) => !gone.has(col.id)).map((col) => ({ names: { ro: "", ru: "", en: "" }, kind: "source", field: "", formula: "", operands: {}, dataType: "text", header: "", total: "sum", filter: null, ...col, names: { ro: "", ru: "", en: "", ...col.names }, operands: Object.fromEntries(Object.entries(col.operands || {}).map(([k, id]) => [k, gone.has(id) ? "" : id])) }));
+    /* a legacy report-level filter { field, type } moves onto the first column of that field (filters live on columns) */
+    (Array.isArray(v.filters) ? v.filters : []).forEach((f) => {
+      const col = !f.group && f.type && v.columns.find((x) => x.kind === "source" && x.field === f.field && !x.filter);
+      if (col) col.filter = f.type;
+    });
+    delete v.filters; delete v.filterConj;
+    syncFilters(v);
     v.authorities = [...(v.authorities || [])];
     v.groupBy = (Array.isArray(v.groupBy) ? v.groupBy : v.groupBy ? [v.groupBy] : []).slice(0, MAX_LEVELS);
     return v;
@@ -199,7 +208,8 @@
   const D = () => S.data || { reports: [], formulas: [], authorities: [], roles: [] };
   const all = () => D().reports;
   const reportOf = (id) => all().find((r) => r.id === id) || null;
-  const visible = (r, me = who()) => me.central || r.config.level === "Global" || r.config.authorities.includes(me.authority);
+  /* a Global report with authorities = assigned to those (none = all); an Autoritate report = its own authority */
+  const visible = (r, me = who()) => me.central || (r.config.level === "Global" ? !r.config.authorities.length || r.config.authorities.includes(me.authority) : r.config.authorities.includes(me.authority));
   const reports = () => (who().has ? all().filter((r) => visible(r)) : []);
   const sources = () => K().sources?.() || [];
   const sourceOf = (id) => sources().find((s) => s.id === id) || null;
@@ -207,13 +217,17 @@
   const fieldsOf = (id) => (id ? K().fields?.(id) || [] : []);
   const fieldOf = (src, key) => fieldsOf(src).find((f) => f.key === key) || null;
   const formulas = () => D().formulas;
-  const formulaOf = (id) => formulas().find((f) => f.id === id) || null;
+  /* „Formulă nouă” waits in P.newFormulas until the report is saved (Feature: „intră în set la salvarea raportului”) */
+  const formulaOf = (id) => formulas().find((f) => f.id === id) || (P.newFormulas || []).find((f) => f.id === id) || null;
   const formulaFits = (f, src) => !f.sources || f.sources.includes(src);
+  /* an identical formula = the same expression (spaces / × * / − - ignored) and the same result format */
+  const exprKey = (x) => String(x || "").replace(/\s+/g, "").replace(/×/g, "*").replace(/−/g, "-").replace(/÷/g, "/").toUpperCase();
+  const sameFormula = (a, b) => exprKey(a.expr) === exprKey(b.expr) && a.format === b.format;
   const colOf = (v, id) => v.columns.find((c) => c.id === id) || null;
   const colName = (c) => c?.names.ro || "Coloană fără denumire";
   const lastVersion = (r) => r.versions[r.versions.length - 1] || null;
   const unpublished = (r) => Boolean(lastVersion(r)) && !same(r.config, lastVersion(r).config);
-  const levelText = (v) => (v.level === "Global" ? "Global" : `Autoritate · ${v.authorities.map(authName).join(", ") || "—"}`);
+  const levelText = (v) => (v.level === "Global" ? (v.authorities.length ? `Global · ${v.authorities.map(authName).join(", ")}` : "Global") : `Autoritate · ${v.authorities.map(authName).join(", ") || "—"}`);
 
   /* ---------------------------------------------------------------- permissions per report (Feature AC) */
   const canCreate = () => who().has;
@@ -221,12 +235,22 @@
     const me = who();
     if (!me.has || !r) return false;
     if (me.central) return true;
-    /* any other user: only his own authority's report (a report shared with other authorities stays read-only) */
-    return r.config.level !== "Global" && r.config.authorities.length === 1 && r.config.authorities[0] === me.authority;
+    /* any other user: only his own authority's report; global reports are read-only (he clones them) */
+    return r.config.level !== "Global" && r.config.authorities.includes(me.authority);
   };
-  /* Proposal for PO: „Formulă nouă” — Feature assumption „Administratorul Central poate adăuga formule noi”; the
-     authoring UI (name + expression on A, B, C… + result format, a simple dialog) is not specified anywhere yet */
-  const canAddFormula = () => who().central;
+  /* Feature: „Autoritatea alege formula din setul de formule disponibile sau adaugă o formulă nouă” — every author */
+  const canAddFormula = () => who().has;
+  /* Feature: „setul oferă doar formulele din rapoartele pe care utilizatorul le poate clona, construite pe aceeași sursă
+     de date” — the formulas used by the visible reports on that source + the ones saved with them (origin) + this
+     report's new ones; one per identical expression */
+  function formulaSet(v) {
+    const mine = reports().filter((r) => r.config.source === v.source);
+    const used = new Set(mine.flatMap((r) => r.config.columns.filter((c) => c.kind === "calc").map((c) => c.formula)));
+    const origins = new Set(mine.map((r) => r.id));
+    v.columns.forEach((c) => { if (c.kind === "calc" && c.formula) used.add(c.formula); });
+    const list = [...formulas(), ...(P.newFormulas || [])].filter((f) => formulaFits(f, v.source) && (used.has(f.id) || origins.has(f.origin) || (P.newFormulas || []).includes(f)));
+    return list.filter((f, i) => list.findIndex((x) => sameFormula(x, f)) === i);
+  }
 
   /* ================================================================ validation (Feature models) */
   /* the «Se adună în total» measure column an «Inclusiv» column details: the nearest one to its left */
@@ -238,59 +262,6 @@
       if (p.total === "sum") return p;
     }
     return null;
-  }
-  /* ---- conditions (rpt-cond-v1) */
-  const flatConds = (v) => (v.filters || []).flatMap((x) => (x.group ? x.rules : [x]));
-  const condKind = (v, c) => COND_KIND[fieldOf(v.source, c.field)?.type] || "";
-  const opOf = (v, c) => { const k = condKind(v, c); const ops = (COND_OPS[k] || []).map(([o]) => o); return ops.includes(c.op) ? c.op : ops[0] || ""; };
-  const opText = (v, c) => label(COND_OPS[condKind(v, c)] || [], opOf(v, c));
-  const canAsk = (v, c) => Boolean(c.field) && (ASK_OPS[condKind(v, c)] || []).length > 0;
-  const asking = (v, c) => Boolean(c.ask) && canAsk(v, c);
-  /* the conditions that become chips above the report, in the builder's order */
-  const askConds = (v) => flatConds(v).filter((c) => asking(v, c) && fieldOf(v.source, c.field));
-  const fldLabel = (v, c) => fieldOf(v.source, c.field)?.label || c.field;
-  const chipLabel = (v, c) => (opOf(v, c) === "not" ? `${fldLabel(v, c)} · nu este` : fldLabel(v, c));
-  const roDate = (iso) => (iso ? longDate(`${iso}T12:00:00`) : "");
-  /* what a fixed condition misses ("" = complete) — the field error texts */
-  function condMissing(v, c) {
-    const k = condKind(v, c);
-    const op = opOf(v, c);
-    if (!c.field) return "Alege câmpul.";
-    if (!k) return "Câmpul nu există în sursa de date aleasă.";
-    if (asking(v, c)) return "";
-    if (k === "list") return c.values.length ? "" : "Alege cel puțin o valoare.";
-    if (k === "text") return String(c.value).trim() ? "" : "Introdu textul.";
-    if (k === "number") {
-      const bad = (x) => String(x).trim() === "" || Number.isNaN(Number(String(x).replace(",", ".")));
-      if (op === "between") return bad(c.value) || bad(c.value2) ? "Introdu ambele valori." : Number(String(c.value).replace(",", ".")) > Number(String(c.value2).replace(",", ".")) ? "Prima valoare trebuie să fie cel mult a doua." : "";
-      return bad(c.value) ? "Introdu valoarea." : "";
-    }
-    if (op === "last") return /^\d+$/.test(String(c.value).trim()) && Number(c.value) > 0 ? "" : "Introdu numărul de zile.";
-    if (op === "between") return !c.value || !c.value2 ? "Alege ambele date." : c.value > c.value2 ? "„De la” trebuie să fie înainte de „Până la”." : "";
-    return c.value ? "" : "Alege data.";
-  }
-  const condComplete = (v, c) => !condMissing(v, c);
-  /* „Condiții: …” — the fixed conditions as one sentence (groups in parentheses) */
-  function condSentence(v, c) {
-    const k = condKind(v, c);
-    const op = opOf(v, c);
-    const f = fldLabel(v, c);
-    if (k === "list") return `${f} ${opText(v, c)} ${c.values.join(", ")}`;
-    if (k === "text") return `${f} ${opText(v, c)} „${String(c.value).trim()}”`;
-    if (k === "number") return op === "between" ? `${f} între ${c.value} și ${c.value2}` : `${f} ${opText(v, c)} ${c.value}`;
-    if (op === "last") return `${f} în ultimele ${plural(Number(c.value), "zi", "zile")}`;
-    if (op === "between") return `${f} între ${roDate(c.value)} și ${roDate(c.value2)}`;
-    return `${f} ${opText(v, c)} ${roDate(c.value)}`;
-  }
-  const fixed = (v, c) => !asking(v, c) && condComplete(v, c);
-  function condsText(v) {
-    const word = (conj) => (conj === "or" ? " sau " : " și ");
-    const parts = (v.filters || []).map((x) => {
-      if (!x.group) return fixed(v, x) ? condSentence(v, x) : "";
-      const inner = x.rules.filter((c) => fixed(v, c)).map((c) => condSentence(v, c));
-      return inner.length > 1 ? `(${inner.join(word(x.conj))})` : inner[0] || "";
-    }).filter(Boolean);
-    return parts.join(word(v.filterConj));
   }
   function columnErrors(v, c) {
     const e = {};
@@ -329,11 +300,7 @@
       v.columns.forEach((c) => { const ce = columnErrors(v, c); if (Object.keys(ce).length) e[`col.${c.id}`] = ce; });
     }
     if (steps.includes(3)) {
-      if (v.groupBy.some((id) => !colOf(v, id))) e.groupBy = "O coloană de grupare nu mai este în raport.";
-      flatConds(v).forEach((c) => {
-        const m = condMissing(v, c);
-        if (m) e[`filter.${c.id}.${!c.field || !condKind(v, c) ? "field" : "value"}`] = m;
-      });
+      if (v.groupBy.some((id) => !colOf(v, id))) e.groupBy = "Coloana de grupare nu mai este în raport.";
     }
     return e;
   }
@@ -394,8 +361,7 @@
       if (c.kind === "calc") return;
       const h = hash(`${c.id}|${rowKey}|${c.field || c.formula || ""}`);
       const f = c.kind === "source" ? fieldOf(v.source, c.field) : null;
-      if (c.kind === "manual") out[c.id] = null;
-      else if (labels[c.id] != null) out[c.id] = labels[c.id];
+      if (labels[c.id] != null) out[c.id] = labels[c.id];
       else if (c.dataType === "text") out[c.id] = f?.type === "enum" && f.values.length ? f.values[h % f.values.length] : f?.type === "text" ? `D-2026-${String(1000 + (h % 9000)).padStart(5, "0")}` : "—";
       else if (c.dataType === "temporal") out[c.id] = BASE_DAY + ((isLate(c.field) ? 160 : 0) + (h % 120)) * DAY;
       else if (c.dataType === "value") out[c.id] = 1500 + (h % 48000) + (h % 100) / 100;
@@ -446,7 +412,7 @@
   function aggregateRows(v, rows) {
     const out = {};
     v.columns.forEach((c) => {
-      if (c.kind === "calc" || c.kind === "manual" || c.dataType === "text") { out[c.id] = null; return; }
+      if (c.kind === "calc" || c.dataType === "text") { out[c.id] = null; return; }
       const xs = rows.map((r) => r[c.id]).filter((x) => typeof x === "number");
       if (!xs.length) { out[c.id] = null; return; }
       if (c.dataType === "temporal") out[c.id] = isLate(c.field) ? Math.max(...xs) : Math.min(...xs);
@@ -477,18 +443,16 @@
     }
     return esc(c.dataType === "value" ? nf(x, 2) : nf(Math.round(x)));
   }
-  /* ---- rpt-filters-v1 (2026-11-10, user): the „Filtre la generare” work on the preview. Every demo row stands for RECS
-     records of the source; a record carries a value for each filter field (the row's own value when the field is one of
-     its Text columns, else a stable demo value; dates spread over 2026). A selection keeps a row when ≥ 1 of its records
-     matches (AND across filters, OR inside one) and scales its counts / sums to the share of matching records; subtotals
-     and the total are recomputed on what is left. */
+  /* ---- rpt-filters-v1 → rpt-feature-v1: the column filters work on the preview. Every demo row stands for RECS records of
+     the source; a record carries a value for each filtered field (the row's own value when the field is one of its Text
+     columns, else a stable demo value; dates spread over 2026). A selection keeps a row when ≥ 1 of its records matches
+     (AND across filters, OR inside one; the Text search = any Text-filter column contains it) and scales its counts / sums
+     to the share of matching records; subtotals and the total are recomputed on what is left. */
   const RECS = 8;
   const DEMO_TODAY = "2026-11-10";
   const isoDay = (ms) => new Date(ms).toISOString().slice(0, 10);
-  /* rpt-cond-v1: every demo record carries a value for each field a condition uses (the row's own value when the field is
-     one of its Text columns; dates spread over 2026; numbers by kind) */
   function recordsOf(v, rowKey, vals) {
-    const keys = [...new Set(flatConds(v).filter((c) => condKind(v, c)).map((c) => c.field))];
+    const keys = [...new Set(fltCols(v).map((c) => c.field))];
     if (!keys.length) return [];
     return Array.from({ length: RECS }, (_, i) => {
       const rec = {};
@@ -498,9 +462,6 @@
         const cv = col ? vals[col.id] : null;
         const h = hash(`${key}|${rowKey}|${i}`);
         if (f.type === "date") rec[key] = isoDay(BASE_DAY + (h % 310) * DAY);
-        else if (f.type === "duration") rec[key] = 1 + (h % 45);
-        else if (f.type === "amount") rec[key] = 100 + (h % 20000);
-        else if (f.type === "number") rec[key] = h % 100;
         else if (typeof cv === "string" && cv) rec[key] = cv;
         else if (f.type === "enum" && f.values.length) rec[key] = f.values[h % f.values.length];
         else rec[key] = `${key === "nr" ? "D" : "N"}-2026-${String(1000 + (h % 9000)).padStart(5, "0")}`;
@@ -509,44 +470,27 @@
     });
   }
   const selEntries = (sel) => Object.entries(sel || {}).filter(([, values]) => values?.length);
-  const num = (x) => Number(String(x).replace(",", "."));
-  /* one condition on one record: true / false, or null = not active (incomplete, or a chip with nothing chosen) */
-  function condOk(v, c, rec, sel) {
-    const k = condKind(v, c);
-    if (!k) return null;
-    const x = rec[c.field];
-    const op = opOf(v, c);
-    if (asking(v, c)) {
-      const vals = sel?.[c.id];
-      if (!vals?.length) return null;
-      if (k === "date") return window.GEAPFacetFilter?.dateMatch ? window.GEAPFacetFilter.dateMatch(vals[0], x, DEMO_TODAY) : true;
-      const hit = vals.includes(x);
-      return op === "not" ? !hit : hit;
+  /* one record against the chips (sel: column id → values) and the Text search (q) */
+  function recMatch(v, rec, sel, q) {
+    const chips = chipCols(v);
+    for (const [key, vals] of selEntries(sel)) {
+      const c = chips.find((x) => x.id === key);
+      if (!c) continue;
+      const x = rec[c.field];
+      if (c.filter === "date" ? !(window.GEAPFacetFilter?.dateMatch ? window.GEAPFacetFilter.dateMatch(vals[0], x, DEMO_TODAY) : true) : !vals.includes(x)) return false;
     }
-    if (!condComplete(v, c)) return null;
-    if (k === "list") { const hit = c.values.includes(x); return op === "not" ? !hit : hit; }
-    if (k === "text") return op === "is" ? fold(x) === fold(c.value).trim() : fold(x).includes(fold(c.value).trim());
-    if (k === "number") {
-      const a = num(c.value);
-      return op === "eq" ? x === a : op === "neq" ? x !== a : op === "gt" ? x > a : op === "lt" ? x < a : x >= a && x <= num(c.value2);
-    }
-    if (op === "last") return x <= DEMO_TODAY && x >= isoDay(Date.UTC(2026, 10, 10) - Number(c.value) * DAY);
-    if (op === "between") return x >= c.value && x <= c.value2;
-    return op === "before" ? x < c.value : x > c.value;
+    const needle = fold(q).trim();
+    if (needle && textCols(v).length && !textCols(v).some((c) => fold(rec[c.field]).includes(needle))) return false;
+    return true;
   }
-  /* AND / OR at each level (one conjunction per level — Airtable); inactive items are skipped */
-  const levelOk = (items, conj, test) => { const rs = items.map(test).filter((r) => r !== null); return rs.length ? (conj === "or" ? rs.some(Boolean) : rs.every(Boolean)) : null; };
-  function recMatch(v, rec, sel) {
-    return levelOk(v.filters || [], v.filterConj, (x) => (x.group ? levelOk(x.rules, x.conj, (c) => condOk(v, c, rec, sel)) : condOk(v, x, rec, sel))) !== false;
-  }
-  const scoped = (v, sel) => selEntries(sel).length > 0 || flatConds(v).some((c) => fixed(v, c));
-  /* rpt-levels-v1: the demo DATA does not depend on the grouping (the Total stays the same whatever the levels): the rows =
+  const scoped = (v, sel, q) => selEntries(sel).length > 0 || Boolean(String(q || "").trim() && textCols(v).length);
+  /* rpt-levels-v1: the demo DATA does not depend on the grouping (the Total stays the same whatever the grouping): the rows =
      combinations of the report's Text columns from the source (values per column, in column order: 1 column → 5, 2 → 3 × 3,
-     3 → 3 × 2 × 2, 4+ → 2 each), measures seeded by the combination; the grouping only nests them — up to 3 levels, groups
-     in first-appearance order, every group = { level, col, value, nodes | rows, leafRows, sub } with its subtotal; a group
-     whose rows are all filtered out disappears */
+     3 → 3 × 2 × 2, 4+ → 2 each), measures seeded by the combination; the grouping only buckets them (one column,
+     rpt-feature-v1), groups in first-appearance order, every group = { level, col, value, rows, leafRows, sub } with its
+     subtotal; a group whose rows are all filtered out disappears */
   const FANS = [[], [5], [3, 3], [3, 2, 2]];
-  function previewModel(v, sel = null) {
+  function previewModel(v, sel = null, q = "") {
     const cols = v.columns;
     const levels = levelCols(v);
     const n = levels.length;
@@ -559,7 +503,7 @@
       dimLabels(v, dims[i], fan[i], seed).forEach((x, j) => walk(i + 1, { ...acc, [dims[i].id]: x }, seed + j + i));
     };
     if (dims.length) walk(0, {}, 0); else combos.push(...[0, 1, 2].map((i) => ({ __row: i })));
-    const filtering = scoped(v, sel);
+    const filtering = scoped(v, sel, q);
     const records = [];
     const rows = combos.map((labels) => {
       const own = { ...labels };
@@ -569,7 +513,7 @@
       const recs = recordsOf(v, key, base);
       records.push(...recs);
       if (!filtering) return base;
-      const k = recs.filter((rec) => recMatch(v, rec, sel)).length;
+      const k = recs.filter((rec) => recMatch(v, rec, sel, q)).length;
       if (!k) return null;
       return k === RECS ? base : rowValues(v, key, own, k / RECS);
     }).filter(Boolean);
@@ -610,7 +554,7 @@
     const two = cols.some((c) => String(c.header || "").trim());
     const cellBody = (c) => {
       const incl = c.total === "incl" && isMeasure(c);
-      const inner = `<span class="e-permits-workplace__th-content e-permits-rpt-table__th"><span class="e-permits-rpt-table__th-text">${incl ? '<span class="e-permits-rpt-table__eyebrow">inclusiv</span>' : ""}<span>${esc(colName(c))}</span></span>${c.kind === "manual" ? tag("Manual", "warning") : ""}</span>`;
+      const inner = `<span class="e-permits-workplace__th-content e-permits-rpt-table__th"><span class="e-permits-rpt-table__th-text">${incl ? '<span class="e-permits-rpt-table__eyebrow">inclusiv</span>' : ""}<span>${esc(colName(c))}</span></span></span>`;
       /* rpt-col-link-v1: in the editor the header is a button → the column's item in „Coloanele raportului” */
       return link ? `<button class="e-permits-rpt-table__col-btn" type="button" data-rpt-col-pick="${esc(c.id)}" aria-label="Coloana ${cols.indexOf(c) + 1}: ${esc(colName(c))}">${inner}</button>` : inner;
     };
@@ -628,14 +572,14 @@
     });
     return `<tr>${top.map((x) => x.replace(" data-last", "")).join("")}</tr><tr>${bottom.join("")}</tr>`;
   }
-  function tableHtml(v, { link = false, sel = null } = {}) {
-    const m = previewModel(v, sel);
+  function tableHtml(v, { link = false, sel = null, q = "" } = {}) {
+    const m = previewModel(v, sel, q);
     const cols = v.columns;
     const labelCol = cols.find((c) => !isMeasure(c));
     const edges = groupEdges(cols);
     const cell = (c, vals, { label: lbl = "" } = {}) => {
       const isLabel = Boolean(lbl) && c === labelCol;
-      const cls = [isMeasure(c) ? "" : "e-permits-rpt-table__text", isLabel ? "e-permits-rpt-table__label" : "", c.total === "incl" && isMeasure(c) ? "is-incl" : "", c.kind === "manual" ? "is-manual" : "", ...edgeCls(edges, cols.indexOf(c))].filter(Boolean).join(" ");
+      const cls = [isMeasure(c) ? "" : "e-permits-rpt-table__text", isLabel ? "e-permits-rpt-table__label" : "", c.total === "incl" && isMeasure(c) ? "is-incl" : "", ...edgeCls(edges, cols.indexOf(c))].filter(Boolean).join(" ");
       const content = isLabel ? `<strong data-cell-tooltip="${esc(lbl)}">${esc(lbl)}</strong>` : lbl && !isMeasure(c) ? "" : fmtCell(v, c, vals?.[c.id]);
       return `<td${cls ? ` class="${cls}"` : ""} data-rpt-cell="${esc(c.id)}">${content}</td>`;
     };
@@ -669,41 +613,42 @@
       </div>`;
   }
   /* the report as its user will see it: name + „ⓘ” with the description (Feature UX: „regulile raportului se văd sub un
-     buton de informare”), the table, the manual-columns note, the filters / grouping line */
-  /* the filters above the preview table: „live” = the library facet filter (mounted into `[data-rpt-fslot]` by
-     mountFilters); „static” (the „Mărește” dialog, the version window) = read-only: the foot line lists the filters and the
+     buton de informare”), the column filters above the table, the filters / grouping / total line under it */
+  /* the filters above the preview table: „live” = the Text search + the library facet filter (mounted into
+     `[data-rpt-fslot]` by mountFilters); „static” (the version window) = read-only: the foot line lists the filters and the
      values applied in the preview (the library chip has no disabled look — a summary reads clearer) */
-  function appliedText(v, sel) {
-    const ask = askConds(v);
-    return selEntries(sel).map(([key, values]) => {
-      const c = ask.find((x) => x.id === key);
-      if (!c) return "";
-      return `${chipLabel(v, c)}: ${condKind(v, c) === "date" ? window.GEAPFacetFilter?.dateText?.(values[0], DEMO_TODAY) || values[0] : values.join(", ")}`;
-    }).filter(Boolean).join("; ");
+  function appliedText(v, sel, q = "") {
+    const chips = chipCols(v);
+    return [
+      String(q || "").trim() && textCols(v).length ? `Căutare: „${String(q).trim()}”` : "",
+      ...selEntries(sel).map(([key, values]) => {
+        const c = chips.find((x) => x.id === key);
+        if (!c) return "";
+        return `${colName(c)}: ${c.filter === "date" ? window.GEAPFacetFilter?.dateText?.(values[0], DEMO_TODAY) || values[0] : values.join(", ")}`;
+      })
+    ].filter(Boolean).join("; ");
   }
-  function cardHtml(v, { link = false, filters = "static", sel = null } = {}) {
+  const filtersText = (v) => fltCols(v).map((c) => `${colName(c)} (${label(FILTERS, c.filter)})`).join(", ");
+  function cardHtml(v, { link = false, filters = "static", sel = null, q = "" } = {}) {
     const name = v.names.ro || "Denumirea raportului";
     const info = v.descriptions.ro ? `<button class="e-permits-fo-role-info" type="button" aria-label="Despre raport" data-tooltip-hint="${esc(v.descriptions.ro)}">${icon("circle-info-filled", 16)}</button>` : "";
     const sub = [label(CATEGORIES, v.category), sourceName(v.source)].filter(Boolean).join(" · ");
+    const live = filters === "live" && fltCols(v).length > 0;
+    const filtered = selEntries(sel).length > 0 || Boolean(String(q || "").trim() && textCols(v).length);
     let body;
     if (!v.source) body = E()?.render({ title: "Alege sursa de date", text: "Previzualizarea folosește câmpurile sursei, pe date demonstrative.", icon: "page-text", compact: true, bare: true }) || "";
-    else if (!v.columns.length) body = E()?.render({ title: "Nicio coloană încă", text: "Adaugă coloane din sursa de date, calculate sau completate manual: raportul apare aici pe măsură ce îl construiești.", icon: "page-text", compact: true, bare: true }) || "";
+    else if (!v.columns.length) body = E()?.render({ title: "Nicio coloană încă", text: "Adaugă coloane din sursa de date sau calculate: raportul apare aici pe măsură ce îl construiești.", icon: "page-text", compact: true, bare: true }) || "";
     else {
-      const chips = askConds(v).length && filters === "live" ? '<div class="e-permits-rpt-fslot" data-rpt-fslot></div>' : "";
-      const rows = previewModel(v, sel).rowCount;
-      body = chips + (rows
-        ? tableHtml(v, { link, sel })
-        : `<div class="e-permits-rpt-nomatch">${E()?.render({ title: NO_MATCH, text: selEntries(sel).length ? "Niciun rând nu corespunde filtrelor alese. Schimbă sau șterge filtrele." : "Niciun rând nu corespunde condițiilor raportului. Schimbă condițiile din «Filtre».", icon: "search", compact: true, actionHtml: filters === "live" && selEntries(sel).length ? '<button class="btn btn-neutral btn-sm" type="button" data-rpt-filter-clear>Șterge filtrele</button>' : "" }) || ""}</div>`);
-      if (rows && v.columns.some((c) => c.kind === "manual")) body += U().renderInfoNote?.(`<strong>Coloane «Manual».</strong> ${esc(MANUAL_HINT)}`) || "";
+      const rows = previewModel(v, sel, q).rowCount;
+      body = (live ? '<div class="e-permits-rpt-fslot" data-rpt-fslot></div>' : "") + (rows
+        ? tableHtml(v, { link, sel, q })
+        : `<div class="e-permits-rpt-nomatch">${E()?.render({ title: NO_MATCH, text: "Niciun rând nu corespunde filtrelor alese. Schimbă sau șterge filtrele.", icon: "search", compact: true, actionHtml: filters === "live" && filtered ? '<button class="btn btn-neutral btn-sm" type="button" data-rpt-filter-clear>Șterge filtrele</button>' : "" }) || ""}</div>`);
     }
-    const chipsShown = Boolean(v.source && v.columns.length && askConds(v).length && filters === "live");
-    const applied = filters === "live" ? "" : appliedText(v, sel);
-    const conds = filters === "live" ? "" : condsText(v);
+    const applied = filters === "live" ? "" : appliedText(v, sel, q);
     const foot = [
-      conds ? `Condiții: ${conds}` : "",
       applied ? `Aplicate în previzualizare: ${applied}` : "",
-      askConds(v).length && !chipsShown ? `Filtre la generare: ${askConds(v).map((c) => chipLabel(v, c)).join(", ")}` : "",
-      levelCols(v).length ? (levelCols(v).length > 1 ? `Grupat după ${levelsText(v)}, cu subtotal la fiecare nivel` : `Grupat după ${levelsText(v)}, cu subtotal pe grup`) : "",
+      fltCols(v).length && !(live && v.source && v.columns.length) ? `Filtre: ${filtersText(v)}` : "",
+      levelCols(v).length ? `Grupat după ${levelsText(v)}, cu subtotal pe grup` : "",
       v.columns.some(isMeasure) ? (v.totalRow ? "Cu rândul de total" : "Fără rândul de total") : ""
     ].filter(Boolean);
     return `
@@ -719,19 +664,19 @@
     const me = who();
     const src = sourceOf(v.source);
     const meta = `Date demonstrative · Perimetru: ${me.central ? "toate autoritățile" : authName(me.authority)}${src ? ` · ${src.name} ${src.version}` : ""}`;
+    const st = ctx ? fx(ctx).state : null;
     return `
       <section class="e-permits-wid-preview e-permits-rpt-preview" aria-labelledby="${idp}-preview-title">
         <div class="e-permits-dosar-profil__section-heading">
           <div class="e-permits-wid-preview__titles">
             <h2 class="e-permits-dosar-profil__section-title" id="${idp}-preview-title">Previzualizare</h2>
             <p class="e-permits-dosar-profil__section-meta e-permits-wid-preview__meta">${esc(meta)}</p>
-            ${condsText(v) ? `<p class="e-permits-dosar-profil__section-meta e-permits-wid-preview__meta e-permits-rpt-conds-line" data-cell-tooltip="${esc(`Condiții: ${condsText(v)}`)}">${esc(`Condiții: ${condsText(v)}`)}</p>` : ""}
           </div>
           <div class="e-permits-passport__heading-tools">
             <button class="btn btn-neutral btn-sm btn-icon-only" type="button" aria-label="Mărește previzualizarea" data-tooltip-label="Mărește" aria-haspopup="dialog" data-rpt-zoom${v.columns.length ? "" : ' aria-disabled="true" data-tooltip-reason="Adaugă mai întâi coloane."'}>${icon("enlarge", 16)}</button>
           </div>
         </div>
-        <div class="e-permits-wid-preview__stage">${cardHtml(v, { link: idp === IDP, filters: ctx ? "live" : "static", sel: ctx ? fx(ctx).state.applied : null })}</div>
+        <div class="e-permits-wid-preview__stage">${cardHtml(v, { link: idp === IDP, filters: ctx ? "live" : "static", sel: st ? st.applied : null, q: st ? st.q : "" })}</div>
       </section>`;
   }
 
@@ -968,7 +913,7 @@
           ${icon("chevron-bottom", 20)}
         </button>
         <ul class="e-permits-fo-intent-menu e-permits-stack__menu e-permits-rpt-rich__menu e-permits-rpt-multi__menu" id="${id}-menu" role="menu" aria-label="Valorile câmpului ${esc(f.label)}" hidden data-stack-menu>
-          ${f.values.map((x) => { const on = c.values.includes(x); return `<li role="none"><button class="e-permits-fo-intent-menu__item e-permits-rpt-multi__item" type="button" role="menuitemcheckbox" aria-checked="${on}" data-rpt-cv="${esc(c.id)}" data-value="${esc(x)}"><span class="checkbox checkbox--medium e-permits-check-option e-permits-check-option--plain" aria-hidden="true"><input class="checkbox-input" type="checkbox" tabindex="-1"${on ? " checked" : ""}><span class="checkbox-custom"><svg class="icon e-permits-check-option__tick" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-checkmark-small"></use></svg></span></span><span class="e-permits-rpt-multi__label">${esc(x)}</span></button></li>`; }).join("")}
+          ${f.values.map((x) => { const on = c.values.includes(x); return `<li role="none"><button class="e-permits-fo-intent-menu__item e-permits-rpt-multi__item" type="button" role="menuitemcheckbox" aria-checked="${on}" data-rpt-cv="${esc(c.id)}" data-value="${esc(x)}"><span class="checkbox checkbox--medium" aria-hidden="true"><input class="checkbox-input" type="checkbox" tabindex="-1"${on ? " checked" : ""}><span class="checkbox-custom" aria-hidden="true"></span></span><span class="e-permits-rpt-multi__label">${esc(x)}</span></button></li>`; }).join("")}
         </ul>
       </div>`;
   }
@@ -1006,12 +951,11 @@
     const ask = U().renderCheckOption?.({ label: "Alege la generare", plain: true, checked: asking(v, c), disabled: !canAsk(v, c), reason: c.field ? NO_ASK : "Alege mai întâi câmpul.", attrs: `data-rpt-cond-ask="${esc(c.id)}"` }) || "";
     return `
       <div class="e-permits-rpt-cond e-permits-hover-surface is-hover-within${fe || ve ? " has-error" : ""}" role="group" aria-label="Condiția ${i + 1}${c.field ? `: ${esc(fldLabel(v, c))}` : ""}">
-        <div class="e-permits-rpt-cond__lead">${orderLead(i + 1)}</div>
         <div class="e-permits-rpt-cond__cell e-permits-rpt-cond__field">${fieldSel}${fe ? errorHtml(cid(idp, c, "field"), fe) : ""}</div>
         <div class="e-permits-rpt-cond__cell e-permits-rpt-cond__op">${opSel}</div>
         <div class="e-permits-rpt-cond__cell e-permits-rpt-cond__val${val.wide ? " is-wide" : ""}">${val.html}${ve ? errorHtml(cid(idp, c, "value"), ve) : ""}</div>
         <div class="e-permits-rpt-cond__foot">
-          ${ask}
+          <span class="e-permits-rpt-cond__lead">${orderLead(i + 1)}${ask}</span>
           <span class="e-permits-rpt-cond__actions">${moveBtns(c, i, last, `condiția „${esc(name)}”`)}<button class="btn btn-text-destructive btn-sm btn-icon-only" type="button" aria-label="Elimină condiția „${esc(name)}”" data-tooltip-label="Elimină condiția" data-rpt-cond-remove="${esc(c.id)}">${icon("delete", 16)}</button></span>
         </div>
       </div>`;
@@ -1034,11 +978,12 @@
   }
   function filtersSection(v, e, idp) {
     const off = v.source ? "" : ' aria-disabled="true" data-tooltip-reason="Alege mai întâi sursa de date."';
-    const add = `<div class="e-permits-rpt-conds__add"><button class="btn btn-secondary btn-sm" type="button" data-rpt-cond-add="top"${off}>${icon("plus-large", 16)}<span>Adaugă condiție</span></button><button class="btn btn-secondary btn-sm" type="button" data-rpt-group-add${off}>${icon("plus-large", 16)}<span>Adaugă grup de condiții</span></button></div>`;
     const n = flatConds(v).length;
+    /* rpt-cond-v2 (user): „Adaugă grup de condiții” (text button) only once there are ≥ 2 conditions */
+    const add = `<div class="e-permits-rpt-conds__add"><button class="btn btn-secondary btn-sm" type="button" data-rpt-cond-add="top"${off}>${icon("plus-large", 16)}<span>Adaugă condiție</span></button>${n >= 2 ? `<button class="btn btn-text-primary btn-sm" type="button" data-rpt-group-add${off}>${icon("plus-large", 16)}<span>Adaugă grup de condiții</span></button>` : ""}</div>`;
     const body = v.filters.length
       ? `<div class="e-permits-rpt-builder"><ol class="e-permits-rpt-conds" role="list" aria-label="Condițiile raportului" data-rpt-conds="top">${condItems(v, e, idp, v.filters, v.filterConj, "top")}</ol>${add}</div>`
-      : E()?.render({ title: "Nicio condiție", text: "Cu o valoare fixă, condiția restrânge raportul. Cu «Alege la generare», devine un filtru deasupra tabelului.", icon: "filter", compact: true, actionHtml: add }) || "";
+      : E()?.render({ title: "Nicio condiție", text: "Adaugă o condiție ca să limitezi rândurile raportului, de ex. «Canal de depunere este Online».", icon: "filter-lines", compact: true, actionHtml: add }) || "";
     return `
       <section class="e-permits-dosar-profil__section e-permits-stack-section" aria-labelledby="${idp}-flt-title" id="${idp}-filters">
         <div class="e-permits-dosar-profil__section-heading">
@@ -2189,6 +2134,26 @@
     }
     if (event.type === "dragend") { dragFrom = -1; document.querySelectorAll("[data-rpt-col].is-dragging, [data-rpt-col].is-drop-target").forEach((r) => r.classList.remove("is-dragging", "is-drop-target")); }
   }
+  /* rpt-cond-v2 (user): the values menu is wider than its trigger when needed (max-content ≤ 360); once open, it keeps its
+     left edge on the trigger's left edge, or flips to the right edge when it would leave the screen */
+  document.addEventListener("click", (event) => {
+    const trig = event.target.closest?.(".e-permits-rpt-multi > [data-stack-menu-trigger]");
+    if (!trig) return;
+    requestAnimationFrame(() => {
+      const menu = document.getElementById(trig.getAttribute("aria-controls"));
+      if (!menu || menu.hidden) return;
+      menu.classList.remove("is-flip-x");
+      menu.style.removeProperty("--rpt-menu-max");
+      const t = trig.getBoundingClientRect();
+      const w = menu.getBoundingClientRect().width;
+      const right = window.innerWidth - 16 - t.left;
+      const left = t.right - 16;
+      if (w <= right) return;
+      const flip = w <= left || left > right;
+      menu.classList.toggle("is-flip-x", flip);
+      if (w > (flip ? left : right)) menu.style.setProperty("--rpt-menu-max", `${Math.floor(flip ? left : right)}px`);
+    });
+  });
   /* drag-and-drop of columns / filters: on the document from the start (it used to be wired when the create sheet was
      first built — on a profile opened directly the drag did nothing) */
   ["dragstart", "dragover", "drop", "dragend"].forEach((type) => document.addEventListener(type, onDrag));
