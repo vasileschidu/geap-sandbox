@@ -197,7 +197,7 @@
       refreshAll(r);
     };
     if (on) { apply(); return; }
-    const where = r.config.level === "Global" ? "al tuturor autorităților" : `al ${r.config.authorities.map(R().authName).join(", ")}`;
+    const where = !r.config.authorities.length ? "al tuturor autorităților" : `al ${r.config.authorities.map(R().authName).join(", ")}`;
     U().askConfirm?.({
       title: `Dezactivezi raportul „${nameOf(r)}”?`,
       text: `Raportul dispare din meniul «Rapoarte» ${where} și nu se mai generează. Nimic nu se șterge: configurația, versiunile și accesul se păstrează, iar rapoartele generate deja nu se modifică. Îl poți activa oricând.`,
@@ -291,7 +291,7 @@
   /* ================================================================ Acces (Feature: „per Rol și, opțional, per Autoritate,
      ca la registre”; „o acordare fără autoritate dă acces în toate autoritățile”) — the Registre access tab */
   const canGrant = (r) => R().canEdit(r);
-  const allAuthText = (r) => (r.config.level === "Global" ? "Toate autoritățile" : "Toate autoritățile raportului");
+  const allAuthText = (r) => (!r.config.authorities.length ? "Toate autoritățile" : "Toate autoritățile raportului");
   /* rpt-access-stack-v1 (2026-11-09, user): the grants = the shell stacked list (as BO Utilizatori / Servicii), not a table —
      one item per grant: title = the role, Small tag = the authority (or „Toate autoritățile”), meta = „Acordat de … ·
      8 iulie 2026, 10:05”, the lone destructive action „Revocă” (outline red); empty = the boxed empty state + „Acordă acces” */
@@ -329,7 +329,8 @@
   const GR = { id: null, authority: "", roles: [] };
   function grantAuthOptions(r) {
     const all = R().authorities();
-    return r.config.level === "Global" ? all : all.filter((a) => r.config.authorities.includes(a.id));
+    /* a Global report without authorities = every authority (rpt-feature-v1) */
+    return !r.config.authorities.length ? all : all.filter((a) => r.config.authorities.includes(a.id));
   }
   function openGrant() {
     const r = profileOf();
@@ -422,7 +423,7 @@
     const v = versionAt(r, h.at);
     return {
       module: "BackOffice",
-      authority: r.config.level === "Global" ? "" : r.config.authorities.map(R().authName).join(", "),
+      authority: r.config.authorities.map(R().authName).join(", "),
       objectType: "Raport",
       objectId: r.id,
       objectVersion: v ? `versiunea ${v}` : "ciornă",

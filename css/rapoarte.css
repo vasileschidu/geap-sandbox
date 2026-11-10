@@ -581,6 +581,34 @@
   .e-permits-rpt-fbar__tools {
     display: none;
   }
+
+  /* rpt-feature-v1: a report with a Text filter shows the search row on desktop too (the trigger stays hidden there) */
+  .e-permits-rpt-fbar.has-search > .e-permits-rpt-fbar__tools {
+    display: flex;
+  }
+
+  .e-permits-rpt-fbar.has-search .e-permits-rpt-fbar__trigger {
+    display: none;
+  }
+}
+
+/* rpt-feature-v1: the Text filter = the BO register search (library list search, fills the row; phones: the icon-only
+   „Filtre” square beside it, 8 apart) */
+.e-permits-rpt-fbar__tools {
+  gap: var(--spacing-8, 8px);
+}
+
+.e-permits-rpt-fbar__search {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.e-permits-rpt-fbar__search[hidden] {
+  display: none;
+}
+
+.e-permits-rpt-fbar.has-search:not(:has(.e-permits-filter-trigger--icon)):not([hidden]) {
+  display: flex;
 }
 
 /* nothing matches the filters: the boxed empty state in the card, where the table was */
@@ -721,89 +749,8 @@
   padding-right: var(--spacing-12, 12px);
 }
 
-/* ---- rpt-levels-v1 (2026-11-10, PO: „autoritatea → subdiviziune → serviciu”; Salesforce „Group rows” / Excel subtotals):
-   up to 3 ordered grouping levels. (1) the column-list toggle shows the level number when pressed; (2) „Gruparea
-   rândurilor” = the ordered level list — each level a row on the shared hover surface (padding 8 16, r12), order lead
-   (drag handle + level number) · column name · ↑ ↓ + red trash, indented 16 per level like the table; (3) the preview table
-   nests the group label rows (level 1 = 14/20 semibold, deeper 12/16 medium) and gives every group a subtotal row whose
-   label is indented like its group label ---- */
-.e-permits-rpt-group-btn__n {
-  font-size: var(--font-size-fs-14, 14px);
-  font-weight: var(--font-weight-fw-semibold, 600);
-  line-height: var(--line-height-lh-20, 20px);
-  min-width: var(--spacing-16, 16px);
-  text-align: center;
-}
-
-.e-permits-rpt-group {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-16, 16px);
-}
-
-.e-permits-rpt-levels {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-0, 0px);
-  list-style: none;
-  margin: 0;
-  padding: 0;
-}
-
-.e-permits-rpt-level {
-  align-items: center;
-  border-radius: var(--border-radius-12, 12px);
-  cursor: grab;
-  display: flex;
-  gap: var(--spacing-12, 12px);
-  min-width: 0;
-  padding: var(--spacing-8, 8px) var(--spacing-16, 16px);
-}
-
-.e-permits-rpt-level.is-l2 {
-  margin-left: var(--spacing-16, 16px);
-}
-
-.e-permits-rpt-level.is-l3 {
-  margin-left: var(--spacing-32, 32px);
-}
-
-.e-permits-rpt-level__name {
-  color: var(--color-text-base-default, #121212);
-  flex: 1 1 auto;
-  font-size: var(--font-size-fs-14, 14px);
-  font-weight: var(--font-weight-fw-medium, 500);
-  line-height: var(--line-height-lh-20, 20px);
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.e-permits-rpt-level__actions {
-  display: flex;
-  flex: 0 0 auto;
-  gap: var(--spacing-4, 4px);
-}
-
-.e-permits-rpt-level.is-dragging {
-  opacity: 0.5;
-}
-
-.e-permits-rpt-level.is-drop-target {
-  box-shadow: inset 0 var(--spacing-2, 2px) 0 var(--color-border-brand-default, #0058d2);
-}
-
-.e-permits-rpt-level.is-just-moved {
-  animation: e-permits-rpt-moved var(--motion-duration-lg, 0.5s) var(--motion-easing-decelerate, ease-out) var(--motion-duration-md, 0.3s) backwards;
-}
-
-.e-permits-rpt-group__foot {
-  display: flex;
-}
-
-/* the table: level 1 label = 14/20 semibold (bolder), deeper levels keep 12/16 medium; labels + their subtotals indent 16
-   per level (the card's 24 inset + 16 × (level − 1)) */
+/* ---- the preview table's group rows (rpt-levels-v1 → rpt-feature-v1: ONE grouping column, Feature model): the group
+   label row = 14/20 semibold, its subtotal row semibold ---- */
 .e-permits-wid-table--agg.e-permits-rpt-table tr.e-permits-rpt-table__group.is-l1 > th {
   font-size: var(--font-size-fs-14, 14px);
   font-weight: var(--font-weight-fw-semibold, 600);
@@ -814,262 +761,9 @@
   font-weight: var(--font-weight-fw-semibold, 600);
 }
 
-.e-permits-rpt-card .e-permits-workplace__table.e-permits-rpt-table tr.e-permits-rpt-table__group.is-l2 > th,
-.e-permits-rpt-card .e-permits-workplace__table.e-permits-rpt-table tr.e-permits-rpt-table__subtotal.is-l2 > td.e-permits-rpt-table__label.is-c0 {
-  padding-left: calc(var(--spacing-24, 24px) + var(--spacing-16, 16px));
-}
-
-.e-permits-rpt-card .e-permits-workplace__table.e-permits-rpt-table tr.e-permits-rpt-table__group.is-l3 > th,
-.e-permits-rpt-card .e-permits-workplace__table.e-permits-rpt-table tr.e-permits-rpt-table__subtotal.is-l3 > td.e-permits-rpt-table__label.is-c0 {
-  padding-left: calc(var(--spacing-24, 24px) + var(--spacing-32, 32px));
-}
-
-@media (max-width: 760px) {
-  .e-permits-rpt-level__name {
-    font-size: var(--font-size-fs-16, 16px);
-    line-height: var(--line-height-lh-24, 24px);
-  }
-}
-
 /* the merged label cell of a subtotal / total row spans the leading text columns: no single-column cap */
 .e-permits-rpt-table td.e-permits-rpt-table__text.e-permits-rpt-table__label {
   max-width: none;
-}
-
-@media (max-width: 760px) {
-  .e-permits-rpt-level.is-l2 {
-    margin-left: var(--spacing-8, 8px);
-  }
-
-  .e-permits-rpt-level.is-l3 {
-    margin-left: var(--spacing-16, 16px);
-  }
-}
-
-/* ---- rpt-cond-v1 (2026-11-10, PO: inline filters with „și / sau”; Notion / Airtable / Linear / Metabase): the condition
-   builder in „Filtre”. Item = connector column (64: „Unde” code token / the „și / sau” token select, centred on the first
-   field line) + 8 + the condition on the shared hover surface (padding 16 on every side, r12): lead (handle + position)
-   spanning the rows · Câmp (row 1) · Condiție | Valoare (row 2; a two-value pair takes its own row) · „Alege la generare” +
-   ↑ ↓ 🗑 (last row). A group = a bordered white sub-block (r12, 16) with its own items + „Adaugă condiție”. Phones: the
-   connector sits above the condition. ---- */
-.e-permits-rpt-builder {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-16, 16px);
-}
-
-.e-permits-rpt-conds {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-8, 8px);
-  list-style: none;
-  margin: 0;
-  padding: 0;
-}
-
-/* rpt-cond-v2 (user: narrow column): the connector is its own line ABOVE the condition (8 apart), the condition takes the
-   full width */
-.e-permits-rpt-cond-item {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-8, 8px);
-  min-width: 0;
-}
-
-.e-permits-rpt-cond-item__conn {
-  align-items: flex-start;
-  display: flex;
-}
-
-/* the item whose menu is open paints above the next items (their surfaces isolate) */
-.e-permits-rpt-cond-item:has([data-stack-menu]:not([hidden])) {
-  position: relative;
-  z-index: 30;
-}
-
-.e-permits-rpt-cond-item.is-dragging {
-  opacity: 0.5;
-}
-
-.e-permits-rpt-cond-item.is-drop-target > :is(.e-permits-rpt-cond, .e-permits-rpt-cgroup) {
-  box-shadow: inset 0 var(--spacing-2, 2px) 0 var(--color-border-brand-default, #0058d2);
-}
-
-.e-permits-rpt-cond-item.is-just-moved > :is(.e-permits-rpt-cond, .e-permits-rpt-cgroup) {
-  animation: e-permits-rpt-moved var(--motion-duration-lg, 0.5s) var(--motion-easing-decelerate, ease-out) var(--motion-duration-md, 0.3s) backwards;
-}
-
-.e-permits-rpt-cond {
-  align-items: start;
-  border-radius: var(--border-radius-12, 12px);
-  display: grid;
-  gap: var(--spacing-8, 8px) var(--spacing-12, 12px);
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  min-width: 0;
-  padding: var(--spacing-16, 16px);
-}
-
-/* the condition's own width decides the layout (a group's conditions are narrower): Condiție and Valoare stack when the
-   two would not fit side by side */
-.e-permits-rpt-cond-item > .e-permits-rpt-cond {
-  container-type: inline-size;
-}
-
-/* the foot: order lead (handle + position) + „Alege la generare” left, ↑ ↓ 🗑 right */
-.e-permits-rpt-cond__lead {
-  align-items: center;
-  cursor: grab;
-  display: flex;
-  gap: var(--spacing-12, 12px);
-}
-
-.e-permits-rpt-cond__cell {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-8, 8px);
-  min-width: 0;
-}
-
-.e-permits-rpt-cond__field {
-  grid-column: 1 / -1;
-}
-
-.e-permits-rpt-cond__op {
-  grid-column: 1;
-}
-
-.e-permits-rpt-cond__val {
-  grid-column: 2;
-}
-
-.e-permits-rpt-cond__val.is-wide {
-  grid-column: 1 / -1;
-}
-
-.e-permits-rpt-cond__pair {
-  display: grid;
-  gap: var(--spacing-8, 8px);
-  grid-template-columns: repeat(auto-fit, minmax(calc(var(--spacing-8, 8px) * 17), 1fr));
-}
-
-.e-permits-rpt-cond__slot {
-  min-height: var(--spacing-40, 40px);
-  overflow: hidden;
-  white-space: nowrap;
-}
-
-.e-permits-rpt-cond__foot {
-  align-items: center;
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--spacing-8, 8px);
-  grid-column: 1 / -1;
-  justify-content: space-between;
-}
-
-.e-permits-rpt-cond__actions {
-  display: flex;
-  gap: var(--spacing-4, 4px);
-  margin-left: auto;
-}
-
-.e-permits-rpt-cgroup {
-  background: var(--color-background-base-default, #fff);
-  border: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
-  border-radius: var(--border-radius-12, 12px);
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-8, 8px);
-  min-width: 0;
-  padding: var(--spacing-16, 16px);
-}
-
-.e-permits-rpt-cgroup__head {
-  align-items: center;
-  cursor: grab;
-  display: flex;
-  gap: var(--spacing-12, 12px);
-}
-
-.e-permits-rpt-cgroup__title {
-  color: var(--color-text-base-default, #121212);
-  flex: 1 1 auto;
-  font-size: var(--font-size-fs-14, 14px);
-  font-weight: var(--font-weight-fw-medium, 500);
-  line-height: var(--line-height-lh-20, 20px);
-}
-
-.e-permits-rpt-cgroup__add {
-  display: flex;
-}
-
-.e-permits-rpt-conds__add {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--spacing-8, 8px);
-}
-
-.e-permits-empty .e-permits-rpt-conds__add {
-  justify-content: center;
-}
-
-/* the values menu of a list condition: checkbox items (library checkbox, 40 / phones 48), the menu at the field's width */
-.e-permits-rpt-multi__item {
-  align-items: center;
-  gap: var(--spacing-12, 12px);
-}
-
-.e-permits-rpt-multi__label {
-  flex: 1 1 auto;
-  min-width: 0;
-  text-align: left;
-  white-space: normal;
-}
-
-/* rpt-cond-v2 (user): never narrower than the trigger, as wide as the longest value up to 360 / the screen (labels wrap to
-   2 lines, never cut); left edge on the trigger, `.is-flip-x` = right edge (set by js when it would leave the screen) */
-.e-permits-rpt-rich.e-permits-rpt-multi > .e-permits-stack__menu.e-permits-rpt-multi__menu {
-  left: 0;
-  max-width: var(--rpt-menu-max, min(calc(var(--spacing-40, 40px) * 9), calc(100vw - var(--spacing-32, 32px))));
-  min-width: min(100%, var(--rpt-menu-max, 100%));
-  right: auto;
-  width: max-content;
-  z-index: 30;
-}
-
-.e-permits-rpt-rich.e-permits-rpt-multi > .e-permits-stack__menu.e-permits-rpt-multi__menu.is-flip-x {
-  left: auto;
-  right: 0;
-}
-
-/* „Condiții: …” under the preview's data line (its own grid row, one line, tooltip with the whole sentence) */
-.e-permits-rpt-preview .e-permits-wid-preview__titles > .e-permits-rpt-conds-line {
-  grid-row: 3;
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-@media (max-width: 760px) {
-
-  .e-permits-rpt-cond__slot {
-    font-size: var(--font-size-fs-16, 16px);
-    min-height: var(--spacing-48, 48px);
-  }
-
-  .e-permits-rpt-cgroup__title {
-    font-size: var(--font-size-fs-16, 16px);
-    line-height: var(--line-height-lh-24, 24px);
-  }
-}
-
-/* rpt-cond-v1: after the base placement rules (same specificity) */
-@container (max-width: 280px) {
-  .e-permits-rpt-cond__op,
-  .e-permits-rpt-cond__val {
-    grid-column: 1 / -1;
-  }
 }
 
 /* rpt-phone-cols-v1 (2026-11-10, QA: at 375 the two text columns took ~290 px, ~60 left for numbers): on phones a text

@@ -1,5 +1,5 @@
 {
-  "_comment": "Administrare › Rapoarte (rpt-v1, 2026-11-09; Feature 96502 „Constructor de rapoarte”, child stories US-466…471 not in Azure yet). Seed of the report catalogue: global reports (Administrator central) + authority reports (one or more authorities), the formula set (Feature model «Formula») and the authorities a report can be assigned to. Data sources + their dictionary = the published sources of data/kpi.json (GEAPKpi.sources / fields, the Registre data dictionary). Column kinds: source (Din sursa de date) · calc (Calculată, formula + operands = report column ids) · manual (Completată manual). Data types: numeric · value (Valoric) · temporal · text. total: sum (Se adună în total) · incl (Inclusiv = a breakdown of the nearest «Se adună» column to its left). The preview values are demo values derived in js/rapoarte-admin.js.",
+  "_comment": "Administrare › Rapoarte (rpt-v1, 2026-11-09; Feature 96502 „Constructor de rapoarte”, child stories US-466…471 not in Azure yet). Seed of the report catalogue: global reports (Administrator central) + authority reports (one or more authorities), the formula set (Feature model «Formula») and the authorities a report can be assigned to. Data sources + their dictionary = the published sources of data/kpi.json (GEAPKpi.sources / fields, the Registre data dictionary). Column kinds: source (Din sursa de date) · calc (Calculată, formula + operands = report column ids). Data types: numeric · value (Valoric) · temporal · text. total: sum (Se adună în total) · incl (Inclusiv = a breakdown of the nearest «Se adună» column to its left). The preview values are demo values derived in js/rapoarte-admin.js. rpt-feature-v1 (2026-11-10): filters live on the columns (`filter`: text · single · multi · date — the Registre types, only on source columns whose field supports them); groupBy = ONE column id; Nivel is generated (Global = the Administrator central, optional authorities, none = all; Autoritate = the author's authority); a formula's `origin` = the report it was saved with (the set = the formulas of the reports the user can clone, on the same source).",
   "authorities": [
     { "id": "ansp", "name": "ANSP", "long": "Agenția Națională pentru Sănătate Publică" },
     { "id": "anta", "name": "ANTA", "long": "Agenția Națională Transport Auto" },
@@ -37,7 +37,7 @@
       "format": "days"
     },
     {
-      "id": "f-sum",
+      "id": "f-sum", "origin": "RPT-0003", "sources": ["reg-note"],
       "names": { "ro": "Suma", "ru": "Сумма", "en": "Sum" },
       "expr": "A + B",
       "operands": [
@@ -75,15 +75,14 @@
         "descriptions": { "ro": "Se numără dosarele depuse și finalizate în perioada aleasă, pe fiecare serviciu; procentul în termen se calculează din dosarele finalizate.", "ru": "", "en": "" },
         "category": "tabelar", "source": "reg-dosare", "level": "Global", "authorities": [],
         "columns": [
-          { "id": "c1", "names": { "ro": "Serviciu", "ru": "Услуга", "en": "Service" }, "kind": "source", "field": "serviciu", "dataType": "text", "header": "", "total": "sum" },
-          { "id": "c2", "names": { "ro": "Depuse", "ru": "Поданы", "en": "Submitted" }, "kind": "source", "field": "depus", "dataType": "numeric", "header": "Dosare", "total": "sum" },
+          { "id": "c1", "names": { "ro": "Serviciu", "ru": "Услуга", "en": "Service" }, "kind": "source", "field": "serviciu", "dataType": "text", "header": "", "total": "sum", "filter": "multi" },
+          { "id": "c2", "names": { "ro": "Depuse", "ru": "Поданы", "en": "Submitted" }, "kind": "source", "field": "depus", "dataType": "numeric", "header": "Dosare", "total": "sum", "filter": "date" },
           { "id": "c3", "names": { "ro": "Finalizate", "ru": "Завершены", "en": "Closed" }, "kind": "source", "field": "finalizat", "dataType": "numeric", "header": "Dosare", "total": "sum" },
           { "id": "c4", "names": { "ro": "în termen", "ru": "в срок", "en": "on time" }, "kind": "source", "field": "inTermen", "dataType": "numeric", "header": "Dosare", "total": "incl" },
           { "id": "c5", "names": { "ro": "Finalizate în termen, %", "ru": "Завершены в срок, %", "en": "Closed on time, %" }, "kind": "calc", "formula": "f-pct", "operands": { "A": "c4", "B": "c3" }, "dataType": "numeric", "header": "", "total": "sum" },
           { "id": "c6", "names": { "ro": "Durata medie, zile", "ru": "Средняя длительность, дни", "en": "Average time, days" }, "kind": "calc", "formula": "f-avg", "operands": {}, "dataType": "numeric", "header": "", "total": "sum" }
         ],
         "groupBy": "",
-        "filters": [ { "field": "depus", "type": "date" }, { "field": "statut", "type": "multi" } ],
         "totalRow": true
       },
       "versions": [
@@ -112,14 +111,12 @@
         "descriptions": { "ro": "Cererile depuse în perioada aleasă, pe autoritate și serviciu; cererile pe hârtie se raportează manual de autoritate.", "ru": "", "en": "" },
         "category": "statistic", "source": "reg-dosare", "level": "Global", "authorities": [],
         "columns": [
-          { "id": "c1", "names": { "ro": "Autoritate", "ru": "Орган", "en": "Authority" }, "kind": "source", "field": "autoritate", "dataType": "text", "header": "", "total": "sum" },
-          { "id": "c2", "names": { "ro": "Serviciu", "ru": "Услуга", "en": "Service" }, "kind": "source", "field": "serviciu", "dataType": "text", "header": "", "total": "sum" },
+          { "id": "c1", "names": { "ro": "Autoritate", "ru": "Орган", "en": "Authority" }, "kind": "source", "field": "autoritate", "dataType": "text", "header": "", "total": "sum", "filter": "multi" },
+          { "id": "c2", "names": { "ro": "Serviciu", "ru": "Услуга", "en": "Service" }, "kind": "source", "field": "serviciu", "dataType": "text", "header": "", "total": "sum", "filter": "single" },
           { "id": "c3", "names": { "ro": "Total", "ru": "Всего", "en": "Total" }, "kind": "source", "field": "nr", "dataType": "numeric", "header": "Cereri depuse", "total": "sum" },
-          { "id": "c4", "names": { "ro": "online", "ru": "онлайн", "en": "online" }, "kind": "source", "field": "canal", "dataType": "numeric", "header": "Cereri depuse", "total": "incl" },
-          { "id": "c5", "names": { "ro": "Pe hârtie", "ru": "На бумаге", "en": "On paper" }, "kind": "manual", "dataType": "numeric", "header": "Cereri depuse", "total": "sum" }
+          { "id": "c4", "names": { "ro": "online", "ru": "онлайн", "en": "online" }, "kind": "source", "field": "canal", "dataType": "numeric", "header": "Cereri depuse", "total": "incl" }
         ],
         "groupBy": "c1",
-        "filters": [ { "field": "depus", "type": "date" }, { "field": "autoritate", "type": "multi" }, { "field": "canal", "type": "single" } ],
         "totalRow": true
       },
       "versions": [
@@ -143,14 +140,12 @@
         "descriptions": { "ro": "Notele de plată emise și sumele încasate, pe serviciu.", "ru": "", "en": "" },
         "category": "tabelar", "source": "reg-note", "level": "Autoritate", "authorities": ["ansp"],
         "columns": [
-          { "id": "c1", "names": { "ro": "Serviciu", "ru": "", "en": "" }, "kind": "source", "field": "serviciu", "dataType": "text", "header": "", "total": "sum" },
+          { "id": "c1", "names": { "ro": "Serviciu", "ru": "", "en": "" }, "kind": "source", "field": "serviciu", "dataType": "text", "header": "", "total": "sum", "filter": "multi" },
           { "id": "c2", "names": { "ro": "Note emise", "ru": "", "en": "" }, "kind": "source", "field": "nr", "dataType": "numeric", "header": "", "total": "sum" },
           { "id": "c3", "names": { "ro": "Emisă", "ru": "", "en": "" }, "kind": "source", "field": "suma", "dataType": "value", "header": "Suma, MDL", "total": "sum" },
-          { "id": "c4", "names": { "ro": "achitată", "ru": "", "en": "" }, "kind": "source", "field": "suma", "dataType": "value", "header": "Suma, MDL", "total": "incl" },
-          { "id": "c5", "names": { "ro": "Rest de încasat, MDL", "ru": "", "en": "" }, "kind": "manual", "dataType": "value", "header": "", "total": "sum" }
+          { "id": "c4", "names": { "ro": "achitată", "ru": "", "en": "" }, "kind": "source", "field": "suma", "dataType": "value", "header": "Suma, MDL", "total": "incl" }
         ],
         "groupBy": "",
-        "filters": [ { "field": "emisa", "type": "date" } ],
         "totalRow": true
       },
       "versions": [],
@@ -169,13 +164,12 @@
         "descriptions": { "ro": "Actele emise în perioada aleasă, pe tip și status; aprobările tacite se văd separat.", "ru": "", "en": "" },
         "category": "statistic", "source": "reg-acte", "level": "Global", "authorities": [],
         "columns": [
-          { "id": "c1", "names": { "ro": "Status", "ru": "Статус", "en": "Status" }, "kind": "source", "field": "status", "dataType": "text", "header": "", "total": "sum" },
-          { "id": "c2", "names": { "ro": "Tip act", "ru": "Тип документа", "en": "Permit type" }, "kind": "source", "field": "tipAct", "dataType": "text", "header": "", "total": "sum" },
-          { "id": "c3", "names": { "ro": "Emise", "ru": "Выданы", "en": "Issued" }, "kind": "source", "field": "emis", "dataType": "numeric", "header": "Acte", "total": "sum" },
+          { "id": "c1", "names": { "ro": "Status", "ru": "Статус", "en": "Status" }, "kind": "source", "field": "status", "dataType": "text", "header": "", "total": "sum", "filter": "single" },
+          { "id": "c2", "names": { "ro": "Tip act", "ru": "Тип документа", "en": "Permit type" }, "kind": "source", "field": "tipAct", "dataType": "text", "header": "", "total": "sum", "filter": "multi" },
+          { "id": "c3", "names": { "ro": "Emise", "ru": "Выданы", "en": "Issued" }, "kind": "source", "field": "emis", "dataType": "numeric", "header": "Acte", "total": "sum", "filter": "date" },
           { "id": "c4", "names": { "ro": "prin aprobare tacită", "ru": "молчаливым согласием", "en": "tacit approval" }, "kind": "source", "field": "aprobareTacita", "dataType": "numeric", "header": "Acte", "total": "incl" }
         ],
         "groupBy": "c1",
-        "filters": [ { "field": "emis", "type": "date" }, { "field": "tipAct", "type": "multi" } ],
         "totalRow": true
       },
       "versions": [
@@ -197,13 +191,12 @@
         "descriptions": { "ro": "Avizele solicitate și emise, cu durata medie a avizării.", "ru": "", "en": "" },
         "category": "tabelar", "source": "reg-avize", "level": "Autoritate", "authorities": ["anta"],
         "columns": [
-          { "id": "c1", "names": { "ro": "Tip aviz", "ru": "Тип заключения", "en": "Approval type" }, "kind": "source", "field": "tip", "dataType": "text", "header": "", "total": "sum" },
-          { "id": "c2", "names": { "ro": "Solicitate", "ru": "Запрошены", "en": "Requested" }, "kind": "source", "field": "solicitat", "dataType": "numeric", "header": "Avize", "total": "sum" },
+          { "id": "c1", "names": { "ro": "Tip aviz", "ru": "Тип заключения", "en": "Approval type" }, "kind": "source", "field": "tip", "dataType": "text", "header": "", "total": "sum", "filter": "multi" },
+          { "id": "c2", "names": { "ro": "Solicitate", "ru": "Запрошены", "en": "Requested" }, "kind": "source", "field": "solicitat", "dataType": "numeric", "header": "Avize", "total": "sum", "filter": "date" },
           { "id": "c3", "names": { "ro": "Emise", "ru": "Выданы", "en": "Issued" }, "kind": "source", "field": "emis", "dataType": "numeric", "header": "Avize", "total": "sum" },
           { "id": "c4", "names": { "ro": "Durata medie, zile", "ru": "Средняя длительность, дни", "en": "Average time, days" }, "kind": "source", "field": "durata", "dataType": "numeric", "header": "", "total": "sum" }
         ],
         "groupBy": "",
-        "filters": [ { "field": "solicitat", "type": "date" }, { "field": "statut", "type": "multi" } ],
         "totalRow": true
       },
       "versions": [
@@ -225,17 +218,16 @@
       "config": {
         "names": { "ro": "Raport durata procesării pe subdiviziune", "ru": "Отчёт о длительности обработки по подразделениям", "en": "Processing time by subdivision" },
         "descriptions": { "ro": "Dosarele finalizate pe subdiviziune, cu prima depunere, ultima finalizare și durata medie.", "ru": "", "en": "" },
-        "category": "statistic", "source": "reg-dosare", "level": "Autoritate", "authorities": ["ansp", "ansa"],
+        "category": "statistic", "source": "reg-dosare", "level": "Global", "authorities": ["ansp", "ansa"],
         "columns": [
-          { "id": "c1", "names": { "ro": "Subdiviziune", "ru": "Подразделение", "en": "Subdivision" }, "kind": "source", "field": "subdiviziune", "dataType": "text", "header": "", "total": "sum" },
-          { "id": "c2", "names": { "ro": "Finalizate", "ru": "Завершены", "en": "Closed" }, "kind": "source", "field": "finalizat", "dataType": "numeric", "header": "", "total": "sum" },
+          { "id": "c1", "names": { "ro": "Subdiviziune", "ru": "Подразделение", "en": "Subdivision" }, "kind": "source", "field": "subdiviziune", "dataType": "text", "header": "", "total": "sum", "filter": "multi" },
+          { "id": "c2", "names": { "ro": "Finalizate", "ru": "Завершены", "en": "Closed" }, "kind": "source", "field": "finalizat", "dataType": "numeric", "header": "", "total": "sum", "filter": "date" },
           { "id": "c3", "names": { "ro": "Prima depunere", "ru": "Первая подача", "en": "First submission" }, "kind": "source", "field": "depus", "dataType": "temporal", "header": "Perioada", "total": "sum" },
           { "id": "c4", "names": { "ro": "Ultima finalizare", "ru": "Последнее завершение", "en": "Last closure" }, "kind": "source", "field": "finalizat", "dataType": "temporal", "header": "Perioada", "total": "sum" },
           { "id": "c5", "names": { "ro": "Zile", "ru": "Дней", "en": "Days" }, "kind": "calc", "formula": "f-days", "operands": { "A": "c4", "B": "c3" }, "dataType": "numeric", "header": "Perioada", "total": "sum" },
           { "id": "c6", "names": { "ro": "Durata medie, zile", "ru": "Средняя длительность, дни", "en": "Average time, days" }, "kind": "calc", "formula": "f-avg", "operands": {}, "dataType": "numeric", "header": "", "total": "sum" }
         ],
         "groupBy": "",
-        "filters": [ { "field": "finalizat", "type": "date" }, { "field": "subdiviziune", "type": "multi" } ],
         "totalRow": true
       },
       "versions": [
@@ -261,11 +253,11 @@
         "descriptions": { "ro": "", "ru": "", "en": "" },
         "category": "tabelar", "source": "reg-dosare", "level": "Global", "authorities": [],
         "columns": [
-          { "id": "c1", "names": { "ro": "Specialist", "ru": "Специалист", "en": "Specialist" }, "kind": "source", "field": "specialist", "dataType": "text", "header": "", "total": "sum" },
+          { "id": "c1", "names": { "ro": "Specialist", "ru": "Специалист", "en": "Specialist" }, "kind": "source", "field": "specialist", "dataType": "text", "header": "", "total": "sum", "filter": "multi" },
+          { "id": "c3", "names": { "ro": "Nr. dosar", "ru": "№ дела", "en": "File no." }, "kind": "source", "field": "nr", "dataType": "text", "header": "", "total": "sum", "filter": "text" },
           { "id": "c2", "names": { "ro": "Suspendate", "ru": "Приостановлено", "en": "Suspended" }, "kind": "calc", "formula": "f-count", "operands": {}, "dataType": "numeric", "header": "", "total": "sum" }
         ],
         "groupBy": "",
-        "filters": [],
         "totalRow": true
       },
       "versions": [],
@@ -274,7 +266,7 @@
       ]
     },
     {
-      "_comment": "rpt-levels-v1 (2026-11-10, PO): rows grouped on 3 levels — Autoritate › Subdiviziune › Serviciu, listed by Tip solicitare; a subtotal per group at every level.",
+      "_comment": "rpt-feature-v1 (2026-11-10): grouped by ONE column (Autoritate, a subtotal per group, Feature model); 5 column filters = 4 chips + „Mai multe” (the 3-level grouping of rpt-levels-v1 stays in git history).",
       "id": "RPT-0008",
       "status": "Publicat",
       "createdAt": "2026-11-09T11:20:00", "createdBy": "Anastasia Cojocaru",
@@ -284,16 +276,15 @@
         "descriptions": { "ro": "Dosarele depuse și finalizate, grupate pe autoritate, apoi pe subdiviziune și pe serviciu, cu subtotal la fiecare nivel.", "ru": "", "en": "" },
         "category": "statistic", "source": "reg-dosare", "level": "Global", "authorities": [],
         "columns": [
-          { "id": "c1", "names": { "ro": "Autoritate", "ru": "Орган", "en": "Authority" }, "kind": "source", "field": "autoritate", "dataType": "text", "header": "", "total": "sum" },
-          { "id": "c2", "names": { "ro": "Subdiviziune", "ru": "Подразделение", "en": "Subdivision" }, "kind": "source", "field": "subdiviziune", "dataType": "text", "header": "", "total": "sum" },
-          { "id": "c3", "names": { "ro": "Serviciu", "ru": "Услуга", "en": "Service" }, "kind": "source", "field": "serviciu", "dataType": "text", "header": "", "total": "sum" },
-          { "id": "c4", "names": { "ro": "Tip solicitare", "ru": "Тип обращения", "en": "Request type" }, "kind": "source", "field": "tip", "dataType": "text", "header": "", "total": "sum" },
-          { "id": "c5", "names": { "ro": "Depuse", "ru": "Поданы", "en": "Submitted" }, "kind": "source", "field": "depus", "dataType": "numeric", "header": "Dosare", "total": "sum" },
+          { "id": "c1", "names": { "ro": "Autoritate", "ru": "Орган", "en": "Authority" }, "kind": "source", "field": "autoritate", "dataType": "text", "header": "", "total": "sum", "filter": "multi" },
+          { "id": "c2", "names": { "ro": "Subdiviziune", "ru": "Подразделение", "en": "Subdivision" }, "kind": "source", "field": "subdiviziune", "dataType": "text", "header": "", "total": "sum", "filter": "multi" },
+          { "id": "c3", "names": { "ro": "Serviciu", "ru": "Услуга", "en": "Service" }, "kind": "source", "field": "serviciu", "dataType": "text", "header": "", "total": "sum", "filter": "multi" },
+          { "id": "c4", "names": { "ro": "Tip solicitare", "ru": "Тип обращения", "en": "Request type" }, "kind": "source", "field": "tip", "dataType": "text", "header": "", "total": "sum", "filter": "single" },
+          { "id": "c5", "names": { "ro": "Depuse", "ru": "Поданы", "en": "Submitted" }, "kind": "source", "field": "depus", "dataType": "numeric", "header": "Dosare", "total": "sum", "filter": "date" },
           { "id": "c6", "names": { "ro": "Finalizate", "ru": "Завершены", "en": "Closed" }, "kind": "source", "field": "finalizat", "dataType": "numeric", "header": "Dosare", "total": "sum" },
           { "id": "c7", "names": { "ro": "în termen", "ru": "в срок", "en": "on time" }, "kind": "source", "field": "inTermen", "dataType": "numeric", "header": "Dosare", "total": "incl" }
         ],
-        "groupBy": ["c1", "c2", "c3"],
-        "filters": [],
+        "groupBy": "c1",
         "totalRow": true
       },
       "versions": [
