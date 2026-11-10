@@ -890,11 +890,11 @@
       ))}`;
   }
   /* the column list = the Registre „Coloanele registrului” stacked list (order handle + drag, ↑ ↓, trash; row → panel) */
-  /* rpt-mover-v1 (2026-11-10, user: „save space”): the reorder control on the LEFT = a vertical stack ˄ · drag handle · ˅
-     (library `btn btn-text-neutral btn-icon-only`, compact 24 / phones 32, chevron 16 grey, tooltips, disabled at the ends)
-     + the position number; ↑ ↓ no longer sit with the row actions. `attr` = the move attribute („data-rpt-col-move”),
-     `id` its key, `what` the spoken name („„Autoritate””) */
-  const moverLead = (n, { attr, id, what, i, last, label = "Poziția" }) => `<span class="e-permits-ekcfg-order e-permits-rpt-order"><span class="e-permits-rpt-mover"><button class="btn btn-text-neutral btn-sm btn-icon-only e-permits-rpt-mover__btn" type="button" aria-label="Mută ${what} mai sus" data-tooltip-label="Mută mai sus" ${attr}="${esc(id)}|-1"${i === 0 ? " disabled" : ""}>${icon("chevron-top", 16)}</button><span class="e-permits-ekcfg-order__handle" aria-hidden="true">${icon("drag", 16)}</span><button class="btn btn-text-neutral btn-sm btn-icon-only e-permits-rpt-mover__btn" type="button" aria-label="Mută ${what} mai jos" data-tooltip-label="Mută mai jos" ${attr}="${esc(id)}|1"${i === last ? " disabled" : ""}>${icon("chevron-bottom", 16)}</button></span><span class="e-permits-ekcfg-order__n" aria-label="${label} ${n}">${n}</span></span>`;
+  /* rpt-handle-v1 (2026-11-10, user: the ˄ ˅ stack „looks awful”): the reorder control on the LEFT = ONE focusable drag
+     handle (library `button.btn.btn-text-neutral.btn-sm.btn-icon-only.e-permits-ekcfg-order__handle.e-permits-rpt-handle`, aria-label „Mută <nume>”, Small tooltip „Trage sau
+     folosește săgețile ↑ ↓”) + the position number; drag it, or Arrow Up / Down while it has focus (same FLIP slide + live
+     line, focus stays on it). `kind` = col · cond · level */
+  const moverLead = (n, { kind, id, what, label = "Poziția" }) => `<span class="e-permits-ekcfg-order e-permits-rpt-order"><button class="btn btn-text-neutral btn-sm btn-icon-only e-permits-ekcfg-order__handle e-permits-rpt-handle" type="button" aria-label="Mută ${what}" aria-keyshortcuts="ArrowUp ArrowDown" data-tooltip-label="Trage sau folosește săgețile ↑ ↓" data-rpt-handle="${kind}|${esc(id)}">${icon("drag", 16)}</button><span class="e-permits-ekcfg-order__n" aria-label="${label} ${n}">${n}</span></span>`;
   function columnMeta(v, c) {
     const out = [];
     if (c.kind === "source") out.push(`Câmp: ${fieldOf(v.source, c.field)?.label || "—"}`);
@@ -918,7 +918,7 @@
       const why = lv ? "" : groupBlock(v);
       /* a toggle keeps its name; aria-pressed says it is on (the tooltip says the level and what a click does) */
       const tip = why ? ` aria-disabled="true" data-tooltip-reason="${esc(why)}"` : ` data-tooltip-label="${lv ? `Nivelul ${lv} de grupare · apasă ca să-l elimini` : `Grupează rândurile după această coloană (nivelul ${v.groupBy.length + 1})`}"`;
-      return `<button class="btn btn-text-neutral btn-sm btn-icon-only e-permits-rpt-group-btn${lv ? " has-level" : ""}" type="button" aria-pressed="${lv > 0}" aria-label="Grupează rândurile după „${esc(colName(c))}”${lv ? ` (nivelul ${lv})` : ""}"${tip} data-rpt-col-group="${esc(c.id)}">${icon(GROUP_ICON, 16)}${lv ? `<span class="e-permits-rpt-group-btn__n" aria-hidden="true">${lv}</span>` : ""}</button>`;
+      return `<button class="btn btn-text-neutral btn-sm btn-icon-only e-permits-rpt-group-btn" type="button" aria-pressed="${lv > 0}" aria-label="Grupează rândurile după „${esc(colName(c))}”${lv ? ` (nivelul ${lv})` : ""}"${tip} data-rpt-col-group="${esc(c.id)}">${lv ? `<span class="e-permits-rpt-group-btn__n" aria-hidden="true">${lv}</span>` : icon(GROUP_ICON, 16)}</button>`;
     };
     /* „Adaugă coloană ▾” (rpt-add-menu-v1, 2026-11-09, user; Airtable / Notion / Retool „add field → choose type”): ONE
        library secondary button (plus + label + chevron) opening the stack dropdown; items = icon + kind + one short line */
@@ -941,13 +941,14 @@
       const [kt] = KIND_TAG[c.kind] || KIND_TAG.source;
       return (A().renderStackItem?.({
         plainTitle: colName(c),
-        /* rpt-col-item-v2 (user: tags wrapped under the title in the narrow column): the kind / Grupare / Inclusiv = small
-           secondary text right after the name, on its line (wraps with it); „De corectat” in the error colour; no tags */
-        title: `${esc(colName(c))}${[kt, v.groupBy.includes(c.id) ? `Grupare ${v.groupBy.indexOf(c.id) + 1}` : "", c.total === "incl" && isMeasure(c) ? "Inclusiv" : ""].filter(Boolean).map((x) => `<span class="e-permits-rpt-col-note"> · ${esc(x)}</span>`).join("")}${err ? '<span class="e-permits-rpt-col-note is-error"> · De corectat</span>' : ""}`,
-        leadHtml: moverLead(i + 1, { attr: "data-rpt-col-move", id: c.id, what: `„${esc(colName(c))}”`, i, last }),
+        /* rpt-col-item-v3 (2026-11-10, user): the title line = the name only („De corectat” in the error colour when
+           invalid); the kind („Din sursă” / „Calculată”) and „Inclusiv” go to the meta line after the data type; the
+           grouping level shows on the toggle */
+        title: `${esc(colName(c))}${err ? '<span class="e-permits-rpt-col-note is-error"> · De corectat</span>' : ""}`,
+        leadHtml: moverLead(i + 1, { kind: "col", id: c.id, what: `„${esc(colName(c))}”` }),
         rowAttrs: `data-rpt-col="${esc(c.id)}" data-index="${i}" tabindex="0" data-stack-row-open aria-haspopup="dialog" aria-label="Coloana ${esc(colName(c))}, poziția ${i + 1} — deschide setările"`,
         badges: [],
-        meta: columnMeta(v, c),
+        meta: (() => { const m = columnMeta(v, c); m.splice(2, 0, ...[kt, c.total === "incl" && isMeasure(c) ? "Inclusiv" : ""].filter(Boolean).map(esc)); return m; })(),
         /* rpt-col-list-v4 (user: „bring back arrows”): the original controls — ↑ / ↓ (disabled at the ends) + the red trash */
         actionsHtml: `
           ${groupBtn(c)}
@@ -1050,7 +1051,7 @@
     return `
       <div class="e-permits-rpt-cond e-permits-hover-surface is-hover-within${fe || ve ? " has-error" : ""}" role="group" aria-label="Condiția ${i + 1}${c.field ? `: ${esc(fldLabel(v, c))}` : ""}">
         <div class="e-permits-rpt-cond__head">
-          <span class="e-permits-rpt-cond__lead">${moverLead(i + 1, { attr: "data-rpt-cond-move", id: c.id, what: `condiția „${esc(name)}”`, i, last })}</span>
+          <span class="e-permits-rpt-cond__lead">${moverLead(i + 1, { kind: "cond", id: c.id, what: `condiția „${esc(name)}”` })}</span>
           <span class="e-permits-rpt-cond__ask">${ask}</span>
           <span class="e-permits-rpt-cond__actions"><button class="btn btn-text-destructive btn-sm btn-icon-only" type="button" aria-label="Elimină condiția „${esc(name)}”" data-tooltip-label="Elimină condiția" data-rpt-cond-remove="${esc(c.id)}">${icon("delete", 16)}</button></span>
         </div>
@@ -1067,7 +1068,7 @@
         ${x.group ? `
           <div class="e-permits-rpt-cgroup" role="group" aria-label="Grup de condiții ${i + 1}">
             <div class="e-permits-rpt-cgroup__head">
-              ${moverLead(i + 1, { attr: "data-rpt-cond-move", id: x.id, what: `grupul ${i + 1}`, i, last })}<span class="e-permits-rpt-cgroup__title">Grup de condiții</span>
+              ${moverLead(i + 1, { kind: "cond", id: x.id, what: `grupul ${i + 1}` })}<span class="e-permits-rpt-cgroup__title">Grup de condiții</span>
               <span class="e-permits-rpt-cond__actions"><button class="btn btn-text-destructive btn-sm btn-icon-only" type="button" aria-label="Elimină grupul ${i + 1}" data-tooltip-label="Elimină grupul" data-rpt-cond-remove="${esc(x.id)}">${icon("delete", 16)}</button></span>
             </div>
             <ol class="e-permits-rpt-conds" role="list" data-rpt-conds="${esc(x.id)}">${condItems(v, e, idp, x.rules, x.conj, x.id)}</ol>
@@ -1110,7 +1111,7 @@
     const last = levels.length - 1;
     const list = levels.length ? `<ol class="e-permits-rpt-levels" role="list" aria-label="Nivelurile de grupare" data-rpt-levels>${levels.map((c, i) => `
       <li class="e-permits-rpt-level e-permits-hover-surface is-hover-within is-l${i + 1}" draggable="true" data-rpt-level="${esc(c.id)}" data-index="${i}">
-        ${moverLead(i + 1, { attr: "data-rpt-level-move", id: c.id, what: `nivelul „${esc(colName(c))}”`, i, last, label: "Nivelul" })}
+        ${moverLead(i + 1, { kind: "level", id: c.id, what: `nivelul „${esc(colName(c))}”`, label: "Nivelul" })}
         <span class="e-permits-rpt-level__name" data-cell-tooltip>${esc(colName(c))}</span>
         <span class="e-permits-rpt-level__actions">
           <button class="btn btn-text-destructive btn-sm btn-icon-only" type="button" aria-label="Elimină nivelul „${esc(colName(c))}” din grupare" data-tooltip-label="Elimină nivelul" data-rpt-level-remove="${esc(c.id)}">${icon("delete", 16)}</button>
@@ -2269,8 +2270,7 @@
     if (from === to || from < 0 || to < 0 || from >= list.length || to >= list.length) return;
     const [id] = list.splice(from, 1);
     list.splice(to, 0, id);
-    const end = by < 0 ? to === 0 : to === list.length - 1;
-    afterColumnsChange(how === "arrow" ? `[data-rpt-level-move="${CSS.escape(`${id}|${end ? -by : by}`)}"]` : "");
+    afterColumnsChange(how === "arrow" ? `[data-rpt-handle="level|${CSS.escape(id)}"]` : "");
     const row = moveRoot()?.querySelector(`[data-rpt-level="${CSS.escape(id)}"]`);
     if (row) { row.classList.remove("is-just-moved"); void row.offsetWidth; row.classList.add("is-just-moved"); setTimeout(() => row.classList.remove("is-just-moved"), tokenMs("--motion-duration-lg", 500) * 2); }
     announce(`${colName(colOf(P.draft, id))}: nivelul ${to + 1} de grupare din ${list.length}.`);
@@ -2374,8 +2374,6 @@
     }
     const add = t.closest("[data-rpt-add]");
     if (add) { if (add.getAttribute("aria-disabled") !== "true") addKind(add.dataset.rptAdd); return; }
-    const mv = t.closest("[data-rpt-col-move]");
-    if (mv) { const [id, by] = mv.dataset.rptColMove.split("|"); const before = snapMove(); if (move(P.draft.columns, id, Number(by))) { const at = P.draft.columns.findIndex((c) => c.id === id); const end = Number(by) < 0 ? at === 0 : at === P.draft.columns.length - 1; afterColumnsChange(end ? `[data-rpt-col-move="${CSS.escape(`${id}|${-Number(by)}`)}"]` : `[data-rpt-col-move="${CSS.escape(`${id}|${by}`)}"]`); playMove(before, id); } return; }
     const rm = t.closest("[data-rpt-col-remove]");
     if (rm) {
       const id = rm.dataset.rptColRemove;
@@ -2399,8 +2397,6 @@
       return;
     }
     if (t.closest("[data-rpt-group-clear]")) { P.draft.groupBy = []; delete P.errors.groupBy; afterColumnsChange(levelKeep()); announce("Gruparea a fost eliminată."); return; }
-    const lmv = t.closest("[data-rpt-level-move]");
-    if (lmv) { if (lmv.disabled) return; const [id, by] = lmv.dataset.rptLevelMove.split("|"); moveLevel(P.draft.groupBy.indexOf(id), P.draft.groupBy.indexOf(id) + Number(by), "arrow", Number(by)); return; }
     const lrm = t.closest("[data-rpt-level-remove]");
     if (lrm) { const id = lrm.dataset.rptLevelRemove; P.draft.groupBy = P.draft.groupBy.filter((x) => x !== id); delete P.errors.groupBy; afterColumnsChange(P.draft.groupBy.length ? "[data-rpt-level-remove]" : levelKeep()); announce(`${colName(colOf(P.draft, id))} nu mai grupează rândurile.`); return; }
     const col = t.closest("[data-rpt-col]");
@@ -2424,17 +2420,6 @@
       g.rules.push(c);
       rerender({ keep: `#${IDP}-cf-${c.id}-field` }); reheader();
       announce("Grup de condiții adăugat.");
-      return;
-    }
-    const cmv = t.closest("[data-rpt-cond-move]");
-    if (cmv) {
-      const [id, by] = cmv.dataset.rptCondMove.split("|");
-      const scope = scopeOf(id);
-      const list = condScope(scope);
-      const i = list.findIndex((x) => x.id === id);
-      const to = i + Number(by);
-      const end = Number(by) < 0 ? to === 0 : to === list.length - 1;
-      moveCond(scope, i, to, `[data-rpt-cond-move="${CSS.escape(`${id}|${end ? -Number(by) : Number(by)}`)}"]`);
       return;
     }
     const crm = t.closest("[data-rpt-cond-remove]");
@@ -2617,8 +2602,27 @@
     item.focus({ preventScroll: true });
     syncColHl();
   });
+  /* rpt-handle-v1: Arrow Up / Down on a focused drag handle moves its item one place (columns, conditions / groups, levels);
+     the focus stays on the moved handle; the ends do nothing */
+  function moveByHandle(kind, id, by) {
+    const keep = `[data-rpt-handle="${kind}|${CSS.escape(id)}"]`;
+    if (kind === "col") { const before = snapMove(); if (move(P.draft.columns, id, by)) { afterColumnsChange(keep); playMove(before, id); } return; }
+    if (kind === "level") { const i = P.draft.groupBy.indexOf(id); moveLevel(i, i + by, "arrow", by); return; }
+    const scope = scopeOf(id);
+    const list = condScope(scope);
+    if (!list) return;
+    const i = list.findIndex((x) => x.id === id);
+    moveCond(scope, i, i + by, keep);
+  }
   /* Enter / Space on a column row opens its panel (the stack row is the control) */
   document.addEventListener("keydown", (event) => {
+    const hdl = event.target.closest?.("[data-rpt-handle]");
+    if (hdl && (event.key === "ArrowUp" || event.key === "ArrowDown") && inPage(hdl)) {
+      event.preventDefault();
+      const [kind, id] = hdl.dataset.rptHandle.split("|");
+      moveByHandle(kind, id, event.key === "ArrowUp" ? -1 : 1);
+      return;
+    }
     const row = event.target.closest?.("[data-rpt-col]");
     if (row && event.target === row && (event.key === "Enter" || event.key === " ") && inPage(row)) { event.preventDefault(); openColumn(row.dataset.rptCol); return; }
     const tab = event.target.closest?.("[data-rpt-tab]");

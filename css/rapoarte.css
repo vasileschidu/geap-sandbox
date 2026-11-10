@@ -512,34 +512,26 @@
   }
 }
 
-/* ---- rpt-group-v1 → rpt-levels-v2 (2026-11-10, user; Airtable / Notion „group by” from the field): the group toggle on a
-   Text column of the column list = library `btn btn-text-neutral btn-sm btn-icon-only` + `aria-pressed`; pressed = the
-   NEUTRAL pressed look (user: black, not blue) — grey tertiary fill + the default dark icon + the level number 1 / 2 / 3
-   next to the icon (same 32 / 40 height, widens only by the digit); hover on pressed = the next grey step; focus = the
-   library ring ---- */
+/* ---- rpt-group-v1 → rpt-levels-v2 → rpt-group-black-v1 (2026-11-10, user): the group toggle on a Text column of the
+   column list = library `btn btn-text-neutral btn-sm btn-icon-only` + `aria-pressed`. Off = the grey group icon (library
+   text-neutral). ON = BLACK filled (the active „Filtre” chip's inverse-default, hover one step lighter) showing ONLY the
+   level digit 1 / 2 / 3 in white (14/20 semibold, no icon); no ring at rest (the shell's `.btn[aria-pressed]` ring is for
+   open menus), the library ring on keyboard focus ---- */
 .btn.btn-text-neutral.e-permits-rpt-group-btn[aria-pressed="true"] {
-  background: var(--color-background-base-tertiary-hover, #d9d9d9);
-  color: var(--color-icon-base-default, #121212);
+  background: var(--color-background-base-inverse-default, #1e1e1e);
+  border-color: var(--color-background-base-inverse-default, #1e1e1e);
+  color: var(--color-text-base-inverse-default, #fff);
 }
 
 .btn.btn-text-neutral.e-permits-rpt-group-btn[aria-pressed="true"]:hover:not(:disabled),
 .btn.btn-text-neutral.e-permits-rpt-group-btn[aria-pressed="true"]:active:not(:disabled) {
-  background: var(--color-background-base-tertiary-active, #b2b2b2);
-  color: var(--color-icon-base-default, #121212);
+  background: var(--color-background-base-inverse-default-hover, #383838);
+  border-color: var(--color-background-base-inverse-default-hover, #383838);
+  color: var(--color-text-base-inverse-default, #fff);
 }
 
-/* a pressed toggle is not an open menu: no ring at rest (the shell's `.btn[aria-pressed="true"]` ring), the library ring
-   only on keyboard focus (as the Process Designer toolbar toggles) */
 .btn.e-permits-rpt-group-btn[aria-pressed="true"]:not(:disabled):not(:focus-visible) {
   box-shadow: none;
-}
-
-.btn.btn-sm.btn-icon-only.e-permits-rpt-group-btn.has-level {
-  flex: 0 0 auto;
-  gap: var(--spacing-2, 2px);
-  min-width: var(--spacing-32, 32px);
-  padding-inline: var(--spacing-6, 6px);
-  width: auto;
 }
 
 .e-permits-rpt-group-btn__n {
@@ -776,17 +768,23 @@
 }
 
 /* ---- the preview table's group rows (rpt-levels-v1 → v2, up to 3 levels): level-1 label row = 14/20 semibold (with its
-   fill above, hover included — rpt-hover-fix-v1), deeper levels 12/16 medium (hover included); labels + their subtotals
+   fill above, hover included — rpt-hover-fix-v1), deeper levels 14/20 medium (hover included); labels + their subtotals
    indent 16 per level (the card's inset + 16 × (level − 1)); the level-1 subtotal semibold ---- */
 .e-permits-rpt-table tr.e-permits-rpt-table__subtotal.is-l1 > td {
   font-weight: var(--font-weight-fw-semibold, 600);
 }
 
+/* rpt-group-type-v1 (2026-11-10, user): every level = the body text size 14/20 — hierarchy by indent + weight only
+   (level 1 semibold, levels 2–3 medium); subtotals the same */
+.e-permits-rpt-table tr.e-permits-rpt-table__subtotal:is(.is-l2, .is-l3) > td.e-permits-rpt-table__label strong {
+  font-weight: var(--font-weight-fw-medium, 500);
+}
+
 .e-permits-wid-table--agg.e-permits-rpt-table tr.e-permits-rpt-table__group:is(.is-l2, .is-l3) > th,
 .e-permits-wid-table--agg.e-permits-rpt-table tbody tr.e-permits-rpt-table__group:is(.is-l2, .is-l3):hover > th {
-  font-size: var(--font-size-fs-12, 12px);
+  font-size: var(--font-size-fs-14, 14px);
   font-weight: var(--font-weight-fw-medium, 500);
-  line-height: var(--line-height-lh-16, 16px);
+  line-height: var(--line-height-lh-20, 20px);
 }
 
 .e-permits-rpt-card .e-permits-workplace__table.e-permits-rpt-table tr.e-permits-rpt-table__group.is-l2 > th,
@@ -1169,45 +1167,31 @@
   }
 }
 
-/* ---- rpt-mover-v1 (2026-11-10, user: „save space”): the reorder control on the LEFT of a column item / condition / group /
-   grouping level = a vertical stack ˄ · drag handle · ˅ + the position number; the chevrons = library
-   `btn btn-text-neutral btn-sm btn-icon-only` at the compact 24 square (phones 32, the touch floor), chevron 16 in the
-   tertiary icon colour (dark on hover), library hover / focus ring / disabled; ↑ ↓ no longer sit with the row actions ---- */
+/* ---- rpt-handle-v1 (2026-11-10, user: the ˄ ˅ stack „looks awful”): the reorder control on the LEFT of a column item /
+   condition / group / grouping level = ONE focusable drag handle = library `btn btn-text-neutral btn-sm btn-icon-only`
+   (32, drag icon 16 in the tertiary colour, dark on hover; library hover / focus ring) + the position number; drag it,
+   or Arrow Up / Down while it has focus ---- */
 .e-permits-rpt-order {
   align-items: center;
-  gap: var(--spacing-8, 8px);
+  gap: var(--spacing-4, 4px);
 }
 
-.e-permits-rpt-mover {
-  align-items: center;
-  display: inline-flex;
-  flex-direction: column;
-  gap: var(--spacing-0, 0px);
-}
-
-.btn.btn-sm.btn-icon-only.e-permits-rpt-mover__btn {
-  border-radius: var(--border-radius-8, 8px);
+.btn.btn-text-neutral.e-permits-rpt-handle {
   color: var(--color-icon-base-tertiary, #9e9e9e);
-  flex: 0 0 var(--spacing-24, 24px);
-  height: var(--spacing-24, 24px);
-  width: var(--spacing-24, 24px);
+  cursor: grab;
 }
 
-.btn.btn-sm.btn-icon-only.e-permits-rpt-mover__btn:hover:not(:disabled) {
+.btn.btn-text-neutral.e-permits-rpt-handle:is(:hover, :focus-visible) {
   color: var(--color-icon-base-default, #121212);
 }
 
-.btn.btn-sm.btn-icon-only.e-permits-rpt-mover__btn:disabled {
-  background: transparent;
-  border-color: transparent;
-  color: var(--color-icon-disabled-on-disabled, #b2b2b2);
+.btn.btn-text-neutral.e-permits-rpt-handle:active {
+  cursor: grabbing;
 }
 
+/* phones: the Registre stack hides its handle (↑ ↓ moved there); the Rapoarte handle IS the reorder control → kept */
 @media (max-width: 760px) {
-  .btn.btn-sm.btn-icon-only.e-permits-rpt-mover__btn {
-    flex-basis: var(--spacing-32, 32px);
-    height: var(--spacing-32, 32px);
-    width: var(--spacing-32, 32px);
+  .e-permits-reg-editor__stack .btn.e-permits-ekcfg-order__handle.e-permits-rpt-handle {
+    display: inline-flex;
   }
 }
-

@@ -4613,7 +4613,7 @@
     const HMENU = async (h) => { await h.click("[data-dosar-profil] .e-permits-page-header__actions [data-stack-menu-trigger]"); await h.wait(200); };
     const GRANT = async (h) => { await h.click("#rpt-panel [data-rpt-grant]"); await h.find(`${M} [data-rpt-grant-save]`); };
     /* rpt-col-list-v2: move / remove live in the column's ⋮ */
-    const byAuth = seq(dict, addF("autoritate"), done, ...[1, 2, 3, 4, 5].map(() => async (h) => { await h.click(`${C} [data-rpt-col-move="c6|-1"]`); }));
+    const byAuth = seq(dict, addF("autoritate"), done, ...[1, 2, 3, 4, 5].map(() => async (h) => { const el = await h.find(`${C} [data-rpt-handle="col|c6"]`); el.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowUp", bubbles: true })); }));
     /* rpt-filters-v1: add a filter row in the profile; pick values in a preview facet (desktop popover → Confirmă, phones
        the sheet → Arată); apply the bar's draft (desktop) */
     const fAdd = (i, field) => fltAdd("#rpt-panel", field);
@@ -4673,7 +4673,7 @@
       "rpt-03v": list(seq(nou, step1, next, async (h) => { await h.click(`${C} [data-rpt-add-trigger]`); await h.wait(250); })),
       /* rpt-col-link-v1: a hovered list item tints its preview column; 03x = „Mută mai jos” on Depuse; 03z = phone table edge to edge */
       "rpt-03w": list(seq(built, async (h) => { const el = await h.find(`${C} [data-rpt-col="c3"] .e-permits-stack__title`); el.dispatchEvent(new MouseEvent("mouseover", { bubbles: true })); await h.wait(250); })),
-      "rpt-03x": list(seq(built, async (h) => { await h.click(`${C} [data-rpt-col-move="c2|1"]`); await h.wait(300); })),
+      "rpt-03x": list(seq(built, async (h) => { { const el = await h.find(`${C} [data-rpt-handle="col|c2"]`); el.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowDown", bubbles: true })); } await h.wait(300); })),
       "rpt-03y": list(seq(built, async (h) => { await h.click(`${C} [data-rpt-col-pick="c4"]`); await h.wait(500); })),
       "rpt-03z": prof("RPT-0006", "configurare", async (h) => { await h.scroll("#rpt-panel [data-rpt-preview]"); }),
       "rpt-03k": list(seq(nou, step1, next, async (h) => { await addKind("calc")(h); await h.find(`${DR} #rpt-c-name-ro`); await h.click(`${DR} [data-rpt-col-save]`); })),
@@ -4761,7 +4761,7 @@
          create sheet's Structură step (clone) with the same list; Subdiviziune moved up with ↑ (12f); Serviciu removed
          with its trash (12g); grouping built by clicking 3 toggles on RPT-0002 (12h) */
       "rpt-12c": prof("RPT-0008", "configurare", async (h) => { await h.scroll("#rpt-panel [data-rpt-levels]"); await h.wait(400); }),
-      "rpt-12f": prof("RPT-0008", "configurare", async (h) => { await h.scroll("#rpt-panel [data-rpt-levels]"); await h.click('#rpt-panel [data-rpt-level-move="c2|-1"]'); await h.wait(600); }),
+      "rpt-12f": prof("RPT-0008", "configurare", async (h) => { await h.scroll("#rpt-panel [data-rpt-levels]"); { const el = await h.find('#rpt-panel [data-rpt-handle="level|c2"]'); el.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowUp", bubbles: true })); } await h.wait(600); }),
       "rpt-12g": prof("RPT-0008", "configurare", async (h) => { await h.scroll("#rpt-panel [data-rpt-levels]"); await h.click('#rpt-panel [data-rpt-level-remove="c3"]'); await h.wait(600); }),
       "rpt-12h": prof("RPT-0008", "configurare", async (h) => { await h.scroll("#rpt-panel [data-rpt-group-clear]"); await h.click("#rpt-panel [data-rpt-group-clear]"); await h.wait(300); for (const id of ["c3", "c1", "c2"]) { await h.click(`#rpt-panel [data-rpt-col-group="${id}"]`); await h.wait(300); } await h.scroll('#rpt-panel [data-rpt-col="c1"]'); await h.wait(400); }),
       "rpt-12d": prof("RPT-0008", "configurare", async (h) => { const b = await h.find('#rpt-panel [data-rpt-col-group="c4"]'); b.scrollIntoView({ block: "center" }); await h.wait(200); b.focus(); b.dispatchEvent(new MouseEvent("mouseover", { bubbles: true })); b.dispatchEvent(new MouseEvent("mouseenter")); await h.wait(500); }),
@@ -4786,7 +4786,7 @@
       /* rpt-filter-list-v1: the filter list = the column list; a filter item opens the same panel (field + type) to edit */
       "rpt-14b": prof("RPT-0002", "configurare", async (h) => { await h.scroll('#rpt-panel [data-rpt-ci="f2"]'); await h.click('#rpt-panel [data-rpt-ci="f2"] .e-permits-doc-kwselect button'); await h.wait(300); }),
       "rpt-14c": prof("RPT-0002", "configurare", seq(condAdd("#rpt-panel"), setCond("#rpt-panel", "f4", "subdiviziune"), async (h) => { await h.click('#rpt-panel [aria-controls$="cf-f4-value-menu"]'); await h.wait(300); })),
-      "rpt-14a": prof("RPT-0002", "configurare", seq(fAdd(3, "tip", "multi"), fAdd(4, "statut", "multi"), fAdd(5, "subdiviziune", "single"), async (h) => { await h.click('#rpt-panel [data-rpt-cond-move="f6|-1"]'); await h.wait(450); await h.click('#rpt-panel [data-rpt-cond-move="f6|-1"]'); await h.wait(450); await h.scroll('#rpt-panel [data-rpt-conds="top"]'); await h.wait(600); })),
+      "rpt-14a": prof("RPT-0002", "configurare", seq(fAdd(3, "tip", "multi"), fAdd(4, "statut", "multi"), fAdd(5, "subdiviziune", "single"), async (h) => { { const el = await h.find('#rpt-panel [data-rpt-handle="cond|f6"]'); el.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowUp", bubbles: true })); } await h.wait(450); { const el = await h.find('#rpt-panel [data-rpt-handle="cond|f6"]'); el.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowUp", bubbles: true })); } await h.wait(450); await h.scroll('#rpt-panel [data-rpt-conds="top"]'); await h.wait(600); })),
       /* rpt-cond-text-v1: the asked Text condition (RPT-0007 „Nr. dosar conține”) = the search field; no match */
       "rpt-13e": prof("RPT-0007", "configurare", async (h) => { await h.scroll("#rpt-panel [data-rpt-preview] .e-permits-rpt-card"); await h.fill("#rpt-panel [data-rpt-q]", "1048", { leave: false }); await h.wait(400); }),
       "rpt-13f": prof("RPT-0007", "configurare", async (h) => { await h.scroll("#rpt-panel [data-rpt-preview] .e-permits-rpt-card"); await h.fill("#rpt-panel [data-rpt-q]", "zzz", { leave: false }); await h.wait(400); }),
