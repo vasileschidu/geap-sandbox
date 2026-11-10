@@ -1522,7 +1522,7 @@
     const f = DR.flt;
     const err = DR.errors;
     const radios = match.length ? `<div class="e-permits-rpt-fld-list" role="radiogroup" aria-labelledby="rpt-f-field-label"${err.field ? ' aria-describedby="rpt-f-field-error"' : ""}>${match.map((x) => `
-        <label class="radio radio--small"><input class="radio-input" type="radio" name="rpt-f-field" value="${esc(x.key)}"${f.field === x.key ? " checked" : ""} data-rpt-flt-field><span class="radio-custom" aria-hidden="true"></span><span class="radio-texts"><span class="radio-label">${esc(x.label)}</span><span class="radio-description">${esc(FIELD_TYPE_LABEL[x.type] || x.type)}${x.desc ? ` · ${esc(x.desc)}` : ""}</span></span></label>`).join("")}</div>`
+        <label class="radio radio--small e-permits-hover-surface is-hover-within e-permits-rpt-fld"><input class="radio-input" type="radio" name="rpt-f-field" value="${esc(x.key)}"${f.field === x.key ? " checked" : ""} data-rpt-flt-field><span class="radio-custom" aria-hidden="true"></span><span class="radio-texts"><span class="radio-label">${esc(x.label)}</span><span class="radio-description">${esc(FIELD_TYPE_LABEL[x.type] || x.type)}${x.desc ? ` · ${esc(x.desc)}` : ""}</span></span></label>`).join("")}</div>`
       : E()?.noResults?.("Niciun câmp nu corespunde căutării", { text: "Caută după denumirea sau descrierea câmpului.", compact: true }) || "";
     const types = f.field ? FILTER_TYPES.filter(([k]) => supportOf(v, f.field).includes(k)).map(([k, l]) => [k, l, FILTER_HINT[k]]) : [];
     return {

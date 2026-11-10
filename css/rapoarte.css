@@ -137,6 +137,26 @@
   padding: var(--spacing-8, 8px) var(--spacing-0, 0px);
 }
 
+/* rpt-fld-hover-v1 (user): the shared grey hover surface drawn OUTSIDE the row (outset 8, the radios and text keep their
+   left edge; rows are 16 apart so neighbouring surfaces just touch); the chosen row keeps a lighter grey; whole row clickable */
+.e-permits-rpt-fld {
+  --hover-surface-outset: var(--spacing-8, 8px);
+  border-radius: var(--border-radius-12, 12px);
+  cursor: pointer;
+  display: flex;
+  width: 100%;
+}
+
+.e-permits-rpt-fld:has(input:checked)::before {
+  background: var(--color-background-base-secondary, #f7f7f7);
+  opacity: 1;
+  transform: scale(1);
+}
+
+.e-permits-rpt-fld:has(input:checked):hover::before {
+  background: var(--color-background-base-tertiary, #f1f1f1);
+}
+
 /* ---- the formula picker (new): the chosen formula's expression + result format, under the formula select ---- */
 .e-permits-rpt-formula {
   background: var(--color-background-base-secondary, #f7f7f7);
