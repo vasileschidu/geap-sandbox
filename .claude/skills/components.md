@@ -12418,8 +12418,8 @@ Autoritate (one or more authorities). **Reuse map** (no new engine):
   level note (the widget review).
 - **Create sheet header** = sheet-header-pad-v2 (css/registre.css, every `.e-permits-reg-editor`, desktop ≥ 761): ONE padding
   `--spacing-24` on all four sides — title top 24, step strip bottom 24 (+ the divider), title / steps left = × right = 24 from the
-  content container edge (sheet edge up to 1600, then the editor page width = the body's left edge), × centred on the 32 title
-  line. Never add a „+12 inset” again. Phones: title 20/32 at 16 from top, × 40. Measured 1440 / 1920: 24/24/24/24, left 24 / 184.
+  sheet edge at every width (header has NO max width; only the body keeps the 1600 cap), × centred on the 32 title
+  line. Never add a „+12 inset” again. Phones: title 20/32 at 16 from top, × 40. Measured 1440 / 1920 / 2560: 24 on all four sides.
 - **Preview** = the widget preview block (heading „Previzualizare” + „Mărește” → library dialog `modal--lg`; meta „Date
   demonstrative · Perimetru: … · <source> <version>”) with the report card: name + „ⓘ” (the description, hint tooltip),
   category · source, the **report preview table** (inventory row; RAP flat look — no border / radius, grey header band, rows 56, full

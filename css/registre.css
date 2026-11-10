@@ -498,12 +498,16 @@
    editor page width (1600, components.md › „Editor page width”) centred in the sheet, never less than the 24 gutter;
    the × sits on that right edge. Each step = `.e-permits-ntpl-content` (+ `--preview`: form 5fr ≥ 360 | sticky preview
    7fr; stacked ≤ 1100). Phones: one column, gutter 16. */
+/* the header is always the full sheet width (no 1600 cap): 24 on every side (sheet-header-pad-v2) */
 .e-permits-reg-editor--page .e-permits-reg-editor__header .e-permits-page-header__body {
-  padding-left: max(var(--spacing-24, 24px), calc((100% - var(--spacing-40, 40px) * 40) / 2 + var(--spacing-24, 24px)));
-  padding-right: calc(max(var(--spacing-24, 24px), calc((100% - var(--spacing-40, 40px) * 40) / 2 + var(--spacing-24, 24px))) + var(--spacing-32, 32px) + var(--spacing-16, 16px));
+  padding-left: var(--spacing-24, 24px);
+  padding-right: calc(var(--spacing-24, 24px) + var(--spacing-32, 32px) + var(--spacing-16, 16px));
 }
 
-.e-permits-reg-editor--page .e-permits-steps-strip,
+.e-permits-reg-editor--page .e-permits-steps-strip {
+  padding-inline: var(--spacing-24, 24px);
+}
+
 .e-permits-reg-editor--page .e-permits-reg-editor__bar,
 .e-permits-reg-editor--page .e-permits-reg-editor__single.e-permits-reg-editor__page {
   padding-inline: max(var(--spacing-24, 24px), calc((100% - var(--spacing-40, 40px) * 40) / 2 + var(--spacing-24, 24px)));
@@ -514,7 +518,7 @@
 }
 
 .e-permits-reg-editor--page .e-permits-reg-editor__close {
-  right: max(var(--spacing-24, 24px), calc((100% - var(--spacing-40, 40px) * 40) / 2 + var(--spacing-24, 24px)));
+  right: var(--spacing-24, 24px);
 }
 
 /* the scroller is the sheet body itself: the sticky right column sticks at its top edge (the ntpl 24 offset belongs to
