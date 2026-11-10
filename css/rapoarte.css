@@ -123,6 +123,14 @@
   }
 }
 
+/* filters sit directly in the section card (no second bordered container inside it) */
+.e-permits-doc-rule.e-permits-rpt-filters {
+  background: none;
+  border: 0;
+  border-radius: 0;
+  padding: 0;
+}
+
 /* filters: field · type · trash (two cells, not the rule's three) */
 .e-permits-doc-cond.e-permits-rpt-filter {
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) var(--spacing-32, 32px);

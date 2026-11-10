@@ -691,7 +691,7 @@
     const add = `<button class="btn btn-secondary btn-sm" type="button" data-rpt-filter-add${v.source ? "" : ' aria-disabled="true" data-tooltip-reason="Alege mai întâi sursa de date."'}>${icon("plus-large", 16)}<span>Adaugă filtru</span></button>`;
     if (!v.filters.length) return E()?.render({ title: "Fără filtre", text: "Raportul se generează pe toate înregistrările sursei. Adaugă filtre pe câmpurile filtrabile: Text, Alegere unică, Alegere multiplă sau Interval de date.", icon: "filter", compact: true, actionHtml: add }) || "";
     return `
-      <div class="e-permits-doc-rule e-permits-reg-editor__rule">
+      <div class="e-permits-doc-rule e-permits-reg-editor__rule e-permits-rpt-filters">
         <div class="e-permits-doc-rule__when">${kw("Filtre la generare")}</div>
         <ol class="e-permits-doc-rule__conds" role="list">${v.filters.map((f, i) => {
           const err = e[`filter.${i}`];
