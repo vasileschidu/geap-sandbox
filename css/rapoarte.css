@@ -546,7 +546,7 @@
 
 .e-permits-rpt-group-sum__text {
   color: var(--color-text-base-secondary, #4d4d4d);
-  flex: 1 1 calc(var(--spacing-40, 40px) * 5);
+  flex: 0 1 auto;
   font-size: var(--font-size-fs-14, 14px);
   line-height: var(--line-height-lh-20, 20px);
   margin: 0;
