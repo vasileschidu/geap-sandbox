@@ -347,15 +347,14 @@
 
   /* ================================================================ THE LAYOUT EDITOR (dash-v3, 2026-11-10, user + Mobbin: Sentry · Twenty ·
      Salesforce · Xero dashboards; components.md › „Tablouri de bord”)
-     ONE WYSIWYG canvas: the edit view IS the final dashboard (no separate preview) — the end-user BackOffice shell as a
-     skeleton (sidebar, top bar with the dashboard name, tabs when the role has several dashboards) at the real 1440 screen,
-     zoomed to fit; the widget cards exactly as on the dashboard (no wrapper borders). Editing appears only on hover / focus
+     ONE WYSIWYG canvas: the edit view IS the final dashboard (no separate preview) — only the widgets, at the available
+     width, no shell skeleton and no scaling (dash-v4, user); the cards exactly as on the dashboard (no wrapper borders). Editing appears only on hover / focus
      / drag: the shared grey hover surface (`.e-permits-hover-surface`, the calendar months), a floating toolbar (drag
      handle + red remove), a bottom-right resize corner that snaps to 4 · 6 · 8 · 12 columns and Mică · Medie · Mare, the
      12 column guides while dragging / resizing. Drag = iPhone-style live reflow (FLIP). Keyboard: the widget is focusable;
      ← → ↑ ↓ move it, Shift + ← → change the width, Shift + ↑ ↓ the height (announced). Add = one widget at a time (the
      picker), it lands at the end at its default size, scrolls into view and flashes. Phones: one widget per row, no
-     skeleton, no resize; the toolbar shows ↑ ↓ + remove. */
+     resize; the toolbar shows ↑ ↓ + remove. */
   const SPAN = { third: 4, half: 6, twoThirds: 8, full: 12 };
   const WIDTH_KEYS = ["third", "half", "twoThirds", "full"];
   const HEIGHT_KEYS = ["small", "medium", "large"];
@@ -381,40 +380,17 @@
       <span class="e-permits-dsh-tile__size" aria-hidden="true">${tag(sizeText(t), "brand")}</span>` : "";
     return `<div class="e-permits-dsh-tile e-permits-dsh-tile--${SPAN[t.width] ? t.width : "full"}${edit ? " e-permits-hover-surface is-editable" : ""}" role="listitem" data-dsh-tile="${t.widget}" data-index="${i}"${edit ? ` tabindex="0" aria-roledescription="widget mutabil" aria-label="${esc(name)}"` : ` aria-label="${esc(name)}"`}>${tileBody(t, d)}${tools}</div>`;
   }
-  /* the end-user shell around the grid (desktop): skeleton sidebar + top bar with the dashboard name + tabs when the
-     role has several dashboards; aria-hidden, non-interactive, static skeletons (no shimmer: nothing is loading) */
-  function siblingsOf(v, d) {
-    const auth = d?.authority || (who().central ? null : who().authority);
-    return all().filter((x) => x.id !== d?.id && x.status === "Publicat" && (lastVersion(x)?.config.roles || []).some((r) => v.roles.some((m) => m.role === r.role)) && (!auth || assignedTo(x, auth)));
-  }
   function layoutHtml(v, d, { edit = false } = {}) {
     const n = v.widgets.length;
     const tiles = v.widgets.map((t, i) => tileHtml(t, i, n, d, edit)).join("");
     const ghost = edit && n < MAX_WIDGETS ? `<div class="e-permits-dsh-ghost" role="listitem"><span class="e-permits-dsh-ghost__text">Adaugă widget-urile unul câte unul și aranjează-le aici.</span>${addButton(v)}</div>` : "";
-    const tabs = siblingsOf(v, d).length;
     const body = n || edit
       ? `<div class="e-permits-dsh-grid${edit ? " is-editing" : ""}" role="list" aria-label="Widget-urile tabloului de bord, în ordinea de citire" data-dsh-grid>
           <div class="e-permits-dsh-guides" aria-hidden="true">${Array.from({ length: 12 }, () => "<span></span>").join("")}</div>
           ${tiles}${ghost}
         </div>`
       : E()?.render({ title: "Niciun widget", text: "Tabloul de bord nu are încă widget-uri.", icon: "chart", compact: true }) || "";
-    return `
-      <div class="e-permits-dsh-stage" data-dsh-stage>
-        <div class="e-permits-dsh-frame" data-dsh-frame>
-          <div class="e-permits-dsh-frame__side" aria-hidden="true">
-            <div class="e-permits-dsh-frame__logo"><span class="skeleton skeleton--circle"></span><span class="skeleton skeleton--text"></span></div>
-            <div class="e-permits-dsh-frame__nav">
-              <span class="e-permits-dsh-frame__item is-active">${icon("home-line")}<span>Tablou de bord</span></span>
-              ${Array.from({ length: 6 }, () => '<span class="e-permits-dsh-frame__item"><span class="skeleton skeleton--circle"></span><span class="skeleton skeleton--text"></span></span>').join("")}
-            </div>
-          </div>
-          <div class="e-permits-dsh-frame__main">
-            <div class="e-permits-dsh-frame__top" aria-hidden="true"><span class="e-permits-dsh-frame__title">${esc(v.names.ro || "Tablou de bord")}</span><span class="e-permits-dsh-frame__user"><span class="skeleton skeleton--circle"></span><span class="skeleton skeleton--text"></span></span></div>
-            ${tabs ? `<div class="e-permits-dsh-frame__tabs" aria-hidden="true"><span class="e-permits-dsh-frame__tab is-active">${esc(v.names.ro || "Tablou de bord")}</span>${Array.from({ length: Math.min(tabs, 3) }, () => '<span class="e-permits-dsh-frame__tab"><span class="skeleton skeleton--text"></span></span>').join("")}</div>` : ""}
-            <div class="e-permits-dsh-frame__content">${body}</div>
-          </div>
-        </div>
-      </div>`;
+    return `<div class="e-permits-dsh-stage" data-dsh-stage>${body}</div>`;
   }
   const addButton = (v) => `<button class="btn btn-secondary btn-sm" type="button" aria-haspopup="dialog" data-dsh-add${v.widgets.length >= MAX_WIDGETS ? ` aria-disabled="true" data-tooltip-reason="Un tablou de bord are cel mult ${MAX_WIDGETS} de widget-uri."` : ""}>${icon("plus-large", 16)}<span>Adaugă widget</span></button>`;
   function stepWidgets(v, e, idp, d) {
@@ -424,18 +400,8 @@
         ${layoutHtml(v, d, { edit: true })}
         <p class="u-visually-hidden" aria-live="polite" data-dsh-live></p>`, { meta: `${v.widgets.length}/${MAX_WIDGETS}`, tools: addButton(v), card: false, cls: "e-permits-dsh-layout", id: `${idp}-layout-title` })}`;
   }
-  /* the canvas = the real 1440 screen, zoomed to the space it has (desktop); phones = 1 (one widget per row, no shell) */
-  const FRAME_W = 1440;
-  function fitFrames(root = document) {
-    root.querySelectorAll?.("[data-dsh-stage]").forEach((stage) => {
-      const z = isPhone() ? 1 : Math.min(1, stage.clientWidth / FRAME_W);
-      if (z > 0) stage.style.setProperty("--dsh-zoom", String(Math.round(z * 1000) / 1000));
-    });
-  }
-  const stageObserver = "ResizeObserver" in window ? new ResizeObserver((entries) => entries.forEach((en) => fitFrames(en.target.parentElement || document))) : null;
-  new MutationObserver(() => document.querySelectorAll("[data-dsh-stage]:not([data-dsh-fit])").forEach((s) => { s.dataset.dshFit = "1"; fitFrames(s.parentElement); stageObserver?.observe(s); })).observe(document.documentElement, { childList: true, subtree: true });
-  window.addEventListener("resize", () => fitFrames());
-  const zoomOf = (el) => Number(getComputedStyle(el.closest("[data-dsh-stage]") || document.documentElement).getPropertyValue("--dsh-zoom")) || 1;
+  /* the canvas renders at the available width (no scaling, dash-v4): pointer deltas are screen px */
+  const zoomOf = () => 1;
 
   /* ---- read-only passport blocks (profile, review, version view) */
   function configRows(v, level = "Global") {
