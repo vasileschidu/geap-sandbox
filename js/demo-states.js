@@ -4573,7 +4573,9 @@
     const rename = (id, text) => seq(openCol(id), async (h) => { await h.fill("#rpt-c-name-ro", text, { leave: false }); }, saveCol);
     const numeric = (id) => seq(openCol(id), async (h) => { await h.choose(`${DR} select[data-rpt-col-field="dataType"]`, "numeric"); }, saveCol);
     /* step 2 with source columns: Serviciu · Depuse · Finalizate · în termen (numeric counts) */
-    const cols = seq(dict, addF("serviciu", "depus", "finalizat", "inTermen"), done, numeric("c2"), numeric("c3"), numeric("c4"), rename("c2", "Depuse"), rename("c3", "Finalizate"), rename("c4", "în termen"));
+    /* type + name in ONE drawer per column (was 6 drawers): keeps the whole flow under the 15 s ready limit */
+    const shape = (id, name) => seq(openCol(id), async (h) => { await h.choose(`${DR} select[data-rpt-col-field="dataType"]`, "numeric"); await h.fill("#rpt-c-name-ro", name, { leave: false }); }, saveCol);
+    const cols = seq(dict, addF("serviciu", "depus", "finalizat", "inTermen"), done, shape("c2", "Depuse"), shape("c3", "Finalizate"), shape("c4", "în termen"));
     const twoLevel = seq(header("c2", "Dosare"), header("c3", "Dosare"), header("c4", "Dosare", "incl"));
     const calc = seq(async (h) => { await addKind("calc")(h); await h.find(`${DR} #rpt-c-name-ro`); }, async (h) => { await h.choose(`${DR} select[data-rpt-col-field="formula"]`, "f-pct"); await h.fill("#rpt-c-name-ro", "Finalizate în termen, %", { leave: false }); await h.choose(`${DR} select[data-rpt-col-op="A"]`, "c4"); await h.choose(`${DR} select[data-rpt-col-op="B"]`, "c3"); });
     const built = seq(nou, step1, next, cols, twoLevel, calc, saveCol);
