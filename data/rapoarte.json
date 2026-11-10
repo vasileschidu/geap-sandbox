@@ -272,6 +272,40 @@
       "history": [
         { "at": "2026-11-08T09:15:00", "by": "Anastasia Cojocaru", "role": "Administrator central", "event": "Crearea raportului", "detail": "Ciornă · Global · Registru Dosare" }
       ]
+    },
+    {
+      "_comment": "rpt-levels-v1 (2026-11-10, PO): rows grouped on 3 levels — Autoritate › Subdiviziune › Serviciu, listed by Tip solicitare; a subtotal per group at every level.",
+      "id": "RPT-0008",
+      "status": "Publicat",
+      "createdAt": "2026-11-09T11:20:00", "createdBy": "Anastasia Cojocaru",
+      "updatedAt": "2026-11-10T09:40:00", "updatedBy": "Anastasia Cojocaru",
+      "config": {
+        "names": { "ro": "Raport dosare pe autoritate, subdiviziune și serviciu", "ru": "Отчёт о делах по органам, подразделениям и услугам", "en": "Files by authority, subdivision and service" },
+        "descriptions": { "ro": "Dosarele depuse și finalizate, grupate pe autoritate, apoi pe subdiviziune și pe serviciu, cu subtotal la fiecare nivel.", "ru": "", "en": "" },
+        "category": "statistic", "source": "reg-dosare", "level": "Global", "authorities": [],
+        "columns": [
+          { "id": "c1", "names": { "ro": "Autoritate", "ru": "Орган", "en": "Authority" }, "kind": "source", "field": "autoritate", "dataType": "text", "header": "", "total": "sum" },
+          { "id": "c2", "names": { "ro": "Subdiviziune", "ru": "Подразделение", "en": "Subdivision" }, "kind": "source", "field": "subdiviziune", "dataType": "text", "header": "", "total": "sum" },
+          { "id": "c3", "names": { "ro": "Serviciu", "ru": "Услуга", "en": "Service" }, "kind": "source", "field": "serviciu", "dataType": "text", "header": "", "total": "sum" },
+          { "id": "c4", "names": { "ro": "Tip solicitare", "ru": "Тип обращения", "en": "Request type" }, "kind": "source", "field": "tip", "dataType": "text", "header": "", "total": "sum" },
+          { "id": "c5", "names": { "ro": "Depuse", "ru": "Поданы", "en": "Submitted" }, "kind": "source", "field": "depus", "dataType": "numeric", "header": "Dosare", "total": "sum" },
+          { "id": "c6", "names": { "ro": "Finalizate", "ru": "Завершены", "en": "Closed" }, "kind": "source", "field": "finalizat", "dataType": "numeric", "header": "Dosare", "total": "sum" },
+          { "id": "c7", "names": { "ro": "în termen", "ru": "в срок", "en": "on time" }, "kind": "source", "field": "inTermen", "dataType": "numeric", "header": "Dosare", "total": "incl" }
+        ],
+        "groupBy": ["c1", "c2", "c3"],
+        "filters": [],
+        "totalRow": true
+      },
+      "versions": [
+        { "nr": 1, "version": 1, "at": "2026-11-10T09:40:00", "by": "Anastasia Cojocaru", "note": "Gruparea pe trei niveluri: autoritate, subdiviziune, serviciu." }
+      ],
+      "grants": [
+        { "id": "RPT-0008-g1", "role": "director", "authority": null, "at": "2026-11-10T09:45:00", "by": "Anastasia Cojocaru" }
+      ],
+      "history": [
+        { "at": "2026-11-10T09:40:00", "by": "Anastasia Cojocaru", "role": "Administrator central", "event": "Publicarea raportului", "detail": "Versiunea 1 · Gruparea pe trei niveluri." },
+        { "at": "2026-11-09T11:20:00", "by": "Anastasia Cojocaru", "role": "Administrator central", "event": "Crearea raportului", "detail": "Ciornă · Global · Registru Dosare" }
+      ]
     }
   ]
 }

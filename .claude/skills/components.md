@@ -12476,6 +12476,26 @@ Autoritate (one or more authorities). **Reuse map** (no new engine):
   ▤ la o coloană Text …”). **Create sheet** Structură keeps the fo-select (no column list on that step; same state; the
   toggle is on step 2). A grouping column that stops being groupable is cleared. Demo rpt-12a (moved to Serviciu = just
   turned on), rpt-12b (removed → summary).
+- **Multi-level grouping (rpt-levels-v1, 2026-11-10, PO Alexandru: „autoritatea → subdiviziune → serviciu”; Salesforce „Group
+  rows” / Excel subtotals)** — `config.groupBy` = an ORDERED array of up to 3 column ids (level 1 first; a legacy string is
+  normalised to `[id]`); one Text column always stays ungrouped (the rows are listed by it). **Column list**: the group toggle
+  adds the column as the NEXT level; pressed = the level number (`span.e-permits-rpt-group-btn__n`, 14/20 semibold) instead of
+  the icon, tooltip „Nivelul N de grupare · apasă ca să-l elimini”, the item's Small brand tag „Grupare N”; a pressed toggle
+  leaves the grouping (the next levels move up); a 4th = `aria-disabled` + Small tooltip „Poți grupa pe cel mult 3 niveluri.”
+  (other reasons: „Lasă o coloană Text negrupată: …”, „Adaugă încă o coloană Text: …” — `groupBlock(v)`). **„Gruparea
+  rândurilor”** (profile + create sheet Structură, `groupSection`) = section meta „N niveluri” + the ordered level list
+  `ol.e-permits-rpt-levels[data-rpt-levels]` › `li.e-permits-rpt-level.e-permits-hover-surface.is-hover-within.is-lN[draggable]
+  [data-rpt-level]` (padding 8 16, r12, indent 16 per level; order lead = handle + level number · `__name` (ellipsis +
+  tooltip) · `__actions` ↑ ↓ `btn-strict` + red trash „Elimină nivelul”, all `btn-sm btn-icon-only`); drag a row or ↑ ↓
+  (flash, focus kept, live line „X: nivelul N de grupare din M.”); `__foot` = red „Elimină gruparea” (clears all). The sheet
+  adds levels with the fo-select „Adaugă un nivel” / „Grupează rândurile după” (`[data-rpt-level-add]`, disabled with the
+  reason when full); the profile empty line says to press ▤ in the column list. **Preview table**: nested group label rows
+  `tr.e-permits-rpt-table__group.is-lN` (level 1 = 14/20 semibold, deeper 12/16 medium; label „Coloană: valoare”), a
+  subtotal row per group at every level `tr.e-permits-rpt-table__subtotal.is-lN` (label cell `td.e-permits-rpt-table__label`
+  „Subtotal <valoare>”, indented like its label: 24 + 16 × (N − 1)), Total in the tfoot; grouped columns keep their values
+  in the body rows. Demo values: 1 level 3 × 3 rows, 2 levels 3 × 2 × 2, 3 levels 2 × 2 × 2 × 2. Seed RPT-0008 (Autoritate ›
+  Subdiviziune › Serviciu, rows by Tip solicitare). Foot line „Grupat după A › B › C, cu subtotal la fiecare nivel”. Demo
+  rpt-12c (3 levels), rpt-12d (4th toggle disabled + tooltip), rpt-12e (sheet Structură, clone), rpt-12f (↑ reorder).
 - **Preview filters (rpt-filters-v1, 2026-11-10, user)** — the „Filtre la generare” render and work above the preview
   table with the library facet filter (`GEAPFacetFilter.create`, the BO list model: popover Confirmă → bar draft →
   „Aplică filtrele”, „N rânduri · Șterge filtrele”, the first 4 filters = chips, the rest in „Mai multe” = the module's
