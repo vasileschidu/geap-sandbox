@@ -1211,11 +1211,15 @@
   }
   /* the sticky preview sits under the profile's pinned tab row and fit the scroller's height (measured: the BO
      canvas scrolls under the shell top bar; in the create sheet the body scrolls) */
+  const stickObserved = new WeakSet();
   function syncStick() {
     document.querySelectorAll(".e-permits-rpt-split").forEach((grid) => {
       if (!grid.isConnected || !grid.offsetParent) return;
-      const tabs = grid.closest("[data-dosar-profil]")?.querySelector(".e-permits-page-header.is-sticky .e-permits-page-header__tabs");
-      const top = tabs ? tabs.offsetHeight : 0;
+      /* rpt-stick-v2: the pinned part of the sticky page header = its height + its (negative) sticky top — measured, so the
+         preview sticks exactly at the tabs' bottom edge whatever the header holds */
+      const hdr = grid.closest("[data-dosar-profil]")?.querySelector(".e-permits-page-header.is-sticky");
+      const top = hdr ? Math.max(0, Math.round(hdr.offsetHeight + (parseFloat(getComputedStyle(hdr).top) || 0))) : 0;
+      if (hdr && !stickObserved.has(hdr) && window.ResizeObserver) { stickObserved.add(hdr); new ResizeObserver(() => requestAnimationFrame(syncStick)).observe(hdr); }
       let sc = grid.parentElement;
       while (sc && sc !== document.body && !/(auto|scroll)/.test(getComputedStyle(sc).overflowY)) sc = sc.parentElement;
       const h = sc && sc !== document.body ? sc.clientHeight : window.innerHeight;
@@ -1950,6 +1954,8 @@
       total: () => model(state.applied).rowCount,
       preview: (sel) => model(sel).rowCount,
       apply: () => refreshPreviewOnly(),
+      /* user: no „Alege valorile, apoi aplică filtrele.” under the chips */
+      hint: false,
       text: { results: (n) => plural(n, "rând", "rânduri") }
     });
     FX[ctx] = x;
@@ -2147,6 +2153,8 @@
     if (wrap) wrap.scrollLeft = before.scroll;
     hlHover = id;
     hlLockUntil = performance.now() + opts.duration + 100;
+    /* after the move the ring follows the pointer / focus again (it never stays on its own) */
+    setTimeout(() => { if (hlHover === id) { hlHover = ""; syncColHl(); } }, opts.duration + 150);
     syncColHl({ scroll: true });
     if (anim) {
       root.querySelectorAll("[data-rpt-col]").forEach((el) => {
@@ -2175,7 +2183,9 @@
   let hlHover = "";
   /* while a move plays, the pointer lands on another (swapped) item: hover does not steal the highlight */
   let hlLockUntil = 0;
-  const hlTarget = () => hlHover || (DR?.mode === "col" && DR.colId) || "";
+  /* rpt-ring-v6 (user: a ring with no column): hovered (pointer inside the editor) → focused (derived live, so a re-render
+     that drops the focused node drops the ring) → the column whose panel is open */
+  const hlTarget = () => hlHover || colFromEvent(document.activeElement || document.body) || (DR?.mode === "col" && DR.colId) || "";
   function syncColHl({ scroll = false } = {}) {
     hlFlt = "";
     const root = creating() ? sheet : document.querySelector("#rpt-panel");
@@ -2223,7 +2233,9 @@
   const fltFromEvent = (t) => t.closest?.("[data-rpt-flt]")?.dataset.rptFlt || "";
   const colFromEvent = (t) => t.closest?.("[data-rpt-col]")?.dataset.rptCol || t.closest?.("[data-rpt-col-pick]")?.dataset.rptColPick || "";
   document.addEventListener("mouseover", (event) => {
-    if (!P.draft || !inPage(event.target) || performance.now() < hlLockUntil) return;
+    if (!P.draft || performance.now() < hlLockUntil) return;
+    /* the pointer left the editor (tabs, sidebar, header…): no hovered column any more */
+    if (!inPage(event.target)) { if (hlHover) { hlHover = ""; syncColHl(); } return; }
     const id = colFromEvent(event.target);
     if (id !== hlHover) { hlHover = id; syncColHl(); }
     const fi = fltFromEvent(event.target);
@@ -2232,13 +2244,13 @@
   document.addEventListener("focusin", (event) => {
     if (!P.draft || !inPage(event.target)) return;
     const id = colFromEvent(event.target);
-    if (id) { hlHover = id; syncColHl({ scroll: Boolean(event.target.closest("[data-rpt-col]")) }); }
+    if (id) syncColHl({ scroll: Boolean(event.target.closest("[data-rpt-col]")) });
     const fi = fltFromEvent(event.target);
     if (fi) { hlFlt = fi; syncFltHl(); }
   });
   document.addEventListener("focusout", (event) => {
     if (!P.draft || !inPage(event.target) || !colFromEvent(event.target)) return;
-    requestAnimationFrame(() => { if (!colFromEvent(document.activeElement || document.body)) { hlHover = ""; syncColHl(); } });
+    requestAnimationFrame(() => syncColHl());
   });
   document.addEventListener("click", (event) => {
     const pick = event.target.closest?.("[data-rpt-col-pick]");
@@ -2248,7 +2260,6 @@
     if (!item) return;
     item.scrollIntoView({ block: "center", behavior: "smooth" });
     item.focus({ preventScroll: true });
-    hlHover = pick.dataset.rptColPick;
     syncColHl();
   });
   /* Enter / Space on a column row opens its panel (the stack row is the control) */

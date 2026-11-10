@@ -50,6 +50,7 @@
                                     sheet „Arată N rezultate”, and `ctl.defer(fn)` for the page's search) first calls `start`
                                     (the page shows its skeleton), shows the clicked button in the library loading state
                                     (aria-busy), and runs `cfg.apply` after `ms`; a new action cancels the previous one.
+     hint                           (default true) false = no „Alege valorile, apoi aplică filtrele.” line in the bar (Rapoarte)
      masterApply                    (default false) desktop: a tick / date in a popover goes straight into the bar's DRAFT
                                     (no per-popover Confirmă; footer = „Resetează” for that facet; Esc / outside click
                                     keep the draft); ONE button slot ends the chips row: changes pending → primary Medium
@@ -661,7 +662,7 @@
         ` : appliedCount && (!isPending || cfg.masterApply) ? `
           ${resultLine ? `<span class="e-permits-workplace__filter-result">${escapeHtml(resultLine)}</span>` : ""}
           ${cfg.barClearDesktop === false ? "" : clearButton()}
-        ` : cfg.masterApply ? "" : '<span class="e-permits-workplace__filter-hint">Alege valorile, apoi aplică filtrele.</span>'}
+        ` : cfg.masterApply || cfg.hint === false ? "" : '<span class="e-permits-workplace__filter-hint">Alege valorile, apoi aplică filtrele.</span>'}
       </div>
     `;
     };

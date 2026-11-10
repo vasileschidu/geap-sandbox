@@ -408,10 +408,10 @@
 .e-permits-wid-table--agg.e-permits-rpt-table tbody tr.e-permits-rpt-table__group:hover > th {
   background: var(--color-background-base-secondary, #f7f7f7);
   color: var(--color-text-base-default, #121212);
-  font-size: var(--font-size-fs-12, 12px);
-  font-weight: var(--font-weight-fw-medium, 500);
+  font-size: var(--font-size-fs-14, 14px);
+  font-weight: var(--font-weight-fw-semibold, 600);
   height: var(--spacing-32, 32px);
-  line-height: var(--line-height-lh-16, 16px);
+  line-height: var(--line-height-lh-20, 20px);
   text-align: left;
 }
 
@@ -479,10 +479,15 @@
 @media (min-width: 1024px) {
   /* --rpt-stick-top = the profile's pinned tab row, --rpt-stick-h = the scroller's height under it (js syncStick) */
   .e-permits-rpt-split > .e-permits-ntpl-content__preview {
-    max-height: calc(var(--rpt-stick-h, 100dvh) - var(--spacing-24, 24px) * 2);
+    /* rpt-stick-v2 (user: „scroll till edge of tabs”): the box sticks exactly at the pinned header's bottom edge and its
+       content scrolls up to that line (no white band); the 24 above the heading = its own padding, offset by the same
+       negative margin so the resting layout is unchanged */
+    margin-top: calc(var(--spacing-24, 24px) * -1);
+    max-height: var(--rpt-stick-h, 100dvh);
     overflow-y: auto;
     overscroll-behavior: contain;
-    top: calc(var(--rpt-stick-top, 0px) + var(--spacing-24, 24px));
+    padding-top: var(--spacing-24, 24px);
+    top: var(--rpt-stick-top, 0px);
   }
 
   /* the widget profile stacks its preview first under 1100: the report split keeps two columns down to 1024 */
@@ -494,7 +499,9 @@
 
   /* in the create sheet the scroller is the sheet body (sticky top 0): the preview fits the body's height */
   .e-permits-reg-editor--page .e-permits-rpt-split > .e-permits-ntpl-content__preview {
+    margin-top: 0;
     max-height: var(--rpt-stick-h, 100dvh);
+    padding-top: 0;
     top: 0;
   }
 }
@@ -750,13 +757,8 @@
 }
 
 /* ---- the preview table's group rows (rpt-levels-v1 → rpt-feature-v1: ONE grouping column, Feature model): the group
-   label row = 14/20 semibold, its subtotal row semibold ---- */
-.e-permits-wid-table--agg.e-permits-rpt-table tr.e-permits-rpt-table__group.is-l1 > th {
-  font-size: var(--font-size-fs-14, 14px);
-  font-weight: var(--font-weight-fw-semibold, 600);
-  line-height: var(--line-height-lh-20, 20px);
-}
-
+   label row = 14/20 semibold (set with its fill above, hover included — rpt-hover-fix-v1: a separate .is-l1 rule lost to
+   the :hover rule and the label shrank on hover), its subtotal row semibold ---- */
 .e-permits-rpt-table tr.e-permits-rpt-table__subtotal.is-l1 > td {
   font-weight: var(--font-weight-fw-semibold, 600);
 }
