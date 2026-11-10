@@ -626,3 +626,42 @@
     line-height: var(--line-height-lh-24, 24px);
   }
 }
+
+/* ---- rpt-filters-v1 (2026-11-10, user): the „Filtre la generare” above the preview table = the library facet filter
+   (js/facet-filter.js + css/facet-filter.css, the BO list bar: no container, chips 40, „Mai multe” after 4, Confirmă →
+   „Aplică filtrele”). The host `.e-permits-rpt-fbar` sits at the top of the report card body, 16 above the table.
+   Desktop: the bar is always open, so the toolbar trigger is not shown; phones (≤ 760): the icon-only „Filtre” square
+   (the module's phone toolbar) + the bottom sheet, the applied line „N rânduri · Șterge filtrele” under it. ---- */
+.e-permits-rpt-fbar {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-8, 8px);
+  margin-bottom: var(--spacing-16, 16px);
+}
+
+.e-permits-rpt-fbar:not(:has(> .e-permits-rpt-fbar__bar:not([hidden]))):not(:has(.e-permits-filter-trigger--icon)) {
+  display: none;
+}
+
+.e-permits-rpt-fbar__tools {
+  align-items: center;
+  display: flex;
+}
+
+@media (min-width: 761px) {
+  .e-permits-rpt-fbar__tools {
+    display: none;
+  }
+}
+
+/* nothing matches the filters: the boxed empty state in the card, where the table was */
+.e-permits-rpt-nomatch {
+  margin-bottom: var(--spacing-16, 16px);
+}
+
+/* phones: the applied line „N rânduri · Șterge filtrele” sits in the card, on its content edge (no list-toolbar inset /
+   divider) */
+.e-permits-workplace__filters.e-permits-rpt-fbar__bar.is-sheets {
+  border-bottom: 0;
+  padding: var(--spacing-0, 0px);
+}

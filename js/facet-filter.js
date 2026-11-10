@@ -75,6 +75,8 @@
    A facet may set `unavailable: "<message>"` (or a function → message | null): its list could not be loaded
    (RAP API error, US-141 AC-02/03) — the chip stays, its popover / sheet section shows the message only.
    A date facet with `presets: []` is a plain De la / Până la range (no radio rows); empty = no filter.
+   A checklist facet with `single: true` (facet-single-v1, Rapoarte „Alegere unică”) lists its values as library radios
+   (Small): one value at a time, picking another replaces it (popover + phone sheet).
    }) → { render, close, clearAll }
 
    Phone toolbar (phone-toolbar-v2, 2026-10-21, user: „make the filter icon-only and put it in the same row as
@@ -728,6 +730,11 @@
       return top.length && rest.length ? [...top, null, ...rest] : [...top, ...rest];
     };
     const SEPARATOR = '<li class="e-permits-workplace__filter-separator" role="separator" aria-hidden="true"></li>';
+    /* a facet with `single: true` (Rapoarte „Alegere unică”, facet-single-v1) = ONE value: the library radio (Small, as the
+       date presets) instead of the checkbox; picking a value replaces the previous one */
+    const optionControl = (facet, value, checked, extra = "") => (facet?.single
+      ? `<span class="radio radio--small"><input class="radio-input" type="radio" name="geap-filter-single-${escapeHtml(String(facet.key).replace(/[^a-z0-9_-]/gi, ""))}${extra ? "-sheet" : ""}" value="${escapeHtml(value)}"${checked ? " checked" : ""} data-filter-option${extra}><span class="radio-custom" aria-hidden="true"></span></span>`
+      : `<span class="checkbox checkbox--medium"><input class="checkbox-input" type="checkbox" value="${escapeHtml(value)}"${checked ? " checked" : ""} data-filter-option${extra}><span class="checkbox-custom" aria-hidden="true"></span></span>`);
     const sheetOptionsHtml = (facet) => {
       const values = new Set(sheet.sel[facet.key] || []);
       const q = fold(sheet.query[facet.key]);
@@ -741,7 +748,7 @@
         return `
         <li>
           <label class="e-permits-workplace__filter-option">
-            <span class="checkbox checkbox--medium"><input class="checkbox-input" type="checkbox" value="${escapeHtml(o.value)}"${values.has(o.value) ? " checked" : ""} data-filter-option data-sheet-facet="${escapeHtml(facet.key)}"><span class="checkbox-custom" aria-hidden="true"></span></span>
+            ${optionControl(facet, o.value, values.has(o.value), ` data-sheet-facet="${escapeHtml(facet.key)}"`)}
             ${tag || `<span class="e-permits-workplace__filter-option-label">${escapeHtml(o.value)}</span>`}
           </label>
         </li>`;
@@ -989,6 +996,7 @@
         if (!box) return;
         const key = box.dataset.sheetFacet;
         const values = new Set(sheet.sel[key] || []);
+        if (facetByKey(key)?.single) values.clear();
         if (box.checked) values.add(box.value); else values.delete(box.value);
         if (values.size) sheet.sel[key] = [...values]; else delete sheet.sel[key];
         pruneCascade(sheet.sel);
@@ -1089,7 +1097,7 @@
         return `
         <li>
           <label class="e-permits-workplace__filter-option">
-            <span class="checkbox checkbox--medium"><input class="checkbox-input" type="checkbox" value="${escapeHtml(o.value)}"${edit.values.has(o.value) ? " checked" : ""} data-filter-option><span class="checkbox-custom" aria-hidden="true"></span></span>
+            ${optionControl(facet, o.value, edit.values.has(o.value))}
             ${tag || `<span class="e-permits-workplace__filter-option-label">${escapeHtml(o.value)}</span>`}
           </label>
         </li>
@@ -1427,6 +1435,7 @@
         }
         const box = event.target.closest("[data-filter-option]");
         if (!box || !edit) return;
+        if (facetByKey(edit.key)?.single) edit.values.clear();
         if (box.checked) edit.values.add(box.value); else edit.values.delete(box.value);
         if (cfg.masterApply) syncDraft();
       });

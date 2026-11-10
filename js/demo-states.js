@@ -4589,6 +4589,18 @@
     const GRANT = async (h) => { await h.click("#rpt-panel [data-rpt-grant]"); await h.find(`${M} [data-rpt-grant-save]`); };
     /* rpt-col-list-v2: move / remove live in the column's ⋮ */
     const byAuth = seq(dict, addF("autoritate"), done, ...[1, 2, 3, 4, 5].map(() => async (h) => { await h.click(`${C} [data-rpt-col-move="c6|-1"]`); }));
+    /* rpt-filters-v1: add a filter row in the profile; pick values in a preview facet (desktop popover → Confirmă, phones
+       the sheet → Arată); apply the bar's draft (desktop) */
+    const fAdd = (i, field, type) => async (h) => { await h.click("#rpt-panel [data-rpt-filter-add]"); await h.choose(`#rpt-panel select[data-rpt-filter="${i}"][data-rpt-filter-part="field"]`, field); if (type) await h.choose(`#rpt-panel select[data-rpt-filter="${i}"][data-rpt-filter-part="type"]`, type); };
+    const fPick = (facet, values, preset) => async (h) => {
+      await h.scroll("#rpt-panel [data-rpt-preview] .e-permits-rpt-card");
+      await ffFacet(h, facet);
+      if (preset) await h.click(`[data-filter-date-preset][value="${preset}"]`);
+      for (const v of values) await h.click(`[data-filter-option][value="${v}"]`);
+      await h.click(ekPhone() ? "[data-sheet-apply]" : "[data-filter-confirm]");
+      await h.wait(ekPhone() ? 400 : 150);
+    };
+    const fApply = async (h) => { if (!ekPhone()) { await h.click("#rpt-panel [data-filter-commit]"); await h.wait(300); } };
     return {
       /* US-467 — list (grouped by category), search, filters, empty, row menu */
       "rpt-01": list(),
@@ -4707,7 +4719,13 @@
       /* rpt-group-v1: the group toggle on a Text column of the list — just turned on for „Serviciu” (it moved from
          „Autoritate”: one at a time), turned off (the pressed one again → the summary „Fără grupare”) */
       "rpt-12a": prof("RPT-0002", "configurare", async (h) => { await h.scroll('#rpt-panel [data-rpt-col="c2"]'); await h.click('#rpt-panel [data-rpt-col-group="c2"]'); await h.wait(400); }),
-      "rpt-12b": prof("RPT-0002", "configurare", async (h) => { await h.click('#rpt-panel [data-rpt-col-group="c1"]'); await h.wait(300); await h.click('#rpt-panel [data-rpt-jump="group"]'); await h.wait(2000); })
+      "rpt-12b": prof("RPT-0002", "configurare", async (h) => { await h.click('#rpt-panel [data-rpt-col-group="c1"]'); await h.wait(300); await h.click('#rpt-panel [data-rpt-jump="group"]'); await h.wait(2000); }),
+      /* rpt-filters-v1: the „Filtre la generare” above the preview table = the library facet filter (desktop chips, the
+         first 4 + „Mai multe”; phones the icon-only „Filtre” + the sheet) */
+      "rpt-13a": prof("RPT-0002", "configurare", seq(fAdd(3, "tip", "multi"), fAdd(4, "statut", "multi"), fAdd(5, "subdiviziune", "single"), async (h) => { await h.scroll("#rpt-panel [data-rpt-preview] .e-permits-rpt-card"); await h.wait(300); })),
+      "rpt-13b": prof("RPT-0002", "configurare", seq(fPick("autoritate|multi", ["ANSP", "ANTA"]), fApply, async (h) => { await ffFacet(h, "canal|single"); await h.click('[data-filter-option][value="Online"]'); await h.wait(200); })),
+      "rpt-13c": prof("RPT-0002", "configurare", seq(fPick("canal|single", ["Online"]), fApply, fPick("depus|date", [], "azi"), fApply)),
+      "rpt-13d": prof("RPT-0002", "configurare", seq(fAdd(3, "tip", "multi"), fAdd(4, "statut", "multi"), fAdd(5, "subdiviziune", "single"), async (h) => { if (!ekPhone()) { await h.click("#rpt-panel [data-filter-more]"); await h.wait(250); } else { await h.click("#rpt-panel [data-filter-all]"); await h.wait(500); } }))
     };
   }
 

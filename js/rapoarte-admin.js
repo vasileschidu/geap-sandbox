@@ -313,7 +313,7 @@
     try { const x = sum(); return i === tokens.length ? x : null; } catch { return null; }
   }
   /* the value of every column on one row (rowKey = stable seed); grp / dimVal = the row's labels */
-  function rowValues(v, rowKey, labels) {
+  function rowValues(v, rowKey, labels, scale = 1) {
     const out = {};
     const done = new Set();
     v.columns.forEach((c) => {
@@ -326,6 +326,8 @@
       else if (c.dataType === "temporal") out[c.id] = BASE_DAY + ((isLate(c.field) ? 160 : 0) + (h % 120)) * DAY;
       else if (c.dataType === "value") out[c.id] = 1500 + (h % 48000) + (h % 100) / 100;
       else out[c.id] = f?.type === "duration" ? 3 + (h % 24) : 24 + (h % 180);
+      /* rpt-filters-v1: a row whose records the preview filters keep only in part = its counts / sums in proportion */
+      if (scale !== 1 && c.kind === "source" && typeof out[c.id] === "number" && isMeasure(c) && f?.type !== "duration") out[c.id] = c.dataType === "value" ? Math.round(out[c.id] * scale * 100) / 100 : Math.round(out[c.id] * scale);
       done.add(c.id);
     });
     /* „Inclusiv” = a part of its parent (45…84 %) */
@@ -343,6 +345,7 @@
         if (!f.operands.length) {
           const h = hash(`${c.id}|${rowKey}|${c.field || c.formula || ""}`);
           out[c.id] = f.format === "days" ? 4 + (h % 21) : f.format === "percent" ? 50 + (h % 50) : f.format === "amount" ? 800 + (h % 9000) : 8 + (h % 120);
+          if (scale !== 1 && RECORD_AGG[f.id] === "sum") out[c.id] = Math.round(out[c.id] * scale);
           done.add(c.id);
           return;
         }
@@ -400,23 +403,82 @@
     }
     return esc(c.dataType === "value" ? nf(x, 2) : nf(Math.round(x)));
   }
-  function previewModel(v) {
+  /* ---- rpt-filters-v1 (2026-11-10, user): the „Filtre la generare” work on the preview. Every demo row stands for RECS
+     records of the source; a record carries a value for each filter field (the row's own value when the field is one of
+     its Text columns, else a stable demo value; dates spread over 2026). A selection keeps a row when ≥ 1 of its records
+     matches (AND across filters, OR inside one) and scales its counts / sums to the share of matching records; subtotals
+     and the total are recomputed on what is left. */
+  const RECS = 8;
+  const DEMO_TODAY = "2026-11-10";
+  const isoDay = (ms) => new Date(ms).toISOString().slice(0, 10);
+  const facetKey = (flt) => `${flt.field}|${flt.type}`;
+  /* the complete, valid filters, in the builder's order (= the chips' order), one per field + type */
+  function liveFilters(v) {
+    const seen = new Set();
+    return (v.filters || []).filter((flt) => {
+      if (!flt.field || !flt.type || !fieldOf(v.source, flt.field) || !supportOf(v, flt.field).includes(flt.type)) return false;
+      const k = facetKey(flt);
+      if (seen.has(k)) return false;
+      seen.add(k);
+      return true;
+    });
+  }
+  function recordsOf(v, rowKey, vals) {
+    const fl = liveFilters(v);
+    if (!fl.length) return [];
+    return Array.from({ length: RECS }, (_, i) => {
+      const rec = {};
+      fl.forEach((flt) => {
+        const f = fieldOf(v.source, flt.field);
+        const col = v.columns.find((c) => c.kind === "source" && c.field === flt.field && c.dataType === "text");
+        const cv = col ? vals[col.id] : null;
+        const h = hash(`${flt.field}|${rowKey}|${i}`);
+        if (f.type === "date") rec[flt.field] = isoDay(BASE_DAY + (h % 310) * DAY);
+        else if (typeof cv === "string" && cv) rec[flt.field] = cv;
+        else if (f.type === "enum" && f.values.length) rec[flt.field] = f.values[h % f.values.length];
+        else rec[flt.field] = `${flt.field === "nr" ? "D" : "N"}-2026-${String(1000 + (h % 9000)).padStart(5, "0")}`;
+      });
+      return rec;
+    });
+  }
+  const selEntries = (sel) => Object.entries(sel || {}).filter(([, values]) => values?.length);
+  function recMatch(v, rec, sel) {
+    const fl = liveFilters(v);
+    return selEntries(sel).every(([key, values]) => {
+      const flt = fl.find((x) => facetKey(x) === key);
+      if (!flt) return true;
+      const x = rec[flt.field];
+      if (flt.type === "date") return window.GEAPFacetFilter?.dateMatch ? window.GEAPFacetFilter.dateMatch(values[0], x, DEMO_TODAY) : true;
+      return values.includes(x);
+    });
+  }
+  function previewModel(v, sel = null) {
     const cols = v.columns;
     const groupCol = v.groupBy ? colOf(v, v.groupBy) : null;
     const dim = cols.find((c) => c !== groupCol && c.dataType === "text" && c.kind === "source") || cols.find((c) => c !== groupCol && isDim(c) && c.kind === "source") || null;
     const groups = groupCol ? dimLabels(v, groupCol, 3, 0) : [null];
+    const filtering = selEntries(sel).length > 0;
+    const records = [];
     const blocks = groups.map((g, gi) => {
       const dims = dim ? dimLabels(v, dim, groupCol ? 3 : 5, gi) : [null, null, null].slice(0, groupCol ? 1 : 3);
       const rows = dims.map((d, ri) => {
         const labels = {};
         if (groupCol) labels[groupCol.id] = g;
         if (dim) labels[dim.id] = d;
-        return rowValues(v, `${v.source}|${g}|${d ?? ri}`, labels);
-      });
+        const key = `${v.source}|${g}|${d ?? ri}`;
+        const base = rowValues(v, key, labels);
+        const recs = recordsOf(v, key, base);
+        records.push(...recs);
+        if (!filtering) return base;
+        const n = recs.filter((rec) => recMatch(v, rec, sel)).length;
+        if (!n) return null;
+        return n === RECS ? base : rowValues(v, key, labels, n / RECS);
+      }).filter(Boolean);
       return { group: g, rows, sub: groupCol ? aggregateRows(v, rows) : null };
-    });
-    const total = v.totalRow && cols.some(isMeasure) ? aggregateRows(v, blocks.flatMap((b) => b.rows)) : null;
-    return { groupCol, blocks, total };
+    }).filter((b) => b.rows.length);
+    const rowCount = blocks.reduce((n, b) => n + b.rows.length, 0);
+    const total = rowCount && v.totalRow && cols.some(isMeasure) ? aggregateRows(v, blocks.flatMap((b) => b.rows)) : null;
+    return { groupCol, blocks, total, rowCount, records };
   }
   /* group edges (rpt-group-edges-v1, 2026-11-09, user: „another separator, full, also vertical ones”; Excel / Sheets /
      Ant Design / MUI grouped headers): a 1px solid vertical at the left of a group's first column and of the first column
@@ -458,8 +520,8 @@
     });
     return `<tr>${top.map((x) => x.replace(" data-last", "")).join("")}</tr><tr>${bottom.join("")}</tr>`;
   }
-  function tableHtml(v, { link = false } = {}) {
-    const m = previewModel(v);
+  function tableHtml(v, { link = false, sel = null } = {}) {
+    const m = previewModel(v, sel);
     const cols = v.columns;
     const labelCol = cols.find((c) => !isMeasure(c));
     const edges = groupEdges(cols);
@@ -485,7 +547,19 @@
   }
   /* the report as its user will see it: name + „ⓘ” with the description (Feature UX: „regulile raportului se văd sub un
      buton de informare”), the table, the manual-columns note, the filters / grouping line */
-  function cardHtml(v, { link = false } = {}) {
+  /* the filters above the preview table: „live” = the library facet filter (mounted into `[data-rpt-fslot]` by
+     mountFilters); „static” (the „Mărește” dialog, the version window) = read-only: the foot line lists the filters and the
+     values applied in the preview (the library chip has no disabled look — a summary reads clearer) */
+  function appliedText(v, sel) {
+    const fl = liveFilters(v);
+    return selEntries(sel).map(([key, values]) => {
+      const flt = fl.find((x) => facetKey(x) === key);
+      if (!flt) return "";
+      const lbl = fieldOf(v.source, flt.field)?.label || flt.field;
+      return `${lbl}: ${flt.type === "date" ? window.GEAPFacetFilter?.dateText?.(values[0], DEMO_TODAY) || values[0] : values.join(", ")}`;
+    }).filter(Boolean).join("; ");
+  }
+  function cardHtml(v, { link = false, filters = "static", sel = null } = {}) {
     const name = v.names.ro || "Denumirea raportului";
     const info = v.descriptions.ro ? `<button class="e-permits-fo-role-info" type="button" aria-label="Despre raport" data-tooltip-hint="${esc(v.descriptions.ro)}">${icon("circle-info-filled", 16)}</button>` : "";
     const sub = [label(CATEGORIES, v.category), sourceName(v.source)].filter(Boolean).join(" · ");
@@ -493,11 +567,18 @@
     if (!v.source) body = E()?.render({ title: "Alege sursa de date", text: "Previzualizarea folosește câmpurile sursei, pe date demonstrative.", icon: "page-text", compact: true, bare: true }) || "";
     else if (!v.columns.length) body = E()?.render({ title: "Nicio coloană încă", text: "Adaugă coloane din sursa de date, calculate sau completate manual: raportul apare aici pe măsură ce îl construiești.", icon: "page-text", compact: true, bare: true }) || "";
     else {
-      body = tableHtml(v, { link });
-      if (v.columns.some((c) => c.kind === "manual")) body += U().renderInfoNote?.(`<strong>Coloane «Manual».</strong> ${esc(MANUAL_HINT)}`) || "";
+      const chips = liveFilters(v).length && filters === "live" ? '<div class="e-permits-rpt-fslot" data-rpt-fslot></div>' : "";
+      const rows = previewModel(v, sel).rowCount;
+      body = chips + (rows
+        ? tableHtml(v, { link, sel })
+        : `<div class="e-permits-rpt-nomatch">${E()?.render({ title: NO_MATCH, text: "Niciun rând nu corespunde filtrelor alese. Schimbă sau șterge filtrele.", icon: "search", compact: true, actionHtml: filters === "live" ? '<button class="btn btn-neutral btn-sm" type="button" data-rpt-filter-clear>Șterge filtrele</button>' : "" }) || ""}</div>`);
+      if (rows && v.columns.some((c) => c.kind === "manual")) body += U().renderInfoNote?.(`<strong>Coloane «Manual».</strong> ${esc(MANUAL_HINT)}`) || "";
     }
+    const chipsShown = Boolean(v.source && v.columns.length && liveFilters(v).length && filters === "live");
+    const applied = filters === "live" ? "" : appliedText(v, sel);
     const foot = [
-      v.filters.length ? `Filtre la generare: ${v.filters.map((f) => `${fieldOf(v.source, f.field)?.label || "—"} (${label(FILTER_TYPES, f.type).toLocaleLowerCase("ro") || "—"})`).join(", ")}` : "",
+      applied ? `Aplicate în previzualizare: ${applied}` : "",
+      v.filters.length && !chipsShown ? `Filtre la generare: ${v.filters.map((f) => `${fieldOf(v.source, f.field)?.label || "—"} (${label(FILTER_TYPES, f.type).toLocaleLowerCase("ro") || "—"})`).join(", ")}` : "",
       v.groupBy && colOf(v, v.groupBy) ? `Grupat după ${colName(colOf(v, v.groupBy))}, cu subtotal pe grup` : "",
       v.columns.some(isMeasure) ? (v.totalRow ? "Cu rândul de total" : "Fără rândul de total") : ""
     ].filter(Boolean);
@@ -510,7 +591,7 @@
         <div class="e-permits-wid-card__body" aria-live="polite">${body}${foot.length ? `<p class="e-permits-wid-card__foot">${foot.map(esc).join(" · ")}</p>` : ""}</div>
       </article>`;
   }
-  function previewHtml(v, { idp } = {}) {
+  function previewHtml(v, { idp, ctx = "" } = {}) {
     const me = who();
     const src = sourceOf(v.source);
     const meta = `Date demonstrative · Perimetru: ${me.central ? "toate autoritățile" : authName(me.authority)}${src ? ` · ${src.name} ${src.version}` : ""}`;
@@ -525,7 +606,7 @@
             <button class="btn btn-neutral btn-sm btn-icon-only" type="button" aria-label="Mărește previzualizarea" data-tooltip-label="Mărește" aria-haspopup="dialog" data-rpt-zoom${v.columns.length ? "" : ' aria-disabled="true" data-tooltip-reason="Adaugă mai întâi coloane."'}>${icon("enlarge", 16)}</button>
           </div>
         </div>
-        <div class="e-permits-wid-preview__stage">${cardHtml(v, { link: idp === IDP })}</div>
+        <div class="e-permits-wid-preview__stage">${cardHtml(v, { link: idp === IDP, filters: ctx ? "live" : "static", sel: ctx ? fx(ctx).state.applied : null })}</div>
       </section>`;
   }
 
@@ -921,7 +1002,7 @@
     await load();
     const r = reportOf(id);
     if (!who().has || !r || !visible(r)) { showDenied(); return; }
-    if (P.id !== id || P.isNew) { P.jump = ""; P.errors = {}; P.saveError = false; P.totalTouched = false; P.draft = clone(r.config); P.base = clone(r.config); }
+    if (P.id !== id || P.isNew) { fxReset("profile"); P.jump = ""; P.errors = {}; P.saveError = false; P.totalTouched = false; P.draft = clone(r.config); P.base = clone(r.config); }
     P.id = id; P.isNew = false;
     P.tab = tabsNow().some(([t]) => t === tab) ? tab : "configurare";
     show(`#raport/${id}/${P.tab}`, push);
@@ -993,8 +1074,10 @@
     body.id = "rpt-panel";
     body.setAttribute("role", "tabpanel");
     body.setAttribute("aria-labelledby", `rpt-tab-${P.tab}`);
+    if (P.tab !== "configurare") fx("profile").ctl.close(false);
     body.innerHTML = `${notices(r)}${P.tab === "versiuni" ? (HOOKS.versionsTab?.(r) || versionsTab(r)) : P.tab === "acces" && HOOKS.accessTab ? HOOKS.accessTab(r) : P.tab === "istoric" ? (HOOKS.historyTab?.(r) || historyTab(r)) : configTab(r)}`;
     A().syncStackMetaRows?.(body);
+    if (P.tab === "configurare") mountFilters("profile");
     requestAnimationFrame(() => { syncStick(); syncJump(); });
     if (keepSel) {
       const el = document.querySelector(keepSel);
@@ -1064,7 +1147,7 @@
       return `
         <div class="e-permits-ntpl-content e-permits-ntpl-content--preview e-permits-wid-config e-permits-rpt-config e-permits-rpt-split e-permits-editor-wide">
           <div class="e-permits-ntpl-content__main">${readBlocks(r.config)}</div>
-          <aside class="e-permits-ntpl-content__preview" data-rpt-preview>${previewHtml(r.config, { idp: "rpt-p" })}</aside>
+          <aside class="e-permits-ntpl-content__preview" data-rpt-preview>${previewHtml(r.config, { idp: "rpt-p", ctx: "profile" })}</aside>
         </div>`;
     }
     const v = P.draft;
@@ -1072,7 +1155,7 @@
     return `
       <div class="e-permits-ntpl-content e-permits-ntpl-content--preview e-permits-wid-config e-permits-rpt-config e-permits-rpt-split e-permits-editor-wide">
         <div class="e-permits-ntpl-content__main e-permits-rpt-form">${jumpNav()}${stepGeneral(v, e, IDP, { jump: true })}${stepColumns(v, e, IDP, { jump: true })}${stepStructure(v, e, IDP, { jump: true })}</div>
-        <aside class="e-permits-ntpl-content__preview" data-rpt-preview>${previewHtml(v, { idp: IDP })}</aside>
+        <aside class="e-permits-ntpl-content__preview" data-rpt-preview>${previewHtml(v, { idp: IDP, ctx: "profile" })}</aside>
       </div>`;
   }
   /* Versiuni / Istoric — part 1 = the plain timelines; part 2 replaces them through HOOKS.versionsTab / historyTab */
@@ -1089,7 +1172,9 @@
   /* the preview follows a typed value without a full redraw (the field keeps its caret) */
   function refreshPreviewOnly() {
     const box = creating() ? sheet.querySelector("[data-rpt-preview]") : document.querySelector("#rpt-panel [data-rpt-preview]");
-    if (box && P.draft) box.innerHTML = previewHtml(editable() ? P.draft : reportOf(P.id).config, { idp: editable() ? IDP : "rpt-p" });
+    const ctx = creating() ? "sheet" : "profile";
+    if (box && P.draft) box.innerHTML = previewHtml(creating() || editable() ? P.draft : reportOf(P.id).config, { idp: creating() || editable() ? IDP : "rpt-p", ctx });
+    mountFilters(ctx);
     syncColHl();
   }
   const reheader = () => { const els = A().els || {}; if (!creating() && els.dosarProfilTitleRow && P.id) els.dosarProfilTitleRow.innerHTML = headerTop(reportOf(P.id)); };
@@ -1143,6 +1228,7 @@
     const src = from ? reportOf(from) : null;
     if (from && (!src || !visible(src))) return;
     beforeCreate = { ...P, back: document.activeElement };
+    fxReset("sheet");
     const v = src ? cloneConfig(src) : blankConfig();
     Object.assign(P, { id: null, isNew: true, from: src?.id || "", tab: "configurare", draft: v, base: clone(v), errors: {}, saveError: false, totalTouched: Boolean(src), step: 1, maxStep: src ? STEPS.length : 1 });
     const el = ensureSheet();
@@ -1171,9 +1257,10 @@
         ${P.saveError ? `<div class="e-permits-reg-notices">${U().renderNotice?.("error", esc(SAVE_FAILED), { role: "alert" }) || ""}</div>` : ""}
         <div class="e-permits-ntpl-content e-permits-ntpl-content--preview e-permits-wid-create e-permits-rpt-create${P.step === 2 || P.step === 3 ? " e-permits-rpt-split" : ""}">
           <div class="e-permits-ntpl-content__main e-permits-rpt-form">${form}</div>
-          <aside class="e-permits-ntpl-content__preview" data-rpt-preview>${previewHtml(v, { idp: IDP })}</aside>
+          <aside class="e-permits-ntpl-content__preview" data-rpt-preview>${previewHtml(v, { idp: IDP, ctx: "sheet" })}</aside>
         </div>
       </div>`;
+    mountFilters("sheet");
     const last = P.step === STEPS.length;
     const pub = last && HOOKS.publish ? '<button class="btn btn-primary btn-md" type="button" data-rpt-publish>Publică</button>' : "";
     sheet.querySelector("[data-rpt-ed-bar]").innerHTML = `
@@ -1646,9 +1733,94 @@
   function openZoom() {
     const v = editable() ? P.draft : reportOf(P.id)?.config;
     if (!v || !v.columns.length) return;
-    G().openModal?.({ kind: "rpt-zoom", title: v.names.ro || "Previzualizare", subtitle: "Previzualizare · date demonstrative", body: cardHtml(v), footer: '<div class="modal-buttons"><button class="btn btn-primary btn-rounded" type="button" data-case-close>Închide</button></div>' });
+    G().openModal?.({ kind: "rpt-zoom", title: v.names.ro || "Previzualizare", subtitle: "Previzualizare · date demonstrative", body: cardHtml(v, { filters: "static", sel: fx(creating() ? "sheet" : "profile").state.applied }), footer: '<div class="modal-buttons"><button class="btn btn-primary btn-rounded" type="button" data-case-close>Închide</button></div>' });
     fxModal()?.classList.remove("e-permits-confirm-overlay");
     document.querySelector("#case-action-modal .modal")?.classList.replace("modal--md", "modal--lg");
+  }
+
+  /* ================================================================ preview filters (rpt-filters-v1)
+     ONE library facet filter per context (the profile, the create sheet): `GEAPFacetFilter.create` on a host element that
+     outlives the preview's re-renders — after each render the host moves into the card's `[data-rpt-fslot]`. Desktop: the
+     bar is always open (no trigger): the first 4 filters are chips, the rest under „Mai multe” (the module's inlineMax);
+     „Interval de date” = the date range facet, „Alegere multiplă” = the checklist, „Alegere unică” = the radio list
+     (`single`), „Text” = the checklist with its search. Confirmă → draft → „Aplică filtrele” recomputes the rows, the
+     subtotals and the total. Phones: the icon-only „Filtre” square + the bottom sheet (the module's phone mode). */
+  const FX = {};
+  const fxConfig = (ctx) => (ctx === "sheet" ? P.draft : editable() ? P.draft : reportOf(P.id)?.config) || null;
+  function fxFacets(ctx) {
+    const v = fxConfig(ctx);
+    if (!v) return [];
+    return liveFilters(v).map((flt) => ({
+      key: facetKey(flt),
+      label: fieldOf(v.source, flt.field)?.label || flt.field,
+      ...(flt.type === "date" ? { type: "date", today: () => DEMO_TODAY } : {}),
+      ...(flt.type === "single" ? { single: true } : {}),
+      ...(flt.type === "text" ? { search: true } : {})
+    }));
+  }
+  function fx(ctx) {
+    if (FX[ctx]) return FX[ctx];
+    const host = document.createElement("div");
+    host.className = "e-permits-rpt-fbar";
+    host.innerHTML = `
+      <div class="e-permits-rpt-fbar__tools">
+        <button class="chip e-permits-filter-trigger e-permits-rpt-fbar__trigger" type="button" aria-expanded="false" aria-controls="rpt-fbar-${ctx}" data-rpt-filter-toggle>
+          <span class="chip__icon"><svg class="icon" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-filter-lines"></use></svg></span>
+          <span class="chip__label">Filtre</span>
+          <span class="chip__badge" aria-hidden="true" data-rpt-filter-count hidden></span>
+        </button>
+      </div>
+      <div class="e-permits-workplace__filters e-permits-rpt-fbar__bar" id="rpt-fbar-${ctx}" role="group" aria-label="Filtrele raportului" hidden></div>`;
+    const state = { open: true, applied: {}, draft: null };
+    const x = { host, state, ctl: null };
+    const model = (sel) => { const v = fxConfig(ctx); return v ? previewModel(v, sel) : { rowCount: 0, records: [] }; };
+    x.ctl = window.GEAPFacetFilter.create({
+      bar: host.querySelector(".e-permits-rpt-fbar__bar"),
+      toggle: host.querySelector("[data-rpt-filter-toggle]"),
+      count: host.querySelector("[data-rpt-filter-count]"),
+      state: () => {
+        state.open = true;
+        const keys = new Set(fxFacets(ctx).map((f) => f.key));
+        Object.keys(state.applied).forEach((k) => { if (!keys.has(k)) delete state.applied[k]; });
+        if (state.draft) Object.keys(state.draft).forEach((k) => { if (!keys.has(k)) delete state.draft[k]; });
+        return state;
+      },
+      onPageChange: () => {},
+      facets: () => fxFacets(ctx),
+      allFacets: () => fxFacets(ctx),
+      options: (facet) => {
+        const v = fxConfig(ctx);
+        const flt = v ? liveFilters(v).find((f) => facetKey(f) === facet.key) : null;
+        if (!flt) return [];
+        const counts = new Map();
+        model(null).records.forEach((rec) => { const x2 = rec[flt.field]; if (x2 != null) counts.set(x2, (counts.get(x2) || 0) + 1); });
+        const f = fieldOf(v.source, flt.field);
+        const order = f?.values?.length ? f.values : [...counts.keys()].sort((a, b) => String(a).localeCompare(String(b), "ro"));
+        return order.filter((val) => counts.has(val)).map((val) => ({ value: val, count: counts.get(val) }));
+      },
+      total: () => model(state.applied).rowCount,
+      preview: (sel) => model(sel).rowCount,
+      apply: () => refreshPreviewOnly(),
+      text: { results: (n) => plural(n, "rând", "rânduri") }
+    });
+    FX[ctx] = x;
+    return x;
+  }
+  function fxReset(ctx) {
+    const x = FX[ctx];
+    if (!x) return;
+    x.ctl.close(false);
+    x.state.applied = {};
+    x.state.draft = null;
+  }
+  /* the host into the freshly rendered card (or out, when the card has no filters) */
+  function mountFilters(ctx) {
+    const root = ctx === "sheet" ? sheet : document.querySelector("#rpt-panel");
+    const slot = root?.querySelector("[data-rpt-fslot]");
+    const x = fx(ctx);
+    if (!slot) { if (x.host.isConnected) { x.ctl.close(false); x.host.remove(); } return; }
+    slot.replaceWith(x.host);
+    x.ctl.render();
   }
 
   /* ================================================================ events */
@@ -1683,6 +1855,8 @@
     if (rowEdit) { openProfile(rowEdit.dataset.rptRowEdit, "configurare"); return; }
     if (t.closest("[data-rpt-fx-confirm]")) { confirmFormula(); return; }
     if (t.closest("#case-action-modal [data-case-close]")) fxModal()?.classList.remove("e-permits-confirm-overlay");
+    const fclear = t.closest("[data-rpt-filter-clear]");
+    if (fclear) { fx(inSheet(fclear) ? "sheet" : "profile").ctl.clearAll(); return; }
     const zoom = t.closest("[data-rpt-zoom]");
     if (zoom) { if (zoom.getAttribute("aria-disabled") !== "true") openZoom(); return; }
     if (inSheet(t)) {
