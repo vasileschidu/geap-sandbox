@@ -12476,6 +12476,18 @@ assigned to some authorities; none = all), anyone else's are Autoritate = his ow
   „Trage sau folosește săgețile ↑ ↓”, `aria-keyshortcuts`. Drag it, or Arrow Up / Down while focused (`moveByHandle`) → the
   same FLIP slide, flash, live line; the focus stays on the moved handle; the ends do nothing. Phones keep the handle (the
   Registre stack hides its own). Helper `moverLead(n, { kind, id, what, label })`.
+- **Autoritățile raportului (rpt-auth-ms-v1, 2026-11-10, user: „the checklist won't scale” — dozens of issuing + local public
+  authorities)** — Date generale of a Global report (Administrator central), create sheet + profile + clone:
+  `div.e-permits-rpt-auths[data-rpt-auth-ms]` = „Toate autoritățile” (`renderCheckOption`, `[data-rpt-auth-all]`, hugs its
+  label) 16 above the FO multi-select of CAEM (`GEAPFormRender.fieldHtml({ type: "multiselect" })` = `.e-permits-fo-subgen-select`:
+  searchable dropdown with library checkboxes + „N selectate · Confirmă”, chips `.e-permits-fo-subgen-chip` with × under the
+  field; bound with `GEAPFormRender.bind` after each render). Ticked = all (`authorities: []`, field read-only „Toate
+  autoritățile”, no chips); unticked = pick ≥ 1 (required, hint „Raportul este disponibil doar autorităților alese.”; none →
+  `is-error` + the library inline error „Alege cel puțin o autoritate sau bifează «Toate autoritățile».”). Ticks / chip ×
+  update the model live (`fo-multiselect-change`, no re-render — the menu stays open); the unticked-but-empty state is per
+  draft (`AUTH_SOME` WeakMap). Seed: 30 authorities incl. primării. Demo rpt-03b (2 chosen), rpt-03ac (menu open, search
+  „primăria”), rpt-03ad (error), rpt-04b (profile). Open: the subgen chip × and „Confirmă” are FO parts the component audit
+  lists as non-library (existing CAEM debt).
 - **Column item text (rpt-col-item-v3, 2026-11-10, user)** — title line = the name only (+ „· De corectat” in the error colour);
   meta = „Câmp: X · Text · Din sursă” / „<formula> · Numeric · Calculată” (+ „Inclusiv”, „Antet comun: …”).
 - **Condition builder v2 (rpt-cond-v2, 2026-11-10, user review)** — supersedes the layout of rpt-cond-v1 below: the connector

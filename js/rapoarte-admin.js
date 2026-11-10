@@ -159,6 +159,10 @@
     return { central, local, has, authority: central ? null : a.authority || "ansp", roleLabel: a.roleLabel || "" };
   }
   const authName = (id) => D().authorities.find((x) => x.id === id)?.name || String(id || "").toUpperCase();
+  const authLabel = (a) => `${a.name} · ${a.long}`.replace(/ · $/, "");
+  /* rpt-auth-ms-v1: „Toate autoritățile” unticked on a draft with no authority yet (UI state per draft object) */
+  const AUTH_SOME = new WeakMap();
+  const authSome = (v) => (AUTH_SOME.has(v) ? AUTH_SOME.get(v) : (v.authorities || []).length > 0);
   const roleLabel = () => { const w = who(); return w.central ? w.roleLabel || "Administrator central" : `Utilizator cu permisiunea «Gestionarea rapoartelor» · ${authName(w.authority)}`; };
 
   /* ---------------------------------------------------------------- data */
@@ -357,6 +361,7 @@
       if (!v.category) e.category = "Alege categoria raportului.";
       if (!v.source) e.source = "Alege sursa de date.";
       if (v.level === "Autoritate" && !v.authorities.length) e.authorities = "Alege cel puțin o autoritate.";
+      if (v.level === "Global" && authSome(v) && !v.authorities.length) e.authorities = "Alege cel puțin o autoritate sau bifează «Toate autoritățile».";
     }
     if (steps.includes(2)) {
       if (!v.columns.length) e.columns = "Adaugă cel puțin o coloană.";
@@ -859,11 +864,17 @@
     /* rpt-feature-v1: Nivel is generated (Feature model: „— (generat)”) — Global for the Administrator central, Autoritate for
        anyone else; the central may assign the global report to some authorities (none = all, the „Toate autoritățile” item) */
     const level = ro(`${idp}-level-label`, "Nivel", v.level === "Global" ? "Global" : "Autoritate", v.level === "Global" ? "Generat: raportul Administratorului central este global." : "Generat: raportul se creează la nivelul autorității tale.");
-    const authPicker = v.level === "Global" ? (me.central ? full(labelled(`${idp}-auth-label`, "Autorități", `
-          <div class="e-permits-rpt-auths" role="group" aria-labelledby="${idp}-auth-label" id="${idp}-authorities">
-            ${U().renderCheckOption?.({ label: "Toate autoritățile", checked: !v.authorities.length, attrs: "data-rpt-auth-all" }) || ""}
-            ${auths.map((a) => U().renderCheckOption?.({ label: `${a.name} · ${a.long}`, checked: v.authorities.includes(a.id), attrs: `data-rpt-auth="${esc(a.id)}"` }) || "").join("")}
-          </div>`)) : "")
+    /* rpt-auth-ms-v1 (2026-11-10, user: „the checklist won't scale” — dozens of issuing + local public authorities): „Toate
+       autoritățile” checkbox above the FO multi-select of CAEM (searchable dropdown with checkboxes, chips with × under the
+       field, GEAPFormRender `multiselect`); ticked = all (the field disabled, no chips), unticked = pick ≥ 1 */
+    const some = authSome(v);
+    const msErr = e.authorities || "";
+    let ms = window.GEAPFormRender?.fieldHtml({ id: `${idp}-authorities`, type: "multiselect", label: "Autoritățile raportului", required: some, options: auths.map(authLabel), value: some ? v.authorities.map((id) => authLabel(auths.find((a) => a.id === id) || { name: authName(id), long: "" })) : [], placeholder: some ? "Alege autoritățile" : "Toate autoritățile", countOne: "autoritate selectată", countMany: "autorități selectate", removeLabel: "Elimină autoritatea", searchLabel: "Caută autoritatea", searchAria: "Caută autoritatea", readOnly: !some, hint: some ? "Raportul este disponibil doar autorităților alese." : "Raportul este disponibil tuturor autorităților, și celor adăugate ulterior.", span: 12 }) || "";
+    if (msErr) ms = ms.replace("e-permits-fo-subgen-select\" data-fo-subgen-select", "e-permits-fo-subgen-select is-error\" data-fo-subgen-select").replace(/<p class="e-permits-fo-field__hint"[^]*?<\/p>\s*<\/div>\s*$/, "</div>").replace(/<\/div>\s*$/, `${errorHtml(`fo-${idp}-authorities`, msErr)}</div>`);
+    const authPicker = v.level === "Global" ? (me.central ? full(`<div class="e-permits-rpt-auths" id="${idp}-authorities" data-rpt-auth-ms>
+            ${U().renderCheckOption?.({ label: "Toate autoritățile", checked: !some, attrs: "data-rpt-auth-all" }) || ""}
+            ${ms}
+          </div>`) : "")
       : ro(`${idp}-auth-label`, "Autoritate", v.authorities.map((id) => `${authName(id)} · ${D().authorities.find((a) => a.id === id)?.long || ""}`).join(", ") || "—");
     const fromPicker = idp === IDP && P.isNew && cloneSources().length
       ? section("Punctul de plecare", grid(selectField(`${idp}-from`, "data-rpt-from", "Raportul sursă", cloneSources().map((r) => [r.id, `${r.id} · ${r.config.names.ro} · ${label(CATEGORIES, r.config.category)}`]), P.from, { span: 12, placeholder: "Raport gol", hint: P.from ? "Copia primește coloanele, formulele și structura raportului sursă, în aceeași categorie; o modifici independent." : "Opțional: alege un raport existent ca să-l clonezi." })))
@@ -1388,7 +1399,7 @@
     if (P.tab !== "configurare") fx("profile").ctl.close(false);
     body.innerHTML = `${notices(r)}${P.tab === "versiuni" ? (HOOKS.versionsTab?.(r) || versionsTab(r)) : P.tab === "acces" && HOOKS.accessTab ? HOOKS.accessTab(r) : P.tab === "istoric" ? (HOOKS.historyTab?.(r) || historyTab(r)) : configTab(r)}`;
     A().syncStackMetaRows?.(body);
-    if (P.tab === "configurare") { mountFilters("profile"); window.GEAPDatePicker?.init?.(body); }
+    if (P.tab === "configurare") { mountFilters("profile"); window.GEAPDatePicker?.init?.(body); bindAuth(body); }
     requestAnimationFrame(syncStick);
     if (keepSel) {
       const el = document.querySelector(keepSel);
@@ -1552,6 +1563,7 @@
       </div>`;
     mountFilters("sheet");
     window.GEAPDatePicker?.init?.(sheet);
+    bindAuth(sheet);
     const last = P.step === STEPS.length;
     const pub = last && HOOKS.publish ? '<button class="btn btn-primary btn-md" type="button" data-rpt-publish>Publică</button>' : "";
     sheet.querySelector("[data-rpt-ed-bar]").innerHTML = `
@@ -1614,7 +1626,7 @@
   };
   function showFirstError(errors) {
     const key = Object.keys(errors)[0];
-    const keep = key === "category" ? `#${IDP}-category` : key === "authorities" ? `#${IDP}-authorities input` : errorSel(key);
+    const keep = key === "category" ? `#${IDP}-category` : key === "authorities" ? `#fo-${IDP}-authorities` : errorSel(key);
     if (creating()) { P.step = STEP_OF(key); P.maxStep = Math.max(P.maxStep, P.step); renderCreate({ keep }); }
     else renderProfile({ keep });
     (creating() ? sheet : document).querySelector(errorSel(key))?.closest(".e-permits-fo-field, .e-permits-wid-types, .e-permits-stack__item, .e-permits-dosar-profil__section")?.scrollIntoView({ block: "center" });
@@ -2602,6 +2614,21 @@
     item.focus({ preventScroll: true });
     syncColHl();
   });
+  /* rpt-auth-ms-v1: the authorities multi-select reports every tick / chip × — model only (no re-render: the menu stays open) */
+  document.addEventListener("fo-multiselect-change", (event) => {
+    const host = event.target.closest?.("[data-rpt-auth-ms]");
+    if (!host || !P.draft || !inPage(host)) return;
+    const byLabel = new Map(D().authorities.map((a) => [authLabel(a), a.id]));
+    P.draft.authorities = (event.detail?.values || []).map((x) => byLabel.get(x)).filter(Boolean);
+    if (P.errors.authorities && P.draft.authorities.length) {
+      delete P.errors.authorities;
+      host.querySelector(".e-permits-fo-subgen-select.is-error")?.classList.remove("is-error");
+      host.querySelector(".e-permits-fo-field__error")?.remove();
+    }
+    reheader();
+  });
+  /* the FO behaviour of the authorities multi-select after every render */
+  function bindAuth(root) { root?.querySelectorAll("[data-rpt-auth-ms]").forEach((el) => window.GEAPFormRender?.bind?.(el)); }
   /* rpt-handle-v1: Arrow Up / Down on a focused drag handle moves its item one place (columns, conditions / groups, levels);
      the focus stays on the moved handle; the ends do nothing */
   function moveByHandle(kind, id, by) {
@@ -2723,13 +2750,11 @@
     }
     /* a global report's authorities: „Toate autoritățile” = none chosen (every authority, also the ones added later);
        choosing every one = all again */
-    if (el.matches("[data-rpt-auth-all]")) { v.authorities = []; delete P.errors.authorities; rerender({ keep: "[data-rpt-auth-all]" }); reheader(); return; }
-    if (el.matches("[data-rpt-auth]")) {
-      const id = el.dataset.rptAuth;
-      v.authorities = el.checked ? [...new Set([...v.authorities, id])] : v.authorities.filter((a) => a !== id);
-      if (v.authorities.length === D().authorities.length) v.authorities = [];
+    if (el.matches("[data-rpt-auth-all]")) {
+      AUTH_SOME.set(v, !el.checked);
+      if (el.checked) v.authorities = [];
       delete P.errors.authorities;
-      rerender({ keep: `[data-rpt-auth="${id}"]` }); reheader();
+      rerender({ keep: "[data-rpt-auth-all]" }); reheader();
       return;
     }
     const key = el.dataset?.rptField;

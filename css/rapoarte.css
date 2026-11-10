@@ -54,9 +54,16 @@
   grid-template-columns: repeat(auto-fill, minmax(calc(var(--spacing-40, 40px) * 5), 1fr));
 }
 
+/* rpt-auth-ms-v1: „Toate autoritățile” checkbox above the FO multi-select (CAEM) + its chips — the form's 16 rhythm */
 .e-permits-rpt-auths {
   display: grid;
-  gap: var(--spacing-12, 12px);
+  gap: var(--spacing-16, 16px);
+}
+
+.e-permits-rpt-auths > .e-permits-check-option {
+  justify-self: start;
+  max-width: 100%;
+  width: max-content;
 }
 
 /* „Adaugă coloană ▾” under the column list (rpt-add-menu-v1): the library secondary button + the stack dropdown; the

@@ -4604,6 +4604,8 @@
     const twoLevel = seq(header("c2", "Dosare"), header("c3", "Dosare"), header("c4", "Dosare", "incl"));
     const calc = seq(async (h) => { await addKind("calc")(h); await h.find(`${DR} #rpt-c-name-ro`); }, async (h) => { await h.choose(`${DR} select[data-rpt-col-field="formula"]`, "f-pct"); await h.fill("#rpt-c-name-ro", "Finalizate în termen, %", { leave: false }); await h.choose(`${DR} select[data-rpt-col-op="A"]`, "c4"); await h.choose(`${DR} select[data-rpt-col-op="B"]`, "c3"); });
     const built = seq(nou, step1, next, cols, twoLevel, calc, saveCol);
+    /* rpt-auth-ms-v1: untick „Toate autoritățile”, open the authorities multi-select, tick the given short names, Confirmă */
+    const AUMS = (...ids) => async (h) => { await h.click(`${C} label:has([data-rpt-auth-all])`); await h.wait(250); await h.click(`${C} #fo-rpt-e-authorities`); await h.wait(250); for (const v of ids) { const o = await h.find(`${C} [data-rpt-auth-ms] .e-permits-fo-subgen-select__option[data-value^="${v} ·"]`); o.dispatchEvent(new MouseEvent("mousedown", { bubbles: true, cancelable: true })); await h.wait(120); } if (ids.length) { await h.click(`${C} [data-rpt-auth-ms] [data-fo-subgen-confirm]`); await h.wait(250); } };
     /* + „Autoritate” (c6) moved to the first place: the column the rows are grouped by */
     /* part 2 helpers: the library dialog (#case-action-modal), the shell confirm, the header ⋮ */
     const M = "#case-action-modal.is-active";
@@ -4652,7 +4654,11 @@
       "rpt-03": list(nou),
       "rpt-03a": list(seq(nou, next)),
       /* rpt-feature-v1: Nivel is generated (Global, read-only) — the central assigns the global report to ANSP + ANSA */
-      "rpt-03b": list(seq(nou, step1, langs, async (h) => { await h.click(`${C} label:has([data-rpt-auth="ansp"])`); await h.click(`${C} label:has([data-rpt-auth="ansa"])`); }, at("#rpt-e-authorities"))),
+      "rpt-03b": list(seq(nou, step1, langs, AUMS("ANSP", "ANSA"), at("#rpt-e-authorities"))),
+      /* rpt-auth-ms-v1 (user: the checklist won't scale): „Toate autoritățile” unticked → the CAEM multi-select open + searched
+         „primăria” (local public authorities); unticked with none chosen → „Înainte” = the field error */
+      "rpt-03ac": list(seq(nou, step1, AUMS(), async (h) => { await h.fill(`${C} [data-rpt-auth-ms] [data-fo-subgen-search]`, "primăria", { leave: false }); await h.wait(300); })),
+      "rpt-03ad": list(seq(nou, step1, async (h) => { await h.click(`${C} label:has([data-rpt-auth-all])`); await h.wait(250); }, next, at("#rpt-e-authorities"))),
       /* rpt-rich-select-v1: the Categoria rich dropdown open */
       "rpt-03aa": list(seq(nou, async (h) => { await h.click(`${C} #rpt-e-category`); await h.wait(250); })),
       /* a copy keeps the source's category (read-only) — Feature: „clonarea se face doar în aceeași categorie” */
