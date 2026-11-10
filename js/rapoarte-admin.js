@@ -681,7 +681,7 @@
           ${icon("chevron-bottom", 20)}
         </button>
         <ul class="e-permits-fo-intent-menu e-permits-stack__menu e-permits-rpt-add-menu e-permits-rpt-rich__menu" id="${id}-menu" role="menu" aria-label="${esc(kind)}" hidden data-stack-menu>
-          ${options.map(([key, text, desc]) => `<li role="none"><button class="e-permits-fo-intent-menu__item e-permits-rpt-add-menu__item${key === value ? " is-selected" : ""}" type="button" role="menuitemradio" aria-checked="${key === value}" data-rpt-pick="${kind}|${esc(key)}">${icon(icons[key])}<span class="e-permits-rpt-add-menu__text"><span class="e-permits-rpt-add-menu__title">${esc(text)}</span><span class="e-permits-rpt-add-menu__desc">${esc(desc)}</span></span></button></li>`).join("")}
+          ${options.map(([key, text, desc]) => `<li role="none"><button class="e-permits-fo-intent-menu__item e-permits-rpt-add-menu__item${key === value ? " is-selected" : ""}" type="button" role="menuitemradio" aria-checked="${key === value}" data-rpt-pick="${kind}|${esc(key)}">${icon(icons[key])}<span class="e-permits-rpt-add-menu__text"><span class="e-permits-rpt-add-menu__title">${esc(text)}</span><span class="e-permits-rpt-add-menu__desc">${esc(desc)}</span></span>${key === value ? icon("checkmark-large") : ""}</button></li>`).join("")}
         </ul>
         ${error ? errorHtml(id, error) : ""}
       </div>`;

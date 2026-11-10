@@ -679,8 +679,18 @@
   min-width: 0;
 }
 
-.e-permits-rpt-add-menu__item.is-selected {
-  background: var(--color-background-base-tertiary, #f1f1f1);
+/* the chosen item = the library trailing check (grey is hover only) */
+.e-permits-rpt-rich__menu .e-permits-rpt-add-menu__item {
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.e-permits-rpt-rich__menu .e-permits-rpt-add-menu__item > .icon:last-child {
+  flex: 0 0 auto;
+}
+
+.e-permits-rpt-rich__menu .e-permits-rpt-add-menu__text {
+  flex: 1 1 auto;
 }
 
 /* the settings column is narrow: the RU / EN fields stack under RO (full width) */
