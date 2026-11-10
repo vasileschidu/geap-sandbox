@@ -617,23 +617,26 @@
   const req = () => U().requiredMark?.() || "";
   const errorHtml = (id, msg) => `<span class="message message--inline message--error e-permits-fo-field__error" id="${id}-error">${icon("circle-error-filled")}<span>${esc(msg)}</span></span>`;
   const hintRow = (id, hint, count, max) => `<p class="e-permits-fo-field__hint e-permits-ntpl-count" id="${id}-hint"><span>${esc(hint)}</span><span class="e-permits-ntpl-count__value${count > max ? " is-over" : ""}" data-rpt-count="${id}">${count}/${max}</span></p>`;
-  function textField(id, attr, lbl, value, { required = false, max = 0, hint = "", error = "", span = 12, counter = false, placeholder = "" } = {}) {
+  /* rpt-translation-info-v1 (user): the translation rule lives in the library „i” trigger next to the label, not in a hint */
+  const infoBtn = (text) => `<button class="e-permits-fo-role-info" type="button" aria-label="Despre traducere" data-tooltip-hint="${esc(text)}">${icon("circle-info-filled", 16)}</button>`;
+  const TRANSLATION_INFO = "Poți salva fără traducere; o completezi înainte de publicare.";
+  function textField(id, attr, lbl, value, { required = false, max = 0, hint = "", error = "", span = 12, counter = false, placeholder = "", info = "" } = {}) {
     const count = String(value ?? "").length;
     const described = error ? `${id}-error` : hint || counter ? `${id}-hint` : "";
     return `
       <div class="e-permits-fo-field e-permits-user-create__field e-permits-user-create__field--${span}">
-        <label for="${id}">${esc(lbl)}${required ? req() : ""}</label>
+        <label for="${id}">${esc(lbl)}${required ? req() : ""}${info ? infoBtn(info) : ""}</label>
         <div class="e-permits-fo-input${error ? " is-error" : ""}">
           <input id="${id}" type="text" value="${esc(value ?? "")}" autocomplete="off"${placeholder ? ` placeholder="${esc(placeholder)}"` : ""}${required ? ' aria-required="true"' : ""}${error ? ' aria-invalid="true"' : ""}${described ? ` aria-describedby="${described}"` : ""} ${attr}>
         </div>
         ${error ? errorHtml(id, error) : counter ? hintRow(id, hint, count, max) : hint ? `<p class="e-permits-fo-field__hint" id="${id}-hint">${esc(hint)}</p>` : ""}
       </div>`;
   }
-  function areaField(id, attr, lbl, value, { hint = "", span = 12 } = {}) {
+  function areaField(id, attr, lbl, value, { hint = "", span = 12, info = "" } = {}) {
     const count = String(value || "").length;
     return `
       <div class="e-permits-fo-field e-permits-user-create__field e-permits-user-create__field--${span}">
-        <label for="${id}">${esc(lbl)}</label>
+        <label for="${id}">${esc(lbl)}${info ? infoBtn(info) : ""}</label>
         <div class="e-permits-fo-textarea"><textarea id="${id}" rows="3" aria-describedby="${id}-hint" spellcheck="true" ${attr}>${esc(value)}</textarea></div>
         ${hintRow(id, hint, count, TEXT_MAX)}
       </div>`;
@@ -717,11 +720,11 @@
       ))}
       ${section("Denumire și descriere", grid(
         textField(`${idp}-name-ro`, 'data-rpt-field="names.ro"', "Denumire (RO)", v.names.ro, { required: true, max: NAME_MAX, counter: true, hint: "„Raport <ce arată>”, de exemplu „Raport dosare finalizate pe autoritate”.", error: e["names.ro"] }),
-        textField(`${idp}-name-ru`, 'data-rpt-field="names.ru"', "Denumire (RU)", v.names.ru, { span: 12, hint: "Obligatoriu la publicare." }),
-        textField(`${idp}-name-en`, 'data-rpt-field="names.en"', "Denumire (EN)", v.names.en, { span: 12, hint: "Obligatoriu la publicare." }),
+        textField(`${idp}-name-ru`, 'data-rpt-field="names.ru"', "Denumire (RU)", v.names.ru, { span: 12, info: TRANSLATION_INFO }),
+        textField(`${idp}-name-en`, 'data-rpt-field="names.en"', "Denumire (EN)", v.names.en, { span: 12, info: TRANSLATION_INFO }),
         areaField(`${idp}-desc-ro`, 'data-rpt-field="descriptions.ro"', "Descriere (RO)", v.descriptions.ro, { hint: "Regulile raportului, afișate sub butonul de informare." }),
-        areaField(`${idp}-desc-ru`, 'data-rpt-field="descriptions.ru"', "Descriere (RU)", v.descriptions.ru, { hint: "Obligatoriu la publicare." }),
-        areaField(`${idp}-desc-en`, 'data-rpt-field="descriptions.en"', "Descriere (EN)", v.descriptions.en, { hint: "Obligatoriu la publicare." })
+        areaField(`${idp}-desc-ru`, 'data-rpt-field="descriptions.ru"', "Descriere (RU)", v.descriptions.ru, { info: TRANSLATION_INFO }),
+        areaField(`${idp}-desc-en`, 'data-rpt-field="descriptions.en"', "Descriere (EN)", v.descriptions.en, { info: TRANSLATION_INFO })
       ))}`;
   }
   /* the column list = the Registre „Coloanele registrului” stacked list (order handle + drag, ↑ ↓, trash; row → panel) */
@@ -1547,8 +1550,8 @@
         <h3 class="e-permits-user-create__section-title">Denumire</h3>
         <div class="e-permits-user-create__section-content">${grid(
           textField("rpt-c-name-ro", 'data-rpt-col-field="names.ro" data-rpt-autofocus', "Denumire (RO)", c.names.ro, { required: true, max: 60, counter: true, hint: "Eticheta coloanei în raport, de exemplu „Număr dosare”.", error: e["names.ro"] }),
-          textField("rpt-c-name-ru", 'data-rpt-col-field="names.ru"', "Denumire (RU)", c.names.ru, { span: 6, hint: "Obligatoriu la publicare." }),
-          textField("rpt-c-name-en", 'data-rpt-col-field="names.en"', "Denumire (EN)", c.names.en, { span: 6, hint: "Obligatoriu la publicare." })
+          textField("rpt-c-name-ru", 'data-rpt-col-field="names.ru"', "Denumire (RU)", c.names.ru, { span: 6, info: TRANSLATION_INFO }),
+          textField("rpt-c-name-en", 'data-rpt-col-field="names.en"', "Denumire (EN)", c.names.en, { span: 6, info: TRANSLATION_INFO })
         )}</div>
       </section>
       <section class="e-permits-user-create__section">
