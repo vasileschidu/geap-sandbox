@@ -23125,6 +23125,7 @@ body[data-fo-postprocess] .e-permits-fo-form__roles .e-permits-fo-selected-role_
   vertical-align: top;
 }
 
+.e-permits-audit-changes.e-permits-audit-changes > .e-permits-dosar-profil__section-heading + .info-box.e-permits-info-note.e-permits-info-note,
 .e-permits-audit-changes > .e-permits-info-note + .e-permits-audit-changes__wrap {
   margin-top: var(--spacing-8, 8px);
 }

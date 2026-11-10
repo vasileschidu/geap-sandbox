@@ -4328,3 +4328,10 @@ For any „research how other products do it” step, search Mobbin (mcp__mobbin
 - 2026-11-10 dsh-auth-ms-v1: shared FO multiselect for Dashboards authorities = copy of Rapoarte (fieldHtml multiselect + fo-multiselect-change + bind after render); authorities list fetched from data/rapoarte.json; audit leftovers (chip remove, Confirmă) are the shared component's parts.
 - 2026-11-10 multi-select „Toate …” = opt-in first item of the shared FO multi-select (`selectAllLabel`, indeterminate, one chip, hidden while searching) — never a checkbox above the field. Python-patch a shared function: scope replacements after the function name (several look-alike blocks).
 - 2026-11-10 a plain library checkbox's focus ring must sit on the BOX (`.checkbox-custom`), not the label wrapper; scope the override to the row (`.e-permits-rpt-cond__ask`).
+- 2026-11-10 · US-263 „Modificări”: ONE renderer `GEAPEventTimeline.changesHtml` (event-timeline.js loads before every module)
+  replaced 4 private change cards (svc, KPI modal, Registre, widget none). Demo seeding by `(seed + i*7) % N` collided with the
+  failure rule for one residue class → force the demo event at a fixed index instead of trusting the modulo.
+- 2026-11-10 · Library `.table` inside a product wrap: `.table__row:nth-child(even) .table__body-cell` (0,4,0) beats a phone
+  `display` override → override with `:nth-child(n)` twins. Info-note margins lose to the BO `:is(...)` margin 0 → double class.
+- 2026-11-10 · Another agent's commit swept my uncommitted CSS / demo-states / ?v= bumps onto sandbox before my JS → commit
+  each finished slice early when other agents share the tree (half-applied = demo states + a call to a missing helper).

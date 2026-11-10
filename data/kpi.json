@@ -298,7 +298,12 @@
       { "at": "2026-11-02T10:12:00", "by": "Victor Lungu", "role": "Administrator local · ANSP", "event": "Valoare proprie adăugată", "detail": "ANSP · Rol Supervizor · Autorizație sanitară de funcționare: ținta 95%, prag 2 p.p." },
       { "at": "2026-10-29T09:41:00", "by": "Victor Lungu", "role": "Administrator local · ANSP", "event": "Valoare proprie adăugată", "detail": "ANSP · Subdiviziune CSP Bălți: ținta 85%, prag 5 p.p." },
       { "at": "2026-10-29T09:38:00", "by": "Victor Lungu", "role": "Administrator local · ANSP", "event": "Valoare proprie adăugată", "detail": "ANSP · Autoritate: ținta 92%, prag 3 p.p." },
-      { "at": "2026-10-28T11:20:00", "by": "Anastasia Cojocaru", "role": "Administrator central", "event": "Modificarea KPI", "detail": "Roluri responsabile: Supervizor, Director → Supervizor, Director, Administrator local" },
+      { "at": "2026-10-28T11:20:00", "by": "Anastasia Cojocaru", "role": "Administrator central", "event": "Modificarea KPI", "detail": "Roluri responsabile: Supervizor, Director → Supervizor, Director, Administrator local", "changes": [
+        { "field": "Roluri responsabile", "added": ["Administrator local"] },
+        { "field": "Pragul de apropiere", "before": "5 p.p.", "after": "3 p.p." },
+        { "field": "Criterii de detaliere", "added": ["Specialist"], "removed": ["Serviciu"] },
+        { "field": "Descriere (RO)", "before": "Ponderea dosarelor examinate în termen.", "after": "Ponderea dosarelor examinate în termenul legal, din totalul dosarelor închise în perioada de calcul, fără dosarele suspendate." }
+      ] },
       { "at": "2026-10-14T10:02:00", "by": "Anastasia Cojocaru", "role": "Administrator central", "event": "Modificarea KPI", "detail": "Ținta: 85% → 90%" },
       { "at": "2026-09-30T15:30:00", "by": "Anastasia Cojocaru", "role": "Administrator central", "event": "Crearea KPI", "detail": "Global · Registru Dosare · Procent" }
     ],

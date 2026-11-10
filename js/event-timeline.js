@@ -211,5 +211,68 @@
   /* the second stamp line of a row: where it happened + the correlation id (short) */
   const contextOf = (record) => [record.module !== "BackOffice" ? record.module : "", record.authority, record.subdivision, `ID corelare ${record.correlation}`];
 
-  window.GEAPEventTimeline = { html, listHtml, TONES, audit, contextOf, log, journal };
+  /* ===== US-263 — „Modificări” of an audit event (aud-263-v1, 2026-11-10): ONE section for every event-detail modal
+     (Servicii › Jurnal, dossier Jurnalul activităților, Widget / KPI Istoric, Registre › Jurnal evenimente).
+     changesHtml(changes, { title }) → "" when the event changed no field (login, consultation — US-263 AC-20), else a BO
+     section „Modificări” + „N modificări” and a 3-column table Câmp · Valoare anterioară · Valoare nouă (library `.table`
+     rows; phones = one record per row). A change is [field, before, after] or { field | label, before, after, personal,
+     added: [], removed: [] }: a list (`added` / `removed`) = one row per item with a Small „Adăugat” / „Eliminat” tag
+     (US-263 AC-12…14: added → previous empty, removed → new empty); empty / „—” = „—”; the previous value is struck
+     through and muted; long values are clamped to 3 lines with the full text in the Small tooltip; a personal value
+     redacted at anonymisation (US-277: „‹redactat›”) = a neutral Small tag with the shield icon. */
+  const REDACTED = "‹redactat›";
+  const EMPTY = /^(—|-|--|)$/;
+  const changeRows = (changes = []) => changes.flatMap((c) => {
+    if (Array.isArray(c)) return [{ field: c[0], before: c[1], after: c[2] }];
+    const field = c.field || c.label || "";
+    const items = [
+      ...(c.removed || []).map((item) => ({ field, before: item, after: "", op: "removed" })),
+      ...(c.added || []).map((item) => ({ field, before: "", after: item, op: "added" }))
+    ];
+    if (items.length) return items.map((item) => ({ ...item, personal: c.personal }));
+    return [{ field, before: c.before, after: c.after, personal: c.personal, redacted: c.redacted }];
+  });
+  const changeValue = (value, { before = false, redacted = false } = {}) => {
+    const text = String(value ?? "").replace(/<[^>]+>/g, "").trim();
+    if (EMPTY.test(text)) return '<span class="e-permits-workplace__dash" aria-label="gol">—</span>';
+    if (redacted || text === REDACTED) {
+      return window.GEAPTag?.html(REDACTED, "neutral", { icon: "shield-keyhole", sprite: SPRITE, attrs: 'data-tooltip-text="Valoare personală redactată la anonimizare"' }) || esc(text);
+    }
+    return `<span class="e-permits-audit-changes__value${before ? " is-before" : ""}" data-cell-tooltip>${before ? '<span class="u-visually-hidden">Anterior: </span>' : ""}${esc(text)}</span>`;
+  };
+  const OPS = { added: ["Adăugat", "success"], removed: ["Eliminat", "danger"] };
+  function changesHtml(changes = [], { title = "Modificări" } = {}) {
+    const rows = changeRows(changes).filter((r) => r.field);
+    if (!rows.length) return "";
+    const redacted = rows.some((r) => r.redacted || [r.before, r.after].some((v) => String(v ?? "").trim() === REDACTED));
+    const count = rows.length === 1 ? "1 modificare" : `${rows.length}${rows.length >= 20 && (rows.length % 100 === 0 || rows.length % 100 >= 20) ? " de" : ""} modificări`;
+    return `
+      <section class="e-permits-dosar-profil__section e-permits-audit-changes">
+        <div class="e-permits-dosar-profil__section-heading">
+          <h2 class="e-permits-dosar-profil__section-title">${esc(title)}</h2>
+          <span class="e-permits-dosar-profil__section-meta">${count}</span>
+        </div>
+        ${redacted ? `<div class="info-box info-box--neutral e-permits-info-note"><span class="info-box__icon"><svg class="icon" aria-hidden="true"><use href="${SPRITE}#icon-circle-info-filled"></use></svg></span><div class="info-box__content"><p>Datele personale au fost redactate la anonimizarea înregistrării. Celelalte valori ale evenimentului au rămas neschimbate.</p></div></div>` : ""}
+        <div class="e-permits-audit-changes__wrap">
+          <table class="table e-permits-audit-changes__table">
+            <caption class="u-visually-hidden">${esc(title)}: câmpul, valoarea anterioară și valoarea nouă</caption>
+            <thead><tr class="table__row"><th class="table__head-cell" scope="col">Câmp</th><th class="table__head-cell" scope="col">Valoare anterioară</th><th class="table__head-cell" scope="col">Valoare nouă</th></tr></thead>
+            <tbody>${rows.map((r) => `
+              <tr class="table__row">
+                <th class="table__body-cell e-permits-audit-changes__field" scope="row"><span class="e-permits-audit-changes__name" data-cell-tooltip>${esc(r.field)}</span>${r.op ? window.GEAPTag?.html(OPS[r.op][0], OPS[r.op][1]) || "" : ""}</th>
+                <td class="table__body-cell" data-label="Valoare anterioară">${changeValue(r.before, { before: true, redacted: r.redacted })}</td>
+                <td class="table__body-cell" data-label="Valoare nouă">${changeValue(r.after, { redacted: r.redacted })}</td>
+              </tr>`).join("")}
+            </tbody>
+          </table>
+        </div>
+      </section>`;
+  }
+
+  /* the field changes of a configuration Istoric entry: its `changes`, else the „Câmp: vechi → nou · …” of its detail;
+     publish / restore entries change no field of the object (they record a version) → none */
+  const changesOf = (entry = {}) => (/^(Publicarea|Restaurarea|Publicare respinsă)/.test(entry.event || entry.type || "") ? []
+    : entry.changes || String(entry.detail || "").split(" · ").map((part) => /^(.+?): (.+?) → (.+)$/.exec(part)).filter(Boolean).map(([, field, before, after]) => ({ field, before, after })));
+
+  window.GEAPEventTimeline = { html, listHtml, TONES, audit, contextOf, log, journal, changesHtml, changeRows, changesOf, REDACTED };
 })();

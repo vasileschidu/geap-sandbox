@@ -1712,14 +1712,13 @@
       e.redactionOf ? ["Evenimente redactate", esc(e.redactionOf.join(", "))] : null,
       e.request ? ["Cerere de anonimizare", esc(`${e.request} · aprobată`)] : null
     ].filter(Boolean);
-    const changes = (e.changes || []).map((c) => [c.field, `<span>${esc(c.before)}</span>${icon("arrow-right", 16, "icon small")}<span>${esc(c.after)}</span>`]);
     openModal({
       kind: "event",
       title: e.type,
       subtitle: stamp(e.at),
       body: `${e.detail ? `<p class="e-permits-passport__lead">${esc(e.detail)}</p>` : ""}
         <div class="e-permits-dosar-profil__card">${rows.map(detailRow).join("")}</div>
-        ${changes.length ? `<h3 class="e-permits-dosar-profil__section-title">Modificări</h3><div class="e-permits-dosar-profil__card e-permits-reg-changes">${changes.map(detailRow).join("")}</div>` : ""}`,
+        ${window.GEAPEventTimeline?.changesHtml(e.changes || []) || ""}`,
       footer: '<div class="modal-buttons"><button class="btn btn-primary btn-rounded" type="button" data-case-close>Închide</button></div>'
     });
   }

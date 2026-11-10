@@ -927,8 +927,8 @@
       related: h.event === EVENTS.publish || h.event === EVENTS.restore ? [{ module: "Tablouri de bord", type: "Ultima versiune publicată, disponibilă pe tablourile de bord", user: "SIA GEAP" }] : []
     };
   };
-  function audit(w, kind, detail = "") {
-    const h = { at: nowIso(), by: userName(), role: roleLabel(), event: EVENTS[kind], detail };
+  function audit(w, kind, detail = "", changes = null) {
+    const h = { at: nowIso(), by: userName(), role: roleLabel(), event: EVENTS[kind], detail, ...(changes ? { changes } : {}) };
     w.history.unshift(h);
     window.GEAPEventTimeline?.log?.(journalEvent(h), journalCtx(w, h));
     if (!["authOn", "authOff", "rejected"].includes(kind)) { w.updatedAt = nowIso(); w.updatedBy = userName(); }
@@ -1343,7 +1343,8 @@
     const h = w?.history[Number(i)];
     if (!h) return;
     const record = window.GEAPEventTimeline.audit(journalEvent(h), journalCtx(w, h));
-    A().openAuditEventDetail?.(record, { title: h.event, general: [["Denumirea evenimentului", esc(h.event)], ["Widget", esc(`${w.id} · ${w.config.titles.ro}`)]] });
+    /* US-263: the shared „Modificări” (the seed / saved `changes`, else the „Câmp: vechi → nou · …” of an older entry) */
+    A().openAuditEventDetail?.(record, { title: h.event, general: [["Denumirea evenimentului", esc(h.event)], ["Widget", esc(`${w.id} · ${w.config.titles.ro}`)]], changes: window.GEAPEventTimeline.changesOf(h) });
   }
 
   /* ---- version window (Compară · Restaurează · Închide) · restore (the library dialog) */
@@ -1489,7 +1490,9 @@
       const changed = changedFields();
       w.config = clone(P.draft);
       if (w.level !== "Global") Object.assign(w, levelOf(w.config));
-      if (Object.keys(changed).length) audit(w, "edit", Object.entries(changed).map(([lbl, [a, b]]) => `${lbl}: ${a.replace(/<[^>]+>/g, "") || "—"} → ${b.replace(/<[^>]+>/g, "") || "—"}`).join(" · "));
+      /* US-263: the event keeps the changed fields (field · previous · new) for its „Modificări” */
+      const plain = (v) => String(v || "").replace(/<[^>]+>/g, "");
+      if (Object.keys(changed).length) audit(w, "edit", Object.entries(changed).map(([lbl, [a, b]]) => `${lbl}: ${plain(a) || "—"} → ${plain(b) || "—"}`).join(" · "), Object.entries(changed).map(([lbl, [a, b]]) => ({ field: plain(lbl), before: plain(a), after: plain(b) })));
     } else {
       const nums = all().map((x) => Number(x.id.split("-")[1]) || 0);
       const id = `WGT-${String((nums.length ? Math.max(...nums) : 0) + 1).padStart(4, "0")}`;

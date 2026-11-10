@@ -4356,8 +4356,34 @@ document.addEventListener("DOMContentLoaded", () => {
       log.unshift(rec?.mode === "aleatoriu"
         ? { at: rec.at, user: "SIA GEAP", type: "Dosar distribuit aleatoriu", status: "Reușit", detail: `Distribuit aleatoriu către ${row.specialist.nume}.` }
         : { at: rec?.at || `${row.dataDepunerii}T11:30:00`, user: rec?.by?.nume || row.repartizatDe?.nume || "", type: "Dosar distribuit", status: "Reușit", detail: `Distribuit manual de ${rec?.by?.nume || "supervizor"} către ${row.specialist.nume}.` });
+      log.unshift(...dossierChangeEvents(row, log[0].at));
     }
     return log;
+  };
+  /* US-263 (aud-263-v1): the dossier's „Modificarea datelor” events — an automated one by SIA GEAP right after the
+     distribution (AC-23: no IP), the specialist's correction of the request data with 6 changed fields (lists = one row
+     per item, personal fields flagged for US-277), and a consultation that changes nothing (AC-20). Newest first. */
+  const dossierChangeEvents = (row, distAt) => {
+    const base = new Date(distAt);
+    if (Number.isNaN(base.getTime())) return [];
+    const at = (minutes) => { const d = new Date(base.getTime() + minutes * 60000); return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}T${pad2(d.getHours())}:${pad2(d.getMinutes())}:00`; };
+    const h = hashValue(row.nrDosar || row.id || "");
+    const who = row.specialist.nume;
+    return [
+      { at: at(190), user: who, type: "Vizualizare dosar", status: "Reușit", detail: "Profilul dosarului deschis din „Dosarele mele”." },
+      { at: at(150), user: who, type: "Modificarea datelor", status: "Reușit", detail: "Datele cererii au fost corectate la solicitarea solicitantului: 6 modificări.", changes: [
+        ["Adresa obiectului", "mun. Chișinău, str. Ismail 45", "mun. Chișinău, bd. Ștefan cel Mare și Sfânt 64, of. 12, intrarea din curte, etajul 1"],
+        ["Suprafața comercială (m²)", "48", "62"],
+        { field: "Telefon de contact", before: `+373 69 ${100 + (h % 899)} ${100 + ((h >> 3) % 899)}`, after: `+373 79 ${100 + ((h >> 5) % 899)} ${100 + ((h >> 7) % 899)}`, personal: true },
+        { field: "E-mail de contact", before: "", after: "office@vinoteca-centru.md", personal: true },
+        { field: "Documente anexate", added: ["Contract de locațiune, act adițional nr. 2.pdf"], removed: ["Contract de locațiune.pdf"] }
+      ] },
+      { at: at(1), user: "SIA GEAP", type: "Modificarea datelor", status: "Reușit", detail: "Statutul și termenul dosarului au fost actualizate la distribuire.", changes: [
+        ["Statut", "Înregistrat", "În examinare"],
+        ["Termen de examinare", "", "15 zile lucrătoare"],
+        ["Specialist responsabil", "", who]
+      ] }
+    ];
   };
 
   /* a case's process state, created on first use. The flow is a property of the
@@ -8776,7 +8802,15 @@ document.addEventListener("DOMContentLoaded", () => {
     ["Publicare serviciu", (s, i) => `v2.${i % 9}.0 · ${2 + (i % 6)} modificări`, (s, i) => [["Versiune în vigoare", `v2.${Math.max(0, (i % 9) - 1)}.0`, `v2.${i % 9}.0`], ["Modificări publicate", "—", String(2 + (i % 6))]]],
     ["Atașare șablon MDocs", () => "Act permisiv — șablon atașat din catalog", () => [["Șablon act permisiv", "—", "Act permisiv · MDocs v3"]]],
     ["Editare interdependență", () => "Aviz ANSA — condiție actualizată", () => [["Condiție aviz ANSA", "La toate solicitările", "Doar pentru Emitere primară"]]],
-    ["Sincronizare tarife", (s, i) => `${i % 3 ? `${1 + (i % 3)} tarife preluate` : "1 tarif preluat"} din ${i % 2 ? "eAPL" : "RSSP"}`, (s, i) => [["Tarife create", "—", String(i % 3 ? 1 + (i % 3) : 1)], ["Tarife actualizate", "—", "0"]]]
+    ["Sincronizare tarife", (s, i) => `${i % 3 ? `${1 + (i % 3)} tarife preluate` : "1 tarif preluat"} din ${i % 2 ? "eAPL" : "RSSP"}`, (s, i) => [["Tarife create", "—", String(i % 3 ? 1 + (i % 3) : 1)], ["Tarife actualizate", "—", "0"]]],
+    /* US-263 (aud-263-v1): the generic „Modificarea datelor” with list changes — one row per added / removed item */
+    ["Modificarea datelor", () => "Datele generale ale pașaportului au fost actualizate: 5 câmpuri", () => [
+      { field: "Documente necesare", added: ["Planul încăperilor, cu destinația spațiilor"], removed: ["Copia buletinului de identitate"] },
+      { field: "Canale de depunere", added: ["Ghișeu"] },
+      ["Termen de examinare", "10 zile lucrătoare", "15 zile lucrătoare"],
+      ["Descriere (RO)", "Notificarea privind inițierea activității de comerț se depune înainte de deschiderea unității comerciale.", "Notificarea privind inițierea activității de comerț se depune cel târziu în ziua deschiderii unității comerciale, pentru fiecare unitate și fiecare adresă a activității, separat."],
+      ["Cod CAEM", "47.11", "—"]
+    ]]
   ];
   /* AC-13: the daily automatic sync runs as „SIA GEAP” (role „Sistem”) */
   const SVC_EVENT_AUTOMATIC = /^(Sincronizare|Eroare la sincronizare)/;
@@ -8790,10 +8824,13 @@ document.addEventListener("DOMContentLoaded", () => {
     const seed = [...String(service.code)].reduce((sum, ch) => sum + ch.charCodeAt(0), 0);
     const pad = (n) => String(n).padStart(2, "0");
     let t = new Date(oldest.getTime());
-    for (let i = geap.events.length; i < 100; i += 1) {
+    const first = geap.events.length;
+    for (let i = first; i < 100; i += 1) {
+      /* the second generated event is always a „Modificarea datelor” with list changes (US-263 demo, aud-263-04) */
+      const generic = i === first + 1;
       /* ~1 in 13 is a failed RSSP sync — the only thing that fails in this log */
-      const failed = (seed + i) % 13 === 0;
-      const k = failed ? 2 : (seed + i * 7) % SVC_EVENT_SAMPLES.length;
+      const failed = !generic && (seed + i) % 13 === 0;
+      const k = generic ? SVC_EVENT_SAMPLES.length - 1 : failed ? 2 : (seed + i * 7) % SVC_EVENT_SAMPLES.length;
       t = new Date(t.getTime() - ((((seed + i * 13) % 50) + 6) * 60 + ((i * 17) % 60)) * 60 * 1000);
       const type = failed ? "Eroare la sincronizare" : SVC_EVENT_SAMPLES[k][0];
       geap.events.push({
@@ -8906,8 +8943,8 @@ document.addEventListener("DOMContentLoaded", () => {
     openAuditEventDetail(record, {
       title: e.type,
       general: [["Denumirea evenimentului", escapeHtml(e.type)], ["Tip eveniment", renderTag(e.category, "neutral")], ["Tab", escapeHtml(e.tab)]],
-      changesHtml: changes.length ? renderInfoCard("Modificări", changes.map(([field, before, after]) => [field, `<span class="e-permits-event-diff"><span class="e-permits-event-diff__before">${escapeHtml(before)}</span><span aria-hidden="true">→</span><span class="sr-only">devine</span><strong>${escapeHtml(after)}</strong></span>`]))
-        : `<p class="e-permits-passport__muted">${e.status === "Eșuat" ? "Operația a eșuat — nu s-a modificat nimic." : "Evenimentul nu modifică câmpuri ale pașaportului."}</p>`
+      /* US-263 AC-02: a failed operation changed nothing → no „Modificări” */
+      changes: e.status === "Eșuat" ? [] : changes
     });
   };
   /* ---- US-262 (Azure 95901) — the audit event with its context and correlation id (audit-context-v1, 2026-10-25):
@@ -9039,9 +9076,11 @@ document.addEventListener("DOMContentLoaded", () => {
   const openDosarAuditDetail = (row, index) => {
     const item = dosarJournalItems(row)[Number(index)];
     if (!item) return;
-    openAuditEventDetail(window.GEAPEventTimeline.audit(item, dosarAuditContext(row, item)), { title: item.type, general: [["Denumirea evenimentului", escapeHtml(item.type)]] });
+    openAuditEventDetail(window.GEAPEventTimeline.audit(item, dosarAuditContext(row, item)), { title: item.type, general: [["Denumirea evenimentului", escapeHtml(item.type)]], changes: item.changes || [] });
   };
-  const openAuditEventDetail = (record, { title, general = [], changesHtml = "" }) => {
+  /* US-263 (aud-263-v1): `changes` = the event's field changes → the ONE shared „Modificări” section
+     (GEAPEventTimeline.changesHtml); none for events without changed fields (login, consultation — AC-20) */
+  const openAuditEventDetail = (record, { title, general = [], changes = [], changesHtml = window.GEAPEventTimeline.changesHtml(changes) }) => {
     const modal = document.querySelector("#dosar-detail-modal");
     if (!modal) return;
     const dash = '<span class="e-permits-workplace__dash">—</span>';

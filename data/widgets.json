@@ -39,7 +39,13 @@
       ],
       "history": [
         { "at": "2026-11-03T15:42:00", "by": "Anastasia Cojocaru", "role": "Administrator central", "event": "Publicarea widget-ului", "detail": "Versiunea 3 · Comparație cu săptămâna precedentă, lățime de o treime." },
-        { "at": "2026-11-03T15:38:00", "by": "Anastasia Cojocaru", "role": "Administrator central", "event": "Modificarea widget-ului", "detail": "Perioada de comparație: Luna precedentă → Săptămâna precedentă · Lățimea implicită: Jumătate → O treime · Subtitlu și descriere (RO)" },
+        { "at": "2026-11-03T15:38:00", "by": "Anastasia Cojocaru", "role": "Administrator central", "event": "Modificarea widget-ului", "detail": "Perioada de comparație: Luna precedentă → Săptămâna precedentă · Lățimea implicită: Jumătate → O treime · Subtitlu și descriere (RO)", "changes": [
+          { "field": "Perioada de comparație", "before": "Luna precedentă", "after": "Săptămâna precedentă" },
+          { "field": "Lățimea implicită", "before": "Jumătate", "after": "O treime" },
+          { "field": "Subtitlu (RO)", "before": "", "after": "Dosare în lucru, pe subdiviziuni" },
+          { "field": "Descriere (RO)", "before": "Numărul dosarelor în examinare, pe subdiviziuni.", "after": "Numărul dosarelor în examinare, pe subdiviziuni, comparat cu săptămâna precedentă; un clic pe bară deschide lista dosarelor subdiviziunii." },
+          { "field": "Roluri cu acces", "added": ["Supervizor"], "removed": ["Specialist"] }
+        ] },
         { "at": "2026-10-08T11:30:00", "by": "Anastasia Cojocaru", "role": "Administrator central", "event": "Publicarea widget-ului", "detail": "Versiunea 2 · Ordinea ca în sursa de date și praguri de culoare la 10 dosare." },
         { "at": "2026-09-15T09:05:00", "by": "Anastasia Cojocaru", "role": "Administrator central", "event": "Publicarea widget-ului", "detail": "Versiunea 1 · Widget nou pentru tabloul de bord al directorilor." },
         { "at": "2026-09-14T10:20:00", "by": "Anastasia Cojocaru", "role": "Administrator central", "event": "Crearea widget-ului", "detail": "Ciornă · Global · Registru Dosare · Bare" }

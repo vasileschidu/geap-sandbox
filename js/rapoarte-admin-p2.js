@@ -440,7 +440,7 @@
     const h = r?.history[Number(i)];
     if (!h) return;
     const record = window.GEAPEventTimeline.audit(journalEvent(h), journalCtx(r, h));
-    A().openAuditEventDetail?.(record, { title: h.event, general: [["Denumirea evenimentului", esc(h.event)], ["Raport", esc(`${r.id} · ${nameOf(r)}`)]] });
+    A().openAuditEventDetail?.(record, { title: h.event, general: [["Denumirea evenimentului", esc(h.event)], ["Raport", esc(`${r.id} · ${nameOf(r)}`)]], changes: window.GEAPEventTimeline.changesOf(h) });
   }
 
   /* ================================================================ the hooks */

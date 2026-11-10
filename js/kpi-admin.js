@@ -1350,15 +1350,12 @@
 
   /* ================================================================ event + alert details (the Jurnal audit-event pattern:
      `#dosar-detail-modal` with info cards; rows = GEAPEventTimeline items with openAttrs — pointer + hover on the row) */
-  const evId = (seed) => `EV-KPI-${String(hash(seed)).padStart(10, "0").slice(0, 10)}`;
-  const corrId = (seed) => `COR-${(hash(`c:${seed}`) >>> 0).toString(16).toUpperCase().padStart(8, "0")}`;
   const stampText = (iso) => `${longDate(iso)}, ${time(iso)}`;
   const addMinutes = (iso, m) => { const d = new Date(iso); d.setMinutes(d.getMinutes() + m); return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}:00`; };
   /* „Modificări (N)” = the widget publish / compare list: stacked rows, previous value struck through → new value */
   const diffHtml = (c) => (c.before === "—" || !c.before ? `<strong>${esc(c.after)}</strong>`
     : c.after === "—" || !c.after ? `<span class="e-permits-event-diff__before">${esc(c.before)}</span>`
     : `<span class="e-permits-event-diff"><span class="e-permits-event-diff__before">${esc(c.before)}</span><span aria-hidden="true">→</span><span class="u-visually-hidden">devine</span><strong>${esc(c.after)}</strong></span>`);
-  const changesOf = (h) => h.changes || String(h.detail || "").split(" · ").map((part) => /^(.+?): (.+?) → (.+)$/.exec(part)).filter(Boolean).map(([, label, before, after]) => ({ label, before, after }));
   function openModal(title, subtitle, body, buttons) {
     const modal = document.querySelector("#dosar-detail-modal");
     if (!modal) return;
@@ -1369,21 +1366,14 @@
     window.__modal?.open?.("#dosar-detail-modal");
   }
   const closeBtn = '<button class="btn btn-primary btn-rounded" type="button" data-dosar-detail-close>Închide</button>';
+  /* an Istoric entry → its record in the unique Jurnalul de audit (the shell's US-262 event detail, as widgets) with the ONE
+     shared „Modificări” table of US-263 (aud-263-v1); events without changed fields (publish, alerts) show none */
   function openEventDetail(k, index) {
     const h = (D().history[k.id] || [])[Number(index)];
     if (!h) return;
-    const info = (title, rows) => A().renderInfoCard?.(title, rows) || "";
-    const changes = changesOf(h);
-    const where = /· (.+)$/.exec(h.role || "")?.[1] || (k.level === "Global" ? "Toate autoritățile (Global)" : authName(k.authority));
-    const seed = `${k.id}:${h.at}:${h.event}`;
-    openModal(h.event, k.names.ro, `
-      ${info("Date generale", [
-        ["Acțiunea", esc(h.event)], ["KPI", esc(`${k.code} · ${k.names.ro}`)], ["Data și ora", esc(stampText(h.at))],
-        ["Autor", esc(h.by)], ["Rolul", esc(String(h.role || "").replace(/ · .+$/, ""))], ["Autoritate", esc(where)],
-        ...(!changes.length && h.detail ? [["Detalii", esc(h.detail)]] : [])
-      ])}
-      ${changes.length ? A().renderStackedList?.(`Modificări (${changes.length})`, [{ label: "", items: changes.map((c) => ({ plainTitle: c.label, title: esc(c.label), meta: [diffHtml(c)] })) }]) || "" : ""}
-      ${info("Corelare", [["Identificator eveniment", U().renderCopyCode?.(evId(seed), `Copiază ${evId(seed)}`) || esc(evId(seed))], ["Identificator de corelare", U().renderCopyCode?.(corrId(seed), `Copiază ${corrId(seed)}`) || esc(corrId(seed))]])}`, closeBtn);
+    const record = window.GEAPEventTimeline.audit(journalEvent(h), journalCtx(k, h));
+    const changes = window.GEAPEventTimeline.changesOf(h).map((c) => (c.label && !c.field ? { ...c, field: c.label } : c));
+    A().openAuditEventDetail?.(record, { title: h.event, general: [["Denumirea evenimentului", esc(h.event)], ["KPI", esc(`${k.code} · ${k.names.ro}`)]], changes });
   }
   function openAlertDetail(index) {
     const a = D().alerts[Number(index)];
