@@ -1662,7 +1662,7 @@
   /* rpt-move-v1 (2026-11-10, user: „the move is hard to follow”; FLIP, Material / Notion reorder): ↑ ↓ and drag-and-drop
      slide the list items to their new places (translateY) and the preview columns to theirs (translateX), duration /
      easing = the motion tokens (--motion-duration-md, --motion-easing-standard); the moved item flashes the selected
-     tint, the focus stays on the same arrow (at an end: the other one), the preview ring follows and fades in; a polite live line says „<Nume>
+     tint, the focus stays on the same arrow (at an end: the other one), the preview ring slides with its column; a polite live line says „<Nume>
      mutată pe poziția N din M.”. prefers-reduced-motion: instant swap + the flash only. */
   const motionOk = () => !window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
   const tokenMs = (name, fallback) => { const v = getComputedStyle(document.documentElement).getPropertyValue(name).trim(); const n = parseFloat(v); return Number.isFinite(n) ? (/ms$/.test(v) ? n : n * 1000) : fallback; };
@@ -1675,7 +1675,7 @@
     root.querySelectorAll("[data-rpt-col]").forEach((el) => { items[el.dataset.rptCol] = el.getBoundingClientRect().top; });
     const cols = {};
     root.querySelectorAll("[data-rpt-preview] th[data-rpt-cell]").forEach((el) => { cols[el.dataset.rptCell] = el.getBoundingClientRect().left; });
-    return { items, cols };
+    return { items, cols, scroll: root.querySelector("[data-rpt-preview] .e-permits-rpt-table-wrap")?.scrollLeft || 0 };
   }
   let liveEl = null;
   const announce = (text) => {
@@ -1688,6 +1688,12 @@
     if (!root || !before) return;
     const anim = motionOk();
     const opts = { duration: tokenMs("--motion-duration-md", 300), easing: tokenEase() };
+    /* the re-render rebuilt the preview at scroll 0: put it back, then let the highlight scroll to the moved column and
+       draw its ring — every delta below is measured after that, so cells and ring share one FLIP */
+    const wrap = root.querySelector("[data-rpt-preview] .e-permits-rpt-table-wrap");
+    if (wrap) wrap.scrollLeft = before.scroll;
+    hlHover = id;
+    syncColHl({ scroll: true });
     if (anim) {
       root.querySelectorAll("[data-rpt-col]").forEach((el) => {
         const dy = (before.items[el.dataset.rptCol] ?? el.getBoundingClientRect().top) - el.getBoundingClientRect().top;
@@ -1696,14 +1702,14 @@
       root.querySelectorAll("[data-rpt-preview] th[data-rpt-cell]").forEach((th) => {
         const cid = th.dataset.rptCell;
         const dx = (before.cols[cid] ?? th.getBoundingClientRect().left) - th.getBoundingClientRect().left;
-        if (Math.abs(dx) > 0.5) root.querySelectorAll(`[data-rpt-preview] [data-rpt-cell="${CSS.escape(cid)}"]`).forEach((cell) => cell.animate([{ transform: `translateX(${dx}px)` }, { transform: "none" }], opts));
+        if (Math.abs(dx) < 0.5) return;
+        root.querySelectorAll(`[data-rpt-preview] [data-rpt-cell="${CSS.escape(cid)}"]`).forEach((cell) => cell.animate([{ transform: `translateX(${dx}px)` }, { transform: "none" }], opts));
+        /* rpt-move-v2 (user: the outline „jumps”): the ring rides its column's FLIP — same delta, duration, easing */
+        if (cid === id) root.querySelector("[data-rpt-preview] .e-permits-rpt-col-ring")?.animate([{ transform: `translateX(${dx}px)` }, { transform: "none" }], opts);
       });
     }
     const item = root.querySelector(`[data-rpt-col="${CSS.escape(id)}"]`);
     if (item) { item.classList.remove("is-just-moved"); void item.offsetWidth; item.classList.add("is-just-moved"); setTimeout(() => item.classList.remove("is-just-moved"), tokenMs("--motion-duration-lg", 500) * 2); }
-    hlHover = id;
-    syncColHl({ scroll: true });
-    if (anim) root.querySelector("[data-rpt-preview] .e-permits-rpt-col-ring")?.animate([{ opacity: 0 }, { opacity: 1 }], opts);
     const i = P.draft.columns.findIndex((c) => c.id === id);
     if (i > -1) announce(`${colName(P.draft.columns[i])} mutată pe poziția ${i + 1} din ${P.draft.columns.length}.`);
   }
