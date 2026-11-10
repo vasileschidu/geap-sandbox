@@ -1662,7 +1662,7 @@
   /* rpt-move-v1 (2026-11-10, user: „the move is hard to follow”; FLIP, Material / Notion reorder): ↑ ↓ and drag-and-drop
      slide the list items to their new places (translateY) and the preview columns to theirs (translateX), duration /
      easing = the motion tokens (--motion-duration-md, --motion-easing-standard); the moved item flashes the selected
-     tint, the focus stays on the same arrow (at an end: the other one), the ring (drawn on the column's cells) moves with them; a polite live line says „<Nume>
+     tint, the focus stays on the same arrow (at an end: the other one), the ring gets the same FLIP in the same frame; a polite live line says „<Nume>
      mutată pe poziția N din M.”. prefers-reduced-motion: instant swap + the flash only. */
   const motionOk = () => !window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
   const tokenMs = (name, fallback) => { const v = getComputedStyle(document.documentElement).getPropertyValue(name).trim(); const n = parseFloat(v); return Number.isFinite(n) ? (/ms$/.test(v) ? n : n * 1000) : fallback; };
@@ -1705,8 +1705,8 @@
         const dx = (before.cols[cid] ?? th.getBoundingClientRect().left) - th.getBoundingClientRect().left;
         if (Math.abs(dx) < 0.5) return;
         root.querySelectorAll(`[data-rpt-preview] [data-rpt-cell="${CSS.escape(cid)}"]`).forEach((cell) => cell.animate([{ transform: `translateX(${dx}px)` }, { transform: "none" }], opts));
-        /* the edges across the group label rows ride the same FLIP (their ::after) */
-        if (cid === id) root.querySelectorAll("[data-rpt-preview] .is-col-ring-through").forEach((th) => th.animate([{ transform: `translateX(${dx}px)` }, { transform: "none" }], { ...opts, pseudoElement: "::after" }));
+        /* the ring: same inverse transform, same timing, started in the same loop / frame as its column's cells */
+        if (cid === id) root.querySelector("[data-rpt-preview] .e-permits-rpt-col-ring")?.animate([{ transform: `translateX(${dx}px)` }, { transform: "none" }], opts);
       });
     }
     const item = root.querySelector(`[data-rpt-col="${CSS.escape(id)}"]`);
@@ -1717,7 +1717,7 @@
 
   /* rpt-col-link-v1 (2026-11-09, user; Salesforce / Google Ads / Zoho report builders): the column list ↔ the live preview.
      Hover / focus of a list item or its preview header, and the column whose panel is open, tint that column in the
-     preview (a focus-ring outline drawn on the column's cells, `.is-col-ring`); focusing an item (or opening its panel)
+     preview (one focus-ring rectangle `.e-permits-rpt-col-ring` over the column); focusing an item (or opening its panel)
      scrolls the preview sideways to it; a preview header button focuses its list item. */
   let hlHover = "";
   /* while a move plays, the pointer lands on another (swapped) item: hover does not steal the highlight */
@@ -1727,8 +1727,7 @@
     const root = creating() ? sheet : document.querySelector("#rpt-panel");
     if (!root) return;
     const id = hlTarget();
-    root.querySelectorAll("[data-rpt-preview] .is-col-ring").forEach((el) => el.classList.remove("is-col-ring", "is-col-ring-top", "is-col-ring-bottom"));
-    root.querySelectorAll("[data-rpt-preview] .is-col-ring-through").forEach((el) => { el.classList.remove("is-col-ring-through"); el.style.removeProperty("--ring-x"); el.style.removeProperty("--ring-w"); });
+    root.querySelectorAll("[data-rpt-preview] .e-permits-rpt-col-ring").forEach((el) => el.remove());
     root.querySelectorAll("[data-rpt-col].is-selected").forEach((el) => el.classList.remove("is-selected"));
     /* the column whose panel is open = the selected list item (the Registre column list's brand-secondary row) */
     const open = DR?.mode === "col" && DR.colId;
@@ -1736,19 +1735,18 @@
     if (!id) return;
     const head = root.querySelector(`[data-rpt-preview] th[data-rpt-cell="${CSS.escape(id)}"]`);
     const wrap = head?.closest(".e-permits-rpt-table-wrap");
-    /* rpt-col-ring-v3 (user: „first the columns move, then the blue stroke”): the outline is drawn ON the column's own
-       cells (css `.is-col-ring` ::after edges; top on its header cell, bottom on its last cell) — it rides the cells' FLIP
-       transform in the same frame; no overlay to reposition. A grouped column starts at its second-row header. */
-    const ringCells = [...root.querySelectorAll(`[data-rpt-preview] [data-rpt-cell="${CSS.escape(id)}"]`)];
-    ringCells.forEach((el) => el.classList.add("is-col-ring"));
-    head?.classList.add("is-col-ring-top");
-    ringCells[ringCells.length - 1]?.classList.add("is-col-ring-bottom");
-    /* the full-width group label rows: the two side edges continue across them (a ::after placed at the column, css vars) */
-    if (head) root.querySelectorAll("[data-rpt-preview] tr.e-permits-rpt-table__group > th").forEach((th) => {
-      th.classList.add("is-col-ring-through");
-      th.style.setProperty("--ring-x", `${head.offsetLeft - th.offsetLeft}px`);
-      th.style.setProperty("--ring-w", `${head.offsetWidth}px`);
-    });
+    /* rpt-col-ring-v5 (user): ONE straight rectangle — an overlay in the table's scroll box (it scrolls with the table),
+       above every cell, line and edge shadow; x / width = the column's header cell, y = that cell's top (a grouped
+       column: its second-row header, never the group label) → the table's bottom. Laid out from offset* (untransformed),
+       so it is the column's FINAL place; playMove gives it the cells' FLIP in the same frame. */
+    const table = head?.closest("table");
+    if (head && table && wrap) {
+      const ring = document.createElement("span");
+      ring.className = "e-permits-rpt-col-ring";
+      ring.setAttribute("aria-hidden", "true");
+      [["--ring-x", table.offsetLeft + head.offsetLeft], ["--ring-y", table.offsetTop + head.offsetTop], ["--ring-w", head.offsetWidth], ["--ring-h", table.offsetHeight - head.offsetTop]].forEach(([k, px]) => ring.style.setProperty(k, `${px}px`));
+      wrap.prepend(ring);
+    }
     if (scroll && head && wrap) {
       const w = wrap.getBoundingClientRect();
       const r = head.getBoundingClientRect();
