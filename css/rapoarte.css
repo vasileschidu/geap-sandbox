@@ -575,3 +575,54 @@
     grid-row: 1;
   }
 }
+
+/* ---- rpt-group-v1 (2026-11-10, user; Airtable / Notion „group by” from the field): the group toggle on a Text column of
+   the column list = library `btn btn-text-neutral btn-sm btn-icon-only` + `aria-pressed`; pressed = the brand-secondary
+   fill with the brand icon (hover / active = the brand-secondary steps), the item gets the Small brand tag „Grupare” ---- */
+.btn.btn-text-neutral.e-permits-rpt-group-btn[aria-pressed="true"] {
+  background: var(--color-background-brand-secondary, #e8f0fb);
+  color: var(--color-icon-brand-on-secondary, #0058d2);
+}
+
+.btn.btn-text-neutral.e-permits-rpt-group-btn[aria-pressed="true"]:hover {
+  background: var(--color-background-brand-secondary-hover, #ccdef6);
+  color: var(--color-icon-brand-on-secondary, #0058d2);
+}
+
+.btn.btn-text-neutral.e-permits-rpt-group-btn[aria-pressed="true"]:active {
+  background: var(--color-background-brand-secondary-active, #99bced);
+}
+
+/* the profile's „Gruparea rândurilor” = one summary line (the toggle lives in the column list) + „Elimină gruparea” */
+.e-permits-rpt-group-sum {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-8, 8px) var(--spacing-16, 16px);
+  justify-content: space-between;
+}
+
+.e-permits-rpt-group-sum__text {
+  color: var(--color-text-base-secondary, #4d4d4d);
+  flex: 1 1 calc(var(--spacing-40, 40px) * 5);
+  font-size: var(--font-size-fs-14, 14px);
+  line-height: var(--line-height-lh-20, 20px);
+  margin: 0;
+}
+
+.e-permits-rpt-group-sum__text strong {
+  color: var(--color-text-base-default, #121212);
+  font-weight: var(--font-weight-fw-medium, 500);
+}
+
+.e-permits-rpt-group-sum__text .icon {
+  color: var(--color-icon-base-default, #121212);
+  vertical-align: text-bottom;
+}
+
+@media (max-width: 760px) {
+  .e-permits-rpt-group-sum__text {
+    font-size: var(--font-size-fs-16, 16px);
+    line-height: var(--line-height-lh-24, 24px);
+  }
+}

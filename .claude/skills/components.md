@@ -12446,6 +12446,19 @@ Autoritate (one or more authorities). **Reuse map** (no new engine):
   `aria-current="location"`, none above „Coloane”; sections carry `id="rpt-j-…"` + `data-rpt-sec`). In the split the
   filter rows stack field over type (the phone layout). Demo rpt-11a (jump „Filtre”; capture `--width 1280` for 4/8),
   rpt-11b (sheet Structură).
+- **Grouping from the column list (rpt-group-v1, 2026-11-10, user; Airtable / Notion „group by” from the field)** — every
+  groupable column (`kind: "source"` + Text) of „Coloanele raportului” gets an icon-only toggle before ↑ ↓ 🗑:
+  library `button.btn.btn-text-neutral.btn-sm.btn-icon-only.e-permits-rpt-group-btn[aria-pressed][data-rpt-col-group]`
+  (icon `bullet-list` — the sprite has no layers glyph), Small tooltip „Grupează rândurile după această coloană” /
+  pressed „Elimină gruparea”; pressed = brand-secondary fill + brand icon (hover / active = the brand-secondary steps) and
+  the item gets the Small brand tag „Grupare” after the kind tag. One at a time: another toggle moves the grouping, the
+  pressed one removes it (live line „Rândurile sunt grupate după …”). A lone Text column: the toggle is `aria-disabled`
+  with the reason „Adaugă încă o coloană Text: …”. Numeric / calculated / manual columns have no toggle. **Profile**
+  „Gruparea rândurilor” = ONE summary line `.e-permits-rpt-group-sum` (`__text`: „Grupat după **X**, cu subtotal pe
+  grup.” + `btn btn-text-destructive btn-sm` trash „Elimină gruparea” `[data-rpt-group-clear]`; or „Fără grupare. Apasă
+  ▤ la o coloană Text …”). **Create sheet** Structură keeps the fo-select (no column list on that step; same state; the
+  toggle is on step 2). A grouping column that stops being groupable is cleared. Demo rpt-12a (moved to Serviciu = just
+  turned on), rpt-12b (removed → summary).
 - **Part 2 hooks** (`window.GEAPRapoarte.hooks`): `publish`, `headerActions`, `headerMenu`, `rowMenu`, `versionsTab`,
   `historyTab` — a control renders only when its hook exists; helpers `audit`, `validate`, `publishProblems`,
   `configRows`, `readBlocks`, `cardHtml`, `rerender`, `state`.

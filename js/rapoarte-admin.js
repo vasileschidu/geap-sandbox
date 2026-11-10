@@ -113,6 +113,8 @@
   };
   const isMeasure = (c) => c && (c.dataType === "numeric" || c.dataType === "value");
   const isDim = (c) => c && (c.dataType === "text" || c.dataType === "temporal");
+  /* rpt-group-v1: rows group by a Text column from the source (numeric / calculated / manual columns have no group toggle) */
+  const groupable = (c) => Boolean(c) && c.kind === "source" && c.dataType === "text";
 
   const params = new URLSearchParams(window.location.search);
   const demo = new Set(String(params.get("raport") || "").split(",").map((s) => s.trim()).filter(Boolean));
@@ -637,6 +639,17 @@
   function stepColumns(v, e, idp, { jump = false } = {}) {
     const cols = v.columns;
     const last = cols.length - 1;
+    const textCols = cols.filter(groupable).length;
+    /* rpt-group-v1 (2026-11-10, user; Airtable / Notion „group by” from the field): an icon-only toggle on every groupable
+       Text column, before ↑ ↓ 🗑 — pressed = the column the rows are grouped by (one at a time: another moves it, the
+       pressed one removes it); a lone Text column cannot group (nothing left to list the rows by) */
+    const groupBtn = (c) => {
+      if (!groupable(c)) return "";
+      const on = v.groupBy === c.id;
+      const off = !on && textCols < 2;
+      const tip = off ? ' aria-disabled="true" data-tooltip-reason="Adaugă încă o coloană Text: rândurile se grupează după una și se listează după cealaltă."' : ` data-tooltip-label="${on ? "Elimină gruparea" : "Grupează rândurile după această coloană"}"`;
+      return `<button class="btn btn-text-neutral btn-sm btn-icon-only e-permits-rpt-group-btn" type="button" aria-pressed="${on}" aria-label="Grupează rândurile după „${esc(colName(c))}”"${tip} data-rpt-col-group="${esc(c.id)}">${icon("bullet-list", 16)}</button>`;
+    };
     /* „Adaugă coloană ▾” (rpt-add-menu-v1, 2026-11-09, user; Airtable / Notion / Retool „add field → choose type”): ONE
        library secondary button (plus + label + chevron) opening the stack dropdown; items = icon + kind + one short line */
     const ADD_ITEMS = [
@@ -662,10 +675,11 @@
         title: esc(colName(c)),
         leadHtml: orderLead(i + 1),
         rowAttrs: `data-rpt-col="${esc(c.id)}" data-index="${i}" tabindex="0" data-stack-row-open aria-haspopup="dialog" aria-label="Coloana ${esc(colName(c))}, poziția ${i + 1} — deschide setările"`,
-        badges: [tag(kt, kTone), c.total === "incl" && isMeasure(c) ? tag("Inclusiv", "neutral") : "", err ? tag("De corectat", "danger") : ""].filter(Boolean),
+        badges: [tag(kt, kTone), v.groupBy === c.id ? tag("Grupare", "brand") : "", c.total === "incl" && isMeasure(c) ? tag("Inclusiv", "neutral") : "", err ? tag("De corectat", "danger") : ""].filter(Boolean),
         meta: columnMeta(v, c),
         /* rpt-col-list-v4 (user: „bring back arrows”): the original controls — ↑ / ↓ (disabled at the ends) + the red trash */
         actionsHtml: `
+          ${groupBtn(c)}
           <button class="btn btn-strict btn-sm btn-icon-only" type="button" aria-label="Mută „${esc(colName(c))}” mai sus" data-tooltip-label="Mută mai sus" data-rpt-col-move="${esc(c.id)}|-1"${i === 0 ? " disabled" : ""}>${icon("arrow-up", 16)}</button>
           <button class="btn btn-strict btn-sm btn-icon-only" type="button" aria-label="Mută „${esc(colName(c))}” mai jos" data-tooltip-label="Mută mai jos" data-rpt-col-move="${esc(c.id)}|1"${i === last ? " disabled" : ""}>${icon("arrow-down", 16)}</button>
           <button class="btn btn-text-destructive btn-sm btn-icon-only" type="button" aria-label="Elimină coloana „${esc(colName(c))}”" data-tooltip-label="Elimină coloana" data-rpt-col-remove="${esc(c.id)}">${icon("delete", 16)}</button>`
@@ -708,12 +722,19 @@
   }
   function stepStructure(v, e, idp, { jump = false } = {}) {
     /* rows are grouped by one Text column and listed by another: a single Text column has nothing to group */
-    const groupable = v.columns.filter((c) => c.dataType === "text");
-    const canGroup = groupable.length > 1;
+    const groupCols = v.columns.filter(groupable);
+    const canGroup = groupCols.length > 1;
     const measures = v.columns.some(isMeasure);
+    const gcol = v.groupBy ? colOf(v, v.groupBy) : null;
+    /* rpt-group-v1: where the column list is on the same page (the profile) the grouping is set from the list (the
+       toggle on the column) and this section is ONE summary line; the sheet's Structură step has no column list → the
+       select stays there (same state) */
+    const summary = gcol
+      ? `<div class="e-permits-rpt-group-sum"><p class="e-permits-rpt-group-sum__text">Grupat după <strong>${esc(colName(gcol))}</strong>, cu subtotal pe grup.</p><button class="btn btn-text-destructive btn-sm" type="button" data-rpt-group-clear>${icon("delete", 16)}<span>Elimină gruparea</span></button></div>`
+      : `<div class="e-permits-rpt-group-sum"><p class="e-permits-rpt-group-sum__text">${canGroup ? `Fără grupare. Apasă ${icon("bullet-list", 16)} la o coloană Text din «Coloanele raportului» ca să grupezi rândurile; fiecare grup primește un subtotal.` : "Fără grupare. Adaugă cel puțin două coloane Text: rândurile se grupează după una și se listează după cealaltă."}</p></div>`;
     return `
-      ${section("Gruparea rândurilor", grid(
-        selectField(`${idp}-groupby`, 'data-rpt-field="groupBy"', "Grupează rândurile după", [["", "Fără grupare"], ...groupable.map((c) => [c.id, colName(c)])], v.groupBy, { span: 12, hint: canGroup ? "Opțional. Fiecare grup are un rând de subtotal." : "Adaugă cel puțin două coloane Text: rândurile se grupează după una și se listează după cealaltă.", error: e.groupBy, disabled: !canGroup && !v.groupBy })
+      ${section("Gruparea rândurilor", jump ? summary : grid(
+        selectField(`${idp}-groupby`, 'data-rpt-field="groupBy"', "Grupează rândurile după", [["", "Fără grupare"], ...groupCols.map((c) => [c.id, colName(c)])], v.groupBy, { span: 12, hint: canGroup ? "Opțional. Fiecare grup are un rând de subtotal. Poți grupa și din lista coloanelor (pasul 2)." : "Adaugă cel puțin două coloane Text: rândurile se grupează după una și se listează după cealaltă.", error: e.groupBy, disabled: !canGroup && !v.groupBy })
       ), { anchor: jump ? "group" : "" })}
       ${section("Filtre", filterRows(v, e, idp), { anchor: jump ? "filters" : "" })}
       ${section("Rândul de total", grid(full(U().renderToggle?.({
@@ -1483,7 +1504,7 @@
     /* the total row follows the Feature default („Da” when there are numeric / valoric columns) until the author says no */
     if (!P.draft.columns.some(isMeasure)) P.draft.totalRow = false;
     else if (!P.totalTouched) P.draft.totalRow = true;
-    if (P.draft.groupBy && !colOf(P.draft, P.draft.groupBy)) P.draft.groupBy = "";
+    if (P.draft.groupBy && !groupable(colOf(P.draft, P.draft.groupBy))) P.draft.groupBy = "";
     Object.keys(P.errors).filter((k) => /^col\.|^columns$/.test(k)).forEach((k) => { const id = k.slice(4); const c = colOf(P.draft, id); if (k === "columns" ? P.draft.columns.length : !c || !Object.keys(columnErrors(P.draft, c)).length) delete P.errors[k]; else P.errors[k] = columnErrors(P.draft, c); });
     rerender({ keep });
     reheader();
@@ -1706,6 +1727,18 @@
       else drop();
       return;
     }
+    const grp = t.closest("[data-rpt-col-group]");
+    if (grp) {
+      if (grp.getAttribute("aria-disabled") === "true") return;
+      const id = grp.dataset.rptColGroup;
+      const on = P.draft.groupBy !== id;
+      P.draft.groupBy = on ? id : "";
+      delete P.errors.groupBy;
+      afterColumnsChange(`[data-rpt-col-group="${CSS.escape(id)}"]`);
+      announce(on ? `Rândurile sunt grupate după ${colName(colOf(P.draft, id))}.` : "Gruparea a fost eliminată.");
+      return;
+    }
+    if (t.closest("[data-rpt-group-clear]")) { P.draft.groupBy = ""; delete P.errors.groupBy; afterColumnsChange("[data-rpt-jump=\"group\"]"); announce("Gruparea a fost eliminată."); return; }
     const col = t.closest("[data-rpt-col]");
     if (col && !t.closest("button")) { openColumn(col.dataset.rptCol); return; }
     const fadd = t.closest("[data-rpt-filter-add]");

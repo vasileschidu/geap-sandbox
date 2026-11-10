@@ -4703,7 +4703,11 @@
       /* rpt-split-v1: settings 4/12 | preview 8/12 (capture --width 1280 for the 1280 split); the jump link „Filtre” scrolled
          the settings, the preview stays in view (sticky) */
       "rpt-11a": prof("RPT-0002", "configurare", async (h) => { await h.click('#rpt-panel [data-rpt-jump="filters"]'); await h.wait(2500); }),
-      "rpt-11b": list(seq(built, next))
+      "rpt-11b": list(seq(built, next)),
+      /* rpt-group-v1: the group toggle on a Text column of the list — just turned on for „Serviciu” (it moved from
+         „Autoritate”: one at a time), turned off (the pressed one again → the summary „Fără grupare”) */
+      "rpt-12a": prof("RPT-0002", "configurare", async (h) => { await h.scroll('#rpt-panel [data-rpt-col="c2"]'); await h.click('#rpt-panel [data-rpt-col-group="c2"]'); await h.wait(400); }),
+      "rpt-12b": prof("RPT-0002", "configurare", async (h) => { await h.click('#rpt-panel [data-rpt-col-group="c1"]'); await h.wait(300); await h.click('#rpt-panel [data-rpt-jump="group"]'); await h.wait(2000); })
     };
   }
 
