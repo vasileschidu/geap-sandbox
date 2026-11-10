@@ -4073,7 +4073,15 @@
        Part 2 (rpt-v2): 05 publicare (US-469) · 06 versiuni + restaurare (US-471) · 07 dezactivare / activare (US-470) ·
        08 acces per Rol / Autoritate · 09 clonare · 10 Istoric.
        Demo switch raport=fara-permisiune|gol|eroare */
-    ...rptDemoStates()
+    ...rptDemoStates(),
+
+    /* ---- Administrare › Tablouri de bord (Feature 96586 „Configurarea tablourilor de bord”, js/dashboard-admin.js,
+       dash-v1 2026-11-10; no child stories in Azure — split per the Traceability titles): dsh-01 listă (US-411) ·
+       02 fără permisiune · 03 creare + editorul de aranjare (US-410) · 04 editare (US-544) · 05 publicare (US-546) ·
+       06 principal / secundar (US-550) · 07 dezactivare / activare, pentru autoritate (US-547) · 08 versiuni +
+       restaurare (US-548) · 09 clonare (US-545) · 10 eliminarea ciornei (US-549) · 11 Istoric, eroare.
+       Demo switch tablou=fara-permisiune|gol|eroare */
+    ...dshDemoStates()
   };
 
   function autDemoStates() {
@@ -4690,6 +4698,110 @@
       "rpt-09d": list(seq(MENU("RPT-0001"), async (h) => { await h.click('[data-rpt-row-clone="RPT-0001"]'); await h.find(`${C} #rpt-e-name-ro`); await h.click(`${C} [data-rpt-save]`); await h.find("#rpt-panel"); await h.wait(400); }), null, AUTH),
       "rpt-10a": prof("RPT-0001", "istoric"),
       "rpt-10b": prof("RPT-0001", "istoric", async (h) => { await h.click('#rpt-panel [data-rpt-event="0"]'); await h.wait(400); })
+    };
+  }
+
+  function dshDemoStates() {
+    /* AUTH = a user holding «Gestionarea tablourilor de bord» at authority level (ANSP), not the Administrator central */
+    const ADMIN = "ansp-central-admin", AUTH = "ansp-local-admin", SPEC = "ansp-specialist-chisinau";
+    const LIST = "[data-registry-kind='tablouri-de-bord'] tr[data-workplace-row], [data-registry-kind='tablouri-de-bord'] .e-permits-empty";
+    const list = (run, params, as = ADMIN) => ({ flow: "back-office", as, hash: "#tablouri-de-bord", ...(params ? { params } : {}), ready: LIST, delay: 900, run });
+    const prof = (id, tab = "configurare", run, params, as = ADMIN) => ({ flow: "back-office", as, hash: `#tablou/${id}/${tab}`, ...(params ? { params } : {}), ready: "#dsh-panel", delay: 900, run });
+    const seq = (...steps) => async (h) => { for (const step of steps) await step(h); };
+    const C = "[data-dsh-editor]";
+    const M = "#case-action-modal.is-active";
+    const OK = "#service-confirm-modal.is-active [data-service-confirm-ok]";
+    const MENU = (id) => async (h) => { (await h.find(`tr[data-workplace-row="${id}"]`)).scrollIntoView({ block: "center" }); await h.wait(250); await h.click(`tr[data-workplace-row="${id}"] [data-stack-menu-trigger]`); await h.wait(200); };
+    const HMENU = async (h) => { await h.click("[data-dosar-profil] .e-permits-page-header__actions [data-stack-menu-trigger]"); await h.wait(200); };
+    const nou = async (h) => { await h.click('[data-workplace-add-product="dsh-new"]'); await h.find(`${C} #dsh-n-name-ro`); };
+    const next = async (h) => { await h.click(`${C} [data-dsh-next]`); await h.wait(250); };
+    const step1 = async (h) => { await h.fill("#dsh-n-name-ro", "Tabloul de bord al expertului", { leave: false }); };
+    const langs = async (h) => { await h.fill("#dsh-n-name-ru", "Панель эксперта", { leave: false }); await h.fill("#dsh-n-name-en", "Expert dashboard", { leave: false }); };
+    const role = (id, root = C) => async (h) => { await h.click(`${root} #dsh-${root === C ? "n" : "e"}-roles`); await h.wait(150); await h.click(`${root} [data-dsh-role-add="${id}"]`); await h.wait(150); };
+    const principal = (id, root = C) => async (h) => { await h.click(`${root} [data-dsh-role-type="${id}|principal"]`); await h.wait(150); };
+    const allAuth = async (h) => { await h.click(`${C} .e-permits-dsh-auths__all label`); await h.wait(150); };
+    const pick = async (h) => { await h.click("[data-dsh-add]"); await h.find(`${M} [data-dsh-pick-search]`); };
+    const tick = (...ids) => async (h) => { for (const id of ids) { await h.click(`${M} .e-permits-dsh-pick:has([data-dsh-pick][value="${id}"])`); await h.wait(120); } };
+    const addW = (...ids) => seq(pick, tick(...ids), async (h) => { await h.click(`${M} [data-dsh-pick-confirm]`); await h.wait(400); });
+    const step2 = seq(role("expert"), principal("expert"), allAuth);
+    const toStep3 = seq(nou, step1, next, step2, next);
+    const built = seq(toStep3, addW("WGT-0011", "WGT-0001", "WGT-0002", "WGT-0007"));
+    const layout = (root = "#dsh-panel") => async (h) => { await h.scroll(`${root} .e-permits-dsh-layout`); };
+    const PUB = async (h) => { await h.click("[data-dosar-profil] [data-dsh-publish]"); await h.find(`${M} [data-dsh-publish-confirm]`); };
+    const note = (text) => async (h) => { await h.fill("#dsh-publish-note", text, { leave: false }); };
+    const VER = (nr) => async (h) => { await h.click(`#dsh-panel [data-dsh-ver-view="${nr}"]`); await h.find(`${M} [data-case-modal-body]`); };
+    return {
+      /* US-411 — list */
+      "dsh-01": list(),
+      "dsh-01a": list(async (h) => { await h.click('[data-workplace-tab="globale"]'); await h.wait(300); }),
+      "dsh-01b": list(async (h) => { await h.fill("[data-workplace-search]", "specialist"); await h.wait(300); }),
+      "dsh-01c": list(async (h) => { await h.fill("[data-workplace-search]", "zzz"); await h.wait(300); }),
+      "dsh-01d": list(async (h) => { await h.click('[data-workplace-tab="autoritati"]'); await h.wait(300); }),
+      "dsh-01e": list(null, { tablou: "gol" }),
+      "dsh-01f": list(MENU("DSH-0005")),
+      "dsh-01g": list(null, null, AUTH),
+      "dsh-01h": list(MENU("DSH-0001"), null, AUTH),
+      /* Feature AC — the menu only with „Gestionarea tablourilor de bord” */
+      "dsh-02": { flow: "back-office", as: SPEC, hash: "#tablouri-de-bord", ready: "[data-reg-page]:not([hidden]) .e-permits-empty", delay: 900 },
+      "dsh-02a": { flow: "back-office", as: ADMIN, hash: "#tablouri-de-bord", params: { tablou: "fara-permisiune" }, ready: "[data-reg-page]:not([hidden]) .e-permits-empty", delay: 900 },
+      /* US-410 — create sheet: Date generale · Roluri și autorități · Widget-uri (layout editor) · Revizuire */
+      "dsh-03": list(nou),
+      "dsh-03a": list(seq(nou, async (h) => { await h.fill("#dsh-n-order", "", { leave: false }); }, next)),
+      "dsh-03b": list(seq(nou, step1, next, step2)),
+      "dsh-03c": list(seq(nou, step1, next, next)),
+      "dsh-03d": list(toStep3),
+      "dsh-03e": list(seq(toStep3, pick)),
+      "dsh-03f": list(seq(toStep3, pick, tick("WGT-0011", "WGT-0001"), async (h) => { await h.fill(`${M} [data-dsh-pick-search]`, "dosare", { leave: false }); await h.wait(300); })),
+      "dsh-03g": list(built),
+      "dsh-03h": list(seq(built, async (h) => { await h.choose(`${C} select[data-dsh-size="WGT-0007|height"]`, "medium"); await h.click(`${C} [data-dsh-move="WGT-0002|-1"]`); await h.wait(200); })),
+      "dsh-03i": list(seq(built, async (h) => { await h.click(`${C} [data-dsh-view="preview"]`); await h.wait(250); })),
+      "dsh-03j": list(seq(built, next)),
+      "dsh-03k": list(seq(built, langs, next), null),
+      "dsh-03l": list(seq(nou, step1, next), null, AUTH),
+      "dsh-03m": list(seq(built, next, async (h) => { await h.click(`${C} [data-dsh-save]`); await h.find("#dsh-panel"); await h.wait(300); })),
+      /* US-544 — edit on the profile page (Configurare = settings + the layout editor) */
+      "dsh-04": prof("DSH-0001"),
+      "dsh-04a": prof("DSH-0001", "configurare", layout()),
+      "dsh-04b": prof("DSH-0001", "configurare", seq(layout(), async (h) => { await h.click('#dsh-panel [data-dsh-view="preview"]'); await h.wait(250); })),
+      "dsh-04c": prof("DSH-0001", "configurare", seq(async (h) => { await h.click('#dsh-panel [data-dsh-move="WGT-0006|-1"]'); await h.wait(200); await h.choose('#dsh-panel select[data-dsh-size="WGT-0003|width"]', "full"); await h.wait(200); }, layout())),
+      "dsh-04d": prof("DSH-0001", "configurare", seq(layout(), pick)),
+      "dsh-04e": prof("DSH-0003", "configurare", layout()),
+      "dsh-04f": prof("DSH-0001", "configurare", null, null, AUTH),
+      "dsh-04g": prof("DSH-0001", "configurare", layout(), null, AUTH),
+      "dsh-04h": prof("DSH-0002", "configurare", async (h) => { await h.click("[data-dsh-pending]"); await h.wait(400); }),
+      "dsh-04i": prof("DSH-0001", "configurare", HMENU),
+      "dsh-04j": prof("DSH-0004", "configurare", layout(), null, AUTH),
+      "dsh-04k": prof("DSH-0001", "configurare", async (h) => { await h.fill("#dsh-e-name-ro", "", { leave: false }); await h.click("[data-dosar-profil] [data-dsh-save]"); await h.wait(300); }),
+      /* US-546 — publish */
+      "dsh-05": prof("DSH-0002", "configurare", PUB),
+      "dsh-05a": prof("DSH-0002", "configurare", seq(PUB, note("Am adăugat tabelul dosarelor pe servicii."), async (h) => { await h.click(`${M} [data-dsh-publish-confirm]`); await h.wait(500); })),
+      "dsh-05b": prof("DSH-0005", "configurare", PUB),
+      "dsh-05c": prof("DSH-0002", "configurare", seq(PUB, async (h) => { await h.click(`${M} [data-dsh-publish-confirm]`); await h.wait(200); })),
+      /* US-550 — the principal: a new principal demotes the previous one for that role only */
+      "dsh-06": prof("DSH-0002", "configurare", seq(principal("specialist", "#dsh-panel"), async (h) => { await h.scroll("#dsh-panel [data-dsh-role-type='specialist|principal']"); })),
+      "dsh-06a": prof("DSH-0002", "configurare", seq(principal("specialist", "#dsh-panel"), PUB)),
+      "dsh-06b": prof("DSH-0002", "configurare", seq(principal("specialist", "#dsh-panel"), PUB, note("Supervizorii și specialiștii pornesc de aici."), async (h) => { await h.click(`${M} [data-dsh-publish-confirm]`); await h.wait(500); location.hash = "#tablou/DSH-0001/istoric"; await h.wait(600); })),
+      /* US-547 — deactivate / activate, per authority */
+      "dsh-07": prof("DSH-0001", "configurare", seq(HMENU, async (h) => { await h.click("[data-dosar-profil] [data-dsh-toggle]"); await h.find(OK); })),
+      "dsh-07a": prof("DSH-0006"),
+      "dsh-07b": prof("DSH-0001", "configurare", seq(HMENU, async (h) => { await h.click("[data-dosar-profil] [data-dsh-auth]"); await h.find(OK); }), null, AUTH),
+      "dsh-07c": prof("DSH-0009", "configurare", null, null, AUTH),
+      "dsh-07d": list(seq(MENU("DSH-0001"), async (h) => { await h.click('[data-dsh-row-toggle="DSH-0001"]'); await h.click(OK); await h.wait(400); })),
+      /* US-548 — versions, compare, restore */
+      "dsh-08": prof("DSH-0001", "versiuni"),
+      "dsh-08a": prof("DSH-0001", "versiuni", VER(1)),
+      "dsh-08b": prof("DSH-0001", "versiuni", seq(VER(1), async (h) => { await h.click(`${M} [data-dsh-ver-restore="1"]`); await h.find("#dsh-restore-note"); })),
+      "dsh-08c": prof("DSH-0001", "versiuni", async (h) => { await h.click("#dsh-panel [data-dsh-compare-open]"); await h.scroll("#dsh-compare-title"); }),
+      "dsh-08d": prof("DSH-0001", "versiuni", seq(VER(1), async (h) => { await h.click(`${M} [data-dsh-ver-restore="1"]`); await h.fill("#dsh-restore-note", "Revenim la prima versiune, fără hartă.", { leave: false }); await h.click(`${M} [data-dsh-restore-confirm]`); await h.wait(500); })),
+      /* US-545 — clone (only a published dashboard; a new draft with a new ID) */
+      "dsh-09": prof("DSH-0001", "configurare", seq(HMENU, async (h) => { await h.click("[data-dosar-profil] [data-dsh-clone]"); await h.find(`${C} #dsh-n-name-ro`); })),
+      "dsh-09a": prof("DSH-0001", "configurare", seq(HMENU, async (h) => { await h.click("[data-dosar-profil] [data-dsh-clone]"); await h.find(`${C} #dsh-n-name-ro`); await h.click(`${C} [data-dsh-save]`); await h.find("#dsh-panel"); await h.wait(300); }), null, AUTH),
+      /* US-549 — remove a draft */
+      "dsh-10": prof("DSH-0005", "configurare", seq(HMENU, async (h) => { await h.click("[data-dosar-profil] [data-dsh-remove-draft]"); await h.find(OK); })),
+      "dsh-10a": list(seq(MENU("DSH-0005"), async (h) => { await h.click('[data-dsh-row-remove="DSH-0005"]'); await h.click(OK); await h.wait(400); })),
+      /* Istoric = the audit trail (every operation, also in the unique Jurnalul de audit) + save error */
+      "dsh-11": prof("DSH-0001", "istoric"),
+      "dsh-11a": prof("DSH-0001", "configurare", async (h) => { await h.fill("#dsh-e-name-ro", "Tabloul de bord al specialistului (nou)", { leave: false }); await h.click("[data-dosar-profil] [data-dsh-save]"); await h.wait(300); }, { tablou: "eroare" })
     };
   }
 

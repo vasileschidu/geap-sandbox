@@ -1,0 +1,270 @@
+/* =====================================================================================
+   Administrare › Tablouri de bord (dash-v1, 2026-11-10; Feature 96586 „Configurarea tablourilor de bord”)
+   The list = the BO registry, the profile = the shared profile panel, the builder = the widget create sheet, dialogs =
+   the library modal, cards = the widget card (css/widget.css). Here only what neither the widget nor the KPI module has
+   (components.md › „Tablouri de bord”):
+     · the layout editor `.e-permits-dsh-grid` (12 columns, real widths) + its tiles `.e-permits-dsh-tile` with the
+       visible toolbar (handle · position · title · ↑ ↓ · remove · Lățime / Înălțime);
+     · the authority assignment `.e-permits-dsh-auths` („Toate autoritățile” tri-state + count);
+     · the widget picker rows `.e-permits-dsh-pick` (the „Widget type card” with a library checkbox).
+   ===================================================================================== */
+
+/* menu icon (the BO side menu draws icons as 20 masks per data-nav-id) */
+.e-permits-shell__nav--specialist [data-nav-id="tablouri-de-bord"] .e-permits-shell__nav-icon::before {
+  mask-image: url("../assets/icons/carousel.svg");
+  mask-size: var(--icon-size-medium, 20px) var(--icon-size-medium, 20px);
+  -webkit-mask-image: url("../assets/icons/carousel.svg");
+  -webkit-mask-size: var(--icon-size-medium, 20px) var(--icon-size-medium, 20px);
+}
+
+/* no checkbox column: the pinned first column (ID) carries the divider (the widget / KPI registry rule) */
+.e-permits-workplace[data-registry-kind="tablouri-de-bord"] .e-permits-workplace__table th:nth-child(1),
+.e-permits-workplace[data-registry-kind="tablouri-de-bord"] .e-permits-workplace__table td:nth-child(1) {
+  border-right: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
+  left: 0;
+  position: sticky;
+  z-index: 7;
+}
+
+.e-permits-workplace[data-registry-kind="tablouri-de-bord"] .e-permits-workplace__table th:nth-child(1) {
+  z-index: 9;
+}
+
+.e-permits-workplace[data-registry-kind="tablouri-de-bord"] .e-permits-workplace__table th:nth-child(2),
+.e-permits-workplace[data-registry-kind="tablouri-de-bord"] .e-permits-workplace__table td:nth-child(2) {
+  border-right: 0;
+  left: auto;
+  position: static;
+  z-index: auto;
+}
+
+/* ---- the Configurare tab / the sheet steps: sections stacked, padding without gap */
+.e-permits-dsh-config {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  min-width: 0;
+}
+
+/* the form-only steps of the sheet keep a form width (the sheet is the 1600 editor page) */
+.e-permits-dsh-config--form {
+  max-width: calc(var(--spacing-40, 40px) * 22);
+}
+
+.e-permits-dsh-foot {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-8, 8px);
+}
+
+.e-permits-ntpl-card > .e-permits-reg-editor__stack + .e-permits-dsh-foot,
+.e-permits-ntpl-card > .e-permits-fo-field__error + .e-permits-dsh-foot,
+.e-permits-ntpl-card > .e-permits-empty + .e-permits-dsh-foot {
+  margin-top: var(--spacing-16, 16px);
+}
+
+.e-permits-ntpl-card > .e-permits-fo-field__error {
+  margin-top: var(--spacing-8, 8px);
+}
+
+/* ---- authorities: „Toate autoritățile” (tri-state, the subdivision picker's group head) + count, then each authority */
+.e-permits-dsh-auths {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-8, 8px);
+}
+
+.e-permits-dsh-auths__all {
+  align-items: center;
+  border-bottom: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
+  display: flex;
+  gap: var(--spacing-16, 16px);
+  justify-content: space-between;
+  padding-bottom: var(--spacing-8, 8px);
+}
+
+.e-permits-dsh-auths__count {
+  color: var(--color-text-base-tertiary, #757575);
+  flex: none;
+  font-size: var(--font-size-fs-14, 14px);
+  line-height: var(--line-height-lh-20, 20px);
+}
+
+.e-permits-dsh-auths__list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-8, 8px);
+}
+
+/* ---- the layout editor: 12 columns at the page's real width; reading order = widget order */
+.e-permits-dsh-grid {
+  align-items: start;
+  display: grid;
+  gap: var(--spacing-16, 16px);
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+}
+
+.e-permits-dsh-tile {
+  border-radius: var(--border-radius-16, 16px);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-8, 8px);
+  grid-column: span 12;
+  min-width: 0;
+}
+
+.e-permits-dsh-tile--third { grid-column: span 4; }
+.e-permits-dsh-tile--half { grid-column: span 6; }
+.e-permits-dsh-tile--twoThirds { grid-column: span 8; }
+.e-permits-dsh-tile--full { grid-column: span 12; }
+
+.e-permits-dsh-tile > .e-permits-wid-card {
+  width: 100%;
+}
+
+/* the toolbar: white card on the card's edge, row 1 = handle · n · title · actions, row 2 = the two library selects */
+.e-permits-dsh-tile__bar {
+  background: var(--color-background-base-default, #fff);
+  border: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
+  border-radius: var(--border-radius-16, 16px);
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-8, 8px);
+  padding: var(--spacing-8, 8px) var(--spacing-12, 12px) var(--spacing-12, 12px);
+}
+
+.e-permits-dsh-tile__row {
+  align-items: center;
+  display: flex;
+  gap: var(--spacing-8, 8px);
+  min-width: 0;
+}
+
+.e-permits-dsh-tile__handle {
+  align-items: center;
+  border-radius: var(--border-radius-8, 8px);
+  color: var(--color-icon-base-tertiary, #757575);
+  cursor: grab;
+  display: inline-flex;
+  flex: none;
+  height: var(--spacing-32, 32px);
+  justify-content: center;
+  width: var(--spacing-24, 24px);
+}
+
+.e-permits-dsh-tile__handle:hover {
+  background: var(--color-background-base-tertiary, #f1f1f1);
+  color: var(--color-icon-base-default, #121212);
+}
+
+.e-permits-dsh-tile__n {
+  color: var(--color-text-base-tertiary, #757575);
+  flex: none;
+  font-size: var(--font-size-fs-14, 14px);
+  font-variant-numeric: tabular-nums;
+  font-weight: var(--font-weight-fw-medium, 500);
+  line-height: var(--line-height-lh-20, 20px);
+}
+
+.e-permits-dsh-tile__title {
+  color: var(--color-text-base-default, #121212);
+  flex: 1 1 auto;
+  font-size: var(--font-size-fs-14, 14px);
+  font-weight: var(--font-weight-fw-medium, 500);
+  line-height: var(--line-height-lh-20, 20px);
+  margin: 0;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.e-permits-dsh-tile__row > .tag {
+  flex: none;
+}
+
+.e-permits-dsh-tile__actions {
+  display: flex;
+  flex: none;
+  gap: var(--spacing-8, 8px);
+}
+
+.e-permits-dsh-tile__sizes.e-permits-user-create__grid {
+  gap: var(--spacing-12, 12px);
+}
+
+/* drag (pointer): the dragged tile fades, the drop target gets the brand ring */
+.e-permits-dsh-tile.is-dragging {
+  opacity: 0.5;
+}
+
+.e-permits-dsh-tile.is-drop-target {
+  box-shadow: 0 0 0 var(--border-width-2, 2px) var(--color-border-brand-default, #0058d2);
+}
+
+/* a widget that is no longer published: the card frame + the compact empty state */
+.e-permits-dsh-tile__off {
+  justify-content: center;
+}
+
+/* below the full page width the thirds become halves; phones = one widget per row (the list) */
+@media (max-width: 1100px) {
+  .e-permits-dsh-tile--third,
+  .e-permits-dsh-tile--half { grid-column: span 6; }
+  .e-permits-dsh-tile--twoThirds { grid-column: span 12; }
+}
+
+@media (max-width: 760px) {
+  .e-permits-dsh-tile--third,
+  .e-permits-dsh-tile--half,
+  .e-permits-dsh-tile--twoThirds,
+  .e-permits-dsh-tile--full { grid-column: span 12; }
+
+  .e-permits-dsh-tile__handle { display: none; }
+
+  /* the two selects stay side by side in the tile (48 fields, 16/24) */
+  .e-permits-dsh-tile__sizes .e-permits-user-create__field--6 { grid-column: span 6; }
+}
+
+/* touch screens: drag needs a mouse; ↑ ↓ remain */
+@media (hover: none) {
+  .e-permits-dsh-tile__handle { display: none; }
+}
+
+/* ---- the widget picker (library dialog): search + count, then the „Widget type card” rows with a checkbox */
+.e-permits-dsh-pick-head {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-8, 8px);
+}
+
+.e-permits-dsh-pick-head__count {
+  color: var(--color-text-base-secondary, #383838);
+  font-size: var(--font-size-fs-14, 14px);
+  line-height: var(--line-height-lh-20, 20px);
+  margin: 0;
+}
+
+.e-permits-dsh-pick-list {
+  margin-top: var(--spacing-16, 16px);
+}
+
+.e-permits-dsh-pick__box {
+  flex: none;
+}
+
+.e-permits-dsh-pick .checkbox-input:focus-visible + .checkbox-custom {
+  outline: none;
+}
+
+.e-permits-dsh-pick:has(.checkbox-input:focus-visible) {
+  box-shadow:
+    inset 0 0 0 var(--border-width-2, 2px) var(--color-border-brand-default, #0058d2),
+    0 0 0 var(--border-width-2, 2px) var(--color-background-base-default, #fff),
+    0 0 0 calc(var(--border-width-2, 2px) * 2 + var(--border-width-1, 1px)) var(--blue-sky-500, #3379db);
+}
+
+.e-permits-dsh-pick.is-disabled.is-selected {
+  box-shadow: inset 0 0 0 var(--border-width-1, 1px) var(--color-border-base-default, #d9d9d9);
+}

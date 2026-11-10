@@ -514,6 +514,12 @@
               "label": "Rapoarte",
               "iconAsset": "assets/icons/page-text.svg",
               "shellView": "rapoarte-registry"
+            },
+            {
+              "id": "tablouri-de-bord",
+              "label": "Tablouri de bord",
+              "iconAsset": "assets/icons/carousel.svg",
+              "shellView": "tablouri-de-bord-registry"
             }
           ]
         },
@@ -581,6 +587,12 @@
               "label": "Rapoarte",
               "iconAsset": "assets/icons/page-text.svg",
               "shellView": "rapoarte-registry"
+            },
+            {
+              "id": "tablouri-de-bord",
+              "label": "Tablouri de bord",
+              "iconAsset": "assets/icons/carousel.svg",
+              "shellView": "tablouri-de-bord-registry"
             }
           ]
         },

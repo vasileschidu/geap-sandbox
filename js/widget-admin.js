@@ -1300,10 +1300,8 @@
   /* „Modificări (N)”: the stacked list (field on its own line, no divider under the last row) with the Jurnal /
      RSSP-sync change value `.e-permits-event-diff` — previous value muted + struck through → new value. One renderer for
      the publish and restore dialogs and „Compară versiuni”. */
-  const diffHtml = (c) => (c.before === "—" ? `<strong>${c.after}</strong>`
-    : c.after === "—" ? `<span class="e-permits-event-diff__before">${c.before}</span>`
-    : `<span class="e-permits-event-diff"><span class="e-permits-event-diff__before">${c.before}</span><span aria-hidden="true">→</span><span class="u-visually-hidden">devine</span><strong>${c.after}</strong></span>`);
-  const changesList = (changes, title = "Modificări") => A().renderStackedList?.(`${title} (${changes.length})`, [{ label: "", items: changes.map((c) => ({ plainTitle: c.label, title: esc(c.label), meta: [diffHtml(c)] })) }], { className: "e-permits-wid-changes" }) || "";
+  const diffHtml = (c) => window.GEAPConfigPublish.diffHtml(c);
+  const changesList = (changes, title = "Modificări") => window.GEAPConfigPublish.changesList(changes, title);
   /* „Compară versiuni” — blocks 24 apart (section rhythm, padding without gap), label → its widget 8; the changes = the
      same „Modificări (N)” list as the publish dialog */
   function compareHtml(w) {
@@ -1385,19 +1383,8 @@
       footer: '<div class="modal-buttons"><button class="btn btn-neutral btn-rounded" type="button" data-case-close>Anulează</button><button class="btn btn-primary btn-rounded" type="button" data-wid-restore-confirm>Restaurează</button></div>'
     });
   }
-  function setModalError(field, message) {
-    if (!field) return;
-    const box = field.closest(".e-permits-fo-textarea");
-    box?.classList.add("is-error");
-    field.setAttribute("aria-invalid", "true");
-    const wrap = field.closest(".e-permits-fo-field");
-    wrap.querySelector(".e-permits-fo-field__error")?.remove();
-    wrap.querySelector(".e-permits-fo-field__hint")?.setAttribute("hidden", "");
-    wrap.insertAdjacentHTML("beforeend", errorHtml(field.id, message));
-    field.setAttribute("aria-describedby", `${field.id}-error`);
-    field.focus();
-    field.addEventListener("input", () => { box?.classList.remove("is-error"); field.removeAttribute("aria-invalid"); wrap.querySelector(".e-permits-fo-field__error")?.remove(); wrap.querySelector(".e-permits-fo-field__hint")?.removeAttribute("hidden"); field.setAttribute("aria-describedby", `${field.id}-hint`); }, { once: true });
-  }
+  /* the shared note-field error (js/config-publish.js — one code path with the dashboards) */
+  const setModalError = (field, message) => window.GEAPConfigPublish.setModalError(field, message);
   function confirmRestore() {
     if (!restoring) return;
     const field = document.querySelector("#wid-restore-note");
@@ -1791,6 +1778,8 @@
     /* Feature AC: BackOffice users see only the last published version */
     published: (id) => { const w = widgetOf(id); return w && w.status === "Publicat" ? lastVersion(w)?.config || null : null; },
     card: (config, opts) => cardHtml(config, opts),
-    aggregate
+    aggregate,
+    /* the widget model's labels, reused by Tablouri de bord (js/dashboard-admin.js) */
+    typeLabel, levelText, isOffFor, WIDTHS, HEIGHTS
   };
 })();
