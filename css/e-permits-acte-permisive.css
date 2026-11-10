@@ -5525,6 +5525,17 @@
   color: var(--color-text-base-default, #121212);
 }
 
+/* select-all item (opt-in `selectAllLabel`, 2026-11-10): first row + a separator under it; hidden while searching */
+.e-permits-fo-subgen-select__separator {
+  border-top: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
+  list-style: none;
+  margin: var(--spacing-4, 4px) var(--spacing-8, 8px);
+}
+
+.e-permits-fo-subgen-select__separator[hidden] {
+  display: none;
+}
+
 .e-permits-fo-subgen-select__footer {
   align-items: center;
   background: var(--color-background-base-secondary, #f5f5f5);
@@ -23023,6 +23034,172 @@ body[data-fo-postprocess] .e-permits-fo-form__roles .e-permits-fo-selected-role_
 .e-permits-event-diff__before {
   color: var(--color-text-base-tertiary);
   text-decoration: line-through;
+}
+
+/* US-263 „Modificări” of an audit event (aud-263-v1, 2026-11-10) — ONE section for every event-detail modal
+   (GEAPEventTimeline.changesHtml): the library `.table` rows inside the BO info-card surface (grey, r20, 8 20),
+   columns Câmp · Valoare anterioară · Valoare nouă; previous value muted + struck through; values clamped to 3 lines
+   (full text in the Small tooltip, data-cell-tooltip); list items carry a Small „Adăugat” / „Eliminat” tag under the
+   field; read-only rows (no hover, no pointer). Phones (≤760): one record per change — field, then label · value pairs. */
+.e-permits-audit-changes__wrap {
+  background: var(--color-background-base-secondary, #f5f5f5);
+  border-radius: var(--border-radius-20, 20px);
+  box-sizing: border-box;
+  padding: var(--spacing-4, 4px) var(--spacing-20, 20px);
+  width: 100%;
+}
+
+.e-permits-audit-changes__table {
+  border-collapse: separate;
+  border-spacing: 0;
+  color: var(--color-text-base-default, #121212);
+  table-layout: fixed;
+  width: 100%;
+}
+
+.e-permits-audit-changes__table .table__head-cell,
+.e-permits-audit-changes__table .table__body-cell,
+.e-permits-audit-changes__table .table__row:nth-child(even) .table__body-cell,
+.e-permits-audit-changes__table .table__row:hover .table__body-cell {
+  background: transparent;
+  border-bottom: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
+  box-sizing: border-box;
+  padding: var(--spacing-8, 8px) var(--spacing-12, 12px) var(--spacing-8, 8px) 0;
+  text-align: left;
+  vertical-align: top;
+}
+
+.e-permits-audit-changes__table .table__head-cell {
+  color: var(--color-text-base-tertiary, #757575);
+  font-size: var(--font-size-fs-12, 12px);
+  font-weight: var(--font-weight-fw-medium, 500);
+  line-height: var(--line-height-lh-16, 16px);
+  padding-top: var(--spacing-12, 12px);
+  width: 32%;
+}
+
+.e-permits-audit-changes__table .table__head-cell + .table__head-cell {
+  width: 34%;
+}
+
+.e-permits-audit-changes__table :is(.table__head-cell, .table__body-cell):last-child {
+  padding-right: 0;
+}
+
+.e-permits-audit-changes__table .table__body-cell {
+  color: var(--color-text-base-default, #121212);
+  font-size: var(--font-size-fs-14, 14px);
+  font-weight: var(--font-weight-fw-regular, 400);
+  line-height: var(--line-height-lh-20, 20px);
+  padding-bottom: var(--spacing-12, 12px);
+  padding-top: var(--spacing-12, 12px);
+}
+
+.e-permits-audit-changes__table .table__row:last-child .table__body-cell {
+  border-bottom: 0;
+}
+
+.e-permits-audit-changes__field {
+  color: var(--color-text-base-secondary, #383838);
+}
+
+.e-permits-audit-changes__name,
+.e-permits-audit-changes__value {
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  display: -webkit-box;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+}
+
+.e-permits-audit-changes__field > .status-tag {
+  margin-top: var(--spacing-4, 4px);
+}
+
+.e-permits-audit-changes__value.is-before {
+  color: var(--color-text-base-tertiary, #757575);
+  text-decoration: line-through;
+}
+
+.e-permits-audit-changes__table .table__body-cell > .status-tag {
+  vertical-align: top;
+}
+
+.e-permits-audit-changes > .e-permits-info-note + .e-permits-audit-changes__wrap {
+  margin-top: var(--spacing-8, 8px);
+}
+
+@media (max-width: 760px) {
+  .e-permits-audit-changes__wrap {
+    padding: var(--spacing-4, 4px) var(--spacing-16, 16px);
+  }
+
+  .e-permits-audit-changes__table,
+  .e-permits-audit-changes__table tbody,
+  .e-permits-audit-changes__table .table__row {
+    display: block;
+  }
+
+  /* the headers move into each value's label (td::before) */
+  .e-permits-audit-changes__table thead {
+    display: none;
+  }
+
+  .e-permits-audit-changes__table tbody > .table__row {
+    border-bottom: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-4, 4px);
+    padding: var(--spacing-12, 12px) 0;
+  }
+
+  .e-permits-audit-changes__table tbody > .table__row:last-child {
+    border-bottom: 0;
+  }
+
+  .e-permits-audit-changes__table .table__body-cell,
+  .e-permits-audit-changes__table .table__row:nth-child(even) .table__body-cell,
+  .e-permits-audit-changes__table .table__row:hover .table__body-cell {
+    border-bottom: 0;
+    padding: 0;
+  }
+
+  .e-permits-audit-changes__table .table__row td.table__body-cell {
+    display: grid;
+    gap: var(--spacing-8, 8px);
+    grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
+  }
+
+  .e-permits-audit-changes__table .table__row:nth-child(n) .e-permits-audit-changes__field {
+    color: var(--color-text-base-default, #121212);
+    display: flex;
+    flex-wrap: wrap;
+    font-weight: var(--font-weight-fw-medium, 500);
+    gap: var(--spacing-8, 8px);
+    padding-bottom: var(--spacing-4, 4px);
+  }
+
+  .e-permits-audit-changes__field > .status-tag {
+    margin-top: 0;
+  }
+
+  /* touch has no tooltip: phones show the whole value (US-263 AC-10) */
+  .e-permits-audit-changes__name,
+  .e-permits-audit-changes__value {
+    display: block;
+    -webkit-line-clamp: unset;
+  }
+
+  .e-permits-audit-changes__table td.table__body-cell::before {
+    color: var(--color-text-base-tertiary, #757575);
+    content: attr(data-label);
+    font-size: var(--font-size-fs-14, 14px);
+    line-height: var(--line-height-lh-20, 20px);
+  }
+
+  .e-permits-audit-changes__table td.table__body-cell > :is(.status-tag, .e-permits-workplace__dash) {
+    justify-self: start;
+  }
 }
 
 

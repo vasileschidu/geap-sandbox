@@ -329,14 +329,11 @@
     }
     /* dsh-auth-ms-v1 (same as Rapoarte rpt-auth-ms-v1): „Toate autoritățile” checkbox above the FO multi-select (CAEM) with
        the chips under the field; ticked = all (field disabled, no chips), unticked = pick ≥ 1 */
-    const some = !v.allAuthorities;
+    /* dsh-auth-ms-v2 (= Rapoarte rpt-auth-ms-v2, user): „Toate autoritățile” = the FIRST item of the dropdown (select-all) */
     const lab = ([, short, long]) => `${short} · ${long}`;
-    let ms = window.GEAPFormRender?.fieldHtml({ id: `${idp}-authorities`, type: "multiselect", label: "Autoritățile tabloului de bord", required: some, options: AUTHORITIES.map(lab), value: some ? v.authorities.map((id) => AUTHORITIES.find(([k]) => k === id)).filter(Boolean).map(lab) : [], placeholder: some ? "Alege autoritățile" : "Toate autoritățile", countOne: "autoritate selectată", countMany: "autorități selectate", removeLabel: "Elimină autoritatea", searchLabel: "Caută autoritatea", searchAria: "Caută autoritatea", readOnly: !some, hint: some ? "Tabloul de bord este asignat doar autorităților alese." : "Tabloul de bord este asignat tuturor autorităților, și celor adăugate ulterior.", span: 12 }) || "";
+    let ms = window.GEAPFormRender?.fieldHtml({ id: `${idp}-authorities`, type: "multiselect", label: "Autoritățile tabloului de bord", required: true, options: AUTHORITIES.map(lab), allSelected: v.allAuthorities, selectAllLabel: "Toate autoritățile", value: v.allAuthorities ? [] : v.authorities.map((id) => AUTHORITIES.find(([k]) => k === id)).filter(Boolean).map(lab), placeholder: "Alege autoritățile", countOne: "autoritate selectată", countMany: "autorități selectate", removeLabel: "Elimină autoritatea", searchLabel: "Caută autoritatea", searchAria: "Caută autoritatea", hint: "Tabloul de bord este asignat autorităților alese; „Toate autoritățile” include și cele adăugate ulterior.", span: 12 }) || "";
     if (e.authorities) ms = ms.replace('e-permits-fo-subgen-select" data-fo-subgen-select', 'e-permits-fo-subgen-select is-error" data-fo-subgen-select').replace(/<p class="e-permits-fo-field__hint"[^]*?<\/p>\s*<\/div>\s*$/, "</div>").replace(/<\/div>\s*$/, `${errorHtml(`fo-${idp}-authorities`, e.authorities)}</div>`);
-    return `<div class="e-permits-dsh-auths" id="${idp}-authorities" data-dsh-auth-ms>
-      ${U().renderCheckOption?.({ label: "Toate autoritățile", checked: v.allAuthorities, attrs: "data-dsh-auth-all" }) || ""}
-      ${ms}
-    </div>`;
+    return `<div class="e-permits-dsh-auths" id="${idp}-authorities" data-dsh-auth-ms>${ms}</div>`;
   }
   function stepAccess(v, e, idp, d) {
     const me = who();
@@ -937,7 +934,7 @@
     const h = d?.history[Number(i)];
     if (!h) return;
     const record = window.GEAPEventTimeline.audit(journalEvent(h), journalCtx(d, h));
-    A().openAuditEventDetail?.(record, { title: h.event, general: [["Denumirea evenimentului", esc(h.event)], ["Tablou de bord", esc(`${d.id} · ${nameOf(d)}`)]] });
+    A().openAuditEventDetail?.(record, { title: h.event, general: [["Denumirea evenimentului", esc(h.event)], ["Tablou de bord", esc(`${d.id} · ${nameOf(d)}`)]], changes: window.GEAPEventTimeline.changesOf(h) });
   }
 
   /* ---- version window · restore (the library dialog, js/config-publish.js bodies) */
@@ -1067,7 +1064,7 @@
   const errorSel = (key) => `#${idpNow()}-${ERROR_SEL[key] || key}`;
   function showFirstError(errors) {
     const key = Object.keys(errors)[0];
-    const keep = key === "authorities" ? "[data-dsh-auth-all]" : key === "widgets" ? "[data-dsh-add]" : errorSel(key);
+    const keep = key === "authorities" ? `#fo-${idpNow()}-authorities` : key === "widgets" ? "[data-dsh-add]" : errorSel(key);
     if (creating()) { P.step = STEP_OF(key); P.maxStep = Math.max(P.maxStep, P.step); renderCreate({ keep }); }
     else renderProfile({ keep });
     (creating() ? sheet : document).querySelector(errorSel(key))?.closest(".e-permits-fo-field, .e-permits-dosar-profil__section")?.scrollIntoView({ block: "center" });
@@ -1339,21 +1336,9 @@
     const host = event.target.closest?.("[data-dsh-auth-ms]");
     if (!host || !P.draft || !inPage(host)) return;
     const byLabel = new Map(AUTHORITIES.map(([id, s, l]) => [`${s} · ${l}`, id]));
-    P.draft.authorities = (event.detail?.values || []).map((x) => byLabel.get(x)).filter(Boolean);
-    if (P.errors.authorities && P.draft.authorities.length) {
-      delete P.errors.authorities;
-      host.querySelector(".e-permits-fo-subgen-select.is-error")?.classList.remove("is-error");
-      host.querySelector(".e-permits-fo-field__error")?.remove();
-    }
-    reheader();
-  });
-  /* dsh-auth-ms-v1: the multi-select reports every tick / chip × — model only (the menu stays open) */
-  document.addEventListener("fo-multiselect-change", (event) => {
-    const host = event.target.closest?.("[data-dsh-auth-ms]");
-    if (!host || !P.draft || !inPage(host)) return;
-    const byLabel = new Map(AUTHORITIES.map(([id, sh, lg]) => [`${sh} · ${lg}`, id]));
-    P.draft.authorities = (event.detail?.values || []).map((x) => byLabel.get(x)).filter(Boolean);
-    if (P.errors.authorities && P.draft.authorities.length) {
+    P.draft.allAuthorities = !!event.detail?.all;
+    P.draft.authorities = event.detail?.all ? [] : (event.detail?.values || []).map((x) => byLabel.get(x)).filter(Boolean);
+    if (P.errors.authorities && (P.draft.allAuthorities || P.draft.authorities.length)) {
       delete P.errors.authorities;
       host.querySelector(".e-permits-fo-subgen-select.is-error")?.classList.remove("is-error");
       host.querySelector(".e-permits-fo-field__error")?.remove();
@@ -1367,7 +1352,6 @@
     if (el.matches("[data-dsh-cmp]")) { P.compare = { ...P.compare, [el.dataset.dshCmp]: el.value }; renderProfile({ keep: `#dsh-cmp-${el.dataset.dshCmp}` }); return; }
     if (!inPage(el)) return;
     const v = P.draft;
-    if (el.matches("[data-dsh-auth-all]")) { v.allAuthorities = el.checked; if (el.checked) v.authorities = []; delete P.errors.authorities; rerender({ keep: "[data-dsh-auth-all]" }); reheader(); return; }
   });
 
   /* ================================================================ arranging: FLIP reflow, drag (handle), resize (corner), keyboard */

@@ -1385,6 +1385,14 @@
     "audit-06": dos(SPEC, "inExaminare", "jurnal", {}, async (h) => { const item = [...document.querySelectorAll("[data-dosar-event]")].find((el) => /Dosar depus/.test(el.textContent)); item?.querySelector(".e-permits-timeline__link")?.click(); await h.wait(400); }),
     "audit-07": dos(SPEC, "eliberat", "documente", {}, async (h) => { await docEye("Cererea depusă", "documente")(h); await h.click("#dosar-detail-modal [data-dosar-detail-close]"); await h.wait(400); await h.click('[data-dosar-tab="jurnal"]'); await h.click('[data-dosar-event="0"] .e-permits-timeline__link'); await h.wait(400); }),
     "audit-08": dos(SPEC, "eliberat", "documente", { mdocs: "acces" }, async (h) => { await docEye("Cererea depusă", "documente")(h); await h.click("#dosar-detail-modal [data-dosar-detail-close]"); await h.wait(400); await h.click('[data-dosar-tab="jurnal"]'); await h.click('[data-dosar-event="0"] .e-permits-timeline__link'); await h.wait(400); }),
+    /* aud-263-v1 (US-263, 2026-11-10): the ONE shared „Modificări” table (Câmp · Valoare anterioară · Valoare nouă) in every
+       event-detail modal — dossier correction by the specialist (6 rows, a list = Adăugat / Eliminat), the automated change
+       by SIA GEAP (no IP, AC-23), a consultation without changes (AC-20, no section), a service passport change with lists */
+    "aud-263-01": dos(SPEC, "inExaminare", "jurnal", {}, async (h) => { await h.click("[data-dosar-event] .e-permits-timeline__link", "Modificarea datelor"); await h.find("#dosar-detail-modal.is-active .e-permits-audit-changes"); }),
+    "aud-263-01a": dos(SPEC, "inExaminare", "jurnal", {}, async (h) => { await h.click("[data-dosar-event] .e-permits-timeline__link", "Modificarea datelor"); const t = await h.find("#dosar-detail-modal.is-active .e-permits-audit-changes"); t.scrollIntoView({ block: "start" }); await h.wait(200); }),
+    "aud-263-02": dos(SPEC, "inExaminare", "jurnal", {}, async (h) => { const item = [...document.querySelectorAll("[data-dosar-event]")].filter((el) => /Modificarea datelor/.test(el.textContent)).find((el) => /SIA GEAP/.test(el.textContent)); item?.querySelector(".e-permits-timeline__link")?.click(); (await h.find("#dosar-detail-modal.is-active .e-permits-audit-changes")).scrollIntoView({ block: "start" }); await h.wait(200); }),
+    "aud-263-03": dos(SPEC, "inExaminare", "jurnal", {}, async (h) => { await h.click("[data-dosar-event] .e-permits-timeline__link", "Vizualizare dosar"); await h.find("#dosar-detail-modal.is-active"); }),
+    "aud-263-04": svc("events", async (h) => { await h.fill("[data-svc-events-search]", "Modificarea datelor", { leave: false }); await h.wait(300); await h.click("[data-svc-event] .e-permits-timeline__link"); (await h.find("#dosar-detail-modal.is-active .e-permits-audit-changes")).scrollIntoView({ block: "start" }); await h.wait(200); }),
     /* 05 liste pe rol */
     "dos-05": dosList(SPEC),
     "dos-05a": dosList(SUP),
@@ -4341,6 +4349,8 @@
       "kpi-08e": prof("kpi-t01", "istoric"),
       /* the details: an Istoric event (Modificări old → new) · an alert (band + notified + the alert's events) · the bell link */
       "kpi-08f": prof("kpi-t01", "istoric", async (h) => { await h.click('#kpi-panel [data-kpi-event="4"] .e-permits-timeline__link'); await h.find("#dosar-detail-modal.is-active"); }),
+      /* aud-263-v1: the KPI Istoric entry = the shared audit record + the „Modificări” table (list rows Adăugat / Eliminat) */
+      "aud-263-06": prof("kpi-t01", "istoric", async (h) => { const item = [...document.querySelectorAll("#kpi-panel [data-kpi-event]")].find((el) => /Roluri responsabile/.test(el.textContent)); item?.querySelector(".e-permits-timeline__link")?.click(); (await h.find("#dosar-detail-modal.is-active .e-permits-audit-changes")).scrollIntoView({ block: "start" }); await h.wait(200); }),
       "kpi-08g": prof("kpi-t01", "alerte", async (h) => { await h.click('#kpi-panel [data-kpi-alert="0"] .e-permits-timeline__link'); await h.find("#dosar-detail-modal.is-active"); }, null, LOCAL),
       "kpi-08h": list(seq(async (h) => { await h.click(".e-permits-shell__icon-button--notification"); await h.find("#notif-drawer [data-notif-body]"); }, async (h) => { await h.click('#notif-drawer a[href="#kpi/kpi-t01/alerte/0"]'); await h.find("#dosar-detail-modal.is-active"); }), null, LOCAL),
 
@@ -4514,6 +4524,8 @@
       "wid-07e": prof("WGT-0001", "versiuni", seq(verOpen(1), async (h) => { await h.click('[data-wid-ver-restore="1"]'); await h.find("#wid-restore-note"); })),
       "wid-07f": prof("WGT-0001", "versiuni", seq(verOpen(1), async (h) => { await h.click('[data-wid-ver-restore="1"]'); await h.fill("#wid-restore-note", "Revenim la lățimea de jumătate.", { leave: false }); await h.click("[data-wid-restore-confirm]"); })),
       "wid-07g": prof("WGT-0001", "istoric"),
+      /* aud-263-v1: the widget Istoric „Modificarea widget-ului” → the shared „Modificări” table */
+      "aud-263-05": prof("WGT-0001", "istoric", async (h) => { await h.click("#wid-panel [data-wid-event] .e-permits-timeline__link", "Modificarea widget-ului"); (await h.find("#dosar-detail-modal.is-active .e-permits-audit-changes")).scrollIntoView({ block: "start" }); await h.wait(200); }),
       "wid-07h": prof("WGT-0007", "versiuni", async (h) => { await h.click("[data-wid-compare-open]"); await h.scroll("#wid-compare-title"); }),
       "wid-07i": prof("WGT-0005", "versiuni"),
       /* US-409 — aggregation on the source: every type on real data, perimeter, no access, refresh, drill-down */
@@ -4604,8 +4616,10 @@
     const twoLevel = seq(header("c2", "Dosare"), header("c3", "Dosare"), header("c4", "Dosare", "incl"));
     const calc = seq(async (h) => { await addKind("calc")(h); await h.find(`${DR} #rpt-c-name-ro`); }, async (h) => { await h.choose(`${DR} select[data-rpt-col-field="formula"]`, "f-pct"); await h.fill("#rpt-c-name-ro", "Finalizate în termen, %", { leave: false }); await h.choose(`${DR} select[data-rpt-col-op="A"]`, "c4"); await h.choose(`${DR} select[data-rpt-col-op="B"]`, "c3"); });
     const built = seq(nou, step1, next, cols, twoLevel, calc, saveCol);
-    /* rpt-auth-ms-v1: untick „Toate autoritățile”, open the authorities multi-select, tick the given short names, Confirmă */
-    const AUMS = (...ids) => async (h) => { await h.click(`${C} label:has([data-rpt-auth-all])`); await h.wait(250); await h.click(`${C} #fo-rpt-e-authorities`); await h.wait(250); for (const v of ids) { const o = await h.find(`${C} [data-rpt-auth-ms] .e-permits-fo-subgen-select__option[data-value^="${v} ·"]`); o.dispatchEvent(new MouseEvent("mousedown", { bubbles: true, cancelable: true })); await h.wait(120); } if (ids.length) { await h.click(`${C} [data-rpt-auth-ms] [data-fo-subgen-confirm]`); await h.wait(250); } };
+    /* rpt-auth-ms-v2: open the authorities multi-select („Toate autoritățile” = its first item, ticked by default), untick it,
+       tick the given short names, Confirmă */
+    const mdown = (h, sel) => h.find(sel).then((o) => { o.dispatchEvent(new MouseEvent("mousedown", { bubbles: true, cancelable: true })); return h.wait(120); });
+    const AUMS = (...ids) => async (h) => { await h.click(`${C} #fo-rpt-e-authorities`); await h.wait(250); await mdown(h, `${C} [data-rpt-auth-ms] [data-fo-select-all]`); for (const v of ids) await mdown(h, `${C} [data-rpt-auth-ms] .e-permits-fo-subgen-select__option[data-value^="${v} ·"]`); if (ids.length) { await h.click(`${C} [data-rpt-auth-ms] [data-fo-subgen-confirm]`); await h.wait(250); } };
     /* + „Autoritate” (c6) moved to the first place: the column the rows are grouped by */
     /* part 2 helpers: the library dialog (#case-action-modal), the shell confirm, the header ⋮ */
     const M = "#case-action-modal.is-active";
@@ -4655,10 +4669,13 @@
       "rpt-03a": list(seq(nou, next)),
       /* rpt-feature-v1: Nivel is generated (Global, read-only) — the central assigns the global report to ANSP + ANSA */
       "rpt-03b": list(seq(nou, step1, langs, AUMS("ANSP", "ANSA"), at("#rpt-e-authorities"))),
-      /* rpt-auth-ms-v1 (user: the checklist won't scale): „Toate autoritățile” unticked → the CAEM multi-select open + searched
+      /* rpt-auth-ms-v2: „Toate autoritățile” (first item) unticked → the CAEM multi-select open + searched
          „primăria” (local public authorities); unticked with none chosen → „Înainte” = the field error */
       "rpt-03ac": list(seq(nou, step1, AUMS(), async (h) => { await h.fill(`${C} [data-rpt-auth-ms] [data-fo-subgen-search]`, "primăria", { leave: false }); await h.wait(300); })),
-      "rpt-03ad": list(seq(nou, step1, async (h) => { await h.click(`${C} label:has([data-rpt-auth-all])`); await h.wait(250); }, next, at("#rpt-e-authorities"))),
+      "rpt-03ad": list(seq(nou, step1, AUMS(), async (h) => { await h.click(`${C} [data-rpt-auth-ms] [data-fo-subgen-confirm]`); await h.wait(250); }, next, at("#rpt-e-authorities"))),
+      /* rpt-auth-ms-v2: the menu open, „Toate autoritățile” first (ticked) + separator; then 2 ticked = indeterminate */
+      "rpt-03ae": list(seq(nou, step1, async (h) => { await h.click(`${C} #fo-rpt-e-authorities`); await h.wait(300); })),
+      "rpt-03af": list(seq(nou, step1, async (h) => { await h.click(`${C} #fo-rpt-e-authorities`); await h.wait(250); await mdown(h, `${C} [data-rpt-auth-ms] [data-fo-select-all]`); await mdown(h, `${C} [data-rpt-auth-ms] .e-permits-fo-subgen-select__option[data-value^="ANSP ·"]`); await mdown(h, `${C} [data-rpt-auth-ms] .e-permits-fo-subgen-select__option[data-value^="ANSA ·"]`); await h.wait(200); })),
       /* rpt-rich-select-v1: the Categoria rich dropdown open */
       "rpt-03aa": list(seq(nou, async (h) => { await h.click(`${C} #rpt-e-category`); await h.wait(250); })),
       /* a copy keeps the source's category (read-only) — Feature: „clonarea se face doar în aceeași categorie” */
@@ -4823,7 +4840,7 @@
     const langs = async (h) => { await h.fill("#dsh-n-name-ru", "Панель эксперта", { leave: false }); await h.fill("#dsh-n-name-en", "Expert dashboard", { leave: false }); };
     const role = (id, root = C) => async (h) => { await h.click(`${root} #dsh-${root === C ? "n" : "e"}-roles`); await h.wait(150); await h.click(`${root} [data-dsh-role-add="${id}"]`); await h.wait(150); };
     const principal = (id, root = C) => async (h) => { await h.click(`${root} [data-dsh-role-type="${id}|principal"]`); await h.wait(150); };
-    const allAuth = async (h) => { await h.click(`${C} .e-permits-dsh-auths > .e-permits-check-option label`); await h.wait(150); };
+    const allAuth = async (h) => { await h.click(`${C} #fo-dsh-n-authorities`); await h.wait(250); const o = await h.find(`${C} [data-dsh-auth-ms] [data-fo-select-all]`); o.dispatchEvent(new MouseEvent("mousedown", { bubbles: true, cancelable: true })); await h.wait(150); await h.click(`${C} [data-dsh-auth-ms] [data-fo-subgen-confirm]`); await h.wait(250); };
     const pick = async (h) => { await h.click("[data-dsh-add]"); await h.find(`${M} [data-dsh-pick-search]`); };
     /* one widget at a time (dash-v3): choose its card, „Adaugă” → it lands at the end and flashes */
     const choose = (id) => async (h) => { await h.click(`${M} .e-permits-wid-type:has([data-dsh-pick][value="${id}"])`); await h.wait(120); };
@@ -4867,7 +4884,7 @@
       "dsh-03j": list(seq(built, next)),
       "dsh-03k": list(seq(built, langs, next), null),
       "dsh-03l": list(seq(nou, step1, next), null, AUTH),
-      /* dsh-auth-ms-v1 (= rpt-auth-ms-v1): the CAEM multi-select + chips under it; open + searched „primăria”; „Toate autoritățile” ticked */
+      /* dsh-auth-ms-v2 (= rpt-auth-ms-v2): the CAEM multi-select, „Toate autoritățile” = its first item; open + searched „primăria” */
       "dsh-03n": list(seq(nou, step1, next, role("expert"), DAMS("ANSP", "PMC"))),
       "dsh-03o": list(seq(nou, step1, next, DAMS(), async (h) => { await h.fill(`${C} [data-dsh-auth-ms] [data-fo-subgen-search]`, "primăria", { leave: false }); await h.wait(300); })),
 
@@ -5333,6 +5350,9 @@
       "reg-13a": card("reg-dosare", ELIBERAT, "detalii", ADMIN, anonymize),
       "reg-13b": card("reg-dosare", ELIBERAT, "detalii", ADMIN, async (h) => { await anonymize(h); await h.click('[data-reg-tab="jurnal"]'); }),
       "reg-13c": card("reg-dosare", ELIBERAT, "detalii", ADMIN, async (h) => { await anonymize(h); await h.click('[data-reg-tab="jurnal"]'); await h.click("[data-reg-ev-open] .e-permits-timeline__link", "Depunere dosar"); }),
+      /* aud-263-v1 + US-277: after the anonymisation a personal change reads „‹redactat›” (neutral Small tag + note) */
+      "aud-263-07": card("reg-dosare", ELIBERAT, "detalii", ADMIN, async (h) => { await anonymize(h); await h.click('[data-reg-tab="jurnal"]'); await h.click("[data-reg-ev-open] .e-permits-timeline__link", "Actualizare date de contact"); (await h.find("#case-action-modal .e-permits-audit-changes")).scrollIntoView({ block: "start" }); await h.wait(200); }),
+      "aud-263-07a": card("reg-dosare", ELIBERAT, "jurnal", ADMIN, async (h) => { await h.click("[data-reg-ev-open] .e-permits-timeline__link", "Actualizare date de contact"); (await h.find("#case-action-modal .e-permits-audit-changes")).scrollIntoView({ block: "start" }); await h.wait(200); }),
       "reg-13d": reg("reg-dosare", ADMIN, async (h) => { await h.hash(`#registru/reg-dosare/${ELIBERAT}/detalii`); await anonymize(h); await h.click("[data-dosar-profil-crumb-back]"); await h.fill("[data-workplace-search]", ELIBERAT); }),
       /* no access: Specialist ghișeu has no „Registre”; Administrator local has no Registru Dosare grant (AC-01) */
       "reg-14": { flow: "back-office", as: GHISEU, hash: "#reg-acte", ready: "[data-reg-page]:not([hidden]) .e-permits-empty" },

@@ -5,7 +5,7 @@
    (components.md › „Tablouri de bord”):
      · the layout editor `.e-permits-dsh-grid` (12 columns, real widths) + its tiles `.e-permits-dsh-tile` with the
        visible toolbar (handle · position · title · ↑ ↓ · remove · Lățime / Înălțime);
-     · the authority assignment `.e-permits-dsh-auths` („Toate autoritățile” tri-state + count);
+     · the authority assignment = the FO multi-select with „Toate autoritățile” as its first item (dsh-auth-ms-v2);
      · the widget picker rows `.e-permits-dsh-pick` (the „Widget type card” with a library checkbox).
    ===================================================================================== */
 
@@ -65,18 +65,6 @@
 
 .e-permits-ntpl-card > .e-permits-fo-field__error {
   margin-top: var(--spacing-8, 8px);
-}
-
-/* ---- authorities (dsh-auth-ms-v1, = Rapoarte rpt-auth-ms-v1): „Toate autoritățile” checkbox above the FO multi-select + chips */
-.e-permits-dsh-auths {
-  display: grid;
-  gap: var(--spacing-16, 16px);
-}
-
-.e-permits-dsh-auths > .e-permits-check-option {
-  justify-self: start;
-  max-width: 100%;
-  width: max-content;
 }
 
 /* ---- the layout canvas (dash-v4, user): ONE WYSIWYG view = only the widgets, at the available width (the content width of

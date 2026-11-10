@@ -4047,7 +4047,7 @@ small `padding: 2px 6px` exact; `neutral.is-subtle` `#f1f1f1`/`#121212` and
 | Field + input | `e-permits-fo-field` + `--span-4/6/8/12`, `__hint`, `e-permits-fo-input`, `__value` | `is-filled` `is-readonly` `is-disabled` | `data-fo-address-part` |
 | Select | `e-permits-fo-select` + `--address/--preview`, `__button`, `__value`, `__list`, `__option` | `is-open` `is-open-up` `is-selected` `is-disabled` | `data-fo-select`, `data-fo-select-value`, `data-value` |
 | Combobox | `e-permits-fo-caem` + `__menu/__search/__list/__option/__empty` | | `data-fo-caem*`, `data-code`, `data-label` |
-| Multi-select | `e-permits-fo-subgen-select` + `__checkbox/__footer/__confirm` | | `data-fo-subgen*` |
+| Multi-select | `e-permits-fo-subgen-select` + `__checkbox/__footer/__confirm`, opt-in select-all first item `__option--all` + `__separator` (`selectAllLabel`) | | `data-fo-subgen*`, `data-fo-select-all` |
 | Phone | `e-permits-fo-phone` + `--editable/--readonly`, `__prefix`, `__code-list` | `is-filled` `is-selected` | `data-fo-phone-*`, `data-code`, `data-flag` |
 | Radio | `e-permits-fo-radio-group` + `--contact`, `e-permits-fo-radio` (placement of the ONE radio `label.radio.radio--medium`, radio-v1; ~~`__control`, `__copy`~~ removed) | | `data-fo-contact-person` |
 | Consent checkbox | `e-permits-fo-consent`, `__box` | | `data-fo-consent` |
@@ -12476,18 +12476,18 @@ assigned to some authorities; none = all), anyone else's are Autoritate = his ow
   „Trage sau folosește săgețile ↑ ↓”, `aria-keyshortcuts`. Drag it, or Arrow Up / Down while focused (`moveByHandle`) → the
   same FLIP slide, flash, live line; the focus stays on the moved handle; the ends do nothing. Phones keep the handle (the
   Registre stack hides its own). Helper `moverLead(n, { kind, id, what, label })`.
-- **Autoritățile raportului (rpt-auth-ms-v1, 2026-11-10, user: „the checklist won't scale” — dozens of issuing + local public
-  authorities)** — Date generale of a Global report (Administrator central), create sheet + profile + clone:
-  `div.e-permits-rpt-auths[data-rpt-auth-ms]` = „Toate autoritățile” (`renderCheckOption`, `[data-rpt-auth-all]`, hugs its
-  label) 16 above the FO multi-select of CAEM (`GEAPFormRender.fieldHtml({ type: "multiselect" })` = `.e-permits-fo-subgen-select`:
-  searchable dropdown with library checkboxes + „N selectate · Confirmă”, chips `.e-permits-fo-subgen-chip` with × under the
-  field; bound with `GEAPFormRender.bind` after each render). Ticked = all (`authorities: []`, field read-only „Toate
-  autoritățile”, no chips); unticked = pick ≥ 1 (required, hint „Raportul este disponibil doar autorităților alese.”; none →
-  `is-error` + the library inline error „Alege cel puțin o autoritate sau bifează «Toate autoritățile».”). Ticks / chip ×
-  update the model live (`fo-multiselect-change`, no re-render — the menu stays open); the unticked-but-empty state is per
-  draft (`AUTH_SOME` WeakMap). Seed: 30 authorities incl. primării. Demo rpt-03b (2 chosen), rpt-03ac (menu open, search
-  „primăria”), rpt-03ad (error), rpt-04b (profile). Open: the subgen chip × and „Confirmă” are FO parts the component audit
-  lists as non-library (existing CAEM debt).
+- **Autoritățile raportului (rpt-auth-ms-v2, 2026-11-10, user: „move Toate autoritățile into the dropdown”)** — Date generale of a
+  Global report (Administrator central), create sheet + profile + clone: `div.e-permits-rpt-auths[data-rpt-auth-ms]` = the FO
+  multi-select of CAEM (`GEAPFormRender.fieldHtml({ type: "multiselect", selectAllLabel: "Toate autoritățile", allSelected })`,
+  required). **Opt-in select-all item** (shared, `initSubgenMultiSelect`): FIRST row `.e-permits-fo-subgen-select__option--all[data-fo-select-all]`
+  (library checkbox: checked = all, indeterminate = some) + `.e-permits-fo-subgen-select__separator`; both hidden while searching;
+  all ticked = ONE chip „Toate autoritățile” (× clears everything) and the summary „Toate autoritățile”; the change event carries
+  `detail.all`. Model: all = `authorities: []` (also the ones added later), some = the list, none (`AUTH_SOME` WeakMap) → `is-error`
+  „Alege cel puțin o autoritate.”. No separate checkbox above the field. Demo rpt-03b (2 chosen), rpt-03ac (search „primăria”),
+  rpt-03ad (error), rpt-03ae (menu open, all ticked), rpt-03af (indeterminate), rpt-04b (profile).
+- **Grouping note (rpt-col-group-note-v1)** — a column the rows are grouped by shows „· Grupare” (one level) / „· Grupare N” after its
+  name on the title line (`.e-permits-rpt-col-note`, secondary 14/20).
+- **Filter row header (rpt-cond-v5)** — one centred flex row; „Afișează filtru” = library Medium checkbox, focus ring around the BOX only.
 - **Column item text (rpt-col-item-v3, 2026-11-10, user)** — title line = the name only (+ „· De corectat” in the error colour);
   meta = „Câmp: X · Text · Din sursă” / „<formula> · Numeric · Calculată” (+ „Inclusiv”, „Antet comun: …”).
 - **Condition builder v2 (rpt-cond-v2, 2026-11-10, user review)** — supersedes the layout of rpt-cond-v1 below: the connector
@@ -12680,7 +12680,7 @@ his authority + only the widgets it may use). Every operation → the dashboard'
   published version), logged on it as „Devenit secundar” by „SIA GEAP · Sistem”; the publish dialog says so in an info
   note before the note field. Deactivating a principal drops its principal roles (only a published dashboard is principal;
   the confirm names the roles). Authority principal > global principal is the BackOffice's job (Feature 96498, `GEAPDashboards.forRole`).
-- **Authorities (dsh-auth-ms-v1).** Global: „Toate autoritățile” checkbox above the FO multi-select (CAEM, searchable, chips with × under the field), identical to Rapoarte rpt-auth-ms-v1; ticked = all (field disabled, no chips), unticked = ≥ 1 required (field error); authorities shared with data/rapoarte.json. Autoritate: `.e-permits-cfg-ro` read-only + hint.
+- **Authorities (dsh-auth-ms-v2).** Global: the FO multi-select (CAEM, searchable, chips with × under the field) with „Toate autoritățile” as its FIRST item (select-all, see Rapoarte rpt-auth-ms-v2); ≥ 1 required (field error); authorities shared with data/rapoarte.json. Autoritate: `.e-permits-cfg-ro` read-only + hint.
 - **Layout canvas (dash-v3, 2026-11-10, user: „add one by one and arrange like the iPhone home screen”, „Editare and
   Previzualizare should be the same”, „no additional border wrap”; Mobbin: Sentry · Twenty · Salesforce · Xero).** ONE
   WYSIWYG canvas = the final dashboard; read-only places (local admin, Revizuire) use the same renderer with editing off.

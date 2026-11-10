@@ -2743,12 +2743,12 @@
       const options = Array.isArray(field.options) ? field.options : [];
       const placeholder = field.placeholder || "Alege opțiunile";
       /* preselected values (field.value = array) and own texts (countOne / countMany / removeLabel / searchLabel) */
-      const picked = new Set(Array.isArray(field.value) ? field.value : []);
+      const picked = new Set(field.allSelected ? options : Array.isArray(field.value) ? field.value : []);
       const searchLabel = field.searchLabel || "Caută";
       return `
         <div class="${fieldClass(field)}" data-fo-subgen>
           ${labelHtml(id, field)}
-          <div class="e-permits-fo-subgen-select" data-fo-subgen-select data-placeholder="${escapeFrontOfficeHtml(placeholder)}" data-count-one="${escapeFrontOfficeHtml(field.countOne || "opțiune selectată")}" data-count-many="${escapeFrontOfficeHtml(field.countMany || "opțiuni selectate")}" data-remove-label="${escapeFrontOfficeHtml(field.removeLabel || "Elimină opțiunea")}">
+          <div class="e-permits-fo-subgen-select" data-fo-subgen-select data-placeholder="${escapeFrontOfficeHtml(placeholder)}" data-count-one="${escapeFrontOfficeHtml(field.countOne || "opțiune selectată")}" data-count-many="${escapeFrontOfficeHtml(field.countMany || "opțiuni selectate")}" data-remove-label="${escapeFrontOfficeHtml(field.removeLabel || "Elimină opțiunea")}"${field.selectAllLabel ? ` data-all-label="${escapeFrontOfficeHtml(field.selectAllLabel)}"` : ""}>
             <button id="${escapeFrontOfficeHtml(id)}" class="e-permits-fo-subgen-select__button" type="button" aria-haspopup="listbox" aria-expanded="false" aria-controls="${escapeFrontOfficeHtml(id)}-menu"${field.readOnly ? " disabled" : ""} data-fo-subgen-button>
               <span class="e-permits-fo-subgen-select__value e-permits-fo-subgen-select__value--placeholder" data-fo-subgen-value>${escapeFrontOfficeHtml(placeholder)}</span>
               <svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-chevron-bottom"></use></svg>
@@ -2756,6 +2756,12 @@
             <div class="e-permits-fo-subgen-select__menu" id="${escapeFrontOfficeHtml(id)}-menu" data-fo-subgen-menu hidden>
               <div class="e-permits-fo-subgen-select__search"><svg class="icon" width="24" height="24" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-search"></use></svg><input type="search" placeholder="${escapeFrontOfficeHtml(searchLabel)}" aria-label="${escapeFrontOfficeHtml(field.searchAria || "Caută în opțiuni")}" data-fo-subgen-search></div>
               <ul class="e-permits-fo-subgen-select__list" role="listbox" aria-labelledby="${escapeFrontOfficeHtml(id)}" aria-multiselectable="true" data-fo-subgen-list>
+                ${field.selectAllLabel ? `
+                  <li class="e-permits-fo-subgen-select__option e-permits-fo-subgen-select__option--all" role="option" aria-selected="false" data-fo-select-all tabindex="-1">
+                    <span class="checkbox checkbox--medium" aria-hidden="true"><input class="checkbox-input" type="checkbox" tabindex="-1"><span class="checkbox-custom"></span></span>
+                    <span>${escapeFrontOfficeHtml(field.selectAllLabel)}</span>
+                  </li>
+                  <li class="e-permits-fo-subgen-select__separator" role="separator" data-fo-select-all-separator></li>` : ""}
                 ${options.map((value) => `
                   <li class="e-permits-fo-subgen-select__option${picked.has(value) ? " is-selected" : ""}" role="option" aria-selected="${picked.has(value)}" data-value="${escapeFrontOfficeHtml(value)}" tabindex="-1">
                     <span class="checkbox checkbox--medium" aria-hidden="true"><input class="checkbox-input" type="checkbox" tabindex="-1"${picked.has(value) ? " checked" : ""}><span class="checkbox-custom"></span></span>
@@ -9872,12 +9878,21 @@
       const countLabel = root.querySelector("[data-fo-subgen-count-label]");
       const confirm = root.querySelector("[data-fo-subgen-confirm]");
       const chips = root.closest("[data-fo-subgen]")?.querySelector("[data-fo-subgen-chips]");
-      const options = Array.from(root.querySelectorAll(".e-permits-fo-subgen-select__option"));
+      const options = Array.from(root.querySelectorAll(".e-permits-fo-subgen-select__option:not([data-fo-select-all])"));
+      /* opt-in select-all (field.selectAllLabel): first item + separator; ticked = every option, indeterminate = some; one chip */
+      const allOpt = root.querySelector("[data-fo-select-all]");
+      const allSep = root.querySelector("[data-fo-select-all-separator]");
       if (!button || !value || !menu || !search || !count || !countLabel || !confirm || !chips || !options.length) return;
 
       let activeIndex = 0;
-      let visibleOptions = options.slice();
+      let visibleOptions = (allOpt ? [allOpt] : []).concat(options);
       let ready = false;
+      const setOne = (option, on) => {
+        option.classList.toggle("is-selected", on);
+        option.setAttribute("aria-selected", String(on));
+        const box = option.querySelector(".checkbox-input");
+        if (box) box.checked = on;
+      };
 
       options.forEach((option) => {
         option.dataset.searchText = normalizeComboboxText(option.dataset.value || option.textContent || "");
@@ -9889,19 +9904,24 @@
 
       function updateSummary() {
         const selected = selectedOptions();
+        const allOn = !!allOpt && selected.length === options.length;
+        if (allOpt) {
+          setOne(allOpt, allOn);
+          allOpt.querySelector(".checkbox-input").indeterminate = selected.length > 0 && !allOn;
+        }
         count.textContent = String(selected.length);
         countLabel.textContent = selected.length === 1 ? "selectat" : "selectate";
         /* texts from data attributes (Form Builder „Selecție multiplă”); defaults = CAEM subgenres */
         const one = root.dataset.countOne || "subgen selectat";
         const many = root.dataset.countMany || "subgenuri selectate";
-        value.textContent = selected.length === 0 ? (root.dataset.placeholder || "Alege subgen de activitate") : `${selected.length} ${selected.length === 1 ? one : many}`;
+        value.textContent = selected.length === 0 ? (root.dataset.placeholder || "Alege subgen de activitate") : allOn ? root.dataset.allLabel : `${selected.length} ${selected.length === 1 ? one : many}`;
         value.classList.toggle("e-permits-fo-subgen-select__value--placeholder", selected.length === 0);
         chips.hidden = selected.length === 0;
         chips.innerHTML = "";
-        selected.forEach((option) => {
+        (allOn ? [allOpt] : selected).forEach((option) => {
           const chip = document.createElement("span");
           chip.className = "e-permits-fo-subgen-chip";
-          chip.dataset.value = option.dataset.value || "";
+          chip.dataset.value = allOn ? "" : option.dataset.value || "";
           chip.innerHTML = `
             <span class="e-permits-fo-subgen-chip__label"></span>
             <button class="e-permits-fo-subgen-chip__remove" type="button" aria-label="${escapeFrontOfficeHtml(root.dataset.removeLabel || "Elimină subgenul")}">
@@ -9910,8 +9930,9 @@
               </svg>
             </button>
           `;
-          chip.querySelector(".e-permits-fo-subgen-chip__label").textContent = option.dataset.value || "";
+          chip.querySelector(".e-permits-fo-subgen-chip__label").textContent = allOn ? root.dataset.allLabel : option.dataset.value || "";
           chip.querySelector(".e-permits-fo-subgen-chip__remove").addEventListener("click", () => {
+            if (allOn) { options.forEach((o) => setOne(o, false)); updateSummary(); return; }
             option.classList.remove("is-selected");
             option.setAttribute("aria-selected", "false");
             const subgenBox = option.querySelector(".checkbox-input");
@@ -9921,7 +9942,7 @@
           chips.appendChild(chip);
         });
         /* hosts (e.g. the BO subdivision form) keep their own model in sync */
-        if (ready) root.dispatchEvent(new CustomEvent("fo-multiselect-change", { bubbles: true, detail: { values: selected.map((o) => o.dataset.value || "") } }));
+        if (ready) root.dispatchEvent(new CustomEvent("fo-multiselect-change", { bubbles: true, detail: { values: selected.map((o) => o.dataset.value || ""), all: allOn } }));
       }
 
       function setActive(index) {
@@ -9945,6 +9966,8 @@
           option.classList.remove("is-active");
           return isVisible;
         });
+        /* the select-all row (+ its separator) stays out while searching: it would tick the hidden options too */
+        if (allOpt) { allOpt.hidden = !!query; allOpt.classList.remove("is-active"); allSep.hidden = !!query; if (!query) visibleOptions.unshift(allOpt); }
         setActive(0);
       }
 
@@ -9961,10 +9984,12 @@
             option.hidden = false;
             option.classList.remove("is-active");
           });
+          if (allOpt) { allOpt.hidden = false; allSep.hidden = false; }
         }
       }
 
       function toggleOption(option) {
+        if (option === allOpt) { const on = selectedOptions().length !== options.length; options.forEach((o) => setOne(o, on)); updateSummary(); return; }
         const isSelected = !option.classList.contains("is-selected");
         option.classList.toggle("is-selected", isSelected);
         option.setAttribute("aria-selected", String(isSelected));
@@ -10000,7 +10025,7 @@
         }
       });
 
-      options.forEach((option) => {
+      (allOpt ? [allOpt, ...options] : options).forEach((option) => {
         option.addEventListener("mouseenter", () => {
           const index = visibleOptions.indexOf(option);
           if (index >= 0) setActive(index);
