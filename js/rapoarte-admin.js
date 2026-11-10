@@ -32,13 +32,14 @@
      · filters = per COLUMN, as in Registre (column panel: „Filtrabilă” + „Tipul filtrului” Text / Alegere unică /
        Alegere multiplă / Interval de date, only the types the field supports); chips above the preview in column order
        (first 4 + „Mai multe”), Text filters = the search field above them (the BO register search);
-     · grouping = ONE column, a subtotal per group;
+     · grouping: Feature = ONE column; PROPOSAL FOR PO (Alexandru chat, user 2026-11-10, rpt-levels-v2) = up to 3 ordered
+       levels, nested group rows + a subtotal per level;
      · Nivel is generated: Global for the Administrator central (optional authorities, none = all), Autoritate (the
        user's own) for anyone else; clone = same category (read-only on a copy);
      · the formula set = the formulas of the reports the user can clone, on the same source; „Formulă nouă” for every
        author, it enters the set when the report is saved; an identical formula is kept once.
-     (The PO-chat extras — multi-level grouping, și / sau conditions, fixed conditions — stay in git history:
-     rpt-levels-v1 910b8635, rpt-cond-v1 39c8a25d.)
+     (The PO-chat extras are back as proposals for the PO: și / sau conditions (rpt-cond-restore-v1) and multi-level
+     grouping (rpt-levels-v2, from rpt-levels-v1 910b8635).)
 
    Interpretations (open for PO / BA — listed in components.md › „Rapoarte”):
      · „Inclusiv” = a breakdown of the nearest «Se adună în total» measure column to its left (the statistical form
@@ -133,10 +134,12 @@
   const isDim = (c) => c && (c.dataType === "text" || c.dataType === "temporal");
   /* rpt-group-v1: rows group by a Text column from the source (numeric / calculated columns have no group toggle) */
   const groupable = (c) => Boolean(c) && c.kind === "source" && c.dataType === "text";
-  /* rpt-feature-v1: Feature «Gruparea rândurilor» = ONE column („Coloana după care se formează grupurile”), a subtotal per
-     group. `groupBy` stays a list (the preview's bucketing works per level) holding at most one column id; one Text
-     column always stays ungrouped (the rows are listed by it). The 3-level version = rpt-levels-v1 in git history. */
-  const MAX_LEVELS = 1;
+  /* rpt-levels-v2 (2026-11-10, user: „how can I see 1, 2, 3?”) — PROPOSAL FOR PO (Alexandru chat) vs Feature 96502's ONE
+     grouping column: up to 3 ordered levels (rpt-levels-v1 910b8635 restored). `groupBy` = the ordered column ids; one
+     Text column always stays ungrouped (the rows are listed by it). */
+  const MAX_LEVELS = 3;
+  /* the grouping glyph: the sprite has no „group rows / layers” icon (icon-tree = a plant) → numbered list (ordered levels) */
+  const GROUP_ICON = "list-numbers";
   const levelCols = (v) => (v.groupBy || []).map((id) => colOf(v, id)).filter(groupable).slice(0, MAX_LEVELS);
   const levelsText = (v) => levelCols(v).map(colName).join(", ");
   /* rpt-cond-text-v1: the asked Text conditions („conține”) = ONE search field above the chips (the BO register search) */
@@ -576,8 +579,8 @@
   const scoped = (v, sel, q = "") => selEntries(sel).length > 0 || flatConds(v).some((c) => fixed(v, c)) || Boolean(String(q || "").trim() && askText(v).length);
   /* rpt-levels-v1: the demo DATA does not depend on the grouping (the Total stays the same whatever the grouping): the rows =
      combinations of the report's Text columns from the source (values per column, in column order: 1 column → 5, 2 → 3 × 3,
-     3 → 3 × 2 × 2, 4+ → 2 each), measures seeded by the combination; the grouping only buckets them (one column,
-     rpt-feature-v1), groups in first-appearance order, every group = { level, col, value, rows, leafRows, sub } with its
+     3 → 3 × 2 × 2, 4+ → 2 each), measures seeded by the combination; the grouping only buckets them (up to 3 levels,
+     rpt-levels-v2), groups in first-appearance order, every group = { level, col, value, rows, leafRows, sub } with its
      subtotal; a group whose rows are all filtered out disappears */
   const FANS = [[], [5], [3, 3], [3, 2, 2]];
   function previewModel(v, sel = null, q = "") {
@@ -739,7 +742,7 @@
       conds ? `Condiții: ${conds}` : "",
       applied ? `Aplicate în previzualizare: ${applied}` : "",
       askConds(v).length && !(live && v.source && v.columns.length) ? `Filtre la generare: ${askConds(v).map((c) => chipLabel(v, c)).join(", ")}` : "",
-      levelCols(v).length ? `Grupat după ${levelsText(v)}, cu subtotal pe grup` : "",
+      levelCols(v).length ? `Grupat după ${levelsText(v)}, cu subtotal ${levelCols(v).length > 1 ? "la fiecare nivel" : "pe grup"}` : "",
       v.columns.some(isMeasure) ? (v.totalRow ? "Cu rândul de total" : "Fără rândul de total") : ""
     ].filter(Boolean);
     return `
@@ -887,7 +890,11 @@
       ))}`;
   }
   /* the column list = the Registre „Coloanele registrului” stacked list (order handle + drag, ↑ ↓, trash; row → panel) */
-  const orderLead = (n) => `<span class="e-permits-ekcfg-order"><span class="e-permits-ekcfg-order__handle" aria-hidden="true">${icon("drag", 16)}</span><span class="e-permits-ekcfg-order__n" aria-label="Poziția ${n}">${n}</span></span>`;
+  /* rpt-mover-v1 (2026-11-10, user: „save space”): the reorder control on the LEFT = a vertical stack ˄ · drag handle · ˅
+     (library `btn btn-text-neutral btn-icon-only`, compact 24 / phones 32, chevron 16 grey, tooltips, disabled at the ends)
+     + the position number; ↑ ↓ no longer sit with the row actions. `attr` = the move attribute („data-rpt-col-move”),
+     `id` its key, `what` the spoken name („„Autoritate””) */
+  const moverLead = (n, { attr, id, what, i, last, label = "Poziția" }) => `<span class="e-permits-ekcfg-order e-permits-rpt-order"><span class="e-permits-rpt-mover"><button class="btn btn-text-neutral btn-sm btn-icon-only e-permits-rpt-mover__btn" type="button" aria-label="Mută ${what} mai sus" data-tooltip-label="Mută mai sus" ${attr}="${esc(id)}|-1"${i === 0 ? " disabled" : ""}>${icon("chevron-top", 16)}</button><span class="e-permits-ekcfg-order__handle" aria-hidden="true">${icon("drag", 16)}</span><button class="btn btn-text-neutral btn-sm btn-icon-only e-permits-rpt-mover__btn" type="button" aria-label="Mută ${what} mai jos" data-tooltip-label="Mută mai jos" ${attr}="${esc(id)}|1"${i === last ? " disabled" : ""}>${icon("chevron-bottom", 16)}</button></span><span class="e-permits-ekcfg-order__n" aria-label="${label} ${n}">${n}</span></span>`;
   function columnMeta(v, c) {
     const out = [];
     if (c.kind === "source") out.push(`Câmp: ${fieldOf(v.source, c.field)?.label || "—"}`);
@@ -902,16 +909,16 @@
   function stepColumns(v, e, idp, { jump = false } = {}) {
     const cols = v.columns;
     const last = cols.length - 1;
-    /* rpt-group-v1 (2026-11-10, user) — rpt-feature-v1: ONE grouping column. An icon-only toggle on every groupable Text
-       column, before ↑ ↓ 🗑: a click groups the rows by that column (another pressed one moves the grouping), the pressed
-       one removes it; a lone Text column cannot group (the rows are listed by the other Text column) */
+    /* rpt-group-v1 → rpt-levels-v2: an icon-only toggle on every groupable Text column, before ↑ ↓ 🗑: a click adds the
+       column as the next grouping level (pressed = neutral pressed fill + dark icon + the level number), the pressed one
+       removes its level; a 4th level / the last free Text column = disabled with the reason as the Small tooltip */
     const groupBtn = (c) => {
       if (!groupable(c)) return "";
-      const on = v.groupBy.includes(c.id);
-      const why = on ? "" : groupBlock(v);
-      /* a toggle keeps its name; aria-pressed says it is on (the tooltip says what a click does) */
-      const tip = why ? ` aria-disabled="true" data-tooltip-reason="${esc(why)}"` : ` data-tooltip-label="${on ? "Rândurile sunt grupate după această coloană · apasă ca să anulezi" : "Grupează rândurile după această coloană"}"`;
-      return `<button class="btn btn-text-neutral btn-sm btn-icon-only e-permits-rpt-group-btn" type="button" aria-pressed="${on}" aria-label="Grupează rândurile după „${esc(colName(c))}”"${tip} data-rpt-col-group="${esc(c.id)}">${icon("bullet-list", 16)}</button>`;
+      const lv = v.groupBy.indexOf(c.id) + 1;
+      const why = lv ? "" : groupBlock(v);
+      /* a toggle keeps its name; aria-pressed says it is on (the tooltip says the level and what a click does) */
+      const tip = why ? ` aria-disabled="true" data-tooltip-reason="${esc(why)}"` : ` data-tooltip-label="${lv ? `Nivelul ${lv} de grupare · apasă ca să-l elimini` : `Grupează rândurile după această coloană (nivelul ${v.groupBy.length + 1})`}"`;
+      return `<button class="btn btn-text-neutral btn-sm btn-icon-only e-permits-rpt-group-btn${lv ? " has-level" : ""}" type="button" aria-pressed="${lv > 0}" aria-label="Grupează rândurile după „${esc(colName(c))}”${lv ? ` (nivelul ${lv})` : ""}"${tip} data-rpt-col-group="${esc(c.id)}">${icon(GROUP_ICON, 16)}${lv ? `<span class="e-permits-rpt-group-btn__n" aria-hidden="true">${lv}</span>` : ""}</button>`;
     };
     /* „Adaugă coloană ▾” (rpt-add-menu-v1, 2026-11-09, user; Airtable / Notion / Retool „add field → choose type”): ONE
        library secondary button (plus + label + chevron) opening the stack dropdown; items = icon + kind + one short line */
@@ -936,16 +943,14 @@
         plainTitle: colName(c),
         /* rpt-col-item-v2 (user: tags wrapped under the title in the narrow column): the kind / Grupare / Inclusiv = small
            secondary text right after the name, on its line (wraps with it); „De corectat” in the error colour; no tags */
-        title: `${icon("columns", 16).replace('class="icon small"', 'class="icon small e-permits-rpt-col-icon"')}${esc(colName(c))}${[kt, v.groupBy.includes(c.id) ? "Grupare" : "", c.total === "incl" && isMeasure(c) ? "Inclusiv" : ""].filter(Boolean).map((x) => `<span class="e-permits-rpt-col-note"> · ${esc(x)}</span>`).join("")}${err ? '<span class="e-permits-rpt-col-note is-error"> · De corectat</span>' : ""}`,
-        leadHtml: orderLead(i + 1),
+        title: `${esc(colName(c))}${[kt, v.groupBy.includes(c.id) ? `Grupare ${v.groupBy.indexOf(c.id) + 1}` : "", c.total === "incl" && isMeasure(c) ? "Inclusiv" : ""].filter(Boolean).map((x) => `<span class="e-permits-rpt-col-note"> · ${esc(x)}</span>`).join("")}${err ? '<span class="e-permits-rpt-col-note is-error"> · De corectat</span>' : ""}`,
+        leadHtml: moverLead(i + 1, { attr: "data-rpt-col-move", id: c.id, what: `„${esc(colName(c))}”`, i, last }),
         rowAttrs: `data-rpt-col="${esc(c.id)}" data-index="${i}" tabindex="0" data-stack-row-open aria-haspopup="dialog" aria-label="Coloana ${esc(colName(c))}, poziția ${i + 1} — deschide setările"`,
         badges: [],
         meta: columnMeta(v, c),
         /* rpt-col-list-v4 (user: „bring back arrows”): the original controls — ↑ / ↓ (disabled at the ends) + the red trash */
         actionsHtml: `
           ${groupBtn(c)}
-          <button class="btn btn-strict btn-sm btn-icon-only" type="button" aria-label="Mută „${esc(colName(c))}” mai sus" data-tooltip-label="Mută mai sus" data-rpt-col-move="${esc(c.id)}|-1"${i === 0 ? " disabled" : ""}>${icon("arrow-up", 16)}</button>
-          <button class="btn btn-strict btn-sm btn-icon-only" type="button" aria-label="Mută „${esc(colName(c))}” mai jos" data-tooltip-label="Mută mai jos" data-rpt-col-move="${esc(c.id)}|1"${i === last ? " disabled" : ""}>${icon("arrow-down", 16)}</button>
           <button class="btn btn-text-destructive btn-sm btn-icon-only" type="button" aria-label="Elimină coloana „${esc(colName(c))}”" data-tooltip-label="Elimină coloana" data-rpt-col-remove="${esc(c.id)}">${icon("delete", 16)}</button>`
       }) || "").replace('<li class="e-permits-stack__item', '<li draggable="true" class="e-permits-stack__item');
     }).join("")}</ul></div>
@@ -1031,9 +1036,6 @@
     if (op === "between") return { wide: true, html: `<div class="e-permits-rpt-cond__pair">${datePick(id, at("value"), c.value, "De la")}${datePick(cid(idp, c, "value2"), at("value2"), c.value2, "Până la")}</div>` };
     return { html: datePick(id, at("value"), c.value, op === "before" ? "Înainte de" : "După") };
   }
-  const moveBtns = (c, i, last, what) => `
-    <button class="btn btn-strict btn-sm btn-icon-only" type="button" aria-label="Mută ${what} mai sus" data-tooltip-label="Mută mai sus" data-rpt-cond-move="${esc(c.id)}|-1"${i === 0 ? " disabled" : ""}>${icon("arrow-up", 16)}</button>
-    <button class="btn btn-strict btn-sm btn-icon-only" type="button" aria-label="Mută ${what} mai jos" data-tooltip-label="Mută mai jos" data-rpt-cond-move="${esc(c.id)}|1"${i === last ? " disabled" : ""}>${icon("arrow-down", 16)}</button>`;
   function condRow(v, e, idp, c, i, last) {
     const k = condKind(v, c);
     const fe = e[`filter.${c.id}.field`];
@@ -1048,13 +1050,13 @@
     return `
       <div class="e-permits-rpt-cond e-permits-hover-surface is-hover-within${fe || ve ? " has-error" : ""}" role="group" aria-label="Condiția ${i + 1}${c.field ? `: ${esc(fldLabel(v, c))}` : ""}">
         <div class="e-permits-rpt-cond__head">
-          <span class="e-permits-rpt-cond__lead">${orderLead(i + 1)}</span>
-          <span class="e-permits-rpt-cond__actions">${moveBtns(c, i, last, `condiția „${esc(name)}”`)}<button class="btn btn-text-destructive btn-sm btn-icon-only" type="button" aria-label="Elimină condiția „${esc(name)}”" data-tooltip-label="Elimină condiția" data-rpt-cond-remove="${esc(c.id)}">${icon("delete", 16)}</button></span>
+          <span class="e-permits-rpt-cond__lead">${moverLead(i + 1, { attr: "data-rpt-cond-move", id: c.id, what: `condiția „${esc(name)}”`, i, last })}</span>
+          <span class="e-permits-rpt-cond__ask">${ask}</span>
+          <span class="e-permits-rpt-cond__actions"><button class="btn btn-text-destructive btn-sm btn-icon-only" type="button" aria-label="Elimină condiția „${esc(name)}”" data-tooltip-label="Elimină condiția" data-rpt-cond-remove="${esc(c.id)}">${icon("delete", 16)}</button></span>
         </div>
         <div class="e-permits-rpt-cond__cell e-permits-rpt-cond__field">${fieldSel}${fe ? errorHtml(cid(idp, c, "field"), fe) : ""}</div>
         <div class="e-permits-rpt-cond__cell e-permits-rpt-cond__op">${opSel}</div>
         <div class="e-permits-rpt-cond__cell e-permits-rpt-cond__val${val.wide ? " is-wide" : ""}">${val.html}${ve ? errorHtml(cid(idp, c, "value"), ve) : ""}</div>
-        <div class="e-permits-rpt-cond__foot">${ask}</div>
       </div>`;
   }
   function condItems(v, e, idp, items, conj, scope) {
@@ -1065,8 +1067,8 @@
         ${x.group ? `
           <div class="e-permits-rpt-cgroup" role="group" aria-label="Grup de condiții ${i + 1}">
             <div class="e-permits-rpt-cgroup__head">
-              ${orderLead(i + 1)}<span class="e-permits-rpt-cgroup__title">Grup de condiții</span>
-              <span class="e-permits-rpt-cond__actions">${moveBtns(x, i, last, `grupul ${i + 1}`)}<button class="btn btn-text-destructive btn-sm btn-icon-only" type="button" aria-label="Elimină grupul ${i + 1}" data-tooltip-label="Elimină grupul" data-rpt-cond-remove="${esc(x.id)}">${icon("delete", 16)}</button></span>
+              ${moverLead(i + 1, { attr: "data-rpt-cond-move", id: x.id, what: `grupul ${i + 1}`, i, last })}<span class="e-permits-rpt-cgroup__title">Grup de condiții</span>
+              <span class="e-permits-rpt-cond__actions"><button class="btn btn-text-destructive btn-sm btn-icon-only" type="button" aria-label="Elimină grupul ${i + 1}" data-tooltip-label="Elimină grupul" data-rpt-cond-remove="${esc(x.id)}">${icon("delete", 16)}</button></span>
             </div>
             <ol class="e-permits-rpt-conds" role="list" data-rpt-conds="${esc(x.id)}">${condItems(v, e, idp, x.rules, x.conj, x.id)}</ol>
             <div class="e-permits-rpt-cgroup__add"><button class="btn btn-text-primary btn-sm" type="button" data-rpt-cond-add="${esc(x.id)}">${icon("plus-large", 16)}<span>Adaugă condiție</span></button></div>
@@ -1090,25 +1092,36 @@
         ${v.filters.length ? `<div class="e-permits-ntpl-card">${body}</div>` : body}
       </section>`;
   }
-  /* why the rows cannot be grouped (rpt-group-v1): "" = they can */
+  /* why the rows cannot get another grouping level (rpt-levels-v2): "" = they can */
   function groupBlock(v) {
-    if (v.columns.filter(groupable).length < 2) return "Adaugă încă o coloană Text: rândurile se grupează după una și se listează după cealaltă.";
+    const text = v.columns.filter(groupable).length;
+    if (v.groupBy.length >= MAX_LEVELS) return "Poți grupa pe cel mult 3 niveluri.";
+    if (text < 2) return "Adaugă încă o coloană Text: rândurile se grupează după una și se listează după cealaltă.";
+    if (v.groupBy.length + 1 >= text) return "Lasă o coloană Text negrupată: după ea se listează rândurile.";
     return "";
   }
-  /* „Gruparea rândurilor” (rpt-group-v1, back after rpt-feature-v1): the profile = ONE summary line + „Elimină gruparea”
-     (the toggle lives in the column list); the create sheet's Structură step (no column list there) = a select */
+  /* „Gruparea rândurilor” (rpt-levels-v1 910b8635 → v2) = the ORDERED list of the levels (Salesforce „Group rows”): each
+     level = a row on the shared hover surface (order lead = drag handle + the level number, the column name, ↑ ↓ + the red
+     trash), indented 16 per level like the table's group rows; „Elimină gruparea” clears all. The profile adds levels from
+     the column list (the toggle); the create sheet's Structură step (no column list there) adds them with „Adaugă un nivel” */
   function groupSection(v, e, idp, { jump = false } = {}) {
-    const g = levelCols(v)[0] || null;
+    const levels = levelCols(v);
     const why = groupBlock(v);
-    if (jump) {
-      const text = g
-        ? `Grupat după <strong>${esc(colName(g))}</strong>, cu subtotal pe grup.`
-        : why ? "Fără grupare. Adaugă cel puțin două coloane Text: rândurile se grupează după una și se listează după cealaltă." : `Fără grupare. Apasă ${icon("bullet-list", 16)} la o coloană Text din «Coloanele raportului»: fiecare grup primește un subtotal.`;
-      const clear = g ? `<button class="btn btn-text-destructive btn-sm" type="button" data-rpt-group-clear>${icon("delete", 16)}<span>Elimină gruparea</span></button>` : "";
-      return section("Gruparea rândurilor", `<div class="e-permits-rpt-group-sum"><p class="e-permits-rpt-group-sum__text">${text}</p>${clear}</div>`, { id: `${idp}-group-title` });
-    }
-    const opts = v.columns.filter(groupable).map((c) => [c.id, colName(c)]);
-    return section("Gruparea rândurilor", grid(selectField(`${idp}-groupby`, "data-rpt-groupby", "Coloana după care se formează grupurile", opts, g?.id || "", { span: 12, placeholder: "Fără grupare", hint: why || "Opțional. Fiecare grup are un rând de subtotal.", error: e.groupBy, disabled: Boolean(why) })), { id: `${idp}-group-title` });
+    const last = levels.length - 1;
+    const list = levels.length ? `<ol class="e-permits-rpt-levels" role="list" aria-label="Nivelurile de grupare" data-rpt-levels>${levels.map((c, i) => `
+      <li class="e-permits-rpt-level e-permits-hover-surface is-hover-within is-l${i + 1}" draggable="true" data-rpt-level="${esc(c.id)}" data-index="${i}">
+        ${moverLead(i + 1, { attr: "data-rpt-level-move", id: c.id, what: `nivelul „${esc(colName(c))}”`, i, last, label: "Nivelul" })}
+        <span class="e-permits-rpt-level__name" data-cell-tooltip>${esc(colName(c))}</span>
+        <span class="e-permits-rpt-level__actions">
+          <button class="btn btn-text-destructive btn-sm btn-icon-only" type="button" aria-label="Elimină nivelul „${esc(colName(c))}” din grupare" data-tooltip-label="Elimină nivelul" data-rpt-level-remove="${esc(c.id)}">${icon("delete", 16)}</button>
+        </span>
+      </li>`).join("")}</ol>` : "";
+    const free = v.columns.filter((c) => groupable(c) && !v.groupBy.includes(c.id));
+    const add = jump || (why && levels.length) ? "" : selectField(`${idp}-groupby`, "data-rpt-level-add", levels.length ? "Adaugă un nivel" : "Grupează rândurile după", free.map((c) => [c.id, colName(c)]), "", { span: 12, placeholder: why ? "Nu se mai pot adăuga niveluri" : "Alege coloana", hint: why || (levels.length ? `Nivelul ${levels.length + 1}: grupează rândurile din fiecare grup.` : "Opțional. Fiecare grup are un rând de subtotal. Poți grupa pe cel mult 3 niveluri, și din lista coloanelor (pasul 2)."), error: e.groupBy, disabled: Boolean(why) });
+    const empty = jump && !levels.length ? `<p class="e-permits-rpt-group-sum__text">${why && v.columns.filter(groupable).length < 2 ? "Fără grupare. Adaugă cel puțin două coloane Text: rândurile se grupează după una și se listează după cealaltă." : `Fără grupare. Apasă ${icon(GROUP_ICON, 16)} la o coloană Text din «Coloanele raportului»: fiecare apăsare adaugă un nivel (cel mult 3), fiecare grup primește un subtotal.`}</p>` : "";
+    const clear = levels.length ? `<button class="btn btn-text-destructive btn-sm" type="button" data-rpt-group-clear>${icon("delete", 16)}<span>Elimină gruparea</span></button>` : "";
+    const body = `<div class="e-permits-rpt-group">${list}${empty}${add ? grid(add) : ""}${clear ? `<div class="e-permits-rpt-group__foot">${clear}</div>` : ""}</div>`;
+    return section("Gruparea rândurilor", body, { meta: levels.length ? plural(levels.length, "nivel", "niveluri") : "", id: `${idp}-group-title` });
   }
   function stepStructure(v, e, idp, { jump = false } = {}) {
     const measures = v.columns.some(isMeasure);
@@ -1134,7 +1147,7 @@
       ],
       columns: v.columns.length ? v.columns.map((c, i) => [`${i + 1}. ${colName(c)}`, esc([KIND_TAG[c.kind]?.[0], ...columnMeta(v, c).map((x) => x.replace(/&[^;]+;/g, (m) => ({ "&amp;": "&", "&lt;": "<", "&gt;": ">", "&quot;": '"', "&#39;": "'" }[m] || m))), c.total === "incl" && isMeasure(c) ? "Inclusiv" : ""].filter(Boolean).join(" · "))]) : [["Coloane", dash]],
       structure: [
-        ["Gruparea rândurilor", levelCols(v).length ? esc(`${levelsText(v)}, cu subtotal pe grup`) : "Fără grupare"],
+        ["Gruparea rândurilor", levelCols(v).length ? esc(`${levelCols(v).map((c, i) => `${i + 1}. ${colName(c)}`).join(" › ")}, cu subtotal ${levelCols(v).length > 1 ? "la fiecare nivel" : "pe grup"}`) : "Fără grupare"],
         ["Filtre", flatConds(v).length ? esc([condsText(v) ? `Condiții: ${condsText(v)}` : "", askConds(v).length ? `La generare: ${askConds(v).map((c) => chipLabel(v, c)).join(", ")}` : "", flatConds(v).some((c) => !condComplete(v, c)) ? "Condiții incomplete" : ""].filter(Boolean).join(" · ")) : "Fără filtre"],
         ["Rândul de total", v.columns.some(isMeasure) && v.totalRow ? "Da" : "Nu"]
       ]
@@ -2250,7 +2263,31 @@
     if (event.type === "dragend") { fltFrom = null; document.querySelectorAll("[data-rpt-ci].is-dragging, [data-rpt-ci].is-drop-target").forEach((r) => r.classList.remove("is-dragging", "is-drop-target")); }
     return Boolean(fltFrom);
   }
+  /* rpt-levels-v2: move a grouping level (↑ ↓ / drag), flash, focus kept, live line */
+  function moveLevel(from, to, how = "arrow", by = 0) {
+    const list = P.draft.groupBy;
+    if (from === to || from < 0 || to < 0 || from >= list.length || to >= list.length) return;
+    const [id] = list.splice(from, 1);
+    list.splice(to, 0, id);
+    const end = by < 0 ? to === 0 : to === list.length - 1;
+    afterColumnsChange(how === "arrow" ? `[data-rpt-level-move="${CSS.escape(`${id}|${end ? -by : by}`)}"]` : "");
+    const row = moveRoot()?.querySelector(`[data-rpt-level="${CSS.escape(id)}"]`);
+    if (row) { row.classList.remove("is-just-moved"); void row.offsetWidth; row.classList.add("is-just-moved"); setTimeout(() => row.classList.remove("is-just-moved"), tokenMs("--motion-duration-lg", 500) * 2); }
+    announce(`${colName(colOf(P.draft, id))}: nivelul ${to + 1} de grupare din ${list.length}.`);
+  }
+  let lvFrom = -1;
+  function onLevelDrag(event) {
+    const row = event.target.closest?.("[data-rpt-level]");
+    if (!row || !inPage(row)) { if (event.type === "dragend") lvFrom = -1; return false; }
+    if (event.type === "dragstart") { lvFrom = Number(row.dataset.index); event.dataTransfer.effectAllowed = "move"; event.dataTransfer.setData("text/plain", `level-${lvFrom}`); row.classList.add("is-dragging"); return true; }
+    if (event.type === "dragover" && lvFrom >= 0) { event.preventDefault(); document.querySelectorAll("[data-rpt-level].is-drop-target").forEach((r) => r.classList.remove("is-drop-target")); row.classList.add("is-drop-target"); return true; }
+    if (event.type === "drop" && lvFrom >= 0) { event.preventDefault(); const from = lvFrom; lvFrom = -1; document.querySelectorAll("[data-rpt-level].is-dragging, [data-rpt-level].is-drop-target").forEach((r) => r.classList.remove("is-dragging", "is-drop-target")); moveLevel(from, Number(row.dataset.index), "drag"); return true; }
+    if (event.type === "dragend") { lvFrom = -1; document.querySelectorAll("[data-rpt-level].is-dragging, [data-rpt-level].is-drop-target").forEach((r) => r.classList.remove("is-dragging", "is-drop-target")); }
+    return lvFrom >= 0;
+  }
   function onDrag(event) {
+    if (event.target.closest?.("[data-rpt-level]") && onLevelDrag(event)) return;
+    if (event.type === "dragend") onLevelDrag(event);
     if (event.target.closest?.("[data-rpt-ci]") && onFilterDrag(event)) return;
     if (event.type === "dragend") onFilterDrag(event);
     const row = event.target.closest?.("[data-rpt-col]");
@@ -2354,14 +2391,18 @@
       if (grp.getAttribute("aria-disabled") === "true") return;
       const id = grp.dataset.rptColGroup;
       const on = !P.draft.groupBy.includes(id);
-      /* one grouping column: another toggle moves it, the pressed one removes it */
-      P.draft.groupBy = on ? [id] : [];
+      /* rpt-levels-v2: a click adds the next level, the pressed one removes its level (the others move up) */
+      P.draft.groupBy = on ? [...P.draft.groupBy, id] : P.draft.groupBy.filter((x) => x !== id);
       delete P.errors.groupBy;
       afterColumnsChange(`[data-rpt-col-group="${CSS.escape(id)}"]`);
-      announce(on ? `Rândurile sunt grupate după ${colName(colOf(P.draft, id))}.` : "Gruparea a fost eliminată.");
+      announce(on ? `${colName(colOf(P.draft, id))}: nivelul ${P.draft.groupBy.length} de grupare.` : `${colName(colOf(P.draft, id))} nu mai grupează rândurile.`);
       return;
     }
     if (t.closest("[data-rpt-group-clear]")) { P.draft.groupBy = []; delete P.errors.groupBy; afterColumnsChange(levelKeep()); announce("Gruparea a fost eliminată."); return; }
+    const lmv = t.closest("[data-rpt-level-move]");
+    if (lmv) { if (lmv.disabled) return; const [id, by] = lmv.dataset.rptLevelMove.split("|"); moveLevel(P.draft.groupBy.indexOf(id), P.draft.groupBy.indexOf(id) + Number(by), "arrow", Number(by)); return; }
+    const lrm = t.closest("[data-rpt-level-remove]");
+    if (lrm) { const id = lrm.dataset.rptLevelRemove; P.draft.groupBy = P.draft.groupBy.filter((x) => x !== id); delete P.errors.groupBy; afterColumnsChange(P.draft.groupBy.length ? "[data-rpt-level-remove]" : levelKeep()); announce(`${colName(colOf(P.draft, id))} nu mai grupează rândurile.`); return; }
     const col = t.closest("[data-rpt-col]");
     if (col && !t.closest("button")) { openColumn(col.dataset.rptCol); return; }
     /* rpt-cond-v1: the condition builder */
@@ -2671,11 +2712,9 @@
       if (part === "value" || part === "value2") { c[part] = el.value; if (condComplete(v, c)) delete P.errors[`filter.${id}.value`]; refreshPreviewOnly(); reheader(); }
       return;
     }
-    if (el.matches("[data-rpt-groupby]")) {
-      v.groupBy = el.value && groupable(colOf(v, el.value)) ? [el.value] : [];
-      delete P.errors.groupBy;
+    if (el.matches("[data-rpt-level-add]")) {
+      if (el.value && groupable(colOf(v, el.value)) && !v.groupBy.includes(el.value) && !groupBlock(v)) { v.groupBy.push(el.value); delete P.errors.groupBy; announce(`${colName(colOf(v, el.value))}: nivelul ${v.groupBy.length} de grupare.`); }
       afterColumnsChange(`#${IDP}-groupby`);
-      announce(v.groupBy.length ? `Rândurile sunt grupate după ${colName(colOf(v, el.value))}.` : "Gruparea a fost eliminată.");
       return;
     }
     /* a global report's authorities: „Toate autoritățile” = none chosen (every authority, also the ones added later);

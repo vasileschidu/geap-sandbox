@@ -421,11 +421,7 @@
   "_buttons": "v2 rule button-size / button-icon-size (major): every visible `.btn` is 32 (Small), 40 (Medium) or 48 (Large) high; its own leading / trailing icon follows css/button-icons.css: 32 → 16, 40 / 48 → 20. `exempt` = library buttons with their own size; `iconExempt` = documented larger icons (phone pills / sheet ×). iconExempt: the phone facet-filter icon-only sort square (48, icon 24 = the icon-only „Filtre” chip next to it — css/facet-filter.css › Phone toolbar, phone-toolbar-v2; components.md „Facet filter · phone toolbar + sheets”).",
   "buttons": {
     "selector": ".btn",
-    "exempt": [
-      ".btn-search",
-      ".btn-badge",
-      ".e-permits-pd__world *"
-    ],
+    "exempt": [".btn-search", ".btn-badge", ".e-permits-pd__world *", ".e-permits-rpt-mover__btn"], "_exempt_rptMover": "Rapoarte reorder stack (rpt-mover-v1, 2026-11-10, user: „smallest size, save space”): ˄ · handle · ˅ = btn-text-neutral btn-sm icon-only at a compact 24 square on desktop (pointer floor 24), library Small 32 on phones; components.md › Reorder stack",
     "heights": [
       32,
       40,

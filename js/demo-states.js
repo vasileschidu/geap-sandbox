@@ -4681,10 +4681,10 @@
       "rpt-03m": list(seq(nou, step1, next, async (h) => { await addKind("calc")(h); await h.find(`${DR} #rpt-c-name-ro`); await h.click(`${DR} [data-rpt-formula-new]`); await h.find("#rpt-fx-name"); })),
       "rpt-03n": list(seq(nou, step1, next, async (h) => { await addKind("calc")(h); await h.find(`${DR} #rpt-c-name-ro`); await h.click(`${DR} [data-rpt-formula-new]`); await h.find("#rpt-fx-name"); await h.click("[data-rpt-fx-confirm]"); })),
       /* 3 Structură: grouping + subtotals, filters, total row; a filter error */
-      "rpt-03o": list(seq(built, byAuth, next, async (h) => { await h.choose(`${C} select[data-rpt-groupby]`, "c6"); await fltAdd(C, "depus")(h); await fltAdd(C, "statut", "multi")(h); })),
+      "rpt-03o": list(seq(built, byAuth, next, async (h) => { await h.choose(`${C} select[data-rpt-level-add]`, "c6"); await fltAdd(C, "depus")(h); await fltAdd(C, "statut", "multi")(h); })),
       "rpt-03p": list(seq(built, next, condAdd(C), next)),
       /* 4 Revizuire; save the draft → the profile */
-      "rpt-03q": list(seq(built, byAuth, next, async (h) => { await h.choose(`${C} select[data-rpt-groupby]`, "c6"); }, next)),
+      "rpt-03q": list(seq(built, byAuth, next, async (h) => { await h.choose(`${C} select[data-rpt-level-add]`, "c6"); }, next)),
       "rpt-03r": list(seq(nou, step1, langs, next, cols, twoLevel, calc, saveCol, next, next, async (h) => { await h.click(`${C} [data-rpt-save]`); await h.find("#rpt-panel"); await h.wait(300); })),
       "rpt-03s": list(seq(nou, step1, async (h) => { await h.click(`${C} [data-rpt-save]`); }), { raport: "eroare" }),
       "rpt-03t": list(seq(nou, step1, async (h) => { await h.click(`${C} .e-permits-reg-editor__close`); await h.find("#service-confirm-modal.is-active [data-service-confirm-ok]"); })),
@@ -4751,14 +4751,20 @@
          the preview stays in view (sticky) */
       "rpt-11a": prof("RPT-0002", "configurare", async (h) => { document.querySelector("#rpt-panel #rpt-e-filters")?.scrollIntoView({ block: "center" }); await h.wait(600); }),
       "rpt-11b": list(seq(built, next)),
-      /* rpt-group-v1: the group toggle on a Text column of the list — just turned on for „Serviciu” (it moved from
-         „Autoritate”: one at a time), turned off (the pressed one again → the summary „Fără grupare”) */
-      "rpt-12a": prof("RPT-0002", "configurare", async (h) => { await h.scroll('#rpt-panel [data-rpt-col="c2"]'); await h.click('#rpt-panel [data-rpt-col-group="c2"]'); await h.wait(400); }),
+      /* rpt-group-v1 → rpt-levels-v2: the group toggle on a Text column of the list — „Autoritate” off, „Serviciu” on (level 1;
+         the other Text column stays free, so its toggle is disabled); turned off (the pressed one again → „Fără grupare”) */
+      "rpt-12a": prof("RPT-0002", "configurare", async (h) => { await h.scroll('#rpt-panel [data-rpt-col="c2"]'); await h.click('#rpt-panel [data-rpt-col-group="c1"]'); await h.wait(300); await h.click('#rpt-panel [data-rpt-col-group="c2"]'); await h.wait(400); }),
       "rpt-12b": prof("RPT-0002", "configurare", async (h) => { await h.click('#rpt-panel [data-rpt-col-group="c1"]'); await h.wait(300); await h.wait(600); }),
-      /* rpt-feature-v1: ONE grouping column (Feature) — RPT-0008 grouped by Autoritate (summary line + group rows with a
-         subtotal each); a grouping toggle focused (its Small tooltip); the create sheet's Structură select (clone) */
-      "rpt-12c": prof("RPT-0008", "configurare", async (h) => { await h.scroll("#rpt-panel #rpt-e-group-title"); await h.wait(400); }),
-      "rpt-12d": prof("RPT-0008", "configurare", async (h) => { const b = await h.find('#rpt-panel [data-rpt-col-group="c2"]'); b.scrollIntoView({ block: "center" }); await h.wait(200); b.focus(); b.dispatchEvent(new MouseEvent("mouseover", { bubbles: true })); b.dispatchEvent(new MouseEvent("mouseenter")); await h.wait(500); }),
+      /* rpt-levels-v2 (PO proposal vs Feature 96502's one column): 3 grouping levels Autoritate › Subdiviziune › Serviciu
+         (rows by Tip solicitare) — the ordered level list + the nested preview (a subtotal per group at every level, Total);
+         the 4th Text column's toggle disabled („Poți grupa pe cel mult 3 niveluri.”, focused → its Small tooltip); the
+         create sheet's Structură step (clone) with the same list; Subdiviziune moved up with ↑ (12f); Serviciu removed
+         with its trash (12g); grouping built by clicking 3 toggles on RPT-0002 (12h) */
+      "rpt-12c": prof("RPT-0008", "configurare", async (h) => { await h.scroll("#rpt-panel [data-rpt-levels]"); await h.wait(400); }),
+      "rpt-12f": prof("RPT-0008", "configurare", async (h) => { await h.scroll("#rpt-panel [data-rpt-levels]"); await h.click('#rpt-panel [data-rpt-level-move="c2|-1"]'); await h.wait(600); }),
+      "rpt-12g": prof("RPT-0008", "configurare", async (h) => { await h.scroll("#rpt-panel [data-rpt-levels]"); await h.click('#rpt-panel [data-rpt-level-remove="c3"]'); await h.wait(600); }),
+      "rpt-12h": prof("RPT-0008", "configurare", async (h) => { await h.scroll("#rpt-panel [data-rpt-group-clear]"); await h.click("#rpt-panel [data-rpt-group-clear]"); await h.wait(300); for (const id of ["c3", "c1", "c2"]) { await h.click(`#rpt-panel [data-rpt-col-group="${id}"]`); await h.wait(300); } await h.scroll('#rpt-panel [data-rpt-col="c1"]'); await h.wait(400); }),
+      "rpt-12d": prof("RPT-0008", "configurare", async (h) => { const b = await h.find('#rpt-panel [data-rpt-col-group="c4"]'); b.scrollIntoView({ block: "center" }); await h.wait(200); b.focus(); b.dispatchEvent(new MouseEvent("mouseover", { bubbles: true })); b.dispatchEvent(new MouseEvent("mouseenter")); await h.wait(500); }),
       "rpt-12e": list(seq(MENU("RPT-0008"), async (h) => { await h.click('[data-rpt-row-clone="RPT-0008"]'); await h.find(`${C} #rpt-e-name-ro`); await h.click(`${C} [data-rpt-goto="3"]`); await h.wait(400); })),
       /* rpt-cond-v1 (PO): the inline condition builder „Unde [Câmp] [Condiție] [Valoare]” with „și / sau” on RPT-0008 — AND rows
          (Autoritate este ANSP și Data depunerii în ultimele 120 zile), OR rows (the connector → „sau”), a group (Autoritate este

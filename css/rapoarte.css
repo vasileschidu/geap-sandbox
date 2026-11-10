@@ -512,21 +512,40 @@
   }
 }
 
-/* ---- rpt-group-v1 (2026-11-10, user; Airtable / Notion „group by” from the field): the group toggle on a Text column of
-   the column list = library `btn btn-text-neutral btn-sm btn-icon-only` + `aria-pressed`; pressed = the brand-secondary
-   fill with the brand icon (hover / active = the brand-secondary steps), the item gets the Small brand tag „Grupare” ---- */
+/* ---- rpt-group-v1 → rpt-levels-v2 (2026-11-10, user; Airtable / Notion „group by” from the field): the group toggle on a
+   Text column of the column list = library `btn btn-text-neutral btn-sm btn-icon-only` + `aria-pressed`; pressed = the
+   NEUTRAL pressed look (user: black, not blue) — grey tertiary fill + the default dark icon + the level number 1 / 2 / 3
+   next to the icon (same 32 / 40 height, widens only by the digit); hover on pressed = the next grey step; focus = the
+   library ring ---- */
 .btn.btn-text-neutral.e-permits-rpt-group-btn[aria-pressed="true"] {
-  background: var(--color-background-brand-secondary, #e8f0fb);
-  color: var(--color-icon-brand-on-secondary, #0058d2);
+  background: var(--color-background-base-tertiary-hover, #d9d9d9);
+  color: var(--color-icon-base-default, #121212);
 }
 
-.btn.btn-text-neutral.e-permits-rpt-group-btn[aria-pressed="true"]:hover {
-  background: var(--color-background-brand-secondary-hover, #ccdef6);
-  color: var(--color-icon-brand-on-secondary, #0058d2);
+.btn.btn-text-neutral.e-permits-rpt-group-btn[aria-pressed="true"]:hover:not(:disabled),
+.btn.btn-text-neutral.e-permits-rpt-group-btn[aria-pressed="true"]:active:not(:disabled) {
+  background: var(--color-background-base-tertiary-active, #b2b2b2);
+  color: var(--color-icon-base-default, #121212);
 }
 
-.btn.btn-text-neutral.e-permits-rpt-group-btn[aria-pressed="true"]:active {
-  background: var(--color-background-brand-secondary-active, #99bced);
+/* a pressed toggle is not an open menu: no ring at rest (the shell's `.btn[aria-pressed="true"]` ring), the library ring
+   only on keyboard focus (as the Process Designer toolbar toggles) */
+.btn.e-permits-rpt-group-btn[aria-pressed="true"]:not(:disabled):not(:focus-visible) {
+  box-shadow: none;
+}
+
+.btn.btn-sm.btn-icon-only.e-permits-rpt-group-btn.has-level {
+  flex: 0 0 auto;
+  gap: var(--spacing-2, 2px);
+  min-width: var(--spacing-32, 32px);
+  padding-inline: var(--spacing-6, 6px);
+  width: auto;
+}
+
+.e-permits-rpt-group-btn__n {
+  font-size: var(--font-size-fs-14, 14px);
+  font-weight: var(--font-weight-fw-semibold, 600);
+  line-height: var(--line-height-lh-20, 20px);
 }
 
 /* the profile's „Gruparea rândurilor” = one summary line (the toggle lives in the column list) + „Elimină gruparea” */
@@ -756,11 +775,123 @@
   padding-right: var(--spacing-12, 12px);
 }
 
-/* ---- the preview table's group rows (rpt-levels-v1 → rpt-feature-v1: ONE grouping column, Feature model): the group
-   label row = 14/20 semibold (set with its fill above, hover included — rpt-hover-fix-v1: a separate .is-l1 rule lost to
-   the :hover rule and the label shrank on hover), its subtotal row semibold ---- */
+/* ---- the preview table's group rows (rpt-levels-v1 → v2, up to 3 levels): level-1 label row = 14/20 semibold (with its
+   fill above, hover included — rpt-hover-fix-v1), deeper levels 12/16 medium (hover included); labels + their subtotals
+   indent 16 per level (the card's inset + 16 × (level − 1)); the level-1 subtotal semibold ---- */
 .e-permits-rpt-table tr.e-permits-rpt-table__subtotal.is-l1 > td {
   font-weight: var(--font-weight-fw-semibold, 600);
+}
+
+.e-permits-wid-table--agg.e-permits-rpt-table tr.e-permits-rpt-table__group:is(.is-l2, .is-l3) > th,
+.e-permits-wid-table--agg.e-permits-rpt-table tbody tr.e-permits-rpt-table__group:is(.is-l2, .is-l3):hover > th {
+  font-size: var(--font-size-fs-12, 12px);
+  font-weight: var(--font-weight-fw-medium, 500);
+  line-height: var(--line-height-lh-16, 16px);
+}
+
+.e-permits-rpt-card .e-permits-workplace__table.e-permits-rpt-table tr.e-permits-rpt-table__group.is-l2 > th,
+.e-permits-rpt-card .e-permits-workplace__table.e-permits-rpt-table tr.e-permits-rpt-table__subtotal.is-l2 > td.e-permits-rpt-table__label.is-c0 {
+  padding-left: calc(var(--spacing-24, 24px) + var(--spacing-16, 16px));
+}
+
+.e-permits-rpt-card .e-permits-workplace__table.e-permits-rpt-table tr.e-permits-rpt-table__group.is-l3 > th,
+.e-permits-rpt-card .e-permits-workplace__table.e-permits-rpt-table tr.e-permits-rpt-table__subtotal.is-l3 > td.e-permits-rpt-table__label.is-c0 {
+  padding-left: calc(var(--spacing-24, 24px) + var(--spacing-32, 32px));
+}
+
+.e-permits-reg-modal--rpt-zoom .e-permits-rpt-card .e-permits-workplace__table.e-permits-rpt-table tr.e-permits-rpt-table__group.is-l2 > th,
+.e-permits-reg-modal--rpt-zoom .e-permits-rpt-card .e-permits-workplace__table.e-permits-rpt-table tr.e-permits-rpt-table__subtotal.is-l2 > td.e-permits-rpt-table__label.is-c0 {
+  padding-left: calc(var(--spacing-12, 12px) + var(--spacing-16, 16px));
+}
+
+.e-permits-reg-modal--rpt-zoom .e-permits-rpt-card .e-permits-workplace__table.e-permits-rpt-table tr.e-permits-rpt-table__group.is-l3 > th,
+.e-permits-reg-modal--rpt-zoom .e-permits-rpt-card .e-permits-workplace__table.e-permits-rpt-table tr.e-permits-rpt-table__subtotal.is-l3 > td.e-permits-rpt-table__label.is-c0 {
+  padding-left: calc(var(--spacing-12, 12px) + var(--spacing-32, 32px));
+}
+
+/* ---- rpt-levels-v2 (restored from rpt-levels-v1 910b8635; PROPOSAL FOR PO vs Feature 96502's one grouping column):
+   „Gruparea rândurilor” = the ordered level list — each level a row on the shared hover surface (padding 8 16, r12),
+   order lead (drag handle + level number) · column name · ↑ ↓ + red trash, indented 16 per level like the table ---- */
+.e-permits-rpt-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-16, 16px);
+}
+
+.e-permits-rpt-levels {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-0, 0px);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.e-permits-rpt-level {
+  align-items: center;
+  border-radius: var(--border-radius-12, 12px);
+  cursor: grab;
+  display: flex;
+  gap: var(--spacing-12, 12px);
+  min-width: 0;
+  padding: var(--spacing-8, 8px) var(--spacing-16, 16px);
+}
+
+.e-permits-rpt-level.is-l2 {
+  margin-left: var(--spacing-16, 16px);
+}
+
+.e-permits-rpt-level.is-l3 {
+  margin-left: var(--spacing-32, 32px);
+}
+
+.e-permits-rpt-level__name {
+  color: var(--color-text-base-default, #121212);
+  flex: 1 1 auto;
+  font-size: var(--font-size-fs-14, 14px);
+  font-weight: var(--font-weight-fw-medium, 500);
+  line-height: var(--line-height-lh-20, 20px);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.e-permits-rpt-level__actions {
+  display: flex;
+  flex: 0 0 auto;
+  gap: var(--spacing-4, 4px);
+}
+
+.e-permits-rpt-level.is-dragging {
+  opacity: 0.5;
+}
+
+.e-permits-rpt-level.is-drop-target {
+  box-shadow: inset 0 var(--spacing-2, 2px) 0 var(--color-border-brand-default, #0058d2);
+}
+
+.e-permits-rpt-level.is-just-moved {
+  animation: e-permits-rpt-moved var(--motion-duration-lg, 0.5s) var(--motion-easing-decelerate, ease-out) var(--motion-duration-md, 0.3s) backwards;
+}
+
+.e-permits-rpt-group__foot {
+  display: flex;
+}
+
+@media (max-width: 760px) {
+  .e-permits-rpt-level__name {
+    font-size: var(--font-size-fs-16, 16px);
+    line-height: var(--line-height-lh-24, 24px);
+  }
+
+  .e-permits-rpt-level.is-l2 {
+    margin-left: var(--spacing-8, 8px);
+  }
+
+  .e-permits-rpt-level.is-l3 {
+    margin-left: var(--spacing-16, 16px);
+  }
 }
 
 /* the merged label cell of a subtotal / total row spans the leading text columns: no single-column cap */
@@ -833,8 +964,7 @@
   padding: 0;
 }
 
-/* rpt-cond-v3 (2026-11-10, user review): the header (handle · number · ↑ ↓ 🗑) is the TOP row, „Afișează filtru” the
-   last; no inner padding — the grey hover surface is drawn OUTSIDE (outset 8) so the connector, header and inputs share
+/* rpt-cond-v3 (2026-11-10, user review): the header (handle · number · „Afișează filtru” · ↑ ↓ 🗑, v4) is the TOP row; no inner padding — the grey hover surface is drawn OUTSIDE (outset 8) so the connector, header and inputs share
    the column's left edge; the connector stays 16 above (8 clear of the surface) */
 .e-permits-rpt-cond__head {
   align-items: center;
@@ -893,10 +1023,12 @@
   white-space: nowrap;
 }
 
-.e-permits-rpt-cond__foot {
+/* rpt-cond-v4 (2026-11-10, user): „Afișează filtru” sits on the header line right after the number:
+   handle · number · ☐ Afișează filtru · (spacer) · ↑ ↓ 🗑, all centred; no bottom checkbox line */
+.e-permits-rpt-cond__ask {
   align-items: center;
   display: flex;
-  grid-column: 1 / -1;
+  min-width: 0;
 }
 
 .e-permits-rpt-cond__actions {
@@ -1037,11 +1169,45 @@
   }
 }
 
-/* rpt-col-icon-v1 (2026-11-10, user): a column item's lead icon (library icon-columns, small 16 next to the 14 title, tertiary)
-   sits before the name on the title line */
-.e-permits-stack__title > svg.icon.e-permits-rpt-col-icon {
-  color: var(--color-text-base-tertiary, #757575);
-  flex: none;
-  margin-inline-end: var(--spacing-8, 8px);
-  vertical-align: middle;
+/* ---- rpt-mover-v1 (2026-11-10, user: „save space”): the reorder control on the LEFT of a column item / condition / group /
+   grouping level = a vertical stack ˄ · drag handle · ˅ + the position number; the chevrons = library
+   `btn btn-text-neutral btn-sm btn-icon-only` at the compact 24 square (phones 32, the touch floor), chevron 16 in the
+   tertiary icon colour (dark on hover), library hover / focus ring / disabled; ↑ ↓ no longer sit with the row actions ---- */
+.e-permits-rpt-order {
+  align-items: center;
+  gap: var(--spacing-8, 8px);
 }
+
+.e-permits-rpt-mover {
+  align-items: center;
+  display: inline-flex;
+  flex-direction: column;
+  gap: var(--spacing-0, 0px);
+}
+
+.btn.btn-sm.btn-icon-only.e-permits-rpt-mover__btn {
+  border-radius: var(--border-radius-8, 8px);
+  color: var(--color-icon-base-tertiary, #9e9e9e);
+  flex: 0 0 var(--spacing-24, 24px);
+  height: var(--spacing-24, 24px);
+  width: var(--spacing-24, 24px);
+}
+
+.btn.btn-sm.btn-icon-only.e-permits-rpt-mover__btn:hover:not(:disabled) {
+  color: var(--color-icon-base-default, #121212);
+}
+
+.btn.btn-sm.btn-icon-only.e-permits-rpt-mover__btn:disabled {
+  background: transparent;
+  border-color: transparent;
+  color: var(--color-icon-disabled-on-disabled, #b2b2b2);
+}
+
+@media (max-width: 760px) {
+  .btn.btn-sm.btn-icon-only.e-permits-rpt-mover__btn {
+    flex-basis: var(--spacing-32, 32px);
+    height: var(--spacing-32, 32px);
+    width: var(--spacing-32, 32px);
+  }
+}
+
