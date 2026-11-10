@@ -137,13 +137,17 @@
   grid-template-columns: minmax(0, 1fr);
 }
 
-/* rpt-filter-hover-v1: the shared grey hover surface (.e-permits-hover-surface, hover / focus-within, kept while dragging);
-   inner padding 8 / 16 so the grey never touches the controls, the negative margin keeps the content where it was; the left guide line stays */
+/* rpt-filter-hover-v1 / v2 (user: „even padding all around, more spacing from «și»”): the shared grey hover surface
+   (.e-permits-hover-surface, hover / focus-within, kept while dragging); the row has the SAME 16 padding on all four sides
+   (always there — only the surface fades in, content never moves), no negative margins (the grey stays inside the guide
+   line and the card); the „și” connector has its own 8 above and below, outside the surface. */
 .e-permits-doc-cond.e-permits-rpt-filter {
   border-radius: 0 var(--border-radius-16, 16px) var(--border-radius-16, 16px) 0;
-  margin-block: calc(var(--spacing-8, 8px) * -1);
-  margin-right: calc(var(--spacing-16, 16px) * -1);
-  padding: var(--spacing-8, 8px) var(--spacing-16, 16px) var(--spacing-8, 8px) var(--spacing-16, 16px);
+  padding: var(--spacing-16, 16px);
+}
+
+.e-permits-rpt-filters .e-permits-doc-cond__join {
+  margin-block: var(--spacing-8, 8px);
 }
 
 .e-permits-doc-cond.e-permits-rpt-filter.is-dragging::before {
