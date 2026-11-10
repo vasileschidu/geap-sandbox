@@ -1440,7 +1440,39 @@
     act = { kind, tile, grid, id: tile.dataset.dshTile, offX: x - r.left, offY: y - r.top, z: zoomOf(tile), width: t.width, height: t.height, chrome: (card?.getBoundingClientRect().height || 0) - PLOT[t.height] * unit * zoomOf(tile), unit };
     grid.classList.add("is-arranging");
     tile.classList.add(kind === "move" ? "is-lifted" : "is-resizing");
+    if (kind === "move") {
+      /* the drag ghost = a copy of the card + its controls in a fixed top layer on <body>: above the BO sidebar / top bar,
+         never clipped by the canvas or the panel; the tile underneath keeps only its grey surface = the drop slot */
+      const ghost = document.createElement("div");
+      ghost.className = "e-permits-dsh-drag-ghost";
+      ghost.setAttribute("aria-hidden", "true");
+      ghost.innerHTML = [...tile.children].filter((c) => !c.matches(".e-permits-dsh-tile__size")).map((c) => c.outerHTML).join("").replace(/\sid="[^"]*"/g, "");
+      ghost.style.setProperty("--dsh-gw", `${r.width}px`);
+      document.body.appendChild(ghost);
+      act.ghost = ghost;
+      placeGhost(x, y);
+    }
     if (kind === "resize") showTarget();
+  }
+  const placeGhost = (x, y) => { if (!act?.ghost) return; act.ghost.style.setProperty("--dsh-gx", `${x - act.offX}px`); act.ghost.style.setProperty("--dsh-gy", `${y - act.offY}px`); };
+  /* auto-scroll while dragging near the top / bottom of the viewport (the panel / sheet scroller or the page) */
+  const EDGE = 72;
+  function scrollerOf(el) {
+    for (let n = el.parentElement; n && n !== document.body; n = n.parentElement) {
+      const o = getComputedStyle(n).overflowY;
+      if ((o === "auto" || o === "scroll") && n.scrollHeight > n.clientHeight) return n;
+    }
+    return document.scrollingElement || document.documentElement;
+  }
+  function autoScroll() {
+    if (!act || act.kind !== "move" || !act.last) return;
+    const { x, y } = act.last;
+    const box = act.scroller === (document.scrollingElement || document.documentElement) ? { top: 0, bottom: window.innerHeight } : act.scroller.getBoundingClientRect();
+    const top = Math.max(box.top, 0);
+    const bottom = Math.min(box.bottom, window.innerHeight);
+    const dy = y < top + EDGE ? -Math.ceil((top + EDGE - y) / 4) : y > bottom - EDGE ? Math.ceil((y - (bottom - EDGE)) / 4) : 0;
+    if (dy) { act.scroller.scrollTop += dy; dragTo(x, y); }
+    act.raf = requestAnimationFrame(autoScroll);
   }
   function showTarget() {
     const a = act;
@@ -1466,9 +1498,9 @@
     if (idx !== tiles.indexOf(a.tile)) {
       flipTiles(a.grid, () => { a.grid.insertBefore(a.tile, others[idx] || a.grid.querySelector(":scope > .e-permits-dsh-ghost")); }, a.tile);
     }
-    const slot = a.tile.getBoundingClientRect();
-    a.tile.style.setProperty("--dsh-dx", `${(x - a.offX - slot.left) / a.z}px`);
-    a.tile.style.setProperty("--dsh-dy", `${(y - a.offY - slot.top) / a.z}px`);
+    a.last = { x, y };
+    placeGhost(x, y);
+    if (!a.raf) { a.scroller = scrollerOf(a.grid); a.raf = requestAnimationFrame(autoScroll); }
   }
   function resizeTo(x, y) {
     const a = act;
@@ -1494,8 +1526,8 @@
     if (!a) return;
     a.grid.classList.remove("is-arranging");
     a.tile.classList.remove("is-lifted", "is-resizing");
-    a.tile.style.removeProperty("--dsh-dx");
-    a.tile.style.removeProperty("--dsh-dy");
+    a.ghost?.remove();
+    if (a.raf) cancelAnimationFrame(a.raf);
     if (!commit) { rerender({ keep: `[data-dsh-tile="${CSS.escape(a.id)}"]` }); return; }
     if (a.kind === "move") {
       const order = tilesOf(a.grid).map((t) => t.dataset.dshTile);
@@ -1541,8 +1573,8 @@
       startArrange(tile, "move", r.left + 40, r.top + 20);
       const others = tilesOf(act.grid).filter((t) => t !== tile);
       act.grid.insertBefore(tile, others[to] || act.grid.querySelector(":scope > .e-permits-dsh-ghost"));
-      tile.style.setProperty("--dsh-dx", `${dx}px`);
-      tile.style.setProperty("--dsh-dy", `${dy}px`);
+      const slot = tile.getBoundingClientRect();
+      placeGhost(slot.left + 40 + dx, slot.top + 20 + dy);
     },
     resize(id, width, height) {
       const tile = tileEl(id);

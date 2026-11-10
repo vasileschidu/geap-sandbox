@@ -12531,7 +12531,7 @@ his authority + only the widgets it may use). Every operation → the dashboard'
   WYSIWYG canvas = the final dashboard; read-only places (local admin, Revizuire) use the same renderer with editing off.
   dash-v4 (user, same day): ONLY the widgets — the v3 skeleton of the end-user shell and its 1440 `zoom` were removed; the
   canvas `.e-permits-dsh-stage` renders at the available width (column fractions = production), pointer deltas are screen
-  px. Verified with trusted CDP mouse events (handle drag 3rd → 1st; corner resize ½ Medie → 8/12 Mare): both land. Grid =
+  px. Verified with trusted CDP mouse events (handle drag 3rd → 1st; corner resize ½ Medie → 8/12 Mare): both land. Drag ghost (dash-v6) = `.e-permits-dsh-drag-ghost`, a copy of the card + its controls in a fixed layer on `<body>` (z 990: above the BO sidebar / top bar and the create sheet 950, under dialogs 1000), the tile keeps only its grey surface as the slot; auto-scroll within 72 of the scroller's top / bottom edge (the panel / sheet scroller or the page). Verified: far-left drop above the sidebar, bottom-edge auto-scroll 1427 → 2597. Grid =
   `.e-permits-dsh-grid` 12 columns gap 16, reading order = widget order, widths 4 · 6 · 8 · 12 (`--third|half|twoThirds|full`),
   `.e-permits-dsh-guides` = 12 grey column bars shown only while dragging / resizing (`.is-arranging`), the target columns
   brand-secondary. Tile `.e-permits-dsh-tile.is-editable.e-permits-hover-surface` (r24, outset 8 → 8 to the neighbours;

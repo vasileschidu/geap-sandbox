@@ -243,9 +243,30 @@
   z-index: 3;
 }
 
-/* the card AND its controls move together (they are children of the dragged tile, translated by the same delta) */
-.e-permits-dsh-tile.is-editable.is-lifted > :is(.e-permits-wid-card, .e-permits-dsh-tile__tools, .e-permits-dsh-tile__resize) {
-  transform: translate(var(--dsh-dx, 0px), var(--dsh-dy, 0px));
+/* the lifted tile keeps only its grey surface (the drop slot); the card + its controls travel in the drag ghost */
+.e-permits-dsh-tile.is-editable.is-lifted > :is(.e-permits-wid-card, .e-permits-dsh-tile__tools, .e-permits-dsh-tile__resize, .e-permits-dsh-tile__off) {
+  visibility: hidden;
+}
+
+/* the drag ghost: a fixed top layer on <body> (above the BO sidebar / top bar, under dialogs), never clipped */
+.e-permits-dsh-drag-ghost {
+  cursor: grabbing;
+  left: 0;
+  pointer-events: none;
+  position: fixed;
+  top: 0;
+  transform: translate(var(--dsh-gx, 0px), var(--dsh-gy, 0px));
+  width: var(--dsh-gw, auto);
+  z-index: 990;
+}
+
+.e-permits-dsh-drag-ghost > .e-permits-wid-card {
+  box-shadow: var(--drop-shadow-400);
+  width: 100%;
+}
+
+.e-permits-dsh-drag-ghost > :is(.e-permits-dsh-tile__tools, .e-permits-dsh-tile__resize) {
+  opacity: 1;
 }
 
 /* while arranging, only the widget being moved / resized shows its controls and grey surface — none left behind on the
@@ -260,10 +281,6 @@
 }
 
 
-.e-permits-dsh-tile.is-lifted > .e-permits-wid-card {
-  box-shadow: var(--drop-shadow-400);
-  cursor: grabbing;
-}
 
 .e-permits-dsh-tile.is-flipping {
   transform: translate(var(--dsh-fx, 0px), var(--dsh-fy, 0px));
