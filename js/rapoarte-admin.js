@@ -784,18 +784,31 @@
     const fields = fieldsOf(v.source).filter((f) => (FILTER_SUPPORT[f.type] || []).length);
     const sel = (id, attrs, placeholder, opts, value, { error = false, lbl = "" } = {}) => U().renderFoSelectControl?.({ id, attrs, error, label: lbl, optionsHtml: `<option value=""${value ? "" : " selected"} disabled>${esc(placeholder)}</option>${opts.map(([val, l]) => `<option value="${esc(val)}"${val === value ? " selected" : ""}>${esc(l)}</option>`).join("")}` }) || "";
     const add = `<button class="btn btn-secondary btn-sm" type="button" data-rpt-filter-add${v.source ? "" : ' aria-disabled="true" data-tooltip-reason="Alege mai întâi sursa de date."'}>${icon("plus-large", 16)}<span>Adaugă filtru</span></button>`;
+    const live = liveFilters(v);
     if (!v.filters.length) return E()?.render({ title: "Fără filtre", text: "Raportul se generează pe toate înregistrările sursei. Adaugă filtre pe câmpurile filtrabile: Text, Alegere unică, Alegere multiplă sau Interval de date.", icon: "filter", compact: true, actionHtml: add }) || "";
     return `
       <div class="e-permits-doc-rule e-permits-reg-editor__rule e-permits-rpt-filters">
         <div class="e-permits-doc-rule__when">${kw("Filtre la generare")}</div>
-        <ol class="e-permits-doc-rule__conds" role="list">${v.filters.map((f, i) => {
+        <ol class="e-permits-doc-rule__conds" role="list" data-rpt-flts>${v.filters.map((f, i) => {
           const err = e[`filter.${i}`];
           const types = f.field ? FILTER_TYPES.filter(([k]) => supportOf(v, f.field).includes(k)) : FILTER_TYPES;
-          return `${i ? `<li class="e-permits-doc-cond__join">${kw("și")}</li>` : ""}
-            <li class="e-permits-doc-cond e-permits-rpt-filter">
+          const name = fieldOf(v.source, f.field)?.label || `Filtrul ${i + 1}`;
+          const pos = live.indexOf(f);
+          /* rpt-filter-order-v1: the order = the chips' order above the preview — the first 4 are chips, the rest wait in
+             „Mai multe” (the item says so); drag the item (handle) or ↑ ↓, the same FLIP slide as the columns */
+          return `${i ? `<li class="e-permits-doc-cond__join" aria-hidden="true">${kw("și")}</li>` : ""}
+            <li class="e-permits-doc-cond e-permits-rpt-filter" draggable="true" data-rpt-flt="${i}" data-index="${i}">
+              <div class="e-permits-rpt-filter__head">
+                ${orderLead(i + 1)}
+                ${pos >= 4 ? tag("În «Mai multe»", "neutral") : ""}
+                <span class="e-permits-rpt-filter__actions">
+                  <button class="btn btn-strict btn-sm btn-icon-only" type="button" aria-label="Mută filtrul „${esc(name)}” mai sus" data-tooltip-label="Mută mai sus" data-rpt-flt-move="${i}|-1"${i === 0 ? " disabled" : ""}>${icon("arrow-up", 16)}</button>
+                  <button class="btn btn-strict btn-sm btn-icon-only" type="button" aria-label="Mută filtrul „${esc(name)}” mai jos" data-tooltip-label="Mută mai jos" data-rpt-flt-move="${i}|1"${i === v.filters.length - 1 ? " disabled" : ""}>${icon("arrow-down", 16)}</button>
+                  <button class="btn btn-text-destructive btn-sm btn-icon-only" type="button" aria-label="Elimină filtrul „${esc(name)}”" data-tooltip-label="Elimină filtrul" data-rpt-filter-remove="${i}">${icon("delete", 16)}</button>
+                </span>
+              </div>
               <div class="e-permits-doc-cond__cell">${sel(`${idp}-filter-field-${i}`, `data-rpt-filter="${i}" data-rpt-filter-part="field"`, "Câmpul", fields.map((x) => [x.key, x.label]), f.field, { error: Boolean(err) && !f.field, lbl: `Câmpul filtrului ${i + 1}` })}</div>
               <div class="e-permits-doc-cond__cell">${sel(`${idp}-filter-type-${i}`, `data-rpt-filter="${i}" data-rpt-filter-part="type"`, "Tipul filtrului", types, f.type, { error: Boolean(err) && Boolean(f.field), lbl: `Tipul filtrului ${i + 1}` })}${err ? errorHtml(`${idp}-filter-${i}`, err) : ""}</div>
-              <button class="btn btn-text-destructive btn-sm btn-icon-only e-permits-doc-cond__remove" type="button" aria-label="Elimină filtrul ${i + 1}" data-tooltip-label="Elimină filtrul" data-rpt-filter-remove="${i}">${icon("delete", 16)}</button>
             </li>`;
         }).join("")}</ol>
         <div class="e-permits-doc-rule__foot">${add}</div>
@@ -818,6 +831,7 @@
         selectField(`${idp}-groupby`, 'data-rpt-field="groupBy"', "Grupează rândurile după", [["", "Fără grupare"], ...groupCols.map((c) => [c.id, colName(c)])], v.groupBy, { span: 12, hint: canGroup ? "Opțional. Fiecare grup are un rând de subtotal. Poți grupa și din lista coloanelor (pasul 2)." : "Adaugă cel puțin două coloane Text: rândurile se grupează după una și se listează după cealaltă.", error: e.groupBy, disabled: !canGroup && !v.groupBy })
       ), { anchor: jump ? "group" : "" })}
       ${section("Filtre", filterRows(v, e, idp), { anchor: jump ? "filters" : "" })}
+      ${v.filters.length ? U().renderInfoNote?.("Trage un filtru de mâner (sau folosește ↑ ↓) ca să-l muți. Primele 4 filtre apar ca butoane; restul, în «Mai multe».") || "" : ""}
       ${section("Rândul de total", grid(full(U().renderToggle?.({
         label: "Rândul de total",
         description: measures ? "Implicit «Da» când raportul are coloane numerice sau valorice. Coloanele calculate se recalculează pe totaluri." : "Raportul nu are coloane numerice sau valorice: nu are ce aduna.",
@@ -1201,7 +1215,6 @@
         </div>
       </div>`);
     sheet = document.querySelector("[data-rpt-editor]");
-    ["dragstart", "dragover", "drop", "dragend"].forEach((type) => document.addEventListener(type, onDrag));
     window.addEventListener("keydown", (event) => {
       if (event.key !== "Escape" || !creating()) return;
       if (document.querySelector(".modal-overlay.is-active, [data-stack-menu]:not([hidden]), .e-permits-fo-select__list:not([hidden])")) return;
@@ -1828,7 +1841,65 @@
   const inPage = (el) => { if (inSheet(el)) return Boolean(P.draft); const root = profileRoot(); return Boolean(root && root.contains(el) && P.draft && editable()); };
   const move = (list, id, by) => { const i = list.findIndex((x) => x.id === id); const j = i + by; if (i < 0 || j < 0 || j >= list.length) return false; [list[i], list[j]] = [list[j], list[i]]; return true; };
   let dragFrom = -1;
+  /* rpt-filter-order-v1: move a filter (↑ ↓ / drag) — its field errors move with it; FLIP slide + flash + live line */
+  function moveFilter(from, to, keep) {
+    const list = P.draft.filters;
+    if (from === to || from < 0 || to < 0 || from >= list.length || to >= list.length) return;
+    const before = snapFilters();
+    const errs = list.map((_, i) => P.errors[`filter.${i}`]);
+    const [moved] = list.splice(from, 1);
+    list.splice(to, 0, moved);
+    const [err] = errs.splice(from, 1);
+    errs.splice(to, 0, err);
+    errs.forEach((x, i) => { if (x) P.errors[`filter.${i}`] = x; else delete P.errors[`filter.${i}`]; });
+    rerender({ keep: typeof keep === "function" ? keep(to) : keep });
+    reheader();
+    playFilters(before, moved);
+  }
+  function snapFilters() {
+    const root = moveRoot();
+    const out = new Map();
+    root?.querySelectorAll("[data-rpt-flt]").forEach((el) => { const f = P.draft.filters[Number(el.dataset.index)]; if (f) out.set(f, el.getBoundingClientRect().top); });
+    return out;
+  }
+  function playFilters(before, moved) {
+    const root = moveRoot();
+    if (!root || !before) return;
+    const opts = { duration: tokenMs("--motion-duration-md", 300), easing: tokenEase() };
+    root.querySelectorAll("[data-rpt-flt]").forEach((el) => {
+      const f = P.draft.filters[Number(el.dataset.index)];
+      const top = before.get(f);
+      const dy = top == null ? 0 : top - el.getBoundingClientRect().top;
+      if (motionOk() && Math.abs(dy) > 0.5) el.animate([{ transform: `translateY(${dy}px)` }, { transform: "none" }], opts);
+      if (f === moved) { el.classList.remove("is-just-moved"); void el.offsetWidth; el.classList.add("is-just-moved"); setTimeout(() => el.classList.remove("is-just-moved"), tokenMs("--motion-duration-lg", 500) * 2); }
+    });
+    const i = P.draft.filters.indexOf(moved);
+    const name = fieldOf(P.draft.source, moved.field)?.label || "Filtrul";
+    if (i > -1) announce(`${name} mutat pe poziția ${i + 1} din ${P.draft.filters.length}.`);
+  }
+  let fltFrom = -1;
+  function onFilterDrag(event) {
+    const row = event.target.closest?.("[data-rpt-flt]");
+    if (!row || !inPage(row)) { if (event.type === "dragend") fltFrom = -1; return false; }
+    if (event.type === "dragstart") {
+      /* a drag that starts inside a field (selecting text) is not a move */
+      if (event.target.closest?.("input, textarea")) { event.preventDefault(); return true; }
+      fltFrom = Number(row.dataset.index); event.dataTransfer.effectAllowed = "move"; event.dataTransfer.setData("text/plain", `filter-${fltFrom}`); row.classList.add("is-dragging"); return true;
+    }
+    if (event.type === "dragover" && fltFrom >= 0) { event.preventDefault(); document.querySelectorAll("[data-rpt-flt].is-drop-target").forEach((r) => r.classList.remove("is-drop-target")); row.classList.add("is-drop-target"); return true; }
+    if (event.type === "drop" && fltFrom >= 0) {
+      event.preventDefault();
+      const from = fltFrom;
+      fltFrom = -1;
+      moveFilter(from, Number(row.dataset.index), (to) => `[data-rpt-flt="${to}"]`);
+      return true;
+    }
+    if (event.type === "dragend") { fltFrom = -1; document.querySelectorAll("[data-rpt-flt].is-dragging, [data-rpt-flt].is-drop-target").forEach((r) => r.classList.remove("is-dragging", "is-drop-target")); }
+    return fltFrom >= 0;
+  }
   function onDrag(event) {
+    if (event.target.closest?.("[data-rpt-flt]") && onFilterDrag(event)) return;
+    if (event.type === "dragend") onFilterDrag(event);
     const row = event.target.closest?.("[data-rpt-col]");
     if (!row || !inPage(row)) { if (event.type === "dragend") dragFrom = -1; return; }
     if (event.type === "dragstart") { dragFrom = Number(row.dataset.index); event.dataTransfer.effectAllowed = "move"; event.dataTransfer.setData("text/plain", row.dataset.rptCol); row.classList.add("is-dragging"); return; }
@@ -1846,6 +1917,9 @@
     }
     if (event.type === "dragend") { dragFrom = -1; document.querySelectorAll("[data-rpt-col].is-dragging, [data-rpt-col].is-drop-target").forEach((r) => r.classList.remove("is-dragging", "is-drop-target")); }
   }
+  /* drag-and-drop of columns / filters: on the document from the start (it used to be wired when the create sheet was
+     first built — on a profile opened directly the drag did nothing) */
+  ["dragstart", "dragover", "drop", "dragend"].forEach((type) => document.addEventListener(type, onDrag));
   document.addEventListener("click", (event) => {
     const t = event.target;
     if (!t.closest) return;
@@ -1917,6 +1991,14 @@
     if (col && !t.closest("button")) { openColumn(col.dataset.rptCol); return; }
     const fadd = t.closest("[data-rpt-filter-add]");
     if (fadd) { if (fadd.getAttribute("aria-disabled") !== "true") { P.draft.filters.push({ field: "", type: "" }); rerender({ keep: `#${IDP}-filter-field-${P.draft.filters.length - 1}` }); refreshPreviewOnly(); } return; }
+    const fmv = t.closest("[data-rpt-flt-move]");
+    if (fmv) {
+      const [i, by] = fmv.dataset.rptFltMove.split("|").map(Number);
+      const to = i + by;
+      const end = by < 0 ? to === 0 : to === P.draft.filters.length - 1;
+      moveFilter(i, to, `[data-rpt-flt-move="${to}|${end ? -by : by}"]`);
+      return;
+    }
     const frm = t.closest("[data-rpt-filter-remove]");
     if (frm) { P.draft.filters.splice(Number(frm.dataset.rptFilterRemove), 1); Object.keys(P.errors).filter((k) => k.startsWith("filter.")).forEach((k) => delete P.errors[k]); rerender({ keep: "[data-rpt-filter-add]" }); reheader(); }
   });

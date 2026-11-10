@@ -12479,6 +12479,18 @@ Autoritate (one or more authorities). **Reuse map** (no new engine):
   „Mărește” dialog, the version window) = no chips: the foot line lists the filters and „Aplicate în previzualizare: …”
   (the library chip has no disabled look). Demo rpt-13a (6 filters → 4 chips + „Mai multe”), rpt-13b (Autoritate applied
   + the „Canal” radio popover open; 375 = the sheet), rpt-13c (no match), rpt-13d („Mai multe” open).
+- **Filter order (rpt-filter-order-v1, 2026-11-10, user)** — a filter row of the rule builder =
+  `li.e-permits-doc-cond.e-permits-rpt-filter[draggable][data-rpt-flt][data-index]` with a head line
+  `.e-permits-rpt-filter__head` (the column list's order lead `.e-permits-ekcfg-order` = handle + position · Small neutral
+  tag „În «Mai multe»” from the 5th complete filter · `.e-permits-rpt-filter__actions` = ↑ ↓ `btn-strict` + 🗑
+  `btn-text-destructive`, all `btn-sm btn-icon-only` with Small tooltips) over the field and the type selects at full width
+  (the narrow 4/12 column). Drag (handle / row; is-dragging 0.5 · drop line = the stack drop target) or ↑ ↓ reorder with the
+  columns' FLIP slide (motion tokens, reduced motion = the flash only), the moved row flashes, focus stays on the same arrow
+  (at an end: the other one), a polite live line „<Câmp> mutat pe poziția N din M.”; field errors move with their row. The
+  order = the chips' order above the preview (the first 4 visible). Info note under the section: „Trage un filtru de mâner
+  (sau folosește ↑ ↓) ca să-l muți. Primele 4 filtre apar ca butoane; restul, în «Mai multe».” Drag listeners are on the
+  document from the start (the profile drag of columns used to work only after the create sheet had been opened). Demo
+  rpt-14a („Subdiviziune” ↑ ↑ → 4th chip).
 - **Part 2 hooks** (`window.GEAPRapoarte.hooks`): `publish`, `headerActions`, `headerMenu`, `rowMenu`, `versionsTab`,
   `historyTab` — a control renders only when its hook exists; helpers `audit`, `validate`, `publishProblems`,
   `configRows`, `readBlocks`, `cardHtml`, `rerender`, `state`.

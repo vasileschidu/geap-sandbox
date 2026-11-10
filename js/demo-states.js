@@ -4725,7 +4725,10 @@
       "rpt-13a": prof("RPT-0002", "configurare", seq(fAdd(3, "tip", "multi"), fAdd(4, "statut", "multi"), fAdd(5, "subdiviziune", "single"), async (h) => { await h.scroll("#rpt-panel [data-rpt-preview] .e-permits-rpt-card"); await h.wait(300); })),
       "rpt-13b": prof("RPT-0002", "configurare", seq(fPick("autoritate|multi", ["ANSP", "ANTA"]), fApply, async (h) => { await ffFacet(h, "canal|single"); await h.click('[data-filter-option][value="Online"]'); await h.wait(200); })),
       "rpt-13c": prof("RPT-0002", "configurare", seq(fPick("canal|single", ["Online"]), fApply, fPick("depus|date", [], "azi"), fApply)),
-      "rpt-13d": prof("RPT-0002", "configurare", seq(fAdd(3, "tip", "multi"), fAdd(4, "statut", "multi"), fAdd(5, "subdiviziune", "single"), async (h) => { if (!ekPhone()) { await h.click("#rpt-panel [data-filter-more]"); await h.wait(250); } else { await h.click("#rpt-panel [data-filter-all]"); await h.wait(500); } }))
+      "rpt-13d": prof("RPT-0002", "configurare", seq(fAdd(3, "tip", "multi"), fAdd(4, "statut", "multi"), fAdd(5, "subdiviziune", "single"), async (h) => { if (!ekPhone()) { await h.click("#rpt-panel [data-filter-more]"); await h.wait(250); } else { await h.click("#rpt-panel [data-filter-all]"); await h.wait(500); } })),
+      /* rpt-filter-order-v1: the filter order = the chips' order — „Subdiviziune” (6th, in «Mai multe») moved up twice with ↑
+         becomes the 4th chip, „Tip solicitare” goes to «Mai multe» */
+      "rpt-14a": prof("RPT-0002", "configurare", seq(fAdd(3, "tip", "multi"), fAdd(4, "statut", "multi"), fAdd(5, "subdiviziune", "single"), async (h) => { await h.click('#rpt-panel [data-rpt-flt-move="5|-1"]'); await h.wait(450); await h.click('#rpt-panel [data-rpt-flt-move="4|-1"]'); await h.wait(450); await h.click('#rpt-panel [data-rpt-jump="filters"]'); await h.wait(1800); }))
     };
   }
 
