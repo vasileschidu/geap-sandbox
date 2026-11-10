@@ -137,6 +137,20 @@
   grid-template-columns: minmax(0, 1fr);
 }
 
+/* rpt-filter-hover-v1: the shared grey hover surface (.e-permits-hover-surface, hover / focus-within, kept while dragging);
+   inner padding 8 / 16 so the grey never touches the controls, the negative margin keeps the content where it was; the left guide line stays */
+.e-permits-doc-cond.e-permits-rpt-filter {
+  border-radius: 0 var(--border-radius-16, 16px) var(--border-radius-16, 16px) 0;
+  margin-block: calc(var(--spacing-8, 8px) * -1);
+  margin-right: calc(var(--spacing-16, 16px) * -1);
+  padding: var(--spacing-8, 8px) var(--spacing-16, 16px) var(--spacing-8, 8px) var(--spacing-16, 16px);
+}
+
+.e-permits-doc-cond.e-permits-rpt-filter.is-dragging::before {
+  opacity: 1;
+  transform: scale(1);
+}
+
 .e-permits-rpt-filter__head {
   align-items: center;
   display: flex;
@@ -504,14 +518,13 @@
   max-width: none;
 }
 
-/* ---- rpt-split-v1 (2026-11-10, user): settings 4/12 | „Previzualizare” 8/12 — a documented exception to the 50/50
+/* ---- rpt-split-v1 (2026-11-10, user): settings 5/12 | „Previzualizare” 7/12 — a documented exception to the 50/50
    two-column editor rule (components.md › Wide only with 2 columns): the preview is a wide report table, the settings a
-   column list + short fields. Profile Configurare + the create sheet's Coloane / Structură steps. ≥ 1280 4/8 · 1024–1279
-   5/7 · < 1024 stacked; gap 24. The preview stays sticky while the settings scroll; when it is taller than the window it
+   column list + short fields. Profile Configurare + the create sheet's Coloane / Structură steps. ≥ 1024 5/7 (6/6 would crowd the table at 1024–1279) · < 1024 stacked; gap 24. The preview stays sticky while the settings scroll; when it is taller than the window it
    scrolls on its own (the table keeps its sideways scroll + edge shadows). ---- */
 .e-permits-ntpl-content.e-permits-ntpl-content--preview.e-permits-rpt-split {
   gap: var(--spacing-24, 24px);
-  grid-template-columns: minmax(0, 4fr) minmax(0, 8fr);
+  grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
 }
 
 @media (min-width: 1024px) {
@@ -537,48 +550,11 @@
   }
 }
 
-@media (max-width: 1279px) {
-  .e-permits-ntpl-content.e-permits-ntpl-content--preview.e-permits-rpt-split {
-    grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
-  }
-}
-
 @media (max-width: 1023px) {
   .e-permits-ntpl-content.e-permits-ntpl-content--preview.e-permits-rpt-split {
     grid-template-columns: minmax(0, 1fr);
   }
 }
-
-/* section jump links (rpt-split-v1) = the library small tabs as anchors, sticky at the top of the settings column; the
-   tab row spans the column with its grey track line (tabs-track rule) */
-.e-permits-rpt-jump {
-  background: var(--color-background-base-default, #fff);
-  position: sticky;
-  top: var(--rpt-stick-top, 0px);
-  z-index: 4;
-}
-
-.e-permits-rpt-jump .tab-buttons {
-  border-bottom-color: var(--color-border-base-default, #d9d9d9);
-  overflow-x: auto;
-  scrollbar-width: none;
-  width: auto;
-}
-
-.e-permits-rpt-jump .tab-button {
-  text-decoration: none;
-}
-
-.e-permits-rpt-form [data-rpt-sec] {
-  scroll-margin-top: calc(var(--rpt-stick-top, 0px) + var(--spacing-40, 40px) + var(--spacing-16, 16px));
-}
-
-@media (max-width: 760px) {
-  .e-permits-rpt-jump .tab-button {
-    height: var(--spacing-48, 48px);
-  }
-}
-
 
 /* ---- rpt-group-v1 (2026-11-10, user; Airtable / Notion „group by” from the field): the group toggle on a Text column of
    the column list = library `btn btn-text-neutral btn-sm btn-icon-only` + `aria-pressed`; pressed = the brand-secondary
@@ -668,4 +644,120 @@
 .e-permits-workplace__filters.e-permits-rpt-fbar__bar.is-sheets {
   border-bottom: 0;
   padding: var(--spacing-0, 0px);
+}
+
+/* rpt-no-clip-v1: nothing in the settings column clips a focus ring or a hover surface (the column list, the stack and the
+   filter rows have no overflow clip; the first / last item fills take the card's inner radius). */
+
+/* rpt-head-pair-v1 (user): „Previzualizare” + its data line = a heading / subtitle pair — 4 between them, 16 to the card
+   below (the generic wid-preview heading left 12 + a 48 row between them) */
+.e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-rpt-preview > .e-permits-dosar-profil__section-heading:has(> .e-permits-passport__heading-tools) {
+  height: auto;
+  margin-bottom: var(--spacing-16, 16px);
+  row-gap: var(--spacing-4, 4px);
+}
+
+.e-permits-rpt-preview .e-permits-wid-preview__titles > .e-permits-wid-preview__meta {
+  padding: var(--spacing-0, 0px) var(--spacing-12, 12px);
+}
+
+/* rpt-rich-select-v1: the rich dropdowns (Categoria, Nivel) — the library select box showing the chosen icon + label; the menu
+   = the „Adaugă coloană” menu at the field's width, items icon + label + one line, the chosen one marked */
+.e-permits-rpt-rich > .e-permits-stack__menu.e-permits-rpt-rich__menu {
+  left: 0;
+  max-width: none;
+  right: 0;
+  width: auto;
+}
+
+.e-permits-rpt-rich__value {
+  align-items: center;
+  flex: 1 1 auto;
+  justify-content: flex-start;
+  display: flex;
+  gap: var(--spacing-8, 8px);
+  min-width: 0;
+}
+
+.e-permits-rpt-add-menu__item.is-selected {
+  background: var(--color-background-base-tertiary, #f1f1f1);
+}
+
+/* the settings column is narrow: the RU / EN fields stack under RO (full width) */
+.e-permits-rpt-split .e-permits-user-create__field--6 {
+  grid-column: 1 / -1;
+}
+
+/* rpt-one-line-v1 (user: „double border on some rows”): exactly ONE line between any two rows / at the table's outer edges —
+   (a) no group-edge vertical on the table's first / last column (the card edge, or the box-edge shadow, is the boundary);
+   (b) the row above the total gives its bottom line to the total's own top line (1.5); a header-band line under the
+   first group label is its own top line (the header has none) */
+.e-permits-workplace__table.e-permits-rpt-table :is(th, td).is-c0.is-gl {
+  border-left-width: 0;
+}
+
+.e-permits-workplace__table.e-permits-rpt-table :is(th, td).is-cn.is-gr {
+  border-right-width: 0;
+}
+
+.e-permits-workplace__table.e-permits-rpt-table:has(tfoot tr.e-permits-rpt-table__total) tbody > tr:last-child > :is(td, th) {
+  border-bottom-width: 0;
+}
+
+/* rpt-zoom-v2 (user): „Mărește” = near full-screen — width and height = viewport − 2 × 24 (phones: the full-screen sheet of
+   css/modal-phone.css); header (title + ×) → the filter bar → the table filling the rest, its own scroll (both ways) + the
+   box-edge shadows. The card's own head (title / subtitle) is the dialog header's, so it is hidden here; no footer. */
+@media (min-width: 761px) {
+  .modal-overlay > .modal.e-permits-reg-modal--rpt-zoom:has(> .modal-content) {
+    height: calc(100dvh - var(--spacing-24, 24px) * 2);
+    max-height: none;
+    max-width: none;
+    width: calc(100vw - var(--spacing-24, 24px) * 2);
+  }
+}
+
+.e-permits-reg-modal--rpt-zoom > .modal-content {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.e-permits-reg-modal--rpt-zoom .e-permits-rpt-card {
+  background: none;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-height: 0;
+  padding: 0;
+}
+
+.e-permits-reg-modal--rpt-zoom .e-permits-rpt-card > .e-permits-wid-card__head {
+  display: none;
+}
+
+.e-permits-reg-modal--rpt-zoom .e-permits-rpt-card > .e-permits-wid-card__body {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: var(--spacing-16, 16px);
+  min-height: 0;
+}
+
+.e-permits-reg-modal--rpt-zoom .e-permits-workplace__table-wrap.e-permits-rpt-table-wrap {
+  flex: 1 1 auto;
+  margin-inline: 0;
+  min-height: 0;
+  overflow: auto;
+}
+
+.e-permits-reg-modal--rpt-zoom .e-permits-rpt-card .e-permits-workplace__table.e-permits-rpt-table :is(th, td).is-c0,
+.e-permits-reg-modal--rpt-zoom .e-permits-rpt-card .e-permits-workplace__table.e-permits-rpt-table tr.e-permits-rpt-table__group > th {
+  padding-left: var(--spacing-12, 12px);
+}
+
+.e-permits-reg-modal--rpt-zoom .e-permits-rpt-card .e-permits-workplace__table.e-permits-rpt-table :is(th, td).is-cn {
+  padding-right: var(--spacing-12, 12px);
 }

@@ -152,7 +152,7 @@ instance in the file. Follow the surrounding CSS instead.
 | Rule | What to do | Where |
 |---|---|---|
 | Two-column editor screens = 50/50 | form | side column `minmax(0,1fr) minmax(0,1fr)`, stacked ≤ 1100; editor width 1600 only when two columns | `.e-permits-kpi-content--split`, `.e-permits-ntpl-content--preview` (css/kpi.css, css/registre.css) |
-| Exception: Rapoarte settings 4/12 · preview 8/12 (rpt-split-v1, 2026-11-10, user) | table-heavy preview: settings `4fr` \| preview `8fr` ≥ 1280, `5fr` \| `7fr` 1024–1279, stacked < 1024, gap 24; preview sticky under the pinned tab row, scrolls itself when taller than the scroller | `.e-permits-rpt-split` (css/rapoarte.css) |
+| Exception: Rapoarte settings 5/12 · preview 7/12 (rpt-split-v1, 2026-11-10, user) | table-heavy preview: settings `5fr` \| preview `7fr` ≥ 1024 (6/6 would crowd the table), stacked < 1024, gap 24; preview sticky under the pinned tab row, scrolls itself when taller than the scroller | `.e-permits-rpt-split` (css/rapoarte.css) |
 | Right (sticky) column breathing space | 48 bottom padding so the scroll ends with room | widget / KPI sheets + profiles |
 | Preview header | row 1 = title + actions („Actualizează” secondary Small + „Mărește” NEUTRAL icon-only Small, Foundations `expand-315, enlarge` = `icon-enlarge`) vertically centred, gap 16; row 2 = scope line „Perimetru: …” (never „Perimetrul dvs.”) full width, 12 below | js/widget-admin.js |
 | Preview card | FILLS the preview column; the chosen width (Jumătate / Treime) only as text in the scope line | widget preview, „Mărește” modal |
@@ -12435,17 +12435,27 @@ Autoritate (one or more authorities). **Reuse map** (no new engine):
   Nivel · Statut · Versiune publicată; Configurare = the three steps in one column + the sticky preview; read-only (a
   global report for an authority user, a report shared by several authorities) = passport blocks + preview + info note.
   Versiuni / Istoric = plain `GEAPEventTimeline` lists until part 2.
-- **Layout 4/8 (rpt-split-v1, 2026-11-10, user)** — the profile Configurare and the create sheet's Coloane / Structură
-  steps add `.e-permits-rpt-split` to `.e-permits-ntpl-content--preview`: settings 4/12 | „Previzualizare” 8/12 at ≥ 1280,
-  5/12 | 7/12 at 1024–1279, stacked < 1024 (profile: preview first), gap 24 — a documented exception to the 50/50 editor
+- **Rapoarte round 2026-11-10 (user)** — (1) **Rich dropdown** `richSelect()` (rapoarte-admin.js; css/rapoarte.css `.e-permits-rpt-rich`):
+  the library select box (`.e-permits-fo-select__button`) showing the chosen icon + label, opening the „Adaugă coloană” menu
+  (`.e-permits-fo-intent-menu` items icon + label + one line, at the field's width, chosen item `.is-selected` + `aria-checked`);
+  used by **Categoria** (list-bullets / chart) and **Nivel** (globe / business) in Date generale; the authority checklist under
+  Nivel starts with „Toate autoritățile”; demo rpt-03aa / rpt-03ab. (2) **„Mărește”** = near full-screen (viewport − 2 × 24, phones the
+  full-screen sheet), header → the SAME library facet filter bar (own instance on the shared state, synced both ways) → the table
+  filling the rest with its own scroll; no footer; the card head is the dialog header. (3) Settings column: Denumire / Descriere
+  RO · RU · EN stacked full width (`.e-permits-rpt-split` forces `--6` fields to span 2); RU / EN descriptions = the textarea + counter.
+  (4) „Previzualizare” + its data line = heading / subtitle pair, 4 apart, 16 to the card. (5) Table lines: exactly one 1px
+  line between rows; no group-edge vertical on the first / last column; the row above the total has no bottom line.
+  (6) Removed: the section jump links, the notes under the column list and the filter builder.
+- **Filter rows hover (rpt-filter-hover-v1, 2026-11-10)** — each „Filtre la generare” row = `.e-permits-hover-surface.is-hover-within`
+  (shared grey surface, kept while dragging), padding 8 16 + equal negative margin so the content stays put. The column list items
+  already hover (`.e-permits-stack__item.is-clickable`). No overflow clip in the settings column (rpt-no-clip-v1).
+- **Layout 5/7 (rpt-split-v1, 2026-11-10, user)** — the profile Configurare and the create sheet's Coloane / Structură
+  steps add `.e-permits-rpt-split` to `.e-permits-ntpl-content--preview`: settings 5/12 | „Previzualizare” 7/12 at ≥ 1024, stacked < 1024 (profile: preview first), gap 24 — a documented exception to the 50/50 editor
   rule (the preview is a wide report table). The preview is sticky under the profile's pinned tab row
   (`--rpt-stick-top` / `--rpt-stick-h` measured by `syncStick()` from the scroller: the BO canvas, or the sheet body) and
-  scrolls on its own when taller than the scroller; the table keeps its sideways scroll + box-edge shadows. Profile only:
-  **section jump links** at the top of the settings column = the library small tabs as anchors
-  (`nav.tabs.tabs--sm.e-permits-rpt-jump > .tab-buttons > a.tab-button[data-rpt-jump][href="#rpt-j-…"]`, Coloane ·
-  Grupare · Filtre · Total; sticky under the tab row, grey track line full width, scroll-spy → `.active` +
-  `aria-current="location"`, none above „Coloane”; sections carry `id="rpt-j-…"` + `data-rpt-sec`). In the split the
-  filter rows stack field over type (the phone layout). Demo rpt-11a (jump „Filtre”; capture `--width 1280` for 4/8),
+  scrolls on its own when taller than the scroller; the table keeps its sideways scroll + box-edge shadows.
+  (The section jump links were removed 2026-11-10, user.) In the split the
+  filter rows stack field over type (the phone layout). Demo rpt-11a (scrolled to „Filtre”; capture `--width 1280` for 5/7),
   rpt-11b (sheet Structură).
 - **Grouping from the column list (rpt-group-v1, 2026-11-10, user; Airtable / Notion „group by” from the field)** — every
   groupable column (`kind: "source"` + Text) of „Coloanele raportului” gets an icon-only toggle before ↑ ↓ 🗑:

@@ -83,6 +83,9 @@
     ["tabelar", "Rapoarte tabelare", "Rânduri din sursa de date, cu coloane, totaluri și subtotaluri."],
     ["statistic", "Rapoarte statistice", "Indicatori agregați pe categorii, ca în formularele statistice."]
   ];
+  /* rpt-rich-select-v1: the icons of the rich dropdowns (Categoria, Nivel) */
+  const CATEGORY_ICON = { tabelar: "list-bullets", statistic: "chart" };
+  const LEVEL_ICON = { Global: "globe", Autoritate: "business" };
   const LEVELS = [
     ["Global", "Global", "Pentru toate autoritățile; îl modifică doar Administratorul central."],
     ["Autoritate", "Autoritate", "Pentru una sau mai multe autorități alese."]
@@ -646,7 +649,7 @@
   }
   const grid = (...parts) => `<div class="e-permits-user-create__grid">${parts.join("")}</div>`;
   const full = (html) => (html ? `<div class="e-permits-user-create__field e-permits-user-create__field--12">${html}</div>` : "");
-  const section = (title, body, { meta = "", id = "", anchor = "" } = {}) => `<section class="e-permits-dosar-profil__section"${id ? ` aria-labelledby="${id}"` : ""}${anchor ? ` id="rpt-j-${anchor}" data-rpt-sec="${anchor}"` : ""}><div class="e-permits-dosar-profil__section-heading"><h2 class="e-permits-dosar-profil__section-title"${id ? ` id="${id}"` : ""}>${esc(title)}</h2>${meta ? `<span class="e-permits-dosar-profil__section-meta" aria-live="polite">${esc(meta)}</span>` : ""}</div><div class="e-permits-ntpl-card">${body}</div></section>`;
+  const section = (title, body, { meta = "", id = "" } = {}) => `<section class="e-permits-dosar-profil__section"${id ? ` aria-labelledby="${id}"` : ""}><div class="e-permits-dosar-profil__section-heading"><h2 class="e-permits-dosar-profil__section-title"${id ? ` id="${id}"` : ""}>${esc(title)}</h2>${meta ? `<span class="e-permits-dosar-profil__section-meta" aria-live="polite">${esc(meta)}</span>` : ""}</div><div class="e-permits-ntpl-card">${body}</div></section>`;
   /* option cards (the widget type card, radio variant, no glyph) — categories, levels, column kinds */
   function optionCards(id, name, attr, options, value, { error = "", legend = "", cls = "" } = {}) {
     return `
@@ -666,6 +669,23 @@
         ${error ? errorHtml(id, error) : ""}
       </fieldset>`;
   }
+  /* rpt-rich-select-v1 (user): a dropdown whose items = icon + label + one short line (the „Adaugă coloană ▾” menu pattern:
+     `.e-permits-fo-intent-menu` in a `.e-permits-stack__menu-wrap`), the trigger = the library select box showing the chosen
+     icon + label; items 40+ high, phones 48; the chosen item is marked (aria-checked + the check) */
+  function richSelect(id, kind, options, icons, value, { error = "", lblId = "" } = {}) {
+    const cur = options.find((o) => o[0] === value);
+    return `
+      <div class="e-permits-fo-select e-permits-stack__menu-wrap e-permits-rpt-rich${error ? " is-error" : ""}">
+        <button class="e-permits-fo-select__button" type="button" id="${id}" aria-haspopup="menu" aria-expanded="false" aria-controls="${id}-menu" data-stack-menu-trigger${lblId ? ` aria-labelledby="${lblId} ${id}"` : ""}${error ? ` aria-invalid="true" aria-describedby="${id}-error"` : ""}>
+          <span class="e-permits-rpt-rich__value">${cur ? `${icon(icons[cur[0]])}<span class="e-permits-fo-select__value" data-cell-tooltip>${esc(cur[1])}</span>` : '<span class="e-permits-fo-select__value e-permits-fo-select__value--placeholder">Alege</span>'}</span>
+          ${icon("chevron-bottom", 20)}
+        </button>
+        <ul class="e-permits-fo-intent-menu e-permits-stack__menu e-permits-rpt-add-menu e-permits-rpt-rich__menu" id="${id}-menu" role="menu" aria-label="${esc(kind)}" hidden data-stack-menu>
+          ${options.map(([key, text, desc]) => `<li role="none"><button class="e-permits-fo-intent-menu__item e-permits-rpt-add-menu__item${key === value ? " is-selected" : ""}" type="button" role="menuitemradio" aria-checked="${key === value}" data-rpt-pick="${kind}|${esc(key)}">${icon(icons[key])}<span class="e-permits-rpt-add-menu__text"><span class="e-permits-rpt-add-menu__title">${esc(text)}</span><span class="e-permits-rpt-add-menu__desc">${esc(desc)}</span></span></button></li>`).join("")}
+        </ul>
+        ${error ? errorHtml(id, error) : ""}
+      </div>`;
+  }
   const labelled = (lblId, lbl, html, { required = false } = {}) => `<div class="e-permits-wid-vis-field"><span class="e-permits-cfg-ro__label" id="${lblId}">${esc(lbl)}${required ? req() : ""}</span>${html}</div>`;
 
   /* ================================================================ the steps (Feature UX: Date generale · Coloane · Structură) */
@@ -674,11 +694,12 @@
     const me = who();
     const auths = D().authorities;
     const level = me.central
-      ? full(labelled(`${idp}-level-label`, "Nivel", optionCards(`${idp}-level`, `${idp}-level`, "data-rpt-level", LEVELS, v.level, { legend: "Nivelul raportului" }), { required: true }))
+      ? full(labelled(`${idp}-level-label`, "Nivel", richSelect(`${idp}-level`, "level", LEVELS, LEVEL_ICON, v.level, { lblId: `${idp}-level-label` }), { required: true }))
       : "";
     const authPicker = v.level === "Autoritate" ? full(me.central
       ? labelled(`${idp}-auth-label`, "Autoritate(ți)", `
           <div class="e-permits-rpt-auths" role="group" aria-labelledby="${idp}-auth-label" id="${idp}-authorities">
+            ${U().renderCheckOption?.({ label: "Toate autoritățile", checked: auths.length > 0 && auths.every((a) => v.authorities.includes(a.id)), attrs: "data-rpt-auth-all" }) || ""}
             ${auths.map((a) => U().renderCheckOption?.({ label: `${a.name} · ${a.long}`, checked: v.authorities.includes(a.id), attrs: `data-rpt-auth="${esc(a.id)}"${e.authorities ? ' aria-invalid="true"' : ""}` }) || "").join("")}
           </div>
           ${e.authorities ? errorHtml(`${idp}-authorities`, e.authorities) : ""}`, { required: true })
@@ -689,18 +710,18 @@
     return `
       ${fromPicker}
       ${section("Categoria și sursa de date", grid(
-        full(labelled(`${idp}-category-label`, "Categoria raportului", optionCards(`${idp}-category`, `${idp}-category`, "data-rpt-category", CATEGORIES, v.category, { error: e.category, legend: "Categoria raportului" }), { required: true })),
+        full(labelled(`${idp}-category-label`, "Categoria raportului", richSelect(`${idp}-category`, "category", CATEGORIES, CATEGORY_ICON, v.category, { error: e.category, lblId: `${idp}-category-label` }), { required: true })),
         selectField(`${idp}-source`, 'data-rpt-field="source"', "Sursa de date", sources().map((s) => [s.id, `${s.name} · ${s.version}`]), v.source, { required: true, span: 12, placeholder: "Alege sursa de date", hint: "Doar sursele de date publicate. Coloanele, filtrele și formulele folosesc câmpurile ei.", error: e.source }),
         level,
         authPicker
       ))}
       ${section("Denumire și descriere", grid(
         textField(`${idp}-name-ro`, 'data-rpt-field="names.ro"', "Denumire (RO)", v.names.ro, { required: true, max: NAME_MAX, counter: true, hint: "„Raport <ce arată>”, de exemplu „Raport dosare finalizate pe autoritate”.", error: e["names.ro"] }),
-        textField(`${idp}-name-ru`, 'data-rpt-field="names.ru"', "Denumire (RU)", v.names.ru, { span: 6, hint: "Obligatoriu la publicare." }),
-        textField(`${idp}-name-en`, 'data-rpt-field="names.en"', "Denumire (EN)", v.names.en, { span: 6, hint: "Obligatoriu la publicare." }),
+        textField(`${idp}-name-ru`, 'data-rpt-field="names.ru"', "Denumire (RU)", v.names.ru, { span: 12, hint: "Obligatoriu la publicare." }),
+        textField(`${idp}-name-en`, 'data-rpt-field="names.en"', "Denumire (EN)", v.names.en, { span: 12, hint: "Obligatoriu la publicare." }),
         areaField(`${idp}-desc-ro`, 'data-rpt-field="descriptions.ro"', "Descriere (RO)", v.descriptions.ro, { hint: "Regulile raportului, afișate sub butonul de informare." }),
-        textField(`${idp}-desc-ru`, 'data-rpt-field="descriptions.ru"', "Descriere (RU)", v.descriptions.ru, { span: 6 }),
-        textField(`${idp}-desc-en`, 'data-rpt-field="descriptions.en"', "Descriere (EN)", v.descriptions.en, { span: 6 })
+        areaField(`${idp}-desc-ru`, 'data-rpt-field="descriptions.ru"', "Descriere (RU)", v.descriptions.ru, { hint: "Obligatoriu la publicare." }),
+        areaField(`${idp}-desc-en`, 'data-rpt-field="descriptions.en"', "Descriere (EN)", v.descriptions.en, { hint: "Obligatoriu la publicare." })
       ))}`;
   }
   /* the column list = the Registre „Coloanele registrului” stacked list (order handle + drag, ↑ ↓, trash; row → panel) */
@@ -769,14 +790,13 @@
       ${add()}`
       : `${E()?.render({ title: "Nicio coloană încă", text: v.source ? "Adaugă coloane din dicționarul sursei de date, calculate cu o formulă sau completate manual." : "Alege mai întâi sursa de date (pasul 1), apoi adaugă coloanele.", icon: "page-text", compact: true, actionHtml: add() }) || ""}${e.columns ? errorHtml(`${idp}-columns`, e.columns) : ""}`;
     return `
-      <section class="e-permits-dosar-profil__section e-permits-stack-section" aria-labelledby="${idp}-cols-title" id="${idp}-columns"${jump ? ' data-rpt-sec="columns"' : ""}>
+      <section class="e-permits-dosar-profil__section e-permits-stack-section" aria-labelledby="${idp}-cols-title" id="${idp}-columns">
         <div class="e-permits-dosar-profil__section-heading">
           <h2 class="e-permits-dosar-profil__section-title" id="${idp}-cols-title">Coloanele raportului</h2>
           <span class="e-permits-dosar-profil__section-meta" aria-live="polite">${esc(plural(cols.length, "coloană", "coloane"))}</span>
         </div>
         ${list}
-      </section>
-      ${cols.length ? U().renderInfoNote?.("Trage o coloană de mâner (sau folosește ↑ ↓) ca s-o muți. Când treci peste o coloană, ea se evidențiază în previzualizare. Coloanele cu același <strong>antet comun</strong>, puse una lângă alta, formează antetul pe două niveluri.") || "" : ""}`;
+      </section>`;
   }
   /* Structură: Gruparea rândurilor · Filtre · Rândul de total */
   const kw = (text) => `<code class="e-permits-doc-kw">${esc(text)}</code>`;
@@ -797,7 +817,7 @@
           /* rpt-filter-order-v1: the order = the chips' order above the preview — the first 4 are chips, the rest wait in
              „Mai multe” (the item says so); drag the item (handle) or ↑ ↓, the same FLIP slide as the columns */
           return `${i ? `<li class="e-permits-doc-cond__join" aria-hidden="true">${kw("și")}</li>` : ""}
-            <li class="e-permits-doc-cond e-permits-rpt-filter" draggable="true" data-rpt-flt="${i}" data-index="${i}">
+            <li class="e-permits-doc-cond e-permits-rpt-filter e-permits-hover-surface is-hover-within" draggable="true" data-rpt-flt="${i}" data-index="${i}">
               <div class="e-permits-rpt-filter__head">
                 ${orderLead(i + 1)}
                 ${pos >= 4 ? tag("În «Mai multe»", "neutral") : ""}
@@ -829,16 +849,15 @@
     return `
       ${section("Gruparea rândurilor", jump ? summary : grid(
         selectField(`${idp}-groupby`, 'data-rpt-field="groupBy"', "Grupează rândurile după", [["", "Fără grupare"], ...groupCols.map((c) => [c.id, colName(c)])], v.groupBy, { span: 12, hint: canGroup ? "Opțional. Fiecare grup are un rând de subtotal. Poți grupa și din lista coloanelor (pasul 2)." : "Adaugă cel puțin două coloane Text: rândurile se grupează după una și se listează după cealaltă.", error: e.groupBy, disabled: !canGroup && !v.groupBy })
-      ), { anchor: jump ? "group" : "" })}
-      ${section("Filtre", filterRows(v, e, idp), { anchor: jump ? "filters" : "" })}
-      ${v.filters.length ? U().renderInfoNote?.("Trage un filtru de mâner (sau folosește ↑ ↓) ca să-l muți. Primele 4 filtre apar ca butoane; restul, în «Mai multe».") || "" : ""}
+      ))}
+      ${section("Filtre", filterRows(v, e, idp))}
       ${section("Rândul de total", grid(full(U().renderToggle?.({
         label: "Rândul de total",
         description: measures ? "Implicit «Da» când raportul are coloane numerice sau valorice. Coloanele calculate se recalculează pe totaluri." : "Raportul nu are coloane numerice sau valorice: nu are ce aduna.",
         checked: measures && Boolean(v.totalRow),
         disabled: !measures,
         attrs: 'data-rpt-field="totalRow"'
-      }) || "")), { anchor: jump ? "total" : "" })}`;
+      }) || "")))}`;
   }
 
   /* ---- read-only passport blocks (profile of a report you cannot edit, review step) */
@@ -1016,7 +1035,7 @@
     await load();
     const r = reportOf(id);
     if (!who().has || !r || !visible(r)) { showDenied(); return; }
-    if (P.id !== id || P.isNew) { fxReset("profile"); P.jump = ""; P.errors = {}; P.saveError = false; P.totalTouched = false; P.draft = clone(r.config); P.base = clone(r.config); }
+    if (P.id !== id || P.isNew) { fxReset("profile"); P.errors = {}; P.saveError = false; P.totalTouched = false; P.draft = clone(r.config); P.base = clone(r.config); }
     P.id = id; P.isNew = false;
     P.tab = tabsNow().some(([t]) => t === tab) ? tab : "configurare";
     show(`#raport/${id}/${P.tab}`, push);
@@ -1092,7 +1111,7 @@
     body.innerHTML = `${notices(r)}${P.tab === "versiuni" ? (HOOKS.versionsTab?.(r) || versionsTab(r)) : P.tab === "acces" && HOOKS.accessTab ? HOOKS.accessTab(r) : P.tab === "istoric" ? (HOOKS.historyTab?.(r) || historyTab(r)) : configTab(r)}`;
     A().syncStackMetaRows?.(body);
     if (P.tab === "configurare") mountFilters("profile");
-    requestAnimationFrame(() => { syncStick(); syncJump(); });
+    requestAnimationFrame(syncStick);
     if (keepSel) {
       const el = document.querySelector(keepSel);
       el?.focus?.({ preventScroll: true });
@@ -1113,35 +1132,7 @@
     const html = list.filter(Boolean).join("");
     return html ? `<div class="e-permits-reg-notices">${html}</div>` : "";
   }
-  /* rpt-split-v1 (2026-11-10, user): the settings column opens with section jump links = the library small tabs as anchors
-     (`.tabs.tabs--sm`, one per section; sticky at the top of the column, the current section follows the scroll) */
-  const JUMPS = [["columns", "Coloane"], ["group", "Grupare"], ["filters", "Filtre"], ["total", "Total"]];
-  function jumpNav() {
-    const cur = P.jump || "";
-    return `
-      <nav class="tabs tabs--sm e-permits-rpt-jump" aria-label="Secțiunile configurării">
-        <div class="tab-buttons">${JUMPS.map(([k, l]) => `<a class="tab-button${k === cur ? " active" : ""}" href="#rpt-j-${k}" data-rpt-jump="${k}"${k === cur ? ' aria-current="location"' : ""}>${esc(l)}</a>`).join("")}</div>
-      </nav>`;
-  }
-  function syncJump() {
-    const nav = document.querySelector("#rpt-panel .e-permits-rpt-jump");
-    if (!nav) return;
-    const line = nav.getBoundingClientRect().bottom + 24;
-    const secs = [...document.querySelectorAll("#rpt-panel [data-rpt-sec]")];
-    if (!secs.length) return;
-    /* above „Coloane” (Date generale) no link is current */
-    let cur = "";
-    secs.forEach((s) => { if (s.getBoundingClientRect().top <= line) cur = s.dataset.rptSec; });
-    /* the last section is short: at the end of the page it is the current one */
-    let sc = nav.parentElement;
-    while (sc && sc !== document.body && !/(auto|scroll)/.test(getComputedStyle(sc).overflowY)) sc = sc.parentElement;
-    if (!sc || sc === document.body) sc = document.scrollingElement;
-    if (sc && sc.scrollTop > 0 && sc.scrollTop + sc.clientHeight >= sc.scrollHeight - 2) cur = secs[secs.length - 1].dataset.rptSec;
-    if (P.jumpLock && performance.now() < P.jumpLock) cur = P.jump;
-    P.jump = cur;
-    nav.querySelectorAll("[data-rpt-jump]").forEach((a) => { const on = a.dataset.rptJump === cur; a.classList.toggle("active", on); if (on) a.setAttribute("aria-current", "location"); else a.removeAttribute("aria-current"); });
-  }
-  /* the sticky preview / jump links sit under the profile's pinned tab row and fit the scroller's height (measured: the BO
+  /* the sticky preview sits under the profile's pinned tab row and fit the scroller's height (measured: the BO
      canvas scrolls under the shell top bar; in the create sheet the body scrolls) */
   function syncStick() {
     document.querySelectorAll(".e-permits-rpt-split").forEach((grid) => {
@@ -1168,7 +1159,7 @@
     const e = P.errors;
     return `
       <div class="e-permits-ntpl-content e-permits-ntpl-content--preview e-permits-wid-config e-permits-rpt-config e-permits-rpt-split e-permits-editor-wide">
-        <div class="e-permits-ntpl-content__main e-permits-rpt-form">${jumpNav()}${stepGeneral(v, e, IDP, { jump: true })}${stepColumns(v, e, IDP, { jump: true })}${stepStructure(v, e, IDP, { jump: true })}</div>
+        <div class="e-permits-ntpl-content__main e-permits-rpt-form">${stepGeneral(v, e, IDP, { jump: true })}${stepColumns(v, e, IDP, { jump: true })}${stepStructure(v, e, IDP, { jump: true })}</div>
         <aside class="e-permits-ntpl-content__preview" data-rpt-preview>${previewHtml(v, { idp: IDP, ctx: "profile" })}</aside>
       </div>`;
   }
@@ -1189,6 +1180,7 @@
     const ctx = creating() ? "sheet" : "profile";
     if (box && P.draft) box.innerHTML = previewHtml(creating() || editable() ? P.draft : reportOf(P.id).config, { idp: creating() || editable() ? IDP : "rpt-p", ctx });
     mountFilters(ctx);
+    refreshZoom();
     syncColHl();
   }
   const reheader = () => { const els = A().els || {}; if (!creating() && els.dosarProfilTitleRow && P.id) els.dosarProfilTitleRow.innerHTML = headerTop(reportOf(P.id)); };
@@ -1742,13 +1734,24 @@
     toast(`Formula „${n}” a fost adăugată în setul de formule.`);
   }
 
-  /* ---- „Mărește”: the preview at the dialog's width */
+  /* ---- „Mărește” (rpt-zoom-v2, user): near full-screen (viewport − 2 × 24), header (title + ×) → the SAME facet filter bar as
+     the inline preview (its own library instance on the shared state: applied in one = shown in the other) → the table
+     filling the rest with its own scroll; phones = the full-screen sheet with the icon-only Filtre + sheet */
+  const zoomOpen = () => Boolean(fxModal()?.classList.contains("is-active") && fxModal().querySelector(".e-permits-reg-modal--rpt-zoom"));
+  const zoomCard = () => { const v = fxConfig("zoom"); return v ? cardHtml(v, { filters: "live", sel: fx("zoom").state.applied }) : ""; };
+  function refreshZoom() {
+    if (!zoomOpen()) return;
+    fxModal().querySelector("[data-case-modal-body]").innerHTML = zoomCard();
+    mountFilters("zoom");
+  }
   function openZoom() {
     const v = editable() ? P.draft : reportOf(P.id)?.config;
     if (!v || !v.columns.length) return;
-    G().openModal?.({ kind: "rpt-zoom", title: v.names.ro || "Previzualizare", subtitle: "Previzualizare · date demonstrative", body: cardHtml(v, { filters: "static", sel: fx(creating() ? "sheet" : "profile").state.applied }), footer: '<div class="modal-buttons"><button class="btn btn-primary btn-rounded" type="button" data-case-close>Închide</button></div>' });
+    zoomBase = creating() ? "sheet" : "profile";
+    G().openModal?.({ kind: "rpt-zoom", title: v.names.ro || "Previzualizare", subtitle: "Previzualizare · date demonstrative", body: zoomCard(), footer: "" });
     fxModal()?.classList.remove("e-permits-confirm-overlay");
-    document.querySelector("#case-action-modal .modal")?.classList.replace("modal--md", "modal--lg");
+    document.querySelector("#case-action-modal .modal")?.classList.remove("modal--md", "modal--lg");
+    mountFilters("zoom");
   }
 
   /* ================================================================ preview filters (rpt-filters-v1)
@@ -1759,7 +1762,8 @@
      (`single`), „Text” = the checklist with its search. Confirmă → draft → „Aplică filtrele” recomputes the rows, the
      subtotals and the total. Phones: the icon-only „Filtre” square + the bottom sheet (the module's phone mode). */
   const FX = {};
-  const fxConfig = (ctx) => (ctx === "sheet" ? P.draft : editable() ? P.draft : reportOf(P.id)?.config) || null;
+  let zoomBase = "";
+  const fxConfig = (ctx) => (ctx === "zoom" ? fxConfig(zoomBase || "profile") : ctx === "sheet" ? P.draft : editable() ? P.draft : reportOf(P.id)?.config) || null;
   function fxFacets(ctx) {
     const v = fxConfig(ctx);
     if (!v) return [];
@@ -1784,7 +1788,8 @@
         </button>
       </div>
       <div class="e-permits-workplace__filters e-permits-rpt-fbar__bar" id="rpt-fbar-${ctx}" role="group" aria-label="Filtrele raportului" hidden></div>`;
-    const state = { open: true, applied: {}, draft: null };
+    /* the „Mărește” dialog shares the state of the preview it was opened from: filters applied in one show in the other */
+    const state = ctx === "zoom" ? fx(zoomBase || "profile").state : { open: true, applied: {}, draft: null };
     const x = { host, state, ctl: null };
     const model = (sel) => { const v = fxConfig(ctx); return v ? previewModel(v, sel) : { rowCount: 0, records: [] }; };
     x.ctl = window.GEAPFacetFilter.create({
@@ -1828,7 +1833,7 @@
   }
   /* the host into the freshly rendered card (or out, when the card has no filters) */
   function mountFilters(ctx) {
-    const root = ctx === "sheet" ? sheet : document.querySelector("#rpt-panel");
+    const root = ctx === "zoom" ? fxModal() : ctx === "sheet" ? sheet : document.querySelector("#rpt-panel");
     const slot = root?.querySelector("[data-rpt-fslot]");
     const x = fx(ctx);
     if (!slot) { if (x.host.isConnected) { x.ctl.close(false); x.host.remove(); } return; }
@@ -1930,7 +1935,7 @@
     if (t.closest("[data-rpt-fx-confirm]")) { confirmFormula(); return; }
     if (t.closest("#case-action-modal [data-case-close]")) fxModal()?.classList.remove("e-permits-confirm-overlay");
     const fclear = t.closest("[data-rpt-filter-clear]");
-    if (fclear) { fx(inSheet(fclear) ? "sheet" : "profile").ctl.clearAll(); return; }
+    if (fclear) { fx(fclear.closest("#case-action-modal") ? "zoom" : inSheet(fclear) ? "sheet" : "profile").ctl.clearAll(); return; }
     const zoom = t.closest("[data-rpt-zoom]");
     if (zoom) { if (zoom.getAttribute("aria-disabled") !== "true") openZoom(); return; }
     if (inSheet(t)) {
@@ -1949,18 +1954,18 @@
       const sv = t.closest("[data-rpt-save]");
       if (sv) { if (sv.getAttribute("aria-disabled") !== "true") savePage(); return; }
       if (t.closest("[data-rpt-back]")) { event.preventDefault(); closeProfile(); return; }
-      const jl = t.closest("[data-rpt-jump]");
-      if (jl) {
-        event.preventDefault();
-        P.jump = jl.dataset.rptJump;
-        P.jumpLock = performance.now() + 900;
-        syncJump();
-        document.querySelector(`#rpt-panel [data-rpt-sec="${CSS.escape(P.jump)}"]`)?.scrollIntoView({ block: "start", behavior: motionOk() ? "smooth" : "auto" });
-        return;
-      }
     }
     if (!inPage(t)) return;
     /* the form */
+    const pick = t.closest("[data-rpt-pick]");
+    if (pick && inPage(pick)) {
+      const [kind, val] = pick.dataset.rptPick.split("|");
+      const v = P.draft;
+      if (kind === "category") { v.category = val; delete P.errors.category; }
+      else { v.level = val; if (val === "Global") v.authorities = []; delete P.errors.authorities; }
+      rerender({ keep: `#${IDP}-${kind}` }); reheader();
+      return;
+    }
     const add = t.closest("[data-rpt-add]");
     if (add) { if (add.getAttribute("aria-disabled") !== "true") addKind(add.dataset.rptAdd); return; }
     const mv = t.closest("[data-rpt-col-move]");
@@ -1986,7 +1991,7 @@
       announce(on ? `Rândurile sunt grupate după ${colName(colOf(P.draft, id))}.` : "Gruparea a fost eliminată.");
       return;
     }
-    if (t.closest("[data-rpt-group-clear]")) { P.draft.groupBy = ""; delete P.errors.groupBy; afterColumnsChange("[data-rpt-jump=\"group\"]"); announce("Gruparea a fost eliminată."); return; }
+    if (t.closest("[data-rpt-group-clear]")) { P.draft.groupBy = ""; delete P.errors.groupBy; afterColumnsChange("[data-rpt-group-clear]"); announce("Gruparea a fost eliminată."); return; }
     const col = t.closest("[data-rpt-col]");
     if (col && !t.closest("button")) { openColumn(col.dataset.rptCol); return; }
     const fadd = t.closest("[data-rpt-filter-add]");
@@ -2097,12 +2102,6 @@
       else if (r.right > w.right) wrap.scrollLeft += r.right - w.right;
     }
   }
-  let jumpFrame = 0;
-  document.addEventListener("scroll", () => {
-    if (!profileOpen() || P.tab !== "configurare") return;
-    cancelAnimationFrame(jumpFrame);
-    jumpFrame = requestAnimationFrame(syncJump);
-  }, { capture: true, passive: true });
   const colFromEvent = (t) => t.closest?.("[data-rpt-col]")?.dataset.rptCol || t.closest?.("[data-rpt-col-pick]")?.dataset.rptColPick || "";
   document.addEventListener("mouseover", (event) => {
     if (!P.draft || !inPage(event.target) || performance.now() < hlLockUntil) return;
@@ -2167,8 +2166,7 @@
       renderCreate({ keep: `#${IDP}-from` });
       return;
     }
-    if (el.matches("[data-rpt-category]")) { v.category = el.value; delete P.errors.category; rerender({ keep: `#${IDP}-category input[value="${el.value}"]` }); reheader(); return; }
-    if (el.matches("[data-rpt-level]")) { v.level = el.value; if (v.level === "Global") v.authorities = []; delete P.errors.authorities; rerender({ keep: `#${IDP}-level input[value="${el.value}"]` }); reheader(); return; }
+    if (el.matches("[data-rpt-auth-all]")) { v.authorities = el.checked ? D().authorities.map((x) => x.id) : []; delete P.errors.authorities; rerender({ keep: "[data-rpt-auth-all]" }); reheader(); return; }
     if (el.matches("[data-rpt-auth]")) {
       const id = el.dataset.rptAuth;
       v.authorities = el.checked ? [...new Set([...v.authorities, id])] : v.authorities.filter((a) => a !== id);

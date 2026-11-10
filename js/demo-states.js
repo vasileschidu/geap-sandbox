@@ -4557,7 +4557,8 @@
     const next = async (h) => { await h.click(`${C} [data-rpt-next]`); await h.wait(250); };
     const at = (sel) => async (h) => { await h.scroll(`${C} ${sel}`); };
     const step1 = async (h) => {
-      await h.click(`${C} .e-permits-wid-type:has(input[value="tabelar"])`);
+      await h.click(`${C} #rpt-e-category`);
+      await h.click(`${C} [data-rpt-pick="category|tabelar"]`);
       await h.choose(`${C} select[data-rpt-field="source"]`, "reg-dosare");
       await h.fill("#rpt-e-name-ro", "Raport dosare finalizate pe serviciu", { leave: false });
     };
@@ -4622,7 +4623,10 @@
       /* US-466 — create: 1 Date generale */
       "rpt-03": list(nou),
       "rpt-03a": list(seq(nou, next)),
-      "rpt-03b": list(seq(nou, step1, langs, async (h) => { await h.click(`${C} .e-permits-wid-type:has(input[value="Autoritate"])`); await h.click(`${C} [data-rpt-auth="ansp"]`); await h.click(`${C} [data-rpt-auth="ansa"]`); }, at("#rpt-e-authorities"))),
+      "rpt-03b": list(seq(nou, step1, langs, async (h) => { await h.click(`${C} #rpt-e-level`); await h.click(`${C} [data-rpt-pick="level|Autoritate"]`); await h.click(`${C} [data-rpt-auth="ansp"]`); await h.click(`${C} [data-rpt-auth="ansa"]`); }, at("#rpt-e-authorities"))),
+      /* rpt-rich-select-v1: the rich dropdowns of Date generale open (Categoria, Nivel) */
+      "rpt-03aa": list(seq(nou, async (h) => { await h.click(`${C} #rpt-e-category`); await h.wait(250); })),
+      "rpt-03ab": list(seq(nou, step1, async (h) => { await h.click(`${C} #rpt-e-level`); await h.wait(250); })),
       "rpt-03c": list(seq(nou, step1), null, AUTH),
       /* 2 Coloane: empty, the dictionary panel, source columns, a column panel, the calculated column + formula picker,
          the two-level header with an „Inclusiv” column, a manual column, column errors, „Formulă nouă” */
@@ -4712,14 +4716,14 @@
       "rpt-09d": list(seq(MENU("RPT-0001"), async (h) => { await h.click('[data-rpt-row-clone="RPT-0001"]'); await h.find(`${C} #rpt-e-name-ro`); await h.click(`${C} [data-rpt-save]`); await h.find("#rpt-panel"); await h.wait(400); }), null, AUTH),
       "rpt-10a": prof("RPT-0001", "istoric"),
       "rpt-10b": prof("RPT-0001", "istoric", async (h) => { await h.click('#rpt-panel [data-rpt-event="0"]'); await h.wait(400); }),
-      /* rpt-split-v1: settings 4/12 | preview 8/12 (capture --width 1280 for the 1280 split); the jump link „Filtre” scrolled
-         the settings, the preview stays in view (sticky) */
-      "rpt-11a": prof("RPT-0002", "configurare", async (h) => { await h.click('#rpt-panel [data-rpt-jump="filters"]'); await h.wait(2500); }),
+      /* rpt-split-v1: settings 5/12 | preview 7/12 (capture --width 1280 for the 1280 split); the settings scrolled to „Filtre”,
+         the preview stays in view (sticky) */
+      "rpt-11a": prof("RPT-0002", "configurare", async (h) => { document.querySelector("#rpt-panel [data-rpt-filter-add]")?.scrollIntoView({ block: "center" }); await h.wait(600); }),
       "rpt-11b": list(seq(built, next)),
       /* rpt-group-v1: the group toggle on a Text column of the list — just turned on for „Serviciu” (it moved from
          „Autoritate”: one at a time), turned off (the pressed one again → the summary „Fără grupare”) */
       "rpt-12a": prof("RPT-0002", "configurare", async (h) => { await h.scroll('#rpt-panel [data-rpt-col="c2"]'); await h.click('#rpt-panel [data-rpt-col-group="c2"]'); await h.wait(400); }),
-      "rpt-12b": prof("RPT-0002", "configurare", async (h) => { await h.click('#rpt-panel [data-rpt-col-group="c1"]'); await h.wait(300); await h.click('#rpt-panel [data-rpt-jump="group"]'); await h.wait(2000); }),
+      "rpt-12b": prof("RPT-0002", "configurare", async (h) => { await h.click('#rpt-panel [data-rpt-col-group="c1"]'); await h.wait(300); await h.wait(600); }),
       /* rpt-filters-v1: the „Filtre la generare” above the preview table = the library facet filter (desktop chips, the
          first 4 + „Mai multe”; phones the icon-only „Filtre” + the sheet) */
       "rpt-13a": prof("RPT-0002", "configurare", seq(fAdd(3, "tip", "multi"), fAdd(4, "statut", "multi"), fAdd(5, "subdiviziune", "single"), async (h) => { await h.scroll("#rpt-panel [data-rpt-preview] .e-permits-rpt-card"); await h.wait(300); })),
@@ -4728,7 +4732,7 @@
       "rpt-13d": prof("RPT-0002", "configurare", seq(fAdd(3, "tip", "multi"), fAdd(4, "statut", "multi"), fAdd(5, "subdiviziune", "single"), async (h) => { if (!ekPhone()) { await h.click("#rpt-panel [data-filter-more]"); await h.wait(250); } else { await h.click("#rpt-panel [data-filter-all]"); await h.wait(500); } })),
       /* rpt-filter-order-v1: the filter order = the chips' order — „Subdiviziune” (6th, in «Mai multe») moved up twice with ↑
          becomes the 4th chip, „Tip solicitare” goes to «Mai multe» */
-      "rpt-14a": prof("RPT-0002", "configurare", seq(fAdd(3, "tip", "multi"), fAdd(4, "statut", "multi"), fAdd(5, "subdiviziune", "single"), async (h) => { await h.click('#rpt-panel [data-rpt-flt-move="5|-1"]'); await h.wait(450); await h.click('#rpt-panel [data-rpt-flt-move="4|-1"]'); await h.wait(450); await h.click('#rpt-panel [data-rpt-jump="filters"]'); await h.wait(1800); }))
+      "rpt-14a": prof("RPT-0002", "configurare", seq(fAdd(3, "tip", "multi"), fAdd(4, "statut", "multi"), fAdd(5, "subdiviziune", "single"), async (h) => { await h.click('#rpt-panel [data-rpt-flt-move="5|-1"]'); await h.wait(450); await h.click('#rpt-panel [data-rpt-flt-move="4|-1"]'); await h.wait(450); await h.wait(600); }))
     };
   }
 
