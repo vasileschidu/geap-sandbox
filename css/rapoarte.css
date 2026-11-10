@@ -337,26 +337,43 @@
   animation: e-permits-rpt-moved var(--motion-duration-lg, 0.5s) var(--motion-easing-decelerate, ease-out) var(--motion-duration-md, 0.3s) backwards;
 }
 
-/* rpt-col-ring-v1 (2026-11-09, user: „the tint isn't visible enough”): the column of the hovered / focused list item or
-   preview header, or of the open column panel = ONE rectangle in the focus-ring colour and width (3 of `--focus-ring`,
-   design-system › Focus Ring, without the white offset — it sits on the cell edges) around the column's own header cell
-   (a grouped column: its second-row header, never the group label) down to the total — radius 4 at the corners; drawn INSIDE the scroll box (absolute, it scrolls with the table, never clipped),
-   above the cells, no pointer events. No tint (the ring alone reads clearly). Geometry from js (`--ring-x/y/w/h`). */
-.e-permits-workplace__table-wrap.e-permits-rpt-table-wrap {
+/* rpt-col-ring-v3 (2026-11-10, user): the column outline is drawn ON its own cells, so it moves with them in the same frame
+   (reorder FLIP): every cell of the column draws its left + right edge, its header cell (the second-row one for a grouped
+   column — never across the group label) the top edge, its last cell the bottom edge — focus-ring colour, 3 wide, no
+   white offset. The ::after covers the cell's 1px row divider so the edges run unbroken (full-width group label rows
+   are section breaks). No overlay, no transition of its own. */
+.e-permits-rpt-preview .e-permits-workplace__table.e-permits-rpt-table :is(th, td).is-col-ring {
   position: relative;
 }
 
-.e-permits-rpt-col-ring {
-  border-radius: var(--border-radius-4, 4px);
-  /* rpt-col-ring-v2: the ring sits on the cell edges — no white offset inside it */
-  box-shadow: inset 0 0 0 var(--border-width-3, 3px) var(--focus-ring, #3379db);
-  height: var(--ring-h, 0);
-  left: var(--ring-x, 0);
+.e-permits-rpt-preview .e-permits-workplace__table.e-permits-rpt-table :is(th, td).is-col-ring::after {
+  bottom: calc(var(--border-width-1, 1px) * -1);
+  box-shadow: inset var(--border-width-3, 3px) 0 0 var(--focus-ring, #3379db), inset calc(var(--border-width-3, 3px) * -1) 0 0 var(--focus-ring, #3379db);
+  content: "";
+  left: 0;
   pointer-events: none;
   position: absolute;
-  top: var(--ring-y, 0);
-  width: var(--ring-w, 0);
-  z-index: 5;
+  right: 0;
+  top: 0;
+  z-index: 1;
+}
+
+.e-permits-rpt-preview .e-permits-workplace__table.e-permits-rpt-table :is(th, td).is-col-ring.is-col-ring-top::after {
+  border-top-left-radius: var(--border-radius-4, 4px);
+  border-top-right-radius: var(--border-radius-4, 4px);
+  box-shadow: inset var(--border-width-3, 3px) 0 0 var(--focus-ring, #3379db), inset calc(var(--border-width-3, 3px) * -1) 0 0 var(--focus-ring, #3379db), inset 0 var(--border-width-3, 3px) 0 var(--focus-ring, #3379db);
+}
+
+.e-permits-rpt-preview .e-permits-workplace__table.e-permits-rpt-table :is(th, td).is-col-ring.is-col-ring-bottom::after {
+  border-bottom-left-radius: var(--border-radius-4, 4px);
+  border-bottom-right-radius: var(--border-radius-4, 4px);
+  bottom: 0;
+  box-shadow: inset var(--border-width-3, 3px) 0 0 var(--focus-ring, #3379db), inset calc(var(--border-width-3, 3px) * -1) 0 0 var(--focus-ring, #3379db), inset 0 calc(var(--border-width-3, 3px) * -1) 0 var(--focus-ring, #3379db);
+}
+
+.e-permits-rpt-preview .e-permits-workplace__table.e-permits-rpt-table :is(th, td).is-col-ring.is-col-ring-top.is-col-ring-bottom::after {
+  border-radius: var(--border-radius-4, 4px);
+  box-shadow: inset 0 0 0 var(--border-width-3, 3px) var(--focus-ring, #3379db);
 }
 
 /* the editor's header = a button over the whole header cell → its list item (keyboard: Tab, Enter); the look stays the

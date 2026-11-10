@@ -1662,7 +1662,7 @@
   /* rpt-move-v1 (2026-11-10, user: „the move is hard to follow”; FLIP, Material / Notion reorder): ↑ ↓ and drag-and-drop
      slide the list items to their new places (translateY) and the preview columns to theirs (translateX), duration /
      easing = the motion tokens (--motion-duration-md, --motion-easing-standard); the moved item flashes the selected
-     tint, the focus stays on the same arrow (at an end: the other one), the preview ring slides with its column; a polite live line says „<Nume>
+     tint, the focus stays on the same arrow (at an end: the other one), the ring (drawn on the column's cells) moves with them; a polite live line says „<Nume>
      mutată pe poziția N din M.”. prefers-reduced-motion: instant swap + the flash only. */
   const motionOk = () => !window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
   const tokenMs = (name, fallback) => { const v = getComputedStyle(document.documentElement).getPropertyValue(name).trim(); const n = parseFloat(v); return Number.isFinite(n) ? (/ms$/.test(v) ? n : n * 1000) : fallback; };
@@ -1693,6 +1693,7 @@
     const wrap = root.querySelector("[data-rpt-preview] .e-permits-rpt-table-wrap");
     if (wrap) wrap.scrollLeft = before.scroll;
     hlHover = id;
+    hlLockUntil = performance.now() + opts.duration + 100;
     syncColHl({ scroll: true });
     if (anim) {
       root.querySelectorAll("[data-rpt-col]").forEach((el) => {
@@ -1704,8 +1705,6 @@
         const dx = (before.cols[cid] ?? th.getBoundingClientRect().left) - th.getBoundingClientRect().left;
         if (Math.abs(dx) < 0.5) return;
         root.querySelectorAll(`[data-rpt-preview] [data-rpt-cell="${CSS.escape(cid)}"]`).forEach((cell) => cell.animate([{ transform: `translateX(${dx}px)` }, { transform: "none" }], opts));
-        /* rpt-move-v2 (user: the outline „jumps”): the ring rides its column's FLIP — same delta, duration, easing */
-        if (cid === id) root.querySelector("[data-rpt-preview] .e-permits-rpt-col-ring")?.animate([{ transform: `translateX(${dx}px)` }, { transform: "none" }], opts);
       });
     }
     const item = root.querySelector(`[data-rpt-col="${CSS.escape(id)}"]`);
@@ -1716,15 +1715,17 @@
 
   /* rpt-col-link-v1 (2026-11-09, user; Salesforce / Google Ads / Zoho report builders): the column list ↔ the live preview.
      Hover / focus of a list item or its preview header, and the column whose panel is open, tint that column in the
-     preview (one focus-ring rectangle `.e-permits-rpt-col-ring` around the whole column); focusing an item (or opening its panel)
+     preview (a focus-ring outline drawn on the column's cells, `.is-col-ring`); focusing an item (or opening its panel)
      scrolls the preview sideways to it; a preview header button focuses its list item. */
   let hlHover = "";
+  /* while a move plays, the pointer lands on another (swapped) item: hover does not steal the highlight */
+  let hlLockUntil = 0;
   const hlTarget = () => hlHover || (DR?.mode === "col" && DR.colId) || "";
   function syncColHl({ scroll = false } = {}) {
     const root = creating() ? sheet : document.querySelector("#rpt-panel");
     if (!root) return;
     const id = hlTarget();
-    root.querySelectorAll("[data-rpt-preview] .e-permits-rpt-col-ring").forEach((el) => el.remove());
+    root.querySelectorAll("[data-rpt-preview] .is-col-ring").forEach((el) => el.classList.remove("is-col-ring", "is-col-ring-top", "is-col-ring-bottom"));
     root.querySelectorAll("[data-rpt-col].is-selected").forEach((el) => el.classList.remove("is-selected"));
     /* the column whose panel is open = the selected list item (the Registre column list's brand-secondary row) */
     const open = DR?.mode === "col" && DR.colId;
@@ -1732,19 +1733,13 @@
     if (!id) return;
     const head = root.querySelector(`[data-rpt-preview] th[data-rpt-cell="${CSS.escape(id)}"]`);
     const wrap = head?.closest(".e-permits-rpt-table-wrap");
-    /* rpt-col-ring-v1 (user: the tint was too faint): ONE focus-ring rectangle around the whole column — group header row
-       to the total — drawn inside the scroll box (it scrolls with the table, never clipped) */
-    const table = head?.closest("table");
-    if (table && wrap) {
-      const ring = document.createElement("span");
-      ring.className = "e-permits-rpt-col-ring";
-      ring.setAttribute("aria-hidden", "true");
-      /* rpt-col-ring-v2 (user): the column's OWN header cell down to the total — a grouped column starts at its second-row
-         header (never across the group label), an ungrouped one at the top */
-      const y = head.getBoundingClientRect().top - table.getBoundingClientRect().top;
-      [["--ring-x", table.offsetLeft + head.offsetLeft], ["--ring-y", table.offsetTop + y], ["--ring-w", head.offsetWidth], ["--ring-h", table.offsetHeight - y]].forEach(([k, px]) => ring.style.setProperty(k, `${px}px`));
-      wrap.prepend(ring);
-    }
+    /* rpt-col-ring-v3 (user: „first the columns move, then the blue stroke”): the outline is drawn ON the column's own
+       cells (css `.is-col-ring` ::after edges; top on its header cell, bottom on its last cell) — it rides the cells' FLIP
+       transform in the same frame; no overlay to reposition. A grouped column starts at its second-row header. */
+    const ringCells = [...root.querySelectorAll(`[data-rpt-preview] [data-rpt-cell="${CSS.escape(id)}"]`)];
+    ringCells.forEach((el) => el.classList.add("is-col-ring"));
+    head?.classList.add("is-col-ring-top");
+    ringCells[ringCells.length - 1]?.classList.add("is-col-ring-bottom");
     if (scroll && head && wrap) {
       const w = wrap.getBoundingClientRect();
       const r = head.getBoundingClientRect();
@@ -1754,7 +1749,7 @@
   }
   const colFromEvent = (t) => t.closest?.("[data-rpt-col]")?.dataset.rptCol || t.closest?.("[data-rpt-col-pick]")?.dataset.rptColPick || "";
   document.addEventListener("mouseover", (event) => {
-    if (!P.draft || !inPage(event.target)) return;
+    if (!P.draft || !inPage(event.target) || performance.now() < hlLockUntil) return;
     const id = colFromEvent(event.target);
     if (id !== hlHover) { hlHover = id; syncColHl(); }
   });
