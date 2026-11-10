@@ -118,8 +118,11 @@
     if (!S.loading) {
       S.loading = Promise.all([
         fetch("data/dashboards.json?v=dash-v1").then((r) => r.json()),
-        W().load ? W().load() : Promise.resolve(null)
-      ]).then(([json]) => {
+        W().load ? W().load() : Promise.resolve(null),
+        /* dsh-auth-ms-v1: the same ~30 demo authorities as Rapoarte (data/rapoarte.json › authorities) */
+        fetch("data/rapoarte.json?v=rpt-auth-ms-v1").then((r) => r.json()).catch(() => null)
+      ]).then(([json, , rpt]) => {
+        if (rpt?.authorities?.length) AUTHORITIES.splice(0, AUTHORITIES.length, ...rpt.authorities.map((a) => [a.id, a.name, a.long]));
         if (demo.has("gol")) json.dashboards = [];
         json.dashboards.forEach((d) => {
           d.offFor = d.offFor || [];
@@ -324,16 +327,16 @@
     if (!me.central) {
       return labelled(`${idp}-auth-label`, "Autoritate", `<div class="e-permits-cfg-ro" aria-labelledby="${idp}-auth-label">${esc(authName(me.authority))} · ${esc(authLong(me.authority))}</div><p class="e-permits-fo-field__hint">Tabloul de bord se creează la nivelul autorității tale; autoritatea nu se modifică.</p>`);
     }
-    const n = v.allAuthorities ? AUTHORITIES.length : v.authorities.length;
-    return labelled(`${idp}-auth-label`, "Autorități asignate", `
-      <div class="e-permits-dsh-auths" role="group" aria-labelledby="${idp}-auth-label" id="${idp}-authorities">
-        <div class="e-permits-dsh-auths__all">
-          ${U().renderCheckOption?.({ label: "Toate autoritățile", plain: true, checked: v.allAuthorities, attrs: `data-dsh-auth-all${!v.allAuthorities && n ? " data-dsh-mixed" : ""}` }) || ""}
-          <span class="e-permits-dsh-auths__count" aria-label="${n} din ${AUTHORITIES.length} selectate">${n}/${AUTHORITIES.length}</span>
-        </div>
-        <div class="e-permits-dsh-auths__list">${AUTHORITIES.map(([id, short, long]) => U().renderCheckOption?.({ label: `${short} · ${long}`, plain: true, checked: v.allAuthorities || v.authorities.includes(id), attrs: `data-dsh-auth="${id}"${e.authorities ? ' aria-invalid="true"' : ""}` }) || "").join("")}</div>
-      </div>
-      ${e.authorities ? errorHtml(`${idp}-authorities`, e.authorities) : `<p class="e-permits-fo-field__hint">„Toate autoritățile” le include și pe cele adăugate ulterior.</p>`}`, { required: true });
+    /* dsh-auth-ms-v1 (same as Rapoarte rpt-auth-ms-v1): „Toate autoritățile” checkbox above the FO multi-select (CAEM) with
+       the chips under the field; ticked = all (field disabled, no chips), unticked = pick ≥ 1 */
+    const some = !v.allAuthorities;
+    const lab = ([, short, long]) => `${short} · ${long}`;
+    let ms = window.GEAPFormRender?.fieldHtml({ id: `${idp}-authorities`, type: "multiselect", label: "Autoritățile tabloului de bord", required: some, options: AUTHORITIES.map(lab), value: some ? v.authorities.map((id) => AUTHORITIES.find(([k]) => k === id)).filter(Boolean).map(lab) : [], placeholder: some ? "Alege autoritățile" : "Toate autoritățile", countOne: "autoritate selectată", countMany: "autorități selectate", removeLabel: "Elimină autoritatea", searchLabel: "Caută autoritatea", searchAria: "Caută autoritatea", readOnly: !some, hint: some ? "Tabloul de bord este asignat doar autorităților alese." : "Tabloul de bord este asignat tuturor autorităților, și celor adăugate ulterior.", span: 12 }) || "";
+    if (e.authorities) ms = ms.replace('e-permits-fo-subgen-select" data-fo-subgen-select', 'e-permits-fo-subgen-select is-error" data-fo-subgen-select').replace(/<p class="e-permits-fo-field__hint"[^]*?<\/p>\s*<\/div>\s*$/, "</div>").replace(/<\/div>\s*$/, `${errorHtml(`fo-${idp}-authorities`, e.authorities)}</div>`);
+    return `<div class="e-permits-dsh-auths" id="${idp}-authorities" data-dsh-auth-ms>
+      ${U().renderCheckOption?.({ label: "Toate autoritățile", checked: v.allAuthorities, attrs: "data-dsh-auth-all" }) || ""}
+      ${ms}
+    </div>`;
   }
   function stepAccess(v, e, idp, d) {
     const me = who();
@@ -746,8 +749,8 @@
       if (caret && el && "setSelectionRange" in el) { try { el.setSelectionRange(caret[0], caret[1]); } catch { /* not text */ } }
     }
   }
-  /* „Toate autoritățile” = tri-state (the subdivision picker's group head): some chosen → indeterminate */
-  const syncMixed = (root) => root?.querySelectorAll("[data-dsh-auth-all]").forEach((box) => { box.indeterminate = box.hasAttribute("data-dsh-mixed"); });
+  /* the FO behaviour of the authorities multi-select after every render */
+  const syncMixed = (root) => root?.querySelectorAll("[data-dsh-auth-ms]").forEach((el) => window.GEAPFormRender?.bind?.(el));
   function notices(d) {
     const me = who();
     const mine = authName(me.authority);
@@ -1331,6 +1334,32 @@
     if (count) { const max = field.tagName === "TEXTAREA" ? TEXT_MAX : NAME_MAX; count.textContent = `${field.value.length}/${max}`; count.classList.toggle("is-over", field.value.length > max); }
     reheader();
   });
+  /* dsh-auth-ms-v1: the multi-select reports every tick / chip × — model only (the menu stays open) */
+  document.addEventListener("fo-multiselect-change", (event) => {
+    const host = event.target.closest?.("[data-dsh-auth-ms]");
+    if (!host || !P.draft || !inPage(host)) return;
+    const byLabel = new Map(AUTHORITIES.map(([id, s, l]) => [`${s} · ${l}`, id]));
+    P.draft.authorities = (event.detail?.values || []).map((x) => byLabel.get(x)).filter(Boolean);
+    if (P.errors.authorities && P.draft.authorities.length) {
+      delete P.errors.authorities;
+      host.querySelector(".e-permits-fo-subgen-select.is-error")?.classList.remove("is-error");
+      host.querySelector(".e-permits-fo-field__error")?.remove();
+    }
+    reheader();
+  });
+  /* dsh-auth-ms-v1: the multi-select reports every tick / chip × — model only (the menu stays open) */
+  document.addEventListener("fo-multiselect-change", (event) => {
+    const host = event.target.closest?.("[data-dsh-auth-ms]");
+    if (!host || !P.draft || !inPage(host)) return;
+    const byLabel = new Map(AUTHORITIES.map(([id, sh, lg]) => [`${sh} · ${lg}`, id]));
+    P.draft.authorities = (event.detail?.values || []).map((x) => byLabel.get(x)).filter(Boolean);
+    if (P.errors.authorities && P.draft.authorities.length) {
+      delete P.errors.authorities;
+      host.querySelector(".e-permits-fo-subgen-select.is-error")?.classList.remove("is-error");
+      host.querySelector(".e-permits-fo-field__error")?.remove();
+    }
+    reheader();
+  });
   document.addEventListener("change", (event) => {
     const el = event.target;
     if (!el.closest) return;
@@ -1338,17 +1367,7 @@
     if (el.matches("[data-dsh-cmp]")) { P.compare = { ...P.compare, [el.dataset.dshCmp]: el.value }; renderProfile({ keep: `#dsh-cmp-${el.dataset.dshCmp}` }); return; }
     if (!inPage(el)) return;
     const v = P.draft;
-    if (el.matches("[data-dsh-auth-all]")) { v.allAuthorities = el.checked; v.authorities = el.checked ? AUTHORITIES.map(([id]) => id) : []; delete P.errors.authorities; rerender({ keep: "[data-dsh-auth-all]" }); reheader(); return; }
-    if (el.matches("[data-dsh-auth]")) {
-      const set = new Set(v.allAuthorities ? AUTHORITIES.map(([id]) => id) : v.authorities);
-      if (el.checked) set.add(el.dataset.dshAuth); else set.delete(el.dataset.dshAuth);
-      v.authorities = AUTHORITIES.map(([id]) => id).filter((id) => set.has(id));
-      v.allAuthorities = v.authorities.length === AUTHORITIES.length;
-      delete P.errors.authorities;
-      rerender({ keep: `[data-dsh-auth="${el.dataset.dshAuth}"]` });
-      reheader();
-      return;
-    }
+    if (el.matches("[data-dsh-auth-all]")) { v.allAuthorities = el.checked; if (el.checked) v.authorities = []; delete P.errors.authorities; rerender({ keep: "[data-dsh-auth-all]" }); reheader(); return; }
   });
 
   /* ================================================================ arranging: FLIP reflow, drag (handle), resize (corner), keyboard */

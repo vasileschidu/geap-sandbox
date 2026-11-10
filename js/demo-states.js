@@ -4823,13 +4823,14 @@
     const langs = async (h) => { await h.fill("#dsh-n-name-ru", "Панель эксперта", { leave: false }); await h.fill("#dsh-n-name-en", "Expert dashboard", { leave: false }); };
     const role = (id, root = C) => async (h) => { await h.click(`${root} #dsh-${root === C ? "n" : "e"}-roles`); await h.wait(150); await h.click(`${root} [data-dsh-role-add="${id}"]`); await h.wait(150); };
     const principal = (id, root = C) => async (h) => { await h.click(`${root} [data-dsh-role-type="${id}|principal"]`); await h.wait(150); };
-    const allAuth = async (h) => { await h.click(`${C} .e-permits-dsh-auths__all label`); await h.wait(150); };
+    const allAuth = async (h) => { await h.click(`${C} .e-permits-dsh-auths > .e-permits-check-option label`); await h.wait(150); };
     const pick = async (h) => { await h.click("[data-dsh-add]"); await h.find(`${M} [data-dsh-pick-search]`); };
     /* one widget at a time (dash-v3): choose its card, „Adaugă” → it lands at the end and flashes */
     const choose = (id) => async (h) => { await h.click(`${M} .e-permits-wid-type:has([data-dsh-pick][value="${id}"])`); await h.wait(120); };
     const addOne = (id) => seq(pick, choose(id), async (h) => { await h.click(`${M} [data-dsh-pick-confirm]`); await h.wait(450); });
     const addW = (...ids) => seq(...ids.map(addOne));
     const D = (fn) => async (h) => { fn(window.GEAPDashboards.demo); await h.wait(450); };
+    const DAMS = (...ids) => async (h) => { await h.click(`${C} #fo-dsh-n-authorities`); await h.wait(250); for (const v of ids) { const o = await h.find(`${C} [data-dsh-auth-ms] .e-permits-fo-subgen-select__option[data-value^="${v} ·"]`); o.dispatchEvent(new MouseEvent("mousedown", { bubbles: true, cancelable: true })); await h.wait(120); } if (ids.length) { await h.click(`${C} [data-dsh-auth-ms] [data-fo-subgen-confirm]`); await h.wait(250); } };
     const step2 = seq(role("expert"), principal("expert"), allAuth);
     const toStep3 = seq(nou, step1, next, step2, next);
     const built = seq(toStep3, addW("WGT-0011", "WGT-0001", "WGT-0002", "WGT-0007"));
@@ -4866,6 +4867,10 @@
       "dsh-03j": list(seq(built, next)),
       "dsh-03k": list(seq(built, langs, next), null),
       "dsh-03l": list(seq(nou, step1, next), null, AUTH),
+      /* dsh-auth-ms-v1 (= rpt-auth-ms-v1): the CAEM multi-select + chips under it; open + searched „primăria”; „Toate autoritățile” ticked */
+      "dsh-03n": list(seq(nou, step1, next, role("expert"), DAMS("ANSP", "PMC"))),
+      "dsh-03o": list(seq(nou, step1, next, DAMS(), async (h) => { await h.fill(`${C} [data-dsh-auth-ms] [data-fo-subgen-search]`, "primăria", { leave: false }); await h.wait(300); })),
+
       "dsh-03m": list(seq(built, next, async (h) => { await h.click(`${C} [data-dsh-save]`); await h.find("#dsh-panel"); await h.wait(300); })),
       /* US-544 — edit on the profile page (Configurare = settings + the layout editor) */
       "dsh-04": prof("DSH-0001"),
