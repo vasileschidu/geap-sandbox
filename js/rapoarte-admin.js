@@ -683,8 +683,8 @@
         <ul class="e-permits-fo-intent-menu e-permits-stack__menu e-permits-rpt-add-menu e-permits-rpt-rich__menu" id="${id}-menu" role="menu" aria-label="${esc(kind)}" hidden data-stack-menu>
           ${options.map(([key, text, desc]) => `<li role="none"><button class="e-permits-fo-intent-menu__item e-permits-rpt-add-menu__item${key === value ? " is-selected" : ""}" type="button" role="menuitemradio" aria-checked="${key === value}" data-rpt-pick="${kind}|${esc(key)}">${icon(icons[key])}<span class="e-permits-rpt-add-menu__text"><span class="e-permits-rpt-add-menu__title">${esc(text)}</span><span class="e-permits-rpt-add-menu__desc">${esc(desc)}</span></span>${key === value ? icon("checkmark-large") : ""}</button></li>`).join("")}
         </ul>
-        ${error ? errorHtml(id, error) : ""}
-      </div>`;
+      </div>
+      ${error ? errorHtml(id, error) : ""}`;
   }
   const labelled = (lblId, lbl, html, { required = false } = {}) => `<div class="e-permits-wid-vis-field"><span class="e-permits-cfg-ro__label" id="${lblId}">${esc(lbl)}${required ? req() : ""}</span>${html}</div>`;
 
@@ -1260,7 +1260,7 @@
     sheet.querySelector("[data-rpt-ed-body]").innerHTML = `
       <div class="e-permits-reg-editor__single e-permits-reg-editor__page" data-rpt-ed-scroll>
         ${P.saveError ? `<div class="e-permits-reg-notices">${U().renderNotice?.("error", esc(SAVE_FAILED), { role: "alert" }) || ""}</div>` : ""}
-        <div class="e-permits-ntpl-content e-permits-ntpl-content--preview e-permits-wid-create e-permits-rpt-create${P.step === 2 || P.step === 3 ? " e-permits-rpt-split" : ""}">
+        <div class="e-permits-ntpl-content e-permits-ntpl-content--preview e-permits-wid-create e-permits-rpt-create e-permits-rpt-split">
           <div class="e-permits-ntpl-content__main e-permits-rpt-form">${form}</div>
           <aside class="e-permits-ntpl-content__preview" data-rpt-preview>${previewHtml(v, { idp: IDP, ctx: "sheet" })}</aside>
         </div>
