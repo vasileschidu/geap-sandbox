@@ -768,6 +768,253 @@
   max-width: none;
 }
 
+/* rpt-cond-restore-v1 (2026-11-10, user decision): the PO's inline builder is back — the rpt-cond-v1 / v2 rules as at 7857ea28 */
+/* ---- rpt-cond-v1 (2026-11-10, PO: inline filters with „și / sau”; Notion / Airtable / Linear / Metabase): the condition
+   builder in „Filtre”. Item = connector column (64: „Unde” code token / the „și / sau” token select, centred on the first
+   field line) + 8 + the condition on the shared hover surface (padding 16 on every side, r12): lead (handle + position)
+   spanning the rows · Câmp (row 1) · Condiție | Valoare (row 2; a two-value pair takes its own row) · „Alege la generare” +
+   ↑ ↓ 🗑 (last row). A group = a bordered white sub-block (r12, 16) with its own items + „Adaugă condiție”. Phones: the
+   connector sits above the condition. ---- */
+.e-permits-rpt-builder {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-16, 16px);
+}
+
+.e-permits-rpt-conds {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-8, 8px);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+/* rpt-cond-v2 (user: narrow column): the connector is its own line ABOVE the condition (8 apart), the condition takes the
+   full width */
+.e-permits-rpt-cond-item {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-8, 8px);
+  min-width: 0;
+}
+
+.e-permits-rpt-cond-item__conn {
+  align-items: flex-start;
+  display: flex;
+}
+
+/* the item whose menu is open paints above the next items (their surfaces isolate) */
+.e-permits-rpt-cond-item:has([data-stack-menu]:not([hidden])) {
+  position: relative;
+  z-index: 30;
+}
+
+.e-permits-rpt-cond-item.is-dragging {
+  opacity: 0.5;
+}
+
+.e-permits-rpt-cond-item.is-drop-target > :is(.e-permits-rpt-cond, .e-permits-rpt-cgroup) {
+  box-shadow: inset 0 var(--spacing-2, 2px) 0 var(--color-border-brand-default, #0058d2);
+}
+
+.e-permits-rpt-cond-item.is-just-moved > :is(.e-permits-rpt-cond, .e-permits-rpt-cgroup) {
+  animation: e-permits-rpt-moved var(--motion-duration-lg, 0.5s) var(--motion-easing-decelerate, ease-out) var(--motion-duration-md, 0.3s) backwards;
+}
+
+.e-permits-rpt-cond {
+  align-items: start;
+  border-radius: var(--border-radius-12, 12px);
+  display: grid;
+  gap: var(--spacing-8, 8px) var(--spacing-12, 12px);
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  min-width: 0;
+  padding: var(--spacing-16, 16px);
+}
+
+/* the condition's own width decides the layout (a group's conditions are narrower): Condiție and Valoare stack when the
+   two would not fit side by side */
+.e-permits-rpt-cond-item > .e-permits-rpt-cond {
+  container-type: inline-size;
+}
+
+/* the foot: order lead (handle + position) + „Alege la generare” left, ↑ ↓ 🗑 right */
+.e-permits-rpt-cond__lead {
+  align-items: center;
+  cursor: grab;
+  display: flex;
+  gap: var(--spacing-12, 12px);
+}
+
+.e-permits-rpt-cond__cell {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-8, 8px);
+  min-width: 0;
+}
+
+.e-permits-rpt-cond__field {
+  grid-column: 1 / -1;
+}
+
+.e-permits-rpt-cond__op {
+  grid-column: 1;
+}
+
+.e-permits-rpt-cond__val {
+  grid-column: 2;
+}
+
+.e-permits-rpt-cond__val.is-wide {
+  grid-column: 1 / -1;
+}
+
+.e-permits-rpt-cond__pair {
+  display: grid;
+  gap: var(--spacing-8, 8px);
+  grid-template-columns: repeat(auto-fit, minmax(calc(var(--spacing-8, 8px) * 17), 1fr));
+}
+
+.e-permits-rpt-cond__slot {
+  min-height: var(--spacing-40, 40px);
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.e-permits-rpt-cond__foot {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-8, 8px);
+  grid-column: 1 / -1;
+  justify-content: space-between;
+}
+
+.e-permits-rpt-cond__actions {
+  display: flex;
+  gap: var(--spacing-4, 4px);
+  margin-left: auto;
+}
+
+.e-permits-rpt-cgroup {
+  background: var(--color-background-base-default, #fff);
+  border: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
+  border-radius: var(--border-radius-12, 12px);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-8, 8px);
+  min-width: 0;
+  padding: var(--spacing-16, 16px);
+}
+
+.e-permits-rpt-cgroup__head {
+  align-items: center;
+  cursor: grab;
+  display: flex;
+  gap: var(--spacing-12, 12px);
+}
+
+.e-permits-rpt-cgroup__title {
+  color: var(--color-text-base-default, #121212);
+  flex: 1 1 auto;
+  font-size: var(--font-size-fs-14, 14px);
+  font-weight: var(--font-weight-fw-medium, 500);
+  line-height: var(--line-height-lh-20, 20px);
+}
+
+.e-permits-rpt-cgroup__add {
+  display: flex;
+}
+
+.e-permits-rpt-conds__add {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-8, 8px);
+}
+
+.e-permits-empty .e-permits-rpt-conds__add {
+  justify-content: center;
+}
+
+/* the values menu of a list condition: checkbox items (library checkbox, 40 / phones 48), the menu at the field's width */
+.e-permits-rpt-multi__item {
+  align-items: center;
+  gap: var(--spacing-12, 12px);
+}
+
+.e-permits-rpt-multi__label {
+  flex: 1 1 auto;
+  min-width: 0;
+  text-align: left;
+  white-space: normal;
+}
+
+/* rpt-cond-v2 (user): never narrower than the trigger, as wide as the longest value up to 360 / the screen (labels wrap to
+   2 lines, never cut); left edge on the trigger, `.is-flip-x` = right edge (set by js when it would leave the screen) */
+.e-permits-rpt-rich.e-permits-rpt-multi > .e-permits-stack__menu.e-permits-rpt-multi__menu {
+  left: 0;
+  max-width: var(--rpt-menu-max, min(calc(var(--spacing-40, 40px) * 9), calc(100vw - var(--spacing-32, 32px))));
+  min-width: min(100%, var(--rpt-menu-max, 100%));
+  right: auto;
+  width: max-content;
+  z-index: 30;
+}
+
+.e-permits-rpt-rich.e-permits-rpt-multi > .e-permits-stack__menu.e-permits-rpt-multi__menu.is-flip-x {
+  left: auto;
+  right: 0;
+}
+
+/* „Condiții: …” under the preview's data line (its own grid row, one line, tooltip with the whole sentence) */
+.e-permits-rpt-preview .e-permits-wid-preview__titles > .e-permits-rpt-conds-line {
+  grid-row: 3;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (max-width: 760px) {
+
+  .e-permits-rpt-cond__slot {
+    font-size: var(--font-size-fs-16, 16px);
+    min-height: var(--spacing-48, 48px);
+  }
+
+  .e-permits-rpt-cgroup__title {
+    font-size: var(--font-size-fs-16, 16px);
+    line-height: var(--line-height-lh-24, 24px);
+  }
+}
+
+/* rpt-cond-v1: after the base placement rules (same specificity) */
+@container (max-width: 280px) {
+  .e-permits-rpt-cond__op,
+  .e-permits-rpt-cond__val {
+    grid-column: 1 / -1;
+  }
+}
+
+/* rpt-col-item-v2 (2026-11-10, user): a column item's kind / „Grupare” / „Inclusiv” = small secondary text right after the
+   name on the title line (no tags: they wrapped under the title in the 5/12 column); „De corectat” in the error colour */
+.e-permits-stack__title > .e-permits-rpt-col-note {
+  color: var(--color-text-base-secondary, #4d4d4d);
+  font-size: var(--font-size-fs-14, 14px);
+  font-weight: var(--font-weight-fw-regular, 400);
+  line-height: var(--line-height-lh-20, 20px);
+}
+
+.e-permits-stack__title > .e-permits-rpt-col-note.is-error {
+  color: var(--color-text-danger-default, #d92d20);
+}
+
+@media (max-width: 760px) {
+  .e-permits-stack__title > .e-permits-rpt-col-note {
+    font-size: var(--font-size-fs-16, 16px);
+    line-height: var(--line-height-lh-24, 24px);
+  }
+}
+
 /* rpt-phone-cols-v1 (2026-11-10, QA: at 375 the two text columns took ~290 px, ~60 left for numbers): on phones a text
    cell is at most 6 × 16 (ellipsis + the cell tooltip) and a header's floor is 5 × 16, so ≥ 2 numeric columns show next to
    two text columns; the table still scrolls sideways with its edge shadow */
