@@ -98,10 +98,18 @@
   const KIND_TAG = { source: ["Din sursă", "neutral"], calc: ["Calculată", "brand"], manual: ["Manual", "warning"] };
   const DATA_TYPES = [["numeric", "Numeric"], ["value", "Valoric"], ["temporal", "Temporal"], ["text", "Text"]];
   const TOTALS = [["sum", "Se adună în total", "Valorile coloanei intră în subtotaluri și în rândul de total."], ["incl", "Inclusiv", "Detaliază coloana «Se adună în total» din stânga ei („din care”)."]];
-  const FILTER_TYPES = [["text", "Text"], ["single", "Alegere unică"], ["multi", "Alegere multiplă"], ["date", "Interval de date"]];
-  /* the filter types a source field supports (the Registre filterSupport, on the KPI field types) */
-  const FILTER_HINT = { text: "Caută după text în valorile câmpului.", single: "Alegi o singură valoare din listă.", multi: "Alegi una sau mai multe valori din listă.", date: "Alegi un interval de date." };
-  const FILTER_SUPPORT = { text: ["text"], enum: ["single", "multi"], date: ["date"], duration: [], amount: [], number: [] };
+  /* rpt-cond-v1 (2026-11-10, PO: inline filters with „și / sau”; Notion / Airtable / Linear / Metabase filter builder): a
+     condition = „Unde [Câmp] [Condiție] [Valoare]”; the operators follow the field's kind; „Alege la generare” leaves the
+     value empty → the condition becomes a filter chip above the report (number fields always take a fixed value) */
+  const COND_KIND = { enum: "list", text: "text", date: "date", duration: "number", amount: "number", number: "number" };
+  const COND_OPS = {
+    list: [["is", "este"], ["not", "nu este"]],
+    text: [["contains", "conține"], ["is", "este"]],
+    date: [["between", "între"], ["before", "înainte de"], ["after", "după"], ["last", "în ultimele N zile"]],
+    number: [["eq", "="], ["neq", "≠"], ["gt", ">"], ["lt", "<"], ["between", "între"]]
+  };
+  const ASK_OPS = { list: ["is", "not"], text: ["is"], date: ["between"], number: [] };
+  const NO_ASK = "Un câmp numeric primește o valoare fixă: alege condiția și valoarea.";
   const FORMATS = [["int", "Număr întreg"], ["amount", "Sumă"], ["percent", "Procent"], ["days", "Zile"]];
   const RESULT_TEXT = { int: "Număr întreg", amount: "Sumă, cu două zecimale", percent: "Procent, cu o zecimală", days: "Zile întregi" };
   const FORMAT_TYPE = { int: "numeric", amount: "value", percent: "numeric", days: "numeric" };
@@ -151,7 +159,11 @@
     const base = blankConfig({ central: true });
     const v = { ...base, ...c, names: { ...base.names, ...c.names }, descriptions: { ...base.descriptions, ...c.descriptions } };
     v.columns = (v.columns || []).map((col) => ({ names: { ro: "", ru: "", en: "" }, kind: "source", field: "", formula: "", operands: {}, dataType: "text", header: "", total: "sum", ...col, names: { ro: "", ru: "", en: "", ...col.names }, operands: { ...(col.operands || {}) } }));
-    v.filters = (v.filters || []).map((f) => ({ field: "", type: "", ...f }));
+    /* rpt-cond-v1: conditions + one-level groups; a legacy filter { field, type } = an „Alege la generare” condition */
+    let seq = 0;
+    const cond = (f) => ({ id: f.id || `f${seq += 1}`, field: f.field || "", op: f.op || (f.type === "date" ? "between" : f.type ? "is" : ""), value: String(f.value ?? ""), value2: String(f.value2 ?? ""), values: [...(f.values || [])], ask: f.ask ?? Boolean(f.type) });
+    v.filters = (v.filters || []).map((f) => (f.group ? { id: f.id || `g${seq += 1}`, group: true, conj: f.conj === "or" ? "or" : "and", rules: (f.rules || []).filter((x) => !x.group).map(cond) } : cond(f))).filter((f) => !f.group || f.rules.length);
+    v.filterConj = v.filterConj === "or" ? "or" : "and";
     v.authorities = [...(v.authorities || [])];
     v.groupBy = (Array.isArray(v.groupBy) ? v.groupBy : v.groupBy ? [v.groupBy] : []).slice(0, MAX_LEVELS);
     return v;
@@ -227,7 +239,59 @@
     }
     return null;
   }
-  const supportOf = (v, key) => FILTER_SUPPORT[fieldOf(v.source, key)?.type] || [];
+  /* ---- conditions (rpt-cond-v1) */
+  const flatConds = (v) => (v.filters || []).flatMap((x) => (x.group ? x.rules : [x]));
+  const condKind = (v, c) => COND_KIND[fieldOf(v.source, c.field)?.type] || "";
+  const opOf = (v, c) => { const k = condKind(v, c); const ops = (COND_OPS[k] || []).map(([o]) => o); return ops.includes(c.op) ? c.op : ops[0] || ""; };
+  const opText = (v, c) => label(COND_OPS[condKind(v, c)] || [], opOf(v, c));
+  const canAsk = (v, c) => Boolean(c.field) && (ASK_OPS[condKind(v, c)] || []).length > 0;
+  const asking = (v, c) => Boolean(c.ask) && canAsk(v, c);
+  /* the conditions that become chips above the report, in the builder's order */
+  const askConds = (v) => flatConds(v).filter((c) => asking(v, c) && fieldOf(v.source, c.field));
+  const fldLabel = (v, c) => fieldOf(v.source, c.field)?.label || c.field;
+  const chipLabel = (v, c) => (opOf(v, c) === "not" ? `${fldLabel(v, c)} · nu este` : fldLabel(v, c));
+  const roDate = (iso) => (iso ? longDate(`${iso}T12:00:00`) : "");
+  /* what a fixed condition misses ("" = complete) — the field error texts */
+  function condMissing(v, c) {
+    const k = condKind(v, c);
+    const op = opOf(v, c);
+    if (!c.field) return "Alege câmpul.";
+    if (!k) return "Câmpul nu există în sursa de date aleasă.";
+    if (asking(v, c)) return "";
+    if (k === "list") return c.values.length ? "" : "Alege cel puțin o valoare.";
+    if (k === "text") return String(c.value).trim() ? "" : "Introdu textul.";
+    if (k === "number") {
+      const bad = (x) => String(x).trim() === "" || Number.isNaN(Number(String(x).replace(",", ".")));
+      if (op === "between") return bad(c.value) || bad(c.value2) ? "Introdu ambele valori." : Number(String(c.value).replace(",", ".")) > Number(String(c.value2).replace(",", ".")) ? "Prima valoare trebuie să fie cel mult a doua." : "";
+      return bad(c.value) ? "Introdu valoarea." : "";
+    }
+    if (op === "last") return /^\d+$/.test(String(c.value).trim()) && Number(c.value) > 0 ? "" : "Introdu numărul de zile.";
+    if (op === "between") return !c.value || !c.value2 ? "Alege ambele date." : c.value > c.value2 ? "„De la” trebuie să fie înainte de „Până la”." : "";
+    return c.value ? "" : "Alege data.";
+  }
+  const condComplete = (v, c) => !condMissing(v, c);
+  /* „Condiții: …” — the fixed conditions as one sentence (groups in parentheses) */
+  function condSentence(v, c) {
+    const k = condKind(v, c);
+    const op = opOf(v, c);
+    const f = fldLabel(v, c);
+    if (k === "list") return `${f} ${opText(v, c)} ${c.values.join(", ")}`;
+    if (k === "text") return `${f} ${opText(v, c)} „${String(c.value).trim()}”`;
+    if (k === "number") return op === "between" ? `${f} între ${c.value} și ${c.value2}` : `${f} ${opText(v, c)} ${c.value}`;
+    if (op === "last") return `${f} în ultimele ${plural(Number(c.value), "zi", "zile")}`;
+    if (op === "between") return `${f} între ${roDate(c.value)} și ${roDate(c.value2)}`;
+    return `${f} ${opText(v, c)} ${roDate(c.value)}`;
+  }
+  const fixed = (v, c) => !asking(v, c) && condComplete(v, c);
+  function condsText(v) {
+    const word = (conj) => (conj === "or" ? " sau " : " și ");
+    const parts = (v.filters || []).map((x) => {
+      if (!x.group) return fixed(v, x) ? condSentence(v, x) : "";
+      const inner = x.rules.filter((c) => fixed(v, c)).map((c) => condSentence(v, c));
+      return inner.length > 1 ? `(${inner.join(word(x.conj))})` : inner[0] || "";
+    }).filter(Boolean);
+    return parts.join(word(v.filterConj));
+  }
   function columnErrors(v, c) {
     const e = {};
     if (!String(c.names.ro || "").trim()) e["names.ro"] = "Introdu denumirea coloanei (RO).";
@@ -266,10 +330,9 @@
     }
     if (steps.includes(3)) {
       if (v.groupBy.some((id) => !colOf(v, id))) e.groupBy = "O coloană de grupare nu mai este în raport.";
-      v.filters.forEach((f, i) => {
-        if (!f.field) e[`filter.${i}`] = "Alege câmpul filtrului.";
-        else if (!f.type) e[`filter.${i}`] = "Alege tipul filtrului.";
-        else if (!supportOf(v, f.field).includes(f.type)) e[`filter.${i}`] = `Câmpul acceptă doar ${supportOf(v, f.field).map((t) => label(FILTER_TYPES, t)).join(" sau ") || "niciun filtru"}.`;
+      flatConds(v).forEach((c) => {
+        const m = condMissing(v, c);
+        if (m) e[`filter.${c.id}.${!c.field || !condKind(v, c) ? "field" : "value"}`] = m;
       });
     }
     return e;
@@ -422,47 +485,61 @@
   const RECS = 8;
   const DEMO_TODAY = "2026-11-10";
   const isoDay = (ms) => new Date(ms).toISOString().slice(0, 10);
-  const facetKey = (flt) => `${flt.field}|${flt.type}`;
-  /* the complete, valid filters, in the builder's order (= the chips' order), one per field + type */
-  function liveFilters(v) {
-    const seen = new Set();
-    return (v.filters || []).filter((flt) => {
-      if (!flt.field || !flt.type || !fieldOf(v.source, flt.field) || !supportOf(v, flt.field).includes(flt.type)) return false;
-      const k = facetKey(flt);
-      if (seen.has(k)) return false;
-      seen.add(k);
-      return true;
-    });
-  }
+  /* rpt-cond-v1: every demo record carries a value for each field a condition uses (the row's own value when the field is
+     one of its Text columns; dates spread over 2026; numbers by kind) */
   function recordsOf(v, rowKey, vals) {
-    const fl = liveFilters(v);
-    if (!fl.length) return [];
+    const keys = [...new Set(flatConds(v).filter((c) => condKind(v, c)).map((c) => c.field))];
+    if (!keys.length) return [];
     return Array.from({ length: RECS }, (_, i) => {
       const rec = {};
-      fl.forEach((flt) => {
-        const f = fieldOf(v.source, flt.field);
-        const col = v.columns.find((c) => c.kind === "source" && c.field === flt.field && c.dataType === "text");
+      keys.forEach((key) => {
+        const f = fieldOf(v.source, key);
+        const col = v.columns.find((c) => c.kind === "source" && c.field === key && c.dataType === "text");
         const cv = col ? vals[col.id] : null;
-        const h = hash(`${flt.field}|${rowKey}|${i}`);
-        if (f.type === "date") rec[flt.field] = isoDay(BASE_DAY + (h % 310) * DAY);
-        else if (typeof cv === "string" && cv) rec[flt.field] = cv;
-        else if (f.type === "enum" && f.values.length) rec[flt.field] = f.values[h % f.values.length];
-        else rec[flt.field] = `${flt.field === "nr" ? "D" : "N"}-2026-${String(1000 + (h % 9000)).padStart(5, "0")}`;
+        const h = hash(`${key}|${rowKey}|${i}`);
+        if (f.type === "date") rec[key] = isoDay(BASE_DAY + (h % 310) * DAY);
+        else if (f.type === "duration") rec[key] = 1 + (h % 45);
+        else if (f.type === "amount") rec[key] = 100 + (h % 20000);
+        else if (f.type === "number") rec[key] = h % 100;
+        else if (typeof cv === "string" && cv) rec[key] = cv;
+        else if (f.type === "enum" && f.values.length) rec[key] = f.values[h % f.values.length];
+        else rec[key] = `${key === "nr" ? "D" : "N"}-2026-${String(1000 + (h % 9000)).padStart(5, "0")}`;
       });
       return rec;
     });
   }
   const selEntries = (sel) => Object.entries(sel || {}).filter(([, values]) => values?.length);
-  function recMatch(v, rec, sel) {
-    const fl = liveFilters(v);
-    return selEntries(sel).every(([key, values]) => {
-      const flt = fl.find((x) => facetKey(x) === key);
-      if (!flt) return true;
-      const x = rec[flt.field];
-      if (flt.type === "date") return window.GEAPFacetFilter?.dateMatch ? window.GEAPFacetFilter.dateMatch(values[0], x, DEMO_TODAY) : true;
-      return values.includes(x);
-    });
+  const num = (x) => Number(String(x).replace(",", "."));
+  /* one condition on one record: true / false, or null = not active (incomplete, or a chip with nothing chosen) */
+  function condOk(v, c, rec, sel) {
+    const k = condKind(v, c);
+    if (!k) return null;
+    const x = rec[c.field];
+    const op = opOf(v, c);
+    if (asking(v, c)) {
+      const vals = sel?.[c.id];
+      if (!vals?.length) return null;
+      if (k === "date") return window.GEAPFacetFilter?.dateMatch ? window.GEAPFacetFilter.dateMatch(vals[0], x, DEMO_TODAY) : true;
+      const hit = vals.includes(x);
+      return op === "not" ? !hit : hit;
+    }
+    if (!condComplete(v, c)) return null;
+    if (k === "list") { const hit = c.values.includes(x); return op === "not" ? !hit : hit; }
+    if (k === "text") return op === "is" ? fold(x) === fold(c.value).trim() : fold(x).includes(fold(c.value).trim());
+    if (k === "number") {
+      const a = num(c.value);
+      return op === "eq" ? x === a : op === "neq" ? x !== a : op === "gt" ? x > a : op === "lt" ? x < a : x >= a && x <= num(c.value2);
+    }
+    if (op === "last") return x <= DEMO_TODAY && x >= isoDay(Date.UTC(2026, 10, 10) - Number(c.value) * DAY);
+    if (op === "between") return x >= c.value && x <= c.value2;
+    return op === "before" ? x < c.value : x > c.value;
   }
+  /* AND / OR at each level (one conjunction per level — Airtable); inactive items are skipped */
+  const levelOk = (items, conj, test) => { const rs = items.map(test).filter((r) => r !== null); return rs.length ? (conj === "or" ? rs.some(Boolean) : rs.every(Boolean)) : null; };
+  function recMatch(v, rec, sel) {
+    return levelOk(v.filters || [], v.filterConj, (x) => (x.group ? levelOk(x.rules, x.conj, (c) => condOk(v, c, rec, sel)) : condOk(v, x, rec, sel))) !== false;
+  }
+  const scoped = (v, sel) => selEntries(sel).length > 0 || flatConds(v).some((c) => fixed(v, c));
   /* rpt-levels-v1: the demo DATA does not depend on the grouping (the Total stays the same whatever the levels): the rows =
      combinations of the report's Text columns from the source (values per column, in column order: 1 column → 5, 2 → 3 × 3,
      3 → 3 × 2 × 2, 4+ → 2 each), measures seeded by the combination; the grouping only nests them — up to 3 levels, groups
@@ -482,7 +559,7 @@
       dimLabels(v, dims[i], fan[i], seed).forEach((x, j) => walk(i + 1, { ...acc, [dims[i].id]: x }, seed + j + i));
     };
     if (dims.length) walk(0, {}, 0); else combos.push(...[0, 1, 2].map((i) => ({ __row: i })));
-    const filtering = selEntries(sel).length > 0;
+    const filtering = scoped(v, sel);
     const records = [];
     const rows = combos.map((labels) => {
       const own = { ...labels };
@@ -597,12 +674,11 @@
      mountFilters); „static” (the „Mărește” dialog, the version window) = read-only: the foot line lists the filters and the
      values applied in the preview (the library chip has no disabled look — a summary reads clearer) */
   function appliedText(v, sel) {
-    const fl = liveFilters(v);
+    const ask = askConds(v);
     return selEntries(sel).map(([key, values]) => {
-      const flt = fl.find((x) => facetKey(x) === key);
-      if (!flt) return "";
-      const lbl = fieldOf(v.source, flt.field)?.label || flt.field;
-      return `${lbl}: ${flt.type === "date" ? window.GEAPFacetFilter?.dateText?.(values[0], DEMO_TODAY) || values[0] : values.join(", ")}`;
+      const c = ask.find((x) => x.id === key);
+      if (!c) return "";
+      return `${chipLabel(v, c)}: ${condKind(v, c) === "date" ? window.GEAPFacetFilter?.dateText?.(values[0], DEMO_TODAY) || values[0] : values.join(", ")}`;
     }).filter(Boolean).join("; ");
   }
   function cardHtml(v, { link = false, filters = "static", sel = null } = {}) {
@@ -613,18 +689,20 @@
     if (!v.source) body = E()?.render({ title: "Alege sursa de date", text: "Previzualizarea folosește câmpurile sursei, pe date demonstrative.", icon: "page-text", compact: true, bare: true }) || "";
     else if (!v.columns.length) body = E()?.render({ title: "Nicio coloană încă", text: "Adaugă coloane din sursa de date, calculate sau completate manual: raportul apare aici pe măsură ce îl construiești.", icon: "page-text", compact: true, bare: true }) || "";
     else {
-      const chips = liveFilters(v).length && filters === "live" ? '<div class="e-permits-rpt-fslot" data-rpt-fslot></div>' : "";
+      const chips = askConds(v).length && filters === "live" ? '<div class="e-permits-rpt-fslot" data-rpt-fslot></div>' : "";
       const rows = previewModel(v, sel).rowCount;
       body = chips + (rows
         ? tableHtml(v, { link, sel })
-        : `<div class="e-permits-rpt-nomatch">${E()?.render({ title: NO_MATCH, text: "Niciun rând nu corespunde filtrelor alese. Schimbă sau șterge filtrele.", icon: "search", compact: true, actionHtml: filters === "live" ? '<button class="btn btn-neutral btn-sm" type="button" data-rpt-filter-clear>Șterge filtrele</button>' : "" }) || ""}</div>`);
+        : `<div class="e-permits-rpt-nomatch">${E()?.render({ title: NO_MATCH, text: selEntries(sel).length ? "Niciun rând nu corespunde filtrelor alese. Schimbă sau șterge filtrele." : "Niciun rând nu corespunde condițiilor raportului. Schimbă condițiile din «Filtre».", icon: "search", compact: true, actionHtml: filters === "live" && selEntries(sel).length ? '<button class="btn btn-neutral btn-sm" type="button" data-rpt-filter-clear>Șterge filtrele</button>' : "" }) || ""}</div>`);
       if (rows && v.columns.some((c) => c.kind === "manual")) body += U().renderInfoNote?.(`<strong>Coloane «Manual».</strong> ${esc(MANUAL_HINT)}`) || "";
     }
-    const chipsShown = Boolean(v.source && v.columns.length && liveFilters(v).length && filters === "live");
+    const chipsShown = Boolean(v.source && v.columns.length && askConds(v).length && filters === "live");
     const applied = filters === "live" ? "" : appliedText(v, sel);
+    const conds = filters === "live" ? "" : condsText(v);
     const foot = [
+      conds ? `Condiții: ${conds}` : "",
       applied ? `Aplicate în previzualizare: ${applied}` : "",
-      v.filters.length && !chipsShown ? `Filtre la generare: ${v.filters.map((f) => `${fieldOf(v.source, f.field)?.label || "—"} (${label(FILTER_TYPES, f.type).toLocaleLowerCase("ro") || "—"})`).join(", ")}` : "",
+      askConds(v).length && !chipsShown ? `Filtre la generare: ${askConds(v).map((c) => chipLabel(v, c)).join(", ")}` : "",
       levelCols(v).length ? (levelCols(v).length > 1 ? `Grupat după ${levelsText(v)}, cu subtotal la fiecare nivel` : `Grupat după ${levelsText(v)}, cu subtotal pe grup`) : "",
       v.columns.some(isMeasure) ? (v.totalRow ? "Cu rândul de total" : "Fără rândul de total") : ""
     ].filter(Boolean);
@@ -647,6 +725,7 @@
           <div class="e-permits-wid-preview__titles">
             <h2 class="e-permits-dosar-profil__section-title" id="${idp}-preview-title">Previzualizare</h2>
             <p class="e-permits-dosar-profil__section-meta e-permits-wid-preview__meta">${esc(meta)}</p>
+            ${condsText(v) ? `<p class="e-permits-dosar-profil__section-meta e-permits-wid-preview__meta e-permits-rpt-conds-line" data-cell-tooltip="${esc(`Condiții: ${condsText(v)}`)}">${esc(`Condiții: ${condsText(v)}`)}</p>` : ""}
           </div>
           <div class="e-permits-passport__heading-tools">
             <button class="btn btn-neutral btn-sm btn-icon-only" type="button" aria-label="Mărește previzualizarea" data-tooltip-label="Mărește" aria-haspopup="dialog" data-rpt-zoom${v.columns.length ? "" : ' aria-disabled="true" data-tooltip-reason="Adaugă mai întâi coloane."'}>${icon("enlarge", 16)}</button>
@@ -841,41 +920,132 @@
       </section>`;
   }
   /* Structură: Gruparea rândurilor · Filtre · Rândul de total */
-  /* rpt-filter-list-v1 (user): „Filtre” = the SAME stacked list as „Coloanele raportului” (no rule-builder look, no „și”: all
-     filters combine with AND): handle · number · field name + Small type tag · meta, ↑ ↓ 🗑, row → the same drawer as
-     „Adaugă filtru” (field from the source dictionary, then the type); hovering an item outlines its chip in the preview */
+  /* rpt-cond-v1 (2026-11-10, PO Alexandru: inline filters with „și / sau”; Notion / Airtable / Linear / Metabase): „Filtre” =
+     the condition builder. Each item = the connector (row 1 „Unde” code token, rows 2+ the „și / sau” token select — ONE
+     conjunction per level: changing one changes all at that level) 8 left of the condition, which sits on the shared hover
+     surface (padding 16, r12): order lead (drag handle + position) · Câmp (fo-select) · Condiție (fo-select, by the field's
+     kind) · Valoare (multi-value menu / text / number / date picker(s) / N zile) · „Alege la generare” (checkbox) · ↑ ↓ 🗑.
+     „Adaugă grup de condiții” = a bordered sub-block one level deep with its own connector (mixing și / sau). A condition with
+     „Alege la generare” has no value: it becomes a chip above the preview; the others restrict the report („Condiții: …”). */
+  const cid = (idp, c, part) => `${idp}-cf-${c.id}-${part}`;
+  const condErr = (e, c) => e[`filter.${c.id}.field`] || e[`filter.${c.id}.value`] || "";
+  function connector(idp, items, i, conj, scope) {
+    if (i === 0) return '<code class="e-permits-doc-kw">Unde</code>';
+    return `<div class="e-permits-doc-kwselect" data-fo-list-min="120">${U().renderFoSelectControl?.({ id: `${idp}-conj-${scope}-${i}`, attrs: `data-rpt-conj="${esc(scope)}" aria-label="Combinarea condițiilor${scope === "top" ? "" : " din grup"}"`, optionsHtml: [["and", "și"], ["or", "sau"]].map(([k, l]) => `<option value="${k}"${conj === k ? " selected" : ""}>${l}</option>`).join("") }) || ""}</div>`;
+  }
+  function datePick(id, attr, iso, lbl) {
+    const [y, m, d] = iso ? iso.split("-") : [];
+    const view = (iso || DEMO_TODAY).split("-");
+    return `
+      <div class="date-picker__field" data-date-picker data-type="default" data-locale="ro" data-selected="${esc(iso)}" data-today="${DEMO_TODAY}" data-year="${Number(view[0])}" data-month="${Number(view[1]) - 1}">
+        <div class="e-permits-fo-input e-permits-fo-input--with-action">
+          <input id="${id}" type="text" class="js-date-picker-input" value="${iso ? `${d}/${m}/${y}` : ""}" placeholder="ZZ/LL/AAAA" aria-label="${esc(lbl)}" autocomplete="off" ${attr}>
+          <button type="button" class="e-permits-fo-input__icon-button js-date-picker-toggle" aria-label="Alege data" aria-controls="${id}-panel" aria-expanded="false">${icon("calendar")}</button>
+        </div>
+        <div id="${id}-panel" class="date-picker-panel" aria-hidden="true" hidden>
+          <div class="date-picker" role="dialog" aria-label="Alege data">
+            <div class="date-picker__header">
+              <button class="date-picker__nav js-date-picker-prev" type="button" aria-label="Luna anterioară"><svg class="icon medium" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-chevron-left"></use></svg></button>
+              <div class="date-picker__month js-date-picker-label"></div>
+              <button class="date-picker__nav js-date-picker-next" type="button" aria-label="Luna următoare"><svg class="icon medium" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-chevron-right"></use></svg></button>
+            </div>
+            <div class="date-picker__grid date-picker__grid--days" data-view="day">
+              <div class="date-picker__weekdays">${["L", "M", "M", "J", "V", "S", "D"].map((w) => `<div class="date-picker__weekday">${w}</div>`).join("")}</div>
+              <div class="date-picker__days js-date-picker-days"></div>
+            </div>
+          </div>
+        </div>
+      </div>`;
+  }
+  const textInput = (id, attr, value, lbl, { placeholder = "", numeric = false, suffix = "", error = false } = {}) => `<div class="e-permits-fo-input${error ? " is-error" : ""}"><input id="${id}" type="text" value="${esc(value)}" aria-label="${esc(lbl)}" autocomplete="off"${placeholder ? ` placeholder="${esc(placeholder)}"` : ""}${numeric ? ' inputmode="decimal"' : ""}${error ? ' aria-invalid="true"' : ""} ${attr}>${suffix ? `<span class="e-permits-fo-input__suffix">${esc(suffix)}</span>` : ""}</div>`;
+  /* the values of a list field = the rich-select box with a checkbox menu (the menu stays open while choosing) */
+  const multiText = (vals) => (vals.length ? vals.join(", ") : "Alege valorile");
+  function multiValues(id, c, f, error) {
+    return `
+      <div class="e-permits-fo-select e-permits-stack__menu-wrap e-permits-rpt-rich e-permits-rpt-multi${error ? " is-error" : ""}">
+        <button class="e-permits-fo-select__button" type="button" id="${id}" aria-haspopup="menu" aria-expanded="false" aria-controls="${id}-menu" aria-label="Valori: ${esc(multiText(c.values))}" data-stack-menu-trigger${error ? ' aria-invalid="true"' : ""}>
+          <span class="e-permits-fo-select__value${c.values.length ? "" : " e-permits-fo-select__value--placeholder"}" data-cell-tooltip data-rpt-cv-text>${esc(multiText(c.values))}</span>
+          ${icon("chevron-bottom", 20)}
+        </button>
+        <ul class="e-permits-fo-intent-menu e-permits-stack__menu e-permits-rpt-rich__menu e-permits-rpt-multi__menu" id="${id}-menu" role="menu" aria-label="Valorile câmpului ${esc(f.label)}" hidden data-stack-menu>
+          ${f.values.map((x) => { const on = c.values.includes(x); return `<li role="none"><button class="e-permits-fo-intent-menu__item e-permits-rpt-multi__item" type="button" role="menuitemcheckbox" aria-checked="${on}" data-rpt-cv="${esc(c.id)}" data-value="${esc(x)}"><span class="checkbox checkbox--medium e-permits-check-option e-permits-check-option--plain" aria-hidden="true"><input class="checkbox-input" type="checkbox" tabindex="-1"${on ? " checked" : ""}><span class="checkbox-custom"><svg class="icon e-permits-check-option__tick" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-checkmark-small"></use></svg></span></span><span class="e-permits-rpt-multi__label">${esc(x)}</span></button></li>`; }).join("")}
+        </ul>
+      </div>`;
+  }
+  function condValue(v, c, idp, err) {
+    const k = condKind(v, c);
+    const op = opOf(v, c);
+    const f = fieldOf(v.source, c.field);
+    const id = cid(idp, c, "value");
+    const at = (part) => `data-rpt-cf="${esc(c.id)}|${part}"`;
+    if (!k) return { html: `<div class="e-permits-doc-val is-empty e-permits-rpt-cond__slot" aria-hidden="true"><span>Valoare</span></div>` };
+    if (asking(v, c)) return { html: `<div class="e-permits-doc-val is-empty e-permits-rpt-cond__slot" id="${id}" data-cell-tooltip="Valoarea se alege la generarea raportului."><span>La generare</span></div>` };
+    if (k === "list") return { html: multiValues(id, c, f, err) };
+    if (k === "text") return { html: textInput(id, at("value"), c.value, "Textul căutat", { placeholder: "Text", error: err }) };
+    if (k === "number") {
+      if (op === "between") return { wide: true, html: `<div class="e-permits-rpt-cond__pair">${textInput(id, at("value"), c.value, "De la", { placeholder: "De la", numeric: true, error: err })}${textInput(cid(idp, c, "value2"), at("value2"), c.value2, "Până la", { placeholder: "Până la", numeric: true, error: err })}</div>` };
+      return { html: textInput(id, at("value"), c.value, "Valoarea", { placeholder: "Valoare", numeric: true, error: err }) };
+    }
+    if (op === "last") return { html: textInput(id, at("value"), c.value, "Numărul de zile", { placeholder: "N", numeric: true, suffix: "zile", error: err }) };
+    if (op === "between") return { wide: true, html: `<div class="e-permits-rpt-cond__pair">${datePick(id, at("value"), c.value, "De la")}${datePick(cid(idp, c, "value2"), at("value2"), c.value2, "Până la")}</div>` };
+    return { html: datePick(id, at("value"), c.value, op === "before" ? "Înainte de" : "După") };
+  }
+  const moveBtns = (c, i, last, what) => `
+    <button class="btn btn-strict btn-sm btn-icon-only" type="button" aria-label="Mută ${what} mai sus" data-tooltip-label="Mută mai sus" data-rpt-cond-move="${esc(c.id)}|-1"${i === 0 ? " disabled" : ""}>${icon("arrow-up", 16)}</button>
+    <button class="btn btn-strict btn-sm btn-icon-only" type="button" aria-label="Mută ${what} mai jos" data-tooltip-label="Mută mai jos" data-rpt-cond-move="${esc(c.id)}|1"${i === last ? " disabled" : ""}>${icon("arrow-down", 16)}</button>`;
+  function condRow(v, e, idp, c, i, last) {
+    const k = condKind(v, c);
+    const fe = e[`filter.${c.id}.field`];
+    const ve = e[`filter.${c.id}.value`];
+    const fields = fieldsOf(v.source);
+    const name = c.field ? fldLabel(v, c) : `condiția ${i + 1}`;
+    const val = condValue(v, c, idp, Boolean(ve));
+    const ops = asking(v, c) ? (COND_OPS[k] || []).filter(([o]) => ASK_OPS[k].includes(o)) : COND_OPS[k] || [];
+    const opSel = U().renderFoSelectControl?.({ id: cid(idp, c, "op"), attrs: `data-rpt-cf="${esc(c.id)}|op" aria-label="Condiția"`, optionsHtml: k ? ops.map(([o, l]) => `<option value="${o}"${opOf(v, c) === o ? " selected" : ""}>${esc(l)}</option>`).join("") : '<option value="" selected>Condiție</option>', disabled: !k || ops.length < 2 }) || "";
+    const fieldSel = U().renderFoSelectControl?.({ id: cid(idp, c, "field"), attrs: `data-rpt-cf="${esc(c.id)}|field" aria-label="Câmpul"`, optionsHtml: `<option value=""${c.field ? "" : " selected"}>Alege câmpul</option>${fields.map((f) => `<option value="${esc(f.key)}"${f.key === c.field ? " selected" : ""}>${esc(f.label)}</option>`).join("")}`, error: Boolean(fe) }) || "";
+    const ask = U().renderCheckOption?.({ label: "Alege la generare", plain: true, checked: asking(v, c), disabled: !canAsk(v, c), reason: c.field ? NO_ASK : "Alege mai întâi câmpul.", attrs: `data-rpt-cond-ask="${esc(c.id)}"` }) || "";
+    return `
+      <div class="e-permits-rpt-cond e-permits-hover-surface is-hover-within${fe || ve ? " has-error" : ""}" role="group" aria-label="Condiția ${i + 1}${c.field ? `: ${esc(fldLabel(v, c))}` : ""}">
+        <div class="e-permits-rpt-cond__lead">${orderLead(i + 1)}</div>
+        <div class="e-permits-rpt-cond__cell e-permits-rpt-cond__field">${fieldSel}${fe ? errorHtml(cid(idp, c, "field"), fe) : ""}</div>
+        <div class="e-permits-rpt-cond__cell e-permits-rpt-cond__op">${opSel}</div>
+        <div class="e-permits-rpt-cond__cell e-permits-rpt-cond__val${val.wide ? " is-wide" : ""}">${val.html}${ve ? errorHtml(cid(idp, c, "value"), ve) : ""}</div>
+        <div class="e-permits-rpt-cond__foot">
+          ${ask}
+          <span class="e-permits-rpt-cond__actions">${moveBtns(c, i, last, `condiția „${esc(name)}”`)}<button class="btn btn-text-destructive btn-sm btn-icon-only" type="button" aria-label="Elimină condiția „${esc(name)}”" data-tooltip-label="Elimină condiția" data-rpt-cond-remove="${esc(c.id)}">${icon("delete", 16)}</button></span>
+        </div>
+      </div>`;
+  }
+  function condItems(v, e, idp, items, conj, scope) {
+    const last = items.length - 1;
+    return items.map((x, i) => `
+      <li class="e-permits-rpt-cond-item" draggable="true" data-rpt-ci="${esc(x.id)}" data-scope="${esc(scope)}" data-index="${i}">
+        <div class="e-permits-rpt-cond-item__conn">${connector(idp, items, i, conj, scope)}</div>
+        ${x.group ? `
+          <div class="e-permits-rpt-cgroup" role="group" aria-label="Grup de condiții ${i + 1}">
+            <div class="e-permits-rpt-cgroup__head">
+              ${orderLead(i + 1)}<span class="e-permits-rpt-cgroup__title">Grup de condiții</span>
+              <span class="e-permits-rpt-cond__actions">${moveBtns(x, i, last, `grupul ${i + 1}`)}<button class="btn btn-text-destructive btn-sm btn-icon-only" type="button" aria-label="Elimină grupul ${i + 1}" data-tooltip-label="Elimină grupul" data-rpt-cond-remove="${esc(x.id)}">${icon("delete", 16)}</button></span>
+            </div>
+            <ol class="e-permits-rpt-conds" role="list" data-rpt-conds="${esc(x.id)}">${condItems(v, e, idp, x.rules, x.conj, x.id)}</ol>
+            <div class="e-permits-rpt-cgroup__add"><button class="btn btn-text-primary btn-sm" type="button" data-rpt-cond-add="${esc(x.id)}">${icon("plus-large", 16)}<span>Adaugă condiție</span></button></div>
+          </div>` : condRow(v, e, idp, x, i, last)}
+      </li>`).join("");
+  }
   function filtersSection(v, e, idp) {
-    const add = `<button class="btn btn-secondary btn-sm" type="button" data-rpt-filter-add${v.source ? "" : ' aria-disabled="true" data-tooltip-reason="Alege mai întâi sursa de date."'}>${icon("plus-large", 16)}<span>Adaugă filtru</span></button>`;
-    const live = liveFilters(v);
-    const last = v.filters.length - 1;
+    const off = v.source ? "" : ' aria-disabled="true" data-tooltip-reason="Alege mai întâi sursa de date."';
+    const add = `<div class="e-permits-rpt-conds__add"><button class="btn btn-secondary btn-sm" type="button" data-rpt-cond-add="top"${off}>${icon("plus-large", 16)}<span>Adaugă condiție</span></button><button class="btn btn-secondary btn-sm" type="button" data-rpt-group-add${off}>${icon("plus-large", 16)}<span>Adaugă grup de condiții</span></button></div>`;
+    const n = flatConds(v).length;
     const body = v.filters.length
-      ? `<div class="e-permits-stack e-permits-reg-editor__stack"><ul class="e-permits-stack__list" role="list" data-rpt-flts>${v.filters.map((f, i) => {
-          const err = e[`filter.${i}`];
-          const fld = fieldOf(v.source, f.field);
-          const name = fld?.label || `Filtrul ${i + 1}`;
-          const pos = live.indexOf(f);
-          return (A().renderStackItem?.({
-            plainTitle: name,
-            title: esc(name),
-            leadHtml: orderLead(i + 1),
-            rowAttrs: `data-rpt-flt="${i}" data-index="${i}" tabindex="0" data-stack-row-open aria-haspopup="dialog" aria-label="Filtrul ${esc(name)}, poziția ${i + 1} — deschide setările"`,
-            badges: [f.type ? tag(label(FILTER_TYPES, f.type), "neutral") : "", err ? tag("De corectat", "danger") : ""].filter(Boolean),
-            meta: [fld ? esc(`Câmp: ${FIELD_TYPE_LABEL[fld.type] || fld.type}`) : "", pos >= 4 ? "În «Mai multe»" : pos > -1 ? "Apare ca buton" : ""].filter(Boolean),
-            actionsHtml: `
-              <button class="btn btn-strict btn-sm btn-icon-only" type="button" aria-label="Mută filtrul „${esc(name)}” mai sus" data-tooltip-label="Mută mai sus" data-rpt-flt-move="${i}|-1"${i === 0 ? " disabled" : ""}>${icon("arrow-up", 16)}</button>
-              <button class="btn btn-strict btn-sm btn-icon-only" type="button" aria-label="Mută filtrul „${esc(name)}” mai jos" data-tooltip-label="Mută mai jos" data-rpt-flt-move="${i}|1"${i === last ? " disabled" : ""}>${icon("arrow-down", 16)}</button>
-              <button class="btn btn-text-destructive btn-sm btn-icon-only" type="button" aria-label="Elimină filtrul „${esc(name)}”" data-tooltip-label="Elimină filtrul" data-rpt-filter-remove="${i}">${icon("delete", 16)}</button>`
-          }) || "").replace('<li class="e-permits-stack__item', '<li draggable="true" class="e-permits-stack__item');
-        }).join("")}</ul></div>
-        <div class="e-permits-rpt-add">${add}</div>`
-      : E()?.render({ title: "Niciun filtru", text: "Adaugă unul ca să apară deasupra tabelului.", icon: "filter", compact: true, actionHtml: `<div class="e-permits-rpt-add">${add}</div>` }) || "";
+      ? `<div class="e-permits-rpt-builder"><ol class="e-permits-rpt-conds" role="list" aria-label="Condițiile raportului" data-rpt-conds="top">${condItems(v, e, idp, v.filters, v.filterConj, "top")}</ol>${add}</div>`
+      : E()?.render({ title: "Nicio condiție", text: "Cu o valoare fixă, condiția restrânge raportul. Cu «Alege la generare», devine un filtru deasupra tabelului.", icon: "filter", compact: true, actionHtml: add }) || "";
     return `
       <section class="e-permits-dosar-profil__section e-permits-stack-section" aria-labelledby="${idp}-flt-title" id="${idp}-filters">
         <div class="e-permits-dosar-profil__section-heading">
           <h2 class="e-permits-dosar-profil__section-title" id="${idp}-flt-title">Filtre</h2>
-          <span class="e-permits-dosar-profil__section-meta" aria-live="polite">${esc(plural(v.filters.length, "filtru", "filtre"))}</span>
+          <span class="e-permits-dosar-profil__section-meta" aria-live="polite">${esc(plural(n, "condiție", "condiții"))}</span>
         </div>
-        ${body}
+        ${v.filters.length ? `<div class="e-permits-ntpl-card">${body}</div>` : body}
       </section>`;
   }
   /* why a new grouping level cannot be added (rpt-levels-v1): "" = it can */
@@ -936,7 +1106,7 @@
       columns: v.columns.length ? v.columns.map((c, i) => [`${i + 1}. ${colName(c)}`, esc([KIND_TAG[c.kind]?.[0], ...columnMeta(v, c).map((x) => x.replace(/&[^;]+;/g, (m) => ({ "&amp;": "&", "&lt;": "<", "&gt;": ">", "&quot;": '"', "&#39;": "'" }[m] || m))), c.total === "incl" && isMeasure(c) ? "Inclusiv" : ""].filter(Boolean).join(" · "))]) : [["Coloane", dash]],
       structure: [
         ["Gruparea rândurilor", levelCols(v).length ? esc(levelsText(v)) : "Fără grupare"],
-        ["Filtre", v.filters.length ? esc(v.filters.map((f) => `${fieldOf(v.source, f.field)?.label || "—"} · ${label(FILTER_TYPES, f.type) || "—"}`).join("; ")) : "Fără filtre"],
+        ["Filtre", flatConds(v).length ? esc([condsText(v) ? `Condiții: ${condsText(v)}` : "", askConds(v).length ? `La generare: ${askConds(v).map((c) => chipLabel(v, c)).join(", ")}` : "", flatConds(v).some((c) => !condComplete(v, c)) ? "Condiții incomplete" : ""].filter(Boolean).join(" · ")) : "Fără filtre"],
         ["Rândul de total", v.columns.some(isMeasure) && v.totalRow ? "Da" : "Nu"]
       ]
     };
@@ -1175,7 +1345,7 @@
     if (P.tab !== "configurare") fx("profile").ctl.close(false);
     body.innerHTML = `${notices(r)}${P.tab === "versiuni" ? (HOOKS.versionsTab?.(r) || versionsTab(r)) : P.tab === "acces" && HOOKS.accessTab ? HOOKS.accessTab(r) : P.tab === "istoric" ? (HOOKS.historyTab?.(r) || historyTab(r)) : configTab(r)}`;
     A().syncStackMetaRows?.(body);
-    if (P.tab === "configurare") mountFilters("profile");
+    if (P.tab === "configurare") { mountFilters("profile"); window.GEAPDatePicker?.init?.(body); }
     requestAnimationFrame(syncStick);
     if (keepSel) {
       const el = document.querySelector(keepSel);
@@ -1331,6 +1501,7 @@
         </div>
       </div>`;
     mountFilters("sheet");
+    window.GEAPDatePicker?.init?.(sheet);
     const last = P.step === STEPS.length;
     const pub = last && HOOKS.publish ? '<button class="btn btn-primary btn-md" type="button" data-rpt-publish>Publică</button>' : "";
     sheet.querySelector("[data-rpt-ed-bar]").innerHTML = `
@@ -1387,8 +1558,8 @@
   /* ---------------------------------------------------------------- save (Salvează ciorna / Salvează) */
   const errorSel = (key) => {
     if (/^col\./.test(key)) return `[data-rpt-col="${CSS.escape(key.slice(4))}"]`;
-    const m = /^filter\.(\d+)$/.exec(key);
-    if (m) return `#${IDP}-filter-field-${m[1]}`;
+    const m = /^filter\.([^.]+)\.(field|value)$/.exec(key);
+    if (m) return `#${IDP}-cf-${m[1]}-${m[2]}`;
     return `#${IDP}-${({ "names.ro": "name-ro", source: "source", category: "category", authorities: "authorities", columns: "columns", groupBy: "groupby" })[key] || key}`;
   };
   function showFirstError(errors) {
@@ -1517,7 +1688,7 @@
     const caret = active && "selectionStart" in active ? [active.selectionStart, active.selectionEnd] : null;
     const top = d.querySelector(".drawer__body")?.scrollTop || 0;
     const v = P.draft;
-    const view = DR.mode === "dict" ? dictView(v) : DR.mode === "flt" ? fltView(v) : colView(v);
+    const view = DR.mode === "dict" ? dictView(v) : colView(v);
     d.querySelector("[data-rpt-drawer-title]").textContent = view.title;
     const sub = d.querySelector("[data-rpt-drawer-subtitle]");
     sub.textContent = view.subtitle; sub.hidden = !view.subtitle;
@@ -1574,53 +1745,6 @@
         </div>`,
       footer: `<div class="modal-buttons"><span class="e-permits-rpt-count" aria-live="polite">${esc(plural(v.columns.length, "coloană", "coloane"))} în raport</span><button class="btn btn-primary btn-rounded" type="button" data-rpt-drawer-close>Gata</button></div>`
     };
-  }
-  /* ---- the filter panel (rpt-filter-list-v1): the field from the source dictionary (searchable), then the type */
-  function fltView(v) {
-    const src = sourceOf(v.source);
-    const q = fold(DR.query).trim();
-    const fields = fieldsOf(v.source).filter((f) => (FILTER_SUPPORT[f.type] || []).length);
-    const match = fields.filter((f) => !q || fold(`${f.label} ${f.desc}`).includes(q));
-    const f = DR.flt;
-    const err = DR.errors;
-    const radios = match.length ? `<div class="e-permits-rpt-fld-list" role="radiogroup" aria-labelledby="rpt-f-field-label"${err.field ? ' aria-describedby="rpt-f-field-error"' : ""}>${match.map((x) => `
-        <label class="radio radio--small e-permits-hover-surface is-hover-within e-permits-rpt-fld"><input class="radio-input" type="radio" name="rpt-f-field" value="${esc(x.key)}"${f.field === x.key ? " checked" : ""} data-rpt-flt-field><span class="radio-custom" aria-hidden="true"></span><span class="radio-texts"><span class="radio-label">${esc(x.label)}</span><span class="radio-description">${esc(FIELD_TYPE_LABEL[x.type] || x.type)}${x.desc ? ` · ${esc(x.desc)}` : ""}</span></span></label>`).join("")}</div>`
-      : E()?.noResults?.("Niciun câmp nu corespunde căutării", { text: "Caută după denumirea sau descrierea câmpului.", compact: true }) || "";
-    const types = f.field ? FILTER_TYPES.filter(([k]) => supportOf(v, f.field).includes(k)).map(([k, l]) => [k, l, FILTER_HINT[k]]) : [];
-    return {
-      title: DR.fltIdx == null ? "Filtru nou" : "Editează filtrul",
-      subtitle: src ? `Câmpurile filtrabile · ${src.name} · ${src.version}` : "",
-      body: `
-        <div class="e-permits-rpt-dict">
-          <div class="e-permits-wid-vis-field">
-            <span class="e-permits-cfg-ro__label" id="rpt-f-field-label">Câmpul filtrului${req()}</span>
-            <div class="search-input medium rectangular e-permits-workplace__search e-permits-list-search e-permits-list-search--fill${DR.query ? " has-value is-ready" : ""}">
-              <span class="icon-search" aria-hidden="true">${icon("search")}</span>
-              <input class="input" type="search" id="rpt-dict-search" placeholder="Caută în dicționar" aria-label="Caută în câmpurile sursei" autocomplete="off" value="${esc(DR.query)}" data-rpt-dict-search data-rpt-autofocus>
-              <div class="btn-group"><button type="button" class="btn-icon clear" aria-label="Șterge căutarea" data-rpt-dict-clear>${icon("cross-small", 16)}</button></div>
-            </div>
-            ${radios}
-            ${err.field ? errorHtml("rpt-f-field", err.field) : ""}
-          </div>
-          ${f.field ? labelled("rpt-f-type-label", "Tipul filtrului", optionCards("rpt-f-type", "rpt-f-type", "data-rpt-flt-type", types, f.type, { error: err.type, legend: "Tipul filtrului" }) + (err.type ? errorHtml("rpt-f-type", err.type) : ""), { required: true }) : ""}
-        </div>`,
-      footer: `<div class="modal-buttons"><button class="btn btn-neutral btn-rounded" type="button" data-rpt-drawer-close>Anulează</button><button class="btn btn-primary btn-rounded" type="button" data-rpt-flt-save>${DR.fltIdx == null ? "Adaugă filtrul" : "Salvează filtrul"}</button></div>`
-    };
-  }
-  function saveFilter() {
-    const v = P.draft;
-    const f = DR.flt;
-    const errors = {};
-    if (!f.field) errors.field = "Alege câmpul filtrului.";
-    else if (!f.type) errors.type = "Alege tipul filtrului.";
-    else if (v.filters.some((x, i) => i !== DR.fltIdx && x.field === f.field && x.type === f.type)) errors.type = "Există deja un filtru cu acest câmp și acest tip.";
-    if (Object.keys(errors).length) { DR.errors = errors; renderDrawer(); return; }
-    const i = DR.fltIdx == null ? v.filters.length : DR.fltIdx;
-    if (DR.fltIdx == null) v.filters.push({ ...f }); else v.filters[i] = { ...f };
-    delete P.errors[`filter.${i}`];
-    closeDrawer();
-    rerender({ keep: `[data-rpt-flt="${i}"]` });
-    reheader();
   }
   /* ---- the column panel (Feature model «Coloana raportului») */
   function formulaPicker(v, c, e) {
@@ -1751,17 +1875,6 @@
   }
   function onDrawerChange(event) {
     const el = event.target;
-    if (DR?.mode === "flt") {
-      if (el.matches("[data-rpt-flt-field]")) {
-        const sup = supportOf(P.draft, el.value);
-        DR.flt.field = el.value;
-        DR.flt.type = sup.includes(DR.flt.type) ? DR.flt.type : sup.length === 1 ? sup[0] : "";
-        DR.errors = {};
-        renderDrawer(`[data-rpt-flt-field][value="${CSS.escape(el.value)}"]`);
-        if (!DR.flt.type) drawer.querySelector("#rpt-f-type")?.scrollIntoView({ block: "nearest" });
-      } else if (el.matches("[data-rpt-flt-type]")) { DR.flt.type = el.value; DR.errors = {}; renderDrawer(`#rpt-f-type input[value="${CSS.escape(el.value)}"]`); }
-      return;
-    }
     if (!DR || DR.mode !== "col") return;
     const c = DR.col;
     const fid = el.closest(".e-permits-fo-field")?.querySelector("button[id], input[id]")?.id || "";
@@ -1808,7 +1921,6 @@
       afterColumnsChange();
       return;
     }
-    if (t.closest("[data-rpt-flt-save]")) { saveFilter(); return; }
     if (t.closest("[data-rpt-col-save]")) { saveColumn(); return; }
     if (t.closest("[data-rpt-formula-new]")) { openFormulaDialog(); }
   }
@@ -1897,12 +2009,12 @@
   function fxFacets(ctx) {
     const v = fxConfig(ctx);
     if (!v) return [];
-    return liveFilters(v).map((flt) => ({
-      key: facetKey(flt),
-      label: fieldOf(v.source, flt.field)?.label || flt.field,
-      ...(flt.type === "date" ? { type: "date", today: () => DEMO_TODAY } : {}),
-      ...(flt.type === "single" ? { single: true } : {}),
-      ...(flt.type === "text" ? { search: true } : {})
+    /* rpt-cond-v1: the chips = the „Alege la generare” conditions, in the builder's order (key = the condition id) */
+    return askConds(v).map((c) => ({
+      key: c.id,
+      label: chipLabel(v, c),
+      ...(condKind(v, c) === "date" ? { type: "date", today: () => DEMO_TODAY } : {}),
+      ...(condKind(v, c) === "text" ? { search: true } : {})
     }));
   }
   function fx(ctx) {
@@ -1938,10 +2050,11 @@
       allFacets: () => fxFacets(ctx),
       options: (facet) => {
         const v = fxConfig(ctx);
-        const flt = v ? liveFilters(v).find((f) => facetKey(f) === facet.key) : null;
+        const flt = v ? askConds(v).find((c) => c.id === facet.key) : null;
         if (!flt) return [];
         const counts = new Map();
-        model(null).records.forEach((rec) => { const x2 = rec[flt.field]; if (x2 != null) counts.set(x2, (counts.get(x2) || 0) + 1); });
+        /* the options = the values left in the report's scope (its fixed conditions) */
+        model(null).records.filter((rec) => recMatch(v, rec, null)).forEach((rec) => { const x2 = rec[flt.field]; if (x2 != null) counts.set(x2, (counts.get(x2) || 0) + 1); });
         const f = fieldOf(v.source, flt.field);
         const order = f?.values?.length ? f.values : [...counts.keys()].sort((a, b) => String(a).localeCompare(String(b), "ro"));
         return order.filter((val) => counts.has(val)).map((val) => ({ value: val, count: counts.get(val) }));
@@ -2001,66 +2114,63 @@
     if (event.type === "dragend") { lvFrom = -1; document.querySelectorAll("[data-rpt-level].is-dragging, [data-rpt-level].is-drop-target").forEach((r) => r.classList.remove("is-dragging", "is-drop-target")); }
     return lvFrom >= 0;
   }
-  /* rpt-filter-order-v1: move a filter (↑ ↓ / drag) — its field errors move with it; FLIP slide + flash + live line */
-  function moveFilter(from, to, keep) {
-    const list = P.draft.filters;
-    if (from === to || from < 0 || to < 0 || from >= list.length || to >= list.length) return;
-    const before = snapFilters();
-    const errs = list.map((_, i) => P.errors[`filter.${i}`]);
+  /* rpt-cond-v1: the list an item lives in (top level or a group's rules) */
+  const condScope = (scope) => (scope === "top" ? P.draft.filters : P.draft.filters.find((x) => x.id === scope)?.rules || null);
+  const scopeOf = (id) => (P.draft.filters.some((x) => x.id === id) ? "top" : P.draft.filters.find((x) => x.group && x.rules.some((c) => c.id === id))?.id || "");
+  const nextCid = (v, pre) => `${pre}${Math.max(0, ...flatConds(v).map((c) => Number(String(c.id).slice(1)) || 0), ...v.filters.filter((x) => x.group).map((x) => Number(String(x.id).slice(1)) || 0)) + 1}`;
+  const blankCond = (v) => ({ id: nextCid(v, "f"), field: "", op: "", value: "", value2: "", values: [], ask: false });
+  /* move a condition / group (↑ ↓ / drag) inside its level; FLIP slide + flash + live line, focus kept */
+  function moveCond(scope, from, to, keep) {
+    const list = condScope(scope);
+    if (!list || from === to || from < 0 || to < 0 || from >= list.length || to >= list.length) return;
+    const before = snapConds();
     const [moved] = list.splice(from, 1);
     list.splice(to, 0, moved);
-    const [err] = errs.splice(from, 1);
-    errs.splice(to, 0, err);
-    errs.forEach((x, i) => { if (x) P.errors[`filter.${i}`] = x; else delete P.errors[`filter.${i}`]; });
-    rerender({ keep: typeof keep === "function" ? keep(to) : keep });
+    rerender({ keep });
     reheader();
-    playFilters(before, moved);
-  }
-  function snapFilters() {
     const root = moveRoot();
-    const out = new Map();
-    root?.querySelectorAll("[data-rpt-flt]").forEach((el) => { const f = P.draft.filters[Number(el.dataset.index)]; if (f) out.set(f, el.getBoundingClientRect().top); });
-    return out;
-  }
-  function playFilters(before, moved) {
-    const root = moveRoot();
-    if (!root || !before) return;
     const opts = { duration: tokenMs("--motion-duration-md", 300), easing: tokenEase() };
-    root.querySelectorAll("[data-rpt-flt]").forEach((el) => {
-      const f = P.draft.filters[Number(el.dataset.index)];
-      const top = before.get(f);
+    root?.querySelectorAll("[data-rpt-ci]").forEach((el) => {
+      const top = before.get(el.dataset.rptCi);
       const dy = top == null ? 0 : top - el.getBoundingClientRect().top;
       if (motionOk() && Math.abs(dy) > 0.5) el.animate([{ transform: `translateY(${dy}px)` }, { transform: "none" }], opts);
-      if (f === moved) { el.classList.remove("is-just-moved"); void el.offsetWidth; el.classList.add("is-just-moved"); setTimeout(() => el.classList.remove("is-just-moved"), tokenMs("--motion-duration-lg", 500) * 2); }
+      if (el.dataset.rptCi === moved.id) { el.classList.remove("is-just-moved"); void el.offsetWidth; el.classList.add("is-just-moved"); setTimeout(() => el.classList.remove("is-just-moved"), tokenMs("--motion-duration-lg", 500) * 2); }
     });
-    const i = P.draft.filters.indexOf(moved);
-    const name = fieldOf(P.draft.source, moved.field)?.label || "Filtrul";
-    if (i > -1) announce(`${name} mutat pe poziția ${i + 1} din ${P.draft.filters.length}.`);
+    announce(`${moved.group ? "Grupul" : moved.field ? fldLabel(P.draft, moved) : "Condiția"} mutat pe poziția ${to + 1} din ${list.length}.`);
   }
-  let fltFrom = -1;
+  function snapConds() {
+    const out = new Map();
+    moveRoot()?.querySelectorAll("[data-rpt-ci]").forEach((el) => out.set(el.dataset.rptCi, el.getBoundingClientRect().top));
+    return out;
+  }
+  let fltFrom = null;
   function onFilterDrag(event) {
-    const row = event.target.closest?.("[data-rpt-flt]");
-    if (!row || !inPage(row)) { if (event.type === "dragend") fltFrom = -1; return false; }
+    const row = event.target.closest?.("[data-rpt-ci]");
+    if (!row || !inPage(row)) { if (event.type === "dragend") fltFrom = null; return false; }
     if (event.type === "dragstart") {
-      /* a drag that starts inside a field (selecting text) is not a move */
+      /* a drag that starts inside a field (selecting text) is not a move; the innermost item moves */
       if (event.target.closest?.("input, textarea")) { event.preventDefault(); return true; }
-      fltFrom = Number(row.dataset.index); event.dataTransfer.effectAllowed = "move"; event.dataTransfer.setData("text/plain", `filter-${fltFrom}`); row.classList.add("is-dragging"); return true;
+      event.stopPropagation();
+      fltFrom = { scope: row.dataset.scope, index: Number(row.dataset.index) };
+      event.dataTransfer.effectAllowed = "move"; event.dataTransfer.setData("text/plain", `cond-${row.dataset.rptCi}`); row.classList.add("is-dragging"); return true;
     }
-    if (event.type === "dragover" && fltFrom >= 0) { event.preventDefault(); document.querySelectorAll("[data-rpt-flt].is-drop-target").forEach((r) => r.classList.remove("is-drop-target")); row.classList.add("is-drop-target"); return true; }
-    if (event.type === "drop" && fltFrom >= 0) {
+    /* drops land only on an item of the same level */
+    const target = fltFrom ? event.target.closest?.(`[data-rpt-ci][data-scope="${CSS.escape(fltFrom.scope)}"]`) : null;
+    if (event.type === "dragover" && target) { event.preventDefault(); document.querySelectorAll("[data-rpt-ci].is-drop-target").forEach((r) => r.classList.remove("is-drop-target")); target.classList.add("is-drop-target"); return true; }
+    if (event.type === "drop" && target) {
       event.preventDefault();
-      const from = fltFrom;
-      fltFrom = -1;
-      moveFilter(from, Number(row.dataset.index), (to) => `[data-rpt-flt="${to}"]`);
+      const { scope, index } = fltFrom;
+      fltFrom = null;
+      moveCond(scope, index, Number(target.dataset.index), "");
       return true;
     }
-    if (event.type === "dragend") { fltFrom = -1; document.querySelectorAll("[data-rpt-flt].is-dragging, [data-rpt-flt].is-drop-target").forEach((r) => r.classList.remove("is-dragging", "is-drop-target")); }
-    return fltFrom >= 0;
+    if (event.type === "dragend") { fltFrom = null; document.querySelectorAll("[data-rpt-ci].is-dragging, [data-rpt-ci].is-drop-target").forEach((r) => r.classList.remove("is-dragging", "is-drop-target")); }
+    return Boolean(fltFrom);
   }
   function onDrag(event) {
     if (event.target.closest?.("[data-rpt-level]") && onLevelDrag(event)) return;
     if (event.type === "dragend") onLevelDrag(event);
-    if (event.target.closest?.("[data-rpt-flt]") && onFilterDrag(event)) return;
+    if (event.target.closest?.("[data-rpt-ci]") && onFilterDrag(event)) return;
     if (event.type === "dragend") onFilterDrag(event);
     const row = event.target.closest?.("[data-rpt-col]");
     if (!row || !inPage(row)) { if (event.type === "dragend") dragFrom = -1; return; }
@@ -2155,20 +2265,73 @@
     if (lrm) { const id = lrm.dataset.rptLevelRemove; P.draft.groupBy = P.draft.groupBy.filter((x) => x !== id); delete P.errors.groupBy; afterColumnsChange(P.draft.groupBy.length ? "[data-rpt-level-remove]" : levelKeep()); announce(`${colName(colOf(P.draft, id))} nu mai grupează rândurile.`); return; }
     const col = t.closest("[data-rpt-col]");
     if (col && !t.closest("button")) { openColumn(col.dataset.rptCol); return; }
-    const fadd = t.closest("[data-rpt-filter-add]");
-    if (fadd) { if (fadd.getAttribute("aria-disabled") !== "true") openDrawer({ mode: "flt", fltIdx: null, flt: { field: "", type: "" } }); return; }
-    const flt = t.closest("[data-rpt-flt]");
-    if (flt && !t.closest("button") && inPage(flt)) { const i = Number(flt.dataset.rptFlt); openDrawer({ mode: "flt", fltIdx: i, flt: { ...P.draft.filters[i] } }); return; }
-    const fmv = t.closest("[data-rpt-flt-move]");
-    if (fmv) {
-      const [i, by] = fmv.dataset.rptFltMove.split("|").map(Number);
-      const to = i + by;
-      const end = by < 0 ? to === 0 : to === P.draft.filters.length - 1;
-      moveFilter(i, to, `[data-rpt-flt-move="${to}|${end ? -by : by}"]`);
+    /* rpt-cond-v1: the condition builder */
+    const cadd = t.closest("[data-rpt-cond-add]");
+    if (cadd) {
+      if (cadd.getAttribute("aria-disabled") === "true") return;
+      const list = condScope(cadd.dataset.rptCondAdd);
+      if (!list) return;
+      const c = blankCond(P.draft);
+      list.push(c);
+      rerender({ keep: `#${IDP}-cf-${c.id}-field` }); reheader();
       return;
     }
-    const frm = t.closest("[data-rpt-filter-remove]");
-    if (frm) { P.draft.filters.splice(Number(frm.dataset.rptFilterRemove), 1); Object.keys(P.errors).filter((k) => k.startsWith("filter.")).forEach((k) => delete P.errors[k]); rerender({ keep: "[data-rpt-filter-add]" }); reheader(); }
+    if (t.closest("[data-rpt-group-add]")) {
+      if (t.closest("[data-rpt-group-add]").getAttribute("aria-disabled") === "true") return;
+      const g = { id: nextCid(P.draft, "g"), group: true, conj: P.draft.filterConj === "or" ? "and" : "or", rules: [] };
+      P.draft.filters.push(g);
+      const c = blankCond(P.draft);
+      g.rules.push(c);
+      rerender({ keep: `#${IDP}-cf-${c.id}-field` }); reheader();
+      announce("Grup de condiții adăugat.");
+      return;
+    }
+    const cmv = t.closest("[data-rpt-cond-move]");
+    if (cmv) {
+      const [id, by] = cmv.dataset.rptCondMove.split("|");
+      const scope = scopeOf(id);
+      const list = condScope(scope);
+      const i = list.findIndex((x) => x.id === id);
+      const to = i + Number(by);
+      const end = Number(by) < 0 ? to === 0 : to === list.length - 1;
+      moveCond(scope, i, to, `[data-rpt-cond-move="${CSS.escape(`${id}|${end ? -Number(by) : Number(by)}`)}"]`);
+      return;
+    }
+    const crm = t.closest("[data-rpt-cond-remove]");
+    if (crm) {
+      const id = crm.dataset.rptCondRemove;
+      const scope = scopeOf(id);
+      const list = condScope(scope);
+      const i = list.findIndex((x) => x.id === id);
+      const gone = list[i];
+      list.splice(i, 1);
+      /* a group without conditions disappears */
+      if (scope !== "top" && !list.length) P.draft.filters = P.draft.filters.filter((x) => x.id !== scope);
+      Object.keys(P.errors).filter((k) => k.startsWith("filter.")).forEach((k) => delete P.errors[k]);
+      rerender({ keep: "[data-rpt-cond-add=\"top\"]" }); reheader();
+      announce(gone?.group ? "Grupul de condiții a fost eliminat." : "Condiția a fost eliminată.");
+      return;
+    }
+    const cv = t.closest("[data-rpt-cv]");
+    if (cv) {
+      /* a value of a list condition: toggled in place, the menu stays open, the preview follows */
+      const c = flatConds(P.draft).find((x) => x.id === cv.dataset.rptCv);
+      if (!c) return;
+      const x = cv.dataset.value;
+      c.values = c.values.includes(x) ? c.values.filter((y) => y !== x) : [...c.values, x];
+      const f = fieldOf(P.draft.source, c.field);
+      c.values = (f?.values || []).filter((y) => c.values.includes(y));
+      const on = c.values.includes(x);
+      cv.setAttribute("aria-checked", String(on));
+      cv.querySelector("input").checked = on;
+      const box = cv.closest(".e-permits-rpt-multi");
+      const txt = box.querySelector("[data-rpt-cv-text]");
+      txt.textContent = multiText(c.values);
+      txt.classList.toggle("e-permits-fo-select__value--placeholder", !c.values.length);
+      box.querySelector(".e-permits-fo-select__button").setAttribute("aria-label", `Valori: ${multiText(c.values)}`);
+      if (c.values.length && P.errors[`filter.${c.id}.value`]) { delete P.errors[`filter.${c.id}.value`]; box.classList.remove("is-error"); box.parentElement.querySelector(".e-permits-fo-field__error")?.remove(); }
+      refreshPreviewOnly(); reheader();
+    }
   });
   /* rpt-move-v1 (2026-11-10, user: „the move is hard to follow”; FLIP, Material / Notion reorder): ↑ ↓ and drag-and-drop
      slide the list items to their new places (translateY) and the preview columns to theirs (translateX), duration /
@@ -2235,7 +2398,7 @@
   let hlLockUntil = 0;
   const hlTarget = () => hlHover || (DR?.mode === "col" && DR.colId) || "";
   function syncColHl({ scroll = false } = {}) {
-    hlFlt = -1;
+    hlFlt = "";
     const root = creating() ? sheet : document.querySelector("#rpt-panel");
     if (!root) return;
     const id = hlTarget();
@@ -2267,17 +2430,17 @@
     }
   }
   /* rpt-filter-link-v1 (user): hover / focus of a filter item outlines its chip in the preview (the column list's link) */
-  let hlFlt = -1;
+  let hlFlt = "";
   function syncFltHl() {
     const root = moveRoot();
     if (!root) return;
     root.querySelectorAll("[data-rpt-preview] .chip.is-linked").forEach((c) => c.classList.remove("is-linked"));
-    const f = hlFlt > -1 ? P.draft?.filters[hlFlt] : null;
-    const name = f ? fieldOf(P.draft.source, f.field)?.label : "";
+    const f = hlFlt ? flatConds(P.draft || { filters: [] }).find((c) => c.id === hlFlt) : null;
+    const name = f && asking(P.draft, f) ? chipLabel(P.draft, f) : "";
     if (!name) return;
     [...root.querySelectorAll("[data-rpt-preview] .e-permits-rpt-fbar .chip:not(.e-permits-filter-trigger)")].find((c) => c.querySelector(".chip__label")?.textContent.trim() === name)?.classList.add("is-linked");
   }
-  const fltFromEvent = (t) => { const r = t.closest?.("[data-rpt-flt]"); return r ? Number(r.dataset.rptFlt) : -1; };
+  const fltFromEvent = (t) => { const r = t.closest?.("[data-rpt-ci]"); return r ? r.dataset.rptCi : ""; };
   const colFromEvent = (t) => t.closest?.("[data-rpt-col]")?.dataset.rptCol || t.closest?.("[data-rpt-col-pick]")?.dataset.rptColPick || "";
   document.addEventListener("mouseover", (event) => {
     if (!P.draft || !inPage(event.target) || performance.now() < hlLockUntil) return;
@@ -2291,7 +2454,7 @@
     const id = colFromEvent(event.target);
     if (id) { hlHover = id; syncColHl({ scroll: Boolean(event.target.closest("[data-rpt-col]")) }); }
     const fi = fltFromEvent(event.target);
-    if (fi > -1) { hlFlt = fi; syncFltHl(); }
+    if (fi) { hlFlt = fi; syncFltHl(); }
   });
   document.addEventListener("focusout", (event) => {
     if (!P.draft || !inPage(event.target) || !colFromEvent(event.target)) return;
@@ -2324,6 +2487,13 @@
   document.addEventListener("input", (event) => {
     const el = event.target;
     if (!el.closest || !inPage(el) || el.closest("[data-rpt-drawer]")) return;
+    /* rpt-cond-v1: a typed value of a condition (text / number / N zile) — the preview follows, the field keeps its caret */
+    if (el.dataset?.rptCf && el.tagName === "INPUT" && !el.classList.contains("js-date-picker-input")) {
+      const [id, part] = el.dataset.rptCf.split("|");
+      const c = flatConds(P.draft).find((x) => x.id === id);
+      if (c && (part === "value" || part === "value2")) { c[part] = el.value; refreshPreviewOnly(); reheader(); }
+      return;
+    }
     const key = el.dataset?.rptField;
     if (!key || el.tagName === "SELECT" || el.type === "checkbox") return;
     setPath(P.draft, key, el.value);
@@ -2344,6 +2514,56 @@
       P.draft = src ? cloneConfig(src) : blankConfig();
       P.base = clone(P.draft); P.errors = {}; P.totalTouched = Boolean(src); P.maxStep = src ? STEPS.length : 1;
       renderCreate({ keep: `#${IDP}-from` });
+      return;
+    }
+    /* rpt-cond-v1: field / condition / date values, the connector, „Alege la generare” */
+    if (el.matches("[data-rpt-conj]")) {
+      const scope = el.dataset.rptConj;
+      if (scope === "top") v.filterConj = el.value === "or" ? "or" : "and";
+      else { const g = v.filters.find((x) => x.id === scope); if (g) g.conj = el.value === "or" ? "or" : "and"; }
+      rerender({ keep: `#${CSS.escape(el.closest(".e-permits-fo-select")?.querySelector("button")?.id || "")}` }); reheader();
+      announce(`Condițiile ${scope === "top" ? "" : "din grup "}se combină cu „${el.value === "or" ? "sau" : "și"}”.`);
+      return;
+    }
+    if (el.matches("[data-rpt-cond-ask]")) {
+      const c = flatConds(v).find((x) => x.id === el.dataset.rptCondAsk);
+      if (!c) return;
+      c.ask = el.checked;
+      const k = condKind(v, c);
+      if (c.ask && !ASK_OPS[k]?.includes(opOf(v, c))) c.op = ASK_OPS[k]?.[0] || c.op;
+      delete P.errors[`filter.${c.id}.value`];
+      rerender({ keep: `[data-rpt-cond-ask="${CSS.escape(c.id)}"]` }); reheader();
+      return;
+    }
+    if (el.dataset?.rptCf) {
+      const [id, part] = el.dataset.rptCf.split("|");
+      const c = flatConds(v).find((x) => x.id === id);
+      if (!c) return;
+      if (part === "field") {
+        c.field = el.value; c.op = ""; c.value = ""; c.value2 = ""; c.values = [];
+        if (!canAsk(v, c)) c.ask = false;
+        if (c.ask) c.op = ASK_OPS[condKind(v, c)][0];
+        delete P.errors[`filter.${id}.field`]; delete P.errors[`filter.${id}.value`];
+        rerender({ keep: `#${IDP}-cf-${id}-field` }); reheader();
+        return;
+      }
+      if (part === "op") {
+        const was = opOf(v, c);
+        c.op = el.value;
+        /* another value shape (N zile ↔ a date, one value ↔ two): the old value no longer fits */
+        if ((was === "last") !== (c.op === "last")) { c.value = ""; c.value2 = ""; }
+        if (c.op !== "between") c.value2 = "";
+        rerender({ keep: `#${IDP}-cf-${id}-op` }); reheader();
+        return;
+      }
+      if (el.classList.contains("js-date-picker-input")) {
+        const iso = el.closest("[data-date-picker]")?.dataset.selected || "";
+        c[part] = /^\d{4}-\d{2}-\d{2}$/.test(iso) ? iso : "";
+        if (condComplete(v, c)) delete P.errors[`filter.${id}.value`];
+        refreshPreviewOnly(); reheader();
+        return;
+      }
+      if (part === "value" || part === "value2") { c[part] = el.value; if (condComplete(v, c)) delete P.errors[`filter.${id}.value`]; refreshPreviewOnly(); reheader(); }
       return;
     }
     if (el.matches("[data-rpt-level-add]")) {
@@ -2369,7 +2589,7 @@
     if (key === "source" && value !== old) {
       /* another source: its fields replace the old ones — source columns and filters on missing fields are emptied */
       v.columns.forEach((c) => { if (c.kind === "source" && !fieldOf(value, c.field)) c.field = ""; if (c.kind === "calc" && formulaOf(c.formula) && !formulaFits(formulaOf(c.formula), value)) c.formula = ""; });
-      v.filters = v.filters.filter((f) => fieldOf(value, f.field));
+      v.filters = v.filters.map((x) => (x.group ? { ...x, rules: x.rules.filter((c) => fieldOf(value, c.field)) } : x)).filter((x) => (x.group ? x.rules.length : fieldOf(value, x.field)));
     }
     rerender({ keep: fid(el) ? `#${CSS.escape(fid(el))}` : `[data-rpt-field="${key}"]` });
     reheader();

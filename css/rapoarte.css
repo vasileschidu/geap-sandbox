@@ -130,33 +130,6 @@
   outline-offset: 0;
 }
 
-/* the field picker of the filter panel: one radio per source field (Small radio), 16 apart, under the search */
-.e-permits-rpt-fld-list {
-  display: grid;
-  gap: var(--spacing-16, 16px);
-  padding: var(--spacing-8, 8px) var(--spacing-0, 0px);
-}
-
-/* rpt-fld-hover-v1 (user): the shared grey hover surface drawn OUTSIDE the row (outset 8, the radios and text keep their
-   left edge; rows are 16 apart so neighbouring surfaces just touch); the chosen row keeps a lighter grey; whole row clickable */
-.e-permits-rpt-fld {
-  --hover-surface-outset: var(--spacing-8, 8px);
-  border-radius: var(--border-radius-12, 12px);
-  cursor: pointer;
-  display: flex;
-  width: 100%;
-}
-
-.e-permits-rpt-fld:has(input:checked)::before {
-  background: var(--color-background-base-secondary, #f7f7f7);
-  opacity: 1;
-  transform: scale(1);
-}
-
-.e-permits-rpt-fld:has(input:checked):hover::before {
-  background: var(--color-background-base-tertiary, #f1f1f1);
-}
-
 /* ---- the formula picker (new): the chosen formula's expression + result format, under the formula select ---- */
 .e-permits-rpt-formula {
   background: var(--color-background-base-secondary, #f7f7f7);
@@ -870,5 +843,224 @@
 
   .e-permits-rpt-level.is-l3 {
     margin-left: var(--spacing-16, 16px);
+  }
+}
+
+/* ---- rpt-cond-v1 (2026-11-10, PO: inline filters with „și / sau”; Notion / Airtable / Linear / Metabase): the condition
+   builder in „Filtre”. Item = connector column (64: „Unde” code token / the „și / sau” token select, centred on the first
+   field line) + 8 + the condition on the shared hover surface (padding 16 on every side, r12): lead (handle + position)
+   spanning the rows · Câmp (row 1) · Condiție | Valoare (row 2; a two-value pair takes its own row) · „Alege la generare” +
+   ↑ ↓ 🗑 (last row). A group = a bordered white sub-block (r12, 16) with its own items + „Adaugă condiție”. Phones: the
+   connector sits above the condition. ---- */
+.e-permits-rpt-builder {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-16, 16px);
+}
+
+.e-permits-rpt-conds {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-8, 8px);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.e-permits-rpt-cond-item {
+  display: grid;
+  gap: var(--spacing-8, 8px);
+  grid-template-columns: var(--spacing-64, 64px) minmax(0, 1fr);
+}
+
+.e-permits-rpt-cond-item__conn {
+  align-items: flex-start;
+  display: flex;
+  padding-top: var(--spacing-24, 24px);
+}
+
+.e-permits-rpt-cond-item.is-dragging {
+  opacity: 0.5;
+}
+
+.e-permits-rpt-cond-item.is-drop-target > :is(.e-permits-rpt-cond, .e-permits-rpt-cgroup) {
+  box-shadow: inset 0 var(--spacing-2, 2px) 0 var(--color-border-brand-default, #0058d2);
+}
+
+.e-permits-rpt-cond-item.is-just-moved > :is(.e-permits-rpt-cond, .e-permits-rpt-cgroup) {
+  animation: e-permits-rpt-moved var(--motion-duration-lg, 0.5s) var(--motion-easing-decelerate, ease-out) var(--motion-duration-md, 0.3s) backwards;
+}
+
+.e-permits-rpt-cond {
+  align-items: start;
+  border-radius: var(--border-radius-12, 12px);
+  display: grid;
+  gap: var(--spacing-8, 8px) var(--spacing-12, 12px);
+  grid-template-columns: auto minmax(0, 1fr) minmax(0, 1fr);
+  min-width: 0;
+  padding: var(--spacing-16, 16px);
+}
+
+/* the condition's own width decides the layout (a group's conditions are narrower): Condiție and Valoare stack when the
+   two would not fit side by side */
+.e-permits-rpt-cond-item > .e-permits-rpt-cond {
+  container-type: inline-size;
+}
+
+.e-permits-rpt-cond__lead {
+  align-items: center;
+  align-self: start;
+  cursor: grab;
+  display: flex;
+  grid-column: 1;
+  grid-row: 1 / span 3;
+  height: var(--spacing-40, 40px);
+}
+
+.e-permits-rpt-cond__cell {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-8, 8px);
+  min-width: 0;
+}
+
+.e-permits-rpt-cond__field {
+  grid-column: 2 / -1;
+}
+
+.e-permits-rpt-cond__op {
+  grid-column: 2;
+}
+
+.e-permits-rpt-cond__val {
+  grid-column: 3;
+}
+
+.e-permits-rpt-cond__val.is-wide {
+  grid-column: 2 / -1;
+}
+
+.e-permits-rpt-cond__pair {
+  display: grid;
+  gap: var(--spacing-8, 8px);
+  grid-template-columns: repeat(auto-fit, minmax(calc(var(--spacing-8, 8px) * 17), 1fr));
+}
+
+.e-permits-rpt-cond__slot {
+  min-height: var(--spacing-40, 40px);
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.e-permits-rpt-cond__foot {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-8, 8px);
+  grid-column: 2 / -1;
+  justify-content: space-between;
+}
+
+.e-permits-rpt-cond__actions {
+  display: flex;
+  gap: var(--spacing-4, 4px);
+  margin-left: auto;
+}
+
+.e-permits-rpt-cgroup {
+  background: var(--color-background-base-default, #fff);
+  border: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
+  border-radius: var(--border-radius-12, 12px);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-8, 8px);
+  min-width: 0;
+  padding: var(--spacing-16, 16px);
+}
+
+.e-permits-rpt-cgroup__head {
+  align-items: center;
+  cursor: grab;
+  display: flex;
+  gap: var(--spacing-12, 12px);
+}
+
+.e-permits-rpt-cgroup__title {
+  color: var(--color-text-base-default, #121212);
+  flex: 1 1 auto;
+  font-size: var(--font-size-fs-14, 14px);
+  font-weight: var(--font-weight-fw-medium, 500);
+  line-height: var(--line-height-lh-20, 20px);
+}
+
+.e-permits-rpt-cgroup__add {
+  display: flex;
+  padding-left: calc(var(--spacing-64, 64px) + var(--spacing-8, 8px));
+}
+
+.e-permits-rpt-conds__add {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-8, 8px);
+}
+
+.e-permits-empty .e-permits-rpt-conds__add {
+  justify-content: center;
+}
+
+/* the values menu of a list condition: checkbox items (library checkbox, 40 / phones 48), the menu at the field's width */
+.e-permits-rpt-multi__item {
+  align-items: center;
+  gap: var(--spacing-12, 12px);
+}
+
+.e-permits-rpt-multi__label {
+  flex: 1 1 auto;
+  min-width: 0;
+  text-align: left;
+}
+
+/* „Condiții: …” under the preview's data line (its own grid row, one line, tooltip with the whole sentence) */
+.e-permits-rpt-preview .e-permits-wid-preview__titles > .e-permits-rpt-conds-line {
+  grid-row: 3;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (max-width: 760px) {
+  .e-permits-rpt-cond-item {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .e-permits-rpt-cond-item__conn {
+    padding-top: var(--spacing-0, 0px);
+  }
+
+  .e-permits-rpt-cgroup__add {
+    padding-left: var(--spacing-0, 0px);
+  }
+
+  .e-permits-rpt-cond__lead {
+    height: var(--spacing-48, 48px);
+  }
+
+  .e-permits-rpt-cond__slot {
+    font-size: var(--font-size-fs-16, 16px);
+    min-height: var(--spacing-48, 48px);
+  }
+
+  .e-permits-rpt-cgroup__title {
+    font-size: var(--font-size-fs-16, 16px);
+    line-height: var(--line-height-lh-24, 24px);
+  }
+}
+
+/* rpt-cond-v1: after the base placement rules (same specificity) */
+@container (max-width: 280px) {
+  .e-permits-rpt-cond__op,
+  .e-permits-rpt-cond__val {
+    grid-column: 2 / -1;
   }
 }

@@ -184,8 +184,9 @@
   ],
   "_fieldText": "the element whose font-size is the field text (first match inside the box, else the box)",
   "fieldText": "input, select, textarea, .e-permits-fo-input__value, .e-permits-fo-phone__value, .e-permits-fo-select__value, .e-permits-fo-caem__value, .e-permits-fo-subgen-select__value, .e-permits-fo-mdocs__value, [class*='__value']",
-  "_sizeExempt": "fields that are deliberately another size (documented exceptions) — reported as info only",
+  "_sizeExempt": "fields that are deliberately another size (documented exceptions) — reported as info only. `.e-permits-doc-kwselect` = the rule-builder „și / sau” code-token select (24, components.md › Reguli de solicitare; Rapoarte condition builder rpt-cond-v1).",
   "sizeExempt": [
+    ".e-permits-doc-kwselect *",
     ".search-input.small",
     ".e-permits-pager__trigger",
     ".e-permits-builder *",
