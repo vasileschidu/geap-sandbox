@@ -1172,7 +1172,7 @@
               <span class="e-permits-fo-delivery-option__description" id="dsh-pick-${w.id}-desc">${esc(reason || desc)}</span>
             </span>
           </span>
-          <span class="checkbox checkbox--medium e-permits-dsh-pick__box">
+          <span class="checkbox checkbox--medium e-permits-check-option e-permits-check-option--plain e-permits-dsh-pick__box${on || full ? " is-disabled" : ""}">
             <input class="checkbox-input" type="checkbox" value="${esc(w.id)}" aria-describedby="dsh-pick-${w.id}-desc"${on || chosen ? " checked" : ""}${on || full ? " disabled" : ""} data-dsh-pick>
             <span class="checkbox-custom" aria-hidden="true"><svg class="icon e-permits-check-option__tick" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-checkmark-small"></use></svg></span>
           </span>

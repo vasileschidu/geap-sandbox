@@ -254,10 +254,8 @@
   flex: none;
 }
 
-.e-permits-dsh-pick .checkbox-input:focus-visible + .checkbox-custom {
-  outline: none;
-}
-
+/* the checkbox = the ONE product checkbox (renderCheckOption markup, plain): its own unchecked / checked / disabled /
+   focus look; the card only mirrors the focus as the radio cards do */
 .e-permits-dsh-pick:has(.checkbox-input:focus-visible) {
   box-shadow:
     inset 0 0 0 var(--border-width-2, 2px) var(--color-border-brand-default, #0058d2),
