@@ -259,7 +259,7 @@
     if (S.data) return Promise.resolve(S.data);
     if (!S.loading) {
       S.loading = Promise.all([
-        fetch("data/dashboards.json?v=wid-heights-v1").then((r) => r.json()),
+        fetch("data/dashboards.json?v=dsh-dashboard-nav-v1").then((r) => r.json()),
         W().load ? W().load() : Promise.resolve(null),
         /* dsh-auth-ms-v1: the same ~30 demo authorities as Rapoarte (data/rapoarte.json › authorities) */
         fetch("data/rapoarte.json?v=rpt-auth-ms-v1").then((r) => r.json()).catch(() => null)
@@ -2002,7 +2002,10 @@
      is — kept off so the existing landings stay); the common filters, „Actualizează”, the info button and the
      personalisation of 96498 (US-427 / 432 / 433) are not built. Demo switches ?tablou=gol · incarcare · widget-eroare. */
   const VIEW_NAV = "tablou-de-bord";
-  const VIEW_TITLE = "Tablou de bord";
+  /* dsh-dashboard-nav-v1 (2026-11-11, Feature 96498 «Dashboard»): the first top-level menu item, above Locul de muncă;
+     a role sees only the active dashboards assigned to it (+ its authority) — the Specialist no longer gets the
+     supervisor's one (data/dashboards.json: DSH-0002 / DSH-0009 = supervisor only) */
+  const VIEW_TITLE = "Dashboard";
   /* Feature 96498 AC text, „tu” tone */
   const VIEW_EMPTY = "Nu ai acces la tablouri de bord.";
   const V = { id: "", failed: new Set(), seeded: new Set(), busy: new Set() };
@@ -2058,7 +2061,7 @@
   }
   async function showView(id = "", { push = false, focusTab = false } = {}) {
     A().setActiveNav?.(VIEW_NAV);
-    if (!S.data) G().showPage?.(VIEW_TITLE, E()?.render({ title: "Se încarcă tabloul de bord…", loading: true }) || "");
+    if (!S.data) G().showPage?.(VIEW_TITLE, E()?.render({ title: "Se încarcă dashboard-ul…", loading: true }) || "");
     await load();
     await (W().load?.() || Promise.resolve());
     const me = viewer();

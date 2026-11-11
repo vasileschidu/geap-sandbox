@@ -93,14 +93,20 @@
       "defaultItemId": "my-cases",
       "groups": [
         {
-          "label": "Locul de muncă",
+          "label": "",
+          "_note": "dsh-dashboard-nav-v1 (2026-11-11, Feature 96498 «Dashboard»): the first top-level item, above Locul de muncă",
           "items": [
             {
               "id": "tablou-de-bord",
-              "label": "Tablou de bord",
+              "label": "Dashboard",
               "iconAsset": "assets/icons/carousel.svg",
               "shellView": "tablou-de-bord-view"
-            },
+            }
+          ]
+        },
+        {
+          "label": "Locul de muncă",
+          "items": [
             {
               "id": "rapoarte-bo",
               "label": "Rapoarte",
@@ -201,14 +207,20 @@
       "defaultItemId": "my-cases",
       "groups": [
         {
-          "label": "Locul de muncă",
+          "label": "",
+          "_note": "dsh-dashboard-nav-v1 (2026-11-11, Feature 96498 «Dashboard»): the first top-level item, above Locul de muncă",
           "items": [
             {
               "id": "tablou-de-bord",
-              "label": "Tablou de bord",
+              "label": "Dashboard",
               "iconAsset": "assets/icons/carousel.svg",
               "shellView": "tablou-de-bord-view"
-            },
+            }
+          ]
+        },
+        {
+          "label": "Locul de muncă",
+          "items": [
             {
               "id": "rapoarte-bo",
               "label": "Rapoarte",

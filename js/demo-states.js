@@ -5008,9 +5008,9 @@
       "dsh-05b": prof("DSH-0005", "configurare", PUB),
       "dsh-05c": prof("DSH-0002", "configurare", seq(PUB, async (h) => { await h.click(`${M} [data-dsh-publish-confirm]`); await h.wait(200); })),
       /* US-550 — the principal: a new principal demotes the previous one for that role only */
-      "dsh-06": prof("DSH-0002", "configurare", seq(principal("specialist", "#dsh-panel"), async (h) => { await h.scroll("#dsh-panel [data-dsh-role-type='specialist|principal']"); })),
-      "dsh-06a": prof("DSH-0002", "configurare", seq(principal("specialist", "#dsh-panel"), PUB)),
-      "dsh-06b": prof("DSH-0002", "configurare", seq(principal("specialist", "#dsh-panel"), PUB, note("Supervizorii și specialiștii pornesc de aici."), async (h) => { await h.click(`${M} [data-dsh-publish-confirm]`); await h.wait(500); location.hash = "#tablou/DSH-0001/istoric"; await h.wait(600); })),
+      "dsh-06": prof("DSH-0005", "configurare", seq(principal("specialist", "#dsh-panel"), async (h) => { await h.scroll("#dsh-panel [data-dsh-role-type='specialist|principal']"); })),
+      "dsh-06a": prof("DSH-0005", "configurare", seq(principal("specialist", "#dsh-panel"), PUB)),
+      "dsh-06b": prof("DSH-0005", "configurare", seq(principal("specialist", "#dsh-panel"), PUB, note("Specialiștii pornesc de aici."), async (h) => { await h.click(`${M} [data-dsh-publish-confirm]`); await h.wait(500); location.hash = "#tablou/DSH-0001/istoric"; await h.wait(600); })),
       /* US-547 — deactivate / activate, per authority */
       "dsh-07": prof("DSH-0001", "configurare", seq(HMENU, async (h) => { await h.click("[data-dosar-profil] [data-dsh-toggle]"); await h.find(OK); })),
       "dsh-07a": prof("DSH-0006"),

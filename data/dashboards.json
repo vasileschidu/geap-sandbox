@@ -35,7 +35,7 @@
       "config": {
         "names": { "ro": "Tabloul de bord al supervizorului", "ru": "Панель руководителя", "en": "Supervisor dashboard" },
         "descriptions": { "ro": "Volumul, întârzierile și distribuirea dosarelor pe echipă.", "ru": "", "en": "" },
-        "roles": [{ "role": "supervisor", "type": "principal" }, { "role": "specialist", "type": "secundar" }],
+        "roles": [{ "role": "supervisor", "type": "principal" }],
         "order": 2, "allAuthorities": false, "authorities": ["ansp", "anta"],
         "widgets": [
           { "widget": "WGT-0001", "width": "third", "height": "compact" },
@@ -181,7 +181,7 @@
       "config": {
         "names": { "ro": "Termene de examinare", "ru": "Сроки рассмотрения", "en": "Review deadlines" },
         "descriptions": { "ro": "Dosarele întârziate și durata procesării.", "ru": "", "en": "" },
-        "roles": [{ "role": "specialist", "type": "secundar" }, { "role": "supervisor", "type": "secundar" }],
+        "roles": [{ "role": "supervisor", "type": "secundar" }],
         "order": 3, "allAuthorities": true, "authorities": ["ansp", "anta", "ansa", "amdm"],
         "widgets": [
           { "widget": "WGT-0003", "width": "half", "height": "compact" },
