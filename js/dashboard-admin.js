@@ -132,6 +132,9 @@
         /* ?tablou=mix (demo dsh-04n): DSH-0001 as a mixed board — compact tile + compact bars + a tall donut beside two
            compact rows, then two compact halves (wid-heights-v1) */
         const mixed = demo.has("mix") && json.dashboards.find((d) => d.id === "DSH-0001");
+        /* ?tablou=kpi3 (demo dsh-04q): DSH-0001 as one row of three compact KPI tiles, each a third wide */
+        const kpi3 = demo.has("kpi3") && json.dashboards.find((d) => d.id === "DSH-0001");
+        if (kpi3) kpi3.config.widgets = ["WGT-0011", "WGT-0015", "WGT-0016"].map((widget) => ({ widget, width: "third", height: "compact" }));
         if (mixed) mixed.config.widgets = [["WGT-0011", "third", "compact"], ["WGT-0001", "third", "compact"], ["WGT-0006", "third", "tall"], ["WGT-0003", "twoThirds", "compact"], ["WGT-0008", "half", "compact"], ["WGT-0012", "half", "compact"]].map(([widget, width, height]) => ({ widget, width, height }));
         json.dashboards.forEach((d) => {
           d.config.widgets.forEach((x) => { x.height = heightKey(x.height); });
@@ -395,8 +398,10 @@
     const n = v.widgets.length;
     const tiles = v.widgets.map((t, i) => tileHtml(t, i, n, d, edit)).join("");
     const ghost = edit && n < MAX_WIDGETS ? `<div class="e-permits-dsh-ghost" role="listitem"><span class="e-permits-dsh-ghost__text">Adaugă widget-urile unul câte unul și aranjează-le aici.</span>${addButton(v)}</div>` : "";
+    /* a board of only compact number tiles (dsh-04q) sizes its row to the tallest card's content — no fixed height, no empty card space */
+    const natural = n > 0 && v.widgets.every((t) => widgetInfo(t.widget, d).cfg?.type === "tile" && heightKey(t.height) === "compact");
     const body = n || edit
-      ? `<div class="e-permits-dsh-grid${edit ? " is-editing" : ""}" role="list" aria-label="Widget-urile tabloului de bord, în ordinea de citire" data-dsh-grid>
+      ? `<div class="e-permits-dsh-grid${edit ? " is-editing" : ""}${natural ? " is-natural" : ""}" role="list" aria-label="Widget-urile tabloului de bord, în ordinea de citire" data-dsh-grid>
           <div class="e-permits-dsh-guides" aria-hidden="true">${Array.from({ length: 12 }, () => "<span></span>").join("")}</div>
           ${tiles}${ghost}
         </div>`
@@ -827,14 +832,14 @@
   function configTab(d) {
     if (!editable(d)) {
       return `
-        <div class="e-permits-dsh-config">
+        <div class="e-permits-dsh-config e-permits-dsh-wide">
           ${readBlocks(d.config, d.level)}
           ${section("Widget-uri", layoutHtml(d.config, d), { meta: `${d.config.widgets.length}/${MAX_WIDGETS}`, card: false, cls: "e-permits-dsh-layout" })}
         </div>`;
     }
     const v = P.draft;
     const e = P.errors;
-    return `<div class="e-permits-dsh-config">${stepGeneral(v, e, idpNow())}${stepAccess(v, e, idpNow(), d)}${stepWidgets(v, e, idpNow(), d)}</div>`;
+    return `<div class="e-permits-dsh-config e-permits-dsh-wide">${stepGeneral(v, e, idpNow())}${stepAccess(v, e, idpNow(), d)}${stepWidgets(v, e, idpNow(), d)}</div>`;
   }
   const reheader = () => { const els = A().els || {}; if (!creating() && els.dosarProfilTitleRow && P.id) els.dosarProfilTitleRow.innerHTML = headerTop(dashOf(P.id)); };
 
@@ -1516,7 +1521,7 @@
     const r = tile.getBoundingClientRect();
     const t = P.draft.widgets.find((w) => w.widget === tile.dataset.dshTile);
     const gs = getComputedStyle(grid);
-    const row = parseFloat(gs.gridAutoRows) || 360;
+    const row = parseFloat(gs.gridAutoRows) || tile.offsetHeight || 360;
     const rowGap = parseFloat(gs.rowGap) || 0;
     act = { kind, tile, grid, id: tile.dataset.dshTile, offX: x - r.left, offY: y - r.top, z: zoomOf(tile), width: t.width, height: heightKey(t.height), rows: { compact: row, tall: row * 2 + rowGap } };
     grid.classList.add("is-arranging");
@@ -1731,7 +1736,7 @@
       ? `<div class="e-permits-dsh-stage"><div class="e-permits-dsh-grid" role="list" aria-label="Widget-urile tabloului de bord">${live.map((x, i) => viewTile(d, x, i)).join("")}</div></div>`
       : E()?.render({ title: "Niciun widget", text: "Widget-urile acestui tablou de bord nu mai sunt publicate.", icon: "chart" }) || "";
     return `
-      <section class="e-permits-dosar-profil__section e-permits-dsh-view" id="dsh-view-panel"${V.tabs ? ` role="tabpanel" aria-labelledby="dsh-view-tab-${esc(d.id)}"` : ""} aria-busy="${demo.has("incarcare") ? "true" : "false"}" data-dsh-view="${esc(d.id)}">
+      <section class="e-permits-dosar-profil__section e-permits-dsh-view e-permits-dsh-wide" id="dsh-view-panel"${V.tabs ? ` role="tabpanel" aria-labelledby="dsh-view-tab-${esc(d.id)}"` : ""} aria-busy="${demo.has("incarcare") ? "true" : "false"}" data-dsh-view="${esc(d.id)}">
         <div class="e-permits-dsh-view__head">
           <div class="e-permits-dsh-view__title-row">
             <h2 class="e-permits-dosar-profil__section-title">${esc(lastVersion(d).config.names.ro)}</h2>

@@ -4942,6 +4942,8 @@
       "dsh-04l": prof("DSH-0001", "configurare", seq(layout(), D((d) => d.resize("WGT-0003", "twoThirds", "tall")))),
       /* wid-heights-v1: a mixed board — compact tile + compact bars + a tall donut beside two compact rows, equal bottoms */
       "dsh-04n": prof("DSH-0001", "configurare", layout(), { tablou: "mix" }),
+      /* three compact KPI tiles in one row, each a third wide (cards size to their natural content) */
+      "dsh-04q": prof("DSH-0001", "configurare", layout(), { tablou: "kpi3" }),
       "dsh-04o": prof("DSH-0001", "configurare", seq(layout(), D((d) => d.resize("WGT-0011", "third", "tall"))), { tablou: "mix" }),
       "dsh-04m": prof("DSH-0001", "configurare", seq(D((d) => { d.focus("WGT-0006"); document.activeElement.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowUp", bubbles: true })); }), layout())),
       "dsh-04d": prof("DSH-0001", "configurare", seq(layout(), pick)),

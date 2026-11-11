@@ -186,7 +186,7 @@
       return arc;
     }).join("");
     return `
-      <div class="e-permits-wid-donut e-permits-wid-donut--${m.height || "compact"}">
+      <div class="e-permits-wid-donut e-permits-wid-donut--${m.height || "compact"}${total ? "" : " e-permits-wid-donut--empty"}">
         <div class="e-permits-wid-donut__chart">
           <svg class="e-permits-wid-donut__svg" viewBox="0 0 42 42" role="img" aria-label="${ariaOf(m)}" focusable="false"><circle class="e-permits-wid-donut__track" cx="21" cy="21" r="15.9155" stroke-width="6"></circle>${arcs}</svg>
           <span class="e-permits-wid-donut__center"><strong>${esc(m.fmt(m.kpi && Number.isFinite(m.kpiCurrent) ? m.kpiCurrent : total))}</strong><span>${m.kpi ? "KPI" : "total"}</span></span>

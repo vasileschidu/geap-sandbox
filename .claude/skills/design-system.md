@@ -718,3 +718,8 @@ background: var(--color-background-base-default);
   `.e-permits-ntpl-content.e-permits-editor-wide`; the panel picks it up with `:has(> .e-permits-editor-wide)`.
 - One-column tabs / screens (lists, timelines, Istoric, Alerte, Valori proprii) keep the normal profile width (1024;
   ntpl tabs 1280). Never put the wide width on a whole page.
+- **Third width — dashboards 1440 (dsh-wide-v1, 2026-11-11, user):** the Tablouri de bord widget editor (Configurare tab,
+  widget grid) and the specialist view „Tablou de bord” are fluid to the BO gutter and capped at **1440**
+  (`calc(var(--spacing-40) * 36)`), centred beyond. Marker `.e-permits-dsh-wide` on the tab content (css/dashboard.css);
+  Versiuni / Istoric and the create-sheet steps keep their widths. A board of only compact number tiles gets
+  `.is-natural` on the grid: the row is as tall as the tallest card's content (no fixed height, no empty card space).

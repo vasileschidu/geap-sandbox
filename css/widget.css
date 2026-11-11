@@ -692,6 +692,11 @@ button.e-permits-wid-rows__row:focus-visible {
 
 .e-permits-wid-donut__track {
   fill: none;
+  stroke: var(--color-background-base-default, #fff);
+}
+
+/* no data: the empty ring stays grey */
+.e-permits-wid-donut--empty .e-permits-wid-donut__track {
   stroke: var(--color-background-base-default-active, #d9d9d9);
 }
 
@@ -1187,6 +1192,34 @@ button.e-permits-wid-rows__row:focus-visible {
   margin-top: var(--spacing-24, 24px);
 }
 
+/* legend-cols-v1 (2026-11-11, user): every list legend with values (donut / pie, funnel) is one grid — dot + label on the left
+   (the label truncates with its tooltip, never pushes the numbers), the count and the share right-aligned in their own columns,
+   tabular numerals; rows share the columns through subgrid, so every count and every share sits on one edge. The box fills the card. */
+.e-permits-wid-card .e-permits-wid-legend--list {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
+  width: 100%;
+}
+
+.e-permits-wid-card .e-permits-wid-legend--list > li {
+  display: grid;
+  grid-column: 1 / -1;
+  grid-template-columns: subgrid;
+}
+
+.e-permits-wid-card .e-permits-wid-legend--list > li > .e-permits-wid-legend__btn {
+  display: grid;
+  grid-column: 1 / -1;
+  grid-template-columns: subgrid;
+}
+
+.e-permits-wid-card .e-permits-wid-legend--list :is(strong, .e-permits-meter-legend__pct) {
+  font-variant-numeric: tabular-nums;
+  justify-self: end;
+  margin-left: 0;
+  text-align: right;
+}
+
 /* single-line list legends (donut) centre the dot on their one line */
 .e-permits-wid-card .e-permits-wid-legend--list :is(li, .e-permits-wid-legend__btn) {
   align-items: center;
@@ -1380,17 +1413,42 @@ button.e-permits-wid-rows__row:focus-visible {
     }
   }
 
-  @container (max-width: 520px) {
-    /* narrow + tall: ring above the legend, the pair centred in the card (the ring as wide as the card, ≤ 240) */
-    .e-permits-wid-card--fixed.e-permits-wid-card--tall .e-permits-wid-donut {
-      align-content: center;
-      grid-template-rows: minmax(0, auto) auto;
-    }
+  /* Înaltă donut (donut-fill-v1): header, then a chart area that takes all the free height with the ring centred at the largest
+     square that fits (card width × free height), then the legend at the bottom; the centre total scales with the ring */
+  .e-permits-wid-card--fixed.e-permits-wid-card--tall .e-permits-wid-donut {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-16, 16px);
+  }
 
-    .e-permits-wid-card--fixed.e-permits-wid-card--tall .e-permits-wid-donut__chart {
-      height: auto;
-      max-width: calc(var(--spacing-40, 40px) * 6);
-      width: 100%;
-    }
+  .e-permits-wid-card--fixed.e-permits-wid-card--tall .e-permits-wid-donut__chart {
+    align-self: stretch;
+    aspect-ratio: auto;
+    container-type: size;
+    flex: 1 1 0;
+    height: auto;
+    max-height: none;
+    max-width: none;
+    min-height: 0;
+    width: 100%;
+  }
+
+  .e-permits-wid-card--fixed.e-permits-wid-card--tall .e-permits-wid-donut__svg {
+    height: min(100cqw, 100cqh);
+    inset: 0;
+    margin: auto;
+    position: absolute;
+    width: min(100cqw, 100cqh);
+  }
+
+  .e-permits-wid-card--fixed.e-permits-wid-card--tall .e-permits-wid-donut__center strong {
+    font-size: max(var(--font-size-fs-20, 20px), min(var(--font-size-fs-32, 32px), 14cqmin));
+    line-height: 1.2;
+  }
+
+  .e-permits-wid-card--fixed.e-permits-wid-card--tall .e-permits-wid-donut > .e-permits-wid-legend--list {
+    flex: none;
+    align-self: stretch;
+    max-height: none;
   }
 }

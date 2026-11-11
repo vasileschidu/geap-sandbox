@@ -264,7 +264,7 @@
       "createdAt": "2026-10-03T10:00:00", "createdBy": "Anastasia Cojocaru", "updatedAt": "2026-10-03T10:25:00", "updatedBy": "Anastasia Cojocaru",
       "config": {
         "titles": { "ro": "Cereri depuse", "ru": "Поданные заявления", "en": "Applications submitted" },
-        "subtitles": { "ro": "Luna curentă, față de luna precedentă", "ru": "Текущий месяц", "en": "This month" },
+        "subtitles": { "ro": "Cererile depuse în luna curentă", "ru": "Текущий месяц", "en": "This month" },
         "source": "reg-dosare", "type": "tile", "kpi": "kpi-v01", "measure": "", "column": "",
         "primary": "", "secondary": "", "dateGroup": "", "order": "source",
         "filter": { "logic": "and", "rules": [] },

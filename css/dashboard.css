@@ -58,6 +58,13 @@
   max-width: calc(var(--spacing-40, 40px) * 22);
 }
 
+/* dashboards 1440 (dsh-wide-v1, 2026-11-11, user): the widget editor (Configurare) and the specialist view are fluid to the
+   BO page gutter and capped at 1440; Versiuni / Istoric and the sheet steps keep their widths. The marker sits on the
+   tab content, the panel that holds it is widened (the rule is not a two-column editor, so no .e-permits-editor-wide). */
+.e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-dosar-profil__panel:has(.e-permits-dsh-wide) {
+  max-width: calc(var(--spacing-40, 40px) * 36);
+}
+
 .e-permits-dsh-foot {
   display: flex;
   flex-wrap: wrap;
@@ -94,6 +101,14 @@
 }
 
 .e-permits-dsh-tile--tall { grid-row: span 2; }
+
+/* only compact number tiles: the row is as tall as the tallest card's natural content (dsh-natural-v1) */
+.e-permits-dsh-grid.is-natural { grid-auto-rows: auto; }
+@media (min-width: 761px) {
+  .e-permits-dsh-grid.is-natural .e-permits-wid-card--fixed.e-permits-wid-card--compact { height: auto; overflow: visible; }
+  .e-permits-dsh-grid.is-natural .e-permits-wid-card--fixed > .e-permits-wid-card__body { flex: 0 0 auto; }
+}
+
 
 .e-permits-dsh-guides {
   display: grid;
