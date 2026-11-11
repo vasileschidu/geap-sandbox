@@ -781,7 +781,9 @@
       })
     ].filter(Boolean).join("; ");
   }
-  /* rpt-scope-v1 (2026-11-11, user): above the preview table ONE library info notice (blue Mesaj · subtil) — „Grupat după:
+  /* rpt-scope-v2 (2026-11-11, user): directly under the „Previzualizare” title (instead of the grey data line „Date
+     demonstrative · Perimetru · sursa”, which is gone) / under the „Mărește” dialog title — outside the report card.
+     rpt-scope-v1: ONE library info notice (blue Mesaj · subtil) — „Grupat după:
      A › B” · „Filtre aplicate: <the fixed conditions, și / sau>” · „Vizibile în raport: <the „Afișează filtru” fields>”,
      one line each, only the lines that apply; nothing → no notice. Replaces the grey „Condiții: …” line. */
   function scopeNotice(v) {
@@ -805,7 +807,7 @@
     else if (!shownCols(v).length) body = E()?.render({ title: "Toate coloanele sunt ascunse", text: "Afișează cel puțin o coloană din «Coloanele raportului».", icon: "page-text", compact: true, bare: true }) || "";
     else {
       const rows = previewModel(v, sel, q).rowCount;
-      body = scopeNotice(v) + (live ? '<div class="e-permits-rpt-fslot" data-rpt-fslot></div>' : "") + (rows
+      body = (live ? '<div class="e-permits-rpt-fslot" data-rpt-fslot></div>' : "") + (rows
         ? tableHtml(v, { link, sel, q })
         : `<div class="e-permits-rpt-nomatch">${E()?.render({ title: NO_MATCH, text: filtered ? "Niciun rând nu corespunde filtrelor alese. Schimbă sau șterge filtrele." : "Niciun rând nu corespunde condițiilor raportului. Schimbă condițiile din «Filtre».", icon: "search", compact: true, actionHtml: filters === "live" && filtered ? '<button class="btn btn-neutral btn-sm" type="button" data-rpt-filter-clear>Șterge filtrele</button>' : "" }) || ""}</div>`);
     }
@@ -825,16 +827,13 @@
       </article>`;
   }
   function previewHtml(v, { idp, ctx = "" } = {}) {
-    const me = who();
-    const src = sourceOf(v.source);
-    const meta = `Date demonstrative · Perimetru: ${me.central ? "toate autoritățile" : authName(me.authority)}${src ? ` · ${src.name} ${src.version}` : ""}`;
     const st = ctx ? fx(ctx).state : null;
     return `
       <section class="e-permits-wid-preview e-permits-rpt-preview" aria-labelledby="${idp}-preview-title">
         <div class="e-permits-dosar-profil__section-heading">
           <div class="e-permits-wid-preview__titles">
             <h2 class="e-permits-dosar-profil__section-title" id="${idp}-preview-title">Previzualizare</h2>
-            <p class="e-permits-dosar-profil__section-meta e-permits-wid-preview__meta">${esc(meta)}</p>
+            ${scopeNotice(v)}
           </div>
           <div class="e-permits-passport__heading-tools">
             <button class="btn btn-neutral btn-sm btn-icon-only" type="button" aria-label="Mărește previzualizarea" data-tooltip-label="Mărește" aria-haspopup="dialog" data-rpt-zoom${v.columns.length ? "" : ' aria-disabled="true" data-tooltip-reason="Adaugă mai întâi coloane."'}>${icon("enlarge", 16)}</button>
@@ -1027,10 +1026,11 @@
         badges: [],
         meta: (() => { const m = columnMeta(v, c); m.splice(2, 0, ...[kt, c.total === "incl" && isMeasure(c) ? "Inclusiv" : ""].filter(Boolean).map(esc)); return m; })(),
         /* rpt-col-list-v4 (user: „bring back arrows”): the original controls — ↑ / ↓ (disabled at the ends) + the red trash */
-        /* rpt-col-hide-v1 (2026-11-11, user): [group] · eye (Ascunde / Afișează coloana) · trash, one centre line */
+        /* rpt-col-hide-v1 (2026-11-11, user): [group] · eye · trash, one centre line; rpt-col-eye-v2: a toggle (aria-pressed,
+           one label) — shown = grey Foundations „eye-open”, hidden = BLACK like the active group toggle + white „eye-slash” */
         actionsHtml: `
           ${groupBtn(c)}
-          <button class="btn btn-text-neutral btn-sm btn-icon-only e-permits-rpt-eye-btn" type="button" aria-label="${c.hidden ? "Afișează" : "Ascunde"} coloana „${esc(colName(c))}”" data-tooltip-label="${c.hidden ? "Afișează coloana" : "Ascunde coloana"}" data-rpt-col-hide="${esc(c.id)}">${icon(c.hidden ? "eye-closed" : "eye-open", 16)}</button>
+          <button class="btn btn-text-neutral btn-sm btn-icon-only e-permits-rpt-eye-btn" type="button" aria-pressed="${Boolean(c.hidden)}" aria-label="Ascunde coloana „${esc(colName(c))}”" data-tooltip-label="${c.hidden ? "Ascunsă · apasă ca s-o afișezi" : "Ascunde coloana"}" data-rpt-col-hide="${esc(c.id)}">${icon(c.hidden ? "eye-slash" : "eye", 16)}</button>
           <button class="btn btn-text-destructive btn-sm btn-icon-only" type="button" aria-label="Elimină coloana „${esc(colName(c))}”" data-tooltip-label="Elimină coloana" data-rpt-col-remove="${esc(c.id)}">${icon("delete", 16)}</button>`
       }) || "").replace('<li class="e-permits-stack__item', `<li draggable="true" class="e-permits-stack__item${c.hidden ? " is-col-hidden" : ""}`);
     }).join("")}</ul></div>
@@ -2189,7 +2189,8 @@
      the inline preview (its own library instance on the shared state: applied in one = shown in the other) → the table
      filling the rest with its own scroll; phones = the full-screen sheet with the icon-only Filtre + sheet */
   const zoomOpen = () => Boolean(fxModal()?.classList.contains("is-active") && fxModal().querySelector(".e-permits-reg-modal--rpt-zoom"));
-  const zoomCard = () => { const v = fxConfig("zoom"); return v ? cardHtml(v, { filters: "live", sel: fx("zoom").state.applied, q: fx("zoom").state.q }) : ""; };
+  /* rpt-scope-v2: the scope notice under the dialog title, above the card */
+  const zoomCard = () => { const v = fxConfig("zoom"); return v ? scopeNotice(v) + cardHtml(v, { filters: "live", sel: fx("zoom").state.applied, q: fx("zoom").state.q }) : ""; };
   function refreshZoom() {
     if (!zoomOpen()) return;
     fxModal().querySelector("[data-case-modal-body]").innerHTML = zoomCard();
@@ -2956,7 +2957,7 @@
     load, openProfile, openNew, refreshList, perms: () => who(),
     list: () => reports(), all: () => all(), get: reportOf,
     formulas: () => formulas(),
-    audit, lastVersion, unpublished, canEdit, canCreate, validate, publishProblems, configRows, readBlocks, cardHtml,
+    audit, lastVersion, unpublished, canEdit, canCreate, validate, publishProblems, configRows, readBlocks, cardHtml, scopeNotice,
     levelText, sourceName, authName, authorities: () => D().authorities, roles: () => D().roles || [],
     save: (opts) => savePage(opts), dirty: () => pageDirty(), editable: (r) => editable(r), visible: (r) => visible(r),
     ui: { textField, areaField, selectField, errorHtml, setFieldError, grid, req },

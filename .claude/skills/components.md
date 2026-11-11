@@ -12523,23 +12523,30 @@ assigned to some authorities; none = all), anyone else's are Autoritate = his ow
   Serviciu” · „Filtre aplicate: Data depunerii: ultimele 30 de zile și Autoritate: ANSP, ANTA” (`condsText(v, condRead)` —
   „Câmp: valoare”, groups in parentheses, și / sau) · „Vizibile în raport: Data depunerii, Autoritate, Canal de depunere” (the
   „Afișează filtru” fields). Only the lines that apply; none → no notice. Replaced the grey „Condiții: …” heading line and the
-  grouping / filters parts of the card foot. Demo rpt-04o (all three), rpt-04p (grouping only), rpt-03aj (create sheet).
+  grouping / filters parts of the card foot. **rpt-scope-v2 (user)**: the notice sits OUTSIDE the card — row 2 of the
+  „Previzualizare” heading in place of the grey data line „Date demonstrative · Perimetru · sursa” (removed), 16 under the
+  title, the heading's 16 + section 16 to the card; „Mărește” = under the dialog title, 16 above the card; the version
+  window = above its card; nothing to say → only the title. Demo rpt-04o (all three), rpt-04p (grouping only), rpt-03aj
+  (create sheet), rpt-04r („Mărește”).
 - **Group fold (rpt-fold-v1, 2026-11-11, user „grouping more visible”)** — level-1 group rows = tertiary fill (levels 2–3 stay
   secondary), 40 high (4 + 32 + 4); every group row = `span.e-permits-rpt-table__gcell` › library
   `button.btn.btn-text-neutral.btn-sm.btn-icon-only.e-permits-rpt-fold[aria-expanded][data-rpt-fold="/c1=ANSP/…"]` (chevron-bottom
   open / chevron-right folded, 16; aria-label „Grupul „Autoritate: ANSP””, tooltip „Restrânge grupul” / „Extinde grupul”; −8
   left so the glyph sits on the label edge) + `span.__gtext` (ellipsis + tooltip). Folding hides the group's rows and inner
   groups (`tr[data-rpt-in]` → `hidden`), its subtotal stays; state = `FOLD` (paths, per open report) shared by the inline
-  preview and „Mărește”; a click updates every report table in place (`applyFold`, no redraw — focus stays). Demo rpt-04q
+  preview and „Mărește”; a click updates every report table in place (`applyFold`, no redraw — focus stays). rpt-fold-v2:
+  the group cell and its wrapper never clip (the text span ellipsizes), „Mărește” drops the −8 (12 inset) — hover + 5 ring
+  stay ≥ 7 inside the scroll box at every level; the focused chevron is lifted above the next row. Demo rpt-04q
   (ANSP folded), rpt-04r (in „Mărește”).
 - **Column show / hide (rpt-col-hide-v1, 2026-11-11, user)** — right tools of a column item = [group toggle] · eye · trash on one
-  centre line: eye = library `btn btn-text-neutral btn-sm btn-icon-only.e-permits-rpt-eye-btn[data-rpt-col-hide]` (`icon-eye-open`
-  → `icon-eye-closed`, 16; aria-label „Ascunde / Afișează coloana „X””, tooltip „Ascunde coloana” / „Afișează coloana”). Hidden
+  centre line: eye = library `btn btn-text-neutral btn-sm btn-icon-only.e-permits-rpt-eye-btn[data-rpt-col-hide][aria-pressed]`
+  toggle (rpt-col-eye-v2): shown = grey `icon-eye`, hidden = pressed BLACK (the active group toggle's look) + white
+  `icon-eye-slash` (Foundations „eye-open” / „eye-slash”, Figma 15479:40485, 20 viewBox, at 16); one aria-label „Ascunde
+  coloana „X””, tooltip „Ascunde coloana” / „Ascunsă · apasă ca s-o afișezi”. Hidden
   (`column.hidden: true`) = item `.is-col-hidden` (title + meta tertiary), meta ends „Ascunsă”; the column leaves the preview /
   report table (`shownCols`) but still groups, filters and feeds formulas; rows that differed only in a hidden ungrouped Text
   column merge (measures re-aggregated, Total unchanged). All hidden → empty state „Toate coloanele sunt ascunse”.
-  `icon-eye-closed` = a LOCAL sprite glyph (eye-open + slash) — no eye-closed in Foundations yet (open: add it to the
-  library). Demo rpt-04s (Finalizate hidden, list), rpt-04t (preview without it).
+  Demo rpt-04s (Finalizate hidden, list), rpt-04t (preview without it).
 - **Grouping note (rpt-col-group-note-v1)** — a column the rows are grouped by shows „· Grupare” (one level) / „· Grupare N” after its
   name on the title line (`.e-permits-rpt-col-note`, secondary 14/20).
 - **Filter row header (rpt-cond-v5)** — one centred flex row; „Afișează filtru” = library Medium checkbox, focus ring around the BOX only.

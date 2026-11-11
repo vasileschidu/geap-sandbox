@@ -552,20 +552,20 @@
    text-neutral). ON = BLACK filled (the active „Filtre” chip's inverse-default, hover one step lighter) showing ONLY the
    level digit 1 / 2 / 3 in white (14/20 semibold, no icon); no ring at rest (the shell's `.btn[aria-pressed]` ring is for
    open menus), the library ring on keyboard focus ---- */
-.btn.btn-text-neutral.e-permits-rpt-group-btn[aria-pressed="true"] {
+.btn.btn-text-neutral:is(.e-permits-rpt-group-btn, .e-permits-rpt-eye-btn)[aria-pressed="true"] {
   background: var(--color-background-base-inverse-default, #1e1e1e);
   border-color: var(--color-background-base-inverse-default, #1e1e1e);
   color: var(--color-text-base-inverse-default, #fff);
 }
 
-.btn.btn-text-neutral.e-permits-rpt-group-btn[aria-pressed="true"]:hover:not(:disabled),
-.btn.btn-text-neutral.e-permits-rpt-group-btn[aria-pressed="true"]:active:not(:disabled) {
+.btn.btn-text-neutral:is(.e-permits-rpt-group-btn, .e-permits-rpt-eye-btn)[aria-pressed="true"]:hover:not(:disabled),
+.btn.btn-text-neutral:is(.e-permits-rpt-group-btn, .e-permits-rpt-eye-btn)[aria-pressed="true"]:active:not(:disabled) {
   background: var(--color-background-base-inverse-default-hover, #383838);
   border-color: var(--color-background-base-inverse-default-hover, #383838);
   color: var(--color-text-base-inverse-default, #fff);
 }
 
-.btn.e-permits-rpt-group-btn[aria-pressed="true"]:not(:disabled):not(:focus-visible) {
+.btn:is(.e-permits-rpt-group-btn, .e-permits-rpt-eye-btn)[aria-pressed="true"]:not(:disabled):not(:focus-visible) {
   box-shadow: none;
 }
 
@@ -1275,8 +1275,22 @@
   display: block;
 }
 
-.e-permits-reg-modal--rpt-zoom .e-permits-rpt-card .e-permits-rpt-scope {
+/* rpt-scope-v2 (2026-11-11, user): the notice = row 2 of the preview heading, in place of the grey data line, full width
+   under the title (16 below it, 8/16/24 rhythm); the heading's 16 + the section's 16 to the card stay as they were. No
+   filters / grouping → only the title. „Mărește”: under the dialog title, 16 above the card. */
+.e-permits-rpt-preview .e-permits-wid-preview__titles > .e-permits-rpt-scope {
+  grid-column: 1 / -1;
+  grid-row: 2;
+  margin: 0;
+}
+
+.e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-rpt-preview > .e-permits-dosar-profil__section-heading:has(.e-permits-rpt-scope) {
+  row-gap: var(--spacing-16, 16px);
+}
+
+.e-permits-reg-modal--rpt-zoom .e-permits-rpt-scope {
   flex: none;
+  margin-bottom: var(--spacing-16, 16px);
 }
 
 /* ---- rpt-fold-v1 (2026-11-11, user „grouping more visible”): level-1 group rows one grey darker (tertiary, the header
@@ -1324,7 +1338,31 @@
 }
 
 /* ---- rpt-col-hide-v1 (2026-11-11, user): a hidden column's item = muted (title + meta tertiary, the lead and the
-   controls unchanged); the eye button = library `btn btn-text-neutral btn-sm btn-icon-only` (eye-open → eye-closed) ---- */
+   controls unchanged); the eye button = library `btn btn-text-neutral btn-sm btn-icon-only` toggle (rpt-col-eye-v2: Foundations
+   eye-open grey → pressed BLACK with the white eye-slash, the active group toggle's look) ---- */
 .e-permits-reg-editor__stack .e-permits-stack__item.is-col-hidden :is(.e-permits-stack__title, .e-permits-stack__meta, .e-permits-rpt-col-note) {
   color: var(--color-text-base-tertiary, #757575);
+}
+
+/* rpt-fold-v2 (2026-11-11, user: the chevron's grey hover / ring was cut on the left): the shell's ellipsis rule gave the
+   label wrapper `overflow: hidden`, which clipped the −8 of the button — the wrapper stays visible (the text span does the
+   ellipsis). „Mărește” has only 12 inset in the first cell, so there the button keeps its own box (no −8): hover and the
+   5 focus ring stay inside the cell and the scroll box at every level */
+.e-permits-workplace__table.e-permits-rpt-table th .e-permits-rpt-table__gcell {
+  overflow: visible;
+}
+
+.e-permits-reg-modal--rpt-zoom .e-permits-rpt-table__gcell > .btn.e-permits-rpt-fold {
+  margin-left: 0;
+}
+
+/* the 5 focus ring is taller than the 4 above / below the button: the group cell does not clip (its text span has the
+   ellipsis) and the focused chevron sits above the next row */
+.e-permits-workplace__table.e-permits-rpt-table tr.e-permits-rpt-table__group > th {
+  overflow: visible;
+}
+
+.btn.e-permits-rpt-fold:focus-visible {
+  position: relative;
+  z-index: 1;
 }

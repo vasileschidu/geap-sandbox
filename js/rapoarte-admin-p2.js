@@ -243,6 +243,7 @@
       subtitle: nameOf(r),
       body: `
         <div class="e-permits-dosar-profil__card">${[["Tipul modificării", esc(v.type)], ["Data", esc(`${longDate(v.at)}, ${time(v.at)}`)], ["Autor", esc(v.by)], ["Ce s-a schimbat", esc(v.note)]].map((row) => G().detailRow?.(row) || "").join("")}</div>
+        ${R().scopeNotice?.(v.config) || ""}
         ${R().cardHtml(v.config)}
         ${R().readBlocks(v.config)}`,
       footer: `<div class="modal-buttons">${canRestore ? `<button class="btn btn-neutral btn-rounded" type="button" data-rpt-ver-restore="${v.nr}">${icon("rotate-arrow")}<span>Restaurează</span></button>` : ""}<button class="btn btn-primary btn-rounded" type="button" data-case-close>Închide</button></div>`
