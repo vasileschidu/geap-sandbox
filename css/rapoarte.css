@@ -18,39 +18,20 @@
   -webkit-mask-size: var(--icon-size-medium, 20px) var(--icon-size-medium, 20px);
 }
 
-/* rpt-stack-list-v1 (2026-11-11, Galina on RPT-01 15189:1665): the list = the shell stacked list (registry-stack-v1).
-   Row = name · description (2 lines, tooltip when cut) · „RPT-0002 · Statistic” | status · version + level · modified · ⋮.
-   The right cells line up from row to row: the list is a grid, every row a subgrid of it (no fixed widths).
-   Phones: the right block wraps under the text, ⋮ stays top right. */
-.e-permits-rpt-list .e-permits-stack__list {
-  column-gap: var(--spacing-24, 24px);
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) repeat(4, auto);
+/* rpt-stack-list-v1 (2026-11-11, Galina on RPT-01 15189:1665; rpt-details-line-v1, user): the list = the shell stacked
+   list (registry-stack-v1). Row = title + Small status tag · description (2 lines, tooltip when cut) · the details line
+   „RPT-0002 · Statistic · v1 · Global · Editat 23 octombrie 2026, 09:10 · Anastasia Cojocaru” (standard meta parts,
+   wrap) | ⋮. rpt-row-gap-v1: the three lines = ONE 8 gap (the shared stack keeps its 4 / 0 meta margins elsewhere).
+   Phones: ⋮ stays top right of the text. */
+.e-permits-rpt-list .e-permits-stack__main {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: var(--spacing-8, 8px);
 }
 
-.e-permits-rpt-list .e-permits-stack__item {
-  column-gap: var(--spacing-24, 24px);
-  display: grid;
-  grid-column: 1 / -1;
-  grid-template-columns: subgrid;
-}
-
-.e-permits-rpt-list .e-permits-stack__actions,
-.e-permits-rpt-list__side {
-  display: contents;
-}
-
-.e-permits-rpt-list .e-permits-stack__menu-wrap {
-  grid-column: -2;
-  justify-self: end;
-}
-
-.e-permits-rpt-list__cell {
-  color: var(--color-text-base-secondary, #383838);
-  font-size: var(--font-size-fs-14, 14px);
-  gap: var(--spacing-4, 4px);
-  line-height: var(--line-height-lh-20, 20px);
-  white-space: nowrap;
+.e-permits-rpt-list .e-permits-stack__main > .e-permits-stack__meta {
+  margin-top: 0;
 }
 
 .e-permits-rpt-list .e-permits-stack__part:has(> .e-permits-rpt-list__desc) {
@@ -69,33 +50,11 @@
 }
 
 @media (max-width: 760px) {
-  .e-permits-rpt-list .e-permits-stack__list {
-    display: block;
-  }
-
   .e-permits-rpt-list .e-permits-stack__item {
     align-items: start;
     column-gap: var(--spacing-12, 12px);
+    display: grid;
     grid-template-columns: minmax(0, 1fr) auto;
-    row-gap: var(--spacing-12, 12px);
-  }
-
-  .e-permits-rpt-list .e-permits-stack__main {
-    grid-column: 1;
-    grid-row: 1;
-  }
-
-  .e-permits-rpt-list .e-permits-stack__menu-wrap {
-    grid-column: 2;
-    grid-row: 1;
-  }
-
-  .e-permits-rpt-list__side {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--spacing-8, 8px) var(--spacing-24, 24px);
-    grid-column: 1 / -1;
-    grid-row: 2;
   }
 }
 

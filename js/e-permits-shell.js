@@ -7371,6 +7371,12 @@ document.addEventListener("DOMContentLoaded", () => {
           }).join("")}</ul>
         </div>
       </div>`;
+    /* wrapped detail parts drop their leading dot (is-row-start), on every resize too */
+    syncStackMetaRows(host);
+    if (!host.dataset.metaObserved && "ResizeObserver" in window) {
+      host.dataset.metaObserved = "";
+      new ResizeObserver(() => syncStackMetaRows(host)).observe(host);
+    }
     return true;
   };
 
@@ -7525,9 +7531,70 @@ document.addEventListener("DOMContentLoaded", () => {
   /* product lists (eKYC): „Filtrare avansată” at the search height — the filter trigger chip at 40 (user 2026-10-20:
      search, Filtre and sort share one height); the GEAP BO registries keep the 36 `--sm` size (filter-chip-v1) */
   if (product) document.querySelector("[data-workplace-filter-toggle]")?.classList.remove("e-permits-filter-trigger--sm");
+  /* registry-sort-v1 (2026-11-11, Rapoarte stacked list): a product registry with `sort: { keys, orders(key) }` gets the
+     ONE „Sortează” control next to „Filtrare” — the same filter chip (icon-sort, never black) + the GEAPSortSheet menu
+     (radio items „Sortează după” / „Ordine”); phones: the icon-only square in the search row + the sort sheet (the facet
+     filter's `sort` slot). key → workplaceState.sortKey, order → sortDirection. Built once, synced per render. */
+  const workplaceSortHost = (() => {
+    const toggle = document.querySelector("[data-workplace-filter-toggle]");
+    if (!toggle || !window.GEAPSortSheet) return null;
+    toggle.insertAdjacentHTML("afterend", `<div class="e-permits-stack__menu-wrap e-permits-workplace__sort-control" data-workplace-sort-control hidden>
+      <button type="button" class="chip e-permits-filter-trigger${product ? "" : " e-permits-filter-trigger--sm"} e-permits-sort-trigger" aria-haspopup="menu" aria-expanded="false" aria-controls="workplace-sort-menu" aria-label="Sortează" data-stack-menu-trigger data-workplace-sort-trigger>
+        <span class="chip__icon"><svg class="icon" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-sort"></use></svg></span><span class="chip__label" data-workplace-sort-label>Sortează</span>
+      </button>
+      <ul class="e-permits-fo-intent-menu e-permits-stack__menu e-permits-sort-menu" id="workplace-sort-menu" role="menu" aria-label="Sortează lista" hidden data-stack-menu data-stack-menu-fixed data-stack-menu-align="start"></ul>
+    </div>`);
+    return toggle.nextElementSibling;
+  })();
+  const registrySort = () => productRegistry(workplaceDb?.kind)?.sort || null;
+  const sortNow = () => {
+    const cfg = registrySort();
+    const key = cfg?.keys.find((k) => k.value === workplaceState.sortKey) || cfg?.keys[0];
+    const orders = key ? cfg.orders(key.value) : [];
+    const order = orders.find((o) => o.value === workplaceState.sortDirection) || orders[0];
+    return { key, order, orders };
+  };
+  const applyRegistrySort = ({ key, order }) => {
+    workplaceState.sortKey = key;
+    workplaceState.sortDirection = order;
+    workplaceState.page = 1;
+    renderWorkplace();
+  };
+  const syncWorkplaceSort = () => {
+    if (!workplaceSortHost) return;
+    const cfg = registrySort();
+    workplaceSortHost.hidden = !cfg;
+    if (!cfg) return;
+    const { key, order } = sortNow();
+    const trigger = workplaceSortHost.querySelector("[data-workplace-sort-trigger]");
+    trigger.setAttribute("aria-label", `Sortează: ${key.label}, ${String(order?.label || "").toLowerCase()}`);
+    workplaceSortHost.querySelector("[data-workplace-sort-label]").textContent = key.label;
+    workplaceSortHost.querySelector("#workplace-sort-menu").innerHTML = window.GEAPSortSheet.menuHtml({
+      id: "workplace-sort", keys: cfg.keys, orders: cfg.orders, current: { key: key.value, order: order?.value },
+      keyAttr: "data-workplace-sort-key", orderAttr: "data-workplace-sort-order"
+    });
+    window.GEAPSortSheet.bind(trigger, {
+      title: "Sortează", sprite: "assets/icons/sprite.svg",
+      keys: registrySort()?.keys || [], orders: (k) => registrySort()?.orders(k) || [],
+      current: () => { const now = sortNow(); return { key: now.key?.value, order: now.order?.value }; },
+      apply: ({ key: k, order: o }) => { applyRegistrySort({ key: k, order: o }); trigger.focus(); }
+    });
+  };
+  workplaceSortHost?.addEventListener("click", (event) => {
+    const pick = event.target.closest("[data-workplace-sort-key], [data-workplace-sort-order]");
+    if (!pick || !registrySort()) return;
+    const now = sortNow();
+    /* a new key starts in its natural order (its first order) */
+    const key = pick.dataset.workplaceSortKey || now.key.value;
+    const order = pick.dataset.workplaceSortOrder || (pick.dataset.workplaceSortKey ? registrySort().orders(key)[0]?.value : now.order?.value);
+    closeStackMenus();
+    applyRegistrySort({ key, order });
+    workplaceSortHost.querySelector("[data-workplace-sort-trigger]")?.focus();
+  });
   const workplaceFilter = window.GEAPFacetFilter.create({
     bar: document.querySelector("[data-workplace-filters]"),
     toggle: document.querySelector("[data-workplace-filter-toggle]"),
+    sort: workplaceSortHost,
     count: document.querySelector("[data-workplace-filter-count]"),
     state: () => getFilterState(),
     save: () => saveFilterState(),
@@ -7672,6 +7739,7 @@ document.addEventListener("DOMContentLoaded", () => {
     workplaceTable.style.width = `${tableWidth}px`;
 
     renderWorkplaceTabs(view);
+    syncWorkplaceSort();
     renderFilterBar();
     renderTableHead(view.columns, columnWidths);
 

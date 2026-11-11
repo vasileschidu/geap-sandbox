@@ -4663,6 +4663,8 @@
       "rpt-01f": list(MENU("RPT-0001")),
       /* rpt-stack-list-v1: the search also reads the description („tacite” is only in RPT-0004's); a row click opens the profile */
       "rpt-01g": list(async (h) => { await h.fill("[data-workplace-search]", "tacite"); await h.wait(300); }),
+      /* rpt-sort-v1: the „Sortează” chip's menu open (phones: the sort sheet) */
+      "rpt-01i": list(async (h) => { await h.click("[data-workplace-sort-trigger]"); await h.wait(300); }),
       "rpt-01h": list(async (h) => { await h.click('li[data-workplace-row="RPT-0002"] .e-permits-stack__title'); await h.find("#rpt-panel"); await h.wait(400); }),
       /* Feature AC — the menu only with „Gestionarea rapoartelor” */
       "rpt-02": { flow: "back-office", as: SPEC, hash: "#rapoarte", ready: "[data-reg-page]:not([hidden]) .e-permits-empty", delay: 900 },

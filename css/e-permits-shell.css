@@ -2329,7 +2329,41 @@ body {
 }
 
 .e-permits-workplace__stack {
-  padding: var(--spacing-16, 16px) var(--spacing-16, 16px) var(--spacing-24, 24px);
+  padding: var(--spacing-16, 16px) 0 var(--spacing-24, 24px);
+}
+
+/* registry-stack-width-v1 (2026-11-11, user: „not full width — do as the other stacked lists”): toolbar + list take the
+   BO page column of every other stacked list = the profile panel rule (`.e-permits-dosar-profil__panel`, BO: max 1024,
+   centred, 16 a side); the toolbar / filter lines go (the Registre catalog toolbar has none either) */
+.e-permits-workplace[data-workplace-layout="stack"] > .e-permits-workplace__header,
+.e-permits-workplace[data-workplace-layout="stack"] .e-permits-workplace__stack {
+  box-sizing: border-box;
+  margin-inline: auto;
+  max-width: 1024px;
+  width: calc(100% - 32px);
+}
+
+.e-permits-workplace[data-workplace-layout="stack"] > .e-permits-workplace__header,
+.e-permits-workplace[data-workplace-layout="stack"] > .e-permits-workplace__header > .e-permits-workplace__toolbar {
+  border-bottom: 0;
+  box-shadow: none;
+}
+
+.e-permits-workplace[data-workplace-layout="stack"] > .e-permits-workplace__header > .e-permits-workplace__toolbar {
+  padding-inline: 0;
+}
+
+/* :is(*, :has(…)) lifts the specificity over the BO filter-bar placement rules (inset 16 + the header line) */
+.e-permits-workplace[data-workplace-layout="stack"] > .e-permits-workplace__header > .e-permits-workplace__filters:not(.is-sheets):is(*, :not([hidden]):not(.is-sheets)) {
+  margin-inline: 0;
+}
+
+.e-permits-workplace[data-workplace-layout="stack"][data-workplace] > .e-permits-workplace__header:is(*, :has(> .e-permits-workplace__filters:not([hidden]):not(.is-sheets))) {
+  box-shadow: none;
+}
+
+.e-permits-workplace[data-workplace-layout="stack"] > .e-permits-workplace__table-wrap {
+  border-bottom: 0;
 }
 
 .e-permits-workplace__table {

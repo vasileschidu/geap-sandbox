@@ -1201,8 +1201,9 @@
       kind: KIND,
       fixedWidths: true,
       fieldCount: 8,
-      defaultSort: "id",
-      defaultSortDirection: "asc",
+      /* rpt-sort-v1: newest change first; „Sortează” = Ultima modificare · Denumire · ID (registry `sort`) */
+      defaultSort: "modificat",
+      defaultSortDirection: "desc",
       columns: {
         id: { label: "ID", width: 112, sortable: true },
         denumire: { label: "Denumire", width: 320, sortable: true },
@@ -1244,27 +1245,26 @@
   }
   const twoLines = (top, meta) => `<span class="e-permits-workplace__date-stack"><span>${top}</span><span class="e-permits-workplace__date-meta">${meta}</span></span>`;
   /* „modificări nepublicate” = the clickable pending status (every config object, components.md) → the shared dialog */
-  const pendingHtml = (row) => (HOOKS.pending ? A().renderHeaderStatus?.("modificări nepublicate", "warning", `data-rpt-pending="${esc(row.id)}" aria-haspopup="dialog" data-tooltip-text="Vezi modificările" aria-label="Vezi modificările nepublicate ale ${esc(row.id)}"`) || "modificări nepublicate" : "modificări nepublicate");
-  /* rpt-stack-list-v1: the row's right block — status (+ pending / „nepublicat”) · version + level (+ authorities) · modified;
-     three cells that line up from row to row (subgrid, css/rapoarte.css); phones: one wrapped line under the text */
-  const sideHtml = (row) => {
-    const status = row.nepublicat ? pendingHtml(row) : !row.versiune ? "nepublicat" : "";
-    const scope = `${row.versiune ? `v${esc(row.versiune)} · ` : ""}${esc(row.nivel)}`;
-    return `<div class="e-permits-rpt-list__side">
-      <span class="e-permits-workplace__date-stack e-permits-rpt-list__cell">${tag(row.statut, row.tone)}${status ? `<span class="e-permits-workplace__date-meta">${status}</span>` : ""}</span>
-      <span class="e-permits-workplace__date-stack e-permits-rpt-list__cell"><span>${scope}</span>${row.autoritate ? `<span class="e-permits-workplace__date-meta" data-cell-tooltip="${esc(row.autoritate)}">${esc(row.autoritate)}</span>` : ""}</span>
-      <span class="e-permits-workplace__date-stack e-permits-rpt-list__cell">${row.modificat ? `<span>${esc(longDate(row.modificat))}</span><span class="e-permits-workplace__date-meta">${esc(`${time(row.modificat)} · ${row.r.updatedBy || ""}`)}</span>` : dash}</span>
-    </div>`;
-  };
+  const pendingHtml = (row) => (HOOKS.pending ? A().renderHeaderStatus?.("Modificări nepublicate", "warning", `data-rpt-pending="${esc(row.id)}" aria-haspopup="dialog" data-tooltip-text="Vezi modificările" aria-label="Vezi modificările nepublicate ale ${esc(row.id)}"`) || "modificări nepublicate" : "modificări nepublicate");
+  /* rpt-details-line-v1 (2026-11-11, user): status tag on the title line; version · level · edited in the details line,
+     worded as the other stacked lists („Editat <dată>, <oră> · <cine>”, tariffs / templates); right side = only ⋮ */
+  const scopeText = (row) => (row.autoritate ? `${row.nivel}: ${row.autoritate}` : row.nivel);
   const stackItem = (row) => {
-    const idLine = [esc(row.id), esc(row.categorie)];
+    const details = [
+      esc(row.id), esc(row.categorie),
+      row.versiune ? `v${esc(row.versiune)}` : "nepublicat",
+      esc(scopeText(row)),
+      row.nepublicat ? pendingHtml(row) : "",
+      row.modificat ? `Editat ${esc(longDate(row.modificat))}, ${esc(time(row.modificat))}${row.r.updatedBy ? ` · ${esc(row.r.updatedBy)}` : ""}` : ""
+    ].filter(Boolean);
     return {
       plainTitle: row.denumire,
       title: esc(row.denumire),
-      /* the description (max 2 lines + the Small tooltip when cut), then „RPT-0002 · Statistic”; none → only the ID line */
-      meta: row.descriere ? [`<span class="e-permits-rpt-list__desc" data-cell-tooltip="${esc(row.descriere)}">${esc(row.descriere)}</span>`] : idLine,
-      meta2: row.descriere ? idLine : null,
-      actionsHtml: `${sideHtml(row)}${who().has ? rowMenu(row) : ""}`
+      badges: [tag(row.statut, row.tone)],
+      /* the description (max 2 lines + the Small tooltip when cut), then the details; none → only the details */
+      meta: row.descriere ? [`<span class="e-permits-rpt-list__desc" data-cell-tooltip="${esc(row.descriere)}">${esc(row.descriere)}</span>`] : details,
+      meta2: row.descriere ? details : null,
+      actionsHtml: who().has ? rowMenu(row) : ""
     };
   };
   window.GEAPShellRegistries = window.GEAPShellRegistries || {};
@@ -1280,6 +1280,14 @@
     searchText: (row) => `${row.id} ${row.denumire} ${fold(row.denumire)} ${row.descriere} ${fold(row.descriere)}`,
     stackItem,
     stackClass: "e-permits-rpt-list",
+    sort: {
+      keys: [{ value: "modificat", label: "Ultima modificare" }, { value: "denumire", label: "Denumire" }, { value: "id", label: "ID" }],
+      orders: (key) => ({
+        modificat: [{ value: "desc", label: "Cele mai noi întâi" }, { value: "asc", label: "Cele mai vechi întâi" }],
+        denumire: [{ value: "asc", label: "A–Z" }, { value: "desc", label: "Z–A" }],
+        id: [{ value: "asc", label: "Crescător" }, { value: "desc", label: "Descrescător" }]
+      })[key] || []
+    },
     sortValue: (row, key) => String(SORT[key]?.(row) ?? row[key] ?? ""),
     filterToken: () => true,
     rowClass: (row) => (row.statut === "Dezactivat" ? "is-inactive" : ""),
