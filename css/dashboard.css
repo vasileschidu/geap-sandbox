@@ -456,17 +456,19 @@
    card, radio variant (`.e-permits-fo-delivery-option--radio`: 1px ring, r12, brand 2px ring when chosen, tertiary hover,
    the ONE decorative Small radio — kept a DIRECT child so `.is-selected > .radio` paints it), laid out as a grid:
    title (1 line + tooltip) / meta | radio top-right, then the preview across = an abstract skeleton of the chart type
-   (dsh-pick-skeleton-v1, user: no real data), on a grey 8-radius box, 120 high; 3 columns ≥ 761, 1 on phones. */
+   (dsh-pick-skeleton-v1, user: no real data), on a grey 8-radius box, 60 high; 4 columns ≥ 761, 1 on phones (2 cut the 16/24 titles to a word). */
+/* dsh-pick-compact-v1 (user: „more compact, too much space”): groups 16 apart, heading 8 above its cards, 4 columns,
+   12 gaps, sketch 60 high, meta on one line + tooltip — about two rows of cards per group without scrolling */
 .e-permits-dsh-pick {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-24, 24px);
+  gap: var(--spacing-16, 16px);
 }
 
 .e-permits-dsh-pick__group {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-12, 12px);
+  gap: var(--spacing-8, 8px);
 }
 
 .e-permits-dsh-pick__heading {
@@ -479,14 +481,14 @@
 
 .e-permits-dsh-pick__grid {
   display: grid;
-  gap: var(--spacing-16, 16px);
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--spacing-12, 12px);
+  grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
 .e-permits-dsh-pick-card.e-permits-fo-delivery-option {
   align-items: start;
   display: grid;
-  gap: var(--spacing-12, 12px) var(--spacing-8, 8px);
+  gap: var(--spacing-8, 8px);
   grid-template-columns: minmax(0, 1fr) auto;
   min-height: 0;
   padding: var(--spacing-16, 16px);
@@ -495,7 +497,7 @@
 .e-permits-dsh-pick-card__copy {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-4, 4px);
+  gap: 0;
   min-width: 0;
 }
 
@@ -512,6 +514,9 @@
   color: var(--color-text-base-tertiary, #757575);
   font-size: var(--font-size-fs-12, 12px);
   line-height: var(--line-height-lh-16, 16px);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .e-permits-dsh-pick-card__preview {
@@ -520,8 +525,8 @@
   box-sizing: border-box;
   display: block;
   grid-column: 1 / -1;
-  height: calc(var(--spacing-40, 40px) * 3);
-  padding: var(--spacing-8, 8px);
+  height: calc(var(--spacing-12, 12px) * 5);
+  padding: var(--spacing-4, 4px) var(--spacing-8, 8px);
   pointer-events: none;
 }
 

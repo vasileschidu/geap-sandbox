@@ -1383,7 +1383,7 @@
           <input class="e-permits-fo-delivery-option__input" type="radio" name="dsh-pick" value="${esc(w.id)}"${chosen ? " checked" : ""}${on ? " disabled" : ""} aria-describedby="dsh-pick-${w.id}-desc" data-dsh-pick>
           <span class="e-permits-fo-delivery-option__copy e-permits-dsh-pick-card__copy">
             <span class="e-permits-fo-delivery-option__title" data-cell-tooltip="${esc(cfg.titles.ro)}">${esc(cfg.titles.ro)}</span>
-            <span class="e-permits-fo-delivery-option__description" id="dsh-pick-${w.id}-desc">${esc(desc)}</span>
+            <span class="e-permits-fo-delivery-option__description" id="dsh-pick-${w.id}-desc" data-cell-tooltip="${esc(desc)}">${esc(desc)}</span>
           </span>
           <span class="radio radio--small e-permits-fo-delivery-option__radio" aria-hidden="true"><span class="radio-custom"></span></span>
           ${pickPreview(cfg)}

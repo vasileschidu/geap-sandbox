@@ -171,12 +171,20 @@
         K().load ? K().load() : Promise.resolve(null)
       ]).then(([json]) => {
         if (demo.has("gol")) json.widgets = [];
-        /* ?tablou=kpi3 · stiva (demos dsh-04q, dsh-04s, dsh-20g): two more published number tiles so a row of three KPIs can be shown (Dosare examinate, Acte emise) */
-        if (new URLSearchParams(window.location.search).get("tablou")?.split(",").some((k) => k === "kpi3" || k === "stiva" || k === "grila")) {
-          const tile = (id, ro, sub, source) => ({ id, level: "Global", status: "Publicat", createdAt: "2026-10-03T10:00:00", createdBy: "Anastasia Cojocaru", updatedAt: "2026-10-03T10:25:00", updatedBy: "Anastasia Cojocaru",
-            config: { titles: { ro, ru: "", en: "" }, subtitles: { ro: sub, ru: "", en: "" }, source, type: "tile", kpi: "", measure: "count", column: "", primary: "", secondary: "", dateGroup: "", order: "source", filter: { logic: "and", rules: [] }, compare: "prevMonth", format: "number", threshold: { on: false, value: "", below: "warning" }, width: "third", height: "compact", drill: true, visibility: "authority" },
-            versions: [{ nr: 1, version: 1, type: "Prima publicare", note: "Plăcuță KPI.", at: "2026-10-03T10:25:00", by: "Anastasia Cojocaru" }], history: [] });
-          json.widgets.push(tile("WGT-0015", "Dosare examinate", "Dosarele examinate în luna curentă", "reg-dosare"), tile("WGT-0016", "Acte emise", "Actele emise în luna curentă", "reg-acte"));
+        /* dsh-pick-tiles-v1 (2026-11-11, user: „I cannot add another type of Cereri depuse widget?”): four more published
+           Global number tiles (Dosare examinate, Acte emise, Dosare cu termen depășit, Încasări), older than every other seed
+           so the list demos keep their first page */
+        if (!demo.has("gol")) {
+          const tile = (id, ro, sub, source, extra = {}) => ({ id, level: "Global", status: "Publicat", createdAt: "2026-10-01T10:00:00", createdBy: "Anastasia Cojocaru", updatedAt: "2026-10-01T10:25:00", updatedBy: "Anastasia Cojocaru",
+            config: { titles: { ro, ru: "", en: "" }, subtitles: { ro: sub, ru: "", en: "" }, source, type: "tile", kpi: "", measure: "count", column: "", primary: "", secondary: "", dateGroup: "", order: "source", filter: { logic: "and", rules: [] }, compare: "prevMonth", format: "number", threshold: { on: false, value: "", below: "warning" }, width: "third", height: "compact", drill: true, visibility: "authority", ...extra },
+            versions: [{ nr: 1, version: 1, type: "Prima publicare", note: "Plăcuță KPI.", at: "2026-10-01T10:25:00", by: "Anastasia Cojocaru" }], history: [] });
+          const have = new Set(json.widgets.map((w) => w.id));
+          [
+            tile("WGT-0015", "Dosare examinate", "Dosarele examinate în luna curentă", "reg-dosare"),
+            tile("WGT-0016", "Acte emise", "Actele emise în luna curentă", "reg-acte"),
+            tile("WGT-0017", "Dosare cu termen depășit", "Dosarele în examinare cu termenul depășit", "reg-dosare", { compare: "prevWeek" }),
+            tile("WGT-0018", "Încasări", "Suma notelor de plată achitate în luna curentă", "reg-note", { measure: "sum", column: "suma", format: "amount", filter: { logic: "and", rules: [{ column: "statutNota", op: "is", value: "Achitată" }] } })
+          ].filter((w) => !have.has(w.id)).forEach((w) => json.widgets.push(w));
         }
         json.widgets.forEach((w) => {
           w.offFor = w.offFor || [];
