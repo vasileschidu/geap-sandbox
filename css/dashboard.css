@@ -58,11 +58,11 @@
   max-width: calc(var(--spacing-40, 40px) * 22);
 }
 
-/* dashboards 1440 (dsh-wide-v1, 2026-11-11, user): the widget editor (Configurare) and the specialist view are fluid to the
-   BO page gutter and capped at 1440; Versiuni / Istoric and the sheet steps keep their widths. The marker sits on the
+/* dashboards 1280 (dsh-wide-v2, 2026-11-11, user: „1440 seems too much”; was 1440 in v1): the widget editor (Configurare) and the specialist view are fluid to the
+   BO page gutter and capped at 1280; Versiuni / Istoric and the sheet steps keep their widths. The marker sits on the
    tab content, the panel that holds it is widened (the rule is not a two-column editor, so no .e-permits-editor-wide). */
 .e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-dosar-profil__panel:has(.e-permits-dsh-wide) {
-  max-width: calc(var(--spacing-40, 40px) * 36);
+  max-width: calc(var(--spacing-40, 40px) * 32);
 }
 
 .e-permits-dsh-foot {
