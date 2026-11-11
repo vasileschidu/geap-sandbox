@@ -124,9 +124,17 @@
   width: 100%;
 }
 
+/* no border → no card padding: the widget content lines up with the „Widget-uri” title (the section heading's 12 inset),
+   grey hover 12 around it, gap 24 so neighbouring hovers never touch */
+.e-permits-dsh-grid:has(> .e-permits-dsh-tile) {
+  gap: var(--spacing-24, 24px);
+  margin-inline: var(--spacing-12, 12px);
+}
+
 /* dash-noborder-v1 (user): the widgets sit on the canvas without their card border; the grey hover surface stays */
 .e-permits-dsh-tile > .e-permits-chart {
   border-color: transparent;
+  padding: 0;
 }
 
 .e-permits-dsh-tile .e-permits-wid-card__subtitle {
@@ -136,7 +144,7 @@
 /* edit: the shared grey hover surface around the card (8 outset; gap 16 keeps 8 to the neighbours), also on keyboard
    focus inside; the widget itself takes the focus (arrows move, Shift + arrows resize) = the calendar focus ring */
 .e-permits-dsh-tile.is-editable {
-  --hover-surface-outset: var(--spacing-8, 8px);
+  --hover-surface-outset: var(--spacing-12, 12px);
   cursor: default;
 }
 
@@ -159,8 +167,8 @@
   opacity: 0;
   pointer-events: none;
   position: absolute;
-  right: var(--spacing-16, 16px);
-  top: var(--spacing-16, 16px);
+  right: 0;
+  top: 0;
   transition: opacity 180ms var(--motion-easing-decelerate, cubic-bezier(0, 0, 0.2, 1));
   z-index: 2;
 }
@@ -182,7 +190,7 @@
 .e-permits-dsh-tile__resize {
   align-items: center;
   border-radius: var(--border-radius-8, 8px);
-  bottom: var(--spacing-4, 4px);
+  bottom: calc(var(--spacing-8, 8px) * -1);
   color: var(--color-icon-base-tertiary, #757575);
   cursor: nwse-resize;
   display: inline-flex;
@@ -190,7 +198,7 @@
   justify-content: center;
   opacity: 0;
   position: absolute;
-  right: var(--spacing-4, 4px);
+  right: calc(var(--spacing-8, 8px) * -1);
   transition: opacity 180ms var(--motion-easing-decelerate, cubic-bezier(0, 0, 0.2, 1));
   width: var(--spacing-24, 24px);
   z-index: 2;
