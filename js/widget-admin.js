@@ -95,7 +95,11 @@
   const COMPARE_SHORT = { sameLastYear: "aceeași perioadă a anului precedent", prevMonth: "luna precedentă", prevWeek: "săptămâna precedentă", prevQuarter: "trimestrul precedent", prevSemester: "semestrul precedent", prevYear: "anul precedent", prevSameLength: "perioada precedentă" };
   const FORMATS = [["number", "Număr întreg"], ["decimal", "Număr cu o zecimală"], ["percent", "Procent din total"], ["duration", "Durată (zile)"], ["amount", "Sumă (MDL)"]];
   const WIDTHS = [["third", "O treime"], ["half", "Jumătate"], ["twoThirds", "Două treimi"], ["full", "Rând întreg"]];
-  const HEIGHTS = [["small", "Mică"], ["medium", "Medie"], ["large", "Mare"]];
+  /* wid-heights-v1 (2026-11-11, proposal for the PO): two heights instead of Mică / Medie / Mare — „Compactă” = one dashboard
+     row, „Înaltă” = two rows + the grid gap (two compact widgets stacked beside a tall one line up); the old values are
+     still read (small / medium → compact, large → tall) */
+  const HEIGHTS = [["compact", "Compactă"], ["tall", "Înaltă"]];
+  const heightKey = (h) => (h === "tall" || h === "large" ? "tall" : "compact");
   const VIS = [
     ["role", "Strict aria de responsabilitate a rolului", "Fiecare utilizator vede doar dosarele din aria lui de responsabilitate."],
     ["subdivision", "Subdiviziune", "Utilizatorul vede datele subdiviziunii lui."],
@@ -161,7 +165,7 @@
     if (demo.has("incarcare")) return new Promise(() => {});
     if (!S.loading) {
       S.loading = Promise.all([
-        fetch("data/widgets.json?v=widget-v5").then((r) => r.json()),
+        fetch("data/widgets.json?v=wid-heights-v1").then((r) => r.json()),
         K().load ? K().load() : Promise.resolve(null)
       ]).then(([json]) => {
         if (demo.has("gol")) json.widgets = [];
@@ -170,7 +174,7 @@
           w.history = w.history || [];
           w.versions = (w.versions || []).map((v) => ({ ...v, config: v.config || clone(w.config) }));
           /* a configuration saved before „Culori” reads as the default palette */
-          [w.config, ...w.versions.map((v) => v.config)].forEach((c) => { c.palette = palKey(c); });
+          [w.config, ...w.versions.map((v) => v.config)].forEach((c) => { c.palette = palKey(c); c.height = heightKey(c.height); });
         });
         S.data = json;
         return json;
@@ -217,7 +221,7 @@
   const blankConfig = () => ({
     titles: { ro: "", ru: "", en: "" }, subtitles: { ro: "", ru: "", en: "" }, source: "", type: "", kpi: "", measure: "count", column: "",
     primary: "", secondary: "", dateGroup: "", order: "source", filter: { logic: "and", rules: [] }, compare: "",
-    format: "number", threshold: { on: false, value: "", below: "warning" }, width: "half", height: "medium", palette: "default", drill: true, visibility: defaultVis()
+    format: "number", threshold: { on: false, value: "", below: "warning" }, width: "half", height: "compact", palette: "default", drill: true, visibility: defaultVis()
   });
   const dateCols = (src) => fieldsOf(src).filter((f) => f.type === "date");
   const catCols = (src) => fieldsOf(src).filter((f) => f.type === "enum" || f.type === "date");
@@ -361,7 +365,7 @@
       return k.format === "percent" ? Math.min(100, round1(base * (1 + swing))) : k.format === "number" || k.format === "amount" ? Math.round(base * (1 + swing)) : round1(base * (1 + swing));
     };
     const prevOf = (x, seed) => (x === null ? null : avgLike ? round1(x * (0.9 + (hash(`p${seed}`) % 22) / 100)) : Math.round(x * (0.84 + (hash(`p${seed}`) % 30) / 100)));
-    const model = { type: v.type, drill: Boolean(v.drill), height: v.height, measureLabel: k ? k.names.ro : measureText(v), axisLabel: fieldOf(v.source, v.primary)?.label || "", caption: v.titles.ro, series: [], cats: [] };
+    const model = { type: v.type, drill: Boolean(v.drill), height: heightKey(v.height), measureLabel: k ? k.names.ro : measureText(v), axisLabel: fieldOf(v.source, v.primary)?.label || "", caption: v.titles.ro, series: [], cats: [] };
     /* KPI from the catalogue: value, format, target and zones come from the KPI (Feature AC) */
     if (k) {
       const t = K().target?.(k.id, per.scope === "all" ? null : me.authority);
@@ -382,6 +386,9 @@
       const cur = k ? (K().value?.(k.id, per.scope === "all" ? "all" : me.authority)?.cur ?? null) : val("tile");
       const prev = k ? (K().value?.(k.id, per.scope === "all" ? "all" : me.authority)?.prev ?? null) : prevOf(cur, "tile");
       model.fmt = fmtFn(v, 0);
+      /* Înaltă: the KPI's monthly trend under the value (a sparkline), only when the KPI has the data */
+      const trend = k && model.height === "tall" ? (K().series?.(k.id, per.scope === "all" ? "all" : me.authority) || []).map((p) => p.value).filter((x) => Number.isFinite(x)) : [];
+      if (trend.length > 2) model.trend = trend;
       model.single = { value: cur, compare: v.compare && cur !== null && prev ? `${cur >= prev ? "▲" : "▼"} ${nf(Math.abs(((cur - prev) / prev) * 100), 1)}% față de ${COMPARE_SHORT[v.compare]} (${esc(model.fmt(prev))})` : "" };
       return model;
     }
@@ -477,17 +484,20 @@
     const title = { primary: "Lipsește criteriul principal", secondary: "Lipsește criteriul secundar", column: "Lipsește coloana măsurată", measure: "Lipsește măsura", dateGroup: "Lipsește gruparea datei", type: "Tipul nu se potrivește", kpi: "KPI-ul nu se potrivește", filter: "Lipsește filtrul" }[key] || "Configurarea este incompletă";
     return [title, e[key]];
   }
-  function cardHtml(v, { st = {}, me = who(), compact = false } = {}) {
+  /* `natural: true` = the card at its content height (the „Mărește” / „Vezi tot” dialog); else the fixed height of its
+     „Înălțime” (css/widget.css, desktop only — phones always natural) */
+  function cardHtml(v, { st = {}, me = who(), compact = false, natural = false } = {}) {
     const title = v.titles.ro || "Titlul widget-ului";
+    const hk = heightKey(v.height);
     const head = `
       <div class="e-permits-wid-card__head">
-        <p class="e-permits-wid-card__title">${esc(title)}</p>
-        ${v.subtitles.ro ? `<p class="e-permits-wid-card__subtitle">${esc(v.subtitles.ro)}</p>` : ""}
+        <p class="e-permits-wid-card__title" data-cell-tooltip="${esc(title)}">${esc(title)}</p>
+        ${v.subtitles.ro ? `<p class="e-permits-wid-card__subtitle" data-cell-tooltip="${esc(v.subtitles.ro)}">${esc(v.subtitles.ro)}</p>` : ""}
       </div>`;
     let body;
     const missing = missingOf(v);
     if (missing) body = E()?.render({ title: missing[0], text: missing[1], icon: "chart", compact: true, bare: true }) || "";
-    else if (st.refreshing) body = `<div class="e-permits-wid-card__loading" aria-hidden="true"><span class="skeleton skeleton--block e-permits-wid-plot--${v.height || "medium"}"></span><span class="skeleton skeleton--text"></span></div><p class="u-visually-hidden" role="status">Se actualizează datele widget-ului…</p>`;
+    else if (st.refreshing) body = `<div class="e-permits-wid-card__loading" aria-hidden="true"><span class="skeleton skeleton--block e-permits-wid-plot--${hk}"></span><span class="skeleton skeleton--text"></span></div><p class="u-visually-hidden" role="status">Se actualizează datele widget-ului…</p>`;
     else if (demo.has("eroare-date")) body = E()?.render({ title: "Datele nu s-au încărcat", text: "Sursa de date nu a răspuns. Apasă din nou „Actualizează”: un widget se publică doar dacă se încarcă fără eroare.", icon: "warning-filled", compact: true, bare: true }) || "";
     else {
       const m = aggregate(v, me);
@@ -499,7 +509,7 @@
       ].filter(Boolean);
       if (foot.length && !compact) body += `<p class="e-permits-wid-card__foot">${foot.map(esc).join(" · ")}</p>`;
     }
-    return `<article class="e-permits-chart e-permits-wid-card e-permits-wid--pal-${palKey(v)}${compact ? "" : ` e-permits-wid-card--${v.width || "full"}`}" aria-label="Previzualizarea widget-ului ${esc(title)}">${head}<div class="e-permits-wid-card__body" aria-live="polite">${body}</div></article>`;
+    return `<article class="e-permits-chart e-permits-wid-card e-permits-wid--pal-${palKey(v)}${compact ? "" : ` e-permits-wid-card--${v.width || "full"}`} e-permits-wid-card--${hk}${natural ? "" : " e-permits-wid-card--fixed"}" aria-label="Previzualizarea widget-ului ${esc(title)}">${head}<div class="e-permits-wid-card__body" aria-live="polite">${body}</div></article>`;
   }
   /* the preview block (the ntpl preview aside): heading row „Previzualizare” + meta line (perimeter · data · size ·
      area) | „Actualizează” (secondary Small) + „Mărește” (icon-only); „Previzualizează ca” = the library segmented control
@@ -1560,12 +1570,16 @@
   /* ---- „Mărește”: the preview at the dialog's width (wide tables, heat maps) */
   function openZoom() {
     const v = editable() ? P.draft : widgetOf(P.id)?.config;
-    if (!v) return;
+    if (v) openFull(v, { st: P });
+  }
+  /* „Mărește” (preview) and „Vezi tot” (a card that hides rows to keep its height, preview or dashboard): the whole widget,
+     full width, at its content height */
+  function openFull(v, { st = {}, subtitle = `Previzualizare · ${label(WIDTHS, "full")}` } = {}) {
     G().openModal?.({
       kind: "wid-zoom",
       title: v.titles.ro || "Previzualizare",
-      subtitle: `Previzualizare · ${label(WIDTHS, "full")}`,
-      body: cardHtml({ ...v, width: "full" }, { st: P }),
+      subtitle,
+      body: cardHtml({ ...v, width: "full" }, { st, natural: true }),
       footer: '<div class="modal-buttons"><button class="btn btn-primary btn-rounded" type="button" data-case-close>Închide</button></div>'
     });
     document.querySelector("#case-action-modal .modal")?.classList.replace("modal--md", "modal--lg");
@@ -1601,6 +1615,7 @@
     }
     if (t.closest("[data-wid-refresh]")) { refreshPreview(); return; }
     if (t.closest("[data-wid-zoom]")) { openZoom(); return; }
+    if (t.closest(".e-permits-wid-preview [data-wid-all]")) { openZoom(); return; }
     const as = t.closest("[data-wid-viewas]");
     if (as) { P.noAccess = as.dataset.widViewas === "fara-acces"; refreshPreviewOnly(); document.querySelector(`[data-wid-viewas="${as.dataset.widViewas}"]`)?.focus(); return; }
     /* dialogs */
@@ -1783,6 +1798,6 @@
     card: (config, opts) => cardHtml(config, opts),
     aggregate,
     /* the widget model's labels, reused by Tablouri de bord (js/dashboard-admin.js) */
-    typeLabel, levelText, isOffFor, WIDTHS, HEIGHTS
+    typeLabel, levelText, isOffFor, WIDTHS, HEIGHTS, heightKey, openFull
   };
 })();

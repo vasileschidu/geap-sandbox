@@ -74,14 +74,19 @@
   width: 100%;
 }
 
-/* the grid: 12 columns, reading order = widget order; the column guides show only while dragging / resizing */
+/* the grid: 12 columns, reading order = widget order; the column guides show only while dragging / resizing.
+   wid-heights-v1: fixed rows = the „Compactă” card height, an „Înaltă” widget spans two rows (= its card height), so every
+   row has equal bottoms; phones = natural heights (below) */
 .e-permits-dsh-grid {
-  align-items: start;
+  align-items: stretch;
   display: grid;
   gap: var(--spacing-16, 16px);
+  grid-auto-rows: var(--wid-row-compact);
   grid-template-columns: repeat(12, minmax(0, 1fr));
   position: relative;
 }
+
+.e-permits-dsh-tile--tall { grid-row: span 2; }
 
 .e-permits-dsh-guides {
   display: grid;
@@ -122,6 +127,11 @@
 
 .e-permits-dsh-tile > .e-permits-wid-card {
   width: 100%;
+}
+
+.e-permits-dsh-tile > .e-permits-dsh-tile__off {
+  box-sizing: border-box;
+  height: 100%;
 }
 
 /* dash-noborder-v5 (user): the card keeps its border; only the description is tertiary */
@@ -174,7 +184,7 @@
   display: none;
 }
 
-/* the resize corner: bottom right, snaps to 4 · 6 · 8 · 12 columns and Mică · Medie · Mare */
+/* the resize corner: bottom right, snaps to 4 · 6 · 8 · 12 columns and Compactă · Înaltă */
 .e-permits-dsh-tile__resize {
   align-items: center;
   border-radius: var(--border-radius-8, 8px);
@@ -201,7 +211,7 @@
   color: var(--color-icon-base-default, #121212);
 }
 
-/* the live size label while resizing („6/12 · Medie”) */
+/* the live size label while resizing („8/12 · Înaltă”) */
 .e-permits-dsh-tile__size {
   bottom: var(--spacing-16, 16px);
   display: none;
@@ -294,6 +304,7 @@
   grid-column: span 4;
   justify-content: center;
   min-height: calc(var(--spacing-40, 40px) * 5);
+  position: relative; /* above the column guides while arranging (they are positioned) */
   padding: var(--spacing-24, 24px);
   text-align: center;
 }
@@ -325,6 +336,10 @@
   .e-permits-dsh-tile--twoThirds,
   .e-permits-dsh-tile--full,
   .e-permits-dsh-ghost { grid-column: span 12; }
+
+  /* phones: natural heights, one widget per row */
+  .e-permits-dsh-grid { grid-auto-rows: auto; }
+  .e-permits-dsh-tile--tall { grid-row: auto; }
 
   .e-permits-dsh-tile__handle,
   .e-permits-dsh-tile__resize { display: none; }

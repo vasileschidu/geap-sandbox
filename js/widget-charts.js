@@ -44,7 +44,7 @@
   const max = (list) => Math.max(0, ...list.filter((v) => Number.isFinite(v)));
   const nf = (v) => Number(v).toLocaleString("ro-MD", { maximumFractionDigits: 0 });
   const share = (v, total) => (total ? `${Math.round((v / total) * 100)}%` : "0%");
-  const PLOT = (m, extra = "") => `e-permits-chart__plot e-permits-wid-plot e-permits-wid-plot--${m.height || "medium"}${extra ? ` ${extra}` : ""}`;
+  const PLOT = (m, extra = "") => `e-permits-chart__plot e-permits-wid-plot e-permits-wid-plot--${m.height || "compact"}${extra ? ` ${extra}` : ""}`;
   /* a drill-down target: a real button (HTML) or an SVG element with role=button; „fără acces” = plain */
   const drillAttrs = (m, label, value) => (m.drill ? ` data-wid-drill="${esc(label)}" data-wid-drill-value="${esc(m.fmt(value))}"` : "");
 
@@ -105,7 +105,7 @@
     const t = m.target ? 100 - (m.target.value / top) * 100 : 0;
     return `
       <div class="e-permits-wid-plot-wrap">
-        <div class="e-permits-wid-cols e-permits-wid-plot--${m.height || "medium"}" role="img" aria-label="${ariaOf(m)}">${slots}</div>
+        <div class="e-permits-wid-cols e-permits-wid-plot--${m.height || "compact"}" role="img" aria-label="${ariaOf(m)}">${slots}</div>
         ${m.target ? `<svg class="e-permits-wid-layer" aria-hidden="true" focusable="false">${targetSvg(m, t)}</svg>` : ""}
       </div>
       ${axis(m.cats)}
@@ -132,7 +132,7 @@
       return `<li>${m.drill ? `<button class="e-permits-wid-rows__row" type="button"${drillAttrs(m, c.label, total)} aria-label="${esc(`${c.label}: ${m.fmt(total)} — deschide înregistrările`)}">${inner}</button>` : `<div class="e-permits-wid-rows__row">${inner}</div>`}</li>`;
     }).join("");
     return `
-      <ul class="e-permits-wid-rows e-permits-wid-rows--${m.height || "medium"}" role="list">${items}</ul>
+      <ul class="e-permits-wid-rows e-permits-wid-rows--${m.height || "compact"}" role="list">${items}</ul>
       ${stacked ? seriesLegend(m) : baseLegend(m)}`;
   }
 
@@ -166,7 +166,7 @@
       : m.series.length ? seriesLegend(m) : baseLegend(m);
     return `
       <div class="e-permits-wid-plot-wrap">
-        <div class="e-permits-wid-cols e-permits-wid-plot--${m.height || "medium"}" role="img" aria-label="${ariaOf(m)}">${slots}</div>
+        <div class="e-permits-wid-cols e-permits-wid-plot--${m.height || "compact"}" role="img" aria-label="${ariaOf(m)}">${slots}</div>
         ${layers}
         <svg class="e-permits-wid-layer" aria-hidden="true" focusable="false">${limits}${targetSvg(m, m.target ? Y(m.target.value) : 0)}${dots}</svg>
       </div>
@@ -186,7 +186,7 @@
       return arc;
     }).join("");
     return `
-      <div class="e-permits-wid-donut e-permits-wid-donut--${m.height || "medium"}">
+      <div class="e-permits-wid-donut e-permits-wid-donut--${m.height || "compact"}">
         <div class="e-permits-wid-donut__chart">
           <svg class="e-permits-wid-donut__svg" viewBox="0 0 42 42" role="img" aria-label="${ariaOf(m)}" focusable="false"><circle class="e-permits-wid-donut__track" cx="21" cy="21" r="15.9155" stroke-width="6"></circle>${arcs}</svg>
           <span class="e-permits-wid-donut__center"><strong>${esc(m.fmt(m.kpi && Number.isFinite(m.kpiCurrent) ? m.kpiCurrent : total))}</strong><span>${m.kpi ? "KPI" : "total"}</span></span>
@@ -194,6 +194,9 @@
         ${legend(m.cats.map((c, i) => ({ label: c.label, value: m.fmt(c.value), pct: share(c.value, total), dot: catCls(m, i), button: m.drill ? `${drillAttrs(m, c.label, c.value)} aria-label="${esc(`${c.label}: ${m.fmt(c.value)} — deschide înregistrările`)}"` : "" })), { vertical: true })}
       </div>`;
   }
+
+  /* „Vezi tot” (wid-heights-v1): shown by fit() when a fixed-height card hides table rows; opens the whole widget */
+  const allBtn = () => '<button class="btn btn-text-primary btn-sm e-permits-wid-all is-fit-hidden" type="button" aria-haspopup="dialog" data-wid-all>Vezi tot</button>';
 
   /* ---------------------------------------------------------------- Tabel agregat */
   function aggTable(m) {
@@ -208,13 +211,14 @@
       return `<tr><th scope="row"><span data-cell-tooltip="${esc(c.label)}">${esc(c.label)}</span></th>${hasSeries ? c.parts.map((p, j) => `<td>${cell(`${c.label} · ${m.series[j].label}`, p.value)}</td>`).join("") : ""}<td><strong>${cell(c.label, total)}</strong></td>${zones ? `<td>${zoneOf(m, total) || '<span class="e-permits-workplace__dash">—</span>'}</td>` : ""}${m.compareLabel ? `<td>${esc(delta)}</td>` : ""}</tr>`;
     }).join("");
     return `
-      <div class="e-permits-workplace__table-wrap e-permits-reg-table e-permits-wid-table-wrap e-permits-wid-table-wrap--${m.height || "medium"}">
+      <div class="e-permits-workplace__table-wrap e-permits-reg-table e-permits-wid-table-wrap e-permits-wid-table-wrap--${m.height || "compact"}">
         <table class="e-permits-workplace__table e-permits-reg-table__table e-permits-wid-table e-permits-wid-table--agg">
           <caption class="u-visually-hidden">${esc(m.caption || "Tabel agregat")}</caption>
           <thead><tr>${head.map((h, i) => `<th scope="col"${i ? ' class="e-permits-wid-table__num"' : ""}><span class="e-permits-workplace__th-content"><span>${esc(h)}</span></span></th>`).join("")}</tr></thead>
           <tbody>${body}</tbody>
         </table>
-      </div>`;
+      </div>
+      ${allBtn()}`;
   }
 
   /* ---------------------------------------------------------------- Hartă de căldură */
@@ -239,6 +243,7 @@
           }).join("")}</tr>`).join("")}</tbody>
         </table>
       </div>
+      ${allBtn()}
       <ul class="e-permits-meter-legend e-permits-meter-legend--tray" role="list">
         <li><span>Mai puține</span>${[1, 2, 3, 4, 5].map((l) => `<span class="e-permits-wid-heat__key is-l${l}" aria-hidden="true"></span>`).join("")}<span>Mai multe</span></li>
       </ul>`;
@@ -291,6 +296,20 @@
       ${legend(m.cats.map((c, i) => ({ label: c.label, value: m.fmt(c.value), dot: catCls(m, i), button: m.drill ? `${drillAttrs(m, c.label, c.value)} aria-label="${esc(`${c.label}: ${m.fmt(c.value)} — deschide înregistrările`)}"` : "" })), { wrap: true })}`;
   }
 
+  /* ---------------------------------------------------------------- Plăcuță simplă
+     Înaltă + a KPI with a monthly series (m.trend): a small trend line under the grey value box (stretched viewBox, the line chart's
+     stroke), the last month marked */
+  function spark(m) {
+    const vals = m.trend || [];
+    if (vals.length < 3) return "";
+    const lo = Math.min(...vals);
+    const hi = Math.max(...vals);
+    const Y = (v) => (hi === lo ? 50 : 90 - ((v - lo) / (hi - lo)) * 80);
+    const X = (i) => (i / (vals.length - 1)) * 100;
+    const pts = vals.map((v, i) => `${X(i).toFixed(2)},${Y(v).toFixed(2)}`).join(" ");
+    return `<span class="e-permits-wid-spark" role="img" aria-label="${esc(`Evoluția pe ultimele ${vals.length} luni: de la ${m.fmt(vals[0])} la ${m.fmt(vals[vals.length - 1])}`)}"><svg class="e-permits-wid-layer ${sClass(0)}" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true" focusable="false"><polygon class="e-permits-wid-area" points="0,100 ${pts} 100,100"></polygon><polyline class="e-permits-wid-line" points="${pts}" vector-effect="non-scaling-stroke"></polyline></svg></span>`;
+  }
+
   /* ---------------------------------------------------------------- Plăcuță simplă */
   function tile(m) {
     const s = m.single;
@@ -300,21 +319,24 @@
       ${s.compare ? `<span class="e-permits-kpi__meta">${s.compare}</span>` : ""}
       ${m.target ? `<span class="e-permits-kpi__meta">${esc(m.target.label)}</span>` : ""}`;
     /* the grey card is the eKYC KPI card; a drill tile holds one transparent button over its content (hover on the card) */
-    return m.drill
+    /* the grey box keeps its natural size under the head (user, wid-heights-v1: no stretched box, no centring); the Înaltă
+       sparkline sits under the box, the rest of the card stays empty */
+    return (m.drill
       ? `<div class="e-permits-kpi e-permits-wid-single"><button class="e-permits-wid-single__btn" type="button"${drillAttrs(m, m.caption || "Valoarea", s.value)} aria-label="${esc(`${m.fmt(s.value)} — deschide înregistrările`)}">${inner}</button></div>`
-      : `<div class="e-permits-kpi e-permits-wid-single">${inner}</div>`;
+      : `<div class="e-permits-kpi e-permits-wid-single">${inner}</div>`) + spark(m);
   }
 
   /* ---------------------------------------------------------------- Tabel cu filtru pe sursa de date */
   function rowTable(m) {
     return `
-      <div class="e-permits-workplace__table-wrap e-permits-reg-table e-permits-wid-table-wrap e-permits-wid-table-wrap--${m.height || "medium"}">
+      <div class="e-permits-workplace__table-wrap e-permits-reg-table e-permits-wid-table-wrap e-permits-wid-table-wrap--${m.height || "compact"}">
         <table class="e-permits-workplace__table e-permits-reg-table__table e-permits-wid-table">
           <caption class="u-visually-hidden">${esc(m.caption || "Înregistrările sursei")}</caption>
           <thead><tr>${m.columns.map((c) => `<th scope="col"><span class="e-permits-workplace__th-content"><span>${esc(c)}</span></span></th>`).join("")}</tr></thead>
           <tbody>${m.rows.map((r) => `<tr>${r.map((v, i) => `<td>${i === 0 && m.drill ? `<button class="link link-primary link-sm e-permits-wid-table__drill" type="button" data-wid-drill="${esc(v)}" data-wid-drill-value="1">${esc(v)}</button>` : `<span data-cell-tooltip="${esc(v)}">${esc(v)}</span>`}</td>`).join("")}</tr>`).join("")}</tbody>
         </table>
-      </div>`;
+      </div>
+      ${allBtn()}`;
   }
 
   /* the types without an axis show a KPI as its value + „Ținta” under the chart (the axis types draw the target line) */
@@ -363,8 +385,56 @@
      · bar value labels: shown only when every one fits its slot (−4) and clears the top; else none (the slot tooltip has it);
      · treemap labels: shown only inside their tile (−4). */
   const GAP = 8;
+  /* wid-heights-v1 — a fixed-height card (Compactă / Înaltă, desktop): lists keep the rows that fit, the rest collapse into
+     „+N altele” (bars, funnel, the donut legend); tables and the heat map keep the rows that fit + „Vezi tot”. Never a row
+     cut in half; phones (natural height) show everything. */
+  const PHONE = "(max-width: 760px)";
+  const isFixed = (card) => Boolean(card?.classList.contains("e-permits-wid-card--fixed")) && !window.matchMedia?.(PHONE).matches;
+  const bottomOf = (el) => el.getBoundingClientRect().bottom;
+  function fitList(list, fixed) {
+    const items = [...list.children].filter((li) => !li.classList.contains("e-permits-wid-more"));
+    items.forEach((li) => li.classList.remove("is-fit-hidden"));
+    let more = list.querySelector(":scope > .e-permits-wid-more");
+    if (more) more.classList.add("is-fit-hidden");
+    if (!fixed || items.length < 2) return;
+    const limit = bottomOf(list) + 0.5;
+    if (bottomOf(items[items.length - 1]) <= limit) return;
+    if (!more) {
+      more = document.createElement("li");
+      more.className = "e-permits-wid-more";
+      list.appendChild(more);
+    }
+    more.classList.remove("is-fit-hidden");
+    let shown = items.length;
+    do {
+      shown -= 1;
+      items[shown].classList.add("is-fit-hidden");
+      more.textContent = `+${items.length - shown} ${items.length - shown === 1 ? "altul" : "altele"}`;
+    } while (shown > 1 && bottomOf(more) > limit);
+  }
+  function fitRows(wrap, fixed) {
+    const rows = [...wrap.querySelectorAll("tbody > tr")];
+    const btn = wrap.nextElementSibling?.matches?.("[data-wid-all]") ? wrap.nextElementSibling : null;
+    rows.forEach((tr) => tr.classList.remove("is-fit-hidden"));
+    btn?.classList.add("is-fit-hidden");
+    if (!fixed || rows.length < 2) return;
+    const limit = () => bottomOf(wrap) + 0.5;
+    if (bottomOf(rows[rows.length - 1]) <= limit()) return;
+    btn?.classList.remove("is-fit-hidden");
+    let shown = rows.length;
+    do { shown -= 1; rows[shown].classList.add("is-fit-hidden"); } while (shown > 1 && bottomOf(rows[shown - 1]) > limit());
+  }
+  function fitHeight(root) {
+    const cards = root.matches?.(".e-permits-wid-card") ? [root] : [...root.querySelectorAll(".e-permits-wid-card")];
+    cards.forEach((card) => {
+      const fixed = isFixed(card);
+      card.querySelectorAll(":is(.e-permits-wid-rows, .e-permits-wid-funnel, .e-permits-wid-legend--list)").forEach((list) => fitList(list, fixed));
+      card.querySelectorAll(":is(.e-permits-wid-table-wrap, .e-permits-wid-heat-wrap)").forEach((wrap) => fitRows(wrap, fixed));
+    });
+  }
   function fit(root) {
     if (!root) return;
+    fitHeight(root);
     root.querySelectorAll(".e-permits-wid-axis").forEach((ax) => {
       const ticks = [...ax.children];
       if (!ticks.length) return;
@@ -407,5 +477,6 @@
     new MutationObserver(() => { if (!queued) { queued = true; requestAnimationFrame(() => { queued = false; watch(); }); } }).observe(document.documentElement, { childList: true, subtree: true });
   }
 
+  window.matchMedia?.(PHONE).addEventListener?.("change", () => document.querySelectorAll(".e-permits-wid-card").forEach((card) => fit(card)));
   window.GEAPWidgetCharts = { render, glyph, series: sClass, nf, fit, watch, STATUS_COLOURS, isStatusDim, statusClass };
 })();

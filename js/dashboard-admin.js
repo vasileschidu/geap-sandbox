@@ -5,7 +5,7 @@
    US-550 Setarea tabloului de bord principal — not in Azure yet: built from the Feature text, split per its Traceability.
 
    A dashboard = an ordered list of PUBLISHED widgets (js/widget-admin.js, window.GEAPWidgets: max 24), each with a width
-   (O treime · Jumătate · Două treimi · Rând întreg) and a height (Mică · Medie · Mare), addressed to one or more roles,
+   (O treime · Jumătate · Două treimi · Rând întreg) and a height (Compactă · Înaltă, wid-heights-v1), addressed to one or more roles,
    Principal / Secundar per role. Level (generated): Global = the Administrator central, assigned to authorities (list or
    „Toate autoritățile”) · Autoritate = any other user with «Gestionarea tablourilor de bord», his authority, prefilled.
    Lifecycle Ciornă → Publicat (version + 1 per publication; restore = a new version) → Dezactivat; a draft can be removed;
@@ -81,7 +81,9 @@
   ];
   const TYPES = [["principal", "Principal"], ["secundar", "Secundar"]];
   const WIDTHS = () => W().WIDTHS || [["third", "O treime"], ["half", "Jumătate"], ["twoThirds", "Două treimi"], ["full", "Rând întreg"]];
-  const HEIGHTS = () => W().HEIGHTS || [["small", "Mică"], ["medium", "Medie"], ["large", "Mare"]];
+  const HEIGHTS = () => W().HEIGHTS || [["compact", "Compactă"], ["tall", "Înaltă"]];
+  /* the old seeds' Mică / Medie → Compactă, Mare → Înaltă */
+  const heightKey = (h) => (W().heightKey ? W().heightKey(h) : h === "tall" || h === "large" ? "tall" : "compact");
   const STATUS_TONE = { "Ciornă": "neutral", "Publicat": "success", "Dezactivat": "neutral" };
   const EVENTS = {
     create: "Crearea tabloului de bord", clone: "Clonarea tabloului de bord", edit: "Modificarea tabloului de bord",
@@ -117,14 +119,19 @@
     if (S.data) return Promise.resolve(S.data);
     if (!S.loading) {
       S.loading = Promise.all([
-        fetch("data/dashboards.json?v=dash-v1").then((r) => r.json()),
+        fetch("data/dashboards.json?v=wid-heights-v1").then((r) => r.json()),
         W().load ? W().load() : Promise.resolve(null),
         /* dsh-auth-ms-v1: the same ~30 demo authorities as Rapoarte (data/rapoarte.json › authorities) */
         fetch("data/rapoarte.json?v=rpt-auth-ms-v1").then((r) => r.json()).catch(() => null)
       ]).then(([json, , rpt]) => {
         if (rpt?.authorities?.length) AUTHORITIES.splice(0, AUTHORITIES.length, ...rpt.authorities.map((a) => [a.id, a.name, a.long]));
         if (demo.has("gol")) json.dashboards = [];
+        /* ?tablou=mix (demo dsh-04n): DSH-0001 as a mixed board — compact tile + compact bars + a tall donut beside two
+           compact rows, then two compact halves (wid-heights-v1) */
+        const mixed = demo.has("mix") && json.dashboards.find((d) => d.id === "DSH-0001");
+        if (mixed) mixed.config.widgets = [["WGT-0011", "third", "compact"], ["WGT-0001", "third", "compact"], ["WGT-0006", "third", "tall"], ["WGT-0003", "twoThirds", "compact"], ["WGT-0008", "half", "compact"], ["WGT-0012", "half", "compact"]].map(([widget, width, height]) => ({ widget, width, height }));
         json.dashboards.forEach((d) => {
+          d.config.widgets.forEach((x) => { x.height = heightKey(x.height); });
           d.offFor = d.offFor || [];
           d.history = d.history || [];
           d.versions = (d.versions || []).map((v) => {
@@ -132,6 +139,7 @@
             /* the seed of an older version names the widgets it did not have yet and the sizes it had */
             if (v.drop) config.widgets = config.widgets.filter((x) => !v.drop.includes(x.widget));
             if (v.sizes) config.widgets.forEach((x) => { if (v.sizes[x.widget]) [x.width, x.height] = v.sizes[x.widget]; });
+            config.widgets.forEach((x) => { x.height = heightKey(x.height); });
             return { nr: v.nr, version: v.version, type: v.type, note: v.note, at: v.at, by: v.by, config };
           });
         });
@@ -350,15 +358,15 @@
      ONE WYSIWYG canvas: the edit view IS the final dashboard (no separate preview) — only the widgets, at the available
      width, no shell skeleton and no scaling (dash-v4, user); the cards exactly as on the dashboard (no wrapper borders). Editing appears only on hover / focus
      / drag: the shared grey hover surface (`.e-permits-hover-surface`, the calendar months), a floating toolbar (drag
-     handle + red remove), a bottom-right resize corner that snaps to 4 · 6 · 8 · 12 columns and Mică · Medie · Mare, the
+     handle + red remove), a bottom-right resize corner that snaps to 4 · 6 · 8 · 12 columns and Compactă · Înaltă, the
      12 column guides while dragging / resizing. Drag = iPhone-style live reflow (FLIP). Keyboard: the widget is focusable;
-     ← → ↑ ↓ move it, Shift + ← → change the width, Shift + ↑ ↓ the height (announced). Add = one widget at a time (the
+     ← → ↑ ↓ move it, Shift + ← → change the width, Shift + ↑ ↓ toggle the height (announced). Add = one widget at a time (the
      picker), it lands at the end at its default size, scrolls into view and flashes. Phones: one widget per row, no
      resize; the toolbar shows ↑ ↓ + remove. */
   const SPAN = { third: 4, half: 6, twoThirds: 8, full: 12 };
   const WIDTH_KEYS = ["third", "half", "twoThirds", "full"];
-  const HEIGHT_KEYS = ["small", "medium", "large"];
-  const sizeText = (t) => `${SPAN[t.width] || 12}/12 · ${label(HEIGHTS(), t.height) || "Medie"}`;
+  const HEIGHT_KEYS = ["compact", "tall"];
+  const sizeText = (t) => `${SPAN[t.width] || 12}/12 · ${label(HEIGHTS(), heightKey(t.height)) || "Compactă"}`;
   function tileBody(t, d) {
     const info = widgetInfo(t.widget, d);
     if (!info.active) {
@@ -378,7 +386,7 @@
       </div>
       <span class="e-permits-dsh-tile__resize" aria-hidden="true" data-dsh-resize>${icon("resize", 16)}</span>
       <span class="e-permits-dsh-tile__size" aria-hidden="true">${tag(sizeText(t), "brand")}</span>` : "";
-    return `<div class="e-permits-dsh-tile e-permits-dsh-tile--${SPAN[t.width] ? t.width : "full"}${edit ? " e-permits-hover-surface is-editable" : ""}" role="listitem" data-dsh-tile="${t.widget}" data-index="${i}"${edit ? ` tabindex="0" aria-roledescription="widget mutabil" aria-label="${esc(name)}"` : ` aria-label="${esc(name)}"`}>${tileBody(t, d)}${tools}</div>`;
+    return `<div class="e-permits-dsh-tile e-permits-dsh-tile--${SPAN[t.width] ? t.width : "full"} e-permits-dsh-tile--${heightKey(t.height)}${edit ? " e-permits-hover-surface is-editable" : ""}" role="listitem" data-dsh-tile="${t.widget}" data-index="${i}"${edit ? ` tabindex="0" aria-roledescription="widget mutabil" aria-label="${esc(name)}"` : ` aria-label="${esc(name)}"`}>${tileBody(t, d)}${tools}</div>`;
   }
   function layoutHtml(v, d, { edit = false } = {}) {
     const n = v.widgets.length;
@@ -409,7 +417,7 @@
     return {
       general: [["Denumire (RO)", d(v.names.ro)], ["Denumire (RU)", d(v.names.ru)], ["Denumire (EN)", d(v.names.en)], ["Descriere", d(v.descriptions.ro)], ["Ordinea tabloului de bord", d(String(v.order || ""))]],
       access: [["Roluri", d(rolesText(v))], ["Nivel", esc(level)], ["Autorități asignate", d(authText(v, level))]],
-      widgets: [["Widget-uri", esc(`${v.widgets.length} din ${MAX_WIDGETS}`)], ...v.widgets.map((t, i) => [widgetInfo(t.widget).title, esc(`Poziția ${i + 1} · ${label(WIDTHS(), t.width)} · ${label(HEIGHTS(), t.height)}`)])]
+      widgets: [["Widget-uri", esc(`${v.widgets.length} din ${MAX_WIDGETS}`)], ...v.widgets.map((t, i) => [widgetInfo(t.widget).title, esc(`Poziția ${i + 1} · ${label(WIDTHS(), t.width)} · ${label(HEIGHTS(), heightKey(t.height))}`)])]
     };
   }
   const flatRows = (v, level) => { const r = configRows(v, level); return [...r.general, ...r.access, ...r.widgets]; };
@@ -1156,7 +1164,7 @@
       const cfg = W().published(w.id);
       const on = v.widgets.some((t) => t.widget === w.id);
       const chosen = picking.sel === w.id;
-      const desc = on ? "Este deja pe tablou." : `${W().typeLabel?.(cfg.type) || ""} · ${W().levelText?.(w) || w.level} · ${SPAN[cfg.width] || 6}/12, ${(label(HEIGHTS(), cfg.height) || "Medie").toLocaleLowerCase("ro")}`;
+      const desc = on ? "Este deja pe tablou." : `${W().typeLabel?.(cfg.type) || ""} · ${W().levelText?.(w) || w.level} · ${SPAN[cfg.width] || 6}/12, ${(label(HEIGHTS(), heightKey(cfg.height)) || "Compactă").toLocaleLowerCase("ro")}`;
       return `
         <label class="e-permits-fo-delivery-option e-permits-fo-delivery-option--radio e-permits-wid-type${chosen ? " is-selected" : ""}${on ? " is-disabled" : ""}">
           <input class="e-permits-fo-delivery-option__input" type="radio" name="dsh-pick" value="${esc(w.id)}"${chosen ? " checked" : ""}${on ? " disabled" : ""} aria-describedby="dsh-pick-${w.id}-desc" data-dsh-pick>
@@ -1204,7 +1212,7 @@
     const id = picking.sel;
     /* it starts from its own default width and height (Feature assumption, Feature 96501) */
     const cfg = W().published(id);
-    P.draft.widgets.push({ widget: id, width: SPAN[cfg?.width] ? cfg.width : "half", height: cfg?.height || "medium" });
+    P.draft.widgets.push({ widget: id, width: SPAN[cfg?.width] ? cfg.width : "half", height: heightKey(cfg?.height) });
     picking = null;
     delete P.errors.widgets;
     G().closeModal?.();
@@ -1233,6 +1241,9 @@
   document.addEventListener("click", (event) => {
     const t = event.target;
     if (!t.closest) return;
+    /* „Vezi tot” on a card that keeps only the rows that fit its height: the whole widget in the dialog */
+    const seeAll = t.closest("[data-dsh-tile] [data-wid-all]");
+    if (seeAll) { const info = widgetInfo(seeAll.closest("[data-dsh-tile]").dataset.dshTile, P.id ? dashOf(P.id) : null); if (info.cfg) W().openFull?.(info.cfg, { subtitle: "Toate datele widget-ului" }); return; }
     /* list */
     if (t.closest('[data-workplace-add-product="dsh-new"], [data-dsh-new]')) { event.preventDefault(); openNew(); return; }
     const rowEdit = t.closest("[data-dsh-row-edit]");
@@ -1404,7 +1415,9 @@
   function resizeWidget(id, axis, by) {
     const t = P.draft.widgets.find((x) => x.widget === id);
     if (!t) return;
-    const keys = axis === "width" ? WIDTH_KEYS : HEIGHT_KEYS;
+    /* two heights: Shift + ↑ / ↓ toggles Compactă ⇄ Înaltă */
+    if (axis === "height") { arrange(() => { t.height = heightKey(t.height) === "tall" ? "compact" : "tall"; }, { focus: id, say: `„${widgetInfo(id).title}”: ${sizeText(t)}.` }); return; }
+    const keys = WIDTH_KEYS;
     const k = keys.indexOf(t[axis]) + by;
     if (k < 0 || k >= keys.length) { live(axis === "width" ? "Lățimea este deja la limită." : "Înălțimea este deja la limită."); return; }
     arrange(() => { t[axis] = keys[k]; }, { focus: id, say: `„${widgetInfo(id).title}”: ${sizeText(t)}.` });
@@ -1430,17 +1443,18 @@
   });
 
   /* pointer: the handle lifts the card (it follows the pointer, the others reflow around the grey slot it leaves); the
-     corner resizes, snapping to 4 · 6 · 8 · 12 columns and Mică · Medie · Mare (live label, target columns lit) */
-  const PLOT = { small: 3, medium: 4, large: 6 };
+     corner resizes, snapping to 4 · 6 · 8 · 12 columns and Compactă · Înaltă (live label, target columns lit): the card
+     heights are the grid rows (one row / two rows + the gap), read from the grid */
   let act = null;
   const tilesOf = (grid) => [...grid.querySelectorAll(":scope > [data-dsh-tile]")];
   function startArrange(tile, kind, x, y) {
     const grid = tile.closest("[data-dsh-grid]");
     const r = tile.getBoundingClientRect();
     const t = P.draft.widgets.find((w) => w.widget === tile.dataset.dshTile);
-    const card = tile.querySelector(".e-permits-wid-card");
-    const unit = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--spacing-40")) || 40;
-    act = { kind, tile, grid, id: tile.dataset.dshTile, offX: x - r.left, offY: y - r.top, z: zoomOf(tile), width: t.width, height: t.height, chrome: (card?.getBoundingClientRect().height || 0) - PLOT[t.height] * unit * zoomOf(tile), unit };
+    const gs = getComputedStyle(grid);
+    const row = parseFloat(gs.gridAutoRows) || 360;
+    const rowGap = parseFloat(gs.rowGap) || 0;
+    act = { kind, tile, grid, id: tile.dataset.dshTile, offX: x - r.left, offY: y - r.top, z: zoomOf(tile), width: t.width, height: heightKey(t.height), rows: { compact: row, tall: row * 2 + rowGap } };
     grid.classList.add("is-arranging");
     tile.classList.add(kind === "move" ? "is-lifted" : "is-resizing");
     if (kind === "move") {
@@ -1514,9 +1528,10 @@
     const cols = (x - r.left + gap) / (colW + gap);
     const width = WIDTH_KEYS.reduce((best, k) => (Math.abs(SPAN[k] - cols) < Math.abs(SPAN[best] - cols) ? k : best), WIDTH_KEYS[0]);
     const h = y - r.top;
-    const height = HEIGHT_KEYS.reduce((best, k) => (Math.abs(a.chrome + PLOT[k] * a.unit * a.z - h) < Math.abs(a.chrome + PLOT[best] * a.unit * a.z - h) ? k : best), HEIGHT_KEYS[0]);
+    const height = HEIGHT_KEYS.reduce((best, k) => (Math.abs(a.rows[k] * a.z - h) < Math.abs(a.rows[best] * a.z - h) ? k : best), HEIGHT_KEYS[0]);
     if (width !== a.width) { a.tile.classList.remove(`e-permits-dsh-tile--${a.width}`); a.tile.classList.add(`e-permits-dsh-tile--${width}`); a.width = width; }
     if (height !== a.height) {
+      a.tile.classList.replace(`e-permits-dsh-tile--${a.height}`, `e-permits-dsh-tile--${height}`);
       a.height = height;
       const card = a.tile.querySelector(".e-permits-wid-card");
       if (card) card.outerHTML = tileBody({ widget: a.id, width, height }, P.id ? dashOf(P.id) : null);
@@ -1585,7 +1600,7 @@
       const r = tile.getBoundingClientRect();
       startArrange(tile, "resize", r.right, r.bottom);
       if (width !== act.width) { tile.classList.remove(`e-permits-dsh-tile--${act.width}`); tile.classList.add(`e-permits-dsh-tile--${width}`); act.width = width; }
-      if (height !== act.height) { act.height = height; const card = tile.querySelector(".e-permits-wid-card"); if (card) card.outerHTML = tileBody({ widget: id, width, height }, P.id ? dashOf(P.id) : null); }
+      if (height !== act.height) { tile.classList.replace(`e-permits-dsh-tile--${act.height}`, `e-permits-dsh-tile--${height}`); act.height = height; const card = tile.querySelector(".e-permits-wid-card"); if (card) card.outerHTML = tileBody({ widget: id, width, height }, P.id ? dashOf(P.id) : null); }
       requestAnimationFrame(showTarget);
     },
     focus(id) { tileEl(id)?.focus(); },

@@ -227,10 +227,10 @@
 }
 
 /* ---- chart types (js/widget-charts.js) ----
-   plot heights = „Înălțimea implicită”: Mică 120 · Medie 160 (the eKYC plot) · Mare 240 */
-.e-permits-wid-plot--small { height: calc(var(--spacing-40, 40px) * 3); }
-.e-permits-wid-plot--medium { height: calc(var(--spacing-40, 40px) * 4); }
-.e-permits-wid-plot--large { height: calc(var(--spacing-40, 40px) * 6); }
+   natural plot heights (phones, the „Mărește” / „Vezi tot” dialog): Compactă 160 (the eKYC plot) · Înaltă 240; in a
+   fixed-height card (desktop) the plot fills what the card leaves (wid-heights-v1 below) */
+.e-permits-wid-plot--compact { height: calc(var(--spacing-40, 40px) * 4); }
+.e-permits-wid-plot--tall { height: calc(var(--spacing-40, 40px) * 6); }
 
 .e-permits-wid-plot--bare {
   border-bottom: 0;
@@ -878,9 +878,8 @@ button.e-permits-wid-rows__row:focus-visible {
 }
 
 /* Tabel agregat / Tabel cu filtru: the card table, content-sized columns, height = „Înălțimea implicită” */
-.e-permits-wid-table-wrap--small { max-height: calc(var(--spacing-40, 40px) * 4); }
-.e-permits-wid-table-wrap--medium { max-height: calc(var(--spacing-40, 40px) * 6); }
-.e-permits-wid-table-wrap--large { max-height: calc(var(--spacing-40, 40px) * 9); }
+.e-permits-wid-table-wrap--compact { max-height: calc(var(--spacing-40, 40px) * 6); }
+.e-permits-wid-table-wrap--tall { max-height: calc(var(--spacing-40, 40px) * 9); }
 
 .e-permits-reg-table__table.e-permits-wid-table {
   table-layout: auto;
@@ -1233,4 +1232,165 @@ button.e-permits-wid-rows__row:focus-visible {
 .e-permits-wid-rows .e-permits-meter__svg rect:not(.e-permits-meter__track) {
   rx: var(--border-radius-2, 2px);
   ry: var(--border-radius-2, 2px);
+}
+
+/* ==== wid-heights-v1 (2026-11-11, proposal for the PO): TWO heights + equal heights per dashboard row ====
+   „Compactă” = one dashboard row (360: a 5-bar chart or a donut with its legend beside it fits), „Înaltă” = two rows + the
+   grid gap (16), so two compact widgets stacked beside a tall one line up exactly. The card has the fixed height (desktop,
+   `.e-permits-wid-card--fixed`; phones and the „Vezi tot” dialog = natural height); the body takes what the head leaves and
+   each type adapts to it: plots stretch, lists keep the rows that fit + „+N altele”, tables + „Vezi tot” (fit() in
+   js/widget-charts.js), the tile keeps its grey box at natural size (+ the Înaltă sparkline under it), the donut puts its legend beside (under only when narrow + tall). */
+:root {
+  --wid-row-compact: calc(var(--spacing-40, 40px) * 9);
+  --wid-row-tall: calc(var(--wid-row-compact) * 2 + var(--spacing-16, 16px));
+}
+
+.e-permits-wid-card .is-fit-hidden,
+.e-permits-wid-card .e-permits-wid-all.is-fit-hidden {
+  display: none;
+}
+
+/* „+N altele”: the last line of a list that keeps only the rows that fit */
+.e-permits-wid-more {
+  color: var(--color-text-base-tertiary, #757575);
+  font-size: var(--font-size-fs-14, 14px);
+  grid-column: 1 / -1;
+  line-height: var(--line-height-lh-20, 20px);
+  list-style: none;
+  padding: var(--spacing-4, 4px) 0;
+}
+
+.e-permits-wid-legend--list > .e-permits-wid-more {
+  padding: 0;
+}
+
+.e-permits-wid-all {
+  align-self: flex-start;
+}
+
+/* Înaltă tile: the KPI trend under the value */
+.e-permits-wid-spark {
+  display: block;
+  height: calc(var(--spacing-40, 40px) * 2);
+  position: relative;
+  width: 100%;
+}
+
+.e-permits-wid-spark > .e-permits-wid-layer {
+  height: 100%;
+}
+
+@media (min-width: 761px) {
+  .e-permits-wid-card--fixed {
+    overflow: hidden;
+  }
+
+  .e-permits-wid-card--fixed.e-permits-wid-card--compact { height: var(--wid-row-compact); }
+  .e-permits-wid-card--fixed.e-permits-wid-card--tall { height: var(--wid-row-tall); }
+
+  /* the head never pushes the body out: title 2 lines, description 2 lines, then the ellipsis + tooltip */
+  .e-permits-wid-card--fixed :is(.e-permits-wid-card__title, .e-permits-wid-card__subtitle) {
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    display: -webkit-box;
+    overflow: hidden;
+    overflow-wrap: normal;
+  }
+
+  .e-permits-wid-card--fixed > .e-permits-wid-card__head { flex: none; }
+
+  .e-permits-wid-card--fixed > .e-permits-wid-card__body {
+    flex: 1 1 0;
+    min-height: 0;
+  }
+
+  .e-permits-wid-card--fixed > .e-permits-wid-card__body > * { flex: none; }
+
+  /* empty / error states: centred in the card */
+  .e-permits-wid-card--fixed > .e-permits-wid-card__body:has(> .e-permits-empty) { justify-content: center; }
+
+  /* plots (columns, line, control, treemap) fill what the axis + legend leave */
+  .e-permits-wid-card--fixed > .e-permits-wid-card__body > .e-permits-wid-plot-wrap {
+    flex: 1 1 0;
+    min-height: calc(var(--spacing-40, 40px) * 2);
+  }
+
+  .e-permits-wid-card--fixed .e-permits-wid-plot-wrap > .e-permits-wid-cols { height: 100%; }
+
+  .e-permits-wid-card--fixed > .e-permits-wid-card__body > .e-permits-wid-treemap {
+    flex: 1 1 0;
+    height: auto;
+    min-height: calc(var(--spacing-40, 40px) * 2);
+  }
+
+  /* lists (bars, funnel) + tables + heat map: shrink to the space left; fit() hides the rows that do not fit */
+  .e-permits-wid-card--fixed > .e-permits-wid-card__body > :is(.e-permits-wid-rows, .e-permits-wid-funnel, .e-permits-wid-table-wrap, .e-permits-wid-heat-wrap) {
+    flex: 0 1 auto;
+    min-height: 0;
+  }
+
+  .e-permits-wid-card--fixed .e-permits-wid-table-wrap {
+    max-height: none;
+    overflow-y: hidden;
+  }
+
+  /* the loading skeleton fills the card too */
+  .e-permits-wid-card--fixed > .e-permits-wid-card__body > .e-permits-wid-card__loading { flex: 1 1 0; min-height: 0; }
+  .e-permits-wid-card--fixed .e-permits-wid-card__loading > .skeleton--block { flex: 1 1 0; height: auto; }
+
+  /* the tile: the grey KPI box keeps its natural size right under the head; the card's extra height stays empty below */
+
+  /* the donut: the ring as tall as the body (square), the legend beside it */
+  .e-permits-wid-card--fixed > .e-permits-wid-card__body > .e-permits-wid-donut {
+    flex: 1 1 0;
+    grid-template-rows: minmax(0, 1fr);
+    min-height: 0;
+  }
+
+  .e-permits-wid-card--fixed .e-permits-wid-donut__chart {
+    align-self: center;
+    height: 100%;
+    max-height: 100%;
+    max-width: 100%;
+    width: auto;
+  }
+
+  .e-permits-wid-card--fixed .e-permits-wid-donut > .e-permits-wid-legend--list {
+    max-height: 100%;
+    min-height: 0;
+  }
+
+  /* compact cards keep the legend beside the ring at every width (the narrow-card stack is only for Înaltă) */
+  @container (max-width: 520px) {
+    .e-permits-wid-card--fixed.e-permits-wid-card--compact .e-permits-wid-donut {
+      gap: var(--spacing-16, 16px);
+      grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
+    }
+
+    .e-permits-wid-card--fixed.e-permits-wid-card--compact .e-permits-wid-donut__chart {
+      max-width: 100%;
+    }
+
+  }
+
+  /* a third-wide compact card: the legend beside the ring keeps name + value (the share is in the ring) */
+  @container (max-width: 360px) {
+    .e-permits-wid-card--fixed.e-permits-wid-card--compact .e-permits-wid-legend--list .e-permits-meter-legend__pct {
+      display: none;
+    }
+  }
+
+  @container (max-width: 520px) {
+    /* narrow + tall: ring above the legend, the pair centred in the card (the ring as wide as the card, ≤ 240) */
+    .e-permits-wid-card--fixed.e-permits-wid-card--tall .e-permits-wid-donut {
+      align-content: center;
+      grid-template-rows: minmax(0, auto) auto;
+    }
+
+    .e-permits-wid-card--fixed.e-permits-wid-card--tall .e-permits-wid-donut__chart {
+      height: auto;
+      max-width: calc(var(--spacing-40, 40px) * 6);
+      width: 100%;
+    }
+  }
 }

@@ -12,7 +12,7 @@
         "primary": "autoritate", "secondary": "", "dateGroup": "", "order": "source",
         "filter": { "logic": "and", "rules": [{ "column": "finalizat", "op": "notEmpty", "value": "" }] },
         "compare": "prevWeek", "format": "number", "threshold": { "on": true, "value": "10", "below": "warning" },
-        "width": "third", "height": "medium", "drill": true, "visibility": "authority"
+        "width": "third", "height": "compact", "drill": true, "visibility": "authority"
       },
       "versions": [
         { "nr": 1, "version": 1, "type": "Prima publicare", "note": "Widget nou pentru tabloul de bord al directorilor.", "at": "2026-09-15T09:05:00", "by": "Anastasia Cojocaru",
@@ -23,7 +23,7 @@
             "primary": "autoritate", "secondary": "", "dateGroup": "", "order": "alpha",
             "filter": { "logic": "and", "rules": [{ "column": "finalizat", "op": "notEmpty", "value": "" }] },
             "compare": "prevMonth", "format": "number", "threshold": { "on": false, "value": "", "below": "warning" },
-            "width": "half", "height": "medium", "drill": true, "visibility": "authority"
+            "width": "half", "height": "compact", "drill": true, "visibility": "authority"
           } },
         { "nr": 2, "version": 2, "type": "Publicare", "note": "Ordinea ca în sursa de date și praguri de culoare la 10 dosare.", "at": "2026-10-08T11:30:00", "by": "Anastasia Cojocaru",
           "config": {
@@ -33,7 +33,7 @@
             "primary": "autoritate", "secondary": "", "dateGroup": "", "order": "source",
             "filter": { "logic": "and", "rules": [{ "column": "finalizat", "op": "notEmpty", "value": "" }] },
             "compare": "prevMonth", "format": "number", "threshold": { "on": true, "value": "10", "below": "warning" },
-            "width": "half", "height": "medium", "drill": true, "visibility": "authority"
+            "width": "half", "height": "compact", "drill": true, "visibility": "authority"
           } },
         { "nr": 3, "version": 3, "type": "Publicare", "note": "Comparație cu săptămâna precedentă, lățime de o treime.", "at": "2026-11-03T15:42:00", "by": "Anastasia Cojocaru" }
       ],
@@ -61,7 +61,7 @@
         "primary": "finalizat", "secondary": "", "dateGroup": "month", "order": "source",
         "filter": { "logic": "and", "rules": [] },
         "compare": "prevMonth", "format": "percent", "threshold": { "on": false, "value": "", "below": "warning" },
-        "width": "half", "height": "medium", "drill": true, "visibility": "authority"
+        "width": "half", "height": "compact", "drill": true, "visibility": "authority"
       },
       "versions": [
         { "nr": 1, "version": 1, "type": "Prima publicare", "note": "KPI „Cereri procesate în termen” pe luni, cu linia țintei.", "at": "2026-10-02T08:40:00", "by": "Anastasia Cojocaru",
@@ -72,7 +72,7 @@
             "primary": "finalizat", "secondary": "", "dateGroup": "week", "order": "source",
             "filter": { "logic": "and", "rules": [] },
             "compare": "prevWeek", "format": "percent", "threshold": { "on": false, "value": "", "below": "warning" },
-            "width": "half", "height": "medium", "drill": true, "visibility": "authority"
+            "width": "half", "height": "compact", "drill": true, "visibility": "authority"
           } },
         { "nr": 2, "version": 2, "type": "Publicare", "note": "Grupare pe luni în loc de săptămâni.", "at": "2026-10-20T10:15:00", "by": "Anastasia Cojocaru" }
       ],
@@ -92,7 +92,7 @@
         "primary": "autoritate", "secondary": "serviciu", "dateGroup": "", "order": "valueDesc",
         "filter": { "logic": "and", "rules": [{ "column": "inTermen", "op": "is", "value": "Nu" }] },
         "compare": "prevWeek", "format": "number", "threshold": { "on": false, "value": "", "below": "warning" },
-        "width": "half", "height": "medium", "drill": true, "visibility": "authority", "palette": "warm"
+        "width": "half", "height": "compact", "drill": true, "visibility": "authority", "palette": "warm"
       },
       "versions": [
         { "nr": 1, "version": 1, "type": "Prima publicare", "note": "Dosarele întârziate, pe servicii.", "at": "2026-10-06T09:12:00", "by": "Anastasia Cojocaru" }
@@ -112,7 +112,7 @@
         "primary": "autoritate", "secondary": "depus", "dateGroup": "month", "order": "source",
         "filter": { "logic": "and", "rules": [] },
         "compare": "", "format": "number", "threshold": { "on": false, "value": "", "below": "warning" },
-        "width": "full", "height": "medium", "drill": true, "visibility": "global", "palette": "intense"
+        "width": "full", "height": "compact", "drill": true, "visibility": "global", "palette": "intense"
       },
       "versions": [
         { "nr": 1, "version": 1, "type": "Prima publicare", "note": "Harta de căldură a depunerilor.", "at": "2026-10-09T11:40:00", "by": "Anastasia Cojocaru" }
@@ -132,7 +132,7 @@
         "primary": "finalizat", "secondary": "", "dateGroup": "month", "order": "source",
         "filter": { "logic": "and", "rules": [] },
         "compare": "sameLastYear", "format": "duration", "threshold": { "on": false, "value": "", "below": "warning" },
-        "width": "half", "height": "medium", "drill": true, "visibility": "authority"
+        "width": "half", "height": "compact", "drill": true, "visibility": "authority"
       },
       "versions": [],
       "history": [
@@ -150,7 +150,7 @@
         "primary": "statut", "secondary": "", "dateGroup": "", "order": "valueDesc",
         "filter": { "logic": "and", "rules": [] },
         "compare": "prevMonth", "format": "number", "threshold": { "on": false, "value": "", "below": "warning" },
-        "width": "third", "height": "medium", "drill": true, "visibility": "subdivision"
+        "width": "third", "height": "compact", "drill": true, "visibility": "subdivision"
       },
       "versions": [
         { "nr": 1, "version": 1, "type": "Prima publicare", "note": "Structura pe statut pentru supervizori.", "at": "2026-10-12T10:30:00", "by": "Victor Lungu" }
@@ -170,7 +170,7 @@
         "primary": "serviciu", "secondary": "statut", "dateGroup": "", "order": "valueDesc",
         "filter": { "logic": "and", "rules": [] },
         "compare": "prevQuarter", "format": "number", "threshold": { "on": false, "value": "", "below": "warning" },
-        "width": "full", "height": "large", "drill": true, "visibility": "authority", "palette": "cool"
+        "width": "full", "height": "tall", "drill": true, "visibility": "authority", "palette": "cool"
       },
       "versions": [
         { "nr": 1, "version": 1, "type": "Prima publicare", "note": "Tabel agregat pe servicii.", "at": "2026-09-21T09:00:00", "by": "Anastasia Cojocaru",
@@ -181,7 +181,7 @@
             "primary": "serviciu", "secondary": "", "dateGroup": "", "order": "alpha",
             "filter": { "logic": "and", "rules": [] },
             "compare": "prevMonth", "format": "number", "threshold": { "on": false, "value": "", "below": "warning" },
-            "width": "full", "height": "large", "drill": true, "visibility": "authority"
+            "width": "full", "height": "tall", "drill": true, "visibility": "authority"
           } },
         { "nr": 2, "version": 2, "type": "Publicare", "note": "Statutul dosarului ca a doua grupare.", "at": "2026-10-14T12:20:00", "by": "Anastasia Cojocaru",
           "config": {
@@ -191,7 +191,7 @@
             "primary": "serviciu", "secondary": "statut", "dateGroup": "", "order": "valueDesc",
             "filter": { "logic": "and", "rules": [] },
             "compare": "prevMonth", "format": "number", "threshold": { "on": false, "value": "", "below": "warning" },
-            "width": "full", "height": "large", "drill": true, "visibility": "authority"
+            "width": "full", "height": "tall", "drill": true, "visibility": "authority"
           } }
       ],
       "history": [
@@ -211,7 +211,7 @@
         "primary": "statut", "secondary": "", "dateGroup": "", "order": "source",
         "filter": { "logic": "and", "rules": [] },
         "compare": "", "format": "number", "threshold": { "on": false, "value": "", "below": "warning" },
-        "width": "third", "height": "medium", "drill": true, "visibility": "authority"
+        "width": "third", "height": "compact", "drill": true, "visibility": "authority"
       },
       "versions": [
         { "nr": 1, "version": 1, "type": "Prima publicare", "note": "Pâlnia dosarelor pentru director.", "at": "2026-10-16T10:00:00", "by": "Victor Lungu" }
@@ -231,7 +231,7 @@
         "primary": "serviciu", "secondary": "", "dateGroup": "", "order": "valueDesc",
         "filter": { "logic": "and", "rules": [{ "column": "statutNota", "op": "is", "value": "Achitată" }] },
         "compare": "prevYear", "format": "amount", "threshold": { "on": false, "value": "", "below": "warning" },
-        "width": "half", "height": "medium", "drill": true, "visibility": "authority"
+        "width": "half", "height": "compact", "drill": true, "visibility": "authority"
       },
       "versions": [
         { "nr": 1, "version": 1, "type": "Prima publicare", "note": "Încasările pe servicii.", "at": "2026-10-10T15:30:00", "by": "Anastasia Cojocaru" }
@@ -252,7 +252,7 @@
         "primary": "finalizat", "secondary": "", "dateGroup": "week", "order": "source",
         "filter": { "logic": "and", "rules": [] },
         "compare": "", "format": "duration", "threshold": { "on": false, "value": "", "below": "warning" },
-        "width": "twoThirds", "height": "medium", "drill": true, "visibility": "subdivision"
+        "width": "twoThirds", "height": "compact", "drill": true, "visibility": "subdivision"
       },
       "versions": [],
       "history": [
@@ -269,7 +269,7 @@
         "primary": "", "secondary": "", "dateGroup": "", "order": "source",
         "filter": { "logic": "and", "rules": [] },
         "compare": "prevMonth", "format": "number", "threshold": { "on": false, "value": "", "below": "warning" },
-        "width": "third", "height": "small", "drill": true, "visibility": "authority"
+        "width": "third", "height": "compact", "drill": true, "visibility": "authority"
       },
       "versions": [
         { "nr": 1, "version": 1, "type": "Prima publicare", "note": "Plăcuța KPI V-01.", "at": "2026-10-03T10:25:00", "by": "Anastasia Cojocaru" }
@@ -289,7 +289,7 @@
         "primary": "", "secondary": "", "dateGroup": "", "order": "valueDesc",
         "filter": { "logic": "and", "rules": [{ "column": "statut", "op": "is", "value": "Suspendat" }, { "column": "serviciu", "op": "is", "value": "Autorizație sanitară de funcționare" }] },
         "compare": "", "format": "number", "threshold": { "on": false, "value": "", "below": "warning" },
-        "width": "twoThirds", "height": "large", "drill": true, "visibility": "subdivision"
+        "width": "twoThirds", "height": "tall", "drill": true, "visibility": "subdivision"
       },
       "versions": [
         { "nr": 1, "version": 1, "type": "Prima publicare", "note": "Lista dosarelor suspendate ale serviciului.", "at": "2026-10-21T12:20:00", "by": "Victor Lungu" }
@@ -309,7 +309,7 @@
         "primary": "emis", "secondary": "", "dateGroup": "quarter", "order": "source",
         "filter": { "logic": "and", "rules": [] },
         "compare": "prevYear", "format": "number", "threshold": { "on": false, "value": "", "below": "warning" },
-        "width": "half", "height": "medium", "drill": true, "visibility": "global"
+        "width": "half", "height": "compact", "drill": true, "visibility": "global"
       },
       "versions": [
         { "nr": 1, "version": 1, "type": "Prima publicare", "note": "Actele emise pe trimestre.", "at": "2026-08-29T10:00:00", "by": "Anastasia Cojocaru" }
@@ -330,7 +330,7 @@
         "primary": "emis", "secondary": "", "dateGroup": "month", "order": "source",
         "filter": { "logic": "and", "rules": [{ "column": "tipAct", "op": "is", "value": "Licență" }] },
         "compare": "prevMonth", "format": "number", "threshold": { "on": false, "value": "", "below": "warning" },
-        "width": "half", "height": "medium", "drill": true, "visibility": "authority"
+        "width": "half", "height": "compact", "drill": true, "visibility": "authority"
       },
       "versions": [
         { "nr": 1, "version": 1, "type": "Prima publicare", "note": "Licențele emise pe luni.", "at": "2026-10-22T09:15:00", "by": "Mihai Ceban" }

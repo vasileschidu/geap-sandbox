@@ -4895,7 +4895,10 @@
       /* the canvas while arranging: hover / focus toolbar · drag in progress (iPhone reflow, grey slot) · resize in progress */
       "dsh-04b": prof("DSH-0001", "configurare", seq(layout(), D((d) => d.focus("WGT-0001")))),
       "dsh-04c": prof("DSH-0001", "configurare", seq(layout(), D((d) => d.drag("WGT-0006", 0)))),
-      "dsh-04l": prof("DSH-0001", "configurare", seq(layout(), D((d) => d.resize("WGT-0003", "twoThirds", "large")))),
+      "dsh-04l": prof("DSH-0001", "configurare", seq(layout(), D((d) => d.resize("WGT-0003", "twoThirds", "tall")))),
+      /* wid-heights-v1: a mixed board — compact tile + compact bars + a tall donut beside two compact rows, equal bottoms */
+      "dsh-04n": prof("DSH-0001", "configurare", layout(), { tablou: "mix" }),
+      "dsh-04o": prof("DSH-0001", "configurare", seq(layout(), D((d) => d.resize("WGT-0011", "third", "tall"))), { tablou: "mix" }),
       "dsh-04m": prof("DSH-0001", "configurare", seq(D((d) => { d.focus("WGT-0006"); document.activeElement.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowUp", bubbles: true })); }), layout())),
       "dsh-04d": prof("DSH-0001", "configurare", seq(layout(), pick)),
       "dsh-04e": prof("DSH-0003", "configurare", layout()),

@@ -10,16 +10,16 @@
         "roles": [{ "role": "specialist", "type": "principal" }],
         "order": 1, "allAuthorities": true, "authorities": ["ansp", "anta", "ansa", "amdm"],
         "widgets": [
-          { "widget": "WGT-0011", "width": "third", "height": "small" },
-          { "widget": "WGT-0001", "width": "third", "height": "medium" },
-          { "widget": "WGT-0006", "width": "third", "height": "medium" },
-          { "widget": "WGT-0003", "width": "half", "height": "medium" },
-          { "widget": "WGT-0002", "width": "half", "height": "medium" },
-          { "widget": "WGT-0004", "width": "full", "height": "medium" }
+          { "widget": "WGT-0011", "width": "third", "height": "compact" },
+          { "widget": "WGT-0001", "width": "third", "height": "compact" },
+          { "widget": "WGT-0006", "width": "third", "height": "compact" },
+          { "widget": "WGT-0003", "width": "half", "height": "compact" },
+          { "widget": "WGT-0002", "width": "half", "height": "compact" },
+          { "widget": "WGT-0004", "width": "full", "height": "compact" }
         ]
       },
       "versions": [
-        { "nr": 1, "version": 1, "type": "Prima publicare", "note": "Prima versiune, pentru specialiștii tuturor autorităților.", "at": "2026-11-03T10:00:00", "by": "Anastasia Cojocaru", "drop": ["WGT-0004"], "sizes": { "WGT-0003": ["full", "medium"] } },
+        { "nr": 1, "version": 1, "type": "Prima publicare", "note": "Prima versiune, pentru specialiștii tuturor autorităților.", "at": "2026-11-03T10:00:00", "by": "Anastasia Cojocaru", "drop": ["WGT-0004"], "sizes": { "WGT-0003": ["full", "compact"] } },
         { "nr": 2, "version": 2, "type": "Publicare", "note": "Am adăugat harta dosarelor depuse pe autorități și luni.", "at": "2026-11-06T14:30:00", "by": "Anastasia Cojocaru" }
       ],
       "history": [
@@ -38,13 +38,13 @@
         "roles": [{ "role": "supervisor", "type": "principal" }, { "role": "specialist", "type": "secundar" }],
         "order": 2, "allAuthorities": false, "authorities": ["ansp", "anta"],
         "widgets": [
-          { "widget": "WGT-0001", "width": "third", "height": "medium" },
-          { "widget": "WGT-0003", "width": "twoThirds", "height": "medium" },
-          { "widget": "WGT-0007", "width": "full", "height": "large" }
+          { "widget": "WGT-0001", "width": "third", "height": "compact" },
+          { "widget": "WGT-0003", "width": "twoThirds", "height": "compact" },
+          { "widget": "WGT-0007", "width": "full", "height": "tall" }
         ]
       },
       "versions": [
-        { "nr": 1, "version": 1, "type": "Prima publicare", "note": "Tabloul de bord al supervizorilor ANSP și ANTA.", "at": "2026-11-04T09:30:00", "by": "Anastasia Cojocaru", "drop": ["WGT-0007"], "sizes": { "WGT-0003": ["half", "medium"] } }
+        { "nr": 1, "version": 1, "type": "Prima publicare", "note": "Tabloul de bord al supervizorilor ANSP și ANTA.", "at": "2026-11-04T09:30:00", "by": "Anastasia Cojocaru", "drop": ["WGT-0007"], "sizes": { "WGT-0003": ["half", "compact"] } }
       ],
       "history": [
         { "at": "2026-11-08T16:05:00", "by": "Anastasia Cojocaru", "role": "Administrator central", "event": "Modificarea tabloului de bord", "detail": "Widget-uri: + Dosare pe servicii și statut · Dosare întârziate la examinare: Jumătate → Două treimi" },
@@ -61,9 +61,9 @@
         "roles": [{ "role": "director", "type": "principal" }, { "role": "supervisor", "type": "secundar" }],
         "order": 3, "allAuthorities": true, "authorities": ["ansp", "anta", "ansa", "amdm"],
         "widgets": [
-          { "widget": "WGT-0009", "width": "half", "height": "medium" },
-          { "widget": "WGT-0013", "width": "half", "height": "medium" },
-          { "widget": "WGT-0007", "width": "full", "height": "large" }
+          { "widget": "WGT-0009", "width": "half", "height": "compact" },
+          { "widget": "WGT-0013", "width": "half", "height": "compact" },
+          { "widget": "WGT-0007", "width": "full", "height": "tall" }
         ]
       },
       "versions": [
@@ -83,10 +83,10 @@
         "roles": [{ "role": "specialist", "type": "principal" }, { "role": "supervisor", "type": "secundar" }],
         "order": 1, "allAuthorities": false, "authorities": ["ansp"],
         "widgets": [
-          { "widget": "WGT-0006", "width": "third", "height": "medium" },
-          { "widget": "WGT-0008", "width": "third", "height": "medium" },
-          { "widget": "WGT-0011", "width": "third", "height": "small" },
-          { "widget": "WGT-0012", "width": "full", "height": "large" }
+          { "widget": "WGT-0006", "width": "third", "height": "compact" },
+          { "widget": "WGT-0008", "width": "third", "height": "compact" },
+          { "widget": "WGT-0011", "width": "third", "height": "compact" },
+          { "widget": "WGT-0012", "width": "full", "height": "tall" }
         ]
       },
       "versions": [
@@ -106,7 +106,7 @@
         "roles": [{ "role": "specialist", "type": "secundar" }],
         "order": 4, "allAuthorities": true, "authorities": ["ansp", "anta", "ansa", "amdm"],
         "widgets": [
-          { "widget": "WGT-0003", "width": "full", "height": "medium" }
+          { "widget": "WGT-0003", "width": "full", "height": "compact" }
         ]
       },
       "versions": [],
@@ -124,8 +124,8 @@
         "roles": [{ "role": "director", "type": "secundar" }],
         "order": 5, "allAuthorities": true, "authorities": ["ansp", "anta", "ansa", "amdm"],
         "widgets": [
-          { "widget": "WGT-0013", "width": "full", "height": "medium" },
-          { "widget": "WGT-0011", "width": "third", "height": "small" }
+          { "widget": "WGT-0013", "width": "full", "height": "compact" },
+          { "widget": "WGT-0011", "width": "third", "height": "compact" }
         ]
       },
       "versions": [
@@ -146,8 +146,8 @@
         "roles": [{ "role": "specialist", "type": "principal" }],
         "order": 1, "allAuthorities": false, "authorities": ["anta"],
         "widgets": [
-          { "widget": "WGT-0014", "width": "half", "height": "medium" },
-          { "widget": "WGT-0011", "width": "half", "height": "small" }
+          { "widget": "WGT-0014", "width": "half", "height": "compact" },
+          { "widget": "WGT-0011", "width": "half", "height": "compact" }
         ]
       },
       "versions": [
@@ -167,7 +167,7 @@
         "roles": [{ "role": "supervisor", "type": "secundar" }],
         "order": 2, "allAuthorities": false, "authorities": ["ansp"],
         "widgets": [
-          { "widget": "WGT-0012", "width": "full", "height": "large" }
+          { "widget": "WGT-0012", "width": "full", "height": "tall" }
         ]
       },
       "versions": [],
@@ -184,8 +184,8 @@
         "roles": [{ "role": "specialist", "type": "secundar" }, { "role": "supervisor", "type": "secundar" }],
         "order": 3, "allAuthorities": true, "authorities": ["ansp", "anta", "ansa", "amdm"],
         "widgets": [
-          { "widget": "WGT-0003", "width": "half", "height": "medium" },
-          { "widget": "WGT-0002", "width": "half", "height": "medium" }
+          { "widget": "WGT-0003", "width": "half", "height": "compact" },
+          { "widget": "WGT-0002", "width": "half", "height": "compact" }
         ]
       },
       "versions": [
