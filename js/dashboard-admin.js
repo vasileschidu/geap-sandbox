@@ -1244,9 +1244,7 @@
      „Adaugă” puts the chosen one at the end of the board at its default size, scrolls to it and flashes it */
   let picking = null;
   const pickRoot = () => document.querySelector("#case-action-modal.is-active [data-dsh-pick-list]");
-  /* dsh-pick-preview-v1 (2026-11-11, user + Stripe „Add charts”): each option card shows a small LIVE preview of the widget
-     itself — the real card (GEAPWidgets.card, the demo data, Compactă) at half scale (CSS zoom), head hidden (the title is
-     on the option), non-interactive: buttons / links become spans, no ids, tooltips or labels inside, `inert` + aria-hidden.
+  /* dsh-pick-preview-v1 (2026-11-11, user + Stripe „Add charts”): each option card shows a small preview of its type.
      Options grouped by what they show (the widget type families), one radio group across the groups. */
   const PICK_GROUPS = [
     ["Indicatori", ["tile"]],
@@ -1255,12 +1253,25 @@
     ["Tabele", ["aggTable", "rowTable", "heatmap"]]
   ];
   const pickGroupOf = (type) => PICK_GROUPS.find(([, types]) => types.includes(type))?.[0] || "Alte widget-uri";
-  function pickPreview(cfg) {
-    const html = (W().card?.({ ...cfg, width: "full", height: "compact" }, { compact: true }) || "")
-      .replace(/<(\/?)(button|a)\b/g, "<$1span")
-      .replace(/\s(?:id|for|href|type|tabindex|role|aria-[a-z-]+|data-tooltip-[a-z-]+|data-cell-tooltip|data-wid-[a-z-]+)="[^"]*"/g, "");
-    return `<span class="e-permits-dsh-pick-card__preview${cfg.type === "tile" ? " e-permits-dsh-pick-card__preview--stat" : ""}" aria-hidden="true" inert><span class="e-permits-dsh-pick-card__zoom">${html}</span></span>`;
-  }
+  /* dsh-pick-skeleton-v1 (user: „not real example — a skeleton in blue shades, not colours, no real data”): each option
+     shows an ABSTRACT illustration of its chart TYPE — shapes only (no numbers, labels, legends or series colours), the
+     brand-blue tint ramp (css/dashboard.css `.e-permits-dsh-sk__*`), rounded like the skeleton; one per type, same height */
+  const SK = (body) => `<svg class="e-permits-dsh-sk" viewBox="0 0 240 120" preserveAspectRatio="xMidYMid meet" aria-hidden="true" focusable="false">${body}</svg>`;
+  const skRect = (x, y, w, h, c = 2, r = 4) => `<rect class="e-permits-dsh-sk__${c}" x="${x}" y="${y}" width="${w}" height="${h}" rx="${r}"/>`;
+  const SKELETONS = {
+    tile: () => SK(`${skRect(16, 30, 120, 34, 3, 8)}${skRect(146, 38, 44, 18, 1, 9)}${skRect(16, 78, 150, 12, 1, 6)}`),
+    bars: () => SK([0, 1, 2, 3, 4].map((i) => `${skRect(16, 12 + i * 21, 208, 11, 0, 5)}${skRect(16, 12 + i * 21, [150, 196, 110, 170, 70][i], 11, 2, 5)}`).join("")),
+    stacked: () => SK([0, 1, 2, 3, 4].map((i) => { const w = [190, 160, 130, 100, 70][i]; return `${skRect(16, 12 + i * 21, w * 0.45, 11, 3, 5)}${skRect(16 + w * 0.45, 12 + i * 21, w * 0.3, 11, 2, 0)}${skRect(16 + w * 0.75, 12 + i * 21, w * 0.25, 11, 1, 5)}`; }).join("")),
+    line: () => SK(`${skRect(16, 104, 208, 2, 1, 1)}<polyline class="e-permits-dsh-sk__line" points="16,84 50,70 84,76 118,48 152,56 186,30 224,38"/>`),
+    control: () => SK(`${skRect(16, 30, 208, 2, 1, 1)}${skRect(16, 90, 208, 2, 1, 1)}<polyline class="e-permits-dsh-sk__line" points="16,64 50,52 84,70 118,46 152,60 186,40 224,58"/>`),
+    pie: () => SK(`<circle class="e-permits-dsh-sk__ring1" cx="70" cy="60" r="38"/><circle class="e-permits-dsh-sk__ring3" cx="70" cy="60" r="38" pathLength="100" stroke-dasharray="45 55"/><circle class="e-permits-dsh-sk__ring2" cx="70" cy="60" r="38" pathLength="100" stroke-dasharray="25 75" stroke-dashoffset="-45"/>${[0, 1, 2, 3].map((i) => skRect(130, 30 + i * 18, [80, 64, 72, 50][i], 9, 1, 4)).join("")}`),
+    funnel: () => SK([0, 1, 2, 3].map((i) => { const w = [208, 160, 112, 72][i]; return skRect(120 - w / 2, 12 + i * 26, w, 18, i === 0 ? 3 : 2, 5); }).join("")),
+    treemap: () => SK(`${skRect(16, 12, 104, 96, 3, 6)}${skRect(124, 12, 100, 54, 2, 6)}${skRect(124, 70, 56, 38, 1, 6)}${skRect(184, 70, 40, 38, 2, 6)}`),
+    heatmap: () => SK([0, 1, 2, 3].map((r) => [0, 1, 2, 3, 4, 5].map((c) => skRect(16 + c * 35, 12 + r * 25, 31, 21, (r * 7 + c * 3) % 4, 4)).join("")).join("")),
+    aggTable: () => SK(`${skRect(16, 12, 208, 14, 1, 4)}${[0, 1, 2, 3].map((i) => `${skRect(16, 36 + i * 20, 90, 9, 2, 4)}${skRect(150, 36 + i * 20, 30, 9, 1, 4)}${skRect(194, 36 + i * 20, 30, 9, 1, 4)}`).join("")}`),
+    rowTable: () => SK(`${skRect(16, 12, 208, 14, 1, 4)}${[0, 1, 2, 3].map((i) => `${skRect(16, 36 + i * 20, 60, 9, 2, 4)}${skRect(88, 36 + i * 20, 36, 9, 1, 4)}${skRect(136, 36 + i * 20, 88, 9, 1, 4)}`).join("")}`)
+  };
+  const pickPreview = (cfg) => `<span class="e-permits-dsh-pick-card__preview" aria-hidden="true">${(SKELETONS[cfg.type] || SKELETONS.bars)()}</span>`;
   function pickListHtml() {
     const v = P.draft;
     const d = P.id ? dashOf(P.id) : null;

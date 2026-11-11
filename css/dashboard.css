@@ -454,8 +454,8 @@
    grouped by what they show (Indicatori · Comparații și evoluții · Distribuții · Tabele). The card = the selectable option
    card, radio variant (`.e-permits-fo-delivery-option--radio`: 1px ring, r12, brand 2px ring when chosen, tertiary hover,
    the ONE decorative Small radio — kept a DIRECT child so `.is-selected > .radio` paints it), laid out as a grid:
-   title (1 line + tooltip) / meta | radio top-right, then the preview across = the real widget card at half scale (CSS
-   `zoom`, layout shrinks too), head hidden, no border, fixed height = half a Compactă card; 3 columns ≥ 761, 1 on phones. */
+   title (1 line + tooltip) / meta | radio top-right, then the preview across = an abstract skeleton of the chart type
+   (dsh-pick-skeleton-v1, user: no real data), on a grey 8-radius box, 120 high; 3 columns ≥ 761, 1 on phones. */
 .e-permits-dsh-pick {
   display: flex;
   flex-direction: column;
@@ -514,37 +514,49 @@
 }
 
 .e-permits-dsh-pick-card__preview {
+  background: var(--color-background-base-secondary, #f5f5f5);
   border-radius: var(--border-radius-8, 8px);
+  box-sizing: border-box;
   display: block;
   grid-column: 1 / -1;
-  height: calc(var(--wid-row-compact) / 2);
-  overflow: hidden;
+  height: calc(var(--spacing-40, 40px) * 3);
+  padding: var(--spacing-8, 8px);
   pointer-events: none;
 }
 
-.e-permits-dsh-pick-card__zoom {
+/* dsh-pick-skeleton-v1: the type illustration — shapes only, the brand-blue tint ramp (no data colours, no text) */
+.e-permits-dsh-sk {
   display: block;
-  height: 200%;
-  zoom: 0.5;
-}
-
-/* a number tile previews at full size: the value + delta are the preview */
-.e-permits-dsh-pick-card__preview--stat > .e-permits-dsh-pick-card__zoom {
   height: 100%;
-  zoom: 1;
+  width: 100%;
 }
 
-.e-permits-dsh-pick-card__preview--stat .e-permits-wid-card.e-permits-wid-card--stat {
-  padding: 0;
+.e-permits-dsh-sk__0 { fill: var(--blue-sky-150, #d9e6f8); }
+.e-permits-dsh-sk__1 { fill: var(--blue-sky-200, #ccdef6); }
+.e-permits-dsh-sk__2 { fill: var(--blue-sky-300, #99bced); }
+.e-permits-dsh-sk__3 { fill: var(--blue-sky-400, #669be4); }
+
+.e-permits-dsh-sk__line {
+  fill: none;
+  stroke: var(--blue-sky-400, #669be4);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 6;
 }
 
-.e-permits-dsh-pick-card__zoom > .e-permits-wid-card {
-  border: 0;
-  border-radius: 0;
-  height: 100%;
+.e-permits-dsh-sk__ring1,
+.e-permits-dsh-sk__ring2,
+.e-permits-dsh-sk__ring3 {
+  fill: none;
+  stroke-width: 18;
+  transform: rotate(-90deg);
+  transform-box: fill-box;
+  transform-origin: center;
 }
 
-.e-permits-dsh-pick-card__zoom > .e-permits-wid-card > .e-permits-wid-card__head { display: none; }
+.e-permits-dsh-sk__ring1 { stroke: var(--blue-sky-200, #ccdef6); }
+.e-permits-dsh-sk__ring2 { stroke: var(--blue-sky-300, #99bced); }
+.e-permits-dsh-sk__ring3 { stroke: var(--blue-sky-400, #669be4); }
 
 .e-permits-dsh-pick-card.is-disabled {
   cursor: not-allowed;
