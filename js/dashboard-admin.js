@@ -90,7 +90,16 @@
   /* wid-card-v2 (2026-11-11, user): a number tile („Plăcuță simplă”) is Compactă only — the resize corner and Shift + ↑ / ↓
      cannot make it tall */
   const isStat = (id) => (W().published?.(id) || W().get?.(id)?.config)?.type === "tile";
-  const hOf = (t) => (isStat(t.widget) ? "compact" : heightKey(t.height));
+  /* dsh-row-unit-v1 (2026-11-11, user: „the expansion step is really big, more granular”): a tile's height = N grid row
+     units (css/dashboard.css: Compactă = 8, Înaltă = 16, one unit + gap = 47 ≈ one list row); charts 8 … 20 by the resize
+     corner / Shift + ↑ ↓ one unit at a time; a number tile = 4 (half a Compactă card, two stack beside a chart). The old
+     „compact” / „tall” values (seeds, widget defaults) read as 8 / 16. */
+  const ROWS = { stat: 4, compact: 8, tall: 16, min: 8, max: 20 };
+  const rowsOfHeight = (h) => (Number.isFinite(Number(h)) && h !== "" && h !== null ? Math.min(ROWS.max, Math.max(ROWS.min, Math.round(Number(h)))) : heightKey(h) === "tall" ? ROWS.tall : ROWS.compact);
+  const rowsOf = (t) => (isStat(t.widget ?? t.id) ? ROWS.stat : rowsOfHeight(t.height));
+  /* the card's own height class (its inner layout: donut legend beside / under, plot sizes) */
+  const hOf = (t) => (rowsOf(t) >= ROWS.tall ? "tall" : "compact");
+  const rowsText = (n) => (n === ROWS.compact ? "Compactă" : n === ROWS.tall ? "Înaltă" : `${n} rânduri`);
   const STATUS_TONE = { "Ciornă": "neutral", "Publicat": "success", "Dezactivat": "neutral" };
   const EVENTS = {
     create: "Crearea tabloului de bord", clone: "Clonarea tabloului de bord", edit: "Modificarea tabloului de bord",
@@ -138,10 +147,13 @@
         const mixed = demo.has("mix") && json.dashboards.find((d) => d.id === "DSH-0001");
         /* ?tablou=kpi3 (demo dsh-04q): DSH-0001 as one row of three compact KPI tiles, each a third wide */
         const kpi3 = demo.has("kpi3") && json.dashboards.find((d) => d.id === "DSH-0001");
+        /* ?tablou=stiva (demo dsh-04s · dsh-20g, dsh-half-row-v1): a 2/3 chart with two 1/3 number tiles stacked beside it,
+           then two Compactă halves — on DSH-0001 (editor) and DSH-0004 (the ANSP Specialist's principal, the BO page) */
+        if (demo.has("stiva")) json.dashboards.filter((d) => d.id === "DSH-0001" || d.id === "DSH-0004").forEach((d) => { d.config.widgets = [["WGT-0001", "twoThirds"], ["WGT-0011", "third"], ["WGT-0015", "third"], ["WGT-0006", "half"], ["WGT-0008", "half"]].map(([widget, width]) => ({ widget, width, height: "compact" })); });
         if (kpi3) kpi3.config.widgets = ["WGT-0011", "WGT-0015", "WGT-0016"].map((widget) => ({ widget, width: "third", height: "compact" }));
         if (mixed) mixed.config.widgets = [["WGT-0011", "third", "compact"], ["WGT-0001", "third", "compact"], ["WGT-0006", "third", "tall"], ["WGT-0003", "twoThirds", "compact"], ["WGT-0008", "half", "compact"], ["WGT-0012", "half", "compact"]].map(([widget, width, height]) => ({ widget, width, height }));
         json.dashboards.forEach((d) => {
-          d.config.widgets.forEach((x) => { x.height = hOf(x); });
+          d.config.widgets.forEach((x) => { x.height = rowsOf(x); });
           d.offFor = d.offFor || [];
           d.history = d.history || [];
           d.versions = (d.versions || []).map((v) => {
@@ -149,7 +161,7 @@
             /* the seed of an older version names the widgets it did not have yet and the sizes it had */
             if (v.drop) config.widgets = config.widgets.filter((x) => !v.drop.includes(x.widget));
             if (v.sizes) config.widgets.forEach((x) => { if (v.sizes[x.widget]) [x.width, x.height] = v.sizes[x.widget]; });
-            config.widgets.forEach((x) => { x.height = hOf(x); });
+            config.widgets.forEach((x) => { x.height = rowsOf(x); });
             return { nr: v.nr, version: v.version, type: v.type, note: v.note, at: v.at, by: v.by, config };
           });
         });
@@ -370,22 +382,19 @@
      / drag: the shared grey hover surface (`.e-permits-hover-surface`, the calendar months), a floating toolbar (drag
      handle + red remove), a bottom-right resize corner that snaps to 4 · 6 · 8 · 12 columns and Compactă · Înaltă, the
      12 column guides while dragging / resizing. Drag = iPhone-style live reflow (FLIP). Keyboard: the widget is focusable;
-     ← → ↑ ↓ move it, Shift + ← → change the width, Shift + ↑ ↓ toggle the height (announced). Add = one widget at a time (the
+     ← → ↑ ↓ move it, Shift + ← → change the width, Shift + ↑ ↓ change the height one row unit (announced). Add = one widget at a time (the
      picker), it lands at the end at its default size, scrolls into view and flashes. Phones: one widget per row, no
      resize; the toolbar shows ↑ ↓ + remove. */
   const SPAN = { third: 4, half: 6, twoThirds: 8, full: 12 };
   const WIDTH_KEYS = ["third", "half", "twoThirds", "full"];
-  const HEIGHT_KEYS = ["compact", "tall"];
-  const sizeText = (t) => `${SPAN[t.width] || 12}/12 · ${label(HEIGHTS(), hOf(t)) || "Compactă"}`;
-  /* a board without a tall widget sizes each row to its content (dsh-natural-v2): chart cards keep their fixed Compactă
-     height, a row of number tiles is as tall as the tiles; a tall widget needs the fixed rows it spans */
-  const naturalRows = (list) => list.length > 0 && list.every((t) => hOf(t) === "compact");
+    /* dsh-half-row-v1: a number tile has one fixed height (half a Compactă row) → its size = the width only */
+  const sizeText = (t) => (isStat(t.widget ?? t.id) ? `${SPAN[t.width] || 12}/12` : `${SPAN[t.width] || 12}/12 · ${rowsText(rowsOf(t))}`);
   function tileBody(t, d) {
     const info = widgetInfo(t.widget, d);
     if (!info.active) {
       return `<div class="e-permits-chart e-permits-wid-card e-permits-dsh-tile__off">${E()?.render({ title: "Widget dezactivat", text: `„${info.title}” nu mai este publicat și nu apare pe tablou. Elimină-l sau înlocuiește-l.`, icon: "warning-filled", compact: true, bare: true }) || ""}</div>`;
     }
-    return W().card?.({ ...info.cfg, width: t.width, height: t.height }, { compact: true }) || "";
+    return W().card?.({ ...info.cfg, width: t.width, height: hOf(t) }, { compact: true }) || "";
   }
   function tileHtml(t, i, n, d, edit) {
     const info = widgetInfo(t.widget, d);
@@ -399,16 +408,14 @@
       </div>
       <span class="e-permits-dsh-tile__resize" aria-hidden="true" data-dsh-resize>${icon("resize", 16)}</span>
       <span class="e-permits-dsh-tile__size" aria-hidden="true">${tag(sizeText(t), "brand")}</span>` : "";
-    return `<div class="e-permits-dsh-tile e-permits-dsh-tile--${SPAN[t.width] ? t.width : "full"} e-permits-dsh-tile--${hOf(t)}${isStat(t.widget) ? " e-permits-dsh-tile--stat" : ""}${edit ? " e-permits-hover-surface is-editable" : ""}" role="listitem" data-dsh-tile="${t.widget}" data-index="${i}"${edit ? ` tabindex="0" aria-roledescription="widget mutabil" aria-label="${esc(name)}"` : ` aria-label="${esc(name)}"`}>${tileBody(t, d)}${tools}</div>`;
+    return `<div class="e-permits-dsh-tile e-permits-dsh-tile--${SPAN[t.width] ? t.width : "full"} e-permits-dsh-tile--${hOf(t)} e-permits-dsh-tile--r${rowsOf(t)}${isStat(t.widget) ? " e-permits-dsh-tile--stat" : ""}${edit ? " e-permits-hover-surface is-editable" : ""}" role="listitem" data-dsh-tile="${t.widget}" data-index="${i}"${edit ? ` tabindex="0" aria-roledescription="widget mutabil" aria-label="${esc(name)}"` : ` aria-label="${esc(name)}"`}>${tileBody(t, d)}${tools}</div>`;
   }
   function layoutHtml(v, d, { edit = false } = {}) {
     const n = v.widgets.length;
     const tiles = v.widgets.map((t, i) => tileHtml(t, i, n, d, edit)).join("");
     const ghost = edit && n < MAX_WIDGETS ? `<div class="e-permits-dsh-ghost" role="listitem"><span class="e-permits-dsh-ghost__text">Adaugă widget-urile unul câte unul și aranjează-le aici.</span>${addButton(v)}</div>` : "";
-    /* a board of only compact number tiles (dsh-04q) sizes its row to the tallest card's content — no fixed height, no empty card space */
-    const natural = naturalRows(v.widgets);
     const body = n || edit
-      ? `<div class="e-permits-dsh-grid${edit ? " is-editing" : ""}${natural ? " is-natural" : ""}" role="list" aria-label="Widget-urile tabloului de bord, în ordinea de citire" data-dsh-grid>
+      ? `<div class="e-permits-dsh-grid${edit ? " is-editing" : ""}" role="list" aria-label="Widget-urile tabloului de bord, în ordinea de citire" data-dsh-grid>
           <div class="e-permits-dsh-guides" aria-hidden="true">${Array.from({ length: 12 }, () => "<span></span>").join("")}</div>
           ${tiles}${ghost}
         </div>`
@@ -432,7 +439,7 @@
     return {
       general: [["Denumire (RO)", d(v.names.ro)], ["Denumire (RU)", d(v.names.ru)], ["Denumire (EN)", d(v.names.en)], ["Descriere", d(v.descriptions.ro)], ["Ordinea tabloului de bord", d(String(v.order || ""))]],
       access: [["Roluri", d(rolesText(v))], ["Nivel", esc(level)], ["Autorități asignate", d(level === "Global" && !v.allAuthorities && v.authorities.length > 2 ? `${v.authorities.length} autorități` : authText(v, level))]],
-      widgets: [["Widget-uri", esc(`${v.widgets.length} din ${MAX_WIDGETS}`)], ...v.widgets.map((t, i) => [widgetInfo(t.widget).title, esc(`Poziția ${i + 1} · ${label(WIDTHS(), t.width)} · ${label(HEIGHTS(), hOf(t))}`)])]
+      widgets: [["Widget-uri", esc(`${v.widgets.length} din ${MAX_WIDGETS}`)], ...v.widgets.map((t, i) => [widgetInfo(t.widget).title, esc(`Poziția ${i + 1} · ${label(WIDTHS(), t.width)}${isStat(t.widget) ? "" : ` · ${rowsText(rowsOf(t))}`}`)])]
     };
   }
   const flatRows = (v, level) => { const r = configRows(v, level); return [...r.general, ...r.access, ...r.widgets]; };
@@ -1238,7 +1245,7 @@
       const cfg = W().published(w.id);
       const on = v.widgets.some((t) => t.widget === w.id);
       const chosen = picking.sel === w.id;
-      const desc = on ? "Este deja pe tablou." : `${W().typeLabel?.(cfg.type) || ""} · ${W().levelText?.(w) || w.level} · ${SPAN[cfg.width] || 6}/12, ${(label(HEIGHTS(), cfg.type === "tile" ? "compact" : heightKey(cfg.height)) || "Compactă").toLocaleLowerCase("ro")}`;
+      const desc = on ? "Este deja pe tablou." : `${W().typeLabel?.(cfg.type) || ""} · ${W().levelText?.(w) || w.level} · ${SPAN[cfg.width] || 6}/12${cfg.type === "tile" ? "" : `, ${(label(HEIGHTS(), heightKey(cfg.height)) || "Compactă").toLocaleLowerCase("ro")}`}`;
       return `
         <label class="e-permits-fo-delivery-option e-permits-fo-delivery-option--radio e-permits-wid-type${chosen ? " is-selected" : ""}${on ? " is-disabled" : ""}">
           <input class="e-permits-fo-delivery-option__input" type="radio" name="dsh-pick" value="${esc(w.id)}"${chosen ? " checked" : ""}${on ? " disabled" : ""} aria-describedby="dsh-pick-${w.id}-desc" data-dsh-pick>
@@ -1286,7 +1293,7 @@
     const id = picking.sel;
     /* it starts from its own default width and height (Feature assumption, Feature 96501) */
     const cfg = W().published(id);
-    P.draft.widgets.push({ widget: id, width: SPAN[cfg?.width] ? cfg.width : "half", height: cfg?.type === "tile" ? "compact" : heightKey(cfg?.height) });
+    P.draft.widgets.push({ widget: id, width: SPAN[cfg?.width] ? cfg.width : "half", height: cfg?.type === "tile" ? ROWS.stat : rowsOfHeight(cfg?.height) });
     picking = null;
     delete P.errors.widgets;
     G().closeModal?.();
@@ -1491,9 +1498,14 @@
   function resizeWidget(id, axis, by) {
     const t = P.draft.widgets.find((x) => x.widget === id);
     if (!t) return;
-    /* two heights: Shift + ↑ / ↓ toggles Compactă ⇄ Înaltă */
-    if (axis === "height" && isStat(id)) { live(`„${widgetInfo(id).title}” este o plăcuță simplă: are o singură înălțime, Compactă.`); return; }
-    if (axis === "height") { arrange(() => { t.height = heightKey(t.height) === "tall" ? "compact" : "tall"; }, { focus: id, say: `„${widgetInfo(id).title}”: ${sizeText(t)}.` }); return; }
+    /* Shift + ↑ / ↓ = one row unit less / more (8 … 20) */
+    if (axis === "height" && isStat(id)) { live(`„${widgetInfo(id).title}” este o plăcuță simplă: înălțimea e fixă (jumătate de Compactă), se schimbă doar lățimea.`); return; }
+    if (axis === "height") {
+      const n = rowsOf(t) + by;
+      if (n < ROWS.min || n > ROWS.max) { live("Înălțimea este deja la limită."); return; }
+      arrange(() => { t.height = n; }, { focus: id, say: `„${widgetInfo(id).title}”: ${sizeText(t)}.` });
+      return;
+    }
     const keys = WIDTH_KEYS;
     const k = keys.indexOf(t[axis]) + by;
     if (k < 0 || k >= keys.length) { live(axis === "width" ? "Lățimea este deja la limită." : "Înălțimea este deja la limită."); return; }
@@ -1529,12 +1541,12 @@
     const r = tile.getBoundingClientRect();
     const t = P.draft.widgets.find((w) => w.widget === tile.dataset.dshTile);
     const gs = getComputedStyle(grid);
-    /* the Compactă row height (a natural grid has `auto` rows): measured from the token on a probe */
+    /* the row unit (phones have `auto` rows): measured from the token on a probe */
     const probe = grid.appendChild(Object.assign(document.createElement("div"), { className: "e-permits-dsh-row-probe" }));
-    const row = probe.offsetHeight || parseFloat(gs.gridAutoRows) || 360;
+    const unit = probe.offsetHeight || parseFloat(gs.gridAutoRows) || 31;
     probe.remove();
     const rowGap = parseFloat(gs.rowGap) || 0;
-    act = { kind, tile, grid, id: tile.dataset.dshTile, offX: x - r.left, offY: y - r.top, z: zoomOf(tile), width: t.width, height: hOf(t), stat: isStat(t.widget), rows: { compact: row, tall: row * 2 + rowGap } };
+    act = { kind, tile, grid, id: tile.dataset.dshTile, offX: x - r.left, offY: y - r.top, z: zoomOf(tile), width: t.width, height: rowsOf(t), stat: isStat(t.widget), unit, rowGap };
     grid.classList.add("is-arranging");
     tile.classList.add(kind === "move" ? "is-lifted" : "is-resizing");
     if (kind === "move") {
@@ -1545,6 +1557,7 @@
       ghost.setAttribute("aria-hidden", "true");
       ghost.innerHTML = [...tile.children].filter((c) => !c.matches(".e-permits-dsh-tile__size")).map((c) => c.outerHTML).join("").replace(/\sid="[^"]*"/g, "");
       ghost.style.setProperty("--dsh-gw", `${r.width}px`);
+      ghost.style.setProperty("--dsh-gh", `${r.height}px`);
       document.body.appendChild(ghost);
       act.ghost = ghost;
       placeGhost(x, y);
@@ -1608,15 +1621,25 @@
     const cols = (x - r.left + gap) / (colW + gap);
     const width = WIDTH_KEYS.reduce((best, k) => (Math.abs(SPAN[k] - cols) < Math.abs(SPAN[best] - cols) ? k : best), WIDTH_KEYS[0]);
     const h = y - r.top;
-    const height = a.stat ? "compact" : HEIGHT_KEYS.reduce((best, k) => (Math.abs(a.rows[k] * a.z - h) < Math.abs(a.rows[best] * a.z - h) ? k : best), HEIGHT_KEYS[0]);
+    /* snaps per row unit: N units = N × unit + (N − 1) × gap */
+    const height = a.stat ? ROWS.stat : Math.min(ROWS.max, Math.max(ROWS.min, Math.round((h / a.z + a.rowGap) / (a.unit + a.rowGap))));
     if (width !== a.width) { a.tile.classList.remove(`e-permits-dsh-tile--${a.width}`); a.tile.classList.add(`e-permits-dsh-tile--${width}`); a.width = width; }
-    if (height !== a.height) {
-      a.tile.classList.replace(`e-permits-dsh-tile--${a.height}`, `e-permits-dsh-tile--${height}`);
-      a.height = height;
-      const card = a.tile.querySelector(".e-permits-wid-card");
-      if (card) card.outerHTML = tileBody({ widget: a.id, width, height }, P.id ? dashOf(P.id) : null);
-    }
+    setRows(a, height);
     showTarget();
+  }
+  /* the live height while resizing: the tile's row class; the card is re-rendered only when its own class flips
+     (Compactă ⇄ Înaltă layout), otherwise fit() (ResizeObserver) re-fits the rows */
+  function setRows(a, height) {
+    if (height === a.height) return;
+    const was = a.height >= ROWS.tall ? "tall" : "compact";
+    const now = height >= ROWS.tall ? "tall" : "compact";
+    a.tile.classList.replace(`e-permits-dsh-tile--r${a.height}`, `e-permits-dsh-tile--r${height}`);
+    a.height = height;
+    if (was !== now) {
+      a.tile.classList.replace(`e-permits-dsh-tile--${was}`, `e-permits-dsh-tile--${now}`);
+      const card = a.tile.querySelector(".e-permits-wid-card");
+      if (card) card.outerHTML = tileBody({ widget: a.id, width: a.width, height }, P.id ? dashOf(P.id) : null);
+    }
   }
   function endArrange(commit) {
     const a = act;
@@ -1680,8 +1703,7 @@
       const r = tile.getBoundingClientRect();
       startArrange(tile, "resize", r.right, r.bottom);
       if (width !== act.width) { tile.classList.remove(`e-permits-dsh-tile--${act.width}`); tile.classList.add(`e-permits-dsh-tile--${width}`); act.width = width; }
-      if (act.stat) height = "compact";
-      if (height !== act.height) { tile.classList.replace(`e-permits-dsh-tile--${act.height}`, `e-permits-dsh-tile--${height}`); act.height = height; const card = tile.querySelector(".e-permits-wid-card"); if (card) card.outerHTML = tileBody({ widget: id, width, height }, P.id ? dashOf(P.id) : null); }
+      setRows(act, act.stat ? ROWS.stat : rowsOfHeight(height));
       requestAnimationFrame(showTarget);
     },
     focus(id) { tileEl(id)?.focus(); },
@@ -1734,8 +1756,8 @@
     const st = V.busy.has(key) || demo.has("incarcare") ? { refreshing: true }
       : V.failed.has(key) ? { bodyHtml: E()?.render({ title: "Datele nu s-au încărcat", text: "Celelalte widget-uri nu sunt afectate. Încearcă din nou.", icon: "warning-filled", compact: true, bare: true, actionHtml: `<button class="btn btn-secondary btn-sm" type="button" data-dsh-view-retry="${esc(key)}" aria-label="Reîncearcă: ${esc(title)}">${icon("rotate-arrow", 16)}<span>Reîncearcă</span></button>` }) || "" }
       : {};
-    const card = W().card?.({ ...cfg, width: t.width, height: t.height }, { compact: true, st, ariaLabel: title }) || "";
-    return `<div class="e-permits-dsh-tile e-permits-dsh-tile--${SPAN[t.width] ? t.width : "full"} e-permits-dsh-tile--${hOf(t)}${isStat(t.widget) ? " e-permits-dsh-tile--stat" : ""}" role="listitem" data-dsh-tile="${esc(t.widget)}" data-index="${i}">${card}</div>`;
+    const card = W().card?.({ ...cfg, width: t.width, height: hOf(t) }, { compact: true, st, ariaLabel: title }) || "";
+    return `<div class="e-permits-dsh-tile e-permits-dsh-tile--${SPAN[t.width] ? t.width : "full"} e-permits-dsh-tile--${hOf(t)} e-permits-dsh-tile--r${rowsOf(t)}${isStat(t.widget) ? " e-permits-dsh-tile--stat" : ""}" role="listitem" data-dsh-tile="${esc(t.widget)}" data-index="${i}">${card}</div>`;
   }
   function viewBody(d, me, principal) {
     const live = liveWidgets(d, me.authority);
@@ -1745,7 +1767,7 @@
     const desc = String(lastVersion(d).config.descriptions?.ro || "").trim();
     const meta = [`Perimetru: ${viewPerimeter(me)}`, `Date calculate azi, la 06:00`].join(" · ");
     const grid = live.length
-      ? `<div class="e-permits-dsh-stage"><div class="e-permits-dsh-grid${naturalRows(live.map((x) => x.t)) ? " is-natural" : ""}" role="list" aria-label="Widget-urile tabloului de bord">${live.map((x, i) => viewTile(d, x, i)).join("")}</div></div>`
+      ? `<div class="e-permits-dsh-stage"><div class="e-permits-dsh-grid" role="list" aria-label="Widget-urile tabloului de bord">${live.map((x, i) => viewTile(d, x, i)).join("")}</div></div>`
       : E()?.render({ title: "Niciun widget", text: "Widget-urile acestui tablou de bord nu mai sunt publicate.", icon: "chart" }) || "";
     return `
       <section class="e-permits-dosar-profil__section e-permits-dsh-view e-permits-dsh-wide" id="dsh-view-panel"${V.tabs ? ` role="tabpanel" aria-labelledby="dsh-view-tab-${esc(d.id)}"` : ""} aria-busy="${demo.has("incarcare") ? "true" : "false"}" data-dsh-view="${esc(d.id)}">

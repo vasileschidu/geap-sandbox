@@ -4944,6 +4944,14 @@
       "dsh-04n": prof("DSH-0001", "configurare", layout(), { tablou: "mix" }),
       /* three compact KPI tiles in one row, each a third wide (cards size to their natural content) */
       "dsh-04q": prof("DSH-0001", "configurare", layout(), { tablou: "kpi3" }),
+      /* dsh-half-row-v1: a number tile = half a Compactă row — two stacked beside a 2/3 chart end on its bottom edge;
+         04t = the lower tile focused (toolbar + resize corner + „4/12” size tag) */
+      "dsh-04s": prof("DSH-0001", "configurare", layout(), { tablou: "stiva" }),
+      "dsh-04t": prof("DSH-0001", "configurare", seq(layout(), D((d) => d.focus("WGT-0015"))), { tablou: "stiva" }),
+      /* dsh-row-unit-v1: the height grows one row unit at a time — „Dosare întârziate la examinare” one unit taller
+         (Shift + ↓) = 9 rânduri, all five rows instead of „+1 altul”; 04v = the same while dragging the corner */
+      "dsh-04u": prof("DSH-0001", "configurare", seq(layout(), D((d) => { d.focus("WGT-0003"); document.activeElement.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowDown", shiftKey: true, bubbles: true })); }))),
+      "dsh-04v": prof("DSH-0001", "configurare", seq(layout(), D((d) => d.resize("WGT-0003", "half", 9)))),
       "dsh-04o": prof("DSH-0001", "configurare", seq(layout(), D((d) => d.resize("WGT-0011", "third", "tall"))), { tablou: "mix" }),
       "dsh-04m": prof("DSH-0001", "configurare", seq(D((d) => { d.focus("WGT-0006"); document.activeElement.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowUp", bubbles: true })); }), layout())),
       "dsh-04d": prof("DSH-0001", "configurare", seq(layout(), pick)),
@@ -4993,6 +5001,7 @@
       "dsh-20c": view(null, { tablou: "widget-eroare" }),
       "dsh-20d": view(null, { tablou: "incarcare" }),
       "dsh-20e": view(null, null, SUP),
+      "dsh-20g": view(null, { tablou: "stiva" }),
       "dsh-20f": view(async (h) => { await h.click("[data-dsh-view-retry]"); await h.wait(1100); }, { tablou: "widget-eroare" })
     };
   }

@@ -12757,10 +12757,14 @@ his authority + only the widgets it may use). Every operation → the dashboard'
   danger (`GEAPTag.html`) · `__meta` „față de luna precedentă (2.190)” and „Ținta …” (14/20 tertiary). Label ABOVE the
   number: one head pattern for every card (title, „ⓘ” and the editor toolbar on one centre line) and label → value reading
   order (Stripe / Linear). Drill = `button.e-permits-wid-stat__btn` whose `::after` covers the card; hover = border
-  secondary + `--shadow-200`, focus ring on the card; „ⓘ” stays above it (z 1). **Compactă only**: no Înaltă option in the
-  widget form (`heightOf`), the resize corner / Shift + ↑ ↓ keep it compact (live message), no sparkline. Grid (dsh-natural-v2):
-  a board without a tall widget has `auto` rows (`.is-natural`; chart cards keep their fixed Compactă height, a row of
-  number tiles is as tall as the tiles); a tile next to charts fills the row (`.e-permits-dsh-tile--stat > card` height 100%); the resize code measures the Compactă row on a hidden `.e-permits-dsh-row-probe`.
+  secondary + `--shadow-200`, focus ring on the card; „ⓘ” stays above it (z 1). **One fixed height = half a Compactă card**
+  (4 row units; no Înaltă option in the widget form, `heightOf`), the resize corner / Shift + ↑ ↓ change only its width
+  (live message, size tag „4/12”), no sparkline; two number tiles of the same width stack in one column beside a Compactă
+  chart and end on its bottom edge (dsh-half-row-v1, demo dsh-04s · 04t · 20g). **Grid rows** (dsh-row-unit-v1, 2026-11-11):
+  `grid-auto-rows: --dsh-row-unit` = (Compactă − 7 × 16) / 8 = 31 (unit + gap = 47 ≈ one list row); a tile =
+  `.e-permits-dsh-tile--rN` (N = 4 number tile · 8 Compactă · 16 Înaltă · any 8–20 for charts), the card fills the tile
+  (height 100%, fit() re-fits on resize); sparse auto-flow, no `dense` (DOM order = reading order); the model stores
+  `height` = N (old „compact” / „tall” read as 8 / 16); the resize code measures the unit on a hidden `.e-permits-dsh-row-probe`.
   Editor toolbar: right = border + 16 (icons on the 24 content edge), top = border + 12 on charts / + 20 on number tiles →
   title, „ⓘ” and toolbar share one centre line (measured ≤ 0.5); the editable title row keeps 56 free on the right and
   truncates. Demo dsh-04a, dsh-04q (three tiles), dsh-04n (mixed + tall), dsh-04l (resize), dsh-20 (view, no toolbar).
@@ -12794,9 +12798,9 @@ his authority + only the widgets it may use). Every operation → the dashboard'
   trash) + `__resize` corner (24, `resize` icon, nwse cursor). Focus-visible = the calendar focus ring. **Drag** (pointer, from the handle): the card
   follows the pointer (`--dsh-dx/--dsh-dy`, `--drop-shadow-400`), its grey surface stays as the slot, the others reflow live
   with FLIP (`--motion-duration-md`, standard easing; reduced motion = no animation); drop / Escape / blur end it.
-  **Resize** (corner): snaps to the nearest of 4 · 6 · 8 · 12 columns and Mică · Medie · Mare (plot 3 · 4 · 6 × 40 + the
-  card chrome), live brand Small tag „8/12 · Mare”, guides lit. **Keyboard**: the focused widget — ← ↑ / → ↓ move, Shift + ← →
-  width, Shift + ↑ ↓ height; every change is announced in the polite live region and keeps the focus. **Add** = the dashed
+  **Resize** (corner): snaps to the nearest of 4 · 6 · 8 · 12 columns and to ONE row unit in height (8–20; Compactă 8,
+  Înaltă 16), live brand Small tag „6/12 · 9 rânduri” („Compactă” / „Înaltă” at 8 / 16), guides lit (demo dsh-04u · 04v). **Keyboard**: the focused widget — ← ↑ / → ↓ move, Shift + ← →
+  width, Shift + ↑ ↓ height one row unit; every change is announced in the polite live region and keeps the focus. **Add** = the dashed
   `.e-permits-dsh-ghost` slot at the end (⅓, „Adaugă widget-urile unul câte unul și aranjează-le aici.” + `btn-secondary`)
   and the heading button; the new widget lands at the end at its default size, scrolls in, takes the focus and flashes
   (`.is-flash`, 2 × the focus ring). No Lățime / Înălțime selects, no Editare / Previzualizare switch (both rejected by

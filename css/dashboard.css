@@ -89,31 +89,52 @@
 }
 
 /* the grid: 12 columns, reading order = widget order; the column guides show only while dragging / resizing.
-   wid-heights-v1: fixed rows = the „Compactă” card height, an „Înaltă” widget spans two rows (= its card height), so every
-   row has equal bottoms; phones = natural heights (below) */
+   dsh-row-unit-v1 (2026-11-11, user: „stack 2 number tiles beside a chart” + „expand vertically just a bit, the step is
+   too big”): the row unit = an EIGHTH of a Compactă card ((360 − 7 × 16) / 8 = 31; one unit + the gap = 47 ≈ one list
+   row). A widget's height = N units (`--rN`): Compactă 8 (= 360), Înaltă 16 (= 736, as wid-heights-v1), anything between
+   and up to 20 by the resize corner (one unit per step); a number tile = 4 (half a Compactă card), so two number tiles of
+   the same width stack in one column beside a Compactă chart and end on its bottom edge. Sparse auto-placement does the
+   stacking by itself (the cursor only moves forward, the second tile lands in the free cell under the first), so DOM
+   order = reading order = aria order. The card fills its tile; fit() (js/widget-charts.js, ResizeObserver) shows the list
+   / table rows that fit. Phones = natural heights (below). */
 .e-permits-dsh-grid {
+  --dsh-row-unit: calc((var(--wid-row-compact) - var(--spacing-16, 16px) * 7) / 8);
   align-items: stretch;
   display: grid;
   gap: var(--spacing-16, 16px);
-  grid-auto-rows: var(--wid-row-compact);
+  grid-auto-rows: var(--dsh-row-unit);
   grid-template-columns: repeat(12, minmax(0, 1fr));
   position: relative;
 }
 
-.e-permits-dsh-tile--tall { grid-row: span 2; }
-
-/* dsh-natural-v2 (wid-card-v2): a board without a tall widget = `auto` rows — chart cards keep their fixed Compactă height,
-   a row of number tiles is as tall as the tiles; a number tile next to charts fills the row (equal bottoms) */
-.e-permits-dsh-grid.is-natural { grid-auto-rows: auto; }
-
 @media (min-width: 761px) {
-  .e-permits-dsh-tile--stat > .e-permits-wid-card { height: 100%; }
-  .e-permits-dsh-grid.is-natural .e-permits-dsh-tile__off { min-height: var(--wid-row-compact); }
+  .e-permits-dsh-grid > .e-permits-dsh-tile,
+  .e-permits-dsh-grid > .e-permits-dsh-ghost { grid-row: span 8; }
+
+  .e-permits-dsh-grid > .e-permits-dsh-tile--r4 { grid-row: span 4; }
+  .e-permits-dsh-grid > .e-permits-dsh-tile--r5 { grid-row: span 5; }
+  .e-permits-dsh-grid > .e-permits-dsh-tile--r6 { grid-row: span 6; }
+  .e-permits-dsh-grid > .e-permits-dsh-tile--r7 { grid-row: span 7; }
+  .e-permits-dsh-grid > .e-permits-dsh-tile--r8 { grid-row: span 8; }
+  .e-permits-dsh-grid > .e-permits-dsh-tile--r9 { grid-row: span 9; }
+  .e-permits-dsh-grid > .e-permits-dsh-tile--r10 { grid-row: span 10; }
+  .e-permits-dsh-grid > .e-permits-dsh-tile--r11 { grid-row: span 11; }
+  .e-permits-dsh-grid > .e-permits-dsh-tile--r12 { grid-row: span 12; }
+  .e-permits-dsh-grid > .e-permits-dsh-tile--r13 { grid-row: span 13; }
+  .e-permits-dsh-grid > .e-permits-dsh-tile--r14 { grid-row: span 14; }
+  .e-permits-dsh-grid > .e-permits-dsh-tile--r15 { grid-row: span 15; }
+  .e-permits-dsh-grid > .e-permits-dsh-tile--r16 { grid-row: span 16; }
+  .e-permits-dsh-grid > .e-permits-dsh-tile--r17 { grid-row: span 17; }
+  .e-permits-dsh-grid > .e-permits-dsh-tile--r18 { grid-row: span 18; }
+  .e-permits-dsh-grid > .e-permits-dsh-tile--r19 { grid-row: span 19; }
+  .e-permits-dsh-grid > .e-permits-dsh-tile--r20 { grid-row: span 20; }
+
+  .e-permits-dsh-grid > .e-permits-dsh-tile > .e-permits-wid-card { height: 100%; }
 }
 
-/* the Compactă row height, measured by the resize code (js/dashboard-admin.js startArrange) */
+/* the row unit, measured by the resize code (js/dashboard-admin.js startArrange) */
 .e-permits-dsh-row-probe {
-  height: var(--wid-row-compact);
+  height: var(--dsh-row-unit);
   position: absolute;
   visibility: hidden;
   width: 0;
@@ -282,12 +303,14 @@
   position: fixed;
   top: 0;
   transform: translate(var(--dsh-gx, 0px), var(--dsh-gy, 0px));
+  height: var(--dsh-gh, auto);
   width: var(--dsh-gw, auto);
   z-index: 990;
 }
 
 .e-permits-dsh-drag-ghost > .e-permits-wid-card {
   box-shadow: var(--drop-shadow-400);
+  height: 100%;
   width: 100%;
 }
 
@@ -379,7 +402,6 @@
 
   /* phones: natural heights, one widget per row */
   .e-permits-dsh-grid { grid-auto-rows: auto; }
-  .e-permits-dsh-tile--tall { grid-row: auto; }
 
   .e-permits-dsh-tile__handle,
   .e-permits-dsh-tile__resize { display: none; }
