@@ -107,6 +107,90 @@
   const hOf = (t) => (rowsOf(t) >= ROWS.tallLayout ? "tall" : "compact");
   /* the rows each tile spans (dsh-stat-resize-v1: no automatic stretch any more — the user sets every height) */
   const placedRows = (list) => list.map((t) => rowsOf(t));
+
+  /* ---------------------------------------------------------------- the 2D grid (dsh-grid-2d-v1, 2026-11-11, user: „think of it
+     like a 2D grid, not only columns”; Grafana · gridstack.js · react-grid-layout): every tile has x (0–11), y (row
+     units), w (4 · 6 · 8 · 12 of 12) and h (rows). A move / resize pushes the tiles it would overlap DOWN, then vertical
+     compaction floats every tile up until it touches the one above (no holes above a tile, Grafana default). Reading
+     order (DOM, aria, phones) = y, then x. Old saved layouts (order + width / height) get x, y from the auto-flow they
+     had (sparse placement), then compaction. */
+  const boxOf = (t) => ({ id: t.widget, x: Number(t.x) || 0, y: Number(t.y) || 0, w: SPAN[t.width] || 12, h: rowsOf(t) });
+  const hit = (a, b) => a.id !== b.id && a.x < b.x + b.w && b.x < a.x + a.w && a.y < b.y + b.h && b.y < a.y + a.h;
+  const byPos = (a, b) => a.y - b.y || a.x - b.x;
+  function compactBoxes(boxes) {
+    const placed = [];
+    [...boxes].sort(byPos).forEach((b) => {
+      while (b.y > 0 && !placed.some((p) => hit({ ...b, y: b.y - 1 }, p))) b.y -= 1;
+      for (let c = placed.find((p) => hit(b, p)); c; c = placed.find((p) => hit(b, p))) b.y = c.y + c.h;
+      placed.push(b);
+    });
+    return boxes;
+  }
+  /* react-grid-layout's moveElement: the moved box takes (x, y); each box it overlaps goes ABOVE it when the user moves
+     down and there is room above, else straight under it (recursively) */
+  function moveBox(boxes, b, x, y, user) {
+    const down = y > b.y;
+    b.x = Math.max(0, Math.min(12 - b.w, x));
+    b.y = Math.max(0, y);
+    /* the lowest collision first, so a pushed stack keeps its order (each one lands under the moved box, the ones below it
+       are pushed on by the recursion) */
+    boxes.filter((c) => hit(b, c)).sort(byPos).reverse().forEach((c) => {
+      if (!hit(b, c)) return;
+      if (user && down) {
+        const fake = { ...c, y: Math.max(b.y - c.h, 0) };
+        if (!boxes.some((o) => o.id !== c.id && hit(fake, o))) { moveBox(boxes, c, c.x, fake.y, false); return; }
+      }
+      moveBox(boxes, c, c.x, b.y + b.h, false);
+    });
+    return boxes;
+  }
+  /* the old auto-flow (sparse placement, 12 columns) → x, y */
+  function sparseBoxes(list) {
+    const boxes = list.map((t) => ({ ...boxOf(t), x: 0, y: 0 }));
+    const placed = [];
+    let cr = 0;
+    let cc = 0;
+    boxes.forEach((b) => {
+      let r = cr;
+      let c = cc;
+      for (;;) {
+        if (c + b.w > 12) { r += 1; c = 0; continue; }
+        if (!placed.some((p) => hit({ ...b, x: c, y: r }, p))) break;
+        c += 1;
+      }
+      b.x = c; b.y = r;
+      placed.push(b);
+      cr = r; cc = c + b.w;
+    });
+    return boxes;
+  }
+  /* write boxes back into the tiles and sort the list into reading order */
+  function applyBoxes(list, boxes) {
+    list.forEach((t) => { const b = boxes.find((x) => x.id === t.widget); if (b) { t.x = b.x; t.y = b.y; } });
+    list.sort((a, b) => byPos({ x: a.x, y: a.y }, { x: b.x, y: b.y }));
+    return list;
+  }
+  const hasXY = (t) => Number.isFinite(Number(t.x)) && Number.isFinite(Number(t.y)) && t.x !== "" && t.y !== "" && t.x !== undefined && t.y !== undefined && t.x !== null && t.y !== null;
+  /* a layout read from storage / a version / a seed: x, y for every tile (migrating the old ones), clamped, compacted */
+  function normLayout(list) {
+    const boxes = list.every(hasXY) ? list.map(boxOf) : sparseBoxes(list);
+    boxes.forEach((b) => { b.x = Math.max(0, Math.min(12 - b.w, b.x)); });
+    return applyBoxes(list, compactBoxes(boxes));
+  }
+  /* the first free spot (top-left scan) for a w × h tile */
+  function freeSpot(list, w, h) {
+    const boxes = list.map(boxOf);
+    for (let y = 0; ; y += 1) for (let x = 0; x + w <= 12; x += 1) if (!boxes.some((b) => hit({ id: "", x, y, w, h }, b))) return { x, y };
+  }
+  const posText = (t) => `coloana ${(Number(t.x) || 0) + 1}, rândul ${(Number(t.y) || 0) + 1}, ${SPAN[t.width] || 12}×${rowsOf(t)}`;
+  /* the tile's grid area = 4 CSS variables (css/dashboard.css `[data-dsh-x]`), set from the data-* attributes after each render */
+  const posAttrs = (b) => ` data-dsh-x="${b.x}" data-dsh-y="${b.y}" data-dsh-w="${b.w}" data-dsh-h="${b.h}"`;
+  function placeEl(el, b) {
+    if (b) Object.entries(b).forEach(([k, v]) => { if ("xywh".includes(k) && k.length === 1) el.dataset[`dsh${k.toUpperCase()}`] = v; });
+    ["x", "y", "w", "h"].forEach((k) => el.style.setProperty(`--dsh-${k}`, el.dataset[`dsh${k.toUpperCase()}`]));
+  }
+  const placeAll = (root = document) => root.querySelectorAll("[data-dsh-grid] > [data-dsh-x], .e-permits-dsh-grid > [data-dsh-x]").forEach((el) => placeEl(el));
+  if ("MutationObserver" in window) new MutationObserver(() => placeAll()).observe(document.documentElement, { childList: true, subtree: true });
   const rowsText = (n) => (n === ROWS.compact ? "Compactă" : n === ROWS.tall ? "Înaltă" : `${n} rânduri`);
   const STATUS_TONE = { "Ciornă": "neutral", "Publicat": "success", "Dezactivat": "neutral" };
   const EVENTS = {
@@ -158,10 +242,14 @@
         /* ?tablou=stiva (demo dsh-04s · dsh-20g, dsh-half-row-v1): a 2/3 chart with two 1/3 number tiles stacked beside it,
            then two Compactă halves — on DSH-0001 (editor) and DSH-0004 (the ANSP Specialist's principal, the BO page) */
         if (demo.has("stiva")) json.dashboards.filter((d) => d.id === "DSH-0001" || d.id === "DSH-0004").forEach((d) => { d.config.widgets = [["WGT-0001", "twoThirds"], ["WGT-0011", "third"], ["WGT-0015", "third"], ["WGT-0006", "half"], ["WGT-0008", "half"]].map(([widget, width]) => ({ widget, width, height: "compact" })); });
+        /* ?tablou=grila (demo dsh-04y · dsh-20h, dsh-grid-2d-v1): a 2D arrangement no column flow gives — chart · two
+           stacked number tiles IN THE MIDDLE · chart, a wide table under them (explicit x, y) */
+        if (demo.has("grila")) json.dashboards.filter((d) => d.id === "DSH-0001" || d.id === "DSH-0004").forEach((d) => { d.config.widgets = [["WGT-0001", "third", 10, 0, 0], ["WGT-0011", "third", 5, 4, 0], ["WGT-0015", "third", 5, 4, 5], ["WGT-0006", "third", 10, 8, 0], ["WGT-0012", "full", 12, 0, 10]].map(([widget, width, height, x, y]) => ({ widget, width, height, x, y })); });
         if (kpi3) kpi3.config.widgets = ["WGT-0011", "WGT-0015", "WGT-0016"].map((widget) => ({ widget, width: "third", height: "compact" }));
         if (mixed) mixed.config.widgets = [["WGT-0011", "third", "compact"], ["WGT-0001", "third", "compact"], ["WGT-0006", "third", "tall"], ["WGT-0003", "twoThirds", "compact"], ["WGT-0008", "half", "compact"], ["WGT-0012", "half", "compact"]].map(([widget, width, height]) => ({ widget, width, height }));
         json.dashboards.forEach((d) => {
           d.config.widgets.forEach((x) => { x.height = rowsOf(x); });
+          normLayout(d.config.widgets);
           d.offFor = d.offFor || [];
           d.history = d.history || [];
           d.versions = (d.versions || []).map((v) => {
@@ -170,6 +258,7 @@
             if (v.drop) config.widgets = config.widgets.filter((x) => !v.drop.includes(x.widget));
             if (v.sizes) config.widgets.forEach((x) => { if (v.sizes[x.widget]) [x.width, x.height] = v.sizes[x.widget]; });
             config.widgets.forEach((x) => { x.height = rowsOf(x); });
+            normLayout(config.widgets);
             return { nr: v.nr, version: v.version, type: v.type, note: v.note, at: v.at, by: v.by, config };
           });
         });
@@ -416,13 +505,18 @@
       </div>
       <span class="e-permits-dsh-tile__resize" aria-hidden="true" data-dsh-resize>${icon("resize", 16)}</span>
       <span class="e-permits-dsh-tile__size" aria-hidden="true">${tag(sizeText(t), "brand")}</span>` : "";
-    return `<div class="e-permits-dsh-tile e-permits-dsh-tile--${SPAN[t.width] ? t.width : "full"} e-permits-dsh-tile--${hOf(t)} e-permits-dsh-tile--r${span}${isStat(t.widget) ? " e-permits-dsh-tile--stat" : ""}${edit ? " e-permits-hover-surface is-editable" : ""}" role="listitem" data-dsh-tile="${t.widget}" data-index="${i}"${edit ? ` tabindex="0" aria-roledescription="widget mutabil" aria-label="${esc(name)}"` : ` aria-label="${esc(name)}"`}>${tileBody(t, d)}${tools}</div>`;
+    return `<div class="e-permits-dsh-tile e-permits-dsh-tile--${SPAN[t.width] ? t.width : "full"} e-permits-dsh-tile--${hOf(t)} e-permits-dsh-tile--r${span}${isStat(t.widget) ? " e-permits-dsh-tile--stat" : ""}${edit ? " e-permits-hover-surface is-editable" : ""}" role="listitem" data-dsh-tile="${t.widget}" data-index="${i}"${posAttrs(boxOf(t))}${edit ? ` tabindex="0" aria-roledescription="widget mutabil" aria-label="${esc(name)}"` : ` aria-label="${esc(name)}"`}>${tileBody(t, d)}${tools}</div>`;
   }
   function layoutHtml(v, d, { edit = false } = {}) {
     const n = v.widgets.length;
     const spans = placedRows(v.widgets);
     const tiles = v.widgets.map((t, i) => tileHtml(t, i, n, d, edit, spans[i])).join("");
-    const ghost = edit && n < MAX_WIDGETS ? `<div class="e-permits-dsh-ghost${spans[n - 1] === ROWS.stat ? " e-permits-dsh-ghost--r5" : ""}" role="listitem"><span class="e-permits-dsh-ghost__text">Adaugă widget-urile unul câte unul și aranjează-le aici.</span>${addButton(v)}</div>` : "";
+    /* the „add” slot: under everything, left, 4 wide; as tall as the lowest tile when that is a number tile (5), else Compactă */
+    const boxes = v.widgets.map(boxOf);
+    const bottom = boxes.reduce((m, b) => Math.max(m, b.y + b.h), 0);
+    const lowest = boxes.filter((b) => b.y + b.h === bottom);
+    const gh = lowest.length && lowest.every((b) => b.h <= ROWS.stat) ? ROWS.stat : ROWS.compact;
+    const ghost = edit && n < MAX_WIDGETS ? `<div class="e-permits-dsh-ghost${gh === ROWS.stat ? " e-permits-dsh-ghost--r5" : ""}" role="listitem"${posAttrs({ x: 0, y: bottom, w: 4, h: gh })}><span class="e-permits-dsh-ghost__text">Adaugă widget-urile unul câte unul și aranjează-le aici.</span>${addButton(v)}</div>` : "";
     const body = n || edit
       ? `<div class="e-permits-dsh-grid${edit ? " is-editing" : ""}" role="list" aria-label="Widget-urile tabloului de bord, în ordinea de citire" data-dsh-grid>
           <div class="e-permits-dsh-guides" aria-hidden="true">${Array.from({ length: 12 }, () => "<span></span>").join("")}</div>
@@ -1334,14 +1428,18 @@
     const id = picking.sel;
     /* it starts from its own default width and height (Feature assumption, Feature 96501) */
     const cfg = W().published(id);
-    P.draft.widgets.push({ widget: id, width: SPAN[cfg?.width] ? cfg.width : "half", height: cfg?.type === "tile" ? ROWS.stat : rowsOfHeight(cfg?.height) });
+    const nw = { widget: id, width: SPAN[cfg?.width] ? cfg.width : "half", height: cfg?.type === "tile" ? ROWS.stat : rowsOfHeight(cfg?.height) };
+    /* dsh-grid-2d-v1: the first free spot that fits (top-left scan) */
+    Object.assign(nw, freeSpot(P.draft.widgets, SPAN[nw.width] || 12, cfg?.type === "tile" ? ROWS.stat : nw.height));
+    P.draft.widgets.push(nw);
+    relayout(P.draft.widgets, () => {});
     picking = null;
     delete P.errors.widgets;
     G().closeModal?.();
     rerender();
     reheader();
     flashTile(id, { scroll: true });
-    live(`„${widgetInfo(id).title}” a fost adăugat la sfârșitul tabloului, pe poziția ${P.draft.widgets.length}.`);
+    live(`„${widgetInfo(id).title}” a fost adăugat în primul loc liber: ${posText(P.draft.widgets.find((t) => t.widget === id))}.`);
   }
   const live = (text) => { const el = (creating() ? sheet : document).querySelector("[data-dsh-live]"); if (el) el.textContent = text; };
   const tileEl = (id) => (creating() ? sheet : document).querySelector(`[data-dsh-tile="${CSS.escape(id)}"]`);
@@ -1528,13 +1626,39 @@
     reheader();
     if (say) live(typeof say === "function" ? say() : say);
   }
+  /* a layout change on the model: boxes → change → compaction → x, y back on the tiles, reading order */
+  const relayout = (list, change) => { const boxes = list.map(boxOf); change(boxes); applyBoxes(list, compactBoxes(boxes)); };
+  /* phones (one column): ↑ / ↓ = one step in the reading order — the two tiles swap places */
   function moveWidget(id, by, { viaButton = false } = {}) {
     const list = P.draft.widgets;
     const i = list.findIndex((t) => t.widget === id);
     const j = i + by;
     if (i < 0 || j < 0 || j >= list.length) return;
-    arrange(() => { [list[i], list[j]] = [list[j], list[i]]; }, { focus: id, say: `„${widgetInfo(id).title}” este acum pe poziția ${j + 1} din ${list.length}.` });
+    const other = list[j].widget;
+    arrange(() => relayout(list, (boxes) => {
+      const a = boxes.find((b) => b.id === id);
+      const b = boxes.find((x) => x.id === other);
+      const [ax, ay, bx, by2] = [a.x, a.y, b.x, b.y];
+      a.x = Math.min(bx, 12 - a.w); a.y = by2; b.x = Math.min(ax, 12 - b.w); b.y = ay;
+      if (by < 0) { moveBox(boxes, a, a.x, a.y, false); moveBox(boxes, b, b.x, Math.max(b.y, a.y + a.h), false); } else { moveBox(boxes, b, b.x, b.y, false); moveBox(boxes, a, a.x, Math.max(a.y, b.y + b.h), false); }
+    }), { focus: id, say: () => `„${widgetInfo(id).title}” este acum pe poziția ${list.findIndex((t) => t.widget === id) + 1} din ${list.length}.` });
     if (viaButton) { const end = j === 0 || j === list.length - 1; tileEl(id)?.querySelector(`[data-dsh-move="${id}|${end ? -by : by}"]`)?.focus({ preventScroll: true }); }
+  }
+  /* desktop arrows: ← → one column; ↑ ↓ past the nearest tile above / below in the same columns (the two change
+     places — with compaction a one-row step down would float straight back) */
+  function stepWidget(id, dir) {
+    const list = P.draft.widgets;
+    const t = list.find((x) => x.widget === id);
+    if (!t) return;
+    const me = boxOf(t);
+    const others = list.map(boxOf).filter((b) => b.id !== id && b.x < me.x + me.w && me.x < b.x + b.w);
+    let target = null;
+    if (dir === "left" && me.x > 0) target = { x: me.x - 1, y: me.y };
+    if (dir === "right" && me.x + me.w < 12) target = { x: me.x + 1, y: me.y };
+    if (dir === "down") { const c = others.filter((b) => b.y >= me.y + me.h).sort(byPos)[0]; if (c) target = { x: me.x, y: c.y + c.h }; }
+    if (dir === "up") { const c = others.filter((b) => b.y + b.h <= me.y).sort((a, b) => b.y - a.y)[0]; if (c) target = { x: me.x, y: c.y }; }
+    if (!target) { live(`„${widgetInfo(id).title}” este deja la margine: ${posText(t)}.`); return; }
+    arrange(() => relayout(list, (boxes) => moveBox(boxes, boxes.find((b) => b.id === id), target.x, target.y, dir === "down")), { focus: id, say: () => `„${widgetInfo(id).title}”: ${posText(t)}.` });
   }
   function resizeWidget(id, axis, by) {
     const t = P.draft.widgets.find((x) => x.widget === id);
@@ -1543,20 +1667,20 @@
     if (axis === "height") {
       const n = rowsOf(t) + by;
       if (n < minOf(id) || n > ROWS.max) { live("Înălțimea este deja la limită."); return; }
-      arrange(() => { t.height = n; }, { focus: id, say: () => `„${widgetInfo(id).title}”: ${sizeText(t)}.` });
+      arrange(() => { t.height = n; relayout(P.draft.widgets, (boxes) => { const b = boxes.find((x) => x.id === id); moveBox(boxes, b, b.x, b.y, false); }); }, { focus: id, say: () => `„${widgetInfo(id).title}”: ${sizeText(t)}, ${posText(t)}.` });
       return;
     }
     const keys = WIDTH_KEYS;
     const k = keys.indexOf(t[axis]) + by;
     if (k < 0 || k >= keys.length) { live(axis === "width" ? "Lățimea este deja la limită." : "Înălțimea este deja la limită."); return; }
-    arrange(() => { t[axis] = keys[k]; }, { focus: id, say: () => `„${widgetInfo(id).title}”: ${sizeText(t)}.` });
+    arrange(() => { t[axis] = keys[k]; relayout(P.draft.widgets, (boxes) => { const b = boxes.find((x) => x.id === id); moveBox(boxes, b, Math.min(b.x, 12 - b.w), b.y, false); }); }, { focus: id, say: () => `„${widgetInfo(id).title}”: ${sizeText(t)}, ${posText(t)}.` });
   }
   function removeWidget(id) {
     const v = P.draft;
     const i = v.widgets.findIndex((x) => x.widget === id);
     if (i < 0) return;
     const next = v.widgets[i + 1] || v.widgets[i - 1];
-    arrange(() => { v.widgets.splice(i, 1); }, { focus: next?.widget || "", say: `„${widgetInfo(id).title}” a fost eliminat de pe tablou.` });
+    arrange(() => { v.widgets.splice(i, 1); relayout(v.widgets, () => {}); }, { focus: next?.widget || "", say: `„${widgetInfo(id).title}” a fost eliminat de pe tablou.` });
     if (!next) (creating() ? sheet : document).querySelector("[data-dsh-add]")?.focus({ preventScroll: true });
   }
   /* keyboard: the focused widget — ← ↑ / → ↓ move it; Shift + ← → = width, Shift + ↑ ↓ = height */
@@ -1568,7 +1692,7 @@
     if (event.shiftKey) {
       if (event.key === "ArrowLeft" || event.key === "ArrowRight") resizeWidget(id, "width", event.key === "ArrowRight" ? 1 : -1);
       else resizeWidget(id, "height", event.key === "ArrowDown" ? 1 : -1);
-    } else moveWidget(id, event.key === "ArrowLeft" || event.key === "ArrowUp" ? -1 : 1);
+    } else stepWidget(id, { ArrowLeft: "left", ArrowRight: "right", ArrowUp: "up", ArrowDown: "down" }[event.key]);
   });
 
   /* pointer: the handle lifts the card (it follows the pointer, the others reflow around the grey slot it leaves); the
@@ -1586,7 +1710,7 @@
     const unit = probe.offsetHeight || parseFloat(gs.gridAutoRows) || 31;
     probe.remove();
     const rowGap = parseFloat(gs.rowGap) || 0;
-    act = { kind, tile, grid, id: tile.dataset.dshTile, offX: x - r.left, offY: y - r.top, z: zoomOf(tile), width: t.width, height: rowsOf(t), stat: isStat(t.widget), unit, rowGap };
+    act = { kind, tile, grid, id: tile.dataset.dshTile, offX: x - r.left, offY: y - r.top, z: zoomOf(tile), width: t.width, height: rowsOf(t), stat: isStat(t.widget), unit, rowGap, base: P.draft.widgets.map(boxOf), boxes: null, cell: null };
     grid.classList.add("is-arranging");
     tile.classList.add(kind === "move" ? "is-lifted" : "is-resizing");
     if (kind === "move") {
@@ -1630,23 +1754,41 @@
     const gap = (parseFloat(getComputedStyle(a.grid).columnGap) || 0) * a.z;
     const colW = (g.width - 11 * gap) / 12;
     const span = SPAN[a.width];
-    let start = Math.round((a.tile.getBoundingClientRect().left - g.left) / (colW + gap));
-    if (start + span > 12) start = 0;
+    const mine = a.boxes?.find((b) => b.id === a.id);
+    let start = mine ? mine.x : Math.round((a.tile.getBoundingClientRect().left - g.left) / (colW + gap));
+    if (start + span > 12) start = 12 - span;
     a.grid.querySelectorAll(".e-permits-dsh-guides > span").forEach((s, i) => s.classList.toggle("is-target", i >= start && i < start + span));
     const lbl = a.tile.querySelector(".e-permits-dsh-tile__size");
     if (lbl) lbl.innerHTML = tag(sizeText(a), "brand");
   }
+  /* the live layout while moving / resizing: from the layout at the start, the moved / resized box at its target, the
+     overlapped tiles pushed down, everything compacted; the tiles slide there (FLIP), the lifted tile's grey slot = the
+     drop target */
+  function liveLayout(a, change) {
+    const boxes = a.base.map((b) => ({ ...b }));
+    const me = boxes.find((b) => b.id === a.id);
+    change(me, boxes);
+    compactBoxes(boxes);
+    a.boxes = boxes;
+    flipTiles(a.grid, () => boxes.forEach((b) => { const el = a.grid.querySelector(`:scope > [data-dsh-tile="${CSS.escape(b.id)}"]`); if (el) placeEl(el, b); }), a.kind === "move" ? null : a.tile);
+    const ghostSlot = a.grid.querySelector(":scope > .e-permits-dsh-ghost");
+    if (ghostSlot) placeEl(ghostSlot, { x: 0, y: boxes.reduce((m, b) => Math.max(m, b.y + b.h), 0) });
+  }
+  function cellAt(a, x, y) {
+    const g = a.grid.getBoundingClientRect();
+    const gap = (parseFloat(getComputedStyle(a.grid).columnGap) || 0) * a.z;
+    const colW = (g.width - 11 * gap) / 12;
+    const w = SPAN[a.width] || 12;
+    const col = Math.max(0, Math.min(12 - w, Math.round((x - a.offX - g.left) / (colW + gap))));
+    const row = Math.max(0, Math.round((y - a.offY - g.top) / ((a.unit + a.rowGap) * a.z)));
+    return { col, row };
+  }
   function dragTo(x, y) {
     const a = act;
-    const tiles = tilesOf(a.grid);
-    const others = tiles.filter((t) => t !== a.tile);
-    let idx = others.length;
-    for (let i = 0; i < others.length; i += 1) {
-      const r = others[i].getBoundingClientRect();
-      if (y < r.top || (y <= r.bottom && x < r.left + r.width / 2)) { idx = i; break; }
-    }
-    if (idx !== tiles.indexOf(a.tile)) {
-      flipTiles(a.grid, () => { a.grid.insertBefore(a.tile, others[idx] || a.grid.querySelector(":scope > .e-permits-dsh-ghost")); }, a.tile);
+    const { col, row } = cellAt(a, x, y);
+    if (!a.cell || a.cell.col !== col || a.cell.row !== row) {
+      a.cell = { col, row };
+      liveLayout(a, (me, boxes) => moveBox(boxes, me, col, row, true));
     }
     a.last = { x, y };
     placeGhost(x, y);
@@ -1663,8 +1805,14 @@
     const h = y - r.top;
     /* snaps per row unit: N units = N × unit + (N − 1) × gap */
     const height = Math.min(ROWS.max, Math.max(a.stat ? ROWS.stat : ROWS.min, Math.round((h / a.z + a.rowGap) / (a.unit + a.rowGap))));
+    sizeTo(a, width, height);
+  }
+  /* resize keeps x, y (x moves left only when the new width would pass column 12); overlapped tiles go down */
+  function sizeTo(a, width, height) {
+    if (width === a.width && height === a.height && a.boxes) { showTarget(); return; }
     if (width !== a.width) { a.tile.classList.remove(`e-permits-dsh-tile--${a.width}`); a.tile.classList.add(`e-permits-dsh-tile--${width}`); a.width = width; }
     setRows(a, height);
+    liveLayout(a, (me, boxes) => { me.w = SPAN[width] || 12; me.h = height; moveBox(boxes, me, Math.min(me.x, 12 - me.w), me.y, true); });
     showTarget();
   }
   /* the live height while resizing: the tile's row class; the card is re-rendered only when its own class flips
@@ -1673,7 +1821,6 @@
     if (height === a.height) return;
     const was = a.height >= ROWS.tallLayout ? "tall" : "compact";
     const now = height >= ROWS.tallLayout ? "tall" : "compact";
-    a.tile.classList.replace(`e-permits-dsh-tile--r${a.height}`, `e-permits-dsh-tile--r${height}`);
     a.height = height;
     if (was !== now) {
       a.tile.classList.replace(`e-permits-dsh-tile--${was}`, `e-permits-dsh-tile--${now}`);
@@ -1690,21 +1837,13 @@
     a.ghost?.remove();
     if (a.raf) cancelAnimationFrame(a.raf);
     if (!commit) { rerender({ keep: `[data-dsh-tile="${CSS.escape(a.id)}"]` }); return; }
-    if (a.kind === "move") {
-      const order = tilesOf(a.grid).map((t) => t.dataset.dshTile);
-      const before = P.draft.widgets.map((t) => t.widget).join("|");
-      P.draft.widgets.sort((p, q) => order.indexOf(p.widget) - order.indexOf(q.widget));
-      rerender({ keep: `[data-dsh-tile="${CSS.escape(a.id)}"]` });
-      reheader();
-      if (before !== order.join("|")) live(`„${widgetInfo(a.id).title}” este acum pe poziția ${order.indexOf(a.id) + 1} din ${order.length}.`);
-    } else {
-      const t = P.draft.widgets.find((w) => w.widget === a.id);
-      const changed = t.width !== a.width || t.height !== a.height;
-      t.width = a.width; t.height = a.height;
-      rerender({ keep: `[data-dsh-tile="${CSS.escape(a.id)}"]` });
-      reheader();
-      if (changed) live(`„${widgetInfo(a.id).title}”: ${sizeText(t)}.`);
-    }
+    const t = P.draft.widgets.find((w) => w.widget === a.id);
+    const before = JSON.stringify(P.draft.widgets.map((w) => [w.widget, w.x, w.y, w.width, w.height]));
+    if (a.kind === "resize") { t.width = a.width; t.height = a.height; }
+    if (a.boxes) applyBoxes(P.draft.widgets, a.boxes);
+    rerender({ keep: `[data-dsh-tile="${CSS.escape(a.id)}"]` });
+    reheader();
+    if (before !== JSON.stringify(P.draft.widgets.map((w) => [w.widget, w.x, w.y, w.width, w.height]))) live(`„${widgetInfo(a.id).title}”: ${posText(t)}.`);
   }
   document.addEventListener("pointerdown", (event) => {
     if (event.button !== 0 || isPhone()) return;
@@ -1727,13 +1866,14 @@
 
   /* demo stills (js/demo-states.js): a drag in progress / a resize in progress, frozen */
   const demoArrange = {
-    drag(id, to, dx = 40, dy = -24) {
+    /* drag in progress: the tile lifted onto cell (col, row) — the others pushed down + compacted, the ghost near the slot */
+    drag(id, col = 0, row = 0, dx = 40, dy = -24) {
       const tile = tileEl(id);
       if (!tile) return;
       const r = tile.getBoundingClientRect();
       startArrange(tile, "move", r.left + 40, r.top + 20);
-      const others = tilesOf(act.grid).filter((t) => t !== tile);
-      act.grid.insertBefore(tile, others[to] || act.grid.querySelector(":scope > .e-permits-dsh-ghost"));
+      act.cell = { col, row };
+      liveLayout(act, (me, boxes) => moveBox(boxes, me, col, row, true));
       const slot = tile.getBoundingClientRect();
       placeGhost(slot.left + 40 + dx, slot.top + 20 + dy);
     },
@@ -1742,8 +1882,7 @@
       if (!tile) return;
       const r = tile.getBoundingClientRect();
       startArrange(tile, "resize", r.right, r.bottom);
-      if (width !== act.width) { tile.classList.remove(`e-permits-dsh-tile--${act.width}`); tile.classList.add(`e-permits-dsh-tile--${width}`); act.width = width; }
-      setRows(act, act.stat ? rowsOfHeight(height, ROWS.stat) : rowsOfHeight(height));
+      sizeTo(act, width, act.stat ? rowsOfHeight(height, ROWS.stat) : rowsOfHeight(height));
       requestAnimationFrame(showTarget);
     },
     focus(id) { tileEl(id)?.focus(); },
@@ -1790,14 +1929,14 @@
   const liveWidgets = (d, authority) => (lastVersion(d)?.config.widgets || []).map((t) => ({ t, w: W().get?.(t.widget), cfg: W().published?.(t.widget) }))
     .filter(({ w, cfg }) => w && cfg && w.status === "Publicat" && !W().isOffFor?.(w, authority));
   const viewPerimeter = (me) => (me.role === "supervisor" && me.unit ? `${me.unit}, ${authName(me.authority)}` : authName(me.authority));
-  function viewTile(d, { t, cfg }, i, span = rowsOf(t)) {
+  function viewTile(d, { t, cfg }, i, span = rowsOf(t), box = null) {
     const key = `${d.id}|${t.widget}`;
     const title = cfg.titles?.ro || t.widget;
     const st = V.busy.has(key) || demo.has("incarcare") ? { refreshing: true }
       : V.failed.has(key) ? { bodyHtml: E()?.render({ title: "Datele nu s-au încărcat", text: "Celelalte widget-uri nu sunt afectate. Încearcă din nou.", icon: "warning-filled", compact: true, bare: true, actionHtml: `<button class="btn btn-secondary btn-sm" type="button" data-dsh-view-retry="${esc(key)}" aria-label="Reîncearcă: ${esc(title)}">${icon("rotate-arrow", 16)}<span>Reîncearcă</span></button>` }) || "" }
       : {};
     const card = W().card?.({ ...cfg, width: t.width, height: hOf(t) }, { compact: true, dash: true, st, ariaLabel: title }) || "";
-    return `<div class="e-permits-dsh-tile e-permits-dsh-tile--${SPAN[t.width] ? t.width : "full"} e-permits-dsh-tile--${hOf(t)} e-permits-dsh-tile--r${span}${isStat(t.widget) ? " e-permits-dsh-tile--stat" : ""}" role="listitem" data-dsh-tile="${esc(t.widget)}" data-index="${i}">${card}</div>`;
+    return `<div class="e-permits-dsh-tile e-permits-dsh-tile--${SPAN[t.width] ? t.width : "full"} e-permits-dsh-tile--${hOf(t)} e-permits-dsh-tile--r${span}${isStat(t.widget) ? " e-permits-dsh-tile--stat" : ""}" role="listitem" data-dsh-tile="${esc(t.widget)}" data-index="${i}"${posAttrs(box || boxOf(t))}>${card}</div>`;
   }
   function viewBody(d, me, principal) {
     const live = liveWidgets(d, me.authority);
@@ -1807,7 +1946,7 @@
     const desc = String(lastVersion(d).config.descriptions?.ro || "").trim();
     const meta = [`Perimetru: ${viewPerimeter(me)}`, `Date calculate azi, la 06:00`].join(" · ");
     const grid = live.length
-      ? `<div class="e-permits-dsh-stage"><div class="e-permits-dsh-grid" role="list" aria-label="Widget-urile tabloului de bord">${((spans) => live.map((x, i) => viewTile(d, x, i, spans[i])).join(""))(placedRows(live.map((x) => x.t)))}</div></div>`
+      ? `<div class="e-permits-dsh-stage"><div class="e-permits-dsh-grid" role="list" aria-label="Widget-urile tabloului de bord">${((boxes) => [...live].sort((a, b) => byPos(boxes.find((x) => x.id === a.t.widget), boxes.find((x) => x.id === b.t.widget))).map((x, i) => viewTile(d, x, i, rowsOf(x.t), boxes.find((b) => b.id === x.t.widget))).join(""))(compactBoxes(live.map((x) => boxOf(x.t))))}</div></div>`
       : E()?.render({ title: "Niciun widget", text: "Widget-urile acestui tablou de bord nu mai sunt publicate.", icon: "chart" }) || "";
     return `
       <section class="e-permits-dosar-profil__section e-permits-dsh-view e-permits-dsh-wide" id="dsh-view-panel"${V.tabs ? ` role="tabpanel" aria-labelledby="dsh-view-tab-${esc(d.id)}"` : ""} aria-busy="${demo.has("incarcare") ? "true" : "false"}" data-dsh-view="${esc(d.id)}">

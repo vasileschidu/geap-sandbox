@@ -118,6 +118,13 @@
   .e-permits-dsh-grid > .e-permits-dsh-tile--r5 { grid-row: span 5; }
   /* the „add” slot after a number tile = the tile's height (same row), else a Compactă cell */
   .e-permits-dsh-grid > .e-permits-dsh-ghost--r5 { grid-row: span 5; }
+
+  /* dsh-grid-2d-v1: every tile (and the „add” slot) sits in its own grid area — x, y, w, h set as CSS variables from its
+     data-dsh-* attributes (js/dashboard-admin.js placeEl); no auto-flow */
+  .e-permits-dsh-grid > [data-dsh-x] {
+    grid-column: calc(var(--dsh-x, 0) + 1) / span var(--dsh-w, 12);
+    grid-row: calc(var(--dsh-y, 0) + 1) / span var(--dsh-h, 10);
+  }
   .e-permits-dsh-grid > .e-permits-dsh-tile--r6 { grid-row: span 6; }
   .e-permits-dsh-grid > .e-permits-dsh-tile--r7 { grid-row: span 7; }
   .e-permits-dsh-grid > .e-permits-dsh-tile--r8 { grid-row: span 8; }
@@ -220,6 +227,14 @@
 
 .e-permits-dsh-tile.is-editable .e-permits-wid-stat__btn {
   pointer-events: none;
+}
+
+/* dsh-grid-2d-v1: while moving, the lifted tile's slot = the snap preview at the target cells — grey + a dashed edge
+   (as the „add” slot) */
+.e-permits-dsh-tile.is-editable.is-lifted::before {
+  border: var(--border-width-1, 1px) dashed var(--color-border-base-secondary, #b2b2b2);
+  box-sizing: border-box;
+  inset: 0;
 }
 
 .e-permits-dsh-tile.is-editable:focus-visible {

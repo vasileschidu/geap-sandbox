@@ -4938,7 +4938,7 @@
       "dsh-04a": prof("DSH-0001", "configurare", layout()),
       /* the canvas while arranging: hover / focus toolbar · drag in progress (iPhone reflow, grey slot) · resize in progress */
       "dsh-04b": prof("DSH-0001", "configurare", seq(layout(), D((d) => d.focus("WGT-0001")))),
-      "dsh-04c": prof("DSH-0001", "configurare", seq(layout(), D((d) => d.drag("WGT-0006", 0)))),
+      "dsh-04c": prof("DSH-0001", "configurare", seq(layout(), D((d) => d.drag("WGT-0006", 0, 0)))),
       "dsh-04l": prof("DSH-0001", "configurare", seq(layout(), D((d) => d.resize("WGT-0003", "twoThirds", "tall")))),
       /* wid-heights-v1: a mixed board — compact tile + compact bars + a tall donut beside two compact rows, equal bottoms */
       "dsh-04n": prof("DSH-0001", "configurare", layout(), { tablou: "mix" }),
@@ -4954,6 +4954,10 @@
       "dsh-04v": prof("DSH-0001", "configurare", seq(layout(), D((d) => d.resize("WGT-0003", "half", 9)))),
       /* dsh-stat-resize-v1: a number tile resized in height like a chart (corner drag in progress, „4/12 · 7 rânduri”) */
       "dsh-04x": prof("DSH-0001", "configurare", seq(layout(), D((d) => d.resize("WGT-0011", "third", 7)))),
+      /* dsh-grid-2d-v1: a 2D layout (two number tiles stacked in the middle between two charts, a wide table under) ·
+         04z = the left chart dragged onto the middle column (the tiles there pushed down, then compacted) */
+      "dsh-04y": prof("DSH-0001", "configurare", layout(), { tablou: "grila" }),
+      "dsh-04z": prof("DSH-0001", "configurare", seq(layout(), D((d) => d.drag("WGT-0001", 4, 0))), { tablou: "grila" }),
       "dsh-04o": prof("DSH-0001", "configurare", seq(layout(), D((d) => d.resize("WGT-0011", "third", "tall"))), { tablou: "mix" }),
       "dsh-04m": prof("DSH-0001", "configurare", seq(D((d) => { d.focus("WGT-0006"); document.activeElement.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowUp", bubbles: true })); }), layout())),
       "dsh-04d": prof("DSH-0001", "configurare", seq(layout(), pick)),
@@ -5006,6 +5010,7 @@
       "dsh-20d": view(null, { tablou: "incarcare" }),
       "dsh-20e": view(null, null, SUP),
       "dsh-20g": view(null, { tablou: "stiva" }),
+      "dsh-20h": view(null, { tablou: "grila" }),
       "dsh-20f": view(async (h) => { await h.click("[data-dsh-view-retry]"); await h.wait(1100); }, { tablou: "widget-eroare" })
     };
   }
