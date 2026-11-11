@@ -4558,13 +4558,13 @@
 
   function rptDemoStates() {
     const ADMIN = "ansp-central-admin", AUTH = "ansp-local-admin", SPEC = "ansp-specialist-chisinau";
-    const LIST = "[data-registry-kind='rapoarte'] tr[data-workplace-row], [data-registry-kind='rapoarte'] .e-permits-empty";
+    const LIST = "[data-registry-kind='rapoarte'] li[data-workplace-row], [data-registry-kind='rapoarte'] .e-permits-empty";
     const list = (run, params, as = ADMIN) => ({ flow: "back-office", as, hash: "#rapoarte", ...(params ? { params } : {}), ready: LIST, delay: 900, run });
     const prof = (id, tab = "configurare", run, params, as = ADMIN) => ({ flow: "back-office", as, hash: `#raport/${id}/${tab}`, ...(params ? { params } : {}), ready: "#rpt-panel", delay: 900, run });
     const seq = (...steps) => async (h) => { for (const step of steps) await step(h); };
     const C = "[data-rpt-editor]";
     const DR = "[data-rpt-drawer]";
-    const MENU = (id) => async (h) => { (await h.find(`tr[data-workplace-row="${id}"]`)).scrollIntoView({ block: "center" }); await h.wait(250); await h.click(`tr[data-workplace-row="${id}"] [data-stack-menu-trigger]`); await h.wait(200); };
+    const MENU = (id) => async (h) => { (await h.find(`li[data-workplace-row="${id}"]`)).scrollIntoView({ block: "center" }); await h.wait(250); await h.click(`li[data-workplace-row="${id}"] [data-stack-menu-trigger]`); await h.wait(200); };
     const nou = async (h) => { await h.click('[data-workplace-add-product="rpt-new"]'); await h.find(`${C} #rpt-e-name-ro`); };
     const next = async (h) => { await h.click(`${C} [data-rpt-next]`); await h.wait(250); };
     const at = (sel) => async (h) => { await h.scroll(`${C} ${sel}`); };
@@ -4647,13 +4647,13 @@
     };
     const fApply = async (h) => { if (!ekPhone()) { await h.click("#rpt-panel [data-filter-commit]"); await h.wait(300); } };
     return {
-      /* US-467 — list (grouped by category), search, filters, empty, row menu */
+      /* US-467 — list (rpt-stack-list-v1: the stacked list, no grouping), search (incl. the description), filters, empty, row menu */
       "rpt-01": list(),
       "rpt-01a": list(null, null, AUTH),
       "rpt-01b": list(async (h) => { await h.fill("[data-workplace-search]", "dosare"); await h.wait(300); }),
       "rpt-01c": list(async (h) => { await h.fill("[data-workplace-search]", "zzz"); await h.wait(300); }),
       "rpt-01d": list(async (h) => {
-        window.GEAPShellApi.setRegistryFilters("rapoarte", { categorie: ["Rapoarte statistice"] });
+        window.GEAPShellApi.setRegistryFilters("rapoarte", { categorie: ["Statistic"] });
         document.querySelector('[data-nav-item][data-nav-id="rapoarte"]').click(); await h.wait(700);
         const bar = document.querySelector("[data-workplace-filters]");
         const toggle = document.querySelector("[data-workplace-filter-toggle]");
@@ -4661,6 +4661,9 @@
       }),
       "rpt-01e": list(null, { raport: "gol" }),
       "rpt-01f": list(MENU("RPT-0001")),
+      /* rpt-stack-list-v1: the search also reads the description („tacite” is only in RPT-0004's); a row click opens the profile */
+      "rpt-01g": list(async (h) => { await h.fill("[data-workplace-search]", "tacite"); await h.wait(300); }),
+      "rpt-01h": list(async (h) => { await h.click('li[data-workplace-row="RPT-0002"] .e-permits-stack__title'); await h.find("#rpt-panel"); await h.wait(400); }),
       /* Feature AC — the menu only with „Gestionarea rapoartelor” */
       "rpt-02": { flow: "back-office", as: SPEC, hash: "#rapoarte", ready: "[data-reg-page]:not([hidden]) .e-permits-empty", delay: 900 },
       "rpt-02a": { flow: "back-office", as: ADMIN, hash: "#rapoarte", params: { raport: "fara-permisiune" }, ready: "[data-reg-page]:not([hidden]) .e-permits-empty", delay: 900 },
@@ -4738,7 +4741,7 @@
       "rpt-05i": prof("RPT-0001", "configurare", async (h) => { await h.fill("#rpt-e-name-ro", "Raport dosare finalizate pe serviciu și lună", { leave: false }); await h.wait(150); await h.click("[data-dosar-profil] [data-rpt-publish]"); await h.find(`${M} [data-rpt-publish-confirm]`); }),
       /* „● Modificări nepublicate” clickable → the shared pending-changes dialog (header · list row · → Publică) */
       "rpt-05j": prof("RPT-0006", "configurare", async (h) => { await h.click("[data-dosar-profil] .e-permits-page-header__status--button[data-rpt-pending]"); await h.find("#pending-changes-modal.is-active"); }),
-      "rpt-05k": list(async (h) => { (await h.find('tr[data-workplace-row="RPT-0006"] [data-rpt-pending]')).scrollIntoView({ block: "center" }); await h.click('tr[data-workplace-row="RPT-0006"] [data-rpt-pending]'); await h.find("#pending-changes-modal.is-active"); }),
+      "rpt-05k": list(async (h) => { (await h.find('li[data-workplace-row="RPT-0006"] [data-rpt-pending]')).scrollIntoView({ block: "center" }); await h.click('li[data-workplace-row="RPT-0006"] [data-rpt-pending]'); await h.find("#pending-changes-modal.is-active"); }),
       "rpt-05l": prof("RPT-0006", "configurare", async (h) => { await h.click("[data-dosar-profil] .e-permits-page-header__status--button[data-rpt-pending]"); await h.click("#pending-changes-modal.is-active [data-pending-changes-publish]"); await h.find(`${M} [data-rpt-publish-confirm]`); }),
       "rpt-06a": prof("RPT-0001", "versiuni"),
       "rpt-06b": prof("RPT-0001", "versiuni", VER(1)),

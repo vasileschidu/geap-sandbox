@@ -13,8 +13,8 @@
    when its hook exists, so part 1 never shows a dead control.
 
    No new engine — the KPI / widget / Registre patterns:
-     · list = the BO registry (`window.GEAPShellRegistries.rapoarte`, menu `shellView: "rapoarte-registry"`), grouped by
-       category (`groupBy`), facets Categorie · Statut · Nivel · Sursa de date;
+     · list = the BO registry (`window.GEAPShellRegistries.rapoarte`, menu `shellView: "rapoarte-registry"`) drawn as the
+       shell stacked list (`stackItem`, rpt-stack-list-v1: no grouping), facets Categorie · Nivel · Statut;
      · create = the widget create sheet (sheet-page-v1: `.e-permits-reg-editor--page`, step strip, footer bar
        „Înapoi / Salvează ciorna / Continuă”), every step form 1fr | live preview 1fr (`.e-permits-ntpl-content--preview`);
      · edit = the profile page (ntpl editor, `.e-permits-editor-wide`), tabs Configurare · Versiuni · Istoric;
@@ -95,6 +95,8 @@
   ];
   /* rpt-rich-select-v1: the icons of the rich dropdown (Categoria) */
   const CATEGORY_ICON = { tabelar: "table", statistic: "chart" };
+  /* the list's meta line + Categorie facet (rpt-stack-list-v1) */
+  const CATEGORY_SHORT = { tabelar: "Tabelar", statistic: "Statistic" };
   /* Feature model «Coloana raportului»: Din sursa de date / Calculată (no manual columns — Feature comment, 2026-11) */
   const KINDS = [
     ["source", "Din sursa de date", "Valoarea unui câmp al sursei de date."],
@@ -1186,7 +1188,8 @@
   const rowOf = (r) => {
     const lv = lastVersion(r);
     return {
-      id: r.id, denumire: r.config.names.ro, categorie: label(CATEGORIES, r.config.category), sursa: sourceName(r.config.source),
+      /* rpt-stack-list-v1: Categorie = the short Statistic / Tabelar (meta line + facet); descriere = the RO description */
+      id: r.id, denumire: r.config.names.ro, categorie: CATEGORY_SHORT[r.config.category] || "", descriere: String(r.config.descriptions?.ro || "").trim(), sursa: sourceName(r.config.source),
       nivel: r.config.level, autoritate: r.config.authorities.map(authName).join(", "),
       statut: r.status, tone: STATUS_TONE[r.status] || "neutral", versiune: lv ? String(lv.version) : "", nepublicat: unpublished(r), modificat: r.updatedAt || "", r
     };
@@ -1203,8 +1206,6 @@
       columns: {
         id: { label: "ID", width: 112, sortable: true },
         denumire: { label: "Denumire", width: 320, sortable: true },
-        categorie: { label: "Categorie", width: 176, sortable: true },
-        sursa: { label: "Sursa de date", width: 216, sortable: true },
         nivel: { label: "Nivel", width: 168, sortable: true },
         statut: { label: "Statut", width: 136, sortable: true },
         versiune: { label: "Versiune", width: 168, sortable: true },
@@ -1215,10 +1216,10 @@
         [KIND]: {
           title: TITLE,
           selectable: false,
-          /* Feature user flow 1: the list grouped by the report's category */
-          groupBy: "categorie",
-          searchPlaceholder: "Caută după ID sau denumire",
-          columns: ["id", "denumire", "categorie", "sursa", "nivel", "statut", "versiune", "modificat", ...(me.has ? ["actiuni"] : [])],
+          /* rpt-stack-list-v1 (2026-11-11, Galina on RPT-01 15189:1665): no category grouping, no Categorie / Sursa de date
+             columns — the rows are the shared stacked list (`stackItem` below); the table columns stay for sort / export */
+          searchPlaceholder: "Caută după ID, denumire sau descriere",
+          columns: ["id", "denumire", "nivel", "statut", "versiune", "modificat", ...(me.has ? ["actiuni"] : [])],
           tabs: [],
           primaryAction: canCreate() ? { id: "rpt-new", label: "Raport nou" } : null,
           toolbarLabel: "Filtrare rapoarte",
@@ -1238,21 +1239,47 @@
     ].filter(Boolean);
     if (!items.length) return "";
     const html = U().renderRowActions?.({ menu: items, label: `${r.id} ${r.config.names.ro}` }) || "";
-    return html ? `<span class="e-permits-workplace__row-actions">${html.replace("hidden data-stack-menu>", "hidden data-stack-menu data-stack-menu-fixed>")}</span>` : "";
+    /* fixed: the list scrolls inside the registry's table wrap, an in-flow menu would be clipped */
+    return html ? html.replace("hidden data-stack-menu>", "hidden data-stack-menu data-stack-menu-fixed>") : "";
   }
   const twoLines = (top, meta) => `<span class="e-permits-workplace__date-stack"><span>${top}</span><span class="e-permits-workplace__date-meta">${meta}</span></span>`;
+  /* „modificări nepublicate” = the clickable pending status (every config object, components.md) → the shared dialog */
+  const pendingHtml = (row) => (HOOKS.pending ? A().renderHeaderStatus?.("modificări nepublicate", "warning", `data-rpt-pending="${esc(row.id)}" aria-haspopup="dialog" data-tooltip-text="Vezi modificările" aria-label="Vezi modificările nepublicate ale ${esc(row.id)}"`) || "modificări nepublicate" : "modificări nepublicate");
+  /* rpt-stack-list-v1: the row's right block — status (+ pending / „nepublicat”) · version + level (+ authorities) · modified;
+     three cells that line up from row to row (subgrid, css/rapoarte.css); phones: one wrapped line under the text */
+  const sideHtml = (row) => {
+    const status = row.nepublicat ? pendingHtml(row) : !row.versiune ? "nepublicat" : "";
+    const scope = `${row.versiune ? `v${esc(row.versiune)} · ` : ""}${esc(row.nivel)}`;
+    return `<div class="e-permits-rpt-list__side">
+      <span class="e-permits-workplace__date-stack e-permits-rpt-list__cell">${tag(row.statut, row.tone)}${status ? `<span class="e-permits-workplace__date-meta">${status}</span>` : ""}</span>
+      <span class="e-permits-workplace__date-stack e-permits-rpt-list__cell"><span>${scope}</span>${row.autoritate ? `<span class="e-permits-workplace__date-meta" data-cell-tooltip="${esc(row.autoritate)}">${esc(row.autoritate)}</span>` : ""}</span>
+      <span class="e-permits-workplace__date-stack e-permits-rpt-list__cell">${row.modificat ? `<span>${esc(longDate(row.modificat))}</span><span class="e-permits-workplace__date-meta">${esc(`${time(row.modificat)} · ${row.r.updatedBy || ""}`)}</span>` : dash}</span>
+    </div>`;
+  };
+  const stackItem = (row) => {
+    const idLine = [esc(row.id), esc(row.categorie)];
+    return {
+      plainTitle: row.denumire,
+      title: esc(row.denumire),
+      /* the description (max 2 lines + the Small tooltip when cut), then „RPT-0002 · Statistic”; none → only the ID line */
+      meta: row.descriere ? [`<span class="e-permits-rpt-list__desc" data-cell-tooltip="${esc(row.descriere)}">${esc(row.descriere)}</span>`] : idLine,
+      meta2: row.descriere ? idLine : null,
+      actionsHtml: `${sideHtml(row)}${who().has ? rowMenu(row) : ""}`
+    };
+  };
   window.GEAPShellRegistries = window.GEAPShellRegistries || {};
   window.GEAPShellRegistries[KIND] = {
     build: registryDb,
     get facets() {
       return [
         { key: "categorie", label: "Categorie", get: (row) => row.categorie },
-        { key: "statut", label: "Statut", get: (row) => row.statut },
         { key: "nivel", label: "Nivel", get: (row) => row.nivel },
-        { key: "sursa", label: "Sursa de date", get: (row) => row.sursa }
+        { key: "statut", label: "Statut", get: (row) => row.statut }
       ];
     },
-    searchText: (row) => `${row.id} ${row.denumire} ${fold(row.denumire)}`,
+    searchText: (row) => `${row.id} ${row.denumire} ${fold(row.denumire)} ${row.descriere} ${fold(row.descriere)}`,
+    stackItem,
+    stackClass: "e-permits-rpt-list",
     sortValue: (row, key) => String(SORT[key]?.(row) ?? row[key] ?? ""),
     filterToken: () => true,
     rowClass: (row) => (row.statut === "Dezactivat" ? "is-inactive" : ""),
@@ -1260,12 +1287,10 @@
       switch (key) {
         case "id": return `<span data-cell-tooltip="${esc(row.id)}">${esc(row.id)}</span>`;
         case "denumire": return `<span data-cell-tooltip="${esc(row.denumire)}">${esc(row.denumire)}</span>`;
-        case "categorie": return `<span data-cell-tooltip="${esc(row.categorie)}">${esc(row.categorie)}</span>`;
-        case "sursa": return `<span data-cell-tooltip="${esc(row.sursa)}">${esc(row.sursa)}</span>`;
         case "nivel": return !row.autoritate ? esc(row.nivel) : twoLines(esc(row.nivel), `<span data-cell-tooltip="${esc(row.autoritate)}">${esc(row.autoritate)}</span>`);
         case "statut": return tag(row.statut, row.tone);
         /* „modificări nepublicate” = the clickable pending status (every config object, components.md) → the shared dialog */
-        case "versiune": return row.versiune ? (row.nepublicat ? twoLines(esc(row.versiune), HOOKS.pending ? A().renderHeaderStatus?.("modificări nepublicate", "warning", `data-rpt-pending="${esc(row.id)}" aria-haspopup="dialog" data-tooltip-text="Vezi modificările" aria-label="Vezi modificările nepublicate ale ${esc(row.id)}"`) || "modificări nepublicate" : "modificări nepublicate") : esc(row.versiune)) : twoLines(dash, "nepublicat");
+        case "versiune": return row.versiune ? (row.nepublicat ? twoLines(esc(row.versiune), pendingHtml(row)) : esc(row.versiune)) : twoLines(dash, "nepublicat");
         case "modificat": return row.modificat ? twoLines(esc(longDate(row.modificat)), esc(`${time(row.modificat)} · ${row.r.updatedBy || ""}`)) : dash;
         case "actiuni": return rowMenu(row);
         default: return esc(row[key] ?? "") || dash;
@@ -1273,11 +1298,13 @@
     },
     openRow: (id) => openProfile(id, "configurare"),
     rowLabel: (row) => `${row.id}, ${row.denumire} — deschide raportul`,
-    emptyHtml: ({ query, filtered }) => {
-      if (!who().has) return E()?.render({ title: DENIED, icon: "lock", bare: true });
-      if (!S.data) return E()?.render({ title: "Se încarcă rapoartele…", loading: true, bare: true });
-      if (query || filtered) return E()?.render({ title: NO_MATCH, text: "Caută după ID sau denumire, sau schimbă filtrele.", icon: "search", bare: true });
-      return E()?.render({ title: EMPTY_LIST, text: canCreate() ? "Creează primul raport cu „Raport nou”." : "", icon: "page-text", bare: true, actionHtml: canCreate() ? '<button class="btn btn-primary btn-sm" type="button" data-rpt-new>Raport nou</button>' : "" });
+    /* boxed (registry-stack-v1): the stacked list has no table cell around it → the normal dashed empty state */
+    emptyHtml: ({ query, filtered, boxed = false }) => {
+      const bare = !boxed;
+      if (!who().has) return E()?.render({ title: DENIED, icon: "lock", bare });
+      if (!S.data) return E()?.render({ title: "Se încarcă rapoartele…", loading: true, bare });
+      if (query || filtered) return E()?.render({ title: NO_MATCH, text: "Caută după ID, denumire sau descriere, sau schimbă filtrele.", icon: "search", bare, actionHtml: filtered ? '<button class="btn btn-neutral btn-sm" type="button" data-filter-clear-all>Șterge filtrele</button>' : "" });
+      return E()?.render({ title: EMPTY_LIST, text: canCreate() ? "Creează primul raport cu „Raport nou”." : "", icon: "page-text", bare, actionHtml: canCreate() ? '<button class="btn btn-primary btn-sm" type="button" data-rpt-new>Raport nou</button>' : "" });
     },
     exportRows: (rows) => exportCsv(rows),
     exportState: () => (who().has ? {} : { hidden: true })
@@ -1291,7 +1318,7 @@
   }
   function exportCsv(rows) {
     const head = ["ID", "Denumire", "Categorie", "Sursa de date", "Nivel", "Statut", "Versiune", "Modificat"];
-    const lines = rows.map((r) => [r.id, r.denumire, r.categorie, r.sursa, r.autoritate ? `${r.nivel} ${r.autoritate}` : r.nivel, r.statut, r.versiune || "-", r.modificat ? `${longDate(r.modificat)} ${time(r.modificat)}` : "-"]);
+    const lines = rows.map((r) => [r.id, r.denumire, label(CATEGORIES, r.r.config.category), r.sursa, r.autoritate ? `${r.nivel} ${r.autoritate}` : r.nivel, r.statut, r.versiune || "-", r.modificat ? `${longDate(r.modificat)} ${time(r.modificat)}` : "-"]);
     const cell = (v) => `"${String(v ?? "").replace(/"/g, '""')}"`;
     const blob = new Blob([`﻿${[head, ...lines].map((l) => l.map(cell).join(";")).join("\r\n")}`], { type: "text/csv;charset=utf-8" });
     const a = Object.assign(document.createElement("a"), { href: URL.createObjectURL(blob), download: "rapoarte.csv" });

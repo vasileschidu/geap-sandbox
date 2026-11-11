@@ -7330,8 +7330,56 @@ document.addEventListener("DOMContentLoaded", () => {
     </tr>
   `;
 
+  /* registry-stack-v1 (2026-11-11, Rapoarte RPT-01, Galina): a product registry with `stackItem(row)` lists its rows as
+     the shared STACKED LIST instead of the table — same toolbar, search, facets, pager and row click (`openRow`); the
+     host sits inside the scrolling table wrap, the table is hidden (`[data-workplace-layout="stack"]`). `stackItem`
+     returns a renderStackItem item; the shell adds the row hooks (data-workplace-row + rowLabel). Empty = the BOXED
+     empty state (`emptyHtml({ boxed: true })`). components.md › „Registry as a stacked list”. */
+  const renderWorkplaceStack = (rows) => {
+    const registry = productRegistry(workplaceDb?.kind);
+    const wrap = workplaceTable?.closest(".e-permits-workplace__table-wrap");
+    const on = Boolean(registry?.stackItem) && Boolean(wrap);
+    if (workplacePanel) {
+      if (on) workplacePanel.dataset.workplaceLayout = "stack";
+      else delete workplacePanel.dataset.workplaceLayout;
+    }
+    let host = wrap?.querySelector(":scope > [data-workplace-stack]");
+    if (!on) {
+      if (host) host.innerHTML = "";
+      return false;
+    }
+    if (!host) {
+      wrap.insertAdjacentHTML("beforeend", '<div class="e-permits-workplace__stack" data-workplace-stack></div>');
+      host = wrap.querySelector(":scope > [data-workplace-stack]");
+    }
+    workplaceRows.innerHTML = "";
+    if (!rows.length) {
+      const query = workplaceState.query.trim();
+      const filtered = appliedEntries().length > 0;
+      host.innerHTML = registry.emptyHtml?.({ query, filtered, boxed: true })
+        || renderNoResults(filtered ? "Niciun rezultat pentru filtrele aplicate" : "Niciun rezultat nu corespunde căutării", {});
+      return true;
+    }
+    host.innerHTML = `
+      <div class="e-permits-stack${registry.stackClass ? ` ${registry.stackClass}` : ""}">
+        <div class="e-permits-stack__group">
+          <ul class="e-permits-stack__list" role="list">${rows.map((row) => {
+            const item = registry.stackItem(row);
+            const extra = registry.rowClass?.(row);
+            return renderStackItem({ ...item, rowAttrs: `data-workplace-row="${escapeHtml(row.id)}"${workplaceRowOpenAttrs(row)}${item.rowAttrs ? ` ${item.rowAttrs}` : ""}` })
+              .replace('<li class="e-permits-stack__item', `<li class="e-permits-stack__item${extra ? ` ${escapeHtml(extra)}` : ""}`);
+          }).join("")}</ul>
+        </div>
+      </div>`;
+    return true;
+  };
+
   const renderTableRows = (rows, columns, view, columnWidths) => {
     if (!workplaceRows) {
+      return;
+    }
+
+    if (renderWorkplaceStack(rows)) {
       return;
     }
 
@@ -8668,7 +8716,8 @@ document.addEventListener("DOMContentLoaded", () => {
      is still itself the control (focusable, named) */
   const stackRowHasActions = (item) => Boolean(item.action || /<(button|a)\b(?![^>]*(data-stack-menu-trigger|role="menuitem"))/.test(String(item.actionsHtml || "")));
   const stackRowOpenAttrs = (item) => {
-    if (!item.rowAttrs || stackRowHasActions(item)) return "";
+    /* a registry row (registry-stack-v1) already carries its own name + tabindex (workplaceRowOpenAttrs) */
+    if (!item.rowAttrs || /\bdata-workplace-row-open\b/.test(item.rowAttrs) || stackRowHasActions(item)) return "";
     const tags = (item.badges || []).map((badge) => String(badge).replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim()).filter(Boolean).join(", ");
     const name = `${item.plainTitle || String(item.title || "").replace(/<[^>]*>/g, "")}${tags ? ` — ${tags}` : ""}, deschide detaliile`;
     return `${/\btabindex=/.test(item.rowAttrs) ? "" : ' tabindex="0"'} data-stack-row-open aria-label="${escapeHtml(name)}"`;
@@ -20941,7 +20990,7 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
       }
 
-      const serviceRowEl = event.target.closest("tr[data-workplace-row]");
+      const serviceRowEl = event.target.closest("tr[data-workplace-row], li[data-workplace-row]");
 
       if (serviceRowEl && productRegistry(activeRegistry)?.openRow) {
         productRegistry(activeRegistry).openRow(serviceRowEl.dataset.workplaceRow);

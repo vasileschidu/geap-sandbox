@@ -283,7 +283,7 @@
       "updatedAt": "2026-11-08T09:15:00", "updatedBy": "Anastasia Cojocaru",
       "config": {
         "names": { "ro": "Raport dosare suspendate pe specialist", "ru": "Отчёт о приостановленных делах по специалистам", "en": "Suspended files by specialist" },
-        "descriptions": { "ro": "", "ru": "", "en": "" },
+        "descriptions": { "ro": "Dosarele suspendate în perioada aleasă, pe specialist și număr de dosar, cu totalul suspendărilor fiecărui specialist.", "ru": "", "en": "" },
         "category": "tabelar", "source": "reg-dosare", "level": "Global", "authorities": [],
         "columns": [
           { "id": "c1", "names": { "ro": "Specialist", "ru": "Специалист", "en": "Specialist" }, "kind": "source", "field": "specialist", "dataType": "text", "header": "", "total": "sum" },

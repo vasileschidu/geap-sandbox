@@ -2317,6 +2317,21 @@ body {
   overflow: auto;
 }
 
+/* registry-stack-v1 (2026-11-11): a product registry with `stackItem` lists its rows as the shared stacked list inside the
+   scrolling table wrap — the table hides, the card sits 16 under the toolbar (filter-bar spacing), 24 above the end
+   (components.md › „Registry as a stacked list”) */
+.e-permits-workplace[data-workplace-layout="stack"] .e-permits-workplace__table {
+  display: none;
+}
+
+.e-permits-workplace:not([data-workplace-layout="stack"]) .e-permits-workplace__stack {
+  display: none;
+}
+
+.e-permits-workplace__stack {
+  padding: var(--spacing-16, 16px) var(--spacing-16, 16px) var(--spacing-24, 24px);
+}
+
 .e-permits-workplace__table {
   width: max-content;
   min-width: 100%;
