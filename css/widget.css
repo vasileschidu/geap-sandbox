@@ -1184,7 +1184,7 @@ button.e-permits-wid-rows__row:focus-visible {
 }
 
 .e-permits-wid-card .e-permits-wid-legend--list :is(strong, .e-permits-meter-legend__pct) {
-  font-variant-numeric: tabular-nums;
+  /* proportional figures: Onest tabular-nums draws visible gaps („1 55”); the columns align by justify-self */
   justify-self: end;
   margin-left: 0;
   text-align: right;
@@ -1418,8 +1418,8 @@ button.e-permits-wid-rows__row:focus-visible {
        description in the Small hint tooltip; none when empty) — no description line any more; 16 24 padding and a 1px
        divider across the card; the editor toolbar sits on the same centre line (css/dashboard.css);
      · body = 24 on every side.
-   The number tile (`--stat`): the same bordered card without the divider, 24 on every side: label row (title 14/20 medium
-   secondary + „ⓘ”) · 8 · the number (Heading H2, phones Mobile H2) + the delta Small tag („+4,3%” success / „−4,3%”
+   The number tile (`--stat`): the same bordered card without the divider, 24 on every side: label row (title 16/24 semibold
+   like the chart cards + „ⓘ”) · 8 · the number (Heading H2, phones Mobile H2) + the delta Small tag („+4,3%” success / „−4,3%”
    danger) · 8 · „față de luna precedentă (2.190)” and the target (14/20 tertiary). Label ABOVE the number: one head pattern
    for every card (title, „ⓘ” and toolbar on one line) and label → value reading order (Stripe / Linear); Compactă only. */
 .e-permits-wid-card.e-permits-wid-card--panel {
@@ -1472,11 +1472,12 @@ button.e-permits-wid-rows__row:focus-visible {
   padding: 0;
 }
 
+/* wid-stat-title-v2 (2026-11-11, user „title not too small? do our style”): the same card title as the chart cards */
 .e-permits-wid-card.e-permits-wid-card--stat .e-permits-wid-card__title {
-  color: var(--color-text-base-secondary, #383838);
-  font-size: var(--font-size-fs-14, 14px);
-  font-weight: var(--font-weight-fw-medium, 500);
-  line-height: var(--line-height-lh-20, 20px);
+  color: var(--color-text-base-default, #121212);
+  font-size: var(--font-size-fs-16, 16px);
+  font-weight: var(--font-weight-fw-semibold, 600);
+  line-height: var(--line-height-lh-24, 24px);
 }
 
 .e-permits-wid-card--stat > .e-permits-wid-card__body {
@@ -1502,7 +1503,6 @@ button.e-permits-wid-rows__row:focus-visible {
 .e-permits-wid-stat__value {
   color: var(--color-text-base-default, #121212);
   font-size: var(--type-heading-h2-font-size, 32px);
-  font-variant-numeric: tabular-nums;
   font-weight: var(--font-weight-fw-semibold, 600);
   letter-spacing: var(--type-heading-h2-letter-spacing, -0.64px);
   line-height: var(--type-heading-h2-line-height, 40px);
