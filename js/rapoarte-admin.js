@@ -197,7 +197,7 @@
     if (S.data) return Promise.resolve(S.data);
     if (!S.loading) {
       S.loading = Promise.all([
-        fetch("data/rapoarte.json?v=rpt-cond-restore-v1").then((r) => r.json()),
+        fetch("data/rapoarte.json?v=rpt-page-v1").then((r) => r.json()),
         K().load ? K().load() : Promise.resolve(null)
       ]).then(([json]) => {
         if (demo.has("gol")) json.reports = [];
@@ -240,6 +240,8 @@
   const exprKey = (x) => String(x || "").replace(/\s+/g, "").replace(/×/g, "*").replace(/−/g, "-").replace(/÷/g, "/").toUpperCase();
   const sameFormula = (a, b) => exprKey(a.expr) === exprKey(b.expr) && a.format === b.format;
   const colOf = (v, id) => v.columns.find((c) => c.id === id) || null;
+  /* rpt-col-hide-v1 (2026-11-11, user): a hidden column stays in the report (grouping, filters, formulas) but is not shown */
+  const shownCols = (v) => v.columns.filter((c) => !c.hidden);
   const colName = (c) => c?.names.ro || "Coloană fără denumire";
   const lastVersion = (r) => r.versions[r.versions.length - 1] || null;
   const unpublished = (r) => Boolean(lastVersion(r)) && !same(r.config, lastVersion(r).config);
@@ -324,11 +326,23 @@
     return `${f} ${opText(v, c)} ${roDate(c.value)}`;
   }
   const fixed = (v, c) => !asking(v, c) && condComplete(v, c);
-  function condsText(v) {
+  /* rpt-scope-v1 (2026-11-11, user): the same conditions as „Câmp: valoare” for the preview notice („Filtre aplicate: …”) */
+  function condRead(v, c) {
+    const k = condKind(v, c);
+    const op = opOf(v, c);
+    const f = fldLabel(v, c);
+    if (k === "list") return `${f}: ${op === "not" ? "nu este " : ""}${c.values.join(", ")}`;
+    if (k === "text") return `${f}: ${opText(v, c)} „${String(c.value).trim()}”`;
+    if (k === "number") return op === "between" ? `${f}: între ${c.value} și ${c.value2}` : `${f}: ${opText(v, c)} ${c.value}`;
+    if (op === "last") return `${f}: ultimele ${plural(Number(c.value), "zi", "zile")}`;
+    if (op === "between") return `${f}: ${roDate(c.value)} – ${roDate(c.value2)}`;
+    return `${f}: ${opText(v, c)} ${roDate(c.value)}`;
+  }
+  function condsText(v, sentence = condSentence) {
     const word = (conj) => (conj === "or" ? " sau " : " și ");
     const parts = (v.filters || []).map((x) => {
-      if (!x.group) return fixed(v, x) ? condSentence(v, x) : "";
-      const inner = x.rules.filter((c) => fixed(v, c)).map((c) => condSentence(v, c));
+      if (!x.group) return fixed(v, x) ? sentence(v, x) : "";
+      const inner = x.rules.filter((c) => fixed(v, c)).map((c) => sentence(v, c));
       return inner.length > 1 ? `(${inner.join(word(x.conj))})` : inner[0] || "";
     }).filter(Boolean);
     return parts.join(word(v.filterConj));
@@ -618,6 +632,14 @@
       if (!k) return null;
       return k === RECS ? base : rowValues(v, key, own, k / RECS);
     }).filter(Boolean);
+    /* rpt-col-hide-v1: a hidden Text column that does not group the rows no longer splits them — rows equal on the shown
+       Text columns + the levels are merged (measures re-aggregated, so the Total never changes) */
+    const keyCols = dims.filter((d) => !d.hidden || levels.includes(d));
+    if (keyCols.length < dims.length) {
+      const merged = new Map();
+      rows.forEach((r) => { const k = keyCols.map((d) => r[d.id]).join("\u0001"); if (!merged.has(k)) merged.set(k, []); merged.get(k).push(r); });
+      rows.splice(0, rows.length, ...[...merged.values()].map((list) => (list.length === 1 ? list[0] : { ...list[0], ...Object.fromEntries(Object.entries(aggregateRows(v, list)).filter(([id]) => isMeasure(colOf(v, id)) || colOf(v, id)?.kind === "calc")) })));
+    }
     const build = (l, list) => {
       if (l === n) return { rows: list, leafRows: list };
       const col = levels[l];
@@ -650,7 +672,7 @@
   const edgeCls = (edges, i) => [edges[i]?.[0] ? "is-gl" : "", edges[i]?.[1] ? "is-gr" : "", i === 0 ? "is-c0" : "", i === edges.length - 1 ? "is-cn" : ""].filter(Boolean);
   /* the head: a common header (Antetul comun) spans its consecutive columns on row 1; the others span both rows */
   function headHtml(v, { link = false } = {}) {
-    const cols = v.columns;
+    const cols = shownCols(v);
     const edges = groupEdges(cols);
     const two = cols.some((c) => String(c.header || "").trim());
     const cellBody = (c) => {
@@ -673,9 +695,33 @@
     });
     return `<tr>${top.map((x) => x.replace(" data-last", "")).join("")}</tr><tr>${bottom.join("")}</tr>`;
   }
+  /* rpt-fold-v1: folded group paths (`/<col>=<value>/…`), for the open report (cleared when another one opens) */
+  const FOLD = new Set();
+  let foldOf = "";
+  const foldBtn = (path, text, shut) => `<button class="btn btn-text-neutral btn-sm btn-icon-only e-permits-rpt-fold" type="button" aria-expanded="${!shut}" aria-label="Grupul „${esc(text)}”" data-tooltip-label="${shut ? "Extinde grupul" : "Restrânge grupul"}" data-rpt-fold="${esc(path)}">${icon(shut ? "chevron-right" : "chevron-bottom", 16)}</button>`;
+  const foldHidden = (inPath) => { if (!inPath) return false; let acc = ""; return inPath.split("/").slice(1).some((part) => FOLD.has(acc += `/${part}`)); };
+  const foldRows = (html) => html.replace(/<tr class="([^"]*)" data-rpt-in="([^"]*)"|<tr data-rpt-in="([^"]*)"/g, (m, cls, a, b) => {
+    const p = (a ?? b).replace(/&amp;/g, "&").replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&lt;/g, "<").replace(/&gt;/g, ">");
+    return foldHidden(p) ? `${m} hidden` : m;
+  });
+  /* a click: every report table on the page (the inline preview + „Mărește”) follows, without a redraw (focus stays) */
+  function applyFold() {
+    document.querySelectorAll(".e-permits-rpt-table").forEach((table) => {
+      table.querySelectorAll("tbody tr[data-rpt-in]").forEach((tr) => { tr.hidden = foldHidden(tr.dataset.rptIn); });
+      table.querySelectorAll("[data-rpt-fold]").forEach((b) => {
+        const shut = FOLD.has(b.dataset.rptFold);
+        b.setAttribute("aria-expanded", String(!shut));
+        b.dataset.tooltipLabel = shut ? "Extinde grupul" : "Restrânge grupul";
+        b.querySelector("use")?.setAttribute("href", `assets/icons/sprite.svg#icon-${shut ? "chevron-right" : "chevron-bottom"}`);
+        b.closest("tr")?.classList.toggle("is-folded", shut);
+      });
+    });
+  }
   function tableHtml(v, { link = false, sel = null, q = "" } = {}) {
+    const fk = P.id || (P.isNew ? "nou" : "");
+    if (foldOf !== fk) { FOLD.clear(); foldOf = fk; }
     const m = previewModel(v, sel, q);
-    const cols = v.columns;
+    const cols = shownCols(v);
     const labelCol = cols.find((c) => !isMeasure(c));
     const edges = groupEdges(cols);
     const cell = (c, vals, { label: lbl = "" } = {}) => {
@@ -693,15 +739,21 @@
       const cls = ["e-permits-rpt-table__text", "e-permits-rpt-table__label", ...edgeCls(edges, 0).filter((x) => x !== "is-gr" && x !== "is-cn"), ...(edges[last]?.[1] ? ["is-gr"] : []), ...(last === cols.length - 1 ? ["is-cn"] : [])].join(" ");
       return `<td class="${cls}" colspan="${lead}" data-rpt-cell="${esc(cols[0].id)}"><strong data-cell-tooltip="${esc(lbl)}">${esc(lbl)}</strong></td>${cols.slice(lead).map((c) => cell(c, vals, { label: lbl })).join("")}`;
     };
-    /* rpt-levels-v1: label row → its groups / rows → its subtotal (indented like its label), at every level */
-    const nodesHtml = (nodes) => nodes.map((nd) => {
+    /* rpt-levels-v1: label row → its groups / rows → its subtotal (indented like its label), at every level.
+       rpt-fold-v1 (2026-11-11, user): every group row starts with a chevron button (⌄ open / › folded, aria-expanded) that
+       hides the group's rows and inner groups; its subtotal stays. `data-rpt-in` = the group path a row sits in (folding
+       is applied by `applyFold`, shared by the inline preview and „Mărește”) */
+    const nodesHtml = (nodes, base = "") => nodes.map((nd) => {
       const text = `${colName(nd.col)}: ${nd.value}`;
+      const path = `${base}/${encodeURIComponent(nd.col.id)}=${encodeURIComponent(nd.value)}`;
+      const shut = FOLD.has(path);
+      const inner = nd.nodes ? nodesHtml(nd.nodes, path) : nd.rows.map((r) => `<tr data-rpt-in="${esc(path)}">${cols.map((c) => cell(c, r)).join("")}</tr>`).join("");
       return `
-      <tr class="e-permits-rpt-table__group is-l${nd.level}"><th scope="rowgroup" colspan="${cols.length}"><span data-cell-tooltip="${esc(text)}">${esc(text)}</span></th></tr>
-      ${nd.nodes ? nodesHtml(nd.nodes) : nd.rows.map((r) => `<tr>${cols.map((c) => cell(c, r)).join("")}</tr>`).join("")}
-      <tr class="e-permits-rpt-table__subtotal is-l${nd.level}">${sumRow(nd.sub, `Subtotal ${nd.value}`)}</tr>`;
+      <tr class="e-permits-rpt-table__group is-l${nd.level}${shut ? " is-folded" : ""}" data-rpt-in="${esc(base)}"><th scope="rowgroup" colspan="${cols.length}"><span class="e-permits-rpt-table__gcell">${foldBtn(path, text, shut)}<span class="e-permits-rpt-table__gtext" data-cell-tooltip="${esc(text)}">${esc(text)}</span></span></th></tr>
+      ${inner}
+      <tr class="e-permits-rpt-table__subtotal is-l${nd.level}" data-rpt-in="${esc(base)}">${sumRow(nd.sub, `Subtotal ${nd.value}`)}</tr>`;
     }).join("");
-    const body = m.root.nodes ? nodesHtml(m.root.nodes) : m.root.rows.map((r) => `<tr>${cols.map((c) => cell(c, r)).join("")}</tr>`).join("");
+    const body = m.root.nodes ? foldRows(nodesHtml(m.root.nodes)) : m.root.rows.map((r) => `<tr>${cols.map((c) => cell(c, r)).join("")}</tr>`).join("");
     const foot = m.total ? `<tfoot><tr class="e-permits-rpt-table__total">${sumRow(m.total, "Total")}</tr></tfoot>` : "";
     return `
       <div class="e-permits-workplace__table-wrap e-permits-rpt-table-wrap">
@@ -729,6 +781,18 @@
       })
     ].filter(Boolean).join("; ");
   }
+  /* rpt-scope-v1 (2026-11-11, user): above the preview table ONE library info notice (blue Mesaj · subtil) — „Grupat după:
+     A › B” · „Filtre aplicate: <the fixed conditions, și / sau>” · „Vizibile în raport: <the „Afișează filtru” fields>”,
+     one line each, only the lines that apply; nothing → no notice. Replaces the grey „Condiții: …” line. */
+  function scopeNotice(v) {
+    const lines = [
+      levelCols(v).length ? ["Grupat după", levelCols(v).map(colName).join(" › ")] : null,
+      condsText(v, condRead) ? ["Filtre aplicate", condsText(v, condRead)] : null,
+      askConds(v).length ? ["Vizibile în raport", [...new Set(askConds(v).map((c) => fldLabel(v, c)))].join(", ")] : null
+    ].filter(Boolean);
+    if (!lines.length) return "";
+    return U().renderNotice?.("info", lines.map(([k, t]) => `<span class="e-permits-rpt-scope__line"><strong>${esc(k)}:</strong> ${esc(t)}</span>`).join(""), { role: "note", className: "e-permits-rpt-scope" }) || "";
+  }
   function cardHtml(v, { link = false, filters = "static", sel = null, q = "" } = {}) {
     const name = v.names.ro || "Denumirea raportului";
     const info = v.descriptions.ro ? `<button class="e-permits-fo-role-info" type="button" aria-label="Despre raport" data-tooltip-hint="${esc(v.descriptions.ro)}">${icon("circle-info-filled", 16)}</button>` : "";
@@ -738,19 +802,17 @@
     let body;
     if (!v.source) body = E()?.render({ title: "Alege sursa de date", text: "Previzualizarea folosește câmpurile sursei, pe date demonstrative.", icon: "page-text", compact: true, bare: true }) || "";
     else if (!v.columns.length) body = E()?.render({ title: "Nicio coloană încă", text: "Adaugă coloane din sursa de date sau calculate: raportul apare aici pe măsură ce îl construiești.", icon: "page-text", compact: true, bare: true }) || "";
+    else if (!shownCols(v).length) body = E()?.render({ title: "Toate coloanele sunt ascunse", text: "Afișează cel puțin o coloană din «Coloanele raportului».", icon: "page-text", compact: true, bare: true }) || "";
     else {
       const rows = previewModel(v, sel, q).rowCount;
-      body = (live ? '<div class="e-permits-rpt-fslot" data-rpt-fslot></div>' : "") + (rows
+      body = scopeNotice(v) + (live ? '<div class="e-permits-rpt-fslot" data-rpt-fslot></div>' : "") + (rows
         ? tableHtml(v, { link, sel, q })
         : `<div class="e-permits-rpt-nomatch">${E()?.render({ title: NO_MATCH, text: filtered ? "Niciun rând nu corespunde filtrelor alese. Schimbă sau șterge filtrele." : "Niciun rând nu corespunde condițiilor raportului. Schimbă condițiile din «Filtre».", icon: "search", compact: true, actionHtml: filters === "live" && filtered ? '<button class="btn btn-neutral btn-sm" type="button" data-rpt-filter-clear>Șterge filtrele</button>' : "" }) || ""}</div>`);
     }
     const applied = filters === "live" ? "" : appliedText(v, sel, q);
-    const conds = filters === "live" ? "" : condsText(v);
+    /* rpt-scope-v1: the conditions, the asked filters and the grouping live in the notice above the table */
     const foot = [
-      conds ? `Condiții: ${conds}` : "",
       applied ? `Aplicate în previzualizare: ${applied}` : "",
-      askConds(v).length && !(live && v.source && v.columns.length) ? `Filtre la generare: ${askConds(v).map((c) => chipLabel(v, c)).join(", ")}` : "",
-      levelCols(v).length ? `Grupat după ${levelsText(v)}, cu subtotal ${levelCols(v).length > 1 ? "la fiecare nivel" : "pe grup"}` : "",
       v.columns.some(isMeasure) ? (v.totalRow ? "Cu rândul de total" : "Fără rândul de total") : ""
     ].filter(Boolean);
     return `
@@ -773,7 +835,6 @@
           <div class="e-permits-wid-preview__titles">
             <h2 class="e-permits-dosar-profil__section-title" id="${idp}-preview-title">Previzualizare</h2>
             <p class="e-permits-dosar-profil__section-meta e-permits-wid-preview__meta">${esc(meta)}</p>
-            ${condsText(v) ? `<p class="e-permits-dosar-profil__section-meta e-permits-wid-preview__meta e-permits-rpt-conds-line" data-cell-tooltip="${esc(`Condiții: ${condsText(v)}`)}">${esc(`Condiții: ${condsText(v)}`)}</p>` : ""}
           </div>
           <div class="e-permits-passport__heading-tools">
             <button class="btn btn-neutral btn-sm btn-icon-only" type="button" aria-label="Mărește previzualizarea" data-tooltip-label="Mărește" aria-haspopup="dialog" data-rpt-zoom${v.columns.length ? "" : ' aria-disabled="true" data-tooltip-reason="Adaugă mai întâi coloane."'}>${icon("enlarge", 16)}</button>
@@ -916,6 +977,7 @@
     }
     out.push(label(DATA_TYPES, c.dataType) || "—");
     if (String(c.header || "").trim()) out.push(`Antet comun: ${c.header.trim()}`);
+    if (c.hidden) out.push("Ascunsă");
     return out.map(esc);
   }
   function stepColumns(v, e, idp, { jump = false } = {}) {
@@ -965,10 +1027,12 @@
         badges: [],
         meta: (() => { const m = columnMeta(v, c); m.splice(2, 0, ...[kt, c.total === "incl" && isMeasure(c) ? "Inclusiv" : ""].filter(Boolean).map(esc)); return m; })(),
         /* rpt-col-list-v4 (user: „bring back arrows”): the original controls — ↑ / ↓ (disabled at the ends) + the red trash */
+        /* rpt-col-hide-v1 (2026-11-11, user): [group] · eye (Ascunde / Afișează coloana) · trash, one centre line */
         actionsHtml: `
           ${groupBtn(c)}
+          <button class="btn btn-text-neutral btn-sm btn-icon-only e-permits-rpt-eye-btn" type="button" aria-label="${c.hidden ? "Afișează" : "Ascunde"} coloana „${esc(colName(c))}”" data-tooltip-label="${c.hidden ? "Afișează coloana" : "Ascunde coloana"}" data-rpt-col-hide="${esc(c.id)}">${icon(c.hidden ? "eye-closed" : "eye-open", 16)}</button>
           <button class="btn btn-text-destructive btn-sm btn-icon-only" type="button" aria-label="Elimină coloana „${esc(colName(c))}”" data-tooltip-label="Elimină coloana" data-rpt-col-remove="${esc(c.id)}">${icon("delete", 16)}</button>`
-      }) || "").replace('<li class="e-permits-stack__item', '<li draggable="true" class="e-permits-stack__item');
+      }) || "").replace('<li class="e-permits-stack__item', `<li draggable="true" class="e-permits-stack__item${c.hidden ? " is-col-hidden" : ""}`);
     }).join("")}</ul></div>
       ${add()}`
       : `${E()?.render({ title: "Nicio coloană încă", text: v.source ? "Adaugă coloane din dicționarul sursei de date sau calculate cu o formulă." : "Alege mai întâi sursa de date (pasul 1), apoi adaugă coloanele.", icon: "page-text", compact: true, actionHtml: add() }) || ""}${e.columns ? errorHtml(`${idp}-columns`, e.columns) : ""}`;
@@ -1194,7 +1258,13 @@
       /* rpt-stack-list-v1: Categorie = the short Statistic / Tabelar (meta line + facet); descriere = the RO description */
       id: r.id, denumire: r.config.names.ro, categorie: CATEGORY_SHORT[r.config.category] || "", descriere: String(r.config.descriptions?.ro || "").trim(), sursa: sourceName(r.config.source),
       nivel: r.config.level, autoritate: r.config.authorities.map(authName).join(", "),
-      statut: r.status, tone: STATUS_TONE[r.status] || "neutral", versiune: lv ? String(lv.version) : "", nepublicat: unpublished(r), modificat: r.updatedAt || "", r
+      statut: r.status, tone: STATUS_TONE[r.status] || "neutral", versiune: lv ? String(lv.version) : "", nepublicat: unpublished(r), modificat: r.updatedAt || "",
+      /* rpt-facets-v1 (2026-11-11, user): Creat de · Autoritate (a Global report for every authority matches all of them) ·
+         Serviciu (the services named by the report's fixed conditions) */
+      creat: r.createdBy || "",
+      autoritati: r.config.level === "Global" && !r.config.authorities.length ? D().authorities.map((a) => a.name) : r.config.authorities.map(authName),
+      servicii: [...new Set(flatConds(r.config).filter((c) => c.field === "serviciu" && fixed(r.config, c) && opOf(r.config, c) === "is").flatMap((c) => c.values))],
+      r
     };
   };
   function registryDb() {
@@ -1204,6 +1274,8 @@
       kind: KIND,
       fixedWidths: true,
       fieldCount: 8,
+      /* rpt-page-v1 (2026-11-11, user): the shared BO pager, 20 a page („1–20 din 46”) */
+      pageSizes: [20, 40, 60],
       /* rpt-sort-v1: newest change first; „Sortează” = Ultima modificare · Denumire · ID (registry `sort`) */
       defaultSort: "modificat",
       defaultSortDirection: "desc",
@@ -1277,7 +1349,10 @@
       return [
         { key: "categorie", label: "Categorie", get: (row) => row.categorie },
         { key: "nivel", label: "Nivel", get: (row) => row.nivel },
-        { key: "statut", label: "Statut", get: (row) => row.statut }
+        { key: "statut", label: "Statut", get: (row) => row.statut },
+        { key: "creat", label: "Creat de", search: true, get: (row) => row.creat },
+        { key: "autoritate", label: "Autoritate", search: true, get: (row) => row.autoritati },
+        { key: "serviciu", label: "Serviciu", get: (row) => row.servicii }
       ];
     },
     searchText: (row) => `${row.id} ${row.denumire} ${fold(row.denumire)} ${row.descriere} ${fold(row.descriere)}`,
@@ -2405,6 +2480,13 @@
     if (qclear) { const x = fx(ctxOf(qclear)); x.state.q = ""; x.refocus = [0, 0]; refreshPreviewOnly(); return; }
     const zoom = t.closest("[data-rpt-zoom]");
     if (zoom) { if (zoom.getAttribute("aria-disabled") !== "true") openZoom(); return; }
+    const fold = t.closest("[data-rpt-fold]");
+    if (fold) {
+      const path = fold.dataset.rptFold;
+      if (FOLD.has(path)) FOLD.delete(path); else FOLD.add(path);
+      applyFold();
+      return;
+    }
     if (inSheet(t)) {
       if (t.closest("[data-rpt-ed-close]")) { event.preventDefault(); closeCreate(); return; }
       if (t.closest("[data-rpt-prev]")) { goStep(P.step - 1); return; }
@@ -2442,6 +2524,15 @@
       const drop = () => { P.draft.columns = P.draft.columns.filter((x) => x.id !== id); users.forEach((u) => Object.keys(u.operands).forEach((k) => { if (u.operands[k] === id) u.operands[k] = ""; })); delete P.errors[`col.${id}`]; afterColumnsChange("[data-rpt-add-trigger]"); };
       if (users.length) U().askConfirm?.({ title: `Elimini coloana „${colName(c)}”?`, text: `Formula ${users.length === 1 ? "coloanei" : "coloanelor"} ${users.map((u) => `„${colName(u)}”`).join(", ")} o folosește: va trebui să alegi altă coloană.`, confirmLabel: "Elimină", destructive: true }, drop);
       else drop();
+      return;
+    }
+    const hide = t.closest("[data-rpt-col-hide]");
+    if (hide) {
+      const c = colOf(P.draft, hide.dataset.rptColHide);
+      if (!c) return;
+      if (c.hidden) delete c.hidden; else c.hidden = true;
+      afterColumnsChange(`[data-rpt-col-hide="${CSS.escape(c.id)}"]`);
+      announce(c.hidden ? `Coloana „${colName(c)}” este ascunsă în raport.` : `Coloana „${colName(c)}” se afișează în raport.`);
       return;
     }
     const grp = t.closest("[data-rpt-col-group]");

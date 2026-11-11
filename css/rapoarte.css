@@ -1267,3 +1267,64 @@
     padding-inline: var(--spacing-24, 24px);
   }
 }
+
+/* ---- rpt-scope-v1 (2026-11-11, user): the preview's scope = ONE library info notice (blue Mesaj · subtil, renderNotice)
+   above the filter chips + table: „Grupat după: …” · „Filtre aplicate: …” · „Vizibile în raport: …”, one line each (the
+   notice's own 14/20 text; the label medium). Replaces the grey „Condiții: …” line under the preview title. ---- */
+.e-permits-rpt-scope .e-permits-rpt-scope__line {
+  display: block;
+}
+
+.e-permits-reg-modal--rpt-zoom .e-permits-rpt-card .e-permits-rpt-scope {
+  flex: none;
+}
+
+/* ---- rpt-fold-v1 (2026-11-11, user „grouping more visible”): level-1 group rows one grey darker (tertiary, the header
+   band's grey; levels 2–3 keep the secondary), every group row starts with the library icon-only chevron (⌄ open · ›
+   folded, aria-expanded) on the label's line — 4 above / below the 32 button = a 40 row; the chevron's glyph sits on the
+   label's left edge (−8 = the button's own inset). Folded rows = `[hidden]` (the subtotal stays). ---- */
+.e-permits-wid-table--agg.e-permits-rpt-table tr.e-permits-rpt-table__group.is-l1 > th,
+.e-permits-wid-table--agg.e-permits-rpt-table tbody tr.e-permits-rpt-table__group.is-l1:hover > th {
+  background: var(--color-background-base-tertiary, #f1f1f1);
+}
+
+.e-permits-workplace__table.e-permits-rpt-table tbody tr.e-permits-rpt-table__group > th {
+  height: var(--spacing-40, 40px);
+  padding-bottom: var(--spacing-4, 4px);
+  padding-top: var(--spacing-4, 4px);
+}
+
+.e-permits-rpt-table__gcell {
+  align-items: center;
+  display: flex;
+  gap: var(--spacing-4, 4px);
+  min-width: 0;
+}
+
+.e-permits-rpt-table__gcell > .btn.e-permits-rpt-fold {
+  flex: none;
+  margin-left: calc(var(--spacing-8, 8px) * -1);
+}
+
+/* an open group is a disclosure, not an open menu: no „owner” ring at rest (shell `.btn[aria-expanded="true"]`), the
+   library ring on keyboard focus */
+.btn.e-permits-rpt-fold[aria-expanded="true"]:not(:disabled):not(:focus-visible) {
+  box-shadow: none;
+}
+
+.e-permits-rpt-table__gtext {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.e-permits-workplace__table.e-permits-rpt-table tbody tr[hidden] {
+  display: none;
+}
+
+/* ---- rpt-col-hide-v1 (2026-11-11, user): a hidden column's item = muted (title + meta tertiary, the lead and the
+   controls unchanged); the eye button = library `btn btn-text-neutral btn-sm btn-icon-only` (eye-open → eye-closed) ---- */
+.e-permits-reg-editor__stack .e-permits-stack__item.is-col-hidden :is(.e-permits-stack__title, .e-permits-stack__meta, .e-permits-rpt-col-note) {
+  color: var(--color-text-base-tertiary, #757575);
+}

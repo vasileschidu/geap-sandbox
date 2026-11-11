@@ -4668,6 +4668,12 @@
       /* rpt-sort-v1: the „Sortează” chip's menu open (phones: the sort sheet) */
       "rpt-01i": list(async (h) => { await h.click("[data-workplace-sort-trigger]"); await h.wait(300); }),
       "rpt-01h": list(async (h) => { await h.click('li[data-workplace-row="RPT-0002"] .e-permits-stack__title'); await h.find("#rpt-panel"); await h.wait(400); }),
+      /* rpt-page-v1 / rpt-facets-v1 (2026-11-11, user): 46 reports, the shared pager 20 a page — page 2 (phones: the › step);
+         „Filtrare” + Creat de (open, the search of a long facet) · Autoritate (search „ans”) · Serviciu (applied: Autorizație sanitară) */
+      "rpt-01j": list(async (h) => { await h.click(ekPhone() ? '[data-pager-step="next"]' : '.pagination [aria-label="Pagina 2"]'); await h.wait(400); }),
+      "rpt-01k": list(async (h) => { await ekFacet("creat")(h); await h.wait(300); }),
+      "rpt-01l": list(async (h) => { await ekFacet("autoritate")(h); await h.wait(200); const q = [...document.querySelectorAll(".e-permits-workplace__filter-pop input[type='search'], .e-permits-filter-sheet input[type='search']")].find((x) => x.getClientRects().length); if (q) { q.focus(); q.value = "ans"; q.dispatchEvent(new Event("input", { bubbles: true })); } await h.wait(400); }),
+      "rpt-01m": list(async (h) => { await ekPick("serviciu", ["Autorizație sanitară de funcționare"])(h); await ekCommit(h); await h.wait(400); }),
       /* Feature AC — the menu only with „Gestionarea rapoartelor” */
       "rpt-02": { flow: "back-office", as: SPEC, hash: "#rapoarte", ready: "[data-reg-page]:not([hidden]) .e-permits-empty", delay: 900 },
       "rpt-02a": { flow: "back-office", as: ADMIN, hash: "#rapoarte", params: { raport: "fara-permisiune" }, ready: "[data-reg-page]:not([hidden]) .e-permits-empty", delay: 900 },
@@ -4740,6 +4746,16 @@
       "rpt-04i": prof("RPT-0002", "configurare", async (h) => { await h.click('#rpt-panel [data-rpt-col="c4"] .e-permits-stack__title'); await h.find(`${DR} #rpt-c-name-ro`); }),
       "rpt-04j": prof("RPT-0004"),
       "rpt-04k": prof("RPT-0007", "configurare", async (h) => { await h.scroll("#rpt-panel [data-rpt-preview]"); }),
+      /* rpt-scope-v1 / rpt-fold-v1 / rpt-col-hide-v1 (2026-11-11, user): the preview's blue notice (Grupat după · Filtre aplicate ·
+         Vizibile în raport) on RPT-0009; grouping only (RPT-0008); the ANSP group folded (chevron ›, its subtotal stays) inline
+         and in „Mărește”; the column „Finalizate” hidden (muted item, „Ascunsă”, gone from the preview); the clone in the sheet */
+      "rpt-04o": prof("RPT-0009", "configurare", async (h) => { await h.scroll("#rpt-panel [data-rpt-preview] .e-permits-rpt-scope"); await h.wait(300); }),
+      "rpt-04p": prof("RPT-0008", "configurare", async (h) => { await h.scroll("#rpt-panel [data-rpt-preview] .e-permits-rpt-card"); await h.wait(300); }),
+      "rpt-04q": prof("RPT-0009", "configurare", async (h) => { await h.scroll("#rpt-panel [data-rpt-preview] .e-permits-rpt-card"); await h.click('#rpt-panel [data-rpt-fold="/c1=ANSP"]'); await h.wait(300); }),
+      "rpt-04r": prof("RPT-0009", "configurare", async (h) => { await h.click('#rpt-panel [data-rpt-fold="/c1=ANSP"]'); await h.click("#rpt-panel [data-rpt-zoom]"); await h.find("#case-action-modal.is-active .e-permits-rpt-table"); await h.wait(300); }),
+      "rpt-04s": prof("RPT-0009", "configurare", async (h) => { await h.scroll('#rpt-panel [data-rpt-col="c5"]'); await h.click('#rpt-panel [data-rpt-col-hide="c5"]'); await h.wait(400); }),
+      "rpt-04t": prof("RPT-0009", "configurare", async (h) => { await h.click('#rpt-panel [data-rpt-col-hide="c5"]'); await h.wait(300); await h.scroll("#rpt-panel [data-rpt-preview] .e-permits-rpt-card"); await h.wait(300); }),
+      "rpt-03aj": list(seq(MENU("RPT-0009"), async (h) => { await h.click('[data-rpt-row-clone="RPT-0009"]'); await h.find(`${C} #rpt-e-name-ro`); await h.scroll(`${C} [data-rpt-preview] .e-permits-rpt-scope`); await h.wait(300); })),
 
       /* ---- part 2 (rpt-v2): US-469 publicarea · US-471 versiuni + restaurare · US-470 dezactivare / activare · acces per Rol /
          Autoritate · clonare · Istoric (jurnalul de audit) */

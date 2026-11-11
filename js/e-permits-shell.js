@@ -7520,6 +7520,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
   /* the list pager = the shared GEAPPager (js/pager.js, audit-fix-v3) — „1–16 din 33” · pages · „16 pe pagină ⌄”;
      none (and no footer) when every row fits on the smallest page */
+  /* rpt-page-v1: a product registry may bring its own page sizes (`db.pageSizes`, Rapoarte 20 · 40 · 60) */
+  const pageSizeOptions = () => workplaceDb?.pageSizes || workplacePageSizeOptions;
   const renderPagination = (totalRows) => {
     if (!workplacePagination) {
       return;
@@ -7532,7 +7534,7 @@ document.addEventListener("DOMContentLoaded", () => {
         total: totalRows,
         page: workplaceState.page,
         perPage: workplaceState.pageSize,
-        sizes: workplacePageSizeOptions,
+        sizes: pageSizeOptions(),
         prefix: "workplace",
         label: "Paginarea listei",
         sizeLabel: "Rânduri pe pagină"
@@ -8458,7 +8460,7 @@ document.addEventListener("DOMContentLoaded", () => {
     workplaceState.tabKey = null;
     workplaceState.query = "";
     workplaceState.page = 1;
-    workplaceState.pageSize = 16;
+    workplaceState.pageSize = db.pageSizes?.[0] || 16;
     /* Configurări servicii opens sorted by „Modificat în GEAP”, newest first (US-230 AC-09) */
     workplaceState.sortKey = kind === "services" ? "actualizat" : db.defaultSort || null;
     /* registre-v2: a module registry may open ascending (the AdminPortal registers: „Poziție” 0 → 999) */
@@ -21012,7 +21014,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (size) {
         const nextSize = Number(size.dataset.workplacePerPage);
         /* a menu size, or the phone „Afișează mai multe” (+16, with the page that keeps the first row — pager-compact-v3) */
-        if (workplacePageSizeOptions.includes(nextSize) || (size.dataset.pagerStep === "more" && nextSize > 0)) {
+        if (pageSizeOptions().includes(nextSize) || (size.dataset.pagerStep === "more" && nextSize > 0)) {
           workplaceState.pageSize = nextSize;
           workplaceState.page = Number(size.dataset.workplacePage) || 1;
           renderWorkplace();
@@ -21521,7 +21523,7 @@ document.addEventListener("DOMContentLoaded", () => {
       workplaceState.tabKey = null;
       workplaceState.query = "";
       workplaceState.page = 1;
-      workplaceState.pageSize = 16;
+      workplaceState.pageSize = db.pageSizes?.[0] || 16;
       workplaceState.sortKey = sortKey;
       workplaceState.sortDirection = sortDirection;
       workplaceState.selected.clear();
