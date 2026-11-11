@@ -124,6 +124,11 @@
   width: 100%;
 }
 
+/* dash-noborder-v1 (user): the widgets sit on the canvas without their card border; the grey hover surface stays */
+.e-permits-dsh-tile > .e-permits-chart {
+  border-color: transparent;
+}
+
 /* edit: the shared grey hover surface around the card (8 outset; gap 16 keeps 8 to the neighbours), also on keyboard
    focus inside; the widget itself takes the focus (arrows move, Shift + arrows resize) = the calendar focus ring */
 .e-permits-dsh-tile.is-editable {
