@@ -96,8 +96,8 @@
    too big”): the row unit = an EIGHTH of a Compactă card ((360 − 7 × 16) / 8 = 31; one unit + the gap = 47 ≈ one list
    row). A widget's height = N units (`--rN`): dsh-default-10 (2026-11-11, user: list charts must show their rows at
    the default) Compactă = 10 (= 454), Înaltă 20 (= 924), anything 8 … 24 by the resize corner (one unit per step); a number
-   tile = 5 (half a Compactă card), so two number tiles of the same width stack in one column beside a Compactă chart and
-   end on its bottom edge; a LONE number tile beside charts stretches to 10 (js `stretchLone`, no empty half cell). Sparse auto-placement does the
+   tile = 5 by default (half a Compactă card; resizable 5 … 24 like the charts, content centred), so two number tiles of the
+   same width stack in one column beside a Compactă chart and end on its bottom edge. Sparse auto-placement does the
    stacking by itself (the cursor only moves forward, the second tile lands in the free cell under the first), so DOM
    order = reading order = aria order. The card fills its tile; fit() (js/widget-charts.js, ResizeObserver) shows the list
    / table rows that fit. Phones = natural heights (below). */
@@ -203,37 +203,23 @@
 
 /* edit: the shared grey hover surface around the card (8 outset; gap 16 keeps 8 to the neighbours), also on keyboard
    focus inside; the widget itself takes the focus (arrows move, Shift + arrows resize) = the calendar focus ring */
-/* dsh-hover-v2 (user: „strange hover” — the grey outset box): the editing hover = the clickable white card look ON the
-   card (border secondary + shadow 200, drawn by the tile's ::after over the card's border, radius 20); the grey hover
-   surface only remains as the drop slot of a lifted card (no outset) */
+/* dsh-hover-v3 (user, 2026-11-11: back to the grey halo): the shared grey hover surface AROUND the white card (8 outset;
+   gap 16 keeps 8 to the neighbours), also on keyboard focus inside, while lifted (= the drop slot) and resizing; the card
+   stays white — the number tile's drill fill is off in the editor (the drill only works on the BO page) */
 .e-permits-dsh-tile.is-editable {
-  --hover-surface-outset: 0px;
+  --hover-surface-outset: var(--spacing-8, 8px);
   cursor: default;
 }
 
-.e-permits-dsh-tile.is-editable.e-permits-hover-surface:not(.is-lifted)::before {
-  opacity: 0;
-}
-
-.e-permits-dsh-tile.is-editable.is-lifted::before {
+.e-permits-dsh-tile.is-editable:focus-within::before,
+.e-permits-dsh-tile.is-editable.is-lifted::before,
+.e-permits-dsh-tile.is-editable.is-resizing::before {
   opacity: 1;
   transform: scale(1);
 }
 
-.e-permits-dsh-tile.is-editable::after {
-  border: var(--border-width-1, 1px) solid transparent;
-  border-radius: var(--border-radius-20, 20px);
-  content: "";
-  inset: 0;
+.e-permits-dsh-tile.is-editable .e-permits-wid-stat__btn {
   pointer-events: none;
-  position: absolute;
-  transition: border-color 0.2s, box-shadow 0.2s;
-  z-index: 1;
-}
-
-.e-permits-dsh-tile.is-editable:is(:hover, :focus-within, .is-resizing):not(.is-lifted)::after {
-  border-color: var(--color-border-base-secondary, #b2b2b2);
-  box-shadow: var(--shadow-200);
 }
 
 .e-permits-dsh-tile.is-editable:focus-visible {
@@ -362,11 +348,6 @@
 
 .e-permits-dsh-grid.is-arranging > .e-permits-dsh-tile.is-editable:not(.is-lifted, .is-resizing)::before {
   opacity: 0;
-}
-
-.e-permits-dsh-grid.is-arranging > .e-permits-dsh-tile.is-editable:not(.is-lifted, .is-resizing)::after {
-  border-color: transparent;
-  box-shadow: none;
 }
 
 

@@ -97,43 +97,16 @@
   /* dsh-default-10 (2026-11-11, user: list charts show their rows at the default): Compactă = 10 units (454), Înaltă 20,
      a number tile 5 (half a Compactă), resize 8 … 24; the card's own „tall” layout from 16 units */
   const ROWS = { stat: 5, compact: 10, tall: 20, min: 8, max: 24, tallLayout: 16 };
-  const rowsOfHeight = (h) => (Number.isFinite(Number(h)) && h !== "" && h !== null ? Math.min(ROWS.max, Math.max(ROWS.min, Math.round(Number(h)))) : heightKey(h) === "tall" ? ROWS.tall : ROWS.compact);
-  const rowsOf = (t) => (isStat(t.widget ?? t.id) ? ROWS.stat : rowsOfHeight(t.height));
+  const isNum = (h) => h !== "" && h !== null && h !== undefined && Number.isFinite(Number(h));
+  const rowsOfHeight = (h, min = ROWS.min) => (isNum(h) ? Math.min(ROWS.max, Math.max(min, Math.round(Number(h)))) : heightKey(h) === "tall" ? ROWS.tall : ROWS.compact);
+  /* dsh-stat-resize-v1 (user: „not able to make this more narrow vertical”): a number tile has a height too — default 5
+     (half a Compactă), resizable 5 … 24 one unit at a time like the charts; its old „compact” reads as 5 */
+  const minOf = (id) => (isStat(id) ? ROWS.stat : ROWS.min);
+  const rowsOf = (t) => (isStat(t.widget ?? t.id) ? (isNum(t.height) ? rowsOfHeight(t.height, ROWS.stat) : ROWS.stat) : rowsOfHeight(t.height));
   /* the card's own height class (its inner layout: donut legend beside / under, plot sizes) */
   const hOf = (t) => (rowsOf(t) >= ROWS.tallLayout ? "tall" : "compact");
-  /* the grid's sparse auto-placement, simulated (12 columns, row units) — a LONE number tile (no tile under it) beside a
-     taller widget stretches to a Compactă cell instead of leaving an empty half (the cells it takes were left empty by
-     the placement, so nothing else moves); returns the rows each tile spans */
-  function placedRows(list) {
-    const rows = list.map((t) => rowsOf(t));
-    const cols = list.map((t) => SPAN[t.width] || 12);
-    const used = [];
-    const free = (r, c, w, h) => { for (let y = r; y < r + h; y += 1) for (let x = c; x < c + w; x += 1) if (used[y]?.[x]) return false; return true; };
-    const take = (r, c, w, h) => { for (let y = r; y < r + h; y += 1) { used[y] = used[y] || []; for (let x = c; x < c + w; x += 1) used[y][x] = true; } };
-    const at = [];
-    let cr = 0;
-    let cc = 0;
-    list.forEach((t, i) => {
-      const w = cols[i];
-      let r = cr;
-      let c = cc;
-      for (;;) {
-        if (c + w > 12) { r += 1; c = 0; continue; }
-        if (free(r, c, w, rows[i])) break;
-        c += 1;
-      }
-      take(r, c, w, rows[i]);
-      at[i] = [r, c];
-      cr = r; cc = c + w;
-    });
-    return list.map((t, i) => {
-      if (!isStat(t.widget) || rows[i] !== ROWS.stat) return rows[i];
-      const [r, c] = at[i];
-      const below = free(r + ROWS.stat, c, cols[i], ROWS.compact - ROWS.stat);
-      const tallerBeside = list.some((u, j) => j !== i && rows[j] > ROWS.stat && at[j][0] <= r && at[j][0] + rows[j] > r + ROWS.stat);
-      return below && tallerBeside ? ROWS.compact : rows[i];
-    });
-  }
+  /* the rows each tile spans (dsh-stat-resize-v1: no automatic stretch any more — the user sets every height) */
+  const placedRows = (list) => list.map((t) => rowsOf(t));
   const rowsText = (n) => (n === ROWS.compact ? "Compactă" : n === ROWS.tall ? "Înaltă" : `${n} rânduri`);
   const STATUS_TONE = { "Ciornă": "neutral", "Publicat": "success", "Dezactivat": "neutral" };
   const EVENTS = {
@@ -423,7 +396,7 @@
   const SPAN = { third: 4, half: 6, twoThirds: 8, full: 12 };
   const WIDTH_KEYS = ["third", "half", "twoThirds", "full"];
     /* dsh-half-row-v1: a number tile has one fixed height (half a Compactă row) → its size = the width only */
-  const sizeText = (t) => (isStat(t.widget ?? t.id) ? `${SPAN[t.width] || 12}/12` : `${SPAN[t.width] || 12}/12 · ${rowsText(rowsOf(t))}`);
+  const sizeText = (t) => `${SPAN[t.width] || 12}/12 · ${rowsText(rowsOf(t))}`;
   function tileBody(t, d) {
     const info = widgetInfo(t.widget, d);
     if (!info.active) {
@@ -475,7 +448,7 @@
     return {
       general: [["Denumire (RO)", d(v.names.ro)], ["Denumire (RU)", d(v.names.ru)], ["Denumire (EN)", d(v.names.en)], ["Descriere", d(v.descriptions.ro)], ["Ordinea tabloului de bord", d(String(v.order || ""))]],
       access: [["Roluri", d(rolesText(v))], ["Nivel", esc(level)], ["Autorități asignate", d(level === "Global" && !v.allAuthorities && v.authorities.length > 2 ? `${v.authorities.length} autorități` : authText(v, level))]],
-      widgets: [["Widget-uri", esc(`${v.widgets.length} din ${MAX_WIDGETS}`)], ...v.widgets.map((t, i) => [widgetInfo(t.widget).title, esc(`Poziția ${i + 1} · ${label(WIDTHS(), t.width)}${isStat(t.widget) ? "" : ` · ${rowsText(rowsOf(t))}`}`)])]
+      widgets: [["Widget-uri", esc(`${v.widgets.length} din ${MAX_WIDGETS}`)], ...v.widgets.map((t, i) => [widgetInfo(t.widget).title, esc(`Poziția ${i + 1} · ${label(WIDTHS(), t.width)} · ${rowsText(rowsOf(t))}`)])]
     };
   }
   const flatRows = (v, level) => { const r = configRows(v, level); return [...r.general, ...r.access, ...r.widgets]; };
@@ -1542,7 +1515,7 @@
   function arrange(change, { focus = "", say = "" } = {}) {
     flipTiles(gridEl(), () => { change(); rerender({ keep: focus ? `[data-dsh-tile="${CSS.escape(focus)}"]` : "" }); });
     reheader();
-    if (say) live(say);
+    if (say) live(typeof say === "function" ? say() : say);
   }
   function moveWidget(id, by, { viaButton = false } = {}) {
     const list = P.draft.widgets;
@@ -1556,17 +1529,16 @@
     const t = P.draft.widgets.find((x) => x.widget === id);
     if (!t) return;
     /* Shift + ↑ / ↓ = one row unit less / more (8 … 20) */
-    if (axis === "height" && isStat(id)) { live(`„${widgetInfo(id).title}” este o plăcuță simplă: înălțimea e fixă (jumătate de Compactă), se schimbă doar lățimea.`); return; }
     if (axis === "height") {
       const n = rowsOf(t) + by;
-      if (n < ROWS.min || n > ROWS.max) { live("Înălțimea este deja la limită."); return; }
-      arrange(() => { t.height = n; }, { focus: id, say: `„${widgetInfo(id).title}”: ${sizeText(t)}.` });
+      if (n < minOf(id) || n > ROWS.max) { live("Înălțimea este deja la limită."); return; }
+      arrange(() => { t.height = n; }, { focus: id, say: () => `„${widgetInfo(id).title}”: ${sizeText(t)}.` });
       return;
     }
     const keys = WIDTH_KEYS;
     const k = keys.indexOf(t[axis]) + by;
     if (k < 0 || k >= keys.length) { live(axis === "width" ? "Lățimea este deja la limită." : "Înălțimea este deja la limită."); return; }
-    arrange(() => { t[axis] = keys[k]; }, { focus: id, say: `„${widgetInfo(id).title}”: ${sizeText(t)}.` });
+    arrange(() => { t[axis] = keys[k]; }, { focus: id, say: () => `„${widgetInfo(id).title}”: ${sizeText(t)}.` });
   }
   function removeWidget(id) {
     const v = P.draft;
@@ -1679,7 +1651,7 @@
     const width = WIDTH_KEYS.reduce((best, k) => (Math.abs(SPAN[k] - cols) < Math.abs(SPAN[best] - cols) ? k : best), WIDTH_KEYS[0]);
     const h = y - r.top;
     /* snaps per row unit: N units = N × unit + (N − 1) × gap */
-    const height = a.stat ? ROWS.stat : Math.min(ROWS.max, Math.max(ROWS.min, Math.round((h / a.z + a.rowGap) / (a.unit + a.rowGap))));
+    const height = Math.min(ROWS.max, Math.max(a.stat ? ROWS.stat : ROWS.min, Math.round((h / a.z + a.rowGap) / (a.unit + a.rowGap))));
     if (width !== a.width) { a.tile.classList.remove(`e-permits-dsh-tile--${a.width}`); a.tile.classList.add(`e-permits-dsh-tile--${width}`); a.width = width; }
     setRows(a, height);
     showTarget();
@@ -1760,7 +1732,7 @@
       const r = tile.getBoundingClientRect();
       startArrange(tile, "resize", r.right, r.bottom);
       if (width !== act.width) { tile.classList.remove(`e-permits-dsh-tile--${act.width}`); tile.classList.add(`e-permits-dsh-tile--${width}`); act.width = width; }
-      setRows(act, act.stat ? ROWS.stat : rowsOfHeight(height));
+      setRows(act, act.stat ? rowsOfHeight(height, ROWS.stat) : rowsOfHeight(height));
       requestAnimationFrame(showTarget);
     },
     focus(id) { tileEl(id)?.focus(); },

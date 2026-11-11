@@ -4952,6 +4952,8 @@
          (Shift + ↓) = 9 rânduri, all five rows instead of „+1 altul”; 04v = the same while dragging the corner */
       "dsh-04u": prof("DSH-0001", "configurare", seq(layout(), D((d) => { d.focus("WGT-0003"); document.activeElement.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowDown", shiftKey: true, bubbles: true })); }))),
       "dsh-04v": prof("DSH-0001", "configurare", seq(layout(), D((d) => d.resize("WGT-0003", "half", 9)))),
+      /* dsh-stat-resize-v1: a number tile resized in height like a chart (corner drag in progress, „4/12 · 7 rânduri”) */
+      "dsh-04x": prof("DSH-0001", "configurare", seq(layout(), D((d) => d.resize("WGT-0011", "third", 7)))),
       "dsh-04o": prof("DSH-0001", "configurare", seq(layout(), D((d) => d.resize("WGT-0011", "third", "tall"))), { tablou: "mix" }),
       "dsh-04m": prof("DSH-0001", "configurare", seq(D((d) => { d.focus("WGT-0006"); document.activeElement.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowUp", bubbles: true })); }), layout())),
       "dsh-04d": prof("DSH-0001", "configurare", seq(layout(), pick)),
