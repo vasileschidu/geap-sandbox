@@ -183,15 +183,46 @@
     const boxes = list.map(boxOf);
     for (let y = 0; ; y += 1) for (let x = 0; x + w <= 12; x += 1) if (!boxes.some((b) => hit({ id: "", x, y, w, h }, b))) return { x, y };
   }
+  /* dsh-content-cap-v1 (2026-11-11, user: „why such gap here?”): a list / table / bar-list card whose rows ALL show is never
+     taller than its content — the extra whole row units are taken off (min 7); what is left (< one unit) sits under the
+     footer. `overgrow(tile)` = the whole units a rendered tile has too many (0 when rows are hidden or it is not a list) */
+  const LISTY = ".e-permits-wid-rows, .e-permits-wid-funnel, .e-permits-wid-table-wrap";
+  function overgrow(tile, step) {
+    const card = tile.querySelector(".e-permits-wid-card--dash:not(.e-permits-wid-card--stat)");
+    if (!card || !card.querySelector(`.e-permits-wid-card__body > :is(${LISTY})`)) return 0;
+    if (card.querySelector(".is-fit-hidden:not(.e-permits-wid-more, .e-permits-wid-all, [data-wid-all])")) return 0;
+    const foot = card.querySelector(".e-permits-wid-card__foot-row");
+    if (!foot) return 0;
+    const free = card.getBoundingClientRect().bottom - foot.getBoundingClientRect().bottom;
+    return Math.max(0, Math.floor(free / step));
+  }
+  const rowStep = (grid) => { const cs = getComputedStyle(grid); return (parseFloat(cs.gridAutoRows) || 36) + (parseFloat(cs.rowGap) || 0); };
+  /* after a render: cap every over-tall list tile in `lists` (the same widget's h in each list, when equal); true = changed */
+  function capTiles(grid, lists) {
+    if (!grid || window.matchMedia?.("(max-width: 760px)").matches) return false;
+    const step = rowStep(grid);
+    let changed = false;
+    grid.querySelectorAll(":scope > [data-dsh-tile]").forEach((tile) => {
+      const drop = overgrow(tile, step);
+      if (!drop) return;
+      const id = tile.dataset.dshTile;
+      const h0 = Number(tile.dataset.dshH);
+      const h = Math.max(ROWS.min, h0 - drop);
+      if (h === h0) return;
+      lists.forEach((list) => { const t = list?.find((x) => x.widget === id); if (t && rowsOf(t) === h0) { t.height = h; changed = true; } });
+    });
+    if (changed) lists.forEach((list) => list && relayout(list, () => {}));
+    return changed;
+  }
+  const afterPaint = (fn) => requestAnimationFrame(() => requestAnimationFrame(fn));
   const posText = (t) => `coloana ${(Number(t.x) || 0) + 1}, rândul ${(Number(t.y) || 0) + 1}, ${SPAN[t.width] || 12}×${rowsOf(t)}`;
-  /* the tile's grid area = 4 CSS variables (css/dashboard.css `[data-dsh-x]`), set from the data-* attributes after each render */
+  /* the tile's grid area = its data-dsh-x / y / w / h attributes, read by CSS (`attr(… type(<integer>))`,
+     css/dashboard.css) — in the markup, so the first paint is already right (dsh-crop-fix-v1: the areas used to be copied
+     into inline variables by a document-wide MutationObserver, a race with the first layout / paint) */
   const posAttrs = (b) => ` data-dsh-x="${b.x}" data-dsh-y="${b.y}" data-dsh-w="${b.w}" data-dsh-h="${b.h}"`;
   function placeEl(el, b) {
-    if (b) Object.entries(b).forEach(([k, v]) => { if ("xywh".includes(k) && k.length === 1) el.dataset[`dsh${k.toUpperCase()}`] = v; });
-    ["x", "y", "w", "h"].forEach((k) => el.style.setProperty(`--dsh-${k}`, el.dataset[`dsh${k.toUpperCase()}`]));
+    if (b) Object.entries(b).forEach(([k, v]) => { if (k.length === 1 && "xywh".includes(k)) el.dataset[`dsh${k.toUpperCase()}`] = v; });
   }
-  const placeAll = (root = document) => root.querySelectorAll("[data-dsh-grid] > [data-dsh-x], .e-permits-dsh-grid > [data-dsh-x]").forEach((el) => placeEl(el));
-  if ("MutationObserver" in window) new MutationObserver(() => placeAll()).observe(document.documentElement, { childList: true, subtree: true });
   const rowsText = (n) => (n === ROWS.compact ? "Compactă" : n === ROWS.tall ? "Înaltă" : `${n} rânduri`);
   const STATUS_TONE = { "Ciornă": "neutral", "Publicat": "success", "Dezactivat": "neutral" };
   const EVENTS = {
@@ -246,6 +277,8 @@
         /* ?tablou=grila (demo dsh-04y · dsh-20h, dsh-grid-2d-v1): a 2D arrangement no column flow gives — chart · three
            stacked number tiles IN THE MIDDLE · chart, a wide table under them (explicit x, y) */
         if (demo.has("grila")) json.dashboards.filter((d) => d.id === "DSH-0001" || d.id === "DSH-0004").forEach((d) => { d.config.widgets = [["WGT-0001", "third", 9, 0, 0], ["WGT-0011", "third", 3, 4, 0], ["WGT-0015", "third", 3, 4, 3], ["WGT-0016", "third", 3, 4, 6], ["WGT-0006", "third", 9, 8, 0], ["WGT-0012", "full", 11, 0, 9]].map(([widget, width, height, x, y]) => ({ widget, width, height, x, y })); });
+        /* ?tablou=kpi4 (demo dsh-04ab · dsh-20i, dsh-min-3-v1): four number tiles at 3/12 in one row, a chart and a list under */
+        if (demo.has("kpi4")) json.dashboards.filter((d) => d.id === "DSH-0001" || d.id === "DSH-0004").forEach((d) => { d.config.widgets = [["WGT-0011", "quarter", 3, 0, 0], ["WGT-0015", "quarter", 3, 3, 0], ["WGT-0016", "quarter", 3, 6, 0], ["WGT-0017", "quarter", 3, 9, 0], ["WGT-0001", "half", 9, 0, 3], ["WGT-0006", "half", 9, 6, 3]].map(([widget, width, height, x, y]) => ({ widget, width, height, x, y })); });
         if (kpi3) kpi3.config.widgets = ["WGT-0011", "WGT-0015", "WGT-0016"].map((widget) => ({ widget, width: "third", height: "compact" }));
         if (mixed) mixed.config.widgets = [["WGT-0011", "third", "compact"], ["WGT-0001", "third", "compact"], ["WGT-0006", "third", "tall"], ["WGT-0003", "twoThirds", "compact"], ["WGT-0008", "half", "compact"], ["WGT-0012", "half", "compact"]].map(([widget, width, height]) => ({ widget, width, height }));
         json.dashboards.forEach((d) => {
@@ -483,8 +516,11 @@
      ← → ↑ ↓ move it, Shift + ← → change the width, Shift + ↑ ↓ change the height one row unit (announced). Add = one widget at a time (the
      picker), it lands at the end at its default size, scrolls into view and flashes. Phones: one widget per row, no
      resize; the toolbar shows ↑ ↓ + remove. */
-  const SPAN = { third: 4, half: 6, twoThirds: 8, full: 12 };
-  const WIDTH_KEYS = ["third", "half", "twoThirds", "full"];
+  /* dsh-min-3-v1 (2026-11-11, user): every widget is at least 3/12 wide (four number tiles in a row); number tiles start at
+     4/12, the resize corner and Shift + ← → snap to 3 · 4 · 6 · 8 · 9 · 12 */
+  const SPAN = { quarter: 3, third: 4, half: 6, twoThirds: 8, threeQuarters: 9, full: 12 };
+  const WIDTH_KEYS = ["quarter", "third", "half", "twoThirds", "threeQuarters", "full"];
+  const widthLabel = (k) => label(WIDTHS(), k) || { quarter: "Un sfert", threeQuarters: "Trei sferturi" }[k] || k;
     /* dsh-half-row-v1: a number tile has one fixed height (half a Compactă row) → its size = the width only */
   const sizeText = (t) => `${SPAN[t.width] || 12}/12 · ${rowsText(rowsOf(t))}`;
   function tileBody(t, d) {
@@ -543,7 +579,7 @@
     return {
       general: [["Denumire (RO)", d(v.names.ro)], ["Denumire (RU)", d(v.names.ru)], ["Denumire (EN)", d(v.names.en)], ["Descriere", d(v.descriptions.ro)], ["Ordinea tabloului de bord", d(String(v.order || ""))]],
       access: [["Roluri", d(rolesText(v))], ["Nivel", esc(level)], ["Autorități asignate", d(level === "Global" && !v.allAuthorities && v.authorities.length > 2 ? `${v.authorities.length} autorități` : authText(v, level))]],
-      widgets: [["Widget-uri", esc(`${v.widgets.length} din ${MAX_WIDGETS}`)], ...v.widgets.map((t, i) => [widgetInfo(t.widget).title, esc(`Poziția ${i + 1} · ${label(WIDTHS(), t.width)} · ${rowsText(rowsOf(t))}`)])]
+      widgets: [["Widget-uri", esc(`${v.widgets.length} din ${MAX_WIDGETS}`)], ...v.widgets.map((t, i) => [widgetInfo(t.widget).title, esc(`Poziția ${i + 1} · ${widthLabel(t.width)} · ${rowsText(rowsOf(t))}`)])]
     };
   }
   const flatRows = (v, level) => { const r = configRows(v, level); return [...r.general, ...r.access, ...r.widgets]; };
@@ -924,6 +960,7 @@
     body.setAttribute("aria-labelledby", `dsh-tab-${P.tab}`);
     body.innerHTML = `${notices(d)}${P.tab === "versiuni" ? versionsTab(d) : P.tab === "istoric" ? historyTab(d) : configTab(d)}`;
     syncMixed(body);
+    capEditor();
     if (keepSel) {
       const el = document.querySelector(keepSel);
       el?.focus?.({ preventScroll: true });
@@ -1003,6 +1040,16 @@
       ${section("Widget-uri", layoutHtml(v, null), { meta: `${v.widgets.length}/${MAX_WIDGETS}`, tools: goto(3), card: false, cls: "e-permits-dsh-layout" })}
       ${U().renderInfoNote?.(`Tabloul de bord se salvează la nivelul <strong>${esc(levelNow() === "Global" ? "Global" : `Autoritate ${authName(who().authority)}`)}</strong>, în statutul Ciornă. Rolurile văd doar ultima versiune publicată.`) || ""}`;
   }
+  /* dsh-content-cap-v1: the editor board — the stored layout (config, base, draft) loses the units no content uses */
+  function capEditor() {
+    if (act) return;
+    afterPaint(() => {
+      const grid = gridEl();
+      if (!grid || !P.draft || act) return;
+      const d = P.id ? dashOf(P.id) : null;
+      if (capTiles(grid, [P.draft.widgets, P.base?.widgets, d?.config?.widgets, d ? lastVersion(d)?.config?.widgets : null])) rerender({ keep: document.activeElement?.matches?.("[data-dsh-tile]") ? `[data-dsh-tile="${CSS.escape(document.activeElement.dataset.dshTile)}"]` : "" });
+    });
+  }
   function renderCreate({ keep = "" } = {}) {
     if (!P.isNew || !sheet || !P.draft) return;
     const active = document.activeElement;
@@ -1025,6 +1072,7 @@
         <div class="e-permits-dsh-config${P.step === 3 || P.step === 4 ? "" : " e-permits-dsh-config--form"}">${form}</div>
       </div>`;
     syncMixed(sheet);
+    capEditor();
     sheet.querySelector("[data-dsh-ed-bar]").innerHTML = `
       <p class="e-permits-cfg2__bar-text" aria-live="polite">${esc(`Pasul ${P.step} din ${STEPS.length} · ${STEPS[P.step - 1]}`)}</p>
       <div class="e-permits-cfg2__bar-actions">
@@ -1836,11 +1884,19 @@
   }
   /* resize keeps x, y (x moves left only when the new width would pass column 12); overlapped tiles go down */
   function sizeTo(a, width, height) {
+    if (width !== a.width) a.maxH = null;
+    if (a.maxH) height = Math.min(height, a.maxH);
     if (width === a.width && height === a.height && a.boxes) { showTarget(); return; }
     if (width !== a.width) { a.tile.classList.remove(`e-permits-dsh-tile--${a.width}`); a.tile.classList.add(`e-permits-dsh-tile--${width}`); a.width = width; }
     setRows(a, height);
     liveLayout(a, (me, boxes) => { me.w = SPAN[width] || 12; me.h = height; moveBox(boxes, me, me.x, me.y, true); });
     showTarget();
+    /* dsh-content-cap-v1: once every row shows, growing further would only add empty space — the height stops there */
+    afterPaint(() => {
+      if (act !== a) return;
+      const drop = overgrow(a.tile, rowStep(a.grid));
+      if (drop && a.height - drop >= (a.stat ? ROWS.stat : ROWS.min)) { a.maxH = a.height - drop; sizeTo(a, a.width, a.maxH); }
+    });
   }
   /* the live height while resizing: the tile's row class; the card is re-rendered only when its own class flips
      (Compactă ⇄ Înaltă layout), otherwise fit() (ResizeObserver) re-fits the rows */
@@ -1861,6 +1917,9 @@
     if (!a) return;
     a.grid.classList.remove("is-arranging");
     a.tile.classList.remove("is-lifted", "is-resizing");
+    /* the snap cells go away with the gesture (no tall hidden layer left behind) */
+    const guides = a.grid.querySelector(".e-permits-dsh-guides");
+    if (guides) guides.innerHTML = "";
     a.ghost?.remove();
     if (a.raf) cancelAnimationFrame(a.raf);
     if (!commit) { rerender({ keep: `[data-dsh-tile="${CSS.escape(a.id)}"]` }); return; }
@@ -2017,18 +2076,27 @@
       return `<button class="tab-button${on ? " active" : ""}" id="dsh-view-tab-${esc(x.id)}" type="button" role="tab" aria-selected="${on}" aria-controls="dsh-view-panel" tabindex="${on ? 0 : -1}" data-dsh-view-tab="${esc(x.id)}">${esc(lastVersion(x).config.names.ro)}</button>`;
     }).join("") : "";
     G().showPage?.(VIEW_TITLE, viewBody(d, me, principal), tabs);
+    capView(d);
     const list = document.querySelector("[data-reg-page] [data-reg-page-tabs]");
     if (list) list.setAttribute("aria-label", "Tablourile tale de bord");
     A().writeHash?.(d === boards[0] ? `#${VIEW_NAV}` : `#${VIEW_NAV}/${d.id}`, { push });
     if (focusTab) document.querySelector(`#dsh-view-tab-${CSS.escape(d.id)}`)?.focus();
   }
   const viewOpen = () => Boolean(V.id) && Boolean(document.querySelector("[data-reg-page]:not([hidden]) [data-dsh-view]"));
+  /* dsh-content-cap-v1 on the BO page: the published layout loses the units no content uses */
+  function capView(d) {
+    afterPaint(() => {
+      const grid = document.querySelector("[data-reg-page]:not([hidden]) [data-dsh-view] .e-permits-dsh-grid");
+      if (grid && V.id === d.id && capTiles(grid, [lastVersion(d)?.config?.widgets])) rerenderView();
+    });
+  }
   function rerenderView() {
     const panel = document.querySelector("[data-reg-page]:not([hidden]) [data-dsh-view]");
     const d = dashOf(V.id);
     if (!panel || !d) return;
     const me = viewer();
     panel.outerHTML = viewBody(d, me, roleBoards(me.role, me.authority).principal);
+    capView(d);
   }
   document.addEventListener("click", (event) => {
     const t = event.target;

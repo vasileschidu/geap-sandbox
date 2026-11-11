@@ -4988,6 +4988,8 @@
          04z = the left chart dragged onto the middle column (the tiles there pushed down, then compacted) */
       "dsh-04y": prof("DSH-0001", "configurare", layout(), { tablou: "grila" }),
       "dsh-04z": prof("DSH-0001", "configurare", seq(layout(), D((d) => d.drag("WGT-0001", 4, 0))), { tablou: "grila" }),
+      /* dsh-min-3-v1: four number tiles at 3/12 in one row */
+      "dsh-04ab": prof("DSH-0001", "configurare", layout(), { tablou: "kpi4" }),
       "dsh-04o": prof("DSH-0001", "configurare", seq(layout(), D((d) => d.resize("WGT-0011", "third", "tall"))), { tablou: "mix" }),
       "dsh-04m": prof("DSH-0001", "configurare", seq(D((d) => { d.focus("WGT-0006"); document.activeElement.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowUp", bubbles: true })); }), layout())),
       "dsh-04d": prof("DSH-0001", "configurare", seq(layout(), pick)),
@@ -5041,6 +5043,7 @@
       "dsh-20e": view(null, null, SUP),
       "dsh-20g": view(null, { tablou: "stiva" }),
       "dsh-20h": view(null, { tablou: "grila" }),
+      "dsh-20i": view(null, { tablou: "kpi4" }),
       "dsh-20f": view(async (h) => { await h.click("[data-dsh-view-retry]"); await h.wait(1100); }, { tablou: "widget-eroare" })
     };
   }

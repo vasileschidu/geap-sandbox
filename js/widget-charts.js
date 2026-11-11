@@ -445,10 +445,28 @@
     let shown = rows.length;
     do { shown -= 1; rows[shown].classList.add("is-fit-hidden"); } while (shown > 1 && bottomOf(rows[shown - 1]) > limit());
   }
+  /* donut-aspect-v1 (2026-11-11, user: „narrow + tall — it should already switch to vertical”): a fixed card picks the donut
+     layout from its body's SHAPE, live (ResizeObserver): stacked (ring on top, as large as the free height, legend under)
+     when that gives a bigger ring than side by side, else ring + legend side by side — `.is-stacked` on the card */
+  function fitDonut(card) {
+    const donut = card.querySelector(".e-permits-wid-card__body > .e-permits-wid-donut");
+    if (!donut) return;
+    const body = donut.parentElement;
+    const legend = donut.querySelector(":scope > .e-permits-wid-legend--list");
+    const cs = getComputedStyle(body);
+    const w = body.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
+    const h = body.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom);
+    const legendH = legend ? legend.scrollHeight : 0;
+    const gap = parseFloat(getComputedStyle(donut).columnGap) || 0;
+    const side = Math.min(h, (w - gap) / 2);
+    const stacked = h - legendH - gap > side;
+    card.classList.toggle("is-stacked", stacked);
+  }
   function fitHeight(root) {
     const cards = root.matches?.(".e-permits-wid-card") ? [root] : [...root.querySelectorAll(".e-permits-wid-card")];
     cards.forEach((card) => {
       const fixed = isFixed(card);
+      if (fixed) fitDonut(card); else card.classList.remove("is-stacked");
       card.querySelectorAll(":is(.e-permits-wid-rows, .e-permits-wid-funnel, .e-permits-wid-legend--list)").forEach((list) => fitList(list, fixed));
       card.querySelectorAll(":is(.e-permits-wid-table-wrap, .e-permits-wid-heat-wrap)").forEach((wrap) => fitRows(wrap, fixed));
     });

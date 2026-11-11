@@ -116,11 +116,15 @@
   .e-permits-dsh-grid > .e-permits-dsh-tile,
   .e-permits-dsh-grid > .e-permits-dsh-ghost { grid-row: span 9; }
 
-  /* dsh-grid-2d-v1: every tile (and the „add” slot) sits in its own grid area — x, y, w, h set as CSS variables from its
-     data-dsh-* attributes (js/dashboard-admin.js placeEl); no auto-flow */
+  /* dsh-grid-2d-v1: every tile (and the „add” slot) sits in its own grid area — x, y, w, h read straight from its
+     data-dsh-* attributes with typed attr() (dsh-crop-fix-v1: right on the first paint, no js copy); no auto-flow */
   .e-permits-dsh-grid > [data-dsh-x] {
-    grid-column: calc(var(--dsh-x, 0) + 1) / span var(--dsh-w, 12);
-    grid-row: calc(var(--dsh-y, 0) + 1) / span var(--dsh-h, 9);
+    --dsh-x: attr(data-dsh-x type(<integer>), 0);
+    --dsh-y: attr(data-dsh-y type(<integer>), 0);
+    --dsh-w: attr(data-dsh-w type(<integer>), 12);
+    --dsh-h: attr(data-dsh-h type(<integer>), 9);
+    grid-column: calc(var(--dsh-x) + 1) / span var(--dsh-w);
+    grid-row: calc(var(--dsh-y) + 1) / span var(--dsh-h);
   }
 
   .e-permits-dsh-grid > .e-permits-dsh-tile > .e-permits-wid-card { height: 100%; }
@@ -179,9 +183,11 @@
   position: relative;
 }
 
+.e-permits-dsh-tile--quarter { grid-column: span 3; }
 .e-permits-dsh-tile--third { grid-column: span 4; }
 .e-permits-dsh-tile--half { grid-column: span 6; }
 .e-permits-dsh-tile--twoThirds { grid-column: span 8; }
+.e-permits-dsh-tile--threeQuarters { grid-column: span 9; }
 .e-permits-dsh-tile--full { grid-column: span 12; }
 
 .e-permits-dsh-tile > .e-permits-wid-card {
@@ -416,6 +422,8 @@
 
 /* phones: one widget per row, no drag / resize; the toolbar = ↑ ↓ + remove, always visible */
 @media (max-width: 760px) {
+  .e-permits-dsh-tile--quarter,
+  .e-permits-dsh-tile--threeQuarters,
   .e-permits-dsh-tile--third,
   .e-permits-dsh-tile--half,
   .e-permits-dsh-tile--twoThirds,

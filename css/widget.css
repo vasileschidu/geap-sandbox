@@ -1353,12 +1353,12 @@ button.e-permits-wid-rows__row:focus-visible {
 
   /* compact cards keep the legend beside the ring at every width (the narrow-card stack is only for Înaltă) */
   @container (max-width: 520px) {
-    .e-permits-wid-card--fixed.e-permits-wid-card--compact .e-permits-wid-donut {
+    .e-permits-wid-card--fixed.e-permits-wid-card--compact:not(.is-stacked) .e-permits-wid-donut {
       gap: var(--spacing-16, 16px);
       grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
     }
 
-    .e-permits-wid-card--fixed.e-permits-wid-card--compact .e-permits-wid-donut__chart {
+    .e-permits-wid-card--fixed.e-permits-wid-card--compact:not(.is-stacked) .e-permits-wid-donut__chart {
       max-width: 100%;
     }
 
@@ -1371,15 +1371,15 @@ button.e-permits-wid-rows__row:focus-visible {
     }
   }
 
-  /* Înaltă donut (donut-fill-v1): header, then a chart area that takes all the free height with the ring centred at the largest
+  /* the stacked donut (donut-fill-v1; donut-aspect-v1: chosen by the body's shape in js `fitDonut`, not by Înaltă): header, then a chart area that takes all the free height with the ring centred at the largest
      square that fits (card width × free height), then the legend at the bottom; the centre total scales with the ring */
-  .e-permits-wid-card--fixed.e-permits-wid-card--tall .e-permits-wid-donut {
+  .e-permits-wid-card--fixed.is-stacked .e-permits-wid-donut {
     display: flex;
     flex-direction: column;
     gap: var(--spacing-16, 16px);
   }
 
-  .e-permits-wid-card--fixed.e-permits-wid-card--tall .e-permits-wid-donut__chart {
+  .e-permits-wid-card--fixed.is-stacked .e-permits-wid-donut__chart {
     align-self: stretch;
     aspect-ratio: auto;
     container-type: size;
@@ -1391,7 +1391,7 @@ button.e-permits-wid-rows__row:focus-visible {
     width: 100%;
   }
 
-  .e-permits-wid-card--fixed.e-permits-wid-card--tall .e-permits-wid-donut__svg {
+  .e-permits-wid-card--fixed.is-stacked .e-permits-wid-donut__svg {
     height: min(100cqw, 100cqh);
     inset: 0;
     margin: auto;
@@ -1399,12 +1399,12 @@ button.e-permits-wid-rows__row:focus-visible {
     width: min(100cqw, 100cqh);
   }
 
-  .e-permits-wid-card--fixed.e-permits-wid-card--tall .e-permits-wid-donut__center strong {
+  .e-permits-wid-card--fixed.is-stacked .e-permits-wid-donut__center strong {
     font-size: max(var(--font-size-fs-20, 20px), min(var(--font-size-fs-32, 32px), 14cqmin));
     line-height: 1.2;
   }
 
-  .e-permits-wid-card--fixed.e-permits-wid-card--tall .e-permits-wid-donut > .e-permits-wid-legend--list {
+  .e-permits-wid-card--fixed.is-stacked .e-permits-wid-donut > .e-permits-wid-legend--list {
     flex: none;
     align-self: stretch;
     max-height: none;
@@ -1721,4 +1721,17 @@ button.e-permits-wid-rows__row:focus-visible {
     letter-spacing: var(--text-mobile-heading-h3-letter-spacing, -0.22px);
     line-height: var(--text-mobile-heading-h3-line-height, 30px);
   }
+}
+
+/* dsh-content-cap-v1 (2026-11-11, user: „why such gap here?”): a list / table / bar-list card on a dashboard — the body hugs
+   its content (it still shrinks, so fit() hides the rows that do not fit), the footer follows right after it and the
+   sub-row leftover goes under the footer; the last shown table row has no bottom line (the footer is apart by spacing) */
+@media (min-width: 761px) {
+  .e-permits-wid-card--dash.e-permits-wid-card--fixed > .e-permits-wid-card__body:has(> :is(.e-permits-wid-rows, .e-permits-wid-funnel, .e-permits-wid-table-wrap)) {
+    flex: 0 1 auto;
+  }
+}
+
+.e-permits-wid-card--dash .e-permits-wid-table tbody tr:is(:last-child, :has(+ tr.is-fit-hidden)) > td {
+  border-bottom: 0;
 }
