@@ -1735,3 +1735,16 @@ button.e-permits-wid-rows__row:focus-visible {
 .e-permits-wid-card--dash .e-permits-wid-table tbody tr:is(:last-child, :has(+ tr.is-fit-hidden)) > td {
   border-bottom: 0;
 }
+
+/* dsh-empty-v1: an empty widget body = the compact boxed empty state filling the body (centred at any height); the empty
+   number = tertiary „—” */
+.e-permits-wid-card--dash > .e-permits-wid-card__body > .e-permits-empty {
+  box-sizing: border-box;
+  flex: 1 1 0;
+  justify-content: center;
+  min-height: 0;
+}
+
+.e-permits-wid-stat__value.e-permits-wid-stat__value--empty {
+  color: var(--color-text-base-tertiary, #757575);
+}

@@ -524,6 +524,10 @@
     const missing = missingOf(v);
     if (missing) body = E()?.render({ title: missing[0], text: missing[1], icon: "chart", compact: true, bare: true }) || "";
     else if (st.bodyHtml) body = st.bodyHtml;
+    /* dsh-empty-v1 (2026-11-11, user): no data for the period / scope — the number tile shows „—” + „Nu există date pentru
+       luna curentă” (no delta), every other widget the compact boxed empty state with its type's icon, filling the body */
+    else if (st.empty && stat) body = `<div class="e-permits-wid-stat"><span class="e-permits-wid-stat__line"><span class="e-permits-wid-stat__value e-permits-wid-stat__value--empty">—</span></span><span class="e-permits-wid-stat__meta" data-cell-tooltip="Nu există date pentru luna curentă">Nu există date pentru luna curentă</span></div>`;
+    else if (st.empty) body = E()?.render({ title: "Nu există date", text: "Nicio înregistrare în luna curentă.", icon: ["aggTable", "rowTable"].includes(v.type) ? "table" : v.type === "heatmap" ? "dot-grid" : "chart", compact: true }) || "";
     else if (st.refreshing) body = `<div class="e-permits-wid-card__loading" aria-hidden="true"><span class="skeleton skeleton--block e-permits-wid-plot--${hk}"></span><span class="skeleton skeleton--text"></span></div><p class="u-visually-hidden" role="status">Se actualizează datele widget-ului…</p>`;
     else if (demo.has("eroare-date")) body = E()?.render({ title: "Datele nu s-au încărcat", text: "Sursa de date nu a răspuns. Apasă din nou „Actualizează”: un widget se publică doar dacă se încarcă fără eroare.", icon: "warning-filled", compact: true, bare: true }) || "";
     else {
@@ -546,7 +550,7 @@
     }
     /* the dashboard footer: when the data were computed (tertiary) · „Detalii” = the existing „Vezi tot” action (the whole
        widget in the dialog, `data-wid-all`); none on the number tile (the card itself drills) */
-    const dashFoot = dash && !stat ? `<div class="e-permits-wid-card__foot-row"><span class="e-permits-wid-card__updated">Actualizat azi, la 06:00</span>${missing ? "" : `<button class="btn btn-text-primary btn-sm e-permits-wid-card__details" type="button" aria-haspopup="dialog" aria-label="Detalii: ${esc(title)}" data-wid-all>Detalii</button>`}</div>` : "";
+    const dashFoot = dash && !stat ? `<div class="e-permits-wid-card__foot-row"><span class="e-permits-wid-card__updated">Actualizat azi, la 06:00</span>${missing || st.empty ? "" : `<button class="btn btn-text-primary btn-sm e-permits-wid-card__details" type="button" aria-haspopup="dialog" aria-label="Detalii: ${esc(title)}" data-wid-all>Detalii</button>`}</div>` : "";
     return `<article class="e-permits-chart e-permits-wid-card e-permits-wid-card--panel${stat ? " e-permits-wid-card--stat" : ""} e-permits-wid--pal-${palKey(v)}${compact ? "" : ` e-permits-wid-card--${v.width || "full"}`} e-permits-wid-card--${hk}${natural || stat ? "" : " e-permits-wid-card--fixed"}${dash ? " e-permits-wid-card--dash" : ""}" aria-label="${esc(ariaLabel || `Previzualizarea widget-ului ${title}`)}">${headline ? head.replace(/<\/div>\s*$/, `${headline}</div>`) : head}<div class="e-permits-wid-card__body" aria-live="polite">${body}</div>${dashFoot}</article>`;
   }
   /* the preview block (the ntpl preview aside): heading row „Previzualizare” + meta line (perimeter · data · size ·

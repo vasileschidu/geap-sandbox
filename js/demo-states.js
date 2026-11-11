@@ -4898,7 +4898,7 @@
     /* dsh-stack-list-v1: the list = the shared stacked list (li rows, as Rapoarte) */
     const LIST = "[data-registry-kind='tablouri-de-bord'] li[data-workplace-row], [data-registry-kind='tablouri-de-bord'] .e-permits-empty";
     const list = (run, params, as = ADMIN) => ({ flow: "back-office", as, hash: "#tablouri-de-bord", ...(params ? { params } : {}), ready: LIST, delay: 900, run });
-    const prof = (id, tab = "configurare", run, params, as = ADMIN) => ({ flow: "back-office", as, hash: `#tablou/${id}/${tab}`, ...(params ? { params } : {}), ready: "#dsh-panel", delay: 900, run });
+    const prof = (id, tab = "widgeturi", run, params, as = ADMIN) => ({ flow: "back-office", as, hash: `#tablou/${id}/${tab}`, ...(params ? { params } : {}), ready: "#dsh-panel", delay: 900, run });
     const seq = (...steps) => async (h) => { for (const step of steps) await step(h); };
     const C = "[data-dsh-editor]";
     const M = "#case-action-modal.is-active";
@@ -4972,42 +4972,44 @@
       "dsh-03m": list(seq(built, next, async (h) => { await h.click(`${C} [data-dsh-save]`); await h.find("#dsh-panel"); await h.wait(300); })),
       /* US-544 — edit on the profile page (Configurare = settings + the layout editor) */
       "dsh-04": prof("DSH-0001"),
-      "dsh-04a": prof("DSH-0001", "configurare", layout()),
+      "dsh-04a": prof("DSH-0001", "widgeturi", layout()),
       /* the canvas while arranging: hover / focus toolbar · drag in progress (iPhone reflow, grey slot) · resize in progress */
-      "dsh-04b": prof("DSH-0001", "configurare", seq(layout(), D((d) => d.focus("WGT-0001")))),
-      "dsh-04c": prof("DSH-0001", "configurare", seq(layout(), D((d) => d.drag("WGT-0006", 0, 0)))),
-      "dsh-04l": prof("DSH-0001", "configurare", seq(layout(), D((d) => d.resize("WGT-0003", "twoThirds", "tall")))),
+      "dsh-04b": prof("DSH-0001", "widgeturi", seq(layout(), D((d) => d.focus("WGT-0001")))),
+      "dsh-04c": prof("DSH-0001", "widgeturi", seq(layout(), D((d) => d.drag("WGT-0006", 0, 0)))),
+      "dsh-04l": prof("DSH-0001", "widgeturi", seq(layout(), D((d) => d.resize("WGT-0003", "twoThirds", "tall")))),
       /* wid-heights-v1: a mixed board — compact tile + compact bars + a tall donut beside two compact rows, equal bottoms */
-      "dsh-04n": prof("DSH-0001", "configurare", layout(), { tablou: "mix" }),
+      "dsh-04n": prof("DSH-0001", "widgeturi", layout(), { tablou: "mix" }),
       /* three compact KPI tiles in one row, each a third wide (cards size to their natural content) */
-      "dsh-04q": prof("DSH-0001", "configurare", layout(), { tablou: "kpi3" }),
+      "dsh-04q": prof("DSH-0001", "widgeturi", layout(), { tablou: "kpi3" }),
       /* dsh-half-row-v1: a number tile = half a Compactă row — two stacked beside a 2/3 chart end on its bottom edge;
          04t = the lower tile focused (toolbar + resize corner + „4/12” size tag) */
-      "dsh-04s": prof("DSH-0001", "configurare", layout(), { tablou: "stiva" }),
-      "dsh-04t": prof("DSH-0001", "configurare", seq(layout(), D((d) => d.focus("WGT-0015"))), { tablou: "stiva" }),
+      "dsh-04s": prof("DSH-0001", "widgeturi", layout(), { tablou: "stiva" }),
+      "dsh-04t": prof("DSH-0001", "widgeturi", seq(layout(), D((d) => d.focus("WGT-0015"))), { tablou: "stiva" }),
       /* dsh-row-unit-v1: the height grows one row unit at a time — „Dosare întârziate la examinare” one unit taller
          (Shift + ↓) = 9 rânduri, all five rows instead of „+1 altul”; 04v = the same while dragging the corner */
-      "dsh-04u": prof("DSH-0001", "configurare", seq(layout(), D((d) => { d.focus("WGT-0003"); document.activeElement.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowDown", shiftKey: true, bubbles: true })); }))),
-      "dsh-04v": prof("DSH-0001", "configurare", seq(layout(), D((d) => d.resize("WGT-0003", "half", 9)))),
+      "dsh-04u": prof("DSH-0001", "widgeturi", seq(layout(), D((d) => { d.focus("WGT-0003"); document.activeElement.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowDown", shiftKey: true, bubbles: true })); }))),
+      "dsh-04v": prof("DSH-0001", "widgeturi", seq(layout(), D((d) => d.resize("WGT-0003", "half", 9)))),
       /* dsh-stat-resize-v1: a number tile resized in height like a chart (corner drag in progress, „4/12 · 7 rânduri”) */
-      "dsh-04x": prof("DSH-0001", "configurare", seq(layout(), D((d) => d.resize("WGT-0011", "third", 7)))),
+      "dsh-04x": prof("DSH-0001", "widgeturi", seq(layout(), D((d) => d.resize("WGT-0011", "third", 7)))),
       /* dsh-grid-2d-v1: a 2D layout (two number tiles stacked in the middle between two charts, a wide table under) ·
          04z = the left chart dragged onto the middle column (the tiles there pushed down, then compacted) */
-      "dsh-04y": prof("DSH-0001", "configurare", layout(), { tablou: "grila" }),
-      "dsh-04z": prof("DSH-0001", "configurare", seq(layout(), D((d) => d.drag("WGT-0001", 4, 0))), { tablou: "grila" }),
+      "dsh-04y": prof("DSH-0001", "widgeturi", layout(), { tablou: "grila" }),
+      "dsh-04z": prof("DSH-0001", "widgeturi", seq(layout(), D((d) => d.drag("WGT-0001", 4, 0))), { tablou: "grila" }),
       /* dsh-min-3-v1: four number tiles at 3/12 in one row */
-      "dsh-04ab": prof("DSH-0001", "configurare", layout(), { tablou: "kpi4" }),
-      "dsh-04o": prof("DSH-0001", "configurare", seq(layout(), D((d) => d.resize("WGT-0011", "third", "tall"))), { tablou: "mix" }),
-      "dsh-04m": prof("DSH-0001", "configurare", seq(D((d) => { d.focus("WGT-0006"); document.activeElement.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowUp", bubbles: true })); }), layout())),
-      "dsh-04d": prof("DSH-0001", "configurare", seq(layout(), pick)),
+      "dsh-04ab": prof("DSH-0001", "widgeturi", layout(), { tablou: "kpi4" }),
+      /* dsh-empty-v1: widgets without data — number tile „—”, a chart, a table and the heatmap = the boxed empty state */
+      "dsh-04ac": prof("DSH-0001", "widgeturi", layout(), { tablou: "fara-date" }),
+      "dsh-04o": prof("DSH-0001", "widgeturi", seq(layout(), D((d) => d.resize("WGT-0011", "third", "tall"))), { tablou: "mix" }),
+      "dsh-04m": prof("DSH-0001", "widgeturi", seq(D((d) => { d.focus("WGT-0006"); document.activeElement.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowUp", bubbles: true })); }), layout())),
+      "dsh-04d": prof("DSH-0001", "widgeturi", seq(layout(), pick)),
       /* dsh-pick-preview-v1: „Adaugă un widget” with live previews, grouped; „Încasări pe servicii” chosen */
-      "dsh-04w": prof("DSH-0001", "configurare", seq(layout(), pick, choose("WGT-0009"))),
-      "dsh-04e": prof("DSH-0003", "configurare", layout()),
+      "dsh-04w": prof("DSH-0001", "widgeturi", seq(layout(), pick, choose("WGT-0009"))),
+      "dsh-04e": prof("DSH-0003", "widgeturi", layout()),
       "dsh-04f": prof("DSH-0001", "configurare", null, null, AUTH),
-      "dsh-04g": prof("DSH-0001", "configurare", layout(), null, AUTH),
+      "dsh-04g": prof("DSH-0001", "widgeturi", layout(), null, AUTH),
       "dsh-04h": prof("DSH-0002", "configurare", async (h) => { await h.click("[data-dsh-pending]"); await h.wait(400); }),
       "dsh-04i": prof("DSH-0001", "configurare", HMENU),
-      "dsh-04j": prof("DSH-0004", "configurare", layout(), null, AUTH),
+      "dsh-04j": prof("DSH-0004", "widgeturi", layout(), null, AUTH),
       "dsh-04k": prof("DSH-0001", "configurare", async (h) => { await h.fill("#dsh-e-name-ro", "", { leave: false }); await h.click("[data-dosar-profil] [data-dsh-save]"); await h.wait(300); }),
       /* US-546 — publish */
       "dsh-05": prof("DSH-0002", "configurare", PUB),
@@ -5051,6 +5053,7 @@
       "dsh-20g": view(null, { tablou: "stiva" }),
       "dsh-20h": view(null, { tablou: "grila" }),
       "dsh-20i": view(null, { tablou: "kpi4" }),
+      "dsh-20j": view(null, { tablou: "fara-date" }),
       "dsh-20f": view(async (h) => { await h.click("[data-dsh-view-retry]"); await h.wait(1100); }, { tablou: "widget-eroare" })
     };
   }

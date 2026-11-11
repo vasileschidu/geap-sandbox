@@ -523,12 +523,14 @@
   const widthLabel = (k) => label(WIDTHS(), k) || { quarter: "Un sfert", threeQuarters: "Trei sferturi" }[k] || k;
     /* dsh-half-row-v1: a number tile has one fixed height (half a Compactă row) → its size = the width only */
   const sizeText = (t) => `${SPAN[t.width] || 12}/12 · ${rowsText(rowsOf(t))}`;
+  /* ?tablou=fara-date (demos dsh-04ac · dsh-20j, dsh-empty-v1): these widgets have no data in the period */
+  const EMPTY_DEMO = demo.has("fara-date") ? new Set(["WGT-0011", "WGT-0001", "WGT-0008", "WGT-0012", "WGT-0004"]) : new Set();
   function tileBody(t, d) {
     const info = widgetInfo(t.widget, d);
     if (!info.active) {
       return `<div class="e-permits-chart e-permits-wid-card e-permits-dsh-tile__off">${E()?.render({ title: "Widget dezactivat", text: `„${info.title}” nu mai este publicat și nu apare pe tablou. Elimină-l sau înlocuiește-l.`, icon: "warning-filled", compact: true, bare: true }) || ""}</div>`;
     }
-    return W().card?.({ ...info.cfg, width: t.width, height: hOf(t) }, { compact: true, dash: true }) || "";
+    return W().card?.({ ...info.cfg, width: t.width, height: hOf(t) }, { compact: true, dash: true, st: EMPTY_DEMO.has(t.widget) ? { empty: true } : {} }) || "";
   }
   function tileHtml(t, i, n, d, edit, span = rowsOf(t)) {
     const info = widgetInfo(t.widget, d);
@@ -740,7 +742,7 @@
         default: return esc(row[key] ?? "") || dash;
       }
     },
-    openRow: (id) => openProfile(id, "configurare"),
+    openRow: (id) => openProfile(id),
     rowLabel: (row) => `${row.id}, ${row.denumire} — deschide tabloul de bord`,
     /* boxed (registry-stack-v1): the stacked list has no table cell around it → the normal dashed empty state */
     emptyHtml: ({ query, filtered, boxed = false }) => {
@@ -844,18 +846,20 @@
 
   /* ================================================================ PROFILE = the editor page (US-544 · US-546 · US-548 · US-550) */
   const P = { id: null, tab: "configurare", isNew: false, from: "", draft: null, base: null, errors: {}, saveError: false, compare: null, step: 1, maxStep: 1 };
-  const TABS = [["configurare", "Configurare"], ["versiuni", "Versiuni"], ["istoric", "Istoric"]];
+  /* dsh-widgets-tab-v1 (2026-11-11, user OK): the board has its own tab, first and the default on open — „Widget-uri”
+     (the 1280-wide grid + „Adaugă widget”), then „Configurare” (Date generale + Roluri și autorități, profile width) */
+  const TABS = [["widgeturi", "Widget-uri"], ["configurare", "Configurare"], ["versiuni", "Versiuni"], ["istoric", "Istoric"]];
   const profileOpen = () => (Boolean(P.id) || P.isNew) && !document.querySelector("[data-dosar-profil]")?.hidden && A().els?.dosarProfilPanelBody?.id === "dsh-panel";
   const editable = (d = dashOf(P.id)) => P.isNew || (Boolean(d) && canEdit(d) && d.status !== "Dezactivat");
   const pageDirty = () => Boolean(P.draft) && (P.isNew ? Boolean(P.draft.names.ro || P.draft.roles.length || P.draft.widgets.length || P.from) : !same(P.draft, P.base));
   const levelNow = () => (P.isNew ? (who().central ? "Global" : "Autoritate") : dashOf(P.id)?.level || "Global");
-  async function openProfile(id, tab = "configurare", { push = true } = {}) {
+  async function openProfile(id, tab = "widgeturi", { push = true } = {}) {
     await load();
     const d = dashOf(id);
     if (!who().has || !d || !visible(d)) { showDenied(); return; }
     if (P.id !== id || P.isNew) { P.compare = null; P.errors = {}; P.saveError = false; P.draft = clone(d.config); P.base = clone(d.config); }
     P.id = id; P.isNew = false; P.from = "";
-    P.tab = TABS.some(([t]) => t === tab) ? tab : "configurare";
+    P.tab = TABS.some(([t]) => t === tab) ? tab : "widgeturi";
     show(`#tablou/${id}/${P.tab}`, push);
   }
   let beforeCreate = null;
@@ -949,7 +953,7 @@
       ["Versiune publicată", lv ? esc(String(lv.version)) : "nepublicat"]
     ]);
     A().watchPageHeaderMeta?.(els.dosarProfilSummary);
-    const counts = { versiuni: d.versions.length, istoric: Math.min(d.history.length, 100) };
+    const counts = { widgeturi: v.widgets.length, versiuni: d.versions.length, istoric: Math.min(d.history.length, 100) };
     els.dosarProfilTabs.innerHTML = TABS.map(([id, text]) => {
       const on = id === P.tab;
       return `<button class="tab-button${on ? " active" : ""}" id="dsh-tab-${id}" type="button" role="tab" aria-controls="dsh-panel" aria-selected="${on}" tabindex="${on ? 0 : -1}" data-dsh-tab="${id}"><span>${text}</span>${counts[id] ? A().renderPageHeaderTabCount?.(counts[id]) || "" : ""}</button>`;
@@ -958,7 +962,7 @@
     body.id = "dsh-panel";
     body.setAttribute("role", "tabpanel");
     body.setAttribute("aria-labelledby", `dsh-tab-${P.tab}`);
-    body.innerHTML = `${notices(d)}${P.tab === "versiuni" ? versionsTab(d) : P.tab === "istoric" ? historyTab(d) : configTab(d)}`;
+    body.innerHTML = `${notices(d)}${P.tab === "versiuni" ? versionsTab(d) : P.tab === "istoric" ? historyTab(d) : P.tab === "widgeturi" ? widgetsTab(d) : configTab(d)}`;
     syncMixed(body);
     capEditor();
     if (keepSel) {
@@ -978,23 +982,22 @@
       d.status === "Ciornă" && U().renderInfoNote?.("<strong>Ciornă.</strong> Rolurile îl văd după prima publicare; o ciornă se poate elimina."),
       d.status === "Publicat" && unpublished(d) && U().renderNotice?.("warning", `<strong>Modificări nepublicate.</strong> Rolurile văd în continuare versiunea ${esc(String(lastVersion(d).version))}.`),
       !me.central && d.level === "Global" && isOffFor(d, me.authority) && U().renderNotice?.("warning", `<strong>Dezactivat pentru ${esc(mine)}.</strong> Tabloul de bord global nu apare rolurilor din ${esc(mine)}.`),
-      !me.central && d.level === "Global" && P.tab === "configurare" && U().renderInfoNote?.(`Tablou de bord global, creat de Administratorul central: îl vezi doar pentru citire. Îl poți clona la nivelul ${esc(mine)} sau îl poți dezactiva pentru ${esc(mine)}.`),
-      me.central && d.level !== "Global" && P.tab === "configurare" && U().renderInfoNote?.(`Tablou de bord specific ${esc(authName(d.authority))}: îl configurează utilizatorii autorității; tu îl vezi doar pentru citire.`)
+      !me.central && d.level === "Global" && ["widgeturi", "configurare"].includes(P.tab) && U().renderInfoNote?.(`Tablou de bord global, creat de Administratorul central: îl vezi doar pentru citire. Îl poți clona la nivelul ${esc(mine)} sau îl poți dezactiva pentru ${esc(mine)}.`),
+      me.central && d.level !== "Global" && ["widgeturi", "configurare"].includes(P.tab) && U().renderInfoNote?.(`Tablou de bord specific ${esc(authName(d.authority))}: îl configurează utilizatorii autorității; tu îl vezi doar pentru citire.`)
     ];
     const html = list.filter(Boolean).join("");
     return html ? `<div class="e-permits-reg-notices">${html}</div>` : "";
   }
+  /* Configurare = the settings at the profile width; Widget-uri = the board at 1280 (`.e-permits-dsh-wide` only there) */
   function configTab(d) {
-    if (!editable(d)) {
-      return `
-        <div class="e-permits-dsh-config e-permits-dsh-wide">
-          ${readBlocks(d.config, d.level)}
-          ${section("Widget-uri", layoutHtml(d.config, d), { meta: `${d.config.widgets.length}/${MAX_WIDGETS}`, card: false, cls: "e-permits-dsh-layout" })}
-        </div>`;
-    }
+    if (!editable(d)) return `<div class="e-permits-dsh-config">${readBlocks(d.config, d.level)}</div>`;
     const v = P.draft;
     const e = P.errors;
-    return `<div class="e-permits-dsh-config e-permits-dsh-wide">${stepGeneral(v, e, idpNow())}${stepAccess(v, e, idpNow(), d)}${stepWidgets(v, e, idpNow(), d)}</div>`;
+    return `<div class="e-permits-dsh-config">${stepGeneral(v, e, idpNow())}${stepAccess(v, e, idpNow(), d)}</div>`;
+  }
+  function widgetsTab(d) {
+    if (!editable(d)) return `<div class="e-permits-dsh-config e-permits-dsh-wide">${section("Widget-uri", layoutHtml(d.config, d), { meta: `${d.config.widgets.length}/${MAX_WIDGETS}`, card: false, cls: "e-permits-dsh-layout" })}</div>`;
+    return `<div class="e-permits-dsh-config e-permits-dsh-wide">${stepWidgets(P.draft, P.errors, idpNow(), d)}</div>`;
   }
   const reheader = () => { const els = A().els || {}; if (!creating() && els.dosarProfilTitleRow && P.id) els.dosarProfilTitleRow.innerHTML = headerTop(dashOf(P.id)); };
 
@@ -1238,7 +1241,7 @@
     const last = d && lastVersion(d);
     if (!last) return;
     const changes = diffRows(last.config, d.config, d.level).map((c) => ({ area: c.label, detail: `${c.before} → ${c.after}`, at: d.updatedAt || "", user: d.updatedBy || "", status: "Modificat" }));
-    const publish = id === P.id ? () => openPublish() : () => openProfile(id, "configurare").then(() => openPublish());
+    const publish = id === P.id ? () => openPublish() : () => openProfile(id).then(() => openPublish());
     A().openPendingChanges?.({ subject: `${nameOf(d)} · față de versiunea ${last.version}`, changes, onPublish: canEdit(d) && d.status !== "Dezactivat" ? publish : null });
   }
   function openPublish() {
@@ -1289,7 +1292,7 @@
     publishing = null;
     G().closeModal?.();
     toast(`Versiunea ${next} a tabloului de bord „${nameOf(d)}” a fost publicată.`);
-    openProfile(d.id, "configurare", { push: false });
+    openProfile(d.id, P.tab || "widgeturi", { push: false });
     refreshList();
   }
 
@@ -1300,7 +1303,12 @@
     const key = Object.keys(errors)[0];
     const keep = key === "authorities" ? `#fo-${idpNow()}-authorities` : key === "widgets" ? "[data-dsh-add]" : errorSel(key);
     if (creating()) { P.step = STEP_OF(key); P.maxStep = Math.max(P.maxStep, P.step); renderCreate({ keep }); }
-    else renderProfile({ keep });
+    else {
+      /* dsh-widgets-tab-v1: the field with the error is on its own tab */
+      P.tab = key === "widgets" ? "widgeturi" : "configurare";
+      renderProfile({ keep });
+      A().writeHash?.(`#tablou/${P.id}/${P.tab}`, { push: false });
+    }
     (creating() ? sheet : document).querySelector(errorSel(key))?.closest(".e-permits-fo-field, .e-permits-dosar-profil__section")?.scrollIntoView({ block: "center" });
   }
   function savePage({ silent = false } = {}) {
@@ -1324,8 +1332,8 @@
     Object.assign(P, { id: d.id, isNew: false, from: "", errors: {}, saveError: false, base: clone(P.draft), compare: null });
     if (wasNew) { hideSheet(); beforeCreate = null; }
     if (!silent) {
-      if (wasNew) openProfile(d.id, "configurare");
-      else { renderProfile({ keep: "[data-dsh-save]" }); A().writeHash?.(`#tablou/${d.id}/configurare`, { push: false }); }
+      if (wasNew) openProfile(d.id);
+      else { renderProfile({ keep: "[data-dsh-save]" }); A().writeHash?.(`#tablou/${d.id}/${P.tab}`, { push: false }); }
       toast(wasNew ? `Ciorna tabloului de bord ${d.id} a fost salvată.` : "Modificările au fost salvate.");
       refreshList();
     }
@@ -1347,12 +1355,14 @@
         name: P.draft.names.ro, applies: "se aplică după Salvează", emptyText: "Tabloul de bord este salvat.", groups: ["Configurare"],
         entries: () => Object.entries(changedFields()).map(([lbl, [a, b]]) => ({ undo: lbl, group: "Configurare", title: lbl, tag: ["Modificat", "brand"], detail: `${a} → ${b}` })),
         undo: () => discard(),
-        /* changes-reveal-v1: „Vezi” → the Configurare tab, the section of that setting (a widget row → „Widget-uri”) */
+        /* changes-reveal-v1: „Vezi” → the section of that setting on Configurare; a widget row → the Widget-uri tab */
         reveal: async (lbl) => {
           if (P.tab !== "configurare") await openProfile(P.id, "configurare", { push: false });
-          const panel = document.querySelector("#dsh-panel");
           const alias = { "Ordinea tabloului de bord": "Ordinea în listă", Nivel: "Nivel și autorități", "Autorități asignate": "Nivel și autorități" }[lbl];
-          return A().sectionOfLabel?.(panel, alias || lbl) || A().sectionOfLabel?.(panel, "Widget-uri");
+          const hit = A().sectionOfLabel?.(document.querySelector("#dsh-panel"), alias || lbl);
+          if (hit) return hit;
+          await openProfile(P.id, "widgeturi", { push: false });
+          return A().sectionOfLabel?.(document.querySelector("#dsh-panel"), "Widget-uri");
         },
         discard,
         save: () => savePage()
@@ -1518,7 +1528,7 @@
     if (pendRow) { event.stopPropagation(); openPending(pendRow.dataset.dshPendingRow); return; }
     if (t.closest('[data-workplace-add-product="dsh-new"], [data-dsh-new]')) { event.preventDefault(); openNew(); return; }
     const rowEdit = t.closest("[data-dsh-row-edit]");
-    if (rowEdit) { openProfile(rowEdit.dataset.dshRowEdit, "configurare"); return; }
+    if (rowEdit) { openProfile(rowEdit.dataset.dshRowEdit); return; }
     const rowClone = t.closest("[data-dsh-row-clone]");
     if (rowClone) { openNew({ from: rowClone.dataset.dshRowClone }); return; }
     const rowToggle = t.closest("[data-dsh-row-toggle]");
@@ -2032,7 +2042,7 @@
     const title = cfg.titles?.ro || t.widget;
     const st = V.busy.has(key) || demo.has("incarcare") ? { refreshing: true }
       : V.failed.has(key) ? { bodyHtml: E()?.render({ title: "Datele nu s-au încărcat", text: "Celelalte widget-uri nu sunt afectate. Încearcă din nou.", icon: "warning-filled", compact: true, bare: true, actionHtml: `<button class="btn btn-secondary btn-sm" type="button" data-dsh-view-retry="${esc(key)}" aria-label="Reîncearcă: ${esc(title)}">${icon("rotate-arrow", 16)}<span>Reîncearcă</span></button>` }) || "" }
-      : {};
+      : EMPTY_DEMO.has(t.widget) ? { empty: true } : {};
     const card = W().card?.({ ...cfg, width: t.width, height: hOf(t) }, { compact: true, dash: true, st, ariaLabel: title }) || "";
     return `<div class="e-permits-dsh-tile e-permits-dsh-tile--${SPAN[t.width] ? t.width : "full"} e-permits-dsh-tile--${hOf(t)} e-permits-dsh-tile--r${span}${isStat(t.widget) ? " e-permits-dsh-tile--stat" : ""}" role="listitem" data-dsh-tile="${esc(t.widget)}" data-index="${i}"${posAttrs(box || boxOf(t))}>${card}</div>`;
   }
@@ -2154,7 +2164,7 @@
       if (!creating()) { document.querySelector(`[data-nav-item][data-nav-id="${NAV}"]`)?.click(); openNew({ from: (m[2] || "").replace(/^din-/, "") }); }
       return true;
     }
-    load().then(() => openProfile(decodeURIComponent(m[1]), m[2] || "configurare", { push: false }));
+    load().then(() => openProfile(decodeURIComponent(m[1]), m[2] || "widgeturi", { push: false }));
     return true;
   });
   let navQueued = false;
