@@ -4877,7 +4877,7 @@
     const allAuth = async (h) => { await h.click(`${C} #fo-dsh-n-authorities`); await h.wait(250); const o = await h.find(`${C} [data-dsh-auth-ms] [data-fo-select-all]`); o.dispatchEvent(new MouseEvent("mousedown", { bubbles: true, cancelable: true })); await h.wait(150); await h.click(`${C} [data-dsh-auth-ms] [data-fo-subgen-confirm]`); await h.wait(250); };
     const pick = async (h) => { await h.click("[data-dsh-add]"); await h.find(`${M} [data-dsh-pick-search]`); };
     /* one widget at a time (dash-v3): choose its card, „Adaugă” → it lands at the end and flashes */
-    const choose = (id) => async (h) => { await h.click(`${M} .e-permits-wid-type:has([data-dsh-pick][value="${id}"])`); await h.wait(120); };
+    const choose = (id) => async (h) => { await h.click(`${M} .e-permits-dsh-pick-card:has([data-dsh-pick][value="${id}"])`); await h.wait(120); };
     const addOne = (id) => seq(pick, choose(id), async (h) => { await h.click(`${M} [data-dsh-pick-confirm]`); await h.wait(450); });
     const addW = (...ids) => seq(...ids.map(addOne));
     const D = (fn) => async (h) => { fn(window.GEAPDashboards.demo); await h.wait(450); };
@@ -4955,6 +4955,8 @@
       "dsh-04o": prof("DSH-0001", "configurare", seq(layout(), D((d) => d.resize("WGT-0011", "third", "tall"))), { tablou: "mix" }),
       "dsh-04m": prof("DSH-0001", "configurare", seq(D((d) => { d.focus("WGT-0006"); document.activeElement.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowUp", bubbles: true })); }), layout())),
       "dsh-04d": prof("DSH-0001", "configurare", seq(layout(), pick)),
+      /* dsh-pick-preview-v1: „Adaugă un widget” with live previews, grouped; „Încasări pe servicii” chosen */
+      "dsh-04w": prof("DSH-0001", "configurare", seq(layout(), pick, choose("WGT-0009"))),
       "dsh-04e": prof("DSH-0003", "configurare", layout()),
       "dsh-04f": prof("DSH-0001", "configurare", null, null, AUTH),
       "dsh-04g": prof("DSH-0001", "configurare", layout(), null, AUTH),

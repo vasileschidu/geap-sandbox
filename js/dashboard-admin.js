@@ -1235,30 +1235,51 @@
      „Adaugă” puts the chosen one at the end of the board at its default size, scrolls to it and flashes it */
   let picking = null;
   const pickRoot = () => document.querySelector("#case-action-modal.is-active [data-dsh-pick-list]");
+  /* dsh-pick-preview-v1 (2026-11-11, user + Stripe „Add charts”): each option card shows a small LIVE preview of the widget
+     itself — the real card (GEAPWidgets.card, the demo data, Compactă) at half scale (CSS zoom), head hidden (the title is
+     on the option), non-interactive: buttons / links become spans, no ids, tooltips or labels inside, `inert` + aria-hidden.
+     Options grouped by what they show (the widget type families), one radio group across the groups. */
+  const PICK_GROUPS = [
+    ["Indicatori", ["tile"]],
+    ["Comparații și evoluții", ["bars", "stacked", "line", "control"]],
+    ["Distribuții", ["pie", "funnel", "treemap"]],
+    ["Tabele", ["aggTable", "rowTable", "heatmap"]]
+  ];
+  const pickGroupOf = (type) => PICK_GROUPS.find(([, types]) => types.includes(type))?.[0] || "Alte widget-uri";
+  function pickPreview(cfg) {
+    const html = (W().card?.({ ...cfg, width: "full", height: "compact" }, { compact: true }) || "")
+      .replace(/<(\/?)(button|a)\b/g, "<$1span")
+      .replace(/\s(?:id|for|href|type|tabindex|role|aria-[a-z-]+|data-tooltip-[a-z-]+|data-cell-tooltip|data-wid-[a-z-]+)="[^"]*"/g, "");
+    return `<span class="e-permits-dsh-pick-card__preview${cfg.type === "tile" ? " e-permits-dsh-pick-card__preview--stat" : ""}" aria-hidden="true" inert><span class="e-permits-dsh-pick-card__zoom">${html}</span></span>`;
+  }
   function pickListHtml() {
     const v = P.draft;
     const d = P.id ? dashOf(P.id) : null;
     const q = fold(picking.query.trim());
     const items = pickable(levelNow(), d?.authority || who().authority).filter((w) => !q || fold(`${w.id} ${w.config.titles.ro} ${W().typeLabel?.(w.config.type) || ""}`).includes(q));
     if (!items.length) return E()?.render({ title: q ? NO_MATCH : "Niciun widget publicat", text: q ? "Caută după denumire, ID sau tip." : "Publică mai întâi widget-uri în Administrare › Widgete.", icon: q ? "search" : "chart", compact: true, bare: true }) || "";
-    return `<fieldset class="e-permits-wid-types"><legend class="u-visually-hidden">Widget-uri publicate</legend><div class="e-permits-wid-types__grid">${items.map((w) => {
+    const option = (w) => {
       const cfg = W().published(w.id);
       const on = v.widgets.some((t) => t.widget === w.id);
       const chosen = picking.sel === w.id;
       const desc = on ? "Este deja pe tablou." : `${W().typeLabel?.(cfg.type) || ""} · ${W().levelText?.(w) || w.level} · ${SPAN[cfg.width] || 6}/12${cfg.type === "tile" ? "" : `, ${(label(HEIGHTS(), heightKey(cfg.height)) || "Compactă").toLocaleLowerCase("ro")}`}`;
       return `
-        <label class="e-permits-fo-delivery-option e-permits-fo-delivery-option--radio e-permits-wid-type${chosen ? " is-selected" : ""}${on ? " is-disabled" : ""}">
+        <label class="e-permits-fo-delivery-option e-permits-fo-delivery-option--radio e-permits-dsh-pick-card${chosen ? " is-selected" : ""}${on ? " is-disabled" : ""}">
           <input class="e-permits-fo-delivery-option__input" type="radio" name="dsh-pick" value="${esc(w.id)}"${chosen ? " checked" : ""}${on ? " disabled" : ""} aria-describedby="dsh-pick-${w.id}-desc" data-dsh-pick>
-          <span class="e-permits-fo-delivery-option__content">
-            <span class="e-permits-wid-type__glyph" aria-hidden="true">${window.GEAPWidgetCharts?.glyph?.(cfg.type) || ""}</span>
-            <span class="e-permits-fo-delivery-option__copy">
-              <span class="e-permits-fo-delivery-option__title-row"><span class="e-permits-fo-delivery-option__title">${esc(cfg.titles.ro)}</span></span>
-              <span class="e-permits-fo-delivery-option__description" id="dsh-pick-${w.id}-desc">${esc(desc)}</span>
-            </span>
+          <span class="e-permits-fo-delivery-option__copy e-permits-dsh-pick-card__copy">
+            <span class="e-permits-fo-delivery-option__title" data-cell-tooltip="${esc(cfg.titles.ro)}">${esc(cfg.titles.ro)}</span>
+            <span class="e-permits-fo-delivery-option__description" id="dsh-pick-${w.id}-desc">${esc(desc)}</span>
           </span>
           <span class="radio radio--small e-permits-fo-delivery-option__radio" aria-hidden="true"><span class="radio-custom"></span></span>
+          ${pickPreview(cfg)}
         </label>`;
-    }).join("")}</div></fieldset>`;
+    };
+    const groups = [...PICK_GROUPS.map(([name]) => name), "Alte widget-uri"].map((name) => [name, items.filter((w) => pickGroupOf(W().published(w.id)?.type) === name)]).filter(([, list]) => list.length);
+    return `<fieldset class="e-permits-wid-types e-permits-dsh-pick"><legend class="u-visually-hidden">Widget-uri publicate</legend>${groups.map(([name, list], i) => `
+      <section class="e-permits-dsh-pick__group" aria-labelledby="dsh-pick-group-${i}">
+        <h3 class="e-permits-dsh-pick__heading" id="dsh-pick-group-${i}">${esc(name)}</h3>
+        <div class="e-permits-dsh-pick__grid">${list.map(option).join("")}</div>
+      </section>`).join("")}</fieldset>`;
   }
   function openPicker() {
     if (!P.draft || P.draft.widgets.length >= MAX_WIDGETS) return;

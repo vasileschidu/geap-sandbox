@@ -429,6 +429,123 @@
   margin-top: var(--spacing-16, 16px);
 }
 
+/* dsh-pick-preview-v1 (2026-11-11, user + Stripe „Add charts”): „Adaugă un widget” = option cards with a LIVE preview,
+   grouped by what they show (Indicatori · Comparații și evoluții · Distribuții · Tabele). The card = the selectable option
+   card, radio variant (`.e-permits-fo-delivery-option--radio`: 1px ring, r12, brand 2px ring when chosen, tertiary hover,
+   the ONE decorative Small radio — kept a DIRECT child so `.is-selected > .radio` paints it), laid out as a grid:
+   title (1 line + tooltip) / meta | radio top-right, then the preview across = the real widget card at half scale (CSS
+   `zoom`, layout shrinks too), head hidden, no border, fixed height = half a Compactă card; 3 columns ≥ 761, 1 on phones. */
+.e-permits-dsh-pick {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-24, 24px);
+}
+
+.e-permits-dsh-pick__group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-12, 12px);
+}
+
+.e-permits-dsh-pick__heading {
+  color: var(--color-text-base-default, #121212);
+  font-size: var(--font-size-fs-16, 16px);
+  font-weight: var(--font-weight-fw-semibold, 600);
+  line-height: var(--line-height-lh-24, 24px);
+  margin: 0;
+}
+
+.e-permits-dsh-pick__grid {
+  display: grid;
+  gap: var(--spacing-16, 16px);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.e-permits-dsh-pick-card.e-permits-fo-delivery-option {
+  align-items: start;
+  display: grid;
+  gap: var(--spacing-12, 12px) var(--spacing-8, 8px);
+  grid-template-columns: minmax(0, 1fr) auto;
+  min-height: 0;
+  padding: var(--spacing-16, 16px);
+}
+
+.e-permits-dsh-pick-card__copy {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4, 4px);
+  min-width: 0;
+}
+
+.e-permits-dsh-pick-card .e-permits-fo-delivery-option__title {
+  font-size: var(--font-size-fs-14, 14px);
+  font-weight: var(--font-weight-fw-semibold, 600);
+  line-height: var(--line-height-lh-20, 20px);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.e-permits-dsh-pick-card .e-permits-fo-delivery-option__description {
+  color: var(--color-text-base-tertiary, #757575);
+  font-size: var(--font-size-fs-12, 12px);
+  line-height: var(--line-height-lh-16, 16px);
+}
+
+.e-permits-dsh-pick-card__preview {
+  border-radius: var(--border-radius-8, 8px);
+  display: block;
+  grid-column: 1 / -1;
+  height: calc(var(--wid-row-compact) / 2);
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.e-permits-dsh-pick-card__zoom {
+  display: block;
+  height: 200%;
+  zoom: 0.5;
+}
+
+/* a number tile previews at full size: the value + delta are the preview */
+.e-permits-dsh-pick-card__preview--stat > .e-permits-dsh-pick-card__zoom {
+  height: 100%;
+  zoom: 1;
+}
+
+.e-permits-dsh-pick-card__preview--stat .e-permits-wid-card.e-permits-wid-card--stat {
+  padding: 0;
+}
+
+.e-permits-dsh-pick-card__zoom > .e-permits-wid-card {
+  border: 0;
+  border-radius: 0;
+  height: 100%;
+}
+
+.e-permits-dsh-pick-card__zoom > .e-permits-wid-card > .e-permits-wid-card__head { display: none; }
+
+.e-permits-dsh-pick-card.is-disabled {
+  cursor: not-allowed;
+}
+
+.e-permits-dsh-pick-card.is-disabled :is(.e-permits-fo-delivery-option__title, .e-permits-fo-delivery-option__description) {
+  color: var(--color-text-disabled-default, #b2b2b2);
+}
+
+.e-permits-dsh-pick-card.is-disabled .e-permits-dsh-pick-card__preview {
+  opacity: 0.4;
+}
+
+@media (max-width: 760px) {
+  .e-permits-dsh-pick__grid { grid-template-columns: minmax(0, 1fr); }
+
+  .e-permits-dsh-pick-card .e-permits-fo-delivery-option__title {
+    font-size: var(--font-size-fs-16, 16px);
+    line-height: var(--line-height-lh-24, 24px);
+  }
+}
+
 /* =====================================================================================
    dsh-view-v1 (2026-11-11): the BO page „Tablou de bord” (Locul de muncă, read-only; js/dashboard-admin.js `showView`).
    Top bar = „Tablou de bord”, the library page-header tabs switch the role's dashboards (principal first), the page

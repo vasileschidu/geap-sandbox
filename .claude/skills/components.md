@@ -12741,7 +12741,7 @@ his authority + only the widgets it may use). Every operation → the dashboard'
   widget-admin.js; the publish, restore, pending-changes („● Modificări nepublicate” → `openPendingChanges`), „Modificări
   (N)” and note-field code = `js/config-publish.js` (`GEAPConfigPublish`, extracted from widget-admin.js, which now calls it
   too); the cards = `GEAPWidgets.card(config, { compact: true })` with the dashboard's width / height (same renderer, same
-  palette); the type glyphs = `GEAPWidgetCharts.glyph`; the picker rows = the „Widget type card”. `GEAPWidgets` exports
+  palette); the type glyphs = `GEAPWidgetCharts.glyph`; the picker (dsh-pick-preview-v1, 2026-11-11, Stripe „Add charts”) = `.e-permits-dsh-pick-card` option cards (the radio-variant option card laid out as a grid: title 1 line + tooltip · meta | the decorative Small radio top-right, then `__preview` = the real widget card at `zoom: 0.5`, head hidden, no border, height = half a Compactă card; a number tile at full size `__preview--stat`; buttons / links → spans, no ids / tooltips, `inert` + aria-hidden), grouped under 16/24 semibold headings `.e-permits-dsh-pick__group` (Indicatori · Comparații și evoluții · Distribuții · Tabele), 3 columns ≥ 761 / 1 on phones; on the board = disabled, preview at 40 % (demo dsh-04d · 04w). `GEAPWidgets` exports
   `typeLabel`, `levelText`, `isOffFor`, `WIDTHS`, `HEIGHTS`, `heightKey`, `heightOf` for it.
 - **Widget card** (wid-card-v2, 2026-11-11, user: Metronic / KeenThemes cards, no description line; Grafana panel „ⓘ”;
   css/widget.css § wid-card-v2, `cardHtml` in js/widget-admin.js — every widget card: dashboards, editor, preview, dialogs).
