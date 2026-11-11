@@ -3419,3 +3419,9 @@ td .e-permits-workplace__date-stack > .e-permits-workplace__date-meta:not(:has(.
     margin-inline-end: 0;
   }
 }
+
+/* registry-stack-focus-v1 (2026-11-11, user „remove clip”): the stacked-list header sits on the column edge, so its
+   overflow: hidden cut the first chip's focus ring — visible here, as on the users registry */
+.e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-workplace[data-workplace-layout="stack"] > .e-permits-workplace__header {
+  overflow: visible;
+}
