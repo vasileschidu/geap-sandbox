@@ -1,0 +1,129 @@
+/* =====================================================================================
+   BackOffice › „Rapoarte” (rbo-v1, 2026-11-11; Feature 96587) — js/rapoarte-bo.js. The page column is the BO page column
+   (`.e-permits-dosar-profil__panel`, as „Tablou de bord”). Reused, not restyled: the list = the shell stacked list with
+   the builder's row look (`.e-permits-rpt-list`, css/rapoarte.css), the filters = the builder's facet host
+   (`.e-permits-rpt-fbar`), the table = `.e-permits-rpt-table`, menus = `.e-permits-fo-intent-menu` (+ the two-line
+   `.e-permits-rpt-add-menu` items), actions = `.e-permits-page-header__actions` (BO header buttons, Small; phones 40).
+   New here: the report head (title + ⓘ + meta | actions) and the 24 rhythm between head · filters · result.
+   components.md › „Rapoarte — BackOffice (rbo-v1)”.
+   ===================================================================================== */
+/* menu icon = the AdminPortal „Rapoarte” icon (css/rapoarte.css: the BO side menu draws 20 masks per data-nav-id) */
+.e-permits-shell__nav--specialist [data-nav-id="rapoarte-bo"] .e-permits-shell__nav-icon::before {
+  mask-image: url("../assets/icons/page-text.svg");
+  mask-size: var(--icon-size-medium, 20px) var(--icon-size-medium, 20px);
+  -webkit-mask-image: url("../assets/icons/page-text.svg");
+  -webkit-mask-size: var(--icon-size-medium, 20px) var(--icon-size-medium, 20px);
+}
+
+.e-permits-rbo--report {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-24, 24px);
+}
+
+/* the head: title row (section title at text height + ⓘ) and meta on the left, the actions on the right */
+.e-permits-rbo__head {
+  align-items: flex-start;
+  display: flex;
+  gap: var(--spacing-16, 16px);
+  justify-content: space-between;
+}
+
+.e-permits-rbo__titles {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: var(--spacing-8, 8px);
+  min-width: 0;
+}
+
+.e-permits-rbo__title-row {
+  align-items: center;
+  display: flex;
+  gap: var(--spacing-8, 8px);
+  min-width: 0;
+}
+
+/* the BO section title is a 48 row with an 11 12 inset (headings over cards); here it sits on the page edge at text height */
+.e-permits-rbo .e-permits-rbo__title-row > .e-permits-dosar-profil__section-title,
+.e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-rbo__title-row > .e-permits-dosar-profil__section-title {
+  height: auto;
+  margin: 0;
+  padding: 0;
+}
+
+.e-permits-rbo__titles > .e-permits-dosar-profil__section-meta {
+  margin: 0;
+}
+
+.e-permits-rbo__actions {
+  flex: 0 0 auto;
+}
+
+/* the filter host sits in the page flow (the builder puts it in the card body, 16 above the table) */
+.e-permits-rpt-fbar.e-permits-rbo__fbar {
+  margin-bottom: var(--spacing-0, 0px);
+}
+
+/* the menus under the head buttons open right-aligned, above the page content */
+.e-permits-rbo__menu > .e-permits-stack__menu {
+  z-index: 20;
+}
+
+/* the result: heading (title + meta) then the stale notice / table / empty state, 16 apart */
+.e-permits-rbo__result {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-16, 16px);
+}
+
+.e-permits-rbo__result > .e-permits-dosar-profil__section-heading {
+  justify-content: flex-start;
+}
+
+.e-permits-rbo__result > .e-permits-dosar-profil__section-heading > .e-permits-dosar-profil__section-meta {
+  margin-left: auto;
+  text-align: right;
+}
+
+@media (max-width: 760px) {
+  .e-permits-rbo--report {
+    gap: var(--spacing-16, 16px);
+  }
+
+  .e-permits-rbo__head {
+    flex-direction: column;
+  }
+
+  .e-permits-rbo__actions,
+  .e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-page-header__actions.e-permits-rbo__actions {
+    flex-direction: row;
+    flex-wrap: nowrap;
+    width: 100%;
+  }
+
+  .e-permits-rbo__actions > .e-permits-rbo__menu {
+    flex: 1 1 0;
+  }
+
+  .e-permits-rbo__actions > .e-permits-rbo__menu > .btn,
+  .e-permits-rbo__actions > .btn {
+    justify-content: center;
+    width: 100%;
+  }
+
+  /* phones: the meta goes under „Rezultat” (the BO heading is a fixed 48 row), on the title's 12 inset */
+  .e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-rbo__result > .e-permits-dosar-profil__section-heading {
+    flex-wrap: wrap;
+    height: auto;
+    padding-bottom: var(--spacing-0, 0px);
+    row-gap: var(--spacing-0, 0px);
+  }
+
+  .e-permits-rbo__result > .e-permits-dosar-profil__section-heading > .e-permits-dosar-profil__section-meta {
+    flex: 1 0 100%;
+    margin-left: 0;
+    padding: var(--spacing-0, 0px) var(--spacing-12, 12px);
+    text-align: left;
+  }
+}

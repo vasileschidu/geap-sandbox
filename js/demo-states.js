@@ -4089,7 +4089,13 @@
        06 principal / secundar (US-550) · 07 dezactivare / activare, pentru autoritate (US-547) · 08 versiuni +
        restaurare (US-548) · 09 clonare (US-545) · 10 eliminarea ciornei (US-549) · 11 Istoric, eroare.
        Demo switch tablou=fara-permisiune|gol|eroare */
-    ...dshDemoStates()
+    ...dshDemoStates(),
+
+    /* ---- BackOffice › Rapoarte (Feature 96587 „Rapoarte statistice predefinite”, js/rapoarte-bo.js, rbo-v1 2026-11-11):
+       rbo-01 lista (grupată pe categorii) · 02 raportul înainte de generare · 03 rezultat (grupuri + Total) · 04 opțiunile
+       „Generează” (fără / cu date cu caracter personal) · 05 meniul „Exportă” · 06 fără date · 07 fără permisiune ·
+       08 rezultat cu date cu caracter personal (telefon: tabelul derulează lateral). Demo switch rbo=fara-permisiune|fara-date */
+    ...rboDemoStates()
   };
 
   function autDemoStates() {
@@ -4851,6 +4857,30 @@
       "rpt-16b": list(seq(nou, step1, next, cols, calcPanel, fxNew("Procent în termen", "(A / B) × 100", "percent"))),
       "rpt-16c": list(seq(nou, async (h) => { await h.click(`${C} #rpt-e-category`); await h.click(`${C} [data-rpt-pick="category|tabelar"]`); await h.choose(`${C} select[data-rpt-field="source"]`, "reg-avize"); await h.fill("#rpt-e-name-ro", "Raport avize pe tip", { leave: false }); }, next, calcPanel), null, AUTH),
       "rpt-16d": list(seq(nou, step1, next, cols, calcPanel, fxNew("Ponderea dosarelor în termen", "A / B × 100", "percent"), async (h) => { await h.fill("#rpt-c-name-ro", "În termen, %", { leave: false }); await h.choose(`${DR} select[data-rpt-col-op="A"]`, "c4"); await h.choose(`${DR} select[data-rpt-col-op="B"]`, "c3"); }, saveCol, async (h) => { await h.click(`${C} [data-rpt-save]`); await h.find("#rpt-panel"); await h.click("#rpt-tab-istoric"); await h.wait(400); }))
+    };
+  }
+
+  function rboDemoStates() {
+    const SPEC = "ansp-specialist-chisinau", SUP = "ansp-supervisor-chisinau";
+    const READY = "[data-reg-page]:not([hidden]) :is([data-rbo-open], [data-rbo-report], .e-permits-rbo .e-permits-empty, .e-permits-empty)";
+    const page = (hash, run, params, as = SPEC) => ({ flow: "back-office", as, hash, ...(params ? { params } : {}), ready: READY, delay: 900, run });
+    const gen = (mode = "fara") => async (h) => {
+      if (mode !== "fara" || document.querySelector("[data-rbo-gen-trigger]")) { await h.click("[data-rbo-gen-trigger]"); await h.wait(200); }
+      await h.click(`[data-rbo-generate="${mode}"]`); await h.wait(900); await h.find("[data-rbo-result]:not([aria-busy])");
+    };
+    const seq = (...steps) => async (h) => { for (const step of steps) await step(h); };
+    return {
+      "rbo-01": page("#rapoarte-bo"),
+      "rbo-01a": page("#rapoarte-bo", null, null, SUP),
+      "rbo-02": page("#rapoarte-bo/RPT-0047"),
+      "rbo-03": page("#rapoarte-bo/RPT-0047", gen()),
+      "rbo-03a": page("#rapoarte-bo/RPT-0047", gen(), null, SUP),
+      "rbo-04": page("#rapoarte-bo/RPT-0049", async (h) => { await h.click("[data-rbo-gen-trigger]"); await h.wait(300); }),
+      "rbo-05": page("#rapoarte-bo/RPT-0047", seq(gen(), async (h) => { await h.click("[data-rbo-export-trigger]"); await h.wait(300); })),
+      "rbo-06": page("#rapoarte-bo/RPT-0047", gen(), { rbo: "fara-date" }),
+      "rbo-07": page("#rapoarte-bo", null, { rbo: "fara-permisiune" }),
+      "rbo-08": page("#rapoarte-bo/RPT-0049", gen("cu")),
+      "rbo-08a": page("#rapoarte-bo/RPT-0049", gen())
     };
   }
 

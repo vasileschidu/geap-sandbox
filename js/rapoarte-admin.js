@@ -197,7 +197,7 @@
     if (S.data) return Promise.resolve(S.data);
     if (!S.loading) {
       S.loading = Promise.all([
-        fetch("data/rapoarte.json?v=rpt-page-v1").then((r) => r.json()),
+        fetch("data/rapoarte.json?v=rbo-v1").then((r) => r.json()),
         K().load ? K().load() : Promise.resolve(null)
       ]).then(([json]) => {
         if (demo.has("gol")) json.reports = [];
@@ -2964,6 +2964,15 @@
     rerender: () => { if (creating()) renderCreate(); else if (profileOpen()) renderProfile(); },
     state: () => P,
     hooks: HOOKS,
-    published: (id) => { const r = reportOf(id); return r && r.status === "Publicat" ? lastVersion(r)?.config || null : null; }
+    published: (id) => { const r = reportOf(id); return r && r.status === "Publicat" ? lastVersion(r)?.config || null : null; },
+    /* rbo-v1 (2026-11-11): the BO page „Rapoarte” (js/rapoarte-bo.js, Feature 96587) generates a published report with the
+       same engine as the preview — the model, the table, the asked conditions and the record match */
+    engine: {
+      model: (v, sel = null, q = "") => previewModel(v, sel, q), table: (v, opts = {}) => tableHtml(v, opts),
+      askChips: (v) => askChips(v), askText: (v) => askText(v), chipLabel: (v, c) => chipLabel(v, c), condKind: (v, c) => condKind(v, c),
+      fieldOf: (src, key) => fieldOf(src, key), recMatch: (v, rec, sel, q = "") => recMatch(v, rec, sel, q), shownCols: (v) => shownCols(v),
+      colName: (c) => colName(c), isMeasure: (c) => isMeasure(c), applyFold: () => applyFold(), today: DEMO_TODAY,
+      categories: () => CATEGORIES.map(([id, name, desc]) => ({ id, name, desc }))
+    }
   };
 })();

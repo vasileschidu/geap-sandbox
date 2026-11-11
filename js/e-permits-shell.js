@@ -1220,7 +1220,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const portal = boContext.session()?.portal || (new URLSearchParams(window.location.search).get("portal") === "admin" ? "admin" : "bo");
     const target = portal === "admin"
       ? links.find((link) => link.dataset.navId === "service-config") || links.find((link) => groupOf(link) === "Administrare")
-      : links.find((link) => link.dataset.navId === "dashboard") || links.find((link) => groupOf(link) === "Locul de muncă" && link.dataset.navId !== "tablou-de-bord");
+      : links.find((link) => link.dataset.navId === "dashboard") || links.find((link) => groupOf(link) === "Locul de muncă" && !["tablou-de-bord", "rapoarte-bo"].includes(link.dataset.navId));
     /* dsh-view-v1: the BO „Tablou de bord” page (js/dashboard-admin.js) is NOT the landing yet — Feature 96498 US-426 makes it
        the landing after login; kept off (proposal) so the existing first-folder landings stay */
     if (target) target.click();
@@ -21568,6 +21568,8 @@ document.addEventListener("DOMContentLoaded", () => {
       shell, escapeHtml, renderTag, renderDateTime, formatLongDate, formatStamp, formatTime,
       renderPageHeaderTop, renderPageHeaderMeta, renderPageHeaderTabCount, watchPageHeaderMeta,
       renderInfoCard, renderEventTimeline, renderStackedList, renderStackItem, renderStackMenu, renderRowActions, isDestructiveLabel,
+      /* rbo-v1 (js/rapoarte-bo.js): a module page with a stacked list drops the leading dot of wrapped meta parts */
+      syncStackMetaRows,
       renderEmptyState, renderNoResults, renderPassportEmpty, renderCopyCode, renderProfileCopyCode, renderListCode,
       renderInfoNote, renderNotice, renderFoSelectControl, showShellToast, askConfirm, exportCsv,
       renderToggle, renderCheckOption, requiredMark, renderPassportBlock, renderSumList, renderUserRoles, renderHeaderStatus,

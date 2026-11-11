@@ -102,6 +102,11 @@
               "shellView": "tablou-de-bord-view"
             },
             {
+              "id": "rapoarte-bo",
+              "label": "Rapoarte",
+              "shellView": "rapoarte-bo-view"
+            },
+            {
               "id": "my-cases",
               "label": "Dosarele mele",
               "icon": "document",
@@ -203,6 +208,11 @@
               "label": "Tablou de bord",
               "iconAsset": "assets/icons/carousel.svg",
               "shellView": "tablou-de-bord-view"
+            },
+            {
+              "id": "rapoarte-bo",
+              "label": "Rapoarte",
+              "shellView": "rapoarte-bo-view"
             },
             {
               "id": "my-cases",
