@@ -94,9 +94,10 @@
      units (css/dashboard.css: Compactă = 8, Înaltă = 16, one unit + gap = 47 ≈ one list row); charts 8 … 20 by the resize
      corner / Shift + ↑ ↓ one unit at a time; a number tile = 4 (half a Compactă card, two stack beside a chart). The old
      „compact” / „tall” values (seeds, widget defaults) read as 8 / 16. */
-  /* dsh-default-10 (2026-11-11, user: list charts show their rows at the default): Compactă = 10 units (454), Înaltă 20,
-     a number tile 5 (half a Compactă), resize 8 … 24; the card's own „tall” layout from 16 units */
-  const ROWS = { stat: 5, compact: 10, tall: 20, min: 8, max: 24, tallLayout: 16 };
+  /* dsh-third-v1 (2026-11-11, user: „stacked even more vertically, 1/3 of this”): row unit 36 (+ gap 16 = 52); Compactă =
+     9 units (452), a number tile 3 (140) so THREE stacked + 2 gaps = one Compactă card; Înaltă 18 (920 = 2 × Compactă +
+     gap); charts resize 7 … 24, number tiles 3 … 24; the card's own „tall” layout from 14 units */
+  const ROWS = { stat: 3, compact: 9, tall: 18, min: 7, max: 24, tallLayout: 14 };
   const isNum = (h) => h !== "" && h !== null && h !== undefined && Number.isFinite(Number(h));
   const rowsOfHeight = (h, min = ROWS.min) => (isNum(h) ? Math.min(ROWS.max, Math.max(min, Math.round(Number(h)))) : heightKey(h) === "tall" ? ROWS.tall : ROWS.compact);
   /* dsh-stat-resize-v1 (user: „not able to make this more narrow vertical”): a number tile has a height too — default 5
@@ -239,12 +240,12 @@
         const mixed = demo.has("mix") && json.dashboards.find((d) => d.id === "DSH-0001");
         /* ?tablou=kpi3 (demo dsh-04q): DSH-0001 as one row of three compact KPI tiles, each a third wide */
         const kpi3 = demo.has("kpi3") && json.dashboards.find((d) => d.id === "DSH-0001");
-        /* ?tablou=stiva (demo dsh-04s · dsh-20g, dsh-half-row-v1): a 2/3 chart with two 1/3 number tiles stacked beside it,
+        /* ?tablou=stiva (demo dsh-04s · dsh-20g, dsh-half-row-v1): a 2/3 chart with three 1/3 number tiles stacked beside it,
            then two Compactă halves — on DSH-0001 (editor) and DSH-0004 (the ANSP Specialist's principal, the BO page) */
-        if (demo.has("stiva")) json.dashboards.filter((d) => d.id === "DSH-0001" || d.id === "DSH-0004").forEach((d) => { d.config.widgets = [["WGT-0001", "twoThirds"], ["WGT-0011", "third"], ["WGT-0015", "third"], ["WGT-0006", "half"], ["WGT-0008", "half"]].map(([widget, width]) => ({ widget, width, height: "compact" })); });
-        /* ?tablou=grila (demo dsh-04y · dsh-20h, dsh-grid-2d-v1): a 2D arrangement no column flow gives — chart · two
+        if (demo.has("stiva")) json.dashboards.filter((d) => d.id === "DSH-0001" || d.id === "DSH-0004").forEach((d) => { d.config.widgets = [["WGT-0001", "twoThirds"], ["WGT-0011", "third"], ["WGT-0015", "third"], ["WGT-0016", "third"], ["WGT-0006", "half"], ["WGT-0008", "half"]].map(([widget, width]) => ({ widget, width, height: "compact" })); });
+        /* ?tablou=grila (demo dsh-04y · dsh-20h, dsh-grid-2d-v1): a 2D arrangement no column flow gives — chart · three
            stacked number tiles IN THE MIDDLE · chart, a wide table under them (explicit x, y) */
-        if (demo.has("grila")) json.dashboards.filter((d) => d.id === "DSH-0001" || d.id === "DSH-0004").forEach((d) => { d.config.widgets = [["WGT-0001", "third", 10, 0, 0], ["WGT-0011", "third", 5, 4, 0], ["WGT-0015", "third", 5, 4, 5], ["WGT-0006", "third", 10, 8, 0], ["WGT-0012", "full", 12, 0, 10]].map(([widget, width, height, x, y]) => ({ widget, width, height, x, y })); });
+        if (demo.has("grila")) json.dashboards.filter((d) => d.id === "DSH-0001" || d.id === "DSH-0004").forEach((d) => { d.config.widgets = [["WGT-0001", "third", 9, 0, 0], ["WGT-0011", "third", 3, 4, 0], ["WGT-0015", "third", 3, 4, 3], ["WGT-0016", "third", 3, 4, 6], ["WGT-0006", "third", 9, 8, 0], ["WGT-0012", "full", 11, 0, 9]].map(([widget, width, height, x, y]) => ({ widget, width, height, x, y })); });
         if (kpi3) kpi3.config.widgets = ["WGT-0011", "WGT-0015", "WGT-0016"].map((widget) => ({ widget, width: "third", height: "compact" }));
         if (mixed) mixed.config.widgets = [["WGT-0011", "third", "compact"], ["WGT-0001", "third", "compact"], ["WGT-0006", "third", "tall"], ["WGT-0003", "twoThirds", "compact"], ["WGT-0008", "half", "compact"], ["WGT-0012", "half", "compact"]].map(([widget, width, height]) => ({ widget, width, height }));
         json.dashboards.forEach((d) => {
@@ -519,7 +520,7 @@
     const ghost = edit && n < MAX_WIDGETS ? `<div class="e-permits-dsh-ghost${gh === ROWS.stat ? " e-permits-dsh-ghost--r5" : ""}" role="listitem"${posAttrs({ x: 0, y: bottom, w: 4, h: gh })}><span class="e-permits-dsh-ghost__text">Adaugă widget-urile unul câte unul și aranjează-le aici.</span>${addButton(v)}</div>` : "";
     const body = n || edit
       ? `<div class="e-permits-dsh-grid${edit ? " is-editing" : ""}" role="list" aria-label="Widget-urile tabloului de bord, în ordinea de citire" data-dsh-grid>
-          <div class="e-permits-dsh-guides" aria-hidden="true">${Array.from({ length: 12 }, () => "<span></span>").join("")}</div>
+          <div class="e-permits-dsh-guides" aria-hidden="true"></div>
           ${tiles}${ghost}
         </div>`
       : E()?.render({ title: "Niciun widget", text: "Tabloul de bord nu are încă widget-uri.", icon: "chart", compact: true }) || "";
@@ -1622,7 +1623,12 @@
   }
   /* a model change on the board, redrawn with the FLIP reflow; focus stays on the widget */
   function arrange(change, { focus = "", say = "" } = {}) {
-    flipTiles(gridEl(), () => { change(); rerender({ keep: focus ? `[data-dsh-tile="${CSS.escape(focus)}"]` : "" }); });
+    const grid = gridEl();
+    const sc = grid ? scrollerOf(grid) : null;
+    const keepTop = sc?.scrollTop;
+    flipTiles(grid, () => { change(); rerender({ keep: focus ? `[data-dsh-tile="${CSS.escape(focus)}"]` : "" }); });
+    /* the redraw keeps the page where it was (the shell re-measures the sticky header a frame later) */
+    if (sc) { sc.scrollTop = keepTop; requestAnimationFrame(() => { sc.scrollTop = keepTop; requestAnimationFrame(() => { sc.scrollTop = keepTop; }); }); }
     reheader();
     if (say) live(typeof say === "function" ? say() : say);
   }
@@ -1672,8 +1678,8 @@
     }
     const keys = WIDTH_KEYS;
     const k = keys.indexOf(t[axis]) + by;
-    if (k < 0 || k >= keys.length) { live(axis === "width" ? "Lățimea este deja la limită." : "Înălțimea este deja la limită."); return; }
-    arrange(() => { t[axis] = keys[k]; relayout(P.draft.widgets, (boxes) => { const b = boxes.find((x) => x.id === id); moveBox(boxes, b, Math.min(b.x, 12 - b.w), b.y, false); }); }, { focus: id, say: () => `„${widgetInfo(id).title}”: ${sizeText(t)}, ${posText(t)}.` });
+    if (k < 0 || k >= keys.length || SPAN[keys[k]] > 12 - (Number(t.x) || 0)) { live(axis === "width" ? "Lățimea este deja la limită." : "Înălțimea este deja la limită."); return; }
+    arrange(() => { t[axis] = keys[k]; relayout(P.draft.widgets, (boxes) => { const b = boxes.find((x) => x.id === id); moveBox(boxes, b, b.x, b.y, false); }); }, { focus: id, say: () => `„${widgetInfo(id).title}”: ${sizeText(t)}, ${posText(t)}.` });
   }
   function removeWidget(id) {
     const v = P.draft;
@@ -1726,7 +1732,7 @@
       act.ghost = ghost;
       placeGhost(x, y);
     }
-    if (kind === "resize") showTarget();
+    showTarget();
   }
   const placeGhost = (x, y) => { if (!act?.ghost) return; act.ghost.style.setProperty("--dsh-gx", `${x - act.offX}px`); act.ghost.style.setProperty("--dsh-gy", `${y - act.offY}px`); };
   /* auto-scroll while dragging near the top / bottom of the viewport (the panel / sheet scroller or the page) */
@@ -1748,16 +1754,34 @@
     if (dy) { act.scroller.scrollTop += dy; dragTo(x, y); }
     act.raf = requestAnimationFrame(autoScroll);
   }
+  /* dsh-snap-cells-v1 (2026-11-11, user: „show exactly where I can snap to — I see the column but cannot drag there”):
+     while moving / resizing the background = the real snap CELLS (12 columns × the row unit, with the gaps), only where the
+     tile can go: moving = the whole board + room below; resizing = from the tile's anchor (x, y fixed) to the widest
+     allowed width (4 · 6 · 8 · 12 ≤ 12 − x) and the tallest height; the cells the tile takes now = the target tint */
+  function paintCells(a) {
+    const guides = a.grid.querySelector(".e-permits-dsh-guides");
+    if (!guides) return;
+    const boxes = a.boxes || a.base;
+    const me = boxes.find((b) => b.id === a.id) || { x: 0, y: 0, w: SPAN[a.width] || 12, h: a.height };
+    const bottom = boxes.reduce((m, b) => Math.max(m, b.y + b.h), 0);
+    let rows;
+    let ok;
+    if (a.kind === "resize") {
+      const maxW = Math.max(...WIDTH_KEYS.map((k) => SPAN[k]).filter((w) => w <= 12 - me.x));
+      rows = me.y + ROWS.max;
+      ok = (c, r) => c >= me.x && c < me.x + maxW && r >= me.y && r < me.y + ROWS.max;
+    } else {
+      rows = bottom + me.h + 3;
+      ok = () => true;
+    }
+    const inMe = (c, r) => c >= me.x && c < me.x + me.w && r >= me.y && r < me.y + me.h;
+    let html = "";
+    for (let r = 0; r < rows; r += 1) for (let c = 0; c < 12; c += 1) html += `<span${!ok(c, r) ? ' class="is-off"' : inMe(c, r) ? ' class="is-target"' : ""}></span>`;
+    guides.innerHTML = html;
+  }
   function showTarget() {
     const a = act;
-    const g = a.grid.getBoundingClientRect();
-    const gap = (parseFloat(getComputedStyle(a.grid).columnGap) || 0) * a.z;
-    const colW = (g.width - 11 * gap) / 12;
-    const span = SPAN[a.width];
-    const mine = a.boxes?.find((b) => b.id === a.id);
-    let start = mine ? mine.x : Math.round((a.tile.getBoundingClientRect().left - g.left) / (colW + gap));
-    if (start + span > 12) start = 12 - span;
-    a.grid.querySelectorAll(".e-permits-dsh-guides > span").forEach((s, i) => s.classList.toggle("is-target", i >= start && i < start + span));
+    paintCells(a);
     const lbl = a.tile.querySelector(".e-permits-dsh-tile__size");
     if (lbl) lbl.innerHTML = tag(sizeText(a), "brand");
   }
@@ -1773,6 +1797,7 @@
     flipTiles(a.grid, () => boxes.forEach((b) => { const el = a.grid.querySelector(`:scope > [data-dsh-tile="${CSS.escape(b.id)}"]`); if (el) placeEl(el, b); }), a.kind === "move" ? null : a.tile);
     const ghostSlot = a.grid.querySelector(":scope > .e-permits-dsh-ghost");
     if (ghostSlot) placeEl(ghostSlot, { x: 0, y: boxes.reduce((m, b) => Math.max(m, b.y + b.h), 0) });
+    paintCells(a);
   }
   function cellAt(a, x, y) {
     const g = a.grid.getBoundingClientRect();
@@ -1801,7 +1826,9 @@
     const colW = (g.width - 11 * gap) / 12;
     const r = a.tile.getBoundingClientRect();
     const cols = (x - r.left + gap) / (colW + gap);
-    const width = WIDTH_KEYS.reduce((best, k) => (Math.abs(SPAN[k] - cols) < Math.abs(SPAN[best] - cols) ? k : best), WIDTH_KEYS[0]);
+    const x0 = (a.boxes || a.base).find((b) => b.id === a.id)?.x || 0;
+    const fits = WIDTH_KEYS.filter((k) => SPAN[k] <= 12 - x0);
+    const width = fits.reduce((best, k) => (Math.abs(SPAN[k] - cols) < Math.abs(SPAN[best] - cols) ? k : best), fits[0]);
     const h = y - r.top;
     /* snaps per row unit: N units = N × unit + (N − 1) × gap */
     const height = Math.min(ROWS.max, Math.max(a.stat ? ROWS.stat : ROWS.min, Math.round((h / a.z + a.rowGap) / (a.unit + a.rowGap))));
@@ -1812,7 +1839,7 @@
     if (width === a.width && height === a.height && a.boxes) { showTarget(); return; }
     if (width !== a.width) { a.tile.classList.remove(`e-permits-dsh-tile--${a.width}`); a.tile.classList.add(`e-permits-dsh-tile--${width}`); a.width = width; }
     setRows(a, height);
-    liveLayout(a, (me, boxes) => { me.w = SPAN[width] || 12; me.h = height; moveBox(boxes, me, Math.min(me.x, 12 - me.w), me.y, true); });
+    liveLayout(a, (me, boxes) => { me.w = SPAN[width] || 12; me.h = height; moveBox(boxes, me, me.x, me.y, true); });
     showTarget();
   }
   /* the live height while resizing: the tile's row class; the card is re-rendered only when its own class flips
@@ -1841,7 +1868,16 @@
     const before = JSON.stringify(P.draft.widgets.map((w) => [w.widget, w.x, w.y, w.width, w.height]));
     if (a.kind === "resize") { t.width = a.width; t.height = a.height; }
     if (a.boxes) applyBoxes(P.draft.widgets, a.boxes);
+    /* the redraw must not move the page (the tile under the pointer stays where it was dropped) */
+    const sc = scrollerOf(a.grid);
+    const keepTop = sc.scrollTop;
+    const tileTop = a.tile.getBoundingClientRect().top;
     rerender({ keep: `[data-dsh-tile="${CSS.escape(a.id)}"]` });
+    const pin = () => { const now = tileEl(a.id); if (now) sc.scrollTop += now.getBoundingClientRect().top - tileTop; };
+    sc.scrollTop = keepTop;
+    pin();
+    /* the shell re-measures the sticky page header after the redraw (one frame later) — pin the tile again then */
+    requestAnimationFrame(() => { pin(); requestAnimationFrame(pin); });
     reheader();
     if (before !== JSON.stringify(P.draft.widgets.map((w) => [w.widget, w.x, w.y, w.width, w.height]))) live(`„${widgetInfo(a.id).title}”: ${posText(t)}.`);
   }

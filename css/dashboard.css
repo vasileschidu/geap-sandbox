@@ -102,7 +102,8 @@
    order = reading order = aria order. The card fills its tile; fit() (js/widget-charts.js, ResizeObserver) shows the list
    / table rows that fit. Phones = natural heights (below). */
 .e-permits-dsh-grid {
-  --dsh-row-unit: calc((var(--wid-row-compact) - var(--spacing-16, 16px) * 7) / 8);
+  /* dsh-third-v1: 36 (+ 16 gap = 52): Compactă 9 = 452, a number tile 3 = 140 (three + 2 gaps = Compactă) */
+  --dsh-row-unit: calc(var(--spacing-40, 40px) - var(--spacing-4, 4px));
   align-items: stretch;
   display: grid;
   gap: var(--spacing-16, 16px);
@@ -113,37 +114,14 @@
 
 @media (min-width: 761px) {
   .e-permits-dsh-grid > .e-permits-dsh-tile,
-  .e-permits-dsh-grid > .e-permits-dsh-ghost { grid-row: span 10; }
-
-  .e-permits-dsh-grid > .e-permits-dsh-tile--r5 { grid-row: span 5; }
-  /* the „add” slot after a number tile = the tile's height (same row), else a Compactă cell */
-  .e-permits-dsh-grid > .e-permits-dsh-ghost--r5 { grid-row: span 5; }
+  .e-permits-dsh-grid > .e-permits-dsh-ghost { grid-row: span 9; }
 
   /* dsh-grid-2d-v1: every tile (and the „add” slot) sits in its own grid area — x, y, w, h set as CSS variables from its
      data-dsh-* attributes (js/dashboard-admin.js placeEl); no auto-flow */
   .e-permits-dsh-grid > [data-dsh-x] {
     grid-column: calc(var(--dsh-x, 0) + 1) / span var(--dsh-w, 12);
-    grid-row: calc(var(--dsh-y, 0) + 1) / span var(--dsh-h, 10);
+    grid-row: calc(var(--dsh-y, 0) + 1) / span var(--dsh-h, 9);
   }
-  .e-permits-dsh-grid > .e-permits-dsh-tile--r6 { grid-row: span 6; }
-  .e-permits-dsh-grid > .e-permits-dsh-tile--r7 { grid-row: span 7; }
-  .e-permits-dsh-grid > .e-permits-dsh-tile--r8 { grid-row: span 8; }
-  .e-permits-dsh-grid > .e-permits-dsh-tile--r9 { grid-row: span 9; }
-  .e-permits-dsh-grid > .e-permits-dsh-tile--r10 { grid-row: span 10; }
-  .e-permits-dsh-grid > .e-permits-dsh-tile--r11 { grid-row: span 11; }
-  .e-permits-dsh-grid > .e-permits-dsh-tile--r12 { grid-row: span 12; }
-  .e-permits-dsh-grid > .e-permits-dsh-tile--r13 { grid-row: span 13; }
-  .e-permits-dsh-grid > .e-permits-dsh-tile--r14 { grid-row: span 14; }
-  .e-permits-dsh-grid > .e-permits-dsh-tile--r15 { grid-row: span 15; }
-  .e-permits-dsh-grid > .e-permits-dsh-tile--r16 { grid-row: span 16; }
-  .e-permits-dsh-grid > .e-permits-dsh-tile--r17 { grid-row: span 17; }
-  .e-permits-dsh-grid > .e-permits-dsh-tile--r18 { grid-row: span 18; }
-  .e-permits-dsh-grid > .e-permits-dsh-tile--r19 { grid-row: span 19; }
-  .e-permits-dsh-grid > .e-permits-dsh-tile--r20 { grid-row: span 20; }
-  .e-permits-dsh-grid > .e-permits-dsh-tile--r21 { grid-row: span 21; }
-  .e-permits-dsh-grid > .e-permits-dsh-tile--r22 { grid-row: span 22; }
-  .e-permits-dsh-grid > .e-permits-dsh-tile--r23 { grid-row: span 23; }
-  .e-permits-dsh-grid > .e-permits-dsh-tile--r24 { grid-row: span 24; }
 
   .e-permits-dsh-grid > .e-permits-dsh-tile > .e-permits-wid-card { height: 100%; }
 
@@ -161,11 +139,15 @@
 }
 
 
+/* dsh-snap-cells-v1: the snap cells (12 columns × the row unit, the grid gaps), drawn while moving / resizing from the
+   top of the board down past its end; cells the tile cannot reach are not drawn (`.is-off`), the cells it takes now =
+   brand tint */
 .e-permits-dsh-guides {
   display: grid;
   gap: inherit;
+  grid-auto-rows: var(--dsh-row-unit);
   grid-template-columns: inherit;
-  inset: 0;
+  inset: 0 0 auto;
   opacity: 0;
   pointer-events: none;
   position: absolute;
@@ -175,11 +157,15 @@
 .e-permits-dsh-guides > span {
   background: var(--color-background-base-secondary, #f5f5f5);
   border-radius: var(--border-radius-8, 8px);
-  transition: background-color 120ms ease;
+}
+
+.e-permits-dsh-guides > span.is-off {
+  visibility: hidden;
 }
 
 .e-permits-dsh-guides > span.is-target {
   background: var(--color-background-brand-secondary, #e8f0fb);
+  box-shadow: inset 0 0 0 var(--border-width-1, 1px) var(--color-border-brand-default, #0058d2);
 }
 
 .e-permits-dsh-grid.is-arranging .e-permits-dsh-guides {

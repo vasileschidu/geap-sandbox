@@ -1689,3 +1689,36 @@ button.e-permits-wid-rows__row:focus-visible {
 .e-permits-wid-table--dosare tbody tr:is(:hover, :focus-visible) .e-permits-wid-table__open-cell {
   color: var(--color-icon-base-default, #121212);
 }
+
+/* dsh-third-v1 (2026-11-11, user: „stacked even more vertically, 1/3”): the number tile on a dashboard is 140 high at its
+   default (three + two gaps = one Compactă card) — 16 24 padding, gap 4, the number one step smaller (Heading H3, phones
+   Mobile H3), „față de …” on one line with the tooltip when cut; taller tiles keep the content centred */
+.e-permits-wid-card.e-permits-wid-card--dash.e-permits-wid-card--stat {
+  gap: var(--spacing-4, 4px);
+  padding: var(--spacing-16, 16px) var(--spacing-24, 24px);
+}
+
+.e-permits-wid-card--dash .e-permits-wid-stat,
+.e-permits-wid-card--dash .e-permits-wid-stat__btn {
+  gap: var(--spacing-4, 4px);
+}
+
+.e-permits-wid-card--dash .e-permits-wid-stat__value {
+  font-size: var(--type-heading-h3-font-size, 24px);
+  letter-spacing: var(--type-heading-h3-letter-spacing, -0.24px);
+  line-height: var(--type-heading-h3-line-height, 32px);
+}
+
+.e-permits-wid-card--dash .e-permits-wid-stat__meta {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (max-width: 760px) {
+  .e-permits-wid-card--dash .e-permits-wid-stat__value {
+    font-size: var(--text-mobile-heading-h3-font-size, 22px);
+    letter-spacing: var(--text-mobile-heading-h3-letter-spacing, -0.22px);
+    line-height: var(--text-mobile-heading-h3-line-height, 30px);
+  }
+}

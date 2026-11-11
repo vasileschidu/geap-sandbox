@@ -308,7 +308,7 @@
     const tag = d ? window.GEAPTag?.html(`${d.up ? "+" : "−"}${d.pct}%`, d.up ? "success" : "danger", { className: "e-permits-wid-stat__delta" }) || "" : "";
     const inner = `
       <span class="e-permits-wid-stat__line"><span class="e-permits-wid-stat__value${tone === "warning" || tone === "danger" ? ` e-permits-wid-stat__value--${tone}` : ""}">${esc(m.fmt(s.value))}</span>${tag}</span>
-      ${d?.text ? `<span class="e-permits-wid-stat__meta">${esc(d.text)}</span>` : ""}
+      ${d?.text ? `<span class="e-permits-wid-stat__meta" data-cell-tooltip="${esc(d.text)}">${esc(d.text)}</span>` : ""}
       ${m.target ? `<span class="e-permits-wid-stat__meta">${esc(m.target.label)}</span>` : ""}`;
     return m.drill
       ? `<div class="e-permits-wid-stat"><button class="e-permits-wid-stat__btn" type="button"${drillAttrs(m, m.caption || "Valoarea", s.value)} aria-label="${esc(`${m.fmt(s.value)}${d ? ` (${d.up ? "+" : "−"}${d.pct}% ${d.text})` : ""} — deschide înregistrările`)}">${inner}</button></div>`
