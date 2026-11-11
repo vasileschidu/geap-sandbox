@@ -1553,3 +1553,29 @@ button.e-permits-wid-rows__row:focus-visible {
 .e-permits-wid-stat__btn:focus-visible::after {
   box-shadow: 0 0 0 var(--border-width-2, 2px) var(--color-background-base-default, #fff), 0 0 0 var(--border-width-4, 4px) var(--focus-ring, #3379db);
 }
+
+/* wid-table-bleed-v1 (2026-11-11, user „the table lets do full edge tb lr”): a table widget runs edge to edge under the
+   head divider — no body padding, no own frame; the bottom corners follow the card (16 minus its 1px border);
+   „Vezi tot” keeps the 24 side gutter */
+.e-permits-wid-card--panel > .e-permits-wid-card__body:has(> .e-permits-wid-table-wrap) {
+  padding: 0;
+}
+
+.e-permits-wid-card--panel > .e-permits-wid-card__body > .e-permits-wid-table-wrap {
+  border: 0;
+  border-radius: 0 0 calc(var(--border-radius-16, 16px) - var(--border-width-1, 1px)) calc(var(--border-radius-16, 16px) - var(--border-width-1, 1px));
+}
+
+.e-permits-wid-card--panel > .e-permits-wid-card__body > .e-permits-wid-table-wrap ~ .e-permits-wid-all {
+  align-self: flex-start;
+  margin: 0 var(--spacing-24, 24px) var(--spacing-16, 16px);
+}
+
+/* the outer cells line up with the card title (24 gutter) */
+.e-permits-wid-card--panel > .e-permits-wid-card__body > .e-permits-wid-table-wrap :is(th, td):first-child {
+  padding-left: var(--spacing-24, 24px);
+}
+
+.e-permits-wid-card--panel > .e-permits-wid-card__body > .e-permits-wid-table-wrap :is(th, td):last-child {
+  padding-right: var(--spacing-24, 24px);
+}
