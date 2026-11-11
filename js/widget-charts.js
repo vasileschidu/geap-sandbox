@@ -4,7 +4,7 @@
    Reused classes: `.e-permits-chart__plot` (160 high, baseline border, clip) · `rect.e-permits-chart__bar--{tone}`
    (rounded tops rx 4, stacked = top segment first, extended under the baseline) · `.e-permits-chart__axis` ·
    `.e-permits-meter(--lg)` + `__fill--{tone}` + `__gap` · `.e-permits-meter-legend(--tray)` + `__dot` ·
-   `.e-permits-ekyc-band__label(.is-threshold)` (axis / value / target labels) · `.e-permits-kpi` (tile) ·
+   `.e-permits-ekyc-band__label(.is-threshold)` (axis / value / target labels) · `.e-permits-wid-stat` (tile, wid-card-v2) ·
    `.e-permits-reg-table` (tables). Drill-down targets are always real buttons (category rows, column slots, legend
    lines, heat-map cells, the tile, table values) — never role=button on SVG. New (css/widget.css, components.md › „Widgete — chart types”): the series palette
    `.e-permits-wid-s1…s6` (one custom property `--wid-series`, read by `.e-permits-wid-fill` / `-line` / `-arc` and the
@@ -297,33 +297,22 @@
   }
 
   /* ---------------------------------------------------------------- Plăcuță simplă
-     Înaltă + a KPI with a monthly series (m.trend): a small trend line under the grey value box (stretched viewBox, the line chart's
-     stroke), the last month marked */
-  function spark(m) {
-    const vals = m.trend || [];
-    if (vals.length < 3) return "";
-    const lo = Math.min(...vals);
-    const hi = Math.max(...vals);
-    const Y = (v) => (hi === lo ? 50 : 90 - ((v - lo) / (hi - lo)) * 80);
-    const X = (i) => (i / (vals.length - 1)) * 100;
-    const pts = vals.map((v, i) => `${X(i).toFixed(2)},${Y(v).toFixed(2)}`).join(" ");
-    return `<span class="e-permits-wid-spark" role="img" aria-label="${esc(`Evoluția pe ultimele ${vals.length} luni: de la ${m.fmt(vals[0])} la ${m.fmt(vals[vals.length - 1])}`)}"><svg class="e-permits-wid-layer ${sClass(0)}" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true" focusable="false"><polygon class="e-permits-wid-area" points="0,100 ${pts} 100,100"></polygon><polyline class="e-permits-wid-line" points="${pts}" vector-effect="non-scaling-stroke"></polyline></svg></span>`;
-  }
-
-  /* ---------------------------------------------------------------- Plăcuță simplă */
+     wid-card-v2 (2026-11-11, user: Metronic stat tile): the number (Heading H2, phones Mobile H2) + the delta as a Small subtle
+     success / danger tag („+4,3%”) on one line, then „față de luna precedentă (2.190)” and the KPI target as tertiary lines.
+     The title + „ⓘ” sit above, in the card head (js/widget-admin.js cardHtml). Compact only — no tall mode, no sparkline.
+     Drill: one button over the number block whose ::after covers the whole card (card hover = border + shadow). */
   function tile(m) {
     const s = m.single;
     const tone = m.tone?.(s.value);
+    const d = s.delta;
+    const tag = d ? window.GEAPTag?.html(`${d.up ? "+" : "−"}${d.pct}%`, d.up ? "success" : "danger", { className: "e-permits-wid-stat__delta" }) || "" : "";
     const inner = `
-      <span class="e-permits-kpi__value${tone === "warning" || tone === "danger" ? ` e-permits-kpi__value--${tone}` : ""}">${esc(m.fmt(s.value))}</span>
-      ${s.compare ? `<span class="e-permits-kpi__meta">${s.compare}</span>` : ""}
-      ${m.target ? `<span class="e-permits-kpi__meta">${esc(m.target.label)}</span>` : ""}`;
-    /* the grey card is the eKYC KPI card; a drill tile holds one transparent button over its content (hover on the card) */
-    /* the grey box keeps its natural size under the head (user, wid-heights-v1: no stretched box, no centring); the Înaltă
-       sparkline sits under the box, the rest of the card stays empty */
-    return (m.drill
-      ? `<div class="e-permits-kpi e-permits-wid-single"><button class="e-permits-wid-single__btn" type="button"${drillAttrs(m, m.caption || "Valoarea", s.value)} aria-label="${esc(`${m.fmt(s.value)} — deschide înregistrările`)}">${inner}</button></div>`
-      : `<div class="e-permits-kpi e-permits-wid-single">${inner}</div>`) + spark(m);
+      <span class="e-permits-wid-stat__line"><span class="e-permits-wid-stat__value${tone === "warning" || tone === "danger" ? ` e-permits-wid-stat__value--${tone}` : ""}">${esc(m.fmt(s.value))}</span>${tag}</span>
+      ${d?.text ? `<span class="e-permits-wid-stat__meta">${esc(d.text)}</span>` : ""}
+      ${m.target ? `<span class="e-permits-wid-stat__meta">${esc(m.target.label)}</span>` : ""}`;
+    return m.drill
+      ? `<div class="e-permits-wid-stat"><button class="e-permits-wid-stat__btn" type="button"${drillAttrs(m, m.caption || "Valoarea", s.value)} aria-label="${esc(`${m.fmt(s.value)}${d ? ` (${d.up ? "+" : "−"}${d.pct}% ${d.text})` : ""} — deschide înregistrările`)}">${inner}</button></div>`
+      : `<div class="e-permits-wid-stat">${inner}</div>`;
   }
 
   /* ---------------------------------------------------------------- Tabel cu filtru pe sursa de date */

@@ -100,6 +100,8 @@
      still read (small / medium → compact, large → tall) */
   const HEIGHTS = [["compact", "Compactă"], ["tall", "Înaltă"]];
   const heightKey = (h) => (h === "tall" || h === "large" ? "tall" : "compact");
+  /* wid-card-v2 (2026-11-11, user): a number tile („Plăcuță simplă”) has ONE height — Compactă */
+  const heightOf = (cfg, h = cfg?.height) => (cfg?.type === "tile" ? "compact" : heightKey(h));
   const VIS = [
     ["role", "Strict aria de responsabilitate a rolului", "Fiecare utilizator vede doar dosarele din aria lui de responsabilitate."],
     ["subdivision", "Subdiviziune", "Utilizatorul vede datele subdiviziunii lui."],
@@ -181,7 +183,7 @@
           w.history = w.history || [];
           w.versions = (w.versions || []).map((v) => ({ ...v, config: v.config || clone(w.config) }));
           /* a configuration saved before „Culori” reads as the default palette */
-          [w.config, ...w.versions.map((v) => v.config)].forEach((c) => { c.palette = palKey(c); c.height = heightKey(c.height); });
+          [w.config, ...w.versions.map((v) => v.config)].forEach((c) => { c.palette = palKey(c); c.height = heightOf(c); });
         });
         S.data = json;
         return json;
@@ -393,10 +395,9 @@
       const cur = k ? (K().value?.(k.id, per.scope === "all" ? "all" : me.authority)?.cur ?? null) : val("tile");
       const prev = k ? (K().value?.(k.id, per.scope === "all" ? "all" : me.authority)?.prev ?? null) : prevOf(cur, "tile");
       model.fmt = fmtFn(v, 0);
-      /* Înaltă: the KPI's monthly trend under the value (a sparkline), only when the KPI has the data */
-      const trend = k && model.height === "tall" ? (K().series?.(k.id, per.scope === "all" ? "all" : me.authority) || []).map((p) => p.value).filter((x) => Number.isFinite(x)) : [];
-      if (trend.length > 2) model.trend = trend;
-      model.single = { value: cur, compare: v.compare && cur !== null && prev ? `${cur >= prev ? "▲" : "▼"} ${nf(Math.abs(((cur - prev) / prev) * 100), 1)}% față de ${COMPARE_SHORT[v.compare]} (${esc(model.fmt(prev))})` : "" };
+      /* wid-card-v2: compact only (no sparkline); the delta = a Small tag „+4,3%” + the tertiary line „față de … (2.190)” */
+      model.height = "compact";
+      model.single = { value: cur, delta: v.compare && cur !== null && prev ? { up: cur >= prev, pct: nf(Math.abs(((cur - prev) / prev) * 100), 1), text: `față de ${COMPARE_SHORT[v.compare]} (${model.fmt(prev)})` } : null };
       return model;
     }
     if (v.type === "rowTable") {
@@ -497,11 +498,15 @@
      error, the others keep loading — Feature 96498), `ariaLabel` names the card outside the preview */
   function cardHtml(v, { st = {}, me = who(), compact = false, natural = false, ariaLabel = "" } = {}) {
     const title = v.titles.ro || "Titlul widget-ului";
-    const hk = heightKey(v.height);
+    const hk = heightOf(v);
+    const stat = v.type === "tile";
+    /* wid-card-v2 (2026-11-11, user: Metronic cards): head = ONE row — title (1 line + tooltip) + „ⓘ” (the description in the
+       Small hint tooltip, Grafana panel; none when empty); charts get a divider under the head, the number tile has none */
+    const desc = String(v.subtitles?.ro || "").trim();
+    const info = desc ? `<button class="e-permits-fo-role-info e-permits-wid-card__info" type="button" aria-label="Despre widget-ul „${esc(title)}”" data-tooltip-hint="${esc(desc)}">${icon("circle-info-filled", 16)}</button>` : "";
     const head = `
       <div class="e-permits-wid-card__head">
-        <p class="e-permits-wid-card__title" data-cell-tooltip="${esc(title)}">${esc(title)}</p>
-        ${v.subtitles.ro ? `<p class="e-permits-wid-card__subtitle" data-cell-tooltip="${esc(v.subtitles.ro)}">${esc(v.subtitles.ro)}</p>` : ""}
+        <div class="e-permits-wid-card__title-row"><p class="e-permits-wid-card__title" data-cell-tooltip="${esc(title)}">${esc(title)}</p>${info}</div>
       </div>`;
     let body;
     const missing = missingOf(v);
@@ -519,7 +524,7 @@
       ].filter(Boolean);
       if (foot.length && !compact) body += `<p class="e-permits-wid-card__foot">${foot.map(esc).join(" · ")}</p>`;
     }
-    return `<article class="e-permits-chart e-permits-wid-card e-permits-wid--pal-${palKey(v)}${compact ? "" : ` e-permits-wid-card--${v.width || "full"}`} e-permits-wid-card--${hk}${natural ? "" : " e-permits-wid-card--fixed"}" aria-label="${esc(ariaLabel || `Previzualizarea widget-ului ${title}`)}">${head}<div class="e-permits-wid-card__body" aria-live="polite">${body}</div></article>`;
+    return `<article class="e-permits-chart e-permits-wid-card e-permits-wid-card--panel${stat ? " e-permits-wid-card--stat" : ""} e-permits-wid--pal-${palKey(v)}${compact ? "" : ` e-permits-wid-card--${v.width || "full"}`} e-permits-wid-card--${hk}${natural || stat ? "" : " e-permits-wid-card--fixed"}" aria-label="${esc(ariaLabel || `Previzualizarea widget-ului ${title}`)}">${head}<div class="e-permits-wid-card__body" aria-live="polite">${body}</div></article>`;
   }
   /* the preview block (the ntpl preview aside): heading row „Previzualizare” + meta line (perimeter · data · size ·
      area) | „Actualizează” (secondary Small) + „Mărește” (icon-only); „Previzualizează ca” = the library segmented control
@@ -729,7 +734,7 @@
       ${section("Format, praguri și culori", grid(look, palette))}
       ${section("Dimensiunile implicite", grid(
         selectField(`${idp}-width`, "width", "Lățimea implicită", WIDTHS, v.width, { required: true }),
-        selectField(`${idp}-height`, "height", "Înălțimea implicită", HEIGHTS, v.height, { required: true })
+        selectField(`${idp}-height`, "height", "Înălțimea implicită", v.type === "tile" ? HEIGHTS.filter(([k]) => k === "compact") : HEIGHTS, heightOf(v), { required: true })
       ))}
       ${section("Trecerea în detaliu", grid(full(U().renderToggle?.({ label: "Trecerea în detaliu", description: v.type === "tile" ? `Clic pe plăcuță deschide înregistrările filtrului widget-ului în ${sourceName(v.source) || "sursa de date"}.` : `Clic pe o valoare deschide înregistrările ei în ${sourceName(v.source) || "sursa de date"}, filtrate pe criteriul principal.`, checked: Boolean(v.drill), attrs: 'data-wid-field="drill"' }) || "")))}
       ${section("Aria de vizibilitate", `
@@ -1719,6 +1724,7 @@
     const fid = (node) => node.closest(".e-permits-fo-field, .e-permits-doc-cond__cell, .e-permits-doc-cond__join")?.querySelector("button[id], input[id]")?.id || "";
     if (el.matches("[data-wid-type]")) {
       v.type = el.value;
+      if (v.type === "tile") v.height = "compact";
       delete P.errors.type;
       /* sensible defaults so the preview draws at once (Shopify „recommended”): a compatible primary criterion … */
       if (DATE_AXIS.includes(v.type) && !isDate(v.source, v.primary)) { v.primary = dateCols(v.source)[0]?.key || ""; v.dateGroup = v.dateGroup || "month"; }
@@ -1815,6 +1821,6 @@
     card: (config, opts) => cardHtml(config, opts),
     aggregate,
     /* the widget model's labels, reused by Tablouri de bord (js/dashboard-admin.js) */
-    typeLabel, levelText, isOffFor, WIDTHS, HEIGHTS, heightKey, openFull
+    typeLabel, levelText, isOffFor, WIDTHS, HEIGHTS, heightKey, heightOf, openFull
   };
 })();

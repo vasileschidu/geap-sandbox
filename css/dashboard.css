@@ -102,11 +102,21 @@
 
 .e-permits-dsh-tile--tall { grid-row: span 2; }
 
-/* only compact number tiles: the row is as tall as the tallest card's natural content (dsh-natural-v1) */
+/* dsh-natural-v2 (wid-card-v2): a board without a tall widget = `auto` rows — chart cards keep their fixed Compactă height,
+   a row of number tiles is as tall as the tiles; a number tile next to charts fills the row (equal bottoms) */
 .e-permits-dsh-grid.is-natural { grid-auto-rows: auto; }
+
 @media (min-width: 761px) {
-  .e-permits-dsh-grid.is-natural .e-permits-wid-card--fixed.e-permits-wid-card--compact { height: auto; overflow: visible; }
-  .e-permits-dsh-grid.is-natural .e-permits-wid-card--fixed > .e-permits-wid-card__body { flex: 0 0 auto; }
+  .e-permits-dsh-tile--stat > .e-permits-wid-card { height: 100%; }
+  .e-permits-dsh-grid.is-natural .e-permits-dsh-tile__off { min-height: var(--wid-row-compact); }
+}
+
+/* the Compactă row height, measured by the resize code (js/dashboard-admin.js startArrange) */
+.e-permits-dsh-row-probe {
+  height: var(--wid-row-compact);
+  position: absolute;
+  visibility: hidden;
+  width: 0;
 }
 
 
@@ -156,10 +166,6 @@
   height: 100%;
 }
 
-/* dash-noborder-v5 (user): the card keeps its border; only the description is tertiary */
-.e-permits-dsh-tile .e-permits-wid-card__subtitle {
-  color: var(--color-text-base-tertiary, #757575);
-}
 
 /* edit: the shared grey hover surface around the card (8 outset; gap 16 keeps 8 to the neighbours), also on keyboard
    focus inside; the widget itself takes the focus (arrows move, Shift + arrows resize) = the calendar focus ring */
@@ -180,15 +186,17 @@
   outline: none;
 }
 
-/* the floating toolbar (Sentry): handle + red remove, top right on the card, fades in with the hover surface */
+/* the floating toolbar (Sentry): handle + red remove, fades in with the hover surface. wid-card-v2: on the card head's centre
+   line (head 16 + the 24 title row → a 32 button starts 12 under the border; the number tile: 24 padding → 20), its
+   icons on the 24 content edge (16 + the button's 8 inset); the title row leaves it room (56) and truncates */
 .e-permits-dsh-tile__tools {
   display: flex;
   gap: var(--spacing-8, 8px);
   opacity: 0;
   pointer-events: none;
   position: absolute;
-  right: var(--spacing-16, 16px);
-  top: var(--spacing-16, 16px);
+  right: calc(var(--border-width-1, 1px) + var(--spacing-16, 16px));
+  top: calc(var(--border-width-1, 1px) + var(--spacing-12, 12px));
   transition: opacity 180ms var(--motion-easing-decelerate, cubic-bezier(0, 0, 0.2, 1));
   z-index: 2;
 }
@@ -196,6 +204,16 @@
 .e-permits-dsh-tile.is-editable:is(:hover, :focus-within) .e-permits-dsh-tile__tools {
   opacity: 1;
   pointer-events: auto;
+}
+
+.e-permits-dsh-tile--stat > .e-permits-dsh-tile__tools {
+  top: calc(var(--border-width-1, 1px) + var(--spacing-20, 20px));
+}
+
+@media (min-width: 761px) {
+  .e-permits-dsh-tile.is-editable > .e-permits-wid-card .e-permits-wid-card__title-row {
+    padding-right: calc(var(--spacing-32, 32px) + var(--spacing-24, 24px));
+  }
 }
 
 .e-permits-dsh-tile__handle {

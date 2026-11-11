@@ -2752,6 +2752,24 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   };
 
+  /* sticky-header-reveal-v1 (2026-11-11): while the header is stuck, its title / meta / actions sit under the shell top bar
+     and `scrollIntoView` cannot reveal them (the sticky box counts as „in view”). Keyboard focus landing there (Tab to
+     „Copiază”, „Mai multe acțiuni”) scrolls the page back until the whole header shows — WCAG 2.4.11, focus not obscured. */
+  document.addEventListener("focusin", (event) => {
+    const el = event.target;
+    const header = el.closest?.(".e-permits-page-header.is-sticky");
+    if (!header || el.closest(".e-permits-page-header__tabs")) return;
+    const tabs = header.querySelector(".e-permits-page-header__tabs");
+    if (!tabs) return;
+    let scroller = header.parentElement;
+    while (scroller && !(scroller.scrollHeight > scroller.clientHeight && /(auto|scroll)/.test(getComputedStyle(scroller).overflowY))) scroller = scroller.parentElement;
+    const box = scroller || document.scrollingElement;
+    header.style.position = "static";
+    const natural = header.getBoundingClientRect().top - (scroller ? scroller.getBoundingClientRect().top : 0);
+    header.style.position = "";
+    if (natural < 0) box.scrollBy({ top: natural });
+  });
+
   const pageHeaderObserver = "ResizeObserver" in window
     ? new ResizeObserver((entries) => entries.forEach((entry) => syncStickyPageHeader(entry.target)))
     : null;

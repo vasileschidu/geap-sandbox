@@ -852,36 +852,6 @@ button.e-permits-wid-rows__row:focus-visible {
   font-weight: var(--font-weight-fw-medium, 500);
 }
 
-/* Plăcuță simplă: the eKYC KPI card; a drill tile holds one transparent button that IS the card's padding box — hover
-   = the button's own fill (secondary → its hover step), the keyboard ring on the button */
-.e-permits-wid-single:has(> .e-permits-wid-single__btn) {
-  padding: 0;
-}
-
-.e-permits-wid-single__btn {
-  background: transparent;
-  border: 0;
-  border-radius: var(--border-radius-16, 16px);
-  color: inherit;
-  cursor: pointer;
-  display: flex;
-  flex-direction: column;
-  font: inherit;
-  gap: var(--spacing-4, 4px);
-  padding: var(--spacing-16, 16px) var(--spacing-20, 20px);
-  text-align: left;
-  width: 100%;
-}
-
-.e-permits-wid-single__btn:hover {
-  background: var(--color-background-base-secondary-hover, #ebebeb);
-}
-
-.e-permits-wid-single__btn:focus-visible {
-  box-shadow: 0 0 0 var(--border-width-2, 2px) var(--color-background-base-default, #fff), 0 0 0 var(--border-width-4, 4px) var(--focus-ring, #3379db);
-  outline: none;
-}
-
 /* Tabel agregat / Tabel cu filtru: the card table, content-sized columns, height = „Înălțimea implicită” */
 .e-permits-wid-table-wrap--compact { max-height: calc(var(--spacing-40, 40px) * 6); }
 .e-permits-wid-table-wrap--tall { max-height: calc(var(--spacing-40, 40px) * 9); }
@@ -1272,7 +1242,7 @@ button.e-permits-wid-rows__row:focus-visible {
    grid gap (16), so two compact widgets stacked beside a tall one line up exactly. The card has the fixed height (desktop,
    `.e-permits-wid-card--fixed`; phones and the „Vezi tot” dialog = natural height); the body takes what the head leaves and
    each type adapts to it: plots stretch, lists keep the rows that fit + „+N altele”, tables + „Vezi tot” (fit() in
-   js/widget-charts.js), the tile keeps its grey box at natural size (+ the Înaltă sparkline under it), the donut puts its legend beside (under only when narrow + tall). */
+   js/widget-charts.js), the number tile is Compactă only at its natural height (wid-card-v2), the donut puts its legend beside (under only when narrow + tall). */
 :root {
   --wid-row-compact: calc(var(--spacing-40, 40px) * 9);
   --wid-row-tall: calc(var(--wid-row-compact) * 2 + var(--spacing-16, 16px));
@@ -1299,18 +1269,6 @@ button.e-permits-wid-rows__row:focus-visible {
 
 .e-permits-wid-all {
   align-self: flex-start;
-}
-
-/* Înaltă tile: the KPI trend under the value */
-.e-permits-wid-spark {
-  display: block;
-  height: calc(var(--spacing-40, 40px) * 2);
-  position: relative;
-  width: 100%;
-}
-
-.e-permits-wid-spark > .e-permits-wid-layer {
-  height: 100%;
 }
 
 @media (min-width: 761px) {
@@ -1451,4 +1409,147 @@ button.e-permits-wid-rows__row:focus-visible {
     align-self: stretch;
     max-height: none;
   }
+}
+
+/* ==== wid-card-v2 (2026-11-11, user: Metronic / KeenThemes dashboard cards; Grafana panel „ⓘ”) ====
+   Every widget card (`.e-permits-wid-card--panel`, js/widget-admin.js cardHtml — NOT the Rapoarte card, which shares the
+   base classes) = the white bordered chart card with:
+     · head = ONE row `__title-row`: title (16/24 semibold, 1 line + tooltip) + „ⓘ” `button.e-permits-fo-role-info` (the
+       description in the Small hint tooltip; none when empty) — no description line any more; 16 24 padding and a 1px
+       divider across the card; the editor toolbar sits on the same centre line (css/dashboard.css);
+     · body = 24 on every side.
+   The number tile (`--stat`): the same bordered card without the divider, 24 on every side: label row (title 14/20 medium
+   secondary + „ⓘ”) · 8 · the number (Heading H2, phones Mobile H2) + the delta Small tag („+4,3%” success / „−4,3%”
+   danger) · 8 · „față de luna precedentă (2.190)” and the target (14/20 tertiary). Label ABOVE the number: one head pattern
+   for every card (title, „ⓘ” and toolbar on one line) and label → value reading order (Stripe / Linear); Compactă only. */
+.e-permits-wid-card.e-permits-wid-card--panel {
+  gap: 0;
+  padding: 0;
+}
+
+.e-permits-wid-card--panel > .e-permits-wid-card__head {
+  border-bottom: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
+  padding: var(--spacing-16, 16px) var(--spacing-24, 24px);
+}
+
+.e-permits-wid-card__title-row {
+  align-items: center;
+  display: flex;
+  gap: var(--spacing-8, 8px);
+  min-height: var(--spacing-24, 24px);
+  min-width: 0;
+}
+
+.e-permits-wid-card.e-permits-wid-card--panel .e-permits-wid-card__title {
+  display: block;
+  flex: 0 1 auto;
+  font-weight: var(--font-weight-fw-semibold, 600);
+  min-width: 0;
+  overflow: hidden;
+  overflow-wrap: normal;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.e-permits-wid-card__info {
+  position: relative;
+  z-index: 1; /* above the drill button's card-wide hit area */
+}
+
+.e-permits-wid-card--panel > .e-permits-wid-card__body {
+  padding: var(--spacing-24, 24px);
+}
+
+/* the number tile */
+.e-permits-wid-card.e-permits-wid-card--stat {
+  gap: var(--spacing-8, 8px);
+  padding: var(--spacing-24, 24px);
+  position: relative;
+}
+
+.e-permits-wid-card--stat > .e-permits-wid-card__head {
+  border-bottom: 0;
+  padding: 0;
+}
+
+.e-permits-wid-card.e-permits-wid-card--stat .e-permits-wid-card__title {
+  color: var(--color-text-base-secondary, #383838);
+  font-size: var(--font-size-fs-14, 14px);
+  font-weight: var(--font-weight-fw-medium, 500);
+  line-height: var(--line-height-lh-20, 20px);
+}
+
+.e-permits-wid-card--stat > .e-permits-wid-card__body {
+  gap: var(--spacing-8, 8px);
+  padding: 0;
+}
+
+.e-permits-wid-stat,
+.e-permits-wid-stat__btn {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-8, 8px);
+  min-width: 0;
+}
+
+.e-permits-wid-stat__line {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-8, 8px);
+}
+
+.e-permits-wid-stat__value {
+  color: var(--color-text-base-default, #121212);
+  font-size: var(--type-heading-h2-font-size, 32px);
+  font-variant-numeric: tabular-nums;
+  font-weight: var(--font-weight-fw-semibold, 600);
+  letter-spacing: var(--type-heading-h2-letter-spacing, -0.64px);
+  line-height: var(--type-heading-h2-line-height, 40px);
+}
+
+.e-permits-wid-stat__value--warning { color: var(--color-text-warning-default, #b54708); }
+.e-permits-wid-stat__value--danger { color: var(--color-text-danger-default, #d92d20); }
+
+.e-permits-wid-stat__meta {
+  color: var(--color-text-base-tertiary, #757575);
+  font-size: var(--font-size-fs-14, 14px);
+  line-height: var(--line-height-lh-20, 20px);
+}
+
+/* drill: the button's hit area covers the whole card; hover = the clickable white card (border secondary + shadow 200),
+   the keyboard ring on the card */
+.e-permits-wid-stat__btn {
+  align-items: stretch;
+  background: transparent;
+  border: 0;
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+  padding: 0;
+  text-align: left;
+  width: 100%;
+}
+
+/* the hit area = the button's ::after laid exactly over the card's border box; hover / focus are drawn on it */
+.e-permits-wid-stat__btn::after {
+  border: var(--border-width-1, 1px) solid transparent;
+  border-radius: var(--border-radius-16, 16px);
+  content: "";
+  inset: calc(var(--border-width-1, 1px) * -1);
+  position: absolute;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.e-permits-wid-stat__btn:focus-visible {
+  outline: none;
+}
+
+.e-permits-wid-stat__btn:hover::after {
+  border-color: var(--color-border-base-secondary, #b2b2b2);
+  box-shadow: var(--shadow-200);
+}
+
+.e-permits-wid-stat__btn:focus-visible::after {
+  box-shadow: 0 0 0 var(--border-width-2, 2px) var(--color-background-base-default, #fff), 0 0 0 var(--border-width-4, 4px) var(--focus-ring, #3379db);
 }
