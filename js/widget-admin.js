@@ -410,6 +410,9 @@
       if (date && !f.includes(date)) f.push(date);
       const fixed = Object.fromEntries((v.filter.rules || []).filter((r) => r.op === "is").map((r) => [r.column, r.value]));
       model.columns = f.map((x) => x.label);
+      /* dsh-dosare-table-v1: a Dosare source = the BO dossier list table (status tag, date stack, the row opens the dosar) */
+      model.colKeys = f.map((x) => (x.type === "date" ? "date" : x.key));
+      model.dosare = v.source === "reg-dosare";
       const n = Math.max(3, Math.min(8, Math.round(6 * scale * 2)));
       model.rows = Array.from({ length: n }, (_, i) => f.map((x) => {
         if (fixed[x.key]) return fixed[x.key];
@@ -1641,6 +1644,8 @@
     const rowAuth = t.closest("[data-wid-row-auth]");
     if (rowAuth) { const w = widgetOf(rowAuth.dataset.widRowAuth); if (w) setAuthActive(w, isOffFor(w, who().authority), refreshList); return; }
     /* drill-down (preview): what the click opens on a dashboard */
+    const dosar = !t.closest(".copy-value") && t.closest(".e-permits-wid-preview [data-wid-open]");
+    if (dosar) { toast(`Pe tabloul de bord, rândul deschide dosarul ${dosar.dataset.widOpen}.`, "info"); return; }
     const drill = t.closest("[data-wid-drill]");
     if (drill) {
       const v = P.draft || widgetOf(P.id)?.config;

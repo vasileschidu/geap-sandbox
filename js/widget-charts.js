@@ -316,7 +316,39 @@
   }
 
   /* ---------------------------------------------------------------- Tabel cu filtru pe sursa de date */
+  /* dsh-dosare-table-v1 (2026-11-11, user: „why doesn't the table use the exact table from Dosare?”): rows of the Dosare
+     source = the BO dossier list rows — the number as the compact copy value (GEAPCopyValue, as „Nr. dosar”), the status
+     as the product status tag (GEAPTag tones of data/e-permits-workplace.json), the date as the date stack „8 octombrie
+     2026” over the time; the whole row opens the dosar (`tr[data-workplace-row-open]` = pointer, row band, focus ring,
+     Enter / Space — css/e-permits-shell.css) with the chevron at the row end as the cue; no blue link */
+  const DOSAR_TONE = { "Depus": "info", "În examinare": "teal", "Suspendat": "warning", "Așteaptă plata": "warning", "Spre coordonare": "violet", "Spre semnare": "high", "Semnat": "ok", "Eliberat": "ok", "Finalizat": "ok", "Respins": "crit", "Retras": "neutral", "Arhivat": "neutral" };
+  const hashStr = (str) => [...String(str)].reduce((a, ch) => (a * 31 + ch.charCodeAt(0)) >>> 0, 7);
+  function dosarCell(m, key, v, nr) {
+    if (key === "nr") return window.GEAPCopyValue ? window.GEAPCopyValue.html(v, { compact: true, className: "cell__primary" }) : `<span class="cell__primary">${esc(v)}</span>`;
+    if (key === "statut") return `<span class="${window.GEAPTag?.cls(DOSAR_TONE[v] || "neutral") || "tag"}">${esc(v)}</span>`;
+    if (key === "date") {
+      const h = hashStr(nr);
+      return `<span class="e-permits-workplace__date-stack"><span>${esc(v)}</span><span class="e-permits-workplace__date-meta">${String(8 + (h % 9)).padStart(2, "0")}:${String(h % 60).padStart(2, "0")}</span></span>`;
+    }
+    return `<span data-cell-tooltip="${esc(v)}">${esc(v)}</span>`;
+  }
+  function dosareTable(m) {
+    const open = m.drill;
+    return `
+      <div class="e-permits-workplace__table-wrap e-permits-reg-table e-permits-wid-table-wrap e-permits-wid-table-wrap--${m.height || "compact"}">
+        <table class="e-permits-workplace__table e-permits-reg-table__table e-permits-wid-table e-permits-wid-table--dosare">
+          <caption class="u-visually-hidden">${esc(m.caption || "Dosarele")}</caption>
+          <thead><tr>${m.columns.map((c) => `<th scope="col"><span class="e-permits-workplace__th-content"><span>${esc(c)}</span></span></th>`).join("")}${open ? '<th scope="col" class="e-permits-wid-table__open-cell"><span class="u-visually-hidden">Deschide</span></th>' : ""}</tr></thead>
+          <tbody>${m.rows.map((r) => {
+            const nr = r[m.colKeys.indexOf("nr")] || r[0];
+            return `<tr${open ? ` tabindex="0" data-workplace-row-open data-wid-open="${esc(nr)}" aria-label="Deschide dosarul ${esc(nr)}"` : ""}>${r.map((v, i) => `<td>${dosarCell(m, m.colKeys[i], v, nr)}</td>`).join("")}${open ? `<td class="e-permits-wid-table__open-cell"><svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-chevron-right"></use></svg></td>` : ""}</tr>`;
+          }).join("")}</tbody>
+        </table>
+      </div>
+      ${allBtn()}`;
+  }
   function rowTable(m) {
+    if (m.dosare && m.colKeys) return dosareTable(m);
     return `
       <div class="e-permits-workplace__table-wrap e-permits-reg-table e-permits-wid-table-wrap e-permits-wid-table-wrap--${m.height || "compact"}">
         <table class="e-permits-workplace__table e-permits-reg-table__table e-permits-wid-table">

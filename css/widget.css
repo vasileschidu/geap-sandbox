@@ -1533,21 +1533,34 @@ button.e-permits-wid-rows__row:focus-visible {
 
 /* the hit area = the button's ::after laid exactly over the card's border box; hover / focus are drawn on it */
 .e-permits-wid-stat__btn::after {
-  border: var(--border-width-1, 1px) solid transparent;
-  border-radius: var(--border-radius-16, 16px);
+  border-radius: calc(var(--border-radius-16, 16px) - var(--border-width-1, 1px));
   content: "";
-  inset: calc(var(--border-width-1, 1px) * -1);
+  inset: 0;
   position: absolute;
-  transition: border-color 0.2s, box-shadow 0.2s;
+  transition: background-color 0.2s, box-shadow 0.2s;
 }
 
 .e-permits-wid-stat__btn:focus-visible {
   outline: none;
 }
 
+/* dsh-hover-v2 (user: „strange hover”): the clickable number tile = the system hover ON the card — the tertiary fill
+   (light grey on white) under the content (the card isolates, the ::after sits at z −1 above the card's own white), the
+   border stays; no shadow, no outer layer */
+.e-permits-wid-card.e-permits-wid-card--stat {
+  isolation: isolate;
+}
+
+.e-permits-wid-stat__btn::after {
+  z-index: -1;
+}
+
 .e-permits-wid-stat__btn:hover::after {
-  border-color: var(--color-border-base-secondary, #b2b2b2);
-  box-shadow: var(--shadow-200);
+  background: var(--color-background-base-tertiary, #f1f1f1);
+}
+
+.e-permits-wid-card--dash .e-permits-wid-stat__btn::after {
+  border-radius: calc(var(--border-radius-20, 20px) - var(--border-width-1, 1px));
 }
 
 .e-permits-wid-stat__btn:focus-visible::after {
@@ -1581,7 +1594,7 @@ button.e-permits-wid-rows__row:focus-visible {
 }
 
 /* ==== wid-dash-look-v1 (2026-11-11, user + Stripe dashboard; research: Stripe · Shopify analytics · Vercel · PostHog · Linear)
-   Taken: a grey canvas under white cards (Stripe, Shopify) so the cards read as tiles without heavy chrome; NO head divider
+   Taken (v2, user: no grey canvas — the white page, bordered cards only): NO head divider
    (all five: title, then content); a headline total under the title on charts that have one (Stripe, Shopify, Vercel);
    a quiet footer „updated · details” (Stripe, PostHog). Kept: the 1px border — white on the grey canvas measures only
    1.09:1 (white on base-secondary), a borderless card on phones in daylight disappears; the border keeps the edge (Vercel).
@@ -1658,4 +1671,21 @@ button.e-permits-wid-rows__row:focus-visible {
 
 .e-permits-wid-card--dash.e-permits-wid-card--panel > .e-permits-wid-card__body > .e-permits-wid-table-wrap {
   border-radius: 0;
+}
+
+/* dsh-dosare-table-v1: the Dosare row table = the BO dossier list rows; the last cell = the row's „opens” cue (chevron
+   20, icon tertiary → default on the row hover / focus), as narrow as the icon */
+.e-permits-wid-table--dosare .e-permits-wid-table__open-cell {
+  color: var(--color-icon-base-tertiary, #757575);
+  text-align: right;
+  width: 1%;
+}
+
+.e-permits-wid-table--dosare .e-permits-wid-table__open-cell > .icon {
+  display: block;
+  margin-left: auto;
+}
+
+.e-permits-wid-table--dosare tbody tr:is(:hover, :focus-visible) .e-permits-wid-table__open-cell {
+  color: var(--color-icon-base-default, #121212);
 }
