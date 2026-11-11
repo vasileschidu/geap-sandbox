@@ -129,6 +129,10 @@
   border-color: transparent;
 }
 
+.e-permits-dsh-tile .e-permits-wid-card__subtitle {
+  color: var(--color-text-base-tertiary, #757575);
+}
+
 /* edit: the shared grey hover surface around the card (8 outset; gap 16 keeps 8 to the neighbours), also on keyboard
    focus inside; the widget itself takes the focus (arrows move, Shift + arrows resize) = the calendar focus ring */
 .e-permits-dsh-tile.is-editable {
