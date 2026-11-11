@@ -1579,3 +1579,83 @@ button.e-permits-wid-rows__row:focus-visible {
 .e-permits-wid-card--panel > .e-permits-wid-card__body > .e-permits-wid-table-wrap :is(th, td):last-child {
   padding-right: var(--spacing-24, 24px);
 }
+
+/* ==== wid-dash-look-v1 (2026-11-11, user + Stripe dashboard; research: Stripe · Shopify analytics · Vercel · PostHog · Linear)
+   Taken: a grey canvas under white cards (Stripe, Shopify) so the cards read as tiles without heavy chrome; NO head divider
+   (all five: title, then content); a headline total under the title on charts that have one (Stripe, Shopify, Vercel);
+   a quiet footer „updated · details” (Stripe, PostHog). Kept: the 1px border — white on the grey canvas measures only
+   1.09:1 (white on base-secondary), a borderless card on phones in daylight disappears; the border keeps the edge (Vercel).
+   Scope = dashboard cards only (`--dash`, js/widget-admin.js cardHtml({ dash })), radius 20 (one card radius). */
+.e-permits-wid-card.e-permits-wid-card--dash {
+  border-radius: var(--border-radius-20, 20px);
+}
+
+.e-permits-wid-card--dash.e-permits-wid-card--panel > .e-permits-wid-card__head {
+  border-bottom: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-8, 8px);
+  padding: var(--spacing-24, 24px) var(--spacing-24, 24px) 0;
+}
+
+.e-permits-wid-card--dash.e-permits-wid-card--stat > .e-permits-wid-card__head {
+  padding: 0;
+}
+
+.e-permits-wid-card--dash.e-permits-wid-card--panel:not(.e-permits-wid-card--stat) > .e-permits-wid-card__body {
+  padding: var(--spacing-16, 16px) var(--spacing-24, 24px);
+}
+
+/* the headline: Heading H3 (phones Mobile H3) + the delta Small tag, then „față de … (N)” 14/20 tertiary */
+.e-permits-wid-card__headline {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4, 4px);
+}
+
+.e-permits-wid-card__headline-value {
+  color: var(--color-text-base-default, #121212);
+  font-size: var(--type-heading-h3-font-size, 24px);
+  font-weight: var(--font-weight-fw-semibold, 600);
+  letter-spacing: var(--type-heading-h3-letter-spacing, -0.24px);
+  line-height: var(--type-heading-h3-line-height, 32px);
+}
+
+@media (max-width: 760px) {
+  .e-permits-wid-card__headline-value {
+    font-size: var(--text-mobile-heading-h3-font-size, 22px);
+    letter-spacing: var(--text-mobile-heading-h3-letter-spacing, -0.22px);
+    line-height: var(--text-mobile-heading-h3-line-height, 30px);
+  }
+}
+
+/* the footer: „Actualizat azi, la 06:00” left · „Detalii” (= „Vezi tot”, the whole widget) right; the in-body „Vezi tot”
+   is not repeated */
+.e-permits-wid-card__foot-row {
+  align-items: center;
+  display: flex;
+  flex: none;
+  gap: var(--spacing-8, 8px);
+  justify-content: space-between;
+  padding: 0 var(--spacing-24, 24px) var(--spacing-16, 16px);
+}
+
+.e-permits-wid-card__updated {
+  color: var(--color-text-base-tertiary, #757575);
+  font-size: var(--font-size-fs-14, 14px);
+  line-height: var(--line-height-lh-20, 20px);
+  min-width: 0;
+}
+
+.e-permits-wid-card--dash .e-permits-wid-card__body .e-permits-wid-all {
+  display: none;
+}
+
+/* tables: still edge to edge, 16 under the head (no divider any more), square bottom corners (the footer follows) */
+.e-permits-wid-card--dash.e-permits-wid-card--panel > .e-permits-wid-card__body:has(> .e-permits-wid-table-wrap) {
+  padding: var(--spacing-16, 16px) 0;
+}
+
+.e-permits-wid-card--dash.e-permits-wid-card--panel > .e-permits-wid-card__body > .e-permits-wid-table-wrap {
+  border-radius: 0;
+}

@@ -394,7 +394,7 @@
     if (!info.active) {
       return `<div class="e-permits-chart e-permits-wid-card e-permits-dsh-tile__off">${E()?.render({ title: "Widget dezactivat", text: `„${info.title}” nu mai este publicat și nu apare pe tablou. Elimină-l sau înlocuiește-l.`, icon: "warning-filled", compact: true, bare: true }) || ""}</div>`;
     }
-    return W().card?.({ ...info.cfg, width: t.width, height: hOf(t) }, { compact: true }) || "";
+    return W().card?.({ ...info.cfg, width: t.width, height: hOf(t) }, { compact: true, dash: true }) || "";
   }
   function tileHtml(t, i, n, d, edit) {
     const info = widgetInfo(t.widget, d);
@@ -1777,7 +1777,7 @@
     const st = V.busy.has(key) || demo.has("incarcare") ? { refreshing: true }
       : V.failed.has(key) ? { bodyHtml: E()?.render({ title: "Datele nu s-au încărcat", text: "Celelalte widget-uri nu sunt afectate. Încearcă din nou.", icon: "warning-filled", compact: true, bare: true, actionHtml: `<button class="btn btn-secondary btn-sm" type="button" data-dsh-view-retry="${esc(key)}" aria-label="Reîncearcă: ${esc(title)}">${icon("rotate-arrow", 16)}<span>Reîncearcă</span></button>` }) || "" }
       : {};
-    const card = W().card?.({ ...cfg, width: t.width, height: hOf(t) }, { compact: true, st, ariaLabel: title }) || "";
+    const card = W().card?.({ ...cfg, width: t.width, height: hOf(t) }, { compact: true, dash: true, st, ariaLabel: title }) || "";
     return `<div class="e-permits-dsh-tile e-permits-dsh-tile--${SPAN[t.width] ? t.width : "full"} e-permits-dsh-tile--${hOf(t)} e-permits-dsh-tile--r${rowsOf(t)}${isStat(t.widget) ? " e-permits-dsh-tile--stat" : ""}" role="listitem" data-dsh-tile="${esc(t.widget)}" data-index="${i}">${card}</div>`;
   }
   function viewBody(d, me, principal) {

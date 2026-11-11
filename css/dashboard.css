@@ -88,6 +88,28 @@
   width: 100%;
 }
 
+/* wid-dash-look-v1 (Stripe / Shopify): the canvas = grey base-secondary under the white cards, radius 24, 16 around
+   (8 on phones); on it the editing hover surface steps up to tertiary-hover and the column guides turn white, so both
+   stay visible on the grey */
+.e-permits-dsh-stage:has(> .e-permits-dsh-grid) {
+  background: var(--color-background-base-secondary, #f5f5f5);
+  border-radius: var(--border-radius-24, 24px);
+  box-sizing: border-box;
+  padding: var(--spacing-16, 16px);
+}
+
+.e-permits-dsh-stage .e-permits-dsh-tile.e-permits-hover-surface::before {
+  background: var(--color-background-base-tertiary-hover, #d9d9d9);
+}
+
+.e-permits-dsh-stage .e-permits-dsh-guides > span:not(.is-target) {
+  background: var(--color-background-base-default, #fff);
+}
+
+@media (max-width: 760px) {
+  .e-permits-dsh-stage:has(> .e-permits-dsh-grid) { padding: var(--spacing-8, 8px); }
+}
+
 /* the grid: 12 columns, reading order = widget order; the column guides show only while dragging / resizing.
    dsh-row-unit-v1 (2026-11-11, user: „stack 2 number tiles beside a chart” + „expand vertically just a bit, the step is
    too big”): the row unit = an EIGHTH of a Compactă card ((360 − 7 × 16) / 8 = 31; one unit + the gap = 47 ≈ one list
@@ -227,7 +249,8 @@
   pointer-events: auto;
 }
 
-.e-permits-dsh-tile--stat > .e-permits-dsh-tile__tools {
+/* wid-dash-look-v1: every card head starts 24 from the top → the toolbar (32) on the title line = border + 20 */
+.e-permits-dsh-tile > .e-permits-dsh-tile__tools {
   top: calc(var(--border-width-1, 1px) + var(--spacing-20, 20px));
 }
 

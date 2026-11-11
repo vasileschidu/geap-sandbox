@@ -496,7 +496,7 @@
      „Înălțime” (css/widget.css, desktop only — phones always natural) */
   /* dsh-view-v1 (the BO „Tablou de bord” page, js/dashboard-admin.js): `st.bodyHtml` replaces the body (one widget's data
      error, the others keep loading — Feature 96498), `ariaLabel` names the card outside the preview */
-  function cardHtml(v, { st = {}, me = who(), compact = false, natural = false, ariaLabel = "" } = {}) {
+  function cardHtml(v, { st = {}, me = who(), compact = false, natural = false, ariaLabel = "", dash = false } = {}) {
     const title = v.titles.ro || "Titlul widget-ului";
     const hk = heightOf(v);
     const stat = v.type === "tile";
@@ -509,6 +509,7 @@
         <div class="e-permits-wid-card__title-row"><p class="e-permits-wid-card__title" data-cell-tooltip="${esc(title)}">${esc(title)}</p>${info}</div>
       </div>`;
     let body;
+    let headline = "";
     const missing = missingOf(v);
     if (missing) body = E()?.render({ title: missing[0], text: missing[1], icon: "chart", compact: true, bare: true }) || "";
     else if (st.bodyHtml) body = st.bodyHtml;
@@ -518,13 +519,24 @@
       const m = aggregate(v, me);
       if (st.noAccess) m.drill = false;
       body = CH().render?.(m) || "";
+      /* wid-dash-look-v1 (dashboard cards, Stripe / Shopify): a chart with one total + comparison shows it as the headline
+         under the title — Heading H3 + the delta Small tag + „față de … (N)”; not on the donut (its total is in the centre) */
+      const ct = m.compareTotal;
+      if (dash && !stat && ct?.prev && v.type !== "pie") {
+        const up = ct.cur >= ct.prev;
+        const tag = window.GEAPTag?.html(`${up ? "+" : "−"}${nf(Math.abs(((ct.cur - ct.prev) / ct.prev) * 100), 1)}%`, up ? "success" : "danger", { className: "e-permits-wid-stat__delta" }) || "";
+        headline = `<div class="e-permits-wid-card__headline"><span class="e-permits-wid-stat__line"><span class="e-permits-wid-card__headline-value">${esc(m.fmt(ct.cur))}</span>${tag}</span><span class="e-permits-wid-stat__meta">${esc(`față de ${COMPARE_SHORT[v.compare]} (${m.fmt(ct.prev)})`)}</span></div>`;
+      }
       const foot = [
         m.compareTotal && m.compareTotal.prev ? `${m.compareTotal.cur >= m.compareTotal.prev ? "▲" : "▼"} ${nf(Math.abs(((m.compareTotal.cur - m.compareTotal.prev) / m.compareTotal.prev) * 100), 1)}% față de ${COMPARE_SHORT[v.compare]}` : "",
         v.drill && !st.noAccess ? `Clic pe o valoare: înregistrările ei în ${sourceName(v.source)}.` : v.drill ? "Fără trecere în detaliu: nu ai acces la sursa de date." : ""
       ].filter(Boolean);
       if (foot.length && !compact) body += `<p class="e-permits-wid-card__foot">${foot.map(esc).join(" · ")}</p>`;
     }
-    return `<article class="e-permits-chart e-permits-wid-card e-permits-wid-card--panel${stat ? " e-permits-wid-card--stat" : ""} e-permits-wid--pal-${palKey(v)}${compact ? "" : ` e-permits-wid-card--${v.width || "full"}`} e-permits-wid-card--${hk}${natural || stat ? "" : " e-permits-wid-card--fixed"}" aria-label="${esc(ariaLabel || `Previzualizarea widget-ului ${title}`)}">${head}<div class="e-permits-wid-card__body" aria-live="polite">${body}</div></article>`;
+    /* the dashboard footer: when the data were computed (tertiary) · „Detalii” = the existing „Vezi tot” action (the whole
+       widget in the dialog, `data-wid-all`); none on the number tile (the card itself drills) */
+    const dashFoot = dash && !stat ? `<div class="e-permits-wid-card__foot-row"><span class="e-permits-wid-card__updated">Actualizat azi, la 06:00</span>${missing ? "" : `<button class="btn btn-text-primary btn-sm e-permits-wid-card__details" type="button" aria-haspopup="dialog" aria-label="Detalii: ${esc(title)}" data-wid-all>Detalii</button>`}</div>` : "";
+    return `<article class="e-permits-chart e-permits-wid-card e-permits-wid-card--panel${stat ? " e-permits-wid-card--stat" : ""} e-permits-wid--pal-${palKey(v)}${compact ? "" : ` e-permits-wid-card--${v.width || "full"}`} e-permits-wid-card--${hk}${natural || stat ? "" : " e-permits-wid-card--fixed"}${dash ? " e-permits-wid-card--dash" : ""}" aria-label="${esc(ariaLabel || `Previzualizarea widget-ului ${title}`)}">${headline ? head.replace(/<\/div>\s*$/, `${headline}</div>`) : head}<div class="e-permits-wid-card__body" aria-live="polite">${body}</div>${dashFoot}</article>`;
   }
   /* the preview block (the ntpl preview aside): heading row „Previzualizare” + meta line (perimeter · data · size ·
      area) | „Actualizează” (secondary Small) + „Mărește” (icon-only); „Previzualizează ca” = the library segmented control
