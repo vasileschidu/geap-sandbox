@@ -4856,15 +4856,17 @@
 
   function dshDemoStates() {
     /* AUTH = a user holding «Gestionarea tablourilor de bord» at authority level (ANSP), not the Administrator central */
-    const ADMIN = "ansp-central-admin", AUTH = "ansp-local-admin", SPEC = "ansp-specialist-chisinau";
-    const LIST = "[data-registry-kind='tablouri-de-bord'] tr[data-workplace-row], [data-registry-kind='tablouri-de-bord'] .e-permits-empty";
+    const ADMIN = "ansp-central-admin", AUTH = "ansp-local-admin", SPEC = "ansp-specialist-chisinau", SUP = "ansp-supervisor-chisinau";
+    const view = (run, params, as = SPEC) => ({ flow: "back-office", as, hash: "#tablou-de-bord", ...(params ? { params } : {}), ready: "[data-reg-page]:not([hidden]) :is([data-dsh-view], .e-permits-empty:not(:has(.spinner)))", delay: 900, run });
+    /* dsh-stack-list-v1: the list = the shared stacked list (li rows, as Rapoarte) */
+    const LIST = "[data-registry-kind='tablouri-de-bord'] li[data-workplace-row], [data-registry-kind='tablouri-de-bord'] .e-permits-empty";
     const list = (run, params, as = ADMIN) => ({ flow: "back-office", as, hash: "#tablouri-de-bord", ...(params ? { params } : {}), ready: LIST, delay: 900, run });
     const prof = (id, tab = "configurare", run, params, as = ADMIN) => ({ flow: "back-office", as, hash: `#tablou/${id}/${tab}`, ...(params ? { params } : {}), ready: "#dsh-panel", delay: 900, run });
     const seq = (...steps) => async (h) => { for (const step of steps) await step(h); };
     const C = "[data-dsh-editor]";
     const M = "#case-action-modal.is-active";
     const OK = "#service-confirm-modal.is-active [data-service-confirm-ok]";
-    const MENU = (id) => async (h) => { (await h.find(`tr[data-workplace-row="${id}"]`)).scrollIntoView({ block: "center" }); await h.wait(250); await h.click(`tr[data-workplace-row="${id}"] [data-stack-menu-trigger]`); await h.wait(200); };
+    const MENU = (id) => async (h) => { (await h.find(`li[data-workplace-row="${id}"]`)).scrollIntoView({ block: "center" }); await h.wait(250); await h.click(`li[data-workplace-row="${id}"] [data-stack-menu-trigger]`); await h.wait(200); };
     const HMENU = async (h) => { await h.click("[data-dosar-profil] .e-permits-page-header__actions [data-stack-menu-trigger]"); await h.wait(200); };
     const nou = async (h) => { await h.click('[data-workplace-add-product="dsh-new"]'); await h.find(`${C} #dsh-n-name-ro`); };
     const next = async (h) => { await h.click(`${C} [data-dsh-next]`); await h.wait(250); };
@@ -4890,14 +4892,21 @@
     return {
       /* US-411 — list */
       "dsh-01": list(),
-      "dsh-01a": list(async (h) => { await h.click('[data-workplace-tab="globale"]'); await h.wait(300); }),
+      /* dsh-stack-list-v1: the level tabs became the Nivel facet (01a Global · 01d Autoritate) */
+      "dsh-01a": list(async (h) => { await ekPick("nivel", ["Global"])(h); await ekCommit(h); await h.wait(400); }),
       "dsh-01b": list(async (h) => { await h.fill("[data-workplace-search]", "specialist"); await h.wait(300); }),
       "dsh-01c": list(async (h) => { await h.fill("[data-workplace-search]", "zzz"); await h.wait(300); }),
-      "dsh-01d": list(async (h) => { await h.click('[data-workplace-tab="autoritati"]'); await h.wait(300); }),
+      "dsh-01d": list(async (h) => { await ekPick("nivel", ["Autoritate"])(h); await ekCommit(h); await h.wait(400); }),
       "dsh-01e": list(null, { tablou: "gol" }),
       "dsh-01f": list(MENU("DSH-0005")),
       "dsh-01g": list(null, null, AUTH),
       "dsh-01h": list(MENU("DSH-0001"), null, AUTH),
+      /* dsh-stack-list-v1: Sortează open · the Autoritate facet with its search · description search · row click */
+      "dsh-01i": list(async (h) => { await h.click("[data-workplace-sort-trigger]"); await h.wait(300); }),
+      "dsh-01j": list(async (h) => { await ekFacet("autoritate")(h); await h.wait(300); }),
+      "dsh-01k": list(async (h) => { await h.fill("[data-workplace-search]", "termenele"); await h.wait(300); }),
+      "dsh-01l": list(async (h) => { await h.click('li[data-workplace-row="DSH-0002"] .e-permits-stack__title'); await h.find("#dsh-panel"); await h.wait(400); }),
+      "dsh-01m": list(async (h) => { await h.click('[data-dsh-pending-row="DSH-0002"]'); await h.find("[data-pending-changes-subtitle]"); await h.wait(400); }),
       /* Feature AC — the menu only with „Gestionarea tablourilor de bord” */
       "dsh-02": { flow: "back-office", as: SPEC, hash: "#tablouri-de-bord", ready: "[data-reg-page]:not([hidden]) .e-permits-empty", delay: 900 },
       "dsh-02a": { flow: "back-office", as: ADMIN, hash: "#tablouri-de-bord", params: { tablou: "fara-permisiune" }, ready: "[data-reg-page]:not([hidden]) .e-permits-empty", delay: 900 },
@@ -4972,7 +4981,17 @@
       "dsh-10a": list(seq(MENU("DSH-0005"), async (h) => { await h.click('[data-dsh-row-remove="DSH-0005"]'); await h.click(OK); await h.wait(400); })),
       /* Istoric = the audit trail (every operation, also in the unique Jurnalul de audit) + save error */
       "dsh-11": prof("DSH-0001", "istoric"),
-      "dsh-11a": prof("DSH-0001", "configurare", async (h) => { await h.fill("#dsh-e-name-ro", "Tabloul de bord al specialistului (nou)", { leave: false }); await h.click("[data-dosar-profil] [data-dsh-save]"); await h.wait(300); }, { tablou: "eroare" })
+      "dsh-11a": prof("DSH-0001", "configurare", async (h) => { await h.fill("#dsh-e-name-ro", "Tabloul de bord al specialistului (nou)", { leave: false }); await h.click("[data-dosar-profil] [data-dsh-save]"); await h.wait(300); }, { tablou: "eroare" }),
+      /* dsh-view-v1 — the BO page „Tablou de bord” (Locul de muncă, read-only): ANSP Specialist = the authority's principal
+         DSH-0004 + the tabs (DSH-0001, DSH-0002 secondary) · a secondary tab · no dashboard · one widget's data error ·
+         loading · Supervizor (the global principal DSH-0002) · the error retried */
+      "dsh-20": view(),
+      "dsh-20a": view(async (h) => { await h.click('[data-dsh-view-tab="DSH-0001"]'); await h.wait(500); }),
+      "dsh-20b": view(null, { tablou: "gol" }),
+      "dsh-20c": view(null, { tablou: "widget-eroare" }),
+      "dsh-20d": view(null, { tablou: "incarcare" }),
+      "dsh-20e": view(null, null, SUP),
+      "dsh-20f": view(async (h) => { await h.click("[data-dsh-view-retry]"); await h.wait(1100); }, { tablou: "widget-eroare" })
     };
   }
 

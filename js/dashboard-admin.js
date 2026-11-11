@@ -13,7 +13,8 @@
 
    NO new engine — the widget module's code paths (components.md › 0.6 „Every configuration object publishes the same way”):
      · list = the BO registry (`window.GEAPShellRegistries["tablouri-de-bord"]`, menu `shellView: "tablouri-de-bord-registry"`),
-       the widget list's columns / tabs (Toate · Globale · Ale autorităților) / facets / row ⋮ / CSV / empty states;
+       drawn as the Rapoarte stacked list (dsh-stack-list-v1: `stackItem` + `sort`, facets Nivel · Statut · Rol · Tip ·
+       Autoritate · Creat de, pager 20) / row ⋮ / CSV / boxed empty states;
      · create = the widget create sheet (`.e-permits-reg-editor--page`, step strip, footer bar Anulează / Înapoi · Salvează
        ciorna · Continuă / Publică);
      · edit = the profile page (tabs Configurare · Versiuni · Istoric), header Salvează · Publică · ⋮;
@@ -23,8 +24,10 @@
    NEW (components.md › „Tablouri de bord”): roles with Principal / Secundar, the authority assignment with „Toate
    autoritățile”, and the layout editor `.e-permits-dsh-grid` (12-column grid of the real cards, each with a visible
    toolbar: drag handle · ↑ ↓ · Lățime / Înălțime selects · red remove; keyboard-operable, a list on phones).
-   Routes: #tablouri-de-bord (list) · #tablou/<id>/<configurare|versiuni|istoric> · #tablou/nou[/din-<id>].
-   Demo switch ?tablou= (comma list): fara-permisiune · gol · eroare (every save fails).
+   Routes: #tablouri-de-bord (list) · #tablou/<id>/<configurare|versiuni|istoric> · #tablou/nou[/din-<id>] · the BO page
+   „Tablou de bord” of the roles #tablou-de-bord[/<id>] (dsh-view-v1, `showView` below).
+   Demo switch ?tablou= (comma list): fara-permisiune · gol · eroare (every save fails) · incarcare (BO page: widgets
+   loading) · widget-eroare (BO page: one widget's data error).
    ===================================================================================== */
 (function () {
   "use strict";
@@ -439,19 +442,25 @@
     return {
       id: d.id, denumire: nameOf(d), roluri: d.config.roles.map((r) => roleName(r.role)).join(", "), principal, nivel: d.level,
       autoritate: d.level === "Global" ? authText(d.config, "Global") : authName(d.authority), widgeturi: d.config.widgets.length,
-      ordine: Number(d.config.order) || 0, statut, tone, versiune: lv ? String(lv.version) : "", nepublicat: unpublished(d), modificat: d.updatedAt || "", d
+      ordine: Number(d.config.order) || 0, statut, tone, versiune: lv ? String(lv.version) : "", nepublicat: unpublished(d), modificat: d.updatedAt || "",
+      /* dsh-stack-list-v1 (= Rapoarte rpt-stack-list-v1 / rpt-facets-v1): description line + facets Creat de · Autoritate */
+      descriere: String(d.config.descriptions?.ro || "").trim(), creat: d.createdBy || "",
+      autoritati: d.level === "Global" ? (d.config.allAuthorities ? AUTHORITIES.map(([, short]) => short) : d.config.authorities.map(authName)) : [authName(d.authority)],
+      d
     };
   };
   function registryDb() {
     if (!S.data) load().then(() => { if (document.querySelector(`[data-workplace][data-registry-kind="${KIND}"]`)) refreshList(); });
     const me = who();
-    const mine = authName(me.authority);
     return {
       kind: KIND,
       fixedWidths: true,
       fieldCount: 8,
-      defaultSort: "id",
-      defaultSortDirection: "asc",
+      /* dsh-stack-list-v1 (2026-11-11, = Rapoarte rpt-page-v1 / rpt-sort-v1): the shared BO pager 20 a page; newest change
+         first; „Sortează” = Ultima modificare · Denumire · Ordinea · ID (registry `sort`) */
+      pageSizes: [20, 40, 60],
+      defaultSort: "modificat",
+      defaultSortDirection: "desc",
       columns: {
         id: { label: "ID", width: 112, sortable: true },
         denumire: { label: "Denumire", width: 304, sortable: true },
@@ -468,10 +477,11 @@
         [KIND]: {
           title: TITLE,
           selectable: false,
-          searchPlaceholder: "Caută după ID sau denumire",
+          /* dsh-stack-list-v1: the rows are the shared stacked list (`stackItem` below, as Rapoarte); the level tabs
+             (Toate · Globale · Ale autorităților) became the Nivel facet; the table columns stay for sort / export */
+          searchPlaceholder: "Caută după ID, denumire sau descriere",
           columns: ["id", "denumire", "roluri", "nivel", "widgeturi", "ordine", "statut", "versiune", "modificat", ...(me.has ? ["actiuni"] : [])],
-          tabs: [{ id: "toate", label: "Toate", filter: "all" }, { id: "globale", label: "Globale", filter: "level:global" }, { id: "autoritati", label: me.central ? "Ale autorităților" : `Ale ${mine}`, filter: "level:authority" }],
-          defaultTab: "toate",
+          tabs: [],
           primaryAction: canCreate() ? { id: "dsh-new", label: "Tablou de bord nou" } : null,
           toolbarLabel: "Filtrare tablouri de bord",
           exportLabel: "Exportă CSV"
@@ -498,20 +508,61 @@
     ].filter(Boolean);
     if (!items.length) return "";
     const html = U().renderRowActions?.({ menu: items, label: `${d.id} ${nameOf(d)}` }) || "";
-    return html ? `<span class="e-permits-workplace__row-actions">${html.replace("hidden data-stack-menu>", "hidden data-stack-menu data-stack-menu-fixed>")}</span>` : "";
+    /* fixed: the list scrolls inside the registry's table wrap, an in-flow menu would be clipped */
+    return html ? html.replace("hidden data-stack-menu>", "hidden data-stack-menu data-stack-menu-fixed>") : "";
   }
+  /* dsh-stack-list-v1 (2026-11-11, = Rapoarte rpt-details-line-v1): title + Small status tag · description (tertiary, 2 lines
+     + tooltip when cut) · details „DSH-0001 · v2 · Global: Toate autoritățile · Specialist (principal) · 6 widget-uri ·
+     Editat <dată>, <oră> · <cine>”; right side = only ⋮ (the row opens the dashboard) */
+  const pendingHtml = (row) => A().renderHeaderStatus?.("Modificări nepublicate", "warning", `data-dsh-pending-row="${esc(row.id)}" aria-haspopup="dialog" data-tooltip-text="Vezi modificările" aria-label="Vezi modificările nepublicate ale ${esc(row.id)}"`) || "modificări nepublicate";
+  const scopeText = (row) => (row.nivel === "Global" ? `Global: ${row.autoritate}` : `Autoritate: ${row.autoritate}`);
+  const rolesShort = (row) => row.d.config.roles.map((r) => `${roleName(r.role)}${r.type === "principal" ? " (principal)" : ""}`).join(", ");
+  const stackItem = (row) => {
+    const details = [
+      esc(row.id),
+      row.versiune ? `v${esc(row.versiune)}` : "nepublicat",
+      esc(scopeText(row)),
+      row.roluri ? `<span data-cell-tooltip="${esc(rolesShort(row))}">${esc(rolesShort(row))}</span>` : "",
+      esc(plural(row.widgeturi, "widget", "widget-uri")),
+      row.nepublicat ? pendingHtml(row) : "",
+      row.modificat ? `Editat ${esc(longDate(row.modificat))}, ${esc(time(row.modificat))}${row.d.updatedBy ? ` · ${esc(row.d.updatedBy)}` : ""}` : ""
+    ].filter(Boolean);
+    return {
+      plainTitle: row.denumire,
+      title: esc(row.denumire),
+      badges: [tag(row.statut, row.tone)],
+      meta: row.descriere ? [`<span class="e-permits-rpt-list__desc" data-cell-tooltip="${esc(row.descriere)}">${esc(row.descriere)}</span>`] : details,
+      meta2: row.descriere ? details : null,
+      actionsHtml: who().has ? rowMenu(row) : ""
+    };
+  };
   const twoLines = (top, meta) => `<span class="e-permits-workplace__date-stack"><span>${top}</span><span class="e-permits-workplace__date-meta">${meta}</span></span>`;
   window.GEAPShellRegistries = window.GEAPShellRegistries || {};
   window.GEAPShellRegistries[KIND] = {
     build: registryDb,
     get facets() {
       return [
+        { key: "nivel", label: "Nivel", get: (row) => row.nivel },
+        { key: "statut", label: "Statut", get: (row) => row.statut },
         { key: "rol", label: "Rol", get: (row) => row.d.config.roles.map((r) => roleName(r.role)) },
         { key: "tip", label: "Tip", get: (row) => (row.principal.length ? "Principal" : "Doar secundar") },
-        { key: "statut", label: "Statut", get: (row) => row.statut }
+        /* a global dashboard for „Toate autoritățile” matches every authority (as Rapoarte) */
+        { key: "autoritate", label: "Autoritate", search: true, get: (row) => row.autoritati },
+        { key: "creat", label: "Creat de", search: true, get: (row) => row.creat }
       ];
     },
-    searchText: (row) => `${row.id} ${row.denumire} ${fold(row.denumire)}`,
+    searchText: (row) => `${row.id} ${row.denumire} ${fold(row.denumire)} ${row.descriere} ${fold(row.descriere)}`,
+    stackItem,
+    stackClass: "e-permits-rpt-list e-permits-dsh-list",
+    sort: {
+      keys: [{ value: "modificat", label: "Ultima modificare" }, { value: "denumire", label: "Denumire" }, { value: "ordine", label: "Ordinea" }, { value: "id", label: "ID" }],
+      orders: (key) => ({
+        modificat: [{ value: "desc", label: "Cele mai noi întâi" }, { value: "asc", label: "Cele mai vechi întâi" }],
+        denumire: [{ value: "asc", label: "A–Z" }, { value: "desc", label: "Z–A" }],
+        ordine: [{ value: "asc", label: "Crescător" }, { value: "desc", label: "Descrescător" }],
+        id: [{ value: "asc", label: "Crescător" }, { value: "desc", label: "Descrescător" }]
+      })[key] || []
+    },
     sortValue: (row, key) => String(SORT[key]?.(row) ?? row[key] ?? ""),
     filterToken: (row, token) => (token === "level:global" ? row.nivel === "Global" : token === "level:authority" ? row.nivel !== "Global" : true),
     rowClass: (row) => (row.statut === "Publicat" || row.statut === "Ciornă" ? "" : "is-inactive"),
@@ -532,11 +583,13 @@
     },
     openRow: (id) => openProfile(id, "configurare"),
     rowLabel: (row) => `${row.id}, ${row.denumire} — deschide tabloul de bord`,
-    emptyHtml: ({ query, filtered }) => {
-      if (!who().has) return E()?.render({ title: DENIED, icon: "lock", bare: true });
-      if (!S.data) return E()?.render({ title: "Se încarcă tablourile de bord…", loading: true, bare: true });
-      if (query || filtered) return E()?.render({ title: NO_MATCH, text: "Caută după ID sau denumire, sau schimbă filtrele.", icon: "search", bare: true });
-      return E()?.render({ title: EMPTY_LIST, text: canCreate() ? "Creează primul tablou de bord cu „Tablou de bord nou”." : "", icon: "dot-grid", bare: true, actionHtml: canCreate() ? '<button class="btn btn-primary btn-sm" type="button" data-dsh-new>Tablou de bord nou</button>' : "" });
+    /* boxed (registry-stack-v1): the stacked list has no table cell around it → the normal dashed empty state */
+    emptyHtml: ({ query, filtered, boxed = false }) => {
+      const bare = !boxed;
+      if (!who().has) return E()?.render({ title: DENIED, icon: "lock", bare });
+      if (!S.data) return E()?.render({ title: "Se încarcă tablourile de bord…", loading: true, bare });
+      if (query || filtered) return E()?.render({ title: NO_MATCH, text: "Caută după ID, denumire sau descriere, sau schimbă filtrele.", icon: "search", bare, actionHtml: filtered ? '<button class="btn btn-neutral btn-sm" type="button" data-filter-clear-all>Șterge filtrele</button>' : "" });
+      return E()?.render({ title: EMPTY_LIST, text: canCreate() ? "Creează primul tablou de bord cu „Tablou de bord nou”." : "", icon: "dot-grid", bare, actionHtml: canCreate() ? '<button class="btn btn-primary btn-sm" type="button" data-dsh-new>Tablou de bord nou</button>' : "" });
     },
     exportRows: (rows) => exportCsv(rows),
     exportState: () => (who().has ? {} : { hidden: true })
@@ -1008,12 +1061,14 @@
     });
   }
   let publishing = null;
-  function openPending() {
-    const d = dashOf(P.id);
+  /* `id` = a list row's „Modificări nepublicate” (dsh-stack-list-v1); „Publică” there opens the dashboard first */
+  function openPending(id = P.id) {
+    const d = dashOf(id);
     const last = d && lastVersion(d);
     if (!last) return;
     const changes = diffRows(last.config, d.config, d.level).map((c) => ({ area: c.label, detail: `${c.before} → ${c.after}`, at: d.updatedAt || "", user: d.updatedBy || "", status: "Modificat" }));
-    A().openPendingChanges?.({ subject: `${nameOf(d)} · față de versiunea ${last.version}`, changes, onPublish: editable(d) ? () => openPublish() : null });
+    const publish = id === P.id ? () => openPublish() : () => openProfile(id, "configurare").then(() => openPublish());
+    A().openPendingChanges?.({ subject: `${nameOf(d)} · față de versiunea ${last.version}`, changes, onPublish: canEdit(d) && d.status !== "Dezactivat" ? publish : null });
   }
   function openPublish() {
     if (!P.draft && !P.id) return;
@@ -1252,6 +1307,8 @@
     const seeAll = t.closest("[data-dsh-tile] [data-wid-all]");
     if (seeAll) { const info = widgetInfo(seeAll.closest("[data-dsh-tile]").dataset.dshTile, P.id ? dashOf(P.id) : null); if (info.cfg) W().openFull?.(info.cfg, { subtitle: "Toate datele widget-ului" }); return; }
     /* list */
+    const pendRow = t.closest("[data-dsh-pending-row]");
+    if (pendRow) { event.stopPropagation(); openPending(pendRow.dataset.dshPendingRow); return; }
     if (t.closest('[data-workplace-add-product="dsh-new"], [data-dsh-new]')) { event.preventDefault(); openNew(); return; }
     const rowEdit = t.closest("[data-dsh-row-edit]");
     if (rowEdit) { openProfile(rowEdit.dataset.dshRowEdit, "configurare"); return; }
@@ -1614,6 +1671,139 @@
     flash(id) { flashTile(id, { scroll: true }); }
   };
 
+  /* ================================================================ THE BO PAGE „Tablou de bord” (dsh-view-v1, 2026-11-11)
+     A BackOffice user (Specialist · Supervizor · Director — not an administrator) opens the published dashboards of his
+     active role from the side menu („Locul de muncă › Tablou de bord”, nav id `tablou-de-bord`), read-only. Rules taken
+     from Feature 96586 (AC + Assumptions) and Feature 96498 „Tablou de bord în BackOffice” (US-426 …):
+       · the roles see the LAST PUBLISHED version; a dashboard deactivated (in general or for the authority) is not shown;
+       · Principal first, then the others by „Ordinea tabloului de bord”; without a principal, all by the order;
+       · the authority's principal wins over the global principal (the global one then shows as a secondary);
+       · a deactivated / unpublished widget disappears from the dashboard;
+       · each widget loads on its own; an error in one widget does not stop the others (96498 AC);
+       · no dashboard for the role → the page is empty (96586) with the 96498 text, in the „tu” tone;
+       · the data stay in the perimeter of the active role (96498: Director = the authority, Supervizor = the subdivision).
+     Switcher = the library page-header tabs (the profile tabs precedent, components.md › Tabs; SRS FR 04.12 „filele
+     active”), one tab per dashboard, hidden with one dashboard. Route `#tablou-de-bord[/<id>]`.
+     PROPOSAL (the Features are silent): the Specialist's perimeter = his authority (the widget preview rule,
+     js/widget-admin.js `perimeter()`); order ties → ID; the page is NOT the landing after login yet (96498 US-426 says it
+     is — kept off so the existing landings stay); the common filters, „Actualizează”, the info button and the
+     personalisation of 96498 (US-427 / 432 / 433) are not built. Demo switches ?tablou=gol · incarcare · widget-eroare. */
+  const VIEW_NAV = "tablou-de-bord";
+  const VIEW_TITLE = "Tablou de bord";
+  /* Feature 96498 AC text, „tu” tone */
+  const VIEW_EMPTY = "Nu ai acces la tablouri de bord.";
+  const V = { id: "", failed: new Set(), seeded: new Set(), busy: new Set() };
+  /* the active assignment: role + authority (the demo assignment ids start with the authority: „ansp-…”, „anta-…”) */
+  const viewer = () => {
+    const a = A().currentAssignment?.() || {};
+    return { role: a.roleId || "", roleLabel: a.roleLabel || "", authority: a.authority || /^([a-z]+)-/.exec(a.id || "")?.[1] || "ansp", unit: a.instanceLabel || "" };
+  };
+  const pubRoles = (d) => lastVersion(d)?.config.roles || [];
+  const isPrincipalFor = (d, role) => pubRoles(d).some((r) => r.role === role && r.type === "principal");
+  /* the role's dashboards at its authority: [principal (if any), ...the others by order] */
+  function roleBoards(role, authority) {
+    const list = all().filter((d) => d.status === "Publicat" && lastVersion(d) && assignedTo(d, authority) && !isOffFor(d, authority) && pubRoles(d).some((r) => r.role === role));
+    const principal = list.find((d) => d.level === "Autoritate" && isPrincipalFor(d, role)) || list.find((d) => d.level === "Global" && isPrincipalFor(d, role)) || null;
+    const rest = list.filter((d) => d !== principal).sort((a, b) => (Number(lastVersion(a).config.order) || 999) - (Number(lastVersion(b).config.order) || 999) || a.id.localeCompare(b.id));
+    return { principal, boards: principal ? [principal, ...rest] : rest };
+  }
+  /* the widgets as published: only the ones still published and not deactivated for the authority */
+  const liveWidgets = (d, authority) => (lastVersion(d)?.config.widgets || []).map((t) => ({ t, w: W().get?.(t.widget), cfg: W().published?.(t.widget) }))
+    .filter(({ w, cfg }) => w && cfg && w.status === "Publicat" && !W().isOffFor?.(w, authority));
+  const viewPerimeter = (me) => (me.role === "supervisor" && me.unit ? `${me.unit}, ${authName(me.authority)}` : authName(me.authority));
+  function viewTile(d, { t, cfg }, i) {
+    const key = `${d.id}|${t.widget}`;
+    const title = cfg.titles?.ro || t.widget;
+    const st = V.busy.has(key) || demo.has("incarcare") ? { refreshing: true }
+      : V.failed.has(key) ? { bodyHtml: E()?.render({ title: "Datele nu s-au încărcat", text: "Celelalte widget-uri nu sunt afectate. Încearcă din nou.", icon: "warning-filled", compact: true, bare: true, actionHtml: `<button class="btn btn-secondary btn-sm" type="button" data-dsh-view-retry="${esc(key)}" aria-label="Reîncearcă: ${esc(title)}">${icon("rotate-arrow", 16)}<span>Reîncearcă</span></button>` }) || "" }
+      : {};
+    const card = W().card?.({ ...cfg, width: t.width, height: t.height }, { compact: true, st, ariaLabel: title }) || "";
+    return `<div class="e-permits-dsh-tile e-permits-dsh-tile--${SPAN[t.width] ? t.width : "full"} e-permits-dsh-tile--${heightKey(t.height)}" role="listitem" data-dsh-tile="${esc(t.widget)}" data-index="${i}">${card}</div>`;
+  }
+  function viewBody(d, me, principal) {
+    const live = liveWidgets(d, me.authority);
+    /* ?tablou=widget-eroare: the second widget of each dashboard fails once (Reîncearcă loads it) */
+    if (demo.has("widget-eroare") && !V.seeded.has(d.id) && live[1]) { V.failed.add(`${d.id}|${live[1].t.widget}`); }
+    V.seeded.add(d.id);
+    const desc = String(lastVersion(d).config.descriptions?.ro || "").trim();
+    const meta = [`Perimetru: ${viewPerimeter(me)}`, `Date calculate azi, la 06:00`].join(" · ");
+    const grid = live.length
+      ? `<div class="e-permits-dsh-stage"><div class="e-permits-dsh-grid" role="list" aria-label="Widget-urile tabloului de bord">${live.map((x, i) => viewTile(d, x, i)).join("")}</div></div>`
+      : E()?.render({ title: "Niciun widget", text: "Widget-urile acestui tablou de bord nu mai sunt publicate.", icon: "chart" }) || "";
+    return `
+      <section class="e-permits-dosar-profil__section e-permits-dsh-view" id="dsh-view-panel"${V.tabs ? ` role="tabpanel" aria-labelledby="dsh-view-tab-${esc(d.id)}"` : ""} aria-busy="${demo.has("incarcare") ? "true" : "false"}" data-dsh-view="${esc(d.id)}">
+        <div class="e-permits-dsh-view__head">
+          <div class="e-permits-dsh-view__title-row">
+            <h2 class="e-permits-dosar-profil__section-title">${esc(lastVersion(d).config.names.ro)}</h2>
+            ${d === principal ? tag("Principal", "brand") : ""}
+          </div>
+          ${desc ? `<p class="e-permits-dsh-view__desc">${esc(desc)}</p>` : ""}
+          <p class="e-permits-dosar-profil__section-meta">${esc(meta)}</p>
+        </div>
+        ${grid}
+      </section>`;
+  }
+  async function showView(id = "", { push = false, focusTab = false } = {}) {
+    A().setActiveNav?.(VIEW_NAV);
+    if (!S.data) G().showPage?.(VIEW_TITLE, E()?.render({ title: "Se încarcă tabloul de bord…", loading: true }) || "");
+    await load();
+    await (W().load?.() || Promise.resolve());
+    const me = viewer();
+    const { principal, boards } = roleBoards(me.role, me.authority);
+    if (!boards.length) {
+      V.id = "";
+      G().showPage?.(VIEW_TITLE, E()?.render({ title: VIEW_EMPTY, text: "Adresează-te administratorului autorității.", icon: "dot-grid" }) || VIEW_EMPTY);
+      return;
+    }
+    const d = boards.find((x) => x.id === id) || boards[0];
+    V.id = d.id;
+    V.tabs = boards.length > 1;
+    const tabs = V.tabs ? boards.map((x) => {
+      const on = x === d;
+      return `<button class="tab-button${on ? " active" : ""}" id="dsh-view-tab-${esc(x.id)}" type="button" role="tab" aria-selected="${on}" aria-controls="dsh-view-panel" tabindex="${on ? 0 : -1}" data-dsh-view-tab="${esc(x.id)}">${esc(lastVersion(x).config.names.ro)}</button>`;
+    }).join("") : "";
+    G().showPage?.(VIEW_TITLE, viewBody(d, me, principal), tabs);
+    const list = document.querySelector("[data-reg-page] [data-reg-page-tabs]");
+    if (list) list.setAttribute("aria-label", "Tablourile tale de bord");
+    A().writeHash?.(d === boards[0] ? `#${VIEW_NAV}` : `#${VIEW_NAV}/${d.id}`, { push });
+    if (focusTab) document.querySelector(`#dsh-view-tab-${CSS.escape(d.id)}`)?.focus();
+  }
+  const viewOpen = () => Boolean(V.id) && Boolean(document.querySelector("[data-reg-page]:not([hidden]) [data-dsh-view]"));
+  function rerenderView() {
+    const panel = document.querySelector("[data-reg-page]:not([hidden]) [data-dsh-view]");
+    const d = dashOf(V.id);
+    if (!panel || !d) return;
+    const me = viewer();
+    panel.outerHTML = viewBody(d, me, roleBoards(me.role, me.authority).principal);
+  }
+  document.addEventListener("click", (event) => {
+    const t = event.target;
+    if (!t.closest) return;
+    if (t.closest(`[data-nav-item][data-nav-id="${VIEW_NAV}"]`)) { showView("", { push: false }); return; }
+    const tab = t.closest("[data-dsh-view-tab]");
+    if (tab) { showView(tab.dataset.dshViewTab, { focusTab: true }); return; }
+    const retry = t.closest("[data-dsh-view-retry]");
+    if (retry) {
+      const key = retry.dataset.dshViewRetry;
+      V.failed.delete(key); V.busy.add(key); rerenderView();
+      window.setTimeout(() => { V.busy.delete(key); if (viewOpen()) rerenderView(); }, 700);
+      return;
+    }
+    /* drill-down on the BO page: the register behind the value (Feature 96498 US-430, not built here) */
+    const drill = viewOpen() && t.closest("[data-dsh-view] [data-wid-drill]");
+    if (drill) { toast(`Aici se deschid înregistrările „${drill.dataset.widDrill}” (${drill.dataset.widDrillValue}) din registrul sursă.`, "info"); }
+  });
+  /* ← / → / Home / End between the dashboard tabs */
+  document.addEventListener("keydown", (event) => {
+    const tab = event.target.closest?.("[data-dsh-view-tab]");
+    if (!tab || !["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) return;
+    const tabs = [...tab.parentElement.querySelectorAll("[data-dsh-view-tab]")];
+    const i = tabs.indexOf(tab);
+    const next = event.key === "Home" ? tabs[0] : event.key === "End" ? tabs[tabs.length - 1] : tabs[(i + (event.key === "ArrowRight" ? 1 : -1) + tabs.length) % tabs.length];
+    event.preventDefault();
+    next?.click();
+  });
+
   /* ---------------------------------------------------------------- routes + denied (Feature AC) */
   function showDenied() {
     document.querySelectorAll("[data-nav-item].is-active").forEach((link) => { link.classList.remove("is-active"); link.removeAttribute("aria-current"); });
@@ -1621,6 +1811,9 @@
   }
   window.GEAPShellRoutes = window.GEAPShellRoutes || [];
   window.GEAPShellRoutes.push((h) => {
+    /* the BO page „Tablou de bord” (dsh-view-v1): #tablou-de-bord[/<id>] */
+    const vm = /^#tablou-de-bord(?:\/([^/]+))?$/.exec(h);
+    if (vm) { showView(decodeURIComponent(vm[1] || "")); return true; }
     if (h === `#${NAV}`) {
       const nav = document.querySelector(`[data-nav-item][data-nav-id="${NAV}"]`);
       if (nav && who().has) nav.click(); else showDenied();
@@ -1653,6 +1846,8 @@
   window.GEAPDashboards = {
     load, openProfile, openNew, refreshList, perms: () => who(), list: () => dashboards(), get: dashOf, state: () => P, demo: demoArrange,
     /* Feature AC: the roles see the last published version; order = principal first, then „Ordinea” */
-    forRole: (role, authority) => all().filter((d) => d.status === "Publicat" && assignedTo(d, authority) && !isOffFor(d, authority) && lastVersion(d)?.config.roles.some((r) => r.role === role))
+    /* principal first (the authority's over the global one), then by „Ordinea” — the BO page „Tablou de bord” (dsh-view-v1) */
+    forRole: (role, authority) => roleBoards(role, authority).boards,
+    showView
   };
 })();

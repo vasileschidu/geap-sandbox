@@ -10,11 +10,18 @@
    ===================================================================================== */
 
 /* menu icon (the BO side menu draws icons as 20 masks per data-nav-id) */
-.e-permits-shell__nav--specialist [data-nav-id="tablouri-de-bord"] .e-permits-shell__nav-icon::before {
+.e-permits-shell__nav--specialist :is([data-nav-id="tablouri-de-bord"], [data-nav-id="tablou-de-bord"]) .e-permits-shell__nav-icon::before {
   mask-image: url("../assets/icons/carousel.svg");
   mask-size: var(--icon-size-medium, 20px) var(--icon-size-medium, 20px);
   -webkit-mask-image: url("../assets/icons/carousel.svg");
   -webkit-mask-size: var(--icon-size-medium, 20px) var(--icon-size-medium, 20px);
+}
+
+/* dsh-stack-list-v1 (2026-11-11): the list = the Rapoarte stacked list (`.e-permits-rpt-list`, css/rapoarte.css: one 8 gap
+   between title · description · details, description 2 lines + tooltip); here only the description in the tertiary text
+   colour (the dashboard canvas rule, dash-noborder-v5) */
+.e-permits-dsh-list .e-permits-rpt-list__desc {
+  color: var(--color-text-base-tertiary, #757575);
 }
 
 /* no checkbox column: the pinned first column (ID) carries the divider (the widget / KPI registry rule) */
@@ -365,4 +372,51 @@
 /* ---- the widget picker (library dialog): search, then the „Widget type card” radio cards (one widget at a time) */
 .e-permits-dsh-pick-list {
   margin-top: var(--spacing-16, 16px);
+}
+
+/* =====================================================================================
+   dsh-view-v1 (2026-11-11): the BO page „Tablou de bord” (Locul de muncă, read-only; js/dashboard-admin.js `showView`).
+   Top bar = „Tablou de bord”, the library page-header tabs switch the role's dashboards (principal first), the page
+   column = `.e-permits-dosar-profil__panel`. Head = title + Small brand „Principal” · description (tertiary) · the
+   perimeter meta; 8 between the lines, 24 to the grid. The grid = the layout canvas without editing
+   (`.e-permits-dsh-grid`, Compactă / Înaltă rows). No hover on the cards (not clickable); the drill values inside the charts
+   keep their own hover. components.md › „Tablouri de bord” › BO page.
+   ===================================================================================== */
+.e-permits-dsh-view__head {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-8, 8px);
+  margin-bottom: var(--spacing-24, 24px);
+}
+
+.e-permits-dsh-view__title-row {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-8, 8px);
+}
+
+/* the BO section-title is a 48 row with an 11 12 inset (headings over cards); here the title sits on the page edge with its
+   lines, at its text height */
+.e-permits-dsh-view > .e-permits-dsh-view__head > .e-permits-dsh-view__title-row > .e-permits-dosar-profil__section-title {
+  height: auto;
+  margin: 0;
+  padding: 0;
+}
+
+.e-permits-dsh-view__desc {
+  color: var(--color-text-base-tertiary, #757575);
+  font-size: var(--font-size-fs-14, 14px);
+  line-height: var(--line-height-lh-20, 20px);
+  margin: 0;
+}
+
+.e-permits-dsh-view__head > .e-permits-dosar-profil__section-meta {
+  margin: 0;
+}
+
+@media (max-width: 760px) {
+  .e-permits-dsh-view__head {
+    margin-bottom: var(--spacing-16, 16px);
+  }
 }

@@ -1220,7 +1220,9 @@ document.addEventListener("DOMContentLoaded", () => {
     const portal = boContext.session()?.portal || (new URLSearchParams(window.location.search).get("portal") === "admin" ? "admin" : "bo");
     const target = portal === "admin"
       ? links.find((link) => link.dataset.navId === "service-config") || links.find((link) => groupOf(link) === "Administrare")
-      : links.find((link) => link.dataset.navId === "dashboard") || links.find((link) => groupOf(link) === "Locul de muncă");
+      : links.find((link) => link.dataset.navId === "dashboard") || links.find((link) => groupOf(link) === "Locul de muncă" && link.dataset.navId !== "tablou-de-bord");
+    /* dsh-view-v1: the BO „Tablou de bord” page (js/dashboard-admin.js) is NOT the landing yet — Feature 96498 US-426 makes it
+       the landing after login; kept off (proposal) so the existing first-folder landings stay */
     if (target) target.click();
     else if (portal === "admin") showContextDenied();
   };

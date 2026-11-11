@@ -486,7 +486,9 @@
   }
   /* `natural: true` = the card at its content height (the „Mărește” / „Vezi tot” dialog); else the fixed height of its
      „Înălțime” (css/widget.css, desktop only — phones always natural) */
-  function cardHtml(v, { st = {}, me = who(), compact = false, natural = false } = {}) {
+  /* dsh-view-v1 (the BO „Tablou de bord” page, js/dashboard-admin.js): `st.bodyHtml` replaces the body (one widget's data
+     error, the others keep loading — Feature 96498), `ariaLabel` names the card outside the preview */
+  function cardHtml(v, { st = {}, me = who(), compact = false, natural = false, ariaLabel = "" } = {}) {
     const title = v.titles.ro || "Titlul widget-ului";
     const hk = heightKey(v.height);
     const head = `
@@ -497,6 +499,7 @@
     let body;
     const missing = missingOf(v);
     if (missing) body = E()?.render({ title: missing[0], text: missing[1], icon: "chart", compact: true, bare: true }) || "";
+    else if (st.bodyHtml) body = st.bodyHtml;
     else if (st.refreshing) body = `<div class="e-permits-wid-card__loading" aria-hidden="true"><span class="skeleton skeleton--block e-permits-wid-plot--${hk}"></span><span class="skeleton skeleton--text"></span></div><p class="u-visually-hidden" role="status">Se actualizează datele widget-ului…</p>`;
     else if (demo.has("eroare-date")) body = E()?.render({ title: "Datele nu s-au încărcat", text: "Sursa de date nu a răspuns. Apasă din nou „Actualizează”: un widget se publică doar dacă se încarcă fără eroare.", icon: "warning-filled", compact: true, bare: true }) || "";
     else {
@@ -509,7 +512,7 @@
       ].filter(Boolean);
       if (foot.length && !compact) body += `<p class="e-permits-wid-card__foot">${foot.map(esc).join(" · ")}</p>`;
     }
-    return `<article class="e-permits-chart e-permits-wid-card e-permits-wid--pal-${palKey(v)}${compact ? "" : ` e-permits-wid-card--${v.width || "full"}`} e-permits-wid-card--${hk}${natural ? "" : " e-permits-wid-card--fixed"}" aria-label="Previzualizarea widget-ului ${esc(title)}">${head}<div class="e-permits-wid-card__body" aria-live="polite">${body}</div></article>`;
+    return `<article class="e-permits-chart e-permits-wid-card e-permits-wid--pal-${palKey(v)}${compact ? "" : ` e-permits-wid-card--${v.width || "full"}`} e-permits-wid-card--${hk}${natural ? "" : " e-permits-wid-card--fixed"}" aria-label="${esc(ariaLabel || `Previzualizarea widget-ului ${title}`)}">${head}<div class="e-permits-wid-card__body" aria-live="polite">${body}</div></article>`;
   }
   /* the preview block (the ntpl preview aside): heading row „Previzualizare” + meta line (perimeter · data · size ·
      area) | „Actualizează” (secondary Small) + „Mărește” (icon-only); „Previzualizează ca” = the library segmented control
