@@ -718,6 +718,9 @@ background: var(--color-background-base-default);
   `.e-permits-ntpl-content.e-permits-editor-wide`; the panel picks it up with `:has(> .e-permits-editor-wide)`.
 - One-column tabs / screens (lists, timelines, Istoric, Alerte, Valori proprii) keep the normal profile width (1024;
   ntpl tabs 1280). Never put the wide width on a whole page.
+- **Exception — a wide data table (rbo-wide-v1, 2026-11-11, user „full width here”):** the BO report RESULT page (Rapoarte ›
+  a report: filters + result table, `.e-permits-rbo--report`) is one column but fluid to the BO gutter, cap **1600**
+  (`calc(var(--spacing-40) * 40)`), like Metabase / Power BI / Grafana report views; the report LIST keeps 1024.
 - **Third width — dashboards 1280 (dsh-wide-v2, 2026-11-11, user; 1440 in v1 was „too much”):** the Tablouri de bord widget editor (Configurare tab,
   widget grid) and the specialist view „Tablou de bord” are fluid to the BO gutter and capped at **1280**
   (`calc(var(--spacing-40) * 32)`), centred beyond. Marker `.e-permits-dsh-wide` on the tab content (css/dashboard.css);

@@ -4094,7 +4094,7 @@
     /* ---- BackOffice › Rapoarte (Feature 96587 „Rapoarte statistice predefinite”, js/rapoarte-bo.js, rbo-v1 2026-11-11):
        rbo-01 lista (grupată pe categorii) · 02 raportul înainte de generare · 03 rezultat (grupuri + Total) · 04 opțiunile
        „Generează” (fără / cu date cu caracter personal) · 05 meniul „Exportă” · 06 fără date · 07 fără permisiune ·
-       08 rezultat cu date cu caracter personal (telefon: tabelul derulează lateral). Demo switch rbo=fara-permisiune|fara-date */
+       08 rezultat cu date cu caracter personal (telefon: tabelul derulează lateral). Demo switch rbo=fara-permisiune|fara-date|generat|generat-cu (seeded result, no replay) */
     ...rboDemoStates()
   };
 
@@ -4872,15 +4872,22 @@
     return {
       "rbo-01": page("#rapoarte-bo"),
       "rbo-01a": page("#rapoarte-bo", null, null, SUP),
+      /* rbo-search-v1: the list search — results (diacritics-insensitive, groups + counts follow) / no match */
+      "rbo-01b": page("#rapoarte-bo", async (h) => { await h.fill("[data-rbo-list-q]", "performanta", { leave: false }); await h.wait(300); }),
+      "rbo-01c": page("#rapoarte-bo", async (h) => { await h.fill("[data-rbo-list-q]", "autorizatii zzz", { leave: false }); await h.wait(300); }),
       "rbo-02": page("#rapoarte-bo/RPT-0047"),
-      "rbo-03": page("#rapoarte-bo/RPT-0047", gen()),
-      "rbo-03a": page("#rapoarte-bo/RPT-0047", gen(), null, SUP),
-      "rbo-04": page("#rapoarte-bo/RPT-0049", async (h) => { await h.click("[data-rbo-gen-trigger]"); await h.wait(300); }),
-      "rbo-05": page("#rapoarte-bo/RPT-0047", seq(gen(), async (h) => { await h.click("[data-rbo-export-trigger]"); await h.wait(300); })),
-      "rbo-06": page("#rapoarte-bo/RPT-0047", gen(), { rbo: "fara-date" }),
+      "rbo-03": page("#rapoarte-bo/RPT-0047", null, { rbo: "generat" }),
+      "rbo-03a": page("#rapoarte-bo/RPT-0047", null, { rbo: "generat" }, SUP),
+      "rbo-04": page("#rapoarte-bo/RPT-0049", async (h) => { await h.click("[data-rbo-gen-trigger]"); await h.wait(150); }),
+      "rbo-05": page("#rapoarte-bo/RPT-0047", async (h) => { await h.click("[data-rbo-export-trigger]"); await h.wait(150); }, { rbo: "generat" }),
+      "rbo-06": page("#rapoarte-bo/RPT-0047", null, { rbo: "fara-date,generat" }),
       "rbo-07": page("#rapoarte-bo", null, { rbo: "fara-permisiune" }),
-      "rbo-08": page("#rapoarte-bo/RPT-0049", gen("cu")),
-      "rbo-08a": page("#rapoarte-bo/RPT-0049", gen())
+      "rbo-08": page("#rapoarte-bo/RPT-0049", null, { rbo: "generat-cu" }),
+      "rbo-08a": page("#rapoarte-bo/RPT-0049", null, { rbo: "generat" }),
+      /* the filters changed after a generation: the result stays + the warning notice, 16 above the table */
+      "rbo-09": page("#rapoarte-bo/RPT-0047", seq(async (h) => { await ffFacet(h, "b-statut"); await ekTick(h, [1]); await h.click(ekPhone() ? "[data-sheet-apply]" : "[data-filter-confirm]"); await h.wait(300); }, ekCommit, async (h) => { await h.wait(300); document.activeElement?.blur?.(); }), { rbo: "generat" }),
+      /* a real „Generează” click (short loading → the result) */
+      "rbo-03b": page("#rapoarte-bo/RPT-0047", gen())
     };
   }
 

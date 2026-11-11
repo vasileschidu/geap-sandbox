@@ -27,7 +27,7 @@
    (the builder has no such column property yet); changing a filter after a generation keeps the result with a notice
    „Generează din nou”; PDF = a toast in the prototype.
    Routes: #rapoarte-bo (list) · #rapoarte-bo/<RPT-id> (report). Demo switches ?rbo=fara-permisiune · fara-date (the
-   default period = 2025, no data).
+   default period = 2025, no data) · generat / generat-cu (the first report opens generated — demo links only).
    ===================================================================================== */
 (function () {
   "use strict";
@@ -236,10 +236,16 @@
 
   /* ---------------------------------------------------------------- the list */
   const CAT_SHORT = { tabelar: "Tabelar", statistic: "Statistic" };
-  function listHtml(me) {
-    const reports = myReports(me);
+  /* rbo-search-v1 (2026-11-11, user: „what if I have a lot of reports? do a search”): the BO list search (library
+     `.search-input` = `.e-permits-workplace__search`, js/search.js clear) above the grouped list; live, diacritics-insensitive
+     on ID · name · description; empty groups hide, counts follow; no match = the boxed „Nicio potrivire găsită.” */
+  const fold = (x) => String(x || "").normalize("NFD").replace(/\p{M}/gu, "").toLocaleLowerCase("ro");
+  const L = { q: "" };
+  function listGroups(me, q = "") {
+    const needle = fold(q).trim();
+    const reports = myReports(me).filter((r) => !needle || fold(`${r.id} ${nameOf(r)} ${descOf(r)}`).includes(needle));
     const cats = X().categories?.() || [{ id: "tabelar", name: "Rapoarte tabelare" }, { id: "statistic", name: "Rapoarte statistice" }];
-    const groups = cats.map((cat) => ({
+    return cats.map((cat) => ({
       label: cat.name,
       items: reports.filter((r) => lastVersion(r).config.category === cat.id)
         .sort((a, b) => nameOf(a).localeCompare(nameOf(b), "ro"))
@@ -256,13 +262,35 @@
           };
         })
     })).filter((g) => g.items.length);
+  }
+  function listBodyHtml(me) {
+    const all = myReports(me).length;
+    const groups = listGroups(me, L.q);
+    const shown = groups.reduce((n, g) => n + g.items.length, 0);
+    const meta = `${L.q.trim() ? `${shown} din ${all}` : plural(all, "raport", "rapoarte")} · Perimetru: ${perimeter(me)}`;
     if (!groups.length) {
+      return `<section class="e-permits-dosar-profil__section e-permits-stack-section"><div class="e-permits-dosar-profil__section-heading"><h2 class="e-permits-dosar-profil__section-title">Rapoartele tale</h2><span class="e-permits-dosar-profil__section-meta" aria-live="polite">${esc(meta)}</span></div>${E()?.noResults?.("Nicio potrivire găsită.", { text: "Caută după ID, denumire sau descriere.", actionHtml: '<button class="btn btn-neutral btn-sm" type="button" data-rbo-q-reset>Resetează căutarea</button>' }) || E()?.render({ title: "Nicio potrivire găsită.", text: "Caută după ID, denumire sau descriere.", icon: "search", actionHtml: '<button class="btn btn-neutral btn-sm" type="button" data-rbo-q-reset>Resetează căutarea</button>' }) || ""}</section>`;
+    }
+    return A().renderStackedList?.("Rapoartele tale", groups, { className: "e-permits-rpt-list e-permits-rbo__list", meta }) || "";
+  }
+  function listHtml(me) {
+    if (!myReports(me).length) {
       return `<div class="e-permits-rbo e-permits-rbo--list">${E()?.render({ title: "Nu ai acces la rapoarte.", text: "Rapoartele se deschid rolurilor de Administratorul central, din „Acces” al fiecărui raport.", icon: "table" }) || ""}</div>`;
     }
-    return `<div class="e-permits-rbo e-permits-rbo--list">${A().renderStackedList?.("Rapoartele tale", groups, {
-      className: "e-permits-rpt-list e-permits-rbo__list",
-      meta: `${plural(reports.length, "raport", "rapoarte")} · Perimetru: ${perimeter(me)}`
-    }) || ""}</div>`;
+    return `<div class="e-permits-rbo e-permits-rbo--list">
+      <div class="search-input medium rectangular e-permits-workplace__search e-permits-list-search e-permits-list-search--fill e-permits-rbo__search${L.q ? " has-value is-ready" : ""}">
+        <span class="icon-search" aria-hidden="true">${icon("search")}</span>
+        <input class="input" type="search" id="rbo-list-q" autocomplete="off" value="${esc(L.q)}" placeholder="Caută după ID, denumire sau descriere" aria-label="Caută rapoarte" data-rbo-list-q>
+        <div class="btn-group"><button type="button" class="btn-icon clear" aria-label="Șterge căutarea">${icon("cross-small", 16)}</button></div>
+      </div>
+      <div data-rbo-list-body>${listBodyHtml(me)}</div>
+    </div>`;
+  }
+  function refreshListBody() {
+    const host = document.querySelector("[data-reg-page]:not([hidden]) [data-rbo-list-body]");
+    if (!host) return;
+    host.innerHTML = listBodyHtml(who());
+    A().syncStackMetaRows?.(host);
   }
 
   /* ---------------------------------------------------------------- the report page */
@@ -426,6 +454,14 @@
       const key = periodKey(genConfig(r));
       if (key) st.applied[key] = [defaultPeriod()];
     }
+    /* rbo-seed-v1: a demo link (`?rbo=generat` / `generat-cu`) opens the FIRST report already generated (no replay, no
+       loading flash); a real visit never auto-generates — the user presses „Generează” (Feature) */
+    const seedMode = demo.has("generat-cu") ? "cu" : demo.has("generat") ? "fara" : "";
+    if (seedMode && !S.seededGen && !st.gen) {
+      S.seededGen = true;
+      const v = genConfig(r);
+      st.gen = { sel: clone(st.applied), q: st.q, personal: seedMode === "cu" && hasPersonal(r), at: nowIso(), period: periodOf(v, st.applied) };
+    }
     G().showPage?.(TITLE, pageHtml(r, me));
     mountFilters();
     if (st.gen) fillPersonal(document.querySelector("[data-reg-page]:not([hidden]) [data-rbo-result]"), genConfig(r, { personal: st.gen.personal }));
@@ -509,6 +545,13 @@
     if (gen) { if (gen.getAttribute("aria-disabled") !== "true") generate(gen.dataset.rboGenerate); return; }
     const ex = t.closest("[data-rbo-export]");
     if (ex) { exportAs(ex.dataset.rboExport); return; }
+    if (t.closest("[data-rbo-q-reset]")) {
+      L.q = "";
+      const input = document.querySelector("[data-rbo-list-q]");
+      if (input) { input.value = ""; input.closest(".search-input")?.classList.remove("has-value", "is-ready", "is-typing"); input.focus(); }
+      refreshListBody();
+      return;
+    }
     if (t.closest("[data-rbo-q-clear]")) { cur().q = ""; syncSearch(); fx().ctl.render(); filtersChanged(); }
   });
   /* an aria-disabled menu trigger (Generează without a period) never opens its menu */
@@ -518,6 +561,7 @@
   }, true);
   document.addEventListener("input", (event) => {
     const el = event.target;
+    if (el.matches?.("[data-rbo-list-q]")) { L.q = el.value; refreshListBody(); return; }
     if (!el.matches?.("[data-rbo-q]")) return;
     cur().q = el.value;
     el.closest("[data-rbo-q-box]")?.classList.toggle("has-value", Boolean(el.value));

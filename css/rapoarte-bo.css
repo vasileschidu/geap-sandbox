@@ -15,10 +15,32 @@
   -webkit-mask-size: var(--icon-size-medium, 20px) var(--icon-size-medium, 20px);
 }
 
+/* rbo-wide-v1 (2026-11-11, user: „full width here”): the REPORT page (filters + result table) is fluid to the BO page gutter,
+   capped at 1600 and centred beyond — the editor-wide cap. Research: Metabase / Power BI / Grafana / Looker Studio give a
+   report result the whole canvas, list pages stay narrow; the cap keeps a row readable on 2560 screens. The stated
+   exception to „wide only with two columns”: a wide data table. The list (rbo-01) keeps the normal page width. */
+.e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-dosar-profil__panel:has(> .e-permits-rbo--report) {
+  max-width: calc(var(--spacing-40, 40px) * 40);
+}
+
 .e-permits-rbo--report {
   display: flex;
   flex-direction: column;
   gap: var(--spacing-24, 24px);
+}
+
+/* the list (rbo-search-v1): the BO list search (400 wide like every BO quick search; phones full width, 48 by
+   css/field-sizes.css) 16 above the grouped list */
+.e-permits-rbo--list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-16, 16px);
+}
+
+.e-permits-front-office-page .e-permits-rbo .e-permits-workplace__search.e-permits-rbo__search.e-permits-list-search--fill {
+  align-self: flex-start;
+  max-width: calc(var(--spacing-40, 40px) * 10);
+  width: 100%;
 }
 
 /* the head: title row (section title at text height + ⓘ) and meta on the left, the actions on the right */
@@ -70,11 +92,11 @@
   z-index: 20;
 }
 
-/* the result: heading (title + meta) then the stale notice / table / empty state, 16 apart */
-.e-permits-rbo__result {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-16, 16px);
+/* the result = the BO section (its 48 heading row carries the space to the content; the BO rule sets gap 0). A notice above
+   the table / empty state is its own block: full radius, 16 to the table (rbo-gap-v1, user: „leave gap here alert and
+   table”) */
+.e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-rbo__result > .message + * {
+  margin-top: var(--spacing-16, 16px);
 }
 
 .e-permits-rbo__result > .e-permits-dosar-profil__section-heading {
@@ -87,6 +109,10 @@
 }
 
 @media (max-width: 760px) {
+  .e-permits-front-office-page .e-permits-rbo .e-permits-workplace__search.e-permits-rbo__search.e-permits-list-search--fill {
+    max-width: none;
+  }
+
   .e-permits-rbo--report {
     gap: var(--spacing-16, 16px);
   }
