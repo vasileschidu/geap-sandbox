@@ -2748,7 +2748,7 @@
       return `
         <div class="${fieldClass(field)}" data-fo-subgen>
           ${labelHtml(id, field)}
-          <div class="e-permits-fo-subgen-select" data-fo-subgen-select data-placeholder="${escapeFrontOfficeHtml(placeholder)}" data-count-one="${escapeFrontOfficeHtml(field.countOne || "opțiune selectată")}" data-count-many="${escapeFrontOfficeHtml(field.countMany || "opțiuni selectate")}" data-remove-label="${escapeFrontOfficeHtml(field.removeLabel || "Elimină opțiunea")}"${field.selectAllLabel ? ` data-all-label="${escapeFrontOfficeHtml(field.selectAllLabel)}"` : ""}>
+          <div class="e-permits-fo-subgen-select" data-fo-subgen-select data-placeholder="${escapeFrontOfficeHtml(placeholder)}" data-count-one="${escapeFrontOfficeHtml(field.countOne || "opțiune selectată")}" data-count-many="${escapeFrontOfficeHtml(field.countMany || "opțiuni selectate")}" data-remove-label="${escapeFrontOfficeHtml(field.removeLabel || "Elimină opțiunea")}"${field.selectAllLabel ? ` data-all-label="${escapeFrontOfficeHtml(field.selectAllLabel)}"` : ""}${field.chipMax ? ` data-chip-max="${Number(field.chipMax)}"` : ""}>
             <button id="${escapeFrontOfficeHtml(id)}" class="e-permits-fo-subgen-select__button" type="button" aria-haspopup="listbox" aria-expanded="false" aria-controls="${escapeFrontOfficeHtml(id)}-menu"${field.readOnly ? " disabled" : ""} data-fo-subgen-button>
               <span class="e-permits-fo-subgen-select__value e-permits-fo-subgen-select__value--placeholder" data-fo-subgen-value>${escapeFrontOfficeHtml(placeholder)}</span>
               <svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-chevron-bottom"></use></svg>
@@ -9930,7 +9930,10 @@
               </svg>
             </button>
           `;
-          chip.querySelector(".e-permits-fo-subgen-chip__label").textContent = allOn ? root.dataset.allLabel : option.dataset.value || "";
+          const chipLabel = chip.querySelector(".e-permits-fo-subgen-chip__label");
+          chipLabel.textContent = allOn ? root.dataset.allLabel : option.dataset.value || "";
+          /* a long label truncates: the library Small tooltip shows it whole (icon-tooltip.js, only when clipped) */
+          chipLabel.dataset.cellTooltip = chipLabel.textContent;
           chip.querySelector(".e-permits-fo-subgen-chip__remove").addEventListener("click", () => {
             if (allOn) { options.forEach((o) => setOne(o, false)); updateSummary(); return; }
             option.classList.remove("is-selected");
@@ -9941,8 +9944,31 @@
           });
           chips.appendChild(chip);
         });
+        foldChips();
         /* hosts (e.g. the BO subdivision form) keep their own model in sync */
         if (ready) root.dispatchEvent(new CustomEvent("fo-multiselect-change", { bubbles: true, detail: { values: selected.map((o) => o.dataset.value || ""), all: allOn } }));
+      }
+
+      /* ms-chip-max-v1 (2026-11-11, user: „show max 4 and others on show all”): opt-in `field.chipMax` → the first N chips +
+         library text button „Arată toate (total)” expanding in place, „Arată mai puține” to collapse (view only, no change event) */
+      function foldChips() {
+        const chipMax = Number(root.dataset.chipMax || 0);
+        chips.querySelector(".e-permits-fo-subgen__more")?.remove();
+        const chipEls = [...chips.querySelectorAll(".e-permits-fo-subgen-chip")];
+        if (!chipMax || chipEls.length <= chipMax) return;
+        const open = Boolean(root.foChipsOpen);
+        chipEls.forEach((chip, i) => { chip.hidden = !open && i >= chipMax; });
+        const more = document.createElement("button");
+        more.className = "btn btn-text-primary btn-sm btn-rounded e-permits-fo-subgen__more";
+        more.type = "button";
+        more.setAttribute("aria-expanded", String(open));
+        more.textContent = open ? "Arată mai puține" : `Arată toate (${chipEls.length})`;
+        more.addEventListener("click", () => {
+          root.foChipsOpen = !open;
+          foldChips();
+          chips.querySelector(".e-permits-fo-subgen__more")?.focus();
+        });
+        chips.appendChild(more);
       }
 
       function setActive(index) {
@@ -9971,12 +9997,70 @@
         setActive(0);
       }
 
+      /* ms-place-v1 (2026-11-11, user: the menu opened UP under the sticky tabs): BELOW the field by default; up only when
+         the room below is too small (even after scrolling the page) AND there is more room above. Room = the visible part
+         of the scroll container — never behind its sticky header / tabs; max-height = that room − 8, the list scrolls,
+         search + footer always visible */
+      function visibleBand() {
+        let top = 0;
+        let bottom = window.innerHeight;
+        let scroller = null;
+        for (let el = root.parentElement; el && el !== document.documentElement; el = el.parentElement) {
+          const cs = getComputedStyle(el);
+          if (!/(auto|scroll|hidden|clip)/.test(cs.overflowY)) continue;
+          const r = el.getBoundingClientRect();
+          top = Math.max(top, r.top);
+          bottom = Math.min(bottom, r.bottom);
+          if (!scroller && /(auto|scroll)/.test(cs.overflowY) && el.scrollHeight > el.clientHeight) scroller = el;
+        }
+        /* sticky / fixed bars over the top of that area (page-header tabs, top bar): start below them */
+        const x = button.getBoundingClientRect().left + 1;
+        for (let guard = 0; guard < 6; guard++) {
+          const hit = document.elementFromPoint(x, top + 1);
+          let bar = null;
+          for (let el = hit; el && el !== document.body; el = el.parentElement) {
+            if (el.contains(root)) break;
+            const pos = getComputedStyle(el).position;
+            if (pos === "sticky" || pos === "fixed") bar = el;
+          }
+          const b = bar?.getBoundingClientRect().bottom;
+          if (!b || b <= top + 1) break;
+          top = b;
+        }
+        return { top, bottom, scroller: scroller || document.scrollingElement };
+      }
+
+      function placeMenu() {
+        menu.style.maxHeight = "";
+        root.classList.remove("is-open-up");
+        const gap = 4;
+        const edge = 8;
+        const need = menu.offsetHeight;
+        const rect = button.getBoundingClientRect();
+        const band = visibleBand();
+        const below = band.bottom - rect.bottom - gap - edge;
+        const above = rect.top - band.top - gap - edge;
+        const sc = band.scroller;
+        const canScroll = sc ? sc.scrollHeight - sc.scrollTop - sc.clientHeight : 0;
+        let up = false;
+        if (below < need && canScroll >= need - below) {
+          /* the page can scroll: stay below and bring the whole menu into view */
+          sc.scrollTop += need - below;
+          return;
+        }
+        if (below < need && above > below) up = true;
+        root.classList.toggle("is-open-up", up);
+        const room = Math.floor(up ? above : below);
+        if (room < need) menu.style.maxHeight = `${Math.max(0, room)}px`;
+      }
+
       function setOpen(isOpen) {
         root.classList.toggle("is-open", isOpen);
         button.setAttribute("aria-expanded", String(isOpen));
         setDropdownHidden(menu, !isOpen);
         if (isOpen) {
           filterOptions();
+          placeMenu();
           requestAnimationFrame(() => search.focus({ preventScroll: true }));
         } else {
           search.value = "";

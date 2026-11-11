@@ -6631,10 +6631,54 @@ document.addEventListener("DOMContentLoaded", () => {
             title: escapeHtml(entry.title),
             badges: [renderTag(entry.tag[0], entry.tag[1])],
             meta: [escapeHtml(entry.detail)],
-            actionsHtml: `<button class="btn btn-neutral btn-sm" type="button" data-change-undo="${escapeHtml(entry.undo)}">Anulează</button>`
+            /* changes-reveal-v1: a source that can show its change (`reveal`) gets „Vezi” (go to it) instead of a per-item undo */
+            actionsHtml: target.reveal
+              ? `<button class="btn btn-neutral btn-sm" type="button" data-change-reveal="${escapeHtml(entry.undo)}" aria-label="Vezi ${escapeHtml(entry.title)}">Vezi</button>`
+              : `<button class="btn btn-neutral btn-sm" type="button" data-change-undo="${escapeHtml(entry.undo)}">Anulează</button>`
           })).join("")}</ul>
         </div>
       </div>`).join("");
+  };
+  /* changes-reveal-v1 (2026-11-11, user): „Vezi” on a change = scroll its section to the top of the visible area (below any
+     sticky header / tabs of the scroller), flash the section card's focus ring twice (the dashboard „just added” flash,
+     none with reduced motion) and move focus to its heading */
+  const revealChangedSection = (section) => {
+    if (!section?.isConnected) return;
+    const reduce = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+    let scroller = section.parentElement;
+    while (scroller && !(/(auto|scroll)/.test(getComputedStyle(scroller).overflowY) && scroller.scrollHeight > scroller.clientHeight)) scroller = scroller.parentElement;
+    scroller = scroller || document.scrollingElement;
+    const sTop = scroller === document.scrollingElement ? 0 : Math.max(0, scroller.getBoundingClientRect().top);
+    let barBottom = sTop;
+    const x = section.getBoundingClientRect().left + 1;
+    for (let guard = 0; guard < 6; guard++) {
+      let bar = null;
+      for (let el = document.elementFromPoint(x, barBottom + 1); el && el !== document.body; el = el.parentElement) {
+        if (el.contains(section)) break;
+        const pos = getComputedStyle(el).position;
+        if (pos === "sticky" || pos === "fixed") bar = el;
+      }
+      const b = bar?.getBoundingClientRect().bottom;
+      if (!b || b <= barBottom + 1) break;
+      barBottom = b;
+    }
+    scroller.scrollBy({ top: section.getBoundingClientRect().top - barBottom - 16, behavior: reduce ? "auto" : "smooth" });
+    const card = section.querySelector(":scope > .e-permits-ntpl-card, :scope > .e-permits-dosar-profil__card") || section;
+    card.classList.remove("e-permits-change-flash");
+    void card.offsetWidth;
+    card.classList.add("e-permits-change-flash");
+    window.setTimeout(() => card.classList.remove("e-permits-change-flash"), 2000);
+    const heading = section.querySelector("h2, h3, legend") || section;
+    if (!heading.hasAttribute("tabindex")) heading.setAttribute("tabindex", "-1");
+    heading.focus({ preventScroll: true });
+  };
+  /* the section that holds a field label (by its text) inside a root — for sources keyed by field labels */
+  const sectionOfLabel = (root, text) => {
+    const norm = (t) => String(t || "").replace(/\s+/g, " ").replace(/\s*\*\s*$/, "").trim().toLowerCase();
+    const want = norm(text).replace(/\s*\(.*$/, "");
+    const hit = [...(root?.querySelectorAll("label, legend, h2, h3, .e-permits-fo-field__label, .e-permits-passport-row__label, dt") || [])]
+      .find((el) => el.getClientRects().length && norm(el.textContent).startsWith(want));
+    return hit?.closest(".e-permits-dosar-profil__section, section") || null;
   };
   const profileChangesModal = document.querySelector("#profile-changes-modal");
   const refreshProfileChanges = () => {
@@ -6680,6 +6724,14 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!profileChangesModal?.contains(event.target)) return;
     const target = profileChangesTarget();
     if (!target) return;
+    const reveal = event.target.closest("[data-change-reveal]");
+    if (reveal && target.reveal) {
+      const key = reveal.dataset.changeReveal;
+      window.__modal?.close?.("#profile-changes-modal");
+      /* after the dialog has handed focus back: the source opens the right tab / step and returns the section */
+      window.setTimeout(() => Promise.resolve(target.reveal(key)).then((el) => revealChangedSection(el)), 180);
+      return;
+    }
     const undo = event.target.closest("[data-change-undo]");
     if (undo && target.kind === "source") {
       target.undo(undo.dataset.changeUndo);
@@ -21501,7 +21553,7 @@ document.addEventListener("DOMContentLoaded", () => {
       renderStepStrip,
       /* widget-audit-v1 (js/widget-admin.js): an Istoric entry opens its unique-journal record (US-262 detail) */
       openAuditEventDetail,
-      registerChangeSource, changesStatusAttrs, changeValue, openPendingChanges,
+      registerChangeSource, changesStatusAttrs, changeValue, openPendingChanges, revealChangedSection, sectionOfLabel,
       setActiveNav, writeHash, restorePageHash, renderWorkplace, getVisibleRows, workplaceState,
       showRegistry: showProductRegistry, hideShellPages, openProfilePanel, closeProfile: closeDosarProfil,
       /* a link that lands on a registry with filters already applied (eKYC alert → Sesiuni istorice) */

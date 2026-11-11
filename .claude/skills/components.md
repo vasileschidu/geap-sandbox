@@ -4049,7 +4049,7 @@ small `padding: 2px 6px` exact; `neutral.is-subtle` `#f1f1f1`/`#121212` and
 | Field + input | `e-permits-fo-field` + `--span-4/6/8/12`, `__hint`, `e-permits-fo-input`, `__value` | `is-filled` `is-readonly` `is-disabled` | `data-fo-address-part` |
 | Select | `e-permits-fo-select` + `--address/--preview`, `__button`, `__value`, `__list`, `__option` | `is-open` `is-open-up` `is-selected` `is-disabled` | `data-fo-select`, `data-fo-select-value`, `data-value` |
 | Combobox | `e-permits-fo-caem` + `__menu/__search/__list/__option/__empty` | | `data-fo-caem*`, `data-code`, `data-label` |
-| Multi-select | `e-permits-fo-subgen-select` + `__checkbox/__footer/__confirm`, opt-in select-all first item `__option--all` + `__separator` (`selectAllLabel`) | | `data-fo-subgen*`, `data-fo-select-all` |
+| Multi-select | `e-permits-fo-subgen-select` + `__checkbox/__footer/__confirm`, opt-in select-all first item `__option--all` + `__separator` (`selectAllLabel`); opens BELOW the field, `.is-open-up` only when the room below (even after scrolling) is too small and above is larger, max-height = visible room − 8 below the scroller's sticky bars, list scrolls, search + footer stay (ms-place-v1, `initSubgenMultiSelect` › `placeMenu`); opt-in `chipMax: N` = first N chips + `btn btn-text-primary btn-sm btn-rounded.e-permits-fo-subgen__more` „Arată toate (total)” / „Arată mai puține” (ms-chip-max-v1; Rapoarte + Tablouri de bord authorities = 4, demo rpt-03ag/ah, dsh-03p/q, rpt-04l, dsh-04p); chip labels truncate with the Small tooltip (`data-cell-tooltip`) | | `data-fo-subgen*`, `data-fo-select-all`, `data-chip-max` |
 | Phone | `e-permits-fo-phone` + `--editable/--readonly`, `__prefix`, `__code-list` | `is-filled` `is-selected` | `data-fo-phone-*`, `data-code`, `data-flag` |
 | Radio | `e-permits-fo-radio-group` + `--contact`, `e-permits-fo-radio` (placement of the ONE radio `label.radio.radio--medium`, radio-v1; ~~`__control`, `__copy`~~ removed) | | `data-fo-contact-person` |
 | Consent checkbox | `e-permits-fo-consent`, `__box` | | `data-fo-consent` |
@@ -7391,7 +7391,11 @@ One rule for every profile (service, user, role, classifier, template):
   `changesStatusAttrs(key)` = `data-profile-changes="<key>"`. Entries = `{ undo, group, title,
   tag, detail }` → the same stacked rows: group = the page's section, title = the field label,
   tag Modificat (brand) / Se adaugă (success) / Se elimină (danger), meta „vechi → nou”
-  (`changeValue`, one line ≤ 48 chars), „Anulează” per row; footer Renunță la toate · Salvează (the
+  (`changeValue`, one line ≤ 48 chars), „Anulează” per row — or **„Vezi”** when the source has `reveal(ref)` (changes-reveal-v1,
+  2026-11-11: Rapoarte / Widgete / Tablouri de bord; `reveal` opens the Configurare tab and returns the section →
+  `revealChangedSection` scrolls it under the sticky tabs + 16, flashes its card ring twice (`.e-permits-change-flash`, none
+  with reduced motion), focuses its heading; `sectionOfLabel(root, label)` finds a section by field label; demo rpt-04m / 04n);
+  footer **„Renunță la toate modificările” (`btn-outline-destructive btn-rounded`, red)** · Salvează (the
   page's own save, validation included). Subtitle „{nume} · N modificări · {când se aplică}” —
   never a code. Focus returns to the redrawn status (same zone: header vs save bar), else to the
   page title; Esc closes only the modal (the template sheet stays). Where:
@@ -12774,6 +12778,9 @@ The profile panel that directly holds it (`.e-permits-dosar-profil__panel` / `.e
 create sheet two-column steps (`.e-permits-kpi-editor__page:has(> .e-permits-editor-wide)`); widgets reuse the same class.
 Columns keep the ntpl ratio (form 7fr | helper 5fr; `.e-permits-kpi-content--preview` = form minmax(360px, 5fr) | chart 7fr).
 One-column tabs (Alerte, Istoric, Valori proprii, lists) never get it — they keep the profile width (1024).
+**Exception — Rapoarte (rpt-full-width-v1, 2026-11-11, user „lets do full width here”):** the report editor (settings 5/12 |
+Previzualizare 7/12) has no 1600 cap — profile panel `:has(> .e-permits-rpt-split.e-permits-editor-wide)` = `max-width: none`,
+and in the „Raport nou” sheet (`.e-permits-rpt-editor`) the step content + footer bar keep only the 24 sheet gutter (css/rapoarte.css).
 
 ### Chart value callout — library Small tooltip with arrow, static (kpi-band-v6, 2026-11-06, user)
 

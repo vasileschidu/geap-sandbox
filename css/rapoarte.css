@@ -1072,6 +1072,12 @@
   min-height: var(--spacing-32, 32px);
 }
 
+/* rpt-cond-align-v1 (2026-11-11, user: „align horizontal here”): the library .checkbox carries a 6 bottom margin — it pushed
+   the box + label 3 above the handle / number / trash centre line. Off in the header row: one centre line, measured */
+.e-permits-rpt-cond__ask > .checkbox {
+  margin: 0;
+}
+
 .e-permits-rpt-cond__ask > .checkbox:focus-within:has(:focus-visible) {
   box-shadow: none;
 }
@@ -1244,5 +1250,20 @@
 @media (max-width: 760px) {
   .e-permits-reg-editor__stack .btn.e-permits-ekcfg-order__handle.e-permits-rpt-handle {
     display: inline-flex;
+  }
+}
+
+/* rpt-full-width-v1 (2026-11-11, user „lets do full width here”): the report editor (settings 5/12 | preview 7/12) is not
+   capped at 1600 like the other two-column editors — the preview is a wide report table, so it uses the whole page width */
+.e-permits-front-office-page[data-demo-flow="back-office"] :is(.e-permits-dosar-profil__panel, .e-permits-user-profile__panel):has(> .e-permits-rpt-split.e-permits-editor-wide) {
+  max-width: none;
+}
+
+/* the „Raport nou” sheet too: step content and the footer bar span the whole sheet minus its 24 gutter (the shared
+   sheet-page-v1 rule centres them on the 1600 editor width — KPI / widgets / ntpl keep that) */
+@media (min-width: 761px) {
+  .e-permits-rpt-editor.e-permits-reg-editor--page .e-permits-reg-editor__bar,
+  .e-permits-rpt-editor.e-permits-reg-editor--page .e-permits-reg-editor__single.e-permits-reg-editor__page {
+    padding-inline: var(--spacing-24, 24px);
   }
 }

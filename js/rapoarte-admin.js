@@ -243,6 +243,7 @@
   const colName = (c) => c?.names.ro || "Coloană fără denumire";
   const lastVersion = (r) => r.versions[r.versions.length - 1] || null;
   const unpublished = (r) => Boolean(lastVersion(r)) && !same(r.config, lastVersion(r).config);
+  const authSummary = (v) => (!v.authorities.length ? (v.level === "Global" ? "Toate autoritățile" : "—") : v.authorities.length <= 2 ? v.authorities.map(authName).join(", ") : `${v.authorities.length} autorități`);
   const levelText = (v) => (v.level === "Global" ? (v.authorities.length ? `Global · ${v.authorities.map(authName).join(", ")}` : "Global") : `Autoritate · ${v.authorities.map(authName).join(", ") || "—"}`);
 
   /* ---------------------------------------------------------------- permissions per report (Feature AC) */
@@ -872,7 +873,7 @@
     const some = authSome(v);
     const msErr = e.authorities || "";
     /* rpt-auth-ms-v2 (user): „Toate autoritățile” = the FIRST item of the dropdown (select-all, indeterminate when some, one chip when all) */
-    let ms = window.GEAPFormRender?.fieldHtml({ id: `${idp}-authorities`, type: "multiselect", label: "Autoritățile raportului", required: true, options: auths.map(authLabel), allSelected: !some, selectAllLabel: "Toate autoritățile", value: some ? v.authorities.map((id) => authLabel(auths.find((a) => a.id === id) || { name: authName(id), long: "" })) : [], placeholder: "Alege autoritățile", countOne: "autoritate selectată", countMany: "autorități selectate", removeLabel: "Elimină autoritatea", searchLabel: "Caută autoritatea", searchAria: "Caută autoritatea", hint: "Raportul este disponibil autorităților alese; „Toate autoritățile” include și cele adăugate ulterior.", span: 12 }) || "";
+    let ms = window.GEAPFormRender?.fieldHtml({ id: `${idp}-authorities`, type: "multiselect", chipMax: 4, label: "Autoritățile raportului", required: true, options: auths.map(authLabel), allSelected: !some, selectAllLabel: "Toate autoritățile", value: some ? v.authorities.map((id) => authLabel(auths.find((a) => a.id === id) || { name: authName(id), long: "" })) : [], placeholder: "Alege autoritățile", countOne: "autoritate selectată", countMany: "autorități selectate", removeLabel: "Elimină autoritatea", searchLabel: "Caută autoritatea", searchAria: "Caută autoritatea", hint: "Raportul este disponibil autorităților alese; „Toate autoritățile” include și cele adăugate ulterior.", span: 12 }) || "";
     if (msErr) ms = ms.replace("e-permits-fo-subgen-select\" data-fo-subgen-select", "e-permits-fo-subgen-select is-error\" data-fo-subgen-select").replace(/<p class="e-permits-fo-field__hint"[^]*?<\/p>\s*<\/div>\s*$/, "</div>").replace(/<\/div>\s*$/, `${errorHtml(`fo-${idp}-authorities`, msErr)}</div>`);
     const authPicker = v.level === "Global" ? (me.central ? full(`<div class="e-permits-rpt-auths" id="${idp}-authorities" data-rpt-auth-ms>${ms}</div>`) : "")
       : ro(`${idp}-auth-label`, "Autoritate", v.authorities.map((id) => `${authName(id)} · ${D().authorities.find((a) => a.id === id)?.long || ""}`).join(", ") || "—");
@@ -1158,7 +1159,9 @@
     return {
       general: [
         ["Denumire (RO)", d(v.names.ro)], ["Denumire (RU)", d(v.names.ru)], ["Denumire (EN)", d(v.names.en)],
-        ["Descriere", d(v.descriptions.ro)], ["Categoria", d(label(CATEGORIES, v.category))], ["Sursa de date", d(sourceName(v.source))], ["Nivel", d(levelText(v))]
+        ["Descriere", d(v.descriptions.ro)], ["Categoria", d(label(CATEGORIES, v.category))], ["Sursa de date", d(sourceName(v.source))], ["Nivel", d(v.level === "Global" ? "Global" : "Autoritate")],
+        /* changes-reveal-v1: the authorities are their own row, summarised (a long list only in the field itself) */
+        ["Autoritățile raportului", d(authSummary(v))]
       ],
       columns: v.columns.length ? v.columns.map((c, i) => [`${i + 1}. ${colName(c)}`, esc([KIND_TAG[c.kind]?.[0], ...columnMeta(v, c).map((x) => x.replace(/&[^;]+;/g, (m) => ({ "&amp;": "&", "&lt;": "<", "&gt;": ">", "&quot;": '"', "&#39;": "'" }[m] || m))), c.total === "incl" && isMeasure(c) ? "Inclusiv" : ""].filter(Boolean).join(" · "))]) : [["Coloane", dash]],
       structure: [
@@ -1712,6 +1715,15 @@
         name: P.draft.names.ro, applies: "se aplică după Salvează", emptyText: "Raportul este salvat.", groups: ["Configurare"],
         entries: () => changedLabels().map(([l, a, b]) => ({ undo: l, group: "Configurare", title: l, tag: ["Modificat", "brand"], detail: `${String(a).replace(/<[^>]+>/g, "") || "—"} → ${String(b).replace(/<[^>]+>/g, "") || "—"}` })),
         undo: () => discard(),
+        /* changes-reveal-v1: „Vezi” → the Configurare tab, the section of that row (fields by their label; the
+           numbered column rows → the column list) */
+        reveal: async (lbl) => {
+          if (P.tab !== "configurare") await openProfile(P.id, "configurare", { push: false });
+          const panel = document.querySelector("#rpt-panel .e-permits-rpt-form") || document.querySelector("#rpt-panel");
+          const byId = { "Autoritățile raportului": `#${IDP}-authorities`, Nivel: `#${IDP}-level-label`, Coloane: `#${IDP}-cols-title`, "Gruparea rândurilor": `#${IDP}-group-title`, Filtre: `#${IDP}-flt-title` }[lbl];
+          const el = byId && panel?.querySelector(byId);
+          return el?.closest(".e-permits-dosar-profil__section") || A().sectionOfLabel?.(panel, lbl) || null;
+        },
         discard,
         save: () => savePage()
       };

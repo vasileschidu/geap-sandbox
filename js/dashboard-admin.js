@@ -339,7 +339,7 @@
        the chips under the field; ticked = all (field disabled, no chips), unticked = pick ≥ 1 */
     /* dsh-auth-ms-v2 (= Rapoarte rpt-auth-ms-v2, user): „Toate autoritățile” = the FIRST item of the dropdown (select-all) */
     const lab = ([, short, long]) => `${short} · ${long}`;
-    let ms = window.GEAPFormRender?.fieldHtml({ id: `${idp}-authorities`, type: "multiselect", label: "Autoritățile tabloului de bord", required: true, options: AUTHORITIES.map(lab), allSelected: v.allAuthorities, selectAllLabel: "Toate autoritățile", value: v.allAuthorities ? [] : v.authorities.map((id) => AUTHORITIES.find(([k]) => k === id)).filter(Boolean).map(lab), placeholder: "Alege autoritățile", countOne: "autoritate selectată", countMany: "autorități selectate", removeLabel: "Elimină autoritatea", searchLabel: "Caută autoritatea", searchAria: "Caută autoritatea", hint: "Tabloul de bord este asignat autorităților alese; „Toate autoritățile” include și cele adăugate ulterior.", span: 12 }) || "";
+    let ms = window.GEAPFormRender?.fieldHtml({ id: `${idp}-authorities`, type: "multiselect", chipMax: 4, label: "Autoritățile tabloului de bord", required: true, options: AUTHORITIES.map(lab), allSelected: v.allAuthorities, selectAllLabel: "Toate autoritățile", value: v.allAuthorities ? [] : v.authorities.map((id) => AUTHORITIES.find(([k]) => k === id)).filter(Boolean).map(lab), placeholder: "Alege autoritățile", countOne: "autoritate selectată", countMany: "autorități selectate", removeLabel: "Elimină autoritatea", searchLabel: "Caută autoritatea", searchAria: "Caută autoritatea", hint: "Tabloul de bord este asignat autorităților alese; „Toate autoritățile” include și cele adăugate ulterior.", span: 12 }) || "";
     if (e.authorities) ms = ms.replace('e-permits-fo-subgen-select" data-fo-subgen-select', 'e-permits-fo-subgen-select is-error" data-fo-subgen-select').replace(/<p class="e-permits-fo-field__hint"[^]*?<\/p>\s*<\/div>\s*$/, "</div>").replace(/<\/div>\s*$/, `${errorHtml(`fo-${idp}-authorities`, e.authorities)}</div>`);
     return `<div class="e-permits-dsh-auths" id="${idp}-authorities" data-dsh-auth-ms>${ms}</div>`;
   }
@@ -416,7 +416,7 @@
     const d = (x) => (x ? esc(x) : dash);
     return {
       general: [["Denumire (RO)", d(v.names.ro)], ["Denumire (RU)", d(v.names.ru)], ["Denumire (EN)", d(v.names.en)], ["Descriere", d(v.descriptions.ro)], ["Ordinea tabloului de bord", d(String(v.order || ""))]],
-      access: [["Roluri", d(rolesText(v))], ["Nivel", esc(level)], ["Autorități asignate", d(authText(v, level))]],
+      access: [["Roluri", d(rolesText(v))], ["Nivel", esc(level)], ["Autorități asignate", d(level === "Global" && !v.allAuthorities && v.authorities.length > 2 ? `${v.authorities.length} autorități` : authText(v, level))]],
       widgets: [["Widget-uri", esc(`${v.widgets.length} din ${MAX_WIDGETS}`)], ...v.widgets.map((t, i) => [widgetInfo(t.widget).title, esc(`Poziția ${i + 1} · ${label(WIDTHS(), t.width)} · ${label(HEIGHTS(), heightKey(t.height))}`)])]
     };
   }
@@ -1121,6 +1121,13 @@
         name: P.draft.names.ro, applies: "se aplică după Salvează", emptyText: "Tabloul de bord este salvat.", groups: ["Configurare"],
         entries: () => Object.entries(changedFields()).map(([lbl, [a, b]]) => ({ undo: lbl, group: "Configurare", title: lbl, tag: ["Modificat", "brand"], detail: `${a} → ${b}` })),
         undo: () => discard(),
+        /* changes-reveal-v1: „Vezi” → the Configurare tab, the section of that setting (a widget row → „Widget-uri”) */
+        reveal: async (lbl) => {
+          if (P.tab !== "configurare") await openProfile(P.id, "configurare", { push: false });
+          const panel = document.querySelector("#dsh-panel");
+          const alias = { "Ordinea tabloului de bord": "Ordinea în listă", Nivel: "Nivel și autorități", "Autorități asignate": "Nivel și autorități" }[lbl];
+          return A().sectionOfLabel?.(panel, alias || lbl) || A().sectionOfLabel?.(panel, "Widget-uri");
+        },
         discard,
         save: () => savePage()
       };

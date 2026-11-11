@@ -5446,15 +5446,33 @@
   color: var(--color-text-base-tertiary, #757575);
 }
 
+/* ms-place-v1 (2026-11-11): below the field by default; `.is-open-up` (set by initSubgenMultiSelect when there is no room
+   below, even after scrolling, and more above) flips it; a js max-height shrinks the LIST only — search + footer stay */
 .e-permits-fo-subgen-select__menu {
-  bottom: calc(100% + 4px);
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
   left: 0;
   position: absolute;
+  top: calc(100% + var(--spacing-4, 4px));
   width: 100%;
   z-index: 45;
+}
+
+.e-permits-fo-subgen-select.is-open-up .e-permits-fo-subgen-select__menu {
+  bottom: calc(100% + var(--spacing-4, 4px));
+  top: auto;
+  transform-origin: bottom center;
+}
+
+.e-permits-fo-subgen-select__menu > .e-permits-fo-subgen-select__search,
+.e-permits-fo-subgen-select__menu > .e-permits-fo-subgen-select__footer {
+  flex: 0 0 auto;
+}
+
+.e-permits-fo-subgen-select__menu > .e-permits-fo-subgen-select__list {
+  flex: 0 1 auto;
+  min-height: 0;
 }
 
 .e-permits-fo-subgen-select__menu[hidden] {
@@ -5584,6 +5602,16 @@
 
 .e-permits-fo-subgen__chips[hidden] {
   display: none;
+}
+
+/* ms-chip-max-v1: chips past `field.chipMax` fold away; the „Arată toate (N)” / „Arată mai puține” text button sits on the
+   chip row, centred on the 36 chips */
+.e-permits-fo-subgen__chips > .e-permits-fo-subgen-chip[hidden] {
+  display: none;
+}
+
+.e-permits-fo-subgen__chips > .e-permits-fo-subgen__more {
+  align-self: center;
 }
 
 .e-permits-fo-subgen-chip {
@@ -25792,4 +25820,22 @@ body:has(.e-permits-fo-doc-modal-overlay:not([hidden])) #fo-certificate-modal {
    header, the header drops its bottom padding — subtitle → tabs = the tabs' own 16 (was 24 + 16 = 40), desktop + phones */
 .e-permits-fo-doc-modal > .e-permits-fo-doc-modal__header:has(+ .e-permits-fo-doc-modal__source:not([hidden])) {
   padding-bottom: var(--spacing-0, 0px);
+}
+
+/* changes-reveal-v1 (2026-11-11): „Vezi” in „Modificări nesalvate” lands on the changed section — its card's focus ring
+   flashes twice (the dashboard „just added” flash); reduced motion = the ring once, steady, until it is removed */
+.e-permits-change-flash {
+  animation: e-permits-change-flash 0.9s var(--motion-easing-standard, cubic-bezier(0.4, 0, 0.2, 1)) 2;
+}
+
+@keyframes e-permits-change-flash {
+  0%, 100% { box-shadow: 0 0 0 var(--border-width-2, 2px) var(--color-background-base-default, #fff), 0 0 0 var(--border-width-4, 4px) var(--focus-ring, var(--blue-sky-500, #3379db)); }
+  50% { box-shadow: 0 0 0 var(--border-width-2, 2px) var(--color-background-base-default, #fff), 0 0 0 var(--border-width-4, 4px) transparent; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .e-permits-change-flash {
+    animation: none;
+    box-shadow: 0 0 0 var(--border-width-2, 2px) var(--color-background-base-default, #fff), 0 0 0 var(--border-width-4, 4px) var(--focus-ring, var(--blue-sky-500, #3379db));
+  }
 }

@@ -4619,6 +4619,8 @@
     /* rpt-auth-ms-v2: open the authorities multi-select („Toate autoritățile” = its first item, ticked by default), untick it,
        tick the given short names, Confirmă */
     const mdown = (h, sel) => h.find(sel).then((o) => { o.dispatchEvent(new MouseEvent("mousedown", { bubbles: true, cancelable: true })); return h.wait(120); });
+    /* the same on the profile (Configurare): untick „Toate”, tick the given authorities, Confirmă */
+    const PAUMS = (...ids) => async (h) => { const P0 = "#rpt-panel [data-rpt-auth-ms]"; await h.click(`${P0} .e-permits-fo-subgen-select__button`); await h.wait(250); await mdown(h, `${P0} [data-fo-select-all]`); for (const v of ids) await mdown(h, `${P0} .e-permits-fo-subgen-select__option[data-value^="${v} ·"]`); await h.click(`${P0} [data-fo-subgen-confirm]`); await h.wait(250); };
     const AUMS = (...ids) => async (h) => { await h.click(`${C} #fo-rpt-e-authorities`); await h.wait(250); await mdown(h, `${C} [data-rpt-auth-ms] [data-fo-select-all]`); for (const v of ids) await mdown(h, `${C} [data-rpt-auth-ms] .e-permits-fo-subgen-select__option[data-value^="${v} ·"]`); if (ids.length) { await h.click(`${C} [data-rpt-auth-ms] [data-fo-subgen-confirm]`); await h.wait(250); } };
     /* + „Autoritate” (c6) moved to the first place: the column the rows are grouped by */
     /* part 2 helpers: the library dialog (#case-action-modal), the shell confirm, the header ⋮ */
@@ -4674,6 +4676,11 @@
       "rpt-03a": list(seq(nou, next)),
       /* rpt-feature-v1: Nivel is generated (Global, read-only) — the central assigns the global report to ANSP + ANSA */
       "rpt-03b": list(seq(nou, step1, langs, AUMS("ANSP", "ANSA"), at("#rpt-e-authorities"))),
+      /* ms-chip-max-v1: 9 authorities → 4 chips + „Arată toate (9)”; expanded → all 9 + „Arată mai puține” */
+      "rpt-03ag": list(seq(nou, step1, AUMS("ANSP", "ANTA", "ANSA", "AMDM", "INCE", "ASE", "IGSU", "ISC", "ANRE"), at("#rpt-e-authorities"))),
+      "rpt-03ah": list(seq(nou, step1, AUMS("ANSP", "ANTA", "ANSA", "AMDM", "INCE", "ASE", "IGSU", "ISC", "ANRE"), async (h) => { await h.click(`${C} [data-rpt-auth-ms] .e-permits-fo-subgen__more`); await h.wait(250); }, at("#rpt-e-authorities"))),
+      /* ms-place-v1: the field near the bottom of the visible profile → the menu opens BELOW, the page scrolls it into view */
+      "rpt-04l": prof("RPT-0001", "configurare", ((S) => async (h) => { const b = await h.find(`${S} .e-permits-fo-subgen-select__button`); let sc = b.parentElement; while (sc && !(/(auto|scroll)/.test(getComputedStyle(sc).overflowY) && sc.scrollHeight > sc.clientHeight)) sc = sc.parentElement; sc = sc || document.scrollingElement; const lim = Math.min(window.innerHeight, sc === document.scrollingElement ? window.innerHeight : sc.getBoundingClientRect().bottom); sc.scrollTop += b.getBoundingClientRect().bottom - (lim - 24); await h.wait(250); b.click(); await h.wait(400); })("#rpt-panel [data-rpt-auth-ms]")),
       /* rpt-auth-ms-v2: „Toate autoritățile” (first item) unticked → the CAEM multi-select open + searched
          „primăria” (local public authorities); unticked with none chosen → „Înainte” = the field error */
       "rpt-03ac": list(seq(nou, step1, AUMS(), async (h) => { await h.fill(`${C} [data-rpt-auth-ms] [data-fo-subgen-search]`, "primăria", { leave: false }); await h.wait(300); })),
@@ -4724,6 +4731,10 @@
       "rpt-04d": prof("RPT-0003", "configurare", null, null, AUTH),
       "rpt-04e": prof("RPT-0001", "versiuni"),
       "rpt-04f": prof("RPT-0001", "istoric"),
+      /* changes-reveal-v1: unsaved name + 9 authorities → „Modificări nesalvate” (each row „Vezi”, authorities their own row);
+         then „Vezi” on „Autoritățile raportului” = the section scrolled under the tabs, its card flashing, focus on the heading */
+      "rpt-04m": prof("RPT-0001", "configurare", seq(async (h) => { await h.fill("#rpt-e-name-ro", "Raport dosare finalizate pe serviciu și lună", { leave: false }); }, PAUMS("ANSP", "ANTA", "ANSA", "AMDM", "INCE", "ASE", "IGSU", "ISC", "ANRE"), async (h) => { const b = [...document.querySelectorAll('[data-profile-changes="rpt-draft"]')].find((x) => x.getClientRects().length); b.click(); await h.find("#profile-changes-modal.is-active [data-change-reveal]"); await h.wait(300); })),
+      "rpt-04n": prof("RPT-0001", "configurare", seq(async (h) => { await h.fill("#rpt-e-name-ro", "Raport dosare finalizate pe serviciu și lună", { leave: false }); }, PAUMS("ANSP", "ANTA", "ANSA", "AMDM", "INCE", "ASE", "IGSU", "ISC", "ANRE"), async (h) => { const b = [...document.querySelectorAll('[data-profile-changes="rpt-draft"]')].find((x) => x.getClientRects().length); b.click(); await h.click('#profile-changes-modal.is-active [data-change-reveal="Autoritățile raportului"]'); await h.wait(700); })),
       "rpt-04g": prof("RPT-0001", "configurare", async (h) => { await h.fill("#rpt-e-name-ro", "Raport dosare finalizate pe serviciu și lună", { leave: false }); }),
       "rpt-04h": prof("RPT-0002", "configurare", async (h) => { await h.click("#rpt-panel [data-rpt-zoom]"); await h.find("#case-action-modal.is-active .e-permits-rpt-table"); }),
       "rpt-04i": prof("RPT-0002", "configurare", async (h) => { await h.click('#rpt-panel [data-rpt-col="c4"] .e-permits-stack__title'); await h.find(`${DR} #rpt-c-name-ro`); }),
@@ -4891,6 +4902,9 @@
       "dsh-03l": list(seq(nou, step1, next), null, AUTH),
       /* dsh-auth-ms-v2 (= rpt-auth-ms-v2): the CAEM multi-select, „Toate autoritățile” = its first item; open + searched „primăria” */
       "dsh-03n": list(seq(nou, step1, next, role("expert"), DAMS("ANSP", "PMC"))),
+      "dsh-03p": list(seq(nou, step1, next, DAMS("ANSP", "ANTA", "ANSA", "AMDM", "INCE", "ASE", "IGSU", "ISC", "ANRE"))),
+      "dsh-03q": list(seq(nou, step1, next, DAMS("ANSP", "ANTA", "ANSA", "AMDM", "INCE", "ASE", "IGSU", "ISC", "ANRE"), async (h) => { await h.click(`${C} [data-dsh-auth-ms] .e-permits-fo-subgen__more`); await h.wait(250); })),
+      "dsh-04p": prof("DSH-0001", "configurare", ((S) => async (h) => { const b = await h.find(`${S} .e-permits-fo-subgen-select__button`); let sc = b.parentElement; while (sc && !(/(auto|scroll)/.test(getComputedStyle(sc).overflowY) && sc.scrollHeight > sc.clientHeight)) sc = sc.parentElement; sc = sc || document.scrollingElement; const lim = Math.min(window.innerHeight, sc === document.scrollingElement ? window.innerHeight : sc.getBoundingClientRect().bottom); sc.scrollTop += b.getBoundingClientRect().bottom - (lim - 24); await h.wait(250); b.click(); await h.wait(400); })("#dsh-panel [data-dsh-auth-ms]")),
       "dsh-03o": list(seq(nou, step1, next, DAMS(), async (h) => { await h.fill(`${C} [data-dsh-auth-ms] [data-fo-subgen-search]`, "primăria", { leave: false }); await h.wait(300); })),
 
       "dsh-03m": list(seq(built, next, async (h) => { await h.click(`${C} [data-dsh-save]`); await h.find("#dsh-panel"); await h.wait(300); })),

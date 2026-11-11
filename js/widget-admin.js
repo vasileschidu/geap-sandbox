@@ -1539,6 +1539,13 @@
         name: P.draft.titles.ro, applies: "se aplică după Salvează", emptyText: "Widget-ul este salvat.", groups: ["Configurare"],
         entries: () => Object.entries(changedFields()).map(([lbl, [a, b]]) => ({ undo: lbl, group: "Configurare", title: lbl, tag: ["Modificat", "brand"], detail: `${a.replace(/<[^>]+>/g, "") || "—"} → ${b.replace(/<[^>]+>/g, "") || "—"}` })),
         undo: () => discard(),
+        /* changes-reveal-v1: „Vezi” → the Configurare tab, the section of that setting */
+        reveal: async (lbl) => {
+          if (P.tab !== "configurare") await openProfile(P.id, "configurare", { push: false });
+          const panel = document.querySelector("#wid-panel");
+          const alias = { Tip: "Tipul widget-ului", "Coloana măsurată": "Ce se măsoară", "Ținta": "Ce se măsoară", "Criteriul principal": "Gruparea", "Criteriul secundar": "Gruparea", "Gruparea datei": "Gruparea", "Ordinea categoriilor": "Gruparea", Format: "Format, praguri și culori", Praguri: "Format, praguri și culori", Culori: "Format, praguri și culori", "Perioada de comparație": "Comparație", "Lățimea implicită": "Dimensiunile implicite", "Înălțimea implicită": "Dimensiunile implicite", "Subtitlu și descriere": "Titlu și descriere" }[lbl];
+          return A().sectionOfLabel?.(panel, alias || lbl) || (alias ? null : A().sectionOfLabel?.(panel, "Titlu și descriere"));
+        },
         discard,
         save: () => savePage()
       };
