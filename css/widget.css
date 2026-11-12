@@ -1634,7 +1634,7 @@ button.e-permits-wid-rows__row:focus-visible {
 }
 
 .e-permits-wid-card--dash.e-permits-wid-card--panel:not(.e-permits-wid-card--stat) > .e-permits-wid-card__body {
-  padding: var(--spacing-16, 16px) var(--spacing-24, 24px);
+  padding: var(--spacing-24, 24px); /* wid-chart-pad-v1 (2026-11-12, user): charts 24 top / bottom too (was 16) */
 }
 
 /* the headline: Heading H3 (phones Mobile H3) + the delta Small tag, then „față de … (N)” 14/20 tertiary */
