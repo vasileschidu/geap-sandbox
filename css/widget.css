@@ -161,7 +161,7 @@
    `label { gap: 4 }` out-specifies the ONE radio's gap 12): label line · group · error, 8 apart */
 .e-permits-wid-vis-field {
   display: grid;
-  gap: var(--spacing-16, 16px); /* vis-spacing-v3 (2026-11-12, user): label → options 16 (was 8) */
+  gap: var(--spacing-20, 20px); /* vis-spacing-v4 (2026-11-12, user): label → options 20 */
 }
 
 .e-permits-wid-vis {
@@ -1225,7 +1225,7 @@ button.e-permits-wid-rows__row:focus-visible {
 /* Aria de vizibilitate: the note sits 24 under the radio group (vis-spacing-v2, 2026-11-09: the BO info-note rule
    `:is([data-demo-flow=back-office] …) .info-box { margin: 0 }` out-specified the old 16 → it sat flush) */
 .e-permits-wid-vis-field + .info-box.e-permits-info-note.e-permits-info-note {
-  margin-top: var(--spacing-16, 16px); /* vis-spacing-v3: options → note 16 (was 24) */
+  margin-top: var(--spacing-20, 20px); /* vis-spacing-v4: options → note 20 */
 }
 
 /* legend-cols-v1 (2026-11-11, user): every list legend with values (donut / pie, funnel) is one grid — dot + label on the left
