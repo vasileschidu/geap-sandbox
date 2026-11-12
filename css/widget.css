@@ -1690,6 +1690,10 @@ button.e-permits-wid-rows__row:focus-visible {
 
 .e-permits-wid-card--dash.e-permits-wid-card--panel > .e-permits-wid-card__body > .e-permits-wid-table-wrap {
   border-radius: 0;
+  /* wid-table-isolate-v1 (2026-11-12, user): the table is isolated by a 1px line above (over the header row) and below
+     (under the last row, which itself has none), full card width */
+  border-bottom: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
+  border-top: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
 }
 
 /* dsh-dosare-table-v1: the Dosare row table = the BO dossier list rows; the last cell = the row's „opens” cue (chevron
