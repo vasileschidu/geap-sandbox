@@ -1533,7 +1533,7 @@
     if (!t.closest) return;
     /* „Vezi tot” on a card that keeps only the rows that fit its height: the whole widget in the dialog */
     const seeAll = t.closest("[data-dsh-tile] [data-wid-all]");
-    if (seeAll) { const info = widgetInfo(seeAll.closest("[data-dsh-tile]").dataset.dshTile, P.id ? dashOf(P.id) : null); if (info.cfg) W().openFull?.(info.cfg, { subtitle: "Toate datele widget-ului" }); return; }
+    if (seeAll) { const info = widgetInfo(seeAll.closest("[data-dsh-tile]").dataset.dshTile, P.id ? dashOf(P.id) : null); if (info.cfg) W().openFull?.(info.cfg, { subtitle: "Actualizat azi, la 06:00" }); return; }
     /* list */
     const pendRow = t.closest("[data-dsh-pending-row]");
     if (pendRow) { event.stopPropagation(); openPending(pendRow.dataset.dshPendingRow); return; }

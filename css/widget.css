@@ -1837,3 +1837,88 @@ button.e-permits-wid-rows__row:focus-visible {
 .e-permits-wid-stat__value.e-permits-wid-stat__value--empty {
   color: var(--color-text-base-tertiary, #757575);
 }
+
+/* ==== wid-detail-dialog-v1 (2026-11-12, user: „Detalii” opened narrower than its card — „do a proper view”) ====
+   „Detalii” / „Vezi tot” / „Mărește” = the widest library dialog (`modal--lg` + `.e-permits-reg-modal--wid-zoom`): min(1280,
+   viewport − 2 × 24) wide (never narrower than the card it came from), the viewport − 2 × 24 tall at most (long-modal rule).
+   The header carries the widget: title + „ⓘ” (moved from the card head), meta „Actualizat …”; the body is the whole widget — a
+   table shows ALL rows, the header row sticks, the table scrolls inside (both ways) so the dialog never grows past the
+   viewport; a chart gets the width. No inner frame (no border, no radius, no head). Phones: the full-height sheet. */
+.modal-overlay > .modal.e-permits-reg-modal--wid-zoom {
+  max-width: min(calc(var(--spacing-40, 40px) * 32), calc(100vw - var(--spacing-24, 24px) * 2));
+  width: 100%;
+}
+
+.e-permits-reg-modal--wid-zoom .modal--header-title .e-permits-wid-card__info {
+  display: inline-flex;
+  margin-left: var(--spacing-8, 8px);
+  vertical-align: middle;
+}
+
+.e-permits-reg-modal--wid-zoom [data-case-modal-body] {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  padding-left: var(--spacing-0, 0px);
+  padding-right: var(--spacing-0, 0px);
+}
+
+.e-permits-reg-modal--wid-zoom .e-permits-wid-card.e-permits-wid-card--panel {
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  display: flex;
+  flex: 0 1 auto;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.e-permits-reg-modal--wid-zoom .e-permits-wid-card--panel > .e-permits-wid-card__head {
+  display: none;
+}
+
+.e-permits-reg-modal--wid-zoom .e-permits-wid-card--panel > .e-permits-wid-card__body {
+  display: flex;
+  flex: 0 1 auto;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.e-permits-reg-modal--wid-zoom .e-permits-wid-card--panel > .e-permits-wid-card__body:not(:has(> .e-permits-wid-table-wrap)) {
+  padding: var(--spacing-0, 0px) var(--spacing-20, 20px);
+}
+
+/* the table's outer cells line up with the dialog title (the dialog's own 20 gutter) */
+.e-permits-reg-modal--wid-zoom .e-permits-wid-card--panel > .e-permits-wid-card__body > .e-permits-wid-table-wrap :is(th, td):first-child {
+  padding-left: var(--spacing-20, 20px);
+}
+
+.e-permits-reg-modal--wid-zoom .e-permits-wid-card--panel > .e-permits-wid-card__body > .e-permits-wid-table-wrap :is(th, td):last-child {
+  padding-right: var(--spacing-20, 20px);
+}
+
+.e-permits-reg-modal--wid-zoom .e-permits-wid-card--panel > .e-permits-wid-card__body > .e-permits-wid-table-wrap {
+  border-top: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
+  flex: 0 1 auto;
+  max-height: none;
+  min-height: 0;
+  overflow: auto;
+}
+
+.e-permits-reg-modal--wid-zoom .e-permits-wid-table-wrap thead :is(th, td) {
+  background: var(--color-background-neutral-default, #f1f1f1);
+  position: sticky;
+  top: 0;
+  z-index: 2;
+}
+
+.e-permits-reg-modal--wid-zoom .e-permits-wid-card--panel > .e-permits-wid-card__body > .e-permits-wid-card__foot {
+  margin: var(--spacing-16, 16px) var(--spacing-20, 20px) 0;
+}
+
+@media (max-width: 760px) {
+  .modal-overlay > .modal.e-permits-reg-modal--wid-zoom {
+    height: 100%;
+  }
+}

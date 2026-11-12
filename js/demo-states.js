@@ -5109,6 +5109,9 @@
       "dsh-20j": view(null, { tablou: "fara-date" }),
       /* donut-hover-v1 — a pie slice hovered: grey halo, the others dimmed, legend line active, the Small tooltip */
       "dsh-20k": view(async (h) => { const donut = await h.find("[data-dsh-view] .e-permits-wid-donut:not(.e-permits-wid-donut--empty)"); donut.scrollIntoView({ block: "center" }); await h.wait(400); window.GEAPWidgetCharts.donutActivate(donut, 1); await h.wait(400); }),
+      /* dsh-detail-dialog-v1: „Detalii” = the wide dialog (table widget WGT-0012 · the donut WGT-0006) */
+      "dsh-20l": view(async (h) => { await h.click('[data-dsh-tile="WGT-0012"] [data-wid-all]'); await h.find("#case-action-modal.is-active .e-permits-wid-card"); await h.wait(500); }),
+      "dsh-20m": view(async (h) => { await h.click('[data-dsh-tile="WGT-0006"] [data-wid-all]'); await h.find("#case-action-modal.is-active .e-permits-wid-card"); await h.wait(500); }),
       "dsh-20f": view(async (h) => { await h.click("[data-dsh-view-retry]"); await h.wait(1100); }, { tablou: "widget-eroare" })
     };
   }

@@ -1631,7 +1631,13 @@
       body: cardHtml({ ...v, width: "full" }, { st, natural: true }),
       footer: '<div class="modal-buttons"><button class="btn btn-primary btn-rounded" type="button" data-case-close>Închide</button></div>'
     });
-    document.querySelector("#case-action-modal .modal")?.classList.replace("modal--md", "modal--lg");
+    /* wid-detail-dialog-v1 (user: „Detalii” opened narrower than its card): the widest library dialog (css/widget.css
+       `.e-permits-reg-modal--wid-zoom`, min(1280, viewport − 2 × 24)), the card's head moves into the dialog header (title + „ⓘ”,
+       „Actualizat …” as the meta), the body = the whole widget (all rows, sticky header, scrolls inside) */
+    const box = document.querySelector("#case-action-modal .modal");
+    box?.classList.replace("modal--md", "modal--lg");
+    const info = box?.querySelector(".e-permits-wid-card__head .e-permits-wid-card__info");
+    if (info) box.querySelector("[data-case-modal-title]").append(info);
   }
 
   /* ================================================================ events */
