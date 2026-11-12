@@ -726,5 +726,6 @@ background: var(--color-background-base-default);
   (`calc(var(--spacing-40) * 32)`), centred beyond. Marker `.e-permits-dsh-wide` on the tab content (css/dashboard.css);
   Versiuni / Istoric and the create-sheet steps keep their widths. A board of only compact number tiles gets
   `.is-natural` on the grid: the row is as tall as the tallest card's content (no fixed height, no empty card space).
-- **Rapoarte report editor 1280 (rpt-editor-1280-v1, 2026-11-12, user „not full fill, max width as in the others”):** the report Configurare
-  (settings | Previzualizare) and the „Raport nou” sheet (strip, steps, footer bar) use the same **1280** cap, centred beyond (css/rapoarte.css).
+- **Rapoarte = the standard 1024 (rpt-editor-1024-v1, 2026-11-12, user „same max width as in other places”; 1280 in rpt-editor-1280-v1 replaced):** the Rapoarte profile
+  (header, tabs, Configurare settings | Previzualizare) and the „Raport nou” sheet (strip, steps, footer bar) use the BO profile width, **1024** centred
+  (css/rapoarte.css overrides the editor-wide 1600). Split 5/12 | 7/12 as before (preview ≥ 415 at 1024 viewport); stacked < 1024. No Rapoarte-specific width.

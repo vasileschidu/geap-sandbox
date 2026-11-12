@@ -471,7 +471,7 @@ Helpers: `const AF = Object.getPrototypeOf(async function(){}).constructor; cons
 
 - BO list blocks rbo-01 / 01a / 01b / 01c (2026-11-12, code `rbo-list-toolbar-v1`): the list is now the admin registry look — heading „Rapoartele tale · N rapoarte · Perimetru” ABOVE the toolbar, then search + „Filtrare” chip + „Sortează” chip (phones icon-only in the search row), then the category groups; no Export button. Redo the blocks from rbo-01 / rbo-01d (filter) / rbo-01e (sort menu).
 
-## job 21 — editor max width (2026-11-12, user: „not full fill, max width as in the others”; Figma not written from the code session — spec)
-- Code cap: **1280** (`calc(var(--spacing-40) * 32)`, same as dashboards dsh-wide-v2), centred, fluid below it to the 16 BO gutter (css/rapoarte.css `rpt-editor-1280-v1`).
-- Every Rapoarte block with the two-column editor (column 02 „Raport nou” steps + column 03 profile Configurare, incl. 15228:6264): editor container = auto-layout, width FILL, maxWidth 1280, centred (counter-axis CENTER in the page frame); not a fixed or full-width frame. Settings column 5/12 | Previzualizare 7/12 inside it. Sheet: header stays full width; step strip, step content and footer bar share the same 1280 container.
-- Check at 1440 (content < 1280 + gutters fills) and 1920 / 2560 (1280 centred).
+## job 22 — Rapoarte max width 1024 (2026-11-12, user: „same max width as in other places”; replaces the 1280 spec; Figma not written from the code session)
+- Code cap: **1024** (BO profile panel width, css/rapoarte.css `rpt-editor-1024-v1`), centred, fluid below it to the 16 BO gutter. Applies to the profile (header, tabs, Configurare split, Versiuni, Istoric, Acces) and the „Raport nou” sheet (step strip, step content, footer inner; sheet header stays full width).
+- Figma follow-up: the 30 blocks set to maxWidth 1280 (column 02 „Raport nou” steps + column 03 profile Configurare, incl. 15228:6264) -> maxWidth 1024, still FILL + centred. Settings 5/12 | Previzualizare 7/12 inside (preview 555-583 wide at 1440). Find them by maxWidth == 1280 in the rapoarte page (node ids were not recorded by the code session).
+- Check at 1440 and 1920 / 2560 (1024 centred).
