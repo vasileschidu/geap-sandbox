@@ -1574,9 +1574,27 @@ button.e-permits-wid-rows__row:focus-visible {
   padding: 0;
 }
 
+/* the bottom corners follow the card only when the table is the last thing in it; anything after (Vezi tot, caption) = square */
 .e-permits-wid-card--panel > .e-permits-wid-card__body > .e-permits-wid-table-wrap {
   border: 0;
+  border-radius: 0;
+}
+
+.e-permits-wid-card--panel > .e-permits-wid-card__body > .e-permits-wid-table-wrap:last-child {
   border-radius: 0 0 calc(var(--border-radius-16, 16px) - var(--border-width-1, 1px)) calc(var(--border-radius-16, 16px) - var(--border-width-1, 1px));
+}
+
+/* the editor preview (not --dash): last row without divider; every non-table text keeps the 24 gutter; category cells = data on white */
+.e-permits-wid-card--panel:not(.e-permits-wid-card--dash) > .e-permits-wid-card__body > .e-permits-wid-table-wrap tbody tr:last-child > :is(th, td) {
+  border-bottom: 0;
+}
+
+.e-permits-wid-card--panel:not(.e-permits-wid-card--dash) > .e-permits-wid-card__body:has(> .e-permits-wid-table-wrap) > .e-permits-wid-card__foot {
+  margin: 0 var(--spacing-24, 24px) var(--spacing-16, 16px);
+}
+
+.e-permits-wid-card--panel > .e-permits-wid-card__body > .e-permits-wid-table-wrap .e-permits-wid-table--agg tbody th {
+  background: var(--color-background-base-default, #fff);
 }
 
 .e-permits-wid-card--panel > .e-permits-wid-card__body > .e-permits-wid-table-wrap ~ .e-permits-wid-all {
