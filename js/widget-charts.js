@@ -50,9 +50,14 @@
 
   const legend = (items, { vertical = false, wrap = false } = {}) => `
     <ul class="e-permits-meter-legend e-permits-meter-legend--tray${vertical ? " e-permits-wid-legend--list" : ""}${wrap ? " e-permits-wid-legend--wrap" : ""}" role="list">
-      ${items.map((it) => `<li>${it.button
-        ? `<button class="e-permits-wid-legend__btn" type="button"${it.button}><span class="e-permits-meter-legend__dot ${it.dot}" aria-hidden="true"></span><span${vertical ? ` data-tooltip-label="${esc(it.label)}"` : ""}>${esc(it.label)}</span>${it.value ? `<strong>${esc(it.value)}</strong>` : ""}${it.pct ? `<span class="e-permits-meter-legend__pct">${esc(it.pct)}</span>` : ""}</button>`
-        : `<span class="e-permits-meter-legend__dot ${it.dot}" aria-hidden="true"></span><span${vertical ? ` data-tooltip-label="${esc(it.label)}"` : ""}>${esc(it.label)}</span>${it.value ? `<strong>${esc(it.value)}</strong>` : ""}${it.pct ? `<span class="e-permits-meter-legend__pct">${esc(it.pct)}</span>` : ""}`}</li>`).join("")}
+      ${items.map((it) => {
+        const inner = `<span class="e-permits-meter-legend__dot ${it.dot}" aria-hidden="true"></span><span${vertical ? ` data-tooltip-label="${esc(it.label)}"` : ""}>${esc(it.label)}</span>${it.value ? `<strong>${esc(it.value)}</strong>` : ""}${it.pct ? `<span class="e-permits-meter-legend__pct">${esc(it.pct)}</span>` : ""}`;
+        /* donut-hover-v1: a donut legend line is tied to its slice (`data-wid-slice`) — a drill button, else a focusable line */
+        const slice = Number.isInteger(it.slice) ? ` data-wid-slice="${it.slice}"` : "";
+        if (it.button) return `<li><button class="e-permits-wid-legend__btn" type="button"${slice}${it.button}>${inner}</button></li>`;
+        if (slice) return `<li><span class="e-permits-wid-legend__btn e-permits-wid-legend__btn--static" tabindex="0"${slice}>${inner}</span></li>`;
+        return `<li>${inner}</li>`;
+      }).join("")}
     </ul>`;
   const toneDot = (tone) => `e-permits-meter-legend__dot--${tone}`;
   /* the legend of a single-series chart: thresholds (zones) or the measure, + the KPI target */
@@ -178,20 +183,25 @@
   function donut(m) {
     const total = m.cats.reduce((s, c) => s + c.value, 0);
     let off = 0;
+    /* donut-hover-v1: each arc carries its sweep (from / len, % of the ring, clockwise from 12 o'clock) and its tooltip
+       text; the hover runtime below hit-tests the ring by angle and draws the grey halo (`__halo`) over the active one */
+    const tipOf = (c) => `${c.label} · ${m.fmt(c.value)} · ${share(c.value, total)}`;
+    const ariaSlice = (c) => `${c.label}: ${m.fmt(c.value)} (${share(c.value, total)})`;
     const arcs = m.cats.map((c, i) => {
       const len = total ? (c.value / total) * 100 : 0;
       const dash = Math.max(0, len - (m.cats.length > 1 ? 0.8 : 0));
-      const arc = `<circle class="e-permits-wid-arc ${catCls(m, i)}" cx="21" cy="21" r="15.9155" stroke-width="6" pathLength="100" stroke-dasharray="${dash.toFixed(2)} ${(100 - dash).toFixed(2)}" stroke-dashoffset="${(25 - off).toFixed(2)}"></circle>`;
+      const arc = `<circle class="e-permits-wid-arc ${catCls(m, i)}" cx="21" cy="21" r="15.9155" stroke-width="6" pathLength="100" stroke-dasharray="${dash.toFixed(2)} ${(100 - dash).toFixed(2)}" stroke-dashoffset="${(25 - off).toFixed(2)}" data-wid-slice="${i}" data-wid-from="${off.toFixed(3)}" data-wid-len="${len.toFixed(3)}" data-wid-tip="${esc(tipOf(c))}"></circle>`;
       off += len;
       return arc;
     }).join("");
+    const halo = total ? '<circle class="e-permits-wid-donut__halo" cx="21" cy="21" r="20" pathLength="100" stroke-dasharray="0 100"></circle>' : "";
     return `
       <div class="e-permits-wid-donut e-permits-wid-donut--${m.height || "compact"}${total ? "" : " e-permits-wid-donut--empty"}">
         <div class="e-permits-wid-donut__chart">
-          <svg class="e-permits-wid-donut__svg" viewBox="0 0 42 42" role="img" aria-label="${ariaOf(m)}" focusable="false"><circle class="e-permits-wid-donut__track" cx="21" cy="21" r="15.9155" stroke-width="6"></circle>${arcs}</svg>
+          <svg class="e-permits-wid-donut__svg" viewBox="0 0 42 42" role="img" aria-label="${ariaOf(m)}" focusable="false"><circle class="e-permits-wid-donut__track" cx="21" cy="21" r="15.9155" stroke-width="6"></circle>${arcs}${halo}</svg>
           <span class="e-permits-wid-donut__center"><strong>${esc(m.fmt(m.kpi && Number.isFinite(m.kpiCurrent) ? m.kpiCurrent : total))}</strong><span>${m.kpi ? "KPI" : "total"}</span></span>
         </div>
-        ${legend(m.cats.map((c, i) => ({ label: c.label, value: m.fmt(c.value), pct: share(c.value, total), dot: catCls(m, i), button: m.drill ? `${drillAttrs(m, c.label, c.value)} aria-label="${esc(`${c.label}: ${m.fmt(c.value)} — deschide înregistrările`)}"` : "" })), { vertical: true })}
+        ${legend(m.cats.map((c, i) => ({ label: c.label, value: m.fmt(c.value), pct: share(c.value, total), dot: catCls(m, i), slice: total ? i : undefined, button: m.drill ? `${drillAttrs(m, c.label, c.value)} aria-label="${esc(`${ariaSlice(c)} — deschide înregistrările`)}"` : "" })), { vertical: true })}
       </div>`;
   }
 
@@ -513,9 +523,178 @@
   const watch = (scope = document) => scope.querySelectorAll(".e-permits-wid-card").forEach((card) => { fit(card); if (observer && !card.dataset.widFitWatched) { card.dataset.widFitWatched = "1"; observer.observe(card); } });
   if ("MutationObserver" in window) {
     let queued = false;
-    new MutationObserver(() => { if (!queued) { queued = true; requestAnimationFrame(() => { queued = false; watch(); }); } }).observe(document.documentElement, { childList: true, subtree: true });
+    new MutationObserver(() => { if (!queued) { queued = true; requestAnimationFrame(() => { queued = false; watch(); donutReconnect(); }); } }).observe(document.documentElement, { childList: true, subtree: true });
   }
 
+  /* ---------------------------------------------------------------- donut-hover-v1 (2026-11-12, user: „the pie should also
+     have hover and show the numbers in a tooltip; a nice grey ring”) — Recharts / Stripe pattern:
+     · the ring is hit-tested by ANGLE (pointer over the band ± the halo) — no SVG hit targets, no role on SVG;
+     · the active slice keeps its colour and gets a grey halo arc just outside it (`__halo`: gap --spacing-2, width
+       --spacing-4, in screen px whatever the ring size); the other slices + legend lines dim (`.is-hovering`);
+     · the library Small tooltip (GEAPTooltip, edge-aligned) shows „Etichetă · valoare · %”, anchored at the slice's
+       outer midpoint (left / right of the ring for side slices, above / below for top / bottom ones);
+     · two-way: a legend line (drill button or focusable line) activates its slice on hover / focus; Arrow keys walk
+       the lines; a slice click drills through its legend button (pointer cursor only then); touch: a tap shows the
+       tooltip, a second tap on the same slice drills; the centre total never changes. */
+  const R_MID = 15.9155;
+  const R_OUT = R_MID + 3;
+  const tokenPx = (name, fallback) => parseFloat(getComputedStyle(document.documentElement).getPropertyValue(name)) || fallback;
+  let donutActive = null; /* { donut, i } */
+  const donutOf = (el) => el?.closest?.(".e-permits-wid-donut");
+  const arcsOf = (donut) => [...donut.querySelectorAll(".e-permits-wid-arc[data-wid-slice]")];
+  const legendItem = (donut, i) => donut.querySelector(`.e-permits-wid-legend--list [data-wid-slice="${i}"]`);
+  function donutAnchor(chart) {
+    let a = chart.querySelector(":scope > .e-permits-wid-donut__anchor");
+    if (!a) {
+      a = document.createElement("span");
+      a.className = "e-permits-wid-donut__anchor";
+      a.setAttribute("aria-hidden", "true");
+      chart.appendChild(a);
+    }
+    return a;
+  }
+  function donutClear() {
+    if (!donutActive) return;
+    const { donut } = donutActive;
+    donutActive = null;
+    donut.classList.remove("is-hovering", "is-drillable");
+    donut.querySelectorAll(".is-active[data-wid-slice]").forEach((n) => n.classList.remove("is-active"));
+    donut.querySelector(".e-permits-wid-donut__halo")?.classList.remove("is-shown");
+    window.GEAPTooltip?.hide();
+  }
+  function donutActivate(donut, i, overRing = false) {
+    if (donutActive && donutActive.donut === donut && donutActive.i === i) {
+      donut.classList.toggle("is-drillable", overRing && Boolean(legendItem(donut, i)?.matches("[data-wid-drill]")));
+      return;
+    }
+    if (donutActive) donutClear();
+    const arc = donut.querySelector(`.e-permits-wid-arc[data-wid-slice="${i}"]`);
+    const svg = donut.querySelector(".e-permits-wid-donut__svg");
+    const chart = donut.querySelector(".e-permits-wid-donut__chart");
+    if (!arc || !svg || !chart) return;
+    donutActive = { donut, i };
+    donut.classList.add("is-hovering");
+    arc.classList.add("is-active");
+    const item = legendItem(donut, i);
+    item?.classList.add("is-active");
+    /* the pointer cursor only while the mouse is over a slice that drills */
+    donut.classList.toggle("is-drillable", overRing && Boolean(item?.matches("[data-wid-drill]")));
+    /* the halo: the slice's own dash pattern on a wider circle, its gap + width in screen px */
+    const box = svg.getBoundingClientRect();
+    const scale = box.width / 42 || 1;
+    const gap = tokenPx("--spacing-2", 2);
+    const width = tokenPx("--spacing-4", 4);
+    const halo = svg.querySelector(".e-permits-wid-donut__halo");
+    if (halo) {
+      halo.setAttribute("r", (R_OUT + (gap + width / 2) / scale).toFixed(3));
+      halo.setAttribute("stroke-width", (width / scale).toFixed(3));
+      halo.setAttribute("stroke-dasharray", arc.getAttribute("stroke-dasharray"));
+      halo.setAttribute("stroke-dashoffset", arc.getAttribute("stroke-dashoffset"));
+      halo.classList.add("is-shown");
+    }
+    /* the tooltip anchor: the slice's outer midpoint (outside the halo) */
+    const from = Number(arc.dataset.widFrom) || 0;
+    const len = Number(arc.dataset.widLen) || 0;
+    const ang = ((from + len / 2) / 100) * Math.PI * 2;
+    const rPx = R_OUT * scale + gap + width;
+    const cb = chart.getBoundingClientRect();
+    const cx = box.left - cb.left + box.width / 2;
+    const cy = box.top - cb.top + box.height / 2;
+    const dx = Math.sin(ang);
+    const dy = -Math.cos(ang);
+    const a = donutAnchor(chart);
+    a.style.left = `${Math.round(cx + dx * rPx)}px`;
+    a.style.top = `${Math.round(cy + dy * rPx)}px`;
+    a.dataset.tooltipText = arc.dataset.widTip || "";
+    a.dataset.tooltipPlacement = Math.abs(dx) >= Math.abs(dy) ? (dx > 0 ? "right" : "left") : (dy > 0 ? "bottom" : "top");
+    window.GEAPTooltip?.show(a);
+    /* no room beside the ring (a card at the screen edge): above / below the slice instead of flipping onto the ring */
+    const tip = document.getElementById("icon-tooltip");
+    if (tip && !tip.hidden && /left|right/.test(a.dataset.tooltipPlacement) && tip.dataset.side !== a.dataset.tooltipPlacement) {
+      a.dataset.tooltipPlacement = dy > 0 ? "bottom" : "top";
+      a.style.top = `${Math.round(cy + (dy > 0 ? rPx : -rPx))}px`; /* just past the ring's top / bottom, at the slice's x */
+      window.GEAPTooltip.refresh();
+    }
+  }
+  /* which slice is under a viewport point (null = off the ring / in the hole) */
+  function sliceAt(donut, x, y) {
+    const svg = donut.querySelector(".e-permits-wid-donut__svg");
+    if (!svg || donut.classList.contains("e-permits-wid-donut--empty")) return null;
+    const box = svg.getBoundingClientRect();
+    const scale = box.width / 42 || 1;
+    const dx = x - (box.left + box.width / 2);
+    const dy = y - (box.top + box.height / 2);
+    const r = Math.hypot(dx, dy) / scale;
+    if (r < R_MID - 3 || r > R_OUT + (tokenPx("--spacing-2", 2) + tokenPx("--spacing-4", 4)) / scale) return null;
+    const p = (((Math.atan2(dx, -dy) / (Math.PI * 2)) * 100) + 100) % 100;
+    const hit = arcsOf(donut).find((arc) => { const f = Number(arc.dataset.widFrom); return p >= f && p < f + Number(arc.dataset.widLen); });
+    return hit && Number(hit.dataset.widLen) > 0 ? Number(hit.dataset.widSlice) : null;
+  }
+  let donutPt = null; /* the last mouse point: a re-rendered card (dashboard editor, preview refresh) re-picks its slice */
+  function donutHit(t, x, y) {
+    const chart = t?.closest(".e-permits-wid-donut__chart");
+    const item = t?.closest(".e-permits-wid-donut .e-permits-wid-legend--list [data-wid-slice]");
+    if (chart) {
+      const i = sliceAt(donutOf(chart), x, y);
+      if (i === null) donutClear(); else donutActivate(donutOf(chart), i, true);
+      return true;
+    }
+    if (item) { donutActivate(donutOf(item), Number(item.dataset.widSlice)); return true; }
+    return false;
+  }
+  function donutReconnect() {
+    if (!donutActive || donutActive.donut.isConnected) return;
+    donutActive = null;
+    window.GEAPTooltip?.hide();
+    if (donutPt) donutHit(document.elementFromPoint(donutPt.x, donutPt.y), donutPt.x, donutPt.y);
+  }
+  document.addEventListener("pointermove", (event) => {
+    if (event.pointerType && event.pointerType !== "mouse") return;
+    donutPt = { x: event.clientX, y: event.clientY };
+    donutReconnect();
+    const t = event.target instanceof Element ? event.target : null;
+    if (donutHit(t, event.clientX, event.clientY)) return;
+    /* off the donut: clear, unless a legend line of it holds the keyboard focus */
+    if (donutActive && !(donutActive.donut.contains(document.activeElement) && document.activeElement.matches(":focus-visible"))) donutClear();
+  }, { passive: true });
+  /* a slice click drills like its legend line; touch: first tap = tooltip, second tap on the same slice = drill */
+  document.addEventListener("click", (event) => {
+    const chart = event.target instanceof Element ? event.target.closest(".e-permits-wid-donut__chart") : null;
+    if (!chart) return;
+    const donut = donutOf(chart);
+    const i = sliceAt(donut, event.clientX, event.clientY);
+    if (i === null) { donutClear(); return; }
+    const touch = event.pointerType ? event.pointerType !== "mouse" : false;
+    const again = donutActive && donutActive.donut === donut && donutActive.i === i;
+    if (touch && !again) { donutActivate(donut, i); return; }
+    const btn = legendItem(donut, i);
+    if (btn?.matches("button[data-wid-drill]")) { donutClear(); btn.click(); return; }
+    donutActivate(donut, i);
+  });
+  document.addEventListener("pointerdown", (event) => {
+    if (donutActive && !(event.target instanceof Element && event.target.closest(".e-permits-wid-donut__chart"))) donutClear();
+  }, true);
+  document.addEventListener("focusin", (event) => {
+    const item = event.target instanceof Element ? event.target.closest(".e-permits-wid-donut .e-permits-wid-legend--list [data-wid-slice]") : null;
+    if (item) { donutClear(); donutActivate(donutOf(item), Number(item.dataset.widSlice)); }
+  });
+  document.addEventListener("focusout", (event) => {
+    const item = event.target instanceof Element ? event.target.closest(".e-permits-wid-legend--list [data-wid-slice]") : null;
+    if (item && !(event.relatedTarget instanceof Element && event.relatedTarget.closest(".e-permits-wid-legend--list [data-wid-slice]"))) donutClear();
+  });
+  document.addEventListener("keydown", (event) => {
+    const item = event.target instanceof Element ? event.target.closest(".e-permits-wid-donut .e-permits-wid-legend--list [data-wid-slice]") : null;
+    if (!item) return;
+    if (event.key === "Escape") { donutClear(); return; }
+    const step = { ArrowDown: 1, ArrowRight: 1, ArrowUp: -1, ArrowLeft: -1 }[event.key];
+    if (!step) return;
+    const items = [...item.closest(".e-permits-wid-legend--list").querySelectorAll("[data-wid-slice]")].filter((n) => !n.closest(".is-fit-hidden"));
+    const next = items[(items.indexOf(item) + step + items.length) % items.length];
+    if (next) { event.preventDefault(); next.focus(); }
+  });
+  document.addEventListener("pointerleave", donutClear);
+  window.addEventListener("scroll", () => { if (donutActive && !donutActive.donut.isConnected) donutClear(); }, true);
+
   window.matchMedia?.(PHONE).addEventListener?.("change", () => document.querySelectorAll(".e-permits-wid-card").forEach((card) => fit(card)));
-  window.GEAPWidgetCharts = { render, glyph, series: sClass, nf, fit, watch, STATUS_COLOURS, isStatusDim, statusClass };
+  window.GEAPWidgetCharts = { render, glyph, series: sClass, nf, fit, watch, STATUS_COLOURS, isStatusDim, statusClass, donutActivate, donutClear };
 })();

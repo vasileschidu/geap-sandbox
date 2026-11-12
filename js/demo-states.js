@@ -5107,6 +5107,8 @@
       "dsh-20h": view(null, { tablou: "grila" }),
       "dsh-20i": view(null, { tablou: "kpi4" }),
       "dsh-20j": view(null, { tablou: "fara-date" }),
+      /* donut-hover-v1 — a pie slice hovered: grey halo, the others dimmed, legend line active, the Small tooltip */
+      "dsh-20k": view(async (h) => { const donut = await h.find("[data-dsh-view] .e-permits-wid-donut:not(.e-permits-wid-donut--empty)"); donut.scrollIntoView({ block: "center" }); await h.wait(400); window.GEAPWidgetCharts.donutActivate(donut, 1); await h.wait(400); }),
       "dsh-20f": view(async (h) => { await h.click("[data-dsh-view-retry]"); await h.wait(1100); }, { tablou: "widget-eroare" })
     };
   }

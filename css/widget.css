@@ -705,6 +705,72 @@ button.e-permits-wid-rows__row:focus-visible {
   stroke: var(--wid-series);
 }
 
+/* donut-hover-v1 (2026-11-12): hover / focus / tap on a slice or its legend line (js/widget-charts.js donutActivate).
+   The active slice keeps its colour; a grey halo arc sits just outside it (gap 2, width 4 — set in screen px by the js);
+   the other slices and legend lines step back to 40 % (the 66 step of the opacity scale, design-system.md › ramps);
+   the active legend line takes its hover fill. The centre total never changes; no layout moves. */
+.e-permits-wid-donut {
+  --wid-dim: 0.4;
+}
+
+.e-permits-wid-donut__svg {
+  overflow: visible;
+}
+
+.e-permits-wid-donut__center {
+  pointer-events: none;
+}
+
+.e-permits-wid-donut__halo {
+  fill: none;
+  opacity: 0;
+  pointer-events: none;
+  stroke: var(--color-border-base-secondary, #d4d4d4);
+}
+
+.e-permits-wid-donut__halo.is-shown {
+  opacity: 1;
+}
+
+.e-permits-wid-donut.is-hovering .e-permits-wid-arc:not(.is-active),
+.e-permits-wid-donut.is-hovering .e-permits-wid-legend--list [data-wid-slice]:not(.is-active) {
+  opacity: var(--wid-dim);
+}
+
+.e-permits-wid-donut.is-drillable .e-permits-wid-donut__chart {
+  cursor: pointer;
+}
+
+.e-permits-wid-legend__btn.is-active {
+  background: var(--color-background-base-secondary-hover, #ebebeb);
+}
+
+/* a legend line without drill: focusable (keyboard reaches the slices), same box + hover fill, no pointer */
+.e-permits-wid-legend__btn--static {
+  cursor: default;
+}
+
+.e-permits-wid-legend__btn--static:focus-visible {
+  box-shadow: 0 0 0 var(--border-width-2, 2px) var(--color-background-base-default, #fff), 0 0 0 var(--border-width-4, 4px) var(--focus-ring, #3379db);
+  outline: none;
+}
+
+/* the tooltip anchor: a point on the slice's outer midpoint, never hit */
+.e-permits-wid-donut__anchor {
+  height: 0;
+  pointer-events: none;
+  position: absolute;
+  width: 0;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .e-permits-wid-arc,
+  .e-permits-wid-donut__halo,
+  .e-permits-wid-donut .e-permits-wid-legend--list [data-wid-slice] {
+    transition: opacity var(--motion-duration-md, 0.3s) var(--motion-easing-standard, ease);
+  }
+}
+
 .e-permits-wid-donut__center {
   align-items: center;
   color: var(--color-text-base-tertiary, #757575);
@@ -1050,7 +1116,7 @@ button.e-permits-wid-rows__row:focus-visible {
 }
 
 /* narrow cards („O treime”): the list legend's label wraps, the heat-map key line wraps */
-.e-permits-wid-legend--list li > span:not(.e-permits-meter-legend__dot, .e-permits-meter-legend__pct),
+.e-permits-wid-legend--list li > span:not(.e-permits-meter-legend__dot, .e-permits-meter-legend__pct, .e-permits-wid-legend__btn),
 .e-permits-wid-legend--list .e-permits-wid-legend__btn > span:not(.e-permits-meter-legend__dot, .e-permits-meter-legend__pct) {
   min-width: 0;
   overflow: hidden;
@@ -1078,7 +1144,7 @@ button.e-permits-wid-rows__row:focus-visible {
   margin-top: var(--spacing-6, 6px);
 }
 
-.e-permits-wid-card .e-permits-meter-legend--tray :is(li, .e-permits-wid-legend__btn) > span:not(.e-permits-meter-legend__dot, .e-permits-meter-legend__pct, .e-permits-wid-heat__key) {
+.e-permits-wid-card .e-permits-meter-legend--tray :is(li, .e-permits-wid-legend__btn) > span:not(.e-permits-meter-legend__dot, .e-permits-meter-legend__pct, .e-permits-wid-legend__btn, .e-permits-wid-heat__key) {
   min-width: 0;
 }
 

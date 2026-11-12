@@ -159,6 +159,7 @@ instance in the file. Follow the surrounding CSS instead.
 | Bar charts | bars rounded TOP only (rect `height="200%"` clipped by the plot), square bottom on a 1 px `--color-border-base-secondary` baseline; stacked segments flat | widget-charts.js, kpi trendChart, ekyc |
 | Bar-row lists | one shared grid per list: label (one line up to ½ card) · 1fr track · value; narrow → label wraps max 2 + ellipsis + tooltip; phones label above bar | widget-charts.js |
 | Donut | card body 50/50 donut | legend; stacked ≤ 520 px card | widget-charts.js |
+| Donut hover (donut-hover-v1, 2026-11-12) | slice hit-tested by angle; active slice keeps its colour + grey halo arc outside it (`.e-permits-wid-donut__halo`, `--color-border-base-secondary`, gap 2 · width 4 in screen px); other slices + legend lines at 40 % (`.is-hovering`); legend line `.is-active` = its hover fill; library Small tooltip „Etichetă · valoare · %” anchored at the slice's outer midpoint (`__anchor`); two-way with the legend (drill `button`, else focusable `span.e-permits-wid-legend__btn--static`, Arrow keys walk); slice click drills via its legend button (pointer only then); touch: tap = tooltip, 2nd tap drills | widget-charts.js `donutActivate` / `donutClear`; demo dsh-20k |
 | Treemap / heatmap | inner corners 2, whole chart clipped to 6 | widget-charts.js |
 | Legends | dot never wraps alone (dot `flex: none`, text wraps); wrapping legends full width, left-aligned | css/widget.css |
 | Collapsible group lists (Permisiuni, data dictionaries) | white rows, grey on hover + open, count badge after the name, chevron right (down collapsed) — ONE shared rule | stack-group header |
@@ -12325,7 +12326,8 @@ column), format and thresholds; the read-only rows swap them for „Ținta”. H
   slots + stretched viewBox layer (`polyline` non-scaling 2, single series area = brand-secondary) + percent layer with
   dots (white fill, 2 series stroke). Diagramă de control = the line + mean (tertiary 1.5) + limits ±2σ (danger dashed
   1.5), out-of-limit dots filled in the critic zone tone, legend keys as short lines. Sectoare sau inel = 42 viewBox ring (stroke 6,
-  0.8 gap) 160 (120 / 200 by height) + centre total + list legend (value right, %). Tabel agregat / Tabel cu filtru = the
+  0.8 gap) 160 (120 / 200 by height) + centre total + list legend (value right, %); hover / focus / tap = donut-hover-v1
+  (see the inventory row „Donut hover”: grey halo arc, others dimmed, legend two-way, Small tooltip at the slice). Tabel agregat / Tabel cu filtru = the
   card table (`--agg` numbers right, Total, „Față de …” ▲▼ %). Hartă de căldură = a real table, cells on the brand ramp
   `.is-l1…l5` (blue-sky 150 / 300 / 400 / brand 600 / 800 — light → brand → dark; 1–3 ink text, 4–5 white text; hover one step darker) + „Mai puține … Mai multe” keys. Pâlnie = rows
   with a centred bar + % of the first stage. Treemap = binary split, tiles in the series palette with 2px white gaps,
