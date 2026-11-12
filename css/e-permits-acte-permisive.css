@@ -6110,6 +6110,24 @@
   margin-inline: calc(-1 * var(--spacing-16, 16px));
 }
 
+/* radio-align-v2 (2026-11-12, user „do a proper gap between those 2”): in a HORIZONTAL group (`__group--inline`, and the
+   desktop `.e-permits-fo-radio-group` grid) only the first row gives its 16 back on the left (radio = label edge); the
+   next rows keep their padding, so text → next radio = 16 + gap + 16 instead of the rows overlapping. Stacked rows each
+   give it back (base rule above). */
+.e-permits-fo-choice__group--inline > .e-permits-fo-radio--option {
+  margin-inline: 0;
+}
+
+.e-permits-fo-choice__group--inline > .e-permits-fo-radio--option:first-child {
+  margin-inline-start: calc(-1 * var(--spacing-16, 16px));
+}
+
+@media (max-width: 720px) {
+  .e-permits-fo-choice__group--inline > .e-permits-fo-radio--option {
+    margin-inline: calc(-1 * var(--spacing-16, 16px));
+  }
+}
+
 .e-permits-fo-radio--option::before {
   background: var(--color-background-base-tertiary, #f1f1f1);
   border-radius: var(--border-radius-12, 12px);
