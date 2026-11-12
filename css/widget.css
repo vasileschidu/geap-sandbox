@@ -1581,6 +1581,15 @@ button.e-permits-wid-rows__row:focus-visible {
 
 .e-permits-wid-stat__value--warning { color: var(--color-text-warning-default, #b54708); }
 .e-permits-wid-stat__value--danger { color: var(--color-text-danger-default, #d92d20); }
+/* dsh-kpi-zone-v1: a KPI tile in the favourable zone (Feature 96498 „Culoare”) */
+.e-permits-wid-stat__value--success { color: var(--color-text-positive-default, #039855); }
+
+/* the zone line „● Favorabil · Ținta 90%”: the legend dot 8 before the text, one line */
+.e-permits-wid-stat__meta.e-permits-wid-stat__zone {
+  align-items: center;
+  display: flex;
+  gap: var(--spacing-8, 8px);
+}
 
 .e-permits-wid-stat__meta {
   color: var(--color-text-base-tertiary, #757575);

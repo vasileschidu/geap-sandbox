@@ -1220,9 +1220,10 @@ document.addEventListener("DOMContentLoaded", () => {
     const portal = boContext.session()?.portal || (new URLSearchParams(window.location.search).get("portal") === "admin" ? "admin" : "bo");
     const target = portal === "admin"
       ? links.find((link) => link.dataset.navId === "service-config") || links.find((link) => groupOf(link) === "Administrare")
-      : links.find((link) => link.dataset.navId === "dashboard") || links.find((link) => groupOf(link) === "Locul de muncă" && !["tablou-de-bord", "rapoarte-bo"].includes(link.dataset.navId));
-    /* dsh-view-v1: the BO „Tablou de bord” page (js/dashboard-admin.js) is NOT the landing yet — Feature 96498 US-426 makes it
-       the landing after login; kept off (proposal) so the existing first-folder landings stay */
+      : links.find((link) => link.dataset.navId === "tablou-de-bord") || links.find((link) => link.dataset.navId === "dashboard") || links.find((link) => groupOf(link) === "Locul de muncă" && link.dataset.navId !== "rapoarte-bo");
+    /* dsh-landing-v1 (2026-11-12, Feature 96498 „Tabloul de bord al rolului pe pagina de start”): right after the login (and
+       after „Schimbă rolul”) the BO opens the role's „Dashboard” = its principal dashboard (js/dashboard-admin.js `showView`);
+       a role without the menu item keeps its first workplace folder */
     if (target) target.click();
     else if (portal === "admin") showContextDenied();
   };

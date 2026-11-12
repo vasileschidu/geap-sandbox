@@ -4978,6 +4978,16 @@
     const layout = (root = "#dsh-panel") => async (h) => { await h.scroll(`${root} .e-permits-dsh-layout`); };
     const PUB = async (h) => { await h.click("[data-dosar-profil] [data-dsh-publish]"); await h.find(`${M} [data-dsh-publish-confirm]`); };
     const note = (text) => async (h) => { await h.fill("#dsh-publish-note", text, { leave: false }); };
+    /* dsh-feature-v1 helpers: the facet popover (tick a value, Confirmă) · the drill from the donut legend · the
+       „Personalizează” dialog (untick one widget) */
+    const DIR = "ansp-director-chisinau";
+    const FTICK = (value) => async (h) => { const o = [...document.querySelectorAll(".e-permits-workplace__filter-pop [data-filter-option]")].find((x) => x.value === value); (o?.closest("label") || o)?.click(); await h.wait(200); };
+    const FCONFIRM = async (h) => { await h.click(".e-permits-workplace__filter-pop [data-filter-confirm]"); await h.wait(300); await h.click("[data-dsh-view] [data-filter-commit]"); await h.wait(600); };
+    /* the draft before „Aplică filtrele” (Confirmă only) */
+    const FDRAFT = async (h) => { await h.click(".e-permits-workplace__filter-pop [data-filter-confirm]"); await h.wait(400); };
+    const DRILL_SLICE = async (h) => { const b = [...document.querySelectorAll('[data-dsh-tile="WGT-0006"] button[data-wid-drill]')].find((x) => x.dataset.widDrill === "În examinare"); b.scrollIntoView({ block: "center" }); b.click(); await h.find("[data-registry-kind='reg-dosare'] tr[data-workplace-row], [data-registry-kind='reg-dosare'] .e-permits-empty"); await h.wait(600); };
+    const PERS = async (h) => { await h.click("[data-dsh-view] [data-dsh-personal]"); await h.find(`${M} [data-dsh-pers]`); await h.wait(300); };
+    const PTICK = (id) => async (h) => { (await h.find(`${M} [data-dsh-pers][value="${id}"]`)).closest("label").click(); await h.wait(200); };
     const VER = (nr) => async (h) => { await h.click(`#dsh-panel [data-dsh-ver-view="${nr}"]`); await h.find(`${M} [data-case-modal-body]`); };
     return {
       /* US-411 — list */
@@ -5114,7 +5124,31 @@
       "dsh-20m": view(async (h) => { await h.click('[data-dsh-tile="WGT-0006"] [data-wid-all]'); await h.find("#case-action-modal.is-active .e-permits-wid-card"); await h.wait(500); }),
       "dsh-20n": view(null, { tablou: "actualizare" }),
       "dsh-20o": view(async (h) => { await h.click("[data-dsh-view] [data-dsh-refresh]"); await h.wait(1400); }),
-      "dsh-20f": view(async (h) => { await h.click("[data-dsh-view-retry]"); await h.wait(1100); }, { tablou: "widget-eroare" })
+      "dsh-20f": view(async (h) => { await h.click("[data-dsh-view-retry]"); await h.wait(1100); }, { tablou: "widget-eroare" }),
+      /* dsh-feature-v1 (2026-11-12, Feature 96498 — no child stories in Azure; numbers as the brief):
+         21 filtre comune (US-427): 21 Perioada popover · 21a Luna precedentă applied (meta) · 21b Serviciu applied ·
+         21c Director: + Subdiviziune, applied · 21d a draft before „Aplică filtre” · 22 KPI tiles with zones (US-428, ?tablou=praguri) · 23 donut slice →
+         Registru Dosare filtered, „← Dashboard” in the top bar (US-430) · 23a back on the dashboard · 23b a KPI tile →
+         register · 24 Supervizor: „Alerte active” (US-431 + US-536) · 24a one alert hidden · 24b an alert row → register ·
+         25 „Personalizează” (US-433) · 25a two widgets unticked · 25b saved: the board compacted · 25c reopened: Resetează
+         enabled · 26 BO login → the Dashboard (US-435) */
+      "dsh-21": view(async (h) => { await h.click('[data-dsh-view] [data-filter-facet="perioada"]'); await h.wait(400); }),
+      "dsh-21a": view(seq(async (h) => { await h.click('[data-dsh-view] [data-filter-facet="perioada"]'); await h.wait(300); }, async (h) => { (await h.find(".e-permits-workplace__filter-pop")).querySelector('[data-filter-date-preset][value="lunaP"]')?.closest("label")?.click(); await h.wait(200); }, FCONFIRM)),
+      "dsh-21b": view(seq(async (h) => { await h.click('[data-dsh-view] [data-filter-facet="serviciu"]'); await h.wait(300); }, FTICK("Autorizație sanitară de funcționare"), FCONFIRM)),
+      "dsh-21d": view(seq(async (h) => { await h.click('[data-dsh-view] [data-filter-facet="serviciu"]'); await h.wait(300); }, FTICK("Autorizație sanitară de funcționare"), FDRAFT)),
+      "dsh-21c": view(seq(async (h) => { await h.click('[data-dsh-view] [data-filter-facet="subdiviziune"]'); await h.wait(300); }, FTICK("CSP Bălți"), FCONFIRM), null, DIR),
+      "dsh-22": view(null, { tablou: "praguri" }),
+      "dsh-23": view(DRILL_SLICE),
+      "dsh-23a": view(seq(DRILL_SLICE, async (h) => { await h.click("[data-topbar-back]"); await h.find("[data-dsh-view]"); await h.wait(500); })),
+      "dsh-23b": view(async (h) => { await h.click('[data-dsh-tile="WGT-0019"] .e-permits-wid-stat__btn'); await h.find("[data-registry-kind='reg-dosare'] tr[data-workplace-row], [data-registry-kind='reg-dosare'] .e-permits-empty"); await h.wait(600); }, { tablou: "praguri" }),
+      "dsh-24": view(null, null, SUP),
+      "dsh-24a": view(async (h) => { await h.click('[data-dsh-alert-hide^="kpi:kpi-c02"]'); await h.wait(400); }, null, SUP),
+      "dsh-24b": view(async (h) => { await h.click('[data-dsh-alert-open="termen-depasit"]'); await h.find("[data-registry-kind='reg-dosare'] tr[data-workplace-row], [data-registry-kind='reg-dosare'] .e-permits-empty"); await h.wait(600); }, null, SUP),
+      "dsh-25": view(PERS),
+      "dsh-25a": view(seq(PERS, PTICK("WGT-0008"), PTICK("WGT-0011"))),
+      "dsh-25b": view(seq(PERS, PTICK("WGT-0008"), PTICK("WGT-0011"), async (h) => { await h.click(`${M} [data-dsh-pers-save]`); await h.wait(600); })),
+      "dsh-25c": view(seq(PERS, PTICK("WGT-0008"), PTICK("WGT-0011"), async (h) => { await h.click(`${M} [data-dsh-pers-save]`); await h.wait(600); }, PERS)),
+      "dsh-26": { page: "bo-login.html", params: { mpass: "ok", as: "unic" }, ready: "[data-bo-login] h1" }
     };
   }
 

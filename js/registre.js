@@ -971,10 +971,14 @@
     const kind = panel?.dataset.registryKind || "";
     const def = /^reg-/.test(kind) ? defOf(kind) : null;
     const on = Boolean(panel && title && !panel.hidden && def && granted(def));
-    const marker = document.querySelector("[data-page-back][data-back-attr='data-reg-back']");
+    /* dsh-drill-v1 (Feature 96498 „Trecerea din grafic în registru”): a register opened from a dashboard value goes back to the
+       Dashboard (`GEAPDashboards.drillBack(kind)` → { label, attr } while that drill is active), else to the catalog */
+    const back = (on && window.GEAPDashboards?.drillBack?.(kind)) || { label: "Registre", attr: "data-reg-back" };
+    const marker = document.querySelector("[data-page-back][data-reg-marker]");
     if (!on) { marker?.remove(); return; }
-    if (marker) return;
-    title.insertAdjacentHTML("beforebegin", (window.GEAPPageHeader?.backMarker({ label: "Registre", attr: "data-reg-back" }) || ""));
+    if (marker && marker.dataset.backAttr === back.attr) return;
+    marker?.remove();
+    title.insertAdjacentHTML("beforebegin", (window.GEAPPageHeader?.backMarker(back) || "").replace("<button ", "<button data-reg-marker "));
   }
   const backObserver = new MutationObserver(() => syncBackArrow());
   const watchBackArrow = () => {

@@ -691,6 +691,14 @@
   margin: auto;
 }
 
+/* dsh-personal-v1: „Personalizează” + „Actualizează” side by side (library secondary Small), the meta under them */
+.e-permits-dsh-view__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-8, 8px);
+  justify-content: flex-end;
+}
+
 .e-permits-dsh-view__meta {
   color: var(--color-text-base-tertiary, #757575);
   font-size: var(--font-size-fs-12, 12px);
@@ -713,11 +721,32 @@
     align-items: flex-start;
   }
 
+  .e-permits-dsh-view__side,
+  .e-permits-dsh-view__actions {
+    align-self: stretch;
+  }
+
+  .e-permits-dsh-view__actions {
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+  }
+
+  .e-permits-dsh-view__actions > .btn {
+    flex: 1 1 0;
+    justify-content: center;
+  }
+
   /* phones: the button = Large 48 · 16/24 (button size rule) */
   .e-permits-dsh-view__side .btn {
     font-size: var(--font-size-fs-16, 16px);
     height: var(--spacing-48, 48px);
     line-height: var(--line-height-lh-24, 24px);
+  }
+
+  /* … and its icon = the Large size 20 (button icon size rule) */
+  .e-permits-dsh-view__side .btn > svg.icon {
+    height: var(--spacing-20, 20px);
+    width: var(--spacing-20, 20px);
   }
 }
 
@@ -759,4 +788,78 @@
 .e-permits-dsh-tile.is-resizing .e-permits-dsh-tile__resize {
   background: var(--color-background-base-tertiary, #f1f1f1);
   color: var(--color-icon-base-default, #121212);
+}
+
+/* =====================================================================================
+   dsh-feature-v1 (2026-11-12, Feature 96498): the BO page's filters · alerts · personalisation. components.md ›
+   „Tablouri de bord” › BO page.
+   ===================================================================================== */
+/* dsh-filters-v1 (US-427): the Rapoarte facet host (`.e-permits-rpt-fbar`, css/rapoarte.css) between the head row and the
+   content: head → 16 → chips → 16 → alerts / grid */
+.e-permits-rpt-fbar.e-permits-dsh-fbar {
+  margin-bottom: var(--spacing-16, 16px);
+}
+
+/* dsh-alerts-v1 (US-431): „Alerte active” = the BO stacked-list section; 16 above the grid. The lead = the severity glyph
+   (20, danger / warning icon colour) centred on the title line */
+.e-permits-dsh-view > .e-permits-dsh-alerts {
+  margin: 0 0 var(--spacing-16, 16px);
+}
+
+.e-permits-dsh-alert__icon {
+  align-self: flex-start;
+  display: inline-flex;
+  flex: 0 0 auto;
+  padding-top: var(--spacing-2, 2px);
+}
+
+.e-permits-dsh-alert__icon--danger { color: var(--color-icon-danger-default, #d92d20); }
+.e-permits-dsh-alert__icon--warning { color: var(--color-icon-warning-default, #f79009); }
+
+/* dsh-personal-v1 (US-433): the dialog body = info note → 24 → the checkbox list (legend 14/20 medium, 16 between rows);
+   footer: „Resetează la implicit” left, Anulează · Salvează right */
+.e-permits-dsh-personal {
+  border: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-16, 16px);
+  margin: var(--spacing-8, 8px) 0 0; /* + the dialog body's 16 gap = 24 under the note */
+  min-width: 0;
+  padding: 0;
+}
+
+.e-permits-dsh-personal__legend {
+  color: var(--color-text-base-default, #121212);
+  font-size: var(--font-size-fs-14, 14px);
+  font-weight: var(--font-weight-fw-medium, 500);
+  line-height: var(--line-height-lh-20, 20px);
+  margin-bottom: var(--spacing-16, 16px);
+  padding: 0;
+}
+
+.e-permits-dsh-personal__foot > .e-permits-dsh-personal__reset {
+  margin-right: auto;
+}
+
+@media (max-width: 760px) {
+  .e-permits-dsh-personal__foot {
+    flex-wrap: wrap;
+  }
+
+  .e-permits-dsh-personal__foot > .e-permits-dsh-personal__reset {
+    flex: 1 0 100%;
+    margin-right: 0;
+  }
+}
+
+/* phones: an alert row keeps its × on the title line, right (3 columns: glyph · text · ×), never alone under the text */
+@media (max-width: 760px) {
+  .e-permits-dsh-alerts .e-permits-stack__item.has-lead {
+    grid-template-columns: var(--spacing-24, 24px) minmax(0, 1fr) auto;
+  }
+
+  .e-permits-dsh-alerts .e-permits-stack__item.has-lead .e-permits-stack__actions {
+    grid-column: 3;
+    grid-row: 1;
+  }
 }

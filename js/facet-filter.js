@@ -138,6 +138,9 @@
     "7z": { label: "Ultimele 7 zile", range: (t) => [isoShift(t, -6), t] },
     "30z": { label: "Ultimele 30 de zile", range: (t) => [isoShift(t, -29), t] },
     an: { label: "Anul acesta", range: (t) => [`${t.slice(0, 4)}-01-01`, `${t.slice(0, 4)}-12-31`] },
+    /* dsh-filters-v1 (Feature 96498 „Perioadă”): the calendar month so far / the whole previous month */
+    luna: { label: "Luna curentă", range: (t) => [`${t.slice(0, 7)}-01`, t] },
+    lunaP: { label: "Luna precedentă", range: (t) => { const first = `${t.slice(0, 7)}-01`; const last = isoShift(first, -1); return [`${last.slice(0, 7)}-01`, last]; } },
     /* for dates that lie ahead (an estimated end date) */
     u7z: { label: "Următoarele 7 zile", range: (t) => [t, isoShift(t, 6)] },
     u30z: { label: "Următoarele 30 de zile", range: (t) => [t, isoShift(t, 29)] }

@@ -185,6 +185,16 @@
             tile("WGT-0017", "Dosare cu termen depășit", "Dosarele în examinare cu termenul depășit", "reg-dosare", { compare: "prevWeek" }),
             tile("WGT-0018", "Încasări", "Suma notelor de plată achitate în luna curentă", "reg-note", { measure: "sum", column: "suma", format: "amount", filter: { logic: "and", rules: [{ column: "statutNota", op: "is", value: "Achitată" }] } })
           ].filter((w) => !have.has(w.id)).forEach((w) => json.widgets.push(w));
+          /* dsh-kpi-zone-v1 (Feature 96498 „Plăcuța KPI, cu comparație și praguri”, demo only — ?tablou=praguri): three published
+             KPI tiles whose KPI has a target, one per zone at ANSP (T-01 Critic · T-02 Avertizare · C-01 Favorabil); kept out of the
+             catalogue otherwise so the widget / dashboard admin demos keep their lists */
+          if (/(^|,)praguri(,|$)/.test(new URLSearchParams(window.location.search).get("tablou") || "")) {
+            [
+              tile("WGT-0019", "Procesate în termen", "Cererile soluționate în termenul legal, din cele finalizate", "reg-dosare", { kpi: "kpi-t01", measure: "", format: "percent" }),
+              tile("WGT-0020", "Timp mediu de procesare", "Zilele de la depunere la prima semnătură pe documentul de ieșire", "reg-dosare", { kpi: "kpi-t02", measure: "", format: "duration" }),
+              tile("WGT-0021", "Ponderea aprobărilor tacite", "Actele aprobate tacit, din actele emise", "reg-acte", { kpi: "kpi-c01", measure: "", format: "percent" })
+            ].filter((w) => !have.has(w.id)).forEach((w) => json.widgets.push(w));
+          }
         }
         json.widgets.forEach((w) => {
           w.offFor = w.offFor || [];
@@ -405,7 +415,9 @@
       model.fmt = fmtFn(v, 0);
       /* wid-card-v2: compact only (no sparkline); the delta = a Small tag „+4,3%” + the tertiary line „față de … (2.190)” */
       model.height = "compact";
-      model.single = { value: cur, delta: v.compare && cur !== null && prev ? { up: cur >= prev, pct: nf(Math.abs(((cur - prev) / prev) * 100), 1), text: `față de ${COMPARE_SHORT[v.compare]} (${model.fmt(prev)})` } : null };
+      /* dsh-kpi-zone-v1: the delta tag of a KPI is green when the change goes the KPI's good way (a duration going down) */
+      const good = (x, p) => (k?.direction === "down" ? x <= p : x >= p);
+      model.single = { value: cur, delta: v.compare && cur !== null && prev ? { up: cur >= prev, good: good(cur, prev), pct: nf(Math.abs(((cur - prev) / prev) * 100), 1), text: `față de ${COMPARE_SHORT[v.compare]} (${model.fmt(prev)})` } : null };
       return model;
     }
     if (v.type === "rowTable") {

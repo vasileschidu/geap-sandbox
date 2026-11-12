@@ -2382,6 +2382,9 @@
     sources: () => D().sources.filter((src) => src.status === "Publicat"),
     fields: (src) => fieldsOf(src),
     calculatedAt: () => D().calculatedAt,
+    /* dsh-alerts-v1 (Feature 96498 „Alerte active”): the KPI alerts of the last calculations, for the BO dashboard */
+    alerts: () => D().alerts || [],
+    today: () => D().today || "",
     /* the value in a perimeter ("all" or an authority id): { cur, prev, num, den, pnum, pden } — cur null = n/a */
     value: (id, per) => { const k = kpiOf(id); return k ? valuesOf(k, per || perimeterOf(k)) : null; },
     series: (id, per) => { const k = kpiOf(id); return k ? seriesOf(k, per || perimeterOf(k)) : []; },

@@ -284,6 +284,9 @@
         if (demo.has("grila")) json.dashboards.filter((d) => d.id === "DSH-0001" || d.id === "DSH-0004").forEach((d) => { d.config.widgets = [["WGT-0001", "third", 9, 0, 0], ["WGT-0011", "third", 3, 4, 0], ["WGT-0015", "third", 3, 4, 3], ["WGT-0016", "third", 3, 4, 6], ["WGT-0006", "third", 9, 8, 0], ["WGT-0012", "full", 11, 0, 9]].map(([widget, width, height, x, y]) => ({ widget, width, height, x, y })); });
         /* ?tablou=kpi4 (demo dsh-04ab · dsh-20i, dsh-min-3-v1): four number tiles at 3/12 in one row, a chart and a list under */
         if (demo.has("kpi4")) json.dashboards.filter((d) => d.id === "DSH-0001" || d.id === "DSH-0004").forEach((d) => { d.config.widgets = [["WGT-0011", "quarter", 3, 0, 0], ["WGT-0015", "quarter", 3, 3, 0], ["WGT-0016", "quarter", 3, 6, 0], ["WGT-0017", "quarter", 3, 9, 0], ["WGT-0001", "half", 9, 0, 3], ["WGT-0006", "half", 9, 6, 3]].map(([widget, width, height, x, y]) => ({ widget, width, height, x, y })); });
+        /* ?tablou=praguri (demo dsh-22, dsh-kpi-zone-v1): DSH-0004 with a row of four number tiles — three KPI tiles with a
+           target (Critic · Avertizare · Favorabil at ANSP, js/widget-admin.js demo seeds) + Cereri depuse (KPI without a target) */
+        if (demo.has("praguri")) json.dashboards.filter((d) => d.id === "DSH-0004").forEach((d) => { d.config.widgets = [["WGT-0019", "quarter", 3, 0, 0], ["WGT-0020", "quarter", 3, 3, 0], ["WGT-0021", "quarter", 3, 6, 0], ["WGT-0011", "quarter", 3, 9, 0], ["WGT-0006", "half", 9, 0, 3], ["WGT-0008", "half", 9, 6, 3]].map(([widget, width, height, x, y]) => ({ widget, width, height, x, y })); });
         if (kpi3) kpi3.config.widgets = ["WGT-0011", "WGT-0015", "WGT-0016"].map((widget) => ({ widget, width: "third", height: "compact" }));
         if (mixed) mixed.config.widgets = [["WGT-0011", "third", "compact"], ["WGT-0001", "third", "compact"], ["WGT-0006", "third", "tall"], ["WGT-0003", "twoThirds", "compact"], ["WGT-0008", "half", "compact"], ["WGT-0012", "half", "compact"]].map(([widget, width, height]) => ({ widget, width, height }));
         json.dashboards.forEach((d) => {
@@ -2019,9 +2022,11 @@
      Switcher = the library page-header tabs (the profile tabs precedent, components.md › Tabs; SRS FR 04.12 „filele
      active”), one tab per dashboard, hidden with one dashboard. Route `#tablou-de-bord[/<id>]`.
      PROPOSAL (the Features are silent): the Specialist's perimeter = his authority (the widget preview rule,
-     js/widget-admin.js `perimeter()`); order ties → ID; the page is NOT the landing after login yet (96498 US-426 says it
-     is — kept off so the existing landings stay); the common filters, „Actualizează”, the info button and the
-     personalisation of 96498 (US-427 / 432 / 433) are not built. Demo switches ?tablou=gol · incarcare · widget-eroare. */
+     js/widget-admin.js `perimeter()`); order ties → ID. The page is the landing after login (dsh-landing-v1, US-435).
+     dsh-feature-v1 (2026-11-12, Feature 96498): common filters (US-427, `viewFacets`), KPI zones on the number tiles
+     (US-428, js/widget-charts.js `tile`), value → register with the filters (US-430, `drillTo`), „Alerte active”
+     (US-431 + US-536, `viewAlerts`), „Personalizează” (US-433, `openPersonal`). Demo switches ?tablou=gol · incarcare ·
+     widget-eroare · praguri (three KPI tiles with a target on DSH-0004). */
   const VIEW_NAV = "tablou-de-bord";
   /* dsh-dashboard-nav-v1 (2026-11-11, Feature 96498 «Dashboard»): the first top-level menu item, above Locul de muncă;
      a role sees only the active dashboards assigned to it (+ its authority) — the Specialist no longer gets the
@@ -2029,7 +2034,10 @@
   const VIEW_TITLE = "Dashboard";
   /* Feature 96498 AC text, „tu” tone */
   const VIEW_EMPTY = "Nu ai acces la tablouri de bord.";
-  const V = { id: "", boards: [], failed: new Set(), seeded: new Set(), busy: new Set(), refreshing: false, updated: "azi, la 06:00", announce: false };
+  const V = { id: "", boards: [], failed: new Set(), seeded: new Set(), busy: new Set(), refreshing: false, updated: "azi, la 06:00", announce: false,
+    /* dsh-filters-v1: the common filters of the page (one state for the role's dashboards, kept while switching) */
+    f: { open: true, applied: {}, draft: null }, drill: null, returnTo: "", navigating: false, pers: null };
+  const K = () => window.GEAPKpi || {};
   /* the active assignment: role + authority (the demo assignment ids start with the authority: „ansp-…”, „anta-…”) */
   const viewer = () => {
     const a = A().currentAssignment?.() || {};
@@ -2054,24 +2062,26 @@
     const st = V.busy.has(key) || V.refreshing || demo.has("incarcare") || demo.has("actualizare") ? { refreshing: true }
       : V.failed.has(key) ? { bodyHtml: E()?.render({ title: "Datele nu s-au încărcat", text: "Celelalte widget-uri nu sunt afectate. Încearcă din nou.", icon: "warning-filled", compact: true, bare: true, actionHtml: `<button class="btn btn-secondary btn-sm" type="button" data-dsh-view-retry="${esc(key)}" aria-label="Reîncearcă: ${esc(title)}">${icon("rotate-arrow", 16)}<span>Reîncearcă</span></button>` }) || "" }
       : EMPTY_DEMO.has(t.widget) ? { empty: true } : {};
-    const card = W().card?.({ ...cfg, width: t.width, height: hOf(t) }, { compact: true, dash: true, st, ariaLabel: title }) || "";
+    const card = W().card?.({ ...filteredCfg(cfg), width: t.width, height: hOf(t) }, { compact: true, dash: true, st, ariaLabel: title }) || "";
     return `<div class="e-permits-dsh-tile e-permits-dsh-tile--${SPAN[t.width] ? t.width : "full"} e-permits-dsh-tile--${hOf(t)} e-permits-dsh-tile--r${span}${isStat(t.widget) ? " e-permits-dsh-tile--stat" : ""}" role="listitem" data-dsh-tile="${esc(t.widget)}" data-index="${i}"${posAttrs(box || boxOf(t))}>${card}</div>`;
   }
   function viewBody(d, me, principal) {
-    const live = liveWidgets(d, me.authority);
+    const all = liveWidgets(d, me.authority);
+    const hidden = hiddenOf(d.id);
+    const live = all.filter((x) => !hidden.has(x.t.widget));
     /* ?tablou=widget-eroare: the second widget of each dashboard fails once (Reîncearcă loads it) */
     if (demo.has("widget-eroare") && !V.seeded.has(d.id) && live[1]) { V.failed.add(`${d.id}|${live[1].t.widget}`); }
     V.seeded.add(d.id);
     const busy = V.refreshing || demo.has("actualizare");
     const desc = String(lastVersion(d).config.descriptions?.ro || "").trim();
-    const meta = [`Perimetru: ${viewPerimeter(me)}`, `Date calculate ${V.updated}`].join(" · ");
+    const meta = metaText(me, all.length - live.length);
     /* dsh-view-head-v2 (2026-11-12): no description line — it lives only in the „ⓘ” tooltip next to the title; the meta (12/16
        tertiary) sits right of the title row (a Feature 96498 US-432 „Actualizează” button does not exist on BO pages yet →
        the meta alone, right-aligned); the switcher = the compact segmented control ABOVE the title, only with ≥ 2 dashboards */
     const info = desc ? `<button class="e-permits-fo-role-info e-permits-wid-card__info" type="button" aria-label="Despre tabloul de bord „${esc(lastVersion(d).config.names.ro)}”" data-tooltip-hint="${esc(desc)}">${icon("circle-info-filled", 16)}</button>` : "";
     const switcher = V.boards.length > 1 ? window.GEAPViewSwitch?.html({ key: "dsh-view", label: "Tablourile tale de bord", value: d.id, className: "e-permits-dsh-view__switch", items: V.boards.map((x) => [x.id, lastVersion(x).config.names.ro]) }) || "" : "";
     const grid = live.length
-      ? `<div class="e-permits-dsh-stage"><div class="e-permits-dsh-grid" role="list" aria-label="Widget-urile tabloului de bord">${((boxes) => [...live].sort((a, b) => byPos(boxes.find((x) => x.id === a.t.widget), boxes.find((x) => x.id === b.t.widget))).map((x, i) => viewTile(d, x, i, rowsOf(x.t), boxes.find((b) => b.id === x.t.widget))).join(""))(compactBoxes(live.map((x) => boxOf(x.t))))}</div></div>`
+      ? `<div class="e-permits-dsh-stage"><div class="e-permits-dsh-grid" role="list" aria-label="Widget-urile tabloului de bord">${((boxes) => [...live].sort((a, b) => byPos(boxes.find((x) => x.id === a.t.widget), boxes.find((x) => x.id === b.t.widget))).map((x, i) => viewTile(d, x, i, rowsOf(x.t), boxes.find((b) => b.id === x.t.widget))).join(""))((hidden.size ? packBoxes : compactBoxes)(live.map((x) => boxOf(x.t))))}</div></div>`
       : E()?.render({ title: "Niciun widget", text: "Widget-urile acestui tablou de bord nu mai sunt publicate.", icon: "chart" }) || "";
     return `
       <section class="e-permits-dosar-profil__section e-permits-dsh-view e-permits-dsh-wide" id="dsh-view-panel" aria-busy="${demo.has("incarcare") || busy ? "true" : "false"}" data-dsh-view="${esc(d.id)}">
@@ -2083,13 +2093,277 @@
             ${info}
           </div>
           <div class="e-permits-dsh-view__side">
-            <button class="btn btn-secondary btn-sm${busy ? " btn-loading" : ""}" type="button" data-dsh-refresh${busy ? ' aria-busy="true" disabled' : ""}>${icon("rotate-arrow", 16)}<span>Actualizează</span></button>
+            <div class="e-permits-dsh-view__actions">
+              <button class="btn btn-secondary btn-sm" type="button" aria-haspopup="dialog" data-dsh-personal${all.length ? "" : " disabled"}>${icon("settings", 16)}<span>Personalizează</span></button>
+              <button class="btn btn-secondary btn-sm${busy ? " btn-loading" : ""}" type="button" data-dsh-refresh${busy ? ' aria-busy="true" disabled' : ""}>${icon("rotate-arrow", 16)}<span>Actualizează</span></button>
+            </div>
             <p class="e-permits-dsh-view__meta" role="status" aria-live="polite" data-dsh-meta>${V.announce ? "" : esc(meta)}</p>
           </div>
         </div>
+        <div data-dsh-fslot></div>
+        ${alertsHtml(me)}
         ${grid}
       </section>`;
   }
+  /* ---------------------------------------------------------------- dsh-filters-v1 — the common filters (Feature 96498 US-427)
+     ONE bar under the head row for every widget of the page: Perioada (Luna curentă — the default, applied — · Luna
+     precedentă · Ultimele 30 de zile · Anul acesta · Interval personalizat) · Subdiviziune (only a role that sees the
+     whole authority: Director, Administrator local / central — Feature: „doar unde au sens”) · Serviciu. The library facet
+     filter of BO Rapoarte (`.e-permits-rpt-fbar` host, chip groups with ×, desktop bar always open, phones the icon-only
+     „Filtre” + sheet). A widget is drawn with the filters added to its own conditions (the mock aggregates react to them);
+     KPI values and stock widgets keep their own period. The meta names the active period. */
+  const DSH_TODAY = () => String(K().today?.() || "").slice(0, 10) || new Date().toISOString().slice(0, 10);
+  const PERIODS = ["luna", "lunaP", "30z", "an"];
+  const PERIOD_WORDS = { luna: "luna curentă", lunaP: "luna precedentă", "30z": "ultimele 30 de zile", an: "anul acesta" };
+  const fieldValues = (src, key) => (K().fields?.(src) || []).find((f) => f.key === key)?.values || [];
+  const wideRole = (me) => ["director", "local-admin", "central-admin"].includes(me.role);
+  function viewFacets(me = viewer()) {
+    return [
+      { key: "perioada", label: "Perioada", type: "date", presets: PERIODS, today: DSH_TODAY },
+      ...(wideRole(me) ? [{ key: "subdiviziune", label: "Subdiviziune" }] : []),
+      { key: "serviciu", label: "Serviciu" }
+    ];
+  }
+  const periodToken = () => (V.f.applied.perioada || [])[0] || "luna";
+  const periodText = () => PERIOD_WORDS[periodToken()] || window.GEAPFacetFilter?.dateText?.(periodToken(), DSH_TODAY()) || "luna curentă";
+  const hiddenCount = () => { const d = dashOf(V.id); return d ? liveWidgets(d, viewer().authority).filter((x) => hiddenOf(d.id).has(x.t.widget)).length : 0; };
+  const metaText = (me, hiddenN = 0) => [`Perimetru: ${viewPerimeter(me)}`, `Perioada: ${periodText()}`, `Date calculate ${V.updated}`, hiddenN ? `${plural(hiddenN, "widget ascuns", "widget-uri ascunse")} de tine` : ""].filter(Boolean).join(" · ");
+  /* the widget as drawn: its own conditions + the common filters on the columns its source has */
+  function filteredCfg(cfg) {
+    const fields = K().fields?.(cfg.source) || [];
+    const has = (k) => fields.some((f) => f.key === k);
+    const rules = [];
+    const date = fields.find((f) => f.type === "date")?.key;
+    if (periodToken() !== "luna" && date) rules.push({ column: date, op: "contains", value: periodToken() });
+    ["subdiviziune", "serviciu"].forEach((k) => { const vals = V.f.applied[k] || []; if (vals.length && has(k)) rules.push({ column: k, op: vals.length === 1 ? "is" : "contains", value: vals.join(", ") }); });
+    return rules.length ? { ...cfg, filter: { logic: cfg.filter?.logic || "and", rules: [...(cfg.filter?.rules || []), ...rules] } } : cfg;
+  }
+  let FX = null;
+  function fx() {
+    if (FX) return FX;
+    const host = document.createElement("div");
+    host.className = "e-permits-rpt-fbar e-permits-dsh-fbar";
+    host.innerHTML = `
+      <div class="e-permits-rpt-fbar__tools">
+        <button class="chip e-permits-filter-trigger e-permits-rpt-fbar__trigger" type="button" aria-expanded="false" aria-controls="dsh-fbar" data-dsh-filter-toggle>
+          <span class="chip__icon"><svg class="icon" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-filter-lines"></use></svg></span>
+          <span class="chip__label">Filtre</span>
+          <span class="chip__badge" aria-hidden="true" data-dsh-filter-count hidden></span>
+        </button>
+      </div>
+      <div class="e-permits-workplace__filters e-permits-rpt-fbar__bar" id="dsh-fbar" role="group" aria-label="Filtrele tabloului de bord" hidden></div>`;
+    const ctl = window.GEAPFacetFilter.create({
+      bar: host.querySelector(".e-permits-rpt-fbar__bar"),
+      toggle: host.querySelector("[data-dsh-filter-toggle]"),
+      count: host.querySelector("[data-dsh-filter-count]"),
+      state: () => {
+        V.f.open = true;
+        const keys = new Set(viewFacets().map((f) => f.key));
+        Object.keys(V.f.applied).forEach((k) => { if (!keys.has(k)) delete V.f.applied[k]; });
+        return V.f;
+      },
+      pageKey: () => VIEW_NAV,
+      onPageChange: () => {},
+      facets: () => viewFacets(),
+      allFacets: () => viewFacets(),
+      options: (facet) => (facet.key === "subdiviziune" ? fieldValues("reg-dosare", "subdiviziune") : facet.key === "serviciu" ? fieldValues("reg-dosare", "serviciu") : []).map((value) => ({ value, count: 1 })),
+      total: () => 0,
+      preview: () => 0,
+      /* the period is never empty: × on it goes back to the default „Luna curentă” */
+      apply: () => { if (!(V.f.applied.perioada || []).length) V.f.applied.perioada = ["luna"]; FX?.ctl.render(); rerenderView(); },
+      hint: false,
+      chipGroup: true,
+      /* the period always holds a value (default Luna curentă): no „Șterge filtrele” in the bar, each chip has its × */
+      barClearDesktop: false,
+      text: { results: () => "" }
+    });
+    FX = { host, ctl };
+    return FX;
+  }
+  function mountFilters() {
+    const slot = document.querySelector("[data-reg-page]:not([hidden]) [data-dsh-view] [data-dsh-fslot]");
+    if (!slot || !window.GEAPFacetFilter) return;
+    if (!(V.f.applied.perioada || []).length) V.f.applied.perioada = ["luna"];
+    const x = fx();
+    slot.replaceWith(x.host);
+    x.ctl.render();
+  }
+
+  /* ---------------------------------------------------------------- dsh-drill-v1 — widget → register (US-430)
+     The register behind the widget (its data source = the BO register of the same id) opens with the clicked value and the
+     common filters already applied as its filter chips — only values the register knows (a widget category without a
+     register value is dropped, never a chip that empties the list for nothing). The top-bar back says „Înapoi la Dashboard”
+     (back-chevron rule) and returns to the same dashboard. No register in the user's menu = no access → an info toast
+     (Feature AC: „doar dacă utilizatorul are acces”). */
+  const STATUT_TO_REG = { Finalizat: "Eliberat" };
+  const dayShift = (days) => { const d = new Date(); d.setDate(d.getDate() + days); return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`; };
+  function regValues(kind) {
+    const reg = window.GEAPShellRegistries?.[kind];
+    if (!reg?.build) return null;
+    const rows = reg.build()?.runtimeRows || [];
+    return { rows, facets: reg.facets || [], values: Object.fromEntries((reg.facets || []).map((f) => [f.key, new Set(rows.map((r) => f.get(r)))])) };
+  }
+  /* the cases still under examination after their term (US-536): Statut dosar „În examinare” + Termen de examinare before today */
+  /* „today” of the register's own data (its date facets' today), so „overdue” agrees with its „expiră în N zile” lines */
+  const regToday = () => (window.GEAPShellRegistries?.["reg-dosare"]?.facets || []).find((f) => f.type === "date")?.today?.() || dayShift(0);
+  const isoMinus1 = (iso) => { const d = new Date(`${iso}T00:00:00Z`); d.setUTCDate(d.getUTCDate() - 1); return d.toISOString().slice(0, 10); };
+  const OVERDUE = () => ({ statut: ["În examinare"], termen: [`interval::${isoMinus1(regToday())}`] });
+  function drillFilters(cfg, value) {
+    const reg = regValues(cfg.source);
+    const known = reg?.values || {};
+    const out = {};
+    const put = (key, v) => { if (v && known[key]?.has(v)) out[key] = [...new Set([...(out[key] || []), v])]; };
+    const sub = (v) => [...(known.subdiviziune || [])].find((x) => x === v || x.startsWith(`${v} (`)) || v;
+    const map = (col, v) => (col === "statut" ? put("statut", STATUT_TO_REG[v] || v) : col === "subdiviziune" ? put("subdiviziune", sub(v)) : put(col, v));
+    (cfg.filter?.rules || []).filter((r) => r.op === "is").forEach((r) => { if (r.column === "inTermen" && r.value === "Nu") Object.assign(out, OVERDUE()); else map(r.column, r.value); });
+    if (value && cfg.primary) map(cfg.primary, value);
+    /* a KPI number tile: the cases behind the KPI's alert side (T-01 / T-02 → the overdue cases) */
+    if (!value && cfg.kpi && KPI_DRILL[cfg.kpi]) Object.assign(out, KPI_DRILL[cfg.kpi]());
+    (V.f.applied.serviciu || []).forEach((v) => put("serviciu", v));
+    (V.f.applied.subdiviziune || []).forEach((v) => put("subdiviziune", sub(v)));
+    const date = (reg?.facets || []).find((f) => f.type === "date")?.key;
+    if (date && periodToken() !== "luna") out[date] = [periodToken()];
+    return out;
+  }
+  function drillTo(kind, filters = {}) {
+    const nav = document.querySelector(`[data-nav-item][data-nav-id="${CSS.escape(kind)}"]`);
+    if (!nav) { toast("Nu ai acces la registrul din spatele acestui widget.", "info"); return; }
+    A().setRegistryFilters?.(kind, filters);
+    V.drill = { kind, from: V.id };
+    V.navigating = true;
+    try { nav.click(); } finally { V.navigating = false; }
+  }
+
+  /* ---------------------------------------------------------------- dsh-alerts-v1 — „Alerte active” (US-431 + US-536)
+     Between the filters and the grid: the KPI alerts of the role at its authority (data/kpi.json › alerts, newest per KPI —
+     Feature 96500: the roles named on the KPI) and, for the management roles, the cases under examination past their term.
+     Rows = the stacked list: severity icon · text · Small tag · meta; the row opens the filtered register; × hides the alert
+     for this session (sessionStorage). Nothing to show → no section at all. */
+  const ALERTS_KEY = "e-permits-dsh-alerts-hidden";
+  const KPI_DRILL = { "kpi-t01": OVERDUE, "kpi-t02": OVERDUE };
+  const alertsHidden = () => { try { return new Set(JSON.parse(window.sessionStorage.getItem(ALERTS_KEY) || "[]")); } catch { return new Set(); } };
+  function viewAlerts(me) {
+    const out = [];
+    if (["supervisor", "director", "local-admin", "central-admin"].includes(me.role)) {
+      const reg = regValues("reg-dosare");
+      const f = OVERDUE();
+      const n = reg ? reg.rows.filter((r) => reg.facets.every((fc) => !f[fc.key] || (fc.type === "date" ? window.GEAPFacetFilter?.dateMatch?.(f[fc.key][0], fc.get(r), regToday()) : f[fc.key].includes(fc.get(r))))).length : 0;
+      if (n) out.push({ id: "termen-depasit", tone: "danger", title: `${plural(n, "dosar", "dosare")} cu termen depășit`, tag: "", meta: ["În examinare după termenul legal", viewPerimeter(me)], kind: "reg-dosare", filters: f });
+    }
+    const seen = new Set();
+    [...(K().alerts?.() || [])].sort((a, b) => String(b.at).localeCompare(String(a.at))).forEach((a) => {
+      if (a.authority !== me.authority || !(a.roles || []).includes(me.roleLabel) || seen.has(a.kpi)) return;
+      seen.add(a.kpi);
+      const k = K().get?.(a.kpi);
+      if (!k || k.status !== "Activ") return;
+      const exceeded = a.kind === "exceeded";
+      out.push({ id: `kpi:${a.kpi}:${a.at}`, tone: exceeded ? "danger" : "warning", title: k.names.ro, tag: exceeded ? "Ținta depășită" : "Aproape de țintă",
+        meta: [`Valoarea ${K().format?.(a.kpi, a.value)}`, `ținta ${K().format?.(a.kpi, a.target)}`, `calculată pe ${longDate(a.at)}`], kind: "reg-dosare", filters: KPI_DRILL[a.kpi]?.() || {} });
+    });
+    const off = alertsHidden();
+    return out.filter((a) => !off.has(a.id));
+  }
+  function alertsHtml(me) {
+    const list = viewAlerts(me);
+    if (!list.length) return "";
+    const items = list.map((a) => ({
+      plainTitle: a.title,
+      title: esc(a.title),
+      leadHtml: `<span class="e-permits-dsh-alert__icon e-permits-dsh-alert__icon--${a.tone}" aria-hidden="true">${icon(a.tone === "danger" ? "circle-error-filled" : "warning-filled")}</span>`,
+      badges: a.tag ? [tag(a.tag, a.tone)] : [],
+      meta: a.meta.map(esc),
+      rowAttrs: `tabindex="0" data-dsh-alert-open="${esc(a.id)}" aria-label="${esc(`${a.title}${a.tag ? `, ${a.tag.toLocaleLowerCase("ro")}` : ""} — deschide lista`)}"`,
+      actionsHtml: `<button class="btn btn-strict btn-sm btn-icon-only" type="button" aria-label="Ascunde alerta: ${esc(a.title)}" data-tooltip-label="Ascunde alerta" data-dsh-alert-hide="${esc(a.id)}">${icon("cross-small", 16)}</button>`
+    }));
+    return A().renderStackedList?.("Alerte active", [{ label: "", items }], { meta: plural(list.length, "alertă", "alerte"), className: "e-permits-dsh-alerts" }) || "";
+  }
+  function dismissAlert(id) {
+    const off = alertsHidden();
+    off.add(id);
+    try { window.sessionStorage.setItem(ALERTS_KEY, JSON.stringify([...off])); } catch { /* private mode */ }
+    const rows = [...document.querySelectorAll("[data-dsh-view] [data-dsh-alert-open]")];
+    const next = rows[rows.findIndex((r) => r.dataset.dshAlertOpen === id) + 1]?.dataset.dshAlertOpen || rows.find((r) => r.dataset.dshAlertOpen !== id)?.dataset.dshAlertOpen || "";
+    rerenderView();
+    const target = next && document.querySelector(`[data-dsh-view] [data-dsh-alert-open="${CSS.escape(next)}"]`);
+    (target || document.querySelector("[data-dsh-view] [data-dsh-personal]"))?.focus();
+  }
+
+  /* ---------------------------------------------------------------- dsh-personal-v1 — „Personalizează” (US-433)
+     The user hides / shows the dashboard's widgets for himself (localStorage per user + role + dashboard; no versions, not
+     shared, never widens access); width, height and order stay the configured ones (Feature constraint). A hidden widget
+     leaves no hole: the others move left, then up (the grid compaction). „Resetează” = the role's dashboard as published. */
+  const PERS_KEY = () => `e-permits-dsh-personal:${viewer().role}:${userName()}`;
+  const persRead = () => { try { return JSON.parse(window.localStorage.getItem(PERS_KEY()) || "{}") || {}; } catch { return {}; } };
+  const hiddenOf = (id) => new Set(persRead()[id] || []);
+  function persWrite(id, list) {
+    const all = persRead();
+    if (list.length) all[id] = list; else delete all[id];
+    try { window.localStorage.setItem(PERS_KEY(), JSON.stringify(all)); } catch { /* private mode */ }
+  }
+  /* left, then up: each tile slides left while the cells are free, then the vertical compaction */
+  function packBoxes(boxes) {
+    const placed = [];
+    [...boxes].sort(byPos).forEach((b) => {
+      while (b.x > 0 && !placed.some((p) => hit({ ...b, x: b.x - 1 }, p))) b.x -= 1;
+      placed.push(b);
+    });
+    return compactBoxes(boxes);
+  }
+  const persBody = () => {
+    const d = dashOf(V.pers.id);
+    const live = liveWidgets(d, viewer().authority);
+    return `
+      ${A().renderInfoNote?.("Alegerea este doar pentru tine. Dimensiunile și ordinea widget-urilor rămân cele stabilite de administrator.") || ""}
+      <fieldset class="e-permits-dsh-personal">
+        <legend class="e-permits-dsh-personal__legend">Widget-urile afișate</legend>
+        ${live.map(({ t, cfg }) => A().renderCheckOption?.({ label: cfg.titles?.ro || t.widget, checked: !V.pers.hidden.has(t.widget), attrs: `value="${esc(t.widget)}" data-dsh-pers` }) || "").join("")}
+      </fieldset>`;
+  };
+  function openPersonal() {
+    const d = dashOf(V.id);
+    if (!d) return;
+    V.pers = { id: d.id, hidden: hiddenOf(d.id) };
+    G().openModal?.({
+      kind: "dsh-personal",
+      title: "Personalizează tabloul de bord",
+      subtitle: lastVersion(d).config.names.ro,
+      body: persBody(),
+      footer: `<div class="modal-buttons e-permits-dsh-personal__foot"><button class="btn btn-text-neutral btn-rounded e-permits-dsh-personal__reset" type="button" data-dsh-pers-reset>${icon("rotate-arrow")}<span>Resetează la implicit</span></button><button class="btn btn-neutral btn-rounded" type="button" data-case-close>Anulează</button><button class="btn btn-primary btn-rounded" type="button" data-dsh-pers-save>Salvează</button></div>`
+    });
+    syncPersonal({ redraw: false });
+    requestAnimationFrame(() => document.querySelector("#case-action-modal.is-active [data-dsh-pers]")?.focus());
+  }
+  function syncPersonal({ redraw = true } = {}) {
+    const modal = document.querySelector("#case-action-modal.is-active");
+    if (!modal || !V.pers) return;
+    if (redraw) {
+      const body = modal.querySelector("[data-case-modal-body]");
+      const focused = document.activeElement?.matches?.("[data-dsh-pers]") ? document.activeElement.value : "";
+      if (body) body.innerHTML = persBody();
+      if (focused) modal.querySelector(`[data-dsh-pers][value="${CSS.escape(focused)}"]`)?.focus();
+    }
+    const d = dashOf(V.pers.id);
+    const shown = liveWidgets(d, viewer().authority).filter((x) => !V.pers.hidden.has(x.t.widget)).length;
+    const save = modal.querySelector("[data-dsh-pers-save]");
+    const reset = modal.querySelector("[data-dsh-pers-reset]");
+    const flag = (el, off, reason) => { if (!el) return; if (off) { el.setAttribute("aria-disabled", "true"); el.setAttribute("data-tooltip-reason", reason); } else { el.removeAttribute("aria-disabled"); el.removeAttribute("data-tooltip-reason"); } };
+    flag(save, !shown, "Lasă cel puțin un widget afișat.");
+    flag(reset, !V.pers.hidden.size, "Toate widget-urile sunt deja afișate.");
+  }
+  function savePersonal() {
+    if (!V.pers) return;
+    const d = dashOf(V.pers.id);
+    const ids = liveWidgets(d, viewer().authority).map((x) => x.t.widget);
+    const list = ids.filter((id) => V.pers.hidden.has(id));
+    if (list.length === ids.length) return;
+    persWrite(V.pers.id, list);
+    V.pers = null;
+    G().closeModal?.();
+    rerenderView();
+    toast(list.length ? `Ai ascuns ${plural(list.length, "widget", "widget-uri")} pe acest tablou de bord.` : "Tabloul de bord arată din nou toate widget-urile.");
+    document.querySelector("[data-dsh-view] [data-dsh-personal]")?.focus();
+  }
+
   async function showView(id = "", { push = false, focusTab = false } = {}) {
     A().setActiveNav?.(VIEW_NAV);
     if (!S.data) G().showPage?.(VIEW_TITLE, E()?.render({ title: "Se încarcă dashboard-ul…", loading: true }) || "");
@@ -2107,6 +2381,7 @@
     V.boards = boards;
     bindSwitch();
     G().showPage?.(VIEW_TITLE, viewBody(d, me, principal));
+    mountFilters();
     capView(d);
     /* phones: the switcher scrolls sideways — bring the selected dashboard into view (horizontal only) */
     const sel = document.querySelector('[data-view-switch="dsh-view"] [aria-checked="true"]');
@@ -2128,12 +2403,24 @@
     if (!panel || !d) return;
     const me = viewer();
     panel.outerHTML = viewBody(d, me, roleBoards(me.role, me.authority).principal);
+    mountFilters();
     capView(d);
   }
   document.addEventListener("click", (event) => {
     const t = event.target;
     if (!t.closest) return;
-    if (t.closest(`[data-nav-item][data-nav-id="${VIEW_NAV}"]`)) { showView("", { push: false }); return; }
+    if (t.closest(`[data-nav-item][data-nav-id="${VIEW_NAV}"]`)) { const back = V.returnTo; V.returnTo = ""; showView(back, { push: false }); return; }
+    /* dsh-drill-v1: any other menu item ends the dashboard → register trip (the register's back goes to „Registre” again) */
+    if (t.closest("[data-nav-item]") && !V.navigating) V.drill = null;
+    /* the register's top-bar back („Înapoi la Dashboard”) → the dashboard it came from */
+    if (t.closest("[data-dsh-back]")) { V.returnTo = V.drill?.from || ""; V.drill = null; document.querySelector(`[data-nav-item][data-nav-id="${VIEW_NAV}"]`)?.click(); return; }
+    if (viewOpen() && t.closest("[data-dsh-personal]")) { openPersonal(); return; }
+    if (t.closest("[data-dsh-pers-reset]")) { if (V.pers && V.pers.hidden.size) { V.pers.hidden.clear(); syncPersonal(); } return; }
+    if (t.closest("[data-dsh-pers-save]")) { savePersonal(); return; }
+    const hideAlert = viewOpen() && t.closest("[data-dsh-alert-hide]");
+    if (hideAlert) { dismissAlert(hideAlert.dataset.dshAlertHide); return; }
+    const alertRow = viewOpen() && t.closest("[data-dsh-alert-open]");
+    if (alertRow) { const a = viewAlerts(viewer()).find((x) => x.id === alertRow.dataset.dshAlertOpen); if (a) drillTo(a.kind, a.filters); return; }
     /* dsh-refresh-v1 (Feature 96498 US-432): „Actualizează” = button loading + the widgets' skeletons ~800 ms, then the meta
        „Date calculate acum, la HH:MM”, announced by its aria-live region (no toast) */
     const refresh = viewOpen() && t.closest("[data-dsh-refresh]");
@@ -2145,7 +2432,7 @@
         V.updated = `acum, la ${new Date().toLocaleTimeString("ro-RO", { hour: "2-digit", minute: "2-digit", hour12: false })}`;
         if (!viewOpen()) return;
         V.announce = true; rerenderView(); V.announce = false;
-        window.requestAnimationFrame(() => { const m = document.querySelector("[data-dsh-view] [data-dsh-meta]"); const me = viewer(); if (m) m.textContent = `Perimetru: ${viewPerimeter(me)} · Date calculate ${V.updated}`; document.querySelector("[data-dsh-view] [data-dsh-refresh]")?.focus(); });
+        window.requestAnimationFrame(() => { const m = document.querySelector("[data-dsh-view] [data-dsh-meta]"); const me = viewer(); if (m) m.textContent = metaText(me, hiddenCount()); document.querySelector("[data-dsh-view] [data-dsh-refresh]")?.focus(); });
       }, 800);
       return;
     }
@@ -2156,12 +2443,30 @@
       window.setTimeout(() => { V.busy.delete(key); if (viewOpen()) rerenderView(); }, 700);
       return;
     }
-    /* drill-down on the BO page: the register behind the value (Feature 96498 US-430, not built here) */
     /* dsh-dosare-table-v1: a Dosare row opens that dosar (the copy value inside keeps its own click) */
     const dosar = !t.closest(".copy-value") && t.closest("[data-dsh-tile] [data-wid-open]");
     if (dosar) { toast(`Aici se deschide dosarul ${dosar.dataset.widOpen} (profilul dosarului din Dosare).`, "info"); return; }
+    /* dsh-drill-v1 (US-430): a value / slice / bar / row label opens the register behind the widget, filtered on it + the
+       common filters (only the values the register knows), with „Înapoi la Dashboard” in the top bar */
     const drill = viewOpen() && t.closest("[data-dsh-view] [data-wid-drill]");
-    if (drill) { toast(`Aici se deschid înregistrările „${drill.dataset.widDrill}” (${drill.dataset.widDrillValue}) din registrul sursă.`, "info"); }
+    if (drill) {
+      const id = drill.closest("[data-dsh-tile]")?.dataset.dshTile;
+      const cfg = id ? W().published?.(id) : null;
+      if (cfg) drillTo(cfg.source, drillFilters(cfg, drill.closest(".e-permits-wid-stat") ? "" : drill.dataset.widDrill));
+    }
+  });
+  /* the alert rows are clickable list rows: Enter / Space open them (the × keeps its own keys) */
+  document.addEventListener("keydown", (event) => {
+    const row = event.target.closest?.("[data-dsh-alert-open]");
+    if (!row || event.target !== row || !["Enter", " "].includes(event.key)) return;
+    event.preventDefault();
+    row.click();
+  });
+  document.addEventListener("change", (event) => {
+    const box = event.target.closest?.("[data-dsh-pers]");
+    if (!box || !V.pers) return;
+    if (box.checked) V.pers.hidden.delete(box.value); else V.pers.hidden.add(box.value);
+    syncPersonal();
   });
   /* the switcher = GEAPViewSwitch (keyboard ← → Home End + radiogroup aria in the component) */
   const bindSwitch = () => window.GEAPViewSwitch?.on("dsh-view", (id) => showView(id, { focusTab: true }));
@@ -2210,6 +2515,8 @@
     /* Feature AC: the roles see the last published version; order = principal first, then „Ordinea” */
     /* principal first (the authority's over the global one), then by „Ordinea” — the BO page „Tablou de bord” (dsh-view-v1) */
     forRole: (role, authority) => roleBoards(role, authority).boards,
-    showView
+    showView,
+    /* dsh-drill-v1: js/registre.js asks which back the register opened from a dashboard value shows */
+    drillBack: (kind) => (V.drill && V.drill.kind === kind ? { label: VIEW_TITLE, attr: "data-dsh-back" } : null)
   };
 })();

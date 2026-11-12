@@ -315,13 +315,19 @@
     const s = m.single;
     const tone = m.tone?.(s.value);
     const d = s.delta;
-    const tag = d ? window.GEAPTag?.html(`${d.up ? "+" : "−"}${d.pct}%`, d.up ? "success" : "danger", { className: "e-permits-wid-stat__delta" }) || "" : "";
+    const tag = d ? window.GEAPTag?.html(`${d.up ? "+" : "−"}${d.pct}%`, (d.good ?? d.up) ? "success" : "danger", { className: "e-permits-wid-stat__delta" }) || "" : "";
+    /* dsh-kpi-zone-v1 (Feature 96498 „Culoare”: Favorabilă / Avertizare / Critică, „însoțită de text”): a KPI tile with a target
+       colours its value by the zone and says it in words on the target line — dot + „Favorabil · Ținta 90%” */
+    const zone = m.kpi && m.target && tone ? (m.zones || []).find(([, t]) => t === tone)?.[0] || "" : "";
+    const targetLine = zone
+      ? `<span class="e-permits-wid-stat__meta e-permits-wid-stat__zone" data-cell-tooltip="${esc(`${zone} · ${m.target.label}`)}"><span class="e-permits-meter-legend__dot e-permits-meter-legend__dot--${tone}" aria-hidden="true"></span>${esc(`${zone} · Ținta ${m.fmt(m.target.value)}`)}</span>`
+      : m.target ? `<span class="e-permits-wid-stat__meta">${esc(m.target.label)}</span>` : "";
     const inner = `
-      <span class="e-permits-wid-stat__line"><span class="e-permits-wid-stat__value${tone === "warning" || tone === "danger" ? ` e-permits-wid-stat__value--${tone}` : ""}">${esc(m.fmt(s.value))}</span>${tag}</span>
+      <span class="e-permits-wid-stat__line"><span class="e-permits-wid-stat__value${zone || tone === "warning" || tone === "danger" ? ` e-permits-wid-stat__value--${tone}` : ""}">${esc(m.fmt(s.value))}</span>${tag}</span>
       ${d?.text ? `<span class="e-permits-wid-stat__meta" data-cell-tooltip="${esc(d.text)}">${esc(d.text)}</span>` : ""}
-      ${m.target ? `<span class="e-permits-wid-stat__meta">${esc(m.target.label)}</span>` : ""}`;
+      ${targetLine}`;
     return m.drill
-      ? `<div class="e-permits-wid-stat"><button class="e-permits-wid-stat__btn" type="button"${drillAttrs(m, m.caption || "Valoarea", s.value)} aria-label="${esc(`${m.fmt(s.value)}${d ? ` (${d.up ? "+" : "−"}${d.pct}% ${d.text})` : ""} — deschide înregistrările`)}">${inner}</button></div>`
+      ? `<div class="e-permits-wid-stat"><button class="e-permits-wid-stat__btn" type="button"${drillAttrs(m, m.caption || "Valoarea", s.value)} aria-label="${esc(`${m.fmt(s.value)}${zone ? `, ${zone.toLocaleLowerCase("ro")}, ținta ${m.fmt(m.target.value)}` : ""}${d ? ` (${d.up ? "+" : "−"}${d.pct}% ${d.text})` : ""} — deschide înregistrările`)}">${inner}</button></div>`
       : `<div class="e-permits-wid-stat">${inner}</div>`;
   }
 
