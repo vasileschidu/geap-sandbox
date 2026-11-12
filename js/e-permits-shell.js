@@ -7432,16 +7432,27 @@ document.addEventListener("DOMContentLoaded", () => {
         || renderNoResults(filtered ? "Niciun rezultat pentru filtrele aplicate" : "Niciun rezultat nu corespunde căutării", {});
       return true;
     }
+    /* rbo-list-toolbar-v1: `stackGroup(row)` → a group label (the rows keep the sort order inside each group; groups follow
+       the first appearance) — the BO report list groups by category */
+    const stackGroups = [];
+    rows.forEach((row) => {
+      const label = registry.stackGroup?.(row) || "";
+      let entry = stackGroups.find(([l]) => l === label);
+      if (!entry) { entry = [label, []]; stackGroups.push(entry); }
+      entry[1].push(row);
+    });
+    if (registry.stackGroupOrder) stackGroups.sort((a, b) => registry.stackGroupOrder(a[0]) - registry.stackGroupOrder(b[0]));
     host.innerHTML = `
       <div class="e-permits-stack${registry.stackClass ? ` ${registry.stackClass}` : ""}">
-        <div class="e-permits-stack__group">
-          <ul class="e-permits-stack__list" role="list">${rows.map((row) => {
+        ${stackGroups.map(([label, list]) => `<div class="e-permits-stack__group">
+          ${label ? `<h3 class="e-permits-stack__group-label">${escapeHtml(label)}<span class="badge badge--lg badge--solid-light e-permits-stack__group-count">${list.length}</span></h3>` : ""}
+          <ul class="e-permits-stack__list" role="list">${list.map((row) => {
             const item = registry.stackItem(row);
             const extra = registry.rowClass?.(row);
             return renderStackItem({ ...item, rowAttrs: `data-workplace-row="${escapeHtml(row.id)}"${workplaceRowOpenAttrs(row)}${item.rowAttrs ? ` ${item.rowAttrs}` : ""}` })
               .replace('<li class="e-permits-stack__item', `<li class="e-permits-stack__item${extra ? ` ${escapeHtml(extra)}` : ""}`);
           }).join("")}</ul>
-        </div>
+        </div>`).join("")}
       </div>`;
     /* wrapped detail parts drop their leading dot (is-row-start), on every resize too */
     syncStackMetaRows(host);
@@ -7722,6 +7733,25 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (workplaceTitle) {
       workplaceTitle.textContent = view.title;
+    }
+
+    /* rbo-list-toolbar-v1 (2026-11-12): a registry may put a section heading ABOVE the toolbar (`listHeading()` →
+       { title, meta }), as the other BO list pages — „Rapoartele tale · 12 rapoarte” */
+    {
+      const head = workplacePanel?.querySelector(":scope > .e-permits-workplace__header");
+      let el = head?.querySelector(":scope > [data-workplace-heading]");
+      const info = productRegistry(workplaceDb.kind)?.listHeading?.();
+      if (head && info) {
+        if (!el) {
+          el = document.createElement("div");
+          el.className = "e-permits-dosar-profil__section-heading e-permits-workplace__heading";
+          el.setAttribute("data-workplace-heading", "");
+          head.prepend(el);
+        }
+        el.innerHTML = `<h2 class="e-permits-dosar-profil__section-title">${escapeHtml(info.title)}</h2>${info.meta ? `<span class="e-permits-dosar-profil__section-meta">${escapeHtml(info.meta)}</span>` : ""}`;
+      } else if (el) {
+        el.remove();
+      }
     }
 
     const isUsersRegistry = workplaceDb.kind === "users";

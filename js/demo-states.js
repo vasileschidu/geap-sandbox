@@ -4862,7 +4862,7 @@
 
   function rboDemoStates() {
     const SPEC = "ansp-specialist-chisinau", SUP = "ansp-supervisor-chisinau";
-    const READY = "[data-reg-page]:not([hidden]) :is([data-rbo-open], [data-rbo-report], .e-permits-rbo .e-permits-empty, .e-permits-empty)";
+    const READY = "[data-workplace-row], [data-workplace-stack] .e-permits-empty, [data-reg-page]:not([hidden]) :is([data-rbo-report], .e-permits-rbo .e-permits-empty, .e-permits-empty)";
     const page = (hash, run, params, as = SPEC) => ({ flow: "back-office", as, hash, ...(params ? { params } : {}), ready: READY, delay: 900, run });
     const gen = (mode = "fara") => async (h) => {
       if (mode !== "fara" || document.querySelector("[data-rbo-gen-trigger]")) { await h.click("[data-rbo-gen-trigger]"); await h.wait(200); }
@@ -4873,8 +4873,17 @@
       "rbo-01": page("#rapoarte-bo"),
       "rbo-01a": page("#rapoarte-bo", null, null, SUP),
       /* rbo-search-v1: the list search — results (diacritics-insensitive, groups + counts follow) / no match */
-      "rbo-01b": page("#rapoarte-bo", async (h) => { await h.fill("[data-rbo-list-q]", "performanta", { leave: false }); await h.wait(300); }),
-      "rbo-01c": page("#rapoarte-bo", async (h) => { await h.fill("[data-rbo-list-q]", "autorizatii zzz", { leave: false }); await h.wait(300); }),
+      "rbo-01b": page("#rapoarte-bo", async (h) => { await h.fill("[data-workplace-search]", "performanta", { leave: false }); await h.wait(300); }),
+      "rbo-01c": page("#rapoarte-bo", async (h) => { await h.fill("[data-workplace-search]", "autorizatii zzz", { leave: false }); await h.wait(300); }),
+      /* rbo-list-toolbar-v1: Categorie filter applied (only that group) · the „Sortează” menu open */
+      "rbo-01d": page("#rapoarte-bo", async (h) => {
+        window.GEAPShellApi.setRegistryFilters("rapoarte-bo", { categorie: ["Rapoarte statistice"] });
+        document.querySelector('[data-nav-item][data-nav-id="rapoarte-bo"]').click(); await h.wait(700);
+        const bar = document.querySelector("[data-workplace-filters]");
+        const toggle = document.querySelector("[data-workplace-filter-toggle]");
+        if (bar?.hidden && toggle && toggle.getClientRects().length && !toggle.classList.contains("e-permits-filter-trigger--icon")) { toggle.click(); await h.wait(400); }
+      }),
+      "rbo-01e": page("#rapoarte-bo", async (h) => { await h.click("[data-workplace-sort-trigger]"); await h.wait(300); }),
       "rbo-02": page("#rapoarte-bo/RPT-0047"),
       "rbo-03": page("#rapoarte-bo/RPT-0047", null, { rbo: "generat" }),
       "rbo-03a": page("#rapoarte-bo/RPT-0047", null, { rbo: "generat" }, SUP),

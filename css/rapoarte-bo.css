@@ -29,18 +29,15 @@
   gap: var(--spacing-24, 24px);
 }
 
-/* the list (rbo-search-v1): the BO list search (400 wide like every BO quick search; phones full width, 48 by
-   css/field-sizes.css) 16 above the grouped list */
-.e-permits-rbo--list {
+/* the list heading above the toolbar (rbo-list-toolbar-v1): heading, then the toolbar (its own 12 inset), inside the stacked-list column */
+.e-permits-workplace[data-workplace-layout="stack"] > .e-permits-workplace__header:has(> .e-permits-workplace__heading) {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-16, 16px);
 }
 
-.e-permits-front-office-page .e-permits-rbo .e-permits-workplace__search.e-permits-rbo__search.e-permits-list-search--fill {
-  align-self: flex-start;
-  max-width: calc(var(--spacing-40, 40px) * 10);
-  width: 100%;
+.e-permits-workplace[data-workplace-layout="stack"] > .e-permits-workplace__header:has(> .e-permits-workplace__heading) > .e-permits-workplace__toolbar {
+  height: auto;
+  min-height: calc(var(--spacing-40, 40px) + var(--spacing-24, 24px));
 }
 
 /* the head: title row (section title at text height + ⓘ) and meta on the left, the actions on the right */
@@ -109,10 +106,6 @@
 }
 
 @media (max-width: 760px) {
-  .e-permits-front-office-page .e-permits-rbo .e-permits-workplace__search.e-permits-rbo__search.e-permits-list-search--fill {
-    max-width: none;
-  }
-
   .e-permits-rbo--report {
     gap: var(--spacing-16, 16px);
   }

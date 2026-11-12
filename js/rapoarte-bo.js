@@ -237,63 +237,91 @@
   }
 
   /* ---------------------------------------------------------------- the list */
+  /* rbo-list-toolbar-v1 (2026-11-12, user on 15570:33546: „do as we did for admin: search, filter, sort, put „Rapoartele tale”
+     on top”): the BO list is a product registry on the shell engine (`GEAPShellRegistries["rapoarte-bo"]`, the same stacked
+     list + toolbar as the builder's list RPT-01: search · „Filtrare” chip · „Sortează” chip, phones icon-only); the heading
+     „Rapoartele tale · N rapoarte · Perimetru” sits ABOVE the toolbar (`listHeading`), the rows are grouped by category
+     (`stackGroup`). Filters: Categorie · Sursa de date; sort: Denumire · Publicat · ID. No „Rapoartele mele”. */
+  const KIND = "rapoarte-bo";
   const CAT_SHORT = { tabelar: "Tabelar", statistic: "Statistic" };
-  /* rbo-search-v1 (2026-11-11, user: „what if I have a lot of reports? do a search”): the BO list search (library
-     `.search-input` = `.e-permits-workplace__search`, js/search.js clear) above the grouped list; live, diacritics-insensitive
-     on ID · name · description; empty groups hide, counts follow; no match = the boxed „Nicio potrivire găsită.” */
   const fold = (x) => String(x || "").normalize("NFD").replace(/\p{M}/gu, "").toLocaleLowerCase("ro");
-  const L = { q: "" };
-  function listGroups(me, q = "") {
-    const needle = fold(q).trim();
-    const reports = myReports(me).filter((r) => !needle || fold(`${r.id} ${nameOf(r)} ${descOf(r)}`).includes(needle));
-    const cats = X().categories?.() || [{ id: "tabelar", name: "Rapoarte tabelare" }, { id: "statistic", name: "Rapoarte statistice" }];
-    return cats.map((cat) => ({
-      label: cat.name,
-      items: reports.filter((r) => lastVersion(r).config.category === cat.id)
-        .sort((a, b) => nameOf(a).localeCompare(nameOf(b), "ro"))
-        .map((r) => {
-          const v = lastVersion(r);
-          const desc = descOf(r);
-          const details = [esc(r.id), esc(CAT_SHORT[v.config.category] || ""), esc(R().sourceName?.(v.config.source) || ""), `Actualizat ${esc(longDate(v.at))}`].filter(Boolean);
-          return {
-            plainTitle: nameOf(r),
-            title: esc(nameOf(r)),
-            meta: desc ? [`<span class="e-permits-rpt-list__desc" data-cell-tooltip="${esc(desc)}">${esc(desc)}</span>`] : details,
-            meta2: desc ? details : null,
-            rowAttrs: `data-rbo-open="${esc(r.id)}"`
-          };
-        })
-    })).filter((g) => g.items.length);
+  const catName = (id) => (X().categories?.() || [{ id: "tabelar", name: "Rapoarte tabelare" }, { id: "statistic", name: "Rapoarte statistice" }]).find((c) => c.id === id)?.name || id;
+  const catOrder = (name) => (X().categories?.() || [{ id: "tabelar" }, { id: "statistic" }]).findIndex((c) => catName(c.id) === name);
+  const rowOf = (r) => {
+    const v = lastVersion(r);
+    return { id: r.id, denumire: nameOf(r), descriere: descOf(r), categorie: catName(v.config.category), tip: CAT_SHORT[v.config.category] || "", sursa: R().sourceName?.(v.config.source) || "", publicat: v.at || "" };
+  };
+  const stackItem = (row) => {
+    const details = [esc(row.id), esc(row.tip), esc(row.sursa), `Actualizat ${esc(longDate(row.publicat))}`].filter(Boolean);
+    return {
+      plainTitle: row.denumire,
+      title: esc(row.denumire),
+      meta: row.descriere ? [`<span class="e-permits-rpt-list__desc" data-cell-tooltip="${esc(row.descriere)}">${esc(row.descriere)}</span>`] : details,
+      meta2: row.descriere ? details : null
+    };
+  };
+  function registryDb() {
+    const rows = myReports(who()).map(rowOf);
+    return {
+      kind: KIND,
+      fixedWidths: true,
+      fieldCount: 4,
+      pageSizes: [20, 40, 60],
+      defaultSort: "denumire",
+      defaultSortDirection: "asc",
+      columns: {
+        id: { label: "ID", width: 112, sortable: true },
+        denumire: { label: "Denumire", width: 320, sortable: true },
+        categorie: { label: "Categorie", width: 168, sortable: true },
+        publicat: { label: "Publicat", width: 168, sortable: true }
+      },
+      views: {
+        [KIND]: {
+          title: TITLE,
+          selectable: false,
+          searchPlaceholder: "Caută după ID, denumire sau descriere",
+          columns: ["id", "denumire", "categorie", "publicat"],
+          tabs: [],
+          primaryAction: null,
+          toolbarLabel: "Filtrare rapoarte"
+        }
+      },
+      runtimeRows: rows
+    };
   }
-  function listBodyHtml(me) {
-    const all = myReports(me).length;
-    const groups = listGroups(me, L.q);
-    const shown = groups.reduce((n, g) => n + g.items.length, 0);
-    const meta = `${L.q.trim() ? `${shown} din ${all}` : plural(all, "raport", "rapoarte")} · Perimetru: ${perimeter(me)}`;
-    if (!groups.length) {
-      return `<section class="e-permits-dosar-profil__section e-permits-stack-section"><div class="e-permits-dosar-profil__section-heading"><h2 class="e-permits-dosar-profil__section-title">Rapoartele tale</h2><span class="e-permits-dosar-profil__section-meta" aria-live="polite">${esc(meta)}</span></div>${E()?.noResults?.("Nicio potrivire găsită.", { text: "Caută după ID, denumire sau descriere.", actionHtml: '<button class="btn btn-neutral btn-sm" type="button" data-rbo-q-reset>Resetează căutarea</button>' }) || E()?.render({ title: "Nicio potrivire găsită.", text: "Caută după ID, denumire sau descriere.", icon: "search", actionHtml: '<button class="btn btn-neutral btn-sm" type="button" data-rbo-q-reset>Resetează căutarea</button>' }) || ""}</section>`;
-    }
-    return A().renderStackedList?.("Rapoartele tale", groups, { className: "e-permits-rpt-list e-permits-rbo__list", meta }) || "";
-  }
-  function listHtml(me) {
-    if (!myReports(me).length) {
-      return `<div class="e-permits-rbo e-permits-rbo--list">${E()?.render({ title: "Nu ai acces la rapoarte.", text: "Rapoartele se deschid rolurilor de Administratorul central, din „Acces” al fiecărui raport.", icon: "table" }) || ""}</div>`;
-    }
-    return `<div class="e-permits-rbo e-permits-rbo--list">
-      <div class="search-input medium rectangular e-permits-workplace__search e-permits-list-search e-permits-list-search--fill e-permits-rbo__search${L.q ? " has-value is-ready" : ""}">
-        <span class="icon-search" aria-hidden="true">${icon("search")}</span>
-        <input class="input" type="search" id="rbo-list-q" autocomplete="off" value="${esc(L.q)}" placeholder="Caută după ID, denumire sau descriere" aria-label="Caută rapoarte" data-rbo-list-q>
-        <div class="btn-group"><button type="button" class="btn-icon clear" aria-label="Șterge căutarea">${icon("cross-small", 16)}</button></div>
-      </div>
-      <div data-rbo-list-body>${listBodyHtml(me)}</div>
-    </div>`;
-  }
-  function refreshListBody() {
-    const host = document.querySelector("[data-reg-page]:not([hidden]) [data-rbo-list-body]");
-    if (!host) return;
-    host.innerHTML = listBodyHtml(who());
-    A().syncStackMetaRows?.(host);
-  }
+  window.GEAPShellRegistries = window.GEAPShellRegistries || {};
+  window.GEAPShellRegistries[KIND] = {
+    build: registryDb,
+    get facets() {
+      return [
+        { key: "categorie", label: "Categorie", get: (row) => row.categorie },
+        { key: "sursa", label: "Sursa de date", get: (row) => row.sursa }
+      ];
+    },
+    searchText: (row) => `${row.id} ${row.denumire} ${fold(row.denumire)} ${row.descriere} ${fold(row.descriere)}`,
+    stackItem,
+    stackClass: "e-permits-rpt-list e-permits-rbo__list",
+    stackGroup: (row) => row.categorie,
+    stackGroupOrder: catOrder,
+    listHeading: () => {
+      const me = who();
+      return { title: "Rapoartele tale", meta: `${plural(myReports(me).length, "raport", "rapoarte")} · Perimetru: ${perimeter(me)}` };
+    },
+    sort: {
+      keys: [{ value: "denumire", label: "Denumire" }, { value: "publicat", label: "Publicat" }, { value: "id", label: "ID" }],
+      orders: (key) => ({
+        denumire: [{ value: "asc", label: "A–Z" }, { value: "desc", label: "Z–A" }],
+        publicat: [{ value: "desc", label: "Cele mai recente întâi" }, { value: "asc", label: "Cele mai vechi întâi" }],
+        id: [{ value: "asc", label: "Crescător" }, { value: "desc", label: "Descrescător" }]
+      })[key] || []
+    },
+    sortValue: (row, key) => String(row[key] ?? ""),
+    filterToken: () => true,
+    openRow: (id) => showReport(id, { push: true }),
+    renderCell: (row, key) => esc(row[key] ?? ""),
+    exportState: () => ({ hidden: true }),
+    emptyHtml: ({ query } = {}) => E()?.noResults?.("Nicio potrivire găsită.", { text: "Caută după ID, denumire sau descriere ori schimbă filtrele." }) || ""
+  };
 
   /* ---------------------------------------------------------------- the report page */
   const genMenu = (r, off) => {
@@ -418,17 +446,6 @@
   async function ready() {
     await (R().load?.() || Promise.resolve());
   }
-  /* wrapped detail parts of the list drop their leading dot (the shell stacked-list rule), on every resize too */
-  let metaRO = null;
-  function watchMeta() {
-    const root = document.querySelector("[data-reg-page]:not([hidden]) .e-permits-rbo--list");
-    if (!root) return;
-    A().syncStackMetaRows?.(root);
-    if (!("ResizeObserver" in window)) return;
-    metaRO?.disconnect();
-    metaRO = new ResizeObserver(() => A().syncStackMetaRows?.(root));
-    metaRO.observe(root);
-  }
   async function showList({ push = false } = {}) {
     const me = who();
     if (!me.has) { showDenied(); return; }
@@ -436,9 +453,9 @@
     S.id = "";
     if (!R().all?.()?.length) G().showPage?.(TITLE, E()?.render({ title: "Se încarcă rapoartele…", loading: true }) || "");
     await ready();
-    G().showPage?.(TITLE, listHtml(me));
+    if (!myReports(me).length) G().showPage?.(TITLE, `<div class="e-permits-rbo e-permits-rbo--list">${E()?.render({ title: "Nu ai acces la rapoarte.", text: "Rapoartele se deschid rolurilor de Administratorul central, din „Acces” al fiecărui raport.", icon: "table" }) || ""}</div>`);
+    else A().showRegistry?.(registryDb(), { sortKey: "denumire", sortDirection: "asc" });
     mountFilters();
-    watchMeta();
     A().writeHash?.(`#${NAV}`, { push });
   }
   async function showReport(id, { push = false } = {}) {
@@ -541,19 +558,10 @@
     if (t.closest(`[data-nav-item][data-nav-id="${NAV}"]`)) { showList(); return; }
     if (t.closest("[data-rbo-back]")) { showList({ push: true }); return; }
     if (!inPage(t) && !t.closest("#rbo-fbar, .e-permits-rbo__fbar")) return;
-    const open = t.closest("[data-rbo-open]");
-    if (open && !t.closest("button:not([data-rbo-open]), a")) { showReport(open.dataset.rboOpen, { push: true }); return; }
     const gen = t.closest("[data-rbo-generate]");
     if (gen) { if (gen.getAttribute("aria-disabled") !== "true") generate(gen.dataset.rboGenerate); return; }
     const ex = t.closest("[data-rbo-export]");
     if (ex) { exportAs(ex.dataset.rboExport); return; }
-    if (t.closest("[data-rbo-q-reset]")) {
-      L.q = "";
-      const input = document.querySelector("[data-rbo-list-q]");
-      if (input) { input.value = ""; input.closest(".search-input")?.classList.remove("has-value", "is-ready", "is-typing"); input.focus(); }
-      refreshListBody();
-      return;
-    }
     if (t.closest("[data-rbo-q-clear]")) { cur().q = ""; syncSearch(); fx().ctl.render(); filtersChanged(); }
   });
   /* an aria-disabled menu trigger (Generează without a period) never opens its menu */
@@ -563,7 +571,6 @@
   }, true);
   document.addEventListener("input", (event) => {
     const el = event.target;
-    if (el.matches?.("[data-rbo-list-q]")) { L.q = el.value; refreshListBody(); return; }
     if (!el.matches?.("[data-rbo-q]")) return;
     cur().q = el.value;
     el.closest("[data-rbo-q-box]")?.classList.toggle("has-value", Boolean(el.value));
