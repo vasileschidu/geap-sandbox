@@ -204,6 +204,8 @@
       preview: (sel) => model(sel).rowCount,
       apply: () => filtersChanged(),
       hint: false,
+      /* rbo-chip-group-v1 (2026-11-12, user: „the × exactly as in RAP”): an applied facet = the RAP grey pill group [chip][round ×] */
+      chipGroup: true,
       /* the rows show only after „Generează”: no live count in the bar */
       text: { results: () => "" }
     });
