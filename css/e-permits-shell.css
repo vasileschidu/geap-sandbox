@@ -2351,6 +2351,7 @@ body {
 
 .e-permits-workplace[data-workplace-layout="stack"] > .e-permits-workplace__header > .e-permits-workplace__toolbar {
   padding-inline: 0;
+  padding-top: var(--spacing-16, 16px); /* stack-top-16-v1 (2026-11-12, user): 16 between the top bar and the toolbar */
 }
 
 /* :is(*, :has(…)) lifts the specificity over the BO filter-bar placement rules (inset 16 + the header line) */
