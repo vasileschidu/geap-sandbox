@@ -467,5 +467,6 @@ Helpers: `const AF = Object.getPrototypeOf(async function(){}).constructor; cons
 
 - Chips round + RAP × (2026-11-12, code `rbo-chip-group-v1`, `chipGroup: true` in js/rapoarte-bo.js): an applied filter = the RAP grey pill group [chip][round ×] (EVO-WEB 3.0 22622:26715), not the black chip with an inner ×.
 - The Figma blocks rbo-02/03/05/06/09 (node 15590:1034 chips row) need the same chip-group instances (Filter group, 40 high, × 36 round); every chip, applied or not, a pill.
+- New state rbo-02a (2026-11-12, code `rbo-clear-v1` + `rbo-period-required-v1`): Perioada cleared with the chip × = plain „Perioada” chip with a danger border + „Alege perioada raportului.” (error icon) under the bar; „Generează” without a period shows the same and focuses the chip.
 
 - BO list blocks rbo-01 / 01a / 01b / 01c (2026-11-12, code `rbo-list-toolbar-v1`): the list is now the admin registry look — heading „Rapoartele tale · N rapoarte · Perimetru” ABOVE the toolbar, then search + „Filtrare” chip + „Sortează” chip (phones icon-only in the search row), then the category groups; no Export button. Redo the blocks from rbo-01 / rbo-01d (filter) / rbo-01e (sort menu).

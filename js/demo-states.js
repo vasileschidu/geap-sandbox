@@ -821,6 +821,45 @@
       await h.fill("[data-service-sync-code]", code, { leave: false }); await h.click("[data-service-sync-submit]");
       await h.find("[data-service-sync-body] .e-permits-passport__sync-summary", null, 15000);
     } }])),
+    /* US-326 (Azure 96686, svc-clone-v1) — Servicii › „Adaugă serviciu” › „Creare cu clonarea setărilor” (js/service-clone.js).
+       Matching types: new 003000451 (Eliberare) ← 003000023 (Eliberare + Modificare; Reperfectare is not cloned);
+       no pair: new 003000333 (Eliberare + Prelungire) ← 003000023 → types / documents / tax settings locked */
+    ...(() => {
+      const open = async (h) => {
+        await h.click('[data-nav-id="service-config"]');
+        await h.click("[data-workplace-add-service]");
+        await h.find("[data-svcl-drawer] #svcl-code");
+      };
+      const cloneMode = async (h) => { await open(h); await h.click("[data-svcl-drawer] .e-permits-fo-radio--option", "clonarea"); await h.find("#fo-svcl-source"); };
+      const pick = async (h, code) => {
+        await h.click("#fo-svcl-source");
+        const option = await h.find(`.e-permits-fo-caem__option[data-code="${code}"]`);
+        option.dispatchEvent(new MouseEvent("mousedown", { bubbles: true, cancelable: true }));
+        await h.wait(300);
+      };
+      const step2 = (code, source) => async (h) => {
+        await cloneMode(h); await h.fill("#svcl-code", code, { leave: false }); await pick(h, source);
+        await h.click("[data-svcl-submit]"); await h.find("[data-svcl-drawer] .e-permits-svc-clone__table", null, 15000);
+      };
+      const ticked = async (h) => {
+        await step2("003000451", "003000023")(h);
+        window.GEAPServiceClone.expand(["set", "set.applicant"]);
+        window.GEAPServiceClone.tick(["set.applicant", "set.exam", "set.payment", "frm", "tpl"]);
+        await h.wait(300);
+      };
+      const st = (run) => ({ flow: "back-office", as: ADMIN, run });
+      return {
+        "svc-cl-01": st(cloneMode),
+        "svc-cl-02": st(async (h) => { await cloneMode(h); await h.fill("#svcl-code", "003000451", { leave: false }); await h.click("#fo-svcl-source"); await h.fill(".e-permits-fo-caem__menu:not([hidden]) [data-fo-caem-search]", "comer", { leave: false }); }),
+        "svc-cl-03": st(step2("003000451", "003000023")),
+        "svc-cl-04": st(ticked),
+        "svc-cl-05": st(async (h) => { await step2("003000333", "003000023")(h); window.GEAPServiceClone.expand(["rt", "rt.rt-1"]); await h.wait(300); }),
+        "svc-cl-06": st(async (h) => { await cloneMode(h); await h.fill("#svcl-code", "003000451", { leave: false }); await h.click("[data-svcl-submit]"); await h.find("[data-svcl-source-field] .e-permits-fo-field__error"); }),
+        "svc-cl-07": st(async (h) => { await ticked(h); await h.click("[data-svcl-submit]"); await h.find(".toast", null, 15000); }),
+        "svc-cl-08": st(async (h) => { await cloneMode(h); await h.fill("#svcl-code", "003000023", { leave: false }); await pick(h, "003000118"); await h.click("[data-svcl-submit]"); await h.find("[data-svcl-resync]"); }),
+        "svc-cl-09": st(async (h) => { await cloneMode(h); await h.fill("#svcl-code", "000000000", { leave: false }); await pick(h, "003000023"); await h.click("[data-svcl-submit]"); await h.find("[data-svcl-drawer] .banner--error", null, 15000); })
+      };
+    })(),
     "svc-01": svc("general"),
     /* 2026-10-16 · dropdown audit: the BO header help menu open */
     "svc-00h": svc("general", async (h) => { await h.click('[aria-controls="shell-help-menu"]'); }),
@@ -4885,6 +4924,8 @@
       }),
       "rbo-01e": page("#rapoarte-bo", async (h) => { await h.click("[data-workplace-sort-trigger]"); await h.wait(300); }),
       "rbo-02": page("#rapoarte-bo/RPT-0047"),
+      /* Perioada cleared with the chip ×: the chip back to plain „Perioada” in the error look + „Alege perioada raportului.” */
+      "rbo-02a": page("#rapoarte-bo/RPT-0047", async (h) => { if (ekPhone()) return; await h.click('.e-permits-rbo__fbar [aria-label="Șterge filtrul Perioada"]'); await h.wait(300); }),
       "rbo-03": page("#rapoarte-bo/RPT-0047", null, { rbo: "generat" }),
       "rbo-03a": page("#rapoarte-bo/RPT-0047", null, { rbo: "generat" }, SUP),
       "rbo-04": page("#rapoarte-bo/RPT-0049", async (h) => { await h.click("[data-rbo-gen-trigger]"); await h.wait(150); }),

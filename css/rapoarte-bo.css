@@ -146,3 +146,17 @@
     text-align: left;
   }
 }
+
+/* rbo-period-required-v1 (2026-11-12): Perioada required error = the field error pattern on the chip (the library chip has no error variant) + the library inline message 8 under the bar */
+.e-permits-rbo__fbar .chip.e-permits-workplace__filter-chip.is-error,
+.e-permits-rbo__fbar .chip.e-permits-workplace__filter-chip.is-error:hover {
+  border-color: var(--color-border-danger-default, #d92d20);
+}
+
+.e-permits-rbo__fbar .chip.e-permits-workplace__filter-chip.is-error:focus-visible {
+  box-shadow: 0 0 0 4px var(--red-100, #fee4e2);
+}
+
+.e-permits-rbo__fbar > .e-permits-rbo__period-error {
+  margin-top: var(--spacing-8, 8px);
+}

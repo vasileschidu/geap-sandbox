@@ -42,7 +42,7 @@
   <link rel="stylesheet" href="css/rapoarte.css?v=rpt-eye-v2">
   <link rel="stylesheet" href="css/dashboard.css?v=dsh-min-3-v1">
   <!-- rbo-v1: BackOffice › Rapoarte (Feature 96587 „Rapoarte statistice predefinite”) -->
-  <link rel="stylesheet" href="css/rapoarte-bo.css?v=rbo-list-v3">
+  <link rel="stylesheet" href="css/rapoarte-bo.css?v=rbo-clear-v1">
   <!-- calendar-views-v3: „Listă / Calendar · Cronologie” switch (library segmented, compact) -->
   <link rel="stylesheet" href="css/view-switch.css?v=calendar-views-v9">
   <!-- absences-dist-v1: the Alert card (open dossiers after saving an absence) + the absences / distribution glue -->
@@ -50,6 +50,7 @@
   <link rel="stylesheet" href="css/absences.css?v=abs-sort-v1">
   <!-- aut-v1: Administrare › Autorități + Subdiviziuni (Feature 89938, US-87…96, US-112) -->
   <link rel="stylesheet" href="css/autoritati.css?v=aut-v18">
+  <link rel="stylesheet" href="css/service-clone.css?v=svc-clone-v1">
   <link rel="stylesheet" href="css/name-expand.css?v=name-expand-align-v1">
   <link rel="stylesheet" href="css/trajectory.css?v=phone-fit-v1">
   <link rel="stylesheet" href="css/dropdown.css?v=dp-select-v1">
@@ -77,7 +78,7 @@
   <script src="js/trajectory.js?v=trajectory-phone-even-v1"></script>
   <script src="js/event-timeline.js?v=aud-263-v2"></script>
   <script src="js/sticky-sections.js?v=sticky-sections-v1" defer></script>
-  <script src="js/demo-states.js?v=rbo-list-v1"></script>
+  <script src="js/demo-states.js?v=rbo-clear-v1"></script>
   <script src="js/demo-links.js?v=links-v4"></script>
   <script src="js/bo-context.js?v=copy-tu-v2"></script>
   <!-- the working-days engine (Administrare › Calendar), before the shell seeds the dossier deadlines; after
@@ -103,7 +104,7 @@
   <!-- the act row (FO #intent, Ghișeu, EVO Cabinet) — one renderer, before the FO script that uses it -->
   <script src="js/act-row.js?v=ghiseu-picker-toast-v1" defer></script>
   <script src="js/choice-cards.js?v=choice-cards-v7" defer></script>
-  <script src="js/e-permits-acte-permisive.js?v=rpt-ms-fit-v1" defer></script>
+  <script src="js/e-permits-acte-permisive.js?v=svc-clone-v1" defer></script>
   <!-- Form Builder (after the FO renderer it shares) -->
   <script src="js/form-builder.js?v=copy-tu-v2" defer></script>
   <script src="core/process-model.js?v=copy-tu-v2" defer></script>
@@ -121,10 +122,12 @@
   <script src="js/rapoarte-admin.js?v=rbo-v3" defer></script>
   <script src="js/rapoarte-admin-p2.js?v=rpt-scope-v2" defer></script>
   <script src="js/dashboard-admin.js?v=dsh-empty-v1" defer></script>
-  <script src="js/rapoarte-bo.js?v=rbo-list-v1" defer></script>
+  <script src="js/rapoarte-bo.js?v=rbo-clear-v1" defer></script>
   <script src="js/alert-card.js?v=act-alert-card-v2" defer></script>
   <script src="js/absences.js?v=copy-tu-v2" defer></script>
   <script src="js/autoritati.js?v=copy-tu-v2" defer></script>
+  <!-- svc-clone-v1: Servicii › „Adaugă serviciu” with „Creare cu clonarea setărilor” (US-326) -->
+  <script src="js/service-clone.js?v=svc-clone-v1" defer></script>
   <script src="js/doc-preview.js?v=copy-tu-v2" defer></script>
   <script src="js/page-reveal.js?v=skeleton-v1" defer></script>
 </head>
@@ -2763,9 +2766,10 @@
                       <svg class="icon" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-people"></use></svg>
                       <span data-workplace-redistribute-label>Redistribuie</span>
                     </button>
-                    <!-- US-111 + US-231: both sync actions under one menu (chevron = it opens a menu) -->
+                    <!-- US-111 + US-231: both sync actions under one menu (chevron = it opens a menu); secondary since
+                         US-326 (svc-clone-v1) made „Adaugă serviciu” the one primary of the list -->
                     <div class="e-permits-stack__menu-wrap e-permits-workplace__primary-action" data-workplace-sync-service hidden>
-                      <button class="btn btn-primary btn-sm" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="workplace-sync-menu" data-stack-menu-trigger>
+                      <button class="btn btn-secondary btn-sm" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="workplace-sync-menu" data-stack-menu-trigger>
                         <span>Sincronizare</span>
                         <svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-chevron-bottom"></use></svg>
                       </button>
@@ -2784,6 +2788,12 @@
                         </li>
                       </ul>
                     </div>
+                    <!-- US-111 + US-326 (svc-clone-v1): „Adaugă serviciu” → the drawer of js/service-clone.js (Modul creării, RSSP code,
+                         optional cloning of a published service's settings) -->
+                    <button class="btn btn-primary btn-sm e-permits-workplace__primary-action" type="button" data-workplace-add-service hidden>
+                      <svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-plus-large"></use></svg>
+                      <span>Adaugă serviciu</span>
+                    </button>
                     <button class="btn btn-primary btn-sm e-permits-workplace__primary-action" type="button" data-workplace-add-user hidden>
                       <svg class="icon" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-person-add"></use></svg>
                       <span>Adaugă utilizator</span>
@@ -3631,7 +3641,7 @@
   <script src="js/facet-filter.js?v=rpt-hint-off-v1"></script>
   <script src="js/sort-sheet.js?v=row-ctl-v5"></script>
   <script src="js/act-view.js?v=copy-tu-v2"></script>
-  <script src="js/e-permits-shell.js?v=rbo-list-v1"></script>
+  <script src="js/e-permits-shell.js?v=svc-clone-v1"></script>
 
   <!-- Instance switch warning modal -->
   <div class="e-permits-fo-instance-switch-modal" data-fo-instance-switch-modal hidden aria-modal="true" role="dialog" aria-labelledby="fo-instance-switch-title" aria-describedby="fo-instance-switch-description">

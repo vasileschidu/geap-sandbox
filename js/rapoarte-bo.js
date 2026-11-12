@@ -202,15 +202,41 @@
       },
       total: () => model(cur().applied).rowCount,
       preview: (sel) => model(sel).rowCount,
-      apply: () => filtersChanged(),
+      /* rbo-clear-v1 (2026-11-12): the facet controller only changes the state and calls `apply`; the page owns the bar render, so
+         a chip × (or any commit) re-renders the bar HERE at once (before, the cleared chip showed only after the next click) */
+      apply: () => { FX?.ctl.render(); filtersChanged(); },
       hint: false,
       /* rbo-chip-group-v1 (2026-11-12, user: „the × exactly as in RAP”): an applied facet = the RAP grey pill group [chip][round ×] */
       chipGroup: true,
       /* the rows show only after „Generează”: no live count in the bar */
       text: { results: () => "" }
     });
+    host.insertAdjacentHTML("beforeend", `<p class="message message--inline message--error e-permits-fo-field__error e-permits-rbo__period-error" id="rbo-period-error" role="alert" aria-live="polite" data-rbo-period-error hidden>${icon("circle-error-filled", 20)}<span>${PERIOD_ERROR}</span></p>`);
+    /* every bar render rebuilds the chips: re-mark the Perioada chip (error look + aria-invalid) after it */
+    new MutationObserver(() => markPeriod()).observe(host.querySelector(".e-permits-rpt-fbar__bar"), { childList: true, subtree: true });
     FX = { host, ctl };
     return FX;
+  }
+  /* rbo-period-required-v1 (2026-11-12): Perioada is required. Clearing it (chip ×) or pressing „Generează” without it shows the
+     field error pattern: chip `is-error` (danger border; the library chip has no error variant) + the inline message under the
+     bar; choosing a period clears it */
+  const PERIOD_ERROR = "Alege perioada raportului.";
+  function markPeriod() {
+    if (!FX) return;
+    const v = curConfig();
+    const st = cur();
+    const on = Boolean(v && st.periodError && !periodOf(v, st.applied));
+    const msg = FX.host.querySelector("[data-rbo-period-error]");
+    if (msg.hidden === on) msg.hidden = !on;
+    const chip = FX.host.querySelector(`[data-filter-facet="${CSS.escape(periodKey(v))}"]`);
+    FX.host.querySelectorAll(".e-permits-rbo__fbar .chip.is-error").forEach((c) => { if (c !== chip || !on) { c.classList.remove("is-error"); c.removeAttribute("aria-invalid"); c.removeAttribute("aria-describedby"); } });
+    if (chip && on && !chip.classList.contains("is-error")) { chip.classList.add("is-error"); chip.setAttribute("aria-invalid", "true"); chip.setAttribute("aria-describedby", "rbo-period-error"); }
+  }
+  function requirePeriod() {
+    const st = cur();
+    st.periodError = true;
+    markPeriod();
+    fx().host.querySelector(`[data-filter-facet="${CSS.escape(periodKey(curConfig()))}"]`)?.focus();
   }
   function syncSearch() {
     const x = fx();
@@ -435,6 +461,9 @@
   function filtersChanged() {
     const st = cur();
     if (st.gen) st.stale = true;
+    const v = curConfig();
+    st.periodError = !periodOf(v, st.applied);
+    markPeriod();
     rerenderParts();
   }
 
@@ -559,7 +588,7 @@
     if (t.closest("[data-rbo-back]")) { showList({ push: true }); return; }
     if (!inPage(t) && !t.closest("#rbo-fbar, .e-permits-rbo__fbar")) return;
     const gen = t.closest("[data-rbo-generate]");
-    if (gen) { if (gen.getAttribute("aria-disabled") !== "true") generate(gen.dataset.rboGenerate); return; }
+    if (gen) { if (gen.getAttribute("aria-disabled") !== "true") generate(gen.dataset.rboGenerate); else requirePeriod(); return; }
     const ex = t.closest("[data-rbo-export]");
     if (ex) { exportAs(ex.dataset.rboExport); return; }
     if (t.closest("[data-rbo-q-clear]")) { cur().q = ""; syncSearch(); fx().ctl.render(); filtersChanged(); }
@@ -567,7 +596,7 @@
   /* an aria-disabled menu trigger (Generează without a period) never opens its menu */
   document.addEventListener("click", (event) => {
     const trg = event.target.closest?.("[data-rbo-gen-trigger][aria-disabled='true']");
-    if (trg) { event.stopImmediatePropagation(); event.preventDefault(); }
+    if (trg) { event.stopImmediatePropagation(); event.preventDefault(); requirePeriod(); }
   }, true);
   document.addEventListener("input", (event) => {
     const el = event.target;
