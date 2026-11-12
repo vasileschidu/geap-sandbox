@@ -2611,7 +2611,8 @@ document.addEventListener("DOMContentLoaded", () => {
       <div class="e-permits-workplace__alert-list">
         ${alerts.map((alertKey) => {
           const alert = workplaceDb.alerts[alertKey];
-          return `<span class="e-permits-workplace__flag e-permits-workplace__flag--${escapeHtml(alert?.tone || "neutral")}" data-tooltip-text="${escapeHtml(alert?.label || alertKey)}">${escapeHtml(alert?.short || alertKey)}</span>`;
+          /* alert-tag-v1 (2026-11-12, user „wrong badges, should have border”): the library Small tag, not a private flag */
+          return window.GEAPTag.html(alert?.short || alertKey, alert?.tone || "neutral", { attrs: `data-tooltip-text="${escapeHtml(alert?.label || alertKey)}"` });
         }).join("")}
       </div>
     `;
