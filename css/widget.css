@@ -1771,3 +1771,10 @@ button.e-permits-wid-rows__row:focus-visible {
 .e-permits-wid-stat__value.e-permits-wid-stat__value--empty {
   color: var(--color-text-base-tertiary, #757575);
 }
+
+/* wid-legend-12-v1 (2026-11-12, user „legends 12 font size”): every widget legend (tray, list, wrap) = 12/16 */
+.e-permits-wid-card .e-permits-meter-legend,
+.e-permits-wid-card .e-permits-meter-legend :is(li, strong, .e-permits-meter-legend__pct, .e-permits-wid-legend__btn) {
+  font-size: var(--font-size-fs-12, 12px);
+  line-height: var(--line-height-lh-16, 16px);
+}
