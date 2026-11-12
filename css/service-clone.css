@@ -1,0 +1,293 @@
+/* =====================================================================================
+   Service clone table (svc-clone-v1, 2026-11-12) — US-326 „Clonarea setărilor unui serviciu la adăugarea lui din RSSP”,
+   step 2 of the „Adaugă serviciu” drawer (js/service-clone.js; components.md › „Service clone table”).
+     .e-permits-svc-clone
+       > .info-box.e-permits-info-note            what cloning does
+       > .message.banner--warning                 (types without a pair)
+       > .e-permits-svc-clone__toolbar            „Selectează tot” (renderCheckOption plain) + counter „n din m setări bifate”
+       > .e-permits-svc-clone__wrap > table.table.e-permits-svc-clone__table
+           tr.table__row.e-permits-svc-clone__row(--l1|--l2|--l3)(.is-group)(.is-open)(.is-locked)
+             th.e-permits-svc-clone__setting > .e-permits-svc-clone__cell
+                 > button.btn.btn-text-neutral.btn-sm.btn-icon-only.e-permits-svc-clone__toggle[aria-expanded] | __toggle-space
+                 > label.checkbox.e-permits-check-option--plain (tri-state = input.indeterminate)
+                 > .e-permits-svc-clone__count („2/5”)
+             td × 3 (În serviciul sursă · În serviciul nou · Observație), values clamped to 2 lines + Small tooltip
+   Rows: white, 1px divider, hover = --color-background-base-tertiary (the row band; the toggle keeps its own hover).
+   Indent: level 2 = 24, level 3 = 48 (phones 16 / 32). Phones (≤ 760): one record per row, label · value pairs.
+   ===================================================================================== */
+
+.e-permits-svc-clone {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-16, 16px);
+}
+
+.e-permits-svc-clone__notice {
+  margin-bottom: var(--spacing-16, 16px);
+}
+
+.e-permits-svc-clone__toolbar {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-8, 8px) var(--spacing-16, 16px);
+  justify-content: space-between;
+  min-height: var(--spacing-32, 32px);
+}
+
+.e-permits-svc-clone__counter {
+  color: var(--color-text-base-tertiary, #757575);
+  font-size: var(--font-size-fs-14, 14px);
+  line-height: var(--line-height-lh-20, 20px);
+}
+
+.e-permits-svc-clone__wrap {
+  border: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
+  border-radius: var(--border-radius-16, 16px);
+  box-sizing: border-box;
+  overflow: clip;
+  width: 100%;
+}
+
+.e-permits-svc-clone__table {
+  border-collapse: separate;
+  border-spacing: 0;
+  color: var(--color-text-base-default, #121212);
+  table-layout: fixed;
+  width: 100%;
+}
+
+.e-permits-svc-clone__col-setting {
+  width: 40%;
+}
+
+.e-permits-svc-clone__table .table__head-cell {
+  background: var(--color-background-base-secondary, #f5f5f5);
+  border-bottom: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
+  color: var(--color-text-base-secondary, #383838);
+  font-size: var(--font-size-fs-12, 12px);
+  font-weight: var(--font-weight-fw-medium, 500);
+  line-height: var(--line-height-lh-16, 16px);
+  padding: var(--spacing-12, 12px);
+  text-align: left;
+}
+
+.e-permits-svc-clone__table .table__body-cell,
+.e-permits-svc-clone__table .table__row:nth-child(even) .table__body-cell {
+  background: var(--color-background-base-default, #fff);
+  border-bottom: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
+  box-sizing: border-box;
+  color: var(--color-text-base-default, #121212);
+  font-size: var(--font-size-fs-14, 14px);
+  font-weight: var(--font-weight-fw-regular, 400);
+  line-height: var(--line-height-lh-20, 20px);
+  padding: var(--spacing-8, 8px) var(--spacing-12, 12px);
+  text-align: left;
+  vertical-align: middle;
+}
+
+.e-permits-svc-clone__table tbody .table__row:hover .table__body-cell {
+  background: var(--color-background-base-tertiary, #f1f1f1);
+}
+
+.e-permits-svc-clone__table tbody .table__row:last-child .table__body-cell {
+  border-bottom: 0;
+}
+
+/* the first cell: toggle · checkbox + name · count, one centre line */
+.e-permits-svc-clone__setting {
+  padding-left: var(--spacing-8, 8px);
+}
+
+.e-permits-svc-clone__cell {
+  align-items: center;
+  display: flex;
+  gap: var(--spacing-8, 8px);
+  min-width: 0;
+}
+
+.e-permits-svc-clone__row--l2 .e-permits-svc-clone__cell {
+  padding-left: var(--spacing-24, 24px);
+}
+
+.e-permits-svc-clone__row--l3 .e-permits-svc-clone__cell {
+  padding-left: var(--spacing-48, 48px);
+}
+
+.e-permits-svc-clone__toggle,
+.e-permits-svc-clone__toggle-space {
+  flex: 0 0 var(--spacing-32, 32px);
+  height: var(--spacing-32, 32px);
+  width: var(--spacing-32, 32px);
+}
+
+.e-permits-svc-clone__toggle .icon {
+  transition: transform 160ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.e-permits-svc-clone__toggle[aria-expanded="true"] .icon {
+  transform: rotate(90deg);
+}
+
+.e-permits-svc-clone__cell > .checkbox.e-permits-check-option--plain {
+  align-items: center;
+  cursor: pointer;
+  flex: 0 1 auto;
+  min-width: 0;
+}
+
+.e-permits-svc-clone__cell > .checkbox.e-permits-check-option--plain.is-disabled {
+  cursor: default;
+}
+
+.e-permits-svc-clone__cell > .checkbox .checkbox-label {
+  display: block;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.e-permits-svc-clone__row.is-group .e-permits-svc-clone__cell > .checkbox .checkbox-label {
+  font-weight: var(--font-weight-fw-medium, 500);
+}
+
+.e-permits-svc-clone__count {
+  color: var(--color-text-base-tertiary, #757575);
+  flex: 0 0 auto;
+  font-size: var(--font-size-fs-12, 12px);
+  line-height: var(--line-height-lh-16, 16px);
+  white-space: nowrap;
+}
+
+.e-permits-svc-clone__value,
+.e-permits-svc-clone__note {
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  display: -webkit-box;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+}
+
+.e-permits-svc-clone__note {
+  color: var(--color-text-base-tertiary, #757575);
+}
+
+/* ---- the „Serviciul de clonat” options: code · name over the authority (combobox `option.meta`) ---- */
+.e-permits-svc-clone__source .e-permits-fo-caem__option {
+  align-items: flex-start;
+}
+
+.e-permits-svc-clone__source .e-permits-fo-caem__code {
+  flex: 0 0 auto;
+  min-width: var(--spacing-80, 80px);
+  text-align: left;
+}
+
+.e-permits-fo-caem__text {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.e-permits-fo-caem__meta {
+  color: var(--color-text-base-tertiary, #757575);
+  font-size: var(--font-size-fs-12, 12px);
+  font-weight: var(--font-weight-fw-regular, 400);
+  line-height: var(--line-height-lh-16, 16px);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.e-permits-fo-caem__option.is-selected .e-permits-fo-caem__meta {
+  color: var(--color-text-base-tertiary, #757575);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .e-permits-svc-clone__toggle .icon {
+    transition: none;
+  }
+}
+
+/* ---- phones: one record per row ---- */
+@media (max-width: 760px) {
+  .e-permits-svc-clone__wrap {
+    border-radius: var(--border-radius-12, 12px);
+  }
+
+  .e-permits-svc-clone__table,
+  .e-permits-svc-clone__table tbody,
+  .e-permits-svc-clone__table .table__row {
+    display: block;
+  }
+
+  .e-permits-svc-clone__table thead,
+  .e-permits-svc-clone__table colgroup {
+    display: none;
+  }
+
+  .e-permits-svc-clone__table tbody > .table__row {
+    border-bottom: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-4, 4px);
+    padding: var(--spacing-8, 8px) var(--spacing-12, 12px) var(--spacing-12, 12px) var(--spacing-8, 8px);
+  }
+
+  .e-permits-svc-clone__table tbody > .table__row:last-child {
+    border-bottom: 0;
+  }
+
+  .e-permits-svc-clone__table tbody > .table__row:hover {
+    background: var(--color-background-base-tertiary, #f1f1f1);
+  }
+
+  .e-permits-svc-clone__table .table__body-cell,
+  .e-permits-svc-clone__table .table__row:nth-child(even) .table__body-cell,
+  .e-permits-svc-clone__table tbody .table__row:hover .table__body-cell {
+    background: transparent;
+    border-bottom: 0;
+    padding: 0;
+  }
+
+  .e-permits-svc-clone__table .table__row td.table__body-cell {
+    display: grid;
+    gap: var(--spacing-8, 8px);
+    grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
+    padding-left: calc(var(--spacing-32, 32px) + var(--spacing-8, 8px));
+  }
+
+  .e-permits-svc-clone__row--l2 td.table__body-cell {
+    padding-left: calc(var(--spacing-32, 32px) + var(--spacing-8, 8px) + var(--spacing-16, 16px));
+  }
+
+  .e-permits-svc-clone__row--l3 td.table__body-cell {
+    padding-left: calc(var(--spacing-32, 32px) + var(--spacing-8, 8px) + var(--spacing-32, 32px));
+  }
+
+  .e-permits-svc-clone__table td.table__body-cell::before {
+    color: var(--color-text-base-tertiary, #757575);
+    content: attr(data-label);
+    font-size: var(--font-size-fs-14, 14px);
+    line-height: var(--line-height-lh-20, 20px);
+  }
+
+  .e-permits-svc-clone__row--l2 .e-permits-svc-clone__cell {
+    padding-left: var(--spacing-16, 16px);
+  }
+
+  .e-permits-svc-clone__row--l3 .e-permits-svc-clone__cell {
+    padding-left: var(--spacing-32, 32px);
+  }
+
+  /* touch has no tooltip: phones show the whole value */
+  .e-permits-svc-clone__value,
+  .e-permits-svc-clone__note {
+    display: block;
+    -webkit-line-clamp: unset;
+  }
+
+  .e-permits-svc-clone__table .table__body-cell > .e-permits-workplace__dash {
+    justify-self: start;
+  }
+}

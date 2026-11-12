@@ -2463,7 +2463,10 @@
     }
 
     function caemOptionHtml(option) {
-      return `<li class="e-permits-fo-caem__option" role="option" aria-selected="false" data-cell-tooltip data-code="${escapeFrontOfficeHtml(option.code)}" data-label="${escapeFrontOfficeHtml(option.label)}" data-subgenres="${escapeFrontOfficeHtml(JSON.stringify(option.subgenres || []))}" tabindex="-1"><span class="e-permits-fo-caem__code">${escapeFrontOfficeHtml(option.code)}</span><span class="e-permits-fo-caem__name">${escapeFrontOfficeHtml(option.label)}</span></li>`;
+      return `<li class="e-permits-fo-caem__option" role="option" aria-selected="false" data-cell-tooltip data-code="${escapeFrontOfficeHtml(option.code)}" data-label="${escapeFrontOfficeHtml(option.label)}" data-subgenres="${escapeFrontOfficeHtml(JSON.stringify(option.subgenres || []))}" tabindex="-1"><span class="e-permits-fo-caem__code">${escapeFrontOfficeHtml(option.code)}</span>${option.meta
+        /* svc-clone-v1: an optional second line (US-326 „Serviciul de clonat” = code · name over the authority) */
+        ? `<span class="e-permits-fo-caem__text"><span class="e-permits-fo-caem__name">${escapeFrontOfficeHtml(option.label)}</span><span class="e-permits-fo-caem__meta">${escapeFrontOfficeHtml(option.meta)}</span></span>`
+        : `<span class="e-permits-fo-caem__name">${escapeFrontOfficeHtml(option.label)}</span>`}</li>`;
     }
 
     /* the CAEM pair of the FO activities — „Codul CAEM” combobox + „Subgen de activitate” under its

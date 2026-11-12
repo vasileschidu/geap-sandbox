@@ -7778,6 +7778,9 @@ document.addEventListener("DOMContentLoaded", () => {
     if (workplaceSyncService) {
       /* US-111: synchronisation is reserved to Administrator central */
       workplaceSyncService.hidden = workplaceDb.kind !== "services" || !isCentralAdmin();
+      /* US-326 AC-01: „Adaugă serviciu” (and its „Serviciul de clonat”) only for who manages the services */
+      const addService = document.querySelector("[data-workplace-add-service]");
+      if (addService) addService.hidden = workplaceSyncService.hidden;
 
     }
 
@@ -15418,6 +15421,23 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const closeSyncModal = () => window.__modal?.close?.("#service-sync-modal");
 
+  /* US-326 (svc-clone-v1, js/service-clone.js): the „Adaugă serviciu” drawer asks RSSP first WITHOUT saving (the
+     core mapper never touches the store) to compare the new service with the one to clone, then imports it as
+     the sync modal does (US-111) and applies the ticked settings on top */
+  const rsspDryRun = (code) => passport.syncService({
+    code, lookup: rsspLookup, services: servicesStore.services, authorities: servicesStore.authorities, now: localIsoNow(), user: currentUserName()
+  });
+  const importServiceFromRssp = (code) => {
+    const result = rsspDryRun(code);
+    if (!result.ok || result.kind !== "created") return result;
+    result.service.syncSources = ["RSSP"];
+    servicesStore.services.unshift(result.service);
+    if (result.authorityCreated) servicesStore.authorities.push(result.authority);
+    logServiceEvents(result.service.code, result.events, { render: false });
+    syncServiceTariffsFrom(result.service, "RSSP");
+    return result;
+  };
+
   const logServiceEvents = (code, events, { render = true } = {}) => {
     const service = getServiceByCode(code);
 
@@ -20360,6 +20380,7 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   document.querySelector("[data-workplace-sync-manual]")?.addEventListener("click", () => openSyncModal());
+  document.querySelector("[data-workplace-add-service]")?.addEventListener("click", (event) => window.GEAPServiceClone?.open?.({ back: event.currentTarget }));
 
   /* ---- US-231 AC-05/06: automatic sync from RSSP — one frequency for all services ---- */
   const AUTOSYNC_FREQ = [["daily", "Zilnic"], ["weekly", "Săptămânal (luni)"], ["monthly", "Lunar (pe 1)"]];
@@ -21632,6 +21653,9 @@ document.addEventListener("DOMContentLoaded", () => {
         renderShellNav(assignment.menuProfile);
         if (current) setActiveNav(current);
       },
+      /* US-326 (js/service-clone.js): „Adaugă serviciu” with „Creare cu clonarea setărilor” */
+      isCentralAdmin, rsspDryRun, importServiceFromRssp, openServiceProfile, openSyncModal, logServiceEvents, serviceDocs, svcClassifiers,
+      refreshServiceRegistries, flowName: (id) => servicesStore?.flows?.find((f) => f.id === id)?.name || "",
       roleFunctions: (label) => (roleAdminDb?.runtimeRows || []).find((role) => role.denumire === label)?.functii || null,
       permissionGroups: () => usersDb?.profile?.permissionCatalog?.groups || [],
       renderChoiceChips, syncStackMetaRows
