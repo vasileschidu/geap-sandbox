@@ -6105,6 +6105,9 @@
   /* the row fills its grid column (= the fields' edges); radio + text sit 12 / 16 inside */
   padding: var(--spacing-12, 12px) var(--spacing-16, 16px);
   position: relative;
+  /* radio-align-v1 (2026-11-12): the hover layer is drawn OUTSIDE the content box — the 16 inset is given back
+     on the sides, so the circle's left edge = the label / field edge (not 16 inside) */
+  margin-inline: calc(-1 * var(--spacing-16, 16px));
 }
 
 .e-permits-fo-radio--option::before {

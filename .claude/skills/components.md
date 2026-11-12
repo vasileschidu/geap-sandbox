@@ -1763,6 +1763,9 @@ opacity only. Keyboard: ~~the 2px white + 4px ring moves from the dot to the row
 the row is `label.radio.radio--medium.e-permits-fo-radio.e-permits-fo-radio--option` and the keyboard ring is the ONE
 radio's Focus Ring/Small on the circle (§ „Radio — the ONE radio component”); „Pentru cine” = `.radio-label` +
 `.radio-description` (16/24 500 + 14/20 tertiary, 2 apart — was a `strong` + secondary text 4 apart).
+**Alignment (radio-align-v1, 2026-11-12):** the row's 16 side padding is given back with `margin-inline: -16`, so the hover layer is drawn OUTSIDE
+the content box and the circle's left edge = the field label's left edge (measured ±0, 1440 + 375: service clone „Modul creării”, „Persoana de contact”,
+form-builder radio field); vertical 12 padding unchanged. Plain radios (widget visibility, delivery) were already flush.
 Checked = the radio only (no fill); disabled rows get no hover. Used by „Pentru cine”,
 „Persoana de contact” (`contactPersonHtml` + the static fallback) and the FO „Butoane radio” field (`radioFieldHtml`).
 
