@@ -652,3 +652,36 @@
     margin-bottom: var(--spacing-16, 16px);
   }
 }
+
+/* dsh-resize-arc-v1 (2026-11-12, user „use a better one”): the resize handle = a quarter arc concentric with the card's
+   20 corner (iOS / Grafana style) instead of the two-line glyph: arc radius 12, 8 in from the corner (12 + 8 = 20), 2px
+   stroke; tertiary at rest on hover, default on its own hover / while resizing; the 24 hit area stays in the corner */
+.e-permits-dsh-tile__resize {
+  bottom: 0;
+  height: var(--spacing-32, 32px);
+  right: 0;
+  width: var(--spacing-32, 32px);
+}
+
+.e-permits-dsh-tile__resize > .icon {
+  display: none;
+}
+
+.e-permits-dsh-tile__resize::before {
+  border-bottom: var(--border-width-2, 2px) solid currentColor;
+  border-bottom-right-radius: var(--border-radius-12, 12px);
+  border-right: var(--border-width-2, 2px) solid currentColor;
+  bottom: var(--spacing-8, 8px);
+  box-sizing: border-box;
+  content: "";
+  height: var(--spacing-12, 12px);
+  position: absolute;
+  right: var(--spacing-8, 8px);
+  width: var(--spacing-12, 12px);
+}
+
+.e-permits-dsh-tile__resize:hover,
+.e-permits-dsh-tile.is-resizing .e-permits-dsh-tile__resize {
+  background: none;
+  color: var(--color-icon-base-default, #121212);
+}
