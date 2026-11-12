@@ -65,6 +65,20 @@
   max-width: calc(var(--spacing-40, 40px) * 32);
 }
 
+/* dsh-tab-rhythm-v1 (2026-11-12, user rule feedback_tab_page_rhythm): every dashboard tab page = tab bar → 24 → section
+   heading row (48) → 16 → first content. Scoped to the dashboard profile panel (#dsh-panel, set by renderProfile); the
+   shared panel rule keeps its 20 top padding and the 4 the „heading with an action” row adds below itself for the
+   other modules. Padding on the panel + margin on the heading — never both on one side. */
+.e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-dosar-profil__panel#dsh-panel {
+  padding-top: var(--spacing-24, 24px);
+}
+
+.e-permits-front-office-page[data-demo-flow="back-office"] #dsh-panel .e-permits-dosar-profil__section > .e-permits-dosar-profil__section-heading {
+  margin-bottom: var(--spacing-16, 16px);
+  min-height: var(--spacing-48, 48px);
+  padding-bottom: 0;
+}
+
 .e-permits-dsh-foot {
   display: flex;
   flex-wrap: wrap;

@@ -193,7 +193,12 @@
     if (card.querySelector(".is-fit-hidden:not(.e-permits-wid-more, .e-permits-wid-all, [data-wid-all])")) return 0;
     const foot = card.querySelector(".e-permits-wid-card__foot-row");
     if (!foot) return 0;
-    const free = card.getBoundingClientRect().bottom - foot.getBoundingClientRect().bottom;
+    /* dsh-cap-pinned-foot-v1 (2026-11-12): the footer is pinned to the card bottom (wid-foot-v2, margin-top: auto), so the free
+       space is the gap that pin adds above it — read with the pin switched off for one measure */
+    const at = foot.getBoundingClientRect().top;
+    foot.style.marginTop = "0";
+    const free = at - foot.getBoundingClientRect().top;
+    foot.style.marginTop = "";
     return Math.max(0, Math.floor(free / step));
   }
   const rowStep = (grid) => { const cs = getComputedStyle(grid); return (parseFloat(cs.gridAutoRows) || 36) + (parseFloat(cs.rowGap) || 0); };
