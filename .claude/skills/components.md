@@ -12906,10 +12906,13 @@ his authority + only the widgets it may use). Every operation → the dashboard'
   `#tablou-de-bord[/<id>]`, `GEAPDashboards.showView`. Read-only, no edit controls. Top bar = „Tablou de bord”
   (`GEAPRegistre.showPage`); the role's dashboards (`GEAPDashboards.forRole(role, authority)`: published, assigned, not off
   for the authority, last PUBLISHED version; principal first — the authority's principal over the global one — then by
-  „Ordinea”, ties by ID) = the library page-header tabs (`.tabs.tabs--sm.e-permits-page-header__tabs`, ← → Home End; none
-  with one dashboard). Content = `section.e-permits-dsh-view[role=tabpanel]` > `.e-permits-dsh-view__head` (column, gap 8,
-  24 to the grid; `__title-row` = BO section title at text height + Small brand „Principal”; `__desc` 14/20 tertiary;
-  section-meta „Perimetru: ANSP · Date calculate azi, la 06:00” — Supervizor = „CSP Chișinău, ANSP”) + the canvas grid
+  „Ordinea”, ties by ID) = the compact segmented control ABOVE the title (dsh-view-head-v2, 2026-11-12: `GEAPViewSwitch.html({ key:
+  "dsh-view" })` + `.e-permits-dsh-view__switch`, left, 16 to the head; scrolls sideways on phones, selected item scrolled into
+  view; none with one dashboard; the tab bar is gone). Content = `section.e-permits-dsh-view` > `.e-permits-dsh-view__head`
+  (row, space-between, 16 to the grid; `__title-row` = BO section title at text height + Small brand „Principal” + „ⓘ”
+  `.e-permits-wid-card__info` Small tooltip holding the description — no description line; `__meta` 12/16 tertiary right-aligned
+  „Perimetru: ANSP · Date calculate azi, la 06:00” — Supervizor = „CSP Chișinău, ANSP”; no „Actualizează” button exists on BO pages
+  yet (US-432) — phones: stacked, meta left under the title) + the canvas grid
   `.e-permits-dsh-grid` with plain `.e-permits-dsh-tile`s (no hover surface; only published widgets not off for the authority;
   Compactă / Înaltă rows). Each widget loads on its own: loading = the widget skeleton (`st.refreshing`), a data error = the
   compact empty state „Datele nu s-au încărcat” + secondary „Reîncearcă” inside that card only (`GEAPWidgets.card(cfg, { st:

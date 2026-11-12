@@ -622,17 +622,39 @@
 
 /* =====================================================================================
    dsh-view-v1 (2026-11-11): the BO page „Tablou de bord” (Locul de muncă, read-only; js/dashboard-admin.js `showView`).
-   Top bar = „Tablou de bord”, the library page-header tabs switch the role's dashboards (principal first), the page
+   Top bar = „Tablou de bord”, the compact segmented control above the title switches the role's dashboards (principal first), the page
    column = `.e-permits-dosar-profil__panel`. Head = title + Small brand „Principal” · description (tertiary) · the
    perimeter meta; 8 between the lines, 24 to the grid. The grid = the layout canvas without editing
    (`.e-permits-dsh-grid`, Compactă / Înaltă rows). No hover on the cards (not clickable); the drill values inside the charts
    keep their own hover. components.md › „Tablouri de bord” › BO page.
    ===================================================================================== */
+/* dsh-view-head-v2 (2026-11-12): switcher (compact segmented control, left) → 16 → head row: title (+ Principal, ⓘ) left,
+   the meta (12/16 tertiary) right-aligned; phones: the row stacks (meta under the title), the switcher scrolls sideways */
+.e-permits-dsh-view__switch {
+  justify-content: flex-start; /* centred overflow would clip the first item's start when it scrolls */
+  margin-bottom: var(--spacing-16, 16px);
+  max-width: 100%;
+  overflow-x: auto;
+  scrollbar-width: none;
+  width: fit-content;
+}
+
+.e-permits-dsh-view__switch::-webkit-scrollbar {
+  display: none;
+}
+
+.e-permits-dsh-view__switch .segment-item {
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+
 .e-permits-dsh-view__head {
+  align-items: flex-end;
   display: flex;
-  flex-direction: column;
-  gap: var(--spacing-8, 8px);
-  margin-bottom: var(--spacing-24, 24px);
+  flex-wrap: wrap;
+  gap: var(--spacing-8, 8px) var(--spacing-16, 16px);
+  justify-content: space-between;
+  margin-bottom: var(--spacing-16, 16px); /* dsh-tab-rhythm-v1: heading row → 16 → first content */
 }
 
 .e-permits-dsh-view__title-row {
@@ -640,6 +662,11 @@
   display: flex;
   flex-wrap: wrap;
   gap: var(--spacing-8, 8px);
+  min-width: 0;
+}
+
+.e-permits-dsh-view__title-row > :is(.tag, .e-permits-fo-role-info) {
+  flex: 0 0 auto;
 }
 
 /* the BO section-title is a 48 row with an 11 12 inset (headings over cards); here the title sits on the page edge with its
@@ -650,20 +677,22 @@
   padding: 0;
 }
 
-.e-permits-dsh-view__desc {
+.e-permits-dsh-view__meta {
   color: var(--color-text-base-tertiary, #757575);
-  font-size: var(--font-size-fs-14, 14px);
-  line-height: var(--line-height-lh-20, 20px);
+  font-size: var(--font-size-fs-12, 12px);
+  line-height: var(--line-height-lh-16, 16px);
   margin: 0;
-}
-
-.e-permits-dsh-view__head > .e-permits-dosar-profil__section-meta {
-  margin: 0;
+  text-align: right;
 }
 
 @media (max-width: 760px) {
   .e-permits-dsh-view__head {
-    margin-bottom: var(--spacing-16, 16px);
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .e-permits-dsh-view__meta {
+    text-align: left;
   }
 }
 

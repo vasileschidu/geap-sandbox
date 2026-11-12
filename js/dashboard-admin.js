@@ -2029,7 +2029,7 @@
   const VIEW_TITLE = "Dashboard";
   /* Feature 96498 AC text, „tu” tone */
   const VIEW_EMPTY = "Nu ai acces la tablouri de bord.";
-  const V = { id: "", failed: new Set(), seeded: new Set(), busy: new Set() };
+  const V = { id: "", boards: [], failed: new Set(), seeded: new Set(), busy: new Set() };
   /* the active assignment: role + authority (the demo assignment ids start with the authority: „ansp-…”, „anta-…”) */
   const viewer = () => {
     const a = A().currentAssignment?.() || {};
@@ -2064,18 +2064,24 @@
     V.seeded.add(d.id);
     const desc = String(lastVersion(d).config.descriptions?.ro || "").trim();
     const meta = [`Perimetru: ${viewPerimeter(me)}`, `Date calculate azi, la 06:00`].join(" · ");
+    /* dsh-view-head-v2 (2026-11-12): no description line — it lives only in the „ⓘ” tooltip next to the title; the meta (12/16
+       tertiary) sits right of the title row (a Feature 96498 US-432 „Actualizează” button does not exist on BO pages yet →
+       the meta alone, right-aligned); the switcher = the compact segmented control ABOVE the title, only with ≥ 2 dashboards */
+    const info = desc ? `<button class="e-permits-fo-role-info e-permits-wid-card__info" type="button" aria-label="Despre tabloul de bord „${esc(lastVersion(d).config.names.ro)}”" data-tooltip-hint="${esc(desc)}">${icon("circle-info-filled", 16)}</button>` : "";
+    const switcher = V.boards.length > 1 ? window.GEAPViewSwitch?.html({ key: "dsh-view", label: "Tablourile tale de bord", value: d.id, className: "e-permits-dsh-view__switch", items: V.boards.map((x) => [x.id, lastVersion(x).config.names.ro]) }) || "" : "";
     const grid = live.length
       ? `<div class="e-permits-dsh-stage"><div class="e-permits-dsh-grid" role="list" aria-label="Widget-urile tabloului de bord">${((boxes) => [...live].sort((a, b) => byPos(boxes.find((x) => x.id === a.t.widget), boxes.find((x) => x.id === b.t.widget))).map((x, i) => viewTile(d, x, i, rowsOf(x.t), boxes.find((b) => b.id === x.t.widget))).join(""))(compactBoxes(live.map((x) => boxOf(x.t))))}</div></div>`
       : E()?.render({ title: "Niciun widget", text: "Widget-urile acestui tablou de bord nu mai sunt publicate.", icon: "chart" }) || "";
     return `
-      <section class="e-permits-dosar-profil__section e-permits-dsh-view e-permits-dsh-wide" id="dsh-view-panel"${V.tabs ? ` role="tabpanel" aria-labelledby="dsh-view-tab-${esc(d.id)}"` : ""} aria-busy="${demo.has("incarcare") ? "true" : "false"}" data-dsh-view="${esc(d.id)}">
+      <section class="e-permits-dosar-profil__section e-permits-dsh-view e-permits-dsh-wide" id="dsh-view-panel" aria-busy="${demo.has("incarcare") ? "true" : "false"}" data-dsh-view="${esc(d.id)}">
+        ${switcher}
         <div class="e-permits-dsh-view__head">
           <div class="e-permits-dsh-view__title-row">
             <h2 class="e-permits-dosar-profil__section-title">${esc(lastVersion(d).config.names.ro)}</h2>
             ${d === principal ? tag("Principal", "brand") : ""}
+            ${info}
           </div>
-          ${desc ? `<p class="e-permits-dsh-view__desc">${esc(desc)}</p>` : ""}
-          <p class="e-permits-dosar-profil__section-meta">${esc(meta)}</p>
+          <p class="e-permits-dsh-view__meta">${esc(meta)}</p>
         </div>
         ${grid}
       </section>`;
@@ -2094,17 +2100,15 @@
     }
     const d = boards.find((x) => x.id === id) || boards[0];
     V.id = d.id;
-    V.tabs = boards.length > 1;
-    const tabs = V.tabs ? boards.map((x) => {
-      const on = x === d;
-      return `<button class="tab-button${on ? " active" : ""}" id="dsh-view-tab-${esc(x.id)}" type="button" role="tab" aria-selected="${on}" aria-controls="dsh-view-panel" tabindex="${on ? 0 : -1}" data-dsh-view-tab="${esc(x.id)}">${esc(lastVersion(x).config.names.ro)}</button>`;
-    }).join("") : "";
-    G().showPage?.(VIEW_TITLE, viewBody(d, me, principal), tabs);
+    V.boards = boards;
+    bindSwitch();
+    G().showPage?.(VIEW_TITLE, viewBody(d, me, principal));
     capView(d);
-    const list = document.querySelector("[data-reg-page] [data-reg-page-tabs]");
-    if (list) list.setAttribute("aria-label", "Tablourile tale de bord");
+    /* phones: the switcher scrolls sideways — bring the selected dashboard into view (horizontal only) */
+    const sel = document.querySelector('[data-view-switch="dsh-view"] [aria-checked="true"]');
+    if (sel) { const track = sel.parentElement; track.scrollLeft = Math.max(0, sel.offsetLeft - (track.clientWidth - sel.offsetWidth) / 2); }
     A().writeHash?.(d === boards[0] ? `#${VIEW_NAV}` : `#${VIEW_NAV}/${d.id}`, { push });
-    if (focusTab) document.querySelector(`#dsh-view-tab-${CSS.escape(d.id)}`)?.focus();
+    if (focusTab) document.querySelector(`[data-view-switch="dsh-view"] [data-view-value="${CSS.escape(d.id)}"]`)?.focus();
   }
   const viewOpen = () => Boolean(V.id) && Boolean(document.querySelector("[data-reg-page]:not([hidden]) [data-dsh-view]"));
   /* dsh-content-cap-v1 on the BO page: the published layout loses the units no content uses */
@@ -2126,8 +2130,6 @@
     const t = event.target;
     if (!t.closest) return;
     if (t.closest(`[data-nav-item][data-nav-id="${VIEW_NAV}"]`)) { showView("", { push: false }); return; }
-    const tab = t.closest("[data-dsh-view-tab]");
-    if (tab) { showView(tab.dataset.dshViewTab, { focusTab: true }); return; }
     const retry = t.closest("[data-dsh-view-retry]");
     if (retry) {
       const key = retry.dataset.dshViewRetry;
@@ -2142,16 +2144,8 @@
     const drill = viewOpen() && t.closest("[data-dsh-view] [data-wid-drill]");
     if (drill) { toast(`Aici se deschid înregistrările „${drill.dataset.widDrill}” (${drill.dataset.widDrillValue}) din registrul sursă.`, "info"); }
   });
-  /* ← / → / Home / End between the dashboard tabs */
-  document.addEventListener("keydown", (event) => {
-    const tab = event.target.closest?.("[data-dsh-view-tab]");
-    if (!tab || !["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) return;
-    const tabs = [...tab.parentElement.querySelectorAll("[data-dsh-view-tab]")];
-    const i = tabs.indexOf(tab);
-    const next = event.key === "Home" ? tabs[0] : event.key === "End" ? tabs[tabs.length - 1] : tabs[(i + (event.key === "ArrowRight" ? 1 : -1) + tabs.length) % tabs.length];
-    event.preventDefault();
-    next?.click();
-  });
+  /* the switcher = GEAPViewSwitch (keyboard ← → Home End + radiogroup aria in the component) */
+  const bindSwitch = () => window.GEAPViewSwitch?.on("dsh-view", (id) => showView(id, { focusTab: true }));
 
   /* ---------------------------------------------------------------- routes + denied (Feature AC) */
   function showDenied() {

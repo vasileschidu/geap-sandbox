@@ -5095,10 +5095,10 @@
       "dsh-11": prof("DSH-0001", "istoric"),
       "dsh-11a": prof("DSH-0001", "configurare", async (h) => { await h.fill("#dsh-e-name-ro", "Tabloul de bord al specialistului (nou)", { leave: false }); await h.click("[data-dosar-profil] [data-dsh-save]"); await h.wait(300); }, { tablou: "eroare" }),
       /* dsh-view-v1 — the BO page „Tablou de bord” (Locul de muncă, read-only): ANSP Specialist = the authority's principal
-         DSH-0004 + the tabs (DSH-0001, DSH-0002 secondary) · a secondary tab · no dashboard · one widget's data error ·
+         DSH-0004 + the segmented switch above the title (DSH-0001, DSH-0002 secondary) · a secondary tab · no dashboard · one widget's data error ·
          loading · Supervizor (the global principal DSH-0002) · the error retried */
       "dsh-20": view(),
-      "dsh-20a": view(async (h) => { await h.click('[data-dsh-view-tab="DSH-0001"]'); await h.wait(500); }),
+      "dsh-20a": view(async (h) => { await h.click('[data-view-switch="dsh-view"] [data-view-value="DSH-0001"]'); await h.wait(500); }),
       "dsh-20b": view(null, { tablou: "gol" }),
       "dsh-20c": view(null, { tablou: "widget-eroare" }),
       "dsh-20d": view(null, { tablou: "incarcare" }),
