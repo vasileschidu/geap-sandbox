@@ -680,8 +680,15 @@
   width: var(--spacing-12, 12px);
 }
 
+/* the grey hover square is back (user 2026-11-12 „I liked that”): its bottom-right corner follows the card's 20 corner */
+.e-permits-dsh-tile__resize {
+  border-radius: var(--border-radius-8, 8px) var(--border-radius-8, 8px) var(--border-radius-20, 20px) var(--border-radius-8, 8px);
+  bottom: var(--border-width-1, 1px); /* inside the card's 1px border, so the grey never covers it */
+  right: var(--border-width-1, 1px);
+}
+
 .e-permits-dsh-tile__resize:hover,
 .e-permits-dsh-tile.is-resizing .e-permits-dsh-tile__resize {
-  background: none;
+  background: var(--color-background-base-tertiary, #f1f1f1);
   color: var(--color-icon-base-default, #121212);
 }
