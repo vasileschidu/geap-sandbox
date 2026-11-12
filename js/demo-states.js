@@ -4966,6 +4966,8 @@
     /* one widget at a time (dash-v3): choose its card, „Adaugă” → it lands at the end and flashes */
     const choose = (id) => async (h) => { await h.click(`${M} .e-permits-dsh-pick-card:has([data-dsh-pick][value="${id}"])`); await h.wait(120); };
     const addOne = (id) => seq(pick, choose(id), async (h) => { await h.click(`${M} [data-dsh-pick-confirm]`); await h.wait(450); });
+    /* dsh-pick-multi-v1: the n-th card that is still free (not on the board) */
+    const chooseFree = (n) => async (h) => { const free = [...document.querySelectorAll(`${M} .e-permits-dsh-pick-card:not(.is-disabled):not(.is-selected)`)]; free[n]?.click(); await h.wait(150); };
     const addW = (...ids) => seq(...ids.map(addOne));
     const D = (fn) => async (h) => { fn(window.GEAPDashboards.demo); await h.wait(450); };
     const DAMS = (...ids) => async (h) => { await h.click(`${C} #fo-dsh-n-authorities`); await h.wait(250); for (const v of ids) { const o = await h.find(`${C} [data-dsh-auth-ms] .e-permits-fo-subgen-select__option[data-value^="${v} ·"]`); o.dispatchEvent(new MouseEvent("mousedown", { bubbles: true, cancelable: true })); await h.wait(120); } if (ids.length) { await h.click(`${C} [data-dsh-auth-ms] [data-fo-subgen-confirm]`); await h.wait(250); } };
@@ -5052,8 +5054,8 @@
       "dsh-04o": prof("DSH-0001", "widgeturi", seq(layout(), D((d) => d.resize("WGT-0011", "third", "tall"))), { tablou: "mix" }),
       "dsh-04m": prof("DSH-0001", "widgeturi", seq(D((d) => { d.focus("WGT-0006"); document.activeElement.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowUp", bubbles: true })); }), layout())),
       "dsh-04d": prof("DSH-0001", "widgeturi", seq(layout(), pick)),
-      /* dsh-pick-preview-v1: „Adaugă un widget” with live previews, grouped; „Încasări pe servicii” chosen */
-      "dsh-04w": prof("DSH-0001", "widgeturi", seq(layout(), pick, choose("WGT-0009"))),
+      /* dsh-pick-preview-v1: „Adaugă widget” multiselect (dsh-pick-multi-v1): previews, grouped, three cards ticked */
+      "dsh-04w": prof("DSH-0001", "widgeturi", seq(layout(), pick, chooseFree(1), chooseFree(0), chooseFree(2))),
       "dsh-04e": prof("DSH-0003", "widgeturi", layout()),
       "dsh-04f": prof("DSH-0001", "configurare", null, null, AUTH),
       "dsh-04g": prof("DSH-0001", "widgeturi", layout(), null, AUTH),
