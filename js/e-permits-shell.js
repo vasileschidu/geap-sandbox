@@ -15431,6 +15431,11 @@ document.addEventListener("DOMContentLoaded", () => {
     const result = rsspDryRun(code);
     if (!result.ok || result.kind !== "created") return result;
     result.service.syncSources = ["RSSP"];
+    /* AC-21 (US-326) / US-111: the new passport is a draft (Schiță) — never published, everything since import is
+       pending; it takes its RSSP status at the first „Publică” (pendingStatus, as a reactivated draft) */
+    result.service.pendingStatus = result.service.status;
+    result.service.status = "Nepublicat";
+    Object.assign(result.service.geap, { publishedAt: "1970-01-01T00:00:00", publications: [] });
     servicesStore.services.unshift(result.service);
     if (result.authorityCreated) servicesStore.authorities.push(result.authority);
     logServiceEvents(result.service.code, result.events, { render: false });

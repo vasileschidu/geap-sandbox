@@ -826,7 +826,8 @@
        no pair: new 003000333 (Eliberare + Prelungire) ← 003000023 → types / documents / tax settings locked */
     ...(() => {
       const open = async (h) => {
-        await h.click('[data-nav-id="service-config"]');
+        /* phones: the menu item sits in the closed sidebar — click it directly */
+        await h.wait(300); document.querySelector('[data-nav-id="service-config"]')?.click(); await h.wait(500);
         await h.click("[data-workplace-add-service]");
         await h.find("[data-svcl-drawer] #svcl-code");
       };

@@ -233,8 +233,9 @@
 
     const roots = [settings, types, forms, documents, fees, templates, notifs, classifiers];
     /* a locked group locks what is inside; an empty group says there is nothing to clone */
+    /* an inherited lock is said once, on the row it comes from (the rows inside stay quiet) */
     const settle = (n, lock = "") => {
-      if (lock && !n.lock) n.lock = lock;
+      if (lock && (!n.lock || n.lock === lock)) { n.lock = lock; n.inherited = true; }
       n.children.forEach((c) => settle(c, n.lock));
       if (!n.children.length && !n.apply && !n.lock) n.lock = MSG.nothing;
     };
@@ -274,7 +275,7 @@
             </div>
             <button class="modal-close" type="button" aria-label="Închide" data-svcl-close>${icon("cross-large", 16, "icon small")}</button>
           </header>
-          <nav class="e-permits-steps-strip" aria-label="Pașii adăugării" data-svcl-steps hidden></nav>
+          <nav class="e-permits-steps-strip" aria-label="Pașii creării" data-svcl-steps hidden></nav>
           <div class="drawer__body" data-svcl-body></div>
           <footer class="drawer__footer" data-svcl-footer></footer>
         </aside>
@@ -349,7 +350,7 @@
       <section class="e-permits-user-create__section">
         <h3 class="e-permits-user-create__section-title">Serviciul din RSSP</h3>
         <div class="e-permits-user-create__section-content">
-          <div class="e-permits-user-create__grid">${mode}${code}${sourceField}</div>
+          <div class="e-permits-user-create__grid"><div class="e-permits-user-create__field e-permits-user-create__field--12 e-permits-svc-clone__mode">${mode}</div>${code}${sourceField}</div>
         </div>
       </section>`;
   }
@@ -373,13 +374,14 @@
       ? `<button class="btn btn-text-neutral btn-sm btn-icon-only e-permits-svc-clone__toggle" type="button" aria-expanded="${isOpen}" aria-label="${esc(`${isOpen ? "Restrânge" : "Desfă"} ${n.label}`)}" data-tooltip-label="${isOpen ? "Restrânge" : "Desfă"}" data-svcl-toggle="${esc(n.id)}">${icon("chevron-right", 20, "icon")}</button>`
       : '<span class="e-permits-svc-clone__toggle-space" aria-hidden="true"></span>';
     const count = group && st.total ? `<span class="e-permits-svc-clone__count" aria-label="${esc(`${st.on} din ${st.total} bifate`)}">${st.on}/${st.total}</span>` : "";
-    const note = n.lock || n.note;
+    const note = n.inherited ? "" : n.lock || n.note;
+    const cell = (label, html, empty) => `<td class="table__body-cell${empty ? " is-empty" : ""}" data-label="${label}">${html}</td>`;
     return `
       <tr class="table__row e-permits-svc-clone__row e-permits-svc-clone__row--l${Math.min(depth, 3)}${group ? " is-group" : ""}${isOpen ? " is-open" : ""}${locked ? " is-locked" : ""}" data-svcl-row="${esc(n.id)}">
         <th class="table__body-cell e-permits-svc-clone__setting" scope="row"><div class="e-permits-svc-clone__cell">${toggle}${check}${count}</div></th>
-        <td class="table__body-cell" data-label="În serviciul sursă">${cellValue(n.src)}</td>
-        <td class="table__body-cell" data-label="În serviciul nou">${cellValue(n.dst)}</td>
-        <td class="table__body-cell" data-label="Observație">${note ? `<span class="e-permits-svc-clone__note${n.lock ? " is-lock" : ""}" data-cell-tooltip>${esc(note)}</span>` : dash}</td>
+        ${cell("În serviciul sursă", cellValue(n.src), !n.src)}
+        ${cell("În serviciul nou", cellValue(n.dst), !n.dst)}
+        ${cell("Observație", note ? `<span class="e-permits-svc-clone__note${n.lock ? " is-lock" : ""}" data-cell-tooltip>${esc(note)}</span>` : dash, !note)}
       </tr>`;
   }
   function rowsHtml(nodes, depth = 1) {
@@ -444,7 +446,7 @@
     steps.hidden = !clone2;
     steps.innerHTML = clone2 ? A().renderStepStrip?.(STEPS, { step: F.step, maxStep: F.tree ? 2 : F.step }, "data-svcl-goto") || "" : "";
     body.innerHTML = F.step === 2 ? step2() : step1();
-    d.querySelector("[data-svcl-footer]").innerHTML = footerHtml();
+    d.querySelector("[data-svcl-footer]").innerHTML = `${clone2 ? `<span class="e-permits-rt__summary" aria-live="polite">Pasul ${F.step} din ${STEPS.length} · ${STEPS[F.step - 1]}</span>` : ""}${footerHtml()}`;
     if (F.step === 1) {
       R().bind?.(body);
       preselectSource(body);
@@ -452,7 +454,11 @@
       syncPartial(body);
     }
     body.scrollTop = focusSel === "top" ? 0 : top;
-    if (focusSel && focusSel !== "top") d.querySelector(focusSel)?.focus?.();
+    if (focusSel && focusSel !== "top") {
+      const el = d.querySelector(focusSel);
+      el?.focus?.();
+      if (el?.matches?.("input[type=text]")) el.setSelectionRange(el.value.length, el.value.length);
+    }
   }
   function preselectSource(body) {
     const root = body.querySelector("[data-svcl-source-field] [data-fo-caem]");
@@ -739,7 +745,7 @@
         event.target.removeAttribute("aria-invalid");
         field.querySelector(".e-permits-fo-field__error")?.remove();
         drawer.querySelector(".e-permits-svc-clone__notice")?.remove();
-        if (wasResync) drawer.querySelector("[data-svcl-footer]").innerHTML = footerHtml();
+        if (wasResync) render("#svcl-code");
       }
     }
   }

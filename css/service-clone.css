@@ -26,6 +26,12 @@
   margin-bottom: var(--spacing-16, 16px);
 }
 
+/* the fieldset of Modul creării fills its grid cell (a fieldset is min-content wide by default) */
+.e-permits-svc-clone__mode > fieldset {
+  min-width: 0;
+  width: 100%;
+}
+
 .e-permits-svc-clone__toolbar {
   align-items: center;
   display: flex;
@@ -86,7 +92,7 @@
   vertical-align: middle;
 }
 
-.e-permits-svc-clone__table tbody .table__row:hover .table__body-cell {
+.e-permits-svc-clone__table tbody .table__row:not(.is-locked):hover .table__body-cell {
   background: var(--color-background-base-tertiary, #f1f1f1);
 }
 
@@ -123,6 +129,12 @@
 
 .e-permits-svc-clone__toggle .icon {
   transition: transform 160ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* an inline disclosure (the rows open in place), not a popup: no „open button” ring (e-permits-shell.css), only the
+   keyboard focus ring */
+.btn.e-permits-svc-clone__toggle[aria-expanded="true"]:not(:focus-visible) {
+  box-shadow: none;
 }
 
 .e-permits-svc-clone__toggle[aria-expanded="true"] .icon {
@@ -211,6 +223,12 @@
 
 /* ---- phones: one record per row ---- */
 @media (max-width: 760px) {
+  /* Modul creării: the two radio rows stack (side by side they squeezed to one word per line) */
+  [data-svcl-drawer] .e-permits-fo-choice__group--inline {
+    flex-direction: column;
+    gap: var(--spacing-0, 0px);
+  }
+
   .e-permits-svc-clone__wrap {
     border-radius: var(--border-radius-12, 12px);
   }
@@ -238,13 +256,13 @@
     border-bottom: 0;
   }
 
-  .e-permits-svc-clone__table tbody > .table__row:hover {
+  .e-permits-svc-clone__table tbody > .table__row:not(.is-locked):hover {
     background: var(--color-background-base-tertiary, #f1f1f1);
   }
 
   .e-permits-svc-clone__table .table__body-cell,
   .e-permits-svc-clone__table .table__row:nth-child(even) .table__body-cell,
-  .e-permits-svc-clone__table tbody .table__row:hover .table__body-cell {
+  .e-permits-svc-clone__table tbody .table__row:not(.is-locked):hover .table__body-cell {
     background: transparent;
     border-bottom: 0;
     padding: 0;
@@ -257,12 +275,9 @@
     padding-left: calc(var(--spacing-32, 32px) + var(--spacing-8, 8px));
   }
 
-  .e-permits-svc-clone__row--l2 td.table__body-cell {
-    padding-left: calc(var(--spacing-32, 32px) + var(--spacing-8, 8px) + var(--spacing-16, 16px));
-  }
-
-  .e-permits-svc-clone__row--l3 td.table__body-cell {
-    padding-left: calc(var(--spacing-32, 32px) + var(--spacing-8, 8px) + var(--spacing-32, 32px));
+  /* an empty value says nothing on a phone record */
+  .e-permits-svc-clone__table td.table__body-cell.is-empty {
+    display: none;
   }
 
   .e-permits-svc-clone__table td.table__body-cell::before {
