@@ -16,11 +16,11 @@
 }
 
 /* rbo-wide-v1 (2026-11-11, user: „full width here”): the REPORT page (filters + result table) is fluid to the BO page gutter,
-   capped at 1600 and centred beyond — the editor-wide cap. Research: Metabase / Power BI / Grafana / Looker Studio give a
+   capped at 1280 (layout-wide-v1, was 1600) and centred beyond — the shared wide width. Research: Metabase / Power BI / Grafana / Looker Studio give a
    report result the whole canvas, list pages stay narrow; the cap keeps a row readable on 2560 screens. The stated
    exception to „wide only with two columns”: a wide data table. The list (rbo-01) keeps the normal page width. */
 .e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-dosar-profil__panel:has(> .e-permits-rbo--report) {
-  max-width: calc(var(--spacing-40, 40px) * 40);
+  max-width: var(--layout-wide-max);
 }
 
 .e-permits-rbo--report {

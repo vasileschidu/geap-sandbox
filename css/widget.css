@@ -39,7 +39,7 @@
   z-index: auto;
 }
 
-/* ---- the editor page (widget-v2): the shared editor width `.e-permits-editor-wide` (fluid, cap 1600, ONLY on the two-
+/* ---- the editor page (widget-v2): the shared editor width `.e-permits-editor-wide` (fluid, cap 1280, ONLY on the two-
    column Configurare; Versiuni / Istoric keep the profile width); settings 5fr (≥ 360) · BIG preview 7fr (Asana /
    Sentry / Twenty chart editors) = the shared `.e-permits-ntpl-content--preview` (css/registre.css), also on every step of
    the create sheet (`.e-permits-wid-create`, the KPI create sheet structure). The profile's preview stacks first under

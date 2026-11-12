@@ -1,3 +1,9 @@
+/* layout-wide-v1 (2026-11-12, user rule): ONE wide page width = 1280 — every two-column layout (editors, split settings | preview),
+   stacked lists, dashboards and report results; single-column profiles / forms stay 1024 (design-system.md › Page widths) */
+:root {
+  --layout-wide-max: calc(var(--spacing-40, 40px) * 32);
+}
+
 html,
 body {
   height: 100%;
@@ -2333,13 +2339,12 @@ body {
 }
 
 /* registry-stack-width-v1 (2026-11-11, user: „not full width — do as the other stacked lists”): toolbar + list take the
-   BO page column of every other stacked list = the profile panel rule (`.e-permits-dosar-profil__panel`, BO: max 1024,
-   centred, 16 a side); the toolbar / filter lines go (the Registre catalog toolbar has none either) */
-.e-permits-workplace[data-workplace-layout="stack"] > .e-permits-workplace__header,
-.e-permits-workplace[data-workplace-layout="stack"] .e-permits-workplace__stack {
+   BO page column of every other stacked list = the shared wide width (`--layout-wide-max`, 1280, since stack-1280-v1; centred, 16 a side); the toolbar / filter lines go (the Registre catalog toolbar has none either) */
+.e-permits-workplace[data-workplace-layout="stack"]:is(*, [data-workplace]) > .e-permits-workplace__header,
+.e-permits-workplace[data-workplace-layout="stack"]:is(*, [data-workplace]) .e-permits-workplace__stack {
   box-sizing: border-box;
   margin-inline: auto;
-  max-width: 1024px;
+  max-width: var(--layout-wide-max); /* stack-1280-v1 (2026-11-12, user): stacked lists 1280 (was 1024); the :is() lifts the specificity over the BO header `width: 100%` so header, toolbar and list share one box */
   width: calc(100% - 32px);
 }
 

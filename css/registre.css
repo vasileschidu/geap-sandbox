@@ -495,10 +495,10 @@
    2026-11-07; the KPI create sheet rule of css/kpi.css made shared for the widget builder — user: „do as in KPIs”;
    Stripe / Shopify / Linear / GOV.UK multi-step create). Header, step strip, step content
    (`.e-permits-reg-editor__single.e-permits-reg-editor__page`) and the footer bar share one left and right edge = the
-   editor page width (1600, components.md › „Editor page width”) centred in the sheet, never less than the 24 gutter;
+   editor page width (1280, components.md › „Editor page width”) centred in the sheet, never less than the 24 gutter;
    the × sits on that right edge. Each step = `.e-permits-ntpl-content` (+ `--preview`: form 5fr ≥ 360 | sticky preview
    7fr; stacked ≤ 1100). Phones: one column, gutter 16. */
-/* the header is always the full sheet width (no 1600 cap): 24 on every side (sheet-header-pad-v2) */
+/* the header is always the full sheet width (no 1280 cap): 24 on every side (sheet-header-pad-v2) */
 .e-permits-reg-editor--page .e-permits-reg-editor__header .e-permits-page-header__body {
   padding-left: var(--spacing-24, 24px);
   padding-right: calc(var(--spacing-24, 24px) + var(--spacing-32, 32px) + var(--spacing-16, 16px));
@@ -510,7 +510,7 @@
 
 .e-permits-reg-editor--page .e-permits-reg-editor__bar,
 .e-permits-reg-editor--page .e-permits-reg-editor__single.e-permits-reg-editor__page {
-  padding-inline: max(var(--spacing-24, 24px), calc((100% - var(--spacing-40, 40px) * 40) / 2 + var(--spacing-24, 24px)));
+  padding-inline: max(var(--spacing-24, 24px), calc((100% - var(--layout-wide-max)) / 2));
 }
 
 .e-permits-reg-editor--page .e-permits-reg-editor__single.e-permits-reg-editor__page {
@@ -616,7 +616,7 @@
 /* sheet-header-pad-v2 (2026-11-10, user: „left/right padding = top/bottom”; replaces sheet-header-inset-v1 which pushed title,
    steps and × 12 further in): on desktop the create / edit sheet header has ONE padding = --spacing-24 on all four sides —
    title top 24, step strip bottom 24, title / steps left = × right = 24 from the content container edge (the sheet edge up to
-   1600, then the editor page width so the header stays on the body's left edge); × centred on the 32 title line.
+   1280, then the editor page width so the header stays on the body's left edge); × centred on the 32 title line.
    Phones keep the sheet-header rule (title 16 from top, × 40). */
 @media (min-width: 761px) {
   .e-permits-reg-editor .e-permits-reg-editor__header .e-permits-page-header__body {

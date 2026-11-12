@@ -53,7 +53,7 @@
   min-width: 0;
 }
 
-/* the form-only steps of the sheet keep a form width (the sheet is the 1600 editor page) */
+/* the form-only steps of the sheet keep a form width (the sheet is the 1280 editor page) */
 .e-permits-dsh-config--form {
   max-width: calc(var(--spacing-40, 40px) * 22);
 }
@@ -62,7 +62,7 @@
    BO page gutter and capped at 1280; Versiuni / Istoric and the sheet steps keep their widths. The marker sits on the
    tab content, the panel that holds it is widened (the rule is not a two-column editor, so no .e-permits-editor-wide). */
 .e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-dosar-profil__panel:has(.e-permits-dsh-wide) {
-  max-width: calc(var(--spacing-40, 40px) * 32);
+  max-width: var(--layout-wide-max);
 }
 
 /* dsh-tab-rhythm-v1 (2026-11-12, user rule feedback_tab_page_rhythm): every dashboard tab page = tab bar → 24 → section

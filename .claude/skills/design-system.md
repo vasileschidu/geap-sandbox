@@ -712,20 +712,18 @@ background: var(--color-background-base-default);
 „1. Semantic Colors”, stroke scope; CSS `--color-border-<tone>-secondary`. Same role as
 `border/base/secondary` (gray 300). Used by Subtle tags.
 
-### Editor page width — only when two columns (2026-11-06, user)
-- A BO profile panel that holds a two-column editor grid (form | preview / dictionary / chart) is fluid to the BO page
-  gutter (16 each side) and capped at **1600** (`calc(var(--spacing-40) * 40)`), centred beyond. Mark the grid
-  `.e-permits-ntpl-content.e-permits-editor-wide`; the panel picks it up with `:has(> .e-permits-editor-wide)`.
-- One-column tabs / screens (lists, timelines, Istoric, Alerte, Valori proprii) keep the normal profile width (1024;
-  ntpl tabs 1280). Never put the wide width on a whole page.
-- **Exception — a wide data table (rbo-wide-v1, 2026-11-11, user „full width here”):** the BO report RESULT page (Rapoarte ›
-  a report: filters + result table, `.e-permits-rbo--report`) is one column but fluid to the BO gutter, cap **1600**
-  (`calc(var(--spacing-40) * 40)`), like Metabase / Power BI / Grafana report views; the report LIST keeps 1024.
-- **Third width — dashboards 1280 (dsh-wide-v2, 2026-11-11, user; 1440 in v1 was „too much”):** the Tablouri de bord widget editor (Configurare tab,
-  widget grid) and the specialist view „Tablou de bord” are fluid to the BO gutter and capped at **1280**
-  (`calc(var(--spacing-40) * 32)`), centred beyond. Marker `.e-permits-dsh-wide` on the tab content (css/dashboard.css);
-  Versiuni / Istoric and the create-sheet steps keep their widths. A board of only compact number tiles gets
-  `.is-natural` on the grid: the row is as tall as the tallest card's content (no fixed height, no empty card space).
-- **Rapoarte = the standard 1024 (rpt-editor-1024-v1, 2026-11-12, user „same max width as in other places”; 1280 in rpt-editor-1280-v1 replaced):** the Rapoarte profile
-  (header, tabs, Configurare settings | Previzualizare) and the „Raport nou” sheet (strip, steps, footer bar) use the BO profile width, **1024** centred
-  (css/rapoarte.css overrides the editor-wide 1600). Split 5/12 | 7/12 as before (preview ≥ 415 at 1024 viewport); stacked < 1024. No Rapoarte-specific width.
+### Page widths — THE rule (layout-wide-v1, 2026-11-12, user: „for ALL two-column layouts max width 1280, make it a rule”)
+ONE shared definition: `--layout-wide-max: calc(var(--spacing-40) * 32)` = **1280** (`:root` in css/e-permits-shell.css). Never
+write 1280 / 1600 / `* 32` / `* 40` per screen — use the variable.
+- **Wide = 1280 (`var(--layout-wide-max)`), centred, fluid below it to the 16 BO gutter:** every two-column layout (form | preview /
+  dictionary / chart: ntpl Texte, KPI, Widgete, Rapoarte Configurare, create sheets — mark the grid
+  `.e-permits-ntpl-content.e-permits-editor-wide`; the panel picks it up with `:has(> .e-permits-editor-wide)`), every stacked list
+  (`.e-permits-workplace[data-workplace-layout="stack"]`: header + toolbar + list share ONE box), dashboards (`.e-permits-dsh-wide`),
+  and the BO report result page (`.e-permits-rbo--report`, a wide data table).
+- **Standard = 1024:** every single-column profile tab / form (timelines, Istoric, Alerte, Versiuni, Acces, Valori proprii, passports).
+  Never put the wide width on a whole one-column page.
+- **Create / edit sheets:** header = full sheet width; step strip, step content and footer bar = a 1280 box centred (gutter ≥ 24,
+  16 phones), so content edges equal the profile page edges.
+- A dashboard board of only compact number tiles gets `.is-natural` on the grid: the row is as tall as the tallest card's content (no fixed height, no empty card space).
+- Within a page every part (header, toolbar, list) shares the same left / right edges (±0.5) at 1440 / 1920 / 2560. A BO rule
+  that sets `width: 100%` on a header needs the `:is(*, [attr])` specificity lift (see the stack rule).

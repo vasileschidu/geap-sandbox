@@ -151,7 +151,7 @@ instance in the file. Follow the surrounding CSS instead.
 
 | Rule | What to do | Where |
 |---|---|---|
-| Two-column editor screens = 50/50 | form | side column `minmax(0,1fr) minmax(0,1fr)`, stacked ≤ 1100; editor width 1600 only when two columns | `.e-permits-kpi-content--split`, `.e-permits-ntpl-content--preview` (css/kpi.css, css/registre.css) |
+| Two-column editor screens = 50/50 | form | side column `minmax(0,1fr) minmax(0,1fr)`, stacked ≤ 1100; editor width 1280 only when two columns | `.e-permits-kpi-content--split`, `.e-permits-ntpl-content--preview` (css/kpi.css, css/registre.css) |
 | Exception: Rapoarte settings 5/12 · preview 7/12 (rpt-split-v1, 2026-11-10, user) | table-heavy preview: settings `5fr` \| preview `7fr` ≥ 1024 (6/6 would crowd the table), stacked < 1024, gap 24; preview sticky under the pinned tab row, scrolls itself when taller than the scroller | `.e-permits-rpt-split` (css/rapoarte.css) |
 | Right (sticky) column breathing space | 48 bottom padding so the scroll ends with room | widget / KPI sheets + profiles |
 | Preview header | row 1 = title + actions („Actualizează” secondary Small + „Mărește” NEUTRAL icon-only Small, Foundations `expand-315, enlarge` = `icon-enlarge`) vertically centred, gap 16; row 2 = scope line „Perimetru: …” (never „Perimetrul dvs.”) full width, 12 below | js/widget-admin.js |
@@ -12945,18 +12945,16 @@ disabled while searching (no pointer, no chevron). Users: Permisiuni (users / ro
 Definiție), request-type flow steps (`data-rt-step`). One rule in css/e-permits-acte-permisive.css — no local overrides.
 Static (non-collapsible) group labels keep the secondary fill.
 
-### Editor page width — only when two columns (editor-wide-v1, 2026-11-06, user)
+### Editor page width — only when two columns (editor-wide-v1, 2026-11-06; cap 1280 since layout-wide-v1, 2026-11-12, user)
 
 Modifier `.e-permits-editor-wide` on the two-column grid `.e-permits-ntpl-content` (form | preview / dictionary / chart).
 The profile panel that directly holds it (`.e-permits-dosar-profil__panel` / `.e-permits-user-profile__panel`
-`:has(> .e-permits-editor-wide)`, css/e-permits-acte-permisive.css) becomes fluid to the BO gutter (16) with max-width
-1600, centred beyond. Used by: Notificări › Șabloane Texte (ntpl-02), KPI Definiție + Ținta (kpi-04 / 04a / 06 / 06d), the KPI
-create sheet two-column steps (`.e-permits-kpi-editor__page:has(> .e-permits-editor-wide)`); widgets reuse the same class.
+`:has(> .e-permits-editor-wide)`, css/e-permits-acte-permisive.css) becomes fluid to the BO gutter (16) with
+`max-width: var(--layout-wide-max)` (1280, defined once in css/e-permits-shell.css; was 1600), centred beyond. The same variable
+caps the stacked lists (header + toolbar + list one box), dashboards, the BO report page and the create-sheet content box
+(css/kpi.css, css/registre.css). Used by: Notificări › Șabloane Texte, KPI Definiție + Ținta, Widgete, Rapoarte Configurare + „Raport nou”.
 Columns keep the ntpl ratio (form 7fr | helper 5fr; `.e-permits-kpi-content--preview` = form minmax(360px, 5fr) | chart 7fr).
-One-column tabs (Alerte, Istoric, Valori proprii, lists) never get it — they keep the profile width (1024).
-**Exception — Rapoarte (rpt-full-width-v1, 2026-11-11, user „lets do full width here”):** the report editor (settings 5/12 |
-Previzualizare 7/12) has no 1600 cap — profile panel `:has(> .e-permits-rpt-split.e-permits-editor-wide)` = `max-width: none`,
-and in the „Raport nou” sheet (`.e-permits-rpt-editor`) the step content + footer bar keep only the 24 sheet gutter (css/rapoarte.css).
+One-column tabs (Alerte, Istoric, Versiuni, Acces, Valori proprii) never get it — they keep the profile width (1024).
 
 ### Chart value callout — library Small tooltip with arrow, static (kpi-band-v6, 2026-11-06, user)
 

@@ -1253,20 +1253,8 @@
   }
 }
 
-/* rpt-editor-1024-v1 (2026-11-12, user „same max width as in other places”; replaces rpt-editor-1280-v1): the Rapoarte profile
-   (header, tabs, Configurare split) and the „Raport nou” sheet (step strip, step content, footer bar) take the standard BO
-   profile width, 1024 centred — the same value as `.e-permits-dosar-profil__panel`. The editor-wide 1600 is overridden here. */
-.e-permits-front-office-page[data-demo-flow="back-office"] :is(.e-permits-dosar-profil__panel, .e-permits-user-profile__panel):has(> .e-permits-rpt-split.e-permits-editor-wide) {
-  max-width: 1024px;
-}
-
-@media (min-width: 761px) {
-  .e-permits-rpt-editor.e-permits-reg-editor--page .e-permits-reg-editor__bar,
-  .e-permits-rpt-editor.e-permits-reg-editor--page .e-permits-reg-editor__single.e-permits-reg-editor__page {
-    padding-inline: max(var(--spacing-24, 24px), calc((100% - 1024px) / 2 + var(--spacing-24, 24px)));
-  }
-}
-
+/* rpt-editor-1280-v2 (2026-11-12, layout-wide-v1): the Rapoarte Configurare split + the „Raport nou” sheet use the shared wide width
+   (`.e-permits-editor-wide` → `--layout-wide-max`, 1280); single-column tabs (Versiuni / Istoric / Acces) keep the 1024 profile width. */
 /* ---- rpt-scope-v1 (2026-11-11, user): the preview's scope = ONE library info notice (blue Mesaj · subtil, renderNotice)
    above the filter chips + table: „Grupat după: …” · „Filtre aplicate: …” · „Vizibile în raport: …”, one line each (the
    notice's own 14/20 text; the label medium). Replaces the grey „Condiții: …” line under the preview title. ---- */
