@@ -726,3 +726,5 @@ background: var(--color-background-base-default);
   (`calc(var(--spacing-40) * 32)`), centred beyond. Marker `.e-permits-dsh-wide` on the tab content (css/dashboard.css);
   Versiuni / Istoric and the create-sheet steps keep their widths. A board of only compact number tiles gets
   `.is-natural` on the grid: the row is as tall as the tallest card's content (no fixed height, no empty card space).
+- **Rapoarte report editor 1280 (rpt-editor-1280-v1, 2026-11-12, user „not full fill, max width as in the others”):** the report Configurare
+  (settings | Previzualizare) and the „Raport nou” sheet (strip, steps, footer bar) use the same **1280** cap, centred beyond (css/rapoarte.css).

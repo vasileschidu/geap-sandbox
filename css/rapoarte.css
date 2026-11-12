@@ -1253,18 +1253,17 @@
   }
 }
 
-/* rpt-full-width-v1 (2026-11-11, user „lets do full width here”): the report editor (settings 5/12 | preview 7/12) is not
-   capped at 1600 like the other two-column editors — the preview is a wide report table, so it uses the whole page width */
+/* rpt-editor-1280-v1 (2026-11-12, user „not full fill, max width as in the others”; replaces rpt-full-width-v1): the report
+   editor (settings 5/12 | preview 7/12) is fluid to the BO gutter and capped at 1280 like the dashboards (dsh-wide-v2),
+   centred beyond. The „Raport nou” sheet: header full width, step strip, step content and footer bar centred on the same 1280. */
 .e-permits-front-office-page[data-demo-flow="back-office"] :is(.e-permits-dosar-profil__panel, .e-permits-user-profile__panel):has(> .e-permits-rpt-split.e-permits-editor-wide) {
-  max-width: none;
+  max-width: calc(var(--spacing-40, 40px) * 32);
 }
 
-/* the „Raport nou” sheet too: step content and the footer bar span the whole sheet minus its 24 gutter (the shared
-   sheet-page-v1 rule centres them on the 1600 editor width — KPI / widgets / ntpl keep that) */
 @media (min-width: 761px) {
   .e-permits-rpt-editor.e-permits-reg-editor--page .e-permits-reg-editor__bar,
   .e-permits-rpt-editor.e-permits-reg-editor--page .e-permits-reg-editor__single.e-permits-reg-editor__page {
-    padding-inline: var(--spacing-24, 24px);
+    padding-inline: max(var(--spacing-24, 24px), calc((100% - var(--spacing-40, 40px) * 32) / 2 + var(--spacing-24, 24px)));
   }
 }
 

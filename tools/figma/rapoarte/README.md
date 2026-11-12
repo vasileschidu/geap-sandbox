@@ -470,3 +470,8 @@ Helpers: `const AF = Object.getPrototypeOf(async function(){}).constructor; cons
 - New state rbo-02a (2026-11-12, code `rbo-clear-v1` + `rbo-period-required-v1`): Perioada cleared with the chip × = plain „Perioada” chip with a danger border + „Alege perioada raportului.” (error icon) under the bar; „Generează” without a period shows the same and focuses the chip.
 
 - BO list blocks rbo-01 / 01a / 01b / 01c (2026-11-12, code `rbo-list-toolbar-v1`): the list is now the admin registry look — heading „Rapoartele tale · N rapoarte · Perimetru” ABOVE the toolbar, then search + „Filtrare” chip + „Sortează” chip (phones icon-only in the search row), then the category groups; no Export button. Redo the blocks from rbo-01 / rbo-01d (filter) / rbo-01e (sort menu).
+
+## job 21 — editor max width (2026-11-12, user: „not full fill, max width as in the others”; Figma not written from the code session — spec)
+- Code cap: **1280** (`calc(var(--spacing-40) * 32)`, same as dashboards dsh-wide-v2), centred, fluid below it to the 16 BO gutter (css/rapoarte.css `rpt-editor-1280-v1`).
+- Every Rapoarte block with the two-column editor (column 02 „Raport nou” steps + column 03 profile Configurare, incl. 15228:6264): editor container = auto-layout, width FILL, maxWidth 1280, centred (counter-axis CENTER in the page frame); not a fixed or full-width frame. Settings column 5/12 | Previzualizare 7/12 inside it. Sheet: header stays full width; step strip, step content and footer bar share the same 1280 container.
+- Check at 1440 (content < 1280 + gutters fills) and 1920 / 2560 (1280 centred).
