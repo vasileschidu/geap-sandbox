@@ -249,6 +249,7 @@
           selectable: false,
           /* AC-02: the authority's name heads its group */
           groupBy: "autoritate",
+          groupIcon: "admin-authority", /* the authority glyph = the sidebar „Autorități” icon, not the document one */
           searchPlaceholder: "Caută după denumirea afișată",
           columns: ["denumire", "raion", "localitate", "adresa", "telefon", "email", "aprobat", "activ", "actiuni"],
           primaryAction: w.admin ? { id: "sub-new", label: "Adaugă subdiviziune" } : null,

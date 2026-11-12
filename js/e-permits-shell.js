@@ -7369,12 +7369,12 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   };
 
-  const renderServiceGroupRow = (label, colSpan) => `
+  const renderServiceGroupRow = (label, colSpan, iconName = "page-text") => `
     <tr class="e-permits-workplace__group-row" data-workplace-group="${escapeHtml(label)}">
       <td colspan="${colSpan}">
         <div class="e-permits-workplace__group-header">
           <svg class="icon" width="20" height="20" aria-hidden="true">
-            <use href="assets/icons/sprite.svg#icon-page-text"></use>
+            <use href="assets/icons/sprite.svg#icon-${iconName}"></use>
           </svg>
           <span>${escapeHtml(label)}</span>
         </div>
@@ -7506,7 +7506,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     workplaceRows.innerHTML = rows.map((row) => {
       const group = row[view.groupBy] || "Fără serviciu";
-      const header = group !== previousGroup ? renderServiceGroupRow(group, colSpan) : "";
+      const header = group !== previousGroup ? renderServiceGroupRow(group, colSpan, view.groupIcon || undefined) : "";
       previousGroup = group;
 
       return `${header}${renderDataRow(row, columns, columnWidths, view)}`;
