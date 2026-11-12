@@ -1263,12 +1263,13 @@
     if (S.data && canTeam()) audit(null, "Deschidere „Încărcarea echipei”", `Subdiviziunea ${who().subdivision}.`);
     return {
       kind: TEAM_KIND,
-      fieldCount: 6,
+      fieldCount: 7,
       defaultSort: "specialist",
       defaultSortDirection: "asc",
       columns: {
         specialist: { label: "Specialist", width: 220, fill: true, sortable: true },
-        stare: { label: "Stare azi", width: 200 },
+        stare: { label: "Statut", width: 136 },
+        absenta: { label: "Absență", width: 220 },
         dosare: { label: "Dosare active", width: 168, sortable: true },
         risc: { label: "Termene în risc", width: 156, sortable: true },
         incarcare: { label: "Încărcare", width: 220, sortable: true },
@@ -1280,7 +1281,7 @@
           title: "Încărcarea echipei",
           selectable: false,
           searchPlaceholder: "Caută specialistul",
-          columns: ["specialist", "stare", "dosare", "risc", "incarcare", "norma", "actiuni"],
+          columns: ["specialist", "stare", "absenta", "dosare", "risc", "incarcare", "norma", "actiuni"],
           toolbarLabel: "Filtrare echipă",
           exportLabel: "Exportă CSV"
         }
@@ -1296,7 +1297,7 @@
   window.GEAPShellRegistries[TEAM_KIND] = {
     build: teamRegistryDb,
     facets: [
-      { key: "stare", label: "Stare azi", get: (r) => (r.absent ? "Absent" : "Disponibil") },
+      { key: "stare", label: "Statut", get: (r) => (r.absent ? "Absent" : "Disponibil") },
       { key: "nou", label: "Specialist nou", get: (r) => (r.novice ? "Da" : "Nu") }
     ],
     searchText: (row) => row.specialist,
@@ -1306,12 +1307,14 @@
         /* AC-06: new specialists marked */
         case "specialist": return `<span class="e-permits-abs-type"><span data-cell-tooltip="${esc(row.specialist)}">${esc(row.specialist)}</span>${row.novice ? tag("Nou", "brand", `data-tooltip-text="Specialist nou: luna ${row.novice} din 6 de distribuire"`) : ""}</span>`;
         /* AC-05: absent today, with the absence */
-        case "stare": return row.absent
-          ? `<span class="e-permits-workplace__date-stack"><span>${tag("Absent", "accent")}</span><span class="e-permits-workplace__date-meta" data-cell-tooltip="${esc(absenceLine(row.absence))}"><span class="e-permits-abs-kind e-permits-abs-kind--${typeMeta(row.absence.type).tone}">${typeIcon(row.absence.type)}${esc(row.absence.type)}</span>${row.absence.to ? ` · până la ${esc(long(row.absence.to))}` : " · fără dată de sfârșit"}</span></span>`
-          : '<span class="e-permits-abs-muted">Disponibil</span>';
+        case "stare": return row.absent ? tag("Absent", "accent") : tag("Disponibil", "success");
+        /* absence = its own column (user 2026-11-12, „too cluttered”): type over „până la <date>”, table date-stack, no icon */
+        case "absenta": return row.absent
+          ? `<span class="e-permits-workplace__date-stack" data-cell-tooltip="${esc(absenceLine(row.absence))}"><span>${esc(row.absence.type)}</span><span class="e-permits-workplace__date-meta">${row.absence.to ? `până la ${esc(long(row.absence.to))}` : "fără dată de sfârșit"}</span></span>`
+          : dash;
         /* AC-10: the open dossiers of an absent specialist stand out */
         case "dosare": return row.absent && row.dosare
-          ? tag(roCount(row.dosare, "dosar de preluat", "dosare de preluat"), "danger")
+          ? `<span class="e-permits-abs-danger-text">${esc(roCount(row.dosare, "dosar de preluat", "dosare de preluat"))}</span>`
           : esc(String(row.dosare));
         case "risc": return row.risc
           ? `<span class="e-permits-workplace__date-stack"><span>${esc(roCount(row.risc, "dosar", "dosare"))}</span><span class="e-permits-workplace__date-meta">${row.depasite ? `${esc(String(row.depasite))} cu termenul depășit` : "termen în ≤ 3 zile"}</span></span>`
@@ -1342,8 +1345,8 @@
       return E?.render({ title: "Nu există specialiști în subdiviziune", icon: "people", bare: true });
     },
     exportRows: (rows) => {
-      A().exportCsv?.("incarcarea-echipei.csv", ["Specialist", "Stare azi", "Dosare active", "Termene în risc", "Încărcare (normo-ore)", "Norma (%)"],
-        rows.map((r) => [r.specialist, r.absent ? `Absent: ${absenceLine(r.absence)}` : "Disponibil", r.dosare, r.risc, numText(r.incarcare), r.norma]));
+      A().exportCsv?.("incarcarea-echipei.csv", ["Specialist", "Statut", "Absență", "Dosare active", "Termene în risc", "Încărcare (normo-ore)", "Norma (%)"],
+        rows.map((r) => [r.specialist, r.absent ? "Absent" : "Disponibil", r.absent ? absenceLine(r.absence) : "", r.dosare, r.risc, numText(r.incarcare), r.norma]));
       U().showShellToast?.("Lista a fost exportată.");
     }
   };

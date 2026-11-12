@@ -4385,3 +4385,4 @@ For any „research how other products do it” step, search Mobbin (mcp__mobbin
 - 2026-11-12 Tab-page rhythm 24 / 16 = panel padding-top + heading margin-bottom, scoped by `#dsh-panel`; shared heading adds +4 below for action rows, zero it in the scope. Another agent edits dashboard.css/js concurrently: stage hunks with `git apply --cached --unidiff-zero` of picked hunks.
 
 - 2026-11-12 (dsh-view-head-v2): a scrolling `.segmented-control` (inline-flex, justify center) clips the first item when it overflows — set `justify-content: flex-start` and scroll the selected item into view after render. GEAPViewSwitch handlers: register lazily in the screen's show function (script order).
+- 2026-11-12 team-load cell: stacked tag+icon+date cells are split into Statut (tag only) + own date-stack column; a count tag that is not a status („N dosare de preluat”) = plain red text, not a tag.

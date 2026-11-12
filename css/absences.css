@@ -79,6 +79,11 @@
   color: var(--color-text-base-tertiary, #757575);
 }
 
+/* abs-danger-text-v1 (user 2026-11-12): „N dosare de preluat” = plain red cell text, no tag */
+.e-permits-abs-danger-text {
+  color: var(--color-text-danger-default, #d92d20);
+}
+
 /* load = the product Meter + the hours (US-294) */
 .e-permits-abs-load {
   align-items: center;

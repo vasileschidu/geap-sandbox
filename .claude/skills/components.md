@@ -10021,9 +10021,11 @@ Working days come from `js/working-days.js` (`GEAPWorkingDays.workingDaysBetween
   one journal entry per parameter (AC-16). The US-290 passport inherits from it: `GEAPAbsences.policyFor(service authority)`
   + `GEAPAbsences.FACTORS` replace the old `DIST_POLICY` / `DIST_FACTORS` stand-ins (svc-10dp…).
 - **Încărcarea echipei (US-294)** — Supervisor „Locul de muncă › Încărcarea echipei”, registry kind `echipa`: Specialist
-  (+ „Nou” brand tag, tooltip „luna n din 6”) · Stare azi (accent „Absent” over „<type icon> Concediu anual · până la …”, or „Disponibil”) ·
-  Dosare active (= under examination in the subdivision, the same set „Dosarele subdiviziunii” lists; absent → danger tag
-  „N dosare de preluat”, AC-10) · Termene în risc (≤ 3 working days or past) · Încărcare (Meter vs the effective
+  (+ „Nou” brand tag, tooltip „luna n din 6”) · Statut (Small tag only: accent „Absent” / success „Disponibil”) · Absență (own column, 2026-11-12:
+  `.e-permits-workplace__date-stack` = type over tertiary „până la 3 noiembrie 2026” / „fără dată de sfârșit”, no icon, „—” when
+  none, tooltip = full line) ·
+  Dosare active (= under examination in the subdivision, the same set „Dosarele subdiviziunii” lists; absent → plain red
+  text `.e-permits-abs-danger-text` „N dosare de preluat” (no tag), AC-10) · Termene în risc (≤ 3 working days or past) · Încărcare (Meter vs the effective
   „Încărcarea maximă” + „36,3 h / 140”) · Norma · ⋮ Vezi dosarele / Redistribuie dosarele / Vezi absențele. Row = its
   dossiers (AC-09: „Dosarele subdiviziunii” with the Specialist facet set); „Redistribuie dosarele” = all of them selected +
   the bulk dialog (AC-11). Load = Σ complexity (US-292 stand-in from the policy) of the cases in the policy window ÷ norm.
