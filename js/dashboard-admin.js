@@ -2029,7 +2029,7 @@
   const VIEW_TITLE = "Dashboard";
   /* Feature 96498 AC text, „tu” tone */
   const VIEW_EMPTY = "Nu ai acces la tablouri de bord.";
-  const V = { id: "", boards: [], failed: new Set(), seeded: new Set(), busy: new Set() };
+  const V = { id: "", boards: [], failed: new Set(), seeded: new Set(), busy: new Set(), refreshing: false, updated: "azi, la 06:00", announce: false };
   /* the active assignment: role + authority (the demo assignment ids start with the authority: „ansp-…”, „anta-…”) */
   const viewer = () => {
     const a = A().currentAssignment?.() || {};
@@ -2051,7 +2051,7 @@
   function viewTile(d, { t, cfg }, i, span = rowsOf(t), box = null) {
     const key = `${d.id}|${t.widget}`;
     const title = cfg.titles?.ro || t.widget;
-    const st = V.busy.has(key) || demo.has("incarcare") ? { refreshing: true }
+    const st = V.busy.has(key) || V.refreshing || demo.has("incarcare") || demo.has("actualizare") ? { refreshing: true }
       : V.failed.has(key) ? { bodyHtml: E()?.render({ title: "Datele nu s-au încărcat", text: "Celelalte widget-uri nu sunt afectate. Încearcă din nou.", icon: "warning-filled", compact: true, bare: true, actionHtml: `<button class="btn btn-secondary btn-sm" type="button" data-dsh-view-retry="${esc(key)}" aria-label="Reîncearcă: ${esc(title)}">${icon("rotate-arrow", 16)}<span>Reîncearcă</span></button>` }) || "" }
       : EMPTY_DEMO.has(t.widget) ? { empty: true } : {};
     const card = W().card?.({ ...cfg, width: t.width, height: hOf(t) }, { compact: true, dash: true, st, ariaLabel: title }) || "";
@@ -2062,8 +2062,9 @@
     /* ?tablou=widget-eroare: the second widget of each dashboard fails once (Reîncearcă loads it) */
     if (demo.has("widget-eroare") && !V.seeded.has(d.id) && live[1]) { V.failed.add(`${d.id}|${live[1].t.widget}`); }
     V.seeded.add(d.id);
+    const busy = V.refreshing || demo.has("actualizare");
     const desc = String(lastVersion(d).config.descriptions?.ro || "").trim();
-    const meta = [`Perimetru: ${viewPerimeter(me)}`, `Date calculate azi, la 06:00`].join(" · ");
+    const meta = [`Perimetru: ${viewPerimeter(me)}`, `Date calculate ${V.updated}`].join(" · ");
     /* dsh-view-head-v2 (2026-11-12): no description line — it lives only in the „ⓘ” tooltip next to the title; the meta (12/16
        tertiary) sits right of the title row (a Feature 96498 US-432 „Actualizează” button does not exist on BO pages yet →
        the meta alone, right-aligned); the switcher = the compact segmented control ABOVE the title, only with ≥ 2 dashboards */
@@ -2073,7 +2074,7 @@
       ? `<div class="e-permits-dsh-stage"><div class="e-permits-dsh-grid" role="list" aria-label="Widget-urile tabloului de bord">${((boxes) => [...live].sort((a, b) => byPos(boxes.find((x) => x.id === a.t.widget), boxes.find((x) => x.id === b.t.widget))).map((x, i) => viewTile(d, x, i, rowsOf(x.t), boxes.find((b) => b.id === x.t.widget))).join(""))(compactBoxes(live.map((x) => boxOf(x.t))))}</div></div>`
       : E()?.render({ title: "Niciun widget", text: "Widget-urile acestui tablou de bord nu mai sunt publicate.", icon: "chart" }) || "";
     return `
-      <section class="e-permits-dosar-profil__section e-permits-dsh-view e-permits-dsh-wide" id="dsh-view-panel" aria-busy="${demo.has("incarcare") ? "true" : "false"}" data-dsh-view="${esc(d.id)}">
+      <section class="e-permits-dosar-profil__section e-permits-dsh-view e-permits-dsh-wide" id="dsh-view-panel" aria-busy="${demo.has("incarcare") || busy ? "true" : "false"}" data-dsh-view="${esc(d.id)}">
         ${switcher}
         <div class="e-permits-dsh-view__head">
           <div class="e-permits-dsh-view__title-row">
@@ -2081,7 +2082,10 @@
             ${d === principal ? tag("Principal", "brand") : ""}
             ${info}
           </div>
-          <p class="e-permits-dsh-view__meta">${esc(meta)}</p>
+          <div class="e-permits-dsh-view__side">
+            <button class="btn btn-secondary btn-sm${busy ? " btn-loading" : ""}" type="button" data-dsh-refresh${busy ? ' aria-busy="true" disabled' : ""}>${icon("rotate-arrow", 16)}<span>Actualizează</span></button>
+            <p class="e-permits-dsh-view__meta" role="status" aria-live="polite" data-dsh-meta>${V.announce ? "" : esc(meta)}</p>
+          </div>
         </div>
         ${grid}
       </section>`;
@@ -2130,6 +2134,21 @@
     const t = event.target;
     if (!t.closest) return;
     if (t.closest(`[data-nav-item][data-nav-id="${VIEW_NAV}"]`)) { showView("", { push: false }); return; }
+    /* dsh-refresh-v1 (Feature 96498 US-432): „Actualizează” = button loading + the widgets' skeletons ~800 ms, then the meta
+       „Date calculate acum, la HH:MM”, announced by its aria-live region (no toast) */
+    const refresh = viewOpen() && t.closest("[data-dsh-refresh]");
+    if (refresh) {
+      if (V.refreshing) return;
+      V.refreshing = true; rerenderView();
+      window.setTimeout(() => {
+        V.refreshing = false;
+        V.updated = `acum, la ${new Date().toLocaleTimeString("ro-RO", { hour: "2-digit", minute: "2-digit", hour12: false })}`;
+        if (!viewOpen()) return;
+        V.announce = true; rerenderView(); V.announce = false;
+        window.requestAnimationFrame(() => { const m = document.querySelector("[data-dsh-view] [data-dsh-meta]"); const me = viewer(); if (m) m.textContent = `Perimetru: ${viewPerimeter(me)} · Date calculate ${V.updated}`; document.querySelector("[data-dsh-view] [data-dsh-refresh]")?.focus(); });
+      }, 800);
+      return;
+    }
     const retry = t.closest("[data-dsh-view-retry]");
     if (retry) {
       const key = retry.dataset.dshViewRetry;

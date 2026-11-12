@@ -226,6 +226,11 @@
   gap: var(--spacing-12, 12px);
 }
 
+/* dsh-refresh-v1: the number tile's skeleton = a value-sized block (the 160 / 240 plot height overflowed the short tile) */
+.e-permits-wid-card--stat .e-permits-wid-card__loading > .skeleton--block {
+  height: var(--spacing-40, 40px);
+}
+
 /* ---- chart types (js/widget-charts.js) ----
    natural plot heights (phones, the „Mărește” / „Vezi tot” dialog): Compactă 160 (the eKYC plot) · Înaltă 240; in a
    fixed-height card (desktop) the plot fills what the card leaves (wid-heights-v1 below) */

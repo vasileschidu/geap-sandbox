@@ -4966,9 +4966,9 @@
     const pick = async (h) => { await h.click("[data-dsh-add]"); await h.find(`${M} [data-dsh-pick-search]`); };
     /* one widget at a time (dash-v3): choose its card, „Adaugă” → it lands at the end and flashes */
     const choose = (id) => async (h) => { await h.click(`${M} .e-permits-dsh-pick-card:has([data-dsh-pick][value="${id}"])`); await h.wait(120); };
-    const addOne = (id) => seq(pick, choose(id), async (h) => { await h.click(`${M} [data-dsh-pick-confirm]`); await h.wait(450); });
     /* dsh-pick-multi-v1: the n-th card that is still free (not on the board) */
     const chooseFree = (n) => async (h) => { const free = [...document.querySelectorAll(`${M} .e-permits-dsh-pick-card:not(.is-disabled):not(.is-selected)`)]; free[n]?.click(); await h.wait(150); };
+    const addOne = (id) => seq(pick, choose(id), async (h) => { await h.click(`${M} [data-dsh-pick-confirm]`); await h.wait(450); });
     const addW = (...ids) => seq(...ids.map(addOne));
     const D = (fn) => async (h) => { fn(window.GEAPDashboards.demo); await h.wait(450); };
     const DAMS = (...ids) => async (h) => { await h.click(`${C} #fo-dsh-n-authorities`); await h.wait(250); for (const v of ids) { const o = await h.find(`${C} [data-dsh-auth-ms] .e-permits-fo-subgen-select__option[data-value^="${v} ·"]`); o.dispatchEvent(new MouseEvent("mousedown", { bubbles: true, cancelable: true })); await h.wait(120); } if (ids.length) { await h.click(`${C} [data-dsh-auth-ms] [data-fo-subgen-confirm]`); await h.wait(250); } };
@@ -5112,6 +5112,8 @@
       /* dsh-detail-dialog-v1: „Detalii” = the wide dialog (table widget WGT-0012 · the donut WGT-0006) */
       "dsh-20l": view(async (h) => { await h.click('[data-dsh-tile="WGT-0012"] [data-wid-all]'); await h.find("#case-action-modal.is-active .e-permits-wid-card"); await h.wait(500); }),
       "dsh-20m": view(async (h) => { await h.click('[data-dsh-tile="WGT-0006"] [data-wid-all]'); await h.find("#case-action-modal.is-active .e-permits-wid-card"); await h.wait(500); }),
+      "dsh-20n": view(null, { tablou: "actualizare" }),
+      "dsh-20o": view(async (h) => { await h.click("[data-dsh-view] [data-dsh-refresh]"); await h.wait(1400); }),
       "dsh-20f": view(async (h) => { await h.click("[data-dsh-view-retry]"); await h.wait(1100); }, { tablou: "widget-eroare" })
     };
   }

@@ -12914,7 +12914,7 @@ his authority + only the widgets it may use). Every operation → the dashboard'
   `#tablou-de-bord[/<id>]`, `GEAPDashboards.showView`. Read-only, no edit controls. Top bar = „Tablou de bord”
   (`GEAPRegistre.showPage`); the role's dashboards (`GEAPDashboards.forRole(role, authority)`: published, assigned, not off
   for the authority, last PUBLISHED version; principal first — the authority's principal over the global one — then by
-  „Ordinea”, ties by ID) = the compact segmented control ABOVE the title (dsh-view-head-v2, 2026-11-12: `GEAPViewSwitch.html({ key:
+  „Ordinea”, ties by ID) = the compact segmented control ABOVE the title (dsh-view-head-v2, 2026-11-12: `GEAPViewSwitch.html({ key: **dsh-refresh-v1 (2026-11-12, US-432)**: right of the title row `.e-permits-dsh-view__side` = library `btn btn-secondary btn-sm` „Actualizează” (`icon-rotate-arrow` 16, `data-dsh-refresh`) + the meta under it (`[data-dsh-meta][aria-live=polite]`; phones left, button 48 · 16/24); click = `btn-loading` + aria-busy, tiles `.e-permits-wid-card__loading` ~800 ms, meta „Date calculate acum, la HH:MM”, no toast; demo dsh-20 / 20n (`?tablou=actualizare`) / 20o.
   "dsh-view" })` + `.e-permits-dsh-view__switch`, left, 16 to the head; scrolls sideways on phones, selected item scrolled into
   view; none with one dashboard; the tab bar is gone). Content = `section.e-permits-dsh-view` > `.e-permits-dsh-view__head`
   (row, space-between, 16 to the grid; `__title-row` = BO section title at text height + Small brand „Principal” + „ⓘ”
