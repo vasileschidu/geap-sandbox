@@ -166,8 +166,21 @@ a {
   padding-right: var(--spacing-12, 12px);
 }
 
+/* rap-search-submit-v1 (2026-11-13, Figma comment): the library search WITH its submit (Button = True; scoped exception in
+   components.md › Search input). The RAP frame is an inset line (border 0), so the action inset is the library's 6 from the
+   visible edge (4 + the 2px border it assumes): submit 28 at 40, 36 at the phones' 48 (--search-input-height). The actions
+   are always shown — the submit visible but disabled while the field is empty, the × beside it with a value. */
+.rap-search.search-input.medium {
+  --search-input-action-inset: calc(var(--spacing-4, 4px) + var(--border-width-2, 2px));
+  --search-input-action-size: calc(var(--search-input-height) - (var(--search-input-action-inset) * 2));
+}
+
+.rap-search.search-input.medium .input {
+  padding-right: calc(var(--search-input-action-size) + var(--search-input-action-inset) + var(--spacing-12, 12px));
+}
+
 .rap-search.search-input.medium.has-value .input {
-  padding-right: var(--spacing-40, 40px);
+  padding-right: calc(var(--search-input-action-size) + var(--search-input-action-inset) + var(--spacing-20, 20px) + var(--spacing-8, 8px) + var(--spacing-12, 12px));
 }
 
 .rap-search input[type="search"]::-webkit-search-cancel-button {
@@ -177,9 +190,7 @@ a {
 }
 
 .rap-search .rap-search__actions {
-  bottom: 10px;
-  right: 12px;
-  top: 10px;
+  display: flex;
 }
 
 .rap-search .rap-search__clear.btn-icon.clear {

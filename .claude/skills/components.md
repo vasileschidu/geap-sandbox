@@ -675,8 +675,12 @@ selectors at least as specific as the block above.
 never use the circular shape (`933:29721`) and never the arrow submit button (the Figma
 `Button = True` axis, a brand square with `arrow-right`): filtering is live, so there is
 nothing to submit. **Scoped exception (2026-10-13): `Button = True` (submit) is allowed only for
-searches that send a request to an external registry (e.g. the US-54 cadastral lookup → SRRE);
-live filtering never has a submit.** Such a search runs only on the submit or Enter (never on a
+searches that send a request to an external registry (e.g. the US-54 cadastral lookup → SRRE) **or
+to the server for the list itself (the RAP registry search, 2026-11-13, Figma comment „după ce am introdus text în
+căutare trebuie să fie buton care aplică filtrul”: typing never re-queries; the submit / Enter does, through the
+loading skeleton + `btn-loading` on the submit; × clears and re-queries; autocomplete suggestions unchanged;
+submit 28 at 40 / 36 at the phones' 48, inset 6, `.rap-search__submit`, aria-label „Caută”, rap-evo.css
+„rap-search-submit-v1”; demo `rap-s01` typed / `rap-s02` applied)**; live filtering never has a submit.** Such a search runs only on the submit or Enter (never on a
 typing pause / blur), shows no typing spinner (`js/search.js` skips `is-typing` when the field has
 a `.btn-search`), keeps the submit disabled while empty or while the request runs, and shows the
 inline spinner only during the request (`.loading`). Markup = the library preview: `.btn-group` >

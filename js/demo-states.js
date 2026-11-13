@@ -3361,7 +3361,12 @@
         const btn = [...document.querySelectorAll("[data-filter-commit]")].find((el) => el.getClientRects().length);
         if (!phone() && btn && btn.getAttribute("aria-disabled") !== "true") { await h.click("[data-filter-commit]"); await h.wait(300); }
       };
+      /* rap-search-submit-v1: typing only fills the field; the arrow submit applies it (the list re-queries) */
+      const searchApply = async (h, value) => { await h.fill("[data-rap-search]", value, { leave: false }); await h.click("[data-rap-search-submit]"); await h.wait(500); };
       return {
+        /* rap-s01 text typed, not applied (the list unchanged, the submit enabled) · rap-s02 applied (results filtered) */
+        "rap-s01": rap(async (h) => { await h.fill("[data-rap-search]", "alcool", { leave: false }); await h.wait(400); document.querySelector(".rap-suggest")?.setAttribute("hidden", ""); }),
+        "rap-s02": rap(async (h) => { await searchApply(h, "alcool"); document.querySelector(".rap-suggest")?.setAttribute("hidden", ""); }),
         "rap-01": rap(null),
         "rap-01a": rap(open),
         "rap-01b": rap(async (h) => { await open(h); await ffFacet(h, "status"); await h.click('[data-filter-option][value="Valabil"]'); }),
@@ -3382,14 +3387,14 @@
         }),
         "rap-01u": rap(async (h) => { await open(h); await ffFacet(h, "autoritate"); await h.fill("[data-filter-search]", "zzz", { leave: false }); await h.wait(600); }),
         /* search results („alcool”) — Figma EVO-WEB block rap-01q */
-        "rap-01q": rap(async (h) => { await h.fill("[data-rap-search]", "alcool"); await h.wait(500); }),
+        "rap-01q": rap(async (h) => { await searchApply(h, "alcool"); }),
         /* the list is newest first (realistic-data-v1): the company view starts from MOLDAGROTEH's act profile */
         "rap-01g": { page: RAP, params: { act: "rap-0002" }, ready: "[data-rap-profile-view]:not([hidden]) h1", run: async (h) => { await h.click("[data-rap-company-permits]"); await h.wait(400); } },
         /* company view („Vezi toate (N)”): the company card + the act counts in a separate grey card */
         "rap-01d": rap(async (h) => {
           /* the lists offer only values that still have rows (no dead ends), so the empty result comes from one filter +
              a search that matches nothing */
-          await open(h); await pick("beneficiar", ["Persoană fizică"])(h); await commit(h); await h.fill("[data-rap-search]", "zzzz", { leave: false }); await h.wait(600);
+          await open(h); await pick("beneficiar", ["Persoană fizică"])(h); await commit(h); await searchApply(h, "zzzz");
         }),
         /* phones (≤760): the facet filter's phone mode — ONE „Filtre” pill (2026-10-20, no facet chips) →
            the all-filters sheet; 04a / 04b open it on Statut / Autoritate (search when > 7 values), 04c
@@ -3456,7 +3461,7 @@
             /* desktop: the error shows as soon as the second date is entered (live), nothing is applied; phones: on „Arată” */
             "rap-f09": rap(async (h) => { await open(h); await day(h, "emitere", "2026-05-10", "2026-03-01"); if (phone()) await h.click("[data-sheet-apply]"); await h.wait(300); }),
             "rap-f10": rap(three),
-            "rap-f11": rap(async (h) => { await h.fill("[data-rap-search]", "notificare"); await h.wait(400); await open(h); await pick("status", ["Valabil"])(h); await commit(h); }),
+            "rap-f11": rap(async (h) => { await searchApply(h, "notificare"); await open(h); await pick("status", ["Valabil"])(h); await commit(h); }),
             "rap-f12": rap(async (h) => {
               await open(h); await pick("status", ["Valabil"])(h); await commit(h);
               await pick("status", ["Valabil"])(h); /* untick it: nothing left → the full list, no error */
@@ -3511,7 +3516,7 @@
             "rap-g03": rap(async (h) => { await open(h); await pick("autoritate", ["Agenția Națională pentru Sănătate Publică"])(h); await ffFacet(h, "subdiviziune"); await h.wait(300); }),
             "rap-g04": rap(async (h) => { await open(h); await pick("autoritate", ["Inspectoratul General pentru Situații de Urgență"])(h); await ffFacet(h, "serviciu"); await h.wait(300); }),
             "rap-g05": rap(async (h) => { await open(h); await tacitOn(h); await commit(h); }),
-            "rap-g06": rap(async (h) => { await h.fill("[data-rap-search]", "agenția mediului"); await h.wait(500); document.querySelector(".rap-suggest")?.setAttribute("hidden", ""); }),
+            "rap-g06": rap(async (h) => { await searchApply(h, "agenția mediului"); document.querySelector(".rap-suggest")?.setAttribute("hidden", ""); }),
             "rap-g07": rap(async (h) => { await h.fill("[data-rap-search]", "agenția mediului", { leave: false }); await h.wait(600); }),
             "rap-g08": rap(async (h) => {
               await h.fill("[data-rap-search]", "agenția mediului", { leave: false }); await h.wait(600);
@@ -3575,7 +3580,7 @@
             /* rap-load-v1 (2026-11-06): the simulated server wait, frozen (?rapdelay=hold) — h09 „Aplică filtre” (desktop; on a phone
                the sheet's „Arată N rezultate”, the sheet stays open with the loading button) · h10 a search · h11 „Resetează” */
             "rap-h09": { ...rap(async (h) => { await open(h); await pick("autoritate", ["Agenția Națională pentru Sănătate Publică"])(h); if (!phone()) { await h.click("[data-filter-commit]"); } await h.wait(250); }), params: { rapdelay: "hold" } },
-            "rap-h10": { ...rap(async (h) => { await h.fill("[data-rap-search]", "bere", { leave: false }); await h.wait(450); document.querySelector(".rap-suggest")?.setAttribute("hidden", ""); }), params: { rapdelay: "hold" } },
+            "rap-h10": { ...rap(async (h) => { await h.fill("[data-rap-search]", "bere", { leave: false }); await h.click("[data-rap-search-submit]"); await h.wait(450); document.querySelector(".rap-suggest")?.setAttribute("hidden", ""); }), params: { rapdelay: "hold" } },
             "rap-h11": rap(async (h) => {
               await open(h); await pick("autoritate", ["Agenția Națională pentru Sănătate Publică"])(h); await h.wait(200); await commit(h);
               const url = new URL(window.location.href); url.searchParams.set("rapdelay", "hold"); window.history.replaceState(window.history.state, "", url);

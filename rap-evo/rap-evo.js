@@ -107,6 +107,7 @@
     title: document.querySelector("[data-rap-title]"),
     search: document.querySelector("[data-rap-search]"),
     searchClear: document.querySelector("[data-rap-search-clear]"),
+    searchSubmit: document.querySelector("[data-rap-search-submit]"),
     tableBody: document.querySelector("[data-rap-table-body]"),
     tableScroller: document.querySelector("[data-rap-table-scroller]"),
     pagination: document.querySelector("[data-rap-pagination]"),
@@ -847,7 +848,8 @@
       <td>${skeletonBar}</td>
       <td></td>
     </tr>`;
-  const startLoading = () => {
+  const startLoading = (source) => {
+    if (source !== "search") setSubmitBusy(false);
     elements.empty.hidden = true;
     document.querySelector(".rap-register").hidden = false;
     if (!elements.tableBody.querySelector(".rap-skeleton-row")) elements.tableBody.innerHTML = skeletonRowHtml.repeat(SKELETON_ROWS);
@@ -856,6 +858,7 @@
     if (elements.live) elements.live.textContent = "Se încarcă rezultatele…";
   };
   const stopLoading = () => {
+    setSubmitBusy(false);
     elements.tableScroller?.removeAttribute("aria-busy");
     render();
     if (elements.live) elements.live.textContent = "";
@@ -924,10 +927,45 @@
     searchContainer?.classList.toggle("has-value", hasValue);
     searchContainer?.classList.toggle("is-ready", hasValue);
     elements.searchClear.disabled = !hasValue;
+    /* rap-search-submit-v1: the submit is visible but disabled while the field is empty */
+    if (elements.searchSubmit) elements.searchSubmit.disabled = !hasValue || elements.searchSubmit.classList.contains("btn-loading");
+  };
+
+  /* rap-search-submit-v1 (2026-11-13, Figma comment): typing never re-queries; the submit (arrow) or Enter does — the
+     list's server query, so the submit shows the library loading state while the skeleton waits */
+  const setSubmitBusy = (on) => {
+    const button = elements.searchSubmit;
+    if (!button) return;
+    button.classList.toggle("btn-loading", on);
+    if (on) button.setAttribute("aria-busy", "true"); else button.removeAttribute("aria-busy");
+    button.disabled = on || !elements.search.value;
+  };
+
+  const submitSearch = () => {
+    window.clearTimeout(searchTimer);
+    closeSuggest();
+    const query = elements.search.value.trim();
+    if (!query && !state.search && !state.companyFilter) return;
+    const url = new URL(window.location.href);
+    if (url.searchParams.has("idno")) {
+      url.searchParams.delete("idno");
+      window.history.replaceState({ rapCompanyIdno: null }, "", url);
+    }
+    setSubmitBusy(Boolean(query));
+    requery(() => {
+      setSubmitBusy(false);
+      elements.tableScroller?.removeAttribute("aria-busy");
+      state.search = query;
+      state.companyFilter = null;
+      state.page = 1;
+      applyFilters();
+      announceCount();
+    });
   };
 
   const clearSearch = () => {
     window.clearTimeout(searchTimer);
+    setSubmitBusy(false);
     closeSuggest();
     state.search = "";
     state.companyFilter = null;
@@ -1145,6 +1183,7 @@
     /* an address → the „Adresă” filter (street level); an authority → the „Autoritate emitentă” filter; the typed text
        goes (it was the way to find them) */
     window.clearTimeout(searchTimer);
+    setSubmitBusy(false);
     state.search = "";
     state.companyFilter = null;
     elements.search.value = "";
@@ -1169,10 +1208,11 @@
       suggestTimer = window.setTimeout(openSuggest, 200);
     });
     elements.search.addEventListener("keydown", (event) => {
+      if (event.key === "Enter" && (suggestEl.hidden || suggestActive < 0)) { event.preventDefault(); submitSearch(); return; }
       if (suggestEl.hidden) { if (event.key === "ArrowDown" && elements.search.value.trim().length >= SUGGEST_MIN) { openSuggest(); setSuggestActive(0); event.preventDefault(); } return; }
       if (event.key === "ArrowDown" || event.key === "ArrowUp") { event.preventDefault(); setSuggestActive(suggestActive + (event.key === "ArrowDown" ? 1 : -1)); return; }
       if (event.key === "Escape") { event.preventDefault(); closeSuggest(); return; }
-      if (event.key === "Enter") { event.preventDefault(); if (suggestActive >= 0) pickSuggestion(suggestActive); else closeSuggest(); }
+      if (event.key === "Enter") { event.preventDefault(); pickSuggestion(suggestActive); }
     });
     /* pointerdown keeps the focus in the field while an option is picked */
     suggestEl.addEventListener("pointerdown", (event) => event.preventDefault());
@@ -1227,26 +1267,9 @@
   };
 
   const bindEvents = () => {
-    elements.search.addEventListener("input", () => {
-      window.clearTimeout(searchTimer);
-      syncSearchState();
-      searchTimer = window.setTimeout(() => {
-        const query = elements.search.value.trim();
-        const url = new URL(window.location.href);
-        if (url.searchParams.has("idno")) {
-          url.searchParams.delete("idno");
-          window.history.replaceState({ rapCompanyIdno: null }, "", url);
-        }
-        requery(() => {
-          elements.tableScroller?.removeAttribute("aria-busy");
-          state.search = query;
-          state.companyFilter = null;
-          state.page = 1;
-          applyFilters();
-          announceCount();
-        });
-      }, 120);
-    });
+    /* typing only updates the field's own state (× / submit); the list re-queries on the submit or Enter */
+    elements.search.addEventListener("input", syncSearchState);
+    elements.searchSubmit?.addEventListener("click", submitSearch);
 
     elements.searchClear.addEventListener("click", clearSearch);
 
