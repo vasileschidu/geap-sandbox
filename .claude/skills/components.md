@@ -117,6 +117,10 @@ Path is relative to the page (`../assets/…` from `cabinet-evo/` and `rap-evo/`
 Sprite ids are `#icon-<name>`. There is no `.icon-leading` / `.icon-trailing` — an icon
 is a **bare child** of the button.
 
+**Stroke weight (rule, 2026-11-13):** every line icon = Central stroke 1.5 · radius 2 (design-system.md › 7. Iconography ›
+Stroke weight). Before adding or replacing a sprite symbol run `tools/ui-qa/icon-stroke-audit.mjs --only icon-<name>`;
+a stroke-2 export (rich-text / list / eye sets were) must be redrawn, never shipped.
+
 **PF / PJ icons (user, 2026-10-17 — one glyph family everywhere):** PJ (legal entity / company) =
 `icon-business` (outline: avatars, identity cards, header / instance switcher, RSUD authorization card,
 Cabinet) and `icon-business-filled` (filled contexts: „Persoană juridică” tags, „Tip persoană” segmented,

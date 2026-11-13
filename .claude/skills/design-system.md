@@ -501,6 +501,20 @@ idioms that match neither (see the `components` skill §8); all should converge 
   - Example: `24/id-card-filled`, `24/wallet-filled`, `24/receipt-check-filled`
 - Icons are provided as components in the Figma library; use the component name as the icon identifier
 
+### Stroke weight — Central, stroke 1.5 · radius 2 only (rule, 2026-11-13, icon-stroke-v1)
+
+Foundations icons are the **Central Icons** family, and the product uses ONE look of it: **stroke 1.5 · corner radius 2,
+round caps + joins**. No stroke 1 / 2 icons and no other radius in code or Figma. Line icons only (filled glyphs, logos,
+flags, charts, drag handles and diagram art are out of scope).
+- Measured weight = the line width when the icon fills a 20 px box: **1.5** (tolerance 1.4–1.6). In sprite units that is
+  stroke `1.5` on a 20 viewBox, `1.8` on a 24 viewBox (= the Foundations 24/25×24 exports, which measure 1.8), `1.2` on a
+  16 viewBox when the icon is shown at 20. Foundations 16/ variants keep their own 1.5 at 16.
+- New / redrawn symbols: exact Foundations path when it exists; otherwise stroked paths with the numbers above,
+  `stroke-linecap="round" stroke-linejoin="round"`, rect / corner radius 2 (2.4 on a 24 viewBox).
+- Check: `node --experimental-websocket --no-warnings tools/ui-qa/icon-stroke-audit.mjs` (every sprite symbol →
+  report.json + a 16/20/24 contact sheet next to `icon-export`; exit 1 when a line icon is outside 1.4–1.6;
+  `--only icon-a,icon-b` for a subset).
+
 ### Cursors
 
 | Name | Usage |
