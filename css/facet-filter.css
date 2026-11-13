@@ -22,10 +22,10 @@
    in rest AND active) + `.chip__label` + `.chip__badge` (the chip's numbered badge, 16, white on black);
    rest = the library chip grey, active (≥ 1 applied value) = `.is-selected` (black), hover / focus = the library
    chip states, open (`aria-expanded="true"`) keeps the chip focus ring. Only overrides of the library chip:
-   - height: 40 desktop (the search / „Sortează” btn-md) · 36 GEAP BO registries (`--sm`, their btn-sm toolbar)
+   - height: 40 desktop (the search / „Sortează” btn-md; GEAP BO registries too since trigger-40-v1)
      · 48 phones (≤760, the phone search);
-   - radius: the library Button of the same size at EVERY width — 8 (btn-md 40, and the 48 Large on phones) ·
-     6 (btn-sm 36); never round (phone-toolbar-v2, 2026-10-21, user: „on mobile Filtre should also be the same”);
+   - radius: the library Button of the same size at EVERY width — 8 (btn-md 40, and the 48 Large on phones);
+     never round (phone-toolbar-v2, 2026-10-21, user: „on mobile Filtre should also be the same”);
    - phones: ICON-ONLY square 48 in the search row (`--icon`, js/facet-filter.js sets it ≤760) — the count badge
      sits on the square's top-right corner (rule „Phone toolbar” below);
    - the filter-chip type (14/20 medium, 16/24 on phones) and 16 on the badge side (Figma), as the facet chips.
@@ -44,9 +44,11 @@
   padding: 0 var(--spacing-16, 16px) 0 var(--spacing-12, 12px);
 }
 
+/* trigger-40-v1 (2026-11-13, user: „same size as calendar and list”): the GEAP BO registries' trigger = the toolbar
+   search (40) and the „Listă / Calendar” view switch (40), radius 8 — was 36 / r6. `--sm` stays as a hook only. */
 .chip.e-permits-filter-trigger--sm {
-  --filter-trigger-height: calc(var(--spacing-40, 40px) - 2 * var(--border-width-2, 2px));
-  --filter-trigger-radius: var(--border-radius-6, 6px);
+  --filter-trigger-height: var(--spacing-40, 40px);
+  --filter-trigger-radius: var(--border-radius-8, 8px);
 }
 
 .e-permits-filter-trigger .chip__icon .icon {
