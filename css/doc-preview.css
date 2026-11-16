@@ -1513,3 +1513,183 @@
     break-after: page;
   }
 }
+
+/* ---- Document viewer modes (doc-viewer-modes-v1 + doc-viewer-split-v1, 2026-11-16, PO; GEAPDocPreview.mountViewer) ----
+   `data-doc-viewer-mode` on the viewer dialog: "pdf" = A4 + signature card (as before) · "metadata" = the „Date generale”
+   list only · "both" = SPLIT VIEW ≥ 1024 (left the A4 canvas only, right the 360 rail: signature card first, then the
+   list as label-above-value rows; header „Detalii” toggle; ≥ 1280 open by default and the docked panel widens to
+   min(1200, viewport − 16), 1024–1279 collapsed by default and opening OVER the canvas' right edge) / library small tabs
+   „Document” · „Date generale” below 1024. Variants: rail open / collapsed / overlay, tab Document / Date generale,
+   toggle default / hover (library neutral) / focus + open (aria-expanded ring, css/e-permits-shell.css). */
+
+/* the list view scrolls inside the body with the normal bottom padding (the A4 view has none) */
+.modal.e-permits-detail-modal--doc.e-permits-doc-viewer--data > .modal-content {
+  overflow-y: auto;
+  padding-bottom: var(--spacing-24, 24px);
+}
+
+/* tabs (< 1024): flush under the header, full dialog width, the line only under the row; tabs → 24 → content */
+.modal.e-permits-detail-modal--doc > .e-permits-doc-viewer__tabs {
+  flex: 0 0 auto;
+  margin: var(--spacing-16, 16px) var(--spacing-0, 0px) var(--spacing-0, 0px);
+}
+
+.modal.e-permits-detail-modal--doc > .e-permits-doc-viewer__tabs .tab-buttons {
+  border-top: 0;
+}
+
+.modal.e-permits-detail-modal--doc > .e-permits-doc-viewer__tabs + .modal-content {
+  padding-top: var(--spacing-24, 24px);
+}
+
+.e-permits-doc-viewer__rail,
+.e-permits-doc-viewer__rail-toggle.btn {
+  display: none;
+}
+
+@media (max-width: 760px) {
+  .modal-overlay > .modal.e-permits-detail-modal--doc.e-permits-doc-viewer--data > .modal-content {
+    padding: var(--spacing-16, 16px) var(--modal-phone-inset, var(--spacing-16, 16px)) var(--spacing-16, 16px);
+  }
+
+  .modal-overlay > .modal.e-permits-detail-modal--doc > .e-permits-doc-viewer__tabs + .modal-content {
+    padding-top: var(--spacing-24, 24px);
+  }
+}
+
+@media (min-width: 1024px) {
+  .modal.e-permits-detail-modal--doc > .e-permits-doc-viewer__tabs {
+    display: none;
+  }
+
+  /* beats css/modal-scroll.css `.modal-overlay > .modal:not(…):has(> .modal-content)` (flex) */
+  .modal-overlay > .modal.e-permits-detail-modal--doc[data-doc-viewer-mode="both"]:has(> .modal-content) {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-rows: auto minmax(0, 1fr) auto;
+  }
+
+  .modal.e-permits-detail-modal--doc[data-doc-viewer-mode="both"] > .modal--header {
+    grid-column: 1 / -1;
+    grid-row: 1;
+    /* × (32) + 8 + „Detalii” (40) + the library 20 + 12 breathing room */
+    padding-right: calc(var(--spacing-64, 64px) + var(--spacing-48, 48px));
+  }
+
+  .modal.e-permits-detail-modal--doc[data-doc-viewer-mode="both"] > .e-permits-doc-viewer__tabs + .modal-content,
+  .modal.e-permits-detail-modal--doc[data-doc-viewer-mode="both"] > .modal-content {
+    grid-column: 1;
+    grid-row: 2;
+    padding-top: var(--spacing-16, 16px);
+  }
+
+  .modal.e-permits-detail-modal--doc[data-doc-viewer-mode="both"] > .modal--footer {
+    grid-column: 1 / -1;
+    grid-row: 3;
+  }
+
+  /* the signature card lives in the rail in this mode */
+  .modal.e-permits-detail-modal--doc[data-doc-viewer-mode="both"] > .modal-content > .e-permits-doc-signature {
+    display: none;
+  }
+
+  /* „Detalii”: library Medium icon-only neutral, centred on the × line, 8 left of it */
+  .modal.e-permits-detail-modal--doc[data-doc-viewer-mode="both"] > .e-permits-doc-viewer__rail-toggle.btn {
+    display: inline-flex;
+    position: absolute;
+    right: calc(var(--spacing-20, 20px) + var(--spacing-32, 32px) + var(--spacing-8, 8px));
+    top: calc(var(--spacing-20, 20px) - var(--spacing-4, 4px));
+    z-index: 3;
+  }
+
+  /* the rail: 360 (half the library large modal), own scroll, 24 padding, divider on the canvas side */
+  .modal.e-permits-detail-modal--doc[data-doc-viewer-mode="both"] > .e-permits-doc-viewer__rail {
+    background: var(--color-background-base-default, #fff);
+    border-left: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
+    box-sizing: border-box;
+    flex-direction: column;
+    gap: var(--spacing-24, 24px);
+    grid-column: 2;
+    grid-row: 2;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding: var(--spacing-24, 24px);
+    width: calc(var(--modal-width-lg, 720px) / 2);
+  }
+
+  .modal.e-permits-detail-modal--doc[data-doc-viewer-mode="both"].is-rail-open > .e-permits-doc-viewer__rail {
+    display: flex;
+  }
+
+  .modal.e-permits-detail-modal--doc > .e-permits-doc-viewer__rail > .e-permits-doc-signature {
+    flex: none;
+    width: 100%;
+  }
+
+  /* rail list: label above value (14/20 tertiary · 14/20 default), 16 between rows, no card, no dividers */
+  .modal-overlay > .modal.e-permits-detail-modal--doc > .e-permits-doc-viewer__rail .e-permits-dosar-profil__section {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-16, 16px);
+    margin: var(--spacing-0, 0px);
+    padding: var(--spacing-0, 0px);
+  }
+
+  .modal-overlay > .modal.e-permits-detail-modal--doc > .e-permits-doc-viewer__rail .e-permits-dosar-profil__section-title {
+    height: auto;
+    padding: var(--spacing-0, 0px);
+  }
+
+  .modal-overlay > .modal.e-permits-detail-modal--doc > .e-permits-doc-viewer__rail .e-permits-dosar-profil__card {
+    background: transparent;
+    border-radius: var(--spacing-0, 0px);
+    gap: var(--spacing-16, 16px);
+    padding: var(--spacing-0, 0px);
+  }
+
+  .modal-overlay > .modal.e-permits-detail-modal--doc > .e-permits-doc-viewer__rail .e-permits-dosar-profil__row {
+    flex: 0 0 auto;
+    align-items: flex-start;
+    border-bottom: var(--spacing-0, 0px);
+    flex-direction: column;
+    gap: var(--spacing-2, 2px);
+    min-height: var(--spacing-0, 0px);
+    padding: var(--spacing-0, 0px);
+  }
+
+  .modal-overlay > .modal.e-permits-detail-modal--doc > .e-permits-doc-viewer__rail .e-permits-dosar-profil__row-label {
+    color: var(--color-text-base-tertiary, #6b6b6b);
+    flex: 0 0 auto;
+    font: var(--font-weight-fw-regular, 400) var(--font-size-fs-14, 14px) / var(--line-height-lh-20, 20px) var(--font-family-primary-font, Onest), sans-serif;
+    overflow: visible;
+    text-align: start;
+    max-width: 100%;
+    white-space: normal;
+  }
+
+  .modal-overlay > .modal.e-permits-detail-modal--doc > .e-permits-doc-viewer__rail .e-permits-dosar-profil__row-value {
+    font: var(--font-weight-fw-regular, 400) var(--font-size-fs-14, 14px) / var(--line-height-lh-20, 20px) var(--font-family-primary-font, Onest), sans-serif;
+    justify-content: flex-start;
+    text-align: start;
+    color: var(--color-text-base-default, #121212);
+    width: 100%;
+  }
+}
+
+/* ≥ 1280 + rail open: the docked panel widens to min(1200, viewport − 16) = 800 + rail 360 + 40 */
+@media (min-width: 1280px) {
+  .modal-overlay:has(> .modal.e-permits-detail-modal--doc) > .modal.e-permits-detail-modal--doc[data-doc-viewer-mode="both"].is-rail-open {
+    width: min(calc(var(--modal-width-lg, 720px) * 1.5 + var(--spacing-80, 80px) + var(--spacing-40, 40px)), 100%);
+  }
+}
+
+/* 1024–1279: the rail opens OVER the canvas' right edge (same grid cell, floating) */
+@media (min-width: 1024px) and (max-width: 1279px) {
+  .modal.e-permits-detail-modal--doc[data-doc-viewer-mode="both"] > .e-permits-doc-viewer__rail {
+    box-shadow: var(--drop-shadow-400);
+    grid-column: 1;
+    justify-self: end;
+    z-index: 2;
+  }
+}

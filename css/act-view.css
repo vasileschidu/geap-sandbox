@@ -597,9 +597,15 @@ button.rap-act-subtitle__name[aria-expanded="true"] .rap-act-subtitle__text {
    at the viewport − 16), same 8 inset, same library scrim, full height, right. The A4 canvas keeps fitting its width
    (GEAPDocPreview.fit via the overlay ResizeObserver); signature card + footer stay pinned. The data panel is parked
    (hidden) while the viewer is open, so there is never a double panel / scrim. */
+/* doc-viewer-docked-v1 (2026-11-16, user; GEAP 2.0 13779:45452): EVERY document viewer joins the same rule — the BO / Ghișeu /
+   FO library viewer (`.modal-overlay` holding `.modal.e-permits-detail-modal--doc`: dossier documents, Ghișeu previews, the
+   FO certificate / attached document) and the Cabinet `.cab-doc-modal`. The dialog selectors out-rank the full-height
+   viewer rules of css/doc-preview.css (`height: auto; max-height: 100dvh − 48`), which load after this file on the BO page. */
 @media (min-width: 1024px) {
   .modal-overlay.rap-act-data.e-permits-act-data--docked,
-  .e-permits-fo-doc-modal-overlay.rap-act-modal {
+  .e-permits-fo-doc-modal-overlay.rap-act-modal,
+  .e-permits-fo-doc-modal-overlay.cab-doc-modal,
+  .modal-overlay:has(> .modal.e-permits-detail-modal--doc) {
     align-items: stretch;
     box-sizing: border-box;
     justify-content: flex-end;
@@ -608,14 +614,18 @@ button.rap-act-subtitle__name[aria-expanded="true"] .rap-act-subtitle__text {
   }
 
   .modal-overlay.rap-act-data.e-permits-act-data--docked.is-active > .modal.e-permits-detail-modal,
-  .e-permits-fo-doc-modal-overlay.rap-act-modal > .e-permits-fo-doc-modal.rap-act-modal__dialog {
+  .e-permits-fo-doc-modal-overlay.rap-act-modal > .e-permits-fo-doc-modal.rap-act-modal__dialog,
+  .e-permits-fo-doc-modal-overlay.cab-doc-modal > .e-permits-fo-doc-modal:has(> .cab-doc-modal__body--doc),
+  .modal-overlay:has(> .modal.e-permits-detail-modal--doc) > .modal.e-permits-detail-modal--doc {
     height: 100%;
     max-height: none;
     max-width: none;
     width: min(calc(var(--modal-width-lg, 720px) + var(--spacing-80, 80px)), 100%);
   }
 
-  .e-permits-fo-doc-modal-overlay.rap-act-modal > .e-permits-fo-doc-modal.rap-act-modal__dialog {
+  .e-permits-fo-doc-modal-overlay.rap-act-modal > .e-permits-fo-doc-modal.rap-act-modal__dialog,
+  .e-permits-fo-doc-modal-overlay.cab-doc-modal > .e-permits-fo-doc-modal:has(> .cab-doc-modal__body--doc),
+  .modal-overlay:has(> .modal.e-permits-detail-modal--doc) > .modal.e-permits-detail-modal--doc {
     border-radius: var(--border-radius-16, 16px);
     box-shadow: var(--drop-shadow-400);
   }

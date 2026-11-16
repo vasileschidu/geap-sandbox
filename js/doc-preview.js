@@ -761,8 +761,117 @@
     });
   };
 
+  /* ---- Document viewer modes (doc-viewer-modes-v1, 2026-11-16, PO): ONE option on the shared viewer, chosen per
+     document type —
+       "pdf"      the A4 canvas + signature card (default; uploads) — 800 docked panel
+       "metadata" the description list only (BO sections „Date generale”, no „Doar citire”) — 800 docked panel
+       "both"     SPLIT VIEW on desktop (doc-viewer-split-v1; Box / Google Drive / M-Files preview, Melio / Deel details):
+                  ≥ 1280 the panel widens to min(1200, viewport − 16): left = the A4 canvas only (grey canvas, own scroll),
+                  right = the 360 rail `aside.e-permits-doc-viewer__rail` (signature card first, then „Date generale” as
+                  label-above-value rows, own scroll); the header's Medium icon-only „Detalii” button (info, aria-expanded,
+                  tooltip „Ascunde / Arată detaliile”) collapses it (the panel goes back to 800). 1024–1279: the rail is
+                  collapsed by default and opens OVER the canvas' right edge. < 1024 (tablet dialog, phone sheet): library
+                  small tabs „Document” (A4 + signature card) · „Date generale” under the header.
+     mountViewer(dialog, { mode, documentHtml, signatureHtml, dataHtml, railDataHtml?, onDocument, id }) — railDataHtml = the
+     list without the rows the rail's signature card already says (default dataHtml); fills the dialog's scrolling body
+     (`.modal-content` or `[data-doc-viewer-body]`); the body is the tabpanel and is re-rendered on a tab switch, so every
+     viewer rule (canvas, pinned signature card, hairlines) keeps working. `onDocument(body)` runs whenever the document
+     is shown (paginate + fit). The dialog carries `data-doc-viewer-mode`, `.e-permits-doc-viewer--data` while the list is
+     shown and `.is-rail-open` while the rail is open. ---- */
+  const VIEWER_MODES = ["metadata", "pdf", "both"];
+  const viewerTabsHtml = (id, active) => `
+    <div class="tabs tabs--sm e-permits-tariff__tabs e-permits-doc-viewer__tabs" data-doc-viewer-tabs>
+      <div class="tab-buttons" role="tablist" aria-label="Vizualizare document">
+        ${[["document", "Document"], ["data", "Date generale"]].map(([key, label]) => {
+          const on = key === active;
+          return `<button class="tab-button${on ? " active" : ""}" id="${id}-tab-${key}" type="button" role="tab" aria-selected="${on}" aria-controls="${id}-panel" tabindex="${on ? "0" : "-1"}" data-doc-viewer-tab="${key}"><span>${label}</span></button>`;
+        }).join("")}
+      </div>
+    </div>`;
+  const railToggleHtml = (id, open) => `<button class="btn btn-neutral btn-md btn-icon-only e-permits-doc-viewer__rail-toggle" type="button" aria-label="Detalii" aria-controls="${id}-rail" aria-expanded="${open}" data-tooltip-label="${open ? "Ascunde detaliile" : "Arată detaliile"}" data-doc-viewer-rail-toggle><svg class="icon" width="20" height="20" aria-hidden="true"><use href="${ASSETS}icons/sprite.svg#icon-circle-info"></use></svg></button>`;
+  const SPLIT_QUERY = "(min-width: 1024px)";
+  const WIDE_QUERY = "(min-width: 1280px)";
+  /* back to a plain dialog (the same modal also shows payment notes, approvals…): no tabs, rail, toggle, mode */
+  function unmountViewer(dialog) {
+    if (!dialog) return null;
+    const body = dialog.querySelector("[data-doc-viewer-body]") || dialog.querySelector(".modal-content");
+    dialog.__docViewerCleanup?.();
+    delete dialog.__docViewerCleanup;
+    dialog.querySelectorAll("[data-doc-viewer-tabs], [data-doc-viewer-rail], [data-doc-viewer-rail-toggle]").forEach((node) => node.remove());
+    dialog.classList.remove("e-permits-doc-viewer--data", "is-rail-open");
+    delete dialog.dataset.docViewerMode;
+    if (body?.getAttribute("role") === "tabpanel") ["role", "aria-labelledby", "id"].forEach((name) => body.removeAttribute(name));
+    return body;
+  }
+  function mountViewer(dialog, { mode = "pdf", documentHtml = "", signatureHtml: signature = "", dataHtml = "", railDataHtml = "", onDocument = null, id = "doc-viewer" } = {}) {
+    const body = unmountViewer(dialog);
+    if (!body) return;
+    const resolved = VIEWER_MODES.includes(mode) ? mode : "pdf";
+    dialog.dataset.docViewerMode = resolved;
+    const show = (view) => {
+      body.innerHTML = view === "data" ? dataHtml : `${documentHtml}${signature}`;
+      body.scrollTop = 0;
+      dialog.classList.toggle("e-permits-doc-viewer--data", view === "data");
+      if (view !== "data") onDocument?.(body);
+      body.dispatchEvent(new Event("scroll"));
+    };
+    if (resolved !== "both") { show(resolved === "metadata" ? "data" : "document"); return; }
+
+    /* tabs (< 1024) */
+    body.insertAdjacentHTML("beforebegin", viewerTabsHtml(id, "document"));
+    const tabs = dialog.querySelector("[data-doc-viewer-tabs]");
+    body.id = `${id}-panel`;
+    body.setAttribute("role", "tabpanel");
+    body.setAttribute("aria-labelledby", `${id}-tab-document`);
+    const select = (button, focus = false) => {
+      tabs.querySelectorAll("[data-doc-viewer-tab]").forEach((tab) => {
+        const on = tab === button;
+        tab.classList.toggle("active", on);
+        tab.setAttribute("aria-selected", String(on));
+        tab.tabIndex = on ? 0 : -1;
+      });
+      body.setAttribute("aria-labelledby", button.id);
+      show(button.dataset.docViewerTab);
+      if (focus) button.focus();
+    };
+    tabs.addEventListener("click", (event) => {
+      const button = event.target.closest("[data-doc-viewer-tab]");
+      if (button && button.getAttribute("aria-selected") !== "true") select(button);
+    });
+    tabs.addEventListener("keydown", (event) => {
+      const list = [...tabs.querySelectorAll("[data-doc-viewer-tab]")];
+      const at = list.indexOf(document.activeElement);
+      if (at < 0) return;
+      const next = { ArrowRight: (at + 1) % list.length, ArrowLeft: (at - 1 + list.length) % list.length, Home: 0, End: list.length - 1 }[event.key];
+      if (next === undefined) return;
+      event.preventDefault();
+      select(list[next], true);
+    });
+
+    /* split view (≥ 1024): the rail after the body + the „Detalii” toggle in the header */
+    body.insertAdjacentHTML("afterend", `<aside class="e-permits-doc-viewer__rail" id="${id}-rail" aria-label="Detaliile documentului" data-doc-viewer-rail>${signature}${railDataHtml || dataHtml}</aside>`);
+    (dialog.querySelector(".modal--header") || body).insertAdjacentHTML("afterend", railToggleHtml(id, false));
+    const toggle = dialog.querySelector("[data-doc-viewer-rail-toggle]");
+    const setRail = (open) => {
+      dialog.classList.toggle("is-rail-open", open);
+      toggle.setAttribute("aria-expanded", String(open));
+      toggle.dataset.tooltipLabel = open ? "Ascunde detaliile" : "Arată detaliile";
+    };
+    toggle.addEventListener("click", () => setRail(!dialog.classList.contains("is-rail-open")));
+    const split = window.matchMedia(SPLIT_QUERY);
+    const wide = window.matchMedia(WIDE_QUERY);
+    const onSplit = () => { if (split.matches && dialog.classList.contains("e-permits-doc-viewer--data")) select(tabs.querySelector('[data-doc-viewer-tab="document"]')); };
+    const onWide = () => setRail(wide.matches);
+    split.addEventListener?.("change", onSplit);
+    wide.addEventListener?.("change", onWide);
+    dialog.__docViewerCleanup = () => { split.removeEventListener?.("change", onSplit); wide.removeEventListener?.("change", onWide); };
+    setRail(wide.matches);
+    show("document");
+  }
+
   window.GEAPDocPreview = {
     fit, paginate, print, printIcon, signatureHtml, mdocsHtml, mdocsRows, mdocsNumber, mdocsDate, verifyUrl, mdocsState, issuer, MDOCS_TYPES,
+    VIEWER_MODES, mountViewer, unmountViewer,
     /* the document system (mdocs-system-v1): modules, templates, data, page shell, QR — the specimen (mdoc-sys) and
        any new document type compose these */
     mdoc: { MODULES, TEMPLATES, data: mdocData, render: renderDoc, qrSvg, stamp: mdocsStamp }

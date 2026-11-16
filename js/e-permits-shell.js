@@ -4136,6 +4136,14 @@ document.addEventListener("DOMContentLoaded", () => {
     const link = document.createElement("a"); link.href = URL.createObjectURL(blob); link.download = `${name}.txt`; link.click(); URL.revokeObjectURL(link.href);
   };
 
+  /* doc-viewer-modes-v1 (2026-11-16, PO): the viewer mode per document TYPE (GEAPDocPreview.mountViewer):
+     registry / payment extracts carry only data → "metadata"; documents the system generates (cerere, certificat,
+     decizie, notificare — MDocs) → "both" (Document · Date generale); uploads and acts from other systems → "pdf" */
+  const DOSAR_DOC_VIEWER_MODES = { "extras-mpower": "metadata", "confirmare-plata": "metadata" };
+  const dosarDocViewerMode = (doc, kind) => doc.viewMode
+    || DOSAR_DOC_VIEWER_MODES[doc.genId]
+    || (/^extras? din registrul/i.test(doc.tip || "") ? "metadata" : "")
+    || (kind === "notificari" || (kind !== "insotitoare" && doc.sursa === "generat") ? "both" : "pdf");
   const openDosarDetail = (kind, key) => {
     dosarDetailAfterClose = null;
     const row = getDosarById(dosarProfilState.rowId);
@@ -4143,7 +4151,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const profile = buildDosarProfile(row);
     const dash = '<span class="e-permits-workplace__dash">—</span>';
     const today = workplaceDb.today;
-    let title = "", subtitle = "", rows = [], file = "", preview = "", signature = "", generated = false, mdocSpec = null;
+    let title = "", subtitle = "", rows = [], file = "", preview = "", signature = "", generated = false, mdocSpec = null, viewMode = "pdf";
     if (kind === "taxe") {
       const t = profile.taxe.find((x) => x.id === key); if (!t) return;
       const paid = t.status !== "neachitat";
@@ -4220,6 +4228,7 @@ document.addEventListener("DOMContentLoaded", () => {
         ? window.GEAPDocPreview?.signatureHtml({ by: d.semnat.nume || d.de?.nume || row.numeSolicitant, at: formatStamp(d.at) }) || ""
         : "";
       mdocSpec = dosarMdocSpec(d, row, profile);
+      viewMode = dosarDocViewerMode(d, kind);
     } else if (kind === "notificari") {
       /* US-308: the notification's PDF (MDocs standard template, no e-signature — AC-09) */
       const item = profile.notificari[Number(key)];
@@ -4231,6 +4240,7 @@ document.addEventListener("DOMContentLoaded", () => {
       mdocSpec = dosarMdocSpec(pdf, row, profile);
       preview = dosarMdocCanvas(mdocSpec, `${pdf.tip}, ${pdf.fisier}`);
       generated = true;
+      viewMode = dosarDocViewerMode(pdf, kind);
     } else return;
     /* machete-mdocs-v1: an MDocs template document — the demo views (loading / AC-14 error / no right) replace the page */
     const mdocsDemo = new URLSearchParams(window.location.search).get("mdocs");
@@ -4245,19 +4255,40 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     dosarDetailModal.querySelector("[data-dosar-detail-title]").textContent = title;
     dosarDetailModal.querySelector("[data-dosar-detail-subtitle]").textContent = subtitle;
-    dosarDetailModal.querySelector(".modal")?.classList.toggle("e-permits-detail-modal--doc", generated);
-    dosarDetailModal.querySelector("[data-dosar-detail-body]").innerHTML = generated
-      ? `${preview}${signature}`
-      : `
+    const detailDialog = dosarDetailModal.querySelector(".modal");
+    detailDialog?.classList.toggle("e-permits-detail-modal--doc", generated);
+    /* doc-viewer-modes-v1: a document = the shared viewer in its mode (mounted once the dialog is open, so the A4
+       pages paginate with real sizes); anything else = the plain details dialog */
+    const mountDoc = generated && window.GEAPDocPreview?.mountViewer;
+    if (!mountDoc) {
+      window.GEAPDocPreview?.unmountViewer?.(detailDialog);
+      dosarDetailModal.querySelector("[data-dosar-detail-body]").innerHTML = generated
+        ? `${preview}${signature}`
+        : `
       ${preview}
       ${renderInfoCard("Date generale", rows)}`;
+    }
     dosarDetailFile.name = file;
     dosarDetailFile.text = [title, subtitle, "", ...rows.map(([label, html]) => { const tmp = document.createElement("div"); tmp.innerHTML = html; return `${label}: ${tmp.textContent.replace(/\s*Copiază\s*$/, "").trim() || "—"}`; })].join("\n");
     dosarDetailModal.querySelector("[data-dosar-detail-buttons]").innerHTML = `
       ${file ? '<button class="btn btn-neutral btn-rounded" type="button" data-dosar-detail-download><svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-export"></use></svg><span>Descarcă</span></button>' : ""}
       <button class="btn btn-primary btn-rounded" type="button" data-dosar-detail-close>Închide</button>`;
     window.__modal?.open?.("#dosar-detail-modal");
-    if (mdocSpec && mdocView === "ready") window.GEAPDocPreview?.paginate(dosarDetailModal.querySelector("[data-dosar-doc-canvas]"));
+    if (mountDoc) {
+      window.GEAPDocPreview.mountViewer(detailDialog, {
+        id: "dosar-detail-doc",
+        mode: mdocView !== "ready" && viewMode === "metadata" ? "pdf" : viewMode,
+        documentHtml: preview,
+        signatureHtml: signature,
+        dataHtml: renderInfoCard("Date generale", rows),
+        railDataHtml: signature ? renderInfoCard("Date generale", rows.filter(([label]) => label !== "Semnătură")) : "",
+        onDocument: (body) => {
+          const canvas = body.querySelector("[data-dosar-doc-canvas]");
+          if (mdocSpec && mdocView === "ready") window.GEAPDocPreview.paginate(canvas);
+          window.GEAPDocPreview.fit(canvas);
+        }
+      });
+    } else if (mdocSpec && mdocView === "ready") window.GEAPDocPreview?.paginate(dosarDetailModal.querySelector("[data-dosar-doc-canvas]"));
     fitDosarDocPreview();
     if (mdocSpec && mdocView === "ready") logDosarMdoc(row, mdocSpec);
     if (mdocView === "acces") logDosarMdoc(row, mdocSpec, "Refuzat");
@@ -4269,6 +4300,7 @@ document.addEventListener("DOMContentLoaded", () => {
     new MutationObserver(() => {
       /* the generated-document viewer mode (doc-viewer-v1) never outlives its document */
       if (dosarDetailModal.getAttribute("aria-hidden") === "true" && !dosarDetailModal.querySelector(".modal.modal--lg")) dosarDetailModal.querySelector(".modal")?.classList.remove("e-permits-detail-modal--doc");
+      if (dosarDetailModal.getAttribute("aria-hidden") === "true") window.GEAPDocPreview?.unmountViewer?.(dosarDetailModal.querySelector(".modal"));
       if (dosarDetailModal.getAttribute("aria-hidden") === "true" && dosarDetailAfterClose) { const run = dosarDetailAfterClose; dosarDetailAfterClose = null; run(); }
     }).observe(dosarDetailModal, { attributes: true, attributeFilter: ["aria-hidden"] });
   }
