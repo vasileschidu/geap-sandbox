@@ -765,7 +765,7 @@
      rail of doc-viewer-split-v1 was rejected): ONE option on the shared viewer, chosen per document type; the panel is
      the same 800 docked viewer in every mode —
        "pdf"      the A4 canvas + signature card (default; uploads)
-       "metadata" the grouped details only (metaHtml: BO sections like „Vizualizare act”, rarely used groups collapsed)
+       "metadata" the grouped details only (metaHtml: BO sections like „Vizualizare act”, all open)
        "both"     library small tabs right under the header (pinned, grey track line): „Previzualizare” (default = "pdf")
                   · „Detalii” (= "metadata"); tabs → 24 → content, on every width
      mountViewer(dialog, { mode, documentHtml, signatureHtml, dataHtml, onDocument, id }) fills the dialog's scrolling body
@@ -785,73 +785,28 @@
     </div>`;
 
   /* metaHtml(groups) — the details of a document, as many groups as the data has:
-       groups = [{ title, rows: [[label, valueHtml], …], collapsed? }]
+       groups = [{ title, rows: [[label, valueHtml], …] }]
      a row whose value is empty (null / "" / undefined) is NOT rendered (never „—”); a group without rows is dropped.
      Open groups = BO sections (`section.e-permits-dosar-profil__section` › heading + grey card, label left / value right,
-     dividers, last row none). Consecutive `collapsed` groups (versions, technical data) = ONE bordered stacked container with
-     the shared collapsible group header (`.e-permits-stack__group-toggle`: white, grey hover / open, count badge after the
-     name, chevron right); the rows sit in `.e-permits-doc-meta__rows` (hidden while collapsed). Toggle = mountViewer's
-     delegated handler (`[data-doc-meta-group]`). */
+     dividers, last row none). No collapsible groups (doc-meta-flat-v1). */
   const metaEsc = (value) => String(value ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
   const metaRowsHtml = (rows) => rows.map(([label, value]) => `
           <div class="e-permits-dosar-profil__row">
             <span class="e-permits-dosar-profil__row-label" data-cell-tooltip>${metaEsc(label)}</span>
             <span class="e-permits-dosar-profil__row-value">${value}</span>
           </div>`).join("");
-  let metaSeq = 0;
   function metaHtml(groups = []) {
     const clean = groups
       .map((group) => ({ ...group, rows: (group.rows || []).filter(([, value]) => value !== null && value !== undefined && String(value).trim() !== "") }))
       .filter((group) => group.rows.length);
-    let html = "";
-    let stack = [];
-    const flush = () => {
-      if (!stack.length) return;
-      html += `
-      <section class="e-permits-dosar-profil__section e-permits-doc-meta__more" aria-label="Alte detalii">
-        <div class="e-permits-stack">
-          ${stack.map((group) => {
-            const rowsId = `doc-meta-${++metaSeq}`;
-            return `
-          <div class="e-permits-stack__group is-collapsed">
-            <h3 class="e-permits-stack__group-label e-permits-stack__group-label--toggle">
-              <button class="e-permits-stack__group-toggle" type="button" aria-expanded="false" aria-controls="${rowsId}" data-doc-meta-group>
-                <span class="e-permits-stack__group-name">${metaEsc(group.title)}</span>
-                <span class="badge badge--lg badge--solid-light e-permits-stack__group-count">${group.rows.length}</span>
-                <svg class="icon small e-permits-stack__group-chevron" aria-hidden="true"><use href="${ASSETS}icons/sprite.svg#icon-chevron-bottom"></use></svg>
-              </button>
-            </h3>
-            <div class="e-permits-doc-meta__rows" id="${rowsId}" hidden>${metaRowsHtml(group.rows)}</div>
-          </div>`;
-          }).join("")}
-        </div>
-      </section>`;
-      stack = [];
-    };
-    clean.forEach((group) => {
-      if (group.collapsed) { stack.push(group); return; }
-      flush();
-      html += `
+    /* doc-meta-flat-v1 (2026-11-16, user: „unnecessary, do same as above, not collapsible”): every group = the same BO
+       section (heading + grey card), Istoric / Date tehnice included; no collapsible stack in the details */
+    return clean.map((group) => `
       <section class="e-permits-dosar-profil__section">
         <h2 class="e-permits-dosar-profil__section-title">${metaEsc(group.title)}</h2>
         <div class="e-permits-dosar-profil__card">${metaRowsHtml(group.rows)}</div>
-      </section>`;
-    });
-    flush();
-    return html;
+      </section>`).join("");
   }
-  /* the collapsible groups of metaHtml, wherever the details are shown */
-  function toggleMetaGroup(button) {
-    const group = button.closest(".e-permits-stack__group");
-    const rows = group?.querySelector(".e-permits-doc-meta__rows");
-    if (!rows) return;
-    const open = button.getAttribute("aria-expanded") !== "true";
-    button.setAttribute("aria-expanded", String(open));
-    group.classList.toggle("is-open", open);
-    group.classList.toggle("is-collapsed", !open);
-    rows.hidden = !open;
-  }
-
   /* back to a plain dialog (the same modal also shows payment notes, approvals…): no tabs, no tabpanel, no mode */
   function unmountViewer(dialog) {
     if (!dialog) return null;
@@ -865,13 +820,6 @@
   function mountViewer(dialog, { mode = "pdf", documentHtml = "", signatureHtml: signature = "", dataHtml = "", onDocument = null, id = "doc-viewer" } = {}) {
     const body = unmountViewer(dialog);
     if (!body) return;
-    if (!body.dataset.docMetaBound) {
-      body.dataset.docMetaBound = "1";
-      body.addEventListener("click", (event) => {
-        const toggle = event.target.closest("[data-doc-meta-group]");
-        if (toggle) toggleMetaGroup(toggle);
-      });
-    }
     const resolved = VIEWER_MODES.includes(mode) ? mode : "pdf";
     dialog.dataset.docViewerMode = resolved;
     const show = (view) => {

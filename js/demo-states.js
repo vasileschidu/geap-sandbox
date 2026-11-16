@@ -1385,13 +1385,13 @@
     "dos-04t": dos(SPEC, "respins", "decizie", { decizia: "respingere" }, async (h) => { await docEye("Decizie de respingere", "acte")(h); }),
     /* doc-viewer-tabs-v1 (2026-11-16, PO + user review): the docked document viewer in its 3 modes — dvm-01 metadata
        (Extras MPower: grouped details only), dvm-02 pdf (an uploaded declaration: A4 + signature card), dvm-03 both ·
-       „Previzualizare” (the generated request), dvm-03a both · „Detalii” (grouped sections, Istoric / Date tehnice
-       collapsed), dvm-03b „Detalii” with the collapsed „Istoric” group opened */
+       „Previzualizare” (the generated request), dvm-03a both · „Detalii” (grouped sections, all open — doc-meta-flat-v1),
+       dvm-03b „Detalii” scrolled to the last sections (Istoric, Date tehnice) */
     "dvm-01": dos(SPEC, "semnat", "documente", {}, async (h) => { await docEye("Extras MPower", "documente")(h); await h.find("#dosar-detail-modal.is-active .e-permits-doc-viewer--data"); }),
     "dvm-02": dos(SPEC, "inExaminare", "solicitare", {}, async (h) => { await docEye("Declarație")(h); await h.find("#dosar-detail-modal.is-active [data-dosar-doc-canvas]"); }),
     "dvm-03": dos(SPEC, "eliberat", "documente", {}, async (h) => { await docEye("Cererea depusă", "documente")(h); await h.find("#dosar-detail-modal.is-active [data-doc-viewer-tabs]"); }),
-    "dvm-03a": dos(SPEC, "eliberat", "documente", {}, async (h) => { await docEye("Cererea depusă", "documente")(h); await h.click('#dosar-detail-modal [data-doc-viewer-tab="data"]'); await h.find("#dosar-detail-modal .e-permits-doc-viewer--data [data-doc-meta-group]"); }),
-    "dvm-03b": dos(SPEC, "eliberat", "documente", {}, async (h) => { await docEye("Cererea depusă", "documente")(h); await h.click('#dosar-detail-modal [data-doc-viewer-tab="data"]'); await h.click("#dosar-detail-modal [data-doc-meta-group]"); await h.find('#dosar-detail-modal [data-doc-meta-group][aria-expanded="true"]'); }),
+    "dvm-03a": dos(SPEC, "eliberat", "documente", {}, async (h) => { await docEye("Cererea depusă", "documente")(h); await h.click('#dosar-detail-modal [data-doc-viewer-tab="data"]'); await h.find("#dosar-detail-modal .e-permits-doc-viewer--data .e-permits-dosar-profil__section"); }),
+    "dvm-03b": dos(SPEC, "eliberat", "documente", {}, async (h) => { await docEye("Cererea depusă", "documente")(h); await h.click('#dosar-detail-modal [data-doc-viewer-tab="data"]'); await h.scroll("#dosar-detail-modal .e-permits-dosar-profil__section-title", "Date tehnice"); }),
     /* machete-mdocs-v1 (2026-10-25, Feature 96074 · US-306…US-311): the MDocs standard template in every generated-document
        viewer — BO dossier (cerere, certificat, notificare, decizie de refuz, act), MDocs error / retry / no right, the
        generation in the journal; EVO Cabinet (cerere, certificat, decizie de refuz / suspendare, act, draft without PDF);

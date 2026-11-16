@@ -4194,8 +4194,8 @@ document.addEventListener("DOMContentLoaded", () => {
         ["Obligatoriu", kind === "insotitoare" ? yesNo(d.obligatoriu) : ""]
       ] },
       dosarMetaGroup(row),
-      { title: "Istoric", collapsed: true, rows: history.filter(([at]) => at) },
-      { title: "Date tehnice", collapsed: true, rows: [
+      { title: "Istoric", rows: history.filter(([at]) => at) },
+      { title: "Date tehnice", rows: [
         ["Identificator", escapeHtml(`${row.nrDosar}/${d.id}`)],
         ["Tip MIME", /\.pdf$/i.test(d.fisier || "") ? "application/pdf" : ""],
         ["Stocare", mdocs || d.sursa === "generat" ? "MDocs" : "SIA GEAP · documente însoțitoare"]

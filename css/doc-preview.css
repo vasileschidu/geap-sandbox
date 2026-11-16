@@ -1548,16 +1548,6 @@
   padding-top: var(--spacing-24, 24px);
 }
 
-/* collapsed groups (Istoric, Date tehnice): the shared stacked container; the rows inside an open group = the detail rows
-   on white, padded like the group header (20 sides), dividers between them, none after the last */
-.e-permits-doc-meta__rows {
-  padding: var(--spacing-0, 0px) var(--spacing-20, 20px);
-}
-
-.e-permits-doc-meta__rows > .e-permits-dosar-profil__row:last-child {
-  border-bottom: 0;
-}
-
 @media (max-width: 760px) {
   .modal-overlay > .modal.e-permits-detail-modal--doc.e-permits-doc-viewer--data > .modal-content {
     padding: var(--spacing-16, 16px) var(--modal-phone-inset, var(--spacing-16, 16px)) var(--spacing-16, 16px);
@@ -1565,9 +1555,5 @@
 
   .modal-overlay > .modal.e-permits-detail-modal--doc.e-permits-doc-viewer--data > .e-permits-doc-viewer__tabs + .modal-content {
     padding-top: var(--spacing-24, 24px);
-  }
-
-  .e-permits-doc-meta__rows {
-    padding: var(--spacing-0, 0px) var(--spacing-16, 16px);
   }
 }
