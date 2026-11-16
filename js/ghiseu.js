@@ -4357,6 +4357,7 @@
     const open = m.classList.contains("is-active");
     renderPreview(kind, view);
     if (!open) window.__modal?.open?.("#dosar-detail-modal");
+    if (!open) dialog.focus(); /* doc-viewer-tabs-v1: the dialog, not the ×, holds the focus on open */
     window.GEAPDocPreview?.fit(m.querySelector("[data-dosar-doc-canvas]"));
     if (trigger) trigger.setAttribute("aria-expanded", "true");
   }

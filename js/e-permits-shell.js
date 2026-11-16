@@ -4144,6 +4144,64 @@ document.addEventListener("DOMContentLoaded", () => {
     || DOSAR_DOC_VIEWER_MODES[doc.genId]
     || (/^extras? din registrul/i.test(doc.tip || "") ? "metadata" : "")
     || (kind === "notificari" || (kind !== "insotitoare" && doc.sursa === "generat") ? "both" : "pdf");
+  /* doc-viewer-tabs-v1 (2026-11-16): the „Detalii” of a dossier document = grouped BO sections (GEAPDocPreview.metaHtml):
+     Date generale · Semnătură · Origine · Dosar open, Istoric + Date tehnice collapsed; an empty value = no row */
+  const docFormat = (fileName = "") => {
+    const ext = (String(fileName).match(/\.([a-z0-9]+)$/i) || [])[1];
+    return ext ? `${ext.toUpperCase()}${/^pdf$/i.test(ext) ? " · document portabil" : ""}` : "";
+  };
+  const dosarMetaGroup = (row) => ({
+    title: "Dosar",
+    rows: [
+      ["Număr dosar", renderCopyCode(row.nrDosar, `Copiază ${row.nrDosar}`)],
+      ["Solicitant", escapeHtml(row.companie || row.numeSolicitant || "")],
+      ["Serviciu", escapeHtml(row.serviciu || "")]
+    ]
+  });
+  const dosarDocMetaGroups = ({ d, kind, row, nr, verbAt, mdocs, mdocSpec }) => {
+    const draft = (d.tags || []).some(([label]) => label === "Proiect");
+    const signer = d.semnat ? (d.semnat.nume || d.de?.nume || row.numeSolicitant) : "";
+    const stamp = formatStamp(d.at);
+    const template = mdocSpec ? `Macheta standard MDocs · ${window.GEAPDocPreview?.MDOCS_TYPES?.[mdocSpec.type] || d.tip}` : "";
+    const history = [
+      [stamp, escapeHtml(`${verbAt}${d.de?.nume ? ` de ${d.de.nume}` : ""}`)],
+      ...(d.semnat ? [[stamp, escapeHtml(`Semnat electronic de ${signer} (MSign)`)]] : []),
+      ...(d.act ? [[formatLongDate(d.act.emis), "Act emis"]] : [])
+    ];
+    return [
+      { title: "Date generale", rows: [
+        ["Tip document", escapeHtml(d.tip)],
+        ["Statutul", (d.tags || []).map(([label, tone]) => renderTag(label, tone)).join(" ")],
+        [nr && d.nrLabel !== "Număr dosar" ? (d.nrLabel || "Număr act") : "", nr && d.nrLabel !== "Număr dosar" ? renderCopyCode(nr, `Copiază ${nr}`) : ""],
+        ["Emis la", d.act ? escapeHtml(formatLongDate(d.act.emis)) : ""],
+        ["Fișier", escapeHtml(d.fisier)],
+        ["Dimensiune", escapeHtml(fileSizeLabel(d.kb))],
+        ["Format", docFormat(d.fisier)]
+      ] },
+      { title: "Semnătură", rows: [
+        ["Status", d.semnat ? SIGNED_TAG_HTML : draft ? renderTag("Nesemnat · proiect", "warning") : renderTag("Fără semnătură electronică", "neutral")],
+        ["Semnatar", escapeHtml(signer)],
+        ["Metodă", d.semnat ? "MSign · semnătură electronică" : ""],
+        ["Data și ora", d.semnat ? escapeHtml(stamp) : ""]
+      ] },
+      { title: "Origine", rows: [
+        [`${verbAt} de`, d.de ? `${escapeHtml(d.de.nume)} · ${escapeHtml(d.de.rol)}` : ""],
+        [`${verbAt} la`, escapeHtml(stamp)],
+        ["Sursă", kind === "insotitoare" ? (d.automat ? "MDocs · preluat automat la depunerea cererii" : mdocs ? `MDocs${d.emitent ? ` · emis de ${escapeHtml(d.emitent)}` : ""}` : d.de?.rol === "Operator ghișeu" ? "Încărcat la ghișeu" : "Încărcat de pe dispozitiv") : ""],
+        ["Pasul din flux", d.group && kind === "documente" ? escapeHtml(d.group) : ""],
+        ["Șablon", escapeHtml(template)],
+        ["Registru", d.registru ? escapeHtml(d.registru) : ""],
+        ["Obligatoriu", kind === "insotitoare" ? yesNo(d.obligatoriu) : ""]
+      ] },
+      dosarMetaGroup(row),
+      { title: "Istoric", collapsed: true, rows: history.filter(([at]) => at) },
+      { title: "Date tehnice", collapsed: true, rows: [
+        ["Identificator", escapeHtml(`${row.nrDosar}/${d.id}`)],
+        ["Tip MIME", /\.pdf$/i.test(d.fisier || "") ? "application/pdf" : ""],
+        ["Stocare", mdocs || d.sursa === "generat" ? "MDocs" : "SIA GEAP · documente însoțitoare"]
+      ] }
+    ];
+  };
   const openDosarDetail = (kind, key) => {
     dosarDetailAfterClose = null;
     const row = getDosarById(dosarProfilState.rowId);
@@ -4151,7 +4209,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const profile = buildDosarProfile(row);
     const dash = '<span class="e-permits-workplace__dash">—</span>';
     const today = workplaceDb.today;
-    let title = "", subtitle = "", rows = [], file = "", preview = "", signature = "", generated = false, mdocSpec = null, viewMode = "pdf";
+    let title = "", subtitle = "", rows = [], file = "", preview = "", signature = "", generated = false, mdocSpec = null, viewMode = "pdf", metaGroups = null;
     if (kind === "taxe") {
       const t = profile.taxe.find((x) => x.id === key); if (!t) return;
       const paid = t.status !== "neachitat";
@@ -4229,6 +4287,7 @@ document.addEventListener("DOMContentLoaded", () => {
         : "";
       mdocSpec = dosarMdocSpec(d, row, profile);
       viewMode = dosarDocViewerMode(d, kind);
+      metaGroups = dosarDocMetaGroups({ d, kind, row, nr, verbAt, mdocs, mdocSpec });
     } else if (kind === "notificari") {
       /* US-308: the notification's PDF (MDocs standard template, no e-signature — AC-09) */
       const item = profile.notificari[Number(key)];
@@ -4241,6 +4300,12 @@ document.addEventListener("DOMContentLoaded", () => {
       preview = dosarMdocCanvas(mdocSpec, `${pdf.tip}, ${pdf.fisier}`);
       generated = true;
       viewMode = dosarDocViewerMode(pdf, kind);
+      metaGroups = [
+        { title: "Date generale", rows: [["Tip document", escapeHtml(pdf.tip)], ["Fișier", escapeHtml(pdf.fisier)], ["Format", docFormat(pdf.fisier)]] },
+        { title: "Notificarea", rows: [["Evenimentul", escapeHtml(item.eveniment)], ["Canal", escapeHtml(item.canal)], ["Destinatar", escapeHtml(item.destinatar)], ["Trimisă la", escapeHtml(item.trimisaLa)]] },
+        { title: "Origine", rows: [["Generat de", "SIA GEAP · MDocs"], ["Șablon", mdocSpec ? escapeHtml(`Macheta standard MDocs · ${window.GEAPDocPreview?.MDOCS_TYPES?.[mdocSpec.type] || pdf.tip}`) : ""]] },
+        dosarMetaGroup(row)
+      ];
     } else return;
     /* machete-mdocs-v1: an MDocs template document — the demo views (loading / AC-14 error / no right) replace the page */
     const mdocsDemo = new URLSearchParams(window.location.search).get("mdocs");
@@ -4280,8 +4345,7 @@ document.addEventListener("DOMContentLoaded", () => {
         mode: mdocView !== "ready" && viewMode === "metadata" ? "pdf" : viewMode,
         documentHtml: preview,
         signatureHtml: signature,
-        dataHtml: renderInfoCard("Date generale", rows),
-        railDataHtml: signature ? renderInfoCard("Date generale", rows.filter(([label]) => label !== "Semnătură")) : "",
+        dataHtml: metaGroups && window.GEAPDocPreview.metaHtml ? window.GEAPDocPreview.metaHtml(metaGroups) : renderInfoCard("Date generale", rows),
         onDocument: (body) => {
           const canvas = body.querySelector("[data-dosar-doc-canvas]");
           if (mdocSpec && mdocView === "ready") window.GEAPDocPreview.paginate(canvas);
@@ -4289,6 +4353,9 @@ document.addEventListener("DOMContentLoaded", () => {
         }
       });
     } else if (mdocSpec && mdocView === "ready") window.GEAPDocPreview?.paginate(dosarDetailModal.querySelector("[data-dosar-doc-canvas]"));
+    /* doc-viewer-tabs-v1: a document viewer focuses the dialog itself (the library focuses the × → it opened looking
+       focused); Tab moves on to the × (js/modal.js is the library copy — not edited) */
+    if (generated) detailDialog?.focus();
     fitDosarDocPreview();
     if (mdocSpec && mdocView === "ready") logDosarMdoc(row, mdocSpec);
     if (mdocView === "acces") logDosarMdoc(row, mdocSpec, "Refuzat");

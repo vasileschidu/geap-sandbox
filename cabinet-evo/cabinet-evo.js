@@ -1659,7 +1659,7 @@
     }
     docModalOpener = document.activeElement;
     overlay.innerHTML = `
-      <div class="e-permits-fo-doc-modal">
+      <div class="e-permits-fo-doc-modal" tabindex="-1">
         <div class="e-permits-fo-doc-modal__header">
           <div class="e-permits-fo-doc-modal__header-text">
             <h2 id="cab-doc-title" class="e-permits-fo-doc-modal__title">${escape(title)}</h2>
@@ -1690,7 +1690,8 @@
     overlay.hidden = false;
     if (mdocSpec) window.GEAPDocPreview?.paginate(overlay.querySelector("[data-cab-doc-canvas]"));
     fitDocPreview();
-    overlay.querySelector("[data-cab-doc-close]")?.focus();
+    /* doc-viewer-tabs-v1: the dialog takes the focus, so the × does not open looking focused; Tab → × */
+    overlay.querySelector(".e-permits-fo-doc-modal")?.focus();
   }
   function closeDocModal() {
     const overlay = document.querySelector("[data-cab-doc-modal]");
@@ -1709,7 +1710,7 @@
     const last = items[items.length - 1];
     const active = document.activeElement;
     if (!overlay.contains(active)) { event.preventDefault(); (event.shiftKey ? last : first).focus(); }
-    else if (event.shiftKey && active === first) { event.preventDefault(); last.focus(); }
+    else if (event.shiftKey && (active === first || !items.includes(active))) { event.preventDefault(); last.focus(); }
     else if (!event.shiftKey && active === last) { event.preventDefault(); first.focus(); }
   });
 

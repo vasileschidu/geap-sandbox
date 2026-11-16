@@ -5539,6 +5539,7 @@
         certView = { doc, modalTitle: doc.tip, file: String(doc.fisier || doc.tip || "document").replace(/\.[a-z0-9]+$/i, "") };
         renderCertificateModal(false);
         window.__modal?.open?.("#fo-certificate-modal");
+        certModal.querySelector(".modal.e-permits-detail-modal--doc")?.focus(); /* doc-viewer-tabs-v1: the A4 viewer focuses the dialog, not the × */
         return;
       }
       /* the post-process previous act: its name → the viewer with its „Descarcă” */
@@ -5561,12 +5562,14 @@
         };
         renderCertificateModal(false);
         window.__modal?.open?.("#fo-certificate-modal");
+        certModal.querySelector(".modal.e-permits-detail-modal--doc")?.focus(); /* doc-viewer-tabs-v1: the A4 viewer focuses the dialog, not the × */
         return;
       }
       if (event.target.closest("[data-fo-finish-document]") && certModal) {
         certView = null;
         renderCertificateModal(false);
         window.__modal?.open?.("#fo-certificate-modal");
+        certModal.querySelector(".modal.e-permits-detail-modal--doc")?.focus(); /* doc-viewer-tabs-v1: the A4 viewer focuses the dialog, not the × */
         return;
       }
       const dl = event.target.closest("[data-fo-cert-download]");

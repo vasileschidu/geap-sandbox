@@ -372,7 +372,8 @@
       if (!focusables.length) return;
       const first = focusables[0];
       const last = focusables[focusables.length - 1];
-      if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+      /* the dialog itself (focused on open) counts as the start of the cycle */
+      if (event.shiftKey && (document.activeElement === first || !focusables.includes(document.activeElement))) { event.preventDefault(); last.focus(); }
       else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
     };
 
@@ -494,7 +495,9 @@
       syncClamps(overlay);
       /* AC-03: no second request while MDocs works (the dialog covers the page; the button says so too) */
       opener?.setAttribute("aria-disabled", "true");
-      overlay.querySelector(".e-permits-fo-doc-modal__close").focus();
+      /* doc-viewer-tabs-v1: the dialog itself takes the focus (the × does not open looking focused); Tab → × */
+      overlay.querySelector(".rap-act-modal__dialog")?.setAttribute("tabindex", "-1");
+      overlay.querySelector(".rap-act-modal__dialog")?.focus();
       const demo = new URLSearchParams(window.location.search).get("mdocs");
       if (demo === "incarcare") return;
       window.setTimeout(() => {

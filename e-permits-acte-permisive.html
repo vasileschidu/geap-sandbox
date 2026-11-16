@@ -21,7 +21,7 @@
   <link rel="stylesheet" href="css/drawer.css?v=notif-drawer-v3">
   <link rel="stylesheet" href="css/notif-drawer.css?v=notif-drawer-v4">
   <link rel="stylesheet" href="css/e-permits-acte-permisive.css?v=icon-stroke-v1">
-  <link rel="stylesheet" href="css/doc-preview.css?v=doc-viewer-docked-v1">
+  <link rel="stylesheet" href="css/doc-preview.css?v=doc-viewer-tabs-v1">
   <link rel="stylesheet" href="css/page-reveal.css?v=skeleton-v1">
   <link rel="stylesheet" href="msupport/msupport.css?v=20260925-anon">
   <link rel="stylesheet" href="css/empty-state.css?v=empty-v5">
@@ -64,7 +64,7 @@
   <link rel="stylesheet" href="css/start-dialog.css?v=start-dialog-v7">
   <link rel="stylesheet" href="css/dialog-footer.css?v=drawer-footer-md-v1">
   <link rel="stylesheet" href="css/modal-scroll.css?v=modal-scroll-v2">
-  <script src="js/modal-scroll.js?v=modal-scroll-v2" defer></script>
+  <script src="js/modal-scroll.js?v=doc-viewer-tabs-v1" defer></script>
   <link rel="stylesheet" href="css/modal-phone.css?v=baseline-v2">
   <link rel="stylesheet" href="css/sticky-sections.css?v=sticky-sections-v1">
   <!-- ?state=<id> opens the screen a Figma frame shows (js/demo-states.js) -->
@@ -78,7 +78,7 @@
   <script src="js/trajectory.js?v=trajectory-phone-even-v1"></script>
   <script src="js/event-timeline.js?v=aud-263-v2"></script>
   <script src="js/sticky-sections.js?v=sticky-sections-v1" defer></script>
-  <script src="js/demo-states.js?v=doc-viewer-docked-v1"></script>
+  <script src="js/demo-states.js?v=doc-viewer-tabs-v1"></script>
   <script src="js/demo-links.js?v=links-v4"></script>
   <script src="js/bo-context.js?v=copy-tu-v2"></script>
   <!-- the working-days engine (Administrare › Calendar), before the shell seeds the dossier deadlines; after
@@ -104,12 +104,12 @@
   <!-- the act row (FO #intent, Ghișeu, EVO Cabinet) — one renderer, before the FO script that uses it -->
   <script src="js/act-row.js?v=ghiseu-picker-toast-v1" defer></script>
   <script src="js/choice-cards.js?v=choice-cards-v7" defer></script>
-  <script src="js/e-permits-acte-permisive.js?v=svc-clone-v1" defer></script>
+  <script src="js/e-permits-acte-permisive.js?v=doc-viewer-tabs-v1" defer></script>
   <!-- Form Builder (after the FO renderer it shares) -->
   <script src="js/form-builder.js?v=copy-tu-v2" defer></script>
   <script src="core/process-model.js?v=copy-tu-v2" defer></script>
   <script src="js/process-designer.js?v=copy-tu-v2" defer></script>
-  <script src="js/ghiseu.js?v=ofc-search-v3" defer></script>
+  <script src="js/ghiseu.js?v=doc-viewer-tabs-v1" defer></script>
   <script src="js/registre.js?v=dsh-feature-v1" defer></script>
   <script src="js/registre-admin.js?v=copy-tu-v2" defer></script>
   <script src="js/view-switch.js?v=calendar-views-v3" defer></script>
@@ -128,7 +128,7 @@
   <script src="js/autoritati.js?v=group-icon-v1" defer></script>
   <!-- svc-clone-v1: Servicii › „Adaugă serviciu” with „Creare cu clonarea setărilor” (US-326) -->
   <script src="js/service-clone.js?v=svc-clone-v2" defer></script>
-  <script src="js/doc-preview.js?v=doc-viewer-docked-v1" defer></script>
+  <script src="js/doc-preview.js?v=doc-viewer-tabs-v1" defer></script>
   <script src="js/page-reveal.js?v=skeleton-v1" defer></script>
 </head>
 <body class="e-permits-front-office-page" data-demo-flow="home" data-service-family="acte-permisive" data-service-flow="09-full-flow">
@@ -3640,8 +3640,8 @@
   <script src="core/case-flow.js?v=copy-tu-v2"></script>
   <script src="js/facet-filter.js?v=dsh-feature-v1"></script>
   <script src="js/sort-sheet.js?v=row-ctl-v5"></script>
-  <script src="js/act-view.js?v=copy-tu-v2"></script>
-  <script src="js/e-permits-shell.js?v=doc-viewer-docked-v1"></script>
+  <script src="js/act-view.js?v=doc-viewer-tabs-v1"></script>
+  <script src="js/e-permits-shell.js?v=doc-viewer-tabs-v1"></script>
 
   <!-- Instance switch warning modal -->
   <div class="e-permits-fo-instance-switch-modal" data-fo-instance-switch-modal hidden aria-modal="true" role="dialog" aria-labelledby="fo-instance-switch-title" aria-describedby="fo-instance-switch-description">

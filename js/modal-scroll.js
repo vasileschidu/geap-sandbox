@@ -5,7 +5,8 @@
 
    Auto-attaches to every open dialog of every family (no page code needed):
    - library `.modal-overlay.is-active > .modal` (body `.modal-content`) — BO passport / case / detail / registry modals,
-     start dialog, RAP + Cabinet „Vizualizare act”, Ghișeu, classifier page; not the A4 viewers (pinned signature card)
+     start dialog, RAP + Cabinet „Vizualizare act”, Ghișeu, classifier page, the document viewer's „Detalii” view
+     (`.e-permits-doc-viewer--data`, doc-viewer-tabs-v1); not the A4 viewers (pinned signature card)
      nor the Form Builder / Process Designer editors;
    - FO dialog shell `.e-permits-fo-doc-modal` (document picker / upload, Cabinet filters); not the A4 viewers;
    - phone bottom sheets `.bottom-sheet .bottom-sheet__panel` (Filtre, Sortează).
@@ -33,7 +34,7 @@
   /* family → { dialog, body(dialog) → scroller, footer(dialog) → the element the cue sits before (null = end) } */
   const FAMILIES = [
     {
-      dialog: ".modal-overlay.is-active > .modal:not(.e-permits-builder, .e-permits-detail-modal--doc)",
+      dialog: ".modal-overlay.is-active > .modal:not(.e-permits-builder, .e-permits-detail-modal--doc:not(.e-permits-doc-viewer--data))",
       body: (d) => d.querySelector(":scope > .modal-content"),
       footer: (d) => d.querySelector(":scope > .modal--footer")
     },
