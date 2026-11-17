@@ -1282,7 +1282,7 @@ document.addEventListener("DOMContentLoaded", () => {
   function editableFieldHtml(field) {
     const meta = comp(field.type);
     const errors = fieldIssues(field);
-    const attrs = `data-builder-field data-id="${field.id}" data-type="${field.type}" data-span="${spanOf(field)}" ${HOVER_PROXY} tabindex="0" role="button" aria-pressed="${isSelectedField(field)}" aria-label="${esc(meta.label)}: ${esc(fieldName(field))}, lățime ${spanOf(field)} din 12${field.required ? ", obligatoriu" : ""}${field.type === "hidden" ? ", ascuns pentru solicitant" : ""}${(field.rules || []).length ? ", are reguli de afișare" : ""}${errors.length ? ", are erori" : ""}" aria-describedby="${KBD_HINT_ID}"`;
+    const attrs = `data-builder-field data-id="${field.id}" data-type="${field.type}" data-span="${spanOf(field)}" draggable="true" ${HOVER_PROXY} tabindex="0" role="button" aria-pressed="${isSelectedField(field)}" aria-label="${esc(meta.label)}: ${esc(fieldName(field))}, lățime ${spanOf(field)} din 12${field.required ? ", obligatoriu" : ""}${field.type === "hidden" ? ", ascuns pentru solicitant" : ""}${(field.rules || []).length ? ", are reguli de afișare" : ""}${errors.length ? ", are erori" : ""}" aria-describedby="${KBD_HINT_ID}"`;
     /* Câmp ascuns: the applicant never sees it — the page shows its marker only while it is selected (Structură lists it) */
     if (field.type === "hidden") return isSelectedField(field) ? `<div class="e-permits-fo-field e-permits-fo-field--span-12" ${attrs}>${hiddenMarkerHtml(field)}</div>` : "";
     return tagged(foHtml(field, { prefix: "cv" }), attrs);
@@ -1322,7 +1322,7 @@ document.addEventListener("DOMContentLoaded", () => {
         /* (a group, not a button: it keeps its heading for assistive tech; the fields are buttons) */
         const pick = editable ? ` data-fb-select-section="${section.id}" ${HOVER_PROXY} tabindex="0" role="group" aria-label="Secțiunea ${esc(title || "fără titlu")}${showTitle ? "" : ", titlu ascuns"}${state.sel.kind === "section" && state.sel.id === section.id ? ", selectată" : ""}" aria-describedby="fb-sec-kbd-hint"` : "";
         return `
-          <section class="e-permits-fo-form__section${showTitle ? "" : " e-permits-fo-form__section--plain"}" ${showTitle ? `aria-labelledby="${prefix}-${section.id}-title"` : editable ? "" : `aria-label="${esc(title || "Secțiune")}"`} data-fb-section="${section.id}"${editable ? ` data-builder-section data-section-id="${section.id}"${showTitle ? "" : pick}` : ""}>
+          <section class="e-permits-fo-form__section${showTitle ? "" : " e-permits-fo-form__section--plain"}" ${showTitle ? `aria-labelledby="${prefix}-${section.id}-title"` : editable ? "" : `aria-label="${esc(title || "Secțiune")}"`} data-fb-section="${section.id}"${editable ? ` data-builder-section data-section-id="${section.id}"${(step.sections || []).length > 1 ? ' draggable="true"' : ""}${showTitle ? "" : pick}` : ""}>
             ${showTitle ? `
               <div class="e-permits-fo-section-header${section.showSeparator === false ? " e-permits-fo-section-header--no-border" : ""}"${pick}>
                 <h2 id="${prefix}-${section.id}-title"${editable ? ' data-fb-text="title"' : ""}>${esc(title)}</h2>
@@ -1523,8 +1523,8 @@ document.addEventListener("DOMContentLoaded", () => {
       ${selNode ? `
       <div class="e-permits-builder__selbox" data-fb-selbox>${selField && !isFixedWidth(selField) ? '<button class="e-permits-builder__sel-resize" type="button" tabindex="-1" aria-hidden="true" data-fb-resize></button>' : ""}</div>
       <div class="e-permits-builder__elbar-wrap" data-fb-elbar>${elementBarHtml()}</div>` : ""}
-      <div class="e-permits-builder__insert" data-fb-insert hidden>
-        <button class="e-permits-builder__insert-add" type="button" aria-label="Adaugă un câmp aici" data-tooltip-label="Adaugă un câmp aici" aria-haspopup="menu" aria-expanded="false" aria-controls="fb-insert-menu" data-stack-menu-trigger data-fb-insert-add>${icon("icon-plus-small", 16)}</button>
+      <div class="e-permits-builder__insert" data-fb-insert>
+        <button class="btn btn-neutral btn-sm btn-icon-only btn-rounded e-permits-builder__insert-add" type="button" tabindex="-1" aria-label="Adaugă element" data-tooltip-label="Adaugă element" aria-haspopup="menu" aria-expanded="false" aria-controls="fb-insert-menu" data-stack-menu-trigger data-fb-insert-add>${icon("icon-plus-small", 16)}</button>
       </div>
       <ul class="e-permits-fo-intent-menu e-permits-stack__menu e-permits-builder__insert-menu" id="fb-insert-menu" role="menu" aria-label="Adaugă o componentă aici" hidden data-stack-menu data-stack-menu-fixed data-stack-menu-align="start">${typeMenuItems("data-fb-insert-type")}</ul>
       ${dots}`;
@@ -1669,25 +1669,20 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     return null;
   }
+  /* fb-insert-gap-v1: the „+” sits at a FIXED point of the gap (centre of the line across the section / of the line down
+     the row) and fades in (120 ms) while the pointer is in that gap; it never follows the pointer */
   function placeInsert() {
     const layer = chromeEl();
     const line = layer?.querySelector("[data-fb-insert]");
     if (!line) return;
     const spot = WY.pinned || WY.insert;
-    line.hidden = !spot || Boolean(state.textEdit);
-    if (line.hidden) return;
-    const add = line.querySelector("[data-fb-insert-add]");
-    const half = 12;
+    const on = Boolean(spot) && !state.textEdit && !builder.classList.contains("is-dragging-component");
+    line.classList.toggle("is-on", on);
+    if (!spot) return;
+    const half = 16;
     line.classList.toggle("is-col", spot.dir === "col");
-    if (spot.dir === "row") {
-      setBox(line, { left: spot.left, top: spot.at - half, width: spot.width, height: half * 2 });
-      add.style.top = "0px";
-      add.style.left = `${Math.round(Math.max(0, Math.min(spot.pointer - half, spot.width - half * 2)))}px`;
-    } else {
-      setBox(line, { left: spot.at - half, top: spot.top, width: half * 2, height: spot.height });
-      add.style.left = "0px";
-      add.style.top = `${Math.round(Math.max(0, Math.min(spot.pointer - half, spot.height - half * 2)))}px`;
-    }
+    if (spot.dir === "row") setBox(line, { left: spot.left, top: spot.at - half, width: spot.width, height: half * 2 });
+    else setBox(line, { left: spot.at - half, top: spot.top, width: half * 2, height: spot.height });
   }
   function setInsert(next) {
     if (!next && !WY.insert) return;
@@ -1696,7 +1691,8 @@ document.addEventListener("DOMContentLoaded", () => {
   }
   const insertMenuOpen = () => Boolean(el.canvas.querySelector("#fb-insert-menu:not([hidden])"));
   const pointerHover = (event) => {
-    if (state.mode !== "build" || event.pointerType === "touch") return;
+    /* a button held = a press / drag in progress: the handle under it must not move or hide (it would lose the drag source) */
+    if (state.mode !== "build" || event.pointerType === "touch" || event.buttons) return;
     if (WY.pinned && !insertMenuOpen()) { WY.pinned = null; placeInsert(); }
     if (builder.classList.contains("is-dragging-component") || state.textEdit) return;
     /* on the handle, the bar or the „+”: keep what is shown */
@@ -5109,6 +5105,7 @@ document.addEventListener("DOMContentLoaded", () => {
     builder.classList.remove("is-dragging-component");
     builder.querySelectorAll(".is-dragging, .is-drop-active").forEach((node) => node.classList.remove("is-dragging", "is-drop-active"));
     placeHover();
+    placeInsert();
   };
   /* a drag that moved less than DRAG_SLOP and changed nothing = the click the user meant */
   const tinyDragAsClick = (record, event) => {
@@ -5130,6 +5127,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const beginDrag = (record) => {
     drag = record;
     builder.classList.add("is-dragging-component");
+    placeInsert();
     /* the source's own listener: it fires even when a drop has re-rendered (detached) the source */
     record.source.addEventListener("dragend", (event) => {
       const done = drag === record || !drag ? record : null;
@@ -5157,6 +5155,13 @@ document.addEventListener("DOMContentLoaded", () => {
     event.dataTransfer.effectAllowed = "copy";
     event.dataTransfer.setData("text/plain", drag.type);
   });
+  /* a draggable ancestor would turn the mouse selection inside a text being edited into a drag of the field */
+  el.canvas.addEventListener("pointerdown", (event) => {
+    if (!event.target.closest?.("[data-fb-editing]")) return;
+    const held = [...el.canvas.querySelectorAll("[data-builder-field][draggable], [data-builder-section][draggable]")].filter((node) => node.contains(event.target));
+    held.forEach((node) => node.setAttribute("draggable", "false"));
+    window.addEventListener("pointerup", () => held.forEach((node) => node.isConnected && node.setAttribute("draggable", "true")), { once: true });
+  }, true);
   el.canvas.addEventListener("dragstart", (event) => {
     const chip = event.target.closest?.("[data-fb-child]");
     if (chip) {
@@ -5167,16 +5172,20 @@ document.addEventListener("DOMContentLoaded", () => {
       window.setTimeout(() => { if (drag === record) chip.classList.add("is-dragging"); }, 0);
       return;
     }
-    /* fb-wysiwyg-v1: an element drags from its handle only (the grip on the hover outline / in the action bar);
-       the page element itself is the drag image */
+    /* fb-wysiwyg-v1: an element drags from its handle (the grip on the hover surface / in the action bar) AND from its own
+       body (fb-drag-body-v1, selected or not: the field / section is `draggable`; the innermost one under the pointer
+       moves); a text being edited keeps its own selection drag. The page element itself is the drag image. */
     const handle = event.target.closest?.("[data-fb-handle]");
-    const moved = handle ? elementNode(handle.dataset.kind, handle.dataset.id) : null;
+    const body = handle || state.textEdit || event.target.closest?.("[data-fb-editing]") ? null : event.target.closest?.("[data-builder-field], [data-builder-section]");
+    const kind = handle ? handle.dataset.kind : body?.matches("[data-builder-field]") ? "field" : "section";
+    const id = handle ? handle.dataset.id : body?.dataset.id || body?.dataset.sectionId;
+    const moved = handle || body ? elementNode(kind, id) : null;
     if (!moved) { event.preventDefault(); return; }
-    const record = { kind: handle.dataset.kind === "section" ? "section" : "move", id: handle.dataset.id, source: handle, native: event.isTrusted };
+    const record = { kind: kind === "section" ? "section" : "move", id, source: handle || body, native: event.isTrusted };
     beginDrag(record);
     event.dataTransfer.effectAllowed = "move";
     event.dataTransfer.setData("text/plain", record.id);
-    try { event.dataTransfer.setDragImage(moved, 12, 12); } catch { /* a synthetic event has no drag image */ }
+    try { const r = moved.getBoundingClientRect(); event.dataTransfer.setDragImage(moved, body ? event.clientX - r.left : 12, body ? event.clientY - r.top : 12); } catch { /* a synthetic event has no drag image */ }
     window.setTimeout(() => { if (drag === record) moved.classList.add("is-dragging"); }, 0);
   });
 
