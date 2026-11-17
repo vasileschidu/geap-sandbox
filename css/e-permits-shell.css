@@ -3436,3 +3436,31 @@ td .e-permits-workplace__date-stack > .e-permits-workplace__date-meta:not(:has(.
 .e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-workplace[data-workplace-layout="stack"] > .e-permits-workplace__header {
   overflow: visible;
 }
+
+/* registry-stack-edge-v1 (2026-11-17, user): on every stacked-list registry (Reguli de numerotare, Formulare globale,
+   Rapoarte, Tablouri, widget lists …) the header is the FULL main column, like the KPI registry: the tabs' grey track
+   line runs edge to edge, while the toolbar, filter bar, heading and the first tab label keep the 1280 content column's
+   left edge (--stack-inset = 16 on narrow screens, centred 1280 on wide ones; the % is the header's width, which has no
+   padding). The toolbar no longer clips: its overflow cut the search field's 4px focus ring on the left (padding-inline 0). */
+.e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-workplace[data-workplace-layout="stack"]:is(*, [data-workplace]) > .e-permits-workplace__header {
+  --stack-inset: max(var(--spacing-16, 16px), calc((100% - var(--layout-wide-max)) / 2));
+  margin-inline: 0;
+  max-width: none;
+  width: 100%;
+}
+
+.e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-workplace[data-workplace-layout="stack"] > .e-permits-workplace__header > :not(.e-permits-workplace__status-tabs) {
+  box-sizing: border-box;
+  margin-inline: var(--stack-inset);
+  width: auto;
+}
+
+.e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-workplace[data-workplace-layout="stack"] > .e-permits-workplace__header > .e-permits-workplace__status-tabs {
+  margin-inline: 0;
+  padding-inline: var(--stack-inset);
+  width: 100%;
+}
+
+.e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-workplace[data-workplace-layout="stack"] > .e-permits-workplace__header > .e-permits-workplace__toolbar {
+  overflow: visible;
+}
