@@ -4181,7 +4181,14 @@
        (US-331) · 02 fără permisiune · 03 creare (US-332) · 04 metadate în Form Designer (US-333) · 05 publicare (US-334) ·
        06 istoric versiuni, restaurare, export, import (US-335) · 07 dezactivare / activare (US-336).
        Demo switch formulare=fara-permisiune|local|fara-creare|gol|eroare|autoritate-inactiva|schema-invalida */
-    ...frmDemoStates()
+    ...frmDemoStates(),
+
+    /* ---- Setări › Reguli de numerotare + object IDs, names, file names (Feature 94830, js/coding-rules.js +
+       js/object-id.js, coding-rules-v1 2026-11-17): cod-01… US-328 page (documents · objects with ID · without ID,
+       search, edit drawer, errors, denied) · cod-1x US-327 the read-only ID (lists, profiles, edit forms, clone) ·
+       cod-2x US-329 the type A name field (Registru + text + AUT / SRV ID, duplicate) · cod-3x US-330 generated file
+       names. Demo switch numerotare=local|fara-permisiune|eroare */
+    ...codDemoStates()
   };
 
   function autDemoStates() {
@@ -4988,6 +4995,72 @@
     };
   }
 
+  function codDemoStates() {
+    const ADMIN = "ansp-central-admin", LOCAL = "ansp-local-admin", SPEC = "ansp-specialist-chisinau";
+    const LIST = "[data-registry-kind='reguli-numerotare'] li[data-workplace-row], [data-registry-kind='reguli-numerotare'] .e-permits-empty";
+    const list = (run, params, as = ADMIN) => ({ flow: "back-office", as, hash: "#reguli-numerotare", ...(params ? { params } : {}), ready: LIST, delay: 900, run });
+    const denied = (as, params) => ({ flow: "back-office", as, hash: "#reguli-numerotare", ...(params ? { params } : {}), ready: ".e-permits-empty", delay: 900 });
+    const seq = (...steps) => async (h) => { for (const step of steps) if (step) await step(h); };
+    const tab = (id) => async (h) => { await h.click(`[data-workplace-tab="${id}"]`); await h.wait(350); };
+    const search = (text) => async (h) => { await h.fill("[data-workplace-search]", text); await h.wait(350); };
+    const D = "[data-cod-drawer]:not([hidden])";
+    const row = (id) => async (h) => { (await h.find(`li[data-workplace-row="${id}"]`)).scrollIntoView({ block: "center" }); await h.wait(200); await h.click(`li[data-workplace-row="${id}"] .e-permits-stack__title`); await h.find(`${D} .drawer__body > *`); await h.wait(400); };
+    const fill = (key, text) => async (h) => { await h.fill(`${D} #cod-${key}`, text, { leave: false }); await h.wait(150); };
+    const save = async (h) => { await h.click(`${D} [data-cod-save]`); await h.wait(450); };
+    const blur = async (h) => { document.activeElement?.blur?.(); await h.wait(150); };
+    /* other modules the Feature reaches (Registre in AdminPortal, KPI, Tablouri de bord) */
+    const reg = (run) => ({ flow: "back-office", as: ADMIN, hash: "#registre-config", ready: "[data-registry-kind='registre-admin'] tr[data-workplace-row]", delay: 900, run });
+    const regProf = (id, run) => ({ flow: "back-office", as: ADMIN, hash: `#registru-config/${id}/informatii`, ready: "#rga-panel .e-permits-dosar-profil__section", delay: 900, run });
+    const rgaMenuItem = (attr) => async (h) => { await h.click(".e-permits-page-header [data-stack-menu-trigger]"); await h.wait(200); await h.click(`[${attr}]`); await h.wait(400); };
+    const rgaAdd = async (h) => { await h.click('[data-workplace-add-product="rga-new"]'); await h.wait(300); };
+    const rgaFill = (object, scope, text, extra) => async (h) => { await rgaAdd(h); await h.choose('[data-rga-field="object"]', object); if (scope) await h.click(`[data-rga-scope="${scope}"]`); if (extra) await extra(h); await h.fill("#rga-ro", text, { leave: false }); await h.wait(150); };
+    const kpi = (run) => ({ flow: "back-office", as: ADMIN, hash: "#kpi", ready: "[data-registry-kind='kpi'] tr[data-workplace-row]", delay: 900, run });
+    const kpiProf = (id, run) => ({ flow: "back-office", as: ADMIN, hash: `#kpi/${id}/definitie`, ready: "#kpi-panel", delay: 900, run });
+    return {
+      /* US-328 — the rules page */
+      "cod-01": list(),
+      "cod-01a": list(tab("cu-id")),
+      "cod-01b": list(tab("fara-id")),
+      "cod-01c": list(seq(tab("cu-id"), search("REG"))),
+      "cod-01d": list(seq(tab("cu-id"), search("zzz"))),
+      "cod-01e": list(seq(tab("cu-id"), row("id-FRM"))),
+      "cod-01f": list(seq(tab("fara-id"), row("fara-4"))),
+      "cod-02": list(row("doc-decizie")),
+      "cod-02a": list(seq(row("doc-decizie"), fill("template", "DR-{NR}-{AN}"), fill("len", ""), save)),
+      "cod-02b": list(seq(row("doc-decizie"), fill("template", "DEC-{NR}/{YYYY}"), fill("len", "5"), blur)),
+      "cod-02c": list(seq(row("doc-decizie"), fill("template", "DEC-{NR}/{YYYY}"), save)),
+      "cod-02d": list(seq(row("doc-decizie"), fill("template", "DEC-{NR}/{YYYY}"), save), { numerotare: "eroare" }),
+      "cod-02e": list(row("doc-cerere")),
+      "cod-02f": list(row("doc-cod-serviciu")),
+      "cod-03": denied(SPEC),
+      "cod-03a": denied(LOCAL),
+      "cod-03b": list(null, { numerotare: "local" }, LOCAL),
+
+      /* US-327 — the ONE read-only ID: list column (compact copy), profile header meta, edit form locked, create without
+         ID, a new object / a clone = the next ID of the type */
+      "cod-10": reg(),
+      "cod-10a": regProf("reg-dosare"),
+      "cod-10b": regProf("reg-dosare", rgaMenuItem("data-rga-edit")),
+      "cod-10c": reg(seq(rgaFill("Case", "Global", "dosare în lucru"), async (h) => { await h.click("[data-rga-create-save]"); await h.wait(600); })),
+      "cod-11": kpi(),
+      "cod-11a": kpiProf("kpi-t01"),
+      "cod-11c": kpi(seq(async (h) => { (await h.find('tr[data-workplace-row="kpi-t02"]')).scrollIntoView({ block: "center" }); await h.wait(250); await h.click('tr[data-workplace-row="kpi-t02"] [data-stack-menu-trigger]'); await h.wait(200); await h.click('[data-kpi-row-clone="kpi-t02"]'); await h.find("[data-kpi-editor] #kpi-c-name-ro"); }, async (h) => { await h.fill("[data-kpi-editor] #kpi-c-code", "T-05", { leave: false }); await h.click("[data-kpi-editor] [data-kpi-draft]"); await h.find("#kpi-panel"); await h.wait(600); })),
+      "cod-12": { flow: "back-office", as: ADMIN, hash: "#tablouri-de-bord", ready: "[data-registry-kind='tablouri-de-bord'] li[data-workplace-row]", delay: 900 },
+
+      /* US-329 — type A name: „Registru” locked + free text + the authority / service ID, hint + example, duplicate */
+      "cod-20": reg(rgaAdd),
+      "cod-20a": reg(rgaFill("Case", "Authority", "licențe gaze naturale", async (h) => { await h.choose('[data-rga-field="authority"]', "ASP"); })),
+      "cod-20b": reg(rgaFill("Case", "Service", "acte", async (h) => { await h.choose('[data-rga-field="service"]', "003000118"); })),
+      "cod-20c": reg(seq(rgaFill("Case", "Global", "DOSARE"), async (h) => { await h.click("[data-rga-create-save]"); await h.wait(400); })),
+      "cod-20d": regProf("reg-dosare", seq(rgaMenuItem("data-rga-edit"), async (h) => { await h.fill("#rga-ro", "note  de PLATĂ", { leave: false }); await h.click("[data-rga-edit-save]"); await h.wait(400); })),
+
+      /* US-330 — generated file names in the document viewer („Fișier”) */
+      "cod-30": dos(SPEC, "eliberat", "decizie"),
+      "cod-30a": dos(SPEC, "respins", "decizie", { decizia: "respingere" }, async (h) => { await docEye("Decizie de respingere", "acte")(h); await h.click('#dosar-detail-modal [data-doc-viewer-tab="data"]'); await h.find("#dosar-detail-modal .e-permits-doc-viewer--data .e-permits-dosar-profil__section"); }),
+      "cod-30b": dos(SPEC, "eliberat", "documente")
+    };
+  }
+
   function frmDemoStates() {
     const ADMIN = "ansp-central-admin", LOCAL = "ansp-local-admin", SPEC = "ansp-specialist-chisinau";
     const LIST = "[data-registry-kind='formulare-globale'] li[data-workplace-row], [data-registry-kind='formulare-globale'] .e-permits-empty";
@@ -5131,15 +5204,15 @@
       "dsh-01c": list(async (h) => { await h.fill("[data-workplace-search]", "zzz"); await h.wait(300); }),
       "dsh-01d": list(async (h) => { await ekPick("nivel", ["Autoritate"])(h); await ekCommit(h); await h.wait(400); }),
       "dsh-01e": list(null, { tablou: "gol" }),
-      "dsh-01f": list(MENU("DSH-0005")),
+      "dsh-01f": list(MENU("TDB-0005")),
       "dsh-01g": list(null, null, AUTH),
-      "dsh-01h": list(MENU("DSH-0001"), null, AUTH),
+      "dsh-01h": list(MENU("TDB-0001"), null, AUTH),
       /* dsh-stack-list-v1: Sortează open · the Autoritate facet with its search · description search · row click */
       "dsh-01i": list(async (h) => { await h.click("[data-workplace-sort-trigger]"); await h.wait(300); }),
       "dsh-01j": list(async (h) => { await ekFacet("autoritate")(h); await h.wait(300); }),
       "dsh-01k": list(async (h) => { await h.fill("[data-workplace-search]", "termenele"); await h.wait(300); }),
-      "dsh-01l": list(async (h) => { await h.click('li[data-workplace-row="DSH-0002"] .e-permits-stack__title'); await h.find("#dsh-panel"); await h.wait(400); }),
-      "dsh-01m": list(async (h) => { await h.click('[data-dsh-pending-row="DSH-0002"]'); await h.find("[data-pending-changes-subtitle]"); await h.wait(400); }),
+      "dsh-01l": list(async (h) => { await h.click('li[data-workplace-row="TDB-0002"] .e-permits-stack__title'); await h.find("#dsh-panel"); await h.wait(400); }),
+      "dsh-01m": list(async (h) => { await h.click('[data-dsh-pending-row="TDB-0002"]'); await h.find("[data-pending-changes-subtitle]"); await h.wait(400); }),
       /* Feature AC — the menu only with „Gestionarea tablourilor de bord” */
       "dsh-02": { flow: "back-office", as: SPEC, hash: "#tablouri-de-bord", ready: "[data-reg-page]:not([hidden]) .e-permits-empty", delay: 900 },
       "dsh-02a": { flow: "back-office", as: ADMIN, hash: "#tablouri-de-bord", params: { tablou: "fara-permisiune" }, ready: "[data-reg-page]:not([hidden]) .e-permits-empty", delay: 900 },
@@ -5162,86 +5235,86 @@
       "dsh-03n": list(seq(nou, step1, next, role("expert"), DAMS("ANSP", "PMC"))),
       "dsh-03p": list(seq(nou, step1, next, DAMS("ANSP", "ANTA", "ANSA", "AMDM", "INCE", "ASE", "IGSU", "ISC", "ANRE"))),
       "dsh-03q": list(seq(nou, step1, next, DAMS("ANSP", "ANTA", "ANSA", "AMDM", "INCE", "ASE", "IGSU", "ISC", "ANRE"), async (h) => { await h.click(`${C} [data-dsh-auth-ms] .e-permits-fo-subgen__more`); await h.wait(250); })),
-      "dsh-04p": prof("DSH-0001", "configurare", ((S) => async (h) => { const b = await h.find(`${S} .e-permits-fo-subgen-select__button`); let sc = b.parentElement; while (sc && !(/(auto|scroll)/.test(getComputedStyle(sc).overflowY) && sc.scrollHeight > sc.clientHeight)) sc = sc.parentElement; sc = sc || document.scrollingElement; const lim = Math.min(window.innerHeight, sc === document.scrollingElement ? window.innerHeight : sc.getBoundingClientRect().bottom); sc.scrollTop += b.getBoundingClientRect().bottom - (lim - 24); await h.wait(250); b.click(); await h.wait(400); })("#dsh-panel [data-dsh-auth-ms]")),
+      "dsh-04p": prof("TDB-0001", "configurare", ((S) => async (h) => { const b = await h.find(`${S} .e-permits-fo-subgen-select__button`); let sc = b.parentElement; while (sc && !(/(auto|scroll)/.test(getComputedStyle(sc).overflowY) && sc.scrollHeight > sc.clientHeight)) sc = sc.parentElement; sc = sc || document.scrollingElement; const lim = Math.min(window.innerHeight, sc === document.scrollingElement ? window.innerHeight : sc.getBoundingClientRect().bottom); sc.scrollTop += b.getBoundingClientRect().bottom - (lim - 24); await h.wait(250); b.click(); await h.wait(400); })("#dsh-panel [data-dsh-auth-ms]")),
       "dsh-03o": list(seq(nou, step1, next, DAMS(), async (h) => { await h.fill(`${C} [data-dsh-auth-ms] [data-fo-subgen-search]`, "primăria", { leave: false }); await h.wait(300); })),
 
       "dsh-03m": list(seq(built, next, async (h) => { await h.click(`${C} [data-dsh-save]`); await h.find("#dsh-panel"); await h.wait(300); })),
       /* US-544 — edit on the profile page (Configurare = settings + the layout editor) */
-      "dsh-04": prof("DSH-0001"),
-      "dsh-04a": prof("DSH-0001", "widgeturi", layout()),
+      "dsh-04": prof("TDB-0001"),
+      "dsh-04a": prof("TDB-0001", "widgeturi", layout()),
       /* the canvas while arranging: hover / focus toolbar · drag in progress (iPhone reflow, grey slot) · resize in progress */
-      "dsh-04b": prof("DSH-0001", "widgeturi", seq(layout(), D((d) => d.focus("WGT-0001")))),
-      "dsh-04c": prof("DSH-0001", "widgeturi", seq(layout(), D((d) => d.drag("WGT-0006", 0, 0)))),
-      "dsh-04l": prof("DSH-0001", "widgeturi", seq(layout(), D((d) => d.resize("WGT-0003", "twoThirds", "tall")))),
+      "dsh-04b": prof("TDB-0001", "widgeturi", seq(layout(), D((d) => d.focus("WGT-0001")))),
+      "dsh-04c": prof("TDB-0001", "widgeturi", seq(layout(), D((d) => d.drag("WGT-0006", 0, 0)))),
+      "dsh-04l": prof("TDB-0001", "widgeturi", seq(layout(), D((d) => d.resize("WGT-0003", "twoThirds", "tall")))),
       /* wid-heights-v1: a mixed board — compact tile + compact bars + a tall donut beside two compact rows, equal bottoms */
-      "dsh-04n": prof("DSH-0001", "widgeturi", layout(), { tablou: "mix" }),
+      "dsh-04n": prof("TDB-0001", "widgeturi", layout(), { tablou: "mix" }),
       /* three compact KPI tiles in one row, each a third wide (cards size to their natural content) */
-      "dsh-04q": prof("DSH-0001", "widgeturi", layout(), { tablou: "kpi3" }),
+      "dsh-04q": prof("TDB-0001", "widgeturi", layout(), { tablou: "kpi3" }),
       /* dsh-half-row-v1: a number tile = half a Compactă row — two stacked beside a 2/3 chart end on its bottom edge;
          04t = the lower tile focused (toolbar + resize corner + „4/12” size tag) */
-      "dsh-04s": prof("DSH-0001", "widgeturi", layout(), { tablou: "stiva" }),
-      "dsh-04t": prof("DSH-0001", "widgeturi", seq(layout(), D((d) => d.focus("WGT-0015"))), { tablou: "stiva" }),
+      "dsh-04s": prof("TDB-0001", "widgeturi", layout(), { tablou: "stiva" }),
+      "dsh-04t": prof("TDB-0001", "widgeturi", seq(layout(), D((d) => d.focus("WGT-0015"))), { tablou: "stiva" }),
       /* dsh-row-unit-v1: the height grows one row unit at a time — „Dosare întârziate la examinare” one unit taller
          (Shift + ↓) = 9 rânduri, all five rows instead of „+1 altul”; 04v = the same while dragging the corner */
-      "dsh-04u": prof("DSH-0001", "widgeturi", seq(layout(), D((d) => { d.focus("WGT-0003"); document.activeElement.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowDown", shiftKey: true, bubbles: true })); }))),
-      "dsh-04v": prof("DSH-0001", "widgeturi", seq(layout(), D((d) => d.resize("WGT-0003", "half", 9)))),
+      "dsh-04u": prof("TDB-0001", "widgeturi", seq(layout(), D((d) => { d.focus("WGT-0003"); document.activeElement.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowDown", shiftKey: true, bubbles: true })); }))),
+      "dsh-04v": prof("TDB-0001", "widgeturi", seq(layout(), D((d) => d.resize("WGT-0003", "half", 9)))),
       /* dsh-stat-resize-v1: a number tile resized in height like a chart (corner drag in progress, „4/12 · 7 rânduri”) */
-      "dsh-04x": prof("DSH-0001", "widgeturi", seq(layout(), D((d) => d.resize("WGT-0011", "third", 7)))),
+      "dsh-04x": prof("TDB-0001", "widgeturi", seq(layout(), D((d) => d.resize("WGT-0011", "third", 7)))),
       /* dsh-grid-2d-v1: a 2D layout (two number tiles stacked in the middle between two charts, a wide table under) ·
          04z = the left chart dragged onto the middle column (the tiles there pushed down, then compacted) */
-      "dsh-04y": prof("DSH-0001", "widgeturi", layout(), { tablou: "grila" }),
-      "dsh-04z": prof("DSH-0001", "widgeturi", seq(layout(), D((d) => d.drag("WGT-0001", 4, 0))), { tablou: "grila" }),
+      "dsh-04y": prof("TDB-0001", "widgeturi", layout(), { tablou: "grila" }),
+      "dsh-04z": prof("TDB-0001", "widgeturi", seq(layout(), D((d) => d.drag("WGT-0001", 4, 0))), { tablou: "grila" }),
       /* dsh-min-3-v1: four number tiles at 3/12 in one row */
-      "dsh-04ab": prof("DSH-0001", "widgeturi", layout(), { tablou: "kpi4" }),
+      "dsh-04ab": prof("TDB-0001", "widgeturi", layout(), { tablou: "kpi4" }),
       /* dsh-empty-v1: widgets without data — number tile „—”, a chart, a table and the heatmap = the boxed empty state */
-      "dsh-04ac": prof("DSH-0001", "widgeturi", layout(), { tablou: "fara-date" }),
-      "dsh-04o": prof("DSH-0001", "widgeturi", seq(layout(), D((d) => d.resize("WGT-0011", "third", "tall"))), { tablou: "mix" }),
-      "dsh-04m": prof("DSH-0001", "widgeturi", seq(D((d) => { d.focus("WGT-0006"); document.activeElement.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowUp", bubbles: true })); }), layout())),
-      "dsh-04d": prof("DSH-0001", "widgeturi", seq(layout(), pick)),
+      "dsh-04ac": prof("TDB-0001", "widgeturi", layout(), { tablou: "fara-date" }),
+      "dsh-04o": prof("TDB-0001", "widgeturi", seq(layout(), D((d) => d.resize("WGT-0011", "third", "tall"))), { tablou: "mix" }),
+      "dsh-04m": prof("TDB-0001", "widgeturi", seq(D((d) => { d.focus("WGT-0006"); document.activeElement.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowUp", bubbles: true })); }), layout())),
+      "dsh-04d": prof("TDB-0001", "widgeturi", seq(layout(), pick)),
       /* dsh-pick-preview-v1: „Adaugă widget” multiselect (dsh-pick-multi-v1): previews, grouped, three cards ticked */
-      "dsh-04w": prof("DSH-0001", "widgeturi", seq(layout(), pick, chooseFree(1), chooseFree(0), chooseFree(2))),
-      "dsh-04e": prof("DSH-0003", "widgeturi", layout()),
-      "dsh-04f": prof("DSH-0001", "configurare", null, null, AUTH),
-      "dsh-04g": prof("DSH-0001", "widgeturi", layout(), null, AUTH),
-      "dsh-04h": prof("DSH-0002", "configurare", async (h) => { await h.click("[data-dsh-pending]"); await h.wait(400); }),
-      "dsh-04i": prof("DSH-0001", "configurare", HMENU),
-      "dsh-04j": prof("DSH-0004", "widgeturi", layout(), null, AUTH),
-      "dsh-04k": prof("DSH-0001", "configurare", async (h) => { await h.fill("#dsh-e-name-ro", "", { leave: false }); await h.click("[data-dosar-profil] [data-dsh-save]"); await h.wait(300); }),
+      "dsh-04w": prof("TDB-0001", "widgeturi", seq(layout(), pick, chooseFree(1), chooseFree(0), chooseFree(2))),
+      "dsh-04e": prof("TDB-0003", "widgeturi", layout()),
+      "dsh-04f": prof("TDB-0001", "configurare", null, null, AUTH),
+      "dsh-04g": prof("TDB-0001", "widgeturi", layout(), null, AUTH),
+      "dsh-04h": prof("TDB-0002", "configurare", async (h) => { await h.click("[data-dsh-pending]"); await h.wait(400); }),
+      "dsh-04i": prof("TDB-0001", "configurare", HMENU),
+      "dsh-04j": prof("TDB-0004", "widgeturi", layout(), null, AUTH),
+      "dsh-04k": prof("TDB-0001", "configurare", async (h) => { await h.fill("#dsh-e-name-ro", "", { leave: false }); await h.click("[data-dosar-profil] [data-dsh-save]"); await h.wait(300); }),
       /* US-546 — publish */
-      "dsh-05": prof("DSH-0002", "configurare", PUB),
-      "dsh-05a": prof("DSH-0002", "configurare", seq(PUB, note("Am adăugat tabelul dosarelor pe servicii."), async (h) => { await h.click(`${M} [data-dsh-publish-confirm]`); await h.wait(500); })),
-      "dsh-05b": prof("DSH-0005", "configurare", PUB),
-      "dsh-05c": prof("DSH-0002", "configurare", seq(PUB, async (h) => { await h.click(`${M} [data-dsh-publish-confirm]`); await h.wait(200); })),
+      "dsh-05": prof("TDB-0002", "configurare", PUB),
+      "dsh-05a": prof("TDB-0002", "configurare", seq(PUB, note("Am adăugat tabelul dosarelor pe servicii."), async (h) => { await h.click(`${M} [data-dsh-publish-confirm]`); await h.wait(500); })),
+      "dsh-05b": prof("TDB-0005", "configurare", PUB),
+      "dsh-05c": prof("TDB-0002", "configurare", seq(PUB, async (h) => { await h.click(`${M} [data-dsh-publish-confirm]`); await h.wait(200); })),
       /* US-550 — the principal: a new principal demotes the previous one for that role only */
-      "dsh-06": prof("DSH-0005", "configurare", seq(principal("specialist", "#dsh-panel"), async (h) => { await h.scroll("#dsh-panel [data-dsh-role-type='specialist|principal']"); })),
-      "dsh-06a": prof("DSH-0005", "configurare", seq(principal("specialist", "#dsh-panel"), PUB)),
-      "dsh-06b": prof("DSH-0005", "configurare", seq(principal("specialist", "#dsh-panel"), PUB, note("Specialiștii pornesc de aici."), async (h) => { await h.click(`${M} [data-dsh-publish-confirm]`); await h.wait(500); location.hash = "#tablou/DSH-0001/istoric"; await h.wait(600); })),
+      "dsh-06": prof("TDB-0005", "configurare", seq(principal("specialist", "#dsh-panel"), async (h) => { await h.scroll("#dsh-panel [data-dsh-role-type='specialist|principal']"); })),
+      "dsh-06a": prof("TDB-0005", "configurare", seq(principal("specialist", "#dsh-panel"), PUB)),
+      "dsh-06b": prof("TDB-0005", "configurare", seq(principal("specialist", "#dsh-panel"), PUB, note("Specialiștii pornesc de aici."), async (h) => { await h.click(`${M} [data-dsh-publish-confirm]`); await h.wait(500); location.hash = "#tablou/TDB-0001/istoric"; await h.wait(600); })),
       /* US-547 — deactivate / activate, per authority */
-      "dsh-07": prof("DSH-0001", "configurare", seq(HMENU, async (h) => { await h.click("[data-dosar-profil] [data-dsh-toggle]"); await h.find(OK); })),
-      "dsh-07a": prof("DSH-0006"),
-      "dsh-07b": prof("DSH-0001", "configurare", seq(HMENU, async (h) => { await h.click("[data-dosar-profil] [data-dsh-auth]"); await h.find(OK); }), null, AUTH),
-      "dsh-07c": prof("DSH-0009", "configurare", null, null, AUTH),
-      "dsh-07d": list(seq(MENU("DSH-0001"), async (h) => { await h.click('[data-dsh-row-toggle="DSH-0001"]'); await h.click(OK); await h.wait(400); })),
+      "dsh-07": prof("TDB-0001", "configurare", seq(HMENU, async (h) => { await h.click("[data-dosar-profil] [data-dsh-toggle]"); await h.find(OK); })),
+      "dsh-07a": prof("TDB-0006"),
+      "dsh-07b": prof("TDB-0001", "configurare", seq(HMENU, async (h) => { await h.click("[data-dosar-profil] [data-dsh-auth]"); await h.find(OK); }), null, AUTH),
+      "dsh-07c": prof("TDB-0009", "configurare", null, null, AUTH),
+      "dsh-07d": list(seq(MENU("TDB-0001"), async (h) => { await h.click('[data-dsh-row-toggle="TDB-0001"]'); await h.click(OK); await h.wait(400); })),
       /* US-548 — versions, compare, restore */
-      "dsh-08": prof("DSH-0001", "versiuni"),
-      "dsh-08a": prof("DSH-0001", "versiuni", VER(1)),
-      "dsh-08b": prof("DSH-0001", "versiuni", seq(VER(1), async (h) => { await h.click(`${M} [data-dsh-ver-restore="1"]`); await h.find("#dsh-restore-note"); })),
-      "dsh-08c": prof("DSH-0001", "versiuni", async (h) => { await h.click("#dsh-panel [data-dsh-compare-open]"); await h.scroll("#dsh-compare-title"); }),
-      "dsh-08d": prof("DSH-0001", "versiuni", seq(VER(1), async (h) => { await h.click(`${M} [data-dsh-ver-restore="1"]`); await h.fill("#dsh-restore-note", "Revenim la prima versiune, fără hartă.", { leave: false }); await h.click(`${M} [data-dsh-restore-confirm]`); await h.wait(500); })),
+      "dsh-08": prof("TDB-0001", "versiuni"),
+      "dsh-08a": prof("TDB-0001", "versiuni", VER(1)),
+      "dsh-08b": prof("TDB-0001", "versiuni", seq(VER(1), async (h) => { await h.click(`${M} [data-dsh-ver-restore="1"]`); await h.find("#dsh-restore-note"); })),
+      "dsh-08c": prof("TDB-0001", "versiuni", async (h) => { await h.click("#dsh-panel [data-dsh-compare-open]"); await h.scroll("#dsh-compare-title"); }),
+      "dsh-08d": prof("TDB-0001", "versiuni", seq(VER(1), async (h) => { await h.click(`${M} [data-dsh-ver-restore="1"]`); await h.fill("#dsh-restore-note", "Revenim la prima versiune, fără hartă.", { leave: false }); await h.click(`${M} [data-dsh-restore-confirm]`); await h.wait(500); })),
       /* US-545 — clone (only a published dashboard; a new draft with a new ID) */
-      "dsh-09": prof("DSH-0001", "configurare", seq(HMENU, async (h) => { await h.click("[data-dosar-profil] [data-dsh-clone]"); await h.find(`${C} #dsh-n-name-ro`); })),
-      "dsh-09a": prof("DSH-0001", "configurare", seq(HMENU, async (h) => { await h.click("[data-dosar-profil] [data-dsh-clone]"); await h.find(`${C} #dsh-n-name-ro`); await h.click(`${C} [data-dsh-save]`); await h.find("#dsh-panel"); await h.wait(300); }), null, AUTH),
+      "dsh-09": prof("TDB-0001", "configurare", seq(HMENU, async (h) => { await h.click("[data-dosar-profil] [data-dsh-clone]"); await h.find(`${C} #dsh-n-name-ro`); })),
+      "dsh-09a": prof("TDB-0001", "configurare", seq(HMENU, async (h) => { await h.click("[data-dosar-profil] [data-dsh-clone]"); await h.find(`${C} #dsh-n-name-ro`); await h.click(`${C} [data-dsh-save]`); await h.find("#dsh-panel"); await h.wait(300); }), null, AUTH),
       /* US-549 — remove a draft */
-      "dsh-10": prof("DSH-0005", "configurare", seq(HMENU, async (h) => { await h.click("[data-dosar-profil] [data-dsh-remove-draft]"); await h.find(OK); })),
-      "dsh-10a": list(seq(MENU("DSH-0005"), async (h) => { await h.click('[data-dsh-row-remove="DSH-0005"]'); await h.click(OK); await h.wait(400); })),
+      "dsh-10": prof("TDB-0005", "configurare", seq(HMENU, async (h) => { await h.click("[data-dosar-profil] [data-dsh-remove-draft]"); await h.find(OK); })),
+      "dsh-10a": list(seq(MENU("TDB-0005"), async (h) => { await h.click('[data-dsh-row-remove="TDB-0005"]'); await h.click(OK); await h.wait(400); })),
       /* Istoric = the audit trail (every operation, also in the unique Jurnalul de audit) + save error */
-      "dsh-11": prof("DSH-0001", "istoric"),
-      "dsh-11a": prof("DSH-0001", "configurare", async (h) => { await h.fill("#dsh-e-name-ro", "Tabloul de bord al specialistului (nou)", { leave: false }); await h.click("[data-dosar-profil] [data-dsh-save]"); await h.wait(300); }, { tablou: "eroare" }),
+      "dsh-11": prof("TDB-0001", "istoric"),
+      "dsh-11a": prof("TDB-0001", "configurare", async (h) => { await h.fill("#dsh-e-name-ro", "Tabloul de bord al specialistului (nou)", { leave: false }); await h.click("[data-dosar-profil] [data-dsh-save]"); await h.wait(300); }, { tablou: "eroare" }),
       /* dsh-view-v1 — the BO page „Tablou de bord” (Locul de muncă, read-only): ANSP Specialist = the authority's principal
-         DSH-0004 + the segmented switch above the title (DSH-0001, DSH-0002 secondary) · a secondary tab · no dashboard · one widget's data error ·
-         loading · Supervizor (the global principal DSH-0002) · the error retried */
+         TDB-0004 + the segmented switch above the title (TDB-0001, TDB-0002 secondary) · a secondary tab · no dashboard · one widget's data error ·
+         loading · Supervizor (the global principal TDB-0002) · the error retried */
       "dsh-20": view(),
-      "dsh-20a": view(async (h) => { await h.click('[data-view-switch="dsh-view"] [data-view-value="DSH-0001"]'); await h.wait(500); }),
+      "dsh-20a": view(async (h) => { await h.click('[data-view-switch="dsh-view"] [data-view-value="TDB-0001"]'); await h.wait(500); }),
       "dsh-20b": view(null, { tablou: "gol" }),
       "dsh-20c": view(null, { tablou: "widget-eroare" }),
       "dsh-20d": view(null, { tablou: "incarcare" }),

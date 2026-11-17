@@ -123,6 +123,9 @@
         json.history = json.history || {};
         S.data = json;
         json.kpis.forEach(seedVersions);
+        /* coding-rules-v1 (US-327): every KPI has an ID „KPI-NNNN” in catalog order; the short code stays separate (matrix) */
+        json.kpis.forEach((k, i) => { if (!k.objectId) k.objectId = window.GEAPObjectId?.format?.("KPI", i + 1) || ""; });
+        window.GEAPObjectId?.seen?.("KPI", json.kpis.length);
         window.GEAPNotifDrawer?.sync?.();
         return json;
       }).catch(() => { S.data = { kpis: [], sources: [], authorities: [], services: [], roles: [], domains: [], inherit: {}, alerts: [], history: {} }; return S.data; });
@@ -668,9 +671,11 @@
 
   /* ================================================================ form sections (create drawer + profile) */
   const sourceOptions = () => D().sources.filter((s) => s.status === "Publicat").map((s) => [s.id, s.name]);
-  function identityFields(v, e, idp, { isNew }) {
+  function identityFields(v, e, idp, { isNew, objectId = "" }) {
     const domains = D().domains.map(([l, n]) => [l, `${n} (${l}-)`]);
     return grid(
+      /* US-327 AC-16 / 17: the edit form shows „ID” locked; the create form has no ID (it is given at the save) */
+      isNew ? "" : window.GEAPObjectId?.fieldHtml?.(objectId) || "",
       isNew ? selectField(`${idp}-domain`, "domain", "Domeniu", domains, v.domain, { required: true, placeholder: "Alege domeniul", error: e.domain }) : "",
       isNew ? textField(`${idp}-code`, "code", "Cod", v.code, { required: true, span: 6, hint: "Codul catalogului: litera domeniului, cratimă, două cifre. Nu se schimbă după creare.", error: e.code }) : "",
       textField(`${idp}-name-ro`, "nameRo", "Denumire (RO)", v.nameRo, { required: true, max: NAME_MAX, counter: true, hint: "Numele afișat utilizatorilor, de exemplu „Cereri procesate în termen”.", error: e.nameRo }),
@@ -836,7 +841,7 @@
     const val = valuesOf(k, per);
     const [stare, tone] = STATE(k, w);
     return {
-      id: k.id, cod: k.code, denumire: k.names.ro, domeniu: domainName(domainOf(k.code)), sursa: sourceName(k.source), format: formatLabel(k),
+      id: k.id, oid: k.objectId || "", cod: k.code, denumire: k.names.ro, domeniu: domainName(domainOf(k.code)), sursa: sourceName(k.source), format: formatLabel(k),
       tinta: hasTarget(t) ? fmt(k, t.target) : "", tintaProprie: t.own, valoare: valueText(k, val.cur), valoareNum: val.cur, zona: zone(k.direction, val.cur, t.target, t.threshold),
       nivel: k.level === "Global" ? "Global" : "Autoritate", autoritate: k.level === "Global" ? "" : authName(k.authority), stare, stareTone: tone,
       versiune: lastVersion(k) ? String(lastVersion(k).version) : "", nepublicat: unpublished(k),
@@ -855,6 +860,8 @@
       defaultSort: "cod",
       defaultSortDirection: "asc",
       columns: {
+        /* US-327 AC-14: the „ID” column (the catalog code stays, the matrix keeps it separate) */
+        oid: { label: "ID", width: 112, sortable: true },
         cod: { label: "Cod", width: 104, sortable: true },
         denumire: { label: "Denumire", width: 320, sortable: true },
         sursa: { label: "Sursa de date", width: 216, sortable: true },
@@ -872,7 +879,7 @@
           title: TITLE,
           selectable: false,
           searchPlaceholder: "Caută după cod sau denumire",
-          columns: ["cod", "denumire", "sursa", "format", "tinta", "valoare", "nivel", "stare", "versiune", "actualizat", ...(menu ? ["actiuni"] : [])],
+          columns: ["oid", "cod", "denumire", "sursa", "format", "tinta", "valoare", "nivel", "stare", "versiune", "actualizat", ...(menu ? ["actiuni"] : [])],
           tabs: w.central
             ? [{ id: "toate", label: "Toate", filter: "all" }, { id: "globale", label: "Globale", filter: "level:global" }, { id: "autoritati", label: "Ale autorităților", filter: "level:authority" }]
             : [{ id: "toate", label: "Toate", filter: "all" }, { id: "globale", label: "Moștenite", filter: "level:global" }, { id: "autoritati", label: `Ale ${mine}`, filter: "level:authority" }],
@@ -923,12 +930,13 @@
         { key: "stare", label: "Stare", get: (row) => row.stare }
       ];
     },
-    searchText: (row) => `${row.cod} ${row.denumire} ${fold(row.cod)} ${fold(row.denumire)}`,
+    searchText: (row) => `${row.oid} ${row.cod} ${row.denumire} ${fold(row.cod)} ${fold(row.denumire)}`,
     sortValue: (row, key) => String(SORT[key]?.(row) ?? row[key] ?? ""),
     filterToken: (row, token) => (token === "level:global" ? row.nivel === "Global" : token === "level:authority" ? row.nivel !== "Global" : true),
     rowClass: (row) => (row.stareTone === "success" || row.stare === "Ciornă" ? "" : "is-inactive"),
     renderCell: (row, key) => {
       switch (key) {
+        case "oid": return window.GEAPObjectId?.listHtml?.(row.oid) || esc(row.oid);
         case "cod": return `<span data-cell-tooltip="${esc(row.cod)}">${esc(row.cod)}</span>`;
         case "denumire": return `<span data-cell-tooltip="${esc(row.denumire)}">${esc(row.denumire)}</span>`;
         case "sursa": return `<span data-cell-tooltip="${esc(row.sursa)}">${esc(row.sursa)}</span>`;
@@ -949,7 +957,7 @@
       }
     },
     openRow: (id) => openProfile(id, "definitie"),
-    rowLabel: (row) => `${row.cod}, ${row.denumire} — deschide KPI-ul`,
+    rowLabel: (row) => `${row.oid} ${row.cod}, ${row.denumire} — deschide KPI-ul`,
     emptyHtml: ({ query, filtered }) => {
       if (!who().has) return E()?.render({ title: DENIED, icon: "lock", bare: true });
       if (!S.data) return E()?.render({ title: "Se încarcă KPI-urile…", loading: true, bare: true });
@@ -974,8 +982,8 @@
     A().renderWorkplace?.();
   }
   function exportCsv(rows) {
-    const head = ["Cod", "Denumire", "Sursa de date", "Format", "Ținta", "Valoarea curentă", "Nivel", "Stare", "Versiune", "Actualizat"];
-    const lines = rows.map((r) => [r.cod, r.denumire, r.sursa, r.format, r.tinta || "-", r.valoare, r.nivel === "Global" ? "Global" : `Autoritate ${r.autoritate}`, r.stare, r.versiune || "-", r.actualizat ? `${longDate(r.actualizat)} ${time(r.actualizat)}` : "-"]);
+    const head = ["ID", "Cod", "Denumire", "Sursa de date", "Format", "Ținta", "Valoarea curentă", "Nivel", "Stare", "Versiune", "Actualizat"];
+    const lines = rows.map((r) => [r.oid, r.cod, r.denumire, r.sursa, r.format, r.tinta || "-", r.valoare, r.nivel === "Global" ? "Global" : `Autoritate ${r.autoritate}`, r.stare, r.versiune || "-", r.actualizat ? `${longDate(r.actualizat)} ${time(r.actualizat)}` : "-"]);
     const cell = (v) => `"${String(v ?? "").replace(/"/g, '""')}"`;
     const blob = new Blob([`﻿${[head, ...lines].map((l) => l.map(cell).join(";")).join("\r\n")}`], { type: "text/csv;charset=utf-8" });
     const a = Object.assign(document.createElement("a"), { href: URL.createObjectURL(blob), download: "kpi.csv" });
@@ -1135,6 +1143,8 @@
     const [stare, tone] = STATE(k, w);
     els.dosarProfilTitleRow.innerHTML = headerTop(k);
     els.dosarProfilSummary.innerHTML = A().renderPageHeaderMeta([
+      /* US-327 AC-15: the read-only ID, then the catalog code */
+      window.GEAPObjectId?.metaItem?.(k.objectId) || ["ID", esc(k.objectId || "")],
       ["Cod", A().renderProfileCopyCode?.(k.code, `Copiază ${k.code}`) || esc(k.code)],
       ["Nivel", esc(levelText(k))],
       ["Stare", tag(stare, tone)],
@@ -1214,7 +1224,7 @@
     return `
       <div class="e-permits-ntpl-content e-permits-kpi-content--split e-permits-editor-wide">
         <div class="e-permits-ntpl-content__main">
-          ${cardSection("Identificare", identityFields(v, e, P.idp, { isNew: false }))}
+          ${cardSection("Identificare", identityFields(v, e, P.idp, { isNew: false, objectId: k.objectId }))}
           ${calcSections(v, e, P.idp).map(([title, body]) => cardSection(title, body)).join("")}
           ${isPlanned(k) ? "" : checkSection(P, v, P.idp, { base: k, per: perimeterOf(k) })}
         </div>
@@ -1962,7 +1972,8 @@
     const w = who();
     const v = C.v;
     const id = `kpi-${v.code.toLowerCase().replace(/[^a-z0-9]+/g, "")}`;
-    const k = { id, level: w.central ? "Global" : "Autoritate", ...(w.central ? {} : { authority: w.authority }), status: "Ciornă", ...fromDraft(v), code: v.code.trim(), versions: [] };
+    /* US-327 AC-04 / 11: a new KPI (and a clone) = the next ID of the type, never the source's */
+    const k = { id, objectId: window.GEAPObjectId?.assign?.("KPI") || "", level: w.central ? "Global" : "Autoritate", ...(w.central ? {} : { authority: w.authority }), status: "Ciornă", ...fromDraft(v), code: v.code.trim(), versions: [] };
     if (v.source) {
       const vals = C.check && C.check.key === calcKey(v) ? C.check.values : calcDraft(v);
       k.values = w.central
@@ -1970,6 +1981,7 @@
         : { [w.authority]: vals };
     }
     allKpis().push(k);
+    window.GEAPObjectId?.logAssign?.("KPI", k.objectId, k.names?.ro || "");
     audit(k, C.from ? "clone" : "create", C.from ? `din ${kpiOf(C.from)?.code || ""} · ${levelText(k)}` : `Ciornă · ${levelText(k)}${k.source ? ` · ${sourceName(k.source)}` : ""} · ${formatLabel(k)}`);
     return k;
   }
@@ -1980,7 +1992,7 @@
     const k = createKpi();
     closeCreate(true);
     P.draft = null;
-    toast(`Ciorna KPI-ului ${k.code} a fost salvată.`);
+    toast(`Ciorna KPI-ului ${k.code} a fost salvată, cu ID-ul ${window.GEAPObjectId?.nb?.(k.objectId) || k.objectId}.`);
     openProfile(k.id, "definitie");
     refreshList();
   }

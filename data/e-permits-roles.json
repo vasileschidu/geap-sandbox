@@ -570,6 +570,12 @@
               "id": "distribuire",
               "label": "Distribuire",
               "shellView": "distribuire-page"
+            },
+            {
+              "id": "reguli-numerotare",
+              "label": "Reguli de numerotare",
+              "iconAsset": "assets/icons/hashtag.svg",
+              "shellView": "reguli-numerotare-registry"
             }
           ]
         }
@@ -669,6 +675,12 @@
               "id": "distribuire",
               "label": "Distribuire",
               "shellView": "distribuire-page"
+            },
+            {
+              "id": "reguli-numerotare",
+              "label": "Reguli de numerotare",
+              "iconAsset": "assets/icons/hashtag.svg",
+              "shellView": "reguli-numerotare-registry"
             }
           ]
         }

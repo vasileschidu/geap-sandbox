@@ -1326,7 +1326,7 @@
   const scopeText = (row) => (row.autoritate ? `${row.nivel}: ${row.autoritate}` : row.nivel);
   const stackItem = (row) => {
     const details = [
-      esc(row.id), esc(row.categorie),
+      window.GEAPObjectId?.listHtml?.(row.id, { meta: true }) || esc(row.id), esc(row.categorie),
       row.versiune ? `v${esc(row.versiune)}` : "nepublicat",
       esc(scopeText(row)),
       row.nepublicat ? pendingHtml(row) : "",
@@ -1371,7 +1371,7 @@
     rowClass: (row) => (row.statut === "Dezactivat" ? "is-inactive" : ""),
     renderCell: (row, key) => {
       switch (key) {
-        case "id": return `<span data-cell-tooltip="${esc(row.id)}">${esc(row.id)}</span>`;
+        case "id": return window.GEAPObjectId?.listHtml?.(row.id) || esc(row.id);
         case "denumire": return `<span data-cell-tooltip="${esc(row.denumire)}">${esc(row.denumire)}</span>`;
         case "nivel": return !row.autoritate ? esc(row.nivel) : twoLines(esc(row.nivel), `<span data-cell-tooltip="${esc(row.autoritate)}">${esc(row.autoritate)}</span>`);
         case "statut": return tag(row.statut, row.tone);

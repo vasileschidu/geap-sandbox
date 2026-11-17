@@ -929,7 +929,7 @@
     rowClass: (row) => (row.statut === "Publicat" || row.statut === "Ciornă" ? "" : "is-inactive"),
     renderCell: (row, key) => {
       switch (key) {
-        case "id": return `<span data-cell-tooltip="${esc(row.id)}">${esc(row.id)}</span>`;
+        case "id": return window.GEAPObjectId?.listHtml?.(row.id) || esc(row.id);
         case "titlu": return `<span data-cell-tooltip="${esc(row.titlu)}">${esc(row.titlu)}</span>`;
         case "tip": return `<span data-cell-tooltip="${esc(row.tip)}">${esc(row.tip)}</span>`;
         case "sursa": return `<span data-cell-tooltip="${esc(row.sursa)}">${esc(row.sursa)}</span>`;

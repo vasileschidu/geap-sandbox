@@ -264,29 +264,29 @@
     if (S.data) return Promise.resolve(S.data);
     if (!S.loading) {
       S.loading = Promise.all([
-        fetch("data/dashboards.json?v=dsh-dashboard-nav-v1").then((r) => r.json()),
+        fetch("data/dashboards.json?v=coding-rules-v1").then((r) => r.json()),
         W().load ? W().load() : Promise.resolve(null),
         /* dsh-auth-ms-v1: the same ~30 demo authorities as Rapoarte (data/rapoarte.json › authorities) */
         fetch("data/rapoarte.json?v=rpt-auth-ms-v1").then((r) => r.json()).catch(() => null)
       ]).then(([json, , rpt]) => {
         if (rpt?.authorities?.length) AUTHORITIES.splice(0, AUTHORITIES.length, ...rpt.authorities.map((a) => [a.id, a.name, a.long]));
         if (demo.has("gol")) json.dashboards = [];
-        /* ?tablou=mix (demo dsh-04n): DSH-0001 as a mixed board — compact tile + compact bars + a tall donut beside two
+        /* ?tablou=mix (demo dsh-04n): TDB-0001 as a mixed board — compact tile + compact bars + a tall donut beside two
            compact rows, then two compact halves (wid-heights-v1) */
-        const mixed = demo.has("mix") && json.dashboards.find((d) => d.id === "DSH-0001");
-        /* ?tablou=kpi3 (demo dsh-04q): DSH-0001 as one row of three compact KPI tiles, each a third wide */
-        const kpi3 = demo.has("kpi3") && json.dashboards.find((d) => d.id === "DSH-0001");
+        const mixed = demo.has("mix") && json.dashboards.find((d) => d.id === "TDB-0001");
+        /* ?tablou=kpi3 (demo dsh-04q): TDB-0001 as one row of three compact KPI tiles, each a third wide */
+        const kpi3 = demo.has("kpi3") && json.dashboards.find((d) => d.id === "TDB-0001");
         /* ?tablou=stiva (demo dsh-04s · dsh-20g, dsh-half-row-v1): a 2/3 chart with three 1/3 number tiles stacked beside it,
-           then two Compactă halves — on DSH-0001 (editor) and DSH-0004 (the ANSP Specialist's principal, the BO page) */
-        if (demo.has("stiva")) json.dashboards.filter((d) => d.id === "DSH-0001" || d.id === "DSH-0004").forEach((d) => { d.config.widgets = [["WGT-0001", "twoThirds"], ["WGT-0011", "third"], ["WGT-0015", "third"], ["WGT-0016", "third"], ["WGT-0006", "half"], ["WGT-0008", "half"]].map(([widget, width]) => ({ widget, width, height: "compact" })); });
+           then two Compactă halves — on TDB-0001 (editor) and TDB-0004 (the ANSP Specialist's principal, the BO page) */
+        if (demo.has("stiva")) json.dashboards.filter((d) => d.id === "TDB-0001" || d.id === "TDB-0004").forEach((d) => { d.config.widgets = [["WGT-0001", "twoThirds"], ["WGT-0011", "third"], ["WGT-0015", "third"], ["WGT-0016", "third"], ["WGT-0006", "half"], ["WGT-0008", "half"]].map(([widget, width]) => ({ widget, width, height: "compact" })); });
         /* ?tablou=grila (demo dsh-04y · dsh-20h, dsh-grid-2d-v1): a 2D arrangement no column flow gives — chart · three
            stacked number tiles IN THE MIDDLE · chart, a wide table under them (explicit x, y) */
-        if (demo.has("grila")) json.dashboards.filter((d) => d.id === "DSH-0001" || d.id === "DSH-0004").forEach((d) => { d.config.widgets = [["WGT-0001", "third", 9, 0, 0], ["WGT-0011", "third", 3, 4, 0], ["WGT-0015", "third", 3, 4, 3], ["WGT-0016", "third", 3, 4, 6], ["WGT-0006", "third", 9, 8, 0], ["WGT-0012", "full", 11, 0, 9]].map(([widget, width, height, x, y]) => ({ widget, width, height, x, y })); });
+        if (demo.has("grila")) json.dashboards.filter((d) => d.id === "TDB-0001" || d.id === "TDB-0004").forEach((d) => { d.config.widgets = [["WGT-0001", "third", 9, 0, 0], ["WGT-0011", "third", 3, 4, 0], ["WGT-0015", "third", 3, 4, 3], ["WGT-0016", "third", 3, 4, 6], ["WGT-0006", "third", 9, 8, 0], ["WGT-0012", "full", 11, 0, 9]].map(([widget, width, height, x, y]) => ({ widget, width, height, x, y })); });
         /* ?tablou=kpi4 (demo dsh-04ab · dsh-20i, dsh-min-3-v1): four number tiles at 3/12 in one row, a chart and a list under */
-        if (demo.has("kpi4")) json.dashboards.filter((d) => d.id === "DSH-0001" || d.id === "DSH-0004").forEach((d) => { d.config.widgets = [["WGT-0011", "quarter", 3, 0, 0], ["WGT-0015", "quarter", 3, 3, 0], ["WGT-0016", "quarter", 3, 6, 0], ["WGT-0017", "quarter", 3, 9, 0], ["WGT-0001", "half", 9, 0, 3], ["WGT-0006", "half", 9, 6, 3]].map(([widget, width, height, x, y]) => ({ widget, width, height, x, y })); });
-        /* ?tablou=praguri (demo dsh-22, dsh-kpi-zone-v1): DSH-0004 with a row of four number tiles — three KPI tiles with a
+        if (demo.has("kpi4")) json.dashboards.filter((d) => d.id === "TDB-0001" || d.id === "TDB-0004").forEach((d) => { d.config.widgets = [["WGT-0011", "quarter", 3, 0, 0], ["WGT-0015", "quarter", 3, 3, 0], ["WGT-0016", "quarter", 3, 6, 0], ["WGT-0017", "quarter", 3, 9, 0], ["WGT-0001", "half", 9, 0, 3], ["WGT-0006", "half", 9, 6, 3]].map(([widget, width, height, x, y]) => ({ widget, width, height, x, y })); });
+        /* ?tablou=praguri (demo dsh-22, dsh-kpi-zone-v1): TDB-0004 with a row of four number tiles — three KPI tiles with a
            target (Critic · Avertizare · Favorabil at ANSP, js/widget-admin.js demo seeds) + Cereri depuse (KPI without a target) */
-        if (demo.has("praguri")) json.dashboards.filter((d) => d.id === "DSH-0004").forEach((d) => { d.config.widgets = [["WGT-0019", "quarter", 3, 0, 0], ["WGT-0020", "quarter", 3, 3, 0], ["WGT-0021", "quarter", 3, 6, 0], ["WGT-0011", "quarter", 3, 9, 0], ["WGT-0006", "half", 9, 0, 3], ["WGT-0008", "half", 9, 6, 3]].map(([widget, width, height, x, y]) => ({ widget, width, height, x, y })); });
+        if (demo.has("praguri")) json.dashboards.filter((d) => d.id === "TDB-0004").forEach((d) => { d.config.widgets = [["WGT-0019", "quarter", 3, 0, 0], ["WGT-0020", "quarter", 3, 3, 0], ["WGT-0021", "quarter", 3, 6, 0], ["WGT-0011", "quarter", 3, 9, 0], ["WGT-0006", "half", 9, 0, 3], ["WGT-0008", "half", 9, 6, 3]].map(([widget, width, height, x, y]) => ({ widget, width, height, x, y })); });
         if (kpi3) kpi3.config.widgets = ["WGT-0011", "WGT-0015", "WGT-0016"].map((widget) => ({ widget, width: "third", height: "compact" }));
         if (mixed) mixed.config.widgets = [["WGT-0011", "third", "compact"], ["WGT-0001", "third", "compact"], ["WGT-0006", "third", "tall"], ["WGT-0003", "twoThirds", "compact"], ["WGT-0008", "half", "compact"], ["WGT-0012", "half", "compact"]].map(([widget, width, height]) => ({ widget, width, height }));
         json.dashboards.forEach((d) => {
@@ -681,14 +681,14 @@
     return html ? html.replace("hidden data-stack-menu>", "hidden data-stack-menu data-stack-menu-fixed>") : "";
   }
   /* dsh-stack-list-v1 (2026-11-11, = Rapoarte rpt-details-line-v1): title + Small status tag · description (tertiary, 2 lines
-     + tooltip when cut) · details „DSH-0001 · v2 · Global: Toate autoritățile · Specialist (principal) · 6 widget-uri ·
+     + tooltip when cut) · details „TDB-0001 · v2 · Global: Toate autoritățile · Specialist (principal) · 6 widget-uri ·
      Editat <dată>, <oră> · <cine>”; right side = only ⋮ (the row opens the dashboard) */
   const pendingHtml = (row) => A().renderHeaderStatus?.("Modificări nepublicate", "warning", `data-dsh-pending-row="${esc(row.id)}" aria-haspopup="dialog" data-tooltip-text="Vezi modificările" aria-label="Vezi modificările nepublicate ale ${esc(row.id)}"`) || "modificări nepublicate";
   const scopeText = (row) => (row.nivel === "Global" ? `Global: ${row.autoritate}` : `Autoritate: ${row.autoritate}`);
   const rolesShort = (row) => row.d.config.roles.map((r) => `${roleName(r.role)}${r.type === "principal" ? " (principal)" : ""}`).join(", ");
   const stackItem = (row) => {
     const details = [
-      esc(row.id),
+      window.GEAPObjectId?.listHtml?.(row.id, { meta: true }) || esc(row.id),
       row.versiune ? `v${esc(row.versiune)}` : "nepublicat",
       esc(scopeText(row)),
       row.roluri ? `<span data-cell-tooltip="${esc(rolesShort(row))}">${esc(rolesShort(row))}</span>` : "",
@@ -737,7 +737,7 @@
     rowClass: (row) => (row.statut === "Publicat" || row.statut === "Ciornă" ? "" : "is-inactive"),
     renderCell: (row, key) => {
       switch (key) {
-        case "id": return `<span data-cell-tooltip="${esc(row.id)}">${esc(row.id)}</span>`;
+        case "id": return window.GEAPObjectId?.listHtml?.(row.id) || esc(row.id);
         case "denumire": return `<span data-cell-tooltip="${esc(row.denumire)}">${esc(row.denumire)}</span>`;
         case "roluri": return row.principal.length ? twoLines(`<span data-cell-tooltip="${esc(row.roluri)}">${esc(row.roluri)}</span>`, esc(`principal: ${row.principal.join(", ")}`)) : `<span data-cell-tooltip="${esc(row.roluri)}">${esc(row.roluri || "—")}</span>`;
         case "nivel": return twoLines(esc(row.nivel), `<span data-cell-tooltip="${esc(row.autoritate)}">${esc(row.autoritate)}</span>`);
@@ -1331,7 +1331,7 @@
       if (Object.keys(changed).length) audit(d, "edit", Object.entries(changed).map(([lbl, [a, b]]) => `${lbl}: ${a} → ${b}`).join(" · "));
     } else {
       const nums = [...all().map((x) => x.id), ...(D().removed || [])].map((x) => Number(String(x).split("-")[1]) || 0);
-      const id = `DSH-${String((nums.length ? Math.max(...nums) : 0) + 1).padStart(4, "0")}`;
+      const id = `TDB-${String((nums.length ? Math.max(...nums) : 0) + 1).padStart(4, "0")}`;
       d = { id, level: me.central ? "Global" : "Autoritate", ...(me.central ? {} : { authority: me.authority }), status: "Ciornă", offFor: [], createdAt: nowIso(), createdBy: userName(), updatedAt: nowIso(), updatedBy: userName(), config: clone(P.draft), versions: [], history: [] };
       all().push(d);
       audit(d, P.from ? "clone" : "create", P.from ? `Din ${P.from} · ${levelText(d)}` : `Ciornă · ${levelText(d)}`);
@@ -2026,11 +2026,11 @@
      dsh-feature-v1 (2026-11-12, Feature 96498): common filters (US-427, `viewFacets`), KPI zones on the number tiles
      (US-428, js/widget-charts.js `tile`), value → register with the filters (US-430, `drillTo`), „Alerte active”
      (US-431 + US-536, `viewAlerts`), „Personalizează” (US-433, `openPersonal`). Demo switches ?tablou=gol · incarcare ·
-     widget-eroare · praguri (three KPI tiles with a target on DSH-0004). */
+     widget-eroare · praguri (three KPI tiles with a target on TDB-0004). */
   const VIEW_NAV = "tablou-de-bord";
   /* dsh-dashboard-nav-v1 (2026-11-11, Feature 96498 «Dashboard»): the first top-level menu item, above Locul de muncă;
      a role sees only the active dashboards assigned to it (+ its authority) — the Specialist no longer gets the
-     supervisor's one (data/dashboards.json: DSH-0002 / DSH-0009 = supervisor only) */
+     supervisor's one (data/dashboards.json: TDB-0002 / TDB-0009 = supervisor only) */
   const VIEW_TITLE = "Dashboard";
   /* Feature 96498 AC text, „tu” tone */
   const VIEW_EMPTY = "Nu ai acces la tablouri de bord.";

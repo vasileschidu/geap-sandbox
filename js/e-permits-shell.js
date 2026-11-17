@@ -2960,6 +2960,9 @@ document.addEventListener("DOMContentLoaded", () => {
      semnat?: true | { nume, rol }, tags?: [[label, tone]], group?, … }. Generated ones come from
      e-permits-workplace.json › documenteGenerate (by flow step), acts from its `acte`. */
   const docSlug = (value) => String(value || "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+  /* coding-rules-v1 (US-330): a generated file = {TipDocument}_{Identificator}.pdf — the number keeps its case, „/” → „-”,
+     ASCII only (js/object-id.js `fileId`); the type part comes from the catalogue („DecizieRespingere_{nr}.pdf”) */
+  const docFileId = (value) => window.GEAPObjectId?.fileId?.(value) || docSlug(value);
   const docStamp = (day, minutes) => `${day}T${String(8 + Math.floor(minutes / 60)).padStart(2, "0")}:${String(minutes % 60).padStart(2, "0")}:00`;
   const docCatalog = () => dossierDb?.documenteGenerate || { pasi: [], tipuri: [], acte: {} };
   const docSigner = () => docCatalog().conducator || { nume: "Conducătorul autorității", rol: "Conducătorul autorității" };
@@ -2977,7 +2980,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const signed = Boolean(row.dataSemnarii) || DOSAR_DECIDED.includes(row.status);
     return [{
       id: "a1", tip: spec.tip, sursa: "generat", nr, nrLabel: spec.numar === "act" ? "Număr act" : "Număr dosar",
-      fisier: (spec.fisier || "act.pdf").replace("{nr}", docSlug(nr)), kb: spec.kb + (hash % 90),
+      fisier: (spec.fisier || "Act_{nr}.pdf").replace("{nr}", docFileId(nr)), kb: spec.kb + (hash % 90),
       at: docStamp(dosarDecisionDay(row), 6 * 60 + (hash % 50)), verb: "Emis",
       de: row.specialist ? { nume: row.specialist.nume, rol: "Specialist" } : null,
       semnat: signed ? docSigner() : null,
@@ -3008,7 +3011,7 @@ document.addEventListener("DOMContentLoaded", () => {
       docs.push({
         id: `g${docs.length + 1}`, genId: spec.id, tip: spec.tip, sursa: "generat", group: spec.pas,
         nr, nrLabel: { dosar: "Număr dosar", mpower: "Număr împuternicire", mpay: "Număr notă de plată" }[spec.numar] || "Număr",
-        fisier: spec.fisier.replace("{nr}", docSlug(extra.slug || nr)), kb: spec.kb + (hash % 40),
+        fisier: spec.fisier.replace("{nr}", docFileId(nr)), kb: spec.kb + (hash % 40),
         at: extra.at, verb: "Generat", de, semnat: signer,
         tags: spec.semnat === "conducator" && !signedDecision ? [["Proiect", "neutral"]] : []
       });
@@ -4037,7 +4040,7 @@ document.addEventListener("DOMContentLoaded", () => {
       : `Cererea dumneavoastră a fost înregistrată la ${base.authority}. Statutul ei îl urmăriți în EVO, în „Solicitările mele”.`;
     return {
       id: `notif-${docSlug(item.eveniment)}`, kind: "notificare", tip: title, sursa: "generat",
-      fisier: `${docSlug(title)}-${docSlug(row.nrDosar)}.pdf`, at, semnat: null,
+      fisier: window.GEAPObjectId?.fileName?.({ type: title, id: row.nrDosar }) || `${docSlug(title)}-${docSlug(row.nrDosar)}.pdf`, at, semnat: null,
       mdoc: {
         type: "notificare", title, number: row.nrDosar, date: at, intro: ["Stimate solicitant,", intro], groups,
         /* mdocs-system-v1: the fees of a payment note = the table module with its total */

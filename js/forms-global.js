@@ -236,7 +236,7 @@
   const stackItem = (row) => {
     const r = row.r;
     const details = [
-      esc(row.id),
+      window.GEAPObjectId?.listHtml?.(row.id, { meta: true }) || esc(row.id),
       esc(row.versiune),
       esc(plural(row.campuri, "câmp", "câmpuri")),
       pending(r) ? pendingHtml(row) : "",
@@ -400,11 +400,7 @@
       body: `
         ${refusedNote ? U().renderNotice?.("error", `<strong>Formularul nu a fost creat.</strong> ${esc(REFUSED)}`, { role: "alert" }) || "" : ""}
         <div class="e-permits-user-create__grid">
-          <div class="e-permits-fo-field e-permits-user-create__field e-permits-user-create__field--12">
-            <label for="frm-new-id">ID</label>
-            <div class="e-permits-fo-input is-filled is-readonly"><input id="frm-new-id" type="text" value="${esc(C.id)}" readonly aria-describedby="frm-new-id-hint"></div>
-            <p class="e-permits-fo-field__hint" id="frm-new-id-hint">Se atribuie automat la creare și nu se mai schimbă.</p>
-          </div>
+          <!-- coding-rules-v1 (US-327 AC-17): the create form has no ID field — the ID is given at the save -->
           ${nameField("frm-new-name", v, C.errors.nameText)}
           ${selectField("frm-new-kind", 'data-frm-new="nameKind"', "Tipul procesului sau pasul intern", [["fara", "Fără"], ...NAME_KINDS], v.nameKind || "fara", { hint: "Se adaugă la sfârșitul denumirii." })}
           ${descField("frm-new-desc", v.description, C.errors.description)}

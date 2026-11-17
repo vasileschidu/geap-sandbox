@@ -107,9 +107,37 @@
     return id;
   };
 
+  /* ---------------------------------------------------------------- ID + name (coding-rules-v1, Feature 94830) */
+  const OID = () => window.GEAPObjectId || {};
+  /* US-327: every register has an ID „REG-NNNN” — the seed in catalog order, a new one = the next of the type (never reused) */
+  function ensureIds() {
+    const recs = G().catalog?.()?.records || [];
+    let max = 0;
+    recs.forEach((r) => { const n = OID().parse?.(r.objectId)?.n || 0; if (n > max) max = n; });
+    recs.forEach((r) => { if (!r.objectId) { max += 1; r.objectId = OID().format?.("REG", max) || ""; } });
+    OID().seen?.("REG", max);
+  }
+  const oidOf = (rec) => { if (rec && !rec.objectId) ensureIds(); return rec?.objectId || ""; };
+  /* US-329 (type A): „Registru” (automatic) + what it records (free text) + the authority / service ID (automatic) */
+  const NAME_PREFIX = "Registru";
+  const nameText = (name) => String(name || "").replace(/^\s*Registrul?\s+/i, "").replace(/\s+(AUT|SRV)-\d{4,}\s*$/, "");
+  const nameSuffix = (scope, authority, service) => (scope === "Authority" ? OID().authorityId?.(authority) || "" : scope === "Service" ? OID().serviceId?.(service) || "" : "");
+  const fullName = (text, scope, authority, service) => OID().compose?.(NAME_PREFIX, OID().stripPrefix?.(NAME_PREFIX, text) ?? text, nameSuffix(scope, authority, service)) || String(text || "").trim();
+  /* AC-08 / 09: unique in the same perimeter (global / the authority / the service), case, double spaces and diacritics ignored */
+  const samePlace = (r, scope, authority, service) => r.scope === scope && (scope !== "Authority" || r.authority === authority) && (scope !== "Service" || r.service === service);
+  const nameTaken = (full, scope, authority, service, selfId = "") => G().catalog().records.some((r) => r.id !== selfId && samePlace(r, scope, authority, service) && OID().fold?.(r.names.ro) === OID().fold?.(full));
+  const NAME_HINT = "Scrie doar ce evidențiază registrul. „Registru” și ID-ul autorității sau al serviciului se adaugă automat.";
+  const nameExample = (scope) => (scope === "Authority" ? "Registru licențe gaze naturale AUT-0005" : scope === "Service" ? "Registru acte SRV-0001" : "Registru dosare în lucru");
+  function nameField(v, error, { scope, authority, service }) {
+    return OID().nameFieldHtml?.({
+      id: "rga-ro", attrs: 'data-rga-field="ro"', label: "Denumire (ro)", prefix: NAME_PREFIX, text: v.ro, suffix: nameSuffix(scope, authority, service),
+      placeholder: "ce evidențiază, de ex. acte", hint: NAME_HINT, example: nameExample(scope), error, max: 200
+    }) || textField("ro", "Denumire (ro)", v.ro, { required: true, max: 200, counter: true, error });
+  }
+
   /* ================================================================ LIST (US-147) */
   const rowOf = (rec) => ({
-    id: rec.id, denumire: rec.names.ro, cod: rec.code, obiect: objectLabel(rec.object), object: rec.object, perimetru: scopeLabel(rec.scope), scope: rec.scope,
+    id: rec.id, oid: oidOf(rec), denumire: rec.names.ro, cod: rec.code, obiect: objectLabel(rec.object), object: rec.object, perimetru: scopeLabel(rec.scope), scope: rec.scope,
     autoritate: placeOf(rec), pozitie: Number(rec.position) || 0, coloane: rec.config.columns.length, versiune: rec.publishedVersion || rec.version,
     publicat: Boolean(rec.publishedVersion), unpublished: Boolean(rec.unpublished), statut: rec.status, editat: rec.editedAt, editatDe: rec.editedBy, rec
   });
@@ -130,6 +158,8 @@
       defaultSort: "pozitie",
       defaultSortDirection: "asc",
       columns: {
+        /* US-327 AC-14: the „ID” column */
+        oid: { label: "ID", width: 112, sortable: true },
         denumire: { label: "Denumire", width: 300, fill: true, sortable: true },
         obiect: { label: "Obiect-sursă", width: 144 },
         perimetru: { label: "Perimetru", width: 120 },
@@ -144,7 +174,7 @@
           title: "Registre",
           selectable: false,
           searchPlaceholder: "Caută registre",
-          columns: ["denumire", "obiect", "perimetru", "autoritate", "pozitie", "coloane", "versiune", "statut"],
+          columns: ["oid", "denumire", "obiect", "perimetru", "autoritate", "pozitie", "coloane", "versiune", "statut"],
           tabs,
           defaultTab: tabs[0].id,
           primaryAction: can("create") ? { id: "rga-new", label: "Adaugă registru" } : null,
@@ -167,11 +197,12 @@
       ];
     },
     /* AC-11: denumirea, obiectul-sursă, perimetrul, autoritatea sau serviciul */
-    searchText: (row) => [row.denumire, row.obiect, row.perimetru, row.autoritate, row.rec.scope === "Authority" ? authorityName(row.rec.authority) : ""].join(" "),
+    searchText: (row) => [row.oid, row.denumire, row.obiect, row.perimetru, row.autoritate, row.rec.scope === "Authority" ? authorityName(row.rec.authority) : ""].join(" "),
     sortValue: (row, key) => (key === "pozitie" || key === "coloane" ? Number(row[key]) || 0 : textOf(row, key)),
     filterToken: (row, token) => (token.startsWith("scope:") ? row.scope === token.slice(6) : true),
     renderCell: (row, key) => {
       switch (key) {
+        case "oid": return OID().listHtml?.(row.oid) || esc(row.oid);
         /* AC-06: the code under the name */
         case "denumire": return `
           <div class="e-permits-workplace__case-cell">
@@ -190,7 +221,7 @@
       }
     },
     openRow: (id) => openProfile(id),
-    rowLabel: (row) => `${row.denumire}, ${row.cod} — deschide profilul registrului`,
+    rowLabel: (row) => `${row.oid} ${row.denumire}, ${row.cod} — deschide profilul registrului`,
     emptyHtml: ({ query, filtered }) => {
       const E = window.GEAPEmptyState;
       if (!data()) return E?.render({ title: "Se încarcă registrele…", loading: true, bare: true });
@@ -223,8 +254,8 @@
   }
   function exportCsv() {
     const rows = exportRows || [];
-    const head = ["Denumire", "Cod", "Obiect-sursă", "Perimetru", "Autoritate sau serviciu", "Poziție", "Coloane", "Versiune", "Statut"];
-    const lines = rows.map((r) => [r.denumire, r.cod, r.obiect, r.perimetru, r.autoritate, r.pozitie, r.coloane, r.versiune, r.statut]);
+    const head = ["ID", "Denumire", "Cod", "Obiect-sursă", "Perimetru", "Autoritate sau serviciu", "Poziție", "Coloane", "Versiune", "Statut"];
+    const lines = rows.map((r) => [r.oid, r.denumire, r.cod, r.obiect, r.perimetru, r.autoritate, r.pozitie, r.coloane, r.versiune, r.statut]);
     const cell = (v) => `"${String(v ?? "").replace(/"/g, '""')}"`;
     download(`﻿${[head, ...lines].map((l) => l.map(cell).join(";")).join("\r\n")}`, "registre.csv", "text/csv;charset=utf-8");
     (G().catalog().audit ||= []).unshift({ at: nowIso(), by: userName(), type: "Export listă registre", detail: `${rows.length} registre` });
@@ -288,6 +319,8 @@
       status: rec.unpublished ? A().renderHeaderStatus?.("Modificări nepublicate", "warning") || "" : ""
     });
     els.dosarProfilSummary.innerHTML = A().renderPageHeaderMeta([
+      /* US-327 AC-15: the read-only ID */
+      OID().metaItem?.(oidOf(rec)) || ["ID", esc(oidOf(rec))],
       ["Obiect-sursă", esc(objectLabel(rec.object))],
       ["Perimetru", esc(rec.scope === "Global" ? "Global" : `${scopeLabel(rec.scope)} · ${placeOf(rec)}`)],
       ["Statut", statusTag(rec)],
@@ -559,7 +592,7 @@
         const e = D.errors;
         const local = !who().all;
         const objects = Object.entries(G().objects || {}).map(([k, o]) => [k, o.label]);
-        const code = codeOf(v.object || "Case", v.scope, v.ro);
+        const code = codeOf(v.object || "Case", v.scope, OID().compose?.(NAME_PREFIX, OID().stripPrefix?.(NAME_PREFIX, v.ro)) || v.ro);
         return `
           ${section("Sursa și perimetrul", grid(
             selectField("object", "Obiect-sursă", objects, v.object, { required: true, placeholder: "Alege obiectul-sursă", error: e.object, hint: "Nu se mai schimbă după creare." }),
@@ -575,7 +608,7 @@
             v.scope !== "Global" ? selectField("parent", "Registru-părinte", parentOptions(v), v.parent, { placeholder: v.object ? "Fără registru-părinte" : "Alege întâi obiectul-sursă", disabled: !v.object, hint: "Opțional. Coloanele și acțiunile lui se copiază o singură dată, la creare." }) : ""
           ))}
           ${section("Denumire și descriere", grid(
-            textField("ro", "Denumire (ro)", v.ro, { required: true, max: 200, counter: true, error: e.ro }),
+            nameField(v, e.ro, { scope: v.scope, authority: v.scope === "Service" ? serviceOf(v.service)?.authority : v.authority, service: v.service }),
             textField("ru", "Denumire (ru)", v.ru, { max: 200, span: 6 }),
             textField("en", "Denumire (en)", v.en, { max: 200, span: 6 }),
             areaField("description", "Descriere", v.description, { max: 500, hint: "De ce există registrul și cine îl folosește." })
@@ -592,9 +625,9 @@
         const e = D.errors;
         const rec = recordOf(D.id);
         return `
-          ${section("Identificare", grid(textField("code", "Cod", rec.code, { readonly: true, hint: "Codul rămâne același după creare" })))}
+          ${section("Identificare", grid(OID().fieldHtml?.(oidOf(rec)) || "", textField("code", "Cod", rec.code, { readonly: true, hint: "Codul rămâne același după creare" })))}
           ${section("Denumire și descriere", grid(
-            textField("ro", "Denumire (ro)", v.ro, { required: true, max: 200, counter: true, error: e.ro }),
+            nameField(v, e.ro, { scope: rec.scope, authority: rec.authority, service: rec.service }),
             textField("ru", "Denumire (ru)", v.ru, { max: 200, span: 6 }),
             textField("en", "Denumire (en)", v.en, { max: 200, span: 6 }),
             areaField("description", "Descriere", v.description, { max: 500 })
@@ -647,10 +680,17 @@
     const counter = drawer.querySelector(`[data-rga-counter="${t.id}"]`);
     if (counter) counter.textContent = `${t.value.length} / ${t.maxLength}`;
     if (D.errors[key]) { delete D.errors[key]; renderDrawer(); return; }
+    /* the composed name follows the text live (US-329 user flow, step 4) */
+    if (key === "ro") {
+      const rec = D.mode === "edit" ? recordOf(D.id) : null;
+      const where = rec ? [rec.scope, rec.authority, rec.service] : [D.v.scope, D.v.scope === "Service" ? serviceOf(D.v.service)?.authority : D.v.authority, D.v.service];
+      const full = drawer.querySelector("[data-oid-full]");
+      if (full) full.textContent = fullName(D.v.ro, ...where);
+    }
     /* the code follows the name live (US-146 user flow) */
     if (D.mode === "create" && key === "ro") {
       const code = drawer.querySelector("#rga-code");
-      if (code) code.value = codeOf(D.v.object || "Case", D.v.scope, D.v.ro);
+      if (code) code.value = codeOf(D.v.object || "Case", D.v.scope, OID().compose?.(NAME_PREFIX, OID().stripPrefix?.(NAME_PREFIX, D.v.ro)) || D.v.ro);
       if (D.errors.code) { delete D.errors.code; renderDrawer(); }
     }
   }
@@ -704,7 +744,12 @@
     if (!v.ro.trim()) e.ro = "Denumirea este obligatorie";
     if (v.scope === "Authority" && !v.authority) e.authority = "Alege autoritatea";
     if (v.scope === "Service" && !v.service) e.service = "Alege serviciul";
-    const code = codeOf(v.object || "Case", v.scope, v.ro);
+    const placeAuth = v.scope === "Service" ? serviceOf(v.service)?.authority || null : v.scope === "Authority" ? v.authority : null;
+    const full = fullName(v.ro, v.scope, placeAuth, v.service);
+    if (!v.ro.trim() || !OID().stripPrefix?.(NAME_PREFIX, v.ro).trim()) e.ro = "Denumirea este obligatorie";
+    /* US-329 AC-08: the same name in the same perimeter blocks the save */
+    else if (nameTaken(full, v.scope, placeAuth, v.service)) e.ro = OID().DUPLICATE || "Există deja un obiect cu această denumire.";
+    const code = codeOf(v.object || "Case", v.scope, OID().compose?.(NAME_PREFIX, OID().stripPrefix?.(NAME_PREFIX, v.ro)) || v.ro);
     if (!e.ro && v.object && G().catalog().records.some((r) => r.code === code)) e.code = "Există deja un registru cu acest cod";
     /* AC-12: a local administrator never creates a global register (the option is not offered either) */
     if (v.scope === "Global" && !who().all) e.code = "Acces interzis";
@@ -719,9 +764,11 @@
     const parent = v.parent ? recordOf(v.parent) : null;
     const authority = v.scope === "Service" ? serviceOf(v.service)?.authority || null : v.scope === "Authority" ? v.authority : null;
     const peers = cat.records.filter((r) => r.scope === v.scope);
+    ensureIds();
     const rec = {
-      id: newId(code), code, object: v.object, scope: v.scope, authority, service: v.scope === "Service" ? v.service : null, parent: parent?.id || null,
-      names: { ro: v.ro.trim(), ru: v.ru.trim(), en: v.en.trim() }, description: v.description.trim(),
+      /* US-327 AC-03 / 17: the ID is given at the save, never typed */
+      id: newId(code), objectId: OID().assign?.("REG") || "", code, object: v.object, scope: v.scope, authority, service: v.scope === "Service" ? v.service : null, parent: parent?.id || null,
+      names: { ro: full, ru: v.ru.trim(), en: v.en.trim() }, description: v.description.trim(),
       position: Math.min(999, peers.reduce((m, r) => Math.max(m, Number(r.position) || 0), 0) + 1),
       category: data()?.admin?.categories?.[v.object] || "", icon: { Case: "document", Permit: "permission", Invoice: "receipt-bill", Expertise: "stamp" }[v.object],
       status: "Schiță", version: "v1.0.0", publishedVersion: null, unpublished: false,
@@ -731,7 +778,8 @@
       versions: [], grants: [], events: []
     };
     cat.records.push(rec);
-    audit(rec, "Creare registru", `${rec.code} · ${rec.names.ro}`);
+    audit(rec, "Creare registru", `${rec.objectId} · ${rec.code} · ${rec.names.ro}`);
+    OID().logAssign?.("Registru intern", rec.objectId, rec.names.ro);
     G().commit();
     closeDrawer();
     /* AC-13: the list shows the new register in the tab of its perimeter */
@@ -743,19 +791,22 @@
       if (search) search.value = "";
     }
     refreshList();
-    toast(`Registrul „${rec.names.ro}” a fost creat ca schiță.`, "success", { link: { href: `#registru-config/${rec.id}/informatii`, label: "Deschide registrul" } });
+    toast(`Registrul „${rec.names.ro}” a fost creat ca schiță, cu ID-ul ${OID().nb?.(rec.objectId) || rec.objectId}.`, "success", { link: { href: `#registru-config/${rec.id}/informatii`, label: "Deschide registrul" } });
   }
   function saveEdit() {
     const v = D.v;
     const e = {};
-    if (!v.ro.trim()) e.ro = "Denumirea este obligatorie";
+    const self = recordOf(D.id);
+    const full = fullName(v.ro, self.scope, self.authority, self.service);
+    if (!OID().stripPrefix?.(NAME_PREFIX, v.ro).trim()) e.ro = "Denumirea este obligatorie";
+    else if (nameTaken(full, self.scope, self.authority, self.service, self.id)) e.ro = OID().DUPLICATE || "Există deja un obiect cu această denumire.";
     const pos = String(v.position).trim();
     if (!/^\d{1,3}$/.test(pos) || Number(pos) > 999) e.position = "Introdu un număr între 0 și 999";
     D.errors = e;
     if (Object.keys(e).length) { renderDrawer(); drawer.querySelector(`#rga-${e.ro ? "ro" : "position"}`)?.focus(); return; }
     const rec = recordOf(D.id);
     const before = { ...rec.names, description: rec.description, position: rec.position };
-    rec.names = { ro: v.ro.trim(), ru: v.ru.trim(), en: v.en.trim() };
+    rec.names = { ro: full, ru: v.ru.trim(), en: v.en.trim() };
     rec.description = v.description.trim();
     rec.position = Number(pos);
     touch(rec);
@@ -1782,7 +1833,7 @@
     if (t.closest("[data-rga-configure]")) { openEditor(); return; }
     if (t.closest("[data-rga-publish]")) { openPublish(); return; }
     if (t.closest("[data-rga-history]")) { openDrawer({ mode: "versions", id: P.id, page: 1, perPage: 10, sort: { key: "nr", dir: "desc" } }); return; }
-    if (t.closest("[data-rga-edit]")) { closeMenus(); const rec = recordOf(P.id); openDrawer({ mode: "edit", id: rec.id, v: { ro: rec.names.ro, ru: rec.names.ru, en: rec.names.en, description: rec.description, position: String(rec.position) } }); return; }
+    if (t.closest("[data-rga-edit]")) { closeMenus(); const rec = recordOf(P.id); openDrawer({ mode: "edit", id: rec.id, v: { ro: nameText(rec.names.ro), ru: rec.names.ru, en: rec.names.en, description: rec.description, position: String(rec.position) } }); return; }
     if (t.closest("[data-rga-deprecate]")) { closeMenus(); deprecate(); return; }
     if (t.closest("[data-rga-reactivate]")) { closeMenus(); reactivate(); return; }
     if (t.closest("[data-rga-grant]")) { openDrawer({ mode: "grant", id: P.id, v: { authority: "", roles: [] } }); return; }

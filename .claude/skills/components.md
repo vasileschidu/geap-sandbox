@@ -222,6 +222,9 @@ but this doc previously described it wrongly, see the entry.
 | Registry as a stacked list (registry-stack-v1, 2026-11-11; first: Rapoarte) — NEW | a product registry (`window.GEAPShellRegistries[kind]`) that defines `stackItem(row)` → a `renderStackItem` item (title, meta, meta2, actionsHtml…) is drawn by the shell as the stacked list instead of the table: same toolbar / search / facets / pager / `openRow`; host `div.e-permits-workplace__stack[data-workplace-stack]` (padding 16 0 24) inside `.e-permits-workplace__table-wrap`, the table hidden by `.e-permits-workplace[data-workplace-layout="stack"]`; markup `.e-permits-stack` (+ `stackClass`) › `__group` › `ul.e-permits-stack__list` › `li.e-permits-stack__item.is-clickable[data-workplace-row][tabindex=0][data-workplace-row-open]` (name from `rowLabel`, + `rowClass`); empty = `emptyHtml({ query, filtered, boxed: true })` → the BOXED empty state (else `renderNoResults`). Toolbar + list sit in the BO page column (registry-stack-width-v1: max 1024, centred, 16 a side = `.e-permits-dosar-profil__panel`; no toolbar / filter lines). Sort (registry-sort-v1): `sort: { keys: [{value,label}], orders(key) → [{value,label}] }` (natural order first) → ONE „Sortează” chip next to „Filtrare” (`.e-permits-stack__menu-wrap.e-permits-workplace__sort-control` › `chip e-permits-filter-trigger(--sm) e-permits-sort-trigger` icon-sort + current key, never black; fixed menu `#workplace-sort-menu` = `GEAPSortSheet.menuHtml` radio items; phones = icon-only square in the search row via the facet filter `sort` slot + the sort sheet); key → `sortKey`, order → `sortDirection`, `defaultSort` = the first view; optional hooks (rbo-list-toolbar-v1, BO Rapoarte list): `stackGroup(row)` → category group heading (`__group-label` + count, `stackGroupOrder(label)`), `listHeading()` → `{title, meta}` section heading ABOVE the toolbar (`div.e-permits-workplace__heading[data-workplace-heading]`, header turns into a column), `exportState` hides Export | `renderWorkplaceStack` in `js/e-permits-shell.js`, css/e-permits-shell.css; Rapoarte row layout in css/rapoarte.css; demo rpt-01… | app |
 | Registry intro line + second header action (forms-global-v1, 2026-11-17) — NEW | `registries[kind].stackIntro` (text / HTML) → `div.e-permits-workplace__stack-intro` (16 below) › `renderInfoNote` above the stacked list AND above its empty state; `view.secondaryAction = { id, label }` → toolbar `button.btn.btn-secondary.btn-sm.e-permits-workplace__primary-action[data-workplace-secondary-product="<id>"]` (upload icon 16) before the primary one, the product handles the click | `js/e-permits-shell.js` (`renderWorkplaceStack`, toolbar sync), first: Formulare globale („Importă” + „Formular global nou”) |
 | Input prefix — locked text at the start of a field (forms-global-v1) — NEW | `.e-permits-fo-input` › `label.e-permits-fo-input__prefix[for=<input id>][aria-hidden="true"]` BEFORE the input = the mirror of the unit suffix: default text colour (part of the value), 14/20 (16/24 ≤760, as the input), not selectable, gap 4, click focuses the field; the full value is spelled in the hint / counter row for screen readers | `css/form-builder.css`; Formulare globale „Denumire” („Formular” + free text) in the create dialog and the Form Designer panel |
+| **Object ID — read-only, one pattern** (coding-rules-v1, 2026-11-17, US-327) — NEW | list = `GEAPObjectId.listHtml(id)` = the COMPACT copy value (table: `cell__primary` type; `{ meta: true }` in stacked meta) in a column labelled „ID”; profile = `GEAPObjectId.metaItem(id)` → `["ID", default copy value]` as the FIRST page-header meta item („se atribuie la salvare” before the first save); edit form = `GEAPObjectId.fieldHtml(id)` → `div.e-permits-fo-field.e-permits-oid-field` › `span.e-permits-cfg-ro__label` „ID” + `div.e-permits-cfg-ro` (grey read-only box) holding the copy value + hint „Atribuit automat la creare. Nu se modifică…”; the CREATE form has no ID field (the ID is given at the save, then named in the success toast with `nb(id)` = non-breaking hyphen) | `js/object-id.js` (+ `css/coding-rules.css`); Registre (AdminPortal), KPI, Widgete, Rapoarte, Tablouri de bord, Formulare globale; demo cod-10…12 |
+| **Type A name field — locked first word + parent ID** (coding-rules-v1, US-329) — NEW | `GEAPObjectId.nameFieldHtml({ id, attrs, label, prefix, text, suffix, placeholder, hint, example, error, max })` = the forms-global „Input prefix” field + the unit-suffix label at the END for the authority / service ID (`label.e-permits-fo-input__suffix[for]`, secondary, nowrap; the text stays left-aligned in `.e-permits-oid-name`), the hint with „Exemplu: „…”.” and a live `p.e-permits-oid-name__full` „Denumirea completă: <strong>…</strong>” (aria-live); duplicate in the same perimeter = field error „Există deja un obiect cu această denumire.” (`fold`: case, double spaces, ş/ș ţ/ț, diacritics ignored); a typed copy of the first word is dropped (`stripPrefix`) | `js/object-id.js`; first: Registre › Registru nou / Editează registrul (`js/registre-admin.js`); demo cod-20… |
+| **Reguli de numerotare** (coding-rules-v1, US-328 + Feature 94830 matrix) — NEW | BO registry as the shared stacked list (`registries["reguli-numerotare"]`, menu Setări › „Reguli de numerotare”, `shellView: "reguli-numerotare-registry"`), status tabs Documente emise · Obiecte cu ID · Obiecte fără ID (`filterToken` `tab:*`), `stackIntro` getter per tab, `stackGroup` (configurare / procesare), long rule text = full-width meta part `.e-permits-cod-list__rule` (wraps, never clamped) with a 12/20 tertiary `__label` above; row → the ONE drawer (rule edit: Șablon + the Numerotare token row, Lungime contor, Valoare inițială, Valoare curentă read-only, Resetare contor, live example; object: details blocks) | `js/coding-rules.js`, `css/coding-rules.css`; demo cod-01…03b |
 | Form Designer · global form mode (forms-global-v1) — NEW | `GEAPFormBuilder.openGlobal(form, hooks)` → `.e-permits-builder[data-fb-scope="global"]` in the sheet: header crumb „Formulare globale”, status tag (+ „Inactiv”), meta ID · N câmpuri · version · „Modificări nesalvate” / clickable „Modificări nepublicate” (`renderHeaderStatus`, `[data-fb-pending]`) · editat; top bar `button.btn.btn-neutral.btn-md.btn-rounded.e-permits-builder__save[data-fb-save]` (aria-disabled when clean) before Publică (aria-disabled + reason „Nu există modificări față de versiunea publicată.”), the version chip = „Istoric versiuni”, scope chip hidden; panel „Setări generale formular” (ID read-only · Denumire with prefix + one 150 counter on the whole name · Tipul procesului sau pasul intern · Descriere scurtă 250 counter · Vizibilitate și acces*); never writes the service sandbox DB; × with unsaved edits = askConfirm red | `js/form-builder.js` (`openGlobal` / `refreshGlobal` / `exitGlobal`), `js/forms-global.js` hooks |
 | Hover rules (all components) | one rule per class — table in „Hover — shared rules per component class” (§ after „Opening animations”); check with `tools/ui-qa/hover-audit.mjs` | — | app |
 | Field sizes (all products, user rule 2026-10-18) | desktop = library Medium (40, `.input--medium` / `.search-input.medium`, FO fields 40); phones ≤760 = library default (48, text 16/24 `--font-size-fs-16` / `--line-height-lh-24`), icons inside a field at the library size of that field (48 → `--icon-size-default` 24 at 16 from the edge, text from 48; 40 → `--icon-size-medium` 20). FO: the field-size rules live in a `@media (max-width: 760px)` block (was 720); read-only phone, CAEM / subgenre list search rows, document-picker search follow it. **Search input + text area on phones = ONE shared rule (audit-fix-v1, 2026-10-21): `css/field-sizes.css`** (loaded right before `modal-phone.css` on the BO page, `e-permits-shell.html`, `clasificatoare.html`, Cabinet, RAP): every `.search-input.medium` (BO toolbars / lists incl. `e-permits-pay__tools`, eKYC, Clasificatoare, Cabinet `.cab-search`, RAP `.rap-search`, facet sheets) = 48 · 16/24 · icon 24 at 16 · text from 48, and `.e-permits-fo-textarea textarea` 16/24 in every product — the per-page copies (Cabinet, RAP, eKYC, facet sheet) were deleted; never add a page copy again. Check with `tools/ui-qa/component-audit.mjs` (agent `component-auditor`) | `Components/input-preview.html` | app |
@@ -12922,6 +12925,40 @@ item, a direct `#formulare-globale` / `#formular-global/<id>` shows „Nu ai per
 - Demo switch `?formulare=fara-permisiune|local|fara-creare|gol|eroare|autoritate-inactiva|schema-invalida`; demo
   `frm-01…07e` (01 registry · 02 no permission · 03 create · 04 metadata · 05 publish · 06 versions / import · 07 activation).
 
+### Reguli de codificare — IDs, names, numbering rules, file names (coding-rules-v1, 2026-11-17; Feature 94830) — NEW
+
+Azure Feature 94830 „Reguli de codificare a obiectelor în GEAP 2” (matricea obiectelor v14) + US-327 (97118) ID ·
+US-328 (97117) numbering rules · US-329 (97119) names · US-330 (97120) generated file names. Data + helpers in ONE plain
+script loaded before the shell: `js/object-id.js` → `window.GEAPObjectId`:
+
+| API | What |
+|---|---|
+| `TYPES`, `NO_ID`, `NAMING`, `GENERAL_RULE` | the matrix (28 objects with an ID: prefix, minimum width 4 / 6–9, naming type A/B/C, rule, examples, demo counter) and the 9 objects without one |
+| `format(prefix, n)` / `parse(id)` / `assign(prefix)` / `seen(prefix, n)` / `peek` / `last` | IDs „REG-0009” (width = minimum, „REG-10000” after 9999); one counter per type in sessionStorage, only grows (never reused); modules lift it over their seed with `seen` |
+| `authorityId(code)` / `serviceId(rsspCode)` | the parent ID a specific object adds at the end of its name (ANSP = AUT-0001 … ASP = AUT-0005; 003000118 = SRV-0001) |
+| `listHtml` / `metaItem` / `fieldHtml` / `copy` / `nb` | the ONE read-only ID display (inventory „Object ID — read-only, one pattern”) |
+| `logAssign(objectType, id, name)` | US-327 AC-26: „Atribuire ID” in the unique Jurnal de audit (`GEAPEventTimeline.log`) |
+| `fold` / `compose` / `stripPrefix` / `nameFieldHtml` / `DUPLICATE` | type A names (inventory „Type A name field”) |
+| `fileName({ type, id, duplicate, version, lang, ext })` / `fileId` / `pascal` / `exportName` | US-330: „DecizieRefuz_0125-2026.pdf”, `_Duplicat`, `_v2`, `_RO`; „Cautare_2026-10-09_1430.xlsx” |
+
+**Setări › Reguli de numerotare** (`js/coding-rules.js`, central admin; local admin only with `?numerotare=local`; others
+= the denied empty state, menu item hidden): tabs **Documente emise** (Cerere · Act permisiv · Decizie · Înștiințare ·
+Notă de plată · Cod serviciu; meta = the data-model labels „Șablon: … · Lungime contor: … · Valoare inițială: … ·
+Valoare curentă: … · Resetare contor: …” + „Exemplu (numărul următor): **DR-0013/2026**”; „Doar globală” info tag on Cod
+serviciu; „Numerotarea din GEAP 1” neutral tag when there is no template; no create / delete), **Obiecte cu ID**
+(prefix = neutral Small tag after the object name; meta Format ID · Denumire: Tip A · Ultimul ID; rule + examples as
+full-width wrapping blocks), **Obiecte fără ID**. The rule drawer validates `{NR}` once, known parameters
+`{NR} {YYYY} {YY} {MM} {DD}`, ASCII, counter length 1–9; Salvează → Jurnal „Modificare regulă de numerotare” + success
+toast; `?numerotare=eroare` = error notice in the drawer, values kept; closing with changes = red askConfirm.
+
+**Where the ID is wired (US-327):** Registre (AdminPortal: column „ID” pinned first, header meta, edit drawer
+„Identificare”, new register = next REG + toast + Jurnal), KPI (column „ID” before „Cod”, header meta, Definiție
+„Identificare” locked, create / clone = next KPI), Widgete / Rapoarte / Tablouri de bord / Formulare globale (lists = the
+compact copy; Tablouri de bord IDs renamed DSH → **TDB** as the matrix), Formulare globale create dialog lost its ID field
+(AC-17). Generated dossier documents (US-330): `data/e-permits-workplace.json › documenteGenerate` templates
+„DecizieRespingere_{nr}.pdf”, „Act_{nr}.pdf”…, number via `fileId` (case kept, „/” → „-”); notifications via `fileName`.
+Demo: cod-01…03b (page), cod-10…12 (ID), cod-20…20d (names), cod-30…30b (file names).
+
 ### Tablouri de bord — Configurarea tablourilor de bord (dash-v1, 2026-11-10; Feature 96586)
 
 Administrare › „Tablouri de bord” (after KPI · Widgete · Rapoarte; menu icon `carousel`) for the users with the permission
@@ -12979,7 +13016,7 @@ his authority + only the widgets it may use). Every operation → the dashboard'
 - **Roles — Principal / Secundar (US-550).** One stacked row per role: name + Small brand tag „Principal” + one meta line +
   the library `.segmented-control` Principal · Secundar + red icon-only trash; „Adaugă rol ▾” = the in-flow stack menu
   (`data-stack-menu-align="start"`, the Rapoarte add menu). One principal per role and scope (Global · each authority);
-  the meta names the current principal of that role („Acum principal: DSH-0001 … — devine secundar pentru Specialist la
+  the meta names the current principal of that role („Acum principal: TDB-0001 … — devine secundar pentru Specialist la
   publicare.”); at publication (and restore) the previous principal becomes Secundar for THAT role only (its config + its
   published version), logged on it as „Devenit secundar” by „SIA GEAP · Sistem”; the publish dialog says so in an info
   note before the note field. Deactivating a principal drops its principal roles (only a published dashboard is principal;
@@ -13019,7 +13056,7 @@ his authority + only the widgets it may use). Every operation → the dashboard'
   one still-published widget. Header: Salvează · Publică · ⋮ (max 2 visible).
 - **List = the Rapoarte stacked list (dsh-stack-list-v1, 2026-11-11).** Registry hooks `stackItem` + `sort`,
   `stackClass: "e-permits-rpt-list e-permits-dsh-list"` (the Rapoarte row CSS; `.e-permits-dsh-list` only turns the
-  description tertiary). Row: title + Small status tag · description (2 lines + tooltip) · details „DSH-0001 · v2 · Global:
+  description tertiary). Row: title + Small status tag · description (2 lines + tooltip) · details „TDB-0001 · v2 · Global:
   Toate autoritățile · Specialist (principal) · 6 widget-uri · ● Modificări nepublicate (opens the pending dialog of that row,
   `data-dsh-pending-row`) · Editat 6 noiembrie 2026, 14:30 · Anastasia Cojocaru”; right = only ⋮ (row opens the profile). The
   level tabs became the Nivel facet; Filtrare Nivel · Statut · Rol · Tip · Autoritate (search; „Toate autoritățile” matches
@@ -13043,7 +13080,7 @@ his authority + only the widgets it may use). Every operation → the dashboard'
   compact empty state „Datele nu s-au încărcat” + secondary „Reîncearcă” inside that card only (`GEAPWidgets.card(cfg, { st:
   { bodyHtml } })`). No dashboard = the boxed empty state „Nu ai acces la tablouri de bord.” (96498 AC, tu). Drill values keep
   their hover. Proposal (Features silent): Specialist perimeter = his authority. Demo `?tablou=gol|incarcare|widget-eroare|praguri`;
-  dsh-20 (ANSP Specialist, principal DSH-0004) · 20a (secondary tab) · 20b (empty) · 20c (one widget's error) · 20d (loading) ·
+  dsh-20 (ANSP Specialist, principal TDB-0004) · 20a (secondary tab) · 20b (empty) · 20c (one widget's error) · 20d (loading) ·
   20e (Supervizor) · 20f (error retried).
 - **BO page — dsh-feature-v1 (2026-11-12, Feature 96498; story numbers as the brief, no child US in Azure).** Head row right:
   `.e-permits-dsh-view__actions` = „Personalizează” (`icon-settings`, `data-dsh-personal`) + „Actualizează”, library secondary

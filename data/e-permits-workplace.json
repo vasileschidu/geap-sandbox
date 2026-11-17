@@ -403,18 +403,18 @@
     "pasi": ["Inițierea procedurii", "Depunerea cererii", "Plata taxelor", "Decizie și act"],
     "conducator": { "nume": "Dumitru Rotaru", "rol": "Conducătorul autorității" },
     "tipuri": [
-      { "id": "nota-initiere", "tip": "Nota de inițiere", "pas": "Inițierea procedurii", "fisier": "nota-initiere-{nr}.pdf", "kb": 214, "numar": "dosar", "de": "initiator", "semnat": "initiator", "cand": "oficiu" },
-      { "id": "cerere", "tip": "Cererea depusă", "pas": "Depunerea cererii", "fisier": "cerere-{nr}.pdf", "kb": 312, "numar": "dosar", "de": "sistem", "semnat": "solicitant", "cand": "depus" },
-      { "id": "certificat", "tip": "Certificat constatator", "pas": "Depunerea cererii", "fisier": "certificat-constatator-{nr}.pdf", "kb": 96, "numar": "dosar", "de": "sistem", "semnat": "sistem", "cand": "depus" },
-      { "id": "extras-mpower", "tip": "Extras MPower", "pas": "Depunerea cererii", "fisier": "extras-mpower-{nr}.pdf", "kb": 140, "numar": "mpower", "de": "MPower", "semnat": "sistem", "cand": "mpower" },
-      { "id": "confirmare-plata", "tip": "Confirmarea achitării taxei", "pas": "Plata taxelor", "fisier": "confirmare-plata-{nr}.pdf", "kb": 88, "numar": "mpay", "de": "MPay", "semnat": "sistem", "cand": "achitat" },
-      { "id": "proiect-act", "tip": "Proiectul actului permisiv", "pas": "Decizie și act", "fisier": "proiect-act-permisiv-{nr}.pdf", "kb": 436, "numar": "dosar", "de": "specialist", "semnat": "conducator", "cand": "decizie-aprobare" },
-      { "id": "proiect-respingere", "tip": "Decizia de respingere", "pas": "Decizie și act", "fisier": "decizie-respingere-{nr}.pdf", "kb": 268, "numar": "dosar", "de": "specialist", "semnat": "conducator", "cand": "decizie-respingere" }
+      { "id": "nota-initiere", "tip": "Nota de inițiere", "pas": "Inițierea procedurii", "fisier": "NotaInitiere_{nr}.pdf", "kb": 214, "numar": "dosar", "de": "initiator", "semnat": "initiator", "cand": "oficiu" },
+      { "id": "cerere", "tip": "Cererea depusă", "pas": "Depunerea cererii", "fisier": "Cerere_{nr}.pdf", "kb": 312, "numar": "dosar", "de": "sistem", "semnat": "solicitant", "cand": "depus" },
+      { "id": "certificat", "tip": "Certificat constatator", "pas": "Depunerea cererii", "fisier": "CertificatConstatator_{nr}.pdf", "kb": 96, "numar": "dosar", "de": "sistem", "semnat": "sistem", "cand": "depus" },
+      { "id": "extras-mpower", "tip": "Extras MPower", "pas": "Depunerea cererii", "fisier": "ExtrasMPower_{nr}.pdf", "kb": 140, "numar": "mpower", "de": "MPower", "semnat": "sistem", "cand": "mpower" },
+      { "id": "confirmare-plata", "tip": "Confirmarea achitării taxei", "pas": "Plata taxelor", "fisier": "ConfirmarePlata_{nr}.pdf", "kb": 88, "numar": "mpay", "de": "MPay", "semnat": "sistem", "cand": "achitat" },
+      { "id": "proiect-act", "tip": "Proiectul actului permisiv", "pas": "Decizie și act", "fisier": "ProiectActPermisiv_{nr}.pdf", "kb": 436, "numar": "dosar", "de": "specialist", "semnat": "conducator", "cand": "decizie-aprobare" },
+      { "id": "proiect-respingere", "tip": "Decizia de respingere", "pas": "Decizie și act", "fisier": "DecizieRespingere_{nr}.pdf", "kb": 268, "numar": "dosar", "de": "specialist", "semnat": "conducator", "cand": "decizie-respingere" }
     ],
     "acte": {
-      "aprobare": { "tip": "Act permisiv", "fisier": "act-permisiv-{nr}.pdf", "kb": 512, "numar": "act", "registru": "ASP" },
-      "respingere": { "tip": "Decizie de respingere", "fisier": "decizie-respingere-{nr}.pdf", "kb": 268, "numar": "dosar", "registru": "ASP" },
-      "decizie": { "tip": "Decizie de aprobare", "fisier": "decizie-aprobare-{nr}.pdf", "kb": 244, "numar": "dosar", "registru": "ASP" }
+      "aprobare": { "tip": "Act permisiv", "fisier": "Act_{nr}.pdf", "kb": 512, "numar": "act", "registru": "ASP" },
+      "respingere": { "tip": "Decizie de respingere", "fisier": "DecizieRespingere_{nr}.pdf", "kb": 268, "numar": "dosar", "registru": "ASP" },
+      "decizie": { "tip": "Decizie de aprobare", "fisier": "DecizieAprobare_{nr}.pdf", "kb": 244, "numar": "dosar", "registru": "ASP" }
     }
   },
   "subdiviziuni": [

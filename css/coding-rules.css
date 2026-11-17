@@ -1,0 +1,95 @@
+/* =====================================================================================
+   coding-rules-v1 (2026-11-17) — Feature 94830 „Reguli de codificare a obiectelor”: Setări › Reguli de numerotare
+   (js/coding-rules.js), the shared read-only ID + type A name field (js/object-id.js). Only placement on top of existing
+   components: the stacked list (`.e-permits-rpt-list` row layout), the BO drawer form, `.e-permits-cfg-ro`, the forms-global
+   input prefix. components.md › „Reguli de numerotare” + „Object ID — read-only, one pattern”.
+   ===================================================================================== */
+
+/* a value inside a stacked meta part („Șablon: DR-{NR}/{YYYY}”) reads as the value, the label stays meta */
+.e-permits-cod-list__value {
+  color: var(--color-text-base-secondary, #383838);
+}
+
+.e-permits-cod-list__next {
+  color: var(--color-text-base-default, #121212);
+  font-weight: var(--font-weight-fw-medium, 500);
+}
+
+/* long rule / example text: its own full line, wraps — never cut (no clamp, so no tooltip is needed) */
+.e-permits-cod-list .e-permits-stack__part:has(> .e-permits-cod-list__rule) {
+  flex: 1 1 100%;
+}
+
+.e-permits-cod-list .e-permits-stack__part:has(> .e-permits-cod-list__rule)::before {
+  content: none;
+}
+
+.e-permits-cod-list__rule {
+  color: var(--color-text-base-secondary, #383838);
+  display: block;
+  font-size: var(--font-size-fs-14, 14px);
+  line-height: var(--line-height-lh-20, 20px);
+  overflow-wrap: anywhere;
+}
+
+.e-permits-cod-list__label {
+  color: var(--color-text-base-tertiary, #757575);
+  display: block;
+  font-size: var(--font-size-fs-12, 12px);
+  line-height: var(--line-height-lh-20, 20px);
+}
+
+/* the rule / examples blocks: 8 under the meta line (the row's gap), each block 4 apart */
+.e-permits-cod-list .e-permits-stack__meta:has(.e-permits-cod-list__rule) {
+  row-gap: var(--spacing-4, 4px);
+}
+
+/* drawer: notes above the first section, the example line */
+.e-permits-cod-drawer__notes {
+  display: grid;
+  gap: var(--spacing-8, 8px);
+  padding-top: var(--spacing-16, 16px);
+}
+
+.e-permits-cod-drawer__example {
+  color: var(--color-text-base-secondary, #383838);
+  font-size: var(--font-size-fs-14, 14px);
+  line-height: var(--line-height-lh-20, 20px);
+  margin: 0;
+}
+
+.e-permits-cod-drawer__example strong {
+  color: var(--color-text-base-default, #121212);
+  font-weight: var(--font-weight-fw-medium, 500);
+}
+
+/* the token row under the template input (Servicii › Setări › Numerotare) keeps its 8 gap above */
+.e-permits-cod-drawer .e-permits-cfg-num-tokens,
+[data-cod-drawer] .e-permits-cfg-num-tokens {
+  margin-top: var(--spacing-8, 8px);
+}
+
+/* ---- the read-only ID in an edit form (GEAPObjectId.fieldHtml): the grey box holds the copy value */
+.e-permits-oid-field .e-permits-cfg-ro .copy-value {
+  max-width: 100%;
+}
+
+/* ---- the type A name field (GEAPObjectId.nameFieldHtml): locked first word + free text + the parent ID at the end;
+   the text stays left-aligned (the unit-suffix rule right-aligns numbers) */
+.e-permits-oid-name .e-permits-fo-input:has(.e-permits-fo-input__suffix) input {
+  text-align: left;
+}
+
+.e-permits-oid-name .e-permits-fo-input .e-permits-fo-input__suffix {
+  color: var(--color-text-base-secondary, #383838);
+  white-space: nowrap;
+}
+
+.e-permits-oid-name__full {
+  overflow-wrap: anywhere;
+}
+
+.e-permits-oid-name__full strong {
+  color: var(--color-text-base-default, #121212);
+  font-weight: var(--font-weight-fw-medium, 500);
+}

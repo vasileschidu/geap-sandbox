@@ -2,7 +2,7 @@
   "_comment": "Administrare › Tablouri de bord (Feature 96586) — demo seed for js/dashboard-admin.js. A dashboard = an ordered list of PUBLISHED widgets (data/widgets.json ids) with a width + height each, addressed to one or more roles (Principal / Secundar per role). level Global (Administrator central; authorities = list or all) / Autoritate (one authority, prefilled). versions[].config is cloned from the current config when missing; `drop` = widget ids the version did not have yet, `sizes` = { widgetId: [width, height] } the version had.",
   "dashboards": [
     {
-      "id": "DSH-0001", "level": "Global", "status": "Publicat", "offFor": [],
+      "id": "TDB-0001", "level": "Global", "status": "Publicat", "offFor": [],
       "createdAt": "2026-11-02T09:10:00", "createdBy": "Anastasia Cojocaru", "updatedAt": "2026-11-06T14:30:00", "updatedBy": "Anastasia Cojocaru",
       "config": {
         "names": { "ro": "Tabloul de bord al specialistului", "ru": "Панель специалиста", "en": "Specialist dashboard" },
@@ -30,7 +30,7 @@
       ]
     },
     {
-      "id": "DSH-0002", "level": "Global", "status": "Publicat", "offFor": [],
+      "id": "TDB-0002", "level": "Global", "status": "Publicat", "offFor": [],
       "createdAt": "2026-11-03T11:00:00", "createdBy": "Anastasia Cojocaru", "updatedAt": "2026-11-08T16:05:00", "updatedBy": "Anastasia Cojocaru",
       "config": {
         "names": { "ro": "Tabloul de bord al supervizorului", "ru": "Панель руководителя", "en": "Supervisor dashboard" },
@@ -53,7 +53,7 @@
       ]
     },
     {
-      "id": "DSH-0003", "level": "Global", "status": "Publicat", "offFor": [],
+      "id": "TDB-0003", "level": "Global", "status": "Publicat", "offFor": [],
       "createdAt": "2026-11-04T12:00:00", "createdBy": "Anastasia Cojocaru", "updatedAt": "2026-11-05T08:45:00", "updatedBy": "Anastasia Cojocaru",
       "config": {
         "names": { "ro": "Încasări și servicii", "ru": "Поступления и услуги", "en": "Revenue and services" },
@@ -75,7 +75,7 @@
       ]
     },
     {
-      "id": "DSH-0004", "level": "Autoritate", "authority": "ansp", "status": "Publicat", "offFor": [],
+      "id": "TDB-0004", "level": "Autoritate", "authority": "ansp", "status": "Publicat", "offFor": [],
       "createdAt": "2026-11-05T10:20:00", "createdBy": "Ion Rusu", "updatedAt": "2026-11-07T09:15:00", "updatedBy": "Ion Rusu",
       "config": {
         "names": { "ro": "Tabloul de bord al autorității ANSP", "ru": "Панель НАОЗ", "en": "ANSP dashboard" },
@@ -98,7 +98,7 @@
       ]
     },
     {
-      "id": "DSH-0005", "level": "Global", "status": "Ciornă", "offFor": [],
+      "id": "TDB-0005", "level": "Global", "status": "Ciornă", "offFor": [],
       "createdAt": "2026-11-09T15:40:00", "createdBy": "Anastasia Cojocaru", "updatedAt": "2026-11-09T15:52:00", "updatedBy": "Anastasia Cojocaru",
       "config": {
         "names": { "ro": "Dosare întârziate", "ru": "", "en": "" },
@@ -116,7 +116,7 @@
       ]
     },
     {
-      "id": "DSH-0006", "level": "Global", "status": "Dezactivat", "offFor": [],
+      "id": "TDB-0006", "level": "Global", "status": "Dezactivat", "offFor": [],
       "createdAt": "2026-10-20T09:00:00", "createdBy": "Anastasia Cojocaru", "updatedAt": "2026-11-01T11:00:00", "updatedBy": "Anastasia Cojocaru",
       "config": {
         "names": { "ro": "Acte emise pe trimestre", "ru": "Выданные акты по кварталам", "en": "Acts issued per quarter" },
@@ -138,7 +138,7 @@
       ]
     },
     {
-      "id": "DSH-0007", "level": "Autoritate", "authority": "anta", "status": "Publicat", "offFor": [],
+      "id": "TDB-0007", "level": "Autoritate", "authority": "anta", "status": "Publicat", "offFor": [],
       "createdAt": "2026-11-05T13:00:00", "createdBy": "Mihai Ceban", "updatedAt": "2026-11-05T13:40:00", "updatedBy": "Mihai Ceban",
       "config": {
         "names": { "ro": "Licențe de transport ANTA", "ru": "Транспортные лицензии ANTA", "en": "ANTA transport licences" },
@@ -159,7 +159,7 @@
       ]
     },
     {
-      "id": "DSH-0008", "level": "Autoritate", "authority": "ansp", "status": "Ciornă", "offFor": [],
+      "id": "TDB-0008", "level": "Autoritate", "authority": "ansp", "status": "Ciornă", "offFor": [],
       "createdAt": "2026-11-09T10:00:00", "createdBy": "Ion Rusu", "updatedAt": "2026-11-09T10:05:00", "updatedBy": "Ion Rusu",
       "config": {
         "names": { "ro": "Suspendări ANSP", "ru": "", "en": "" },
@@ -176,7 +176,7 @@
       ]
     },
     {
-      "id": "DSH-0009", "level": "Global", "status": "Publicat", "offFor": ["ansp"],
+      "id": "TDB-0009", "level": "Global", "status": "Publicat", "offFor": ["ansp"],
       "createdAt": "2026-11-04T14:00:00", "createdBy": "Anastasia Cojocaru", "updatedAt": "2026-11-04T14:20:00", "updatedBy": "Anastasia Cojocaru",
       "config": {
         "names": { "ro": "Termene de examinare", "ru": "Сроки рассмотрения", "en": "Review deadlines" },
