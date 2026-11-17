@@ -2723,7 +2723,7 @@
       };
       return {
         /* 01 empty service step (new step, one empty section), nothing selected → Date generale */
-        "fb-01": fb(async (h) => { await h.click("[data-fb-add-step]"); await h.click("[data-fb-select-form]"); }),
+        "fb-01": fb(async (h) => { await h.click("[data-fb-add-step]"); key(document.querySelector("[data-fb-step-name]"), "Enter"); await h.wait(250); await h.click("[data-fb-select-form]"); }),
         "fb-01a": fb(async (h) => { await h.fill("[data-builder-library-search]", "dat", { leave: false }); }),
         /* fb-float-p2: Bibliotecă = PD „Elemente” card — a) collapsed to the rail, b) search with results (a field selected),
            c) no match, d) a component just inserted after the selected field */
@@ -2851,7 +2851,7 @@
         /* Preview in Russian: untranslated texts fall back to Romanian */
         "fb-20": fb(async (h) => { await h.click("[data-builder-mode='preview']"); await h.click("[data-fb-preview-lang='ru']"); }),
         /* a new service step, its ⋮ (Mută la stânga / dreapta among service steps, Șterge) */
-        "fb-03b": fb(async (h) => { await h.click("[data-fb-add-step]"); await h.click(".e-permits-builder__panel-title-row [data-stack-menu-trigger]"); }),
+        "fb-03b": fb(async (h) => { await h.click("[data-fb-add-step]"); key(document.querySelector("[data-fb-step-name]"), "Enter"); await h.wait(250); await h.click(".e-permits-builder__panel-title-row [data-stack-menu-trigger]"); }),
         /* batch-2 components: segmented control · multi-select · period · callout + separator */
         "fb-23": fb(async (h) => { await lib("segment")(h); await tab("data")(h); await h.click("[data-fb-option-yesno]"); }),
         "fb-24": fb(async (h) => {

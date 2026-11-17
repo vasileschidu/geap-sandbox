@@ -286,6 +286,7 @@ document.addEventListener("DOMContentLoaded", () => {
     redo: [],
     width: "desktop",
     outline: false,
+    stepEdit: null,
     lastCheckpoint: { key: "", at: 0 },
   };
 
@@ -1144,27 +1145,67 @@ document.addEventListener("DOMContentLoaded", () => {
   if (overlay) new MutationObserver(() => { if (G && !overlay.classList.contains("is-active")) exitGlobal(); }).observe(overlay, { attributes: true, attributeFilter: ["class"] });
 
   /* ------------------------------------------------------------------- steps */
+  /* Step strip (fb-float-p5): chips scroll sideways under edge fades, „+” asks for a name inline, ⋮ on the active service
+     chip (Redenumește · Duplică · Șterge), service chips drag / Alt+←→ to reorder, platform chips keep the lock */
+  const stepHasError = (step) => !step.locked && (errorsOf("step", step.id).length || (step.sections || []).some((section) => errorsOf("section", section.id).length || section.fields.some((field) => errorsOf("field", field.id).length || (isContainer(field) && childErrorsOf(field).length))));
+  function stepNameInput(value, label) {
+    return `<div class="e-permits-fo-input e-permits-builder__step-edit"><input type="text" value="${esc(value)}" placeholder="Numele pasului" maxlength="80" autocomplete="off" aria-label="${esc(label)}" data-fb-step-name></div>`;
+  }
   function renderSteps() {
     const active = activeStep();
+    const edit = state.stepEdit;
+    const prevScroll = el.steps.querySelector("[data-fb-steps-scroll]");
+    const scrollLeft = prevScroll ? prevScroll.scrollLeft : 0;
+    const lastService = form.steps.reduce((last, step, index) => (!step.locked ? index : last), 0);
+    const draggable = serviceSteps().length > 1;
+    const chips = form.steps.map((step, index) => {
+      if (edit?.mode === "rename" && edit.id === step.id) return stepNameInput(tr(step.title), `Redenumește pasul ${index + 1}`);
+      const isActive = step.id === active.id;
+      const hasError = stepHasError(step);
+      const chip = `
+        <button class="e-permits-builder__step-chip${isActive ? " is-active" : ""}${step.locked ? " has-trailing-icon" : ""}${state.sel.kind === "step" && state.sel.id === step.id ? " is-selected" : ""}" type="button" role="tab" aria-selected="${isActive}" tabindex="${isActive ? "0" : "-1"}"${step.locked ? " data-fb-step-locked" : draggable ? ' draggable="true"' : ""} data-fb-step="${step.id}" aria-label="Pasul ${index + 1}: ${esc(tr(step.title))}${step.locked ? " (generat de platformă)" : ""}${hasError ? " — are erori" : ""}">
+          <span class="e-permits-builder__step-badge">${index + 1}</span>
+          <strong class="e-permits-builder__step-label">${esc(tr(step.title) || "Pas fără titlu")}</strong>
+          ${step.locked ? `<svg class="icon e-permits-builder__step-icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-lock"></use></svg>` : ""}
+          ${hasError ? '<span class="e-permits-ntpl-dot e-permits-tariff__tab-error" aria-hidden="true"></span>' : ""}
+        </button>`;
+      const menu = isActive && !step.locked && !edit
+        ? (ui().renderStackMenu?.([
+          { label: "Redenumește", icon: "edit", attrs: `data-fb-step-act="rename" data-id="${step.id}"` },
+          { label: "Duplică", icon: "copy", attrs: `data-fb-step-act="duplicate" data-id="${step.id}"` },
+          { label: "Șterge pasul", icon: "delete", danger: true, attrs: `data-fb-step-act="delete" data-id="${step.id}"` },
+        ], `pasul ${tr(step.title)}`) || "").replace("hidden data-stack-menu>", "hidden data-stack-menu data-stack-menu-fixed>")
+        : "";
+      return chip + menu + (edit?.mode === "add" && index === lastService ? stepNameInput("", "Numele noului pas") : "");
+    }).join("");
     el.steps.innerHTML = `
-      <div class="e-permits-builder__steps-group" role="tablist" aria-label="Pașii formularului">
-        ${form.steps.map((step, index) => {
-          const isActive = step.id === active.id;
-          const hasError = !step.locked && (errorsOf("step", step.id).length || (step.sections || []).some((section) => errorsOf("section", section.id).length || section.fields.some((field) => errorsOf("field", field.id).length || (isContainer(field) && childErrorsOf(field).length))));
-          return `
-            <button class="e-permits-builder__step-chip${isActive ? " is-active" : ""}${step.locked ? " has-trailing-icon" : ""}${state.sel.kind === "step" && state.sel.id === step.id ? " is-selected" : ""}" type="button" role="tab" aria-selected="${isActive}" tabindex="${isActive ? "0" : "-1"}" data-fb-step="${step.id}" aria-label="Pasul ${index + 1}: ${esc(tr(step.title))}${step.locked ? " (generat de platformă)" : ""}${hasError ? " — are erori" : ""}">
-              <span class="e-permits-builder__step-badge">${index + 1}</span>
-              <strong class="e-permits-builder__step-label">${esc(tr(step.title) || "Pas fără titlu")}</strong>
-              ${step.locked ? `<svg class="icon e-permits-builder__step-icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-lock"></use></svg>` : ""}
-              ${hasError ? '<span class="e-permits-ntpl-dot e-permits-tariff__tab-error" aria-hidden="true"></span>' : ""}
-            </button>`;
-        }).join("")}
-        <button class="e-permits-builder__step-add" type="button" aria-label="Adaugă un pas de serviciu" data-fb-add-step>
-          ${icon("icon-plus-large", 16)}
-        </button>
-      </div>`;
-    el.steps.querySelector(".e-permits-builder__step-chip.is-active")?.scrollIntoView({ block: "nearest", inline: "nearest" });
+      <div class="e-permits-builder__steps-wrap" data-fb-steps-wrap>
+        <div class="e-permits-builder__steps-scroll" data-fb-steps-scroll>
+          <div class="e-permits-builder__steps-group" role="tablist" aria-label="Pașii formularului">${chips}</div>
+        </div>
+      </div>
+      <button class="e-permits-builder__step-add" type="button" aria-label="Adaugă un pas de serviciu" data-tooltip-label="Adaugă un pas" data-fb-add-step>
+        ${icon("icon-plus-large", 16)}
+      </button>`;
+    const scroller = el.steps.querySelector("[data-fb-steps-scroll]");
+    scroller.scrollLeft = scrollLeft;
+    const target = el.steps.querySelector("[data-fb-step-name]") || el.steps.querySelector(".e-permits-builder__step-chip.is-active");
+    if (target) {
+      const t = target.getBoundingClientRect(), box = scroller.getBoundingClientRect();
+      if (t.left < box.left) scroller.scrollLeft += t.left - box.left - 24;
+      else if (t.right > box.right) scroller.scrollLeft += t.right - box.right + 24;
+    }
+    syncStepFade();
   }
+  /* edge fades only on the side that still has chips hidden */
+  function syncStepFade() {
+    const scroller = el.steps.querySelector("[data-fb-steps-scroll]");
+    const wrap = el.steps.querySelector("[data-fb-steps-wrap]");
+    if (!scroller || !wrap) return;
+    wrap.classList.toggle("has-more-start", scroller.scrollLeft > 1);
+    wrap.classList.toggle("has-more-end", scroller.scrollLeft + scroller.clientWidth < scroller.scrollWidth - 1);
+  }
+  window.addEventListener("resize", syncStepFade);
 
   /* ------------------------------------------------------------------ canvas */
   const KBD_HINT_ID = "fb-kbd-hint";
@@ -1535,8 +1576,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const fields = allFields().filter(({ field }) => !NO_VALUE.includes(field.type));
     const errorsCount = state.issues.filter((issue) => issue.level === "error").length;
     const rows = [
-      ["Pași", String(serviceSteps().length)],
-      ["Secțiuni", String(allSections().filter(({ step }) => !step.locked).length)],
+      ["Pași", String(form.steps.length)],
+      ["Secțiuni", String(allSections().length)],
       ["Câmpuri", String(fields.length)],
       ["Obligatorii", String(fields.filter(({ field }) => field.required).length)],
       ["Probleme", errorsCount ? `<button class="link link-primary link-sm e-permits-pd__link" type="button" data-fb-open-issues>${errorsCount} ${errorsCount === 1 ? "eroare" : "erori"}</button>` : "Fără erori"],
@@ -3318,16 +3359,84 @@ document.addEventListener("DOMContentLoaded", () => {
     focusPanel('[data-fb-prop="title"]');
   }
 
-  function addStep() {
+  function addStep(name = "") {
     checkpoint();
     const lastService = form.steps.reduce((last, step, index) => (!step.locked ? index : last), 0);
-    const step = { id: uid("st"), locked: false, title: i18n("Pas nou"), description: i18n(), requestTypes: [...(form.requestTypes || [])], sections: [makeSection()] };
+    const step = { id: uid("st"), locked: false, title: i18n(name.trim() || "Pas nou"), description: i18n(), requestTypes: [...(form.requestTypes || [])], sections: [makeSection()] };
     form.steps.splice(lastService + 1, 0, step);
     state.stepId = step.id;
     state.sel = { kind: "step", id: step.id };
     commit();
-    announce(`Pasul „Pas nou” a fost adăugat pe poziția ${form.steps.indexOf(step) + 1}.`);
-    focusPanel('[data-fb-prop="title"]');
+    announce(`Pasul „${tr(step.title)}” a fost adăugat pe poziția ${form.steps.indexOf(step) + 1}.`);
+    el.steps.querySelector(`[data-fb-step="${step.id}"]`)?.focus();
+  }
+
+  /* „+” opens the name field inside the strip; Enter / blur adds (empty = „Pas nou”), Esc cancels */
+  function startStepEdit(edit) {
+    state.stepEdit = edit;
+    renderSteps();
+    const input = el.steps.querySelector("[data-fb-step-name]");
+    input?.focus();
+    input?.select();
+  }
+  function finishStepEdit(accept) {
+    const edit = state.stepEdit;
+    if (!edit) return;
+    const value = (el.steps.querySelector("[data-fb-step-name]")?.value || "").trim();
+    state.stepEdit = null;
+    if (!accept) { renderSteps(); (edit.id ? el.steps.querySelector(`[data-fb-step="${edit.id}"]`) : el.steps.querySelector("[data-fb-add-step]"))?.focus(); return; }
+    if (edit.mode === "add") { addStep(value); return; }
+    const step = stepById(edit.id);
+    if (!step || !value || value === tr(step.title)) { renderSteps(); el.steps.querySelector(`[data-fb-step="${edit.id}"]`)?.focus(); return; }
+    checkpoint();
+    step.title = { ...step.title, ro: value };
+    commit();
+    announce(`Pasul a fost redenumit în „${value}”.`);
+    el.steps.querySelector(`[data-fb-step="${edit.id}"]`)?.focus();
+  }
+
+  function duplicateStep(id) {
+    const step = stepById(id);
+    if (!step || step.locked) return;
+    checkpoint();
+    const copy = clone(step);
+    const map = new Map();
+    copy.id = uid("st");
+    copy.title = { ...copy.title, ro: `${tr(step.title)} (copie)` };
+    copy.sections.forEach((section) => {
+      section.id = uid("sec");
+      section.fields.forEach((field) => {
+        map.set(field.id, uid("fld"));
+        field.id = map.get(field.id);
+        field.published = false;
+        field.key = uniqueKey(field.key || camelKey(tr(field.label)));
+        if (isContainer(field)) reidChildren(field);
+      });
+    });
+    copy.sections.forEach((section) => section.fields.forEach((field) => (field.rules || []).forEach((rule) => rule.conditions.forEach((c) => { if (map.has(c.field)) c.field = map.get(c.field); if (map.has(c.other)) c.other = map.get(c.other); }))));
+    form.steps.splice(form.steps.indexOf(step) + 1, 0, copy);
+    state.stepId = copy.id;
+    state.sel = { kind: "step", id: copy.id };
+    commit();
+    announce(`Pasul „${tr(copy.title)}” a fost creat pe poziția ${form.steps.indexOf(copy) + 1}.`);
+    el.steps.querySelector(`[data-fb-step="${copy.id}"]`)?.focus();
+  }
+
+  /* drag: the dragged service chip lands before / after another service chip */
+  function moveStepTo(id, targetId, after) {
+    const from = form.steps.findIndex((step) => step.id === id);
+    const target = stepById(targetId);
+    if (from < 0 || !target || target.locked || form.steps[from].locked || id === targetId) return;
+    const without = form.steps.filter((item) => item.id !== id);
+    const to = without.indexOf(target) + (after ? 1 : 0);
+    if (to === from) return;
+    checkpoint();
+    const [step] = form.steps.splice(from, 1);
+    form.steps.splice(to, 0, step);
+    state.sel = { kind: "step", id };
+    commit();
+    announce(`Pasul „${tr(step.title)}” este acum pe poziția ${form.steps.indexOf(step) + 1} din ${form.steps.length}.`);
+    el.steps.querySelector(`[data-fb-step="${id}"]`)?.focus();
   }
 
   /* service steps swap only with a neighbouring service step; platform steps never move */
@@ -4141,6 +4250,8 @@ document.addEventListener("DOMContentLoaded", () => {
       else if (stepAct.dataset.fbStepAct === "delete") deleteStep(stepAct.dataset.id);
       else if (stepAct.dataset.fbStepAct === "left") moveStep(stepAct.dataset.id, -1);
       else if (stepAct.dataset.fbStepAct === "right") moveStep(stepAct.dataset.id, 1);
+      else if (stepAct.dataset.fbStepAct === "rename") startStepEdit({ mode: "rename", id: stepAct.dataset.id });
+      else if (stepAct.dataset.fbStepAct === "duplicate") duplicateStep(stepAct.dataset.id);
       return true;
     }
     const add = event.target.closest("[data-fb-add-type]");
@@ -4191,11 +4302,69 @@ document.addEventListener("DOMContentLoaded", () => {
   el.title?.addEventListener("click", () => select("form", "settings"));
 
   el.steps.addEventListener("click", (event) => {
-    if (event.target.closest("[data-fb-add-step]")) { addStep(); return; }
+    if (runMenuAction(event)) return;
+    if (event.target.closest("[data-stack-menu-trigger], [data-stack-menu], [data-fb-step-name]")) return;
+    if (event.target.closest("[data-fb-add-step]")) { if (state.stepEdit?.mode === "add") finishStepEdit(false); else startStepEdit({ mode: "add" }); return; }
     const chip = event.target.closest("[data-fb-step]");
     if (chip) { select("step", chip.dataset.fbStep); el.steps.querySelector(`[data-fb-step="${chip.dataset.fbStep}"]`)?.focus(); }
   });
+  el.steps.addEventListener("dblclick", (event) => {
+    const chip = event.target.closest("[data-fb-step]:not([data-fb-step-locked])");
+    if (chip) startStepEdit({ mode: "rename", id: chip.dataset.fbStep });
+  });
+  el.steps.addEventListener("focusout", (event) => {
+    if (event.target.matches?.("[data-fb-step-name]") && state.stepEdit) finishStepEdit(true);
+  });
+  el.steps.addEventListener("scroll", syncStepFade, true);
+  /* a mouse wheel scrolls the strip sideways */
+  el.steps.addEventListener("wheel", (event) => {
+    const scroller = el.steps.querySelector("[data-fb-steps-scroll]");
+    if (!scroller || scroller.scrollWidth <= scroller.clientWidth || Math.abs(event.deltaY) <= Math.abs(event.deltaX)) return;
+    event.preventDefault();
+    scroller.scrollLeft += event.deltaY;
+  }, { passive: false });
+  /* drag-reorder (service chips only) */
+  let dragStepId = "";
+  const clearStepDrop = () => el.steps.querySelectorAll(".is-drop-before, .is-drop-after, .is-dragging").forEach((node) => node.classList.remove("is-drop-before", "is-drop-after", "is-dragging"));
+  el.steps.addEventListener("dragstart", (event) => {
+    const chip = event.target.closest?.("[data-fb-step][draggable='true']");
+    if (!chip) return;
+    dragStepId = chip.dataset.fbStep;
+    event.dataTransfer.effectAllowed = "move";
+    event.dataTransfer.setData("text/plain", dragStepId);
+    chip.classList.add("is-dragging");
+  });
+  el.steps.addEventListener("dragover", (event) => {
+    if (!dragStepId) return;
+    const scroller = el.steps.querySelector("[data-fb-steps-scroll]");
+    const box = scroller.getBoundingClientRect();
+    if (event.clientX < box.left + 40) scroller.scrollLeft -= 12;
+    else if (event.clientX > box.right - 40) scroller.scrollLeft += 12;
+    const chip = event.target.closest?.("[data-fb-step]");
+    el.steps.querySelectorAll(".is-drop-before, .is-drop-after").forEach((node) => node.classList.remove("is-drop-before", "is-drop-after"));
+    if (!chip || chip.hasAttribute("data-fb-step-locked") || chip.dataset.fbStep === dragStepId) { event.dataTransfer.dropEffect = "none"; return; }
+    event.preventDefault();
+    event.dataTransfer.dropEffect = "move";
+    const r = chip.getBoundingClientRect();
+    chip.classList.add(event.clientX > r.left + r.width / 2 ? "is-drop-after" : "is-drop-before");
+  });
+  el.steps.addEventListener("drop", (event) => {
+    const chip = event.target.closest?.("[data-fb-step]");
+    if (!dragStepId || !chip || chip.hasAttribute("data-fb-step-locked")) return;
+    event.preventDefault();
+    const id = dragStepId;
+    const after = chip.classList.contains("is-drop-after");
+    dragStepId = "";
+    clearStepDrop();
+    moveStepTo(id, chip.dataset.fbStep, after);
+  });
+  el.steps.addEventListener("dragend", () => { dragStepId = ""; clearStepDrop(); });
   el.steps.addEventListener("keydown", (event) => {
+    if (event.target.matches?.("[data-fb-step-name]")) {
+      if (event.key === "Enter") { event.preventDefault(); finishStepEdit(true); }
+      else if (event.key === "Escape") { event.preventDefault(); event.stopPropagation(); finishStepEdit(false); }
+      return;
+    }
     const chip = event.target.closest("[data-fb-step]");
     if (chip && event.altKey && ["ArrowLeft", "ArrowRight"].includes(event.key)) { event.preventDefault(); moveStep(chip.dataset.fbStep, event.key === "ArrowLeft" ? -1 : 1); return; }
     if (!chip || !["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) return;
@@ -4750,6 +4919,7 @@ document.addEventListener("DOMContentLoaded", () => {
   window.addEventListener("keydown", (event) => {
     if (!overlay?.classList.contains("is-active")) return;
     if (event.key === "Escape") {
+      if (event.target.matches?.("[data-fb-step-name]")) { event.preventDefault(); event.stopImmediatePropagation(); finishStepEdit(false); return; } /* the step name field cancels itself */
       if (overlay.classList.contains("is-view-only")) return;
       /* a grid row being edited in the Preview (or its delete dialog): Esc is the grid's (js/fo-grid.js) */
       if (window.GEAPFoRepeat?.escape?.(event.target)) { event.preventDefault(); event.stopImmediatePropagation(); return; }

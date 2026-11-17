@@ -1280,6 +1280,87 @@
 
 .e-permits-builder--canvas .e-permits-builder__steps-group {
   margin: 0;
+  min-height: var(--spacing-40, 40px);
+}
+
+/* Step strip (fb-float-p5): chips scroll sideways inside the band; a white fade marks the side that still hides chips;
+   „+” stays outside the scroller; the scroller pads 8 so focus rings are never cut */
+.e-permits-builder--canvas .e-permits-builder__steps {
+  gap: var(--spacing-8, 8px);
+  overflow: visible;
+}
+
+.e-permits-builder__steps-wrap {
+  flex: 0 1 auto;
+  min-width: 0;
+  position: relative;
+}
+
+.e-permits-builder__steps-scroll {
+  margin: calc(-1 * var(--spacing-8, 8px));
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: var(--spacing-8, 8px);
+  scrollbar-width: none;
+}
+
+.e-permits-builder__steps-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.e-permits-builder__steps-wrap::before,
+.e-permits-builder__steps-wrap::after {
+  bottom: calc(-1 * var(--spacing-8, 8px));
+  content: "";
+  opacity: 0;
+  pointer-events: none;
+  position: absolute;
+  top: calc(-1 * var(--spacing-8, 8px));
+  transition: opacity 0.15s ease;
+  width: var(--spacing-40, 40px);
+  z-index: 2;
+}
+
+.e-permits-builder__steps-wrap::before {
+  background: linear-gradient(to right, var(--color-background-base-default, #fff), transparent);
+  left: calc(-1 * var(--spacing-8, 8px));
+}
+
+.e-permits-builder__steps-wrap::after {
+  background: linear-gradient(to left, var(--color-background-base-default, #fff), transparent);
+  right: calc(-1 * var(--spacing-8, 8px));
+}
+
+.e-permits-builder__steps-wrap.has-more-start::before,
+.e-permits-builder__steps-wrap.has-more-end::after {
+  opacity: 1;
+}
+
+/* the active chip's ⋮ sits right after it, 32 high like the chips */
+.e-permits-builder__steps-group > .e-permits-stack__menu-wrap {
+  flex: 0 0 auto;
+}
+
+/* inline name (add / rename): the library field, one row in the strip */
+.e-permits-builder__step-edit {
+  flex: 0 0 auto;
+  width: calc(var(--spacing-72, 72px) * 3);
+}
+
+.e-permits-builder__step-chip[draggable="true"] {
+  cursor: grab;
+}
+
+.e-permits-builder__step-chip.is-dragging {
+  opacity: 0.5;
+}
+
+.e-permits-builder__step-chip.is-drop-before {
+  box-shadow: calc(-1 * var(--spacing-4, 4px)) 0 0 0 var(--color-border-brand-default, #0058d2);
+}
+
+.e-permits-builder__step-chip.is-drop-after {
+  box-shadow: var(--spacing-4, 4px) 0 0 0 var(--color-border-brand-default, #0058d2);
 }
 
 .e-permits-builder--canvas .e-permits-builder__stage {
