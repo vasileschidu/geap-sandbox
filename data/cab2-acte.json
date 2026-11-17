@@ -1,0 +1,392 @@
+{
+  "user": {
+    "name": "Anastasia Cojocaru",
+    "role": "Persoană fizică",
+    "initials": "AC"
+  },
+  "page": {
+    "title": "Acte permisive"
+  },
+  "actProfiles": {
+    "_note": "Act profile extras by act id (2026-10-17, RAP alignment — US-162 AC-17 status dates, tacit approval, printed series); demo values",
+    "_noteProfile": "act-profile-v1 (2026-10-21): statusChange = who decided the current Suspendat / Retras / Anulat status and why ({ initiator: titular | autoritate, reason, decision, dosarId? }, the date is the status date: suspensionDate / withdrawalDate / cancellationDate); dossierNr + requestSubmitted = the issuing request when it is not in „Solicitările mele” (filed before GEAP v2 or by someone else); specificFields = the configured act fields (AC-29), shown on the profile as „Ce permite actul”",
+    "act-izvoras": {
+      "printedDocumentNumber": "ASF 0045213"
+    },
+    "_noteTypeFirst": "type-first-v1 (2026-10-21): more act types for the same place (Cafeneaua „Izvoraș” — alcohol, fire safety) and one act without a location (the transport licence) — data/acte-permisive.json › intent.acts",
+    "act-izvoras-alcool": {
+      "dossierNr": "GEAP-2025-207-01944",
+      "requestSubmitted": "2025-09-12T11:40",
+      "specificFields": [
+        {
+          "label": "Tipul obiectului",
+          "value": "Cafenea"
+        },
+        {
+          "label": "Adresa obiectului",
+          "value": "mun. Bălți, str. Independenței 12"
+        },
+        {
+          "label": "Activitatea (CAEM)",
+          "value": "I 56.30 Baruri și alte activități de servire a băuturilor"
+        },
+        {
+          "label": "Tipul băuturilor",
+          "value": [
+            "Vin și produse vinicole",
+            "Bere",
+            "Băuturi alcoolice tari"
+          ]
+        }
+      ]
+    },
+    "act-izvoras-incendiu": {
+      "dossierNr": "GEAP-2025-331-00718",
+      "requestSubmitted": "2025-07-28T09:20",
+      "specificFields": [
+        {
+          "label": "Tipul obiectului",
+          "value": "Cafenea"
+        },
+        {
+          "label": "Adresa obiectului",
+          "value": "mun. Bălți, str. Independenței 12"
+        },
+        {
+          "label": "Suprafața",
+          "value": "86 m²"
+        },
+        {
+          "label": "Capacitatea",
+          "value": "40 de locuri"
+        }
+      ]
+    },
+    "act-transport": {
+      "specificFields": [
+        {
+          "label": "Genul de activitate",
+          "value": "Transport rutier de mărfuri în trafic intern și internațional"
+        },
+        {
+          "label": "Numărul de autovehicule",
+          "value": "6"
+        },
+        {
+          "label": "Masa maximă autorizată",
+          "value": "peste 3,5 tone"
+        }
+      ]
+    },
+    "act-piata-mare": {
+      "suspensionDate": "2026-06-05",
+      "suspendedUntil": "2026-12-15",
+      "printedDocumentNumber": "ASF 0031187",
+      "statusChange": {
+        "initiator": "titular",
+        "reason": "lucrări de reamenajare a sălii",
+        "decision": "D-ANSP-2026-0791",
+        "dosarId": "d-piata-susp"
+      },
+      "dossierNr": "GEAP-2025-009-01462",
+      "requestSubmitted": "2025-03-12T10:05",
+      "specificFields": [
+        {
+          "label": "Tipul obiectului",
+          "value": "Restaurant"
+        },
+        {
+          "label": "Adresa obiectului",
+          "value": "mun. Chișinău, str. Mitropolit Varlaam 63"
+        },
+        {
+          "label": "Activitatea (CAEM)",
+          "value": "I 56.10 Restaurante"
+        },
+        {
+          "label": "Capacitatea",
+          "value": "120 de locuri"
+        }
+      ]
+    },
+    "act-bistro": {
+      "specificFields": [
+        {
+          "label": "Tipul obiectului",
+          "value": "Bistro"
+        },
+        {
+          "label": "Adresa obiectului",
+          "value": "or. Orhei, str. Vasile Lupu 21"
+        },
+        {
+          "label": "Activitatea (CAEM)",
+          "value": "I 56.10 Restaurante"
+        }
+      ]
+    },
+    "act-cantina": {
+      "withdrawalDate": "2026-10-02",
+      "statusChange": {
+        "initiator": "titular",
+        "reason": "încetarea activității",
+        "decision": "D-ANSP-2026-1240",
+        "dosarId": "d-cantina-retragere"
+      },
+      "dossierNr": "GEAP-2024-009-00835",
+      "requestSubmitted": "2024-04-22T09:15",
+      "specificFields": [
+        {
+          "label": "Tipul obiectului",
+          "value": "Cantină"
+        },
+        {
+          "label": "Adresa obiectului",
+          "value": "or. Soroca, str. Ștefan cel Mare 7"
+        },
+        {
+          "label": "Activitatea (CAEM)",
+          "value": "I 56.29 Alte activități de alimentație"
+        }
+      ]
+    },
+    "act-cofetaria": {
+      "printedDocumentNumber": "AS 0004120",
+      "specificFields": [
+        {
+          "label": "Tipul obiectului",
+          "value": "Cofetărie"
+        },
+        {
+          "label": "Adresa obiectului",
+          "value": "mun. Chișinău, str. București 45"
+        },
+        {
+          "label": "Activitatea (CAEM)",
+          "value": "C 10.71 Fabricarea pâinii și a produselor de patiserie"
+        }
+      ]
+    },
+    "act-lab-10": {
+      "dossierNr": "GEAP-2025-010-00341",
+      "requestSubmitted": "2025-07-01T14:30",
+      "specificFields": [
+        {
+          "label": "Adresa obiectului",
+          "value": "mun. Chișinău, str. Calea Ieșilor 8"
+        },
+        {
+          "label": "Genul de activitate",
+          "value": "Circulația substanțelor stupefiante, psihotrope și a precursorilor"
+        },
+        {
+          "label": "Activitățile autorizate",
+          "value": [
+            "Procurare",
+            "Păstrare",
+            "Utilizare în scop de diagnostic de laborator"
+          ]
+        }
+      ]
+    },
+    "act-licenta-demo": {
+      "tacitApprovalDate": "2025-06-03",
+      "dossierNr": "GEAP-2025-000-00512",
+      "requestSubmitted": "2025-05-05T10:20",
+      "specificFields": [
+        {
+          "label": "Tipul obiectului",
+          "value": "Magazin alimentar"
+        },
+        {
+          "label": "Adresa obiectului",
+          "value": "mun. Chișinău, bd. Moscova 21"
+        },
+        {
+          "label": "Genul de activitate",
+          "value": "Comerț cu amănuntul al produselor alimentare"
+        }
+      ]
+    },
+    "act-licenta-susp": {
+      "suspensionDate": "2026-08-20",
+      "suspendedUntil": "2026-11-20",
+      "statusChange": {
+        "initiator": "autoritate",
+        "reason": "neconformități constatate la controlul din 14 august 2026 (condițiile de păstrare a produselor)",
+        "decision": "D-ANSP-2026-0688"
+      },
+      "dossierNr": "GEAP-2024-000-00219",
+      "requestSubmitted": "2024-01-29T13:00",
+      "specificFields": [
+        {
+          "label": "Tipul obiectului",
+          "value": "Depozit alimentar"
+        },
+        {
+          "label": "Adresa obiectului",
+          "value": "mun. Chișinău, str. Uzinelor 19"
+        },
+        {
+          "label": "Genul de activitate",
+          "value": "Comerț cu ridicata al produselor alimentare"
+        }
+      ]
+    },
+    "act-ana-anulat": {
+      "cancellationDate": "2026-10-01",
+      "printedDocumentNumber": "ASF 0028841",
+      "statusChange": {
+        "initiator": "autoritate",
+        "reason": "actul a fost emis în baza unui contract de locațiune care expirase la data depunerii cererii",
+        "decision": "D-ANSP-2026-1198",
+        "dosarId": "d-ana-anulare"
+      },
+      "specificFields": [
+        {
+          "label": "Tipul obiectului",
+          "value": "Patiserie"
+        },
+        {
+          "label": "Adresa obiectului",
+          "value": "or. Ialoveni, str. Alexandru cel Bun 14"
+        },
+        {
+          "label": "Activitatea (CAEM)",
+          "value": "C 10.71 Fabricarea pâinii și a produselor de patiserie"
+        }
+      ]
+    },
+    "act-vita-farm": {
+      "printedDocumentNumber": "AMDM 0000731",
+      "dossierNr": "GEAP-2021-010-00093",
+      "requestSubmitted": "2021-11-02T09:45",
+      "specificFields": [
+        {
+          "label": "Adresa obiectului",
+          "value": "or. Ialoveni, str. Industrială 3"
+        },
+        {
+          "label": "Genul de activitate",
+          "value": "Circulația substanțelor stupefiante, psihotrope și a precursorilor"
+        },
+        {
+          "label": "Activitățile autorizate",
+          "value": [
+            "Procurare",
+            "Păstrare",
+            "Distribuire angro către farmacii"
+          ]
+        },
+        {
+          "label": "Tabelele de substanțe",
+          "value": [
+            "Tabelul II — substanțe stupefiante",
+            "Tabelul IV — precursori"
+          ]
+        }
+      ]
+    },
+    "act-depozit-10": {
+      "printedDocumentNumber": "AMDM 0001182",
+      "_specificFields": "configured act fields (2026-10-19): ordered groups from the service passport; item = { label, value } or a grid { label, columns, rows } — the same shape as RAP document.sections (js/act-view.js normalizeFields)",
+      "specificFields": [
+        {
+          "title": "Obiectul activității",
+          "fields": [
+            {
+              "label": "Denumirea obiectului",
+              "value": "Depozit farmaceutic"
+            },
+            {
+              "label": "Adresa obiectului",
+              "value": "mun. Chișinău, str. Albișoara 4"
+            },
+            {
+              "label": "Genul de activitate",
+              "value": "Circulația substanțelor stupefiante, psihotrope și a precursorilor"
+            },
+            {
+              "label": "Activitățile autorizate",
+              "value": [
+                "Procurare",
+                "Păstrare",
+                "Distribuire angro către farmacii și instituții medicale"
+              ]
+            },
+            {
+              "label": "Tabelele de substanțe",
+              "value": [
+                "Tabelul II — substanțe stupefiante",
+                "Tabelul III — substanțe psihotrope",
+                "Tabelul IV — precursori"
+              ]
+            }
+          ]
+        },
+        {
+          "title": "Substanțe controlate",
+          "fields": [
+            {
+              "label": "Cote anuale autorizate",
+              "columns": [
+                "Denumirea substanței",
+                "Tabelul",
+                "Forma farmaceutică",
+                {
+                  "label": "Cantitate anuală (g)",
+                  "type": "number"
+                }
+              ],
+              "rows": [
+                [
+                  "Morfină clorhidrat",
+                  "II",
+                  "Soluție injectabilă 10 mg/ml",
+                  "1 200"
+                ],
+                [
+                  "Fentanil citrat",
+                  "II",
+                  "Soluție injectabilă 0,05 mg/ml",
+                  "15"
+                ],
+                [
+                  "Tramadol clorhidrat",
+                  "III",
+                  "Capsule 50 mg",
+                  "25 000"
+                ],
+                [
+                  "Diazepam",
+                  "III",
+                  "Comprimate 5 mg",
+                  "4 800"
+                ],
+                [
+                  "Fenobarbital",
+                  "III",
+                  "Comprimate 100 mg",
+                  "6 000"
+                ],
+                [
+                  "Efedrină clorhidrat",
+                  "IV",
+                  "Soluție injectabilă 50 mg/ml",
+                  "900"
+                ],
+                [
+                  "Pseudoefedrină clorhidrat",
+                  "IV",
+                  "Comprimate 60 mg",
+                  "3 500"
+                ]
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "_note": "EVO Cabinet v2 (S1): the new Cabinet's OWN copy of data/cabinet-evo.json."
+}

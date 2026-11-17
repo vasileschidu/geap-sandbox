@@ -376,6 +376,14 @@
         "reason": "kept product component (2026-10-21): BO status filter tabs with counts (Dosare registries)"
       },
       {
+        "selector": ".e-permits-shell__profile-role-card",
+        "reason": "kept product component: the BO account role card (css/e-permits-shell.css, generated into css/shell-nav.css); the EVO Cabinet v2 identity block on top of the menu opens „Pentru cine acționezi?” (cab2-s1-v1, components.md › „Cabinet v2 — S1 structure”)"
+      },
+      {
+        "selector": ".e-permits-fo-avatar-menu__role",
+        "reason": "kept product component: a role row of the header instance switch panel (EVO header account menu); the Cabinet v2 context switcher reuses it"
+      },
+      {
         "selector": ".e-permits-shell__nav-link",
         "reason": "kept product component (2026-10-21): BO side navigation link"
       },

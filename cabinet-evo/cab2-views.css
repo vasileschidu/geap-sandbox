@@ -1,0 +1,2088 @@
+/* EVO Cabinet v2 — COPY of cabinet-evo/cabinet-evo.css (cab2-s1-v1, 2026-11-17): the view styles of the new Cabinet
+   (cabinet-evo/v2.html only — the current Cabinet never loads it, so the two cannot affect each other). */
+/* ==========================================================================
+   Acte Permisive · EVO Cabinet
+   Figma: EVO Cabinet → "Actele mele permisive/Table" (444:9935)
+
+   Components come from the library — do not restyle them here:
+     .search-input medium rectangular   search field (40px)
+     .chip / .chip__label / .chip__badge  status filters + Filtre
+     .status-tag                          Valabil / Expirat / Suspendat / Retras
+     .message message--warning|--error    inline notice strip
+     .copy-value (../css/copy-value.css)   number + copy button (header meta / detail rows only)
+   Only the page shell and the card frame are defined below.
+   ========================================================================== */
+
+.cab-page {
+  /* the base colour tokens come from main.css + css/token-fix.css (the page-scoped copy was removed, library-adopt-v4) */
+  --cab-shell-width: 1248px;
+  /* list pages (2026-10-20, user: „full container width, edge to edge with the header, like RAP”) = the
+     header's content box (.evo-header__container: page width − 2 gutters = 1200; 24 / 16 page
+     padding below it = the header's) → EVO logo left edge … account menu right edge at every width */
+  --cab-list-width: calc(var(--fo-page-width, 1248px) - 2 * var(--fo-page-gutter, 24px));
+  /* profiles = the RAP profile column (user 2026-10-17): 1024 fixed, fills below it */
+  --cab-content-width: 1024px;
+}
+
+/* ---------- layout ---------- */
+
+.cab-main {
+  padding: var(--spacing-32, 32px) var(--spacing-24, 24px) var(--spacing-64, 64px);
+}
+
+.cab-main__container {
+  margin: 0 auto;
+  max-width: var(--cab-list-width);
+  width: 100%;
+}
+
+/* a profile (request, act, catalog service: the BO page header) keeps the 1024 reading column */
+.cab-main__container:has([data-cab-profile-header]:not([hidden] *)) {
+  max-width: var(--cab-content-width);
+}
+
+/* list page titles = the RAP list title (32/40 semibold; 28/36 on phones), not the 44 h2 (user 2026-10-18:
+   „title kinda huge”) — Actele mele permisive, Solicitările mele, Catalogul serviciilor, Notificări */
+.cab-main h1.text-heading-h2 {
+  font-size: var(--font-size-fs-32, 32px);
+  font-weight: 600;
+  letter-spacing: -0.32px;
+  line-height: var(--line-height-lh-40, 40px);
+  margin: 0;
+}
+
+@media (max-width: 760px) {
+  /* Mobile/Heading/H2 (type-mobile-v1; the desktop −0.32 tracking is the list-title look, Figma H2 says −0.64) */
+  .cab-main h1.text-heading-h2 {
+    font-size: var(--text-mobile-heading-h2-font-size, 28px);
+    letter-spacing: var(--text-mobile-heading-h2-letter-spacing, -0.56px);
+    line-height: var(--text-mobile-heading-h2-line-height, 36px);
+  }
+}
+
+.cab-intro h1 {
+  margin: 0;
+}
+
+/* 8 under the page title (the tight-gap rule: no loose text closer than 8, 2026-10-17) */
+.cab-intro p {
+  color: var(--color-text-base-tertiary, #757575);
+  margin: var(--spacing-8, 8px) 0 0;
+}
+
+/* ---------- toolbar ---------- */
+/* Figma "Container": row, gap 16, height 40 */
+
+.cab-toolbar {
+  align-items: center;
+  display: flex;
+  flex-direction: row;
+  gap: var(--spacing-16, 16px);
+  height: 40px;
+  margin-top: var(--spacing-24, 24px);
+}
+
+/* search — taken verbatim from rap-evo/rap-evo.css (.rap-search), with the
+   rap-* vars resolved to their design tokens (same values). */
+
+.cab-search {
+  flex: 0 0 387px;
+  margin: 0;
+  width: 387px;
+}
+
+.cab-search.search-input.medium {
+  border: 0;
+  box-shadow: inset 0 0 0 1px var(--color-border-base-default, #d9d9d9);
+  height: 40px;
+  min-height: 40px;
+}
+
+.cab-search.search-input.medium:hover:has(.input:not(:disabled):not([readonly])) {
+  border: 0;
+  box-shadow: inset 0 0 0 2px var(--color-text-base-tertiary, #757575);
+}
+
+.cab-search.search-input.medium:focus-within:has(.input:not(:disabled):not([readonly])) {
+  border: 0;
+  box-shadow: inset 0 0 0 2px var(--color-background-brand-default, #0058d2), 0 0 0 4px #ccdef6;
+}
+
+.cab-search.search-input.medium .input {
+  color: var(--color-text-base-default, #121212);
+  font-size: var(--font-size-fs-14, 14px);
+  font-weight: 400;
+  height: 40px;
+  line-height: var(--line-height-lh-20, 20px);
+  padding-left: var(--spacing-40, 40px);
+  padding-right: var(--spacing-12, 12px);
+}
+
+.cab-search.search-input.medium.has-value .input {
+  padding-right: var(--spacing-40, 40px);
+}
+
+.cab-search input[type="search"]::-webkit-search-cancel-button {
+  appearance: none;
+  display: none;
+  -webkit-appearance: none;
+}
+
+.cab-search .cab-search__actions {
+  bottom: 10px;
+  right: 12px;
+  top: 10px;
+}
+
+.cab-search .cab-search__clear.btn-icon.clear {
+  align-items: center;
+  background: rgb(18 18 18 / 10%);
+  border-radius: var(--border-radius-full, 999px);
+  color: var(--color-text-base-default, #121212);
+  height: 20px;
+  justify-content: center;
+  min-height: 20px;
+  min-width: 20px;
+  transition: background-color 100ms ease;
+  width: 20px;
+}
+
+.cab-search .cab-search__clear.btn-icon.clear:hover {
+  background: rgb(18 18 18 / 16%);
+}
+
+.cab-search .cab-search__clear .icon {
+  height: 16px;
+  width: 16px;
+}
+
+.cab-search.search-input.medium .input::placeholder {
+  font-size: var(--font-size-fs-14, 14px);
+  font-weight: 400;
+  line-height: var(--line-height-lh-20, 20px);
+}
+
+/* ---------- chips ----------
+   Figma "filter-chip": 40px pill, label 16/24 -0.01em, badge 18x18.
+   The library .chip is 14px with 8px/16px padding and a 16px badge, so the
+   deltas are pinned here rather than forked into a new component. */
+
+.cab-chips {
+  align-content: center;
+  align-items: center;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: var(--spacing-8, 8px);
+  padding: var(--spacing-20, 20px) 0 0;
+}
+
+.cab-toolbar .chip:not(.e-permits-filter-trigger),
+.cab-chips .chip {
+  gap: var(--spacing-6, 6px);
+  height: 40px;
+  justify-content: center;
+  min-width: 60px;
+  padding: 0 var(--spacing-16, 16px);
+}
+
+/* the „Filtre” chip: css/facet-filter.css „Filter trigger” (filter-chip-v1) */
+
+.cab-toolbar .chip:not(.e-permits-filter-trigger) .chip__label,
+.cab-chips .chip__label {
+  flex-grow: 1;
+  font-size: var(--font-size-fs-16, 16px);
+  font-weight: var(--font-weight-fw-medium, 500);
+  letter-spacing: -0.01em;
+  line-height: var(--line-height-lh-24, 24px);
+  text-align: center;
+}
+
+.cab-chips .chip__badge {
+  background-color: var(--color-background-base-default, #fff);
+  box-sizing: border-box;
+  color: var(--color-text-base-default, #121212);
+  flex: none;
+  font-size: var(--font-size-fs-12, 12px);
+  font-weight: var(--font-weight-fw-medium, 500);
+  height: 18px;
+  letter-spacing: -0.01em;
+  line-height: var(--line-height-lh-16, 16px);
+  margin-left: 0;
+  min-height: 18px;
+  min-width: 18px;
+  padding: 0 var(--spacing-4, 4px);
+  width: 18px;
+}
+
+/* only the state that needs attention carries the accent badge */
+.cab-chips .chip__badge--accent,
+.cab-chips .chip.is-selected .chip__badge--accent {
+  background-color: var(--color-background-warning-accent, #fec84b);
+  color: var(--color-text-base-default, #121212);
+}
+
+/* ---------- permit card ----------
+   Figma ".formulare": row, padding 20, gap 24, 1.5px #D9D9D9, radius 16, h102.
+   Inner "Container": column, gap 16. "Form Fields Container": row, centred,
+   gap 20. "Form Field": row, gap 8. "Form Inline Field": row, gap 6, icon 20. */
+
+.cab-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-12, 12px);
+  margin-top: var(--spacing-24, 24px);
+}
+
+.cab-card {
+  align-items: center;
+  background: var(--color-background-base-default, #fff);
+  border: var(--border-width-1-5, 1.5px) solid var(--color-border-base-default, #d9d9d9);
+  border-radius: var(--border-radius-16, 16px); /* list card = 16 (radius-16-v1: 24 tried and rejected 2026-10-21) */
+  box-sizing: border-box;
+  cursor: pointer;
+  display: flex;
+  flex-direction: row;
+  gap: var(--spacing-24, 24px);
+  padding: var(--spacing-20, 20px);
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+  width: 100%;
+}
+
+.cab-card:hover {
+  background: var(--color-background-base-tertiary, #f1f1f1);
+}
+
+.cab-card:focus-visible {
+  outline: 0;
+  box-shadow: 0 0 0 4px var(--blue-sky-100, #e8f0fb);
+}
+
+/* Figma "Container" */
+.cab-card__container {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  gap: var(--spacing-16, 16px);
+  min-width: 0;
+}
+
+/* Figma "Form Fields Container" */
+.cab-card__head {
+  align-items: center;
+  display: flex;
+  flex-direction: row;
+  gap: var(--spacing-20, 20px);
+  min-height: 26px;
+}
+
+/* Figma "Form Title" — Desktop/Heading/H5 */
+.cab-card__title {
+  color: var(--color-text-base-default, #121212);
+  flex-grow: 1;
+  font-size: var(--type-heading-h5-font-size, 18px);
+  font-weight: var(--font-weight-fw-semibold, 600);
+  letter-spacing: var(--type-heading-h5-letter-spacing, -0.01em);
+  line-height: var(--type-heading-h5-line-height, 26px);
+  margin: 0;
+  min-width: 0;
+}
+
+.cab-card__tags {
+  align-items: center;
+  display: flex;
+  flex: none;
+  flex-wrap: wrap;
+  gap: var(--spacing-8, 8px);
+}
+
+/* status / „Aprobare tacită” tags = the BO Tag · Small (css/bo-profile-parts.css, 2026-10-17) */
+.cab-card__tags .cab-mark {
+  white-space: nowrap;
+}
+
+/* Figma "Form Field" */
+.cab-card__meta {
+  align-items: center;
+  color: var(--color-text-base-secondary, #383838);
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-8, 8px);
+  min-height: 20px;
+  min-width: 0;
+}
+
+/* Figma "Form Inline Field" */
+.cab-card__meta-item {
+  align-items: center;
+  color: var(--color-text-base-secondary, #383838);
+  display: inline-flex;
+  flex: none;
+  font-size: var(--font-size-fs-14, 14px);
+  font-weight: var(--font-weight-fw-regular, 400);
+  gap: var(--spacing-6, 6px);
+  line-height: var(--line-height-lh-20, 20px);
+  min-width: 0;
+}
+
+.cab-card__meta-item .icon {
+  color: var(--color-icon-base-secondary, #444);
+  flex: none;
+}
+
+/* institution/authority icon: standalone SVG file, recolored via mask so it
+   inherits the same secondary-gray as the sprite-based meta icons */
+.cab-card__authority-icon {
+  background: currentColor;
+  display: inline-block;
+  mask-image: url("../assets/icons/admin-authority.svg");
+  mask-position: center;
+  mask-repeat: no-repeat;
+  mask-size: contain;
+  -webkit-mask-image: url("../assets/icons/admin-authority.svg");
+  -webkit-mask-position: center;
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-size: contain;
+}
+
+/* Figma "Separator Dot": a 10x10 box holding a 3.75px dot */
+.cab-card__dot {
+  align-items: center;
+  display: inline-flex;
+  flex: none;
+  height: 10px;
+  justify-content: center;
+  width: 10px;
+}
+
+.cab-card__dot::before {
+  background: var(--color-icon-base-tertiary, #757575);
+  border-radius: var(--border-radius-full, 999px);
+  content: "";
+  height: 3.75px;
+  width: 3.75px;
+}
+
+/* inline notice strip sits inside the card.
+   .message is built as a transient alert: it carries
+   `animation: message-slide-in .35s` and `align-items: flex-start`. Here it is
+   static card content re-rendered on every filter/search click, so the entry
+   animation replays each time — it has to be switched off, and a single-line
+   strip centres rather than top-aligns. */
+.cab-card .message {
+  align-items: center;
+  animation: none;
+  border-radius: var(--border-radius-8, 8px);
+  gap: var(--spacing-8, 8px);
+  justify-content: flex-start;
+  padding: var(--spacing-8, 8px) var(--spacing-12, 12px);
+}
+
+.cab-card .message .banner__content {
+  flex: 0 1 auto;
+}
+
+.cab-card .message .banner__content p {
+  margin: 0;
+}
+
+/* ---------- responsive ---------- */
+
+@media (max-width: 900px) {
+  .cab-toolbar {
+    flex-wrap: wrap;
+  }
+
+  .cab-search {
+    max-width: none;
+  }
+}
+
+/* phones: the RAP gutters (16 from 760 down, 24 above) */
+@media (max-width: 760px) {
+  .cab-main {
+    padding: var(--spacing-24, 24px) var(--spacing-16, 16px) var(--spacing-48, 48px);
+  }
+}
+
+@media (max-width: 600px) {
+
+  .cab-card__head {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: var(--spacing-8, 8px);
+  }
+
+  .cab-card__dot {
+    display: none;
+  }
+
+  .cab-card__meta-item {
+    width: 100%;
+  }
+}
+
+/* ===== Post-procese din /permits (Feature 90818 / 89533) =====
+   ⋮ menu per act (the front office's .e-permits-fo-intent-menu), the
+   service under the act name, and the act profile view. */
+.cab-card__heading {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: var(--spacing-2, 2px);
+  min-width: 0;
+}
+
+.cab-card__service {
+  color: var(--color-text-base-tertiary, #757575);
+  font-size: var(--font-size-fs-14, 14px);
+  line-height: var(--line-height-lh-20, 20px);
+  margin: 0;
+}
+
+/* ⋮ = the back-office row trigger: btn-strict btn-sm btn-icon-only (32, radius of a small
+   button, 16 icon) — same height as the labelled action beside it (user, 2026-10-12) */
+.cab-card__actions .btn.cab-card__more {
+  padding: 0;
+}
+
+/* inset divider: lines up with the items' 8px inner padding, not the menu edge */
+.cab-menu__separator {
+  border-top: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
+  margin: var(--spacing-4, 4px) var(--spacing-8, 8px);
+}
+
+.cab-menu__label {
+  color: var(--color-text-base-tertiary, #757575);
+  font-size: var(--font-size-fs-12, 12px);
+  line-height: var(--line-height-lh-16, 16px);
+  padding: var(--spacing-4, 4px) var(--spacing-12, 12px) 0;
+}
+
+.cab-menu .e-permits-fo-intent-menu__item:disabled {
+  color: var(--color-text-base-disabled, #b2b2b2);
+  cursor: not-allowed;
+}
+
+.cab-detail__muted {
+  color: var(--color-text-base-tertiary, #757575);
+  margin: var(--spacing-4, 4px) 0 0;
+}
+
+.cab-detail__actions {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-12, 12px);
+}
+
+.cab-detail__actions .e-permits-fo-intent-menu {
+  left: 0;
+  right: auto;
+}
+
+/* ==========================================================================
+   Compartments, Solicitările mele, Catalog (2026-10-12)
+   Figma EVO Cabinet „Solicitarile mele” 508:9600 + dosar profiles. Only the
+   page-level glue lives here; components are the acts page ones (cab-card,
+   cab-chips, cab-menu, cab-detail) and the FO ones (summary card, finish
+   tracker / timeline, callout, roles, confirm-file rows, modals).
+   ========================================================================== */
+
+
+
+
+
+
+
+
+.cab-login {
+  align-self: center;
+  flex: none;
+}
+
+.cab-view[hidden] {
+  display: none;
+}
+
+/* the acts page's static notice strip, reused outside cards (list notices,
+   download errors, catalog note) */
+.cab-message {
+  align-items: center;
+  animation: none;
+  border-radius: var(--border-radius-8, 8px);
+  gap: var(--spacing-8, 8px);
+  justify-content: flex-start;
+  padding: var(--spacing-8, 8px) var(--spacing-12, 12px);
+}
+
+.cab-message .banner__content {
+  flex: 0 1 auto;
+}
+
+.cab-message .banner__content p {
+  margin: 0;
+}
+
+.cab-notice,
+.cab-callout {
+  margin-top: var(--spacing-24, 24px);
+}
+
+.cab-state {
+  margin-top: var(--spacing-24, 24px);
+}
+
+/* ---------- dosar card additions ---------- */
+
+/* deadline strip + ⋮ on one row (Figma 508:9600) */
+.cab-card__foot {
+  align-items: center;
+  display: flex;
+  gap: var(--spacing-12, 12px);
+}
+
+.cab-card__foot .message {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.cab-card__foot .message strong {
+  font-weight: var(--font-weight-fw-medium, 500);
+}
+
+/* a freshly filed / saved / paid dosar on top of the list */
+.cab-card.is-new {
+  border-color: var(--color-border-brand-default, #0058d2);
+}
+
+/* representative history after MPower expiry (US-159): no profile, no hover */
+.cab-card--static {
+  cursor: default;
+}
+
+.cab-card--static:hover {
+  background: var(--color-background-base-default, #fff);
+}
+
+/* „Disponibilă aprobarea tacită” is a button: it carries the explanatory tooltip */
+.cab-mark {
+  appearance: none;
+  background: transparent;
+  border: 0;
+  border-radius: var(--border-radius-4, 4px);
+  cursor: help;
+  font-family: inherit;
+  padding: 0;
+  text-decoration: underline dotted;
+  text-underline-offset: var(--spacing-4, 4px);
+}
+
+.cab-mark:hover {
+  text-decoration-style: solid;
+}
+
+.cab-mark:focus-visible {
+  box-shadow: 0 0 0 2px var(--color-background-base-default, #fff), 0 0 0 4px var(--focus-ring, var(--blue-sky-500, #3379db));
+  outline: none;
+}
+
+/* ---------- toolbar menus + pagination ---------- */
+
+.cab-sort {
+  flex: none;
+}
+
+.cab-menu--wide {
+  left: 0;
+  right: auto;
+  width: 320px;
+}
+
+.cab-menu--compact {
+  bottom: calc(100% + var(--spacing-6, 6px));
+  top: auto;
+  width: 200px;
+}
+
+/* the selected option carries a trailing check */
+.cab-menu .e-permits-fo-intent-menu__item[aria-checked] {
+  justify-content: space-between;
+}
+
+
+.cab-menu a.e-permits-fo-intent-menu__item {
+  text-decoration: none;
+}
+
+/* the list pager = the shared component (css/pager.css, audit-fix-v3); only its place here: 24 under the list */
+.cab-page .e-permits-pager {
+  margin-top: var(--spacing-24, 24px);
+}
+
+/* ---------- profile (dosar + catalog service) ---------- */
+
+.cab-section {
+  display: flex;
+  flex-direction: column;
+}
+
+.cab-docs {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-8, 8px);
+}
+
+/* document card (C.docRowHtml, 2026-10-14): the FO summary row (no ⋮ / download on the card since 2026-10-20 —
+   „Descarcă” lives in the modal; no „Detalii” since no-lone-detalii-v1); the whole card opens the document modal. Grey card on white → hover one step darker (hover rule) */
+.cab-doc .e-permits-fo-lib-item__content {
+  flex: 1 1 auto;
+}
+
+.cab-doc__actions {
+  align-items: center;
+  display: flex;
+  flex: none;
+  gap: var(--spacing-8, 8px);
+  margin-left: auto;
+}
+
+.cab-doc.is-clickable {
+  cursor: pointer;
+  overflow: visible;
+  transition: background-color 140ms var(--motion-easing-standard, cubic-bezier(0.4, 0, 0.2, 1));
+}
+
+/* row-vs-control-v1 (2026-10-30): the band is off while the pointer is on an inner control (its own hover) */
+.cab-doc.is-clickable:is(:hover:not(:has(:is(button, a, [role="button"], .copy-value):hover)), :focus-visible, :has([aria-expanded="true"])) {
+  background: var(--color-background-base-tertiary-hover, #e8e8e8);
+}
+
+/* the card is the control (no „Detalii” button, no-lone-detalii-v1): the row focus ring inside the card */
+.cab-doc.is-clickable :is(button:not(:disabled), a[href], [role="button"], .copy-value) {
+  cursor: pointer;
+}
+
+.cab-doc.is-clickable:focus-visible {
+  outline: var(--border-width-2, 2px) solid var(--focus-ring, var(--blue-sky-500, #3379db));
+  outline-offset: calc(var(--border-width-2, 2px) * -1);
+}
+
+/* a grey button on the grey card would not read as a button → white until hovered */
+.cab-doc__actions > .btn-neutral:not(.e-permits-fo-intent-act__trigger):not(:hover, :active) {
+  background: var(--color-background-base-default, #fff);
+}
+
+.cab-doc-modal .e-permits-fo-doc-modal {
+  width: 640px;
+}
+
+.cab-doc-modal__body {
+  gap: var(--spacing-16, 16px);
+}
+
+.cab-doc-modal__preview {
+  border-radius: var(--border-radius-8, 8px);
+  flex: none;
+  max-height: 40vh;
+}
+
+/* doc-viewer-v1 (2026-10-21, GEAP 2.0 11366:6892): a generated document = the preview takes the dialog height
+   (the base max-height) + the signature tray under it (css/doc-preview.css), no „Date generale” */
+.cab-doc-modal .e-permits-fo-doc-modal:has(> .cab-doc-modal__body--doc) {
+  height: 100%;
+}
+
+.cab-doc-modal__body--doc {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.cab-doc-modal__body--doc > .cab-doc-modal__preview {
+  flex: 1 1 auto;
+  max-height: none;
+}
+
+/* phones: the A4 viewers' layout (css/modal-phone.css § 7) — the canvas edge to edge, 8 around the page */
+@media (max-width: 760px) {
+  .cab-doc-modal .e-permits-fo-doc-modal > .cab-doc-modal__body--doc {
+    padding: var(--spacing-0, 0px);
+  }
+
+  .cab-doc-modal .cab-doc-modal__body--doc > .cab-doc-modal__preview.e-permits-doc-peek__canvas {
+    border-radius: var(--spacing-0, 0px);
+    padding: var(--spacing-8, 8px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cab-doc.is-clickable {
+    transition: none;
+  }
+}
+
+/* phones: the shared FO document-card grid (e-permits-acte-permisive.css ≤720) puts „Detalii” + ⋮
+   under icon · title at the full card width (2026-10-15) */
+@media (max-width: 720px) {
+  .cab-doc__actions {
+    justify-self: start;
+    margin-left: 0;
+  }
+}
+
+.cab-roles.e-permits-fo-form__roles {
+  padding-bottom: 0;
+}
+
+.cab-lead {
+  color: var(--color-text-base-secondary, #383838);
+  font-size: var(--font-size-fs-16, 16px);
+  line-height: var(--line-height-lh-24, 24px);
+  margin: 0;
+}
+
+.cab-cta {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-8, 8px);
+}
+
+.cab-cta .cab-detail__muted {
+  margin: 0;
+}
+
+.cab-applicants {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-8, 8px) var(--spacing-16, 16px);
+}
+
+.cab-applicant {
+  align-items: center;
+  display: inline-flex;
+  gap: var(--spacing-6, 6px);
+}
+
+/* ---------- the Cabinet document modal (FO doc modal shell; the old „Perioadă” filters dialog that also used it
+   went on 2026-10-20 — the dates are facets of the shared filter now) ---------- */
+
+.cab-filter-modal .e-permits-fo-doc-modal {
+  max-width: calc(100% - var(--spacing-32, 32px));
+  width: 560px;
+}
+
+.cab-filter__body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-24, 24px);
+  overflow-y: auto;
+  padding: 0 var(--spacing-24, 24px) var(--spacing-24, 24px);
+}
+
+/* ---------- responsive ---------- */
+
+@media (max-width: 900px) {
+  .cab-toolbar {
+    height: auto;
+  }
+}
+
+@media (max-width: 600px) {
+
+
+  /* 16 = the phone control rhythm (search · Sortează · chips), 2026-10-18 */
+  .cab-toolbar {
+    gap: var(--spacing-16, 16px);
+  }
+
+  .cab-search {
+    flex: 1 1 100%;
+    width: 100%;
+  }
+
+  .cab-card__foot {
+    align-items: flex-start;
+  }
+
+  .cab-filter-modal {
+    align-items: flex-end;
+  }
+
+  .cab-filter-modal .e-permits-fo-doc-modal {
+    border-radius: var(--border-radius-16, 16px) var(--border-radius-16, 16px) 0 0;
+    max-width: none;
+    width: 100%;
+  }
+
+  .cab-roles .e-permits-fo-form__roles-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* Romanian labels are sentence case („Informații suplimentare”, „În așteptare”);
+   the library tag capitalizes every word */
+.cab-page .status-tag {
+  text-transform: none;
+}
+
+/* the FO intent screen stretches its menu on mobile; cabinet menus stay anchored */
+@media (max-width: 720px) {
+  .cab-menu.e-permits-fo-intent-menu {
+    left: auto;
+    right: 0;
+  }
+
+  /* Sortează moves to the row's end so its menu opens leftwards */
+  .cab-sort {
+    margin-left: auto;
+  }
+
+  .cab-menu--wide.e-permits-fo-intent-menu {
+    left: auto;
+    right: 0;
+    width: 280px;
+  }
+}
+
+.cab-section > .cab-detail__actions {
+  margin-top: var(--spacing-12, 12px);
+}
+
+.cab-section > .cab-message,
+.cab-detail__actions + .cab-message {
+  margin-top: var(--spacing-12, 12px);
+}
+
+.cab-detail > .cab-detail__actions + .cab-message {
+  margin-top: 0;
+}
+
+/* ===== Profiles = the RAP / BO profile (2026-10-17 alignment) =====
+   article.cab-profile > header.e-permits-page-header--public + .e-permits-dosar-profil__panel (BO
+   sections, css/bo-profile-parts.css). Blocks that are not sections (the lead: description, status,
+   notices) sit at the top of the panel and keep the section rhythm (16 under them). */
+.cab-profile {
+  display: flex;
+  flex-direction: column;
+}
+
+.cab-profile__lead {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-16, 16px);
+  padding: 0 0 var(--spacing-16, 16px);
+}
+
+.cab-profile__lead:empty {
+  display: none;
+}
+
+/* loose text in the lead (catalog description / request hint) on the section titles' 12 inset */
+.cab-profile__lead > p {
+  margin: 0;
+  padding-inline: var(--spacing-12, 12px);
+}
+
+/* a list / card block under a BO section title (documents, identity cards) starts at the card edge */
+.cab-section > .cab-docs,
+.cab-section > .cab-roles {
+  margin: 0;
+}
+
+/* Beneficiar / Solicitant = the FO identity cards under BO section titles (18/26 semibold in a 48 row,
+   8/12 inset, no gap to the card — the section-over-card rule); 16 between the two columns, as the
+   section rhythm */
+.cab-roles .e-permits-fo-form__roles-grid {
+  column-gap: var(--spacing-16, 16px);
+}
+
+.cab-roles .e-permits-fo-form__role-group {
+  align-items: stretch;
+  gap: 0;
+}
+
+.cab-roles .e-permits-fo-form__role-title {
+  box-sizing: border-box;
+  display: flex;
+  gap: var(--spacing-8, 8px);
+  height: var(--spacing-48, 48px);
+  padding: 11px var(--spacing-12, 12px);
+}
+
+.cab-roles .e-permits-fo-form__role-group h2 {
+  font: var(--font-weight-fw-semibold, 600) var(--type-heading-h5-font-size, 18px) / var(--type-heading-h5-line-height, 26px) var(--font-family-primary-font, Onest), sans-serif;
+  letter-spacing: var(--type-heading-h5-letter-spacing, -0.18px);
+}
+
+.cab-roles.e-permits-fo-form__roles {
+  gap: var(--spacing-16, 16px);
+}
+
+/* act profile: the header's post-process menu opens rightwards from its button; the remaining-days
+   note after „Data expirării” is the tertiary meta voice */
+.e-permits-page-header__action-row .cab-menu.e-permits-fo-intent-menu {
+  left: 0;
+  right: auto;
+}
+
+.e-permits-dosar-profil__row-value > .cab-detail__muted {
+  font-weight: var(--font-weight-fw-regular, 400);
+  margin: 0;
+}
+
+/* „Stadiul solicitării” (request-trajectory-v1 → cabinet-header-v1, 2026-10-21): no visible title (aria-label on the
+   section) · the BO dossier's element itself = GEAPTrajectory.html({ steps, callout }) — the trajectory card with its
+   integrated callout (css/trajectory.css + the „Callout” rules of e-permits-acte-permisive.css). The request's actions
+   are in the BO header (headerActions; priority+ „⋯” as the act). Phones (profile-phone-v1, 2026-10-21, user: „do it
+   edge to edge”): the card runs to the screen edges (−16 = the page gutter, no side border, square corners) so the
+   steps keep their horizontal line down to 320 (css/trajectory.css phone mode); the callout keeps hanging from it. */
+@media (max-width: 760px) {
+  .cab-status > .e-permits-trajectory:not(.e-permits-trajectory--vertical) {
+    border-inline: 0;
+    border-radius: 0;
+    margin-inline: calc(var(--spacing-16, 16px) * -1);
+    /* alert-timeline-tray-v1 (user: „on phone add a little more padding left / right, kinda too close”): 16 at the
+       sides (the shared phone trajectory has 12), 12 top / bottom as before */
+    padding-inline: var(--spacing-16, 16px);
+  }
+
+  /* alert-timeline-tray-v1 (user: „on mobile hide the details under the timeline items so we have more space”): the
+     HORIZONTAL request trajectory shows icon + step label only; the date / who / „Termen …” lines stay in the DOM for
+     screen readers (visually hidden, the .u-visually-hidden recipe — never display: none) and also while the fit is
+     measured, so more steps stay on one line. A trajectory that still has to stack (vertical list) has the room and
+     shows them again. Cabinet only — the BO dossier trajectory (dos-01) keeps its lines. */
+  .cab-status > .e-permits-trajectory:not(.e-permits-trajectory--vertical):is(.is-measuring, :not(.is-stacked)) .e-permits-trajectory__meta {
+    clip: rect(0 0 0 0);
+    clip-path: inset(50%);
+    height: var(--border-width-1, 1px);
+    /* trajectory-phone-even-v1: the phone step text gets min-width: min-content (css/trajectory.css) — the hidden line
+       must stay 1 px or it widens the page */
+    min-width: 0;
+    /* doc-viewer-tabs-v1 (2026-11-16): hidden, as the .u-visually-hidden recipe — `visible` let the nowrap date / who lines
+       count as page overflow and phones laid the whole page (and every dialog) out at 425 on a 375 screen */
+    overflow: hidden;
+    position: absolute;
+    white-space: nowrap;
+    width: var(--border-width-1, 1px);
+  }
+}
+
+/* „Aprobare tacită” on a request is a button (it carries the explanation tooltip): the blue Small tag
+   with the tag box restored over the old text-mark reset, one step darker on hover */
+.status-tag--brand.cab-mark {
+  cursor: help;
+  font-family: inherit;
+  text-decoration: none;
+}
+
+.status-tag--brand.cab-mark:hover {
+  background: var(--color-background-brand-secondary-hover, #d6e4f7);
+}
+
+/* tags in the list rows never shrink below their text */
+:is(.sm-item__tags, .cab-card__tags) > .status-tag {
+  flex: none;
+}
+
+/* open button keeps the focus ring while its menu is open (the shell rule; this page
+   does not load e-permits-shell.css) */
+.cab-page .btn[aria-expanded="true"]:not(:disabled),
+.cab-page .chip[aria-expanded="true"] {
+  box-shadow: 0 0 0 2px var(--color-background-base-default, #fff), 0 0 0 5px var(--focus-ring, var(--blue-sky-500, #3379db));
+  outline: none;
+}
+
+/* open-trigger-v1 (2026-10-26, Figma menu pass): an open grey trigger is PRESSED at every size — the row triggers'
+   tertiary-active (css/e-permits-acte-permisive.css `.btn.btn-sm.btn-neutral[aria-expanded="true"]`) now also on the
+   Medium profile header „Postprocese ⌄” / „⋯” (they kept the resting secondary grey), hovered or not — and a trigger's
+   chevron turns UP while its menu is open (the pager / avatar menus; the act rows already did) */
+.cab-page .btn.btn-neutral[aria-expanded="true"]:not(:disabled),
+.cab-page .btn.btn-neutral[aria-expanded="true"]:hover:not(:disabled) {
+  background: var(--color-background-base-tertiary-active, #b2b2b2);
+  border-color: transparent;
+}
+
+.cab-page .btn[aria-expanded] > .icon:has(use[href$="#icon-chevron-bottom"]) {
+  transition: transform 160ms ease;
+}
+
+.cab-page .btn[aria-expanded="true"] > .icon:has(use[href$="#icon-chevron-bottom"]) {
+  transform: rotate(180deg);
+}
+
+/* ===== Solicitările mele — rows (user, 2026-10-12) =====
+   The app's stacked list (.e-permits-stack › __list › __item) read at 14px instead of
+   the 12px meta: one bordered list (radius 12), full-width dividers, row 16 / 20,
+   title 16/24 semibold, meta + deadline 14/20, tags 24 (14 medium) beside the title,
+   actions right (labelled primary + ⋮). Hover = tertiary fill; the whole row opens. */
+.sm-list .e-permits-stack__list {
+  padding: 0;
+}
+
+.sm-list .e-permits-stack__item {
+  align-items: center;
+  gap: var(--spacing-24, 24px);
+  padding: var(--spacing-16, 16px) var(--spacing-20, 20px);
+}
+
+.sm-list .e-permits-stack__item:first-child {
+  border-radius: var(--border-radius-12, 12px) var(--border-radius-12, 12px) 0 0;
+}
+
+.sm-list .e-permits-stack__item:last-child {
+  border-radius: 0 0 var(--border-radius-12, 12px) var(--border-radius-12, 12px);
+}
+
+.sm-list .e-permits-stack__item:only-child {
+  border-radius: var(--border-radius-12, 12px);
+}
+
+.sm-list .e-permits-stack__main {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: var(--spacing-4, 4px);
+}
+
+.sm-list .e-permits-stack__title {
+  font-size: var(--font-size-fs-16, 16px);
+  font-weight: var(--font-weight-fw-semibold, 600);
+  line-height: var(--line-height-lh-24, 24px);
+}
+
+.sm-list .e-permits-stack__meta {
+  font-size: var(--font-size-fs-14, 14px);
+  line-height: var(--line-height-lh-20, 20px);
+}
+
+.sm-list .e-permits-stack__meta {
+  color: var(--color-text-base-tertiary, #757575);
+  margin-top: 0;
+}
+
+.sm-list .e-permits-stack__meta + .e-permits-stack__meta {
+  margin-top: 0;
+}
+
+.sm-item__tags {
+  align-items: center;
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-8, 8px);
+}
+
+.sm-list .e-permits-stack__actions {
+  align-self: center;
+}
+
+.sm-item.is-clickable:focus-visible {
+  outline: var(--border-width-2, 2px) solid var(--focus-ring, var(--blue-sky-500, #3379db));
+  outline-offset: -2px;
+}
+
+.sm-item.is-new {
+  background: var(--color-background-brand-secondary, #e8f0fb);
+}
+
+.sm-item.is-static {
+  cursor: default;
+}
+
+/* phone: actions drop under the text, left-aligned */
+@media (max-width: 600px) {
+  .sm-list .e-permits-stack__item {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: var(--spacing-12, 12px);
+    padding: var(--spacing-16, 16px);
+  }
+
+  .sm-list .e-permits-stack__actions {
+    align-self: stretch;
+  }
+
+  .sm-list .e-permits-stack__actions .btn-sm:not(.btn-icon) {
+    flex: 1 1 auto;
+  }
+}
+
+.sm-list {
+  margin-top: var(--spacing-24, 24px);
+}
+
+.sm-list .e-permits-stack__meta .e-permits-stack__part {
+  align-items: center;
+  display: inline-flex;
+}
+
+@media (max-width: 600px) {
+  .sm-list .e-permits-stack__actions {
+    align-items: center;
+    justify-content: flex-end;
+  }
+}
+
+/* separate rows (user, 2026-10-12: „separate, not integrated”): each dosar is its own
+   bordered box (radius 12) with 12 between them — same row content, no shared frame */
+.sm-list.e-permits-stack {
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+}
+
+.sm-list .e-permits-stack__list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-12, 12px);
+}
+
+.sm-list .e-permits-stack__item,
+.sm-list .e-permits-stack__item:first-child,
+.sm-list .e-permits-stack__item:last-child,
+.sm-list .e-permits-stack__item:only-child {
+  background: var(--color-background-base-default, #fff);
+  border: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
+  border-radius: var(--border-radius-12, 12px);
+}
+
+.sm-list .e-permits-stack__item + .e-permits-stack__item {
+  border-top: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
+}
+
+/* separate boxes have their own border — no shared inset divider line */
+.sm-list .e-permits-stack__item + .e-permits-stack__item::before {
+  content: none;
+}
+
+.sm-list .e-permits-stack__item.is-clickable:hover {
+  background: var(--color-background-base-tertiary, #f1f1f1);
+}
+
+.sm-list .e-permits-stack__item.is-new {
+  background: var(--color-background-brand-secondary, #e8f0fb);
+  border-color: var(--color-border-brand-default, #0058d2);
+}
+
+/* rounder boxes (user, 2026-10-12: „more round”; radius-16-v1 2026-10-21: 24 tried and rejected, list cards = 16) */
+.sm-list .e-permits-stack__item,
+.sm-list .e-permits-stack__item:first-child,
+.sm-list .e-permits-stack__item:last-child,
+.sm-list .e-permits-stack__item:only-child {
+  border-radius: var(--border-radius-16, 16px);
+}
+
+/* cabinet menus = the one dropdown size (css/dropdown.css: 32px items, 14/20 medium, 20 icons,
+   radius 6, surface 4 / 2); width hugs the longest item */
+.cab-menu.e-permits-stack__menu,
+.cab-menu--wide.e-permits-stack__menu {
+  min-width: 180px;
+  width: max-content;
+}
+
+.cab-menu.e-permits-stack__menu [role="menuitemradio"] {
+  justify-content: space-between;
+}
+
+/* profiles (request, act, catalog service) = the RAP profile: the public BO header
+   (css/bo-profile-parts.css, 16 top · 12 inset) starts right under the top bar — the list's 32
+   (24 on phones) top padding is not added above it (2026-10-17) */
+.cab-main:has([data-cab-profile-header]:not([hidden] *)) {
+  padding-top: 0;
+}
+
+
+/* phones: a GEAP number + its copy icon (≈ 170) does not fit half of 343 — the number item takes the
+   whole first meta row instead of breaking the number at its hyphens; the rest stay 2 equal columns */
+@media (max-width: 760px) {
+  .cab-page-header .e-permits-page-header__meta-item:first-child:has(.copy-value) {
+    grid-column: 1 / -1;
+  }
+}
+
+/* 2026-10-16 · dropdown audit: on phones the act card's ⋮ sits next to the status tag (x ≈ 107), so the
+   right-anchored menu opened 71px off the left screen edge (pp-01a at 375) → open it rightwards there */
+@media (max-width: 720px) {
+  .cab-card__tags .cab-menu.e-permits-fo-intent-menu {
+    left: 0;
+    right: auto;
+  }
+}
+
+/* ===== Actele mele permisive · „Filtre” = the shared facet filter (2026-10-17) =====
+   css/facet-filter.css + js/facet-filter.js, placed as on RAP (rap-evo.css › .rap-filters): outside a
+   table card the bar is its own bordered block 16 under the toolbar; phones (≤760) use the shared phone
+   toolbar (css/facet-filter.css › Phone toolbar, phone-toolbar-v2): search + icon-only „Filtre” (+ icon-only
+   „Sortează”) in ONE row, no facet chips; the bar = only the applied line. The pager is the Solicitările
+   mele one (CabEvo.pagerHtml). */
+.cab-toolbar[hidden],
+.cab-list[hidden],
+.cab-restriction[hidden] {
+  display: none;
+}
+
+/* no box (filter-bar-open-v1, 2026-10-23: the shared „Filter bar” rule in css/facet-filter.css drops the container).
+   Desktop = ONE 16 step (filter-bar-spacing-v1, 2026-10-24, user: „all 16”, ref RAP 22338:161903): search row → the
+   open filter row 16 · filter row → the list / empty state 16 · search row → the list 16 when the row is closed
+   (the list, request list and empty state below). Phones: the applied line 8 under the search row (`.is-sheets`). */
+.cab-filters.e-permits-workplace__filters {
+  margin-top: var(--spacing-16, 16px);
+}
+
+@media (min-width: 761px) {
+  .cab-filters ~ :is(.cab-list, .cab-state),
+  .cab-filters ~ .sm-results > :is(.cab-request-list, .cab-state) {
+    margin-top: var(--spacing-16, 16px);
+  }
+}
+
+/* the restriction notice keeps the intro → content distance */
+.cab-restriction > .cab-callout {
+  margin-top: var(--spacing-24, 24px);
+}
+
+@media (max-width: 760px) {
+  .cab-filters.e-permits-workplace__filters {
+    flex-wrap: wrap;
+  }
+
+  .cab-filters.e-permits-workplace__filters.is-sheets {
+    background: transparent;
+    border: 0;
+    border-radius: 0;
+    flex-wrap: nowrap;
+    margin-top: var(--spacing-8, 8px);
+    padding: var(--spacing-0, 0px);
+  }
+
+  /* even phone rhythm (user 2026-10-18, „even nice gaps, tailwind style”): title 8 description · 16 the search
+     row (search + icon-only „Filtre” / „Sortează”, phone-toolbar-v2) · 8 the applied line · 24 list */
+
+  /* a list with nothing to filter hides the trigger: the search takes the row */
+  .cab-toolbar:has(> .cab-filter[hidden]) .cab-search {
+    flex: 1 1 100%;
+    width: 100%;
+  }
+}
+
+/* US-19 AC-15: the tacit approval mark of the list = icon + „Disponibilă aprobarea tacită” (tooltip) */
+.sm-tacit {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  border-radius: var(--border-radius-4, 4px);
+  color: var(--color-text-brand-default, #0058d2);
+  cursor: help;
+  display: inline-flex;
+  font: var(--font-weight-fw-medium, 500) var(--font-size-fs-12, 12px) / var(--line-height-lh-16, 16px) var(--font-family-primary-font, Onest), sans-serif;
+  gap: var(--spacing-4, 4px);
+  padding: 0;
+}
+
+.sm-tacit span {
+  text-align: left;
+  white-space: normal;
+}
+
+.sm-tacit .icon {
+  flex: 0 0 var(--spacing-16, 16px);
+  height: var(--spacing-16, 16px);
+  width: var(--spacing-16, 16px);
+}
+
+.sm-tacit:hover span {
+  text-decoration: underline;
+}
+
+.sm-tacit:focus-visible {
+  box-shadow: 0 0 0 2px var(--color-border-brand-default, #0058d2);
+  outline: none;
+}
+
+.sm-list-view[hidden],
+.sm-profile-view[hidden] {
+  display: none;
+}
+
+/* Notificări (minimal stand-in of the EVO compartment): the Solicitările mele stacked rows with a lead icon in
+   the event tone (20 in a 32 circle, the BO stack lead), the text 14/20 secondary, one labelled action */
+.nt-list .nt-item {
+  align-items: flex-start;
+  gap: var(--spacing-12, 12px);
+}
+
+.nt-item__icon {
+  align-items: center;
+  background: var(--color-background-base-tertiary, #f1f1f1);
+  border-radius: var(--border-radius-full, 999px);
+  display: inline-flex;
+  flex: 0 0 var(--spacing-32, 32px);
+  height: var(--spacing-32, 32px);
+  justify-content: center;
+  width: var(--spacing-32, 32px);
+}
+
+.nt-item__icon--success { color: var(--color-icon-positive-default, #079455); }
+.nt-item__icon--warning { color: var(--color-icon-warning-default, #dc6803); }
+.nt-item__icon--danger { color: var(--color-icon-danger-default, #d92d20); }
+.nt-item__icon--neutral { color: var(--color-icon-base-tertiary, #757575); }
+
+.nt-item__text {
+  color: var(--color-text-base-secondary, #383838);
+  font-size: var(--font-size-fs-14, 14px);
+  line-height: var(--line-height-lh-20, 20px);
+  margin: 0;
+}
+
+.nt-item .cab-message {
+  margin-top: var(--spacing-8, 8px);
+}
+
+.cab-view[data-cab-view="notificari"] > .cab-callout + .nt-lead:empty + .nt-list,
+.cab-view[data-cab-view="notificari"] > .nt-lead:empty + .nt-list {
+  margin-top: var(--spacing-24, 24px);
+}
+
+/* US-161 · the request profile's sections as tabs (the BO page-header tab strip, css/e-permits-acte-permisive.css)
+   under „Stadiul solicitării”; the panel's first section starts 24 under the track line (16 on phones, see below);
+   sections keep their own 16 bottom padding */
+.cab-profile-tabs {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-24, 24px);
+  min-width: 0;
+}
+
+/* alert-timeline-tray-v1 (user: „the tabs don't look too good — the separator is disrupted — do nice padding / spacing”):
+   the tab strip breathes on the 8 / 16 / 24 scale — 24 between the status / trajectory and the strip, 24 between the
+   strip's line and the first section (16 / 16 on phones). Phones: the strip and its one track line run edge to edge
+   (−16 = the page gutter, as the BO dossier dos-01), the first label stays on the content edge (padding 16), the tabs
+   scroll sideways under the line and the active 2px underline still covers it (library tabs as-is). */
+.e-permits-dosar-profil__panel > .cab-status:has(+ .cab-profile-tabs) {
+  padding-bottom: var(--spacing-24, 24px);
+}
+
+@media (max-width: 760px) {
+  .e-permits-dosar-profil__panel > .cab-status:has(+ .cab-profile-tabs) {
+    padding-bottom: var(--spacing-16, 16px);
+  }
+
+  .cab-profile-tabs {
+    gap: var(--spacing-16, 16px);
+  }
+
+  .cab-profile-tabs > .e-permits-page-header__tabs {
+    background-clip: border-box;
+    background-origin: border-box;
+    margin-inline: calc(var(--spacing-16, 16px) * -1);
+    padding-inline: var(--spacing-16, 16px);
+    scroll-padding-inline: var(--spacing-16, 16px);
+    width: auto;
+  }
+}
+
+.cab-profile-tabs__panel {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.cab-profile-tabs__panel[hidden] {
+  display: none;
+}
+
+.cab-profile-tabs__panel:focus {
+  outline: none;
+}
+
+.cab-profile-tabs__panel:focus-visible {
+  border-radius: var(--border-radius-8, 8px);
+  box-shadow: 0 0 0 2px var(--color-border-brand-default, #0058d2);
+}
+
+/* US-24 AC-04 · an action that failed and can be retried = the error notice + „Reîncercați” (library
+   btn-strict btn-sm) on one row, wrapping under it when narrow (the Ghișeu .e-permits-gh__retry) */
+.cab-retry {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-16, 16px);
+  justify-content: space-between;
+}
+
+.cab-retry > .cab-message {
+  flex: 1 1 320px;
+}
+
+.e-permits-stack__main > .cab-retry {
+  margin-top: var(--spacing-8, 8px);
+}
+
+/* Actele mele permisive = the FO act rows (js/act-row.js); the Cabinet row is clickable as a whole (→ the act
+   profile): pointer + the focus ring of the stack rows; 16 under the toolbar / filter bar */
+.cab-list > .cab-act-list {
+  margin: 0;
+}
+
+.cab-act-list .e-permits-fo-lib-item.e-permits-fo-intent-act {
+  cursor: pointer;
+}
+
+.cab-act-list .e-permits-fo-intent-act:focus-visible {
+  box-shadow: 0 0 0 2px var(--color-border-brand-default, #0058d2);
+  outline: none;
+}
+
+/* fitMenu(): a menu that would leave the screen opens towards the other side */
+:is(.cab-card__tags, .e-permits-fo-intent-act__action) .cab-menu.e-permits-fo-intent-menu.is-end {
+  left: auto;
+  right: 0;
+}
+
+:is(.cab-card__tags, .e-permits-fo-intent-act__action) .cab-menu.e-permits-fo-intent-menu.is-start {
+  left: 0;
+  right: auto;
+}
+
+/* the top bar = the shared EVO header (evo-header-v1, css/evo-header.css): no section name in it (user 2026-10-18,
+   „repetition with the one in the header”) — list pages carry their own h1, profiles the breadcrumb; setHeaderTitle()
+   names the tab (document.title). Its content box = the list width (1200). */
+.cab-page .evo-header {
+  --evo-header-width: var(--cab-list-width);
+}
+
+/* phones: the search is 48 · 16/24 · icon 24 — the shared rule in css/field-sizes.css (audit-fix-v1) */
+
+/* ===== Solicitările mele = the act row (2026-10-20, user: „the same stacked list as Actele mele permisive”) =====
+   GEAPActRow.html with the request's content (solicitari.js cardHtml): the same card (border, r12, 12 padding,
+   tertiary hover, 24 icon · 14/20 medium title + Small tags · 14/20 secondary meta with the 2px dots), desktop
+   AND phones; .cab-act-list gives the pointer + focus ring. Only the request-specific parts are defined here. */
+
+/* 24 by default; under the Solicitările mele toolbar / filter row 16 (filter-bar-spacing-v1, „Filter bar” rule above) */
+.sm-results > .cab-request-list {
+  margin-top: var(--spacing-24, 24px);
+}
+
+/* no lead icon (user 2026-10-20): request rows are the shared act row without the icon — the ONE row anatomy at
+   every width (e-permits-acte-permisive.css „ROW ANATOMY”, trigger-corner-v1 2026-10-21: the desktop grid with the
+   right action column is gone, the trigger sits in the card's corner). */
+
+/* the action wrapper inside .cab-doc__actions lays its button out like the act row's (flex item → same box,
+   action-menu-v1 parity: tools/ui-qa/specs/cabinet-request-row-vs-act-row.json) */
+.cab-request-row .cab-doc__actions > .e-permits-fo-intent-act__action {
+  display: flex;
+}
+
+/* a failed download / redirect = a notice across the full card width under the row (the act row's notice slot) */
+.cab-request-row > :is(.cab-request-row__notice, .cab-retry) {
+  grid-column: 1 / -1;
+  margin-top: var(--spacing-8, 8px);
+}
+
+/* the tacit-approval mark sits with the tags on the title line (12/16, as a Small tag) */
+.cab-request-row .e-permits-fo-doc-title-row > .sm-tacit {
+  align-self: center;
+}
+
+/* back from FOD2 / MPay: the new row is marked (brand tint + brand border), its hover one step darker */
+.cab-request-row.is-new {
+  background: var(--color-background-brand-secondary, #e8f0fb);
+  border-color: var(--color-border-brand-default, #0058d2);
+}
+
+.cab-request-row.is-new:hover {
+  background: var(--color-background-brand-secondary-hover, #d6e4f7);
+}
+
+/* US-159 read-only history: not clickable, no hover */
+.cab-act-list .cab-request-row.is-static {
+  cursor: default;
+}
+
+.cab-request-row.is-static:hover {
+  background: var(--color-background-base-default, #fff);
+}
+
+/* phones (≤760): the shared act-row anatomy (e-permits-acte-permisive.css „PHONE ROW ANATOMY”) — tags on row 1,
+   title, meta, alert; the row's trigger (⋮, the acts' „Postprocese ⌄”; none when „Detalii” was the only action —
+   no-lone-detalii-v1) in the card's top-right
+   corner through ONE shared rule there (row-kebab-v1 → act-trigger-fixed-v1, 2026-10-20). Nothing Cabinet-specific
+   is left here. */
+
+/* the action link at the end of a row alert (library .link, primary, md) — as a <button> (MPay) it loses the
+   UA button box; it is its own tab stop and never opens the row */
+button.cab-alert-link {
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  font-family: inherit;
+  padding: 0;
+}
+
+.cab-alert-link.link {
+  font-size: inherit;
+  font-weight: var(--font-weight-fw-medium, 500);
+  line-height: inherit;
+  white-space: nowrap;
+}
+
+/* a link to another page that opens in a new tab (external-link-v1, 2026-10-22): label + trailing external icon 16
+   in the label colour, never wraps between the two — the status-notice „Vezi solicitarea” (library .link is already
+   inline-flex · gap 4) and the Istoric request number (a detail-row link); the header button uses the library button */
+.cab-external-link {
+  align-items: center;
+  display: inline-flex;
+  gap: var(--spacing-4, 4px);
+  white-space: nowrap;
+}
+
+.cab-external-link > .icon {
+  color: currentColor;
+  flex: 0 0 var(--icon-size-small, 16px);
+  height: var(--icon-size-small, 16px);
+  width: var(--icon-size-small, 16px);
+}
+
+/* a menu item that opens another page in a new tab (request-act-modal-link-v1, 2026-10-23): [pp icon] label … external
+   icon on the item's trailing edge (the item's own size / colour / hover — css/dropdown.css) */
+.cab-menu .e-permits-fo-intent-menu__item > .e-permits-fo-intent-menu__external {
+  margin-inline-start: auto;
+}
+
+/* „Sortează” (desktop + phones): the key group, a divider, the direction group — radio items in nested groups */
+.cab-menu__group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2, 2px);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.cab-sort__trigger [data-sm-sort-label] {
+  white-space: nowrap;
+}
+
+/* US-126 AC-16 (2026-10-20): the suspension notice's „Motivul suspendării” / „Neconformități depistate” lines under its text */
+.nt-item__text.nt-item__details {
+  margin-top: var(--spacing-8, 8px);
+}
+
+.nt-item__details strong {
+  color: var(--color-text-base-default, #121212);
+  font-weight: var(--font-weight-fw-medium, 500);
+}
+
+/* an MPower basis that is no longer valid (US-161 AC-11 / US-19 AC-17: the request filed by a representative whose
+   MPower has expired since) = the neutral Small tag look instead of the FO card's green „valid” outline */
+.e-permits-fo-authorization-card__title > span.is-expired {
+  background: var(--color-background-base-tertiary, #ebebeb);
+  border-color: var(--color-border-base-default, #d9d9d9);
+  color: var(--color-text-base-default, #121212);
+}
+
+/* ===== Phone list rhythm (≤760, 2026-10-20, user: „even vertical rhythm”) =====
+   Solicitările mele, Actele mele permisive, Catalog, Notificări: ONE 16 step from the page title (or its
+   description) → the search row (search · icon-only „Filtre” · „Sortează”, phone-toolbar-v2; Catalog: + the
+   category chips) → first card. The applied-filters line („N rezultate · Șterge filtrele”) belongs to the
+   toolbar group: 8 under the search row, then 16 to the cards.
+   Cards keep 12 between each other (the act list too). Desktop (> 760): title → search 24, then one 16 step (filter-bar-spacing-v1). */
+@media (max-width: 760px) {
+  .cab-intro ~ .cab-toolbar {
+    margin-top: var(--spacing-16, 16px);
+  }
+
+  .cab-filters.e-permits-workplace__filters.is-sheets {
+    gap: var(--spacing-8, 8px);
+  }
+
+  .cab-chips {
+    padding-top: var(--spacing-16, 16px);
+  }
+
+  .cab-list,
+  .sm-list,
+  .sm-results > .cab-request-list,
+  .cab-view[data-cab-view="notificari"] > .cab-callout + .nt-lead:empty + .nt-list,
+  .cab-view[data-cab-view="notificari"] > .nt-lead:empty + .nt-list {
+    margin-top: var(--spacing-16, 16px);
+  }
+}
+
+/* ===== Act profile (act-profile-v1, 2026-10-21) — components.md › „Act profile” =====
+   „Actele mele permisive” › ?act=<id> (cabinet-evo.js renderDetail): the public BO header + a subtitle (the act
+   type), ONE status date in the meta, one status notice, then BO sections (Ce permite actul · Detalii act ·
+   Autoritatea emitentă · Beneficiar · Istoric). Only what the shared parts do not already give lives here. */
+
+/* title + subtitle (the act type = the service) as one block: 4 between them, the heading's 16 above */
+.cab-page-header__titles {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4, 4px);
+  min-width: 0;
+}
+
+.cab-page-header__subtitle {
+  color: var(--color-text-base-secondary, #383838);
+  font: var(--font-weight-fw-regular, 400) var(--font-size-fs-16, 16px) / var(--line-height-lh-24, 24px) var(--font-family-primary-font, Onest), sans-serif;
+  margin: 0;
+  overflow-wrap: break-word;
+}
+
+/* the location subtitle of the act / request profiles (type-first-v1, 2026-10-21): the 16 FILLED map pin in the
+   TERTIARY icon colour (user: „a filled one, in the tertiary colour” — exception to icon = label colour; the text
+   keeps the subtitle colour), 4 to the text, centred on the first 24 line; a wrapped line starts under the text */
+.cab-page-header__subtitle--icon {
+  align-items: flex-start;
+  column-gap: var(--spacing-4, 4px);
+  display: flex;
+}
+
+.cab-page-header__subtitle--icon > .icon {
+  color: var(--color-icon-base-tertiary, #757575);
+  flex: none;
+  margin-top: calc((var(--line-height-lh-24, 24px) - var(--icon-size-small, 16px)) / 2);
+}
+
+.cab-page-header__subtitle--icon > span {
+  min-width: 0;
+}
+
+/* ===== Act / request profile header = the BO page header (cabinet-header-v1, 2026-10-21; user: „the header as in
+   Administrare › Configurări servicii › 003000023 and Dosarele, with the actions on top, for uniformisation”) =====
+   js/page-header.js (GEAPPageHeader, the BO renderer) + the BO header CSS (e-permits-acte-permisive.css „Back-office
+   page header”, css/bo-profile-parts.css). Only what the Cabinet adds: the H1 wraps (the full name is never cut on
+   its own page — the BO registries keep one line + tooltip) and the act's priority+ action row (fitActActions: what
+   does not fit beside the primary goes into „⋯”). */
+.cab-profile-header .e-permits-page-header__title {
+  overflow: visible;
+  overflow-wrap: break-word;
+  text-overflow: clip;
+  white-space: normal;
+}
+
+.cab-profile-header .e-permits-page-header__actions > [hidden] {
+  display: none;
+}
+
+.cab-profile-header .e-permits-page-header__actions > :is(.btn, .e-permits-fo-intent-act__action) {
+  flex: none;
+  white-space: nowrap;
+}
+
+/* a long title never pushes the actions off their first line: they stay on the title row, top-aligned */
+.cab-profile-header .e-permits-page-header__top {
+  align-items: flex-start;
+}
+
+/* one start with the list (header-actions-below-v1, 2026-10-22, user: „the breadcrumb / title in the same place on the
+   lists and the profiles”, = RAP rap-header-v1): the act / request profile keeps the list's page padding (32 · 24;
+   phones 24 · 16 — the 0 top of the catalog service's public header does not apply), the header adds NO inset, and
+   breadcrumb → title is 16 (the heading's 8 + 8) → the breadcrumb sits where the list title sits and the H1 one
+   breadcrumb row + 16 lower, at the same x */
+.cab-main:has(.cab-profile-header:not([hidden] *)) {
+  padding-top: var(--spacing-32, 32px);
+}
+
+.cab-profile-header .e-permits-page-header__body {
+  padding: 0;
+}
+
+.cab-profile-header .e-permits-page-header__heading > .breadcrumbs {
+  margin-bottom: var(--spacing-8, 8px);
+}
+
+@media (max-width: 760px) {
+  .cab-main:has(.cab-profile-header:not([hidden] *)) {
+    padding-top: var(--spacing-24, 24px);
+  }
+}
+
+/* phones: a value with a muted remark („15 septembrie 2028 (704 zile rămase)”) flows as text in its half column —
+   the date never breaks word by word beside the remark */
+@media (max-width: 760px) {
+  .cab-profile-header .e-permits-page-header__meta-value:has(> .cab-detail__muted) {
+    display: block;
+  }
+
+  /* profile-phone-v1 (2026-10-21, user: „remove the left / right padding for the header, too narrow”): on phones the
+     header uses ONLY the page gutter (16) — breadcrumb, title, location, actions and details start on the cards' edge
+     (the BO header's own 16 inset is for its full-bleed white bar; the Cabinet header sits in the gutter already) */
+  .cab-page-header .e-permits-page-header__body {
+    padding-inline: 0;
+  }
+
+  /* the act / request action row: ONE line across the header (priority+ measures the whole row), every button hugs
+     its label, left-aligned (header-actions-hug-v1, 2026-10-23, user: „HUG buttons, not fill, on mobile”; the primary
+     used to take the free room) */
+  .cab-profile-header .e-permits-page-header__top {
+    align-items: stretch;
+  }
+}
+
+/* full container (user 2026-10-21: „the profile of Solicitări and Actele mele: full container, no reason to cut
+   it”): the act profile takes the list width (--cab-list-width) instead of the 1024 reading column; long text in it
+   keeps ~75ch lines (the notice in the facts card) */
+.cab-main__container:has(.cab-act-profile [data-cab-profile-header]:not([hidden] *)) {
+  max-width: var(--cab-list-width);
+}
+
+/* the status alert card (act-alert-card-v1, css/alert-card.css) opens the act / request panel, right under the header:
+   24 above on desktop / 16 on phones (instead of the BO panel's 20); under it 16 before a titled section (its 48 heading
+   row adds its own ~12, so it reads as the section rhythm) and 24 before the request trajectory card (16 on phones) */
+.e-permits-dosar-profil__panel:has(> .cab-alert-card:first-child) {
+  padding-top: var(--spacing-24, 24px);
+}
+
+.e-permits-dosar-profil__panel > .cab-alert-card {
+  margin-bottom: var(--spacing-16, 16px);
+}
+
+.e-permits-dosar-profil__panel > .cab-alert-card:has(+ .cab-status) {
+  margin-bottom: var(--spacing-24, 24px);
+}
+
+/* a failed action of the card / header (sm-04h, sm-03e, sm-05c) = the library error toast (sm-04h-error-toast-v1),
+   never an inline message in the panel — the alert + trajectory tray stays whole */
+
+@media (max-width: 760px) {
+  .e-permits-dosar-profil__panel:has(> .cab-alert-card:first-child) {
+    padding-top: var(--spacing-16, 16px);
+  }
+
+  .e-permits-dosar-profil__panel > .cab-alert-card:has(+ .cab-status) {
+    margin-bottom: var(--spacing-16, 16px);
+  }
+}
+
+/* ---- Alert + trajectory tray (alert-timeline-tray-v1, 2026-10-23; replaces alert-timeline-fused-v1 — user: „the
+   solicitare integration is wrong — leave the timeline as it was (stroke and white bg)”, EVO Cabinet Figma 1287:34973).
+   ONE modifier on the alert card (`cab-alert-card--fused`, solicitari.js alertCardHtml); it acts only while the card sits
+   DIRECTLY above the request trajectory (the act profile leaves both as they were; a failed action is a toast since
+   sm-04h-error-toast-v1, so nothing splits the tray). Anatomy measured from the Figma pixels (1287:34973, 1200 wide): the grey alert (--color-background-base-secondary,
+   its own padding 24 / phones 16, top radius 24) is 96 high; the trajectory card EXACTLY as it was (white, 1px
+   border-base-default, radius 24 on ALL four corners, padding 20 / phones 12) sits flush under it — border at x 0 and
+   x 1199, top line at y 96, no inset — and the grey shows only behind the card's rounded TOP corners (its bottom corners
+   sit on the page white). Built on the existing DOM: the alert's bottom corners square, no gap; the status section paints
+   the grey in a 24-high band at its top only (behind the card's top corners), the card is untouched. Phones: the tray
+   keeps the page gutter (the card gets back its side borders + radius); on narrow phones (< 375) the steps would stack in
+   the gutter (sm-03 / 03h / 04c at 320), so there the tray runs edge to edge like the phone trajectory did (square, top /
+   bottom borders only). ---- */
+.e-permits-dosar-profil__panel > .cab-alert-card--fused:has(+ .cab-status) {
+  border-end-end-radius: 0;
+  border-end-start-radius: 0;
+  margin-bottom: 0;
+}
+
+/* cards-radius-20-final (2026-10-23): the alert and the trajectory card are 20 at every width → the grey band = 20 */
+.e-permits-dosar-profil__panel > .cab-alert-card--fused + .cab-status {
+  background: linear-gradient(var(--color-background-base-secondary, #f5f5f5), var(--color-background-base-secondary, #f5f5f5)) top / 100% var(--border-radius-20, 20px) no-repeat;
+}
+
+@media (max-width: 760px) {
+  .e-permits-dosar-profil__panel > .cab-alert-card--fused + .cab-status > .e-permits-trajectory:not(.e-permits-trajectory--vertical) {
+    border-inline: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
+    border-radius: var(--border-radius-20, 20px);
+    margin-inline: 0;
+  }
+}
+
+@media (max-width: 374px) {
+  .e-permits-dosar-profil__panel > .cab-alert-card--fused:has(+ .cab-status) {
+    border-radius: 0;
+    margin-inline: calc(var(--spacing-16, 16px) * -1);
+  }
+
+  .e-permits-dosar-profil__panel > .cab-alert-card--fused + .cab-status > .e-permits-trajectory:not(.e-permits-trajectory--vertical) {
+    border-inline: 0;
+    border-radius: 0;
+    margin-inline: calc(var(--spacing-16, 16px) * -1);
+  }
+}
+
+/* desktop: the „⋯” ends the row after the visible buttons: its menu opens leftwards from it and never runs past the
+   left screen edge (16); phones: see the next block */
+.cab-act-header__overflow .cab-menu.e-permits-fo-intent-menu,
+.cab-act-header__overflow .cab-menu.e-permits-fo-intent-menu:is(.is-start, .is-end) {
+  left: auto;
+  max-width: calc(100vw - var(--spacing-16, 16px) * 2);
+  right: 0;
+}
+
+/* phones (header-actions-hug-v1, 2026-10-23): the buttons hug, so the „⋯” no longer sits on the gutter — opened from
+   it the menu ran past the left screen edge (pp-03h: x −20 at 375 / 320). The menu hangs from the ACTION ROW instead:
+   under the row, on its left edge (= the primary's left, the page gutter), at most the row's width */
+@media (max-width: 760px) {
+  .cab-profile-header .e-permits-page-header__actions:has(> .cab-act-header__overflow) {
+    position: relative;
+  }
+
+  .cab-profile-header .e-permits-page-header__actions > .cab-act-header__overflow {
+    position: static;
+  }
+
+  .cab-act-header__overflow .cab-menu.e-permits-fo-intent-menu,
+  .cab-act-header__overflow .cab-menu.e-permits-fo-intent-menu:is(.is-start, .is-end) {
+    left: 0;
+    max-width: 100%;
+    right: auto;
+  }
+
+  /* header-max-two-v1 (2026-10-23, user: „the ⋯ menu position on phones is broken”): the menu hangs under the row with
+     its right edge on the „⋯” (fitMenu sets `--cab-menu-right` = row right − trigger right and `is-trigger-end` when the
+     menu fits leftwards from the trigger); else it stays on the row's left edge (the page gutter) */
+  .cab-act-header__overflow .cab-menu.e-permits-fo-intent-menu.is-trigger-end,
+  .cab-act-header__overflow .cab-menu.e-permits-fo-intent-menu.is-trigger-end:is(.is-start, .is-end) {
+    left: auto;
+    right: var(--cab-menu-right, 0px);
+  }
+
+  /* the profile header menus („⋯”, Postprocese) on phones = the row menus' items exactly (row-menu-one-v1, 2026-10-26,
+     coordinator: „one component”, per the components.md row-menu rule: 48 · 12 16 · 16/24 regular · icon 24,
+     css/e-permits-acte-permisive.css „Row action menu on phones”) — the header-only override (medium, icon 20, user
+     2026-10-23) is gone; open question for the PO: medium for every row menu instead */
+}
+
+/* ===== Request profile — full container (act-profile-v1, 2026-10-21) =====
+   „Solicitările mele” › #dosar/<id> takes the list width like the act profile (user: „full container, no reason to
+   cut it”); long text keeps ~75ch lines (the status sentence / explanation, notices). Rows keep the BO label column. */
+.cab-main__container:has(.sm-profile [data-cab-profile-header]:not([hidden] *)) {
+  max-width: var(--cab-list-width);
+}
+
+.sm-profile .cab-message .banner__content > p {
+  max-width: 75ch;
+}
+
+/* ===== Cabinet list skeleton (cabinet-skeleton-v1, 2026-10-23) — components.md › „Cabinet list skeleton” =====
+   User: „for Actele mele permisive and Solicitările mele, a nice skeleton loader when there is loading time”. The ONE
+   `.skeleton` (css/skeleton.css: paint, shimmer, reduced motion) PLACED in the act / request row's geometry, so the
+   rows that arrive take exactly its place: card padding 16 · radius 16 · 1.5 default stroke · lines 8 apart; line 1 =
+   title 16/24 + the Small tag (20) — phones: the tag line first, then the title —, line 2 the location 14/20, line 3
+   the meta 14/20 (two lines on phones); the trigger („Postprocese ⌄” 128 · the requests' ⋮ 32) in the card corner
+   (top = right = 16 − (32 − 20) / 2, as the real one). Desktop 115 high, phones 163 (= the usual row). A text bar is
+   1em of its slot's type centred on its line (1lh). Not interactive: no hover, no pointer. */
+.cab-skeleton-list {
+  pointer-events: none;
+}
+
+.cab-skeleton-row {
+  --cab-skeleton-trigger: calc(var(--spacing-64, 64px) * 2);
+  background: var(--color-background-base-default, #fff);
+  border: var(--border-width-1-5, 1.5px) solid var(--color-border-base-default, #d9d9d9);
+  border-radius: var(--border-radius-16, 16px);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-8, 8px);
+  padding: var(--spacing-16, 16px);
+  position: relative;
+}
+
+.cab-skeleton-list--requests > .cab-skeleton-row {
+  --cab-skeleton-trigger: var(--spacing-32, 32px);
+}
+
+:is(.cab-skeleton-row, .cab-skeleton-profile) .skeleton--text,
+.skeleton--text.cab-skeleton-count {
+  height: 1em;
+  margin-block: calc((1lh - 1em) / 2);
+}
+
+.cab-skeleton-row__head {
+  align-items: center;
+  display: flex;
+  gap: var(--spacing-8, 8px);
+  padding-right: calc(var(--cab-skeleton-trigger) + var(--spacing-8, 8px));
+}
+
+.cab-skeleton-row__title {
+  font-size: var(--font-size-fs-16, 16px);
+  line-height: var(--line-height-lh-24, 24px);
+}
+
+.cab-skeleton-row .skeleton--text.cab-skeleton-row__title {
+  flex: 0 1 auto;
+  width: 34%;
+}
+
+.cab-skeleton-row__tag {
+  border-radius: var(--border-radius-4, 4px);
+  height: var(--spacing-20, 20px);
+  width: calc(var(--spacing-48, 48px) + var(--spacing-4, 4px));
+}
+
+.cab-skeleton-row__place,
+.cab-skeleton-row__meta {
+  display: flex;
+  flex-direction: column; /* no margin collapsing between the meta's two phone lines (2 × 20) */
+  font-size: var(--font-size-fs-14, 14px);
+  line-height: var(--line-height-lh-20, 20px);
+}
+
+.cab-skeleton-row__place > .skeleton {
+  width: 22%;
+}
+
+.cab-skeleton-row__meta > .skeleton {
+  width: 60%;
+}
+
+.cab-skeleton-row__meta > .skeleton + .skeleton {
+  display: none;
+}
+
+.cab-skeleton-row__trigger {
+  border-radius: var(--border-radius-6, 6px);
+  height: var(--spacing-32, 32px);
+  position: absolute;
+  right: calc(var(--spacing-16, 16px) - (var(--spacing-32, 32px) - var(--spacing-20, 20px)) / 2);
+  top: calc(var(--spacing-16, 16px) - (var(--spacing-32, 32px) - var(--spacing-20, 20px)) / 2);
+  width: var(--cab-skeleton-trigger);
+}
+
+/* rows differ a little, as real names do */
+.cab-skeleton-row:nth-child(3n + 2) .skeleton--text.cab-skeleton-row__title {
+  width: 26%;
+}
+
+.cab-skeleton-row:nth-child(3n + 3) .skeleton--text.cab-skeleton-row__title {
+  width: 30%;
+}
+
+.cab-skeleton-row:nth-child(3n + 2) .cab-skeleton-row__place > .skeleton {
+  width: 18%;
+}
+
+.cab-skeleton-row:nth-child(3n + 3) .cab-skeleton-row__meta > .skeleton {
+  width: 48%;
+}
+
+/* the facet bar's „N rezultate” while the list loads */
+.skeleton--text.cab-skeleton-count {
+  display: inline-block;
+  vertical-align: middle;
+  width: calc(var(--spacing-72, 72px) + var(--spacing-8, 8px));
+}
+
+@media (max-width: 760px) {
+  .cab-skeleton-row__head {
+    display: contents;
+  }
+
+  .cab-skeleton-row__tag {
+    order: -1;
+  }
+
+  .cab-skeleton-row .skeleton--text.cab-skeleton-row__title,
+  .cab-skeleton-row:nth-child(n) .skeleton--text.cab-skeleton-row__title {
+    width: 84%;
+  }
+
+  .cab-skeleton-row__place > .skeleton,
+  .cab-skeleton-row:nth-child(n) .cab-skeleton-row__place > .skeleton {
+    width: 64%;
+  }
+
+  .cab-skeleton-row__meta > .skeleton,
+  .cab-skeleton-row:nth-child(n) .cab-skeleton-row__meta > .skeleton {
+    width: 92%;
+  }
+
+  .cab-skeleton-row__meta > .skeleton + .skeleton,
+  .cab-skeleton-row:nth-child(n) .cab-skeleton-row__meta > .skeleton + .skeleton {
+    display: block;
+    width: 56%;
+  }
+}
+
+/* the act / request profile on its first load: the real header / panel wrappers, bars in the slots (breadcrumb
+   14/20 · H1 24/32 — phones 20/28 · location 16/24 · two Medium 40 buttons · four meta pairs 12/16 + 14/20 · the
+   request trajectory · two sections with BO rows) */
+.cab-skeleton-profile {
+  pointer-events: none;
+}
+
+/* 16 to the H1, as the real breadcrumb (heading gap 8 + its own 8) */
+.cab-skeleton-profile__crumb {
+  display: block;
+  margin-bottom: var(--spacing-8, 8px);
+  font-size: var(--font-size-fs-14, 14px);
+  line-height: var(--line-height-lh-20, 20px);
+}
+
+.cab-skeleton-profile__crumb > .skeleton {
+  width: calc(var(--spacing-72, 72px) * 2);
+}
+
+.cab-skeleton-profile .cab-skeleton-profile__title {
+  display: block;
+}
+
+.cab-skeleton-profile__title > .skeleton {
+  width: 52%;
+}
+
+.cab-skeleton-profile__subtitle > .skeleton {
+  width: 28%;
+}
+
+.cab-skeleton-profile__button {
+  border-radius: var(--border-radius-8, 8px);
+  height: var(--spacing-40, 40px);
+  width: calc(var(--spacing-64, 64px) * 2);
+}
+
+.cab-skeleton-profile__button:first-child {
+  width: calc(var(--spacing-64, 64px) * 2 + var(--spacing-40, 40px));
+}
+
+.cab-skeleton-profile .e-permits-page-header__meta-value {
+  align-items: center;
+  display: flex;
+  min-height: var(--spacing-24, 24px);
+}
+
+.cab-skeleton-profile .e-permits-page-header__meta-label > .skeleton {
+  width: var(--spacing-72, 72px);
+}
+
+.cab-skeleton-profile .e-permits-page-header__meta-value > .skeleton {
+  width: calc(var(--spacing-56, 56px) * 2);
+}
+
+.cab-skeleton-profile__trajectory {
+  /* = the trajectory card, 20 at every width (cards-radius-20-final) */
+  border-radius: var(--border-radius-20, 20px);
+  height: calc(var(--spacing-48, 48px) * 2);
+  margin-bottom: var(--spacing-24, 24px);
+}
+
+.cab-skeleton-profile .e-permits-dosar-profil__section-title {
+  display: block;
+}
+
+.cab-skeleton-profile .e-permits-dosar-profil__section-title > .skeleton {
+  width: calc(var(--spacing-72, 72px) * 2);
+}
+
+.cab-skeleton-profile .e-permits-dosar-profil__row-label > .skeleton {
+  width: 60%;
+}
+
+.cab-skeleton-profile .e-permits-dosar-profil__row-value > .skeleton {
+  width: 44%;
+}
+
+@media (max-width: 760px) {
+  .cab-skeleton-profile__title > .skeleton {
+    width: 88%;
+  }
+
+  .cab-skeleton-profile__subtitle > .skeleton {
+    width: 60%;
+  }
+
+  .cab-skeleton-profile__trajectory {
+    margin-bottom: var(--spacing-16, 16px);
+  }
+}

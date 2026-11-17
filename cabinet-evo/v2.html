@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<!-- EVO Cabinet v2 — the new Cabinet's own entry page (cab2-s1-v1, 2026-11-17; product owner: fully isolated from the
+     current Cabinet, cabinet-evo/index.html). Addresses: v2.html?as=<context>&s=<section> · a request
+     &s=cereri#dosar/<id> · an act &s=acte&act=<id> (&id=<record> works for both). Library components are shared;
+     the Cabinet's view code (cab2-acte.js, cab2-cereri.js, cab2-notificari.js, cab2-views.css) and data
+     (data/cab2-*.json) are copies. -->
+<html lang="ro" class="cab2" data-cab2-entry data-cab-visual="off">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Acasă · EVO Cabinet</title>
+  <link rel="stylesheet" href="../assets/fonts/Onest.css">
+  <link rel="stylesheet" href="../css/main.css?v=border200-v1">
+  <link rel="stylesheet" href="../css/token-fix.css?v=cards-radius-20-final">
+  <link rel="stylesheet" href="../css/type-mobile.css?v=type-mobile-v1">
+  <link rel="stylesheet" href="../css/button-icons.css?v=button-label-v1">
+  <link rel="stylesheet" href="../css/radio.css?v=radio-v1">
+  <link rel="stylesheet" href="../css/skeleton.css?v=skeleton-v1">
+  <!-- the FO / BO product stylesheet (the shared copy value: ../css/copy-value.css below) -->
+  <!-- the shared facet filter (BO bar + RAP phone sheets), before the FO stylesheet as on the BO pages -->
+  <link rel="stylesheet" href="../css/facet-filter.css?v=rap-load-v1">
+  <link rel="stylesheet" href="../css/date-picker-views.css?v=dp-select-v1">
+  <link rel="stylesheet" href="../css/e-permits-acte-permisive.css?v=doc-title-2l-v1">
+  <link rel="stylesheet" href="../css/empty-state.css?v=empty-v3">
+  <!-- the BO page header / sections / Small tags with their BO values (the BO scope is not on this page) -->
+  <link rel="stylesheet" href="../css/bo-profile-parts.css?v=cards-radius-20-final">
+  <!-- the long-name toggle of the profile H1 on phones (page header phoneTitle "compact") -->
+  <link rel="stylesheet" href="../css/name-expand.css?v=name-expand-align-v1">
+  <!-- the act's „Vizualizare act” / „Forma de tipar” dialogs, shared with RAP (js/act-view.js) -->
+  <link rel="stylesheet" href="../css/doc-preview.css?v=doc-meta-flat-v1">
+  <link rel="stylesheet" href="../css/act-view.css?v=doc-viewer-docked-v1">
+  <link rel="stylesheet" href="../css/table-pin-shadow.css?v=table-pin-clip-v1">
+  <link rel="stylesheet" href="../css/evo-header.css?v=evo-header-border-v1">
+  <!-- EVO Cabinet v2 (behind ?shell=2 — cab2.js puts `.cab2` on <html>; without it none of these rules match):
+       motion tokens, the shared hover surface, the surface layer + group identity + motion primitives, the demo page;
+       the flag script sits after demo-links.js below -->
+  <link rel="stylesheet" href="../css/motion.css?v=motion-v1">
+  <link rel="stylesheet" href="../css/hover-surface.css?v=motion-v1">
+  <link rel="stylesheet" href="cab2.css?v=cab2-shell-v1">
+  <!-- Batch 2 · the shell (?shell=2&view=cabinet): the Cabinet card = the dashboard widget card (css/widget.css) -->
+  <link rel="stylesheet" href="../css/widget.css?v=cab2-shell-v1">
+  <!-- the menu = the BO sidebar items (generated subset of css/e-permits-shell.css: tools/css/extract-shell-nav.mjs) -->
+  <link rel="stylesheet" href="../css/shell-nav.css?v=shell-nav-v1">
+  <!-- EVO Cabinet v2 (cab2-s1-v1): the new Cabinet's OWN view styles (copy of cabinet-evo.css) + the shell -->
+  <link rel="stylesheet" href="cab2-views.css?v=cab2-s1-v1">
+  <link rel="stylesheet" href="cab2-shell.css?v=cab2-s1-v1">
+  <link rel="stylesheet" href="../css/trajectory.css?v=phone-fit-v1">
+  <!-- the status alert card of the act / request profiles (act-alert-card-v1, js/alert-card.js) -->
+  <link rel="stylesheet" href="../css/alert-card.css?v=cards-radius-20-final">
+  <link rel="stylesheet" href="../css/dropdown.css?v=dp-select-v1">
+  <!-- „Sortează”: desktop menu + phone sort sheet (js/sort-sheet.js) -->
+  <link rel="stylesheet" href="../css/sort-sheet.css?v=radio-v1">
+  <link rel="stylesheet" href="../css/copy-value.css?v=tooltip-edge-v1">
+  <link rel="stylesheet" href="../css/tooltip.css?v=tooltip-figma-v1">
+  <link rel="stylesheet" href="../css/breadcrumbs.css?v=breadcrumb-single-back-v1">
+  <link rel="stylesheet" href="../css/pager.css?v=pager-check-24-v1">
+  <link rel="stylesheet" href="../css/tag.css?v=tag-violet-border-v1">
+  <link rel="stylesheet" href="../css/field-sizes.css?v=audit-fix-v1">
+  <link rel="stylesheet" href="../css/start-dialog.css?v=start-dialog-v7">
+  <link rel="stylesheet" href="../css/dialog-footer.css?v=modal-footer-medium-v1">
+  <link rel="stylesheet" href="../css/modal-scroll.css?v=modal-scroll-v2">
+  <script src="../js/modal-scroll.js?v=doc-viewer-tabs-v1" defer></script>
+  <link rel="stylesheet" href="../css/modal-phone.css?v=filter-sheet-height-v1">
+  <link rel="stylesheet" href="../css/page-reveal.css?v=skeleton-v1">
+  <link rel="stylesheet" href="../css/sticky-sections.css?v=sticky-sections-v1">
+  <!-- ?state=<id> opens the screen a Figma frame shows (js/demo-states.js) -->
+  <script src="../js/demo-states.js?v=cab2-shell-v1"></script>
+  <script src="../js/demo-links.js?v=links-v4"></script>
+  <!-- EVO Cabinet v2 flag (?shell=2 → `.cab2` on <html>) — after demo-links.js, which writes a ?state=…'s parameters into the address -->
+  <!-- the v2 flag + menu groups (this page is always the new Cabinet: data-cab2-entry) -->
+  <script src="cab2.js?v=cab2-s1-v1"></script>
+  <script src="../js/toast.js?v=sm-v1" defer></script>
+  <script src="../js/tag.js?v=audit-fix-v5"></script>
+  <script src="../js/pager.js?v=pager-compact-v4"></script>
+  <script src="../js/copy-value.js?v=tooltip-edge-v1"></script>
+  <script src="../js/start-dialog.js?v=start-dialog-v8"></script>
+  <script src="../js/breadcrumbs.js?v=breadcrumb-single-back-v1"></script>
+  <script src="../js/page-header.js?v=header-actions-below-v1"></script>
+  <script src="../js/name-expand.js?v=header-actions-below-v1" defer></script>
+  <script src="../js/empty-state.js?v=empty-v3" defer></script>
+  <script src="../js/icon-tooltip.js?v=tooltip-edge-v1" defer></script>
+  <script src="../js/input-date-picker.js?v=dp-select-v1" defer></script>
+  <script src="../js/doc-preview.js?v=doc-meta-flat-v1" defer></script>
+  <script src="../js/act-view.js?v=doc-viewer-tabs-v1" defer></script>
+  <script src="../js/table-pin-shadow.js?v=table-edge-shadow-v1" defer></script>
+  <script src="../js/facet-filter.js?v=facet-single-v1" defer></script>
+  <script src="../js/sort-sheet.js?v=radio-v1" defer></script>
+  <!-- the act row of the FO „Ce vrei să soliciți?” / Ghișeu — one renderer (Actele mele permisive list) -->
+  <script src="../js/act-row.js?v=ghiseu-picker-toast-v1" defer></script>
+  <!-- the process path (Stadiul solicitării) — the shared trajectory -->
+  <script src="../js/trajectory.js?v=trajectory-phone-even-v1" defer></script>
+  <script src="../js/event-timeline.js?v=sticky-sections-v1" defer></script>
+  <script src="../js/sticky-sections.js?v=sticky-sections-v1" defer></script>
+  <script src="../js/alert-card.js?v=act-alert-card-v2" defer></script>
+  <script src="../js/evo-header.js?v=evo-header-v1" defer></script>
+  <!-- the new Cabinet's own view code (copies — isolation from cabinet-evo.js / solicitari.js / notificari.js):
+       core + Acte permisive → the shell (titles, menu, Acasă) → Cererile mele → Notificări -->
+  <script src="cab2-acte.js?v=cab2-s1-v1" defer></script>
+  <script src="cab2-shell.js?v=cab2-s1-v1" defer></script>
+  <script src="cab2-cereri.js?v=cab2-s1-v1" defer></script>
+  <script src="cab2-notificari.js?v=cab2-s1-v1" defer></script>
+  <script src="cab2-motion.js?v=cab2-foundations-v1" defer></script>
+  <script src="../js/page-reveal.js?v=skeleton-v1" defer></script>
+</head>
+<body class="e-permits-front-office-page is-fo-request-mode cab-page cab2-page-root">
+    <!-- the shared EVO header (js/evo-header.js); the account panel below is re-filled by cab2-shell.js with
+         „Pentru cine acționezi?” (the context switcher) -->
+    <header class="evo-header" data-evo-header data-evo-id="cab2-evo-header" data-evo-auth="in" data-evo-sticky data-evo-phone-gov="off"
+            data-evo-home="v2.html" data-evo-gov="../index.html" data-evo-cabinet="v2.html" data-evo-catalog="index.html?view=catalog"
+            data-evo-notifications="v2.html?s=notificari"
+            data-evo-initials="AC" data-evo-user="Anastasia Cojocaru" data-evo-user-role="Contul tău">
+      <div class="e-permits-fo-avatar-menu" id="fo-avatar-menu" data-evo-slot="account-menu" role="dialog" aria-label="Pentru cine acționezi?" data-fo-avatar-dropdown hidden>
+        <div class="e-permits-fo-avatar-menu__content"></div>
+      </div>
+    </header>
+
+  <main class="cab-main">
+    <!-- the frame: menu (BO grouped sidebar) + the content column at the Solicitări width (cab2-shell.css § 3) -->
+    <div class="cab2-shell" data-cab2-frame>
+      <nav class="cab2-menu" aria-label="Meniul Cabinetului" data-cab2-menu></nav>
+      <div class="cab2-shell__content" id="cab2-content" tabindex="-1" data-cab2-content>
+        <div class="cab-main__container">
+      <div class="cab-view" data-cab-view="acte">
+      <div data-cab2-section-head="acte"></div>
+
+      <!-- Feature 90818: an expired / revoked MPower restricts the acts completely (cabinet-evo.js) -->
+      <div class="cab-restriction" data-cab-restriction hidden></div>
+
+      <div class="cab-toolbar" data-cab-toolbar>
+        <div class="search-input medium rectangular cab-search">
+          <span class="icon-search" aria-hidden="true">
+            <svg class="icon"><use href="../assets/icons/sprite.svg#icon-search"></use></svg>
+          </span>
+          <input
+            class="input"
+            type="search"
+            autocomplete="off"
+            placeholder="Caută după nr. act sau denumire"
+            aria-label="Caută în actele permisive după numărul sau denumirea actului"
+            data-cab-search
+          >
+          <div class="btn-group cab-search__actions">
+            <button class="btn-icon clear cab-search__clear" type="button" aria-label="Șterge căutarea" data-cab-search-clear>
+              <svg class="icon small" aria-hidden="true"><use href="../assets/icons/sprite.svg#icon-cross-small"></use></svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- the shared facet filter (js/facet-filter.js, as RAP): button (the search height, btn-md 40) → bar of
+             facet chips → popover; phones: the round „Filtre” pill (48) → the all-filters sheet -->
+        <button class="chip e-permits-filter-trigger e-permits-workplace__advanced cab-filter" type="button" aria-expanded="false" aria-controls="cab-filters" data-cab-filter-toggle>
+          <span class="chip__icon"><svg class="icon" aria-hidden="true"><use href="../assets/icons/sprite.svg#icon-filter-lines"></use></svg></span>
+          <span class="chip__label">Filtre</span>
+          <span class="chip__badge" aria-hidden="true" data-cab-filter-count hidden></span>
+        </button>
+
+        <!-- „Sortează” (acts-sort-v1) = the Solicitările mele control: the toolbar chip (as „Filtre”) → the desktop
+             menu „Sortează după” / „Ordine” (js/sort-sheet.js); phones: icon-only square → the sort sheet -->
+        <div class="cab-sort" data-cab-sort>
+          <button type="button" class="chip e-permits-filter-trigger e-permits-sort-trigger cab-sort__trigger" aria-haspopup="menu" aria-expanded="false" aria-controls="cab-sort-menu" data-cab-menu-trigger>
+            <span class="chip__icon"><svg class="icon" aria-hidden="true"><use href="../assets/icons/sprite.svg#icon-sort"></use></svg></span>
+            <span class="chip__label" data-cab-sort-label>Data emiterii</span>
+          </button>
+          <ul class="e-permits-fo-intent-menu e-permits-stack__menu cab-menu cab-menu--wide e-permits-sort-menu" id="cab-sort-menu" role="menu" aria-label="Sortează actele permisive" hidden data-cab-sort-menu></ul>
+        </div>
+      </div>
+
+      <div class="e-permits-workplace__filters cab-filters" id="cab-filters" role="group" aria-label="Filtre" data-cab-filters hidden></div>
+      <p class="u-visually-hidden" aria-live="polite" data-cab-sort-status></p>
+
+      <section class="cab-list" aria-label="Lista actelor permisive" data-cab-list></section>
+
+      <div data-cab-pager hidden></div>
+
+      <div class="cab-state" data-cab-empty hidden></div>
+      </div>
+
+
+          <!-- Cererile mele — cab2-cereri.js -->
+          <div class="cab-view" data-cab-view="solicitari" hidden></div>
+          <!-- Notificări — cab2-notificari.js -->
+          <div class="cab-view" data-cab-view="notificari" hidden></div>
+          <!-- Acasă + the other sections — cab2-shell.js -->
+          <div class="cab-view" data-cab-view="cabinet" hidden></div>
+        </div>
+      </div>
+    </div>
+  </main>
+</body>
+</html>

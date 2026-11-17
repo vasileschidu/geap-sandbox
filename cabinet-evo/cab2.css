@@ -22,13 +22,13 @@
   --cab2-width-record: var(--cab-content-width, calc(var(--spacing-32, 32px) * 32));
 }
 
-/* the grey page: depth by tone, not by borders or shadows */
-.cab2 .cab-page.e-permits-front-office-page {
+/* the grey page: depth by tone, not by borders or shadows — visual layer only (`data-cab-visual="on"`, parked in S1) */
+.cab2[data-cab-visual="on"] .cab-page.e-permits-front-office-page {
   background: var(--color-background-base-secondary, #f5f5f5);
 }
 
 /* the shared header keeps its look; only its content box follows the page width so both share the same edges */
-.cab2 .cab-page .evo-header {
+.cab2[data-cab-visual="on"] .cab-page .evo-header {
   --evo-header-width: var(--cab2-width-wide);
 }
 
@@ -37,7 +37,7 @@
   overflow-x: clip;
 }
 
-.cab2 .cab-main__container {
+.cab2[data-cab-visual="on"] .cab-main__container {
   max-width: var(--cab2-width-wide);
 }
 

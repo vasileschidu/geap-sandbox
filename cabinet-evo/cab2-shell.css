@@ -48,7 +48,7 @@
   flex-wrap: wrap;
   gap: var(--spacing-8, 8px) var(--spacing-16, 16px);
   margin: 0 auto;
-  max-width: var(--cab2-width-wide);
+  max-width: var(--cab2-frame-width);
   min-height: var(--spacing-32, 32px);
 }
 
@@ -81,12 +81,32 @@
 }
 
 /* ---------- 3. layout + menu ---------- */
+/* S1 width rule (product owner 2026-11-17: „the same width as EVO Solicitări”): the content column = the Solicitări
+   column (`--cab-list-width`, 1200; the views' own rules narrow a catalog profile to 1024 inside it) and the menu sits
+   BESIDE it — the frame is menu + 24 + 1200, centred in the page gutter; the header and the context line share its
+   edges. Below 1552 the column gives way first (the menu keeps its 280). */
+.cab2-page-root {
+  --cab2-menu-width: calc(var(--spacing-40, 40px) * 7);
+  --cab2-frame-width: calc(var(--cab2-menu-width) + var(--spacing-24, 24px) + var(--cab-list-width));
+}
+
+.cab2-page-root .evo-header {
+  --evo-header-width: var(--cab2-frame-width);
+}
+
 .cab2-shell {
   align-items: start;
   display: grid;
   gap: var(--spacing-24, 24px);
-  grid-template-columns: calc(var(--spacing-40, 40px) * 7) minmax(0, 1fr);
+  grid-template-columns: var(--cab2-menu-width, calc(var(--spacing-40, 40px) * 7)) minmax(0, 1fr);
+  margin-inline: auto;
+  max-width: var(--cab2-frame-width, none);
   min-width: 0;
+}
+
+/* the views' column inside the frame: the Solicitări width, from the column's left edge (no second centring) */
+.cab2-shell__content > .cab-main__container {
+  margin-inline: 0;
 }
 
 .cab2-shell__content {
@@ -178,8 +198,147 @@ button.e-permits-shell__nav-link.cab2-menu__button {
 .cab2-menu__list [data-nav-id="cab2-cont-mpass"] { --cab2-nav-icon: url("../assets/icons/person.svg"); }
 .cab2-menu__list [data-nav-id="cab2-cont-ajutor"] { --cab2-nav-icon: url("../assets/icons/bubble-question.svg"); }
 .cab2-menu__list [data-nav-id="cab2-cont-iesire"] { --cab2-nav-icon: url("../assets/icons/logout.svg"); }
+/* menu v3: one icon per group */
+.cab2-menu__list [data-nav-id="cab2-g-acasa"] { --cab2-nav-icon: url("../assets/icons/home-line.svg"); }
+.cab2-menu__list [data-nav-id="cab2-g-cereri"] { --cab2-nav-icon: url("../assets/icons/page-text.svg"); }
+.cab2-menu__list [data-nav-id="cab2-g-documente"] { --cab2-nav-icon: url("../assets/icons/id-card.svg"); }
+.cab2-menu__list [data-nav-id="cab2-g-bani"] { --cab2-nav-icon: url("../assets/icons/wallet.svg"); }
+.cab2-menu__list [data-nav-id="cab2-g-proprietati"] { --cab2-nav-icon: url("../assets/icons/house.svg"); }
+.cab2-menu__list [data-nav-id="cab2-g-familie"] { --cab2-nav-icon: url("../assets/icons/people.svg"); }
+.cab2-menu__list [data-nav-id="cab2-g-munca"] { --cab2-nav-icon: url("../assets/icons/business.svg"); }
+.cab2-menu__list [data-nav-id="cab2-g-acces"] { --cab2-nav-icon: url("../assets/icons/shield-user.svg"); }
 
-/* ---------- 4. page + card grid ---------- */
+/* menu v3 · the open group's sections: the same item without its icon, indented to the group label's left edge
+   (16 padding + 20 icon + 12 gap, measured on the item — the BO sidebar has no sub-item; documented as the closest format) */
+.cab2-menu__sublist.e-permits-shell__nav-list {
+  margin-top: var(--spacing-2, 2px);
+}
+
+.cab2-menu__list .e-permits-shell__nav-link.cab2-menu__sub {
+  padding-inline-start: calc(var(--spacing-16, 16px) + var(--spacing-20, 20px) + var(--spacing-12, 12px));
+}
+
+/* the group of the page you are on, when the page is one of its sections: its label in the default colour + medium
+   (the section itself carries the selected look and aria-current) */
+.cab2-menu__list .e-permits-shell__nav-link.is-open {
+  color: var(--color-text-base-default, #121212);
+}
+
+.cab2-menu__list .e-permits-shell__nav-link.is-open .e-permits-shell__nav-icon {
+  color: var(--color-icon-brand-default, var(--color-text-brand-default, #0058d2));
+}
+
+/* the phone „Meniu” sheet: under each group a quiet line naming its sections */
+.cab2-menu__link--hint .e-permits-shell__nav-text {
+  display: flex;
+  flex-direction: column;
+  white-space: normal;
+}
+
+.cab2-menu__hint {
+  color: var(--color-text-base-tertiary, #6b6b6b);
+  font-size: var(--font-size-fs-14, 14px);
+  font-weight: var(--font-weight-fw-regular, 400);
+  line-height: var(--line-height-lh-20, 20px);
+}
+
+/* ---------- 3b. identity block (who the Cabinet is for) ----------
+   = the BO account role card (css/shell-nav.css: `.e-permits-shell__profile-role-card` grey r20 · 8 · gap 12, name 14/20
+   medium, label 12/16 tertiary) with the library avatar; 16 above the items; a button only with several contexts */
+.cab2-menu__identity {
+  margin-bottom: var(--spacing-16, 16px);
+  min-width: 0;
+}
+
+.cab2-identity.e-permits-shell__profile-role-card {
+  border: 0;
+  box-sizing: border-box;
+  font-family: inherit;
+  min-width: 0;
+  text-align: start;
+}
+
+button.cab2-identity {
+  color: var(--color-text-base-default, #121212);
+  cursor: pointer;
+}
+
+/* static (one context): not clickable, so no hover */
+.cab2-identity--static.e-permits-shell__profile-role-card:hover,
+.cab2-identity--static.e-permits-shell__profile-role-card:focus-within {
+  background: var(--color-background-base-secondary, #f5f5f5);
+}
+
+/* open switcher = the pressed look stays (project rule: aria-expanded keeps focus ring + pressed fill) */
+button.cab2-identity[aria-expanded="true"] {
+  background: var(--color-background-base-tertiary, #f1f1f1);
+  box-shadow: 0 0 0 var(--border-width-2, 2px) var(--focus-ring, var(--blue-sky-500, #3379db));
+}
+
+button.cab2-identity:focus-visible {
+  box-shadow: 0 0 0 var(--border-width-2, 2px) var(--focus-ring, var(--blue-sky-500, #3379db));
+  outline: none;
+}
+
+.cab2-identity .e-permits-shell__profile-role-copy {
+  min-width: 0;
+}
+
+.cab2-identity__name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cab2-identity .avatar {
+  flex: none;
+}
+
+.cab2-identity__chevron {
+  /* icon = label colour (project rule): the button's own colour */
+  color: inherit;
+  flex: none;
+  height: var(--spacing-20, 20px);
+  width: var(--spacing-20, 20px);
+}
+
+button.cab2-identity[aria-expanded="true"] .cab2-identity__chevron {
+  transform: rotate(180deg);
+}
+
+/* ---------- 4. page (S1: BO formats) ---------- */
+/* blocks = the BO profile sections stacked: section title row → content; 24 between blocks */
+.cab2-page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-24, 24px);
+  min-width: 0;
+}
+
+.cab2-head__line {
+  margin: 0;
+}
+
+.cab2-head__line strong {
+  color: var(--color-text-base-default, #121212);
+  font-weight: var(--font-weight-fw-medium, 500);
+}
+
+/* „Vezi toate” under a block: the library text button, 8 under the block's content */
+.cab2-block__more {
+  margin: var(--spacing-8, 8px) 0 0;
+}
+
+/* a row that opens a record = pointer (the row band hover is the act row's own) */
+.cab2-rows [data-cab2-href] {
+  cursor: pointer;
+}
+
+.cab2-notice {
+  margin: 0;
+}
+
+/* ---------- 4b. parked Batch 2 page parts (?visual=on) ---------- */
 /* the page header on the grey page: no surface of its own, title → 8 → purpose → 8 → source line */
 .cab2-head {
   display: flex;
@@ -538,6 +697,11 @@ button.e-permits-shell__nav-link.cab2-menu__button {
     padding: 0 0 var(--spacing-16, 16px);
   }
 
+  /* the identity block keeps the sheet's 16 gutter (the rows below run edge to edge) */
+  .cab2-menu-sheet .cab2-menu__identity {
+    padding: var(--spacing-8, 8px) var(--spacing-16, 16px) 0;
+  }
+
   /* phones: the same items, 48 high · 16/24 */
   .cab2-menu-sheet .cab2-menu__list .e-permits-shell__nav-link {
     min-height: var(--spacing-48, 48px);
@@ -601,5 +765,54 @@ button.e-permits-shell__nav-link.cab2-menu__button {
   .cab2-search__option.is-active {
     outline: var(--border-width-2, 2px) solid Highlight;
     outline-offset: calc(var(--border-width-2, 2px) * -1);
+  }
+}
+
+/* ---------- 9. S1 · Acasă / group page rows ---------- */
+/* blocks follow each other on the page's 24 (the BO section's own 16 bottom padding is not added on top) */
+.cab2-page > .cab2-block.e-permits-dosar-profil__section {
+  padding-bottom: 0;
+}
+
+/* a „De rezolvat” row = the act row (js/act-row.js) with the sentence as its title + ONE labelled button: the sentence
+   wraps, never cut (the act row's title is one line + ellipsis / 2 lines on phones); the button beside it on desktop,
+   under it on phones */
+.e-permits-fo-lib-item.e-permits-fo-intent-act.cab2-todo {
+  align-items: center;
+  column-gap: var(--spacing-16, 16px);
+  flex-wrap: nowrap;
+}
+
+/* the act row lays its content out flat (`display: contents`); here the sentence + its meta are one column */
+.e-permits-fo-lib-item.e-permits-fo-intent-act.cab2-todo > .e-permits-fo-lib-item__content {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: var(--spacing-8, 8px);
+  min-width: 0;
+}
+
+.e-permits-fo-lib-item.e-permits-fo-intent-act.cab2-todo > .e-permits-fo-lib-item__content > .e-permits-fo-doc-title-row > .e-permits-fo-lib-item__title {
+  -webkit-line-clamp: unset;
+  line-clamp: unset;
+  display: block;
+  overflow: visible;
+  white-space: normal;
+}
+
+.cab2-todo__action {
+  flex: none;
+}
+
+@media (max-width: 760px) {
+  .e-permits-fo-lib-item.e-permits-fo-intent-act.cab2-todo {
+    align-items: flex-start;
+    flex-wrap: wrap;
+    row-gap: var(--spacing-12, 12px);
+  }
+
+  .e-permits-fo-lib-item.e-permits-fo-intent-act.cab2-todo > .e-permits-fo-lib-item__content,
+  .cab2-todo__action {
+    flex: 1 1 100%;
   }
 }

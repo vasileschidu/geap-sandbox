@@ -12,10 +12,36 @@
   "use strict";
 
   const params = new URLSearchParams(window.location.search);
-  const on = params.get("shell") === "2";
+  const root = document.documentElement;
+  /* cab2-s1-v1 (2026-11-17): the new Cabinet has its own page (cabinet-evo/v2.html, `data-cab2-entry` on <html>) —
+     isolated from the current Cabinet. On index.html `?shell=2` now only serves the Foundations demo page
+     (?view=foundations); every other `?shell=2` address moves to the same place on v2.html. */
+  const entry = root.hasAttribute("data-cab2-entry");
+  const on = entry || params.get("shell") === "2";
+  if (!entry && on && params.get("view") !== "foundations") {
+    const view = params.get("view");
+    const next = new URLSearchParams();
+    ["as", "atentie", "entitati", "motion", "act"].forEach((key) => { if (params.get(key)) next.set(key, params.get(key)); });
+    const section = view === "solicitari" ? "cereri" : view === "acte" ? "acte" : view === "notificari" ? "notificari" : params.get("s");
+    if (section) next.set("s", section);
+    const query = next.toString();
+    window.location.replace(`v2.html${query ? `?${query}` : ""}${window.location.hash}`);
+  }
+  /* a record by id (v2.html?s=cereri|acte&id=<record>) = the views' own record addresses (#dosar/<id> · &act=<id>) */
+  if (entry && params.get("id") && ["cereri", "acte"].includes(params.get("s"))) {
+    const next = new URLSearchParams(params);
+    const id = next.get("id");
+    next.delete("id");
+    if (next.get("s") === "acte") next.set("act", id);
+    window.history.replaceState(window.history.state, "", `${window.location.pathname}?${next.toString()}${next.get("s") === "cereri" ? `#dosar/${id}` : window.location.hash}`);
+  }
   if (on) {
-    document.documentElement.classList.add("cab2");
-    if (params.get("motion") === "reduce") document.documentElement.classList.add("is-motion-reduced");
+    root.classList.add("cab2");
+    if (params.get("motion") === "reduce") root.classList.add("is-motion-reduced");
+    /* S1 · structure first (product owner, 2026-11-17): the visual layer of Batch 1 / 2 (grey page, borderless cards,
+       hero, entrance motion, group colours) is parked — kept in the code, applied only with ?visual=on (and on the
+       Foundations demo page). Default = `data-cab-visual="off"`: white page, BO formats. */
+    root.dataset.cabVisual = params.get("visual") === "on" || params.get("view") === "foundations" ? "on" : "off";
   }
 
   const GROUPS = [
@@ -63,5 +89,5 @@
       </div>`;
   };
 
-  window.Cab2 = { on, GROUPS, group, groupIcon, card };
+  window.Cab2 = { on, entry, visual: () => root.dataset.cabVisual === "on", GROUPS, group, groupIcon, card };
 })();

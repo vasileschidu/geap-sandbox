@@ -1,0 +1,1962 @@
+/* EVO Cabinet v2 — COPY of cabinet-evo/cabinet-evo.js (cab2-s1-v1, 2026-11-17, product owner: the new Cabinet is fully
+   isolated from the current one). Same rows / profiles / behaviour as the approved view; differences: the global is
+   window.Cab2Evo, the data files are data/cab2-*.json, addresses are cabinet-evo/v2.html?as=…&s=<section>, titles come
+   from the shell (Cab2Shell.titleOf), storage keys are prefixed cab2-. Never load this file on index.html. */
+(() => {
+  "use strict";
+
+  const DATA_URL = "../data/cab2-acte.json?v=cab2-s1-v1";
+  const SPRITE = "../assets/icons/sprite.svg";
+  /* Figma marks only the suspended count with the accent badge */
+  const ACCENT_STATES = ["suspendat"];
+
+  /* act status → the BO / RAP Tag · Small tone (bordered, css/bo-profile-parts.css; US-162 AC-07:
+     Valabil green, Suspendat warning, Expirat / Retras / Anulat red — 2026-10-17 alignment with RAP) */
+  const ACT_TONE = {
+    valabil: "success",
+    suspendat: "warning",
+    expirat: "danger",
+    retras: "danger",
+    anulat: "danger",
+  };
+  /* the BO renderTag markup (Tag · Small) — every status / result tag in the Cabinet */
+  const tagHtml = (label, tone = "neutral", extra = "") =>
+    `<span class="${window.GEAPTag.cls(tone)}"${extra}>${String(label).replace(/[&<>"']/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[ch])}</span>`;
+  /* „Aprobare tacită” (RAP / US-139) = the status tag of a VALABIL act approved tacitly — ONE tag, it replaces
+     „Valabil” (tacit-tag-v1, user 2026-10-21); other statuses show their own tag only, the tacit date stays in Detalii */
+  const tacitTagHtml = () => '<span class="status-tag status-tag--brand is-subtle status-tag--small">Aprobare tacită<span class="u-visually-hidden"> (valabil)</span></span>';
+  const actStatusTagHtml = (act, tacit) => (tacit && act.status === "valabil" ? tacitTagHtml() : tagHtml(act.statusLabel, ACT_TONE[act.status]));
+
+  /* Feature 90818 / 89533 — GEAP acts come from the same data the front
+     office uses (acte-permisive.json → intent): status × post-process
+     matrix, the service passport (allows), paper acts and acts with a
+     post-process already in progress. The perspective is ?as=<subject>. */
+  const GEAP_URL = "../data/cab2-acte-permisive.json?v=cab2-s1-v1";
+  const FO_URL = "../e-permits-acte-permisive.html";
+
+  const els = {
+    list: document.querySelector("[data-cab-list]"),
+    pager: document.querySelector("[data-cab-pager]"),
+    toolbar: document.querySelector("[data-cab-toolbar]"),
+    restriction: document.querySelector("[data-cab-restriction]"),
+    filterToggle: document.querySelector("[data-cab-filter-toggle]"),
+    filterBar: document.querySelector("[data-cab-filters]"),
+    filterCount: document.querySelector("[data-cab-filter-count]"),
+    empty: document.querySelector("[data-cab-empty]"),
+    search: document.querySelector("[data-cab-search]"),
+    searchClear: document.querySelector("[data-cab-search-clear]"),
+    sort: document.querySelector("[data-cab-sort]"),
+    sortTrigger: document.querySelector("[data-cab-sort] .cab-sort__trigger"),
+    sortMenu: document.querySelector("[data-cab-sort-menu]"),
+    sortStatus: document.querySelector("[data-cab-sort-status]"),
+    title: document.querySelector("[data-cab-title]"),
+    headerTitle: document.querySelector("[data-cab-header-title]"),
+    name: document.querySelector("[data-cab-name]"),
+    role: document.querySelector("[data-cab-role]"),
+    avatarMenu: document.querySelector("[data-fo-avatar-menu]"),
+    avatarTrigger: document.querySelector("[data-fo-avatar-trigger]"),
+    avatarPanel: document.querySelector("[data-fo-avatar-dropdown]"),
+  };
+
+  const state = {
+    permits: [], query: "", geap: null, detail: null, dosarByAct: {}, dosarNrByAct: {}, actProfiles: {}, help: {},
+    /* act profile (act-profile-v1): every request of the perspective by act id / by number, the demo „today” and
+       the appeal term of „Solicitările mele”, the perspective (mpower = a representative) */
+    dossiersByAct: {}, dosarIdByNr: {}, today: "2026-10-12", appealDays: 30, perspective: null,
+    /* the shared facet filter (js/facet-filter.js) — applied values per facet, the bar's draft */
+    filter: { open: false, applied: {}, draft: null },
+    page: 1,
+    perPage: 10,
+    /* „Sortează” (acts-sort-v1): key-direction, Data emiterii newest first by default */
+    sort: "issued-desc",
+    /* Feature 90818 / US-159: a representative whose MPower expired or was revoked sees no act */
+    restriction: null,
+  };
+  const PER_PAGE = [10, 25, 50, 100];
+
+  /* ---------- compartments ----------
+     One page, three views (?view=): Solicitările mele (solicitari.js), Actele mele
+     permisive (this file) and the public catalog (catalog.js). ?as=<subject> is the
+     perspective, ?auth=0 a visitor without an MPass session (catalog only). */
+  const params = new URLSearchParams(window.location.search);
+  /* demo scenarios (pps-…, 2026-11-03): a seed record may carry `scenarios: { pps: {…}, "pps:<value>": {…} }` — with
+     ?pps=<value> the base layer, then the value's layer, are merged over the record (plain objects one level deep).
+     The same record then reads the same in Solicitările mele, Notificări, Actele mele and the FO (suplinire). */
+  function withScenario(item) {
+    const value = params.get("pps");
+    const layers = item?.scenarios;
+    /* v2 demo: ?rezolvat=1 = everything resolved (the record's `scenarios.rezolvat` layer) */
+    const solved = params.get("rezolvat") === "1";
+    if ((!value && !solved) || !layers) return item;
+    const out = { ...item };
+    [value && layers.pps, value && layers[`pps:${value}`], solved && layers.rezolvat].forEach((layer) => {
+      Object.entries(layer || {}).forEach(([key, val]) => {
+        const plain = (x) => x && typeof x === "object" && !Array.isArray(x);
+        out[key] = plain(val) && plain(out[key]) ? { ...out[key], ...val } : val;
+      });
+    });
+    return out;
+  }
+  /* v2: the shell's section (?s=) picks the view; titles follow the context (Cab2Shell.titleOf) */
+  const VIEWS = {
+    solicitari: { title: "Cererile mele" },
+    acte: { title: "Acte permisive" },
+    catalog: { title: "Catalogul serviciilor" },
+    /* minimal stand-in of the EVO „Notificări” compartment (notificari.js) — the GEAP events of US-19 AC-20 / US-135 */
+    notificari: { title: "Notificări" },
+  };
+  /* EVO Cabinet v2 (cab2.js): views that exist only on the new shell, behind ?shell=2 */
+  const SHELL2 = true;
+  /* the new shell itself (cab2-shell.js, Batch 2): menu, context line, switcher, section pages */
+  VIEWS.cabinet = { title: "Acasă" };
+  const SECTION_VIEW = { cereri: "solicitari", acte: "acte", notificari: "notificari" };
+  const VIEW_SECTION = { solicitari: "cereri", acte: "acte", notificari: "notificari" };
+  const VIEW = SECTION_VIEW[params.get("s")] || "cabinet";
+  const AUTH = params.get("auth") !== "0";
+  const SUBJECT = params.get("as") || "pf-anastasia";
+
+  /* a cabinet URL that keeps the perspective (and the visitor mode) */
+  function cabUrl(view, extra = {}, hash = "") {
+    /* the public catalog is not part of the new Cabinet yet: it opens the current Cabinet's catalog (out) */
+    if (!VIEW_SECTION[view]) {
+      const out = new URLSearchParams({ view });
+      if (params.get("as")) out.set("as", params.get("as"));
+      Object.entries(extra).forEach(([key, value]) => { if (value !== undefined && value !== null && value !== "") out.set(key, value); });
+      return `index.html?${out.toString()}${hash}`;
+    }
+    const next = new URLSearchParams();
+    if (params.get("as")) next.set("as", params.get("as"));
+    next.set("s", VIEW_SECTION[view]);
+    ["atentie", "entitati", "rezolvat", "indisponibil"].forEach((key) => { if (params.get(key)) next.set(key, params.get(key)); });
+    /* the demo scenario (pps-…) stays on while the user moves around the cabinet */
+    if (params.get("pps")) next.set("pps", params.get("pps"));
+    if (!AUTH) next.set("auth", "0");
+    Object.entries(extra).forEach(([key, value]) => { if (value !== undefined && value !== null && value !== "") next.set(key, value); });
+    return `?${next.toString()}${hash}`;
+  }
+
+  const MONTHS = ["ianuarie", "februarie", "martie", "aprilie", "mai", "iunie", "iulie", "august", "septembrie", "octombrie", "noiembrie", "decembrie"];
+  /* „8 iulie 2026” from ISO (2026-07-08[THH:MM]) or the acts' DD.MM.YYYY */
+  function longDate(value) {
+    const text = String(value || "");
+    let match = /^(\d{4})-(\d{2})-(\d{2})/.exec(text);
+    if (match) return `${Number(match[3])} ${MONTHS[Number(match[2]) - 1]} ${match[1]}`;
+    match = /^(\d{2})\.(\d{2})\.(\d{4})$/.exec(text);
+    if (match) return `${Number(match[1])} ${MONTHS[Number(match[2]) - 1]} ${match[3]}`;
+    return text;
+  }
+  /* „26 iunie 2026, 13:50” */
+  function longDateTime(iso) {
+    const time = /T(\d{2}:\d{2})/.exec(String(iso || ""));
+    return time ? `${longDate(iso)}, ${time[1]}` : longDate(iso);
+  }
+
+  function applyView() {
+    document.querySelectorAll("[data-cab-view]").forEach((view) => { view.hidden = view.dataset.cabView !== VIEW; });
+    document.querySelectorAll("[data-cab-nav-item]").forEach((link) => {
+      const id = link.dataset.cabNavItem;
+      const active = id === VIEW;
+      link.classList.toggle("active", active);
+      if (active) link.setAttribute("aria-current", "page"); else link.removeAttribute("aria-current");
+      link.setAttribute("href", cabUrl(id));
+      /* a visitor only sees the public catalog (US-19 AC-01: the rest needs MPass) */
+      link.hidden = !AUTH && id !== "catalog";
+    });
+    if (!AUTH) {
+      els.avatarMenu?.setAttribute("hidden", "");
+      document.querySelector("[data-cab-login]")?.removeAttribute("hidden");
+      document.querySelector("[data-cab-login]")?.setAttribute("href", `?view=catalog${window.location.hash}`);
+    }
+    /* act-profile-url-v1: a request profile / not-found state already on screen has named the tab — keep it */
+    if (!document.querySelector("[data-sm-profile-view]:not([hidden])")) setHeaderTitle(VIEWS[VIEW].title);
+  }
+
+  /* the section's title in this context („Cererile companiei”, „Cererile Mariei Rusu”) — from the shell */
+  function sectionTitle(section) {
+    return window.Cab2Shell?.titleOf?.(section) || VIEWS[SECTION_VIEW[section]]?.title || "";
+  }
+  function setHeaderTitle(title) {
+    /* the EVO header (evo-header-v1) has no section title — the tab title names the view */
+    if (els.headerTitle) els.headerTitle.textContent = title;
+    document.title = `${title} · EVO Cabinet`;
+  }
+
+  /* case- and diacritic-insensitive search (US-158 AC-02 rule, shared with Solicitările mele) */
+  const fold = (text) => String(text || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+
+  const icon = (id, size = "small") =>
+    `<svg class="icon ${size}" aria-hidden="true"><use href="${SPRITE}#${id}"></use></svg>`;
+
+  const escape = (value) =>
+    String(value).replace(/[&<>"']/g, (ch) => ({
+      "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;",
+    })[ch]);
+
+  /* Copy value — the shared component (../js/copy-value.js, 2026-10-20): header meta, detail rows,
+     dialogs, identity cards; never in list rows (plain number there) */
+  function copyValueHtml(value, label = "", className = "") {
+    return window.GEAPCopyValue?.html(value, { label: label || `Copiază ${value}`, className }) || escape(value);
+  }
+
+  /* ---------- rendering ---------- */
+
+  /* „Filtre” = the shared facet filter (js/facet-filter.js, as on RAP): the BO bar + popovers on
+     desktop, the RAP phone mode (chip row + bottom sheets) ≤760. OR inside a facet, AND across
+     facets and with the search. Values come from the acts themselves (no new data). */
+  const FACETS = [
+    { key: "status", label: "Statut", get: (permit) => permit.statusLabel },
+    { key: "denumire", label: "Denumire act", search: true, get: (permit) => permit.serviceTitle },
+    { key: "autoritate", label: "Autoritate", search: true, get: (permit) => state.help[permit.service?.authority]?.name || permit.service?.authority },
+    { key: "subdiviziune", label: "Subdiviziunea autorității", get: (permit) => permit.subdivision },
+  ];
+  const facetValues = (facet, permit) => [].concat(facet.get(permit) ?? []).filter(Boolean);
+  const matchesFacets = (permit, except = null, selection = state.filter.applied) => Object.entries(selection).every(([key, values]) => {
+    if (key === except || !values?.length) return true;
+    const facet = FACETS.find((f) => f.key === key);
+    return !facet || facetValues(facet, permit).some((value) => values.includes(value));
+  });
+  /* US-55 AC-06 / the placeholder: the act number and the act name (act type + object / location) */
+  const matchesSearch = (permit) => {
+    const query = fold(state.query.trim());
+    return !query || fold([permit.number || permit.dossier, permit.title, permit.place].join(" ")).includes(query);
+  };
+  const facetOptions = (facet, selection = state.filter.applied) => {
+    const counts = new Map();
+    state.permits.forEach((permit) => {
+      if (!matchesSearch(permit) || !matchesFacets(permit, facet.key, selection)) return;
+      new Set(facetValues(facet, permit)).forEach((value) => counts.set(value, (counts.get(value) || 0) + 1));
+    });
+    (selection[facet.key] || []).forEach((value) => { if (!counts.has(value)) counts.set(value, 0); });
+    return [...counts.entries()].map(([value, count]) => ({ value, count })).sort((a, b) => a.value.localeCompare(b.value, "ro", { numeric: true }));
+  };
+  /* a facet is offered when the acts have at least two values for it (BO / RAP rule) */
+  const availableFacets = () => FACETS.filter((facet) => {
+    if (state.filter.applied[facet.key]?.length) return true;
+    return new Set(state.permits.flatMap((permit) => facetValues(facet, permit))).size > 1;
+  });
+  const STATUS_BY_LABEL = () => Object.fromEntries(state.permits.map((permit) => [permit.statusLabel, permit.status]));
+  let facetFilter = null;
+  function initFacetFilter() {
+    if (!window.GEAPFacetFilter || !els.filterBar) return;
+    facetFilter = window.GEAPFacetFilter.create({
+      bar: els.filterBar,
+      toggle: els.filterToggle,
+      count: els.filterCount,
+      /* phones: „Sortează” joins the search row as the icon-only square (as Solicitările mele) */
+      sort: els.sort,
+      sprite: SPRITE,
+      state: () => state.filter,
+      /* first load (cabinet-skeleton-v1): every facet, so the trigger keeps its place (disabled, inert toolbar) */
+      facets: () => (state.firstLoading ? FACETS : availableFacets()),
+      allFacets: () => FACETS,
+      options: facetOptions,
+      /* status values read as the cards' Small tags */
+      tag: (value, facet) => (facet.key === "status" ? tagHtml(value, ACT_TONE[STATUS_BY_LABEL()[value]] || "neutral") : null),
+      total: () => visiblePermits().length,
+      mobileSheets: true,
+      preview: (selection) => state.permits.filter((permit) => matchesSearch(permit) && matchesFacets(permit, null, selection)).length,
+      apply: () => { state.page = 1; actsLoader.load(); },
+    });
+  }
+
+  /* the acts list = the FO „Ce vrei să soliciți?” act rows (user 2026-10-17: „as we show for the cum vrei să
+     soliciți flow screen”) — the SAME renderer as FO #intent and the Ghișeu (js/act-row.js, GEAPActRow.html):
+     blue document icon · title + the Cabinet Small tag („Aprobare tacită” instead of „Valabil”) · meta number · validity ·
+     authority · subdivision (text, no institution icon) · the „Postprocese ⌄” pill when a
+     post-process is available. Cabinet extras: the whole row opens the act profile (row hook + keyboard); a
+     locked act = the FO locked notice (pill disabled); a paper act = the same notice slot in the info tone; no
+     pill when nothing can be started (expired / withdrawn / paper). The old ⋮ („Detalii” = the row click,
+     „Descarcă actul (MDocs)” = the profile's „Vezi act permisiv” → Descarcă) is gone. */
+  function cardMarkup(permit) {
+    const tacit = Boolean(permit.tacit || state.actProfiles[permit.id]?.tacitApprovalDate) && permit.status === "valabil";
+    const validity = permit.status === "expirat" ? `expirat la ${longDate(permit.validUntil)}` : `valabil până la ${longDate(permit.validUntil)}`;
+    const pending = permit.pending ? { title: `${permit.pendingLabel} în curs`, text: `· dosar ${permit.pending.dossier}. Poți iniția un alt postproces după finalizarea acestuia.` } : null;
+    return window.GEAPActRow.html({
+      id: permit.id,
+      name: permit.title,
+      status: permit.status,
+      statusLabel: permit.statusLabel,
+    }, {
+      /* type-first-v1 (2026-10-21, user: „first the name of the act, and in second place the location, if any”):
+         title = the act type, line 2 = the object / location (none for acts without one) */
+      place: permit.place,
+      /* the shared meta slots (js/act-row.js metaParts): number (the compact copy value) · authority · subdivision ·
+         validity — the act name is the title now, never repeated here */
+      metaSlots: {
+        number: permit.number,
+        authority: permit.service?.authority,
+        subdivision: permit.subdivision,
+        date: validity,
+      },
+      menuId: `cab-menu-${permit.id}`,
+      titleHref: actUrl(permit.id),
+      items: permit.postProcesses,
+      assets: "../assets/",
+      attrs: `tabindex="0" data-cab-card="${escape(permit.id)}" aria-label="${escape(`${permit.label} — ${tacit ? "Aprobare tacită (valabil)" : permit.statusLabel}`)}"`,
+      tagHtml: actStatusTagHtml(permit, tacit),
+      triggerAttrs: "data-cab-menu-trigger",
+      itemAttrs: (pp) => `data-cab-pp="${escape(pp.id)}" data-cab-act="${escape(permit.id)}"`,
+      pendingTitle: pending ? pending.title : "",
+      pendingText: pending ? pending.text : permit.paper ? PAPER_TEXT : "",
+      noticeTone: pending ? "warning" : "info",
+      noticeIcon: pending ? "icon-time" : "icon-circle-info-filled",
+      noticeLocks: Boolean(pending),
+      hideEmptyAction: true,
+    });
+  }
+
+  function visiblePermits() {
+    return sortedPermits(state.permits.filter((permit) => matchesSearch(permit) && matchesFacets(permit)));
+  }
+
+  /* „Sortează” (acts-sort-v1, 2026-10-21; user: „the same Data depunerii sort for Actele permisive too”) = the
+     Solicitările mele control (js/sort-sheet.js: the desktop menu „Sortează după” / „Ordine”, the phone sort sheet
+     with „Aplică”) with the act's keys. A key starts in its natural order, a new order keeps the key; every sort
+     goes back to page 1 and is announced. Ties keep the newest act first. */
+  const ACT_STATUS_ORDER = ["valabil", "suspendat", "expirat", "retras", "anulat"];
+  const AZ = { asc: { label: "A → Z", name: "De la A la Z" }, desc: { label: "Z → A", name: "De la Z la A" } };
+  const SORT_KEYS = [
+    { key: "issued", label: "Data emiterii", def: "desc", dirs: { desc: { label: "Cele mai noi" }, asc: { label: "Cele mai vechi" } } },
+    /* the soonest end of validity first; acts that no longer run (expired, withdrawn, annulled) go after the
+       running ones (valid / suspended), an act without an end date („nelimitată”) is the farthest */
+    { key: "valid", label: "Valabil până la", def: "asc", dirs: { asc: { label: "Cele mai apropiate" }, desc: { label: "Cele mai îndepărtate" } } },
+    { key: "name", label: "Denumirea actului", def: "asc", dirs: AZ },
+    { key: "authority", label: "Autoritatea emitentă", def: "asc", dirs: AZ },
+    { key: "status", label: "Stare", def: "asc", dirs: { asc: { label: "Valabile întâi" }, desc: { label: "Nevalabile întâi" } } },
+  ];
+  const sortKeyOf = (key) => SORT_KEYS.find((item) => item.key === key) || SORT_KEYS[0];
+  const authorityNameOfPermit = (permit) => state.help[permit.service?.authority]?.name || permit.service?.authority || "";
+  function sortedPermits(list) {
+    const [key, dir] = state.sort.split("-");
+    const sign = dir === "desc" ? -1 : 1;
+    const cmp = (a, b) => (a < b ? -1 : a > b ? 1 : 0);
+    const issued = (permit) => isoOf(permit.issued);
+    const value = (permit) => ({
+      issued: issued(permit),
+      valid: permit.validUntil ? isoOf(permit.validUntil) : "9999-12-31",
+      name: fold(`${permit.title} ${permit.place || ""}`),
+      authority: fold(authorityNameOfPermit(permit)),
+      status: ACT_STATUS_ORDER.indexOf(permit.status),
+    })[key];
+    /* „Cele mai apropiate”: running acts first (an act that no longer runs is not „the next to expire”) */
+    const ended = (permit) => (key === "valid" && dir === "asc" && (!["valabil", "suspendat"].includes(permit.status) || value(permit) < state.today) ? 1 : 0);
+    return [...list].sort((a, b) => cmp(ended(a), ended(b)) || sign * cmp(value(a), value(b)) || -cmp(issued(a), issued(b)));
+  }
+  const sortNow = () => {
+    const [key, dir] = state.sort.split("-");
+    const sort = sortKeyOf(key);
+    const order = sort.dirs[dir];
+    const name = order.name || order.label; /* „de la A la Z”: only the first letter goes lower case */
+    return { sort, dir, text: `${sort.label}, ${name.charAt(0).toLowerCase()}${name.slice(1)}` };
+  };
+  /* the orders of a key, its natural one first */
+  const sortOrders = (key) => {
+    const sort = sortKeyOf(key);
+    return ["asc", "desc"].sort((a) => (a === sort.def ? -1 : 1)).map((d) => ({ value: d, label: sort.dirs[d].label, name: sort.dirs[d].name }));
+  };
+  function syncSort() {
+    if (!els.sortMenu || !window.GEAPSortSheet) return;
+    const { sort, dir, text } = sortNow();
+    els.sortMenu.innerHTML = window.GEAPSortSheet.menuHtml({
+      id: "cab-sort",
+      keys: SORT_KEYS.map((item) => ({ value: item.key, label: item.label })),
+      orders: sortOrders,
+      current: { key: sort.key, order: dir },
+      keyAttr: "data-cab-sort-key",
+      orderAttr: "data-cab-sort-dir",
+    });
+    /* the trigger shows the key only (as Solicitările mele); the order is in the menu and in the name */
+    els.sortTrigger.setAttribute("aria-label", `Sortează: ${text}`);
+    els.sortTrigger.querySelector("[data-cab-sort-label]").textContent = sort.label;
+  }
+  /* one place that applies a sort (menu pick or the sheet's „Aplică”): back to page 1, announced */
+  function applySort(next) {
+    state.sort = next;
+    state.page = 1;
+    closeMenus();
+    actsLoader.load();
+    if (els.sortStatus) els.sortStatus.textContent = `Lista este sortată după ${sortNow().text}.`;
+    els.sortTrigger?.focus();
+  }
+
+  /* same contract as rap-evo: main.css reveals .btn-icon.clear on is-ready */
+  function syncSearchState() {
+    const hasValue = Boolean(els.search.value);
+    const container = els.search.closest(".search-input");
+    container?.classList.toggle("has-value", hasValue);
+    container?.classList.toggle("is-ready", hasValue);
+    els.searchClear.disabled = !hasValue;
+  }
+
+  /* loading (cabinet-skeleton-v1): the toolbar, sort label, facet bar and pager are drawn from the new state at once,
+     the rows are the skeleton (kept while it is already there, so typing does not restart its shimmer) */
+  function render({ loading = false } = {}) {
+    if (state.restriction) { renderRestriction(); return; }
+    const permits = visiblePermits();
+    const pages = Math.max(1, Math.ceil(permits.length / state.perPage));
+    state.page = Math.min(state.page, pages);
+    const pageItems = permits.slice((state.page - 1) * state.perPage, state.page * state.perPage);
+    const rows = skeletonRows(pageItems.length);
+    if (!loading) els.list.innerHTML = pageItems.length ? `<ul class="e-permits-fo-intent__list cab-act-list">${pageItems.map(cardMarkup).join("")}</ul>` : "";
+    else if (els.list.querySelector(":scope > [data-cab-skeleton]")?.children.length !== rows) els.list.innerHTML = listSkeletonHtml({ rows });
+    els.list.hidden = !loading && !pageItems.length;
+    setBusy(els.list, els.loadingStatus, loading);
+    els.pager.innerHTML = pagerHtml({ total: permits.length, page: state.page, perPage: state.perPage, prefix: "cab", label: "Paginarea actelor permisive", sizeLabel: "Acte pe pagină" });
+    els.pager.hidden = !els.pager.innerHTML.trim();
+    els.empty.hidden = loading || permits.length > 0;
+    /* the shared empty state: no acts at all (an unknown subject too) vs. nothing matches the
+       search / filters */
+    els.empty.innerHTML = loading || permits.length ? "" : state.permits.length
+      ? window.GEAPEmptyState.noResults("Niciun act permisiv nu corespunde căutării", {
+        text: state.query.trim() ? "Verifică ortografia sau încearcă alți termeni." : "Alege alte valori sau resetează filtrele.",
+        actionHtml: '<button class="btn btn-neutral btn-sm" type="button" data-cab-reset>Resetează filtrele</button>'
+      })
+      : window.GEAPEmptyState.render({ title: "Nu ai acte permisive", text: "Actele emise pe numele tău apar aici.", icon: "permission" });
+    /* no acts at all: nothing to search or filter */
+    if (els.toolbar) els.toolbar.hidden = !state.permits.length;
+    syncSearchState();
+    syncSort();
+    facetFilter?.render();
+    if (loading) maskResultCount(els.filterBar);
+  }
+  /* every list change (search, filters, sort, page, page size) goes through the one simulated load */
+  const actsLoader = listLoader({
+    scope: () => els.list?.closest("[data-cab-view]"),
+    show: () => { if (!state.detail) render({ loading: true }); },
+    draw: () => { if (!state.detail) render(); },
+  });
+  /* the first load (no data yet): the real toolbar (inert), the skeleton rows, no pager */
+  function renderFirstLoad() {
+    els.list.innerHTML = listSkeletonHtml();
+    els.list.hidden = false;
+    [els.pager, els.empty].forEach((el) => { el.hidden = true; });
+    setBusy(els.list, els.loadingStatus, true);
+    syncSort();
+    facetFilter?.render();
+    setToolbarLoading(els.toolbar, true);
+  }
+
+  /* Feature 90818 (§4, AC) + US-159: when the representative's MPower expired or was revoked the
+     access is restricted COMPLETELY on the acts side — no list, no search, no actions, only the
+     restriction notice (the requests side keeps the read-only history, US-159 AC-06) */
+  function restrictionHtml(ro, text) {
+    return `
+      <div class="e-permits-callout e-permits-callout--neutral cab-callout" role="status">
+        <span class="e-permits-callout__icon" aria-hidden="true">${icon("icon-lock", "medium")}</span>
+        <div class="e-permits-callout__content">
+          <p class="e-permits-callout__title">Împuternicirea MPower a ${ro.reason === "revocat" ? "fost revocată" : "expirat"} pe ${escape(longDate(ro.since))}</p>
+          <p class="e-permits-callout__text">${escape(text)}</p>
+        </div>
+      </div>`;
+  }
+  function renderRestriction() {
+    const name = state.geap?.subject?.name || "beneficiar";
+    [els.toolbar, els.filterBar, els.list, els.pager, els.empty].forEach((el) => { if (el) el.hidden = true; });
+    els.restriction.hidden = false;
+    els.restriction.innerHTML = restrictionHtml(state.restriction, `Actele permisive ale ${name} nu mai sunt disponibile pentru tine: vizualizarea, descărcarea formularului și postprocesele rămân doar la beneficiar. Pentru acces, cere beneficiarului o împuternicire nouă în MPower.`);
+  }
+
+  /* the list pager = the shared GEAPPager (js/pager.js, audit-fix-v3): „1–10 din 23” · pages · „10 pe pagină ⌄”;
+     none up to the smallest page size. prefix names the data hooks (data-<prefix>-page / -per-page) */
+  function pagerHtml({ total, page, perPage, prefix, label, sizeLabel, sizes = PER_PAGE }) {
+    return window.GEAPPager.html({ total, page, perPage, prefix, label, sizeLabel, sizes, sprite: SPRITE });
+  }
+
+  /* ---------- header role switcher ----------
+     Ported from js/e-permits-acte-permisive.js (setFrontOfficeAvatarMenuOpen /
+     setDropdownHidden / updateFrontOfficeAvatarMenuScrollState). The CSS keys the
+     focus ring and the chevron rotation off .e-permits-fo-auth__profile.is-open,
+     and the exit animation off .is-closing on the dropdown, so both classes have
+     to be driven exactly as the full flow drives them. */
+
+  const dropdownMotionTimers = new WeakMap();
+
+  function setDropdownHidden(element, shouldHide) {
+    if (!element) return;
+    const existingTimer = dropdownMotionTimers.get(element);
+    if (existingTimer) {
+      window.clearTimeout(existingTimer);
+      dropdownMotionTimers.delete(element);
+    }
+
+    if (!shouldHide) {
+      element.classList.remove("is-closing");
+      element.hidden = false;
+      return;
+    }
+
+    if (element.hidden) return;
+    element.classList.add("is-closing");
+    const timer = window.setTimeout(() => {
+      element.hidden = true;
+      element.classList.remove("is-closing");
+      dropdownMotionTimers.delete(element);
+    }, 105);
+    dropdownMotionTimers.set(element, timer);
+  }
+
+  function updateAvatarMenuScrollState() {
+    const dropdown = els.avatarPanel;
+    if (!dropdown) return;
+    const content = dropdown.querySelector(".e-permits-fo-avatar-menu__content");
+    if (!content) return;
+    dropdown.classList.toggle("has-scroll", content.scrollHeight > content.clientHeight + 1);
+    dropdown.classList.toggle("is-scrolled", content.scrollTop > 0);
+  }
+
+  function setAvatarMenuOpen(isOpen) {
+    const { avatarMenu, avatarTrigger, avatarPanel } = els;
+    if (!avatarMenu || !avatarTrigger || !avatarPanel) return;
+    avatarMenu.classList.toggle("is-open", isOpen);
+    setDropdownHidden(avatarPanel, !isOpen);
+    avatarTrigger.setAttribute("aria-expanded", String(isOpen));
+    if (isOpen) requestAnimationFrame(updateAvatarMenuScrollState);
+  }
+
+  function bindAvatarMenu() {
+    const { avatarMenu, avatarTrigger, avatarPanel } = els;
+    if (!avatarMenu || !avatarTrigger || !avatarPanel) return;
+
+    avatarTrigger.addEventListener("click", (event) => {
+      event.preventDefault();
+      setAvatarMenuOpen(!avatarMenu.classList.contains("is-open"));
+    });
+
+    document.addEventListener("click", (event) => {
+      if (!avatarMenu.classList.contains("is-open")) return;
+      if (avatarMenu.contains(event.target)) return;
+      setAvatarMenuOpen(false);
+    });
+
+    document.addEventListener("keydown", (event) => {
+      if (event.key !== "Escape" || !avatarMenu.classList.contains("is-open")) return;
+      setAvatarMenuOpen(false);
+      avatarTrigger.focus();
+    });
+
+    avatarPanel.addEventListener("click", (event) => {
+      const proxyToggle = event.target.closest("[data-fo-avatar-proxy-toggle]");
+      if (proxyToggle) {
+        event.preventDefault();
+        const group = proxyToggle.closest(".e-permits-fo-avatar-menu__group");
+        const label = proxyToggle.querySelector("[data-fo-avatar-proxy-label]");
+        const isExpanded = !group?.classList.contains("is-expanded");
+        group?.classList.toggle("is-expanded", isExpanded);
+        proxyToggle.setAttribute("aria-expanded", String(isExpanded));
+        if (label) label.textContent = isExpanded ? "Arată mai puține" : "Arată mai multe";
+        requestAnimationFrame(updateAvatarMenuScrollState);
+        return;
+      }
+
+      const perspective = event.target.closest("[data-cab-as]");
+      if (perspective && perspective.dataset.cabAs !== SUBJECT) {
+        const next = new URLSearchParams(window.location.search);
+        next.set("as", perspective.dataset.cabAs);
+        window.location.assign(`?${next.toString()}`);
+        return;
+      }
+      const role = event.target.closest("[data-fo-avatar-role]");
+      if (!role) return;
+      avatarPanel.querySelectorAll("[data-fo-avatar-role]").forEach((other) => {
+        other.classList.toggle("is-selected", other === role);
+        other.setAttribute("aria-checked", String(other === role));
+      });
+      const copy = role.querySelector(".e-permits-fo-avatar-menu__role-copy");
+      if (copy && els.name) els.name.textContent = copy.querySelector("strong")?.textContent || "";
+      if (copy && els.role) els.role.textContent = copy.querySelector("span")?.textContent || "";
+      setAvatarMenuOpen(false);
+    });
+
+    avatarPanel
+      .querySelector(".e-permits-fo-avatar-menu__content")
+      ?.addEventListener("scroll", updateAvatarMenuScrollState, { passive: true });
+  }
+
+  /* ---------- interaction ---------- */
+
+  function bind() {
+    els.search.addEventListener("input", (event) => {
+      state.query = event.target.value;
+      state.page = 1;
+      actsLoader.load();
+    });
+
+    els.searchClear.addEventListener("click", () => {
+      state.query = "";
+      state.page = 1;
+      els.search.value = "";
+      els.search.focus();
+      actsLoader.load();
+    });
+
+    els.empty.addEventListener("click", (event) => {
+      if (!event.target.closest("[data-cab-reset]")) return;
+      state.query = "";
+      state.filter.applied = {};
+      state.filter.draft = null;
+      state.page = 1;
+      els.search.value = "";
+      actsLoader.load();
+      els.search.focus();
+    });
+
+    /* „Sortează” desktop menu: a key starts in its natural order, an order keeps the key */
+    els.sort?.addEventListener("click", (event) => {
+      const sortKey = event.target.closest("[data-cab-sort-key]");
+      const sortDir = event.target.closest("[data-cab-sort-dir]");
+      if (!sortKey && !sortDir) return;
+      const [key, dir] = state.sort.split("-");
+      const next = sortKey ? sortKeyOf(sortKey.dataset.cabSortKey) : null;
+      applySort(next ? `${next.key}-${next.key === key ? dir : next.def}` : `${key}-${sortDir.dataset.cabSortDir}`);
+    });
+    /* phones: the same trigger opens the sort sheet (draft until „Aplică”) */
+    window.GEAPSortSheet?.bind(els.sortTrigger, {
+      title: "Sortează",
+      sprite: SPRITE,
+      keys: SORT_KEYS.map((item) => ({ value: item.key, label: item.label })),
+      orders: sortOrders,
+      current: () => { const { sort, dir } = sortNow(); return { key: sort.key, order: dir }; },
+      apply: ({ key, order }) => applySort(`${key}-${order}`),
+    });
+
+    els.pager.addEventListener("click", (event) => {
+      const size = event.target.closest("[data-cab-per-page]");
+      if (size) { state.perPage = Number(size.dataset.cabPerPage); state.page = Number(size.dataset.cabPage) || 1; closeMenus(); actsLoader.load(); return; }
+      const page = event.target.closest("[data-cab-page]");
+      if (page && !page.disabled) { state.page = Number(page.dataset.cabPage); actsLoader.load(); document.querySelector("#cab-title")?.scrollIntoView({ block: "start" }); }
+    });
+
+    bindAvatarMenu();
+
+  }
+
+  /* ---------- GEAP acts (post-processes) ---------- */
+
+  const PENDING_TEXT = (label, dossier) => `${label} în curs · dosar ${dossier}. Poți iniția un alt postproces după finalizarea acestuia.`;
+  const PAPER_TEXT = "Act emis pe hârtie, în afara GEAP. Postprocesele sunt disponibile doar la ghișeul autorității emitente.";
+
+  async function loadGeapActs() {
+    const response = await fetch(GEAP_URL);
+    if (!response.ok) return { acts: [], config: {} };
+    const data = await response.json();
+    const config = data.frontOfficeFlows?.[0]?.intent || {};
+    const subjectId = SUBJECT;
+    /* demo only (?acte=multe): the subject's acts + numbered copies, so the list paginates (> 10) */
+    const own = (config.acts?.[subjectId] || []).map(withScenario);
+    const source = params.get("acte") === "multe"
+      ? [...own, ...own.flatMap((act, round) => [1, 2].map((n) => ({ ...act, id: `${act.id}-${n}`, number: `${act.number}/${n}`, name: act.name.replace(/,/, ` ${n + 1},`), pending: null, ...(round + n) % 3 ? {} : { status: "expirat", statusLabel: "Expirat" } })))]
+      : own;
+    const acts = source.map((act) => {
+      const service = config.services?.[act.service] || {};
+      const allowed = service.allows || [];
+      const postProcesses = act.paper ? [] : (config.availability?.[act.status] || [])
+        .filter((id) => allowed.includes(id) && config.postProcesses?.[id])
+        .map((id) => ({ id, ...config.postProcesses[id] }));
+      const pendingLabel = act.pending ? config.postProcesses?.[act.pending.type]?.label || act.pending.type : "";
+      let notice = null;
+      if (act.paper) notice = { tone: "info", icon: "icon-circle-info-filled", text: PAPER_TEXT };
+      else if (act.pending) notice = { tone: "warning", icon: "icon-time", text: PENDING_TEXT(pendingLabel, act.pending.dossier) };
+      return {
+        ...act,
+        geap: true,
+        /* type-first-v1: title = the act type (the list's short name), place = the object / location ("" when the
+           act has none — licences for activities, transport…), label = both, for accessible names / dialogs */
+        title: service.shortTitle || service.title || act.name,
+        place: act.name && (service.shortTitle || service.title) ? act.name : "",
+        label: [service.shortTitle || service.title || act.name, service.shortTitle || service.title ? act.name : ""].filter(Boolean).join(" — "),
+        serviceTitle: service.shortTitle || service.title,
+        service: service,
+        serviceCode: act.service,
+        authority: [service.authority, act.subdivision].filter(Boolean).join(" · "),
+        dossier: act.number,
+        date: act.status === "expirat" ? `expirat la ${longDate(act.validUntil)}` : `valabil până la ${longDate(act.validUntil)}`,
+        dateIcon: "icon-calendar",
+        postProcesses,
+        pendingLabel,
+        notice,
+      };
+    });
+    const subject = (data.frontOfficeFlows?.[0]?.subjects || []).find((item) => item.id === subjectId);
+    return { acts, config, subjectId, subject };
+  }
+
+  /* a menu that would run past the screen edge opens towards the other side (phones: a ⋮ after
+     two tags sits far right, the left-anchored menu ran 40px off-screen); 16 from every screen edge.
+     action-menu-v1 (2026-10-20): it also opens UPWARDS (FO `.is-open-up`) when the screen has no room
+     below and there is room above (the ⋮ of the last rows on a phone) */
+  const MENU_EDGE = 16;
+  function fitMenu(menu) {
+    menu.classList.remove("is-end", "is-start", "is-open-up", "is-trigger-end");
+    /* the profile header „⋯” on phones hangs from the action row (header-max-two-v1): right edge on the trigger when the
+       menu fits leftwards from it, else the row's left edge — geometry, set as a custom property */
+    const overflow = menu.closest(".cab-act-header__overflow");
+    if (overflow && getComputedStyle(overflow).position === "static") {
+      const row = overflow.parentElement.getBoundingClientRect();
+      const trigger = overflow.querySelector("[data-cab-menu-trigger]").getBoundingClientRect();
+      menu.style.setProperty("--cab-menu-right", `${Math.max(0, Math.round(row.right - trigger.right))}px`);
+      menu.classList.toggle("is-trigger-end", trigger.right - row.left >= menu.getBoundingClientRect().width);
+    }
+    const rect = menu.getBoundingClientRect();
+    const edge = document.documentElement.clientWidth;
+    if (rect.right > edge - MENU_EDGE) menu.classList.add("is-end");
+    else if (rect.left < MENU_EDGE) menu.classList.add("is-start");
+    const trigger = document.querySelector(`[aria-controls="${menu.id}"]`);
+    const top = trigger ? trigger.getBoundingClientRect().top : rect.top;
+    if (rect.bottom > window.innerHeight - MENU_EDGE && top - (rect.bottom - rect.top) - MENU_EDGE >= MENU_EDGE) menu.classList.add("is-open-up");
+  }
+
+  /* menu keyboard (WAI-ARIA menu button): Enter / Space / ↓ on the trigger open it on the first item, ↑ on the
+     last; ↑ ↓ Home End move inside; Esc closes and returns focus to the trigger; Tab closes */
+  let keyOpened = null; /* the trigger an Enter / Space keydown is about to click (demo clicks don't move focus) */
+  const menuItemsOf = (menu) => [...menu.querySelectorAll("[role^='menuitem']")].filter((item) => !item.disabled && item.getClientRects().length);
+  function onMenuKey(event) {
+    const trigger = event.target.closest?.("[data-cab-menu-trigger]");
+    const menuEl = event.target.closest?.("[role='menu']");
+    const inMenu = menuEl && document.querySelector(`[data-cab-menu-trigger][aria-controls="${menuEl.id}"]`) ? menuEl : null; /* request + act rows, profile */
+    keyOpened = trigger && (event.key === "Enter" || event.key === " ") ? trigger : null;
+    if (trigger && (event.key === "ArrowDown" || event.key === "ArrowUp")) {
+      const menu = document.getElementById(trigger.getAttribute("aria-controls"));
+      if (!menu || trigger.disabled) return;
+      event.preventDefault();
+      if (menu.hidden) trigger.click();
+      if (menu.hidden) return; /* phones: a labelled trigger opened its sheet instead */
+      const items = menuItemsOf(menu);
+      items[event.key === "ArrowDown" ? 0 : items.length - 1]?.focus();
+      return;
+    }
+    if (!inMenu) return;
+    const items = menuItemsOf(inMenu);
+    const at = items.indexOf(document.activeElement);
+    const go = { ArrowDown: at + 1, ArrowUp: at - 1, Home: 0, End: items.length - 1 }[event.key];
+    if (go !== undefined && items.length) {
+      event.preventDefault();
+      items[(go + items.length) % items.length].focus();
+      return;
+    }
+    if (event.key === "Escape" || event.key === "Tab") {
+      const owner = document.querySelector(`[aria-controls="${inMenu.id}"]`);
+      closeMenus();
+      if (event.key === "Escape") { event.preventDefault(); event.stopPropagation(); owner?.focus(); }
+    }
+  }
+
+  function closeMenus(except = null) {
+    document.querySelectorAll("[data-cab-menu-trigger]").forEach((trigger) => {
+      const menu = document.getElementById(trigger.getAttribute("aria-controls"));
+      if (!menu || menu === except) return;
+      menu.hidden = true;
+      trigger.setAttribute("aria-expanded", "false");
+    });
+  }
+
+  function foUrl(act, pp) {
+    const params = new URLSearchParams({ flow: "full", pp: pp.id, act: act.id });
+    return `${FO_URL}?${params.toString()}#request`;
+  }
+
+  /* start-dialog-v1 (2026-10-29, user): every post-process start — the list / profile „Postprocese ⌄” (and the phone
+     „⋯”) items and the act alerts' primaries (all `data-cab-pp`) — asks the shared „Before you start” dialog
+     (js/start-dialog.js, = the FO #intent one, start-dialog-v2): the act's name, one sentence + fee · term · MSign from
+     data/acte-permisive.json; Suspendare / Retragere / Anulare show their consequence notice instead (the old consequence modal is
+     gone — never two dialogs). „Începe” = the FO request steps (no draft yet); Anulează / × / Esc → back on the trigger */
+  function confirmPostprocess(act, pp, trigger = null) {
+    window.GEAPStartDialog.citizenPostprocess({ pp, service: act.service || {}, href: foUrl(act, pp), newTab: true, trigger, act: { name: act.place || act.title } });
+  }
+
+  /* the act alert's „Depune contestație” (a status changed by the authority, in the appeal term) — the same dialog,
+     the deciding request's appeal flow on „Începe” */
+  function confirmActAppeal(act, link) {
+    window.GEAPStartDialog.appeal({ subtitle: act.place || act.title, href: link.getAttribute("href"), newTab: true, trigger: link });
+  }
+
+  /* ---------- act profile (act-profile-v1, 2026-10-21 — user: „the profile as best practice; optimise, but don't
+     miss anything; what the Azure stories ask must be covered”) ----------
+     Each fact ONCE, key facts first (GOV.UK summary list · NN/g „key facts first” · the UK driving-licence page:
+     what you may do before admin metadata · GoBusiness: action-driven). Sources: Feature 90818, US-55 AC-07…14,
+     US-162 AC-04/05/07/08/12/14/17, US-161 AC-23…29, US-159, US-143. components.md › „Act profile”.
+       header    back · title = the act type (the service; type-first-v1 2026-10-21, was the object) · subtitle = the
+                 object / location (only when the act has one) · the action row, LEFT-aligned under
+                 the title, one line: „Vezi act permisiv” (the one primary, every status) · „Postprocese ⌄” (only when
+                 eligible; disabled + the notice while one is in progress) · „Vezi solicitarea” (the issuing request);
+                 what does not fit goes into a trailing „⋯” (fitActActions) · the key-facts card (grey, r16): Nr.
+                 (copy) · Stare („Aprobare tacită” instead of „Valabil”) · ONE status date (actHeaderDate) on one line, the status notice
+                 (actNotice, only when useful), „Vezi toate detaliile”. Look and feel from the user's YouTube reference
+                 (grouped grey buttons, a compact facts card), NOT its structure — no „channel” identity row (user
+                 2026-10-21: „screenshots are look and feel; research before copying a layout”).
+       sections  [Beneficiar — first for a representative (MPower)] · Ce permite actul (the configured fields,
+                 AC-29, the request Act tab's renderer) · Detalii act · Autoritatea emitentă · [Beneficiar — for the
+                 owner, who is already named in the header avatar] · Istoric (actHistory, the shared trajectory)
+     „Vezi act permisiv” opens the act document itself (MDocs A4, US-143) — every metadata of the old „Vizualizare
+     act” data dialog is on the page now; „Descarcă” lives in that dialog (no-row-download rule). */
+  const actProfileOf = (act) => state.actProfiles[act.id] || {};
+  const isTacitAct = (act) => Boolean(actProfileOf(act).tacitApprovalDate);
+  /* the date of the current status (US-162 AC-17 + Anulat): when it was suspended / withdrawn / annulled */
+  const STATUS_DATE = { suspendat: "suspensionDate", retras: "withdrawalDate", anulat: "cancellationDate" };
+  const statusDateOf = (act) => actProfileOf(act)[STATUS_DATE[act.status]] || "";
+  /* DD.MM.YYYY | ISO → ISO (sorting and day maths) */
+  const isoOf = (value) => {
+    const match = /^(\d{2})\.(\d{2})\.(\d{4})$/.exec(String(value || ""));
+    return match ? `${match[3]}-${match[2]}-${match[1]}` : String(value || "");
+  };
+  const dayCount = (fromIso, toIso) => Math.round((Date.parse(toIso.slice(0, 10)) - Date.parse(fromIso.slice(0, 10))) / 86400000);
+  const addDaysIso = (iso, days) => new Date(Date.parse(iso.slice(0, 10)) + days * 86400000).toISOString().slice(0, 10);
+  /* Romanian numerals: „de” after 20+ (120 de zile, 704 zile) */
+  const deOf = (n) => (n % 100 >= 20 || (n >= 100 && n % 100 === 0) ? " de" : "");
+  const daysText = (n) => (n === 1 ? "o zi" : `${n}${deOf(n)} zile`);
+  const daysLeftOf = (act) => (act.validUntil ? Math.max(0, dayCount(state.today, isoOf(act.validUntil))) : null);
+  const EXPIRY_PROMPT_DAYS = 60;
+
+  function actStatusDates(act) {
+    const profile = actProfileOf(act);
+    return [
+      ...(act.status === "suspendat" ? [["Data suspendării actului permisiv", longDate(profile.suspensionDate)], ["Suspendat până la data de", longDate(profile.suspendedUntil)]] : []),
+      ...(act.status === "retras" ? [["Data retragerii actului permisiv", longDate(profile.withdrawalDate)]] : []),
+      ...(act.status === "anulat" ? [["Data anulării actului permisiv", longDate(profile.cancellationDate)]] : []),
+    ].filter(([, value]) => value);
+  }
+  /* the ONE status date in the header (the rest of the dates are in „Detalii act”, never twice) */
+  function actHeaderDate(act) {
+    const profile = actProfileOf(act);
+    const date = (value) => escape(longDate(value));
+    if (act.status === "suspendat") return profile.suspendedUntil ? ["Suspendat până la", date(profile.suspendedUntil)] : null;
+    if (act.status === "retras") return profile.withdrawalDate ? ["Retras la", date(profile.withdrawalDate)] : null;
+    if (act.status === "anulat") return profile.cancellationDate ? ["Anulat la", date(profile.cancellationDate)] : null;
+    if (act.status === "expirat") return act.validUntil ? ["A expirat la", date(act.validUntil)] : null;
+    /* Valabil — US-161 AC-24: an act without an end date has no „Valabil până la” */
+    if (!act.validUntil) return ["Valabilitate", "nelimitată"];
+    const left = daysLeftOf(act);
+    return ["Valabil până la", `${date(act.validUntil)} <span class="cab-detail__muted">(${left === 0 ? "expiră azi" : `${daysText(left)} ${left === 1 ? "rămasă" : "rămase"}`})</span>`]; /* brackets, not „·” — a wrapped line never starts with a dot */
+  }
+  const actAuthority = (act) => state.help[act.service?.authority] || {};
+  const authorityNameOf = (act) => actAuthority(act).name || act.service?.authority || "autoritatea emitentă";
+  /* the act's public, service-configured fields (the RAP „Câmpuri specifice actului”) from the act data */
+  function actGroups(act) {
+    /* configured per service (2026-10-19): groups with simple fields + grids, the RAP document.sections shape */
+    const configured = actProfileOf(act).specificFields;
+    if (Array.isArray(configured) && configured.length) return configured;
+    const object = act.object || {};
+    const address = [[object.strada, object.house].filter(Boolean).join(" "), object.sector ? `sect. ${object.sector}` : "", object.localitate, object.raion].filter(Boolean).join(", ");
+    const groups = [];
+    const place = [["Denumirea obiectului", act.place], ["Tipul obiectului", object.name], ["Adresa obiectului", address], ["Activitatea (CAEM)", object.caem]].filter(([, value]) => value);
+    if (object.name || address) groups.push({ title: "Obiectul activității", rows: place });
+    if (act.activityType) groups.push({ title: null, rows: [["Genul de activitate", act.activityType]] });
+    return groups;
+  }
+  function toActView(act) {
+    const subject = state.geap.subject || {};
+    const profile = actProfileOf(act);
+    return {
+      id: act.id,
+      name: act.service.title || act.title,
+      number: act.number,
+      status: act.statusLabel,
+      tone: ACT_TONE[act.status] || "neutral",
+      watermark: act.status !== "valabil",
+      authority: actAuthority(act).name || act.service.authority || "",
+      office: act.subdivision || "",
+      beneficiary: { name: subject.name || "", person: subject.type === "PF", idType: subject.idLabel || "", id: subject.idValue || "" },
+      tacitDate: isTacitAct(act) ? longDate(profile.tacitApprovalDate) : "",
+      tacitBadge: isTacitAct(act) && act.status === "valabil",
+      issuedDate: longDate(act.issued),
+      validFrom: longDate(act.validFrom || act.issued),
+      statusDates: actStatusDates(act),
+      validUntil: longDate(act.validUntil),
+      paperNumber: issuingDossierOf(act)?.nr || profile.dossierNr || "",
+      printedNumber: profile.printedDocumentNumber || "",
+      groups: actGroups(act),
+      url: `${window.location.origin}${window.location.pathname}${cabUrl("acte", { act: act.id })}`,
+      /* US-310 AC-09: the QR on the act PDF = the act's permanent address in the Registrul Actelor Permisive */
+      registryUrl: window.GEAPDocPreview?.verifyUrl("act", act.number),
+      source: "EVO Cabinet",
+      signed: !act.paper,
+    };
+  }
+  /* „Descarcă” in the act document dialog: the MDocs PDF in the real system — the demo saves the act's data as text
+     (the Cabinet document dialog does the same) */
+  function downloadAct(view) {
+    const lines = [view.name, `nr. ${view.number} din ${view.issuedDate}`, `Stare: ${view.status}`, `Autoritatea emitentă: ${[view.authority, view.office].filter(Boolean).join(" · ")}`, `Beneficiar: ${view.beneficiary.name}`, `Valabil până la: ${view.validUntil || "—"}`];
+    const a = Object.assign(document.createElement("a"), { href: URL.createObjectURL(new Blob([lines.join("\n")], { type: "text/plain;charset=utf-8" })), download: `Act-permisiv-${view.number}.txt` });
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    window.setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  }
+  let actViewInstance = null;
+  const actView = () => {
+    actViewInstance ||= window.GEAPActView.create({
+      sprite: SPRITE,
+      copyHtml: (value) => copyValueHtml(value, `Copiază numărul actului ${value}`),
+      copySelector: "[data-copy-value]",
+      onCopy: () => {},
+      onDocumentDownload: downloadAct,
+    });
+    return actViewInstance;
+  };
+
+  /* the requests in „Solicitările mele” about this act: the one that issued it (its number = the act's) and the
+     post-processes (status changes, duplicates, one in progress) */
+  const dossiersOf = (act) => state.dossiersByAct[act.id] || [];
+  function issuingDossierOf(act) {
+    const done = dossiersOf(act).filter((dosar) => dosar.status === "finalizat" && dosar.result === "aprobat" && !dosar.decisionOnly);
+    return done.find((dosar) => dosar.actNr === act.number) || done.find((dosar) => dosar.id === state.dosarByAct[act.id]) || null;
+  }
+  const requestHref = (id) => cabUrl("solicitari", {}, `#dosar/${id}`);
+  /* act-profile-url-v1 (2026-10-22, user: „act permisiv profile should have a unique URL”): an act profile =
+     ?act=<act id> on the current address (view, perspective ?as= and demo parameters kept, the demo ?state= dropped)
+     — static hosting, no server rewrite. Opening from the list PUSHES it, Back pops it (the list keeps its search /
+     filters / sort / page in the page state and gets its scroll back), a reload / shared link opens it directly, an
+     unknown id = the not-found state (notFoundHtml). Requests already have theirs: ?view=solicitari#dosar/<id>. */
+  function pageAddress(set = {}, hash = "") {
+    const next = new URL(window.location.href);
+    next.searchParams.delete("state");
+    Object.entries(set).forEach(([key, value]) => { if (value) next.searchParams.set(key, value); else next.searchParams.delete(key); });
+    return `${next.pathname}${next.search}${hash}`;
+  }
+  const actUrl = (id) => pageAddress({ act: id });
+  const actsListUrl = () => pageAddress({ act: null });
+  /* a modified click on a link (new tab / window, download) is the browser's */
+  const modifiedClick = (event) => event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || (event.button ?? 0) !== 0;
+  /* a link to ANOTHER page that opens in a new tab (external-link-v1, user 2026-10-22: „Vezi solicitarea” — no leading
+     icon, the external glyph AFTER the label, new tab): target _blank + rel noopener + the name says „filă nouă” */
+  const NEW_TAB = "se deschide într-o filă nouă";
+  const newTabAttrs = (label) => ` target="_blank" rel="noopener" aria-label="${escape(`${label} (${NEW_TAB})`)}"`;
+
+  /* the status alert (act-alert-card-v1, 2026-10-22; user: „the alert nicer: round corners, grey background with a coloured
+     icon, a nice title and description and actions, as the Google one”) — only when it says something the header does
+     not: what happens next, who decided and why, the deadline of a right (contestație), the action that solves it.
+     { tone, icon?, title, text, actions } → GEAPAlertCard (js/alert-card.js) right under the header. Tone = the act's
+     status tag tone (ACT_TONE: suspended amber, expired / withdrawn / annulled red). Actions = library Medium 40: the
+     action that solves it = primary (last → right); „Vezi solicitarea” = the library text button `btn-text-strict` next
+     to a primary, the library outlined `btn-outline-strict` when alone (alert-buttons-library-v1), same tab, no external icon; every card button is the library pill `btn-rounded` (user: „do Achită as round
+     buttons”). The decision number lives in Istoric (the alert keeps to 2–3 lines). */
+  const alertBtn = (variant, inner, attrs) => `<button class="btn ${variant} btn-md btn-rounded" type="button" ${attrs}>${inner}</button>`;
+  const alertLinkBtn = (variant, href, label, extra = "") => `<a class="btn ${variant} btn-md btn-rounded" href="${escape(href)}"${extra}><span>${escape(label)}</span></a>`;
+  function actNotice(act) {
+    const profile = actProfileOf(act);
+    const change = profile.statusChange || {};
+    const byAuthority = change.initiator === "autoritate";
+    const authority = authorityNameOf(act);
+    const decided = byAuthority ? `de ${escape(authority)}` : "la cererea titularului";
+    const reason = change.reason ? ` Motivul: ${escape(change.reason)}.` : "";
+    const statusDate = statusDateOf(act);
+    /* Feature 90818: a status changed by the AUTHORITY can be contested — on its request (the dossier), within
+       the appeal term of „Solicitările mele” (appealDays from the decision) */
+    const appealUntil = byAuthority && statusDate ? addDaysIso(isoOf(statusDate), state.appealDays) : "";
+    const appealOpen = Boolean(appealUntil) && appealUntil >= state.today;
+    const appeal = appealOpen ? ` Poți depune o contestație până la ${escape(longDate(appealUntil))}.` : "";
+    /* alert-actions-v1 (2026-10-27, user: „fix across other alerts and do their actions”): the contestație is filed
+       from the alert itself (the FO appeal flow of the deciding request), no longer only described */
+    const appealNr = appealOpen ? (state.dossiersByAct[act.id] || []).find((dosar) => dosar.id === change.dosarId)?.nr : "";
+    const appealBtn = appealNr
+      ? `<a class="btn btn-primary btn-md btn-rounded" href="${escape(`${FO_URL}?${new URLSearchParams({ flow: "full", solicitant: SUBJECT, contestatie: appealNr })}#request`)}" data-cab-alert-appeal>${icon("icon-judge-gavel")}<span>Depune contestație</span></a>`
+      : "";
+    /* the request opens in the SAME tab (act-alert-card-v2: profiles have real URLs, Back returns here), no external icon */
+    /* alert-buttons-library-v1 (user): next to a primary = the library text button `btn-text-strict` (no fill, no border,
+       grey hover); alone = the library outlined `btn-outline-strict` (transparent, dark border) */
+    const seeRequest = (id, alone) => (id ? alertLinkBtn(alone ? "btn-outline-strict" : "btn-text-strict", requestHref(id), "Vezi solicitarea", " data-cab-alert-request") : "");
+    const ppButton = (ppId, label) => (act.postProcesses.some((pp) => pp.id === ppId)
+      ? alertBtn("btn-primary", `<span>${escape(label)}</span>`, `data-cab-pp="${escape(ppId)}" data-cab-act="${escape(act.id)}"`)
+      : "");
+    const newRequest = () => alertLinkBtn("btn-primary", cabUrl("catalog", {}, `#serviciu/${act.serviceCode}`), "Solicitare nouă");
+    /* „Vezi solicitarea” (text button next to the primary, outlined when alone) + the primary last */
+    const pair = (primary, requestId) => `${seeRequest(requestId, !primary)}${primary}`;
+    if (act.pending) {
+      const id = state.dosarIdByNr[act.pending.dossier];
+      /* pps-… (US-24 AC-01, US-19 AC-06): the post-process in progress waits for information from the holder → the
+         same warning alert as the request's own, with its „Completează informația” (FOD2 S4); an expired term = no
+         action (the BO resumed the examination, US-24 AC-03) */
+      const waiting = (state.perspective?.dosare || []).find((dosar) => dosar.nr === act.pending.dossier && dosar.status === "info");
+      if (waiting && waiting.info?.until >= state.today) {
+        const href = `${FO_URL}?${new URLSearchParams({ flow: "full", solicitant: SUBJECT, suplinire: waiting.nr, ...(params.get("pps") ? { pps: params.get("pps") } : {}) })}#request-step-2`;
+        return {
+          tone: "warning", icon: "icon-warning-filled",
+          title: `Trimite informațiile cerute până la ${escape(longDate(waiting.info.until))}`,
+          text: `Solicitarea de ${escape(String(act.pendingLabel).toLowerCase())} este suspendată: autoritatea a cerut informații suplimentare. Până atunci nu poți iniția alt postproces.`,
+          actions: pair(`<a class="btn btn-primary btn-md btn-rounded" href="${escape(href)}" data-cab-alert-supplement>${icon("icon-page-upload")}<span>Completează informația</span></a>`, id),
+        };
+      }
+      const since = act.pending.since ? `, depusă pe ${escape(longDate(isoOf(act.pending.since)))}` : "";
+      return {
+        tone: "warning", icon: "icon-time-filled",
+        title: "Ai o solicitare în examinare",
+        text: `${escape(act.pendingLabel)}${since}. Poți iniția alt postproces după ce solicitarea este finalizată.`,
+        actions: pair("", id),
+      };
+    }
+    if (act.paper) {
+      return { tone: "info", title: "Act emis pe hârtie", text: "A fost emis în afara GEAP. Postprocesele se depun doar la ghișeul autorității emitente." };
+    }
+    if (act.status === "suspendat") {
+      const until = profile.suspendedUntil ? ` până la ${escape(longDate(profile.suspendedUntil))}` : "";
+      const resume = appealOpen ? appealBtn : ppButton("reluare", "Cere reluarea valabilității");
+      const next = appealOpen ? appeal
+        : resume ? " Poți cere reluarea valabilității mai devreme."
+          : until ? " Valabilitatea se reia automat la această dată." : "";
+      return {
+        tone: ACT_TONE.suspendat,
+        title: `Actul este suspendat${until}`,
+        text: `Nu poți desfășura activitatea în această perioadă. Suspendarea a fost decisă ${decided}.${reason}${next}`,
+        actions: pair(resume, change.dosarId),
+      };
+    }
+    if (act.status === "retras" || act.status === "anulat") {
+      const withdrawn = act.status === "retras";
+      const on = statusDate ? ` pe ${escape(longDate(statusDate))}` : "";
+      const next = appealOpen ? appeal : " Pentru a desfășura din nou activitatea, depune o solicitare nouă.";
+      return {
+        tone: ACT_TONE[act.status],
+        title: `Actul a fost ${withdrawn ? "retras" : "anulat"}${on}`,
+        text: `${withdrawn ? "Retragerea" : "Anularea"} a fost decisă ${decided}.${reason}${next}`,
+        actions: pair(appealOpen ? appealBtn : newRequest(), change.dosarId),
+      };
+    }
+    if (act.status === "expirat") {
+      return {
+        tone: ACT_TONE.expirat,
+        title: act.validUntil ? `Actul a expirat pe ${escape(longDate(act.validUntil))}` : "Actul a expirat",
+        text: "Pentru a desfășura din nou activitatea, depune o solicitare nouă.",
+        actions: newRequest(),
+      };
+    }
+    const left = daysLeftOf(act);
+    if (act.status === "valabil" && left !== null && left <= EXPIRY_PROMPT_DAYS) {
+      const extend = ppButton("prelungire", "Inițiază prelungirea");
+      return {
+        tone: "warning",
+        title: left > 0 ? `Actul expiră în ${daysText(left)}` : "Actul expiră astăzi",
+        text: `Este valabil până la ${escape(longDate(act.validUntil))}. ${extend ? "Cere prelungirea din timp, ca activitatea să nu fie întreruptă." : "Pentru a continua activitatea după această dată, depune o solicitare nouă."}`,
+        actions: extend || newRequest(),
+      };
+    }
+    return null;
+  }
+
+  /* „Istoric” (US-162 AC-14) = the BO „Jurnal de evenimente” element itself (istoric-jurnal-v1; user: „exactly the same as
+     the Jurnal de evenimente in BO: the same icons, text, padding”): GEAPEventTimeline (js/event-timeline.js), newest
+     first, BO event shape { at, type, status, user, role, detail }. What happened = „Reușit” (green check, as the BO logs
+     every executed decision); an act that stopped running (retras / anulat / expirat) = the red error marker without a
+     tag (the title says it); a post-process still in examination = pending (clock); what comes next (end of validity /
+     of the suspension) = „Urmează” (empty ring) on top. Who = the authority + subdivision, never a specialist (data
+     minimisation); the holder's own request names the representative only when MPower filed it. A moment without a
+     date is not shown. Paper acts: only what the registry knows (no GEAP post-processes). */
+  const PP_EVENT = {
+    duplicat: ["Duplicat emis", "done"],
+    reperfectare: ["Act reperfectat", "done"],
+    prelungire: ["Valabilitate prelungită", "done"],
+    suspendare: ["Valabilitate suspendată", "done"],
+    reluare: ["Valabilitate reluată", "done"],
+    retragere: ["Act retras", "rejected"],
+    anulare: ["Act anulat", "rejected"],
+  };
+  const STATUS_EVENT = { suspendat: "suspendare", retras: "retragere", anulat: "anulare" };
+  function actHistory(act) {
+    const profile = actProfileOf(act);
+    const issuing = issuingDossierOf(act);
+    const code = act.service?.authority || "";
+    const authority = { user: code || "Autoritatea emitentă", role: act.subdivision || "" };
+    const ref = (dosar) => (dosar?.id
+      ? `<a class="e-permits-dosar-profil__link cab-external-link" href="${escape(requestHref(dosar.id))}"${newTabAttrs(`Solicitarea ${dosar.nr}`)}><span>${escape(dosar.nr)}</span>${icon("icon-external-link")}</a>`
+      : dosar?.nr ? escape(dosar.nr) : "");
+    const sentence = (...parts) => parts.filter(Boolean).join(" · ");
+    const whoOf = (initiator) => (initiator === "autoritate" ? `Din inițiativa ${escape(code || "autorității")}` : "La cererea titularului");
+    const happened = (at, type, state, more) => ({ at, type, status: "Reușit", ...(state === "rejected" ? { tone: "danger", statusTag: false } : {}), ...more });
+    const events = [];
+    const submitted = issuing?.submitted || profile.requestSubmitted;
+    if (submitted) {
+      events.push(happened(submitted, "Cerere depusă", "done", { user: issuing?.filedBy?.name || "", role: issuing?.filedBy ? "Reprezentant MPower" : "", detailHtml: sentence(issuing?.pp ? escape(issuing.tip) : "", ref(issuing || { nr: profile.dossierNr })) }));
+    }
+    if (profile.tacitApprovalDate) {
+      events.push(happened(isoOf(profile.tacitApprovalDate), "Aprobare tacită", "done", { detail: "Autoritatea nu a emis o decizie în termen." }));
+    }
+    events.push(happened(isoOf(act.issued), act.paper ? "Act emis pe hârtie" : "Act emis", "done", authority));
+    const covered = new Set();
+    if (!act.paper) {
+      dossiersOf(act).filter((dosar) => dosar !== issuing && dosar.pp).forEach((dosar) => {
+        if (dosar.status === "finalizat" && dosar.result === "aprobat" && PP_EVENT[dosar.pp]) {
+          const [label, state] = PP_EVENT[dosar.pp];
+          covered.add(dosar.pp);
+          events.push(happened(isoOf(dosar.finalized), label, state, { ...authority, detailHtml: sentence(whoOf(dosar.initiatedBy), ref(dosar)) }));
+        } else if (["derulare", "info", "achitare"].includes(dosar.status)) {
+          events.push({ at: dosar.submitted, type: `${dosar.tip} în examinare`, status: "În curs", ...authority, detailHtml: ref(dosar) });
+        }
+      });
+      /* a status change the holder's requests do not show (decided by the authority on its own file) */
+      const pp = STATUS_EVENT[act.status];
+      const change = profile.statusChange;
+      if (pp && change && !covered.has(pp) && statusDateOf(act)) {
+        events.push(happened(isoOf(statusDateOf(act)), PP_EVENT[pp][0], PP_EVENT[pp][1], { ...authority, detailHtml: sentence(whoOf(change.initiator), change.decision ? `Decizia ${escape(change.decision)}` : "") }));
+      }
+    }
+    if (act.status === "expirat" && act.validUntil) {
+      events.push(happened(isoOf(act.validUntil), "Valabilitate încheiată", "rejected", { detail: "Termenul de valabilitate a expirat." }));
+    }
+    events.sort((a, b) => (a.at > b.at ? -1 : a.at < b.at ? 1 : 0));
+    if (act.status === "valabil" && act.validUntil) events.unshift({ at: isoOf(act.validUntil), type: "Sfârșitul valabilității", status: "Urmează" });
+    if (act.status === "suspendat" && profile.suspendedUntil) events.unshift({ at: isoOf(profile.suspendedUntil), type: "Reluarea valabilității", status: "Urmează" });
+    return window.GEAPEventTimeline?.html("Istoric", events, { titleId: "cab-act-history", sectionAttrs: 'aria-labelledby="cab-act-history"', headingClass: "sticky-section-head" }) || "";
+  }
+
+  function detailPanel() {
+    let panel = document.querySelector("[data-cab-detail]");
+    if (!panel) {
+      panel = document.createElement("article");
+      panel.className = "cab-profile cab-act-profile";
+      panel.dataset.cabDetail = "";
+      els.list.insertAdjacentElement("afterend", panel);
+    }
+    return panel;
+  }
+  const actListParts = () => [document.querySelector('[data-cab-view="acte"] > :is(.cab-intro, .cab2-head)'), els.toolbar, els.filterBar, els.list, els.pager, els.empty];
+
+  function renderDetail(act) {
+    const panel = detailPanel();
+    const listParts = actListParts();
+    if (!act) {
+      actViewInstance?.closeDocument({ toData: false });
+      actViewInstance?.closeData({ restoreFocus: false });
+      panel.hidden = true;
+      document.querySelector(".cab-intro").hidden = false;
+      state.detail = null;
+      setHeaderTitle(VIEWS[VIEW].title);
+      return; /* the caller re-renders the list (render() sets the list parts' visibility) */
+    }
+    state.detail = act.id;
+    panel.removeAttribute("aria-label");
+    panel.setAttribute("aria-labelledby", "cab-act-title");
+    listParts.forEach((el) => { if (el) el.hidden = true; });
+    const profile = actProfileOf(act);
+    const tacit = isTacitAct(act);
+    const authority = actAuthority(act);
+    const subject = state.geap.subject;
+    const issuing = issuingDossierOf(act);
+    const notice = actNotice(act);
+    const statusDate = actHeaderDate(act);
+    /* the header's action row (cabinet-header-v1; under the title since header-actions-below-v1, library Medium 40), in
+       priority order (primary · Vezi solicitarea · Postprocese; max 2 visible — header-max-two-v1); what does not fit goes into a trailing „⋯” (fitActActions) */
+    const actions = [
+      `<button class="btn btn-primary btn-md" type="button" aria-haspopup="dialog" data-cab-view-act="${escape(act.id)}"><span>Vezi act permisiv</span></button>` /* label only, no eye (user 2026-10-23, request-act-modal-link-v1) */,
+      /* header-max-two-v1: in order of importance — Vezi solicitarea before Postprocese (→ „⋯”); same tab, no external icon (act-alert-card-v2: request profiles have real URLs, Back returns to the act) */
+      issuing ? `<a class="btn btn-neutral btn-md" href="${escape(requestHref(issuing.id))}" data-cab-see-dosar data-cab-act-action="request"><span>Vezi solicitarea</span></a>` : "",
+      act.postProcesses.length ? `
+        <div class="e-permits-fo-intent-act__action" data-cab-act-action="postprocese">
+          <button class="btn btn-neutral btn-md" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="cab-detail-menu" aria-label="Postprocese pentru ${escape(act.label || "")}" data-cab-menu-trigger ${act.pending ? 'disabled aria-describedby="cab-act-notice"' : ""}><span>Postprocese</span>${icon("icon-chevron-bottom")}</button>
+          <ul class="e-permits-fo-intent-menu e-permits-stack__menu cab-menu" id="cab-detail-menu" role="menu" aria-label="Postprocese" hidden>
+            ${window.GEAPActRow.menuItemsHtml(act.postProcesses, (pp) => `data-cab-pp="${escape(pp.id)}" data-cab-act="${escape(act.id)}"`, "../assets/") /* the act rows' items: danger last + separator (action-menu-v1) */}
+          </ul>
+        </div>` : "",
+      act.postProcesses.length || issuing ? `
+        <div class="e-permits-fo-intent-act__action cab-act-header__overflow" hidden>
+          <button class="btn btn-neutral btn-md btn-icon-only" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="cab-detail-more" aria-label="Mai multe acțiuni" data-cab-menu-trigger>${icon("icon-more-horizontal")}</button>
+          <ul class="e-permits-fo-intent-menu e-permits-stack__menu cab-menu" id="cab-detail-more" role="menu" aria-label="Mai multe acțiuni" hidden></ul>
+        </div>` : "",
+    ].filter(Boolean).join("");
+    /* Detalii act — what the header does not say. „Valabil până la” lives in the header for Valabil / Expirat
+       (as the status date) and here for the other statuses; the status date of Retras / Anulat is the header's. */
+    const dossierNr = issuing?.nr || profile.dossierNr || "";
+    const validFrom = act.validFrom && isoOf(act.validFrom) !== isoOf(act.issued) ? act.validFrom : "";
+    const details = [
+      dossierNr ? detailRow("Numărul dosarului electronic", copyValueHtml(dossierNr, `Copiază numărul dosarului ${dossierNr}`)) : "",
+      profile.printedDocumentNumber ? detailRow("Seria și nr. documentului tipărit", escape(profile.printedDocumentNumber)) : "",
+      tacit ? detailRow("Data aprobării tacite", escape(longDate(profile.tacitApprovalDate))) : "",
+      detailRow("Data emiterii", escape(longDate(act.issued))),
+      validFrom ? detailRow("Valabil din", escape(longDate(validFrom))) : "",
+      !["valabil", "expirat"].includes(act.status) && act.validUntil ? detailRow("Valabil până la", escape(longDate(act.validUntil))) : "",
+      act.status === "suspendat" && profile.suspensionDate ? detailRow("Data suspendării", escape(longDate(profile.suspensionDate))) : "",
+    ];
+    const link = (href, text) => `<a class="e-permits-dosar-profil__link" href="${escape(href)}">${escape(text)}</a>`;
+    /* „Ce permite actul”: the configured groups (AC-29, empty fields hidden); a value equal to the page title (the
+       object's name, now the subtitle) is not repeated; the first group carries the section name, the next ones keep theirs */
+    const groups = (window.GEAPActView?.normalizeFields(actGroups(act)) || [])
+      .map((group) => ({ ...group, items: group.items.filter((item) => item.columns || !act.place || String(item.value ?? "").trim() !== String(act.place).trim()) }))
+      .filter((group) => group.items.length);
+    const allows = window.GEAPActView?.fieldsHtml(groups, {
+      untitled: "Ce permite actul",
+      section: (title, body, index) => profileSection(`cab-act-fields-${index}`, index === 0 ? "Ce permite actul" : title, body),
+    }) || "";
+    /* Beneficiar: a representative (MPower) acts in someone else's name → that name comes first; the owner is
+       already named in the header avatar → the card follows the authority (kept: the IDNx is copied from here) */
+    const beneficiary = subject ? profileSection("cab-act-beneficiary", "Beneficiar", identityCardHtml({ ...subject, initials: subject.initials || subject.name.split(/\s+/).map((w) => w[0]).join("").slice(0, 2) })) : "";
+    const representative = Boolean(state.perspective?.mpower);
+    /* the BO header meta (cabinet-header-v1, was the key-facts card): number (copy) · status · the status date ·
+       the issuing authority; the status notice opens the panel under the header */
+    const meta = [
+      ["Numărul actului", copyValueHtml(act.number, `Copiază numărul actului ${act.number}`)],
+      ["Stare", actStatusTagHtml(act, tacit)],
+      statusDate ? [statusDate[0], statusDate[1]] : null,
+      ["Autoritatea emitentă", escape(act.service?.authority || authorityNameOf(act))],
+    ];
+    /* the status alert card right under the header (act-alert-card-v1) */
+    const noticeHtml = notice ? window.GEAPAlertCard.html({ ...notice, id: "cab-act-notice", className: "cab-alert-card", sprite: SPRITE }) : "";
+    panel.hidden = false;
+    panel.innerHTML = `
+      ${profileHeader({
+        back: { label: sectionTitle("acte"), href: cabUrl("acte"), attr: "data-cab-back" },
+        /* type-first-v1: H1 = the act type (the full service title), subtitle = the object / location, if any */
+        title: act.service.title || act.title,
+        titleId: "cab-act-title",
+        subtitle: act.place || "",
+        subtitleIcon: act.place ? "icon-map-pin-filled" : "",
+        meta,
+        actions,
+      })}
+      <div class="e-permits-dosar-profil__panel">
+        ${noticeHtml}
+        ${representative ? beneficiary : ""}
+        ${allows}
+        ${profileSection("cab-act-details", "Detalii act", detailCard(details))}
+        ${profileSection("cab-act-authority", "Autoritatea emitentă", detailCard([
+          detailRow("Denumire", escape(authorityNameOf(act))),
+          act.subdivision ? detailRow("Subdiviziunea emitentă", escape(act.subdivision)) : "",
+          authority.phone ? detailRow("Telefon", link(`tel:${authority.phone.replace(/\s/g, "")}`, authority.phone)) : "",
+          authority.email ? detailRow("E-mail", link(`mailto:${authority.email}`, authority.email)) : "",
+        ]))}
+        ${representative ? "" : beneficiary}
+        ${actHistory(act)}
+      </div>`;
+    /* the tab names the act (act-profile-url-v1): the H1 + its location, as the row's accessible name */
+    document.title = `${[act.service.title || act.title, act.place].filter(Boolean).join(" — ")} · EVO Cabinet`;
+    syncHeaderMeta();
+    watchHeaderActions();
+    window.scrollTo(0, 0);
+  }
+
+  /* an act / request address that matches nothing (act-profile-url-v1): the profile's header with the breadcrumb back to
+     the list (parents only) + the library empty state — no second „back” button. Shared with Solicitările mele. */
+  function notFoundHtml({ back, title, text }) {
+    return `
+      <header class="e-permits-page-header cab-page-header cab-profile-header" data-cab-profile-header>
+        <div class="e-permits-page-header__body">
+          <div class="e-permits-page-header__top">
+            <div class="e-permits-page-header__heading">${window.GEAPBreadcrumbs?.html([back, { label: title }], { truncate: true, parentsOnly: true }) || ""}</div>
+          </div>
+        </div>
+      </header>
+      <div class="e-permits-dosar-profil__panel cab-not-found">${window.GEAPEmptyState.render({ title, text, icon: "search" })}</div>`;
+  }
+
+  const ACT_NOT_FOUND = "Actul permisiv nu a fost găsit";
+  function renderActNotFound() {
+    const panel = detailPanel();
+    actViewInstance?.closeDocument({ toData: false });
+    actViewInstance?.closeData({ restoreFocus: false });
+    state.detail = null;
+    actListParts().forEach((el) => { if (el) el.hidden = true; });
+    panel.hidden = false;
+    panel.removeAttribute("aria-labelledby");
+    panel.setAttribute("aria-label", ACT_NOT_FOUND);
+    panel.innerHTML = notFoundHtml({
+      back: { label: sectionTitle("acte"), href: actsListUrl(), attr: "data-cab-back" },
+      title: ACT_NOT_FOUND,
+      text: "Linkul nu mai este valabil sau actul nu figurează printre actele tale.",
+    });
+    document.title = `${ACT_NOT_FOUND} · EVO Cabinet`;
+    window.scrollTo(0, 0);
+  }
+
+  /* the profile named by the address (load, Back / Forward): ?act=<id> → the profile or the not-found state; none → the
+     list as it was, scrolled back to where the profile was opened from */
+  function syncActFromUrl({ restoreScroll = false } = {}) {
+    if (state.restriction) return; /* a restricted perspective sees only the restriction notice */
+    const id = new URLSearchParams(window.location.search).get("act");
+    if (id) {
+      const act = state.permits.find((permit) => permit.id === id && permit.geap);
+      if (act) renderDetail(act); else renderActNotFound();
+      return;
+    }
+    if (!document.querySelector("[data-cab-detail]:not([hidden])")) return;
+    renderDetail(null);
+    render();
+    if (restoreScroll) window.scrollTo(0, window.history.state?.cabList?.scrollY || 0);
+  }
+
+  /* from the list: the list's entry remembers its scroll, then the profile is pushed */
+  function openAct(act) {
+    if (!act?.geap) return;
+    if (!state.detail) window.history.replaceState({ ...(window.history.state || {}), cabList: { scrollY: window.scrollY } }, "", actsListUrl());
+    window.history.pushState({ cabAct: act.id, cabFromList: !state.detail }, "", actUrl(act.id));
+    renderDetail(act);
+  }
+
+  /* the action row never wraps: measure every action at its natural width (all reads first), keep the primary,
+     then the secondaries in priority order while they fit beside the „⋯”; the rest are `hidden` (out of the tab
+     order) and listed in the „⋯” menu — act: Vezi solicitarea, then „Postprocese” as a labelled group (danger last);
+     request (profile-phone-v1, 2026-10-21: „the action buttons are too small” → 48 on phones, priority+ instead of a
+     wrap): each hidden button as a menu item with the SAME data hooks / href (the page's delegated handlers run
+     unchanged), danger last after a separator. Room (cabinet-header-v1, the BO header; the heading width when the row sits under the title,
+     header-actions-below-v1): the whole row when the header
+     stacks (phones), else half of the title row — the title keeps the other half and wraps. */
+  function fitActActions() {
+    const box = [...document.querySelectorAll("[data-cab-profile-header] .e-permits-page-header__actions")].find((el) => el.getClientRects().length);
+    if (!box) return;
+    const act = box.closest("[data-cab-detail]") ? state.permits.find((permit) => permit.id === state.detail) : null;
+    if (box.closest("[data-cab-detail]") && !act) return;
+    const items = [...box.querySelectorAll(":scope > :is([data-cab-act-action], [data-cab-header-item])")];
+    const more = box.querySelector(":scope > .cab-act-header__overflow");
+    const primary = box.querySelector(":scope > .btn-primary");
+    /* read */
+    box.classList.add("is-measuring");
+    items.forEach((el) => { el.hidden = false; });
+    if (more) more.hidden = false;
+    const top = box.closest(".e-permits-page-header__top");
+    const stacked = getComputedStyle(top).flexDirection === "column";
+    /* under the title (header-actions-below-v1): the whole heading width */
+    const below = box.classList.contains("e-permits-page-header__actions--below");
+    const room = below ? box.parentElement.clientWidth : stacked ? top.clientWidth : Math.floor(top.clientWidth / 2);
+    const gap = parseFloat(getComputedStyle(box).columnGap) || 0;
+    const width = (el) => el.getBoundingClientRect().width;
+    const primaryW = primary ? width(primary) : -gap;
+    const widths = items.map(width);
+    const moreW = more ? width(more) : 0;
+    box.classList.remove("is-measuring");
+    /* decide — header-max-two-v1 (2026-10-23, user: „more than 2 → dots; if only 2 → normal buttons”), every width:
+       ≤ 2 actions = all of them as buttons (a red „Elimină schița” too); ≥ 3 = the 2 most important (the markup is in
+       order of importance, destructive last) + the rest in „⋯”; then the width check below may show fewer on phones */
+    const total = items.length + (primary ? 1 : 0);
+    const cap = total <= 2 ? items.length : Math.max(0, 2 - (primary ? 1 : 0));
+    let keep = Math.min(items.length, cap);
+    if (primaryW + widths.slice(0, keep).reduce((sum, w) => sum + gap + w, 0) + (keep < items.length ? gap + moreW : 0) > room + 0.5) {
+      let used = primaryW + gap + moreW;
+      keep = 0;
+      for (const w of widths.slice(0, cap)) {
+        if (used + gap + w > room + 0.5) break;
+        used += gap + w;
+        keep += 1;
+      }
+    }
+    /* write */
+    items.forEach((el, index) => { el.hidden = index >= keep; });
+    if (!more) return;
+    const overflow = items.slice(keep);
+    more.hidden = !overflow.length;
+    const kinds = overflow.map((el) => el.dataset.cabActAction || el.textContent.trim());
+    if (more.dataset.items !== kinds.join(" ")) { /* rebuilt only when the overflow set changes (an open menu keeps its focus) */
+      more.dataset.items = kinds.join(" ");
+      closeMenus();
+      const menu = more.querySelector("ul");
+      if (!act) {
+        const danger = (el) => el.matches(".btn-outline-destructive, .btn-destructive");
+        const itemHtml = (el) => {
+          const tag = el.tagName === "A" ? "a" : "button";
+          /* a new-tab link keeps target / rel / its „filă nouă” name and shows label then the external icon
+             (request-act-modal-link-v1) */
+          const newTab = el.getAttribute("target") === "_blank";
+          const attrs = [...el.attributes].filter((a) => (a.name.startsWith("data-") && a.name !== "data-cab-header-item") || a.name === "href" || (newTab && ["target", "rel", "aria-label"].includes(a.name)))
+            .map((a) => ` ${a.name}="${escape(a.value)}"`).join("");
+          const glyph = el.querySelector("svg use")?.getAttribute("href")?.split("#")[1];
+          const label = `<span>${escape(el.textContent.trim())}</span>`;
+          return `<li role="none"><${tag} class="e-permits-fo-intent-menu__item${danger(el) ? " is-danger" : ""}"${tag === "button" ? ' type="button"' : ""} role="menuitem"${attrs}>${newTab ? `${label}${icon("icon-external-link", "medium e-permits-fo-intent-menu__external")}` : `${glyph ? icon(glyph, "medium") : ""}${label}`}</${tag}></li>`;
+        };
+        const safe = overflow.filter((el) => !danger(el));
+        const risky = overflow.filter(danger);
+        menu.innerHTML = `${safe.map(itemHtml).join("")}${safe.length && risky.length ? '<li role="separator" class="e-permits-fo-intent-menu__separator"></li>' : ""}${risky.map(itemHtml).join("")}`;
+        return;
+      }
+      const request = kinds.includes("request") ? box.querySelector("[data-cab-act-action='request']") : null;
+      const pps = kinds.includes("postprocese")
+        ? act.postProcesses.map((pp) => (act.pending ? { ...pp, disabled: true, reason: `Postprocesul „${act.pendingLabel}” este în curs` } : pp))
+        : [];
+      menu.innerHTML = [
+        request ? `<li role="none"><a class="e-permits-fo-intent-menu__item" role="menuitem" href="${escape(request.getAttribute("href"))}"><span>Vezi solicitarea</span></a></li>` : "",
+        request && pps.length ? '<li role="separator" class="e-permits-fo-intent-menu__separator"></li>' : "",
+        pps.length ? `<li class="cab-menu__label" role="presentation">Postprocese</li>${window.GEAPActRow.menuItemsHtml(pps, (pp) => `data-cab-pp="${escape(pp.id)}" data-cab-act="${escape(act.id)}"`, "../assets/")}` : "",
+      ].join("");
+    }
+  }
+  const actActionsObserver = "ResizeObserver" in window ? new ResizeObserver(() => fitActActions()) : null;
+  /* after a profile render (act + request): fit now, after the web fonts, and whenever the title row resizes */
+  function watchHeaderActions() {
+    /* the phone H1 clamp (phoneTitle "compact"): the name-expand toggle appears only when the name is cut */
+    document.querySelectorAll("[data-cab-profile-header]").forEach((header) => window.GEAPNameExpand?.scan(header));
+    fitActActions();
+    document.fonts?.ready.then(fitActActions);
+    /* every profile title row, also one rendered while its view is still hidden (it fits once it gets a size) */
+    document.querySelectorAll("[data-cab-profile-header] :is(.e-permits-page-header__top, .e-permits-page-header__actions)").forEach((el) => actActionsObserver?.observe(el));
+  }
+
+  /* the FO identity card (e-permits-fo-selected-role, read-only): PF = initials, PJ = icon-business */
+  function identityCardHtml(person) {
+    const isCompany = person.type === "PJ";
+    const avatar = isCompany
+      ? `<span class="avatar avatar--sm avatar--icon e-permits-fo-selected-role__avatar e-permits-fo-selected-role__avatar--icon" aria-hidden="true">${icon("icon-business", "medium")}</span>`
+      : `<span class="avatar avatar--sm avatar--initials e-permits-fo-selected-role__avatar e-permits-fo-selected-role__avatar--initials" aria-hidden="true">${escape(person.initials || "")}</span>`;
+    return `
+      <div class="e-permits-fo-selected-role">
+        <span class="e-permits-fo-selected-role__inner">
+          ${avatar}
+          <span class="e-permits-fo-selected-role__copy">
+            <strong>${escape(person.name)}</strong>
+            <span class="e-permits-fo-selected-role__meta">
+              <span class="e-permits-fo-selected-role__id">
+                <span class="e-permits-fo-selected-role__id-label">${escape(person.idLabel)}</span>
+                ${copyValueHtml(person.idValue, `Copiază ${person.idLabel} ${person.idValue}`, "e-permits-fo-selected-role__copy-id")}
+              </span>
+            </span>
+          </span>
+        </span>
+      </div>`;
+  }
+
+  function daysUntil(ddmmyyyy) {
+    const [d, m, y] = String(ddmmyyyy || "").split(".").map(Number);
+    if (!y) return null;
+    const today = new Date(2026, 9, 12);
+    return Math.max(0, Math.round((new Date(y, m - 1, d) - today) / 86400000));
+  }
+
+  function bindGeap() {
+    document.addEventListener("click", (event) => {
+      const trigger = event.target.closest("[data-cab-menu-trigger]");
+      if (trigger) {
+        event.stopPropagation();
+        const menu = document.getElementById(trigger.getAttribute("aria-controls"));
+        const open = menu?.hidden !== false;
+        closeMenus(menu);
+        if (menu) menu.hidden = !open;
+        trigger.setAttribute("aria-expanded", String(open));
+        if (menu && open) {
+          fitMenu(menu);
+          if (keyOpened === trigger) menuItemsOf(menu)[0]?.focus(); /* opened with Enter / Space */
+        }
+        keyOpened = null;
+        return;
+      }
+      const openBtn = event.target.closest("[data-cab-open]");
+      const ppBtn = event.target.closest("[data-cab-pp]");
+      const download = event.target.closest("[data-cab-download]");
+      const back = event.target.closest("[data-cab-back]");
+      const card = event.target.closest("[data-cab-card]");
+      const actAppeal = event.target.closest("[data-cab-alert-appeal]");
+      if (actAppeal && !modifiedClick(event)) {
+        event.preventDefault();
+        const act = state.permits.find((p) => p.id === state.detail);
+        if (act) { confirmActAppeal(act, actAppeal); return; }
+        window.location.assign(actAppeal.getAttribute("href"));
+        return;
+      }
+      if (back) {
+        if (modifiedClick(event)) return;
+        event.preventDefault();
+        if (window.history.state?.cabFromList) { window.history.back(); return; }
+        window.history.pushState({}, "", actsListUrl());
+        renderDetail(null); render(); window.scrollTo(0, 0);
+        return;
+      }
+      /* „Descarcă actul (MDocs)” → the printable form (the RAP „Forma de tipar a actului”) */
+      if (download) {
+        event.stopPropagation();
+        closeMenus();
+        const act = state.permits.find((p) => p.id === download.dataset.cabDownload);
+        if (act?.geap) actView().openData(toActView(act), download.closest(".cab-card")?.querySelector("[data-cab-menu-trigger]") || download);
+        return;
+      }
+      const jump = event.target.closest("[data-cab-jump]");
+      if (jump) {
+        const target = document.getElementById(jump.dataset.cabJump);
+        if (target) { target.setAttribute("tabindex", "-1"); target.scrollIntoView({ block: "start", behavior: "smooth" }); target.focus({ preventScroll: true }); }
+        return;
+      }
+      const viewAct = event.target.closest("[data-cab-view-act]");
+      if (viewAct) {
+        const act = state.permits.find((p) => p.id === viewAct.dataset.cabViewAct);
+        if (act) actView().openData(toActView(act), viewAct); /* act-data-footer-v1: the act's DATA panel (as RAP); „Generează documentul” opens the A4 */
+        return;
+      }
+      if (ppBtn && ppBtn.getAttribute("aria-disabled") === "true") { event.stopPropagation(); return; }
+      if (ppBtn && !ppBtn.disabled) {
+        event.stopPropagation();
+        closeMenus();
+        const act = state.permits.find((p) => p.id === ppBtn.dataset.cabAct);
+        const pp = act?.postProcesses.find((x) => x.id === ppBtn.dataset.cabPp);
+        if (act && pp) confirmPostprocess(act, pp, ppBtn.closest(".cab-menu") ? document.querySelector(`[aria-controls="${ppBtn.closest(".cab-menu").id}"]`) : ppBtn);
+        return;
+      }
+      if (openBtn) { closeMenus(); openAct(state.permits.find((p) => p.id === openBtn.dataset.cabOpen)); return; }
+      if (card && !event.target.closest(".cab-card__actions, .e-permits-fo-intent-act__action, [data-copy-value]")) {
+        /* the title link: a modified click opens the profile in a new tab / window (the browser's); else in place */
+        if (event.target.closest("a[href]") && modifiedClick(event)) return;
+        event.preventDefault();
+        openAct(state.permits.find((p) => p.id === card.dataset.cabCard));
+        return;
+      }
+      /* a menu link to another page (Vezi solicitarea, same tab since act-alert-card-v2; the request profile's „Profilul
+         actului”, new tab — request-act-modal-link-v1): the menu closes, the link navigates */
+      if (event.target.closest(".cab-menu a[href]")) { closeMenus(); return; }
+      if (!event.target.closest(".cab-menu")) closeMenus();
+    });
+    document.addEventListener("keydown", (event) => {
+      const row = event.target.matches?.("[data-cab-card]") ? event.target : null;
+      if (row && (event.key === "Enter" || event.key === " ")) {
+        event.preventDefault();
+        openAct(state.permits.find((p) => p.id === row.dataset.cabCard));
+        return;
+      }
+      onMenuKey(event);
+      if (event.defaultPrevented && event.key === "Escape") return;
+      if (event.key !== "Escape") return;
+      /* Esc on an open trigger: close and keep the focus there */
+      closeMenus();
+    });
+  }
+
+
+  /* every Cabinet profile (request, act, catalog service) opens with the RAP / BO public page header
+     (.e-permits-page-header--public, css/bo-profile-parts.css — 2026-10-17 alignment): desktop = the
+     library breadcrumb as Figma Components 232:5282 — the parent level only, no trailing chevron (breadcrumb-no-trailing-v1)
+     (`parentsOnly`, breadcrumb-v3, user 2026-10-21: the trail never repeats the title shown right under it; Figma
+     „Active Level” off), phones = „‹ parent” (library breadcrumbs Breakpoint=Mobile);
+     16 to the title, which wraps (never truncated); the meta row (label 12/16 · value 14/20 medium,
+     dividers; 2 equal columns without dividers on phones); `actions` = the primary library
+     btn-primary btn-md (hugging) + optional neutral btn-md, under the meta. back = { label, href, attr }
+     (the list). */
+  /* subtitleIcon (type-first-v1): a 16 outline glyph in front of the subtitle (the location pin on the act / request
+     profiles: icon-map-pin-filled in the TERTIARY icon colour — exception to icon = label colour), gap 4 */
+  function pageHeader({ back = null, title = "", titleId = "", subtitle = "", subtitleIcon = "", meta = [], actions = "", bodyHtml = "" }) {
+    return `
+      <header class="e-permits-page-header e-permits-page-header--public cab-page-header" data-cab-profile-header>
+        <div class="e-permits-page-header__body">
+          <div class="e-permits-page-header__top">
+            <div class="e-permits-page-header__heading">
+              ${back ? window.GEAPBreadcrumbs?.html([back, { label: title }], { parentsOnly: true }) || "" : ""}
+              ${subtitle ? '<div class="cab-page-header__titles">' : ""}
+              <h1 class="e-permits-page-header__title"${titleId ? ` id="${titleId}" tabindex="-1"` : ""}>${escape(title)}</h1>
+              ${subtitle ? `<p class="cab-page-header__subtitle${subtitleIcon ? " cab-page-header__subtitle--icon" : ""}">${subtitleIcon ? icon(subtitleIcon, "small") : ""}${subtitleIcon ? `<span>${escape(subtitle)}</span>` : escape(subtitle)}</p></div>` : ""}
+            </div>
+          </div>
+          ${meta.length ? `<div class="e-permits-page-header__meta" data-cab-header-meta>${meta.filter(Boolean).map(([label, html]) => `
+            <div class="e-permits-page-header__meta-item">
+              <span class="e-permits-page-header__meta-label">${escape(label)}</span>
+              <span class="e-permits-page-header__meta-value">${html}</span>
+            </div>`).join("")}</div>` : ""}
+          ${actions ? `<div class="e-permits-page-header__action-row">${actions}</div>` : ""}
+          ${bodyHtml}
+        </div>
+      </header>`;
+  }
+
+  /* the act / request profile header = the BO page header itself (cabinet-header-v1, 2026-10-21; user: „the header
+     as in Administrare › Configurări servicii › 003000023 and Dosarele, with the actions on top, for
+     uniformisation”): js/page-header.js (GEAPPageHeader — the renderer the BO uses) — breadcrumb (parents only) ·
+     H1 (wraps: never truncated on its own page) + the location line with the filled tertiary pin (type-first-v1) ·
+     the action row · the meta row. header-actions-below-v1 (2026-10-22, user: „put the actions down too … for long
+     names, being on the side is not okay”): the action row sits UNDER the title / location at every width
+     (actionsPlacement "below": left-aligned, library Medium 40 — phones too —, one primary, neutral secondaries, ⋯),
+     then the details; on phones the H1 is 20/28 and stops at 4 lines with „Mai mult” (phoneTitle "compact", user:
+     „on mobile the title smaller, too big now”). Immediate actions (pay, send information, appeal, continue a draft) stay in the request's status
+     notice. The catalog service keeps pageHeader (the public header, as RAP). */
+  function profileHeader({ back, title = "", titleId = "", subtitle = "", subtitleIcon = "", meta = [], actions = "" }) {
+    const subtitleHtml = subtitle
+      ? `<p class="cab-page-header__subtitle${subtitleIcon ? " cab-page-header__subtitle--icon" : ""}">${subtitleIcon ? icon(subtitleIcon, "small") : ""}<span>${escape(subtitle)}</span></p>`
+      : "";
+    return `
+      <header class="e-permits-page-header cab-page-header cab-profile-header" data-cab-profile-header>
+        <div class="e-permits-page-header__body">
+          <div class="e-permits-page-header__top">${window.GEAPPageHeader.top({ crumbs: [...(window.Cab2Shell?.crumbsFor?.(VIEW_SECTION[VIEW]) || []), back, { label: title }], title, titleId, subtitleHtml, wrap: true, actions, actionsPlacement: "below", phoneTitle: "compact" })}</div>
+          ${meta.filter(Boolean).length ? `<div class="e-permits-page-header__meta" data-cab-header-meta>${window.GEAPPageHeader.meta(meta)}</div>` : ""}
+        </div>
+      </header>`;
+  }
+
+  /* BO profile sections (css/bo-profile-parts.css, = RAP / BO dos-01 · svc-01): the 18/26 title in a
+     48 row over the grey card (no gap, 8/12 inset), rows 40 · label 14/20 secondary · value 14/20
+     medium · dividers, none under the last row. The panel follows the header (20 to the first one). */
+  function detailRow(label, valueHtml) {
+    return `
+      <div class="e-permits-dosar-profil__row">
+        <span class="e-permits-dosar-profil__row-label" data-cell-tooltip>${escape(label)}</span>
+        <span class="e-permits-dosar-profil__row-value">${valueHtml}</span>
+      </div>`;
+  }
+  const detailCard = (rowsHtml) => `<div class="e-permits-dosar-profil__card">${[].concat(rowsHtml).filter(Boolean).join("")}</div>`;
+  function profileSection(id, title, body, { attrs = "" } = {}) {
+    return `
+      <section class="e-permits-dosar-profil__section cab-section" aria-labelledby="${id}"${attrs ? ` ${attrs}` : ""}>
+        <h2 class="e-permits-dosar-profil__section-title sticky-section-head" id="${id}">${escape(title)}</h2>
+        ${body}
+      </section>`;
+  }
+
+  /* a wrapped meta row never starts with a separator (BO syncPageHeaderMetaRows) */
+  function syncHeaderMeta() {
+    document.querySelectorAll("[data-cab-header-meta]").forEach((meta) => {
+      let previousTop = null;
+      meta.querySelectorAll(":scope > .e-permits-page-header__meta-item").forEach((item) => {
+        const top = item.offsetTop;
+        item.classList.toggle("is-row-start", previousTop === null || top > previousTop + 1);
+        previousTop = top;
+      });
+    });
+  }
+  window.addEventListener("resize", syncHeaderMeta);
+
+  /* ---------- documents — the FO / BO document shape and card (2026-10-14) ----------
+     doc = { sursa: upload | mdocs | generat (none = a document TYPE), tip, nr?, fisier?, size?, verb?, at?,
+     de?, semnat?, tags?: [[label, tone]], note? }. Card = the FO summary row (.e-permits-fo-confirm-file--doc)
+     with the shared content (icon by source, type + source tag, meta number · file · size · „<Verb> <date>” ·
+     „de …” · „Semnat electronic”); with a key the whole card opens the document modal (no „Detalii” button since
+     no-lone-detalii-v1)
+     (page preview + details) whose footer has „Descarcă”. No download from the card and no ⋮ (user
+     2026-10-20: documents are downloaded only from the document modal). */
+  const DOC_SOURCES = {
+    upload: { tag: "Încărcat", icon: "document-uploaded.svg" },
+    mdocs: { tag: "MDocs", icon: "document-generated.svg" },
+    generat: { tag: "Generat", icon: "document-generated.svg" },
+  };
+  const TAG_TONES = { neutral: "status-tag--neutral is-subtle", strong: "status-tag--neutral is-strong", success: "status-tag--success is-subtle", danger: "status-tag--danger is-subtle" };
+  /* signed = the blue Small tag with the signature icon (the FO / BO badge) */
+  const signedTagHtml = () => `<span class="status-tag status-tag--brand is-subtle status-tag--small e-permits-fo-doc-tag">${icon("icon-signature")}Semnat electronic</span>`;
+  /* meta in logical lines (the FO foDocMetaLines, 2026-10-14): [number] · [file · size] · [date · by whom · note];
+     one row on desktop, one line each on phones; dots are CSS ::before (never orphaned at a wrap) */
+  function docMetaLines(doc) {
+    const part = (text, mod = "") => `<span class="e-permits-fo-doc-meta__part${mod ? ` e-permits-fo-doc-meta__part--${mod}` : ""}"${mod === "file" ? " data-cell-tooltip" : ""}>${escape(text)}</span>`;
+    const file = doc.fisier && doc.fisier !== doc.tip ? doc.fisier : "";
+    const head = [file ? part(file, "file") : "", doc.size ? part(doc.size) : ""].filter(Boolean);
+    const stamp = [
+      doc.at ? part(`${doc.verb || DOC_SOURCES[doc.sursa]?.tag || "Încărcat"} ${doc.at}`) : "",
+      doc.de ? part(`de ${doc.de}`) : "",
+      doc.note ? part(doc.note) : "",
+    ].filter(Boolean);
+    /* a number gets its own line next to a file name, else it leads the size */
+    return (file ? [doc.nr ? [part(doc.nr)] : [], head, stamp] : [[doc.nr ? part(doc.nr) : "", ...head].filter(Boolean), stamp]).filter((line) => line.length);
+  }
+  function docContentHtml(doc) {
+    const source = DOC_SOURCES[doc.sursa];
+    const lines = docMetaLines(doc);
+    /* the tags move as one group under a long title (doc-title-2-lines-v1); source tag only for MDocs — the icon says
+       uploaded / generated (user 2026-11-05) */
+    const tags = [
+      /* no source tag (user 2026-11-06) — the blue document icon says it */
+      doc.semnat ? signedTagHtml() : "",
+      ...(doc.tags || []).map(([label, tone]) => `<span class="status-tag ${TAG_TONES[tone] || TAG_TONES.neutral} status-tag--small e-permits-fo-doc-tag">${escape(label)}</span>`)
+    ].filter(Boolean);
+    return `
+      <div class="e-permits-fo-lib-item__content">
+        <div class="e-permits-fo-lib-item__title-row e-permits-fo-doc-title-row">
+          <span class="e-permits-fo-lib-item__title" data-cell-tooltip>${escape(doc.tip)}</span>
+          ${tags.length ? `<span class="e-permits-fo-doc-tags">${tags.join("")}</span>` : ""}
+        </div>
+        ${lines.length ? `<div class="e-permits-fo-lib-item__meta e-permits-fo-doc-meta">${lines.map((line) => `<span class="e-permits-fo-doc-meta__line">${line.join("")}</span>`).join("")}</div>` : ""}
+      </div>`;
+  }
+  /* key: the whole card opens it (data-cab-doc…). no-lone-detalii-v1 (2026-10-21, user: „if it does the same as
+     clicking the entire card, remove Detalii”): no „👁 Detalii” button — the card is the control (tabindex 0, name
+     „<tip>, deschide detaliile”, Enter / Space in solicitari.js), its hover band + focus ring */
+  function docRowHtml(doc, { key = "" } = {}) {
+    const source = DOC_SOURCES[doc.sursa] || DOC_SOURCES.upload;
+    return `
+      <div class="e-permits-fo-confirm-file e-permits-fo-confirm-file--doc cab-doc${key ? " is-clickable" : ""}"${key ? ` data-cab-doc="${escape(key)}" tabindex="0" aria-label="${escape(`${doc.tip}, deschide detaliile`)}"` : ""}>
+        <img class="e-permits-fo-confirm-file__icon" width="24" height="24" src="../assets/icons/${source.icon}" alt="">
+        ${docContentHtml(doc)}
+      </div>`;
+  }
+  /* the document modal: FO doc-modal shell, the A4 page preview (grey canvas, zoomed to the width),
+     „Date generale” rows, footer Descarcă · Închide.
+     doc-viewer-v1 (2026-10-21, GEAP 2.0 11366:6892): a GENERATED document (`generated: true`) = the preview, taking
+     the dialog height, + `signature` (GEAPDocPreview.signatureHtml) under it — no „Date generale” rows */
+  let docModalOpener = null;
+  /* the file „Descarcă” saves (demo: the modal's text, named after the document's file) */
+  const docModalFile = { name: "", text: "" };
+  /* the shared A4 viewer (js/doc-preview.js): the page zoomed to the canvas width minus its COMPUTED
+     padding (was a private copy with a hard 48) */
+  function fitDocPreview() {
+    const canvas = document.querySelector("[data-cab-doc-modal]:not([hidden]) [data-cab-doc-canvas]");
+    if (canvas) window.GEAPDocPreview?.fit(canvas);
+  }
+  /* mdocSpec (machete-mdocs-v1, 2026-10-25): an MDocs document = the standard template (GEAPDocPreview.mdocsHtml, US-306…311),
+     paginated; without it `pageHtml` goes into one plain A4 page as before */
+  function openDocModal({ title, subtitle, doc, pageHtml, rowsHtml, downloadAttrs = "", generated = false, signature = "", mdocSpec = null }) {
+    let overlay = document.querySelector("[data-cab-doc-modal]");
+    if (!overlay) {
+      overlay = document.createElement("div");
+      overlay.className = "e-permits-fo-doc-modal-overlay cab-filter-modal cab-doc-modal";
+      overlay.dataset.cabDocModal = "";
+      overlay.setAttribute("role", "dialog");
+      overlay.setAttribute("aria-modal", "true");
+      overlay.setAttribute("aria-labelledby", "cab-doc-title");
+      document.body.appendChild(overlay);
+      overlay.addEventListener("click", (event) => {
+        if (event.target === overlay || event.target.closest("[data-cab-doc-close]")) { closeDocModal(); return; }
+        if (event.target.closest("[data-cab-doc-download]")) {
+          const a = Object.assign(document.createElement("a"), { href: URL.createObjectURL(new Blob([docModalFile.text], { type: "text/plain;charset=utf-8" })), download: docModalFile.name });
+          document.body.appendChild(a); a.click(); a.remove();
+          setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+        }
+      });
+      if ("ResizeObserver" in window) new ResizeObserver(fitDocPreview).observe(overlay);
+    }
+    docModalOpener = document.activeElement;
+    overlay.innerHTML = `
+      <div class="e-permits-fo-doc-modal" tabindex="-1">
+        <div class="e-permits-fo-doc-modal__header">
+          <div class="e-permits-fo-doc-modal__header-text">
+            <h2 id="cab-doc-title" class="e-permits-fo-doc-modal__title">${escape(title)}</h2>
+            ${subtitle ? `<p class="e-permits-fo-doc-modal__subtitle">${escape(subtitle)}</p>` : ""}
+          </div>
+          <button class="e-permits-fo-doc-modal__close" type="button" aria-label="Închide" data-cab-doc-close>${icon("icon-cross-large")}</button>
+        </div>
+        <div class="cab-filter__body cab-doc-modal__body${generated ? " cab-doc-modal__body--doc" : ""}">
+          <div class="e-permits-doc-peek__canvas cab-doc-modal__preview" data-cab-doc-canvas role="${mdocSpec ? "document" : "img"}" aria-label="Previzualizare: ${escape(doc.tip)}${doc.fisier ? `, ${escape(doc.fisier)}` : ""}">
+            ${mdocSpec ? window.GEAPDocPreview?.mdocsHtml(mdocSpec) || "" : `<div class="e-permits-dtpl__page e-permits-doc-peek__page"><div class="e-permits-dtpl__surface">${pageHtml}</div></div>`}
+          </div>
+          ${generated ? signature : `<h3 class="e-permits-fo-finish__section-title">Date generale</h3>
+          ${rowsHtml}`}
+        </div>
+        <div class="e-permits-fo-doc-modal__footer">
+          <!-- viewer-footer-one-v1 (2026-10-26, final audit C4): the SAME footer as the act viewer (js/act-view.js) — library
+               pills, „Descarcă” = grey neutral + icon-export (arrow into tray), „Închide” = primary; size from css/dialog-footer.css
+               (Medium 40 on desktop, viewer 40 on phones) -->
+          <button class="btn btn-neutral btn-rounded" type="button" ${downloadAttrs}>${icon("icon-export")}<span>Descarcă</span></button>
+          <button class="btn btn-primary btn-rounded" type="button" data-cab-doc-close>Închide</button>
+        </div>
+      </div>`;
+    docModalFile.name = `${String(doc.fisier || doc.tip || "document").replace(/\.[a-z0-9]+$/i, "")}.txt`;
+    /* the demo file = the details rows (from `rowsHtml`, also for a generated document whose rows are not shown) */
+    const rowsBox = document.createElement("div");
+    rowsBox.innerHTML = rowsHtml || "";
+    docModalFile.text = [title, subtitle, "", ...[...rowsBox.querySelectorAll(".e-permits-dosar-profil__row")].map((r) => `${r.querySelector(".e-permits-dosar-profil__row-label")?.textContent.trim() || ""}: ${(r.querySelector(".e-permits-dosar-profil__row-value")?.textContent || "").replace(/\s+/g, " ").trim()}`)].join("\n");
+    overlay.hidden = false;
+    if (mdocSpec) window.GEAPDocPreview?.paginate(overlay.querySelector("[data-cab-doc-canvas]"));
+    fitDocPreview();
+    /* doc-viewer-tabs-v1: the dialog takes the focus, so the × does not open looking focused; Tab → × */
+    overlay.querySelector(".e-permits-fo-doc-modal")?.focus();
+  }
+  function closeDocModal() {
+    const overlay = document.querySelector("[data-cab-doc-modal]");
+    if (!overlay || overlay.hidden) return;
+    overlay.hidden = true;
+    if (docModalOpener?.isConnected) docModalOpener.focus();
+  }
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") closeDocModal();
+    /* doc-fullheight-v1 (2026-10-21): Tab / Shift+Tab stay in the open document dialog (they went on to the page behind) */
+    const overlay = event.key === "Tab" && document.querySelector("[data-cab-doc-modal]:not([hidden])");
+    if (!overlay) return;
+    const items = [...overlay.querySelectorAll("button:not([disabled]), a[href], [tabindex]:not([tabindex='-1'])")].filter((el) => el.getClientRects().length);
+    if (!items.length) return;
+    const first = items[0];
+    const last = items[items.length - 1];
+    const active = document.activeElement;
+    if (!overlay.contains(active)) { event.preventDefault(); (event.shiftKey ? last : first).focus(); }
+    else if (event.shiftKey && (active === first || !items.includes(active))) { event.preventDefault(); last.focus(); }
+    else if (!event.shiftKey && active === last) { event.preventDefault(); first.focus(); }
+  });
+
+  /* ---------- list loading (cabinet-skeleton-v1, 2026-10-23; components.md › „Cabinet list skeleton”) ----------
+     User: „for Actele mele permisive and Solicitările mele, a nice skeleton loader when there is loading time”. The
+     prototype has no server, so a load is SIMULATED: 600–900 ms on the first load and after every search / filter /
+     sort / page / page-size change (the last change wins — typing restarts it). ONE helper for both lists:
+       ?latency=<ms>   override (0 = instant, as before); ?latency=freeze = the skeleton stays (demo states *-loading)
+       demo links (?state=…) are instant unless the state passes `latency` — the existing states keep their timing
+       a wait < 300 ms shows NO skeleton (components.md › Skeleton: „no skeleton for < 300 ms waits”), so a skeleton is
+       always on screen ≥ 300 ms; Back from a profile / tab switches draw at once (the data is already there).
+     The skeleton = the ONE `.skeleton` (css/skeleton.css) placed by cabinet-evo.css „Cabinet list skeleton”: rows
+     shaped like the act / request row (same card, padding, line heights → nothing jumps), the toolbar stays real
+     (inert + disabled only on the first load, when there is nothing to search yet). A11y: the region aria-busy, a
+     visually hidden „Se încarcă…” live line, the skeleton aria-hidden, focus never moved. */
+  const LATENCY = (() => {
+    const raw = params.get("latency");
+    if (raw === "freeze") return Infinity;
+    if (raw !== null && raw.trim() !== "" && Number.isFinite(Number(raw))) return Math.max(0, Number(raw));
+    return document.documentElement.dataset.demoLink ? 0 : null;
+  })();
+  const SKELETON_MIN_MS = 300;
+  const SKELETON_ROWS = 6;
+  const latency = () => LATENCY ?? 600 + Math.round(Math.random() * 300);
+  const wait = (ms) => new Promise((resolve) => { if (Number.isFinite(ms)) window.setTimeout(resolve, Math.max(0, ms)); });
+  /* the first load: { skeleton } = show it now, done() = resolves when the simulated answer is in (never when frozen) */
+  function firstLoad() {
+    const at = performance.now();
+    const ms = latency();
+    return { skeleton: ms >= SKELETON_MIN_MS, done: () => wait(ms - (performance.now() - at)) };
+  }
+  /* a redraw that replaced the focused control (the pager) gives the focus back to its twin (same data-* hooks) */
+  function keepFocus(scope, fn) {
+    const active = document.activeElement;
+    const inside = Boolean(scope && active && active !== document.body && scope.contains(active));
+    const key = inside ? [...active.attributes].filter((attr) => attr.name.startsWith("data-")).map((attr) => `[${attr.name}="${CSS.escape(attr.value)}"]`).join("") : "";
+    fn();
+    if (inside && key && !active.isConnected) scope.querySelector(key)?.focus({ preventScroll: true });
+  }
+  /* a list reload: show() draws the loading state (toolbar real, rows = skeleton), draw() the result */
+  function listLoader({ scope, show, draw }) {
+    let timer = 0;
+    return {
+      load() {
+        window.clearTimeout(timer);
+        const ms = latency();
+        if (!ms) { keepFocus(scope(), draw); return; }
+        if (ms >= SKELETON_MIN_MS) keepFocus(scope(), show);
+        if (Number.isFinite(ms)) timer = window.setTimeout(() => keepFocus(scope(), draw), ms);
+      },
+    };
+  }
+  /* aria-busy on the region + the live line (set a frame later, so a region inserted just now is read) */
+  function setBusy(region, status, busy) {
+    region?.setAttribute("aria-busy", String(busy));
+    if (!status) return;
+    window.requestAnimationFrame(() => { status.textContent = busy ? "Se încarcă…" : ""; });
+  }
+  /* the toolbar on the FIRST load: nothing to search / filter / sort yet → inert, „Filtre” / „Sortează” disabled look */
+  function setToolbarLoading(toolbar, loading) {
+    if (!toolbar) return;
+    toolbar.inert = loading;
+    toolbar.querySelectorAll(".e-permits-filter-trigger").forEach((trigger) => {
+      if (loading) trigger.setAttribute("aria-disabled", "true");
+      else if (trigger.matches(".e-permits-sort-trigger")) trigger.removeAttribute("aria-disabled");
+    });
+  }
+  /* the facet bar's „N rezultate” (desktop bar / phone applied line) = a short bar while the list loads */
+  function maskResultCount(bar) {
+    bar?.querySelectorAll(".e-permits-workplace__filter-result").forEach((el) => {
+      el.innerHTML = '<span class="skeleton skeleton--text cab-skeleton-count" aria-hidden="true"></span>';
+      el.closest("[data-filter-phone-meta]")?.removeAttribute("data-html"); /* the phone line redraws next time */
+    });
+  }
+  const skeletonRows = (count) => Math.max(1, Math.min(SKELETON_ROWS, count ?? SKELETON_ROWS));
+  /* the act / request row skeleton: tag · title (+ the trigger in the corner) · location · meta (2 lines on phones) */
+  function listSkeletonHtml({ rows = SKELETON_ROWS, kind = "acts" } = {}) {
+    const row = `
+          <li class="cab-skeleton-row">
+            <span class="cab-skeleton-row__head"><span class="skeleton skeleton--text cab-skeleton-row__title"></span><span class="skeleton skeleton--block cab-skeleton-row__tag"></span></span>
+            <span class="cab-skeleton-row__place"><span class="skeleton skeleton--text"></span></span>
+            <span class="cab-skeleton-row__meta"><span class="skeleton skeleton--text"></span><span class="skeleton skeleton--text"></span></span>
+            <span class="skeleton skeleton--block cab-skeleton-row__trigger"></span>
+          </li>`;
+    return `<ul class="e-permits-fo-intent__list cab-act-list${kind === "requests" ? " cab-request-list" : ""} cab-skeleton-list cab-skeleton-list--${kind}" aria-hidden="true" data-cab-skeleton>${row.repeat(skeletonRows(rows))}</ul>`;
+  }
+  /* the act / request profile on its FIRST load (a shared link, a reload): the page header (breadcrumb, H1, location,
+     action buttons, meta) + the trajectory (requests) + two detail sections, in the real wrappers so every slot keeps
+     its place; never on a profile opened from the list (its data is already there) */
+  function profileSkeletonHtml({ trajectory = false } = {}) {
+    const metaItem = '<div class="e-permits-page-header__meta-item"><span class="e-permits-page-header__meta-label"><span class="skeleton skeleton--text"></span></span><span class="e-permits-page-header__meta-value"><span class="skeleton skeleton--text"></span></span></div>';
+    const detailRowHtml = '<div class="e-permits-dosar-profil__row"><span class="e-permits-dosar-profil__row-label"><span class="skeleton skeleton--text"></span></span><span class="e-permits-dosar-profil__row-value"><span class="skeleton skeleton--text"></span></span></div>';
+    const sectionHtml = (rows) => `<div class="e-permits-dosar-profil__section cab-section"><span class="e-permits-dosar-profil__section-title"><span class="skeleton skeleton--text"></span></span><div class="e-permits-dosar-profil__card">${detailRowHtml.repeat(rows)}</div></div>`;
+    return `
+      <p class="u-visually-hidden" role="status">Se încarcă…</p>
+      <div class="cab-skeleton-profile" aria-hidden="true" data-cab-profile-skeleton>
+        <header class="e-permits-page-header cab-page-header cab-profile-header">
+          <div class="e-permits-page-header__body">
+            <div class="e-permits-page-header__top">
+              <div class="e-permits-page-header__heading">
+                <span class="cab-skeleton-profile__crumb"><span class="skeleton skeleton--text"></span></span>
+                <span class="e-permits-page-header__title e-permits-page-header__title--compact cab-skeleton-profile__title"><span class="skeleton skeleton--text"></span></span>
+                <span class="cab-page-header__subtitle cab-skeleton-profile__subtitle"><span class="skeleton skeleton--text"></span></span>
+                <span class="e-permits-page-header__actions e-permits-page-header__actions--below"><span class="skeleton skeleton--block cab-skeleton-profile__button"></span><span class="skeleton skeleton--block cab-skeleton-profile__button"></span></span>
+              </div>
+            </div>
+            <div class="e-permits-page-header__meta">${metaItem.repeat(4)}</div>
+          </div>
+        </header>
+        <div class="e-permits-dosar-profil__panel">
+          ${trajectory ? '<span class="skeleton skeleton--block cab-skeleton-profile__trajectory"></span>' : ""}
+          ${sectionHtml(4)}
+          ${sectionHtml(3)}
+        </div>
+      </div>`;
+  }
+
+  /* ---------- shared with solicitari.js and catalog.js ---------- */
+  window.Cab2Evo = {
+    sectionTitle,
+    firstLoad, listLoader, setBusy, setToolbarLoading, maskResultCount, listSkeletonHtml, profileSkeletonHtml, skeletonRows,
+    VIEW, AUTH, SUBJECT, SPRITE, params, withScenario,
+    icon, escape, copyValueHtml, closeMenus, cabUrl, longDate, longDateTime, setHeaderTitle, restrictionHtml, pagerHtml,
+    docRowHtml, docContentHtml, openDocModal, closeDocModal, signedTagHtml,
+    actGroups, newTabAttrs, pageHeader, profileHeader, notFoundHtml, pageAddress, modifiedClick, syncHeaderMeta, watchHeaderActions, identityCardHtml, tagHtml, tacitTagHtml, ACT_TONE, detailRow, detailCard, profileSection,
+    els,
+  };
+
+  /* ---------- boot ---------- */
+
+  async function init() {
+    /* cabinet-skeleton-v1: the acts view shows its skeleton until the (simulated) answer is in */
+    const first = VIEW === "acte" ? firstLoad() : null;
+    if (VIEW === "acte") {
+      els.list.insertAdjacentHTML("beforebegin", '<p class="u-visually-hidden" aria-live="polite" data-cab-loading-status></p>');
+      els.loadingStatus = els.list.previousElementSibling;
+      state.query = els.search.value;
+      if (first.skeleton) {
+        state.firstLoading = true;
+        initFacetFilter();
+        if (params.get("act")) {
+          actListParts().forEach((el) => { if (el) el.hidden = true; });
+          const panel = detailPanel();
+          panel.hidden = false;
+          panel.setAttribute("aria-busy", "true");
+          panel.innerHTML = profileSkeletonHtml();
+        } else renderFirstLoad();
+      }
+    }
+    const response = await fetch(DATA_URL);
+    if (!response.ok) throw new Error(`Nu am putut încărca datele (${response.status})`);
+    const data = await response.json();
+
+    state.actProfiles = data.actProfiles || {};
+    state.geap = await loadGeapActs();
+    /* only the subject's own acts: an unknown subject / one without acts gets the shared empty state */
+    state.permits = state.geap.acts;
+
+    /* v2: the list title is the shell's section header (Cab2Shell.sectionHeadHtml) */
+    applyView();
+    /* Finalizat-Aprobat dosare ↔ their act („Vezi solicitarea” / „Vezi actul”) */
+    try {
+      const sm = await (await fetch("../data/cab2-cereri.json?v=cab2-s1-v1")).json();
+      (sm.perspectives?.[SUBJECT]?.dosare || [])
+        .filter((dosar) => dosar.actId && dosar.status === "finalizat" && dosar.result === "aprobat" && !dosar.decisionOnly)
+        .forEach((dosar) => { if (!state.dosarByAct[dosar.actId]) { state.dosarByAct[dosar.actId] = dosar.id; state.dosarNrByAct[dosar.actId] = dosar.nr; } });
+      state.help = sm.help || {};
+      state.restriction = sm.perspectives?.[SUBJECT]?.readOnly || null;
+      state.perspective = sm.perspectives?.[SUBJECT] ? { ...sm.perspectives[SUBJECT], dosare: (sm.perspectives[SUBJECT].dosare || []).map(withScenario) } : null;
+      state.today = sm.today || state.today;
+      state.appealDays = sm.appealDays || state.appealDays;
+      (state.perspective?.dosare || []).forEach((dosar) => {
+        state.dosarIdByNr[dosar.nr] = dosar.id;
+        if (dosar.actId) (state.dossiersByAct[dosar.actId] ||= []).push(dosar);
+      });
+    } catch { /* the act profile simply has no link */ }
+    if (state.restriction) state.permits = [];
+
+    if (data.user && els.name && els.role) {
+      els.name.textContent = data.user.name;
+      els.role.textContent = data.user.role;
+    }
+    /* the perspective whose acts are listed */
+    if (state.geap.subject) {
+      els.avatarPanel?.querySelectorAll("[data-fo-avatar-role]").forEach((role) => {
+        const own = role.dataset.cabAs === SUBJECT;
+        role.classList.toggle("is-selected", own);
+        role.setAttribute("aria-checked", String(own));
+      });
+      if (els.name && VIEW !== "cabinet") els.name.textContent = state.geap.subject.name;
+      if (els.role) els.role.textContent = state.geap.subject.roleLabel || (state.geap.subject.type === "PJ" ? "Persoană juridică" : "Persoană fizică");
+    }
+
+    if (first) {
+      await first.done();
+      state.firstLoading = false;
+      setToolbarLoading(els.toolbar, false);
+      const skeletonPanel = document.querySelector("[data-cab-detail][aria-busy]");
+      if (skeletonPanel) { skeletonPanel.removeAttribute("aria-busy"); skeletonPanel.hidden = true; }
+    }
+    bind();
+    bindGeap();
+    if (!facetFilter) initFacetFilter();
+    render();
+    /* ?act=<id> opens the act profile (a reload, a shared link, a dosar's „Vezi actul”); Back / Forward follow the
+       address (act-profile-url-v1) */
+    if (VIEW === "acte") {
+      syncActFromUrl();
+      window.addEventListener("popstate", () => syncActFromUrl({ restoreScroll: true }));
+      if ("scrollRestoration" in window.history) window.history.scrollRestoration = "manual";
+    }
+    document.documentElement.dataset.cabReady = "true";
+  }
+
+  init().catch((error) => {
+    console.error(error);
+    els.list.hidden = true; /* no skeleton left behind the error (cabinet-skeleton-v1) */
+    setBusy(els.list, els.loadingStatus, false);
+    setToolbarLoading(els.toolbar, false);
+    els.empty.hidden = false;
+    els.empty.innerHTML = window.GEAPEmptyState.render({ title: "A apărut o eroare", text: "Actele permisive nu au fost încărcate. Încearcă din nou.", icon: "circle-error" });
+  });
+})();

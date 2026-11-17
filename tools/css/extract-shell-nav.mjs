@@ -27,7 +27,7 @@ function blocks(text) {
 const keep = (prelude) => {
   const selectors = prelude.split(",").map((s) => s.trim()).filter(Boolean);
   return selectors.length > 0 && selectors.every((s) =>
-    /^\.e-permits-shell__(nav|group-label)/.test(s)
+    /^\.e-permits-shell__(nav|group-label|profile-role-(card|copy|label|name))/.test(s)
     && !/is-collapsed|__nav-tooltip|__nav--legacy|__nav-group--config|\[data-|__content|__collapse/.test(s));
 };
 const rule = (prelude, body, pad = "") => `${pad}${prelude.replace(/\s*\n\s*/g, `\n${pad}`)} {${body.replace(/\s+$/, "")}\n${pad}}\n`;
@@ -45,7 +45,9 @@ const head = `/* ===============================================================
    run the tool. Verbatim, same order, so the items measure exactly as in the Back Office:
    nav.e-permits-shell__nav.e-permits-shell__nav--specialist › .e-permits-shell__nav-group › p|h2.e-permits-shell__group-label
    + ul.e-permits-shell__nav-list › li › a.e-permits-shell__nav-link(.is-active) › .e-permits-shell__nav-icon (20, a CSS
-   mask per [data-nav-id], set by the page that owns the menu) + .e-permits-shell__nav-text + .e-permits-shell__nav-badge.
+   mask per [data-nav-id], set by the page that owns the menu) + .e-permits-shell__nav-text + .e-permits-shell__nav-badge;
+   and the account role card (.e-permits-shell__profile-role-card › __profile-role-copy › __profile-role-name / -label) —
+   the Cabinet v2 identity block on top of the menu (cab2-s1-v1).
    Loaded by the EVO Cabinet v2 menu (cabinet-evo/cab2-shell.css adds the surface and the icon masks). The BO pages keep
    loading css/e-permits-shell.css only.
    ===================================================================================== */\n\n`;
