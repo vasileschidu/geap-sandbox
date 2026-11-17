@@ -7608,11 +7608,13 @@ document.addEventListener("DOMContentLoaded", () => {
       host = wrap.querySelector(":scope > [data-workplace-stack]");
     }
     workplaceRows.innerHTML = "";
+    /* forms-global-v1: `stackIntro` = one explanatory line above the list (the info note), also over the empty state */
+    const intro = registry.stackIntro ? `<div class="e-permits-workplace__stack-intro">${renderInfoNote(registry.stackIntro)}</div>` : "";
     if (!rows.length) {
       const query = workplaceState.query.trim();
       const filtered = appliedEntries().length > 0;
-      host.innerHTML = registry.emptyHtml?.({ query, filtered, boxed: true })
-        || renderNoResults(filtered ? "Niciun rezultat pentru filtrele aplicate" : "Niciun rezultat nu corespunde căutării", {});
+      host.innerHTML = intro + (registry.emptyHtml?.({ query, filtered, boxed: true })
+        || renderNoResults(filtered ? "Niciun rezultat pentru filtrele aplicate" : "Niciun rezultat nu corespunde căutării", {}));
       return true;
     }
     /* rbo-list-toolbar-v1: `stackGroup(row)` → a group label (the rows keep the sort order inside each group; groups follow
@@ -7625,7 +7627,7 @@ document.addEventListener("DOMContentLoaded", () => {
       entry[1].push(row);
     });
     if (registry.stackGroupOrder) stackGroups.sort((a, b) => registry.stackGroupOrder(a[0]) - registry.stackGroupOrder(b[0]));
-    host.innerHTML = `
+    host.innerHTML = `${intro}
       <div class="e-permits-stack${registry.stackClass ? ` ${registry.stackClass}` : ""}">
         ${stackGroups.map(([label, list]) => `<div class="e-permits-stack__group">
           ${label ? `<h3 class="e-permits-stack__group-label">${escapeHtml(label)}<span class="badge badge--lg badge--solid-light e-permits-stack__group-count">${list.length}</span></h3>` : ""}
@@ -7990,6 +7992,16 @@ document.addEventListener("DOMContentLoaded", () => {
       workplaceAddProduct.hidden = !action;
       workplaceAddProduct.dataset.workplaceAddProduct = action?.id || "";
       const label = workplaceAddProduct.querySelector("span");
+      if (label && action) label.textContent = action.label;
+    }
+    /* forms-global-v1: a second, secondary action before the primary one (view.secondaryAction = { id, label },
+       e.g. „Importă”); the product handles the click on [data-workplace-secondary-product] */
+    const workplaceSecondaryProduct = document.querySelector("[data-workplace-secondary-product]");
+    if (workplaceSecondaryProduct) {
+      const action = productRegistry(workplaceDb.kind) ? view.secondaryAction : null;
+      workplaceSecondaryProduct.hidden = !action;
+      workplaceSecondaryProduct.dataset.workplaceSecondaryProduct = action?.id || "";
+      const label = workplaceSecondaryProduct.querySelector("span");
       if (label && action) label.textContent = action.label;
     }
 

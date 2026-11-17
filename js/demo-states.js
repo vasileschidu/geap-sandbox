@@ -4175,7 +4175,13 @@
        rbo-01 lista (grupată pe categorii) · 02 raportul înainte de generare · 03 rezultat (grupuri + Total) · 04 opțiunile
        „Generează” (fără / cu date cu caracter personal) · 05 meniul „Exportă” · 06 fără date · 07 fără permisiune ·
        08 rezultat cu date cu caracter personal (telefon: tabelul derulează lateral). Demo switch rbo=fara-permisiune|fara-date|generat|generat-cu (seeded result, no replay) */
-    ...rboDemoStates()
+    ...rboDemoStates(),
+
+    /* ---- Administrare › Formulare globale (Feature 97122, js/forms-global.js, forms-global-v1 2026-11-17): frm-01 registru
+       (US-331) · 02 fără permisiune · 03 creare (US-332) · 04 metadate în Form Designer (US-333) · 05 publicare (US-334) ·
+       06 istoric versiuni, restaurare, export, import (US-335) · 07 dezactivare / activare (US-336).
+       Demo switch formulare=fara-permisiune|local|fara-creare|gol|eroare|autoritate-inactiva|schema-invalida */
+    ...frmDemoStates()
   };
 
   function autDemoStates() {
@@ -4979,6 +4985,93 @@
       "rbo-09": page("#rapoarte-bo/RPT-0047", seq(async (h) => { await ffFacet(h, "b-statut"); await ekTick(h, [1]); await h.click(ekPhone() ? "[data-sheet-apply]" : "[data-filter-confirm]"); await h.wait(300); }, ekCommit, async (h) => { await h.wait(300); document.activeElement?.blur?.(); }), { rbo: "generat" }),
       /* a real „Generează” click (short loading → the result) */
       "rbo-03b": page("#rapoarte-bo/RPT-0047", gen())
+    };
+  }
+
+  function frmDemoStates() {
+    const ADMIN = "ansp-central-admin", LOCAL = "ansp-local-admin", SPEC = "ansp-specialist-chisinau";
+    const LIST = "[data-registry-kind='formulare-globale'] li[data-workplace-row], [data-registry-kind='formulare-globale'] .e-permits-empty";
+    const list = (run, params, as = ADMIN) => ({ flow: "back-office", as, hash: "#formulare-globale", ...(params ? { params } : {}), ready: LIST, delay: 900, run });
+    const denied = (as, params) => ({ flow: "back-office", as, hash: "#formulare-globale", ...(params ? { params } : {}), ready: ".e-permits-empty", delay: 900 });
+    const M = "#case-action-modal.is-active";
+    const FB = "[data-fb-scope='global']";
+    const seq = (...steps) => async (h) => { for (const step of steps) if (step) await step(h); };
+    const MENU = (id) => async (h) => { (await h.find(`li[data-workplace-row="${id}"]`)).scrollIntoView({ block: "center" }); await h.wait(250); await h.click(`li[data-workplace-row="${id}"] [data-stack-menu-trigger]`); await h.wait(200); };
+    const ITEM = (attr, id) => async (h) => { await MENU(id)(h); await h.click(`[${attr}="${id}"]`); await h.wait(300); };
+    const search = (text) => async (h) => { await h.fill("[data-workplace-search]", text); await h.wait(350); };
+    const nou = async (h) => { await h.click('[data-workplace-add-product="frm-new"]'); await h.find(`${M} #frm-new-name`); };
+    const create = async (h) => { await h.click(`${M} [data-frm-create]`); await h.wait(350); };
+    const name = (text) => async (h) => { await h.fill(`${M} #frm-new-name`, text, { leave: false }); };
+    const filled = seq(nou, name("cerere de clarificări"), async (h) => { await h.choose(`${M} select[data-frm-new="nameKind"]`, "examinare"); await h.fill(`${M} #frm-new-desc`, "Întrebările specialistului către solicitant, cu termenul de răspuns.", { leave: false }); });
+    const open = (id) => async (h) => { await h.click(`li[data-workplace-row="${id}"] .e-permits-stack__title`); await h.find(`${FB} [data-fb-panel] #fb-p-nameText`); await h.wait(400); };
+    const edit = (id, run, params) => list(seq(open(id), run), params);
+    const typeName = (text) => async (h) => { await h.fill(`${FB} #fb-p-nameText`, text, { leave: false }); await h.wait(200); };
+    const save = async (h) => { if (narrow()) document.querySelector(`${FB} [data-fb-save]`).click(); else await h.click(`${FB} [data-fb-save]`); await h.wait(500); };
+    /* ≤ 960 the builder hides Salvează / Publică / the version chip (editing needs the desktop): the phone captures open
+       the same dialogs through the module */
+    const narrow = () => window.matchMedia("(max-width: 960px)").matches;
+    const curId = () => window.GEAPFormBuilder?.form?.code;
+    const publish = async (h) => { if (narrow()) window.GEAPFormsGlobal.openPublish(curId(), null); else await h.click(`${FB} [data-fb-publish]`); await h.find(`${M} #frm-publish-note`); };
+    const note = (text) => async (h) => { await h.fill(`${M} #frm-publish-note`, text, { leave: false }); };
+    const versions = async (h) => { if (narrow()) window.GEAPFormsGlobal.openVersions(curId()); else await h.click(`${FB} [data-fb-version]`); await h.find(`${M} [data-frm-ver-view]`); };
+    const verMenu = (nr) => async (h) => { await h.click(`${M} li:has([data-frm-ver-view="${nr}"]) [data-stack-menu-trigger]`); await h.wait(200); };
+    const restore = (nr) => async (h) => { await verMenu(nr)(h); await h.click(`[data-frm-ver-restore="${nr}"]`); await h.find(`${M} #frm-restore-note`); };
+    const imp = async (h) => { await h.click('[data-workplace-secondary-product="frm-import"]'); await h.find(`${M} [data-frm-import-apply]`); };
+    const file = (kind) => async (h) => { window.GEAPFormsGlobal.demoImport(kind); await h.wait(350); };
+    const blur = async (h) => { document.activeElement?.blur?.(); await h.wait(150); };
+    return {
+      /* US-331 — registry */
+      "frm-01": list(),
+      "frm-01a": list(search("retragere")),
+      "frm-01b": list(search("FRM-0104")),
+      "frm-01c": list(search("zzz")),
+      "frm-01d": list(null, { formulare: "gol" }),
+      "frm-01e": list(MENU("FRM-0104")),
+      "frm-01f": list(null, { formulare: "local" }, LOCAL),
+      /* AC-01 / 02 / 14: no permission (no menu item, direct address refused) · local admin not granted · no create */
+      "frm-02": denied(SPEC),
+      "frm-02a": denied(LOCAL),
+      "frm-02b": list(null, { formulare: "fara-creare" }),
+      /* US-332 — create */
+      "frm-03": list(nou),
+      "frm-03a": list(seq(nou, create)),
+      "frm-03b": list(filled),
+      "frm-03c": list(seq(nou, name("cerere ".repeat(25).trim()), create)),
+      "frm-03d": list(seq(filled, create), { formulare: "autoritate-inactiva" }),
+      "frm-03e": list(seq(filled, create, async (h) => { await h.find(`${FB} [data-fb-panel] #fb-p-nameText`); await h.wait(500); })),
+      /* US-333 — Setări generale formular in the Form Designer */
+      "frm-04": edit("FRM-0101", blur),
+      "frm-04a": edit("FRM-0101", typeName("cerere de retragere")),
+      "frm-04b": edit("FRM-0101", seq(typeName("cerere de retragere"), save, blur)),
+      "frm-04c": edit("FRM-0101", seq(typeName(""), save)),
+      "frm-04d": edit("FRM-0101", seq(typeName("cerere de retragere"), save), { formulare: "eroare" }),
+      "frm-04e": edit("FRM-0102", async (h) => { await h.click(`${FB} [data-fb-pending]`); await h.find("#pending-changes-modal.is-active"); }),
+      /* US-334 — publish */
+      "frm-05": edit("FRM-0104", blur),
+      "frm-05a": edit("FRM-0102", publish),
+      "frm-05b": edit("FRM-0102", seq(publish, async (h) => { await h.click(`${M} [data-frm-publish-confirm]`); await h.wait(250); })),
+      "frm-05c": edit("FRM-0102", seq(publish, note("Temeiul legal devine text lung; termenul de contestare scos."), async (h) => { await h.click(`${M} [data-frm-publish-confirm]`); await h.wait(500); })),
+      "frm-05d": edit("FRM-0102", publish, { formulare: "schema-invalida" }),
+      "frm-05e": edit("FRM-0105", publish),
+      /* US-335 — versions */
+      "frm-06": edit("FRM-0101", versions),
+      "frm-06a": list(ITEM("data-frm-versions", "FRM-0108")),
+      "frm-06b": edit("FRM-0101", seq(versions, async (h) => { await h.click(`${M} [data-frm-ver-view="1"]`); await h.wait(300); })),
+      "frm-06c": edit("FRM-0102", seq(versions, restore(1))),
+      "frm-06d": edit("FRM-0102", seq(versions, restore(1), async (h) => { await h.fill(`${M} #frm-restore-note`, "Revenim la textul inițial până la avizul juriștilor.", { leave: false }); await h.click(`${M} [data-frm-restore-confirm]`); await h.wait(500); })),
+      "frm-06e": edit("FRM-0101", seq(versions, verMenu(2))),
+      "frm-06f": list(imp),
+      "frm-06g": list(seq(imp, file("ok"))),
+      "frm-06h": list(seq(imp, file("new"))),
+      "frm-06i": list(seq(imp, file("bad"))),
+      "frm-06j": list(seq(imp, file("new"), async (h) => { await h.click(`${M} [data-frm-import-apply]`); await h.wait(500); })),
+      /* US-336 — deactivate / activate */
+      "frm-07": list(ITEM("data-frm-deactivate", "FRM-0104")),
+      "frm-07a": list(seq(ITEM("data-frm-deactivate", "FRM-0104"), async (h) => { await h.fill(`${M} #frm-off-reason`, "Înlocuit de formularul comun de avizare.", { leave: false }); await h.click(`${M} [data-frm-off-confirm]`); await h.wait(500); })),
+      "frm-07b": list(ITEM("data-frm-deactivate", "FRM-0101")),
+      "frm-07c": list(seq(ITEM("data-frm-deactivate", "FRM-0104"), async (h) => { await h.click(`${M} [data-frm-off-confirm]`); await h.wait(500); }), { formulare: "eroare" }),
+      "frm-07d": list(MENU("FRM-0107")),
+      "frm-07e": list(seq(ITEM("data-frm-activate", "FRM-0107"), blur))
     };
   }
 

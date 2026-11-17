@@ -1726,6 +1726,7 @@
 
   .e-permits-builder__nav-left,
   .e-permits-builder__service-scope,
+  .e-permits-builder__save,
   .e-permits-builder__publish {
     display: none;
   }
@@ -1932,4 +1933,68 @@
 
 .e-permits-builder__width.is-disabled .e-permits-builder__width-caption strong {
   color: var(--color-text-base-secondary, #383838);
+}
+
+/* ===== forms-global-v1 (2026-11-17, Feature 97122 „Formulare globale”, js/forms-global.js) ===== */
+/* the registry dialogs (publish, versions, restore, import — #case-action-modal) and the pending-changes review open
+   ABOVE the Form Designer (the builder overlay is moved last in <body>, so the same z-index would hide them) */
+body:has(.form-builder-modal-overlay.is-active) :is(#case-action-modal, #pending-changes-modal) {
+  z-index: 1100;
+}
+
+/* „Salvează” of a global form sits in the top bar row with the other 40 controls; hidden in the view-only preview */
+.form-builder-modal-overlay.is-view-only .e-permits-builder__save {
+  display: none;
+}
+
+/* locked text at the start of an input („Formular” of a global form's name) — the mirror of the unit suffix
+   (`.e-permits-fo-input__suffix`): a <label for> so a click focuses the field, never selectable, default text colour
+   (it is part of the value), the typed text continues 4 after it */
+.e-permits-fo-input .e-permits-fo-input__prefix {
+  color: var(--color-text-base-default, #121212);
+  cursor: text;
+  flex: 0 0 auto;
+  font-size: var(--font-size-fs-14, 14px);
+  font-weight: var(--font-weight-fw-regular, 400);
+  height: auto;
+  line-height: var(--line-height-lh-20, 20px);
+  user-select: none;
+}
+
+@media (max-width: 760px) {
+  .e-permits-fo-input .e-permits-fo-input__prefix {
+    font-size: var(--font-size-fs-16, 16px);
+    line-height: var(--line-height-lh-24, 24px);
+  }
+}
+
+.e-permits-fo-input:has(.e-permits-fo-input__prefix) {
+  gap: var(--spacing-4, 4px);
+}
+
+.e-permits-fo-input:has(.e-permits-fo-input__prefix) input {
+  min-width: 0;
+}
+
+.e-permits-fo-input:has(input:disabled) .e-permits-fo-input__prefix {
+  color: var(--color-text-base-disabled, #b2b2b2);
+}
+
+/* the chosen file's name next to „Alege fișierul” in the import dialog (one line, tooltip when cut) */
+.e-permits-frm-import__name {
+  color: var(--color-text-base-secondary, #383838);
+  font-size: var(--font-size-fs-14, 14px);
+  line-height: var(--line-height-lh-20, 20px);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* menu icon „Formulare globale” (the BO side menu draws icons as 20 masks per data-nav-id) */
+.e-permits-shell__nav--specialist [data-nav-id="formulare-globale"] .e-permits-shell__nav-icon::before {
+  mask-image: url("../assets/icons/bullet-list.svg");
+  mask-size: var(--icon-size-medium, 20px) var(--icon-size-medium, 20px);
+  -webkit-mask-image: url("../assets/icons/bullet-list.svg");
+  -webkit-mask-size: var(--icon-size-medium, 20px) var(--icon-size-medium, 20px);
 }

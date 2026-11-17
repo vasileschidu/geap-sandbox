@@ -491,6 +491,12 @@
               "shellView": "classifiers-registry"
             },
             {
+              "id": "formulare-globale",
+              "label": "Formulare globale",
+              "iconAsset": "assets/icons/bullet-list.svg",
+              "shellView": "formulare-globale-registry"
+            },
+            {
               "id": "registre-config",
               "label": "Registre",
               "shellView": "registre-admin-registry"
@@ -592,6 +598,12 @@
               "label": "Clasificatoare",
               "iconAsset": "assets/icons/admin-newspaper.svg",
               "shellView": "classifiers-registry"
+            },
+            {
+              "id": "formulare-globale",
+              "label": "Formulare globale",
+              "iconAsset": "assets/icons/bullet-list.svg",
+              "shellView": "formulare-globale-registry"
             },
             {
               "id": "registre-config",

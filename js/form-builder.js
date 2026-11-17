@@ -257,6 +257,15 @@ document.addEventListener("DOMContentLoaded", () => {
   const DB_KEY = "geap.formBuilderSandboxDb.v2";
   let db = null;
   let form = null;
+  /* forms-global-v1 (2026-11-17, Feature 97122): a GLOBAL form (js/forms-global.js) opens here with `G` = its hooks —
+     { meta(), kinds, access, onSave(form), onPublish(form, dirty), onVersions(), onPending(), onClose() }. While G is set
+     the builder never writes the service sandbox DB; „Salvează” hands the form to the registry. */
+  let G = null;
+  let serviceForm = null;
+  const GLOBAL_PREFIX = "Formular";
+  const GLOBAL_NAME_MAX = 150;
+  const GLOBAL_DESC_MAX = 250;
+  const globalName = (record = form) => [GLOBAL_PREFIX, String(record.nameText || "").trim(), (G?.kinds || []).find(([v]) => v === record.nameKind)?.[1] || ""].filter(Boolean).join(" ");
   const state = {
     sel: { kind: "form", id: "" },
     stepId: "",
@@ -654,7 +663,12 @@ document.addEventListener("DOMContentLoaded", () => {
         if (section.showTitle !== false && !tr(section.title).trim()) issues.push({ level: "error", kind: "section", id: section.id, tab: T_GEN, prop: "title", name: "Secțiune fără titlu", where: tr(step.title), message: "Completează titlul secțiunii (RO) sau ascunde-l." });
       });
     });
-    if (!tr(form.title).trim()) issues.push({ level: "error", kind: "form", id: "", tab: T_GEN, prop: "title", name: "Formular", where: "Date generale", message: "Completează titlul formularului (RO)." });
+    if (G) {
+      /* US-333 AC-06 / 07 / 08: Denumire required, ≤ 150 with the prefix; Descriere scurtă ≤ 250 */
+      if (!String(form.nameText || "").trim()) issues.push({ level: "error", kind: "form", id: "", tab: T_GEN, prop: "nameText", name: "Denumire", where: "Setări generale formular", message: "Introdu denumirea formularului." });
+      else if (globalName().length > GLOBAL_NAME_MAX) issues.push({ level: "error", kind: "form", id: "", tab: T_GEN, prop: "nameText", name: "Denumire", where: "Setări generale formular", message: `Denumirea poate avea cel mult ${GLOBAL_NAME_MAX} de caractere.` });
+      if (tr(form.description).length > GLOBAL_DESC_MAX) issues.push({ level: "error", kind: "form", id: "", tab: T_GEN, prop: "description", name: "Descriere scurtă", where: "Setări generale formular", message: `Descrierea scurtă poate avea cel mult ${GLOBAL_DESC_MAX} de caractere.` });
+    } else if (!tr(form.title).trim()) issues.push({ level: "error", kind: "form", id: "", tab: T_GEN, prop: "title", name: "Formular", where: "Date generale", message: "Completează titlul formularului (RO)." });
     /* translations: one warning per language (fallback RO, spec § I-17) */
     ["ru", "en"].forEach((lang) => {
       const missing = translatable().filter((item) => item.ro && !item.value(lang)).length;
@@ -883,9 +897,13 @@ document.addEventListener("DOMContentLoaded", () => {
   /* after every model change: re-validate, redraw what shows the model, save */
   function commit({ panel = true, canvas = true } = {}) {
     state.issues = validate();
-    form.editedAt = new Date().toISOString().slice(0, 16);
-    form.editedBy = currentUser();
-    form.dirty = true;
+    /* a global form: unsaved edits only mark the builder; „Salvează” stamps the editor + date (US-333 AC-13) */
+    if (G) G.dirty = true;
+    else {
+      form.editedAt = new Date().toISOString().slice(0, 16);
+      form.editedBy = currentUser();
+      form.dirty = true;
+    }
     renderHeader();
     renderSteps();
     if (canvas) renderCanvas();
@@ -893,6 +911,7 @@ document.addEventListener("DOMContentLoaded", () => {
     renderIssues();
     if (state.mode === "preview") renderPreview();
     if (state.mode === "schema") renderSchema();
+    if (G) { syncGlobalBar(); return; }
     saveDb();
   }
 
@@ -940,6 +959,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   /* ------------------------------------------------------------- service header */
   function renderHeader() {
+    if (G) { renderGlobalHeader(); return; }
     const published = form.status === "published" && !form.dirty;
     const fieldsCount = allFields().filter(({ field }) => !NO_VALUE.includes(field.type)).length;
     el.header.innerHTML = `
@@ -964,6 +984,159 @@ document.addEventListener("DOMContentLoaded", () => {
     if (el.version) el.version.querySelector("span").textContent = form.version;
     if (el.viewTitle && !overlay?.classList.contains("is-view-only")) el.viewTitle.textContent = "";
   }
+
+  /* ---------------------------------------------- global form (forms-global-v1, Feature 97122) */
+  const shellApi = () => window.GEAPShellApi || {};
+  const stamp = (iso) => (iso ? `${longDate(iso)}, ${String(iso).slice(11, 16)}` : "");
+  /* the service header, for a form that belongs to no service: crumb „Formulare globale”, status tag (+ „Inactiv”),
+     ID · N câmpuri · version · „Modificări nepublicate” (US-334 AC-05, opens the pending review) · last edit */
+  function renderGlobalHeader() {
+    const meta = G.meta();
+    const fieldsCount = allFields().filter(({ field }) => !NO_VALUE.includes(field.type)).length;
+    const pending = meta.pending || G.dirty;
+    el.header.innerHTML = `
+      <div class="e-permits-builder__service-main">
+        ${ui().renderBreadcrumbs?.([{ label: "Formulare globale" }], { trailing: true, label: "Registrul" }) || ""}
+        <div class="e-permits-builder__service-title-row">
+          <h2><button class="e-permits-builder__title-button" type="button" data-fb-select-form aria-label="Setări generale formular: ${esc(tr(form.title))}">${esc(tr(form.title) || "Formular fără denumire")}</button></h2>
+          ${ui().renderTag?.(form.status === "published" ? "Publicat" : "Schiță", form.status === "published" ? "success" : "neutral") || ""}
+          ${meta.inactive ? ui().renderTag?.("Inactiv", "neutral") || "" : ""}
+        </div>
+      </div>
+      <div class="e-permits-builder__service-meta-row">
+        <div class="e-permits-builder__service-meta">
+          <span>${esc(form.code)}</span><i aria-hidden="true"></i>
+          <span><strong>${fieldsCount}</strong> câmpuri</span><i aria-hidden="true"></i>
+          <strong>${esc(form.version)}</strong><i aria-hidden="true"></i>
+          ${pending ? `${shellApi().renderHeaderStatus?.(G.dirty ? "Modificări nesalvate" : "Modificări nepublicate", "warning", G.dirty ? "" : 'data-fb-pending aria-haspopup="dialog" data-tooltip-text="Vezi modificările"') || ""}<i aria-hidden="true"></i>` : ""}
+          <span>${form.editedAt ? `editat ${esc(stamp(form.editedAt))}` : "editat -"}</span>${form.editedBy ? `<i aria-hidden="true"></i><span>de <strong>${esc(form.editedBy)}</strong></span>` : ""}
+        </div>
+      </div>`;
+    if (el.version) el.version.querySelector("span").textContent = form.version;
+    if (el.viewTitle) el.viewTitle.textContent = "";
+    syncGlobalBar();
+  }
+  /* top bar: „Salvează” only with unsaved edits (US-333), Publică off without changes (US-334 AC-04), the version chip
+     = „Istoric versiuni” (US-335); the service scope chip does not apply */
+  function syncGlobalBar() {
+    const save = builder.querySelector("[data-fb-save]");
+    const scope = builder.querySelector(".e-permits-builder__service-scope");
+    if (scope) scope.hidden = Boolean(G);
+    if (el.version) {
+      if (G) { el.version.setAttribute("aria-label", `Istoric versiuni · ${form.version}`); el.version.dataset.tooltipLabel = "Istoric versiuni"; el.version.setAttribute("aria-haspopup", "dialog"); }
+      else { el.version.removeAttribute("aria-label"); delete el.version.dataset.tooltipLabel; el.version.removeAttribute("aria-haspopup"); }
+    }
+    if (!save) return;
+    save.hidden = !G;
+    if (!G) return;
+    if (G.dirty) { save.removeAttribute("aria-disabled"); delete save.dataset.tooltipReason; }
+    else { save.setAttribute("aria-disabled", "true"); save.dataset.tooltipReason = "Nu există modificări nesalvate."; }
+  }
+  /* „Setări generale formular” (US-333 AC-04…09): ID read-only · Denumire = locked „Formular” + free text + the
+     classifier part, one 150 counter on the whole name · Descriere scurtă ≤ 250 · Vizibilitate și acces (required) */
+  function globalPanelHtml() {
+    const meta = G.meta();
+    const fieldsCount = allFields().filter(({ field }) => !NO_VALUE.includes(field.type)).length;
+    const full = globalName();
+    const nameId = pid("nameText");
+    const nameError = propError("form", "", "nameText");
+    const descId = pid("description");
+    const desc = tr(form.description);
+    const descError = propError("form", "", "description");
+    const counter = (id, hint, n, max) => `<p class="e-permits-fo-field__hint e-permits-ntpl-count" id="${id}-hint"><span>${hint}</span><span class="e-permits-ntpl-count__value${n > max ? " is-over" : ""}">${n}/${max}</span></p>`;
+    const nameControl = `
+      <div class="e-permits-fo-input${nameError ? " is-error" : ""}">
+        <label class="e-permits-fo-input__prefix" for="${nameId}" aria-hidden="true">${GLOBAL_PREFIX}</label>
+        <input id="${nameId}" type="text" value="${esc(form.nameText || "")}" placeholder="ce colectează, de ex. cerere" autocomplete="off" aria-required="true" aria-describedby="${nameId}-hint"${nameError ? ' aria-invalid="true"' : ""} data-fb-prop="nameText">
+      </div>`;
+    const descControl = `
+      <div class="e-permits-fo-textarea${descError ? " is-error" : ""}">
+        <textarea id="${descId}" rows="3" aria-describedby="${descId}-hint"${descError ? ' aria-invalid="true"' : ""} data-fb-prop="description" data-fb-i18n>${esc(desc)}</textarea>
+      </div>`;
+    return `
+      ${panelHead({ title: "Setări generale formular", subtitle: "Formular global · nu aparține unui serviciu" })}
+      <div class="e-permits-builder__panel-scroll" data-fb-panel-scroll>
+        ${group("Identificare", grid(`
+          ${inputField({ prop: "code", label: "ID", value: form.code, readonly: true, hint: "Atribuit la creare; nu se modifică." })}
+          <div class="e-permits-fo-field e-permits-user-create__field">
+            <label for="${nameId}">Denumire${requiredMark()}</label>
+            ${nameControl}
+            ${nameError ? errorHtml(nameError) : ""}
+            ${counter(nameId, `Începutul „${GLOBAL_PREFIX}” se pune automat.`, full.length, GLOBAL_NAME_MAX)}
+          </div>
+          ${selectField({ prop: "nameKind", label: "Tipul procesului sau pasul intern", value: form.nameKind || "fara", options: [["fara", "Fără"], ...(G.kinds || [])], hint: "Se adaugă la sfârșitul denumirii." })}
+          <div class="e-permits-fo-field e-permits-user-create__field">
+            <label for="${descId}">Descriere scurtă</label>
+            ${descControl}
+            ${descError ? errorHtml(descError) : ""}
+            ${counter(descId, "Se afișează sub denumire, în registru.", desc.length, GLOBAL_DESC_MAX)}
+          </div>
+          ${selectField({ prop: "access", label: "Vizibilitate și acces", required: true, value: form.access, options: G.access || [], hint: "Cine poate vedea și reutiliza schema în alte servicii." })}
+        `))}
+        ${group("Versiune", `
+          <dl class="e-permits-builder__facts">
+            <div><dt>Stare</dt><dd>${ui().renderTag?.(form.status === "published" ? "Publicat" : "Schiță", form.status === "published" ? "success" : "neutral") || ""}</dd></div>
+            <div><dt>Versiune</dt><dd>${esc(form.version)}${meta.pending ? " · modificări nepublicate" : G.dirty ? " · modificări nesalvate" : ""}</dd></div>
+            <div><dt>Activ</dt><dd>${meta.inactive ? "Nu" : "Da"}</dd></div>
+            <div><dt>Câmpuri</dt><dd>${fieldsCount}</dd></div>
+            <div><dt>Editat</dt><dd>${form.editedAt ? `${esc(stamp(form.editedAt))} · ${esc(form.editedBy || "")}` : "-"}</dd></div>
+          </dl>
+        `)}
+      </div>`;
+  }
+  /* open a global form: the service form is kept aside and comes back when the builder closes */
+  function openGlobal(record, hooks) {
+    if (!G) serviceForm = form;
+    G = { ...hooks, dirty: false };
+    form = sanitize(clone(record));
+    form.steps.forEach((step) => step.sections.forEach((section) => { section.fields = section.fields.map((field) => ({ ...makeField(field.type), ...field, key: field.key || makeField(field.type).key })); }));
+    Object.assign(state, { sel: { kind: "form", id: "" }, tab: T_GEN, lang: "ro", undo: [], redo: [], tests: {}, lastCheckpoint: { key: "", at: 0 } });
+    state.stepId = serviceSteps()[0]?.id || form.steps[0].id;
+    builder.dataset.fbScope = "global";
+    overlay?.classList.add("is-sheet");
+    if (state.mode !== "build") setMode("build");
+    renderAll();
+    if (!overlay?.classList.contains("is-active")) window.__modal?.open?.("#form-builder-modal");
+    builder.focus({ preventScroll: true });
+  }
+  /* after a save / publish / restore in the registry: the same form with its new version, status, editor */
+  function refreshGlobal(record, { clean = true } = {}) {
+    if (!G) return;
+    ["version", "status", "editedAt", "editedBy", "code"].forEach((key) => { form[key] = record[key]; });
+    if (record.steps && clean) { form = sanitize(clone(record)); state.stepId = stepById(state.stepId) ? state.stepId : serviceSteps()[0]?.id || form.steps[0].id; }
+    if (clean) G.dirty = false;
+    renderAll();
+  }
+  function exitGlobal() {
+    if (!G) return;
+    const hooks = G;
+    G = null;
+    delete builder.dataset.fbScope;
+    form = serviceForm || form;
+    serviceForm = null;
+    Object.assign(state, { sel: { kind: "form", id: "" }, undo: [], redo: [] });
+    state.stepId = serviceSteps()[0]?.id || form.steps[0].id;
+    renderAll();
+    syncGlobalBar();
+    hooks.onClose?.();
+  }
+  builder.querySelector("[data-fb-save]")?.addEventListener("click", (event) => {
+    const button = event.currentTarget;
+    if (!G || button.getAttribute("aria-disabled") === "true") return;
+    /* US-333 AC-06: an empty / too long name never saves — the issues list points at the field */
+    if (state.issues.some((issue) => issue.level === "error" && issue.kind === "form")) { select("form"); el.panel.querySelector(`#${pid("nameText")}`)?.focus(); return; }
+    G.onSave?.(clone(form));
+  });
+  el.version?.addEventListener("click", () => { if (G) G.onVersions?.(); });
+  el.header.addEventListener("click", (event) => { if (G && event.target.closest("[data-fb-pending]")) G.onPending?.(); });
+  /* closing with unsaved edits asks first; closing ends the global mode */
+  builder.querySelector(".e-permits-builder__close")?.addEventListener("click", (event) => {
+    if (!G?.dirty) return;
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    ui().askConfirm?.({ title: "Închizi fără să salvezi?", text: "Modificările nesalvate ale formularului se pierd.", confirmLabel: "Închide fără salvare", cancelLabel: "Rămâi în constructor", destructive: true }, () => { G.dirty = false; window.__modal?.close?.("#form-builder-modal"); });
+  }, true);
+  if (overlay) new MutationObserver(() => { if (G && !overlay.classList.contains("is-active")) exitGlobal(); }).observe(overlay, { attributes: true, attributeFilter: ["class"] });
 
   /* ------------------------------------------------------------------- steps */
   function renderSteps() {
@@ -1350,6 +1523,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   /* ---- nothing selected → „Date generale formular” (spec § E) */
   function formPanelHtml() {
+    if (G) return globalPanelHtml();
     const fieldsCount = allFields().filter(({ field }) => !NO_VALUE.includes(field.type)).length;
     const texts = translatable();
     const langCount = (lang) => texts.filter((item) => item.ro && item.value(lang)).length;
@@ -2419,9 +2593,11 @@ document.addEventListener("DOMContentLoaded", () => {
       ${n ? `<li role="none" class="e-permits-builder__issues-head">${n} ${n === 1 ? "eroare blochează" : "erori blochează"} publicarea</li>${errors.map(row).join("")}` : `<li role="none" class="e-permits-builder__issues-head">Fără erori — formularul poate fi publicat</li>`}
       ${warnings.length ? `<li role="none" class="e-permits-builder__issues-head">Avertismente</li>${warnings.map(row).join("")}` : ""}`;
     if (el.publish) {
-      if (n) {
+      const unchanged = G && !G.dirty && !G.meta().changed;
+      if (n || unchanged) {
         el.publish.setAttribute("aria-disabled", "true");
-        el.publish.dataset.tooltipReason = `Corectează ${n} ${n === 1 ? "eroare" : "erori"} înainte de publicare.`;
+        /* US-334 AC-04: nothing changed since the published version */
+        el.publish.dataset.tooltipReason = n ? `Corectează ${n} ${n === 1 ? "eroare" : "erori"} înainte de publicare.` : "Nu există modificări față de versiunea publicată.";
       } else {
         el.publish.removeAttribute("aria-disabled");
         delete el.publish.dataset.tooltipReason;
@@ -3470,6 +3646,8 @@ document.addEventListener("DOMContentLoaded", () => {
     if (prop === "dataSource.parentFieldId") { const classifier = getClassifier(target.dataSource?.classifierId); if (!target.dataSource.filterColumn) target.dataSource.filterColumn = classifier?.parentColumns?.[0] || ""; }
 
     writeProp(target, prop, value, input.hasAttribute("data-fb-i18n"));
+    /* a global form's name = „Formular” + free text + the process type / internal step (US-332 · US-329) */
+    if (G && target === form && (prop === "nameText" || prop === "nameKind")) form.title = { ...(form.title || i18n()), ro: globalName() };
 
     /* Cheie câmp follows the RO label until it was edited or published */
     if (state.sel.kind === "field" && prop === "label" && state.lang === "ro" && !target.keyEdited && !target.published) {
@@ -4348,7 +4526,8 @@ document.addEventListener("DOMContentLoaded", () => {
     }, 40);
   });
   el.publish?.addEventListener("click", (event) => {
-    if (el.publish.getAttribute("aria-disabled") === "true") { event.preventDefault(); el.errors.click(); }
+    if (el.publish.getAttribute("aria-disabled") === "true") { event.preventDefault(); if (state.issues.some((issue) => issue.level === "error")) el.errors.click(); return; }
+    if (G) G.onPublish?.(clone(form), Boolean(G.dirty));
   });
 
   /* ---- modes: Editare · Previzualizare · Schemă */
@@ -4512,5 +4691,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   /* for demo states and checks */
-  window.GEAPFormBuilder = { state, get form() { return form; }, select, setMode, addField, undo, redo, validate: () => state.issues };
+  window.GEAPFormBuilder = { state, get form() { return form; }, select, setMode, addField, undo, redo, validate: () => state.issues,
+    /* forms-global-v1: the registry of global forms (js/forms-global.js) */
+    openGlobal, refreshGlobal, isGlobal: () => Boolean(G), globalDirty: () => Boolean(G?.dirty) };
 });

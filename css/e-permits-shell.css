@@ -2338,6 +2338,11 @@ body {
   padding: var(--spacing-16, 16px) 0 var(--spacing-24, 24px);
 }
 
+/* forms-global-v1: the registry's one explanatory line (`stackIntro`, the info note) above the list / the empty state */
+.e-permits-workplace__stack-intro {
+  margin-bottom: var(--spacing-16, 16px);
+}
+
 /* registry-stack-width-v1 (2026-11-11, user: „not full width — do as the other stacked lists”): toolbar + list take the
    BO page column of every other stacked list = the shared wide width (`--layout-wide-max`, 1280, since stack-1280-v1; centred, 16 a side); the toolbar / filter lines go (the Registre catalog toolbar has none either) */
 .e-permits-workplace[data-workplace-layout="stack"]:is(*, [data-workplace]) > .e-permits-workplace__header,

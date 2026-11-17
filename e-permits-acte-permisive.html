@@ -11,7 +11,7 @@
   <link rel="stylesheet" href="css/button-icons.css?v=button-label-v1">
   <link rel="stylesheet" href="css/radio.css?v=radio-v1">
   <link rel="stylesheet" href="css/skeleton.css?v=skeleton-v1">
-  <link rel="stylesheet" href="css/e-permits-shell.css?v=layout-wide-v1">
+  <link rel="stylesheet" href="css/e-permits-shell.css?v=forms-global-v1">
   <link rel="stylesheet" href="css/role-card.css?v=choice-cards-v11">
   <link rel="stylesheet" href="css/list-search.css?v=choice-cards-v1">
   <link rel="stylesheet" href="css/act-view.css?v=doc-viewer-docked-v1">
@@ -25,7 +25,7 @@
   <link rel="stylesheet" href="css/page-reveal.css?v=skeleton-v1">
   <link rel="stylesheet" href="msupport/msupport.css?v=20260925-anon">
   <link rel="stylesheet" href="css/empty-state.css?v=empty-v5">
-  <link rel="stylesheet" href="css/form-builder.css?v=requestor-scenarios-v1">
+  <link rel="stylesheet" href="css/form-builder.css?v=forms-global-v1">
   <link rel="stylesheet" href="css/process-designer.css?v=pd-settings-page-v2">
   <link rel="stylesheet" href="css/ghiseu.css?v=ofc-submit-v2">
   <link rel="stylesheet" href="css/bo-dossier-flows.css?v=pps-suplinire-v1">
@@ -78,7 +78,7 @@
   <script src="js/trajectory.js?v=trajectory-phone-even-v1"></script>
   <script src="js/event-timeline.js?v=aud-263-v2"></script>
   <script src="js/sticky-sections.js?v=sticky-sections-v1" defer></script>
-  <script src="js/demo-states.js?v=dist-picker-v1"></script>
+  <script src="js/demo-states.js?v=forms-global-v1"></script>
   <script src="js/demo-links.js?v=links-v4"></script>
   <script src="js/bo-context.js?v=copy-tu-v2"></script>
   <!-- the working-days engine (Administrare › Calendar), before the shell seeds the dossier deadlines; after
@@ -106,7 +106,7 @@
   <script src="js/choice-cards.js?v=choice-cards-v7" defer></script>
   <script src="js/e-permits-acte-permisive.js?v=dist-picker-v1" defer></script>
   <!-- Form Builder (after the FO renderer it shares) -->
-  <script src="js/form-builder.js?v=copy-tu-v2" defer></script>
+  <script src="js/form-builder.js?v=forms-global-v1" defer></script>
   <script src="core/process-model.js?v=copy-tu-v2" defer></script>
   <script src="js/process-designer.js?v=copy-tu-v2" defer></script>
   <script src="js/ghiseu.js?v=doc-viewer-tabs-v1" defer></script>
@@ -122,6 +122,8 @@
   <script src="js/rapoarte-admin.js?v=rbo-v3" defer></script>
   <script src="js/rapoarte-admin-p2.js?v=rpt-scope-v2" defer></script>
   <script src="js/dashboard-admin.js?v=dsh-feature-v1" defer></script>
+  <!-- forms-global-v1: Administrare › Formulare globale (Feature 97122, US-331…336) -->
+  <script src="js/forms-global.js?v=forms-global-v1" defer></script>
   <script src="js/rapoarte-bo.js?v=rbo-clear-v1" defer></script>
   <script src="js/alert-card.js?v=act-alert-card-v2" defer></script>
   <script src="js/absences.js?v=dist-picker-v1" defer></script>
@@ -2257,6 +2259,8 @@
               <svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-lock"></use></svg>
               <span>Acest serviciu</span>
             </button>
+            <!-- forms-global-v1: „Salvează” of a global form (js/forms-global.js); hidden for service forms -->
+            <button class="btn btn-neutral btn-md btn-rounded e-permits-builder__save" type="button" data-fb-save hidden>Salvează</button>
             <button class="e-permits-builder__publish" type="button" data-fb-publish>Publică</button>
             <button class="modal-close e-permits-builder__close" type="button" data-close aria-label="Închide constructorul">
               <svg class="icon" width="16" height="16" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-cross-large"></use></svg>
@@ -2755,6 +2759,11 @@
                     <button class="btn btn-primary btn-sm e-permits-workplace__primary-action" type="button" data-workplace-add-tariff hidden>
                       <svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-plus-large"></use></svg>
                       <span>Adaugă tarif</span>
+                    </button>
+                    <!-- forms-global-v1: a product registry's secondary action (view.secondaryAction, e.g. „Importă”) -->
+                    <button class="btn btn-secondary btn-sm e-permits-workplace__primary-action" type="button" data-workplace-secondary-product hidden>
+                      <svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-upload"></use></svg>
+                      <span>Importă</span>
                     </button>
                     <!-- a product registry's „+ Adaugă …” (eKYC Configurare): label from view.primaryAction -->
                     <button class="btn btn-primary btn-sm e-permits-workplace__primary-action" type="button" data-workplace-add-product hidden>
@@ -3641,7 +3650,7 @@
   <script src="js/facet-filter.js?v=dsh-feature-v1"></script>
   <script src="js/sort-sheet.js?v=row-ctl-v5"></script>
   <script src="js/act-view.js?v=doc-viewer-tabs-v1"></script>
-  <script src="js/e-permits-shell.js?v=dist-picker-v1"></script>
+  <script src="js/e-permits-shell.js?v=forms-global-v1"></script>
 
   <!-- Instance switch warning modal -->
   <div class="e-permits-fo-instance-switch-modal" data-fo-instance-switch-modal hidden aria-modal="true" role="dialog" aria-labelledby="fo-instance-switch-title" aria-describedby="fo-instance-switch-description">
