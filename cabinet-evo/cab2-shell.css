@@ -3,8 +3,8 @@
    „Cabinet v2 — shell”). Behind `?shell=2` (`.cab2` on <html>) and only on `?view=cabinet` (cab2-shell.js).
 
    Compositions of library components — nothing here is a control:
-     menu          = the library Sidebar (`.sidebar.sidebar--item-preview` › `__section` › `__heading` + `__list` ›
-                     `__link` / `--active`, `__meta` › `.badge`) on a white surface, + the round group icon
+     menu          = the BO grouped sidebar items (css/shell-nav.css: `.e-permits-shell__nav--specialist` › group label +
+                     `__nav-link` with a 20 icon, label, badge) on a white surface
      context line  = one sentence + library Small tag + library text button
      switcher      = the header instance switch (`.e-permits-fo-avatar-menu` and its role rows) + library search / badge
      search        = library `.search-input` + the dropdown surface and items (`.e-permits-fo-intent-menu(__item)`)
@@ -107,57 +107,77 @@
   min-width: 0;
   overflow-y: auto;
   overscroll-behavior: contain;
-  padding-block: var(--spacing-16, 16px);
+  padding-block: var(--spacing-8, 8px);
   position: sticky;
   top: calc(var(--cab2-header-height, 0px) + var(--spacing-24, 24px));
 }
 
-/* the library Sidebar, with its own knobs: items 14/20 (every label fits the 280 column), groups 16 apart */
-.cab2-menu__list {
-  --sidebar-item-font-size: var(--font-size-fs-14, 14px);
-  --sidebar-item-line-height: var(--line-height-lh-20, 20px);
-  --sidebar-item-min-height: var(--spacing-40, 40px);
-  --sidebar-section-gap: var(--spacing-16, 16px);
+/* the menu = the BO grouped sidebar as it is (css/shell-nav.css, generated from css/e-permits-shell.css):
+   `.e-permits-shell__nav.e-permits-shell__nav--specialist` › group (quiet label, a real h2) › items 36 · icon 20 · label 14/20 ·
+   optional badge. Here only: the box (the BO nav fills its sidebar's height), the badge is shown (the BO hides its
+   counts today), a hover for the current item, and the icon of each section. */
+.cab2-menu__list.e-permits-shell__nav--specialist {
+  height: auto;
+  overflow: visible;
+  padding: 0;
 }
 
-/* the library gives the current row no hover; project rule: a selected item has its own (one brand step darker) */
-.cab2-menu__list .sidebar__link--active:hover {
+.cab2-menu__list .e-permits-shell__nav-badge {
+  display: inline-flex;
+  /* the 24 badge must not grow the 36 item */
+  margin-block: calc(var(--spacing-2, 2px) * -1);
+}
+
+/* project rule: a selected item has its own hover (one brand step darker) */
+.cab2-menu__list .e-permits-shell__nav-link.is-active:hover {
   background: var(--color-background-brand-secondary-hover, #ccdef6);
+  color: var(--color-text-brand-default, #0058d2);
 }
 
-/* group heading = the round coloured icon (Cab2.groupIcon, 32) + the library sidebar title */
-.cab2-menu__heading.sidebar__heading {
-  align-items: center;
-  flex-direction: row;
-  gap: var(--spacing-12, 12px);
-  padding-bottom: var(--spacing-8, 8px);
-}
-
-.cab2-menu__heading .sidebar__title {
-  color: var(--color-text-base-default, #121212);
-}
-
-/* the foot block („Acces și reprezentare”) is set off by a hairline — a floating list may keep a divider */
-.cab2-menu__foot {
-  border-top: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
-  padding-top: var(--spacing-16, 16px);
-}
-
-/* a sidebar row that is a <button> (phone „Contul meu”: the switcher, sign out) looks like its link siblings */
-button.sidebar__link.cab2-menu__button {
+/* a row that is a <button> (phone „Contul meu”: the switcher, sign out) = its link siblings */
+button.e-permits-shell__nav-link.cab2-menu__button {
   appearance: none;
-  border-block: 0;
-  border-right: 0;
+  border: 0;
   cursor: pointer;
   font-family: inherit;
   text-align: start;
 }
 
-.cab2-menu .sidebar__link:focus-visible,
-.cab2-menu-sheet .sidebar__link:focus-visible {
-  box-shadow: inset 0 0 0 var(--border-width-2, 2px) var(--focus-ring, var(--blue-sky-500, #3379db));
-  outline: none;
+/* one icon per section: assets/icons/<name>.svg as the BO mask (a missing mask would paint a solid square) */
+.cab2-menu__list .e-permits-shell__nav-icon::before {
+  mask-image: var(--cab2-nav-icon);
+  -webkit-mask-image: var(--cab2-nav-icon);
 }
+
+.cab2-menu__list [data-nav-id="cab2-acasa"] { --cab2-nav-icon: url("../assets/icons/home-line.svg"); }
+.cab2-menu__list [data-nav-id="cab2-cereri"] { --cab2-nav-icon: url("../assets/icons/page-text.svg"); }
+.cab2-menu__list [data-nav-id="cab2-acte"] { --cab2-nav-icon: url("../assets/icons/permission.svg"); }
+.cab2-menu__list [data-nav-id="cab2-identitate"] { --cab2-nav-icon: url("../assets/icons/id-card.svg"); }
+.cab2-menu__list [data-nav-id="cab2-semnatura"] { --cab2-nav-icon: url("../assets/icons/signature.svg"); }
+.cab2-menu__list [data-nav-id="cab2-diplome"] { --cab2-nav-icon: url("../assets/icons/education.svg"); }
+.cab2-menu__list [data-nav-id="cab2-frontiera"] { --cab2-nav-icon: url("../assets/icons/globe.svg"); }
+.cab2-menu__list [data-nav-id="cab2-fisiere"] { --cab2-nav-icon: url("../assets/icons/document.svg"); }
+.cab2-menu__list [data-nav-id="cab2-plati"] { --cab2-nav-icon: url("../assets/icons/credit-card.svg"); }
+.cab2-menu__list [data-nav-id="cab2-taxe"] { --cab2-nav-icon: url("../assets/icons/coins.svg"); }
+.cab2-menu__list [data-nav-id="cab2-amenzi"] { --cab2-nav-icon: url("../assets/icons/receipt-bill.svg"); }
+.cab2-menu__list [data-nav-id="cab2-executari"] { --cab2-nav-icon: url("../assets/icons/judge-gavel.svg"); }
+.cab2-menu__list [data-nav-id="cab2-imobile"] { --cab2-nav-icon: url("../assets/icons/house.svg"); }
+.cab2-menu__list [data-nav-id="cab2-vehicule"] { --cab2-nav-icon: url("../assets/icons/car.svg"); }
+.cab2-menu__list [data-nav-id="cab2-gajuri"] { --cab2-nav-icon: url("../assets/icons/lock.svg"); }
+.cab2-menu__list [data-nav-id="cab2-copii"] { --cab2-nav-icon: url("../assets/icons/child.svg"); }
+.cab2-menu__list [data-nav-id="cab2-sanatate"] { --cab2-nav-icon: url("../assets/icons/health.svg"); }
+.cab2-menu__list [data-nav-id="cab2-contributii"] { --cab2-nav-icon: url("../assets/icons/wallet.svg"); }
+.cab2-menu__list [data-nav-id="cab2-companii"] { --cab2-nav-icon: url("../assets/icons/business.svg"); }
+.cab2-menu__list [data-nav-id="cab2-imputerniciri"] { --cab2-nav-icon: url("../assets/icons/shield-user.svg"); }
+.cab2-menu__list [data-nav-id="cab2-acces-date"] { --cab2-nav-icon: url("../assets/icons/eye-open.svg"); }
+.cab2-menu__list [data-nav-id="cab2-detalii"] { --cab2-nav-icon: url("../assets/icons/business.svg"); }
+.cab2-menu__list [data-nav-id="cab2-concedii"] { --cab2-nav-icon: url("../assets/icons/calendar.svg"); }
+.cab2-menu__list [data-nav-id="cab2-controale"] { --cab2-nav-icon: url("../assets/icons/checklist.svg"); }
+.cab2-menu__list [data-nav-id="cab2-reclamatii"] { --cab2-nav-icon: url("../assets/icons/bubble-alert.svg"); }
+.cab2-menu__list [data-nav-id="cab2-cont-switch"] { --cab2-nav-icon: url("../assets/icons/people.svg"); }
+.cab2-menu__list [data-nav-id="cab2-cont-mpass"] { --cab2-nav-icon: url("../assets/icons/person.svg"); }
+.cab2-menu__list [data-nav-id="cab2-cont-ajutor"] { --cab2-nav-icon: url("../assets/icons/bubble-question.svg"); }
+.cab2-menu__list [data-nav-id="cab2-cont-iesire"] { --cab2-nav-icon: url("../assets/icons/logout.svg"); }
 
 /* ---------- 4. page + card grid ---------- */
 /* the page header on the grey page: no surface of its own, title → 8 → purpose → 8 → source line */
@@ -518,15 +538,15 @@ button.sidebar__link.cab2-menu__button {
     padding: 0 0 var(--spacing-16, 16px);
   }
 
-  .cab2-menu-sheet .cab2-menu__list {
-    --sidebar-item-font-size: var(--font-size-fs-16, 16px);
-    --sidebar-item-line-height: var(--line-height-lh-24, 24px);
-    --sidebar-item-min-height: var(--spacing-48, 48px);
+  /* phones: the same items, 48 high · 16/24 */
+  .cab2-menu-sheet .cab2-menu__list .e-permits-shell__nav-link {
+    min-height: var(--spacing-48, 48px);
+    padding-block: var(--spacing-12, 12px);
   }
 
-  .cab2-menu-sheet .cab2-menu__heading.sidebar__heading,
-  .cab2-menu-sheet .sidebar__link {
-    padding-left: var(--spacing-16, 16px);
+  .cab2-menu-sheet .cab2-menu__list :is(.e-permits-shell__nav-link, .e-permits-shell__nav-text) {
+    font-size: var(--font-size-fs-16, 16px);
+    line-height: var(--line-height-lh-24, 24px);
   }
 
   /* the search sheet: the field, then the results in the flow (no floating surface inside a sheet) */
@@ -565,8 +585,7 @@ button.sidebar__link.cab2-menu__button {
     outline-offset: calc(var(--border-width-1, 1px) * -1);
   }
 
-  .cab2-menu .sidebar__link:focus-visible,
-  .cab2-menu-sheet .sidebar__link:focus-visible,
+  .cab2-menu__list .e-permits-shell__nav-link:focus-visible,
   .cab2-bar__item:focus-visible,
   .cab2-head__title:focus-visible {
     outline: var(--border-width-2, 2px) solid Highlight;
@@ -574,7 +593,7 @@ button.sidebar__link.cab2-menu__button {
   }
 
   .cab2-bar__item[aria-current="page"],
-  .cab2 .sidebar__link--active {
+  .cab2-menu__list .e-permits-shell__nav-link.is-active {
     outline: var(--border-width-2, 2px) solid CanvasText;
     outline-offset: calc(var(--border-width-2, 2px) * -1);
   }

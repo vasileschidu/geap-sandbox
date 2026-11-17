@@ -427,39 +427,34 @@
       </div>`;
   }
 
-  /* ---------- menu (the library Sidebar) ---------- */
-  const badge = (count) => (count ? `<span class="sidebar__meta"><span class="badge badge--solid-notification badge--lg" aria-hidden="true">${count}</span>${hidden(`, ${count === 1 ? "un lucru" : `${count} lucruri`} de rezolvat`)}</span>` : "");
-  const menuLink = (id, { current, prefix }) => {
-    const ctx = state.ctx;
-    const on = current === id;
-    return `<li class="sidebar__item"><a class="sidebar__link${on ? " sidebar__link--active" : ""}" href="${escape(hrefOf(id))}"${goAttr(id)}${on ? ' aria-current="page"' : ""} data-cab2-nav="${escape(id)}"><span class="sidebar__label" id="${prefix}-${escape(id)}">${escape(titleOf(id, ctx))}</span>${badge(ctx.attention?.[id])}</a></li>`;
+  /* ---------- menu = the BO grouped sidebar (css/shell-nav.css): quiet group label + items with a 20 icon ---------- */
+  const badge = (count) => (count ? `<span class="badge badge--solid-neutral badge--xl e-permits-shell__nav-badge" aria-hidden="true">${count}</span>${hidden(`, ${count === 1 ? "un lucru" : `${count} lucruri`} de rezolvat`)}` : "");
+  const navItem = ({ id, label, href = "", attrs = "", on = false, count = 0, button = false, hiddenText = "" }) => {
+    const inner = `<span class="e-permits-shell__nav-icon" aria-hidden="true"></span><span class="e-permits-shell__nav-text">${escape(label)}${hiddenText ? hidden(hiddenText) : ""}</span>${badge(count)}`;
+    return button
+      ? `<li><button class="e-permits-shell__nav-link cab2-menu__button" type="button" data-nav-id="cab2-${escape(id)}"${attrs}>${inner}</button></li>`
+      : `<li><a class="e-permits-shell__nav-link${on ? " is-active" : ""}" href="${escape(href)}" data-nav-id="cab2-${escape(id)}"${on ? ' aria-current="page"' : ""}${attrs}>${inner}</a></li>`;
   };
+  const navGroup = (prefix, key, label, items) => `
+      <div class="e-permits-shell__nav-group">
+        ${label ? `<h2 class="e-permits-shell__group-label" id="${prefix}-g-${key}">${escape(label)}</h2>` : ""}
+        <ul class="e-permits-shell__nav-list"${label ? ` aria-labelledby="${prefix}-g-${key}"` : ' aria-label="Pagina de pornire"'}>${items.join("")}</ul>
+      </div>`;
   function menuHtml(prefix, { account = false } = {}) {
     const ctx = state.ctx;
     const current = state.denied ? "" : state.section;
-    const groups = menuOf(ctx).map(([group, ids]) => `
-      <div class="sidebar__section${group === "acces" ? " cab2-menu__foot" : ""}" data-cab2-group="${group}">
-        <div class="sidebar__heading cab2-menu__heading">${V2.groupIcon(group, { size: "sm" })}<h2 class="sidebar__title" id="${prefix}-g-${group}">${escape(groupLabel(ctx, group))}</h2></div>
-        <ul class="sidebar__list" aria-labelledby="${prefix}-g-${group}">${ids.map((id) => menuLink(id, { current, prefix })).join("")}</ul>
-      </div>`).join("");
-    const home = `
-      <div class="sidebar__section">
-        <ul class="sidebar__list" aria-label="Pagina de pornire">
-          <li class="sidebar__item"><a class="sidebar__link${current === "acasa" ? " sidebar__link--active" : ""}" href="${escape(urlOf("acasa"))}" data-cab2-go="acasa"${current === "acasa" ? ' aria-current="page"' : ""} data-cab2-nav="acasa">${V2.groupIcon("acasa", { size: "sm" })}<span class="sidebar__label">Acasă</span></a></li>
-        </ul>
-      </div>`;
+    const home = navGroup(prefix, "acasa", "", [navItem({ id: "acasa", label: "Acasă", href: urlOf("acasa"), attrs: ' data-cab2-go="acasa" data-cab2-nav="acasa"', on: current === "acasa" })]);
+    const groups = menuOf(ctx).map(([group, ids]) => navGroup(prefix, group, groupLabel(ctx, group), ids.map((id) => navItem({
+      id, label: titleOf(id, ctx), href: hrefOf(id), attrs: `${goAttr(id)} data-cab2-nav="${escape(id)}"`, on: current === id, count: ctx.attention?.[id] || 0,
+    })))).join("");
     /* phones: nothing is reachable only through the avatar (wiki 02 › Shell) */
-    const mine = account ? `
-      <div class="sidebar__section cab2-menu__foot">
-        <div class="sidebar__heading cab2-menu__heading"><span class="avatar avatar--sm avatar--initials" aria-hidden="true">${escape(CONTEXTS[0].initials)}</span><h2 class="sidebar__title" id="${prefix}-g-cont">Contul meu</h2></div>
-        <ul class="sidebar__list" aria-labelledby="${prefix}-g-cont">
-          <li class="sidebar__item"><button class="sidebar__link cab2-menu__button" type="button" aria-haspopup="dialog" data-cab2-switch-open><span class="sidebar__label">Pentru cine acționezi?</span></button></li>
-          <li class="sidebar__item"><a class="sidebar__link" href="https://mpass.gov.md" target="_blank" rel="noopener"><span class="sidebar__label">Contul MPass${hidden(", se deschide în altă pagină")}</span></a></li>
-          <li class="sidebar__item"><a class="sidebar__link" href="${escape(catalogUrl())}"><span class="sidebar__label">Ajutor</span></a></li>
-          <li class="sidebar__item"><button class="sidebar__link cab2-menu__button" type="button" data-cab2-signout><span class="sidebar__label">Ieși din cont</span></button></li>
-        </ul>
-      </div>` : "";
-    return `<div class="sidebar sidebar--item-preview cab2-menu__list"><div class="sidebar__nav">${home}${groups}${mine}</div></div>`;
+    const mine = account ? navGroup(prefix, "cont", "Contul meu", [
+      navItem({ id: "cont-switch", label: "Pentru cine acționezi?", button: true, attrs: ' aria-haspopup="dialog" data-cab2-switch-open' }),
+      navItem({ id: "cont-mpass", label: "Contul MPass", href: "https://mpass.gov.md", attrs: ' target="_blank" rel="noopener"', hiddenText: ", se deschide în altă pagină" }),
+      navItem({ id: "cont-ajutor", label: "Ajutor", href: catalogUrl() }),
+      navItem({ id: "cont-iesire", label: "Ieși din cont", button: true, attrs: " data-cab2-signout" }),
+    ]) : "";
+    return `<div class="e-permits-shell__nav e-permits-shell__nav--specialist cab2-menu__list">${home}${groups}${mine}</div>`;
   }
   function renderMenu() {
     els.menu.innerHTML = menuHtml("cab2-m");
