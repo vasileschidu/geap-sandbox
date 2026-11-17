@@ -2283,11 +2283,7 @@ body:has(.form-builder-modal-overlay.is-active) :is(#case-action-modal, #pending
    their positions; shown by JS (`.is-fb-hover`, only the innermost element under the pointer) and by own keyboard focus */
 .e-permits-builder__canvas .e-permits-hover-surface {
   --hover-surface-outset: var(--spacing-8, 8px);
-  border-radius: var(--border-radius-8, 8px);
-}
-
-.e-permits-builder__canvas [data-builder-section].e-permits-hover-surface {
-  border-radius: var(--border-radius-16, 16px);
+  border-radius: var(--border-radius-20, 20px);
 }
 
 .e-permits-builder__canvas .e-permits-hover-surface:hover::before {
@@ -2310,7 +2306,6 @@ body:has(.form-builder-modal-overlay.is-active) :is(#case-action-modal, #pending
 }
 
 .e-permits-builder__canvas :is([data-builder-field], [data-fb-el="step"], [data-fb-select-section]):focus-visible {
-  border-radius: var(--border-radius-4, 4px);
   box-shadow: 0 0 0 var(--spacing-6, 6px) var(--color-background-base-default, #fff), 0 0 0 calc(var(--spacing-6, 6px) + var(--border-width-3, 3px)) var(--focus-ring, var(--blue-sky-500, #3379db));
 }
 
@@ -2363,24 +2358,35 @@ body:has(.form-builder-modal-overlay.is-active) :is(#case-action-modal, #pending
 }
 
 /* hover = the shared hover surface on the element (fb-hover-surface-v1); selection = the brand outline (never both on one element) */
+/* the selected element = the dashboard tile look (fb-widget-look-v1): the hover surface stays on, bluish with the input focus
+   border (shared `.is-surface-selected`, css/hover-surface.css); the selbox only carries the action bar + the resize corner */
 .e-permits-builder__selbox {
-  border-radius: var(--border-radius-8, 8px);
+  border-radius: var(--border-radius-20, 20px);
   box-sizing: border-box;
 }
 
-.e-permits-builder__selbox {
-  border-radius: var(--border-radius-8, 8px);
+.e-permits-builder__canvas .e-permits-hover-surface.is-surface-selected::before {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.e-permits-builder__canvas .e-permits-hover-surface.is-surface-selected:focus-visible {
+  box-shadow: none;
+}
+
+/* moving: the element's footprint stays as the slot = grey + dashed edge (the dashboard's lifted tile) */
+.e-permits-builder__canvas .e-permits-hover-surface.is-dragging::before {
+  background: var(--color-background-base-tertiary, #f1f1f1);
+  border: var(--border-width-1, 1px) dashed var(--color-border-base-secondary, #b2b2b2);
+  box-shadow: none;
   box-sizing: border-box;
+  inset: 0;
+  opacity: 1;
+  transform: none;
 }
 
-.e-permits-builder__selbox {
-  border: var(--border-width-2, 2px) solid var(--color-border-brand-default, #0058d2);
-}
-
-/* the selected element under the pointer: the outline one step darker + a soft halo */
-.e-permits-builder__selbox.is-hover {
-  border-color: var(--color-background-brand-default-hover, #0046a8);
-  box-shadow: 0 0 0 var(--border-width-3, 3px) var(--color-background-brand-secondary-hover, #ccdef6);
+.e-permits-builder__canvas .e-permits-hover-surface.is-dragging > * {
+  visibility: hidden;
 }
 
 /* the drag handle on the left edge of the hovered element */
@@ -2424,26 +2430,23 @@ body:has(.form-builder-modal-overlay.is-active) :is(#case-action-modal, #pending
   width: var(--spacing-28, 28px);
 }
 
-/* the width grip on the right edge of the selected field */
-.e-permits-builder__sel-resize {
-  appearance: none;
-  background: var(--color-background-brand-default, #0058d2);
-  border: var(--border-width-2, 2px) solid var(--color-background-base-default, #fff);
-  border-radius: var(--border-radius-full, 999px);
-  box-sizing: border-box;
+/* the resize corner = the dashboard tile's arc (`.e-permits-dsh-tile__resize`), on the selected element's bottom-right
+   corner; shown while the pointer is over it; drags the width (snaps 3 · 4 · 6 · 8 · 12) */
+.e-permits-builder__sel-resize.e-permits-dsh-tile__resize {
+  border: 0;
   cursor: ew-resize;
-  height: var(--spacing-28, 28px);
   padding: 0;
-  pointer-events: auto;
-  position: absolute;
-  right: calc(var(--spacing-6, 6px) * -1);
-  top: calc(50% - var(--spacing-14, 14px));
+  pointer-events: none;
   touch-action: none;
-  width: var(--spacing-10, 10px);
+  visibility: hidden;
 }
 
-.e-permits-builder__sel-resize:hover {
-  background: var(--color-background-brand-default-hover, #0046a8);
+.e-permits-builder__selbox.is-hover .e-permits-builder__sel-resize,
+.e-permits-builder__sel-resize:hover,
+.e-permits-builder.is-field-resizing .e-permits-builder__sel-resize {
+  opacity: 1;
+  pointer-events: auto;
+  visibility: visible;
 }
 
 /* the floating action bar of the selected element = the PD toolbar card, placed above the element */

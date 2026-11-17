@@ -1412,7 +1412,7 @@ document.addEventListener("DOMContentLoaded", () => {
      CLICK = select: the brand outline + the floating action bar (handle · type · width · duplicate · ⋮) above it.
      The hovered element never gets the hover outline while it is the selected one. */
   const WY = { hover: null, insert: null, pinned: null };
-  const OUTSET = { field: 8, section: 16, step: 8, locked: 8 };
+  const OUTSET = { field: 8, section: 8, step: 8, locked: 8 };
   const chromeEl = () => el.canvas.querySelector("[data-fb-chrome]");
   const fieldNode = (id) => el.canvas.querySelector(`[data-builder-field][data-id="${id}"]`);
   const sectionNode = (id) => el.canvas.querySelector(`[data-builder-section][data-section-id="${id}"]`);
@@ -1521,7 +1521,7 @@ document.addEventListener("DOMContentLoaded", () => {
       <button class="e-permits-builder__grip" type="button" draggable="true" tabindex="-1" aria-hidden="true" data-fb-handle hidden>${icon("icon-drag", 16)}</button>
       <span class="e-permits-builder__lockmark" aria-hidden="true" data-fb-lockmark hidden>${icon("icon-lock", 16)}</span>
       ${selNode ? `
-      <div class="e-permits-builder__selbox" data-fb-selbox>${selField && !isFixedWidth(selField) ? '<button class="e-permits-builder__sel-resize" type="button" tabindex="-1" aria-hidden="true" data-fb-resize></button>' : ""}</div>
+      <div class="e-permits-builder__selbox" data-fb-selbox>${selField && !isFixedWidth(selField) ? `<button class="e-permits-dsh-tile__resize e-permits-builder__sel-resize" type="button" tabindex="-1" aria-hidden="true" data-tooltip-label="Trage pentru a schimba lățimea" data-fb-resize>${icon("resize", 16)}</button>` : ""}</div>
       <div class="e-permits-builder__elbar-wrap" data-fb-elbar>${elementBarHtml()}</div>` : ""}
       <div class="e-permits-builder__insert" data-fb-insert>
         <button class="btn btn-neutral btn-sm btn-icon-only btn-rounded e-permits-builder__insert-add" type="button" tabindex="-1" aria-label="Adaugă element" data-tooltip-label="Adaugă element" aria-haspopup="menu" aria-expanded="false" aria-controls="fb-insert-menu" data-stack-menu-trigger data-fb-insert-add>${icon("icon-plus-small", 16)}</button>
@@ -1550,7 +1550,10 @@ document.addEventListener("DOMContentLoaded", () => {
     const shape = selShape();
     const selbox = layer.querySelector("[data-fb-selbox]");
     const node = shape ? elementNode(shape.kind, shape.id) : null;
+    el.canvas.querySelectorAll(".is-surface-selected").forEach((item) => { if (item !== node) item.classList.remove("is-surface-selected"); });
+    node?.classList.add("is-surface-selected");
     if (selbox && node) {
+      selbox.dataset.kind = shape.kind;
       const box = boxOf(node, OUTSET[shape.kind]);
       setBox(selbox, box);
       const bar = layer.querySelector("[data-fb-elbar]");
