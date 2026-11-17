@@ -1270,7 +1270,7 @@ document.addEventListener("DOMContentLoaded", () => {
   /* the FO renderer's top element gets the builder ids (logic + test data + the editor find the cells) */
   const tagged = (html, attrs) => String(html).replace(/^(\s*<[a-z]+)/i, `$1 ${attrs}`);
   /* the hover / selection of a page element is drawn by the chrome layer (tools/ui-qa/hover-audit.mjs reads this) */
-  const HOVER_PROXY = 'data-hover-proxy=".e-permits-builder__hoverbox, .e-permits-builder__selbox"';
+  const HOVER_PROXY = 'data-hover-proxy=".e-permits-builder__selbox"';
   const isSelectedField = (field) => (state.sel.kind === "field" && state.sel.id === field.id) || (state.sel.kind === "child" && findChild(state.sel.id)?.top === field);
   /* the issues shown on a field: its own, else the count of its columns' / block fields' */
   function fieldIssues(field) {
@@ -1407,7 +1407,7 @@ document.addEventListener("DOMContentLoaded", () => {
   if (typeof ResizeObserver === "function") new ResizeObserver(() => { window.GEAPFoRepeat?.layout(el.canvas); placeChrome(); }).observe(el.canvas);
 
   /* ============================================== EDIT CHROME (fb-wysiwyg-v1): one overlay layer over the page
-     At rest the layer shows only the error dots. HOVER = a thin grey outline + the drag handle on its left edge
+     At rest the layer shows only the error dots. HOVER = the shared grey hover surface + the drag handle on its left edge
      (fields, sections), a lock on a platform step; in the gap between two fields the insert line with „+”.
      CLICK = select: the brand outline + the floating action bar (handle · type · width · duplicate · ⋮) above it.
      The hovered element never gets the hover outline while it is the selected one. */
@@ -1518,7 +1518,6 @@ document.addEventListener("DOMContentLoaded", () => {
       return errors.length && fieldNode(field.id) ? `<span class="e-permits-ntpl-dot e-permits-tariff__tab-error e-permits-builder__issue-dot" role="img" aria-label="Eroare: ${esc(errors[0].message)}" data-tooltip-text="${esc(errors[0].message)}" data-fb-dot="${field.id}"></span>` : "";
     }).join("");
     layer.innerHTML = `
-      <div class="e-permits-builder__hoverbox" data-fb-hoverbox hidden></div>
       <button class="e-permits-builder__grip" type="button" draggable="true" tabindex="-1" aria-hidden="true" data-fb-handle hidden>${icon("icon-drag", 16)}</button>
       <span class="e-permits-builder__lockmark" aria-hidden="true" data-fb-lockmark hidden>${icon("icon-lock", 16)}</span>
       ${selNode ? `
@@ -1530,7 +1529,19 @@ document.addEventListener("DOMContentLoaded", () => {
       <ul class="e-permits-fo-intent-menu e-permits-stack__menu e-permits-builder__insert-menu" id="fb-insert-menu" role="menu" aria-label="Adaugă o componentă aici" hidden data-stack-menu data-stack-menu-fixed data-stack-menu-align="start">${typeMenuItems("data-fb-insert-type")}</ul>
       ${dots}`;
     WY.pinned = null;
+    armSurfaces();
     placeChrome();
+  }
+
+  /* fb-hover-surface-v1: hover = the shared hover surface (css/hover-surface.css) on the element itself; armed at rest
+     (so the grey can fade / zoom in), shown by `.is-fb-hover` on the one innermost element under the pointer */
+  function armSurfaces() {
+    const nodes = [...el.canvas.querySelectorAll("[data-builder-field], [data-builder-section], [data-fb-el='step']"), bodyNode()].filter(Boolean);
+    nodes.forEach((node) => node.classList.add("e-permits-hover-surface"));
+  }
+  function showSurface(node) {
+    el.canvas.querySelectorAll(".is-fb-hover").forEach((item) => { if (item !== node) item.classList.remove("is-fb-hover"); });
+    node?.classList.add("is-fb-hover");
   }
 
   function placeChrome() {
@@ -1560,8 +1571,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const sameShape = (a, b) => Boolean(a && b && a.kind === b.kind && a.id === b.id);
   function placeHover() {
     const layer = chromeEl();
-    const box = layer?.querySelector("[data-fb-hoverbox]");
-    if (!box) return;
+    if (!layer) return;
     const grip = layer.querySelector(".e-permits-builder__grip");
     const lock = layer.querySelector("[data-fb-lockmark]");
     const hover = WY.hover;
@@ -1570,12 +1580,11 @@ document.addEventListener("DOMContentLoaded", () => {
     /* the selected element under the pointer: its own outline answers (never a second, grey one) */
     layer.querySelector("[data-fb-selbox]")?.classList.toggle("is-hover", onSelected);
     const node = hover && !quiet && !onSelected ? elementNode(hover.kind, hover.id) : null;
-    box.hidden = !node;
+    showSurface(node);
     lock.hidden = !node || hover.kind !== "locked";
     grip.hidden = !node || !(hover.kind === "field" || (hover.kind === "section" && activeStep().sections.length > 1));
     if (!node) return;
     const b = boxOf(node, OUTSET[hover.kind]);
-    setBox(box, b);
     if (!lock.hidden) setBox(lock, { left: b.left + b.width - 14, top: b.top - 14 });
     if (!grip.hidden) {
       grip.dataset.kind = hover.kind;

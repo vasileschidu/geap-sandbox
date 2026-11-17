@@ -2279,6 +2279,27 @@ body:has(.form-builder-modal-overlay.is-active) :is(#case-action-modal, #pending
   grid-column: 1 / -1;
 }
 
+/* hover surface (fb-hover-surface-v1, 2026-11-17): the grey + zoom-in of css/hover-surface.css, outset 8 so the fields keep
+   their positions; shown by JS (`.is-fb-hover`, only the innermost element under the pointer) and by own keyboard focus */
+.e-permits-builder__canvas .e-permits-hover-surface {
+  --hover-surface-outset: var(--spacing-8, 8px);
+  border-radius: var(--border-radius-8, 8px);
+}
+
+.e-permits-builder__canvas [data-builder-section].e-permits-hover-surface {
+  border-radius: var(--border-radius-16, 16px);
+}
+
+.e-permits-builder__canvas .e-permits-hover-surface:hover::before {
+  opacity: 0;
+  transform: scale(0.96);
+}
+
+.e-permits-builder__canvas .e-permits-hover-surface:is(.is-fb-hover, :focus-visible)::before {
+  opacity: 1;
+  transform: scale(1);
+}
+
 /* the page elements are the click / focus targets (their controls are inert) */
 .e-permits-builder__canvas :is([data-builder-field], [data-fb-el="step"], [data-fb-select-section]) {
   cursor: pointer;
@@ -2341,15 +2362,15 @@ body:has(.form-builder-modal-overlay.is-active) :is(#case-action-modal, #pending
   display: none;
 }
 
-/* hover = a thin grey outline; selection = the brand outline (never both on one element) */
-.e-permits-builder__hoverbox,
+/* hover = the shared hover surface on the element (fb-hover-surface-v1); selection = the brand outline (never both on one element) */
 .e-permits-builder__selbox {
   border-radius: var(--border-radius-8, 8px);
   box-sizing: border-box;
 }
 
-.e-permits-builder__hoverbox {
-  border: var(--border-width-1, 1px) solid var(--color-border-base-secondary, #b2b2b2);
+.e-permits-builder__selbox {
+  border-radius: var(--border-radius-8, 8px);
+  box-sizing: border-box;
 }
 
 .e-permits-builder__selbox {
