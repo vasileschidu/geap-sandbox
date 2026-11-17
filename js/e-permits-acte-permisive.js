@@ -2463,6 +2463,13 @@
     }
 
     function caemOptionHtml(option) {
+      /* dist-picker-v1: a codeless option (a person, not a code) = the two-line dropdown item (css/dropdown.css):
+         name over a tertiary meta line, optional Small tags on the right (`tagsHtml`, already escaped), `unavailable`
+         = shown but not selectable (aria-disabled, kept by the search), `valueText` = what the closed field shows */
+      if (option.codeless) {
+        const unavailable = Boolean(option.unavailable);
+        return `<li class="e-permits-fo-caem__option e-permits-fo-caem__option--two-line${unavailable ? " is-unavailable" : ""}${option.selected ? " is-selected" : ""}" role="option" aria-selected="${option.selected ? "true" : "false"}"${unavailable ? ' aria-disabled="true"' : ""} data-code="${escapeFrontOfficeHtml(option.code)}" data-label="${escapeFrontOfficeHtml(option.label)}" data-value-text="${escapeFrontOfficeHtml(option.valueText || option.label)}" tabindex="-1"><span class="e-permits-fo-caem__text"><span class="e-permits-fo-caem__name" data-cell-tooltip>${escapeFrontOfficeHtml(option.label)}</span>${option.meta ? `<span class="e-permits-fo-caem__meta" data-cell-tooltip>${escapeFrontOfficeHtml(option.meta)}</span>` : ""}</span>${option.tagsHtml ? `<span class="e-permits-fo-caem__tags">${option.tagsHtml}</span>` : ""}</li>`;
+      }
       return `<li class="e-permits-fo-caem__option" role="option" aria-selected="false" data-cell-tooltip data-code="${escapeFrontOfficeHtml(option.code)}" data-label="${escapeFrontOfficeHtml(option.label)}" data-subgenres="${escapeFrontOfficeHtml(JSON.stringify(option.subgenres || []))}" tabindex="-1"><span class="e-permits-fo-caem__code">${escapeFrontOfficeHtml(option.code)}</span>${option.meta
         /* svc-clone-v1: an optional second line (US-326 „Serviciul de clonat” = code · name over the authority) */
         ? `<span class="e-permits-fo-caem__text"><span class="e-permits-fo-caem__name">${escapeFrontOfficeHtml(option.label)}</span><span class="e-permits-fo-caem__meta">${escapeFrontOfficeHtml(option.meta)}</span></span>`
@@ -2480,13 +2487,20 @@
 
     /* emptyTitle / emptyText / searchLabel: a searchable list of something else (the desk's
        „Denumirea serviciului”, js/ghiseu.js); the defaults keep the CAEM markup byte-identical */
-    function caemFieldHtml({ id = "fo-caem-code", label = "Codul CAEM", required = true, placeholder = "Selectează cod CAEM", options = [], emptyTitle, emptyText, searchLabel = "Caută după cod sau descriere", float = false } = {}) {
+    /* dist-picker-v1 (the BO „Specialist desemnat” / „Responsabil nou”): `value` = the preselected option's code (the
+       form re-renders), `error` = the field's error look, `fieldClass` = the wrapper's classes, `after` = html inside the
+       field after the control (error / hint), `rootAttrs` = extra attributes on [data-fo-caem]; all optional — the
+       defaults keep the CAEM markup byte-identical */
+    function caemFieldHtml({ id = "fo-caem-code", label = "Codul CAEM", required = true, placeholder = "Selectează cod CAEM", options = [], emptyTitle, emptyText, searchLabel = "Caută după cod sau descriere", float = false, value = "", error = false, fieldClass: wrapClass = "", after = "", rootAttrs = "" } = {}) {
+      const picked = value ? options.find((option) => option.code === value) : null;
+      if (picked) options = options.map((option) => (option === picked ? { ...option, selected: true } : option));
+      const shown = picked ? (picked.codeless ? picked.valueText || picked.label : `${picked.code} • ${picked.label}`) : placeholder;
       return `
-          <div class="e-permits-fo-field">
+          <div class="${wrapClass || "e-permits-fo-field"}">
             ${labelHtml(id, { label, required })}
-            <div class="e-permits-fo-caem" data-fo-caem${float ? " data-fo-float" : ""}>
-              <button id="${escapeFrontOfficeHtml(id)}" class="e-permits-fo-caem__button" type="button" aria-haspopup="listbox" aria-expanded="false" aria-controls="${escapeFrontOfficeHtml(id)}-menu" data-fo-caem-button>
-                <span class="e-permits-fo-caem__value e-permits-fo-caem__value--placeholder" data-fo-caem-value>${escapeFrontOfficeHtml(placeholder)}</span>
+            <div class="e-permits-fo-caem${error ? " is-error" : ""}" data-fo-caem${float ? " data-fo-float" : ""}${rootAttrs ? ` ${rootAttrs}` : ""}>
+              <button id="${escapeFrontOfficeHtml(id)}" class="e-permits-fo-caem__button" type="button" aria-haspopup="listbox" aria-expanded="false" aria-controls="${escapeFrontOfficeHtml(id)}-menu"${error ? ' aria-invalid="true"' : ""} data-fo-caem-button>
+                <span class="e-permits-fo-caem__value${picked ? "" : " e-permits-fo-caem__value--placeholder"}" data-fo-caem-value${picked ? " data-cell-tooltip" : ""}>${escapeFrontOfficeHtml(shown)}</span>
                 <svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-chevron-bottom"></use></svg>
               </button>
               <div class="e-permits-fo-caem__menu" id="${escapeFrontOfficeHtml(id)}-menu" data-fo-caem-menu hidden>
@@ -2494,7 +2508,7 @@
                 <ul class="e-permits-fo-caem__list" id="${escapeFrontOfficeHtml(id)}-list" role="listbox" aria-labelledby="${escapeFrontOfficeHtml(id)}" data-fo-caem-list>${options.map(caemOptionHtml).join("")}</ul>
                 <div data-fo-caem-empty hidden>${caemEmptyHtml(emptyTitle, emptyText)}</div>
               </div>
-            </div>
+            </div>${after}
           </div>`;
     }
 
@@ -9530,13 +9544,13 @@
       }
 
       function selectOption(option) {
-        if (option.classList.contains("is-disabled")) return;
+        if (option.classList.contains("is-disabled") || option.classList.contains("is-unavailable")) return;
         options.forEach((item) => {
           const isSelected = item === option;
           item.classList.toggle("is-selected", isSelected);
           item.setAttribute("aria-selected", String(isSelected));
         });
-        value.textContent = `${option.dataset.code} • ${option.dataset.label}`;
+        value.textContent = option.dataset.valueText || `${option.dataset.code} • ${option.dataset.label}`;
         value.setAttribute("data-cell-tooltip", "");
         value.classList.remove("e-permits-fo-caem__value--placeholder");
         activeIndex = Math.max(0, visibleOptions.indexOf(option));
@@ -10495,6 +10509,8 @@
        controls — one schema → one renderer → three surfaces (spec form-builder.md § C.0). */
     window.GEAPFormRender = {
       fieldHtml: stepFieldHtml,
+      /* the searchable list (CAEM combobox) with its BO options (dist-picker-v1: two-line person items) */
+      comboboxHtml: caemFieldHtml,
       escape: escapeFrontOfficeHtml,
       localIsoDay,
       /* the FO interactions for a rendered root (Preview): selects, phone, address, counters, dates */

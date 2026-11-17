@@ -330,6 +330,18 @@
       return { subdiviziune: person.subdivision, activ: !a, absenta: a ? `${a.type}${a.to ? ` până la ${long(a.to)}` : ", fără dată de sfârșit"}` : "", norma: normOf(person) };
     },
     competent: (specialistId, row) => { const person = personBySpecialist(specialistId); return person ? competentFor(person, row) : true; },
+    /* US-114 (dist-picker-v1) „Specialistul din lista de selecție”: norm (US-291, default 100), competence for the case's
+       service — "da" / "nu", "" when the person has no competences (AC-13) — and the active absence { type, to } (AC-14) */
+    pickInfo: (specialistId, row) => {
+      const person = personBySpecialist(specialistId);
+      if (!person) return { norma: 100, competenta: "", absenta: null };
+      const a = absentOn(person.id);
+      return {
+        norma: normOf(person),
+        competenta: (distOf(person).competences || []).length ? (competentFor(person, row) ? "da" : "nu") : "",
+        absenta: a ? { type: a.type, to: a.to || "" } : null
+      };
+    },
     /* the active specialists of a subdivision left out today because they are absent (redistribution hint) */
     absentNames: (subdivision) => people().filter((p) => p.subdivision === subdivision && p.role === "Specialist" && absentOn(p.id)).map((p) => p.name),
     policyFor, FACTORS,

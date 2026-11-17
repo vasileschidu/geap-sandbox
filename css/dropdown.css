@@ -91,6 +91,73 @@
   width: var(--icon-size-medium, 20px);
 }
 
+/* ===== Two-line item (dist-picker-v1, 2026-11-16; US-114 „Specialist desemnat”, US-295 „Responsabil nou”) =====
+   One documented variant for option lists whose rows carry a second line: the label over a tertiary meta line (`__text` >
+   `__name` + `__meta`; the CAEM combobox with `option.meta` — „Serviciul de clonat” — uses the same two spans), and the
+   person picker `.e-permits-fo-caem__option--two-line` (GEAPFormRender.comboboxHtml with `codeless` options): name 14/20
+   medium · meta 12/16 tertiary · Small tags on the right · the selected check last. Same padding as every item — the row
+   grows (40 → 56 desktop, 48 → 68 phones); phones: name 16/24 regular, meta 14/20, the tags drop under the meta line.
+   `.is-unavailable` (aria-disabled, e.g. an absent specialist) = shown, kept by the search, not selectable: tertiary name,
+   not-allowed, no hover; its tag says why. */
+.e-permits-fo-caem__text {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: var(--spacing-0, 0px);
+  min-width: 0;
+}
+
+.e-permits-fo-caem__meta {
+  color: var(--color-text-base-tertiary, #757575);
+  font-size: var(--font-size-fs-12, 12px);
+  font-weight: var(--font-weight-fw-regular, 400);
+  line-height: var(--line-height-lh-16, 16px);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.e-permits-fo-caem__option.is-selected .e-permits-fo-caem__meta {
+  color: var(--color-text-base-tertiary, #757575);
+}
+
+.e-permits-fo-caem__option--two-line {
+  align-items: center;
+  column-gap: var(--spacing-8, 8px);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+}
+
+.e-permits-fo-caem__option--two-line .e-permits-fo-caem__name {
+  font-weight: var(--font-weight-fw-medium, 500);
+}
+
+.e-permits-fo-caem__option--two-line.is-selected::after {
+  grid-column: 3;
+  margin-left: 0;
+}
+
+.e-permits-fo-caem__tags {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-4, 4px);
+  grid-column: 2;
+  justify-content: flex-end;
+}
+
+.e-permits-fo-caem__option.is-unavailable {
+  cursor: not-allowed;
+}
+
+.e-permits-fo-caem__option.is-unavailable .e-permits-fo-caem__name {
+  color: var(--color-text-base-tertiary, #757575);
+}
+
+.e-permits-fo-caem__option.is-unavailable:is(:hover, .is-active) {
+  background: transparent;
+}
+
 /* ===== Phones (≤ 760): touch items for EVERY menu (menu-40-v1, 2026-10-29) =====
    Moved here from the act / request action-menu scope of e-permits-acte-permisive.css („Row action menu on phones”,
    action-menu-v1) and widened to all the item classes above. The facet-filter bottom sheet rows follow it too
@@ -167,5 +234,36 @@
 
   .e-permits-fo-intent-menu > :is(.e-permits-fo-intent-menu__separator, .cab-menu__separator) {
     margin: var(--spacing-8, 8px) var(--spacing-16, 16px);
+  }
+}
+
+/* two-line item on phones (dist-picker-v1): name 16/24 regular, meta 14/20, tags under the meta line, check on the right */
+@media (max-width: 760px) {
+  .e-permits-fo-caem__option--two-line {
+    column-gap: var(--spacing-12, 12px);
+    grid-template-columns: minmax(0, 1fr) auto;
+    row-gap: var(--spacing-4, 4px);
+  }
+
+  .e-permits-fo-caem__option--two-line .e-permits-fo-caem__name {
+    font-size: var(--font-size-fs-16, 16px);
+    font-weight: var(--font-weight-fw-regular, 400);
+    line-height: var(--line-height-lh-24, 24px);
+  }
+
+  .e-permits-fo-caem__option--two-line .e-permits-fo-caem__meta {
+    font-size: var(--font-size-fs-14, 14px);
+    line-height: var(--line-height-lh-20, 20px);
+  }
+
+  .e-permits-fo-caem__option--two-line .e-permits-fo-caem__tags {
+    grid-column: 1;
+    grid-row: 2;
+    justify-content: flex-start;
+  }
+
+  .e-permits-fo-caem__option--two-line.is-selected::after {
+    grid-column: 2;
+    grid-row: 1 / span 2;
   }
 }

@@ -194,26 +194,7 @@
   text-align: left;
 }
 
-.e-permits-fo-caem__text {
-  display: flex;
-  flex: 1 1 auto;
-  flex-direction: column;
-  min-width: 0;
-}
-
-.e-permits-fo-caem__meta {
-  color: var(--color-text-base-tertiary, #757575);
-  font-size: var(--font-size-fs-12, 12px);
-  font-weight: var(--font-weight-fw-regular, 400);
-  line-height: var(--line-height-lh-16, 16px);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.e-permits-fo-caem__option.is-selected .e-permits-fo-caem__meta {
-  color: var(--color-text-base-tertiary, #757575);
-}
+/* the generic second line (`__text` / `__meta`) = the two-line dropdown item, css/dropdown.css (dist-picker-v1) */
 
 @media (prefers-reduced-motion: reduce) {
   .e-permits-svc-clone__toggle .icon {

@@ -32,9 +32,18 @@
   /* US-295: the header menu / the „Redistribuie” dialog / a finished manual redistribution; the Supervisor's list */
   const redistMenu = async (h) => { await h.click(".e-permits-case-actions__trigger"); await h.find("#case-actions-menu:not([hidden])"); };
   const redistOpen = async (h) => { await redistMenu(h); await h.click("[data-case-action='redistribuie']"); await h.find("#case-action-modal.is-active [data-case-choice]"); };
+  /* dist-picker-v1: „Specialist desemnat” / „Responsabil nou” = the searchable two-line list — open it, pick by id */
+  const comboOpen = async (h) => { await h.click("#case-action-modal #case-specialist"); await h.find("#case-specialist-menu:not([hidden]) .e-permits-fo-caem__option"); await h.wait(250); };
+  const comboPick = async (h, id) => {
+    await comboOpen(h);
+    const opt = await h.find(`#case-specialist-menu .e-permits-fo-caem__option[data-code="${id}"]`);
+    opt.dispatchEvent(new MouseEvent("mousedown", { bubbles: true, cancelable: true })); await h.wait(400);
+  };
+  /* US-114 Distribuirea dosarului (manuală): the header „Distribuie” → the form */
+  const distOpen = async (h) => { await redistMenu(h); await h.click("[data-case-action='distribuie']"); await h.find("#case-action-modal.is-active #case-instructiuni"); await h.wait(250); };
   const redistDone = async (h) => {
     await redistOpen(h);
-    await h.choose("#case-action-modal [data-case-select='specialist']", "sp2");
+    await comboPick(h, "sp2");
     await h.fill("#case-motiv", "Elena Caragia este în concediu medical până la 15 august.");
     await h.click("#case-action-modal [data-case-submit]"); await h.find(".toast");
   };
@@ -1453,6 +1462,21 @@
     "dos-05c": { ...dosList(SPEC), run: ekFacet("status") },
     "dos-05d": { ...dosList(SPEC), run: async (h) => { await ekPick("status", ["În examinare"])(h); await ekCommit(h); } },
 
+    /* ---- dst · US-114 Distribuirea dosarului (manuală), Azure 90759 (dist-picker-v1, 2026-11-16) ----
+       01 Supervisor's form (AC-08…11, AC-20) · 01a the list open: load + norm, „Fără competență” (AC-18), absent =
+       disabled (AC-17) · 01b a specialist without competence chosen · 01c search „na” · 02 the Specialist in the flow without
+       Supervisor: own name, locked (AC-19) · 03 both errors (AC-21, AC-22 spaces only) · 04 done (AC-25 toast) · 05 system
+       error, the form stays open (AC-29 / AC-30) · 05a the failed attempt in the journal (AC-33) */
+    "dst-01": dos(SUP, "depus", "general", {}, distOpen),
+    "dst-01a": dos(SUP, "depus", "general", {}, async (h) => { await distOpen(h); await comboOpen(h); }),
+    "dst-01b": dos(SUP, "depus", "general", {}, async (h) => { await distOpen(h); await comboPick(h, "sp3"); }),
+    "dst-01c": dos(SUP, "depus", "general", {}, async (h) => { await distOpen(h); await comboOpen(h); await h.fill("#case-specialist-menu [data-fo-caem-search]", "na", { leave: false }); }),
+    "dst-02": dos(SPEC, "depus", "general", { flux: "simplu" }, distOpen),
+    "dst-03": dos(SUP, "depus", "general", {}, async (h) => { await distOpen(h); await h.fill("#case-instructiuni", "   "); await h.click("#case-action-modal [data-case-submit]"); await h.wait(300); }),
+    "dst-04": dos(SUP, "depus", "general", {}, async (h) => { await distOpen(h); await comboPick(h, "sp2"); await h.click("#case-action-modal [data-case-submit]"); await h.find(".toast"); }),
+    "dst-05": dos(SUP, "depus", "general", { distribuie: "eroare" }, async (h) => { await distOpen(h); await comboPick(h, "sp2"); await h.click("#case-action-modal [data-case-submit]"); await h.find(".toast"); }),
+    "dst-05a": dos(SUP, "depus", "jurnal", { distribuie: "eroare" }, async (h) => { await distOpen(h); await comboPick(h, "sp2"); await h.click("#case-action-modal [data-case-submit]"); await h.find(".toast"); await h.click("#case-action-modal [data-case-close]"); await h.wait(400); }),
+
     /* ---- Dosare · 06 Redistribuire (US-295, Azure 96012; bo-dossier-flows-v1) ----
        06 Supervisor's header menu with „Redistribuie” · 06a the dialog (Manual) · 06b a specialist without competence
        (AC-16 warning) · 06c empty submit (AC-06 / AC-15) · 06d Automat · 06e done (toast, new Specialist) · 06f the
@@ -1461,13 +1485,15 @@
        open cases, all selected (AC-17) · 06m bulk dialog (Manual; „În nedistribuite” removed, redist-modes-v1) · 06n bulk done */
     "dos-06": dos(SUP, "inExaminare", "general", {}, redistMenu),
     "dos-06a": dos(SUP, "inExaminare", "general", {}, redistOpen),
-    "dos-06b": dos(SUP, "inExaminare", "general", {}, async (h) => { await redistOpen(h); await h.choose("#case-action-modal [data-case-select='specialist']", "sp3"); }),
+    "dos-06b": dos(SUP, "inExaminare", "general", {}, async (h) => { await redistOpen(h); await comboPick(h, "sp3"); }),
     "dos-06c": dos(SUP, "inExaminare", "general", {}, async (h) => { await redistOpen(h); await h.click("#case-action-modal [data-case-submit]"); }),
     "dos-06d": dos(SUP, "inExaminare", "general", {}, async (h) => { await redistOpen(h); await h.click("#case-action-modal [data-case-choice='automat']"); }),
     "dos-06e": dos(SUP, "inExaminare", "general", {}, redistDone),
     "dos-06f": dos(SUP, "inExaminare", "general", {}, async (h) => { await redistDone(h); await h.click("[data-dosar-tab='jurnal']"); }),
     "dos-06g": dos(SUP, "inExaminare", "general", { redistribuire: "eroare" }, redistDone),
     "dos-06h": dos(SUP, "inExaminare", "general", { candidati: "0" }, async (h) => { await redistOpen(h); await h.click("#case-action-modal [data-case-choice='automat']"); await h.fill("#case-motiv", "Specialistul pleacă din subdiviziune."); await h.click("#case-action-modal [data-case-submit]"); await h.find(".toast"); }),
+    /* dist-picker-v1: the „Responsabil nou” two-line list open */
+    "dos-06q": dos(SUP, "inExaminare", "general", {}, async (h) => { await redistOpen(h); await comboOpen(h); }),
     "dos-06i": dos(DIR, "inExaminare", "general", {}, redistMenu),
     "dos-06j": subList(),
     "dos-06k": subList(async (h) => { for (let i = 0; i < 3; i += 1) await h.nth("[data-workplace-select-row]", i); }),

@@ -4510,6 +4510,8 @@ document.addEventListener("DOMContentLoaded", () => {
   /* a case's process state, created on first use. The flow is a property of the
      service; the guard variables come from the service passport, except
      SecondaryApproval, which follows the processing subdivision (US-113). */
+  /* the „Specialist desemnat” value of a Specialist who distributes to himself (US-114 AC-19) */
+  const CASE_SELF = "__self";
   const caseFlowOf = (row) => {
     if (!caseFlow || !row || row.sursa === "OFICIU" || row.status === "schita") {
       return null;
@@ -4517,7 +4519,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (!row.flowState) {
       const serviceHash = hashValue(row.serviciu);
-      const flow = caseFlow.getFlow(serviceHash % 3 === 0 ? "simplified" : "complex");
+      /* demo ?flux=simplu|complex forces the flow (US-114 AC-19: the Specialist distributes in the flow without Supervisor) */
+      const forcedFlow = { simplu: "simplified", complex: "complex" }[new URLSearchParams(window.location.search).get("flux")];
+      const flow = caseFlow.getFlow(forcedFlow || (serviceHash % 3 === 0 ? "simplified" : "complex"));
       const vars = {
         IsAutoDistribution: false,
         SuspensionWithCoordination: serviceHash % 2 === 0,
@@ -5134,13 +5138,54 @@ document.addEventListener("DOMContentLoaded", () => {
       .map((tariff) => ({ id: tariff.id, denumire: tariff.name, suma: Number(tariff.amount) || 0, currency: tariff.currency || "MDL", iban: tariff.iban || principal?.iban || "—" }));
   };
 
-  const caseSpecialists = () => {
-    const rows = dossierDb?.runtimeRows || [];
-    return (dossierDb?.specialisti || []).map((person) => ({
-      ...person,
-      load: rows.filter((row) => row.specialist?.id === person.id && !["semnat", "eliberat", "respins", "arhivat"].includes(row.status)).length
-    }));
+  /* US-114 (dist-picker-v1) „Specialistul din lista de selecție”: the active specialists of the case's processing
+     subdivision (AC-11) without the case's applicant / representative (AC-16); each with its cases under examination at
+     every service (AC-12), norm (AC-15), competence for the service (AC-13) and active absence (AC-14) — the profile
+     data of US-291 / US-314 (window.GEAPAbsences.pickInfo) */
+  const caseParties = (row) => new Set([row.numeSolicitant, row.companie, buildDosarProfile(row)?.representative?.nume].filter(Boolean));
+  const distPickInfo = (person, row) => window.GEAPAbsences?.pickInfo?.(person.id, row) || { norma: 100, competenta: "", absenta: null };
+  const distCandidates = (row) => {
+    const parties = caseParties(row);
+    return redistTeam()
+      .filter((person) => person.rol === "Specialist" && person.subdiviziune === row.subdiviziune && !parties.has(person.nume))
+      .map((person) => ({ ...person, load: redistLoad(person.id), ...distPickInfo(person, row) }));
   };
+  /* „Concediu anual până la 17 iul.” — the type + the „Până la” date (short month, the year only when it differs) */
+  const distAbsenceText = (absence) => {
+    if (!absence) return "";
+    const to = absence.to ? parseIsoDate(absence.to) : null;
+    if (!to) return absence.type;
+    const sameYear = to.getFullYear() === (parseIsoDate(dossierDb?.today || localIsoNow().slice(0, 10)) || new Date()).getFullYear();
+    return `${absence.type} până la ${to.toLocaleDateString("ro-RO", { day: "numeric", month: "short", ...(sameYear ? {} : { year: "numeric" }) })}`;
+  };
+  /* one person = one two-line option: name · „N dosare în examinare · Norma 80%” · Small tags (amber „Fără competență”
+     when the competence is „Nu” — still selectable, AC-18; neutral absence tag — the option is unavailable, AC-17) */
+  const distOption = (person) => ({
+    codeless: true,
+    code: person.id,
+    label: person.nume,
+    meta: `${roCount(person.load, "dosar în examinare", "dosare în examinare")} · Norma ${person.norma ?? 100}%`,
+    unavailable: Boolean(person.absenta),
+    tagsHtml: [
+      person.competenta === "nu" ? renderTag("Fără competență", "warning") : "",
+      person.absenta ? renderTag(distAbsenceText(person.absenta), "neutral") : ""
+    ].join("")
+  });
+  /* the searchable list with the two-line options (window.GEAPFormRender.comboboxHtml = the FO CAEM combobox);
+     inRow: a field of the redistribution transfer row (its error drawn under the whole row) */
+  const caseCombo = (key, label, people, { required = false, placeholder = "Alege specialistul", hint = "", inRow = false } = {}) => window.GEAPFormRender?.comboboxHtml?.({
+    id: `case-${key}`, label, required, placeholder, float: true,
+    searchLabel: "Caută după nume",
+    emptyTitle: "Niciun specialist găsit", emptyText: "Caută după nume sau prenume.",
+    options: people.map(distOption),
+    value: caseDraft.values[key] || "",
+    error: Boolean(caseDraft.errors[key]),
+    fieldClass: inRow ? "e-permits-fo-field" : "e-permits-fo-field e-permits-user-create__field",
+    rootAttrs: `data-case-combo="${escapeHtml(key)}"`,
+    after: inRow ? "" : `${caseFieldError(key)}${hint && !caseDraft.errors[key] ? `<p class="e-permits-fo-field__hint">${escapeHtml(hint)}</p>` : ""}`
+  }) || "";
+  /* „16 noiembrie 2026, 14:05” */
+  const distStamp = (iso) => `${formatLongDate(iso.slice(0, 10))}, ${iso.slice(11, 16)}`;
 
   const CASE_REVIEW_INSTITUTIONS = ["Agenția Națională pentru Siguranța Alimentelor", "Inspectoratul General pentru Situații de Urgență", "Agenția de Mediu", "Inspectoratul de Stat în Construcții"];
 
@@ -5148,16 +5193,23 @@ document.addEventListener("DOMContentLoaded", () => {
     const d = caseDraft;
     const applicant = row.companie || row.numeSolicitant || "—";
     switch (d.form) {
+      /* US-114 (dist-picker-v1): AC-08 / AC-09 locked case data + who / when, „Specialist desemnat” = the searchable
+         two-line list for the Supervisor (AC-11…18), the own name, locked, for the Specialist (AC-19), „Instrucțiuni”
+         prefilled „Spre examinare” (AC-20) */
       case "distribuire":
         return `
           <div class="e-permits-user-create__grid">
-            ${caseReadonly("Numărul dosarului", row.nrDosar)}
-            ${caseReadonly("Data depunerii", formatDate(row.dataDepunerii))}
-            ${caseReadonly("Serviciul", row.serviciu, 12)}
+            ${caseReadonly("Număr dosar", row.nrDosar)}
+            ${caseReadonly("Data depunerii", formatLongDate(row.dataDepunerii))}
+            ${caseReadonly("Denumire serviciu", row.serviciu, 12)}
             ${caseReadonly("Solicitant", applicant)}
-            ${caseReadonly("Termenul de examinare", formatDate(row.termenExaminare))}
+            ${caseReadonly("Termenul de examinare", formatLongDate(row.termenExaminare))}
+            ${caseReadonly("Distribuit de", currentUserName())}
+            ${caseReadonly("Distribuit la", distStamp(d.values.distribuitLa || localIsoNow()))}
           </div>
-          ${caseSelect("specialist", "Specialist", caseSpecialists().map((person) => [person.id, `${person.nume} · ${person.load} ${person.load === 1 ? "dosar" : "dosare"} în lucru`]), { required: true, placeholder: "Alege specialistul", hint: "Numărul de dosare în lucru ajută la o repartizare echilibrată." })}
+          ${d.values.specialist === CASE_SELF
+            ? caseReadonly("Specialist desemnat", currentUserName(), 0)
+            : caseCombo("specialist", "Specialist desemnat", distCandidates(row), { required: true, hint: "Specialiștii activi ai subdiviziunii. Cei absenți nu pot fi aleși." })}
           ${caseTextarea("instructiuni", "Instrucțiuni", { required: true })}
         `;
       /* US-295: one case from its header or several from „Dosarele subdiviziunii” — Manual · Automat only
@@ -5180,7 +5232,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const picked = [...new Set(plan.filter(Boolean).map((person) => person.nume))];
         const unplaced = plan.filter((person) => !person).length;
         const next = mode === "manual"
-          ? caseSelect("specialist", "Responsabil nou", people.map((person) => [person.id, `${person.nume} · ${roCount(person.load, "dosar în lucru", "dosare în lucru")}`]), { required: true, placeholder: "Alege specialistul", inRow: true })
+          ? caseCombo("specialist", "Responsabil nou", people.map((person) => ({ ...person, ...distPickInfo(person, rows[0]) })), { required: true, inRow: true })
           : caseReadonly("Responsabil nou", picked.length ? `${picked.join(", ")}${unplaced ? ` · ${roCount(unplaced, "dosar", "dosare")} în nedistribuite` : ""}`
             : "Niciun specialist disponibil", 0);
         const rowMessage = mode === "manual" && d.errors.specialist ? caseFieldError("specialist")
@@ -5365,6 +5417,7 @@ document.addEventListener("DOMContentLoaded", () => {
         ${caseDraft.form && caseDraft.form !== "decizie" ? renderNextStep(caseDraft.next) : ""}
       </div>
     `;
+    window.GEAPFormRender?.bind?.(caseModalBody);
     caseModal.querySelector("[data-case-modal-footer]").innerHTML = `
       <div class="modal-buttons">
         <button class="btn btn-neutral btn-rounded" type="button" data-case-close>Anulează</button>
@@ -5400,13 +5453,16 @@ document.addEventListener("DOMContentLoaded", () => {
       /* modal subtitles never carry the dossier number (PO rule) — it stays in the content */
       subtitle: row.serviciu,
       /* operations get a verb; transitions keep their US label */
-      submitLabel: { taxaExaminare: "Adaugă taxele", aviz: "Solicită avizul" }[actionId] || item.label,
+      /* US-114 AC-10: the distribution form = „Confirmă” / „Anulează” */
+      submitLabel: { taxaExaminare: "Adaugă taxele", aviz: "Solicită avizul", distribuie: "Confirmă" }[actionId] || item.label,
       next: item.kind === "operation" ? "" : item.target,
       confirmText: item.kind === "return"
         ? "Dosarul se întoarce la un pas anterior al fluxului."
         : `Confirmă acțiunea „${item.label}”.`,
       values: {
         instructiuni: "Spre examinare",
+        /* US-114 AC-09 / AC-19: the moment the form opens; the Specialist (flow without Supervisor) assigns himself */
+        ...(item.form === "distribuire" ? { distribuitLa: localIsoNow(), ...(currentEngineRole() === "specialist" ? { specialist: CASE_SELF } : {}) } : {}),
         choice: item.form === "redistribuire" ? "manual" : "aprobare",
         fees: [],
         valabilDin: today,
@@ -5416,7 +5472,7 @@ document.addEventListener("DOMContentLoaded", () => {
     };
     renderCaseModal();
     window.__modal?.open?.("#case-action-modal");
-    requestAnimationFrame(() => focusFormControl(caseModalBody.querySelector("[data-case-field], [data-case-select], [data-case-choice], [data-case-fee]") || caseModal.querySelector("[data-case-submit]")));
+    requestAnimationFrame(() => focusFormControl(caseModalBody.querySelector("[data-case-field], [data-case-select], [data-case-combo] .e-permits-fo-caem__button, [data-case-choice], [data-case-fee]") || caseModal.querySelector("[data-case-submit]")));
   };
 
   const closeCaseModal = () => {
@@ -5441,7 +5497,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const errors = {};
     const need = (key, message) => { if (!String(v[key] || "").trim()) errors[key] = message; };
     switch (caseDraft.form) {
-      case "distribuire": need("specialist", "Alege specialistul."); need("instructiuni", "Scrie instrucțiunile."); break;
+      /* US-114 AC-21 / AC-22 (blank = spaces only too) */
+      case "distribuire": need("specialist", "Câmpul Specialist desemnat este obligatoriu."); need("instructiuni", "Câmpul Instrucțiuni este obligatoriu."); break;
       /* US-295 AC-06 / AC-15 */
       case "redistribuire": if (v.choice === "manual") need("specialist", "Alege noul responsabil."); need("motiv", "Indică motivul redistribuirii."); break;
       /* US-296 AC-04 */
@@ -5479,12 +5536,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
     switch (item.id) {
       case "distribuie": {
-        const person = (dossierDb?.specialisti || []).find((entry) => entry.id === values.specialist);
+        /* US-114: the Specialist assigns himself (AC-19); AC-26 / AC-27 the e-mail to the assignee, kept in Notificări */
+        const team = redistTeam();
+        const found = values.specialist === CASE_SELF ? team.find((entry) => entry.nume === me) || personFromName(me) : team.find((entry) => entry.id === values.specialist);
+        const person = found ? { id: found.id, nume: found.nume, initiale: found.initiale, color: found.color, rol: found.rol || "Specialist" } : null;
         row.specialist = person || row.specialist;
         row.repartizatDe = personFromName(me);
         row.nedistribuit = false;
         distRecordSet(row, "manual", me, now);
-        detail = `Repartizat către ${person?.nume || "—"}. Instrucțiuni: ${values.instructiuni}`;
+        if (person) profile.notificari.unshift({ canal: "MNotify", destinatar: person.nume, eveniment: "Dosar distribuit către tine", trimisaLa: formatDateTime(now.slice(0, 10), now.slice(11, 16)), status: "livrata" });
+        detail = `Repartizat către ${person?.nume || "—"}. Instrucțiuni: ${String(values.instructiuni).trim()}`;
         break;
       }
       case "taxaExaminare":
@@ -5580,6 +5641,8 @@ document.addEventListener("DOMContentLoaded", () => {
     /* fees just generated: say exactly what was generated and that the citizen was
        notified, then land on Taxe și plăți */
     if (createdFees.length) { openFeesCreatedModal(row, createdFees, state.suspended ? "Dosar suspendat" : landed?.name || "—"); return; }
+    /* US-114 AC-25 */
+    if (item.id === "distribuie") { showShellToast("Dosarul a fost distribuit cu succes.", "success"); return; }
     showShellToast(item.kind === "operation" ? detail || item.label : `Pas curent: ${state.suspended ? "Dosar suspendat" : landed?.name || "—"}.`, "success", item.label);
   };
 
@@ -5729,7 +5792,16 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!caseDraft) return;
     if (!validateCaseDraft()) {
       renderCaseModal();
-      focusFormControl(caseModalBody.querySelector(".is-error input, .is-error textarea, .e-permits-fo-select.is-error .e-permits-fo-select__button, [data-case-fee]"));
+      focusFormControl(caseModalBody.querySelector(".e-permits-fo-input.is-error input, .is-error textarea, .e-permits-fo-select.is-error .e-permits-fo-select__button, .e-permits-fo-caem.is-error .e-permits-fo-caem__button, [data-case-fee]"));
+      return;
+    }
+    /* US-114 AC-29 / AC-30 / AC-33 (demo ?distribuie=eroare): nothing changes, the form stays open to try again, the
+       failed attempt is journaled. AC copy says „Încercați” — the tu rule makes it „Încearcă” (PO to confirm) */
+    if (caseDraft.form === "distribuire" && REDIST_PARAMS.get("distribuie") === "eroare") {
+      const failed = getDosarById(caseDraft.rowId);
+      caseFlowOf(failed)?.state.log.unshift({ at: localIsoNow(), user: currentUserName(), type: "Distribuire", status: "Eșuat", detail: "Distribuirea nu a fost efectuată: eroare de sistem. Dosarul a rămas nedistribuit." });
+      renderDosarProfil(failed);
+      showShellToast("A apărut o eroare. Distribuirea nu a fost efectuată. Încearcă din nou.", "error");
       return;
     }
     if (caseDraft.form === "redistribuire") { submitRedistribution(); return; }
@@ -5829,6 +5901,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
   caseModal?.addEventListener("change", (event) => {
     if (!caseDraft) return;
+    /* the searchable list (dist-picker-v1): the chosen option's code; redraw = the error / competence warning follow */
+    const combo = event.target.closest("[data-case-combo]");
+    if (combo) {
+      const key = combo.dataset.caseCombo;
+      caseDraft.values[key] = combo.querySelector(".e-permits-fo-caem__option.is-selected")?.dataset.code || "";
+      const hadError = Boolean(caseDraft.errors[key]);
+      delete caseDraft.errors[key];
+      if (hadError || caseDraft.form === "redistribuire") { renderCaseModal(); focusFormControl(caseModalBody.querySelector(`#case-${key}`)); }
+      return;
+    }
     const select = event.target.closest("[data-case-select]");
     if (select) {
       caseDraft.values[select.dataset.caseSelect] = select.value; delete caseDraft.errors[select.dataset.caseSelect];

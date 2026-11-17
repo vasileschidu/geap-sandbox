@@ -25425,7 +25425,7 @@ body:has(:is([aria-haspopup]:not([aria-haspopup="false"]), [role="combobox"], .j
 
 /* the keyboard-active option of a list (= the hover look at rest) still answers the pointer: one step darker
    (hover-audit fo-03u / fo-02p / gh-02q, 2026-10-20 — dropdown item size job) */
-:is(.e-permits-fo-select__option, .e-permits-fo-caem__option, .e-permits-fo-phone__code-option, .e-permits-fo-address-search__option, .e-permits-fo-mdocs__option).is-active:not(.is-disabled):hover {
+:is(.e-permits-fo-select__option, .e-permits-fo-caem__option, .e-permits-fo-phone__code-option, .e-permits-fo-address-search__option, .e-permits-fo-mdocs__option).is-active:not(.is-disabled, .is-unavailable):hover {
   background: var(--color-background-base-tertiary-hover, #d9d9d9);
 }
 
