@@ -2773,8 +2773,40 @@ document.addEventListener("DOMContentLoaded", () => {
       </div>`;
   }
 
+  /* ============================================== ONE PAGE RENDERER (fb-wysiwyg-v1, plan P6b, 2026-11-17)
+     A step's page — header, sections, fields — is drawn by ONE function with the FO markup and CSS
+     (`e-permits-fo-form__header`, `e-permits-fo-form__section`, `e-permits-fo-section-header`,
+     `e-permits-fo-form__section-body`, the FO field renderer). The Preview uses it here; the edit canvas follows
+     (WYSIWYG: the same page with an `editable` flag that only adds attributes). */
   /* the FO renderer's top element gets the builder ids (logic + test data find the cells) */
   const tagged = (html, attrs) => String(html).replace(/^(\s*<[a-z]+)/i, `$1 ${attrs}`);
+  function stepPageHtml(step, { prefix = "pv", lang = "ro" } = {}) {
+    const text = (value) => tr(value, lang) || tr(value, "ro");
+    const index = form.steps.indexOf(step);
+    const head = `
+      <header class="e-permits-fo-form__header">
+        <span class="e-permits-builder__preview-step-meta">Pasul ${index + 1} din ${form.steps.length}</span>
+        <h1>${esc(text(step.title))}</h1>
+        ${text(step.description) ? `<p class="e-permits-fo-section-header__desc">${esc(text(step.description))}</p>` : ""}
+      </header>`;
+    if (step.locked) return `${head}${ui().renderInfoNote?.(`Pas generat de platformă. ${esc(PLATFORM_STEPS[step.platform] || "")}`) || ""}`;
+    return `${head}
+      ${(step.sections || []).map((section) => {
+        const title = text(section.title);
+        const showTitle = section.showTitle !== false && title;
+        return `
+          <section class="e-permits-fo-form__section${showTitle ? "" : " e-permits-fo-form__section--plain"}" ${showTitle ? `aria-labelledby="${prefix}-${section.id}-title"` : `aria-label="${esc(title || "Secțiune")}"`} data-fb-section="${section.id}">
+            ${showTitle ? `
+              <div class="e-permits-fo-section-header${section.showSeparator === false ? " e-permits-fo-section-header--no-border" : ""}">
+                <h2 id="${prefix}-${section.id}-title">${esc(title)}</h2>
+                ${text(section.description) ? `<p class="e-permits-fo-section-header__desc">${esc(text(section.description))}</p>` : ""}
+              </div>` : ""}
+            <div class="e-permits-fo-form__section-body" data-builder-preview-grid>
+              ${section.fields.map((field) => tagged(foHtml(field, { prefix, lang }), `data-fb-field="${field.id}"`)).join("")}
+            </div>
+          </section>`;
+      }).join("")}`;
+  }
 
   function renderPreview() {
     const step = activeStep();
@@ -2811,32 +2843,9 @@ document.addEventListener("DOMContentLoaded", () => {
           </button>
         </li>`;
     }).join("");
-    const head = `
-      <header class="e-permits-fo-form__header">
-        <span class="e-permits-builder__preview-step-meta">Pasul ${index + 1} din ${form.steps.length}</span>
-        <h1>${esc(text(step.title))}</h1>
-        ${text(step.description) ? `<p class="e-permits-fo-section-header__desc">${esc(text(step.description))}</p>` : ""}
-      </header>`;
-    if (step.locked) {
-      el.previewBody.innerHTML = `${head}${ui().renderInfoNote?.(`Pas generat de platformă. ${esc(PLATFORM_STEPS[step.platform] || "")}`) || ""}`;
-      return;
-    }
-    el.previewBody.innerHTML = `${head}
-      ${(step.sections || []).map((section) => {
-        const title = text(section.title);
-        const showTitle = section.showTitle !== false && title;
-        return `
-          <section class="e-permits-fo-form__section${showTitle ? "" : " e-permits-fo-form__section--plain"}" ${showTitle ? `aria-labelledby="pv-${section.id}-title"` : `aria-label="${esc(title || "Secțiune")}"`} data-fb-section="${section.id}">
-            ${showTitle ? `
-              <div class="e-permits-fo-section-header${section.showSeparator === false ? " e-permits-fo-section-header--no-border" : ""}">
-                <h2 id="pv-${section.id}-title">${esc(title)}</h2>
-                ${text(section.description) ? `<p class="e-permits-fo-section-header__desc">${esc(text(section.description))}</p>` : ""}
-              </div>` : ""}
-            <div class="e-permits-fo-form__section-body" data-builder-preview-grid>
-              ${section.fields.map((field) => tagged(foHtml(field, { prefix: "pv", lang }), `data-fb-field="${field.id}"`)).join("")}
-            </div>
-          </section>`;
-      }).join("")}`;
+    /* the one page renderer (stepPageHtml), here with live controls */
+    el.previewBody.innerHTML = stepPageHtml(step, { prefix: "pv", lang });
+    if (step.locked) return;
     R.bind(el.previewBody);
     applyLogic();
   }
