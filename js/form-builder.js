@@ -4222,15 +4222,42 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  /* ---- palette: click = add at the end of the active section; drag = drop where shown */
+  /* ---- palette: click = add AFTER the selected field (a child → after its container), at the end of the selected
+     section, else at the end of the current step's last section; the new field is selected (addField).
+     drag = drop where shown */
+  function insertTarget() {
+    if (state.sel.kind === "field") { const found = findField(state.sel.id); if (found) return { sectionId: found.section.id, index: found.index + 1 }; }
+    if (state.sel.kind === "child") { const found = findChild(state.sel.id); const host = found && findField(found.container.id); if (host) return { sectionId: host.section.id, index: host.index + 1 }; }
+    return { sectionId: "", index: null };
+  }
   el.library.addEventListener("click", (event) => {
     const item = event.target.closest("[data-builder-component]");
     if (!item || item.getAttribute("aria-disabled") === "true") return;
     const type = item.dataset.builderComponent;
     if (type === "section") { addSection(); return; }
-    if (item.dataset.fbPreset) insertPreset(item.dataset.fbPreset, "", null, { focus: false });
-    else addField(type, "", null, { focus: false });
+    const at = insertTarget();
+    if (item.dataset.fbPreset) insertPreset(item.dataset.fbPreset, at.sectionId, at.index, { focus: false });
+    else addField(type, at.sectionId, at.index, { focus: false });
     el.library.querySelector(`[data-builder-component="${type}"]${item.dataset.fbPreset ? `[data-fb-preset="${item.dataset.fbPreset}"]` : ":not([data-fb-preset])"}`)?.focus();
+  });
+
+  /* collapse (PD „Elemente” rail): the card shrinks to the 56 rail — toggle + search — and back; `[` toggles it */
+  const libraryCard = q("[data-fb-library-card]");
+  function setLibraryRail(on, { focus = false } = {}) {
+    state.rail = on;
+    libraryCard.classList.toggle("is-rail", on);
+    q("[data-fb-rail]", libraryCard).hidden = !on;
+    if (focus) q(`${on ? "[data-fb-rail] " : "[data-fb-library-head] "}[data-fb-rail-toggle]`, libraryCard)?.focus();
+  }
+  libraryCard?.addEventListener("click", (event) => {
+    if (event.target.closest("[data-fb-rail-toggle]")) { setLibraryRail(!state.rail, { focus: true }); return; }
+    if (event.target.closest("[data-fb-rail-search]")) { setLibraryRail(false); el.search?.focus(); }
+  });
+  builder.addEventListener("keydown", (event) => {
+    if (event.key !== "[" || event.ctrlKey || event.metaKey || event.altKey || state.mode !== "build") return;
+    if (event.target.closest("input, textarea, select, [contenteditable='true']")) return;
+    event.preventDefault();
+    setLibraryRail(!state.rail, { focus: true });
   });
   el.search?.addEventListener("input", () => { state.query = el.search.value; renderLibrary(); });
   el.search?.closest(".search-input")?.querySelector(".btn-icon.clear")?.addEventListener("click", () => { state.query = ""; window.setTimeout(renderLibrary, 0); });

@@ -1245,6 +1245,20 @@
   max-width: calc(var(--spacing-32, 32px) * 32);
 }
 
+/* Bibliotecă card = PD „Elemente” card (fb-float-p2): head = title + collapse button, search under it, groups, hint */
+.e-permits-builder--canvas .e-permits-builder__library > .e-permits-builder__library-search.e-permits-builder__panel-head {
+  border-bottom: 0;
+  padding: 0 var(--spacing-12, 12px) var(--spacing-8, 8px);
+}
+
+.e-permits-builder--canvas .e-permits-builder__library-list {
+  padding: 0 var(--spacing-8, 8px) var(--spacing-8, 8px);
+}
+
+.e-permits-builder--canvas .e-permits-builder__library .e-permits-pd__rail[hidden] {
+  display: none;
+}
+
 /* the 240 card: a description wraps instead of being cut (no tooltip needed) */
 .e-permits-builder--canvas .e-permits-builder__library-item em {
   white-space: normal;
@@ -1301,6 +1315,15 @@
     width: var(--fb-float-left);
   }
 
+  /* collapsed: the 56 rail (toggle · search) — the card keeps the PD rail width and the page gets the room back */
+  .e-permits-builder--canvas .e-permits-builder__library.is-rail > :not(.e-permits-pd__rail) {
+    display: none;
+  }
+
+  .e-permits-builder--canvas:has(.e-permits-builder__library.is-rail) {
+    --fb-float-left: var(--spacing-56, 56px);
+  }
+
   .e-permits-builder--canvas .e-permits-builder__library-list {
     flex: 1 1 auto;
     min-height: 0;
@@ -1314,6 +1337,12 @@
 }
 
 @media (max-width: 960px) {
+  .e-permits-builder--canvas .e-permits-builder__library .e-permits-pd__rail,
+  .e-permits-builder--canvas .e-permits-builder__library [data-fb-library-head] .e-permits-pd__tool,
+  .e-permits-builder--canvas .e-permits-builder__library .e-permits-pd__palette-hint {
+    display: none;
+  }
+
   .e-permits-builder--canvas :is(.e-permits-builder__library, .e-permits-builder__inspector).e-permits-pd__float {
     animation: none;
     border: 0;

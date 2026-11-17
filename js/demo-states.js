@@ -2725,6 +2725,12 @@
         /* 01 empty service step (new step, one empty section), nothing selected → Date generale */
         "fb-01": fb(async (h) => { await h.click("[data-fb-add-step]"); await h.click("[data-fb-select-form]"); }),
         "fb-01a": fb(async (h) => { await h.fill("[data-builder-library-search]", "dat", { leave: false }); }),
+        /* fb-float-p2: Bibliotecă = PD „Elemente” card — a) collapsed to the rail, b) search with results (a field selected),
+           c) no match, d) a component just inserted after the selected field */
+        "fb-p2a": fb(async (h) => { const t = document.querySelector("[data-fb-library-head] [data-fb-rail-toggle]"); if (t && t.offsetParent) await h.click("[data-fb-library-head] [data-fb-rail-toggle]"); }),
+        "fb-p2b": fb(async (h) => { await pick("fld-name")(h); await h.fill("[data-builder-library-search]", "dat", { leave: false }); }),
+        "fb-p2c": fb(async (h) => { await h.fill("[data-builder-library-search]", "zzzz", { leave: false }); }),
+        "fb-p2d": fb(async (h) => { await pick("fld-name")(h); await lib("date")(h); }),
         "fb-01b": fb(async (h) => { await h.click("[data-fb-add-trigger='sec-object']"); }),
         "fb-02": fb(async (h) => { await h.click("[data-fb-select-form]"); await h.scroll("[data-fb-group-languages]"); }),
         "fb-03": fb(async (h) => { await h.click("[data-fb-step='st-details']"); }),

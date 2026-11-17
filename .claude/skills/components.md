@@ -5053,7 +5053,18 @@ for a global form); version `[data-fb-version]` (global = „Istoric versiuni”
 Placement (`css/form-builder.css`): ≥ 961 the asides are PD floating cards (Bibliotecă 240 left, Proprietăți 320
 right, internal scroll, no resize edge) and the stage pads past them so the page (≤ 1024) is centred in the free canvas;
 Previzualizare / Schemă = white, full width, no cards; ≤ 960 the cards return to the one scrolling column (version /
-Salvează / Publică hidden). P2–P6 of `.claude/handoff/fb-floating-plan.md` replace the card contents.
+Salvează / Publică hidden). P3–P6 of `.claude/handoff/fb-floating-plan.md` replace the other card contents.
+
+**Bibliotecă card = the PD „Elemente” card (fb-float-p2).** `aside[data-fb-library-card].e-permits-builder__library.e-permits-pd__float--left`:
+head `.e-permits-pd__card-head` (title `.e-permits-pd__card-title` + `btn btn-strict btn-sm btn-icon-only e-permits-pd__tool[data-fb-rail-toggle]`,
+icon `sidebar`, `aria-expanded`) → library search (Medium 40, `[data-builder-library-search]`) → groups (`__library-section` /
+`__library-item` two-line rows: icon box + name + caption) with the boxed no-match empty state → footer
+`p.e-permits-pd__palette-hint` „Trage în formular sau apasă pentru a adăuga după câmpul selectat.” The collapse button (or `[`)
+shrinks the card to the 56 `.e-permits-pd__rail` (toggle · search; `.is-rail`, `[data-fb-rail]`) and gives the room back to the page
+(`--fb-float-left`); the search button re-expands and focuses the search. Click on an item inserts AFTER the selected field
+(a selected child → after its container; a selected section → end of it; nothing → end of the current step) and selects it;
+drag still drops where shown. ≤ 960 the collapse, rail and hint are not shown (the one column). Demo `fb-p2a` (collapsed),
+`fb-p2b` (search + a field selected), `fb-p2c` (no match), `fb-p2d` (inserted after the selection).
 
 ### `e-permits-pd__*` — Process Designer (2026-10-14, batches 0–4)
 

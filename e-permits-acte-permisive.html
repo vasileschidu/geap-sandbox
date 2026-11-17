@@ -25,7 +25,7 @@
   <link rel="stylesheet" href="css/page-reveal.css?v=skeleton-v1">
   <link rel="stylesheet" href="msupport/msupport.css?v=20260925-anon">
   <link rel="stylesheet" href="css/empty-state.css?v=empty-v5">
-  <link rel="stylesheet" href="css/form-builder.css?v=fb-float-p1">
+  <link rel="stylesheet" href="css/form-builder.css?v=fb-float-p2">
   <link rel="stylesheet" href="css/process-designer.css?v=fb-float-p1">
   <link rel="stylesheet" href="css/ghiseu.css?v=ofc-submit-v2">
   <link rel="stylesheet" href="css/bo-dossier-flows.css?v=pps-suplinire-v1">
@@ -81,7 +81,7 @@
   <script src="js/trajectory.js?v=trajectory-phone-even-v1"></script>
   <script src="js/event-timeline.js?v=aud-263-v2"></script>
   <script src="js/sticky-sections.js?v=sticky-sections-v1" defer></script>
-  <script src="js/demo-states.js?v=coding-rules-v1"></script>
+  <script src="js/demo-states.js?v=fb-float-p2"></script>
   <script src="js/demo-links.js?v=links-v4"></script>
   <script src="js/bo-context.js?v=copy-tu-v2"></script>
   <!-- the working-days engine (Administrare › Calendar), before the shell seeds the dossier deadlines; after
@@ -109,7 +109,7 @@
   <script src="js/choice-cards.js?v=choice-cards-v7" defer></script>
   <script src="js/e-permits-acte-permisive.js?v=dist-picker-v1" defer></script>
   <!-- Form Builder (after the FO renderer it shares) -->
-  <script src="js/form-builder.js?v=fb-float-p1" defer></script>
+  <script src="js/form-builder.js?v=fb-float-p2" defer></script>
   <script src="core/process-model.js?v=copy-tu-v2" defer></script>
   <script src="js/process-designer.js?v=fb-float-p1" defer></script>
   <script src="js/ghiseu.js?v=doc-viewer-tabs-v1" defer></script>
@@ -2278,9 +2278,12 @@
              palette · canvas (service steps → sections → fields) · properties by selection.
              Canvas cards, Preview and the request form share ONE renderer (window.GEAPFormRender). -->
         <div class="e-permits-builder__workspace" data-builder-workspace>
-          <aside class="e-permits-builder__library e-permits-pd__float e-permits-pd__float--left" aria-label="Bibliotecă de componente">
-            <div class="e-permits-builder__panel-head">
-              <h2>Bibliotecă</h2>
+          <aside class="e-permits-builder__library e-permits-pd__float e-permits-pd__float--left" id="fb-library-panel" aria-label="Bibliotecă de componente" data-fb-library-card>
+            <div class="e-permits-pd__card-head e-permits-builder__library-head" data-fb-library-head>
+              <h2 class="e-permits-pd__card-title" id="fb-library-title">Bibliotecă</h2>
+              <button class="btn btn-strict btn-sm btn-icon-only e-permits-pd__tool" type="button" aria-label="Restrânge biblioteca" data-tooltip-label="Restrânge biblioteca ([)" aria-expanded="true" aria-controls="fb-library-panel" data-fb-rail-toggle><svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-sidebar"></use></svg></button>
+            </div>
+            <div class="e-permits-builder__panel-head e-permits-builder__library-search" data-fb-library-search-wrap>
               <div class="search-input medium rectangular e-permits-workplace__search e-permits-list-search e-permits-list-search--fill">
                 <span class="icon-search" aria-hidden="true"><svg class="icon" width="20" height="20"><use href="assets/icons/sprite.svg#icon-search"></use></svg></span>
                 <input class="input" type="search" placeholder="Caută componente" aria-label="Caută în bibliotecă" autocomplete="off" data-builder-library-search>
@@ -2293,6 +2296,12 @@
               </div>
             </div>
             <div class="e-permits-builder__library-list" data-fb-library></div>
+            <p class="e-permits-pd__palette-hint" id="fb-library-hint" data-fb-library-hint>Trage în formular sau apasă pentru a adăuga după câmpul selectat.</p>
+            <div class="e-permits-pd__rail" data-fb-rail hidden>
+              <button class="btn btn-strict btn-sm btn-icon-only e-permits-pd__tool" type="button" aria-label="Extinde biblioteca" data-tooltip-label="Extinde biblioteca ([)" aria-expanded="false" aria-controls="fb-library-panel" data-fb-rail-toggle><svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-sidebar"></use></svg></button>
+              <i class="e-permits-pd__railsep" aria-hidden="true"></i>
+              <button class="btn btn-strict btn-sm btn-icon-only e-permits-pd__tool" type="button" aria-label="Caută componente" data-tooltip-label="Caută componente" data-fb-rail-search><svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-search"></use></svg></button>
+            </div>
             <button class="e-permits-builder__resize-handle e-permits-builder__resize-handle--left" type="button" aria-label="Redimensionează biblioteca" data-builder-resize-panel="left"></button>
           </aside>
 
