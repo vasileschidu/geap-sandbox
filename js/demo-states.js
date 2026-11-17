@@ -2737,6 +2737,11 @@
         "fb-p3b": fb(async (h) => { await pick("fld-name")(h); }),
         "fb-p3c": fb(async (h) => { await h.click("[data-fb-select-section='sec-activity']"); }),
         "fb-p3d": fb(async (h) => { await pick("fld-name")(h); const t = document.querySelector("[data-fb-panel] [data-fb-props-toggle]"); if (t && t.offsetParent) await h.click("[data-fb-panel] [data-fb-props-toggle]"); }),
+        /* fb-float-p4: bottom toolbar — a) default, b) phone width, c) Structură open (a field selected), d) after an undo */
+        "fb-p4a": fb(),
+        "fb-p4b": fb(async (h) => { const b = document.querySelector("[data-fb-width='phone']"); if (b && b.offsetParent) await h.click("[data-fb-width='phone']"); }),
+        "fb-p4c": fb(async (h) => { await pick("fld-name")(h); const b = document.querySelector("[data-fb-outline-toggle]"); if (b && b.offsetParent) await h.click("[data-fb-outline-toggle]"); }),
+        "fb-p4d": fb(async (h) => { await lib("date")(h); const b = document.querySelector("[data-fb-undo]"); if (b && b.offsetParent) await h.click("[data-fb-undo]"); }),
         "fb-01b": fb(async (h) => { await h.click("[data-fb-add-trigger='sec-object']"); }),
         "fb-02": fb(async (h) => { await h.click("[data-fb-select-form]"); await h.scroll("[data-fb-group-languages]"); }),
         "fb-03": fb(async (h) => { await h.click("[data-fb-step='st-details']"); }),

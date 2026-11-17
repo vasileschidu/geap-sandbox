@@ -284,6 +284,8 @@ document.addEventListener("DOMContentLoaded", () => {
     issues: [],
     undo: [],
     redo: [],
+    width: "desktop",
+    outline: false,
     lastCheckpoint: { key: "", at: 0 },
   };
 
@@ -501,7 +503,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const now = Date.now();
     if (key && key === state.lastCheckpoint.key && now - state.lastCheckpoint.at < 1500) { state.lastCheckpoint.at = now; return; }
     state.undo.push(JSON.stringify(form));
-    if (state.undo.length > 80) state.undo.shift();
+    if (state.undo.length > 50) state.undo.shift();
     state.redo = [];
     state.lastCheckpoint = { key, at: now };
     /* audit (Avansat › Jurnal): the selected field is the one being changed */
@@ -896,6 +898,7 @@ document.addEventListener("DOMContentLoaded", () => {
     renderIssues();
     if (state.mode === "preview") renderPreview();
     if (state.mode === "schema") renderSchema();
+    syncToolbar();
   }
 
   /* after every model change: re-validate, redraw what shows the model, save */
@@ -915,6 +918,7 @@ document.addEventListener("DOMContentLoaded", () => {
     renderIssues();
     if (state.mode === "preview") renderPreview();
     if (state.mode === "schema") renderSchema();
+    syncToolbar();
     if (G) { syncGlobalBar(); return; }
     saveDb();
   }
@@ -924,10 +928,10 @@ document.addEventListener("DOMContentLoaded", () => {
     const meta = COMPONENTS[type];
     const soon = Boolean(meta.soon);
     return `
-      <button class="e-permits-builder__library-item${soon ? " is-disabled" : ""}" type="button"${soon ? ` aria-disabled="true" data-tooltip-reason="În lucru — etapa ${meta.soon} a constructorului"` : ' draggable="true"'} data-builder-component="${type}">
+      <button class="e-permits-builder__library-item e-permits-pd__palette-item${soon ? " is-disabled" : ""}" type="button"${soon ? ` aria-disabled="true" data-tooltip-reason="În lucru — etapa ${meta.soon} a constructorului"` : ' draggable="true"'} data-builder-component="${type}">
         <span>${icon(meta.icon)}</span>
         <strong>${esc(meta.label)}${soon ? (ui().renderTag?.("În curând", "neutral") || "") : ""}</strong>
-        <em>${esc(meta.desc)}</em>
+        <em data-cell-tooltip="${esc(meta.desc)}">${esc(meta.desc)}</em>
       </button>`;
   }
   function renderLibrary() {
@@ -966,6 +970,8 @@ document.addEventListener("DOMContentLoaded", () => {
      above the page (where the PD writes its diagram caption): request types, then service (or „Formulare globale”) ·
      scope · ID · fields · last edit — the old service crumb is now the first meta item (it never was a link) */
   const metaDot = '<i aria-hidden="true"></i>';
+  /* the form ID in the header band = the ONE copy component (value + icon) */
+  const idCopy = (code) => window.GEAPCopyValue?.html?.(code, { label: `Copiază ${code}` }) || `<span>${esc(code)}</span>`;
   function renderTopbarTitle(title, tags) {
     if (el.title) {
       el.title.textContent = title;
@@ -981,14 +987,12 @@ document.addEventListener("DOMContentLoaded", () => {
     renderTopbarTitle(tr(form.title) || "Formular fără titlu", ui().renderTag?.(published ? "Publicat" : "Schiță", published ? "success" : "neutral") || "");
     el.header.innerHTML = `
       <div class="e-permits-builder__service-meta-row">
-        <div class="e-permits-builder__service-kinds" aria-label="Tipuri de solicitare">${(form.requestTypes || []).map((type) => `<span>${esc(type)}</span>`).join("")}</div>
         <div class="e-permits-builder__service-meta">
           <span>${esc(form.service?.name || "Serviciu")}</span>${metaDot}
-          <span class="e-permits-builder__meta-scope">${icon("icon-lock", 16)}Acest serviciu</span>${metaDot}
-          <span>${esc(form.code)}</span>${metaDot}
+          ${idCopy(form.code)}${metaDot}
           <span><strong>${fieldsCount}</strong> câmpuri</span>${metaDot}
-          <span>editat ${esc(longDate(form.editedAt))}</span>${metaDot}
-          <span>de <strong>${esc(form.editedBy)}</strong></span>
+          <span>editat ${esc(longDate(form.editedAt))} de <strong>${esc(form.editedBy)}</strong></span>
+          ${(form.requestTypes || []).length ? `<span class="e-permits-builder__service-kinds" aria-label="Tipuri de solicitare">${form.requestTypes.map((type) => ui().renderTag?.(type, "neutral", { size: "small" }) || `<span>${esc(type)}</span>`).join("")}</span>` : ""}
         </div>
       </div>`;
     if (el.version) el.version.querySelector("span").textContent = form.version;
@@ -1009,7 +1013,7 @@ document.addEventListener("DOMContentLoaded", () => {
       <div class="e-permits-builder__service-meta-row">
         <div class="e-permits-builder__service-meta">
           <span>Formulare globale</span>${metaDot}
-          <span>${esc(form.code)}</span>${metaDot}
+          ${idCopy(form.code)}${metaDot}
           <span><strong>${fieldsCount}</strong> câmpuri</span>${metaDot}
           ${pending ? `${shellApi().renderHeaderStatus?.(G.dirty ? "Modificări nesalvate" : "Modificări nepublicate", "warning", G.dirty ? "" : 'data-fb-pending aria-haspopup="dialog" data-tooltip-text="Vezi modificările"') || ""}${metaDot}` : ""}
           <span>${form.editedAt ? `editat ${esc(stamp(form.editedAt))}` : "editat -"}</span>${form.editedBy ? `${metaDot}<span>de <strong>${esc(form.editedBy)}</strong></span>` : ""}
@@ -3270,6 +3274,7 @@ document.addEventListener("DOMContentLoaded", () => {
     renderCanvas();
     renderPanel();
     if (state.mode === "preview") renderPreview();
+    syncToolbar();
     if (focusLabel) focusPanel('[data-fb-prop="label"], [data-fb-prop="text"], [data-fb-prop="title"]');
   }
 
@@ -4607,6 +4612,103 @@ document.addEventListener("DOMContentLoaded", () => {
     if (G) G.onPublish?.(clone(form), Boolean(G.dirty));
   });
 
+  /* ---- bottom toolbar (fb-float-p4): the PD floating toolbar — undo · redo | page width | Previzualizare | Structură.
+     Undo / redo = the builder history above (limit 50); the width changes the form page on the canvas
+     (data-fb-width on the builder: 100 % / 768 / 375) and, in Previzualizare, the preview device; „Structură” = the
+     outline card (steps › sections › fields, click selects + scrolls to it). */
+  const toolbar = q("[data-fb-toolbar]");
+  const outlineCard = q("[data-fb-outline]");
+  const outlineBody = q("[data-fb-outline-body]");
+  const WIDTHS = { desktop: "Desktop", tablet: "Tabletă (768)", phone: "Telefon (375)" };
+  const isUnavailable = (node, off) => { node.setAttribute("aria-disabled", String(off)); };
+  function renderOutline() {
+    if (!outlineBody) return;
+    const sel = state.sel;
+    outlineBody.innerHTML = `<ul class="e-permits-builder__outline-list" role="tree" aria-label="Structura formularului">${form.steps.map((step, stepIndex) => {
+      const on = sel.kind === "step" && sel.id === step.id;
+      const sections = step.locked ? [] : (step.sections || []);
+      return `<li role="none">
+        <button class="e-permits-builder__outline-item e-permits-builder__outline-item--step${on ? " is-selected" : ""}" type="button" role="treeitem" aria-level="1" aria-current="${on}" data-fb-outline-go="step" data-id="${step.id}">${icon(step.locked ? "icon-lock" : "icon-bullet-list", 16)}<span>${stepIndex + 1}. ${esc(tr(step.title) || "Pas fără titlu")}</span></button>
+        ${sections.length ? `<ul role="group">${sections.map((section) => {
+          const secOn = sel.kind === "section" && sel.id === section.id;
+          return `<li role="none">
+            <button class="e-permits-builder__outline-item e-permits-builder__outline-item--section${secOn ? " is-selected" : ""}" type="button" role="treeitem" aria-level="2" aria-current="${secOn}" data-fb-outline-go="section" data-id="${section.id}"><span>${esc(tr(section.title) || "Secțiune")}</span></button>
+            ${(section.fields || []).length ? `<ul role="group">${section.fields.map((field) => {
+              const fOn = sel.kind === "field" && sel.id === field.id;
+              return `<li role="none"><button class="e-permits-builder__outline-item e-permits-builder__outline-item--field${fOn ? " is-selected" : ""}" type="button" role="treeitem" aria-level="3" aria-current="${fOn}" data-fb-outline-go="field" data-id="${field.id}"><span>${esc(tr(field.label) || comp(field.type)?.label || "Câmp")}</span></button></li>`;
+            }).join("")}</ul>` : ""}
+          </li>`;
+        }).join("")}</ul>` : ""}
+      </li>`;
+    }).join("")}</ul>`;
+  }
+  function syncToolbar() {
+    if (!toolbar) return;
+    const build = state.mode === "build";
+    const hasForm = Boolean(form);
+    const undoBtn = q("[data-fb-undo]", toolbar);
+    const redoBtn = q("[data-fb-redo]", toolbar);
+    isUnavailable(undoBtn, !build || !state.undo.length);
+    isUnavailable(redoBtn, !build || !state.redo.length);
+    toolbar.querySelectorAll("[data-fb-width]").forEach((button) => {
+      const on = button.dataset.fbWidth === state.width;
+      button.setAttribute("aria-checked", String(on));
+      button.tabIndex = on ? 0 : -1;
+    });
+    builder.dataset.fbWidth = state.width;
+    const previewBtn = q("[data-fb-toolbar-preview]", toolbar);
+    previewBtn.setAttribute("aria-pressed", String(state.mode === "preview"));
+    const outlineBtn = q("[data-fb-outline-toggle]", toolbar);
+    isUnavailable(outlineBtn, !build);
+    if (!build) state.outline = false;
+    outlineBtn.setAttribute("aria-pressed", String(state.outline && build));
+    outlineBtn.setAttribute("aria-expanded", String(state.outline && build));
+    outlineCard.hidden = !(state.outline && build && hasForm);
+    if (!outlineCard.hidden) renderOutline();
+  }
+  function setWidth(width) {
+    state.width = WIDTHS[width] ? width : "desktop";
+    state.device = state.width === "phone" ? "mobile" : "desktop";
+    syncToolbar();
+    if (state.mode === "preview") renderPreview();
+  }
+  function setOutline(on, { focus = false } = {}) {
+    state.outline = on;
+    syncToolbar();
+    if (focus) (on ? q("[data-fb-outline-close]", outlineCard) : q("[data-fb-outline-toggle]", toolbar))?.focus();
+  }
+  function goTo(kind, id) {
+    select(kind, id);
+    const target = kind === "field" ? el.canvas.querySelector(`[data-builder-field][data-id="${id}"]`)
+      : kind === "section" ? el.canvas.querySelector(`[data-fb-select-section="${id}"]`)?.closest(".e-permits-builder__step-section") || el.canvas.querySelector(`[data-fb-select-section="${id}"]`)
+      : el.canvas.querySelector(".e-permits-builder__form-header");
+    target?.scrollIntoView?.({ block: kind === "field" ? "center" : "start", behavior: "auto" });
+    outlineBody.querySelector(`[data-fb-outline-go="${kind}"][data-id="${id}"]`)?.focus({ preventScroll: true });
+  }
+  toolbar?.addEventListener("click", (event) => {
+    const button = event.target.closest("button");
+    if (!button || button.getAttribute("aria-disabled") === "true") return;
+    if (button.matches("[data-fb-undo]")) { undo(); return; }
+    if (button.matches("[data-fb-redo]")) { redo(); return; }
+    if (button.matches("[data-fb-width]")) { setWidth(button.dataset.fbWidth); return; }
+    if (button.matches("[data-fb-toolbar-preview]")) { setMode(state.mode === "preview" ? "build" : "preview"); return; }
+    if (button.matches("[data-fb-outline-toggle]")) setOutline(!state.outline);
+  });
+  outlineCard?.addEventListener("click", (event) => {
+    if (event.target.closest("[data-fb-outline-close]")) { setOutline(false, { focus: true }); return; }
+    const go = event.target.closest("[data-fb-outline-go]");
+    if (go) goTo(go.dataset.fbOutlineGo, go.dataset.id);
+  });
+  toolbar?.querySelector("[data-fb-width-group]")?.addEventListener("keydown", (event) => {
+    const keys = Object.keys(WIDTHS);
+    const at = keys.indexOf(state.width);
+    const next = event.key === "ArrowRight" || event.key === "ArrowDown" ? keys[(at + 1) % keys.length] : event.key === "ArrowLeft" || event.key === "ArrowUp" ? keys[(at + keys.length - 1) % keys.length] : "";
+    if (!next) return;
+    event.preventDefault();
+    setWidth(next);
+    toolbar.querySelector(`[data-fb-width="${next}"]`)?.focus();
+  });
+
   /* ---- modes: Editare · Previzualizare · Schemă */
   function setMode(mode = "build") {
     state.mode = mode;
@@ -4621,13 +4723,14 @@ document.addEventListener("DOMContentLoaded", () => {
     el.schema.hidden = mode !== "schema";
     if (mode === "preview") renderPreview();
     if (mode === "schema") renderSchema();
+    syncToolbar();
   }
   builder.querySelectorAll("[data-builder-mode]").forEach((button) => button.addEventListener("click", () => setMode(button.dataset.builderMode)));
   el.preview.addEventListener("click", (event) => {
     const lang = event.target.closest("[data-fb-preview-lang]");
     if (lang) { state.previewLang = lang.dataset.fbPreviewLang; renderPreview(); el.preview.querySelector(`[data-fb-preview-lang="${state.previewLang}"]`)?.focus(); return; }
     const deviceButton = event.target.closest("[data-fb-preview-device]");
-    if (deviceButton) { state.device = deviceButton.dataset.fbPreviewDevice; renderPreview(); el.preview.querySelector(`[data-fb-preview-device="${state.device}"]`)?.focus(); return; }
+    if (deviceButton) { state.device = deviceButton.dataset.fbPreviewDevice; state.width = state.device === "mobile" ? "phone" : "desktop"; syncToolbar(); renderPreview(); el.preview.querySelector(`[data-fb-preview-device="${state.device}"]`)?.focus(); return; }
     const check = event.target.closest("[data-fb-preview-validate]");
     if (check) { if (check.getAttribute("aria-disabled") !== "true") validatePreview(); return; }
     const fill = event.target.closest("[data-fb-preview-fill]");
@@ -4672,6 +4775,7 @@ document.addEventListener("DOMContentLoaded", () => {
         toggle?.focus();
         return;
       }
+      if (state.outline) { setOutline(false, { focus: true }); return; }
       if (state.mode !== "build") { setMode("build"); return; }
       if (state.sel.kind !== "form" || state.sel.id) { select("form"); announce("Nimic selectat."); }
       return;

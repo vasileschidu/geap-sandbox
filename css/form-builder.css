@@ -1227,22 +1227,63 @@
   white-space: nowrap;
 }
 
-/* service line on the canvas: no band, quiet caption (the PD diagram caption), aligned with the page */
-.e-permits-builder--canvas .e-permits-builder__service-header,
-.e-permits-builder--canvas .e-permits-builder__steps {
+/* header band (fb-float-p4b): one white full-width band under the top bar — the form info on ONE line (service · ID ·
+   fields · edited · request-type tags), the step chips under it, a 1px divider at the bottom; the floating cards start
+   below it. Hidden in Previzualizare (as before). */
+.e-permits-builder.e-permits-builder--canvas:not(.e-permits-builder--process) {
+  grid-template-rows: auto auto minmax(0, 1fr);
+}
+
+.e-permits-builder.e-permits-builder--canvas:not(.e-permits-builder--process)[data-mode="preview"] {
+  grid-template-rows: auto minmax(0, 1fr);
+}
+
+.e-permits-builder__band {
+  background: var(--color-background-base-default, #fff);
+  border-bottom: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
+  min-width: 0;
+}
+
+.e-permits-builder.e-permits-builder--canvas[data-mode="preview"] .e-permits-builder__band {
+  display: none;
+}
+
+.e-permits-builder--canvas .e-permits-builder__band :is(.e-permits-builder__service-header, .e-permits-builder__steps) {
   background: transparent;
   border-bottom: 0;
+  min-height: 0;
 }
 
 .e-permits-builder--canvas .e-permits-builder__service-header {
-  padding: var(--spacing-16, 16px) var(--spacing-32, 32px) 0;
+  padding: var(--spacing-12, 12px) var(--spacing-24, 24px) 0;
 }
 
 .e-permits-builder--canvas .e-permits-builder__service-meta-row {
+  flex-wrap: nowrap;
+  gap: var(--spacing-16, 16px);
+  margin: 0;
+}
+
+.e-permits-builder--canvas .e-permits-builder__service-meta {
   flex-wrap: wrap;
-  gap: var(--spacing-8, 8px) var(--spacing-16, 16px);
-  margin: 0 auto;
-  max-width: calc(var(--spacing-32, 32px) * 32);
+  gap: var(--spacing-8, 8px);
+}
+
+.e-permits-builder--canvas .e-permits-builder__service-kinds {
+  gap: var(--spacing-4, 4px);
+  margin-left: var(--spacing-4, 4px);
+}
+
+.e-permits-builder--canvas .e-permits-builder__steps {
+  padding: var(--spacing-8, 8px) var(--spacing-24, 24px) var(--spacing-12, 12px);
+}
+
+.e-permits-builder--canvas .e-permits-builder__steps-group {
+  margin: 0;
+}
+
+.e-permits-builder--canvas .e-permits-builder__stage {
+  grid-template-rows: minmax(0, 1fr);
 }
 
 /* Bibliotecă card = PD „Elemente” card (fb-float-p2): head = title + collapse button, search under it, groups, hint */
@@ -1257,31 +1298,6 @@
 
 .e-permits-builder--canvas .e-permits-builder__library .e-permits-pd__rail[hidden] {
   display: none;
-}
-
-/* the 240 card: a description wraps instead of being cut (no tooltip needed) */
-.e-permits-builder--canvas .e-permits-builder__library-item em {
-  white-space: normal;
-}
-
-.e-permits-builder--canvas .e-permits-builder__service-meta {
-  flex: 1 1 auto;
-}
-
-.e-permits-builder--canvas .e-permits-builder__meta-scope {
-  align-items: center;
-  display: inline-flex;
-  gap: var(--spacing-4, 4px);
-}
-
-.e-permits-builder--canvas .e-permits-builder__steps {
-  padding: var(--spacing-12, 12px) var(--spacing-32, 32px);
-}
-
-.e-permits-builder--canvas .e-permits-builder__steps-group {
-  margin: 0 auto;
-  max-width: calc(var(--spacing-32, 32px) * 32);
-  width: 100%;
 }
 
 .e-permits-builder--canvas .e-permits-builder__canvas-scroll {
@@ -1380,6 +1396,160 @@
   }
 }
 
+/* Bottom toolbar + outline card (fb-float-p4): the PD toolbar (`.e-permits-pd__toolbar`, same tools / pressed state) centred in the
+   free canvas between the two cards. Page width = data-fb-width on the builder (100 % · 768 · 375). ≥ 961 only; ≤ 960 the
+   toolbar sticks to the bottom of the one scrolling column with undo · redo · Previzualizare (width + Structură need the canvas). */
+.e-permits-builder__toolbar {
+  order: 4;
+}
+
+.e-permits-builder__outline-body {
+  overflow-y: auto;
+  padding: 0 var(--spacing-8, 8px) var(--spacing-8, 8px);
+}
+
+.e-permits-builder__outline-list,
+.e-permits-builder__outline-list ul {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2, 2px);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.e-permits-builder__outline-list ul {
+  margin-top: var(--spacing-2, 2px);
+}
+
+.e-permits-builder__outline-list > li + li {
+  margin-top: var(--spacing-8, 8px);
+}
+
+.e-permits-builder__outline-item {
+  align-items: center;
+  appearance: none;
+  background: transparent;
+  border: 0;
+  border-radius: var(--border-radius-6, 6px);
+  box-sizing: border-box;
+  color: var(--color-text-base-secondary, #383838);
+  cursor: pointer;
+  display: flex;
+  font-family: inherit;
+  font-size: var(--font-size-fs-14, 14px);
+  gap: var(--spacing-8, 8px);
+  line-height: var(--line-height-lh-20, 20px);
+  min-height: var(--spacing-32, 32px);
+  padding: var(--spacing-4, 4px) var(--spacing-8, 8px);
+  text-align: left;
+  width: 100%;
+}
+
+.e-permits-builder__outline-item > span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.e-permits-builder__outline-item--step {
+  color: var(--color-text-base-default, #121212);
+  font-weight: var(--font-weight-fw-medium, 500);
+}
+
+.e-permits-builder__outline-item--section {
+  padding-left: var(--spacing-24, 24px);
+}
+
+.e-permits-builder__outline-item--field {
+  padding-left: var(--spacing-40, 40px);
+}
+
+.e-permits-builder__outline-item .icon {
+  color: currentColor;
+  flex: none;
+}
+
+.e-permits-builder__outline-item:hover {
+  background: var(--color-background-base-tertiary, #f1f1f1);
+  color: var(--color-text-base-default, #121212);
+}
+
+.e-permits-builder__outline-item.is-selected {
+  background: var(--color-background-brand-secondary-hover, #ccdef6);
+  color: var(--color-text-brand-default, #0058d2);
+}
+
+.e-permits-builder__outline-item.is-selected:hover {
+  background: var(--color-background-brand-secondary-active, #99bced);
+}
+
+.e-permits-builder__outline-item:focus-visible {
+  box-shadow: 0 0 0 var(--border-width-2, 2px) var(--color-border-brand-default, #0058d2);
+  outline: none;
+}
+
+.e-permits-builder__outline[hidden] {
+  display: none;
+}
+
+@media (min-width: 961px) {
+  .e-permits-builder--canvas {
+    --fb-toolbar-x: calc(var(--fb-float-left) + var(--pd-inset, 8px) * 2 + (100% - var(--fb-float-left) - var(--fb-float-right) - var(--pd-inset, 8px) * 4) / 2);
+  }
+
+  .e-permits-builder--canvas .e-permits-builder__toolbar,
+  .e-permits-builder--canvas .e-permits-builder__outline {
+    left: var(--fb-toolbar-x);
+    transform: translateX(-50%);
+  }
+
+  .e-permits-builder--canvas .e-permits-builder__outline {
+    bottom: calc(var(--pd-inset, 8px) + var(--pd-toolbar-h, 50px) + var(--spacing-8, 8px));
+    max-height: calc(100% - var(--pd-toolbar-h, 50px) - var(--pd-inset, 8px) * 3 - var(--spacing-8, 8px));
+    top: auto;
+    width: calc(var(--spacing-80, 80px) * 3);
+  }
+
+  /* the page keeps clear of the toolbar */
+  .e-permits-builder--canvas[data-mode="build"] .e-permits-builder__canvas-scroll {
+    padding-bottom: calc(var(--pd-toolbar-h, 50px) + var(--spacing-24, 24px));
+  }
+
+  .e-permits-builder--canvas[data-fb-width="tablet"] .e-permits-builder__canvas {
+    max-width: calc(var(--spacing-8, 8px) * 96);
+  }
+
+  .e-permits-builder--canvas[data-fb-width="phone"] .e-permits-builder__canvas {
+    max-width: calc(var(--spacing-8, 8px) * 47);
+  }
+
+  /* a narrow page reflows like on the device: one field per row */
+  .e-permits-builder--canvas[data-fb-width="phone"] .e-permits-builder__grid > [data-span] {
+    grid-column: 1 / -1;
+  }
+
+  .e-permits-builder--canvas[data-mode="schema"] .e-permits-builder__toolbar {
+    display: none;
+  }
+}
+
+@media (max-width: 960px) {
+  .e-permits-builder--canvas .e-permits-builder__toolbar {
+    align-self: center;
+    bottom: var(--pd-inset, 8px);
+    left: auto;
+    margin: 0 0 var(--pd-inset, 8px);
+    position: sticky;
+    transform: none;
+    z-index: 6;
+  }
+
+  .e-permits-builder--canvas .e-permits-builder__toolbar :is([data-fb-width-group], [data-fb-outline-toggle], .e-permits-pd__toolsep:nth-of-type(2)),
+  .e-permits-builder--canvas .e-permits-builder__outline {
+    display: none;
+  }
+}
+
 /* phones: the service line and the step chips follow the canvas padding (12) */
 @media (max-width: 720px) {
   .e-permits-builder--canvas .e-permits-builder__service-header {
@@ -1387,7 +1557,11 @@
   }
 
   .e-permits-builder--canvas .e-permits-builder__steps {
-    padding: var(--spacing-12, 12px);
+    padding: var(--spacing-8, 8px) var(--spacing-12, 12px) var(--spacing-12, 12px);
+  }
+
+  .e-permits-builder--canvas .e-permits-builder__service-meta-row {
+    flex-wrap: wrap;
   }
 }
 

@@ -183,6 +183,10 @@
    there, so --pd-gx / --pd-gy / --pd-grid keep their defaults) */
 :is(.e-permits-pd__stage, .e-permits-builder--canvas .e-permits-builder__workspace) {
   background-color: var(--color-background-base-secondary, #f5f5f5);
+}
+
+/* the dot grid is the Process Designer's only (user 2026-11-17: the Form Designer canvas is plain) */
+.e-permits-pd__stage {
   /* dots one step lighter (user 2026-10-25: „a little less visible”) */
   background-image: radial-gradient(circle at 1px 1px, var(--color-border-base-default, #d9d9d9) 1px, transparent 1.5px);
   background-position: var(--pd-gx, 0) var(--pd-gy, 0);
