@@ -40,6 +40,7 @@ document.addEventListener("DOMContentLoaded", () => {
     schema: q("[data-builder-schema]"),
     schemaCode: q("[data-builder-schema-code]"),
     panel: q("[data-fb-panel]"),
+    settings: q("[data-fb-settings]"),
     inspector: q("[data-fb-inspector]"),
     errors: q("[data-fb-errors]"),
     errorsLabel: q("[data-fb-errors-label]"),
@@ -931,7 +932,7 @@ document.addEventListener("DOMContentLoaded", () => {
     return `
       <button class="e-permits-builder__library-item e-permits-pd__palette-item${soon ? " is-disabled" : ""}" type="button"${soon ? ` aria-disabled="true" data-tooltip-reason="În lucru — etapa ${meta.soon} a constructorului"` : ' draggable="true"'} data-builder-component="${type}">
         <span>${icon(meta.icon)}</span>
-        <strong>${esc(meta.label)}${soon ? (ui().renderTag?.("În curând", "neutral") || "") : ""}</strong>
+        <strong><span class="e-permits-builder__library-name" data-cell-tooltip="${esc(meta.label)}">${esc(meta.label)}</span>${soon ? (ui().renderTag?.("În curând", "neutral") || "") : ""}</strong>
         <em data-cell-tooltip="${esc(meta.desc)}">${esc(meta.desc)}</em>
       </button>`;
   }
@@ -957,7 +958,7 @@ document.addEventListener("DOMContentLoaded", () => {
           ${saved.map((preset) => `
           <button class="e-permits-builder__library-item" type="button" draggable="true" data-builder-component="${preset.type}" data-fb-preset="${preset.id}">
             <span>${icon(preset.icon || comp(preset.type).icon)}</span>
-            <strong>${esc(preset.name)}${preset.system ? "" : ui().renderTag?.(`v${preset.version}`, "neutral") || ""}</strong>
+            <strong><span class="e-permits-builder__library-name" data-cell-tooltip="${esc(preset.name)}">${esc(preset.name)}</span>${preset.system ? "" : ui().renderTag?.(`v${preset.version}`, "neutral") || ""}</strong>
             <em>${esc(preset.desc || comp(preset.type).label)}</em>
           </button>`).join("")}
         </section>` : "";
@@ -1040,7 +1041,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
   /* „Setări generale formular” (US-333 AC-04…09): ID read-only · Denumire = locked „Formular” + free text + the
      classifier part, one 150 counter on the whole name · Descriere scurtă ≤ 250 · Vizibilitate și acces (required) */
-  function globalPanelHtml() {
+  function globalSettingsSections() {
     const meta = G.meta();
     const fieldsCount = allFields().filter(({ field }) => !NO_VALUE.includes(field.type)).length;
     const full = globalName();
@@ -1059,10 +1060,8 @@ document.addEventListener("DOMContentLoaded", () => {
       <div class="e-permits-fo-textarea${descError ? " is-error" : ""}">
         <textarea id="${descId}" rows="3" aria-describedby="${descId}-hint"${descError ? ' aria-invalid="true"' : ""} data-fb-prop="description" data-fb-i18n>${esc(desc)}</textarea>
       </div>`;
-    return `
-      ${panelHead({ title: "Setări generale formular", subtitle: "Formular global · nu aparține unui serviciu" })}
-      <div class="e-permits-builder__panel-scroll" data-fb-panel-scroll>
-        ${group("Identificare", grid(`
+    return [
+      ["identity", "Identificare", "circle-info", "ID-ul, denumirea, descrierea și vizibilitatea formularului global.", grid(`
           ${inputField({ prop: "code", label: "ID", value: form.code, readonly: true, hint: "Atribuit la creare; nu se modifică." })}
           <div class="e-permits-fo-field e-permits-user-create__field">
             <label for="${nameId}">Denumire${requiredMark()}</label>
@@ -1078,8 +1077,8 @@ document.addEventListener("DOMContentLoaded", () => {
             ${counter(descId, "Se afișează sub denumire, în registru.", desc.length, GLOBAL_DESC_MAX)}
           </div>
           ${selectField({ prop: "access", label: "Vizibilitate și acces", required: true, value: form.access, options: G.access || [], hint: "Cine poate vedea și reutiliza schema în alte servicii." })}
-        `))}
-        ${group("Versiune", `
+        `)],
+      ["version", "Versiune", "history", "Starea, versiunea curentă și ultima editare.", `
           <dl class="e-permits-builder__facts">
             <div><dt>Stare</dt><dd>${ui().renderTag?.(form.status === "published" ? "Publicat" : "Schiță", form.status === "published" ? "success" : "neutral") || ""}</dd></div>
             <div><dt>Versiune</dt><dd>${esc(form.version)}${meta.pending ? " · modificări nepublicate" : G.dirty ? " · modificări nesalvate" : ""}</dd></div>
@@ -1087,8 +1086,8 @@ document.addEventListener("DOMContentLoaded", () => {
             <div><dt>Câmpuri</dt><dd>${fieldsCount}</dd></div>
             <div><dt>Editat</dt><dd>${form.editedAt ? `${esc(stamp(form.editedAt))} · ${esc(form.editedBy || "")}` : "-"}</dd></div>
           </dl>
-        `)}
-      </div>`;
+        `],
+    ];
   }
   /* open a global form: the service form is kept aside and comes back when the builder closes */
   function openGlobal(record, hooks) {
@@ -1096,12 +1095,14 @@ document.addEventListener("DOMContentLoaded", () => {
     G = { ...hooks, dirty: false };
     form = sanitize(clone(record));
     form.steps.forEach((step) => step.sections.forEach((section) => { section.fields = section.fields.map((field) => ({ ...makeField(field.type), ...field, key: field.key || makeField(field.type).key })); }));
-    Object.assign(state, { sel: { kind: "form", id: "settings" }, tab: T_GEN, lang: "ro", undo: [], redo: [], tests: {}, lastCheckpoint: { key: "", at: 0 } });
+    Object.assign(state, { sel: { kind: "form", id: "" }, tab: T_GEN, lang: "ro", undo: [], redo: [], tests: {}, lastCheckpoint: { key: "", at: 0 } });
     state.stepId = serviceSteps()[0]?.id || form.steps[0].id;
     builder.dataset.fbScope = "global";
     overlay?.classList.add("is-sheet");
     if (state.mode !== "build") setMode("build");
     renderAll();
+    /* a global form opens on its „Setări generale” page (ID, name, visibility), as it opened on the settings card before */
+    openSettings({ section: "identity" });
     if (!overlay?.classList.contains("is-active")) window.__modal?.open?.("#form-builder-modal");
     builder.focus({ preventScroll: true });
   }
@@ -1122,6 +1123,7 @@ document.addEventListener("DOMContentLoaded", () => {
     serviceForm = null;
     Object.assign(state, { sel: { kind: "form", id: "" }, undo: [], redo: [] });
     state.stepId = serviceSteps()[0]?.id || form.steps[0].id;
+    if (state.mode === "settings") setMode("build");
     renderAll();
     syncGlobalBar();
     hooks.onClose?.();
@@ -1130,7 +1132,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const button = event.currentTarget;
     if (!G || button.getAttribute("aria-disabled") === "true") return;
     /* US-333 AC-06: an empty / too long name never saves — the issues list points at the field */
-    if (state.issues.some((issue) => issue.level === "error" && issue.kind === "form")) { select("form", "settings"); el.panel.querySelector(`#${pid("nameText")}`)?.focus(); return; }
+    if (state.issues.some((issue) => issue.level === "error" && issue.kind === "form")) { openSettings({ section: "identity", focus: "nameText" }); return; }
     G.onSave?.(clone(form));
   });
   el.version?.addEventListener("click", () => { if (G) G.onVersions?.(); });
@@ -1397,6 +1399,7 @@ document.addEventListener("DOMContentLoaded", () => {
   /* text input bound to a model path; i18n = the panel language */
   function inputField({ prop, label, value, required = false, hint = "", error = "", span = 12, placeholder = "", readonly = false, numeric = false, i18nProp = false, maxlength = 0, attrs = "" }) {
     const id = pid(prop);
+    placeholder = roFallback(prop, i18nProp, value, placeholder);
     const control = `
       <div class="e-permits-fo-input${readonly ? " is-filled is-readonly" : ""}${error ? " is-error" : ""}">
         <input id="${id}" type="text"${numeric ? ' inputmode="numeric"' : ""} value="${esc(value ?? "")}" placeholder="${esc(placeholder)}" autocomplete="off"${readonly ? " readonly" : ""}${maxlength ? ` maxlength="${maxlength}"` : ""}${hint && !error ? ` aria-describedby="${id}-hint"` : ""}${error ? ' aria-invalid="true"' : ""} data-fb-prop="${prop}"${i18nProp ? " data-fb-i18n" : ""}${numeric ? ' data-fb-num' : ""} ${attrs}>
@@ -1405,6 +1408,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
   function textareaField({ prop, label, value, required = false, hint = "", error = "", rows = 2, placeholder = "", i18nProp = false }) {
     const id = pid(prop);
+    placeholder = roFallback(prop, i18nProp, value, placeholder);
     const control = `
       <div class="e-permits-fo-textarea${error ? " is-error" : ""}">
         <textarea id="${id}" rows="${rows}" placeholder="${esc(placeholder)}"${error ? ' aria-invalid="true"' : ""} data-fb-prop="${prop}"${i18nProp ? " data-fb-i18n" : ""}>${esc(value ?? "")}</textarea>
@@ -1500,9 +1504,15 @@ document.addEventListener("DOMContentLoaded", () => {
             return `<button class="segment-item${on ? " is-selected" : ""}" type="button" role="radio" aria-checked="${on}" aria-label="${name}${done ? "" : " — traducere incompletă"}" data-fb-lang="${lang}">${lang.toUpperCase()}${done ? "" : '<span class="e-permits-ntpl-dot" aria-hidden="true"></span>'}</button>`;
           }).join("")}
         </div>
-      </div>`;
+      </div>
+      ${state.lang === "ro" ? "" : `<div class="e-permits-builder__lang-note">${ui().renderInfoNote?.("Câmpurile fără traducere apar în română pentru solicitant.") || ""}</div>`}`;
   }
-  const langNote = () => (state.lang === "ro" ? "" : `<p class="e-permits-fo-field__hint">Fără traducere, solicitantul vede textul în română.</p>`);
+  /* an empty RU / EN text shows the RO text as a grey placeholder: what the applicant will see (the hint lives once, in langSwitch) */
+  const roFallback = (prop, i18nProp, value, placeholder) => {
+    if (placeholder || value || !i18nProp || state.lang === "ro") return placeholder || "";
+    const target = selectedTarget();
+    return target ? tr(getPath(target, prop)) : "";
+  };
   const langLabel = (label) => `${label} (${state.lang.toUpperCase()})`;
 
   /* where the element lives = the library breadcrumb (one renderer, js/breadcrumbs.js — 2026-10-21 breadcrumb-v1), running
@@ -1527,6 +1537,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function renderPanel() {
+    if (state.mode === "settings") renderSettingsPage();
     const active = document.activeElement;
     const focusId = el.panel.contains(active) ? active.id : "";
     const caret = focusId && typeof active.selectionStart === "number" ? [active.selectionStart, active.selectionEnd] : null;
@@ -1540,9 +1551,9 @@ document.addEventListener("DOMContentLoaded", () => {
     else if (state.sel.kind === "child") html = childPanelHtml(findChild(state.sel.id));
     else if (state.sel.kind === "section") html = sectionPanelHtml(findSection(state.sel.id));
     else if (state.sel.kind === "step") html = stepPanelHtml(stepById(state.sel.id));
-    else html = state.sel.kind === "form" && state.sel.id === "settings" ? formPanelHtml() : emptyPanelHtml();
+    else html = emptyPanelHtml();
     el.panel.innerHTML = html;
-    el.inspector.classList.toggle("is-compact", state.sel.kind === "form" && state.sel.id !== "settings");
+    el.inspector.classList.toggle("is-compact", state.sel.kind === "form");
     el.panel.dataset.fbFor = key;
     window.GEAPDatePicker?.init?.(el.panel);
 
@@ -1593,52 +1604,50 @@ document.addEventListener("DOMContentLoaded", () => {
       </div>`;
   }
 
-  /* ---- „Date generale formular” (spec § E) — opened from the empty card or the title (select("form", "settings")) */
-  function formPanelHtml() {
-    if (G) return globalPanelHtml();
+  /* ---- „Date generale formular” (spec § E) — now the „Setări generale” mode; opened from the empty card, the title, an issue (select("form", "settings")) */
+  function formSettingsSections() {
+    if (G) return globalSettingsSections();
     const fieldsCount = allFields().filter(({ field }) => !NO_VALUE.includes(field.type)).length;
     const texts = translatable();
     const langCount = (lang) => texts.filter((item) => item.ro && item.value(lang)).length;
     const roTotal = texts.filter((item) => item.ro).length;
     const published = form.status === "published" && !form.dirty;
     const errorsCount = state.issues.filter((issue) => issue.level === "error").length;
-    return `
-      ${panelHead({ title: "Date generale formular", subtitle: form.service?.name || "" })}
-      <div class="e-permits-builder__panel-scroll" data-fb-panel-scroll>
+    return [
+      ["identity", "Identificare", "circle-info", "Denumirea tehnică, codurile, titlul și descrierea formularului, în limba aleasă.", `
         ${langSwitch([form.title, form.description])}
-        ${group("Identificare", grid(`
+        ${grid(`
           ${inputField({ prop: "technical", label: "Denumire tehnică", value: form.technical, readonly: true, hint: "Se stabilește la creare și nu se mai schimbă." })}
           ${inputField({ prop: "code", label: "Cod formular", value: form.code, readonly: true, span: 6 })}
           ${inputField({ prop: "service.rsspCode", label: "Cod serviciu", value: form.service?.rsspCode || "", readonly: true, span: 6 })}
           ${inputField({ prop: "title", label: langLabel("Titlu"), value: tr(form.title, state.lang), required: state.lang === "ro", i18nProp: true, maxlength: 150, error: state.lang === "ro" ? propError("form", "", "title") : "" })}
-          ${langNote()}
           ${textareaField({ prop: "description", label: langLabel("Descriere"), value: tr(form.description, state.lang), i18nProp: true, hint: "Maximum 250 de caractere." })}
-        `))}
-        ${group("Utilizare", `
+        `)}`],
+      ["usage", "Utilizare", "link", "Tipurile de solicitare care folosesc formularul și cine îl poate reutiliza.", `
           <div class="e-permits-fo-field">
             <label>Folosit de tipurile de solicitare</label>
             <div class="e-permits-builder__chips">${(form.requestTypes || []).map((type) => ui().renderTag?.(type, "neutral") || "").join("")}</div>
             <p class="e-permits-fo-field__hint">Se schimbă din Pașaport › Tipuri de solicitare.</p>
           </div>
           ${selectField({ prop: "access", label: "Vizibilitate și acces", value: form.access, options: ACCESS, hint: "Cine poate vedea și reutiliza acest formular." })}
-        `)}
-        ${group("Versiune", `
+        `],
+      ["version", "Versiune", "history", "Statutul, versiunea curentă, ultima editare și erorile care blochează publicarea.", `
           <dl class="e-permits-builder__facts">
             <div><dt>Statut</dt><dd>${ui().renderTag?.(published ? "Publicat" : "Schiță", published ? "success" : "neutral") || ""}</dd></div>
             <div><dt>Versiune</dt><dd>${esc(form.version)}${form.dirty ? " · modificări nepublicate" : ""}</dd></div>
             <div><dt>Editat</dt><dd>${esc(longDate(form.editedAt))} · ${esc(form.editedBy)}</dd></div>
             <div><dt>Probleme</dt><dd>${errorsCount ? `${errorsCount} ${errorsCount === 1 ? "eroare" : "erori"} — publicarea e blocată` : "Fără erori"}</dd></div>
           </dl>
-        `)}
-        ${group("Limbi", `
+        `],
+      ["languages", "Limbi", "globe", "Câte texte sunt traduse în rusă și în engleză.", `
           <dl class="e-permits-builder__facts" data-fb-group-languages>
             <div><dt>Română</dt><dd>Obligatorie · ${langCount("ro")}/${roTotal}</dd></div>
             <div><dt>Rusă</dt><dd>${langCount("ru")}/${roTotal} traduse</dd></div>
             <div><dt>Engleză</dt><dd>${langCount("en")}/${roTotal} traduse</dd></div>
           </dl>
           <p class="e-permits-fo-field__hint">Un text netradus se afișează în română.</p>
-        `)}
-        ${group("Pași", `
+        `],
+      ["steps", "Pași", "page-text", "Pașii formularului; deschide unul ca să-l editezi.", `
           <ol class="e-permits-builder__step-list">
             ${form.steps.map((step, index) => `
               <li>
@@ -1649,12 +1658,12 @@ document.addEventListener("DOMContentLoaded", () => {
                 </button>
               </li>`).join("")}
           </ol>
-        `)}
-        ${group("Setări completare", `
+        `],
+      ["fill", "Setări completare", "settings", "Cum se comportă formularul când solicitantul îl completează.", `
           ${toggleField({ prop: "settings.autosave", label: "Salvare automată la schimbarea pasului", description: "Solicitantul nu pierde datele dacă iese din cerere (US-21).", checked: form.settings?.autosave })}
           ${toggleField({ prop: "settings.reviewSummary", label: "Rezumat pe secțiuni la Verificare", description: "Pasul de verificare arată răspunsurile grupate pe secțiuni.", checked: form.settings?.reviewSummary })}
-        `)}
-        ${group("Statistici", `
+        `],
+      ["stats", "Statistici", "chart", "Numărul de elemente din formular.", `
           <dl class="e-permits-builder__facts">
             <div><dt>Câmpuri</dt><dd>${fieldsCount}</dd></div>
             <div><dt>Secțiuni</dt><dd>${allSections().length}</dd></div>
@@ -1664,13 +1673,79 @@ document.addEventListener("DOMContentLoaded", () => {
             <div><dt>Componente salvate folosite</dt><dd>${allFields().filter(({ field }) => field.preset).length}</dd></div>
             <div><dt>Grile și blocuri repetabile</dt><dd>${allFields().filter(({ field }) => isContainer(field)).length}</dd></div>
           </dl>
-        `)}
+        `],
+    ];
+  }
+
+  /* ---- „Setări generale” = its own page / mode (fb-float-p6), the Process Designer's page (`.e-permits-pd__settings`, the
+     Servicii › Setări layout `.e-permits-cfg2`): sticky section list left, sections right. The same `data-fb-prop` fields. */
+  let settingsActive = "identity";
+  let settingsSpyUntil = 0;
+  function renderSettingsPage() {
+    if (state.mode !== "settings" || !form) return;
+    const sections = formSettingsSections();
+    if (!sections.some(([key]) => key === settingsActive)) settingsActive = sections[0][0];
+    const active = document.activeElement;
+    const focusId = el.settings.contains(active) ? active.id : "";
+    const caret = focusId && typeof active.selectionStart === "number" ? [active.selectionStart, active.selectionEnd] : null;
+    const top = el.settings.scrollTop;
+    const errorSections = new Set(state.issues.filter((issue) => issue.kind === "form" && issue.level === "error").map(() => "identity"));
+    el.settings.setAttribute("aria-label", G ? "Setări generale ale formularului global" : "Setări generale ale formularului");
+    el.settings.innerHTML = `
+      <div class="e-permits-cfg2 e-permits-pd__settings-page">
+        <nav class="e-permits-cfg2__nav" aria-label="Secțiunile setărilor">
+          <ul role="list">${sections.map(([key, title, ic]) => `
+            <li><a class="e-permits-cfg2__nav-link" href="#fb-set-${key}" data-fb-settings-nav="${key}"${settingsActive === key ? ' aria-current="true"' : ""}>
+              ${icon(`icon-${ic}`, 16).replace('class="icon"', 'class="icon small e-permits-cfg2__nav-icon"')}
+              <span class="e-permits-cfg2__nav-text" data-text="${esc(title)}">${esc(title)}</span>
+              ${errorSections.has(key) ? '<span class="e-permits-cfg2__dot e-permits-cfg2__dot--error" aria-label="Are erori"></span>' : ""}
+            </a></li>`).join("")}</ul>
+        </nav>
+        <div class="e-permits-cfg2__main">
+          ${sections.map(([key, title, , desc, body]) => `
+            <section class="e-permits-cfg2__section" id="fb-set-${key}" data-fb-settings-section="${key}"${key === "languages" ? " data-fb-group-languages-section" : ""} aria-labelledby="fb-set-${key}-title">
+              <div class="e-permits-cfg2__head">
+                <h2 class="e-permits-dosar-profil__section-title" id="fb-set-${key}-title" tabindex="-1">${esc(title)}</h2>
+                <p class="e-permits-cfg2__desc">${esc(desc)}</p>
+              </div>
+              <div class="e-permits-ntpl-card e-permits-clas-create e-permits-cfg-form">${body}</div>
+            </section>`).join("")}
+        </div>
       </div>`;
+    el.settings.scrollTop = top;
+    window.GEAPDatePicker?.init?.(el.settings);
+    if (focusId) {
+      const target = el.settings.querySelector(`#${CSS.escape(focusId)}`);
+      if (target) {
+        target.focus({ preventScroll: true });
+        if (caret && typeof target.setSelectionRange === "function") { try { target.setSelectionRange(caret[0], caret[1]); } catch { /* not a text input */ } }
+      }
+    }
+  }
+  /* open the page (from the mode tab, the title, the „nothing selected” card, an issue); `section` scrolls to it, `focus` an input */
+  function openSettings({ section = "", focus = "" } = {}) {
+    if (state.mode !== "settings") setMode("settings");
+    if (section) {
+      settingsActive = section;
+      renderSettingsPage();
+      scrollSettingsTo(section);
+    }
+    if (focus) {
+      const target = el.settings.querySelector(`[data-fb-prop="${CSS.escape(focus)}"]`) || el.settings.querySelector(`#${CSS.escape(pid(focus))}`);
+      const focusable = target?.matches?.("select[hidden]") ? target.closest("[data-fo-native-select]")?.querySelector("button") : target;
+      focusable?.focus({ preventScroll: true });
+    }
+  }
+  function scrollSettingsTo(key) {
+    const target = el.settings.querySelector(`#fb-set-${key}`);
+    if (!target) return;
+    settingsSpyUntil = Date.now() + 900;
+    el.settings.scrollTo({ top: el.settings.scrollTop + target.getBoundingClientRect().top - el.settings.getBoundingClientRect().top - parseFloat(getComputedStyle(el.settings).paddingTop), behavior: "auto" });
   }
 
   /* ---- step selected → „Pas · {titlu}” */
   function stepPanelHtml(step) {
-    if (!step) return formPanelHtml();
+    if (!step) return emptyPanelHtml();
     const index = form.steps.indexOf(step) + 1;
     if (step.locked) {
       return `
@@ -1700,7 +1775,6 @@ document.addEventListener("DOMContentLoaded", () => {
         ${langSwitch([step.title, step.description])}
         ${group("General", grid(`
           ${inputField({ prop: "title", label: langLabel("Titlu"), value: tr(step.title, state.lang), required: state.lang === "ro", i18nProp: true, maxlength: 80, error: state.lang === "ro" ? propError("step", step.id, "title") : "" })}
-          ${langNote()}
           ${textareaField({ prop: "description", label: langLabel("Descriere"), value: tr(step.description, state.lang), i18nProp: true, hint: "Apare sub titlul pasului, în formular." })}
         `))}
         ${group("Afișat la tipurile de solicitare", `
@@ -1741,7 +1815,6 @@ document.addEventListener("DOMContentLoaded", () => {
         ${langSwitch([section.title, section.description])}
         ${group("Titlu și descriere", grid(`
           ${inputField({ prop: "title", label: langLabel("Titlu"), value: tr(section.title, state.lang), required: state.lang === "ro" && section.showTitle !== false, i18nProp: true, maxlength: 120, error: state.lang === "ro" ? propError("section", section.id, "title") : "" })}
-          ${langNote()}
           ${textareaField({ prop: "description", label: langLabel("Descriere"), value: tr(section.description, state.lang), i18nProp: true, hint: "Text explicativ sub titlu." })}
         `))}
         ${group("Aspect", `
@@ -2057,25 +2130,21 @@ document.addEventListener("DOMContentLoaded", () => {
     if (t === "info") {
       labelBlock = `
         ${textareaField({ prop: "text", label: langLabel("Text"), value: tr(field.text, state.lang), required: state.lang === "ro", i18nProp: true, rows: 4, error: state.lang === "ro" ? err("text") : "" })}
-        ${langNote()}
         ${selectField({ prop: "tone", label: "Ton", value: field.tone || "neutral", options: TONES, hint: "Neutru = nota gri; celelalte = notă colorată." })}`;
     } else if (t === "callout") {
       labelBlock = `
         ${inputField({ prop: "title", label: langLabel("Titlu"), value: tr(field.title, state.lang), i18nProp: true, maxlength: 120, error: state.lang === "ro" ? err("text") : "" })}
-        ${langNote()}
         ${textareaField({ prop: "text", label: langLabel("Text"), value: tr(field.text, state.lang), i18nProp: true, rows: 4 })}
         ${selectField({ prop: "tone", label: "Ton", value: field.tone || "info", options: [["info", "Informare"], ["warning", "Atenționare"]] })}`;
     } else if (t === "consent") {
       labelBlock = `
         ${textareaField({ prop: "text", label: langLabel("Textul declarației"), value: tr(field.text, state.lang), required: state.lang === "ro", i18nProp: true, rows: 4, error: state.lang === "ro" ? err("text") : "" })}
-        ${langNote()}
         ${inputField({ prop: "linkText", label: langLabel("Textul linkului"), value: tr(field.linkText, state.lang), i18nProp: true, error: state.lang === "ro" ? err("linkText") : "", hint: "Exact cum apare în declarație; devine link spre textul legal." })}
         ${inputField({ prop: "linkUrl", label: "Adresa textului legal", value: field.linkUrl || "", placeholder: "https://www.legis.md/…", error: err("linkUrl"), hint: "Se deschide într-o filă nouă." })}
         ${inputField({ prop: "label", label: "Denumire internă", value: tr(field.label), required: true, maxlength: 150, error: err("label"), hint: "Solicitantul nu o vede; apare în reguli, rapoarte și în lista de erori." })}`;
     } else if (containerKind) {
       labelBlock = `
         ${inputField({ prop: "label", label: langLabel("Etichetă"), value: tr(field.label, state.lang), required: state.lang === "ro", i18nProp: true, maxlength: 150, error: state.lang === "ro" ? err("label") : "" })}
-        ${langNote()}
         ${textareaField({ prop: "help", label: langLabel("Text ajutător"), value: tr(field.help, state.lang), i18nProp: true, hint: "Apare sub etichetă. Spune ce se adaugă și câte." })}
         ${t === "repeat" ? `<div class="e-permits-user-create__field"><div class="e-permits-check-options">${checkOption({ prop: "labelHidden", label: "Ascunde eticheta (titlul secțiunii o spune)", checked: field.labelHidden })}</div></div>` : ""}`;
     } else if (t === "hidden") {
@@ -2084,7 +2153,6 @@ document.addEventListener("DOMContentLoaded", () => {
     } else {
       labelBlock = `
         ${inputField({ prop: "label", label: langLabel(t === "checkbox" ? "Textul bifei" : t === "contact" ? "Titlul grupului" : "Etichetă"), value: tr(field.label, state.lang), required: state.lang === "ro", i18nProp: true, maxlength: 150, error: state.lang === "ro" ? err("label") : "" })}
-        ${langNote()}
         ${textareaField({ prop: "help", label: langLabel("Text ajutător"), value: tr(field.help, state.lang), i18nProp: true, hint: "Apare sub câmp. Explică ce se cere, nu repetă eticheta." })}
         ${hasPlaceholder ? inputField({ prop: "placeholder", label: langLabel("Exemplu de completare"), value: tr(field.placeholder, state.lang), i18nProp: true, hint: "Text-exemplu în câmpul gol; nu înlocuiește eticheta." }) : ""}
         ${t === "period" ? `${inputField({ prop: "fromLabel", label: langLabel("Eticheta primei date"), value: tr(field.fromLabel, state.lang), i18nProp: true, span: 6 })}${inputField({ prop: "toLabel", label: langLabel("Eticheta celei de-a doua"), value: tr(field.toLabel, state.lang), i18nProp: true, span: 6 })}` : ""}
@@ -3295,6 +3363,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
   /* =============================================================== ACTIONS */
   function select(kind, id = "", { tab, focusLabel = false } = {}) {
+    if (kind === "form" && id === "settings") { state.sel = { kind: "form", id: "" }; openSettings(); return; }
+    if (state.mode === "settings") setMode("build");
     state.sel = { kind, id };
     if (kind === "field") {
       const found = findField(id);
@@ -3852,7 +3922,9 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   /* ------------------------------------------------------------ event wiring */
-  el.panel.addEventListener("input", (event) => {
+  /* the form-data fields live in the properties card AND in the „Setări generale” page: one set of handlers for both */
+  const onPanel = (type, fn) => { el.panel.addEventListener(type, fn); el.settings.addEventListener(type, fn); };
+  onPanel("input", (event) => {
     const input = event.target;
     if (input.matches("[data-fb-date-rule-offset]")) { onDateRuleEdit(input, true); return; }
     if (input.matches("[data-fb-cond-value]") && input.tagName !== "SELECT") { onRuleEdit(input, true); return; }
@@ -3860,7 +3932,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (input.matches("[data-fb-test-input]")) return;
     if (input.matches("[data-fb-prop]") && input.type !== "checkbox" && input.tagName !== "SELECT") onPanelValue(input, { typing: true });
   });
-  el.panel.addEventListener("change", (event) => {
+  onPanel("change", (event) => {
     const input = event.target;
     if (input.tagName === "SELECT" || input.type === "checkbox") { if (onRuleEdit(input, false)) return; }
     if (input.tagName === "SELECT" && onDateRuleEdit(input, false)) return;
@@ -3917,9 +3989,9 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     if (input.matches("[data-fb-prop]") && (input.type === "checkbox" || input.tagName === "SELECT")) onPanelValue(input, { typing: false });
   });
-  el.panel.addEventListener("click", (event) => {
+  onPanel("click", (event) => {
     const lang = event.target.closest("[data-fb-lang]");
-    if (lang) { state.lang = lang.dataset.fbLang; renderPanel(); el.panel.querySelector(`[data-fb-lang="${state.lang}"]`)?.focus(); return; }
+    if (lang) { state.lang = lang.dataset.fbLang; renderPanel(); (state.mode === "settings" ? el.settings : el.panel).querySelector(`[data-fb-lang="${state.lang}"]`)?.focus(); return; }
     const seg = event.target.closest("[data-fb-seg]");
     if (seg) {
       const target = selectedTarget();
@@ -4020,7 +4092,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (childRow) { select("child", childRow.dataset.fbChildRow); return; }
     runMenuAction(event);
   });
-  el.panel.addEventListener("keydown", (event) => {
+  onPanel("keydown", (event) => {
     /* tabs: ← → like the library tabs (roving tabindex) */
     const tab = event.target.closest("[data-builder-prop-tab]");
     if (tab && ["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) {
@@ -4300,6 +4372,28 @@ document.addEventListener("DOMContentLoaded", () => {
 
   /* the form title in the compact header opens „Date generale” (fb-float-p1: moved from the stage header) */
   el.title?.addEventListener("click", () => select("form", "settings"));
+  /* the page's section list scrolls the page itself and follows the scroll (as the Process Designer's) */
+  el.settings.addEventListener("click", (event) => {
+    const nav = event.target.closest("[data-fb-settings-nav]");
+    if (!nav) return;
+    event.preventDefault();
+    settingsActive = nav.dataset.fbSettingsNav;
+    el.settings.querySelectorAll("[data-fb-settings-nav]").forEach((a) => (a === nav ? a.setAttribute("aria-current", "true") : a.removeAttribute("aria-current")));
+    scrollSettingsTo(settingsActive);
+    el.settings.querySelector(`#fb-set-${settingsActive}-title`)?.focus({ preventScroll: true });
+  });
+  el.settings.addEventListener("scroll", () => {
+    if (settingsSpyUntil && Date.now() < settingsSpyUntil) return;
+    const secs = [...el.settings.querySelectorAll("[data-fb-settings-section]")];
+    if (!secs.length) return;
+    const box = el.settings.getBoundingClientRect();
+    const stick = box.top + box.height * 0.3;
+    const atEnd = Math.ceil(el.settings.scrollTop + el.settings.clientHeight) >= el.settings.scrollHeight - 2;
+    const cur = atEnd ? secs[secs.length - 1] : secs.filter((x) => x.getBoundingClientRect().top <= stick).pop() || secs[0];
+    if (cur.dataset.fbSettingsSection === settingsActive) return;
+    settingsActive = cur.dataset.fbSettingsSection;
+    el.settings.querySelectorAll("[data-fb-settings-nav]").forEach((a) => (a.dataset.fbSettingsNav === settingsActive ? a.setAttribute("aria-current", "true") : a.removeAttribute("aria-current")));
+  }, { passive: true });
 
   el.steps.addEventListener("click", (event) => {
     if (runMenuAction(event)) return;
@@ -4760,9 +4854,9 @@ document.addEventListener("DOMContentLoaded", () => {
     const item = event.target.closest("[data-fb-issue]");
     if (!item) return;
     const { fbIssue: kind, id, tab, prop } = item.dataset;
+    if (kind === "form") { state.lang = "ro"; openSettings({ section: "identity", focus: prop }); return; }
     if (state.mode !== "build") setMode("build");
-    if (kind === "form") { state.lang = "ro"; select("form", "settings"); }
-    else if (kind === "step") select("step", id);
+    if (kind === "step") select("step", id);
     else if (kind === "section") select("section", id, { tab: T_GEN });
     else if (kind === "child") { state.lang = "ro"; select("child", id, { tab }); }
     else { state.lang = "ro"; select("field", id, { tab }); }
@@ -4878,7 +4972,7 @@ document.addEventListener("DOMContentLoaded", () => {
     toolbar.querySelector(`[data-fb-width="${next}"]`)?.focus();
   });
 
-  /* ---- modes: Editare · Previzualizare · Schemă */
+  /* ---- modes: Editare · Previzualizare · Schemă · Setări generale */
   function setMode(mode = "build") {
     state.mode = mode;
     builder.dataset.mode = mode;
@@ -4890,6 +4984,8 @@ document.addEventListener("DOMContentLoaded", () => {
     el.canvas.hidden = mode !== "build";
     el.preview.hidden = mode !== "preview";
     el.schema.hidden = mode !== "schema";
+    el.settings.hidden = mode !== "settings";
+    if (mode === "settings") renderSettingsPage();
     if (mode === "preview") renderPreview();
     if (mode === "schema") renderSchema();
     syncToolbar();

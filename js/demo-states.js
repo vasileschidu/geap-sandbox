@@ -2744,6 +2744,13 @@
         "fb-p4d": fb(async (h) => { await lib("date")(h); const b = document.querySelector("[data-fb-undo]"); if (b && b.offsetParent) await h.click("[data-fb-undo]"); }),
         /* fb-float-p5: step strip — a) default, b) „+” asks for the name inline, c) ⋮ of the active chip open,
            d) after a reorder (2nd service step moved left with Alt+←), e) many steps → scroll + edge fade */
+        /* fb-float-p6: „Setări generale” = 4th mode (the Process Designer's page) — a) service form, c) empty title error,
+           d) section list → Limbi (global form: fb-p6b = frm-04 states) */
+        "fb-p6a": fb(async (h) => { await h.click("[data-builder-mode='settings']"); await h.wait(300); }),
+        "fb-p6c": fb(async (h) => { await h.click("[data-builder-mode='settings']"); await h.fill("[data-fb-settings] #fb-p-title", "", { leave: false }); await h.wait(300); }),
+        "fb-p6d": fb(async (h) => { await h.click("[data-builder-mode='settings']"); await h.click("[data-fb-lang='en']"); await h.wait(300); }),
+        /* fb-p6d above: EN selected (one notice, RO text as placeholder); e = section list → Limbi */
+        "fb-p6e": fb(async (h) => { await h.click("[data-builder-mode='settings']"); const n = document.querySelector("[data-fb-settings-nav='languages']"); if (n && n.offsetParent) await h.click("[data-fb-settings-nav='languages']"); await h.wait(500); }),
         "fb-p5a": fb(),
         "fb-p5b": fb(async (h) => { await h.click("[data-fb-add-step]"); await h.fill("[data-fb-step-name]", "Declarații", { leave: false }); }),
         "fb-p5c": fb(async (h) => { await h.click(".e-permits-builder__steps-group [data-stack-menu-trigger]"); }),
@@ -5118,7 +5125,7 @@
     const create = async (h) => { await h.click(`${M} [data-frm-create]`); await h.wait(350); };
     const name = (text) => async (h) => { await h.fill(`${M} #frm-new-name`, text, { leave: false }); };
     const filled = seq(nou, name("cerere de clarificări"), async (h) => { await h.choose(`${M} select[data-frm-new="nameKind"]`, "examinare"); await h.fill(`${M} #frm-new-desc`, "Întrebările specialistului către solicitant, cu termenul de răspuns.", { leave: false }); });
-    const open = (id) => async (h) => { await h.click(`li[data-workplace-row="${id}"] .e-permits-stack__title`); await h.find(`${FB} [data-fb-panel] #fb-p-nameText`); await h.wait(400); };
+    const open = (id) => async (h) => { await h.click(`li[data-workplace-row="${id}"] .e-permits-stack__title`); await h.find(`${FB} [data-fb-settings] #fb-p-nameText`); await h.wait(400); };
     const edit = (id, run, params) => list(seq(open(id), run), params);
     const typeName = (text) => async (h) => { await h.fill(`${FB} #fb-p-nameText`, text, { leave: false }); await h.wait(200); };
     const save = async (h) => { if (narrow()) document.querySelector(`${FB} [data-fb-save]`).click(); else await h.click(`${FB} [data-fb-save]`); await h.wait(500); };
@@ -5153,9 +5160,10 @@
       "frm-03b": list(filled),
       "frm-03c": list(seq(nou, name("cerere ".repeat(25).trim()), create)),
       "frm-03d": list(seq(filled, create), { formulare: "autoritate-inactiva" }),
-      "frm-03e": list(seq(filled, create, async (h) => { await h.find(`${FB} [data-fb-panel] #fb-p-nameText`); await h.wait(500); })),
+      "frm-03e": list(seq(filled, create, async (h) => { await h.find(`${FB} [data-fb-settings] #fb-p-nameText`); await h.wait(500); })),
       /* US-333 — Setări generale formular in the Form Designer */
       "frm-04": edit("FRM-0101", blur),
+      "fb-p6b": edit("FRM-0101", blur),
       "frm-04a": edit("FRM-0101", typeName("cerere de retragere")),
       "frm-04b": edit("FRM-0101", seq(typeName("cerere de retragere"), save, blur)),
       "frm-04c": edit("FRM-0101", seq(typeName(""), save)),

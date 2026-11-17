@@ -25,7 +25,7 @@
   <link rel="stylesheet" href="css/page-reveal.css?v=skeleton-v1">
   <link rel="stylesheet" href="msupport/msupport.css?v=20260925-anon">
   <link rel="stylesheet" href="css/empty-state.css?v=empty-v5">
-  <link rel="stylesheet" href="css/form-builder.css?v=fb-float-p5c">
+  <link rel="stylesheet" href="css/form-builder.css?v=fb-float-p6b">
   <link rel="stylesheet" href="css/process-designer.css?v=fb-float-p1">
   <link rel="stylesheet" href="css/ghiseu.css?v=ofc-submit-v2">
   <link rel="stylesheet" href="css/bo-dossier-flows.css?v=pps-suplinire-v1">
@@ -82,7 +82,7 @@
   <script src="js/trajectory.js?v=trajectory-phone-even-v1"></script>
   <script src="js/event-timeline.js?v=aud-263-v2"></script>
   <script src="js/sticky-sections.js?v=sticky-sections-v1" defer></script>
-  <script src="js/demo-states.js?v=fb-float-p5c"></script>
+  <script src="js/demo-states.js?v=fb-float-p6b"></script>
   <script src="js/demo-links.js?v=links-v4"></script>
   <script src="js/bo-context.js?v=copy-tu-v2"></script>
   <!-- the working-days engine (Administrare › Calendar), before the shell seeds the dossier deadlines; after
@@ -110,7 +110,7 @@
   <script src="js/choice-cards.js?v=choice-cards-v7" defer></script>
   <script src="js/e-permits-acte-permisive.js?v=dist-picker-v1" defer></script>
   <!-- Form Builder (after the FO renderer it shares) -->
-  <script src="js/form-builder.js?v=fb-float-p5c" defer></script>
+  <script src="js/form-builder.js?v=fb-float-p6b" defer></script>
   <script src="core/process-model.js?v=copy-tu-v2" defer></script>
   <script src="js/process-designer.js?v=fb-float-p1" defer></script>
   <script src="js/ghiseu.js?v=doc-viewer-tabs-v1" defer></script>
@@ -2256,6 +2256,10 @@
               </svg>
               <span>Schemă</span>
             </button>
+            <button class="segment-item" type="button" role="tab" aria-selected="false" aria-label="Setări generale" data-builder-mode="settings">
+              <svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-settings"></use></svg>
+              <span>Setări generale</span>
+            </button>
           </div>
 
           <div class="e-permits-builder__nav-actions">
@@ -2337,6 +2341,7 @@
                 <pre data-builder-schema-code></pre>
               </section>
             </div>
+            <section class="e-permits-pd__settings e-permits-builder__settings" hidden tabindex="-1" aria-label="Setări generale ale formularului" data-fb-settings></section>
             <p class="u-visually-hidden" aria-live="polite" data-fb-live></p>
           </section>
 
@@ -2356,9 +2361,9 @@
             </span>
             <i class="e-permits-pd__toolsep" aria-hidden="true"></i>
             <span class="e-permits-pd__toolgroup" role="radiogroup" aria-label="Lățimea paginii" data-fb-width-group>
-              <button class="btn btn-strict btn-sm btn-icon-only e-permits-pd__tool" type="button" aria-label="Desktop" data-tooltip-label="Desktop" role="radio" aria-checked="true" data-fb-width="desktop"><svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-device-desktop"></use></svg></button>
-              <button class="btn btn-strict btn-sm btn-icon-only e-permits-pd__tool" type="button" aria-label="Tabletă (768)" data-tooltip-label="Tabletă (768)" role="radio" aria-checked="false" tabindex="-1" data-fb-width="tablet"><svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-device-tablet"></use></svg></button>
-              <button class="btn btn-strict btn-sm btn-icon-only e-permits-pd__tool" type="button" aria-label="Telefon (375)" data-tooltip-label="Telefon (375)" role="radio" aria-checked="false" tabindex="-1" data-fb-width="phone"><svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-device-phone"></use></svg></button>
+              <button class="btn btn-strict btn-sm btn-icon-only e-permits-pd__tool" type="button" aria-label="Desktop" data-tooltip-label="Desktop" role="radio" aria-checked="true" data-fb-width="desktop"><svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg?v=device-icons-v1#icon-device-desktop"></use></svg></button>
+              <button class="btn btn-strict btn-sm btn-icon-only e-permits-pd__tool" type="button" aria-label="Tabletă (768)" data-tooltip-label="Tabletă (768)" role="radio" aria-checked="false" tabindex="-1" data-fb-width="tablet"><svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg?v=device-icons-v1#icon-device-tablet"></use></svg></button>
+              <button class="btn btn-strict btn-sm btn-icon-only e-permits-pd__tool" type="button" aria-label="Telefon (375)" data-tooltip-label="Telefon (375)" role="radio" aria-checked="false" tabindex="-1" data-fb-width="phone"><svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg?v=device-icons-v1#icon-device-phone"></use></svg></button>
             </span>
             <i class="e-permits-pd__toolsep" aria-hidden="true"></i>
             <span class="e-permits-pd__toolgroup">

@@ -1234,7 +1234,7 @@
   grid-template-rows: auto auto minmax(0, 1fr);
 }
 
-.e-permits-builder.e-permits-builder--canvas:not(.e-permits-builder--process)[data-mode="preview"] {
+.e-permits-builder.e-permits-builder--canvas:not(.e-permits-builder--process):is([data-mode="preview"], [data-mode="settings"]) {
   grid-template-rows: auto minmax(0, 1fr);
 }
 
@@ -1244,7 +1244,7 @@
   min-width: 0;
 }
 
-.e-permits-builder.e-permits-builder--canvas[data-mode="preview"] .e-permits-builder__band {
+.e-permits-builder.e-permits-builder--canvas:is([data-mode="preview"], [data-mode="settings"]) .e-permits-builder__band {
   display: none;
 }
 
@@ -1377,6 +1377,34 @@
   padding: 0 var(--spacing-8, 8px) var(--spacing-8, 8px);
 }
 
+/* the PD palette density (fb-float-p6, user: „still too much padding”): items sit 8 from the card edge like „Elemente”
+   (the section no longer adds its own 12), group heading 16 above / 8 below */
+.e-permits-builder--canvas .e-permits-builder__library-section {
+  padding: var(--spacing-16, 16px) 0 0;
+}
+
+.e-permits-builder--canvas .e-permits-builder__library-section h3 {
+  padding: 0 var(--spacing-8, 8px) var(--spacing-8, 8px);
+}
+
+/* the title is one line (ellipsis + tooltip), like the caption under it; the „În curând” tag stays after it */
+.e-permits-builder--canvas .e-permits-builder__library-item strong {
+  display: flex;
+  flex-wrap: nowrap;
+  min-width: 0;
+}
+
+.e-permits-builder__library-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.e-permits-builder__library-item strong > .tag {
+  flex: none;
+}
+
 .e-permits-builder--canvas .e-permits-builder__library .e-permits-pd__rail[hidden] {
   display: none;
 }
@@ -1386,8 +1414,18 @@
 }
 
 /* Previzualizare / Schemă: no cards, a plain white page (as before) */
-.e-permits-builder.e-permits-builder--canvas:is([data-mode="preview"], [data-mode="schema"]) .e-permits-builder__workspace {
+.e-permits-builder.e-permits-builder--canvas:is([data-mode="preview"], [data-mode="schema"], [data-mode="settings"]) .e-permits-builder__workspace {
   background: var(--color-background-base-default, #fff);
+}
+
+/* Setări generale (fb-float-p6): the Process Designer's settings page (`.e-permits-pd__settings`, process-designer.css) over
+   the stage — cards, toolbar, outline and the canvas give way; the page is its own mode */
+.e-permits-builder--canvas .e-permits-builder__stage {
+  position: relative;
+}
+
+.e-permits-builder--canvas[data-mode="settings"] :is(.e-permits-builder__library, .e-permits-builder__inspector, .e-permits-builder__toolbar, .e-permits-builder__canvas-scroll) {
+  display: none;
 }
 
 @media (min-width: 961px) {
@@ -1404,7 +1442,7 @@
     position: absolute;
   }
 
-  .e-permits-builder.e-permits-builder--canvas:is([data-mode="preview"], [data-mode="schema"]) .e-permits-builder__stage {
+  .e-permits-builder.e-permits-builder--canvas:is([data-mode="preview"], [data-mode="schema"], [data-mode="settings"]) .e-permits-builder__stage {
     padding: 0;
   }
 
@@ -1615,6 +1653,11 @@
 }
 
 @media (max-width: 960px) {
+  /* the page is the one column (the stage grows with it) */
+  .e-permits-builder--canvas .e-permits-builder__settings {
+    position: static;
+  }
+
   .e-permits-builder--canvas .e-permits-builder__toolbar {
     align-self: center;
     bottom: var(--pd-inset, 8px);
@@ -1795,6 +1838,36 @@
 
 .e-permits-builder__panel-grid {
   gap: var(--spacing-24, 24px);
+}
+
+/* an unclassed grid child (a hint, a note, a facts list) took 1 of 12 columns = one word per line (fb-float-p6): it spans the row */
+.e-permits-builder__panel-grid > :not([class*="e-permits-user-create__field"]) {
+  grid-column: 1 / -1;
+  min-width: 0;
+}
+
+/* hint left (takes the room), counter right (never squeezes the hint) */
+.e-permits-builder .e-permits-ntpl-count {
+  gap: var(--spacing-12, 12px);
+}
+
+.e-permits-builder .e-permits-ntpl-count > span:first-child {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.e-permits-builder .e-permits-ntpl-count__value {
+  flex: none;
+  margin-left: auto;
+}
+
+/* RU / EN: ONE notice under the language switch instead of a hint under every field */
+.e-permits-builder__lang-note {
+  padding-top: var(--spacing-16, 16px);
+}
+
+.e-permits-builder__lang-note + * {
+  margin-top: var(--spacing-16, 16px);
 }
 
 .e-permits-builder__panel-pad {
