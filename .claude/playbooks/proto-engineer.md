@@ -68,6 +68,9 @@ lesson into the sections above when it has proved itself twice. Never delete a l
 - Opening animations use `animation-fill-mode: backwards` (never `both`) and open modals drop
   their layer — otherwise hover stops repainting in GPU Chrome.
 - Floating select lists can ask for a min width: `[data-fo-list-min="120"]`.
+- Form Designer › Editare is the REAL applicant form (WYSIWYG, 2026-11-17): one renderer (`stepPageHtml`, `editable` only adds
+  attributes), every bit of edit chrome in the one overlay layer — never style / wrap a field from the builder. After touching the
+  canvas or the FO field renderer run `tools/ui-qa/fb-parity.mjs` (Editare vs Previzualizare, 0 differences > 1px).
 - Long lists (> 12) → summary field + picker modal; condition builders read as code
   (`Când` / indented rows on a guide line / `și ▾`), value group = mode + input in one border.
 

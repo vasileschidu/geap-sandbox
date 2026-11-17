@@ -1263,7 +1263,7 @@ document.addEventListener("DOMContentLoaded", () => {
      The edit canvas and the Preview draw a step with the SAME function, the SAME FO markup and CSS
      (`e-permits-fo-form__header`, `e-permits-fo-form__section`, `e-permits-fo-section-header`,
      `e-permits-fo-form__section-body`, the FO field renderer). `editable` only ADDS attributes (ids, tabindex,
-     names) — never a wrapper, a class or a box — so the two
+     names) and, after the render, a text span inside a label — never a wrapper, a class or a box — so the two
      layouts are identical (checked by tools/ui-qa/fb-parity.mjs). Everything the editor draws on top (hover
      outline, handle, selection, action bar, insert line, error dots) lives in ONE overlay layer
      (`[data-fb-chrome]`, positioned from the elements' rects) and never takes room in the page. */
@@ -1306,11 +1306,12 @@ document.addEventListener("DOMContentLoaded", () => {
   function stepPageHtml(step, { prefix = "pv", lang = "ro", editable = false } = {}) {
     const text = (value) => tr(value, lang) || tr(value, "ro");
     const index = form.steps.indexOf(step);
+    const open = editable && !step.locked;
     const head = `
       <header class="e-permits-fo-form__header"${editable ? ` data-fb-el="step" data-id="${step.id}" ${HOVER_PROXY} tabindex="0" role="group" aria-label="Pasul ${index + 1}: ${esc(text(step.title))}${step.locked ? ", generat de platformă, nu se editează" : state.sel.kind === "step" && state.sel.id === step.id ? ", selectat" : ""}"${step.locked ? " data-fb-locked" : ""}` : ""}>
         <span class="e-permits-builder__preview-step-meta">Pasul ${index + 1} din ${form.steps.length}</span>
-        <h1>${esc(text(step.title))}</h1>
-        ${text(step.description) ? `<p class="e-permits-fo-section-header__desc">${esc(text(step.description))}</p>` : ""}
+        <h1${open ? ' data-fb-text="title"' : ""}>${esc(text(step.title))}</h1>
+        ${text(step.description) ? `<p class="e-permits-fo-section-header__desc"${open ? ' data-fb-text="description"' : ""}>${esc(text(step.description))}</p>` : ""}
       </header>`;
     if (step.locked) return `${head}${ui().renderInfoNote?.(`Pas generat de platformă. ${esc(PLATFORM_STEPS[step.platform] || "")}`) || ""}`;
     return `${head}
@@ -1324,8 +1325,8 @@ document.addEventListener("DOMContentLoaded", () => {
           <section class="e-permits-fo-form__section${showTitle ? "" : " e-permits-fo-form__section--plain"}" ${showTitle ? `aria-labelledby="${prefix}-${section.id}-title"` : editable ? "" : `aria-label="${esc(title || "Secțiune")}"`} data-fb-section="${section.id}"${editable ? ` data-builder-section data-section-id="${section.id}"${showTitle ? "" : pick}` : ""}>
             ${showTitle ? `
               <div class="e-permits-fo-section-header${section.showSeparator === false ? " e-permits-fo-section-header--no-border" : ""}"${pick}>
-                <h2 id="${prefix}-${section.id}-title">${esc(title)}</h2>
-                ${text(section.description) ? `<p class="e-permits-fo-section-header__desc">${esc(text(section.description))}</p>` : ""}
+                <h2 id="${prefix}-${section.id}-title"${editable ? ' data-fb-text="title"' : ""}>${esc(title)}</h2>
+                ${text(section.description) ? `<p class="e-permits-fo-section-header__desc"${editable ? ' data-fb-text="description"' : ""}>${esc(text(section.description))}</p>` : ""}
               </div>` : ""}
             <div class="e-permits-fo-form__section-body" ${editable ? `data-builder-grid data-section-id="${section.id}"` : "data-builder-preview-grid"}>
               ${section.fields.map((field) => (editable ? editableFieldHtml(field) : tagged(foHtml(field, { prefix, lang }), `data-fb-field="${field.id}"`))).join("")}
@@ -1335,10 +1336,41 @@ document.addEventListener("DOMContentLoaded", () => {
       }).join("")}`;
   }
 
+  /* ---- the texts that are edited in place: a span around the label text, attributes on the others */
+  function wrapText(host, prop) {
+    if (!host) return;
+    const node = [...host.childNodes].find((item) => item.nodeType === 3 && item.nodeValue.trim());
+    const span = document.createElement("span");
+    span.dataset.fbText = prop;
+    span.dataset.fbWrap = "";
+    if (!node) { host.prepend(span); return; }
+    const raw = node.nodeValue;
+    span.textContent = raw.trim();
+    node.replaceWith(raw.match(/^\s*/)[0], span, raw.match(/\s*$/)[0]);
+  }
+  const INLINE_PLACEHOLDER = ["text", "email", "textarea", "number", "money"];
+  function tagTexts(node, field) {
+    const mark = (target, prop) => { if (target) target.dataset.fbText = prop; };
+    const type = field.type;
+    if (type === "callout") { mark(node.querySelector(".e-permits-callout__title"), "title"); mark(node.querySelector(".e-permits-callout__text"), "text"); return; }
+    if (type === "info") { mark(node.querySelector(".info-box__content p, .banner__text"), "text"); return; }
+    if (["separator", "hidden", "consent", "contact", "address"].includes(type)) return;
+    const label = node.matches("fieldset") ? node.querySelector(":scope > legend")
+      : type === "checkbox" ? node.querySelector(":scope > label > span:last-child")
+      : node.querySelector(":scope > label, :scope > .e-permits-fo-field__label-counter > label");
+    wrapText(label, "label");
+    mark([...node.children].find((child) => child.matches(".e-permits-fo-field__hint")), "help");
+    if (INLINE_PLACEHOLDER.includes(type)) mark(node.querySelector(":scope > .e-permits-fo-input > input, :scope > .e-permits-fo-textarea > textarea"), "placeholder");
+    if (type === "radio") node.querySelectorAll(".radio-label").forEach((item, i) => mark(item, `options.${i}.label`));
+    if (type === "checklist") node.querySelectorAll(".e-permits-fo-choice__checks .checkbox-label").forEach((item, i) => wrapText(item, `options.${i}.label`));
+    if (type === "segment") node.querySelectorAll(".segment-item").forEach((item, i) => wrapText(item, `options.${i}.label`));
+  }
   /* the page's controls never take a value, a focus or a click in Editare: every child of a field is inert
      (the field element itself stays the click / focus / drag target) */
   function prepareCanvas() {
     el.canvas.querySelectorAll("[data-builder-field]").forEach((node) => {
+      const field = findField(node.dataset.id)?.field;
+      if (field && field.type !== "hidden") tagTexts(node, field);
       [...node.children].forEach((child) => { child.inert = true; });
     });
   }
@@ -1363,8 +1395,8 @@ document.addEventListener("DOMContentLoaded", () => {
         <button class="btn btn-secondary btn-sm" type="button" data-fb-add-section>${icon("icon-plus-small", 16)}<span>Adaugă secțiune</span></button>
       </div>`}
       <div class="e-permits-builder__chrome" data-fb-chrome></div>
-      <p class="u-visually-hidden" id="${KBD_HINT_ID}">Enter selectează. Săgețile sus și jos trec la elementul vecin. Alt + săgeată sus sau jos mută câmpul, Alt + săgeată stânga sau dreapta schimbă lățimea, Ctrl + D duplică, Delete șterge, Escape deselectează.</p>
-      <p class="u-visually-hidden" id="fb-sec-kbd-hint">Enter selectează secțiunea. Alt + săgeată sus sau jos mută secțiunea.</p>
+      <p class="u-visually-hidden" id="${KBD_HINT_ID}">Enter selectează, apoi Enter editează textul. Săgețile sus și jos trec la elementul vecin. Alt + săgeată sus sau jos mută câmpul, Alt + săgeată stânga sau dreapta schimbă lățimea, Ctrl + D duplică, Delete șterge, Escape deselectează.</p>
+      <p class="u-visually-hidden" id="fb-sec-kbd-hint">Enter selectează secțiunea, apoi Enter editează titlul. Alt + săgeată sus sau jos mută secțiunea.</p>
       <p class="u-visually-hidden" id="fb-sub-kbd-hint">Alt + săgeată stânga sau dreapta (grilă) ori sus sau jos (bloc) mută elementul; Delete îl șterge.</p>`;
     prepareCanvas();
     /* grids on the (inert) canvas: table or cards, by the room they have */
@@ -1470,6 +1502,7 @@ document.addEventListener("DOMContentLoaded", () => {
     return `
       <div class="e-permits-pd__toolbar e-permits-builder__elbar" role="toolbar" aria-label="Acțiuni pentru pasul „${esc(tr(step.title))}”">
         <span class="e-permits-pd__toolgroup">${barType(step.locked ? "icon-lock" : "icon-bullet-list", step.locked ? "Pas generat de platformă" : "Pas")}</span>
+        ${step.locked ? "" : `${barSep}<span class="e-permits-pd__toolgroup">${barTool({ act: "edit-title", label: "Editează titlul", glyph: "icon-edit", tip: "Editează titlul (Enter)" })}</span>`}
       </div>`;
   }
 
@@ -1672,14 +1705,145 @@ document.addEventListener("DOMContentLoaded", () => {
   el.scroll.addEventListener("pointerleave", () => { setHover(null); el.canvas.classList.remove("is-over-text"); if (!WY.pinned) setInsert(null); });
   el.scroll.addEventListener("scroll", () => { setHover(null); if (!WY.pinned) setInsert(null); }, { passive: true });
 
-  /* the texts of the page are edited in Proprietăți for now; editing them in place (step / section titles, labels,
-     help texts, option labels, placeholders) is the next step of fb-wysiwyg-v1 — these are its entry points */
+  /* ============================================== INLINE TEXT (fb-wysiwyg-v1)
+     A click on a text of the page edits it where it is: step title / description, section title / description,
+     field label, help text, option labels, note texts (the element itself becomes contenteditable — same
+     typography, the page reflows as you type) and the placeholder (typed in the real input, in the placeholder
+     colour; it opens on a click in the input of the SELECTED field). Every keystroke writes the RO text to the
+     model and redraws Proprietăți + the step strip (never the page); Enter / blur keeps it, Esc puts the old text
+     back, an empty step title is refused. One undo step per edit. */
   state.textEdit = null;
-  const mainText = () => [];
-  const textAt = () => null;
-  const startTextEdit = () => false;
-  const finishTextEdit = () => {};
-  const dropTextEdit = () => null;
+  const textModel = (kind, id) => (kind === "field" ? findField(id)?.field : kind === "section" ? findSection(id)?.section : kind === "step" ? stepById(id) : null) || null;
+  const readText = (target, prop) => { const value = getPath(target, prop); return value && typeof value === "object" ? String(value.ro || "") : String(value ?? ""); };
+  function writeText(kind, target, prop, value) {
+    const current = getPath(target, prop);
+    const option = prop.match(/^options\.(\d+)\.label$/);
+    if (option) { setPath(target, prop, value); setPath(target, `options.${option[1]}.value`, optionValue(value, Number(option[1]))); }
+    else if (current && typeof current === "object") current.ro = value;
+    else setPath(target, prop, i18n(value));
+    /* Cheie câmp follows the RO label until it was edited or published (as in Proprietăți) */
+    if (kind === "field" && prop === "label" && !target.keyEdited && !target.published) target.key = uniqueKey(camelKey(value || comp(target.type).label), target.id);
+    delete state.tests[target.id];
+  }
+  const editValue = (edit) => (edit.input ? edit.el.value : edit.el.textContent).replace(/[​\n\r]+/g, " ").replace(/\s+/g, " ").trim();
+  function textAt(node, x, y) {
+    if (!node) return null;
+    const scope = node.matches("[data-builder-section]") ? node.querySelector(":scope > .e-permits-fo-section-header") : node;
+    if (!scope) return null;
+    return [...scope.querySelectorAll("[data-fb-text]")].find((item) => { const r = item.getBoundingClientRect(); return r.height > 0 && x >= r.left - 2 && x <= r.right + 2 && y >= r.top - 2 && y <= r.bottom + 2; }) || null;
+  }
+  /* the text Enter edits: the label / title of the element */
+  const mainText = (kind) => (kind === "field" ? ["label", "title", "text"] : ["title"]);
+  function startTextEdit(kind, id, prop, { all = false, x = null, y = null } = {}) {
+    const target = textModel(kind, id);
+    const node = elementNode(kind, id);
+    if (!target || !node || target.locked) return false;
+    const scope = kind === "section" ? node.querySelector(":scope > .e-permits-fo-section-header") : node;
+    const item = scope?.querySelector(`[data-fb-text="${prop}"]`);
+    if (!item || /\n/.test(readText(target, prop))) return false;
+    if (state.textEdit) finishTextEdit(true);
+    const input = item.matches("input, textarea");
+    /* the field's children are inert: free the branch that holds the text for the time of the edit */
+    let branch = null;
+    if (kind === "field") { branch = item; while (branch.parentElement && branch.parentElement !== node) branch = branch.parentElement; branch.inert = false; }
+    const edit = state.textEdit = { kind, id, prop, el: item, input, branch, original: readText(target, prop), changed: false, undoAt: -1 };
+    builder.classList.add("is-text-editing");
+    item.setAttribute("data-fb-editing", "");
+    item.setAttribute("aria-label", `Editează ${prop === "placeholder" ? "textul ajutător din câmp" : prop === "help" ? "textul de ajutor" : prop === "description" ? "descrierea" : /^options/.test(prop) ? "opțiunea" : "textul"}`);
+    if (input) {
+      edit.wasReadOnly = item.readOnly;
+      item.readOnly = false;
+      item.value = edit.original;
+      item.focus({ preventScroll: true });
+      item.select();
+    } else {
+      item.contentEditable = "plaintext-only";
+      if (item.contentEditable !== "plaintext-only") item.contentEditable = "true";
+      item.spellcheck = false;
+      item.focus({ preventScroll: true });
+      const selection = window.getSelection();
+      let range = null;
+      if (!all && x != null && document.caretRangeFromPoint) { range = document.caretRangeFromPoint(x, y); if (range && !item.contains(range.startContainer)) range = null; }
+      if (!range) { range = document.createRange(); range.selectNodeContents(item); if (!all) range.collapse(false); }
+      selection.removeAllRanges();
+      selection.addRange(range);
+    }
+    placeHover();
+    placeInsert();
+    return true;
+  }
+  /* typing: model + Proprietăți + strip follow; the page itself is the text being typed */
+  function onTextInput() {
+    const edit = state.textEdit;
+    const target = edit && textModel(edit.kind, edit.id);
+    if (!target) return;
+    if (!edit.changed) { checkpoint(); edit.changed = true; edit.undoAt = state.undo.length; }
+    writeText(edit.kind, target, edit.prop, editValue(edit));
+    commit({ canvas: false });
+    placeChrome();
+  }
+  /* remove the edit state from the DOM without a render (the caller decides what is redrawn) */
+  function dropTextEdit() {
+    const edit = state.textEdit;
+    if (!edit) return null;
+    state.textEdit = null;
+    builder.classList.remove("is-text-editing");
+    edit.el.removeAttribute("data-fb-editing");
+    edit.el.removeAttribute("aria-label");
+    if (edit.input) { edit.el.value = ""; edit.el.readOnly = Boolean(edit.wasReadOnly); } else edit.el.removeAttribute("contenteditable");
+    if (edit.branch) edit.branch.inert = true;
+    return edit;
+  }
+  function refreshCanvasSoon() {
+    let done = false;
+    const run = () => {
+      if (done) return;
+      done = true;
+      document.removeEventListener("click", afterClick, true);
+      if (!state.textEdit && state.mode === "build") renderCanvas();
+    };
+    const afterClick = () => window.setTimeout(run, 0);
+    document.addEventListener("click", afterClick, true);
+    window.setTimeout(run, 350);
+  }
+  function finishTextEdit(accept, { refocus = false } = {}) {
+    const edit = state.textEdit;
+    if (!edit) return;
+    const value = editValue(edit);
+    const target = textModel(edit.kind, edit.id);
+    dropTextEdit();
+    const refused = accept && edit.kind === "step" && edit.prop === "title" && !value;
+    if (target && edit.changed && (!accept || refused)) {
+      /* back to the text before the edit; the edit's own undo step goes with it */
+      writeText(edit.kind, target, edit.prop, edit.original);
+      if (state.undo.length === edit.undoAt) state.undo.pop();
+      commit();
+    } else if (refocus) {
+      renderCanvas();
+    } else {
+      /* ended by a blur = usually a press somewhere else: the page already shows the text, so it is redrawn (names,
+         error dots, the bar) only AFTER that press became its click — replacing the DOM between mousedown and mouseup
+         would send the click to the wrong element */
+      placeChrome();
+      refreshCanvasSoon();
+    }
+    if (refused) { ui().showShellToast?.("Titlul pasului nu poate fi gol.", "error"); announce("Titlul pasului nu poate fi gol. A rămas cel dinainte."); }
+    if (refocus) (edit.kind === "section" ? el.canvas.querySelector(`[data-fb-select-section="${edit.id}"]`) : elementNode(edit.kind, edit.id))?.focus({ preventScroll: true });
+  }
+  el.canvas.addEventListener("input", (event) => { if (state.textEdit && event.target === state.textEdit.el) onTextInput(); });
+  el.canvas.addEventListener("focusout", (event) => {
+    const edit = state.textEdit;
+    if (!edit || event.target !== edit.el) return;
+    /* the window lost focus (another tab, devtools): the edit goes on when it comes back */
+    if (!document.hasFocus()) return;
+    finishTextEdit(true);
+  });
+  el.canvas.addEventListener("keydown", (event) => {
+    const edit = state.textEdit;
+    if (!edit || event.target !== edit.el) return;
+    event.stopPropagation();
+    if (event.key === "Enter" || event.key === "Tab") { event.preventDefault(); finishTextEdit(true, { refocus: true }); }
+  }, true);
 
   /* --------------------------------------------------- properties panel (spec § D, E) */
   const pid = (prop) => `fb-p-${prop.replace(/[^a-z0-9]+/gi, "-")}`;
@@ -3661,7 +3825,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (focusLabel) focusPanel('[data-fb-prop="label"], [data-fb-prop="text"], [data-fb-prop="title"]');
   }
 
-  /* a new field / section opens with its label / title ready for typing (the panel's field; on the page with the next step) */
+  /* a new field / section opens with its label / title selected for typing, on the page (else the panel's field) */
   function editNew(kind, id, { panel = true } = {}) {
     const node = elementNode(kind, id);
     const scope = kind === "section" ? node?.querySelector(":scope > .e-permits-fo-section-header") : node;
@@ -4662,6 +4826,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const shape = selShape();
       if (tool.dataset.fbBar === "width" && shape?.kind === "field") { setSpan(shape.id, spanOf(findField(shape.id).field) === 12 ? 6 : 12); el.canvas.querySelector('[data-fb-bar="width"]')?.focus({ preventScroll: true }); }
       else if (tool.dataset.fbBar === "logic" && shape?.kind === "field") { const field = findField(shape.id)?.field; select("field", shape.id, { tab: field?.type === "hidden" ? T_DATA : T_LOGIC }); }
+      else if (tool.dataset.fbBar === "edit-title" && shape?.kind === "step") startTextEdit("step", shape.id, "title", { all: true });
       return;
     }
     /* a click on the hover handle (no drag) selects its element */
@@ -5381,6 +5546,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!overlay?.classList.contains("is-active")) return;
     if (event.key === "Escape") {
       if (event.target.matches?.("[data-fb-step-name]")) { event.preventDefault(); event.stopImmediatePropagation(); finishStepEdit(false); return; } /* the step name field cancels itself */
+      if (state.textEdit) { event.preventDefault(); event.stopImmediatePropagation(); finishTextEdit(false, { refocus: true }); return; } /* a text edited on the page: back to what it was */
       if (overlay.classList.contains("is-view-only")) return;
       /* a grid row being edited in the Preview (or its delete dialog): Esc is the grid's (js/fo-grid.js) */
       if (window.GEAPFoRepeat?.escape?.(event.target)) { event.preventDefault(); event.stopImmediatePropagation(); return; }
@@ -5508,6 +5674,7 @@ document.addEventListener("DOMContentLoaded", () => {
     openGlobal, refreshGlobal, isGlobal: () => Boolean(G), globalDirty: () => Boolean(G?.dirty),
     /* fb-wysiwyg-v1: what a pointer does on the page, for demo states (no real pointer there) and checks */
     hover: (kind, id) => setHover(kind ? { kind, id } : null),
+    editText: (kind, id, prop, options) => startTextEdit(kind, id, prop, options),
     /* the insert line in the gap before a field (between rows when it starts a row, else between the two fields) */
     insertBefore: (id) => {
       const card = fieldNode(id);

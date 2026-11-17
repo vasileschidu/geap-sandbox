@@ -2298,6 +2298,32 @@ body:has(.form-builder-modal-overlay.is-active) :is(#case-action-modal, #pending
   opacity: 0.5;
 }
 
+.e-permits-builder__canvas [data-fb-text],
+.e-permits-builder__canvas.is-over-text :is([data-builder-field], [data-fb-el="step"], [data-fb-select-section]) {
+  cursor: text;
+}
+
+/* a text being edited in place: the same typography, a caret, no box */
+.e-permits-builder__canvas [data-fb-editing] {
+  cursor: text;
+  outline: none;
+}
+
+.e-permits-builder__canvas [data-fb-editing]:not(input, textarea) {
+  background: var(--color-background-brand-secondary, #e8f0fb);
+  border-radius: var(--border-radius-2, 2px);
+  box-shadow: 0 0 0 var(--spacing-2, 2px) var(--color-background-brand-secondary, #e8f0fb);
+}
+
+.e-permits-builder__canvas [data-fb-editing]:empty::before {
+  content: "\200b";
+}
+
+/* the placeholder typed in its own input reads as a placeholder */
+.e-permits-builder__canvas :is(input, textarea)[data-fb-editing] {
+  color: var(--color-text-base-tertiary, #757575);
+}
+
 /* ---- the overlay layer */
 /* no z-index here: the layer must not be a stacking context — its fixed menus (⋮, the insert picker) open above the
    floating cards */

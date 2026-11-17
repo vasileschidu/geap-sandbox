@@ -2743,16 +2743,18 @@
         "fb-p4a": fb(),
         /* WYSIWYG canvas (fb-wysiwyg-v1, plan P6b): Editare = the real applicant form; chrome only on hover / selection.
            w01 at rest · w02 a field hovered (grey outline + handle) · w03 a field selected (brand outline + action bar,
-           Proprietăți) · w03a its ⋮ open · w05 a section selected · w06 the insert line
-           between two rows · w06a its component picker · w08 phone width, a field
+           Proprietăți) · w03a its ⋮ open · w04 a label edited in place · w05 a section selected · w06 the insert line
+           between two rows · w06a its component picker · w07 the step title edited in place · w08 phone width, a field
            selected · w09 a platform step hovered (lock) · w10 a grid selected (band of columns under the bar) */
         "fb-w01": fb(),
         "fb-w02": fb(async (h) => { FB().hover("field", "fld-name"); await h.wait(200); }),
         "fb-w03": fb(async (h) => { await pick("fld-name")(h); }),
         "fb-w03a": fb(async (h) => { await menu("fld-name")(h); }),
+        "fb-w04": fb(async (h) => { await pick("fld-name")(h); FB().editText("field", "fld-name", "label", { all: true }); await h.wait(200); }),
         "fb-w05": fb(async (h) => { await h.click("[data-fb-select-section='sec-activity']"); }),
         "fb-w06": fb(async (h) => { FB().insertBefore("fld-raion"); await h.wait(200); }),
         "fb-w06a": fb(async (h) => { FB().insertBefore("fld-raion"); await h.click("[data-fb-insert-add]"); }),
+        "fb-w07": fb(async (h) => { await h.click("[data-fb-el='step']"); FB().editText("step", "st-details", "title", { all: true }); await h.wait(200); }),
         "fb-w08": fb(async (h) => { const b = document.querySelector("[data-fb-width='phone']"); if (b && b.offsetParent) await h.click("[data-fb-width='phone']"); await pick("fld-unit")(h); }),
         "fb-w09": fb(async (h) => { await h.click("[data-fb-step='st-payment']"); FB().hover("locked", "st-payment"); await h.wait(200); }),
         "fb-w10": fb(async (h) => { await lib("grid")(h); await h.click("[data-builder-prop-tab='data']"); await h.scroll("[data-builder-field][data-type='grid']"); }),
