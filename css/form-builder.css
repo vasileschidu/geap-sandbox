@@ -588,206 +588,6 @@
   min-width: 0;
 }
 
-.e-permits-builder__step-section {
-  min-width: 0;
-}
-
-/* section cards: grey canvas, white section (US-06) */
-.e-permits-builder__step-section.has-issue:not(.is-section-selected) {
-  border-color: var(--color-border-warning-secondary, #fedf89);
-}
-
-.e-permits-builder__section-bar {
-  align-items: flex-start;
-  display: flex;
-  gap: var(--spacing-8, 8px);
-  justify-content: space-between;
-  min-width: 0;
-}
-
-.e-permits-builder__section-select {
-  align-items: flex-start;
-  appearance: none;
-  background: transparent;
-  border: 0;
-  border-radius: var(--border-radius-8, 8px);
-  color: var(--color-text-base-default, #121212);
-  cursor: pointer;
-  display: flex;
-  flex: 1 1 auto;
-  font-family: var(--font-family-primary-font, Onest);
-  gap: var(--spacing-8, 8px);
-  min-width: 0;
-  padding: var(--spacing-4, 4px) var(--spacing-8, 8px);
-  text-align: left;
-}
-
-.e-permits-builder__section-select:hover {
-  background: var(--color-background-base-tertiary, #f1f1f1);
-}
-
-.e-permits-builder__section-select:focus-visible {
-  box-shadow: 0 0 0 2px var(--color-background-base-default, #fff), 0 0 0 5px var(--focus-ring, var(--blue-sky-500, #3379db));
-  outline: none;
-}
-
-.e-permits-builder__section-heading {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-2, 2px);
-  min-width: 0;
-}
-
-.e-permits-builder__section-heading strong {
-  font-size: var(--type-heading-h5-font-size, 18px);
-  font-weight: var(--font-weight-fw-semibold, 600);
-  line-height: var(--type-heading-h5-line-height, 26px);
-}
-
-.e-permits-builder__section-heading strong.is-muted {
-  color: var(--color-text-base-tertiary, #757575);
-}
-
-.e-permits-builder__section-heading span {
-  color: var(--color-text-base-secondary, #383838);
-  font-size: var(--font-size-fs-14, 14px);
-  line-height: var(--line-height-lh-20, 20px);
-}
-
-.e-permits-builder__drag-grip {
-  align-items: center;
-  color: var(--color-icon-base-tertiary, #757575);
-  cursor: grab;
-  display: inline-flex;
-  flex: 0 0 auto;
-  height: var(--spacing-24, 24px);
-  justify-content: center;
-  width: var(--spacing-16, 16px);
-}
-
-/* the grip sits beside the header button (an affordance, not the button's icon) */
-.e-permits-builder__section-grip {
-  margin-top: var(--spacing-4, 4px);
-}
-
-.e-permits-builder__section-actions {
-  flex: 0 0 auto;
-  position: relative;
-}
-
-/* field cards: span from the data attribute (no inline styles) */
-.e-permits-builder__grid > [data-span="3"] { grid-column: span 3; }
-.e-permits-builder__grid > [data-span="4"] { grid-column: span 4; }
-.e-permits-builder__grid > [data-span="6"] { grid-column: span 6; }
-.e-permits-builder__grid > [data-span="8"] { grid-column: span 8; }
-.e-permits-builder__grid > [data-span="12"] { grid-column: span 12; }
-
-.e-permits-builder__field {
-  gap: var(--spacing-8, 8px);
-  height: auto;
-}
-
-.e-permits-builder__field:hover {
-  border-color: var(--color-border-base-secondary, #b2b2b2);
-}
-
-.e-permits-builder__field.is-selected:hover {
-  border-color: var(--color-border-brand-default, #0058d2);
-}
-
-.e-permits-builder__field:focus-visible {
-  box-shadow: 0 0 0 2px var(--color-background-base-default, #fff), 0 0 0 5px var(--focus-ring, var(--blue-sky-500, #3379db));
-  outline: none;
-}
-
-.e-permits-builder__field.is-selected:focus-visible {
-  box-shadow:
-    inset 0 0 0 var(--border-width-1, 1px) var(--color-border-brand-default, #0058d2),
-    0 0 0 2px var(--color-background-base-default, #fff),
-    0 0 0 5px var(--focus-ring, var(--blue-sky-500, #3379db));
-}
-
-.e-permits-builder__field.is-dragging {
-  opacity: 0.4;
-}
-
-/* an open ⋮ menu sits above the next cards */
-.e-permits-builder__field:has([data-stack-menu]:not([hidden])),
-.e-permits-builder__step-section:has(.e-permits-builder__section-actions [data-stack-menu]:not([hidden])) {
-  z-index: 20;
-}
-
-.e-permits-builder__step-section:has([data-stack-menu]:not([hidden])) {
-  overflow: visible;
-  position: relative;
-}
-
-.e-permits-builder__field-meta {
-  min-width: 0;
-  overflow: hidden;
-}
-
-/* a long component name truncates from the right (the tag centres its text by default) */
-.e-permits-builder__field-meta .e-permits-builder__tag--strong {
-  display: block;
-  flex: 0 1 auto;
-  line-height: var(--spacing-20, 20px);
-  min-width: 0;
-  text-overflow: ellipsis;
-}
-
-.e-permits-builder__field-actions {
-  position: relative;
-}
-
-/* the field drawn with the FO renderer, inert inside the card */
-.e-permits-builder__field-render {
-  cursor: pointer;
-  min-width: 0;
-}
-
-.e-permits-builder__field-render > * {
-  width: 100%;
-}
-
-.e-permits-builder__field-render .e-permits-fo-form__section-body {
-  padding: 0;
-}
-
-.e-permits-builder__field-foot {
-  align-items: center;
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--spacing-8, 8px);
-  min-height: var(--spacing-20, 20px);
-  min-width: 0;
-}
-
-.e-permits-builder__field-key {
-  color: var(--color-text-base-tertiary, #757575);
-  font-size: var(--font-size-fs-12, 12px);
-  line-height: var(--line-height-lh-16, 16px);
-  max-width: 100%;
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.e-permits-builder__field-foot .e-permits-builder__tag--warning {
-  align-items: flex-start;
-  flex: 0 1 auto;
-  min-width: 0;
-  height: auto;
-  justify-content: flex-start;
-  max-width: 100%;
-  min-height: var(--spacing-20, 20px);
-  padding-bottom: var(--spacing-2, 2px);
-  padding-top: var(--spacing-2, 2px);
-  text-align: left;
-  white-space: normal;
-}
-
 /* Câmp ascuns on the canvas (batch 3): the applicant never sees it, so the card body is a dashed
    „Ascuns · valoare” marker instead of a rendered control — only in Build, never in Preview / FO */
 .e-permits-builder__hidden-marker {
@@ -870,24 +670,9 @@
   z-index: 6;
 }
 
-.e-permits-builder__step-section.is-drop-active {
-  border-color: var(--color-border-brand-default, #0058d2);
-}
-
-.e-permits-builder.is-dragging-component .e-permits-builder__field-render,
-.e-permits-builder.is-dragging-component .e-permits-builder__field-foot {
-  pointer-events: none;
-}
-
 .e-permits-builder__canvas-actions {
   display: flex;
   padding-bottom: var(--spacing-24, 24px);
-}
-
-.e-permits-builder__locked-step {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-16, 16px);
 }
 
 /* service header: the form title opens „Date generale” */
@@ -1132,50 +917,6 @@
 
 .e-permits-builder__step-chip:focus-visible {
   box-shadow: 0 0 0 2px var(--color-background-base-default, #fff), 0 0 0 5px var(--focus-ring, var(--blue-sky-500, #3379db));
-}
-
-/* a field card: a darker border + the card elevation; the selected one keeps its brand ring and lifts too */
-.e-permits-builder__field:hover {
-  box-shadow: var(--shadow-200, 0 1px 3px rgba(0, 0, 0, 0.08), 0 3px 8px rgba(0, 0, 0, 0.08), 0 0 0.5px rgba(0, 0, 0, 0.18));
-}
-
-/* 2026-10-14 · user: „when I select an element hover breaks”. The selected card's hover dropped the inset
-   ring and lightened the halo — under the cursor right after the click it read as „deselected”, not as a
-   hover. Selected + hover = a STRONGER look: ring kept, halo one step darker, lifted. Focus keeps its ring. */
-.e-permits-builder__field.is-selected:hover {
-  box-shadow:
-    inset 0 0 0 var(--border-width-1, 1px) var(--color-border-brand-default, #0058d2),
-    0 0 0 4px var(--color-background-brand-secondary-active, #99bced),
-    var(--shadow-200, 0 1px 3px rgba(0, 0, 0, 0.08), 0 3px 8px rgba(0, 0, 0, 0.08), 0 0 0.5px rgba(0, 0, 0, 0.18));
-}
-
-.e-permits-builder__field:focus-visible:hover {
-  box-shadow:
-    0 0 0 2px var(--color-background-base-default, #fff),
-    0 0 0 5px var(--focus-ring, var(--blue-sky-500, #3379db)),
-    var(--shadow-200, 0 1px 3px rgba(0, 0, 0, 0.08), 0 3px 8px rgba(0, 0, 0, 0.08), 0 0 0.5px rgba(0, 0, 0, 0.18));
-}
-
-.e-permits-builder__field.is-selected:focus-visible:hover {
-  box-shadow:
-    inset 0 0 0 var(--border-width-1, 1px) var(--color-border-brand-default, #0058d2),
-    0 0 0 2px var(--color-background-base-default, #fff),
-    0 0 0 5px var(--focus-ring, var(--blue-sky-500, #3379db)),
-    var(--shadow-200, 0 1px 3px rgba(0, 0, 0, 0.08), 0 3px 8px rgba(0, 0, 0, 0.08), 0 0 0.5px rgba(0, 0, 0, 0.18));
-}
-
-/* a card drags from its tools row only (grip + tags); the body is a click = select */
-.e-permits-builder__field-tools {
-  cursor: grab;
-}
-
-.e-permits-builder__field-tools button {
-  cursor: pointer;
-}
-
-/* the ⋮ menu is not a grab handle and not an action itself (only its items are) — 2026-10-16 */
-.e-permits-builder__field-tools [data-stack-menu] {
-  cursor: default;
 }
 
 /* a read-only value in the panel (the text can still be selected and copied) */
@@ -1640,11 +1381,6 @@
 
   .e-permits-builder--canvas[data-fb-width="phone"] .e-permits-builder__canvas {
     max-width: calc(var(--spacing-8, 8px) * 47);
-  }
-
-  /* a narrow page reflows like on the device: one field per row */
-  .e-permits-builder--canvas[data-fb-width="phone"] .e-permits-builder__grid > [data-span] {
-    grid-column: 1 / -1;
   }
 
   .e-permits-builder--canvas[data-mode="schema"] .e-permits-builder__toolbar {
@@ -2312,11 +2048,6 @@
     padding: var(--spacing-16, 16px);
   }
 
-  /* phones: one card per row, as in the request form */
-  .e-permits-builder__grid > [data-span] {
-    grid-column: 1 / -1;
-  }
-
   .e-permits-builder__canvas-scroll {
     padding: var(--spacing-12, 12px);
   }
@@ -2502,4 +2233,308 @@ body:has(.form-builder-modal-overlay.is-active) :is(#case-action-modal, #pending
   mask-size: var(--icon-size-medium, 20px) var(--icon-size-medium, 20px);
   -webkit-mask-image: url("../assets/icons/bullet-list.svg");
   -webkit-mask-size: var(--icon-size-medium, 20px) var(--icon-size-medium, 20px);
+}
+
+/* ===== WYSIWYG canvas (fb-wysiwyg-v1, 2026-11-17, plan P6b; components.md „Builder frame › WYSIWYG canvas”) =====
+   Editare draws the REAL applicant form — the Preview's renderer, FO markup and CSS (js/form-builder.js
+   `stepPageHtml`) — on a white sheet; nothing here styles a field. The sheet's content column is the Preview's form
+   column (944 = 8 × 118 at full width), so the two layouts match element for element (tools/ui-qa/fb-parity.mjs).
+   Everything the editor adds on top lives in ONE overlay layer (`__chrome`): it is absolutely positioned from the
+   elements' rects and never takes room in the page. */
+.e-permits-builder--canvas .e-permits-builder__canvas {
+  max-width: calc(var(--spacing-8, 8px) * 126);
+  position: relative;
+}
+
+.e-permits-builder__page.e-permits-fo-form {
+  border-radius: var(--border-radius-16, 16px);
+  box-sizing: border-box;
+  flex: none;
+  margin: 0;
+  max-width: none;
+  padding: var(--spacing-32, 32px);
+  width: 100%;
+}
+
+.e-permits-builder__canvas-actions {
+  justify-content: center;
+  padding-bottom: 0;
+}
+
+/* page widths of the toolbar: the sheet narrows and the form goes to one column, as the FO does ≤ 860 */
+.e-permits-builder--canvas[data-fb-width="tablet"] .e-permits-builder__page.e-permits-fo-form {
+  padding: var(--spacing-24, 24px);
+}
+
+.e-permits-builder--canvas[data-fb-width="phone"] .e-permits-builder__page.e-permits-fo-form {
+  padding: var(--spacing-16, 16px);
+}
+
+.e-permits-builder--canvas:is([data-fb-width="tablet"], [data-fb-width="phone"]) .e-permits-builder__canvas .e-permits-fo-form__section-body {
+  gap: var(--spacing-24, 24px);
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.e-permits-builder--canvas:is([data-fb-width="tablet"], [data-fb-width="phone"]) .e-permits-builder__canvas .e-permits-fo-form__section-body > * {
+  grid-column: 1 / -1;
+}
+
+/* the page elements are the click / focus targets (their controls are inert) */
+.e-permits-builder__canvas :is([data-builder-field], [data-fb-el="step"], [data-fb-select-section]) {
+  cursor: pointer;
+}
+
+.e-permits-builder__canvas :is([data-builder-field], [data-fb-el="step"], [data-fb-select-section]):focus {
+  outline: none;
+}
+
+.e-permits-builder__canvas :is([data-builder-field], [data-fb-el="step"], [data-fb-select-section]):focus-visible {
+  border-radius: var(--border-radius-4, 4px);
+  box-shadow: 0 0 0 var(--spacing-6, 6px) var(--color-background-base-default, #fff), 0 0 0 calc(var(--spacing-6, 6px) + var(--border-width-3, 3px)) var(--focus-ring, var(--blue-sky-500, #3379db));
+}
+
+.e-permits-builder__canvas [data-builder-field].is-dragging,
+.e-permits-builder__canvas [data-builder-section].is-dragging {
+  opacity: 0.5;
+}
+
+/* ---- the overlay layer */
+/* no z-index here: the layer must not be a stacking context — its fixed menus (⋮, the insert picker) open above the
+   floating cards */
+.e-permits-builder__chrome {
+  inset: 0;
+  pointer-events: none;
+  position: absolute;
+}
+
+.e-permits-builder__chrome > * {
+  position: absolute;
+}
+
+.e-permits-builder__chrome > [hidden] {
+  display: none;
+}
+
+/* hover = a thin grey outline; selection = the brand outline (never both on one element) */
+.e-permits-builder__hoverbox,
+.e-permits-builder__selbox {
+  border-radius: var(--border-radius-8, 8px);
+  box-sizing: border-box;
+}
+
+.e-permits-builder__hoverbox {
+  border: var(--border-width-1, 1px) solid var(--color-border-base-secondary, #b2b2b2);
+}
+
+.e-permits-builder__selbox {
+  border: var(--border-width-2, 2px) solid var(--color-border-brand-default, #0058d2);
+}
+
+/* the selected element under the pointer: the outline one step darker + a soft halo */
+.e-permits-builder__selbox.is-hover {
+  border-color: var(--color-background-brand-default-hover, #0046a8);
+  box-shadow: 0 0 0 var(--border-width-3, 3px) var(--color-background-brand-secondary-hover, #ccdef6);
+}
+
+/* the drag handle on the left edge of the hovered element */
+.e-permits-builder__grip {
+  align-items: center;
+  appearance: none;
+  background: var(--color-background-base-default, #fff);
+  border: var(--border-width-1, 1px) solid var(--color-border-base-secondary, #b2b2b2);
+  border-radius: var(--border-radius-6, 6px);
+  box-sizing: border-box;
+  color: var(--color-icon-base-secondary, #5c5c5c);
+  cursor: grab;
+  display: flex;
+  height: var(--spacing-28, 28px);
+  justify-content: center;
+  padding: 0;
+  pointer-events: auto;
+  width: var(--spacing-20, 20px);
+}
+
+.e-permits-builder__grip:hover {
+  background: var(--color-background-base-tertiary, #f1f1f1);
+  color: var(--color-icon-base-default, #121212);
+}
+
+.e-permits-builder__grip:active,
+.e-permits-builder__bar-grip:active {
+  cursor: grabbing;
+}
+
+.e-permits-builder__lockmark {
+  align-items: center;
+  background: var(--color-background-base-default, #fff);
+  border: var(--border-width-1, 1px) solid var(--color-border-base-secondary, #b2b2b2);
+  border-radius: var(--border-radius-full, 999px);
+  box-sizing: border-box;
+  color: var(--color-icon-base-secondary, #5c5c5c);
+  display: flex;
+  height: var(--spacing-28, 28px);
+  justify-content: center;
+  width: var(--spacing-28, 28px);
+}
+
+/* the width grip on the right edge of the selected field */
+.e-permits-builder__sel-resize {
+  appearance: none;
+  background: var(--color-background-brand-default, #0058d2);
+  border: var(--border-width-2, 2px) solid var(--color-background-base-default, #fff);
+  border-radius: var(--border-radius-full, 999px);
+  box-sizing: border-box;
+  cursor: ew-resize;
+  height: var(--spacing-28, 28px);
+  padding: 0;
+  pointer-events: auto;
+  position: absolute;
+  right: calc(var(--spacing-6, 6px) * -1);
+  top: calc(50% - var(--spacing-14, 14px));
+  touch-action: none;
+  width: var(--spacing-10, 10px);
+}
+
+.e-permits-builder__sel-resize:hover {
+  background: var(--color-background-brand-default-hover, #0046a8);
+}
+
+/* the floating action bar of the selected element = the PD toolbar card, placed above the element */
+.e-permits-builder__elbar-wrap {
+  align-items: flex-end;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4, 4px);
+  max-width: 100%;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.e-permits-pd__toolbar.e-permits-builder__elbar {
+  bottom: auto;
+  left: auto;
+  max-width: 100%;
+  pointer-events: auto;
+  position: static;
+  transform: none;
+}
+
+.e-permits-builder__bar-type {
+  align-items: center;
+  color: var(--color-text-base-secondary, #383838);
+  display: inline-flex;
+  font-size: var(--font-size-fs-14, 14px);
+  font-weight: var(--font-weight-fw-medium, 500);
+  gap: var(--spacing-6, 6px);
+  line-height: var(--line-height-lh-20, 20px);
+  padding: 0 var(--spacing-8, 8px) 0 var(--spacing-4, 4px);
+  white-space: nowrap;
+}
+
+.e-permits-builder__bar-grip {
+  cursor: grab;
+}
+
+/* the band of columns / block fields of a selected container rides under the bar */
+.e-permits-builder__elbar--subs {
+  padding: var(--spacing-8, 8px);
+}
+
+.e-permits-builder__elbar--subs .e-permits-builder__subs {
+  border-bottom: 0;
+  padding-bottom: 0;
+}
+
+/* the insert line in the gap between two fields: a brand line + „+” that follows the pointer along it */
+.e-permits-builder__insert::before {
+  background: var(--color-background-brand-default, #0058d2);
+  border-radius: var(--border-radius-full, 999px);
+  content: "";
+  height: var(--border-width-2, 2px);
+  left: 0;
+  position: absolute;
+  right: 0;
+  top: calc(50% - var(--border-width-1, 1px));
+}
+
+.e-permits-builder__insert.is-col::before {
+  bottom: 0;
+  height: auto;
+  left: calc(50% - var(--border-width-1, 1px));
+  right: auto;
+  top: 0;
+  width: var(--border-width-2, 2px);
+}
+
+.e-permits-builder__insert-add {
+  align-items: center;
+  appearance: none;
+  background: var(--color-background-brand-default, #0058d2);
+  border: 0;
+  border-radius: var(--border-radius-full, 999px);
+  color: var(--color-icon-base-inverse-on-color, #fff);
+  cursor: pointer;
+  display: flex;
+  height: var(--spacing-24, 24px);
+  justify-content: center;
+  padding: 0;
+  pointer-events: auto;
+  position: absolute;
+  width: var(--spacing-24, 24px);
+}
+
+.e-permits-builder__insert-add:hover {
+  background: var(--color-background-brand-default-hover, #0046a8);
+}
+
+.e-permits-builder__insert-add:active,
+.e-permits-builder__insert-add[aria-expanded="true"] {
+  background: var(--color-background-brand-default-active, #00357e);
+}
+
+.e-permits-builder__insert-add:focus-visible,
+.e-permits-builder__insert-add[aria-expanded="true"] {
+  box-shadow: 0 0 0 var(--border-width-2, 2px) var(--color-background-base-default, #fff), 0 0 0 calc(var(--border-width-2, 2px) + var(--border-width-3, 3px)) var(--focus-ring, var(--blue-sky-500, #3379db));
+  outline: none;
+}
+
+.e-permits-builder__insert-menu {
+  pointer-events: auto;
+  max-height: var(--stack-menu-max, calc(var(--spacing-80, 80px) * 4));
+  overflow-y: auto;
+}
+
+/* the error dot on a field with problems (the message is its tooltip; the list is in the top bar) */
+.e-permits-builder__issue-dot.e-permits-ntpl-dot {
+  box-shadow: 0 0 0 var(--border-width-2, 2px) var(--color-background-base-default, #fff);
+  height: var(--spacing-8, 8px);
+  margin: 0;
+  pointer-events: auto;
+  width: var(--spacing-8, 8px);
+}
+
+/* a drag in progress: the chrome lets the pointer through (only the band of a container takes a drop) */
+.e-permits-builder.is-dragging-component .e-permits-builder__chrome :is(.e-permits-builder__elbar:not(.e-permits-builder__elbar--subs), .e-permits-builder__grip, .e-permits-builder__insert-add, .e-permits-builder__sel-resize) {
+  pointer-events: none;
+}
+
+.e-permits-builder.is-dragging-component .e-permits-builder__chrome .e-permits-builder__elbar:not(.e-permits-builder__elbar--subs) {
+  opacity: 0;
+}
+
+/* Structură: a column / block field under its container; the marks of what the page does not show at rest */
+.e-permits-builder__outline-item--child {
+  padding-left: var(--spacing-56, 56px);
+}
+
+.e-permits-builder__outline-item > .icon {
+  color: var(--color-icon-base-tertiary, #757575);
+  margin-left: auto;
+}
+
+/* phones (the one scrolling column): the sheet keeps the FO gutter */
+@media (max-width: 720px) {
+  .e-permits-builder__page.e-permits-fo-form {
+    padding: var(--spacing-16, 16px);
+  }
 }

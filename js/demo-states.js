@@ -2702,7 +2702,9 @@
         target.dispatchEvent(new DragEvent("dragover", { bubbles: true, cancelable: true, dataTransfer: dt, clientX: r.left + 20, clientY: r.top + r.height / 2 }));
         await h.wait(200);
       };
-      const menu = (id) => async (h) => { await h.click(`${card(id)} [data-stack-menu-trigger]`); };
+      /* fb-wysiwyg-v1: the ⋮ of a field lives in the floating action bar of the SELECTED element */
+      const menu = (id) => async (h) => { if (window.GEAPFormBuilder.state.sel.id !== id) await h.click(card(id)); await h.click("[data-fb-elbar] .e-permits-stack__menu-trigger"); };
+      const FB = () => window.GEAPFormBuilder;
       /* a hidden native select behind a fo-select: pick the option whose text contains `text` */
       const chooseText = async (h, selector, text) => {
         for (let i = 0; i < 100 && !document.querySelector(selector); i += 1) await h.wait(100);
@@ -2739,6 +2741,21 @@
         "fb-p3d": fb(async (h) => { await pick("fld-name")(h); const t = document.querySelector("[data-fb-panel] [data-fb-props-toggle]"); if (t && t.offsetParent) await h.click("[data-fb-panel] [data-fb-props-toggle]"); }),
         /* fb-float-p4: bottom toolbar — a) default, b) phone width, c) Structură open (a field selected), d) after an undo */
         "fb-p4a": fb(),
+        /* WYSIWYG canvas (fb-wysiwyg-v1, plan P6b): Editare = the real applicant form; chrome only on hover / selection.
+           w01 at rest · w02 a field hovered (grey outline + handle) · w03 a field selected (brand outline + action bar,
+           Proprietăți) · w03a its ⋮ open · w05 a section selected · w06 the insert line
+           between two rows · w06a its component picker · w08 phone width, a field
+           selected · w09 a platform step hovered (lock) · w10 a grid selected (band of columns under the bar) */
+        "fb-w01": fb(),
+        "fb-w02": fb(async (h) => { FB().hover("field", "fld-name"); await h.wait(200); }),
+        "fb-w03": fb(async (h) => { await pick("fld-name")(h); }),
+        "fb-w03a": fb(async (h) => { await menu("fld-name")(h); }),
+        "fb-w05": fb(async (h) => { await h.click("[data-fb-select-section='sec-activity']"); }),
+        "fb-w06": fb(async (h) => { FB().insertBefore("fld-raion"); await h.wait(200); }),
+        "fb-w06a": fb(async (h) => { FB().insertBefore("fld-raion"); await h.click("[data-fb-insert-add]"); }),
+        "fb-w08": fb(async (h) => { const b = document.querySelector("[data-fb-width='phone']"); if (b && b.offsetParent) await h.click("[data-fb-width='phone']"); await pick("fld-unit")(h); }),
+        "fb-w09": fb(async (h) => { await h.click("[data-fb-step='st-payment']"); FB().hover("locked", "st-payment"); await h.wait(200); }),
+        "fb-w10": fb(async (h) => { await lib("grid")(h); await h.click("[data-builder-prop-tab='data']"); await h.scroll("[data-builder-field][data-type='grid']"); }),
         "fb-p4b": fb(async (h) => { const b = document.querySelector("[data-fb-width='phone']"); if (b && b.offsetParent) await h.click("[data-fb-width='phone']"); }),
         "fb-p4c": fb(async (h) => { await pick("fld-name")(h); const b = document.querySelector("[data-fb-outline-toggle]"); if (b && b.offsetParent) await h.click("[data-fb-outline-toggle]"); }),
         "fb-p4d": fb(async (h) => { await lib("date")(h); const b = document.querySelector("[data-fb-undo]"); if (b && b.offsetParent) await h.click("[data-fb-undo]"); }),
@@ -2767,7 +2784,7 @@
           const scroller = document.querySelector("[data-fb-steps-scroll]"); if (scroller) { scroller.scrollLeft = 0; scroller.dispatchEvent(new Event("scroll")); }
           await h.wait(150);
         }),
-        "fb-01b": fb(async (h) => { await h.click("[data-fb-add-trigger='sec-object']"); }),
+        "fb-01b": fb(async (h) => { FB().insertBefore("fld-raion"); await h.click("[data-fb-insert-add]"); }),
         "fb-02": fb(async (h) => { await h.click("[data-fb-select-form]"); await h.scroll("[data-fb-group-languages]"); }),
         "fb-03": fb(async (h) => { await h.click("[data-fb-step='st-details']"); }),
         "fb-03a": fb(async (h) => { await h.click("[data-fb-step='st-payment']"); }),
@@ -3064,7 +3081,9 @@
           const preview = async (h) => { await h.click("[data-builder-mode='preview']"); await h.wait(400); };
           const validate = async (h) => { await h.click("[data-fb-preview-validate]"); await h.wait(400); };
           const chip = (id) => `[data-fb-child='${id}']`;
-          const band = (type) => `[data-builder-field][data-type='${type}'] .e-permits-builder__sub-add`;
+          /* fb-wysiwyg-v1: the band of columns / block fields rides under the action bar of the selected container */
+          const band = () => "[data-fb-elbar] .e-permits-builder__sub-add";
+          const open = (id) => async (h) => { await h.scroll(`[data-builder-field][data-id='${id}']`); await h.click(`[data-builder-field][data-id='${id}']`); };
           const equip = `${PV} [data-fb-field='fld-equipment']`;
           const caem = `${PV} [data-fb-field='fld-caem']`;
           /* a CAEM code picked the way the FO list acts (mousedown on the option) */
@@ -3081,7 +3100,7 @@
             await h.fill("[data-fb-prop='itemTitle']", "Vehicul", { leave: false });
             await h.fill("[data-fb-prop='addLabel']", "Adaugă alt vehicul", { leave: false });
             await h.click(band("repeat"));
-            await h.click("[data-builder-field][data-type='repeat'] [data-fb-add-child='text']");
+            await h.click("[data-fb-elbar] [data-fb-add-child='text']");
             await h.fill("[data-fb-prop='label']", "Nr. de înmatriculare", { leave: false });
             await h.click(".e-permits-builder__panel-head .breadcrumbs__link[data-fb-goto]");
             await h.click("[data-builder-prop-tab='validation']");
@@ -3097,10 +3116,11 @@
             /* 52 column editor of the equipment grid · 52a a column selected (the field panel, US-34 AC-03)
                · 52b a palette type dragged over the band (insertion line) */
             "fb-52": fb(async (h) => { await h.click("[data-builder-field][data-id='fld-equipment']"); await h.click("[data-builder-prop-tab='data']"); await h.scroll("[data-builder-field][data-id='fld-equipment']"); }, F09),
-            "fb-52a": fb(async (h) => { await h.scroll("[data-builder-field][data-id='fld-equipment']"); await h.click(chip("col-09-name")); }, F09),
+            "fb-52a": fb(async (h) => { await open("fld-equipment")(h); await h.click(chip("col-09-name")); }, F09),
             /* 52w a grid column's „Lățime coloană”: parts on a 4-bar row (Îngustă 2 · Medie 3 · Lată 4) */
-            "fb-52w": fb(async (h) => { await h.scroll("[data-builder-field][data-id='fld-equipment']"); await h.click(chip("col-09-name")); await h.scroll(".e-permits-builder__panel .e-permits-builder__width-picker"); }, F09),
+            "fb-52w": fb(async (h) => { await open("fld-equipment")(h); await h.click(chip("col-09-name")); await h.scroll(".e-permits-builder__panel .e-permits-builder__width-picker"); }, F09),
             "fb-52b": fb(async (h) => {
+              await open("fld-equipment")(h);
               const target = await h.scroll(chip("col-09-cap"));
               const item = await h.find("[data-builder-component='date']");
               const dt = new DataTransfer();
@@ -3111,11 +3131,11 @@
             }, F09),
             /* 53 row rules (US-36): min / max / key / page size · 53a a list column: Date + cascade (US-37) */
             "fb-53": fb(async (h) => { await h.click("[data-builder-field][data-id='fld-equipment']"); await h.click("[data-builder-prop-tab='validation']"); }, F09),
-            "fb-53a": fb(async (h) => { await h.scroll("[data-builder-field][data-id='fld-points']"); await h.click(chip("col-09-loc")); await h.click("[data-builder-prop-tab='data']"); await h.scroll("#fb-p-dataSource-parentFieldId"); }, F09),
+            "fb-53a": fb(async (h) => { await open("fld-points")(h); await h.click(chip("col-09-loc")); await h.click("[data-builder-prop-tab='data']"); await h.scroll("#fb-p-dataSource-parentFieldId"); }, F09),
             /* 54 a nested grid (US-38): its columns, level 2 of 3 · 54a level 3: no deeper grid */
-            "fb-54": fb(async (h) => { await h.scroll("[data-builder-field][data-id='fld-equipment']"); await h.click(chip("col-09-parts")); await h.click("[data-builder-prop-tab='data']"); }, F09),
+            "fb-54": fb(async (h) => { await open("fld-equipment")(h); await h.click(chip("col-09-parts")); await h.click("[data-builder-prop-tab='data']"); }, F09),
             "fb-54a": fb(async (h) => {
-              await h.scroll("[data-builder-field][data-id='fld-equipment']");
+              await open("fld-equipment")(h);
               await h.click(chip("col-09-parts"));
               await h.click("[data-builder-prop-tab='data']");
               await h.click("[aria-controls='fb-addchild-col-09-parts-panel']");

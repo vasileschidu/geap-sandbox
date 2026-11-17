@@ -1259,129 +1259,427 @@ document.addEventListener("DOMContentLoaded", () => {
         </div>
       </div>`;
   }
-  function emptyContainerHtml(field) {
-    const inGrid = field.type === "grid";
-    return window.GEAPEmptyState?.render({ title: inGrid ? "Grila nu are coloane" : "Blocul nu are câmpuri", text: inGrid ? "Trage un tip din bibliotecă pe banda „Coloane” sau apasă „+ Coloană”." : "Trage un câmp din bibliotecă pe banda „Câmpuri” sau apasă „+ Câmp”.", icon: inGrid ? "dot-grid" : "page-add", compact: true, bare: true }) || "";
+  /* ============================================== ONE PAGE RENDERER (fb-wysiwyg-v1, plan P6b, 2026-11-17)
+     The edit canvas and the Preview draw a step with the SAME function, the SAME FO markup and CSS
+     (`e-permits-fo-form__header`, `e-permits-fo-form__section`, `e-permits-fo-section-header`,
+     `e-permits-fo-form__section-body`, the FO field renderer). `editable` only ADDS attributes (ids, tabindex,
+     names) — never a wrapper, a class or a box — so the two
+     layouts are identical (checked by tools/ui-qa/fb-parity.mjs). Everything the editor draws on top (hover
+     outline, handle, selection, action bar, insert line, error dots) lives in ONE overlay layer
+     (`[data-fb-chrome]`, positioned from the elements' rects) and never takes room in the page. */
+  /* the FO renderer's top element gets the builder ids (logic + test data + the editor find the cells) */
+  const tagged = (html, attrs) => String(html).replace(/^(\s*<[a-z]+)/i, `$1 ${attrs}`);
+  /* the hover / selection of a page element is drawn by the chrome layer (tools/ui-qa/hover-audit.mjs reads this) */
+  const HOVER_PROXY = 'data-hover-proxy=".e-permits-builder__hoverbox, .e-permits-builder__selbox"';
+  const isSelectedField = (field) => (state.sel.kind === "field" && state.sel.id === field.id) || (state.sel.kind === "child" && findChild(state.sel.id)?.top === field);
+  /* the issues shown on a field: its own, else the count of its columns' / block fields' */
+  function fieldIssues(field) {
+    const own = errorsOf("field", field.id);
+    if (own.length) return own;
+    const kids = isContainer(field) ? childErrorsOf(field) : [];
+    return kids.length ? [{ message: `${kids.length} ${kids.length === 1 ? "problemă" : "probleme"} în ${field.type === "grid" ? "coloane" : "câmpurile blocului"}: ${kids[0].message}` }] : [];
   }
-
-  function fieldCardHtml(field, section, index, total) {
+  function editableFieldHtml(field) {
     const meta = comp(field.type);
-    const selected = (state.sel.kind === "field" && state.sel.id === field.id) || (state.sel.kind === "child" && findChild(state.sel.id)?.top === field);
-    const ownErrors = errorsOf("field", field.id);
-    const kidErrors = isContainer(field) ? childErrorsOf(field) : [];
-    const errors = ownErrors.length ? ownErrors : kidErrors.length ? [{ message: `${kidErrors.length} ${kidErrors.length === 1 ? "problemă" : "probleme"} în ${field.type === "grid" ? "coloane" : "câmpurile blocului"}: ${kidErrors[0].message}`, short: `${kidErrors.length} ${kidErrors.length === 1 ? "problemă" : "probleme"} în ${field.type === "grid" ? "coloane" : "câmpuri"}` }] : [];
-    const name = fieldName(field);
-    const sectionsInStep = activeStep().sections || [];
-    const moveItems = [
-      { label: "Duplică", icon: "copy", attrs: `data-fb-act="duplicate" data-id="${field.id}"` },
-      { label: "Salvează ca componentă", icon: "bookmark", attrs: `data-fb-act="save-preset" data-id="${field.id}"` },
-      ...(index > 0 ? [{ label: "Mută mai sus", icon: "arrow-up", attrs: `data-fb-act="up" data-id="${field.id}"` }] : []),
-      ...(index < total - 1 ? [{ label: "Mută mai jos", icon: "arrow-down", attrs: `data-fb-act="down" data-id="${field.id}"` }] : []),
-      ...sectionsInStep.filter((item) => item.id !== section.id).map((item) => ({ label: `Mută în „${tr(item.title) || "Secțiune"}”`, icon: "arrow-right", attrs: `data-fb-act="move-to" data-id="${field.id}" data-section="${item.id}"` })),
-      { label: "Șterge", icon: "delete", danger: true, attrs: `data-fb-act="delete" data-id="${field.id}"` },
-    ];
+    const errors = fieldIssues(field);
+    const attrs = `data-builder-field data-id="${field.id}" data-type="${field.type}" data-span="${spanOf(field)}" ${HOVER_PROXY} tabindex="0" role="button" aria-pressed="${isSelectedField(field)}" aria-label="${esc(meta.label)}: ${esc(fieldName(field))}, lățime ${spanOf(field)} din 12${field.required ? ", obligatoriu" : ""}${field.type === "hidden" ? ", ascuns pentru solicitant" : ""}${(field.rules || []).length ? ", are reguli de afișare" : ""}${errors.length ? ", are erori" : ""}" aria-describedby="${KBD_HINT_ID}"`;
+    /* Câmp ascuns: the applicant never sees it — the page shows its marker only while it is selected (Structură lists it) */
+    if (field.type === "hidden") return isSelectedField(field) ? `<div class="e-permits-fo-field e-permits-fo-field--span-12" ${attrs}>${hiddenMarkerHtml(field)}</div>` : "";
+    return tagged(foHtml(field, { prefix: "cv" }), attrs);
+  }
+  function emptySectionHtml(section) {
     return `
-      <article class="e-permits-builder__field${selected ? " is-selected" : ""}${errors.length ? " has-issue" : ""}" data-builder-field data-id="${field.id}" data-type="${field.type}" data-span="${spanOf(field)}" tabindex="0" aria-label="${esc(meta.label)}: ${esc(name)}, lățime ${spanOf(field)} din 12${field.required ? ", obligatoriu" : ""}${field.type === "hidden" ? ", ascuns pentru solicitant" : ""}" aria-describedby="${KBD_HINT_ID}">
-        <div class="e-permits-builder__field-tools">
-          <div class="e-permits-builder__field-meta">
-            <span class="e-permits-builder__drag-grip" aria-hidden="true">${icon("icon-drag", 16)}</span>
-            <em class="e-permits-builder__tag e-permits-builder__tag--strong" data-cell-tooltip>${esc(meta.label)}</em>
-            <em class="e-permits-builder__tag e-permits-builder__tag--outlined" data-fb-span-tag>${spanOf(field)}/12</em>
-          </div>
-          <div class="e-permits-builder__field-actions">
-            ${ui().renderStackMenu?.(moveItems, name) || ""}
-          </div>
-        </div>
-        ${isContainer(field) ? subsStripHtml(field) : ""}
-        <div class="e-permits-builder__field-render" inert>${field.type === "hidden" ? hiddenMarkerHtml(field) : isContainer(field) && !kidsOf(field).length ? emptyContainerHtml(field) : foHtml(field, { prefix: "cv", inCard: true })}</div>
-        ${NO_VALUE.includes(field.type) && !errors.length && !(field.rules || []).length && !field.preset ? "" : `
-        <div class="e-permits-builder__field-foot">
-          ${NO_VALUE.includes(field.type) ? "" : `<span class="e-permits-builder__field-key" data-cell-tooltip>${esc(field.key)}</span>`}
-          ${(field.rules || []).length ? `<em class="e-permits-builder__tag e-permits-builder__tag--outlined">${field.rules.length} ${field.rules.length === 1 ? "regulă" : "reguli"}</em>` : ""}
-          ${field.preset ? `<em class="e-permits-builder__tag e-permits-builder__tag--outlined" data-tooltip-text="Din componenta salvată „${esc(presetById(field.preset.id)?.name || "")}”">${icon("icon-bookmark", 16)}Salvată</em>` : ""}
-          ${errors.length ? `<em class="e-permits-builder__tag e-permits-builder__tag--warning" data-tooltip-text="${esc(errors[0].message)}">${icon("icon-warning-filled", 16)}${esc(errors[0].short || errors[0].message)}</em>` : ""}
-        </div>`}
-        ${isFixedWidth(field) ? "" : '<button class="e-permits-builder__field-resize" type="button" tabindex="-1" aria-hidden="true" data-fb-resize></button>'}
-      </article>`;
+      <div class="e-permits-builder__grid-empty">${window.GEAPEmptyState?.render({ title: "Secțiune goală", text: "Trage un câmp aici sau alege o componentă din bibliotecă.", icon: "templates", compact: true, bare: true }) || ""}</div>
+      <div class="e-permits-stack__menu-wrap e-permits-builder__add-field">
+        <button class="e-permits-builder__dropzone" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="fb-add-${section.id}" data-stack-menu-trigger data-fb-add-trigger="${section.id}">
+          ${icon("icon-plus-small", 16)}<span>Adaugă câmp</span>
+        </button>
+        <ul class="e-permits-fo-intent-menu e-permits-stack__menu e-permits-builder__add-menu" id="fb-add-${section.id}" role="menu" aria-label="Adaugă o componentă în secțiune" hidden data-stack-menu>
+          ${typeMenuItems(`data-section="${section.id}"`)}
+        </ul>
+      </div>`;
+  }
+  /* the list of component types (the „Adaugă câmp” menu and the insert „+” picker share it) */
+  const typeMenuItems = (attrs = "") => Object.keys(COMPONENTS).filter((type) => isUsable(type) && !COMPONENTS[type].structural).map((type) => `
+    <li role="none"><button class="e-permits-fo-intent-menu__item" type="button" role="menuitem" data-fb-add-type="${type}" ${attrs}>${icon(COMPONENTS[type].icon)}<span>${esc(COMPONENTS[type].label)}</span></button></li>`).join("");
+
+  function stepPageHtml(step, { prefix = "pv", lang = "ro", editable = false } = {}) {
+    const text = (value) => tr(value, lang) || tr(value, "ro");
+    const index = form.steps.indexOf(step);
+    const head = `
+      <header class="e-permits-fo-form__header"${editable ? ` data-fb-el="step" data-id="${step.id}" ${HOVER_PROXY} tabindex="0" role="group" aria-label="Pasul ${index + 1}: ${esc(text(step.title))}${step.locked ? ", generat de platformă, nu se editează" : state.sel.kind === "step" && state.sel.id === step.id ? ", selectat" : ""}"${step.locked ? " data-fb-locked" : ""}` : ""}>
+        <span class="e-permits-builder__preview-step-meta">Pasul ${index + 1} din ${form.steps.length}</span>
+        <h1>${esc(text(step.title))}</h1>
+        ${text(step.description) ? `<p class="e-permits-fo-section-header__desc">${esc(text(step.description))}</p>` : ""}
+      </header>`;
+    if (step.locked) return `${head}${ui().renderInfoNote?.(`Pas generat de platformă. ${esc(PLATFORM_STEPS[step.platform] || "")}`) || ""}`;
+    return `${head}
+      ${(step.sections || []).map((section) => {
+        const title = text(section.title);
+        const showTitle = section.showTitle !== false && title;
+        /* the element that selects the section: its header, or the section itself when the title is hidden */
+        /* (a group, not a button: it keeps its heading for assistive tech; the fields are buttons) */
+        const pick = editable ? ` data-fb-select-section="${section.id}" ${HOVER_PROXY} tabindex="0" role="group" aria-label="Secțiunea ${esc(title || "fără titlu")}${showTitle ? "" : ", titlu ascuns"}${state.sel.kind === "section" && state.sel.id === section.id ? ", selectată" : ""}" aria-describedby="fb-sec-kbd-hint"` : "";
+        return `
+          <section class="e-permits-fo-form__section${showTitle ? "" : " e-permits-fo-form__section--plain"}" ${showTitle ? `aria-labelledby="${prefix}-${section.id}-title"` : editable ? "" : `aria-label="${esc(title || "Secțiune")}"`} data-fb-section="${section.id}"${editable ? ` data-builder-section data-section-id="${section.id}"${showTitle ? "" : pick}` : ""}>
+            ${showTitle ? `
+              <div class="e-permits-fo-section-header${section.showSeparator === false ? " e-permits-fo-section-header--no-border" : ""}"${pick}>
+                <h2 id="${prefix}-${section.id}-title">${esc(title)}</h2>
+                ${text(section.description) ? `<p class="e-permits-fo-section-header__desc">${esc(text(section.description))}</p>` : ""}
+              </div>` : ""}
+            <div class="e-permits-fo-form__section-body" ${editable ? `data-builder-grid data-section-id="${section.id}"` : "data-builder-preview-grid"}>
+              ${section.fields.map((field) => (editable ? editableFieldHtml(field) : tagged(foHtml(field, { prefix, lang }), `data-fb-field="${field.id}"`))).join("")}
+              ${editable && !section.fields.length ? emptySectionHtml(section) : ""}
+            </div>
+          </section>`;
+      }).join("")}`;
   }
 
-  function sectionHtml(section, index, total) {
-    const selected = state.sel.kind === "section" && state.sel.id === section.id;
-    const errors = errorsOf("section", section.id);
-    const title = tr(section.title);
-    const items = [
-      { label: "Copiază secțiunea (goală)", icon: "copy", attrs: `data-fb-sec-act="copy" data-id="${section.id}"` },
-      ...(index > 0 ? [{ label: "Mută mai sus", icon: "arrow-up", attrs: `data-fb-sec-act="up" data-id="${section.id}"` }] : []),
-      ...(index < total - 1 ? [{ label: "Mută mai jos", icon: "arrow-down", attrs: `data-fb-sec-act="down" data-id="${section.id}"` }] : []),
-      { label: "Șterge secțiunea", icon: "delete", danger: true, attrs: `data-fb-sec-act="delete" data-id="${section.id}"` },
-    ];
-    const empty = !section.fields.length ? window.GEAPEmptyState?.render({ title: "Secțiune goală", text: "Trage un câmp aici sau alege o componentă din bibliotecă.", icon: "templates", compact: true, bare: true }) || "" : "";
-    return `
-      <section class="e-permits-builder__step-section${selected ? " is-section-selected" : ""}${errors.length ? " has-issue" : ""}" data-builder-section data-section-id="${section.id}" aria-label="Secțiunea ${esc(title || "fără titlu")}">
-        <div class="e-permits-builder__section-bar">
-          <span class="e-permits-builder__drag-grip e-permits-builder__section-grip" aria-hidden="true">${icon("icon-drag", 16)}</span>
-          <button class="e-permits-builder__section-select" type="button" data-fb-select-section="${section.id}" aria-label="Secțiunea ${esc(title || "fără titlu")} — proprietăți" aria-describedby="fb-sec-kbd-hint" aria-pressed="${selected}">
-            <span class="e-permits-builder__section-heading">
-              <strong class="${section.showTitle === false ? "is-muted" : ""}">${esc(title || "Secțiune fără titlu")}${section.showTitle === false ? " · titlu ascuns" : ""}</strong>
-              ${tr(section.description) ? `<span>${esc(tr(section.description))}</span>` : ""}
-            </span>
-          </button>
-          <div class="e-permits-builder__section-actions">${ui().renderStackMenu?.(items, `secțiunea ${title}`) || ""}</div>
-        </div>
-        <div class="e-permits-builder__grid" data-builder-grid data-section-id="${section.id}">
-          ${section.fields.map((field, i) => fieldCardHtml(field, section, i, section.fields.length)).join("")}
-          ${empty ? `<div class="e-permits-builder__grid-empty">${empty}</div>` : ""}
-          <div class="e-permits-stack__menu-wrap e-permits-builder__add-field">
-            <button class="e-permits-builder__dropzone" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="fb-add-${section.id}" data-stack-menu-trigger data-fb-add-trigger="${section.id}">
-              ${icon("icon-plus-small", 16)}<span>Adaugă câmp</span>
-            </button>
-            <ul class="e-permits-fo-intent-menu e-permits-stack__menu e-permits-builder__add-menu" id="fb-add-${section.id}" role="menu" aria-label="Adaugă o componentă în secțiune" hidden data-stack-menu>
-              ${Object.keys(COMPONENTS).filter((type) => isUsable(type) && !COMPONENTS[type].structural).map((type) => `
-                <li role="none"><button class="e-permits-fo-intent-menu__item" type="button" role="menuitem" data-fb-add-type="${type}" data-section="${section.id}">${icon(COMPONENTS[type].icon)}<span>${esc(COMPONENTS[type].label)}</span></button></li>`).join("")}
-            </ul>
-          </div>
-        </div>
-      </section>`;
+  /* the page's controls never take a value, a focus or a click in Editare: every child of a field is inert
+     (the field element itself stays the click / focus / drag target) */
+  function prepareCanvas() {
+    el.canvas.querySelectorAll("[data-builder-field]").forEach((node) => {
+      [...node.children].forEach((child) => { child.inert = true; });
+    });
   }
 
   function renderCanvas() {
-    const focusedId = document.activeElement?.closest?.("[data-builder-field]")?.dataset.id || "";
-    const focusedSelf = document.activeElement?.matches?.("[data-builder-field]");
-    const focusedSection = document.activeElement?.closest?.("[data-fb-select-section]")?.dataset.fbSelectSection || "";
+    if (state.textEdit) dropTextEdit();
+    const active = document.activeElement;
+    const keep = active && el.canvas.contains(active)
+      ? active.matches("[data-builder-field]") ? `[data-builder-field][data-id="${active.dataset.id}"]`
+        : active.matches("[data-fb-select-section]") ? `[data-fb-select-section="${active.dataset.fbSelectSection}"]`
+        : active.matches("[data-fb-el='step']") ? "[data-fb-el='step']"
+        : active.matches("[data-fb-bar]") ? `[data-fb-bar="${active.dataset.fbBar}"]`
+        : active.matches("[data-fb-child]") ? `[data-fb-child="${active.dataset.fbChild}"]` : ""
+      : "";
     const step = activeStep();
-    const position = form.steps.indexOf(step) + 1;
-    const head = `
-      <header class="e-permits-builder__form-header">
-        <span>Pasul ${position} din ${form.steps.length}</span>
-        <h1>${esc(tr(step.title) || "Pas fără titlu")}</h1>
-      </header>`;
-    if (step.locked) {
-      el.canvas.innerHTML = `${head}
-        <div class="e-permits-builder__locked-step">
-          ${ui().renderInfoNote?.(`Pas generat de platformă. ${esc(PLATFORM_STEPS[step.platform] || "")}`) || ""}
-          ${window.GEAPEmptyState?.render({ title: "Pasul nu se editează în constructor", text: "Câmpurile pentru serviciu se adaugă în pașii de serviciu.", icon: "lock", compact: true }) || ""}
-        </div>`;
-      return;
-    }
-    const sections = step.sections || [];
-    el.canvas.innerHTML = `${head}
-      <p class="u-visually-hidden" id="${KBD_HINT_ID}">Alt + săgeată sus sau jos mută câmpul, Alt + săgeată stânga sau dreapta schimbă lățimea, Ctrl + D duplică, Delete șterge.</p>
-      <p class="u-visually-hidden" id="fb-sec-kbd-hint">Alt + săgeată sus sau jos mută secțiunea.</p>
-      <p class="u-visually-hidden" id="fb-sub-kbd-hint">Alt + săgeată stânga sau dreapta (grilă) ori sus sau jos (bloc) mută elementul; Delete îl șterge.</p>
-      ${sections.map((section, index) => sectionHtml(section, index, sections.length)).join("")}
+    el.canvas.innerHTML = `
+      <div class="e-permits-fo-form e-permits-builder__page" data-fb-page>
+        <div class="e-permits-fo-step-panel" data-fb-canvas-body>${stepPageHtml(step, { prefix: "cv", lang: "ro", editable: true })}</div>
+      </div>
+      ${step.locked ? "" : `
       <div class="e-permits-builder__canvas-actions">
         <button class="btn btn-secondary btn-sm" type="button" data-fb-add-section>${icon("icon-plus-small", 16)}<span>Adaugă secțiune</span></button>
-      </div>`;
-    if (focusedId) {
-      const card = el.canvas.querySelector(`[data-builder-field][data-id="${focusedId}"]`);
-      if (card && focusedSelf) card.focus({ preventScroll: true });
-    } else if (focusedSection) {
-      el.canvas.querySelector(`[data-fb-select-section="${focusedSection}"]`)?.focus({ preventScroll: true });
-    }
-    /* grids on the (inert) canvas: table or cards, by the room the card has */
+      </div>`}
+      <div class="e-permits-builder__chrome" data-fb-chrome></div>
+      <p class="u-visually-hidden" id="${KBD_HINT_ID}">Enter selectează. Săgețile sus și jos trec la elementul vecin. Alt + săgeată sus sau jos mută câmpul, Alt + săgeată stânga sau dreapta schimbă lățimea, Ctrl + D duplică, Delete șterge, Escape deselectează.</p>
+      <p class="u-visually-hidden" id="fb-sec-kbd-hint">Enter selectează secțiunea. Alt + săgeată sus sau jos mută secțiunea.</p>
+      <p class="u-visually-hidden" id="fb-sub-kbd-hint">Alt + săgeată stânga sau dreapta (grilă) ori sus sau jos (bloc) mută elementul; Delete îl șterge.</p>`;
+    prepareCanvas();
+    /* grids on the (inert) canvas: table or cards, by the room they have */
     window.GEAPFoRepeat?.layout(el.canvas);
+    renderChrome();
+    if (keep) el.canvas.querySelector(keep)?.focus({ preventScroll: true });
   }
-  if (typeof ResizeObserver === "function") new ResizeObserver(() => window.GEAPFoRepeat?.layout(el.canvas)).observe(el.canvas);
+  if (typeof ResizeObserver === "function") new ResizeObserver(() => { window.GEAPFoRepeat?.layout(el.canvas); placeChrome(); }).observe(el.canvas);
+
+  /* ============================================== EDIT CHROME (fb-wysiwyg-v1): one overlay layer over the page
+     At rest the layer shows only the error dots. HOVER = a thin grey outline + the drag handle on its left edge
+     (fields, sections), a lock on a platform step; in the gap between two fields the insert line with „+”.
+     CLICK = select: the brand outline + the floating action bar (handle · type · width · duplicate · ⋮) above it.
+     The hovered element never gets the hover outline while it is the selected one. */
+  const WY = { hover: null, insert: null, pinned: null };
+  const OUTSET = { field: 8, section: 16, step: 8, locked: 8 };
+  const chromeEl = () => el.canvas.querySelector("[data-fb-chrome]");
+  const fieldNode = (id) => el.canvas.querySelector(`[data-builder-field][data-id="${id}"]`);
+  const sectionNode = (id) => el.canvas.querySelector(`[data-builder-section][data-section-id="${id}"]`);
+  const stepNode = () => el.canvas.querySelector("[data-fb-el='step']");
+  const bodyNode = () => el.canvas.querySelector("[data-fb-canvas-body]");
+  function elementNode(kind, id) {
+    if (kind === "field") return fieldNode(id);
+    if (kind === "child") { const top = findChild(id)?.top; return top ? fieldNode(top.id) : null; }
+    if (kind === "section") return sectionNode(id);
+    if (kind === "step") return id === activeStep().id ? stepNode() : null;
+    if (kind === "locked") return bodyNode();
+    return null;
+  }
+  /* the selection as the chrome sees it: a column / block field shows on its container */
+  /* (a platform step has nothing to act on: its chip shows the selection, the page only the lock on hover) */
+  const selShape = () => (state.sel.kind === "child" ? { kind: "field", id: findChild(state.sel.id)?.top.id || "" } : state.sel.kind === "form" || (state.sel.kind === "step" && stepById(state.sel.id)?.locked) ? null : { kind: state.sel.kind, id: state.sel.id });
+  const boxOf = (node, pad = 0) => { const c = el.canvas.getBoundingClientRect(); const r = node.getBoundingClientRect(); return { left: r.left - c.left - pad, top: r.top - c.top - pad, width: r.width + pad * 2, height: r.height + pad * 2 }; };
+  const setBox = (node, box) => {
+    node.style.left = `${Math.round(box.left)}px`;
+    node.style.top = `${Math.round(box.top)}px`;
+    if (box.width != null) node.style.width = `${Math.round(box.width)}px`;
+    if (box.height != null) node.style.height = `${Math.round(box.height)}px`;
+  };
+  /* the standard ⋮ menu, opened fixed (above the cards); its trigger is one of the bar's quiet tools */
+  const fixedMenu = (html) => String(html || "").replace("hidden data-stack-menu>", "hidden data-stack-menu data-stack-menu-fixed>").replace("btn btn-neutral btn-sm btn-icon-only e-permits-stack__menu-trigger", "btn btn-strict btn-sm btn-icon-only e-permits-pd__tool e-permits-stack__menu-trigger");
+  const barTool = ({ act, label, glyph, tip = label, attrs = "" }) => `<button class="btn btn-strict btn-sm btn-icon-only e-permits-pd__tool" type="button" aria-label="${esc(label)}" data-tooltip-label="${esc(tip)}" data-fb-bar="${act}" ${attrs}>${icon(glyph)}</button>`;
+  const barGrip = (kind, id) => `<button class="btn btn-strict btn-sm btn-icon-only e-permits-pd__tool e-permits-builder__bar-grip" type="button" draggable="true" tabindex="-1" aria-hidden="true" data-tooltip-label="Trage pentru a muta" data-fb-handle data-kind="${kind}" data-id="${id}">${icon("icon-drag")}</button>`;
+  const barType = (glyph, text) => `<span class="e-permits-builder__bar-type">${icon(glyph, 16)}<span>${esc(text)}</span></span>`;
+  const barSep = '<i class="e-permits-pd__toolsep" aria-hidden="true"></i>';
+
+  /* the floating action bar of the selected element (the PD toolbar card + tools) */
+  function elementBarHtml() {
+    const shape = selShape();
+    if (!shape) return "";
+    if (shape.kind === "field") {
+      const found = findField(shape.id);
+      if (!found) return "";
+      const { field, section, index } = found;
+      const name = fieldName(field);
+      const full = spanOf(field) === 12;
+      const fixed = isFixedWidth(field);
+      const rules = (field.rules || []).length;
+      const others = (activeStep().sections || []).filter((item) => item.id !== section.id);
+      const menu = fixedMenu(ui().renderStackMenu?.([
+        { label: "Salvează ca componentă", icon: "bookmark", attrs: `data-fb-act="save-preset" data-id="${field.id}"` },
+        ...(index > 0 ? [{ label: "Mută mai sus", icon: "arrow-up", attrs: `data-fb-act="up" data-id="${field.id}"` }] : []),
+        ...(index < section.fields.length - 1 ? [{ label: "Mută mai jos", icon: "arrow-down", attrs: `data-fb-act="down" data-id="${field.id}"` }] : []),
+        ...others.map((item) => ({ label: `Mută în „${tr(item.title) || "Secțiune"}”`, icon: "arrow-right", attrs: `data-fb-act="move-to" data-id="${field.id}" data-section="${item.id}"` })),
+        { label: "Șterge", icon: "delete", danger: true, attrs: `data-fb-act="delete" data-id="${field.id}"` },
+      ], name));
+      return `
+        <div class="e-permits-pd__toolbar e-permits-builder__elbar" role="toolbar" aria-label="Acțiuni pentru câmpul „${esc(name)}”">
+          <span class="e-permits-pd__toolgroup">${barGrip("field", field.id)}${barType(comp(field.type).icon, comp(field.type).label)}</span>
+          ${barSep}
+          <span class="e-permits-pd__toolgroup">
+            ${barTool({ act: "width", label: full ? "Jumătate de rând" : "Tot rândul", glyph: full ? "icon-columns" : "icon-enlarge", tip: fixed ? "Lățime" : full ? "Jumătate de rând" : "Tot rândul", attrs: fixed ? 'aria-disabled="true" data-tooltip-reason="Componenta ocupă tot rândul."' : "" })}
+            ${rules || field.type === "hidden" ? barTool({ act: "logic", label: field.type === "hidden" ? "Ascuns pentru solicitant" : `${rules} ${rules === 1 ? "regulă de afișare" : "reguli de afișare"}`, glyph: field.type === "hidden" ? "icon-eye-slash" : "icon-direction", attrs: 'data-fb-bar-mark' }) : ""}
+            <button class="btn btn-strict btn-sm btn-icon-only e-permits-pd__tool" type="button" aria-label="Duplică" data-tooltip-label="Duplică (Ctrl+D)" data-fb-bar="duplicate" data-fb-act="duplicate" data-id="${field.id}">${icon("icon-copy")}</button>
+            ${menu}
+          </span>
+        </div>
+        ${isContainer(field) ? `<div class="e-permits-pd__toolbar e-permits-builder__elbar e-permits-builder__elbar--subs">${subsStripHtml(field)}</div>` : ""}`;
+    }
+    if (shape.kind === "section") {
+      const found = findSection(shape.id);
+      if (!found) return "";
+      const list = found.step.sections;
+      const index = list.indexOf(found.section);
+      const title = tr(found.section.title) || "fără titlu";
+      const menu = fixedMenu(ui().renderStackMenu?.([
+        ...(index > 0 ? [{ label: "Mută mai sus", icon: "arrow-up", attrs: `data-fb-sec-act="up" data-id="${shape.id}"` }] : []),
+        ...(index < list.length - 1 ? [{ label: "Mută mai jos", icon: "arrow-down", attrs: `data-fb-sec-act="down" data-id="${shape.id}"` }] : []),
+        { label: "Șterge secțiunea", icon: "delete", danger: true, attrs: `data-fb-sec-act="delete" data-id="${shape.id}"` },
+      ], `secțiunea ${title}`));
+      return `
+        <div class="e-permits-pd__toolbar e-permits-builder__elbar" role="toolbar" aria-label="Acțiuni pentru secțiunea „${esc(title)}”">
+          <span class="e-permits-pd__toolgroup">${list.length > 1 ? barGrip("section", shape.id) : ""}${barType("icon-templates", "Secțiune")}</span>
+          ${barSep}
+          <span class="e-permits-pd__toolgroup">
+            <button class="btn btn-strict btn-sm btn-icon-only e-permits-pd__tool" type="button" aria-label="Duplică secțiunea (fără câmpuri)" data-tooltip-label="Duplică secțiunea (fără câmpuri)" data-fb-bar="copy" data-fb-sec-act="copy" data-id="${shape.id}">${icon("icon-copy")}</button>
+            ${menu}
+          </span>
+        </div>`;
+    }
+    const step = stepById(shape.id);
+    if (!step) return "";
+    return `
+      <div class="e-permits-pd__toolbar e-permits-builder__elbar" role="toolbar" aria-label="Acțiuni pentru pasul „${esc(tr(step.title))}”">
+        <span class="e-permits-pd__toolgroup">${barType(step.locked ? "icon-lock" : "icon-bullet-list", step.locked ? "Pas generat de platformă" : "Pas")}</span>
+      </div>`;
+  }
+
+  function renderChrome() {
+    const layer = chromeEl();
+    if (!layer) return;
+    const step = activeStep();
+    const shape = selShape();
+    const selNode = shape ? elementNode(shape.kind, shape.id) : null;
+    const selField = shape?.kind === "field" ? findField(shape.id)?.field : null;
+    const dots = step.locked ? "" : (step.sections || []).flatMap((section) => section.fields).map((field) => {
+      const errors = fieldIssues(field);
+      return errors.length && fieldNode(field.id) ? `<span class="e-permits-ntpl-dot e-permits-tariff__tab-error e-permits-builder__issue-dot" role="img" aria-label="Eroare: ${esc(errors[0].message)}" data-tooltip-text="${esc(errors[0].message)}" data-fb-dot="${field.id}"></span>` : "";
+    }).join("");
+    layer.innerHTML = `
+      <div class="e-permits-builder__hoverbox" data-fb-hoverbox hidden></div>
+      <button class="e-permits-builder__grip" type="button" draggable="true" tabindex="-1" aria-hidden="true" data-fb-handle hidden>${icon("icon-drag", 16)}</button>
+      <span class="e-permits-builder__lockmark" aria-hidden="true" data-fb-lockmark hidden>${icon("icon-lock", 16)}</span>
+      ${selNode ? `
+      <div class="e-permits-builder__selbox" data-fb-selbox>${selField && !isFixedWidth(selField) ? '<button class="e-permits-builder__sel-resize" type="button" tabindex="-1" aria-hidden="true" data-fb-resize></button>' : ""}</div>
+      <div class="e-permits-builder__elbar-wrap" data-fb-elbar>${elementBarHtml()}</div>` : ""}
+      <div class="e-permits-builder__insert" data-fb-insert hidden>
+        <button class="e-permits-builder__insert-add" type="button" aria-label="Adaugă un câmp aici" data-tooltip-label="Adaugă un câmp aici" aria-haspopup="menu" aria-expanded="false" aria-controls="fb-insert-menu" data-stack-menu-trigger data-fb-insert-add>${icon("icon-plus-small", 16)}</button>
+      </div>
+      <ul class="e-permits-fo-intent-menu e-permits-stack__menu e-permits-builder__insert-menu" id="fb-insert-menu" role="menu" aria-label="Adaugă o componentă aici" hidden data-stack-menu data-stack-menu-fixed data-stack-menu-align="start">${typeMenuItems("data-fb-insert-type")}</ul>
+      ${dots}`;
+    WY.pinned = null;
+    placeChrome();
+  }
+
+  function placeChrome() {
+    const layer = chromeEl();
+    if (!layer || el.canvas.hidden) return;
+    const shape = selShape();
+    const selbox = layer.querySelector("[data-fb-selbox]");
+    const node = shape ? elementNode(shape.kind, shape.id) : null;
+    if (selbox && node) {
+      const box = boxOf(node, OUTSET[shape.kind]);
+      setBox(selbox, box);
+      const bar = layer.querySelector("[data-fb-elbar]");
+      const gap = 8;
+      const above = box.top - bar.offsetHeight - gap;
+      /* above the element, on its right end: the left side is where labels and section titles are */
+      setBox(bar, { left: Math.max(0, Math.min(box.left + box.width - bar.offsetWidth, el.canvas.clientWidth - bar.offsetWidth)), top: above >= 0 ? above : box.top + box.height + gap });
+    }
+    layer.querySelectorAll("[data-fb-dot]").forEach((dot) => {
+      const target = fieldNode(dot.dataset.fbDot);
+      dot.hidden = !target;
+      if (target) { const box = boxOf(target); setBox(dot, { left: box.left + box.width - 4, top: box.top - 4 }); }
+    });
+    placeHover();
+    placeInsert();
+  }
+
+  const sameShape = (a, b) => Boolean(a && b && a.kind === b.kind && a.id === b.id);
+  function placeHover() {
+    const layer = chromeEl();
+    const box = layer?.querySelector("[data-fb-hoverbox]");
+    if (!box) return;
+    const grip = layer.querySelector(".e-permits-builder__grip");
+    const lock = layer.querySelector("[data-fb-lockmark]");
+    const hover = WY.hover;
+    const quiet = state.textEdit || builder.classList.contains("is-dragging-component");
+    const onSelected = Boolean(hover && !quiet && sameShape(hover, selShape()));
+    /* the selected element under the pointer: its own outline answers (never a second, grey one) */
+    layer.querySelector("[data-fb-selbox]")?.classList.toggle("is-hover", onSelected);
+    const node = hover && !quiet && !onSelected ? elementNode(hover.kind, hover.id) : null;
+    box.hidden = !node;
+    lock.hidden = !node || hover.kind !== "locked";
+    grip.hidden = !node || !(hover.kind === "field" || (hover.kind === "section" && activeStep().sections.length > 1));
+    if (!node) return;
+    const b = boxOf(node, OUTSET[hover.kind]);
+    setBox(box, b);
+    if (!lock.hidden) setBox(lock, { left: b.left + b.width - 14, top: b.top - 14 });
+    if (!grip.hidden) {
+      grip.dataset.kind = hover.kind;
+      grip.dataset.id = hover.id;
+      setBox(grip, { left: b.left - 14, top: b.top + (b.height > 96 ? 12 : b.height / 2 - 14) });
+    }
+  }
+  function setHover(next) {
+    if (sameShape(next, WY.hover) || (!next && !WY.hover)) return;
+    WY.hover = next;
+    placeHover();
+  }
+
+  /* what is under a point of the page: a field (its box + 4), the step title, a section, else nothing */
+  function hitTest(x, y) {
+    const inside = (node, pad) => { const r = node.getBoundingClientRect(); return r.width > 0 && x >= r.left - pad && x <= r.right + pad && y >= r.top - pad && y <= r.bottom + pad; };
+    const step = activeStep();
+    const body = bodyNode();
+    if (!body) return { kind: "none", id: "" };
+    if (step.locked) return inside(body, 8) ? { kind: "locked", id: step.id, node: body } : { kind: "none", id: "" };
+    const field = [...el.canvas.querySelectorAll("[data-builder-field]")].find((node) => inside(node, 4));
+    if (field) return { kind: "field", id: field.dataset.id, node: field };
+    const head = stepNode();
+    if (head && inside(head, 4)) return { kind: "step", id: step.id, node: head };
+    const section = [...el.canvas.querySelectorAll("[data-builder-section]")].find((node) => inside(node, 8));
+    if (section) return { kind: "section", id: section.dataset.sectionId, node: section };
+    return { kind: "none", id: "" };
+  }
+  /* a click made by code (demo states, assistive tech) has no point: take the element it was sent to */
+  function hitOf(event) {
+    if (event.detail > 0 && (event.clientX || event.clientY)) return hitTest(event.clientX, event.clientY);
+    const field = event.target.closest("[data-builder-field]");
+    if (field) return { kind: "field", id: field.dataset.id, node: field, coded: true };
+    if (event.target.closest("[data-fb-el='step']")) return { kind: activeStep().locked ? "locked" : "step", id: activeStep().id, node: stepNode(), coded: true };
+    const section = event.target.closest("[data-builder-section]");
+    if (section) return { kind: "section", id: section.dataset.sectionId, node: section, coded: true };
+    return { kind: "none", id: "", coded: true };
+  }
+
+  /* rows of a section grid (same top ± 8), for the insert line and the drop indicator */
+  function gridRows(grid) {
+    const cards = [...grid.querySelectorAll(":scope > [data-builder-field]")];
+    const rects = cards.map((card) => card.getBoundingClientRect());
+    const rows = [];
+    rects.forEach((r, i) => { let row = rows.find((item) => Math.abs(item.top - r.top) < 8); if (!row) rows.push(row = { top: r.top, bottom: r.bottom, items: [] }); row.bottom = Math.max(row.bottom, r.bottom); row.items.push(i); });
+    return { cards, rects, rows };
+  }
+  /* the position in section.fields of the card at a DOM index (a hidden field is in the model, not on the page) */
+  function modelIndex(grid, domIndex) {
+    const section = findSection(grid.dataset.sectionId)?.section;
+    const card = grid.querySelectorAll(":scope > [data-builder-field]")[domIndex];
+    if (!section) return 0;
+    if (!card) return section.fields.length;
+    const at = section.fields.findIndex((field) => field.id === card.dataset.id);
+    return at < 0 ? section.fields.length : at;
+  }
+  /* the gap under the pointer: between two rows (a line across the section), between two fields of a row (a
+     line down the row), above the first row, under the last one */
+  function insertAt(x, y) {
+    const c = el.canvas.getBoundingClientRect();
+    for (const grid of el.canvas.querySelectorAll("[data-builder-grid]")) {
+      const g = grid.getBoundingClientRect();
+      if (x < g.left - 8 || x > g.right + 8 || y < g.top || y > g.bottom) continue;
+      const { rects, rows } = gridRows(grid);
+      if (!rows.length) return null;
+      const base = { sectionId: grid.dataset.sectionId };
+      const across = (index, lineY) => ({ ...base, index: modelIndex(grid, index), dir: "row", left: g.left - c.left, width: g.width, at: lineY - c.top, pointer: x - g.left });
+      const row = rows.find((item) => y >= item.top && y <= item.bottom);
+      if (row) {
+        for (let k = 0; k < row.items.length - 1; k += 1) {
+          const a = rects[row.items[k]];
+          const b = rects[row.items[k + 1]];
+          if (x > a.right + 4 && x < b.left - 4) return { ...base, index: modelIndex(grid, row.items[k + 1]), dir: "col", top: row.top - c.top, height: row.bottom - row.top, at: (a.right + b.left) / 2 - c.left, pointer: y - row.top };
+        }
+        return null;
+      }
+      if (y < rows[0].top - 4) return across(0, rows[0].top - 12);
+      for (let i = 0; i < rows.length - 1; i += 1) if (y > rows[i].bottom + 4 && y < rows[i + 1].top - 4) return across(rows[i + 1].items[0], (rows[i].bottom + rows[i + 1].top) / 2);
+      const last = rows[rows.length - 1];
+      if (y > last.bottom + 4) return across(rects.length, last.bottom + 12);
+      return null;
+    }
+    return null;
+  }
+  function placeInsert() {
+    const layer = chromeEl();
+    const line = layer?.querySelector("[data-fb-insert]");
+    if (!line) return;
+    const spot = WY.pinned || WY.insert;
+    line.hidden = !spot || Boolean(state.textEdit);
+    if (line.hidden) return;
+    const add = line.querySelector("[data-fb-insert-add]");
+    const half = 12;
+    line.classList.toggle("is-col", spot.dir === "col");
+    if (spot.dir === "row") {
+      setBox(line, { left: spot.left, top: spot.at - half, width: spot.width, height: half * 2 });
+      add.style.top = "0px";
+      add.style.left = `${Math.round(Math.max(0, Math.min(spot.pointer - half, spot.width - half * 2)))}px`;
+    } else {
+      setBox(line, { left: spot.at - half, top: spot.top, width: half * 2, height: spot.height });
+      add.style.left = "0px";
+      add.style.top = `${Math.round(Math.max(0, Math.min(spot.pointer - half, spot.height - half * 2)))}px`;
+    }
+  }
+  function setInsert(next) {
+    if (!next && !WY.insert) return;
+    WY.insert = next;
+    placeInsert();
+  }
+  const insertMenuOpen = () => Boolean(el.canvas.querySelector("#fb-insert-menu:not([hidden])"));
+  const pointerHover = (event) => {
+    if (state.mode !== "build" || event.pointerType === "touch") return;
+    if (WY.pinned && !insertMenuOpen()) { WY.pinned = null; placeInsert(); }
+    if (builder.classList.contains("is-dragging-component") || state.textEdit) return;
+    /* on the handle, the bar or the „+”: keep what is shown */
+    if (event.target.closest?.("[data-fb-chrome]")) return;
+    if (!el.canvas.contains(event.target) && event.target !== el.scroll) { setHover(null); setInsert(null); return; }
+    const hit = hitTest(event.clientX, event.clientY);
+    const spot = hit.kind === "field" || hit.kind === "locked" || hit.kind === "step" ? null : insertAt(event.clientX, event.clientY);
+    /* over a text that a click edits: the text cursor (the field's inert children cannot show their own) */
+    const text = hit.node && hit.kind !== "locked" ? textAt(hit.node, event.clientX, event.clientY) : null;
+    el.canvas.classList.toggle("is-over-text", Boolean(text && (text.dataset.fbText !== "placeholder" || sameShape(hit, selShape()))));
+    setHover(spot || hit.kind === "none" ? null : { kind: hit.kind, id: hit.id });
+    if (!WY.pinned) setInsert(spot);
+  };
+  el.scroll.addEventListener("pointermove", pointerHover);
+  el.scroll.addEventListener("pointerleave", () => { setHover(null); el.canvas.classList.remove("is-over-text"); if (!WY.pinned) setInsert(null); });
+  el.scroll.addEventListener("scroll", () => { setHover(null); if (!WY.pinned) setInsert(null); }, { passive: true });
+
+  /* the texts of the page are edited in Proprietăți for now; editing them in place (step / section titles, labels,
+     help texts, option labels, placeholders) is the next step of fb-wysiwyg-v1 — these are its entry points */
+  state.textEdit = null;
+  const mainText = () => [];
+  const textAt = () => null;
+  const startTextEdit = () => false;
+  const finishTextEdit = () => {};
+  const dropTextEdit = () => null;
 
   /* --------------------------------------------------- properties panel (spec § D, E) */
   const pid = (prop) => `fb-p-${prop.replace(/[^a-z0-9]+/gi, "-")}`;
@@ -2773,41 +3071,6 @@ document.addEventListener("DOMContentLoaded", () => {
       </div>`;
   }
 
-  /* ============================================== ONE PAGE RENDERER (fb-wysiwyg-v1, plan P6b, 2026-11-17)
-     A step's page — header, sections, fields — is drawn by ONE function with the FO markup and CSS
-     (`e-permits-fo-form__header`, `e-permits-fo-form__section`, `e-permits-fo-section-header`,
-     `e-permits-fo-form__section-body`, the FO field renderer). The Preview uses it here; the edit canvas follows
-     (WYSIWYG: the same page with an `editable` flag that only adds attributes). */
-  /* the FO renderer's top element gets the builder ids (logic + test data find the cells) */
-  const tagged = (html, attrs) => String(html).replace(/^(\s*<[a-z]+)/i, `$1 ${attrs}`);
-  function stepPageHtml(step, { prefix = "pv", lang = "ro" } = {}) {
-    const text = (value) => tr(value, lang) || tr(value, "ro");
-    const index = form.steps.indexOf(step);
-    const head = `
-      <header class="e-permits-fo-form__header">
-        <span class="e-permits-builder__preview-step-meta">Pasul ${index + 1} din ${form.steps.length}</span>
-        <h1>${esc(text(step.title))}</h1>
-        ${text(step.description) ? `<p class="e-permits-fo-section-header__desc">${esc(text(step.description))}</p>` : ""}
-      </header>`;
-    if (step.locked) return `${head}${ui().renderInfoNote?.(`Pas generat de platformă. ${esc(PLATFORM_STEPS[step.platform] || "")}`) || ""}`;
-    return `${head}
-      ${(step.sections || []).map((section) => {
-        const title = text(section.title);
-        const showTitle = section.showTitle !== false && title;
-        return `
-          <section class="e-permits-fo-form__section${showTitle ? "" : " e-permits-fo-form__section--plain"}" ${showTitle ? `aria-labelledby="${prefix}-${section.id}-title"` : `aria-label="${esc(title || "Secțiune")}"`} data-fb-section="${section.id}">
-            ${showTitle ? `
-              <div class="e-permits-fo-section-header${section.showSeparator === false ? " e-permits-fo-section-header--no-border" : ""}">
-                <h2 id="${prefix}-${section.id}-title">${esc(title)}</h2>
-                ${text(section.description) ? `<p class="e-permits-fo-section-header__desc">${esc(text(section.description))}</p>` : ""}
-              </div>` : ""}
-            <div class="e-permits-fo-form__section-body" data-builder-preview-grid>
-              ${section.fields.map((field) => tagged(foHtml(field, { prefix, lang }), `data-fb-field="${field.id}"`)).join("")}
-            </div>
-          </section>`;
-      }).join("")}`;
-  }
-
   function renderPreview() {
     const step = activeStep();
     const index = form.steps.indexOf(step);
@@ -2843,7 +3106,7 @@ document.addEventListener("DOMContentLoaded", () => {
           </button>
         </li>`;
     }).join("");
-    /* the one page renderer (stepPageHtml), here with live controls */
+    /* the same page as the edit canvas (stepPageHtml), here with live controls */
     el.previewBody.innerHTML = stepPageHtml(step, { prefix: "pv", lang });
     if (step.locked) return;
     R.bind(el.previewBody);
@@ -3243,7 +3506,7 @@ document.addEventListener("DOMContentLoaded", () => {
   function insertPreset(presetId, sectionId = "", index = null, { focus = true } = {}) {
     const preset = presetById(presetId);
     if (!preset || !isUsable(preset.type)) return null;
-    const field = addField(preset.type, sectionId, index, { focus: false });
+    const field = addField(preset.type, sectionId, index, { focus: false, edit: false });
     if (!field) return null;
     Object.assign(field, clone(preset.field));
     sanitizeChildren(field);
@@ -3252,7 +3515,7 @@ document.addEventListener("DOMContentLoaded", () => {
     field.preset = { id: preset.id, version: preset.version };
     commit();
     announce(`Componenta salvată „${preset.name}” a fost adăugată.`);
-    if (focus) focusPanel('[data-fb-prop="label"], [data-fb-prop="text"]');
+    editNew("field", field.id, { panel: focus });
     return field;
   }
 
@@ -3398,7 +3661,17 @@ document.addEventListener("DOMContentLoaded", () => {
     if (focusLabel) focusPanel('[data-fb-prop="label"], [data-fb-prop="text"], [data-fb-prop="title"]');
   }
 
-  function addField(type, sectionId, index, { focus = true } = {}) {
+  /* a new field / section opens with its label / title ready for typing (the panel's field; on the page with the next step) */
+  function editNew(kind, id, { panel = true } = {}) {
+    const node = elementNode(kind, id);
+    const scope = kind === "section" ? node?.querySelector(":scope > .e-permits-fo-section-header") : node;
+    const prop = scope && mainText(kind).find((name) => scope.querySelector(`[data-fb-text="${name}"]`));
+    if (state.mode === "build" && prop && startTextEdit(kind, id, prop, { all: true })) return true;
+    if (panel) focusPanel(kind === "section" ? '[data-fb-prop="title"]' : '[data-fb-prop="label"], [data-fb-prop="text"]');
+    return false;
+  }
+
+  function addField(type, sectionId, index, { focus = true, edit = true } = {}) {
     if (!isUsable(type) || COMPONENTS[type].structural) return null;
     let section = sectionId ? findSection(sectionId)?.section : activeSection();
     if (!section || findSection(section.id)?.step.locked) {
@@ -3418,7 +3691,7 @@ document.addEventListener("DOMContentLoaded", () => {
     commit();
     announce(`${comp(type).label} adăugat în „${tr(section.title) || "secțiune"}”, poziția ${at + 1} din ${section.fields.length}.`);
     el.canvas.querySelector(`[data-builder-field][data-id="${field.id}"]`)?.scrollIntoView({ block: "nearest" });
-    if (focus) focusPanel('[data-fb-prop="label"], [data-fb-prop="text"]');
+    if (edit) editNew("field", field.id, { panel: focus });
     return field;
   }
 
@@ -3435,7 +3708,7 @@ document.addEventListener("DOMContentLoaded", () => {
     commit();
     announce(`Secțiune nouă adăugată în pasul „${tr(step.title)}”.`);
     el.canvas.querySelector(`[data-section-id="${section.id}"]`)?.scrollIntoView({ block: "nearest" });
-    focusPanel('[data-fb-prop="title"]');
+    editNew("section", section.id);
   }
 
   function addStep(name = "") {
@@ -3760,6 +4033,23 @@ document.addEventListener("DOMContentLoaded", () => {
     commit();
     announce(`Secțiunea „${tr(found.section.title)}” mutată pe poziția ${to + 1} din ${list.length}.`);
     el.canvas.querySelector(`[data-fb-select-section="${id}"]`)?.focus();
+  }
+
+  /* a section dropped at an index of its step (drag by the handle) */
+  function moveSectionTo(id, index) {
+    const found = findSection(id);
+    if (!found) return;
+    const list = found.step.sections;
+    const from = list.indexOf(found.section);
+    let to = Math.max(0, Math.min(index, list.length));
+    if (to === from || to === from + 1) return;
+    checkpoint();
+    list.splice(from, 1);
+    if (to > from) to -= 1;
+    list.splice(to, 0, found.section);
+    state.sel = { kind: "section", id };
+    commit();
+    announce(`Secțiunea „${tr(found.section.title)}” mutată pe poziția ${to + 1} din ${list.length}.`);
   }
 
   function copySection(id) {
@@ -4353,27 +4643,44 @@ document.addEventListener("DOMContentLoaded", () => {
     return false;
   }
 
-  /* ---- canvas clicks */
+  /* ---- canvas clicks (fb-wysiwyg-v1): the page's controls are inert, so a click lands on the field / section /
+     step element — the point decides what was meant (`hitOf`): select, and when it is on a text, edit it there */
   el.canvas.addEventListener("click", (event) => {
+    /* a click inside the text being edited only moves the caret (a label would otherwise activate its control) */
+    if (state.textEdit && event.target.closest("[data-fb-editing]")) { event.preventDefault(); return; }
+    const insertType = event.target.closest("[data-fb-insert-type]");
+    if (insertType) { const spot = WY.pinned || WY.insert; WY.pinned = null; if (spot) addField(insertType.dataset.fbAddType, spot.sectionId, spot.index); return; }
     if (runMenuAction(event)) return;
+    if (event.target.closest("[data-fb-insert-add]")) { WY.pinned = WY.insert ? { ...WY.insert } : WY.pinned; return; }
     if (event.target.closest("[data-stack-menu-trigger], [data-stack-menu]")) return;
     if (event.target.closest("[data-fb-add-section]")) { addSection(); return; }
     const chip = event.target.closest("[data-fb-child]");
     if (chip) { select("child", chip.dataset.fbChild); el.canvas.querySelector(`[data-fb-child="${chip.dataset.fbChild}"]`)?.focus({ preventScroll: true }); return; }
-    const sectionButton = event.target.closest("[data-fb-select-section]");
-    if (sectionButton) { select("section", sectionButton.dataset.fbSelectSection); sectionButton.isConnected || el.canvas.querySelector(`[data-fb-select-section="${sectionButton.dataset.fbSelectSection}"]`)?.focus(); return; }
-    const card = event.target.closest("[data-builder-field]");
-    if (card) {
-      if (event.target.closest("[data-fb-resize]")) return;
-      if (!(state.sel.kind === "field" && state.sel.id === card.dataset.id)) select("field", card.dataset.id);
-      el.canvas.querySelector(`[data-builder-field][data-id="${card.dataset.id}"]`)?.focus({ preventScroll: true });
+    const tool = event.target.closest("[data-fb-bar]");
+    if (tool) {
+      if (tool.getAttribute("aria-disabled") === "true") return;
+      const shape = selShape();
+      if (tool.dataset.fbBar === "width" && shape?.kind === "field") { setSpan(shape.id, spanOf(findField(shape.id).field) === 12 ? 6 : 12); el.canvas.querySelector('[data-fb-bar="width"]')?.focus({ preventScroll: true }); }
+      else if (tool.dataset.fbBar === "logic" && shape?.kind === "field") { const field = findField(shape.id)?.field; select("field", shape.id, { tab: field?.type === "hidden" ? T_DATA : T_LOGIC }); }
       return;
     }
-    const sectionEl = event.target.closest("[data-builder-section]");
-    if (sectionEl && !event.target.closest("[data-builder-grid] > *")) { select("section", sectionEl.dataset.sectionId); return; }
-    if (!sectionEl) select("form");
+    /* a click on the hover handle (no drag) selects its element */
+    const grip = event.target.closest(".e-permits-builder__grip");
+    if (grip) { select(grip.dataset.kind, grip.dataset.id); return; }
+    if (event.target.closest("[data-fb-chrome]")) return;
+    const hit = hitOf(event);
+    if (hit.kind === "none") { if (!event.target.closest(".e-permits-builder__canvas-actions")) select("form"); return; }
+    if (hit.kind === "locked") { select("step", hit.id); stepNode()?.focus({ preventScroll: true }); return; }
+    const same = sameShape(hit, selShape()) && state.sel.kind !== "child";
+    const text = hit.coded ? null : textAt(hit.node, event.clientX, event.clientY);
+    const prop = text?.dataset.fbText || "";
+    if (!same) select(hit.kind, hit.id);
+    /* a text → edit it in place; the placeholder only on a field that was already selected (the first click on
+       the control selects) */
+    if (prop && (prop !== "placeholder" || same) && startTextEdit(hit.kind, hit.id, prop, { x: event.clientX, y: event.clientY })) return;
+    (hit.kind === "section" ? el.canvas.querySelector(`[data-fb-select-section="${hit.id}"]`) : elementNode(hit.kind, hit.id))?.focus({ preventScroll: true });
   });
-  /* an empty canvas click (outside sections) = back to the form's general data */
+  /* an empty canvas click (outside the page) = nothing selected */
   el.scroll.addEventListener("click", (event) => {
     if (state.mode !== "build") return;
     if (event.target === el.scroll) select("form");
@@ -4479,14 +4786,12 @@ document.addEventListener("DOMContentLoaded", () => {
     el.steps.querySelector(`[data-fb-step="${next.dataset.fbStep}"]`)?.focus();
   });
 
-  /* ---- keyboard on cards and sections: the drag alternative (WCAG 2.5.7) */
+  /* ---- keyboard on the page elements (fields, sections, the step title): Tab walks them, ↑ / ↓ go to the
+     neighbour, Enter / Space selects, Enter on the selected one (or F2) edits its text, Shift+F10 goes to the
+     action bar; the moves are the drag alternative (WCAG 2.5.7). Esc deselects (window handler). */
+  const pageStops = () => [...el.canvas.querySelectorAll("[data-fb-el='step'], [data-fb-select-section], [data-builder-field]")];
   el.canvas.addEventListener("keydown", (event) => {
-    const sectionButton = event.target.closest("[data-fb-select-section]");
-    if (sectionButton && event.altKey && ["ArrowUp", "ArrowDown"].includes(event.key)) {
-      event.preventDefault();
-      moveSection(sectionButton.dataset.fbSelectSection, event.key === "ArrowUp" ? -1 : 1);
-      return;
-    }
+    if (state.textEdit) return;
     const chipEl = event.target.matches?.("[data-fb-child]") ? event.target : null;
     if (chipEl) {
       const childId = chipEl.dataset.fbChild;
@@ -4497,9 +4802,35 @@ document.addEventListener("DOMContentLoaded", () => {
       if (event.key === "Delete" || event.key === "Backspace") { event.preventDefault(); deleteChild(childId); }
       return;
     }
-    const card = event.target.matches?.("[data-builder-field]") ? event.target : null;
-    if (!card) return;
-    const id = card.dataset.id;
+    const stop = event.target.matches?.("[data-fb-el='step'], [data-fb-select-section], [data-builder-field]") ? event.target : null;
+    if (!stop) return;
+    const kind = stop.matches("[data-builder-field]") ? "field" : stop.matches("[data-fb-el='step']") ? "step" : "section";
+    const id = kind === "field" ? stop.dataset.id : kind === "step" ? stop.dataset.id : stop.dataset.fbSelectSection;
+    const refocus = () => (kind === "section" ? el.canvas.querySelector(`[data-fb-select-section="${id}"]`) : elementNode(kind, id))?.focus({ preventScroll: true });
+    if (!event.altKey && !event.ctrlKey && !event.metaKey && (event.key === "ArrowDown" || event.key === "ArrowUp")) {
+      const stops = pageStops();
+      const next = stops[stops.indexOf(stop) + (event.key === "ArrowDown" ? 1 : -1)];
+      if (next) { event.preventDefault(); next.focus(); next.scrollIntoView({ block: "nearest" }); }
+      return;
+    }
+    const selected = sameShape({ kind, id }, selShape()) && state.sel.kind !== "child";
+    if (event.key === "Enter" || event.key === " " || event.key === "F2") {
+      event.preventDefault();
+      const locked = stop.hasAttribute("data-fb-locked");
+      if (!selected) select(kind, id);
+      if ((selected || event.key === "F2") && !locked && event.key !== " ") {
+        const prop = mainText(kind).find((name) => elementNode(kind, id)?.querySelector(`[data-fb-text="${name}"]`));
+        if (prop && startTextEdit(kind, id, prop, { all: true })) return;
+      }
+      refocus();
+      return;
+    }
+    if (event.key === "F10" && event.shiftKey && selected) { event.preventDefault(); el.canvas.querySelector("[data-fb-elbar] button:not([tabindex='-1'])")?.focus(); return; }
+    if (kind === "section") {
+      if (event.altKey && ["ArrowUp", "ArrowDown"].includes(event.key)) { event.preventDefault(); moveSection(id, event.key === "ArrowUp" ? -1 : 1); }
+      return;
+    }
+    if (kind !== "field") return;
     const found = findField(id);
     if (!found) return;
     const mod = event.ctrlKey || event.metaKey;
@@ -4518,12 +4849,7 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
     if (mod && (event.key === "d" || event.key === "D")) { event.preventDefault(); duplicateField(id); return; }
-    if (event.key === "Delete" || event.key === "Backspace") { event.preventDefault(); deleteField(id); return; }
-    if (event.key === "Enter" || event.key === " ") {
-      event.preventDefault();
-      select("field", id);
-      focusCard(id);
-    }
+    if (event.key === "Delete" || event.key === "Backspace") { event.preventDefault(); deleteField(id); }
   });
 
   /* ---- palette: click = add AFTER the selected field (a child → after its container), at the end of the selected
@@ -4542,7 +4868,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const at = insertTarget();
     if (item.dataset.fbPreset) insertPreset(item.dataset.fbPreset, at.sectionId, at.index, { focus: false });
     else addField(type, at.sectionId, at.index, { focus: false });
-    el.library.querySelector(`[data-builder-component="${type}"]${item.dataset.fbPreset ? `[data-fb-preset="${item.dataset.fbPreset}"]` : ":not([data-fb-preset])"}`)?.focus();
+    /* the new field's label is being typed on the page: the focus stays there */
+    if (!state.textEdit) el.library.querySelector(`[data-builder-component="${type}"]${item.dataset.fbPreset ? `[data-fb-preset="${item.dataset.fbPreset}"]` : ":not([data-fb-preset])"}`)?.focus();
   });
 
   /* collapse (PD „Elemente” rail): the card shrinks to the 56 rail — toggle + search — and back; `[` toggles it */
@@ -4559,7 +4886,7 @@ document.addEventListener("DOMContentLoaded", () => {
   });
   builder.addEventListener("keydown", (event) => {
     if (event.key !== "[" || event.ctrlKey || event.metaKey || event.altKey || state.mode !== "build") return;
-    if (event.target.closest("input, textarea, select, [contenteditable='true']")) return;
+    if (event.target.closest("input, textarea, select, [contenteditable]")) return;
     event.preventDefault();
     setLibraryRail(!state.rail, { focus: true });
   });
@@ -4578,7 +4905,7 @@ document.addEventListener("DOMContentLoaded", () => {
   });
   builder.addEventListener("keydown", (event) => {
     if (event.key !== "]" || event.ctrlKey || event.metaKey || event.altKey || state.mode !== "build") return;
-    if (event.target.closest("input, textarea, select, [contenteditable='true']")) return;
+    if (event.target.closest("input, textarea, select, [contenteditable]")) return;
     event.preventDefault();
     setPropsRail(!state.propsRail, { focus: true });
   });
@@ -4607,7 +4934,7 @@ document.addEventListener("DOMContentLoaded", () => {
     indicator.remove();
     builder.classList.remove("is-dragging-component");
     builder.querySelectorAll(".is-dragging, .is-drop-active").forEach((node) => node.classList.remove("is-dragging", "is-drop-active"));
-    el.canvas.querySelectorAll('[data-builder-field][draggable="true"]').forEach((card) => { card.draggable = false; });
+    placeHover();
   };
   /* a drag that moved less than DRAG_SLOP and changed nothing = the click the user meant */
   const tinyDragAsClick = (record, event) => {
@@ -4640,18 +4967,10 @@ document.addEventListener("DOMContentLoaded", () => {
     press = { x: event.clientX, y: event.clientY };
     if (drag) endDrag();
   }, true);
-  /* arm the card's native drag only from its tools row (never from a menu / button in it) */
-  el.canvas.addEventListener("pointerdown", (event) => {
-    if (event.button !== 0) return;
-    const card = event.target.closest?.("[data-builder-field]");
-    if (!card) return;
-    card.draggable = Boolean(event.target.closest(".e-permits-builder__field-tools") && !event.target.closest("button, a, [data-stack-menu]"));
-  }, true);
   /* no native drag reports pointer events: one arriving with no button held means the drag is over */
   document.addEventListener("pointermove", (event) => { if (drag && event.buttons === 0 && event.isTrusted) endDrag(); }, true);
   document.addEventListener("pointerup", () => {
     if (drag && !drag.native) endDrag();
-    el.canvas.querySelectorAll('[data-builder-field][draggable="true"]').forEach((card) => { if (!drag) card.draggable = false; });
   }, true);
   document.addEventListener("drop", (event) => { if (drag && !el.canvas.contains(event.target)) endDrag(); }, true);
   document.addEventListener("keydown", (event) => { if (drag && event.key === "Escape") endDrag(); }, true);
@@ -4674,30 +4993,30 @@ document.addEventListener("DOMContentLoaded", () => {
       window.setTimeout(() => { if (drag === record) chip.classList.add("is-dragging"); }, 0);
       return;
     }
-    const card = event.target.closest?.("[data-builder-field]");
-    if (!card || !card.draggable) { event.preventDefault(); return; }
-    const record = { kind: "move", id: card.dataset.id, span: Number(card.dataset.span), source: card, native: event.isTrusted };
+    /* fb-wysiwyg-v1: an element drags from its handle only (the grip on the hover outline / in the action bar);
+       the page element itself is the drag image */
+    const handle = event.target.closest?.("[data-fb-handle]");
+    const moved = handle ? elementNode(handle.dataset.kind, handle.dataset.id) : null;
+    if (!moved) { event.preventDefault(); return; }
+    const record = { kind: handle.dataset.kind === "section" ? "section" : "move", id: handle.dataset.id, source: handle, native: event.isTrusted };
     beginDrag(record);
     event.dataTransfer.effectAllowed = "move";
-    event.dataTransfer.setData("text/plain", card.dataset.id);
-    window.setTimeout(() => { if (drag === record) card.classList.add("is-dragging"); }, 0);
+    event.dataTransfer.setData("text/plain", record.id);
+    try { event.dataTransfer.setDragImage(moved, 12, 12); } catch { /* a synthetic event has no drag image */ }
+    window.setTimeout(() => { if (drag === record) moved.classList.add("is-dragging"); }, 0);
   });
 
   /* where a drop lands in a section grid: index among the cards, by rows (pointer inside a card →
      before / after its middle; in a row's empty end → after the row; below → end) */
   function dropTarget(grid, x, y) {
-    const cards = [...grid.querySelectorAll(":scope > [data-builder-field]")];
+    const { cards, rects, rows } = gridRows(grid);
     if (!cards.length) return { index: 0, rect: null, edge: "empty", cards };
-    const rects = cards.map((card) => card.getBoundingClientRect());
     for (let i = 0; i < cards.length; i += 1) {
       const r = rects[i];
       if (x >= r.left && x <= r.right && y >= r.top && y <= r.bottom) {
         return x < r.left + r.width / 2 ? { index: i, rect: r, edge: "before", cards } : { index: i + 1, rect: r, edge: "after", cards };
       }
     }
-    /* rows: same top (± 8) */
-    const rows = [];
-    rects.forEach((r, i) => { let row = rows.find((item) => Math.abs(item.top - r.top) < 8); if (!row) rows.push(row = { top: r.top, bottom: r.bottom, items: [] }); row.bottom = Math.max(row.bottom, r.bottom); row.items.push(i); });
     if (y < rows[0].top) return { index: 0, rect: rects[0], edge: "before", cards };
     const row = rows.find((item) => y >= item.top && y <= item.bottom + 12);
     if (row) {
@@ -4709,18 +5028,33 @@ document.addEventListener("DOMContentLoaded", () => {
     const lastIndex = cards.length - 1;
     return { index: cards.length, rect: rects[lastIndex], edge: "below", cards };
   }
+  /* the 4px brand line lives in the chrome layer (never a child of the FO grid) */
   function showIndicator(grid, target) {
+    const layer = chromeEl();
+    if (!layer) return;
+    const c = el.canvas.getBoundingClientRect();
     const box = grid.getBoundingClientRect();
     indicator.classList.toggle("is-row", target.edge === "below" || target.edge === "empty");
-    if (!indicator.isConnected || indicator.parentElement !== grid) grid.appendChild(indicator);
+    if (indicator.parentElement !== layer) layer.appendChild(indicator);
     let left; let top; let width; let height;
-    if (target.edge === "empty") { left = 0; top = 0; width = box.width; height = 4; }
-    else if (target.edge === "below") { left = 0; top = target.rect.bottom - box.top + 4; width = box.width; height = 4; }
-    else { left = (target.edge === "before" ? target.rect.left - box.left - 7 : target.rect.right - box.left + 3); top = target.rect.top - box.top; width = 4; height = target.rect.height; }
-    indicator.style.left = `${Math.round(left)}px`;
-    indicator.style.top = `${Math.round(top)}px`;
-    indicator.style.width = `${Math.round(width)}px`;
-    indicator.style.height = `${Math.round(height)}px`;
+    if (target.edge === "empty") { left = box.left; top = box.top + 10; width = box.width; height = 4; }
+    else if (target.edge === "below") { left = box.left; top = target.rect.bottom + 10; width = box.width; height = 4; }
+    else { left = (target.edge === "before" ? target.rect.left - 18 : target.rect.right + 14); top = target.rect.top; width = 4; height = target.rect.height; }
+    setBox(indicator, { left: left - c.left, top: top - c.top, width, height });
+  }
+  /* the section under a point (its box, else the nearest one above / below) */
+  function sectionAt(y) {
+    const list = [...el.canvas.querySelectorAll("[data-builder-section]")];
+    return list.find((node) => { const r = node.getBoundingClientRect(); return y >= r.top && y <= r.bottom; }) || (list.length && y < list[0].getBoundingClientRect().top ? list[0] : list[list.length - 1]) || null;
+  }
+  /* a section dragged by its handle lands before / after the section under the pointer */
+  function showSectionIndicator(node, after) {
+    const layer = chromeEl();
+    const c = el.canvas.getBoundingClientRect();
+    const r = node.getBoundingClientRect();
+    indicator.classList.add("is-row");
+    if (indicator.parentElement !== layer) layer.appendChild(indicator);
+    setBox(indicator, { left: r.left - c.left, top: (after ? r.bottom : r.top) - c.top - 2, width: r.width, height: 4 });
   }
   /* where a chip lands on a band: before the first chip (same line) whose middle is right of the pointer */
   function stripTarget(strip, x, y) {
@@ -4760,30 +5094,41 @@ document.addEventListener("DOMContentLoaded", () => {
       showStripIndicator(strip, target);
       return;
     }
-    const sectionEl = event.target.closest("[data-builder-section]");
+    /* the page's controls are inert and the chrome sits above them: the pointer decides, not the event target */
+    const sectionEl = activeStep().locked ? null : sectionAt(event.clientY);
     const grid = sectionEl?.querySelector("[data-builder-grid]");
-    el.canvas.querySelectorAll(".is-drop-active").forEach((node) => { if (node !== sectionEl) node.classList.remove("is-drop-active"); });
     if (!grid) { event.dataTransfer.dropEffect = "none"; indicator.remove(); return; }
     event.preventDefault();
     event.dataTransfer.dropEffect = drag.kind === "new" ? "copy" : "move";
-    sectionEl.classList.add("is-drop-active");
-    if (drag.kind === "new" && drag.type === "section") { indicator.remove(); return; }
+    if (drag.kind === "section" || (drag.kind === "new" && drag.type === "section")) {
+      const r = sectionEl.getBoundingClientRect();
+      const after = drag.kind === "new" ? true : event.clientY > r.top + r.height / 2;
+      const list = activeStep().sections;
+      const from = list.findIndex((item) => item.id === drag.id);
+      const to = list.findIndex((item) => item.id === sectionEl.dataset.sectionId) + (after ? 1 : 0);
+      /* never at its own position */
+      if (drag.kind === "section" && (to === from || to === from + 1)) { indicator.remove(); drag.target = null; return; }
+      drag.target = { section: true, sectionId: sectionEl.dataset.sectionId, index: to };
+      showSectionIndicator(sectionEl, after);
+      return;
+    }
     const target = dropTarget(grid, event.clientX, event.clientY);
+    const index = modelIndex(grid, target.index);
     /* never at its own position (US-06) */
     if (drag.kind === "move") {
       const found = findField(drag.id);
-      if (found && found.section.id === grid.dataset.sectionId && (target.index === found.index || target.index === found.index + 1)) { indicator.remove(); drag.target = null; return; }
+      if (found && found.section.id === grid.dataset.sectionId && (index === found.index || index === found.index + 1)) { indicator.remove(); drag.target = null; return; }
     }
-    drag.target = { sectionId: grid.dataset.sectionId, index: target.index };
+    drag.target = { sectionId: grid.dataset.sectionId, index };
     showIndicator(grid, target);
   });
   el.canvas.addEventListener("dragleave", (event) => {
-    if (!el.canvas.contains(event.relatedTarget)) { indicator.remove(); el.canvas.querySelectorAll(".is-drop-active").forEach((node) => node.classList.remove("is-drop-active")); }
+    if (!el.canvas.contains(event.relatedTarget)) indicator.remove();
   });
   el.canvas.addEventListener("drop", (event) => {
     if (!drag) return;
     event.preventDefault();
-    const sectionEl = event.target.closest("[data-builder-section]");
+    const sectionEl = activeStep().locked ? null : sectionAt(event.clientY);
     const current = drag;
     endDrag();
     if (current.target?.strip || current.target || current.kind === "new") current.acted = true;
@@ -4794,6 +5139,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     if (current.kind === "child") return;
     if (!sectionEl) return;
+    if (current.kind === "section") { if (current.target?.section) moveSectionTo(current.id, current.target.index); return; }
     if (current.kind === "new") {
       if (current.type === "section") { addSection(activeStep().id, sectionEl.dataset.sectionId); return; }
       const target = current.target || { sectionId: sectionEl.dataset.sectionId, index: null };
@@ -4807,21 +5153,23 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  /* ---- width by dragging the right edge: snaps to 3 · 4 · 6 · 8 · 12 */
+  /* ---- width by dragging the right edge of the selected field (the grip on the selection outline): snaps to
+     3 · 4 · 6 · 8 · 12; the page follows live (the FO span class), the model changes on release */
   el.canvas.addEventListener("pointerdown", (event) => {
     const handle = event.target.closest("[data-fb-resize]");
-    if (!handle || event.button !== 0) return;
-    const card = handle.closest("[data-builder-field]");
-    const gridEl = card.closest("[data-builder-grid]");
+    const shape = selShape();
+    if (!handle || event.button !== 0 || shape?.kind !== "field") return;
+    const card = fieldNode(shape.id);
+    const gridEl = card?.closest("[data-builder-grid]");
+    if (!gridEl) return;
     event.preventDefault();
     event.stopPropagation();
-    const id = card.dataset.id;
+    const id = shape.id;
     const startX = event.clientX;
     const startSpan = Number(card.dataset.span);
     const gap = parseFloat(getComputedStyle(gridEl).columnGap) || 0;
     const step = (gridEl.clientWidth - gap * 11) / 12 + gap;
     let span = startSpan;
-    card.draggable = false;
     card.classList.add("is-resizing-field");
     builder.classList.add("is-field-resizing");
     const pointerId = event.pointerId;
@@ -4830,10 +5178,10 @@ document.addEventListener("DOMContentLoaded", () => {
       const raw = startSpan + Math.round((e.clientX - startX) / step);
       const next = SPANS.reduce((best, value) => (Math.abs(value - raw) < Math.abs(best - raw) ? value : best), SPANS[0]);
       if (next !== span) {
+        card.classList.replace(`e-permits-fo-field--span-${span}`, `e-permits-fo-field--span-${next}`);
         span = next;
         card.dataset.span = String(span);
-        const tag = card.querySelector("[data-fb-span-tag]");
-        if (tag) tag.textContent = `${span}/12`;
+        placeChrome();
       }
     };
     /* ends on pointerup / pointercancel / a lost capture / window blur — once, capture released */
@@ -4907,7 +5255,15 @@ document.addEventListener("DOMContentLoaded", () => {
             <button class="e-permits-builder__outline-item e-permits-builder__outline-item--section${secOn ? " is-selected" : ""}" type="button" role="treeitem" aria-level="2" aria-current="${secOn}" data-fb-outline-go="section" data-id="${section.id}"><span>${esc(tr(section.title) || "Secțiune")}</span></button>
             ${(section.fields || []).length ? `<ul role="group">${section.fields.map((field) => {
               const fOn = sel.kind === "field" && sel.id === field.id;
-              return `<li role="none"><button class="e-permits-builder__outline-item e-permits-builder__outline-item--field${fOn ? " is-selected" : ""}" type="button" role="treeitem" aria-level="3" aria-current="${fOn}" data-fb-outline-go="field" data-id="${field.id}"><span>${esc(tr(field.label) || comp(field.type)?.label || "Câmp")}</span></button></li>`;
+              /* what the page does not show at rest: a hidden field, a field with display rules; the columns /
+                 block fields of a container are listed under it (fb-wysiwyg-v1) */
+              const rules = (field.rules || []).length;
+              const mark = field.type === "hidden" ? `${icon("icon-eye-slash", 16)}<span class="u-visually-hidden">, ascuns pentru solicitant</span>` : rules ? `${icon("icon-direction", 16)}<span class="u-visually-hidden">, ${rules} ${rules === 1 ? "regulă de afișare" : "reguli de afișare"}</span>` : "";
+              const kids = isContainer(field) ? kidsOf(field) : [];
+              return `<li role="none"><button class="e-permits-builder__outline-item e-permits-builder__outline-item--field${fOn ? " is-selected" : ""}" type="button" role="treeitem" aria-level="3" aria-current="${fOn}" data-fb-outline-go="field" data-id="${field.id}"><span>${esc(fieldName(field) || "Câmp")}</span>${mark}</button>${kids.length ? `<ul role="group">${kids.map((child) => {
+                const cOn = sel.kind === "child" && sel.id === child.id;
+                return `<li role="none"><button class="e-permits-builder__outline-item e-permits-builder__outline-item--child${cOn ? " is-selected" : ""}" type="button" role="treeitem" aria-level="4" aria-current="${cOn}" data-fb-outline-go="child" data-id="${child.id}"><span>${esc(fieldName(child) || "Câmp")}</span></button></li>`;
+              }).join("")}</ul>` : ""}</li>`;
             }).join("")}</ul>` : ""}
           </li>`;
         }).join("")}</ul>` : ""}
@@ -4951,10 +5307,10 @@ document.addEventListener("DOMContentLoaded", () => {
   }
   function goTo(kind, id) {
     select(kind, id);
-    const target = kind === "field" ? el.canvas.querySelector(`[data-builder-field][data-id="${id}"]`)
-      : kind === "section" ? el.canvas.querySelector(`[data-fb-select-section="${id}"]`)?.closest(".e-permits-builder__step-section") || el.canvas.querySelector(`[data-fb-select-section="${id}"]`)
-      : el.canvas.querySelector(".e-permits-builder__form-header");
-    target?.scrollIntoView?.({ block: kind === "field" ? "center" : "start", behavior: "auto" });
+    const target = kind === "field" || kind === "child" ? elementNode(kind, id)
+      : kind === "section" ? sectionNode(id)
+      : stepNode();
+    target?.scrollIntoView?.({ block: kind === "field" || kind === "child" ? "center" : "start", behavior: "auto" });
     outlineBody.querySelector(`[data-fb-outline-go="${kind}"][data-id="${id}"]`)?.focus({ preventScroll: true });
   }
   toolbar?.addEventListener("click", (event) => {
@@ -5057,7 +5413,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     const mod = event.ctrlKey || event.metaKey;
     if (!mod || (event.key !== "z" && event.key !== "Z" && event.key !== "y")) return;
-    const typing = event.target.closest?.("input, textarea, [contenteditable='true']");
+    const typing = event.target.closest?.("input, textarea, [contenteditable]");
     if (typing) return;
     event.preventDefault();
     if (event.key === "y" || event.shiftKey) redo(); else undo();
@@ -5149,5 +5505,19 @@ document.addEventListener("DOMContentLoaded", () => {
   /* for demo states and checks */
   window.GEAPFormBuilder = { state, get form() { return form; }, select, setMode, addField, undo, redo, validate: () => state.issues,
     /* forms-global-v1: the registry of global forms (js/forms-global.js) */
-    openGlobal, refreshGlobal, isGlobal: () => Boolean(G), globalDirty: () => Boolean(G?.dirty) };
+    openGlobal, refreshGlobal, isGlobal: () => Boolean(G), globalDirty: () => Boolean(G?.dirty),
+    /* fb-wysiwyg-v1: what a pointer does on the page, for demo states (no real pointer there) and checks */
+    hover: (kind, id) => setHover(kind ? { kind, id } : null),
+    /* the insert line in the gap before a field (between rows when it starts a row, else between the two fields) */
+    insertBefore: (id) => {
+      const card = fieldNode(id);
+      const grid = card?.closest("[data-builder-grid]");
+      if (!grid) return null;
+      const r = card.getBoundingClientRect();
+      const prev = card.previousElementSibling?.matches?.("[data-builder-field]") ? card.previousElementSibling.getBoundingClientRect() : null;
+      const spot = prev && Math.abs(prev.top - r.top) < 8 ? insertAt((prev.right + r.left) / 2, r.top + r.height / 2) : insertAt(r.left + r.width / 2, r.top - 12);
+      setHover(null);
+      setInsert(spot);
+      return spot;
+    } };
 });
