@@ -5,7 +5,7 @@
      ?shell=2            the new shell
      ?motion=reduce      forces the reduced-motion base (`.is-motion-reduced`) — demo / tests; the real switch is the
                          system setting (prefers-reduced-motion)
-   window.Cab2 = { on, GROUPS, group(id), groupIcon(id, { size, sprite }) }
+   window.Cab2 = { on, GROUPS, group(id), groupIcon(id, { size, sprite }), card(cfg) }
    GROUPS = the menu groups in menu order (wiki 02 · Structure): one colour (cab2.css › 4. group identity, by
    `data-cab2-group`) + one sprite icon each. `company` = the label of the same slot in a company context. */
 (() => {
@@ -37,5 +37,31 @@
     return `<span class="avatar avatar--${size === "sm" ? "sm" : "md"} avatar--icon cab2-group-icon" data-cab2-group="${item.id}" aria-hidden="true"><svg class="icon" width="20" height="20"><use href="${sprite}#icon-${item.icon}"></use></svg></span>`;
   };
 
-  window.Cab2 = { on, GROUPS, group, groupIcon };
+  /* the Cabinet card = the dashboard widget card (js/widget-admin.js cardHtml({ dash }) anatomy, css/widget.css), borderless
+     on the grey page: head (title, + the group's round icon) · headline (value + ONE Small tag, then one grey line) ·
+     optional body · footer (quiet source line left, text button right). With `href` the card is one link: the footer
+     button's hit area is the whole card and the wrapper carries the shared grey hover surface around it.
+     Cab2.card({ title, value, tag, tone, line, source, action, href, group, level, bodyHtml, attrs, linkAttrs }) → HTML */
+  const esc = (value) => String(value ?? "").replace(/[&<>"']/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[ch]);
+  const card = ({ title = "", value = "", tag = "", tone = "neutral", line = "", source = "", action = "Detalii", href = "", group: groupId = "", level = 3, bodyHtml = "", attrs = "", linkAttrs = "" } = {}) => {
+    const tagHtml = tag ? window.GEAPTag?.html(tag, tone || "neutral") || "" : "";
+    const headline = value || line ? `
+        <div class="e-permits-wid-card__headline">
+          ${value ? `<span class="e-permits-wid-stat__line"><span class="e-permits-wid-card__headline-value">${esc(value)}</span>${tagHtml}</span>` : ""}
+          ${line ? `<span class="e-permits-wid-stat__meta">${esc(line)}</span>` : ""}
+        </div>` : "";
+    const link = href && action ? `<a class="btn btn-text-primary btn-sm e-permits-wid-card__details cab2-wcard__link" href="${esc(href)}" aria-label="${esc(action)}: ${esc(title)}"${linkAttrs}>${esc(action)}</a>` : "";
+    return `
+      <div class="cab2-wcard${link ? " e-permits-hover-surface is-hover-within" : ""}"${groupId ? ` data-cab2-group="${esc(groupId)}"` : ""}${attrs}>
+        <article class="e-permits-chart e-permits-wid-card e-permits-wid-card--panel e-permits-wid-card--dash e-permits-wid-card--borderless">
+          <div class="e-permits-wid-card__head">
+            <div class="e-permits-wid-card__title-row">${groupId ? groupIcon(groupId, { size: "sm" }) : ""}<h${level} class="e-permits-wid-card__title">${esc(title)}</h${level}></div>${headline}
+          </div>${bodyHtml ? `
+          <div class="e-permits-wid-card__body">${bodyHtml}</div>` : ""}
+          <div class="e-permits-wid-card__foot-row"><span class="e-permits-wid-card__updated">${esc(source)}</span>${link}</div>
+        </article>
+      </div>`;
+  };
+
+  window.Cab2 = { on, GROUPS, group, groupIcon, card };
 })();

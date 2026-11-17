@@ -1,0 +1,586 @@
+/* =====================================================================================
+   EVO Cabinet v2 — the shell (cab2-shell-v1, 2026-11-17; wiki 02 · Structure, 05 · Batch 2; components.md ›
+   „Cabinet v2 — shell”). Behind `?shell=2` (`.cab2` on <html>) and only on `?view=cabinet` (cab2-shell.js).
+
+   Compositions of library components — nothing here is a control:
+     menu          = the library Sidebar (`.sidebar.sidebar--item-preview` › `__section` › `__heading` + `__list` ›
+                     `__link` / `--active`, `__meta` › `.badge`) on a white surface, + the round group icon
+     context line  = one sentence + library Small tag + library text button
+     switcher      = the header instance switch (`.e-permits-fo-avatar-menu` and its role rows) + library search / badge
+     search        = library `.search-input` + the dropdown surface and items (`.e-permits-fo-intent-menu(__item)`)
+     page          = the page header (js/page-header.js classes) + the Cabinet card (= the dashboard widget card,
+                     `Cab2.card`, css/widget.css) + the library boxed empty state
+     phones        = bottom bar (the one new part), sheets = the shared GEAPSheet
+
+   1. skip link + live region   2. context line   3. layout + menu   4. page + card grid   5. search
+   6. switcher   7. phone bottom bar + sheets   8. forced colours
+   ===================================================================================== */
+
+/* ---------- 1. skip link ---------- */
+/* the library button (`a.btn.btn-secondary.btn-md.cab2-skip`), off screen until it takes the keyboard focus */
+.cab2-skip.btn {
+  left: var(--spacing-16, 16px);
+  position: fixed;
+  top: var(--spacing-8, 8px);
+  transform: translateY(calc(-100% - var(--spacing-16, 16px)));
+  z-index: 1200;
+}
+
+.cab2-skip.btn:focus-visible {
+  transform: none;
+}
+
+/* ---------- 2. context line (M2) ---------- */
+/* a white strip directly under the header, before the menu in the DOM; shares the header's edges (1280 + gutter) */
+.cab2-context {
+  background: var(--color-background-base-default, #fff);
+  border-bottom: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
+  padding: var(--spacing-8, 8px) var(--spacing-24, 24px);
+}
+
+.cab2-context[hidden] {
+  display: none;
+}
+
+.cab2-context__inner {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-8, 8px) var(--spacing-16, 16px);
+  margin: 0 auto;
+  max-width: var(--cab2-width-wide);
+  min-height: var(--spacing-32, 32px);
+}
+
+.cab2-context__text {
+  align-items: center;
+  color: var(--color-text-base-secondary, #383838);
+  display: flex;
+  flex: 1 1 auto;
+  flex-wrap: wrap;
+  font-size: var(--font-size-fs-14, 14px);
+  font-weight: var(--font-weight-fw-regular, 400);
+  gap: var(--spacing-4, 4px) var(--spacing-8, 8px);
+  line-height: var(--line-height-lh-20, 20px);
+  margin: 0;
+  min-width: 0;
+}
+
+.cab2-context__text strong {
+  color: var(--color-text-base-default, #121212);
+  font-weight: var(--font-weight-fw-medium, 500);
+}
+
+/* the parts of the sentence: „·” between them is real text (read as a pause), never a border */
+.cab2-context__part {
+  min-width: 0;
+}
+
+.cab2-context__sep {
+  color: var(--color-text-base-secondary, #383838);
+}
+
+/* ---------- 3. layout + menu ---------- */
+.cab2-shell {
+  align-items: start;
+  display: grid;
+  gap: var(--spacing-24, 24px);
+  grid-template-columns: calc(var(--spacing-40, 40px) * 7) minmax(0, 1fr);
+  min-width: 0;
+}
+
+.cab2-shell__content {
+  min-width: 0;
+}
+
+.cab2-shell__content:focus {
+  outline: none;
+}
+
+/* the white surface of the menu: sticky under the header, scrolls on its own when the list is taller than the window
+   (every group stays open — nothing is collapsed) */
+.cab2-menu {
+  background: var(--color-background-base-default, #fff);
+  border-radius: var(--border-radius-20, 20px);
+  box-sizing: border-box;
+  max-height: calc(100dvh - var(--cab2-header-height, 0px) - var(--spacing-48, 48px));
+  min-width: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding-block: var(--spacing-16, 16px);
+  position: sticky;
+  top: calc(var(--cab2-header-height, 0px) + var(--spacing-24, 24px));
+}
+
+/* the library Sidebar, with its own knobs: items 14/20 (every label fits the 280 column), groups 16 apart */
+.cab2-menu__list {
+  --sidebar-item-font-size: var(--font-size-fs-14, 14px);
+  --sidebar-item-line-height: var(--line-height-lh-20, 20px);
+  --sidebar-item-min-height: var(--spacing-40, 40px);
+  --sidebar-section-gap: var(--spacing-16, 16px);
+}
+
+/* the library gives the current row no hover; project rule: a selected item has its own (one brand step darker) */
+.cab2-menu__list .sidebar__link--active:hover {
+  background: var(--color-background-brand-secondary-hover, #ccdef6);
+}
+
+/* group heading = the round coloured icon (Cab2.groupIcon, 32) + the library sidebar title */
+.cab2-menu__heading.sidebar__heading {
+  align-items: center;
+  flex-direction: row;
+  gap: var(--spacing-12, 12px);
+  padding-bottom: var(--spacing-8, 8px);
+}
+
+.cab2-menu__heading .sidebar__title {
+  color: var(--color-text-base-default, #121212);
+}
+
+/* the foot block („Acces și reprezentare”) is set off by a hairline — a floating list may keep a divider */
+.cab2-menu__foot {
+  border-top: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
+  padding-top: var(--spacing-16, 16px);
+}
+
+/* a sidebar row that is a <button> (phone „Contul meu”: the switcher, sign out) looks like its link siblings */
+button.sidebar__link.cab2-menu__button {
+  appearance: none;
+  border-block: 0;
+  border-right: 0;
+  cursor: pointer;
+  font-family: inherit;
+  text-align: start;
+}
+
+.cab2-menu .sidebar__link:focus-visible,
+.cab2-menu-sheet .sidebar__link:focus-visible {
+  box-shadow: inset 0 0 0 var(--border-width-2, 2px) var(--focus-ring, var(--blue-sky-500, #3379db));
+  outline: none;
+}
+
+/* ---------- 4. page + card grid ---------- */
+/* the page header on the grey page: no surface of its own, title → 8 → purpose → 8 → source line */
+.cab2-head {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-8, 8px);
+  min-width: 0;
+}
+
+/* the H1 = the Cabinet list title (`h1.text-heading-h2`, cabinet-evo.css: 32/40 semibold, phones Mobile H2) */
+.cab2-head__title {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.cab2-head__title:focus {
+  outline: none;
+}
+
+.cab2-head__title:focus-visible {
+  border-radius: var(--border-radius-8, 8px);
+  box-shadow: 0 0 0 var(--border-width-2, 2px) var(--focus-ring, var(--blue-sky-500, #3379db));
+}
+
+.cab2-head__text {
+  color: var(--color-text-base-secondary, #383838);
+  font-size: var(--font-size-fs-16, 16px);
+  font-weight: var(--font-weight-fw-regular, 400);
+  line-height: var(--line-height-lh-24, 24px);
+  margin: 0;
+}
+
+/* the source line (M12): where the data comes from and how fresh it is — secondary on the grey page (AA) */
+.cab2-source {
+  color: var(--color-text-base-secondary, #383838);
+  font-size: var(--font-size-fs-14, 14px);
+  font-weight: var(--font-weight-fw-regular, 400);
+  line-height: var(--line-height-lh-20, 20px);
+  margin: 0;
+}
+
+/* a section state (T6): the library boxed empty state on its own white surface — its tertiary line and the buttons
+   need white behind them (grey page: 4.2 : 1); the radius is the box's */
+.cab2-state {
+  background: var(--color-background-base-default, #fff);
+  border-radius: var(--border-radius-16, 16px);
+  min-width: 0;
+}
+
+/* the Cabinet card = the dashboard widget card (css/widget.css, `--dash --borderless`) in a wrapper that carries the
+   shared grey hover surface AROUND it, as a dashboard tile does: 8 outset, so the grid gap is 16 + 8 */
+.cab2-wcards {
+  display: grid;
+  gap: var(--spacing-24, 24px);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  min-width: 0;
+}
+
+.cab2-wcard {
+  --hover-surface-outset: var(--spacing-8, 8px);
+
+  border-radius: var(--border-radius-20, 20px);
+  display: flex;
+  min-width: 0;
+}
+
+.cab2-wcard > .e-permits-wid-card {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+/* on the grey page the halo is one step darker than on a white dashboard, or it would not be seen */
+.cab2 .cab2-wcard.e-permits-hover-surface::before {
+  background: var(--color-background-base-tertiary-hover, #d9d9d9);
+  border-radius: calc(var(--border-radius-20, 20px) + var(--spacing-8, 8px));
+}
+
+/* one tab stop per card: the footer text button, whose hit area is the whole card */
+.cab2-wcard__link::after {
+  content: "";
+  cursor: pointer;
+  inset: 0;
+  position: absolute;
+}
+
+/* the Cabinet reads these lines on phones too, where a tooltip cannot help: the grey line and the source line wrap
+   instead of being cut (the dashboard keeps its one line + tooltip) */
+.cab2-wcard .e-permits-wid-stat__meta {
+  overflow: visible;
+  white-space: normal;
+}
+
+.cab2-wcard .e-permits-wid-card__updated {
+  overflow-wrap: anywhere;
+}
+
+/* ---------- 5. search ---------- */
+.cab2-search {
+  flex: 0 1 calc(var(--spacing-40, 40px) * 8);
+  min-width: calc(var(--spacing-40, 40px) * 5);
+  position: relative;
+}
+
+.cab2-search > .search-input {
+  width: 100%;
+}
+
+/* one × only: the library clear button (as `.cab-search` in cabinet-evo.css) */
+:is(.cab2-search, .cab2-switch__head) .input::-webkit-search-cancel-button,
+:is(.cab2-search, .cab2-switch__head) .input::-webkit-search-decoration {
+  appearance: none;
+  display: none;
+}
+
+/* the results = the dropdown surface, as wide as the field (never narrower than 360) */
+.cab2-search__panel.e-permits-fo-intent-menu {
+  left: 0;
+  max-height: calc(100dvh - var(--cab2-header-height, 0px) - var(--spacing-24, 24px));
+  min-width: calc(var(--spacing-40, 40px) * 9);
+  overflow-y: auto;
+  right: auto;
+  top: calc(100% + var(--spacing-8, 8px));
+  width: 100%;
+}
+
+.cab2-search__group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2, 2px);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.cab2-search__label {
+  color: var(--color-text-base-secondary, #383838);
+  font-size: var(--font-size-fs-12, 12px);
+  font-weight: var(--font-weight-fw-medium, 500);
+  line-height: var(--line-height-lh-16, 16px);
+  margin: 0;
+  padding: var(--spacing-8, 8px) var(--spacing-8, 8px) var(--spacing-4, 4px);
+}
+
+/* an option: two lines (what · where), the dropdown item keeps its padding and grows */
+.cab2-search__option.e-permits-fo-intent-menu__item {
+  text-decoration: none;
+  white-space: normal;
+}
+
+.cab2-search__text {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.cab2-search__meta {
+  color: var(--color-text-base-tertiary, #757575);
+  font-size: var(--font-size-fs-12, 12px);
+  font-weight: var(--font-weight-fw-regular, 400);
+  line-height: var(--line-height-lh-16, 16px);
+}
+
+/* the option the arrow keys are on (focus stays in the field): the item's own hover fill */
+.cab2-search__option.is-active {
+  background: var(--color-background-base-tertiary, #f1f1f1);
+}
+
+/* ---------- 6. switcher (M1) ---------- */
+/* the header instance switch panel with its own parts; only what the panel did not have is added */
+.cab2-switch__title {
+  color: var(--color-text-base-default, #121212);
+  font-size: var(--font-size-fs-16, 16px);
+  font-weight: var(--font-weight-fw-semibold, 600);
+  line-height: var(--line-height-lh-24, 24px);
+  margin: 0;
+}
+
+.cab2-switch__head {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-12, 12px);
+  padding: var(--spacing-16, 16px) var(--spacing-16, 16px) 0;
+}
+
+.cab2-switch__head > .search-input {
+  width: 100%;
+}
+
+/* a row: name · identifier · capacity on the left, the count of things to resolve + the check on the right */
+.cab2-switch__row.e-permits-fo-avatar-menu__role {
+  padding-right: var(--spacing-16, 16px);
+}
+
+.cab2-switch__count {
+  flex: none;
+}
+
+/* the capacity line is never cut („prin împuternicire notarială nr. 1234 · doar vizualizare”) */
+.cab2-switch__row .e-permits-fo-avatar-menu__role-copy > span {
+  overflow: visible;
+  white-space: normal;
+}
+
+.cab2-switch__links {
+  border-top: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2, 2px);
+  list-style: none;
+  margin: 0;
+  padding: var(--spacing-4, 4px);
+}
+
+.cab2-switch__links a.e-permits-fo-intent-menu__item {
+  text-decoration: none;
+}
+
+.cab2-switch__add.btn {
+  width: 100%;
+}
+
+/* ---------- 7. phones: bottom bar + sheets ---------- */
+.cab2-bar {
+  display: none;
+}
+
+@media (max-width: 760px) {
+  .cab2-context {
+    padding: var(--spacing-8, 8px) var(--spacing-16, 16px);
+  }
+
+  /* phones: one part per line (no orphan „·”), „Schimbă” stays on the first line */
+  .cab2-context__inner {
+    align-items: flex-start;
+    flex-wrap: nowrap;
+    gap: var(--spacing-8, 8px);
+  }
+
+  .cab2-context__text {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: var(--spacing-2, 2px);
+    padding-block: var(--spacing-6, 6px);
+  }
+
+  .cab2-context__sep {
+    display: none;
+  }
+
+  .cab2-shell {
+    display: block;
+  }
+
+  .cab2-shell > .cab2-menu,
+  .cab2-shell > .cab2-skip {
+    display: none;
+  }
+
+  .cab2-wcards {
+    gap: var(--spacing-16, 16px);
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  /* the bottom bar: five equal targets, 56 high (≥ 48), icon 24 over a 12/16 label; fixed, above the home indicator */
+  .cab2-bar {
+    background: var(--color-background-base-default, #fff);
+    border-top: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
+    bottom: 0;
+    display: block;
+    left: 0;
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    position: fixed;
+    right: 0;
+    z-index: 15;
+  }
+
+  .cab2-bar__list {
+    display: flex;
+    list-style: none;
+    margin: 0;
+    padding: 0 var(--spacing-4, 4px);
+  }
+
+  .cab2-bar__list > li {
+    display: flex;
+    flex: 1 1 0;
+    min-width: 0;
+  }
+
+  .cab2-bar__item {
+    align-items: center;
+    appearance: none;
+    background: transparent;
+    border: 0;
+    border-radius: var(--border-radius-12, 12px);
+    box-sizing: border-box;
+    color: var(--color-text-base-secondary, #383838);
+    cursor: pointer;
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    font-family: inherit;
+    font-size: var(--font-size-fs-12, 12px);
+    font-weight: var(--font-weight-fw-medium, 500);
+    gap: var(--spacing-4, 4px);
+    justify-content: center;
+    line-height: var(--line-height-lh-16, 16px);
+    margin-block: var(--spacing-4, 4px);
+    min-height: var(--spacing-48, 48px);
+    min-width: 0;
+    padding: var(--spacing-2, 2px);
+    text-decoration: none;
+  }
+
+  .cab2-bar__item > .icon {
+    flex: none;
+    height: var(--spacing-24, 24px);
+    width: var(--spacing-24, 24px);
+  }
+
+  .cab2-bar__item > span {
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .cab2-bar__item:hover,
+  .cab2-bar__item:active {
+    background: var(--color-background-base-tertiary, #f1f1f1);
+  }
+
+  .cab2-bar__item[aria-current="page"],
+  .cab2-bar__item[aria-expanded="true"] {
+    color: var(--color-text-brand-default, #0058d2);
+  }
+
+  .cab2-bar__item:focus-visible {
+    box-shadow: inset 0 0 0 var(--border-width-2, 2px) var(--focus-ring, var(--blue-sky-500, #3379db));
+    outline: none;
+  }
+
+  /* nothing is ever hidden under the bar: the page ends above it, and a focused element scrolls clear of it
+     (and of the sticky header) */
+  .cab2.has-cab2-bar {
+    scroll-padding-bottom: calc(var(--cab2-bar-height, 0px) + var(--spacing-16, 16px));
+    scroll-padding-top: calc(var(--cab2-header-height, 0px) + var(--spacing-16, 16px));
+  }
+
+  .cab2.has-cab2-bar .cab-main {
+    padding-bottom: calc(var(--cab2-bar-height, 0px) + var(--spacing-32, 32px));
+  }
+
+  /* the „Meniu” sheet: the same Sidebar lists; the sheet body has no side padding, rows run edge to edge */
+  .cab2-menu-sheet .bottom-sheet__content {
+    padding: 0 0 var(--spacing-16, 16px);
+  }
+
+  .cab2-menu-sheet .cab2-menu__list {
+    --sidebar-item-font-size: var(--font-size-fs-16, 16px);
+    --sidebar-item-line-height: var(--line-height-lh-24, 24px);
+    --sidebar-item-min-height: var(--spacing-48, 48px);
+  }
+
+  .cab2-menu-sheet .cab2-menu__heading.sidebar__heading,
+  .cab2-menu-sheet .sidebar__link {
+    padding-left: var(--spacing-16, 16px);
+  }
+
+  /* the search sheet: the field, then the results in the flow (no floating surface inside a sheet) */
+  .cab2-search-sheet .bottom-sheet__content {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-8, 8px);
+    padding: var(--spacing-8, 8px) var(--spacing-16, 16px) var(--spacing-16, 16px);
+  }
+
+  .cab2-search-sheet .cab2-search {
+    flex: none;
+    min-width: 0;
+  }
+
+  /* in the sheet the results are a plain list in the flow — not the floating dropdown surface */
+  .cab2-search-sheet .cab2-search__panel {
+    display: flex;
+    flex-direction: column;
+  }
+}
+
+@media (min-width: 761px) {
+  /* the header keeps its 72 row: the field takes what the navigation leaves */
+  .cab2 .evo-header__end:has(> .cab2-search) {
+    flex: 1 1 auto;
+    justify-content: flex-end;
+    min-width: 0;
+  }
+}
+
+/* ---------- 8. forced colours ---------- */
+@media (forced-colors: active) {
+  .cab2-menu {
+    outline: var(--border-width-1, 1px) solid CanvasText;
+    outline-offset: calc(var(--border-width-1, 1px) * -1);
+  }
+
+  .cab2-menu .sidebar__link:focus-visible,
+  .cab2-menu-sheet .sidebar__link:focus-visible,
+  .cab2-bar__item:focus-visible,
+  .cab2-head__title:focus-visible {
+    outline: var(--border-width-2, 2px) solid Highlight;
+    outline-offset: calc(var(--border-width-2, 2px) * -1);
+  }
+
+  .cab2-bar__item[aria-current="page"],
+  .cab2 .sidebar__link--active {
+    outline: var(--border-width-2, 2px) solid CanvasText;
+    outline-offset: calc(var(--border-width-2, 2px) * -1);
+  }
+
+  .cab2-search__option.is-active {
+    outline: var(--border-width-2, 2px) solid Highlight;
+    outline-offset: calc(var(--border-width-2, 2px) * -1);
+  }
+}

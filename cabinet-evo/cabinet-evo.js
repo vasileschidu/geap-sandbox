@@ -101,6 +101,8 @@
   /* EVO Cabinet v2 (cab2.js): views that exist only on the new shell, behind ?shell=2 */
   const SHELL2 = params.get("shell") === "2";
   if (SHELL2) VIEWS.foundations = { title: "Elemente de bază" };
+  /* the new shell itself (cab2-shell.js, Batch 2): menu, context line, switcher, section pages */
+  if (SHELL2) VIEWS.cabinet = { title: "Acasă" };
   const VIEW = VIEWS[params.get("view")] ? params.get("view") : "acte";
   const AUTH = params.get("auth") !== "0";
   const SUBJECT = params.get("as") || "pj-global-trader";
@@ -1906,7 +1908,7 @@
         role.classList.toggle("is-selected", own);
         role.setAttribute("aria-checked", String(own));
       });
-      if (els.name) els.name.textContent = state.geap.subject.name;
+      if (els.name && VIEW !== "cabinet") els.name.textContent = state.geap.subject.name;
       if (els.role) els.role.textContent = state.geap.subject.roleLabel || (state.geap.subject.type === "PJ" ? "Persoană juridică" : "Persoană fizică");
     }
 

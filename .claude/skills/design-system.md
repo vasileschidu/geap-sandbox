@@ -743,6 +743,10 @@ Not used on purpose: `red` (it means overdue / danger), `lavender-100` (identica
 
 ---
 
+**Batch 2 · shell (cab2-shell-v1, 2026-11-17) — no new design tokens.** Runtime custom properties only: `--cab2-header-height`
+and `--cab2-bar-height` (measured, set on `<html>` by cab2-shell.js for the sticky menu and the scroll paddings). Menu
+width = `calc(var(--spacing-40) * 7)` (280). The card halo on the grey page = `--color-background-base-tertiary-hover`.
+
 ## Quick Reference — Component Patterns
 
 ### Button — Primary

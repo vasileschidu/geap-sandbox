@@ -1763,6 +1763,25 @@ button.e-permits-wid-rows__row:focus-visible {
   display: none;
 }
 
+/* wid-card-borderless-v1 (2026-11-17, product owner: „cards take the look of our dashboard widget card”) — the SAME card on a
+   grey page (EVO Cabinet v2, decision D6): `--borderless` keeps the 1px edge in the geometry and only takes its colour away,
+   so head / headline / footer measure exactly as on a dashboard; the edge comes back by itself in forced colours (a
+   transparent border is drawn there) and on request (`prefers-contrast: more`). A card whose head is followed directly by
+   the footer (a summary: title + headline, no chart body) gets the body's 24 between them. No dashboard card has either. */
+.e-permits-wid-card.e-permits-wid-card--borderless {
+  border-color: transparent;
+}
+
+@media (prefers-contrast: more) {
+  .e-permits-wid-card.e-permits-wid-card--borderless {
+    border-color: var(--color-border-base-tertiary, #444);
+  }
+}
+
+.e-permits-wid-card--dash.e-permits-wid-card--panel > .e-permits-wid-card__head:has(+ .e-permits-wid-card__foot-row) {
+  padding-bottom: var(--spacing-24, 24px);
+}
+
 /* tables: still edge to edge, 16 under the head (no divider any more), square bottom corners (the footer follows) */
 .e-permits-wid-card--dash.e-permits-wid-card--panel > .e-permits-wid-card__body:has(> .e-permits-wid-table-wrap) {
   padding: var(--spacing-16, 16px) 0;

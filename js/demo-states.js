@@ -559,6 +559,18 @@
   const cat = (run, params = {}, hash = "") => ({ page: CAB, params: { view: "catalog", ...params }, hash, ready: "[data-cat-card], [data-cat-service], .cab-state", run });
   /* EVO Cabinet v2 (behind ?shell=2) · „Elemente de bază” — the Foundations demo page (cab2-foundations.js) */
   const cab2F = (f, params = {}) => ({ page: CAB, params: { shell: "2", view: "foundations", f, ...params }, ready: "[data-cab2-f-ready]" });
+  /* EVO Cabinet v2 · Batch 2 · the shell (cab2-shell.js): ?as= context, ?s= section, ?atentie=1, ?entitati=multe */
+  const cab2S = (params = {}, run) => ({ page: CAB, params: { shell: "2", view: "cabinet", ...params }, ready: "[data-cab2-ready]", run });
+  const cab2Phone = () => window.matchMedia("(max-width: 760px)").matches;
+  const cab2Switch = async (h) => { await h.click("[data-fo-avatar-trigger]"); await h.wait(500); };
+  /* the search: the header field on desktop, the search sheet on phones */
+  const cab2Search = (query) => async (h) => {
+    if (cab2Phone()) { await h.click("[data-evo-search-trigger]"); await h.wait(500); }
+    const input = [...document.querySelectorAll("[data-cab2-search-input]")].find((el) => el.getClientRects().length);
+    input.focus();
+    if (query) { input.value = query; input.dispatchEvent(new Event("input", { bubbles: true })); }
+    await h.wait(300);
+  };
 
   const ppReason = (value) => async (h) => {
     await h.click("[data-fo-step-panel='2'] [data-fo-pp-select='pp-reason'] .e-permits-fo-select__button");
@@ -3227,6 +3239,27 @@
     "cab2-f02": cab2F("motion"),
     "cab2-f03": cab2F("reduced", { motion: "reduce" }),
     "cab2-f04": cab2F("groups"),
+    /* EVO Cabinet v2 · Batch 2 Shell (2026-11-17): s01 person · s02 company (administrator) · s03 MPower power · s04 notarial
+       power, view only · s04a power expiring soon · s05 menu with attention dots · s06 switcher · s07 switcher with many
+       entities + search (s07a a query) · s08 search with results (s08a empty, s08b no result) · s09 a section outside the
+       power · s10 / s10a section pages · s11 phone „Meniu” sheet (desktop: the page) · s12 „Adaugă o împuternicire notarială” */
+    "cab2-s01": cab2S(),
+    "cab2-s02": cab2S({ as: "pj-global-trader" }),
+    "cab2-s03": cab2S({ as: "mpower-pj-lumina" }),
+    "cab2-s04": cab2S({ as: "notar-pf-maria" }),
+    "cab2-s04a": cab2S({ as: "mpower-pf-grigore" }),
+    "cab2-s05": cab2S({ atentie: "1" }),
+    "cab2-s06": cab2S({ as: "pj-global-trader" }, cab2Switch),
+    "cab2-s07": cab2S({ entitati: "multe" }, cab2Switch),
+    "cab2-s07a": cab2S({ entitati: "multe" }, async (h) => { await cab2Switch(h); await h.fill("[data-cab2-switch-search]", "nord", { leave: false }); await h.wait(200); }),
+    "cab2-s08": cab2S({ atentie: "1" }, cab2Search("amenda")),
+    "cab2-s08a": cab2S({ atentie: "1" }, cab2Search("")),
+    "cab2-s08b": cab2S({ atentie: "1" }, cab2Search("xyzq")),
+    "cab2-s09": cab2S({ as: "notar-pf-maria", s: "sanatate" }),
+    "cab2-s10": cab2S({ atentie: "1", s: "amenzi" }),
+    "cab2-s10a": cab2S({ as: "pj-global-trader", s: "controale" }),
+    "cab2-s11": cab2S({ atentie: "1" }, async (h) => { if (cab2Phone()) { await h.click("[data-cab2-menu-open]"); await h.wait(500); } }),
+    "cab2-s12": cab2S({ s: "imputernicire-noua" }),
     "sm-01": sm(),
     /* the „Filtre” trigger = the library chip (filter-chip-v1): N values applied, bar closed → black chip + numbered
        badge (1 / 3 / 12, the badge width); phones: the pill after „Arată” */
