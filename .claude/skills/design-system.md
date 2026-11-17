@@ -40,6 +40,8 @@ Use both together:
 7. [Iconography](#7-iconography)
 8. [Token Naming Convention](#8-token-naming-convention)
 9. [CSS Custom Properties Reference](#9-css-custom-properties-reference)
+10. [Motion](#10-motion-motion-v1-2026-11-17)
+11. [EVO Cabinet v2 — surfaces and group colours](#11-evo-cabinet-v2--surfaces-and-group-colours-cab2-foundations-v1-2026-11-17)
 
 ---
 
@@ -661,6 +663,83 @@ Paste this block into your project's root stylesheet to wire up all design token
   --color-icon-warning-default: #dc6803;
 }
 ```
+
+---
+
+## 10. Motion (motion-v1, 2026-11-17)
+
+ONE scale, `css/motion.css` (`:root`). First user: EVO Cabinet v2. Never write a duration, a curve or a travel distance in
+product CSS / JS — use the token (JS reads it: `Cab2Motion.ms("--motion-duration-base")`).
+
+| Token | Value | Use |
+|---|---|---|
+| `--motion-ease-enter` | `cubic-bezier(0.05, 0.7, 0.1, 1)` | things arriving |
+| `--motion-ease-exit` | `cubic-bezier(0.3, 0, 0.8, 0.15)` | things leaving |
+| `--motion-ease-standard` | `cubic-bezier(0.2, 0, 0, 1)` | moving / resizing on screen |
+| `--motion-duration-fast` | 150 ms | colour, opacity, cross-fade |
+| `--motion-duration-base` | 300 ms = library `--motion-duration-md` | page and panel transitions |
+| `--motion-duration-slow` | 500 ms = library `--motion-duration-lg` | hero entrance pieces |
+| `--motion-duration-out` | 90 ms | old content of a fade-through / shared axis fades out |
+| `--motion-duration-close` | 250 ms | a grown container closes back into its card |
+| `--motion-duration-avatar` | 400 ms | hero avatar scale + fade |
+| `--motion-duration-hover` | 180 ms | the shared hover surface (the existing value, named; `css/hover-surface.css` reads it) |
+| `--motion-stagger` | 50 ms | delay between list / card items — six steps, later items arrive with the sixth |
+| `--motion-distance-sm` / `-md` / `-lg` | `--spacing-8` / `-16` / `-24` | rise of a fade-through / text / cards |
+| `--motion-distance-axis` | 30 px | shared axis X (list ↔ record) |
+| `--motion-scale-enter` | 0.8 | hero avatar start scale |
+
+- **Not duplicated:** the library tokens `--motion-duration-md` / `-lg`, `--motion-easing-standard` / `-decelerate` (main.css) stay
+  as they are; `-base` / `-slow` point at them. Never redefine a main.css token in product CSS (audit: private-token).
+- **Skeleton shimmer** = `css/skeleton.css` as it is (1.15 s) — one skeleton; the Cabinet does not re-time it (the wiki's 2 s is
+  an open question, not a second skeleton).
+- **Reduced motion (base):** under `prefers-reduced-motion: reduce` (and the forced `.is-motion-reduced`, `?motion=reduce`) the
+  `.cab2` scope sets every distance to 0, scale to 1, stagger to 0 and `-base / -slow / -close / -avatar` to `-fast` → every
+  primitive built on the tokens becomes a ≤ 150 ms fade; the ring does not draw; the shimmer stops. A new scope opts in by
+  repeating that block for its root class.
+- **Fill mode:** `backwards`, never `both` (a held transform stops `:hover` repainting in GPU Chrome).
+
+## 11. EVO Cabinet v2 — surfaces and group colours (cab2-foundations-v1, 2026-11-17)
+
+Behind `?shell=2` (`.cab2` on `<html>`), `cabinet-evo/cab2.css`. Markup: components.md › „Cabinet v2 — surface layer”.
+
+**The surface rule.** Depth by tone — no borders, no shadows (shadow = floating things only: menus, popovers, dialogs).
+
+| Surface | Fill | Radius | Padding (phones) |
+|---|---|---|---|
+| page | `--color-background-base-secondary` | — | the Cabinet gutters 24 (16) |
+| hero | `--color-background-base-default` | `--border-radius-24` | 32 (24) |
+| card | `--color-background-base-default` | `--border-radius-20` | 24 (16) |
+| tile (inside a card / hero) | `--color-background-base-tertiary` | `--border-radius-20` | 20 (16) |
+| list row | `--color-background-base-default` | `--border-radius-16` | 16 20 (16), min height 56 |
+
+- **Widths:** `--cab2-width-wide` = `--layout-wide-max` (1280: overview, lists, ledgers, wallet) · `--cab2-width-record` =
+  `--cab-content-width` (1024: one record). The shared header's content box follows the wide width.
+- **Text contrast (measured, `?state=cab2-f01`):** default 18.7 / 17.2 / 16.6 : 1 on card / page / tile · secondary
+  11.7 / 10.8 / 10.4 · brand link 6.3 / 5.8 / 5.6 · **tertiary 4.6 / 4.2 / 4.1 → never for text on the page or a tile**
+  (icons only). On Cabinet surfaces text = default + ONE secondary level.
+- **Controls sit on white.** `.btn-neutral`, chips, the tab hover and the segmented track are filled with the page grey
+  (`gray-100`) → on the grey page they disappear. Every control lives on a card / hero / row, never straight on the page.
+- **Hover:** the shared `.e-permits-hover-surface` as it is on white surfaces; a tinted tile steps to
+  `--color-background-base-tertiary-hover`.
+- **High contrast:** `prefers-contrast: more` → 1px inside outline `--color-border-base-tertiary` on every surface;
+  `forced-colors: active` → `CanvasText`, and the focus ring becomes a real 2px `Highlight` outline. No layout change.
+
+**Group colours** — one pair per menu group, set by `data-cab2-group` (`--cab2-group-bg` / `--cab2-group-fg`), used ONLY in the
+group's round icon (library avatar 40 · icon 20) and, later, its summary tile. Foundations palette primitives; contrast of the
+icon on its round measured in `?state=cab2-f04`.
+
+| Group | `data-cab2-group` | Background | Icon | Contrast | Sprite icon |
+|---|---|---|---|---|---|
+| Acasă | `acasa` | `--color-background-base-inverse-default` | `--color-icon-base-inverse-default` | 16.7 : 1 | `icon-home-line` |
+| Cereri și acte permisive | `cereri` | `--purple-100` | `--purple-700` | 6.5 : 1 | `icon-permission` |
+| Documente | `documente` | `--forest-green-100` | `--forest-green-600` | 6.1 : 1 | `icon-id-card` |
+| Bani și obligații | `bani` | `--green-100` | `--green-700` | 4.9 : 1 | `icon-wallet` |
+| Proprietăți și vehicule | `proprietati` | `--apricot-100` | `--apricot-700` | 4.7 : 1 | `icon-house` |
+| Familie și sănătate | `familie` | `--magenta-100` | `--magenta-700` | 6.7 : 1 | `icon-health` |
+| Muncă și afaceri · Companie | `munca` | `--blue-sky-100` | `--blue-sky-600` | 5.5 : 1 | `icon-business` |
+| Acces și reprezentare | `acces` | `--color-background-base-tertiary-hover` | `--color-icon-base-default` | 13.3 : 1 | `icon-shield-user` |
+
+Not used on purpose: `red` (it means overdue / danger), `lavender-100` (identical to `purple-100`, see § 2).
 
 ---
 

@@ -1,0 +1,77 @@
+/* =====================================================================================
+   Motion tokens — ONE scale for how things move (motion-v1, 2026-11-17; design-system.md › „Motion”).
+   First user: EVO Cabinet v2 (cabinet-evo/cab2.css, cab2-motion.js). Tokens only — no component is styled here.
+
+   main.css (library, never edited) already has `--motion-duration-md` 0.3s, `--motion-duration-lg` 0.5s,
+   `--motion-easing-standard`, `--motion-easing-decelerate`. They stay as they are; the scale below is built ON them
+   where the value is the same, so nothing is defined twice:
+     --motion-duration-base  = library `--motion-duration-md`  (300 ms)
+     --motion-duration-slow  = library `--motion-duration-lg`  (500 ms)
+   Existing product motion keeps its values and gets a name here instead of a second definition:
+     --motion-duration-hover = 180 ms, the shared hover surface (css/hover-surface.css reads it; its easing stays the
+                               library `--motion-easing-decelerate`)
+     skeleton shimmer        = css/skeleton.css as it is (1.15 s) — one skeleton, not re-timed per product
+   ===================================================================================== */
+
+:root {
+  /* easing — Material 3 emphasized set */
+  --motion-ease-enter: cubic-bezier(0.05, 0.7, 0.1, 1);   /* things arriving */
+  --motion-ease-exit: cubic-bezier(0.3, 0, 0.8, 0.15);    /* things leaving */
+  --motion-ease-standard: cubic-bezier(0.2, 0, 0, 1);     /* moving / resizing on screen */
+
+  /* duration — the scale */
+  --motion-duration-fast: 150ms;                           /* colour, opacity, cross-fade */
+  --motion-duration-base: var(--motion-duration-md, 0.3s); /* page and panel transitions */
+  --motion-duration-slow: var(--motion-duration-lg, 0.5s); /* hero entrance pieces */
+
+  /* duration — fixed moments of the transition specs (wiki 04 › Navigation / Entrance) */
+  --motion-duration-out: 90ms;     /* the old content of a fade-through / shared axis fades out */
+  --motion-duration-close: 250ms;  /* a grown container closes back into its card */
+  --motion-duration-avatar: 400ms; /* hero avatar scale + fade */
+  --motion-duration-hover: 180ms;  /* the shared hover surface (existing value, named) */
+
+  /* choreography */
+  --motion-stagger: 50ms;          /* delay between list / card items */
+
+  /* distance + scale */
+  --motion-distance-sm: var(--spacing-8, 8px);    /* fade-through rise */
+  --motion-distance-md: var(--spacing-16, 16px);  /* text fade-up */
+  --motion-distance-lg: var(--spacing-24, 24px);  /* card fade-up */
+  --motion-distance-axis: 30px;                   /* shared axis X (Material: 30) */
+  --motion-scale-enter: 0.8;                      /* hero avatar starts at 80 % */
+}
+
+/* Reduced motion — the base every product scope can opt into by using the tokens above:
+   no movement (distances 0, scale 1), no stagger, every duration ≤ 150 ms → what is left is a short fade.
+   Scoped to the Cabinet v2 root for now (`.cab2`); `.is-motion-reduced` forces the same for a demo / a test
+   (cabinet-evo `?motion=reduce`). Shimmer: css/skeleton.css already stops under the media query; the forced class
+   stops it in cabinet-evo/cab2.css. */
+@media (prefers-reduced-motion: reduce) {
+  .cab2 {
+    --motion-duration-base: var(--motion-duration-fast);
+    --motion-duration-slow: var(--motion-duration-fast);
+    --motion-duration-close: var(--motion-duration-fast);
+    --motion-duration-avatar: var(--motion-duration-fast);
+    --motion-stagger: 0ms;
+    --motion-distance-sm: 0px;
+    --motion-distance-md: 0px;
+    --motion-distance-lg: 0px;
+    --motion-distance-axis: 0px;
+    --motion-scale-enter: 1;
+    scroll-behavior: auto;
+  }
+}
+
+.cab2.is-motion-reduced {
+  --motion-duration-base: var(--motion-duration-fast);
+  --motion-duration-slow: var(--motion-duration-fast);
+  --motion-duration-close: var(--motion-duration-fast);
+  --motion-duration-avatar: var(--motion-duration-fast);
+  --motion-stagger: 0ms;
+  --motion-distance-sm: 0px;
+  --motion-distance-md: 0px;
+  --motion-distance-lg: 0px;
+  --motion-distance-axis: 0px;
+  --motion-scale-enter: 1;
+  scroll-behavior: auto;
+}

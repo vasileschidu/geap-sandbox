@@ -5,6 +5,8 @@
    scale 0.96 → 1, 180 ms decelerate; the content never moves. `--hover-surface-outset` lets the grey show AROUND a card
    that has its own white fill (Tablouri de bord: 8, gap 16 keeps 8 to the neighbours); 0 = behind the element itself.
    Users: calendar months (js/calendar-admin.js), dashboard layout tiles (js/dashboard-admin.js).
+   Duration = `--motion-duration-hover` (css/motion.css, motion-v1 2026-11-17: the same 180 ms, named; the fallback keeps it on
+   pages that do not load motion.css). EVO Cabinet v2 rows / cards / tiles use this class as it is (cabinet-evo/cab2.css).
    ===================================================================================== */
 .e-permits-hover-surface {
   isolation: isolate;
@@ -20,7 +22,7 @@
   pointer-events: none;
   position: absolute;
   transform: scale(0.96);
-  transition: opacity 180ms var(--motion-easing-decelerate, cubic-bezier(0, 0, 0.2, 1)), transform 180ms var(--motion-easing-decelerate, cubic-bezier(0, 0, 0.2, 1));
+  transition: opacity var(--motion-duration-hover, 180ms) var(--motion-easing-decelerate, cubic-bezier(0, 0, 0.2, 1)), transform var(--motion-duration-hover, 180ms) var(--motion-easing-decelerate, cubic-bezier(0, 0, 0.2, 1));
   z-index: -1;
 }
 

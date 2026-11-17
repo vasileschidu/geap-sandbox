@@ -557,6 +557,8 @@
   };
   const smDateFacet = (facet, opts) => ffDate("[data-sm-filter-toggle]", facet, opts);
   const cat = (run, params = {}, hash = "") => ({ page: CAB, params: { view: "catalog", ...params }, hash, ready: "[data-cat-card], [data-cat-service], .cab-state", run });
+  /* EVO Cabinet v2 (behind ?shell=2) · „Elemente de bază” — the Foundations demo page (cab2-foundations.js) */
+  const cab2F = (f, params = {}) => ({ page: CAB, params: { shell: "2", view: "foundations", f, ...params }, ready: "[data-cab2-f-ready]" });
 
   const ppReason = (value) => async (h) => {
     await h.click("[data-fo-step-panel='2'] [data-fo-pp-select='pp-reason'] .e-permits-fo-select__button");
@@ -3218,6 +3220,13 @@
     })(),
 
     /* ---- EVO Cabinet › Solicitările mele (US-19, US-158, US-161, US-29, US-24, US-135, US-159) ---- */
+    /* EVO Cabinet v2 · Batch 1 Foundations (2026-11-17): f01 surfaces (page, card, tile, row, hero, contrast measured,
+       high-contrast hairline, widths) · f02 motion samples (each playable, tokens as text) · f03 the same with reduced
+       motion forced (?motion=reduce) · f04 group colours + icons */
+    "cab2-f01": cab2F("surfaces"),
+    "cab2-f02": cab2F("motion"),
+    "cab2-f03": cab2F("reduced", { motion: "reduce" }),
+    "cab2-f04": cab2F("groups"),
     "sm-01": sm(),
     /* the „Filtre” trigger = the library chip (filter-chip-v1): N values applied, bar closed → black chip + numbered
        badge (1 / 3 / 12, the badge width); phones: the pill after „Arată” */

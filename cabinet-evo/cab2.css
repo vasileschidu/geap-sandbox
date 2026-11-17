@@ -1,0 +1,554 @@
+/* =====================================================================================
+   EVO Cabinet v2 — foundations (cab2-foundations-v1, 2026-11-17; components.md › „Cabinet v2 — surface layer”,
+   „Cabinet v2 — group identity”, „Cabinet v2 — motion primitives”; design-system.md › „Motion”, „Cabinet surfaces”).
+
+   Everything here sits behind the flag: `?shell=2` puts `.cab2` on <html> (cab2.js). Without the class not one
+   rule of this file matches — the current Cabinet (?view=acte | solicitari | catalog | notificari) is unchanged.
+
+   What this file is: surfaces, the group colour + icon, and the motion primitives. What it is NOT: a control.
+   Buttons, fields, chips, tags, tabs, tables, dialogs, sheets, toasts and the header are the library components
+   as they are — never restyled in the `.cab2` scope.
+
+   1. page + widths   2. surfaces (card, hero, tile, row)   3. high contrast / forced colours
+   4. group identity   5. motion primitives   6. reduced motion
+   ===================================================================================== */
+
+/* ---------- 1. page + widths ---------- */
+
+.cab2 .cab-page {
+  /* ONE wide width (1280, `--layout-wide-max` — the fallback is the same definition as css/e-permits-shell.css, which
+     this page does not load) for overview / lists / ledgers / wallet; the 1024 reading column for one record */
+  --cab2-width-wide: var(--layout-wide-max, calc(var(--spacing-40, 40px) * 32));
+  --cab2-width-record: var(--cab-content-width, calc(var(--spacing-32, 32px) * 32));
+}
+
+/* the grey page: depth by tone, not by borders or shadows */
+.cab2 .cab-page.e-permits-front-office-page {
+  background: var(--color-background-base-secondary, #f5f5f5);
+}
+
+/* the shared header keeps its look; only its content box follows the page width so both share the same edges */
+.cab2 .cab-page .evo-header {
+  --evo-header-width: var(--cab2-width-wide);
+}
+
+.cab2 .cab-main {
+  /* the shared-axis slide (30) must never widen the page */
+  overflow-x: clip;
+}
+
+.cab2 .cab-main__container {
+  max-width: var(--cab2-width-wide);
+}
+
+.cab2-page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-24, 24px);
+  min-width: 0;
+}
+
+.cab2-page--record {
+  margin-inline: auto;
+  max-width: var(--cab2-width-record);
+  width: 100%;
+}
+
+/* a titled group of cards directly on the grey page: heading → 16 → cards */
+.cab2-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-16, 16px);
+  min-width: 0;
+}
+
+.cab2-section__title {
+  color: var(--color-text-base-default, #121212);
+  font-size: var(--type-heading-h4-font-size, 20px);
+  font-weight: var(--font-weight-fw-medium, 500);
+  letter-spacing: var(--type-heading-h4-letter-spacing, -0.01em);
+  line-height: var(--type-heading-h4-line-height, 28px);
+  margin: 0;
+}
+
+/* text on the grey page and on tinted tiles: default + ONE secondary level only (`--color-text-base-tertiary` is
+   4.2 : 1 on the page and 4.1 : 1 on a tile — below AA; measured in ?state=cab2-f01) */
+.cab2-section__text,
+.cab2-card__text,
+.cab2-hero__text > p,
+.cab2-tile__label,
+.cab2-row__text {
+  color: var(--color-text-base-secondary, #383838);
+  font-size: var(--font-size-fs-14, 14px);
+  font-weight: var(--font-weight-fw-regular, 400);
+  line-height: var(--line-height-lh-20, 20px);
+  margin: 0;
+}
+
+/* ---------- 2. surfaces ---------- */
+
+/* card — white, no border, no shadow, radius 20; one calm heading + one grey sentence */
+.cab2-card {
+  background: var(--color-background-base-default, #fff);
+  border-radius: var(--border-radius-20, 20px);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-16, 16px);
+  min-width: 0;
+  padding: var(--spacing-24, 24px);
+}
+
+.cab2-card__head {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-8, 8px);
+  min-width: 0;
+}
+
+.cab2-card__title {
+  color: var(--color-text-base-default, #121212);
+  font-size: var(--type-heading-h5-font-size, 18px);
+  font-weight: var(--font-weight-fw-medium, 500);
+  letter-spacing: var(--type-heading-h5-letter-spacing, -0.01em);
+  line-height: var(--type-heading-h5-line-height, 26px);
+  margin: 0;
+}
+
+/* hero — the large panel of a page (Acasă), radius 24 */
+.cab2-hero {
+  align-items: center;
+  background: var(--color-background-base-default, #fff);
+  border-radius: var(--border-radius-24, 24px);
+  display: flex;
+  gap: var(--spacing-24, 24px);
+  min-width: 0;
+  padding: var(--spacing-32, 32px);
+}
+
+.cab2-hero__text {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: var(--spacing-8, 8px);
+  min-width: 0;
+}
+
+.cab2-hero__title {
+  color: var(--color-text-base-default, #121212);
+  font-size: var(--type-heading-h2-font-size, 32px);
+  font-weight: var(--font-weight-fw-medium, 500);
+  letter-spacing: var(--type-heading-h2-letter-spacing, -0.02em);
+  line-height: var(--type-heading-h2-line-height, 40px);
+  margin: 0;
+}
+
+.cab2-hero__text > p {
+  font-size: var(--font-size-fs-16, 16px);
+  line-height: var(--line-height-lh-24, 24px);
+}
+
+/* the ring around the hero avatar (library `.avatar` inside, untouched): a 2px brand circle, 6 away */
+.cab2-hero__ring {
+  border-radius: var(--border-radius-full, 9999px);
+  display: inline-flex;
+  flex: none;
+  padding: var(--spacing-6, 6px);
+  position: relative;
+}
+
+.cab2-hero__ring::before {
+  border: var(--border-width-2, 2px) solid var(--color-border-brand-default, #0058d2);
+  border-radius: inherit;
+  content: "";
+  inset: 0;
+  pointer-events: none;
+  position: absolute;
+}
+
+/* tile — the tinted inner surface inside a white card / hero; value first, label small above it */
+.cab2-tiles {
+  display: grid;
+  gap: var(--spacing-16, 16px);
+  grid-template-columns: repeat(auto-fit, minmax(calc(var(--spacing-40, 40px) * 5), 1fr));
+  list-style: none;
+  margin: 0;
+  min-width: 0;
+  padding: 0;
+}
+
+.cab2-tile {
+  background: var(--color-background-base-tertiary, #f1f1f1);
+  border-radius: var(--border-radius-20, 20px);
+  color: inherit;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-8, 8px);
+  min-width: 0;
+  padding: var(--spacing-20, 20px);
+  text-decoration: none;
+}
+
+.cab2-tile__value {
+  color: var(--color-text-base-default, #121212);
+  font-size: var(--type-heading-h3-font-size, 24px);
+  font-weight: var(--font-weight-fw-medium, 500);
+  letter-spacing: var(--type-heading-h3-letter-spacing, -0.01em);
+  line-height: var(--type-heading-h3-line-height, 32px);
+  margin: 0;
+}
+
+/* row — one item of a list, its own white surface on the grey page, radius 16 */
+.cab2-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-8, 8px);
+  list-style: none;
+  margin: 0;
+  min-width: 0;
+  padding: 0;
+}
+
+.cab2-row {
+  align-items: center;
+  background: var(--color-background-base-default, #fff);
+  border-radius: var(--border-radius-16, 16px);
+  color: inherit;
+  display: flex;
+  gap: var(--spacing-16, 16px);
+  min-height: var(--spacing-56, 56px);
+  min-width: 0;
+  padding: var(--spacing-16, 16px) var(--spacing-20, 20px);
+  text-decoration: none;
+}
+
+.cab2-row__main {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: var(--spacing-8, 8px);
+  min-width: 0;
+}
+
+.cab2-row__title {
+  color: var(--color-text-base-default, #121212);
+  font-size: var(--font-size-fs-16, 16px);
+  font-weight: var(--font-weight-fw-medium, 500);
+  line-height: var(--line-height-lh-24, 24px);
+  margin: 0;
+}
+
+.cab2-row__aside {
+  align-items: center;
+  display: flex;
+  flex: none;
+  gap: var(--spacing-8, 8px);
+}
+
+/* clickable surfaces = <a> / <button> + the shared `.e-permits-hover-surface` (css/hover-surface.css, as it is):
+   white surface → grey `::before`. A tinted tile is already that grey, so its hover is one step darker. */
+.cab2 :is(a, button):is(.cab2-row, .cab2-card, .cab2-tile, .cab2-hero) {
+  border: 0;
+  cursor: pointer;
+  font: inherit;
+  text-align: start;
+}
+
+.cab2 .cab2-tile.e-permits-hover-surface::before {
+  background: var(--color-background-base-tertiary-hover, #d9d9d9);
+}
+
+.cab2 :is(a, button):is(.cab2-row, .cab2-card, .cab2-tile, .cab2-hero):focus-visible {
+  box-shadow:
+    0 0 0 var(--spacing-2, 2px) var(--color-background-base-default, #fff),
+    0 0 0 calc(var(--spacing-4, 4px) + var(--border-width-1, 1px)) var(--focus-ring, var(--blue-sky-500, #3379db));
+  outline: none;
+}
+
+@media (max-width: 760px) {
+  .cab2-card {
+    padding: var(--spacing-16, 16px);
+  }
+
+  .cab2-hero {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: var(--spacing-16, 16px);
+    padding: var(--spacing-24, 24px);
+  }
+
+  /* two tiles side by side on a phone */
+  .cab2-tiles {
+    gap: var(--spacing-8, 8px);
+    grid-template-columns: repeat(auto-fit, minmax(calc(var(--spacing-40, 40px) * 3.5), 1fr));
+  }
+
+  .cab2-tile,
+  .cab2-row {
+    padding: var(--spacing-16, 16px);
+  }
+}
+
+/* ---------- 3. high contrast / forced colours ---------- */
+/* A white card on the grey page is low contrast by design (1.09 : 1). Every surface therefore has a heading, and gets
+   a hairline when the user asks for contrast. An outline drawn inside the edge: no layout change, follows the radius. */
+
+@media (prefers-contrast: more) {
+  .cab2 :is(.cab2-card, .cab2-hero, .cab2-tile, .cab2-row) {
+    outline: var(--border-width-1, 1px) solid var(--color-border-base-tertiary, #444);
+    outline-offset: calc(var(--border-width-1, 1px) * -1);
+  }
+}
+
+@media (forced-colors: active) {
+  .cab2 :is(.cab2-card, .cab2-hero, .cab2-tile, .cab2-row) {
+    outline: var(--border-width-1, 1px) solid CanvasText;
+    outline-offset: calc(var(--border-width-1, 1px) * -1);
+  }
+
+  /* box-shadow rings are dropped in forced colours — the focus ring becomes a real outline */
+  .cab2 :is(a, button):is(.cab2-row, .cab2-card, .cab2-tile, .cab2-hero):focus-visible {
+    outline: var(--border-width-2, 2px) solid Highlight;
+    outline-offset: var(--spacing-2, 2px);
+  }
+
+  .cab2-hero__ring::before {
+    border-color: CanvasText;
+  }
+}
+
+/* ---------- 4. group identity ---------- */
+/* ONE colour + ONE icon per menu group. The colour lives only in the group's round icon (and, later, its summary
+   tile); the rest of the interface stays neutral. `data-cab2-group` on any element sets the pair; the round icon is
+   the library avatar (`span.avatar.avatar--md.avatar--icon.cab2-group-icon`, 40 with a 20 icon; `--sm` = 32) — only
+   its two colours come from the group. Colours are Foundations palette primitives (step 100 behind, 600 / 700 on
+   top; contrast in ?state=cab2-f04). Icons: assets/icons/sprite.svg, see GROUPS in cabinet-evo/cab2.js. */
+
+.cab2 [data-cab2-group="acasa"] {
+  --cab2-group-bg: var(--color-background-base-inverse-default, #1e1e1e);
+  --cab2-group-fg: var(--color-icon-base-inverse-default, #fff);
+}
+
+.cab2 [data-cab2-group="cereri"] {
+  --cab2-group-bg: var(--purple-100, #efeafc);
+  --cab2-group-fg: var(--purple-700, #652cc7);
+}
+
+.cab2 [data-cab2-group="documente"] {
+  --cab2-group-bg: var(--forest-green-100, #e8f1f1);
+  --cab2-group-fg: var(--forest-green-600, #006369);
+}
+
+.cab2 [data-cab2-group="bani"] {
+  --cab2-group-bg: var(--green-100, #e6f5ee);
+  --cab2-group-fg: var(--green-700, #027948);
+}
+
+.cab2 [data-cab2-group="proprietati"] {
+  --cab2-group-bg: var(--apricot-100, #feefc6);
+  --cab2-group-fg: var(--apricot-700, #b54708);
+}
+
+.cab2 [data-cab2-group="familie"] {
+  --cab2-group-bg: var(--magenta-100, #f7eafa);
+  --cab2-group-fg: var(--magenta-700, #8813a5);
+}
+
+/* „Muncă și afaceri” (a person) and „Companie” (a company) share the slot, the colour and the glyph */
+.cab2 [data-cab2-group="munca"] {
+  --cab2-group-bg: var(--blue-sky-100, #e8f0fb);
+  --cab2-group-fg: var(--blue-sky-600, #0058d2);
+}
+
+/* the foot of the menu: neutral, one step darker than the hover grey so it never disappears on a hovered row */
+.cab2 [data-cab2-group="acces"] {
+  --cab2-group-bg: var(--color-background-base-tertiary-hover, #d9d9d9);
+  --cab2-group-fg: var(--color-icon-base-default, #121212);
+}
+
+.cab2 .cab2-group-icon {
+  background-color: var(--cab2-group-bg, var(--color-background-base-tertiary, #f1f1f1));
+  color: var(--cab2-group-fg, var(--color-icon-base-default, #121212));
+  flex: none;
+}
+
+/* ---------- 5. motion primitives ---------- */
+/* Driven by cabinet-evo/cab2-motion.js (window.Cab2Motion): a state class is put on, the animation plays, the class
+   comes off. Without the class nothing animates, so content is readable and focusable from the first frame.
+   Fill mode is `backwards` (never `both`: a held transform makes GPU Chrome stop repainting :hover — playbook rule);
+   the one `forwards` is the 90 ms leave, whose class is removed in the same frame the content is swapped. */
+
+@keyframes cab2-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(var(--cab2-rise, var(--motion-distance-md)));
+  }
+}
+
+@keyframes cab2-fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes cab2-fade-out {
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes cab2-axis-in {
+  from {
+    opacity: 0;
+    transform: translateX(var(--cab2-axis, var(--motion-distance-axis)));
+  }
+}
+
+@keyframes cab2-axis-out {
+  to {
+    opacity: 0;
+    transform: translateX(calc(var(--cab2-axis, var(--motion-distance-axis)) * -0.3));
+  }
+}
+
+@keyframes cab2-avatar-in {
+  from {
+    opacity: 0;
+    transform: scale(var(--motion-scale-enter));
+  }
+}
+
+/* the ring is drawn clockwise from 12 o'clock: an angle the browser can animate */
+@property --cab2-ring-angle {
+  inherits: false;
+  initial-value: 360deg;
+  syntax: "<angle>";
+}
+
+@keyframes cab2-ring-draw {
+  from {
+    --cab2-ring-angle: 0deg;
+  }
+}
+
+/* 5.1 fade-up with stagger — Cab2Motion.enter(container): the children rise one after another, 50 ms apart;
+   six steps, every later child arrives with the sixth */
+.cab2 .is-cab2-entering > * {
+  animation: cab2-fade-up var(--motion-duration-base) var(--motion-ease-enter) backwards;
+  animation-delay: calc(var(--cab2-i, 0) * var(--motion-stagger));
+}
+
+.cab2 .is-cab2-entering > :nth-child(2) { --cab2-i: 1; }
+.cab2 .is-cab2-entering > :nth-child(3) { --cab2-i: 2; }
+.cab2 .is-cab2-entering > :nth-child(4) { --cab2-i: 3; }
+.cab2 .is-cab2-entering > :nth-child(5) { --cab2-i: 4; }
+.cab2 .is-cab2-entering > :nth-child(n + 6) { --cab2-i: 5; }
+
+/* 5.2 fade-through — Cab2Motion.fadeThrough(el, swap): menu section → another section.
+   Old content fades out (90 ms), new content fades in and rises 8; 300 ms together */
+.cab2 .is-cab2-leaving {
+  animation: cab2-fade-out var(--motion-duration-out) var(--motion-ease-exit) forwards;
+}
+
+.cab2 .is-cab2-arriving {
+  --cab2-rise: var(--motion-distance-sm);
+
+  animation: cab2-fade-up calc(var(--motion-duration-base) - var(--motion-duration-out)) var(--motion-ease-enter) backwards;
+}
+
+/* 5.3 shared axis X — Cab2Motion.sharedAxis(el, swap, { back }): list row → record slides in from the right,
+   „back” from the left; 30 + fade, 300 ms together */
+.cab2 .is-cab2-axis-out {
+  animation: cab2-axis-out var(--motion-duration-out) var(--motion-ease-exit) forwards;
+}
+
+.cab2 .is-cab2-axis-in {
+  animation: cab2-axis-in calc(var(--motion-duration-base) - var(--motion-duration-out)) var(--motion-ease-enter) backwards;
+}
+
+.cab2 [data-cab2-dir="back"] {
+  --cab2-axis: calc(var(--motion-distance-axis) * -1);
+}
+
+/* 5.4 container grow (card → its page) is measured, so it runs in JS (Cab2Motion.grow / .shrink, Web Animations):
+   the page opens from the card's box — 300 ms in, 250 ms back, `--motion-ease-standard` */
+
+/* 5.5 loading → content — Cab2Motion.reveal(swap): the skeleton (library `.skeleton`, as it is) and the content share
+   one grid cell and cross-fade in 150 ms */
+.cab2-swap {
+  display: grid;
+  min-width: 0;
+}
+
+.cab2-swap > * {
+  grid-area: 1 / 1;
+  min-width: 0;
+  transition: opacity var(--motion-duration-fast) linear, visibility 0s linear;
+}
+
+.cab2-swap:not(.is-loaded) > [data-cab2-swap="content"],
+.cab2-swap.is-loaded > [data-cab2-swap="placeholder"] {
+  opacity: 0;
+  transition: opacity var(--motion-duration-fast) linear, visibility 0s linear var(--motion-duration-fast);
+  visibility: hidden;
+}
+
+/* 5.6 entrance — Cab2Motion.entrance(root): once per sign-in / context switch, never on in-Cabinet navigation.
+   avatar scales 0.8 → 1 (400 ms) · ring draws clockwise (500 ms, 100 ms later) · greeting, status, search, chips
+   fade up 16, 50 ms apart · cards fade up 24, 50 ms apart, six steps. Last frame at 850 ms. */
+.cab2 .is-cab2-entrance .cab2-hero__ring > * {
+  animation: cab2-avatar-in var(--motion-duration-avatar) var(--motion-ease-enter) backwards;
+}
+
+.cab2 .is-cab2-entrance .cab2-hero__ring::before {
+  animation: cab2-ring-draw var(--motion-duration-slow) var(--motion-ease-enter) backwards;
+  animation-delay: calc(var(--motion-stagger) * 2);
+  mask-image: conic-gradient(black var(--cab2-ring-angle), transparent 0);
+}
+
+.cab2 .is-cab2-entrance .cab2-hero__text > * {
+  animation: cab2-fade-up var(--motion-duration-base) var(--motion-ease-enter) backwards;
+  animation-delay: calc((var(--cab2-i, 0) + 2) * var(--motion-stagger));
+}
+
+.cab2 .is-cab2-entrance .cab2-hero__text > :nth-child(2) { --cab2-i: 1; }
+.cab2 .is-cab2-entrance .cab2-hero__text > :nth-child(3) { --cab2-i: 2; }
+.cab2 .is-cab2-entrance .cab2-hero__text > :nth-child(n + 4) { --cab2-i: 3; }
+
+.cab2 .is-cab2-entrance [data-cab2-entrance-item] {
+  --cab2-rise: var(--motion-distance-lg);
+
+  animation: cab2-fade-up var(--motion-duration-base) var(--motion-ease-enter) backwards;
+  animation-delay: calc((var(--cab2-i, 0) + 6) * var(--motion-stagger));
+}
+
+.cab2 .is-cab2-entrance [data-cab2-entrance-item="1"] { --cab2-i: 1; }
+.cab2 .is-cab2-entrance [data-cab2-entrance-item="2"] { --cab2-i: 2; }
+.cab2 .is-cab2-entrance [data-cab2-entrance-item="3"] { --cab2-i: 3; }
+.cab2 .is-cab2-entrance [data-cab2-entrance-item="4"] { --cab2-i: 4; }
+.cab2 .is-cab2-entrance [data-cab2-entrance-item="5"] { --cab2-i: 5; }
+
+/* ---------- 6. reduced motion ---------- */
+/* The tokens already turn every primitive into a ≤ 150 ms fade (css/motion.css). Two things are not token-driven:
+   the ring must not draw, and the forced demo class has to stop the shimmer the media query stops by itself. */
+
+@media (prefers-reduced-motion: reduce) {
+  .cab2 .is-cab2-entrance .cab2-hero__ring::before {
+    animation-name: cab2-fade-in;
+    mask-image: none;
+  }
+}
+
+.cab2.is-motion-reduced .is-cab2-entrance .cab2-hero__ring::before {
+  animation-name: cab2-fade-in;
+  mask-image: none;
+}
+
+.cab2.is-motion-reduced .skeleton {
+  animation: none;
+  background: var(--color-background-base-tertiary, #f1f1f1);
+}
+
+.cab2.is-motion-reduced .e-permits-hover-surface::before {
+  transform: none;
+  transition: none;
+}

@@ -98,6 +98,9 @@
     /* minimal stand-in of the EVO „Notificări” compartment (notificari.js) — the GEAP events of US-19 AC-20 / US-135 */
     notificari: { title: "Notificări" },
   };
+  /* EVO Cabinet v2 (cab2.js): views that exist only on the new shell, behind ?shell=2 */
+  const SHELL2 = params.get("shell") === "2";
+  if (SHELL2) VIEWS.foundations = { title: "Elemente de bază" };
   const VIEW = VIEWS[params.get("view")] ? params.get("view") : "acte";
   const AUTH = params.get("auth") !== "0";
   const SUBJECT = params.get("as") || "pj-global-trader";
@@ -108,6 +111,8 @@
     if (params.get("as")) next.set("as", params.get("as"));
     /* the demo scenario (pps-…) stays on while the user moves around the cabinet */
     if (params.get("pps")) next.set("pps", params.get("pps"));
+    /* the new shell stays on while the user moves around (cab2) */
+    if (SHELL2) next.set("shell", "2");
     if (!AUTH) next.set("auth", "0");
     Object.entries(extra).forEach(([key, value]) => { if (value !== undefined && value !== null && value !== "") next.set(key, value); });
     return `?${next.toString()}${hash}`;

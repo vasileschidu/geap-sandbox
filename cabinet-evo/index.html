@@ -27,6 +27,13 @@
   <link rel="stylesheet" href="../css/table-pin-shadow.css?v=table-pin-clip-v1">
   <link rel="stylesheet" href="../css/evo-header.css?v=evo-header-border-v1">
   <link rel="stylesheet" href="cabinet-evo.css?v=doc-viewer-tabs-v1">
+  <!-- EVO Cabinet v2 (behind ?shell=2 — cab2.js puts `.cab2` on <html>; without it none of these rules match):
+       motion tokens, the shared hover surface, the surface layer + group identity + motion primitives, the demo page;
+       the flag script sits after demo-links.js below -->
+  <link rel="stylesheet" href="../css/motion.css?v=motion-v1">
+  <link rel="stylesheet" href="../css/hover-surface.css?v=motion-v1">
+  <link rel="stylesheet" href="cab2.css?v=cab2-foundations-v1">
+  <link rel="stylesheet" href="cab2-foundations.css?v=cab2-foundations-v1">
   <link rel="stylesheet" href="../css/trajectory.css?v=phone-fit-v1">
   <!-- the status alert card of the act / request profiles (act-alert-card-v1, js/alert-card.js) -->
   <link rel="stylesheet" href="../css/alert-card.css?v=cards-radius-20-final">
@@ -47,8 +54,10 @@
   <link rel="stylesheet" href="../css/page-reveal.css?v=skeleton-v1">
   <link rel="stylesheet" href="../css/sticky-sections.css?v=sticky-sections-v1">
   <!-- ?state=<id> opens the screen a Figma frame shows (js/demo-states.js) -->
-  <script src="../js/demo-states.js?v=doc-meta-flat-v1"></script>
+  <script src="../js/demo-states.js?v=cab2-foundations-v1"></script>
   <script src="../js/demo-links.js?v=links-v4"></script>
+  <!-- EVO Cabinet v2 flag (?shell=2 → `.cab2` on <html>) — after demo-links.js, which writes a ?state=…'s parameters into the address -->
+  <script src="cab2.js?v=cab2-foundations-v1"></script>
   <script src="../js/toast.js?v=sm-v1" defer></script>
   <script src="../js/tag.js?v=audit-fix-v5"></script>
   <script src="../js/pager.js?v=pager-compact-v4"></script>
@@ -73,10 +82,12 @@
   <script src="../js/sticky-sections.js?v=sticky-sections-v1" defer></script>
   <script src="../js/alert-card.js?v=act-alert-card-v2" defer></script>
   <script src="../js/evo-header.js?v=evo-header-v1" defer></script>
-  <script src="cabinet-evo.js?v=doc-viewer-tabs-v1" defer></script>
+  <script src="cabinet-evo.js?v=cab2-foundations-v1" defer></script>
   <script src="solicitari.js?v=copy-tu-v2" defer></script>
   <script src="notificari.js?v=copy-tu-v2" defer></script>
   <script src="catalog.js?v=copy-tu-v2" defer></script>
+  <script src="cab2-motion.js?v=cab2-foundations-v1" defer></script>
+  <script src="cab2-foundations.js?v=cab2-foundations-v1" defer></script>
   <script src="../js/page-reveal.js?v=skeleton-v1" defer></script>
 </head>
 <body class="e-permits-front-office-page is-fo-request-mode cab-page">
@@ -300,6 +311,9 @@
 
       <!-- Catalogul serviciilor — rendered by catalog.js -->
       <div class="cab-view" data-cab-view="catalog" hidden></div>
+
+      <!-- EVO Cabinet v2 · „Elemente de bază” (?shell=2&view=foundations) — rendered by cab2-foundations.js -->
+      <div class="cab-view" data-cab-view="foundations" hidden></div>
     </div>
   </main>
 </body>

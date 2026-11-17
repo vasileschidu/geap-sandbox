@@ -439,6 +439,9 @@ but this doc previously described it wrongly, see the entry.
 | Dashboard layout canvas `.e-permits-dsh-stage` / `.e-permits-dsh-grid` (dash-v3 → v4, 2026-11-10, user) — NEW | ONE WYSIWYG view (no Editare / Previzualizare), only the widgets at the available width (the v3 shell skeleton + 1440 zoom were removed by the user, v4); the real cards, no wrapper borders; 12 columns, widths 4 · 6 · 8 · 12; hover / focus = the shared grey hover surface (outset 8) + floating toolbar (handle + red remove) + resize corner (snaps columns + Compactă · Înaltă, live „8/12 · Înaltă” tag; grid rows fixed = `--wid-row-compact`, `.e-permits-dsh-tile--tall` spans 2 rows, wid-heights-v1, target columns lit in the guides); drag = live FLIP reflow, the grey surface stays as the slot; keyboard on the focused widget: arrows move, Shift + arrows resize; dashed „Adaugă widget” ghost slot at the end; phones = one per row, toolbar ↑ ↓ + remove | css/dashboard.css, js/dashboard-admin.js `layoutHtml` / arranging engine |
 | Roles with Principal / Secundar + „Toate autoritățile” (dash-v1) — NEW | roles = shell stacked list rows (role · Small brand tag „Principal” · meta) with the library segmented Principal · Secundar + red trash, „Adaugă rol ▾” = in-flow stack menu; authorities = „Toate autoritățile” checkbox + the CAEM multi-select with chips under the field, same as Rapoarte (dsh-auth-ms-v1, `.e-permits-dsh-auths`; ~30 shared demo authorities from data/rapoarte.json); authority level = `.e-permits-cfg-ro` read-only | js/dashboard-admin.js `rolesBlock` / `authBlock` |
 | Widget picker (dash-v3) — composition | library dialog (`modal--lg`): live search, then the „Widget type card” RADIO cards (the chart-type gallery markup, one widget at a time); on the board = disabled „Este deja pe tablou.”; „Adaugă” (aria-disabled until a choice) → it lands at the end at its default size, scrolls into view, takes the focus and flashes the focus ring | js/dashboard-admin.js `openPicker` |
+| **Cabinet v2 — surface layer** (cab2-foundations-v1, 2026-11-17; behind `?shell=2` → `.cab2` on `<html>`) — NEW | grey page; `.cab2-page` (+ `--record` 1024) › `.cab2-section` (`__title`, `__text`) › white borderless `.cab2-card` r20 (`__head`, `__title`, `__text`), `.cab2-hero` r24 (`__ring` around a library avatar, `__text`, `__title`), tinted `ul.cab2-tiles` › `.cab2-tile` r20 (`__label`, `__value`), `ul.cab2-list` › `.cab2-row` r16 (`__main`, `__title`, `__text`, `__aside`); clickable = `<a>` / `<button>` + `.e-permits-hover-surface`; hairline in high contrast / forced colours. Section „Cabinet v2 — surface layer” | cabinet-evo/cab2.css · `?state=cab2-f01` | app (flag) |
+| **Cabinet v2 — group identity** `.cab2-group-icon` + `data-cab2-group` (cab2-foundations-v1) — NEW | the library avatar `span.avatar.avatar--md.avatar--icon.cab2-group-icon[data-cab2-group]` (40 · icon 20; `avatar--sm` 32) with the group's colour pair; `Cab2.groupIcon(id, { size, sprite })`, `Cab2.GROUPS`; table in design-system.md § 11 | cabinet-evo/cab2.js, cab2.css · `?state=cab2-f04` | app (flag) |
+| **Cabinet v2 — motion primitives** `window.Cab2Motion` (cab2-foundations-v1) — NEW | `enter` (fade-up + stagger, `.is-cab2-entering`), `entrance` (hero, `.is-cab2-entrance`, `[data-cab2-entrance-item]`), `fadeThrough`, `sharedAxis` (`data-cab2-dir="back"`), `grow` / `shrink` (card → page), `reveal` on `.cab2-swap` (`[data-cab2-swap="placeholder" / "content"]`, library `.skeleton`); tokens css/motion.css; reduced motion = ≤ 150 ms fade | cabinet-evo/cab2-motion.js, cab2.css › 5 · `?state=cab2-f02`, `cab2-f03` | app (flag) |
 | Hover surface `.e-permits-hover-surface` (hover-surface-v1, 2026-11-10) — shared | the calendar-month hover extracted: `::before` tertiary grey, radius inherit, opacity 0 → 1 + scale 0.96 → 1, 180 ms decelerate, content never moves; `--hover-surface-outset` shows it around a white card | css/hover-surface.css — calendar months, dashboard tiles |
 | Ghișeu — registry down notice (registry-down-alert-v1, 2026-10-23, user on GEAP 11850:301832) | ONE `renderNotice("warning", …, { className: "e-permits-gh__down-notice" })` (library Mesaj · subtil warning, role=status) as a full-width row right above the first lookup of the section, instead of a red error on every field: „**Registrul de stat nu răspunde acum.** Completează datele manual. Datele introduse manual se verifică la examinare.”; shown after the first lookup that could not reach MConnect, only while it is down; fields stay clean (real errors per field); manual values keep the Small warning tag „Introdus manual” (role card, Verificare) | `downNoticeHtml(slots)` in `js/ghiseu.js`, `css/ghiseu.css`; section „Ghișeu — depunere la ghișeu” › Registry down; demo gh-02f, gh-02f2, gh-02f3, gh-02f4, gh-03m, gh-03n | app |
 | Ghișeu act picker = the Cabinet act row (ghiseu-picker-toast-v1, 2026-10-23, user on GEAP 11850:27348 „as in Actele mele — only the accent is the location; remove the icon; the action fixed and square as in Solicitări”) | the shared `GEAPActRow.html` with two new options: `placeIcon: false` (line 2 without the pin) and `actionIcon: "icon-more-vertical"` (the trigger = the SQUARE `btn btn-neutral btn-sm btn-icon-only e-permits-fo-intent-act__trigger`, 32, tooltip = `actionLabel` „Postprocese”, aria-label „Postprocese pentru <loc> — <type>”, chevron rotation off, same menu; NO trigger when nothing can start — locked row or every item unavailable). Ghișeu row: no lead icon · title = the object / location + Small status tag · line 2 = the act type (service title; decision → „Decizie de respingere”) · meta = Cabinet slots number (compact copy) · authority code · subdivision · `valabil până la` / `expirat la` / `emisă acum N zile` · ⋮ in the corner. Row not clickable (as before). **Search from 8 acts** (= facet-filter SEARCH_MIN): library `.search-input.medium.rectangular.e-permits-workplace__search.e-permits-list-search.e-permits-list-search--fill[data-gh-acts-search]` in `.e-permits-gh-acts-search` (grid, gap 12) between the „Acte emise…” title and the rows (`intentHtml({ listHeadHtml })`), live, case- + diacritics-insensitive over location · type · number · subdivision; rows `hidden` in place; „Niciun rezultat” = `GEAPEmptyState.noResults` (bare + compact); count announced (role=status) | `actRowHtml` / `actsSearchHtml` / `filterActs` in `js/ghiseu.js`, `css/ghiseu.css`; demo gh-02i, gh-02j (⋮ open), gh-02t (locked, no ⋮), gh-02z (15 acts, `?acte=multe`), gh-02z1 („izvoras”), gh-02z2 (no match) | app |
@@ -8773,6 +8776,70 @@ edge. Also the action buttons are too small”, then „remove the details-line 
   phones too (it stacked before); fo-08 (6 steps) stays stacked.
 - Demo: **sm-03p** (phones: the request „⋯” open with „Elimină schița” — at 320; at 375 both buttons fit since Medium); sm-03a / sm-03f / sm-05c click the header action
   or, when it moved into the „⋯”, its menu item (`smHeadAct`).
+
+### Cabinet v2 — surface layer, group identity, motion primitives (cab2-foundations-v1, 2026-11-17)
+
+EVO Cabinet redesign, Batch 1. Everything sits behind `?shell=2` (`cabinet-evo/cab2.js` puts `.cab2` on `<html>`); without
+the flag no rule matches. **These are surfaces and motion, not controls** — buttons, fields, chips, tags, tabs, tables,
+dialogs, sheets, toasts and the EVO header are the library components as they are, never restyled under `.cab2`.
+Tokens + measured contrast: design-system.md § 10 (Motion), § 11 (surfaces, group colours). Demo: `?state=cab2-f01 … f04`
+(`cabinet-evo/?shell=2&view=foundations&f=surfaces|motion|reduced|groups`).
+
+```html
+<div class="cab2-page">                         <!-- 1280; + cab2-page--record = 1024 -->
+  <section class="cab2-section">
+    <div class="cab2-card__head">
+      <h2 class="cab2-section__title">Documentele tale</h2>
+      <p class="cab2-section__text">One grey sentence.</p>
+    </div>
+
+    <div class="cab2-hero">                      <!-- white, r24 -->
+      <span class="cab2-hero__ring"><span class="avatar avatar--xl avatar--initials" aria-hidden="true">AC</span></span>
+      <div class="cab2-hero__text"><h1 class="cab2-hero__title">Bună, Anastasia</h1><p>Nu ai nimic de rezolvat</p></div>
+    </div>
+
+    <article class="cab2-card">                  <!-- white, r20, no border, no shadow; ALWAYS a heading -->
+      <div class="cab2-card__head"><h3 class="cab2-card__title">Bani și obligații</h3><p class="cab2-card__text">…</p></div>
+      <ul class="cab2-tiles">                    <!-- tinted inner tiles, r20: label small, value large -->
+        <li class="cab2-tile"><p class="cab2-tile__label">Amenzi neachitate</p><p class="cab2-tile__value">2</p></li>
+      </ul>
+    </article>
+
+    <ul class="cab2-list">                       <!-- rows = own white surfaces, r16, gap 8, min height 56 -->
+      <li class="cab2-row">
+        <div class="cab2-row__main"><h3 class="cab2-row__title">…</h3><p class="cab2-row__text">…</p></div>
+        <div class="cab2-row__aside"><!-- ONE Small status tag --></div>
+      </li>
+      <li><a class="cab2-row e-permits-hover-surface" href="…">…</a></li>   <!-- clickable: <a> / <button> + the shared hover surface -->
+    </ul>
+  </section>
+</div>
+```
+
+Rules
+- Page gap 24 between sections, 16 heading → cards, 8 between rows, 16 between cards / tiles (8 between tiles on phones, two per row).
+- Text on the page and on tiles: default + secondary only (tertiary fails AA there). Controls sit on white surfaces only.
+- A clickable surface is a real `<a>` / `<button>` with `.e-permits-hover-surface` (never a click handler on a div); its focus
+  ring is the canonical 2 + 3 ring. A tile's hover is one grey step darker (set in cab2.css — do not add another hover).
+- High contrast / forced colours: nothing to do per screen — the hairline comes from the surface classes.
+- Group icon: `Cab2.groupIcon("bani")` → `span.avatar.avatar--md.avatar--icon.cab2-group-icon[data-cab2-group="bani"]`;
+  `data-cab2-group` on any ancestor exposes `--cab2-group-bg` / `--cab2-group-fg` (for the summary tile, M6). Ids: `acasa`,
+  `cereri`, `documente`, `bani`, `proprietati`, `familie`, `munca` (= „Companie” in a company context), `acces`.
+
+Motion — `window.Cab2Motion` (every call returns a Promise; timings come from the tokens)
+
+| Call | When | What plays |
+|---|---|---|
+| `enter(container)` | a list / grid appears | children fade up 16, 50 ms apart, six steps |
+| `entrance(root, { key, force })` | Acasă, once per sign-in (`key` in sessionStorage); `force` on a context switch | avatar 0.8 → 1 (400) · ring draws clockwise (500, +100) · `.cab2-hero__text` children fade up 16 · `[data-cab2-entrance-item]` fade up 24; last frame at 850 ms |
+| `fadeThrough(el, swap)` | menu section → section | out 90 ms, `swap()`, in + rise 8; 300 ms together |
+| `sharedAxis(el, swap, { back })` | list row → record, and back | 30 slide + fade; `back` comes from the left |
+| `grow(card, page, show)` / `shrink(page, hide)` | tile / document card → its page | the page opens from the card's box (clip-path), 300 in / 250 out |
+| `reveal(swap)` | loading → content | `.cab2-swap` (`aria-busy`) › `[data-cab2-swap="placeholder"]` (library `.skeleton` shapes) + `[data-cab2-swap="content"]` cross-fade 150 ms |
+
+- Content is in the DOM before anything moves; a state class goes on, the animation plays, the class comes off (no held layers).
+- Never call `entrance` on in-Cabinet navigation. Press = background tint only (no bounce).
+- Reduced motion needs no extra code: the tokens turn every call into a ≤ 150 ms fade (`?motion=reduce` forces it for a demo).
 
 ### Act profile — EVO Cabinet (act-profile-v1, 2026-10-21)
 

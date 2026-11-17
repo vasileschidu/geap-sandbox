@@ -1,0 +1,213 @@
+/* =====================================================================================
+   EVO Cabinet v2 — „Elemente de bază” demo page (cab2-foundations-v1, 2026-11-17; cab2-foundations.js).
+   Layout of the demo only (grids, stages, measured numbers). The things it demonstrates live in cab2.css and
+   css/motion.css; nothing below is a component other screens may use.
+   ===================================================================================== */
+
+/* the page header: title, one sentence, the four demo pages as library tabs (on white: their hover is the page grey) */
+.cab2-f__nav {
+  min-width: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+/* the track line runs under the full bar (tabs-track rule), also when the tabs scroll sideways on a phone */
+.cab2-f__nav > .tab-buttons {
+  min-width: 100%;
+  width: max-content;
+}
+
+.cab2-f__nav .tab-button {
+  text-decoration: none;
+}
+
+.cab2-f__grid {
+  align-items: start;
+  display: grid;
+  gap: var(--spacing-16, 16px);
+  grid-template-columns: repeat(auto-fit, minmax(calc(var(--spacing-40, 40px) * 7), 1fr));
+  min-width: 0;
+}
+
+/* card head with its „Redă” button */
+.cab2-f__card-head {
+  align-items: flex-start;
+  display: flex;
+  gap: var(--spacing-16, 16px);
+  justify-content: space-between;
+  min-width: 0;
+}
+
+.cab2-f__card-head > .cab2-card__head {
+  flex: 1;
+}
+
+.cab2-f__card-head > .btn {
+  flex: none;
+}
+
+.cab2-f__fill {
+  width: 100%;
+}
+
+/* text straight on the grey page, in a card-sized box */
+.cab2-f__onpage {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-16, 16px);
+  min-width: 0;
+  padding: var(--spacing-24, 24px);
+}
+
+/* measured lines: sample text · ratio · tag */
+.cab2-f__lines {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-8, 8px);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.cab2-f__line {
+  align-items: center;
+  display: flex;
+  gap: var(--spacing-16, 16px);
+  justify-content: space-between;
+  min-height: var(--spacing-24, 24px);
+}
+
+.cab2-f__sample {
+  font-size: var(--font-size-fs-14, 14px);
+  line-height: var(--line-height-lh-20, 20px);
+}
+
+[data-cab2-f-line="default"] > .cab2-f__sample { color: var(--color-text-base-default, #121212); }
+[data-cab2-f-line="secondary"] > .cab2-f__sample { color: var(--color-text-base-secondary, #383838); }
+[data-cab2-f-line="tertiary"] > .cab2-f__sample { color: var(--color-text-base-tertiary, #757575); }
+[data-cab2-f-line="brand"] > .cab2-f__sample { color: var(--color-text-brand-default, #0058d2); }
+
+.cab2-f__measure {
+  align-items: center;
+  color: var(--color-text-base-default, #121212);
+  display: flex;
+  flex: none;
+  font-size: var(--font-size-fs-14, 14px);
+  font-variant-numeric: tabular-nums;
+  gap: var(--spacing-8, 8px);
+  line-height: var(--line-height-lh-20, 20px);
+}
+
+/* the high-contrast hairline, shown without the system setting (the real rule: cab2.css › 3) */
+.cab2-f__outlined :is(.cab2-card, .cab2-tile, .cab2-row) {
+  outline: var(--border-width-1, 1px) solid var(--color-border-base-tertiary, #444);
+  outline-offset: calc(var(--border-width-1, 1px) * -1);
+}
+
+.cab2-f__probe {
+  height: 0;
+  position: absolute;
+  visibility: hidden;
+}
+
+.cab2-f__probe--wide { width: var(--cab2-width-wide); }
+.cab2-f__probe--record { width: var(--cab2-width-record); }
+
+/* motion stages */
+.cab2-f__stage {
+  min-width: 0;
+}
+
+.cab2-f__entrance {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-16, 16px);
+}
+
+/* the hero inside a sample card: the card is already the white panel */
+.cab2-f__flat {
+  padding: 0;
+}
+
+.cab2-f__grow {
+  display: grid;
+  min-width: 0;
+}
+
+.cab2-f__grow > * {
+  grid-area: 1 / 1;
+  min-width: 0;
+}
+
+.cab2-f__grow > .is-under {
+  visibility: hidden;
+}
+
+.cab2-f__grow-page {
+  background: var(--color-background-base-tertiary-hover, #d9d9d9);
+}
+
+.cab2-f__skeleton-value {
+  height: var(--spacing-32, 32px);
+}
+
+/* token list: name · value · what it is for */
+.cab2-f__tokens {
+  display: grid;
+  gap: var(--spacing-16, 16px) var(--spacing-24, 24px);
+  grid-template-columns: repeat(auto-fit, minmax(calc(var(--spacing-40, 40px) * 7), 1fr));
+  margin: 0;
+}
+
+.cab2-f__token {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-8, 8px);
+  min-width: 0;
+}
+
+.cab2-f__token > dt {
+  color: var(--color-text-base-secondary, #383838);
+  font-size: var(--font-size-fs-14, 14px);
+  line-height: var(--line-height-lh-20, 20px);
+  overflow-wrap: anywhere;
+}
+
+.cab2-f__token > dd {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-8, 8px);
+  margin: 0;
+}
+
+.cab2-f__token > dd > strong {
+  color: var(--color-text-base-default, #121212);
+  font-size: var(--font-size-fs-16, 16px);
+  font-weight: var(--font-weight-fw-medium, 500);
+  line-height: var(--line-height-lh-24, 24px);
+  overflow-wrap: anywhere;
+}
+
+.cab2-f__token > dd > span {
+  color: var(--color-text-base-secondary, #383838);
+  font-size: var(--font-size-fs-14, 14px);
+  line-height: var(--line-height-lh-20, 20px);
+}
+
+/* group icons in a row */
+.cab2-f__icons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-8, 8px);
+}
+
+@media (max-width: 760px) {
+  .cab2-f__onpage {
+    padding: var(--spacing-16, 16px);
+  }
+
+  .cab2-f__grid,
+  .cab2-f__tokens {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
