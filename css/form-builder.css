@@ -1188,30 +1188,158 @@
   position: relative;
 }
 
-/* errors = library `btn btn-sm btn-outline-destructive` (paint, hover, pressed, focus from main.css; lib-align-v1).
-   No errors → the JS swaps the variant for `is-clean` (no library positive outline exists, product green kept) */
-.e-permits-builder__errors.is-clean {
-  background: var(--color-background-positive-secondary, #e6f5ee);
-  border: var(--border-width-1, 1px) solid var(--color-icon-positive-default, #039855);
-  color: var(--color-text-positive-on-secondary, #027948);
-}
-
-.e-permits-builder__errors.is-clean:hover {
-  background: var(--color-background-positive-secondary-active, #d1fadf);
-}
-
+/* errors = the Process Designer quiet issues link (pd-meta-links-v1, css/process-designer.css › Builder frame):
+   `btn-strict` + `e-permits-pd__errors--clean` with no errors, library `btn-text-destructive` with errors (fb-float-p1;
+   the green outlined `is-clean` box is gone) */
 .e-permits-builder__errors[aria-expanded="true"],
 .e-permits-builder__errors:focus-visible {
   box-shadow: 0 0 0 2px var(--color-background-base-default, #fff), 0 0 0 5px var(--focus-ring, var(--blue-sky-500, #3379db));
   outline: none;
 }
 
-.e-permits-builder__service-scope:hover {
-  background: var(--color-background-base-tertiary-hover, #e7e7e7);
+/* ===== Builder frame — Form Designer placement (fb-float-p1, 2026-11-17) =====
+   The shared frame (`.e-permits-builder--canvas`: compact header, dotted canvas, `--pd-inset`) lives in
+   css/process-designer.css. Here: the Bibliotecă / Proprietăți asides are the PD floating cards (`.e-permits-pd__float
+   --left / --right`, PD widths 240 / 320), the stage leaves their room on both sides so the form page (≤ 1024) is centred
+   in the free canvas and scrolls on its own; the service line + step chips sit on the canvas above the page.
+   ≤ 960 the cards go back into the one scrolling column (editing needs the desktop). */
+.e-permits-builder--canvas {
+  --fb-float-left: calc(var(--spacing-80, 80px) * 3);
+  --fb-float-right: var(--pd-props-width, calc(var(--spacing-80, 80px) * 4));
 }
 
-.e-permits-builder__publish:hover {
-  background: var(--color-background-brand-default-hover, #004cb8);
+/* the title of the compact header opens „Date generale” (a quiet button: hover tertiary, ring on focus) */
+.e-permits-builder--canvas .e-permits-pd__title.e-permits-builder__title-button {
+  flex: 0 1 auto;
+  margin: 0;
+  padding: var(--spacing-4, 4px) var(--spacing-8, 8px);
+}
+
+.e-permits-builder--canvas .e-permits-pd__nav-left > .e-permits-builder__title-button {
+  margin-left: calc(var(--spacing-8, 8px) * -1);
+}
+
+.e-permits-builder--canvas .e-permits-pd__status {
+  gap: var(--spacing-8, 8px);
+}
+
+.e-permits-builder--canvas .e-permits-pd__version > span {
+  white-space: nowrap;
+}
+
+/* service line on the canvas: no band, quiet caption (the PD diagram caption), aligned with the page */
+.e-permits-builder--canvas .e-permits-builder__service-header,
+.e-permits-builder--canvas .e-permits-builder__steps {
+  background: transparent;
+  border-bottom: 0;
+}
+
+.e-permits-builder--canvas .e-permits-builder__service-header {
+  padding: var(--spacing-16, 16px) var(--spacing-32, 32px) 0;
+}
+
+.e-permits-builder--canvas .e-permits-builder__service-meta-row {
+  flex-wrap: wrap;
+  gap: var(--spacing-8, 8px) var(--spacing-16, 16px);
+  margin: 0 auto;
+  max-width: calc(var(--spacing-32, 32px) * 32);
+}
+
+/* the 240 card: a description wraps instead of being cut (no tooltip needed) */
+.e-permits-builder--canvas .e-permits-builder__library-item em {
+  white-space: normal;
+}
+
+.e-permits-builder--canvas .e-permits-builder__service-meta {
+  flex: 1 1 auto;
+}
+
+.e-permits-builder--canvas .e-permits-builder__meta-scope {
+  align-items: center;
+  display: inline-flex;
+  gap: var(--spacing-4, 4px);
+}
+
+.e-permits-builder--canvas .e-permits-builder__steps {
+  padding: var(--spacing-12, 12px) var(--spacing-32, 32px);
+}
+
+.e-permits-builder--canvas .e-permits-builder__steps-group {
+  margin: 0 auto;
+  max-width: calc(var(--spacing-32, 32px) * 32);
+  width: 100%;
+}
+
+.e-permits-builder--canvas .e-permits-builder__canvas-scroll {
+  padding-top: var(--spacing-16, 16px);
+}
+
+/* Previzualizare / Schemă: no cards, a plain white page (as before) */
+.e-permits-builder.e-permits-builder--canvas:is([data-mode="preview"], [data-mode="schema"]) .e-permits-builder__workspace {
+  background: var(--color-background-base-default, #fff);
+}
+
+@media (min-width: 961px) {
+  .e-permits-builder--canvas .e-permits-builder__workspace {
+    display: block;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .e-permits-builder--canvas .e-permits-builder__stage {
+    box-sizing: border-box;
+    inset: 0;
+    padding: 0 calc(var(--fb-float-right) + var(--pd-inset, 8px) * 2) 0 calc(var(--fb-float-left) + var(--pd-inset, 8px) * 2);
+    position: absolute;
+  }
+
+  .e-permits-builder.e-permits-builder--canvas:is([data-mode="preview"], [data-mode="schema"]) .e-permits-builder__stage {
+    padding: 0;
+  }
+
+  .e-permits-builder--canvas .e-permits-builder__library.e-permits-pd__float--left {
+    width: var(--fb-float-left);
+  }
+
+  .e-permits-builder--canvas .e-permits-builder__library-list {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+  }
+
+  /* floating cards keep the PD widths — no edge to drag (P2 / P3 bring the PD collapse instead) */
+  .e-permits-builder--canvas .e-permits-builder__resize-handle {
+    display: none;
+  }
+}
+
+@media (max-width: 960px) {
+  .e-permits-builder--canvas :is(.e-permits-builder__library, .e-permits-builder__inspector).e-permits-pd__float {
+    animation: none;
+    border: 0;
+    border-radius: 0;
+    border-top: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
+    box-shadow: none;
+    max-height: none;
+    overflow: visible;
+    position: static;
+    width: auto;
+  }
+
+  .e-permits-builder--canvas :is([data-fb-version-wrap], [data-fb-save], [data-fb-publish]) {
+    display: none;
+  }
+}
+
+/* phones: the service line and the step chips follow the canvas padding (12) */
+@media (max-width: 720px) {
+  .e-permits-builder--canvas .e-permits-builder__service-header {
+    padding: var(--spacing-12, 12px) var(--spacing-12, 12px) 0;
+  }
+
+  .e-permits-builder--canvas .e-permits-builder__steps {
+    padding: var(--spacing-12, 12px);
+  }
 }
 
 .e-permits-builder__publish[aria-disabled="true"] {
@@ -1943,7 +2071,7 @@ body:has(.form-builder-modal-overlay.is-active) :is(#case-action-modal, #pending
 }
 
 /* „Salvează” of a global form sits in the top bar row with the other 40 controls; hidden in the view-only preview */
-.form-builder-modal-overlay.is-view-only .e-permits-builder__save {
+.form-builder-modal-overlay.is-view-only :is([data-fb-title], [data-fb-status], [data-fb-version-wrap], [data-fb-modes], .e-permits-builder__issues, [data-fb-save], [data-fb-publish]) {
   display: none;
 }
 

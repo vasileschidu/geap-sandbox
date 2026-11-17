@@ -42,6 +42,9 @@ document.addEventListener("DOMContentLoaded", () => {
     panel: q("[data-fb-panel]"),
     errors: q("[data-fb-errors]"),
     errorsLabel: q("[data-fb-errors-label]"),
+    errorsIcon: q("[data-fb-errors-icon]"),
+    title: q("[data-fb-title]"),
+    status: q("[data-fb-status]"),
     issuesMenu: q("[data-fb-issues-menu]"),
     publish: q("[data-fb-publish]"),
     version: q("[data-fb-version]"),
@@ -958,26 +961,32 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   /* ------------------------------------------------------------- service header */
+  /* fb-float-p1: the title + status live in the PD compact header (topbar); the stage keeps the quiet meta line
+     above the page (where the PD writes its diagram caption): request types, then service (or „Formulare globale”) ·
+     scope · ID · fields · last edit — the old service crumb is now the first meta item (it never was a link) */
+  const metaDot = '<i aria-hidden="true"></i>';
+  function renderTopbarTitle(title, tags) {
+    if (el.title) {
+      el.title.textContent = title;
+      el.title.setAttribute("aria-label", `${G ? "Setări generale formular" : "Date generale formular"}: ${title}`);
+      el.title.setAttribute("data-cell-tooltip", "");
+    }
+    if (el.status) el.status.innerHTML = tags;
+  }
   function renderHeader() {
     if (G) { renderGlobalHeader(); return; }
     const published = form.status === "published" && !form.dirty;
     const fieldsCount = allFields().filter(({ field }) => !NO_VALUE.includes(field.type)).length;
+    renderTopbarTitle(tr(form.title) || "Formular fără titlu", ui().renderTag?.(published ? "Publicat" : "Schiță", published ? "success" : "neutral") || "");
     el.header.innerHTML = `
-      <div class="e-permits-builder__service-main">
-        ${ui().renderBreadcrumbs?.([{ label: form.service?.name || "Serviciu" }], { trailing: true, label: "Serviciul" }) || ""}
-        <div class="e-permits-builder__service-title-row">
-          <h2><button class="e-permits-builder__title-button" type="button" data-fb-select-form aria-label="Date generale formular: ${esc(tr(form.title))}">${esc(tr(form.title) || "Formular fără titlu")}</button></h2>
-          ${ui().renderTag?.(published ? "Publicat" : "Schiță", published ? "success" : "neutral") || ""}
-        </div>
-      </div>
       <div class="e-permits-builder__service-meta-row">
         <div class="e-permits-builder__service-kinds" aria-label="Tipuri de solicitare">${(form.requestTypes || []).map((type) => `<span>${esc(type)}</span>`).join("")}</div>
-        <span class="e-permits-builder__meta-separator" aria-hidden="true"></span>
         <div class="e-permits-builder__service-meta">
-          <span>${esc(form.code)}</span><i aria-hidden="true"></i>
-          <span><strong>${fieldsCount}</strong> câmpuri</span><i aria-hidden="true"></i>
-          <strong>${esc(form.version)}${form.dirty ? " · schiță" : ""}</strong><i aria-hidden="true"></i>
-          <span>editat ${esc(longDate(form.editedAt))}</span><i aria-hidden="true"></i>
+          <span>${esc(form.service?.name || "Serviciu")}</span>${metaDot}
+          <span class="e-permits-builder__meta-scope">${icon("icon-lock", 16)}Acest serviciu</span>${metaDot}
+          <span>${esc(form.code)}</span>${metaDot}
+          <span><strong>${fieldsCount}</strong> câmpuri</span>${metaDot}
+          <span>editat ${esc(longDate(form.editedAt))}</span>${metaDot}
           <span>de <strong>${esc(form.editedBy)}</strong></span>
         </div>
       </div>`;
@@ -994,22 +1003,15 @@ document.addEventListener("DOMContentLoaded", () => {
     const meta = G.meta();
     const fieldsCount = allFields().filter(({ field }) => !NO_VALUE.includes(field.type)).length;
     const pending = meta.pending || G.dirty;
+    renderTopbarTitle(tr(form.title) || "Formular fără denumire", `${ui().renderTag?.(form.status === "published" ? "Publicat" : "Schiță", form.status === "published" ? "success" : "neutral") || ""}${meta.inactive ? ui().renderTag?.("Inactiv", "neutral") || "" : ""}`);
     el.header.innerHTML = `
-      <div class="e-permits-builder__service-main">
-        ${ui().renderBreadcrumbs?.([{ label: "Formulare globale" }], { trailing: true, label: "Registrul" }) || ""}
-        <div class="e-permits-builder__service-title-row">
-          <h2><button class="e-permits-builder__title-button" type="button" data-fb-select-form aria-label="Setări generale formular: ${esc(tr(form.title))}">${esc(tr(form.title) || "Formular fără denumire")}</button></h2>
-          ${ui().renderTag?.(form.status === "published" ? "Publicat" : "Schiță", form.status === "published" ? "success" : "neutral") || ""}
-          ${meta.inactive ? ui().renderTag?.("Inactiv", "neutral") || "" : ""}
-        </div>
-      </div>
       <div class="e-permits-builder__service-meta-row">
         <div class="e-permits-builder__service-meta">
-          <span>${esc(form.code)}</span><i aria-hidden="true"></i>
-          <span><strong>${fieldsCount}</strong> câmpuri</span><i aria-hidden="true"></i>
-          <strong>${esc(form.version)}</strong><i aria-hidden="true"></i>
-          ${pending ? `${shellApi().renderHeaderStatus?.(G.dirty ? "Modificări nesalvate" : "Modificări nepublicate", "warning", G.dirty ? "" : 'data-fb-pending aria-haspopup="dialog" data-tooltip-text="Vezi modificările"') || ""}<i aria-hidden="true"></i>` : ""}
-          <span>${form.editedAt ? `editat ${esc(stamp(form.editedAt))}` : "editat -"}</span>${form.editedBy ? `<i aria-hidden="true"></i><span>de <strong>${esc(form.editedBy)}</strong></span>` : ""}
+          <span>Formulare globale</span>${metaDot}
+          <span>${esc(form.code)}</span>${metaDot}
+          <span><strong>${fieldsCount}</strong> câmpuri</span>${metaDot}
+          ${pending ? `${shellApi().renderHeaderStatus?.(G.dirty ? "Modificări nesalvate" : "Modificări nepublicate", "warning", G.dirty ? "" : 'data-fb-pending aria-haspopup="dialog" data-tooltip-text="Vezi modificările"') || ""}${metaDot}` : ""}
+          <span>${form.editedAt ? `editat ${esc(stamp(form.editedAt))}` : "editat -"}</span>${form.editedBy ? `${metaDot}<span>de <strong>${esc(form.editedBy)}</strong></span>` : ""}
         </div>
       </div>`;
     if (el.version) el.version.querySelector("span").textContent = form.version;
@@ -1020,8 +1022,6 @@ document.addEventListener("DOMContentLoaded", () => {
      = „Istoric versiuni” (US-335); the service scope chip does not apply */
   function syncGlobalBar() {
     const save = builder.querySelector("[data-fb-save]");
-    const scope = builder.querySelector(".e-permits-builder__service-scope");
-    if (scope) scope.hidden = Boolean(G);
     if (el.version) {
       if (G) { el.version.setAttribute("aria-label", `Istoric versiuni · ${form.version}`); el.version.dataset.tooltipLabel = "Istoric versiuni"; el.version.setAttribute("aria-haspopup", "dialog"); }
       else { el.version.removeAttribute("aria-label"); delete el.version.dataset.tooltipLabel; el.version.removeAttribute("aria-haspopup"); }
@@ -1130,7 +1130,7 @@ document.addEventListener("DOMContentLoaded", () => {
   el.version?.addEventListener("click", () => { if (G) G.onVersions?.(); });
   el.header.addEventListener("click", (event) => { if (G && event.target.closest("[data-fb-pending]")) G.onPending?.(); });
   /* closing with unsaved edits asks first; closing ends the global mode */
-  builder.querySelector(".e-permits-builder__close")?.addEventListener("click", (event) => {
+  builder.querySelector("[data-fb-close]")?.addEventListener("click", (event) => {
     if (!G?.dirty) return;
     event.preventDefault();
     event.stopImmediatePropagation();
@@ -2574,8 +2574,11 @@ document.addEventListener("DOMContentLoaded", () => {
     const errors = state.issues.filter((issue) => issue.level === "error");
     const warnings = state.issues.filter((issue) => issue.level === "warning");
     const n = errors.length;
-    el.errors.classList.toggle("is-clean", n === 0);
-    el.errors.classList.toggle("btn-outline-destructive", n > 0);
+    /* the PD quiet issues link (pd-meta-links-v1): clean = strict + green check, errors = text destructive + error glyph */
+    el.errors.classList.toggle("e-permits-pd__errors--clean", n === 0);
+    el.errors.classList.toggle("btn-strict", n === 0);
+    el.errors.classList.toggle("btn-text-destructive", n > 0);
+    if (el.errorsIcon && el.errorsIcon.dataset.glyph !== String(n > 0)) { el.errorsIcon.dataset.glyph = String(n > 0); el.errorsIcon.innerHTML = icon(n ? "icon-circle-error-filled" : "icon-circle-checkmark-filled", 16); }
     el.errorsLabel.textContent = n ? `${n} ${n === 1 ? "eroare" : "erori"}` : "Fără erori";
     el.errors.setAttribute("aria-label", n ? `${n} ${n === 1 ? "eroare" : "erori"} în formular — vezi lista` : `Fără erori${warnings.length ? `, ${warnings.length} avertismente` : ""} — vezi lista`);
     const row = (issue) => `
@@ -4152,7 +4155,8 @@ document.addEventListener("DOMContentLoaded", () => {
     if (event.target === el.scroll) select("form");
   });
 
-  el.header.addEventListener("click", (event) => { if (event.target.closest("[data-fb-select-form]")) select("form"); });
+  /* the form title in the compact header opens „Date generale” (fb-float-p1: moved from the stage header) */
+  el.title?.addEventListener("click", () => select("form"));
 
   el.steps.addEventListener("click", (event) => {
     if (event.target.closest("[data-fb-add-step]")) { addStep(); return; }
@@ -4536,7 +4540,7 @@ document.addEventListener("DOMContentLoaded", () => {
     builder.dataset.mode = mode;
     builder.querySelectorAll("[data-builder-mode]").forEach((button) => {
       const on = button.dataset.builderMode === mode;
-      button.classList.toggle("is-active", on);
+      button.classList.toggle("is-selected", on);
       button.setAttribute("aria-selected", String(on));
     });
     el.canvas.hidden = mode !== "build";

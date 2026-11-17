@@ -103,7 +103,7 @@ document.addEventListener("DOMContentLoaded", () => {
   /* a view in the toolbar's segmented view switch: ONE view at a time (role=radio, aria-checked, roving tabindex) */
   const viewItem = (view, iconId, label, shortcut = "") => `<button class="segment-item e-permits-pd__view" type="button" role="radio" aria-checked="false" tabindex="-1" aria-label="${esc(label)}" data-tooltip-label="${esc(label)}${shortcut ? ` (${shortcut})` : ""}" data-pd-view="${view}">${icon(iconId, 16)}</button>`;
   const shellHtml = () => `
-    <div class="modal e-permits-builder e-permits-builder--process" tabindex="-1" role="dialog" aria-modal="true" aria-labelledby="pd-dialog-title" data-pd-root>
+    <div class="modal e-permits-builder e-permits-builder--canvas e-permits-builder--process" tabindex="-1" role="dialog" aria-modal="true" aria-labelledby="pd-dialog-title" data-pd-root>
       <header class="e-permits-builder__topbar e-permits-pd__topbar">
         <span class="e-permits-builder__sr-only" id="pd-dialog-title">Designer de procese</span>
         <div class="e-permits-builder__nav-left e-permits-pd__nav-left">
