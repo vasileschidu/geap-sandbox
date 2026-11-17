@@ -40,6 +40,7 @@ document.addEventListener("DOMContentLoaded", () => {
     schema: q("[data-builder-schema]"),
     schemaCode: q("[data-builder-schema-code]"),
     panel: q("[data-fb-panel]"),
+    inspector: q("[data-fb-inspector]"),
     errors: q("[data-fb-errors]"),
     errorsLabel: q("[data-fb-errors-label]"),
     errorsIcon: q("[data-fb-errors-icon]"),
@@ -1090,7 +1091,7 @@ document.addEventListener("DOMContentLoaded", () => {
     G = { ...hooks, dirty: false };
     form = sanitize(clone(record));
     form.steps.forEach((step) => step.sections.forEach((section) => { section.fields = section.fields.map((field) => ({ ...makeField(field.type), ...field, key: field.key || makeField(field.type).key })); }));
-    Object.assign(state, { sel: { kind: "form", id: "" }, tab: T_GEN, lang: "ro", undo: [], redo: [], tests: {}, lastCheckpoint: { key: "", at: 0 } });
+    Object.assign(state, { sel: { kind: "form", id: "settings" }, tab: T_GEN, lang: "ro", undo: [], redo: [], tests: {}, lastCheckpoint: { key: "", at: 0 } });
     state.stepId = serviceSteps()[0]?.id || form.steps[0].id;
     builder.dataset.fbScope = "global";
     overlay?.classList.add("is-sheet");
@@ -1124,7 +1125,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const button = event.currentTarget;
     if (!G || button.getAttribute("aria-disabled") === "true") return;
     /* US-333 AC-06: an empty / too long name never saves — the issues list points at the field */
-    if (state.issues.some((issue) => issue.level === "error" && issue.kind === "form")) { select("form"); el.panel.querySelector(`#${pid("nameText")}`)?.focus(); return; }
+    if (state.issues.some((issue) => issue.level === "error" && issue.kind === "form")) { select("form", "settings"); el.panel.querySelector(`#${pid("nameText")}`)?.focus(); return; }
     G.onSave?.(clone(form));
   });
   el.version?.addEventListener("click", () => { if (G) G.onVersions?.(); });
@@ -1467,11 +1468,14 @@ document.addEventListener("DOMContentLoaded", () => {
       ? { label, button: true, attr: `data-fb-goto="${back.kind}:${back.id}:${T_DATA}" aria-label="${esc(back.label)}"` }
       : { label }));
     return `
-      <div class="e-permits-builder__panel-head e-permits-builder__panel-head--selected">
+      <div class="e-permits-builder__panel-head e-permits-builder__panel-head--selected e-permits-pd__panel-head">
         ${trail.length ? ui().renderBreadcrumbs?.(trail, { trailing: true, label: "Locul elementului" }) || "" : ""}
         <div class="e-permits-builder__panel-title-row">
           <h2 id="fb-panel-title">${esc(title)}</h2>
-          ${menu}
+          <span class="e-permits-pd__head-tools">
+            ${menu}
+            <button class="btn btn-strict btn-sm btn-icon-only e-permits-pd__tool" type="button" aria-label="Restrânge proprietățile" data-tooltip-label="Restrânge proprietățile (])" aria-expanded="true" aria-controls="fb-inspector" data-fb-props-toggle><svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-sidebar"></use></svg></button>
+          </span>
         </div>
         ${chip || subtitle ? `<div class="e-permits-builder__panel-meta">${chip}${subtitle ? `<span>${esc(subtitle)}</span>` : ""}</div>` : ""}
       </div>`;
@@ -1491,8 +1495,9 @@ document.addEventListener("DOMContentLoaded", () => {
     else if (state.sel.kind === "child") html = childPanelHtml(findChild(state.sel.id));
     else if (state.sel.kind === "section") html = sectionPanelHtml(findSection(state.sel.id));
     else if (state.sel.kind === "step") html = stepPanelHtml(stepById(state.sel.id));
-    else html = formPanelHtml();
+    else html = state.sel.kind === "form" && state.sel.id === "settings" ? formPanelHtml() : emptyPanelHtml();
     el.panel.innerHTML = html;
+    el.inspector.classList.toggle("is-compact", state.sel.kind === "form" && state.sel.id !== "settings");
     el.panel.dataset.fbFor = key;
     window.GEAPDatePicker?.init?.(el.panel);
 
@@ -1521,7 +1526,29 @@ document.addEventListener("DOMContentLoaded", () => {
       </div>`;
   }
 
-  /* ---- nothing selected → „Date generale formular” (spec § E) */
+  /* ---- nothing selected → PD empty state + counts (fb-float-p3); „Setări generale formular” stays one button away */
+  function emptyPanelHtml() {
+    const fields = allFields().filter(({ field }) => !NO_VALUE.includes(field.type));
+    const errorsCount = state.issues.filter((issue) => issue.level === "error").length;
+    const rows = [
+      ["Pași", String(serviceSteps().length)],
+      ["Secțiuni", String(allSections().filter(({ step }) => !step.locked).length)],
+      ["Câmpuri", String(fields.length)],
+      ["Obligatorii", String(fields.filter(({ field }) => field.required).length)],
+      ["Probleme", errorsCount ? `<button class="link link-primary link-sm e-permits-pd__link" type="button" data-fb-open-issues>${errorsCount} ${errorsCount === 1 ? "eroare" : "erori"}</button>` : "Fără erori"],
+    ];
+    return `
+      ${panelHead({ title: "Proprietăți" })}
+      <div class="e-permits-builder__panel-scroll e-permits-pd__panel-scroll" data-fb-panel-scroll>
+        ${window.GEAPEmptyState?.render({ title: "Nimic selectat", text: "Selectează un câmp, o secțiune sau un pas ca să-i vezi proprietățile.", icon: "direction", compact: true, bare: true }) || ""}
+        <dl class="e-permits-builder__facts">${rows.map(([k, v]) => `<div><dt>${esc(k)}</dt><dd>${v}</dd></div>`).join("")}</dl>
+        <div class="e-permits-pd__panel-actions">
+          <button class="btn btn-secondary btn-sm" type="button" data-fb-open-settings><span>${G ? "Setări generale formular" : "Date generale formular"}</span></button>
+        </div>
+      </div>`;
+  }
+
+  /* ---- „Date generale formular” (spec § E) — opened from the empty card or the title (select("form", "settings")) */
   function formPanelHtml() {
     if (G) return globalPanelHtml();
     const fieldsCount = allFields().filter(({ field }) => !NO_VALUE.includes(field.type)).length;
@@ -4156,7 +4183,7 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   /* the form title in the compact header opens „Date generale” (fb-float-p1: moved from the stage header) */
-  el.title?.addEventListener("click", () => select("form"));
+  el.title?.addEventListener("click", () => select("form", "settings"));
 
   el.steps.addEventListener("click", (event) => {
     if (event.target.closest("[data-fb-add-step]")) { addStep(); return; }
@@ -4258,6 +4285,25 @@ document.addEventListener("DOMContentLoaded", () => {
     if (event.target.closest("input, textarea, select, [contenteditable='true']")) return;
     event.preventDefault();
     setLibraryRail(!state.rail, { focus: true });
+  });
+  /* Proprietăți card = PD properties card: collapse to the 56 rail and back; `]` toggles it (≥ 961 only, ≤ 960 the card is part of the page column) */
+  const inspectorRail = q("[data-fb-props-rail]");
+  function setPropsRail(on, { focus = false } = {}) {
+    state.propsRail = on;
+    el.inspector.classList.toggle("is-rail", on);
+    if (inspectorRail) inspectorRail.hidden = !on;
+    if (focus) (on ? q("[data-fb-props-toggle]", inspectorRail) : q("[data-fb-props-toggle]", el.panel))?.focus();
+  }
+  el.inspector.addEventListener("click", (event) => {
+    if (event.target.closest("[data-fb-props-toggle]")) { setPropsRail(!state.propsRail, { focus: true }); return; }
+    if (event.target.closest("[data-fb-open-settings]")) { select("form", "settings"); return; }
+    if (event.target.closest("[data-fb-open-issues]")) q("[data-fb-errors]")?.click();
+  });
+  builder.addEventListener("keydown", (event) => {
+    if (event.key !== "]" || event.ctrlKey || event.metaKey || event.altKey || state.mode !== "build") return;
+    if (event.target.closest("input, textarea, select, [contenteditable='true']")) return;
+    event.preventDefault();
+    setPropsRail(!state.propsRail, { focus: true });
   });
   el.search?.addEventListener("input", () => { state.query = el.search.value; renderLibrary(); });
   el.search?.closest(".search-input")?.querySelector(".btn-icon.clear")?.addEventListener("click", () => { state.query = ""; window.setTimeout(renderLibrary, 0); });
@@ -4541,7 +4587,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!item) return;
     const { fbIssue: kind, id, tab, prop } = item.dataset;
     if (state.mode !== "build") setMode("build");
-    if (kind === "form") { state.lang = "ro"; select("form"); }
+    if (kind === "form") { state.lang = "ro"; select("form", "settings"); }
     else if (kind === "step") select("step", id);
     else if (kind === "section") select("section", id, { tab: T_GEN });
     else if (kind === "child") { state.lang = "ro"; select("child", id, { tab }); }
@@ -4627,7 +4673,7 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
       }
       if (state.mode !== "build") { setMode("build"); return; }
-      if (state.sel.kind !== "form") { select("form"); announce("Nimic selectat — date generale formular."); }
+      if (state.sel.kind !== "form" || state.sel.id) { select("form"); announce("Nimic selectat."); }
       return;
     }
     const mod = event.ctrlKey || event.metaKey;

@@ -25,7 +25,7 @@
   <link rel="stylesheet" href="css/page-reveal.css?v=skeleton-v1">
   <link rel="stylesheet" href="msupport/msupport.css?v=20260925-anon">
   <link rel="stylesheet" href="css/empty-state.css?v=empty-v5">
-  <link rel="stylesheet" href="css/form-builder.css?v=fb-float-p2">
+  <link rel="stylesheet" href="css/form-builder.css?v=fb-float-p3">
   <link rel="stylesheet" href="css/process-designer.css?v=fb-float-p1">
   <link rel="stylesheet" href="css/ghiseu.css?v=ofc-submit-v2">
   <link rel="stylesheet" href="css/bo-dossier-flows.css?v=pps-suplinire-v1">
@@ -81,7 +81,7 @@
   <script src="js/trajectory.js?v=trajectory-phone-even-v1"></script>
   <script src="js/event-timeline.js?v=aud-263-v2"></script>
   <script src="js/sticky-sections.js?v=sticky-sections-v1" defer></script>
-  <script src="js/demo-states.js?v=fb-float-p2"></script>
+  <script src="js/demo-states.js?v=fb-float-p3"></script>
   <script src="js/demo-links.js?v=links-v4"></script>
   <script src="js/bo-context.js?v=copy-tu-v2"></script>
   <!-- the working-days engine (Administrare › Calendar), before the shell seeds the dossier deadlines; after
@@ -109,7 +109,7 @@
   <script src="js/choice-cards.js?v=choice-cards-v7" defer></script>
   <script src="js/e-permits-acte-permisive.js?v=dist-picker-v1" defer></script>
   <!-- Form Builder (after the FO renderer it shares) -->
-  <script src="js/form-builder.js?v=fb-float-p2" defer></script>
+  <script src="js/form-builder.js?v=fb-float-p3" defer></script>
   <script src="core/process-model.js?v=copy-tu-v2" defer></script>
   <script src="js/process-designer.js?v=fb-float-p1" defer></script>
   <script src="js/ghiseu.js?v=doc-viewer-tabs-v1" defer></script>
@@ -2333,9 +2333,12 @@
             <p class="u-visually-hidden" aria-live="polite" data-fb-live></p>
           </section>
 
-          <aside class="e-permits-builder__inspector e-permits-pd__float e-permits-pd__float--right" aria-label="Proprietăți" data-fb-inspector>
+          <aside class="e-permits-builder__inspector e-permits-pd__float e-permits-pd__float--right" id="fb-inspector" aria-label="Proprietăți" data-fb-inspector>
             <button class="e-permits-builder__resize-handle e-permits-builder__resize-handle--right" type="button" aria-label="Redimensionează proprietățile" data-builder-resize-panel="right"></button>
             <div class="e-permits-builder__panel" data-fb-panel></div>
+            <div class="e-permits-pd__rail" data-fb-props-rail hidden>
+              <button class="btn btn-strict btn-sm btn-icon-only e-permits-pd__tool" type="button" aria-label="Extinde proprietățile" data-tooltip-label="Extinde proprietățile (])" aria-expanded="false" aria-controls="fb-inspector" data-fb-props-toggle><svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-sidebar"></use></svg></button>
+            </div>
           </aside>
         </div>
       </div>

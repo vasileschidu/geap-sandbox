@@ -5066,6 +5066,16 @@ shrinks the card to the 56 `.e-permits-pd__rail` (toggle · search; `.is-rail`, 
 drag still drops where shown. ≤ 960 the collapse, rail and hint are not shown (the one column). Demo `fb-p2a` (collapsed),
 `fb-p2b` (search + a field selected), `fb-p2c` (no match), `fb-p2d` (inserted after the selection).
 
+**Proprietăți card = the PD properties card (fb-float-p3).** `aside#fb-inspector[data-fb-inspector].e-permits-builder__inspector.e-permits-pd__float--right`:
+every panel head (`panelHead`, also `.e-permits-pd__panel-head`) ends with `.e-permits-pd__head-tools` = the ⋮ (if any) +
+`btn btn-strict btn-sm btn-icon-only e-permits-pd__tool[data-fb-props-toggle]` (icon `sidebar`, „Restrânge proprietățile (])”, `aria-expanded`);
+the content scrolls inside the card (`.e-permits-builder__panel-scroll`), the head stays. Collapsed (button or `]`) = the 56
+`.e-permits-pd__rail` (`[data-fb-props-rail]`, `.is-rail`, `--fb-float-right`), the page regains the room. Nothing selected
+(`sel = form` with no id) = „Proprietăți”, the PD empty state „Nimic selectat” + counts rows (Pași · Secțiuni · Câmpuri · Obligatorii ·
+Probleme = „N erori” link → the issues menu) + button „Date generale formular” (global forms: „Setări generale formular”) which opens the
+form settings (`select("form", "settings")`; the topbar title and form issues open it too; Escape returns). ≤ 960 the collapse
+and rail are not shown (the one column). Demo `fb-p3a` (nothing selected), `fb-p3b` (field), `fb-p3c` (section), `fb-p3d` (collapsed).
+
 ### `e-permits-pd__*` — Process Designer (2026-10-14, batches 0–4)
 
 Spec `tools/persona-test/specs/svc/process-designer.md` (Feature 89397 · US-50/51/52). Code `js/process-designer.js`

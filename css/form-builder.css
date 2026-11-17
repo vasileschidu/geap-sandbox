@@ -1324,6 +1324,20 @@
     --fb-float-left: var(--spacing-56, 56px);
   }
 
+  /* Proprietăți collapsed: the PD „end” rail (56, top right) — the page gets the room back */
+  .e-permits-builder--canvas .e-permits-builder__inspector.is-rail {
+    bottom: auto;
+    width: var(--spacing-56, 56px);
+  }
+
+  .e-permits-builder--canvas .e-permits-builder__inspector.is-rail > :not(.e-permits-pd__rail) {
+    display: none;
+  }
+
+  .e-permits-builder--canvas:has(.e-permits-builder__inspector.is-rail) {
+    --fb-float-right: var(--spacing-56, 56px);
+  }
+
   .e-permits-builder--canvas .e-permits-builder__library-list {
     flex: 1 1 auto;
     min-height: 0;
@@ -1336,7 +1350,13 @@
   }
 }
 
+.e-permits-builder--canvas .e-permits-builder__inspector .e-permits-pd__rail[hidden] {
+  display: none;
+}
+
 @media (max-width: 960px) {
+  .e-permits-builder--canvas .e-permits-builder__inspector .e-permits-pd__rail,
+  .e-permits-builder--canvas .e-permits-builder__inspector [data-fb-props-toggle],
   .e-permits-builder--canvas .e-permits-builder__library .e-permits-pd__rail,
   .e-permits-builder--canvas .e-permits-builder__library [data-fb-library-head] .e-permits-pd__tool,
   .e-permits-builder--canvas .e-permits-builder__library .e-permits-pd__palette-hint {

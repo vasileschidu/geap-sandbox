@@ -2731,6 +2731,12 @@
         "fb-p2b": fb(async (h) => { await pick("fld-name")(h); await h.fill("[data-builder-library-search]", "dat", { leave: false }); }),
         "fb-p2c": fb(async (h) => { await h.fill("[data-builder-library-search]", "zzzz", { leave: false }); }),
         "fb-p2d": fb(async (h) => { await pick("fld-name")(h); await lib("date")(h); }),
+        /* fb-float-p3: Proprietăți = PD properties card — a) nothing selected (empty state + counts), b) a field, c) a section,
+           d) collapsed to the rail */
+        "fb-p3a": fb(),
+        "fb-p3b": fb(async (h) => { await pick("fld-name")(h); }),
+        "fb-p3c": fb(async (h) => { await h.click("[data-fb-select-section='sec-activity']"); }),
+        "fb-p3d": fb(async (h) => { await pick("fld-name")(h); const t = document.querySelector("[data-fb-panel] [data-fb-props-toggle]"); if (t && t.offsetParent) await h.click("[data-fb-panel] [data-fb-props-toggle]"); }),
         "fb-01b": fb(async (h) => { await h.click("[data-fb-add-trigger='sec-object']"); }),
         "fb-02": fb(async (h) => { await h.click("[data-fb-select-form]"); await h.scroll("[data-fb-group-languages]"); }),
         "fb-03": fb(async (h) => { await h.click("[data-fb-step='st-details']"); }),
