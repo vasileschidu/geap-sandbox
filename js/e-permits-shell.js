@@ -3265,7 +3265,8 @@ document.addEventListener("DOMContentLoaded", () => {
     return renderPageHeaderMeta([
       ["Numărul dosarului", renderProfileCopyCode(row.nrDosar, `Copiază ${row.nrDosar}`)],
       [profile.isOficiu ? "Titular" : "Solicitant", escapeHtml(profile.isOficiu ? row.actBaza?.titular || applicant : applicant)],
-      ["Termen", `${escapeHtml(formatDate(row.termenExaminare))}${termenMeta ? ` <span class="e-permits-dosar-profil__termen-meta">${escapeHtml(termenMeta)}</span>` : ""}`],
+      /* termen-stack-v1 (2026-11-17, user on Figma 9811:13941): „N zile lucrătoare rămase” = the meta caption UNDER the date (12/16), like Specialist */
+      ["Termen", escapeHtml(formatDate(row.termenExaminare)), termenMeta ? escapeHtml(termenMeta) : ""],
       row.alerte?.length ? ["Alerte", renderAlerts(row.alerte)] : null,
       ["Specialist", renderAvatarChip(row.specialist), distCaption(distRecordOf(row))],
       ["Statut", `${renderTag(status?.label, status?.tone)}${row.tipDosar ? renderTag(row.tipDosar, "neutral") : ""}`]
