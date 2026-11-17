@@ -497,6 +497,12 @@
               "shellView": "formulare-globale-registry"
             },
             {
+              "id": "sabloane-globale",
+              "label": "Șabloane globale",
+              "iconAsset": "assets/icons/document.svg",
+              "shellView": "sabloane-globale-registry"
+            },
+            {
               "id": "registre-config",
               "label": "Registre",
               "shellView": "registre-admin-registry"
@@ -610,6 +616,12 @@
               "label": "Formulare globale",
               "iconAsset": "assets/icons/bullet-list.svg",
               "shellView": "formulare-globale-registry"
+            },
+            {
+              "id": "sabloane-globale",
+              "label": "Șabloane globale",
+              "iconAsset": "assets/icons/document.svg",
+              "shellView": "sabloane-globale-registry"
             },
             {
               "id": "registre-config",

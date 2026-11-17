@@ -1,0 +1,171 @@
+/* ==========================================================================================================
+   Administrare › Șabloane globale (dtpl-global-v1, 2026-11-17; Feature 97134, js/doc-templates-global.js).
+   No new component: the registry = the shared stacked list, the editor = the service template constructor
+   (`[data-dtpl-sheet]`, global mode), dialogs = the library dialog, panels = the BO drawer. Only the few placements
+   the global mode adds live here: the menu icon mask, the „Generează PDF” bar + preview scale, the „Fundal de pagină”
+   dialog thumb, the version page canvas, the library drop zone in „Import versiune”.
+   ========================================================================================================== */
+
+/* menu icon „Șabloane globale” (the BO side menu draws icons as 20 masks per data-nav-id — never a bare iconAsset) */
+.e-permits-shell__nav--specialist [data-nav-id="sabloane-globale"] .e-permits-shell__nav-icon::before {
+  mask-image: url("../assets/icons/document.svg");
+  mask-size: var(--icon-size-medium, 20px) var(--icon-size-medium, 20px);
+  -webkit-mask-image: url("../assets/icons/document.svg");
+  -webkit-mask-size: var(--icon-size-medium, 20px) var(--icon-size-medium, 20px);
+}
+
+/* the stacked card's MDocs code: one line, the tooltip carries the whole code */
+.e-permits-tpg-code {
+  display: inline-block;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  vertical-align: bottom;
+  white-space: nowrap;
+}
+
+/* editor header: Publicat / Schiță (+ Dezactivat) after the title */
+.e-permits-tpg-head-tags {
+  align-items: center;
+  display: inline-flex;
+  flex: 0 0 auto;
+  gap: var(--spacing-8, 8px);
+}
+
+/* Previzualizare (US-340): the bar above the page = hint left, scale list + „Generează PDF” right */
+.e-permits-tpg-preview__bar {
+  box-sizing: border-box;
+  margin: var(--spacing-24, 24px) auto 0;
+  max-width: calc(var(--spacing-40, 40px) * 26);
+  padding: 0 var(--spacing-24, 24px);
+}
+
+.e-permits-tpg-preview__bar .e-permits-fo-field__hint {
+  margin: 0;
+}
+
+.e-permits-tpg-preview__scale {
+  width: calc(var(--spacing-40, 40px) * 3);
+}
+
+.e-permits-dtpl__body[data-dtpl-body-view="preview"] > .e-permits-empty {
+  margin: var(--spacing-24, 24px) auto;
+  max-width: calc(var(--spacing-40, 40px) * 26);
+}
+
+/* the A4 page at the chosen scale (layout zoom: the canvas scrolls what is left) */
+.e-permits-tpg-page.is-scale-50 {
+  zoom: 0.5;
+}
+
+.e-permits-tpg-page.is-scale-75 {
+  zoom: 0.75;
+}
+
+.e-permits-tpg-page.is-scale-125 {
+  zoom: 1.25;
+}
+
+/* „Fundal de pagină” dialog: A4 thumb left, the file button + hint right */
+.e-permits-tpg-bg {
+  align-items: flex-start;
+  display: flex;
+  gap: var(--spacing-24, 24px);
+}
+
+.e-permits-tpg-bg__thumb {
+  align-items: center;
+  aspect-ratio: 210 / 297;
+  background-color: var(--color-background-base-default, #fff);
+  background-position: center;
+  background-size: cover;
+  border: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
+  border-radius: var(--border-radius-12, 12px);
+  box-sizing: border-box;
+  display: flex;
+  flex: 0 0 auto;
+  justify-content: center;
+  padding: var(--spacing-16, 16px);
+  text-align: center;
+  width: calc(var(--spacing-40, 40px) * 4);
+}
+
+.e-permits-tpg-bg__thumb.is-empty {
+  background-color: var(--color-background-base-secondary, #f5f5f5);
+  border-style: dashed;
+}
+
+.e-permits-tpg-bg__tools {
+  align-items: flex-start;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-8, 8px);
+}
+
+.e-permits-tpg-bg__tools .e-permits-fo-field__hint {
+  margin: 0;
+}
+
+/* „Vizualizează” a version: the read-only A4 page on the grey canvas of the template previews */
+.e-permits-tpg-version__canvas {
+  background: var(--color-background-base-secondary, #f5f5f5);
+  border-radius: var(--border-radius-12, 12px);
+  padding: var(--spacing-24, 24px);
+}
+
+.e-permits-tpg-version__canvas .e-permits-dtpl__page {
+  zoom: 0.6;
+}
+
+/* „Import versiune”: the library upload block (label · drop zone · accepted type · the chosen file) */
+.e-permits-tpg-upload {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-8, 8px);
+}
+
+.e-permits-tpg-upload .upload-block__label {
+  color: var(--color-text-base-default, #121212);
+  font-size: var(--font-size-fs-14, 14px);
+  font-weight: var(--font-weight-fw-medium, 500);
+  line-height: var(--line-height-lh-20, 20px);
+}
+
+.e-permits-tpg-upload .dropzone__details p {
+  margin: 0;
+}
+
+.e-permits-tpg-upload__icon {
+  align-items: center;
+  background: var(--color-background-base-tertiary, #ebebeb);
+  border-radius: var(--border-radius-full, 9999px);
+  color: var(--color-icon-base-default, #121212);
+  display: inline-flex;
+  justify-content: center;
+  padding: var(--spacing-12, 12px);
+}
+
+.e-permits-tpg-upload__file {
+  align-items: center;
+  color: var(--color-text-base-default, #121212);
+  display: flex;
+  gap: var(--spacing-8, 8px);
+  min-width: 0;
+}
+
+.e-permits-tpg-upload__file .e-permits-frm-import__name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (max-width: 760px) {
+  .e-permits-tpg-bg {
+    flex-direction: column;
+  }
+
+  .e-permits-tpg-preview__bar {
+    flex-wrap: wrap;
+  }
+}

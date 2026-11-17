@@ -226,6 +226,8 @@ but this doc previously described it wrongly, see the entry.
 | **Type A name field — locked first word + parent ID** (coding-rules-v1, US-329) — NEW | `GEAPObjectId.nameFieldHtml({ id, attrs, label, prefix, text, suffix, placeholder, hint, example, error, max })` = the forms-global „Input prefix” field + the unit-suffix label at the END for the authority / service ID (`label.e-permits-fo-input__suffix[for]`, secondary, nowrap; the text stays left-aligned in `.e-permits-oid-name`), the hint with „Exemplu: „…”.” and a live `p.e-permits-oid-name__full` „Denumirea completă: <strong>…</strong>” (aria-live); duplicate in the same perimeter = field error „Există deja un obiect cu această denumire.” (`fold`: case, double spaces, ş/ș ţ/ț, diacritics ignored); a typed copy of the first word is dropped (`stripPrefix`) | `js/object-id.js`; first: Registre › Registru nou / Editează registrul (`js/registre-admin.js`); demo cod-20… |
 | **Reguli de numerotare** (coding-rules-v1, US-328 + Feature 94830 matrix) — NEW | BO registry as the shared stacked list (`registries["reguli-numerotare"]`, menu Setări › „Reguli de numerotare”, `shellView: "reguli-numerotare-registry"`), status tabs Documente emise · Obiecte cu ID · Obiecte fără ID (`filterToken` `tab:*`), `stackIntro` getter per tab, `stackGroup` (configurare / procesare), long rule text = full-width meta part `.e-permits-cod-list__rule` (wraps, never clamped) with a 12/20 tertiary `__label` above; row → the ONE drawer (rule edit: Șablon + the Numerotare token row, Lungime contor, Valoare inițială, Valoare curentă read-only, Resetare contor, live example; object: details blocks) | `js/coding-rules.js`, `css/coding-rules.css`; demo cod-01…03b |
 | Form Designer · global form mode (forms-global-v1) — NEW | `GEAPFormBuilder.openGlobal(form, hooks)` → `.e-permits-builder[data-fb-scope="global"]` in the sheet: header crumb „Formulare globale”, status tag (+ „Inactiv”), meta ID · N câmpuri · version · „Modificări nesalvate” / clickable „Modificări nepublicate” (`renderHeaderStatus`, `[data-fb-pending]`) · editat; top bar `button.btn.btn-neutral.btn-md.btn-rounded.e-permits-builder__save[data-fb-save]` (aria-disabled when clean) before Publică (aria-disabled + reason „Nu există modificări față de versiunea publicată.”), the version chip = „Istoric versiuni”, scope chip hidden; panel „Setări generale formular” (ID read-only · Denumire with prefix + one 150 counter on the whole name · Tipul procesului sau pasul intern · Descriere scurtă 250 counter · Vizibilitate și acces*); never writes the service sandbox DB; × with unsaved edits = askConfirm red | `js/form-builder.js` (`openGlobal` / `refreshGlobal` / `exitGlobal`), `js/forms-global.js` hooks |
+| Template constructor · global mode (dtpl-global-v1, 2026-11-17) — NEW | the service „Șabloane de tipar” sheet `[data-dtpl-sheet]` opened by `GEAPDtplEditor.openGlobal(hooks)` (hooks: `tpl()`, `tagsHtml()`, `meta()` → `{ pending, canPublish }`, `onSave`, `onTestData`, `onGenerate`, `onPublish`, `onHistory`, `onPending`, `onBackground`, `onClose`): same header / tabs / Vizual-HTML / Câmpuri disponibile / footer; adds the status tags after the title, „Publică în MDocs” aria-disabled while unsaved („se publică doar conținutul salvat”), „Salvează datele de test” (`btn-secondary btn-sm [data-dtpl-json-save]`) + the AC error under the JSON, and the Previzualizare bar `.e-permits-dtpl__editor-bar.e-permits-tpg-preview__bar` (hint · scale `fo-select [data-dtpl-scale]` 50/75/100/125 · `btn-primary btn-sm [data-dtpl-generate]` „Generează PDF”, spinner while busy) → the page `.e-permits-tpg-page.is-scale-N` from the SAVED content + SAVED test data; no test data = empty state + button off; failure = error notice. Service mode unchanged | `js/e-permits-shell.js` (dtpl section), `css/doc-templates-global.css`; demo tpg-04…06 |
+| Registry third header action (dtpl-global-v1) — NEW | `view.tertiaryAction = { id, label }` → `button.btn.btn-secondary.btn-sm.e-permits-workplace__primary-action[data-workplace-tertiary-product="<id>"]` (icon page-download 16) between the secondary and the primary action; the product handles the click | `js/e-permits-shell.js` toolbar sync; first: Șabloane globale („Importă” · „Importă din MDocs” · „Șablon global nou”) |
 | Hover rules (all components) | one rule per class — table in „Hover — shared rules per component class” (§ after „Opening animations”); check with `tools/ui-qa/hover-audit.mjs` | — | app |
 | Field sizes (all products, user rule 2026-10-18) | desktop = library Medium (40, `.input--medium` / `.search-input.medium`, FO fields 40); phones ≤760 = library default (48, text 16/24 `--font-size-fs-16` / `--line-height-lh-24`), icons inside a field at the library size of that field (48 → `--icon-size-default` 24 at 16 from the edge, text from 48; 40 → `--icon-size-medium` 20). FO: the field-size rules live in a `@media (max-width: 760px)` block (was 720); read-only phone, CAEM / subgenre list search rows, document-picker search follow it. **Search input + text area on phones = ONE shared rule (audit-fix-v1, 2026-10-21): `css/field-sizes.css`** (loaded right before `modal-phone.css` on the BO page, `e-permits-shell.html`, `clasificatoare.html`, Cabinet, RAP): every `.search-input.medium` (BO toolbars / lists incl. `e-permits-pay__tools`, eKYC, Clasificatoare, Cabinet `.cab-search`, RAP `.rap-search`, facet sheets) = 48 · 16/24 · icon 24 at 16 · text from 48, and `.e-permits-fo-textarea textarea` 16/24 in every product — the per-page copies (Cabinet, RAP, eKYC, facet sheet) were deleted; never add a page copy again. Check with `tools/ui-qa/component-audit.mjs` (agent `component-auditor`) | `Components/input-preview.html` | app |
 | Dropdown item — one size everywhere (every action menu + option list, user rule 2026-10-20) | `css/dropdown.css` (loaded on the BO page, `e-permits-shell.html`, Cabinet, RAP — before `modal-phone.css`): lists / menus padding `--spacing-4`, gap `--spacing-2`; items **40** (`min-height`) · padding 10 12 10 8 · gap 8 · radius 6 · 14/20 medium · icon 20 (`--icon-size-medium`); **phones ≤760: 48 · 12 16 · 16/24 regular · icon 24 · r8, surface 8 / gap 0 for every menu** (menu-40-v1, 2026-10-29). Item classes listed there: `.e-permits-fo-intent-menu__item` (every ⋮ / stack / Cabinet / Ghișeu / eKYC / builder / designer menu + the act post-process menu), `.e-permits-fo-select__option`, `__caem__option`, `__subgen-select__option`, `__address-search__option`, `__phone__code-option`, `__mdocs__option`, `.e-permits-workplace__filter-option` / `__filter-more-item`, `.e-permits-shell__help-link`, `__profile-link`; a menu's own rule declares no size | section „Dropdown item — one size everywhere”; ref GEAP 2.0 `9716:10905` | app |
@@ -12977,6 +12979,58 @@ item, a direct `#formulare-globale` / `#formular-global/<id>` shows „Nu ai per
   `GEAPEventTimeline.log` (object „Formular global” + ID + version).
 - Demo switch `?formulare=fara-permisiune|local|fara-creare|gol|eroare|autoritate-inactiva|schema-invalida`; demo
   `frm-01…07e` (01 registry · 02 no permission · 03 create · 04 metadata · 05 publish · 06 versions / import · 07 activation).
+
+### Șabloane globale — Gestionarea șabloanelor globale de documente (dtpl-global-v1, 2026-11-17; Feature 97134)
+
+Administrare › „Șabloane globale” (after Formulare globale, nav icon mask `document.svg`) for the permission „Gestionare
+șabloanelor”: Administrator central by default, Administrator local only when granted (`?sabloane=local`); others: no
+menu item, `#sabloane-globale` / `#sablon-global/<id|nou>` show „Nu ai permisiunea de a accesa această pagină.” (lock
+empty state; AC „Nu aveți …” = tu-form deviation). `js/doc-templates-global.js` = the object layer; the editor is the
+service template constructor in global mode (inventory row „Template constructor · global mode”) — no second editor.
+
+- **Registry (US-337)** = the BO registry as the shared stacked list (as Formulare globale): intro note, header
+  „Importă” (secondary) · „Importă din MDocs” (tertiary) · „Șablon global nou” (primary); search „Caută după denumire sau
+  cod” (name / code / ID, part, case + diacritics ignored); facets Stare · Activitate; sort Ultima editare · Denumire · Cod.
+  Card = name + Small tags Publicat / Schiță (+ „Dezactivat”, row `is-inactive`) + „MDocs” · description (only when
+  filled) · „SDC-0401 · GEAP.ActPermisiv · v2.1.0 · ● Modificări nepublicate · Editat 12 noiembrie 2026, 14:30 · who” ·
+  „Editează” (labelled, pen) + ⋮ Istoric versiuni · Exportă · Dezactivează / Activează (only once published) · Șterge (red,
+  only never published). Loading = boxed empty state with spinner „Se încarcă...”; empty „Nu există șabloane globale.”;
+  no match „Nu s-a găsit niciun șablon.”.
+- **Create (US-338)** = the module drawer with the step strip (Cod șablon · Detalii document · Verificare). Step 1
+  „Cod tip document MDocs*” — „Următor” aria-disabled until filled; unknown code „Acest tip de document nu este înregistrat
+  în MDocs.”, taken „Există deja un șablon cu acest cod.” (field errors). Step 2: Tipul documentului (read-only, from the
+  classifier „Tipuri de documente” linked to the code) · Tipul procesului (optional select) · Denumire (RO) read-only =
+  composed (US-329 SDC row: the user never types it) · Denumire (RU) / (EN) 6+6 · Descriere scurtă 250 · switch „Document
+  oficial” (off). Step 3 = info note + details card. „Creează șablon” → SDC-NNNN (GEAPObjectId), Schiță, v1.0.0, version 1
+  „Versiune inițială”, toast, the editor opens. × / Anulează with data = askConfirm „Renunți la șablonul nou?”.
+- **Editor (US-339 / 340)**: header version tag · name · status tags · MDocs code copy · tabs Șablon / Date de test /
+  Previzualizare · „● Modificări nepublicate” (after a first publication) · Istoric versiuni · Publică în MDocs. „Fundal
+  pagină” = dialog „Fundal de pagină” (`.e-permits-tpg-bg`: A4 thumb + „Alege imaginea” + hint; Elimină red outline ·
+  Anulează · Aplică). A template missing in MDocs → toast „Șablonul nu a fost găsit.”. Test data: „Salvează datele de test”,
+  invalid JSON = „Datele de test nu sunt în format JSON valid.” under the field (cleared on the next good save).
+- **Publish (US-341)** = dialog „Publică vX în MDocs?” (PATCH +1): info notice (new documents use it, issued ones stay) ·
+  „Câmpuri modificate (N)” · required „Ce s-a schimbat” (`GEAPConfigPublish.noteField`) · Anulează / Publică în MDocs;
+  MDocs failure = error notice in the dialog, state + version unchanged, the note kept.
+- **Versions (US-342)** = the drawer (lg) „Istoric versiuni”: info note · the registre versions table (`.e-permits-reg-table
+  __table--versions`: Nr. · Versiune + „curentă” · Tipul modificării · Ce s-a schimbat · Data · Autor · ⋮ Vizualizează ·
+  Câmpuri modificate · Exportă), newest first, `GEAPPager` 5/10/20. Dialogs over the drawer are raised
+  (`.e-permits-confirm-overlay`): version = details card + the read-only A4 page (`.e-permits-tpg-version__canvas`, zoom
+  0.6); câmpuri modificate = stacked list, each field with an Adăugat / Modificat / Eliminat tag + before → after.
+  Export `sablon-global-<cod>-v<versiune>.geapcfg.json`.
+- **Import (US-343)** = dialog „Import versiune” with the LIBRARY upload block (`.upload-block` › `.dropzone`
+  [`dropzone--active` while dragging] › `.dropzone__content` + `.dropzone__link`, `.dropzone__details` „Tip acceptat:
+  .geapcfg.json”) + the chosen file row + field error / result notice; „Importă” aria-disabled until a valid file. Existing
+  code → new version „Import din fișier” (pending until published); new code → new Schiță template, new ID.
+- **Import from MDocs (US-344)** = drawer „Importă șablon”: code* (button off until filled) · Denumirea șablonului
+  (optional, default = the classifier type) · Descriere scurtă; errors = AC-06 error notice / AC-07 field error; success
+  → MDocs version + status, „Import din MDocs” version, the editor opens.
+- **Lifecycle (US-345)**: Dezactivează = askConfirm (red) · Activează = immediate · Șterge = dialog „Șterge șablonul din
+  catalog” (warning notice: definitive, catalog + MDocs, only when not attached; red „Șterge”); attached → the same title
+  with the error notice „Șablonul este atașat unui serviciu și nu poate fi șters.” + „Atașat la” list, only „Închide”.
+- **Audit** — every create / save / test data / PDF / publish / version view / export / import / (de)activate / delete
+  → `GEAPEventTimeline.log` (object „Șablon global de document”, ID, version, the MDocs code in the detail).
+- Demo switch `?sabloane=fara-permisiune|local|gol|incarcare|eroare-mdocs|mdocs-indisponibil|lipsa-mdocs|eroare-pdf|eroare`;
+  demo `tpg-01…10f`.
 
 ### Reguli de codificare — IDs, names, numbering rules, file names (coding-rules-v1, 2026-11-17; Feature 94830) — NEW
 

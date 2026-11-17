@@ -8008,6 +8008,16 @@ document.addEventListener("DOMContentLoaded", () => {
       const label = workplaceSecondaryProduct.querySelector("span");
       if (label && action) label.textContent = action.label;
     }
+    /* dtpl-global-v1: a third header action between them (view.tertiaryAction = { id, label }, e.g. „Importă din MDocs”);
+       the product handles the click on [data-workplace-tertiary-product] */
+    const workplaceTertiaryProduct = document.querySelector("[data-workplace-tertiary-product]");
+    if (workplaceTertiaryProduct) {
+      const action = productRegistry(workplaceDb.kind) ? view.tertiaryAction : null;
+      workplaceTertiaryProduct.hidden = !action;
+      workplaceTertiaryProduct.dataset.workplaceTertiaryProduct = action?.id || "";
+      const label = workplaceTertiaryProduct.querySelector("span");
+      if (label && action) label.textContent = action.label;
+    }
 
     syncWorkplaceBulk();
 
@@ -11146,8 +11156,12 @@ document.addEventListener("DOMContentLoaded", () => {
   /* ---- constructor — full-screen sheet ---- */
   const dtplSheet = document.querySelector("[data-dtpl-sheet]");
   const dtplPanel = dtplSheet?.querySelector("[data-dtpl-panel]");
-  const dtplState = { code: null, view: "template", mode: "visual", fieldQuery: "", collapsed: new Set(), draft: null, dirty: false, range: null, ret: null };
-  const dtplTpl = () => dtplFind(dtplState.code);
+  const dtplState = { code: null, view: "template", mode: "visual", fieldQuery: "", collapsed: new Set(), draft: null, dirty: false, range: null, ret: null, global: null };
+  /* dtpl-global-v1 (2026-11-17, Feature 97134): the SAME constructor edits a GLOBAL document template (js/doc-templates-global.js)
+     — `dtplState.global` = the module's hooks; the record comes from `global.tpl()`, save / publish / history / pending /
+     background / close go to the hooks, the service passport is never touched. Global-only extras (US-340): „Salvează
+     datele de test” + the „Generează PDF” preview with a scale list. */
+  const dtplTpl = () => (dtplState.global ? dtplState.global.tpl() : dtplFind(dtplState.code));
 
   const renderDtplFields = () => {
     const q = clasCore.normName(dtplState.fieldQuery.trim());
@@ -11226,14 +11240,16 @@ document.addEventListener("DOMContentLoaded", () => {
     return `
       <div class="e-permits-dtpl__json-bar">
         <div class="e-permits-dtpl__json-state">
-          ${bad ? `<span class="message message--inline message--error e-permits-fo-field__error"><svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-circle-error-filled"></use></svg><span>${escapeHtml(parsed.error)}</span></span>`
+          ${bad ? `<span class="message message--inline message--error e-permits-fo-field__error"${dtplState.global && dtplState.testError ? ' id="dtpl-json-error" role="alert"' : ""}><svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-circle-error-filled"></use></svg><span>${dtplState.global && dtplState.testError ? `${escapeHtml(dtplState.testError)} ` : ""}${escapeHtml(parsed.error)}</span></span>`
             : `<p class="e-permits-fo-field__hint">${plural(Object.keys(data).length, "câmp", "câmpuri")} cu valoare de test.</p>`}
         </div>
         <div class="e-permits-dtpl__json-tools">
           <button class="btn btn-neutral btn-sm" type="button" data-dtpl-json-fill${bad ? ' aria-disabled="true" data-tooltip-reason="Corectează întâi JSON-ul."' : ""}>Completează cu exemple</button>
           <button class="btn btn-neutral btn-sm" type="button" data-dtpl-json-format${bad ? ' aria-disabled="true" data-tooltip-reason="Corectează întâi JSON-ul."' : ""}>Formatează</button>
+          ${dtplState.global ? '<button class="btn btn-secondary btn-sm" type="button" data-dtpl-json-save>Salvează datele de test</button>' : ""}
         </div>
       </div>
+
       ${unknown.length ? renderNotice("error", `<strong>Câmpuri necunoscute:</strong> ${unknown.map((t) => escapeHtml(`{{${t}}}`)).join(", ")} — șablonul le folosește, dar nu există în sursele de date; la emitere rămân goale. Corectează numele în șablon.`) : ""}
       ${!bad && missing.length ? renderInfoNote(`<strong>Fără valoare de test:</strong> ${missing.map((t) => escapeHtml(`{{${t}}}`)).join(", ")} — la previzualizare folosesc exemplul implicit.`) : ""}
       ${!bad && extra.length ? renderInfoNote(`<strong>Chei care nu apar în șablon:</strong> ${extra.map((k) => escapeHtml(k)).join(", ")} — sunt ignorate.`) : ""}`;
@@ -11252,7 +11268,57 @@ document.addEventListener("DOMContentLoaded", () => {
       </div>`;
   };
 
+  /* dtpl-global-v1 (US-340 AC-07…12): the preview of a global template = „Generează PDF” on the SAVED content + the
+     SAVED test data, at the scale chosen next to it; no saved test data → the empty state and the button off */
+  const DTPL_SCALES = [["50", "50%"], ["75", "75%"], ["100", "100%"], ["125", "125%"]];
+  const renderDtplGlobalPreview = () => {
+    const tpl = dtplTpl(), g = dtplState.global, pv = g.preview || (g.preview = { scale: "75", state: "idle" });
+    const saved = String(tpl.testJson || "").trim();
+    const hasData = Boolean(saved) && !dtplParseJson(saved).error && Object.keys(dtplParseJson(saved).data || {}).length > 0;
+    const busy = pv.state === "busy";
+    const off = !hasData || busy;
+    const bar = `
+      <div class="e-permits-dtpl__editor-bar e-permits-tpg-preview__bar">
+        <p class="e-permits-fo-field__hint">Documentul se generează în MDocs din conținutul salvat și datele de test salvate.</p>
+        <div class="e-permits-pay__tools">
+          <div class="e-permits-tpg-preview__scale">${renderFoSelectControl({ id: "dtpl-scale", attrs: 'data-dtpl-scale aria-label="Scala de afișare"', optionsHtml: DTPL_SCALES.map(([v, l]) => `<option value="${v}"${pv.scale === v ? " selected" : ""}>${l}</option>`).join("") })}</div>
+          <button class="btn btn-primary btn-sm" type="button" data-dtpl-generate${off ? ` aria-disabled="true" data-tooltip-reason="${busy ? "Documentul se generează…" : "Salvează întâi datele de test."}"` : ""}>${busy ? '<span class="spinner spinner--extra-small spinner--neutral" aria-hidden="true"></span>' : '<svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-page-text"></use></svg>'}<span>Generează PDF</span></button>
+        </div>
+      </div>`;
+    let body;
+    if (!hasData) body = renderEmptyState({ title: "Nu există date de test pentru previzualizare.", text: "Introdu datele în „Date de test” și apasă „Salvează datele de test”.", icon: "page-text" });
+    else if (pv.state === "error") body = `<div class="e-permits-dtpl__narrow">${renderNotice("error", "<strong>Documentul nu a putut fi generat.</strong> Datele de test au rămas salvate; încearcă din nou.", { role: "alert" })}</div>`;
+    else if (pv.state === "done" && pv.doc) body = `
+      ${dtplState.dirty ? `<div class="e-permits-dtpl__narrow">${renderInfoNote("Previzualizarea folosește conținutul salvat. Modificările nesalvate din „Șablon” nu apar până la „Salvează”.")}</div>` : ""}
+      <div class="e-permits-dtpl__canvas e-permits-dtpl__canvas--preview">
+        <div class="e-permits-dtpl__page e-permits-tpg-page is-scale-${escapeHtml(pv.scale)}"${pv.doc.background ? ` style="background-image:url('${pv.doc.background}')"` : ""}><div class="e-permits-dtpl__surface">${pv.doc.html}</div></div>
+      </div>
+      <p class="e-permits-ntpl-preview__note e-permits-dtpl__preview-note">${escapeHtml(pv.doc.stamp)} · macheta comună MDocs. Câmpurile marcate sunt completate cu datele de test.</p>`;
+    else body = renderEmptyState({ title: busy ? "Se generează documentul…" : "Previzualizarea nu a fost generată", text: busy ? "" : "Apasă „Generează PDF” ca să vezi documentul cu datele de test salvate.", icon: "page-text", loading: busy });
+    return `${bar}${body}`;
+  };
+  const generateDtplPdf = () => {
+    const g = dtplState.global, tpl = dtplTpl();
+    if (!g || !tpl) return;
+    const pv = g.preview || (g.preview = { scale: "75", state: "idle" });
+    pv.state = "busy";
+    renderDtpl();
+    window.setTimeout(() => {
+      if (dtplState.global !== g) return;
+      const ok = g.onGenerate ? g.onGenerate() !== false : true;
+      if (!ok) { pv.state = "error"; pv.doc = null; }
+      else {
+        const data = dtplParseJson(tpl.testJson).data || {};
+        pv.state = "done";
+        pv.doc = { html: dtplFill(tpl.html, data), background: tpl.background || "", stamp: `Generat ${formatStamp(localIsoNow())} din ${tpl.version}` };
+      }
+      renderDtpl();
+      dtplPanel.querySelector("[data-dtpl-generate]")?.focus();
+    }, 600);
+  };
+
   const renderDtplPreviewView = () => {
+    if (dtplState.global) return renderDtplGlobalPreview();
     const d = dtplState.draft;
     return `
       ${dtplParseJson(d.testJson).error ? `<div class="e-permits-dtpl__narrow">${renderNotice("warning", "<strong>JSON-ul cu date de test are erori.</strong> Previzualizarea folosește ultimele date valide — corectează-l în „Date de test”.")}</div>` : ""}
@@ -11267,22 +11333,30 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!tpl) return;
     const pending = dtplState.dirty || tpl.status === "unpublished" || tpl.status === "draft";
     const view = dtplState.view;
+    const g = dtplState.global, gm = g?.meta?.() || {};
+    /* global: „Modificări nepublicate” only after a first publication (a draft shows „Schiță”); Publică în MDocs on the
+       SAVED content only (US-341 AC-10) — unsaved edits switch it off with the reason */
+    const statusHtml = g
+      ? (dtplState.dirty ? renderHeaderStatus(dtplChangesLabel(), "warning", changesStatusAttrs("dtpl-draft")) : gm.pending ? renderHeaderStatus("Modificări nepublicate", "warning", 'data-dtpl-pending aria-haspopup="dialog" data-tooltip-text="Vezi modificările"') : "")
+      : pending ? (dtplState.dirty ? renderHeaderStatus(dtplChangesLabel(), "warning", changesStatusAttrs("dtpl-draft")) : tpl.status === "draft" ? renderHeaderStatus("Schiță · nepublicat în MDocs", "warning") : renderHeaderStatus("Modificări nepublicate", "warning", 'data-dtpl-pending aria-haspopup="dialog" data-tooltip-text="Vezi modificările"')) : "";
+    const publishOff = g ? (dtplState.dirty ? "Salvează întâi modificările: se publică doar conținutul salvat." : gm.canPublish ? "" : "Nu există modificări de publicat.") : pending ? "" : "Nu există modificări de publicat.";
     dtplPanel.innerHTML = `
       <header class="e-permits-dtpl__head">
         <div class="e-permits-dtpl__identity">
           ${renderTag(tpl.version, "neutral")}
           <h2 class="e-permits-dtpl__title" id="dtpl-title" data-cell-tooltip>${escapeHtml(tpl.name)}</h2>
+          ${g?.tagsHtml ? g.tagsHtml() : ""}
           ${renderProfileCopyCode(tpl.code, `Copiază ${tpl.code}`)}
         </div>
         <div class="segmented-control e-permits-dtpl__views" role="tablist" aria-label="Constructor">
           ${[["template", "Șablon"], ["test", "Date de test"], ["preview", "Previzualizare"]].map(([v, l]) => `<button class="segment-item${view === v ? " is-selected" : ""}" type="button" role="tab" aria-selected="${view === v}" data-dtpl-view="${v}">${l}</button>`).join("")}
         </div>
         <div class="e-permits-dtpl__actions">
-          ${pending ? (dtplState.dirty ? renderHeaderStatus(dtplChangesLabel(), "warning", changesStatusAttrs("dtpl-draft")) : tpl.status === "draft" ? renderHeaderStatus("Schiță · nepublicat în MDocs", "warning") : renderHeaderStatus("Modificări nepublicate", "warning", 'data-dtpl-pending aria-haspopup="dialog" data-tooltip-text="Vezi modificările"')) : ""}
+          ${statusHtml}
           <button class="btn btn-neutral btn-sm" type="button" data-dtpl-history><svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-history"></use></svg><span>Istoric versiuni</span></button>
-          ${pending
-            ? '<button class="btn btn-primary btn-sm" type="button" data-dtpl-publish>Publică în MDocs</button>'
-            : '<button class="btn btn-primary btn-sm" type="button" aria-disabled="true" data-tooltip-reason="Nu există modificări de publicat." data-dtpl-publish>Publică în MDocs</button>'}
+          ${publishOff
+            ? `<button class="btn btn-primary btn-sm" type="button" aria-disabled="true" data-tooltip-reason="${escapeHtml(publishOff)}" data-dtpl-publish>Publică în MDocs</button>`
+            : '<button class="btn btn-primary btn-sm" type="button" data-dtpl-publish>Publică în MDocs</button>'}
           <span class="e-permits-ntpl-sheet__divider" aria-hidden="true"></span>
           <button class="btn btn-strict btn-sm btn-icon-only" type="button" aria-label="Închide constructorul" data-tooltip-label="Închide" data-dtpl-close>
             <svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-cross-large"></use></svg>
@@ -11301,7 +11375,7 @@ document.addEventListener("DOMContentLoaded", () => {
         ${view === "template" ? renderDtplTemplateView() : view === "test" ? renderDtplTestView() : renderDtplPreviewView()}
       </div>
       <footer class="e-permits-dtpl__foot">
-        <span class="e-permits-rt__summary" data-dtpl-summary>${dtplState.dirty ? "Modificări nesalvate" : `Salvat ${escapeHtml(formatStamp(tpl.editedAt))} · ${escapeHtml(tpl.editedBy || "")}`}</span>
+        <span class="e-permits-rt__summary" data-dtpl-summary>${dtplState.dirty ? "Modificări nesalvate" : tpl.editedAt ? `Salvat ${escapeHtml(formatStamp(tpl.editedAt))} · ${escapeHtml(tpl.editedBy || "")}` : "Nesalvat încă"}</span>
         <div class="modal-buttons">
           <button class="btn btn-neutral btn-rounded" type="button" data-dtpl-cancel>Anulează</button>
           <button class="btn btn-primary btn-rounded" type="button" data-dtpl-save${dtplState.dirty ? "" : ' aria-disabled="true" data-tooltip-reason="Nu există modificări de salvat."'}>Salvează</button>
@@ -11311,7 +11385,8 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   /* the builder's draft vs the saved template: content, background, test data */
-  const dtplSavedDraft = (tpl) => ({ html: tpl.html || "", testData: { ...(tpl.testData || {}) }, testJson: tpl.testJson || dtplSampleJson(tpl.html, tpl.testData || {}), background: tpl.background || "" });
+  /* a global template keeps an EMPTY test data text as empty (US-340 AC-07: „Nu există date de test…”) */
+  const dtplSavedDraft = (tpl) => ({ html: tpl.html || "", testData: { ...(tpl.testData || {}) }, testJson: dtplState.global && typeof tpl.testJson === "string" ? tpl.testJson : tpl.testJson || dtplSampleJson(tpl.html, tpl.testData || {}), background: tpl.background || "" });
   const dtplChanges = () => {
     const tpl = dtplTpl(), d = dtplState.draft;
     if (!tpl || !d) return [];
@@ -11394,13 +11469,24 @@ document.addEventListener("DOMContentLoaded", () => {
       dtplSheet.classList.remove("is-closing");
       document.body.classList.remove("is-ntpl-sheet-open");
       const code = dtplState.code;
-      dtplState.code = null; dtplState.dirty = false;
+      const g = dtplState.global;
+      dtplState.code = null; dtplState.dirty = false; dtplState.global = null; dtplState.testError = "";
+      if (g) { g.onClose?.(); return; }
       refreshDtplList();
       (permitsProfilePanel?.querySelector(`[data-dtpl-open="${CSS.escape(code)}"]`) || dtplState.ret)?.focus?.();
     }, 140);
   };
   const saveDtpl = ({ silent = false } = {}) => {
     syncDtpl();
+    if (dtplState.global) {
+      const d = dtplState.draft;
+      /* the hook says no (refused / MDocs error) → the edits stay in the constructor */
+      if (dtplState.global.onSave?.({ html: d.html, testJson: d.testJson, testData: { ...d.testData }, background: d.background }, { silent }) === false) return false;
+      dtplState.dirty = false;
+      dtplState.testError = "";
+      renderDtpl();
+      return true;
+    }
     const tpl = dtplTpl(), service = dtplService();
     Object.assign(tpl, { html: dtplState.draft.html, testData: { ...dtplState.draft.testData }, testJson: dtplState.draft.testJson, background: dtplState.draft.background, status: tpl.status === "draft" ? "draft" : "unpublished", editedAt: localIsoNow(), editedBy: currentUserName() });
     dtplState.dirty = false;
@@ -11409,6 +11495,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!silent) showShellToast("Salvat ca ciornă. Documentele emise folosesc versiunea publicată până la „Publică în MDocs”.", "success", "Șablon salvat");
   };
   const publishDtpl = () => {
+    if (dtplState.global) { dtplState.global.onPublish?.(); return; }
     const tpl = dtplTpl();
     /* a template created here goes to MDocs for the first time as v1.0.0 */
     const next = tpl.status === "draft" ? "v1.0.0" : dtplBump(tpl.version);
@@ -11437,6 +11524,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   };
   const openDtplHistory = () => {
+    if (dtplState.global) { dtplState.global.onHistory?.(); return; }
     const tpl = dtplTpl(), modal = document.querySelector("#dtpl-history-modal");
     if (!modal) return;
     modal.querySelector("[data-dtpl-history-subtitle]").textContent = `${tpl.name} · ${tpl.code}`;
@@ -11447,6 +11535,7 @@ document.addEventListener("DOMContentLoaded", () => {
   /* the template's own pending changes: what the service log recorded about it since the
      last MDocs version; a template saved without a log line still lists its content */
   const openDtplPendingChanges = () => {
+    if (dtplState.global) { dtplState.global.onPending?.(); return; }
     const tpl = dtplTpl(), service = dtplService();
     if (!tpl) return;
     const since = tpl.history?.[0]?.at || "";
@@ -11500,7 +11589,11 @@ document.addEventListener("DOMContentLoaded", () => {
       markDtplDirty();
       return;
     }
-    if (event.target.closest("[data-dtpl-bg]")) { dtplSheet.querySelector("[data-dtpl-bg-file]").click(); return; }
+    if (event.target.closest("[data-dtpl-bg]")) { if (dtplState.global?.onBackground) { syncDtpl(); dtplState.global.onBackground(dtplState.draft.background || ""); } else dtplSheet.querySelector("[data-dtpl-bg-file]").click(); return; }
+    /* dtpl-global-v1: „Salvează datele de test” (US-340 AC-04 / 05 / 14) and „Generează PDF” (AC-08) */
+    if (event.target.closest("[data-dtpl-json-save]")) { saveDtplTestData(); return; }
+    const gen = event.target.closest("[data-dtpl-generate]");
+    if (gen) { if (gen.getAttribute("aria-disabled") !== "true") generateDtplPdf(); return; }
     if (event.target.closest("[data-dtpl-xml]")) { dtplSheet.querySelector("[data-dtpl-xml-file]").click(); return; }
     if (event.target.closest("[data-dtpl-history]")) { openDtplHistory(); return; }
     if (event.target.closest("[data-dtpl-pending]")) { openDtplPendingChanges(); return; }
@@ -11542,6 +11635,8 @@ document.addEventListener("DOMContentLoaded", () => {
     if (event.target.closest("[data-dtpl-surface], [data-dtpl-html]")) markDtplDirty();
   });
   dtplPanel?.addEventListener("change", (event) => {
+    const scale = event.target.closest("[data-dtpl-scale]");
+    if (scale && dtplState.global) { (dtplState.global.preview || (dtplState.global.preview = { scale: "75", state: "idle" })).scale = scale.value; dtplPanel.querySelectorAll(".e-permits-tpg-page").forEach((page) => { page.className = page.className.replace(/is-scale-\d+/, `is-scale-${scale.value}`); }); return; }
     const block = event.target.closest("[data-dtpl-block]");
     if (!block) return;
     const surface = dtplPanel.querySelector("[data-dtpl-surface]");
@@ -11581,6 +11676,62 @@ document.addEventListener("DOMContentLoaded", () => {
     reader.onload = () => { syncDtpl(); dtplState.draft.background = reader.result; dtplState.dirty = true; renderDtpl(); };
     reader.readAsDataURL(file);
   });
+
+  /* ---- dtpl-global-v1: the constructor for a GLOBAL template (js/doc-templates-global.js) ---- */
+  const saveDtplTestData = () => {
+    const g = dtplState.global, d = dtplState.draft;
+    if (!g || !d) return;
+    const json = dtplPanel.querySelector("[data-dtpl-json]");
+    if (json) d.testJson = json.value;
+    const parsed = dtplParseJson(d.testJson);
+    if (parsed.error) {
+      /* US-340 AC-04: not saved, the AC message under the field (the line / column hint stays in the status above) */
+      dtplState.testError = "Datele de test nu sunt în format JSON valid.";
+      g.onTestData?.(null);
+      const keep = dtplState.dirty;
+      renderDtpl();
+      dtplState.dirty = keep;
+      const box = dtplPanel.querySelector("[data-dtpl-json]");
+      box?.setAttribute("aria-invalid", "true");
+      box?.setAttribute("aria-describedby", "dtpl-json-error");
+      box?.focus();
+      return;
+    }
+    if (g.onTestData?.(d.testJson, parsed.data) === false) return;
+    d.testData = parsed.data;
+    dtplState.testError = "";
+    dtplState.dirty = dtplChanges().length > 0;
+    if (g.preview) g.preview.state = "idle";
+    renderDtpl();
+    dtplPanel.querySelector("[data-dtpl-json-save]")?.focus();
+  };
+  const openDtplGlobal = (hooks) => {
+    const tpl = hooks?.tpl?.();
+    if (!tpl || !dtplSheet) return;
+    dtplState.global = hooks;
+    Object.assign(dtplState, { code: tpl.code, global: hooks, view: hooks.view || "template", mode: hooks.mode || "visual", fieldQuery: "", draft: dtplSavedDraft(tpl), dirty: false, range: null, ret: document.activeElement, testError: "" });
+    hooks.preview = { scale: "75", state: "idle" };
+    renderDtpl();
+    dtplSheet.hidden = false;
+    document.body.classList.add("is-ntpl-sheet-open");
+    requestAnimationFrame(() => dtplPanel.focus());
+  };
+  window.GEAPDtplEditor = {
+    openGlobal: openDtplGlobal,
+    isGlobal: () => Boolean(dtplState.global),
+    dirty: () => Boolean(dtplState.global && dtplState.dirty),
+    /* the record changed outside (publish / restore / import): redraw, the unsaved draft kept */
+    refresh: () => { if (!dtplState.global) return; const keep = dtplState.dirty; syncDtpl(); renderDtpl(); dtplState.dirty = keep; },
+    setBackground: (url) => { if (!dtplState.global) return; syncDtpl(); dtplState.draft.background = url || ""; dtplState.dirty = dtplChanges().length > 0; renderDtpl(); },
+    close: (force = false) => closeDtpl(force),
+    setView: (view) => { if (!dtplState.global) return; syncDtpl(); const keep = dtplState.dirty; dtplState.view = view; renderDtpl(); dtplState.dirty = keep; },
+    /* the version window (US-342 AC-10): the A4 page, read-only — fields as chips, or filled with the test data */
+    pageHtml: (html, { background = "", data = null } = {}) => `<div class="e-permits-dtpl__page e-permits-doc-peek__page"${background ? ` style="background-image:url('${background}')"` : ""}><div class="e-permits-dtpl__surface">${data ? dtplFill(html, data) : dtplMarkTokens(html)}</div></div>`,
+    tokens: (html) => dtplTokens(html),
+    fieldLabel: (token) => DTPL_FIELD_MAP.get(token)?.label || "",
+    parseJson: (text) => dtplParseJson(text),
+    sampleJson: (html) => dtplSampleJson(html, {})
+  };
 
   /* a template's sections — Texte (per language) · Reguli de destinatari · Detalii —
      shared by the passport detail and the global registry drawer */

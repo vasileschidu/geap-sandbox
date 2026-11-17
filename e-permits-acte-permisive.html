@@ -43,6 +43,7 @@
   <link rel="stylesheet" href="css/dashboard.css?v=dsh-feature-v1">
   <link rel="stylesheet" href="css/coding-rules.css?v=nav-icon-fix-v1">
   <link rel="stylesheet" href="css/doc-templates-global.css?v=dtpl-global-v1">
+  <link rel="stylesheet" href="css/doc-templates-global.css?v=dtpl-global-v1">
   <!-- rbo-v1: BackOffice › Rapoarte (Feature 96587 „Rapoarte statistice predefinite”) -->
   <link rel="stylesheet" href="css/rapoarte-bo.css?v=layout-wide-v1">
   <!-- calendar-views-v3: „Listă / Calendar · Cronologie” switch (library segmented, compact) -->
@@ -82,7 +83,7 @@
   <script src="js/trajectory.js?v=trajectory-phone-even-v1"></script>
   <script src="js/event-timeline.js?v=aud-263-v2"></script>
   <script src="js/sticky-sections.js?v=sticky-sections-v1" defer></script>
-  <script src="js/demo-states.js?v=fb-float-p4c"></script>
+  <script src="js/demo-states.js?v=dtpl-global-v1"></script>
   <script src="js/demo-links.js?v=links-v4"></script>
   <script src="js/bo-context.js?v=copy-tu-v2"></script>
   <!-- the working-days engine (Administrare › Calendar), before the shell seeds the dossier deadlines; after
@@ -128,6 +129,8 @@
   <script src="js/dashboard-admin.js?v=coding-rules-v1" defer></script>
   <!-- forms-global-v1: Administrare › Formulare globale (Feature 97122, US-331…336) -->
   <script src="js/forms-global.js?v=coding-rules-v1" defer></script>
+  <!-- dtpl-global-v1: Administrare › Șabloane globale (Feature 97134, US-337…345) -->
+  <script src="js/doc-templates-global.js?v=dtpl-global-v1" defer></script>
   <!-- dtpl-global-v1: Administrare › Șabloane globale (Feature 97134, US-337…345) -->
   <script src="js/doc-templates-global.js?v=dtpl-global-v1" defer></script>
   <!-- coding-rules-v1: Setări › Reguli de numerotare (Feature 94830, US-328) -->
@@ -2821,6 +2824,11 @@
                       <svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-page-download"></use></svg>
                       <span>Importă din MDocs</span>
                     </button>
+                    <!-- dtpl-global-v1: a product registry's third action (view.tertiaryAction, e.g. „Importă din MDocs”) -->
+                    <button class="btn btn-secondary btn-sm e-permits-workplace__primary-action" type="button" data-workplace-tertiary-product hidden>
+                      <svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-page-download"></use></svg>
+                      <span>Importă din MDocs</span>
+                    </button>
                     <!-- a product registry's „+ Adaugă …” (eKYC Configurare): label from view.primaryAction -->
                     <button class="btn btn-primary btn-sm e-permits-workplace__primary-action" type="button" data-workplace-add-product hidden>
                       <svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-plus-large"></use></svg>
@@ -3706,7 +3714,7 @@
   <script src="js/facet-filter.js?v=dsh-feature-v1"></script>
   <script src="js/sort-sheet.js?v=row-ctl-v5"></script>
   <script src="js/act-view.js?v=doc-viewer-tabs-v1"></script>
-  <script src="js/e-permits-shell.js?v=coding-rules-v1"></script>
+  <script src="js/e-permits-shell.js?v=dtpl-global-v1"></script>
 
   <!-- Instance switch warning modal -->
   <div class="e-permits-fo-instance-switch-modal" data-fo-instance-switch-modal hidden aria-modal="true" role="dialog" aria-labelledby="fo-instance-switch-title" aria-describedby="fo-instance-switch-description">

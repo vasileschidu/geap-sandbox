@@ -39,6 +39,7 @@
     ".date-picker__field",
     ".date-picker-panel",
     ".date-picker__day",
+    ".dropzone",
     ".date-picker__nav",
     ".bottom-sheet",
     ".bottom-sheet__close",

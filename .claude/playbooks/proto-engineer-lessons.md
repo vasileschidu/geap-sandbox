@@ -4423,3 +4423,12 @@ For any „research how other products do it” step, search Mobbin (mcp__mobbin
 - 2026-11-17 · fb-float-p4 (bottom toolbar + band): a modal's `grid-template-rows` set by the shared frame (PD file, loaded later, same specificity) beat my 3-row band rule and blanked the workspace — add `:not(.e-permits-builder--process)` / a `[data-mode]` attribute for specificity and LOOK at the screenshot, status „ok” hides it.
 - 2026-11-17 · The builder already had undo / redo + Ctrl+Z (`checkpoint` stack): a toolbar only needs `aria-disabled` synced from `state.undo/redo` in `renderAll` / `commit` / `select` — grep before writing a history.
 - 2026-11-17 · „Same density as PD”: the FD palette item was the same class; only `e-permits-pd__palette-item` + a one-line caption (my `white-space: normal` override made rows taller) were missing — diff the two markups before inventing sizes.
+- 2026-11-17 · dtpl-global-v1 (Feature 97134): a second OWNER for an existing editor = a hooks object on its state (`dtplState.global`),
+  branching only in the owner-specific functions (lookup, save, publish, history, pending, background, close) — the service
+  mode stays byte-identical; export one opener (`GEAPDtplEditor.openGlobal(hooks)`). Set the mode flag BEFORE building the
+  draft: an object literal passed to `Object.assign` is evaluated while the old flag is still in place.
+- 2026-11-17 · Three registry header actions: `view.tertiaryAction` → `[data-workplace-tertiary-product]` (mirror of the
+  secondary sync). The library `.dropzone` (main.css) was missing from tools/ui-qa/specs/component-audit.json → flagged
+  „non-library”; added. The audits' preview `missing-copy` on generated document values (mark tokens) = false positive.
+- 2026-11-17 · zsh does not word-split `$VAR` holding „node --flag script” → „no such file”; put multi-tool QA runs in a bash
+  script file (scratch qa/run.sh) and run that in the background.

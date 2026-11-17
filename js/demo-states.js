@@ -2742,6 +2742,24 @@
         "fb-p4b": fb(async (h) => { const b = document.querySelector("[data-fb-width='phone']"); if (b && b.offsetParent) await h.click("[data-fb-width='phone']"); }),
         "fb-p4c": fb(async (h) => { await pick("fld-name")(h); const b = document.querySelector("[data-fb-outline-toggle]"); if (b && b.offsetParent) await h.click("[data-fb-outline-toggle]"); }),
         "fb-p4d": fb(async (h) => { await lib("date")(h); const b = document.querySelector("[data-fb-undo]"); if (b && b.offsetParent) await h.click("[data-fb-undo]"); }),
+        /* fb-float-p5: step strip — a) default, b) „+” asks for the name inline, c) ⋮ of the active chip open,
+           d) after a reorder (2nd service step moved left with Alt+←), e) many steps → scroll + edge fade */
+        "fb-p5a": fb(),
+        "fb-p5b": fb(async (h) => { await h.click("[data-fb-add-step]"); await h.fill("[data-fb-step-name]", "Declarații", { leave: false }); }),
+        "fb-p5c": fb(async (h) => { await h.click(".e-permits-builder__steps-group [data-stack-menu-trigger]"); }),
+        "fb-p5d": fb(async (h) => {
+          await h.click("[data-fb-add-step]"); await h.fill("[data-fb-step-name]", "Declarații", { leave: false });
+          key(document.querySelector("[data-fb-step-name]"), "Enter"); await h.wait(250);
+          key(document.querySelector("[data-fb-step='" + document.querySelector(".e-permits-builder__step-chip.is-active").dataset.fbStep + "']"), "ArrowLeft", { altKey: true }); await h.wait(250);
+        }),
+        "fb-p5e": fb(async (h) => {
+          for (const name of ["Declarații", "Anexe tehnice", "Autorizații anterioare", "Date financiare", "Informații suplimentare", "Date de contact", "Observații finale"]) {
+            await h.click("[data-fb-add-step]"); await h.fill("[data-fb-step-name]", name, { leave: false });
+            key(document.querySelector("[data-fb-step-name]"), "Enter"); await h.wait(150);
+          }
+          const scroller = document.querySelector("[data-fb-steps-scroll]"); if (scroller) { scroller.scrollLeft = 0; scroller.dispatchEvent(new Event("scroll")); }
+          await h.wait(150);
+        }),
         "fb-01b": fb(async (h) => { await h.click("[data-fb-add-trigger='sec-object']"); }),
         "fb-02": fb(async (h) => { await h.click("[data-fb-select-form]"); await h.scroll("[data-fb-group-languages]"); }),
         "fb-03": fb(async (h) => { await h.click("[data-fb-step='st-details']"); }),
@@ -4200,6 +4218,13 @@
        Demo switch formulare=fara-permisiune|local|fara-creare|gol|eroare|autoritate-inactiva|schema-invalida */
     ...frmDemoStates(),
 
+    /* ---- Administrare › Șabloane globale (Feature 97134, js/doc-templates-global.js + the dtpl constructor in global mode,
+       dtpl-global-v1 2026-11-17): tpg-01 registru (US-337) · 02 fără permisiune · 03 creare în 3 pași (US-338) · 04 editor
+       (US-339) · 05 date de test + PDF (US-340) · 06 publicare în MDocs (US-341) · 07 istoric versiuni (US-342) · 08 import
+       din fișier (US-343) · 09 import din MDocs (US-344) · 10 dezactivare / activare / ștergere (US-345).
+       Demo switch sabloane=fara-permisiune|local|gol|incarcare|eroare-mdocs|mdocs-indisponibil|lipsa-mdocs|eroare-pdf|eroare */
+    ...tpgDemoStates(),
+
     /* ---- Setări › Reguli de numerotare + object IDs, names, file names (Feature 94830, js/coding-rules.js +
        js/object-id.js, coding-rules-v1 2026-11-17): cod-01… US-328 page (documents · objects with ID · without ID,
        search, edit drawer, errors, denied) · cod-1x US-327 the read-only ID (lists, profiles, edit forms, clone) ·
@@ -5162,6 +5187,123 @@
       "frm-07c": list(seq(ITEM("data-frm-deactivate", "FRM-0104"), async (h) => { await h.click(`${M} [data-frm-off-confirm]`); await h.wait(500); }), { formulare: "eroare" }),
       "frm-07d": list(MENU("FRM-0107")),
       "frm-07e": list(seq(ITEM("data-frm-activate", "FRM-0107"), blur))
+    };
+  }
+
+  function tpgDemoStates() {
+    const ADMIN = "ansp-central-admin", LOCAL = "ansp-local-admin", SPEC = "ansp-specialist-chisinau";
+    const LIST = "[data-registry-kind='sabloane-globale'] li[data-workplace-row], [data-registry-kind='sabloane-globale'] .e-permits-empty:not(:has(.spinner))";
+    const list = (run, params, as = ADMIN, ready = LIST) => ({ flow: "back-office", as, hash: "#sabloane-globale", ...(params ? { params } : {}), ready, delay: 900, run });
+    const denied = (as, params, hash = "#sabloane-globale") => ({ flow: "back-office", as, hash, ...(params ? { params } : {}), ready: ".e-permits-empty", delay: 900 });
+    const M = "#case-action-modal.is-active";
+    const DR = "[data-tpg-drawer]:not([hidden])";
+    const SH = "[data-dtpl-sheet]:not([hidden])";
+    const T = () => window.GEAPDocTemplatesGlobal;
+    const seq = (...steps) => async (h) => { for (const step of steps) if (step) await step(h); };
+    const blur = async (h) => { document.activeElement?.blur?.(); await h.wait(150); };
+    const MENU = (id) => async (h) => { (await h.find(`li[data-workplace-row="${id}"]`)).scrollIntoView({ block: "center" }); await h.wait(250); await h.click(`li[data-workplace-row="${id}"] [data-stack-menu-trigger]`); await h.wait(200); };
+    const ITEM = (attr, id) => async (h) => { await MENU(id)(h); await h.click(`[${attr}="${id}"]`); await h.wait(300); };
+    const search = (text) => async (h) => { await h.fill("[data-workplace-search]", text); await h.wait(350); };
+    /* create wizard */
+    const nou = async (h) => { await h.click('[data-workplace-add-product="tpg-new"]'); await h.find(`${DR} #tpg-code`); };
+    const code = (text, input = "#tpg-code") => async (h) => { await h.fill(`${DR} ${input}`, text, { leave: false }); };
+    const next = async (h) => { await h.click(`${DR} [data-tpg-next]`); await h.wait(300); };
+    const step2 = seq(nou, code("GEAP.DecizieRetragere"), next, async (h) => { await h.choose(`${DR} [data-tpg-select="process"]`, "Retragere act"); await h.fill(`${DR} #tpg-ru`, "Решение об отзыве Отзыв разрешения", { leave: false }); await h.fill(`${DR} #tpg-description`, "Decizia de retragere a actului permisiv, la cererea titularului sau din oficiu.", { leave: false }); document.querySelector(`${DR} [data-tpg-official]`)?.click(); await h.wait(200); });
+    /* editor */
+    const edit = (id) => async (h) => { (await h.find(`li[data-workplace-row="${id}"]`)).scrollIntoView({ block: "center" }); await h.click(`li[data-workplace-row="${id}"] [data-tpg-edit]`); await h.find(`${SH} [data-dtpl-surface]`); await h.wait(300); };
+    const ed = (id, ...steps) => list(seq(edit(id), ...steps));
+    const view = (v) => async (h) => { await h.click(`${SH} [data-dtpl-view="${v}"]`); await h.wait(300); };
+    const insert = async (h) => { await h.click(`${SH} [data-dtpl-token="{{ValidUntil}}"]`); await h.wait(300); };
+    const save = async (h) => { await h.click(`${SH} [data-dtpl-save]`); await h.wait(500); };
+    const json = (text) => async (h) => { await h.fill(`${SH} [data-dtpl-json]`, text, { leave: false }); };
+    const saveJson = async (h) => { await h.click(`${SH} [data-dtpl-json-save]`); await h.wait(400); };
+    const generate = async (h) => { await h.click(`${SH} [data-dtpl-generate]`); await h.wait(900); };
+    const publish = async (h) => { await h.click(`${SH} [data-dtpl-publish]`); await h.find(`${M} #tpg-publish-note`); };
+    const note = (text) => async (h) => { await h.fill(`${M} #tpg-publish-note`, text, { leave: false }); };
+    const confirm = async (h) => { await h.click(`${M} [data-tpg-publish-confirm]`); await h.wait(500); };
+    /* versions */
+    const versions = async (h) => { await h.click(`${SH} [data-dtpl-history]`); await h.find(`${DR} tbody tr`); await h.wait(200); };
+    const verMenu = (nr) => async (h) => { await h.click(`${DR} tr:has([data-tpg-ver-view="${nr}"]) [data-stack-menu-trigger]`); await h.wait(200); };
+    const verItem = (attr, nr) => async (h) => { await verMenu(nr)(h); await h.click(`[${attr}="${nr}"]`); await h.find(M); await h.wait(300); };
+    /* imports */
+    const imp = async (h) => { await h.click('[data-workplace-secondary-product="tpg-import"]'); await h.find(`${M} [data-tpg-import-apply]`); };
+    const file = (kind) => async (h) => { T().demoImport(kind); await h.wait(350); };
+    const mdocs = async (h) => { await h.click('[data-workplace-tertiary-product="tpg-import-mdocs"]'); await h.find(`${DR} #tpg-m-code`); };
+    const mApply = async (h) => { await h.click(`${DR} [data-tpg-mdocs-apply]`); await h.wait(400); };
+    return {
+      /* US-337 — registry */
+      "tpg-01": list(),
+      "tpg-01a": list(search("refuz")),
+      "tpg-01b": list(search("geap.act")),
+      "tpg-01c": list(search("zzz")),
+      "tpg-01d": list(null, { sabloane: "gol" }),
+      "tpg-01e": list(null, { sabloane: "incarcare" }, ADMIN, "[data-registry-kind='sabloane-globale'] .e-permits-empty"),
+      "tpg-01f": list(MENU("SDC-0404")),
+      "tpg-01g": list(MENU("SDC-0401")),
+      "tpg-01h": list(null, { sabloane: "local" }, LOCAL),
+      /* AC-01 / 02: no permission (no menu item; a direct address refused) */
+      "tpg-02": denied(SPEC),
+      "tpg-02a": denied(LOCAL),
+      "tpg-02b": denied(SPEC, null, "#sablon-global/nou"),
+      /* US-338 — create (3 steps) */
+      "tpg-03": list(nou),
+      "tpg-03a": list(seq(nou, code("GEAP.Inexistent"), next)),
+      "tpg-03b": list(seq(nou, code("GEAP.ActPermisiv"), next)),
+      "tpg-03c": list(step2),
+      "tpg-03d": list(seq(step2, next)),
+      "tpg-03e": list(seq(step2, next, async (h) => { await h.click(`${DR} [data-tpg-create]`); await h.find(`${SH} [data-dtpl-surface]`); await h.wait(500); })),
+      /* US-339 — editor */
+      "tpg-04": ed("SDC-0401", blur),
+      "tpg-04a": ed("SDC-0401", async (h) => { await h.click(`${SH} [data-dtpl-mode="html"]`); await h.wait(300); }),
+      "tpg-04b": ed("SDC-0401", async (h) => { await h.fill(`${SH} [data-dtpl-field-search]`, "valab", { leave: false }); }),
+      "tpg-04c": ed("SDC-0403", insert),
+      "tpg-04d": ed("SDC-0403", insert, save, blur),
+      "tpg-04e": ed("SDC-0401", async (h) => { T().demoBackground(); await h.find(`${M} [data-tpg-bg-apply]`); }),
+      "tpg-04f": list(async (h) => { await h.click('li[data-workplace-row="SDC-0407"] [data-tpg-edit]'); await h.wait(400); }, { sabloane: "lipsa-mdocs" }),
+      /* US-340 — test data + PDF preview */
+      "tpg-05": ed("SDC-0401", view("test")),
+      "tpg-05a": ed("SDC-0401", view("test"), json('{\n  "CaseNumber": "D-2026-004575",\n  "ApplicantName": "Victor Grosu"\n'), saveJson),
+      "tpg-05b": ed("SDC-0404", view("test"), json('{\n  "ApplicantName": "Victor Grosu",\n  "LegalAddress": "mun. Chișinău, str. Ismail 45",\n  "CaseNumber": "D-2026-004575"\n}'), saveJson),
+      "tpg-05c": ed("SDC-0404", view("preview")),
+      "tpg-05d": ed("SDC-0401", view("preview")),
+      "tpg-05e": ed("SDC-0401", view("preview"), generate),
+      "tpg-05f": list(seq(edit("SDC-0401"), view("preview"), generate), { sabloane: "eroare-pdf" }),
+      /* US-341 — publish in MDocs */
+      "tpg-06": ed("SDC-0402", publish),
+      "tpg-06a": ed("SDC-0402", publish, confirm),
+      "tpg-06b": ed("SDC-0402", publish, note("Calea de contestare scoasă din tabel; descrierea scurtată."), confirm, blur),
+      "tpg-06c": list(seq(edit("SDC-0402"), publish, note("Calea de contestare scoasă din tabel."), confirm), { sabloane: "eroare-mdocs" }),
+      "tpg-06d": ed("SDC-0402", async (h) => { await h.click(`${SH} [data-dtpl-pending]`); await h.find("#pending-changes-modal.is-active"); }),
+      "tpg-06e": ed("SDC-0404", publish),
+      /* US-342 — versions */
+      "tpg-07": ed("SDC-0401", versions),
+      "tpg-07a": ed("SDC-0401", versions, verMenu(7)),
+      "tpg-07b": ed("SDC-0401", versions, verItem("data-tpg-ver-view", 7)),
+      "tpg-07c": ed("SDC-0401", versions, verItem("data-tpg-ver-fields", 7)),
+      "tpg-07d": list(ITEM("data-tpg-versions", "SDC-0403")),
+      "tpg-07e": ed("SDC-0401", versions, async (h) => { await h.click(`${DR} [data-tpgv-page="2"]`); await h.wait(300); }),
+      /* US-343 — import from file */
+      "tpg-08": list(imp),
+      "tpg-08a": list(seq(imp, async (h) => { T().demoDrag(true); await h.wait(200); })),
+      "tpg-08b": list(seq(imp, file("ok"))),
+      "tpg-08c": list(seq(imp, file("new"))),
+      "tpg-08d": list(seq(imp, file("type"))),
+      "tpg-08e": list(seq(imp, file("bad"))),
+      "tpg-08f": list(seq(imp, file("new"), async (h) => { await h.click(`${M} [data-tpg-import-apply]`); await h.wait(500); })),
+      /* US-344 — import from MDocs */
+      "tpg-09": list(mdocs),
+      "tpg-09a": list(seq(mdocs, code("GEAP.NotaPlata", "#tpg-m-code"), async (h) => { await h.fill(`${DR} #tpg-m-description`, "Nota de plată generată la înregistrarea cererii.", { leave: false }); })),
+      "tpg-09b": list(seq(mdocs, code("GEAP.Inexistent", "#tpg-m-code"), mApply)),
+      "tpg-09c": list(seq(mdocs, code("GEAP.DecizieRefuz", "#tpg-m-code"), mApply)),
+      "tpg-09d": list(seq(mdocs, code("GEAP.NotaPlata", "#tpg-m-code"), mApply, async (h) => { await h.find(`${SH} [data-dtpl-surface]`); await h.wait(500); })),
+      /* US-345 — deactivate / activate / delete */
+      "tpg-10": list(ITEM("data-tpg-deactivate", "SDC-0403")),
+      "tpg-10a": list(seq(ITEM("data-tpg-deactivate", "SDC-0403"), async (h) => { await h.click("#service-confirm-modal.is-active [data-service-confirm-ok]"); await h.wait(500); }, blur)),
+      "tpg-10b": list(MENU("SDC-0406")),
+      "tpg-10c": list(seq(ITEM("data-tpg-activate", "SDC-0406"), blur)),
+      "tpg-10d": list(ITEM("data-tpg-delete", "SDC-0404")),
+      "tpg-10e": list(seq(ITEM("data-tpg-delete", "SDC-0404"), async (h) => { await h.click(`${M} [data-tpg-delete-confirm]`); await h.wait(500); }, blur)),
+      "tpg-10f": list(ITEM("data-tpg-delete", "SDC-0405"))
     };
   }
 
