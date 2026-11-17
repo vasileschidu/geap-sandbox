@@ -93,3 +93,12 @@
   color: var(--color-text-base-default, #121212);
   font-weight: var(--font-weight-fw-medium, 500);
 }
+
+/* menu icon „Reguli de numerotare” (the BO side menu draws icons as 20 masks per data-nav-id; without it the item paints a
+   solid square — nav-icon-fix 2026-11-17) */
+.e-permits-shell__nav--specialist [data-nav-id="reguli-numerotare"] .e-permits-shell__nav-icon::before {
+  mask-image: url("../assets/icons/hashtag.svg");
+  mask-size: var(--icon-size-medium, 20px) var(--icon-size-medium, 20px);
+  -webkit-mask-image: url("../assets/icons/hashtag.svg");
+  -webkit-mask-size: var(--icon-size-medium, 20px) var(--icon-size-medium, 20px);
+}
