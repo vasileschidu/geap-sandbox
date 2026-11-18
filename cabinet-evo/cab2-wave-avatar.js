@@ -13,8 +13,10 @@
        options.size          avatar diameter in px (default: the face's width, else 72)
        options.palette       colour tokens, e.g. ["--lavender-600", "--forest-green-600", "--blue-sky-500"]
        options.rest          { n, a, color } resting shape; color = a token name (default the brand border token)
-       options.sequence      keyframes [{ at: ms, n, a, color: <palette index> }] — the last one goes to `rest`
-       options.duration      total ms of the morph (default 2000); the pop is the first 500 ms (--motion-duration-slow)
+       options.sequence      shapes [{ n, a, color: <palette index> }] — one step from each to the next, the last → `rest`
+       options.timing        { pop, step, hold, turn } — pop ms (600), each morph + rotate step ms (800, eased in-out),
+                             the still hold between steps ms (350), degrees turned per step (24); total = pop + steps ·
+                             step + (steps − 1) · hold (4 steps → 4.85 s). Rotation only during the steps.
        options.play          false → the resting frame at once (previews, a second visit)
        options.reducedMotion true / false; default = the system setting or `.is-motion-reduced` on <html>
      instance.play() · instance.finish() (jump to rest) · instance.destroy() · instance.done (Promise)
@@ -36,12 +38,6 @@
 
   /* ---------- tokens ---------- */
   const tokenText = (name, el = document.body || root) => getComputedStyle(el).getPropertyValue(name).trim();
-  const tokenMs = (name, fallback) => {
-    const v = tokenText(name);
-    const n = parseFloat(v);
-    if (!Number.isFinite(n)) return fallback;
-    return /ms$/.test(v) ? n : n * 1000;
-  };
   /* a colour token → [r, g, b] 0…255, resolved by the browser (var chains, named colours) */
   let probe = null;
   function tokenRgb(name) {
@@ -82,8 +78,8 @@
       return sy(t);
     };
   }
-  const inOutSine = (x) => 0.5 - 0.5 * Math.cos(Math.PI * x);
-  const outQuad = (x) => 1 - (1 - x) * (1 - x);
+  /* in-out cubic = cubic-bezier(0.65, 0, 0.35, 1): each step starts and lands softly (the research note's „in-out per step”) */
+  const inOutCubic = (x) => (x < 0.5 ? 4 * x * x * x : 1 - ((-2 * x + 2) ** 3) / 2);
 
   /* ---------- colour: OKLab (perceptual — no grey middles between blue, green and violet) ---------- */
   const toLin = (c) => { c /= 255; return c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4; };
@@ -123,13 +119,15 @@
   /* ---------- the EVO default entrance (Figma 1651:68043 measured: n 4 · 10 · 12 · 22, A/R .024 – .104) ---------- */
   const DEFAULT_PALETTE = ["--lavender-600", "--forest-green-600", "--blue-sky-500"];
   const DEFAULT_SEQUENCE = [
-    { at: 0, n: 4, a: 0.08, color: 0 },     /* the set's centre: a soft rounded square, violet */
-    { at: 600, n: 10, a: 0.06, color: 0 },  /* the outer violet ring */
-    { at: 1100, n: 12, a: 0.08, color: 1 }, /* deep teal, the set's middle rings */
-    { at: 1550, n: 22, a: 0.03, color: 2 }, /* the fine blue ring */
+    { n: 4, a: 0.08, color: 0 },     /* the set's centre: a soft rounded square, violet */
+    { n: 10, a: 0.06, color: 0 },  /* the outer violet ring */
+    { n: 12, a: 0.08, color: 1 }, /* deep teal, the set's middle rings */
+    { n: 22, a: 0.03, color: 2 }, /* the fine blue ring */
   ];
   const DEFAULT_REST = { n: 12, a: 0.025, color: "--color-border-brand-default" }; /* the Figma teal avatar: 12 waves, A/R .025 */
-  const POP = { from: 0.6, peak: 1.02, peakAt: 0.65, ms: 500 }; /* duration = --motion-duration-slow */
+  const POP = { from: 0.6, peak: 1.02, peakAt: 0.65 };
+  /* product owner 2026-11-18 („too quick”): pop, then each wave change = one morph + rotate step, a still hold between */
+  const DEFAULT_TIMING = { pop: 600, step: 800, hold: 350, turn: 24 };
 
   let uid = 0;
   const WaveAvatar = { lastStats: null, path };
@@ -138,18 +136,20 @@
     if (!host) return null;
     const face = options.face || host.querySelector(".avatar");
     const size = options.size || (face && face.getBoundingClientRect().width) || 72;
-    const gap = options.gap ?? 4;
+    const gap = options.gap ?? Math.round(size / 18); /* 72 → 4 · 80 → 4 · 96 → 5 */
     const stroke = parseFloat(tokenText("--border-width-2", host)) || 2;
     const reduced = options.reducedMotion ?? systemReduced();
-    const duration = options.duration || 2000;
+    const timing = { ...DEFAULT_TIMING, ...(options.timing || {}) };
     const palette = (options.palette || DEFAULT_PALETTE).map(tokenRgb);
     const rest = { ...DEFAULT_REST, ...(options.rest || {}) };
     const restLab = oklab(tokenRgb(rest.color));
     const keys = [...(options.sequence || DEFAULT_SEQUENCE).map((k) => ({ ...k, lab: oklab(palette[k.color] || palette[0]) })),
-      { at: duration, n: rest.n, a: rest.a, lab: restLab }];
+      { n: rest.n, a: rest.a, lab: restLab }];
+    const steps = keys.length - 1;
+    const duration = timing.pop + steps * timing.step + (steps - 1) * timing.hold;
 
     /* the face's mean radius: peaks (a ≤ 0.08) stay inside its square box; the ring sits `gap` outside it */
-    const Rm = size / 2 - 2.5;
+    const Rm = (size / 2) * 0.93; /* 72 → 33.5 */
     const Rr = Rm + gap + stroke / 2;
     const pad = Math.ceil(size * 0.2);
     const box = size + 2 * pad;
@@ -183,21 +183,24 @@
       else ring.style.removeProperty("stroke");
     }
     /* the morph at time t (ms): segment k → k+1, eased in-out; rotation = one calm turn of 36°, decelerating */
-    const ROT = (36 * Math.PI) / 180;
+    const TURN = (timing.turn * Math.PI) / 180;
+    /* the frame at t ms: the first shape during the pop; then step i (morph i → i+1 + one turn, eased in-out) and a still
+       hold; colour mixes with the step */
     function frameAt(t) {
-      const time = Math.min(duration, Math.max(0, t));
-      let k = 0;
-      while (k < keys.length - 2 && time >= keys[k + 1].at) k++;
-      const p = keys[k];
-      const q = keys[k + 1];
-      const w = inOutSine((time - p.at) / Math.max(1, q.at - p.at));
+      const u = Math.max(0, t - timing.pop);
+      const cycle = timing.step + timing.hold;
+      const i = Math.min(steps - 1, Math.floor(u / cycle));
+      const within = u - i * cycle;
+      const w = t < timing.pop ? 0 : inOutCubic(Math.min(1, within / timing.step));
+      const p = keys[i];
+      const q = keys[i + 1];
       return {
-        params: { n0: p.n, n1: q.n, w, a: p.a + (q.a - p.a) * w, rot: ROT * outQuad(time / duration) },
+        params: { n0: p.n, n1: q.n, w, a: p.a + (q.a - p.a) * w, rot: TURN * (i + w) },
         lab: mixLab(p.lab, q.lab, w),
       };
     }
 
-    const restParams = { n0: rest.n, a: rest.a, rot: ROT };
+    const restParams = { n0: rest.n, a: rest.a, rot: TURN * steps };
     let raf = 0;
     let pop = null;
     let resolveDone;
@@ -228,7 +231,7 @@
         { transform: `scale(${POP.from})`, opacity: 0, easing: enter },
         { transform: `scale(${POP.peak})`, opacity: 1, offset: POP.peakAt, easing: standard },
         { transform: "scale(1)", opacity: 1 },
-      ], { duration: tokenMs("--motion-duration-slow", POP.ms) });
+      ], { duration: timing.pop });
       const start = performance.now();
       let last = start;
       const deltas = [];

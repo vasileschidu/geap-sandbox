@@ -853,8 +853,16 @@
     heroWave = null;
     const waveHost = hero?.querySelector("[data-cab2-wave-host]");
     if (!waveHost || !window.WaveAvatar) return;
-    heroWave = window.WaveAvatar.mount(waveHost, { size: AVATAR_XL(), play });
+    /* the hero face is 96 desktop / 80 phones (cab2-wave-avatar.css § 1b) — read from its computed width */
+    const face = waveHost.querySelector(".avatar");
+    const size = (face && parseFloat(getComputedStyle(face).width)) || AVATAR_XL();
+    heroWave = window.WaveAvatar.mount(waveHost, { size, play });
   }
+  /* the size changes at 760: redraw the resting shape at the new size (never replays) */
+  phoneQuery.addEventListener("change", () => {
+    const hero = els.page?.querySelector("[data-cab2-hero]");
+    if (hero && heroWave) mountWave(hero, false);
+  });
 
   /* ---------- „Schimbă fotografia” dialog (cab2-wave-v1, product owner 2026-11-18) ----------
      Library modal `--md` (phones: the sheet, css/modal-phone.css): preview = your avatar in the wave shape (static) ·

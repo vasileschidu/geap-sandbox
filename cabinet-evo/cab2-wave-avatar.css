@@ -53,6 +53,51 @@
   animation: none;
 }
 
+/* ---------- 1b. hero size (product owner 2026-11-18: „avatar bigger so it's clearer”) ----------
+   APPROVED off-library hero size: the library avatar stops at xl 72 and the spacing scale at 72 → composed from tokens:
+   96 on desktop (48 × 2), 80 on phones (40 × 2). Initials = heading H3 sm (28 / 22 phones), icon 32. The badge stays
+   library xs 24 and the pen Small 32; their centres sit on the circle at 45° (r − r/√2 − half the part). Hero only —
+   the dialog preview keeps the library 72. */
+.cab2-hero--identity [data-cab2-wave-host] .avatar.avatar--xl {
+  font-size: var(--text-heading-h3-sm-font-size, 28px);
+  height: calc(var(--spacing-48, 48px) * 2);
+  width: calc(var(--spacing-48, 48px) * 2);
+}
+
+.cab2-hero--identity [data-cab2-wave-host] .avatar.avatar--xl svg {
+  height: var(--spacing-32, 32px);
+  width: var(--spacing-32, 32px);
+}
+
+/* 96: badge centre 2 inside the corner, pen 2 outside */
+.cab2-hero--identity .cab2-avatar-badge.avatar {
+  bottom: var(--spacing-2, 2px);
+  right: var(--spacing-2, 2px);
+}
+
+.cab2-hero--identity .cab2-photo-edit.btn {
+  bottom: calc(var(--spacing-2, 2px) * -1);
+  right: calc(var(--spacing-2, 2px) * -1);
+}
+
+@media (max-width: 760px) {
+  .cab2-hero--identity [data-cab2-wave-host] .avatar.avatar--xl {
+    height: calc(var(--spacing-40, 40px) * 2);
+    width: calc(var(--spacing-40, 40px) * 2);
+  }
+
+  /* 80: badge on the corner, pen 4 outside */
+  .cab2-hero--identity .cab2-avatar-badge.avatar {
+    bottom: 0;
+    right: 0;
+  }
+
+  .cab2-hero--identity .cab2-photo-edit.btn {
+    bottom: calc(var(--spacing-4, 4px) * -1);
+    right: calc(var(--spacing-4, 4px) * -1);
+  }
+}
+
 /* ---------- 2. „Schimbă fotografia” — the pen on the avatar's bottom-right (your own avatar only) ----------
    library `btn btn-neutral btn-sm btn-icon-only btn-rounded` (32, icon 16) with the badge's 2 white ring; its centre on
    the circle at 45° (as the apricot badge, which only shows when acting for someone — never both) */
