@@ -188,9 +188,10 @@
   ];
   const BURST = {
     start: 500,      /* ms after the entrance starts = 50 ms into step 1 (the pop ends at 450) */
-    length: 1400,    /* each icon's whole trip; the last one (delay 110) is under the avatar by ≈ 2.01 s = the end of
-                        step 2 (2.05 s) — the last step's glide to rest then plays alone */
-    turn: 0.45,      /* share of the trip at which it reaches the edge and turns straight back */
+    length: 2500,    /* each icon's whole trip; the last one (delay 110) is under the avatar by ≈ 3.11 s, before the ring
+                        settles (3.35 s) */
+    turn: 0.62,      /* share of the trip at which it turns back: 500 + 0.62 · 2500 = 2050 ms = the start of step 3 (the
+                        glide to rest); the long quint ease-out lets it drift softly near the edge until then */
   };
   /* v16 (product owner): they linger near the edge through easing, never a static pause — a strong quint ease-out (long
      soft approach) flows into a slow quint ease-in (a very gentle start back, then accelerating under the avatar) */
@@ -350,9 +351,9 @@
         const at = (px, py, scale, rot) => `translate(-50%, -50%) translate(${px.toFixed(1)}px, ${py.toFixed(1)}px) rotate(${rot.toFixed(1)}deg) scale(${scale})`;
         icon.animate([
           { transform: at(0, 0, 0.9, 0), opacity: 0, offset: 0, easing: OUT_EASE },
-          { opacity: 1, offset: BURST.turn * 0.35 },
+          { opacity: 1, offset: BURST.turn * 0.25 },
           { transform: at(x, y, 1, tilt + row.spin / 2), opacity: 1, offset: BURST.turn, easing: BACK_EASE },
-          { opacity: 1, offset: 0.8 },
+          { opacity: 1, offset: 0.86 },
           { transform: at(0, 0, 0.85, tilt * 0.3 + row.spin), opacity: 0, offset: 1 },
         ], { duration: BURST.length, delay: BURST.start + row.delay, fill: "both" });
       });
