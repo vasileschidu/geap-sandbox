@@ -353,7 +353,7 @@
           { transform: at(0, 0, 0.9, 0), opacity: 0, offset: 0, easing: OUT_EASE },
           { opacity: 1, offset: BURST.turn * 0.25 },
           { transform: at(x, y, 1, tilt + row.spin / 2), opacity: 1, offset: BURST.turn, easing: BACK_EASE },
-          { opacity: 1, offset: 0.86 },
+          { opacity: 1, offset: BURST.turn + (1 - BURST.turn) * 0.88 }, /* opaque for 88 % of the return, then a quick fade under the avatar */
           { transform: at(0, 0, 0.85, tilt * 0.3 + row.spin), opacity: 0, offset: 1 },
         ], { duration: BURST.length, delay: BURST.start + row.delay, fill: "both" });
       });
