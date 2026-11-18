@@ -69,7 +69,7 @@
             <span class="e-permits-pager__size-label" id="${menuId}-label">${esc(sizeLabel)}:</span>
             <button class="select-control e-permits-pager__trigger" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="${menuId}" aria-labelledby="${menuId}-label ${menuId}-value" data-pager-size-trigger><span class="select-value" id="${menuId}-value">${perPage}</span>${icon("icon-chevron-bottom")}</button>
             <ul class="e-permits-fo-intent-menu e-permits-pager__menu" id="${menuId}" role="menu" aria-label="${esc(sizeLabel)}" hidden>
-              ${sizes.map((size) => `<li role="none"><button class="e-permits-fo-intent-menu__item" type="button" role="menuitemradio" aria-checked="${size === perPage}" data-${prefix}-per-page="${size}"><span>${size}</span>${size === perPage ? icon("icon-checkmark-large") : ""}</button></li>`).join("")}
+              ${sizes.map((size) => `<li role="none"><button class="e-permits-fo-intent-menu__item" type="button" role="menuitemradio" aria-checked="${size === perPage}" data-${prefix}-per-page="${size}"><span>${size}</span>${size === perPage ? icon("icon-checkmark-small") : ""}</button></li>`).join("")}
             </ul>
           </div>
         </div>
