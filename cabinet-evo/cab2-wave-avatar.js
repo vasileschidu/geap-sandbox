@@ -169,20 +169,22 @@
        angle   direction in degrees (0 = right, 90 = down, 180 = left, 270 = up)
        reach   share of the free distance to the hero's edge (inside the avatar's height band, clear of the ring)
        rotate  tilt in degrees at the edge (eases back to 30 % of it on the return)
+       spin    its own turn over the whole trip in degrees (as if thrown; direction alternates; half by the edge, the rest
+               on the way back — on the travel's easing, so it slows near the edge and picks up on the return)
        delay   ms after the burst start (out and back keep the same offset) */
   const BURST_DESKTOP = [
-    { icon: "group-filled", tone: "blue-sky", size: "--spacing-32", angle: 197, reach: 0.92, rotate: -14, delay: 0 },
-    { icon: "document-filled", tone: "lavender", size: "--spacing-40", angle: 328, reach: 0.82, rotate: 12, delay: 60 },
-    { icon: "home-line-filled", tone: "magenta", size: "--spacing-32", angle: 152, reach: 0.74, rotate: 18, delay: 25 },
-    { icon: "wallet-filled", tone: "forest-green", size: "--spacing-32", angle: 14, reach: 0.96, rotate: -10, delay: 90 },
-    { icon: "business-filled", tone: "apricot", size: "--spacing-40", angle: 236, reach: 0.86, rotate: 8, delay: 45 },
-    { icon: "id-card-filled", tone: "purple", size: "--spacing-32", angle: 44, reach: 0.7, rotate: -18, delay: 110 },
+    { icon: "group-filled", tone: "blue-sky", size: "--spacing-32", angle: 197, reach: 0.92, rotate: -14, spin: 40, delay: 0 },
+    { icon: "document-filled", tone: "lavender", size: "--spacing-40", angle: 328, reach: 0.82, rotate: 12, spin: -50, delay: 60 },
+    { icon: "home-line-filled", tone: "magenta", size: "--spacing-32", angle: 152, reach: 0.74, rotate: 18, spin: 35, delay: 25 },
+    { icon: "wallet-filled", tone: "forest-green", size: "--spacing-32", angle: 14, reach: 0.96, rotate: -10, spin: -60, delay: 90 },
+    { icon: "business-filled", tone: "apricot", size: "--spacing-40", angle: 236, reach: 0.86, rotate: 8, spin: 45, delay: 45 },
+    { icon: "id-card-filled", tone: "purple", size: "--spacing-32", angle: 44, reach: 0.7, rotate: -18, spin: -30, delay: 110 },
   ];
   const BURST_PHONE = [
-    { icon: "group-filled", tone: "blue-sky", size: "--spacing-24", angle: 195, reach: 0.9, rotate: -12, delay: 0 },
-    { icon: "document-filled", tone: "lavender", size: "--spacing-32", angle: 330, reach: 0.85, rotate: 14, delay: 50 },
-    { icon: "wallet-filled", tone: "forest-green", size: "--spacing-24", angle: 15, reach: 0.95, rotate: -8, delay: 30 },
-    { icon: "home-line-filled", tone: "magenta", size: "--spacing-32", angle: 150, reach: 0.8, rotate: 16, delay: 80 },
+    { icon: "group-filled", tone: "blue-sky", size: "--spacing-24", angle: 195, reach: 0.9, rotate: -12, spin: 45, delay: 0 },
+    { icon: "document-filled", tone: "lavender", size: "--spacing-32", angle: 330, reach: 0.85, rotate: 14, spin: -40, delay: 50 },
+    { icon: "wallet-filled", tone: "forest-green", size: "--spacing-24", angle: 15, reach: 0.95, rotate: -8, spin: 30, delay: 30 },
+    { icon: "home-line-filled", tone: "magenta", size: "--spacing-32", angle: 150, reach: 0.8, rotate: 16, spin: -55, delay: 80 },
   ];
   const BURST = {
     start: 500,      /* ms after the entrance starts = 50 ms into step 1 (the pop ends at 450) */
@@ -349,9 +351,9 @@
         icon.animate([
           { transform: at(0, 0, 0.9, 0), opacity: 0, offset: 0, easing: OUT_EASE },
           { opacity: 1, offset: BURST.turn * 0.35 },
-          { transform: at(x, y, 1, tilt), opacity: 1, offset: BURST.turn, easing: BACK_EASE },
+          { transform: at(x, y, 1, tilt + row.spin / 2), opacity: 1, offset: BURST.turn, easing: BACK_EASE },
           { opacity: 1, offset: 0.8 },
-          { transform: at(0, 0, 0.85, tilt * 0.3), opacity: 0, offset: 1 },
+          { transform: at(0, 0, 0.85, tilt * 0.3 + row.spin), opacity: 0, offset: 1 },
         ], { duration: BURST.length, delay: BURST.start + row.delay, fill: "both" });
       });
       host.insertBefore(burstLayer, host.firstChild);
