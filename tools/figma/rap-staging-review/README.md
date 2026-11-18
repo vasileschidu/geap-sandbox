@@ -93,22 +93,60 @@ rap.json steps; new ones for rff-03…10), loop the probe; (2) overlay states (m
 1440 × 900 / 375 × 812, page states full page; (3) phones: staging's page is 1236 px wide at 375 (horizontal overflow,
 already a Must fix) → clip the shot to 375 and pin the overflow; (4) save as `out/<block>-<vp>.png` (git-ignored).
 
-## Row format (planned)
+## Review sections (built right of the copied board, x ≥ 25000)
 
-Per block on the duplicate page: `Figma screen | staging screenshot` side by side at the SAME scale (1 : 1, tops
-aligned, gap 120), red numbered pins (1…10) on the staging side, a notes column to the right (pin number + one English
-sentence). Phones the same: each 375 Figma screen gets its own row with a 375 staging capture and its own pins
-(64 rows total: 32 desktop + 32 phone). Not-reachable screens get a grey „No staging equivalent” note instead of a screenshot.
+- `R00 · Start here · Staging review` **22877:45579** — title, one-line rule, contents (one linked line per section + counts).
+  https://www.figma.com/design/YrIzksVgFqtPqDd5z9zY5h/?node-id=22877-45579
+- `R01 · Registry list · staging review` **22875:39127** (Rows 22875:39128) — DONE 2026-11-18: 10 rows, 62 pins.
+  https://www.figma.com/design/YrIzksVgFqtPqDd5z9zY5h/?node-id=22875-39127
+- The page carries `sharedPluginData("geap_qa","skip")` — screenshots are evidence: image fills allowed, the quality
+  sweep skips this page.
 
-**Pin wording and values** come from the measured report (internal source, PO 2026-11-18), never guessed:
-`tools/ui-qa/out/staging-compare/rap-2026-11-18-final/report.json` (findings: screen, viewport, element key,
-property, staging value, expected value + token, note, crop; also the dev page `reviews/rap-staging/index.html`).
-Every expected value is checked against the Figma screen first: where the prototype value and Figma differ,
-**Figma wins** and the note says so.
+## Row format (built in R01 — awaiting PO approval)
 
-## Open questions
+`Row · <block> · <1440|375>` = white card (bg base/default, r24, padding 40, gap 24), VERTICAL:
+1. `Row header` — H3 „<block> · <what it shows> · desktop 1440 | phone 375” + optional neutral tag-filled (Subtle,
+   Small): „Different data — compare layout and styling only” (staging record differs) / „Not reachable on staging”.
+2. `Compare` HORIZONTAL gap 120, tops aligned, 1 : 1 scale:
+   - `Figma` — H5 label + a **clone** of the screen from the copied board (originals untouched).
+   - `Staging` — H5 label with the staging path + `Staging shot · <file>` frame (image fill, 1 px border/base stroke,
+     clip on) with `Review / Pin` instances ABSOLUTE at the wrong elements (overlays). Not reachable → grey r16
+     placeholder (tag + one sentence), no pins.
+   - `Notes` (560 fixed, hug) — H5 „Differences · n”, then `Note <n>` rows: pin instance + Body/Default text
+     (≤ 1 sentence, „<what staging does>. Figma: <the Figma value>.”), optional grey extra line (why data differs).
+- Pin = local component `Review / Pin` **22873:6458** (🧱 Local Components; 32 circle, background/danger/default,
+  2 px white outline, `Number#22873:0`). Pin centre ≈ the element's top edge / end, never over the word itself.
+- Rows stack in `Rows` (VERTICAL gap 120, first child = section header H1 + Large description); section =
+  rows + 80 padding. Row order = the original column order, desktop row then phone row.
 
-1. „data” blocks: compare against the nearest staging record (UI only), or skip?
-2. 06 rap-03x: staging shows „Vizualizare act” as a modal — pin the docked-panel difference as one finding or skip?
-3. Staging-only pairs without a Figma screen (no results, error, page-size menu, A4 modal): add Figma screens later or leave out?
-4. Phones: clip at 375 (pin the overflow once) or show the full 1236-wide page?
+## Script
+
+- `shots.mjs` — block → staging url + read-only steps → `tools/ui-qa/out/rap-staging-review/<block>-<vp>.png`
+  (git-ignored), through `run.mjs --probe` (read-only guard). Page states = whole page trimmed to content (min
+  900 / 812); `mode: viewport` for menus / sheets / panels; phones clipped to the left 375 (staging is 1236 wide —
+  pin #1 on every phone row). `crop.swift` does the crop/trim (sips can't crop from 0,0; compiled once to `.crop-bin`).
+- Into Figma: `shots.mjs --only <blocks> --sheet-only` writes `sheet.html` (one `<img>` per shot) →
+  `generate_figma_design` (nodeId = review page) → `capture-to-figma.mjs --page tools/ui-qa/out/rap-staging-review/sheet.html
+  --state sheet --capture <id> --width 1440 --selector "#sheet"` → the capture lands as `Image (staging · <file>)`
+  frames; read their `imageHash`, reuse the hashes in new `Staging shot` frames, delete the capture root.
+  R01 hashes: rap-01-1440 075b5f8d…, rap-01-375 57189075…, rap-01q-1440 801f7b60…, rap-01q-375 0030da64…,
+  rap-s01-1440 6e511a98…, rap-s01-375 df72f9fb….
+- Pins: wording from `report.json` (+ obvious visual differences), each expected value read from the Figma screen
+  first (Figma wins: e.g. breadcrumb current = grey Regular, search 387 × 40 white, Filtru icon filter-2 r8).
+
+## What's left (≈ calls per section, Sonnet can continue)
+
+| Section | Rows | Staging shots to write | ≈ Figma calls |
+|---|---|---|---|
+| R02 Filtre | 21 desktop + 22 phone (rff-12 phone only; 04a, 11a, 15 not reachable; 11, 13, 14 data) | steps for rff-03…10 (Autoritate, Data eliberării, date picker month/year, Mai multe, Adresă) | 8–10 (5 rows per call) + 1 capture |
+| R03 Act profile | 7 + 7 (02d, 02g, 02h not reachable; 02a data; 02 → nearest = 147-2026-00005) | 02, 02a, 02b, 02c | 4 + 1 |
+| R05 Company acts | 1 + 1 not reachable | — | 1 |
+| R06 Act data first | 03x desktop, 03w desktop (data), 03x phone | 03x 1440 + 375 viewport | 2 + 1 |
+| Not in Figma | staging only at 1440 + 375, one note each, no pins: search-empty, error (`blockQueries`), „Acte pe pagină” menu, A4 modal | entries `nf-*` in shots.mjs (+ error) | 2 + 1 |
+
+Then: update the R00 contents lines (counts + links) after every section.
+
+## Open questions (answered by the PO 2026-11-18)
+
+„data” blocks → nearest staging record + tag; rap-03x → pin the panel-vs-modal difference; staging-only screens →
+„Not in Figma” section; phones → clip at 375, pin the overflow.
