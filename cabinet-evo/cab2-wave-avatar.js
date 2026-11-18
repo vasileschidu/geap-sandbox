@@ -187,11 +187,11 @@
     { icon: "home-line-filled", tone: "magenta", size: "--spacing-32", angle: 150, reach: 0.8, rotate: 16, spin: -55, delay: 80 },
   ];
   const BURST = {
-    start: 500,      /* ms after the entrance starts = 50 ms into step 1 (the pop ends at 450) */
-    length: 2500,    /* each icon's whole trip; the last one (delay 110) is under the avatar by ≈ 3.11 s, before the ring
+    start: 0,        /* with the pop: the first icon leaves the moment the avatar starts scaling in */
+    length: 3000,    /* each icon's whole trip; the last one (delay 110) is under the avatar by ≈ 3.11 s, before the ring
                         settles (3.35 s) */
-    turn: 0.62,      /* share of the trip at which it turns back: 500 + 0.62 · 2500 = 2050 ms = the start of step 3 (the
-                        glide to rest); the long quint ease-out lets it drift softly near the edge until then */
+    turn: 2050 / 3000, /* turns back at 2050 ms = the start of step 3 (the glide to rest); the long quint ease-out lets it
+                        drift softly near the edge until then */
   };
   /* v16 (product owner): they linger near the edge through easing, never a static pause — a strong quint ease-out (long
      soft approach) flows into a slow quint ease-in (a very gentle start back, then accelerating under the avatar) */
