@@ -24,6 +24,10 @@
                              gradient — the outline stays still); paused when the tab is hidden or the host off screen;
                              none with reduced motion. Default on inside `[data-cab2-hero]` / `[data-wave-idle]`;
                              false = off, { period } = ms per turn.
+       options.burst         false = off; default inside `[data-cab2-hero]`: 10 filled group icons (6 on phones) fly out
+                             from under the avatar like sun rays (even angles ± 12°, ± 10 px), rest near the hero's edge in
+                             the avatar's height band, then accelerate back under it and fade; colours = CSS tokens.
+                             options.burstBox = the box they stay in. Reduced motion: none.
        options.play          false → the resting frame at once (previews, a second visit)
        options.reducedMotion true / false; default = the system setting or `.is-motion-reduced` on <html>
      instance.play() · instance.finish() (jump to rest) · instance.destroy() · instance.done (Promise)
@@ -146,6 +150,23 @@
   const stepEase = bezier("cubic-bezier(0.45, 0, 0.2, 1)"); /* in-out, a touch longer out */
   const lastEase = bezier("cubic-bezier(0.45, 0, 0.1, 1)"); /* gentle start, long soft glide to rest */
 
+  /* ---------- burst (product owner 2026-11-18): Cabinet group icons fly out from behind the avatar like sun rays and
+     come back under it. Filled sprite icons only; colours = CSS (cab2-wave-avatar.css § 6, one token per icon). ---------- */
+  const BURST_ICONS = ["group-filled", "document-filled", "home-line-filled", "wallet-filled", "business-filled",
+    "id-card-filled", "receipt-check-filled", "calendar-filled", "envelope-filled", "map-pin-filled"];
+  const BURST_SIZES = [24, 32, 20, 24, 32, 20, 24, 24, 20, 32]; /* depth */
+  const BURST = {
+    start: 200,      /* ms after the entrance starts (during the pop) */
+    stagger: 40,     /* ms between icons, both ways */
+    length: 2800,    /* each icon's whole trip; the last one is gone by ≈ 3.36 s, as the ring settles */
+    out: 0.26,       /* share of the trip flying out (ease-out) */
+    back: 0.7,       /* share at which it starts back (ease-in, accelerating) */
+    jitterDeg: 12,   /* ± angle jitter */
+    jitterPx: 10,    /* ± x / y jitter */
+  };
+  const OUT_EASE = "cubic-bezier(0.16, 1, 0.3, 1)";  /* fast start, soft stop */
+  const BACK_EASE = "cubic-bezier(0.55, 0, 1, 0.45)"; /* builds up speed */
+
   let uid = 0;
   const WaveAvatar = { lastStats: null, path };
 
@@ -257,6 +278,64 @@
        `idle.period` ms (10 s), linear, seamless; the outline never moves. Runs only while the tab is visible and the
        host is on screen (IntersectionObserver); none with reduced motion. Default on inside the hero, off elsewhere. ---- */
     const idleOn = !reduced && (options.idle ?? !!host.closest("[data-cab2-hero], [data-wave-idle]"));
+    /* the burst: on by default inside the hero, its icons kept inside the hero's box */
+    const burstBox = options.burst === false ? null : (options.burstBox || host.closest("[data-cab2-hero]"));
+    let burstLayer = null;
+    function burst() {
+      if (!burstBox || reduced) return;
+      const use = document.querySelector('use[href*="sprite.svg"]');
+      const sprite = use ? use.getAttribute("href").split("#")[0] : "";
+      if (!sprite) return;
+      const phone = window.matchMedia("(max-width: 760px)").matches;
+      const count = phone ? 6 : BURST_ICONS.length;
+      const hb = burstBox.getBoundingClientRect();
+      const ab = host.getBoundingClientRect();
+      const cx = ab.left + ab.width / 2;
+      const cy = ab.top + ab.height / 2;
+      /* the reachable area = an ellipse inside the hero: full half-width, but only the avatar's own height band, so the
+         icons never land over the name / line under it */
+      const rx = Math.max(0, Math.min(cx - hb.left, hb.right - cx) - 24);
+      const ry = ab.height / 2 + 8;
+      burstLayer = document.createElement("span");
+      burstLayer.className = "cab2-wave__burst";
+      burstLayer.setAttribute("aria-hidden", "true");
+      const offset = Math.random() * 360;
+      for (let k = 0; k < count; k++) {
+        const size = BURST_SIZES[k % BURST_SIZES.length];
+        const deg = offset + (k * 360) / count + (Math.random() * 2 - 1) * BURST.jitterDeg;
+        const t = (deg * Math.PI) / 180;
+        const reach = 0.78 + Math.random() * 0.18;
+        let x = Math.cos(t) * rx * reach + (Math.random() * 2 - 1) * BURST.jitterPx;
+        const y = Math.sin(t) * ry * reach + (Math.random() * 2 - 1) * BURST.jitterPx;
+        /* never rest on the ring: push sideways until clear of the ring + half the icon + 8 */
+        const clear = ab.width / 2 + pad / 2 + size / 2 + 8;
+        if (Math.hypot(x, y) < clear) x = (Math.cos(t) < 0 ? -1 : 1) * Math.sqrt(Math.max(0, clear * clear - y * y));
+        const spin = (Math.random() * 2 - 1) * 30;
+        const icon = document.createElementNS(NS, "svg");
+        icon.setAttribute("class", `cab2-wave__ray cab2-wave__ray--${k % 10}`);
+        icon.setAttribute("width", String(size));
+        icon.setAttribute("height", String(size));
+        icon.setAttribute("focusable", "false");
+        const ref = document.createElementNS(NS, "use");
+        ref.setAttribute("href", `${sprite}#icon-${BURST_ICONS[k % BURST_ICONS.length]}`);
+        icon.appendChild(ref);
+        burstLayer.appendChild(icon);
+        const at = (px, py, scale, rot) => `translate(-50%, -50%) translate(${px.toFixed(1)}px, ${py.toFixed(1)}px) rotate(${rot.toFixed(1)}deg) scale(${scale})`;
+        icon.animate([
+          { transform: at(0, 0, 0.4, spin), opacity: 0, offset: 0, easing: OUT_EASE },
+          { transform: at(x, y, 1, 0), opacity: 1, offset: BURST.out, easing: "linear" },
+          { transform: at(x, y, 1, 0), opacity: 1, offset: BURST.back, easing: BACK_EASE },
+          { transform: at(0, 0, 0.3, -spin), opacity: 0, offset: 1 },
+        ], { duration: BURST.length, delay: BURST.start + k * BURST.stagger, fill: "both" });
+      }
+      host.insertBefore(burstLayer, host.firstChild);
+    }
+    function clearBurst() {
+      if (!burstLayer) return;
+      burstLayer.getAnimations({ subtree: true }).forEach((a) => a.cancel());
+      burstLayer.remove();
+      burstLayer = null;
+    }
     const period = (options.idle && options.idle.period) || 10000;
     const restDeg = (restParams.rot * 180) / Math.PI;
     let idleRaf = 0;
@@ -292,6 +371,7 @@
       cancelAnimationFrame(raf);
       raf = 0;
       if (pop) { pop.cancel(); pop = null; }
+      clearBurst();
       draw(restParams, null); /* rest gradient = the tokens */
       startIdle();
       host.classList.remove("is-wave-playing");
@@ -308,6 +388,8 @@
       /* v13 (product owner): hover / pointer / focus never end or restart the entrance — it always plays to the end; a
          keyboard focus on the hidden pen shows it (CSS :focus-visible) while the animation keeps going */
       const enter = tokenText("--motion-ease-enter") || "cubic-bezier(0.05, 0.7, 0.1, 1)";
+      clearBurst();
+      burst();
       pop = host.animate([
         { transform: `scale(${POP.from})`, opacity: 0, easing: enter },
         { transform: "scale(1)", opacity: 1 },
@@ -338,6 +420,7 @@
 
     instance.destroy = () => {
       cancelAnimationFrame(raf);
+      clearBurst();
       stopIdle();
       if (io) io.disconnect();
       if (idleOn) document.removeEventListener("visibilitychange", idleSync);

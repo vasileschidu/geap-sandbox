@@ -107,6 +107,37 @@
   }
 }
 
+/* ---------- 1c. burst (product owner 2026-11-18): group icons fly out from under the avatar and back (the module's
+   Web Animations move them; transform / opacity only). Behind the face and the ring, never clickable. ---------- */
+.cab2-wave__burst {
+  height: 0;
+  left: 50%;
+  pointer-events: none;
+  position: absolute;
+  top: 50%;
+  width: 0;
+  z-index: -1;
+}
+
+.cab2-wave__ray {
+  fill: currentColor;
+  left: 0;
+  position: absolute;
+  top: 0;
+}
+
+/* one EVO colour per icon (mid tones) */
+.cab2-wave__ray--0 { color: var(--blue-sky-500, #3379db); }
+.cab2-wave__ray--1 { color: var(--lavender-500, #784cea); }
+.cab2-wave__ray--2 { color: var(--magenta-500, #bb46d8); }
+.cab2-wave__ray--3 { color: var(--forest-green-500, #338287); }
+.cab2-wave__ray--4 { color: var(--apricot-500, #f79009); }
+.cab2-wave__ray--5 { color: var(--purple-500, #985ffa); }
+.cab2-wave__ray--6 { color: var(--blue-sky-600, #0058d2); }
+.cab2-wave__ray--7 { color: var(--magenta-600, #aa18ce); }
+.cab2-wave__ray--8 { color: var(--forest-green-600, #006369); }
+.cab2-wave__ray--9 { color: var(--lavender-600, #561fe5); }
+
 /* ---------- 2. „Schimbă fotografia” — the pen on the avatar's bottom-right (your own avatar only) ----------
    library `btn btn-neutral btn-sm btn-icon-only btn-rounded` (32, icon 16) with the badge's 2 white ring; its centre on
    the circle at 45° (as the apricot badge, which only shows when acting for someone — never both) */
