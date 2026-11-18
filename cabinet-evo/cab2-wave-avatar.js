@@ -188,10 +188,10 @@
   ];
   const BURST = {
     start: 0,        /* with the pop: the first icon leaves the moment the avatar starts scaling in */
-    length: 3000,    /* each icon's whole trip; the last one (delay 110) is under the avatar by ≈ 3.11 s, before the ring
-                        settles (3.35 s) */
-    turn: 2050 / 3000, /* turns back at 2050 ms = the start of step 3 (the glide to rest); the long quint ease-out lets it
-                        drift softly near the edge until then */
+    length: 2200,    /* each icon's whole trip; the last one (delay 110) is under the avatar by ≈ 2.31 s, before the final
+                        step (2.05 → 3.35 s) is far along */
+    turn: 1300 / 2200, /* turns back at 1300 ms ≈ the start of step 2 (1250 ms); the quint ease-out drifts it near the edge
+                        until then */
   };
   /* v16 (product owner): they linger near the edge through easing, never a static pause — a strong quint ease-out (long
      soft approach) flows into a slow quint ease-in (a very gentle start back, then accelerating under the avatar) */
