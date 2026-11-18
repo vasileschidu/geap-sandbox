@@ -331,3 +331,8 @@
   padding: 0;
   text-align: left;
 }
+
+/* env-sync-clip-v1: the last batch open — its table's square corners stay inside the card's rounded bottom */
+.e-permits-sync-activity__list {
+  overflow: clip;
+}

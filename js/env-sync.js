@@ -578,7 +578,7 @@
       const id = toggle.dataset.syncBatch;
       if (S.open.has(id)) S.open.delete(id); else S.open.add(id);
       renderActivity();
-      document.querySelector(`[data-sync-batch="${id}"]`)?.focus();
+      document.querySelector(`[data-sync-batch="${id}"]`)?.focus({ preventScroll: true });
       return;
     }
     if (t.closest("[data-sync-audit]")) { openAudit(); return; }
@@ -627,7 +627,23 @@
     load().then(() => { if (nav && who().has) nav.click(); else showDenied(); });
     return true;
   });
+  /* env-sync-clip-v1 (PO bug 2026-11-18, batch table „cut”): `.e-permits-shell__content` is overflow: hidden, but
+     scrollIntoView / focus() still scroll it — the whole canvas then sits higher and its lower part (the activity panel)
+     is cut off. On this page the shift goes to the real scroller (the canvas surface) and the hidden one stays at 0. */
+  const keepContentAtTop = () => {
+    const content = document.querySelector(".e-permits-shell__content");
+    if (!content || content.dataset.syncScrollGuard) return;
+    content.dataset.syncScrollGuard = "1";
+    content.addEventListener("scroll", () => {
+      if (!content.scrollTop || !listOpen() || getComputedStyle(content).overflowY !== "hidden") return;
+      const shift = content.scrollTop;
+      content.scrollTop = 0;
+      const surface = content.querySelector(".e-permits-shell__canvas-surface");
+      if (surface) surface.scrollTop += shift;
+    });
+  };
   const boot = () => {
+    keepContentAtTop();
     load();
     observeRegistry();
     new MutationObserver(() => observeRegistry()).observe(document.body, { childList: true, subtree: false });
