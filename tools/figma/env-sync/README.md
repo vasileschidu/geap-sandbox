@@ -33,17 +33,21 @@ Screens: `envs`/`ids` keys `scr_<state>`; blocks `blk_<state>`. No raw captures 
    - Empty states → `Empty state · boxed` Size=Default (33fcf9d6…): inline routine in the 01e/01f call (frame = 48 icon circle + title + text).
 3. Audit: `const AUD = new Function("return " + figma.root.getSharedPluginData("envs","audit"))(); await AUD([blockIds])` (= tools/ui-qa/figma-audit.js without comments / RESPONSIVE).
 
-## Left to do (call cap reached 2026-11-18)
-1. **Blank gap on list screens** (sync-01a 28:1303 is 3207 tall, was 2127; same on 01, 01g, 03…): `Container:margin` (pinned right column wrapper,
-   1068–1583 high) and the page `Container` grew when the clip pass set clipped containers to HUG. Set `Container:margin` height = its table's
-   height (or HUG on the table wrapper) and restack with `LIB("stack")`. Screenshot-check 01a / 01g / 07 afterwards.
-2. **Arrows**: `figma.createConnector` does not exist in design files. Paste one connector from GEAP (e.g. 10952:283686) onto page 3:2, store
-   its id as `ids.connector`, then run `LIB("arrow",{from,to,label,magnet,endMagnet})` (stored op clones it). Planned 9 arrows, from:
+## Left to do (updated 2026-11-18, finish-up job)
+Done: blank gap fixed. The empty white `Pinned column (overlay)` frames (+ their `Container` / `Container:margin` wrappers) were deleted on
+9 screens: the code table fits at 1440, so no pinned shadow and the empty frame also hid the right-hand columns. sync-01a screen 3207 → 2139
+(code 2127); other list screens 2646–2654 (code 2642). Sections re-stacked. Dialogs 04 / 05a rebuilt (the footer buttons were missing),
+radios FILL, skipped-objects notice one item per line, screens = dialog + 48; 06 drawer footer pinned to the bottom; 04d toast heading; 03b note.
+1. **Arrows**: still open. `figma.createConnector` does not exist in design files; no connector on the page. Paste one from GEAP (e.g. 10952:283686)
+   onto page 3:2, store its id as `ids.connector`, then run `LIB("arrow",{from,to,label,magnet,endMagnet})` for the 9 planned arrows:
    sync-01 tab „DEV ⇄ STAGING” → 01a · row checkbox → 01g · search → 01e · row „DEV → STAGING” → 03 · type cell „Formular” → 06 ·
    batch header → 07 · 01g „Sincronizează selecția” → 04 · 03 footer confirm → 03b · 04 footer confirm → 04d (same column: end RIGHT).
-3. Whole px: 875 fractional left (GRID cell children centred at .5, hug texts inside cells). Off-scale 31 (captured 10 / 11 / 1 paddings in
-   Heading 2 / Button / Close), spacing-unbound 150 (mostly 2 / 4 px inside captured rows), 2 clipped-content = table wider than its scroll box (intended).
+2. Whole px: ~865 fractional left = GRID cell children centred at .5 (odd cell − content) and GRID cells wider than their track. Do NOT fix by
+   padding (tried: 1,385 off-scale paddings, reverted). Needs even row heights / content heights in the table cells.
+   Off-scale 31 (captured 10 / 11 / 1 paddings in Heading 2 / Button / Close), spacing-unbound 150 (2 / 4 px inside captured rows), 2 clipped-content.
+3. Known differences to code: 04 / 05a show the full dialog (code scrolls it at 900 with the scroll cue); 03b hint „Se aplică tuturor pașilor…”
+   is replaced by the error in the library textarea; sidebar lacks Calendar / KPI / Widgete / Reguli de numerotare items (GEAP sidebar main).
 4. Library gaps: the GEAP sidebar main has no „Sincronizarea mediilor” item — the screens borrow the hidden „Reguli de numerotare” slot under
-   Setări (instance overrides), so Reguli de numerotare is not shown. Add a real hidden item to GEAP 12673:12268 when GEAP is writable. No library
-   drawer: the history drawer (sync-06) is the captured frame with library controls. sync-02 / 01e / 01f boxed empty states keep the default icon (lock / search glyph keys not mapped).
+   Setări. No library drawer: the history drawer (sync-06) is the captured frame with library controls. sync-02 / 01e / 01f boxed empty states
+   keep the default icon.
 5. Code notes for proto-engineer: toolbar buttons use generic icons (Sincronizează selecția = upload, Sincronizează tot = plus-large).
