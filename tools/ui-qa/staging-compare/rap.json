@@ -1,0 +1,485 @@
+{
+  "id": "rap",
+  "title": "RAP — Registrul actelor permisive (public)",
+  "viewports": [
+    1440,
+    375
+  ],
+  "staging": {
+    "base": "https://evo.staging.egov.md/geap-rap",
+    "ready": "main h1",
+    "scope": "main",
+    "hideCss": ".fod-dialog-container:has(.fod-cookie-banner){display:none!important}",
+    "delay": 800,
+    "ignore": ""
+  },
+  "ours": {
+    "base": "http://localhost:8935",
+    "page": "e-permits-acte-permisive.html",
+    "scope": "main",
+    "hideCss": ".msup-bubble,.e-permits-fo-testcfg{display:none!important}"
+  },
+  "componentAudit": {},
+  "screens": [
+    {
+      "id": "list",
+      "title": "Register list (default)",
+      "viewports": [
+        1440,
+        375
+      ],
+      "staging": {
+        "url": "/"
+      },
+      "ours": {
+        "state": "rap-01"
+      }
+    },
+    {
+      "id": "search",
+      "title": "Search with results",
+      "viewports": [
+        1440,
+        375
+      ],
+      "staging": {
+        "url": "/registry?q=147-2026"
+      },
+      "ours": {
+        "state": "rap-01q"
+      }
+    },
+    {
+      "id": "search-empty",
+      "title": "Search / filter with no results",
+      "viewports": [
+        1440,
+        375
+      ],
+      "staging": {
+        "url": "/registry?q=zzzzqq"
+      },
+      "ours": {
+        "state": "rap-01d"
+      },
+      "match": [
+        {
+          "key": "empty:title",
+          "kind": "text",
+          "staging": "text:Nu am găsit niciun act",
+          "ours": ".e-permits-empty__title, .empty-state__title, [class*=empty] h2, [class*=empty] h3, [class*=empty] strong"
+        }
+      ]
+    },
+    {
+      "id": "error",
+      "title": "Data service down (error state)",
+      "viewports": [
+        1440,
+        375
+      ],
+      "staging": {
+        "url": "/",
+        "blockQueries": true,
+        "steps": [
+          {
+            "click": "input[placeholder^='Caută după']"
+          },
+          {
+            "type": "147-2026"
+          },
+          {
+            "key": "Enter",
+            "after": 2500
+          },
+          {
+            "waitFor": "text:Registrul nu poate fi afișat"
+          }
+        ]
+      },
+      "ours": {
+        "state": "rap-f20"
+      },
+      "match": [
+        {
+          "key": "error:title",
+          "kind": "text",
+          "staging": "text:Registrul nu poate fi afișat",
+          "ours": "[class*=empty] h2, [class*=empty] h3, [class*=error] h2, [class*=error] h3, .e-permits-empty__title"
+        }
+      ]
+    },
+    {
+      "id": "filters-open",
+      "title": "Filter bar open (desktop)",
+      "viewports": [
+        1440
+      ],
+      "staging": {
+        "url": "/",
+        "steps": [
+          {
+            "click": "text:Filtru",
+            "after": 1200
+          }
+        ]
+      },
+      "ours": {
+        "state": "rap-01a"
+      }
+    },
+    {
+      "id": "filter-statut",
+      "title": "Statut filter menu open, „Valabil” ticked (desktop)",
+      "viewports": [
+        1440
+      ],
+      "staging": {
+        "url": "/",
+        "steps": [
+          {
+            "click": "text:Filtru",
+            "after": 1200
+          },
+          {
+            "click": "text:Statut",
+            "after": 1000
+          },
+          {
+            "click": "text:Valabil",
+            "after": 1500
+          }
+        ]
+      },
+      "ours": {
+        "state": "rap-01b"
+      },
+      "match": [
+        {
+          "key": "control:statut-chip",
+          "kind": "control",
+          "staging": "text:Statut",
+          "ours": "text:Statut: Valabil"
+        }
+      ]
+    },
+    {
+      "id": "filter-applied",
+      "title": "Filter applied (Statut = Valabil + Suspendat)",
+      "viewports": [
+        1440
+      ],
+      "staging": {
+        "url": "/",
+        "steps": [
+          {
+            "click": "text:Filtru",
+            "after": 1200
+          },
+          {
+            "click": "text:Statut",
+            "after": 1000
+          },
+          {
+            "click": "text:Valabil",
+            "after": 1500
+          },
+          {
+            "click": "text:Suspendat",
+            "after": 1500
+          },
+          {
+            "key": "Escape",
+            "after": 1200
+          }
+        ]
+      },
+      "ours": {
+        "state": "rap-04d"
+      }
+    },
+    {
+      "id": "filter-sheet",
+      "title": "Phone filter sheet",
+      "viewports": [
+        375
+      ],
+      "staging": {
+        "url": "/",
+        "steps": [
+          {
+            "click": "text:Filtru",
+            "after": 1500
+          }
+        ]
+      },
+      "ours": {
+        "state": "rap-04c"
+      }
+    },
+    {
+      "id": "pager",
+      "title": "Pager closed (range, size select, prev / next)",
+      "viewports": [
+        1440,
+        375
+      ],
+      "staging": {
+        "url": "/",
+        "scope": ".rap-pager"
+      },
+      "ours": {
+        "state": "rap-01",
+        "scope": ".rap-pagination"
+      },
+      "match": [
+        {
+          "key": "pager:prev",
+          "kind": "control",
+          "staging": "text:Anterior",
+          "ours": "text:Pagina anterioară"
+        },
+        {
+          "key": "pager:next",
+          "kind": "control",
+          "staging": "text:Următor",
+          "ours": "text:Pagina următoare"
+        },
+        {
+          "key": "pager:size",
+          "kind": "field",
+          "staging": ".rap-pager__size-select",
+          "ours": "[data-pager-size-trigger]"
+        }
+      ]
+    },
+    {
+      "id": "page-size",
+      "title": "„Acte pe pagină” menu open",
+      "viewports": [
+        1440,
+        375
+      ],
+      "staging": {
+        "url": "/",
+        "steps": [
+          {
+            "click": ".rap-pager__size-select",
+            "after": 1200,
+            "optional": true
+          }
+        ]
+      },
+      "ours": {
+        "state": "rap-01",
+        "steps": [
+          {
+            "click": "[data-pager-size-trigger]",
+            "after": 800,
+            "optional": true
+          }
+        ]
+      },
+      "match": [
+        {
+          "key": "pager:size",
+          "kind": "field",
+          "staging": ".rap-pager__size-select",
+          "ours": "[data-pager-size-trigger]"
+        }
+      ]
+    },
+    {
+      "id": "page-size-focus",
+      "title": "„Acte pe pagină” keyboard focus (Tab)",
+      "viewports": [
+        1440,
+        375
+      ],
+      "staging": {
+        "url": "/",
+        "scope": ".rap-pager",
+        "steps": [
+          {
+            "tabTo": ".rap-pager__size-select",
+            "optional": true
+          }
+        ]
+      },
+      "ours": {
+        "state": "rap-01",
+        "scope": ".rap-pagination",
+        "steps": [
+          {
+            "tabTo": "[data-pager-size-trigger]",
+            "optional": true
+          }
+        ]
+      },
+      "match": [
+        {
+          "key": "pager:prev",
+          "kind": "control",
+          "staging": "text:Anterior",
+          "ours": "text:Pagina anterioară"
+        },
+        {
+          "key": "pager:next",
+          "kind": "control",
+          "staging": "text:Următor",
+          "ours": "text:Pagina următoare"
+        },
+        {
+          "key": "pager:size",
+          "kind": "field",
+          "staging": ".rap-pager__size-select",
+          "ours": "[data-pager-size-trigger]"
+        }
+      ]
+    },
+    {
+      "id": "profile",
+      "title": "Act profile (Suspendat)",
+      "viewports": [
+        1440,
+        375
+      ],
+      "staging": {
+        "url": "/registry/147-2026-00005?authority=33",
+        "steps": [
+          {
+            "waitFor": "text:Vizualizare act"
+          }
+        ]
+      },
+      "ours": {
+        "state": "rap-02b"
+      },
+      "match": [
+        {
+          "key": "control:view-act",
+          "kind": "control",
+          "staging": "text:Vizualizare act",
+          "ours": "text:Vezi act permisiv"
+        },
+        {
+          "key": "control:copy-act-number",
+          "kind": "control",
+          "staging": "text:Copiază",
+          "ours": "[aria-label^='Copiază']"
+        }
+      ]
+    },
+    {
+      "id": "act-modal",
+      "title": "„Vizualizare act” data modal",
+      "viewports": [
+        1440,
+        375
+      ],
+      "staging": {
+        "url": "/registry/147-2026-00005?authority=33",
+        "scope": "mud-modal",
+        "steps": [
+          {
+            "click": "text:Vizualizare act",
+            "after": 2000
+          },
+          {
+            "waitFor": "text:Date generale"
+          }
+        ]
+      },
+      "ours": {
+        "state": "rap-03n",
+        "scope": "[role=dialog]"
+      },
+      "match": [
+        {
+          "key": "heading:modal-title",
+          "kind": "text",
+          "staging": "text:Vizualizare act",
+          "ours": "text:Vizualizare act"
+        }
+      ]
+    },
+    {
+      "id": "not-found",
+      "title": "Unknown act",
+      "viewports": [
+        1440,
+        375
+      ],
+      "staging": {
+        "url": "/registry/NU-EXISTA-0000?authority=33",
+        "steps": [
+          {
+            "waitFor": "text:Actul nu a fost găsit."
+          }
+        ]
+      },
+      "ours": {
+        "state": "rap-02c"
+      },
+      "match": [
+        {
+          "key": "empty:title",
+          "kind": "text",
+          "staging": "text:Actul nu a fost găsit.",
+          "ours": ".e-permits-empty__title, [class*=empty] h2, [class*=empty] h3"
+        }
+      ]
+    },
+    {
+      "id": "header",
+      "title": "EVO header (shared)",
+      "viewports": [
+        1440,
+        375
+      ],
+      "staging": {
+        "url": "/",
+        "scope": "header"
+      },
+      "ours": {
+        "state": "rap-01",
+        "scope": "header"
+      }
+    }
+  ],
+  "readOnly": {
+    "_about": "Only GET/HEAD/OPTIONS leave the browser. The register's search is a POST that READS (api/permits/search); it is let through. Nothing else.",
+    "allowPost": [
+      "/geap-rap/api/permits/search"
+    ]
+  },
+  "_about": "Screen pairs: staging (developers' build, READ-ONLY) vs our demo state. staging.url is relative to staging.base; steps are read-only actions (click / type / key / wait / waitFor / hover / scroll; vp: phone|desktop). match = per-pair overrides { key, kind, staging, ours } (CSS or text:<name>, searched inside the scope). See README.md.",
+  "unmatchedScreens": {
+    "only in the prototype (no staging equivalent reached)": [
+      "company acts view „Vezi toate actele companiei” (rap-01g)",
+      "numbered pagination 1 2 … 98 (staging has 6 records: no pages)",
+      "search suggestions while typing (rap-s01)",
+      "long-name clamp + tooltip (rap-01e, rap-02x)",
+      "EVO header menus open (rap-01m/n/o)",
+      "filter facet search inside long lists (rap-01r…u)",
+      "loading skeletons (rap-0x load states)"
+    ],
+    "only on staging": [
+      "profile blocks „Istoric complet” and „Ai nevoie de ajutor?” (measured inside the profile screen as presence findings)",
+      "filter facets Subdiviziune, Adresă, Domeniu, Tip beneficiar, status „Extins” (presence findings)",
+      "„Acte pe pagină” as a select field (ours: borderless select-value)"
+    ],
+    "not reachable read-only": [
+      "cookie consent (hidden, never clicked)",
+      "pages behind login (Cabinet) — out of scope"
+    ]
+  },
+  "rules": {
+    "_about": "Rule numbers that are not in tools/ui-qa/specs/component-audit.json. chipHeights: filter / facet chips (RAP compact chips 36 — components.md › Facet filter · RAP options; trigger 40; phones 48).",
+    "chipHeights": [
+      36,
+      40,
+      48
+    ]
+  }
+}
