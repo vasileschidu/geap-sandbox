@@ -40,7 +40,7 @@
     /* type-first-v1 (2026-10-21): the service / act name first, then the object when the request has one */
     const what = [service.title, dosar.object].filter(Boolean).join(" · ") || dosar.nr;
     const list = [];
-    const open = { label: "Vezi dosarul", href: dosarUrl(dosar) };
+    const open = { label: "Vezi cererea", href: dosarUrl(dosar) };
     if (dosar.status === "schita") {
       const removed = removedDraft(dosar);
       list.push({ kind: "draft-saved", at: dosar.created, icon: "icon-cloud-upload-success", tone: "neutral", title: "Schița a fost salvată", text: `${what}. O poți continua până pe ${longDate(dosar.draft?.expires)}, apoi se elimină automat.`, action: removed ? null : { label: "Continuă schița", href: draftUrl(dosar) } });
@@ -48,7 +48,7 @@
       if (removed) list.push({ kind: "draft-removed", at: `${nextDay(dosar.draft.expires)}T00:00`, icon: "icon-delete", tone: "neutral", title: "Schița a fost eliminată automat", text: `${what}. Termenul de păstrare a schiței a expirat pe ${longDate(dosar.draft.expires)}; datele nu mai pot fi recuperate.`, action: { label: "Vezi detalii", href: dosarUrl(dosar) } });
       return list;
     }
-    if (dosar.submitted) list.push({ at: dosar.submitted, icon: "icon-circle-checkmark-filled", tone: "success", title: "Solicitarea a fost depusă", text: `${what}. Certificatul constatator este în profilul dosarului.`, action: open });
+    if (dosar.submitted) list.push({ at: dosar.submitted, icon: "icon-circle-checkmark-filled", tone: "success", title: "Cererea a fost depusă", text: `${what}. Certificatul constatator este în profilul dosarului.`, action: open });
     if (dosar.payment?.paid && !dosar.feeDuringExam) list.push({ at: dosar.payment.paid, icon: "icon-credit-card", tone: "success", title: "Plata a fost confirmată", text: `${money(dosar.payment.amount)} pentru nota de plată ${dosar.payment.nr}.`, action: open });
     /* US-126 AC-16: the suspension notice carries the reason chosen by the specialist + „Neconformități depistate”;
        kept in the history after the suspension ends (suplinire sent / term expired) */
@@ -69,7 +69,7 @@
     if (dosar.status === "achitare" && dosar.payment) list.push({ at: dosar.payment.created, icon: "icon-credit-card", tone: "warning", title: "Ai o notă de plată de achitat", text: `${money(dosar.payment.amount)} · nota ${dosar.payment.nr} · până la ${longDate(dosar.payment.due)}.`, action: { label: "Achitare", pay: dosar } });
     if (dosar.payment?.paid && dosar.feeDuringExam) list.push({ at: dosar.payment.paid, icon: "icon-credit-card", tone: "success", title: "Plata a fost confirmată", text: `${money(dosar.payment.amount)} · nota ${dosar.payment.nr}. Dosarul a revenit în examinare.`, action: open });
     if (dosar.status === "finalizat" && dosar.result === "aprobat") list.push({ at: dosar.finalized, icon: dosar.decisionOnly ? "icon-page-text" : "icon-permission", tone: "success", title: dosar.decisionOnly ? "Decizia a fost emisă" : "Actul permisiv a fost emis", text: what, action: dosar.actId && !dosar.decisionOnly ? { label: "Vezi actul", href: cabUrl("acte", { act: dosar.actId }) } : open });
-    if (dosar.status === "finalizat" && dosar.result === "respins") list.push({ at: dosar.finalized, icon: "icon-circle-error-filled", tone: "danger", title: "Solicitarea a fost respinsă", text: `${what}. Motivul este în decizia din profilul dosarului.`, action: open });
+    if (dosar.status === "finalizat" && dosar.result === "respins") list.push({ at: dosar.finalized, icon: "icon-circle-error-filled", tone: "danger", title: "Cererea a fost respinsă", text: `${what}. Motivul este în decizia din profilul dosarului.`, action: open });
     return list;
   }
 
@@ -106,11 +106,11 @@
     C.setHeaderTitle("Notificări");
     root.innerHTML = `
       ${window.Cab2Shell?.sectionHeadHtml("notificari", { titleId: "nt-title" }) || ""}
-      ${ro ? C.restrictionHtml(ro, "Nu mai primești notificări noi pentru solicitările acestui beneficiar; vezi doar notificările primite până la acea dată, fără acțiuni.") : ""}
+      ${ro ? C.restrictionHtml(ro, "Nu mai primești notificări noi pentru cererile acestui beneficiar; vezi doar notificările primite până la acea dată, fără acțiuni.") : ""}
       <div class="nt-lead" data-nt-lead></div>
       ${notes.length
         ? `<section class="e-permits-stack sm-list nt-list" aria-label="Notificări"><ul class="e-permits-stack__list" role="list">${notes.map((note, index) => itemHtml(note, index, Boolean(ro))).join("")}</ul></section>`
-        : `<div class="cab-state">${window.GEAPEmptyState.render({ title: "Nu ai notificări", text: "Evenimentele solicitărilor apar aici.", icon: "notification" })}</div>`}`;
+        : `<div class="cab-state">${window.GEAPEmptyState.render({ title: "Nu ai notificări", text: "Evenimentele cererilor tale apar aici.", icon: "notification" })}</div>`}`;
 
     /* US-135 AC-02 / AC-11: the notification's link → MPay (the Solicitările mele stand-in); AC-14: an expired
        fee shows the message and nothing is redirected */

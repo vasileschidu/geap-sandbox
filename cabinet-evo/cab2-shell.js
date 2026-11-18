@@ -270,6 +270,13 @@
   };
   const NEW_POWER = "imputernicire-noua";
   const TODO_PAGE = "de-rezolvat";
+  /* pages outside the Cabinet that v2 does not have yet (S1 leftover, 2026-11-18: links stay inside v2) — Ajutor, the
+     service catalog, the signed-out page → the „not built yet” page, never the old Cabinet (index.html?view=…) */
+  const OUTSIDE = {
+    ajutor: { title: "Ajutor", text: "Aici vor fi răspunsurile la întrebările frecvente și datele de contact ale suportului." },
+    catalog: { title: "Catalogul serviciilor", text: "Aici vei alege serviciul pentru o cerere nouă." },
+    iesire: { title: "Ai ieșit din cont", text: "Aici va fi pagina de după ieșirea din cont." },
+  };
 
   const menuOf = (ctx) => (ctx.kind === "company" ? MENU.company : MENU.person)
     .map(([group, ids]) => [group, ctx.scope ? ids.filter((id) => ctx.scope.includes(id) && !NEVER_FOR_POWER.includes(id)) : ids])
@@ -330,6 +337,13 @@
     return items.filter((item) => inMenu(ctx, item.section))
       .sort((a, b) => a.level - b.level || String(a.date || "9999").localeCompare(String(b.date || "9999")));
   }
+  /* „De rezolvat” = levels 1–3 only (what the status sentence, the badges and the switcher count); „În curând”
+     (user 2026-11-18) = levels 4–5: expiring soon / upcoming / informational, nothing to do yet — nearest date first */
+  const isTodo = (item) => item.level <= 3;
+  const splitTodos = (items) => ({
+    todo: items.filter(isTodo),
+    soon: items.filter((item) => !isTodo(item)).sort((a, b) => String(a.date || "9999").localeCompare(String(b.date || "9999")) || a.level - b.level),
+  });
   const countOf = (ctx, filter = () => true) => todosOf(ctx).filter((item) => item.level <= 3 && filter(item)).length;
   const sectionCount = (ctx, id) => countOf(ctx, (item) => item.section === id);
   const groupCount = (ctx, group) => countOf(ctx, (item) => sectionsOf(ctx, group).includes(item.section));
@@ -370,6 +384,7 @@
     if (VIEW !== "cabinet") { const section = { solicitari: "cereri", acte: "acte", notificari: "notificari" }[VIEW]; return { page: "section", section, group: groupOf(ctx, section) }; }
     if (s === NEW_POWER) return ctx.kind === "self" ? { page: "section", section: NEW_POWER } : { page: "acasa", redirect: true };
     if (s === TODO_PAGE) return { page: "todo" };
+    if (OUTSIDE[s]) return { page: "outside", section: s };
     if (s && SECTIONS[s]) {
       if (inMenu(ctx, s)) return { page: "section", section: s, group: groupOf(ctx, s) };
       if (ctx.scope) return { page: "section", section: s, denied: true };
@@ -381,7 +396,7 @@
     }
     return { page: "acasa", redirect: Boolean(g || s) };
   }
-  const currentTarget = () => (state.page === "group" ? { g: state.group } : state.page === "section" ? { s: state.section } : state.page === "todo" ? { s: TODO_PAGE } : {});
+  const currentTarget = () => (state.page === "group" ? { g: state.group } : state.page === "section" ? { s: state.section } : state.page === "todo" ? { s: TODO_PAGE } : state.page === "outside" ? { s: state.section } : {});
 
   /* ---------- frame ---------- */
   document.body.insertAdjacentHTML("afterbegin", '<a class="btn btn-secondary btn-md cab2-skip" href="#cab2-content" data-cab2-skip>Sari la conținut</a>');
@@ -489,7 +504,7 @@
         <ul class="e-permits-shell__nav-list" aria-labelledby="${prefix}-g-cont">${[
           SINGLE ? "" : navItem({ id: "cont-switch", label: "Pentru cine acționezi?", button: true, attrs: ' aria-haspopup="dialog" data-cab2-switch-open' }),
           navItem({ id: "cont-mpass", label: "Contul MPass", href: "https://mpass.gov.md", attrs: ' target="_blank" rel="noopener"' }).replace("</span></a>", `${hidden(", se deschide în altă pagină")}</span></a>`),
-          navItem({ id: "cont-ajutor", label: "Ajutor", href: "index.html?view=catalog" }),
+          navItem({ id: "cont-ajutor", label: "Ajutor", href: urlOf({ s: "ajutor" }), attrs: goAttr({ s: "ajutor" }) }),
           navItem({ id: "cont-iesire", label: "Ieși din cont", button: true, attrs: " data-cab2-signout" }),
         ].filter(Boolean).map((item) => `<li>${item}</li>`).join("")}</ul>
       </div>` : "";
@@ -584,9 +599,11 @@
     const ctx = state.ctx;
     const href = item.id ? recordHref(item.section, item.id) : sectionHref(item.section);
     const target = { s: item.id ? "" : item.section, href };
-    /* view-only: no action, only the way in; acting for someone: the button names the entity (screen readers) */
+    /* view-only: no action, only the way in; acting for someone: the button names the entity — visibly on a payment
+       („Achită pentru Agro-Nord SRL”, wiki 02 › Contexts; S1 leftover 2026-11-18), for screen readers on the others */
     const label = ctx.viewOnly ? "Vezi detaliile" : item.action;
-    const forWhom = ctx.kind === "self" ? "" : hidden(` pentru ${ctx.name}`);
+    const pay = !ctx.viewOnly && item.action === "Achită";
+    const forWhom = ctx.kind === "self" ? "" : pay ? ` pentru ${escape(ctx.name)}` : hidden(` pentru ${ctx.name}`);
     const button = `<a class="btn btn-neutral btn-sm" ${linkAttrs(target)}>${escape(label)}${forWhom}</a>`;
     const meta = [titleOf(item.section, ctx), ...(item.meta || []).filter((part) => part && part !== titleOf(item.section, ctx))];
     /* a record number = the compact copy value (act row meta slot 1), as in the lists */
@@ -642,7 +659,7 @@
   function homeHtml() {
     const ctx = state.ctx;
     const own = ctx.kind === "self";
-    const todos = todosOf(ctx);
+    const { todo: todos, soon } = splitTodos(todosOf(ctx));
     const count = countOf(ctx);
     const lines = own
       ? [escape(todoText(count, true))]
@@ -653,12 +670,17 @@
       const max = isPhone() ? 3 : 5;
       parts.push(block("cab2-home-todo", "De rezolvat", rowList(todos.slice(0, max).map(todoRow), "De rezolvat"), todos.length > max ? { s: TODO_PAGE, href: urlOf({ s: TODO_PAGE }), label: `Vezi toate (${todos.length})` } : null));
     }
+    /* 4 · În curând — directly under „De rezolvat” (or under the title when nothing is to do); hidden when empty */
+    if (soon.length) {
+      const max = isPhone() ? 3 : 5;
+      parts.push(block("cab2-home-soon", "În curând", rowList(soon.slice(0, max).map(todoRow), "În curând"), soon.length > max ? { s: TODO_PAGE, href: urlOf({ s: TODO_PAGE }), label: `Vezi toate (${soon.length})` } : null));
+    }
     /* 5 · Cererile tale în lucru */
     if (inMenu(ctx, "cereri")) {
       const open = openRequests(ctx).slice(0, 3);
       const body = open.length ? rowList(open.map(requestRow), "Cereri în lucru")
         : ctx.newUser
-          ? emptyBox({ title: "Nu ai încă nicio cerere", text: "Depui o cerere din Catalogul serviciilor și o urmărești apoi aici.", icon: "page-text", actionHtml: `<a class="${btn("secondary")}" href="index.html?view=catalog">Deschide catalogul</a>` })
+          ? emptyBox({ title: "Nu ai încă nicio cerere", text: "Depui o cerere din Catalogul serviciilor și o urmărești apoi aici.", icon: "page-text", actionHtml: `<a class="${btn("secondary")}" ${linkAttrs({ s: "catalog", href: urlOf({ s: "catalog" }) })}>Deschide catalogul</a>` })
           : emptyBox({ title: "Nu ai cereri în lucru", text: "Cererile finalizate sunt în lista cererilor.", icon: "page-text" });
       parts.push(block("cab2-home-cereri", own ? "Cererile tale în lucru" : "Cereri în lucru", body, open.length || !ctx.newUser ? { ...toSection("cereri"), label: "Vezi toate cererile" } : null));
     }
@@ -698,12 +720,13 @@
   function groupHtml(group) {
     const ctx = state.ctx;
     const ids = sectionsOf(ctx, group);
-    const todos = todosOf(ctx).filter((item) => ids.includes(item.section));
+    const { todo: todos, soon } = splitTodos(todosOf(ctx).filter((item) => ids.includes(item.section)));
     const count = countOf(ctx, (item) => ids.includes(item.section));
     const status = count ? todoText(count, ctx.kind === "self") : ctx.kind === "self" ? "Nu ai nimic de rezolvat aici" : "Nimic de rezolvat aici";
     const sources = [...new Set(ids.filter((id) => SECTIONS[id].source).map((id) => pick(SECTIONS[id].source, ctx)[1]))];
     const parts = [headHtml({ title: groupLabel(ctx, group), lines: [escape(pick(GROUP_TEXT[group], ctx) || ""), `<strong>${escape(status)}</strong>`], caption: `Date de la ${sources.join(", ")} · ${SOURCE_TIME}` })];
     if (todos.length) parts.push(block("cab2-group-todo", "De rezolvat", rowList(todos.map(todoRow), "De rezolvat")));
+    if (soon.length) parts.push(block("cab2-group-soon", "În curând", rowList(soon.map(todoRow), "În curând")));
     if (group === "cereri") {
       const open = openRequests(ctx).slice(0, 5);
       parts.push(block("cab2-group-open", ctx.kind === "self" ? "Cererile tale în lucru" : "Cereri în lucru", open.length ? rowList(open.map(requestRow), "Cereri în lucru") : emptyBox({ title: "Nu ai cereri în lucru", icon: "page-text" })));
@@ -753,19 +776,24 @@
     text: "Aici vei introduce IDNP-ul sau IDNO-ul persoanei pe care o reprezinți, numărul și data împuternicirii notariale, ce acoperă și până când este valabilă, apoi vei încărca actul.",
     icon: "shield-user",
   })}</div>`;
+  const outsideHtml = (id) => `<div class="cab2-page" data-cab2-page="${escape(id)}">${headHtml({ title: OUTSIDE[id].title })}${emptyBox({
+    title: "În lucru — pagina se construiește", text: OUTSIDE[id].text, icon: "time",
+  })}</div>`;
   function todoPageHtml() {
-    const todos = todosOf(state.ctx);
+    const { todo: todos, soon } = splitTodos(todosOf(state.ctx));
     return `<div class="cab2-page" data-cab2-page="${TODO_PAGE}">${headHtml({ title: "De rezolvat", crumbs: [{ label: "Acasă", href: urlOf() }], lines: ["Termenele, plățile și cererile care așteaptă răspunsul tău, în ordinea în care contează."] })}${
-      todos.length ? rowList(todos.map(todoRow), "De rezolvat") : emptyBox({ title: "Nu ai nimic de rezolvat", icon: "circle-checkmark" })}</div>`;
+      todos.length ? rowList(todos.map(todoRow), "De rezolvat") : emptyBox({ title: "Nu ai nimic de rezolvat", icon: "circle-checkmark-filled" })}${
+      soon.length ? block("cab2-todo-soon", "În curând", rowList(soon.map(todoRow), "În curând")) : ""}</div>`;
   }
   function pageHtml() {
     if (state.denied) return deniedHtml(state.section);
     if (state.page === "group") return groupHtml(state.group);
     if (state.page === "todo") return todoPageHtml();
+    if (state.page === "outside") return outsideHtml(state.section);
     if (state.page === "section") return state.section === NEW_POWER ? newPowerHtml() : sectionHtml(state.section);
     return homeHtml();
   }
-  const pageName = () => (state.denied ? "Nu este disponibil pentru această împuternicire" : state.page === "group" ? groupLabel(state.ctx, state.group) : state.page === "todo" ? "De rezolvat" : state.page === "section" ? titleOf(state.section) : "Acasă");
+  const pageName = () => (state.denied ? "Nu este disponibil pentru această împuternicire" : state.page === "group" ? groupLabel(state.ctx, state.group) : state.page === "todo" ? "De rezolvat" : state.page === "outside" ? OUTSIDE[state.section].title : state.page === "section" ? titleOf(state.section) : "Acasă");
   const pageTitle = () => {
     const ctx = state.ctx;
     document.title = [pageName(), ctx.kind === "self" ? "" : ctx.name, "EVO Cabinet"].filter(Boolean).join(" · ");
@@ -834,7 +862,7 @@
       <div class="e-permits-fo-avatar-menu__content" data-cab2-switch-list>${switchListHtml()}</div>
       <ul class="cab2-switch__links">
         <li><a class="e-permits-fo-intent-menu__item" href="https://mpass.gov.md" target="_blank" rel="noopener">${ico("person")}<span>Contul MPass${hidden(", se deschide în altă pagină")}</span></a></li>
-        <li><a class="e-permits-fo-intent-menu__item" href="index.html?view=catalog">${ico("bubble-question")}<span>Ajutor</span></a></li>
+        <li><a class="e-permits-fo-intent-menu__item" ${linkAttrs({ s: "ajutor", href: urlOf({ s: "ajutor" }) })}>${ico("bubble-question")}<span>Ajutor</span></a></li>
         <li><button class="e-permits-fo-intent-menu__item" type="button" data-cab2-signout>${ico("logout")}<span>Ieși din cont</span></button></li>
       </ul>`;
     const ctx = state.ctx;
@@ -856,7 +884,28 @@
     const open = switcherOpen();
     document.querySelectorAll("[data-cab2-switch-open][aria-haspopup]").forEach((el) => el.setAttribute("aria-expanded", String(open && el === lastOpener)));
     if (!open) lastOpener = null;
+    placeSwitcher();
   };
+  /* S1 leftover (2026-11-18): opened from the identity block / „Schimbă” (desktop), the switcher is an anchored dropdown
+     8 under its opener, left-aligned, kept inside the window; opened from the header avatar it stays at the header */
+  function placeSwitcher() {
+    const panel = els.panel;
+    if (!panel) return;
+    const opener = switcherOpen() && !isPhone() && lastOpener && lastOpener.isConnected && !header.contains(lastOpener) ? lastOpener : null;
+    panel.classList.toggle("cab2-switch--anchored", Boolean(opener));
+    if (!opener) { ["--cab2-switch-left", "--cab2-switch-top", "--cab2-switch-max"].forEach((name) => panel.style.removeProperty(name)); return; }
+    const rect = opener.getBoundingClientRect();
+    const gap = 8;
+    const edge = 16;
+    const width = panel.getBoundingClientRect().width || 364;
+    const left = Math.max(edge, Math.min(rect.left, window.innerWidth - edge - width));
+    const top = rect.bottom + gap;
+    panel.style.setProperty("--cab2-switch-left", `${Math.round(left)}px`);
+    panel.style.setProperty("--cab2-switch-top", `${Math.round(top)}px`);
+    panel.style.setProperty("--cab2-switch-max", `${Math.max(240, Math.round(window.innerHeight - top - edge))}px`);
+  }
+  window.addEventListener("scroll", () => { if (switcherOpen() && lastOpener) placeSwitcher(); }, { passive: true });
+  window.addEventListener("resize", () => { if (switcherOpen()) placeSwitcher(); });
 
   /* ---------- render + navigation ---------- */
   function renderAll() {
@@ -939,7 +988,7 @@
       ...actsOf(ctx).map((a) => ({ label: `${serviceOf(a.service).actTitle || "Act permisiv"} · ${a.name}`, meta: `Acte permisive · ${a.number}`, hay: norm(`${serviceOf(a.service).actTitle} ${a.name} ${a.number} act autorizatie licenta`), target: { href: recordHref("acte", a.id) }, glyph: "permission" })),
       ...(ctx.kind === "company" ? STATIC_RECORDS.company : STATIC_RECORDS.person).map(([label, meta, id, keys]) => ({ label, meta: `${titleOf(id, ctx)} · ${meta}`, hay: norm(`${label} ${keys}`), target: toSection(id), glyph: "page-text", id })),
     ].filter((item) => !item.id || inMenu(ctx, item.id));
-    const services = ctx.viewOnly ? [] : SERVICES.map(([label, keys]) => ({ label, meta: "Catalogul serviciilor", hay: norm(`${label} ${keys}`), target: { href: "index.html?view=catalog" }, glyph: "external-link" }));
+    const services = ctx.viewOnly ? [] : SERVICES.map(([label, keys]) => ({ label, meta: "Catalogul serviciilor", hay: norm(`${label} ${keys}`), target: { s: "catalog", href: urlOf({ s: "catalog" }) }, glyph: "external-link" }));
     return { sections, records, services };
   }
   function searchResults(query) {
@@ -1120,7 +1169,7 @@
     }
     if (event.target.closest("[data-cab2-switch-clear]")) { switchQuery = ""; renderSwitcher(); els.panel.querySelector("[data-cab2-switch-search]")?.focus(); return; }
     if (event.target.closest("[data-cab2-menu-open]")) { if (sheetOpen(menuSheet)) closeMenuSheet(); else openMenuSheet(); return; }
-    if (event.target.closest("[data-cab2-signout]")) { window.location.assign("index.html?view=catalog&auth=0"); return; }
+    if (event.target.closest("[data-cab2-signout]")) { window.location.assign(urlOf({ s: "iesire" })); return; }
     const link = event.target.closest("a[data-cab2-go]");
     if (link && plain(event)) {
       event.preventDefault();

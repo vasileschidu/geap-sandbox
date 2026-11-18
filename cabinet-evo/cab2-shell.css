@@ -81,13 +81,21 @@
 }
 
 /* ---------- 3. layout + menu ---------- */
-/* S1 width rule (product owner 2026-11-17: „the same width as EVO Solicitări”): the content column = the Solicitări
-   column (`--cab-list-width`, 1200; the views' own rules narrow a catalog profile to 1024 inside it) and the menu sits
-   BESIDE it — the frame is menu + 24 + 1200, centred in the page gutter; the header and the context line share its
-   edges. Below 1552 the column gives way first (the menu keeps its 280). */
+/* Frame rule (user 2026-11-18: „use the same layout padding container as for full flow”; replaces the S1 „Solicitări
+   width” frame of menu + 24 + 1200): the FO full-flow container (css/e-permits-acte-permisive.css `--fo-page-*` /
+   `--fo-sidebar-*`, `.e-permits-fo-request__inner`): 1248 incl. the 24 gutters (= `.cab-main`'s side padding) → 1200
+   inside = menu 280 + 24 + content 896, centred; the header and the context line share its edges. Top: the first
+   surface of the menu (identity block) and the content's first line start 24 under the header / context line, as the
+   full flow's current step and step title do (its sidebar: 32 padding, step highlight 8 outset). */
 .cab2-page-root {
-  --cab2-menu-width: calc(var(--spacing-40, 40px) * 7);
-  --cab2-frame-width: calc(var(--cab2-menu-width) + var(--spacing-24, 24px) + var(--cab-list-width));
+  --cab2-menu-width: var(--fo-sidebar-width, 280px);
+  --cab2-frame-width: calc(var(--fo-page-width, 1248px) - 2 * var(--fo-page-gutter, 24px));
+}
+
+/* the full flow's 24 start on every page (the list pages' 32 and the profiles' 0 / 32 of cab2-views.css are not used;
+   `:is()` carries their specificity) */
+.cab2-page-root .cab-main:is(*, :has([data-cab-profile-header]:not([hidden] *)), :has(.cab-profile-header:not([hidden] *))) {
+  padding-top: var(--spacing-24, 24px);
 }
 
 .cab2-page-root .evo-header {
@@ -97,16 +105,18 @@
 .cab2-shell {
   align-items: start;
   display: grid;
-  gap: var(--spacing-24, 24px);
-  grid-template-columns: var(--cab2-menu-width, calc(var(--spacing-40, 40px) * 7)) minmax(0, 1fr);
+  gap: var(--fo-sidebar-gap, 24px);
+  grid-template-columns: var(--cab2-menu-width, 280px) minmax(0, 1fr);
   margin-inline: auto;
   max-width: var(--cab2-frame-width, none);
   min-width: 0;
 }
 
-/* the views' column inside the frame: the Solicitări width, from the column's left edge (no second centring) */
-.cab2-shell__content > .cab-main__container {
+/* the views' column inside the frame: fills the 896 column from its left edge (no inner max-width, no second centring) */
+.cab2-shell__content > .cab-main__container,
+.cab2-shell__content > .cab-main__container:has([data-cab-profile-header]:not([hidden] *)) {
   margin-inline: 0;
+  max-width: none;
 }
 
 .cab2-shell__content {
@@ -127,9 +137,11 @@
   min-width: 0;
   overflow-y: auto;
   overscroll-behavior: contain;
+  /* the 8 keeps the focus rings inside the scroll box; pulled up by the same 8 so the identity block starts at 24 */
+  margin-top: calc(var(--spacing-8, 8px) * -1);
   padding-block: var(--spacing-8, 8px);
   position: sticky;
-  top: calc(var(--cab2-header-height, 0px) + var(--spacing-24, 24px));
+  top: calc(var(--cab2-header-height, 0px) + var(--spacing-16, 16px));
 }
 
 /* the menu = the BO grouped sidebar as it is (css/shell-nav.css, generated from css/e-permits-shell.css):
@@ -152,6 +164,24 @@
 .cab2-menu__list .e-permits-shell__nav-link.is-active:hover {
   background: var(--color-background-brand-secondary-hover, #ccdef6);
   color: var(--color-text-brand-default, #0058d2);
+}
+
+/* round items (user 2026-11-18: „do the side menu items round”): the hover / selected / focus surface of every item —
+   group rows, the open group's sections, the phone „Meniu” sheet rows — has fully round ends. Colours, 36 / 48 heights,
+   icon, label and badge are the BO's. The BO's 3 brand bar on the left of the selected item cannot follow a round end
+   (it would stick out as a square strip) → not drawn here; the selected fill carries the state. The focus ring is an
+   inset ring, so it follows the round shape and is never cut by the menu's scroll box. */
+.cab2-page-root .cab2-menu__list .e-permits-shell__nav-link {
+  border-radius: var(--border-radius-full, 9999px);
+}
+
+.cab2-page-root .cab2-menu__list .e-permits-shell__nav-link.is-active::before {
+  background: transparent;
+}
+
+.cab2-page-root .cab2-menu__list .e-permits-shell__nav-link:focus-visible {
+  box-shadow: inset 0 0 0 var(--border-width-2, 2px) var(--focus-ring, var(--blue-sky-500, #3379db));
+  outline: none;
 }
 
 /* a row that is a <button> (phone „Contul meu”: the switcher, sign out) = its link siblings */
@@ -527,6 +557,21 @@ button.cab2-identity[aria-expanded="true"] .cab2-identity__chevron {
   width: 100%;
 }
 
+/* opened from the identity block or „Schimbă” (desktop): an anchored dropdown 8 under its opener, left-aligned (the
+   place is measured by cab2-shell.js › placeSwitcher); from the header avatar it keeps the header's place */
+.cab2-page-root .e-permits-fo-avatar-menu.cab2-switch--anchored {
+  left: var(--cab2-switch-left, auto);
+  max-height: var(--cab2-switch-max, none);
+  position: fixed;
+  right: auto;
+  top: var(--cab2-switch-top, auto);
+}
+
+/* … and then the opener alone shows the open state: the header avatar (the panel's technical owner) drops its ring */
+.cab2-page-root .evo-header:has(.cab2-switch--anchored) .evo-header__avatar[aria-expanded="true"]:not(:focus-visible) {
+  box-shadow: none;
+}
+
 /* a row: name · identifier · capacity on the left, the count of things to resolve + the check on the right */
 .cab2-switch__row.e-permits-fo-avatar-menu__role {
   padding-right: var(--spacing-16, 16px);
@@ -706,6 +751,19 @@ button.cab2-identity[aria-expanded="true"] .cab2-identity__chevron {
   .cab2-menu-sheet .cab2-menu__list .e-permits-shell__nav-link {
     min-height: var(--spacing-48, 48px);
     padding-block: var(--spacing-12, 12px);
+  }
+
+  /* round items in the sheet: 8 off the sheet edges so the round ends are seen, the content keeps its 16 from the
+     edge (8 + 8); a row with the section hint (2–3 lines) keeps the 24 card radius — a full radius on a tall row
+     would curve past its icon */
+  .cab2-page-root .cab2-menu-sheet .cab2-menu__list .e-permits-shell__nav-link {
+    margin-inline: var(--spacing-8, 8px);
+    padding-inline: var(--spacing-8, 8px);
+    width: calc(100% - var(--spacing-16, 16px));
+  }
+
+  .cab2-page-root .cab2-menu-sheet .cab2-menu__list .e-permits-shell__nav-link.cab2-menu__link--hint {
+    border-radius: var(--border-radius-24, 24px);
   }
 
   .cab2-menu-sheet .cab2-menu__list :is(.e-permits-shell__nav-link, .e-permits-shell__nav-text) {

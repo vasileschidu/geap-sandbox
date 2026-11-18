@@ -261,7 +261,7 @@
     });
   }, 60000);
 
-  const tacitNote = (dosar) => `Autoritatea nu a emis o decizie până la termenul de examinare (${longDate(dosar.examTerm)}). Solicitarea se consideră aprobată tacit, iar tu poți desfășura activitatea conform legii.`;
+  const tacitNote = (dosar) => `Autoritatea nu a emis o decizie până la termenul de examinare (${longDate(dosar.examTerm)}). Cererea se consideră aprobată tacit, iar tu poți desfășura activitatea conform legii.`;
 
   /* contextual actions per status (US-19, US-29, US-24, US-135, Feature 90817) */
   function menuItems(dosar) {
@@ -512,13 +512,13 @@
   }
 
   /* the shared Cabinet pager (CabEvo.pagerHtml, also on Actele mele permisive) */
-  const pagerHtml = (total) => C.pagerHtml({ total, page: state.page, perPage: state.perPage, sizes: PER_PAGE, prefix: "sm", label: "Paginarea solicitărilor", sizeLabel: "Dosare pe pagină" });
+  const pagerHtml = (total) => C.pagerHtml({ total, page: state.page, perPage: state.perPage, sizes: PER_PAGE, prefix: "sm", label: "Paginarea cererilor", sizeLabel: "Cereri pe pagină" });
 
   /* US-159: the read-only history after the MPower expired / was revoked (the acts side shows the same
      notice with no data — CabEvo.restrictionHtml) */
   function readOnlyBanner() {
     const name = state.subject?.name || "beneficiar";
-    return C.restrictionHtml(state.perspective.readOnly, `Vezi doar istoricul solicitărilor depuse pentru ${name}, cu statutul de la acea dată. Datele nu se mai actualizează, iar acțiunile nu sunt disponibile. Pentru acces complet, cere beneficiarului o împuternicire nouă în MPower.`);
+    return C.restrictionHtml(state.perspective.readOnly, `Vezi doar istoricul cererilor depuse pentru ${name}, cu statutul de la acea dată. Datele nu se mai actualizează, iar acțiunile nu sunt disponibile. Pentru acces complet, cere beneficiarului o împuternicire nouă în MPower.`);
   }
 
   function errorHtml(text, retry = "data-sm-retry") {
@@ -580,7 +580,7 @@
         <div class="cab-toolbar" data-sm-toolbar>
           <div class="search-input medium rectangular cab-search">
             <span class="icon-search" aria-hidden="true">${icon("icon-search", "")}</span>
-            <input class="input" type="search" autocomplete="off" placeholder="Caută după nr. dosar sau serviciu" aria-label="Caută în solicitări după numărul dosarului sau serviciu" data-sm-search>
+            <input class="input" type="search" autocomplete="off" placeholder="Caută după nr. dosar sau serviciu" aria-label="Caută în cereri după numărul dosarului sau serviciu" data-sm-search>
             <div class="btn-group cab-search__actions">
               <button class="btn-icon clear cab-search__clear" type="button" aria-label="Șterge căutarea" data-sm-search-clear disabled>
                 <svg class="icon small" aria-hidden="true"><use href="${SPRITE}#icon-cross-small"></use></svg>
@@ -597,7 +597,7 @@
               <span class="chip__icon"><svg class="icon" aria-hidden="true"><use href="${SPRITE}#icon-sort"></use></svg></span>
               <span class="chip__label" data-sm-sort-label>Data depunerii</span>
             </button>
-            <ul class="e-permits-fo-intent-menu e-permits-stack__menu cab-menu cab-menu--wide e-permits-sort-menu" id="sm-sort-menu" role="menu" aria-label="Sortează solicitările" hidden data-sm-sort-menu></ul>
+            <ul class="e-permits-fo-intent-menu e-permits-stack__menu cab-menu cab-menu--wide e-permits-sort-menu" id="sm-sort-menu" role="menu" aria-label="Sortează cererile" hidden data-sm-sort-menu></ul>
           </div>
         </div>
         <div class="e-permits-workplace__filters cab-filters" id="sm-filters" role="group" aria-label="Filtre" data-sm-filters hidden></div>
@@ -636,7 +636,7 @@
     if (params.get("eroare") === "lista" || (params.get("eroare") === "mpower" && state.perspective?.mpower)) {
       const text = params.get("eroare") === "mpower"
         ? "Verificarea drepturilor de reprezentare nu a putut fi efectuată. Încearcă din nou."
-        : "Lista solicitărilor nu a fost încărcată. Încearcă din nou.";
+        : "Lista cererilor nu a fost încărcată. Încearcă din nou.";
       toolbar.hidden = true;
       view.querySelector("[data-sm-filters]").hidden = true;
       lead.innerHTML = "";
@@ -667,9 +667,9 @@
     } else results.innerHTML = loading && !state.searchFailed
       ? `${C.listSkeletonHtml({ rows, kind: "requests" })}${pagerHtml(all.length)}`
       : state.searchFailed
-      ? `<div class="cab-state" role="alert">${errorHtml("Lista solicitărilor nu a putut fi actualizată. Încearcă din nou.", "data-sm-search-retry")}</div>`
+      ? `<div class="cab-state" role="alert">${errorHtml("Lista cererilor nu a putut fi actualizată. Încearcă din nou.", "data-sm-search-retry")}</div>`
       : pageItems.length
-        ? `<ul class="e-permits-fo-intent__list cab-act-list cab-request-list" aria-label="Lista solicitărilor">${pageItems.map(cardHtml).join("")}</ul>${pagerHtml(all.length)}`
+        ? `<ul class="e-permits-fo-intent__list cab-act-list cab-request-list" aria-label="Lista cererilor">${pageItems.map(cardHtml).join("")}</ul>${pagerHtml(all.length)}`
         : `<div class="cab-state">${fixAssets(window.GEAPEmptyState.noResults("Nu au fost găsite rezultate pentru criteriile selectate.", { text: "Modifică căutarea sau filtrele aplicate." }))}</div>`;
     facetFilter?.render();
     if (loading && !state.searchFailed) C.maskResultCount(view.querySelector("[data-sm-filters]"));
@@ -690,7 +690,7 @@
       const profileView = root.querySelector("[data-sm-profile-view]");
       profileView.hidden = false;
       profileView.setAttribute("aria-busy", "true");
-      profileView.innerHTML = `<article class="cab-profile sm-profile" aria-label="Solicitarea se încarcă">${C.profileSkeletonHtml({ trajectory: true })}</article>`;
+      profileView.innerHTML = `<article class="cab-profile sm-profile" aria-label="Cererea se încarcă">${C.profileSkeletonHtml({ trajectory: true })}</article>`;
       return;
     }
     const results = view.querySelector("[data-sm-results]");
@@ -753,7 +753,7 @@
           const resume = readOnly() ? "" : `<a class="btn btn-primary btn-md btn-rounded" href="${escape(foUrl(dosar, "draft"))}" data-sm-action="continue">${icon("icon-edit")}<span>${dosar.signed ? "Confirmă depunerea" : "Continuă schița"}</span></a>`;
           if (dosar.signed) return notice("info", "icon-circle-info-filled", "Cererea este semnată, dar nu a fost depusă", "Dacă nu confirmi depunerea, se transmite automat autorității după intervalul de grație.", resume);
           /* US-21 AC-03: the retention sentence */
-          return notice("info", "icon-circle-info-filled", "Solicitarea nu a fost depusă", escape(draftKeptText(dosar)), resume);
+          return notice("info", "icon-circle-info-filled", "Cererea nu a fost depusă", escape(draftKeptText(dosar)), resume);
         }
       case "info":
         /* act-alert-card-v1: the action that solves it lives in the alert card (no longer in the header) */
@@ -765,8 +765,8 @@
           : notice("warning", "icon-warning-filled", `Achită ${escape(money(dosar.payment?.amount))} până la ${date(dosar.payment?.due)}`, `După achitare, examinarea continuă automat${live(dosar)}.`,
             `<button class="btn btn-primary btn-md btn-rounded" type="button" data-sm-action="pay" data-sm-id="${escape(dosar.id)}">${icon("icon-credit-card")}<span>Achită ${escape(money(dosar.payment?.amount))}</span></button>`);
       case "derulare": {
-        if (dosar.tacit) return notice("info", "icon-circle-info-filled", `Termenul de examinare a expirat pe ${date(dosar.examTerm)}`, "Solicitarea se consideră aprobată tacit; poți desfășura activitatea conform legii.");
-        const lead = dosar.examTerm ? `Răspuns până la ${date(dosar.examTerm)}` : "Solicitarea este în examinare";
+        if (dosar.tacit) return notice("info", "icon-circle-info-filled", `Termenul de examinare a expirat pe ${date(dosar.examTerm)}`, "Cererea se consideră aprobată tacit; poți desfășura activitatea conform legii.");
+        const lead = dosar.examTerm ? `Răspuns până la ${date(dosar.examTerm)}` : "Cererea este în examinare";
         /* US-24 AC-03: the suplinire term passed, the BO reactivated the examination · US-24 AC-20 / US-28 AC-04: sent */
         if (dosar.resumed?.kind === "expirat") return notice("info", "icon-time-filled", lead, "Termenul de suplinire a expirat; autoritatea examinează dosarul cu documentele depuse.");
         if (dosar.supplemented) return notice("info", "icon-time-filled", lead, `Informațiile transmise pe ${date(dosar.supplemented)} sunt în examinare; nu trebuie să faci nimic acum.`);
@@ -777,13 +777,13 @@
           const why = dosar.decision?.reason ? `Motivul refuzului: ${escape(dosar.decision.reason)}` : "Motivul refuzului este în fila Decizie.";
           return canAppeal(dosar)
             ? notice("danger", "icon-circle-error-filled", `Poți depune contestație până la ${date(appealUntil(dosar))}`, `${why}${live(dosar)}`, alertAppeal(dosar))
-            : notice("danger", "icon-circle-error-filled", "Solicitarea a fost respinsă", why);
+            : notice("danger", "icon-circle-error-filled", "Cererea a fost respinsă", why);
         }
         /* an authority's suspension / withdrawal / annulment inside its appeal term: the appeal is the next step */
         if (dosar.decisionOnly && canAppeal(dosar)) return notice("danger", "icon-circle-error-filled", `Poți depune contestație până la ${date(appealUntil(dosar))}`, `${escape(dosar.decision?.text || `Decizia a fost emisă pe ${longDate(dosar.finalized)}.`)}${live(dosar)}`, alertAppeal(dosar));
         if (dosar.decisionOnly) return notice("success", "icon-circle-checkmark-filled", `Decizia a fost emisă pe ${date(dosar.finalized)}`, escape(dosar.decision?.text || "Starea actului a fost actualizată."));
-        if (dosar.tacit) return notice("success", "icon-circle-checkmark-filled", `Aprobată tacit pe ${date(dosar.finalized)}`, "Autoritatea nu s-a pronunțat în termen; actul îl găsești în „Actele mele permisive”.");
-        return notice("success", "icon-circle-checkmark-filled", `Actul permisiv a fost emis pe ${date(dosar.finalized)}`, "Îl găsești și în „Actele mele permisive”.");
+        if (dosar.tacit) return notice("success", "icon-circle-checkmark-filled", `Aprobată tacit pe ${date(dosar.finalized)}`, "Autoritatea nu s-a pronunțat în termen; actul îl găsești în „Acte permisive”.");
+        return notice("success", "icon-circle-checkmark-filled", `Actul permisiv a fost emis pe ${date(dosar.finalized)}`, "Îl găsești și în „Acte permisive”.");
       }
       default:
         return notice("info", "icon-circle-info-filled", escape(statusOf(dosar).label));
@@ -893,7 +893,7 @@
     const byAuthority = dosar.initiatedBy === "autoritate";
     events.push(byAuthority
       ? done(dosar.submitted, "Procedură inițiată de autoritate", { ...authority, detail: "Din oficiu." })
-      : done(dosar.submitted, "Solicitare depusă", { ...applicant, detail: `Semnată prin MSign.${paidAtFiling}` }));
+      : done(dosar.submitted, "Cerere depusă", { ...applicant, detail: `Semnată prin MSign.${paidAtFiling}` }));
     const examining = dosar.status === "derulare";
     /* a suspension that is over (suplinire sent, or its term passed): its steps, then the resumed examination */
     const resumed = Boolean(dosar.suspended) && dosar.status !== "info";
@@ -909,7 +909,7 @@
     if (dosar.status === "achitare") events.push(open(dosar.payment?.created, "Notă de plată emisă", { ...authority, detail: paymentExpired(dosar) ? `${money(dosar.payment?.amount)}. Termenul de achitare a expirat pe ${longDate(dosar.payment?.due)}.` : `${money(dosar.payment?.amount)} de achitat până la ${longDate(dosar.payment?.due)}.` }));
     if (dosar.status === "finalizat") {
       const rejected = dosar.result === "respins";
-      events.push(done(dosar.finalized, rejected ? "Solicitare respinsă" : byAuthority ? "Decizie semnată" : "Solicitare aprobată", {
+      events.push(done(dosar.finalized, rejected ? "Cerere respinsă" : byAuthority ? "Decizie semnată" : "Cerere aprobată", {
         ...authority,
         ...(rejected ? { tone: "danger", statusTag: false } : {}),
         detail: rejected ? "Decizia de refuz a fost semnată și comunicată." : dosar.decisionOnly ? "Decizia a fost semnată; starea actului a fost actualizată." : "Actul permisiv a fost semnat și emis.",
@@ -929,9 +929,9 @@
      notice is NOT hung from the trajectory: it is the alert card (alertCardHtml) above it. */
   function statusCardHtml(dosar) {
     return `
-      <section class="e-permits-dosar-profil__section cab-section cab-status" aria-label="Stadiul solicitării" data-sm-status>
+      <section class="e-permits-dosar-profil__section cab-section cab-status" aria-label="Stadiul cererii" data-sm-status>
         ${window.GEAPTrajectory?.html({
-          label: "Etapele solicitării",
+          label: "Etapele cererii",
           steps: trackerSteps(dosar).map((step) => ({ ...step, sr: step.sr || STEP_STATE_TEXT[step.state] })),
         }) || ""}
       </section>`;
@@ -994,7 +994,7 @@
   function headerMeta(dosar) {
     const meta = [
       ["Numărul dosarului", copyValue(dosar.nr, `Copiază numărul dosarului ${dosar.nr}`)],
-      ["Tipul solicitării", escape(dosar.tip)],
+      ["Tipul cererii", escape(dosar.tip)],
       ["Stare", `${statusTag(dosar)}${marksHtml(dosar)}`],
     ];
     if (dosar.status === "schita") {
@@ -1089,7 +1089,7 @@
       return {
         ...base, type: "cerere", number: dosar.nr, date: dosar.submitted, parties,
         groups: [
-          { title: "Serviciul solicitat", rows: [["Serviciul", service.title], ["Tipul solicitării", dosar.tip], ["Subdiviziunea de examinare", dosar.subdivision]] },
+          { title: "Serviciul solicitat", rows: [["Serviciul", service.title], ["Tipul cererii", dosar.tip], ["Subdiviziunea de examinare", dosar.subdivision]] },
           { title: "Obiectul activității", rows: [["Obiectul", dosar.object], ["Adresa", dosar.address]] }
         ],
         attachments: dosarDocs(dosar).filter((doc) => doc.kind === "fisier").map((doc) => ({ name: doc.tip, meta: doc.fisier || "" }))
@@ -1098,7 +1098,7 @@
     if (kind === "certificat") {
       return {
         ...base, type: "certificat", number: dosar.nr, date: dosar.submitted,
-        groups: [{ rows: [["Serviciul", service.title], ["Tipul solicitării", dosar.tip], ...holder, ["Obiectul", dosar.object], ["Data și ora depunerii", longDateTime(dosar.submitted)], ["Canal de depunere", "EVO · Solicitările mele"], ["Subdiviziunea de examinare", dosar.subdivision]] }]
+        groups: [{ rows: [["Serviciul", service.title], ["Tipul cererii", dosar.tip], ...holder, ["Obiectul", dosar.object], ["Data și ora depunerii", longDateTime(dosar.submitted)], ["Canal de depunere", "EVO · Solicitările mele"], ["Subdiviziunea de examinare", dosar.subdivision]] }]
       };
     }
     const type = decisionType(dosar);
@@ -1219,7 +1219,7 @@
      underline, track line) — switching shows another panel in place (no reload) and keeps #dosar/<id>/<tab>. */
   const PROFILE_TABS = [
     { id: "general", label: "Date generale" },
-    { id: "solicitare", label: "Date solicitare" },
+    { id: "solicitare", label: "Datele cererii" },
     { id: "taxe", label: "Taxe" },
     { id: "act", label: "Act" },
   ];
@@ -1322,7 +1322,7 @@
         </div>
       </section>` : "";
 
-    const details = section("detalii", "Date solicitare", rows([
+    const details = section("detalii", "Datele cererii", rows([
       dosar.object ? row("Denumirea obiectului", escape(dosar.object)) : "",
       dosar.address ? row("Adresa unității", escape(dosar.address)) : "",
       dosar.caem ? row("Activitatea (CAEM)", escape(dosar.caem)) : "",
@@ -1418,7 +1418,7 @@
     const removed = match && state.removed.find((item) => item.id === match[1]);
     if (!removed && state.notice?.attrs === "data-sm-removed-notice") state.notice = null;
     if (removed) {
-      state.notice = { tone: "banner--info", icon: "icon-circle-info-filled", html: `Schița <strong>${escape(removed.object)}</strong> (${escape(removed.nr)}) a fost eliminată automat pe ${escape(longDate(removed.draft?.expires))}, la expirarea termenului de păstrare. Datele nu mai pot fi recuperate; poți începe o solicitare nouă din <a class="link link-primary link-sm" href="${escape(cabUrl("catalog"))}">Catalogul serviciilor</a>.`, attrs: "data-sm-removed-notice" };
+      state.notice = { tone: "banner--info", icon: "icon-circle-info-filled", html: `Schița <strong>${escape(removed.object)}</strong> (${escape(removed.nr)}) a fost eliminată automat pe ${escape(longDate(removed.draft?.expires))}, la expirarea termenului de păstrare. Datele nu mai pot fi recuperate; poți începe o cerere nouă din <a class="link link-primary link-sm" href="${escape(cabUrl("catalog"))}">Catalogul serviciilor</a>.`, attrs: "data-sm-removed-notice" };
     }
     const dosar = match && !readOnly() && state.dosare.find((item) => item.id === match[1]);
     state.tab = match?.[2] || "general";
@@ -1433,7 +1433,7 @@
     }
   }
 
-  const REQUEST_NOT_FOUND = "Solicitarea nu a fost găsită";
+  const REQUEST_NOT_FOUND = "Cererea nu a fost găsită";
   function renderNotFound() {
     C.setHeaderTitle(LIST_TITLE());
     document.title = `${REQUEST_NOT_FOUND} · EVO Cabinet`;
@@ -1445,7 +1445,7 @@
         ${C.notFoundHtml({
           back: { label: LIST_TITLE(), href: C.pageAddress({}, ""), attr: "data-sm-back" },
           title: REQUEST_NOT_FOUND,
-          text: "Linkul nu mai este valabil sau solicitarea nu figurează printre solicitările tale.",
+          text: "Linkul nu mai este valabil sau cererea nu figurează printre cererile tale.",
         })}
       </article>`;
     window.scrollTo(0, 0);
@@ -1514,10 +1514,10 @@
       danger: true,
       title: "Elimini schița?",
       paragraphs: [
-        `Schița <strong>${escape(dosar.object)}</strong> (${escape(dosar.nr)}) va fi eliminată definitiv din Solicitările mele.`,
+        `Schița <strong>${escape(dosar.object)}</strong> (${escape(dosar.nr)}) va fi eliminată definitiv din Cererile mele.`,
         /* US-17 AC-04: removing an unpaid draft cancels its payment note */
         pendingFee(dosar) ? `Nota de plată ${escape(dosar.payment.nr)} (${escape(money(dosar.payment.amount))}) se anulează.` : "",
-        "Datele completate nu mai pot fi recuperate. Pentru același serviciu poți începe oricând o solicitare nouă.",
+        "Datele completate nu mai pot fi recuperate. Pentru același serviciu poți începe oricând o cerere nouă.",
       ].filter(Boolean),
       confirmLabel: "Elimină schița",
       onConfirm: (modal) => {
@@ -1548,7 +1548,7 @@
       paragraphs: [
         "Ești redirecționat la MPay cu nota de plată precompletată:",
         `Nota de plată <strong>${escape(dosar.payment?.nr)}</strong> · Suma <strong>${escape(money(dosar.payment?.amount))}</strong> · Beneficiar <strong>${escape(service.authorityName || service.authority)}</strong>`,
-        "După confirmarea plății revii automat în Solicitările mele.",
+        "După confirmarea plății revii automat în Cererile mele.",
       ],
       cancelLabel: "Anulează plata",
       confirmLabel: `Achită ${money(dosar.payment?.amount)}`,
@@ -1788,7 +1788,7 @@
     const service09 = state.data.services["09"];
     const pp = params.get("pp");
     const ppLabel = { reperfectare: "Reperfectare", prelungire: "Prelungire", duplicat: "Emitere duplicat", retragere: "Retragere", suspendare: "Suspendarea valabilității", reluare: "Reluarea valabilității", anulare: "Anulare" }[pp];
-    const object = params.get("obiect") || "Solicitare nouă";
+    const object = params.get("obiect") || "Cerere nouă";
     const filed = params.get("depus");
     /* demo: a finalized request approved tacitly (US-157; the seed has none) → its one tag reads „Aprobat tacit” */
     /* demo: a VERY long service name on one request (cabinet-header-v1, sm-05w / sm-01r) — the real 221-character
@@ -1818,7 +1818,7 @@
       const step = Number(params.get("pas")) || 1;
       state.dosare.unshift({
         id: "d-schita-noua", nr: params.get("nr") || "GEAP-2026-009-04602", service: "09", tip: ppLabel || "Eliberare", pp: pp || undefined, actId: params.get("act") || undefined,
-        object: params.get("obiect") || "Solicitare fără denumire", subdivision: "CSP Chișinău", status: "schita", created: `${TODAY}T13:40`, justAdded: true,
+        object: params.get("obiect") || "Cerere fără denumire", subdivision: "CSP Chișinău", status: "schita", created: `${TODAY}T13:40`, justAdded: true,
         draft: { step, stepLabel: DRAFT_STEPS[step], expires: addDays(TODAY, 30) }, documents: [],
       });
       /* US-21 AC-03: the message on every save (<Timp setat> = the BO retention) */
@@ -1889,7 +1889,7 @@
       if (toPay && !paymentExpired(toPay)) openPayment(toPay);
     } catch (error) {
       console.warn("[solicitari]", error);
-      root.innerHTML = `<div class="cab-state" role="alert">${errorHtml("Lista solicitărilor nu a fost încărcată. Încearcă din nou.")}</div>`;
+      root.innerHTML = `<div class="cab-state" role="alert">${errorHtml("Lista cererilor nu a fost încărcată. Încearcă din nou.")}</div>`;
     }
     document.documentElement.dataset.smReady = "true";
   }

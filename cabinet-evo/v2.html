@@ -43,7 +43,7 @@
   <link rel="stylesheet" href="../css/shell-nav.css?v=shell-nav-v1">
   <!-- EVO Cabinet v2 (cab2-s1-v1): the new Cabinet's OWN view styles (copy of cabinet-evo.css) + the shell -->
   <link rel="stylesheet" href="cab2-views.css?v=cab2-s1-v1">
-  <link rel="stylesheet" href="cab2-shell.css?v=cab2-s1-v1">
+  <link rel="stylesheet" href="cab2-shell.css?v=cab2-frame-v1">
   <link rel="stylesheet" href="../css/trajectory.css?v=phone-fit-v1">
   <!-- the status alert card of the act / request profiles (act-alert-card-v1, js/alert-card.js) -->
   <link rel="stylesheet" href="../css/alert-card.css?v=cards-radius-20-final">
@@ -64,7 +64,7 @@
   <link rel="stylesheet" href="../css/page-reveal.css?v=skeleton-v1">
   <link rel="stylesheet" href="../css/sticky-sections.css?v=sticky-sections-v1">
   <!-- ?state=<id> opens the screen a Figma frame shows (js/demo-states.js) -->
-  <script src="../js/demo-states.js?v=cab2-shell-v1"></script>
+  <script src="../js/demo-states.js?v=cab2-frame-v1"></script>
   <script src="../js/demo-links.js?v=links-v4"></script>
   <!-- EVO Cabinet v2 flag (?shell=2 → `.cab2` on <html>) — after demo-links.js, which writes a ?state=…'s parameters into the address -->
   <!-- the v2 flag + menu groups (this page is always the new Cabinet: data-cab2-entry) -->
@@ -95,10 +95,10 @@
   <script src="../js/evo-header.js?v=evo-header-v1" defer></script>
   <!-- the new Cabinet's own view code (copies — isolation from cabinet-evo.js / solicitari.js / notificari.js):
        core + Acte permisive → the shell (titles, menu, Acasă) → Cererile mele → Notificări -->
-  <script src="cab2-acte.js?v=cab2-s1-v1" defer></script>
-  <script src="cab2-shell.js?v=cab2-s1-v1" defer></script>
-  <script src="cab2-cereri.js?v=cab2-s1-v1" defer></script>
-  <script src="cab2-notificari.js?v=cab2-s1-v1" defer></script>
+  <script src="cab2-acte.js?v=cab2-frame-v1" defer></script>
+  <script src="cab2-shell.js?v=cab2-frame-v1" defer></script>
+  <script src="cab2-cereri.js?v=cab2-frame-v1" defer></script>
+  <script src="cab2-notificari.js?v=cab2-frame-v1" defer></script>
   <script src="cab2-motion.js?v=cab2-foundations-v1" defer></script>
   <script src="../js/page-reveal.js?v=skeleton-v1" defer></script>
 </head>
@@ -106,7 +106,7 @@
     <!-- the shared EVO header (js/evo-header.js); the account panel below is re-filled by cab2-shell.js with
          „Pentru cine acționezi?” (the context switcher) -->
     <header class="evo-header" data-evo-header data-evo-id="cab2-evo-header" data-evo-auth="in" data-evo-sticky data-evo-phone-gov="off"
-            data-evo-home="v2.html" data-evo-gov="../index.html" data-evo-cabinet="v2.html" data-evo-catalog="index.html?view=catalog"
+            data-evo-home="v2.html" data-evo-gov="../index.html" data-evo-cabinet="v2.html" data-evo-catalog="v2.html?s=catalog"
             data-evo-notifications="v2.html?s=notificari"
             data-evo-initials="AC" data-evo-user="Anastasia Cojocaru" data-evo-user-role="Contul tău">
       <div class="e-permits-fo-avatar-menu" id="fo-avatar-menu" data-evo-slot="account-menu" role="dialog" aria-label="Pentru cine acționezi?" data-fo-avatar-dropdown hidden>
@@ -115,7 +115,7 @@
     </header>
 
   <main class="cab-main">
-    <!-- the frame: menu (BO grouped sidebar) + the content column at the Solicitări width (cab2-shell.css § 3) -->
+    <!-- the frame = the FO full-flow container (2026-11-18): menu 280 (BO grouped sidebar) + 24 + content 896 (cab2-shell.css § 3) -->
     <div class="cab2-shell" data-cab2-frame>
       <nav class="cab2-menu" aria-label="Meniul Cabinetului" data-cab2-menu></nav>
       <div class="cab2-shell__content" id="cab2-content" tabindex="-1" data-cab2-content>

@@ -564,7 +564,10 @@
   const CAB2 = "cabinet-evo/v2.html";
   const cab2S = (params = {}, run, hash = "") => ({ page: CAB2, params, hash, ready: "[data-cab2-ready]", run });
   /* the identity block on top of the menu opens „Pentru cine acționezi?” (desktop); phones: Meniu → the sheet */
-  const cab2Identity = async (h) => { await h.click("[data-cab2-menu] button.cab2-identity"); await h.wait(500); };
+  const cab2Identity = async (h) => {
+    if (cab2Phone()) { await h.click("[data-cab2-menu-open]"); await h.wait(500); await h.click(".cab2-menu-sheet button.cab2-identity"); await h.wait(500); return; }
+    await h.click("[data-cab2-menu] button.cab2-identity"); await h.wait(500);
+  };
   const cab2Sheet = async (h) => { if (cab2Phone()) { await h.click("[data-cab2-menu-open]"); await h.wait(500); } };
   const cab2Phone = () => window.matchMedia("(max-width: 760px)").matches;
   const cab2Switch = async (h) => { await h.click("[data-fo-avatar-trigger]"); await h.wait(500); };
@@ -3294,6 +3297,9 @@
     "cab2-n24": cab2S({ s: "amenzi" }, cab2Sheet),
     "cab2-n25": cab2S({ s: "notificari" }),
     "cab2-n26": cab2S({ as: "notar-pf-maria", g: "bani" }),
+    /* „În curând” (2026-11-18): n01 / n05 Acasă = „De rezolvat” then „În curând” · n07 Acasă = „Nimic de rezolvat” + „În
+       curând” · n20 the full page with both blocks · n27 the full page: the boxed „Nimic de rezolvat” + „În curând” */
+    "cab2-n27": cab2S({ as: "notar-pf-maria", s: "de-rezolvat" }),
     "sm-01": sm(),
     /* the „Filtre” trigger = the library chip (filter-chip-v1): N values applied, bar closed → black chip + numbered
        badge (1 / 3 / 12, the badge width); phones: the pill after „Arată” */

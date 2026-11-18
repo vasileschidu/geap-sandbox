@@ -117,12 +117,13 @@
 
   /* a cabinet URL that keeps the perspective (and the visitor mode) */
   function cabUrl(view, extra = {}, hash = "") {
-    /* the public catalog is not part of the new Cabinet yet: it opens the current Cabinet's catalog (out) */
+    /* the public catalog is not part of the new Cabinet yet: its „not built yet” page in v2 (cab2-shell.js › OUTSIDE,
+       2026-11-18 — never the old Cabinet's index.html?view=…) */
     if (!VIEW_SECTION[view]) {
-      const out = new URLSearchParams({ view });
+      const out = new URLSearchParams();
       if (params.get("as")) out.set("as", params.get("as"));
-      Object.entries(extra).forEach(([key, value]) => { if (value !== undefined && value !== null && value !== "") out.set(key, value); });
-      return `index.html?${out.toString()}${hash}`;
+      out.set("s", "catalog");
+      return `v2.html?${out.toString()}`;
     }
     const next = new URLSearchParams();
     if (params.get("as")) next.set("as", params.get("as"));
@@ -953,11 +954,11 @@
     /* the request opens in the SAME tab (act-alert-card-v2: profiles have real URLs, Back returns here), no external icon */
     /* alert-buttons-library-v1 (user): next to a primary = the library text button `btn-text-strict` (no fill, no border,
        grey hover); alone = the library outlined `btn-outline-strict` (transparent, dark border) */
-    const seeRequest = (id, alone) => (id ? alertLinkBtn(alone ? "btn-outline-strict" : "btn-text-strict", requestHref(id), "Vezi solicitarea", " data-cab-alert-request") : "");
+    const seeRequest = (id, alone) => (id ? alertLinkBtn(alone ? "btn-outline-strict" : "btn-text-strict", requestHref(id), "Vezi cererea", " data-cab-alert-request") : "");
     const ppButton = (ppId, label) => (act.postProcesses.some((pp) => pp.id === ppId)
       ? alertBtn("btn-primary", `<span>${escape(label)}</span>`, `data-cab-pp="${escape(ppId)}" data-cab-act="${escape(act.id)}"`)
       : "");
-    const newRequest = () => alertLinkBtn("btn-primary", cabUrl("catalog", {}, `#serviciu/${act.serviceCode}`), "Solicitare nouă");
+    const newRequest = () => alertLinkBtn("btn-primary", cabUrl("catalog", {}, `#serviciu/${act.serviceCode}`), "Cerere nouă");
     /* „Vezi solicitarea” (text button next to the primary, outlined when alone) + the primary last */
     const pair = (primary, requestId) => `${seeRequest(requestId, !primary)}${primary}`;
     if (act.pending) {
@@ -971,15 +972,15 @@
         return {
           tone: "warning", icon: "icon-warning-filled",
           title: `Trimite informațiile cerute până la ${escape(longDate(waiting.info.until))}`,
-          text: `Solicitarea de ${escape(String(act.pendingLabel).toLowerCase())} este suspendată: autoritatea a cerut informații suplimentare. Până atunci nu poți iniția alt postproces.`,
+          text: `Cererea de ${escape(String(act.pendingLabel).toLowerCase())} este suspendată: autoritatea a cerut informații suplimentare. Până atunci nu poți iniția alt postproces.`,
           actions: pair(`<a class="btn btn-primary btn-md btn-rounded" href="${escape(href)}" data-cab-alert-supplement>${icon("icon-page-upload")}<span>Completează informația</span></a>`, id),
         };
       }
       const since = act.pending.since ? `, depusă pe ${escape(longDate(isoOf(act.pending.since)))}` : "";
       return {
         tone: "warning", icon: "icon-time-filled",
-        title: "Ai o solicitare în examinare",
-        text: `${escape(act.pendingLabel)}${since}. Poți iniția alt postproces după ce solicitarea este finalizată.`,
+        title: "Ai o cerere în examinare",
+        text: `${escape(act.pendingLabel)}${since}. Poți iniția alt postproces după ce cererea este finalizată.`,
         actions: pair("", id),
       };
     }
@@ -1002,7 +1003,7 @@
     if (act.status === "retras" || act.status === "anulat") {
       const withdrawn = act.status === "retras";
       const on = statusDate ? ` pe ${escape(longDate(statusDate))}` : "";
-      const next = appealOpen ? appeal : " Pentru a desfășura din nou activitatea, depune o solicitare nouă.";
+      const next = appealOpen ? appeal : " Pentru a desfășura din nou activitatea, depune o cerere nouă.";
       return {
         tone: ACT_TONE[act.status],
         title: `Actul a fost ${withdrawn ? "retras" : "anulat"}${on}`,
@@ -1014,7 +1015,7 @@
       return {
         tone: ACT_TONE.expirat,
         title: act.validUntil ? `Actul a expirat pe ${escape(longDate(act.validUntil))}` : "Actul a expirat",
-        text: "Pentru a desfășura din nou activitatea, depune o solicitare nouă.",
+        text: "Pentru a desfășura din nou activitatea, depune o cerere nouă.",
         actions: newRequest(),
       };
     }
@@ -1024,7 +1025,7 @@
       return {
         tone: "warning",
         title: left > 0 ? `Actul expiră în ${daysText(left)}` : "Actul expiră astăzi",
-        text: `Este valabil până la ${escape(longDate(act.validUntil))}. ${extend ? "Cere prelungirea din timp, ca activitatea să nu fie întreruptă." : "Pentru a continua activitatea după această dată, depune o solicitare nouă."}`,
+        text: `Este valabil până la ${escape(longDate(act.validUntil))}. ${extend ? "Cere prelungirea din timp, ca activitatea să nu fie întreruptă." : "Pentru a continua activitatea după această dată, depune o cerere nouă."}`,
         actions: extend || newRequest(),
       };
     }
@@ -1055,7 +1056,7 @@
     const code = act.service?.authority || "";
     const authority = { user: code || "Autoritatea emitentă", role: act.subdivision || "" };
     const ref = (dosar) => (dosar?.id
-      ? `<a class="e-permits-dosar-profil__link cab-external-link" href="${escape(requestHref(dosar.id))}"${newTabAttrs(`Solicitarea ${dosar.nr}`)}><span>${escape(dosar.nr)}</span>${icon("icon-external-link")}</a>`
+      ? `<a class="e-permits-dosar-profil__link cab-external-link" href="${escape(requestHref(dosar.id))}"${newTabAttrs(`Cererea ${dosar.nr}`)}><span>${escape(dosar.nr)}</span>${icon("icon-external-link")}</a>`
       : dosar?.nr ? escape(dosar.nr) : "");
     const sentence = (...parts) => parts.filter(Boolean).join(" · ");
     const whoOf = (initiator) => (initiator === "autoritate" ? `Din inițiativa ${escape(code || "autorității")}` : "La cererea titularului");
@@ -1136,7 +1137,7 @@
     const actions = [
       `<button class="btn btn-primary btn-md" type="button" aria-haspopup="dialog" data-cab-view-act="${escape(act.id)}"><span>Vezi act permisiv</span></button>` /* label only, no eye (user 2026-10-23, request-act-modal-link-v1) */,
       /* header-max-two-v1: in order of importance — Vezi solicitarea before Postprocese (→ „⋯”); same tab, no external icon (act-alert-card-v2: request profiles have real URLs, Back returns to the act) */
-      issuing ? `<a class="btn btn-neutral btn-md" href="${escape(requestHref(issuing.id))}" data-cab-see-dosar data-cab-act-action="request"><span>Vezi solicitarea</span></a>` : "",
+      issuing ? `<a class="btn btn-neutral btn-md" href="${escape(requestHref(issuing.id))}" data-cab-see-dosar data-cab-act-action="request"><span>Vezi cererea</span></a>` : "",
       act.postProcesses.length ? `
         <div class="e-permits-fo-intent-act__action" data-cab-act-action="postprocese">
           <button class="btn btn-neutral btn-md" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="cab-detail-menu" aria-label="Postprocese pentru ${escape(act.label || "")}" data-cab-menu-trigger ${act.pending ? 'disabled aria-describedby="cab-act-notice"' : ""}><span>Postprocese</span>${icon("icon-chevron-bottom")}</button>
@@ -1356,7 +1357,7 @@
         ? act.postProcesses.map((pp) => (act.pending ? { ...pp, disabled: true, reason: `Postprocesul „${act.pendingLabel}” este în curs` } : pp))
         : [];
       menu.innerHTML = [
-        request ? `<li role="none"><a class="e-permits-fo-intent-menu__item" role="menuitem" href="${escape(request.getAttribute("href"))}"><span>Vezi solicitarea</span></a></li>` : "",
+        request ? `<li role="none"><a class="e-permits-fo-intent-menu__item" role="menuitem" href="${escape(request.getAttribute("href"))}"><span>Vezi cererea</span></a></li>` : "",
         request && pps.length ? '<li role="separator" class="e-permits-fo-intent-menu__separator"></li>' : "",
         pps.length ? `<li class="cab-menu__label" role="presentation">Postprocese</li>${window.GEAPActRow.menuItemsHtml(pps, (pp) => `data-cab-pp="${escape(pp.id)}" data-cab-act="${escape(act.id)}"`, "../assets/")}` : "",
       ].join("");
