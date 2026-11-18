@@ -722,17 +722,17 @@
     const days = next ? daysUntil(next.validUntil) : null;
     return { section: "acte", title: titleOf("acte", ctx), value: valid.length === 1 ? "1 valabil" : `${valid.length} valabile`,
       tag: days !== null && days <= 90 ? `Expiră în ${days} de zile` : "", tone: "warning",
-      line: next ? `Cel mai apropiat termen: ${longDate(next.validUntil)}` : "Niciun act valabil", action: "Vezi actele" };
+      line: next ? `Cel mai apropiat termen: ${longDate(next.validUntil)}` : "Niciun act valabil" };
   };
   const requestTile = (d) => {
     const service = serviceOf(d.service);
     const label = data.cereri?.statuses?.[d.status]?.label || d.status;
     return { section: "cereri", title: service.title || d.object || d.nr, tag: label, tone: STATUS_TONE[d.status] || "neutral",
-      line: [d.object, `Depusă ${longDate(d.submitted)}`].filter(Boolean).join(" · "), action: "Vezi cererea", href: recordHref("cereri", d.id), record: true };
+      line: [d.object, `Depusă ${longDate(d.submitted)}`].filter(Boolean).join(" · "), href: recordHref("cereri", d.id), record: true };
   };
   const finesDue = (ctx) => todosOf(ctx).find((item) => item.section === "amenzi");
   const TILES = {
-    identitate: (ctx) => cardsOf(ctx, "identitate").slice(0, 3).map(([title, value, tagLabel, tone]) => ({ title, value: "", tag: tagLabel, tone, line: value, action: "Deschide" })),
+    identitate: (ctx) => cardsOf(ctx, "identitate").slice(0, 3).map(([title, value, tagLabel, tone]) => ({ title, value: "", tag: tagLabel, tone, line: value })),
     fisiere: () => ({ value: "9 fișiere", line: "Ultimul: contract de locațiune, 4 octombrie 2026" }),
     plati: () => ({ value: "500 lei", line: "Ultima plată, 6 octombrie 2026" }),
     taxe: (ctx) => (ctx.id === "pj-agro-nord"
@@ -766,7 +766,7 @@
     }
     const tiles = ids.filter((id) => TILES[id] && !sourceDown(id)).flatMap((id) => {
       const out = TILES[id](ctx);
-      return (Array.isArray(out) ? out : [out]).map((tile) => ({ section: id, title: titleOf(id, ctx), action: "Deschide", ...tile }));
+      return (Array.isArray(out) ? out : [out]).map((tile) => ({ section: id, title: titleOf(id, ctx), ...tile }));
     });
     return { tiles: (ctx.newUser ? tiles.slice(0, 1) : tiles).slice(0, tileMax()), down };
   }
@@ -775,7 +775,7 @@
     return V2.card({
       title: tile.title, value: tile.value || "", tag: tile.tag || "", tone: tile.tone || "neutral", line: tile.line || "",
       /* no source line per tile (it wrapped to two lines in a third of 768): Acasă closes with the one source line */
-      source: "", action: tile.action, href, borderless: false,
+      source: "", href, borderless: false,
       linkAttrs: tile.record ? "" : goAttr({ s: tile.section }),
     });
   };
@@ -862,7 +862,7 @@
     const head = sectionHeadHtml(id);
     /* the parked Batch 2 look (?visual=on): the widget cards */
     if (VISUAL && SECTIONS[id].cards) {
-      const cards = cardsOf(ctx, id).map(([title, value, tagLabel, tone, line]) => V2.card({ title, value, tag: tagLabel, tone, line, source: SOURCE(id), action: "" })).join("");
+      const cards = cardsOf(ctx, id).map(([title, value, tagLabel, tone, line]) => V2.card({ title, value, tag: tagLabel, tone, line, source: SOURCE(id) })).join("");
       return `<div class="cab2-page" data-cab2-page="${escape(id)}">${head}<div class="cab2-wcards">${cards}</div></div>`;
     }
     return `<div class="cab2-page" data-cab2-page="${escape(id)}">${head}${emptyBox({ title: "În lucru — secțiunea se construiește", text: `Aici vor fi datele de la ${pick(SECTIONS[id].source, ctx)[0]}.`, icon: "time" })}</div>`;

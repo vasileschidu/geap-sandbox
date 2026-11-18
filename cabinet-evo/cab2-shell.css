@@ -516,12 +516,28 @@ button.e-permits-shell__nav-link.cab2-menu__button {
   border-radius: calc(var(--border-radius-20, 20px) + var(--spacing-8, 8px));
 }
 
-/* one tab stop per card: the footer text button, whose hit area is the whole card */
+/* one tab stop per card: the title link, stretched over the whole card (its name = the card title); the wrapper shows
+   the focus ring, as the other clickable Cabinet surfaces do */
+.cab2-wcard__link {
+  color: inherit;
+  text-decoration: none;
+}
+
 .cab2-wcard__link::after {
   content: "";
   cursor: pointer;
   inset: 0;
   position: absolute;
+}
+
+.cab2-wcard__link:focus-visible {
+  outline: none;
+}
+
+.cab2-wcard--link:has(.cab2-wcard__link:focus-visible) > .e-permits-wid-card {
+  box-shadow:
+    0 0 0 var(--spacing-2, 2px) var(--color-background-base-default, #fff),
+    0 0 0 calc(var(--spacing-4, 4px) + var(--border-width-1, 1px)) var(--focus-ring, var(--blue-sky-500, #3379db));
 }
 
 /* the Cabinet reads these lines on phones too, where a tooltip cannot help: the grey line and the source line wrap
@@ -958,13 +974,10 @@ button.e-permits-shell__nav-link.cab2-menu__button {
   white-space: normal;
 }
 
-/* no source line in a tile: the footer holds only the text button, in the dashboard card's place (right) */
-.cab2-home-tiles .e-permits-wid-card__foot-row {
-  justify-content: flex-end;
-}
-
-.cab2-home-tiles .e-permits-wid-card__updated:empty {
-  display: none;
+/* a tile = the head only (no footer): hugs its content with the SAME padding on all four sides, 24 (the widget card's own
+   inset; cab2-tile-pad-v1) — the dashboard head has no bottom padding because a body / footer follows. Long lines wrap inside it. */
+.cab2-home-tiles .e-permits-wid-card.e-permits-wid-card--panel > .e-permits-wid-card__head:last-child {
+  padding-bottom: var(--spacing-24, 24px);
 }
 
 /* on the WHITE page the halo around a tile is the white-page hover grey (the grey-page step darker is for ?visual=on) */

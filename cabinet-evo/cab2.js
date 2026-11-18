@@ -65,28 +65,32 @@
 
   /* the Cabinet card = the dashboard widget card (js/widget-admin.js cardHtml({ dash }) anatomy, css/widget.css), borderless
      on the grey page: head (title, + the group's round icon) · headline (value + ONE Small tag, then one grey line) ·
-     optional body · footer (quiet source line left, text button right). With `href` the card is one link: the footer
-     button's hit area is the whole card and the wrapper carries the shared grey hover surface around it.
-     Cab2.card({ title, value, tag, tone, line, source, action, href, group, level, bodyHtml, attrs, linkAttrs }) → HTML */
+     optional body · footer (quiet source line, only when given). With `href` the card is one link: the title link's hit area is
+     the whole card and the wrapper carries the shared grey hover surface around it.
+     Cab2.card({ title, value, tag, tone, line, source, href, group, level, bodyHtml, attrs, linkAttrs }) → HTML */
   const esc = (value) => String(value ?? "").replace(/[&<>"']/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[ch]);
   /* `borderless: false` = the dashboard's own bordered card, for a WHITE page (S1 Acasă tiles, cab2-home-v1); a tag
      without a value sits alone on the headline line (a request tile: its status) */
-  const card = ({ title = "", value = "", tag = "", tone = "neutral", line = "", source = "", action = "Detalii", href = "", group: groupId = "", level = 3, bodyHtml = "", attrs = "", linkAttrs = "", borderless = true } = {}) => {
+  const card = ({ title = "", value = "", tag = "", tone = "neutral", line = "", source = "", href = "", group: groupId = "", level = 3, bodyHtml = "", attrs = "", linkAttrs = "", borderless = true } = {}) => {
     const tagHtml = tag ? window.GEAPTag?.html(tag, tone || "neutral") || "" : "";
     const headline = value || line || tagHtml ? `
         <div class="e-permits-wid-card__headline">
           ${value || tagHtml ? `<span class="e-permits-wid-stat__line">${value ? `<span class="e-permits-wid-card__headline-value">${esc(value)}</span>` : ""}${tagHtml}</span>` : ""}
           ${line ? `<span class="e-permits-wid-stat__meta">${esc(line)}</span>` : ""}
         </div>` : "";
-    const link = href && action ? `<a class="btn btn-text-primary btn-sm e-permits-wid-card__details cab2-wcard__link" href="${esc(href)}" aria-label="${esc(action)}: ${esc(title)}"${linkAttrs}>${esc(action)}</a>` : "";
+    /* the whole card is the link (cab2-tile-link-v1, PO 2026-11-18: no „Deschide”): the title is the one link, stretched over
+       the card — its name = the card title, no nested control; the wrapper carries the grey hover + the focus ring */
+    const link = Boolean(href);
+    const titleHtml = link ? `<a class="cab2-wcard__link" href="${esc(href)}"${linkAttrs}>${esc(title)}</a>` : esc(title);
+    const foot = source ? `
+          <div class="e-permits-wid-card__foot-row"><span class="e-permits-wid-card__updated">${esc(source)}</span></div>` : "";
     return `
-      <div class="cab2-wcard${link ? " e-permits-hover-surface is-hover-within" : ""}"${groupId ? ` data-cab2-group="${esc(groupId)}"` : ""}${attrs}>
+      <div class="cab2-wcard${link ? " e-permits-hover-surface is-hover-within cab2-wcard--link" : ""}"${groupId ? ` data-cab2-group="${esc(groupId)}"` : ""}${attrs}>
         <article class="e-permits-chart e-permits-wid-card e-permits-wid-card--panel e-permits-wid-card--dash${borderless ? " e-permits-wid-card--borderless" : ""}">
           <div class="e-permits-wid-card__head">
-            <div class="e-permits-wid-card__title-row">${groupId ? groupIcon(groupId, { size: "sm" }) : ""}<h${level} class="e-permits-wid-card__title">${esc(title)}</h${level}></div>${headline}
+            <div class="e-permits-wid-card__title-row">${groupId ? groupIcon(groupId, { size: "sm" }) : ""}<h${level} class="e-permits-wid-card__title">${titleHtml}</h${level}></div>${headline}
           </div>${bodyHtml ? `
-          <div class="e-permits-wid-card__body">${bodyHtml}</div>` : ""}
-          <div class="e-permits-wid-card__foot-row"><span class="e-permits-wid-card__updated">${esc(source)}</span>${link}</div>
+          <div class="e-permits-wid-card__body">${bodyHtml}</div>` : ""}${foot}
         </article>
       </div>`;
   };
