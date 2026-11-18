@@ -344,11 +344,6 @@ button.e-permits-shell__nav-link.cab2-menu__button {
   box-shadow: 0 0 0 var(--border-width-2, 2px) var(--focus-ring, var(--blue-sky-500, #3379db));
 }
 
-/* „Schimbă” sits 8 under the lines (the text column's own gap) */
-.cab2-hero__switch {
-  margin: 0;
-}
-
 /* the avatar + its badge: the badge's centre sits on the circle at 45° */
 .cab2-avatar-host {
   display: inline-flex;
@@ -837,5 +832,111 @@ button.e-permits-shell__nav-link.cab2-menu__button {
   .e-permits-fo-lib-item.e-permits-fo-intent-act.cab2-todo > .e-permits-fo-lib-item__content,
   .cab2-todo__action {
     flex: 1 1 100%;
+  }
+}
+
+/* ---------- 10. Acasă — alerts + group sections (cab2-home-v1, product owner 2026-11-18: „similar to the Yandex one,
+   clear alerts, the style of the Solicitări profiles”) ----------
+   Rhythm: 40 between the Acasă sections (phones 32) · heading → 16 → content · alert cards 16 apart. The alert = the
+   profile alert card as it is (css/alert-card.css); the tiles = the dashboard widget card, bordered on the white page. */
+.cab2-page.cab2-home {
+  gap: var(--spacing-40, 40px);
+}
+
+.cab2-home > .cab2-block.e-permits-dosar-profil__section,
+.cab2-home-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-16, 16px);
+  min-width: 0;
+}
+
+/* the BO section title keeps its type and 12 inset; here without the fixed 48 row, so heading → content = 16 */
+.cab2-home .e-permits-dosar-profil__section-title {
+  height: auto;
+  padding: 0 var(--spacing-12, 12px);
+}
+
+.cab2-home .cab2-block__more {
+  margin: 0;
+}
+
+.cab2-alerts {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-16, 16px);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+/* the group heading = one link (name + chevron 20) to the group page; the BO quiet hover: grey fill, no colour change */
+.cab2-home-group__link {
+  align-items: center;
+  border-radius: var(--border-radius-8, 8px);
+  color: inherit;
+  cursor: pointer;
+  display: inline-flex;
+  gap: var(--spacing-4, 4px);
+  margin: calc(var(--spacing-4, 4px) * -1) calc(var(--spacing-8, 8px) * -1);
+  padding: var(--spacing-4, 4px) var(--spacing-8, 8px);
+  text-decoration: none;
+  transition: background-color var(--motion-duration-fast, 150ms) ease;
+}
+
+.cab2-home-group__link > .icon {
+  color: var(--color-icon-base-secondary, #575757);
+  flex: none;
+  height: var(--spacing-20, 20px);
+  width: var(--spacing-20, 20px);
+}
+
+.cab2-home-group__link:hover {
+  background: var(--color-background-base-tertiary, #f1f1f1);
+}
+
+.cab2-home-group__link:active {
+  background: var(--color-background-base-tertiary-hover, #e5e5e5);
+}
+
+.cab2-home-group__link:focus-visible {
+  box-shadow: 0 0 0 var(--border-width-2, 2px) var(--focus-ring, var(--blue-sky-500, #3379db));
+  outline: none;
+}
+
+/* tiles: 2 or 3 in a row (the 768 column), the dashboard card's own grid gap 24 */
+.cab2-home-tiles.cab2-home-tiles--3 {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+/* a tile's title wraps (the dashboard keeps one line + tooltip; a phone cannot show a tooltip — as the grey line above) */
+.cab2-home-tiles .e-permits-wid-card.e-permits-wid-card--panel .e-permits-wid-card__title {
+  overflow: visible;
+  overflow-wrap: break-word;
+  white-space: normal;
+}
+
+/* no source line in a tile: the footer holds only the text button, in the dashboard card's place (right) */
+.cab2-home-tiles .e-permits-wid-card__foot-row {
+  justify-content: flex-end;
+}
+
+.cab2-home-tiles .e-permits-wid-card__updated:empty {
+  display: none;
+}
+
+/* on the WHITE page the halo around a tile is the white-page hover grey (the grey-page step darker is for ?visual=on) */
+.cab2[data-cab-visual="off"] .cab2-home-tiles .cab2-wcard.e-permits-hover-surface::before {
+  background: var(--color-background-base-tertiary, #f1f1f1);
+}
+
+@media (max-width: 760px) {
+  .cab2-page.cab2-home {
+    gap: var(--spacing-32, 32px);
+  }
+
+  /* phones: one tile per row (Romanian titles + values need the width; no carousel) */
+  .cab2-home-tiles.cab2-home-tiles--3 {
+    grid-template-columns: minmax(0, 1fr);
   }
 }

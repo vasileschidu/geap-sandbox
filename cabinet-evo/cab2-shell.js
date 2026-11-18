@@ -306,23 +306,44 @@
   /* „De rezolvat” (wiki 02 › ranking, never personalised): 1 overdue with a consequence · 2 a deadline that changes the
      cost or the outcome · 3 waiting on the user · 4 expiry in 90 / 30 / 7 days · 5 informational. Levels 1–3 are the
      „things to resolve” counted in the status sentence, the menu badges and the switcher (one number everywhere). */
+  /* cab2-home-v1 (product owner 2026-11-18): every level 1–3 item also carries its Acasă ALERT words — `title` (the fact
+     in plain words), `body` (what + deadline), `more` (the quiet way in, optional); the row sentence (`text`) stays for
+     the group pages and the full „De rezolvat” page */
   const STATIC_TODOS = {
-    "pf-anastasia": [{ level: 2, section: "amenzi", text: "Achită amenda de 600 lei pentru depășirea vitezei până la 21 octombrie 2026; până atunci plătești jumătate din sumă.", action: "Achită", meta: ["Amenzi", "Ministerul Afacerilor Interne"], solved: true }],
+    "pf-anastasia": [
+      { level: 2, section: "amenzi", date: "2026-10-21", text: "Achită amenda de 600 lei pentru depășirea vitezei până la 21 octombrie 2026; până atunci plătești jumătate din sumă.", action: "Achită", meta: ["Amenzi", "Ministerul Afacerilor Interne"], solved: true,
+        title: "Ai o amendă de 600 lei de achitat", body: "Pentru depășirea vitezei. Dacă o achiți până la 21 octombrie 2026, plătești doar jumătate din sumă.", more: "Vezi amenzile", amount: 600 },
+      { level: 2, section: "taxe", date: "2026-12-25", text: "Achită impozitul pe bunuri imobile de 412 lei până la 25 decembrie 2026; după termen se calculează penalități.", action: "Achită", meta: ["Taxe și datorii", "Serviciul Fiscal de Stat"], solved: true,
+        title: "Ai de achitat impozitul pe bunuri imobile", body: "412 lei pentru apartamentul din Chișinău, până la 25 decembrie 2026. După termen se calculează penalități.", more: "Vezi taxele" },
+    ],
     "pj-global-trader": [
-      { level: 3, section: "concedii", text: "Confirmă concediul medical al unui angajat, primit pe 9 octombrie 2026.", action: "Confirmă", meta: ["Concediile angajaților", "CNAS"] },
+      { level: 3, section: "concedii", text: "Confirmă concediul medical al unui angajat, primit pe 9 octombrie 2026.", action: "Confirmă", meta: ["Concediile angajaților", "CNAS"],
+        title: "Ai un concediu medical de confirmat", body: "Concediul unui angajat, primit de la Casa Națională de Asigurări Sociale pe 9 octombrie 2026.", more: "Vezi concediile" },
       { level: 5, section: "controale", text: "Agenția Națională pentru Siguranța Alimentelor a planificat un control pe 10 decembrie 2026.", action: "Vezi controlul", meta: ["Controale de stat", "ANSA"] },
     ],
-    "pj-agro-nord": [{ level: 1, section: "taxe", text: "Datoria de 2 310 lei la impozitul pe venit a depășit termenul din 25 septembrie 2026; se calculează penalități.", action: "Achită", meta: ["Taxe și datorii", "Serviciul Fiscal de Stat"] }],
-    "notar-pf-maria": [{ level: 4, section: "identitate", text: "Buletinul de identitate al Mariei Rusu expiră pe 2 decembrie 2026, în 51 de zile.", action: "Vezi buletinul", meta: ["Acte de identitate", "ASP"] }],
-    "mpower-pf-grigore": [{ level: 2, section: "amenzi", text: "Achită amenda de 600 lei până la 20 octombrie 2026; până atunci plătești jumătate din sumă.", action: "Achită", meta: ["Amenzi", "MAI"] }],
+    "pj-agro-nord": [{ level: 1, section: "taxe", text: "Datoria de 2 310 lei la impozitul pe venit a depășit termenul din 25 septembrie 2026; se calculează penalități.", action: "Achită", meta: ["Taxe și datorii", "Serviciul Fiscal de Stat"],
+      title: "Datoria de 2 310 lei a depășit termenul", body: "Impozitul pe venit trebuia achitat până la 25 septembrie 2026. Din 26 septembrie se calculează penalități.", more: "Vezi taxele" }],
+    "notar-pf-maria": [
+      /* view only: the alert says why there is no „Achită” (cab2-home-v1); `rezolvat=1` hides it (n27) */
+      { level: 2, section: "amenzi", date: "2026-10-28", text: "Maria Rusu are o amendă de 300 lei; până pe 28 octombrie 2026 se plătește jumătate din sumă.", action: "Achită", meta: ["Amenzi", "MAI"], solved: true,
+        title: "Maria Rusu are o amendă de 300 lei de achitat", body: "Până pe 28 octombrie 2026 se plătește jumătate din sumă. Tu poți doar vedea datele: împuternicirea notarială nu îți permite să achiți pentru Maria Rusu.", more: "Vezi amenzile", amount: 300 },
+      { level: 4, section: "identitate", text: "Buletinul de identitate al Mariei Rusu expiră pe 2 decembrie 2026, în 51 de zile.", action: "Vezi buletinul", meta: ["Acte de identitate", "ASP"] },
+    ],
+    "mpower-pf-grigore": [{ level: 2, section: "amenzi", date: "2026-10-20", text: "Achită amenda de 600 lei până la 20 octombrie 2026; până atunci plătești jumătate din sumă.", action: "Achită", meta: ["Amenzi", "MAI"],
+      title: "Grigore Vasilescu are o amendă de 600 lei de achitat", body: "Dacă o achiți până la 20 octombrie 2026, plătești doar jumătate din sumă.", more: "Vezi amenzile", amount: 600 }],
   };
   function todosOf(ctx) {
     const items = [];
     dosareOf(ctx).forEach((d) => {
       const service = serviceOf(d.service);
       const what = d.object || service.title || d.nr;
-      if (d.status === "info") items.push({ level: 3, section: "cereri", id: d.id, date: d.info?.until, text: `Autoritatea așteaptă informații pentru ${what}. Trimite-le până la ${longDate(d.info?.until)}.`, action: "Trimite informațiile", meta: [service.title], nr: d.nr });
-      if (d.status === "achitare" && d.payment) items.push({ level: 2, section: "cereri", id: d.id, date: d.payment.due, text: `Achită ${money(d.payment.amount)} pentru ${what} până la ${longDate(d.payment.due)}${d.feeDuringExam ? ", ca examinarea să continue" : "; examinarea începe după plată"}.`, action: "Achită", meta: [service.title], nr: d.nr });
+      /* the alert words (cab2-home-v1): title = the fact, body = the request + the deadline, more = „Vezi cererea” */
+      const which = `pentru cererea „${service.title || d.nr}”`;
+      const place = d.object ? `${d.object}. ` : "";
+      if (d.status === "info") items.push({ level: 3, section: "cereri", id: d.id, date: d.info?.until, text: `Autoritatea așteaptă informații pentru ${what}. Trimite-le până la ${longDate(d.info?.until)}.`, action: "Trimite informația", meta: [service.title], nr: d.nr,
+        kind: "info", title: ctx.kind === "self" ? "Ți se cer informații suplimentare" : "Autoritatea cere informații suplimentare", body: `${place}Trimite-le ${which} până la ${longDate(d.info?.until)}; examinarea este suspendată până atunci.`, more: "Vezi cererea" });
+      if (d.status === "achitare" && d.payment) items.push({ level: 2, section: "cereri", id: d.id, date: d.payment.due, text: `Achită ${money(d.payment.amount)} pentru ${what} până la ${longDate(d.payment.due)}${d.feeDuringExam ? ", ca examinarea să continue" : "; examinarea începe după plată"}.`, action: "Achită", meta: [service.title], nr: d.nr,
+        kind: "pay", amount: d.payment.amount, title: `${ctx.kind === "self" ? "Ai de achitat" : "De achitat"} ${money(d.payment.amount)} ${which}`, body: `${place}Termenul de plată este ${longDate(d.payment.due)}. ${d.feeDuringExam ? "Examinarea continuă după plată." : "Examinarea începe după plată."}`, more: "Vezi cererea" });
     });
     actsOf(ctx).forEach((act) => {
       const title = serviceOf(act.service).actTitle || "Actul permisiv";
@@ -650,32 +671,127 @@
   }
   const emptyBox = (cfg) => `<div class="cab-state cab2-state">${window.GEAPEmptyState.render({ compact: true, ...cfg })}</div>`;
 
-  /* ---------- Acasă (wiki 02 › Acasă content model, S1: plain BO sections) ---------- */
-  const SUMMARY = {
-    documente: { self: "Buletinul și pașaportul sunt valabile · permis de conducere până la 9 iulie 2029", person: "Buletinul expiră pe 2 decembrie 2026", to: "documente" },
-    bani: { self: "O amendă de 600 lei de achitat · nicio datorie la buget", company: "Nicio datorie la bugetul de stat · contribuții la zi", agro: "Datorie de 2 310 lei, termen depășit", person: "Nicio datorie la buget", grigore: "O amendă de 600 lei de achitat", to: "bani" },
-    proprietati: { self: "1 apartament, 1 teren · 2 vehicule cu RCA valabil", company: "1 bun imobil · 3 vehicule", to: "proprietati" },
-    familie: { self: "2 copii · asigurare medicală activă", to: "familie" },
-    munca: { self: "Stagiu de cotizare: 11 ani și 4 luni · administrator la 2 companii", company: "Companie activă · 14 angajați · 1 control planificat", to: "munca" },
-    acces: { self: "3 împuterniciri primite · 1 dată de tine", company: "2 persoane împuternicite", to: "acces" },
-  };
-  function summaryRows(ctx) {
-    if (ctx.newUser) return [];
-    return menuOf(ctx).filter(([group]) => SUMMARY[group] && group !== "cereri").map(([group]) => {
-      const entry = SUMMARY[group];
-      const line = (ctx.id === "pj-agro-nord" && entry.agro) || (ctx.id === "mpower-pf-grigore" && entry.grigore) || (ctx.kind === "self" ? entry.self : ctx.kind === "company" ? entry.company : entry.person);
-      /* money: the live line follows „De rezolvat” (a fine to pay or nothing) */
-      const money = group === "bani" && ctx.id !== "pj-agro-nord" && ctx.kind !== "company"
-        ? (todosOf(ctx).some((item) => item.section === "amenzi") ? "O amendă de 600 lei de achitat" : "Nicio datorie sau amendă de achitat") : "";
-      if (!line && !money) return "";
-      return row(groupLabel(ctx, group), `<span class="cab2-summary__line">${escape(money || line)}</span> <a class="link link-primary link-sm" ${linkAttrs(toGroup(group))}>${escape(directSection(ctx, group) ? titleOf(directSection(ctx, group), ctx) : "Deschide")}${hidden(` ${groupLabel(ctx, group)}`)}</a>`);
-    }).filter(Boolean);
+  /* ---------- Acasă (cab2-home-v1, product owner 2026-11-18: „similar to the Yandex one, make access clearer with clear
+     alerts; the style of the Solicitările mele profiles; actions blue primary for Achită or Trimite informația”) ----------
+     Reading order: identity hero · „De rezolvat” = the profile ALERT CARD (GEAPAlertCard, js/alert-card.js — the request
+     profile's `alertCardHtml`) one per level 1–3 item, max 3, then „Vezi toate (N)” · „În curând” (levels 4–5, quieter:
+     the rows) · one section per menu group with content (menu order): heading = the group name + chevron (a link to the
+     group page) → a row of 2–3 tiles = the dashboard widget card (Cab2.card, bordered on the white page) · source line. */
+  const FO_FLOW = "../e-permits-acte-permisive.html";
+  const ALERT_MAX = 3;
+  /* the primary that solves an item: a request = its own step (pay = the profile with MPay open, info = the FO
+     supplement step); anything else = its section (not built yet). Acting for someone: the button names the entity —
+     visibly on a payment, for screen readers on the rest (wiki 02 › Contexts) */
+  function alertPrimary(item) {
+    const ctx = state.ctx;
+    const record = item.section === "cereri" && item.id;
+    const href = record && item.kind === "info"
+      ? `${FO_FLOW}?${new URLSearchParams({ flow: "full", solicitant: ctx.id, suplinire: item.nr })}#request-step-2`
+      : record ? urlOf({ s: "cereri", set: item.kind === "pay" ? { plata: "1" } : {}, hash: `#dosar/${item.id}` }) : sectionHref(item.section);
+    const pay = item.action === "Achită";
+    const glyph = pay ? "credit-card" : item.kind === "info" ? "page-upload" : "";
+    const forWhom = ctx.kind === "self" ? "" : pay ? ` pentru ${escape(ctx.name)}` : hidden(` pentru ${ctx.name}`);
+    const size = isPhone() ? "" : " btn-md";
+    return `<a class="btn btn-primary${size} btn-rounded" href="${escape(href)}"${record ? "" : goAttr({ s: item.section })}>${glyph ? ico(glyph) : ""}<span>${escape(item.action)}${forWhom}</span></a>`;
   }
-  function notesOf(ctx, limit) {
-    const N = window.Cab2Notificari;
-    if (!N) return [];
-    return dosareOf(ctx).flatMap((d) => N.eventsOf(d, data.services).map((note) => ({ ...note, nr: d.nr, dosar: d })))
-      .filter((note) => note.at).sort((a, b) => String(b.at).localeCompare(String(a.at))).slice(0, limit);
+  function alertHtml(item) {
+    const ctx = state.ctx;
+    const size = isPhone() ? "" : " btn-md";
+    const href = item.id ? recordHref(item.section, item.id) : sectionHref(item.section);
+    /* view only: no action — the body already says why; the quiet way in stays (alone = outline, next to a primary = text) */
+    const more = item.more ? `<a class="btn ${ctx.viewOnly ? "btn-outline-strict" : "btn-text-strict"}${size} btn-rounded" href="${escape(href)}"${item.id ? "" : goAttr({ s: item.section })}>${escape(item.more)}</a>` : "";
+    const actions = `${more}${ctx.viewOnly ? "" : alertPrimary(item)}`;
+    const tone = item.level === 1 ? "danger" : "warning";
+    return `<li class="cab2-alerts__item">${window.GEAPAlertCard.html({
+      tone, title: escape(item.title || item.text), text: item.body ? escape(item.body) : "", actions, role: "", titleTag: "h3", className: "cab2-alert", sprite: SPRITE,
+    })}</li>`;
+  }
+  const alertList = (items) => `<ul class="cab2-alerts" aria-label="De rezolvat">${items.map(alertHtml).join("")}</ul>`;
+
+  /* the tiles of a group (≤ 3): what is most useful at a glance; a source that is down drops its tile (all down = the
+     notice) */
+  const actsTile = (ctx) => {
+    const acts = actsOf(ctx);
+    if (!acts.length) return null;
+    const valid = acts.filter((a) => a.status === "valabil");
+    const next = valid.filter((a) => daysUntil(a.validUntil) >= 0).sort((a, b) => daysUntil(a.validUntil) - daysUntil(b.validUntil))[0];
+    const days = next ? daysUntil(next.validUntil) : null;
+    return { section: "acte", title: titleOf("acte", ctx), value: valid.length === 1 ? "1 valabil" : `${valid.length} valabile`,
+      tag: days !== null && days <= 90 ? `Expiră în ${days} de zile` : "", tone: "warning",
+      line: next ? `Cel mai apropiat termen: ${longDate(next.validUntil)}` : "Niciun act valabil", action: "Vezi actele" };
+  };
+  const requestTile = (d) => {
+    const service = serviceOf(d.service);
+    const label = data.cereri?.statuses?.[d.status]?.label || d.status;
+    return { section: "cereri", title: service.title || d.object || d.nr, tag: label, tone: STATUS_TONE[d.status] || "neutral",
+      line: [d.object, `Depusă ${longDate(d.submitted)}`].filter(Boolean).join(" · "), action: "Vezi cererea", href: recordHref("cereri", d.id), record: true };
+  };
+  const finesDue = (ctx) => todosOf(ctx).find((item) => item.section === "amenzi");
+  const TILES = {
+    identitate: (ctx) => cardsOf(ctx, "identitate").slice(0, 3).map(([title, value, tagLabel, tone]) => ({ title, value: "", tag: tagLabel, tone, line: value, action: "Deschide" })),
+    fisiere: () => ({ value: "9 fișiere", line: "Ultimul: contract de locațiune, 4 octombrie 2026" }),
+    plati: () => ({ value: "500 lei", line: "Ultima plată, 6 octombrie 2026" }),
+    taxe: (ctx) => (ctx.id === "pj-agro-nord"
+      ? { value: "2 310 lei", tag: "Termen depășit", tone: "danger", line: "Datorie la impozitul pe venit" }
+      : { value: "0 lei", tag: "La zi", tone: "success", line: "Nicio datorie restantă la buget" }),
+    amenzi: (ctx) => { const due = finesDue(ctx); return due ? { value: money(due.amount), tag: "De achitat", tone: "warning", line: "O amendă neachitată" } : { value: "0 lei", line: "4 amenzi achitate, ultima pe 14 august 2026" }; },
+    imobile: (ctx) => (ctx.kind === "company" ? { value: "1 bun imobil", line: "Depozit, r-nul Orhei" } : { value: "2 bunuri", line: "Un apartament în Chișinău, un teren în Orhei" }),
+    vehicule: (ctx) => (ctx.kind === "company" ? { value: "3 vehicule", tag: "RCA la zi", tone: "success", line: "Asigurarea RCA valabilă la toate" } : { value: "2 vehicule", tag: "RCA la zi", tone: "success", line: "Dacia Duster, Škoda Octavia" }),
+    gajuri: () => ({ value: "1 gaj", line: "Dacia Duster, în favoarea băncii" }),
+    copii: () => ({ value: "2 copii", line: "Daria, 7 ani · Matei, 2 ani" }),
+    sanatate: () => ({ value: "Asigurare activă", line: "Până la 31 decembrie 2026 · medic de familie Elena Rotaru" }),
+    contributii: (ctx) => (ctx.kind === "company" ? { value: "84 300 lei", tag: "Achitat", tone: "success", line: "Declarate pentru septembrie 2026" } : { value: "11 ani și 4 luni", line: "Stagiu de cotizare" }),
+    companii: () => ({ value: "3 companii", line: "Administrator la 2, fondator la 1" }),
+    detalii: () => ({ value: "Activă", line: "SRL, înregistrată pe 14 martie 2012" }),
+    concedii: () => ({ value: "1 de confirmat", tag: "Așteaptă confirmarea", tone: "warning", line: "2 concedii deschise" }),
+    controale: () => ({ value: "1 planificat", line: "ANSA, 10 decembrie 2026" }),
+    reclamatii: () => ({ value: "0", line: "Nicio reclamație în examinare" }),
+    imputerniciri: (ctx) => (ctx.kind === "company" ? { value: "2 persoane", line: "Împuternicite să acționeze pentru companie" } : { value: "3 primite", line: "1 dată de tine, valabilă până la 1 martie 2027" }),
+    "acces-date": () => ({ value: "6 accesări", line: "Luna aceasta · ultima: Serviciul Fiscal de Stat, 11 octombrie 2026" }),
+  };
+  /* phones: 2 tiles per section, one per row (the rest is one tap away on the group page) */
+  const tileMax = () => (isPhone() ? 2 : 3);
+  function tilesOf(ctx, group) {
+    const ids = sectionsOf(ctx, group);
+    if (ctx.newUser && group !== "documente") return { tiles: [], down: [] };
+    const down = ids.filter((id) => sourceDown(id) && TILES[id]);
+    if (group === "cereri") {
+      const acts = ids.includes("acte") ? actsTile(ctx) : null;
+      const tiles = ids.includes("cereri") ? openRequests(ctx).slice(0, Math.min(2, tileMax() - (acts ? 1 : 0))).map(requestTile) : [];
+      return { tiles: [...tiles, ...(acts ? [acts] : [])].slice(0, tileMax()), down };
+    }
+    const tiles = ids.filter((id) => TILES[id] && !sourceDown(id)).flatMap((id) => {
+      const out = TILES[id](ctx);
+      return (Array.isArray(out) ? out : [out]).map((tile) => ({ section: id, title: titleOf(id, ctx), action: "Deschide", ...tile }));
+    });
+    return { tiles: (ctx.newUser ? tiles.slice(0, 1) : tiles).slice(0, tileMax()), down };
+  }
+  const tileHtml = (tile) => {
+    const href = tile.href || sectionHref(tile.section);
+    return V2.card({
+      title: tile.title, value: tile.value || "", tag: tile.tag || "", tone: tile.tone || "neutral", line: tile.line || "",
+      /* no source line per tile (it wrapped to two lines in a third of 768): Acasă closes with the one source line */
+      source: "", action: tile.action, href, borderless: false,
+      linkAttrs: tile.record ? "" : goAttr({ s: tile.section }),
+    });
+  };
+  function groupSectionHtml(group) {
+    const ctx = state.ctx;
+    const { tiles, down } = tilesOf(ctx, group);
+    const label = groupLabel(ctx, group);
+    let body = "";
+    /* a source down: its tiles drop out and the notice says so, above what is still there */
+    if (tiles.length) body = `${down.length ? notice(downText(down[0])) : ""}<div class="cab2-wcards cab2-home-tiles${tiles.length === 3 ? " cab2-home-tiles--3" : ""}">${tiles.map(tileHtml).join("")}</div>`;
+    else if (down.length) body = notice(downText(down[0]));
+    else if (group === "cereri" && ctx.newUser) body = emptyBox({ title: "Nu ai încă nicio cerere", text: "Depui o cerere din Catalogul serviciilor și o urmărești apoi aici.", icon: "page-text", actionHtml: `<a class="${btn("secondary")}" ${linkAttrs({ s: "catalog", href: urlOf({ s: "catalog" }) })}>Deschide catalogul</a>` });
+    if (!body) return "";
+    const id = `cab2-home-g-${group}`;
+    /* the heading is the way to the group page (Yandex „Finances ›”): the whole name + chevron = one link */
+    return `
+      <section class="cab2-home-group" aria-labelledby="${id}">
+        <h2 class="e-permits-dosar-profil__section-title cab2-home-group__title" id="${id}"><a class="cab2-home-group__link" ${linkAttrs(toGroup(group))}><span>${escape(label)}</span>${ico("chevron-right")}</a></h2>
+        ${body}
+      </section>`;
   }
   function homeHtml() {
     const ctx = state.ctx;
@@ -684,59 +800,20 @@
     const count = countOf(ctx);
     /* 1 · the identity hero (the BO page header stays on every other page) */
     const parts = [heroHtml(ctx)];
-    /* 3 · De rezolvat — max 5 on desktop, 3 on phones */
-    if (todos.length) {
-      const max = isPhone() ? 3 : 5;
-      parts.push(block("cab2-home-todo", "De rezolvat", rowList(todos.slice(0, max).map(todoRow), "De rezolvat"), todos.length > max ? { s: TODO_PAGE, href: urlOf({ s: TODO_PAGE }), label: `Vezi toate (${todos.length})` } : null));
-    }
-    /* nothing to do: the block stays with the status sentence (the hero carries one line only) */
+    /* 2 · De rezolvat = alert cards, max 3, then „Vezi toate (N)” */
+    if (todos.length) parts.push(block("cab2-home-todo", "De rezolvat", alertList(todos.slice(0, ALERT_MAX)), todos.length > ALERT_MAX ? { s: TODO_PAGE, href: urlOf({ s: TODO_PAGE }), label: `Vezi toate (${todos.length})` } : null));
+    /* nothing to do: the block stays with the status sentence */
     else parts.push(block("cab2-home-todo", "De rezolvat", `<p class="cab2-source">${escape(todoText(count, own))}</p>`));
-    /* 4 · În curând — directly under „De rezolvat” (or under the title when nothing is to do); hidden when empty */
+    /* 3 · În curând — the quieter block: rows, not alert cards; hidden when empty */
     if (soon.length) {
       const max = isPhone() ? 3 : 5;
       parts.push(block("cab2-home-soon", "În curând", rowList(soon.slice(0, max).map(todoRow), "În curând"), soon.length > max ? { s: TODO_PAGE, href: urlOf({ s: TODO_PAGE }), label: `Vezi toate (${soon.length})` } : null));
     }
-    /* 5 · Cererile tale în lucru */
-    if (inMenu(ctx, "cereri")) {
-      const open = openRequests(ctx).slice(0, 3);
-      const body = open.length ? rowList(open.map(requestRow), "Cereri în lucru")
-        : ctx.newUser
-          ? emptyBox({ title: "Nu ai încă nicio cerere", text: "Depui o cerere din Catalogul serviciilor și o urmărești apoi aici.", icon: "page-text", actionHtml: `<a class="${btn("secondary")}" ${linkAttrs({ s: "catalog", href: urlOf({ s: "catalog" }) })}>Deschide catalogul</a>` })
-          : emptyBox({ title: "Nu ai cereri în lucru", text: "Cererile finalizate sunt în lista cererilor.", icon: "page-text" });
-      parts.push(block("cab2-home-cereri", own ? "Cererile tale în lucru" : "Cereri în lucru", body, open.length || !ctx.newUser ? { ...toSection("cereri"), label: "Vezi toate cererile" } : null));
-    }
-    /* 6 · Documentele tale / the company / the represented person */
-    if (ctx.kind === "company") {
-      parts.push(block("cab2-home-entity", "Compania", C.detailCard([
-        row("Denumire", escape(ctx.name)),
-        row(ctx.idLabel, C.copyValueHtml(ctx.idValue, `Copiază ${ctx.idLabel} ${ctx.idValue}`)),
-        row("Forma juridică", "Societate cu răspundere limitată"),
-        row("Stare", tag("Activă", "success")),
-        ctx.via === "admin" ? row("Rolul tău", "Administrator") : row("Temeiul", `Împuternicire MPower, valabilă până la ${escape(longDate(ctx.until))}`),
-      ]), inMenu(ctx, "detalii") ? { ...toSection("detalii"), label: "Vezi detaliile companiei" } : null));
-    } else if (!own) {
-      parts.push(block("cab2-home-entity", "Persoana pe care o reprezinți", C.detailCard([
-        row("Nume", escape(ctx.name)),
-        row("IDNP", `se termină în ${escape(ctx.idValue.slice(-4))}`),
-        row("Temeiul", escape(ctx.via === "notarial" ? `Împuternicire notarială nr. ${ctx.act}` : "Împuternicire MPower")),
-        row("Valabilă până la", escape(longDate(ctx.until))),
-        row("Acces", ctx.viewOnly ? "Doar vizualizare" : "Vizualizare și acțiuni din împuternicire"),
-      ])));
-    }
-    if (ctx.kind !== "company" && inMenu(ctx, "identitate")) {
-      const docs = ctx.newUser ? cardsOf(ctx, "identitate").slice(0, 1) : cardsOf(ctx, "identitate").slice(0, 3);
-      const body = sourceDown("identitate") ? notice(downText("identitate")) : rowList(docs.map((card) => docRow("identitate", card)), "Documente");
-      parts.push(block("cab2-home-docs", own ? "Documentele tale" : `Documentele ${ctx.genitive}`, body, { ...toGroup("documente"), label: "Vezi toate documentele" }));
-    }
-    /* 7 · per-group summary (only where data exists) */
-    const summary = summaryRows(ctx);
-    if (summary.length) parts.push(block("cab2-home-summary", "Pe scurt", C.detailCard(summary)));
-    /* 8 · Notificări — the latest 3 */
-    const notes = notesOf(ctx, 3);
-    if (notes.length) parts.push(block("cab2-home-notes", "Notificări", `<section class="e-permits-stack sm-list nt-list" aria-label="Notificări"><ul class="e-permits-stack__list" role="list">${notes.map((note, i) => window.Cab2Notificari.itemHtml(note, i, ctx.viewOnly, 3)).join("")}</ul></section>`, { s: "notificari", href: sectionHref("notificari"), label: "Vezi toate notificările" }));
-    /* 9 · where the data comes from — the closing line of Acasă (it was the header's caption) */
+    /* 4 · one section per menu group with content, in menu order */
+    menuOf(ctx).forEach(([group]) => parts.push(groupSectionHtml(group)));
+    /* 5 · where the data comes from — the closing line of Acasă */
     parts.push(`<p class="cab2-source cab2-source--end">Date de la GEAP, ASP, MAI și alte instituții · ${escape(SOURCE_TIME)}</p>`);
-    return `<div class="cab2-page" data-cab2-page="acasa">${parts.join("")}</div>`;
+    return `<div class="cab2-page cab2-home" data-cab2-page="acasa">${parts.filter(Boolean).join("")}</div>`;
   }
 
   /* ---------- group page (menu v3) ---------- */

@@ -1411,6 +1411,7 @@
 
   /* ---------- routing ---------- */
 
+  let payOnAddress = params.get("plata") === "1";
   function route(event) {
     window.GEAPTooltip?.hide();
     const match = /^#dosar\/([\w-]+)(?:\/(\w+))?$/.exec(window.location.hash);
@@ -1422,7 +1423,17 @@
     }
     const dosar = match && !readOnly() && state.dosare.find((item) => item.id === match[1]);
     state.tab = match?.[2] || "general";
-    if (dosar) renderProfile(dosar);
+    if (dosar) {
+      renderProfile(dosar);
+      /* cab2-home-v1: „Achită” on an Acasă alert = the request's profile with the MPay step open (&plata=1, once) */
+      if (payOnAddress && dosar.status === "achitare" && !paymentExpired(dosar)) {
+        payOnAddress = false;
+        const next = new URLSearchParams(window.location.search);
+        next.delete("plata");
+        window.history.replaceState(window.history.state, "", `${window.location.pathname}${next.toString() ? `?${next}` : ""}${window.location.hash}`);
+        openPayment(dosar);
+      }
+    }
     /* act-profile-url-v1: an address that matches no request = the not-found state (breadcrumb back to the list) */
     else if (match && !removed && !readOnly()) renderNotFound();
     else {

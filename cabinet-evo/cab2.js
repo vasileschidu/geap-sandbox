@@ -69,17 +69,19 @@
      button's hit area is the whole card and the wrapper carries the shared grey hover surface around it.
      Cab2.card({ title, value, tag, tone, line, source, action, href, group, level, bodyHtml, attrs, linkAttrs }) → HTML */
   const esc = (value) => String(value ?? "").replace(/[&<>"']/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[ch]);
-  const card = ({ title = "", value = "", tag = "", tone = "neutral", line = "", source = "", action = "Detalii", href = "", group: groupId = "", level = 3, bodyHtml = "", attrs = "", linkAttrs = "" } = {}) => {
+  /* `borderless: false` = the dashboard's own bordered card, for a WHITE page (S1 Acasă tiles, cab2-home-v1); a tag
+     without a value sits alone on the headline line (a request tile: its status) */
+  const card = ({ title = "", value = "", tag = "", tone = "neutral", line = "", source = "", action = "Detalii", href = "", group: groupId = "", level = 3, bodyHtml = "", attrs = "", linkAttrs = "", borderless = true } = {}) => {
     const tagHtml = tag ? window.GEAPTag?.html(tag, tone || "neutral") || "" : "";
-    const headline = value || line ? `
+    const headline = value || line || tagHtml ? `
         <div class="e-permits-wid-card__headline">
-          ${value ? `<span class="e-permits-wid-stat__line"><span class="e-permits-wid-card__headline-value">${esc(value)}</span>${tagHtml}</span>` : ""}
+          ${value || tagHtml ? `<span class="e-permits-wid-stat__line">${value ? `<span class="e-permits-wid-card__headline-value">${esc(value)}</span>` : ""}${tagHtml}</span>` : ""}
           ${line ? `<span class="e-permits-wid-stat__meta">${esc(line)}</span>` : ""}
         </div>` : "";
     const link = href && action ? `<a class="btn btn-text-primary btn-sm e-permits-wid-card__details cab2-wcard__link" href="${esc(href)}" aria-label="${esc(action)}: ${esc(title)}"${linkAttrs}>${esc(action)}</a>` : "";
     return `
       <div class="cab2-wcard${link ? " e-permits-hover-surface is-hover-within" : ""}"${groupId ? ` data-cab2-group="${esc(groupId)}"` : ""}${attrs}>
-        <article class="e-permits-chart e-permits-wid-card e-permits-wid-card--panel e-permits-wid-card--dash e-permits-wid-card--borderless">
+        <article class="e-permits-chart e-permits-wid-card e-permits-wid-card--panel e-permits-wid-card--dash${borderless ? " e-permits-wid-card--borderless" : ""}">
           <div class="e-permits-wid-card__head">
             <div class="e-permits-wid-card__title-row">${groupId ? groupIcon(groupId, { size: "sm" }) : ""}<h${level} class="e-permits-wid-card__title">${esc(title)}</h${level}></div>${headline}
           </div>${bodyHtml ? `

@@ -3301,7 +3301,7 @@
     "cab2-n26": cab2S({ as: "notar-pf-maria", g: "bani" }),
     /* „În curând” (2026-11-18): n01 / n05 Acasă = „De rezolvat” then „În curând” · n07 Acasă = „Nimic de rezolvat” + „În
        curând” · n20 the full page with both blocks · n27 the full page: the boxed „Nimic de rezolvat” + „În curând” */
-    "cab2-n27": cab2S({ as: "notar-pf-maria", s: "de-rezolvat" }),
+    "cab2-n27": cab2S({ as: "notar-pf-maria", s: "de-rezolvat", rezolvat: "1" }),
     /* Account-home layout + identity hero (cab2-hero-v1, 2026-11-18): menu docked at the gutter, content 1024 centred
        right of it; Acasă = the centred hero. h01 you · h02 a company (administrator) · h03 a company through MPower ·
        h04 a person through a notarial power (view only) · h05 the hero's „Schimbă” opens the header switcher (= the FO
@@ -3325,6 +3325,15 @@
     "cab2-h12": cab2S({ foto: "demo" }),
     "cab2-h13": cab2S({}, cab2Photo(async (h) => { await window.Cab2Photo.pick(new File(["%PDF-1.4"], "certificat.pdf", { type: "application/pdf" })); await h.wait(300); })),
     "cab2-h14": cab2S({ as: "pj-global-trader", entrance: "always" }),
+    /* Acasă like Yandex ID (cab2-home-v1, 2026-11-18): hero · „De rezolvat” = the profile alert cards (max 3, blue
+       primary inside) · „În curând” rows · one section per menu group (heading + chevron → group page, 2–3 tiles).
+       a01 you, 3 alerts · a02 a company (administrator), 3 alerts + „Achită pentru …” · a03 nothing to resolve ·
+       a04 a notarial power (view only: the alert says why, no action) · a05 a company with an overdue debt (danger) */
+    "cab2-a01": cab2S(),
+    "cab2-a02": cab2S({ as: "pj-global-trader" }),
+    "cab2-a03": cab2S({ rezolvat: "1" }),
+    "cab2-a04": cab2S({ as: "notar-pf-maria" }),
+    "cab2-a05": cab2S({ as: "pj-agro-nord" }),
     "sm-01": sm(),
     /* the „Filtre” trigger = the library chip (filter-chip-v1): N values applied, bar closed → black chip + numbered
        badge (1 / 3 / 12, the badge width); phones: the pill after „Arată” */
