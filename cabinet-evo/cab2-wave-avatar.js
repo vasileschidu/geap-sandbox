@@ -33,7 +33,8 @@
 
    Performance: requestAnimationFrame; per frame only the ring's `d`, the gradient's stops / transform and the face's `clip-path` change
    (paint, no layout); the pop is a Web Animation on transform / opacity (compositor). Accessibility: the SVG is
-   aria-hidden; the face keeps its own name; focus or pointer on the host finishes the entrance at once. */
+   aria-hidden; the face keeps its own name; the entrance always plays to the end (hover / focus never stop it); a keyboard
+   focus on the hidden pen shows it at once. */
 (() => {
   "use strict";
 
@@ -295,8 +296,6 @@
       startIdle();
       host.classList.remove("is-wave-playing");
       host.classList.add("is-wave-settled");
-      host.removeEventListener("pointerenter", settle);
-      host.removeEventListener("focusin", settle);
       resolveDone(true);
     }
     instance.finish = settle;
@@ -306,8 +305,8 @@
       stopIdle();
       host.classList.remove("is-wave-settled");
       host.classList.add("is-wave-playing");
-      host.addEventListener("pointerenter", settle, { once: true });
-      host.addEventListener("focusin", settle, { once: true });
+      /* v13 (product owner): hover / pointer / focus never end or restart the entrance — it always plays to the end; a
+         keyboard focus on the hidden pen shows it (CSS :focus-visible) while the animation keeps going */
       const enter = tokenText("--motion-ease-enter") || "cubic-bezier(0.05, 0.7, 0.1, 1)";
       pop = host.animate([
         { transform: `scale(${POP.from})`, opacity: 0, easing: enter },

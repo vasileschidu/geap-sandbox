@@ -36,14 +36,20 @@
   display: none;
 }
 
-/* the badge and the pen come in after the shape settles (short fade); while playing they stay in the tab order — a focus
-   or a pointer on the avatar settles it at once (the module), so nothing is ever waited for */
+/* the badge and the pen come in after the shape settles (short fade); while playing they stay in the tab order — the pen
+   shows on keyboard focus without stopping the entrance */
 .cab2-wave.is-wave-settled :is(.cab2-avatar-badge, .cab2-photo-edit) {
   transition: opacity var(--motion-duration-fast, 150ms) linear;
 }
 
 .cab2-wave.is-wave-playing :is(.cab2-avatar-badge, .cab2-photo-edit) {
   opacity: 0;
+  pointer-events: none; /* no click / hover on an invisible pen */
+}
+
+/* the entrance never stops (product owner 2026-11-18, v13): a keyboard focus on the pen shows it while the ring plays on */
+.cab2-wave.is-wave-playing .cab2-photo-edit:focus-visible {
+  opacity: 1;
 }
 
 /* the hero: the wave ring replaces the round brand ring (cab2.css › `.cab2-hero__ring::before`) and its CSS entrance
