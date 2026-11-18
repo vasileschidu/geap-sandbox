@@ -3,12 +3,20 @@
 // „envs”/„lib” (paste this file once as `const LIB = <file>; figma.root.setSharedPluginData("envs","lib", LIB.toString())`).
 // Run: const LIB = new Function("return " + figma.root.getSharedPluginData("envs","lib"))(); return await LIB(OP, ARGS);
 // OPS
-//   "shell"   → local mains `Sidebar · BO` (Central admin, Setări › Sincronizarea mediilor) + `Shell / Header (BO desktop)`
-//   "screen"  {cap, state, active?}  captured page („cap · <state>”) → `Desktop · <state>` (gov bar · sidebar · header · page),
+//   "shell"   (legacy, unused since 2026-11-18 — the GEAP shell is imported by key, see G below)
+//   "fix"     {screen, role?, detail?, title?}  GEAP shell overrides on an existing screen (header switcher, no back, sidebar item)
+//   "px"      {ids}  whole pixels (fixed sizes rounded, hug texts → fixed ceil width, absolute x / y rounded)
+//   "stack"   {section, order}  blocks x 80, y 440, gap 240; section height = last bottom + 80
+//   "arrow"   {from, to, label}  anchor on the clicked element + elbowed connector with a blue pill label. The Plugin API cannot
+//             create connectors in design files: it clones the template connector ids.connector (paste one from GEAP first)
+//   "screen"  {cap, state, role?, detail?, fixed?}  captured page („cap · <state>”) → `Desktop · <state>` (gov bar · GEAP sidebar · GEAP header · page),
 //             library swaps (notice, search, Filtrare chip, toolbar / direction buttons, tabs + track line, checkboxes, tags,
 //             icons), GRID → auto-layout, table clip + last row no border, text styles + spacing tokens. Returns unmapped.
 //   "block"   {screen, state, title, story, note, section}  → `Block · <state>` = Screen label · screen · Note, in the section
 //   "tok"     {ids}  text styles + spacing tokens only
+// Companion: post.js (stored „envs”/„post”): "pre" {cap} before "screen" (radios, textarea, inline inputs), "post" {screen}
+// after it (dialog → GEAP Modal Type=Content with the body in its slot, scrim, sort labels, batch headers, links, grid px).
+// Chain per state: POST("pre") → LIB("screen", {fixed: true for dialog / drawer / toast states}) → POST("post") → LIB("block") → LIB("stack").
 async (OP, A = {}) => {
   figma.skipInvisibleInstanceChildren = false;
   const ids = JSON.parse(figma.root.getSharedPluginData("envs", "ids") || "{}");
@@ -26,6 +34,44 @@ async (OP, A = {}) => {
   const RAD = { r8: "dc82cc9d79935ad111db3189faf87c70772bed75", r12: "1f2268059644ae4bb07e70b94fc8ee2bafcf952e", r16: "5e0761c5c01bfd401113f4132cbbf4b3fb30c7d0", r20: "67f239d0", full: "cd76e9200ec61264fe73c9484085ef475ac6c345" };
   const SET = { rect: "2cbe2c350e7c6b3948dc449660ede8355511c384", circ: "fcf938f6ce9e31ae7f0f11838ee889335b4b7728", textRect: "4ad2518c34b8b51d5113119316eac5934c1eb9fb", check: "e915a93ec9c4b91546cfb5788ededa656f98069a", tag: "a97109f9ebf668fb7616cb37e46929fc75ed9070", tab: "0294516b83af6616fbab5bb29510032a2ef03d80", badge: "68a3732b7f9426c74b6c022887f0c7b9daca495d", search: "a27b4efaed053f6cd4a57411a032d7391174c425", chip: "a2731000280087a1f254d5ad13d3725966c8181a", side: "66c046a8f2e5b5c0b5e87d25aace43b176ad018f", avatar: "c622e4206c2a122385a0a1b0089b7e1c75fe7574", top: "ef41893a2f6488bb4b264a219fa31a8ec9f562a8" };
   const IC = { rotate: "8cdf3361fae3b611bc79a0ff4be5e664909d1ea5", plus: "52d7f8d8fc6f085581c901fdf6ca49b994735246", upload: "e72e41aa51a34c586d0e3e31309dc738551e1ba8", help: "322822f38c7708c8bb66d137111569a4d7179790", bell: "4018a350ecbc8fe5cb522545f48f8c98ae664e64", chevD20: "ec31e2fd59c87fcf1bb6eb4ccfdde10307f56ce0", chevD16: "a9d10e062692212dde688d564b091a62be22d2f7", sidebar: "f8627c5d2b37adbd6e3016e332536ece3dd45c7a", logo: "21a565da48d438202874159adf9fb38be4adec65", filter: "7b2354831ab59c47c20f73c7e60b3e601c1460fb", check16: "65554871443479b94c3509571928faafcfa1767f", btnIconOnly: "5685a256320fe41e04e10cd9833f6f081d1f46f2", btnUpdate: "52f2bc3f1ec748d1badbd14cfd0e38c7458c2c24" };
+  // GEAP 2.0 library (published 2026-11-18) — keys, never node ids
+  const G = { side: "82b199c4330f0886aea6f721c542b5a4ff9d997b", header: "28b3981a31d17eb1f9c0d77d4982a64a315defc7", msg: "cb892f8c3ae95cd48d8498b35076a2f8b58405df", status: "ab403364317096c2b9e7db3fbd5ed63d7ebe41c9", empty: "33fcf9d6187638b1c55ce8993bc9da1c2106a6b0", group: "d8b1af4ecb4c21c15f176242197659e554a8a4f9", modal: "9e3894b2f7144351f232578666c651c7b97660fa" };
+  const BRAND = { text: "0e3dbef907f67c87aa26db90914a7a9fe1a60591", bg: "7104dc11afe3b34f5529876133c95b3be65ee87e", onColor: "c6263eb190b34c3063061b7cfb0f8e516bdb4be5" };
+  // shell overrides (instance overrides only — the GEAP mains stay untouched). Sidebar: the hidden item slot of Setări
+  // („Reguli de numerotare” in the main) becomes „Sincronizarea mediilor” (20/rotate-arrow), Active.
+  const SHELL = async (sb, hd, o = {}) => {
+    const r = {};
+    if (hd) {
+      setP(hd, "Title", o.title || "Sincronizarea mediilor"); setP(hd, "Back", false);
+      const sw = hd.findOne((n) => n.type === "INSTANCE" && n.name === "Instance switcher"); if (sw) { setP(sw, "Detail", o.detail || "Administrator central • ANSP"); if (o.name) setP(sw, "Name", o.name); r.switcher = true; }
+    }
+    if (sb && o.active !== false) {
+      const grp = sb.findOne((n) => n.name === "Group · Setări");
+      if (grp) {
+        grp.visible = true; const items = grp.children.filter((c) => c.type === "INSTANCE");
+        const it = items.find((c) => c.componentProperties[pk(c, "⌨️ Primary Label")].value === "Sincronizarea mediilor") || items.find((c) => !c.visible) || items[items.length - 1];
+        it.visible = true; const ic = await kc(IC.rotate);
+        it.setProperties({ [pk(it, "⌨️ Primary Label")]: "Sincronizarea mediilor", [pk(it, "🔄 Icon")]: ic.id, "🎚️ State": "Active" }); r.item = it.id;
+      }
+    }
+    return r;
+  };
+  // whole pixels: fixed sizes rounded, hugging texts → fixed width (ceil), x / y of absolute / free children rounded
+  const PX = async (root) => {
+    let n = 0; const fr = (v) => Math.abs(v - Math.round(v)) > 0.01;
+    for (let pass = 0; pass < 2; pass++) for (const x of root.findAll((k) => (k.type === "FRAME" || k.type === "TEXT" || k.type === "INSTANCE") && !inInst(k))) {
+      if (x.removed) continue; const p = x.parent; const auto = p && p.layoutMode && p.layoutMode !== "NONE" && x.layoutPositioning !== "ABSOLUTE";
+      if (!auto && (fr(x.x) || fr(x.y))) { x.x = Math.round(x.x); x.y = Math.round(x.y); n++; }
+      if (x.type === "TEXT") { if (fr(x.width) && x.textAutoResize === "WIDTH_AND_HEIGHT") { for (const s of x.getStyledTextSegments(["fontName"])) await lf(s.fontName); x.textAutoResize = "HEIGHT"; x.resize(Math.ceil(x.width), x.height); n++; } continue; }
+      const fw = x.layoutSizingHorizontal === "FIXED" || !auto && !(x.layoutMode && x.layoutMode !== "NONE" && x.primaryAxisSizingMode === "AUTO");
+      const fh = x.layoutSizingVertical === "FIXED";
+      if ((fw && fr(x.width)) || (fh && fr(x.height))) { try { x.resize(fw ? Math.round(x.width) : x.width, fh ? Math.round(x.height) : x.height); n++; } catch (e) {} }
+    }
+    let left = 0; for (const x of root.findAll((k) => (k.type === "FRAME" || k.type === "TEXT" || k.type === "INSTANCE") && !inInst(k))) if (["x", "y", "width", "height"].some((k) => fr(x[k]))) left++;
+    return { fixed: n, left };
+  };
+  // captured grid rows come in FILL → HUG; empty helper containers go
+  const HUG = (root) => { let n = 0; for (const f of root.findAll((k) => k.type === "FRAME" && !inInst(k))) { if (f.removed) continue; if (f.children.length === 0 && f.height < 1 && /^Container/.test(f.name)) { f.remove(); n++; continue; } if (f.layoutSizingVertical === "FILL" && f.parent && f.parent.layoutMode === "VERTICAL" && f.layoutMode && f.layoutMode !== "NONE" && f.parent.name !== "Body") { try { f.layoutSizingVertical = "HUG"; n++; } catch (e) {} } } return n; };
   const V = (set, want) => set.children.find((c) => Object.entries(want).every(([k, v]) => c.name.includes(`${k}=${v}`)));
   const pk = (i, pre) => Object.keys(i.componentProperties).find((k) => k.startsWith(pre));
   const setP = (i, pre, val) => { const k = pk(i, pre); if (k) { try { i.setProperties({ [k]: val }); } catch (e) {} } return k; };
@@ -127,11 +173,13 @@ async (OP, A = {}) => {
     scr.fills = await paint(COL.white); scr.strokes = await paint(COL.border); scr.strokeWeight = 4; scr.strokeAlign = "OUTSIDE"; await bindRad(scr, RAD.r16);
     const govMain = await (await ks(SET.top)).children[0].findOne((n) => n.name === ".top-section").getMainComponentAsync(); const gov = govMain.createInstance(); scr.appendChild(gov); gov.layoutSizingHorizontal = "FILL"; gov.name = "Gov bar";
     const body = frame("Body", "HORIZONTAL"); scr.appendChild(body); body.layoutSizingHorizontal = "FILL"; body.layoutSizingVertical = "HUG";
-    // GEAP 2.0-local shell parts are not published yet (2026-11-18) → the captured sidebar / top bar stay as labelled
-    // placeholders; swap them for `Sidebar · BO` (GEAP 12673:12268, Central admin) / `Shell / Header (BO desktop)` (11903:7155) once published.
-    const sbCap = cap.findOne((n) => n.name === "Sidebar - Navigare principală"); body.appendChild(sbCap); sbCap.name = "PLACEHOLDER · Sidebar · BO (GEAP 12673:12268)"; sbCap.layoutSizingVertical = "FILL";
+    // GEAP shell by key: sidebar `Sidebar · BO` (set 82b199c4…, Role variant) + `Shell / Header (BO desktop)`, overrides via SHELL
+    const sbCap = cap.findOne((n) => n.name === "Sidebar - Navigare principală");
+    const sideSet = await ks(G.side); const sb = (V(sideSet, { Role: A.role || "Central admin" }) || sideSet.defaultVariant).createInstance(); body.appendChild(sb); sb.layoutSizingVertical = "FILL"; sb.name = "Sidebar · BO";
     const main = frame("Main", "VERTICAL"); body.appendChild(main); main.layoutSizingHorizontal = "FILL"; main.layoutSizingVertical = "HUG"; main.fills = await paint(COL.white);
-    const hdCap = cap.findOne((n) => n.name === "Header" && n.parent === cap.children[0]); main.appendChild(hdCap); hdCap.layoutPositioning = "AUTO"; hdCap.name = "PLACEHOLDER · Shell / Header (BO desktop) (GEAP 11903:7155)"; hdCap.layoutSizingHorizontal = "FILL";
+    const hdCap = cap.findOne((n) => n.name === "Header" && n.parent === cap.children[0]);
+    const hd = (await kc(G.header)).createInstance(); main.appendChild(hd); hd.layoutSizingHorizontal = "FILL"; hd.name = "Header";
+    await SHELL(sb, hd, A); if (sbCap) sbCap.remove(); if (hdCap) hdCap.remove();
     const sec = cap.findOne((n) => n.name === "Section - Conținut principal");
     const pageC = sec.children[0]; main.appendChild(pageC); pageC.name = "Page"; pageC.layoutSizingHorizontal = "FILL"; pageC.layoutSizingVertical = "HUG";
     // overlays of the capture (dialog / drawer scrims) → screen level, same position
@@ -151,7 +199,11 @@ async (OP, A = {}) => {
       // in-page notice (icon + paragraph on a tinted, rounded box)
       if (c && (f.cornerRadius === figma.mixed ? f.topLeftRadius : f.cornerRadius) >= 8 && f.children && f.children.length === 2 && f.children[0].findOne && f.children[0].findOne((x) => /h2d-svg/.test(x.name)) && /Paragraph/.test(f.children[1].name)) {
         const tone = c.g > c.r && c.g > c.b + 0.03 ? "Success" : c.r > 0.95 && c.g < 0.93 ? "Error" : c.r > 0.95 && c.b < 0.85 ? "Warning" : "Info";
-        f.name = "PLACEHOLDER · Message · subtle Tone=" + tone + " (GEAP 9845:17951)"; f.layoutSizingHorizontal = "FILL";
+        const mset = await ks(G.msg); const mi = (V(mset, { Tone: tone }) || mset.defaultVariant).createInstance();
+        const para = f.children[1]; const ptx = para.type === "TEXT" ? [para] : para.findAll((x) => x.type === "TEXT"); const full = ptx.map((x) => x.characters).join("").replace(/\s+/g, " ").trim();
+        let lead = ""; if (ptx[0]) { const sg = ptx[0].getStyledTextSegments(["fontName"]); if (sg.length > 1 && wt(sg[0].fontName.style) >= 500) lead = sg[0].characters.trim(); }
+        setP(mi, "Text", full); place(f, mi, true); mi.name = "notice · " + tone;
+        if (lead) { const tn = mi.findAll((x) => x.type === "TEXT" && x.name === "Text").pop(); if (tn) { for (const sg of tn.getStyledTextSegments(["fontName"])) await lf(sg.fontName); const bs = await sk(TS.bs5); await lf(bs.fontName); try { await tn.setRangeTextStyleIdAsync(0, lead.length, bs.id); } catch (e) {} } }
         D("notice"); continue;
       }
       // search
@@ -196,7 +248,7 @@ async (OP, A = {}) => {
       if (f.children && f.children.length === 1 && f.children[0].type === "TEXT" && h <= 24 && c && /^(aici lucrezi|schiță)$/.test(t)) { place(f, tagOf(t === "schiță" ? "Accent" : "Brand", t)); D("tag"); continue; }
     }
     // icons left from the capture (h2d-svg): ✓ sincronizat 16, sort chevrons 20
-    const inPh0 = (n) => { for (let p = n; p; p = p.parent) if (/^PLACEHOLDER/.test(p.name)) return true; return false; };
+    const inPh0 = () => false;
     for (const s of root.findAll((n) => /^h2d-svg/.test(n.name) && !inInst(n) && !inPh0(n))) {
       if (s.removed) continue; const box = s.parent && s.parent.name === "Icon" ? s.parent : s; const ctx = textOf(box.parent && box.parent.parent ? box.parent.parent : box.parent);
       const vec = s.findOne && s.findOne((x) => x.type === "VECTOR"); const bv = vec && vec.fills && vec.fills[0] && vec.fills[0].boundVariables && vec.fills[0].boundVariables.color;
@@ -212,10 +264,29 @@ async (OP, A = {}) => {
       const last = Math.max(...tb.children.map((k) => k.gridRowAnchorIndex || 0)); for (const k of tb.children) if ((k.gridRowAnchorIndex || 0) === last && "strokeBottomWeight" in k) k.strokeBottomWeight = 0; D("table");
     }
     const tok = await TOK(root);
-    const inPh = (n) => { for (let p = n; p; p = p.parent) if (/^PLACEHOLDER/.test(p.name)) return true; return false; };
+    const inPh = () => false;
+    const hug = HUG(root); if (A.fixed) { scr.primaryAxisSizingMode = "FIXED"; scr.resize(1440, 900); scr.minHeight = null; }
+    const px = await PX(root);
     for (const n of root.findAll((x) => x.type === "FRAME" && /^(Button\b|Button - |Text Input|Tab$|Search Input)/.test(x.name) && !inInst(x) && !inPh(x))) un.push("raw " + n.name.slice(0, 40) + " " + n.id);
     cap.remove(); ids["scr_" + A.state] = scr.id; save();
-    return { screen: scr.id, h: Math.round(scr.height), done, tok: { text: tok.text, sp: tok.sp, off: tok.off.slice(0, 8) }, unmapped: un.slice(0, 25) };
+    return { screen: scr.id, h: Math.round(scr.height), hug, px, done, tok: { text: tok.text, sp: tok.sp, off: tok.off.slice(0, 8) }, unmapped: un.slice(0, 25) };
+  }
+  if (OP === "fix") { const scr = await g(A.screen); const sb = scr.findOne((n) => n.type === "INSTANCE" && n.name === "Sidebar · BO"); const hd = scr.findOne((n) => n.type === "INSTANCE" && n.name === "Header"); const r = await SHELL(sb, hd, A); r.hug = HUG(scr); r.px = await PX(scr); return r; }
+  if (OP === "px") { const out = []; for (const id of A.ids) out.push(await PX(await g(id))); return out; }
+  if (OP === "stack") {
+    const sec = await g(A.section); let y = 440, w = 0;
+    for (const st of A.order) { const b = await g(ids["blk_" + st]); if (!b) continue; if (b.parent !== sec) sec.appendChild(b); b.x = 80; b.y = y; y += Math.round(b.height) + 240; w = Math.max(w, b.width); }
+    sec.resizeWithoutConstraints(Math.max(1800, Math.round(w) + 160), Math.max(1200, y - 240 + 80)); return { h: Math.round(sec.height) };
+  }
+  if (OP === "arrow") {
+    const tpl = ids.connector && (await g(ids.connector)); if (!tpl) throw new Error("no template connector: paste one connector from GEAP (e.g. 10952:283686) on the board and store its id as ids.connector");
+    const el = await g(A.from), to = await g(A.to); let scr = el; while (scr.parent && !/^Desktop · /.test(scr.name)) scr = scr.parent;
+    const eb = el.absoluteBoundingBox, sbb = scr.absoluteBoundingBox;
+    const an = figma.createFrame(); an.name = "anchor · " + A.label; an.fills = []; scr.appendChild(an); an.layoutPositioning = "ABSOLUTE"; an.resize(Math.max(2, Math.round(eb.width)), Math.max(2, Math.round(eb.height))); an.x = Math.round(eb.x - sbb.x); an.y = Math.round(eb.y - sbb.y);
+    const c = tpl.clone(); (scr.parent && scr.parent.parent ? scr.parent.parent.parent : figma.currentPage).appendChild(c); c.name = "Flow · " + A.label; c.connectorLineType = "ELBOWED"; c.connectorStart = { endpointNodeId: an.id, magnet: A.magnet || "RIGHT" }; c.connectorEnd = { endpointNodeId: to.id, magnet: A.endMagnet || "LEFT" };
+    c.strokes = await paint(BRAND.bg); c.strokeWeight = 2; c.connectorEndStrokeCap = "ARROW_LINES";
+    await lf({ family: "Onest", style: "Medium" }); try { await lf(c.text.fontName); } catch (e) {} c.text.fontName = { family: "Onest", style: "Medium" }; c.text.characters = A.label; c.text.fontSize = 14; c.text.fills = await paint(BRAND.onColor);
+    c.textBackground = { cornerRadius: 999, fills: await paint(BRAND.bg) }; return { anchor: an.id, connector: c.id };
   }
   if (OP === "tok") { const out = []; for (const id of A.ids) out.push(await TOK(await g(id))); return out; }
   // ---------------------------------------------------------------- block = label · screen · note in a section
@@ -226,9 +297,9 @@ async (OP, A = {}) => {
     const tags = await ks(SET.tag); const strong = tags.children.find((c) => c.name.includes("Type=Strong") && c.name.includes("Style=Brand") && c.name.includes("Icon=None") && c.name.includes("Size=Medium")) || tags.children.find((c) => c.name.includes("Style=Brand") && c.name.includes("Size=Medium"));
     const idc = strong.createInstance(); setP(idc, "⌨️ Label", A.state.toUpperCase()); idc.name = "ID chip"; lab.appendChild(idc);
     lab.appendChild(await txt(A.title, "h4", COL.text, "Title"));
-    const stat = tags.children.find((c) => c.name.includes("Type=Subtle") && c.name.includes("Style=Brand") && c.name.includes("Icon=None") && c.name.includes("Size=Small")).createInstance(); setP(stat, "⌨️ Label", "In development"); stat.name = "PLACEHOLDER · Status (GEAP 10169:188209)"; lab.appendChild(stat);
+    const sset = await ks(G.status); const stat = (sset.children.find((c) => /In development/.test(c.name)) || sset.children[0]).createInstance(); stat.name = "Status"; lab.appendChild(stat);
     const story = tags.children.find((c) => c.name.includes("Type=Subtle") && c.name.includes("Style=Neutral") && c.name.includes("Icon=None") && c.name.includes("Size=Small")).createInstance(); setP(story, "⌨️ Label", A.story); story.name = "Story"; lab.appendChild(story);
-    const link = await txt("Prototype ↗", "bs5", ids.brandVarKey || COL.text, "Link · prototype"); link.setRangeHyperlink(0, link.characters.length, { type: "URL", value: "https://vasileschidu.github.io/geap-sandbox/e-permits-acte-permisive.html?state=" + A.state }); link.setRangeTextDecoration(0, link.characters.length, "UNDERLINE"); lab.appendChild(link);
+    const link = await txt("Prototype ↗", "bs5", BRAND.text, "Link · prototype"); link.setRangeHyperlink(0, link.characters.length, { type: "URL", value: "https://vasileschidu.github.io/geap-sandbox/e-permits-acte-permisive.html?state=" + A.state }); link.setRangeTextDecoration(0, link.characters.length, "UNDERLINE"); lab.appendChild(link);
     blk.appendChild(scr);
     const note = frame("Note · " + A.state, "VERTICAL"); blk.appendChild(note); note.layoutSizingHorizontal = "FILL"; note.fills = await paint(COL.bgSec); await bindRad(note, RAD.r16); await bindSp(note, ["paddingTop", "paddingRight", "paddingBottom", "paddingLeft"], 16); await bindSp(note, ["itemSpacing"], 8);
     const nt = tags.children.find((c) => c.name.includes("Type=Subtle") && c.name.includes("Style=Neutral") && c.name.includes("Icon=None") && c.name.includes("Size=Small")).createInstance(); setP(nt, "⌨️ Label", "NOTE DEV / PM"); nt.name = "tag · note"; note.appendChild(nt);

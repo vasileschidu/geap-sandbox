@@ -1,39 +1,49 @@
 # Sincronizarea mediilor — Figma board (Feature 97187, US-346…353)
 
 File **GEAP 2.0 · Admin** `rFoBKCqtBb0idERLS2RHE8` (GEAP 2.0 is in recovery mode → built here, moves into GEAP 2.0 later).
-GEAP 2.0's library is published and enabled here (2026-11-18). Import GEAP components by KEY. There are no local copies.
+GEAP 2.0's library is published and enabled here (2026-11-18). GEAP components are imported by KEY (`lib.js` → `G`). No local copies.
 
-## Ids (root shared plugin data `envs`/`ids`)
+## Ids (root shared plugin data `envs`/`ids`; routines `envs`/`lib`, `envs`/`post`, `envs`/`audit`)
 | What | id |
 |---|---|
-| Page „📍 Cover” · file index card | 0:1 · 15:113 |
+| Page „📍 Cover” · file index card | 0:1 · 15:113 (13 blocks) |
 | Page „Sincronizarea mediilor” | 3:2 |
-| 00 · Start here (card 15:105) | 13:2536 |
-| 01 · List & states | 13:2537 — **Block · sync-01 13:2541** (screen 13:2) DONE |
-| 02 · Sync one | 13:2538 — sync-03, 03b to do |
-| 03 · Batch | 13:2539 — sync-04, 05a, 04d to do |
-| 04 · History & activity | 13:2540 — sync-06, 07 to do (re-capture 07 last: batch-table clip fix may land) |
-Raw captures still on the page: `cap · sync-04` 5:2, `cap · sync-06` 6:2 (pre-check, captured with --fit = 2642 tall → re-capture the dialog / drawer states or crop to 900).
+| 00 · Start here (card 15:105, contents lines 15:109–15:112 linked to the sections) | 13:2536 |
+| 01 · List & states | 13:2537 — sync-01 13:2541 · 01a 28:3766 · 01g 28:4596 · 01e 41:8876 · 01f 41:9601 · 02 28:5093 |
+| 02 · Sync one | 13:2538 — sync-03 23:4758 · 03b 33:5429 |
+| 03 · Batch | 13:2539 — sync-04 33:6675 · 05a 33:7790 · 04d 33:8643 |
+| 04 · History & activity | 13:2540 — sync-06 41:7300 · 07 41:8129 |
+Screens: `envs`/`ids` keys `scr_<state>`; blocks `blk_<state>`. No raw captures left on the page.
 
-## Per-state chain (≈ 4 calls / block)
-1. `generate_figma_design { fileKey, nodeId: "3:2" }` → `SETTLE=3000 bash tools/figma/registre/cap.sh "<state> <cid>"` (one at a time; add `nofit` for menu states).
-2. `const LIB = new Function("return " + figma.root.getSharedPluginData("envs","lib"))(); return await LIB("screen", { cap, state })`
-   (source `lib.js`). It builds `Desktop · <state>` (library gov bar `.top-section`, Body = sidebar + Main), swaps search, Filtrare chip, toolbar /
-   direction buttons, tabs + track line, checkboxes, tags, ✓ / sort icons; GRID → VERTICAL; table clip + last row no border; text styles + spacing tokens.
-   **Then swap the shell to GEAP instances** (see the sync-01 fix calls): sidebar set `82b199c4…` variant `Role=Central admin` (FILL height), header
-   `28b3981a…` (Title prop = page title), notice → Message · subtle `cb892f8c…` Tone=Info (bold lead = Body/Small 500 `057521fd…`), batch toggles →
-   svc/stack-group-header `d8b1af4e…`, empty states → Empty state · boxed `33fcf9d6…`, block status → Status `ab403364…`. Update `lib.js` to do this directly (it still writes `PLACEHOLDER · …`).
-3. After the `screen` op: set every converted grid row (Page › Container children, table scroll box, activity Section) to HUG height. Grid
-   rows come in as FILL, so they stretch and cut the table. Delete the empty `Container` (0 high) under the table.
-4. Activity object names are **links** (link link-primary), not buttons: they are text + Body/Small 500 + brand colour, never a Neutral button.
-5. `LIB("block", { screen, state, title, story, note, section })` → Block = Screen label (ID chip, title, Status, story tag, Prototype ↗) · screen · Note.
-6. Audit: compact gate check (the stored `envs`/`audit` was NOT saved — paste tools/ui-qa/figma-audit.js with ROOTS = block id).
+## Per-state chain (≈ 2 Figma calls / block, 2–3 blocks per use_figma call; > 3 risks the 5-min timeout)
+1. `generate_figma_design { fileKey, nodeId: "3:2" }` → `SETTLE=3000 bash tools/figma/registre/cap.sh "<state> <cid> [nofit]"`
+   — one cap.sh at a time (parallel runs collide). `nofit` for dialog / drawer / toast states (screen = 900 viewport).
+   The „timeout (submitted?)” line is normal: the capture lands as `cap · <state>` on the page.
+2. In one call (stored routines):
+   `POST("pre",{cap})` → `LIB("screen",{cap,state,fixed?,role?,detail?,active?})` → `POST("post",{screen})` → `LIB("block",{screen,state,title,story,note,section})` → `LIB("stack",{section,order})`.
+   - `screen`: GEAP `Sidebar · BO` (Role variant) + `Shell / Header (BO desktop)`; SHELL overrides = header Title, Back off, switcher Detail
+     (read from the capture's „… • …” text), Setări hidden item → „Sincronizarea mediilor” (20/rotate-arrow) Active. Specialist (sync-02): `role: "Specialist", active: false`.
+   - `pre` (before screen!): radios → radio-label Small (+ supporting text, Disabled when fixed), textarea field → text-area (label, star,
+     hint, counter; Destructive when the field shows the error), inline step input → text-input (label off).
+   - `post`: dialog → GEAP `Modal` Type=Content (body cloned into the Content slot, footer Medium), scrim = primitive `alpha/black/400-alpha`
+     (the semantic overlay-dark alias renders opaque until its primitive is imported), sort labels, „Vezi în Audit & Logging” Neutral Small,
+     batch toggles → `svc/stack-group-header` + Meta lines, activity names → links, GRID tracks whole px.
+   - Drawer states: rename the overlay's `Dialog` → `Drawer · …` BEFORE `post` (else it becomes a centred modal); close × = circular Neutral
+     Icon=Only Small with the Modal's 16/cross-large, footer = circular Neutral Medium. Toasts: library `toast` (8324658c…).
+   - Empty states → `Empty state · boxed` Size=Default (33fcf9d6…): inline routine in the 01e/01f call (frame = 48 icon circle + title + text).
+3. Audit: `const AUD = new Function("return " + figma.root.getSharedPluginData("envs","audit"))(); await AUD([blockIds])` (= tools/ui-qa/figma-audit.js without comments / RESPONSIVE).
 
-## Open
-- **GEAP sidebar main has no „Sincronizarea mediilor” item** (Setări = Distribuire + hidden Reguli de numerotare). Add a hidden item (20/rotate-arrow
-  `8cdf3361…`) to GEAP 12673:12268 in GEAP 2.0 (read-only now). Then show it Active on every block. sync-01 shows the Setări group without it.
-- sync-01 header: the instance switcher shows its default „Specialist ghișeu • Chișinău” (code: Administrator central • ANSP), and the Back chevron is on. Set them.
-- Code notes for proto-engineer: the toolbar buttons use the registry's generic icons (Sincronizează selecția = upload, Sincronizează tot = plus-large).
-  The empty states are `bare` in the code, but the Figma rule is Empty state · boxed.
-- Remaining audit minors on 13:2541: ~90 fractional sizes (hug content), off-scale paddings 10 / 11 from the capture (Heading 2, Button).
-- Arrows (native connector labels, from the clicked element), cover counts, Start here counts: update as blocks land.
+## Left to do (call cap reached 2026-11-18)
+1. **Blank gap on list screens** (sync-01a 28:1303 is 3207 tall, was 2127; same on 01, 01g, 03…): `Container:margin` (pinned right column wrapper,
+   1068–1583 high) and the page `Container` grew when the clip pass set clipped containers to HUG. Set `Container:margin` height = its table's
+   height (or HUG on the table wrapper) and restack with `LIB("stack")`. Screenshot-check 01a / 01g / 07 afterwards.
+2. **Arrows**: `figma.createConnector` does not exist in design files. Paste one connector from GEAP (e.g. 10952:283686) onto page 3:2, store
+   its id as `ids.connector`, then run `LIB("arrow",{from,to,label,magnet,endMagnet})` (stored op clones it). Planned 9 arrows, from:
+   sync-01 tab „DEV ⇄ STAGING” → 01a · row checkbox → 01g · search → 01e · row „DEV → STAGING” → 03 · type cell „Formular” → 06 ·
+   batch header → 07 · 01g „Sincronizează selecția” → 04 · 03 footer confirm → 03b · 04 footer confirm → 04d (same column: end RIGHT).
+3. Whole px: 875 fractional left (GRID cell children centred at .5, hug texts inside cells). Off-scale 31 (captured 10 / 11 / 1 paddings in
+   Heading 2 / Button / Close), spacing-unbound 150 (mostly 2 / 4 px inside captured rows), 2 clipped-content = table wider than its scroll box (intended).
+4. Library gaps: the GEAP sidebar main has no „Sincronizarea mediilor” item — the screens borrow the hidden „Reguli de numerotare” slot under
+   Setări (instance overrides), so Reguli de numerotare is not shown. Add a real hidden item to GEAP 12673:12268 when GEAP is writable. No library
+   drawer: the history drawer (sync-06) is the captured frame with library controls. sync-02 / 01e / 01f boxed empty states keep the default icon (lock / search glyph keys not mapped).
+5. Code notes for proto-engineer: toolbar buttons use generic icons (Sincronizează selecția = upload, Sincronizează tot = plus-large).
