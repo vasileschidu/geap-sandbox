@@ -700,10 +700,11 @@
     const href = item.id ? recordHref(item.section, item.id) : sectionHref(item.section);
     /* view only: no action — the body already says why; the quiet way in stays (alone = outline, next to a primary = text) */
     const more = item.more ? `<a class="btn ${ctx.viewOnly ? "btn-outline-strict" : "btn-text-strict"}${size} btn-rounded" href="${escape(href)}"${item.id ? "" : goAttr({ s: item.section })}>${escape(item.more)}</a>` : "";
-    const actions = `${more}${ctx.viewOnly ? "" : alertPrimary(item)}`;
+    /* cab2-alert-stack-v1: the buttons sit under the text, primary first */
+    const actions = `${ctx.viewOnly ? "" : alertPrimary(item)}${more}`;
     const tone = item.level === 1 ? "danger" : "warning";
     return `<li class="cab2-alerts__item">${window.GEAPAlertCard.html({
-      tone, title: escape(item.title || item.text), text: item.body ? escape(item.body) : "", actions, role: "", titleTag: "h3", className: "cab2-alert", sprite: SPRITE,
+      tone, title: escape(item.title || item.text), text: item.body ? escape(item.body) : "", actions, role: "", titleTag: "h3", className: "cab2-alert cab2-alert--stack", sprite: SPRITE,
     })}</li>`;
   }
   const alertList = (items) => `<ul class="cab2-alerts" aria-label="De rezolvat">${items.map(alertHtml).join("")}</ul>`;

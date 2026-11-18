@@ -870,6 +870,23 @@ button.e-permits-shell__nav-link.cab2-menu__button {
   padding: 0;
 }
 
+/* cab2-alert-stack-v1 (product owner 2026-11-18: „the actions squeeze the description when they sit beside it”): the
+   buttons get their own row UNDER the text, on the text column's left edge, primary first, 8 apart, 16 above (the card's
+   row gap) — the description keeps the full width at every card width. A v2 modifier of the shared alert card (the old
+   Cabinet keeps css/alert-card.css as it is); `:not(#nothing)` lifts it over that file's container-query rules, which
+   carry `:has()` specificity. Used on Acasă and on the v2 request profile (cab2-cereri.js alertCardHtml). */
+.e-permits-callout--card.cab2-alert--stack:not(#nothing) .e-permits-callout__content {
+  grid-column: 2 / -1;
+}
+
+.e-permits-callout--card.cab2-alert--stack:not(#nothing) .e-permits-callout__actions {
+  align-self: auto;
+  flex-wrap: wrap;
+  grid-column: 2 / -1;
+  justify-content: flex-start;
+  margin-left: 0;
+}
+
 /* the group heading = one link (name + chevron 20) to the group page; the BO quiet hover: grey fill, no colour change */
 .cab2-home-group__link {
   align-items: center;
@@ -933,6 +950,17 @@ button.e-permits-shell__nav-link.cab2-menu__button {
 @media (max-width: 760px) {
   .cab2-page.cab2-home {
     gap: var(--spacing-32, 32px);
+  }
+
+  /* phones: the alert buttons one under the other, the card's full inner width (a long „Achită pentru <entity>” did not
+     fit the text column), 48 (no size class) */
+  .e-permits-callout--card.cab2-alert--stack:not(#nothing) .e-permits-callout__actions {
+    flex-direction: column;
+    grid-column: 1 / -1;
+  }
+
+  .e-permits-callout--card.cab2-alert--stack:not(#nothing) .e-permits-callout__actions > .btn {
+    width: 100%;
   }
 
   /* phones: one tile per row (Romanian titles + values need the width; no carousel) */

@@ -945,7 +945,7 @@
      tray”) the alert becomes the top of a grey tray holding the unchanged white trajectory card; drop the class to undo. */
   function alertCardHtml(dosar) {
     const now = statusNow(dosar);
-    return window.GEAPAlertCard?.html({ tone: now.tone, icon: now.icon, title: now.lead, text: now.text, actions: now.actions, id: "sm-alert", className: "cab-alert-card cab-alert-card--fused", attrs: "data-sm-alert", sprite: C.SPRITE }) || "";
+    return window.GEAPAlertCard?.html({ tone: now.tone, icon: now.icon, title: now.lead, text: now.text, actions: now.actions, id: "sm-alert", className: "cab-alert-card cab-alert-card--fused cab2-alert--stack", attrs: "data-sm-alert", sprite: C.SPRITE }) || "";
   }
 
   /* cabinet-header-v1 (user: „the header as in Configurări servicii and Dosarele, with the actions on top”, then „all

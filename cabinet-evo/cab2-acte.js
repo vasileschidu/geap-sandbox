@@ -960,7 +960,8 @@
       : "");
     const newRequest = () => alertLinkBtn("btn-primary", cabUrl("catalog", {}, `#serviciu/${act.serviceCode}`), "Cerere nouă");
     /* „Vezi solicitarea” (text button next to the primary, outlined when alone) + the primary last */
-    const pair = (primary, requestId) => `${seeRequest(requestId, !primary)}${primary}`;
+    /* cab2-alert-stack-v1: buttons under the text, primary first */
+    const pair = (primary, requestId) => `${primary}${seeRequest(requestId, !primary)}`;
     if (act.pending) {
       const id = state.dosarIdByNr[act.pending.dossier];
       /* pps-… (US-24 AC-01, US-19 AC-06): the post-process in progress waits for information from the holder → the
@@ -1187,7 +1188,7 @@
       ["Autoritatea emitentă", escape(act.service?.authority || authorityNameOf(act))],
     ];
     /* the status alert card right under the header (act-alert-card-v1) */
-    const noticeHtml = notice ? window.GEAPAlertCard.html({ ...notice, id: "cab-act-notice", className: "cab-alert-card", sprite: SPRITE }) : "";
+    const noticeHtml = notice ? window.GEAPAlertCard.html({ ...notice, id: "cab-act-notice", className: "cab-alert-card cab2-alert--stack", sprite: SPRITE }) : "";
     panel.hidden = false;
     panel.innerHTML = `
       ${profileHeader({
