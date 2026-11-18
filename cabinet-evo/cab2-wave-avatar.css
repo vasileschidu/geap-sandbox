@@ -1,0 +1,140 @@
+/* EVO Cabinet v2 — wave avatar + change-photo (cab2-wave-v1, 2026-11-18; components.md › „Cabinet v2 — wave avatar”,
+   „Cabinet v2 — change photo”; JS cabinet-evo/cab2-wave-avatar.js, cab2-shell.js › photo).
+   The ring = an SVG path centred on the avatar (overflow visible); the face = the library `.avatar`, its round corner
+   replaced by the live `clip-path` the module writes. Rest colour = the brand border token; during the entrance the
+   module writes the OKLab-mixed palette colour as the path's inline `stroke`. */
+
+/* ---------- 1. wave avatar ---------- */
+.cab2-wave {
+  isolation: isolate;
+  position: relative;
+}
+
+.cab2-wave__ring {
+  left: 50%;
+  overflow: visible;
+  pointer-events: none;
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  z-index: -1;
+}
+
+.cab2-wave__path {
+  stroke: var(--color-border-brand-default, #0058d2);
+}
+
+/* the clip-path draws the shape; the library radius would cut the wave peaks */
+.cab2-wave .avatar.cab2-wave__face {
+  border-radius: 0;
+}
+
+.cab2-wave__probe {
+  display: none;
+}
+
+/* the badge and the pen come in after the shape settles (short fade); while playing they stay in the tab order — a focus
+   or a pointer on the avatar settles it at once (the module), so nothing is ever waited for */
+.cab2-wave.is-wave-settled :is(.cab2-avatar-badge, .cab2-photo-edit) {
+  transition: opacity var(--motion-duration-fast, 150ms) linear;
+}
+
+.cab2-wave.is-wave-playing :is(.cab2-avatar-badge, .cab2-photo-edit) {
+  opacity: 0;
+}
+
+/* the hero: the wave ring replaces the round brand ring (cab2.css › `.cab2-hero__ring::before`) and its CSS entrance
+   (the module plays the pop) */
+.cab2-hero__ring.cab2-hero__ring--wave::before {
+  display: none;
+}
+
+.cab2 .is-cab2-entrance .cab2-hero__ring.cab2-hero__ring--wave > * {
+  animation: none;
+}
+
+/* ---------- 2. „Schimbă fotografia” — the pen on the avatar's bottom-right (your own avatar only) ----------
+   library `btn btn-neutral btn-sm btn-icon-only btn-rounded` (32, icon 16) with the badge's 2 white ring; its centre on
+   the circle at 45° (as the apricot badge, which only shows when acting for someone — never both) */
+.cab2-photo-edit.btn {
+  bottom: calc(var(--spacing-4, 4px) * -1);
+  box-shadow: 0 0 0 var(--border-width-2, 2px) var(--color-background-base-default, #fff);
+  position: absolute;
+  right: calc(var(--spacing-4, 4px) * -1);
+}
+
+/* the face as a photo (library `avatar--image`) */
+.cab2-avatar--photo.avatar img {
+  height: 100%;
+  object-fit: cover;
+  width: 100%;
+}
+
+/* ---------- 3. change-photo dialog (library modal `--md`) ---------- */
+.cab2-photo-dialog__body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-24, 24px);
+}
+
+.cab2-photo-dialog__preview {
+  align-items: center;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-16, 16px);
+  padding-top: var(--spacing-8, 8px);
+}
+
+.cab2-photo-dialog__preview .cab2-avatar-host {
+  display: inline-flex;
+  position: relative;
+}
+
+.cab2-photo-dialog__drop .e-permits-fo-doc-modal__drop-zone {
+  min-height: 0;
+}
+
+.cab2-photo-dialog__error[hidden],
+.cab2-photo-dialog__remove[hidden] {
+  display: none;
+}
+
+/* phones (≤ 760): no drag & drop — the zone is just the „Încarcă fotografia” button (the FO picker's phone rule,
+   css/e-permits-acte-permisive.css › upload-modal-v1, scoped there to `.e-permits-fo-doc-modal`) */
+@media (max-width: 760px) {
+  .cab2-photo-dialog .e-permits-fo-doc-modal__drop-zone,
+  .cab2-photo-dialog .e-permits-fo-doc-modal__drop-zone:hover,
+  .cab2-photo-dialog .e-permits-fo-doc-modal__drop-zone:focus-within {
+    background: none;
+    border: 0;
+    box-shadow: none;
+    cursor: default;
+    min-height: 0;
+    padding: 0;
+  }
+
+  .cab2-photo-dialog :is(.e-permits-fo-doc-modal__drop-icon, .e-permits-fo-doc-modal__drop-text) {
+    display: none;
+  }
+
+  .cab2-photo-dialog .e-permits-fo-doc-modal__device.btn {
+    display: inline-flex;
+    font-size: var(--font-size-fs-16, 16px);
+    height: var(--spacing-48, 48px);
+    justify-content: center;
+    line-height: var(--line-height-lh-24, 24px);
+    padding: var(--spacing-0, 0px) var(--spacing-20, 20px) var(--spacing-0, 0px) var(--spacing-16, 16px);
+    width: 100%;
+  }
+}
+
+/* ---------- 4. reduced motion: the module draws the rest frame at once; nothing fades in late ---------- */
+.cab2.is-motion-reduced .cab2-wave :is(.cab2-avatar-badge, .cab2-photo-edit) {
+  transition: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cab2-wave :is(.cab2-avatar-badge, .cab2-photo-edit) {
+    transition: none;
+  }
+}

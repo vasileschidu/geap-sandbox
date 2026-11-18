@@ -44,6 +44,8 @@
   <!-- EVO Cabinet v2 (cab2-s1-v1): the new Cabinet's OWN view styles (copy of cabinet-evo.css) + the shell -->
   <link rel="stylesheet" href="cab2-views.css?v=cab2-s1-v1">
   <link rel="stylesheet" href="cab2-shell.css?v=cab2-hero-v1">
+  <!-- the wave avatar + „Schimbă fotografia” (cab2-wave-v1) -->
+  <link rel="stylesheet" href="cab2-wave-avatar.css?v=cab2-wave-v1">
   <link rel="stylesheet" href="../css/trajectory.css?v=phone-fit-v1">
   <!-- the status alert card of the act / request profiles (act-alert-card-v1, js/alert-card.js) -->
   <link rel="stylesheet" href="../css/alert-card.css?v=cards-radius-20-final">
@@ -64,7 +66,7 @@
   <link rel="stylesheet" href="../css/page-reveal.css?v=skeleton-v1">
   <link rel="stylesheet" href="../css/sticky-sections.css?v=sticky-sections-v1">
   <!-- ?state=<id> opens the screen a Figma frame shows (js/demo-states.js) -->
-  <script src="../js/demo-states.js?v=cab2-hero-v1"></script>
+  <script src="../js/demo-states.js?v=cab2-wave-v1"></script>
   <script src="../js/demo-links.js?v=links-v4"></script>
   <!-- EVO Cabinet v2 flag (?shell=2 → `.cab2` on <html>) — after demo-links.js, which writes a ?state=…'s parameters into the address -->
   <!-- the v2 flag + menu groups (this page is always the new Cabinet: data-cab2-entry) -->
@@ -96,7 +98,9 @@
   <!-- the new Cabinet's own view code (copies — isolation from cabinet-evo.js / solicitari.js / notificari.js):
        core + Acte permisive → the shell (titles, menu, Acasă) → Cererile mele → Notificări -->
   <script src="cab2-acte.js?v=cab2-frame-v1" defer></script>
-  <script src="cab2-shell.js?v=cab2-hero-v1" defer></script>
+  <!-- the wave avatar module (WaveAvatar.mount) — before the shell that mounts it -->
+  <script src="cab2-wave-avatar.js?v=cab2-wave-v1" defer></script>
+  <script src="cab2-shell.js?v=cab2-wave-v1" defer></script>
   <script src="cab2-cereri.js?v=cab2-frame-v1" defer></script>
   <script src="cab2-notificari.js?v=cab2-frame-v1" defer></script>
   <script src="cab2-motion.js?v=cab2-foundations-v1" defer></script>

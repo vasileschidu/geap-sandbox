@@ -347,7 +347,7 @@
 
   /* ---------- state + addresses ---------- */
   const state = { ctx: contextOf(params.get("as")), page: "acasa", group: "", section: "", denied: false };
-  const DEMO_KEYS = ["entitati", "motion", "visual", "rezolvat", "indisponibil"];
+  const DEMO_KEYS = ["entitati", "motion", "visual", "rezolvat", "indisponibil", "foto", "entrance"];
   const urlOf = ({ g = "", s = "", ctx = state.ctx, set = {}, hash = "" } = {}) => {
     const next = new URLSearchParams();
     if (ctx.id !== CONTEXTS[0].id || ctx.newUser) next.set("as", ctx.id);
@@ -455,6 +455,23 @@
     : `<span class="avatar avatar--${size} avatar--initials cab2-avatar--brand${cls ? ` ${cls}` : ""}" aria-hidden="true">${escape(ctx.initials)}</span>`);
   /* the signed-in person's small avatar on the entity's corner — only when acting for someone else */
   const badgeHtml = (ctx) => (ctx.kind === "self" ? "" : `<span class="avatar avatar--xs avatar--initials cab2-avatar--apricot cab2-avatar-badge" aria-hidden="true">${escape(SELF().initials)}</span>`);
+  /* ---------- your photo (cab2-wave-v1, product owner 2026-11-18: „change avatar”) ----------
+     Prototype only: the chosen image (scaled to 256 px, JPEG) lives in localStorage `cab2-photo` (try / catch — blocked
+     storage = this page only); `?foto=demo` shows the demo photo without touching storage. Library avatar `--image`. */
+  const PHOTO_KEY = "cab2-photo";
+  const DEMO_PHOTO = "../assets/images/e-permits-fo-avatar-anastasia.png";
+  let photoMemory = params.get("foto") === "demo" ? DEMO_PHOTO : null;
+  const photoOf = () => {
+    if (photoMemory !== null) return photoMemory || "";
+    try { return window.localStorage.getItem(PHOTO_KEY) || ""; } catch (error) { return ""; }
+  };
+  const storePhoto = (url) => {
+    photoMemory = url || "";
+    try { if (url) window.localStorage.setItem(PHOTO_KEY, url); else window.localStorage.removeItem(PHOTO_KEY); } catch (error) { /* memory only */ }
+  };
+  const photoFaceHtml = (url, size) => `<span class="avatar avatar--${size} avatar--image cab2-avatar--photo" aria-hidden="true"><img src="${escape(url)}" alt=""></span>`;
+  const selfFaceHtml = (ctx, size, url = photoOf()) => (url ? photoFaceHtml(url, size) : avatarHtml(ctx, size));
+  const penHtml = () => `<button class="btn btn-neutral btn-sm btn-icon-only btn-rounded cab2-photo-edit" type="button" aria-label="Schimbă fotografia" aria-haspopup="dialog" data-cab2-photo-open>${ico("edit")}</button>`;
   /* „Acționezi ca administrator · Anastasia Cojocaru” (glossary 07: „ca administrator” / „prin împuternicire …”) */
   const actingLine = (ctx) => `Acționezi ${capacity(ctx, { validity: false })} · ${SELF().name}${ctx.viewOnly ? " · doar vizualizare" : ""}`;
   function heroHtml(ctx) {
@@ -462,9 +479,12 @@
     const line = own ? identifier(ctx) : actingLine(ctx);
     const change = SINGLE ? "" : `
           <p class="cab2-hero__switch"><button class="btn btn-text-primary btn-sm" type="button" aria-haspopup="menu" aria-controls="fo-avatar-menu" aria-expanded="${switcherOpen()}" data-cab2-switch-open>Schimbă${hidden(" pentru cine acționezi")}</button></p>`;
+    /* cab2-wave-v1: the wave ring (cab2-wave-avatar.js, mounted in drawPage); your own avatar = your photo (or initials)
+       + the pen „Schimbă fotografia” bottom-right; acting for someone = the entity + the apricot badge there, no pen */
+    const face = own ? selfFaceHtml(ctx, "xl") : avatarHtml(ctx, "xl");
     return `
       <header class="cab2-hero cab2-hero--identity" data-cab2-hero>
-        <span class="cab2-hero__ring"><span class="cab2-avatar-host">${avatarHtml(ctx, "xl")}${badgeHtml(ctx)}</span></span>
+        <span class="cab2-hero__ring cab2-hero__ring--wave"><span class="cab2-avatar-host" data-cab2-wave-host>${face}${own ? penHtml() : badgeHtml(ctx)}</span></span>
         <div class="cab2-hero__text">
           <h1 class="cab2-hero__title" id="cab2-title" tabindex="-1">${escape(ctx.name)}</h1>
           <p>${escape(line)}</p>${change}
@@ -803,6 +823,7 @@
   };
   const focusTitle = () => { const h1 = [...els.content.querySelectorAll("h1[tabindex]")].find((el) => el.getClientRects().length); if (h1) { h1.focus({ preventScroll: true }); window.scrollTo({ top: 0 }); } };
   let heroReplay = false;
+  let quietRedraw = false; /* a redraw after „Salvează” (photo) never replays the entrance */
   function drawPage() {
     if (VIEW !== "cabinet") return;
     els.page.innerHTML = data.ready ? pageHtml() : "";
@@ -810,9 +831,200 @@
     /* the Google entrance on the hero only: avatar scales in, the ring draws, the lines rise — once per session and
        on a context switch; motion tokens, reduced motion = a short fade (cab2-motion.js, cab2.css § 5.6) */
     const hero = els.page.querySelector("[data-cab2-hero]");
-    if (hero && M) M.entrance(hero, { key: "cab2-hero", force: heroReplay });
+    /* the wave avatar plays with the hero entrance (once per session / context switch; ?entrance=always = every load) */
+    const always = params.get("entrance") === "always";
+    let fresh = heroReplay || always;
+    try { fresh = fresh || !window.sessionStorage.getItem("cab2-entered:cab2-hero"); } catch (error) { fresh = true; }
+    /* read at call time: cab2-motion.js is loaded after this file, so the `M` captured at start is undefined (the hero
+       entrance never ran before cab2-wave-v1) */
+    const motion = window.Cab2Motion;
+    if (hero && motion) motion.entrance(hero, { key: "cab2-hero", force: heroReplay || always });
+    else if (hero) { try { window.sessionStorage.setItem("cab2-entered:cab2-hero", "1"); } catch (error) { /* plays again */ } }
+    mountWave(hero, fresh && !quietRedraw);
     heroReplay = false;
+    quietRedraw = false;
   }
+
+  /* ---------- wave avatar on the hero (cab2-wave-v1; cabinet-evo/cab2-wave-avatar.js) ---------- */
+  const AVATAR_XL = () => parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--spacing-72")) || 72;
+  let heroWave = null;
+  function mountWave(hero, play) {
+    heroWave?.destroy();
+    heroWave = null;
+    const waveHost = hero?.querySelector("[data-cab2-wave-host]");
+    if (!waveHost || !window.WaveAvatar) return;
+    heroWave = window.WaveAvatar.mount(waveHost, { size: AVATAR_XL(), play });
+  }
+
+  /* ---------- „Schimbă fotografia” dialog (cab2-wave-v1, product owner 2026-11-18) ----------
+     Library modal `--md` (phones: the sheet, css/modal-phone.css): preview = your avatar in the wave shape (static) ·
+     „Elimină fotografia” (red text button, only with a photo) · the FO picker's drop zone (drag & drop or „alege de pe
+     dispozitiv”; phones: „Încarcă fotografia”) + captions · inline FO field error · footer Renunță · Salvează.
+     Nothing is saved before „Salvează”; a success toast confirms (rule: success on return = toast). */
+  const PHOTO_MAX = 5 * 1024 * 1024;
+  let photoDraft = null; /* null = unchanged · "" = removed · data URL = a new photo */
+  let photoOpener = null;
+  let previewWave = null;
+  function photoModal() {
+    let overlay = document.querySelector("[data-cab2-photo-modal]");
+    if (overlay) return overlay;
+    overlay = document.createElement("div");
+    overlay.className = "modal-overlay cab2-photo-dialog";
+    overlay.id = "cab2-photo-modal";
+    overlay.dataset.cab2PhotoModal = "";
+    overlay.setAttribute("aria-hidden", "true");
+    overlay.innerHTML = `
+      <div class="modal modal--md" role="dialog" aria-modal="true" tabindex="-1" aria-labelledby="cab2-photo-title">
+        <button type="button" class="modal-close" aria-label="Închide" data-cab2-photo-close><span class="d-inline-flex">${ico("cross-large", "small")}</span></button>
+        <div class="modal--header"><h2 class="modal--header-title" id="cab2-photo-title">Schimbă fotografia</h2></div>
+        <div class="modal-content cab2-photo-dialog__body">
+          <div class="cab2-photo-dialog__preview">
+            <span class="cab2-avatar-host" data-cab2-photo-preview></span>
+            <button class="btn btn-text-destructive btn-sm cab2-photo-dialog__remove" type="button" data-cab2-photo-remove>${ico("delete")}<span>Elimină fotografia</span></button>
+          </div>
+          <div class="e-permits-fo-doc-modal__drop cab2-photo-dialog__drop">
+            <label class="e-permits-fo-doc-modal__drop-zone" data-cab2-photo-zone>
+              <input type="file" accept=".jpg,.jpeg,.png,image/jpeg,image/png" hidden data-cab2-photo-input>
+              <div class="e-permits-fo-doc-modal__drop-icon">${ico("cloud-upload")}</div>
+              <div class="e-permits-fo-doc-modal__drop-text">
+                <span>Trage fotografia aici sau</span>
+                <button class="link link-primary link-lg e-permits-fo-doc-modal__drop-link" type="button" data-cab2-photo-choose>alege de pe dispozitiv</button>
+              </div>
+              <button class="btn btn-secondary btn-md e-permits-fo-doc-modal__device" type="button" data-cab2-photo-choose>${ico("upload")}Încarcă fotografia</button>
+            </label>
+            <div class="e-permits-fo-doc-modal__drop-captions">
+              <span>O fotografie: JPG sau PNG</span>
+              <span>Mărime maximă: 5 MB</span>
+            </div>
+          </div>
+          <p class="message message--inline e-permits-fo-field__error cab2-photo-dialog__error" role="alert" data-cab2-photo-error hidden>${ico("circle-error-filled")}<span data-cab2-photo-error-text></span></p>
+          <p class="u-visually-hidden" role="status" aria-live="polite" data-cab2-photo-status></p>
+        </div>
+        <div class="modal--footer">
+          <div class="modal-buttons">
+            <button class="btn btn-neutral btn-rounded" type="button" data-cab2-photo-close>Renunță</button>
+            <button class="btn btn-primary btn-rounded" type="button" data-cab2-photo-save>Salvează</button>
+          </div>
+        </div>
+      </div>`;
+    document.body.appendChild(overlay);
+    const input = overlay.querySelector("[data-cab2-photo-input]");
+    const zone = overlay.querySelector("[data-cab2-photo-zone]");
+    overlay.addEventListener("click", (event) => {
+      if (event.target === overlay || event.target.closest("[data-cab2-photo-close]")) { closePhoto(); return; }
+      if (event.target.closest("[data-cab2-photo-choose]")) { event.preventDefault(); input.click(); return; }
+      if (event.target.closest("[data-cab2-photo-remove]")) {
+        photoDraft = "";
+        photoError("");
+        renderPhotoPreview();
+        photoStatus("Fotografia va fi eliminată după ce salvezi.");
+        overlay.querySelector("[data-cab2-photo-choose]:not(.e-permits-fo-doc-modal__device)")?.focus();
+        return;
+      }
+      if (event.target.closest("[data-cab2-photo-save]")) savePhoto();
+    });
+    input.addEventListener("change", () => { if (input.files[0]) pickPhoto(input.files[0]); input.value = ""; });
+    ["dragenter", "dragover"].forEach((type) => zone.addEventListener(type, (event) => { event.preventDefault(); zone.classList.add("is-dragover"); }));
+    ["dragleave", "drop"].forEach((type) => zone.addEventListener(type, () => zone.classList.remove("is-dragover")));
+    zone.addEventListener("drop", (event) => { event.preventDefault(); const file = event.dataTransfer?.files?.[0]; if (file) pickPhoto(file); });
+    overlay.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") { event.stopPropagation(); closePhoto(); return; }
+      if (event.key !== "Tab") return;
+      const items = [...overlay.querySelectorAll("button:not([disabled]), a[href], [tabindex]:not([tabindex='-1'])")].filter((el) => el.getClientRects().length);
+      if (!items.length) return;
+      const first = items[0];
+      const last = items[items.length - 1];
+      if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+      else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+    });
+    return overlay;
+  }
+  const draftPhoto = () => (photoDraft === null ? photoOf() : photoDraft);
+  function renderPhotoPreview() {
+    const overlay = photoModal();
+    const slot = overlay.querySelector("[data-cab2-photo-preview]");
+    previewWave?.destroy();
+    slot.innerHTML = selfFaceHtml(SELF(), "xl", draftPhoto());
+    previewWave = window.WaveAvatar?.mount(slot, { size: AVATAR_XL(), play: false }) || null;
+    overlay.querySelector("[data-cab2-photo-remove]").hidden = !draftPhoto();
+  }
+  function photoStatus(text) { const el = document.querySelector("[data-cab2-photo-status]"); if (el) el.textContent = text; }
+  function photoError(text) {
+    const el = document.querySelector("[data-cab2-photo-error]");
+    if (!el) return;
+    el.hidden = !text;
+    el.querySelector("[data-cab2-photo-error-text]").textContent = text;
+  }
+  /* any image URL → a 256 px square JPEG (cover crop) — small enough for localStorage */
+  function squarePhoto(url) {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => {
+        const side = 256;
+        const canvas = Object.assign(document.createElement("canvas"), { width: side, height: side });
+        const scale = Math.max(side / img.naturalWidth, side / img.naturalHeight);
+        const w = img.naturalWidth * scale;
+        const h = img.naturalHeight * scale;
+        const g = canvas.getContext("2d");
+        g.fillStyle = "#fff"; /* JPEG has no alpha: transparent PNG parts become white, not black */
+        g.fillRect(0, 0, side, side);
+        g.drawImage(img, (side - w) / 2, (side - h) / 2, w, h);
+        try { resolve(canvas.toDataURL("image/jpeg", 0.86)); } catch (error) { reject(error); }
+      };
+      img.onerror = reject;
+      img.src = url;
+    });
+  }
+  function usePhoto(url) {
+    return squarePhoto(url).then((data) => {
+      photoDraft = data;
+      photoError("");
+      renderPhotoPreview();
+      photoStatus("Fotografia a fost încărcată. Salvează ca să o folosești.");
+    }).catch(() => photoError("Fotografia nu a putut fi citită. Alege alt fișier JPG sau PNG."));
+  }
+  function pickPhoto(file) {
+    if (!/^image\/(jpeg|png)$/.test(file.type)) { photoError("Alege o fotografie JPG sau PNG."); return Promise.resolve(); }
+    if (file.size > PHOTO_MAX) { photoError("Fotografia depășește 5 MB. Alege una mai mică."); return Promise.resolve(); }
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = () => usePhoto(String(reader.result)).then(resolve);
+      reader.onerror = () => { photoError("Fotografia nu a putut fi citită. Alege alt fișier JPG sau PNG."); resolve(); };
+      reader.readAsDataURL(file);
+    });
+  }
+  function openPhoto() {
+    const overlay = photoModal();
+    photoOpener = document.activeElement;
+    photoDraft = null;
+    photoError("");
+    photoStatus("");
+    renderPhotoPreview();
+    overlay.classList.add("is-active");
+    overlay.setAttribute("aria-hidden", "false");
+    overlay.querySelector(".modal").focus();
+  }
+  function closePhoto() {
+    const overlay = document.querySelector("[data-cab2-photo-modal]");
+    if (!overlay?.classList.contains("is-active")) return;
+    overlay.classList.remove("is-active");
+    overlay.setAttribute("aria-hidden", "true");
+    if (photoOpener?.isConnected) photoOpener.focus();
+  }
+  function savePhoto() {
+    const changed = photoDraft !== null && photoDraft !== photoOf();
+    const removed = changed && !photoDraft;
+    if (changed) storePhoto(photoDraft);
+    closePhoto();
+    if (!changed) return;
+    quietRedraw = true;
+    drawPage();
+    els.page.querySelector("[data-cab2-photo-open]")?.focus();
+    window.GEAPToast?.show({ type: "success", message: removed ? "Fotografia a fost eliminată." : "Fotografia a fost salvată.", key: "cab2-photo" });
+  }
+  document.addEventListener("click", (event) => { if (event.target.closest("[data-cab2-photo-open]")) openPhoto(); });
+  /* demo hooks (js/demo-states.js › cab2-h10…h13) */
+  window.Cab2Photo = { open: openPhoto, use: (url) => usePhoto(url), error: photoError, pick: pickPhoto };
 
   /* ---------- switcher = the FO full-flow header instance switcher, 1:1 (product owner 2026-11-18: „EXACTLY the one
      the FO full flow uses — no Cabinet-specific variant”; components.md › „Header instance switcher — open state +

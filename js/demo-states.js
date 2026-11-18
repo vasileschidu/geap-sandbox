@@ -569,6 +569,8 @@
   const cab2Sheet = async (h) => { if (cab2Phone()) { await h.click("[data-cab2-menu-open]"); await h.wait(500); } };
   const cab2Phone = () => window.matchMedia("(max-width: 760px)").matches;
   const cab2Switch = async (h) => { await h.click("[data-fo-avatar-trigger]"); await h.wait(500); };
+  /* the hero pen „Schimbă fotografia” → the photo dialog (+ a step inside it) */
+  const cab2Photo = (then) => async (h) => { await h.click("[data-cab2-hero] [data-cab2-photo-open]"); await h.wait(400); if (then) await then(h); };
   /* the search: the header field on desktop, the search sheet on phones */
   const cab2Search = (query) => async (h) => {
     if (cab2Phone()) { await h.click("[data-evo-search-trigger]"); await h.wait(500); }
@@ -3311,6 +3313,17 @@
     "cab2-h05": cab2S({ as: "mpower-pj-lumina" }, cab2Identity),
     "cab2-h06": cab2S({ as: "mpower-pj-lumina", s: "cereri" }, cab2Switch),
     "cab2-h07": cab2S({}, cab2Switch),
+    /* Wave avatar + „Schimbă fotografia” (cab2-wave-v1, 2026-11-18): h08 the entrance on every load (EVO waves pop,
+       morph, rotate, cross-fade, settle) · h09 the same with reduced motion (rest frame at once) · h10 the photo dialog
+       (no photo yet) · h11 a photo chosen (preview, „Elimină fotografia”) · h12 Acasă with a saved photo · h13 a wrong
+       file (error) · h14 a company (acting): entity + apricot badge, no pen */
+    "cab2-h08": cab2S({ entrance: "always" }),
+    "cab2-h09": cab2S({ entrance: "always", motion: "reduce" }),
+    "cab2-h10": cab2S({}, cab2Photo()),
+    "cab2-h11": cab2S({}, cab2Photo(async (h) => { await window.Cab2Photo.use("../assets/images/e-permits-fo-avatar-anastasia.png"); await h.wait(300); })),
+    "cab2-h12": cab2S({ foto: "demo" }),
+    "cab2-h13": cab2S({}, cab2Photo(async (h) => { await window.Cab2Photo.pick(new File(["%PDF-1.4"], "certificat.pdf", { type: "application/pdf" })); await h.wait(300); })),
+    "cab2-h14": cab2S({ as: "pj-global-trader", entrance: "always" }),
     "sm-01": sm(),
     /* the „Filtre” trigger = the library chip (filter-chip-v1): N values applied, bar closed → black chip + numbered
        badge (1 / 3 / 12, the badge width); phones: the pill after „Arată” */
