@@ -582,6 +582,12 @@
               "label": "Reguli de numerotare",
               "iconAsset": "assets/icons/hashtag.svg",
               "shellView": "reguli-numerotare-registry"
+            },
+            {
+              "id": "sincronizarea-mediilor",
+              "label": "Sincronizarea mediilor",
+              "iconAsset": "assets/icons/rotate-arrow.svg",
+              "shellView": "sincronizare-registry"
             }
           ]
         }

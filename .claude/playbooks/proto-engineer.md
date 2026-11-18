@@ -77,6 +77,8 @@ lesson into the sections above when it has proved itself twice. Never delete a l
 ## Gotchas
 - zsh: `${…}` inside an unquoted heredoc breaks — use `<<'EOF'` and pass paths via env.
 - macOS has no `timeout`; scripts must exit themselves.
+- zsh never word-splits `$VAR` („node --flag x” = one word → „command not found”, 6+ times): multi-command QA runs go in a
+  `#!/bin/bash` script file in the scratchpad (own subfolder — the scratchpad is shared with other agents).
 - `querySelector` on a comma list returns the first in DOM order — maybe a hidden drawer; pick
   the first visible match.
 - The fo-select `id` sits on its button — focus `#id`, not `#id + button`.

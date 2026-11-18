@@ -4387,7 +4387,12 @@
        search, edit drawer, errors, denied) · cod-1x US-327 the read-only ID (lists, profiles, edit forms, clone) ·
        cod-2x US-329 the type A name field (Registru + text + AUT / SRV ID, duplicate) · cod-3x US-330 generated file
        names. Demo switch numerotare=local|fara-permisiune|eroare */
-    ...codDemoStates()
+    ...codDemoStates(),
+
+    /* ---- Setări › Sincronizarea mediilor (Feature 97187, js/env-sync.js, env-sync-v1 2026-11-18): sync-01… US-346 list
+       (tabs, type filter, search, empty, selection) · 02 denied · 03 US-347 one object · 04 US-348 batch · 05 US-351
+       blocked / skipped · 06 US-352 history · 07 US-353 activity + audit. Demo switch sincronizare=gol|fara-permisiune */
+    ...syncDemoStates()
   };
 
   function autDemoStates() {
@@ -5257,6 +5262,65 @@
       "cod-30": dos(SPEC, "eliberat", "decizie"),
       "cod-30a": dos(SPEC, "respins", "decizie", { decizia: "respingere" }, async (h) => { await docEye("Decizie de respingere", "acte")(h); await h.click('#dosar-detail-modal [data-doc-viewer-tab="data"]'); await h.find("#dosar-detail-modal .e-permits-doc-viewer--data .e-permits-dosar-profil__section"); }),
       "cod-30b": dos(SPEC, "eliberat", "documente")
+    };
+  }
+
+  function syncDemoStates() {
+    const ADMIN = "ansp-central-admin", LOCAL = "ansp-local-admin", SPEC = "ansp-specialist-chisinau";
+    const K = "[data-registry-kind='sincronizare']";
+    const LIST = `${K} tr[data-workplace-row], ${K} .e-permits-empty`;
+    const list = (run, params, as = ADMIN) => ({ flow: "back-office", as, hash: "#sincronizarea-mediilor", ...(params ? { params } : {}), ready: LIST, delay: 900, run });
+    const denied = (as, params) => ({ flow: "back-office", as, hash: "#sincronizarea-mediilor", ...(params ? { params } : {}), ready: ".e-permits-empty", delay: 900 });
+    const seq = (...steps) => async (h) => { for (const step of steps) if (step) await step(h); };
+    const tab = (id) => async (h) => { await h.click(`[data-workplace-tab="${id}"]`); await h.wait(350); };
+    const search = (text) => async (h) => { await h.fill("[data-workplace-search]", text); await h.wait(400); };
+    const pick = (...ids) => async (h) => { for (const id of ids) { await h.click(`${K} [data-workplace-select-row="${id}"]`); await h.wait(80); } await h.wait(200); };
+    const MODAL = "#case-action-modal.is-active .e-permits-sync-review";
+    const selected = async (h) => { await h.click(`${K} [data-workplace-secondary-product="sync-selected"]`); await h.find(MODAL); await h.wait(300); };
+    const all = async (h) => { await h.click(`${K} [data-workplace-add-product="sync-all"]`); await h.find(MODAL); await h.wait(300); };
+    const step = (id, pair) => async (h) => { const b = await h.find(`${K} [data-sync-step="${id}"][data-sync-pair="${pair}"]`); b.scrollIntoView({ block: "center" }); await h.wait(150); await h.click(`${K} [data-sync-step="${id}"][data-sync-pair="${pair}"]`); await h.find(MODAL); await h.wait(300); };
+    const mode = (value) => async (h) => { await h.click(`#case-action-modal .radio:has([data-sync-mode][value="${value}"])`); await h.wait(250); };
+    const reason = (text) => async (h) => { await h.fill("#sync-reason", text, { leave: false }); await h.wait(120); };
+    const own = (id, text) => async (h) => { await h.fill(`[data-sync-own="${id}"]`, text, { leave: false }); await h.wait(120); };
+    const confirm = async (h) => { await h.click("#case-action-modal [data-sync-confirm]"); await h.wait(500); };
+    const history = (id) => async (h) => { const r = await h.find(`${K} tr[data-workplace-row="${id}"]`); r.scrollIntoView({ block: "center" }); await h.wait(150); await h.click(`${K} tr[data-workplace-row="${id}"] td[data-column="tip"]`); await h.find("[data-sync-drawer]:not([hidden]) .drawer__body > *"); await h.wait(400); };
+    const activity = async (h) => { const a = await h.find(`${K} [data-sync-activity] .e-permits-stack`); a.scrollIntoView({ block: "start" }); await h.wait(250); };
+    const batch = (id) => async (h) => { await h.click(`[data-sync-batch="${id}"]`); await h.wait(250); (await h.find(`[data-sync-batch="${id}"]`)).scrollIntoView({ block: "start" }); document.activeElement?.blur?.(); await h.wait(200); };
+    return {
+      /* US-346 — the list */
+      "sync-01": list(),
+      "sync-01a": list(tab("ds")),
+      "sync-01b": list(tab("sp")),
+      "sync-01c": list(seq(ekPick("tip", ["Șablon"]), ekCommit, async (h) => { await h.wait(300); document.activeElement?.blur?.(); })),
+      "sync-01d": list(search("clasificator")),
+      "sync-01e": list(search("zzz")),
+      "sync-01f": list(null, { sincronizare: "gol" }),
+      "sync-01g": list(pick("FRM-0012", "TPL-0019", "NTF-0008")),
+      "sync-02": denied(SPEC),
+      "sync-02a": denied(LOCAL),
+      /* US-347 — one object, one pair (fixed direction) */
+      "sync-03": list(step("FRM-0012", "ds")),
+      "sync-03a": list(step("TRF-0021", "sp")),
+      "sync-03b": list(seq(step("FRM-0012", "ds"), confirm)),
+      "sync-03c": list(seq(step("FRM-0012", "ds"), reason("Formularul nou pentru autorizațiile sanitare"), confirm)),
+      /* US-348 — batch: both directions, one direction, empty direction, own reason, success */
+      "sync-04": list(seq(pick("FRM-0012", "TRF-0021", "SET-0006"), selected)),
+      "sync-04a": list(seq(pick("FRM-0012", "TRF-0021", "SET-0006"), selected, mode("sp"))),
+      "sync-04b": list(seq(pick("SET-0006", "CLS-0007"), selected, mode("sp"))),
+      "sync-04c": list(seq(tab("sp"), all)),
+      "sync-04d": list(seq(pick("FRM-0012", "TRF-0021", "SET-0006"), selected, reason("Pachetul de configurare din noiembrie"), own("TRF-0021", "Tariful aprobat prin ordinul nr. 112"), confirm)),
+      /* US-351 — blocked buttons + skipped objects in a batch */
+      "sync-05": list(async (h) => { (await h.find(`${K} [data-sync-step="NTF-0008"]`)).scrollIntoView({ block: "center" }); await h.wait(200); }),
+      "sync-05a": list(seq(pick("TPL-0019", "NTF-0008", "CNT-0008", "PRC-0004"), selected)),
+      "sync-05b": list(seq(pick("TPL-0019", "NTF-0008", "CNT-0008", "PRC-0004"), selected, reason("Promovarea pachetului de conținut"), confirm, activity)),
+      /* US-352 — history */
+      "sync-06": list(history("FRM-0012")),
+      "sync-06a": list(history("SET-0011")),
+      "sync-06b": list(seq(activity, async (h) => { await h.click('[data-sync-history="FRM-0009"]'); await h.find("[data-sync-drawer]:not([hidden]) .drawer__body > *"); await h.wait(400); })),
+      /* US-353 — activity */
+      "sync-07": list(activity),
+      "sync-07a": list(seq(activity, batch("B-0141"))),
+      "sync-07b": list(seq(activity, async (h) => { await h.click("[data-sync-audit]"); await h.find("#dosar-detail-modal.is-active"); await h.wait(400); }))
     };
   }
 

@@ -1,0 +1,63 @@
+{
+  "_about": "Setări › Sincronizarea mediilor (env-sync-v1, Feature 97187, US-346…353). Versions per environment: v = published version number, draft = the version in that environment is a draft (schiță), null = the object does not exist there. gate = a failed module validation gate on one pair (ds = DEV ⇄ STAGING, sp = STAGING ⇄ PROD). Objects with the same version everywhere stay in the data (their history is reachable from the batches).",
+  "env": "STAGING",
+  "objects": [
+    { "id": "FRM-0012", "type": "Formular", "name": "Cerere de autorizație sanitară de funcționare", "dev": { "v": 7 }, "staging": { "v": 6 }, "prod": { "v": 6 } },
+    { "id": "PRC-0004", "type": "Proces", "name": "Eliberarea autorizației sanitare", "dev": { "v": 4 }, "staging": { "v": 4 }, "prod": { "v": 3 } },
+    { "id": "CLS-0031", "type": "Clasificator", "name": "Tipuri de activitate economică (CAEM)", "dev": { "v": 12 }, "staging": { "v": 11 }, "prod": { "v": 11 } },
+    { "id": "TPL-0019", "type": "Șablon", "name": "Autorizație sanitară de funcționare", "dev": { "v": 5 }, "staging": { "v": 4 }, "prod": { "v": 4 }, "gate": { "pair": "ds", "message": "Validarea șablonului a eșuat: 2 legări de câmp nerezolvate" } },
+    { "id": "SET-0006", "type": "Setare", "name": "Termenul de achitare implicit", "dev": { "v": 2 }, "staging": { "v": 3 }, "prod": { "v": 3 } },
+    { "id": "TRF-0021", "type": "Tarif", "name": "Taxa pentru eliberarea autorizației", "dev": { "v": 3 }, "staging": { "v": 3 }, "prod": { "v": 4 } },
+    { "id": "NTF-0008", "type": "Notificare", "name": "Cerere înregistrată", "dev": { "v": 6, "draft": true }, "staging": { "v": 5 }, "prod": { "v": 5 } },
+    { "id": "CNT-0003", "type": "Conținut", "name": "Pagina „Despre serviciu”", "dev": { "v": 2 }, "staging": null, "prod": null },
+    { "id": "JOB-0002", "type": "Procedură automată", "name": "Arhivarea dosarelor închise", "dev": { "v": 3 }, "staging": { "v": 2 }, "prod": { "v": 1 } },
+    { "id": "FRM-0027", "type": "Formular", "name": "Declarație pe propria răspundere", "dev": { "v": 3 }, "staging": { "v": 3 }, "prod": { "v": 2 } },
+    { "id": "PRC-0009", "type": "Proces", "name": "Avizarea proiectului de construcție", "dev": { "v": 9 }, "staging": { "v": 8 }, "prod": { "v": 8 } },
+    { "id": "CLS-0007", "type": "Clasificator", "name": "Categorii de solicitanți", "dev": { "v": 4 }, "staging": { "v": 5 }, "prod": { "v": 5 } },
+    { "id": "TPL-0023", "type": "Șablon", "name": "Decizie de respingere", "dev": { "v": 3 }, "staging": { "v": 3 }, "prod": { "v": 2 } },
+    { "id": "NTF-0014", "type": "Notificare", "name": "Notă de plată emisă", "dev": { "v": 4 }, "staging": { "v": 4 }, "prod": { "v": 3 }, "gate": { "pair": "sp", "message": "Validarea notificării a eșuat: textul SMS depășește 160 de caractere" } },
+    { "id": "TRF-0030", "type": "Tarif", "name": "Taxa pentru eliberarea duplicatului", "dev": null, "staging": { "v": 1 }, "prod": { "v": 1 } },
+    { "id": "SET-0011", "type": "Setare", "name": "Numărul maxim de fișiere per cerere", "dev": { "v": 5 }, "staging": { "v": 4 }, "prod": { "v": 3 } },
+    { "id": "CNT-0008", "type": "Conținut", "name": "Ghidul solicitantului", "dev": { "v": 8, "draft": true }, "staging": { "v": 7 }, "prod": { "v": 6 } },
+    { "id": "JOB-0005", "type": "Procedură automată", "name": "Reamintirea termenului de plată", "dev": { "v": 2 }, "staging": { "v": 2 }, "prod": { "v": 3 } },
+    { "id": "FRM-0031", "type": "Formular", "name": "Cerere de eliberare a duplicatului", "dev": { "v": 2 }, "staging": { "v": 1 }, "prod": null },
+    { "id": "PRC-0015", "type": "Proces", "name": "Suspendarea dosarului", "dev": { "v": 5 }, "staging": { "v": 5 }, "prod": { "v": 4 } },
+    { "id": "CLS-0002", "type": "Clasificator", "name": "Raioane și municipii", "dev": { "v": 3 }, "staging": { "v": 2 }, "prod": { "v": 2 } },
+    { "id": "FRM-0009", "type": "Formular", "name": "Cerere de reperfectare a autorizației", "dev": { "v": 4 }, "staging": { "v": 4 }, "prod": { "v": 4 } },
+    { "id": "TPL-0011", "type": "Șablon", "name": "Notă de plată", "dev": { "v": 6 }, "staging": { "v": 6 }, "prod": { "v": 6 } }
+  ],
+  "batches": [
+    {
+      "id": "B-0142", "at": "2026-11-17T16:42", "user": "Ion Rusu", "role": "Administrator central", "domain": "Global",
+      "reason": "Lansarea pachetului de noiembrie pentru autorizațiile sanitare",
+      "steps": [
+        { "object": "FRM-0009", "pair": "ds", "from": "dev", "to": "staging", "before": 3, "after": 4 },
+        { "object": "FRM-0009", "pair": "sp", "from": "staging", "to": "prod", "before": 3, "after": 4 },
+        { "object": "TPL-0011", "pair": "sp", "from": "staging", "to": "prod", "before": 5, "after": 6, "ownReason": "Corectarea rechizitelor bancare din nota de plată" },
+        { "object": "FRM-0012", "pair": "sp", "from": "staging", "to": "prod", "before": 5, "after": 6 },
+        { "object": "TPL-0019", "pair": "ds", "from": "dev", "to": "staging", "skipped": "Validarea șablonului a eșuat: 2 legări de câmp nerezolvate" },
+        { "object": "PRC-0004", "pair": "ds", "from": "dev", "to": "staging", "before": 3, "after": 4 }
+      ]
+    },
+    {
+      "id": "B-0141", "at": "2026-11-12T10:05", "user": "Anastasia Cojocaru", "role": "Administrator central", "domain": "Global",
+      "reason": "Remedierea termenului de plată raportată de ANSP",
+      "steps": [
+        { "object": "SET-0006", "pair": "sp", "from": "staging", "to": "prod", "before": 2, "after": 3 },
+        { "object": "TRF-0030", "pair": "sp", "from": "staging", "to": "prod", "before": null, "after": 1 },
+        { "object": "TPL-0011", "pair": "ds", "from": "dev", "to": "staging", "before": 5, "after": 6, "ownReason": "Rechizitele noi ale Trezoreriei" },
+        { "object": "NTF-0008", "pair": "ds", "from": "dev", "to": "staging", "skipped": "Versiune în schiță: publică-o mai întâi" }
+      ]
+    },
+    {
+      "id": "B-0140", "at": "2026-11-04T09:30", "user": "Ion Rusu", "role": "Administrator central", "domain": "Global",
+      "reason": "Alinierea clasificatoarelor după actualizarea CAEM",
+      "steps": [
+        { "object": "CLS-0031", "pair": "ds", "from": "dev", "to": "staging", "before": 10, "after": 11 },
+        { "object": "CLS-0031", "pair": "sp", "from": "staging", "to": "prod", "before": 10, "after": 11 },
+        { "object": "CLS-0002", "pair": "sp", "from": "staging", "to": "prod", "before": 1, "after": 2 },
+        { "object": "FRM-0012", "pair": "ds", "from": "dev", "to": "staging", "before": 5, "after": 6 }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,333 @@
+/* =====================================================================================
+   env-sync-v1 (2026-11-18) — Setări › Sincronizarea mediilor (Feature 97187, US-346…353, js/env-sync.js).
+   The list = the BO registry; the dialog = the library dialog (#case-action-modal, kind `sync`); the history = the ONE
+   drawer `--lg`; the activity = the collapsible stacked group rows. NEW parts (components.md › „Sincronizarea mediilor”):
+   the version cell `.e-permits-sync-ver`, the direction cell `.e-permits-sync-dir`, the batch header `.e-permits-sync-batch`.
+   ===================================================================================== */
+
+/* menu icon (the BO side menu draws icons as 20 masks per data-nav-id) */
+.e-permits-shell__nav--specialist [data-nav-id="sincronizarea-mediilor"] .e-permits-shell__nav-icon::before {
+  mask-image: url("../assets/icons/rotate-arrow.svg");
+  mask-size: var(--icon-size-medium, 20px) var(--icon-size-medium, 20px);
+  -webkit-mask-image: url("../assets/icons/rotate-arrow.svg");
+  -webkit-mask-size: var(--icon-size-medium, 20px) var(--icon-size-medium, 20px);
+}
+
+/* the module's parts live in the shared registry markup: only this registry shows them */
+.e-permits-workplace:not([data-registry-kind="sincronizare"]) > :is([data-sync-intro], [data-sync-activity]) {
+  display: none;
+}
+
+.e-permits-workplace > :is([data-sync-intro], [data-sync-activity])[hidden] {
+  display: none;
+}
+
+/* the page scrolls as one (intro · toolbar · table · pager · activity): the table is not a viewport-high grid here */
+.e-permits-workplace[data-registry-kind="sincronizare"] {
+  grid-template-rows: auto auto auto auto auto;
+  height: auto;
+}
+
+.e-permits-workplace[data-registry-kind="sincronizare"] .e-permits-workplace__table-wrap {
+  overflow-x: auto;
+  overflow-y: visible;
+}
+
+/* no CSV here (nothing to export) and no field counter */
+.e-permits-workplace[data-registry-kind="sincronizare"] :is(.e-permits-workplace__field-count, [data-workplace-export]) {
+  display: none;
+}
+
+/* ---- AC-08: the STAGING column is the one you work in — tinted, its header carries „aici lucrezi” */
+.e-permits-workplace[data-registry-kind="sincronizare"] .e-permits-workplace__table :is(th, td)[data-column="staging"] {
+  background: var(--color-background-brand-secondary, #e8f0fb);
+}
+
+.e-permits-workplace[data-registry-kind="sincronizare"] .e-permits-workplace__table tbody tr:not([data-workplace-row-open]:has(:is(button, a, [role="button"]):hover)):hover td[data-column="staging"] {
+  background: var(--color-background-brand-secondary-hover, #ccdef6);
+}
+
+.e-permits-sync-here {
+  display: inline-flex;
+  margin-left: var(--spacing-8, 8px);
+}
+
+/* ---- the object cell: name (1 line + tooltip) over the last sync (AC-16) */
+.e-permits-sync-name {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+/* the name wraps (2 lines at most); the last-sync line stays one line + tooltip */
+.e-permits-sync-name__title {
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  display: -webkit-box;
+  overflow: hidden;
+}
+
+.e-permits-sync-name__meta {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.e-permits-sync-name__title {
+  font-weight: var(--font-weight-fw-medium, 500);
+}
+
+.e-permits-sync-name__meta {
+  color: var(--color-text-base-tertiary, #757575);
+  font-size: var(--font-size-fs-12, 12px);
+  line-height: var(--line-height-lh-16, 16px);
+}
+
+/* ---- NEW: the version cell — v7 ▲ the highest (positive), ▼ a lower one (danger), „—” + „lipsește”, „schiță” tag */
+.e-permits-sync-ver {
+  align-items: center;
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-4, 4px) var(--spacing-8, 8px);
+}
+
+.e-permits-sync-ver__num {
+  align-items: center;
+  display: inline-flex;
+  gap: var(--spacing-4, 4px);
+  font-weight: var(--font-weight-fw-medium, 500);
+}
+
+.e-permits-sync-ver__mark {
+  font-size: var(--font-size-fs-12, 12px);
+  line-height: var(--line-height-lh-16, 16px);
+}
+
+.e-permits-sync-ver.is-high .e-permits-sync-ver__mark {
+  color: var(--color-text-positive-on-secondary, #027948);
+}
+
+.e-permits-sync-ver.is-low .e-permits-sync-ver__mark {
+  color: var(--color-text-base-tertiary, #757575);
+}
+
+.e-permits-sync-ver.is-missing {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0;
+}
+
+.e-permits-sync-ver.is-missing .e-permits-sync-ver__num {
+  color: var(--color-text-base-tertiary, #757575);
+  font-weight: var(--font-weight-fw-regular, 400);
+}
+
+.e-permits-sync-ver__meta {
+  color: var(--color-text-base-tertiary, #757575);
+  font-size: var(--font-size-fs-12, 12px);
+  line-height: var(--line-height-lh-16, 16px);
+}
+
+/* ---- NEW: the direction cell — library Small neutral button, the step type (or the block reason) 4 under it */
+.e-permits-sync-dir {
+  align-items: flex-start;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4, 4px);
+  min-width: 0;
+  padding: var(--spacing-8, 8px) 0;
+}
+
+.e-permits-sync-dir__note {
+  color: var(--color-text-base-tertiary, #757575);
+  font-size: var(--font-size-fs-12, 12px);
+  line-height: var(--line-height-lh-16, 16px);
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* the block reason is read, not skimmed (US-351 AC-03 / 06): it wraps under the button */
+.e-permits-sync-dir.is-blocked .e-permits-sync-dir__note {
+  color: var(--color-text-danger-on-secondary, #b42318);
+  overflow: visible;
+  white-space: normal;
+}
+
+.e-permits-sync-dir__done {
+  align-items: center;
+  color: var(--color-text-positive-on-secondary, #027948);
+  display: inline-flex;
+  gap: var(--spacing-4, 4px);
+}
+
+/* ---- the review dialog (#case-action-modal, kind sync): the widest form dialog — 960 at most */
+.modal-overlay > .modal.e-permits-reg-modal--sync {
+  max-width: min(calc(var(--spacing-40, 40px) * 24), calc(100vw - var(--spacing-24, 24px) * 2));
+  width: 100%;
+}
+
+.e-permits-sync-review {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-24, 24px);
+}
+
+.e-permits-sync-review__label {
+  color: var(--color-text-base-default, #121212);
+  font-size: var(--font-size-fs-14, 14px);
+  font-weight: var(--font-weight-fw-medium, 500);
+  line-height: var(--line-height-lh-20, 20px);
+  margin: 0;
+}
+
+.e-permits-sync-review__plan,
+.e-permits-sync-review__modes {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-8, 8px);
+}
+
+/* the fixed-direction hint under the radios */
+.e-permits-sync-review__modes .e-permits-fo-field__hint {
+  margin: 0;
+}
+
+.e-permits-sync-review .radio-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-12, 12px);
+}
+
+.e-permits-sync-review__who {
+  margin: 0;
+}
+
+.e-permits-sync-skipped__item {
+  display: block;
+  margin-top: var(--spacing-4, 4px);
+}
+
+/* ---- the plain card tables (steps · history · batch): every column its share */
+.e-permits-sync-table :is(th, td):last-child {
+  width: auto;
+}
+
+.e-permits-sync-table--steps {
+  min-width: calc(var(--spacing-40, 40px) * 20);
+}
+
+.e-permits-sync-table--steps th:nth-child(1) {
+  width: var(--spacing-56, 56px);
+}
+
+.e-permits-sync-table--steps th:nth-child(3) {
+  width: calc(var(--spacing-40, 40px) * 4);
+}
+
+.e-permits-sync-table--steps th:nth-child(4) {
+  width: calc(var(--spacing-40, 40px) * 3);
+}
+
+.e-permits-sync-table--steps th:nth-child(5) {
+  width: calc(var(--spacing-40, 40px) * 7);
+}
+
+.e-permits-sync-table--history {
+  min-width: calc(var(--spacing-40, 40px) * 20);
+}
+
+.e-permits-sync-table--history th:nth-child(1) {
+  width: calc(var(--spacing-40, 40px) * 4);
+}
+
+.e-permits-sync-table--history th:nth-child(2) {
+  width: calc(var(--spacing-40, 40px) * 5);
+}
+
+.e-permits-sync-table--history th:nth-child(5) {
+  width: calc(var(--spacing-40, 40px) * 2);
+}
+
+.e-permits-sync-own {
+  min-width: 0;
+}
+
+/* reasons wrap in the history / batch tables (the pair of an omission must stay readable, US-351 AC-14) */
+.e-permits-sync-why {
+  display: block;
+  overflow-wrap: anywhere;
+  white-space: normal;
+}
+
+.e-permits-sync-batch__table .e-permits-sync-table :is(th, td):first-child {
+  padding-left: var(--spacing-20, 20px);
+}
+
+/* ---- „Activitatea de sincronizare” under the table — the content column edge (16), 24 above, 24 at the end */
+.e-permits-sync-activity {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-16, 16px);
+  padding: var(--spacing-24, 24px) var(--spacing-16, 16px);
+}
+
+.e-permits-sync-activity__heading {
+  align-items: center;
+  display: flex;
+  gap: var(--spacing-16, 16px);
+  justify-content: space-between;
+}
+
+/* NEW: the batch header inside the shared group toggle — id + count + omitted tag, then the meta lines */
+.e-permits-sync-batch__toggle {
+  padding-block: var(--spacing-12, 12px);
+}
+
+.e-permits-sync-batch {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: var(--spacing-4, 4px);
+  min-width: 0;
+}
+
+.e-permits-sync-batch__line {
+  align-items: center;
+  display: flex;
+  gap: var(--spacing-8, 8px);
+}
+
+.e-permits-sync-batch__meta {
+  color: var(--color-text-base-secondary, #383838);
+  font-size: var(--font-size-fs-14, 14px);
+  font-weight: var(--font-weight-fw-regular, 400);
+  line-height: var(--line-height-lh-20, 20px);
+}
+
+.e-permits-sync-batch__table {
+  border-top: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
+  overflow-x: auto;
+}
+
+.e-permits-sync-batch__table .e-permits-sync-table {
+  min-width: calc(var(--spacing-40, 40px) * 20);
+}
+
+.e-permits-sync-batch__table .e-permits-sync-table th:nth-child(2) {
+  width: calc(var(--spacing-40, 40px) * 5);
+}
+
+.e-permits-sync-batch__table .e-permits-sync-table th:nth-child(3) {
+  width: calc(var(--spacing-40, 40px) * 3);
+}
+
+/* the object name in a batch = a library link that opens the history */
+.e-permits-sync-link {
+  background: none;
+  border: 0;
+  cursor: pointer;
+  padding: 0;
+  text-align: left;
+}
