@@ -185,16 +185,41 @@
   font-size: var(--font-size-fs-16, 16px);
   line-height: var(--line-height-lh-24, 24px);
   min-height: var(--spacing-48, 48px);
-  padding: var(--spacing-12, 12px) var(--spacing-16, 16px);
+  padding: var(--spacing-12, 12px);
 }
 
-/* a long label („Cereri și acte permisive” next to its badge, the 240 menu ≤ 1100) wraps — never cut */
+/* cab2-menu-oneline-v1 (product owner 2026-11-18: „menu labels stay on ONE line in every state”; replaces the wrap):
+   (1) the selected item's medium label never changes the width — `.cab2-menu__label` is a one-column grid whose hidden
+   second row is the label at the medium weight (`::after { content: attr(data-label) }`), so the column is always the
+   wider of the two; (2) padding 12 at the sides (was 16) so „Cereri și acte permisive” fits beside its badge in the
+   280 menu; (3) what still cannot fit (the 240 menu ≤ 1100, a long section such as „Cine a accesat datele companiei”)
+   = one line + „…” and the library tooltip with the whole label (markTips → data-tooltip-text) */
 .cab2-page-root .cab2-menu__list .e-permits-shell__nav-text {
   flex: 1 1 auto;
   font-size: var(--font-size-fs-16, 16px);
   line-height: var(--line-height-lh-24, 24px);
   min-width: 0;
   white-space: normal;
+}
+
+.cab2-menu__label {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  min-width: 0;
+}
+
+.cab2-menu__label-text,
+.cab2-menu__label::after {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cab2-menu__label::after {
+  content: attr(data-label);
+  font-weight: var(--font-weight-fw-medium, 500);
+  height: 0;
+  visibility: hidden;
 }
 
 .cab2-page-root .cab2-menu__list .e-permits-shell__nav-icon {
@@ -281,7 +306,7 @@ button.e-permits-shell__nav-link.cab2-menu__button {
 }
 
 .cab2-page-root .cab2-menu__list .e-permits-shell__nav-link.cab2-menu__sub {
-  padding-inline-start: calc(var(--spacing-16, 16px) + var(--spacing-24, 24px) + var(--spacing-12, 12px));
+  padding-inline-start: calc(var(--spacing-12, 12px) + var(--spacing-24, 24px) + var(--spacing-12, 12px));
 }
 
 /* the group of the page you are on, when the page is one of its sections: its label in the default colour + medium

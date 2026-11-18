@@ -517,7 +517,9 @@
      it (no icon, indented to the label — no BO sub-item exists) ---------- */
   const badge = (count) => (count ? `<span class="badge badge--solid-neutral badge--xl e-permits-shell__nav-badge" aria-hidden="true">${count}</span>${hidden(`, ${count === 1 ? "un lucru" : `${count} lucruri`} de rezolvat`)}` : "");
   const navItem = ({ id, label, href = "", attrs = "", on = false, open = false, count = 0, button = false, hint = "", sub = false, current = on }) => {
-    const text = `<span class="e-permits-shell__nav-text">${escape(label)}${hint ? `<span class="cab2-menu__hint">${escape(hint)}</span>` : ""}</span>`;
+    /* cab2-menu-oneline-v1: the label = one line in every state; `data-label` reserves the selected (medium) width, a
+       label that still does not fit ends in „…” + the library tooltip (markTips) */
+    const text = `<span class="e-permits-shell__nav-text"><span class="cab2-menu__label" data-label="${escape(label)}"><span class="cab2-menu__label-text" data-cab2-tip="${escape(label)}">${escape(label)}</span></span>${hint ? `<span class="cab2-menu__hint">${escape(hint)}</span>` : ""}</span>`;
     const inner = `${sub ? "" : '<span class="e-permits-shell__nav-icon" aria-hidden="true"></span>'}${text}${badge(count)}`;
     const cls = `e-permits-shell__nav-link${sub ? " cab2-menu__sub" : ""}${on ? " is-active" : ""}${open ? " is-open" : ""}${hint ? " cab2-menu__link--hint" : ""}`;
     return button
@@ -562,6 +564,7 @@
     markTips(els.menu);
   }
   /* a truncated name gets the library tooltip (js/icon-tooltip.js › data-tooltip-text) — only when it is cut */
+  window.addEventListener("resize", () => { markTips(els.menu); if (sheetOpen(menuSheet)) markTips(menuSheet); });
   function markTips(root) {
     root.querySelectorAll("[data-cab2-tip]").forEach((el) => { if (el.scrollWidth > el.clientWidth + 1) el.setAttribute("data-tooltip-text", el.dataset.cab2Tip); else el.removeAttribute("data-tooltip-text"); });
   }
