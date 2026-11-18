@@ -993,3 +993,114 @@ button.e-permits-shell__nav-link.cab2-menu__button {
     grid-template-columns: minmax(0, 1fr);
   }
 }
+
+/* ---------- 11. „Notificări” panel (cab2-notes-panel-v1, 2026-11-18) ----------
+   The library modal docked as the BO document viewer (css/act-view.css › docked-v2: ≥ 1024 the overlay pads 8 and
+   pushes the dialog right, full height, radius 16, `--drop-shadow-400`, the library scrim; 761–1023 the centred dialog;
+   ≤ 760 the library phone sheet at full height). Width = the library medium modal (`--modal-width-md` 590). Rows = the
+   Notificări rows as they are; the whole row opens the record (band hover on the row, the button keeps its own). */
+@media (min-width: 1024px) {
+  .modal-overlay.cab2-notes {
+    align-items: stretch;
+    box-sizing: border-box;
+    justify-content: flex-end;
+    padding: var(--spacing-8, 8px);
+  }
+
+  /* `:has()` out-ranks the library long-modal height (`.modal-overlay > .modal:has(> .modal-content)`, 100dvh − 48) */
+  .modal-overlay.cab2-notes > .modal.cab2-notes__panel:has(> .modal-content) {
+    border-radius: var(--border-radius-16, 16px);
+    box-shadow: var(--drop-shadow-400);
+    height: 100%;
+    max-height: none;
+    max-width: none;
+    width: min(var(--modal-width-md, 590px), 100%);
+  }
+}
+
+.modal-overlay.cab2-notes > .modal.cab2-notes__panel {
+  display: flex;
+  flex-direction: column;
+}
+
+.modal-overlay.cab2-notes > .modal.cab2-notes__panel > .modal-content {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+/* the line on top of the list: how many are unread + „Marchează toate ca citite” */
+.cab2-notes__bar {
+  align-items: center;
+  display: flex;
+  gap: var(--spacing-8, 8px);
+  flex-wrap: wrap;
+  justify-content: space-between;
+}
+
+/* bar → 16 → list (padding, no gap: the body is a column with the library's own spacing reset) */
+.modal-overlay.cab2-notes .cab2-notes__body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-16, 16px);
+}
+
+.cab2-notes__count {
+  color: var(--color-text-base-secondary, #383838);
+  font-size: var(--font-size-fs-14, 14px);
+  line-height: var(--line-height-lh-20, 20px);
+  margin: 0;
+}
+
+.cab2-notes .cab2-notes__list {
+  margin-top: 0;
+}
+
+/* a row = a link to its record: pointer + the grey band; its own button / copy value keep their hover */
+.cab2-notes [data-cab2-notes-row] {
+  cursor: pointer;
+  transition: background-color var(--motion-duration-fast, 150ms) ease;
+}
+
+.cab2-notes [data-cab2-notes-row]:hover:not(:has(.btn:hover, .copy-value:hover)) {
+  background: var(--color-background-base-tertiary, #f1f1f1);
+}
+
+/* the bell's unread count (the BO bell badge `.e-permits-shell__notification-dot`, same values, on the EVO header) */
+.cab2 .evo-header__action[data-evo-notifications] {
+  position: relative;
+}
+
+.cab2-bell-badge {
+  background: var(--red-600, #d92d20);
+  border-radius: var(--border-radius-full, 999px);
+  box-sizing: border-box;
+  color: var(--white, #fff);
+  font-size: var(--font-size-fs-12, 12px);
+  font-weight: var(--font-weight-fw-medium, 500);
+  line-height: var(--line-height-lh-16, 16px);
+  min-width: var(--spacing-16, 16px);
+  padding: 0 var(--spacing-2, 2px);
+  pointer-events: none;
+  position: absolute;
+  right: var(--spacing-2, 2px);
+  text-align: center;
+  top: var(--spacing-2, 2px);
+}
+
+.cab2-bell-badge[hidden] {
+  display: none;
+}
+
+@media (max-width: 760px) {
+  /* phones: the full-page sheet (the library phone sheet, at full height) */
+  .modal-overlay.cab2-notes > .modal.cab2-notes__panel {
+    height: 100%;
+  }
+
+  .modal-overlay.cab2-notes > .modal.cab2-notes__panel:has(> .modal-content) {
+    height: 100%;
+    max-height: none;
+  }
+
+}

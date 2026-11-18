@@ -569,6 +569,12 @@
   const cab2Identity = async (h) => { await h.click("[data-fo-avatar-trigger]"); await h.wait(500); };
   const cab2Sheet = async (h) => { if (cab2Phone()) { await h.click("[data-cab2-menu-open]"); await h.wait(500); } };
   const cab2Phone = () => window.matchMedia("(max-width: 760px)").matches;
+  /* the header bell opens the „Notificări” panel (cab2-notes-panel-v1); the read state starts clean */
+  const cab2Notes = async (h) => {
+    try { sessionStorage.removeItem("cab2-notes-read"); } catch (error) { /* private mode */ }
+    [...document.querySelectorAll("a[data-evo-notifications]")].find((el) => el.getClientRects().length)?.click();
+    await h.wait(700);
+  };
   const cab2Switch = async (h) => { await h.click("[data-fo-avatar-trigger]"); await h.wait(500); };
   /* the hero pen „Schimbă fotografia” → the photo dialog (+ a step inside it) */
   const cab2Photo = (then) => async (h) => { await h.click("[data-cab2-hero] [data-cab2-photo-open]"); await h.wait(400); if (then) await then(h); };
@@ -3334,6 +3340,12 @@
     "cab2-a03": cab2S({ rezolvat: "1" }),
     "cab2-a04": cab2S({ as: "notar-pf-maria" }),
     "cab2-a05": cab2S({ as: "pj-agro-nord" }),
+    /* „Notificări” panel (cab2-notes-panel-v1, 2026-11-18): the header bell opens a right-docked full-height panel (the
+       document viewer's docked geometry; phones the full-page sheet). p01 you, unread items · p02 a new user, empty ·
+       p03 a company with a long list (scroll cue; the phone reference) */
+    "cab2-p01": cab2S({}, cab2Notes),
+    "cab2-p02": cab2S({ as: "pf-ion-nou" }, cab2Notes),
+    "cab2-p03": cab2S({ as: "pj-global-trader" }, cab2Notes),
     "sm-01": sm(),
     /* the „Filtre” trigger = the library chip (filter-chip-v1): N values applied, bar closed → black chip + numbered
        badge (1 / 3 / 12, the badge width); phones: the pill after „Arată” */

@@ -75,7 +75,8 @@
 
   /* v2: `level` = the heading level of the title (2 on the Notificări page, 3 in the Acasă block) */
   function itemHtml(note, index, readOnly, level = 2) {
-    const fresh = daysAgo(note.at) <= 3;
+    /* cab2-notes-panel-v1: the panel passes its own unread state (`note.unread`); the page keeps „Nou” = last 3 days */
+    const fresh = typeof note.unread === "boolean" ? note.unread : daysAgo(note.at) <= 3;
     const action = readOnly || !note.action ? "" : note.action.pay
       ? `<button class="btn btn-neutral btn-sm" type="button" data-nt-pay="${index}">${escape(note.action.label)}</button>`
       : `<a class="btn btn-neutral btn-sm" href="${escape(note.action.href)}">${escape(note.action.label)}</a>`;
@@ -138,7 +139,7 @@
 
   const params = C.params;
   /* v2: the Acasă „Notificări” block draws the latest events with the same rows (cab2-shell.js) */
-  window.Cab2Notificari = { eventsOf, itemHtml };
+  window.Cab2Notificari = { eventsOf, itemHtml, daysAgo };
   if (C.VIEW !== "notificari") return;
   init().catch((error) => {
     console.warn("[notificari]", error);
