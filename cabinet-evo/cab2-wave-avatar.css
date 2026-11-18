@@ -1,9 +1,9 @@
 /* EVO Cabinet v2 — wave avatar + change-photo (cab2-wave-v1, 2026-11-18; components.md › „Cabinet v2 — wave avatar”,
    „Cabinet v2 — change photo”; JS cabinet-evo/cab2-wave-avatar.js, cab2-shell.js › photo).
    The ring = an SVG path centred on the avatar (overflow visible); the face = the library `.avatar`, its round corner
-   replaced by the live `clip-path` the module writes. Stroke 3 (`--border-width-3`) = an SVG linear gradient of 3 colour
-   tokens (cab2-wave-v3): mixed in OKLab with every step during the entrance, the calm brand gradient (`--blue-sky-400` →
-   `--blue-sky-600` → `--lavender-600`, as var()) at rest. The brand colour below is only the fallback before mount.
+   replaced by the live `clip-path` the module writes. Stroke 3 (`--border-width-3`) = an SVG linear gradient of 4 colour
+   tokens + OKLab sub-stops (cab2-wave-v12): mixed in OKLab with every step during the entrance; at rest `--blue-sky-400`
+   → `--blue-sky-600` → `--lavender-700` (indigo) → `--magenta-500` (anchors as var()). The brand colour below is only the fallback before mount.
    Idle (product owner 2026-11-18): after the entrance only the gradient turns, once per 10 s (JS, paused off screen / in a
    hidden tab, none with reduced motion). */
 

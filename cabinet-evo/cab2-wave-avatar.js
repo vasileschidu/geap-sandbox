@@ -11,8 +11,8 @@
    window.WaveAvatar
      mount(host, options) → instance       host = an element that contains the library `.avatar` (the masked face)
        options.size          avatar diameter in px (default: the face's width, else 72)
-       options.sequence      shapes [{ n, a, colors: [3 colour tokens] }] — one step from each to the next, the last →
-                             `rest`; the ring stroke = a linear gradient of the 3 colours (OKLab-mixed with each step,
+       options.sequence      shapes [{ n, a, colors: [4 colour tokens] }] — one step from each to the next, the last →
+                             `rest`; the ring stroke = a linear gradient of the 4 colours + OKLab sub-stops (mixed with each step,
                              turning with the shape)
        options.rest          { n, a, colors } resting shape + its calm brand gradient (tokens, applied as var())
        options.timing        { pop, step, hold, last, turn } — pop ms (450, scale 0.6 → 1, no overshoot), each morph +
@@ -125,12 +125,17 @@
   /* ---------- the EVO default entrance (Figma 1651:68043 / 1651:68106 measured: n 4 · 10 · 12, A/R .025 – .104;
      v9 product owner: 4 shapes — 10 → the 4-wave rounded square → the deep violet 12 (A .10) → 12 rest) ---------- */
   const DEFAULT_SEQUENCE = [
-    { n: 10, a: 0.06, colors: ["--blue-sky-600", "--blue-sky-400", "--lavender-500"] },          /* the outer ring, blue */
-    { n: 4, a: 0.08, colors: ["--forest-green-600", "--forest-green-400", "--blue-sky-600"] },  /* the set's centre: a soft rounded square, teal */
-    { n: 12, a: 0.1, colors: ["--lavender-600", "--purple-500", "--blue-sky-500"] },           /* the deep 12-wave ring, violet */
+    { n: 10, a: 0.06, colors: ["--blue-sky-600", "--blue-sky-400", "--lavender-500", "--lavender-700"] },       /* the outer ring, blue → indigo */
+    { n: 4, a: 0.08, colors: ["--forest-green-600", "--forest-green-400", "--blue-sky-600", "--lavender-700"] }, /* the rounded square, teal → indigo */
+    { n: 12, a: 0.1, colors: ["--lavender-700", "--purple-500", "--magenta-500", "--magenta-600"] },            /* the deep 12-wave ring, indigo → magenta */
   ];
   /* rest = the Figma avatar (12 waves, A/R .025) in a calm brand gradient */
-  const DEFAULT_REST = { n: 12, a: 0.025, colors: ["--blue-sky-400", "--blue-sky-600", "--lavender-600"] };
+  /* v12 (product owner: „more contrast, add indigo and magenta”): Foundations has no indigo family — `--lavender-700`
+     (OKLCH hue 283) is the closest to indigo (Tailwind indigo-600 = 277; purple-700 = 292 reads violet,
+     blue-sky-800 = 259 reads navy). Hue order blue 260 → indigo 283 → magenta 318: magenta never sits next to blue. */
+  const DEFAULT_REST = { n: 12, a: 0.025, colors: ["--blue-sky-400", "--blue-sky-600", "--lavender-700", "--magenta-500"] };
+  /* between two anchor colours the SVG gradient would mix in sRGB → OKLab-computed sub-stops (no muddy middles) */
+  const SUBSTOPS = 3;
   const POP = { from: 0.6 }; /* v5: no overshoot — scale 0.6 → 1 on --motion-ease-enter */
   /* product owner 2026-11-18: pop, then each wave change = one morph + rotate step (v2); no bounce (v5); 48° per step,
      the LAST step longer so it glides to rest (v7); v10: NO static holds — steps chained back-to-back, each eased in-out so
@@ -183,12 +188,21 @@
     grad.setAttribute("y1", String(pad));
     grad.setAttribute("x2", String(box - pad));
     grad.setAttribute("y2", String(box - pad));
-    const stops = [0, 0.5, 1].map((offset) => {
+    const anchors = rest.colors.length;
+    const stopCount = (anchors - 1) * (SUBSTOPS + 1) + 1;
+    const stops = Array.from({ length: stopCount }, (_, k) => {
       const stop = document.createElementNS(NS, "stop");
-      stop.setAttribute("offset", String(offset));
+      stop.setAttribute("offset", (k / (stopCount - 1)).toFixed(4));
       grad.appendChild(stop);
       return stop;
     });
+    /* anchors (OKLab) → every stop: anchor j at stop j·(SUBSTOPS+1), the ones between mixed in OKLab */
+    const stopLabs = (anchorLabs) => stops.map((_, k) => {
+      const j = Math.floor(k / (SUBSTOPS + 1));
+      const f = (k % (SUBSTOPS + 1)) / (SUBSTOPS + 1);
+      return f === 0 || j >= anchors - 1 ? anchorLabs[Math.min(j, anchors - 1)] : mixLab(anchorLabs[j], anchorLabs[j + 1], f);
+    });
+    const restStops = stopLabs(keys[keys.length - 1].labs);
     defs.appendChild(grad);
     svg.appendChild(defs);
     const ring = document.createElementNS(NS, "path");
@@ -204,13 +218,15 @@
     host.dataset.cab2Wave = String(id);
 
     const fc = size / 2;
-    /* `mix` = 3 OKLab colours during the entrance; null = the rest tokens as var() (the theme's own values) */
+    /* `mix` = the anchor OKLab colours during the entrance; null = rest: anchors as var() tokens, sub-stops from OKLab */
     function draw(params, mix) {
       ring.setAttribute("d", path(c, c, Rr, params));
       grad.setAttribute("gradientTransform", `rotate(${((params.rot * 180) / Math.PI).toFixed(2)} ${c} ${c})`);
       if (face) face.style.clipPath = `path("${path(fc, fc, Rm, params)}")`;
+      const labsNow = mix ? stopLabs(mix) : restStops;
       stops.forEach((stop, k) => {
-        stop.style.stopColor = mix ? `rgb(${fromOklab(mix[k]).join(",")})` : `var(${rest.colors[k]})`;
+        const anchor = k % (SUBSTOPS + 1) === 0 ? rest.colors[k / (SUBSTOPS + 1)] : "";
+        stop.style.stopColor = !mix && anchor ? `var(${anchor})` : `rgb(${fromOklab(labsNow[k]).join(",")})`;
       });
     }
     const TURN = (timing.turn * Math.PI) / 180;
