@@ -11,19 +11,26 @@
    window.WaveAvatar
      mount(host, options) → instance       host = an element that contains the library `.avatar` (the masked face)
        options.size          avatar diameter in px (default: the face's width, else 72)
-       options.palette       colour tokens, e.g. ["--lavender-600", "--forest-green-600", "--blue-sky-500"]
-       options.rest          { n, a, color } resting shape; color = a token name (default the brand border token)
-       options.sequence      shapes [{ n, a, color: <palette index> }] — one step from each to the next, the last → `rest`
-       options.timing        { pop, step, hold, turn } — pop ms (600), each morph + rotate step ms (800, eased in-out),
-                             the still hold between steps ms (350), degrees turned per step (24); total = pop + steps ·
-                             step + (steps − 1) · hold (4 steps → 4.85 s). Rotation only during the steps.
+       options.sequence      shapes [{ n, a, colors: [3 colour tokens] }] — one step from each to the next, the last →
+                             `rest`; the ring stroke = a linear gradient of the 3 colours (OKLab-mixed with each step,
+                             turning with the shape)
+       options.rest          { n, a, colors } resting shape + its calm brand gradient (tokens, applied as var())
+       options.timing        { pop, step, hold, last, turn } — pop ms (450, scale 0.6 → 1, no overshoot), each morph +
+                             rotate step ms (800), hold ms between steps (0: continuous), the LAST step ms (1300), degrees
+                             per step (48). Default 3 steps (10 → 4 → 12 deep → 12 rest) = 3.35 s. Shape, turn and gradient
+                             move together on one curve per step: in-out cubic-bezier(0.45, 0, 0.2, 1), the last
+                             cubic-bezier(0.45, 0, 0.1, 1) (long soft glide); speed nears zero only at the joins, no bounce.
+       options.idle          after the entrance the ring's gradient turns once per 10 s, linear, seamless (only the
+                             gradient — the outline stays still); paused when the tab is hidden or the host off screen;
+                             none with reduced motion. Default on inside `[data-cab2-hero]` / `[data-wave-idle]`;
+                             false = off, { period } = ms per turn.
        options.play          false → the resting frame at once (previews, a second visit)
        options.reducedMotion true / false; default = the system setting or `.is-motion-reduced` on <html>
      instance.play() · instance.finish() (jump to rest) · instance.destroy() · instance.done (Promise)
      WaveAvatar.lastStats   { frames, avgMs, maxMs } of the last entrance (Performance check)
      WaveAvatar.path(cx, cy, R, params, points) → the SVG path string (reuse elsewhere)
 
-   Performance: requestAnimationFrame; per frame only the ring's `d` / `stroke` and the face's `clip-path` change
+   Performance: requestAnimationFrame; per frame only the ring's `d`, the gradient's stops / transform and the face's `clip-path` change
    (paint, no layout); the pop is a Web Animation on transform / opacity (compositor). Accessibility: the SVG is
    aria-hidden; the face keeps its own name; focus or pointer on the host finishes the entrance at once. */
 (() => {
@@ -78,8 +85,6 @@
       return sy(t);
     };
   }
-  /* in-out cubic = cubic-bezier(0.65, 0, 0.35, 1): each step starts and lands softly (the research note's „in-out per step”) */
-  const inOutCubic = (x) => (x < 0.5 ? 4 * x * x * x : 1 - ((-2 * x + 2) ** 3) / 2);
 
   /* ---------- colour: OKLab (perceptual — no grey middles between blue, green and violet) ---------- */
   const toLin = (c) => { c /= 255; return c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4; };
@@ -116,18 +121,23 @@
     return `${d}Z`;
   }
 
-  /* ---------- the EVO default entrance (Figma 1651:68043 measured: n 4 · 10 · 12 · 22, A/R .024 – .104) ---------- */
-  const DEFAULT_PALETTE = ["--lavender-600", "--forest-green-600", "--blue-sky-500"];
+  /* ---------- the EVO default entrance (Figma 1651:68043 / 1651:68106 measured: n 4 · 10 · 12, A/R .025 – .104;
+     v9 product owner: 4 shapes — 10 → the 4-wave rounded square → the deep violet 12 (A .10) → 12 rest) ---------- */
   const DEFAULT_SEQUENCE = [
-    { n: 4, a: 0.08, color: 0 },     /* the set's centre: a soft rounded square, violet */
-    { n: 10, a: 0.06, color: 0 },  /* the outer violet ring */
-    { n: 12, a: 0.08, color: 1 }, /* deep teal, the set's middle rings */
-    { n: 22, a: 0.03, color: 2 }, /* the fine blue ring */
+    { n: 10, a: 0.06, colors: ["--blue-sky-600", "--blue-sky-400", "--lavender-500"] },          /* the outer ring, blue */
+    { n: 4, a: 0.08, colors: ["--forest-green-600", "--forest-green-400", "--blue-sky-600"] },  /* the set's centre: a soft rounded square, teal */
+    { n: 12, a: 0.1, colors: ["--lavender-600", "--purple-500", "--blue-sky-500"] },           /* the deep 12-wave ring, violet */
   ];
-  const DEFAULT_REST = { n: 12, a: 0.025, color: "--color-border-brand-default" }; /* the Figma teal avatar: 12 waves, A/R .025 */
-  const POP = { from: 0.6, peak: 1.02, peakAt: 0.65 };
-  /* product owner 2026-11-18 („too quick”): pop, then each wave change = one morph + rotate step, a still hold between */
-  const DEFAULT_TIMING = { pop: 600, step: 800, hold: 350, turn: 24 };
+  /* rest = the Figma avatar (12 waves, A/R .025) in a calm brand gradient */
+  const DEFAULT_REST = { n: 12, a: 0.025, colors: ["--blue-sky-400", "--blue-sky-600", "--lavender-600"] };
+  const POP = { from: 0.6 }; /* v5: no overshoot — scale 0.6 → 1 on --motion-ease-enter */
+  /* product owner 2026-11-18: pop, then each wave change = one morph + rotate step (v2); no bounce (v5); 48° per step,
+     the LAST step longer so it glides to rest (v7); v10: NO static holds — steps chained back-to-back, each eased in-out so
+     the speed only nears zero at the joins; the last one eases in gently and glides out long.
+     450 + 800 + 800 + 1300 = 3350 ms */
+  const DEFAULT_TIMING = { pop: 450, step: 800, hold: 0, last: 1300, turn: 48 };
+  const stepEase = bezier("cubic-bezier(0.45, 0, 0.2, 1)"); /* in-out, a touch longer out */
+  const lastEase = bezier("cubic-bezier(0.45, 0, 0.1, 1)"); /* gentle start, long soft glide to rest */
 
   let uid = 0;
   const WaveAvatar = { lastStats: null, path };
@@ -137,19 +147,18 @@
     const face = options.face || host.querySelector(".avatar");
     const size = options.size || (face && face.getBoundingClientRect().width) || 72;
     const gap = options.gap ?? Math.round(size / 18); /* 72 → 4 · 80 → 4 · 96 → 5 */
-    const stroke = parseFloat(tokenText("--border-width-2", host)) || 2;
+    const stroke = parseFloat(tokenText("--border-width-3", host)) || 3;
     const reduced = options.reducedMotion ?? systemReduced();
     const timing = { ...DEFAULT_TIMING, ...(options.timing || {}) };
-    const palette = (options.palette || DEFAULT_PALETTE).map(tokenRgb);
     const rest = { ...DEFAULT_REST, ...(options.rest || {}) };
-    const restLab = oklab(tokenRgb(rest.color));
-    const keys = [...(options.sequence || DEFAULT_SEQUENCE).map((k) => ({ ...k, lab: oklab(palette[k.color] || palette[0]) })),
-      { n: rest.n, a: rest.a, lab: restLab }];
+    const labs = (tokens) => tokens.map((name) => oklab(tokenRgb(name)));
+    const keys = [...(options.sequence || DEFAULT_SEQUENCE).map((k) => ({ ...k, labs: labs(k.colors) })),
+      { n: rest.n, a: rest.a, labs: labs(rest.colors) }];
     const steps = keys.length - 1;
-    const duration = timing.pop + steps * timing.step + (steps - 1) * timing.hold;
+    const duration = timing.pop + (steps - 1) * (timing.step + timing.hold) + (timing.last || timing.step);
 
-    /* the face's mean radius: peaks (a ≤ 0.08) stay inside its square box; the ring sits `gap` outside it */
-    const Rm = (size / 2) * 0.93; /* 72 → 33.5 */
+    /* the face's mean radius: peaks (a ≤ 0.10) stay inside its square box; the ring sits `gap` outside it */
+    const Rm = (size / 2) * 0.91; /* peaks of A .10 stay inside the face box (0.91 · 1.10 ≈ 1) */
     const Rr = Rm + gap + stroke / 2;
     const pad = Math.ceil(size * 0.2);
     const box = size + 2 * pad;
@@ -163,11 +172,30 @@
     svg.setAttribute("width", String(box));
     svg.setAttribute("height", String(box));
     svg.setAttribute("viewBox", `0 0 ${box} ${box}`);
+    /* the gradient along the ring's diagonal; turns with the shape (gradientTransform) */
+    const gid = `cab2-wave-grad-${uid + 1}`;
+    const defs = document.createElementNS(NS, "defs");
+    const grad = document.createElementNS(NS, "linearGradient");
+    grad.setAttribute("id", gid);
+    grad.setAttribute("gradientUnits", "userSpaceOnUse");
+    grad.setAttribute("x1", String(pad));
+    grad.setAttribute("y1", String(pad));
+    grad.setAttribute("x2", String(box - pad));
+    grad.setAttribute("y2", String(box - pad));
+    const stops = [0, 0.5, 1].map((offset) => {
+      const stop = document.createElementNS(NS, "stop");
+      stop.setAttribute("offset", String(offset));
+      grad.appendChild(stop);
+      return stop;
+    });
+    defs.appendChild(grad);
+    svg.appendChild(defs);
     const ring = document.createElementNS(NS, "path");
     ring.setAttribute("class", "cab2-wave__path");
     ring.setAttribute("fill", "none");
     ring.setAttribute("stroke-width", String(stroke));
     ring.setAttribute("stroke-linejoin", "round");
+    ring.style.stroke = `url(#${gid})`;
     svg.appendChild(ring);
     host.insertBefore(svg, host.firstChild);
     if (face) face.classList.add("cab2-wave__face");
@@ -175,33 +203,68 @@
     host.dataset.cab2Wave = String(id);
 
     const fc = size / 2;
-    function draw(params, lab) {
+    /* `mix` = 3 OKLab colours during the entrance; null = the rest tokens as var() (the theme's own values) */
+    function draw(params, mix) {
       ring.setAttribute("d", path(c, c, Rr, params));
+      grad.setAttribute("gradientTransform", `rotate(${((params.rot * 180) / Math.PI).toFixed(2)} ${c} ${c})`);
       if (face) face.style.clipPath = `path("${path(fc, fc, Rm, params)}")`;
-      /* a style (not the attribute): the CSS rest colour would win over a presentation attribute */
-      if (lab) ring.style.stroke = `rgb(${fromOklab(lab).join(",")})`;
-      else ring.style.removeProperty("stroke");
+      stops.forEach((stop, k) => {
+        stop.style.stopColor = mix ? `rgb(${fromOklab(mix[k]).join(",")})` : `var(${rest.colors[k]})`;
+      });
     }
-    /* the morph at time t (ms): segment k → k+1, eased in-out; rotation = one calm turn of 36°, decelerating */
     const TURN = (timing.turn * Math.PI) / 180;
-    /* the frame at t ms: the first shape during the pop; then step i (morph i → i+1 + one turn, eased in-out) and a still
-       hold; colour mixes with the step */
+    /* the frame at t ms: the first shape during the pop; then step i = morph i → i+1 + one turn + the gradient colours,
+       all on ONE in-out curve per step, chained with no hold (the last glides out long) */
+    /* step start times: every step `step` ms, the last one `last` ms (a longer glide), `hold` ms still between */
+    const lens = keys.slice(1).map((_, k) => (k === steps - 1 ? timing.last || timing.step : timing.step));
+    const starts = lens.map((_, k) => timing.pop + lens.slice(0, k).reduce((sum, v) => sum + v + timing.hold, 0));
     function frameAt(t) {
-      const u = Math.max(0, t - timing.pop);
-      const cycle = timing.step + timing.hold;
-      const i = Math.min(steps - 1, Math.floor(u / cycle));
-      const within = u - i * cycle;
-      const w = t < timing.pop ? 0 : inOutCubic(Math.min(1, within / timing.step));
+      let i = 0;
+      while (i < steps - 1 && t >= starts[i + 1]) i++;
+      const x = Math.min(1, Math.max(0, (t - starts[i]) / lens[i]));
+      /* v8 (product owner): shape and turn move together — same start, same length, the same expo-out curve */
+      const w = (i === steps - 1 ? lastEase : stepEase)(x);
       const p = keys[i];
       const q = keys[i + 1];
       return {
         params: { n0: p.n, n1: q.n, w, a: p.a + (q.a - p.a) * w, rot: TURN * (i + w) },
-        lab: mixLab(p.lab, q.lab, w),
+        lab: p.labs.map((lab, k) => mixLab(lab, q.labs[k], w)),
       };
     }
 
     const restParams = { n0: rest.n, a: rest.a, rot: TURN * steps };
     let raf = 0;
+
+    /* ---- idle (product owner 2026-11-18): after the entrance only the ring's gradient turns — one full turn per
+       `idle.period` ms (10 s), linear, seamless; the outline never moves. Runs only while the tab is visible and the
+       host is on screen (IntersectionObserver); none with reduced motion. Default on inside the hero, off elsewhere. ---- */
+    const idleOn = !reduced && (options.idle ?? !!host.closest("[data-cab2-hero], [data-wave-idle]"));
+    const period = (options.idle && options.idle.period) || 10000;
+    const restDeg = (restParams.rot * 180) / Math.PI;
+    let idleRaf = 0;
+    let idleAngle = 0;
+    let idleLast = 0;
+    let idleWanted = false;
+    let onScreen = true;
+    const idleTick = (now) => {
+      const dt = idleLast ? Math.min(100, now - idleLast) : 0; /* clamp: no jump after a pause */
+      idleLast = now;
+      idleAngle = (idleAngle + (360 * dt) / period) % 360;
+      grad.setAttribute("gradientTransform", `rotate(${(restDeg + idleAngle).toFixed(2)} ${c} ${c})`);
+      idleRaf = requestAnimationFrame(idleTick);
+    };
+    function idleSync() {
+      const run = idleWanted && onScreen && !document.hidden;
+      if (run && !idleRaf) { idleLast = 0; idleRaf = requestAnimationFrame(idleTick); }
+      if (!run && idleRaf) { cancelAnimationFrame(idleRaf); idleRaf = 0; }
+    }
+    const io = idleOn && "IntersectionObserver" in window
+      ? new IntersectionObserver((entries) => { onScreen = entries.some((e) => e.isIntersecting); idleSync(); })
+      : null;
+    if (io) io.observe(host);
+    if (idleOn) document.addEventListener("visibilitychange", idleSync);
+    function startIdle() { if (!idleOn) return; idleWanted = true; idleSync(); }
+    function stopIdle() { idleWanted = false; idleSync(); }
     let pop = null;
     let resolveDone;
     const instance = { host, done: new Promise((r) => { resolveDone = r; }) };
@@ -210,7 +273,8 @@
       cancelAnimationFrame(raf);
       raf = 0;
       if (pop) { pop.cancel(); pop = null; }
-      draw(restParams, null); /* rest colour = the CSS token (no stroke attribute) */
+      draw(restParams, null); /* rest gradient = the tokens */
+      startIdle();
       host.classList.remove("is-wave-playing");
       host.classList.add("is-wave-settled");
       host.removeEventListener("pointerenter", settle);
@@ -221,15 +285,14 @@
 
     instance.play = () => {
       if (reduced || !face) { settle(); return instance.done; }
+      stopIdle();
       host.classList.remove("is-wave-settled");
       host.classList.add("is-wave-playing");
       host.addEventListener("pointerenter", settle, { once: true });
       host.addEventListener("focusin", settle, { once: true });
       const enter = tokenText("--motion-ease-enter") || "cubic-bezier(0.05, 0.7, 0.1, 1)";
-      const standard = tokenText("--motion-ease-standard") || "cubic-bezier(0.2, 0, 0, 1)";
       pop = host.animate([
         { transform: `scale(${POP.from})`, opacity: 0, easing: enter },
-        { transform: `scale(${POP.peak})`, opacity: 1, offset: POP.peakAt, easing: standard },
         { transform: "scale(1)", opacity: 1 },
       ], { duration: timing.pop });
       const start = performance.now();
@@ -258,6 +321,9 @@
 
     instance.destroy = () => {
       cancelAnimationFrame(raf);
+      stopIdle();
+      if (io) io.disconnect();
+      if (idleOn) document.removeEventListener("visibilitychange", idleSync);
       if (pop) pop.cancel();
       svg.remove();
       if (face) { face.classList.remove("cab2-wave__face"); face.style.clipPath = ""; }
