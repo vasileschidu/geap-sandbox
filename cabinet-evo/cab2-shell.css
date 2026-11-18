@@ -58,7 +58,7 @@
   flex-wrap: wrap;
   font-size: var(--font-size-fs-14, 14px);
   font-weight: var(--font-weight-fw-regular, 400);
-  gap: var(--spacing-4, 4px) var(--spacing-8, 8px);
+  gap: var(--spacing-4, 4px) 0;
   line-height: var(--line-height-lh-20, 20px);
   margin: 0;
   min-width: 0;
@@ -859,20 +859,133 @@ button.e-permits-shell__nav-link.cab2-menu__button {
   white-space: normal;
 }
 
-.cab2-todo__action {
-  flex: none;
+/* cab2-soon-v1 (PO 2026-11-18, compact): „În curând” row = 2 lines using the width — line 1: the type + (right) the expiry group,
+   line 2: pin place · number · section as one quiet meta line. Phones: type / expiry / meta. Padding 16 · 24. */
+.e-permits-fo-lib-item.e-permits-fo-intent-act.cab2-todo.cab2-soon {
+  padding: var(--spacing-16, 16px) var(--spacing-24, 24px);
+}
+
+.e-permits-fo-lib-item.e-permits-fo-intent-act.cab2-todo.cab2-soon > .e-permits-fo-lib-item__content {
+  align-items: center;
+  display: grid;
+  gap: var(--spacing-4, 4px) var(--spacing-8, 8px);
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.cab2-soon > .e-permits-fo-lib-item__content > .e-permits-fo-doc-title-row {
+  grid-column: 1;
+  grid-row: 1;
+}
+
+.cab2-soon__expiry {
+  align-items: center;
+  display: flex;
+  gap: var(--spacing-8, 8px);
+  grid-column: 2;
+  grid-row: 1;
+  justify-self: end;
+}
+
+/* line 2: the pin place, then the quiet meta (its leading separator stays visible after the place) */
+.cab2-soon__line {
+  align-items: center;
+  display: flex;
+  grid-column: 1 / -1;
+  grid-row: 2;
+  min-width: 0;
+}
+
+.cab2-soon__line > .e-permits-fo-intent-act__place {
+  flex: 0 1 auto;
+  min-width: 0;
+}
+
+.cab2-soon__line > .e-permits-fo-doc-meta {
+  clip-path: none;
+  flex: 1 1 auto;
+  margin-left: 0;
+  min-width: 0;
+}
+
+.cab2-soon__date {
+  color: var(--color-text-base-secondary, #5c5c5c);
+  font-size: var(--font-size-fs-14, 14px);
+  line-height: var(--line-height-lh-20, 20px);
+  white-space: nowrap;
 }
 
 @media (max-width: 760px) {
-  .e-permits-fo-lib-item.e-permits-fo-intent-act.cab2-todo {
-    align-items: flex-start;
-    flex-wrap: wrap;
-    row-gap: var(--spacing-12, 12px);
+  .cab2-soon__expiry {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    justify-self: start;
+    margin-left: 0;
   }
 
-  .e-permits-fo-lib-item.e-permits-fo-intent-act.cab2-todo > .e-permits-fo-lib-item__content,
-  .cab2-todo__action {
-    flex: 1 1 100%;
+  .cab2-soon__line {
+    grid-row: 3;
+  }
+
+  .cab2-soon > .e-permits-fo-lib-item__content > .e-permits-fo-doc-title-row {
+    grid-column: 1 / -1;
+  }
+}
+
+/* cab2-go-v1 (PO 2026-11-18: the whole card / row is the link, no „Vezi …” text): ONE quiet arrow, shared by every clickable
+   tile and row of Cabinet v2. Hidden at rest; on hover / keyboard focus it fades in and slides right (fast, ease-out) and
+   turns primary. Tiles: top right on the title line; rows: centred at the right edge. Phones (no hover): always visible,
+   static. Reduced motion: it just appears. */
+.cab2-go {
+  color: var(--color-icon-base-secondary, #5c5c5c);
+  display: inline-flex;
+  flex: none;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateX(calc(var(--spacing-4, 4px) * -1));
+  transition:
+    opacity var(--motion-duration-fast, 150ms) var(--motion-ease-enter, ease-out),
+    transform var(--motion-duration-fast, 150ms) var(--motion-ease-enter, ease-out),
+    color var(--motion-duration-fast, 150ms) ease-out;
+}
+
+:is(.cab2-row, .cab2-wcard--link, .cab-act-list > .e-permits-fo-lib-item):is(:hover, :focus-visible, :focus-within) > .cab2-go {
+  color: var(--color-icon-base-default, #121212);
+  opacity: 1;
+  transform: none;
+}
+
+.cab2-wcard--link > .cab2-go {
+  position: absolute;
+  right: var(--spacing-24, 24px);
+  top: calc(var(--spacing-24, 24px) + var(--spacing-2, 2px));
+}
+
+/* an act row with its „Postprocese” trigger at the top right: the arrow sits bottom right, under it */
+.cab-act-list > .e-permits-fo-lib-item:has(.e-permits-fo-intent-act__trigger) {
+  position: relative;
+}
+
+.cab-act-list > .e-permits-fo-lib-item:has(.e-permits-fo-intent-act__trigger) > .cab2-go {
+  bottom: var(--spacing-16, 16px);
+  position: absolute;
+  right: var(--spacing-16, 16px);
+}
+
+.cab2-wcard--link .e-permits-wid-card__title-row {
+  padding-right: var(--spacing-32, 32px);
+}
+
+@media (hover: none), (max-width: 760px) {
+  .cab2-go {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cab2-go {
+    transform: none;
+    transition: none;
   }
 }
 
@@ -909,6 +1022,142 @@ button.e-permits-shell__nav-link.cab2-menu__button {
   list-style: none;
   margin: 0;
   padding: 0;
+}
+
+/* cab2-more-v1 (PO 2026-11-18, Google Account): the first alert + a „Arată mai multe” row JOINED under it — same width,
+   one outer radius 20 (the card's bottom and the row's bottom corners 4 where they meet, 2 apart), label left, the hidden
+   count (library badge) + chevron right. The rest expands inline (height, motion tokens; reduced motion = instant). */
+.cab2-more {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.cab2-more__first:has(+ .cab2-more__toggle) .e-permits-callout--card {
+  border-bottom-left-radius: var(--border-radius-4, 4px);
+  border-bottom-right-radius: var(--border-radius-4, 4px);
+}
+
+.cab2-more__toggle {
+  align-items: center;
+  background: var(--color-background-base-secondary, #f5f5f5);
+  border: 0;
+  border-radius: var(--border-radius-4, 4px) var(--border-radius-4, 4px) var(--border-radius-20, 20px) var(--border-radius-20, 20px);
+  color: var(--color-text-base-default, #121212);
+  cursor: pointer;
+  display: flex;
+  font: inherit;
+  font-size: var(--font-size-fs-14, 14px);
+  font-weight: var(--font-weight-fw-medium, 500);
+  gap: var(--spacing-8, 8px);
+  justify-content: space-between;
+  line-height: var(--line-height-lh-20, 20px);
+  margin-top: var(--spacing-2, 2px);
+  min-height: var(--spacing-56, 56px);
+  padding: var(--spacing-16, 16px) var(--spacing-24, 24px);
+  text-align: start;
+  transition: background-color var(--motion-duration-fast, 150ms) ease;
+  width: 100%;
+}
+
+.cab2-more__toggle:hover {
+  background: var(--color-background-base-tertiary-hover, #d9d9d9);
+}
+
+.cab2-more__toggle:focus-visible {
+  box-shadow:
+    0 0 0 var(--spacing-2, 2px) var(--color-background-base-default, #fff),
+    0 0 0 calc(var(--spacing-4, 4px) + var(--border-width-1, 1px)) var(--focus-ring, var(--blue-sky-500, #3379db));
+  outline: none;
+}
+
+/* label + the library count badge right after it (badge after name); the chevron alone at the far right */
+.cab2-more__label {
+  align-items: center;
+  display: inline-flex;
+  gap: var(--spacing-8, 8px);
+}
+
+.cab2-more__count:hover,
+.cab2-more__count:focus {
+  opacity: 1;
+}
+
+.cab2-more.is-open .cab2-more__count {
+  display: none;
+}
+
+.cab2-more__chevron {
+  color: var(--color-icon-base-secondary, #5c5c5c);
+  display: inline-flex;
+  transition: transform var(--motion-duration-base, 200ms) var(--motion-ease-enter, ease);
+}
+
+.cab2-more.is-open .cab2-more__chevron {
+  transform: rotate(180deg);
+}
+
+.cab2-more__more {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows var(--motion-duration-base, 200ms) var(--motion-ease-enter, ease);
+}
+
+.cab2-more.is-open .cab2-more__more {
+  grid-template-rows: 1fr;
+}
+
+.cab2-more__inner {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-8, 8px);
+  min-height: 0;
+  overflow: hidden;
+  padding-top: var(--spacing-16, 16px);
+}
+
+.cab2-more__inner > .cab2-block__more {
+  margin: 0;
+}
+
+@media (max-width: 760px) {
+  .cab2-more__toggle {
+    padding-inline: var(--spacing-16, 16px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cab2-more__more,
+  .cab2-more__chevron,
+  .cab2-more__toggle {
+    transition: none;
+  }
+}
+
+/* cab2-alert-link-v1: the Acasă alert keeps the card's own layout — the one primary on the right, centred with the text; the
+   title is the underlined link (it keeps the card's 16/24 semibold). Phones: the button under the text, full width, 48. */
+.cab2-alert--home .e-permits-callout__title .cab2-alert__link {
+  --_link-color: var(--color-text-base-default, #121212);
+  --_link-hover: var(--color-text-base-default, #121212);
+  --_link-visited: var(--color-text-base-default, #121212);
+
+  display: inline-block;
+  font: inherit;
+}
+
+.cab2-alert--home .e-permits-callout__title .cab2-alert__link:is(:hover, :focus-visible) {
+  --_link-underline: underline;
+}
+
+@media (max-width: 760px) {
+  .e-permits-callout--card.cab2-alert--home:not(#nothing) .e-permits-callout__actions {
+    flex-direction: column;
+    grid-column: 1 / -1;
+  }
+
+  .e-permits-callout--card.cab2-alert--home:not(#nothing) .e-permits-callout__actions > .btn {
+    width: 100%;
+  }
 }
 
 /* cab2-alert-stack-v1 (product owner 2026-11-18: „the actions squeeze the description when they sit beside it”): the

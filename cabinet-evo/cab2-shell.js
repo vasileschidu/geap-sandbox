@@ -319,7 +319,7 @@
     "pj-global-trader": [
       { level: 3, section: "concedii", text: "Confirmă concediul medical al unui angajat, primit pe 9 octombrie 2026.", action: "Confirmă", meta: ["Concediile angajaților", "CNAS"],
         title: "Ai un concediu medical de confirmat", body: "Concediul unui angajat, primit de la Casa Națională de Asigurări Sociale pe 9 octombrie 2026.", more: "Vezi concediile" },
-      { level: 5, section: "controale", text: "Agenția Națională pentru Siguranța Alimentelor a planificat un control pe 10 decembrie 2026.", action: "Vezi controlul", meta: ["Controale de stat", "ANSA"] },
+      { level: 5, section: "controale", text: "Agenția Națională pentru Siguranța Alimentelor a planificat un control pe 10 decembrie 2026.", meta: ["Controale de stat", "ANSA"], rowTitle: "Control de siguranță alimentară", tagText: "Planificat", tone: "neutral", dateText: "10 decembrie 2026" },
     ],
     "pj-agro-nord": [{ level: 1, section: "taxe", text: "Datoria de 2 310 lei la impozitul pe venit a depășit termenul din 25 septembrie 2026; se calculează penalități.", action: "Achită", meta: ["Taxe și datorii", "Serviciul Fiscal de Stat"],
       title: "Datoria de 2 310 lei a depășit termenul", body: "Impozitul pe venit trebuia achitat până la 25 septembrie 2026. Din 26 septembrie se calculează penalități.", more: "Vezi taxele" }],
@@ -327,7 +327,7 @@
       /* view only: the alert says why there is no „Achită” (cab2-home-v1); `rezolvat=1` hides it (n27) */
       { level: 2, section: "amenzi", date: "2026-10-28", text: "Maria Rusu are o amendă de 300 lei; până pe 28 octombrie 2026 se plătește jumătate din sumă.", action: "Achită", meta: ["Amenzi", "MAI"], solved: true,
         title: "Maria Rusu are o amendă de 300 lei de achitat", body: "Până pe 28 octombrie 2026 se plătește jumătate din sumă. Tu poți doar vedea datele: împuternicirea notarială nu îți permite să achiți pentru Maria Rusu.", more: "Vezi amenzile", amount: 300 },
-      { level: 4, section: "identitate", text: "Buletinul de identitate al Mariei Rusu expiră pe 2 decembrie 2026, în 51 de zile.", action: "Vezi buletinul", meta: ["Acte de identitate", "ASP"] },
+      { level: 4, section: "identitate", text: "Buletinul de identitate al Mariei Rusu expiră pe 2 decembrie 2026, în 51 de zile.", meta: ["Acte de identitate", "ASP"], rowTitle: "Buletinul de identitate al Mariei Rusu", expiry: { days: 51, date: "2 decembrie 2026" } },
     ],
     "mpower-pf-grigore": [{ level: 2, section: "amenzi", date: "2026-10-20", text: "Achită amenda de 600 lei până la 20 octombrie 2026; până atunci plătești jumătate din sumă.", action: "Achită", meta: ["Amenzi", "MAI"],
       title: "Grigore Vasilescu are o amendă de 600 lei de achitat", body: "Dacă o achiți până la 20 octombrie 2026, plătești doar jumătate din sumă.", more: "Vezi amenzile", amount: 600 }],
@@ -348,8 +348,8 @@
     actsOf(ctx).forEach((act) => {
       const title = serviceOf(act.service).actTitle || "Actul permisiv";
       const days = daysUntil(act.validUntil);
-      if (act.status === "valabil" && days >= 0 && days <= 90) items.push({ level: 4, section: "acte", id: act.id, date: isoOf(act.validUntil), text: `${title} pentru ${act.name} expiră pe ${longDate(act.validUntil)}, în ${days} de zile.`, action: "Vezi actul", nr: act.number });
-      if (act.status === "suspendat") items.push({ level: 5, section: "acte", id: act.id, text: `${title} pentru ${act.name} este suspendată.`, action: "Vezi actul", nr: act.number });
+      if (act.status === "valabil" && days >= 0 && days <= 90) items.push({ level: 4, section: "acte", id: act.id, date: isoOf(act.validUntil), text: `${title} pentru ${act.name} expiră pe ${longDate(act.validUntil)}, în ${days} de zile.`, rowTitle: title, place: act.name, expiry: { days, date: longDate(act.validUntil) }, nr: act.number });
+      if (act.status === "suspendat") items.push({ level: 5, section: "acte", id: act.id, text: `${title} pentru ${act.name} este suspendată.`, rowTitle: title, place: act.name, tagText: "Suspendat", tone: "warning", nr: act.number });
     });
     (STATIC_TODOS[ctx.id] || []).filter((item) => !(item.solved && params.get("rezolvat") === "1")).forEach((item) => items.push(item));
     return items.filter((item) => inMenu(ctx, item.section))
@@ -638,33 +638,52 @@
       metaSlots: { number: d.nr, numberLabel: `Copiază numărul ${d.nr}`, what: d.tip || "", authority: service.authority, subdivision: d.subdivision, date: `Depusă ${longDate(d.submitted)}` },
       attrs: `tabindex="0" data-cab2-href="${escape(href)}" aria-label="${escape(`${service.title || d.nr}${d.object ? `, ${d.object}` : ""} — ${label}, deschide detaliile`)}"`,
       actionHtml: "", rowClass: "cab-request-row cab2-row",
-    });
+    }).replace(/<\/li>\s*$/, `<span class="cab2-go" aria-hidden="true">${ico("chevron-right", "medium")}</span></li>`);
   }
   function todoRow(item) {
     const ctx = state.ctx;
     const href = item.id ? recordHref(item.section, item.id) : sectionHref(item.section);
-    const target = { s: item.id ? "" : item.section, href };
-    /* view-only: no action, only the way in; acting for someone: the button names the entity — visibly on a payment
-       („Achită pentru Agro-Nord SRL”, wiki 02 › Contexts; S1 leftover 2026-11-18), for screen readers on the others */
-    const label = ctx.viewOnly ? "Vezi detaliile" : item.action;
-    const pay = !ctx.viewOnly && item.action === "Achită";
-    const forWhom = ctx.kind === "self" ? "" : pay ? ` pentru ${escape(ctx.name)}` : hidden(` pentru ${ctx.name}`);
-    const button = `<a class="btn btn-neutral btn-sm" ${linkAttrs(target)}>${escape(label)}${forWhom}</a>`;
+    /* the whole row is the link (cab2-go-v1, PO 2026-11-18: no „Vezi actul” text button): a quiet arrow fades in on hover / focus */
     const meta = [titleOf(item.section, ctx), ...(item.meta || []).filter((part) => part && part !== titleOf(item.section, ctx))];
     /* a record number = the compact copy value (act row meta slot 1), as in the lists */
-    return window.GEAPActRow.html({ id: `todo-${item.section}-${item.id || ""}`, name: item.text, status: "", statusLabel: "", ...(item.nr ? {} : { meta }) }, {
-      assets: "../assets/", iconSrc: "", tagHtml: "", ...(item.nr ? { metaSlots: { number: item.nr, numberLabel: `Copiază numărul ${item.nr}`, what: meta.join(" · ") } } : {}),
-      attrs: `data-cab2-href="${escape(href)}"`, actionHtml: "", rowClass: "cab2-row cab2-todo",
-    /* the one labelled button sits beside the sentence (desktop) / under it (phones) — not in the act row's corner
-       trigger slot, which is sized for ⋮ / „Postprocese ⌄” */
-    }).replace(/<\/li>\s*$/, `<div class="cab2-todo__action">${button}</div></li>`);
+    /* „În curând” items (cab2-soon-v1, PO 2026-11-18): type first, location second (pin), the expiry on its OWN line = a Small
+       tag („Expiră în 28 de zile”: danger ≤ 7 days or overdue, neutral > 30, else warning) + the date; the quiet meta last */
+    const structured = Boolean(item.rowTitle);
+    const days = item.expiry?.days;
+    const expiryTone = item.expiry ? (days <= 7 ? "danger" : days > 30 ? "neutral" : "warning") : item.tone || "neutral";
+    const expiryLabel = item.expiry ? (days < 0 ? "Expirat" : `Expiră în ${days} ${days === 1 ? "zi" : "de zile"}`) : item.tagText || "";
+    const expiryHtml = structured && expiryLabel ? `<div class="cab2-soon__expiry">${tag(expiryLabel, expiryTone)}${item.expiry?.date || item.dateText ? `<span class="cab2-soon__date">${escape(item.expiry?.date || item.dateText)}</span>` : ""}</div>` : "";
+    const name = structured ? item.rowTitle : item.text;
+    const html = window.GEAPActRow.html({ id: `todo-${item.section}-${item.id || ""}`, name, status: "", statusLabel: "", ...(item.nr ? {} : { meta }) }, {
+      assets: "../assets/", iconSrc: "", tagHtml: "", place: structured ? item.place || "" : "", ...(item.nr ? { metaSlots: { number: item.nr, numberLabel: `Copiază numărul ${item.nr}`, what: meta.join(" · ") } } : {}),
+      attrs: `tabindex="0" data-cab2-href="${escape(href)}" aria-label="${escape(`${name}${item.place ? `, ${item.place}` : ""}${expiryLabel ? ` — ${expiryLabel}` : ""}, deschide`)}"`, actionHtml: "", rowClass: `cab2-row cab2-todo${structured ? " cab2-soon" : ""}`,
+    });
+    /* structured: line 1 = title-row + expiry (grid cells), line 2 = place + meta wrapped in ONE flex line */
+    let out = html;
+    if (structured) {
+      const tpl = document.createElement("template");
+      tpl.innerHTML = html.trim();
+      const content = tpl.content.querySelector(".e-permits-fo-lib-item__content");
+      const placeEl = content?.querySelector(".e-permits-fo-intent-act__place");
+      const metaEl = content?.querySelector(".e-permits-fo-lib-item__meta");
+      if (content && metaEl) {
+        const line = document.createElement("div");
+        line.className = "cab2-soon__line";
+        metaEl.before(line);
+        if (placeEl) line.append(placeEl);
+        line.append(metaEl);
+        out = tpl.innerHTML;
+      }
+    }
+    return out.replace('<div class="cab2-soon__line"', `${expiryHtml}<div class="cab2-soon__line"`)
+      .replace(/<\/li>\s*$/, `<span class="cab2-go" aria-hidden="true">${ico("chevron-right", "medium")}</span></li>`);
   }
   function docRow(section, [title, value, tagLabel, tone, line]) {
     const href = sectionHref(section);
     return window.GEAPActRow.html({ id: `doc-${section}-${title}`, name: title, status: "", statusLabel: tagLabel || "", meta: [line, value].filter(Boolean) }, {
       assets: "../assets/", iconSrc: "", tagHtml: tagLabel ? tag(tagLabel, tone || "neutral") : "",
       titleHref: href, attrs: `tabindex="0" data-cab2-href="${escape(href)}" aria-label="${escape(`${title}${tagLabel ? ` — ${tagLabel}` : ""}, deschide ${titleOf(section)}`)}"`, actionHtml: "", rowClass: "cab2-row",
-    });
+    }).replace(/<\/li>\s*$/, `<span class="cab2-go" aria-hidden="true">${ico("chevron-right", "medium")}</span></li>`);
   }
   /* a section as a BO card on a group page: its rows (label / value), „Vezi toate”; a source down = the notice inside */
   function sectionCard(id) {
@@ -677,11 +696,10 @@
   /* ---------- Acasă (cab2-home-v1, product owner 2026-11-18: „similar to the Yandex one, make access clearer with clear
      alerts; the style of the Solicitările mele profiles; actions blue primary for Achită or Trimite informația”) ----------
      Reading order: identity hero · „De rezolvat” = the profile ALERT CARD (GEAPAlertCard, js/alert-card.js — the request
-     profile's `alertCardHtml`) one per level 1–3 item, max 3, then „Vezi toate (N)” · „În curând” (levels 4–5, quieter:
+     profile's `alertCardHtml`) one per level 1–3 item: the first alone + „Arată mai multe” (cab2-todo-more-v1) · „În curând” (levels 4–5, quieter:
      the rows) · one section per menu group with content (menu order): heading = the group name + chevron (a link to the
      group page) → a row of 2–3 tiles = the dashboard widget card (Cab2.card, bordered on the white page) · source line. */
   const FO_FLOW = "../e-permits-acte-permisive.html";
-  const ALERT_MAX = 3;
   /* the primary that solves an item: a request = its own step (pay = the profile with MPay open, info = the FO
      supplement step); anything else = its section (not built yet). Acting for someone: the button names the entity —
      visibly on a payment, for screen readers on the rest (wiki 02 › Contexts) */
@@ -699,18 +717,40 @@
   }
   function alertHtml(item) {
     const ctx = state.ctx;
-    const size = isPhone() ? "" : " btn-md";
     const href = item.id ? recordHref(item.section, item.id) : sectionHref(item.section);
-    /* view only: no action — the body already says why; the quiet way in stays (alone = outline, next to a primary = text) */
-    const more = item.more ? `<a class="btn ${ctx.viewOnly ? "btn-outline-strict" : "btn-text-strict"}${size} btn-rounded" href="${escape(href)}"${item.id ? "" : goAttr({ s: item.section })}>${escape(item.more)}</a>` : "";
-    /* cab2-alert-stack-v1: the buttons sit under the text, primary first */
-    const actions = `${ctx.viewOnly ? "" : alertPrimary(item)}${more}`;
+    /* cab2-alert-link-v1 (PO 2026-11-18): ONE button (the alert's primary) on the right, centred with the text; no secondary „Vezi …”
+       button — the TITLE is the link to the item (library text link, underlined). View only: no button, just the linked title */
+    const actions = ctx.viewOnly ? "" : alertPrimary(item);
     const tone = item.level === 1 ? "danger" : "warning";
+    const titleLink = `<a class="link link-no-underline cab2-alert__link" href="${escape(href)}"${item.id ? "" : goAttr({ s: item.section })}>${escape(item.title || item.text)}</a>`;
     return `<li class="cab2-alerts__item">${window.GEAPAlertCard.html({
-      tone, title: escape(item.title || item.text), text: item.body ? escape(item.body) : "", actions, role: "", titleTag: "h3", className: "cab2-alert cab2-alert--stack", sprite: SPRITE,
+      tone, title: titleLink, text: item.body ? escape(item.body) : "", actions, role: "", titleTag: "h3", className: "cab2-alert cab2-alert--home", sprite: SPRITE,
     })}</li>`;
   }
   const alertList = (items) => `<ul class="cab2-alerts" aria-label="De rezolvat">${items.map(alertHtml).join("")}</ul>`;
+  /* „De rezolvat” on Acasă (cab2-todo-more-v1, PO 2026-11-18, Google Account card): the most important alert alone; the rest
+     behind „Arată mai multe” — a row joined under the card (one outer radius 20, 2 apart) with the hidden count + chevron.
+     Click expands the others inline (same alert cards), the row reads „Arată mai puține”; „Vezi toate (N)” ends the list. */
+  const TODO_MORE_ID = "cab2-more";
+  function todoStack(items) {
+    const [first, ...rest] = items;
+    if (!rest.length) return alertList([first]);
+    const open = params.get("mai-multe") === "1";
+    const count = rest.length;
+    return `<div class="cab2-more${open ? " is-open" : ""}" data-cab2-more>
+      <ul class="cab2-alerts cab2-more__first" aria-label="De rezolvat">${alertHtml(first)}</ul>
+      <button type="button" class="cab2-more__toggle" data-cab2-more-toggle aria-expanded="${open}" aria-controls="${TODO_MORE_ID}">
+        <span class="cab2-more__label"><span data-cab2-more-label>${open ? "Arată mai puține" : "Arată mai multe"}</span><span class="badge badge--solid-neutral badge--xl cab2-more__count" aria-hidden="true">${count}</span>${hidden(`, ${count === 1 ? "încă o alertă" : `încă ${count} alerte`}`)}</span>
+        <span class="cab2-more__chevron">${ico("chevron-bottom", "medium")}</span>
+      </button>
+      <div class="cab2-more__more" id="${TODO_MORE_ID}"${open ? "" : " inert"}>
+        <div class="cab2-more__inner">
+          <ul class="cab2-alerts" aria-label="Alte lucruri de rezolvat">${rest.map(alertHtml).join("")}</ul>
+          <p class="cab2-block__more"><a class="btn btn-text-primary btn-sm" ${linkAttrs({ s: TODO_PAGE, href: urlOf({ s: TODO_PAGE }) })}>${escape(`Vezi toate (${items.length})`)}</a></p>
+        </div>
+      </div>
+    </div>`;
+  }
 
   /* the tiles of a group (≤ 3): what is most useful at a glance; a source that is down drops its tile (all down = the
      notice) */
@@ -804,8 +844,8 @@
     const count = countOf(ctx);
     /* 1 · the identity hero (the BO page header stays on every other page) */
     const parts = [heroHtml(ctx)];
-    /* 2 · De rezolvat = alert cards, max 3, then „Vezi toate (N)” */
-    if (todos.length) parts.push(block("cab2-home-todo", "De rezolvat", alertList(todos.slice(0, ALERT_MAX)), todos.length > ALERT_MAX ? { s: TODO_PAGE, href: urlOf({ s: TODO_PAGE }), label: `Vezi toate (${todos.length})` } : null));
+    /* 2 · De rezolvat = the first alert card + „Arată mai multe” (the rest, expanded inline) */
+    if (todos.length) parts.push(block("cab2-home-todo", "De rezolvat", todoStack(todos)));
     /* nothing to do: the block stays with the status sentence */
     else parts.push(block("cab2-home-todo", "De rezolvat", `<p class="cab2-source">${escape(todoText(count, own))}</p>`));
     /* 3 · În curând — the quieter block: rows, not alert cards; hidden when empty */
@@ -1481,6 +1521,16 @@
       closeSwitcher();
       if (state.ctx.kind !== "self") state.ctx = CONTEXTS[0];
       go({ s: NEW_POWER });
+      return;
+    }
+    const todoToggle = event.target.closest("[data-cab2-more-toggle]");
+    if (todoToggle) {
+      const stack = todoToggle.closest("[data-cab2-more]");
+      const open = todoToggle.getAttribute("aria-expanded") !== "true";
+      todoToggle.setAttribute("aria-expanded", String(open));
+      stack.classList.toggle("is-open", open);
+      stack.querySelector("[data-cab2-more-label]").textContent = open ? "Arată mai puține" : "Arată mai multe";
+      stack.querySelector(".cab2-more__more").toggleAttribute("inert", !open);
       return;
     }
     const opener = event.target.closest("[data-cab2-switch-open]");

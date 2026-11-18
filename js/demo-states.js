@@ -3340,6 +3340,8 @@
     "cab2-a03": cab2S({ rezolvat: "1" }),
     "cab2-a04": cab2S({ as: "notar-pf-maria" }),
     "cab2-a05": cab2S({ as: "pj-agro-nord" }),
+    /* Acasă · „De rezolvat” expanded: the first alert + „Arată mai puține”, the others inline (cab2-todo-more-v1) */
+    "cab2-a06": cab2S({ "mai-multe": "1" }),
     /* „Notificări” panel (cab2-notes-panel-v1, 2026-11-18): the header bell opens a right-docked full-height panel (the
        document viewer's docked geometry; phones the full-page sheet). p01 you, unread items · p02 a new user, empty ·
        p03 a company with a long list (scroll cue; the phone reference) */

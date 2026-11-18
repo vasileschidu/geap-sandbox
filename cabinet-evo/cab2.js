@@ -91,7 +91,8 @@
             <div class="e-permits-wid-card__title-row">${groupId ? groupIcon(groupId, { size: "sm" }) : ""}<h${level} class="e-permits-wid-card__title">${titleHtml}</h${level}></div>${headline}
           </div>${bodyHtml ? `
           <div class="e-permits-wid-card__body">${bodyHtml}</div>` : ""}${foot}
-        </article>
+        </article>${link ? `
+        <span class="cab2-go" aria-hidden="true"><svg class="icon medium" focusable="false"><use href="../assets/icons/sprite.svg#icon-chevron-right"></use></svg></span>` : ""}
       </div>`;
   };
 

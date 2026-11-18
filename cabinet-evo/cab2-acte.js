@@ -303,7 +303,7 @@
       noticeIcon: pending ? "icon-time" : "icon-circle-info-filled",
       noticeLocks: Boolean(pending),
       hideEmptyAction: true,
-    });
+    }).replace(/<\/li>\s*$/, `<span class="cab2-go" aria-hidden="true">${icon("icon-chevron-right", "medium")}</span></li>`);
   }
 
   function visiblePermits() {
