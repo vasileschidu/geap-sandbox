@@ -15,7 +15,7 @@
      &s=de-rezolvat                      every „De rezolvat” item of the context
    Demo: &rezolvat=1 (everything resolved) · &entitati=una | multe · &indisponibil=asp (a source down) ·
          &as=pf-ion-nou (a new user, no data).
-   Reading / keyboard order: header → context line → menu (identity block, items) → content (→ phone bottom bar). */
+   Reading / keyboard order: header → context line → menu → content (Acasă: the identity hero first) (→ phone bottom bar). */
 (() => {
   "use strict";
 
@@ -68,7 +68,6 @@
   const NEW_USER = { id: "pf-ion-nou", group: "self", kind: "self", name: "Ion Popescu", first: "Ion", initials: "IP", idLabel: "IDNP", idValue: "2005012345671", newUser: true };
   const CONTEXTS = params.get("as") === NEW_USER.id ? [NEW_USER] : params.get("entitati") === "una" ? [ALL_CONTEXTS[0]] : ALL_CONTEXTS;
   const SINGLE = CONTEXTS.length === 1;
-  const SWITCH_GROUPS = [["self", "Tu"], ["companies", "Companiile tale"], ["powers", "Prin împuternicire"]];
   const contextOf = (id) => CONTEXTS.find((item) => item.id === id) || CONTEXTS[0];
   const identifier = (ctx) => (ctx.idLabel === "IDNP" ? `IDNP se termină în ${ctx.idValue.slice(-4)}` : `${ctx.idLabel} ${ctx.idValue}`);
   const capacity = (ctx, { validity = true } = {}) => {
@@ -78,8 +77,6 @@
     if (ctx.via === "mpower") return `prin împuternicire${until}`;
     return "";
   };
-  /* the identity block's quiet line (no identifier there — privacy on shared screens) */
-  const capacityShort = (ctx) => (ctx.kind === "self" ? "Contul tău" : ctx.via === "admin" ? "ca administrator" : ctx.via === "notarial" ? `prin împuternicire notarială${ctx.viewOnly ? " · doar vizualizare" : ""}` : `prin împuternicire${ctx.viewOnly ? " · doar vizualizare" : ""}`);
   const expiresSoon = (ctx) => (ctx.until && daysUntil(ctx.until) <= 30 ? daysUntil(ctx.until) : null);
   const expiryLabel = (days) => (days <= 0 ? "Expiră astăzi" : days === 1 ? "Expiră mâine" : `Expiră în ${days} zile`);
   const todoText = (count, own) => {
@@ -441,33 +438,38 @@
     els.context.innerHTML = `
       <div class="cab2-context__inner">
         <p class="cab2-context__text">${parts.join(sep)}</p>
-        ${SINGLE ? "" : `<button class="btn btn-text-primary btn-sm" type="button" aria-haspopup="dialog" aria-expanded="false" data-cab2-switch-open>Schimbă${hidden(" pentru cine acționezi")}</button>`}
+        ${SINGLE ? "" : `<button class="btn btn-text-primary btn-sm" type="button" aria-haspopup="menu" aria-controls="fo-avatar-menu" aria-expanded="false" data-cab2-switch-open>Schimbă${hidden(" pentru cine acționezi")}</button>`}
       </div>`;
   }
 
-  /* ---------- identity block (product owner 2026-11-17): who the Cabinet is for, on top of the menu ----------
-     = the BO account role card (`.e-permits-shell__profile-role-card`, css/shell-nav.css › generated) with the library
-     avatar. Several contexts → a button that opens „Pentru cine acționezi?”; one context → static text.
-     Screen readers: under a context line (which already says who · identifier · capacity) the button is named only
-     „Pentru cine acționezi?” and its visible text is hidden from them; for „Tu” it reads name + capacity. */
-  function identityHtml() {
-    const ctx = state.ctx;
-    const avatar = ctx.kind === "company"
-      ? `<span class="avatar avatar--sm avatar--icon" aria-hidden="true">${ico("business")}</span>`
-      : `<span class="avatar avatar--sm avatar--initials" aria-hidden="true">${escape(ctx.initials)}</span>`;
-    const lineShown = ctx.kind !== "self";
-    const copy = `
-        <span class="e-permits-shell__profile-role-copy"${!SINGLE && lineShown ? ' aria-hidden="true"' : ""}>
-          <span class="e-permits-shell__profile-role-name cab2-identity__name" data-cab2-tip="${escape(ctx.name)}">${escape(ctx.name)}</span>
-          <span class="e-permits-shell__profile-role-label">${escape(capacityShort(ctx))}</span>
-        </span>`;
-    if (SINGLE) return `<div class="e-permits-shell__profile-role-card cab2-identity cab2-identity--static">${avatar}${copy}</div>`;
-    const name = lineShown ? "Pentru cine acționezi?" : `Pentru cine acționezi? Acum: ${ctx.name}, ${capacityShort(ctx).toLowerCase()}`;
+  /* ---------- identity hero (cab2-hero-v1, product owner 2026-11-18: „move the user under — use our switcher; when
+     MPower, a smaller icon”) ----------
+     The person left the menu: Acasă opens with a centred hero (Google Account / Yandex ID home) — avatar in the brand
+     ring (library `--xl` 72, the largest size), the name as H1, one quiet line, „Schimbă” → the existing switcher
+     anchored under Acting for someone: the large avatar is the entity, the signed-in person a small apricot badge on its corner; the line
+     says it in words. Research: .claude/evo-cabinet/research/account-home-layout.md. */
+  const SELF = () => CONTEXTS.find((item) => item.kind === "self") || CONTEXTS[0];
+  /* the library avatar of a context: company = `icon-business`, a person = initials on the brand ground */
+  const avatarHtml = (ctx, size, cls = "") => (ctx.kind === "company"
+    ? `<span class="avatar avatar--${size} avatar--icon${cls ? ` ${cls}` : ""}" aria-hidden="true">${ico("business")}</span>`
+    : `<span class="avatar avatar--${size} avatar--initials cab2-avatar--brand${cls ? ` ${cls}` : ""}" aria-hidden="true">${escape(ctx.initials)}</span>`);
+  /* the signed-in person's small avatar on the entity's corner — only when acting for someone else */
+  const badgeHtml = (ctx) => (ctx.kind === "self" ? "" : `<span class="avatar avatar--xs avatar--initials cab2-avatar--apricot cab2-avatar-badge" aria-hidden="true">${escape(SELF().initials)}</span>`);
+  /* „Acționezi ca administrator · Anastasia Cojocaru” (glossary 07: „ca administrator” / „prin împuternicire …”) */
+  const actingLine = (ctx) => `Acționezi ${capacity(ctx, { validity: false })} · ${SELF().name}${ctx.viewOnly ? " · doar vizualizare" : ""}`;
+  function heroHtml(ctx) {
+    const own = ctx.kind === "self";
+    const line = own ? identifier(ctx) : actingLine(ctx);
+    const change = SINGLE ? "" : `
+          <p class="cab2-hero__switch"><button class="btn btn-text-primary btn-sm" type="button" aria-haspopup="menu" aria-controls="fo-avatar-menu" aria-expanded="${switcherOpen()}" data-cab2-switch-open>Schimbă${hidden(" pentru cine acționezi")}</button></p>`;
     return `
-      <button class="e-permits-shell__profile-role-card cab2-identity" type="button" aria-haspopup="dialog" aria-expanded="${switcherOpen()}" aria-label="${escape(name)}" data-cab2-switch-open>
-        ${avatar}${copy}
-        ${ico("chevron-bottom", "cab2-identity__chevron")}
-      </button>`;
+      <header class="cab2-hero cab2-hero--identity" data-cab2-hero>
+        <span class="cab2-hero__ring"><span class="cab2-avatar-host">${avatarHtml(ctx, "xl")}${badgeHtml(ctx)}</span></span>
+        <div class="cab2-hero__text">
+          <h1 class="cab2-hero__title" id="cab2-title" tabindex="-1">${escape(ctx.name)}</h1>
+          <p>${escape(line)}</p>${change}
+        </div>
+      </header>`;
   }
 
   /* ---------- menu v3 = the BO sidebar items (css/shell-nav.css): one row per group; the open group's sections under
@@ -502,14 +504,13 @@
       <div class="e-permits-shell__nav-group">
         <h2 class="e-permits-shell__group-label" id="${prefix}-g-cont">Contul meu</h2>
         <ul class="e-permits-shell__nav-list" aria-labelledby="${prefix}-g-cont">${[
-          SINGLE ? "" : navItem({ id: "cont-switch", label: "Pentru cine acționezi?", button: true, attrs: ' aria-haspopup="dialog" data-cab2-switch-open' }),
+          SINGLE ? "" : navItem({ id: "cont-switch", label: "Pentru cine acționezi?", button: true, attrs: ' aria-haspopup="menu" aria-controls="fo-avatar-menu" data-cab2-switch-open' }),
           navItem({ id: "cont-mpass", label: "Contul MPass", href: "https://mpass.gov.md", attrs: ' target="_blank" rel="noopener"' }).replace("</span></a>", `${hidden(", se deschide în altă pagină")}</span></a>`),
           navItem({ id: "cont-ajutor", label: "Ajutor", href: urlOf({ s: "ajutor" }), attrs: goAttr({ s: "ajutor" }) }),
           navItem({ id: "cont-iesire", label: "Ieși din cont", button: true, attrs: " data-cab2-signout" }),
         ].filter(Boolean).map((item) => `<li>${item}</li>`).join("")}</ul>
       </div>` : "";
     return `
-      <div class="cab2-menu__identity">${identityHtml()}</div>
       <div class="e-permits-shell__nav e-permits-shell__nav--specialist cab2-menu__list">
         <div class="e-permits-shell__nav-group"><ul class="e-permits-shell__nav-list" aria-label="Secțiunile Cabinetului">${items.join("")}</ul></div>${mine}
       </div>`;
@@ -661,15 +662,15 @@
     const own = ctx.kind === "self";
     const { todo: todos, soon } = splitTodos(todosOf(ctx));
     const count = countOf(ctx);
-    const lines = own
-      ? [escape(todoText(count, true))]
-      : [`${escape(identifier(ctx))} · acționezi ${escape(capacity(ctx, { validity: false }))}${ctx.viewOnly ? " · doar vizualizare" : ""}`, escape(todoText(count, false))];
-    const parts = [headHtml({ title: own ? `Bună, ${ctx.first}` : ctx.name, lines, caption: `Date de la GEAP, ASP, MAI și alte instituții · ${SOURCE_TIME}` })];
-    /* 3 · De rezolvat — max 5 on desktop, 3 on phones; hidden when there is nothing (the status sentence says it) */
+    /* 1 · the identity hero (the BO page header stays on every other page) */
+    const parts = [heroHtml(ctx)];
+    /* 3 · De rezolvat — max 5 on desktop, 3 on phones */
     if (todos.length) {
       const max = isPhone() ? 3 : 5;
       parts.push(block("cab2-home-todo", "De rezolvat", rowList(todos.slice(0, max).map(todoRow), "De rezolvat"), todos.length > max ? { s: TODO_PAGE, href: urlOf({ s: TODO_PAGE }), label: `Vezi toate (${todos.length})` } : null));
     }
+    /* nothing to do: the block stays with the status sentence (the hero carries one line only) */
+    else parts.push(block("cab2-home-todo", "De rezolvat", `<p class="cab2-source">${escape(todoText(count, own))}</p>`));
     /* 4 · În curând — directly under „De rezolvat” (or under the title when nothing is to do); hidden when empty */
     if (soon.length) {
       const max = isPhone() ? 3 : 5;
@@ -713,6 +714,8 @@
     /* 8 · Notificări — the latest 3 */
     const notes = notesOf(ctx, 3);
     if (notes.length) parts.push(block("cab2-home-notes", "Notificări", `<section class="e-permits-stack sm-list nt-list" aria-label="Notificări"><ul class="e-permits-stack__list" role="list">${notes.map((note, i) => window.Cab2Notificari.itemHtml(note, i, ctx.viewOnly, 3)).join("")}</ul></section>`, { s: "notificari", href: sectionHref("notificari"), label: "Vezi toate notificările" }));
+    /* 9 · where the data comes from — the closing line of Acasă (it was the header's caption) */
+    parts.push(`<p class="cab2-source cab2-source--end">Date de la GEAP, ASP, MAI și alte instituții · ${escape(SOURCE_TIME)}</p>`);
     return `<div class="cab2-page" data-cab2-page="acasa">${parts.join("")}</div>`;
   }
 
@@ -799,113 +802,133 @@
     document.title = [pageName(), ctx.kind === "self" ? "" : ctx.name, "EVO Cabinet"].filter(Boolean).join(" · ");
   };
   const focusTitle = () => { const h1 = [...els.content.querySelectorAll("h1[tabindex]")].find((el) => el.getClientRects().length); if (h1) { h1.focus({ preventScroll: true }); window.scrollTo({ top: 0 }); } };
+  let heroReplay = false;
   function drawPage() {
     if (VIEW !== "cabinet") return;
     els.page.innerHTML = data.ready ? pageHtml() : "";
     window.GEAPNameExpand?.scan?.(els.page);
+    /* the Google entrance on the hero only: avatar scales in, the ring draws, the lines rise — once per session and
+       on a context switch; motion tokens, reduced motion = a short fade (cab2-motion.js, cab2.css § 5.6) */
+    const hero = els.page.querySelector("[data-cab2-hero]");
+    if (hero && M) M.entrance(hero, { key: "cab2-hero", force: heroReplay });
+    heroReplay = false;
   }
 
-  /* ---------- switcher (M1) — the header account panel ---------- */
-  let switchQuery = "";
-  const rowHtml = (ctx) => {
-    const on = ctx.id === state.ctx.id;
-    const count = countOf(ctx);
-    const avatar = ctx.kind === "company"
-      ? `<span class="avatar avatar--sm avatar--icon e-permits-fo-avatar-menu__role-avatar" aria-hidden="true">${ico("business")}</span>`
-      : `<span class="avatar avatar--sm avatar--initials e-permits-fo-avatar-menu__role-avatar e-permits-fo-avatar-menu__role-avatar--initials e-permits-fo-avatar-menu__role-avatar--brand" aria-hidden="true">${escape(ctx.initials)}</span>`;
-    const soon = expiresSoon(ctx);
-    const cap = [ctx.kind === "self" ? "" : capacity(ctx, { validity: false }), ctx.viewOnly ? "doar vizualizare" : "", soon === null ? "" : expiryLabel(soon).toLowerCase()].filter(Boolean).join(" · ");
-    return `
-      <button class="e-permits-fo-avatar-menu__role cab2-switch__row${on ? " is-selected" : ""}" type="button"${on ? ' aria-current="true"' : ""} data-cab2-as="${escape(ctx.id)}">
-        ${avatar}
-        <span class="e-permits-fo-avatar-menu__role-copy">
-          <strong>${escape(ctx.name)}</strong>
-          <span>${escape(identifier(ctx))}</span>
-          ${cap ? `<span>${escape(cap)}</span>` : ""}
-        </span>
-        ${count ? `<span class="badge badge--solid-notification badge--lg cab2-switch__count" aria-hidden="true">${count}</span>${hidden(`, ${todoText(count, false).toLowerCase()}`)}` : ""}
-        ${ico("checkmark-large", "e-permits-fo-avatar-menu__role-check")}
-      </button>`;
+  /* ---------- switcher = the FO full-flow header instance switcher, 1:1 (product owner 2026-11-18: „EXACTLY the one
+     the FO full flow uses — no Cabinet-specific variant”; components.md › „Header instance switcher — open state +
+     alignment”; reference states fo-01s / sm-01s) ----------
+     Trigger = the EVO header avatar (as the Cabinet EVO, sm-01s); panel = `#fo-avatar-menu.e-permits-fo-avatar-menu`
+     re-filled with the markup of js/e-permits-acte-permisive.js › avatarMenuProfileHtml / avatarMenuRoleButton /
+     renderFrontOfficeAvatarMenuFromSchema (profile · „Alege alt rol” · „Cu împuternicire MPower” · „Ieșire”). Open /
+     close / Esc / position / the „Arată mai multe” toggle are the copied panel code (cab2-acte.js › bindAvatarMenu).
+     Only hooks are added: `data-cab2-as` (switch the context in place), `data-cab2-signout`. */
+  const foAvatar = (ctx, cls) => {
+    /* subjectInitialsAvatarHtml: PJ = icon-business, PF = initials; tone apricot for a power, else brand */
+    const tone = ctx.group === "powers" ? "apricot" : "brand";
+    return ctx.kind === "company"
+      ? `<span class="avatar avatar--sm avatar--icon ${cls} ${cls}--icon ${cls}--${tone}" aria-hidden="true"><svg class="icon" width="20" height="20"><use href="${SPRITE}#icon-business"></use></svg></span>`
+      : `<span class="avatar avatar--sm avatar--initials ${cls} ${cls}--initials ${cls}--${tone}" aria-hidden="true">${escape(ctx.initials)}</span>`;
   };
-  function switchListHtml() {
-    const q = norm(switchQuery.trim());
-    const match = (ctx) => !q || norm(`${ctx.name} ${ctx.idValue}`).includes(q);
-    const groups = SWITCH_GROUPS.map(([group, label]) => {
-      const rows = CONTEXTS.filter((ctx) => ctx.group === group && match(ctx));
-      const add = group === "powers" && !q && !SINGLE ? `<a class="btn btn-secondary btn-md cab2-switch__add" href="${escape(urlOf({ s: NEW_POWER, ctx: CONTEXTS[0] }))}" data-cab2-new-power>${ico("plus-large")}<span>Adaugă o împuternicire notarială</span></a>` : "";
-      if (!rows.length && !add) return "";
-      return `
-        <section class="e-permits-fo-avatar-menu__group" aria-labelledby="cab2-sw-${group}">
-          <h2 id="cab2-sw-${group}">${label}</h2>
-          <div class="e-permits-fo-avatar-menu__role-list">${rows.map(rowHtml).join("")}${add}</div>
-        </section>`;
-    }).join("");
-    return groups || window.GEAPEmptyState.noResults(`Niciun rezultat pentru „${escape(switchQuery.trim())}”`, { text: "Caută după nume, IDNO sau IDNP.", compact: true, bare: true });
+  const foMeta = (ctx) => `<span class="e-permits-fo-avatar-menu__role-meta e-permits-fo-subject-meta"><span class="e-permits-fo-subject-meta__label">${escape(ctx.idLabel)}</span><span class="e-permits-fo-subject-meta__code">${escape(ctx.idValue)}</span></span>`;
+  const foTypeText = (ctx) => (ctx.kind === "company" ? "Persoană juridică" : "Persoană fizică");
+  const proxyBadge = (ctx) => (ctx.via === "notarial" ? "Împuternicire notarială" : "Împuternicire");
+  function foRoleButton(ctx, { proxy = false } = {}) {
+    const on = ctx.id === state.ctx.id;
+    const heading = proxy
+      ? `<span class="e-permits-fo-avatar-menu__proxy-role-heading"><strong>${escape(ctx.name)}</strong><span class="e-permits-fo-avatar-menu__proxy-badge">${escape(proxyBadge(ctx))}</span></span>`
+      : `<strong>${escape(ctx.name)}</strong>`;
+    return `
+      <button class="${proxy ? "e-permits-fo-avatar-menu__proxy-role" : "e-permits-fo-avatar-menu__role"}${on ? " is-selected" : ""}" type="button" role="menuitemradio" aria-checked="${on}" data-cab2-as="${escape(ctx.id)}">
+        ${foAvatar(ctx, "e-permits-fo-avatar-menu__role-avatar")}
+        <span class="${proxy ? "e-permits-fo-avatar-menu__proxy-role-copy" : "e-permits-fo-avatar-menu__role-copy"}">${heading}${foMeta(ctx)}</span>
+        ${proxy ? "" : `<svg class="icon e-permits-fo-avatar-menu__role-check" width="20" height="20" aria-hidden="true"><use href="${SPRITE}#icon-checkmark-small"></use></svg>`}
+      </button>`;
+  }
+  function foProfileHtml(ctx) {
+    /* subjectCompositeAvatarHtml: acting through a power → the representative's overlay on the photo */
+    const power = ctx.group === "powers";
+    const kind = ctx.kind === "company" ? "icon" : "initials";
+    const glyph = ctx.kind === "company" ? `<svg class="icon" width="20" height="20"><use href="${SPRITE}#icon-business"></use></svg>` : escape(ctx.initials);
+    const overlay = power ? `<span class="e-permits-fo-avatar-menu__photo-overlay e-permits-fo-avatar-menu__photo-overlay--initials e-permits-fo-avatar-menu__photo-overlay--brand">${escape(SELF().initials)}</span>` : "";
+    return `
+      <div class="e-permits-fo-avatar-menu__profile-main">
+        <span class="avatar avatar--${kind} e-permits-fo-avatar-menu__photo e-permits-fo-avatar-menu__photo--${kind} e-permits-fo-avatar-menu__photo--${power ? "apricot" : "brand"}${power ? " e-permits-fo-avatar-menu__photo--with-overlay" : ""}" aria-hidden="true">${glyph}${overlay}</span>
+        <div class="e-permits-fo-avatar-menu__identity">
+          <strong>${escape(ctx.name)}</strong>
+          <span class="e-permits-fo-avatar-menu__identity-meta">
+            <span>${escape(foTypeText(ctx))}</span>
+            <span class="e-permits-fo-avatar-menu__identity-dot" aria-hidden="true"></span>
+            <span class="e-permits-fo-avatar-menu__identity-id">
+              <span>${escape(ctx.idLabel)}</span>
+              <span class="copy-value e-permits-fo-avatar-menu__identity-copy"><button class="copy-value__button" type="button" data-copy-value="${escape(ctx.idValue)}" aria-label="Copiază ${escape(ctx.idLabel)} ${escape(ctx.idValue)}" data-no-tooltip><span class="copy-value__text">${escape(ctx.idValue)}</span><svg class="icon small copy-value__icon" width="16" height="16" aria-hidden="true"><use href="${SPRITE}#icon-copy"></use></svg></button></span>
+            </span>
+          </span>
+        </div>
+      </div>
+      <div class="e-permits-fo-avatar-menu__actions">
+        <a class="e-permits-fo-avatar-menu__cabinet" href="${escape(urlOf())}" role="menuitem" ${goAttr({ home: true })}>Cabinetul Personal</a>
+        <button class="e-permits-fo-avatar-menu__settings" type="button" aria-label="Setări" role="menuitem"><svg class="icon" width="20" height="20" aria-hidden="true"><use href="${SPRITE}#icon-settings"></use></svg></button>
+      </div>`;
   }
   function renderSwitcher() {
     const panel = els.panel;
     if (!panel) return;
-    const searchable = CONTEXTS.length > 7;
-    panel.setAttribute("role", "dialog");
-    panel.setAttribute("aria-labelledby", "cab2-switch-title");
-    panel.removeAttribute("aria-label");
-    panel.innerHTML = `
-      <div class="cab2-switch__head">
-        <p class="cab2-switch__title" id="cab2-switch-title">${SINGLE ? "Contul tău" : "Pentru cine acționezi?"}</p>
-        ${searchable ? `
-        <div class="search-input ${isPhone() ? "" : "medium "}rectangular${switchQuery ? " has-value is-ready" : ""}">
-          <span class="icon-search" aria-hidden="true">${ico("search")}</span>
-          <input class="input" type="search" autocomplete="off" placeholder="Caută după nume sau IDNO" aria-label="Caută după nume, IDNO sau IDNP" value="${escape(switchQuery)}" data-cab2-switch-search>
-          <div class="btn-group"><button class="btn-icon clear" type="button" aria-label="Șterge căutarea" data-cab2-switch-clear>${ico("cross-small", "small")}</button></div>
-        </div>` : ""}
-      </div>
-      <div class="e-permits-fo-avatar-menu__content" data-cab2-switch-list>${switchListHtml()}</div>
-      <ul class="cab2-switch__links">
-        <li><a class="e-permits-fo-intent-menu__item" href="https://mpass.gov.md" target="_blank" rel="noopener">${ico("person")}<span>Contul MPass${hidden(", se deschide în altă pagină")}</span></a></li>
-        <li><a class="e-permits-fo-intent-menu__item" ${linkAttrs({ s: "ajutor", href: urlOf({ s: "ajutor" }) })}>${ico("bubble-question")}<span>Ajutor</span></a></li>
-        <li><button class="e-permits-fo-intent-menu__item" type="button" data-cab2-signout>${ico("logout")}<span>Ieși din cont</span></button></li>
-      </ul>`;
     const ctx = state.ctx;
-    header.querySelectorAll("[data-evo-initials]").forEach((el) => { el.textContent = CONTEXTS[0].initials; });
+    const direct = CONTEXTS.filter((item) => item.group !== "powers");
+    const powers = CONTEXTS.filter((item) => item.group === "powers");
+    const isStatic = powers.length > 0 && powers.length < 4;
+    const expanded = isStatic || (powers.length >= 4 && ctx.group === "powers");
+    const stack = powers.slice(0, 4).map((item, index) => (index === 3 && powers.length > 4
+      ? `<span class="avatar avatar--sm avatar--initials e-permits-fo-avatar-menu__stack-avatar e-permits-fo-avatar-menu__stack-avatar--counter">+${powers.length - 3}</span>`
+      : foAvatar(item, "e-permits-fo-avatar-menu__stack-avatar"))).join("");
+    panel.setAttribute("role", "menu");
+    panel.setAttribute("aria-label", "Profil și roluri");
+    panel.removeAttribute("aria-labelledby");
+    panel.innerHTML = `
+      <div class="e-permits-fo-avatar-menu__profile">${foProfileHtml(ctx)}</div>
+      <div class="e-permits-fo-avatar-menu__content">
+        <section class="e-permits-fo-avatar-menu__group" aria-labelledby="fo-avatar-menu-roles">
+          <h2 id="fo-avatar-menu-roles">Alege alt rol</h2>
+          <div class="e-permits-fo-avatar-menu__role-list">${direct.map((item) => foRoleButton(item)).join("")}</div>
+        </section>
+        <section class="e-permits-fo-avatar-menu__group${isStatic ? " is-static" : ""}${expanded ? " is-expanded" : ""}" aria-labelledby="fo-avatar-menu-proxy"${powers.length ? "" : " hidden"}>
+          <h2 id="fo-avatar-menu-proxy">Cu împuternicire MPower</h2>
+          <button class="e-permits-fo-avatar-menu__proxy" type="button" role="menuitem" aria-expanded="${expanded && !isStatic}" data-fo-avatar-proxy-toggle${powers.length >= 4 ? "" : " hidden"}>
+            <span data-fo-avatar-proxy-label>${expanded && !isStatic ? "Arată mai puține" : "Arată mai multe"}</span>
+            <span class="e-permits-fo-avatar-menu__proxy-stack" aria-hidden="true">${stack}<span class="e-permits-fo-avatar-menu__proxy-arrow"><svg class="icon" width="16" height="16" aria-hidden="true"><use href="${SPRITE}#icon-chevron-bottom"></use></svg></span></span>
+          </button>
+          <div class="e-permits-fo-avatar-menu__proxy-details" data-fo-avatar-proxy-details>${powers.map((item) => foRoleButton(item, { proxy: true })).join("")}</div>
+        </section>
+      </div>
+      <div class="e-permits-fo-avatar-menu__footer">
+        <button class="e-permits-fo-avatar-menu__logout" type="button" role="menuitem" data-cab2-signout>
+          <span>Ieșire</span>
+          <svg class="icon" width="20" height="20" aria-hidden="true"><use href="${SPRITE}#icon-logout"></use></svg>
+        </button>
+      </div>`;
+    /* the trigger = the Cabinet EVO header avatar as it is (the signed-in person; sm-01s) */
+    header.querySelectorAll("[data-evo-initials]").forEach((el) => { el.textContent = SELF().initials; });
+    const trigger = els.avatar();
+    trigger?.querySelectorAll("[data-cab-name]").forEach((el) => { el.textContent = ctx.name; });
   }
   function switcherOpen() { return els.avatar()?.getAttribute("aria-expanded") === "true"; }
+  /* „Schimbă” (hero, context line) and the phone „Pentru cine acționezi?” open the same panel: the header avatar's click */
   function openSwitcher() {
     const avatar = els.avatar();
     if (!avatar) return;
     window.setTimeout(() => {
       if (!switcherOpen()) avatar.click();
-      window.requestAnimationFrame(() => (els.panel.querySelector("[data-cab2-switch-search]") || els.panel.querySelector('[aria-current="true"]') || els.panel.querySelector("[data-cab2-as]"))?.focus());
+      window.requestAnimationFrame(() => (els.panel.querySelector('[aria-checked="true"]') || els.panel.querySelector("[data-cab2-as]"))?.focus());
     }, 0);
   }
   const closeSwitcher = () => { if (switcherOpen()) els.avatar()?.click(); };
-  /* the identity block / „Schimbă” keep their pressed state while the switcher is open (project rule) */
+  /* an opener keeps its pressed state while the panel is open (project rule) */
   let lastOpener = null;
   const syncOpeners = () => {
     const open = switcherOpen();
     document.querySelectorAll("[data-cab2-switch-open][aria-haspopup]").forEach((el) => el.setAttribute("aria-expanded", String(open && el === lastOpener)));
     if (!open) lastOpener = null;
-    placeSwitcher();
   };
-  /* S1 leftover (2026-11-18): opened from the identity block / „Schimbă” (desktop), the switcher is an anchored dropdown
-     8 under its opener, left-aligned, kept inside the window; opened from the header avatar it stays at the header */
-  function placeSwitcher() {
-    const panel = els.panel;
-    if (!panel) return;
-    const opener = switcherOpen() && !isPhone() && lastOpener && lastOpener.isConnected && !header.contains(lastOpener) ? lastOpener : null;
-    panel.classList.toggle("cab2-switch--anchored", Boolean(opener));
-    if (!opener) { ["--cab2-switch-left", "--cab2-switch-top", "--cab2-switch-max"].forEach((name) => panel.style.removeProperty(name)); return; }
-    const rect = opener.getBoundingClientRect();
-    const gap = 8;
-    const edge = 16;
-    const width = panel.getBoundingClientRect().width || 364;
-    const left = Math.max(edge, Math.min(rect.left, window.innerWidth - edge - width));
-    const top = rect.bottom + gap;
-    panel.style.setProperty("--cab2-switch-left", `${Math.round(left)}px`);
-    panel.style.setProperty("--cab2-switch-top", `${Math.round(top)}px`);
-    panel.style.setProperty("--cab2-switch-max", `${Math.max(240, Math.round(window.innerHeight - top - edge))}px`);
-  }
-  window.addEventListener("scroll", () => { if (switcherOpen() && lastOpener) placeSwitcher(); }, { passive: true });
-  window.addEventListener("resize", () => { if (switcherOpen()) placeSwitcher(); });
 
   /* ---------- render + navigation ---------- */
   function renderAll() {
@@ -943,7 +966,7 @@
       return;
     }
     state.ctx = ctx;
-    switchQuery = "";
+    heroReplay = true;
     apply({});
     renderAll();
     drawPage();
@@ -1167,7 +1190,6 @@
       openSwitcher();
       return;
     }
-    if (event.target.closest("[data-cab2-switch-clear]")) { switchQuery = ""; renderSwitcher(); els.panel.querySelector("[data-cab2-switch-search]")?.focus(); return; }
     if (event.target.closest("[data-cab2-menu-open]")) { if (sheetOpen(menuSheet)) closeMenuSheet(); else openMenuSheet(); return; }
     if (event.target.closest("[data-cab2-signout]")) { window.location.assign(urlOf({ s: "iesire" })); return; }
     const link = event.target.closest("a[data-cab2-go]");
@@ -1191,14 +1213,6 @@
     if (event.key !== "Enter") return;
     const rowEl = event.target.closest?.("[data-cab2-href]");
     if (rowEl && event.target === rowEl) { event.preventDefault(); rowEl.click(); }
-  });
-  els.panel?.addEventListener("input", (event) => {
-    if (!event.target.matches("[data-cab2-switch-search]")) return;
-    switchQuery = event.target.value;
-    const field = event.target.closest(".search-input");
-    field.classList.toggle("has-value", !!switchQuery);
-    field.classList.toggle("is-ready", !!switchQuery);
-    els.panel.querySelector("[data-cab2-switch-list]").innerHTML = switchListHtml();
   });
   if (VIEW === "cabinet") {
     window.addEventListener("popstate", () => {

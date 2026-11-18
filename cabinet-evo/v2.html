@@ -43,7 +43,7 @@
   <link rel="stylesheet" href="../css/shell-nav.css?v=shell-nav-v1">
   <!-- EVO Cabinet v2 (cab2-s1-v1): the new Cabinet's OWN view styles (copy of cabinet-evo.css) + the shell -->
   <link rel="stylesheet" href="cab2-views.css?v=cab2-s1-v1">
-  <link rel="stylesheet" href="cab2-shell.css?v=cab2-frame-v1">
+  <link rel="stylesheet" href="cab2-shell.css?v=cab2-hero-v1">
   <link rel="stylesheet" href="../css/trajectory.css?v=phone-fit-v1">
   <!-- the status alert card of the act / request profiles (act-alert-card-v1, js/alert-card.js) -->
   <link rel="stylesheet" href="../css/alert-card.css?v=cards-radius-20-final">
@@ -64,7 +64,7 @@
   <link rel="stylesheet" href="../css/page-reveal.css?v=skeleton-v1">
   <link rel="stylesheet" href="../css/sticky-sections.css?v=sticky-sections-v1">
   <!-- ?state=<id> opens the screen a Figma frame shows (js/demo-states.js) -->
-  <script src="../js/demo-states.js?v=cab2-frame-v1"></script>
+  <script src="../js/demo-states.js?v=cab2-hero-v1"></script>
   <script src="../js/demo-links.js?v=links-v4"></script>
   <!-- EVO Cabinet v2 flag (?shell=2 → `.cab2` on <html>) — after demo-links.js, which writes a ?state=…'s parameters into the address -->
   <!-- the v2 flag + menu groups (this page is always the new Cabinet: data-cab2-entry) -->
@@ -96,7 +96,7 @@
   <!-- the new Cabinet's own view code (copies — isolation from cabinet-evo.js / solicitari.js / notificari.js):
        core + Acte permisive → the shell (titles, menu, Acasă) → Cererile mele → Notificări -->
   <script src="cab2-acte.js?v=cab2-frame-v1" defer></script>
-  <script src="cab2-shell.js?v=cab2-frame-v1" defer></script>
+  <script src="cab2-shell.js?v=cab2-hero-v1" defer></script>
   <script src="cab2-cereri.js?v=cab2-frame-v1" defer></script>
   <script src="cab2-notificari.js?v=cab2-frame-v1" defer></script>
   <script src="cab2-motion.js?v=cab2-foundations-v1" defer></script>
@@ -115,7 +115,7 @@
     </header>
 
   <main class="cab-main">
-    <!-- the frame = the FO full-flow container (2026-11-18): menu 280 (BO grouped sidebar) + 24 + content 896 (cab2-shell.css § 3) -->
+    <!-- account-home layout (cab2-hero-v1, 2026-11-18): menu docked at the 24 gutter (BO grouped sidebar 280), content 1024 centred right of it (cab2-shell.css § 3) -->
     <div class="cab2-shell" data-cab2-frame>
       <nav class="cab2-menu" aria-label="Meniul Cabinetului" data-cab2-menu></nav>
       <div class="cab2-shell__content" id="cab2-content" tabindex="-1" data-cab2-content>

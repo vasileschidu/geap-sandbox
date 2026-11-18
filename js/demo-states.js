@@ -564,10 +564,8 @@
   const CAB2 = "cabinet-evo/v2.html";
   const cab2S = (params = {}, run, hash = "") => ({ page: CAB2, params, hash, ready: "[data-cab2-ready]", run });
   /* the identity block on top of the menu opens „Pentru cine acționezi?” (desktop); phones: Meniu → the sheet */
-  const cab2Identity = async (h) => {
-    if (cab2Phone()) { await h.click("[data-cab2-menu-open]"); await h.wait(500); await h.click(".cab2-menu-sheet button.cab2-identity"); await h.wait(500); return; }
-    await h.click("[data-cab2-menu] button.cab2-identity"); await h.wait(500);
-  };
+  /* the header switcher opened from the Acasă identity hero's „Schimbă” (cab2-hero-v1: the identity left the menu) */
+  const cab2Identity = async (h) => { await h.click("[data-cab2-hero] [data-cab2-switch-open]"); await h.wait(500); };
   const cab2Sheet = async (h) => { if (cab2Phone()) { await h.click("[data-cab2-menu-open]"); await h.wait(500); } };
   const cab2Phone = () => window.matchMedia("(max-width: 760px)").matches;
   const cab2Switch = async (h) => { await h.click("[data-fo-avatar-trigger]"); await h.wait(500); };
@@ -3259,7 +3257,8 @@
     "cab2-s05": cab2S({ atentie: "1" }),
     "cab2-s06": cab2S({ as: "pj-global-trader" }, cab2Switch),
     "cab2-s07": cab2S({ entitati: "multe" }, cab2Switch),
-    "cab2-s07a": cab2S({ entitati: "multe" }, async (h) => { await cab2Switch(h); await h.fill("[data-cab2-switch-search]", "nord", { leave: false }); await h.wait(200); }),
+    /* cab2-hero-v1: the switcher = the FO full-flow panel (no search) — s07a = many entities while acting through a notarial power */
+    "cab2-s07a": cab2S({ entitati: "multe", as: "notar-pf-maria" }, cab2Switch),
     "cab2-s08": cab2S({ atentie: "1" }, cab2Search("amenda")),
     "cab2-s08a": cab2S({ atentie: "1" }, cab2Search("")),
     "cab2-s08b": cab2S({ atentie: "1" }, cab2Search("xyzq")),
@@ -3300,6 +3299,18 @@
     /* „În curând” (2026-11-18): n01 / n05 Acasă = „De rezolvat” then „În curând” · n07 Acasă = „Nimic de rezolvat” + „În
        curând” · n20 the full page with both blocks · n27 the full page: the boxed „Nimic de rezolvat” + „În curând” */
     "cab2-n27": cab2S({ as: "notar-pf-maria", s: "de-rezolvat" }),
+    /* Account-home layout + identity hero (cab2-hero-v1, 2026-11-18): menu docked at the gutter, content 1024 centred
+       right of it; Acasă = the centred hero. h01 you · h02 a company (administrator) · h03 a company through MPower ·
+       h04 a person through a notarial power (view only) · h05 the hero's „Schimbă” opens the header switcher (= the FO
+       full-flow one, fo-01s / sm-01s) · h06 the header switcher on an inner page (no hero) · h07 you, header switcher
+       open (the compare-styles twin of sm-01s) */
+    "cab2-h01": cab2S(),
+    "cab2-h02": cab2S({ as: "pj-global-trader" }),
+    "cab2-h03": cab2S({ as: "mpower-pj-lumina" }),
+    "cab2-h04": cab2S({ as: "notar-pf-maria" }),
+    "cab2-h05": cab2S({ as: "mpower-pj-lumina" }, cab2Identity),
+    "cab2-h06": cab2S({ as: "mpower-pj-lumina", s: "cereri" }, cab2Switch),
+    "cab2-h07": cab2S({}, cab2Switch),
     "sm-01": sm(),
     /* the „Filtre” trigger = the library chip (filter-chip-v1): N values applied, bar closed → black chip + numbered
        badge (1 / 3 / 12, the badge width); phones: the pill after „Arată” */

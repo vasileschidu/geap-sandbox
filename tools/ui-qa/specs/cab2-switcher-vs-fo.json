@@ -1,0 +1,380 @@
+{
+ "about": "EVO Cabinet v2 switcher = the FO full-flow header instance switcher 1:1 (cab2-hero-v1, 2026-11-18, product owner). a = the reference (trigger: Cabinet EVO sm-01s; panel parts: FO fo-01s), b = v2 cab2-s06 (SRL Global Trader = the fo-01s subject, header switcher open). Content-dependent sizes (number of roles, page position of the header) are ignored. Run: node --experimental-websocket --no-warnings tools/ui-qa/compare-styles.mjs --a sm-01s --b cab2-s06 --spec tools/ui-qa/specs/cab2-switcher-vs-fo.json",
+ "tokens": [
+  "--color-",
+  "--font-",
+  "--spacing-",
+  "--border-"
+ ],
+ "pairs": [
+  {
+   "name": "trigger",
+   "a": "[data-fo-avatar-trigger]",
+   "b": "[data-fo-avatar-trigger]",
+   "ignore": [
+    "rect.x",
+    "rect.y"
+   ]
+  },
+  {
+   "name": "panel",
+   "a": "[data-fo-avatar-dropdown]",
+   "b": "[data-fo-avatar-dropdown]",
+   "ignore": [
+    "rect.x",
+    "rect.y",
+    "rect.height"
+   ]
+  },
+  {
+   "name": "panel vs trigger",
+   "a": "[data-fo-avatar-dropdown]",
+   "b": "[data-fo-avatar-dropdown]",
+   "rel": "trigger",
+   "ignore": [
+    "rect.height"
+   ]
+  },
+  {
+   "name": "profile",
+   "states": {
+    "a": "fo-01s"
+   },
+   "a": "[data-fo-avatar-dropdown] .e-permits-fo-avatar-menu__profile",
+   "b": "[data-fo-avatar-dropdown] .e-permits-fo-avatar-menu__profile",
+   "rel": "panel",
+   "ignore": []
+  },
+  {
+   "name": "photo",
+   "states": {
+    "a": "fo-01s"
+   },
+   "a": ".e-permits-fo-avatar-menu__photo",
+   "b": ".e-permits-fo-avatar-menu__photo",
+   "rel": "panel",
+   "ignore": [
+    "background-color"
+   ]
+  },
+  {
+   "name": "name",
+   "states": {
+    "a": "fo-01s"
+   },
+   "a": ".e-permits-fo-avatar-menu__identity strong",
+   "b": ".e-permits-fo-avatar-menu__identity strong",
+   "rel": "panel",
+   "ignore": [
+    "rect.width",
+    "rect.x",
+    "rect.right"
+   ]
+  },
+  {
+   "name": "identity meta",
+   "states": {
+    "a": "fo-01s"
+   },
+   "a": ".e-permits-fo-avatar-menu__identity-meta",
+   "b": ".e-permits-fo-avatar-menu__identity-meta",
+   "rel": "panel",
+   "ignore": [
+    "rect.width",
+    "rect.x",
+    "rect.right"
+   ]
+  },
+  {
+   "name": "cabinet button",
+   "states": {
+    "a": "fo-01s"
+   },
+   "a": ".e-permits-fo-avatar-menu__cabinet",
+   "b": ".e-permits-fo-avatar-menu__cabinet",
+   "rel": "panel",
+   "ignore": []
+  },
+  {
+   "name": "settings",
+   "states": {
+    "a": "fo-01s"
+   },
+   "a": ".e-permits-fo-avatar-menu__settings",
+   "b": ".e-permits-fo-avatar-menu__settings",
+   "rel": "panel",
+   "ignore": []
+  },
+  {
+   "name": "group title",
+   "states": {
+    "a": "fo-01s"
+   },
+   "a": "#fo-avatar-menu-roles",
+   "b": "#fo-avatar-menu-roles",
+   "rel": "panel",
+   "ignore": []
+  },
+  {
+   "name": "role",
+   "states": {
+    "a": "fo-01s"
+   },
+   "a": ".e-permits-fo-avatar-menu__role:not(.is-selected)",
+   "b": ".e-permits-fo-avatar-menu__role:not(.is-selected)",
+   "rel": "panel",
+   "ignore": [
+    "rect.y"
+   ]
+  },
+  {
+   "name": "role selected",
+   "states": {
+    "a": "fo-01s"
+   },
+   "a": ".e-permits-fo-avatar-menu__role.is-selected",
+   "b": ".e-permits-fo-avatar-menu__role.is-selected",
+   "rel": "panel",
+   "ignore": [
+    "rect.y"
+   ]
+  },
+  {
+   "name": "role avatar",
+   "states": {
+    "a": "fo-01s"
+   },
+   "a": ".e-permits-fo-avatar-menu__role-avatar",
+   "b": ".e-permits-fo-avatar-menu__role-avatar",
+   "ignore": [
+    "rect.x",
+    "rect.y"
+   ]
+  },
+  {
+   "name": "role name",
+   "states": {
+    "a": "fo-01s"
+   },
+   "a": ".e-permits-fo-avatar-menu__role-copy strong",
+   "b": ".e-permits-fo-avatar-menu__role-copy strong",
+   "ignore": [
+    "rect.x",
+    "rect.y",
+    "rect.width"
+   ]
+  },
+  {
+   "name": "role meta",
+   "states": {
+    "a": "fo-01s"
+   },
+   "a": ".e-permits-fo-avatar-menu__role-copy .e-permits-fo-subject-meta",
+   "b": ".e-permits-fo-avatar-menu__role-copy .e-permits-fo-subject-meta",
+   "ignore": [
+    "rect.x",
+    "rect.y",
+    "rect.width"
+   ]
+  },
+  {
+   "name": "proxy title",
+   "states": {
+    "a": "fo-01s"
+   },
+   "a": "#fo-avatar-menu-proxy",
+   "b": "#fo-avatar-menu-proxy",
+   "ignore": [
+    "rect.y"
+   ]
+  },
+  {
+   "name": "logout",
+   "states": {
+    "a": "fo-01s"
+   },
+   "a": ".e-permits-fo-avatar-menu__logout",
+   "b": ".e-permits-fo-avatar-menu__logout",
+   "rel": "panel",
+   "ignore": [
+    "rect.y"
+   ]
+  }
+ ],
+ "expected": [
+  {
+   "viewport": 1440,
+   "name": "profile",
+   "prop": "font-family",
+   "why": "page-level font stack: the FO page lists the system fallbacks after Onest, the Cabinet pages (sm-01s and v2 alike) only Onest — the same Onest renders"
+  },
+  {
+   "viewport": 1440,
+   "name": "photo",
+   "prop": "font-family",
+   "why": "page-level font stack: the FO page lists the system fallbacks after Onest, the Cabinet pages (sm-01s and v2 alike) only Onest — the same Onest renders"
+  },
+  {
+   "viewport": 1440,
+   "name": "name",
+   "prop": "font-family",
+   "why": "page-level font stack: the FO page lists the system fallbacks after Onest, the Cabinet pages (sm-01s and v2 alike) only Onest — the same Onest renders"
+  },
+  {
+   "viewport": 1440,
+   "name": "identity meta",
+   "prop": "font-family",
+   "why": "page-level font stack: the FO page lists the system fallbacks after Onest, the Cabinet pages (sm-01s and v2 alike) only Onest — the same Onest renders"
+  },
+  {
+   "viewport": 1440,
+   "name": "cabinet button",
+   "prop": "font-family",
+   "why": "page-level font stack: the FO page lists the system fallbacks after Onest, the Cabinet pages (sm-01s and v2 alike) only Onest — the same Onest renders"
+  },
+  {
+   "viewport": 1440,
+   "name": "settings",
+   "prop": "font-family",
+   "why": "page-level font stack: the FO page lists the system fallbacks after Onest, the Cabinet pages (sm-01s and v2 alike) only Onest — the same Onest renders"
+  },
+  {
+   "viewport": 1440,
+   "name": "role",
+   "prop": "font-family",
+   "why": "page-level font stack: the FO page lists the system fallbacks after Onest, the Cabinet pages (sm-01s and v2 alike) only Onest — the same Onest renders"
+  },
+  {
+   "viewport": 1440,
+   "name": "role selected",
+   "prop": "font-family",
+   "why": "page-level font stack: the FO page lists the system fallbacks after Onest, the Cabinet pages (sm-01s and v2 alike) only Onest — the same Onest renders"
+  },
+  {
+   "viewport": 1440,
+   "name": "role avatar",
+   "prop": "font-family",
+   "why": "page-level font stack: the FO page lists the system fallbacks after Onest, the Cabinet pages (sm-01s and v2 alike) only Onest — the same Onest renders"
+  },
+  {
+   "viewport": 1440,
+   "name": "role name",
+   "prop": "font-family",
+   "why": "page-level font stack: the FO page lists the system fallbacks after Onest, the Cabinet pages (sm-01s and v2 alike) only Onest — the same Onest renders"
+  },
+  {
+   "viewport": 1440,
+   "name": "role meta",
+   "prop": "font-family",
+   "why": "page-level font stack: the FO page lists the system fallbacks after Onest, the Cabinet pages (sm-01s and v2 alike) only Onest — the same Onest renders"
+  },
+  {
+   "viewport": 1440,
+   "name": "logout",
+   "prop": "font-family",
+   "why": "page-level font stack: the FO page lists the system fallbacks after Onest, the Cabinet pages (sm-01s and v2 alike) only Onest — the same Onest renders"
+  },
+  {
+   "viewport": 375,
+   "name": "profile",
+   "prop": "font-family",
+   "why": "page-level font stack: the FO page lists the system fallbacks after Onest, the Cabinet pages (sm-01s and v2 alike) only Onest — the same Onest renders"
+  },
+  {
+   "viewport": 375,
+   "name": "photo",
+   "prop": "font-family",
+   "why": "page-level font stack: the FO page lists the system fallbacks after Onest, the Cabinet pages (sm-01s and v2 alike) only Onest — the same Onest renders"
+  },
+  {
+   "viewport": 375,
+   "name": "name",
+   "prop": "font-family",
+   "why": "page-level font stack: the FO page lists the system fallbacks after Onest, the Cabinet pages (sm-01s and v2 alike) only Onest — the same Onest renders"
+  },
+  {
+   "viewport": 375,
+   "name": "identity meta",
+   "prop": "font-family",
+   "why": "page-level font stack: the FO page lists the system fallbacks after Onest, the Cabinet pages (sm-01s and v2 alike) only Onest — the same Onest renders"
+  },
+  {
+   "viewport": 375,
+   "name": "cabinet button",
+   "prop": "font-family",
+   "why": "page-level font stack: the FO page lists the system fallbacks after Onest, the Cabinet pages (sm-01s and v2 alike) only Onest — the same Onest renders"
+  },
+  {
+   "viewport": 375,
+   "name": "settings",
+   "prop": "font-family",
+   "why": "page-level font stack: the FO page lists the system fallbacks after Onest, the Cabinet pages (sm-01s and v2 alike) only Onest — the same Onest renders"
+  },
+  {
+   "viewport": 375,
+   "name": "role",
+   "prop": "font-family",
+   "why": "page-level font stack: the FO page lists the system fallbacks after Onest, the Cabinet pages (sm-01s and v2 alike) only Onest — the same Onest renders"
+  },
+  {
+   "viewport": 375,
+   "name": "role selected",
+   "prop": "font-family",
+   "why": "page-level font stack: the FO page lists the system fallbacks after Onest, the Cabinet pages (sm-01s and v2 alike) only Onest — the same Onest renders"
+  },
+  {
+   "viewport": 375,
+   "name": "role avatar",
+   "prop": "font-family",
+   "why": "page-level font stack: the FO page lists the system fallbacks after Onest, the Cabinet pages (sm-01s and v2 alike) only Onest — the same Onest renders"
+  },
+  {
+   "viewport": 375,
+   "name": "role name",
+   "prop": "font-family",
+   "why": "page-level font stack: the FO page lists the system fallbacks after Onest, the Cabinet pages (sm-01s and v2 alike) only Onest — the same Onest renders"
+  },
+  {
+   "viewport": 375,
+   "name": "role meta",
+   "prop": "font-family",
+   "why": "page-level font stack: the FO page lists the system fallbacks after Onest, the Cabinet pages (sm-01s and v2 alike) only Onest — the same Onest renders"
+  },
+  {
+   "viewport": 375,
+   "name": "logout",
+   "prop": "font-family",
+   "why": "page-level font stack: the FO page lists the system fallbacks after Onest, the Cabinet pages (sm-01s and v2 alike) only Onest — the same Onest renders"
+  },
+  {
+   "viewport": 375,
+   "name": "panel vs trigger",
+   "prop": "rect.y",
+   "why": "phone sheet: v2 has 3 companies + 3 powers (shown open, < 4 = static as in the FO) → the sheet reaches its max height; sm-01s has 2 + a collapsed group"
+  },
+  {
+   "viewport": 1440,
+   "name": "profile",
+   "prop": "rect.height",
+   "why": "v2 lists 3 companies + 3 powers (open, < 4 = static as in the FO) → the panel reaches its max height and the flex column shrinks the profile by 1 px (the list scrolls); fo-01s fits"
+  },
+  {
+   "viewport": 1440,
+   "name": "group title",
+   "prop": "rect.y",
+   "why": "v2 lists 3 companies + 3 powers (open, < 4 = static as in the FO) → the panel reaches its max height and the flex column shrinks the profile by 1 px (the list scrolls); fo-01s fits"
+  },
+  {
+   "viewport": 375,
+   "name": "profile",
+   "prop": "rect.height",
+   "why": "v2 lists 3 companies + 3 powers (open, < 4 = static as in the FO) → the panel reaches its max height and the flex column shrinks the profile by 1 px (the list scrolls); fo-01s fits"
+  },
+  {
+   "viewport": 375,
+   "name": "group title",
+   "prop": "rect.y",
+   "why": "v2 lists 3 companies + 3 powers (open, < 4 = static as in the FO) → the panel reaches its max height and the flex column shrinks the profile by 1 px (the list scrolls); fo-01s fits"
+  }
+ ]
+}
