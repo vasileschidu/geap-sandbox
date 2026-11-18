@@ -24,6 +24,10 @@
                              gradient — the outline stays still); paused when the tab is hidden or the host off screen;
                              none with reduced motion. Default on inside `[data-cab2-hero]` / `[data-wave-idle]`;
                              false = off, { period } = ms per turn.
+       options.burst         false = off; default inside `[data-cab2-hero]`: the fixed rows BURST_DESKTOP (6) / BURST_PHONE
+                             (4) — filled group icons fly out from under the avatar to the hero's edge in the avatar's
+                             height band and turn straight back (no dwell), accelerating under it; scale 0.9 → 1 → 0.85;
+                             no randomness. options.burstBox = the box they stay in. Reduced motion: none.
        options.burst         false = off; default inside `[data-cab2-hero]`: 6 filled group icons (4 on phones), 32 / 40
                              (phones 24 / 32), fly out from under the avatar like sun rays (even angles ± 12°, ± 10 px) to
                              the hero's edge in the avatar's height band and turn straight back (no dwell), accelerating
@@ -157,22 +161,39 @@
 
   /* ---------- burst (product owner 2026-11-18): Cabinet group icons fly out from behind the avatar like sun rays and
      come back under it. Filled sprite icons only; colours = CSS (cab2-wave-avatar.css § 6, one token per icon). ---------- */
-  /* v15 (product owner): fewer, bigger, no dwell — out (ease-out) flows straight into the accelerating return */
-  const BURST_ICONS = ["group-filled", "document-filled", "home-line-filled", "wallet-filled", "business-filled", "id-card-filled"];
-  const BURST_SIZES = ["--spacing-32", "--spacing-40", "--spacing-32", "--spacing-32", "--spacing-40", "--spacing-32"]; /* depth */
-  const BURST_SIZES_PHONE = ["--spacing-24", "--spacing-32", "--spacing-24", "--spacing-32"];
+  /* v16 (product owner: „no randomness — the same every time”): one fixed, hand-tuned row per icon. Irregular on purpose
+     (uneven angles, reaches, tilts, delays), never Math.random.
+       icon    sprite id (filled)
+       tone    colour modifier → `.cab2-wave__ray--<tone>` = one token (cab2-wave-avatar.css § 1c)
+       size    size token
+       angle   direction in degrees (0 = right, 90 = down, 180 = left, 270 = up)
+       reach   share of the free distance to the hero's edge (inside the avatar's height band, clear of the ring)
+       rotate  tilt in degrees at the edge (eases back to 30 % of it on the return)
+       delay   ms after the burst start (out and back keep the same offset) */
+  const BURST_DESKTOP = [
+    { icon: "group-filled", tone: "blue-sky", size: "--spacing-32", angle: 197, reach: 0.92, rotate: -14, delay: 0 },
+    { icon: "document-filled", tone: "lavender", size: "--spacing-40", angle: 328, reach: 0.82, rotate: 12, delay: 60 },
+    { icon: "home-line-filled", tone: "magenta", size: "--spacing-32", angle: 152, reach: 0.74, rotate: 18, delay: 25 },
+    { icon: "wallet-filled", tone: "forest-green", size: "--spacing-32", angle: 14, reach: 0.96, rotate: -10, delay: 90 },
+    { icon: "business-filled", tone: "apricot", size: "--spacing-40", angle: 236, reach: 0.86, rotate: 8, delay: 45 },
+    { icon: "id-card-filled", tone: "purple", size: "--spacing-32", angle: 44, reach: 0.7, rotate: -18, delay: 110 },
+  ];
+  const BURST_PHONE = [
+    { icon: "group-filled", tone: "blue-sky", size: "--spacing-24", angle: 195, reach: 0.9, rotate: -12, delay: 0 },
+    { icon: "document-filled", tone: "lavender", size: "--spacing-32", angle: 330, reach: 0.85, rotate: 14, delay: 50 },
+    { icon: "wallet-filled", tone: "forest-green", size: "--spacing-24", angle: 15, reach: 0.95, rotate: -8, delay: 30 },
+    { icon: "home-line-filled", tone: "magenta", size: "--spacing-32", angle: 150, reach: 0.8, rotate: 16, delay: 80 },
+  ];
   const BURST = {
-    start: 1300,     /* ms after the entrance starts */
-    stagger: 50,     /* ms between icons, both ways */
-    length: 1700,    /* each icon's whole trip; the last one is gone by ≈ 3.25 s, before the ring settles */
+    start: 500,      /* ms after the entrance starts = 50 ms into step 1 (the pop ends at 450) */
+    length: 1400,    /* each icon's whole trip; the last one (delay 110) is under the avatar by ≈ 2.01 s = the end of
+                        step 2 (2.05 s) — the last step's glide to rest then plays alone */
     turn: 0.45,      /* share of the trip at which it reaches the edge and turns straight back */
-    jitterDeg: 12,   /* ± angle jitter */
-    jitterPx: 10,    /* ± x / y jitter */
-    tilt: 20,        /* ± random rotation at the edge, eased back toward 0 on the way home */
   };
-  /* a thrown-ball pair: speed reaches zero only for an instant at the edge (expo-out + ease-in read as a pause) */
-  const OUT_EASE = "cubic-bezier(0.215, 0.61, 0.355, 1)";  /* cubic out: fast start, soft stop */
-  const BACK_EASE = "cubic-bezier(0.55, 0.055, 0.675, 0.19)"; /* cubic in: builds up speed */
+  /* v16 (product owner): they linger near the edge through easing, never a static pause — a strong quint ease-out (long
+     soft approach) flows into a slow quint ease-in (a very gentle start back, then accelerating under the avatar) */
+  const OUT_EASE = "cubic-bezier(0.22, 1, 0.36, 1)";  /* quint out */
+  const BACK_EASE = "cubic-bezier(0.64, 0, 0.78, 0)"; /* quint in */
 
   let uid = 0;
   const WaveAvatar = { lastStats: null, path };
@@ -294,8 +315,7 @@
       const sprite = use ? use.getAttribute("href").split("#")[0] : "";
       if (!sprite) return;
       const phone = window.matchMedia("(max-width: 760px)").matches;
-      const count = phone ? 4 : BURST_ICONS.length;
-      const sizes = (phone ? BURST_SIZES_PHONE : BURST_SIZES).map((name) => parseFloat(tokenText(name)) || 32);
+      const rows = phone ? BURST_PHONE : BURST_DESKTOP;
       const hb = burstBox.getBoundingClientRect();
       const ab = host.getBoundingClientRect();
       const cx = ab.left + ab.width / 2;
@@ -307,25 +327,22 @@
       burstLayer = document.createElement("span");
       burstLayer.className = "cab2-wave__burst";
       burstLayer.setAttribute("aria-hidden", "true");
-      const offset = Math.random() * 360;
-      for (let k = 0; k < count; k++) {
-        const size = sizes[k % sizes.length];
-        const deg = offset + (k * 360) / count + (Math.random() * 2 - 1) * BURST.jitterDeg;
-        const t = (deg * Math.PI) / 180;
-        const reach = 0.78 + Math.random() * 0.18;
-        let x = Math.cos(t) * rx * reach + (Math.random() * 2 - 1) * BURST.jitterPx;
-        const y = Math.sin(t) * ry * reach + (Math.random() * 2 - 1) * BURST.jitterPx;
+      rows.forEach((row) => {
+        const size = parseFloat(tokenText(row.size)) || 32;
+        const t = (row.angle * Math.PI) / 180;
+        let x = Math.cos(t) * rx * row.reach;
+        const y = Math.sin(t) * ry * row.reach;
         /* never rest on the ring: push sideways until clear of the ring + half the icon + 8 */
         const clear = ab.width / 2 + pad / 2 + size / 2 + 8;
         if (Math.hypot(x, y) < clear) x = (Math.cos(t) < 0 ? -1 : 1) * Math.sqrt(Math.max(0, clear * clear - y * y));
-        const tilt = (Math.random() * 2 - 1) * BURST.tilt;
+        const tilt = row.rotate;
         const icon = document.createElementNS(NS, "svg");
-        icon.setAttribute("class", `cab2-wave__ray cab2-wave__ray--${k}`);
+        icon.setAttribute("class", `cab2-wave__ray cab2-wave__ray--${row.tone}`);
         icon.setAttribute("width", String(size));
         icon.setAttribute("height", String(size));
         icon.setAttribute("focusable", "false");
         const ref = document.createElementNS(NS, "use");
-        ref.setAttribute("href", `${sprite}#icon-${BURST_ICONS[k % BURST_ICONS.length]}`);
+        ref.setAttribute("href", `${sprite}#icon-${row.icon}`);
         icon.appendChild(ref);
         burstLayer.appendChild(icon);
         const at = (px, py, scale, rot) => `translate(-50%, -50%) translate(${px.toFixed(1)}px, ${py.toFixed(1)}px) rotate(${rot.toFixed(1)}deg) scale(${scale})`;
@@ -335,8 +352,8 @@
           { transform: at(x, y, 1, tilt), opacity: 1, offset: BURST.turn, easing: BACK_EASE },
           { opacity: 1, offset: 0.8 },
           { transform: at(0, 0, 0.85, tilt * 0.3), opacity: 0, offset: 1 },
-        ], { duration: BURST.length, delay: BURST.start + k * BURST.stagger, fill: "both" });
-      }
+        ], { duration: BURST.length, delay: BURST.start + row.delay, fill: "both" });
+      });
       host.insertBefore(burstLayer, host.firstChild);
     }
     function clearBurst() {
