@@ -477,8 +477,8 @@
   function heroHtml(ctx) {
     const own = ctx.kind === "self";
     const line = own ? identifier(ctx) : actingLine(ctx);
-    const change = SINGLE ? "" : `
-          <p class="cab2-hero__switch"><button class="btn btn-text-primary btn-sm" type="button" aria-haspopup="menu" aria-controls="fo-avatar-menu" aria-expanded="${switcherOpen()}" data-cab2-switch-open>Schimbă${hidden(" pentru cine acționezi")}</button></p>`;
+    /* „Schimbă” left the hero (product owner 2026-11-18): switching = the header avatar menu (the FO full-flow switcher).
+       The name + line fade up one after another on load, with the wave (Cab2Motion.entrance, cab2.css § 5.6) */
     /* cab2-wave-v1: the wave ring (cab2-wave-avatar.js, mounted in drawPage); your own avatar = your photo (or initials)
        + the pen „Schimbă fotografia” bottom-right; acting for someone = the entity + the apricot badge there, no pen */
     const face = own ? selfFaceHtml(ctx, "xl") : avatarHtml(ctx, "xl");
@@ -487,7 +487,7 @@
         <span class="cab2-hero__ring cab2-hero__ring--wave"><span class="cab2-avatar-host" data-cab2-wave-host>${face}${own ? penHtml() : badgeHtml(ctx)}</span></span>
         <div class="cab2-hero__text">
           <h1 class="cab2-hero__title" id="cab2-title" tabindex="-1">${escape(ctx.name)}</h1>
-          <p>${escape(line)}</p>${change}
+          <p>${escape(line)}</p>
         </div>
       </header>`;
   }

@@ -27,6 +27,7 @@
        options.play          false → the resting frame at once (previews, a second visit)
        options.reducedMotion true / false; default = the system setting or `.is-motion-reduced` on <html>
      instance.play() · instance.finish() (jump to rest) · instance.destroy() · instance.done (Promise)
+     instance.duration · instance.lastStep (ms) — for choreography around the entrance
      WaveAvatar.lastStats   { frames, avgMs, maxMs } of the last entrance (Performance check)
      WaveAvatar.path(cx, cy, R, params, points) → the SVG path string (reuse elsewhere)
 
@@ -267,7 +268,8 @@
     function stopIdle() { idleWanted = false; idleSync(); }
     let pop = null;
     let resolveDone;
-    const instance = { host, done: new Promise((r) => { resolveDone = r; }) };
+    /* `duration` / `lastStep` (ms) let a page choreograph around the entrance */
+    const instance = { host, duration, lastStep: lens[steps - 1], done: new Promise((r) => { resolveDone = r; }) };
 
     function settle() {
       cancelAnimationFrame(raf);

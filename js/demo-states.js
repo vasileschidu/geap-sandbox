@@ -565,7 +565,8 @@
   const cab2S = (params = {}, run, hash = "") => ({ page: CAB2, params, hash, ready: "[data-cab2-ready]", run });
   /* the identity block on top of the menu opens „Pentru cine acționezi?” (desktop); phones: Meniu → the sheet */
   /* the header switcher opened from the Acasă identity hero's „Schimbă” (cab2-hero-v1: the identity left the menu) */
-  const cab2Identity = async (h) => { await h.click("[data-cab2-hero] [data-cab2-switch-open]"); await h.wait(500); };
+  /* „Schimbă” left the hero (2026-11-18): the switcher opens from the header avatar (= cab2Switch) */
+  const cab2Identity = async (h) => { await h.click("[data-fo-avatar-trigger]"); await h.wait(500); };
   const cab2Sheet = async (h) => { if (cab2Phone()) { await h.click("[data-cab2-menu-open]"); await h.wait(500); } };
   const cab2Phone = () => window.matchMedia("(max-width: 760px)").matches;
   const cab2Switch = async (h) => { await h.click("[data-fo-avatar-trigger]"); await h.wait(500); };
