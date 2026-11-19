@@ -150,16 +150,26 @@
   }
   /* NEW part — the direction cell: the button names source → target, the step type under it (US-347 AC-02);
      blocked = aria-disabled + the reason under it (US-351 AC-03/04/06); equal = „sincronizat”, no button (AC-07) */
-  function directionHtml(o, pair) {
+  /* `panel` (env-sync-panel-v1): the same cell as call-to-action in the object panel — Medium, primary / secondary,
+     „sincronizat” = the positive Small tag */
+  function directionHtml(o, pair, { panel = false, variant = "neutral" } = {}) {
     const st = pairStep(o, pair);
-    if (!st) return `<span class="e-permits-sync-dir__done">${icon("checkmark-small", 16)}<span>sincronizat</span></span>`;
+    if (!st) return panel ? tag("sincronizat", "success") : `<span class="e-permits-sync-dir__done">${icon("checkmark-small", 16)}<span>sincronizat</span></span>`;
     const label = arrow(st.from, st.to);
     const blocked = Boolean(st.blocked);
+    const id = `sync-${panel ? "pwhy" : "why"}-${esc(o.id)}-${pair}`;
     return `
-      <span class="e-permits-sync-dir${blocked ? " is-blocked" : ""}">
-        <button class="btn btn-neutral btn-sm e-permits-sync-dir__btn" type="button" data-sync-step="${esc(o.id)}" data-sync-pair="${pair}"${blocked ? ` aria-disabled="true" aria-describedby="sync-why-${esc(o.id)}-${pair}"` : ""} aria-label="${esc(`${label}, ${st.type}: ${o.name}`)}">${esc(label)}</button>
-        <span class="e-permits-sync-dir__note" id="sync-why-${esc(o.id)}-${pair}">${esc(blocked ? st.blocked : st.type)}</span>
+      <span class="e-permits-sync-dir${blocked ? " is-blocked" : ""}${panel ? " e-permits-sync-dir--panel" : ""}">
+        <button class="btn btn-${panel ? variant : "neutral"} ${panel ? "btn-md" : "btn-sm"} e-permits-sync-dir__btn" type="button" data-sync-step="${esc(o.id)}" data-sync-pair="${pair}"${blocked ? ` aria-disabled="true" aria-describedby="${id}"` : ""} aria-label="${esc(`${label}, ${st.type}: ${o.name}`)}">${esc(label)}</button>
+        <span class="e-permits-sync-dir__note" id="${id}">${esc(blocked ? st.blocked : st.type)}</span>
       </span>`;
+  }
+  /* the object panel's actions: one labelled primary = the first step toward the highest version (the „Ambele sensuri”
+     order), the other available direction secondary; blocked = inactive + reason; equal = „sincronizat” */
+  function panelActions(o) {
+    const first = plan([o], "both").steps[0]?.pair;
+    const rows = ["ds", "sp"].map((pair) => [PAIRS[pair].label, directionHtml(o, pair, { panel: true, variant: pair === first ? "primary" : "secondary" })]);
+    return A().renderPassportBlock?.("Sincronizare", rows) || "";
   }
   function lastSyncLine(o) {
     const s = lastSync(o.id);
@@ -537,6 +547,7 @@
       <td>${esc(s.batch.id)}</td>
     </tr>`).join("");
     el.querySelector("[data-sync-h-body]").innerHTML = `
+      ${inList(o) ? panelActions(o) : ""}
       ${A().renderPassportBlock?.("Versiuni curente", [["DEV", ver("dev")], ["STAGING", ver("staging")], ["PROD", ver("prod")]]) || ""}
       <section class="e-permits-dosar-profil__section">
         <div class="e-permits-dosar-profil__section-heading"><h2 class="e-permits-dosar-profil__section-title">Pași</h2>${list.length ? `<div class="e-permits-passport__heading-tools"><span class="e-permits-dosar-profil__section-meta">${esc(`${plural(list.length, "pas", "pași")} · cele mai noi primele`)}</span></div>` : ""}</div>
@@ -587,6 +598,8 @@
     const stepBtn = t.closest("[data-sync-step]");
     if (stepBtn) {
       if (stepBtn.getAttribute("aria-disabled") === "true") return;
+      /* from the object panel: the panel closes first (no dialog over a drawer), then the same review as the row (sync-03) */
+      if (stepBtn.closest("[data-sync-drawer]")) closeHistory();
       openReview("single", [stepBtn.dataset.syncStep], stepBtn.dataset.syncPair);
       return;
     }

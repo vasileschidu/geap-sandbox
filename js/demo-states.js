@@ -5321,6 +5321,9 @@
       /* US-352 — history */
       "sync-06": list(history("FRM-0012")),
       "sync-06a": list(history("SET-0011")),
+      /* env-sync-panel-v1: both directions available in the panel — primary = the first step, secondary = the other */
+      "sync-06c": list(history("JOB-0002")),
+      "sync-06d": list(seq(history("JOB-0002"), async (h) => { await h.click('[data-sync-drawer] [data-sync-step="JOB-0002"][data-sync-pair="ds"]'); await h.find("#case-action-modal.is-active .e-permits-sync-review"); await h.wait(300); })),
       "sync-06b": list(seq(activity, async (h) => { await h.click('[data-sync-history="FRM-0009"]'); await h.find("[data-sync-drawer]:not([hidden]) .drawer__body > *"); await h.wait(400); })),
       /* US-353 — activity */
       "sync-07": list(activity),
