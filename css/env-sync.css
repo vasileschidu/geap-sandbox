@@ -341,6 +341,10 @@
   overflow: clip;
 }
 
+/* env-sync-nodesc-v1 (PO 2026-11-19): no page description — only the environment notice, 24 under the header */
+.e-permits-workplace[data-registry-kind="sincronizare"] > .e-permits-sync-intro {
+  padding-top: var(--spacing-24, 24px);
+}
 
 /* selection-bar-v1: „Sincronizează tot (N)” + the selection bar live in the shared registry header — only here */
 .e-permits-workplace:not([data-registry-kind="sincronizare"]) :is([data-sync-tool], [data-sync-selection]),
@@ -365,155 +369,20 @@
   border-right: var(--border-width-1, 1px) solid var(--color-border-brand-secondary, #c4dbf4);
 }
 
-/* env-sync-incell-v1: the version cell = the version line + (when this environment is behind) the step button, 8 under
-   it, and the block reason 4 under the button */
-.e-permits-sync-cell {
-  align-items: flex-start;
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-8, 8px);
-  padding: var(--spacing-8, 8px) 0;
-}
-
-.e-permits-sync-cell > .e-permits-sync-dir {
-  padding: 0;
-}
-
-/* row hover: the grey row band (#F1F1F1) = the neutral button's own fill — the in-cell step button turns white until the
-   pointer is on it (the shared ⋮ rule of the BO table); under the pointer it keeps the library hover */
+/* env-sync-dircol-v2 (PO 2026-11-19) — row hover: the grey row band (#F1F1F1) = the neutral button's own fill → the
+   direction button turns white until the pointer is on it (the shared ⋮ rule of the BO table); under the pointer it keeps
+   the library hover */
 .e-permits-workplace__table tbody tr:is(:hover, :focus-visible) .btn-neutral.e-permits-sync-dir__btn:not(:hover, :active, [aria-disabled="true"]) {
   background: var(--color-background-base-default, #fff);
 }
 
-/* ---- env-sync-tabs-v1 (PO 2026-11-19): page tabs „Divergențe” | „Activitate de sincronizare” ------------------------ */
-.e-permits-workplace:not([data-registry-kind="sincronizare"]) > [data-sync-tabs] {
-  display: none;
-}
-
-.e-permits-workplace[data-registry-kind="sincronizare"] {
-  grid-template-rows: none;
-  grid-auto-rows: auto;
-}
-
-
-.e-permits-workplace > .e-permits-sync-tabs {
-  border-bottom: 0;
-  padding: 0;
-}
-
-/* the old status strip = the hidden engine of the scope filter (the segmented control drives it) */
-.e-permits-workplace[data-registry-kind="sincronizare"] .e-permits-workplace__status-tabs {
-  display: none;
-}
-
-/* tab page rhythm: tabs → 24 → the toolbar's controls (the toolbar keeps its own 8) */
-.e-permits-workplace[data-registry-kind="sincronizare"] > .e-permits-workplace__header {
-  padding-top: var(--spacing-16, 16px);
-}
-
-/* one view at a time */
-.e-permits-workplace[data-registry-kind="sincronizare"][data-sync-view="activitate"] > :is(.e-permits-workplace__header, .e-permits-workplace__table-wrap, .e-permits-workplace__footer),
-.e-permits-workplace[data-registry-kind="sincronizare"]:not([data-sync-view="activitate"]) > [data-sync-activity] {
-  display: none;
-}
-
-/* the activity tab: tabs → 24 → its toolbar (search · Filtrare · „Vezi în Audit & Logging” right) → 16 → the batches */
-.e-permits-sync-activity__toolbar {
-  align-items: center;
-  display: flex;
-  gap: var(--spacing-12, 12px);
-}
-
-.e-permits-sync-activity__search {
-  flex: 0 1 calc(var(--spacing-40, 40px) * 14);
-  min-width: 0;
-}
-
-.e-permits-sync-activity__audit {
-  margin-left: auto;
-}
-
-.e-permits-sync-activity__filters:not([hidden]) {
-  margin: 0;
-}
-
-/* ---- env-sync-pipeline-v1 (PO 2026-11-19): the environment pipeline band = orientation + scope filter ----------------
-   Edge to edge directly under the top bar (no gap), the light brand band, even padding 16 (= the page gutter, so it lines
-   up with the tabs, toolbar and table). Env boxes = labels (white, 1px base border, r8, 14/20 medium; STAGING = brand
-   border + the strong „aici lucrezi” tag, the column's blue); options = the library chip (label + badge, + arrow on the
-   connectors): default / hover = library; selected = brand fill + white text (the composition's selected, PO); focus =
-   the library chip ring; inactive at 0 = `.is-disabled` + aria-disabled + reason tooltip. Wraps at narrow widths. */
-.e-permits-sync-pipeline {
-  background: var(--color-background-brand-secondary, #e8f0fb);
-  padding: var(--spacing-16, 16px);
-}
-
-.e-permits-sync-pipeline[hidden] {
-  display: none;
-}
-
-.e-permits-sync-pipeline__track {
-  align-items: center;
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--spacing-8, 8px);
-}
-
-.e-permits-sync-pipeline__sep {
-  align-self: stretch;
-  border-left: var(--border-width-1, 1px) solid var(--color-border-brand-secondary, #ccdef6);
-  margin: 0 var(--spacing-8, 8px);
-}
-
-.e-permits-sync-pipeline__env {
-  align-items: center;
-  background: var(--color-background-base-default, #fff);
-  border: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
-  border-radius: var(--border-radius-8, 8px);
-  color: var(--color-text-base-default, #121212);
-  display: inline-flex;
-  font-size: var(--font-size-fs-14, 14px);
-  font-weight: var(--font-weight-fw-medium, 500);
-  gap: var(--spacing-8, 8px);
-  line-height: var(--line-height-lh-20, 20px);
-  padding: var(--spacing-8, 8px) var(--spacing-12, 12px);
-}
-
-.e-permits-sync-pipeline__env.is-current {
-  border-color: var(--color-border-brand-default, #0058d2);
-}
-
-.e-permits-sync-pipeline__arrow {
-  display: inline-flex;
-}
-
-.e-permits-sync-pipeline__opt.is-selected,
-.e-permits-sync-pipeline__opt.is-selected:hover {
-  background-color: var(--color-background-brand-default, #0058d2);
-  border-color: var(--color-background-brand-default, #0058d2);
-  color: var(--color-text-base-inverse-default, #fff);
-}
-
-.e-permits-sync-pipeline__opt.is-selected .chip__badge {
-  background: var(--color-background-base-default, #fff);
-  color: var(--color-text-brand-on-secondary, #0058d2);
-}
-
-.e-permits-sync-pipeline__opt.is-disabled {
-  cursor: not-allowed;
-}
-
-/* the band sits right under the top bar: the page tabs follow it, the tab rhythm continues under them */
-.e-permits-workplace > .e-permits-sync-tabs .e-permits-page-header__tabs {
-  padding-top: var(--spacing-8, 8px);
-}
-
-/* env-sync-rap-table-v1: an open batch = its header straight onto the table's grey header band — no line between them
-   (heading border OFF when a filled container follows; neither the group label's nor the RAP-flat wrapper's top line) */
+/* env-sync-rap-table-v1 + batch-sep-v1 (PO 2026-11-19): an open batch = the grey batch header, ONE 1px line, the table's
+   grey header band — the line belongs to the table (the RAP-flat wrapper's top border), the heading keeps none (no double
+   line); the table's last row has no divider, the batch card / the next batch's divider closes it */
 .e-permits-sync-activity__list .e-permits-stack__group.is-open > .e-permits-stack__group-label {
   border-bottom: 0;
 }
 
 .e-permits-sync-activity__list .e-permits-workplace__table-wrap.e-permits-rpt-table-wrap.e-permits-sync-batch__table {
-  border-top: 0;
+  border-top: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
 }
