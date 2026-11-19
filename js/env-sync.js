@@ -155,26 +155,51 @@
   }
   /* NEW part — the direction cell: the button names source → target, the step type under it (US-347 AC-02);
      blocked = aria-disabled + the reason under it (US-351 AC-03/04/06); equal = „sincronizat”, no button (AC-07) */
-  /* `panel` (env-sync-panel-v1): the same cell as call-to-action in the object panel — Medium, primary / secondary,
-     „sincronizat” = the positive Small tag */
-  function directionHtml(o, pair, { panel = false, variant = "neutral" } = {}) {
+  function directionHtml(o, pair) {
     const st = pairStep(o, pair);
-    if (!st) return panel ? tag("sincronizat", "success") : `<span class="e-permits-sync-dir__done">${icon("checkmark-small", 16)}<span>sincronizat</span></span>`;
+    if (!st) return `<span class="e-permits-sync-dir__done">${icon("checkmark-small", 16)}<span>sincronizat</span></span>`;
     const label = arrow(st.from, st.to);
     const blocked = Boolean(st.blocked);
-    const id = `sync-${panel ? "pwhy" : "why"}-${esc(o.id)}-${pair}`;
+    const id = `sync-why-${esc(o.id)}-${pair}`;
     return `
-      <span class="e-permits-sync-dir${blocked ? " is-blocked" : ""}${panel ? " e-permits-sync-dir--panel" : ""}">
-        <button class="btn btn-${panel ? variant : "neutral"} ${panel ? "btn-md" : "btn-sm"} e-permits-sync-dir__btn" type="button" data-sync-step="${esc(o.id)}" data-sync-pair="${pair}"${blocked ? ` aria-disabled="true" aria-describedby="${id}"` : ""} aria-label="${esc(`${label}, ${st.type}: ${o.name}`)}">${esc(label)}</button>
+      <span class="e-permits-sync-dir${blocked ? " is-blocked" : ""}">
+        <button class="btn btn-neutral btn-sm e-permits-sync-dir__btn" type="button" data-sync-step="${esc(o.id)}" data-sync-pair="${pair}"${blocked ? ` aria-disabled="true" aria-describedby="${id}"` : ""} aria-label="${esc(`${label}, ${st.type}: ${o.name}`)}">${esc(label)}</button>
         <span class="e-permits-sync-dir__note" id="${id}">${esc(blocked ? st.blocked : st.type)}</span>
       </span>`;
   }
-  /* the object panel's actions: one labelled primary = the first step toward the highest version (the „Ambele sensuri”
-     order), the other available direction secondary; blocked = inactive + reason; equal = „sincronizat” */
+  /* env-sync-panel-v2 (user 2026-11-19: „an actionable panel, not simple details”; GitHub merge box / Vercel promote =
+     look & feel): one Alert card per pair (`GEAPAlertCard`, BO sprite) that SAYS the state and the step —
+     title = „DEV are v7, STAGING are v6” (source first), text = „STAGING trece de la v6 la v7.”, button = the verb + version („Preia v7 în
+     STAGING”). ONE labelled primary = the first step toward the highest version (the „Ambele sensuri” order), another
+     pending step = the card's lone quiet button `btn-outline-strict`; blocked = warning tone, the reason as text, the
+     button aria-disabled + described by it; equal = success tone, no button. A click closes the drawer → review. */
+  const STEP_VERB = { staging: "Preia", dev: "Propagă", prod: "Promovează" };
+  const verOr = (v) => (v == null ? "—" : `v${v}`);
+  function pairCard(o, pair, primary) {
+    const { a, b } = PAIRS[pair];
+    const st = pairStep(o, pair);
+    const id = `sync-pc-${esc(o.id)}-${pair}`;
+    const card = (opts) => window.GEAPAlertCard?.html({ sprite: "assets/icons/sprite.svg", titleTag: "h3", id, className: "e-permits-sync-pcard", ...opts }) || "";
+    if (!st) {
+      return card({ tone: "success", title: esc(`${ENV_LABEL[a]} și ${ENV_LABEL[b]} sunt la zi`), text: esc(`Ambele au ${verOr(vnum(o[a]))}. Nimic de sincronizat.`) });
+    }
+    const has = (env) => (o[env] ? `${ENV_LABEL[env]} are ${verOr(vnum(o[env]))}` : `${ENV_LABEL[env]} nu are obiectul`);
+    const blocked = Boolean(st.blocked);
+    const label = `${STEP_VERB[st.to]} v${st.after} în ${ENV_LABEL[st.to]}`;
+    const variant = primary ? "btn-primary" : "btn-outline-strict";
+    const btn = `<button class="btn ${variant} btn-md btn-rounded e-permits-sync-pcard__btn" type="button" data-sync-step="${esc(o.id)}" data-sync-pair="${pair}"${blocked ? ` aria-disabled="true" aria-describedby="${id}-why"` : ""}>${esc(label)}</button>`;
+    const text = blocked
+      ? `<span id="${id}-why">${esc(st.blocked)}</span>`
+      : esc(st.before == null ? `${ENV_LABEL[st.to]} primește obiectul în v${st.after}.` : `${ENV_LABEL[st.to]} trece de la v${st.before} la v${st.after}.`);
+    return card({ tone: blocked ? "warning" : "info", title: esc(`${has(st.from)}, ${has(st.to)}`), text, actions: btn });
+  }
   function panelActions(o) {
     const first = plan([o], "both").steps[0]?.pair;
-    const rows = ["ds", "sp"].map((pair) => [PAIRS[pair].label, directionHtml(o, pair, { panel: true, variant: pair === first ? "primary" : "secondary" })]);
-    return A().renderPassportBlock?.("Sincronizare", rows) || "";
+    return `
+      <section class="e-permits-dosar-profil__section e-permits-sync-panel" aria-labelledby="sync-panel-title">
+        <div class="e-permits-dosar-profil__section-heading"><h2 class="e-permits-dosar-profil__section-title" id="sync-panel-title">Sincronizare</h2></div>
+        <div class="e-permits-sync-panel__cards">${["ds", "sp"].map((pair) => pairCard(o, pair, pair === first)).join("")}</div>
+      </section>`;
   }
   function lastSyncLine(o) {
     const s = lastSync(o.id);
@@ -367,9 +392,12 @@
   function batchTable(b) {
     const rows = b.steps.map((s) => {
       const o = objOf(s.object);
-      const name = o ? `<button class="link link-primary link-sm e-permits-sync-link" type="button" data-sync-history="${esc(o.id)}">${esc(o.name)}</button><span class="e-permits-workplace__date-meta">${esc(o.type)}</span>` : esc(s.object);
+      /* env-sync-rowopen-v1 (user 2026-11-19): the WHOLE row opens the object panel = the registry row that is the action
+         (`tr[data-workplace-row-open]`: pointer, band, Enter / Space, focus ring in the cells); the name is plain text */
+      const name = o ? `<span>${esc(o.name)}</span><span class="e-permits-workplace__date-meta">${esc(o.type)}</span>` : esc(s.object);
+      const open = o ? ` tabindex="0" data-workplace-row-open data-sync-history="${esc(o.id)}" aria-label="${esc(`${o.type} · ${o.name}, deschide istoricul`)}"` : "";
       const why = s.skipped ? `${s.skipped} (${PAIRS[s.pair].label})` : reasonOf({ ...s, batch: b });
-      return `<tr>
+      return `<tr${open}>
         <td><span class="e-permits-workplace__date-stack">${name}</span></td>
         <td>${s.skipped ? `<span class="e-permits-workplace__date-stack"><span>${tag("Omis", "warning")}</span><span class="e-permits-workplace__date-meta">${esc(PAIRS[s.pair].label)}</span></span>` : `<span class="e-permits-workplace__date-stack"><span>${esc(arrow(s.from, s.to))}</span><span class="e-permits-workplace__date-meta">${esc(STEP_TYPE[s.to])}</span></span>`}</td>
         <td>${s.skipped ? '<span class="e-permits-workplace__dash">—</span>' : esc(`${s.before == null ? "—" : `v${s.before}`} → v${s.after}`)}</td>

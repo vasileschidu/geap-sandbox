@@ -320,15 +320,6 @@
   width: calc(var(--spacing-40, 40px) * 3);
 }
 
-/* the object name in a batch = a library link that opens the history */
-.e-permits-sync-link {
-  background: none;
-  border: 0;
-  cursor: pointer;
-  padding: 0;
-  text-align: left;
-}
-
 /* env-sync-clip-v1: the last batch open — its table's square corners stay inside the card's rounded bottom */
 .e-permits-sync-activity__list {
   overflow: clip;
@@ -350,9 +341,12 @@
   border-bottom: 0;
 }
 
-/* env-sync-panel-v1: the direction actions in the object panel („Sincronizare” block) — Medium button, note 4 under it */
-.e-permits-sync-dir--panel {
-  padding: 0;
+/* env-sync-panel-v2: the „Sincronizare” block of the object panel = one Alert card per pair (css/alert-card.css, no
+   override), stacked 8 apart; the drawer body is narrower than 720, so the button sits under the text, right-aligned */
+.e-permits-sync-panel__cards {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-8, 8px);
 }
 
 /* env-sync-frame-v1 (PO 2026-11-19): the current-environment column framed — 1px `--color-border-brand-secondary`
@@ -446,4 +440,12 @@
    tab) let the grid STRETCH its auto rows (notice 52 → 109, toolbar 56 → 75); rows hug their content on every tab */
 .e-permits-workplace[data-registry-kind="sincronizare"] {
   align-content: start;
+}
+
+/* env-sync-rowopen-v1 (user 2026-11-19): only rows that open something have a hover — the object panel's history table
+   and a batch step without a known object are read-only rows: no band, no pointer (the shell band paints every tbody row) */
+/* (the shell band's `:not(… :has(…))` weighs 0,5,2 — the class is repeated to outweigh it; white = the RAP flat rows) */
+.e-permits-sync-table.e-permits-sync-table.e-permits-rpt-table.e-permits-workplace__table tbody tr:not([data-workplace-row-open]):hover > td {
+  background: var(--color-background-base-default, #fff);
+  cursor: auto;
 }

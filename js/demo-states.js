@@ -5331,6 +5331,13 @@
       /* env-sync-panel-v1: both directions available in the panel — primary = the first step, secondary = the other */
       "sync-06c": list(history("JOB-0002")),
       "sync-06d": list(seq(history("JOB-0002"), async (h) => { await h.click('[data-sync-drawer] [data-sync-step="JOB-0002"][data-sync-pair="ds"]'); await h.find("#case-action-modal.is-active .e-permits-sync-review"); await h.wait(300); })),
+      /* env-sync-panel-v2: one Alert card per pair — 06e draft blocks DEV → STAGING (no primary, PROD at zi), 06f failed
+         validation gate on DEV ⇄ STAGING (no primary), 06g PROD holds the highest version (Preia v4 în
+         STAGING = primary), 06h failed gate on STAGING ⇄ PROD */
+      "sync-06e": list(history("NTF-0008")),
+      "sync-06f": list(history("TPL-0019")),
+      "sync-06g": list(history("TRF-0021")),
+      "sync-06h": list(history("NTF-0014")),
       "sync-06b": list(seq(activity, async (h) => { await h.click('[data-sync-history="FRM-0009"]'); await h.find("[data-sync-drawer]:not([hidden]) .drawer__body > *"); await h.wait(400); })),
       /* US-353 — activity */
       "sync-07": list(activity),
@@ -5342,7 +5349,11 @@
       /* back from Activitate to a scope tab: toolbar + tabs in the same place, the list's own search text back */
       "sync-07e": list(seq(activity, tab("sp"), blur)),
       /* the search text is kept per view: „clasificator” on the list → Activitate (empty field) → back = „clasificator” again */
-      "sync-07f": list(seq(search("clasificator"), activity, tab("all"), blur))
+      "sync-07f": list(seq(search("clasificator"), activity, tab("all"), blur)),
+      /* env-sync-rowopen-v1: a batch step row = the row that opens the object panel — 07g keyboard focus on a row (ring +
+         band), 07h Enter on it opens the panel */
+      "sync-07g": list(seq(activity, async (h) => { const r = await h.find(`${K} [data-sync-activity] tr[data-sync-history="FRM-0012"]`); r.focus({ preventScroll: true }); await h.wait(250); })),
+      "sync-07h": list(seq(activity, async (h) => { const r = await h.find(`${K} [data-sync-activity] tr[data-sync-history="FRM-0012"]`); r.focus({ preventScroll: true }); r.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true })); await h.find("[data-sync-drawer]:not([hidden]) .drawer__body > *"); await h.wait(400); }))
     };
   }
 
