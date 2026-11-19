@@ -152,17 +152,33 @@
      blocked = aria-disabled + the reason under it (US-351 AC-03/04/06); equal = „sincronizat”, no button (AC-07) */
   /* `panel` (env-sync-panel-v1): the same cell as call-to-action in the object panel — Medium, primary / secondary,
      „sincronizat” = the positive Small tag */
+  /* env-sync-incell-v1 (PO 2026-11-19, Octopus Deploy pattern): the step lives in the version cell of the environment
+     that is BEHIND (the target). ONE wording pattern = the story step type as a „tu” verb + the incoming version + where:
+     „Preia v7 din DEV” / „Preia v4 din PROD” (preluare în STAGING) · „Promovează v7 în PROD” (promovare) ·
+     „Propagă v6 în DEV” (propagare) */
+  const stepLabel = (st) => (st.to === "staging" ? `Preia v${st.after} din ${ENV_LABEL[st.from]}`
+    : st.to === "prod" ? `Promovează v${st.after} în PROD` : `Propagă v${st.after} în DEV`);
+  /* the step button (+ the block reason under it); `panel` = the object panel's Medium primary / secondary variant */
   function directionHtml(o, pair, { panel = false, variant = "neutral" } = {}) {
     const st = pairStep(o, pair);
-    if (!st) return panel ? tag("sincronizat", "success") : `<span class="e-permits-sync-dir__done">${icon("checkmark-small", 16)}<span>sincronizat</span></span>`;
-    const label = arrow(st.from, st.to);
+    if (!st) return panel ? tag("sincronizat", "success") : "";
+    const label = stepLabel(st);
     const blocked = Boolean(st.blocked);
     const id = `sync-${panel ? "pwhy" : "why"}-${esc(o.id)}-${pair}`;
     return `
       <span class="e-permits-sync-dir${blocked ? " is-blocked" : ""}${panel ? " e-permits-sync-dir--panel" : ""}">
-        <button class="btn btn-${panel ? variant : "neutral"} ${panel ? "btn-md" : "btn-sm"} e-permits-sync-dir__btn" type="button" data-sync-step="${esc(o.id)}" data-sync-pair="${pair}"${blocked ? ` aria-disabled="true" aria-describedby="${id}"` : ""} aria-label="${esc(`${label}, ${st.type}: ${o.name}`)}">${esc(label)}</button>
-        <span class="e-permits-sync-dir__note" id="${id}">${esc(blocked ? st.blocked : st.type)}</span>
+        <button class="btn btn-${panel ? variant : "neutral"} ${panel ? "btn-md" : "btn-sm"} e-permits-sync-dir__btn" type="button" data-sync-step="${esc(o.id)}" data-sync-pair="${pair}"${blocked ? ` aria-disabled="true" aria-describedby="${id}"` : ""} aria-label="${esc(`${label} (${PAIRS[pair].label}): ${o.name}`)}">${esc(label)}</button>
+        ${blocked ? `<span class="e-permits-sync-dir__note" id="${id}">${esc(st.blocked)}</span>` : ""}
       </span>`;
+  }
+  /* the action of a version cell: the pair(s) whose TARGET is this environment — on a pair tab only that pair; a cell
+     behind on both sides (STAGING under DEV and PROD) shows only the step toward the highest version */
+  function cellAction(o, env) {
+    const tab = A().workplaceState?.tabKey || "all";
+    const steps = ["ds", "sp"].filter((p) => tab === "all" || tab === p).map((p) => pairStep(o, p)).filter((st) => st && st.to === env);
+    if (!steps.length) return "";
+    const st = steps.sort((a, b) => b.after - a.after)[0];
+    return directionHtml(o, st.pair);
   }
   /* the object panel's actions: one labelled primary = the first step toward the highest version (the „Ambele sensuri”
      order), the other available direction secondary; blocked = inactive + reason; equal = „sincronizat” */
@@ -191,17 +207,15 @@
       columns: {
         obiect: { label: "Obiect", width: 288, sortable: true, fill: true },
         tip: { label: "Tip", width: 144, sortable: true },
-        dev: { label: "DEV", width: 96 },
-        staging: { label: "STAGING", width: 168 },
-        prod: { label: "PROD", width: 96 },
-        ds: { label: "DEV ⇄ STAGING", width: 184 },
-        sp: { label: "STAGING ⇄ PROD", width: 184 }
+        dev: { label: "DEV", width: 200 },
+        staging: { label: "STAGING", width: 216 },
+        prod: { label: "PROD", width: 200 }
       },
       views: {
         [KIND]: {
           title: TITLE,
           searchPlaceholder: "Caută după denumire sau tip",
-          columns: ["obiect", "tip", "dev", "staging", "prod", "ds", "sp"],
+          columns: ["obiect", "tip", "dev", "staging", "prod"],
           tabs: [
             { id: "all", label: "Toate divergențele", filter: "pair:all" },
             { id: "ds", label: "DEV ≠ STAGING", filter: "pair:ds" },
@@ -227,8 +241,7 @@
       switch (key) {
         case "obiect": return `<span class="e-permits-sync-name"><span class="e-permits-sync-name__title">${esc(o.name)}</span>${lastSyncLine(o)}</span>`;
         case "tip": return `<span data-cell-tooltip="${esc(o.type)}">${esc(o.type)}</span>`;
-        case "dev": case "staging": case "prod": return versionHtml(o, key);
-        case "ds": case "sp": return directionHtml(o, key);
+        case "dev": case "staging": case "prod": return `<span class="e-permits-sync-cell">${versionHtml(o, key)}${cellAction(o, key)}</span>`;
         default: return "";
       }
     },
