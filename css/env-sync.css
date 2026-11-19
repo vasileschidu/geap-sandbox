@@ -361,3 +361,10 @@
 .e-permits-sync-dir--panel {
   padding: 0;
 }
+
+/* env-sync-frame-v1 (PO 2026-11-19): the current-environment column framed — 1px `--color-border-brand-secondary`
+   left + right along header and body (never the outer table edge: STAGING is an inner column) */
+.e-permits-workplace[data-registry-kind="sincronizare"] .e-permits-workplace__table :is(th, td)[data-column="staging"] {
+  border-left: var(--border-width-1, 1px) solid var(--color-border-brand-secondary, #c4dbf4);
+  border-right: var(--border-width-1, 1px) solid var(--color-border-brand-secondary, #c4dbf4);
+}

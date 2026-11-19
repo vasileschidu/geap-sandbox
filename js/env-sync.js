@@ -279,7 +279,7 @@
     if (toolbar && !reg.querySelector("[data-sync-selection]") && window.GEAPSelectionBar) {
       toolbar.insertAdjacentHTML("afterend", window.GEAPSelectionBar.html({
         label: "Obiecte selectate",
-        actionsHtml: `<button class="btn btn-primary btn-sm" type="button" data-sync-scope="selected">${icon("rotate-arrow", 16)}<span>Sincronizează</span></button>`
+        actionsHtml: `<button class="btn btn-neutral btn-sm" type="button" data-sync-scope="selected">${icon("rotate-arrow", 16)}<span>Sincronizează</span></button>`
       }).replace("data-selection-bar>", "data-selection-bar data-sync-selection>"));
     }
     if (!reg.querySelector("[data-sync-activity]")) reg.insertAdjacentHTML("beforeend", '<section class="e-permits-sync-activity" data-sync-activity aria-labelledby="sync-activity-title"></section>');

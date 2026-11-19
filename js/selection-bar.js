@@ -15,7 +15,7 @@
     <div class="e-permits-selection-bar" role="region" aria-label="${esc(label)}" hidden data-selection-bar>
       <div class="e-permits-selection-bar__inner">
         <p class="e-permits-selection-bar__count" aria-live="polite" aria-atomic="true" data-selection-count></p>
-        <button class="btn btn-text-primary btn-sm btn-rounded e-permits-selection-bar__clear" type="button" data-selection-clear>Anulează selecția</button>
+        <button class="btn btn-text-neutral btn-sm btn-rounded e-permits-selection-bar__clear" type="button" data-selection-clear><svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-cross-large"></use></svg><span>Anulează selecția</span></button>
         <div class="e-permits-selection-bar__actions">${actionsHtml}</div>
       </div>
     </div>`;

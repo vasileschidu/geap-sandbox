@@ -1,8 +1,10 @@
 /* =====================================================================================
    Selection bar — ONE component for any BO list with row checkboxes (selection-bar-v1, 2026-11-19; first user:
    Setări › Sincronizarea mediilor). components.md › „Selection bar”. js/selection-bar.js (`GEAPSelectionBar`).
-   While ≥ 1 row is selected it takes the toolbar's place (same grid slot, same 56 height, padding 8 16): a 40-high
-   brand-secondary strip, field radius 8 — „N … selectate” (live) · text button „Anulează selecția” · actions right.
+   While ≥ 1 row is selected it takes the toolbar's place (same grid slot, same 56 height), edge to edge and square to
+   the table (selection-bar-v2, PO 2026-11-19: dark, so it never reads as the blue info notice): gray-900
+   `--color-background-base-inverse-default` · „N … selectate” white regular (live) · „Anulează selecția” = a text
+   button with × painted for dark surfaces · the action = library `btn-neutral` (light on dark) right.
    States: hidden (nothing selected → the toolbar) · shown (fade in, motion tokens; reduced motion = instant) · the
    buttons keep their library hover / focus / active / disabled looks. Esc / „Anulează selecția” clear it.
    ===================================================================================== */
@@ -10,7 +12,7 @@
 .e-permits-selection-bar {
   box-sizing: border-box;
   min-width: 0;
-  padding: var(--spacing-8, 8px) var(--spacing-16, 16px);
+  padding: 0;
 }
 
 .e-permits-selection-bar[hidden] {
@@ -29,13 +31,13 @@
 
 .e-permits-selection-bar__inner {
   align-items: center;
-  background: var(--color-background-brand-secondary, #e8f0fb);
-  border-radius: var(--border-radius-8, 8px);
+  background: var(--color-background-base-inverse-default, #121212);
   box-sizing: border-box;
+  color: var(--color-text-base-inverse-default, #fff);
   display: flex;
-  gap: var(--spacing-8, 8px);
-  min-height: var(--spacing-40, 40px);
-  padding: var(--spacing-4, 4px) var(--spacing-4, 4px) var(--spacing-4, 4px) var(--spacing-16, 16px);
+  gap: var(--spacing-16, 16px);
+  min-height: var(--spacing-56, 56px);
+  padding: 0 var(--spacing-16, 16px);
 }
 
 .e-permits-selection-bar.is-entering .e-permits-selection-bar__inner {
@@ -54,9 +56,9 @@
 }
 
 .e-permits-selection-bar__count {
-  color: var(--color-text-brand-on-secondary, #0058d2);
+  color: var(--color-text-base-inverse-default, #fff);
   font-size: var(--font-size-fs-14, 14px);
-  font-weight: var(--font-weight-fw-medium, 500);
+  font-weight: var(--font-weight-fw-regular, 400);
   line-height: var(--line-height-lh-20, 20px);
   margin: 0;
   white-space: nowrap;
@@ -67,4 +69,34 @@
   display: flex;
   gap: var(--spacing-8, 8px);
   margin-left: auto;
+}
+
+/* „Anulează selecția” on the dark bar: the library text button repainted for an inverse surface — white label + × 16,
+   hover / pressed = the inverse hover / active fills, keyboard ring = 2px white (visible on gray-900) */
+.e-permits-selection-bar .e-permits-selection-bar__clear,
+.e-permits-selection-bar .e-permits-selection-bar__clear:hover:not(:disabled),
+.e-permits-selection-bar .e-permits-selection-bar__clear:active:not(:disabled) {
+  border-color: transparent;
+  color: var(--color-text-base-inverse-default, #fff);
+}
+
+.e-permits-selection-bar .e-permits-selection-bar__clear {
+  background: transparent;
+}
+
+.e-permits-selection-bar .e-permits-selection-bar__clear .icon {
+  color: var(--color-icon-base-inverse-default, #fff);
+}
+
+.e-permits-selection-bar .e-permits-selection-bar__clear:hover:not(:disabled) {
+  background: var(--color-background-base-inverse-default-hover, #383838);
+}
+
+.e-permits-selection-bar .e-permits-selection-bar__clear:active:not(:disabled) {
+  background: var(--color-background-base-inverse-default-active, #616161);
+}
+
+.e-permits-selection-bar .e-permits-selection-bar__clear:focus-visible {
+  box-shadow: 0 0 0 2px var(--color-text-base-inverse-default, #fff);
+  outline: none;
 }
