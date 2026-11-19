@@ -85,11 +85,12 @@
 }
 
 /* ---- NEW: the version cell — v7 ▲ the highest (positive), ▼ a lower one (danger), „—” + „lipsește”, „schiță” tag */
+/* stacked (user 2026-11-19): version + mark on line 1, the „schiță” tag under it */
 .e-permits-sync-ver {
-  align-items: center;
+  align-items: flex-start;
   display: inline-flex;
-  flex-wrap: wrap;
-  gap: var(--spacing-4, 4px) var(--spacing-8, 8px);
+  flex-direction: column;
+  gap: var(--spacing-4, 4px);
 }
 
 .e-permits-sync-ver__num {
