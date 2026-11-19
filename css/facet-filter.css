@@ -56,10 +56,8 @@
   width: var(--icon-size-medium, 20px);
 }
 
-.e-permits-filter-trigger--sm .chip__icon .icon {
-  height: var(--spacing-16, 16px);
-  width: var(--spacing-16, 16px);
-}
+/* filter-icon-20-v1 (user 2026-11-19): the 40 trigger carries the 20 icon (= Figma filter-chip, Medium 40 · icon 20);
+   the 16 was left over from the 36 trigger */
 
 .e-permits-filter-trigger .chip__label {
   font-size: inherit;
