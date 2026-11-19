@@ -5288,7 +5288,9 @@
     const own = (id, text) => async (h) => { await h.fill(`[data-sync-own="${id}"]`, text, { leave: false }); await h.wait(120); };
     const confirm = async (h) => { await h.click("#case-action-modal [data-sync-confirm]"); await h.wait(500); };
     const history = (id) => async (h) => { const r = await h.find(`${K} tr[data-workplace-row="${id}"]`); r.scrollIntoView({ block: "center" }); await h.wait(150); await h.click(`${K} tr[data-workplace-row="${id}"] td[data-column="tip"]`); await h.find("[data-sync-drawer]:not([hidden]) .drawer__body > *"); await h.wait(400); };
-    const activity = async (h) => { const a = await h.find(`${K} [data-sync-activity] .e-permits-stack`); a.scrollIntoView({ block: "start" }); await h.wait(250); };
+    /* env-sync-activity-tab-v1: the activity = the last status tab „Activitate” (after the divider) */
+    const activity = async (h) => { await h.click(`${K} [data-workplace-tab="activity"]`); await h.find(`${K} [data-sync-activity]:not([hidden]) > *`); document.activeElement?.blur?.(); await h.wait(250); };
+    const actSearch = (text) => async (h) => { await h.fill(`${K} [data-sync-act-search]`, text); await h.wait(300); };
     const batch = (id) => async (h) => { await h.click(`[data-sync-batch="${id}"]`); await h.wait(250); (await h.find(`[data-sync-batch="${id}"]`)).scrollIntoView({ block: "start" }); document.activeElement?.blur?.(); await h.wait(200); };
     return {
       /* US-346 — the list */
@@ -5316,7 +5318,7 @@
       "sync-04a": list(seq(pick("FRM-0012", "TRF-0021", "SET-0006"), selected, mode("sp"))),
       "sync-04b": list(seq(pick("SET-0006", "CLS-0007"), selected, mode("sp"))),
       "sync-04c": list(seq(tab("sp"), all)),
-      /* the success toast's „Vezi lotul” → the activity panel under the list, the new batch open and in view */
+      /* the success toast's „Vezi lotul” → the Activitate tab, the new batch open at the top */
       "sync-04e": list(seq(pick("FRM-0012", "TRF-0021", "SET-0006"), selected, reason("Pachetul de configurare din noiembrie"), async (h) => { await h.click("#case-action-modal [data-sync-confirm]"); await h.click("[data-toast-action]"); await h.find(`${K} [data-sync-activity] .is-open`); await h.wait(400); })),
       "sync-04d": list(seq(pick("FRM-0012", "TRF-0021", "SET-0006"), selected, reason("Pachetul de configurare din noiembrie"), own("TRF-0021", "Tariful aprobat prin ordinul nr. 112"), confirm)),
       /* US-351 — blocked buttons + skipped objects in a batch */
@@ -5333,7 +5335,12 @@
       /* US-353 — activity */
       "sync-07": list(activity),
       "sync-07a": list(seq(activity, batch("B-0141"))),
-      "sync-07b": list(seq(activity, async (h) => { await h.click("[data-sync-audit]"); await h.find("#dosar-detail-modal.is-active"); await h.wait(400); }))
+      "sync-07b": list(seq(activity, async (h) => { await h.click("[data-sync-audit]"); await h.find("#dosar-detail-modal.is-active"); await h.wait(400); })),
+      /* the Activitate tab's own search (under the tab bar) filters the batches (matching batches open); 07d = no match */
+      "sync-07c": list(seq(activity, actSearch("tarif"), blur)),
+      "sync-07d": list(seq(activity, actSearch("zzz"), blur)),
+      /* the toolbar stays 8 · 40 · 8 above the scope tabs after Activitate → back to a scope tab */
+      "sync-07e": list(seq(activity, tab("sp"), blur))
     };
   }
 

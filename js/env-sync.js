@@ -16,8 +16,10 @@
        direction radios (fixed when opened from a row button), the steps table with „Motiv propriu (opțional)”, the
        skipped objects box, the required batch reason, the user's identity; confirm → steps run, blocked ones skipped,
        one PROMOTE audit event per step (correlation id = batch id), success toast with the batch id;
-     · „Activitatea de sincronizare” under the table = collapsible group rows per batch (newest open), each a table
-       Ce · Sensul · Versiunea · De ce; a name opens the history; „Vezi în Audit & Logging” opens the batch's audit record.
+     · „Activitate” = the last status tab, after a divider, history icon, no count (env-sync-activity-tab-v1, 2026-11-19):
+       collapsible group rows per batch (newest open), each a table Ce · Sensul · Versiunea · De ce, in the table's place;
+       the toolbar search filters the batches, „Vezi în Audit & Logging” replaces „Sincronizează tot”; a name opens the
+       history; the audit button opens the batch's audit record.
    Demo switch ?sincronizare= gol (no divergence) · fara-permisiune. Route #sincronizarea-mediilor.
    ===================================================================================== */
 (function () {
@@ -41,6 +43,8 @@
   const KIND = "sincronizare";
   const NAV = "sincronizarea-mediilor";
   const TITLE = "Sincronizarea mediilor";
+  const ACT = "activity";
+  const SEARCH_LIST = "Caută după denumire sau tip";
   /* the AC texts in the „tu” tone (components.md › Ton: tu) — the stories say „Nu aveți …”, „Lucrați …”, „aici lucrați”,
      „publicați-o” (deviations listed for the PO) */
   const DENIED = "Nu ai permisiunea de a accesa această pagină.";
@@ -200,12 +204,16 @@
       views: {
         [KIND]: {
           title: TITLE,
-          searchPlaceholder: "Caută după denumire sau tip",
+          searchPlaceholder: SEARCH_LIST,
           columns: ["obiect", "tip", "dev", "staging", "prod", "ds", "sp"],
           tabs: [
             { id: "all", label: "Toate divergențele", filter: "pair:all" },
             { id: "ds", label: "DEV ≠ STAGING", filter: "pair:ds" },
-            { id: "sp", label: "STAGING ≠ PROD", filter: "pair:sp" }
+            { id: "sp", label: "STAGING ≠ PROD", filter: "pair:sp" },
+            /* env-sync-activity-tab-v1 (user 2026-11-19: the panel under the list was not seen): the batch history = a
+               VIEW tab in the same bar, set apart by the divider + the history icon, no count (a log is not a to-do) */
+            { divider: true },
+            { id: ACT, label: "Activitate", filter: "view:activity", icon: "history", count: false }
           ],
           defaultTab: "all",
           toolbarLabel: "Filtrare obiecte",
@@ -221,7 +229,7 @@
     get facets() { return [{ key: "tip", label: "Tip obiect", get: (row) => row.type }]; },
     searchText: (row) => [row.name, row.type, row.id].join(" "),
     sortValue: (row, key) => (key === "tip" ? row.type : row.name),
-    filterToken: (row, token) => (token === "pair:ds" ? diverges(row.o, "ds") : token === "pair:sp" ? diverges(row.o, "sp") : true),
+    filterToken: (row, token) => (token === "view:activity" ? false : token === "pair:ds" ? diverges(row.o, "ds") : token === "pair:sp" ? diverges(row.o, "sp") : true),
     renderCell: (row, key) => {
       const o = row.o;
       switch (key) {
@@ -235,6 +243,7 @@
     openRow: (id) => openHistory(id),
     rowLabel: (row) => `${row.type} ${row.name} — deschide istoricul sincronizărilor`,
     emptyHtml: ({ query, filtered }) => {
+      if (onActivity()) return ""; /* the table is hidden on the activity tab */
       /* env-sync-boxed-v1: the BOXED empty state (normal size, never bare), as every list (components.md › Empty state) */
       if (!who().has) return E()?.render({ title: DENIED, icon: "lock" });
       if (query || filtered) return E()?.noResults?.(NO_MATCH, { text: "Caută după denumirea sau tipul obiectului ori schimbă filtrele." });
@@ -245,6 +254,7 @@
     exportState: () => ({ hidden: true })
   };
 
+  const onActivity = () => A().workplaceState?.tabKey === ACT;
   const listEl = () => document.querySelector(`[data-workplace][data-registry-kind="${KIND}"]`);
   const listOpen = () => { const reg = listEl(); return Boolean(reg && !reg.hidden && !reg.closest("[hidden]")); };
   function refreshList() {
@@ -282,13 +292,36 @@
         actionsHtml: `<button class="btn btn-primary btn-sm" type="button" data-sync-scope="selected">${icon("rotate-arrow", 16)}<span>Sincronizează</span></button>`
       }).replace("data-selection-bar>", "data-selection-bar data-sync-selection>"));
     }
-    if (!reg.querySelector("[data-sync-activity]")) reg.insertAdjacentHTML("beforeend", '<section class="e-permits-sync-activity" data-sync-activity aria-labelledby="sync-activity-title"></section>');
+    /* env-sync-activity-tab-v1 (user 2026-11-19): on „Activitate” the header toolbar steps aside and the tab's own toolbar
+       row (the BO toolbar search + „Vezi în Audit & Logging”) sits UNDER the tab bar: tabs → 24 → toolbar → 16 → batches.
+       The row is built once (the field keeps its focus); only the batch list redraws */
+    if (!reg.querySelector("[data-sync-activity]")) reg.insertAdjacentHTML("beforeend", `
+      <section class="e-permits-sync-activity" data-sync-activity aria-label="Activitatea de sincronizare" hidden>
+        <div class="e-permits-sync-activity__toolbar" role="search" aria-label="Caută în activitate">
+          <div class="search-input medium rectangular e-permits-workplace__search e-permits-sync-activity__search">
+            <span class="icon-search" aria-hidden="true">${icon("search")}</span>
+            <input class="input" type="search" placeholder="Caută după lot, obiect, motiv sau autor" aria-label="Caută în activitate" data-sync-act-search>
+            <div class="btn-group">
+              <span class="spinner spinner--extra-small spinner--brand" aria-hidden="true"></span>
+              <button type="button" class="btn-icon clear" aria-label="Șterge căutarea">${icon("cross-small", 16)}</button>
+            </div>
+          </div>
+          <button class="btn btn-neutral btn-sm e-permits-sync-activity__audit" type="button" data-sync-audit hidden>Vezi în Audit &amp; Logging</button>
+        </div>
+        <div class="e-permits-sync-activity__body" data-sync-act-list></div>
+      </section>`);
   }
   function syncChrome() {
     ensureChrome();
     const reg = listEl();
     if (!reg) return;
     const me = who();
+    const act = me.has && onActivity();
+    /* env-sync-activity-tab-v1: the page state lives on the container as `data-sync-tab` (the tab buttons carry
+       `data-workplace-tab` — never one attribute for a state holder and its controls) */
+    reg.dataset.syncTab = act ? ACT : "list";
+    const audit = reg.querySelector("[data-sync-audit]");
+    if (audit) audit.hidden = !batches().length;
     reg.querySelector("[data-sync-intro]").hidden = !me.has;
     /* AC-08: the STAGING header carries „aici lucrezi” */
     const th = reg.querySelector('th[data-column="staging"] .e-permits-workplace__th-content');
@@ -299,7 +332,7 @@
     const tool = reg.querySelector("[data-sync-tool]");
     const nSel = me.has ? selectedRows().length : 0;
     if (tool) {
-      tool.hidden = !me.has;
+      tool.hidden = !me.has || act;
       const nAll = visibleRows().length;
       tool.querySelector("span").textContent = `Sincronizează tot (${nAll})`;
       if (nAll) { tool.removeAttribute("aria-disabled"); delete tool.dataset.tooltipReason; } else { tool.setAttribute("aria-disabled", "true"); tool.dataset.tooltipReason = "Lista afișată este goală."; }
@@ -363,19 +396,30 @@
       </table>
     </div>`;
   }
+  /* env-sync-activity-tab-v1: the toolbar search filters the batches (id, reason, author, the objects' names / types,
+     own reasons, omission reasons); a matching batch opens, so the hit is in view */
+  function batchMatches(b, query) {
+    const terms = fold(query).trim().split(/\s+/).filter(Boolean);
+    if (!terms.length) return true;
+    const hay = fold([b.id, b.reason, b.user, b.role, b.domain, longDate(b.at),
+      ...b.steps.flatMap((s) => { const o = objOf(s.object); return [o?.name, o?.type, s.object, s.ownReason, s.skipped]; })].join(" "));
+    return terms.every((t) => hay.includes(t));
+  }
   function renderActivity() {
     const host = listEl()?.querySelector("[data-sync-activity]");
     if (!host) return;
-    if (!who().has) { host.hidden = true; return; }
+    const out = host.querySelector("[data-sync-act-list]");
+    if (!who().has || !onActivity()) { host.hidden = true; out.innerHTML = ""; return; }
     host.hidden = false;
-    const list = batches();
-    host.innerHTML = `
-      <div class="e-permits-dosar-profil__section-heading e-permits-sync-activity__heading">
-        <h2 class="e-permits-dosar-profil__section-title" id="sync-activity-title">Activitatea de sincronizare</h2>
-        ${list.length ? '<button class="btn btn-neutral btn-sm" type="button" data-sync-audit>Vezi în Audit &amp; Logging</button>' : ""}
-      </div>
-      ${list.length ? `<div class="e-permits-stack e-permits-sync-activity__list">${list.map((b) => {
-        const open = S.open.has(b.id);
+    const query = S.actQuery || "";
+    const all = batches();
+    const list = all.filter((b) => batchMatches(b, query));
+    const isOpen = (b) => S.open.has(b.id) || (query.trim() && !S.closed?.has(b.id));
+    let body;
+    if (!all.length) body = E()?.render({ title: "Nicio sincronizare înregistrată", text: "Loturile apar aici după prima sincronizare.", icon: "history" }) || "";
+    else if (!list.length) body = E()?.noResults?.(NO_MATCH, { text: "Caută după lot, obiect, motiv sau autor." }) || esc(NO_MATCH);
+    else body = `<div class="e-permits-stack e-permits-sync-activity__list">${list.map((b) => {
+        const open = isOpen(b);
         return `<div class="e-permits-stack__group${open ? " is-open" : " is-collapsed"}">
           <h3 class="e-permits-stack__group-label e-permits-stack__group-label--toggle">
             <button class="e-permits-stack__group-toggle e-permits-sync-batch__toggle" type="button" data-sync-batch="${esc(b.id)}" aria-expanded="${open}">
@@ -385,7 +429,8 @@
           </h3>
           ${open ? batchTable(b) : ""}
         </div>`;
-      }).join("")}</div>` : E()?.render({ title: "Nicio sincronizare înregistrată", text: "Loturile apar aici după prima sincronizare.", icon: "history", compact: true }) || ""}`;
+      }).join("")}</div>`;
+    out.innerHTML = body;
   }
 
   /* ---------------------------------------------------------------- the review dialog (US-347 / US-348 / US-351) */
@@ -506,13 +551,18 @@
     G().closeModal?.();
     refreshList();
     const message = `${done === 1 ? "S-a sincronizat 1 modificare" : `S-au sincronizat ${plural(done, "modificare", "modificări")}`}. Lotul ${id}${skipped.length ? `; ${skipped.length === 1 ? "1 obiect omis" : plural(skipped.length, "obiect omis", "obiecte omise")}` : ""}.`;
-    /* the toast leads to the batch: „Vezi lotul” → the activity panel under the list, this batch open and in view */
+    /* env-sync-activity-tab-v1: „Vezi lotul” → the Activitate tab, search cleared, this batch open at the top */
     const toBatch = () => {
       S.open = new Set([id]);
-      renderActivity();
+      S.closed = new Set();
+      S.actQuery = "";
+      const field = listEl()?.querySelector("[data-sync-act-search]");
+      if (field) field.value = "";
+      listEl()?.querySelector(`[data-workplace-tab="${ACT}"]`)?.click();
+      syncChrome();
       const btn = listEl()?.querySelector(`[data-sync-batch="${id}"]`);
       const surface = document.querySelector(".e-permits-shell__canvas-surface");
-      if (btn && surface) surface.scrollTop += btn.getBoundingClientRect().top - surface.getBoundingClientRect().top - 24;
+      if (surface) surface.scrollTop = 0; /* the new batch is the first one, under the tabs */
       btn?.focus({ preventScroll: true });
     };
     if (window.GEAPToast?.show) window.GEAPToast.show({ type: "success", title: "Sincronizare efectuată", message, action: { label: "Vezi lotul", onClick: toBatch } });
@@ -616,7 +666,9 @@
     const toggle = t.closest("[data-sync-batch]");
     if (toggle) {
       const id = toggle.dataset.syncBatch;
-      if (S.open.has(id)) S.open.delete(id); else S.open.add(id);
+      const wasOpen = toggle.getAttribute("aria-expanded") === "true";
+      S.closed = S.closed || new Set();
+      if (wasOpen) { S.open.delete(id); S.closed.add(id); } else { S.open.add(id); S.closed.delete(id); }
       renderActivity();
       document.querySelector(`[data-sync-batch="${id}"]`)?.focus({ preventScroll: true });
       return;
@@ -648,6 +700,12 @@
   document.addEventListener("change", (event) => {
     const r = event.target.closest?.("[data-sync-mode]");
     if (r && D && !D.fixed) { D.mode = r.value; renderReview(); document.querySelector(`#case-action-modal [data-sync-mode][value="${r.value}"]`)?.focus(); }
+  });
+  /* the activity search: redraws only the batch list (the field keeps the focus) */
+  document.addEventListener("input", (event) => {
+    if (!event.target.matches?.("[data-sync-act-search]")) return;
+    S.actQuery = event.target.value;
+    renderActivity();
   });
   document.addEventListener("input", (event) => {
     const t = event.target;

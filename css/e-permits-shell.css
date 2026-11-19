@@ -1517,7 +1517,8 @@ body {
   border-bottom-color: var(--color-border-brand-default, #0058d2);
 }
 
-.e-permits-workplace__status-tab span:last-child {
+/* status-tab-icon-v1: a tab without a count ends with its label — the pill is only the count */
+.e-permits-workplace__status-tab span:last-child:not(.e-permits-workplace__status-label) {
   box-sizing: border-box;
   min-width: 20px;
   height: 20px;
@@ -2307,6 +2308,14 @@ body {
 
 .e-permits-workplace__status-tab--warn {
   color: var(--color-text-base-secondary, #383838);
+}
+
+/* status-tab-icon-v1 (2026-11-19): a view tab's leading icon = the library tab icon (`icon medium` = 20), label colour */
+.e-permits-workplace__status-tab--icon .icon {
+  flex: 0 0 auto;
+  width: var(--icon-size-medium, 20px);
+  height: var(--icon-size-medium, 20px);
+  color: currentColor;
 }
 
 .e-permits-workplace__status-divider {

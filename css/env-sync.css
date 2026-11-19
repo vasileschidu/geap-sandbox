@@ -267,7 +267,8 @@
   padding-left: var(--spacing-20, 20px);
 }
 
-/* ---- „Activitatea de sincronizare” under the table — the content column edge (16), 24 above, 24 at the end */
+/* ---- „Activitate” tab (env-sync-activity-tab-v1) — in the table's place, the content column edge (16): the tab page
+   rhythm tabs → 24 → its toolbar row (search + „Vezi în Audit & Logging”) → 16 → the batches, 24 at the end */
 .e-permits-sync-activity {
   display: flex;
   flex-direction: column;
@@ -275,11 +276,19 @@
   padding: var(--spacing-24, 24px) var(--spacing-16, 16px);
 }
 
-.e-permits-sync-activity__heading {
+.e-permits-sync-activity__toolbar {
   align-items: center;
   display: flex;
-  gap: var(--spacing-16, 16px);
-  justify-content: space-between;
+  gap: var(--spacing-12, 12px);
+}
+
+.e-permits-sync-activity__search {
+  flex: 0 1 calc(var(--spacing-40, 40px) * 10);
+  min-width: 0;
+}
+
+.e-permits-sync-activity__audit {
+  margin-left: auto;
 }
 
 /* NEW: the batch header inside the shared group toggle — id + count + omitted tag, then the meta lines */
@@ -389,7 +398,7 @@
 
 /* env-sync-band-v1 + env-sync-selbar-v3 (PO 2026-11-19): the „Lucrezi în mediul STAGING” notice = a full-edge band directly
    under the top bar (no top gap, no side inset, no radius), even padding 16 = the page gutter. Under it the toolbar has
-   even padding 16 top / 16 bottom (no extra gap under the band) */
+   8 top / 8 bottom = 56, like every BO list (env-sync-toolbar-56, user 2026-11-19; was 16 / 16 = 72) */
 .e-permits-workplace[data-registry-kind="sincronizare"] > .e-permits-sync-intro {
   padding: 0;
 }
@@ -400,26 +409,51 @@
 }
 
 .e-permits-workplace[data-registry-kind="sincronizare"] .e-permits-workplace__header > [data-workplace-toolbar] {
-  padding-top: var(--spacing-16, 16px);
-  padding-bottom: var(--spacing-16, 16px);
+  padding-top: var(--spacing-8, 8px);
+  padding-bottom: var(--spacing-8, 8px);
   height: auto;
   min-height: 0;
 }
 
 /* the dark selection bar = the toolbar's whole footprint, black edge to edge from the band to the tabs (no white strip):
-   height = 16 + 40 + 16, the action sits exactly where „Sincronizează tot (N)” was — selecting never moves anything */
+   height = 8 + 40 + 8 = 56, the action sits exactly where „Sincronizează tot (N)” was — selecting never moves anything */
 .e-permits-workplace[data-registry-kind="sincronizare"] .e-permits-workplace__header > .e-permits-selection-bar {
   padding: 0;
 }
 
 .e-permits-workplace[data-registry-kind="sincronizare"] .e-permits-workplace__header > .e-permits-selection-bar .e-permits-selection-bar__inner {
-  min-height: calc(var(--spacing-40, 40px) + 2 * var(--spacing-16, 16px));
+  min-height: var(--spacing-56, 56px); /* = the toolbar: 8 + 40 + 8, like every BO list (user 2026-11-19) */
   /* env-sync-selbar-v4 (user 2026-11-19 „align with search”): „N obiecte selectate” starts where the search icon starts
      (gutter 16 + the search's 1px line + its 12 inset) — the eye stays on the same spot when the bar replaces the toolbar */
   padding-left: calc(var(--spacing-16, 16px) + var(--border-width-1, 1px) + var(--spacing-12, 12px));
 }
 
-/* the header's first row follows the 72 toolbar / selection bar (BO default row = 56) */
+/* the header's first row follows the toolbar / selection bar (auto rows; both 56 = the BO default) */
 .e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-workplace[data-registry-kind="sincronizare"] .e-permits-workplace__header {
   grid-template-rows: auto auto auto;
+}
+
+/* env-sync-activity-tab-v1 (user 2026-11-19: „not visible down there”): the activity is the LAST status tab — a 1px divider
+   (the shared `__status-divider`, 8 of air each side) sets it apart from the three scope tabs, the library tab icon 20
+   (`icon-history`) leads its label, no count. On it the table, pager, Filtrare and „Sincronizează tot” step aside; the
+   search stays (filters the batches) and „Vezi în Audit & Logging” takes the action slot */
+.e-permits-workplace[data-registry-kind="sincronizare"] .e-permits-workplace__status-divider {
+  height: var(--spacing-20, 20px); /* the tab label line (14/20), centred in the 40 bar — shorter than the 28 tool divider */
+  margin-inline: var(--spacing-8, 8px);
+}
+
+/* on „Activitate” the header toolbar slot is not used (no empty band above the tabs): the tab bar follows the notice */
+.e-permits-workplace[data-registry-kind="sincronizare"][data-sync-tab="activity"] > :is(.e-permits-workplace__table-wrap, .e-permits-workplace__footer),
+.e-permits-workplace[data-registry-kind="sincronizare"][data-sync-tab="activity"] > .e-permits-workplace__header > :is([data-workplace-toolbar], .e-permits-selection-bar, .e-permits-workplace__filters) {
+  display: none;
+}
+
+.e-permits-sync-activity [data-sync-audit][hidden] {
+  display: none;
+}
+
+/* env-sync-toolbar-stable-v1: the page is height: auto inside a min-height column — a short page (the activity, a near-empty
+   tab) let the grid STRETCH its auto rows (notice 52 → 109, toolbar 56 → 75); rows hug their content on every tab */
+.e-permits-workplace[data-registry-kind="sincronizare"] {
+  align-content: start;
 }

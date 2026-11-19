@@ -7729,10 +7729,13 @@ document.addEventListener("DOMContentLoaded", () => {
       const count = Number.isFinite(tab.displayCount) && !filtering ? tab.displayCount : computedCount;
       const isActive = activeTab?.id === tab.id;
 
+      /* status-tab-icon-v1 (2026-11-19, first: Sincronizarea mediilor „Activitate”): a tab may lead with a sprite icon
+         (`icon`, library tab icon 20) and drop the count (`count: false`) — a view tab next to the filter tabs */
       return `
-        <button class="e-permits-workplace__status-tab${isActive ? " is-active" : ""}${tab.tone ? ` e-permits-workplace__status-tab--${escapeHtml(tab.tone)}` : ""}" type="button" role="tab" data-workplace-tab="${escapeHtml(tab.id)}" aria-selected="${isActive ? "true" : "false"}">
+        <button class="e-permits-workplace__status-tab${isActive ? " is-active" : ""}${tab.tone ? ` e-permits-workplace__status-tab--${escapeHtml(tab.tone)}` : ""}${tab.icon ? " e-permits-workplace__status-tab--icon" : ""}" type="button" role="tab" data-workplace-tab="${escapeHtml(tab.id)}" aria-selected="${isActive ? "true" : "false"}">
+          ${tab.icon ? `<svg class="icon medium" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-${escapeHtml(tab.icon)}"></use></svg>` : ""}
           <span class="e-permits-workplace__status-label">${escapeHtml(tab.label)}</span>
-          <span class="e-permits-workplace__status-count">${count}</span>
+          ${tab.count === false ? "" : `<span class="e-permits-workplace__status-count">${count}</span>`}
         </button>
       `;
     }).join("");
