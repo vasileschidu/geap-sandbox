@@ -167,39 +167,40 @@
         <span class="e-permits-sync-dir__note" id="${id}">${esc(blocked ? st.blocked : st.type)}</span>
       </span>`;
   }
-  /* env-sync-panel-v2 (user 2026-11-19: „an actionable panel, not simple details”; GitHub merge box / Vercel promote =
-     look & feel): one Alert card per pair (`GEAPAlertCard`, BO sprite) that SAYS the state and the step —
-     title = „DEV are v7, STAGING are v6” (source first), text = „STAGING trece de la v6 la v7.”, button = the verb + version („Preia v7 în
-     STAGING”). ONE labelled primary = the first step toward the highest version (the „Ambele sensuri” order), another
-     pending step = the card's lone quiet button `btn-outline-strict`; blocked = warning tone, the reason as text, the
-     button aria-disabled + described by it; equal = success tone, no button. A click closes the drawer → review. */
-  const STEP_VERB = { staging: "Preia", dev: "Propagă", prod: "Promovează" };
+  /* env-sync-panel-v3 (user 2026-11-19: „an actionable panel, not simple details”; GitHub merge box / Vercel promote =
+     look & feel; v2 grey Alert cards → user: no grey, ONE bordered container with dividers): the BO STACKED LIST, one
+     row per pair — lead = the status glyph 20 (the dashboard alert lead `.e-permits-dsh-alert__icon--{tone}`), title =
+     the state in words (source first, „DEV are v7, STAGING are v6”), meta = what changes („STAGING trece de la v6 la
+     v7.”), action right = the table's direction label („DEV → STAGING”); waiting = clock glyph (time-filled): ONE labelled `btn-primary` = the first unblocked step
+     toward the highest version, another pending step `btn-secondary`; blocked (draft / failed gate) = warning glyph,
+     the button aria-disabled + described by the reason under it; the action = the table's direction cell (button +
+     step-type note 4 under it); equal = positive glyph „… sunt la zi” + the success Small tag „sincronizat” in the action slot.
+     Rows are not clickable (no hover); a button click closes the drawer → the single-object review. */
   const verOr = (v) => (v == null ? "—" : `v${v}`);
-  function pairCard(o, pair, primary) {
+  const LEAD = { info: "time-filled", warning: "warning-filled", success: "circle-checkmark-filled" };
+  function pairItem(o, pair, primary) {
     const { a, b } = PAIRS[pair];
     const st = pairStep(o, pair);
     const id = `sync-pc-${esc(o.id)}-${pair}`;
-    const card = (opts) => window.GEAPAlertCard?.html({ sprite: "assets/icons/sprite.svg", titleTag: "h3", id, className: "e-permits-sync-pcard", ...opts }) || "";
-    if (!st) {
-      return card({ tone: "success", title: esc(`${ENV_LABEL[a]} și ${ENV_LABEL[b]} sunt la zi`), text: esc(`Ambele au ${verOr(vnum(o[a]))}. Nimic de sincronizat.`) });
-    }
+    const item = (tone, title, meta, actionsHtml = "") => ({
+      plainTitle: title, title: esc(title), meta: [meta], actionsHtml,
+      leadHtml: `<span class="e-permits-dsh-alert__icon e-permits-dsh-alert__icon--${tone}" aria-hidden="true">${icon(LEAD[tone])}</span>`
+    });
+    if (!st) return item("success", `${ENV_LABEL[a]} și ${ENV_LABEL[b]} sunt la zi`, esc(`Ambele au ${verOr(vnum(o[a]))}. Nimic de sincronizat.`), tag("sincronizat", "success"));
     const has = (env) => (o[env] ? `${ENV_LABEL[env]} are ${verOr(vnum(o[env]))}` : `${ENV_LABEL[env]} nu are obiectul`);
     const blocked = Boolean(st.blocked);
-    const label = `${STEP_VERB[st.to]} v${st.after} în ${ENV_LABEL[st.to]}`;
-    const variant = primary ? "btn-primary" : "btn-outline-strict";
-    const btn = `<button class="btn ${variant} btn-md btn-rounded e-permits-sync-pcard__btn" type="button" data-sync-step="${esc(o.id)}" data-sync-pair="${pair}"${blocked ? ` aria-disabled="true" aria-describedby="${id}-why"` : ""}>${esc(label)}</button>`;
-    const text = blocked
-      ? `<span id="${id}-why">${esc(st.blocked)}</span>`
-      : esc(st.before == null ? `${ENV_LABEL[st.to]} primește obiectul în v${st.after}.` : `${ENV_LABEL[st.to]} trece de la v${st.before} la v${st.after}.`);
-    return card({ tone: blocked ? "warning" : "info", title: esc(`${has(st.from)}, ${has(st.to)}`), text, actions: btn });
+    const label = arrow(st.from, st.to);
+    /* the table's direction cell 1:1 (`.e-permits-sync-dir` › button + `__note` = step type, or the block reason) */
+    const btn = `<span class="e-permits-sync-dir${blocked ? " is-blocked" : ""}">
+        <button class="btn ${primary ? "btn-primary" : "btn-secondary"} btn-sm e-permits-sync-dir__btn" type="button" data-sync-step="${esc(o.id)}" data-sync-pair="${pair}"${blocked ? ` aria-disabled="true" aria-describedby="${id}-why"` : ""} aria-label="${esc(`${label}, ${st.type}`)}">${esc(label)}</button>
+        <span class="e-permits-sync-dir__note" id="${id}-why">${esc(blocked ? st.blocked : st.type)}</span>
+      </span>`;
+    const meta = esc(st.before == null ? `${ENV_LABEL[st.to]} primește obiectul în v${st.after}.` : `${ENV_LABEL[st.to]} trece de la v${st.before} la v${st.after}.`);
+    return item(blocked ? "warning" : "info", `${has(st.from)}, ${has(st.to)}`, meta, btn);
   }
   function panelActions(o) {
     const first = plan([o], "both").steps[0]?.pair;
-    return `
-      <section class="e-permits-dosar-profil__section e-permits-sync-panel" aria-labelledby="sync-panel-title">
-        <div class="e-permits-dosar-profil__section-heading"><h2 class="e-permits-dosar-profil__section-title" id="sync-panel-title">Sincronizare</h2></div>
-        <div class="e-permits-sync-panel__cards">${["ds", "sp"].map((pair) => pairCard(o, pair, pair === first)).join("")}</div>
-      </section>`;
+    return A().renderStackedList?.("Sincronizare", [{ label: "", items: ["ds", "sp"].map((pair) => pairItem(o, pair, pair === first)) }], { className: "e-permits-sync-panel" }) || "";
   }
   function lastSyncLine(o) {
     const s = lastSync(o.id);

@@ -341,13 +341,6 @@
   border-bottom: 0;
 }
 
-/* env-sync-panel-v2: the „Sincronizare” block of the object panel = one Alert card per pair (css/alert-card.css, no
-   override), stacked 8 apart; the drawer body is narrower than 720, so the button sits under the text, right-aligned */
-.e-permits-sync-panel__cards {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-8, 8px);
-}
 
 /* env-sync-frame-v1 (PO 2026-11-19): the current-environment column framed — 1px `--color-border-brand-secondary`
    left + right along header and body (never the outer table edge: STAGING is an inner column) */
@@ -448,4 +441,14 @@
 .e-permits-sync-table.e-permits-sync-table.e-permits-rpt-table.e-permits-workplace__table tbody tr:not([data-workplace-row-open]):hover > td {
   background: var(--color-background-base-default, #fff);
   cursor: auto;
+}
+
+/* env-sync-panel-v3: the direction cell as the action of a panel row — the row has its own 12 padding (no cell padding);
+   a block reason wraps inside 6 × 40 instead of widening the action column */
+.e-permits-sync-panel .e-permits-sync-dir {
+  padding: 0;
+}
+
+.e-permits-sync-panel .e-permits-sync-dir.is-blocked .e-permits-sync-dir__note {
+  max-width: calc(var(--spacing-40, 40px) * 6);
 }

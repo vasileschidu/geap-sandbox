@@ -815,6 +815,9 @@
 
 .e-permits-dsh-alert__icon--danger { color: var(--color-icon-danger-default, #d92d20); }
 .e-permits-dsh-alert__icon--warning { color: var(--color-icon-warning-default, #f79009); }
+/* env-sync-panel-v3: the same status lead in the env-sync object panel — info + positive tones */
+.e-permits-dsh-alert__icon--info { color: var(--color-icon-brand-default, #0058d2); }
+.e-permits-dsh-alert__icon--success { color: var(--color-icon-positive-default, #039855); }
 
 /* dsh-personal-v1 (US-433): the dialog body = info note → 24 → the checkbox list (legend 14/20 medium, 16 between rows);
    footer: „Resetează la implicit” left, Anulează · Salvează right */
