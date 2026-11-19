@@ -6,13 +6,13 @@ GEAP 2.0's library is published and enabled here (2026-11-18). GEAP components a
 ## Ids (root shared plugin data `envs`/`ids`; routines `envs`/`lib`, `envs`/`post`, `envs`/`audit`)
 | What | id |
 |---|---|
-| Page „📍 Cover” · file index card | 0:1 · 15:113 (13 blocks) |
+| Page „📍 Cover” · file index card | 0:1 · 15:113 (18 blocks) |
 | Page „Sincronizarea mediilor” | 3:2 |
 | 00 · Start here (card 15:105, contents lines 15:109–15:112 linked to the sections) | 13:2536 |
-| 01 · List & states | 13:2537 — sync-01 13:2541 · 01a 28:3766 · 01g 28:4596 · 01e 41:8876 · 01f 41:9601 · 02 28:5093 |
+| 01 · List & states | 13:2537 — sync-01 13:2541 · 01a 28:3766 · 01g 28:4596 (menu open, 3 selected) · **01h 53:6644** („Sincronizează tot (14)” on a pair tab) · 01e 41:8876 · 01f 41:9601 · 02 28:5093 |
 | 02 · Sync one | 13:2538 — sync-03 23:4758 · 03b 33:5429 |
-| 03 · Batch | 13:2539 — sync-04 33:6675 · 05a 33:7790 · 04d 33:8643 |
-| 04 · History & activity | 13:2540 — sync-06 41:7300 · 07 41:8129 |
+| 03 · Batch | 13:2539 — sync-04 33:6675 · 05a 33:7790 · 04d 33:8643 · **04e 93:8687** („Vezi lotul” → Activitate, B-0143 open) |
+| 04 · History & activity | 13:2540 — sync-06 41:7300 · 06c 60:7594 · 07 41:8129 · **07c 93:7579** (search „tarif”) · **07d 93:8164** (no match) |
 Screens: `envs`/`ids` keys `scr_<state>`; blocks `blk_<state>`. No raw captures left on the page.
 
 ## Per-state chain (≈ 2 Figma calls / block, 2–3 blocks per use_figma call; > 3 risks the 5-min timeout)
@@ -33,12 +33,17 @@ Screens: `envs`/`ids` keys `scr_<state>`; blocks `blk_<state>`. No raw captures 
    - Empty states → `Empty state · boxed` Size=Default (33fcf9d6…): inline routine in the 01e/01f call (frame = 48 icon circle + title + text).
 3. Audit: `const AUD = new Function("return " + figma.root.getSharedPluginData("envs","audit"))(); await AUD([blockIds])` (= tools/ui-qa/figma-audit.js without comments / RESPONSIVE).
 
+## Local components (page „🧩 Local components”, 2026-11-19)
+„Batch header” component set `50:6639` (shared plugin data `envs`/`batchHeader`): State = Closed / Open (chevron down / up) / Hover (grey `background/base/tertiary`),
+text properties Title, Meta line, Reason line, boolean „Show Omis tag” (tag text editable, exposed instance). Padding 16/20, title row → 8 → meta, 4 between meta lines.
+All 37 batch headers on the board are instances (State=Open). It is local here because GEAP 2.0 is in recovery mode — move it to the GEAP library later and re-point the instances.
+
 ## Left to do (updated 2026-11-18, finish-up job)
 Done: blank gap fixed. The empty white `Pinned column (overlay)` frames (+ their `Container` / `Container:margin` wrappers) were deleted on
 9 screens: the code table fits at 1440, so no pinned shadow and the empty frame also hid the right-hand columns. sync-01a screen 3207 → 2139
 (code 2127); other list screens 2646–2654 (code 2642). Sections re-stacked. Dialogs 04 / 05a rebuilt (the footer buttons were missing),
 radios FILL, skipped-objects notice one item per line, screens = dialog + 48; 06 drawer footer pinned to the bottom; 04d toast heading; 03b note.
-1. **Arrows**: still open. `figma.createConnector` does not exist in design files; no connector on the page. Paste one from GEAP (e.g. 10952:283686)
+1. **Arrows**: DONE 2026-11-19 — 9 connectors cloned from the GEAP connector the PO pasted (ids in `envs`/`ids` key `arrows`; label pill inherited from the template; the pasted original was deleted, so a new arrow needs a fresh paste as `ids.connector`). Original note: `figma.createConnector` does not exist in design files; no connector on the page. Paste one from GEAP (e.g. 10952:283686)
    onto page 3:2, store its id as `ids.connector`, then run `LIB("arrow",{from,to,label,magnet,endMagnet})` for the 9 planned arrows:
    sync-01 tab „DEV ⇄ STAGING” → 01a · row checkbox → 01g · search → 01e · row „DEV → STAGING” → 03 · type cell „Formular” → 06 ·
    batch header → 07 · 01g „Sincronizează selecția” → 04 · 03 footer confirm → 03b · 04 footer confirm → 04d (same column: end RIGHT).
@@ -51,6 +56,21 @@ radios FILL, skipped-objects notice one item per line, screens = dialog + 48; 06
    Setări. No library drawer: the history drawer (sync-06) is the captured frame with library controls. sync-02 / 01e / 01f boxed empty states
    keep the default icon.
 5. Code notes for proto-engineer: toolbar buttons use generic icons (Sincronizează selecția = upload, Sincronizează tot = plus-large).
+
+## Sincronizează ⌄ (2026-11-19, env-sync-menu-v1)
+Toolbar = ONE library `button-filled-rectangular` Secondary · Trailing · Small „Sincronizează” + 16 chevron (Disabled on the empty 01e / 01f; Active on 01g / 01h = open). Open menu = frame `Menu · Sincronizează`
+(absolute in the screen, right-aligned under the button, p8 g4, radius-12, dropdown-effect, clip) with 2 × GEAP `Post-process menu · item` Desktop (40): „Obiectele selectate (N)” (24/check-all) and „Toate obiectele afișate (N)” (20/bullet-list).
+The „Acțiuni tabel” filler must be FILL on every screen (was fixed width in 01g / 04 / 05a). Arrow „Obiectele selectate” starts on the 01g menu item → 04.
+Lane pass: connectors cannot take waypoints through the API (elbow route is automatic), so same-column loops still share the right-hand lane — needs a manual drag of the elbow handles.
+
+## Version cell with „schiță” (2026-11-19, env-sync-ver-stack-v1)
+All 22 version cells with the Small „schiță” tag (2 per screen, 11 screens) are stacked: the „vN ▲” line, then the tag 4 px under it (VERTICAL, align left, gap = spacings/spacing-4). Row heights did not change (rows are set by the taller cells). Not made a component: only 22 instances, edited in place.
+
+## Selection bar + object panel CTAs (2026-11-19, selection-bar-v1 / env-sync-panel-v1)
+- Toolbar with nothing selected = ONE library Secondary Small „Sincronizează tot (N)” (16/refresh leading, Disabled on the empty 01e / 01f). The „Sincronizează ⌄” dropdown and its menu are gone.
+- Local component **Selection bar** `60:7488` (page „🧩 Local components”, `envs`/`selBar`; local because GEAP 2.0 is in recovery — move to the GEAP library later): brand-secondary bar, radius-8, padding 4/4/4/16, text property „Count text”, exposed „Clear” text button and primary „Action”. It replaces the toolbar's content on 01g, 04, 05a (3 selected). Arrow „Sincronizează (3)” starts on its Action button → 04.
+- STAGING column: header + body cells already bound to `background/brand/secondary`; „aici lucrezi” = Strong Brand Small tag on all 11 tables.
+- Drawer 06 + new block **sync-06c** `60:7594` (section 04): „Sincronizare” section first in the body (rows per pair: Medium primary / secondary direction button + step note, equal pair = success Small tag „sincronizat”). 06c = both directions available.
 
 ## Alignment to code b35b938e + d10c2c19 (2026-11-19, env-sync-align-v1)
 The pipeline band / page tabs / in-cell step round was rejected and reverted in code: the blocks keep the blue notice, the
@@ -75,3 +95,11 @@ The pipeline band / page tabs / in-cell step round was rejected and reverted in 
   Sections 01 and 04 restacked from y 80 — re-check those y gaps after any restack. No manual drag needed in the
   1600-px overview; verify at zoom.
 - Rejected and deleted: local „Environment pipeline” and „Version cell” sets, raw captures of the band layout.
+
+## Activitate tab (2026-11-19, env-sync-activity-tab-v2 = code 9a6c7330 + 24684e42)
+- Every list block: toolbar `Filtrare obiecte` 56 (8/16/8/16) flush under the band; tab bar = 3 scope tabs · `Divider` (1×20 line, padding
+  spacing-8) · `tab · Activitate` (history 20, no count). Selection bar 60:7488 = 56, padding 0/16/0/29, Action = Primary Small Leading 16/refresh.
+- sync-07 / 07c / 07d / 04e: `Toolbar · Activitate` in the same slot ABOVE the tabs (search 400 „Caută după lot, obiect, motiv sau autor”,
+  FILL filler, Neutral Small „Vezi în Audit & Logging”); Section p24/16 holds only the batch list (07d = Empty state · boxed, search icon).
+- Arrow `Flow · Vezi lotul` 93:9263: 04d toast link anchor → 04e end anchor (x 1448). New blocks were cloned from 07; GRID tables keep FIXED
+  row sizes — after removing rows set the table + its wrapper to HUG and the short cell texts to WIDTH_AND_HEIGHT.
