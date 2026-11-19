@@ -5,7 +5,7 @@
 //                    step inputs → library text-input (label off)
 //   "post" {screen}  AFTER LIB("screen"): dialog → GEAP Modal Type=Content (content cloned into the Body slot, footer
 //                    buttons Medium), scrim bound to overlay-dark, sort header labels, „Vezi în Audit & Logging” → Neutral
-//                    Small button, activity object names → links, batch toggles → svc/stack-group-header (+ meta lines),
+//                    Small button, activity object names → plain text, batch toggles → svc/stack-group-header (+ meta lines),
 //                    GRID tracks rounded (whole px)
 async (OP, A = {}) => {
   figma.skipInvisibleInstanceChildren = false;
@@ -16,7 +16,7 @@ async (OP, A = {}) => {
   const vk = async (k) => (VV[k] = VV[k] || (await figma.variables.importVariableByKeyAsync(k)));
   const sk = async (k) => (SS[k] = SS[k] || (await figma.importStyleByKeyAsync(k)));
   const K = { radio: "513e56108ce8f11caec41350386e3662ac05d004", area: "b9326acb41b6b6cdb42bbbab753e2c0279107520", input: "f035f11544e0883bc29ca99b48309238db82edf8", modal: "9e3894b2f7144351f232578666c651c7b97660fa", rect: "2cbe2c350e7c6b3948dc449660ede8355511c384", group: "d8b1af4ecb4c21c15f176242197659e554a8a4f9", tag: "a97109f9ebf668fb7616cb37e46929fc75ed9070" };
-  const VAR = { scrim: "7d8a710deec8a41a491fdcfc27dbc6f88701213d", overlay: "75e94de048cf1e8f0ef4f93f6bb9eb52519686ec", brand: "0e3dbef907f67c87aa26db90914a7a9fe1a60591" };
+  const VAR = { scrim: "7d8a710deec8a41a491fdcfc27dbc6f88701213d", overlay: "75e94de048cf1e8f0ef4f93f6bb9eb52519686ec", brand: "0e3dbef907f67c87aa26db90914a7a9fe1a60591", textSec: "59b0386ff11f37f21dcbd05e1e7313d49e3c0a48" };
   const BS5 = "057521fde838188af42abf69eb3789f676421047";
   const V = (set, want) => set.children.find((c) => Object.entries(want).every(([k, v]) => c.name.includes(`${k}=${v}`)));
   const pk = (i, pre) => Object.keys(i.componentProperties).find((k) => k.startsWith(pre));
@@ -103,10 +103,10 @@ async (OP, A = {}) => {
       for (const ln of lines.slice(1)) { meta.appendChild(ln); try { ln.layoutSizingHorizontal = "FILL"; } catch (e) {} }
       b.remove(); D("batch-header");
     }
-    // activity object names (link buttons in table cells) → brand links
-    const bs5 = await sk(BS5);
+    // activity object names (button-wrapped texts in table cells) → plain Body/Small secondary text (env-sync-rowopen-v1: the row is the action, no link)
+    const bs5 = await sk("1f35541006807f80d766d8eb6ef5ae95d4f5cf6e");
     for (const b of scr.findAll((n) => n.type === "FRAME" && /^Button/.test(n.name) && !inInst(n) && n.parent && /Text|Table Cell/.test(n.parent.name) && n.children.length === 1 && n.children[0].type === "TEXT")) {
-      if (b.removed) continue; const t = b.children[0]; const p = b.parent, ix = p.children.indexOf(b); p.insertChild(ix, t); await lf(t); await figma.loadFontAsync(bs5.fontName); await t.setTextStyleIdAsync(bs5.id); t.fills = await paint(VAR.brand); t.name = "link · " + t.characters.slice(0, 30); b.remove(); D("link");
+      if (b.removed) continue; const t = b.children[0]; const p = b.parent, ix = p.children.indexOf(b); p.insertChild(ix, t); await lf(t); await figma.loadFontAsync(bs5.fontName); await t.setTextStyleIdAsync(bs5.id); t.fills = await paint(VAR.textSec); t.name = "Object name"; b.remove(); D("name");
     }
     // GRID tracks → whole px
     for (const t of scr.findAll((n) => n.type === "FRAME" && n.layoutMode === "GRID" && !inInst(n))) {

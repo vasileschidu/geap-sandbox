@@ -6,13 +6,13 @@ GEAP 2.0's library is published and enabled here (2026-11-18). GEAP components a
 ## Ids (root shared plugin data `envs`/`ids`; routines `envs`/`lib`, `envs`/`post`, `envs`/`audit`)
 | What | id |
 |---|---|
-| Page „📍 Cover” · file index card | 0:1 · 15:113 (18 blocks) |
+| Page „📍 Cover” · file index card | 0:1 · 15:113 (19 blocks) |
 | Page „Sincronizarea mediilor” | 3:2 |
 | 00 · Start here (card 15:105, contents lines 15:109–15:112 linked to the sections) | 13:2536 |
 | 01 · List & states | 13:2537 — sync-01 13:2541 · 01a 28:3766 · 01g 28:4596 (menu open, 3 selected) · **01h 53:6644** („Sincronizează tot (14)” on a pair tab) · 01e 41:8876 · 01f 41:9601 · 02 28:5093 |
 | 02 · Sync one | 13:2538 — sync-03 23:4758 · 03b 33:5429 |
 | 03 · Batch | 13:2539 — sync-04 33:6675 · 05a 33:7790 · 04d 33:8643 · **04e 93:8687** („Vezi lotul” → Activitate, B-0143 open) |
-| 04 · History & activity | 13:2540 — sync-06 41:7300 · 06c 60:7594 · 07 41:8129 · **07c 93:7579** (search „tarif”) · **07d 93:8164** (no match) |
+| 04 · History & activity | 13:2540 — sync-06 41:7300 · 06c 60:7594 · **06e 108:11005** (draft-blocked step) · 07 41:8129 · **07c 93:7579** (search „tarif”) · **07d 93:8164** (no match) |
 Screens: `envs`/`ids` keys `scr_<state>`; blocks `blk_<state>`. No raw captures left on the page.
 
 ## Per-state chain (≈ 2 Figma calls / block, 2–3 blocks per use_figma call; > 3 risks the 5-min timeout)
@@ -103,3 +103,16 @@ The pipeline band / page tabs / in-cell step round was rejected and reverted in 
   FILL filler, Neutral Small „Vezi în Audit & Logging”); Section p24/16 holds only the batch list (07d = Empty state · boxed, search icon).
 - Arrow `Flow · Vezi lotul` 93:9263: 04d toast link anchor → 04e end anchor (x 1448). New blocks were cloned from 07; GRID tables keep FIXED
   row sizes — after removing rows set the table + its wrapper to HUG and the short cell texts to WIDTH_AND_HEIGHT.
+
+## Object panel v3 + plain activity names (2026-11-19, env-sync-panel-v3 = code d5de59c2 + 57bfb367 + f04fedbf)
+- Local component set **Sync pair row** `106:86` (page „🧩 Local components”, `envs`/`pairRow`): State = Waiting (EVO 24/time-filled, icon/brand) /
+  Blocked (24/warning-filled, icon/warning; Secondary Small Disabled button, red 12/16 reason, 240 wide) / In sync (24/circle-checkmark-filled,
+  icon/positive; tag-filled Subtle Success Small „sincronizat”). TEXT Title (Stack item / Title 14/24) / Meta (Stack item / Meta 12/20 tertiary) /
+  Note; exposed `Button` (library button-filled-rectangular Small Icon=None, set Style Primary / Secondary + label per instance). Padding 0/20, Content
+  12/12 gap 12 with a 1 px bottom stroke inset by the row padding (= code); last row: Content `strokeBottomWeight = 0`.
+- Drawer „Sincronizare” = `Sync pair list` frame (white, 1 px border/base/default INSIDE, radius-12, clip) of 2 rows: 06 107:8224, 06c 107:8251, 06e in 108:11005.
+- Panel arrow: the old 100:8221 was DELETED by Figma when its start node was removed → new `Flow · DEV → STAGING (panel)` 107:8279 from
+  anchor 107:8278 (absolute over the 06 row button, TOP) → 100:8225 (TOP). `ids.arrows` updated.
+- Activity batch tables (07 / 07c / 04e, 15 cells): object name = plain `Object name` text (Body/Small, text/base/secondary), no brand link;
+  `post.js` writes plain names now (the stored `envs`/`post` copy in the file still has the old link step — re-paste before the next capture).
+- Sincronizează tot (N) / selection bar Action = 16/refresh on all 14 instances (verified).
