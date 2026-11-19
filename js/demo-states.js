@@ -5278,10 +5278,10 @@
     const search = (text) => async (h) => { await h.fill("[data-workplace-search]", text); await h.wait(400); };
     const pick = (...ids) => async (h) => { for (const id of ids) { await h.click(`${K} [data-workplace-select-row="${id}"]`); await h.wait(80); } await h.wait(200); };
     const MODAL = "#case-action-modal.is-active .e-permits-sync-review";
-    /* env-sync-menu-v1: ONE „Sincronizează ⌄” menu → „Obiectele selectate (N)” / „Toate obiectele afișate (N)” */
-    const menu = async (h) => { await h.click(`${K} [data-sync-tool] [data-stack-menu-trigger]`); await h.find("#sync-batch-menu:not([hidden])"); await h.wait(200); };
-    const selected = async (h) => { await menu(h); await h.click('[data-sync-scope="selected"]'); await h.find(MODAL); await h.wait(300); };
-    const all = async (h) => { await menu(h); await h.click('[data-sync-scope="all"]'); await h.find(MODAL); await h.wait(300); };
+    /* selection-bar-v1: selected rows → the selection bar's „Sincronizează (N)”; nothing selected → „Sincronizează tot (N)” */
+    const selected = async (h) => { await h.click(`${K} [data-sync-selection] [data-sync-scope="selected"]`); await h.find(MODAL); await h.wait(300); };
+    const all = async (h) => { await h.click(`${K} [data-sync-tool][data-sync-scope="all"]`); await h.find(MODAL); await h.wait(300); };
+    const blur = async (h) => { document.activeElement?.blur?.(); await h.wait(150); };
     const step = (id, pair) => async (h) => { const b = await h.find(`${K} [data-sync-step="${id}"][data-sync-pair="${pair}"]`); b.scrollIntoView({ block: "center" }); await h.wait(150); await h.click(`${K} [data-sync-step="${id}"][data-sync-pair="${pair}"]`); await h.find(MODAL); await h.wait(300); };
     const mode = (value) => async (h) => { await h.click(`#case-action-modal .radio:has([data-sync-mode][value="${value}"])`); await h.wait(250); };
     const reason = (text) => async (h) => { await h.fill("#sync-reason", text, { leave: false }); await h.wait(120); };
@@ -5299,8 +5299,11 @@
       "sync-01d": list(search("clasificator")),
       "sync-01e": list(search("zzz")),
       "sync-01f": list(null, { sincronizare: "gol" }),
-      "sync-01g": list(seq(pick("FRM-0012", "TPL-0019", "NTF-0008"), menu)),
-      "sync-01h": list(menu),
+      /* the selection bar (3 selected) replaces the toolbar; 01h = the toolbar's „Sincronizează tot (14)” on a pair tab;
+         01i = Esc cleared the selection (toolbar back, focus on the header checkbox) */
+      "sync-01g": list(seq(pick("FRM-0012", "TPL-0019", "NTF-0008"), blur)),
+      "sync-01h": list(tab("ds")),
+      "sync-01i": list(seq(pick("FRM-0012", "TPL-0019"), async (h) => { document.querySelector(`${K} [data-workplace-select-row="TPL-0019"]`)?.focus(); document.activeElement.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true })); await h.wait(300); })),
       "sync-02": denied(SPEC),
       "sync-02a": denied(LOCAL),
       /* US-347 — one object, one pair (fixed direction) */

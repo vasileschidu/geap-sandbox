@@ -272,16 +272,15 @@
     const anchor = reg.querySelector("[data-workplace-add-product]");
     if (anchor && !reg.querySelector("[data-sync-tool]")) {
       anchor.insertAdjacentHTML("beforebegin", `
-        <div class="e-permits-stack__menu-wrap e-permits-workplace__primary-action e-permits-sync-tool" data-sync-tool hidden>
-          <button class="btn btn-secondary btn-sm" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="sync-batch-menu" data-stack-menu-trigger>
-            <span>Sincronizează</span>
-            ${icon("chevron-bottom", 16)}
-          </button>
-          <ul class="e-permits-fo-intent-menu e-permits-stack__menu" id="sync-batch-menu" role="menu" aria-label="Sincronizează obiectele" hidden data-stack-menu data-stack-menu-fixed>
-            <li role="none"><button class="e-permits-fo-intent-menu__item" type="button" role="menuitem" data-sync-scope="selected">${icon("check-all")}<span>Obiectele selectate</span></button></li>
-            <li role="none"><button class="e-permits-fo-intent-menu__item" type="button" role="menuitem" data-sync-scope="all">${icon("list-bullets")}<span>Toate obiectele afișate</span></button></li>
-          </ul>
-        </div>`);
+        <button class="btn btn-secondary btn-sm e-permits-workplace__primary-action e-permits-sync-tool" type="button" data-sync-tool data-sync-scope="all" hidden>${icon("rotate-arrow", 16)}<span>Sincronizează tot</span></button>`);
+    }
+    /* selection-bar-v1 (PO 2026-11-19): ≥ 1 selected row → the selection bar takes the toolbar's place */
+    const toolbar = reg.querySelector("[data-workplace-toolbar]");
+    if (toolbar && !reg.querySelector("[data-sync-selection]") && window.GEAPSelectionBar) {
+      toolbar.insertAdjacentHTML("afterend", window.GEAPSelectionBar.html({
+        label: "Obiecte selectate",
+        actionsHtml: `<button class="btn btn-primary btn-sm" type="button" data-sync-scope="selected">${icon("rotate-arrow", 16)}<span>Sincronizează</span></button>`
+      }).replace("data-selection-bar>", "data-selection-bar data-sync-selection>"));
     }
     if (!reg.querySelector("[data-sync-activity]")) reg.insertAdjacentHTML("beforeend", '<section class="e-permits-sync-activity" data-sync-activity aria-labelledby="sync-activity-title"></section>');
   }
@@ -294,22 +293,21 @@
     /* AC-08: the STAGING header carries „aici lucrezi” */
     const th = reg.querySelector('th[data-column="staging"] .e-permits-workplace__th-content');
     if (th && !th.querySelector(".e-permits-sync-here")) th.insertAdjacentHTML("beforeend", '<span class="e-permits-sync-here"><span class="status-tag status-tag--brand is-strong status-tag--small">aici lucrezi</span></span>'); /* env-sync-here-v2 (PO): the strong blue library tag */
-    /* env-sync-menu-v1 (PO 2026-11-19): ONE „Sincronizează ⌄” = the Servicii „Sincronizare ⌄” control 1:1; US-348 AC-04 / AC-05
-       live in its two items: the counts, inactive at 0 with the reason; the button itself is inactive when the list is empty */
+    /* selection-bar-v1 (PO 2026-11-19; US-348 AC-04 / AC-05 reworded): nothing selected = „Sincronizează tot (N)” in the
+       toolbar (N = rows after tab / filter / search, inactive with the reason at 0); ≥ 1 selected = the selection bar
+       „N obiecte selectate” · „Anulează selecția” · primary „Sincronizează (N)” */
     const tool = reg.querySelector("[data-sync-tool]");
+    const nSel = me.has ? selectedRows().length : 0;
     if (tool) {
       tool.hidden = !me.has;
-      const nSel = selectedRows().length;
       const nAll = visibleRows().length;
-      const item = (scope, label, n, reason) => {
-        const b = tool.querySelector(`[data-sync-scope="${scope}"]`);
-        b.querySelector("span").textContent = `${label} (${n})`;
-        if (n) { b.removeAttribute("aria-disabled"); delete b.dataset.tooltipReason; } else { b.setAttribute("aria-disabled", "true"); b.dataset.tooltipReason = reason; }
-      };
-      item("selected", "Obiectele selectate", nSel, "Selectează unul sau mai multe obiecte din listă.");
-      item("all", "Toate obiectele afișate", nAll, "Lista afișată este goală.");
-      const trigger = tool.querySelector("[data-stack-menu-trigger]");
-      if (nAll) { trigger.removeAttribute("aria-disabled"); delete trigger.dataset.tooltipReason; } else { trigger.setAttribute("aria-disabled", "true"); trigger.dataset.tooltipReason = "Lista afișată este goală."; }
+      tool.querySelector("span").textContent = `Sincronizează tot (${nAll})`;
+      if (nAll) { tool.removeAttribute("aria-disabled"); delete tool.dataset.tooltipReason; } else { tool.setAttribute("aria-disabled", "true"); tool.dataset.tooltipReason = "Lista afișată este goală."; }
+    }
+    const bar = reg.querySelector("[data-sync-selection]");
+    if (bar) {
+      bar.querySelector('[data-sync-scope="selected"] span').textContent = `Sincronizează (${nSel})`;
+      window.GEAPSelectionBar?.set(bar, { count: nSel, text: nSel === 1 ? "1 obiect selectat" : plural(nSel, "obiect selectat", "obiecte selectate") });
     }
     renderActivity();
   }
@@ -319,7 +317,7 @@
     const reg = document.querySelector("[data-workplace]");
     if (!reg || reg.dataset.syncObserved) return;
     reg.dataset.syncObserved = "1";
-    new MutationObserver(() => { if (reg.dataset.registryKind === KIND) load().then(() => { if (!A().workplaceState?.rows?.length && objects().some(inList) && who().has) refreshList(); else queueChrome(); }); }).observe(reg, { attributes: true, attributeFilter: ["data-registry-kind"] });
+    new MutationObserver(() => { if (reg.dataset.registryKind !== KIND) window.GEAPSelectionBar?.set(reg.querySelector("[data-sync-selection]"), { count: 0 }); if (reg.dataset.registryKind === KIND) load().then(() => { if (!A().workplaceState?.rows?.length && objects().some(inList) && who().has) refreshList(); else queueChrome(); }); }).observe(reg, { attributes: true, attributeFilter: ["data-registry-kind"] });
     const tbody = reg.querySelector("[data-workplace-rows]");
     if (tbody) new MutationObserver(() => { if (reg.dataset.registryKind === KIND) queueChrome(); }).observe(tbody, { childList: true });
   };
@@ -589,8 +587,6 @@
     const scope = t.closest("[data-sync-scope]");
     if (scope && listOpen()) {
       if (scope.getAttribute("aria-disabled") === "true") return;
-      const trigger = document.querySelector('[aria-controls="sync-batch-menu"]');
-      requestAnimationFrame(() => trigger?.focus({ preventScroll: true }));
       if (scope.dataset.syncScope === "selected") openReview("selected", selectedRows().map((r) => r.id));
       else openReview("all", visibleRows().map((r) => r.id));
       return;
@@ -614,17 +610,29 @@
       return;
     }
     if (t.closest("[data-sync-audit]")) { openAudit(); return; }
+    if (t.closest("[data-sync-selection] [data-selection-clear]")) { clearSelection(); return; }
     if (t.closest("[data-sync-close]")) { closeHistory(); return; }
     if (t.closest("[data-sync-confirm]") && D) {
       if (t.closest("[aria-disabled='true']")) return;
       confirmReview();
     }
   });
-  /* an inactive trigger / item does nothing and the menu stays as it is (capture: before the shared stack-menu handler) */
-  document.addEventListener("click", (event) => {
-    const off = event.target.closest?.('[data-sync-tool] [aria-disabled="true"]');
-    if (off) { event.preventDefault(); event.stopPropagation(); }
-  }, true);
+  /* „Anulează selecția” / Esc: the selection is cleared, the toolbar returns, the focus goes to the header checkbox */
+  function clearSelection() {
+    const st = A().workplaceState;
+    if (!st) return;
+    st.selected.clear();
+    A().renderWorkplace?.();
+    syncChrome();
+    requestAnimationFrame(() => listEl()?.querySelector("[data-workplace-select-all]")?.focus({ preventScroll: true }));
+  }
+  document.addEventListener("keydown", (event) => {
+    if (event.key !== "Escape" || !listOpen() || listEl()?.querySelector("[data-sync-selection]")?.hidden !== false) return;
+    if (document.querySelector(".modal-overlay.is-active, [data-sync-drawer]:not([hidden]), [data-stack-menu]:not([hidden]), .e-permits-filter-sheet[aria-hidden='false']")) return;
+    if (!listEl().contains(document.activeElement) && document.activeElement !== document.body) return;
+    event.preventDefault();
+    clearSelection();
+  });
   document.addEventListener("change", (event) => {
     const r = event.target.closest?.("[data-sync-mode]");
     if (r && D && !D.fixed) { D.mode = r.value; renderReview(); document.querySelector(`#case-action-modal [data-sync-mode][value="${r.value}"]`)?.focus(); }

@@ -346,8 +346,8 @@
   padding-top: var(--spacing-24, 24px);
 }
 
-/* env-sync-menu-v1: „Sincronizează ⌄” (the Servicii „Sincronizare ⌄” control) lives in the shared toolbar — only here */
-.e-permits-workplace:not([data-registry-kind="sincronizare"]) [data-sync-tool],
+/* selection-bar-v1: „Sincronizează tot (N)” + the selection bar live in the shared registry header — only here */
+.e-permits-workplace:not([data-registry-kind="sincronizare"]) :is([data-sync-tool], [data-sync-selection]),
 .e-permits-workplace [data-sync-tool][hidden] {
   display: none;
 }
