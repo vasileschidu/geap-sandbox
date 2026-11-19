@@ -74,7 +74,8 @@
   }
 
   /* ---------------------------------------------------------------- data */
-  const S = { data: null, loading: null, open: null, selectedFor: null };
+  /* env-sync-tabs-v1 (PO 2026-11-19): current state vs history = two page tabs „Divergențe” | „Activitate de sincronizare” */
+  const S = { data: null, loading: null, open: null, selectedFor: null, view: "divergente", act: { query: "", filter: { open: false, applied: {}, draft: null } } };
   function load() {
     if (S.data) return Promise.resolve(S.data);
     if (!S.loading) {
@@ -277,10 +278,22 @@
   function ensureChrome() {
     const reg = document.querySelector("[data-workplace]");
     if (!reg) return;
+    /* env-sync-pipeline-v1 (PO 2026-11-19, Octopus / Vercel environment pipeline): the band under the top bar = orientation
+       AND the scope filter — [Toate] [DEV] —DEV ≠ STAGING · N→ [STAGING · aici lucrezi] —STAGING ≠ PROD · N→ [PROD];
+       the environment boxes are labels, „Toate” and the two connectors are the options (radio group). It replaces the
+       „Lucrezi în mediul STAGING” notice (kept as visually hidden text). */
     if (!reg.querySelector("[data-sync-intro]")) {
-      reg.insertAdjacentHTML("afterbegin", `<div class="e-permits-cal-intro e-permits-sync-intro" data-sync-intro>
-        <div class="e-permits-cal-intro__notes">${A().renderNotice?.("info", "<strong>Lucrezi în mediul STAGING.</strong> DEV și PROD se compară cu el.", { icon: "circle-info-filled" }) || ""}</div>
-      </div>`);
+      const env = (id, current = false) => `<span class="e-permits-sync-pipeline__env${current ? " is-current" : ""}">${ENV_LABEL[id]}${current ? ' <span class="status-tag status-tag--brand is-strong status-tag--small">aici lucrezi</span>' : ""}</span>`;
+      const opt = (id, label) => `<button class="chip e-permits-sync-pipeline__opt${id === "all" ? " e-permits-sync-pipeline__opt--all" : ""}" type="button" role="radio" aria-checked="false" data-sync-pairtab="${id}" data-label="${label}"><span class="chip__label">${label}</span><span class="chip__badge" data-sync-pair-count>0</span>${id === "all" ? "" : `<span class="e-permits-sync-pipeline__arrow" aria-hidden="true">${icon("arrow-right", 16)}</span>`}</button>`;
+      reg.insertAdjacentHTML("afterbegin", `
+        <section class="e-permits-sync-pipeline" aria-label="Mediile comparate" data-sync-intro>
+          <p class="u-visually-hidden">Lucrezi în mediul STAGING. DEV și PROD se compară cu el.</p>
+          <div class="e-permits-sync-pipeline__track" role="radiogroup" aria-label="Divergențe afișate">
+            ${opt("all", "Toate")}
+            <span class="e-permits-sync-pipeline__sep" aria-hidden="true"></span>
+            ${env("dev")}${opt("ds", "DEV ≠ STAGING")}${env("staging", true)}${opt("sp", "STAGING ≠ PROD")}${env("prod")}
+          </div>
+        </section>`);
     }
     const anchor = reg.querySelector("[data-workplace-add-product]");
     if (anchor && !reg.querySelector("[data-sync-tool]")) {
@@ -292,10 +305,45 @@
     if (toolbar && !reg.querySelector("[data-sync-selection]") && window.GEAPSelectionBar) {
       toolbar.insertAdjacentHTML("afterend", window.GEAPSelectionBar.html({
         label: "Obiecte selectate",
-        actionsHtml: `<button class="btn btn-neutral btn-sm" type="button" data-sync-scope="selected">${icon("rotate-arrow", 16)}<span>Sincronizează</span></button>`
+        actionsHtml: `<button class="btn btn-primary btn-sm" type="button" data-sync-scope="selected">${icon("rotate-arrow", 16)}<span>Sincronizează</span></button>`
       }).replace("data-selection-bar>", "data-selection-bar data-sync-selection>"));
     }
-    if (!reg.querySelector("[data-sync-activity]")) reg.insertAdjacentHTML("beforeend", '<section class="e-permits-sync-activity" data-sync-activity aria-labelledby="sync-activity-title"></section>');
+    /* the page tabs (library tabs in the BO page header, grey track line) right under the environment notice */
+    if (!reg.querySelector("[data-sync-tabs]")) {
+      reg.querySelector("[data-sync-intro]")?.insertAdjacentHTML("afterend", `
+        <header class="e-permits-page-header e-permits-sync-tabs" data-sync-tabs>
+          <div class="tabs tabs--sm e-permits-page-header__tabs">
+            <div class="tab-buttons" role="tablist" aria-label="Sincronizarea mediilor">
+              <button class="tab-button active" id="sync-tab-divergente" type="button" role="tab" aria-selected="true" tabindex="0" data-sync-page="divergente"><span>Divergențe</span><span data-sync-tab-count></span></button>
+              <button class="tab-button" id="sync-tab-activitate" type="button" role="tab" aria-selected="false" tabindex="-1" data-sync-page="activitate"><span>Activitate de sincronizare</span></button>
+            </div>
+          </div>
+        </header>`);
+    }
+    if (!reg.querySelector("[data-sync-activity]")) {
+      reg.insertAdjacentHTML("beforeend", `
+        <section class="e-permits-sync-activity" data-sync-activity role="tabpanel" aria-labelledby="sync-tab-activitate">
+          <div class="e-permits-sync-activity__toolbar">
+            <div class="search-input medium rectangular e-permits-workplace__search e-permits-sync-activity__search">
+              <span class="icon-search" aria-hidden="true">${icon("search")}</span>
+              <input class="input" type="search" placeholder="Caută după obiect, lot sau motiv" aria-label="Caută în activitate" data-sync-act-search>
+              <div class="btn-group">
+                <span class="spinner spinner--extra-small spinner--brand" aria-hidden="true"></span>
+                <button type="button" class="btn-icon clear" aria-label="Șterge căutarea">${icon("cross-small", 16)}</button>
+              </div>
+            </div>
+            <button class="chip e-permits-filter-trigger e-permits-filter-trigger--sm" type="button" aria-expanded="false" aria-controls="sync-act-filters" data-sync-act-filter-toggle>
+              <span class="chip__icon">${icon("filter-lines")}</span>
+              <span class="chip__label">Filtrare</span>
+              <span class="chip__badge" aria-hidden="true" data-sync-act-filter-count hidden></span>
+            </button>
+            <button class="btn btn-neutral btn-sm e-permits-sync-activity__audit" type="button" data-sync-audit>Vezi în Audit &amp; Logging</button>
+          </div>
+          <div class="e-permits-workplace__filters e-permits-sync-activity__filters" id="sync-act-filters" role="group" aria-label="Filtre activitate" data-sync-act-filters hidden></div>
+          <div class="e-permits-sync-activity__body" data-sync-act-list></div>
+        </section>`);
+      setupActivityFilter();
+    }
   }
   function syncChrome() {
     ensureChrome();
@@ -322,6 +370,48 @@
       bar.querySelector('[data-sync-scope="selected"] span').textContent = `Sincronizează (${nSel})`;
       window.GEAPSelectionBar?.set(bar, { count: nSel, text: nSel === 1 ? "1 obiect selectat" : plural(nSel, "obiect selectat", "obiecte selectate") });
     }
+    /* the pipeline options: counts follow the type filter + the search (rows of the list under them, per pair); the
+       selected one = the engine's (hidden) status tab; an option without rows is inactive with the reason */
+    const tabKey = A().workplaceState?.tabKey || "all";
+    const q = fold(A().workplaceState?.query || "");
+    const tipOn = A().registryFilters?.(KIND)?.tip || [];
+    const shown = (me.has ? objects().filter(inList) : []).filter((o) => (!q || fold([o.name, o.type, o.id].join(" ")).includes(q)) && (!tipOn.length || tipOn.includes(o.type)));
+    const nOf = { all: shown.length, ds: shown.filter((o) => diverges(o, "ds")).length, sp: shown.filter((o) => diverges(o, "sp")).length };
+    const onDiv = S.view !== "activitate";
+    reg.querySelectorAll("[data-sync-pairtab]").forEach((b) => {
+      const id = b.dataset.syncPairtab;
+      const on = onDiv && id === tabKey;
+      b.querySelector("[data-sync-pair-count]").textContent = String(nOf[id]);
+      b.setAttribute("aria-label", `${b.dataset.label}: ${nOf[id] === 1 ? "1 obiect" : plural(nOf[id], "obiect", "obiecte")}`);
+      b.classList.toggle("is-selected", on);
+      b.setAttribute("aria-checked", String(on));
+      b.tabIndex = (onDiv ? on : id === "all") ? 0 : -1;
+      if (nOf[id] || on) { b.removeAttribute("aria-disabled"); b.classList.remove("is-disabled"); delete b.dataset.tooltipReason; }
+      else { b.setAttribute("aria-disabled", "true"); b.classList.add("is-disabled"); b.dataset.tooltipReason = id === "all" ? "Nicio divergență afișată." : `Nicio divergență între ${PAIRS[id].label.replace(" ⇄ ", " și ")}.`; }
+    });
+    const total = me.has ? objects().filter(inList).length : 0;
+    const tc = reg.querySelector("[data-sync-tab-count]");
+    if (tc) tc.outerHTML = `<span data-sync-tab-count>${A().renderPageHeaderTabCount?.(total) || total}</span>`;
+    applyView();
+    renderActivity();
+  }
+  /* the two page tabs: the list (toolbar · table · pager) or the activity; deep links #sincronizarea-mediilor[/activitate] */
+  function applyView() {
+    const reg = listEl();
+    if (!reg) return;
+    reg.dataset.syncView = S.view;
+    reg.querySelectorAll("[data-sync-page]").forEach((b) => {
+      const on = b.dataset.syncPage === S.view;
+      b.classList.toggle("active", on);
+      b.setAttribute("aria-selected", String(on));
+      b.tabIndex = on ? 0 : -1;
+    });
+  }
+  function setView(view, { push = false } = {}) {
+    S.view = view === "activitate" ? "activitate" : "divergente";
+    const hash = S.view === "activitate" ? `#${NAV}/activitate` : `#${NAV}`;
+    if (window.location.hash !== hash) history[push ? "pushState" : "replaceState"](null, "", hash);
+    applyView();
     renderActivity();
   }
   let chromeQueued = false;
@@ -366,25 +456,71 @@
         <td><span class="e-permits-sync-why">${esc(why)}</span></td>
       </tr>`;
     }).join("");
-    return `<div class="e-permits-sync-batch__table">
-      <table class="e-permits-workplace__table e-permits-reg-table__table e-permits-sync-table">
+    /* env-sync-rap-table-v1 (PO 2026-11-19): every steps table = the RAP flat table (the BO port: .e-permits-rpt-table-wrap +
+       .e-permits-rpt-table, rap-table-flat-v1) — no outer border / radius, tertiary header band, row dividers */
+    return `<div class="e-permits-workplace__table-wrap e-permits-rpt-table-wrap e-permits-sync-batch__table">
+      <table class="e-permits-workplace__table e-permits-reg-table__table e-permits-rpt-table e-permits-sync-table">
         <caption class="u-visually-hidden">Pașii lotului ${esc(b.id)}</caption>
         <thead><tr><th scope="col">Ce</th><th scope="col">Sensul</th><th scope="col">Versiunea</th><th scope="col">De ce</th></tr></thead>
         <tbody>${rows}</tbody>
       </table>
     </div>`;
   }
-  function renderActivity() {
+  /* the activity's own toolbar (US-353 + PO): search (object, batch id, reason) + the shared facet filter
+     (Rezultat · Utilizator · Perioada); newest first */
+  const ACT_FACETS = [
+    { key: "rezultat", label: "Rezultat", get: (b) => [...new Set(b.steps.map((s) => (s.skipped ? "Omis" : "Sincronizat")))] },
+    { key: "utilizator", label: "Utilizator", get: (b) => [b.user] },
+    { key: "perioada", label: "Perioada", type: "date", presets: ["azi", "7z", "30z"], get: (b) => b.at.slice(0, 10) }
+  ];
+  const actText = (b) => fold([b.id, b.reason, ...b.steps.flatMap((s) => [objOf(s.object)?.name, s.object, s.ownReason, s.skipped])].join(" "));
+  const actFacetMatch = (f, b, values) => (f.type === "date"
+    ? values.every((t) => window.GEAPFacetFilter?.dateMatch?.(t, f.get(b)) !== false)
+    : f.get(b).some((v) => values.includes(v)));
+  const actMatches = (b, skip = null, selection = S.act.filter.applied) => (!S.act.query.trim() || actText(b).includes(fold(S.act.query.trim())))
+    && ACT_FACETS.every((f) => f.key === skip || !(selection[f.key] || []).length || actFacetMatch(f, b, selection[f.key]));
+  const actRows = () => batches().filter((b) => actMatches(b));
+  let actFilter = null;
+  function setupActivityFilter() {
     const host = listEl()?.querySelector("[data-sync-activity]");
+    if (!host || !window.GEAPFacetFilter) return;
+    actFilter = window.GEAPFacetFilter.create({
+      bar: host.querySelector("[data-sync-act-filters]"),
+      toggle: host.querySelector("[data-sync-act-filter-toggle]"),
+      count: host.querySelector("[data-sync-act-filter-count]"),
+      state: () => S.act.filter,
+      facets: () => ACT_FACETS.filter((f) => f.type === "date" || new Set(batches().flatMap(f.get)).size > 1 || (S.act.filter.applied[f.key] || []).length),
+      allFacets: () => ACT_FACETS,
+      options: (facet, selection = S.act.filter.applied) => {
+        if (facet.type === "date") return [];
+        const counts = new Map();
+        batches().filter((b) => actMatches(b, facet.key, selection)).forEach((b) => facet.get(b).forEach((v) => counts.set(v, (counts.get(v) || 0) + 1)));
+        (selection[facet.key] || []).forEach((v) => { if (!counts.has(v)) counts.set(v, 0); });
+        return [...counts.entries()].map(([value, count]) => ({ value, count })).sort((a, b) => a.value.localeCompare(b.value, "ro"));
+      },
+      tag: (value, facet) => (facet.key === "rezultat" ? tag(value, value === "Omis" ? "warning" : "success") : null),
+      total: () => actRows().length,
+      preview: (selection) => batches().filter((b) => actMatches(b, null, selection)).length,
+      apply: () => renderActivity(),
+      pageKey: () => "sincronizare-activitate",
+      /* one page, one state: without this hook the first render „changes page” and closes the bar it just opened */
+      onPageChange: () => {},
+      scrollers: []
+    });
+  }
+  function renderActivity() {
+    const reg = listEl();
+    const section = reg?.querySelector("[data-sync-activity]");
+    const host = section?.querySelector("[data-sync-act-list]");
     if (!host) return;
-    if (!who().has) { host.hidden = true; return; }
-    host.hidden = false;
-    const list = batches();
+    if (!who().has) { section.hidden = true; return; }
+    section.hidden = false;
+    const all = batches();
+    const list = actRows();
+    const audit = section.querySelector("[data-sync-audit]");
+    if (audit) audit.hidden = !all.length;
+    const filtered = Boolean(S.act.query.trim() || Object.values(S.act.filter.applied || {}).some((v) => v?.length));
     host.innerHTML = `
-      <div class="e-permits-dosar-profil__section-heading e-permits-sync-activity__heading">
-        <h2 class="e-permits-dosar-profil__section-title" id="sync-activity-title">Activitatea de sincronizare</h2>
-        ${list.length ? '<button class="btn btn-neutral btn-sm" type="button" data-sync-audit>Vezi în Audit &amp; Logging</button>' : ""}
-      </div>
       ${list.length ? `<div class="e-permits-stack e-permits-sync-activity__list">${list.map((b) => {
         const open = S.open.has(b.id);
         return `<div class="e-permits-stack__group${open ? " is-open" : " is-collapsed"}">
@@ -396,7 +532,9 @@
           </h3>
           ${open ? batchTable(b) : ""}
         </div>`;
-      }).join("")}</div>` : E()?.render({ title: "Nicio sincronizare înregistrată", text: "Loturile apar aici după prima sincronizare.", icon: "history", compact: true }) || ""}`;
+      }).join("")}</div>` : filtered
+        ? E()?.noResults?.("Niciun lot nu corespunde căutării sau filtrelor", { text: "Caută după obiect, lot sau motiv ori schimbă filtrele." }) || ""
+        : E()?.render({ title: "Nicio sincronizare înregistrată", text: "Loturile apar aici după prima sincronizare.", icon: "history" }) || ""}`;
   }
 
   /* ---------------------------------------------------------------- the review dialog (US-347 / US-348 / US-351) */
@@ -431,8 +569,8 @@
       </tr>`;
     }).join("");
     const stepsHtml = steps.length
-      ? `<div class="e-permits-workplace__table-wrap e-permits-reg-table e-permits-sync-plan">
-          <table class="e-permits-workplace__table e-permits-reg-table__table e-permits-sync-table e-permits-sync-table--steps">
+      ? `<div class="e-permits-workplace__table-wrap e-permits-rpt-table-wrap e-permits-sync-plan">
+          <table class="e-permits-workplace__table e-permits-reg-table__table e-permits-rpt-table e-permits-sync-table e-permits-sync-table--steps">
             <caption class="u-visually-hidden">Pașii sincronizării</caption>
             <thead><tr><th scope="col">Nr.</th><th scope="col">Obiect</th><th scope="col">Sens</th><th scope="col">Versiuni</th><th scope="col">Motiv propriu (opțional)</th></tr></thead>
             <tbody>${stepRows}</tbody>
@@ -517,7 +655,10 @@
     G().closeModal?.();
     refreshList();
     const message = `${done === 1 ? "S-a sincronizat 1 modificare" : `S-au sincronizat ${plural(done, "modificare", "modificări")}`}. Lotul ${id}${skipped.length ? `; ${skipped.length === 1 ? "1 obiect omis" : plural(skipped.length, "obiect omis", "obiecte omise")}` : ""}.`;
-    A().showShellToast?.(message, "success", "Sincronizare efectuată");
+    /* the toast leads to the batch: „Vezi lotul” → the activity tab with this batch open */
+    const toBatch = () => { S.open = new Set([id]); S.act.query = ""; const q = listEl()?.querySelector("[data-sync-act-search]"); if (q) q.value = ""; setView("activitate", { push: true }); listEl()?.querySelector(`[data-sync-batch="${id}"]`)?.focus({ preventScroll: true }); };
+    if (window.GEAPToast?.show) window.GEAPToast.show({ type: "success", title: "Sincronizare efectuată", message, action: { label: "Vezi lotul", onClick: toBatch } });
+    else A().showShellToast?.(message, "success", "Sincronizare efectuată");
   }
 
   /* ---------------------------------------------------------------- the history drawer (US-352) */
@@ -562,8 +703,8 @@
       ${A().renderPassportBlock?.("Versiuni curente", [["DEV", ver("dev")], ["STAGING", ver("staging")], ["PROD", ver("prod")]]) || ""}
       <section class="e-permits-dosar-profil__section">
         <div class="e-permits-dosar-profil__section-heading"><h2 class="e-permits-dosar-profil__section-title">Pași</h2>${list.length ? `<div class="e-permits-passport__heading-tools"><span class="e-permits-dosar-profil__section-meta">${esc(`${plural(list.length, "pas", "pași")} · cele mai noi primele`)}</span></div>` : ""}</div>
-        ${list.length ? `<div class="e-permits-workplace__table-wrap e-permits-reg-table e-permits-sync-history">
-          <table class="e-permits-workplace__table e-permits-reg-table__table e-permits-sync-table e-permits-sync-table--history">
+        ${list.length ? `<div class="e-permits-workplace__table-wrap e-permits-rpt-table-wrap e-permits-sync-history">
+          <table class="e-permits-workplace__table e-permits-reg-table__table e-permits-rpt-table e-permits-sync-table e-permits-sync-table--history">
             <caption class="u-visually-hidden">Pașii de sincronizare ai obiectului, de la cel mai recent</caption>
             <thead><tr><th scope="col">Când</th><th scope="col">Cine</th><th scope="col">Ce</th><th scope="col">De ce</th><th scope="col">Lot</th></tr></thead>
             <tbody>${rows}</tbody>
@@ -612,6 +753,10 @@
       openReview("single", [stepBtn.dataset.syncStep], stepBtn.dataset.syncPair);
       return;
     }
+    const viewBtn = t.closest("[data-sync-page]");
+    if (viewBtn && listOpen()) { setView(viewBtn.dataset.syncPage, { push: true }); return; }
+    const pairBtn = t.closest("[data-sync-pairtab]");
+    if (pairBtn && listOpen()) { if (pairBtn.getAttribute("aria-disabled") === "true") return; if (S.view === "activitate") setView("divergente", { push: true }); listEl().querySelector(`[data-workplace-tab="${pairBtn.dataset.syncPairtab}"]`)?.click(); requestAnimationFrame(() => listEl()?.querySelector(`[data-sync-pairtab="${pairBtn.dataset.syncPairtab}"]`)?.focus({ preventScroll: true })); return; }
     const hist = t.closest("[data-sync-history]");
     if (hist) { openHistory(hist.dataset.syncHistory); return; }
     const toggle = t.closest("[data-sync-batch]");
@@ -650,6 +795,23 @@
     const r = event.target.closest?.("[data-sync-mode]");
     if (r && D && !D.fixed) { D.mode = r.value; renderReview(); document.querySelector(`#case-action-modal [data-sync-mode][value="${r.value}"]`)?.focus(); }
   });
+  /* the activity search (redraws only the list; the field keeps the focus) */
+  document.addEventListener("input", (event) => {
+    if (!event.target.matches?.("[data-sync-act-search]")) return;
+    S.act.query = event.target.value;
+    renderActivity();
+  });
+  /* ← / → between the page tabs and between the scope options (library tabs / radiogroup keyboard) */
+  document.addEventListener("keydown", (event) => {
+    const item = event.target.closest?.("[data-sync-page], [data-sync-pairtab]");
+    if (!item || !["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) return;
+    const all = [...item.parentElement.querySelectorAll(item.matches("[data-sync-page]") ? "[data-sync-page]" : "[data-sync-pairtab]")];
+    const i = all.indexOf(item);
+    const next = event.key === "Home" ? all[0] : event.key === "End" ? all[all.length - 1] : all[(i + (event.key === "ArrowRight" ? 1 : -1) + all.length) % all.length];
+    event.preventDefault();
+    next.click();
+    next.focus({ preventScroll: true });
+  });
   document.addEventListener("input", (event) => {
     const t = event.target;
     if (!D || !t.closest?.("#case-action-modal")) return;
@@ -680,11 +842,14 @@
   }
   window.GEAPShellRoutes = window.GEAPShellRoutes || [];
   window.GEAPShellRoutes.push((h) => {
-    if (h !== `#${NAV}`) return false;
+    const m = new RegExp(`^#${NAV}(?:/(divergente|activitate))?$`).exec(h);
+    if (!m) return false;
     const nav = document.querySelector(`[data-nav-item][data-nav-id="${NAV}"]`);
-    load().then(() => { if (nav && who().has) nav.click(); else showDenied(); });
+    load().then(() => { if (nav && who().has) { nav.click(); setView(m[1] || "divergente"); } else showDenied(); });
     return true;
   });
+  /* the menu item always opens on „Divergențe” */
+  document.addEventListener("click", (event) => { if (event.target.closest?.(`[data-nav-item][data-nav-id="${NAV}"]`)) S.view = "divergente"; }, true);
   /* env-sync-clip-v1 (PO bug 2026-11-18, batch table „cut”): `.e-permits-shell__content` is overflow: hidden, but
      scrollIntoView / focus() still scroll it — the whole canvas then sits higher and its lower part (the activity panel)
      is cut off. On this page the shift goes to the real scroller (the canvas surface) and the hidden one stays at 0. */
@@ -709,5 +874,5 @@
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot, { once: true }); else boot();
 
   /* ---------------------------------------------------------------- for the demo states */
-  window.GEAPEnvSync = { load, plan, objects, batches, openHistory, openReview, refreshList, perms: who };
+  window.GEAPEnvSync = { load, plan, objects, batches, openHistory, openReview, refreshList, setView, perms: who };
 })();
