@@ -61,6 +61,7 @@
 
 /* the name wraps (2 lines at most); the last-sync line stays one line + tooltip */
 .e-permits-sync-name__title {
+  white-space: normal;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
   display: -webkit-box;
@@ -281,8 +282,9 @@
 }
 
 /* NEW: the batch header inside the shared group toggle — id + count + omitted tag, then the meta lines */
+/* env-sync-batch-head-v1 (PO 2026-11-19): even vertical padding 16, title row → 8 → meta, 4 between the meta lines */
 .e-permits-sync-batch__toggle {
-  padding-block: var(--spacing-12, 12px);
+  padding-block: var(--spacing-16, 16px);
 }
 
 .e-permits-sync-batch {
@@ -297,6 +299,7 @@
   align-items: center;
   display: flex;
   gap: var(--spacing-8, 8px);
+  margin-bottom: var(--spacing-4, 4px); /* + the column gap 4 = 8 to the first meta line */
 }
 
 .e-permits-sync-batch__meta {
@@ -335,4 +338,15 @@
 /* env-sync-clip-v1: the last batch open — its table's square corners stay inside the card's rounded bottom */
 .e-permits-sync-activity__list {
   overflow: clip;
+}
+
+/* env-sync-nodesc-v1 (PO 2026-11-19): no page description — only the environment notice, 24 under the header */
+.e-permits-workplace[data-registry-kind="sincronizare"] > .e-permits-sync-intro {
+  padding-top: var(--spacing-24, 24px);
+}
+
+/* env-sync-menu-v1: „Sincronizează ⌄” (the Servicii „Sincronizare ⌄” control) lives in the shared toolbar — only here */
+.e-permits-workplace:not([data-registry-kind="sincronizare"]) [data-sync-tool],
+.e-permits-workplace [data-sync-tool][hidden] {
+  display: none;
 }

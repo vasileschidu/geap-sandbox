@@ -198,8 +198,6 @@
             { id: "sp", label: "STAGING ≠ PROD", filter: "pair:sp" }
           ],
           defaultTab: "all",
-          secondaryAction: me.has ? { id: "sync-selected", label: "Sincronizează selecția" } : null,
-          primaryAction: me.has ? { id: "sync-all", label: "Sincronizează tot ce este afișat" } : null,
           toolbarLabel: "Filtrare obiecte",
           emptyMessage: EMPTY_ALL
         }
@@ -227,11 +225,12 @@
     openRow: (id) => openHistory(id),
     rowLabel: (row) => `${row.type} ${row.name} — deschide istoricul sincronizărilor`,
     emptyHtml: ({ query, filtered }) => {
-      if (!who().has) return E()?.render({ title: DENIED, icon: "lock", bare: true });
-      if (query || filtered) return E()?.noResults?.(NO_MATCH, { text: "Caută după denumirea sau tipul obiectului ori schimbă filtrele.", bare: true });
+      /* env-sync-boxed-v1: the BOXED empty state (normal size, never bare), as every list (components.md › Empty state) */
+      if (!who().has) return E()?.render({ title: DENIED, icon: "lock" });
+      if (query || filtered) return E()?.noResults?.(NO_MATCH, { text: "Caută după denumirea sau tipul obiectului ori schimbă filtrele." });
       /* AC-15 — on a pair tab with nothing there, the same calm message for that pair */
       const tab = A().workplaceState?.tabKey;
-      return E()?.render({ title: tab === "ds" ? "Nicio divergență între DEV și STAGING." : tab === "sp" ? "Nicio divergență între STAGING și PROD." : EMPTY_ALL, icon: "checkmark-large", bare: true });
+      return E()?.render({ title: tab === "ds" ? "Nicio divergență între DEV și STAGING." : tab === "sp" ? "Nicio divergență între STAGING și PROD." : EMPTY_ALL, icon: "checkmark-large" });
     },
     exportState: () => ({ hidden: true })
   };
@@ -257,9 +256,22 @@
     if (!reg) return;
     if (!reg.querySelector("[data-sync-intro]")) {
       reg.insertAdjacentHTML("afterbegin", `<div class="e-permits-cal-intro e-permits-sync-intro" data-sync-intro>
-        <p class="e-permits-cal-intro__text">Obiectele de configurare a căror versiune diferă între DEV, STAGING și PROD. Se sincronizează doar versiunile publicate; versiunea mai mare se mută peste cea mai mică, iar fiecare pas se înregistrează în Jurnalul de audit.</p>
         <div class="e-permits-cal-intro__notes">${A().renderNotice?.("info", "<strong>Lucrezi în mediul STAGING.</strong> DEV și PROD se compară cu el.", { icon: "circle-info-filled" }) || ""}</div>
       </div>`);
+    }
+    const anchor = reg.querySelector("[data-workplace-add-product]");
+    if (anchor && !reg.querySelector("[data-sync-tool]")) {
+      anchor.insertAdjacentHTML("beforebegin", `
+        <div class="e-permits-stack__menu-wrap e-permits-workplace__primary-action e-permits-sync-tool" data-sync-tool hidden>
+          <button class="btn btn-secondary btn-sm" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="sync-batch-menu" data-stack-menu-trigger>
+            <span>Sincronizează</span>
+            ${icon("chevron-bottom", 16)}
+          </button>
+          <ul class="e-permits-fo-intent-menu e-permits-stack__menu" id="sync-batch-menu" role="menu" aria-label="Sincronizează obiectele" hidden data-stack-menu data-stack-menu-fixed>
+            <li role="none"><button class="e-permits-fo-intent-menu__item" type="button" role="menuitem" data-sync-scope="selected">${icon("check-all")}<span>Obiectele selectate</span></button></li>
+            <li role="none"><button class="e-permits-fo-intent-menu__item" type="button" role="menuitem" data-sync-scope="all">${icon("list-bullets")}<span>Toate obiectele afișate</span></button></li>
+          </ul>
+        </div>`);
     }
     if (!reg.querySelector("[data-sync-activity]")) reg.insertAdjacentHTML("beforeend", '<section class="e-permits-sync-activity" data-sync-activity aria-labelledby="sync-activity-title"></section>');
   }
@@ -272,15 +284,23 @@
     /* AC-08: the STAGING header carries „aici lucrezi” */
     const th = reg.querySelector('th[data-column="staging"] .e-permits-workplace__th-content');
     if (th && !th.querySelector(".e-permits-sync-here")) th.insertAdjacentHTML("beforeend", `<span class="e-permits-sync-here">${tag("aici lucrezi", "brand")}</span>`);
-    /* US-348 AC-04 / AC-05: the counts on the two buttons, inactive at 0 with the reason */
-    const set = (btn, base, n, reason) => {
-      if (!btn) return;
-      const label = btn.querySelector("span");
-      if (label) label.textContent = n ? `${base} (${n})` : base;
-      if (n) { btn.removeAttribute("aria-disabled"); delete btn.dataset.tooltipReason; } else { btn.setAttribute("aria-disabled", "true"); btn.dataset.tooltipReason = reason; }
-    };
-    set(reg.querySelector('[data-workplace-secondary-product="sync-selected"]'), "Sincronizează selecția", selectedRows().length, "Selectează unul sau mai multe obiecte din listă.");
-    set(reg.querySelector('[data-workplace-add-product="sync-all"]'), "Sincronizează tot ce este afișat", visibleRows().length, "Lista afișată este goală.");
+    /* env-sync-menu-v1 (PO 2026-11-19): ONE „Sincronizează ⌄” = the Servicii „Sincronizare ⌄” control 1:1; US-348 AC-04 / AC-05
+       live in its two items: the counts, inactive at 0 with the reason; the button itself is inactive when the list is empty */
+    const tool = reg.querySelector("[data-sync-tool]");
+    if (tool) {
+      tool.hidden = !me.has;
+      const nSel = selectedRows().length;
+      const nAll = visibleRows().length;
+      const item = (scope, label, n, reason) => {
+        const b = tool.querySelector(`[data-sync-scope="${scope}"]`);
+        b.querySelector("span").textContent = `${label} (${n})`;
+        if (n) { b.removeAttribute("aria-disabled"); delete b.dataset.tooltipReason; } else { b.setAttribute("aria-disabled", "true"); b.dataset.tooltipReason = reason; }
+      };
+      item("selected", "Obiectele selectate", nSel, "Selectează unul sau mai multe obiecte din listă.");
+      item("all", "Toate obiectele afișate", nAll, "Lista afișată este goală.");
+      const trigger = tool.querySelector("[data-stack-menu-trigger]");
+      if (nAll) { trigger.removeAttribute("aria-disabled"); delete trigger.dataset.tooltipReason; } else { trigger.setAttribute("aria-disabled", "true"); trigger.dataset.tooltipReason = "Lista afișată este goală."; }
+    }
     renderActivity();
   }
   let chromeQueued = false;
@@ -397,7 +417,7 @@
             <tbody>${stepRows}</tbody>
           </table>
         </div>`
-      : `<div class="e-permits-reg-table">${E()?.render({ title: NO_STEPS, icon: "checkmark-large", compact: true, bare: true }) || esc(NO_STEPS)}</div>`;
+      : E()?.render({ title: NO_STEPS, icon: "checkmark-large", compact: true }) || esc(NO_STEPS);
     const skippedHtml = skipped.length
       ? A().renderNotice?.("warning", `<strong>${esc(skipped.length === 1 ? "1 obiect omis" : `${plural(skipped.length, "obiect omis", "obiecte omise")}`)}.</strong> Nu intră în pași; omiterea se înregistrează în activitate.${skipped.map((s) => `<span class="e-permits-sync-skipped__item"><strong>${esc(objOf(s.object).name)}</strong> · ${esc(PAIRS[s.pair].label)} · ${esc(s.blocked)}</span>`).join("")}`, { className: "e-permits-sync-skipped-note" }) || ""
       : "";
@@ -555,14 +575,13 @@
   document.addEventListener("click", (event) => {
     const t = event.target;
     if (!t.closest) return;
-    if (t.closest('[data-workplace-secondary-product="sync-selected"]') && listOpen()) {
-      if (t.closest("[aria-disabled='true']")) return;
-      openReview("selected", selectedRows().map((r) => r.id));
-      return;
-    }
-    if (t.closest('[data-workplace-add-product="sync-all"]') && listOpen()) {
-      if (t.closest("[aria-disabled='true']")) return;
-      openReview("all", visibleRows().map((r) => r.id));
+    const scope = t.closest("[data-sync-scope]");
+    if (scope && listOpen()) {
+      if (scope.getAttribute("aria-disabled") === "true") return;
+      const trigger = document.querySelector('[aria-controls="sync-batch-menu"]');
+      requestAnimationFrame(() => trigger?.focus({ preventScroll: true }));
+      if (scope.dataset.syncScope === "selected") openReview("selected", selectedRows().map((r) => r.id));
+      else openReview("all", visibleRows().map((r) => r.id));
       return;
     }
     const stepBtn = t.closest("[data-sync-step]");
@@ -588,6 +607,11 @@
       confirmReview();
     }
   });
+  /* an inactive trigger / item does nothing and the menu stays as it is (capture: before the shared stack-menu handler) */
+  document.addEventListener("click", (event) => {
+    const off = event.target.closest?.('[data-sync-tool] [aria-disabled="true"]');
+    if (off) { event.preventDefault(); event.stopPropagation(); }
+  }, true);
   document.addEventListener("change", (event) => {
     const r = event.target.closest?.("[data-sync-mode]");
     if (r && D && !D.fixed) { D.mode = r.value; renderReview(); document.querySelector(`#case-action-modal [data-sync-mode][value="${r.value}"]`)?.focus(); }
