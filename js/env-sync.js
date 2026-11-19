@@ -309,7 +309,7 @@
     const anchor = reg.querySelector("[data-workplace-add-product]");
     if (anchor && !reg.querySelector("[data-sync-tool]")) {
       anchor.insertAdjacentHTML("beforebegin", `
-        <button class="btn btn-secondary btn-sm e-permits-workplace__primary-action e-permits-sync-tool" type="button" data-sync-tool data-sync-scope="all" hidden>${icon("rotate-arrow", 16)}<span>Sincronizează tot</span></button>
+        <button class="btn btn-secondary btn-sm e-permits-workplace__primary-action e-permits-sync-tool" type="button" data-sync-tool data-sync-scope="all" hidden>${icon("refresh", 16)}<span>Sincronizează tot</span></button>
         <button class="btn btn-neutral btn-sm e-permits-workplace__primary-action e-permits-sync-audit" type="button" data-sync-audit hidden>Vezi în Audit &amp; Logging</button>`);
     }
     /* selection-bar-v1 (PO 2026-11-19): ≥ 1 selected row → the selection bar takes the toolbar's place */
@@ -317,7 +317,7 @@
     if (toolbar && !reg.querySelector("[data-sync-selection]") && window.GEAPSelectionBar) {
       toolbar.insertAdjacentHTML("afterend", window.GEAPSelectionBar.html({
         label: "Obiecte selectate",
-        actionsHtml: `<button class="btn btn-primary btn-sm" type="button" data-sync-scope="selected">${icon("rotate-arrow", 16)}<span>Sincronizează</span></button>`
+        actionsHtml: `<button class="btn btn-primary btn-sm" type="button" data-sync-scope="selected">${icon("refresh", 16)}<span>Sincronizează</span></button>`
       }).replace("data-selection-bar>", "data-selection-bar data-sync-selection>"));
     }
     /* env-sync-activity-tab-v2 (user 2026-11-19: „the header jumps, the search goes down”): on „Activitate” the SAME header
