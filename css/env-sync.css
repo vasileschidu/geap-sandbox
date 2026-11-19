@@ -389,6 +389,8 @@
 
 .e-permits-workplace[data-registry-kind="sincronizare"] > .e-permits-sync-intro .message {
   border-radius: 0;
+  /* env-sync-band-v2 (user 2026-11-19): a 1px bluish bottom line closes the band against the white toolbar */
+  border-bottom: var(--border-width-1, 1px) solid var(--color-border-brand-secondary, #b3cdf2);
   padding: var(--spacing-16, 16px);
 }
 
