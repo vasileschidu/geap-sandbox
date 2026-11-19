@@ -387,11 +387,11 @@
   border-top: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
 }
 
-/* env-sync-band-v1 (PO 2026-11-19): the „Lucrezi în mediul STAGING” notice = a full-edge band directly under the top bar
-   (no top gap, no side inset, no radius), even padding 16 = the page gutter (the icon lines up with the top-bar title and
-   the table's first column); then 8 + the toolbar's own 8 = 16 to the toolbar / the selection bar */
+/* env-sync-band-v1 + env-sync-selbar-v3 (PO 2026-11-19): the „Lucrezi în mediul STAGING” notice = a full-edge band directly
+   under the top bar (no top gap, no side inset, no radius), even padding 16 = the page gutter. Under it the toolbar has
+   even padding 16 top / 16 bottom (no extra gap under the band) */
 .e-permits-workplace[data-registry-kind="sincronizare"] > .e-permits-sync-intro {
-  padding: 0 0 var(--spacing-8, 8px);
+  padding: 0;
 }
 
 .e-permits-workplace[data-registry-kind="sincronizare"] > .e-permits-sync-intro .message {
@@ -399,12 +399,24 @@
   padding: var(--spacing-16, 16px);
 }
 
-/* the dark selection bar under the band keeps the toolbar's rhythm: 8 inset on top (+ the band's 8 = 16), the strip 48,
-   the slot still 56 — selecting a row never moves the table */
+.e-permits-workplace[data-registry-kind="sincronizare"] .e-permits-workplace__header > [data-workplace-toolbar] {
+  padding-top: var(--spacing-16, 16px);
+  padding-bottom: var(--spacing-16, 16px);
+  height: auto;
+  min-height: 0;
+}
+
+/* the dark selection bar = the toolbar's whole footprint, black edge to edge from the band to the tabs (no white strip):
+   height = 16 + 40 + 16, the action sits exactly where „Sincronizează tot (N)” was — selecting never moves anything */
 .e-permits-workplace[data-registry-kind="sincronizare"] .e-permits-workplace__header > .e-permits-selection-bar {
-  padding-top: var(--spacing-8, 8px);
+  padding: 0;
 }
 
 .e-permits-workplace[data-registry-kind="sincronizare"] .e-permits-workplace__header > .e-permits-selection-bar .e-permits-selection-bar__inner {
-  min-height: var(--spacing-48, 48px);
+  min-height: calc(var(--spacing-40, 40px) + 2 * var(--spacing-16, 16px));
+}
+
+/* the header's first row follows the 72 toolbar / selection bar (BO default row = 56) */
+.e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-workplace[data-registry-kind="sincronizare"] .e-permits-workplace__header {
+  grid-template-rows: auto auto auto;
 }
