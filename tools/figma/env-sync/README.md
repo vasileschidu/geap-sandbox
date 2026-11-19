@@ -51,3 +51,27 @@ radios FILL, skipped-objects notice one item per line, screens = dialog + 48; 06
    Setări. No library drawer: the history drawer (sync-06) is the captured frame with library controls. sync-02 / 01e / 01f boxed empty states
    keep the default icon.
 5. Code notes for proto-engineer: toolbar buttons use generic icons (Sincronizează selecția = upload, Sincronizează tot = plus-large).
+
+## Alignment to code b35b938e + d10c2c19 (2026-11-19, env-sync-align-v1)
+The pipeline band / page tabs / in-cell step round was rejected and reverted in code: the blocks keep the blue notice, the
+3 scope tabs, the direction columns and the activity panel under the list. Stored routine `envs`/`v2` (source `v2.js`):
+- Selection bar `60:7488` = dark (`background/base-inverse/default`), 56 high, padding 0/16, count white 14/20, „Anulează
+  selecția” = text button Strict + 16 × (repainted white — library gap: no text button for dark), primary „Sincronizează (N)”.
+  Instances on 01g / 04 / 05a checked (count + both labels kept).
+- `flat`: every steps table (activity batches, history drawer 06 / 06c, dialog plans 03 / 03b / 04 / 05a — inside the Modal
+  slot) = RAP flat: wrapper square with only a 1 px top `border/base/default` (= the line under the batch header), header
+  cells `background/base/tertiary`, no bottom line, Caption Medium 12/16 500.
+- `staging`: one absolute `STAGING column frame` per list table (1 px `border/brand/secondary` left + right, full height) in
+  the table's scroll box — a cell can't carry a brand left/right stroke and the grey row divider at once. figma-audit flags
+  it as `absolute-in-flow` (12, intended overlay like the pinned column).
+- `badge`: Batch header 50:6639 got an exposed `Count` = numbered-badge Size=Large Style=Neutral after the title (the
+  library has no outlined style), filled on all 43 instances from „… N modificări”.
+- Notice „Lucrezi în mediul STAGING…” = full-width band (first child of `Page`, radius 0, padding spacing-16 all round),
+  toolbar / selection bar 16 below (the Container's top padding). Anchors under it moved −32.
+- `arrows`: in-column arrows start on the element (RIGHT) and end on 8×8 anchors inside the target block at x 1432 + 16k
+  (lanes right of the screens); cross-column arrows: „DEV → STAGING” straight (same y) into 03's left edge; „Formular” =
+  2×2 gutter anchor (block x 1536) TOP → TOP above block 06 (lane over the sections, y ≈ 7); „Lot” gutter BOTTOM → 07's
+  left edge at y 2790 (gap 05a / 04d); „Sincronizează (3)” gutter TOP → 04's left edge at y 1200 (gap 03 / 03b).
+  Sections 01 and 04 restacked from y 80 — re-check those y gaps after any restack. No manual drag needed in the
+  1600-px overview; verify at zoom.
+- Rejected and deleted: local „Environment pipeline” and „Version cell” sets, raw captures of the band layout.
