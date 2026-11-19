@@ -351,3 +351,8 @@
 .e-permits-workplace [data-sync-tool][hidden] {
   display: none;
 }
+
+/* env-sync-here-v2: the table hugs its rows here (no viewport-high grid) — the wrap's bottom line closes it, the last row has none */
+.e-permits-workplace[data-registry-kind="sincronizare"] .e-permits-workplace__table tbody tr:last-child td {
+  border-bottom: 0;
+}

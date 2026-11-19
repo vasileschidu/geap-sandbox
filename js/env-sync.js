@@ -283,7 +283,7 @@
     reg.querySelector("[data-sync-intro]").hidden = !me.has;
     /* AC-08: the STAGING header carries „aici lucrezi” */
     const th = reg.querySelector('th[data-column="staging"] .e-permits-workplace__th-content');
-    if (th && !th.querySelector(".e-permits-sync-here")) th.insertAdjacentHTML("beforeend", `<span class="e-permits-sync-here">${tag("aici lucrezi", "brand")}</span>`);
+    if (th && !th.querySelector(".e-permits-sync-here")) th.insertAdjacentHTML("beforeend", '<span class="e-permits-sync-here"><span class="status-tag status-tag--brand is-strong status-tag--small">aici lucrezi</span></span>'); /* env-sync-here-v2 (PO): the strong blue library tag */
     /* env-sync-menu-v1 (PO 2026-11-19): ONE „Sincronizează ⌄” = the Servicii „Sincronizare ⌄” control 1:1; US-348 AC-04 / AC-05
        live in its two items: the counts, inactive at 0 with the reason; the button itself is inactive when the list is empty */
     const tool = reg.querySelector("[data-sync-tool]");
