@@ -1,0 +1,818 @@
+{
+ "_comment": "Permisiuni (Feature 97290): ID, cod, data creării și descrierile RO / RU / EN ale permisiunilor din data/e-permits-users.json › profile.permissionCatalog (denumirea vine din catalog). Descriere goală = permisiune nouă, fără descriere.",
+ "permissions": [
+  {
+   "id": "d1",
+   "nr": "PRM-0001",
+   "cod": "Cases.Case.View",
+   "creat": "2026-04-30",
+   "descriere": {
+    "ro": "Deschide lista dosarelor și profilul unui dosar, fără să-l modifice.",
+    "ru": "Открывает список дел и профиль дела без возможности изменения.",
+    "en": "Opens the case list and a case profile, without changing it."
+   },
+   "modificat": {
+    "de": "Anastasia Cojocaru",
+    "la": "2026-04-30T10:15"
+   }
+  },
+  {
+   "id": "d2",
+   "nr": "PRM-0002",
+   "cod": "Cases.Case.Create",
+   "creat": "2026-04-30",
+   "descriere": {
+    "ro": "Creează un dosar nou din oficiu sau la ghișeu.",
+    "ru": "Создаёт новое дело по инициативе органа или в окне приёма.",
+    "en": "Creates a new case ex officio or at the front desk."
+   },
+   "modificat": {
+    "de": "Anastasia Cojocaru",
+    "la": "2026-04-30T10:15"
+   }
+  },
+  {
+   "id": "d3",
+   "nr": "PRM-0003",
+   "cod": "Cases.Case.Edit",
+   "creat": "2026-04-30",
+   "descriere": {
+    "ro": "Modifică datele unui dosar aflat în examinare.",
+    "ru": "Изменяет данные дела, находящегося на рассмотрении.",
+    "en": "Edits the data of a case under examination."
+   },
+   "modificat": {
+    "de": "Anastasia Cojocaru",
+    "la": "2026-04-30T10:15"
+   }
+  },
+  {
+   "id": "d4",
+   "nr": "PRM-0004",
+   "cod": "Cases.Case.Assign",
+   "creat": "2026-04-30",
+   "descriere": {
+    "ro": "Repartizează dosarele specialiștilor subdiviziunii.",
+    "ru": "Распределяет дела специалистам подразделения.",
+    "en": "Assigns cases to the specialists of the subdivision."
+   },
+   "modificat": {
+    "de": "Anastasia Cojocaru",
+    "la": "2026-04-30T10:15"
+   }
+  },
+  {
+   "id": "d5",
+   "nr": "PRM-0005",
+   "cod": "Cases.Case.Examine",
+   "creat": "2026-04-30",
+   "descriere": {
+    "ro": "Examinează dosarul: verifică documentele, cere completări, propune decizia.",
+    "ru": "Рассматривает дело: проверяет документы, запрашивает дополнения, предлагает решение.",
+    "en": "Examines the case: checks documents, requests additions, proposes the decision."
+   },
+   "modificat": {
+    "de": "Ion Rusu",
+    "la": "2026-10-28T14:40"
+   }
+  },
+  {
+   "id": "d6",
+   "nr": "PRM-0006",
+   "cod": "Cases.Case.Suspend",
+   "creat": "2026-04-30",
+   "descriere": {
+    "ro": "Suspendă examinarea unui dosar și o reia după termen.",
+    "ru": "Приостанавливает рассмотрение дела и возобновляет его после срока.",
+    "en": "Suspends the examination of a case and resumes it after the term."
+   },
+   "modificat": {
+    "de": "Anastasia Cojocaru",
+    "la": "2026-04-30T10:15"
+   }
+  },
+  {
+   "id": "d7",
+   "nr": "PRM-0007",
+   "cod": "Cases.Case.Archive",
+   "creat": "2026-05-12",
+   "descriere": {
+    "ro": "Trimite în arhivă dosarele finalizate.",
+    "ru": "Отправляет завершённые дела в архив.",
+    "en": "Sends finished cases to the archive."
+   },
+   "modificat": {
+    "de": "Anastasia Cojocaru",
+    "la": "2026-05-12T10:15"
+   }
+  },
+  {
+   "id": "d8",
+   "nr": "PRM-0008",
+   "cod": "Cases.Case.Export",
+   "creat": "2026-05-12",
+   "descriere": {
+    "ro": "Exportă lista dosarelor afișate în CSV.",
+    "ru": "Экспортирует отображаемый список дел в CSV.",
+    "en": "Exports the displayed case list to CSV."
+   },
+   "modificat": {
+    "de": "Anastasia Cojocaru",
+    "la": "2026-05-12T10:15"
+   }
+  },
+  {
+   "id": "p1",
+   "nr": "PRM-0009",
+   "cod": "Payments.Account.View",
+   "creat": "2026-04-30",
+   "descriere": {
+    "ro": "Vede notele de plată și starea plăților unui dosar.",
+    "ru": "Просматривает платёжные поручения и статус оплат по делу.",
+    "en": "Sees the payment notes and payment status of a case."
+   },
+   "modificat": {
+    "de": "Anastasia Cojocaru",
+    "la": "2026-04-30T10:15"
+   }
+  },
+  {
+   "id": "p2",
+   "nr": "PRM-0010",
+   "cod": "Payments.Invoice.Generate",
+   "creat": "2026-04-30",
+   "descriere": {
+    "ro": "Generează nota de plată cu taxele calculate pentru dosar.",
+    "ru": "Формирует платёжное поручение с рассчитанными сборами по делу.",
+    "en": "Generates the payment note with the fees calculated for the case."
+   },
+   "modificat": {
+    "de": "Anastasia Cojocaru",
+    "la": "2026-04-30T10:15"
+   }
+  },
+  {
+   "id": "p3",
+   "nr": "PRM-0011",
+   "cod": "Payments.Payment.Confirm",
+   "creat": "2026-04-30",
+   "descriere": {
+    "ro": "Confirmă manual o plată primită în afara MPay.",
+    "ru": "Вручную подтверждает платёж, полученный вне MPay.",
+    "en": "Manually confirms a payment received outside MPay."
+   },
+   "modificat": {
+    "de": "Anastasia Cojocaru",
+    "la": "2026-04-30T10:15"
+   }
+  },
+  {
+   "id": "p4",
+   "nr": "PRM-0012",
+   "cod": "Payments.Payment.Refund",
+   "creat": "2026-06-02",
+   "descriere": {
+    "ro": "Inițiază restituirea unei plăți către solicitant.",
+    "ru": "Инициирует возврат платежа заявителю.",
+    "en": "Starts the refund of a payment to the applicant."
+   },
+   "modificat": {
+    "de": "Anastasia Cojocaru",
+    "la": "2026-06-02T10:15"
+   }
+  },
+  {
+   "id": "av1",
+   "nr": "PRM-0013",
+   "cod": "Opinions.Request.Create",
+   "creat": "2026-04-30",
+   "descriere": {
+    "ro": "Solicită avizul altei autorități pentru un dosar.",
+    "ru": "Запрашивает заключение другого органа по делу.",
+    "en": "Requests the opinion of another authority for a case."
+   },
+   "modificat": {
+    "de": "Anastasia Cojocaru",
+    "la": "2026-04-30T10:15"
+   }
+  },
+  {
+   "id": "av2",
+   "nr": "PRM-0014",
+   "cod": "Opinions.Request.Examine",
+   "creat": "2026-04-30",
+   "descriere": {
+    "ro": "Examinează solicitările de aviz primite de la alte autorități.",
+    "ru": "Рассматривает запросы о заключении от других органов.",
+    "en": "Examines opinion requests received from other authorities."
+   },
+   "modificat": {
+    "de": "Anastasia Cojocaru",
+    "la": "2026-04-30T10:15"
+   }
+  },
+  {
+   "id": "av3",
+   "nr": "PRM-0015",
+   "cod": "Opinions.Opinion.Issue",
+   "creat": "2026-04-30",
+   "descriere": {
+    "ro": "Emite și semnează avizul de specialitate.",
+    "ru": "Выдаёт и подписывает специализированное заключение.",
+    "en": "Issues and signs the specialist opinion."
+   },
+   "modificat": {
+    "de": "Anastasia Cojocaru",
+    "la": "2026-04-30T10:15"
+   }
+  },
+  {
+   "id": "de1",
+   "nr": "PRM-0016",
+   "cod": "Decisions.Draft.Create",
+   "creat": "2026-04-30",
+   "descriere": {
+    "ro": "Elaborează proiectul deciziei pe baza examinării.",
+    "ru": "Составляет проект решения по итогам рассмотрения.",
+    "en": "Drafts the decision based on the examination."
+   },
+   "modificat": {
+    "de": "Anastasia Cojocaru",
+    "la": "2026-04-30T10:15"
+   }
+  },
+  {
+   "id": "de2",
+   "nr": "PRM-0017",
+   "cod": "Decisions.Decision.Coordinate",
+   "creat": "2026-04-30",
+   "descriere": {
+    "ro": "Coordonează proiectul de decizie înainte de semnare.",
+    "ru": "Согласует проект решения перед подписанием.",
+    "en": "Coordinates the draft decision before signing."
+   },
+   "modificat": {
+    "de": "Anastasia Cojocaru",
+    "la": "2026-04-30T10:15"
+   }
+  },
+  {
+   "id": "de3",
+   "nr": "PRM-0018",
+   "cod": "Decisions.Decision.Sign",
+   "creat": "2026-04-30",
+   "descriere": {
+    "ro": "Semnează decizia cu semnătura electronică MSign.",
+    "ru": "Подписывает решение электронной подписью MSign.",
+    "en": "Signs the decision with the MSign electronic signature."
+   },
+   "modificat": {
+    "de": "Anastasia Cojocaru",
+    "la": "2026-04-30T10:15"
+   }
+  },
+  {
+   "id": "de4",
+   "nr": "PRM-0019",
+   "cod": "Decisions.Decision.Cancel",
+   "creat": "2026-07-08",
+   "descriere": {
+    "ro": "Anulează o decizie semnată, cu motiv obligatoriu.",
+    "ru": "Отменяет подписанное решение с обязательным указанием причины.",
+    "en": "Cancels a signed decision, with a mandatory reason."
+   },
+   "modificat": {
+    "de": "Anastasia Cojocaru",
+    "la": "2026-07-08T10:15"
+   }
+  },
+  {
+   "id": "s1",
+   "nr": "PRM-0020",
+   "cod": "Tasks.Task.View",
+   "creat": "2026-04-30",
+   "descriere": {
+    "ro": "Vede sarcinile proprii și ale subdiviziunii.",
+    "ru": "Видит свои задачи и задачи подразделения.",
+    "en": "Sees own tasks and the subdivision's tasks."
+   },
+   "modificat": {
+    "de": "Anastasia Cojocaru",
+    "la": "2026-04-30T10:15"
+   }
+  },
+  {
+   "id": "s2",
+   "nr": "PRM-0021",
+   "cod": "Tasks.Task.Create",
+   "creat": "2026-04-30",
+   "descriere": {
+    "ro": "Creează o sarcină nouă legată de un dosar.",
+    "ru": "Создаёт новую задачу, связанную с делом.",
+    "en": "Creates a new task linked to a case."
+   },
+   "modificat": {
+    "de": "Anastasia Cojocaru",
+    "la": "2026-04-30T10:15"
+   }
+  },
+  {
+   "id": "s3",
+   "nr": "PRM-0022",
+   "cod": "Tasks.Task.Assign",
+   "creat": "2026-04-30",
+   "descriere": {
+    "ro": "Atribuie o sarcină unui alt utilizator.",
+    "ru": "Назначает задачу другому пользователю.",
+    "en": "Assigns a task to another user."
+   },
+   "modificat": {
+    "de": "Anastasia Cojocaru",
+    "la": "2026-04-30T10:15"
+   }
+  },
+  {
+   "id": "s4",
+   "nr": "PRM-0023",
+   "cod": "Tasks.Task.Approve",
+   "creat": "2026-04-30",
+   "descriere": {
+    "ro": "Aprobă rezultatul unei sarcini.",
+    "ru": "Утверждает результат задачи.",
+    "en": "Approves the result of a task."
+   },
+   "modificat": {
+    "de": "Anastasia Cojocaru",
+    "la": "2026-04-30T10:15"
+   }
+  },
+  {
+   "id": "s5",
+   "nr": "PRM-0024",
+   "cod": "Tasks.Task.Reject",
+   "creat": "2026-04-30",
+   "descriere": {
+    "ro": "Respinge rezultatul unei sarcini și o retrimite.",
+    "ru": "Отклоняет результат задачи и возвращает её.",
+    "en": "Rejects the result of a task and sends it back."
+   },
+   "modificat": {
+    "de": "Anastasia Cojocaru",
+    "la": "2026-04-30T10:15"
+   }
+  },
+  {
+   "id": "s6",
+   "nr": "PRM-0025",
+   "cod": "Tasks.Act.Revoke",
+   "creat": "2026-05-20",
+   "descriere": {
+    "ro": "Radiază un act permisiv din registru.",
+    "ru": "Исключает разрешительный акт из реестра.",
+    "en": "Removes a permissive act from the register."
+   },
+   "modificat": {
+    "de": "Anastasia Cojocaru",
+    "la": "2026-05-20T10:15"
+   }
+  },
+  {
+   "id": "s7",
+   "nr": "PRM-0026",
+   "cod": "Tasks.Case.Reopen",
+   "creat": "2026-05-20",
+   "descriere": {
+    "ro": "Redeschide un dosar finalizat pentru corecții.",
+    "ru": "Повторно открывает завершённое дело для исправлений.",
+    "en": "Reopens a finished case for corrections."
+   },
+   "modificat": {
+    "de": "Anastasia Cojocaru",
+    "la": "2026-05-20T10:15"
+   }
+  },
+  {
+   "id": "s8",
+   "nr": "PRM-0027",
+   "cod": "Tasks.Task.Cancel",
+   "creat": "2026-05-20",
+   "descriere": {
+    "ro": "Anulează o sarcină care nu mai este necesară.",
+    "ru": "Отменяет задачу, которая больше не нужна.",
+    "en": "Cancels a task that is no longer needed."
+   },
+   "modificat": {
+    "de": "Anastasia Cojocaru",
+    "la": "2026-05-20T10:15"
+   }
+  },
+  {
+   "id": "s9",
+   "nr": "PRM-0028",
+   "cod": "Tasks.Task.Prioritize",
+   "creat": "2026-06-15",
+   "descriere": {
+    "ro": "Schimbă prioritatea unei sarcini.",
+    "ru": "Изменяет приоритет задачи.",
+    "en": "Changes the priority of a task."
+   },
+   "modificat": {
+    "de": "Anastasia Cojocaru",
+    "la": "2026-06-15T10:15"
+   }
+  },
+  {
+   "id": "s10",
+   "nr": "PRM-0029",
+   "cod": "Tasks.Task.Comment",
+   "creat": "2026-06-15",
+   "descriere": {
+    "ro": "Adaugă comentarii la o sarcină.",
+    "ru": "Добавляет комментарии к задаче.",
+    "en": "Adds comments to a task."
+   },
+   "modificat": {
+    "de": "Anastasia Cojocaru",
+    "la": "2026-06-15T10:15"
+   }
+  },
+  {
+   "id": "s11",
+   "nr": "PRM-0030",
+   "cod": "Tasks.Task.Delegate",
+   "creat": "2026-09-03",
+   "descriere": {
+    "ro": "Deleagă o sarcină pe perioada absenței.",
+    "ru": "Делегирует задачу на время отсутствия.",
+    "en": "Delegates a task for the period of absence."
+   },
+   "modificat": {
+    "de": "Anastasia Cojocaru",
+    "la": "2026-09-03T10:15"
+   }
+  },
+  {
+   "id": "s12",
+   "nr": "PRM-0031",
+   "cod": "Tasks.Task.Close",
+   "creat": "2026-11-14",
+   "descriere": {
+    "ro": "",
+    "ru": "",
+    "en": ""
+   }
+  },
+  {
+   "id": "adm1",
+   "nr": "PRM-0032",
+   "cod": "Admin.User.View",
+   "creat": "2026-04-30",
+   "descriere": {
+    "ro": "Vede lista utilizatorilor și profilul fiecăruia.",
+    "ru": "Видит список пользователей и профиль каждого.",
+    "en": "Sees the user list and each user's profile."
+   },
+   "modificat": {
+    "de": "Anastasia Cojocaru",
+    "la": "2026-04-30T10:15"
+   }
+  },
+  {
+   "id": "adm2",
+   "nr": "PRM-0033",
+   "cod": "Admin.User.Create",
+   "creat": "2026-04-30",
+   "descriere": {
+    "ro": "Creează un utilizator nou din datele RSSP.",
+    "ru": "Создаёт нового пользователя по данным RSSP.",
+    "en": "Creates a new user from RSSP data."
+   },
+   "modificat": {
+    "de": "Anastasia Cojocaru",
+    "la": "2026-04-30T10:15"
+   }
+  },
+  {
+   "id": "adm3",
+   "nr": "PRM-0034",
+   "cod": "Admin.User.Edit",
+   "creat": "2026-04-30",
+   "descriere": {
+    "ro": "Modifică datele și rolurile unui utilizator.",
+    "ru": "Изменяет данные и роли пользователя.",
+    "en": "Edits a user's data and roles."
+   },
+   "modificat": {
+    "de": "Anastasia Cojocaru",
+    "la": "2026-04-30T10:15"
+   }
+  },
+  {
+   "id": "adm4",
+   "nr": "PRM-0035",
+   "cod": "Admin.User.Deactivate",
+   "creat": "2026-04-30",
+   "descriere": {
+    "ro": "Inactivează un utilizator; accesul lui se oprește imediat.",
+    "ru": "Деактивирует пользователя; его доступ прекращается немедленно.",
+    "en": "Deactivates a user; their access stops immediately."
+   },
+   "modificat": {
+    "de": "Anastasia Cojocaru",
+    "la": "2026-04-30T10:15"
+   }
+  },
+  {
+   "id": "adm5",
+   "nr": "PRM-0036",
+   "cod": "Admin.Role.Manage",
+   "creat": "2026-04-30",
+   "descriere": {
+    "ro": "Creează, modifică și inactivează rolurile.",
+    "ru": "Создаёт, изменяет и деактивирует роли.",
+    "en": "Creates, edits and deactivates roles."
+   },
+   "modificat": {
+    "de": "Anastasia Cojocaru",
+    "la": "2026-04-30T10:15"
+   }
+  },
+  {
+   "id": "adm6",
+   "nr": "PRM-0037",
+   "cod": "Admin.Role.GrantPermissions",
+   "creat": "2026-04-30",
+   "descriere": {
+    "ro": "Bifează și debifează permisiunile unui rol.",
+    "ru": "Отмечает и снимает разрешения роли.",
+    "en": "Checks and unchecks the permissions of a role."
+   },
+   "modificat": {
+    "de": "Ion Rusu",
+    "la": "2026-10-28T14:40"
+   }
+  },
+  {
+   "id": "adm7",
+   "nr": "PRM-0038",
+   "cod": "Admin.Authority.Manage",
+   "creat": "2026-04-30",
+   "descriere": {
+    "ro": "Adaugă și modifică autoritățile publice.",
+    "ru": "Добавляет и изменяет органы публичной власти.",
+    "en": "Adds and edits public authorities."
+   },
+   "modificat": {
+    "de": "Anastasia Cojocaru",
+    "la": "2026-04-30T10:15"
+   }
+  },
+  {
+   "id": "adm8",
+   "nr": "PRM-0039",
+   "cod": "Admin.Subdivision.Manage",
+   "creat": "2026-04-30",
+   "descriere": {
+    "ro": "Adaugă și modifică subdiviziunile unei autorități.",
+    "ru": "Добавляет и изменяет подразделения органа.",
+    "en": "Adds and edits the subdivisions of an authority."
+   },
+   "modificat": {
+    "de": "Anastasia Cojocaru",
+    "la": "2026-04-30T10:15"
+   }
+  },
+  {
+   "id": "adm9",
+   "nr": "PRM-0040",
+   "cod": "Admin.Service.Configure",
+   "creat": "2026-05-03",
+   "descriere": {
+    "ro": "Configurează pașaportul serviciului: documente, taxe, termene.",
+    "ru": "Настраивает паспорт услуги: документы, сборы, сроки.",
+    "en": "Configures the service passport: documents, fees, terms."
+   },
+   "modificat": {
+    "de": "Anastasia Cojocaru",
+    "la": "2026-05-03T10:15"
+   }
+  },
+  {
+   "id": "adm10",
+   "nr": "PRM-0041",
+   "cod": "Admin.Form.Manage",
+   "creat": "2026-05-03",
+   "descriere": {
+    "ro": "Creează și publică formulare globale.",
+    "ru": "Создаёт и публикует глобальные формы.",
+    "en": "Creates and publishes global forms."
+   },
+   "modificat": {
+    "de": "Anastasia Cojocaru",
+    "la": "2026-05-03T10:15"
+   }
+  },
+  {
+   "id": "adm11",
+   "nr": "PRM-0042",
+   "cod": "Admin.Template.Manage",
+   "creat": "2026-05-03",
+   "descriere": {
+    "ro": "Creează și publică șabloanele de documente și notificări.",
+    "ru": "Создаёт и публикует шаблоны документов и уведомлений.",
+    "en": "Creates and publishes document and notification templates."
+   },
+   "modificat": {
+    "de": "Anastasia Cojocaru",
+    "la": "2026-05-03T10:15"
+   }
+  },
+  {
+   "id": "adm12",
+   "nr": "PRM-0043",
+   "cod": "Admin.Process.Configure",
+   "creat": "2026-08-21",
+   "descriere": {
+    "ro": "Configurează fluxurile de lucru în Process Designer.",
+    "ru": "Настраивает рабочие процессы в Process Designer.",
+    "en": "Configures workflows in the Process Designer."
+   },
+   "modificat": {
+    "de": "Anastasia Cojocaru",
+    "la": "2026-08-21T10:15"
+   }
+  },
+  {
+   "id": "adm13",
+   "nr": "PRM-0044",
+   "cod": "Admin.Integration.Manage",
+   "creat": "2026-11-14",
+   "descriere": {
+    "ro": "",
+    "ru": "",
+    "en": ""
+   }
+  },
+  {
+   "id": "rg1",
+   "nr": "PRM-0045",
+   "cod": "Registers.Register.View",
+   "creat": "2026-06-30",
+   "descriere": {
+    "ro": "Deschide registrele publicate și înregistrările lor.",
+    "ru": "Открывает опубликованные реестры и их записи.",
+    "en": "Opens the published registers and their records."
+   },
+   "modificat": {
+    "de": "Anastasia Cojocaru",
+    "la": "2026-06-30T10:15"
+   }
+  },
+  {
+   "id": "rg2",
+   "nr": "PRM-0046",
+   "cod": "Registers.Register.Create",
+   "creat": "2026-06-30",
+   "descriere": {
+    "ro": "Creează un registru nou în Constructorul de registre.",
+    "ru": "Создаёт новый реестр в конструкторе реестров.",
+    "en": "Creates a new register in the Register builder."
+   },
+   "modificat": {
+    "de": "Anastasia Cojocaru",
+    "la": "2026-06-30T10:15"
+   }
+  },
+  {
+   "id": "rg3",
+   "nr": "PRM-0047",
+   "cod": "Registers.Register.Edit",
+   "creat": "2026-06-30",
+   "descriere": {
+    "ro": "Modifică structura unui registru în ciornă.",
+    "ru": "Изменяет структуру реестра в черновике.",
+    "en": "Edits a register's structure in draft."
+   },
+   "modificat": {
+    "de": "Anastasia Cojocaru",
+    "la": "2026-06-30T10:15"
+   }
+  },
+  {
+   "id": "rg4",
+   "nr": "PRM-0048",
+   "cod": "Registers.Register.Publish",
+   "creat": "2026-06-30",
+   "descriere": {
+    "ro": "Publică o versiune nouă a registrului.",
+    "ru": "Публикует новую версию реестра.",
+    "en": "Publishes a new version of the register."
+   },
+   "modificat": {
+    "de": "Anastasia Cojocaru",
+    "la": "2026-06-30T10:15"
+   }
+  },
+  {
+   "id": "rg5",
+   "nr": "PRM-0049",
+   "cod": "Registers.Register.Deprecate",
+   "creat": "2026-07-15",
+   "descriere": {
+    "ro": "Depreciază un registru; nu mai primește înregistrări noi.",
+    "ru": "Выводит реестр из употребления; новые записи не принимаются.",
+    "en": "Deprecates a register; it takes no new records."
+   },
+   "modificat": {
+    "de": "Anastasia Cojocaru",
+    "la": "2026-07-15T10:15"
+   }
+  },
+  {
+   "id": "rg6",
+   "nr": "PRM-0050",
+   "cod": "Registers.Version.History",
+   "creat": "2026-07-15",
+   "descriere": {
+    "ro": "Vede istoricul versiunilor unui registru.",
+    "ru": "Просматривает историю версий реестра.",
+    "en": "Sees the version history of a register."
+   },
+   "modificat": {
+    "de": "Anastasia Cojocaru",
+    "la": "2026-07-15T10:15"
+   }
+  },
+  {
+   "id": "rg7",
+   "nr": "PRM-0051",
+   "cod": "Registers.Version.Restore",
+   "creat": "2026-11-14",
+   "descriere": {
+    "ro": "",
+    "ru": "",
+    "en": ""
+   }
+  },
+  {
+   "id": "rg8",
+   "nr": "PRM-0052",
+   "cod": "Registers.Version.Export",
+   "creat": "2026-11-14",
+   "descriere": {
+    "ro": "Exportă o versiune a registrului în JSON.",
+    "ru": "",
+    "en": "Exports a register version to JSON."
+   },
+   "modificat": {
+    "de": "Anastasia Cojocaru",
+    "la": "2026-11-17T09:20"
+   }
+  },
+  {
+   "id": "rg9",
+   "nr": "PRM-0053",
+   "cod": "Registers.Access.Manage",
+   "creat": "2026-10-02",
+   "descriere": {
+    "ro": "Stabilește ce roluri văd și exportă un registru.",
+    "ru": "Определяет, какие роли видят и экспортируют реестр.",
+    "en": "Sets which roles see and export a register."
+   },
+   "modificat": {
+    "de": "Ion Rusu",
+    "la": "2026-10-28T14:40"
+   }
+  },
+  {
+   "id": "au1",
+   "nr": "PRM-0054",
+   "cod": "Audit.Journal.View",
+   "creat": "2026-04-30",
+   "descriere": {
+    "ro": "Deschide Jurnalul de audit și detaliile evenimentelor.",
+    "ru": "Открывает журнал аудита и детали событий.",
+    "en": "Opens the Audit journal and event details."
+   },
+   "modificat": {
+    "de": "Anastasia Cojocaru",
+    "la": "2026-04-30T10:15"
+   }
+  },
+  {
+   "id": "au2",
+   "nr": "PRM-0055",
+   "cod": "Audit.Journal.Export",
+   "creat": "2026-04-30",
+   "descriere": {
+    "ro": "Exportă evenimentele filtrate din Jurnalul de audit.",
+    "ru": "Экспортирует отфильтрованные события журнала аудита.",
+    "en": "Exports the filtered events of the Audit journal."
+   },
+   "modificat": {
+    "de": "Anastasia Cojocaru",
+    "la": "2026-04-30T10:15"
+   }
+  }
+ ]
+}

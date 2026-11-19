@@ -22016,6 +22016,8 @@ document.addEventListener("DOMContentLoaded", () => {
       refreshServiceRegistries, flowName: (id) => servicesStore?.flows?.find((f) => f.id === id)?.name || "",
       roleFunctions: (label) => (roleAdminDb?.runtimeRows || []).find((role) => role.denumire === label)?.functii || null,
       permissionGroups: () => usersDb?.profile?.permissionCatalog?.groups || [],
+      /* perm-v1 (js/permisiuni.js, Feature 97290): every role with its state + permissions, for „Roluri” of a permission */
+      roleRows: () => roleAdminDb?.runtimeRows || [],
       renderChoiceChips, syncStackMetaRows
     };
     if (product?.init) product.init(shellApi);

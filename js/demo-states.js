@@ -4394,8 +4394,60 @@
     /* ---- Setări › Sincronizarea mediilor (Feature 97187, js/env-sync.js, env-sync-v1 2026-11-18): sync-01… US-346 list
        (tabs, type filter, search, empty, selection) · 02 denied · 03 US-347 one object · 04 US-348 batch · 05 US-351
        blocked / skipped · 06 US-352 history · 07 US-353 activity + audit. Demo switch sincronizare=gol|fara-permisiune */
-    ...syncDemoStates()
+    ...syncDemoStates(),
+
+    /* ---- Administrare › Permisiuni (Feature 97290, js/permisiuni.js, perm-v1 2026-11-19): perm-01… US-393 list (search,
+       filters, sort, no match, empty, export menu, export done, local admin granted) · perm-02 denied · perm-03… US-394
+       details drawer (description edited, saved, save error, no description, inactive role, unsaved confirm).
+       Demo switch permisiuni=acordat|gol|eroare */
+    ...permDemoStates()
   };
+
+  function permDemoStates() {
+    const ADMIN = "ansp-central-admin", LOCAL = "ansp-local-admin", SPEC = "ansp-specialist-chisinau";
+    const K = "[data-registry-kind='permisiuni']";
+    const LIST = `${K} tr[data-workplace-row], ${K} .e-permits-empty`;
+    const DRAWER = "[data-perm-drawer]:not([hidden]) [data-perm-desc]";
+    const list = (run, params, as = ADMIN) => ({ flow: "back-office", as, hash: "#permisiuni", ...(params ? { params } : {}), ready: LIST, delay: 900, run });
+    const denied = (as, hash = "#permisiuni", params) => ({ flow: "back-office", as, hash, ...(params ? { params } : {}), ready: ".e-permits-empty", delay: 900 });
+    const seq = (...steps) => async (h) => { for (const step of steps) if (step) await step(h); };
+    const blur = async (h) => { document.activeElement?.blur?.(); await h.wait(150); };
+    const search = (text) => async (h) => { await h.fill(`${K} [data-workplace-search]`, text); await h.wait(400); };
+    const filters = (applied) => async (h) => { window.GEAPShellApi.setRegistryFilters("permisiuni", applied); document.querySelector('[data-nav-item][data-nav-id="permisiuni"]').click(); await h.wait(700); await blur(h); };
+    const open = (id) => async (h) => { window.GEAPPermisiuni.openDetails(id); await h.find(DRAWER); await h.wait(400); };
+    const row = (id) => async (h) => { const r = await h.find(`${K} tr[data-workplace-row="${id}"]`); r.scrollIntoView({ block: "center" }); await h.wait(150); await h.click(`${K} tr[data-workplace-row="${id}"] td[data-column="cod"]`); await h.find(DRAWER); await h.wait(400); };
+    const edit = (lang, text) => async (h) => { await h.fill(`[data-perm-drawer] [data-perm-desc="${lang}"]`, text, { leave: false }); await h.wait(200); };
+    const exportMenu = async (h) => { await h.click(`${K} [data-perm-export-trigger]`); await h.find("#perm-export-menu:not([hidden])"); await h.wait(250); };
+    return {
+      /* US-393 — the list, newest first */
+      "perm-01": list(),
+      "perm-01a": list(search("autoritatilor")),
+      "perm-01b": list(seq(ekPick("rol", ["Auditor"]), ekCommit, async (h) => { await h.wait(300); await blur(h); })),
+      "perm-01c": list(filters({ creat: ["interval:2026-10-01:2026-11-30"] })),
+      "perm-01d": list(search("zzz")),
+      "perm-01e": list(null, { permisiuni: "gol" }),
+      "perm-01f": list(exportMenu),
+      "perm-01g": list(seq(exportMenu, async (h) => { await h.click('[data-perm-export-format="xlsx"]'); await h.wait(400); })),
+      "perm-01h": list(seq(async (h) => { await h.click(`${K} th[data-column="cod"] button, ${K} th[data-column="cod"]`); await h.wait(300); }, blur)),
+      "perm-01i": list(null, { permisiuni: "acordat" }, LOCAL),
+      /* AC-01/02: the menu is hidden, the direct address is refused */
+      "perm-02": denied(SPEC),
+      "perm-02a": denied(LOCAL),
+      "perm-02b": denied(LOCAL, "#permisiuni/PRM-0005"),
+      /* US-394 — the details drawer */
+      "perm-03": list(open("d5")),
+      "perm-03a": list(row("s12")),
+      "perm-03b": list(seq(open("d5"), edit("ro", "Examinează dosarul repartizat: verifică documentele, cere completări și propune decizia."))),
+      /* saved: the drawer closes, the list shows the new description (AC-10), success toast */
+      "perm-03c": list(seq(open("s12"), edit("ro", "Închide sarcina după ce rezultatul ei a fost aprobat."), async (h) => { await h.click("[data-perm-drawer] [data-perm-save]"); await h.wait(500); })),
+      "perm-03d": list(seq(open("s12"), edit("ro", "Închide sarcina după ce rezultatul ei a fost aprobat."), async (h) => { await h.click("[data-perm-drawer] [data-perm-save]"); await h.wait(400); }), { permisiuni: "eroare" }),
+      "perm-03e": list(open("d3")),
+      "perm-03f": list(seq(open("d5"), edit("en", "Examines the case."), async (h) => { await h.click("[data-perm-drawer] .modal-close"); await h.wait(400); })),
+      /* AC-10: the saved description in the list */
+      /* reopened after the save: Modificat de / la = the signed-in user, now */
+      "perm-03g": list(seq(open("s12"), edit("ro", "Închide sarcina după ce rezultatul ei a fost aprobat."), async (h) => { await h.click("[data-perm-drawer] [data-perm-save]"); await h.wait(500); }, open("s12")))
+    };
+  }
 
   function autDemoStates() {
     const ADMIN = "ansp-central-admin", LOCAL = "ansp-local-admin", SPEC = "ansp-specialist-chisinau";

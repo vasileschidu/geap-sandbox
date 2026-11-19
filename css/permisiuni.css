@@ -1,0 +1,33 @@
+/* =====================================================================================
+   perm-v1 (2026-11-19) — Administrare › Permisiuni (Feature 97290, US-393 / US-394, js/permisiuni.js).
+   The list = the BO registry; the details = the ONE drawer (default 800). No new component: only the menu icon, the
+   export menu wrap scoped to this registry, and the drawer's section rhythm (components.md › „Permisiuni”).
+   ===================================================================================== */
+
+/* menu icon (the BO side menu draws icons as 20 masks per data-nav-id) */
+.e-permits-shell__nav--specialist [data-nav-id="permisiuni"] .e-permits-shell__nav-icon::before {
+  mask-image: url("../assets/icons/shield-keyhole.svg");
+  mask-size: var(--icon-size-medium, 20px) var(--icon-size-medium, 20px);
+  -webkit-mask-image: url("../assets/icons/shield-keyhole.svg");
+  -webkit-mask-size: var(--icon-size-medium, 20px) var(--icon-size-medium, 20px);
+}
+
+/* „Exportă ▾” (XLSX / CSV) lives in the shared toolbar: only this registry shows it */
+.e-permits-workplace:not([data-registry-kind="permisiuni"]) [data-perm-export],
+[data-perm-export][hidden] {
+  display: none;
+}
+
+/* the BO table-tools clip (overflow: hidden) cut the open / focused button's focus ring: visible here (the ring
+   stays inside the toolbar's 12 / 16 padding) */
+.e-permits-front-office-page .e-permits-workplace[data-registry-kind="permisiuni"] .e-permits-workplace__table-tools {
+  overflow: visible;
+}
+
+/* the drawer: the sections keep their own bottom padding (no extra gap); the Descriere heading row is followed directly
+   by its content, as the Date generale card; notice → 16 → fields */
+.e-permits-perm-desc__body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-16, 16px);
+}

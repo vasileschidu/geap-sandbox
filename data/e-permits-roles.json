@@ -473,6 +473,12 @@
               "shellView": "roles-registry"
             },
             {
+              "id": "permisiuni",
+              "label": "Permisiuni",
+              "iconAsset": "assets/icons/shield-keyhole.svg",
+              "shellView": "permisiuni-registry"
+            },
+            {
               "id": "authorities",
               "label": "Autorități",
               "iconAsset": "assets/icons/admin-authority.svg",
@@ -616,6 +622,12 @@
               "label": "Clasificatoare",
               "iconAsset": "assets/icons/admin-newspaper.svg",
               "shellView": "classifiers-registry"
+            },
+            {
+              "id": "permisiuni",
+              "label": "Permisiuni",
+              "iconAsset": "assets/icons/shield-keyhole.svg",
+              "shellView": "permisiuni-registry"
             },
             {
               "id": "formulare-globale",
