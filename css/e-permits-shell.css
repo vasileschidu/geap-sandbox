@@ -2545,6 +2545,7 @@ body {
 
 .e-permits-workplace__select-cell .checkbox {
   vertical-align: middle;
+  margin: 0; /* select-cell-center-v1 (user 2026-11-19): the library checkbox's 6px bottom margin lifted it 3.5px off centre */
 }
 
 .e-permits-workplace__table th:nth-child(1),
