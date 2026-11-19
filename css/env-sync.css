@@ -267,28 +267,12 @@
   padding-left: var(--spacing-20, 20px);
 }
 
-/* ---- „Activitate” tab (env-sync-activity-tab-v1) — in the table's place, the content column edge (16): the tab page
-   rhythm tabs → 24 → its toolbar row (search + „Vezi în Audit & Logging”) → 16 → the batches, 24 at the end */
+/* ---- „Activitate” tab (env-sync-activity-tab-v2) — the batches in the table's place, the content column edge (16):
+   tabs → 24 → the batch cards → 24 at the end; the search + action stay in the header toolbar above the tabs */
 .e-permits-sync-activity {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-16, 16px);
   padding: var(--spacing-24, 24px) var(--spacing-16, 16px);
-}
-
-.e-permits-sync-activity__toolbar {
-  align-items: center;
-  display: flex;
-  gap: var(--spacing-12, 12px);
-}
-
-.e-permits-sync-activity__search {
-  flex: 0 1 calc(var(--spacing-40, 40px) * 10);
-  min-width: 0;
-}
-
-.e-permits-sync-activity__audit {
-  margin-left: auto;
 }
 
 /* NEW: the batch header inside the shared group toggle — id + count + omitted tag, then the meta lines */
@@ -442,13 +426,17 @@
   margin-inline: var(--spacing-8, 8px);
 }
 
-/* on „Activitate” the header toolbar slot is not used (no empty band above the tabs): the tab bar follows the notice */
+/* env-sync-activity-tab-v2 (user 2026-11-19: „the header jumps and the search goes down”): on „Activitate” the header
+   toolbar keeps its slot (8 · 40 · 8, same search box, it searches the batches); „Filtrare”, its panel, the selection bar and
+   „Sincronizează tot (N)” step aside — „Vezi în Audit & Logging” sits in the action's place; table + pager hidden */
 .e-permits-workplace[data-registry-kind="sincronizare"][data-sync-tab="activity"] > :is(.e-permits-workplace__table-wrap, .e-permits-workplace__footer),
-.e-permits-workplace[data-registry-kind="sincronizare"][data-sync-tab="activity"] > .e-permits-workplace__header > :is([data-workplace-toolbar], .e-permits-selection-bar, .e-permits-workplace__filters) {
+.e-permits-workplace[data-registry-kind="sincronizare"][data-sync-tab="activity"] > .e-permits-workplace__header > :is(.e-permits-selection-bar, .e-permits-workplace__filters),
+.e-permits-workplace[data-registry-kind="sincronizare"][data-sync-tab="activity"] [data-workplace-toolbar] :is([data-workplace-filter-toggle], [data-sync-tool]) {
   display: none;
 }
 
-.e-permits-sync-activity [data-sync-audit][hidden] {
+.e-permits-workplace:not([data-registry-kind="sincronizare"]) [data-sync-audit],
+.e-permits-workplace [data-sync-audit][hidden] {
   display: none;
 }
 

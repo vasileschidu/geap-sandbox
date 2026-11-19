@@ -18,8 +18,8 @@
        one PROMOTE audit event per step (correlation id = batch id), success toast with the batch id;
      · „Activitate” = the last status tab, after a divider, history icon, no count (env-sync-activity-tab-v1, 2026-11-19):
        collapsible group rows per batch (newest open), each a table Ce · Sensul · Versiunea · De ce, in the table's place;
-       the toolbar search filters the batches, „Vezi în Audit & Logging” replaces „Sincronizează tot”; a name opens the
-       history; the audit button opens the batch's audit record.
+       the header toolbar keeps its slot (v2): its search filters the batches (text kept per view), „Vezi în Audit &
+       Logging” replaces „Sincronizează tot”; a name opens the history; the audit button opens the batch's audit record.
    Demo switch ?sincronizare= gol (no divergence) · fara-permisiune. Route #sincronizarea-mediilor.
    ===================================================================================== */
 (function () {
@@ -45,6 +45,7 @@
   const TITLE = "Sincronizarea mediilor";
   const ACT = "activity";
   const SEARCH_LIST = "Caută după denumire sau tip";
+  const SEARCH_ACT = "Caută după lot, obiect, motiv sau autor";
   /* the AC texts in the „tu” tone (components.md › Ton: tu) — the stories say „Nu aveți …”, „Lucrați …”, „aici lucrați”,
      „publicați-o” (deviations listed for the PO) */
   const DENIED = "Nu ai permisiunea de a accesa această pagină.";
@@ -282,7 +283,8 @@
     const anchor = reg.querySelector("[data-workplace-add-product]");
     if (anchor && !reg.querySelector("[data-sync-tool]")) {
       anchor.insertAdjacentHTML("beforebegin", `
-        <button class="btn btn-secondary btn-sm e-permits-workplace__primary-action e-permits-sync-tool" type="button" data-sync-tool data-sync-scope="all" hidden>${icon("rotate-arrow", 16)}<span>Sincronizează tot</span></button>`);
+        <button class="btn btn-secondary btn-sm e-permits-workplace__primary-action e-permits-sync-tool" type="button" data-sync-tool data-sync-scope="all" hidden>${icon("rotate-arrow", 16)}<span>Sincronizează tot</span></button>
+        <button class="btn btn-neutral btn-sm e-permits-workplace__primary-action e-permits-sync-audit" type="button" data-sync-audit hidden>Vezi în Audit &amp; Logging</button>`);
     }
     /* selection-bar-v1 (PO 2026-11-19): ≥ 1 selected row → the selection bar takes the toolbar's place */
     const toolbar = reg.querySelector("[data-workplace-toolbar]");
@@ -292,24 +294,10 @@
         actionsHtml: `<button class="btn btn-primary btn-sm" type="button" data-sync-scope="selected">${icon("rotate-arrow", 16)}<span>Sincronizează</span></button>`
       }).replace("data-selection-bar>", "data-selection-bar data-sync-selection>"));
     }
-    /* env-sync-activity-tab-v1 (user 2026-11-19): on „Activitate” the header toolbar steps aside and the tab's own toolbar
-       row (the BO toolbar search + „Vezi în Audit & Logging”) sits UNDER the tab bar: tabs → 24 → toolbar → 16 → batches.
-       The row is built once (the field keeps its focus); only the batch list redraws */
-    if (!reg.querySelector("[data-sync-activity]")) reg.insertAdjacentHTML("beforeend", `
-      <section class="e-permits-sync-activity" data-sync-activity aria-label="Activitatea de sincronizare" hidden>
-        <div class="e-permits-sync-activity__toolbar" role="search" aria-label="Caută în activitate">
-          <div class="search-input medium rectangular e-permits-workplace__search e-permits-sync-activity__search">
-            <span class="icon-search" aria-hidden="true">${icon("search")}</span>
-            <input class="input" type="search" placeholder="Caută după lot, obiect, motiv sau autor" aria-label="Caută în activitate" data-sync-act-search>
-            <div class="btn-group">
-              <span class="spinner spinner--extra-small spinner--brand" aria-hidden="true"></span>
-              <button type="button" class="btn-icon clear" aria-label="Șterge căutarea">${icon("cross-small", 16)}</button>
-            </div>
-          </div>
-          <button class="btn btn-neutral btn-sm e-permits-sync-activity__audit" type="button" data-sync-audit hidden>Vezi în Audit &amp; Logging</button>
-        </div>
-        <div class="e-permits-sync-activity__body" data-sync-act-list></div>
-      </section>`);
+    /* env-sync-activity-tab-v2 (user 2026-11-19: „the header jumps, the search goes down”): on „Activitate” the SAME header
+       toolbar stays in its slot (search = the batches, „Vezi în Audit & Logging” in the action's place); the batches take
+       the table's place: tabs → 24 → cards */
+    if (!reg.querySelector("[data-sync-activity]")) reg.insertAdjacentHTML("beforeend", '<section class="e-permits-sync-activity" data-sync-activity aria-label="Activitatea de sincronizare" hidden><div class="e-permits-sync-activity__body" data-sync-act-list></div></section>');
   }
   function syncChrome() {
     ensureChrome();
@@ -321,7 +309,9 @@
        `data-workplace-tab` — never one attribute for a state holder and its controls) */
     reg.dataset.syncTab = act ? ACT : "list";
     const audit = reg.querySelector("[data-sync-audit]");
-    if (audit) audit.hidden = !batches().length;
+    if (audit) audit.hidden = !act || !batches().length;
+    const search = reg.querySelector("[data-workplace-search]");
+    if (search) search.placeholder = act ? SEARCH_ACT : SEARCH_LIST;
     reg.querySelector("[data-sync-intro]").hidden = !me.has;
     /* AC-08: the STAGING header carries „aici lucrezi” */
     const th = reg.querySelector('th[data-column="staging"] .e-permits-workplace__th-content');
@@ -411,7 +401,7 @@
     const out = host.querySelector("[data-sync-act-list]");
     if (!who().has || !onActivity()) { host.hidden = true; out.innerHTML = ""; return; }
     host.hidden = false;
-    const query = S.actQuery || "";
+    const query = A().workplaceState?.query || ""; /* on this tab the shared search holds the activity text */
     const all = batches();
     const list = all.filter((b) => batchMatches(b, query));
     const isOpen = (b) => S.open.has(b.id) || (query.trim() && !S.closed?.has(b.id));
@@ -556,9 +546,8 @@
       S.open = new Set([id]);
       S.closed = new Set();
       S.actQuery = "";
-      const field = listEl()?.querySelector("[data-sync-act-search]");
-      if (field) field.value = "";
-      listEl()?.querySelector(`[data-workplace-tab="${ACT}"]`)?.click();
+      if (onActivity()) { const st = A().workplaceState; if (st) st.query = ""; A().renderWorkplace?.(); }
+      else listEl()?.querySelector(`[data-workplace-tab="${ACT}"]`)?.click();
       syncChrome();
       const btn = listEl()?.querySelector(`[data-sync-batch="${id}"]`);
       const surface = document.querySelector(".e-permits-shell__canvas-surface");
@@ -701,12 +690,19 @@
     const r = event.target.closest?.("[data-sync-mode]");
     if (r && D && !D.fixed) { D.mode = r.value; renderReview(); document.querySelector(`#case-action-modal [data-sync-mode][value="${r.value}"]`)?.focus(); }
   });
-  /* the activity search: redraws only the batch list (the field keeps the focus) */
-  document.addEventListener("input", (event) => {
-    if (!event.target.matches?.("[data-sync-act-search]")) return;
-    S.actQuery = event.target.value;
-    renderActivity();
-  });
+  /* env-sync-activity-tab-v2: ONE search field, a separate text per view — the list keeps its search while you look at
+     the activity and gets it back on return (a batch query would empty the list). The swap runs in the CAPTURE phase,
+     before the engine's tab handler renders with the query */
+  document.addEventListener("click", (event) => {
+    const tabBtn = event.target.closest?.(`[data-registry-kind="${KIND}"] [data-workplace-tab]`);
+    const st = A().workplaceState;
+    if (!tabBtn || !st) return;
+    const from = st.tabKey === ACT;
+    const to = tabBtn.dataset.workplaceTab === ACT;
+    if (from === to) return;
+    if (to) { S.listQuery = st.query; st.query = S.actQuery || ""; }
+    else { S.actQuery = st.query; st.query = S.listQuery || ""; }
+  }, true);
   document.addEventListener("input", (event) => {
     const t = event.target;
     if (!D || !t.closest?.("#case-action-modal")) return;
