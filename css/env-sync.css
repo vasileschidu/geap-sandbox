@@ -414,6 +414,9 @@
 
 .e-permits-workplace[data-registry-kind="sincronizare"] .e-permits-workplace__header > .e-permits-selection-bar .e-permits-selection-bar__inner {
   min-height: calc(var(--spacing-40, 40px) + 2 * var(--spacing-16, 16px));
+  /* env-sync-selbar-v4 (user 2026-11-19 „align with search”): „N obiecte selectate” starts where the search icon starts
+     (gutter 16 + the search's 1px line + its 12 inset) — the eye stays on the same spot when the bar replaces the toolbar */
+  padding-left: calc(var(--spacing-16, 16px) + var(--border-width-1, 1px) + var(--spacing-12, 12px));
 }
 
 /* the header's first row follows the 72 toolbar / selection bar (BO default row = 56) */
