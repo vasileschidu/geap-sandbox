@@ -458,7 +458,7 @@
                           "en": ""
                         }
                       },
-                      "width": "l",
+                      "width": "m",
                       "maxLength": 120
                     },
                     {
@@ -517,42 +517,6 @@
                           }
                         ]
                       }
-                    },
-                    {
-                      "id": "col-09-cap",
-                      "type": "number",
-                      "key": "Capacitate",
-                      "label": {
-                        "ro": "Capacitate",
-                        "ru": "",
-                        "en": ""
-                      },
-                      "help": {
-                        "ro": "",
-                        "ru": "",
-                        "en": ""
-                      },
-                      "placeholder": {
-                        "ro": "",
-                        "ru": "",
-                        "en": ""
-                      },
-                      "span": 12,
-                      "required": false,
-                      "readOnly": false,
-                      "validation": {
-                        "min": 1,
-                        "max": "",
-                        "message": {
-                          "ro": "",
-                          "ru": "",
-                          "en": ""
-                        }
-                      },
-                      "width": "s",
-                      "numberKind": "integer",
-                      "decimals": 0,
-                      "unit": "l"
                     },
                     {
                       "id": "col-09-on",
@@ -734,6 +698,273 @@
                           "en": ""
                         }
                       }
+                    },
+                    {
+                      "id": "col-09-tech",
+                      "type": "subform",
+                      "key": "DateTehnice",
+                      "label": {
+                        "ro": "Date tehnice",
+                        "ru": "",
+                        "en": ""
+                      },
+                      "help": {
+                        "ro": "Datele tehnice ale echipamentului; se completează sub rând.",
+                        "ru": "",
+                        "en": ""
+                      },
+                      "placeholder": {
+                        "ro": "",
+                        "ru": "",
+                        "en": ""
+                      },
+                      "span": 12,
+                      "required": false,
+                      "readOnly": false,
+                      "validation": {
+                        "message": {
+                          "ro": "",
+                          "ru": "",
+                          "en": ""
+                        }
+                      },
+                      "width": "l",
+                      "fields": [
+                        {
+                          "id": "col-09-cap",
+                          "type": "number",
+                          "key": "Capacitate",
+                          "label": {
+                            "ro": "Capacitate",
+                            "ru": "",
+                            "en": ""
+                          },
+                          "help": {
+                            "ro": "",
+                            "ru": "",
+                            "en": ""
+                          },
+                          "placeholder": {
+                            "ro": "",
+                            "ru": "",
+                            "en": ""
+                          },
+                          "span": 6,
+                          "required": true,
+                          "readOnly": false,
+                          "validation": {
+                            "min": 1,
+                            "max": "",
+                            "message": {
+                              "ro": "",
+                              "ru": "",
+                              "en": ""
+                            }
+                          },
+                          "numberKind": "integer",
+                          "decimals": 0,
+                          "unit": "l"
+                        },
+                        {
+                          "id": "bf-09-temp",
+                          "type": "number",
+                          "key": "Temperatura",
+                          "label": {
+                            "ro": "Temperatura de lucru",
+                            "ru": "",
+                            "en": ""
+                          },
+                          "help": {
+                            "ro": "",
+                            "ru": "",
+                            "en": ""
+                          },
+                          "placeholder": {
+                            "ro": "Ex.: 4",
+                            "ru": "",
+                            "en": ""
+                          },
+                          "span": 6,
+                          "required": true,
+                          "readOnly": false,
+                          "validation": {
+                            "min": -40,
+                            "max": 15,
+                            "message": {
+                              "ro": "",
+                              "ru": "",
+                              "en": ""
+                            }
+                          },
+                          "numberKind": "integer",
+                          "decimals": 0,
+                          "unit": "°C"
+                        },
+                        {
+                          "id": "bf-09-agent",
+                          "type": "select",
+                          "key": "AgentFrigorific",
+                          "label": {
+                            "ro": "Agent frigorific",
+                            "ru": "",
+                            "en": ""
+                          },
+                          "help": {
+                            "ro": "",
+                            "ru": "",
+                            "en": ""
+                          },
+                          "placeholder": {
+                            "ro": "Alege agentul",
+                            "ru": "",
+                            "en": ""
+                          },
+                          "span": 6,
+                          "required": true,
+                          "readOnly": false,
+                          "validation": {
+                            "message": {
+                              "ro": "",
+                              "ru": "",
+                              "en": ""
+                            }
+                          },
+                          "dataSource": {
+                            "mode": "static",
+                            "multilingual": false,
+                            "values": [
+                              {
+                                "id": 1,
+                                "label": "R134a",
+                                "isValid": true
+                              },
+                              {
+                                "id": 2,
+                                "label": "R404A",
+                                "isValid": true
+                              },
+                              {
+                                "id": 3,
+                                "label": "R600a",
+                                "isValid": true
+                              },
+                              {
+                                "id": 4,
+                                "label": "R290",
+                                "isValid": true
+                              }
+                            ]
+                          }
+                        },
+                        {
+                          "id": "bf-09-year",
+                          "type": "number",
+                          "key": "AnFabricatie",
+                          "label": {
+                            "ro": "Anul fabricației",
+                            "ru": "",
+                            "en": ""
+                          },
+                          "help": {
+                            "ro": "",
+                            "ru": "",
+                            "en": ""
+                          },
+                          "placeholder": {
+                            "ro": "Ex.: 2019",
+                            "ru": "",
+                            "en": ""
+                          },
+                          "span": 6,
+                          "required": false,
+                          "readOnly": false,
+                          "validation": {
+                            "min": 1980,
+                            "max": 2026,
+                            "message": {
+                              "ro": "",
+                              "ru": "",
+                              "en": ""
+                            }
+                          },
+                          "numberKind": "integer",
+                          "decimals": 0,
+                          "unit": ""
+                        },
+                        {
+                          "id": "bf-09-check",
+                          "type": "date",
+                          "key": "DataVerificarii",
+                          "label": {
+                            "ro": "Data ultimei verificări",
+                            "ru": "",
+                            "en": ""
+                          },
+                          "help": {
+                            "ro": "",
+                            "ru": "",
+                            "en": ""
+                          },
+                          "placeholder": {
+                            "ro": "",
+                            "ru": "",
+                            "en": ""
+                          },
+                          "span": 6,
+                          "required": false,
+                          "readOnly": false,
+                          "validation": {
+                            "message": {
+                              "ro": "",
+                              "ru": "",
+                              "en": ""
+                            }
+                          },
+                          "dateDefault": "none",
+                          "dateMin": {
+                            "mode": "none",
+                            "value": ""
+                          },
+                          "dateMax": {
+                            "mode": "today",
+                            "value": ""
+                          }
+                        },
+                        {
+                          "id": "bf-09-notes",
+                          "type": "textarea",
+                          "key": "Observatii",
+                          "label": {
+                            "ro": "Observații",
+                            "ru": "",
+                            "en": ""
+                          },
+                          "help": {
+                            "ro": "",
+                            "ru": "",
+                            "en": ""
+                          },
+                          "placeholder": {
+                            "ro": "Ex.: revizie tehnică în martie 2026",
+                            "ru": "",
+                            "en": ""
+                          },
+                          "span": 12,
+                          "required": false,
+                          "readOnly": false,
+                          "validation": {
+                            "minLength": "",
+                            "message": {
+                              "ro": "",
+                              "ru": "",
+                              "en": ""
+                            }
+                          },
+                          "rows": 2,
+                          "maxLength": 250,
+                          "counter": true
+                        }
+                      ]
                     }
                   ],
                   "validation": {

@@ -3088,7 +3088,7 @@
             /* 52w a grid column's „Lățime coloană”: parts on a 4-bar row (Îngustă 2 · Medie 3 · Lată 4) */
             "fb-52w": fb(async (h) => { await h.scroll("[data-builder-field][data-id='fld-equipment']"); await h.click(chip("col-09-name")); await h.scroll(".e-permits-builder__panel .e-permits-builder__width-picker"); }, F09),
             "fb-52b": fb(async (h) => {
-              const target = await h.scroll(chip("col-09-cap"));
+              const target = await h.scroll(chip("col-09-on"));
               const item = await h.find("[data-builder-component='date']");
               const dt = new DataTransfer();
               item.dispatchEvent(new DragEvent("dragstart", { bubbles: true, dataTransfer: dt }));
@@ -3177,6 +3177,101 @@
             "fb-62": fb(async (h) => { await h.click("[data-builder-mode='schema']"); await h.wait(300); const code = await h.find("[data-builder-schema-code]"); const at = code.textContent.indexOf('"storage"'); const pre = code.closest("pre") || code; pre.scrollTop = Math.max(0, (code.textContent.slice(0, at).split("\n").length - 6) * 20); }, F09),
             /* 63 validation summary: a grid without columns, a block without fields */
             "fb-63": fb(async (h) => { await h.click("[data-builder-component='grid']"); await h.click("[data-builder-component='repeat']"); await h.click("[data-fb-errors]"); })
+          };
+        })(),
+
+        /* ---- Sub-formular (fb-subform-v1, 2026-11-20, DEV: „form inside a form”): a grid column that holds
+           fields, opened in the row's detail row. F09 equipment grid › „Date tehnice” (6 fields, 3 required).
+           Builder 01–08 (scope #form-builder-modal), FO 10–15 (the Preview; 15 = phone frame). */
+        ...(() => {
+          const F09 = { formular: "form-sanitary-09" };
+          const PV = "[data-builder-preview-grid]";
+          const equipCard = "[data-builder-field][data-id='fld-equipment']";
+          const equip = `${PV} [data-fb-field='fld-equipment']`;
+          const preview = async (h) => { await h.click("[data-builder-mode='preview']"); await h.wait(400); };
+          const techChip = async (h) => { await h.scroll(equipCard); await h.click("[data-fb-child='col-09-tech']"); };
+          const fillGrid = async (h) => { const cell = await h.find(equip); window.GEAPFoRepeat.fill(cell); await h.wait(300); };
+          /* the summary of row n (detail rows sit between the rows, so no :nth-of-type) */
+          const openSub = (n) => async (h) => { await h.find(equip); document.querySelectorAll(`${equip} [data-fo-grid-body] > [data-fo-grid-row]`)[n - 1].querySelector("[data-fo-grid-subform]").click(); await h.wait(300); };
+          /* a new row with its simple cells filled (Tip = the first option, as the FO list picks it) */
+          const newRow = async (h) => {
+            await h.click(`${equip} [data-fo-grid-add]`);
+            await h.fill(`${equip} .is-editing [data-col='NrInventar'] input`, "INV-0031", { leave: false });
+            await h.fill(`${equip} .is-editing [data-col='Denumire'] input`, "Congelator orizontal Bosch", { leave: false });
+            await h.click(`${equip} .is-editing [data-col='Tip'] .e-permits-fo-select__button`);
+            await h.click(`${equip} .is-editing [data-col='Tip'] .e-permits-fo-select__option`);
+          };
+          return {
+            /* 01 the column chip selected → its panel (General: label, key, width) */
+            "fb-sf-01": fb(async (h) => { await techChip(h); }, F09),
+            /* 02 Date: the sub-form's fields in order + „Adaugă câmp ▾” */
+            "fb-sf-02": fb(async (h) => { await techChip(h); await h.click("[data-builder-prop-tab='data']"); }, F09),
+            /* 03 the typed menu of the sub-form (the block's field types) */
+            "fb-sf-03": fb(async (h) => { await techChip(h); await h.click("[data-builder-prop-tab='data']"); await h.click("[aria-controls='fb-addchild-col-09-tech-panel']"); }, F09),
+            /* 04 a field added → its panel: crumbs … › Date tehnice, back link „Sub-formularul „Date tehnice”” */
+            "fb-sf-04": fb(async (h) => {
+              await techChip(h); await h.click("[data-builder-prop-tab='data']");
+              await h.click("[aria-controls='fb-addchild-col-09-tech-panel']");
+              await h.click("[data-fb-add-child='text'][data-container='col-09-tech']");
+              await h.fill("[data-fb-prop='label']", "Producător", { leave: false });
+            }, F09),
+            /* 05 Validare: which fields are required */
+            "fb-sf-05": fb(async (h) => { await techChip(h); await h.click("[data-builder-prop-tab='validation']"); }, F09),
+            /* 06 „+ Coloană” on the grid band: Coloane complexe › Sub-formular */
+            "fb-sf-06": fb(async (h) => { await h.scroll(equipCard); await h.click(`${equipCard} .e-permits-builder__sub-add`); await h.scroll(`${equipCard} [data-fb-add-child='subform']`); }, F09),
+            /* 07 depth lock (US-38): a level-3 grid offers Sub-formular disabled, with its reason */
+            "fb-sf-07": fb(async (h) => {
+              await h.scroll(equipCard);
+              await h.click("[data-fb-child='col-09-parts']");
+              await h.click("[data-builder-prop-tab='data']");
+              await h.click("[aria-controls='fb-addchild-col-09-parts-panel']");
+              await h.click("[data-fb-add-child='grid'][data-container='col-09-parts']");
+              await h.click("[data-builder-prop-tab='data']");
+              const level3 = window.GEAPFormBuilder.state.sel.id;
+              await h.click(`[aria-controls='fb-addchild-${level3}-panel']`);
+              await h.click(`[data-fb-add-child='text'][data-container='${level3}']`);
+              await h.click(".e-permits-builder__panel-head .breadcrumbs__link[data-fb-goto]");
+              await h.click(`[aria-controls='fb-addchild-${level3}-panel']`);
+              await h.hover(`[data-fb-add-child='subform'][data-container='${level3}']`);
+              await h.wait(600);
+            }, F09),
+            /* 08 validation: a new sub-form without fields → the summary lists it */
+            "fb-sf-08": fb(async (h) => {
+              await h.scroll(equipCard);
+              await h.click(`${equipCard} .e-permits-builder__sub-add`);
+              await h.click(`${equipCard} [data-fb-add-child='subform']`);
+              await h.click("[data-fb-errors]");
+            }, F09),
+            /* 10 FO: summaries in the cells (6 din 6 · 3 din 6 completate) */
+            "fb-sf-10": fb(async (h) => { await preview(h); await fillGrid(h); await h.scroll(equip); }, F09),
+            /* 11 FO: the sub-form of row 2 opened for editing (clic on its summary) */
+            "fb-sf-11": fb(async (h) => { await preview(h); await fillGrid(h); await openSub(2)(h); await h.scroll(`${equip} .e-permits-fo-grid__detail--subform:not([hidden])`); }, F09),
+            /* 12 FO: a new row saved without the sub-form → summary red, sub-form open, field errors */
+            "fb-sf-12": fb(async (h) => { await preview(h); await fillGrid(h); await newRow(h); await h.click(`${equip} .is-editing [data-fo-grid-act='save']`); await h.scroll(`${equip} .e-permits-fo-grid__detail--subform:not([hidden])`); }, F09),
+            /* 13 FO: a new row whose sub-form is still empty („Completează”) */
+            "fb-sf-13": fb(async (h) => { await preview(h); await fillGrid(h); await newRow(h); await h.scroll(`${equip} .is-editing`); }, F09),
+            /* 14 FO: row 2's sub-form completed and saved → „4 din 6 completate” */
+            "fb-sf-14": fb(async (h) => {
+              await preview(h); await fillGrid(h);
+              await openSub(2)(h);
+              await h.fill(`${equip} .e-permits-fo-grid__detail--subform:not([hidden]) [data-fo-subform-key='AnFabricatie'] input`, "2019", { leave: false });
+              await h.click(`${equip} .e-permits-fo-grid__detail--subform:not([hidden]) [data-fo-grid-act='save']`);
+              await h.scroll(equip);
+            }, F09),
+            /* 15 phone (Preview › Mobil, 375): rows as cards, row 1's sub-form open under its card */
+            "fb-sf-15": fb(async (h) => {
+              await preview(h);
+              await h.click("[data-fb-preview-device='mobile']");
+              await h.wait(2200);
+              const frame = document.querySelector("[data-fb-device-frame]");
+              const doc = frame.contentDocument;
+              const cell = doc.querySelector("[data-fb-field='fld-equipment']");
+              frame.contentWindow.GEAPFoRepeat.fill(cell);
+              await h.wait(300);
+              cell.querySelector("[data-fo-grid-row] [data-fo-grid-subform]").click();
+              await h.wait(300);
+              cell.querySelector("[data-fo-grid-row]").scrollIntoView({ block: "start" });
+            }, F09)
           };
         })()
       };

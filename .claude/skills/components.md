@@ -408,6 +408,7 @@ but this doc previously described it wrongly, see the entry.
 | Boxed doc field with several files | `.e-permits-fo-doc-field--boxed.e-permits-fo-doc-field--multi` (button stays until `is-full`) + `data-fo-upload-only` (picker without MDocs), `data-fo-doc-accept`, `data-fo-doc-max`, `data-fo-doc-limits` (modal captions) | Form Builder „Fișier” | app |
 | Form Builder · hidden field marker | `p.e-permits-builder__hidden-marker` (dashed 1px border/base/default, r8, 40 high, `icon-data-access` + „Ascuns” + name · value, ellipsis + title) — Build canvas only; the FO renders `<input type="hidden" data-fo-hidden>` | „Câmp ascuns” card | app |
 | Editable grid (FO, US-33…39) — **library gap: no editable table in the library** | `.e-permits-fo-grid[data-fo-grid][data-units]` > `__label` · hint · group note (`renderInfoNote`) · `__frame` > library `table.table.table--subtle.e-permits-fo-grid__table` (explicit ARIA roles; `th`/`td` `colspan` = width units 2·3·4) > `tr.e-permits-fo-grid__row(.is-editing)` (`__index` · `__cell[data-col][data-type]` = `__cell-label` + `button.__value` or the FO field · `__actions` = `__actions-compact` icon buttons + `__actions-full` labelled) · `tr.__detail` (nested grid) · `tr.__empty` (`GEAPEmptyState`) · `__foot` (`.e-permits-fo-add-activity` + `__limit` + library `.pagination--compact`) · `.is-cards` (cards) | `GEAPFoRepeat.gridHtml` / `bind` / `validate` / `fill` / `layout` / `escape`; confirm `[data-fo-grid-confirm]` | app |
+| Grid column „Sub-formular” (FO + builder, fb-subform-v1, 2026-11-20 — DEV „form inside a form”) | cell = the nested toggle `button.btn.btn-neutral.btn-sm.e-permits-fo-grid__nested-toggle.e-permits-fo-grid__subform-toggle[data-fo-grid-subform][aria-expanded][aria-controls]` („Completează” · „3 din 6” + `__subform-more` „completate” on cards · `.is-error` danger-secondary + `icon-circle-error-filled`, shows the count) · `tr.e-permits-fo-grid__detail.e-permits-fo-grid__detail--subform` > `.e-permits-fo-grid__subform[data-fo-subform][role=group]` (container) > `__subform-head` (`.e-permits-fo-grid__label` „Date tehnice · Echipament 2” + hint) · `__subform-fields` (FO fields tagged `[data-fo-subform-key]`; 2 cols gap 24, ≤ 6/12 = 1 col, wider = 2, 1 col < 560 px) · `__subform-actions` (`btn-secondary btn-md` „Salvează rândul” + `btn-neutral btn-md` „Anulează” = the row's `data-fo-grid-act`) | `js/fo-grid.js` (`subformToggleHtml` / `subformHtml` / `drawSub` / `readSub`); builder type `subform` (`COMPONENTS.subform`, `subformFieldsHtml`, `subformValidationHtml`); demo `fb-sf-01…08`, `fb-sf-10…15` | app |
 | Repeatable block (FO, „Adaugă alt …”; CAEM = its preset) | `fieldset.e-permits-fo-repeat[data-fo-repeat]` > legend (`.e-permits-fo-choice__legend`, may be visually hidden) · note · group note · `__list` > `.e-permits-fo-activity-card.e-permits-fo-repeat__item[data-fo-repeat-item]` (header `#n` + title + `.e-permits-fo-icon-button[data-fo-repeat-remove]`; fields in `.e-permits-fo-field-group`, the CAEM pair as the FO activity markup) · `.e-permits-fo-add-activity[data-fo-repeat-add]` · `__limit` | `GEAPFoRepeat.blockHtml`, FO `caemFieldHtml` / `subgenHtml` | app |
 | Form Builder · band of columns / block fields | `.e-permits-builder__subs[data-fb-subs]` > `__subs-label` · `button.__sub[data-fb-child](.is-selected/.has-issue/.is-dragging)` · `.e-permits-builder__sub-add-wrap` (`__sub-add` dashed + typed stack menu with `__issues-head` groups, disabled items with reason) | `subsStripHtml` / `addChildMenuHtml` / `childPanelHtml` (js/form-builder.js) | app |
 | Form Builder · „Lățime” (a row of real columns) | `.e-permits-builder__width(.is-disabled)` > `.e-permits-builder__width-picker[role=radiogroup][data-total=12\|4]` > `button.__width-option[role=radio][aria-checked][data-cols][data-fb-seg][data-value]` > `span.__width-bar(.is-filled)` + `p.__width-caption` (`<strong>6/12</strong> · jumătate`) + hint; label `span.__width-label` | `widthPicker` / `spanPicker` / `columnPicker` (js/form-builder.js), section „Form Builder › Lățime” | app |
@@ -5010,6 +5011,43 @@ grid, work points with Raion → Localitate).
 States `fb-50…fb-63` (palette 50–50a, new grid 51–51a, columns 52–52b, rules 53–53a, nested 54–54a, FO grid
 55–55b, errors 56–56b, phone 57, CAEM 58–58b, block 59–59d, block validation 60, source down 61–61a, schema 62,
 summary 63).
+
+**Sub-formular — a form inside a grid row (fb-subform-v1, 2026-11-20; DEV request, user chose the detail row).**
+A grid column of type `subform` holds `fields` like a Bloc repetabil (same field panel, the block's types
+`BLOCK_TYPES`, no grids inside: a grid is another column). It is a complex column (`COLUMN_COMPLEX`), so „+ Coloană”
+› Coloane complexe offers it only after a simple column (US-34 AC-06); it counts as a nesting level — in a level-3
+grid it is disabled with the US-38 message „Se permit cel mult 3 niveluri de grile imbricate (US-38).”. Not in the
+palette (`columnOnly`).
+- **Builder.** Chip on the grid band (`icon-page-child`); its fields are edited from the panel (crumbs … › Grilă ›
+  Date tehnice, back link „Sub-formularul „…””). Tabs General (label, help, key = prefix of the row columns, Lățime
+  coloană; no texts, no Obligatoriu — required comes from its fields) · Date (`subformFieldsHtml`: ordered
+  `__step-list` + „Adaugă câmp ▾” with the block's types, „Mod de completare” facts) · Validare
+  (`subformValidationHtml`: one `renderCheckOption` per field = „Câmpuri obligatorii”, hook `[data-fb-sub-required]`)
+  · Avansat. Its fields: tabs without Logică (like grid columns), key „Cheie (câmpul din sub-formular)”. Validation
+  summary: „Sub-formularul nu are câmpuri.” (short „Fără câmpuri”), depth > 3, every field checked like a field.
+  Storage: no table of its own — the fields are columns `{SubFormular}_{Câmp}` of the grid's row (1:1); schema
+  `storage: { table, columns, relation: "1:1 cu rândul" }`.
+- **FO (js/fo-grid.js).** The cell = the nested-toggle button: „Completează” when empty, „3 din 6” (+ „completate”
+  on cards) once filled, red `.is-error` with the error icon and the count („0 din 6”) while required fields are
+  missing. View row: a click starts editing the row and opens the sub-form; editing row: toggles it. The sub-form is
+  drawn in the row's detail row (`.e-permits-fo-grid__detail--subform`, the nested grid's grey detail) from the row's
+  values at edit start, read back on save, dropped on save / cancel — the row's Salvează / Anulează (in the row and
+  repeated under the fields) cover it; Enter in a text field saves, Esc cancels. Per-field FO errors
+  (`markError`), the sub-form opens itself on an error; the summary follows the typing (count, error cleared). Header
+  star = the sub-form has required fields. Cards (< 600 px / phones): the detail is a grey r16 section under the card;
+  fields one column, inputs 48 · 16/24 on phones.
+- **Variants.** default (grey neutral toggle) · hover (`btn-neutral` hover; error: danger-secondary-hover) · active
+  (`aria-expanded="true"`, chevron up, keeps the focus ring — open-button rule) · focus (library ring) · disabled
+  (n/a — the row's add button carries the limit) · error (`.is-error` + field errors) · success (row saved → view +
+  live message, count updated).
+- Seed: F09 equipment grid › „Date tehnice” (`col-09-tech`, width Lată; Capacitate moved in, + Temperatura de lucru,
+  Agent frigorific, Anul fabricației, Data ultimei verificări, Observații; 3 required); Denumire is now Medie so the
+  table still fits the Preview.
+
+States `fb-sf-01` chip + panel · `02` Date (fields) · `03` add menu · `04` field added (crumbs, back link) · `05`
+Validare · `06` „+ Coloană” › Sub-formular · `07` depth lock (level 3) · `08` summary „nu are câmpuri” · `10` FO
+summaries · `11` sub-form open · `12` required errors · `13` empty „Completează” · `14` saved „4 din 6” · `15` phone
+375 cards.
 
 #### Form Builder › Lățime (2026-10-14 — user: „a line with real columns, not the 3 · 4 · 6 · 8 · 12 segmented”)
 

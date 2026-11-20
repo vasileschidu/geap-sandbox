@@ -136,6 +136,9 @@ document.addEventListener("DOMContentLoaded", () => {
     /* batch 4 (1:N): a table of rows (US-33…39) and a card per element (the CAEM activities model) */
     grid: { label: "Grilă editabilă", icon: "icon-dot-grid", category: "repeat", desc: "Tabel cu rânduri adăugate de solicitant", span: 12, fixed: true, container: true, tabs: CHOICE_TABS, defaults: () => gridDefaults() },
     repeat: { label: "Bloc repetabil", icon: "icon-page-add", category: "repeat", desc: "„Adaugă alt…” pentru obiecte repetate", span: 12, fixed: true, container: true, tabs: CHOICE_TABS, defaults: () => repeatDefaults() },
+    /* fb-subform-v1 (2026-11-20): a grid column that holds fields — the „form inside a form”, opened in
+       the row's detail row; only a column (no palette entry, no field of its own) */
+    subform: { label: "Sub-formular", icon: "icon-page-child", category: "column", desc: "Câmpuri în detaliul rândului", span: 12, fixed: true, container: true, columnOnly: true, tabs: [T_GEN, T_DATA, T_VAL, T_ADV], defaults: () => subformDefaults() },
     file: { label: "Fișier", icon: "icon-attachment", category: "files", desc: "Încărcare PDF, imagini", span: 12, fixed: true, tabs: INPUT_TABS, defaults: () => ({ fileTypes: ["PDF", "JPG", "PNG"], maxSizeMb: 10, maxFiles: 1, validation: { message: i18n() } }) },
     mdocs: { label: "Document din MDocs", icon: "icon-cloud-upload", category: "files", desc: "Alege din MDocs sau încarcă", span: 12, fixed: true, tabs: CHOICE_TABS, defaults: () => ({ docType: "" }) },
     section: { label: "Secțiune", icon: "icon-templates", category: "structure", desc: "Grupează câmpurile, cu titlu", structural: true },
@@ -154,7 +157,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const NO_VALUE = ["info", "callout", "separator"];
   const fieldName = (field) => (field.type === "callout" ? tr(field.title) || "Notă cu titlu" : NO_VALUE.includes(field.type) ? comp(field.type).label : tr(field.label) || comp(field.type).label);
   const usesSource = (type) => type === "select" || type === "multiselect";
-  const isUsable = (type) => Boolean(COMPONENTS[type] && !COMPONENTS[type].soon);
+  const isUsable = (type) => Boolean(COMPONENTS[type] && !COMPONENTS[type].soon && !COMPONENTS[type].columnOnly);
 
   /* ------------------------------------------- classifier registry (US-22, moved from the old builder) */
   const classifierRegistry = [
@@ -349,21 +352,28 @@ document.addEventListener("DOMContentLoaded", () => {
      A Grilă editabilă holds `columns`, a Bloc repetabil holds `fields`; both are field objects (same
      panel, same FO renderer per cell / card). A column of type „grid” is a nested grid (≤ 3 levels,
      US-38). Rules reference children by id (rowRules.keyColumn / groupColumn, cascade parents). */
-  const CONTAINERS = ["grid", "repeat"];
+  const CONTAINERS = ["grid", "repeat", "subform"];
+  /* children that nest further (a level more, US-38): a nested grid, a sub-form (fb-subform-v1) */
+  const NESTS = ["grid", "subform"];
+  const isNest = (child) => Boolean(child && NESTS.includes(child.type));
   const MAX_GRID_LEVEL = 3;
   /* US-34 simple column types (Dată și oră waits for batch 5) · US-37 complex ones · block fields */
   const COLUMN_SIMPLE = ["text", "number", "money", "date", "checkbox", "radio"];
-  const COLUMN_COMPLEX = ["select", "multiselect", "grid"];
+  const COLUMN_COMPLEX = ["select", "multiselect", "grid", "subform"];
   const BLOCK_TYPES = ["text", "textarea", "number", "money", "email", "phone", "date", "select", "multiselect", "radio", "checkbox", "checklist", "info"];
-  const CHILD_LABELS = { text: "Text", textarea: "Descriere", number: "Număr", money: "Sumă", email: "Email", phone: "Telefon", date: "Dată", checkbox: "Bifat", radio: "Opțiune", select: "Listă", multiselect: "Selecție multiplă", checklist: "Opțiuni", grid: "Sub-grilă", info: "Notă" };
+  const CHILD_LABELS = { text: "Text", textarea: "Descriere", number: "Număr", money: "Sumă", email: "Email", phone: "Telefon", date: "Dată", checkbox: "Bifat", radio: "Opțiune", select: "Listă", multiselect: "Selecție multiplă", checklist: "Opțiuni", grid: "Sub-grilă", subform: "Detalii", info: "Notă" };
   const isContainer = (field) => Boolean(field && CONTAINERS.includes(field.type));
   const kidsOf = (field) => {
     if (field?.type === "grid") { if (!Array.isArray(field.columns)) field.columns = []; return field.columns; }
-    if (field?.type === "repeat") { if (!Array.isArray(field.fields)) field.fields = []; return field.fields; }
+    if (field?.type === "repeat" || field?.type === "subform") { if (!Array.isArray(field.fields)) field.fields = []; return field.fields; }
     return [];
   };
   function gridDefaults() {
     return { columns: [], rowRules: { minRows: "", maxRows: "", defaultRows: 1, allowAdd: true, allowRemove: true, keyColumn: "", groupColumn: "", pageSize: 10 }, addLabel: i18n("Adaugă rând"), emptyText: i18n("Niciun rând. Apasă «Adaugă rând» pentru a începe."), rowTitle: i18n("Rând"), messages: { min: i18n(), max: i18n(), duplicate: i18n(), group: i18n() } };
+  }
+  /* a sub-form: fields only (the row's Salvează / Anulează save it; no rows of its own) */
+  function subformDefaults() {
+    return { fields: [] };
   }
   function repeatDefaults() {
     return { fields: [], itemTitle: i18n("Element"), addLabel: i18n("Adaugă alt element"), note: i18n(), labelHidden: false, rowRules: { minRows: 1, maxRows: "", defaultRows: 1, allowRemove: true, keyColumn: "", groupColumn: "" }, messages: { min: i18n(), max: i18n(), duplicate: i18n(), group: i18n() } };
@@ -373,7 +383,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const out = [];
     const walk = (base, container, chain, level) => kidsOf(container).forEach((child, index, list) => {
       out.push({ ...base, container, chain, child, list, index, level });
-      if (child.type === "grid") walk(base, child, [...chain, child], level + 1);
+      if (isNest(child)) walk(base, child, [...chain, child], level + 1);
     });
     allFields().forEach(({ step, section, field }) => { if (isContainer(field)) walk({ step, section, top: field }, field, [field], 1); });
     return out;
@@ -392,10 +402,11 @@ document.addEventListener("DOMContentLoaded", () => {
   /* may this type live in this container? (US-34 AC-06: complex columns after a simple one; US-38: ≤ 3) */
   function childAllowed(container, type) {
     if (container.type === "repeat") return BLOCK_TYPES.includes(type) ? "" : "Blocul primește câmpuri simple și liste (fără grile, adrese sau alte blocuri).";
+    if (container.type === "subform") return BLOCK_TYPES.includes(type) ? "" : "Sub-formularul primește câmpuri simple și liste (fără grile, adrese sau blocuri).";
     if (COLUMN_SIMPLE.includes(type)) return "";
     if (!COLUMN_COMPLEX.includes(type)) return type === "datetime" ? "În lucru — etapa 5 a constructorului." : "Tipul nu poate fi coloană de grilă.";
     if (!kidsOf(container).some((child) => COLUMN_SIMPLE.includes(child.type))) return "Adaugă mai întâi o coloană simplă: coloanele complexe vin după configurația de bază (US-34).";
-    if (type === "grid" && levelOf(container) >= MAX_GRID_LEVEL) return "Se permit cel mult 3 niveluri de grile imbricate (US-38).";
+    if (NESTS.includes(type) && levelOf(container) >= MAX_GRID_LEVEL) return "Se permit cel mult 3 niveluri de grile imbricate (US-38).";
     return "";
   }
   function makeChild(type, container) {
@@ -417,6 +428,7 @@ document.addEventListener("DOMContentLoaded", () => {
     };
     if (inGrid) child.width = type === "checkbox" || type === "number" || type === "money" ? "s" : "auto";
     if (type === "grid") { child.label = i18n("Sub-grilă"); child.rowRules.defaultRows = 0; child.span = 12; }
+    if (type === "subform") child.width = "m";
     if (type === "radio" && inGrid) child.options = [{ value: "da", label: "Da" }, { value: "nu", label: "Nu" }];
     if (type === "info") child.text = i18n("Notă pentru acest element.");
     child.key = uniqueChildKey(container, camelKey(tr(child.label)));
@@ -425,14 +437,14 @@ document.addEventListener("DOMContentLoaded", () => {
   /* a copy of a container gets new child ids; references (cascade parent, key / group column, rules) follow */
   function reidChildren(field) {
     const map = new Map();
-    const walk = (container) => kidsOf(container).forEach((child) => { const next = uid(container.type === "grid" ? "col" : "bf"); map.set(child.id, next); child.id = next; if (child.type === "grid") walk(child); });
+    const walk = (container) => kidsOf(container).forEach((child) => { const next = uid(container.type === "grid" ? "col" : "bf"); map.set(child.id, next); child.id = next; if (isNest(child)) walk(child); });
     walk(field);
     const fix = (container) => {
       ["keyColumn", "groupColumn"].forEach((prop) => { if (container.rowRules?.[prop] && map.has(container.rowRules[prop])) container.rowRules[prop] = map.get(container.rowRules[prop]); });
       kidsOf(container).forEach((child) => {
         if (child.dataSource?.parentFieldId && map.has(child.dataSource.parentFieldId)) child.dataSource.parentFieldId = map.get(child.dataSource.parentFieldId);
         (child.rules || []).forEach((rule) => rule.conditions.forEach((c) => { if (map.has(c.field)) c.field = map.get(c.field); if (map.has(c.other)) c.other = map.get(c.other); }));
-        if (child.type === "grid") fix(child);
+        if (isNest(child)) fix(child);
       });
     };
     fix(field);
@@ -477,7 +489,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function sanitizeChildren(container) {
     if (!isContainer(container)) return;
-    const defaults = container.type === "grid" ? gridDefaults() : repeatDefaults();
+    const defaults = container.type === "grid" ? gridDefaults() : container.type === "subform" ? { rowRules: {}, messages: {} } : repeatDefaults();
     container.rowRules = { ...defaults.rowRules, ...(container.rowRules || {}) };
     container.messages = { ...defaults.messages, ...(container.messages || {}) };
     ["addLabel", "emptyText", "rowTitle", "itemTitle", "note"].forEach((key) => { if (container[key] != null && typeof container[key] !== "object") container[key] = i18n(String(container[key])); });
@@ -593,6 +605,18 @@ document.addEventListener("DOMContentLoaded", () => {
     const inGrid = container.type === "grid";
     const list = kidsOf(container);
     const r = container.rowRules || {};
+    /* sub-form: fields, depth; its fields are checked like block fields (fb-subform-v1) */
+    if (container.type === "subform") {
+      if (!list.length) push(T_DATA, "children", "Sub-formularul nu are câmpuri.", "error", "Fără câmpuri");
+      if (level > MAX_GRID_LEVEL) push(T_DATA, "children", "Se permit cel mult 3 niveluri de grile imbricate (US-38).");
+      const subKeys = new Map();
+      list.forEach((child) => { if (child.key) subKeys.set(child.key, (subKeys.get(child.key) || 0) + 1); });
+      list.forEach((child) => {
+        const pushChild = (tab, prop, message, lvl = "error", short = "") => issues.push({ level: lvl, kind: "child", id: child.id, tab, prop, name: `${fieldName(container)} › ${fieldName(child)}`, where, message, short });
+        fieldChecks(child, pushChild, subKeys);
+      });
+      return;
+    }
     if (!list.length) push(T_DATA, "children", inGrid ? "Grila nu are coloane." : "Blocul nu are câmpuri.", "error", inGrid ? "Fără coloane" : "Fără câmpuri");
     if (inGrid && list.some((child) => COLUMN_COMPLEX.includes(child.type)) && !list.some((child) => COLUMN_SIMPLE.includes(child.type))) push(T_DATA, "children", "Coloanele complexe cer cel puțin o coloană simplă (configurația de bază, US-34).");
     if (inGrid && level > MAX_GRID_LEVEL) push(T_DATA, "children", "Se permit cel mult 3 niveluri de grile imbricate (US-38).");
@@ -616,7 +640,7 @@ document.addEventListener("DOMContentLoaded", () => {
       fieldChecks(child, pushChild, keys);
       const ds = child.dataSource;
       if (ds?.cascade && ds.parentFieldId && !list.some((other) => other.id === ds.parentFieldId) && !findField(ds.parentFieldId)) pushChild(T_DATA, "dataSource.parentFieldId", "Câmpul părinte nu mai există.");
-      if (child.type === "grid") containerChecks(child, pushChild, issues, where, level + 1);
+      if (isNest(child)) containerChecks(child, pushChild, issues, where, level + 1);
     });
   }
 
@@ -749,6 +773,8 @@ document.addEventListener("DOMContentLoaded", () => {
         return { ...base, options: meta.map((m) => m.label), meta, parent: cascadeParentFo(child, container, opts), minSelected: v.minSelected || "", maxSelected: v.maxSelected || "", emptyText: text(child.noOptionsText) };
       }
       case "grid": return { ...base, grid: gridFo(child, opts, level + 1) };
+      /* the header star = the sub-form has required fields */
+      case "subform": return { ...base, required: kidsOf(child).some((item) => item.required), fields: kidsOf(child).map((item) => childFo(item, child, opts, level + 1)) };
       default: return base;
     }
   }
@@ -1191,9 +1217,9 @@ document.addEventListener("DOMContentLoaded", () => {
       ? `${head("Coloane simple")}${[...COLUMN_SIMPLE, "datetime"].map(item).join("")}${head("Coloane complexe")}${COLUMN_COMPLEX.map(item).join("")}`
       : `${head("Câmpuri")}${BLOCK_TYPES.map(item).join("")}`;
     const copies = fromForm.length ? `${head("Copie a unui câmp din formular")}${fromForm.map((field) => `<li role="none"><button class="e-permits-fo-intent-menu__item" type="button" role="menuitem" data-fb-add-child-from="${field.id}" data-container="${container.id}">${icon(comp(field.type).icon)}<span>${esc(fieldName(field))}</span></button></li>`).join("")}` : "";
-    return `<ul class="e-permits-fo-intent-menu e-permits-stack__menu e-permits-builder__add-menu" id="fb-addchild-${container.id}-${where}" role="menu" aria-label="${inGrid ? "Adaugă o coloană" : "Adaugă un câmp în bloc"}" hidden data-stack-menu>${groups}${copies}</ul>`;
+    return `<ul class="e-permits-fo-intent-menu e-permits-stack__menu e-permits-builder__add-menu" id="fb-addchild-${container.id}-${where}" role="menu" aria-label="${inGrid ? "Adaugă o coloană" : container.type === "subform" ? "Adaugă un câmp în sub-formular" : "Adaugă un câmp în bloc"}" hidden data-stack-menu>${groups}${copies}</ul>`;
   }
-  const childHasIssue = (child) => errorsOf("child", child.id).length > 0 || (child.type === "grid" && childErrorsOf(child).length > 0);
+  const childHasIssue = (child) => errorsOf("child", child.id).length > 0 || (isNest(child) && childErrorsOf(child).length > 0);
   function subsStripHtml(field) {
     const inGrid = field.type === "grid";
     const selected = state.sel.kind === "child" ? findChild(state.sel.id) : null;
@@ -1854,7 +1880,7 @@ document.addEventListener("DOMContentLoaded", () => {
      for grid columns (US-42 AC-36) and with a link back to its grid / block */
   const childTabs = (found) => {
     const tabs = comp(found.child.type).tabs || INPUT_TABS;
-    return found.container.type === "grid" ? tabs.filter((tab) => tab !== T_LOGIC) : tabs;
+    return found.container.type === "grid" || found.container.type === "subform" ? tabs.filter((tab) => tab !== T_LOGIC) : tabs;
   };
   function childPanelHtml(found) {
     if (!found) return formPanelHtml();
@@ -1876,7 +1902,7 @@ document.addEventListener("DOMContentLoaded", () => {
     else if (state.tab === T_LOGIC) body = logicTabHtml(child, "child");
     else body = childAdvancedHtml(found);
     return `
-      ${panelHead({ crumbs: [tr(step.title), tr(section.title) || "Secțiune", ...chain.map((item) => fieldName(item))], title: name, chip: child.type === "info" ? "" : ui().renderTag?.(child.key || "fără cheie", "neutral") || "", menu: ui().renderStackMenu?.(items, name) || "", back: { kind: findChild(container.id) ? "child" : "field", id: container.id, label: `${inGrid ? (findChild(container.id) ? "Sub-grila" : "Grila") : "Blocul"} „${fieldName(container)}”` } })}
+      ${panelHead({ crumbs: [tr(step.title), tr(section.title) || "Secțiune", ...chain.map((item) => fieldName(item))], title: name, chip: child.type === "info" ? "" : ui().renderTag?.(child.key || "fără cheie", "neutral") || "", menu: ui().renderStackMenu?.(items, name) || "", back: { kind: findChild(container.id) ? "child" : "field", id: container.id, label: `${inGrid ? (findChild(container.id) ? "Sub-grila" : "Grila") : container.type === "subform" ? "Sub-formularul" : "Blocul"} „${fieldName(container)}”` } })}
       ${tabsHtml(tabs, "child", child.id)}
       <div class="e-permits-builder__panel-scroll" id="fb-tabpanel" role="tabpanel" aria-labelledby="fb-tab-${state.tab}" data-fb-panel-scroll>
         ${body}
@@ -1885,6 +1911,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   /* Date of a grid / block: its columns or fields, in order, + „Adaugă coloană ▾” (US-34) */
   function childrenEditorHtml(container) {
+    if (container.type === "subform") return subformFieldsHtml(container);
     const inGrid = container.type === "grid";
     const list = kidsOf(container);
     const level = levelOf(container);
@@ -1897,15 +1924,48 @@ document.addEventListener("DOMContentLoaded", () => {
           <li><button class="e-permits-builder__step-row" type="button" data-fb-child-row="${child.id}" aria-describedby="fb-sub-kbd-hint">
             <span class="e-permits-builder__step-badge">${i + 1}</span>
             <span>${esc(fieldName(child))}${child.required ? requiredMark() : ""}</span>
-            <span class="e-permits-builder__step-row-meta">${childHasIssue(child) ? `<em class="e-permits-builder__tag e-permits-builder__tag--warning">${icon("icon-warning-filled", 16)}Eroare</em>` : ""}${esc(child.type === "grid" ? `Grilă · ${kidsOf(child).length} col.` : comp(child.type).label)}</span>
+            <span class="e-permits-builder__step-row-meta">${childHasIssue(child) ? `<em class="e-permits-builder__tag e-permits-builder__tag--warning">${icon("icon-warning-filled", 16)}Eroare</em>` : ""}${esc(child.type === "grid" ? `Grilă · ${kidsOf(child).length} col.` : child.type === "subform" ? `Sub-formular · ${kidsOf(child).length} câmp.` : comp(child.type).label)}</span>
           </button></li>`).join("")}</ol>` : ui().renderInfoNote?.(inGrid ? "Grila începe fără coloane (US-34)." : "Blocul începe fără câmpuri.") || ""}
         <div class="e-permits-stack__menu-wrap e-permits-builder__inline-actions">
           <button class="btn btn-secondary btn-sm" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="fb-addchild-${container.id}-panel" data-stack-menu-trigger><span>${inGrid ? "Adaugă coloană" : "Adaugă câmp"}</span>${icon("icon-chevron-bottom", 16)}</button>
           ${addChildMenuHtml(container, "panel")}
         </div>
-        ${inGrid ? '<p class="e-permits-fo-field__hint">Coloanele complexe (listă, selecție multiplă, grilă imbricată) vin după cel puțin o coloană simplă (US-34 AC-06).</p>' : ""}
+        ${inGrid ? '<p class="e-permits-fo-field__hint">Coloanele complexe (listă, selecție multiplă, grilă imbricată, sub-formular) vin după cel puțin o coloană simplă (US-34 AC-06).</p>' : ""}
       `)}
       ${inGrid ? group("Mod de editare", sourceFacts([["Pe ecran mare", "Inline: clic pe celulă, Enter salvează, Esc anulează"], ["Pe telefon", "Un card pe rând, câmpuri pe toată lățimea"], ["Dialog, Formular inline", "În afara proiectului (Feature 88573)"]])) : ""}`;
+  }
+
+  /* Date of a sub-form (fb-subform-v1): its fields in order + „Adaugă câmp ▾” (the block's types) */
+  function subformFieldsHtml(container) {
+    const list = kidsOf(container);
+    const level = levelOf(container);
+    const err = propError(findChild(container.id) ? "child" : "field", container.id, "children");
+    return `
+      ${group("Câmpurile sub-formularului", `
+        <p class="e-permits-fo-field__hint">Se deschid sub rând, în detaliul lui, pe grila obișnuită a formularului (2 coloane; pe telefon una). Sub-formular de nivelul ${level} din ${MAX_GRID_LEVEL}.</p>
+        ${err ? errorHtml(err) : ""}
+        ${list.length ? `<ol class="e-permits-builder__step-list" aria-label="Câmpurile sub-formularului">${list.map((child, i) => `
+          <li><button class="e-permits-builder__step-row" type="button" data-fb-child-row="${child.id}" aria-describedby="fb-sub-kbd-hint">
+            <span class="e-permits-builder__step-badge">${i + 1}</span>
+            <span>${esc(fieldName(child))}${child.required ? requiredMark() : ""}</span>
+            <span class="e-permits-builder__step-row-meta">${childHasIssue(child) ? `<em class="e-permits-builder__tag e-permits-builder__tag--warning">${icon("icon-warning-filled", 16)}Eroare</em>` : ""}${esc(comp(child.type).label)}</span>
+          </button></li>`).join("")}</ol>` : ui().renderInfoNote?.("Sub-formularul începe fără câmpuri.") || ""}
+        <div class="e-permits-stack__menu-wrap e-permits-builder__inline-actions">
+          <button class="btn btn-secondary btn-sm" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="fb-addchild-${container.id}-panel" data-stack-menu-trigger><span>Adaugă câmp</span>${icon("icon-chevron-bottom", 16)}</button>
+          ${addChildMenuHtml(container, "panel")}
+        </div>
+        <p class="e-permits-fo-field__hint">Fără grile în sub-formular: o grilă se adaugă ca altă coloană.</p>
+      `)}
+      ${group("Mod de completare", sourceFacts([["În celulă", "„Completează” sau „3 din 6 completate”"], ["La clic", "Sub-formularul se deschide sub rând"], ["Salvare", "Cu „Salvează rândul” / „Anulează”"]]))}`;
+  }
+  /* Validare of a sub-form: which of its fields are required (the row is not saved without them) */
+  function subformValidationHtml(container) {
+    const list = kidsOf(container).filter((child) => child.type !== "info");
+    return group("Câmpuri obligatorii", `
+      <p class="e-permits-fo-field__hint">Rândul nu se salvează până nu sunt completate. În celulă apare „Completează” până la primul câmp completat.</p>
+      ${list.length
+        ? `<div class="e-permits-check-options e-permits-check-options--stack">${list.map((child) => ui().renderCheckOption?.({ label: fieldName(child), checked: Boolean(child.required), attrs: `data-fb-sub-required="${child.id}"` }) || "").join("")}</div>`
+        : ui().renderInfoNote?.("Adaugă câmpuri în tabul Date.") || ""}`);
   }
 
   /* Validare of a grid / block: rows (US-36), rules between rows, messages (RO · RU · EN) */
@@ -1916,7 +1976,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const err = (prop) => propError("field", container.id, prop);
     const list = kidsOf(container);
     const noun = inGrid ? "rânduri" : "elemente";
-    const keyOptions = list.filter((child) => !["grid", "info", "checkbox", "checklist"].includes(child.type)).map((child) => [child.id, fieldName(child)]);
+    const keyOptions = list.filter((child) => !["grid", "subform", "info", "checkbox", "checklist"].includes(child.type)).map((child) => [child.id, fieldName(child)]);
     const groupOptions = list.filter((child) => child.type === "select" && child.dataSource?.mode === "existing").map((child) => [child.id, fieldName(child)]);
     return `
       ${group(inGrid ? "Rânduri" : "Elemente", `
@@ -1945,10 +2005,12 @@ document.addEventListener("DOMContentLoaded", () => {
       ${group("Verificare la depunere", ui().renderInfoNote?.("Serverul repetă aceleași verificări pe rânduri (minim, duplicate, grupă, câmpuri), chiar dacă verificarea din browser e ocolită (US-36 AC-05).") || "")}`;
   }
 
-  const SQL_TYPES = { text: (f) => `NVARCHAR(${f.maxLength || 100})`, textarea: (f) => (Number(f.maxLength) > 2000 ? "NVARCHAR(MAX)" : `NVARCHAR(${f.maxLength || 250})`), number: (f) => (f.numberKind === "decimal" ? `DECIMAL(18,${f.decimals || 1})` : "INT"), money: () => "DECIMAL(18,2)", email: () => "NVARCHAR(254)", phone: () => "NVARCHAR(20)", date: () => "DATE", period: () => "DATE × 2 (De la, Până la)", select: () => "INT (Id clasificator)", multiselect: () => "listă de Id-uri (tabel 1:N)", radio: () => "NVARCHAR(50)", segment: () => "NVARCHAR(50)", checkbox: () => "BIT", checklist: () => "NVARCHAR(MAX) (listă)", address: () => "INT (AddressId)", idnp: () => "CHAR(13)", idno: () => "CHAR(13) + denumire NVARCHAR(250)", contact: () => "INT (ContactId)", subdivision: () => "INT (Id subdiviziune)", file: () => "INT (FileId, tabel 1:N)", mdocs: () => "NVARCHAR(64) (Id document MDocs)", hidden: () => "NVARCHAR(100)", consent: () => "BIT", grid: () => "tabel copil (1:N)", repeat: () => "tabel copil (1:N)" };
+  const SQL_TYPES = { text: (f) => `NVARCHAR(${f.maxLength || 100})`, textarea: (f) => (Number(f.maxLength) > 2000 ? "NVARCHAR(MAX)" : `NVARCHAR(${f.maxLength || 250})`), number: (f) => (f.numberKind === "decimal" ? `DECIMAL(18,${f.decimals || 1})` : "INT"), money: () => "DECIMAL(18,2)", email: () => "NVARCHAR(254)", phone: () => "NVARCHAR(20)", date: () => "DATE", period: () => "DATE × 2 (De la, Până la)", select: () => "INT (Id clasificator)", multiselect: () => "listă de Id-uri (tabel 1:N)", radio: () => "NVARCHAR(50)", segment: () => "NVARCHAR(50)", checkbox: () => "BIT", checklist: () => "NVARCHAR(MAX) (listă)", address: () => "INT (AddressId)", idnp: () => "CHAR(13)", idno: () => "CHAR(13) + denumire NVARCHAR(250)", contact: () => "INT (ContactId)", subdivision: () => "INT (Id subdiviziune)", file: () => "INT (FileId, tabel 1:N)", mdocs: () => "NVARCHAR(64) (Id document MDocs)", hidden: () => "NVARCHAR(100)", consent: () => "BIT", grid: () => "tabel copil (1:N)", repeat: () => "tabel copil (1:N)", subform: () => "câmpuri în rândul grilei (1:1)" };
   const sqlTypeOf = (field) => (SQL_TYPES[field.type] ? SQL_TYPES[field.type](field) : "—");
   /* the child table of a grid / block (US-33 AC-03/04): GEAP_Cases_{serviciu}_{Grilă}[_{Sub-grilă}] */
-  const tableOf = (chain) => `GEAP_Cases_${form.service?.rsspCode || "C00000"}_${chain.map((item) => item.key || "Grila").join("_")}`;
+  const tableOf = (chain) => `GEAP_Cases_${form.service?.rsspCode || "C00000"}_${chain.filter((item) => item.type !== "subform").map((item) => item.key || "Grila").join("_")}`;
+  /* a sub-form keeps its fields in its row: columns {SubFormular}_{Câmp} of the grid's table */
+  const subColumnOf = (chain, child) => { const sub = chain[chain.length - 1]; return sub?.type === "subform" ? `${sub.key || "SubFormular"}_${child.key || "Camp"}` : child.key || "—"; };
 
   /* Avansat of a column / block field: where its value is stored */
   function childAdvancedHtml(found) {
@@ -1960,10 +2022,10 @@ document.addEventListener("DOMContentLoaded", () => {
           <div><dt>Cheie</dt><dd>${child.key ? copy(child.key, "cheia") : "—"}</dd></div>
           <div><dt>Identificator intern</dt><dd>${copy(child.id, "identificatorul")}</dd></div>
           <div><dt>Tabel</dt><dd>${esc(tableOf(chain))}</dd></div>
-          <div><dt>Coloana</dt><dd>${esc(child.type === "grid" ? `tabel ${tableOf([...chain, child])}` : child.key || "—")}</dd></div>
+          <div><dt>Coloana</dt><dd>${esc(child.type === "grid" ? `tabel ${tableOf([...chain, child])}` : child.type === "subform" ? `${child.key || "SubFormular"}_… (o coloană pe câmp)` : subColumnOf(chain, child))}</dd></div>
           <div><dt>Tip SQL</dt><dd>${esc(sqlTypeOf(child))}</dd></div>
         </dl>
-        <p class="e-permits-fo-field__hint">Câte un rând în tabel pentru fiecare ${container.type === "grid" ? "rând al grilei" : "element al blocului"}, legat de ${chain.length > 1 ? "rândul-părinte (ParentRowId)" : "dosar (CaseId)"}, cu ordinea în SortOrder.</p>`)}
+        <p class="e-permits-fo-field__hint">${container.type === "subform" || child.type === "subform" ? "Câmpurile sub-formularului stau în rândul grilei (1:1), câte o coloană pe câmp — fără tabel propriu." : `Câte un rând în tabel pentru fiecare ${container.type === "grid" ? "rând al grilei" : "element al blocului"}, legat de ${chain.length > 1 ? "rândul-părinte (ParentRowId)" : "dosar (CaseId)"}, cu ordinea în SortOrder.`}</p>`)}
       ${child.type === "info" ? "" : group("Date personale", `<div class="e-permits-check-options">${checkOption({ prop: "personalData", label: "Conține date cu caracter personal", checked: child.personalData })}</div>`)}`;
   }
 
@@ -1978,7 +2040,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const childInfo = findChild(field.id);
     const column = childInfo?.container.type === "grid";
     const containerKind = isContainer(field);
-    const translatables = containerKind ? [field.label, field.help, field.addLabel, t === "grid" ? field.emptyText : field.note, t === "grid" ? field.rowTitle : field.itemTitle] : t === "info" ? [field.text] : t === "callout" ? [field.title, field.text] : t === "period" ? [field.label, field.help, field.fromLabel, field.toLabel]
+    const translatables = t === "subform" ? [field.label, field.help] : containerKind ? [field.label, field.help, field.addLabel, t === "grid" ? field.emptyText : field.note, t === "grid" ? field.rowTitle : field.itemTitle] : t === "info" ? [field.text] : t === "callout" ? [field.title, field.text] : t === "period" ? [field.label, field.help, field.fromLabel, field.toLabel]
       : t === "consent" ? [field.text, field.linkText] : t === "hidden" ? [] : t === "idno" ? [field.label, field.help, field.companyLabel] : [field.label, field.help, field.placeholder];
     const keyLocked = Boolean(field.published);
     let labelBlock;
@@ -2004,7 +2066,7 @@ document.addEventListener("DOMContentLoaded", () => {
       labelBlock = `
         ${inputField({ prop: "label", label: langLabel("Etichetă"), value: tr(field.label, state.lang), required: state.lang === "ro", i18nProp: true, maxlength: 150, error: state.lang === "ro" ? err("label") : "" })}
         ${langNote()}
-        ${textareaField({ prop: "help", label: langLabel("Text ajutător"), value: tr(field.help, state.lang), i18nProp: true, hint: "Apare sub etichetă. Spune ce se adaugă și câte." })}
+        ${textareaField({ prop: "help", label: langLabel("Text ajutător"), value: tr(field.help, state.lang), i18nProp: true, hint: t === "subform" ? "Apare deasupra câmpurilor sub-formularului." : "Apare sub etichetă. Spune ce se adaugă și câte." })}
         ${t === "repeat" ? `<div class="e-permits-user-create__field"><div class="e-permits-check-options">${checkOption({ prop: "labelHidden", label: "Ascunde eticheta (titlul secțiunii o spune)", checked: field.labelHidden })}</div></div>` : ""}`;
     } else if (t === "hidden") {
       labelBlock = `
@@ -2018,12 +2080,13 @@ document.addEventListener("DOMContentLoaded", () => {
         ${t === "period" ? `${inputField({ prop: "fromLabel", label: langLabel("Eticheta primei date"), value: tr(field.fromLabel, state.lang), i18nProp: true, span: 6 })}${inputField({ prop: "toLabel", label: langLabel("Eticheta celei de-a doua"), value: tr(field.toLabel, state.lang), i18nProp: true, span: 6 })}` : ""}
         ${t === "idno" ? inputField({ prop: "companyLabel", label: langLabel("Eticheta denumirii"), value: tr(field.companyLabel, state.lang), i18nProp: true, maxlength: 80, hint: "Câmpul completat din registru, lângă IDNO." }) : ""}`;
     }
-    const keyLabel = column ? "Cheie (coloana din tabelul grilei)" : childInfo ? "Cheie (coloana din tabelul blocului)" : containerKind ? "Cheie (numele tabelului 1:N)" : "Cheie (coloana din baza de date)";
-    const keyHint = keyLocked ? "Blocată după prima publicare: coloana există deja." : childInfo ? `Generată din eticheta RO; unică în ${column ? "grilă" : "bloc"}, litere latine și cifre (US-33 AC-04).` : containerKind ? `Tabelul ${tableOf([field])}; litere latine și cifre, maximum 60 (US-33 AC-04).` : "Generată din eticheta RO; litere latine și cifre, unică în formular.";
+    const inSub = childInfo?.container.type === "subform";
+    const keyLabel = t === "subform" ? "Cheie (prefixul coloanelor din rând)" : inSub ? "Cheie (câmpul din sub-formular)" : column ? "Cheie (coloana din tabelul grilei)" : childInfo ? "Cheie (coloana din tabelul blocului)" : containerKind ? "Cheie (numele tabelului 1:N)" : "Cheie (coloana din baza de date)";
+    const keyHint = keyLocked ? "Blocată după prima publicare: coloana există deja." : childInfo ? `Generată din eticheta RO; unică în ${column ? "grilă" : inSub ? "sub-formular" : "bloc"}, litere latine și cifre (US-33 AC-04).` : containerKind ? `Tabelul ${tableOf([field])}; litere latine și cifre, maximum 60 (US-33 AC-04).` : "Generată din eticheta RO; litere latine și cifre, unică în formular.";
     const keyBlock = content ? "" : group("Cheie câmp", grid(`
         ${inputField({ prop: "key", label: keyLabel, value: field.key, required: true, readonly: keyLocked, maxlength: 60, error: keyLocked ? "" : err("key"), hint: keyHint })}
       `));
-    const textsBlock = containerKind ? group(t === "grid" ? "Texte în grilă" : "Texte în bloc", grid(`
+    const textsBlock = containerKind && t !== "subform" ? group(t === "grid" ? "Texte în grilă" : "Texte în bloc", grid(`
         ${t === "repeat"
           ? inputField({ prop: "itemTitle", label: langLabel("Titlul elementului"), value: tr(field.itemTitle, state.lang), required: state.lang === "ro", i18nProp: true, maxlength: 60, error: state.lang === "ro" ? err("itemTitle") : "", hint: "Pe fiecare card, după număr: „#1 Activitate”." })
           : inputField({ prop: "rowTitle", label: langLabel("Numele rândului"), value: tr(field.rowTitle, state.lang), i18nProp: true, maxlength: 40, hint: "Pe telefon, fiecare rând e un card „#1 Rând”." })}
@@ -2035,7 +2098,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const requiredBox = t === "consent"
       ? checkOption({ prop: "required", label: "Obligatoriu", checked: true, required: true, disabled: true, reason: "Un consimțământ este întotdeauna obligatoriu." })
       : checkOption({ prop: "required", label: "Obligatoriu", checked: field.required, required: true });
-    const behaviour = content || t === "hidden" ? "" : containerKind ? group("Comportament", `
+    const behaviour = content || t === "hidden" || t === "subform" ? "" : containerKind ? group("Comportament", `
         <div class="e-permits-check-options">${requiredBox}</div>
         <p class="e-permits-fo-field__hint">Obligatoriu = cel puțin ${t === "grid" ? "un rând salvat" : "un element"}. Minimul și maximul sunt în Validare.</p>`) : t === "contact" ? group("Comportament", `
         <div class="e-permits-fo-field"><label id="fb-contact-default">Opțiunea aleasă la început</label>${segmented({ prop: "contactDefault", value: field.contactDefault || "self", options: [["self", "Eu"], ["other", "Altă persoană"]], labelledBy: "fb-contact-default" })}
@@ -2087,6 +2150,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function validationTabHtml(field) {
+    if (field.type === "subform") return subformValidationHtml(field);
     if (isContainer(field)) return rowRulesHtml(field);
     const t = field.type;
     const v = field.validation || {};
@@ -2531,7 +2595,7 @@ document.addEventListener("DOMContentLoaded", () => {
           <div><dt>Tabel copil</dt><dd>${esc(tableOf([field]))}</dd></div>
           <div><dt>Legătura</dt><dd>CaseId → dosarul (index pe CaseId)</dd></div>
           <div><dt>Ordinea</dt><dd>SortOrder</dd></div>
-          <div><dt>${t === "grid" ? "Coloane" : "Câmpuri"}</dt><dd>${kidsOf(field).length}${kidsOf(field).some((child) => child.type === "grid") ? " · grilele imbricate au tabelul lor, legat de rândul-părinte" : ""}</dd></div>
+          <div><dt>${t === "grid" ? "Coloane" : "Câmpuri"}</dt><dd>${kidsOf(field).length}${kidsOf(field).some((child) => child.type === "grid") ? " · grilele imbricate au tabelul lor, legat de rândul-părinte" : ""}${kidsOf(field).some((child) => child.type === "subform") ? " · sub-formularele stau în rândul grilei" : ""}</dd></div>
         </dl>
         <p class="e-permits-fo-field__hint">Valoarea în cerere = o listă de rânduri (JSON); schema grilei se păstrează în SettingsJSON.</p>`) : ""}
       ${group("Integrare", grid(`
@@ -3025,7 +3089,7 @@ document.addEventListener("DOMContentLoaded", () => {
       ...field,
       value: "rows[]",
       storage: { table: tableOf(chain), parentKey: chain.length > 1 ? "ParentRowId" : "CaseId", order: "SortOrder" },
-      [key]: kidsOf(field).map((child) => (child.type === "grid" ? withStorage(child, [...chain, child]) : child)),
+      [key]: kidsOf(field).map((child) => (child.type === "grid" ? withStorage(child, [...chain, child]) : child.type === "subform" ? { ...child, value: "{…}", storage: { table: tableOf(chain), columns: `${child.key}_{Camp}`, relation: "1:1 cu rândul" } } : child)),
     };
   }
   function renderSchema() {
@@ -3065,7 +3129,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* children: compared by position, not by their (re-generated) ids or audit stamps */
     const byPosition = (obj) => {
       const ids = [];
-      const walk = (container) => kidsOf(container).forEach((child) => { ids.push(child.id); ["createdAt", "createdBy", "editedAt", "editedBy", "changes"].forEach((key) => delete child[key]); if (child.type === "grid") walk(child); });
+      const walk = (container) => kidsOf(container).forEach((child) => { ids.push(child.id); ["createdAt", "createdBy", "editedAt", "editedBy", "changes"].forEach((key) => delete child[key]); if (isNest(child)) walk(child); });
       walk(obj);
       let json = JSON.stringify(obj);
       ids.forEach((id, i) => { json = json.split(`"${id}"`).join(`"#${i}"`); });
@@ -3749,6 +3813,16 @@ document.addEventListener("DOMContentLoaded", () => {
       field.fileTypes = FILE_TYPES.map(([value]) => value).filter((value) => set.has(value));
       commit();
       el.panel.querySelector(`[data-fb-file-type="${input.dataset.fbFileType}"]`)?.focus();
+      return;
+    }
+    if (input.matches("[data-fb-sub-required]")) {
+      const found = findChild(input.dataset.fbSubRequired);
+      if (!found) return;
+      checkpoint();
+      found.child.required = input.checked;
+      commit();
+      announce(`„${fieldName(found.child)}” ${input.checked ? "este obligatoriu" : "nu mai este obligatoriu"} în sub-formular.`);
+      el.panel.querySelector(`[data-fb-sub-required="${CSS.escape(found.child.id)}"]`)?.focus();
       return;
     }
     if (input.matches("[data-fb-option-active]")) { updateOption(Number(input.dataset.fbOptionActive), { isValid: input.checked }, false); return; }

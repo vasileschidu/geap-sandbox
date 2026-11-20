@@ -327,6 +327,83 @@
   padding: 0;
 }
 
+/* Sub-formular column (fb-subform-v1, 2026-11-20): the cell = the nested toggle (summary + chevron);
+   red while required fields of the sub-form are missing; the sub-form opens in the detail row on the
+   FO form grid — 2 equal columns, gap 24, fields fill, ≤ 6/12 = one column, wider = both, one column
+   below 560 px of its own width (cards, phones) */
+.btn-neutral.e-permits-fo-grid__subform-toggle.is-error {
+  background-color: var(--color-background-danger-secondary, #fee4e2);
+  color: var(--color-text-danger-on-secondary, #b32318);
+}
+
+.btn-neutral.e-permits-fo-grid__subform-toggle.is-error:hover:not(:disabled) {
+  background-color: var(--color-background-danger-secondary-hover, #fecdc9);
+  color: var(--color-text-danger-on-secondary, #b32318);
+}
+
+.btn-neutral.e-permits-fo-grid__subform-toggle.is-error:active:not(:disabled) {
+  background-color: var(--color-background-danger-secondary-active, #fda19b);
+}
+
+.e-permits-fo-grid__subform {
+  container-type: inline-size;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-16, 16px);
+  min-width: 0;
+}
+
+.e-permits-fo-grid__subform-head {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-8, 8px);
+}
+
+.e-permits-fo-grid__subform-head > .e-permits-fo-field__hint {
+  margin: 0;
+}
+
+.e-permits-fo-grid__subform-more {
+  display: none;
+}
+
+.e-permits-fo-grid.is-cards .e-permits-fo-grid__subform-more {
+  display: inline;
+}
+
+.e-permits-fo-grid__subform-fields {
+  display: grid;
+  gap: var(--spacing-24, 24px);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  min-width: 0;
+}
+
+.e-permits-fo-grid__subform-fields > * {
+  grid-column: 1 / -1;
+  min-width: 0;
+}
+
+.e-permits-fo-grid__subform-fields > :is(.e-permits-fo-field--span-3, .e-permits-fo-field--span-4, .e-permits-fo-field--span-6) {
+  grid-column: span 1;
+}
+
+.e-permits-fo-grid__subform-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-8, 8px);
+  margin-top: var(--spacing-8, 8px);
+}
+
+@container (max-width: 560px) {
+  .e-permits-fo-grid__subform-fields {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .e-permits-fo-grid__subform-fields > :is(.e-permits-fo-field--span-3, .e-permits-fo-field--span-4, .e-permits-fo-field--span-6) {
+    grid-column: 1 / -1;
+  }
+}
+
 .e-permits-fo-grid__foot {
   align-items: center;
   display: flex;
@@ -461,7 +538,7 @@
 }
 
 .e-permits-fo-grid.is-cards > .e-permits-fo-grid__frame > .e-permits-fo-grid__table > tbody > .e-permits-fo-grid__row:not(.is-editing) .e-permits-fo-grid__cell-label,
-.e-permits-fo-grid.is-cards > .e-permits-fo-grid__frame > .e-permits-fo-grid__table > tbody > .e-permits-fo-grid__row.is-editing > [data-type="grid"] > .e-permits-fo-grid__cell-label {
+.e-permits-fo-grid.is-cards > .e-permits-fo-grid__frame > .e-permits-fo-grid__table > tbody > .e-permits-fo-grid__row.is-editing > :is([data-type="grid"], [data-type="subform"]) > .e-permits-fo-grid__cell-label {
   color: var(--color-text-base-secondary, #383838);
   display: flex;
   font-size: var(--font-size-fs-14, 14px);
