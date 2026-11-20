@@ -1,0 +1,356 @@
+/* =====================================================================================
+   Constructor grilă — the full-screen editable-grid builder of the Form Designer (gb-v1, 2026-11-20)
+   js/grid-builder.js · components.md › „Constructor grilă”. The frame is the Form Designer's own
+   (.e-permits-builder__topbar / __workspace / __library / __inspector, library items, the builder's errors
+   button and mode switch); this file only adds the parts the builder does not have: the layer over the
+   designer, the heading, the editable header row of the live FO table, the sub-form canvas, the preview frame.
+   Tokens only; the drop indicator is the one element placed by JS (drag geometry).
+   ===================================================================================== */
+.e-permits-builder.has-grid-builder {
+  position: relative;
+}
+
+.e-permits-gridb {
+  background: var(--color-background-base-default, #fff);
+  display: grid;
+  grid-template-rows: calc(var(--spacing-64, 64px) + var(--spacing-8, 8px)) minmax(0, 1fr);
+  inset: 0;
+  min-height: 0;
+  position: absolute;
+  z-index: 20;
+}
+
+.e-permits-gridb[hidden] {
+  display: none;
+}
+
+/* ---- topbar: back chevron · breadcrumb running into the grid name + key */
+.e-permits-gridb__nav {
+  gap: var(--spacing-8, 8px);
+}
+
+.e-permits-gridb__nav > .e-permits-topbar-back {
+  margin-inline-end: 0;
+}
+
+.e-permits-gridb__heading {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.e-permits-gridb__title-row {
+  align-items: center;
+  display: flex;
+  gap: var(--spacing-8, 8px);
+  min-width: 0;
+}
+
+.e-permits-gridb__title-row h2 {
+  color: var(--color-text-base-default, #121212);
+  font-size: var(--font-size-fs-16, 16px);
+  font-weight: var(--font-weight-fw-semibold, 600);
+  line-height: var(--line-height-lh-24, 24px);
+  margin: 0;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* the heading takes the focus when a level opens (screen readers hear where they are); no ring for that */
+.e-permits-gridb__title-row h2:focus {
+  outline: none;
+}
+
+.e-permits-gridb__title-row > :not(h2) {
+  flex: 0 0 auto;
+}
+
+/* ---- workspace: the designer's 3 columns; Previzualizare = the centre alone */
+.e-permits-gridb[data-gb-view="preview"] .e-permits-gridb__workspace {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.e-permits-gridb[data-gb-view="preview"] :is(.e-permits-gridb__library, .e-permits-gridb__inspector) {
+  display: none;
+}
+
+.e-permits-gridb__lib-note {
+  padding: 0 var(--spacing-8, 8px) var(--spacing-12, 12px);
+}
+
+.e-permits-gridb__stage {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.e-permits-gridb__scroll {
+  box-sizing: border-box;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+  padding: var(--spacing-32, 32px);
+}
+
+.e-permits-gridb__canvas {
+  margin: 0 auto;
+  max-width: calc(var(--spacing-64, 64px) * 16);
+  min-width: 0;
+}
+
+.e-permits-gridb__sheet {
+  background: var(--color-background-base-default, #fff);
+  border-radius: var(--border-radius-24, 24px);
+  box-sizing: border-box;
+  padding: var(--spacing-24, 24px);
+}
+
+/* ---- the live table: the FO grid; widths = units (Îngustă 2 · Medie 3 · Lată 4), scrolls sideways in the editor */
+.e-permits-gridb__grid > .e-permits-fo-grid__frame {
+  overflow-x: auto;
+  position: relative;
+}
+
+.e-permits-gridb__unit--2 {
+  width: calc(var(--spacing-48, 48px) * 2);
+}
+
+.e-permits-gridb__unit--3 {
+  width: calc(var(--spacing-48, 48px) * 3);
+}
+
+.e-permits-gridb__unit--4 {
+  width: calc(var(--spacing-48, 48px) * 4);
+}
+
+.e-permits-gridb__unit-index {
+  width: var(--spacing-56, 56px);
+}
+
+.e-permits-gridb__unit-actions {
+  width: calc(var(--spacing-32, 32px) * 4 + var(--spacing-12, 12px));
+}
+
+.e-permits-gridb__grid .e-permits-fo-grid__table .e-permits-gridb__th {
+  padding: 0;
+  transition: background-color var(--motion-duration-hover, 180ms) ease;
+}
+
+.e-permits-gridb__th-inner {
+  align-items: center;
+  display: flex;
+  gap: var(--spacing-4, 4px);
+  min-width: 0;
+  padding-inline-end: var(--spacing-4, 4px);
+}
+
+/* a header cell = the column: type icon + name + required star; click = select, drag = reorder */
+.e-permits-gridb__col {
+  align-items: center;
+  align-self: stretch;
+  appearance: none;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  box-sizing: border-box;
+  color: inherit;
+  cursor: pointer;
+  display: flex;
+  flex: 1 1 auto;
+  font: inherit;
+  gap: var(--spacing-6, 6px);
+  min-height: calc(var(--spacing-32, 32px) + var(--spacing-6, 6px));
+  min-width: 0;
+  padding: var(--spacing-8, 8px) var(--spacing-12, 12px);
+  text-align: left;
+  transition: background-color var(--motion-duration-hover, 180ms) ease;
+}
+
+.e-permits-gridb__col > .icon {
+  color: currentColor;
+  flex: 0 0 auto;
+}
+
+.e-permits-gridb__col-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.e-permits-gridb__col > .e-permits-fo-required {
+  flex: 0 0 auto;
+}
+
+/* hover on the header button itself (the drill chevron in the same cell keeps its own hover) */
+.e-permits-gridb__col:hover {
+  background: var(--color-background-base-tertiary-hover, #d9d9d9);
+}
+
+.e-permits-gridb__col:focus-visible {
+  box-shadow: inset 0 0 0 var(--border-width-2, 2px) var(--blue-sky-500, #3379db);
+  outline: none;
+}
+
+.e-permits-gridb__grid .e-permits-fo-grid__table .e-permits-gridb__th.is-selected {
+  background: var(--color-background-brand-secondary, #e8f0fb);
+  box-shadow: inset 0 calc(var(--border-width-2, 2px) * -1) 0 var(--color-border-brand-default, #0058d2);
+  color: var(--color-text-brand-default, #0058d2);
+}
+
+.e-permits-gridb__th.is-selected .e-permits-gridb__col:hover {
+  background: var(--color-background-brand-secondary-hover, #d1e1f8);
+}
+
+.e-permits-gridb__th.is-dragging,
+.e-permits-gridb__field.is-dragging {
+  opacity: 0.4;
+}
+
+/* errors of a column: the red dot of the tabs, its message in a tooltip */
+.e-permits-gridb__col-issue {
+  align-items: center;
+  display: inline-flex;
+  flex: 0 0 var(--spacing-16, 16px);
+  height: var(--spacing-16, 16px);
+  justify-content: center;
+}
+
+.e-permits-gridb__col-issue > .e-permits-ntpl-dot {
+  margin: 0;
+}
+
+.e-permits-gridb__drill {
+  flex: 0 0 auto;
+}
+
+/* „+ Coloană” ends the header row */
+.e-permits-gridb__grid .e-permits-fo-grid__table .e-permits-gridb__th-add {
+  padding: 0 var(--spacing-12, 12px);
+  text-align: left;
+}
+
+/* the drop place while dragging a type or a column (left / top / height from the pointer) */
+.e-permits-gridb__drop {
+  background: var(--color-border-brand-default, #0058d2);
+  border-radius: var(--border-radius-full, 999px);
+  pointer-events: none;
+  position: absolute;
+  width: var(--border-width-3, 3px);
+  z-index: 2;
+}
+
+.e-permits-gridb__drop[hidden] {
+  display: none;
+}
+
+.e-permits-gridb__empty.is-drop-target .e-permits-empty,
+.e-permits-gridb__form-empty.is-drop-target {
+  border-color: var(--color-border-brand-default, #0058d2);
+  box-shadow: 0 0 0 4px var(--blue-sky-200, #ccdef6);
+}
+
+.e-permits-gridb__empty .e-permits-empty {
+  background: var(--color-background-base-default, #fff);
+}
+
+/* ---- a sub-form level: the FO form layout (2 columns, gap 24; a wide field spans both) */
+.e-permits-gridb__form-head {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4, 4px);
+  padding-bottom: var(--spacing-16, 16px);
+}
+
+.e-permits-gridb__form {
+  align-items: start;
+  display: grid;
+  gap: var(--spacing-24, 24px);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  position: relative;
+}
+
+.e-permits-gridb__form > :is([data-gb-span="2"], .e-permits-gridb__add, .e-permits-gridb__form-empty) {
+  grid-column: 1 / -1;
+}
+
+.e-permits-gridb__form-empty {
+  border-radius: var(--border-radius-16, 16px);
+}
+
+.e-permits-gridb__field.has-issue {
+  border-color: var(--color-border-danger-default, #d92d20);
+}
+
+.e-permits-gridb__field .e-permits-builder__field-tools {
+  align-items: center;
+}
+
+/* ---- the panel's „Deschide constructorul grilei” / „Deschide sub-grila” (under the panel title) */
+.e-permits-gridb__entry {
+  padding: 0 var(--spacing-20, 20px) var(--spacing-12, 12px);
+}
+
+.e-permits-gridb__entry > .btn {
+  justify-content: center;
+  width: 100%;
+}
+
+/* ---- Previzualizare: the FO grid as the applicant sees it — Desktop (form width) / Telefon (375 → cards) */
+.e-permits-gridb__preview-bar {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-16, 16px) var(--spacing-24, 24px);
+  margin: 0 auto;
+  max-width: calc(var(--spacing-64, 64px) * 16);
+  padding-bottom: var(--spacing-24, 24px);
+}
+
+.e-permits-gridb__preview-bar > .e-permits-fo-field__hint {
+  margin: 0;
+}
+
+.e-permits-gridb__preview {
+  display: flex;
+  justify-content: center;
+}
+
+.e-permits-gridb__device {
+  background: var(--color-background-base-default, #fff);
+  border-radius: var(--border-radius-24, 24px);
+  box-sizing: border-box;
+  max-width: calc(var(--spacing-64, 64px) * 16);
+  padding: var(--spacing-40, 40px);
+  width: 100%;
+}
+
+/* 375 wide outside: 48 × 8 − 8 + the 1 px border = 343 of content, like a phone with a 16 gutter */
+.e-permits-gridb__preview.is-phone .e-permits-gridb__device {
+  border: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
+  box-shadow: var(--drop-shadow-400);
+  max-width: calc(var(--spacing-48, 48px) * 8 - var(--spacing-8, 8px) + var(--border-width-1, 1px));
+  padding: var(--spacing-16, 16px);
+}
+
+/* the column types need less room than the designer's palette (280 = 64 × 4 + 24) */
+.e-permits-gridb__workspace {
+  --builder-left-width: calc(var(--spacing-64, 64px) * 4 + var(--spacing-24, 24px));
+}
+
+/* „+ Coloană” stays in reach while the table scrolls sideways: the actions column is pinned right
+   (js/table-pin-shadow.js reads the pin from the header and draws the edge effect) */
+.e-permits-gridb__grid .e-permits-fo-grid__table :is(th, td).e-permits-fo-grid__actions {
+  position: sticky;
+  right: 0;
+  z-index: 1;
+}
+
+/* the device card already pads its content: the FO section body adds none */
+.e-permits-gridb__device > .e-permits-fo-form__section-body {
+  padding: 0;
+}

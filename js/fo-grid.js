@@ -353,6 +353,29 @@
       </div>`;
   }
 
+  /* „Completează cu date de test” — one plausible value per column (row n); `options(col)` = the labels the list
+     offers (the controller passes its cascade-aware lists). Also the grid builder's sample rows (gb-v1). */
+  const staticOptions = (col) => (col.meta?.length ? col.meta : (col.options || []).map((label) => ({ label }))).map((item) => item.label);
+  function sampleValue(col, n, options = staticOptions) {
+    switch (col.type) {
+      case "text": { const base = col.placeholder ? col.placeholder.replace(/^Ex\.?:?\s*/i, "") : col.label; return n === 1 ? base : `${base} ${n}`; }
+      case "number": return String((Number(col.min) || 0) + 10 * n);
+      case "money": return `${150 * n}.00`;
+      case "date": return ctx?.localIsoDay?.(col.dateMax ? -30 * n : 7 * n) || todayIso();
+      case "checkbox": return n === 1;
+      case "radio": return (col.radio || [])[n - 1]?.value || (col.radio || [])[0]?.value || "";
+      case "select": { const list = options(col); return list[(n - 1) % Math.max(list.length, 1)] || ""; }
+      case "multiselect": return options(col).slice(0, 1);
+      case "grid": return [{ values: {} }];
+      case "textarea": return n === 1 ? "Revizie tehnică făcută în martie 2026." : "";
+      /* sub-form: everything on the first row, only the required fields on the next */
+      case "subform": return Object.fromEntries(subFields(col).filter((field) => n === 1 || field.required).map((field) => [field.key, sampleValue(field, n, options)]));
+      default: return "";
+    }
+  }
+  /* saved sample rows for a static (unbound) grid: `{ values }` per row, nested grids with one row */
+  const sampleRows = (def, count = 2) => Array.from({ length: count }, (_, i) => ({ values: Object.fromEntries(def.columns.map((col) => [col.key, sampleValue(col, i + 1)])) }));
+
   /* the rows a grid starts with: the given value (test data, a saved request) or the default empty
      rows; the first unsaved one opens in edit mode (US-35: a new row is empty and editable) */
   function initialRows(def) {
@@ -971,23 +994,7 @@
     }
     /* „Completează cu date de test”: two plausible saved rows */
     function fill() {
-      const sample = (col, n, row) => {
-        switch (col.type) {
-          case "text": { const base = col.placeholder ? col.placeholder.replace(/^Ex\.?:?\s*/i, "") : col.label; return n === 1 ? base : `${base} ${n}`; }
-          case "number": return String((Number(col.min) || 0) + 10 * n);
-          case "money": return `${150 * n}.00`;
-          case "date": return ctx?.localIsoDay?.(col.dateMax ? -30 * n : 7 * n) || todayIso();
-          case "checkbox": return n === 1;
-          case "radio": return (col.radio || [])[n - 1]?.value || (col.radio || [])[0]?.value || "";
-          case "select": { const options = optionsFor(col, row); return options[(n - 1) % Math.max(options.length, 1)] || ""; }
-          case "multiselect": { const options = optionsFor(col, row); return options.slice(0, 1); }
-          case "grid": return [{ values: {} }];
-          case "textarea": return n === 1 ? "Revizie tehnică făcută în martie 2026." : "";
-          /* sub-form: everything on the first row, only the required fields on the next */
-          case "subform": return Object.fromEntries(subFields(col).filter((field) => n === 1 || field.required).map((field) => [field.key, sample(field, n, row)]));
-          default: return "";
-        }
-      };
+      const sample = (col, n, row) => sampleValue(col, n, (item) => optionsFor(item, row));
       const keyCol = def.columns.find((col) => col.key === rules.group);
       state.rows = [];
       const count = Math.max(1, Math.min(2, max || 2));
@@ -1376,6 +1383,8 @@
     reset: (el) => controllerOf(el)?.reset(),
     formatValue,
     checkValue,
+    /* gb-v1: the grid builder's inert sample rows (the same values as „date de test”) */
+    sampleRows,
     /* table or cards for grids that are not bound (the builder's inert canvas) */
     layout,
     /* Esc from an editor that handles it first (the Form Builder): the delete dialog, an open list

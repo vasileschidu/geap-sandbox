@@ -3273,6 +3273,104 @@
               cell.querySelector("[data-fo-grid-row]").scrollIntoView({ block: "start" });
             }, F09)
           };
+        })(),
+
+        /* ---- Constructor grilă (gb-v1, 2026-11-20, user: „the editable grid gets its own builder, like a new tab”):
+           the full-screen view over the Form Designer — column types · the live table · the column panel; drill-in
+           to a nested grid / sub-form; Previzualizare Desktop / Telefon. F09 „Echipamente frigorifice”. BO desktop
+           only. Scope for QA: .e-permits-gridb ---- */
+        ...(() => {
+          const F09 = { formular: "form-sanitary-09" };
+          const equipCard = "[data-builder-field][data-id='fld-equipment']";
+          const GBV = ".e-permits-gridb:not([hidden])";
+          /* the card's „Deschide constructorul grilei” */
+          const openGb = async (h) => { await h.scroll(equipCard); await h.click(`${equipCard} [data-gb-open]`); await h.find(`${GBV} [data-gb-th]`); await h.wait(250); };
+          /* a new, empty grid in the last section, opened from its card */
+          const openEmpty = async (h) => {
+            await h.find(equipCard);
+            const field = window.GEAPFormBuilder.addField("grid", "", null, { focus: false });
+            await h.scroll(`[data-builder-field][data-id='${field.id}']`);
+            await h.click(`[data-builder-field][data-id='${field.id}'] [data-gb-open]`);
+            await h.find(`${GBV} [data-gb-drop-empty]`);
+            await h.wait(250);
+          };
+          const col = (id) => `${GBV} [data-gb-col='${id}']`;
+          return {
+            /* 01 a new grid opened: only column types (complex locked + note), empty table „Adaugă prima coloană”, grid settings */
+            "fb-gb-01": fb(openEmpty, F09),
+            /* 02 the equipment grid: header row = the columns (icons, star, units), 2 inert sample rows, grid settings right */
+            "fb-gb-02": fb(openGb, F09),
+            /* 03 a column selected (Denumire): selected header, its panel (name + type + width on General) */
+            "fb-gb-03": fb(async (h) => { await openGb(h); await h.click(col("col-09-name")); }, F09),
+            /* 03b a choice column (Tip): Date tab = its list next to the name */
+            "fb-gb-03b": fb(async (h) => { await openGb(h); await h.click(col("col-09-type")); await h.click("[data-builder-prop-tab='data']"); }, F09),
+            /* 04 adding via the menu: „+ Coloană” open at the end of the header row */
+            "fb-gb-04": fb(async (h) => { await openGb(h); await h.click(`${GBV} .e-permits-gridb__th-add [data-gb-add]`); await h.wait(200); }, F09),
+            /* 04b a type clicked in the left column → appended, selected, its label focused */
+            "fb-gb-04b": fb(async (h) => { await openGb(h); await h.click(`${GBV} [data-gb-type='date']`); await h.wait(250); }, F09),
+            /* 05 drag reorder in progress: „În funcțiune” dragged before „Denumire” (the drop line) */
+            "fb-gb-05": fb(async (h) => {
+              await openGb(h);
+              const source = await h.find(col("col-09-on"));
+              const target = await h.find(`${GBV} [data-gb-th='col-09-name']`);
+              const dt = new DataTransfer();
+              source.dispatchEvent(new DragEvent("dragstart", { bubbles: true, dataTransfer: dt }));
+              const r = target.getBoundingClientRect();
+              target.dispatchEvent(new DragEvent("dragover", { bubbles: true, cancelable: true, dataTransfer: dt, clientX: r.left + 8, clientY: r.top + r.height / 2 }));
+              await h.wait(150);
+            }, F09),
+            /* 05b the drop done: „În funcțiune” is the 2nd column */
+            "fb-gb-05b": fb(async (h) => {
+              await openGb(h);
+              const source = await h.find(col("col-09-on"));
+              const target = await h.find(`${GBV} [data-gb-th='col-09-name']`);
+              const dt = new DataTransfer();
+              source.dispatchEvent(new DragEvent("dragstart", { bubbles: true, dataTransfer: dt }));
+              const r = target.getBoundingClientRect();
+              const at = { bubbles: true, cancelable: true, dataTransfer: dt, clientX: r.left + 8, clientY: r.top + r.height / 2 };
+              target.dispatchEvent(new DragEvent("dragover", at));
+              target.dispatchEvent(new DragEvent("drop", at));
+              source.dispatchEvent(new DragEvent("dragend", { bubbles: true }));
+              await h.wait(250);
+            }, F09),
+            /* 06 locked complex columns: the reason note + the tooltip on „Listă derulantă” (empty grid, US-34 AC-06) */
+            "fb-gb-06": fb(async (h) => { await openEmpty(h); await h.hover(`${GBV} [data-gb-type='select']`); await h.wait(600); }, F09),
+            /* 07 drill-in: „Componente” (nested grid) opened — breadcrumb Formular › Echipamente frigorifice ›, level 2 */
+            "fb-gb-07": fb(async (h) => { await openGb(h); await h.click(`${GBV} [data-gb-drill='col-09-parts']`); await h.find(`${GBV} [data-gb-th='col-09-part']`); await h.wait(200); }, F09),
+            /* 07b level 2 → a 3rd-level grid added: there nested grid / sub-form are locked (US-38) */
+            "fb-gb-07b": fb(async (h) => {
+              await openGb(h);
+              await h.click(`${GBV} [data-gb-drill='col-09-parts']`);
+              await h.click(`${GBV} [data-gb-type='grid']`);
+              const level3 = window.GEAPFormBuilder.state.sel.id;
+              await h.click(`${GBV} [data-gb-drill='${level3}']`);
+              await h.click(`${GBV} [data-gb-type='text']`);
+              await h.click(`${GBV} [data-gb-type='subform']`);
+              await h.wait(200);
+            }, F09),
+            /* 08 sub-form canvas: „Date tehnice” — fields on the form layout, field types left, a field selected */
+            "fb-gb-08": fb(async (h) => { await openGb(h); await h.click(`${GBV} [data-gb-drill='col-09-tech']`); await h.click(`${GBV} [data-gb-field='bf-09-agent']`); await h.wait(200); }, F09),
+            /* 09 errors: a new sub-form column without fields → red dot on its header, the errors menu open */
+            "fb-gb-09": fb(async (h) => {
+              await openGb(h);
+              await h.click(`${GBV} [data-gb-type='subform']`);
+              await h.click(`${GBV} [data-gb-errors]`);
+              await h.wait(200);
+            }, F09),
+            /* 10 Previzualizare · Desktop: the FO grid with two demo rows */
+            "fb-gb-10": fb(async (h) => { await openGb(h); await h.click(`${GBV} [data-gb-mode='preview']`); await h.find(`${GBV} [data-gb-preview] [data-fo-grid-row]`); await h.wait(300); }, F09),
+            /* 11 Previzualizare · Telefon (375): rows as cards */
+            "fb-gb-11": fb(async (h) => { await openGb(h); await h.click(`${GBV} [data-gb-mode='preview']`); await h.click(`${GBV} [data-gb-device='phone']`); await h.find(`${GBV} [data-gb-preview] .is-cards`); await h.wait(300); }, F09),
+            /* 12 „Gata”: back on the form, the grid card selected, toast „Ai actualizat grila …” with Anulează */
+            "fb-gb-12": fb(async (h) => {
+              await openGb(h);
+              await h.click(`${GBV} [data-gb-type='date']`);
+              await h.click(`${GBV} [data-gb-done]`);
+              await h.wait(400);
+            }, F09),
+            /* 13 entry from the panel: the grid selected on the form → „Deschide constructorul grilei” on top of its panel */
+            "fb-gb-13": fb(async (h) => { await h.scroll(equipCard); await h.click(`${equipCard} .e-permits-builder__field-meta`); await h.wait(200); }, F09),
+          };
         })()
       };
     })(),

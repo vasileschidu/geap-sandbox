@@ -918,7 +918,10 @@ document.addEventListener("DOMContentLoaded", () => {
     renderIssues();
     if (state.mode === "preview") renderPreview();
     if (state.mode === "schema") renderSchema();
+    gridBuilderSync();
   }
+  /* the grid builder (js/grid-builder.js, gb-v1) redraws after every render / commit / selection */
+  const gridBuilderSync = () => window.GEAPGridBuilder?.sync?.();
 
   /* after every model change: re-validate, redraw what shows the model, save */
   function commit({ panel = true, canvas = true } = {}) {
@@ -937,6 +940,7 @@ document.addEventListener("DOMContentLoaded", () => {
     renderIssues();
     if (state.mode === "preview") renderPreview();
     if (state.mode === "schema") renderSchema();
+    gridBuilderSync();
     if (G) { syncGlobalBar(); return; }
     saveDb();
   }
@@ -1267,6 +1271,7 @@ document.addEventListener("DOMContentLoaded", () => {
             <em class="e-permits-builder__tag e-permits-builder__tag--outlined" data-fb-span-tag>${spanOf(field)}/12</em>
           </div>
           <div class="e-permits-builder__field-actions">
+            ${field.type === "grid" ? `<button class="btn btn-secondary btn-sm" type="button" data-gb-open="${field.id}">${icon("icon-columns", 16)}<span>Deschide constructorul grilei</span></button>` : ""}
             ${ui().renderStackMenu?.(moveItems, name) || ""}
           </div>
         </div>
@@ -1870,6 +1875,7 @@ document.addEventListener("DOMContentLoaded", () => {
     else body = advancedTabHtml(field);
     return `
       ${panelHead({ crumbs: [tr(step.title), tr(section.title) || "Secțiune", meta.label], title: name, chip: NO_VALUE.includes(field.type) ? "" : (ui().renderTag?.(field.key || "fără cheie", "neutral") || ""), menu: ui().renderStackMenu?.(items, name) || "" })}
+      ${window.GEAPGridBuilder?.entryHtml?.(field) || ""}
       ${tabsHtml(tabs, "field", field.id)}
       <div class="e-permits-builder__panel-scroll" id="fb-tabpanel" role="tabpanel" aria-labelledby="fb-tab-${state.tab}" data-fb-panel-scroll>
         ${body}
@@ -1903,6 +1909,7 @@ document.addEventListener("DOMContentLoaded", () => {
     else body = childAdvancedHtml(found);
     return `
       ${panelHead({ crumbs: [tr(step.title), tr(section.title) || "Secțiune", ...chain.map((item) => fieldName(item))], title: name, chip: child.type === "info" ? "" : ui().renderTag?.(child.key || "fără cheie", "neutral") || "", menu: ui().renderStackMenu?.(items, name) || "", back: { kind: findChild(container.id) ? "child" : "field", id: container.id, label: `${inGrid ? (findChild(container.id) ? "Sub-grila" : "Grila") : container.type === "subform" ? "Sub-formularul" : "Blocul"} „${fieldName(container)}”` } })}
+      ${window.GEAPGridBuilder?.entryHtml?.(child) || ""}
       ${tabsHtml(tabs, "child", child.id)}
       <div class="e-permits-builder__panel-scroll" id="fb-tabpanel" role="tabpanel" aria-labelledby="fb-tab-${state.tab}" data-fb-panel-scroll>
         ${body}
@@ -3304,6 +3311,7 @@ document.addEventListener("DOMContentLoaded", () => {
     renderCanvas();
     renderPanel();
     if (state.mode === "preview") renderPreview();
+    gridBuilderSync();
     if (focusLabel) focusPanel('[data-fb-prop="label"], [data-fb-prop="text"], [data-fb-prop="title"]');
   }
 
@@ -4669,6 +4677,7 @@ document.addEventListener("DOMContentLoaded", () => {
         toggle?.focus();
         return;
       }
+      if (window.GEAPGridBuilder?.escape?.()) return;
       if (state.mode !== "build") { setMode("build"); return; }
       if (state.sel.kind !== "form") { select("form"); announce("Nimic selectat — date generale formular."); }
       return;
@@ -4768,4 +4777,17 @@ document.addEventListener("DOMContentLoaded", () => {
   window.GEAPFormBuilder = { state, get form() { return form; }, select, setMode, addField, undo, redo, validate: () => state.issues,
     /* forms-global-v1: the registry of global forms (js/forms-global.js) */
     openGlobal, refreshGlobal, isGlobal: () => Boolean(G), globalDirty: () => Boolean(G?.dirty) };
+  /* gb-v1 (2026-11-20): the full-screen grid builder (js/grid-builder.js) works on the same model with the
+     same actions, panel and FO renderer — never a second copy of them */
+  window.GEAPFormBuilder.internals = {
+    builder, el, state, get form() { return form; }, R, ui,
+    esc, icon, tr, comp, fieldName, requiredMark, announce, clone,
+    COLUMN_SIMPLE, COLUMN_COMPLEX, BLOCK_TYPES, MAX_GRID_LEVEL, T_GEN, T_DATA, T_VAL, TAB_LABELS,
+    kidsOf, isNest, isContainer, findField, findChild, fieldOrChild, containerOf, levelOf, childAllowed, allFields,
+    errorsOf, childErrorsOf, childHasIssue, gridFo, toFo, foHtml, addChildMenuHtml,
+    select, addChild, moveChild, deleteChild, duplicateChild, runMenuAction, renderPanel, setMode,
+    /* „Gata” › Anulează: back to the form as it was when the builder opened (one undo step) */
+    revertTo(snapshot) { state.undo.push(JSON.stringify(form)); state.redo = []; restore(snapshot); if (G) { G.dirty = true; syncGlobalBar(); } else saveDb(); },
+  };
+  window.GEAPGridBuilder?.attach?.();
 });
