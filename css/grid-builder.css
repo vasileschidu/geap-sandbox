@@ -109,10 +109,10 @@
   padding: var(--spacing-24, 24px);
 }
 
-/* ---- the row card (row-cards-v1, 2026-11-20): one sample row in its FO edit card; each field cell is the column.
-   The cell grows 8 on every side (negative margin, so the FO layout keeps its place) and carries the states on its
-   own transparent button BEHIND the inert field (the field ignores the pointer): hover tertiary · selected
-   brand-secondary + 2 px brand ring · focus ring · error dot · dragging 0.4. */
+/* ---- the row card (row-cards-v1 + gb-inert-v1, 2026-11-20): one sample row in the FO row card; NOTHING in it works
+   (no Anulează / Salvează, no Editează / Elimină) — Editare = structure, Previzualizare = the working form. Each field
+   cell IS the Form Designer's field block (`.e-permits-builder__field`: hover border, selected ring, focus ring,
+   dragging 0.4 all from the shared class) with the FO control inert inside; the whole block is the click target. */
 .e-permits-gridb__sheet {
   display: flex;
   flex-direction: column;
@@ -129,10 +129,6 @@
   padding-top: var(--spacing-32, 32px);
 }
 
-.e-permits-gridb__sheet-head > .e-permits-fo-field__hint {
-  margin: 0;
-}
-
 .e-permits-gridb__sheet-title {
   color: var(--color-text-base-default, #121212);
   font-size: var(--font-size-fs-16, 16px);
@@ -141,109 +137,108 @@
   margin: 0;
 }
 
+.e-permits-gridb__hint {
+  margin: 0;
+  padding-bottom: var(--spacing-16, 16px);
+}
+
+.e-permits-gridb__hint-link {
+  background: none;
+  border: 0;
+  padding: 0;
+}
+
+.e-permits-gridb__sample-label {
+  color: var(--color-text-base-tertiary, #6b6b6b);
+  margin: 0 0 0 var(--spacing-8, 8px);
+}
+
 .e-permits-gridb__card > .e-permits-fo-grid__fields {
   position: relative;
 }
 
 .e-permits-gridb__cell {
-  border-radius: var(--border-radius-12, 12px);
+  cursor: pointer;
+}
+
+.e-permits-gridb__cell-render {
+  pointer-events: none;
+}
+
+.e-permits-gridb__cell.has-issue:not(.is-selected) {
+  border-color: var(--color-border-danger-default, #d92d20);
+}
+
+.e-permits-gridb__cell .e-permits-builder__field-meta > .e-permits-builder__tag--outlined {
+  flex: 0 0 auto;
+}
+
+/* the meta's own controls take the pointer back (error tooltip, „Deschide”) */
+.e-permits-gridb__cell .e-permits-builder__field-tools > :is(.e-permits-gridb__col-issue, .e-permits-gridb__drill) {
+  pointer-events: auto;
+}
+
+/* nested grid / sub-form column = a compact list of its columns / fields (no inputs) */
+.e-permits-gridb__summary {
   display: flex;
   flex-direction: column;
   gap: var(--spacing-8, 8px);
-  margin: calc(var(--spacing-8, 8px) * -1);
-  padding: var(--spacing-8, 8px);
-  position: relative;
 }
 
-.e-permits-gridb__col {
-  appearance: none;
-  background: transparent;
-  border: 0;
-  border-radius: inherit;
-  cursor: pointer;
-  inset: 0;
+.e-permits-gridb__summary > .e-permits-fo-field__hint,
+.e-permits-gridb__kids-more {
+  margin: 0;
+}
+
+.e-permits-gridb__summary-label {
+  color: var(--color-text-base-default, #121212);
+  font-size: var(--font-size-fs-14, 14px);
+  font-weight: var(--font-weight-fw-medium, 500);
+  line-height: var(--line-height-lh-20, 20px);
+}
+
+.e-permits-gridb__summary .btn {
+  align-self: flex-start;
+}
+
+.e-permits-gridb__kids {
+  list-style: none;
+  margin: 0;
   padding: 0;
-  position: absolute;
-  transition: background-color var(--motion-duration-hover, 180ms) ease;
-  z-index: 0;
 }
 
-.e-permits-gridb__col:hover {
-  background: var(--color-background-base-tertiary, #f1f1f1);
-}
-
-.e-permits-gridb__col:focus-visible {
-  box-shadow: inset 0 0 0 var(--border-width-2, 2px) var(--blue-sky-500, #3379db);
-  outline: none;
-}
-
-.e-permits-gridb__cell.is-selected > .e-permits-gridb__col {
-  background: var(--color-background-brand-secondary, #e8f0fb);
-  box-shadow: inset 0 0 0 var(--border-width-2, 2px) var(--color-border-brand-default, #0058d2);
-}
-
-.e-permits-gridb__cell.is-selected > .e-permits-gridb__col:hover {
-  background: var(--color-background-brand-secondary-hover, #d1e1f8);
-}
-
-.e-permits-gridb__cell.has-issue:not(.is-selected) > .e-permits-gridb__col {
-  box-shadow: inset 0 0 0 var(--border-width-1, 1px) var(--color-border-danger-default, #d92d20);
-}
-
-.e-permits-gridb__cell-meta,
-.e-permits-gridb__cell-render {
-  min-width: 0;
-  pointer-events: none;
-  position: relative;
-  z-index: 1;
-}
-
-.e-permits-gridb__cell-meta {
+.e-permits-gridb__kid {
   align-items: center;
+  border-bottom: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
   display: flex;
-  flex-wrap: nowrap;
-  gap: var(--spacing-8, 8px);
+  gap: var(--spacing-12, 12px);
   min-height: var(--spacing-32, 32px);
+  min-width: 0;
 }
 
-.e-permits-gridb__cell-type {
-  align-items: center;
+.e-permits-gridb__kid:last-child {
+  border-bottom: 0;
+}
+
+.e-permits-gridb__kid-icon {
   color: var(--color-text-base-secondary, #383838);
   display: inline-flex;
-  font-size: var(--font-size-fs-12, 12px);
-  font-weight: var(--font-weight-fw-medium, 500);
-  gap: var(--spacing-4, 4px);
-  line-height: var(--line-height-lh-16, 16px);
-  min-width: 0;
+  flex: 0 0 auto;
 }
 
-.e-permits-gridb__cell-type > span {
+.e-permits-gridb__kid-name {
+  color: var(--color-text-base-default, #121212);
+  flex: 1 1 auto;
+  font-size: var(--font-size-fs-14, 14px);
+  line-height: var(--line-height-lh-20, 20px);
+  min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.e-permits-gridb__cell-type > .icon {
+.e-permits-gridb__kid > :is(.e-permits-fo-required, .status-tag, .tag) {
   flex: 0 0 auto;
-}
-
-.e-permits-gridb__cell-meta > .e-permits-builder__tag {
-  flex: 0 0 auto;
-  pointer-events: auto;
-}
-
-.e-permits-gridb__cell.is-selected .e-permits-gridb__cell-type {
-  color: var(--color-text-brand-default, #0058d2);
-}
-
-/* the meta's own controls take the pointer back (error tooltip, „Deschide”) */
-.e-permits-gridb__cell-meta > :is(.e-permits-gridb__col-issue, .e-permits-gridb__drill) {
-  pointer-events: auto;
-}
-
-.e-permits-gridb__cell.is-dragging,
-.e-permits-gridb__field.is-dragging {
-  opacity: 0.4;
 }
 
 /* „+ Coloană”: the dashed add zone as a tile at the end of the card grid, the height of its row */

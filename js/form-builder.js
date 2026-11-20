@@ -1282,7 +1282,7 @@ document.addEventListener("DOMContentLoaded", () => {
           </div>
         </div>
         ${isContainer(field) && field.type !== "grid" ? subsStripHtml(field) : ""}
-        <div class="e-permits-builder__field-render" inert>${field.type === "hidden" ? hiddenMarkerHtml(field) : isContainer(field) && !kidsOf(field).length ? emptyContainerHtml(field) : foHtml(field, { prefix: "cv", inCard: true })}</div>
+        <div class="e-permits-builder__field-render" inert>${field.type === "hidden" ? hiddenMarkerHtml(field) : isContainer(field) && !kidsOf(field).length ? emptyContainerHtml(field) : (field.type === "grid" && window.GEAPGridBuilder?.summaryHtml?.(field)) || foHtml(field, { prefix: "cv", inCard: true })}</div>
         ${NO_VALUE.includes(field.type) && !errors.length && !(field.rules || []).length && !field.preset ? "" : `
         <div class="e-permits-builder__field-foot">
           ${NO_VALUE.includes(field.type) ? "" : `<span class="e-permits-builder__field-key" data-cell-tooltip>${esc(field.key)}</span>`}
@@ -4797,4 +4797,6 @@ document.addEventListener("DOMContentLoaded", () => {
     revertTo(snapshot) { state.undo.push(JSON.stringify(form)); state.redo = []; restore(snapshot); if (G) { G.dirty = true; syncGlobalBar(); } else saveDb(); },
   };
   window.GEAPGridBuilder?.attach?.();
+  /* the first canvas render ran before the builder had its context: redraw the grid cards as compact summaries */
+  if (form) renderCanvas();
 });

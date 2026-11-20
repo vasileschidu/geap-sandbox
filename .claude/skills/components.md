@@ -4965,7 +4965,7 @@ renderer: a grid holds `columns`, a block holds `fields` (field objects; same pa
 per cell / card); rules point at children by id (`rowRules.keyColumn` / `groupColumn`, cascade
 `dataSource.parentFieldId`). Seed form `?formular=form-sanitary-09` (CAEM block, equipment grid with a nested
 grid, work points with Raion → Localitate).
-- **Builder.** (row-cards-v1: a GRID card has no band any more — „N coloane” + the inert row card + „Deschide constructorul
+- **Builder.** (row-cards-v1: a GRID card has no band any more — „N coloane” + the compact column list (gb-inert-v1, no inputs) + „Deschide constructorul
   grilei”; the band below stays for blocks.) Container card = tools + the **band** (chips of columns / fields; click = the child's panel,
   drag = reorder, palette types dropped on the band = new children, Alt + ← / → (grid) or ↑ / ↓ (block) and
   Delete on a chip, „+ Coloană / + Câmp” = typed menu: Coloane simple · Coloane complexe (locked with a reason
@@ -5076,18 +5076,28 @@ same view.
   a `renderInfoNote` under the heading: no simple column yet — US-34 AC-06, or level 3 — US-38) · Copie a unui câmp din
   formular. Click = append (selected, label focused); drag onto the table = insert at the drop line. A sub-form level lists
   the block field types (`BLOCK_TYPES`).
-- **Centre = the row card (row-cards-v1, 2026-11-20; replaced the live table, whose pinned „+ Coloană” covered the last
-  columns).** „Rândul, cum îl completează solicitantul” + ONE sample row (the „date de test” values) in its FO EDIT card
-  (`GEAPFoRepeat.rowHtml`, header buttons inert); every field cell = the column: a transparent `button[data-gb-col]` BEHIND
-  the inert field (click = select, drag = reorder, Alt + ← / → = move, Delete = remove with the toast), a meta line (type
-  icon + label, „3/12” tag = the width as the span, red dot + tooltip on errors, „Deschide ›” for a nested grid /
-  sub-form; double-click works too). States: default (transparent) · hover tertiary · selected brand-secondary + 2 px
-  brand ring (hover brand-secondary-hover) · focus inset ring · error 1 px danger ring + dot · dragging 0.4 + brand drop
-  line. „+ Coloană” = a dashed tile (`e-permits-builder__sub-add` look) at the end of the card grid, span 3, the height of
-  its row; its typed menu fixed. Under it „După „Salvează”” + the same row's saved line (inert). Empty grid =
-  `GEAPEmptyState` „Adaugă prima coloană” with „+ Coloană” (also a drop target).
+- **Centre = the row card (row-cards-v1 + gb-inert-v1, 2026-11-20; user: „none of the buttons work, it's so ambiguous”).**
+  Rule: **Editare = structure (select / reorder / configure), Previzualizare = the working form** — NOTHING in the edit
+  canvas is live. One hint above the card, only while no column is selected: „Apasă pe o coloană ca s-o configurezi.
+  Încearcă formularul în Previzualizare.” (`p.e-permits-fo-field__hint.e-permits-gridb__hint`, „Previzualizare” =
+  `button.link.link-primary.link-sm[data-gb-mode="preview"]`). Then ONE sample row in the FO row card
+  (`GEAPFoRepeat.rowHtml`) with NO Anulează / Salvează — header = „#1 <row name>” + quiet tertiary label „Rând de exemplu”
+  (`.e-permits-gridb__sample-label`). Every field cell IS the Form Designer's field block: the cell gets
+  `.e-permits-builder__field` (+ `.e-permits-gridb__cell[data-gb-cell][data-gb-col]`, `tabindex=0`, `draggable`) with
+  `.e-permits-builder__field-tools` (drag grip · strong type chip · outlined „3/12” tag · red error dot · „Deschide ›” for a
+  nested grid / sub-form) and `.e-permits-builder__field-render[inert]` = the FO control, not interactive. The WHOLE block is
+  the target (click / Enter / Space = select, drag, Alt + ← / →, Delete — keys only from the block itself, never from the
+  „Deschide” button); states come from the shared class: hover border, selected ring, focus ring, dragging 0.4; error =
+  danger border. A nested grid / sub-form column = a **compact summary, never its inputs** (`summaryHtml`, also used by
+  the Form Designer's grid card): label + hint, then `ul.e-permits-gridb__kids` of `li.e-permits-gridb__kid` (type icon 20 ·
+  name 14/20 · `.e-permits-fo-required` star · neutral `renderTag` width name Îngustă / Medie / Lată / Toată lățimea),
+  dividers between lines (last none), 6 lines at most then `p.e-permits-gridb__kids-more` „+N coloane / câmpuri”; empty =
+  „Niciun câmp / coloană încă” + `btn btn-secondary btn-sm[data-gb-drill]` (the only live control inside).
+  „+ Coloană” = a dashed tile at the end of the card grid, span 3; its typed menu fixed. Under it „Așa arată un rând
+  salvat” + the saved line (inert, NO Editează / Elimină). Empty grid = `GEAPEmptyState` „Adaugă prima coloană”.
 - **Sub-form level.** A form-layout canvas: 2 columns, gap 24, a field > 6/12 spans both; cards = the designer's field
-  card (type tag, inert FO render, selected ring, red border + dot on errors), Alt + ↑ / ↓, Delete, drag; „Adaugă câmp”.
+  card (type tag, inert FO render, selected ring, red border + dot on errors), Alt + ↑ / ↓, Delete, drag; „Adaugă câmp”;
+  the same hint („Apasă pe un câmp ca să-l configurezi …”) + „Rând de exemplu” label; a nested column = the compact list.
 - **Right.** The designer's panel: a column → the column panel (name + type + width on General, list / options on Date);
   nothing selected = the grid's settings (General, Date, Validare rows / key / group, Avansat storage). A nested column
   shows „Deschide sub-grila / sub-formularul” on top.
@@ -5104,7 +5114,7 @@ preview desktop · `11` preview phone · `12` Gata → card + toast · `13` pane
 (F09 „Produse alimentare depozitate”: Denumirea 6 · Cantitatea 3 · Unitatea de măsură 3 / 4 × Îngustă packaging) · `03`
 saved lines · `04` editing an existing row · `05` Salvează with errors · `06` Elimină confirm · `07` nested grid in the
 card · `08` sub-form in the card · `09` phone 375 edit card · `09b` phone saved lines · `10` grid builder row-card canvas ·
-`11` grid card on the form (no band). Updated for the new look: `fb-51a` (panel „Adaugă coloană”), `fb-52a/52w/53a/54/54a`
+`11` grid card on the form (no band: compact card = header chips + label + the compact column list, max 6 lines + „+N coloane”, „Deschide constructorul grilei”; no inputs). Updated for the new look: `fb-51a` (panel „Adaugă coloană”), `fb-52a/52w/53a/54/54a`
 (column picked from the grid's Date list), `fb-52b` (the products card), `fb-55a/55b`, `fb-sf-06/07/08/11/12/14/15`,
 `fb-gb-*` (cells instead of header cells).
 

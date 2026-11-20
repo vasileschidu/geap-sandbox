@@ -178,24 +178,62 @@
         ${detached ? "" : addMenuListHtml(cur)}
       </div>`;
   }
-  /* row-cards-v1 (2026-11-20): the centre = ONE sample row in its EDIT card (the FO `rowHtml`, exactly what the
-     applicant fills), each field cell turned into the column: a transparent button behind the inert field (click =
-     select, drag = reorder, Alt + ← / → = move, Delete), a meta line above it (type · width as the span · error dot ·
-     „Deschide” for a nested grid / sub-form); „+ Coloană” = a dashed tile at the end of the card grid. Under it the
-     saved line of the same row. */
+  /* row-cards-v1 (2026-11-20) + gb-inert-v1 (2026-11-20, user: „none of the buttons work, it's so ambiguous”): Editare =
+     structure, Previzualizare = the working form. The centre = ONE sample row in the FO row card, but NOTHING in it is
+     live: no Anulează / Salvează, the saved line has no Editează / Elimină. Each field cell = the Form Designer's own
+     field block (`.e-permits-builder__field`: grip + type chip + „3/12”, the FO control inert inside, hover / selected /
+     focus from the shared class); the whole block is the click target (Enter selects, drag = reorder, Alt + ← / → =
+     move, Delete); „Deschide” for a nested grid / sub-form; „+ Coloană” = a dashed tile at the end of the card grid. */
   const WIDTH_NAMES = { s: "Îngustă", m: "Medie", auto: "Medie", l: "Lată", f: "Toată lățimea" };
   function cellMetaHtml(child, span) {
     const issue = columnIssue(child);
     const name = I.fieldName(child);
     const width = I.isNest(child) || child.type === "textarea" ? "Toată lățimea" : WIDTH_NAMES[child.width || "auto"] || "Medie";
     return `
-      <div class="e-permits-gridb__cell-meta">
-        <span class="e-permits-gridb__cell-type">${I.icon(I.comp(child.type).icon, 16)}<span data-cell-tooltip>${I.esc(typeLabel(child.type))}</span></span>
-        <em class="e-permits-builder__tag e-permits-builder__tag--outlined" data-tooltip-text="${I.esc(`${width} · ${span} din 12 coloane`)}">${span}/12</em>
+      <div class="e-permits-builder__field-tools">
+        <div class="e-permits-builder__field-meta">
+          <span class="e-permits-builder__drag-grip" aria-hidden="true">${I.icon("icon-drag", 16)}</span>
+          <em class="e-permits-builder__tag e-permits-builder__tag--strong" data-cell-tooltip>${I.esc(typeLabel(child.type))}</em>
+          <em class="e-permits-builder__tag e-permits-builder__tag--outlined" data-tooltip-text="${I.esc(`${width} · ${span} din 12 coloane`)}">${span}/12</em>
+        </div>
         ${issue ? `<span class="e-permits-gridb__col-issue" data-tooltip-text="${I.esc(issue.message)}"><span class="e-permits-ntpl-dot e-permits-tariff__tab-error"></span></span>` : ""}
         ${I.isNest(child) ? `<button class="btn btn-text-neutral btn-sm e-permits-gridb__drill" type="button" aria-label="${I.esc(`Deschide ${child.type === "subform" ? "sub-formularul" : "sub-grila"} „${name}”`)}" data-gb-drill="${child.id}"><span>Deschide</span>${I.icon(DRILL_ICON, 16)}</button>` : ""}
       </div>`;
   }
+  /* a nested grid / sub-form column on the canvas = a compact summary, never its inputs (gb-inert-v1): label + hint,
+     then one line per column / field (type icon · name · red star · width tag), 6 lines at most, „+N câmpuri” */
+  const KID_LINES = 6;
+  const spanName = (kid, sub) => {
+    if (I.isNest(kid) || kid.type === "textarea") return "Toată lățimea";
+    if (sub) { const n = Number(kid.span) || 6; return n >= 12 ? "Toată lățimea" : n > 6 ? "Lată" : n >= 5 ? "Medie" : "Îngustă"; }
+    return WIDTH_NAMES[kid.width || "auto"] || "Medie";
+  };
+  function summaryHtml(child) {
+    if (!I) return "";
+    const sub = child.type === "subform";
+    const kids = I.kidsOf(child);
+    const star = '<span class="e-permits-fo-required" aria-label="obligatoriu"><svg class="icon" width="12" height="12" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-asterisk"></use></svg></span>';
+    const line = (kid) => `
+        <li class="e-permits-gridb__kid">
+          <span class="e-permits-gridb__kid-icon" aria-hidden="true">${I.icon(I.comp(kid.type).icon, 20)}</span>
+          <span class="e-permits-gridb__kid-name" data-cell-tooltip>${I.esc(I.fieldName(kid))}</span>
+          ${kid.required ? star : ""}
+          ${I.ui().renderTag?.(spanName(kid, sub), "neutral") || ""}
+        </li>`;
+    const more = kids.length - KID_LINES;
+    const open = `<button class="btn btn-secondary btn-sm" type="button" data-gb-drill="${child.id}">${I.icon("icon-plus-small", 16)}<span>${sub ? "Adaugă câmp" : "Adaugă coloană"}</span></button>`;
+    return `
+      <div class="e-permits-gridb__summary">
+        <div class="e-permits-gridb__summary-label">${I.esc(I.fieldName(child))}</div>
+        ${I.tr(child.help) ? `<p class="e-permits-fo-field__hint">${I.esc(I.tr(child.help))}</p>` : ""}
+        ${kids.length
+          ? `<ul class="e-permits-gridb__kids">${kids.slice(0, KID_LINES).map(line).join("")}</ul>${more > 0 ? `<p class="e-permits-fo-field__hint e-permits-gridb__kids-more">+${more} ${sub ? (more === 1 ? "câmp" : "câmpuri") : (more === 1 ? "coloană" : "coloane")}</p>` : ""}`
+          : `<p class="e-permits-fo-field__hint">Niciun ${sub ? "câmp" : "coloană"} încă</p>${open}`}
+      </div>`;
+  }
+  /* the one-line hint above the sample (only while nothing is selected): where the structure is edited, where it works */
+  const previewLink = '<button class="link link-primary link-sm e-permits-gridb__hint-link" type="button" data-gb-mode="preview">Previzualizare</button>';
+  const hintHtml = (what, show) => (show ? `<p class="e-permits-fo-field__hint e-permits-gridb__hint">Apasă pe ${what} ca ${what === "o coloană" ? "s-o" : "să-l"} configurezi. Încearcă formularul în ${previewLink}.</p>` : "");
   function drawGrid(host, cur) {
     const kids = I.kidsOf(cur);
     if (!kids.length) {
@@ -210,16 +248,14 @@
     const R = window.GEAPFoRepeat;
     const def = I.gridFo(cur, { prefix: "gbc", lang: "ro" }, I.levelOf(cur));
     const sample = R?.sampleRows?.(def, 1)?.[0]?.values || {};
+    const sel = I.state.sel;
+    const none = !(sel.kind === "child" && kids.some((kid) => kid.id === sel.id));
     host.innerHTML = `
       <div class="e-permits-gridb__sheet" data-gb-sheet>
-        <div class="e-permits-gridb__sheet-head">
-          <h3 class="e-permits-gridb__sheet-title">Rândul, cum îl completează solicitantul</h3>
-          <p class="e-permits-fo-field__hint">Clic pe un câmp = proprietățile coloanei; trage-l ca să schimbi ordinea. Lățimea = câte din 12 coloane ocupă.</p>
-        </div>
+        ${hintHtml("o coloană", none)}
         ${R?.rowHtml?.(def, sample, { editing: true, n: 1 }) || ""}
         <div class="e-permits-gridb__sheet-head e-permits-gridb__sheet-head--saved">
-          <h3 class="e-permits-gridb__sheet-title">După „Salvează”</h3>
-          <p class="e-permits-fo-field__hint">Rândul salvat devine o linie cu primele valori (coloana-cheie prima).</p>
+          <h3 class="e-permits-gridb__sheet-title">Așa arată un rând salvat</h3>
         </div>
         <div class="e-permits-gridb__saved" inert>${R?.rowHtml?.(def, sample, { editing: false, n: 1 }) || ""}</div>
         ${addMenuListHtml(cur)}
@@ -228,9 +264,10 @@
     const fields = card?.querySelector(":scope > [data-fo-grid-fields]");
     if (!fields) return;
     card.classList.add("e-permits-gridb__card");
-    const actions = card.querySelector(".e-permits-fo-doc-card__actions");
-    if (actions) actions.inert = true;
-    const sel = I.state.sel;
+    /* nothing in the sample works: no Anulează / Salvează (Previzualizare is the working form), a quiet label instead */
+    card.querySelector(".e-permits-fo-doc-card__actions")?.remove();
+    card.querySelector(".e-permits-fo-doc-card__header")?.insertAdjacentHTML("beforeend", '<span class="e-permits-fo-field__hint e-permits-gridb__sample-label">Rând de exemplu</span>');
+    host.querySelector(".e-permits-gridb__saved .e-permits-fo-grid__line-actions")?.remove();
     [...fields.children].forEach((cell, i) => {
       const child = kids[i];
       if (!child) return;
@@ -239,14 +276,17 @@
       const name = I.fieldName(child);
       const span = Number(cell.dataset.span) || 12;
       const render = cell.innerHTML;
-      cell.classList.add("e-permits-gridb__cell");
+      cell.classList.add("e-permits-builder__field", "e-permits-gridb__cell");
       cell.classList.toggle("is-selected", on);
       cell.classList.toggle("has-issue", Boolean(issue));
       cell.dataset.gbCell = child.id;
-      cell.innerHTML = `
-        <button class="e-permits-gridb__col" type="button" draggable="true" data-gb-col="${child.id}" aria-pressed="${on}" aria-describedby="gb-col-hint" aria-label="${I.esc(`${typeLabel(child.type)}: ${name}, ${span} din 12${child.required ? ", obligatoriu" : ""}${issue ? `, eroare: ${issue.message}` : ""}`)}"></button>
-        ${cellMetaHtml(child, span)}
-        <div class="e-permits-gridb__cell-render" inert>${render}</div>`;
+      cell.dataset.gbCol = child.id;
+      cell.tabIndex = 0;
+      cell.draggable = true;
+      cell.setAttribute("aria-describedby", "gb-col-hint");
+      cell.setAttribute("aria-label", `${typeLabel(child.type)}: ${name}, ${span} din 12${child.required ? ", obligatoriu" : ""}${on ? ", selectată" : ""}${issue ? `, eroare: ${issue.message}` : ""}`);
+      const body = I.isNest(child) ? summaryHtml(child) : render;
+      cell.innerHTML = `${cellMetaHtml(child, span)}<div class="e-permits-builder__field-render e-permits-gridb__cell-render"${I.isNest(child) && !I.kidsOf(child).length ? "" : " inert"}>${body}</div>`;
     });
     fields.dataset.gbFields = "";
     fields.insertAdjacentHTML("beforeend", `
@@ -275,15 +315,16 @@
             </div>
             ${issue ? `<span class="e-permits-gridb__col-issue" data-tooltip-text="${I.esc(issue.message)}"><span class="e-permits-ntpl-dot e-permits-tariff__tab-error"></span></span>` : ""}
           </div>
-          <div class="e-permits-builder__field-render" inert>${I.foHtml(child, { prefix: "gbf", inCard: true })}</div>
+          <div class="e-permits-builder__field-render"${I.isNest(child) && !I.kidsOf(child).length ? "" : " inert"}>${I.isNest(child) ? summaryHtml(child) : I.foHtml(child, { prefix: "gbf", inCard: true })}</div>
         </article>`;
     }).join("");
     const empty = kids.length ? "" : `<div class="e-permits-gridb__form-empty" data-gb-drop-empty>${window.GEAPEmptyState?.render({ title: "Adaugă primul câmp", text: "Alege un tip din stânga sau trage-l aici. Câmpurile apar într-o secțiune a cardului rândului.", icon: "page-child", compact: true, bare: true }) || ""}</div>`;
     host.innerHTML = `
       <div class="e-permits-gridb__sheet e-permits-gridb__sheet--form" data-gb-sheet>
         <div class="e-permits-gridb__form-head">
-          <div class="e-permits-fo-grid__label">${I.esc(I.fieldName(cur))} · Rând 1</div>
+          <div class="e-permits-fo-grid__label">${I.esc(I.fieldName(cur))} · Rând 1 <span class="e-permits-fo-field__hint e-permits-gridb__sample-label">Rând de exemplu</span></div>
           ${I.tr(cur.help) ? `<p class="e-permits-fo-field__hint">${I.esc(I.tr(cur.help))}</p>` : ""}
+          ${hintHtml("un câmp", !(sel.kind === "child" && kids.some((kid) => kid.id === sel.id)))}
         </div>
         <div class="e-permits-gridb__form" data-gb-form>
           ${cards}${empty}
@@ -595,10 +636,10 @@
       if (target && I.isNest(target)) drill(target.id);
     });
     root.addEventListener("keydown", (event) => {
-      const col = event.target.closest?.("[data-gb-col]");
-      const card = event.target.matches?.("[data-gb-field]") ? event.target : null;
-      const node = col || card;
+      /* only the block itself (a „Deschide” button inside must not delete / move the column) */
+      const node = event.target.matches?.("[data-gb-col], [data-gb-field]") ? event.target : null;
       if (!node) return;
+      const col = node.matches("[data-gb-col]") ? node : null;
       const id = node.dataset.gbCol || node.dataset.gbField;
       const back = col ? "ArrowLeft" : "ArrowUp";
       const forward = col ? "ArrowRight" : "ArrowDown";
@@ -611,7 +652,7 @@
         if (sel.kind === "child") refocus(sel.id); else window.setTimeout(() => root.querySelector("[data-gb-add]")?.focus(), 0);
         return;
       }
-      if (card && (event.key === "Enter" || event.key === " ")) { event.preventDefault(); I.select("child", id); refocus(id); }
+      if (event.key === "Enter" || event.key === " ") { event.preventDefault(); I.select("child", id); refocus(id); }
     });
     root.addEventListener("dragstart", (event) => {
       const source = event.target.closest?.("[data-gb-type], [data-gb-from], [data-gb-col], [data-gb-field]");
@@ -681,7 +722,7 @@
   }
 
   window.GEAPGridBuilder = {
-    attach, sync, escape, entryHtml, open, close, drill, up,
+    attach, sync, escape, entryHtml, summaryHtml, open, close, drill, up,
     isOpen: () => gb.open,
     /* for demo states and checks */
     get state() { return gb; },
