@@ -305,7 +305,7 @@
   const roleIconOf = (r) => `icon-${S.icons?.get(String(r.name).toLowerCase()) || "user-account"}`;
   const rolePill = (r) => `
           <li class="e-permits-perm-roles__pill${r.active ? "" : " is-inactive"}">
-            <span class="avatar avatar--xs avatar--icon e-permits-perm-roles__avatar" aria-hidden="true"><svg class="icon" width="16" height="16"><use href="assets/icons/sprite.svg#${roleIconOf(r)}"></use></svg></span>
+            <span class="avatar avatar--sm avatar--icon e-permits-perm-roles__avatar" aria-hidden="true"><svg class="icon" width="20" height="20"><use href="assets/icons/sprite.svg#${roleIconOf(r)}"></use></svg></span>
             <span class="e-permits-perm-roles__name">${esc(r.name)}</span>${r.active ? "" : `<span class="e-permits-perm-roles__state">· Inactiv</span>`}
           </li>`;
   function renderDetails() {

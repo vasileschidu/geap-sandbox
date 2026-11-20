@@ -49,15 +49,15 @@
 .e-permits-perm-roles__pill {
   align-items: center;
   background: var(--color-background-base-secondary);
-  border-radius: var(--border-radius-full);
+  border-radius: var(--border-radius-12);
   color: var(--color-text-base-default);
   display: inline-flex;
   font-size: var(--font-size-fs-14);
-  gap: var(--spacing-8);
+  font-weight: var(--font-weight-fw-medium, 500);
+  gap: var(--spacing-12);
   line-height: var(--line-height-lh-20);
   max-width: 100%;
-  min-height: var(--spacing-32);
-  padding: var(--spacing-4) var(--spacing-12) var(--spacing-4) var(--spacing-4);
+  padding: var(--spacing-8) var(--spacing-16) var(--spacing-8) var(--spacing-8);
 }
 .e-permits-perm-roles__avatar {
   background: var(--color-background-brand-default);
@@ -72,6 +72,7 @@
 }
 .e-permits-perm-roles__state,
 .e-permits-perm-roles__empty {
+  font-weight: var(--font-weight-fw-regular, 400);
   color: var(--color-text-base-tertiary);
 }
 .e-permits-perm-roles__pill.is-inactive .e-permits-perm-roles__avatar {
