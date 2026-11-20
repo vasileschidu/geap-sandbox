@@ -2613,7 +2613,9 @@ body {
   z-index: 8;
 }
 
-/* empty-table-v1: no data row → no header row; the empty state is centred in the whole card, both ways */
+/* empty-table-v1: no data row → no header row; the empty state fills the card's width.
+   empty-top-v1 (user 2026-11-20): every empty state starts at the TOP (16 under the toolbar), never centred
+   vertically — the same place as the no-access / empty module pages (css/empty-state.css › empty-top-v1) */
 .e-permits-workplace__table:has(> tbody > .e-permits-empty-row:only-child) {
   height: 100%;
 }
@@ -2621,7 +2623,7 @@ body {
 .e-permits-workplace__table .e-permits-empty-row:only-child > .e-permits-empty-cell {
   border-bottom: 0 !important;
   height: 100% !important;
-  vertical-align: middle;
+  vertical-align: top;
 }
 
 /* an empty table wider than its view: the empty state stays in the visible part

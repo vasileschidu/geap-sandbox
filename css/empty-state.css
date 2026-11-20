@@ -98,3 +98,12 @@ li:has(> .e-permits-empty:only-child) {
 table:has(> tbody > .e-permits-empty-row:only-child) > thead {
   display: none;
 }
+
+/* empty-top-v1 (user 2026-11-20): a module page that only shows an empty state (no access, nothing yet) = the same
+   place as an empty list: full content width, 16 from the sides and under the top bar */
+.e-permits-reg-page .e-permits-dosar-profil__panel:has(> .e-permits-empty:only-child) {
+  max-width: none;
+  padding-left: 0;
+  padding-right: 0;
+  padding-top: var(--spacing-16, 16px);
+}
