@@ -3,20 +3,11 @@
    (topbar, palette items, panel, facts, issues menu are the builder's). Tokens only; node
    positions / sizes come from the model (style transform / width / height, never CSS literals). */
 
-/* ===== Builder frame — shared by the Process Designer and the Form Designer (fb-float-p1, 2026-11-17) =====
-   `.e-permits-builder--canvas` = the compact header (title · status · version ⌄ | compact segmented modes | quiet
-   issues link · actions · ×), a full-bleed dotted canvas and floating cards (`.e-permits-pd__float`) 8 from its
-   edges. The header / issues / dots rules below are written once for the modifier; each designer adds its own rows
-   and placement (`--process` here, the Form Designer in css/form-builder.css). components.md › Builder frame. */
-.e-permits-builder.e-permits-builder--canvas {
-  /* floating cards sit 8 from the canvas edges (user 2026-10-25, was 16) — every offset that depends on them reads it */
-  --pd-inset: var(--spacing-8, 8px);
-  grid-template-rows: auto minmax(0, 1fr);
-}
-
 /* ===== Shell ===== */
 .e-permits-builder.e-permits-builder--process {
-  /* the properties card is 320 wide (was the Form Builder's 382) */
+  /* floating cards sit 8 from the canvas edges (user 2026-10-25, was 16); the properties card is 320 wide
+     (was the Form Builder's 382) — every offset that depends on them reads these two */
+  --pd-inset: var(--spacing-8, 8px);
   --pd-props-width: calc(var(--spacing-80, 80px) * 4);
   /* the bottom toolbar: padding 4 · the 40 view switch · 4 + 1 · 1 border = 50 (cards above it stop 8 higher) */
   --pd-toolbar-h: calc(var(--spacing-48, 48px) + var(--border-width-1, 1px) * 2);
@@ -27,7 +18,7 @@
    action is a library Small 32 (radius 8, icon 16, icon-only = 32 square), the mode switch is the compact segmented
    control (32 high), the view-only switch is the library Medium switch, padding 8 · 24 (8 · 32 · 8 = 48). The right column never shrinks below its actions (max-content); the
    title column gives the room (ellipsis + tooltip) — at 1024 the mode switch no longer overlaps the actions */
-.e-permits-builder--canvas .e-permits-builder__topbar {
+.e-permits-builder--process .e-permits-builder__topbar {
   grid-template-columns: minmax(0, 1fr) auto minmax(max-content, 1fr);
   min-height: var(--spacing-48, 48px);
   padding: var(--spacing-8, 8px) var(--spacing-24, 24px);
@@ -46,47 +37,47 @@
      the positive on-secondary green (green-600 is 3.7:1 on white, too low for 14 px text); errors = library
      `btn btn-text-destructive btn-sm` — red label + `circle-error-filled`, hover danger/secondary. The JS swaps the
      variant AND the glyph (`[data-pd-errors-icon]`); FB's green outlined `is-clean` is not used here. */
-.e-permits-builder--canvas .btn.btn-sm.e-permits-builder__errors {
+.e-permits-builder--process .btn.btn-sm.e-permits-builder__errors {
   margin-right: 0;
   padding-left: var(--spacing-8, 8px);
 }
 
-.e-permits-builder--canvas .btn.btn-sm.btn-strict.e-permits-pd__errors--clean {
+.e-permits-builder--process .btn.btn-sm.btn-strict.e-permits-pd__errors--clean {
   color: var(--color-text-positive-on-secondary, #027948);
 }
 
-.e-permits-builder--canvas .e-permits-pd__errors--clean .icon {
+.e-permits-builder--process .e-permits-pd__errors--clean .icon {
   color: var(--color-icon-positive-on-secondary, #027948);
 }
 
-.e-permits-builder--canvas .btn.btn-sm.btn-text-destructive.e-permits-builder__errors {
+.e-permits-builder--process .btn.btn-sm.btn-text-destructive.e-permits-builder__errors {
   border-color: transparent;
   color: var(--color-text-danger-default, #d92d20);
 }
 
-.e-permits-builder--canvas .btn.btn-sm.btn-text-destructive.e-permits-builder__errors:hover:not(:disabled) {
+.e-permits-builder--process .btn.btn-sm.btn-text-destructive.e-permits-builder__errors:hover:not(:disabled) {
   background: var(--color-background-danger-secondary, #fee4e2);
 }
 
 /* pressed / open: the hover tint one step darker (library active red-300 leaves the red label at 2.3:1) */
-.e-permits-builder--canvas .btn.btn-sm.btn-text-destructive.e-permits-builder__errors:active:not(:disabled),
-.e-permits-builder--canvas .btn.btn-sm.btn-text-destructive.e-permits-builder__errors[aria-expanded="true"] {
+.e-permits-builder--process .btn.btn-sm.btn-text-destructive.e-permits-builder__errors:active:not(:disabled),
+.e-permits-builder--process .btn.btn-sm.btn-text-destructive.e-permits-builder__errors[aria-expanded="true"] {
   background: var(--color-background-danger-secondary-hover, #fecdca);
 }
 
 /* the glyph sits in the Small icon box (16) */
-.e-permits-builder--canvas .e-permits-builder__errors > span {
+.e-permits-builder--process .e-permits-builder__errors > span {
   flex-basis: var(--spacing-16, 16px);
   height: var(--spacing-16, 16px);
   width: var(--spacing-16, 16px);
 }
 
-.e-permits-builder--canvas .e-permits-builder__errors > span > .icon {
+.e-permits-builder--process .e-permits-builder__errors > span > .icon {
   height: var(--spacing-16, 16px);
   width: var(--spacing-16, 16px);
 }
 
-.e-permits-builder--canvas .e-permits-builder__errors > strong {
+.e-permits-builder--process .e-permits-builder__errors > strong {
   font-weight: inherit;
 }
 
@@ -108,12 +99,12 @@
   white-space: nowrap;
 }
 
-.e-permits-builder--canvas .e-permits-pd__nav-left {
+.e-permits-builder--process .e-permits-pd__nav-left {
   display: flex;
   gap: var(--spacing-8, 8px);
 }
 
-.e-permits-builder--canvas .e-permits-pd__title {
+.e-permits-builder--process .e-permits-pd__title {
   color: var(--color-text-base-default, #121212);
   display: block;
   font-size: var(--font-size-fs-16, 16px);
@@ -178,22 +169,13 @@
   display: none;
 }
 
-/* ===== Stage: full bleed, dot grid 20 px × zoom (a background, not DOM) =====
-   the dots are the builder frame's canvas: the Form Designer workspace wears the same background (no pan / zoom
-   there, so --pd-gx / --pd-gy / --pd-grid keep their defaults) */
-:is(.e-permits-pd__stage, .e-permits-builder--canvas .e-permits-builder__workspace) {
-  background-color: var(--color-background-base-secondary, #f5f5f5);
-}
-
-/* the dot grid is the Process Designer's only (user 2026-11-17: the Form Designer canvas is plain) */
+/* ===== Stage: full bleed, dot grid 20 px × zoom (a background, not DOM) ===== */
 .e-permits-pd__stage {
+  background-color: var(--color-background-base-secondary, #f5f5f5);
   /* dots one step lighter (user 2026-10-25: „a little less visible”) */
   background-image: radial-gradient(circle at 1px 1px, var(--color-border-base-default, #d9d9d9) 1px, transparent 1.5px);
   background-position: var(--pd-gx, 0) var(--pd-gy, 0);
   background-size: var(--pd-grid, 20px) var(--pd-grid, 20px);
-}
-
-.e-permits-pd__stage {
   contain: strict;
   cursor: default;
   min-height: 0;
@@ -2582,14 +2564,14 @@
 }
 
 @media (max-width: 960px) {
-  .e-permits-builder--canvas .e-permits-builder__topbar {
+  .e-permits-builder--process .e-permits-builder__topbar {
     display: flex;
     flex-wrap: wrap;
     gap: var(--spacing-8, 8px) var(--spacing-12, 12px);
     padding: var(--spacing-12, 12px) var(--spacing-16, 16px);
   }
 
-  .e-permits-builder--canvas .e-permits-builder__nav-left.e-permits-pd__nav-left {
+  .e-permits-builder--process .e-permits-builder__nav-left.e-permits-pd__nav-left {
     display: flex;
     flex: 1 1 0;
     min-width: 0;
@@ -2597,18 +2579,18 @@
     order: 1;
   }
 
-  .e-permits-builder--canvas .e-permits-builder__nav-actions {
+  .e-permits-builder--process .e-permits-builder__nav-actions {
     order: 2;
   }
 
-  .e-permits-builder--canvas .e-permits-pd__modes {
+  .e-permits-builder--process .e-permits-pd__modes {
     flex: 0 1 auto;
     margin-inline: auto;
     order: 3;
   }
 
   /* the wrapped header row starts the mode switch on its own line */
-  .e-permits-builder--canvas .e-permits-builder__topbar::after {
+  .e-permits-builder--process .e-permits-builder__topbar::after {
     content: "";
     flex-basis: 100%;
     order: 2;

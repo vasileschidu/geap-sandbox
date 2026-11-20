@@ -32,15 +32,6 @@
   transform: scale(1);
 }
 
-/* selected / focused (2026-11-17, fb-widget-look-v1): the surface stays on, a light brand fill + the focused input's 1px brand
-   border — same radius / outset, no second ring. Opt-in class; the dashboard tiles can take it later. */
-.e-permits-hover-surface.is-surface-selected::before {
-  background: var(--color-background-brand-secondary, #ccdef6);
-  box-shadow: inset 0 0 0 var(--border-width-1, 1px) var(--color-border-brand-default, #0058d2);
-  opacity: 1;
-  transform: scale(1);
-}
-
 @media (prefers-reduced-motion: reduce) {
   .e-permits-hover-surface::before {
     transform: none;

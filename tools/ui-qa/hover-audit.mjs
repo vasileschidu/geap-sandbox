@@ -4,7 +4,6 @@
 // outline, text-decoration, opacity, transform — on the element or its ::before / ::after), and
 // elements covered by something else at their centre (an invisible layer eats the hover).
 // Project rule (memory „Hover everywhere”): every interactive element has a visible hover.
-// A hover drawn by another element (an overlay outline) counts when the element names it: data-hover-proxy="<selector>".
 // Not counted (listed): the focused element (focus wins over hover), read-only fields, an open
 // (aria-expanded) button, a drawer scrim, elements under an open menu / dialog or its VISIBLE
 // backdrop (use --scope for those states); hidden since collection = skipped. Coverage is
@@ -76,12 +75,7 @@ const STYLE = `(el) => { const pick = (cs) => [cs.backgroundColor, cs.background
   const wrap = field ? deep(el.parentElement) + (el.parentElement.parentElement ? deep(el.parentElement.parentElement) : '') : '';
   /* …or on the parent's ::before (the sliding thumb of an animated segmented control) */
   const thumb = el.parentElement ? pick(getComputedStyle(el.parentElement, '::before')) : '';
-  /* …or it is drawn by ANOTHER element — an overlay outline around the hovered element (the Form Designer's WYSIWYG
-     canvas, fb-wysiwyg-v1: the page is the real form, its chrome lives in one layer). The element names the overlay
-     with data-hover-proxy="<selector>"; the overlay has to appear, move or change when the mouse is on the element. */
-  const proxySel = el.getAttribute('data-hover-proxy');
-  const proxy = proxySel ? [...document.querySelectorAll(proxySel)].map((n) => { const r = n.getBoundingClientRect(); return [n.hidden, Math.round(r.left), Math.round(r.top), Math.round(r.width), Math.round(r.height), pick(getComputedStyle(n))].join(','); }).join(';') : '';
-  return deep(el) + wrap + thumb + proxy + [...el.children].slice(0, 3).map(deep).join(''); }`;
+  return deep(el) + wrap + thumb + [...el.children].slice(0, 3).map(deep).join(''); }`;
 
 const report = [];
 for (const state of STATES) {

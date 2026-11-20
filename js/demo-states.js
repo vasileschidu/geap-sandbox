@@ -2731,9 +2731,7 @@
         target.dispatchEvent(new DragEvent("dragover", { bubbles: true, cancelable: true, dataTransfer: dt, clientX: r.left + 20, clientY: r.top + r.height / 2 }));
         await h.wait(200);
       };
-      /* fb-wysiwyg-v1: the ⋮ of a field lives in the floating action bar of the SELECTED element */
-      const menu = (id) => async (h) => { if (window.GEAPFormBuilder.state.sel.id !== id) await h.click(card(id)); await h.click("[data-fb-elbar] .e-permits-stack__menu-trigger"); };
-      const FB = () => window.GEAPFormBuilder;
+      const menu = (id) => async (h) => { await h.click(`${card(id)} [data-stack-menu-trigger]`); };
       /* a hidden native select behind a fo-select: pick the option whose text contains `text` */
       const chooseText = async (h, selector, text) => {
         for (let i = 0; i < 100 && !document.querySelector(selector); i += 1) await h.wait(100);
@@ -2754,68 +2752,9 @@
       };
       return {
         /* 01 empty service step (new step, one empty section), nothing selected → Date generale */
-        "fb-01": fb(async (h) => { await h.click("[data-fb-add-step]"); key(document.querySelector("[data-fb-step-name]"), "Enter"); await h.wait(250); await h.click("[data-fb-select-form]"); }),
+        "fb-01": fb(async (h) => { await h.click("[data-fb-add-step]"); await h.click("[data-fb-select-form]"); }),
         "fb-01a": fb(async (h) => { await h.fill("[data-builder-library-search]", "dat", { leave: false }); }),
-        /* fb-float-p2: Bibliotecă = PD „Elemente” card — a) collapsed to the rail, b) search with results (a field selected),
-           c) no match, d) a component just inserted after the selected field */
-        "fb-p2a": fb(async (h) => { const t = document.querySelector("[data-fb-library-head] [data-fb-rail-toggle]"); if (t && t.offsetParent) await h.click("[data-fb-library-head] [data-fb-rail-toggle]"); }),
-        "fb-p2b": fb(async (h) => { await pick("fld-name")(h); await h.fill("[data-builder-library-search]", "dat", { leave: false }); }),
-        "fb-p2c": fb(async (h) => { await h.fill("[data-builder-library-search]", "zzzz", { leave: false }); }),
-        "fb-p2d": fb(async (h) => { await pick("fld-name")(h); await lib("date")(h); }),
-        /* fb-float-p3: Proprietăți = PD properties card — a) nothing selected (empty state + counts), b) a field, c) a section,
-           d) collapsed to the rail */
-        "fb-p3a": fb(),
-        "fb-p3b": fb(async (h) => { await pick("fld-name")(h); }),
-        "fb-p3c": fb(async (h) => { await h.click("[data-fb-select-section='sec-activity']"); }),
-        "fb-p3d": fb(async (h) => { await pick("fld-name")(h); const t = document.querySelector("[data-fb-panel] [data-fb-props-toggle]"); if (t && t.offsetParent) await h.click("[data-fb-panel] [data-fb-props-toggle]"); }),
-        /* fb-float-p4: bottom toolbar — a) default, b) phone width, c) Structură open (a field selected), d) after an undo */
-        "fb-p4a": fb(),
-        /* WYSIWYG canvas (fb-wysiwyg-v1, plan P6b): Editare = the real applicant form; chrome only on hover / selection.
-           w01 at rest · w02 a field hovered (grey outline + handle) · w03 a field selected (brand outline + action bar,
-           Proprietăți) · w03a its ⋮ open · w04 a label edited in place · w05 a section selected · w06 the insert line
-           between two rows · w06a its component picker · w07 the step title edited in place · w08 phone width, a field
-           selected · w09 a platform step hovered (lock) · w10 a grid selected (band of columns under the bar) */
-        "fb-w01": fb(),
-        "fb-w02": fb(async (h) => { FB().hover("field", "fld-name"); await h.wait(200); }),
-        "fb-w03": fb(async (h) => { await pick("fld-name")(h); }),
-        "fb-w03a": fb(async (h) => { await menu("fld-name")(h); }),
-        "fb-w04": fb(async (h) => { await pick("fld-name")(h); FB().editText("field", "fld-name", "label", { all: true }); await h.wait(200); }),
-        "fb-w05": fb(async (h) => { await h.click("[data-fb-select-section='sec-activity']"); }),
-        "fb-w06": fb(async (h) => { FB().insertBefore("fld-raion"); await h.wait(200); }),
-        "fb-w06a": fb(async (h) => { FB().insertBefore("fld-raion"); await h.click("[data-fb-insert-add]"); }),
-        "fb-w07": fb(async (h) => { await h.click("[data-fb-el='step']"); FB().editText("step", "st-details", "title", { all: true }); await h.wait(200); }),
-        "fb-w08": fb(async (h) => { const b = document.querySelector("[data-fb-width='phone']"); if (b && b.offsetParent) await h.click("[data-fb-width='phone']"); await pick("fld-unit")(h); }),
-        "fb-w09": fb(async (h) => { await h.click("[data-fb-step='st-payment']"); FB().hover("locked", "st-payment"); await h.wait(200); }),
-        "fb-w10": fb(async (h) => { await lib("grid")(h); await h.click("[data-builder-prop-tab='data']"); await h.scroll("[data-builder-field][data-type='grid']"); }),
-        "fb-p4b": fb(async (h) => { const b = document.querySelector("[data-fb-width='phone']"); if (b && b.offsetParent) await h.click("[data-fb-width='phone']"); }),
-        "fb-p4c": fb(async (h) => { await pick("fld-name")(h); const b = document.querySelector("[data-fb-outline-toggle]"); if (b && b.offsetParent) await h.click("[data-fb-outline-toggle]"); }),
-        "fb-p4d": fb(async (h) => { await lib("date")(h); const b = document.querySelector("[data-fb-undo]"); if (b && b.offsetParent) await h.click("[data-fb-undo]"); }),
-        /* fb-float-p5: step strip — a) default, b) „+” asks for the name inline, c) ⋮ of the active chip open,
-           d) after a reorder (2nd service step moved left with Alt+←), e) many steps → scroll + edge fade */
-        /* fb-float-p6: „Setări generale” = 4th mode (the Process Designer's page) — a) service form, c) empty title error,
-           d) section list → Limbi (global form: fb-p6b = frm-04 states) */
-        "fb-p6a": fb(async (h) => { await h.click("[data-builder-mode='settings']"); await h.wait(300); }),
-        "fb-p6c": fb(async (h) => { await h.click("[data-builder-mode='settings']"); await h.fill("[data-fb-settings] #fb-p-title", "", { leave: false }); await h.wait(300); }),
-        "fb-p6d": fb(async (h) => { await h.click("[data-builder-mode='settings']"); await h.click("[data-fb-lang='en']"); await h.wait(300); }),
-        /* fb-p6d above: EN selected (one notice, RO text as placeholder); e = section list → Limbi */
-        "fb-p6e": fb(async (h) => { await h.click("[data-builder-mode='settings']"); const n = document.querySelector("[data-fb-settings-nav='languages']"); if (n && n.offsetParent) await h.click("[data-fb-settings-nav='languages']"); await h.wait(500); }),
-        "fb-p5a": fb(),
-        "fb-p5b": fb(async (h) => { await h.click("[data-fb-add-step]"); await h.fill("[data-fb-step-name]", "Declarații", { leave: false }); }),
-        "fb-p5c": fb(async (h) => { await h.click(".e-permits-builder__steps-group [data-stack-menu-trigger]"); }),
-        "fb-p5d": fb(async (h) => {
-          await h.click("[data-fb-add-step]"); await h.fill("[data-fb-step-name]", "Declarații", { leave: false });
-          key(document.querySelector("[data-fb-step-name]"), "Enter"); await h.wait(250);
-          key(document.querySelector("[data-fb-step='" + document.querySelector(".e-permits-builder__step-chip.is-active").dataset.fbStep + "']"), "ArrowLeft", { altKey: true }); await h.wait(250);
-        }),
-        "fb-p5e": fb(async (h) => {
-          for (const name of ["Declarații", "Anexe tehnice", "Autorizații anterioare", "Date financiare", "Informații suplimentare", "Date de contact", "Observații finale"]) {
-            await h.click("[data-fb-add-step]"); await h.fill("[data-fb-step-name]", name, { leave: false });
-            key(document.querySelector("[data-fb-step-name]"), "Enter"); await h.wait(150);
-          }
-          const scroller = document.querySelector("[data-fb-steps-scroll]"); if (scroller) { scroller.scrollLeft = 0; scroller.dispatchEvent(new Event("scroll")); }
-          await h.wait(150);
-        }),
-        "fb-01b": fb(async (h) => { FB().insertBefore("fld-raion"); await h.click("[data-fb-insert-add]"); }),
+        "fb-01b": fb(async (h) => { await h.click("[data-fb-add-trigger='sec-object']"); }),
         "fb-02": fb(async (h) => { await h.click("[data-fb-select-form]"); await h.scroll("[data-fb-group-languages]"); }),
         "fb-03": fb(async (h) => { await h.click("[data-fb-step='st-details']"); }),
         "fb-03a": fb(async (h) => { await h.click("[data-fb-step='st-payment']"); }),
@@ -2906,7 +2845,7 @@
         /* Preview in Russian: untranslated texts fall back to Romanian */
         "fb-20": fb(async (h) => { await h.click("[data-builder-mode='preview']"); await h.click("[data-fb-preview-lang='ru']"); }),
         /* a new service step, its ⋮ (Mută la stânga / dreapta among service steps, Șterge) */
-        "fb-03b": fb(async (h) => { await h.click("[data-fb-add-step]"); key(document.querySelector("[data-fb-step-name]"), "Enter"); await h.wait(250); await h.click(".e-permits-builder__panel-title-row [data-stack-menu-trigger]"); }),
+        "fb-03b": fb(async (h) => { await h.click("[data-fb-add-step]"); await h.click(".e-permits-builder__panel-title-row [data-stack-menu-trigger]"); }),
         /* batch-2 components: segmented control · multi-select · period · callout + separator */
         "fb-23": fb(async (h) => { await lib("segment")(h); await tab("data")(h); await h.click("[data-fb-option-yesno]"); }),
         "fb-24": fb(async (h) => {
@@ -3112,9 +3051,7 @@
           const preview = async (h) => { await h.click("[data-builder-mode='preview']"); await h.wait(400); };
           const validate = async (h) => { await h.click("[data-fb-preview-validate]"); await h.wait(400); };
           const chip = (id) => `[data-fb-child='${id}']`;
-          /* fb-wysiwyg-v1: the band of columns / block fields rides under the action bar of the selected container */
-          const band = () => "[data-fb-elbar] .e-permits-builder__sub-add";
-          const open = (id) => async (h) => { await h.scroll(`[data-builder-field][data-id='${id}']`); await h.click(`[data-builder-field][data-id='${id}']`); };
+          const band = (type) => `[data-builder-field][data-type='${type}'] .e-permits-builder__sub-add`;
           const equip = `${PV} [data-fb-field='fld-equipment']`;
           const caem = `${PV} [data-fb-field='fld-caem']`;
           /* a CAEM code picked the way the FO list acts (mousedown on the option) */
@@ -3131,7 +3068,7 @@
             await h.fill("[data-fb-prop='itemTitle']", "Vehicul", { leave: false });
             await h.fill("[data-fb-prop='addLabel']", "Adaugă alt vehicul", { leave: false });
             await h.click(band("repeat"));
-            await h.click("[data-fb-elbar] [data-fb-add-child='text']");
+            await h.click("[data-builder-field][data-type='repeat'] [data-fb-add-child='text']");
             await h.fill("[data-fb-prop='label']", "Nr. de înmatriculare", { leave: false });
             await h.click(".e-permits-builder__panel-head .breadcrumbs__link[data-fb-goto]");
             await h.click("[data-builder-prop-tab='validation']");
@@ -3147,11 +3084,10 @@
             /* 52 column editor of the equipment grid · 52a a column selected (the field panel, US-34 AC-03)
                · 52b a palette type dragged over the band (insertion line) */
             "fb-52": fb(async (h) => { await h.click("[data-builder-field][data-id='fld-equipment']"); await h.click("[data-builder-prop-tab='data']"); await h.scroll("[data-builder-field][data-id='fld-equipment']"); }, F09),
-            "fb-52a": fb(async (h) => { await open("fld-equipment")(h); await h.click(chip("col-09-name")); }, F09),
+            "fb-52a": fb(async (h) => { await h.scroll("[data-builder-field][data-id='fld-equipment']"); await h.click(chip("col-09-name")); }, F09),
             /* 52w a grid column's „Lățime coloană”: parts on a 4-bar row (Îngustă 2 · Medie 3 · Lată 4) */
-            "fb-52w": fb(async (h) => { await open("fld-equipment")(h); await h.click(chip("col-09-name")); await h.scroll(".e-permits-builder__panel .e-permits-builder__width-picker"); }, F09),
+            "fb-52w": fb(async (h) => { await h.scroll("[data-builder-field][data-id='fld-equipment']"); await h.click(chip("col-09-name")); await h.scroll(".e-permits-builder__panel .e-permits-builder__width-picker"); }, F09),
             "fb-52b": fb(async (h) => {
-              await open("fld-equipment")(h);
               const target = await h.scroll(chip("col-09-cap"));
               const item = await h.find("[data-builder-component='date']");
               const dt = new DataTransfer();
@@ -3162,11 +3098,11 @@
             }, F09),
             /* 53 row rules (US-36): min / max / key / page size · 53a a list column: Date + cascade (US-37) */
             "fb-53": fb(async (h) => { await h.click("[data-builder-field][data-id='fld-equipment']"); await h.click("[data-builder-prop-tab='validation']"); }, F09),
-            "fb-53a": fb(async (h) => { await open("fld-points")(h); await h.click(chip("col-09-loc")); await h.click("[data-builder-prop-tab='data']"); await h.scroll("#fb-p-dataSource-parentFieldId"); }, F09),
+            "fb-53a": fb(async (h) => { await h.scroll("[data-builder-field][data-id='fld-points']"); await h.click(chip("col-09-loc")); await h.click("[data-builder-prop-tab='data']"); await h.scroll("#fb-p-dataSource-parentFieldId"); }, F09),
             /* 54 a nested grid (US-38): its columns, level 2 of 3 · 54a level 3: no deeper grid */
-            "fb-54": fb(async (h) => { await open("fld-equipment")(h); await h.click(chip("col-09-parts")); await h.click("[data-builder-prop-tab='data']"); }, F09),
+            "fb-54": fb(async (h) => { await h.scroll("[data-builder-field][data-id='fld-equipment']"); await h.click(chip("col-09-parts")); await h.click("[data-builder-prop-tab='data']"); }, F09),
             "fb-54a": fb(async (h) => {
-              await open("fld-equipment")(h);
+              await h.scroll("[data-builder-field][data-id='fld-equipment']");
               await h.click(chip("col-09-parts"));
               await h.click("[data-builder-prop-tab='data']");
               await h.click("[aria-controls='fb-addchild-col-09-parts-panel']");
@@ -5424,7 +5360,7 @@
     const create = async (h) => { await h.click(`${M} [data-frm-create]`); await h.wait(350); };
     const name = (text) => async (h) => { await h.fill(`${M} #frm-new-name`, text, { leave: false }); };
     const filled = seq(nou, name("cerere de clarificări"), async (h) => { await h.choose(`${M} select[data-frm-new="nameKind"]`, "examinare"); await h.fill(`${M} #frm-new-desc`, "Întrebările specialistului către solicitant, cu termenul de răspuns.", { leave: false }); });
-    const open = (id) => async (h) => { await h.click(`li[data-workplace-row="${id}"] .e-permits-stack__title`); await h.find(`${FB} [data-fb-settings] #fb-p-nameText`); await h.wait(400); };
+    const open = (id) => async (h) => { await h.click(`li[data-workplace-row="${id}"] .e-permits-stack__title`); await h.find(`${FB} [data-fb-panel] #fb-p-nameText`); await h.wait(400); };
     const edit = (id, run, params) => list(seq(open(id), run), params);
     const typeName = (text) => async (h) => { await h.fill(`${FB} #fb-p-nameText`, text, { leave: false }); await h.wait(200); };
     const save = async (h) => { if (narrow()) document.querySelector(`${FB} [data-fb-save]`).click(); else await h.click(`${FB} [data-fb-save]`); await h.wait(500); };
@@ -5459,10 +5395,9 @@
       "frm-03b": list(filled),
       "frm-03c": list(seq(nou, name("cerere ".repeat(25).trim()), create)),
       "frm-03d": list(seq(filled, create), { formulare: "autoritate-inactiva" }),
-      "frm-03e": list(seq(filled, create, async (h) => { await h.find(`${FB} [data-fb-settings] #fb-p-nameText`); await h.wait(500); })),
+      "frm-03e": list(seq(filled, create, async (h) => { await h.find(`${FB} [data-fb-panel] #fb-p-nameText`); await h.wait(500); })),
       /* US-333 — Setări generale formular in the Form Designer */
       "frm-04": edit("FRM-0101", blur),
-      "fb-p6b": edit("FRM-0101", blur),
       "frm-04a": edit("FRM-0101", typeName("cerere de retragere")),
       "frm-04b": edit("FRM-0101", seq(typeName("cerere de retragere"), save, blur)),
       "frm-04c": edit("FRM-0101", seq(typeName(""), save)),

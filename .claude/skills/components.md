@@ -393,12 +393,10 @@ but this doc previously described it wrongly, see the entry.
 | Segmented control · Compact (local modifier, pd-header-compact-v1) | `.segmented-control.segmented-control--compact` > `button.segment-item` (items 32 · 6 12 · 14/20, track 4 / 4 = 40; library colours / states) | `css/process-designer.css`; Process Designer modes `.e-permits-pd__modes` use it as-is since pd-modes-v2 (2026-10-31, user: more top/bottom room — the local 2 / 28 squeeze was removed; topbar 8 · 40 · 8); section „Segmented control · Compact” | app |
 | Segmented control · View switch, square (Process Designer toolbar, pd-view-switch-v1) | `div.segmented-control.segmented-control--compact.e-permits-pd__views[role=radiogroup][aria-label=Vizualizare]` > `button.segment-item.e-permits-pd__view[role=radio][aria-checked][data-pd-view=diagram\|readonly\|list]` (icon 16 only, tooltip) — square: track 4 · 4 = 40, radius 8; items 32 square, radius 6, padding 8 (= the toolbar's Small buttons); library separators / hover / `:focus-visible` ring; selected (`.is-selected` mirrors `aria-checked`) = the toolbar's brand selected look since pd-toolbar-brand-v1 (brand/default fill + white glyph, hover brand/default-hover, press brand/default-active — was the library inverse segment); ONE view at a time, roving tabindex, ← → / ↑ ↓ move AND select (wrapping, skipping unavailable items); unavailable = `aria-disabled` + `data-tooltip-reason` (opacity 0.5). ~~Mini 32 track of independent aria-pressed toggles (pd-props-compact-v1)~~ replaced the same day (user: „bigger, square, radio”) | `js/process-designer.js` `viewItem` / `syncViews` / `chooseView`; views Diagramă (pen, default) · Doar vizualizare (eye) · Vizualizare listă (L); demo pd-01, pd-13b, pd-21a (forced), pd-23 | app |
 | FO phone error state | `.e-permits-fo-phone--editable.is-error` (mirrors `.e-permits-fo-input.is-error`) | guest validation | app |
-| Form Builder (Form Designer: palette · canvas · properties; one schema → one renderer) | `.e-permits-builder` workspace: `__library` (grouped palette `__library-section` / `__library-item`, „În curând” = `is-disabled` + reason) · `__stage` (`__service-header`, `__steps` chips, `__canvas` = the WYSIWYG canvas since fb-wysiwyg-v1 — the real FO form on `__page` + the `__chrome` overlay, see the „WYSIWYG canvas” row; `__drop-indicator`) · `__inspector` > `__panel` (`__panel-head--selected`, `.tabs.tabs--sm.e-permits-builder__tabs`, `__panel-scroll` of drawer sections) · topbar `__errors` + `__issues-menu` (since fb-float-p1 the root also carries `.e-permits-builder--canvas` = the shared Builder frame: PD compact header, dotted canvas, library / inspector as PD floating cards ≥ 961, the one column ≤ 960); fb-float-p4 parts: `.e-permits-builder__band`, `.e-permits-builder__toolbar`, `.e-permits-builder__outline`, `.e-permits-builder__outline-body`, `.e-permits-builder__outline-list`, `.e-permits-builder__outline-item` (+ `--step`, `--section`, `--field`); fb-float-p5 step strip parts: `.e-permits-builder__steps-wrap`, `.e-permits-builder__steps-scroll`, `.e-permits-builder__steps-group`, `.e-permits-builder__step-add`, `.e-permits-builder__step-edit` | `js/form-builder.js` (`COMPONENTS`, `toFo`, `window.GEAPFormBuilder`), `css/form-builder.css`, demo `fb-*` | app |
+| Form Builder (Form Designer: palette · canvas · properties; one schema → one renderer) | `.e-permits-builder.e-permits-builder--canvas` (the shared **Builder frame** since fb-float-p1: PD compact header, dotted canvas, `__library` / `__inspector` = `.e-permits-pd__float--left / --right` cards ≥ 961, back in the one column ≤ 960) workspace: `__library` (grouped palette `__library-section` / `__library-item`, „În curând” = `is-disabled` + reason) · `__stage` (`__service-header`, `__steps` chips, `__canvas` > `__step-section` > `__section-bar` + `__grid` > `__field` cards, `__drop-indicator`) · `__inspector` > `__panel` (`__panel-head--selected`, `.tabs.tabs--sm.e-permits-builder__tabs`, `__panel-scroll` of drawer sections) · topbar `__errors` + `__issues-menu` | `js/form-builder.js` (`COMPONENTS`, `toFo`, `window.GEAPFormBuilder`), `css/form-builder.css`, demo `fb-*` | app |
 | Process Designer (Fluxuri de lucru: full-bleed canvas + floating cards; one flow JSON) | `.e-permits-builder.e-permits-builder--process` (FB topbar, compact since pd-header-compact-v1: 8 · 40 · 8, quiet meta controls (pd-meta-links-v1, 2026-10-25) = version `btn btn-strict btn-sm e-permits-pd__version` („v1.0.0 ⌄”, no fill / border, 14/20 medium, chevron 16, hover tertiary-hover, open = tertiary-active + ring) and the issues link `btn btn-sm e-permits-builder__errors` + `span[data-pd-errors-icon]` (16) + `strong[data-pd-errors-label]` — no errors: `btn-strict e-permits-pd__errors--clean` (green-700 `--color-text-positive-on-secondary` label + `icon-circle-checkmark-filled`), errors: library `btn-text-destructive` („N erori” + `icon-circle-error-filled`, hover danger/secondary, open / pressed danger/secondary-hover + ring); the JS swaps variant + glyph; actions = `btn btn-primary btn-md e-permits-pd__publish-action` „Publică” / `btn btn-primary btn-md e-permits-pd__restore` / `btn btn-neutral btn-md btn-icon-only e-permits-pd__close`, modes = `.segmented-control.segmented-control--compact.e-permits-pd__modes` + `.modal--footer.e-permits-pd__footer` 8 · 40 · 8) > `main.e-permits-pd__stage` (dot grid) > `.e-permits-pd__world` (ONE transform) > `__lanes` (`__pool` / `__pool-head` / `__lane` + `button.__lane-rail` / `button.__lane-add` = the pool's last row since pd-view-steady-v1: lane body white 90 % + lanes' 1px divider, rail column continued (white + 1px line, `::before`), „+ Adaugă bandă” 14/20 medium left after the rail; hover brand-secondary + brand text / icon, pressed brand-secondary-hover, inset focus ring — was the FB dropzone) · `svg.__edges` (`g.__edge` > `__edge-hit` / `__edge-line` / `__edge-arrow`) · `__labels` (`button.__edge-label`) · `__nodes` (`button.__node.__node--{start\|end\|activity\|decision\|event\|subprocess}` > `__shape` · `__name` / `__caption` · `__port` · `__plus` · `span.__more[data-pd-more]` (canvas ⋮) · `__dot`) · `ul#pd-node-menu.e-permits-fo-intent-menu.e-permits-stack__menu.e-permits-pd__node-menu[role=menu][data-stack-menu]` (the node ⋮ / right-click / Shift+F10 menu) · `svg.__overlay`; floating `aside.__float--left` (palette = FB `__library-item` + `__glyph--*`, `.is-rail`) / `aside.__float--right` (FB panel) / `aside.__float--end.is-rail` (collapsed properties = the palette rail: `.e-permits-pd__rail` + toggle; the old `.e-permits-pd__pill` „Proprietăți” button is gone) · `__toolbar` · `__minimap` · `__add-menu` („Continuă cu”) · `__json`; batches 2–4: `__lane-resize` · `__pool-select` · `__edge-end` (re-connect handles) · `__open-sub` · `__current-tag` · `__trace` (case path card) · `__list` (list view) · `#pd-tpl-modal` (template picker) · `#pd-publish-modal` · `#pd-lane-modal` · `[data-pd-drawer]` («Proces nou») · registry kind `flows` | `js/process-designer.js` (`window.GEAPProcessDesigner`, `window.GEAPShellRegistries.flows`), `core/process-model.js` (`GEAP.processModel`), `css/process-designer.css`, demo `pd-*`; section „Process Designer” | app |
 | Floating card (panel over a canvas) | `.e-permits-pd__float` (white, 1 px border base-default, radius 16, `--shadow-200`, inset 8 = `--pd-inset` on `.e-permits-builder--process` (pd-props-compact-v1; was 16 — palette, properties card / rail, minimap, trace card, list view and the toolbar's bottom all read it), `max-height: 100% − 2 × inset`, 160ms slide-in `backwards`) + `__card-head` / `__card-title`; hidden with `[hidden]`; toolbar and minimap use the same card (radius 16) | Process Designer palette / properties | app |
-| **WYSIWYG canvas** — Form Designer › Editare draws the real applicant form; edit chrome only on hover / selection (fb-wysiwyg-v1, 2026-11-17) — NEW | page `.e-permits-builder__page` (white sheet, FO markup inside: `e-permits-fo-form__header`, `e-permits-fo-form__section`, `e-permits-fo-section-header`, `e-permits-fo-form__section-body`, FO fields with `[data-builder-field]`) · ONE overlay layer `.e-permits-builder__chrome`: hover = the shared `.e-permits-hover-surface` on the page element itself (`.is-fb-hover`, outset 8, innermost only; fb-hover-surface-v1), `.e-permits-builder__grip` (drag handle), `.e-permits-builder__lockmark`, `.e-permits-builder__selbox` (brand 2px) + `.e-permits-builder__sel-resize`, action bar `.e-permits-builder__elbar-wrap` > `.e-permits-builder__elbar` (= the PD toolbar card + tools; `.e-permits-builder__bar-type`, `.e-permits-builder__bar-grip`, `.e-permits-builder__elbar--subs` = the band of columns), insert control (fb-insert-gap-v1) `.e-permits-builder__insert` = 1px line across the gap + ONE fixed round library icon button Small `btn btn-neutral btn-sm btn-icon-only btn-rounded.e-permits-builder__insert-add` „Adaugă element” centred on it (fades in 120 ms, never follows the pointer X, hidden while dragging, brand on hover) + `.e-permits-builder__insert-menu`, `.e-permits-builder__issue-dot`; widget look (fb-widget-look-v1): selected = the hover surface stays on with the shared `.is-surface-selected` (css/hover-surface.css: `--color-background-brand-secondary` fill + the input focus 1px brand border, opt-in, dashboard can adopt), surface r20 · outset 8, resize = the dashboard arc `.e-permits-dsh-tile__resize` on the selbox corner, moving = grey slot + dashed edge; drag (fb-drag-body-v1) = the grip / action-bar handle AND the body of any field / section (`draggable`, selected or not; a text being edited keeps its selection); inline text = `[data-fb-text]` / `[data-fb-editing]`; Structură `.e-permits-builder__outline-item--child` | `js/form-builder.js` (`stepPageHtml`, „EDIT CHROME”, „INLINE TEXT”), `css/form-builder.css` › WYSIWYG canvas, parity check `tools/ui-qa/fb-parity.mjs`, demo `fb-w01…w10`; section „Builder frame › WYSIWYG canvas” | app |
-| **Builder frame** — shared by the Process Designer and the Form Designer (fb-float-p1, 2026-11-17) — NEW | `.modal.e-permits-builder.e-permits-builder--canvas` (`--pd-inset` 8, rows `auto 1fr`; PD adds `--process`): header `header.e-permits-builder__topbar` (8 · 24, grid `minmax(0,1fr) auto minmax(max-content,1fr)`) > `.e-permits-builder__nav-left.e-permits-pd__nav-left` (title `.e-permits-pd__title` 16/24 semibold — in the FD a quiet `button.e-permits-pd__title.e-permits-builder__title-button[data-fb-select-form]` that opens „Date generale”; `.e-permits-pd__status` tags; `.e-permits-pd__version-wrap` > `btn btn-strict btn-sm e-permits-pd__version` „v1.2.0 ⌄”) · `.segmented-control.segmented-control--compact.e-permits-pd__modes` (icon-only 961–1279 and ≤720) · `.e-permits-builder__nav-actions` (issues link `btn btn-sm btn-strict e-permits-builder__errors e-permits-pd__errors--clean` ↔ `btn-text-destructive` + `[data-…-errors-icon]` glyph 16, `btn btn-neutral btn-sm` Salvează (FD global), `btn btn-primary btn-sm e-permits-pd__publish-action`, `btn btn-neutral btn-sm btn-icon-only e-permits-pd__close`) — all Small 32 since pd-header-small-v1; body = the canvas (shared base-secondary fill; the dot grid is `.e-permits-pd__stage` only) with floating cards `.e-permits-pd__float--left / --right` | `css/process-designer.css` › Builder frame (header, issues link, dots), FD placement `css/form-builder.css` › Builder frame — Form Designer placement; section „Builder frame” | app |
-| **Form Designer · „Setări generale” mode** (fb-float-p6, 2026-11-17) — NEW | 4th tab of the header segmented control `button.segment-item[data-builder-mode="settings"]` (Editare · Previzualizare · Schemă · Setări generale, icon `icon-settings` = the Process Designer’s) → `section.e-permits-pd__settings.e-permits-builder__settings[data-fb-settings]` over the stage: the PD page (`.e-permits-cfg2` sticky section list + `__section` cards, `renderSettingsPage` / `openSettings({ section, focus })`); service form = Identificare · Utilizare · Versiune · Limbi · Pași · Setări completare · Statistici, global form = Identificare · Versiune. Floats, toolbar, band and canvas hide (`[data-mode="settings"]`); ≤ 960 the page is the one column. `select("form", "settings")`, the title, „Date generale formular”, the issue links and the Salvează error all open it (a global form opens on it). Same `data-fb-prop` handlers as the properties card (`onPanel`). RU / EN: ONE `renderInfoNote` under the language switch (`.e-permits-builder__lang-note`), empty RU / EN fields show the RO text as grey placeholder; no per-field hint. Unclassed children of `.e-permits-builder__panel-grid` span the row. Bibliotecă items = PD density (items 8 from the card edge, group heading 16 / 8, title one line + ellipsis `.e-permits-builder__library-name`). Demo fb-p6a–e, frm-04, fb-p6b (global). The „Pași” section lists the steps as `.e-permits-builder__step-row` buttons (open the step in Editare). |
+| **Builder frame** — shared by the Process Designer and the Form Designer (fb-float-p1, 2026-11-17) — NEW | `.modal.e-permits-builder.e-permits-builder--canvas` (`--pd-inset` 8, rows `auto 1fr`; PD adds `--process`): header `header.e-permits-builder__topbar` (8 · 24, grid `minmax(0,1fr) auto minmax(max-content,1fr)`) > `.e-permits-builder__nav-left.e-permits-pd__nav-left` (title `.e-permits-pd__title` 16/24 semibold — in the FD a quiet `button.e-permits-pd__title.e-permits-builder__title-button[data-fb-select-form]` that opens „Date generale”; `.e-permits-pd__status` tags; `.e-permits-pd__version-wrap` > `btn btn-strict btn-sm e-permits-pd__version` „v1.2.0 ⌄”) · `.segmented-control.segmented-control--compact.e-permits-pd__modes` (icon-only 961–1279 and ≤720) · `.e-permits-builder__nav-actions` (issues link `btn btn-sm btn-strict e-permits-builder__errors e-permits-pd__errors--clean` ↔ `btn-text-destructive` + `[data-…-errors-icon]` glyph 16, `btn btn-neutral btn-sm` Salvează (FD global), `btn btn-primary btn-sm e-permits-pd__publish-action`, `btn btn-neutral btn-sm btn-icon-only e-permits-pd__close`) — all Small 32 since pd-header-small-v1; body = the dotted canvas (one shared background rule: `.e-permits-pd__stage` / `.e-permits-builder--canvas .e-permits-builder__workspace`) with floating cards `.e-permits-pd__float--left / --right` | `css/process-designer.css` › Builder frame (header, issues link, dots), FD placement `css/form-builder.css` › Builder frame — Form Designer placement; section „Builder frame” | app |
 | One FO renderer for builder + Preview + request form | `window.GEAPFormRender.fieldHtml` = `stepFieldHtml` (+ `textarea`, `number`/`money`, `date`, `select`, `radio`, `checkbox`, `checklist`, `info`, batch 3: `idnp`, `idno`, `file`, `mdocs`, `hidden`, `consent`, `contact-person` with `prefix`, `subdivision` with `mode`; batch 4: `grid`, `repeat` → `window.GEAPFoRepeat` in `js/fo-grid.js`, `combobox` = the CAEM list alone); `.bind(root)` = the FO interactions (+ contact, subdivision, digits, registry lookups); `.applicant()`, `.setFieldError()`, `.copyValueHtml()` | `js/e-permits-acte-permisive.js` | app |
 | Choice field (labelled radio rows / checkbox list / period pair in a form) | `fieldset.e-permits-fo-choice.e-permits-fo-field--span-N` > `legend.e-permits-fo-choice__legend` + `.e-permits-fo-choice__group(--inline)` of `.e-permits-fo-radio--option` rows, or `.e-permits-fo-choice__checks` of `renderCheckOption({ plain: true })`, or `.e-permits-fo-choice__pair` (two date pickers, 6 + 6, one column ≤860) | `radioFieldHtml` / `checklistFieldHtml` / `periodFieldHtml` | app |
 | FO segmented field · multi-select field · callout field · separator field | `segmentFieldHtml` (`.segmented-control.is-animated[role=radiogroup][data-fo-segment]` + label id) · `multiselectFieldHtml` (the CAEM subgenre multi-select with `data-placeholder` / `data-count-one` / `data-count-many` / `data-remove-label`, chips in `[data-fo-subgen]`) · `calloutFieldHtml` (`.e-permits-callout--info/--warning`) · `separatorFieldHtml` (library `hr.separator`) | `js/e-permits-acte-permisive.js` | app |
@@ -5059,6 +5057,8 @@ Click / keys call `setSpan` (card re-renders: the card's `data-fb-span-tag` „6
 announced „Lățime 6 din 12.”) or `setPath(…, "width")` for a grid column. Demo states: fb-05w (8/12),
 fb-05x (set to 6/12), fb-05y (locked), fb-52w (grid column).
 
+> **Form Designer look (2026-11-20, fb-prod-v1):** main = the PROD look (pre-refresh: own topbar with version ⌄ · Editare/Previzualizare/Schemă · erori · „Acest serviciu” · Publică · ×, fixed Bibliotecă / Proprietăți columns). The refresh (Builder frame, floating cards, step strip, WYSIWYG canvas, fb-p2…p6 states) is parked on branch `form-designer-refresh` (sandbox remote); the „Builder frame” rows below describe that branch and apply to the Process Designer only until it is merged back.
+
 ### Builder frame — Process Designer + Form Designer (fb-float-p1, 2026-11-17)
 
 ONE frame for the two full-screen designers: `.e-permits-builder--canvas` on the `.modal.e-permits-builder` root (the PD
@@ -5070,138 +5070,13 @@ Small 32), the issues link variants (pd-meta-links-v1), the dotted canvas backgr
 ring on focus) → „Date generale” / „Setări generale formular”; status `[data-fb-status]` (Publicat / Schiță, + Inactiv
 for a global form); version `[data-fb-version]` (global = „Istoric versiuni”); modes `[data-builder-mode]` as
 `.segment-item` (`is-selected` + `aria-selected`); Salvează `[data-fb-save]` (global only), Publică `[data-fb-publish]`,
-× `[data-close][data-fb-close]`. The meta sits in the **header band** (fb-float-p4b): `.e-permits-builder__band[data-fb-band]` = white, full width under the top bar,
-1px bottom divider, hidden in Previzualizare; it holds `[data-fb-service-header]` > `.e-permits-builder__service-meta-row` = ONE
-dotted line (service or „Formulare globale” · ID as the copy component `GEAPCopyValue` · N câmpuri · „Modificări nepublicate” link
-(global) · editat <date> de <name> · request-type tags Small) and `[data-fb-steps]` (the step chips) under it; the floating cards start
-below the band. The canvas is plain base-secondary — the dot grid is `.e-permits-pd__stage` only.
+× `[data-close][data-fb-close]`. The meta stays on the canvas above the page (the PD diagram caption place):
+`[data-fb-service-header]` > `.e-permits-builder__service-meta-row` = request-type tags + one dotted line (service or
+„Formulare globale” · lock icon + „Acest serviciu” · ID · N câmpuri · „Modificări nepublicate” link (global) · editat · de), no band.
 Placement (`css/form-builder.css`): ≥ 961 the asides are PD floating cards (Bibliotecă 240 left, Proprietăți 320
 right, internal scroll, no resize edge) and the stage pads past them so the page (≤ 1024) is centred in the free canvas;
 Previzualizare / Schemă = white, full width, no cards; ≤ 960 the cards return to the one scrolling column (version /
-Salvează / Publică hidden). P3–P6 of `.claude/handoff/fb-floating-plan.md` replace the other card contents.
-
-**Bibliotecă card = the PD „Elemente” card (fb-float-p2).** `aside[data-fb-library-card].e-permits-builder__library.e-permits-pd__float--left`:
-head `.e-permits-pd__card-head` (title `.e-permits-pd__card-title` + `btn btn-strict btn-sm btn-icon-only e-permits-pd__tool[data-fb-rail-toggle]`,
-icon `sidebar`, `aria-expanded`) → library search (Medium 40, `[data-builder-library-search]`) → groups (`__library-section` /
-`__library-item` two-line rows: icon box + name + caption) with the boxed no-match empty state → footer
-`p.e-permits-pd__palette-hint` „Trage în formular sau apasă pentru a adăuga după câmpul selectat.” The collapse button (or `[`)
-shrinks the card to the 56 `.e-permits-pd__rail` (toggle · search; `.is-rail`, `[data-fb-rail]`) and gives the room back to the page
-(`--fb-float-left`); the search button re-expands and focuses the search. Click on an item inserts AFTER the selected field
-(a selected child → after its container; a selected section → end of it; nothing → end of the current step) and selects it;
-drag still drops where shown. ≤ 960 the collapse, rail and hint are not shown (the one column). Demo `fb-p2a` (collapsed),
-`fb-p2b` (search + a field selected), `fb-p2c` (no match), `fb-p2d` (inserted after the selection).
-
-**Bottom toolbar + Structură (fb-float-p4).** `div.e-permits-pd__toolbar.e-permits-builder__toolbar[data-fb-toolbar]` (the PD toolbar: same card,
-`e-permits-pd__toolgroup` / `__toolsep`, `btn btn-strict btn-sm btn-icon-only e-permits-pd__tool` + Small tooltip, brand-pressed state) centred in the
-free canvas (`--fb-toolbar-x`): Anulează / Refă (`[data-fb-undo|redo]`, the builder history, limit 50, `aria-disabled` when empty; Ctrl/⌘ + Z,
-+ Shift redo) | page width radiogroup `[data-fb-width="desktop|tablet|phone"]` (icons `icon-device-desktop|tablet|phone`; `data-fb-width` on the root
-→ page 100 % / 768 / 375, phone = one field per row; in Previzualizare it drives the preview device, both stay in sync) | Previzualizare
-`[data-fb-toolbar-preview]` (`aria-pressed`, = the header mode) · Structură `[data-fb-outline-toggle]` → `aside.e-permits-pd__float.e-permits-builder__outline`
-(steps › sections › fields tree `.e-permits-builder__outline-item`, click selects + scrolls to it, selection brand-secondary; Esc / × closes).
-Hidden in Schemă; ≤ 960 sticky at the bottom with undo · redo · Previzualizare only. Demo `fb-p4a` (default), `fb-p4b` (phone width), `fb-p4c`
-(Structură open), `fb-p4d` (after an undo). The Bibliotecă items wear `e-permits-pd__palette-item` = the PD „Elemente” density (one-line caption, tooltip when cut).
-
-**Step strip (fb-float-p5).** The step chips in the header band (`[data-fb-steps]`) = one strip: `div.__steps-wrap[data-fb-steps-wrap]` > `div.__steps-scroll[data-fb-steps-scroll]`
-(sideways scroll, no scrollbar, 8 padding so focus rings are never cut; mouse wheel scrolls it sideways) > `div.__steps-group[role=tablist]` of the existing
-`button.__step-chip` (no new control; error dot kept; platform chips = lock, `[data-fb-step-locked]`, no drag, no ⋮) + the library „+” `button.__step-add` outside the scroller.
-Edge fades = `::before` / `::after` of the wrap (white → transparent, 40 wide), shown only on the side that still hides chips (`.has-more-start` / `.has-more-end`, `syncStepFade`).
-„+” opens the library field `div.e-permits-fo-input.__step-edit > input[data-fb-step-name]` after the last service chip (focus, Enter / blur adds, empty = „Pas nou”, Esc cancels,
-the builder's Esc handler leaves it alone); the new chip is selected and focused. The ACTIVE service chip is followed by the standard ⋮ (`renderStackMenu`, fixed variant):
-Redenumește (same inline field; also double-click) · Duplică (copy with new ids, „… (copie)”, rules re-pointed) · Șterge pasul (red, `askConfirm`, last service step blocked).
-Reorder: service chips are `draggable` (only when ≥ 2 service steps), drop before / after (`.is-drop-before|after` = 4 brand bar, `.is-dragging` 50 %), the edges autoscroll;
-Alt+← / → on a focused chip does the same (live-region announce). Nothing-selected counts (Pași · Secțiuni · Câmpuri · Obligatorii · Probleme) cover the WHOLE form, platform steps included.
-Demo `fb-p5a` (default), `fb-p5b` (adding, typing), `fb-p5c` (⋮ open), `fb-p5d` (after reorder), `fb-p5e` (9 more steps → scroll + fades).
-
-**Proprietăți card = the PD properties card (fb-float-p3).** `aside#fb-inspector[data-fb-inspector].e-permits-builder__inspector.e-permits-pd__float--right`:
-every panel head (`panelHead`, also `.e-permits-pd__panel-head`) ends with `.e-permits-pd__head-tools` = the ⋮ (if any) +
-`btn btn-strict btn-sm btn-icon-only e-permits-pd__tool[data-fb-props-toggle]` (icon `sidebar`, „Restrânge proprietățile (])”, `aria-expanded`);
-the content scrolls inside the card (`.e-permits-builder__panel-scroll`), the head stays. Collapsed (button or `]`) = the 56
-`.e-permits-pd__rail` (`[data-fb-props-rail]`, `.is-rail`, `--fb-float-right`), the page regains the room. Nothing selected
-(`sel = form` with no id) = „Proprietăți”, the PD empty state „Nimic selectat” + counts rows (Pași · Secțiuni · Câmpuri · Obligatorii ·
-Probleme = „N erori” link → the issues menu) + button „Date generale formular” (global forms: „Setări generale formular”) which opens the
-form settings (`select("form", "settings")`; the topbar title and form issues open it too; Escape returns). ≤ 960 the collapse
-and rail are not shown (the one column). Demo `fb-p3a` (nothing selected), `fb-p3b` (field), `fb-p3c` (section), `fb-p3d` (collapsed).
-
-#### WYSIWYG canvas — Editare = the real form (fb-wysiwyg-v1, 2026-11-17, plan P6b)
-
-User rule: „when I'm creating, I already see how it will look; details on hover or click”. **At rest the Editare canvas
-is the applicant's form** — no builder cards, type badges, „6/12” chips, technical names or ⋮.
-
-**One renderer, two modes.** `stepPageHtml(step, { prefix, lang, editable })` (js/form-builder.js) draws a step for the
-Preview (`[data-fb-preview-body]`, live controls, `R.bind`) and for the edit canvas (`[data-fb-canvas-body]` inside the white
-sheet `.e-permits-fo-form.e-permits-builder__page`, r16, padding 32 / 24 tablet / 16 phone). Same FO markup + CSS; `editable`
-only ADDS attributes on the FO elements (`data-builder-field data-id data-type data-span tabindex role=button aria-pressed
-aria-label data-hover-proxy` on a field's top element, `data-fb-el="step"` on the header, `data-fb-select-section` on the section
-header — or on the section when its title is hidden — both `role=group` (they keep their heading; `role=button` there is a
-component-audit major), `data-builder-grid` on the section body) and, after the render, ONE inline `span[data-fb-text][data-fb-wrap]`
-around a label's text. Never a wrapper, a class or a box around FO markup; never style a field from the builder CSS.
-The sheet's column is capped at the Preview's form column (944 → canvas max 1008).
-**Parity check (run it after any change to the canvas or to the FO field renderer):**
-`node --experimental-websocket --no-warnings tools/ui-qa/fb-parity.mjs [--state fb-w01] [--width 1440] [--tol 1]` — measures every
-page element (step header, section headers / bodies, fields and every element inside them) relative to the page body in
-Editare and in Previzualizare; at 1440 it collapses the two cards so both columns are 944. PASS = 0 differences > 1px, 0
-elements without a pair. Known, wanted differences: an empty section shows the boxed „Secțiune goală” + „Adaugă câmp” only in
-Editare; a field hidden by a display rule is shown in Editare (the script skips it); „Câmp ascuns” is drawn (dashed marker)
-only while selected; Telefon / Tabletă in Editare = the sheet width + one column (the real 48 · 16/24 phone sizes come from
-media queries → Previzualizare › Telefon, the 375 frame).
-
-**Inert controls.** Every child of a field element is `inert` (`prepareCanvas`): no value typing, no open dropdowns, no focus
-inside; the field element itself is the click / focus / drag-image target. A click is resolved from its POINT (`hitTest`:
-field box + 4 → step header → section; a coded click falls back to the target), never from `event.target`.
-
-**Edit chrome = one overlay layer** `div.e-permits-builder__chrome[data-fb-chrome]` (last child of the canvas, `inset: 0`,
-`pointer-events: none`, NO z-index so its fixed menus open above the floating cards); every part is absolutely positioned
-from the elements' rects (`placeChrome`, also on resize) and never takes room in the page:
-- **Hover** = the shared hover surface (`.e-permits-hover-surface`, grey + zoom-in, outset 8, JS `.is-fb-hover`; the handle outset field 8 / section 16 / step title 8) +
-  `.e-permits-builder__grip` (20 × 28 white pill, `icon-drag`, cursor grab, `draggable`) on its left edge for fields and
-  sections; a platform step = the box around the page + `.e-permits-builder__lockmark`. The selected element never also
-  gets the grey box — its own outline answers (`.e-permits-builder__selbox.is-hover`: brand-hover border + 3px brand-secondary
-  halo). Over a text that a click edits the cursor is the text cursor (`.is-over-text`). Because the hover is drawn by the
-  layer, every page element names it: `data-hover-proxy=".e-permits-builder__selbox"`
-  (`tools/ui-qa/hover-audit.mjs` checks that the named overlay appears / moves / changes).
-- **Insert line** = `.e-permits-builder__insert` in the gap under the pointer (between two rows = across the section;
-  between two fields of a row = down the row, `.is-col`; above the first / under the last row): 2px brand line + round 24
-  `.e-permits-builder__insert-add` that follows the pointer. Click → the component picker (the „Adaugă câmp” list as a fixed
-  `e-permits-stack__menu`, `.e-permits-builder__insert-menu`) → the type lands at that index with its label selected for typing.
-- **Selection** (click, Enter / Space) = `.e-permits-builder__selbox` (2px brand, r8) + the floating action bar
-  `.e-permits-builder__elbar-wrap` above it on its RIGHT end (labels and section titles are on the left; below when there is
-  no room): `div.e-permits-pd__toolbar.e-permits-builder__elbar[role=toolbar]`
-  = the PD toolbar card with `e-permits-pd__toolgroup` / `e-permits-pd__toolsep` / `btn btn-strict btn-sm btn-icon-only e-permits-pd__tool`.
-  Field: handle · type (`.e-permits-builder__bar-type` icon + name) | width toggle „Tot rândul” ↔ „Jumătate de rând”
-  (`[data-fb-bar="width"]`; fixed-width components = `aria-disabled` + reason; the fine widths stay in Proprietăți › Lățime,
-  Alt+← / → and the `.e-permits-builder__sel-resize` grip on the right edge) · rules / hidden mark (only then; opens Logică / Date)
-  · Duplică · ⋮ (Salvează ca componentă, Mută mai sus / jos / în „…”, **Șterge** red; the standard `renderStackMenu`, fixed,
-  its trigger restyled as a bar tool). Section: handle · „Secțiune” | „Duplică secțiunea (fără câmpuri)” · ⋮ (Mută, Șterge
-  secțiunea red). A platform step shows no selection chrome (its chip does). Step: „Pas” | Editează titlul. A grid / block adds the band of columns / block fields
-  (`.e-permits-builder__elbar--subs` > the existing `.e-permits-builder__subs` chips + „+ Coloană”) under the bar.
-  Selection stays until a click elsewhere / Esc; Proprietăți follows it.
-- **Error dot** = `.e-permits-ntpl-dot.e-permits-tariff__tab-error.e-permits-builder__issue-dot` on the top-right corner of a
-  field with problems (tooltip = the first message); the technical name and the issue list are in Proprietăți / the top bar.
-
-**Inline text.** A click on a text of the page edits it there: step title / description, section title / description, field
-label, help text, radio / checklist / segment option labels, note texts. The element itself becomes
-`contenteditable="plaintext-only"` (`[data-fb-editing]`: brand-secondary tint, same typography, the page reflows as you
-type); the placeholder is typed in the real input in the placeholder colour and opens on a click in the control of the
-ALREADY selected field (the first click selects). Every keystroke writes the RO text to the model and redraws Proprietăți +
-the step strip (never the page); Enter / Tab / blur keeps, Esc restores (and drops the edit's undo step), an empty step
-title is refused with the toast „Titlul pasului nu poate fi gol.”. One undo step per edit. A new field / section opens with
-its label / title selected for typing (`editNew`). Not inline (Proprietăți): list placeholders, consent text, address /
-contact parts, column labels, texts with line breaks.
-
-**Keyboard.** Tab walks step title → section headers → fields; ↑ / ↓ go to the neighbour; Enter / Space selects, Enter on the
-selected one (or F2) edits its text; Shift+F10 → the action bar; Alt+↑ / ↓ move, Alt+← / → width, Ctrl+D duplicate, Delete,
-Esc deselects. Focus ring = the library ring 6 px off the element.
-
-**Drag.** Only from a handle (hover grip or the bar's): fields drop where the 4px `.e-permits-builder__drop-indicator` shows
-(drawn in the chrome layer), sections before / after the section under the pointer; library items as before. Indexes are
-model indexes (`modelIndex`: a hidden field is not on the page).
-
-**Structură** lists the columns / block fields under their container (`.e-permits-builder__outline-item--child`) and marks
-hidden fields (`icon-eye-slash`) and fields with display rules (`icon-direction`).
-
-Demo: `fb-w01` at rest · `fb-w02` hover · `fb-w03` selected (+ `fb-w03a` ⋮) · `fb-w04` label edited · `fb-w05` section ·
-`fb-w06` insert line (+ `fb-w06a` picker) · `fb-w07` step title edited · `fb-w08` phone width · `fb-w09` platform step ·
-`fb-w10` grid with its band. Demo / check API: `GEAPFormBuilder.hover(kind, id)`, `.insertBefore(fieldId)`, `.editText(kind, id, prop)`.
+Salvează / Publică hidden). P2–P6 of `.claude/handoff/fb-floating-plan.md` replace the card contents.
 
 ### `e-permits-pd__*` — Process Designer (2026-10-14, batches 0–4)
 

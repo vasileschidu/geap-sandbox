@@ -25,12 +25,12 @@
   <link rel="stylesheet" href="css/page-reveal.css?v=skeleton-v1">
   <link rel="stylesheet" href="msupport/msupport.css?v=20260925-anon">
   <link rel="stylesheet" href="css/empty-state.css?v=empty-v5">
-  <link rel="stylesheet" href="css/form-builder.css?v=fb-widget-look-v1">
-  <link rel="stylesheet" href="css/process-designer.css?v=fb-float-p1">
+  <link rel="stylesheet" href="css/form-builder.css?v=fb-prod-v1">
+  <link rel="stylesheet" href="css/process-designer.css?v=fb-prod-v1">
   <link rel="stylesheet" href="css/ghiseu.css?v=ofc-submit-v2">
   <link rel="stylesheet" href="css/bo-dossier-flows.css?v=pps-suplinire-v1">
   <link rel="stylesheet" href="css/registre.css?v=layout-wide-v1">
-  <link rel="stylesheet" href="css/hover-surface.css?v=fb-widget-look-v1">
+  <link rel="stylesheet" href="css/hover-surface.css?v=hover-surface-v1">
   <link rel="stylesheet" href="css/calendar.css?v=hover-surface-v1">
   <!-- menu-flip-v3: Administrare › Șabloane de jurnalizare (Feature 93589, US-257…261) -->
   <link rel="stylesheet" href="css/jurnalizare.css?v=menu-flip-v3">
@@ -85,7 +85,7 @@
   <script src="js/trajectory.js?v=trajectory-phone-even-v1"></script>
   <script src="js/event-timeline.js?v=aud-263-v2"></script>
   <script src="js/sticky-sections.js?v=sticky-sections-v1" defer></script>
-  <script src="js/demo-states.js?v=perm-v2"></script>
+  <script src="js/demo-states.js?v=fb-prod-v1"></script>
   <script src="js/demo-links.js?v=links-v4"></script>
   <script src="js/bo-context.js?v=copy-tu-v2"></script>
   <!-- the working-days engine (Administrare › Calendar), before the shell seeds the dossier deadlines; after
@@ -113,9 +113,9 @@
   <script src="js/choice-cards.js?v=choice-cards-v7" defer></script>
   <script src="js/e-permits-acte-permisive.js?v=dist-picker-v1" defer></script>
   <!-- Form Builder (after the FO renderer it shares) -->
-  <script src="js/form-builder.js?v=fb-widget-look-v1" defer></script>
+  <script src="js/form-builder.js?v=fb-prod-v1" defer></script>
   <script src="core/process-model.js?v=copy-tu-v2" defer></script>
-  <script src="js/process-designer.js?v=fb-float-p1" defer></script>
+  <script src="js/process-designer.js?v=fb-prod-v1" defer></script>
   <script src="js/ghiseu.js?v=doc-viewer-tabs-v1" defer></script>
   <script src="js/registre.js?v=dsh-feature-v1" defer></script>
   <script src="js/registre-admin.js?v=coding-rules-v1" defer></script>
@@ -2229,61 +2229,56 @@
     </header>
 
     <div class="modal-overlay form-builder-modal-overlay" id="form-builder-modal" aria-hidden="true">
-      <div class="modal e-permits-builder e-permits-builder--canvas" tabindex="-1" role="dialog" aria-modal="true" aria-labelledby="form-builder-title">
-        <!-- fb-float-p1: the Process Designer frame (compact header, components.md „Builder frame”): title · status ·
-             version left, modes centre, issues · Salvează · Publică · × right — the PD classes, not copies -->
+      <div class="modal e-permits-builder" tabindex="-1" role="dialog" aria-modal="true" aria-labelledby="form-builder-title">
         <header class="e-permits-builder__topbar">
           <span class="e-permits-builder__sr-only" id="form-builder-title">Constructor de formulare</span>
-          <div class="e-permits-builder__nav-left e-permits-pd__nav-left">
+          <div class="e-permits-builder__nav-left">
             <span class="e-permits-builder__view-title" data-builder-view-title></span>
-            <button class="e-permits-pd__title e-permits-builder__title-button" type="button" data-fb-select-form data-fb-title></button>
-            <span class="e-permits-pd__status" data-fb-status></span>
-            <div class="e-permits-pd__version-wrap" data-fb-version-wrap>
-              <button class="btn btn-strict btn-sm e-permits-pd__version" type="button" data-fb-version>
-                <span>v1.4.2</span>
-                <svg class="icon" width="16" height="16" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-chevron-bottom"></use></svg>
-              </button>
-            </div>
+            <button class="e-permits-builder__version" type="button" data-fb-version>
+              <span>v1.4.2</span>
+              <svg class="icon" width="16" height="16" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-chevron-bottom"></use></svg>
+            </button>
           </div>
 
-          <div class="segmented-control segmented-control--compact e-permits-pd__modes" role="tablist" aria-label="Modul constructorului" data-fb-modes>
-            <button class="segment-item is-selected" type="button" role="tab" aria-selected="true" aria-label="Editare" data-builder-mode="build">
+          <div class="e-permits-builder__mode" role="tablist" aria-label="Modul constructorului">
+            <button class="is-active" type="button" role="tab" aria-selected="true" data-builder-mode="build">
               <svg class="icon" width="20" height="20" viewBox="0 0 16.6667 16.6667" aria-hidden="true">
                 <path d="M14.072 0.2876C14.0535 0.123905 13.9151 0.00016861 13.7503 0C13.5856 -0.000167919 13.4469 0.123286 13.4281 0.286942C13.3402 1.04885 13.1139 1.57153 12.7594 1.92606C12.4049 2.28059 11.8822 2.50685 11.1203 2.59473C10.9566 2.6136 10.8332 2.75226 10.8333 2.917C10.8335 3.08174 10.9572 3.22014 11.1209 3.23868C11.87 3.32352 12.4045 3.54974 12.7681 3.9067C13.1296 4.26173 13.3602 4.78367 13.4272 5.53793C13.4421 5.70528 13.5824 5.83352 13.7504 5.83333C13.9184 5.83314 14.0584 5.70459 14.0729 5.53721C14.1371 4.79569 14.3674 4.26198 14.7314 3.89803C15.0953 3.53409 15.629 3.30372 16.3705 3.23953C16.5379 3.22504 16.6665 3.08504 16.6667 2.91703C16.6669 2.74902 16.5386 2.60873 16.3713 2.59386C15.617 2.52686 15.0951 2.29631 14.74 1.93475C14.3831 1.57121 14.1569 1.03662 14.072 0.2876Z" fill="currentColor"/>
                 <path d="M8.32804 2.40621C8.28036 1.98528 7.92447 1.6671 7.50085 1.66667C7.07723 1.66623 6.72069 1.98369 6.67216 2.40452C6.44619 4.3637 5.86437 5.70775 4.95272 6.61939C4.04108 7.53103 2.69703 8.11285 0.737851 8.33882C0.31702 8.38736 -0.000431792 8.7439 0 9.16752C0.000433568 9.59114 0.318613 9.94703 0.739542 9.9947C2.66559 10.2129 4.04025 10.7946 4.97507 11.7125C5.9048 12.6254 6.49765 13.9675 6.66994 15.9071C6.70816 16.3374 7.06892 16.6672 7.50094 16.6667C7.93296 16.6662 8.29297 16.3356 8.33023 15.9052C8.49528 13.9985 9.08766 12.626 10.0235 11.6902C10.9594 10.7543 12.3318 10.1619 14.2385 9.99689C14.6689 9.95964 14.9995 9.59963 15 9.1676C15.0005 8.73558 14.6707 8.37483 14.2404 8.3366C12.3009 8.16431 10.9587 7.57146 10.0458 6.64173C9.1279 5.70692 8.5462 4.33226 8.32804 2.40621Z" fill="currentColor"/>
               </svg>
               <span>Editare</span>
             </button>
-            <button class="segment-item" type="button" role="tab" aria-selected="false" aria-label="Previzualizare" data-builder-mode="preview">
+            <button type="button" role="tab" aria-selected="false" data-builder-mode="preview">
               <svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-eye-open"></use></svg>
               <span>Previzualizare</span>
             </button>
-            <button class="segment-item" type="button" role="tab" aria-selected="false" aria-label="Schemă" data-builder-mode="schema">
+            <i aria-hidden="true"></i>
+            <button type="button" role="tab" aria-selected="false" data-builder-mode="schema">
               <svg class="icon" width="20" height="20" viewBox="0 0 17.4768 14.8336" aria-hidden="true">
                 <path d="M9.67755 0.567822C9.77818 0.166204 10.1857 -0.0778542 10.5874 0.0225751C10.989 0.123199 11.2331 0.530687 11.1326 0.932406L7.7993 14.2657C7.69869 14.6674 7.29119 14.9114 6.88947 14.811C6.48797 14.7104 6.24402 14.3036 6.34422 13.902L9.67755 0.567822ZM3.20783 3.55285C3.50071 3.25998 3.97613 3.25998 4.26902 3.55285C4.56191 3.84574 4.5619 4.32115 4.26902 4.61405L1.52488 7.35819C1.49241 7.39071 1.49243 7.44284 1.52488 7.47537L4.26902 10.2195C4.56191 10.5124 4.5619 10.9878 4.26902 11.2807C3.97613 11.5736 3.50072 11.5736 3.20783 11.2807L0.463685 8.53657C-0.154552 7.91825 -0.154571 6.9153 0.463685 6.29699L3.20783 3.55285ZM13.2078 3.55285C13.5007 3.25998 13.9761 3.25998 14.269 3.55285L17.0132 6.29699C17.6314 6.9153 17.6314 7.91825 17.0132 8.53657L14.269 11.2807C13.9761 11.5736 13.5007 11.5736 13.2078 11.2807C12.9149 10.9878 12.9149 10.5124 13.2078 10.2195L15.952 7.47537C15.9844 7.44284 15.9844 7.39071 15.952 7.35819L13.2078 4.61405C12.9149 4.32115 12.9149 3.84574 13.2078 3.55285Z" fill="currentColor"/>
               </svg>
               <span>Schemă</span>
             </button>
-            <button class="segment-item" type="button" role="tab" aria-selected="false" aria-label="Setări generale" data-builder-mode="settings">
-              <svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-settings"></use></svg>
-              <span>Setări generale</span>
-            </button>
           </div>
 
           <div class="e-permits-builder__nav-actions">
-            <!-- live validation summary (spec § E/F.8): the PD quiet issues link (pd-meta-links-v1) + the list of problems;
-                 a row selects the object and opens its tab -->
+            <!-- live validation summary (spec § E/F.8): count + the list of problems; a row selects the
+                 object and opens its tab -->
             <div class="e-permits-stack__menu-wrap e-permits-builder__issues">
-              <button class="btn btn-sm btn-strict e-permits-builder__errors e-permits-pd__errors--clean" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="fb-issues-menu" data-stack-menu-trigger data-fb-errors>
-                <span aria-hidden="true" data-fb-errors-icon><svg class="icon" width="16" height="16" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-circle-checkmark-filled"></use></svg></span>
+              <button class="btn btn-sm btn-outline-destructive e-permits-builder__errors" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="fb-issues-menu" data-stack-menu-trigger data-fb-errors>
+                <span aria-hidden="true"><i></i></span>
                 <strong data-fb-errors-label>Fără erori</strong>
               </button>
               <ul class="e-permits-fo-intent-menu e-permits-stack__menu e-permits-builder__issues-menu" id="fb-issues-menu" role="menu" aria-label="Probleme în formular" hidden data-stack-menu data-fb-issues-menu></ul>
             </div>
+            <button class="e-permits-builder__service-scope" type="button">
+              <svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-lock"></use></svg>
+              <span>Acest serviciu</span>
+            </button>
             <!-- forms-global-v1: „Salvează” of a global form (js/forms-global.js); hidden for service forms -->
-            <button class="btn btn-neutral btn-sm" type="button" data-fb-save hidden>Salvează</button>
-            <button class="btn btn-primary btn-sm e-permits-pd__publish-action" type="button" data-fb-publish>Publică</button>
-            <button class="btn btn-neutral btn-sm btn-icon-only e-permits-pd__close" type="button" data-close data-fb-close aria-label="Închide constructorul" data-tooltip-label="Închide">
+            <button class="btn btn-neutral btn-md btn-rounded e-permits-builder__save" type="button" data-fb-save hidden>Salvează</button>
+            <button class="e-permits-builder__publish" type="button" data-fb-publish>Publică</button>
+            <button class="modal-close e-permits-builder__close" type="button" data-close aria-label="Închide constructorul">
               <svg class="icon" width="16" height="16" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-cross-large"></use></svg>
             </button>
           </div>
@@ -2292,19 +2287,10 @@
         <!-- Form Builder (js/form-builder.js, spec tools/persona-test/specs/svc/form-builder.md):
              palette · canvas (service steps → sections → fields) · properties by selection.
              Canvas cards, Preview and the request form share ONE renderer (window.GEAPFormRender). -->
-        <!-- header band (fb-float-p4cb): form info on one line + the step chips, full width under the top bar -->
-        <div class="e-permits-builder__band" data-fb-band>
-          <header class="e-permits-builder__service-header" data-fb-service-header></header>
-          <div class="e-permits-builder__steps" data-fb-steps></div>
-        </div>
-
         <div class="e-permits-builder__workspace" data-builder-workspace>
-          <aside class="e-permits-builder__library e-permits-pd__float e-permits-pd__float--left" id="fb-library-panel" aria-label="Bibliotecă de componente" data-fb-library-card>
-            <div class="e-permits-pd__card-head e-permits-builder__library-head" data-fb-library-head>
-              <h2 class="e-permits-pd__card-title" id="fb-library-title">Bibliotecă</h2>
-              <button class="btn btn-strict btn-sm btn-icon-only e-permits-pd__tool" type="button" aria-label="Restrânge biblioteca" data-tooltip-label="Restrânge biblioteca ([)" aria-expanded="true" aria-controls="fb-library-panel" data-fb-rail-toggle><svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-sidebar"></use></svg></button>
-            </div>
-            <div class="e-permits-builder__panel-head e-permits-builder__library-search" data-fb-library-search-wrap>
+          <aside class="e-permits-builder__library" aria-label="Bibliotecă de componente">
+            <div class="e-permits-builder__panel-head">
+              <h2>Bibliotecă</h2>
               <div class="search-input medium rectangular e-permits-workplace__search e-permits-list-search e-permits-list-search--fill">
                 <span class="icon-search" aria-hidden="true"><svg class="icon" width="20" height="20"><use href="assets/icons/sprite.svg#icon-search"></use></svg></span>
                 <input class="input" type="search" placeholder="Caută componente" aria-label="Caută în bibliotecă" autocomplete="off" data-builder-library-search>
@@ -2317,16 +2303,12 @@
               </div>
             </div>
             <div class="e-permits-builder__library-list" data-fb-library></div>
-            <p class="e-permits-pd__palette-hint" id="fb-library-hint" data-fb-library-hint>Trage în formular sau apasă pentru a adăuga după câmpul selectat.</p>
-            <div class="e-permits-pd__rail" data-fb-rail hidden>
-              <button class="btn btn-strict btn-sm btn-icon-only e-permits-pd__tool" type="button" aria-label="Extinde biblioteca" data-tooltip-label="Extinde biblioteca ([)" aria-expanded="false" aria-controls="fb-library-panel" data-fb-rail-toggle><svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-sidebar"></use></svg></button>
-              <i class="e-permits-pd__railsep" aria-hidden="true"></i>
-              <button class="btn btn-strict btn-sm btn-icon-only e-permits-pd__tool" type="button" aria-label="Caută componente" data-tooltip-label="Caută componente" data-fb-rail-search><svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-search"></use></svg></button>
-            </div>
             <button class="e-permits-builder__resize-handle e-permits-builder__resize-handle--left" type="button" aria-label="Redimensionează biblioteca" data-builder-resize-panel="left"></button>
           </aside>
 
           <section class="e-permits-builder__stage" aria-label="Spațiu de lucru">
+            <header class="e-permits-builder__service-header" data-fb-service-header></header>
+            <div class="e-permits-builder__steps" data-fb-steps></div>
             <div class="e-permits-builder__canvas-scroll" data-fb-canvas-scroll>
               <section class="e-permits-builder__canvas" aria-label="Formular" data-builder-canvas></section>
 
@@ -2349,42 +2331,12 @@
                 <pre data-builder-schema-code></pre>
               </section>
             </div>
-            <section class="e-permits-pd__settings e-permits-builder__settings" hidden tabindex="-1" aria-label="Setări generale ale formularului" data-fb-settings></section>
             <p class="u-visually-hidden" aria-live="polite" data-fb-live></p>
           </section>
 
-          <aside class="e-permits-builder__inspector e-permits-pd__float e-permits-pd__float--right" id="fb-inspector" aria-label="Proprietăți" data-fb-inspector>
+          <aside class="e-permits-builder__inspector" aria-label="Proprietăți" data-fb-inspector>
             <button class="e-permits-builder__resize-handle e-permits-builder__resize-handle--right" type="button" aria-label="Redimensionează proprietățile" data-builder-resize-panel="right"></button>
             <div class="e-permits-builder__panel" data-fb-panel></div>
-            <div class="e-permits-pd__rail" data-fb-props-rail hidden>
-              <button class="btn btn-strict btn-sm btn-icon-only e-permits-pd__tool" type="button" aria-label="Extinde proprietățile" data-tooltip-label="Extinde proprietățile (])" aria-expanded="false" aria-controls="fb-inspector" data-fb-props-toggle><svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-sidebar"></use></svg></button>
-            </div>
-          </aside>
-
-          <!-- fb-float-p4c: the PD bottom toolbar (undo · redo | width | Previzualizare | Structură) + the outline card -->
-          <div class="e-permits-pd__toolbar e-permits-builder__toolbar" role="toolbar" aria-label="Instrumente formular" data-fb-toolbar>
-            <span class="e-permits-pd__toolgroup">
-              <button class="btn btn-strict btn-sm btn-icon-only e-permits-pd__tool" type="button" aria-label="Anulează" data-tooltip-label="Anulează (Ctrl+Z)" aria-disabled="true" data-fb-undo><svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-undo"></use></svg></button>
-              <button class="btn btn-strict btn-sm btn-icon-only e-permits-pd__tool" type="button" aria-label="Refă" data-tooltip-label="Refă (Ctrl+Shift+Z)" aria-disabled="true" data-fb-redo><svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-redo"></use></svg></button>
-            </span>
-            <i class="e-permits-pd__toolsep" aria-hidden="true"></i>
-            <span class="e-permits-pd__toolgroup" role="radiogroup" aria-label="Lățimea paginii" data-fb-width-group>
-              <button class="btn btn-strict btn-sm btn-icon-only e-permits-pd__tool" type="button" aria-label="Desktop" data-tooltip-label="Desktop" role="radio" aria-checked="true" data-fb-width="desktop"><svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg?v=device-icons-v1#icon-device-desktop"></use></svg></button>
-              <button class="btn btn-strict btn-sm btn-icon-only e-permits-pd__tool" type="button" aria-label="Tabletă (768)" data-tooltip-label="Tabletă (768)" role="radio" aria-checked="false" tabindex="-1" data-fb-width="tablet"><svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg?v=device-icons-v1#icon-device-tablet"></use></svg></button>
-              <button class="btn btn-strict btn-sm btn-icon-only e-permits-pd__tool" type="button" aria-label="Telefon (375)" data-tooltip-label="Telefon (375)" role="radio" aria-checked="false" tabindex="-1" data-fb-width="phone"><svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg?v=device-icons-v1#icon-device-phone"></use></svg></button>
-            </span>
-            <i class="e-permits-pd__toolsep" aria-hidden="true"></i>
-            <span class="e-permits-pd__toolgroup">
-              <button class="btn btn-strict btn-sm btn-icon-only e-permits-pd__tool" type="button" aria-label="Previzualizare" data-tooltip-label="Previzualizare" aria-pressed="false" data-fb-toolbar-preview><svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-eye-open"></use></svg></button>
-              <button class="btn btn-strict btn-sm btn-icon-only e-permits-pd__tool" type="button" aria-label="Structură" data-tooltip-label="Structură" aria-pressed="false" aria-expanded="false" aria-controls="fb-outline" data-fb-outline-toggle><svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-list-bullets"></use></svg></button>
-            </span>
-          </div>
-          <aside class="e-permits-pd__float e-permits-builder__outline" id="fb-outline" aria-label="Structură" hidden data-fb-outline>
-            <div class="e-permits-pd__card-head">
-              <h2 class="e-permits-pd__card-title">Structură</h2>
-              <button class="btn btn-strict btn-sm btn-icon-only e-permits-pd__tool" type="button" aria-label="Închide structura" data-tooltip-label="Închide structura (Esc)" data-fb-outline-close><svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-cross-small"></use></svg></button>
-            </div>
-            <div class="e-permits-builder__outline-body" data-fb-outline-body></div>
           </aside>
         </div>
       </div>
