@@ -1246,6 +1246,21 @@ document.addEventListener("DOMContentLoaded", () => {
         </div>
       </div>`;
   }
+  /* chip-band-v1 (2026-11-20): the COMPACT read-only band of a container's columns / fields (grid card on the canvas,
+     nested grid / sub-form inside the Constructor grilă): label + one chip per child (type icon · name · red star ·
+     error), wrapping; NO „+ Coloană” and no drag (adding / ordering = the Constructor grilă); a chip opens it with that
+     column selected (data-gb-chip, handled in grid-builder.js) */
+  function chipBandHtml(field) {
+    const inGrid = field.type === "grid";
+    return `
+      <div class="e-permits-builder__subs e-permits-builder__subs--bare" role="group" aria-label="${inGrid ? "Coloanele grilei" : "Câmpurile blocului"} „${esc(fieldName(field))}”">
+        <span class="e-permits-builder__subs-label" aria-hidden="true">${inGrid ? "Coloane" : "Câmpuri"}</span>
+        ${kidsOf(field).map((child) => {
+          const bad = childHasIssue(child);
+          return `<button class="e-permits-builder__sub e-permits-builder__sub--link${bad ? " has-issue" : ""}" type="button" data-gb-chip="${child.id}" aria-label="${esc(`${child.type === "grid" ? "Grilă imbricată" : comp(child.type).label}: ${fieldName(child)}${child.required ? ", obligatoriu" : ""}${bad ? ", are erori" : ""}. Deschide în constructor`)}">${icon(comp(child.type).icon, 16)}<span data-cell-tooltip>${esc(fieldName(child))}</span>${child.required ? requiredMark() : ""}${bad ? icon("icon-warning-filled", 16) : ""}</button>`;
+        }).join("")}
+      </div>`;
+  }
   function emptyContainerHtml(field) {
     const inGrid = field.type === "grid";
     return window.GEAPEmptyState?.render({ title: inGrid ? "Grila nu are coloane" : "Blocul nu are câmpuri", text: inGrid ? "Deschide constructorul grilei și adaugă coloanele rândului." : "Trage un câmp din bibliotecă pe banda „Câmpuri” sau apasă „+ Câmp”.", icon: inGrid ? "dot-grid" : "page-add", compact: true, bare: true }) || "";
@@ -1282,7 +1297,7 @@ document.addEventListener("DOMContentLoaded", () => {
           </div>
         </div>
         ${isContainer(field) && field.type !== "grid" ? subsStripHtml(field) : ""}
-        <div class="e-permits-builder__field-render" inert>${field.type === "hidden" ? hiddenMarkerHtml(field) : isContainer(field) && !kidsOf(field).length ? emptyContainerHtml(field) : (field.type === "grid" && window.GEAPGridBuilder?.summaryHtml?.(field)) || foHtml(field, { prefix: "cv", inCard: true })}</div>
+        <div class="e-permits-builder__field-render"${field.type === "grid" && kidsOf(field).length ? "" : " inert"}>${field.type === "hidden" ? hiddenMarkerHtml(field) : isContainer(field) && !kidsOf(field).length ? emptyContainerHtml(field) : (field.type === "grid" && window.GEAPGridBuilder?.summaryHtml?.(field)) || foHtml(field, { prefix: "cv", inCard: true })}</div>
         ${NO_VALUE.includes(field.type) && !errors.length && !(field.rules || []).length && !field.preset ? "" : `
         <div class="e-permits-builder__field-foot">
           ${NO_VALUE.includes(field.type) ? "" : `<span class="e-permits-builder__field-key" data-cell-tooltip>${esc(field.key)}</span>`}
@@ -4791,7 +4806,7 @@ document.addEventListener("DOMContentLoaded", () => {
     esc, icon, tr, comp, fieldName, requiredMark, announce, clone,
     COLUMN_SIMPLE, COLUMN_COMPLEX, BLOCK_TYPES, MAX_GRID_LEVEL, T_GEN, T_DATA, T_VAL, TAB_LABELS,
     kidsOf, isNest, isContainer, findField, findChild, fieldOrChild, containerOf, levelOf, childAllowed, allFields,
-    errorsOf, childErrorsOf, childHasIssue, gridFo, toFo, foHtml, addChildMenuHtml,
+    errorsOf, childErrorsOf, childHasIssue, chipBandHtml, gridFo, toFo, foHtml, addChildMenuHtml,
     select, addChild, moveChild, deleteChild, duplicateChild, runMenuAction, renderPanel, setMode,
     /* „Gata” › Anulează: back to the form as it was when the builder opened (one undo step) */
     revertTo(snapshot) { state.undo.push(JSON.stringify(form)); state.redo = []; restore(snapshot); if (G) { G.dirty = true; syncGlobalBar(); } else saveDb(); },

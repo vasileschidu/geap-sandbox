@@ -3454,8 +3454,10 @@
             "fb-row-09b": fb(phone("fld-products", async (cell, win) => { win.GEAPFoRepeat.fill(cell); await new Promise((r) => setTimeout(r, 300)); cell.scrollIntoView({ block: "start" }); }), F09),
             /* 10 grid builder canvas: the row card, „Cantitatea” selected, „+ Coloană” tile, the saved line under it */
             "fb-row-10": fb(async (h) => { await h.scroll(prodCard); await h.click(`${prodCard} [data-gb-open]`); await h.find(`${GBV} [data-gb-cell]`); await h.click(`${GBV} [data-gb-col='col-09-qty']`); await h.wait(250); }, F09),
-            /* 11 the grid card on the form: no band, the inert row card + „7 coloane” + „Deschide constructorul grilei” */
+            /* 11 the grid card on the form: header + label + hint + the read-only „Coloane” chip band (chip-band-v1) + key line; 12 = a chip opens the builder on that column; 13 = chip of a nested sub-form inside the builder drills in */
             "fb-row-11": fb(async (h) => { await h.scroll(prodCard); }, F09),
+            "fb-row-12": fb(async (h) => { await h.scroll(prodCard); await h.click(`${prodCard} [data-gb-chip='col-09-qty']`); await h.find(`${GBV} [data-gb-cell]`); await h.wait(250); }, F09),
+            "fb-row-13": fb(async (h) => { const eq = "[data-builder-field][data-id='fld-equipment']"; await h.scroll(eq); await h.click(`${eq} [data-gb-open]`); await h.find(`${GBV} [data-gb-cell]`); await h.scroll(`${GBV} [data-gb-chip='bf-09-agent']`); await h.click(`${GBV} [data-gb-chip='bf-09-agent']`); await h.wait(250); }, F09),
           };
         })()
       };

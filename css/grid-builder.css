@@ -178,15 +178,22 @@
   pointer-events: auto;
 }
 
-/* nested grid / sub-form column = a compact list of its columns / fields (no inputs) */
+.e-permits-gridb__cell-render .e-permits-gridb__summary :is(.e-permits-builder__sub, .btn) {
+  pointer-events: auto;
+}
+
+/* nested grid / sub-form column = label + hint + the chip band of its columns / fields (chip-band-v1, no inputs) */
 .e-permits-gridb__summary {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-8, 8px);
+  gap: var(--spacing-4, 4px);
 }
 
-.e-permits-gridb__summary > .e-permits-fo-field__hint,
-.e-permits-gridb__kids-more {
+.e-permits-gridb__summary > .e-permits-builder__subs {
+  margin-top: var(--spacing-4, 4px);
+}
+
+.e-permits-gridb__summary > .e-permits-fo-field__hint {
   margin: 0;
 }
 
@@ -199,46 +206,6 @@
 
 .e-permits-gridb__summary .btn {
   align-self: flex-start;
-}
-
-.e-permits-gridb__kids {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-}
-
-.e-permits-gridb__kid {
-  align-items: center;
-  border-bottom: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
-  display: flex;
-  gap: var(--spacing-12, 12px);
-  min-height: var(--spacing-32, 32px);
-  min-width: 0;
-}
-
-.e-permits-gridb__kid:last-child {
-  border-bottom: 0;
-}
-
-.e-permits-gridb__kid-icon {
-  color: var(--color-text-base-secondary, #383838);
-  display: inline-flex;
-  flex: 0 0 auto;
-}
-
-.e-permits-gridb__kid-name {
-  color: var(--color-text-base-default, #121212);
-  flex: 1 1 auto;
-  font-size: var(--font-size-fs-14, 14px);
-  line-height: var(--line-height-lh-20, 20px);
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.e-permits-gridb__kid > :is(.e-permits-fo-required, .status-tag, .tag) {
-  flex: 0 0 auto;
 }
 
 /* „+ Coloană”: the dashed add zone as a tile at the end of the card grid, the height of its row */

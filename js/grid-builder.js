@@ -200,35 +200,18 @@
         ${I.isNest(child) ? `<button class="btn btn-text-neutral btn-sm e-permits-gridb__drill" type="button" aria-label="${I.esc(`Deschide ${child.type === "subform" ? "sub-formularul" : "sub-grila"} „${name}”`)}" data-gb-drill="${child.id}"><span>Deschide</span>${I.icon(DRILL_ICON, 16)}</button>` : ""}
       </div>`;
   }
-  /* a nested grid / sub-form column on the canvas = a compact summary, never its inputs (gb-inert-v1): label + hint,
-     then one line per column / field (type icon · name · red star · width tag), 6 lines at most, „+N câmpuri” */
-  const KID_LINES = 6;
-  const spanName = (kid, sub) => {
-    if (I.isNest(kid) || kid.type === "textarea") return "Toată lățimea";
-    if (sub) { const n = Number(kid.span) || 6; return n >= 12 ? "Toată lățimea" : n > 6 ? "Lată" : n >= 5 ? "Medie" : "Îngustă"; }
-    return WIDTH_NAMES[kid.width || "auto"] || "Medie";
-  };
+  /* a nested grid / sub-form column (and the form's grid card) = label + hint + the „Coloane” / „Câmpuri” chip band
+     (chip-band-v1): compact, no inputs, no add, no drag; a chip opens the builder on that column */
   function summaryHtml(child) {
     if (!I) return "";
     const sub = child.type === "subform";
     const kids = I.kidsOf(child);
-    const star = '<span class="e-permits-fo-required" aria-label="obligatoriu"><svg class="icon" width="12" height="12" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-asterisk"></use></svg></span>';
-    const line = (kid) => `
-        <li class="e-permits-gridb__kid">
-          <span class="e-permits-gridb__kid-icon" aria-hidden="true">${I.icon(I.comp(kid.type).icon, 20)}</span>
-          <span class="e-permits-gridb__kid-name" data-cell-tooltip>${I.esc(I.fieldName(kid))}</span>
-          ${kid.required ? star : ""}
-          ${I.ui().renderTag?.(spanName(kid, sub), "neutral") || ""}
-        </li>`;
-    const more = kids.length - KID_LINES;
     const open = `<button class="btn btn-secondary btn-sm" type="button" data-gb-drill="${child.id}">${I.icon("icon-plus-small", 16)}<span>${sub ? "Adaugă câmp" : "Adaugă coloană"}</span></button>`;
     return `
       <div class="e-permits-gridb__summary">
         <div class="e-permits-gridb__summary-label">${I.esc(I.fieldName(child))}</div>
         ${I.tr(child.help) ? `<p class="e-permits-fo-field__hint">${I.esc(I.tr(child.help))}</p>` : ""}
-        ${kids.length
-          ? `<ul class="e-permits-gridb__kids">${kids.slice(0, KID_LINES).map(line).join("")}</ul>${more > 0 ? `<p class="e-permits-fo-field__hint e-permits-gridb__kids-more">+${more} ${sub ? (more === 1 ? "câmp" : "câmpuri") : (more === 1 ? "coloană" : "coloane")}</p>` : ""}`
-          : `<p class="e-permits-fo-field__hint">Niciun ${sub ? "câmp" : "coloană"} încă</p>${open}`}
+        ${kids.length ? I.chipBandHtml(child) : `<p class="e-permits-fo-field__hint">Niciun ${sub ? "câmp" : "coloană"} încă</p>${open}`}
       </div>`;
   }
   /* the one-line hint above the sample (only while nothing is selected): where the structure is edited, where it works */
@@ -286,7 +269,7 @@
       cell.setAttribute("aria-describedby", "gb-col-hint");
       cell.setAttribute("aria-label", `${typeLabel(child.type)}: ${name}, ${span} din 12${child.required ? ", obligatoriu" : ""}${on ? ", selectată" : ""}${issue ? `, eroare: ${issue.message}` : ""}`);
       const body = I.isNest(child) ? summaryHtml(child) : render;
-      cell.innerHTML = `${cellMetaHtml(child, span)}<div class="e-permits-builder__field-render e-permits-gridb__cell-render"${I.isNest(child) && !I.kidsOf(child).length ? "" : " inert"}>${body}</div>`;
+      cell.innerHTML = `${cellMetaHtml(child, span)}<div class="e-permits-builder__field-render e-permits-gridb__cell-render"${I.isNest(child) ? "" : " inert"}>${body}</div>`;
     });
     fields.dataset.gbFields = "";
     fields.insertAdjacentHTML("beforeend", `
@@ -315,7 +298,7 @@
             </div>
             ${issue ? `<span class="e-permits-gridb__col-issue" data-tooltip-text="${I.esc(issue.message)}"><span class="e-permits-ntpl-dot e-permits-tariff__tab-error"></span></span>` : ""}
           </div>
-          <div class="e-permits-builder__field-render"${I.isNest(child) && !I.kidsOf(child).length ? "" : " inert"}>${I.isNest(child) ? summaryHtml(child) : I.foHtml(child, { prefix: "gbf", inCard: true })}</div>
+          <div class="e-permits-builder__field-render"${I.isNest(child) ? "" : " inert"}>${I.isNest(child) ? summaryHtml(child) : I.foHtml(child, { prefix: "gbf", inCard: true })}</div>
         </article>`;
     }).join("");
     const empty = kids.length ? "" : `<div class="e-permits-gridb__form-empty" data-gb-drop-empty>${window.GEAPEmptyState?.render({ title: "Adaugă primul câmp", text: "Alege un tip din stânga sau trage-l aici. Câmpurile apar într-o secțiune a cardului rândului.", icon: "page-child", compact: true, bare: true }) || ""}</div>`;
@@ -605,7 +588,7 @@
         } else { gb.stack = [gb.topId]; I.select("field", id, { tab }); }
         return;
       }
-      if (event.target.closest("[data-gb-drill]")) return; /* the document handler */
+      if (event.target.closest("[data-gb-drill], [data-gb-chip]")) return; /* the document handler */
       const type = event.target.closest("[data-gb-type]");
       if (type) {
         const reason = type.getAttribute("aria-disabled") === "true" ? type.dataset.tooltipReason : "";
@@ -711,6 +694,15 @@
       if (opener) { open(opener.dataset.gbOpen); return; }
       const drillButton = event.target.closest?.("[data-gb-drill]");
       if (drillButton) drill(drillButton.dataset.gbDrill);
+      /* chip-band-v1: a chip of the column band = the builder on that column (from the form: open the grid; inside: drill) */
+      const chip = event.target.closest?.("[data-gb-chip]");
+      if (chip) {
+        const id = chip.dataset.gbChip;
+        const parent = I.containerOf(id);
+        if (!parent) return;
+        if (gb.open) drill(parent.id); else open(parent.id);
+        if (gb.open) I.select("child", id);
+      }
     });
     I.el.canvas.addEventListener("dblclick", (event) => {
       const chip = event.target.closest("[data-fb-child]");

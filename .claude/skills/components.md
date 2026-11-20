@@ -4965,8 +4965,8 @@ renderer: a grid holds `columns`, a block holds `fields` (field objects; same pa
 per cell / card); rules point at children by id (`rowRules.keyColumn` / `groupColumn`, cascade
 `dataSource.parentFieldId`). Seed form `?formular=form-sanitary-09` (CAEM block, equipment grid with a nested
 grid, work points with Raion → Localitate).
-- **Builder.** (row-cards-v1: a GRID card has no band any more — „N coloane” + the compact column list (gb-inert-v1, no inputs) + „Deschide constructorul
-  grilei”; the band below stays for blocks.) Container card = tools + the **band** (chips of columns / fields; click = the child's panel,
+- **Builder.** (row-cards-v1: a GRID card = header (chip „Grilă editabilă” · 12/12 · „N coloane” · „Deschide constructorul grilei” · ⋮) + label + hint + the READ-ONLY
+  chip band `.e-permits-builder__subs--bare` (chip-band-v1 = `chipBandHtml`: „Coloane” + one `.e-permits-builder__sub--link[data-gb-chip]` per column, wrapping, NO „+ Coloană”, no drag; a chip opens the Constructor grilă with that column selected) + key line; ≈ 190 px for 7 columns. The editable band below stays for blocks.) Container card = tools + the **band** (chips of columns / fields; click = the child's panel,
   drag = reorder, palette types dropped on the band = new children, Alt + ← / → (grid) or ↑ / ↓ (block) and
   Delete on a chip, „+ Coloană / + Câmp” = typed menu: Coloane simple · Coloane complexe (locked with a reason
   until one simple column exists — US-34 AC-06; Grilă imbricată locked at level 3 — US-38) · Copie a unui
@@ -5097,7 +5097,7 @@ same view.
   salvat” + the saved line (inert, NO Editează / Elimină). Empty grid = `GEAPEmptyState` „Adaugă prima coloană”.
 - **Sub-form level.** A form-layout canvas: 2 columns, gap 24, a field > 6/12 spans both; cards = the designer's field
   card (type tag, inert FO render, selected ring, red border + dot on errors), Alt + ↑ / ↓, Delete, drag; „Adaugă câmp”;
-  the same hint („Apasă pe un câmp ca să-l configurezi …”) + „Rând de exemplu” label; a nested column = the compact list.
+  the same hint („Apasă pe un câmp ca să-l configurezi …”) + „Rând de exemplu” label; a nested column = label + hint + the same read-only chip band (chip click = drill into it with that column selected).
 - **Right.** The designer's panel: a column → the column panel (name + type + width on General, list / options on Date);
   nothing selected = the grid's settings (General, Date, Validare rows / key / group, Avansat storage). A nested column
   shows „Deschide sub-grila / sub-formularul” on top.
