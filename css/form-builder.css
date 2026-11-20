@@ -845,6 +845,13 @@
 
 /* chip-band-v2 (user 2026-11-20 „simple”): the band's chips are plain read-only text — name + star, no icon, no own
    hover / pointer (the card around them is the click target) */
+/* chip-band-v3: name (medium) + the field type in tertiary regular, so every chip reads „Componente  Grilă imbricată · 3 col.” */
+.e-permits-builder__sub-type {
+  color: var(--color-text-base-tertiary);
+  flex: 0 0 auto;
+  font-weight: var(--font-weight-fw-regular, 400);
+}
+
 .e-permits-builder__sub--static,
 .e-permits-builder__sub--static:hover {
   background: var(--color-background-base-default, #fff);

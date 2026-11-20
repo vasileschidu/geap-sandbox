@@ -1256,7 +1256,7 @@ document.addEventListener("DOMContentLoaded", () => {
         <span class="e-permits-builder__subs-label" aria-hidden="true">${inGrid ? "Coloane" : "Câmpuri"}</span>
         ${kidsOf(field).map((child) => {
           const bad = childHasIssue(child);
-          return `<span class="e-permits-builder__sub e-permits-builder__sub--static${bad ? " has-issue" : ""}"><span data-cell-tooltip>${esc(fieldName(child))}</span>${child.required ? requiredMark() : ""}${bad ? icon("icon-warning-filled", 16) : ""}</span>`;
+          return `<span class="e-permits-builder__sub e-permits-builder__sub--static${bad ? " has-issue" : ""}"><span data-cell-tooltip>${esc(fieldName(child))}</span>${child.required ? requiredMark() : ""}<span class="e-permits-builder__sub-type">${esc(child.type === "grid" ? `Grilă imbricată · ${kidsOf(child).length} col.` : child.type === "subform" ? `Sub-formular · ${kidsOf(child).length} câmpuri` : comp(child.type).label)}</span>${bad ? icon("icon-warning-filled", 16) : ""}</span>`;
         }).join("")}
       </div>`;
   }
