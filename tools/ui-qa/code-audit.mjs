@@ -88,7 +88,8 @@ const AUDIT = (scope, SPACING, RADIUS, FONT) => {
   }
   // buttons: library classes, icon colour = label colour
   for (const b of root.querySelectorAll("button")) {
-    if (!vis(b)) continue;
+    /* inert content (an editor's preview of a form: grid builder row card, canvas cards) is not interactive */
+    if (!vis(b) || b.closest("[inert]")) continue;
     /* `link` = the library Link on a <button> (main.css styles `.link:disabled`) — e.g. the document name (doc-name-open-v1) */
     const lib = b.classList.contains("link") || /\b(btn|chip|chip__label|chip__close|segment-item|tab-button|e-permits-fo-select__button|checkbox|modal-close|e-permits-fo-subgen-select__button|e-permits-fo-intent-menu__item|btn-icon|e-permits-timeline__link|e-permits-stack__menu-trigger|e-permits-fo-subgen-chip__remove|e-permits-cfg-num-token|copy-value__button|select-control)\b/.test(b.className) || b.closest(".e-permits-fo-select__list, .sidebar, header, nav, .tabs, .e-permits-fo-testcfg");
     if (!lib) add("button-not-library", b, b.className.slice(0, 80));
@@ -108,7 +109,7 @@ const AUDIT = (scope, SPACING, RADIUS, FONT) => {
     }
     return box;
   };
-  const ctrls = [...root.querySelectorAll("button, input, select, a[href], [role=checkbox], label.checkbox")].filter(vis).map((el) => [el, clipped(el)]).filter(([, r]) => r.right - r.left > 1 && r.bottom - r.top > 1);
+  const ctrls = [...root.querySelectorAll("button, input, select, a[href], [role=checkbox], label.checkbox")].filter((el) => vis(el) && !el.closest("[inert]")).map((el) => [el, clipped(el)]).filter(([, r]) => r.right - r.left > 1 && r.bottom - r.top > 1);
   for (let i = 0; i < ctrls.length; i++) for (let j = i + 1; j < ctrls.length; j++) {
     const [a, ra] = ctrls[i], [b, rb] = ctrls[j];
     if (a.contains(b) || b.contains(a)) continue;

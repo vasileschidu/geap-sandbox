@@ -709,7 +709,7 @@
                         "en": ""
                       },
                       "help": {
-                        "ro": "Datele tehnice ale echipamentului; se completează sub rând.",
+                        "ro": "Datele tehnice ale echipamentului, în cardul rândului.",
                         "ru": "",
                         "en": ""
                       },
@@ -978,6 +978,413 @@
               ]
             },
             {
+              "id": "sec-09-products",
+              "title": {
+                "ro": "Produse depozitate",
+                "ru": "",
+                "en": ""
+              },
+              "description": {
+                "ro": "Produsele alimentare păstrate în echipamentele frigorifice.",
+                "ru": "",
+                "en": ""
+              },
+              "showTitle": true,
+              "showSeparator": true,
+              "fields": [
+                {
+                  "id": "fld-products",
+                  "type": "grid",
+                  "key": "ProduseDepozitate",
+                  "published": true,
+                  "label": {
+                    "ro": "Produse alimentare depozitate",
+                    "ru": "",
+                    "en": ""
+                  },
+                  "help": {
+                    "ro": "Câte un rând pentru fiecare produs, cu ambalajul lui.",
+                    "ru": "",
+                    "en": ""
+                  },
+                  "placeholder": {
+                    "ro": "",
+                    "ru": "",
+                    "en": ""
+                  },
+                  "span": 12,
+                  "required": true,
+                  "addLabel": {
+                    "ro": "Adaugă produs",
+                    "ru": "",
+                    "en": ""
+                  },
+                  "emptyText": {
+                    "ro": "Niciun produs. Apasă „Adaugă produs” pentru a începe.",
+                    "ru": "",
+                    "en": ""
+                  },
+                  "rowTitle": {
+                    "ro": "Produs",
+                    "ru": "",
+                    "en": ""
+                  },
+                  "rowRules": {
+                    "minRows": 1,
+                    "maxRows": "",
+                    "defaultRows": 1,
+                    "allowAdd": true,
+                    "allowRemove": true,
+                    "keyColumn": "col-09-prod",
+                    "groupColumn": "",
+                    "pageSize": 10
+                  },
+                  "messages": {
+                    "min": {
+                      "ro": "",
+                      "ru": "",
+                      "en": ""
+                    },
+                    "max": {
+                      "ro": "",
+                      "ru": "",
+                      "en": ""
+                    },
+                    "duplicate": {
+                      "ro": "",
+                      "ru": "",
+                      "en": ""
+                    },
+                    "group": {
+                      "ro": "",
+                      "ru": "",
+                      "en": ""
+                    }
+                  },
+                  "columns": [
+                    {
+                      "id": "col-09-prod",
+                      "type": "text",
+                      "key": "Produs",
+                      "label": {
+                        "ro": "Denumirea produsului",
+                        "ru": "",
+                        "en": ""
+                      },
+                      "help": {
+                        "ro": "",
+                        "ru": "",
+                        "en": ""
+                      },
+                      "placeholder": {
+                        "ro": "Ex.: Lapte pasteurizat 2,5%",
+                        "ru": "",
+                        "en": ""
+                      },
+                      "span": 12,
+                      "required": true,
+                      "readOnly": false,
+                      "validation": {
+                        "message": {
+                          "ro": "",
+                          "ru": "",
+                          "en": ""
+                        }
+                      },
+                      "width": "l",
+                      "maxLength": 150
+                    },
+                    {
+                      "id": "col-09-qty",
+                      "type": "number",
+                      "key": "Cantitatea",
+                      "label": {
+                        "ro": "Cantitatea",
+                        "ru": "",
+                        "en": ""
+                      },
+                      "help": {
+                        "ro": "",
+                        "ru": "",
+                        "en": ""
+                      },
+                      "placeholder": {
+                        "ro": "",
+                        "ru": "",
+                        "en": ""
+                      },
+                      "span": 12,
+                      "required": true,
+                      "readOnly": false,
+                      "validation": {
+                        "message": {
+                          "ro": "",
+                          "ru": "",
+                          "en": ""
+                        },
+                        "min": 0.1
+                      },
+                      "width": "s",
+                      "numberKind": "decimal",
+                      "decimals": 1,
+                      "unit": ""
+                    },
+                    {
+                      "id": "col-09-uom",
+                      "type": "select",
+                      "key": "UnitateMasura",
+                      "label": {
+                        "ro": "Unitatea de măsură",
+                        "ru": "",
+                        "en": ""
+                      },
+                      "help": {
+                        "ro": "",
+                        "ru": "",
+                        "en": ""
+                      },
+                      "placeholder": {
+                        "ro": "Alege",
+                        "ru": "",
+                        "en": ""
+                      },
+                      "span": 12,
+                      "required": true,
+                      "readOnly": false,
+                      "validation": {
+                        "message": {
+                          "ro": "",
+                          "ru": "",
+                          "en": ""
+                        }
+                      },
+                      "width": "s",
+                      "dataSource": {
+                        "mode": "static",
+                        "multilingual": false,
+                        "values": [
+                          {
+                            "id": 1,
+                            "label": "kg",
+                            "isValid": true
+                          },
+                          {
+                            "id": 2,
+                            "label": "t",
+                            "isValid": true
+                          },
+                          {
+                            "id": 3,
+                            "label": "l",
+                            "isValid": true
+                          },
+                          {
+                            "id": 4,
+                            "label": "buc.",
+                            "isValid": true
+                          }
+                        ]
+                      }
+                    },
+                    {
+                      "id": "col-09-pack",
+                      "type": "select",
+                      "key": "TipAmbalaj",
+                      "label": {
+                        "ro": "Tipul ambalajului",
+                        "ru": "",
+                        "en": ""
+                      },
+                      "help": {
+                        "ro": "",
+                        "ru": "",
+                        "en": ""
+                      },
+                      "placeholder": {
+                        "ro": "Alege",
+                        "ru": "",
+                        "en": ""
+                      },
+                      "span": 12,
+                      "required": false,
+                      "readOnly": false,
+                      "validation": {
+                        "message": {
+                          "ro": "",
+                          "ru": "",
+                          "en": ""
+                        }
+                      },
+                      "width": "s",
+                      "dataSource": {
+                        "mode": "static",
+                        "multilingual": false,
+                        "values": [
+                          {
+                            "id": 1,
+                            "label": "Cutie de carton",
+                            "isValid": true
+                          },
+                          {
+                            "id": 2,
+                            "label": "Ladă",
+                            "isValid": true
+                          },
+                          {
+                            "id": 3,
+                            "label": "Sac",
+                            "isValid": true
+                          },
+                          {
+                            "id": 4,
+                            "label": "Borcan de sticlă",
+                            "isValid": true
+                          },
+                          {
+                            "id": 5,
+                            "label": "Peliculă",
+                            "isValid": true
+                          }
+                        ]
+                      }
+                    },
+                    {
+                      "id": "col-09-psize",
+                      "type": "number",
+                      "key": "MarimeAmbalaj",
+                      "label": {
+                        "ro": "Mărimea ambalajului",
+                        "ru": "",
+                        "en": ""
+                      },
+                      "help": {
+                        "ro": "",
+                        "ru": "",
+                        "en": ""
+                      },
+                      "placeholder": {
+                        "ro": "",
+                        "ru": "",
+                        "en": ""
+                      },
+                      "span": 12,
+                      "required": false,
+                      "readOnly": false,
+                      "validation": {
+                        "message": {
+                          "ro": "",
+                          "ru": "",
+                          "en": ""
+                        }
+                      },
+                      "width": "s",
+                      "numberKind": "decimal",
+                      "decimals": 1,
+                      "unit": ""
+                    },
+                    {
+                      "id": "col-09-punit",
+                      "type": "select",
+                      "key": "UnitateAmbalaj",
+                      "label": {
+                        "ro": "Unitatea",
+                        "ru": "",
+                        "en": ""
+                      },
+                      "help": {
+                        "ro": "",
+                        "ru": "",
+                        "en": ""
+                      },
+                      "placeholder": {
+                        "ro": "Alege",
+                        "ru": "",
+                        "en": ""
+                      },
+                      "span": 12,
+                      "required": false,
+                      "readOnly": false,
+                      "validation": {
+                        "message": {
+                          "ro": "",
+                          "ru": "",
+                          "en": ""
+                        }
+                      },
+                      "width": "s",
+                      "dataSource": {
+                        "mode": "static",
+                        "multilingual": false,
+                        "values": [
+                          {
+                            "id": 1,
+                            "label": "kg",
+                            "isValid": true
+                          },
+                          {
+                            "id": 2,
+                            "label": "g",
+                            "isValid": true
+                          },
+                          {
+                            "id": 3,
+                            "label": "l",
+                            "isValid": true
+                          },
+                          {
+                            "id": 4,
+                            "label": "ml",
+                            "isValid": true
+                          }
+                        ]
+                      }
+                    },
+                    {
+                      "id": "col-09-pqty",
+                      "type": "number",
+                      "key": "CantitatePeAmbalaj",
+                      "label": {
+                        "ro": "Cantitate pe ambalaj",
+                        "ru": "",
+                        "en": ""
+                      },
+                      "help": {
+                        "ro": "",
+                        "ru": "",
+                        "en": ""
+                      },
+                      "placeholder": {
+                        "ro": "",
+                        "ru": "",
+                        "en": ""
+                      },
+                      "span": 12,
+                      "required": false,
+                      "readOnly": false,
+                      "validation": {
+                        "message": {
+                          "ro": "",
+                          "ru": "",
+                          "en": ""
+                        }
+                      },
+                      "width": "s",
+                      "numberKind": "integer",
+                      "decimals": 0,
+                      "unit": "buc."
+                    }
+                  ],
+                  "validation": {
+                    "message": {
+                      "ro": "",
+                      "ru": "",
+                      "en": ""
+                    }
+                  }
+                }
+              ]
+            },
+            {
               "id": "sec-09-points",
               "title": {
                 "ro": "Puncte de lucru",
@@ -1091,7 +1498,7 @@
                           "en": ""
                         }
                       },
-                      "width": "m",
+                      "width": "s",
                       "dataSource": {
                         "mode": "existing",
                         "classifierId": "reg_raioane",
@@ -1127,7 +1534,7 @@
                           "en": ""
                         }
                       },
-                      "width": "m",
+                      "width": "s",
                       "dataSource": {
                         "mode": "existing",
                         "classifierId": "reg_localitati",

@@ -134,11 +134,11 @@ document.addEventListener("DOMContentLoaded", () => {
     contact: { label: "Persoana de contact", icon: "icon-contacts", category: "registry", desc: "Eu / altă persoană", span: 12, fixed: true, tabs: [T_GEN, T_DATA, T_LOGIC, T_ADV], defaults: () => ({ contactDefault: "self", contactParts: clone(CONTACT_PARTS_DEFAULT) }) },
     subdivision: { label: "Subdiviziune", icon: "icon-group", category: "registry", desc: "Subdiviziunea care examinează", span: 4, tabs: CHOICE_TABS, defaults: () => ({ subdivisionSource: "reg_subdiv_ansa", subdivisionMode: "derived", addressFieldId: "", subdivisionAuto: "" }) },
     /* batch 4 (1:N): a table of rows (US-33…39) and a card per element (the CAEM activities model) */
-    grid: { label: "Grilă editabilă", icon: "icon-dot-grid", category: "repeat", desc: "Tabel cu rânduri adăugate de solicitant", span: 12, fixed: true, container: true, tabs: CHOICE_TABS, defaults: () => gridDefaults() },
+    grid: { label: "Grilă editabilă", icon: "icon-dot-grid", category: "repeat", desc: "Rânduri adăugate de solicitant, câte un card", span: 12, fixed: true, container: true, tabs: CHOICE_TABS, defaults: () => gridDefaults() },
     repeat: { label: "Bloc repetabil", icon: "icon-page-add", category: "repeat", desc: "„Adaugă alt…” pentru obiecte repetate", span: 12, fixed: true, container: true, tabs: CHOICE_TABS, defaults: () => repeatDefaults() },
     /* fb-subform-v1 (2026-11-20): a grid column that holds fields — the „form inside a form”, opened in
        the row's detail row; only a column (no palette entry, no field of its own) */
-    subform: { label: "Sub-formular", icon: "icon-page-child", category: "column", desc: "Câmpuri în detaliul rândului", span: 12, fixed: true, container: true, columnOnly: true, tabs: [T_GEN, T_DATA, T_VAL, T_ADV], defaults: () => subformDefaults() },
+    subform: { label: "Sub-formular", icon: "icon-page-child", category: "column", desc: "Câmpuri într-o secțiune a rândului", span: 12, fixed: true, container: true, columnOnly: true, tabs: [T_GEN, T_DATA, T_VAL, T_ADV], defaults: () => subformDefaults() },
     file: { label: "Fișier", icon: "icon-attachment", category: "files", desc: "Încărcare PDF, imagini", span: 12, fixed: true, tabs: INPUT_TABS, defaults: () => ({ fileTypes: ["PDF", "JPG", "PNG"], maxSizeMb: 10, maxFiles: 1, validation: { message: i18n() } }) },
     mdocs: { label: "Document din MDocs", icon: "icon-cloud-upload", category: "files", desc: "Alege din MDocs sau încarcă", span: 12, fixed: true, tabs: CHOICE_TABS, defaults: () => ({ docType: "" }) },
     section: { label: "Secțiune", icon: "icon-templates", category: "structure", desc: "Grupează câmpurile, cu titlu", structural: true },
@@ -848,7 +848,12 @@ document.addEventListener("DOMContentLoaded", () => {
         if (field.dataSource?.search && field.dataSource.mode === "existing") return { ...base, type: "combobox", placeholder: base.placeholder || "Selectează", options: optionMeta(field).map((m) => ({ code: m.code, label: m.name, group: m.group, subgenres: [] })) };
         return { ...base, value: "", placeholder: base.placeholder || "Selectează", options: selectOptions(field) };
       }
-      case "grid": return gridFo(field, { prefix, lang }, 1);
+      /* row-cards-v1: on a canvas card the grid shows one sample row in its EDIT card (fields side by side) */
+      case "grid": {
+        const def = gridFo(field, { prefix, lang }, 1);
+        if (inCard && def.columns.length) def.value = (window.GEAPFoRepeat?.sampleRows?.(def, 1) || []).map((row) => ({ ...row, empty: true }));
+        return def;
+      }
       case "repeat": return repeatFo(field, { prefix, lang });
       case "multiselect": return { ...base, value: [], options: selectOptions(field) };
       case "segment": return { ...base, value: "", options: (field.options || []).map((option) => ({ value: option.value, label: option.label })) };
@@ -1243,7 +1248,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
   function emptyContainerHtml(field) {
     const inGrid = field.type === "grid";
-    return window.GEAPEmptyState?.render({ title: inGrid ? "Grila nu are coloane" : "Blocul nu are câmpuri", text: inGrid ? "Trage un tip din bibliotecă pe banda „Coloane” sau apasă „+ Coloană”." : "Trage un câmp din bibliotecă pe banda „Câmpuri” sau apasă „+ Câmp”.", icon: inGrid ? "dot-grid" : "page-add", compact: true, bare: true }) || "";
+    return window.GEAPEmptyState?.render({ title: inGrid ? "Grila nu are coloane" : "Blocul nu are câmpuri", text: inGrid ? "Deschide constructorul grilei și adaugă coloanele rândului." : "Trage un câmp din bibliotecă pe banda „Câmpuri” sau apasă „+ Câmp”.", icon: inGrid ? "dot-grid" : "page-add", compact: true, bare: true }) || "";
   }
 
   function fieldCardHtml(field, section, index, total) {
@@ -1269,13 +1274,14 @@ document.addEventListener("DOMContentLoaded", () => {
             <span class="e-permits-builder__drag-grip" aria-hidden="true">${icon("icon-drag", 16)}</span>
             <em class="e-permits-builder__tag e-permits-builder__tag--strong" data-cell-tooltip>${esc(meta.label)}</em>
             <em class="e-permits-builder__tag e-permits-builder__tag--outlined" data-fb-span-tag>${spanOf(field)}/12</em>
+            ${field.type === "grid" ? `<em class="e-permits-builder__tag e-permits-builder__tag--outlined" data-fb-col-count>${kidsOf(field).length} ${kidsOf(field).length === 1 ? "coloană" : "coloane"}</em>` : ""}
           </div>
           <div class="e-permits-builder__field-actions">
             ${field.type === "grid" ? `<button class="btn btn-secondary btn-sm" type="button" data-gb-open="${field.id}">${icon("icon-columns", 16)}<span>Deschide constructorul grilei</span></button>` : ""}
             ${ui().renderStackMenu?.(moveItems, name) || ""}
           </div>
         </div>
-        ${isContainer(field) ? subsStripHtml(field) : ""}
+        ${isContainer(field) && field.type !== "grid" ? subsStripHtml(field) : ""}
         <div class="e-permits-builder__field-render" inert>${field.type === "hidden" ? hiddenMarkerHtml(field) : isContainer(field) && !kidsOf(field).length ? emptyContainerHtml(field) : foHtml(field, { prefix: "cv", inCard: true })}</div>
         ${NO_VALUE.includes(field.type) && !errors.length && !(field.rules || []).length && !field.preset ? "" : `
         <div class="e-permits-builder__field-foot">
@@ -1450,18 +1456,19 @@ document.addEventListener("DOMContentLoaded", () => {
       reason,
     });
   };
-  /* a grid column's share of the table row: parts (Îngustă 2 · Medie 3 · Lată 4); „auto” = Medie */
-  const COLUMN_PARTS = [["s", 2, "Îngustă"], ["m", 3, "Medie"], ["l", 4, "Lată"]];
+  /* a grid column's span in the row card (row-cards-v1, 2026-11-20): of 12 — Îngustă 3 · Medie 4 · Lată 6 · Toată
+     lățimea 12 (js/fo-grid.js SPAN); „auto” = Medie; textarea / nested grid / sub-form always take the whole row */
+  const COLUMN_PARTS = [["s", 3, "Îngustă"], ["m", 4, "Medie"], ["l", 6, "Lată"], ["f", 12, "Toată lățimea"]];
   const columnPicker = (field) => {
     const value = !field.width || field.width === "auto" ? "m" : field.width;
     const [, parts, name] = COLUMN_PARTS.find(([v]) => v === value) || COLUMN_PARTS[1];
     return widthPicker({
       prop: "width",
       value,
-      total: 4,
-      options: COLUMN_PARTS.map(([v, p, n], i) => [v, p - (COLUMN_PARTS[i - 1]?.[1] || 0), n, `${n} — ${p} părți din 4`]),
-      label: `Lățime coloană: ${name}, ${parts} părți din 4`,
-      caption: `<strong>${name}</strong> · ${parts} părți${!field.width || field.width === "auto" ? " (implicită)" : ""}`,
+      total: 12,
+      options: COLUMN_PARTS.map(([v, p, n], i) => [v, p - (COLUMN_PARTS[i - 1]?.[1] || 0), n, `${n} — ${p} din 12`]),
+      label: `Lățime în rând: ${name}, ${parts} din 12`,
+      caption: `<strong>${name}</strong> · ${parts}/12${!field.width || field.width === "auto" ? " (implicită)" : ""}`,
     });
   };
 
@@ -1925,7 +1932,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const err = propError("field", container.id, "children");
     return `
       ${group(inGrid ? "Coloane" : "Câmpurile blocului", `
-        <p class="e-permits-fo-field__hint">${inGrid ? `Ordinea de aici = ordinea coloanelor în tabel. Trage tipuri din bibliotecă pe banda „Coloane” a grilei sau adaugă-le de aici.${level > 1 ? ` Grilă de nivelul ${level} din ${MAX_GRID_LEVEL}.` : ""}` : "Câmpurile fiecărui card, în ordine. Trage tipuri din bibliotecă pe banda „Câmpuri” sau adaugă-le de aici."}</p>
+        <p class="e-permits-fo-field__hint">${inGrid ? `Ordinea de aici = ordinea câmpurilor în rând. Le aranjezi și în constructorul grilei.${level > 1 ? ` Grilă de nivelul ${level} din ${MAX_GRID_LEVEL}.` : ""}` : "Câmpurile fiecărui card, în ordine. Trage tipuri din bibliotecă pe banda „Câmpuri” sau adaugă-le de aici."}</p>
         ${err ? errorHtml(err) : ""}
         ${list.length ? `<ol class="e-permits-builder__step-list" aria-label="${inGrid ? "Coloanele grilei" : "Câmpurile blocului"}">${list.map((child, i) => `
           <li><button class="e-permits-builder__step-row" type="button" data-fb-child-row="${child.id}" aria-describedby="fb-sub-kbd-hint">
@@ -1939,7 +1946,7 @@ document.addEventListener("DOMContentLoaded", () => {
         </div>
         ${inGrid ? '<p class="e-permits-fo-field__hint">Coloanele complexe (listă, selecție multiplă, grilă imbricată, sub-formular) vin după cel puțin o coloană simplă (US-34 AC-06).</p>' : ""}
       `)}
-      ${inGrid ? group("Mod de editare", sourceFacts([["Pe ecran mare", "Inline: clic pe celulă, Enter salvează, Esc anulează"], ["Pe telefon", "Un card pe rând, câmpuri pe toată lățimea"], ["Dialog, Formular inline", "În afara proiectului (Feature 88573)"]])) : ""}`;
+      ${inGrid ? group("Mod de editare", sourceFacts([["Pe ecran mare", "Un card pe rând: câmpurile unul lângă altul după lățime, Salvează → o linie cu valorile"], ["Pe telefon", "Același card, câmpurile unul sub altul"], ["Dialog", "În afara proiectului (Feature 88573)"]])) : ""}`;
   }
 
   /* Date of a sub-form (fb-subform-v1): its fields in order + „Adaugă câmp ▾” (the block's types) */
@@ -1949,7 +1956,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const err = propError(findChild(container.id) ? "child" : "field", container.id, "children");
     return `
       ${group("Câmpurile sub-formularului", `
-        <p class="e-permits-fo-field__hint">Se deschid sub rând, în detaliul lui, pe grila obișnuită a formularului (2 coloane; pe telefon una). Sub-formular de nivelul ${level} din ${MAX_GRID_LEVEL}.</p>
+        <p class="e-permits-fo-field__hint">Apar într-o secțiune a cardului rândului, pe aceeași grilă de 12 coloane (pe telefon una). Sub-formular de nivelul ${level} din ${MAX_GRID_LEVEL}.</p>
         ${err ? errorHtml(err) : ""}
         ${list.length ? `<ol class="e-permits-builder__step-list" aria-label="Câmpurile sub-formularului">${list.map((child, i) => `
           <li><button class="e-permits-builder__step-row" type="button" data-fb-child-row="${child.id}" aria-describedby="fb-sub-kbd-hint">
@@ -1963,7 +1970,7 @@ document.addEventListener("DOMContentLoaded", () => {
         </div>
         <p class="e-permits-fo-field__hint">Fără grile în sub-formular: o grilă se adaugă ca altă coloană.</p>
       `)}
-      ${group("Mod de completare", sourceFacts([["În celulă", "„Completează” sau „3 din 6 completate”"], ["La clic", "Sub-formularul se deschide sub rând"], ["Salvare", "Cu „Salvează rândul” / „Anulează”"]]))}`;
+      ${group("Mod de completare", sourceFacts([["În cardul rândului", "O secțiune sub o linie, câmpurile pe 12 coloane"], ["Rând salvat", "„4 din 6 completate” în linia rândului"], ["Salvare", "Cu „Salvează” / „Anulează” ale rândului"]]))}`;
   }
   /* Validare of a sub-form: which of its fields are required (the row is not saved without them) */
   function subformValidationHtml(container) {
@@ -2133,7 +2140,7 @@ document.addEventListener("DOMContentLoaded", () => {
         <div class="e-permits-fo-field">
           <span class="e-permits-builder__width-label" aria-hidden="true">Lățime coloană</span>
           ${columnPicker(field)}
-          <p class="e-permits-fo-field__hint">Coloanele își împart rândul tabelului după părți. Pe telefon rândul devine card, cu câmpurile pe toată lățimea.</p>
+          <p class="e-permits-fo-field__hint">Câmpurile rândului stau unul lângă altul, pe 12 coloane. Pe telefon, toate pe toată lățimea.</p>
         </div>
         ${format}
         ${counter}`) : group("Aspect", `

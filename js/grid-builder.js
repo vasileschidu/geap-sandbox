@@ -18,10 +18,10 @@
      left     column types with icons: Coloane simple · Coloane complexe (locked with the reason until one simple
               column — US-34 AC-06; nested grid / sub-form locked at level 3 — US-38) · Copie a unui câmp din
               formular; click = append, drag onto the header row = insert there. A sub-form level lists field types.
-     centre   the live table (the FO grid, two inert sample rows) whose header cells are the columns: type icon +
-              name + required star, width = Îngustă / Medie / Lată units; click = select, drag / Alt + ← → =
-              reorder, Delete = remove (toast „Anulează”), red dot = errors; „+ Coloană” ends the header row. A
-              nested grid / sub-form column opens one level deeper (chevron on its header, button in the panel).
+     centre   row-cards-v1: one sample row in its FO EDIT card — each field cell = the column (type · width as
+              the span of 12 · error dot), click = select, drag / Alt + ← → = reorder, Delete = remove (toast
+              „Anulează”); „+ Coloană” = a dashed tile at the end of the card grid; under it the saved line. A
+              nested grid / sub-form column opens one level deeper („Deschide” on its cell, button in the panel).
               A sub-form level = a form-layout canvas (2 columns, gap 24, wide fields span both).
      right    the column's properties (the builder's panel); nothing selected = the grid's own settings.
    Previzualizare: the FO grid bound, with demo rows, Desktop / Telefon (375 → cards). */
@@ -37,8 +37,8 @@
   const kindOf = (id) => (I.findField(id) ? "field" : "child");
   const typeLabel = (type) => (type === "grid" ? "Grilă imbricată" : I.comp(type).label);
   const typeDesc = (type, level) => {
-    if (type === "grid") return level < I.MAX_GRID_LEVEL ? `Tabel în rândul grilei (nivelul ${level + 1})` : "Tabel în rândul grilei";
-    if (type === "subform") return "Câmpuri în detaliul rândului";
+    if (type === "grid") return level < I.MAX_GRID_LEVEL ? `Rânduri proprii în cardul rândului (nivelul ${level + 1})` : "Rânduri proprii în cardul rândului";
+    if (type === "subform") return "Câmpuri într-o secțiune a rândului";
     return I.comp(type).desc;
   };
   const containerNoun = (item) => (item.type === "subform" ? "sub-formularul" : I.findChild(item.id) ? "sub-grila" : "grila");
@@ -178,24 +178,23 @@
         ${detached ? "" : addMenuListHtml(cur)}
       </div>`;
   }
-  function headCellHtml(cur, child, weight) {
-    const sel = I.state.sel;
-    const on = sel.kind === "child" && sel.id === child.id;
+  /* row-cards-v1 (2026-11-20): the centre = ONE sample row in its EDIT card (the FO `rowHtml`, exactly what the
+     applicant fills), each field cell turned into the column: a transparent button behind the inert field (click =
+     select, drag = reorder, Alt + ← / → = move, Delete), a meta line above it (type · width as the span · error dot ·
+     „Deschide” for a nested grid / sub-form); „+ Coloană” = a dashed tile at the end of the card grid. Under it the
+     saved line of the same row. */
+  const WIDTH_NAMES = { s: "Îngustă", m: "Medie", auto: "Medie", l: "Lată", f: "Toată lățimea" };
+  function cellMetaHtml(child, span) {
     const issue = columnIssue(child);
     const name = I.fieldName(child);
-    const nest = I.isNest(child);
+    const width = I.isNest(child) || child.type === "textarea" ? "Toată lățimea" : WIDTH_NAMES[child.width || "auto"] || "Medie";
     return `
-      <th class="table__head-cell e-permits-gridb__th${on ? " is-selected" : ""}${issue ? " has-issue" : ""}" role="columnheader" scope="col" data-gb-th="${child.id}" data-gb-units="${weight}">
-        <div class="e-permits-gridb__th-inner">
-          <button class="e-permits-gridb__col" type="button" draggable="true" data-gb-col="${child.id}" aria-pressed="${on}" aria-describedby="gb-col-hint" aria-label="${I.esc(`${typeLabel(child.type)}: ${name}${child.required ? ", obligatoriu" : ""}${issue ? `, eroare: ${issue.message}` : ""}`)}">
-            ${I.icon(I.comp(child.type).icon, 16)}
-            <span class="e-permits-gridb__col-name" data-cell-tooltip>${I.esc(name)}</span>
-            ${child.required ? I.requiredMark() : ""}
-          </button>
-          ${issue ? `<span class="e-permits-gridb__col-issue" data-tooltip-text="${I.esc(issue.message)}"><span class="e-permits-ntpl-dot e-permits-tariff__tab-error"></span></span>` : ""}
-          ${nest ? `<button class="btn btn-text-neutral btn-sm btn-icon-only e-permits-gridb__drill" type="button" aria-label="${I.esc(`Deschide ${child.type === "subform" ? "sub-formularul" : "sub-grila"} „${name}”`)}" data-tooltip-text="Deschide" data-gb-drill="${child.id}">${I.icon(DRILL_ICON, 16)}</button>` : ""}
-        </div>
-      </th>`;
+      <div class="e-permits-gridb__cell-meta">
+        <span class="e-permits-gridb__cell-type">${I.icon(I.comp(child.type).icon, 16)}<span data-cell-tooltip>${I.esc(typeLabel(child.type))}</span></span>
+        <em class="e-permits-builder__tag e-permits-builder__tag--outlined" data-tooltip-text="${I.esc(`${width} · ${span} din 12 coloane`)}">${span}/12</em>
+        ${issue ? `<span class="e-permits-gridb__col-issue" data-tooltip-text="${I.esc(issue.message)}"><span class="e-permits-ntpl-dot e-permits-tariff__tab-error"></span></span>` : ""}
+        ${I.isNest(child) ? `<button class="btn btn-text-neutral btn-sm e-permits-gridb__drill" type="button" aria-label="${I.esc(`Deschide ${child.type === "subform" ? "sub-formularul" : "sub-grila"} „${name}”`)}" data-gb-drill="${child.id}"><span>Deschide</span>${I.icon(DRILL_ICON, 16)}</button>` : ""}
+      </div>`;
   }
   function drawGrid(host, cur) {
     const kids = I.kidsOf(cur);
@@ -208,31 +207,55 @@
       }) || ""}</div>`;
       return;
     }
+    const R = window.GEAPFoRepeat;
     const def = I.gridFo(cur, { prefix: "gbc", lang: "ro" }, I.levelOf(cur));
-    def.value = window.GEAPFoRepeat?.sampleRows?.(def, 2) || [];
-    host.innerHTML = `<div class="e-permits-gridb__sheet" data-gb-sheet>${window.GEAPFoRepeat?.gridHtml(def) || ""}</div>`;
-    const grid = host.querySelector(".e-permits-fo-grid");
-    const table = grid?.querySelector(".e-permits-fo-grid__table");
-    if (!table) return;
-    grid.classList.add("e-permits-gridb__grid");
-    /* the FO header tells each column's units (colspan); the builder header replaces it */
-    const weights = [...table.tHead.querySelectorAll("th")].slice(1, -1).map((th) => Number(th.getAttribute("colspan")) || 1);
-    table.tHead.outerHTML = `
-      <thead role="rowgroup">
-        <tr class="table__row" role="row">
-          <th class="table__head-cell e-permits-fo-grid__index" role="columnheader" scope="col">Nr.</th>
-          ${kids.map((child, i) => headCellHtml(cur, child, weights[i] || 1)).join("")}
-          <th class="table__head-cell e-permits-fo-grid__actions e-permits-gridb__th-add" role="columnheader" scope="col">${addMenuHtml(cur, "Coloană", undefined, { detached: true })}</th>
-        </tr>
-      </thead>`;
-    /* one table column per grid column, its width from the units (no colspans: the pinned „+ Coloană” column and
-       js/table-pin-shadow.js need one cell per column) */
-    table.insertAdjacentHTML("afterbegin", `<colgroup><col class="e-permits-gridb__unit-index">${weights.map((w) => `<col class="e-permits-gridb__unit e-permits-gridb__unit--${w}">`).join("")}<col class="e-permits-gridb__unit-actions"></colgroup>`);
-    table.tBodies[0]?.querySelectorAll("td[colspan]").forEach((td) => td.removeAttribute("colspan"));
-    /* the sample rows, the add button and the label are what the applicant sees — inert here */
-    [table.tBodies[0], grid.querySelector(":scope > .e-permits-fo-grid__foot")].forEach((node) => { if (node) node.inert = true; });
-    grid.querySelector(":scope > .e-permits-fo-grid__frame")?.insertAdjacentHTML("beforeend", '<span class="e-permits-gridb__drop" hidden data-gb-indicator></span>');
-    host.querySelector("[data-gb-sheet]").insertAdjacentHTML("beforeend", addMenuListHtml(cur));
+    const sample = R?.sampleRows?.(def, 1)?.[0]?.values || {};
+    host.innerHTML = `
+      <div class="e-permits-gridb__sheet" data-gb-sheet>
+        <div class="e-permits-gridb__sheet-head">
+          <h3 class="e-permits-gridb__sheet-title">Rândul, cum îl completează solicitantul</h3>
+          <p class="e-permits-fo-field__hint">Clic pe un câmp = proprietățile coloanei; trage-l ca să schimbi ordinea. Lățimea = câte din 12 coloane ocupă.</p>
+        </div>
+        ${R?.rowHtml?.(def, sample, { editing: true, n: 1 }) || ""}
+        <div class="e-permits-gridb__sheet-head e-permits-gridb__sheet-head--saved">
+          <h3 class="e-permits-gridb__sheet-title">După „Salvează”</h3>
+          <p class="e-permits-fo-field__hint">Rândul salvat devine o linie cu primele valori (coloana-cheie prima).</p>
+        </div>
+        <div class="e-permits-gridb__saved" inert>${R?.rowHtml?.(def, sample, { editing: false, n: 1 }) || ""}</div>
+        ${addMenuListHtml(cur)}
+      </div>`;
+    const card = host.querySelector(".e-permits-fo-grid__row.is-editing");
+    const fields = card?.querySelector(":scope > [data-fo-grid-fields]");
+    if (!fields) return;
+    card.classList.add("e-permits-gridb__card");
+    const actions = card.querySelector(".e-permits-fo-doc-card__actions");
+    if (actions) actions.inert = true;
+    const sel = I.state.sel;
+    [...fields.children].forEach((cell, i) => {
+      const child = kids[i];
+      if (!child) return;
+      const on = sel.kind === "child" && sel.id === child.id;
+      const issue = columnIssue(child);
+      const name = I.fieldName(child);
+      const span = Number(cell.dataset.span) || 12;
+      const render = cell.innerHTML;
+      cell.classList.add("e-permits-gridb__cell");
+      cell.classList.toggle("is-selected", on);
+      cell.classList.toggle("has-issue", Boolean(issue));
+      cell.dataset.gbCell = child.id;
+      cell.innerHTML = `
+        <button class="e-permits-gridb__col" type="button" draggable="true" data-gb-col="${child.id}" aria-pressed="${on}" aria-describedby="gb-col-hint" aria-label="${I.esc(`${typeLabel(child.type)}: ${name}, ${span} din 12${child.required ? ", obligatoriu" : ""}${issue ? `, eroare: ${issue.message}` : ""}`)}"></button>
+        ${cellMetaHtml(child, span)}
+        <div class="e-permits-gridb__cell-render" inert>${render}</div>`;
+    });
+    fields.dataset.gbFields = "";
+    fields.insertAdjacentHTML("beforeend", `
+      <div class="e-permits-fo-grid__cell e-permits-gridb__add-cell" data-span="3">
+        <div class="e-permits-stack__menu-wrap e-permits-gridb__add">
+          <button class="e-permits-builder__sub-add e-permits-gridb__add-tile" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="${addMenuId(cur)}" data-stack-menu-trigger data-gb-add>${I.icon("icon-plus-small", 16)}<span>Coloană</span></button>
+        </div>
+      </div>
+      <span class="e-permits-gridb__drop" hidden data-gb-indicator></span>`);
   }
 
   /* a sub-form level: its fields on the FO form layout (2 columns, gap 24; ≤ 6/12 = one column, wider = both) */
@@ -255,7 +278,7 @@
           <div class="e-permits-builder__field-render" inert>${I.foHtml(child, { prefix: "gbf", inCard: true })}</div>
         </article>`;
     }).join("");
-    const empty = kids.length ? "" : `<div class="e-permits-gridb__form-empty" data-gb-drop-empty>${window.GEAPEmptyState?.render({ title: "Adaugă primul câmp", text: "Alege un tip din stânga sau trage-l aici. Câmpurile se deschid sub rând, în detaliul lui.", icon: "page-child", compact: true, bare: true }) || ""}</div>`;
+    const empty = kids.length ? "" : `<div class="e-permits-gridb__form-empty" data-gb-drop-empty>${window.GEAPEmptyState?.render({ title: "Adaugă primul câmp", text: "Alege un tip din stânga sau trage-l aici. Câmpurile apar într-o secțiune a cardului rândului.", icon: "page-child", compact: true, bare: true }) || ""}</div>`;
     host.innerHTML = `
       <div class="e-permits-gridb__sheet e-permits-gridb__sheet--form" data-gb-sheet>
         <div class="e-permits-gridb__form-head">
@@ -285,7 +308,7 @@
             ${[["desktop", "Desktop"], ["phone", "Telefon"]].map(([value, label]) => `<button class="segment-item${gb.device === value ? " is-selected" : ""}" type="button" role="radio" aria-checked="${gb.device === value}" data-gb-device="${value}">${label}</button>`).join("")}
           </div>
         </div>
-        <p class="e-permits-fo-field__hint">${cur.type === "subform" ? "Câmpurile, așa cum le completează solicitantul în detaliul rândului." : "Grila, așa cum o vede solicitantul — cu două rânduri de probă."}</p>
+        <p class="e-permits-fo-field__hint">${cur.type === "subform" ? "Câmpurile, așa cum le completează solicitantul în cardul rândului." : "Grila, așa cum o vede solicitantul — două rânduri de probă salvate."}</p>
       </div>
       <div class="e-permits-gridb__preview${phone ? " is-phone" : ""}" role="region" aria-label="${phone ? "Previzualizare pe telefon, 375 px" : "Previzualizare pe desktop"}">
         <div class="e-permits-gridb__device e-permits-fo-form" data-gb-preview>${body}</div>
@@ -310,7 +333,6 @@
     const active = document.activeElement;
     const key = root.contains(active) && !refs.inspector.contains(active) ? focusKey(active) : "";
     const scrollTop = refs.scroll.scrollTop;
-    const frameLeft = refs.canvas.querySelector(".e-permits-fo-grid__frame")?.scrollLeft || 0;
     root.dataset.gbView = gb.mode;
     root.dataset.gbLevel = cur.type;
     refs.head.innerHTML = headHtml(cur);
@@ -325,22 +347,12 @@
     else if (cur.type === "subform") drawForm(refs.canvas, cur);
     else drawGrid(refs.canvas, cur);
     refs.scroll.scrollTop = scrollTop;
-    const frame = refs.canvas.querySelector(".e-permits-fo-grid__frame");
-    if (frame) frame.scrollLeft = frameLeft;
-    /* a column that just became selected (added at the end, picked from the errors / panel) is brought into view,
-       clear of the pinned „+ Coloană” column; later redraws keep the reader's own scroll */
+    /* a column that just became selected (added at the end, picked from the errors / panel) is brought into view;
+       later redraws keep the reader's own scroll */
     const selKey = `${I.state.sel.kind}:${I.state.sel.id}`;
     if (selKey !== gb.lastSel) {
       gb.lastSel = selKey;
-      const th = frame?.querySelector(`[data-gb-th="${CSS.escape(I.state.sel.id)}"]`);
-      if (th) {
-        const pin = frame.querySelector(".e-permits-gridb__th-add")?.offsetWidth || 0;
-        const left = th.offsetLeft;
-        const right = left + th.offsetWidth;
-        if (right > frame.scrollLeft + frame.clientWidth - pin) frame.scrollLeft = right - frame.clientWidth + pin;
-        else if (left < frame.scrollLeft) frame.scrollLeft = left;
-      }
-      refs.canvas.querySelector(`[data-gb-field="${CSS.escape(I.state.sel.id)}"]`)?.scrollIntoView({ block: "nearest" });
+      refs.canvas.querySelector(`[data-gb-cell="${CSS.escape(I.state.sel.id)}"], [data-gb-field="${CSS.escape(I.state.sel.id)}"]`)?.scrollIntoView({ block: "nearest" });
     }
     if (key) root.querySelector(key)?.focus({ preventScroll: true });
   }
@@ -489,26 +501,17 @@
     const cur = current();
     const empty = refs.canvas.querySelector("[data-gb-drop-empty]");
     if (empty) return { index: 0, empty };
-    if (cur.type === "subform") {
-      const cards = [...refs.canvas.querySelectorAll("[data-gb-field]")];
-      let index = cards.findIndex((card) => { const r = card.getBoundingClientRect(); return y < r.top || (y <= r.bottom && x < r.left + r.width / 2); });
-      if (index < 0) index = cards.length;
-      const form = refs.canvas.querySelector("[data-gb-form]");
-      const box = form.getBoundingClientRect();
-      const ref = cards[index] || cards[cards.length - 1];
-      const r = ref ? ref.getBoundingClientRect() : box;
-      const left = cards[index] ? r.left - box.left - 12 : r.right - box.left + 10;
-      return { index, rect: { left, top: r.top - box.top, height: r.height } };
-    }
-    const ths = [...refs.canvas.querySelectorAll("[data-gb-th]")];
-    let index = ths.findIndex((th) => { const r = th.getBoundingClientRect(); return x < r.left + r.width / 2; });
-    if (index < 0) index = ths.length;
-    const frame = refs.canvas.querySelector(".e-permits-fo-grid__frame");
-    const box = frame.getBoundingClientRect();
-    const ref = ths[index] || ths[ths.length - 1];
-    const r = ref.getBoundingClientRect();
-    const edge = ths[index] ? r.left : r.right;
-    return { index, rect: { left: edge - box.left + frame.scrollLeft - 1, top: r.top - box.top, height: frame.getBoundingClientRect().bottom - r.top } };
+    /* the row card's cells (grid) or the sub-form's cards: before the first one below / right of the pointer */
+    const sub = cur.type === "subform";
+    const cards = [...refs.canvas.querySelectorAll(sub ? "[data-gb-field]" : "[data-gb-cell]")];
+    let index = cards.findIndex((card) => { const r = card.getBoundingClientRect(); return y < r.top || (y <= r.bottom && x < r.left + r.width / 2); });
+    if (index < 0) index = cards.length;
+    const holder = refs.canvas.querySelector(sub ? "[data-gb-form]" : "[data-gb-fields]");
+    const box = holder.getBoundingClientRect();
+    const ref = cards[index] || cards[cards.length - 1];
+    const r = ref ? ref.getBoundingClientRect() : box;
+    const left = cards[index] ? r.left - box.left - 12 : r.right - box.left + 10;
+    return { index, rect: { left, top: r.top - box.top, height: r.height } };
   }
   function showDrop(target) {
     hideIndicator();
@@ -581,7 +584,7 @@
         return;
       }
       /* an empty spot of the stage = the grid's own settings */
-      if (refs.stage.contains(event.target) && !event.target.closest("button, a, input, [data-gb-sheet] .e-permits-fo-grid__frame")) {
+      if (refs.stage.contains(event.target) && !event.target.closest("button, a, input, [data-gb-cell], [data-gb-field]")) {
         const cur = current();
         if (gb.mode === "edit" && !(I.state.sel.id === cur.id)) selectContainer();
       }
@@ -620,7 +623,7 @@
         event.dataTransfer.effectAllowed = gb.drag.kind === "child" ? "move" : "copy";
         try { event.dataTransfer.setData("text/plain", gb.drag.type || gb.drag.id); } catch { /* synthetic event */ }
       }
-      (source.closest("[data-gb-th]") || source).classList.add("is-dragging");
+      (source.closest("[data-gb-cell]") || source).classList.add("is-dragging");
     });
     refs.stage.addEventListener("dragover", (event) => {
       if (!gb.drag || gb.mode !== "edit") return;

@@ -8,12 +8,12 @@
    field renderer itself (ctx.fieldHtml = stepFieldHtml); the CAEM pair with the exact FO activity
    markup (ctx.caemFieldHtml / ctx.subgenHtml, extracted from activityCardHtml).
 
-   Grid: library `.table.table--subtle` (explicit ARIA roles), rows in view mode (click a cell or
-   „Editează” → edit mode with FO inputs, Enter saves, Esc cancels), per-cell FO errors, „Adaugă rând”
-   (`.e-permits-fo-add-activity`), delete with the FO confirm dialog, library pagination, nested grids
-   in a detail row (≤ 3 levels), a „Sub-formular” column (fb-subform-v1: a summary button in the cell, its
-   fields on the FO form grid in the row's detail row, saved / cancelled with the row). Below 600 px of its own width (container query) every row is a card
-   (label over value) with labelled buttons — never a sideways-scrolling table.
+   Grid (row-cards-v1, 2026-11-20 — no table any more): every row = the „Alte documente” card. Edit = bordered
+   card (#n + row name, „Anulează” · „Salvează”), the row's fields side by side on a 12-column grid (Îngustă 3 ·
+   Medie 4 · Lată 6 · textarea / nested grid / sub-form 12), Enter saves, Esc cancels; saved = one line (#n ·
+   values · „Editează” · „Elimină”, the line opens the edit); one row in edit at a time; per-field FO errors,
+   „Adaugă rând” (`.e-permits-fo-add-activity`), Elimină with the FO confirm dialog, library pagination, nested
+   grids (≤ 3 levels) and „Sub-formular” columns as sections of the edit card.
    Block: the FO activity card per element (`#1 Activitate`), „Adaugă altă activitate”, remove + undo
    toast, key (duplicates) and group (section) rules, min / max.
 
@@ -193,132 +193,70 @@
   }
 
   /* ================================================================== GRID — markup */
-  /* column widths without inline styles: a column spans 2 (Îngustă) · 3 (Auto, Medie) · 4 (Lată) equal
-     units of the fixed-layout table; „Nr.” and the actions are fixed. Below the width the units need
-     (40 px each) and always below 600 px the grid shows cards — `is-cards`, set by layout(). */
-  const weightOf = (col) => (col.type === "grid" ? 4 : { s: 2, m: 3, l: 4 }[col.width] || 3);
-  /* columns that open a detail row under their row: a nested grid, a sub-form (fb-subform-v1) */
+  /* row-cards-v1 (2026-11-20; PO: a row drawn one field per line is too long — fields side by side; user: NO tables
+     any more, the „Alte documente” lifecycle). Every row is the other-doc card (`.e-permits-fo-doc-card`):
+     EDIT  = bordered card, header `#n` + row name, „Anulează” · „Salvează” (no delete in edit); the row's fields on a
+             12-column grid, gap 24 — Îngustă 3 · Medie / auto 4 · Lată 6 · textarea / nested grid / sub-form 12 (a
+             section of the card under a line); one column on phones / narrow grids (container query).
+     SAVED = no chrome: one line `#n` + the first values (key column first) „ · ” + the counts of nested grids /
+             sub-forms, „Editează” + „Elimină”; the line itself opens the edit. Saved lines are divided by 1 px lines.
+     One row in edit at a time (a blank new row is dropped, another one is saved first). */
   const isSub = (col) => col?.type === "subform";
-  const hasDetail = (col) => col?.type === "grid" || isSub(col);
+  const isNest = (col) => col?.type === "grid" || isSub(col);
   const subFields = (col) => (col.fields || []).filter((field) => field.type !== "info");
   const subFilled = (col, values) => { const v = values || {}; const list = subFields(col); return { filled: list.filter((field) => !isEmpty(v[field.key])).length, total: list.length }; };
-  const unitsOf = (def) => def.columns.reduce((n, col) => n + weightOf(col), 0);
-  const span = (col) => (weightOf(col) > 1 ? ` colspan="${weightOf(col)}"` : "");
-  const UNIT_MIN = 40;
-  const FIXED_MIN = 152;
-  const CARD_BELOW = 600;
-  function layout(root) {
-    const grids = [...(root?.matches?.("[data-fo-grid]") ? [root] : []), ...(root?.querySelectorAll?.("[data-fo-grid]") || [])];
-    grids.forEach((grid) => {
-      const width = grid.clientWidth;
-      if (!width) return;
-      const need = Math.max(CARD_BELOW, Number(grid.dataset.units || 0) * UNIT_MIN + FIXED_MIN);
-      grid.classList.toggle("is-cards", width < need);
-    });
+  const SPAN = { s: 3, m: 4, l: 6, f: 12 };
+  const spanOf = (col) => (isNest(col) || col.type === "textarea" ? 12 : SPAN[col.width] || 4);
+  /* a sub-form field keeps its form span (of 12), snapped to 3 · 4 · 6 · 12 */
+  const fieldSpan = (field) => { const n = Number(field.span) || 12; return field.type === "textarea" ? 12 : n <= 3 ? 3 : n <= 4 ? 4 : n <= 6 ? 6 : 12; };
+  /* the layout is CSS only now (container queries); kept for callers that still ask (builder canvas) */
+  function layout() {}
+  const rowName = (def) => def.texts?.row || "Rând";
+  const lower = (text) => String(text || "").toLocaleLowerCase("ro");
+  const clone = (value) => JSON.parse(JSON.stringify(value ?? {}));
+  /* „2 componente” · „1 componentă” · „4 din 6 completate” */
+  function nestText(col, value) {
+    if (isSub(col)) { const { filled, total } = subFilled(col, value); return `${filled} din ${total} completate`; }
+    const n = Array.isArray(value) ? value.length : 0;
+    return `${n} ${n === 1 ? lower(col.grid?.texts?.row || "rând") : lower(col.label) || "rânduri"}`;
   }
-  const observer = typeof ResizeObserver === "function" ? new ResizeObserver((entries) => entries.forEach((entry) => layout(entry.target))) : null;
-  function headHtml(def) {
-    return `
-      <thead role="rowgroup">
-        <tr class="table__row" role="row">
-          <th class="table__head-cell e-permits-fo-grid__index" role="columnheader" scope="col">Nr.</th>
-          ${def.columns.map((col) => `<th class="table__head-cell" role="columnheader" scope="col"${span(col)}>${esc(col.label)}${col.required ? `&nbsp;${star()}` : ""}</th>`).join("")}
-          <th class="table__head-cell e-permits-fo-grid__actions" role="columnheader" scope="col"><span class="u-visually-hidden">Acțiuni</span></th>
-        </tr>
-      </thead>`;
+  /* the saved line: up to 3 values (key column first, no Da / Nu boxes) + the nested counts; "" = nothing filled */
+  function summaryText(def, values) {
+    const v = values || {};
+    const simple = def.columns.filter((col) => !isNest(col) && col.type !== "checkbox");
+    const key = simple.find((col) => col.key === def.rules?.key);
+    const shown = (key ? [key, ...simple.filter((col) => col !== key)] : simple).map((col) => formatValue(col, v[col.key])).filter(Boolean).slice(0, 3);
+    if (!shown.length) return "";
+    return [...shown, ...def.columns.filter(isNest).map((col) => nestText(col, v[col.key]))].join(" · ");
   }
-  /* „1” in the table; „#1 Rând” on a card (the activity-card title look) */
-  const indexCell = (def, n) => `
-    <td class="table__body-cell e-permits-fo-grid__index" role="cell">
-      <span class="e-permits-fo-grid__index-num" data-fo-grid-num>${n}</span>
-      <span class="e-permits-fo-grid__index-title"><span class="e-permits-fo-grid__index-tag" data-fo-grid-tag>#${n}</span><strong>${esc(def.texts.row || "Rând")}</strong></span>
-    </td>`;
-  function actionsHtml(def, n, editing) {
+
+  function savedRowHtml(def, row, n) {
+    const text = summaryText(def, row.values);
+    const name = rowName(def);
     const canRemove = def.rules.allowRemove !== false;
-    const compact = editing
-      ? `<button class="btn btn-strict btn-sm btn-icon-only" type="button" aria-label="Salvează rândul ${n}" data-tooltip-label="Salvează (Enter)" data-fo-grid-act="save">${icon("icon-checkmark-small", 16)}</button>
-         <button class="btn btn-strict btn-sm btn-icon-only" type="button" aria-label="Anulează modificările din rândul ${n}" data-tooltip-label="Anulează (Esc)" data-fo-grid-act="cancel">${icon("icon-cross-small", 16)}</button>`
-      : `<button class="btn btn-strict btn-sm btn-icon-only" type="button" aria-label="Editează rândul ${n}" data-tooltip-label="Editează" data-fo-grid-act="edit">${icon("icon-edit", 16)}</button>
-         ${canRemove ? `<button class="btn btn-text-destructive btn-sm btn-icon-only" type="button" aria-label="Șterge rândul ${n}" data-tooltip-label="Șterge" data-fo-grid-act="delete">${icon("icon-delete", 16)}</button>` : ""}`;
-    const full = editing
-      ? `<button class="btn btn-secondary btn-md" type="button" data-fo-grid-act="save">${icon("icon-checkmark-small")}<span>Salvează rândul</span></button>
-         <button class="btn btn-neutral btn-md" type="button" data-fo-grid-act="cancel">Anulează</button>`
-      : `<button class="btn btn-neutral btn-md" type="button" data-fo-grid-act="edit">${icon("icon-edit")}<span>Editează</span></button>
-         ${canRemove ? `<button class="btn btn-text-destructive btn-md" type="button" data-fo-grid-act="delete">${icon("icon-delete")}<span>Șterge</span></button>` : ""}`;
     return `
-      <td class="table__body-cell e-permits-fo-grid__actions" role="cell">
-        <div class="e-permits-fo-grid__actions-compact">${compact}</div>
-        <div class="e-permits-fo-grid__actions-full">${full}</div>
-      </td>`;
-  }
-  /* the column name on a card (display: none in the table, where the header names the cell) */
-  const cellLabel = (col) => `<span class="e-permits-fo-grid__cell-label">${esc(col.label)}${col.required ? ` ${star()}` : ""}</span>`;
-  function nestedToggleHtml(def, row, col, count) {
-    const open = Boolean(row.open?.[col.key]);
-    return `<button class="btn btn-neutral btn-sm e-permits-fo-grid__nested-toggle" type="button" aria-expanded="${open}" aria-controls="${esc(detailId(def, row, col))}" data-fo-grid-nested="${esc(col.key)}"><span>${esc(plural(count, "rând", "rânduri"))}</span>${icon("icon-chevron-bottom", 16)}</button>`;
-  }
-  const detailId = (def, row, col) => `${domIdOf(def.id)}-${row.id}-${col.key}-detail`;
-  /* sub-form cell: „Completează” or „3 din 6 completate” + chevron; red with an icon while required
-     fields of the sub-form are missing; opens the sub-form in the detail row (edit mode only) */
-  function subformToggleHtml(def, row, col, values, error = false) {
-    const { filled, total } = subFilled(col, values);
-    /* „Completează” while empty; a count once filled — and always with an error („0 din 6”, red);
-       in the table only „3 din 6” (the column is narrow), cards add „completate” */
-    const counted = filled || error;
-    const text = counted ? `${filled} din ${total} completate` : "Completează";
-    const shown = counted ? `${filled} din ${total}<span class="e-permits-fo-grid__subform-more"> completate</span>` : "Completează";
-    const open = Boolean(row.editing && row.open?.[col.key]);
-    return `<button class="btn btn-neutral btn-sm e-permits-fo-grid__nested-toggle e-permits-fo-grid__subform-toggle${error ? " is-error" : ""}" type="button" aria-expanded="${open}" aria-controls="${esc(detailId(def, row, col))}" aria-label="${esc(`${col.label}: ${text}${error ? ", are câmpuri obligatorii necompletate" : ""}`)}" data-fo-grid-subform="${esc(col.key)}">${error ? icon("icon-circle-error-filled", 16) : ""}<span>${shown}</span>${icon("icon-chevron-bottom", 16)}</button>`;
-  }
-  const subformCellHtml = (def, row, col, values, error) => `<td class="table__body-cell e-permits-fo-grid__cell" role="cell"${span(col)} data-col="${esc(col.key)}" data-type="subform">${cellLabel(col)}${subformToggleHtml(def, row, col, values, error)}</td>`;
-  /* the sub-form in the detail row: its fields on the FO form grid (2 columns, gap 24; ≤ 6/12 = one
-     column, wider = both; one column on narrow widths) + the row's Salvează / Anulează */
-  function subformHtml(def, row, col, n) {
-    const id = detailId(def, row, col);
-    const item = { id: col.key, values: row.values[col.key] || {} };
-    const fields = (col.fields || []).map((field) => tagFirst(ctx.fieldHtml(childOut({ id: `${def.id}-${row.id}` }, field, item)), `data-fo-subform-key="${esc(field.key)}"`)).join("");
-    return `
-      <div class="e-permits-fo-grid__subform" role="group" aria-labelledby="${esc(id)}-title" data-fo-subform="${esc(col.key)}">
-        <div class="e-permits-fo-grid__subform-head">
-          <div class="e-permits-fo-grid__label" id="${esc(id)}-title">${esc(`${col.label} · ${def.texts.row || "Rând"} ${n}`)}</div>
-          ${col.hint ? `<p class="e-permits-fo-field__hint">${esc(col.hint)}</p>` : ""}
-        </div>
-        <div class="e-permits-fo-grid__subform-fields">${fields}</div>
-        <div class="e-permits-fo-grid__subform-actions">
-          <button class="btn btn-secondary btn-md" type="button" data-fo-grid-act="save">${icon("icon-checkmark-small")}<span>Salvează rândul</span></button>
-          <button class="btn btn-neutral btn-md" type="button" data-fo-grid-act="cancel">Anulează</button>
+      <div class="e-permits-fo-grid__row is-saved" data-fo-grid-row="${row.id}">
+        <div class="e-permits-fo-grid__line">
+          <span class="e-permits-fo-doc-card__index" data-fo-grid-tag>#${n}</span>
+          <button class="e-permits-fo-grid__summary${text ? "" : " is-empty"}" type="button" tabindex="-1" aria-label="${esc(`${name} ${n}: ${text || "necompletat"} — editează`)}" data-fo-grid-act="edit"><span data-cell-tooltip>${esc(text || "Necompletat")}</span></button>
+          <div class="e-permits-fo-doc-field__actions e-permits-fo-grid__line-actions">
+            <button class="btn btn-text-neutral btn-sm" type="button" aria-label="${esc(`Editează ${lower(name)} ${n}`)}" data-fo-grid-act="edit" data-fo-grid-edit>${icon("icon-edit", 16)}<span>Editează</span></button>
+            ${canRemove ? `<button class="btn btn-text-destructive btn-sm" type="button" aria-label="${esc(`Elimină ${lower(name)} ${n}`)}" data-fo-grid-act="delete">${icon("icon-delete", 16)}<span>Elimină</span></button>` : ""}
+          </div>
         </div>
       </div>`;
   }
 
-  function viewRowHtml(def, row, n) {
-    return `
-      <tr class="table__row e-permits-fo-grid__row" role="row" data-fo-grid-row="${row.id}">
-        ${indexCell(def, n)}
-        ${def.columns.map((col) => {
-          if (col.type === "grid") return `<td class="table__body-cell e-permits-fo-grid__cell" role="cell"${span(col)} data-col="${esc(col.key)}" data-type="grid">${cellLabel(col)}${nestedToggleHtml(def, row, col, nestedCount(row, col))}</td>`;
-          if (isSub(col)) return subformCellHtml(def, row, col, row.values[col.key]);
-          const text = formatValue(col, row.values[col.key]);
-          return `
-            <td class="table__body-cell e-permits-fo-grid__cell" role="cell"${span(col)} data-col="${esc(col.key)}" data-type="${esc(col.type)}">
-              ${cellLabel(col)}
-              <button class="e-permits-fo-grid__value${text ? "" : " is-empty"}" type="button" tabindex="-1" data-cell-tooltip aria-label="${esc(`${col.label}: ${text || "necompletat"} — editează rândul ${n}`)}" data-fo-grid-cell="${esc(col.key)}">${text ? esc(text) : "—"}</button>
-            </td>`;
-        }).join("")}
-        ${actionsHtml(def, n, false)}
-      </tr>`;
-  }
-
-  /* the FO field object for one cell (the FO renderer draws it; its label is visually hidden in the
-     table and shown in the card) */
+  /* the FO field object for one cell (the FO renderer draws it with its visible label) */
   function cellField(def, col, row, scopeCtl) {
     const id = `${def.id}-${row.id}-${col.key}`;
     const value = row.values[col.key];
-    const base = { id, type: col.type, label: col.label, required: Boolean(col.required), span: 12, placeholder: col.placeholder || "", readOnly: Boolean(col.readOnly), hint: "" };
+    const base = { id, type: col.type, label: col.label, required: Boolean(col.required), span: 12, placeholder: col.placeholder || "", readOnly: Boolean(col.readOnly), hint: col.hint || "" };
     const manual = scopeCtl?.manual && ["select", "multiselect", "combobox"].includes(col.type);
     if (manual) return { ...base, type: "text", value: Array.isArray(value) ? value.join(", ") : value || "", placeholder: "Scrie valoarea" };
     switch (col.type) {
       case "text": return { ...base, value: value || "", maxLength: col.maxLength || "", inputmode: col.inputmode || "" };
+      case "textarea": return { ...base, value: value || "", rows: col.rows || 2, maxLength: col.maxLength || "", charCounter: Boolean(col.counter) };
       case "number": case "money": return { ...base, value: value ?? "", unit: col.unit || (col.type === "money" ? "MDL" : ""), decimals: col.decimals || 0 };
       case "date": return { ...base, value: value || "", min: col.dateMin || "" };
       case "checkbox": return { ...base, value: Boolean(value) };
@@ -333,33 +271,54 @@
     }
   }
 
-  function editRowHtml(def, row, n, ctl) {
+  /* a sub-form column = a section of the edit card: its fields on the same 12-column grid */
+  function subformHtml(def, row, col) {
+    const id = `${domIdOf(def.id)}-${row.id}-${col.key}`;
+    const item = { id: col.key, values: row.values[col.key] || {} };
+    const fields = (col.fields || []).map((field) => `<div class="e-permits-fo-grid__cell" data-span="${fieldSpan(field)}" data-fo-subform-key="${esc(field.key)}">${ctx.fieldHtml(childOut({ id: `${def.id}-${row.id}` }, field, item))}</div>`).join("");
     return `
-      <tr class="table__row e-permits-fo-grid__row is-editing" role="row" data-fo-grid-row="${row.id}">
-        ${indexCell(def, n)}
-        ${def.columns.map((col) => {
-          if (col.type === "grid") return `<td class="table__body-cell e-permits-fo-grid__cell" role="cell"${span(col)} data-col="${esc(col.key)}" data-type="grid">${cellLabel(col)}${nestedToggleHtml(def, row, col, nestedCount(row, col))}</td>`;
-          if (isSub(col)) return subformCellHtml(def, row, col, row.values[col.key]);
-          return `<td class="table__body-cell e-permits-fo-grid__cell" role="cell"${span(col)} data-col="${esc(col.key)}" data-type="${esc(col.type)}">${ctx.fieldHtml(cellField(def, col, row, ctl))}</td>`;
-        }).join("")}
-        ${actionsHtml(def, n, true)}
-      </tr>`;
+      <div class="e-permits-fo-grid__subform" role="group" aria-labelledby="${esc(id)}-title" data-fo-subform="${esc(col.key)}">
+        <div class="e-permits-fo-grid__subform-head">
+          <div class="e-permits-fo-grid__label" id="${esc(id)}-title">${esc(col.label)}${col.required ? ` ${star()}` : ""}</div>
+          ${col.hint ? `<p class="e-permits-fo-field__hint">${esc(col.hint)}</p>` : ""}
+        </div>
+        <div class="e-permits-fo-grid__fields">${fields}</div>
+      </div>`;
   }
-  const nestedCount = (row, col) => (row.nested?.[col.key] ? row.nested[col.key].count() : (row.values[col.key] || []).length);
+  const nestedDefOf = (def, row, col) => ({ ...col.grid, id: `${def.id}-${row.id}-${col.key}`, label: col.label, required: Boolean(col.required), hint: col.hint || col.grid?.hint || "", value: clone(row.values[col.key] || []), level: (def.level || 1) + 1 });
+  function cellHtml(def, row, col, ctl) {
+    const attrs = `class="e-permits-fo-grid__cell${isNest(col) ? " e-permits-fo-grid__section" : ""}" data-col="${esc(col.key)}" data-type="${esc(col.type)}" data-span="${spanOf(col)}"`;
+    if (col.type === "grid") return `<div ${attrs}>${gridHtml(nestedDefOf(def, row, col))}</div>`;
+    if (isSub(col)) return `<div ${attrs}>${subformHtml(def, row, col)}</div>`;
+    return `<div ${attrs}>${ctx.fieldHtml(cellField(def, col, row, ctl))}</div>`;
+  }
+  function editRowHtml(def, row, n, ctl) {
+    const name = rowName(def);
+    return `
+      <div class="e-permits-fo-doc-card e-permits-fo-grid__row is-editing" role="group" aria-label="${esc(`${name} ${n}`)}" data-fo-grid-row="${row.id}">
+        <div class="e-permits-fo-doc-card__header">
+          <div class="e-permits-fo-doc-card__title">
+            <span class="e-permits-fo-doc-card__index" data-fo-grid-tag>#${n}</span>
+            <span class="e-permits-fo-doc-card__name">${esc(name)}</span>
+          </div>
+          <div class="e-permits-fo-doc-field__actions e-permits-fo-doc-card__actions">
+            <button class="btn btn-neutral btn-rounded btn-md" type="button" data-fo-grid-act="cancel">Anulează</button>
+            <button class="btn btn-primary btn-rounded btn-md" type="button" data-fo-grid-act="save">Salvează</button>
+          </div>
+        </div>
+        <div class="e-permits-fo-grid__fields" data-fo-grid-fields>${def.columns.map((col) => cellHtml(def, row, col, ctl)).join("")}</div>
+      </div>`;
+  }
 
-  function emptyRowHtml(def) {
-    const text = def.texts.empty || "Niciun rând. Apasă «Adaugă rând» pentru a începe.";
-    const empty = window.GEAPEmptyState?.render({ text, icon: "dot-grid", compact: true, bare: true }) || `<p>${esc(text)}</p>`;
-    return `<tr class="table__row e-permits-fo-grid__empty" role="row" data-fo-grid-empty><td class="table__body-cell" role="cell" colspan="${unitsOf(def) + 2}">${empty}</td></tr>`;
+  function emptyHtml(def) {
+    const text = def.texts.empty || `Niciun rând. Apasă „${def.texts.add || "Adaugă rând"}” pentru a începe.`;
+    const empty = window.GEAPEmptyState?.render({ text, icon: "dot-grid", compact: true }) || `<p>${esc(text)}</p>`;
+    return `<div class="e-permits-fo-grid__empty" data-fo-grid-empty>${empty}</div>`;
   }
-  function skeletonRowsHtml(def) {
-    return [1, 2].map(() => `
-      <tr class="table__row e-permits-fo-grid__row is-loading" role="row" aria-hidden="true">
-        <td class="table__body-cell e-permits-fo-grid__index" role="cell"><span class="skeleton skeleton--text"></span></td>
-        ${def.columns.map((col) => `<td class="table__body-cell e-permits-fo-grid__cell" role="cell"${span(col)}><span class="skeleton skeleton--input"></span></td>`).join("")}
-        <td class="table__body-cell e-permits-fo-grid__actions" role="cell"></td>
-      </tr>`).join("");
-  }
+  const skeletonRowsHtml = () => [1, 2].map(() => `
+    <div class="e-permits-fo-grid__row is-saved is-loading" aria-hidden="true">
+      <div class="e-permits-fo-grid__line"><span class="skeleton skeleton--text"></span><span class="skeleton skeleton--text"></span></div>
+    </div>`).join("");
   function sourceNoticeHtml(kind, block = false) {
     if (kind !== "error") return "";
     const text = ui().renderNotice?.("error", `Nu s-au putut încărca datele${block ? " listei" : " grilei"}. Datele introduse se păstrează.`) || "";
@@ -386,30 +345,32 @@
       case "radio": return (col.radio || [])[n - 1]?.value || (col.radio || [])[0]?.value || "";
       case "select": { const list = options(col); return list[(n - 1) % Math.max(list.length, 1)] || ""; }
       case "multiselect": return options(col).slice(0, 1);
-      case "grid": return [{ values: {} }];
+      /* a nested grid: n saved rows of its own (row 1 → 1 rând, row 2 → 2) */
+      case "grid": return col.grid?.columns?.length ? sampleRows(col.grid, n) : [];
       case "textarea": return n === 1 ? "Revizie tehnică făcută în martie 2026." : "";
       /* sub-form: everything on the first row, only the required fields on the next */
       case "subform": return Object.fromEntries(subFields(col).filter((field) => n === 1 || field.required).map((field) => [field.key, sampleValue(field, n, options)]));
       default: return "";
     }
   }
-  /* saved sample rows for a static (unbound) grid: `{ values }` per row, nested grids with one row */
-  const sampleRows = (def, count = 2) => Array.from({ length: count }, (_, i) => ({ values: Object.fromEntries(def.columns.map((col) => [col.key, sampleValue(col, i + 1)])) }));
+  /* saved sample rows for a static (unbound) grid: `{ values }` per row */
+  function sampleRows(def, count = 2) { return Array.from({ length: count }, (_, i) => ({ values: Object.fromEntries((def.columns || []).map((col) => [col.key, sampleValue(col, i + 1)])) })); }
 
   /* the rows a grid starts with: the given value (test data, a saved request) or the default empty
-     rows; the first unsaved one opens in edit mode (US-35: a new row is empty and editable) */
+     rows; the first unsaved one opens in edit (US-35: a new row is empty and editable) */
   function initialRows(def) {
     const max = Number(def.rules.max) || 0;
     const given = Array.isArray(def.value) && def.value.length;
     const list = given ? def.value : Array.from({ length: Math.min(Number(def.rules.defaultRows) || 0, max || 99) }, () => ({ values: {}, empty: true }));
-    const rows = list.map((item) => ({ id: rid(), values: { ...(item.values || item) }, saved: !item.empty, editing: false, isNew: false, open: {} }));
+    /* a never-saved row (at start) is „new”: its „Anulează” removes it, as in „Alte documente” */
+    const rows = list.map((item) => ({ id: rid(), values: clone(item.values || item), saved: !item.empty, editing: false, isNew: Boolean(item.empty) }));
     rows.forEach((row) => { delete row.values.empty; delete row.values.values; });
     if (rows[0] && !rows[0].saved) rows[0].editing = true;
     return rows;
   }
 
-  /* the grid root: label, hint, group note, the table, the foot (add + limit + pages), live region.
-     The body is drawn here too (the builder canvas is inert and never bound); bind() redraws it. */
+  /* the grid root: label, hint, the row list, the foot (add + limit + pages), live region. The list is drawn here
+     too (the builder canvas is inert and never bound); bind() redraws it. */
   function gridHtml(def, context) {
     if (context) ctx = context;
     const id = domIdOf(def.id);
@@ -418,16 +379,11 @@
     defs.set(id, def);
     const source = def.usesSource ? (SOURCE === "asteptare" ? "loading" : SOURCE === "indisponibila" ? "error" : "") : "";
     return `
-      <div class="e-permits-fo-field e-permits-fo-field--span-12 e-permits-fo-grid" id="${esc(id)}" data-fo-grid="${esc(id)}" data-level="${def.level || 1}" data-units="${unitsOf(def)}"${source ? ` data-source="${source}"` : ""}>
+      <div class="e-permits-fo-field e-permits-fo-field--span-12 e-permits-fo-grid" id="${esc(id)}" data-fo-grid="${esc(id)}" data-level="${def.level || 1}"${source ? ` data-source="${source}"` : ""}>
         <div class="e-permits-fo-grid__label"><span id="${esc(id)}-label">${esc(def.label || "")}${def.required ? ` ${star()}` : ""}</span>${infoHtml(def.texts.note, def.label)}</div>
         ${def.hint ? `<p class="e-permits-fo-field__hint" id="${esc(id)}-hint">${esc(def.hint)}</p>` : ""}
         ${sourceNoticeHtml(source)}
-        <div class="e-permits-fo-grid__frame">
-          <table class="table table--subtle e-permits-fo-grid__table" role="table" aria-labelledby="${esc(id)}-label"${def.hint ? ` aria-describedby="${esc(id)}-hint"` : ""}>
-            ${headHtml(def)}
-            <tbody role="rowgroup" data-fo-grid-body>${source === "loading" ? skeletonRowsHtml(def) : staticBody(def, source === "error")}</tbody>
-          </table>
-        </div>
+        <div class="e-permits-fo-grid__list" role="group" aria-labelledby="${esc(id)}-label"${def.hint ? ` aria-describedby="${esc(id)}-hint"` : ""} data-fo-grid-body>${source === "loading" ? skeletonRowsHtml() : staticBody(def, source === "error")}</div>
         <div class="e-permits-fo-grid__foot">
           ${def.rules.allowAdd === false ? "" : `<button class="e-permits-fo-add-activity" type="button" data-fo-grid-add${source ? ' aria-disabled="true"' : ""}>${icon("icon-plus-small")}<span>${esc(def.texts.add || "Adaugă rând")}</span></button>`}
           <p class="e-permits-fo-field__hint e-permits-fo-grid__limit" data-fo-grid-limit hidden></p>
@@ -440,13 +396,20 @@
   function staticBody(def, locked = false) {
     const rows = initialRows(def);
     if (locked) rows.forEach((row) => { row.editing = false; });
-    return rows.length ? rows.map((row, i) => (row.editing ? editRowHtml(def, row, i + 1, null) : viewRowHtml(def, row, i + 1))).join("") : emptyRowHtml(def);
+    return rows.length ? rows.map((row, i) => (row.editing ? editRowHtml(def, row, i + 1, null) : savedRowHtml(def, row, i + 1))).join("") : emptyHtml(def);
+  }
+  /* one row alone, inert (the grid builder's canvas: the edit card and the saved line of a sample row) */
+  function rowPreviewHtml(def, values, { editing = false, n = 1 } = {}) {
+    def.rules = def.rules || {};
+    def.texts = def.texts || {};
+    const row = { id: `p${n}`, values: clone(values) };
+    return editing ? editRowHtml(def, row, n, null) : savedRowHtml(def, row, n);
   }
 
   /* ================================================================== GRID — behaviour */
   function createGrid(root, def) {
     if (root.foGridCtl) return root.foGridCtl;
-    const body = root.querySelector(":scope > .e-permits-fo-grid__frame [data-fo-grid-body]");
+    const body = root.querySelector(":scope > [data-fo-grid-body]");
     const addButton = root.querySelector(":scope > .e-permits-fo-grid__foot [data-fo-grid-add]");
     const limit = root.querySelector(":scope > .e-permits-fo-grid__foot [data-fo-grid-limit]");
     const pager = root.querySelector(":scope > .e-permits-fo-grid__foot [data-fo-grid-pager]");
@@ -454,10 +417,18 @@
     const max = Number(rules.max) || 0;
     const min = Math.max(Number(rules.min) || 0, def.required ? 1 : 0);
     const pageSize = Number(rules.pageSize) || 0;
+    const name = rowName(def);
     const state = { rows: [], page: 1, source: root.dataset.source || "", manual: false };
     const rowEl = (row) => body.querySelector(`:scope > [data-fo-grid-row="${row.id}"]`);
     const rowById = (id) => state.rows.find((row) => row.id === id) || null;
     const numberOf = (row) => state.rows.indexOf(row) + 1;
+    const colOf = (key) => def.columns.find((col) => col.key === key) || null;
+    const cellOf = (row, key) => rowEl(row)?.querySelector(`:scope > [data-fo-grid-fields] > [data-col="${CSS.escape(key)}"]`) || null;
+    const nestedOf = (row, col) => cellOf(row, col.key)?.querySelector(":scope > [data-fo-grid]")?.foGridCtl || null;
+    const subScope = (row, col) => cellOf(row, col.key)?.querySelector(":scope > [data-fo-subform]") || null;
+    const subField = (scope, field) => scope?.querySelector(`[data-fo-subform-key="${CSS.escape(field.key)}"]`) || null;
+    const editingRow = (except = null) => state.rows.find((row) => row.editing && row !== except) || null;
+    const asManual = (col) => (state.manual && ["select", "multiselect", "combobox"].includes(col.type) ? { ...col, type: col.type === "multiselect" ? "multiselect" : "text" } : col);
 
     state.rows = initialRows(def);
     /* a source that did not load: nothing opens for editing until „Reîncearcă” / „Introdu manual” */
@@ -468,7 +439,7 @@
       root, def,
       get manual() { return state.manual; },
       count: () => state.rows.length,
-      value: () => state.rows.map((row) => ({ ...readRow(row), ...nestedValues(row) })),
+      value: () => state.rows.map((row) => readRow(row)),
       optionsFor,
       validate,
       fill,
@@ -476,88 +447,47 @@
     };
     root.foGridCtl = ctl;
 
-    function nestedValues(row) {
-      const out = {};
-      def.columns.filter((col) => col.type === "grid").forEach((col) => { out[col.key] = row.nested?.[col.key] ? row.nested[col.key].value() : row.values[col.key] || []; });
-      return out;
-    }
-    /* the row's values: the inputs while it is edited, the saved values otherwise */
+    /* the row's values: the card's controls while it is edited (nested grids: their own rows), the saved ones otherwise */
     function readRow(row) {
-      if (!row.editing) return { ...row.values };
-      const el = rowEl(row);
+      if (!row.editing || !rowEl(row)) return clone(row.values);
       const out = {};
       def.columns.forEach((col) => {
-        if (col.type === "grid") return;
+        if (col.type === "grid") { const nested = nestedOf(row, col); out[col.key] = nested ? nested.value() : clone(row.values[col.key] || []); return; }
         if (isSub(col)) { out[col.key] = readSub(row, col); return; }
-        const cell = el?.querySelector(`:scope > [data-col="${CSS.escape(col.key)}"]`);
-        out[col.key] = readControl(cell, state.manual && ["select", "multiselect", "combobox"].includes(col.type) ? { ...col, type: col.type === "multiselect" ? "multiselect" : "text" } : col);
+        out[col.key] = readControl(cellOf(row, col.key), asManual(col));
       });
       return out;
     }
-    /* sub-form (fb-subform-v1): its values from the detail row while the row is edited */
-    const detailEl = (row, col) => body.querySelector(`:scope > [data-fo-grid-detail="${row.id}:${col.key}"]`);
-    const subScope = (row, col) => detailEl(row, col)?.querySelector(":scope > td > [data-fo-subform]") || null;
-    const subField = (scope, field) => scope?.querySelector(`[data-fo-subform-key="${CSS.escape(field.key)}"]`) || null;
     function readSub(row, col) {
       const scope = subScope(row, col);
-      if (!scope) return { ...(row.values[col.key] || {}) };
+      if (!scope) return clone(row.values[col.key] || {});
       return Object.fromEntries(subFields(col).map((field) => [field.key, readControl(subField(scope, field), field)]));
     }
-    function drawSub(row, col) {
-      const detail = detailEl(row, col);
-      if (!detail) return;
-      const td = detail.querySelector(":scope > td");
-      td.innerHTML = subformHtml(def, row, col, numberOf(row));
-      const values = row.values[col.key] || {};
-      /* multi-select / checklist values the FO renderer cannot preselect (as prepareEdit) */
-      subFields(col).filter((field) => field.type === "multiselect").forEach((field) => {
-        const chosen = values[field.key] || [];
-        subField(td, field)?.querySelectorAll(".e-permits-fo-subgen-select__option").forEach((option) => {
-          const on = chosen.includes(option.dataset.value);
-          option.classList.toggle("is-selected", on);
-          option.setAttribute("aria-selected", String(on));
-          const box = option.querySelector(".checkbox-input");
-          if (box) box.checked = on;
-        });
+    /* multi-select / checklist values the FO renderer cannot preselect: marked before the FO binding */
+    function preselect(scope, chosen) {
+      scope?.querySelectorAll(".e-permits-fo-subgen-select__option").forEach((option) => {
+        const on = (chosen || []).includes(option.dataset.value);
+        option.classList.toggle("is-selected", on);
+        option.setAttribute("aria-selected", String(on));
+        const box = option.querySelector(".checkbox-input");
+        if (box) box.checked = on;
       });
-      bindControls(td);
     }
-    function closeSub(row, col) {
-      if (row.open) row.open[col.key] = false;
-      const detail = detailEl(row, col);
-      if (!detail) return;
-      detail.hidden = true;
-      detail.querySelector(":scope > td").innerHTML = "";
+    /* a row with nothing typed in (defaults count as nothing): dropped when another row opens */
+    function isBlank(row) {
+      const values = readRow(row);
+      return def.columns.every((col) => {
+        const value = values[col.key];
+        if (col.type === "grid") return !(value || []).length;
+        if (isSub(col)) return subFilled(col, value).filled === 0;
+        if (col.type === "checkbox") return value === Boolean(col.defaultValue);
+        return isEmpty(value) || (col.defaultValue !== undefined && col.defaultValue !== "" && JSON.stringify(value) === JSON.stringify(col.defaultValue));
+      });
     }
-    /* the cell summary follows the sub-form while it is filled (count, error look) */
-    function syncSubToggle(row, col, error = null) {
-      const toggle = rowEl(row)?.querySelector(`[data-fo-grid-subform="${CSS.escape(col.key)}"]`);
-      if (!toggle) return;
-      const wasError = toggle.classList.contains("is-error");
-      const on = error == null ? wasError && Boolean(subScope(row, col)?.querySelector("[data-fo-repeat-error], [aria-invalid='true']")) : error;
-      const focused = document.activeElement === toggle;
-      toggle.outerHTML = subformToggleHtml(def, row, col, row.editing ? readSub(row, col) : row.values[col.key], on);
-      if (focused) rowEl(row)?.querySelector(`[data-fo-grid-subform="${CSS.escape(col.key)}"]`)?.focus();
-    }
-    function toggleSub(row, col) {
-      if (!row.editing) { startEdit(row, col.key); return; }
-      row.open = row.open || {};
-      row.open[col.key] = !row.open[col.key];
-      const detail = detailEl(row, col);
-      if (detail) detail.hidden = !row.open[col.key];
-      rowEl(row)?.querySelector(`[data-fo-grid-subform="${CSS.escape(col.key)}"]`)?.setAttribute("aria-expanded", String(row.open[col.key]));
-      if (row.open[col.key]) focusIn(row, col.key);
-    }
-    /* the row of a detail row (a click / key inside a sub-form acts on its grid row) */
-    const rowOfZone = (zone) => {
-      if (!zone) return null;
-      if (zone.matches("[data-fo-grid-detail]")) return rowById(zone.dataset.foGridDetail.split(":")[0]);
-      return rowById(zone.dataset.foGridRow);
-    };
 
     /* the group fixed by the first other row that has a value (US-36 AC-04) */
     function activeGroup(exceptRow) {
-      const col = def.columns.find((item) => item.key === rules.group);
+      const col = colOf(rules.group);
       if (!col) return "";
       for (const row of state.rows) {
         if (row === exceptRow) continue;
@@ -570,8 +500,8 @@
     function parentValue(col, row) {
       if (!col.parent) return "";
       if (col.parent.kind === "column") {
-        const parentCol = def.columns.find((item) => item.key === col.parent.key);
-        const value = row.editing ? readControl(rowEl(row)?.querySelector(`:scope > [data-col="${CSS.escape(col.parent.key)}"]`), parentCol || col) : row.values[col.parent.key];
+        const parentCol = colOf(col.parent.key);
+        const value = row.editing && rowEl(row) ? readControl(cellOf(row, col.parent.key), parentCol || col) : row.values[col.parent.key];
         const meta = parentCol ? optionMeta(parentCol, value) : null;
         return meta?.code || value || "";
       }
@@ -589,75 +519,37 @@
     }
 
     /* ---- render */
+    const rowHtml = (row, n) => (row.editing ? editRowHtml(def, row, n, ctl) : savedRowHtml(def, row, n));
     function render() {
       if (state.source === "loading") return;
-      body.innerHTML = state.rows.length ? state.rows.map((row, i) => (row.editing ? editRowHtml(def, row, i + 1, ctl) : viewRowHtml(def, row, i + 1))).join("") : emptyRowHtml(def);
-      state.rows.forEach((row) => { insertDetails(row); if (row.editing) prepareEdit(row); });
+      body.innerHTML = state.rows.length ? state.rows.map((row, i) => rowHtml(row, i + 1)).join("") : emptyHtml(def);
+      state.rows.forEach((row) => { if (row.editing) prepareEdit(row); });
       sync();
     }
-    function insertDetails(row) {
-      let after = rowEl(row);
-      def.columns.filter(hasDetail).forEach((col) => {
-        let detail = body.querySelector(`:scope > [data-fo-grid-detail="${row.id}:${col.key}"]`);
-        if (!detail) {
-          detail = document.createElement("tr");
-          detail.className = "table__row e-permits-fo-grid__detail";
-          detail.setAttribute("role", "row");
-          detail.dataset.foGridDetail = `${row.id}:${col.key}`;
-          detail.id = detailId(def, row, col);
-          detail.hidden = !row.open?.[col.key] || (isSub(col) && !row.editing);
-          if (isSub(col)) detail.classList.add("e-permits-fo-grid__detail--subform");
-          detail.innerHTML = `<td class="table__body-cell" role="cell" colspan="${unitsOf(def) + 2}"></td>`;
-        }
-        after.insertAdjacentElement("afterend", detail);
-        after = detail;
-        if (!detail.hidden && !isSub(col)) openNested(row, col);
-      });
-    }
-    function openNested(row, col) {
-      const detail = body.querySelector(`:scope > [data-fo-grid-detail="${row.id}:${col.key}"]`);
-      if (!detail) return null;
-      if (!row.nested) row.nested = {};
-      if (!row.nested[col.key]) {
-        const nestedDef = { ...col.grid, id: `${def.id}-${row.id}-${col.key}`, label: `${col.label} · ${def.texts.row || "Rând"} ${numberOf(row)}`, value: row.values[col.key] || [], level: (def.level || 1) + 1 };
-        const td = detail.querySelector("td");
-        td.innerHTML = gridHtml(nestedDef);
-        const nestedRoot = td.querySelector("[data-fo-grid]");
-        bindControls(nestedRoot);
-        row.nested[col.key] = createGrid(nestedRoot, nestedDef);
-        nestedRoot.addEventListener("fo-grid-change", () => updateNestedToggle(row, col));
-      }
-      return row.nested[col.key];
-    }
-    function updateNestedToggle(row, col) {
-      const toggle = rowEl(row)?.querySelector(`[data-fo-grid-nested="${CSS.escape(col.key)}"] > span`);
-      if (toggle) toggle.textContent = plural(nestedCount(row, col), "rând", "rânduri");
-    }
-    /* edit mode: bind the FO controls, apply the group rule, keep cascades in step */
+    /* edit look: bind the FO controls cell by cell (a nested grid binds itself), group rule, cascades */
     function prepareEdit(row) {
-      const el = rowEl(row);
-      if (!el) return;
-      /* values the FO renderer cannot preselect (multi-select options): marked before the FO
-         binding, whose first summary then draws the chips */
-      def.columns.filter((col) => col.type === "multiselect").forEach((col) => {
-        const values = row.values[col.key] || [];
-        el.querySelector(`:scope > [data-col="${CSS.escape(col.key)}"]`)?.querySelectorAll(".e-permits-fo-subgen-select__option").forEach((option) => {
-          const on = values.includes(option.dataset.value);
-          option.classList.toggle("is-selected", on);
-          option.setAttribute("aria-selected", String(on));
-          const box = option.querySelector(".checkbox-input");
-          if (box) box.checked = on;
-        });
+      if (!rowEl(row)) return;
+      def.columns.forEach((col) => {
+        const cell = cellOf(row, col.key);
+        if (!cell) return;
+        if (col.type === "grid") {
+          const nestedRoot = cell.querySelector(":scope > [data-fo-grid]");
+          const nestedDef = nestedRoot ? defs.get(nestedRoot.id) : null;
+          if (nestedDef) createGrid(nestedRoot, nestedDef);
+          return;
+        }
+        if (isSub(col)) {
+          subFields(col).filter((field) => field.type === "multiselect").forEach((field) => preselect(subField(cell, field), (row.values[col.key] || {})[field.key]));
+        } else if (col.type === "multiselect") preselect(cell, row.values[col.key]);
+        bindControls(cell);
       });
-      bindControls(el);
-      def.columns.filter(isSub).forEach((col) => drawSub(row, col));
       applyGroupRule(row);
     }
     function applyGroupRule(row) {
-      const col = def.columns.find((item) => item.key === rules.group);
+      const col = colOf(rules.group);
       if (!col) return;
       const group = activeGroup(row);
-      const cell = rowEl(row)?.querySelector(`:scope > [data-col="${CSS.escape(col.key)}"]`);
+      const cell = cellOf(row, col.key);
       cell?.querySelectorAll(".e-permits-fo-select__option").forEach((option) => {
         const off = Boolean(group) && groupOf(col, option.dataset.value) !== group;
         option.classList.toggle("is-disabled", off);
@@ -681,14 +573,18 @@
       /* rows per page (US-35 AC-06): the other pages stay in the DOM, hidden (edits survive) */
       const pages = pageSize ? Math.max(1, Math.ceil(count / pageSize)) : 1;
       state.page = Math.min(state.page, pages);
+      const shown = [];
       state.rows.forEach((row, i) => {
-        const on = !pageSize || Math.floor(i / pageSize) + 1 === state.page;
         const el = rowEl(row);
-        if (el) el.hidden = !on;
-        body.querySelectorAll(`:scope > [data-fo-grid-detail^="${row.id}:"]`).forEach((detail) => {
-          const key = detail.dataset.foGridDetail.split(":")[1];
-          detail.hidden = !on || !row.open?.[key] || (isSub(def.columns.find((col) => col.key === key)) && !row.editing);
-        });
+        if (!el) return;
+        el.hidden = Boolean(pageSize) && Math.floor(i / pageSize) + 1 !== state.page;
+        if (!el.hidden) shown.push(el);
+      });
+      /* dividers only between saved lines (last one none); an edit card keeps 12 from its neighbours */
+      shown.forEach((el, i) => {
+        el.classList.toggle("is-first", i === 0);
+        el.classList.toggle("is-last", i === shown.length - 1);
+        el.classList.toggle("has-divider", el.classList.contains("is-saved") && Boolean(shown[i + 1]?.classList.contains("is-saved")));
       });
       if (pager) {
         pager.hidden = pages < 2;
@@ -700,72 +596,83 @@
       root.classList.toggle("has-rows", count > 0);
       root.dispatchEvent(new CustomEvent("fo-grid-change", { bubbles: false }));
     }
+    /* numbers after a removal: saved lines are redrawn (their labels carry the number), the edit card renamed */
     function renumber() {
       state.rows.forEach((row, i) => {
         const el = rowEl(row);
-        const num = el?.querySelector("[data-fo-grid-num]");
-        const tag = el?.querySelector("[data-fo-grid-tag]");
-        if (num) num.textContent = String(i + 1);
+        if (!el) return;
+        if (!row.editing) { el.outerHTML = savedRowHtml(def, row, i + 1); return; }
+        const tag = el.querySelector(":scope > .e-permits-fo-doc-card__header [data-fo-grid-tag]");
         if (tag) tag.textContent = `#${i + 1}`;
+        el.setAttribute("aria-label", `${name} ${i + 1}`);
       });
     }
     function swapRow(row) {
       const el = rowEl(row);
-      const html = row.editing ? editRowHtml(def, row, numberOf(row), ctl) : viewRowHtml(def, row, numberOf(row));
-      el.insertAdjacentHTML("afterend", html);
+      if (!el) return;
+      el.insertAdjacentHTML("afterend", rowHtml(row, numberOf(row)));
       el.remove();
       if (row.editing) prepareEdit(row);
       sync();
     }
 
-    /* ---- row actions (US-35) */
+    /* ---- row actions (US-35) — the „Alte documente” lifecycle */
+    /* one row in edit at a time: a blank new row is dropped, any other is saved first (its errors keep it open) */
+    function leave(open) {
+      if (open.isNew && isBlank(open)) { removeRow(open, { silent: true }); return true; }
+      if (save(open, { focus: false })) return true;
+      live(root, `Salvează sau anulează mai întâi ${lower(name)} ${numberOf(open)}.`);
+      return false;
+    }
     function startEdit(row, focusKey = "") {
-      if (row.editing) return;
+      if (row.editing) { focusIn(row, focusKey); return; }
       if (locked()) { live(root, "Listele grilei nu s-au încărcat: apasă „Reîncearcă” sau „Introdu manual”."); return; }
-      row.snapshot = { ...row.values };
+      const open = editingRow(row);
+      if (open && !leave(open)) return;
+      row.snapshot = clone(row.values);
       row.editing = true;
-      if (isSub(def.columns.find((col) => col.key === focusKey))) { row.open = row.open || {}; row.open[focusKey] = true; }
       swapRow(row);
+      rowEl(row)?.scrollIntoView?.({ block: "nearest" });
       focusIn(row, focusKey);
-      live(root, `Rândul ${numberOf(row)} se editează. Enter salvează, Esc anulează.`);
+      live(root, `${name} ${numberOf(row)} se editează. Salvează sau Anulează.`);
     }
     function focusIn(row, key = "") {
       window.setTimeout(() => {
-        const el = rowEl(row);
-        const sub = def.columns.find((col) => col.key === key && isSub(col));
-        const cell = sub ? subScope(row, sub)?.querySelector(".e-permits-fo-grid__subform-fields") : key ? el?.querySelector(`:scope > [data-col="${CSS.escape(key)}"]`) : el?.querySelector(":scope > .e-permits-fo-grid__cell:not([data-type='grid']):not([data-type='subform'])");
-        (cell?.querySelector("input:not([type='hidden']):not([type='search']):not(:disabled), button:not(:disabled)"))?.focus();
+        const scope = key ? cellOf(row, key) : rowEl(row)?.querySelector(":scope > [data-fo-grid-fields]");
+        scope?.querySelector("input:not([type='hidden']):not([type='search']):not(:disabled), textarea:not(:disabled), button:not(:disabled):not([data-fo-grid-act])")?.focus();
       }, 20);
     }
     function validateRow(row, { mark = true } = {}) {
-      const el = rowEl(row);
       const values = readRow(row);
+      const live2 = mark && row.editing && rowEl(row);
       let first = null;
       let count = 0;
-      if (mark && el) clearErrors(el);
       def.columns.forEach((col) => {
-        if (col.type === "grid") return;
-        /* sub-form: every field checked like a block field; errors on the fields, the summary red,
-           the sub-form opened (fb-subform-v1) */
-        if (isSub(col)) {
-          const scope = subScope(row, col);
-          if (mark && scope) clearErrors(scope);
-          const subValues = values[col.key] || {};
-          let missing = 0;
-          subFields(col).forEach((field) => {
-            const message = checkValue(field, subValues[field.key]);
-            if (!message) return;
-            missing += 1;
-            count += 1;
-            if (mark && row.editing && scope) { const target = markError(subField(scope, field), field, message); first = first || target; }
-          });
-          if (mark && row.editing) {
-            if (missing && !row.open?.[col.key]) { row.open = row.open || {}; row.open[col.key] = true; const detail = detailEl(row, col); if (detail) detail.hidden = false; }
-            syncSubToggle(row, col, missing > 0);
+        /* a nested grid: its own check (rows in edit saved, minimum) while the card is open; saved rows: the minimum */
+        if (col.type === "grid") {
+          if (live2) {
+            const inner = nestedOf(row, col)?.validate();
+            if (inner?.count) { count += inner.count; first = first || inner.first; }
+          } else {
+            const need = Math.max(Number(col.grid?.rules?.min) || 0, col.required ? 1 : 0);
+            if (need && (values[col.key] || []).length < need) count += 1;
           }
           return;
         }
-        const cell = el?.querySelector(`:scope > [data-col="${CSS.escape(col.key)}"]`);
+        /* a sub-form: every field checked like a block field, errors on the fields */
+        if (isSub(col)) {
+          const scope = live2 ? subScope(row, col) : null;
+          if (scope) clearErrors(scope);
+          subFields(col).forEach((field) => {
+            const message = checkValue(field, (values[col.key] || {})[field.key]);
+            if (!message) return;
+            count += 1;
+            if (scope) { const target = markError(subField(scope, field), field, message); first = first || target; }
+          });
+          return;
+        }
+        const cell = live2 ? cellOf(row, col.key) : null;
+        if (cell) clearErrors(cell);
         let message = checkValue(state.manual && ["select", "combobox"].includes(col.type) ? { ...col, type: "text" } : col, values[col.key]);
         /* key column: a value already in another row is refused (US-36 AC-03) */
         if (!message && rules.key === col.key && !isEmpty(values[col.key])) {
@@ -774,91 +681,82 @@
         }
         if (!message) return;
         count += 1;
-        if (mark && row.editing) { const target = markError(cell, col, message); first = first || target; }
-        });
+        if (cell) { const target = markError(cell, col, message); first = first || target; }
+      });
       return { count, first, values };
     }
-    function save(row) {
+    function save(row, { focus = true } = {}) {
       const result = validateRow(row);
       if (result.count) {
         result.first?.focus?.();
-        live(root, `Rândul ${numberOf(row)} are ${plural(result.count, "eroare", "erori")}; nu s-a salvat.`);
+        live(root, `${name} ${numberOf(row)} are ${plural(result.count, "eroare", "erori")}; nu s-a salvat.`);
         return false;
       }
-      row.values = result.values;
+      row.values = readRow(row);
       row.saved = true;
       row.editing = false;
       row.isNew = false;
       delete row.snapshot;
-      def.columns.filter(isSub).forEach((col) => closeSub(row, col));
       swapRow(row);
       state.rows.filter((other) => other.editing).forEach(applyGroupRule);
-      rowEl(row)?.querySelector("[data-fo-grid-act='edit']")?.focus();
-      live(root, `Rândul ${numberOf(row)} a fost salvat.`);
+      if (focus) rowEl(row)?.querySelector("[data-fo-grid-edit]")?.focus();
+      live(root, `${name} ${numberOf(row)} a fost salvat.`);
       return true;
     }
     function cancel(row) {
-      if (row.isNew) { removeRow(row, { silent: true }); live(root, "Rândul nou a fost anulat."); addButton?.focus(); return; }
+      if (row.isNew) { removeRow(row, { silent: true }); live(root, `${name} nou a fost anulat.`); addButton?.focus(); return; }
       row.values = row.snapshot || row.values;
       row.editing = false;
       delete row.snapshot;
-      def.columns.filter(isSub).forEach((col) => closeSub(row, col));
       swapRow(row);
-      rowEl(row)?.querySelector("[data-fo-grid-act='edit']")?.focus();
-      live(root, `Modificările din rândul ${numberOf(row)} au fost anulate.`);
+      rowEl(row)?.querySelector("[data-fo-grid-edit]")?.focus();
+      live(root, `Modificările din ${lower(name)} ${numberOf(row)} au fost anulate.`);
     }
     function add() {
       if (!addButton || addButton.getAttribute("aria-disabled") === "true") {
         if (max && state.rows.length >= max) live(root, maxText(def, max, true));
         return;
       }
+      const open = editingRow();
+      if (open && !leave(open)) return;
       const values = {};
       def.columns.forEach((col) => { if (col.defaultValue !== undefined && col.defaultValue !== "") values[col.key] = col.defaultValue; });
-      const row = { id: rid(), values, saved: false, editing: true, isNew: true, open: {} };
+      const row = { id: rid(), values, saved: false, editing: true, isNew: true };
       state.rows.push(row);
       body.querySelector(":scope > [data-fo-grid-empty]")?.remove();
       body.insertAdjacentHTML("beforeend", editRowHtml(def, row, state.rows.length, ctl));
-      insertDetails(row);
       prepareEdit(row);
       if (pageSize) state.page = Math.ceil(state.rows.length / pageSize);
       sync();
+      rowEl(row)?.scrollIntoView?.({ block: "nearest" });
       focusIn(row);
-      live(root, `Rândul ${state.rows.length} a fost adăugat. Completează-l și apasă Enter.`);
+      live(root, `${name} ${state.rows.length} a fost adăugat. Completează-l și apasă Salvează.`);
     }
     function removeRow(row, { silent = false } = {}) {
       const index = state.rows.indexOf(row);
       rowEl(row)?.remove();
-      body.querySelectorAll(`:scope > [data-fo-grid-detail^="${row.id}:"]`).forEach((detail) => detail.remove());
       state.rows.splice(index, 1);
-      if (!state.rows.length) body.innerHTML = emptyRowHtml(def);
+      if (!state.rows.length) body.innerHTML = emptyHtml(def);
       renumber();
       sync();
       state.rows.filter((other) => other.editing).forEach(applyGroupRule);
       if (!silent) {
         const next = state.rows[index] || state.rows[index - 1];
-        (next ? rowEl(next)?.querySelector("[data-fo-grid-act='edit'], [data-fo-grid-act='save']") : addButton)?.focus();
-        live(root, `Rândul ${index + 1} a fost șters.`);
+        (next ? rowEl(next)?.querySelector("[data-fo-grid-edit], [data-fo-grid-act='save']") : addButton)?.focus();
+        live(root, `${name} ${index + 1} a fost eliminat.`);
       }
     }
-    /* Delete asks first (US-35 AC-04) — the FO confirm dialog, destructive */
+    /* Elimină asks first (US-35 AC-04) — the FO confirm dialog, destructive (the „Alte documente” wording) */
     function confirmDelete(row) {
       const n = numberOf(row);
-      const summary = def.columns.filter((col) => !hasDetail(col)).map((col) => formatValue(col, readRow(row)[col.key])).filter(Boolean).slice(0, 2).join(" · ");
+      const summary = def.columns.filter((col) => !isNest(col)).map((col) => formatValue(col, readRow(row)[col.key])).filter(Boolean).slice(0, 2).join(" · ");
       openConfirm({
-        title: `Ștergi rândul ${n}?`,
-        text: `${summary ? `„${summary}” ` : ""}dispare din ${def.label ? `„${def.label}”` : "grilă"}${def.columns.some((col) => col.type === "grid") ? ", împreună cu rândurile din grilele lui" : ""}.`,
-        confirm: "Șterge rândul",
+        title: `Elimini ${lower(name)} ${n}?`,
+        text: `${summary ? `„${summary}” se elimină` : `${name} ${n} se elimină`} din ${def.label ? `„${def.label}”` : "listă"}${def.columns.some((col) => col.type === "grid") ? ", împreună cu rândurile din grilele lui" : ""}.`,
+        confirm: `Elimină ${lower(name)}`,
         onConfirm: () => removeRow(row),
         returnFocus: rowEl(row)?.querySelector("[data-fo-grid-act='delete']"),
       });
-    }
-    function toggleNested(row, col) {
-      row.open = row.open || {};
-      row.open[col.key] = !row.open[col.key];
-      const detail = body.querySelector(`:scope > [data-fo-grid-detail="${row.id}:${col.key}"]`);
-      if (detail) detail.hidden = !row.open[col.key];
-      rowEl(row)?.querySelector(`[data-fo-grid-nested="${CSS.escape(col.key)}"]`)?.setAttribute("aria-expanded", String(row.open[col.key]));
-      if (row.open[col.key]) openNested(row, col);
     }
 
     /* ---- events (scoped: a nested grid handles its own) */
@@ -870,26 +768,21 @@
       if (event.target.closest("[data-fo-grid-add]")) { add(); return; }
       if (event.target.closest("[data-fo-grid-retry]")) { retrySource(); return; }
       if (event.target.closest("[data-fo-grid-manual]")) { state.manual = true; state.source = ""; root.removeAttribute("data-source"); root.querySelector(":scope > [data-fo-grid-source]")?.remove(); render(); live(root, "Listele nu sunt disponibile: completează valorile manual."); return; }
-      const row = rowOfZone(event.target.closest("[data-fo-grid-row], [data-fo-grid-detail]"));
+      const zone = event.target.closest("[data-fo-grid-row]");
+      const row = zone ? rowById(zone.dataset.foGridRow) : null;
       if (!row) return;
-      const subToggle = event.target.closest("[data-fo-grid-subform]");
-      if (subToggle) { toggleSub(row, def.columns.find((col) => col.key === subToggle.dataset.foGridSubform)); return; }
-      const nested = event.target.closest("[data-fo-grid-nested]");
-      if (nested) { toggleNested(row, def.columns.find((col) => col.key === nested.dataset.foGridNested)); return; }
       const act = event.target.closest("[data-fo-grid-act]")?.dataset.foGridAct;
       if (act === "edit") { startEdit(row); return; }
       if (act === "save") { save(row); return; }
       if (act === "cancel") { cancel(row); return; }
-      if (act === "delete") { confirmDelete(row); return; }
-      const cell = event.target.closest("[data-fo-grid-cell]");
-      if (cell) startEdit(row, cell.dataset.foGridCell);
+      if (act === "delete") confirmDelete(row);
     });
-    /* Enter saves, Esc cancels — unless a list / calendar of the cell is open (Esc closes it first) */
-    const openIn = (tr) => tr.querySelector(".e-permits-fo-select.is-open, .e-permits-fo-subgen-select.is-open, .e-permits-fo-caem.is-open, .date-picker-panel:not([hidden])");
-    ctl.escape = (tr) => {
-      const row = rowOfZone(tr);
+    /* Enter saves, Esc cancels — unless a list / calendar of the card is open (Esc closes it first) */
+    const openIn = (zone) => zone.querySelector(".e-permits-fo-select.is-open, .e-permits-fo-subgen-select.is-open, .e-permits-fo-caem.is-open, .date-picker-panel:not([hidden])");
+    ctl.escape = (zone) => {
+      const row = zone ? rowById(zone.dataset.foGridRow) : null;
       if (!row) return;
-      const open = openIn(tr);
+      const open = openIn(zone);
       if (!open) { cancel(row); return; }
       if (open.matches(".date-picker-panel")) {
         open.hidden = true;
@@ -903,29 +796,22 @@
     };
     root.addEventListener("keydown", (event) => {
       if (!own(event)) return;
-      const tr = event.target.closest("[data-fo-grid-row].is-editing, .e-permits-fo-grid__detail--subform");
-      if (!tr) return;
-      const row = rowOfZone(tr);
+      const zone = event.target.closest("[data-fo-grid-row].is-editing");
+      const row = zone ? rowById(zone.dataset.foGridRow) : null;
       if (!row?.editing) return;
-      const busy = openIn(tr);
+      const busy = openIn(zone);
       if (event.key === "Escape" && !busy) { event.preventDefault(); event.stopPropagation(); cancel(row); return; }
       if (event.key === "Enter" && !busy && event.target.matches("input[type='text'], input:not([type])") && !event.target.closest("[data-date-picker]")) { event.preventDefault(); save(row); }
     }, true);
-    /* an edit clears that cell's error; a parent change resets its dependent cells (US-37 AC-03) */
+    /* an edit clears that field's error; a parent change resets its dependent cells (US-37 AC-03) */
     const onEdit = (event) => {
       if (!own(event)) return;
       const subWrap = event.target.closest("[data-fo-subform-key]");
-      if (subWrap) {
-        if (subWrap.querySelector("[data-fo-repeat-error], [aria-invalid='true']")) clearErrors(subWrap);
-        const row = rowOfZone(subWrap.closest("[data-fo-grid-detail]"));
-        const col = def.columns.find((item) => item.key === subWrap.closest("[data-fo-subform]")?.dataset.foSubform);
-        if (row?.editing && col) syncSubToggle(row, col);
-        return;
-      }
+      if (subWrap) { if (subWrap.querySelector("[data-fo-repeat-error], [aria-invalid='true']")) clearErrors(subWrap); return; }
       const cell = event.target.closest(".e-permits-fo-grid__cell");
       if (cell?.querySelector("[data-fo-repeat-error], [aria-invalid='true']")) clearErrors(cell);
-      const tr = cell?.closest("[data-fo-grid-row].is-editing");
-      const row = tr ? rowById(tr.dataset.foGridRow) : null;
+      const zone = cell?.closest("[data-fo-grid-row].is-editing");
+      const row = zone ? rowById(zone.dataset.foGridRow) : null;
       if (!row) return;
       const key = cell.dataset.col;
       def.columns.filter((col) => col.parent?.kind === "column" && col.parent.key === key).forEach((child) => refreshCell(row, child));
@@ -935,15 +821,14 @@
     root.addEventListener("input", onEdit);
     root.addEventListener("change", onEdit);
     function refreshCell(row, col) {
-      const el = rowEl(row);
-      const cell = el?.querySelector(`:scope > [data-col="${CSS.escape(col.key)}"]`);
+      const cell = cellOf(row, col.key);
       if (!cell) return;
       const draft = { ...row, values: { ...readRow(row), [col.key]: col.type === "multiselect" ? [] : "" } };
       cell.innerHTML = ctx.fieldHtml(cellField(def, col, draft, ctl));
       bindControls(cell);
       if (col.key === rules.group) applyGroupRule(row);
     }
-    /* a form field that columns depend on: reset those cells in the rows being edited */
+    /* a form field that columns depend on: reset those cells in the row being edited */
     const formScope = root.closest("[data-fb-preview-body], [data-fo-step-panel], form") || document;
     const parents = def.columns.filter((col) => col.parent?.kind === "field");
     if (parents.length) {
@@ -957,7 +842,7 @@
       state.source = "loading";
       root.dataset.source = "loading";
       root.querySelector(":scope > [data-fo-grid-source]")?.remove();
-      body.innerHTML = skeletonRowsHtml(def);
+      body.innerHTML = skeletonRowsHtml();
       sync();
       live(root, "Se încarcă datele grilei…");
       window.setTimeout(() => {
@@ -969,51 +854,45 @@
       }, 700);
     }
 
-    /* ---- whole-grid checks for „Validează” / „Înainte” (US-36 AC-02): rows being edited are saved
-       (or show their errors), saved rows re-checked, min rows, nested grids */
+    /* ---- whole-grid checks for „Validează” / „Înainte” (US-36 AC-02): the row in edit is saved (or shows its
+       errors); a saved row that no longer passes opens in edit when no other is open, else its line says so */
     function validate() {
       root.querySelectorAll(":scope > [data-fo-repeat-error]").forEach((node) => node.remove());
+      body.querySelectorAll(":scope > [data-fo-grid-row] > [data-fo-repeat-error]").forEach((node) => node.remove());
       let count = 0;
       let first = null;
-      state.rows.forEach((row) => {
-        if (row.editing) {
-          const ok = save(row);
-          if (!ok) { count += 1; first = first || rowEl(row)?.querySelector("[aria-invalid='true']"); }
-        } else if (validateRow(row, { mark: false }).count) {
-          /* a saved row that no longer passes (or a default row never filled) opens with its errors */
-          row.snapshot = { ...row.values };
+      const open = editingRow();
+      if (open && !save(open, { focus: false })) { count += 1; first = rowEl(open)?.querySelector("[aria-invalid='true']") || rowEl(open); }
+      state.rows.filter((row) => !row.editing).forEach((row) => {
+        if (!validateRow(row, { mark: false }).count) return;
+        count += 1;
+        if (!editingRow()) {
+          row.snapshot = clone(row.values);
           row.editing = true;
           swapRow(row);
           validateRow(row);
-          count += 1;
           first = first || rowEl(row)?.querySelector("[aria-invalid='true']");
+        } else {
+          rowEl(row)?.insertAdjacentHTML("beforeend", errorHtml(`${name} ${numberOf(row)} are câmpuri de completat. Apasă „Editează”.`));
+          first = first || rowEl(row)?.querySelector("[data-fo-grid-edit]");
         }
-        def.columns.filter((col) => col.type === "grid").forEach((col) => {
-          const needs = (row.values[col.key] || []).length || Number(col.grid?.rules?.min) || col.grid?.required;
-          if (!needs && !row.nested?.[col.key]) return;
-          if (!row.open?.[col.key]) toggleNested(row, col);
-          const inner = row.nested?.[col.key]?.validate();
-          if (inner?.count) { count += inner.count; first = first || inner.first; }
-        });
       });
       if (min && state.rows.length < min) {
         count += 1;
-        const message = minText(def, min, true);
-        root.querySelector(":scope > .e-permits-fo-grid__foot").insertAdjacentHTML("beforebegin", errorHtml(message));
+        root.querySelector(":scope > .e-permits-fo-grid__foot").insertAdjacentHTML("beforebegin", errorHtml(minText(def, min, true)));
         first = first || addButton;
       }
       return { count, first };
     }
-    /* „Completează cu date de test”: two plausible saved rows */
+    /* „Completează cu date de test”: two plausible saved rows (nested grids with rows of their own) */
     function fill() {
       const sample = (col, n, row) => sampleValue(col, n, (item) => optionsFor(item, row));
-      const keyCol = def.columns.find((col) => col.key === rules.group);
+      const keyCol = colOf(rules.group);
       state.rows = [];
       const count = Math.max(1, Math.min(2, max || 2));
       for (let n = 1; n <= count; n += 1) {
-        const row = { id: rid(), values: {}, saved: true, editing: false, isNew: false, open: {} };
+        const row = { id: rid(), values: {}, saved: true, editing: false, isNew: false };
         def.columns.forEach((col) => {
-          if (col.type === "grid") { row.values[col.key] = []; return; }
           row.values[col.key] = sample(col, n, row);
           if (keyCol && col === keyCol && n > 1) {
             const group = groupOf(col, state.rows[0]?.values[col.key]);
@@ -1027,8 +906,6 @@
     }
 
     render();
-    layout(root);
-    observer?.observe(root);
     return ctl;
   }
 
@@ -1369,7 +1246,8 @@
     const roots = [...(root.matches?.("[data-fo-grid], [data-fo-repeat]") ? [root] : []), ...root.querySelectorAll("[data-fo-grid], [data-fo-repeat]")];
     roots.forEach((el) => {
       const def = defs.get(el.id);
-      if (!def) return;
+      /* a nested grid drawn in a parent's static card is replaced when the parent renders */
+      if (!def || !el.isConnected) return;
       if (el.matches("[data-fo-grid]") && !el.foGridCtl) createGrid(el, def);
       if (el.matches("[data-fo-repeat]") && !el.foRepeatCtl) createBlock(el, def);
     });
@@ -1394,17 +1272,20 @@
     checkValue,
     /* gb-v1: the grid builder's inert sample rows (the same values as „date de test”) */
     sampleRows,
-    /* table or cards for grids that are not bound (the builder's inert canvas) */
+    /* row-cards-v1: one row alone, inert — the grid builder's edit card / saved line ({ editing, n }) */
+    rowHtml: rowPreviewHtml,
+    summaryText,
+    /* no-op since row-cards-v1 (the layout is CSS container queries) */
     layout,
     /* Esc from an editor that handles it first (the Form Builder): the delete dialog, an open list
        of a row being edited, or the row itself; true = handled */
     escape(target) {
       const modal = document.querySelector("[data-fo-grid-confirm]");
       if (modal && !modal.hidden) { closeConfirm(false); return true; }
-      const tr = target?.closest?.("[data-fo-grid-row].is-editing, .e-permits-fo-grid__detail--subform");
-      const ctl = tr?.closest("[data-fo-grid]")?.foGridCtl;
+      const zone = target?.closest?.("[data-fo-grid-row].is-editing");
+      const ctl = zone?.closest("[data-fo-grid]")?.foGridCtl;
       if (!ctl?.escape) return false;
-      ctl.escape(tr);
+      ctl.escape(zone);
       return true;
     },
   };

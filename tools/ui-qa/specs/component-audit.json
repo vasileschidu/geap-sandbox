@@ -193,7 +193,6 @@
     ".e-permits-builder *",
     ".e-permits-pd *",
     ".e-permits-dtpl__page *",
-    ".e-permits-fo-grid__table *",
     ".date-picker-panel *",
     ".e-permits-workplace__filter-popover *",
     ".e-permits-filter-popover *"

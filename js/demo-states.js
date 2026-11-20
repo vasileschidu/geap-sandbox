@@ -3050,7 +3050,9 @@
           const PV = "[data-builder-preview-grid]";
           const preview = async (h) => { await h.click("[data-builder-mode='preview']"); await h.wait(400); };
           const validate = async (h) => { await h.click("[data-fb-preview-validate]"); await h.wait(400); };
-          const chip = (id) => `[data-fb-child='${id}']`;
+          /* row-cards-v1: a grid card has no „Coloane” band any more — a column is picked from the grid's Date list */
+          const gridCard = (id) => `[data-builder-field][data-id='${id}']`;
+          const pickCol = (gridId, colId) => async (h) => { await h.scroll(gridCard(gridId)); await h.click(`${gridCard(gridId)} .e-permits-builder__field-meta`); await h.click("[data-builder-prop-tab='data']"); await h.click(`[data-fb-child-row='${colId}']`); await h.click("[data-builder-prop-tab='general']"); };
           const band = (type) => `[data-builder-field][data-type='${type}'] .e-permits-builder__sub-add`;
           const equip = `${PV} [data-fb-field='fld-equipment']`;
           const caem = `${PV} [data-fb-field='fld-caem']`;
@@ -3080,30 +3082,23 @@
             "fb-50a": fb(async (h) => { await h.fill("[data-builder-library-search]", "caem", { leave: false }); }),
             /* 51 a new grid: no columns (US-34), the band and the Date tab · 51a the typed menu, complex locked */
             "fb-51": fb(async (h) => { await h.click("[data-builder-component='grid']"); await h.click("[data-builder-prop-tab='data']"); await h.scroll("[data-builder-field][data-type='grid']"); }),
-            "fb-51a": fb(async (h) => { await h.click("[data-builder-component='grid']"); await h.scroll("[data-builder-field][data-type='grid']"); await h.click(band("grid")); }),
+            "fb-51a": fb(async (h) => { await h.click("[data-builder-component='grid']"); await h.click("[data-builder-prop-tab='data']"); const id = window.GEAPFormBuilder.state.sel.id; await h.click(`[aria-controls='fb-addchild-${id}-panel']`); }),
             /* 52 column editor of the equipment grid · 52a a column selected (the field panel, US-34 AC-03)
                · 52b a palette type dragged over the band (insertion line) */
             "fb-52": fb(async (h) => { await h.click("[data-builder-field][data-id='fld-equipment']"); await h.click("[data-builder-prop-tab='data']"); await h.scroll("[data-builder-field][data-id='fld-equipment']"); }, F09),
-            "fb-52a": fb(async (h) => { await h.scroll("[data-builder-field][data-id='fld-equipment']"); await h.click(chip("col-09-name")); }, F09),
+            "fb-52a": fb(async (h) => { await pickCol("fld-equipment", "col-09-name")(h); }, F09),
             /* 52w a grid column's „Lățime coloană”: parts on a 4-bar row (Îngustă 2 · Medie 3 · Lată 4) */
-            "fb-52w": fb(async (h) => { await h.scroll("[data-builder-field][data-id='fld-equipment']"); await h.click(chip("col-09-name")); await h.scroll(".e-permits-builder__panel .e-permits-builder__width-picker"); }, F09),
-            "fb-52b": fb(async (h) => {
-              const target = await h.scroll(chip("col-09-on"));
-              const item = await h.find("[data-builder-component='date']");
-              const dt = new DataTransfer();
-              item.dispatchEvent(new DragEvent("dragstart", { bubbles: true, dataTransfer: dt }));
-              const r = target.getBoundingClientRect();
-              target.dispatchEvent(new DragEvent("dragover", { bubbles: true, cancelable: true, dataTransfer: dt, clientX: r.left + 6, clientY: r.top + r.height / 2 }));
-              await h.wait(200);
-            }, F09),
+            "fb-52w": fb(async (h) => { await pickCol("fld-equipment", "col-09-name")(h); await h.scroll(".e-permits-builder__panel .e-permits-builder__width-picker"); }, F09),
+            /* 52b row-cards-v1: the grid card on the form — no „Coloane” band; the inert row card + „7 coloane” + „Deschide
+               constructorul grilei” (F09 products: Cantitatea + Unitatea on one line, the packaging on the next) */
+            "fb-52b": fb(async (h) => { await h.scroll(gridCard("fld-products")); }, F09),
             /* 53 row rules (US-36): min / max / key / page size · 53a a list column: Date + cascade (US-37) */
             "fb-53": fb(async (h) => { await h.click("[data-builder-field][data-id='fld-equipment']"); await h.click("[data-builder-prop-tab='validation']"); }, F09),
-            "fb-53a": fb(async (h) => { await h.scroll("[data-builder-field][data-id='fld-points']"); await h.click(chip("col-09-loc")); await h.click("[data-builder-prop-tab='data']"); await h.scroll("#fb-p-dataSource-parentFieldId"); }, F09),
+            "fb-53a": fb(async (h) => { await pickCol("fld-points", "col-09-loc")(h); await h.click("[data-builder-prop-tab='data']"); await h.scroll("#fb-p-dataSource-parentFieldId"); }, F09),
             /* 54 a nested grid (US-38): its columns, level 2 of 3 · 54a level 3: no deeper grid */
-            "fb-54": fb(async (h) => { await h.scroll("[data-builder-field][data-id='fld-equipment']"); await h.click(chip("col-09-parts")); await h.click("[data-builder-prop-tab='data']"); }, F09),
+            "fb-54": fb(async (h) => { await pickCol("fld-equipment", "col-09-parts")(h); await h.click("[data-builder-prop-tab='data']"); }, F09),
             "fb-54a": fb(async (h) => {
-              await h.scroll("[data-builder-field][data-id='fld-equipment']");
-              await h.click(chip("col-09-parts"));
+              await pickCol("fld-equipment", "col-09-parts")(h);
               await h.click("[data-builder-prop-tab='data']");
               await h.click("[aria-controls='fb-addchild-col-09-parts-panel']");
               await h.click("[data-fb-add-child='grid'][data-container='col-09-parts']");
@@ -3114,11 +3109,11 @@
               await h.click(".e-permits-builder__panel-head .breadcrumbs__link[data-fb-goto]");
               await h.click(`[aria-controls='fb-addchild-${level3}-panel']`);
             }, F09),
-            /* 55 the FO grid filled (Preview desktop) · 55a a row in edit mode (click on a cell) · 55b a
-               nested grid opened under its row */
+            /* 55 the FO grid filled (Preview desktop): saved lines · 55a row 1 in its edit card (click on its line) · 55b
+               the nested grid inside the edit card, a new component row */
             "fb-55": fb(async (h) => { await preview(h); await fillGrid(equip)(h); await h.scroll(equip); }, F09),
-            "fb-55a": fb(async (h) => { await preview(h); await fillGrid(equip)(h); await h.click(`${equip} [data-fo-grid-cell='Denumire']`); await h.scroll(`${equip} .is-editing`); }, F09),
-            "fb-55b": fb(async (h) => { await preview(h); await fillGrid(equip)(h); await h.click(`${equip} [data-fo-grid-nested]`); await h.click(`${equip} .e-permits-fo-grid__detail [data-fo-grid-add]`); await h.scroll(`${equip} .e-permits-fo-grid__detail`); }, F09),
+            "fb-55a": fb(async (h) => { await preview(h); await fillGrid(equip)(h); await h.click(`${equip} .e-permits-fo-grid__summary`); await h.scroll(`${equip} .is-editing`); }, F09),
+            "fb-55b": fb(async (h) => { await preview(h); await fillGrid(equip)(h); await h.click(`${equip} [data-fo-grid-edit]`); await h.click(`${equip} .is-editing [data-col='Componente'] [data-fo-grid-add]`); await h.scroll(`${equip} .is-editing [data-col='Componente']`); }, F09),
             /* 56 errors: a new row with an inventory number already used + empty required cells (US-36 AC-03,
                US-35 AC-07) · 56a „Validează”: under the minimum + a work point never filled */
             "fb-56": fb(async (h) => {
@@ -3226,10 +3221,14 @@
           const equipCard = "[data-builder-field][data-id='fld-equipment']";
           const equip = `${PV} [data-fb-field='fld-equipment']`;
           const preview = async (h) => { await h.click("[data-builder-mode='preview']"); await h.wait(400); };
-          const techChip = async (h) => { await h.scroll(equipCard); await h.click("[data-fb-child='col-09-tech']"); };
+          /* row-cards-v1: no „Coloane” band on the grid card — the column is picked from the grid's Date list */
+          const pickCol = (colId) => async (h) => { await h.scroll(equipCard); await h.click(`${equipCard} .e-permits-builder__field-meta`); await h.click("[data-builder-prop-tab='data']"); await h.click(`[data-fb-child-row='${colId}']`); await h.click("[data-builder-prop-tab='general']"); };
+          const techChip = pickCol("col-09-tech");
+          const addMenu = async (h) => { await h.scroll(equipCard); await h.click(`${equipCard} .e-permits-builder__field-meta`); await h.click("[data-builder-prop-tab='data']"); await h.click("[aria-controls='fb-addchild-fld-equipment-panel']"); };
           const fillGrid = async (h) => { const cell = await h.find(equip); window.GEAPFoRepeat.fill(cell); await h.wait(300); };
-          /* the summary of row n (detail rows sit between the rows, so no :nth-of-type) */
-          const openSub = (n) => async (h) => { await h.find(equip); document.querySelectorAll(`${equip} [data-fo-grid-body] > [data-fo-grid-row]`)[n - 1].querySelector("[data-fo-grid-subform]").click(); await h.wait(300); };
+          /* row n opened in its edit card (row-cards-v1: the sub-form is a section of the card) */
+          const openSub = (n) => async (h) => { await h.find(equip); document.querySelectorAll(`${equip} [data-fo-grid-body] > [data-fo-grid-row]`)[n - 1].querySelector("[data-fo-grid-edit]").click(); await h.wait(300); };
+          const subOpen = `${equip} .is-editing [data-fo-subform]`;
           /* a new row with its simple cells filled (Tip = the first option, as the FO list picks it) */
           const newRow = async (h) => {
             await h.click(`${equip} [data-fo-grid-add]`);
@@ -3254,12 +3253,11 @@
             }, F09),
             /* 05 Validare: which fields are required */
             "fb-sf-05": fb(async (h) => { await techChip(h); await h.click("[data-builder-prop-tab='validation']"); }, F09),
-            /* 06 „+ Coloană” on the grid band: Coloane complexe › Sub-formular */
-            "fb-sf-06": fb(async (h) => { await h.scroll(equipCard); await h.click(`${equipCard} .e-permits-builder__sub-add`); await h.scroll(`${equipCard} [data-fb-add-child='subform']`); }, F09),
+            /* 06 „Adaugă coloană” (grid panel › Date): Coloane complexe › Sub-formular */
+            "fb-sf-06": fb(async (h) => { await addMenu(h); await h.scroll("[data-fb-add-child='subform'][data-container='fld-equipment']"); }, F09),
             /* 07 depth lock (US-38): a level-3 grid offers Sub-formular disabled, with its reason */
             "fb-sf-07": fb(async (h) => {
-              await h.scroll(equipCard);
-              await h.click("[data-fb-child='col-09-parts']");
+              await pickCol("col-09-parts")(h);
               await h.click("[data-builder-prop-tab='data']");
               await h.click("[aria-controls='fb-addchild-col-09-parts-panel']");
               await h.click("[data-fb-add-child='grid'][data-container='col-09-parts']");
@@ -3274,28 +3272,27 @@
             }, F09),
             /* 08 validation: a new sub-form without fields → the summary lists it */
             "fb-sf-08": fb(async (h) => {
-              await h.scroll(equipCard);
-              await h.click(`${equipCard} .e-permits-builder__sub-add`);
-              await h.click(`${equipCard} [data-fb-add-child='subform']`);
+              await addMenu(h);
+              await h.click("[data-fb-add-child='subform'][data-container='fld-equipment']");
               await h.click("[data-fb-errors]");
             }, F09),
-            /* 10 FO: summaries in the cells (6 din 6 · 3 din 6 completate) */
+            /* 10 FO: the saved lines end with the sub-form count („6 din 6 completate” · „3 din 6 completate”) */
             "fb-sf-10": fb(async (h) => { await preview(h); await fillGrid(h); await h.scroll(equip); }, F09),
-            /* 11 FO: the sub-form of row 2 opened for editing (clic on its summary) */
-            "fb-sf-11": fb(async (h) => { await preview(h); await fillGrid(h); await openSub(2)(h); await h.scroll(`${equip} .e-permits-fo-grid__detail--subform:not([hidden])`); }, F09),
-            /* 12 FO: a new row saved without the sub-form → summary red, sub-form open, field errors */
-            "fb-sf-12": fb(async (h) => { await preview(h); await fillGrid(h); await newRow(h); await h.click(`${equip} .is-editing [data-fo-grid-act='save']`); await h.scroll(`${equip} .e-permits-fo-grid__detail--subform:not([hidden])`); }, F09),
+            /* 11 FO: row 2 in its edit card — the sub-form = a section of the card */
+            "fb-sf-11": fb(async (h) => { await preview(h); await fillGrid(h); await openSub(2)(h); await h.scroll(subOpen); }, F09),
+            /* 12 FO: a new row saved without the sub-form → field errors in the sub-form section */
+            "fb-sf-12": fb(async (h) => { await preview(h); await fillGrid(h); await newRow(h); await h.click(`${equip} .is-editing [data-fo-grid-act='save']`); await h.scroll(subOpen); }, F09),
             /* 13 FO: a new row whose sub-form is still empty („Completează”) */
             "fb-sf-13": fb(async (h) => { await preview(h); await fillGrid(h); await newRow(h); await h.scroll(`${equip} .is-editing`); }, F09),
             /* 14 FO: row 2's sub-form completed and saved → „4 din 6 completate” */
             "fb-sf-14": fb(async (h) => {
               await preview(h); await fillGrid(h);
               await openSub(2)(h);
-              await h.fill(`${equip} .e-permits-fo-grid__detail--subform:not([hidden]) [data-fo-subform-key='AnFabricatie'] input`, "2019", { leave: false });
-              await h.click(`${equip} .e-permits-fo-grid__detail--subform:not([hidden]) [data-fo-grid-act='save']`);
+              await h.fill(`${subOpen} [data-fo-subform-key='AnFabricatie'] input`, "2019", { leave: false });
+              await h.click(`${equip} .is-editing [data-fo-grid-act='save']`);
               await h.scroll(equip);
             }, F09),
-            /* 15 phone (Preview › Mobil, 375): rows as cards, row 1's sub-form open under its card */
+            /* 15 phone (Preview › Mobil, 375): row 1 in its edit card, one column, the sub-form section */
             "fb-sf-15": fb(async (h) => {
               await preview(h);
               await h.click("[data-fb-preview-device='mobile']");
@@ -3305,9 +3302,9 @@
               const cell = doc.querySelector("[data-fb-field='fld-equipment']");
               frame.contentWindow.GEAPFoRepeat.fill(cell);
               await h.wait(300);
-              cell.querySelector("[data-fo-grid-row] [data-fo-grid-subform]").click();
+              cell.querySelector("[data-fo-grid-row] [data-fo-grid-edit]").click();
               await h.wait(300);
-              cell.querySelector("[data-fo-grid-row]").scrollIntoView({ block: "start" });
+              cell.querySelector(".is-editing [data-fo-subform]").scrollIntoView({ block: "start" });
             }, F09)
           };
         })(),
@@ -3321,7 +3318,7 @@
           const equipCard = "[data-builder-field][data-id='fld-equipment']";
           const GBV = ".e-permits-gridb:not([hidden])";
           /* the card's „Deschide constructorul grilei” */
-          const openGb = async (h) => { await h.scroll(equipCard); await h.click(`${equipCard} [data-gb-open]`); await h.find(`${GBV} [data-gb-th]`); await h.wait(250); };
+          const openGb = async (h) => { await h.scroll(equipCard); await h.click(`${equipCard} [data-gb-open]`); await h.find(`${GBV} [data-gb-cell]`); await h.wait(250); };
           /* a new, empty grid in the last section, opened from its card */
           const openEmpty = async (h) => {
             await h.find(equipCard);
@@ -3335,21 +3332,21 @@
           return {
             /* 01 a new grid opened: only column types (complex locked + note), empty table „Adaugă prima coloană”, grid settings */
             "fb-gb-01": fb(openEmpty, F09),
-            /* 02 the equipment grid: header row = the columns (icons, star, units), 2 inert sample rows, grid settings right */
+            /* 02 the equipment grid: the row card — every field cell = a column (type, n/12), nested sections, the saved line */
             "fb-gb-02": fb(openGb, F09),
             /* 03 a column selected (Denumire): selected header, its panel (name + type + width on General) */
             "fb-gb-03": fb(async (h) => { await openGb(h); await h.click(col("col-09-name")); }, F09),
             /* 03b a choice column (Tip): Date tab = its list next to the name */
             "fb-gb-03b": fb(async (h) => { await openGb(h); await h.click(col("col-09-type")); await h.click("[data-builder-prop-tab='data']"); }, F09),
-            /* 04 adding via the menu: „+ Coloană” open at the end of the header row */
-            "fb-gb-04": fb(async (h) => { await openGb(h); await h.click(`${GBV} .e-permits-gridb__th-add [data-gb-add]`); await h.wait(200); }, F09),
+            /* 04 adding via the menu: the dashed „+ Coloană” tile at the end of the row card, its typed menu open */
+            "fb-gb-04": fb(async (h) => { await openGb(h); await h.scroll(`${GBV} .e-permits-gridb__add-tile`); await h.click(`${GBV} .e-permits-gridb__add-tile`); await h.wait(200); }, F09),
             /* 04b a type clicked in the left column → appended, selected, its label focused */
             "fb-gb-04b": fb(async (h) => { await openGb(h); await h.click(`${GBV} [data-gb-type='date']`); await h.wait(250); }, F09),
             /* 05 drag reorder in progress: „În funcțiune” dragged before „Denumire” (the drop line) */
             "fb-gb-05": fb(async (h) => {
               await openGb(h);
               const source = await h.find(col("col-09-on"));
-              const target = await h.find(`${GBV} [data-gb-th='col-09-name']`);
+              const target = await h.find(`${GBV} [data-gb-cell='col-09-name']`);
               const dt = new DataTransfer();
               source.dispatchEvent(new DragEvent("dragstart", { bubbles: true, dataTransfer: dt }));
               const r = target.getBoundingClientRect();
@@ -3360,7 +3357,7 @@
             "fb-gb-05b": fb(async (h) => {
               await openGb(h);
               const source = await h.find(col("col-09-on"));
-              const target = await h.find(`${GBV} [data-gb-th='col-09-name']`);
+              const target = await h.find(`${GBV} [data-gb-cell='col-09-name']`);
               const dt = new DataTransfer();
               source.dispatchEvent(new DragEvent("dragstart", { bubbles: true, dataTransfer: dt }));
               const r = target.getBoundingClientRect();
@@ -3373,7 +3370,7 @@
             /* 06 locked complex columns: the reason note + the tooltip on „Listă derulantă” (empty grid, US-34 AC-06) */
             "fb-gb-06": fb(async (h) => { await openEmpty(h); await h.hover(`${GBV} [data-gb-type='select']`); await h.wait(600); }, F09),
             /* 07 drill-in: „Componente” (nested grid) opened — breadcrumb Formular › Echipamente frigorifice ›, level 2 */
-            "fb-gb-07": fb(async (h) => { await openGb(h); await h.click(`${GBV} [data-gb-drill='col-09-parts']`); await h.find(`${GBV} [data-gb-th='col-09-part']`); await h.wait(200); }, F09),
+            "fb-gb-07": fb(async (h) => { await openGb(h); await h.click(`${GBV} [data-gb-drill='col-09-parts']`); await h.find(`${GBV} [data-gb-cell='col-09-part']`); await h.wait(200); }, F09),
             /* 07b level 2 → a 3rd-level grid added: there nested grid / sub-form are locked (US-38) */
             "fb-gb-07b": fb(async (h) => {
               await openGb(h);
@@ -3397,7 +3394,7 @@
             /* 10 Previzualizare · Desktop: the FO grid with two demo rows */
             "fb-gb-10": fb(async (h) => { await openGb(h); await h.click(`${GBV} [data-gb-mode='preview']`); await h.find(`${GBV} [data-gb-preview] [data-fo-grid-row]`); await h.wait(300); }, F09),
             /* 11 Previzualizare · Telefon (375): rows as cards */
-            "fb-gb-11": fb(async (h) => { await openGb(h); await h.click(`${GBV} [data-gb-mode='preview']`); await h.click(`${GBV} [data-gb-device='phone']`); await h.find(`${GBV} [data-gb-preview] .is-cards`); await h.wait(300); }, F09),
+            "fb-gb-11": fb(async (h) => { await openGb(h); await h.click(`${GBV} [data-gb-mode='preview']`); await h.click(`${GBV} [data-gb-device='phone']`); await h.find(`${GBV} [data-gb-preview] [data-fo-grid-row]`); await h.wait(300); }, F09),
             /* 12 „Gata”: back on the form, the grid card selected, toast „Ai actualizat grila …” with Anulează */
             "fb-gb-12": fb(async (h) => {
               await openGb(h);
@@ -3407,6 +3404,58 @@
             }, F09),
             /* 13 entry from the panel: the grid selected on the form → „Deschide constructorul grilei” on top of its panel */
             "fb-gb-13": fb(async (h) => { await h.scroll(equipCard); await h.click(`${equipCard} .e-permits-builder__field-meta`); await h.wait(200); }, F09),
+          };
+        })(),
+
+        /* ---- Row cards (row-cards-v1, 2026-11-20; PO: fields side by side, user: no tables): every grid row = the
+           „Alte documente” card — edit card (fields on 12 columns) → Salvează → one saved line → Editează / Elimină.
+           F09 „Produse alimentare depozitate” (Cantitatea + Unitatea on one line, 4 × Îngustă packaging line) and
+           „Echipamente frigorifice” (nested grid + sub-form in the card). FO = the Preview (scope [data-builder-preview-grid]). */
+        ...(() => {
+          const F09 = { formular: "form-sanitary-09" };
+          const PV = "[data-builder-preview-grid]";
+          const preview = async (h) => { await h.click("[data-builder-mode='preview']"); await h.wait(400); };
+          const prod = `${PV} [data-fb-field='fld-products']`;
+          const equip = `${PV} [data-fb-field='fld-equipment']`;
+          const fill = (scope) => async (h) => { const cell = await h.find(scope); window.GEAPFoRepeat.fill(cell); await h.wait(300); };
+          const rowEdit = (scope, n) => async (h) => { await h.find(`${scope} [data-fo-grid-row]`); document.querySelectorAll(`${scope} [data-fo-grid-body] > [data-fo-grid-row]`)[n - 1].querySelector("[data-fo-grid-edit]").click(); await h.wait(300); };
+          /* the Preview › Mobil frame (375): the grid of `id` in the phone document */
+          const phone = (id, run) => async (h) => {
+            await preview(h);
+            await h.click("[data-fb-preview-device='mobile']");
+            await h.wait(2200);
+            const frame = document.querySelector("[data-fb-device-frame]");
+            const cell = frame.contentDocument.querySelector(`[data-fb-field='${id}']`);
+            await run(cell, frame.contentWindow);
+            await h.wait(300);
+          };
+          const GBV = ".e-permits-gridb:not([hidden])";
+          const prodCard = "[data-builder-field][data-id='fld-products']";
+          return {
+            /* 01 empty: no rows yet — the boxed empty state + „Adaugă echipament” */
+            "fb-row-01": fb(async (h) => { await preview(h); await h.scroll(equip); }, F09),
+            /* 02 a new row in its EDIT card: Denumirea 6 · Cantitatea 3 · Unitatea 3, then the 4 packaging fields */
+            "fb-row-02": fb(async (h) => { await preview(h); await h.scroll(prod); }, F09),
+            /* 03 saved list: two lines (#n · values · Editează · Elimină), divider between, none after the last */
+            "fb-row-03": fb(async (h) => { await preview(h); await fill(prod)(h); await h.scroll(prod); }, F09),
+            /* 04 editing an existing row (row 2 back in its card; Anulează restores) */
+            "fb-row-04": fb(async (h) => { await preview(h); await fill(prod)(h); await rowEdit(prod, 2)(h); await h.scroll(`${prod} .is-editing`); }, F09),
+            /* 05 validation: Salvează on the empty new card — required errors, focus on the first */
+            "fb-row-05": fb(async (h) => { await preview(h); await h.click(`${prod} .is-editing [data-fo-grid-act='save']`); await h.scroll(`${prod} .is-editing`); }, F09),
+            /* 06 Elimină asks first: the FO confirm, red */
+            "fb-row-06": fb(async (h) => { await preview(h); await fill(prod)(h); await h.click(`${prod} [data-fo-grid-act='delete']`); await h.wait(300); }, F09),
+            /* 07 nested grid inside the edit card („Componente” = the same row cards, a section under a line) */
+            "fb-row-07": fb(async (h) => { await preview(h); await fill(equip)(h); await rowEdit(equip, 2)(h); await h.scroll(`${equip} .is-editing [data-col='Componente']`); }, F09),
+            /* 08 sub-form inside the edit card („Date tehnice” fields on the same 12-column grid) */
+            "fb-row-08": fb(async (h) => { await preview(h); await fill(equip)(h); await rowEdit(equip, 1)(h); await h.scroll(`${equip} .is-editing [data-fo-subform]`); }, F09),
+            /* 09 phone 375: the products edit card, one column, inputs 48 */
+            "fb-row-09": fb(phone("fld-products", async (cell) => { cell.scrollIntoView({ block: "start" }); }), F09),
+            /* 09b phone 375: saved lines (buttons under the values) */
+            "fb-row-09b": fb(phone("fld-products", async (cell, win) => { win.GEAPFoRepeat.fill(cell); await new Promise((r) => setTimeout(r, 300)); cell.scrollIntoView({ block: "start" }); }), F09),
+            /* 10 grid builder canvas: the row card, „Cantitatea” selected, „+ Coloană” tile, the saved line under it */
+            "fb-row-10": fb(async (h) => { await h.scroll(prodCard); await h.click(`${prodCard} [data-gb-open]`); await h.find(`${GBV} [data-gb-cell]`); await h.click(`${GBV} [data-gb-col='col-09-qty']`); await h.wait(250); }, F09),
+            /* 11 the grid card on the form: no band, the inert row card + „7 coloane” + „Deschide constructorul grilei” */
+            "fb-row-11": fb(async (h) => { await h.scroll(prodCard); }, F09),
           };
         })()
       };

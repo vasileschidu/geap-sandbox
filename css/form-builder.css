@@ -118,12 +118,15 @@
   }
 }
 
-/* ===== Grilă editabilă — FO (batch 4, 2026-10-13; components.md „Editable grid (FO)”) =====
-   Library `.table.table--subtle` with explicit ARIA roles, geometry scoped here: 12 inset, head 38
-   (12/16 medium, secondary on grey), body 14/20, lines only (no outer box), no zebra, last row
-   without a divider, hover = tertiary on rows that are not being edited. Below 600 px of the grid's
-   own width (container query: the FO at 375, a narrow canvas card) every row is a card. */
+/* ===== Grilă editabilă — FO (row-cards-v1, 2026-11-20; components.md „Editable grid (FO)”) =====
+   No table (user, after PO Alexandr: „one field per line is too long — side by side”). Every row is the
+   „Alte documente” card (`.e-permits-fo-doc-card`: border 1, radius 16, padding 16, gap 16; header #n + row name,
+   „Anulează” · „Salvează”), its fields on a 12-column grid, gap 24 (`data-span` 3 · 4 · 6 · 12). A nested grid /
+   sub-form = a section of the card under a 1 px line. Saved rows = one line (#n · values · Editează · Elimină),
+   divided by 1 px lines, the last without. The grid is a size container: below 600 px of its own width 3 / 4 → 6 and
+   6 → 12, below 480 px (and on phones) one column. */
 .e-permits-fo-grid {
+  container-type: inline-size;
   display: flex;
   flex-direction: column;
   gap: var(--spacing-8, 8px);
@@ -140,213 +143,67 @@
   line-height: var(--line-height-lh-20, 20px);
 }
 
-.e-permits-fo-grid__frame {
+.e-permits-fo-grid__list {
+  display: flex;
+  flex-direction: column;
   min-width: 0;
 }
 
-/* fixed layout: the columns share the row (widths from the builder), inputs shrink with them */
-.e-permits-fo-grid__table {
-  border-collapse: separate;
-  border-spacing: 0;
-  color: var(--color-text-base-default, #121212);
-  font-size: var(--font-size-fs-14, 14px);
-  line-height: var(--line-height-lh-20, 20px);
-  table-layout: fixed;
-  width: 100%;
-}
-
-.e-permits-fo-grid__table .table__head-cell {
-  background: var(--color-background-base-secondary, #f5f5f5);
-  border-bottom: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
-  color: var(--color-text-base-secondary, #383838);
-  font-size: var(--font-size-fs-12, 12px);
-  font-weight: var(--font-weight-fw-medium, 500);
-  height: calc(var(--spacing-32, 32px) + var(--spacing-6, 6px));
-  line-height: var(--line-height-lh-16, 16px);
-  padding: var(--spacing-8, 8px) var(--spacing-12, 12px);
-  vertical-align: middle;
-}
-
-.e-permits-fo-grid__table .table__head-cell:first-child {
-  border-top-left-radius: var(--border-radius-8, 8px);
-}
-
-.e-permits-fo-grid__table .table__head-cell:last-child {
-  border-top-right-radius: var(--border-radius-8, 8px);
-}
-
-.e-permits-fo-grid__table .table__head-cell .e-permits-fo-required {
-  vertical-align: middle;
-}
-
-.e-permits-fo-grid__table .table__body-cell,
-.e-permits-fo-grid__table .table__row:nth-child(even) .table__body-cell {
-  background: var(--color-background-base-default, #fff);
-  border-bottom: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
-  color: var(--color-text-base-default, #121212);
-  font-size: var(--font-size-fs-14, 14px);
-  height: calc(var(--spacing-48, 48px) + var(--spacing-4, 4px));
-  line-height: var(--line-height-lh-20, 20px);
-  padding: var(--spacing-8, 8px) var(--spacing-12, 12px);
-  vertical-align: middle;
-}
-
-.e-permits-fo-grid__table > tbody > .table__row:last-child > .table__body-cell {
-  border-bottom: 0;
-}
-
-.e-permits-fo-grid__table > tbody > .e-permits-fo-grid__row:not(.is-editing):hover > .table__body-cell {
-  background: var(--color-background-base-tertiary, #f1f1f1);
-}
-
-.e-permits-fo-grid__table tr[hidden] {
+.e-permits-fo-grid__row[hidden] {
   display: none;
 }
 
-/* a row being edited: FO inputs in the cells (their labels are read by screen readers only) */
-.e-permits-fo-grid__row.is-editing > .table__body-cell {
-  vertical-align: top;
+/* EDIT: the other-doc card; 12 from a neighbouring saved line (+ its own 4 = the 16 rhythm around the card) */
+.e-permits-fo-grid__row.is-editing:not(.is-first) {
+  margin-top: var(--spacing-12, 12px);
 }
 
-.e-permits-fo-grid__row.is-editing > .e-permits-fo-grid__index,
-.e-permits-fo-grid__row.is-editing > .e-permits-fo-grid__actions {
-  padding-top: var(--spacing-12, 12px);
+.e-permits-fo-grid__row.is-editing:not(.is-last) {
+  margin-bottom: var(--spacing-12, 12px);
 }
 
-.e-permits-fo-grid__cell > .e-permits-fo-field > label,
-.e-permits-fo-grid__cell > .e-permits-fo-field > .e-permits-fo-field__label-counter,
-.e-permits-fo-grid__cell > fieldset > .e-permits-fo-choice__legend,
-.e-permits-fo-grid__cell .e-permits-fo-consent > span:last-child {
-  clip: rect(0 0 0 0);
-  clip-path: inset(50%);
-  height: 1px;
-  overflow: hidden;
-  position: absolute;
-  white-space: nowrap;
-  width: 1px;
-}
-
-.e-permits-fo-grid__cell > .e-permits-fo-field,
-.e-permits-fo-grid__cell > fieldset {
-  gap: var(--spacing-4, 4px);
+.e-permits-fo-grid__fields {
+  display: grid;
+  gap: var(--spacing-24, 24px);
+  grid-template-columns: repeat(12, minmax(0, 1fr));
   min-width: 0;
 }
 
-/* controls follow their column (fixed layout): never wider than the cell */
+.e-permits-fo-grid__cell {
+  grid-column: span 12;
+  min-width: 0;
+}
+
+.e-permits-fo-grid__cell[data-span="3"] {
+  grid-column: span 3;
+}
+
+.e-permits-fo-grid__cell[data-span="4"] {
+  grid-column: span 4;
+}
+
+.e-permits-fo-grid__cell[data-span="6"] {
+  grid-column: span 6;
+}
+
+/* the FO field fills its span; controls never wider than it */
+.e-permits-fo-grid__cell > :is(.e-permits-fo-field, fieldset) {
+  min-width: 0;
+  width: 100%;
+}
+
 .e-permits-fo-grid__cell :is(.e-permits-fo-input, .e-permits-fo-select, .e-permits-fo-subgen-select, .date-picker__field) {
   max-width: 100%;
   min-width: 0;
 }
 
-.e-permits-fo-grid__nested-toggle {
-  max-width: 100%;
-}
-
-.e-permits-fo-grid__nested-toggle > span {
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.e-permits-fo-grid__cell-label,
-.e-permits-fo-grid__index-title,
-.e-permits-fo-grid__actions-full {
-  display: none;
-}
-
-.e-permits-fo-grid__index {
-  color: var(--color-text-base-tertiary, #757575);
-  width: var(--spacing-56, 56px);
-}
-
-
-.e-permits-fo-grid__actions {
-  text-align: right;
-  white-space: nowrap;
-  width: calc(var(--spacing-32, 32px) * 2 + var(--spacing-8, 8px) + var(--spacing-24, 24px));
-}
-
-.e-permits-fo-grid__actions-compact {
-  display: inline-flex;
-  gap: var(--spacing-8, 8px);
-  justify-content: flex-end;
-}
-
-/* a saved value: the whole cell is the click target of „click to edit” (US-35 AC-01) */
-.e-permits-fo-grid__value {
-  appearance: none;
-  background: transparent;
-  border: 0;
-  border-radius: var(--border-radius-4, 4px);
-  color: inherit;
-  cursor: pointer;
-  display: block;
-  font: inherit;
-  max-width: 100%;
-  overflow: hidden;
-  padding: 0;
-  text-align: left;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  width: 100%;
-}
-
-.e-permits-fo-grid__value.is-empty {
-  color: var(--color-text-base-tertiary, #757575);
-}
-
-/* the cell under the pointer is the click target: a soft pill around its value (no layout shift) */
-.e-permits-fo-grid__value:hover {
-  background: var(--color-background-base-tertiary-hover, #e7e7e7);
-  box-shadow: 0 0 0 var(--spacing-4, 4px) var(--color-background-base-tertiary-hover, #e7e7e7);
-}
-
-.e-permits-fo-grid__value:focus-visible {
-  box-shadow: 0 0 0 4px var(--blue-sky-200, #ccdef6);
-  outline: none;
-}
-
-/* nested grid (US-38): label + chevron, opens the sub-grid in a detail row under the row */
-.e-permits-fo-grid__nested-toggle .icon {
-  transition: transform var(--motion-duration-md, 200ms) var(--motion-easing-standard, ease);
-}
-
-.e-permits-fo-grid__nested-toggle[aria-expanded="true"] .icon {
-  transform: rotate(180deg);
-}
-
-.e-permits-fo-grid__table > tbody > .e-permits-fo-grid__detail > .table__body-cell,
-.e-permits-fo-grid__table > tbody > .e-permits-fo-grid__detail:hover > .table__body-cell {
-  background: var(--color-background-base-secondary, #f5f5f5);
-  height: auto;
-  padding: var(--spacing-16, 16px);
-}
-
-.e-permits-fo-grid__table > tbody > .e-permits-fo-grid__empty > .table__body-cell {
-  height: auto;
-  padding: 0;
-}
-
-/* Sub-formular column (fb-subform-v1, 2026-11-20): the cell = the nested toggle (summary + chevron);
-   red while required fields of the sub-form are missing; the sub-form opens in the detail row on the
-   FO form grid — 2 equal columns, gap 24, fields fill, ≤ 6/12 = one column, wider = both, one column
-   below 560 px of its own width (cards, phones) */
-.btn-neutral.e-permits-fo-grid__subform-toggle.is-error {
-  background-color: var(--color-background-danger-secondary, #fee4e2);
-  color: var(--color-text-danger-on-secondary, #b32318);
-}
-
-.btn-neutral.e-permits-fo-grid__subform-toggle.is-error:hover:not(:disabled) {
-  background-color: var(--color-background-danger-secondary-hover, #fecdc9);
-  color: var(--color-text-danger-on-secondary, #b32318);
-}
-
-.btn-neutral.e-permits-fo-grid__subform-toggle.is-error:active:not(:disabled) {
-  background-color: var(--color-background-danger-secondary-active, #fda19b);
+/* a nested grid / sub-form: a full-width section of the card, under a line */
+.e-permits-fo-grid__section {
+  border-top: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
+  padding-top: var(--spacing-24, 24px);
 }
 
 .e-permits-fo-grid__subform {
-  container-type: inline-size;
   display: flex;
   flex-direction: column;
   gap: var(--spacing-16, 16px);
@@ -356,52 +213,153 @@
 .e-permits-fo-grid__subform-head {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-8, 8px);
+  gap: var(--spacing-4, 4px);
 }
 
 .e-permits-fo-grid__subform-head > .e-permits-fo-field__hint {
   margin: 0;
 }
 
-.e-permits-fo-grid__subform-more {
-  display: none;
+@container (max-width: 600px) {
+  .e-permits-fo-grid__cell:is([data-span="3"], [data-span="4"]) {
+    grid-column: span 6;
+  }
+
+  .e-permits-fo-grid__cell[data-span="6"] {
+    grid-column: span 12;
+  }
 }
 
-.e-permits-fo-grid.is-cards .e-permits-fo-grid__subform-more {
-  display: inline;
+@container (max-width: 480px) {
+  .e-permits-fo-grid__cell[data-span] {
+    grid-column: span 12;
+  }
 }
 
-.e-permits-fo-grid__subform-fields {
-  display: grid;
-  gap: var(--spacing-24, 24px);
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  min-width: 0;
+@media (max-width: 760px) {
+  .e-permits-fo-grid__cell[data-span] {
+    grid-column: span 12;
+  }
 }
 
-.e-permits-fo-grid__subform-fields > * {
-  grid-column: 1 / -1;
-  min-width: 0;
-}
-
-.e-permits-fo-grid__subform-fields > :is(.e-permits-fo-field--span-3, .e-permits-fo-field--span-4, .e-permits-fo-field--span-6) {
-  grid-column: span 1;
-}
-
-.e-permits-fo-grid__subform-actions {
+/* SAVED: one line — #n · the first values (cut + tooltip) · „Editează” · „Elimină”; the whole line opens the edit:
+   the summary's ::after covers it BEHIND the text (line = own stacking context, ::after z −1) and carries the hover
+   (tertiary on white; the #n pill one step darker, it lets the pointer through); the buttons sit above */
+.e-permits-fo-grid__row.is-saved {
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: column;
   gap: var(--spacing-8, 8px);
-  margin-top: var(--spacing-8, 8px);
+  padding: var(--spacing-4, 4px) 0;
 }
 
-@container (max-width: 560px) {
-  .e-permits-fo-grid__subform-fields {
-    grid-template-columns: minmax(0, 1fr);
+.e-permits-fo-grid__row.is-saved.has-divider {
+  border-bottom: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
+}
+
+.e-permits-fo-grid__line {
+  align-items: center;
+  border-radius: var(--border-radius-12, 12px);
+  box-sizing: border-box;
+  display: flex;
+  gap: var(--spacing-12, 12px);
+  min-height: var(--spacing-48, 48px);
+  isolation: isolate;
+  padding: var(--spacing-8, 8px) var(--spacing-16, 16px);
+  position: relative;
+}
+
+.e-permits-fo-grid__line > .e-permits-fo-doc-card__index {
+  flex: 0 0 auto;
+  pointer-events: none;
+  transition: background-color var(--motion-duration-hover, 180ms) ease;
+}
+
+.e-permits-fo-grid__summary {
+  appearance: none;
+  background: transparent;
+  border: 0;
+  color: var(--color-text-base-default, #121212);
+  cursor: pointer;
+  flex: 1 1 auto;
+  font: inherit;
+  font-size: var(--font-size-fs-14, 14px);
+  line-height: var(--line-height-lh-20, 20px);
+  min-width: 0;
+  padding: 0;
+  text-align: left;
+}
+
+.e-permits-fo-grid__summary > span {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.e-permits-fo-grid__summary.is-empty {
+  color: var(--color-text-base-tertiary, #757575);
+}
+
+.e-permits-fo-grid__summary::after {
+  border-radius: var(--border-radius-12, 12px);
+  content: "";
+  inset: 0;
+  position: absolute;
+  transition: background-color var(--motion-duration-hover, 180ms) ease;
+  z-index: -1;
+}
+
+.e-permits-fo-grid__summary:hover::after {
+  background: var(--color-background-base-tertiary, #f1f1f1);
+}
+
+.e-permits-fo-grid__summary:focus-visible {
+  outline: none;
+}
+
+.e-permits-fo-grid__summary:focus-visible::after {
+  box-shadow: inset 0 0 0 var(--border-width-2, 2px) var(--blue-sky-500, #3379db);
+}
+
+.e-permits-fo-grid__line-actions {
+  position: relative;
+  z-index: 1;
+}
+
+.e-permits-fo-grid__line:has(> .e-permits-fo-grid__summary:hover) > .e-permits-fo-doc-card__index {
+  background: var(--color-background-base-tertiary-hover, #d9d9d9);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .e-permits-fo-grid__summary::after,
+  .e-permits-fo-grid__line > .e-permits-fo-doc-card__index {
+    transition: none;
+  }
+}
+
+/* narrow / phones: the buttons go under the values */
+@container (max-width: 480px) {
+  .e-permits-fo-grid__line {
+    flex-wrap: wrap;
+    row-gap: var(--spacing-4, 4px);
   }
 
-  .e-permits-fo-grid__subform-fields > :is(.e-permits-fo-field--span-3, .e-permits-fo-field--span-4, .e-permits-fo-field--span-6) {
-    grid-column: 1 / -1;
+  .e-permits-fo-grid__summary {
+    flex-basis: calc(100% - var(--spacing-48, 48px));
   }
+
+  .e-permits-fo-grid__line-actions {
+    margin-left: calc(var(--spacing-8, 8px) * -1);
+  }
+}
+
+.e-permits-fo-grid__row.is-loading .skeleton--text {
+  display: block;
+  flex: 0 1 50%;
+}
+
+.e-permits-fo-grid__row.is-loading .skeleton--text:first-child {
+  flex: 0 0 var(--spacing-32, 32px);
 }
 
 .e-permits-fo-grid__foot {
@@ -430,6 +388,12 @@
   background: var(--color-background-base-tertiary, #f1f1f1);
 }
 
+@container (max-width: 480px) {
+  .e-permits-fo-grid__pager {
+    margin-left: 0;
+  }
+}
+
 .e-permits-fo-grid__source,
 .e-permits-fo-grid__source-actions {
   display: flex;
@@ -441,11 +405,6 @@
   flex-direction: column;
 }
 
-.e-permits-fo-grid__row.is-loading .skeleton--text {
-  display: block;
-  width: var(--spacing-24, 24px);
-}
-
 /* „Adaugă rând / alt …” at the maximum: the FO add button, disabled with its reason */
 .e-permits-fo-add-activity[aria-disabled="true"],
 .e-permits-fo-add-activity[aria-disabled="true"]:hover {
@@ -453,151 +412,6 @@
   border-color: var(--color-border-base-default, #d9d9d9);
   color: var(--color-text-base-tertiary, #757575);
   cursor: not-allowed;
-}
-
-/* every row a card: label over value, labelled buttons (≥ 44 px targets on touch, US-39 AC-02).
-   `is-cards` = below 600 px of the grid's own width, or when its columns would not fit (layout()).
-   Scoped to this grid's own table (a nested grid decides for itself). */
-.e-permits-fo-grid.is-cards > .e-permits-fo-grid__frame > .e-permits-fo-grid__table,
-.e-permits-fo-grid.is-cards > .e-permits-fo-grid__frame > .e-permits-fo-grid__table > tbody {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-16, 16px);
-}
-
-/* no header row on cards: every value carries its own label */
-.e-permits-fo-grid.is-cards > .e-permits-fo-grid__frame > .e-permits-fo-grid__table > thead {
-  display: none;
-}
-
-.e-permits-fo-grid.is-cards > .e-permits-fo-grid__frame > .e-permits-fo-grid__table > tbody > .e-permits-fo-grid__row {
-  border: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
-  border-radius: var(--border-radius-16, 16px);
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-16, 16px);
-  padding: var(--spacing-20, 20px);
-}
-
-.e-permits-fo-grid.is-cards > .e-permits-fo-grid__frame > .e-permits-fo-grid__table > tbody > .e-permits-fo-grid__row > .table__body-cell,
-.e-permits-fo-grid.is-cards > .e-permits-fo-grid__frame > .e-permits-fo-grid__table > tbody > .e-permits-fo-grid__row:not(.is-editing):hover > .table__body-cell,
-.e-permits-fo-grid.is-cards > .e-permits-fo-grid__frame > .e-permits-fo-grid__table > tbody > .e-permits-fo-grid__empty > .table__body-cell,
-.e-permits-fo-grid.is-cards > .e-permits-fo-grid__frame > .e-permits-fo-grid__table > tbody > .e-permits-fo-grid__detail > .table__body-cell {
-  background: transparent;
-  border: 0;
-  display: block;
-  height: auto;
-  padding: 0;
-  width: auto;
-}
-
-.e-permits-fo-grid.is-cards > .e-permits-fo-grid__frame > .e-permits-fo-grid__table > tbody > .e-permits-fo-grid__detail,
-.e-permits-fo-grid.is-cards > .e-permits-fo-grid__frame > .e-permits-fo-grid__table > tbody > .e-permits-fo-grid__empty {
-  display: block;
-}
-
-.e-permits-fo-grid.is-cards > .e-permits-fo-grid__frame > .e-permits-fo-grid__table > tbody > .e-permits-fo-grid__detail {
-  background: var(--color-background-base-secondary, #f5f5f5);
-  border-radius: var(--border-radius-16, 16px);
-  padding: var(--spacing-16, 16px);
-}
-
-.e-permits-fo-grid.is-cards > .e-permits-fo-grid__frame > .e-permits-fo-grid__table > tbody > tr[hidden] {
-  display: none;
-}
-
-.e-permits-fo-grid.is-cards > .e-permits-fo-grid__frame > .e-permits-fo-grid__table > tbody > .e-permits-fo-grid__row .e-permits-fo-grid__index-num {
-  display: none;
-}
-
-/* the card title = the FO activity card title (#1 tag + name) */
-.e-permits-fo-grid.is-cards > .e-permits-fo-grid__frame > .e-permits-fo-grid__table > tbody > .e-permits-fo-grid__row .e-permits-fo-grid__index-title {
-  align-items: center;
-  display: inline-flex;
-  gap: var(--spacing-8, 8px);
-}
-
-.e-permits-fo-grid.is-cards > .e-permits-fo-grid__frame > .e-permits-fo-grid__table > tbody > .e-permits-fo-grid__row .e-permits-fo-grid__index-title > strong {
-  color: var(--color-text-base-default, #121212);
-  font-size: var(--font-size-fs-16, 16px);
-  font-weight: var(--font-weight-fw-medium, 500);
-  line-height: var(--line-height-lh-24, 24px);
-}
-
-.e-permits-fo-grid.is-cards > .e-permits-fo-grid__frame > .e-permits-fo-grid__table > tbody > .e-permits-fo-grid__row .e-permits-fo-grid__index-tag {
-  align-items: center;
-  background: var(--color-background-base-secondary, #f5f5f5);
-  border-radius: var(--border-radius-4, 4px);
-  color: var(--color-text-base-secondary, #383838);
-  display: inline-flex;
-  font-size: var(--font-size-fs-12, 12px);
-  font-weight: var(--font-weight-fw-medium, 500);
-  height: var(--spacing-24, 24px);
-  line-height: var(--line-height-lh-16, 16px);
-  padding: 0 var(--spacing-8, 8px);
-}
-
-.e-permits-fo-grid.is-cards > .e-permits-fo-grid__frame > .e-permits-fo-grid__table > tbody > .e-permits-fo-grid__row:not(.is-editing) .e-permits-fo-grid__cell-label,
-.e-permits-fo-grid.is-cards > .e-permits-fo-grid__frame > .e-permits-fo-grid__table > tbody > .e-permits-fo-grid__row.is-editing > :is([data-type="grid"], [data-type="subform"]) > .e-permits-fo-grid__cell-label {
-  color: var(--color-text-base-secondary, #383838);
-  display: flex;
-  font-size: var(--font-size-fs-14, 14px);
-  gap: var(--spacing-4, 4px);
-  line-height: var(--line-height-lh-20, 20px);
-  margin-bottom: var(--spacing-4, 4px);
-}
-
-.e-permits-fo-grid.is-cards > .e-permits-fo-grid__frame > .e-permits-fo-grid__table > tbody > .e-permits-fo-grid__row .e-permits-fo-grid__value {
-  font-size: var(--font-size-fs-16, 16px);
-  line-height: var(--line-height-lh-24, 24px);
-  padding: var(--spacing-4, 4px) 0;
-  white-space: normal;
-}
-
-.e-permits-fo-grid.is-cards > .e-permits-fo-grid__frame > .e-permits-fo-grid__table > tbody > .e-permits-fo-grid__row .e-permits-fo-grid__value:hover {
-  background: var(--color-background-base-tertiary, #f1f1f1);
-}
-
-.e-permits-fo-grid.is-cards > .e-permits-fo-grid__frame > .e-permits-fo-grid__table > tbody > .e-permits-fo-grid__row > .e-permits-fo-grid__cell > .e-permits-fo-field > label,
-.e-permits-fo-grid.is-cards > .e-permits-fo-grid__frame > .e-permits-fo-grid__table > tbody > .e-permits-fo-grid__row > .e-permits-fo-grid__cell > .e-permits-fo-field > .e-permits-fo-field__label-counter,
-.e-permits-fo-grid.is-cards > .e-permits-fo-grid__frame > .e-permits-fo-grid__table > tbody > .e-permits-fo-grid__row > .e-permits-fo-grid__cell > fieldset > .e-permits-fo-choice__legend,
-.e-permits-fo-grid.is-cards > .e-permits-fo-grid__frame > .e-permits-fo-grid__table > tbody > .e-permits-fo-grid__row > .e-permits-fo-grid__cell .e-permits-fo-consent > span:last-child {
-  clip: auto;
-  clip-path: none;
-  height: auto;
-  overflow: visible;
-  position: static;
-  white-space: normal;
-  width: auto;
-}
-
-.e-permits-fo-grid.is-cards > .e-permits-fo-grid__frame > .e-permits-fo-grid__table > tbody > .e-permits-fo-grid__row > .e-permits-fo-grid__actions {
-  text-align: left;
-  white-space: normal;
-}
-
-.e-permits-fo-grid.is-cards > .e-permits-fo-grid__frame > .e-permits-fo-grid__table > tbody > .e-permits-fo-grid__row .e-permits-fo-grid__actions-compact {
-  display: none;
-}
-
-.e-permits-fo-grid.is-cards > .e-permits-fo-grid__frame > .e-permits-fo-grid__table > tbody > .e-permits-fo-grid__row .e-permits-fo-grid__actions-full {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--spacing-8, 8px);
-}
-
-.e-permits-fo-grid.is-cards > .e-permits-fo-grid__frame > .e-permits-fo-grid__table > tbody > .e-permits-fo-grid__row .e-permits-fo-grid__actions-full .btn {
-  position: relative;
-}
-
-.e-permits-fo-grid.is-cards > .e-permits-fo-grid__frame > .e-permits-fo-grid__table > tbody > .e-permits-fo-grid__row .e-permits-fo-grid__actions-full .btn::before {
-  content: "";
-  inset: calc(var(--spacing-2, 2px) * -1) 0;
-  position: absolute;
-}
-
-.e-permits-fo-grid.is-cards > .e-permits-fo-grid__foot > .e-permits-fo-grid__pager {
-  margin-left: 0;
 }
 
 /* error state of the multi-select and the CAEM combobox = the .e-permits-fo-select.is-error convention
@@ -1938,6 +1752,7 @@
 .e-permits-builder__width-option[data-cols="2"] { grid-column: span 2; }
 .e-permits-builder__width-option[data-cols="3"] { grid-column: span 3; }
 .e-permits-builder__width-option[data-cols="4"] { grid-column: span 4; }
+.e-permits-builder__width-option[data-cols="6"] { grid-column: span 6; }
 
 .e-permits-builder__width-option {
   appearance: none;

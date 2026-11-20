@@ -409,9 +409,9 @@ but this doc previously described it wrongly, see the entry.
 | **Upload from computer — single vs multiple** (upload-modal-v1, 2026-11-06) | picker „Încarcă fișier”: files upload in the modal; rows `.e-permits-fo-file-item.e-permits-fo-doc-modal__file[data-fo-modal-file]` (uploading / done = open name → viewer over the picker / error `.e-permits-fo-doc-error`) · `.e-permits-fo-doc-modal__drop[data-fo-doc-drop]` (hidden at the max) · `__drop-zone.is-compact` / `.is-dragover` · `button.link.link-primary.link-lg.e-permits-fo-doc-modal__drop-link[data-fo-doc-choose]` · phone `btn btn-secondary btn-md e-permits-fo-doc-modal__device` · `.e-permits-fo-doc-modal__count` · `.e-permits-fo-doc-modal__max` (renderNotice info) · live region `[data-fo-doc-upload-status]` · confirm „Adaugă N fișiere” · step-3 `.e-permits-fo-doc-field--multi[data-fo-doc-max]` | section „Upload from computer — single vs multiple”; demo `fo-04up1`…`fo-04up12` | app |
 | Boxed doc field with several files | `.e-permits-fo-doc-field--boxed.e-permits-fo-doc-field--multi` (button stays until `is-full`) + `data-fo-upload-only` (picker without MDocs), `data-fo-doc-accept`, `data-fo-doc-max`, `data-fo-doc-limits` (modal captions) | Form Builder „Fișier” | app |
 | Form Builder · hidden field marker | `p.e-permits-builder__hidden-marker` (dashed 1px border/base/default, r8, 40 high, `icon-data-access` + „Ascuns” + name · value, ellipsis + title) — Build canvas only; the FO renders `<input type="hidden" data-fo-hidden>` | „Câmp ascuns” card | app |
-| Editable grid (FO, US-33…39) — **library gap: no editable table in the library** | `.e-permits-fo-grid[data-fo-grid][data-units]` > `__label` (`span#…-label` + optional „ⓘ” `button.e-permits-fo-role-info[data-fo-info]` = the `note`) · hint · `__frame` > library `table.table.table--subtle.e-permits-fo-grid__table` (explicit ARIA roles; `th`/`td` `colspan` = width units 2·3·4) > `tr.e-permits-fo-grid__row(.is-editing)` (`__index` · `__cell[data-col][data-type]` = `__cell-label` + `button.__value` or the FO field · `__actions` = `__actions-compact` icon buttons + `__actions-full` labelled) · `tr.__detail` (nested grid) · `tr.__empty` (`GEAPEmptyState`) · `__foot` (`.e-permits-fo-add-activity` + `__limit` + library `.pagination--compact`) · `.is-cards` (cards) | `GEAPFoRepeat.gridHtml` / `bind` / `validate` / `fill` / `layout` / `escape`; confirm `[data-fo-grid-confirm]` | app |
-| Grid column „Sub-formular” (FO + builder, fb-subform-v1, 2026-11-20 — DEV „form inside a form”) | cell = the nested toggle `button.btn.btn-neutral.btn-sm.e-permits-fo-grid__nested-toggle.e-permits-fo-grid__subform-toggle[data-fo-grid-subform][aria-expanded][aria-controls]` („Completează” · „3 din 6” + `__subform-more` „completate” on cards · `.is-error` danger-secondary + `icon-circle-error-filled`, shows the count) · `tr.e-permits-fo-grid__detail.e-permits-fo-grid__detail--subform` > `.e-permits-fo-grid__subform[data-fo-subform][role=group]` (container) > `__subform-head` (`.e-permits-fo-grid__label` „Date tehnice · Echipament 2” + hint) · `__subform-fields` (FO fields tagged `[data-fo-subform-key]`; 2 cols gap 24, ≤ 6/12 = 1 col, wider = 2, 1 col < 560 px) · `__subform-actions` (`btn-secondary btn-md` „Salvează rândul” + `btn-neutral btn-md` „Anulează” = the row's `data-fo-grid-act`) | `js/fo-grid.js` (`subformToggleHtml` / `subformHtml` / `drawSub` / `readSub`); builder type `subform` (`COMPONENTS.subform`, `subformFieldsHtml`, `subformValidationHtml`); demo `fb-sf-01…08`, `fb-sf-10…15` | app |
-| Constructor grilă (Form Designer, gb-v1, 2026-11-20 — user: „the editable grid gets its own builder, like a new tab”) | `section.e-permits-gridb[data-gb-root][data-gb-view][data-gb-level]` absolute over `.e-permits-builder.has-grid-builder` = the designer's frame reused: `.e-permits-builder__topbar.e-permits-gridb__topbar` (back `btn btn-text-neutral btn-sm btn-icon-only e-permits-topbar-back[data-gb-back]` · `__heading` = library breadcrumb `--trailing` „Formular › …” `[data-gb-crumb]` + `__title-row` h2#gb-title + key tag · `.e-permits-builder__mode` Editare / Previzualizare `[data-gb-mode]` · the builder's errors button `[data-gb-errors]` + issues menu `[data-gb-issue]` · `btn btn-primary btn-md btn-rounded[data-gb-done]` „Gata”) · `.e-permits-builder__workspace.e-permits-gridb__workspace` (left 280: `.e-permits-builder__library-item[data-gb-type / data-gb-from]` in sections Coloane simple / Coloane complexe (+ `__lib-note` renderInfoNote with the lock reason) / Copie a unui câmp din formular · centre `__stage > __scroll > __canvas > __sheet` = the FO grid (`gridHtml` + `sampleRows`, tbody + foot `inert`) with an own header: `th.e-permits-gridb__th[data-gb-th][.is-selected/.has-issue]` > `__th-inner` > `button.e-permits-gridb__col[data-gb-col][draggable][aria-pressed]` (type icon 16 + `__col-name` + star) · `__col-issue` (red tab dot + tooltip) · `btn btn-text-neutral btn-sm btn-icon-only e-permits-gridb__drill[data-gb-drill]`; `th.e-permits-gridb__th-add` pinned right with `btn btn-secondary btn-sm[data-gb-add]` „+ Coloană” (menu = `addChildMenuHtml`, fixed, after the table); `colgroup` `col.e-permits-gridb__unit--2/3/4`; drop line `span.e-permits-gridb__drop[data-gb-indicator]`; sub-form level `__sheet--form` > `__form` (2 cols, gap 24) of `article.e-permits-builder__field.e-permits-gridb__field[data-gb-field][data-gb-span]`; empty = `GEAPEmptyState` „Adaugă prima coloană” · right = the builder's own `[data-fb-panel]` moved in) · panel / card entry `div.e-permits-gridb__entry > btn btn-secondary btn-md[data-gb-open / data-gb-drill]`, card `btn btn-secondary btn-sm[data-gb-open]` · preview `__preview-bar` (library segmented `[data-gb-device]`) + `__preview(.is-phone) > __device.e-permits-fo-form[data-gb-preview]` | `js/grid-builder.js` (`window.GEAPGridBuilder`: open / close / drill / up / sync / escape / entryHtml), `css/grid-builder.css`; hooks in `js/form-builder.js` (`GEAPFormBuilder.internals`, `gridBuilderSync`); `GEAPFoRepeat.sampleRows` (js/fo-grid.js); demo `fb-gb-01…13` | app |
+| Editable grid (FO, US-33…39) — **row cards, no table** (row-cards-v1, 2026-11-20; PO: fields side by side, user: no tables) | `.e-permits-fo-grid[data-fo-grid]` (size container) > `__label` (`span#…-label` + optional „ⓘ” `button.e-permits-fo-role-info[data-fo-info]`) · hint · `__list[data-fo-grid-body]` > rows: EDIT = the „Alte documente” card `div.e-permits-fo-doc-card.e-permits-fo-grid__row.is-editing[data-fo-grid-row][role=group]` (`__header`: `__index[data-fo-grid-tag]` #n + `__name` row name · `btn btn-neutral btn-rounded btn-md` „Anulează” + `btn btn-primary btn-rounded btn-md` „Salvează” `[data-fo-grid-act]`) > `__fields[data-fo-grid-fields]` (12 cols, gap 24) > `__cell[data-col][data-type][data-span=3/4/6/12]` = the FO field (nested grid / sub-form = `__cell.__section`, under a 1 px line) · SAVED = `div.e-permits-fo-grid__row.is-saved(.has-divider)` > `__line` (`__index` · `button.__summary[data-fo-grid-act=edit]` whole-line target, cut + tooltip · `__line-actions` `btn btn-text-neutral btn-sm` „Editează” `[data-fo-grid-edit]` + `btn btn-text-destructive btn-sm` „Elimină”) · `__empty` (`GEAPEmptyState` compact) · `__foot` (`.e-permits-fo-add-activity` + `__limit` + library `.pagination--compact`) | `GEAPFoRepeat.gridHtml` / `bind` / `validate` / `fill` / `rowHtml` / `summaryText` / `escape`; confirm `[data-fo-grid-confirm]`; CSS css/form-builder.css; demo `fb-row-01…11`, `fb-55…57` | app |
+| Grid column „Sub-formular” (FO + builder, fb-subform-v1 → row-cards-v1, 2026-11-20 — DEV „form inside a form”) | a section of the row's EDIT card: `__cell.__section[data-type=subform][data-span=12]` > `.e-permits-fo-grid__subform[data-fo-subform][role=group]` > `__subform-head` (`.e-permits-fo-grid__label` + star when it has required fields + hint) · `__fields` (the same 12-col grid; each field `__cell[data-span][data-fo-subform-key]`, span from the field 3/4/6/12); saved line shows „4 din 6 completate”; saved / cancelled with the row | `js/fo-grid.js` (`subformHtml` / `readSub`); builder type `subform` (`COMPONENTS.subform`, `subformFieldsHtml`, `subformValidationHtml`); demo `fb-sf-01…08`, `fb-sf-10…15`, `fb-row-08` | app |
+| Constructor grilă (Form Designer, gb-v1, 2026-11-20 — user: „the editable grid gets its own builder, like a new tab”) | `section.e-permits-gridb[data-gb-root][data-gb-view][data-gb-level]` absolute over `.e-permits-builder.has-grid-builder` = the designer's frame reused: `.e-permits-builder__topbar.e-permits-gridb__topbar` (back `btn btn-text-neutral btn-sm btn-icon-only e-permits-topbar-back[data-gb-back]` · `__heading` = library breadcrumb `--trailing` „Formular › …” `[data-gb-crumb]` + `__title-row` h2#gb-title + key tag · `.e-permits-builder__mode` Editare / Previzualizare `[data-gb-mode]` · the builder's errors button `[data-gb-errors]` + issues menu `[data-gb-issue]` · `btn btn-primary btn-md btn-rounded[data-gb-done]` „Gata”) · `.e-permits-builder__workspace.e-permits-gridb__workspace` (left 280: `.e-permits-builder__library-item[data-gb-type / data-gb-from]` in sections Coloane simple / Coloane complexe (+ `__lib-note` renderInfoNote with the lock reason) / Copie a unui câmp din formular · centre `__stage > __scroll > __canvas > __sheet` (row-cards-v1) = `__sheet-head` (`__sheet-title` + hint) + ONE sample row in its FO EDIT card (`GEAPFoRepeat.rowHtml(def, sample, { editing: true })`, `.e-permits-gridb__card`, header buttons `inert`) whose cells are the columns: `div.e-permits-fo-grid__cell.e-permits-gridb__cell[data-gb-cell][.is-selected/.has-issue]` > `button.e-permits-gridb__col[data-gb-col][draggable][aria-pressed]` (transparent, BEHIND the field: hover / selected / focus / error / dragging) · `__cell-meta` (type icon + label · `e-permits-builder__tag--outlined` „3/12” · `__col-issue` red dot · `btn btn-text-neutral btn-sm e-permits-gridb__drill[data-gb-drill]` „Deschide ›”) · `__cell-render[inert]` (the FO field); „+ Coloană” = `__add-cell[data-span=3]` > `button.e-permits-builder__sub-add.e-permits-gridb__add-tile[data-gb-add]` (dashed tile, menu `addChildMenuHtml` fixed after the card); drop line `span.e-permits-gridb__drop[data-gb-indicator]` in `[data-gb-fields]`; then „După „Salvează”” + `__saved[inert]` = the saved line; sub-form level `__sheet--form` > `__form` (2 cols, gap 24) of `article.e-permits-builder__field.e-permits-gridb__field[data-gb-field][data-gb-span]`; empty = `GEAPEmptyState` „Adaugă prima coloană” · right = the builder's own `[data-fb-panel]` moved in) · panel / card entry `div.e-permits-gridb__entry > btn btn-secondary btn-md[data-gb-open / data-gb-drill]`, card `btn btn-secondary btn-sm[data-gb-open]` · preview `__preview-bar` (library segmented `[data-gb-device]`) + `__preview(.is-phone) > __device.e-permits-fo-form[data-gb-preview]` | `js/grid-builder.js` (`window.GEAPGridBuilder`: open / close / drill / up / sync / escape / entryHtml), `css/grid-builder.css`; hooks in `js/form-builder.js` (`GEAPFormBuilder.internals`, `gridBuilderSync`); `GEAPFoRepeat.sampleRows` / `rowHtml` (js/fo-grid.js); demo `fb-gb-01…13`, `fb-row-10` | app |
 | Repeatable block (FO, „Adaugă alt …”; CAEM = its preset) | `fieldset.e-permits-fo-repeat[data-fo-repeat]` > legend (`.e-permits-fo-choice__legend`, may be visually hidden; carries the „ⓘ” = the `note`; when hidden the „ⓘ” sits after the FIRST card title) · `__list` > `.e-permits-fo-activity-card.e-permits-fo-repeat__item[data-fo-repeat-item]` (header `#n` + title + `.e-permits-fo-icon-button[data-fo-repeat-remove]`; fields in `.e-permits-fo-field-group`, the CAEM pair as the FO activity markup) · `.e-permits-fo-add-activity[data-fo-repeat-add]` · `__limit` | `GEAPFoRepeat.blockHtml`, FO `caemFieldHtml` / `subgenHtml` | app |
 | Form Builder · band of columns / block fields | `.e-permits-builder__subs[data-fb-subs]` > `__subs-label` · `button.__sub[data-fb-child](.is-selected/.has-issue/.is-dragging)` · `.e-permits-builder__sub-add-wrap` (`__sub-add` dashed + typed stack menu with `__issues-head` groups, disabled items with reason) | `subsStripHtml` / `addChildMenuHtml` / `childPanelHtml` (js/form-builder.js) | app |
 | Form Builder · „Lățime” (a row of real columns) | `.e-permits-builder__width(.is-disabled)` > `.e-permits-builder__width-picker[role=radiogroup][data-total=12\|4]` > `button.__width-option[role=radio][aria-checked][data-cols][data-fb-seg][data-value]` > `span.__width-bar(.is-filled)` + `p.__width-caption` (`<strong>6/12</strong> · jumătate`) + hint; label `span.__width-label` | `widthPicker` / `spanPicker` / `columnPicker` (js/form-builder.js), section „Form Builder › Lățime” | app |
@@ -1093,7 +1093,7 @@ interactive). **A11y** — skeletons are decorative: their container is `aria-hi
 `aria-busy="true"` and a live line says what is loading („Se caută adresa…”, „Se încarcă lista…”).
 **Placement, not new classes** — sizes live in the owner: `.page-auth-skeleton__title > span` (38), `.page-choice-
 skeleton__row` (72, r12), `.page-step-skeleton__line--title / --section / --label / --eyebrow`, `.e-permits-fo-notice.
-is-loading` (lines 360 / 168, gap 4), `.e-permits-fo-grid__row.is-loading .skeleton--text` (24). Loading containers use
+is-loading` (lines 360 / 168, gap 4), `.e-permits-fo-grid__row.is-loading .skeleton--text` (#n 32 + a half-width line). Loading containers use
 the state class `is-loading` (`.e-permits-fo-field.is-loading`, `.e-permits-fo-notice.is-loading`, grid row) — never a
 `--skeleton` modifier.
 
@@ -4965,15 +4965,16 @@ renderer: a grid holds `columns`, a block holds `fields` (field objects; same pa
 per cell / card); rules point at children by id (`rowRules.keyColumn` / `groupColumn`, cascade
 `dataSource.parentFieldId`). Seed form `?formular=form-sanitary-09` (CAEM block, equipment grid with a nested
 grid, work points with Raion → Localitate).
-- **Builder.** Container card = tools + the **band** (chips of columns / fields; click = the child's panel,
+- **Builder.** (row-cards-v1: a GRID card has no band any more — „N coloane” + the inert row card + „Deschide constructorul
+  grilei”; the band below stays for blocks.) Container card = tools + the **band** (chips of columns / fields; click = the child's panel,
   drag = reorder, palette types dropped on the band = new children, Alt + ← / → (grid) or ↑ / ↓ (block) and
   Delete on a chip, „+ Coloană / + Câmp” = typed menu: Coloane simple · Coloane complexe (locked with a reason
   until one simple column exists — US-34 AC-06; Grilă imbricată locked at level 3 — US-38) · Copie a unui
   câmp din formular) + the inert FO render (empty container = `GEAPEmptyState`). Child panel = the field
   panel (crumbs to the column, back link `btn btn-text-primary btn-sm` to its grid / block), tabs without
   Logică for grid columns (US-42 AC-36), Avansat = table / column / SQL type. Grid column Aspect =
-  „Lățime coloană” = the „Lățime” bar row on 4 parts (Îngustă 2 · Medie 3 · Lată 4; `auto` renders as Medie
-  „(implicită)” — fo-grid weighs auto = 3). Container tabs: General (label, help, texts: row name /
+  „Lățime coloană” = the „Lățime” bar row on 12 (row-cards-v1: the span in the row card — Îngustă 3 · Medie 4 · Lată 6 ·
+  Toată lățimea 12 (`f`); `auto` renders as Medie „(implicită)”). Container tabs: General (label, help, texts: row name /
   item title, add label, empty text / permanent note, „Ascunde eticheta”), Date (ordered list
   `__step-list` + „Adaugă coloană ▾”), Validare (min / max / at start / rows per page, add / delete allowed,
   key, group, messages RO·RU·EN), Logică (the container as target; as a source = its number of rows),
@@ -4981,23 +4982,30 @@ grid, work points with Raion → Localitate).
   child = toast with „Anulează”. Validation summary: no columns / fields, complex without simple, depth > 3,
   min > max, start > max, key / group / parent gone, group not a classifier list, missing texts, and every
   child checked like a field (reported „Grilă › Coloană”, kind `child`).
-- **Editable grid (FO).** Library `.table.table--subtle`, scoped geometry (head 38, 12/16 medium on
-  secondary; cells 14/20, 8/12 inset, lines only, no zebra, last row no divider). Widths without inline
-  styles = `colspan` units (Îngustă 2, Auto / Medie 3, Lată 4, nested grid 4); `layout()` (ResizeObserver)
-  sets `is-cards` below 600 px or when units × 40 + 152 do not fit — never a sideways-scrolling table.
-  Row = view (`button.__value`, click = edit that cell) or edit (FO fields, labels visually hidden in the
-  table, visible on cards); Enter saves, Esc cancels (an open list / calendar closes first; inside the
-  builder its Esc handler forwards to `GEAPFoRepeat.escape`); delete = the FO confirm dialog, destructive.
-  Per-cell FO errors (`setFieldError` for inputs, `is-error` + inline message for lists / multi-select /
-  checkbox); duplicates on the key column; group rule disables other-group options (`aria-disabled`, the
-  fo-select ignores them) + permanent note; cascade from a column of the row or a form field (child empty
-  and disabled until the parent, reset on change); pagination (library, other pages kept hidden); nested
-  grid in a `__detail` row („N rânduri ▾”); source down (`?sursa=indisponibila`) = notice + Reîncearcă +
-  Introdu manual, rows locked; `?sursa=asteptare` = skeleton. Variants: default · hover (row tertiary,
-  value pill tertiary-hover) · active (editing row) · focus (value ring, FO field focus) · disabled (add at
-  the maximum: `.e-permits-fo-add-activity[aria-disabled]` grey + reason) · error (cell) · success (row
-  saved → view + live message). **Library gap:** the library has no editable table (FodTable is
-  read-only, US-35) — this is built from `.table` + FO fields and should go to the library.
+- **Editable grid (FO) — row cards, no table (row-cards-v1, 2026-11-20).** PO Alexandr (Figma comment): a row drawn one
+  field per line is too long — fields side by side (Cantitatea + Unitatea de măsură on one line; Tipul ambalajului +
+  Mărimea + Unitatea + Cantitate pe ambalaj on one line). User decision: NO tables, neither in the FO form nor in the
+  grid builder; the row lifecycle is EXACTLY „Alte documente” (section „Document upload — FO” › lifecycle):
+  | Look | Shows |
+  |---|---|
+  | **Edit** (new after „Adaugă <rând>”, or Editează) | the other-doc card `.e-permits-fo-doc-card` (1 px default border, radius 16, padding 16, gap 16): header `#n` (`__index`) + row name (`__name`) left, „Anulează” `btn btn-neutral btn-rounded btn-md` + „Salvează” `btn btn-primary btn-rounded btn-md` right; NO delete in edit. Body `__fields` = 12-column grid, gap 24; column width → span: Îngustă 3 · Medie / auto 4 · Lată 6 · Toată lățimea 12; textarea / nested grid / sub-form 12; fields FILL their span (FO field with its visible label). Nested grid / sub-form = `__section` (1 px line above, 24 under it). |
+  | **Salvează** | required + format + limits per field (FO errors under each field, `setFieldError` / `markError`), key duplicates, group rule, cascades, nested grids validated (their open row saved, their minimum) — focus on the first problem. OK → Saved, focus on its „Editează”. |
+  | **Saved** (`.is-saved`) | no card chrome, one line `__line` (min 48, padding 8 16, radius 12): `#n` pill + `__summary` = the first 3 values (key column first; no Da / Nu boxes) joined „ · ” + the counts of nested grids („2 componente”, „1 componentă”) and sub-forms („4 din 6 completate”); nothing filled = „Necompletat” (tertiary); cut with ellipsis + tooltip (`data-cell-tooltip`); right „Editează” `btn btn-text-neutral btn-sm` + `icon-edit` and „Elimină” `btn btn-text-destructive btn-sm` + `icon-delete`. Whole line = Editează (the summary's `::after` covers it, the buttons sit above; tabindex -1, the keyboard uses „Editează”). Saved lines divided by 1 px default lines (`.has-divider`, JS: only between two visible saved lines — the last has none); an edit card keeps 12 from its neighbours (+ the line's 4). |
+  | **Editează** | back to Edit with the values; „Anulează” restores the snapshot. On a never-saved row (new, or an at-start row) „Anulează” removes it, focus → the add button. |
+  | **Elimină** | the FO confirm (`GEAPFoRepeat.confirm`): „Elimini produs 1?” · „„<val · val>” se elimină din „<grid>”[, împreună cu rândurile din grilele lui].” · „Anulează” + red „Elimină <rând>”; focus → the next row's Editează or the add button. |
+  | **One in edit** | opening another row / „Adaugă”: a blank new row is dropped; any other is saved first — if it has errors it stays open, focus on its first error, live „Salvează sau anulează mai întâi …”. |
+  Responsive: the grid root is a size container — below 600 px of its own width 3 / 4 → 6 and 6 → 12; below 480 px and on
+  phones (≤ 760) one column; FO inputs 48 · 16/24 on phones, 40 on desktop; the saved line wraps (buttons under the
+  values) below 480 px. Kept from the table: pagination (other pages hidden, edits kept), min / max (add disabled + limit
+  line), at-start rows (the first opens in edit), empty text (`GEAPEmptyState` compact, boxed), source down (`?sursa=
+  indisponibila` notice + Reîncearcă + Introdu manual, rows locked) and loading (`?sursa=asteptare`, two skeleton lines),
+  Enter saves (text inputs), Esc cancels (an open list / calendar closes first; the builder forwards Esc to
+  `GEAPFoRepeat.escape`). „Validează”: the open row saved (or its errors), a saved row that no longer passes opens in edit
+  when none is open, otherwise its line gets the FO error „<Rând> n are câmpuri de completat. Apasă „Editează”.”; the
+  minimum = FO error above the foot. Variants: default · hover (line tertiary #F1F1F1, `#n` pill tertiary-hover; buttons
+  their own) · active (edit card) · focus (Editează ring; the line inset ring if the summary is focused) · disabled (add
+  at the maximum) · error (field errors in the card, line error) · success (saved line + live message). **Library gap:**
+  no editable repeatable list in the library — built from the other-doc card + FO fields.
 - **Repeatable block (FO).** The FO activity card per element and the FO add button (the CAEM preset
   renders byte-identical markup to step 2 — the pair markup was extracted into `caemFieldHtml` /
   `subgenHtml` with the old texts as defaults). Remove = immediate + toast „Ai eliminat „Activitate #2”.”
@@ -5030,19 +5038,12 @@ palette (`columnOnly`).
   summary: „Sub-formularul nu are câmpuri.” (short „Fără câmpuri”), depth > 3, every field checked like a field.
   Storage: no table of its own — the fields are columns `{SubFormular}_{Câmp}` of the grid's row (1:1); schema
   `storage: { table, columns, relation: "1:1 cu rândul" }`.
-- **FO (js/fo-grid.js).** The cell = the nested-toggle button: „Completează” when empty, „3 din 6” (+ „completate”
-  on cards) once filled, red `.is-error` with the error icon and the count („0 din 6”) while required fields are
-  missing. View row: a click starts editing the row and opens the sub-form; editing row: toggles it. The sub-form is
-  drawn in the row's detail row (`.e-permits-fo-grid__detail--subform`, the nested grid's grey detail) from the row's
-  values at edit start, read back on save, dropped on save / cancel — the row's Salvează / Anulează (in the row and
-  repeated under the fields) cover it; Enter in a text field saves, Esc cancels. Per-field FO errors
-  (`markError`), the sub-form opens itself on an error; the summary follows the typing (count, error cleared). Header
-  star = the sub-form has required fields. Cards (< 600 px / phones): the detail is a grey r16 section under the card;
-  fields one column, inputs 48 · 16/24 on phones.
-- **Variants.** default (grey neutral toggle) · hover (`btn-neutral` hover; error: danger-secondary-hover) · active
-  (`aria-expanded="true"`, chevron up, keeps the focus ring — open-button rule) · focus (library ring) · disabled
-  (n/a — the row's add button carries the limit) · error (`.is-error` + field errors) · success (row saved → view +
-  live message, count updated).
+- **FO (js/fo-grid.js, row-cards-v1).** A section of the row's EDIT card (under a 1 px line): label (+ star when a field is
+  required) + hint, then its fields on the same 12-column grid (a field's form span snapped to 3 · 4 · 6 · 12), saved /
+  cancelled with the row („Salvează” / „Anulează” of the card), per-field FO errors on „Salvează”. The saved line ends
+  with „4 din 6 completate”. (Until row-cards-v1: a summary button in a table cell + a grey detail row.)
+- **Variants.** default · hover / focus = the FO fields' own · active = the row in edit · error (field errors in the
+  section) · success (row saved, the count in its line).
 - Seed: F09 equipment grid › „Date tehnice” (`col-09-tech`, width Lată; Capacitate moved in, + Temperatura de lucru,
   Agent frigorific, Anul fabricației, Data ultimei verificări, Observații; 3 required); Denumire is now Medie so the
   table still fits the Preview.
@@ -5058,7 +5059,8 @@ Nutrient), canvas = the real table, nested levels = drill-in with a breadcrumb (
 name + type + options together (Airtable feedback), preview as the applicant sees it. Figma layout reference GEAP 2.0
 3182:63897 (types left, centre, „Proprietăți coloană” right) — improved: the centre is the live table, nesting stays in the
 same view.
-- **Entry.** Grid card on the form canvas: `btn btn-secondary btn-sm` „Deschide constructorul grilei” before its ⋮;
+- **Entry.** Grid card on the form canvas (row-cards-v1: NO „Coloane” chip band — the card = type tag · span · „N coloane”
+  tag `[data-fb-col-count]` + the inert row card with one sample row; blocks keep their „Câmpuri” band): `btn btn-secondary btn-sm` „Deschide constructorul grilei” before its ⋮;
   double-click on the card (on a nested-grid / sub-form chip = opens at that level); the panel of a selected grid (or of a
   nested column on the form) shows `btn btn-secondary btn-md` full width under the panel title. Opens a layer over the
   designer (main topbar + workspace `inert`), the builder's panel element and live region are MOVED in (their listeners
@@ -5074,23 +5076,23 @@ same view.
   a `renderInfoNote` under the heading: no simple column yet — US-34 AC-06, or level 3 — US-38) · Copie a unui câmp din
   formular. Click = append (selected, label focused); drag onto the table = insert at the drop line. A sub-form level lists
   the block field types (`BLOCK_TYPES`).
-- **Centre = the live table.** The FO grid (`GEAPFoRepeat.gridHtml`, two inert sample rows from `sampleRows` = the
-  „date de test” values, inert „Adaugă …”) with the header replaced: one cell per column, width from its units (`colgroup`,
-  48 per unit, no colspans so the pinned column + `js/table-pin-shadow.js` edge effect work), type icon + name + star.
-  States: default (secondary head) · hover (`tertiary-hover` on the button) · active / selected (`brand-secondary` cell +
-  2 px brand underline, hover `brand-secondary-hover`) · focus (inset 2 px ring) · disabled (n/a) · error (red tab dot +
-  tooltip, message in the button name) · dragging (opacity 0.4, brand drop line). Click = select; drag = reorder;
-  Alt + ← / → = move, Delete = remove (the builder's toast with „Anulează”); a nested grid / sub-form has a chevron
-  „Deschide” (double-click works too). „+ Coloană” ends the header row, pinned right, its typed menu fixed (written after
-  the table — a sticky cell would cover it). A selected column off-screen is scrolled into view once. Empty grid =
+- **Centre = the row card (row-cards-v1, 2026-11-20; replaced the live table, whose pinned „+ Coloană” covered the last
+  columns).** „Rândul, cum îl completează solicitantul” + ONE sample row (the „date de test” values) in its FO EDIT card
+  (`GEAPFoRepeat.rowHtml`, header buttons inert); every field cell = the column: a transparent `button[data-gb-col]` BEHIND
+  the inert field (click = select, drag = reorder, Alt + ← / → = move, Delete = remove with the toast), a meta line (type
+  icon + label, „3/12” tag = the width as the span, red dot + tooltip on errors, „Deschide ›” for a nested grid /
+  sub-form; double-click works too). States: default (transparent) · hover tertiary · selected brand-secondary + 2 px
+  brand ring (hover brand-secondary-hover) · focus inset ring · error 1 px danger ring + dot · dragging 0.4 + brand drop
+  line. „+ Coloană” = a dashed tile (`e-permits-builder__sub-add` look) at the end of the card grid, span 3, the height of
+  its row; its typed menu fixed. Under it „După „Salvează”” + the same row's saved line (inert). Empty grid =
   `GEAPEmptyState` „Adaugă prima coloană” with „+ Coloană” (also a drop target).
 - **Sub-form level.** A form-layout canvas: 2 columns, gap 24, a field > 6/12 spans both; cards = the designer's field
   card (type tag, inert FO render, selected ring, red border + dot on errors), Alt + ↑ / ↓, Delete, drag; „Adaugă câmp”.
 - **Right.** The designer's panel: a column → the column panel (name + type + width on General, list / options on Date);
   nothing selected = the grid's settings (General, Date, Validare rows / key / group, Avansat storage). A nested column
   shows „Deschide sub-grila / sub-formularul” on top.
-- **Previzualizare.** Side columns hidden; the FO grid bound with demo rows (`fill`), in a white card 1024 / padding 40
-  (Desktop) or a 375 phone card (Telefon → the grid's own cards below 600).
+- **Previzualizare.** Side columns hidden; the FO grid bound with demo rows (`fill` = two saved lines), in a white card
+  1024 / padding 40 (Desktop) or a 375 phone card (Telefon → one column).
 - BO desktop only (`^fb-gb-` in the component audit's `desktopOnly`).
 
 States `fb-gb-01` new grid (empty, complex locked) · `02` columns + grid settings · `03` column selected · `03b` list
@@ -5098,12 +5100,21 @@ column › Date · `04` „+ Coloană” menu · `04b` type clicked → appended
 reason tooltip · `07` drill-in level 2 · `07b` level 3 (nested locked) · `08` sub-form canvas · `09` errors menu · `10`
 preview desktop · `11` preview phone · `12` Gata → card + toast · `13` panel entry on the form.
 
+**Row cards (row-cards-v1, 2026-11-20)** — states `fb-row-01` empty (boxed empty state) · `02` new row in its edit card
+(F09 „Produse alimentare depozitate”: Denumirea 6 · Cantitatea 3 · Unitatea de măsură 3 / 4 × Îngustă packaging) · `03`
+saved lines · `04` editing an existing row · `05` Salvează with errors · `06` Elimină confirm · `07` nested grid in the
+card · `08` sub-form in the card · `09` phone 375 edit card · `09b` phone saved lines · `10` grid builder row-card canvas ·
+`11` grid card on the form (no band). Updated for the new look: `fb-51a` (panel „Adaugă coloană”), `fb-52a/52w/53a/54/54a`
+(column picked from the grid's Date list), `fb-52b` (the products card), `fb-55a/55b`, `fb-sf-06/07/08/11/12/14/15`,
+`fb-gb-*` (cells instead of header cells).
+
 #### Form Builder › Lățime (2026-10-14 — user: „a line with real columns, not the 3 · 4 · 6 · 8 · 12 segmented”)
 
 Restores the old builder's width picker (31a333b3) on the 12-column grid. One helper `widthPicker({ prop,
 value, options: [[value, cols, label, aria]], total, label, caption, disabled, reason })`; `spanPicker(field)`
 (fields and block fields, `prop: "span"`, 3 · 4 · 6 · 8 · 12 → options covering 3 · 1 · 2 · 2 · 4 bars) and
-`columnPicker(field)` (grid columns, `prop: "width"`, 4 bars = parts: Îngustă 2 · Medie 3 · Lată 4).
+`columnPicker(field)` (grid columns, `prop: "width"`, 12 bars: Îngustă 3 · Medie 4 · Lată 6 · Toată lățimea 12 — row-cards-v1;
+was 4 parts of a table row).
 
 ```html
 <div class="e-permits-fo-field">
@@ -7544,7 +7555,7 @@ disabled control (pay „Se aplică” without classifiers, „Formula nu are va
 solicitate” when the source service has none); the Cabinet act „Nu există postprocese disponibile…”
 line (explains a missing button in an action row); the Form Builder issues header „Fără erori” (a
 validation result); layout-only wrappers (`.e-permits-builder__grid-empty` = grid-column span,
-`[data-fo-*-empty]` visibility hooks, `tr.e-permits-fo-grid__empty` = the fo-grid table row that
+`[data-fo-*-empty]` visibility hooks, `.e-permits-fo-grid__empty` = the fo-grid list slot that
 already holds the component).
 
 **Demo states:** request-type drawer `svc-02l` (no flow), `svc-02l1` („Alege fluxul” → General),
