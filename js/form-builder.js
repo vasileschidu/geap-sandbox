@@ -1447,7 +1447,7 @@ document.addEventListener("DOMContentLoaded", () => {
         <div class="e-permits-builder__width-picker" role="radiogroup" aria-label="${esc(label)}" aria-describedby="${captionId}" data-total="${total}"${disabled ? ' aria-disabled="true"' : ""}>
           ${options.map(([v, cols, , aria], i) => {
             const on = i === index;
-            const bars = Array.from({ length: cols }, () => { col += 1; return `<span class="e-permits-builder__width-bar${col <= filled ? " is-filled" : ""}"></span>`; }).join("");
+            /* width-joined-v1 (user 2026-11-20, = Figma): one solid segment per option, not one bar per column */ col += cols; const bars = `<span class="e-permits-builder__width-bar${col <= filled ? " is-filled" : ""}"></span>`;
             return `<button class="e-permits-builder__width-option" type="button" role="radio" aria-checked="${on}" aria-label="${esc(aria)}" data-cols="${cols}" data-fb-seg="${prop}" data-value="${esc(v)}" tabindex="${on || (index < 0 && i === 0) ? 0 : -1}"${disabled ? " disabled" : ""}>${bars}</button>`;
           }).join("")}
         </div>
