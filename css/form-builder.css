@@ -2075,3 +2075,21 @@ body:has(.form-builder-modal-overlay.is-active) :is(#case-action-modal, #pending
   -webkit-mask-image: url("../assets/icons/bullet-list.svg");
   -webkit-mask-size: var(--icon-size-medium, 20px) var(--icon-size-medium, 20px);
 }
+
+/* fb-caem-v1 (2026-11-20): the group rule as ONE muted line at the top of the open option list (CAEM
+   menu / select list), only once a group is fixed; never a card on the page */
+.e-permits-fo-list-note {
+  box-sizing: border-box;
+  color: var(--color-text-base-tertiary, #757575);
+  cursor: default;
+  flex: 0 0 auto;
+  font-size: var(--font-size-fs-14, 14px);
+  line-height: var(--line-height-lh-20, 20px);
+  list-style: none;
+  margin: 0;
+  padding: var(--spacing-8, 8px) var(--spacing-16, 16px);
+}
+
+.e-permits-fo-activity-card__title .e-permits-fo-role-info {
+  margin-left: calc(var(--spacing-4, 4px) * -1);
+}

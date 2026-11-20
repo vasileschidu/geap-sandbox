@@ -2100,7 +2100,7 @@ document.addEventListener("DOMContentLoaded", () => {
         ${inputField({ prop: "addLabel", label: langLabel("Butonul de adăugare"), value: tr(field.addLabel, state.lang), required: state.lang === "ro", i18nProp: true, maxlength: 60, error: state.lang === "ro" ? err("addLabel") : "", hint: t === "grid" ? "Ex.: „Adaugă rând”, „Adaugă echipament”." : "Ex.: „Adaugă altă activitate”." })}
         ${t === "grid"
           ? textareaField({ prop: "emptyText", label: langLabel("Text fără rânduri"), value: tr(field.emptyText, state.lang), i18nProp: true, hint: "În grilă, cât nu e niciun rând (US-35 AC-05)." })
-          : textareaField({ prop: "note", label: langLabel("Notă permanentă"), value: tr(field.note, state.lang), i18nProp: true, hint: "Nota gri deasupra cardurilor (ex.: sursa codurilor CAEM, US-40 AC-05). Gol = fără notă." })}
+          : textareaField({ prop: "note", label: langLabel("Informație (ⓘ lângă etichetă)"), value: tr(field.note, state.lang), i18nProp: true, hint: "Apare la trecerea cu mouse-ul / atingerea lui ⓘ, nu ca un card (ex.: sursa codurilor CAEM, US-40 AC-05). Gol = fără ⓘ." })}
       `)) : "";
     const requiredBox = t === "consent"
       ? checkOption({ prop: "required", label: "Obligatoriu", checked: true, required: true, disabled: true, reason: "Un consimțământ este întotdeauna obligatoriu." })

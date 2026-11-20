@@ -3154,6 +3154,43 @@
               await pickCode(caem, "I 56.30", 1)(h);
               await h.scroll(`${caem} [data-fo-repeat-item]:nth-child(2)`);
             }, F09),
+            /* fb-caem-v1 (2026-11-20): the CAEM block with NO always-on cards — 01 nothing chosen (ⓘ on the first card
+               title only) · 02 the ⓘ tooltip open · 03 one code chosen, 2nd card's list open: the section line on top +
+               other sections disabled · 04 tooltip on a disabled option · 05 phone 375 (preview device), ⓘ tapped */
+            "fb-caem-01": fb(async (h) => { await preview(h); await h.scroll(caem); }, F09),
+            "fb-caem-02": fb(async (h) => { await preview(h); await h.scroll(caem); const info = await h.scroll(`${caem} [data-fo-info]`); info.click(); await h.wait(500); }, F09),
+            "fb-caem-03": fb(async (h) => {
+              await preview(h);
+              await pickCode(caem, "I 56.10")(h);
+              await h.click(`${caem} [data-fo-repeat-add]`);
+              await h.click(`${caem} [data-fo-repeat-item]:nth-child(2) [data-fo-caem-button]`);
+              await h.wait(300);
+              document.querySelector(`${caem} [data-fo-repeat-item]:nth-child(2) [data-fo-caem-menu]`)?.scrollIntoView({ block: "center" });
+            }, F09),
+            "fb-caem-04": fb(async (h) => {
+              await preview(h);
+              await pickCode(caem, "I 56.10")(h);
+              await h.click(`${caem} [data-fo-repeat-add]`);
+              await h.click(`${caem} [data-fo-repeat-item]:nth-child(2) [data-fo-caem-button]`);
+              await h.wait(300);
+              const off = await h.find(`${caem} [data-fo-repeat-item]:nth-child(2) .e-permits-fo-caem__option[data-code='G 47.11']`);
+              off.scrollIntoView({ block: "center" });
+              await h.wait(300);
+              off.dispatchEvent(new PointerEvent("pointerover", { bubbles: true, pointerType: "mouse" }));
+              await h.wait(900);
+            }, F09),
+            "fb-caem-05": fb(async (h) => {
+              await preview(h);
+              await h.click("[data-fb-preview-device='mobile']");
+              await h.wait(2200);
+              const frame = document.querySelector("[data-fb-device-frame]");
+              const doc = frame.contentDocument;
+              const block = doc.querySelector("[data-fb-field='fld-caem']");
+              block.scrollIntoView({ block: "center" });
+              await h.wait(300);
+              block.querySelector("[data-fo-info]").click();
+              await h.wait(500);
+            }, F09),
             /* 59 Bloc repetabil config: fields (Date) · 59a rules (Validare: key + group = CAEM, min 1)
                · 59b the FO with 2 elements · 59c max reached · 59d remove → toast with „Anulează” */
             "fb-59": fb(async (h) => { await h.click("[data-builder-field][data-id='fld-caem']"); await h.click("[data-builder-prop-tab='data']"); }, F09),

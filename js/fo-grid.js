@@ -172,6 +172,26 @@
     return group ? text : text.replace(/[:\s]+\.?$/, ".");
   };
 
+  /* fb-caem-v1 (2026-11-20): supplementary context is on demand — the block's / grid's `note` is the
+     library „ⓘ” hint next to the label (no always-on card); the group rule shows only where it applies,
+     as one muted line at the top of the open option list (`groupLineSync`), never on the page */
+  const infoHtml = (text, label) => text ? `<button class="e-permits-fo-role-info" type="button" aria-label="${esc(`Detalii despre ${String(label || "").toLowerCase()}`)}" data-tooltip-hint="${esc(text)}" data-fo-info>${icon("icon-circle-info-filled", 16)}</button>` : "";
+  function groupLineSync(field, text) {
+    const caem = field?.querySelector("[data-fo-caem-menu]");
+    const list = caem ? caem.querySelector("[data-fo-caem-list]") : field?.querySelector(".e-permits-fo-select__list");
+    if (!list) return;
+    let line = (caem || list).querySelector(caem ? ":scope > [data-fo-group-line]" : ":scope > [data-fo-group-line]");
+    if (!text) { line?.remove(); return; }
+    if (!line) {
+      line = document.createElement(caem ? "p" : "li");
+      line.className = "e-permits-fo-list-note";
+      line.setAttribute("data-fo-group-line", "");
+      if (!caem) line.setAttribute("role", "presentation");
+      if (caem) list.before(line); else list.prepend(line);
+    }
+    line.textContent = text;
+  }
+
   /* ================================================================== GRID — markup */
   /* column widths without inline styles: a column spans 2 (Îngustă) · 3 (Auto, Medie) · 4 (Lată) equal
      units of the fixed-layout table; „Nr.” and the actions are fixed. Below the width the units need
@@ -397,12 +417,10 @@
     def.texts = def.texts || {};
     defs.set(id, def);
     const source = def.usesSource ? (SOURCE === "asteptare" ? "loading" : SOURCE === "indisponibila" ? "error" : "") : "";
-    const groupCol = def.columns.find((col) => col.key === def.rules.group);
     return `
       <div class="e-permits-fo-field e-permits-fo-field--span-12 e-permits-fo-grid" id="${esc(id)}" data-fo-grid="${esc(id)}" data-level="${def.level || 1}" data-units="${unitsOf(def)}"${source ? ` data-source="${source}"` : ""}>
-        <div class="e-permits-fo-grid__label" id="${esc(id)}-label">${esc(def.label || "")}${def.required ? ` ${star()}` : ""}</div>
+        <div class="e-permits-fo-grid__label"><span id="${esc(id)}-label">${esc(def.label || "")}${def.required ? ` ${star()}` : ""}</span>${infoHtml(def.texts.note, def.label)}</div>
         ${def.hint ? `<p class="e-permits-fo-field__hint" id="${esc(id)}-hint">${esc(def.hint)}</p>` : ""}
-        ${groupCol ? `<div class="e-permits-fo-grid__group-note" data-fo-grid-group-note>${ui().renderInfoNote?.(esc(groupText(def, groupCol.label, "", "rândurile"))) || ""}</div>` : ""}
         ${sourceNoticeHtml(source)}
         <div class="e-permits-fo-grid__frame">
           <table class="table table--subtle e-permits-fo-grid__table" role="table" aria-labelledby="${esc(id)}-label"${def.hint ? ` aria-describedby="${esc(id)}-hint"` : ""}>
@@ -646,12 +664,7 @@
         option.setAttribute("aria-disabled", String(off));
         if (off) option.dataset.tooltipReason = `Din altă grupă decât ${groupName(def, group)}`; else delete option.dataset.tooltipReason;
       });
-    }
-    function syncGroupNote() {
-      const note = root.querySelector(":scope > [data-fo-grid-group-note] p");
-      const col = def.columns.find((item) => item.key === rules.group);
-      if (!note || !col) return;
-      note.textContent = groupText(def, col.label, activeGroup(null), "rândurile");
+      groupLineSync(cell, group ? groupText(def, col.label, group, "rândurile") : "");
     }
     function sync() {
       const count = state.rows.length;
@@ -684,7 +697,6 @@
           ${Array.from({ length: pages }, (_, i) => `<span class="pagination__item"><button class="pagination__link${i + 1 === state.page ? " pagination__link--active" : ""}" type="button" aria-label="Pagina ${i + 1}"${i + 1 === state.page ? ' aria-current="page"' : ""} data-fo-grid-page="${i + 1}">${i + 1}</button></span>`).join("")}
           <span class="pagination__item"><button class="pagination__link pagination__link--text${state.page === pages ? " pagination__link--disabled" : ""}" type="button" aria-label="Pagina următoare" data-fo-grid-page="${state.page + 1}"${state.page === pages ? " disabled" : ""}>${icon("icon-chevron-right", 16)}</button></span>`;
       }
-      syncGroupNote();
       root.classList.toggle("has-rows", count > 0);
       root.dispatchEvent(new CustomEvent("fo-grid-change", { bubbles: false }));
     }
@@ -1064,7 +1076,7 @@
     return `
       <div class="e-permits-fo-activity-card e-permits-fo-repeat__item" role="group" aria-labelledby="${esc(itemId)}-title" data-fo-repeat-item="${item.id}">
         <div class="e-permits-fo-activity-card__header">
-          <div class="e-permits-fo-activity-card__title" id="${esc(itemId)}-title"><span data-fo-repeat-index>#${n}</span><strong>${esc(title)}</strong></div>
+          <div class="e-permits-fo-activity-card__title"><span data-fo-repeat-index>#${n}</span><strong id="${esc(itemId)}-title">${esc(title)}</strong>${n === 1 && def.labelHidden ? infoHtml(def.texts.note, title) : ""}</div>
           ${canRemove ? `<button class="btn btn-text-destructive btn-sm btn-icon-only" type="button" aria-label="Șterge ${esc(title.toLowerCase())} #${n}" data-tooltip-label="Șterge" data-fo-repeat-remove><svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-delete"></use></svg></button>` : ""}
         </div>
         ${parts.join("")}
@@ -1079,13 +1091,10 @@
     const source = def.usesSource && SOURCE === "indisponibila" ? "error" : "";
     const count = Math.max(Number(def.rules.defaultRows) || 0, Math.max(Number(def.rules.min) || 0, def.required ? 1 : 0), Array.isArray(def.value) ? def.value.length : 0, 1);
     const items = Array.from({ length: count }, (_, i) => ({ id: `i${i + 1}`, values: (Array.isArray(def.value) && def.value[i]) || {} }));
-    const groupChild = def.fields.find((child) => child.key === def.rules.group);
     return `
       <fieldset class="e-permits-fo-repeat e-permits-fo-field--span-12" id="${esc(id)}" data-fo-repeat="${esc(id)}"${def.hint ? ` aria-describedby="${esc(id)}-hint"` : ""}${source ? ` data-source="${source}"` : ""}>
-        <legend class="e-permits-fo-choice__legend${def.labelHidden ? " u-visually-hidden" : ""}">${esc(def.label || "")}${def.required ? ` ${star()}` : ""}</legend>
+        <legend class="e-permits-fo-choice__legend${def.labelHidden ? " u-visually-hidden" : ""}">${esc(def.label || "")}${def.required ? ` ${star()}` : ""}${def.labelHidden ? "" : infoHtml(def.texts.note, def.label)}</legend>
         ${def.hint ? `<p class="e-permits-fo-field__hint" id="${esc(id)}-hint">${esc(def.hint)}</p>` : ""}
-        ${def.texts.note ? ui().renderInfoNote?.(esc(def.texts.note)) || "" : ""}
-        ${groupChild ? `<div data-fo-repeat-group-note>${ui().renderInfoNote?.(esc(groupText(def, groupChild.label, "", "elementele"))) || ""}</div>` : ""}
         ${sourceNoticeHtml(source, true)}
         <div class="e-permits-fo-repeat__list" data-fo-repeat-list>
           ${source ? "" : items.map((item, i) => itemHtml(def, item, i + 1, items.length)).join("")}
@@ -1147,7 +1156,9 @@
             const off = Boolean(taken || outside);
             option.classList.toggle("is-disabled", off);
             option.setAttribute("aria-disabled", String(off));
+            if (off) option.dataset.tooltipReason = outside ? `Din altă grupă decât ${groupName(def, othersGroup)}` : "Ales deja într-o altă activitate"; else delete option.dataset.tooltipReason;
           });
+          if (child === groupChild) groupLineSync(el, othersGroup ? groupText(def, groupChild.label, othersGroup, "elementele") : "");
         });
         /* a code without sub-options (US-40 AC-04) */
         def.fields.filter((child) => child.type === "combobox").forEach((child) => {
@@ -1162,8 +1173,6 @@
           if (!none && hint) hint.remove();
         });
       });
-      const note = root.querySelector(":scope > [data-fo-repeat-group-note] p");
-      if (note && groupChild) note.textContent = groupText(def, groupChild.label, group, "elementele");
       const full = max > 0 && all.length >= max;
       if (addButton && root.dataset.source !== "error") {
         if (full) addButton.setAttribute("aria-disabled", "true"); else addButton.removeAttribute("aria-disabled");

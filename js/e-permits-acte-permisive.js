@@ -9504,16 +9504,16 @@
         const compactQuery = compactComboboxText(search.value);
         visibleOptions = options.filter((option) => {
           const isDisabled = option.classList.contains("is-disabled");
-          const isVisible =
-            !isDisabled &&
-            (!query ||
-              option.dataset.searchText.includes(query) ||
-              (compactQuery && option.dataset.searchCompact.includes(compactQuery)));
-          option.hidden = !isVisible;
+          const matches =
+            !query ||
+            option.dataset.searchText.includes(query) ||
+            (compactQuery && option.dataset.searchCompact.includes(compactQuery));
+          /* fb-caem-v1: a disabled option stays listed (greyed, its reason as the tooltip) — it just cannot be picked */
+          option.hidden = !matches;
           option.classList.remove("is-active");
-          return isVisible;
+          return matches && !isDisabled;
         });
-        if (empty) empty.hidden = visibleOptions.length > 0;
+        if (empty) empty.hidden = options.some((option) => !option.hidden);
         const selectedIndex = visibleOptions.findIndex((option) => option.classList.contains("is-selected"));
         activeIndex = Math.max(0, selectedIndex);
         setActive(activeIndex);
@@ -9610,6 +9610,7 @@
         });
         option.addEventListener("mousedown", (event) => {
           event.preventDefault();
+          if (option.classList.contains("is-disabled")) return;
           selectOption(option);
         });
       });
