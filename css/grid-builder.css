@@ -367,3 +367,9 @@
 .e-permits-gridb .e-permits-builder__add-menu[data-stack-menu-fixed] {
   transform: none;
 }
+
+/* gb-nest-pad-v1 (user 2026-11-20): in the builder a nested grid / sub-form block keeps the same 12 padding as every
+   other column block (the FO section top padding is for the applicant's card only) */
+.e-permits-gridb__cell.e-permits-fo-grid__section {
+  padding-top: var(--spacing-12, 12px);
+}

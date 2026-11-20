@@ -197,7 +197,7 @@
           <em class="e-permits-builder__tag e-permits-builder__tag--outlined" data-tooltip-text="${I.esc(`${width} · ${span} din 12 coloane`)}">${span}/12</em>
         </div>
         ${issue ? `<span class="e-permits-gridb__col-issue" data-tooltip-text="${I.esc(issue.message)}"><span class="e-permits-ntpl-dot e-permits-tariff__tab-error"></span></span>` : ""}
-        ${I.isNest(child) ? `<button class="btn btn-text-neutral btn-sm e-permits-gridb__drill" type="button" aria-label="${I.esc(`Editează ${child.type === "subform" ? "sub-formularul" : "sub-grila"} „${name}”`)}" data-gb-drill="${child.id}">${I.icon("icon-edit", 16)}<span>Editează</span></button>` : ""}
+        ${I.isNest(child) ? `<button class="btn btn-secondary btn-sm e-permits-gridb__drill" type="button" data-gb-drill="${child.id}">${I.icon("icon-edit", 16)}<span>${child.type === "subform" ? "Editează sub-formularul" : "Editează grila"}</span></button>` : ""}
       </div>`;
   }
   /* a nested grid / sub-form column (and the form's grid card) = label + hint + the „Coloane” / „Câmpuri” chip band
