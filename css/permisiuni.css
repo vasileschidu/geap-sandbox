@@ -31,3 +31,54 @@
   flex-direction: column;
   gap: var(--spacing-16, 16px);
 }
+
+/* perm-roles-pills-v1 (user 2026-11-20): „Roluri” = grey round pills that wrap (the role switcher's icon avatar) */
+.e-permits-perm-roles__meta {
+  color: var(--color-text-base-tertiary);
+  font-size: var(--font-size-fs-14);
+  line-height: var(--line-height-lh-20);
+}
+.e-permits-perm-roles__list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-8);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.e-permits-perm-roles__pill {
+  align-items: center;
+  background: var(--color-background-base-secondary);
+  border-radius: var(--border-radius-full);
+  color: var(--color-text-base-default);
+  display: inline-flex;
+  font-size: var(--font-size-fs-14);
+  gap: var(--spacing-8);
+  line-height: var(--line-height-lh-20);
+  max-width: 100%;
+  min-height: var(--spacing-32);
+  padding: var(--spacing-4) var(--spacing-12) var(--spacing-4) var(--spacing-4);
+}
+.e-permits-perm-roles__avatar {
+  background: var(--color-background-brand-default);
+  color: var(--color-background-base-inverse-on-color);
+  flex: 0 0 auto;
+}
+.e-permits-perm-roles__name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.e-permits-perm-roles__state,
+.e-permits-perm-roles__empty {
+  color: var(--color-text-base-tertiary);
+}
+.e-permits-perm-roles__pill.is-inactive .e-permits-perm-roles__avatar {
+  background: var(--color-text-base-tertiary);
+}
+.e-permits-perm-roles__empty {
+  font-size: var(--font-size-fs-14);
+  line-height: var(--line-height-lh-20);
+  margin: 0;
+}

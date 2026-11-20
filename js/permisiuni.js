@@ -64,6 +64,11 @@
   function load() {
     if (S.data) return Promise.resolve(S.data);
     if (!S.loading) {
+      /* the role icons = the ones of the role switcher (data/bo-context.json › roles[].icon), matched by name */
+      fetch("data/bo-context.json").then((r) => r.json()).then((ctx) => {
+        S.icons = new Map(Object.values(ctx.roles || {}).map((r) => [String(r.label).toLowerCase(), r.icon]));
+        if (D.id) renderDetails();
+      }).catch(() => {});
       S.loading = fetch("data/permisiuni.json?v=perm-v1").then((r) => r.json()).then((json) => {
         S.data = demo.has("gol") ? { permissions: [] } : json;
         return S.data;
@@ -295,6 +300,14 @@
       <div class="e-permits-fo-textarea"><textarea id="perm-desc-${key}" rows="3" maxlength="${DESC_MAX}"${key === "ro" ? ' placeholder="Ex. Ce acțiune permite și unde se aplică."' : ""} data-perm-desc="${key}" data-clas-count-max="${DESC_MAX}">${esc(value)}</textarea></div>
       <p class="e-permits-fo-field__hint e-permits-ntpl-count"><span></span><span class="e-permits-ntpl-count__value" data-clas-count>${value.length}/${DESC_MAX}</span></p>
     </div>`;
+  /* perm-roles-pills-v1 (user 2026-11-20): Roluri = grey round pills that wrap, each with the role switcher's icon
+     avatar (brand, xs 24); an inactive role = muted avatar + „Inactiv” in its name */
+  const roleIconOf = (r) => `icon-${S.icons?.get(String(r.name).toLowerCase()) || "user-account"}`;
+  const rolePill = (r) => `
+          <li class="e-permits-perm-roles__pill${r.active ? "" : " is-inactive"}">
+            <span class="avatar avatar--xs avatar--icon e-permits-perm-roles__avatar" aria-hidden="true"><svg class="icon" width="16" height="16"><use href="assets/icons/sprite.svg#${roleIconOf(r)}"></use></svg></span>
+            <span class="e-permits-perm-roles__name">${esc(r.name)}</span>${r.active ? "" : `<span class="e-permits-perm-roles__state">· Inactiv</span>`}
+          </li>`;
   function renderDetails() {
     const p = permOf(D.id);
     if (!p || !drawer) return;
@@ -321,7 +334,10 @@
           <div class="e-permits-user-create__grid">${LANGS.map(([k, label]) => textarea(k, label, D.draft[k] || "")).join("")}</div>
         </div>
       </section>
-      ${A().renderStackedList?.("Roluri", [{ label: "", items: roles.map((r) => ({ title: esc(r.name), badges: [tag(r.active ? "Activ" : "Inactiv", r.active ? "success" : "neutral")] })) }], { meta: plural(roles.length, "rol", "roluri"), className: "e-permits-perm-roles", empty: "Niciun rol nu folosește această permisiune." }) || ""}`;
+      <section class="e-permits-dosar-profil__section e-permits-perm-roles" aria-labelledby="perm-roles-title">
+        <div class="e-permits-dosar-profil__section-heading"><h2 class="e-permits-dosar-profil__section-title" id="perm-roles-title">Roluri</h2><span class="e-permits-perm-roles__meta">${esc(plural(roles.length, "rol", "roluri"))}</span></div>
+        ${roles.length ? `<ul class="e-permits-perm-roles__list">${roles.map(rolePill).join("")}</ul>` : `<p class="e-permits-perm-roles__empty">Niciun rol nu folosește această permisiune.</p>`}
+      </section>`;
     syncSave();
   }
   function openDetails(key) {
