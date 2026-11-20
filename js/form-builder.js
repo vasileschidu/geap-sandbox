@@ -1248,8 +1248,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
   /* chip-band-v1 (2026-11-20): the COMPACT read-only band of a container's columns / fields (grid card on the canvas,
      nested grid / sub-form inside the Constructor grilă): label + one chip per child (type icon · name · red star ·
-     error), wrapping; NO „+ Coloană” and no drag (adding / ordering = the Constructor grilă); a chip opens it with that
-     column selected (data-gb-chip, handled in grid-builder.js) */
+     error), wrapping; NO „+ Coloană” and no drag (adding / ordering = the Constructor grilă); chips are plain read-only text: name + red star, no type icon, no hover, not clickable (chip-band-v2, user 2026-11-20 „simple”) */
   function chipBandHtml(field) {
     const inGrid = field.type === "grid";
     return `
@@ -1257,13 +1256,13 @@ document.addEventListener("DOMContentLoaded", () => {
         <span class="e-permits-builder__subs-label" aria-hidden="true">${inGrid ? "Coloane" : "Câmpuri"}</span>
         ${kidsOf(field).map((child) => {
           const bad = childHasIssue(child);
-          return `<button class="e-permits-builder__sub e-permits-builder__sub--link${bad ? " has-issue" : ""}" type="button" data-gb-chip="${child.id}" aria-label="${esc(`${child.type === "grid" ? "Grilă imbricată" : comp(child.type).label}: ${fieldName(child)}${child.required ? ", obligatoriu" : ""}${bad ? ", are erori" : ""}. Deschide în constructor`)}">${icon(comp(child.type).icon, 16)}<span data-cell-tooltip>${esc(fieldName(child))}</span>${child.required ? requiredMark() : ""}${bad ? icon("icon-warning-filled", 16) : ""}</button>`;
+          return `<span class="e-permits-builder__sub e-permits-builder__sub--static${bad ? " has-issue" : ""}"><span data-cell-tooltip>${esc(fieldName(child))}</span>${child.required ? requiredMark() : ""}${bad ? icon("icon-warning-filled", 16) : ""}</span>`;
         }).join("")}
       </div>`;
   }
   function emptyContainerHtml(field) {
     const inGrid = field.type === "grid";
-    return window.GEAPEmptyState?.render({ title: inGrid ? "Grila nu are coloane" : "Blocul nu are câmpuri", text: inGrid ? "Deschide constructorul grilei și adaugă coloanele rândului." : "Trage un câmp din bibliotecă pe banda „Câmpuri” sau apasă „+ Câmp”.", icon: inGrid ? "dot-grid" : "page-add", compact: true, bare: true }) || "";
+    return window.GEAPEmptyState?.render({ title: inGrid ? "Grila nu are coloane" : "Blocul nu are câmpuri", text: inGrid ? "Apasă „Editează grila” și adaugă coloanele rândului." : "Trage un câmp din bibliotecă pe banda „Câmpuri” sau apasă „+ Câmp”.", icon: inGrid ? "dot-grid" : "page-add", compact: true, bare: true }) || "";
   }
 
   function fieldCardHtml(field, section, index, total) {
@@ -1292,7 +1291,7 @@ document.addEventListener("DOMContentLoaded", () => {
             ${field.type === "grid" ? `<em class="e-permits-builder__tag e-permits-builder__tag--outlined" data-fb-col-count>${kidsOf(field).length} ${kidsOf(field).length === 1 ? "coloană" : "coloane"}</em>` : ""}
           </div>
           <div class="e-permits-builder__field-actions">
-            ${field.type === "grid" ? `<button class="btn btn-secondary btn-sm" type="button" data-gb-open="${field.id}">${icon("icon-columns", 16)}<span>Deschide constructorul grilei</span></button>` : ""}
+            ${field.type === "grid" ? `<button class="btn btn-secondary btn-sm" type="button" data-gb-open="${field.id}">${icon("icon-edit", 16)}<span>Editează grila</span></button>` : ""}
             ${ui().renderStackMenu?.(moveItems, name) || ""}
           </div>
         </div>

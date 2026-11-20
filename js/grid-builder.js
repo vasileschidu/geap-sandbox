@@ -197,7 +197,7 @@
           <em class="e-permits-builder__tag e-permits-builder__tag--outlined" data-tooltip-text="${I.esc(`${width} · ${span} din 12 coloane`)}">${span}/12</em>
         </div>
         ${issue ? `<span class="e-permits-gridb__col-issue" data-tooltip-text="${I.esc(issue.message)}"><span class="e-permits-ntpl-dot e-permits-tariff__tab-error"></span></span>` : ""}
-        ${I.isNest(child) ? `<button class="btn btn-text-neutral btn-sm e-permits-gridb__drill" type="button" aria-label="${I.esc(`Deschide ${child.type === "subform" ? "sub-formularul" : "sub-grila"} „${name}”`)}" data-gb-drill="${child.id}"><span>Deschide</span>${I.icon(DRILL_ICON, 16)}</button>` : ""}
+        ${I.isNest(child) ? `<button class="btn btn-text-neutral btn-sm e-permits-gridb__drill" type="button" aria-label="${I.esc(`Editează ${child.type === "subform" ? "sub-formularul" : "sub-grila"} „${name}”`)}" data-gb-drill="${child.id}">${I.icon("icon-edit", 16)}<span>Editează</span></button>` : ""}
       </div>`;
   }
   /* a nested grid / sub-form column (and the form's grid card) = label + hint + the „Coloane” / „Câmpuri” chip band
@@ -507,7 +507,7 @@
       const found = I.findChild(target.id);
       const ok = target.type === "grid" || (found && I.isNest(target) && found.top.type === "grid");
       if (!ok) return "";
-      return `<div class="e-permits-gridb__entry"><button class="btn btn-secondary btn-md" type="button" data-gb-open="${target.id}">${I.icon("icon-columns")}<span>Deschide constructorul grilei</span></button></div>`;
+      return `<div class="e-permits-gridb__entry"><button class="btn btn-secondary btn-md" type="button" data-gb-open="${target.id}">${I.icon("icon-edit")}<span>Editează grila</span></button></div>`;
     }
     if (target === current() || !I.isNest(target) || I.containerOf(target.id) !== current()) return "";
     return `<div class="e-permits-gridb__entry"><button class="btn btn-secondary btn-md" type="button" data-gb-drill="${target.id}">${I.icon(DRILL_ICON)}<span>${target.type === "subform" ? "Deschide sub-formularul" : "Deschide sub-grila"}</span></button></div>`;

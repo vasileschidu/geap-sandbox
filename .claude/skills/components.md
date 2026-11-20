@@ -4966,7 +4966,7 @@ per cell / card); rules point at children by id (`rowRules.keyColumn` / `groupCo
 `dataSource.parentFieldId`). Seed form `?formular=form-sanitary-09` (CAEM block, equipment grid with a nested
 grid, work points with Raion → Localitate).
 - **Builder.** (row-cards-v1: a GRID card = header (chip „Grilă editabilă” · 12/12 · „N coloane” · „Deschide constructorul grilei” · ⋮) + label + hint + the READ-ONLY
-  chip band `.e-permits-builder__subs--bare` (chip-band-v1 = `chipBandHtml`: „Coloane” + one `.e-permits-builder__sub--link[data-gb-chip]` per column, wrapping, NO „+ Coloană”, no drag; a chip opens the Constructor grilă with that column selected) + key line; ≈ 190 px for 7 columns. The editable band below stays for blocks.) Container card = tools + the **band** (chips of columns / fields; click = the child's panel,
+  chip band `.e-permits-builder__subs--bare` (chip-band-v1 → v2 (2026-11-20: chips = plain read-only text, name + red star only, no type icon, no hover, not clickable; entry button „Editează grila” with the pen, nested „Editează” with the pen) = `chipBandHtml`: „Coloane” + one `.e-permits-builder__sub--link[data-gb-chip]` per column, wrapping, NO „+ Coloană”, no drag; a chip opens the Constructor grilă with that column selected) + key line; ≈ 190 px for 7 columns. The editable band below stays for blocks.) Container card = tools + the **band** (chips of columns / fields; click = the child's panel,
   drag = reorder, palette types dropped on the band = new children, Alt + ← / → (grid) or ↑ / ↓ (block) and
   Delete on a chip, „+ Coloană / + Câmp” = typed menu: Coloane simple · Coloane complexe (locked with a reason
   until one simple column exists — US-34 AC-06; Grilă imbricată locked at level 3 — US-38) · Copie a unui

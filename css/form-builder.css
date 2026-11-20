@@ -843,8 +843,12 @@
   padding-bottom: 0;
 }
 
-.e-permits-builder__sub--link {
-  cursor: pointer;
+/* chip-band-v2 (user 2026-11-20 „simple”): the band's chips are plain read-only text — name + star, no icon, no own
+   hover / pointer (the card around them is the click target) */
+.e-permits-builder__sub--static,
+.e-permits-builder__sub--static:hover {
+  background: var(--color-background-base-default, #fff);
+  cursor: inherit;
 }
 
 /* a child chip: the outlined step-chip geometry (32 high, 14/20 medium); selected = brand, error = red */
