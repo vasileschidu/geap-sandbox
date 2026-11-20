@@ -153,13 +153,37 @@
   display: none;
 }
 
-/* EDIT: the other-doc card; 12 from a neighbouring saved line (+ its own 4 = the 16 rhythm around the card) */
-.e-permits-fo-grid__row.is-editing:not(.is-first) {
-  margin-top: var(--spacing-12, 12px);
+/* row-stack-v1 (2026-11-20): ALL saved rows of a grid sit in ONE `.e-permits-stack` (white, 1px border, r12, inset
+   dividers = the stacked list's own `__item + __item::before`); an empty grid has no container */
+.e-permits-fo-grid__list:has(> .e-permits-fo-grid__empty) {
+  background: transparent;
+  border: 0;
 }
 
-.e-permits-fo-grid__row.is-editing:not(.is-last) {
-  margin-bottom: var(--spacing-12, 12px);
+.e-permits-fo-grid__row.is-first::before,
+.e-permits-fo-repeat__item.is-first::before {
+  display: none;
+}
+
+.e-permits-fo-grid__row.is-first,
+.e-permits-fo-repeat__item.is-first {
+  border-top-left-radius: calc(var(--stack-radius, 12px) - var(--border-width-1, 1px));
+  border-top-right-radius: calc(var(--stack-radius, 12px) - var(--border-width-1, 1px));
+}
+
+.e-permits-fo-grid__row.is-last,
+.e-permits-fo-repeat__item.is-last {
+  border-bottom-left-radius: calc(var(--stack-radius, 12px) - var(--border-width-1, 1px));
+  border-bottom-right-radius: calc(var(--stack-radius, 12px) - var(--border-width-1, 1px));
+}
+
+/* EDIT: the row opens in place — header #n + name, „Anulează” · „Salvează”, the 12-col grid under it */
+.e-permits-fo-grid__row.is-editing,
+.e-permits-fo-repeat__item.is-editing {
+  align-items: stretch;
+  flex-direction: column;
+  gap: var(--spacing-16, 16px);
+  justify-content: flex-start;
 }
 
 .e-permits-fo-grid__fields {
@@ -242,55 +266,30 @@
   }
 }
 
-/* SAVED: one line — #n · the first values (cut + tooltip) · „Editează” · „Elimină”; the whole line opens the edit:
-   the summary's ::after covers it BEHIND the text (line = own stacking context, ::after z −1) and carries the hover
-   (tertiary on white; the #n pill one step darker, it lets the pointer through); the buttons sit above */
+/* SAVED: `#n` · the first values (cut + tooltip) · „Editează” · „Elimină”; the item is the stacked list's clickable
+   row (band + pointer; an inner button hovers only itself) */
 .e-permits-fo-grid__row.is-saved {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-8, 8px);
-  padding: var(--spacing-4, 4px) 0;
-}
-
-.e-permits-fo-grid__row.is-saved.has-divider {
-  border-bottom: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
-}
-
-.e-permits-fo-grid__line {
-  align-items: center;
-  border-radius: var(--border-radius-12, 12px);
-  box-sizing: border-box;
-  display: flex;
   gap: var(--spacing-12, 12px);
+  justify-content: flex-start;
   min-height: var(--spacing-48, 48px);
-  isolation: isolate;
-  padding: var(--spacing-8, 8px) var(--spacing-16, 16px);
-  position: relative;
 }
 
-.e-permits-fo-grid__line > .e-permits-fo-doc-card__index {
+.e-permits-fo-grid__row.is-saved > .e-permits-fo-doc-card__index {
   flex: 0 0 auto;
-  pointer-events: none;
   transition: background-color var(--motion-duration-hover, 180ms) ease;
 }
 
+.e-permits-fo-grid__row.is-saved:is(:hover:not(:has(button:hover)), :focus-visible) > .e-permits-fo-doc-card__index {
+  background: var(--color-background-base-tertiary-hover, #d9d9d9);
+}
+
 .e-permits-fo-grid__summary {
-  appearance: none;
-  background: transparent;
-  border: 0;
   color: var(--color-text-base-default, #121212);
-  cursor: pointer;
+  display: block;
   flex: 1 1 auto;
-  font: inherit;
   font-size: var(--font-size-fs-14, 14px);
   line-height: var(--line-height-lh-20, 20px);
   min-width: 0;
-  padding: 0;
-  text-align: left;
-}
-
-.e-permits-fo-grid__summary > span {
-  display: block;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -300,56 +299,31 @@
   color: var(--color-text-base-tertiary, #757575);
 }
 
-.e-permits-fo-grid__summary::after {
-  border-radius: var(--border-radius-12, 12px);
-  content: "";
-  inset: 0;
-  position: absolute;
-  transition: background-color var(--motion-duration-hover, 180ms) ease;
-  z-index: -1;
-}
-
-.e-permits-fo-grid__summary:hover::after {
-  background: var(--color-background-base-tertiary, #f1f1f1);
-}
-
-.e-permits-fo-grid__summary:focus-visible {
-  outline: none;
-}
-
-.e-permits-fo-grid__summary:focus-visible::after {
-  box-shadow: inset 0 0 0 var(--border-width-2, 2px) var(--blue-sky-500, #3379db);
-}
-
-.e-permits-fo-grid__line-actions {
-  position: relative;
-  z-index: 1;
-}
-
-.e-permits-fo-grid__line:has(> .e-permits-fo-grid__summary:hover) > .e-permits-fo-doc-card__index {
-  background: var(--color-background-base-tertiary-hover, #d9d9d9);
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .e-permits-fo-grid__summary::after,
-  .e-permits-fo-grid__line > .e-permits-fo-doc-card__index {
-    transition: none;
-  }
-}
-
-/* narrow / phones: the buttons go under the values */
+/* narrow / phones: #n + values on the first line, the buttons under them (as the stacked list's actions) */
 @container (max-width: 480px) {
-  .e-permits-fo-grid__line {
+  .e-permits-fo-grid__row.is-saved {
     flex-wrap: wrap;
     row-gap: var(--spacing-4, 4px);
   }
 
-  .e-permits-fo-grid__summary {
+  .e-permits-fo-grid__row.is-saved > .e-permits-fo-grid__summary {
     flex-basis: calc(100% - var(--spacing-48, 48px));
   }
 
   .e-permits-fo-grid__line-actions {
     margin-left: calc(var(--spacing-8, 8px) * -1);
+  }
+}
+
+@media (max-width: 760px) {
+  .e-permits-fo-grid__row.is-saved {
+    align-items: center;
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+
+  .e-permits-fo-grid__row.is-editing {
+    align-items: stretch;
   }
 }
 
@@ -367,7 +341,7 @@
   display: flex;
   flex-wrap: wrap;
   gap: var(--spacing-12, 12px) var(--spacing-16, 16px);
-  margin-top: var(--spacing-8, 8px);
+  margin-top: var(--spacing-16, 16px);
 }
 
 .e-permits-fo-grid__limit {
@@ -455,7 +429,54 @@
 .e-permits-fo-repeat__list {
   display: flex;
   flex-direction: column;
+}
+
+/* row-stack-v1: the block's items live in ONE `.e-permits-stack`; an item is EDIT (head + body) or SAVED (the line) */
+.e-permits-fo-repeat__body:not([hidden]) {
+  display: flex;
+  flex-direction: column;
   gap: var(--spacing-20, 20px);
+}
+
+.e-permits-fo-repeat__item .e-permits-fo-doc-card__header[hidden],
+.e-permits-fo-repeat__item .e-permits-fo-repeat__line[hidden] {
+  display: none;
+}
+
+.e-permits-fo-repeat__line {
+  align-items: center;
+  display: flex;
+  flex: 1 1 auto;
+  gap: var(--spacing-12, 12px);
+  min-height: var(--spacing-32, 32px);
+  min-width: 0;
+}
+
+.e-permits-fo-repeat__line > .e-permits-fo-doc-card__index {
+  flex: 0 0 auto;
+  transition: background-color var(--motion-duration-hover, 180ms) ease;
+}
+
+.e-permits-fo-repeat__item.is-saved:is(:hover:not(:has(button:hover)), :focus-visible) .e-permits-fo-repeat__line > .e-permits-fo-doc-card__index {
+  background: var(--color-background-base-tertiary-hover, #d9d9d9);
+}
+
+@container (max-width: 480px) {
+  .e-permits-fo-repeat__line {
+    flex-wrap: wrap;
+    row-gap: var(--spacing-4, 4px);
+  }
+
+  .e-permits-fo-repeat__line > .e-permits-fo-grid__summary {
+    flex-basis: calc(100% - var(--spacing-48, 48px));
+  }
+}
+
+@media (max-width: 760px) {
+  .e-permits-fo-repeat__item.is-saved {
+    align-items: center;
+    flex-direction: row;
+  }
 }
 
 .e-permits-fo-repeat__list:empty {

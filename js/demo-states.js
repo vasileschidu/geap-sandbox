@@ -3057,10 +3057,17 @@
           const equip = `${PV} [data-fb-field='fld-equipment']`;
           const caem = `${PV} [data-fb-field='fld-caem']`;
           /* a CAEM code picked the way the FO list acts (mousedown on the option) */
-          const pickCode = (scope, code, card = 0) => async (h) => {
+          const pickCode = (scope, code, card = 0, sub = true) => async (h) => {
             await h.find(`${scope} [data-fo-repeat-item]`);
-            document.querySelectorAll(`${scope} [data-fo-repeat-item]`)[card].querySelector(`.e-permits-fo-caem__option[data-code='${code}']`).dispatchEvent(new MouseEvent("mousedown", { bubbles: true, cancelable: true }));
+            const item = document.querySelectorAll(`${scope} [data-fo-repeat-item]`)[card];
+            item.querySelector(`.e-permits-fo-caem__option[data-code='${code}']`).dispatchEvent(new MouseEvent("mousedown", { bubbles: true, cancelable: true }));
             await h.wait(300);
+            /* row-stack-v1: „Salvează” needs the required subgenre too — the first one, confirmed (sub = false: left empty) */
+            if (sub) {
+              item.querySelector(".e-permits-fo-subgen-select__option:not([data-fo-select-all])")?.dispatchEvent(new MouseEvent("mousedown", { bubbles: true, cancelable: true }));
+              item.querySelector("[data-fo-subgen-confirm]")?.click();
+              await h.wait(150);
+            }
           };
           const fillGrid = (scope) => async (h) => { const cell = await h.find(scope); window.GEAPFoRepeat.fill(cell); await h.wait(300); };
           /* a generic block: „Vehicule” with Nr. de înmatriculare (max 2) — max reached in the Preview */
@@ -3195,12 +3202,21 @@
               await vehicles(h);
               await preview(h);
               const block = `${PV} [data-fb-field='${window.GEAPFormBuilder.state.sel.id}']`;
-              await h.click(`${block} [data-fo-repeat-add]`);
+              await fillGrid(block)(h);
               await h.scroll(`${block} [data-fo-repeat-limit]`);
             }),
             "fb-59d": fb(async (h) => { await preview(h); await fillGrid(caem)(h); await h.click(`${caem} [data-fo-repeat-item]:nth-child(2) [data-fo-repeat-remove]`); await h.scroll(caem); }, F09),
+            /* fb-caem-06 (row-stack-v1, 2026-11-20): two saved activities in the stacked container + a third in edit */
+            "fb-caem-06": fb(async (h) => {
+              await preview(h);
+              await pickCode(caem, "I 56.10")(h);
+              await h.click(`${caem} [data-fo-repeat-add]`);
+              await pickCode(caem, "I 56.30", 1)(h);
+              await h.click(`${caem} [data-fo-repeat-add]`);
+              await h.scroll(`${caem} [data-fo-repeat-item]:nth-child(3)`);
+            }, F09),
             /* 60 Validare in the Preview on the CAEM block: a code without its subgenre, the minimum */
-            "fb-60": fb(async (h) => { await preview(h); await pickCode(caem, "I 56.10")(h); await validate(h); await h.scroll(caem); }, F09),
+            "fb-60": fb(async (h) => { await preview(h); await pickCode(caem, "I 56.10", 0, false)(h); await validate(h); await h.scroll(caem); }, F09),
             /* 61 a classifier source down (US-39 AC-03 / US-40 AC-06): message + Reîncearcă + Introdu manual
                · 61a loading skeleton */
             "fb-61": fb(async (h) => { await preview(h); await h.scroll(`${PV} [data-fb-field='fld-points']`); }, { ...F09, sursa: "indisponibila" }),

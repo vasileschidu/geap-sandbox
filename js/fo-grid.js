@@ -235,14 +235,12 @@
     const name = rowName(def);
     const canRemove = def.rules.allowRemove !== false;
     return `
-      <div class="e-permits-fo-grid__row is-saved" data-fo-grid-row="${row.id}">
-        <div class="e-permits-fo-grid__line">
-          <span class="e-permits-fo-doc-card__index" data-fo-grid-tag>#${n}</span>
-          <button class="e-permits-fo-grid__summary${text ? "" : " is-empty"}" type="button" tabindex="-1" aria-label="${esc(`${name} ${n}: ${text || "necompletat"} — editează`)}" data-fo-grid-act="edit"><span data-cell-tooltip>${esc(text || "Necompletat")}</span></button>
-          <div class="e-permits-fo-doc-field__actions e-permits-fo-grid__line-actions">
-            <button class="btn btn-text-neutral btn-sm" type="button" aria-label="${esc(`Editează ${lower(name)} ${n}`)}" data-fo-grid-act="edit" data-fo-grid-edit>${icon("icon-edit", 16)}<span>Editează</span></button>
-            ${canRemove ? `<button class="btn btn-text-destructive btn-sm" type="button" aria-label="${esc(`Elimină ${lower(name)} ${n}`)}" data-fo-grid-act="delete">${icon("icon-delete", 16)}<span>Elimină</span></button>` : ""}
-          </div>
+      <div class="e-permits-stack__item is-clickable e-permits-fo-grid__row is-saved" role="button" tabindex="0" aria-label="${esc(`${name} ${n}: ${text || "necompletat"} — editează`)}" data-fo-grid-row="${row.id}" data-fo-grid-act="edit">
+        <span class="e-permits-fo-doc-card__index" data-fo-grid-tag>#${n}</span>
+        <span class="e-permits-fo-grid__summary${text ? "" : " is-empty"}" data-cell-tooltip>${esc(text || "Necompletat")}</span>
+        <div class="e-permits-stack__actions e-permits-fo-grid__line-actions">
+          <button class="btn btn-text-neutral btn-sm" type="button" aria-label="${esc(`Editează ${lower(name)} ${n}`)}" data-fo-grid-act="edit" data-fo-grid-edit>${icon("icon-edit", 16)}<span>Editează</span></button>
+          ${canRemove ? `<button class="btn btn-text-destructive btn-sm" type="button" aria-label="${esc(`Elimină ${lower(name)} ${n}`)}" data-fo-grid-act="delete">${icon("icon-delete", 16)}<span>Elimină</span></button>` : ""}
         </div>
       </div>`;
   }
@@ -292,10 +290,10 @@
     if (isSub(col)) return `<div ${attrs}>${subformHtml(def, row, col)}</div>`;
     return `<div ${attrs}>${ctx.fieldHtml(cellField(def, col, row, ctl))}</div>`;
   }
-  function editRowHtml(def, row, n, ctl) {
+  function editRowHtml(def, row, n, ctl, inList = true) {
     const name = rowName(def);
     return `
-      <div class="e-permits-fo-doc-card e-permits-fo-grid__row is-editing" role="group" aria-label="${esc(`${name} ${n}`)}" data-fo-grid-row="${row.id}">
+      <div class="${inList ? "e-permits-stack__item" : "e-permits-fo-doc-card"} e-permits-fo-grid__row is-editing" role="group" aria-label="${esc(`${name} ${n}`)}" data-fo-grid-row="${row.id}">
         <div class="e-permits-fo-doc-card__header">
           <div class="e-permits-fo-doc-card__title">
             <span class="e-permits-fo-doc-card__index" data-fo-grid-tag>#${n}</span>
@@ -316,9 +314,7 @@
     return `<div class="e-permits-fo-grid__empty" data-fo-grid-empty>${empty}</div>`;
   }
   const skeletonRowsHtml = () => [1, 2].map(() => `
-    <div class="e-permits-fo-grid__row is-saved is-loading" aria-hidden="true">
-      <div class="e-permits-fo-grid__line"><span class="skeleton skeleton--text"></span><span class="skeleton skeleton--text"></span></div>
-    </div>`).join("");
+    <div class="e-permits-stack__item e-permits-fo-grid__row is-saved is-loading" aria-hidden="true"><span class="skeleton skeleton--text"></span><span class="skeleton skeleton--text"></span></div>`).join("");
   function sourceNoticeHtml(kind, block = false) {
     if (kind !== "error") return "";
     const text = ui().renderNotice?.("error", `Nu s-au putut încărca datele${block ? " listei" : " grilei"}. Datele introduse se păstrează.`) || "";
@@ -383,7 +379,7 @@
         <div class="e-permits-fo-grid__label"><span id="${esc(id)}-label">${esc(def.label || "")}${def.required ? ` ${star()}` : ""}</span>${infoHtml(def.texts.note, def.label)}</div>
         ${def.hint ? `<p class="e-permits-fo-field__hint" id="${esc(id)}-hint">${esc(def.hint)}</p>` : ""}
         ${sourceNoticeHtml(source)}
-        <div class="e-permits-fo-grid__list" role="group" aria-labelledby="${esc(id)}-label"${def.hint ? ` aria-describedby="${esc(id)}-hint"` : ""} data-fo-grid-body>${source === "loading" ? skeletonRowsHtml() : staticBody(def, source === "error")}</div>
+        <div class="e-permits-stack e-permits-fo-grid__list" role="group" aria-labelledby="${esc(id)}-label"${def.hint ? ` aria-describedby="${esc(id)}-hint"` : ""} data-fo-grid-body>${source === "loading" ? skeletonRowsHtml() : staticBody(def, source === "error")}</div>
         <div class="e-permits-fo-grid__foot">
           ${def.rules.allowAdd === false ? "" : `<button class="e-permits-fo-add-activity" type="button" data-fo-grid-add${source ? ' aria-disabled="true"' : ""}>${icon("icon-plus-small")}<span>${esc(def.texts.add || "Adaugă rând")}</span></button>`}
           <p class="e-permits-fo-field__hint e-permits-fo-grid__limit" data-fo-grid-limit hidden></p>
@@ -403,7 +399,7 @@
     def.rules = def.rules || {};
     def.texts = def.texts || {};
     const row = { id: `p${n}`, values: clone(values) };
-    return editing ? editRowHtml(def, row, n, null) : savedRowHtml(def, row, n);
+    return editing ? editRowHtml(def, row, n, null, false) : savedRowHtml(def, row, n);
   }
 
   /* ================================================================== GRID — behaviour */
@@ -580,12 +576,11 @@
         el.hidden = Boolean(pageSize) && Math.floor(i / pageSize) + 1 !== state.page;
         if (!el.hidden) shown.push(el);
       });
-      /* dividers only between saved lines (last one none); an edit card keeps 12 from its neighbours */
+      /* first / last visible item: no top divider, the outer corners of the hover band */
       shown.forEach((el, i) => {
         el.classList.toggle("is-first", i === 0);
         el.classList.toggle("is-last", i === shown.length - 1);
-        el.classList.toggle("has-divider", el.classList.contains("is-saved") && Boolean(shown[i + 1]?.classList.contains("is-saved")));
-      });
+              });
       if (pager) {
         pager.hidden = pages < 2;
         pager.innerHTML = pages < 2 ? "" : `
@@ -796,6 +791,12 @@
     };
     root.addEventListener("keydown", (event) => {
       if (!own(event)) return;
+      if ((event.key === "Enter" || event.key === " ") && event.target.matches("[data-fo-grid-row].is-saved")) {
+        event.preventDefault();
+        const saved = rowById(event.target.dataset.foGridRow);
+        if (saved) startEdit(saved);
+        return;
+      }
       const zone = event.target.closest("[data-fo-grid-row].is-editing");
       const row = zone ? rowById(zone.dataset.foGridRow) : null;
       if (!row?.editing) return;
@@ -950,13 +951,25 @@
     });
     flush();
     const itemId = `${domIdOf(def.id)}-${item.id}`;
+    const hide = def.rules.allowRemove === false || (n === 1 && min >= 1) ? " hidden" : "";
     return `
-      <div class="e-permits-fo-activity-card e-permits-fo-repeat__item" role="group" aria-labelledby="${esc(itemId)}-title" data-fo-repeat-item="${item.id}">
-        <div class="e-permits-fo-activity-card__header">
-          <div class="e-permits-fo-activity-card__title"><span data-fo-repeat-index>#${n}</span><strong id="${esc(itemId)}-title">${esc(title)}</strong>${n === 1 && def.labelHidden ? infoHtml(def.texts.note, title) : ""}</div>
-          ${canRemove ? `<button class="btn btn-text-destructive btn-sm btn-icon-only" type="button" aria-label="Șterge ${esc(title.toLowerCase())} #${n}" data-tooltip-label="Șterge" data-fo-repeat-remove><svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-delete"></use></svg></button>` : ""}
+      <div class="e-permits-stack__item e-permits-fo-repeat__item is-editing" role="group" aria-labelledby="${esc(itemId)}-title" data-fo-repeat-item="${item.id}">
+        <div class="e-permits-fo-doc-card__header" data-fo-repeat-head>
+          <div class="e-permits-fo-doc-card__title"><span class="e-permits-fo-doc-card__index" data-fo-repeat-index>#${n}</span><span class="e-permits-fo-doc-card__name" id="${esc(itemId)}-title">${esc(title)}</span>${n === 1 && def.labelHidden ? infoHtml(def.texts.note, title) : ""}</div>
+          <div class="e-permits-fo-doc-field__actions e-permits-fo-doc-card__actions">
+            <button class="btn btn-neutral btn-rounded btn-md" type="button" data-fo-repeat-act="cancel">Anulează</button>
+            <button class="btn btn-primary btn-rounded btn-md" type="button" data-fo-repeat-act="save">Salvează</button>
+          </div>
         </div>
-        ${parts.join("")}
+        <div class="e-permits-fo-repeat__body" data-fo-repeat-body>${parts.join("")}</div>
+        <div class="e-permits-fo-repeat__line" data-fo-repeat-line hidden>
+          <span class="e-permits-fo-doc-card__index" data-fo-repeat-index>#${n}</span>
+          <span class="e-permits-fo-grid__summary" data-cell-tooltip data-fo-repeat-summary></span>
+          <div class="e-permits-stack__actions e-permits-fo-grid__line-actions">
+            <button class="btn btn-text-neutral btn-sm" type="button" aria-label="Editează ${esc(title.toLowerCase())} #${n}" data-fo-repeat-act="edit">${icon("icon-edit", 16)}<span>Editează</span></button>
+            <button class="btn btn-text-destructive btn-sm" type="button" aria-label="Elimină ${esc(title.toLowerCase())} #${n}" data-fo-repeat-remove${hide}>${icon("icon-delete", 16)}<span>Elimină</span></button>
+          </div>
+        </div>
       </div>`;
   }
   function blockHtml(def, context) {
@@ -973,7 +986,7 @@
         <legend class="e-permits-fo-choice__legend${def.labelHidden ? " u-visually-hidden" : ""}">${esc(def.label || "")}${def.required ? ` ${star()}` : ""}${def.labelHidden ? "" : infoHtml(def.texts.note, def.label)}</legend>
         ${def.hint ? `<p class="e-permits-fo-field__hint" id="${esc(id)}-hint">${esc(def.hint)}</p>` : ""}
         ${sourceNoticeHtml(source, true)}
-        <div class="e-permits-fo-repeat__list" data-fo-repeat-list>
+        <div class="e-permits-stack e-permits-fo-repeat__list" data-fo-repeat-list>
           ${source ? "" : items.map((item, i) => itemHtml(def, item, i + 1, items.length)).join("")}
         </div>
         <button class="e-permits-fo-add-activity" type="button" data-fo-repeat-add${source ? ' aria-disabled="true"' : ""}>${icon("icon-plus-small")}<span>${esc(def.texts.add || "Adaugă alt element")}</span></button>
@@ -993,6 +1006,7 @@
     const title = def.texts.title || "Element";
     let seqItem = list.children.length;
     const items = () => [...list.querySelectorAll(":scope > [data-fo-repeat-item]")];
+    const isSaved = (item) => item.classList.contains("is-saved");
     const childEl = (item, key) => item.querySelector(`[data-fo-repeat-key="${CSS.escape(key)}"]`);
     const valueOf = (item, child) => {
       const el = childEl(item, child.key);
@@ -1006,6 +1020,7 @@
       validate,
       fill,
       items,
+      itemValue: (item) => Object.fromEntries(def.fields.filter((child) => child.type !== "info").map((child) => [child.key, valueOf(item, child)])),
       reset: () => { list.innerHTML = ""; addItem({ silent: true }); },
     };
     root.foRepeatCtl = ctl;
@@ -1017,10 +1032,12 @@
       const chosen = keyChild ? all.map((item) => valueOf(item, keyChild)) : [];
       const group = groupChild ? all.map((item) => groupOf(groupChild, valueOf(item, groupChild))).find(Boolean) || "" : "";
       all.forEach((item, i) => {
-        const index = item.querySelector("[data-fo-repeat-index]");
-        if (index) index.textContent = `#${i + 1}`;
+        item.querySelectorAll("[data-fo-repeat-index]").forEach((index) => { index.textContent = `#${i + 1}`; });
+        item.classList.toggle("is-first", i === 0);
+        item.classList.toggle("is-last", i === all.length - 1);
         const remove = item.querySelector("[data-fo-repeat-remove]");
-        if (remove) { remove.hidden = (min >= 1 && i === 0) || all.length <= min; remove.setAttribute("aria-label", `Șterge ${title.toLowerCase()} #${i + 1}`); }
+        if (remove) { remove.hidden = def.rules.allowRemove === false || (min >= 1 && i === 0) || all.length <= min; remove.setAttribute("aria-label", `Elimină ${title.toLowerCase()} #${i + 1}`); }
+        item.querySelector("[data-fo-repeat-act='edit']")?.setAttribute("aria-label", `Editează ${title.toLowerCase()} #${i + 1}`);
         /* key: values taken by another element are off; group: other groups are off (US-40 AC-02/03) */
         [keyChild, groupChild].filter(Boolean).forEach((child) => {
           const el = childEl(item, child.key);
@@ -1063,6 +1080,12 @@
         if (max && items().length >= max) live(root, maxText(def, max, false));
         return null;
       }
+      /* one item in edit at a time: a blank new one is dropped, another is saved first (its errors keep it open) */
+      if (!silent) {
+        const open = items().find((other) => !isSaved(other));
+        if (open && !open.snapshot && !summaryOf(open)) { open.remove(); sync(); }
+        else if (open && !saveItem(open, { focus: false })) { live(root, "Salvează sau anulează mai întâi elementul deschis."); return null; }
+      }
       seqItem += 1;
       list.insertAdjacentHTML("beforeend", itemHtml(def, { id: `i${seqItem}${rid()}`, values: {} }, items().length + 1, Number.MAX_SAFE_INTEGER));
       const item = list.lastElementChild;
@@ -1070,10 +1093,113 @@
       sync();
       if (!silent) {
         item.scrollIntoView?.({ block: "nearest", behavior: "smooth" });
-        item.querySelector("button:not([data-fo-repeat-remove]):not(:disabled), input:not([type='hidden']):not(:disabled)")?.focus({ preventScroll: true });
+        focusItem(item);
         live(root, `S-a adăugat „${title} #${items().length}”.`);
       }
       return item;
+    }
+    function focusItem(item) {
+      window.setTimeout(() => item.querySelector("[data-fo-repeat-body] :is(button, input:not([type='hidden']), textarea):not(:disabled)")?.focus({ preventScroll: true }), 20);
+    }
+    /* ---- item lifecycle (row-stack-v1): EDIT = the open card in the container, SAVED = one compact line */
+    function summaryOf(item) {
+      const parts = [];
+      def.fields.forEach((child) => {
+        if (child.type === "info" || child.type === "checkbox") return;
+        const value = valueOf(item, child);
+        if (isEmpty(value)) return;
+        if (child.type === "combobox") {
+          const option = [...childEl(item, child.key).querySelectorAll(".e-permits-fo-caem__option")].find((entry) => entry.dataset.code === value);
+          parts.push(option?.dataset.label ? `${value} · ${option.dataset.label}` : String(value));
+        } else if (child.type === "multiselect") parts.push(value.length === 1 ? value[0] : `${value.length} ${child.parent ? "subgenuri" : "selectate"}`);
+        else parts.push(formatValue(child, value));
+      });
+      return parts.filter(Boolean).slice(0, 3).join(" · ");
+    }
+    function setSaved(item, on) {
+      const line = item.querySelector(":scope > [data-fo-repeat-line]");
+      item.querySelector(":scope > [data-fo-repeat-head]").hidden = on;
+      item.querySelector(":scope > [data-fo-repeat-body]").hidden = on;
+      line.hidden = !on;
+      item.classList.toggle("is-saved", on);
+      item.classList.toggle("is-clickable", on);
+      item.classList.toggle("is-editing", !on);
+      if (on) {
+        const text = summaryOf(item);
+        const summary = line.querySelector("[data-fo-repeat-summary]");
+        summary.textContent = text || "Necompletat";
+        summary.classList.toggle("is-empty", !text);
+        item.setAttribute("role", "button");
+        item.tabIndex = 0;
+        item.setAttribute("aria-label", `${title} #${items().indexOf(item) + 1}: ${text || "necompletat"} — editează`);
+        item.removeAttribute("aria-labelledby");
+      } else {
+        item.setAttribute("role", "group");
+        item.removeAttribute("tabindex");
+        item.removeAttribute("aria-label");
+        item.setAttribute("aria-labelledby", item.querySelector(".e-permits-fo-doc-card__name").id);
+      }
+    }
+    /* the controls back to the values of a snapshot (Anulează on a saved item) */
+    function restore(item, values) {
+      def.fields.forEach((child) => {
+        if (child.type === "info") return;
+        const el = childEl(item, child.key);
+        const value = values[child.key];
+        if (!el) return;
+        if (child.type === "combobox") {
+          [...el.querySelectorAll(".e-permits-fo-caem__option")].find((entry) => entry.dataset.code === value)?.dispatchEvent(new MouseEvent("mousedown", { bubbles: true, cancelable: true }));
+        } else if (child.type === "multiselect" && el.matches("[data-fo-subgen]")) {
+          el.querySelectorAll(".e-permits-fo-subgen-select__option:not([data-fo-select-all])").forEach((option) => {
+            if (option.classList.contains("is-selected") !== (value || []).includes(option.dataset.value)) option.dispatchEvent(new MouseEvent("mousedown", { bubbles: true, cancelable: true }));
+          });
+          el.querySelector("[data-fo-subgen-confirm]")?.click();
+        } else if (child.type === "select") {
+          [...el.querySelectorAll(".e-permits-fo-select__option")].find((option) => (option.dataset.value || option.textContent.trim()) === value)?.click();
+        } else if (child.type === "checkbox") {
+          const box = el.querySelector("input[type='checkbox']"); if (box) box.checked = Boolean(value);
+        } else if (child.type === "radio") {
+          el.querySelectorAll("input[type='radio']").forEach((radio) => { radio.checked = radio.value === value; });
+        } else {
+          const input = el.querySelector("input:not([type='search']), textarea");
+          if (input) input.value = value ?? "";
+        }
+      });
+      sync();
+    }
+    function startEdit(item) {
+      if (!isSaved(item)) return;
+      /* one item in edit at a time: another open one is saved first (its errors keep it open) */
+      const open = items().find((other) => other !== item && !isSaved(other));
+      if (open && !saveItem(open, { focus: false })) { live(root, "Salvează sau anulează mai întâi elementul deschis."); return; }
+      item.snapshot = ctl.itemValue(item);
+      setSaved(item, false);
+      focusItem(item);
+      live(root, `${title} #${items().indexOf(item) + 1} se editează. Salvează sau Anulează.`);
+    }
+    function saveItem(item, { focus = true } = {}) {
+      const result = validateItem(item);
+      if (result.count) { if (focus) result.first?.scrollIntoView?.({ block: "nearest" }); (result.first?.querySelector?.("input, button") || result.first)?.focus?.(); return false; }
+      delete item.snapshot;
+      item.dataset.foRepeatSavedOnce = "";
+      setSaved(item, true);
+      sync();
+      if (focus) { item.focus({ preventScroll: true }); live(root, `${title} #${items().indexOf(item) + 1} a fost salvat.`); }
+      return true;
+    }
+    function cancelItem(item) {
+      if (item.snapshot) { restore(item, item.snapshot); delete item.snapshot; setSaved(item, true); sync(); item.focus({ preventScroll: true }); return; }
+      /* never saved: dropped — or emptied when the block needs it (minimum) */
+      if (items().length > min) {
+        const all = items(); const index = all.indexOf(item);
+        item.remove(); sync();
+        (items()[index] || items()[index - 1])?.focus?.({ preventScroll: true }) || addButton?.focus();
+        return;
+      }
+      seqItem += 1;
+      item.insertAdjacentHTML("afterend", itemHtml(def, { id: `i${seqItem}${rid()}`, values: {} }, items().indexOf(item) + 1, 1));
+      const fresh = item.nextElementSibling;
+      item.remove(); bindControls(fresh); sync(); focusItem(fresh);
     }
     /* remove at once + „Anulează” in the toast (the builder's delete pattern); the node itself is kept,
        so an undo brings back exactly what was typed */
@@ -1106,26 +1232,35 @@
         key: `fo-repeat-${root.id}`,
       });
     }
+    function validateItem(item) {
+      let count = 0;
+      let first = null;
+      clearErrors(item);
+      def.fields.forEach((child) => {
+        if (child.type === "info") return;
+        const el = childEl(item, child.key);
+        if (!el || el.closest("[hidden]") || (el.hidden && !isSaved(item))) return;
+        let message = checkValue(child, valueOf(item, child));
+        if (!message && child.key === rules.key) {
+          const mine = valueOf(item, child);
+          if (!isEmpty(mine) && items().some((other) => other !== item && JSON.stringify(valueOf(other, child)) === JSON.stringify(mine))) message = def.texts.duplicate || "Ai înregistrat deja această valoare.";
+        }
+        if (!message) return;
+        count += 1;
+        const target = markError(el.matches("[data-fo-subgen]") ? el.querySelector(".e-permits-fo-field") : el, child, message);
+        first = first || target;
+      });
+      return { count, first };
+    }
     function validate() {
       root.querySelectorAll(":scope > [data-fo-repeat-error]").forEach((node) => node.remove());
       let count = 0;
       let first = null;
-      items().forEach((item) => {
-        clearErrors(item);
-        def.fields.forEach((child) => {
-          if (child.type === "info") return;
-          const el = childEl(item, child.key);
-          if (!el || el.closest("[hidden]")) return;
-          let message = checkValue(child, valueOf(item, child));
-          if (!message && child.key === rules.key) {
-            const mine = valueOf(item, child);
-            if (!isEmpty(mine) && items().some((other) => other !== item && JSON.stringify(valueOf(other, child)) === JSON.stringify(mine))) message = def.texts.duplicate || "Ai înregistrat deja această valoare.";
-          }
-          if (!message) return;
-          count += 1;
-          const target = markError(el.matches("[data-fo-subgen]") ? el.querySelector(".e-permits-fo-field") : el, child, message);
-          first = first || target;
-        });
+      /* a saved item was checked when it was saved; an open one is checked now */
+      items().filter((item) => !isSaved(item)).forEach((item) => {
+        const result = validateItem(item);
+        count += result.count;
+        first = first || result.first;
       });
       if (min && items().length < min) {
         count += 1;
@@ -1161,12 +1296,24 @@
             const radio = el.querySelector("input[type='radio']"); if (radio) radio.checked = true;
           }
         });
+        saveItem(item, { focus: false });
       }
       sync();
     }
 
+    root.addEventListener("keydown", (event) => {
+      if (event.target.closest("[data-fo-repeat]") !== root) return;
+      const item = event.target.closest("[data-fo-repeat-item]");
+      if (!item) return;
+      if ((event.key === "Enter" || event.key === " ") && event.target === item && isSaved(item)) { event.preventDefault(); startEdit(item); }
+    });
     root.addEventListener("click", (event) => {
       if (event.target.closest("[data-fo-repeat]") !== root) return;
+      const itemEl = event.target.closest("[data-fo-repeat-item]");
+      const act = event.target.closest("[data-fo-repeat-act]")?.dataset.foRepeatAct;
+      if (itemEl && act === "save") { saveItem(itemEl); return; }
+      if (itemEl && act === "cancel") { cancelItem(itemEl); return; }
+      if (itemEl && !event.target.closest("[data-fo-repeat-remove]") && (act === "edit" || (isSaved(itemEl) && !event.target.closest("button")))) { startEdit(itemEl); return; }
       if (event.target.closest("[data-fo-repeat-add]")) { addItem(); return; }
       if (event.target.closest("[data-fo-grid-retry]")) {
         root.querySelector(":scope > [data-fo-grid-source]")?.remove();

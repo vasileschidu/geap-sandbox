@@ -2978,7 +2978,7 @@
           return `
           <section class="${sectionClasses}" ${section.title ? `aria-labelledby="fo-${escapeFrontOfficeHtml(section.id)}-title"` : `aria-label="${escapeFrontOfficeHtml(section.id)}"`}>
             ${section.title ? `
-              <div class="e-permits-fo-section-header${section.noBorder ? " e-permits-fo-section-header--no-border" : ""}${section.secDesc ? "" : " sticky-section-head"}">
+              <div class="e-permits-fo-section-header${section.noBorder || section.fields?.[0]?.type === "repeat" ? " e-permits-fo-section-header--no-border" : ""}${section.secDesc ? "" : " sticky-section-head"}">
                 <h2 id="fo-${escapeFrontOfficeHtml(section.id)}-title">${escapeFrontOfficeHtml(section.title)}</h2>
                 ${section.secDesc ? `<p class="e-permits-fo-section-header__desc">${escapeFrontOfficeHtml(section.secDesc)}</p>` : ""}
               </div>

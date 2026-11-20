@@ -2776,7 +2776,7 @@ document.addEventListener("DOMContentLoaded", () => {
         return `
           <section class="e-permits-fo-form__section${showTitle ? "" : " e-permits-fo-form__section--plain"}" ${showTitle ? `aria-labelledby="pv-${section.id}-title"` : `aria-label="${esc(title || "Secțiune")}"`} data-fb-section="${section.id}">
             ${showTitle ? `
-              <div class="e-permits-fo-section-header${section.showSeparator === false ? " e-permits-fo-section-header--no-border" : ""}">
+              <div class="e-permits-fo-section-header${section.showSeparator === false || section.fields?.[0]?.type === "repeat" ? " e-permits-fo-section-header--no-border" : ""}">
                 <h2 id="pv-${section.id}-title">${esc(title)}</h2>
                 ${text(section.description) ? `<p class="e-permits-fo-section-header__desc">${esc(text(section.description))}</p>` : ""}
               </div>` : ""}
