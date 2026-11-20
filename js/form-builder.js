@@ -1297,11 +1297,10 @@ document.addEventListener("DOMContentLoaded", () => {
         </div>
         ${isContainer(field) && field.type !== "grid" ? subsStripHtml(field) : ""}
         <div class="e-permits-builder__field-render"${field.type === "grid" && kidsOf(field).length ? "" : " inert"}>${field.type === "hidden" ? hiddenMarkerHtml(field) : isContainer(field) && !kidsOf(field).length ? emptyContainerHtml(field) : (field.type === "grid" && window.GEAPGridBuilder?.summaryHtml?.(field)) || foHtml(field, { prefix: "cv", inCard: true })}</div>
-        ${NO_VALUE.includes(field.type) && !errors.length && !(field.rules || []).length && !field.preset ? "" : `
+        ${/* card-foot-v1 (user 2026-11-20): no technical key, no „Salvată” tag on the cards (key = panel › Avansat);
+             the foot only shows rules and errors */ !errors.length && !(field.rules || []).length ? "" : `
         <div class="e-permits-builder__field-foot">
-          ${NO_VALUE.includes(field.type) ? "" : `<span class="e-permits-builder__field-key" data-cell-tooltip>${esc(field.key)}</span>`}
           ${(field.rules || []).length ? `<em class="e-permits-builder__tag e-permits-builder__tag--outlined">${field.rules.length} ${field.rules.length === 1 ? "regulă" : "reguli"}</em>` : ""}
-          ${field.preset ? `<em class="e-permits-builder__tag e-permits-builder__tag--outlined" data-tooltip-text="Din componenta salvată „${esc(presetById(field.preset.id)?.name || "")}”">${icon("icon-bookmark", 16)}Salvată</em>` : ""}
           ${errors.length ? `<em class="e-permits-builder__tag e-permits-builder__tag--warning" data-tooltip-text="${esc(errors[0].message)}">${icon("icon-warning-filled", 16)}${esc(errors[0].short || errors[0].message)}</em>` : ""}
         </div>`}
         ${isFixedWidth(field) ? "" : '<button class="e-permits-builder__field-resize" type="button" tabindex="-1" aria-hidden="true" data-fb-resize></button>'}
