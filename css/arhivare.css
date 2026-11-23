@@ -206,12 +206,14 @@
   z-index: auto;
 }
 
-/* arh-switch-top-v1 (user 2026-11-24): the switch aligns to the TOP of its text (label line), not the middle of a
-   two-line description, and the row sits 8 under the field label so they don't touch */
+/* arh-switch-top-v2 (user 2026-11-24): the switch row starts on the SAME line as the input box beside it (no extra
+   margin); library Medium switch (40 × 24) centred on the 40 control line, text top-aligned with the track */
 .e-permits-arh-switch {
-  margin-top: var(--spacing-8, 8px);
+  align-items: flex-start;
+  margin-top: 0;
 }
 
 .e-permits-arh-switch .switch-wrapper {
   align-items: flex-start;
+  padding-top: calc((var(--spacing-40, 40px) - var(--spacing-24, 24px)) / 2);
 }
