@@ -8,12 +8,13 @@
    duplicateChild, the typed „+ Coloană” menu), the validation, the CARD (`childCardHtml` / `addressPartCardHtml` = the
    October-look canvas card), the width drag with the 12-column guides (`startResize`), the properties panel (the builder's
    own panel element is MOVED into this view while it is open — its listeners travel with it) and the FO renderer all come
-   from js/form-builder.js through window.GEAPFormBuilder.internals. Edits apply to the form draft live (undo / redo work);
-   „Gata” returns to the form with the card selected and a toast whose „Anulează” restores the form as it was at open.
+   from js/form-builder.js through window.GEAPFormBuilder.internals. fb-win-v2 (user 2026-11-24): the window edits a DRAFT (the
+   form behind it is hidden; undo / redo work inside). Salvează (aria-disabled until the draft differs) keeps it, closes with
+   the card selected + a success toast; Anulează / back / Esc at the top level ask „Renunți la modificări?” when changed.
 
    Layout = the Form Designer's own frame (.e-permits-builder__topbar / __workspace / __library / __inspector):
      topbar   back chevron (one level up / to the form) · breadcrumb „Formular › …” running into the name + key tag ·
-              Editare / Previzualizare · errors of this grid / address · Gata
+              Editare / Previzualizare · errors of this grid / address · Anulează · Salvează
      left     grid / sub-form: „Bibliotecă de câmpuri” (search) filtered to the column types — Coloane simple · Coloane
               complexe (locked with the reason until one simple column — US-34 AC-06; nested grid / sub-form locked at
               level 3 — US-38) · Copie a unui câmp din formular; a sub-form level lists the field types. Click = append,
@@ -29,7 +30,7 @@
   let I = null;
   let root = null;
   const refs = {};
-  const gb = { open: false, kind: "grid", stack: [], mode: "edit", device: "desktop", snapshot: "", topId: "", drag: null, home: null, lastSel: "", query: "" };
+  const gb = { open: false, kind: "grid", stack: [], mode: "edit", device: "desktop", snapshot: "", draft: null, topId: "", drag: null, home: null, lastSel: "", query: "" };
   const isAddress = () => gb.kind === "address";
 
   const isDemo = () => Boolean(document.documentElement.dataset.demoLink);
@@ -68,7 +69,8 @@
             </button>
             <ul class="e-permits-fo-intent-menu e-permits-stack__menu e-permits-builder__issues-menu" id="gb-issues-menu" role="menu" aria-label="Probleme în grilă" hidden data-stack-menu data-gb-issues-menu></ul>
           </div>
-          <button class="btn btn-primary btn-md btn-rounded" type="button" data-gb-done>Gata</button>
+          <button class="btn btn-neutral btn-md btn-rounded" type="button" data-gb-cancel>Anulează</button>
+          <button class="btn btn-primary btn-md btn-rounded" type="button" aria-disabled="true" data-tooltip-reason="Nu există modificări." data-gb-save>Salvează</button>
         </div>
       </header>
       <div class="e-permits-builder__workspace e-permits-gridb__workspace">
@@ -134,6 +136,16 @@
           </button>
         </li>`).join("")}`
       : `<li role="none" class="e-permits-builder__issues-head">Fără erori ${where}</li>`;
+  }
+
+  /* Salvează stays aria-disabled (focusable, reason in the tooltip) until the draft differs from what was opened */
+  const hasChanges = () => JSON.stringify(I.form) !== gb.snapshot;
+  function renderSave() {
+    const changed = hasChanges();
+    const save = root.querySelector("[data-gb-save]");
+    if (!save) return;
+    if (changed) { save.removeAttribute("aria-disabled"); save.removeAttribute("data-tooltip-reason"); }
+    else { save.setAttribute("aria-disabled", "true"); save.dataset.tooltipReason = "Nu există modificări."; }
   }
 
   /* ------------------------------------------------------------------ left: types */
@@ -341,6 +353,7 @@
       button.setAttribute("aria-selected", String(on));
     });
     renderIssues();
+    renderSave();
     renderLibrary(cur);
     if (gb.mode === "preview") drawPreview(refs.canvas, cur);
     else if (isAddress()) drawAddress(refs.canvas, cur);
@@ -369,7 +382,8 @@
     gb.kind = address ? "address" : "grid";
     gb.stack = found ? [...found.chain.map((item) => item.id), id] : [id];
     gb.topId = gb.stack[0];
-    gb.snapshot = JSON.stringify(I.form);
+    gb.draft = I.draftBegin();
+    gb.snapshot = gb.draft.snapshot;
     gb.mode = "edit";
     gb.device = "desktop";
     gb.lastSel = "";
@@ -389,54 +403,59 @@
     if (!address && sel.kind === "child" && I.containerOf(sel.id) === target) I.select("child", sel.id);
     else I.select(kindOf(id), id, { tab: I.T_GEN });
     window.setTimeout(() => root.querySelector("#gb-title")?.focus({ preventScroll: true }), 0);
-    I.announce(`Fereastra de editare a ${address ? "adresei" : "grilei"} „${I.fieldName(target)}” este deschisă. Gata te întoarce la formular.`);
+    I.announce(`Fereastra de editare a ${address ? "adresei" : "grilei"} „${I.fieldName(target)}” este deschisă. Salvează păstrează modificările, Anulează le renunță.`);
   }
   const mainParts = () => [I.builder.querySelector(":scope > .e-permits-builder__topbar"), I.el.workspace].filter(Boolean);
 
-  function close() {
-    if (!gb.open) return;
-    const top = I.fieldOrChild(gb.topId);
-    const snapshot = gb.snapshot;
-    const changed = JSON.stringify(I.form) !== snapshot;
-    const noun = isAddress() ? "adresa" : "grila";
+  /* leaves the window: the form comes back, the card selected + focused */
+  function leave() {
+    const topId = gb.topId;
     gb.open = false;
     root.hidden = true;
     I.builder.classList.remove("has-grid-builder");
     mainParts().forEach((node) => { node.inert = false; });
     gb.home?.panel.appendChild(I.el.panel);
     gb.home?.live.appendChild(I.el.live);
-    if (!top) { I.select("form"); return; }
-    I.select("field", gb.topId);
-    const card = I.el.canvas.querySelector(`[data-builder-field][data-id="${gb.topId}"]`);
+    if (!I.fieldOrChild(topId)) { I.select("form"); return null; }
+    I.select("field", topId);
+    const card = I.el.canvas.querySelector(`[data-builder-field][data-id="${topId}"]`);
     card?.scrollIntoView({ block: "nearest" });
     card?.focus({ preventScroll: true });
-    if (!changed) { I.announce("Înapoi la formular."); return; }
-    const name = I.fieldName(top);
-    const topId = gb.topId;
-    window.GEAPToast?.show({
-      type: "success",
-      message: `Ai actualizat ${noun} „${name}”.`,
-      action: {
-        label: "Anulează",
-        onClick: () => {
-          I.revertTo(snapshot);
-          if (I.findField(topId)) I.select("field", topId);
-          I.announce(`Modificările ${noun === "adresa" ? "adresei" : "grilei"} „${name}” au fost anulate.`);
-        },
-      },
-      duration: isDemo() ? 0 : 8000,
-      key: "gb-done",
-    });
+    return topId;
   }
+  /* Salvează: the draft stays in the form (one undo step), the window closes, a success toast */
+  function save() {
+    if (!gb.open || !hasChanges()) return;
+    const noun = isAddress() ? "Adresa a fost salvată." : I.fieldOrChild(gb.topId)?.type === "subform" ? "Sub-formularul a fost salvat." : "Grila a fost salvată.";
+    I.draftSave(gb.draft);
+    leave();
+    gb.draft = null;
+    window.GEAPToast?.show({ type: "success", message: noun, duration: isDemo() ? 0 : 5000, key: "gb-saved" });
+    I.announce(noun);
+  }
+  /* Anulează / back at the top / Esc at the top: nothing changed → out at once; else the project's confirm dialog */
+  function cancel() {
+    if (!gb.open) return;
+    const discard = () => {
+      if (!gb.open) return;
+      I.draftDiscard(gb.draft);
+      leave();
+      gb.draft = null;
+      I.announce("Modificările au fost renunțate. Înapoi la formular.");
+    };
+    if (!hasChanges()) { discard(); return; }
+    I.ui().askConfirm?.({ title: "Renunți la modificări?", text: "Modificările din această fereastră nu se salvează.", confirmLabel: "Renunță la modificări", cancelLabel: "Continuă editarea", destructive: true }, discard);
+  }
+  const close = cancel;
   /* one level up (the drilled column stays selected in its grid) or back to the form */
   function up() {
-    if (gb.stack.length <= 1) { close(); return; }
+    if (gb.stack.length <= 1) { cancel(); return; }
     const child = gb.stack.pop();
     I.select("child", child);
     window.setTimeout(() => root.querySelector(`[data-gb-col="${CSS.escape(child)}"]`)?.focus(), 0);
   }
   function goLevel(index) {
-    if (index < 0) { close(); return; }
+    if (index < 0) { cancel(); return; }
     const leaving = gb.stack[index + 1];
     gb.stack = gb.stack.slice(0, index + 1);
     if (leaving) I.select("child", leaving); else I.select(kindOf(gb.stack[index]), gb.stack[index]);
@@ -463,7 +482,7 @@
   /* the builder redraws after every render / commit / selection (form-builder.js gridBuilderSync) */
   function sync() {
     if (!gb.open || !I) return;
-    if (!I.fieldOrChild(gb.topId)) { close(); return; }
+    if (!I.fieldOrChild(gb.topId)) { I.draftDiscard(gb.draft); leave(); gb.draft = null; return; }
     /* a level that no longer exists (deleted, undo) → the deepest one that does */
     while (gb.stack.length > 1 && (!I.fieldOrChild(gb.stack[gb.stack.length - 1]) || I.containerOf(gb.stack[gb.stack.length - 1]) !== I.fieldOrChild(gb.stack[gb.stack.length - 2]))) gb.stack.pop();
     /* the panel's own links can select an outer level (crumb back to a grid) → follow it */
@@ -477,7 +496,8 @@
     if (gb.mode === "preview") { setMode("edit"); return true; }
     if (isAddress()) {
       const key = I.state.addrPart;
-      if (key) { selectContainer(); focusCard(`[data-gb-part="${CSS.escape(key)}"]`); I.announce("Nicio parte selectată — setările adresei."); }
+      if (key) { selectContainer(); focusCard(`[data-gb-part="${CSS.escape(key)}"]`); I.announce("Nicio parte selectată — setările adresei."); return true; }
+      cancel();
       return true;
     }
     const sel = I.state.sel;
@@ -488,6 +508,7 @@
       return true;
     }
     if (gb.stack.length > 1) { up(); return true; }
+    cancel();
     return true;
   }
 
@@ -569,7 +590,8 @@
       if (event.target.closest("[data-gb-back]")) { up(); return; }
       const crumb = event.target.closest("[data-gb-crumb]");
       if (crumb) { goLevel(Number(crumb.dataset.gbCrumb)); return; }
-      if (event.target.closest("[data-gb-done]")) { close(); return; }
+      if (event.target.closest("[data-gb-cancel]")) { cancel(); return; }
+      if (event.target.closest("[data-gb-save]")) { save(); return; }
       const mode = event.target.closest("[data-gb-mode]");
       if (mode) { if (mode.dataset.gbMode !== gb.mode) setMode(mode.dataset.gbMode); return; }
       const device = event.target.closest("[data-gb-device]");
@@ -767,7 +789,7 @@
   }
 
   window.GEAPGridBuilder = {
-    attach, sync, escape, entryHtml, open, close, drill, up,
+    attach, sync, escape, entryHtml, open, close, save, cancel, drill, up,
     isOpen: () => gb.open,
     /* for demo states and checks */
     get state() { return gb; },

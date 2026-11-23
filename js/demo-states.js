@@ -3442,9 +3442,9 @@
         /* ---- Fereastra de editare (fb-win-v1, 2026-11-23, user: „inception” — the grid / sub-form / address open in a
            full-screen window = the Form Designer in miniature): 01 the grid card on the form · 02 window, nothing selected ·
            03 a column selected + Lățime · 04 resize mid-drag with the guides · 05 added from the library · 06 complex locked
-           reason · 07 nested level 2 · 08 sub-form level · 09 / 10 Previzualizare desktop / phone · 11 Gata → card selected ·
+           reason · 07 nested level 2 · 08 sub-form level · 09 / 10 Previzualizare desktop / phone · 11 Salvează → card selected + toast ·
            12 CAEM as a grid · 13 address window · 14 address part resized · 15 address Previzualizare · 16–18 the pre-made
-           grid (Variante › inserted › window). BO desktop only.
+           grid (Variante › inserted › window) · 19 changes → Salvează enabled · 20 Anulează with changes → confirm. BO desktop only.
            Scope for QA: .e-permits-gridb ---- */
         ...(() => {
           const F09 = { formular: "form-sanitary-09" };
@@ -3522,7 +3522,10 @@
             "fb-win-08": fb(async (h) => { await openEquip(h); await h.click(`${W} [data-gb-drill='col-09-tech']`); await h.find(card("bf-09-agent")); await h.click(card("bf-09-agent")); await h.wait(200); }, F09),
             "fb-win-09": fb(async (h) => { await openEquip(h); await h.click(`${W} [data-gb-mode='preview']`); await h.find(`${W} [data-gb-preview] [data-fo-grid-row]`); await h.wait(300); }, F09),
             "fb-win-10": fb(async (h) => { await openEquip(h); await h.click(`${W} [data-gb-mode='preview']`); await h.click(`${W} [data-gb-device='phone']`); await h.find(`${W} [data-gb-preview] [data-fo-grid-row]`); await h.wait(300); }, F09),
-            "fb-win-11": fb(async (h) => { await openEquip(h); await h.click(`${W} [data-gb-type='date']`); await h.click(`${W} [data-gb-done]`); await h.wait(400); }, F09),
+            "fb-win-11": fb(async (h) => { await openEquip(h); await h.click(`${W} [data-gb-type='date']`); await h.click(`${W} [data-gb-save]`); await h.wait(400); }, F09),
+            /* 19 changes made → Salvează enabled · 20 Anulează with changes → „Renunți la modificări?” (fb-win-v2, 2026-11-24) */
+            "fb-win-19": fb(async (h) => { await openEquip(h); await h.click(`${W} [data-gb-type='date']`); await h.wait(300); }, F09),
+            "fb-win-20": fb(async (h) => { await openEquip(h); await h.click(`${W} [data-gb-type='date']`); await h.click(`${W} [data-gb-cancel]`); await h.wait(400); }, F09),
             "fb-win-12": fb(async (h) => { await openGrid("fld-caem")(h); await h.click(card("bf-09-caem")); await h.wait(200); }, F09),
             "fb-win-13": fb(openAddress),
             "fb-win-14": fb(async (h) => {

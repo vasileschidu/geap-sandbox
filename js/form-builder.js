@@ -5238,8 +5238,12 @@ document.addEventListener("DOMContentLoaded", () => {
     SPANS, SHORT_TAG, childCardHtml, addressPartCardHtml, childSpanOf, fixedChild, startResize, setChildSpan, setPartSpan,
     addressConfig, isCaemGrid, libraryItemHtml, checkpoint, commit,
     setAddressPart(field, key, updates) { checkpoint(); setAddressPart(field, key, updates); commit(); },
-    /* „Gata” › Anulează: back to the form as it was when the builder opened (one undo step) */
-    revertTo(snapshot) { state.undo.push(JSON.stringify(form)); state.redo = []; restore(snapshot); if (G) { G.dirty = true; syncGlobalBar(); } else saveDb(); },
+    /* editing window (fb-win-v2, 2026-11-24): the window edits a DRAFT of the form (the form itself is hidden behind it) —
+       draftBegin = the state to come back to; draftDiscard (Anulează) puts the form, the undo history and the dirty mark
+       back exactly; draftSave (Salvează) keeps the edits as ONE undo step */
+    draftBegin() { return { snapshot: JSON.stringify(form), undo: state.undo.slice(), redo: state.redo.slice(), dirty: G ? Boolean(G.dirty) : null }; },
+    draftDiscard(draft) { restore(draft.snapshot); state.undo = draft.undo.slice(); state.redo = draft.redo.slice(); if (G) { G.dirty = draft.dirty; syncGlobalBar(); } else saveDb(); },
+    draftSave(draft) { state.undo = [...draft.undo, draft.snapshot].slice(-80); state.redo = []; state.lastCheckpoint = { key: "", at: 0 }; },
   };
   window.GEAPGridBuilder?.attach?.();
   /* the first canvas render ran before the builder had its context: redraw the grid cards as compact summaries */
