@@ -4758,8 +4758,139 @@
        filters, sort, no match, empty, export menu, export done, local admin granted) · perm-02 denied · perm-03… US-394
        details drawer (description edited, saved, save error, no description, inactive role, unsaved confirm).
        Demo switch permisiuni=acordat|gol|eroare */
-    ...permDemoStates()
+    ...permDemoStates(),
+
+    /* ---- Arhivarea, restaurarea și păstrarea dosarelor (Feature 97300, js/arhivare.js, arh-v1 2026-11-23): arh-01… US-395
+       policies list · 02 denied · 03 US-396 create · 04 US-397 edit · 05 US-398 (de)activate · 06 US-405 / US-407 candidates ·
+       10… US-402 Registru Dosare (Starea înregistrării) · 11 US-401 archive · 12 US-404 restore · 13 US-406 objects ·
+       14 US-403 versions · 15 / 16 archived / destroyed card · 17 saved searches. Demo switch arhivare=acordat|fara-arhiveaza|
+       fara-restaureaza|gol|fara-candidati|eroare */
+    ...arhDemoStates()
   };
+
+  function arhDemoStates() {
+    const ADMIN = "ansp-central-admin", LOCAL = "ansp-local-admin", SPEC = "ansp-specialist-chisinau", SUP = "ansp-supervisor-chisinau";
+    const K = "[data-registry-kind='arhivare']", KC = "[data-registry-kind='arhivare-candidati']", KD = "[data-registry-kind='reg-dosare']";
+    const ready = (k) => `${k} tr[data-workplace-row], ${k} .e-permits-empty:not(:has(.spinner))`;
+    const list = (run, params, as = ADMIN) => ({ flow: "back-office", as, hash: "#arhivare", ...(params ? { params } : {}), ready: ready(K), delay: 900, run });
+    const cands = (run, params, as = ADMIN) => ({ flow: "back-office", as, hash: "#arhivare-candidati", ...(params ? { params } : {}), ready: ready(KC), delay: 900, run });
+    const denied = (as, params) => ({ flow: "back-office", as, hash: "#arhivare", ...(params ? { params } : {}), ready: ".e-permits-empty", delay: 900 });
+    const dos = (run, params, as = ADMIN) => ({ flow: "back-office", as, hash: "#reg-dosare", ...(params ? { params } : {}), ready: ready(KD), delay: 900, run });
+    const card = (id, tab = "detalii", run, params, as = ADMIN) => ({ flow: "back-office", as, hash: `#registru/reg-dosare/${id}/${tab}`, ...(params ? { params } : {}), ready: "#reg-panel .e-permits-dosar-profil__section, #reg-panel .e-permits-empty", delay: 900, run });
+    const seq = (...steps) => async (h) => { for (const step of steps) if (step) await step(h); };
+    const blur = async (h) => { document.activeElement?.blur?.(); await h.wait(150); };
+    const search = (k, text) => async (h) => { await h.fill(`${k} [data-workplace-search]`, text); await h.wait(400); await blur(h); };
+    const filters = (kind, nav, applied) => async (h) => { window.GEAPShellApi.setRegistryFilters(kind, applied); document.querySelector(`[data-nav-item][data-nav-id="${nav}"]`).click(); await h.wait(800); await blur(h); };
+    const menu = (k, id) => async (h) => { const r = await h.find(`${k} tr[data-workplace-row="${id}"]`); r.scrollIntoView({ block: "center" }); await h.click(`${k} tr[data-workplace-row="${id}"] [data-stack-menu-trigger]`); await h.wait(250); };
+    const D = "[data-arh-drawer]:not([hidden])";
+    const create = async (h) => { await h.click(`${K} [data-workplace-add-product="arh-new"]`); await h.find(`${D} [data-arh-d-body] .e-permits-user-create__section`); await h.wait(300); };
+    const choose = (key, value) => async (h) => { await h.choose(`${D} select[data-arh-field="${key}"]`, value); await h.wait(200); };
+    const type = (key, value) => async (h) => { await h.fill(`${D} [data-arh-field="${key}"]`, value, { leave: false }); await h.wait(150); };
+    const chip = (value) => async (h) => { await h.click(`${D} [data-arh-actiune="${value}"]`); };
+    const save = async (h) => { await h.click(`${D} [data-arh-save]`); await h.wait(400); };
+    const edit = (id) => async (h) => { const r = await h.find(`${K} tr[data-workplace-row="${id}"]`); r.scrollIntoView({ block: "center" }); await h.click(`${K} tr[data-workplace-row="${id}"] td[data-column="tip"]`); await h.find(`${D} .e-permits-user-create__section`); await h.wait(300); };
+    const toggle = (id) => async (h) => { await menu(K, id)(h); await h.click(`[data-arh-toggle="${id}"]`); await h.find("#service-confirm-modal.is-active"); await h.wait(300); };
+    const okConfirm = async (h) => { await h.click("#service-confirm-modal [data-service-confirm-ok]"); await h.wait(500); };
+    const pick = (...ids) => async (h) => { for (const id of ids) { await h.click(`${KC} [data-workplace-select-row="${id}"]`); await h.wait(150); } await h.wait(300); };
+    const fullForm = seq(choose("autoritate", "ANSP"), choose("serviciu", "003000519"), type("arhN", "45"), choose("eveniment", "finalizat"), type("pastN", "8"), chip("Nimicire"), type("anuntN", "30"));
+    /* Registru Dosare */
+    const ELIB = "D-2026-004704", ARH = "D-2026-004744", NIM = "D-2015-000412", ANUNT = "D-2016-001187", ANON = "D-2016-002201", VIEW = "D-2026-004736";
+    const dmenu = (id) => async (h) => { await h.fill(`${KD} [data-workplace-search]`, id); await h.wait(400); await h.click(`${KD} tr[data-workplace-row="${id}"] [data-stack-menu-trigger]`); await h.wait(250); };
+    const dact = (id, key) => async (h) => { await dmenu(id)(h); await h.click(`[data-reg-action="${key}"][data-reg-row="${id}"]`); await h.wait(400); };
+    const modal = "#case-action-modal.is-active";
+    const reason = (sel, text) => async (h) => { await h.fill(sel, text, { leave: false }); };
+    const objOpen = (id) => seq(dact(id, "arh-objects"), async (h) => { await h.find("[data-arh-odrawer]:not([hidden]) [data-arh-o-body] > *"); await h.wait(300); });
+    const verOpen = (id) => seq(dact(id, "arh-versions"), async (h) => { await h.find("[data-arh-odrawer]:not([hidden]) #arh-v-doc"); await h.wait(300); });
+    const verDoc = (key) => async (h) => { await h.choose("[data-arh-odrawer] select[data-arh-v-doc]", key); await h.wait(300); };
+    const verPick = (...vs) => async (h) => { for (const n of vs) { await h.click(`[data-arh-odrawer] [data-arh-pick="${n}"]`); await h.wait(150); } };
+    const savedMenu = async (h) => { await h.click(`${KD} [data-arh-saved-trigger]`); await h.find("#arh-saved-menu:not([hidden])"); await h.wait(250); };
+    return {
+      /* US-395 — the list: default sort Nivel › Autoritate › Serviciu, search, filters, sort by a column, empty, export */
+      "arh-01": list(),
+      "arh-01a": list(search(K, "ansp")),
+      "arh-01b": list(filters("arhivare", "arhivare", { nivel: ["Autoritate", "Serviciu"], tip: ["Dosar întreg"] })),
+      "arh-01c": list(search(K, "zzz")),
+      "arh-01d": list(null, { arhivare: "gol" }),
+      "arh-01e": list(seq(async (h) => { await h.click(`${K} th[data-column="pastrare"] button, ${K} th[data-column="pastrare"]`); await h.wait(300); }, blur)),
+      "arh-01f": list(menu(K, "POL-0005")),
+      "arh-01g": list(menu(K, "POL-0001")),
+      "arh-01h": list(null, { arhivare: "acordat" }, LOCAL),
+      /* AC-01: no permission → the boxed lock state with the AC text */
+      "arh-02": denied(SPEC),
+      "arh-02a": denied(LOCAL),
+      /* US-396 — create: empty, required errors, cascade + conditional fields, bad numbers, Act permisiv, duplicate, saved */
+      "arh-03": list(create),
+      "arh-03a": list(seq(create, save)),
+      "arh-03b": list(seq(create, choose("autoritate", "ANSP"), choose("tipObiect", "Cerere"), type("pastN", "5"))),
+      "arh-03c": list(seq(create, type("arhN", "0"), choose("eveniment", "finalizat"), type("restN", "abc"), type("pastN", "5"), chip("Anonimizare"), save)),
+      "arh-03d": list(seq(create, choose("tipObiect", "Act permisiv"), async (h) => { (await h.find(`${D} .e-permits-arh-section-note`)).scrollIntoView({ block: "center" }); await h.wait(200); })),
+      "arh-03e": list(seq(create, choose("autoritate", "ANSP"), type("arhN", "30"), choose("eveniment", "finalizat"), save)),
+      "arh-03f": list(seq(create, fullForm, save, blur)),
+      "arh-03g": list(seq(create, fullForm)),
+      /* US-397 — edit: scope read-only, retention cleared → dependent fields off, saved */
+      "arh-04": list(edit("POL-0005")),
+      "arh-04a": list(seq(edit("POL-0005"), type("pastN", ""), async (h) => { (await h.find(`${D} [data-arh-field="anuntN"]`)).scrollIntoView({ block: "center" }); await h.wait(200); })),
+      "arh-04b": list(seq(edit("POL-0005"), type("arhN", "45"), save, blur)),
+      "arh-04c": list(seq(edit("POL-0004"), async (h) => { (await h.find(`${D} .e-permits-arh-section-note`)).scrollIntoView({ block: "center" }); await h.wait(200); })),
+      /* US-398 — deactivate / activate confirmations, result, failure */
+      "arh-05": list(toggle("POL-0005")),
+      "arh-05a": list(seq(toggle("POL-0005"), okConfirm, blur)),
+      "arh-05b": list(toggle("POL-0008")),
+      "arh-05c": list(seq(toggle("POL-0009"), okConfirm), { arhivare: "eroare" }),
+      /* US-405 / US-407 — candidates: list, filter Anunțat, selection bar, confirm dialog, done, reject + reason error, row ⋮, empty */
+      "arh-06": cands(),
+      "arh-06a": cands(filters("arhivare-candidati", "arhivare-candidati", { stare: ["Anunțat"] })),
+      "arh-06b": cands(pick("CN-0101", "CN-0102")),
+      "arh-06c": cands(seq(pick("CN-0101", "CN-0102"), async (h) => { await h.click(`${KC} [data-arh-bulk="confirm"]`); await h.find(modal); })),
+      "arh-06d": cands(seq(pick("CN-0101", "CN-0102"), async (h) => { await h.click(`${KC} [data-arh-bulk="confirm"]`); await h.click('[data-arh-confirm="cand-confirm"]'); await h.wait(400); }, blur)),
+      "arh-06e": cands(seq(pick("CN-0104"), async (h) => { await h.click(`${KC} [data-arh-bulk="reject"]`); await h.click('[data-arh-confirm="cand-reject"]'); })),
+      "arh-06f": cands(menu(KC, "CN-0103")),
+      "arh-06g": cands(null, { arhivare: "fara-candidati" }),
+      /* US-402 — Registru Dosare: Starea înregistrării column + facet, archived / destroyed filter, no match */
+      "arh-10": dos(),
+      "arh-10a": dos(filters("reg-dosare", "reg-dosare", { "arh-stare": ["Arhivat"] })),
+      "arh-10b": dos(filters("reg-dosare", "reg-dosare", { "arh-stare": ["Nimicit"] })),
+      "arh-10c": dos(search(KD, "zzz")),
+      "arh-10d": dos(seq(async (h) => { await h.click(`${KD} [data-workplace-filter-toggle]`); await h.wait(300); await h.click("[data-workplace-filters] [data-filter-facet='arh-stare'], [data-workplace-filters] .chip", "Starea înregistrării"); await h.wait(400); })),
+      /* US-401 — ⋮ of a finalized dossier, the confirmation, archived; ⋮ of an archived one; no rights */
+      "arh-11": dos(dmenu(ELIB)),
+      "arh-11a": dos(dact(ELIB, "archive")),
+      "arh-11b": dos(seq(dact(ELIB, "archive"), async (h) => { await h.click('[data-arh-confirm="archive"]'); await h.wait(400); }, blur)),
+      "arh-11c": dos(dmenu(ARH)),
+      "arh-11d": dos(dmenu(ARH), { arhivare: "fara-arhiveaza,fara-restaureaza" }),
+      "arh-11e": dos(dmenu(ELIB), null, SPEC),
+      /* US-404 — restore: dialog, reason required, restored (view-only, re-archive date), announced for destruction */
+      "arh-12": dos(dact(ARH, "arh-restore")),
+      "arh-12a": dos(seq(dact(ARH, "arh-restore"), async (h) => { await h.click('[data-arh-confirm="restore"]'); })),
+      "arh-12b": dos(seq(dact(ARH, "arh-restore"), reason("#arh-restore-reason", "Contestație depusă la Judecătoria Chișinău."), async (h) => { await h.click('[data-arh-confirm="restore"]'); await h.wait(400); }, blur)),
+      "arh-12c": dos(dact(ANUNT, "arh-restore")),
+      /* US-406 — archived objects: list, empty, restore dialog, restored */
+      "arh-13": dos(objOpen(ARH)),
+      "arh-13a": dos(objOpen(ELIB)),
+      "arh-13b": dos(seq(objOpen(ARH), async (h) => { await h.click('[data-arh-obj-restore="Planul încăperilor"]'); await h.find(modal); })),
+      "arh-13c": dos(seq(objOpen(ARH), async (h) => { await h.click('[data-arh-obj-restore="Planul încăperilor"]'); await reason("#arh-obj-reason", "Document cerut la inspecția din 20 noiembrie 2026.")(h); await h.click('[data-arh-confirm="obj-restore"]'); await h.wait(400); })),
+      "arh-13d": dos(objOpen("D-2026-004719")),
+      /* US-403 — versions: list, two picked, compare, one version in the viewer, a single-version document */
+      "arh-14": dos(seq(verOpen(ARH), verDoc("act"))),
+      "arh-14a": dos(seq(verOpen(ARH), verDoc("act"), verPick(3, 1))),
+      "arh-14b": dos(seq(verOpen(ARH), verDoc("act"), verPick(3, 1), async (h) => { await h.click("[data-arh-compare]"); await h.find(modal); })),
+      "arh-14c": dos(seq(verOpen(ARH), verDoc("act"), async (h) => { await h.click('[data-arh-version="3"] td:nth-child(2)'); await h.find("#dosar-detail-modal.is-active"); await h.wait(500); })),
+      "arh-14d": dos(seq(verOpen(ARH), verDoc("nota"))),
+      /* read-only cards: archived (Arhivare card, Documente, journal of the automatic procedures), destroyed (minimal data),
+         anonymized, restored for viewing */
+      "arh-15": card(ARH),
+      "arh-15a": card(ARH, "documente"),
+      "arh-15b": card(ARH, "jurnal"),
+      "arh-15c": card(VIEW),
+      "arh-16": card(NIM),
+      "arh-16a": card(ANON),
+      "arh-16b": card(ANUNT),
+      /* US-402 AC-15/16 — saved searches */
+      "arh-17": dos(savedMenu),
+      "arh-17a": dos(seq(filters("reg-dosare", "reg-dosare", { "arh-stare": ["Arhivat"] }), async (h) => { await h.click(`${KD} [data-arh-save-search]`); await h.find(modal); await h.fill("#arh-search-name", "Arhivate ANSP", { leave: false }); })),
+      "arh-17b": dos(seq(savedMenu, async (h) => { await h.click('[data-arh-saved-apply="SS-1"]'); await h.wait(400); }, blur))
+    };
+  }
 
   function permDemoStates() {
     const ADMIN = "ansp-central-admin", LOCAL = "ansp-local-admin", SPEC = "ansp-specialist-chisinau";

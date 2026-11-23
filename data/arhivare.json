@@ -1,0 +1,861 @@
+{
+ "_comment": "Feature 97300 Arhivarea, restaurarea și păstrarea dosarelor (arh-v1, 2026-11-23): policies (US-395…398), the archive state of the BO dossiers (US-399…406), destruction candidates (US-405…408), saved searches (US-402). Read by js/arhivare.js; the BO dossier rows come from the shell seed, the old (2015–2017) dossiers here are added to Registru Dosare (extraDossiers).",
+ "today": "2026-11-23",
+ "authorities": [
+  {
+   "code": "ANSP",
+   "name": "Agenția Națională pentru Sănătate Publică",
+   "subdivisions": [
+    "CSP Chișinău",
+    "CSP Bălți",
+    "CSP Cahul",
+    "CSP Comrat",
+    "CSP Orhei",
+    "Oficiul Central"
+   ]
+  },
+  {
+   "code": "ANSA",
+   "name": "Agenția Națională pentru Siguranța Alimentelor",
+   "subdivisions": [
+    "DT ANSA Chișinău",
+    "DT ANSA Bălți"
+   ]
+  },
+  {
+   "code": "ANTA",
+   "name": "Agenția Națională Transport Auto",
+   "subdivisions": [
+    "Oficiul Chișinău",
+    "Oficiul Bălți"
+   ]
+  },
+  {
+   "code": "AM",
+   "name": "Agenția de Mediu",
+   "subdivisions": [
+    "Direcția autorizări de mediu"
+   ]
+  }
+ ],
+ "services": [
+  {
+   "code": "003000118",
+   "name": "Autorizație sanitară de funcționare",
+   "authority": "ANSP"
+  },
+  {
+   "code": "003000447",
+   "name": "Autorizație de comerț cu produse alcoolice",
+   "authority": "ANSP"
+  },
+  {
+   "code": "003000519",
+   "name": "Înregistrarea produselor biocide",
+   "authority": "ANSP"
+  },
+  {
+   "code": "003000402",
+   "name": "Aviz sanitar-veterinar pentru unitățile de producție",
+   "authority": "ANSA"
+  },
+  {
+   "code": "003000610",
+   "name": "Licență pentru transportul rutier de pasageri",
+   "authority": "ANTA"
+  },
+  {
+   "code": "003000312",
+   "name": "Autorizație de mediu pentru emisii",
+   "authority": "AM"
+  }
+ ],
+ "policies": [
+  {
+   "id": "POL-0001",
+   "autoritate": null,
+   "serviciu": null,
+   "tipObiect": null,
+   "sursa": null,
+   "arhivare": {
+    "n": 1,
+    "u": "ani"
+   },
+   "eveniment": "finalizat",
+   "restaurare": {
+    "n": 90,
+    "u": "zile"
+   },
+   "redare": true,
+   "pastrare": {
+    "n": 10,
+    "u": "ani"
+   },
+   "actiune": "Nimicire",
+   "anunt": {
+    "n": 30,
+    "u": "zile"
+   },
+   "aprobare": true,
+   "stare": "Activ",
+   "modificatDe": "Administrator platformă",
+   "modificatLa": "2026-06-02T09:00"
+  },
+  {
+   "id": "POL-0002",
+   "autoritate": null,
+   "serviciu": null,
+   "tipObiect": "Cerere",
+   "sursa": "Solicitant",
+   "arhivare": {
+    "n": 1,
+    "u": "ani"
+   },
+   "eveniment": "finalizat",
+   "restaurare": null,
+   "redare": null,
+   "pastrare": {
+    "n": 5,
+    "u": "ani"
+   },
+   "actiune": "Anonimizare",
+   "anunt": {
+    "n": 30,
+    "u": "zile"
+   },
+   "aprobare": true,
+   "stare": "Activ",
+   "modificatDe": "Administrator platformă",
+   "modificatLa": "2026-06-02T09:10"
+  },
+  {
+   "id": "POL-0003",
+   "autoritate": null,
+   "serviciu": null,
+   "tipObiect": "Notă de plată",
+   "sursa": null,
+   "arhivare": {
+    "n": 6,
+    "u": "luni"
+   },
+   "eveniment": "finalizat",
+   "restaurare": null,
+   "redare": null,
+   "pastrare": {
+    "n": 3,
+    "u": "ani"
+   },
+   "actiune": "Nimicire",
+   "anunt": {
+    "n": 14,
+    "u": "zile"
+   },
+   "aprobare": false,
+   "stare": "Activ",
+   "modificatDe": "Administrator platformă",
+   "modificatLa": "2026-06-02T09:15"
+  },
+  {
+   "id": "POL-0004",
+   "autoritate": null,
+   "serviciu": null,
+   "tipObiect": "Act permisiv",
+   "sursa": null,
+   "arhivare": {
+    "n": 1,
+    "u": "ani"
+   },
+   "eveniment": "finalizat",
+   "restaurare": null,
+   "redare": true,
+   "pastrare": null,
+   "actiune": null,
+   "anunt": null,
+   "aprobare": null,
+   "stare": "Activ",
+   "modificatDe": "Administrator platformă",
+   "modificatLa": "2026-06-02T09:20"
+  },
+  {
+   "id": "POL-0005",
+   "autoritate": "ANSP",
+   "serviciu": null,
+   "tipObiect": null,
+   "sursa": null,
+   "arhivare": {
+    "n": 30,
+    "u": "zile"
+   },
+   "eveniment": "finalizat",
+   "restaurare": {
+    "n": 60,
+    "u": "zile"
+   },
+   "redare": null,
+   "pastrare": {
+    "n": 10,
+    "u": "ani"
+   },
+   "actiune": "Nimicire",
+   "anunt": {
+    "n": 60,
+    "u": "zile"
+   },
+   "aprobare": true,
+   "stare": "Activ",
+   "modificatDe": "Anastasia Cojocaru",
+   "modificatLa": "2026-10-08T14:05"
+  },
+  {
+   "id": "POL-0006",
+   "autoritate": "ANSP",
+   "serviciu": null,
+   "tipObiect": "Document justificativ",
+   "sursa": "Solicitant",
+   "arhivare": {
+    "n": 30,
+    "u": "zile"
+   },
+   "eveniment": "finalizat",
+   "restaurare": null,
+   "redare": null,
+   "pastrare": {
+    "n": 5,
+    "u": "ani"
+   },
+   "actiune": "Nimicire",
+   "anunt": {
+    "n": 30,
+    "u": "zile"
+   },
+   "aprobare": true,
+   "stare": "Activ",
+   "modificatDe": "Anastasia Cojocaru",
+   "modificatLa": "2026-10-08T14:22"
+  },
+  {
+   "id": "POL-0007",
+   "autoritate": "ANSP",
+   "serviciu": "003000118",
+   "tipObiect": null,
+   "sursa": null,
+   "arhivare": {
+    "n": 60,
+    "u": "zile"
+   },
+   "eveniment": "finalizat",
+   "restaurare": null,
+   "redare": null,
+   "pastrare": {
+    "n": 15,
+    "u": "ani"
+   },
+   "actiune": "Anonimizare",
+   "anunt": {
+    "n": 30,
+    "u": "zile"
+   },
+   "aprobare": true,
+   "stare": "Activ",
+   "modificatDe": "Ion Ceban",
+   "modificatLa": "2026-11-02T11:40"
+  },
+  {
+   "id": "POL-0008",
+   "autoritate": "ANSA",
+   "serviciu": null,
+   "tipObiect": null,
+   "sursa": null,
+   "arhivare": {
+    "n": 2,
+    "u": "ani"
+   },
+   "eveniment": "activitate",
+   "restaurare": null,
+   "redare": false,
+   "pastrare": null,
+   "actiune": null,
+   "anunt": null,
+   "aprobare": null,
+   "stare": "Inactiv",
+   "modificatDe": "Ion Ceban",
+   "modificatLa": "2026-08-19T16:30"
+  },
+  {
+   "id": "POL-0009",
+   "autoritate": "ANTA",
+   "serviciu": null,
+   "tipObiect": null,
+   "sursa": null,
+   "arhivare": {
+    "n": 6,
+    "u": "luni"
+   },
+   "eveniment": "radiat",
+   "restaurare": {
+    "n": 30,
+    "u": "zile"
+   },
+   "redare": null,
+   "pastrare": {
+    "n": 7,
+    "u": "ani"
+   },
+   "actiune": "Nimicire",
+   "anunt": {
+    "n": 30,
+    "u": "zile"
+   },
+   "aprobare": false,
+   "stare": "Activ",
+   "modificatDe": "Anastasia Cojocaru",
+   "modificatLa": "2026-09-30T08:45"
+  },
+  {
+   "id": "POL-0010",
+   "autoritate": "ANSP",
+   "serviciu": "003000447",
+   "tipObiect": "Notă de plată",
+   "sursa": "SIA GEAP",
+   "arhivare": {
+    "n": 3,
+    "u": "luni"
+   },
+   "eveniment": "finalizat",
+   "restaurare": null,
+   "redare": null,
+   "pastrare": {
+    "n": 3,
+    "u": "ani"
+   },
+   "actiune": "Nimicire",
+   "anunt": {
+    "n": 14,
+    "u": "zile"
+   },
+   "aprobare": false,
+   "stare": "Inactiv",
+   "modificatDe": "Ion Ceban",
+   "modificatLa": "2026-07-21T13:10"
+  },
+  {
+   "id": "POL-0011",
+   "autoritate": null,
+   "serviciu": null,
+   "tipObiect": "Document justificativ",
+   "sursa": "Extern",
+   "arhivare": {
+    "n": 1,
+    "u": "ani"
+   },
+   "eveniment": "finalizat",
+   "restaurare": null,
+   "redare": null,
+   "pastrare": {
+    "n": 7,
+    "u": "ani"
+   },
+   "actiune": "Nimicire",
+   "anunt": {
+    "n": 30,
+    "u": "zile"
+   },
+   "aprobare": true,
+   "stare": "Activ",
+   "modificatDe": "Administrator platformă",
+   "modificatLa": "2026-06-02T09:25"
+  },
+  {
+   "id": "POL-0012",
+   "autoritate": "AM",
+   "serviciu": null,
+   "tipObiect": null,
+   "sursa": null,
+   "arhivare": {
+    "n": 1,
+    "u": "ani"
+   },
+   "eveniment": "finalizat",
+   "restaurare": null,
+   "redare": null,
+   "pastrare": null,
+   "actiune": null,
+   "anunt": null,
+   "aprobare": null,
+   "stare": "Activ",
+   "modificatDe": "Anastasia Cojocaru",
+   "modificatLa": "2026-10-27T15:00"
+  }
+ ],
+ "dossiers": {
+  "D-2026-004746": {
+   "statut": "Eliberat",
+   "decizie": "2026-07-07",
+   "stare": "Arhivat",
+   "arhivat": {
+    "at": "2026-07-08T16:12",
+    "by": "Anastasia Cojocaru",
+    "auto": false
+   },
+   "politica": "POL-0007"
+  },
+  "D-2026-004744": {
+   "statut": "Eliberat",
+   "decizie": "2026-06-05",
+   "stare": "Arhivat",
+   "arhivat": {
+    "at": "2026-07-06T02:00",
+    "by": "Procedură automată",
+    "auto": true
+   },
+   "politica": "POL-0005"
+  },
+  "D-2026-004742": {
+   "statut": "Eliberat",
+   "decizie": "2026-06-04",
+   "stare": "Arhivat",
+   "arhivat": {
+    "at": "2026-07-05T02:00",
+    "by": "Procedură automată",
+    "auto": true
+   },
+   "politica": "POL-0007"
+  },
+  "D-2026-004740": {
+   "statut": "Respins",
+   "decizie": "2026-05-12",
+   "stare": "Arhivat",
+   "arhivat": {
+    "at": "2026-07-12T02:00",
+    "by": "Procedură automată",
+    "auto": true
+   },
+   "politica": "POL-0007"
+  },
+  "D-2026-004736": {
+   "statut": "Eliberat",
+   "decizie": "2026-05-29",
+   "stare": "Activ",
+   "arhivat": {
+    "at": "2026-06-29T02:00",
+    "by": "Procedură automată",
+    "auto": true
+   },
+   "politica": "POL-0005",
+   "restaurat": {
+    "at": "2026-07-02T10:31",
+    "by": "Elena Caragia",
+    "reason": "Verificare la cererea Inspectoratului de Stat al Muncii.",
+    "mode": "vizualizare",
+    "rearhivare": "2026-08-31"
+   }
+  },
+  "D-2026-004719": {
+   "decizie": "2026-06-25"
+  },
+  "D-2026-004704": {
+   "decizie": "2026-07-06"
+  },
+  "D-2026-004717": {
+   "decizie": "2026-07-03"
+  },
+  "D-2026-004707": {
+   "decizie": "2026-07-01"
+  },
+  "D-2026-004713": {
+   "decizie": "2026-06-02"
+  },
+  "D-2026-004715": {
+   "decizie": "2026-05-14"
+  },
+  "D-2026-004716": {
+   "decizie": "2026-05-12"
+  },
+  "D-2026-004722": {
+   "decizie": "2026-05-11"
+  },
+  "D-2026-004711": {
+   "decizie": "2026-05-06"
+  },
+  "D-2026-004726": {
+   "decizie": "2026-07-09"
+  },
+  "D-2026-004729": {
+   "decizie": "2026-07-08"
+  },
+  "D-2026-004734": {
+   "decizie": "2026-06-10"
+  },
+  "D-2026-004730": {
+   "decizie": "2026-06-08"
+  }
+ },
+ "objectStates": {
+  "D-2026-004719": {
+   "Notă de plată": {
+    "stare": "Arhivat",
+    "at": "2026-07-01T02:00",
+    "politica": "POL-0003"
+   }
+  },
+  "D-2026-004713": {
+   "Notă de plată": {
+    "stare": "Arhivat",
+    "at": "2026-06-28T02:00",
+    "politica": "POL-0003"
+   },
+   "Extras din Registrul de stat": {
+    "stare": "Arhivat",
+    "at": "2026-07-02T02:00",
+    "politica": "POL-0006"
+   }
+  }
+ },
+ "extraDossiers": [
+  {
+   "id": "D-2015-000412",
+   "statut": "Eliberat",
+   "serviciu": "Autorizație sanitară de funcționare",
+   "subdiviziune": "CSP Chișinău",
+   "solicitant": "Gheorghe Rusu",
+   "companie": "Brutăria Rusu SRL",
+   "idnp": "2003001234567",
+   "depus": "2015-02-10T10:15:00",
+   "decizie": "2015-03-02",
+   "stare": "Nimicit",
+   "arhivat": {
+    "at": "2016-03-03T02:00",
+    "by": "Procedură automată",
+    "auto": true
+   },
+   "politica": "POL-0001",
+   "nimicit": {
+    "at": "2026-06-30T03:00"
+   }
+  },
+  {
+   "id": "D-2016-001187",
+   "statut": "Eliberat",
+   "serviciu": "Autorizație sanitară de funcționare",
+   "subdiviziune": "CSP Bălți",
+   "solicitant": "Valentina Moraru",
+   "companie": "",
+   "idnp": "2004005551234",
+   "depus": "2016-01-18T09:40:00",
+   "decizie": "2016-02-09",
+   "stare": "Arhivat",
+   "arhivat": {
+    "at": "2016-03-10T02:00",
+    "by": "Procedură automată",
+    "auto": true
+   },
+   "politica": "POL-0005"
+  },
+  {
+   "id": "D-2016-001190",
+   "statut": "Respins",
+   "serviciu": "Autorizație de comerț cu produse alcoolice",
+   "subdiviziune": "CSP Chișinău",
+   "solicitant": "Igor Cebotari",
+   "companie": "Vinărie Nord SRL",
+   "idnp": "2004007779911",
+   "depus": "2016-01-20T14:05:00",
+   "decizie": "2016-02-11",
+   "stare": "Arhivat",
+   "arhivat": {
+    "at": "2016-03-12T02:00",
+    "by": "Procedură automată",
+    "auto": true
+   },
+   "politica": "POL-0005"
+  },
+  {
+   "id": "D-2016-000934",
+   "statut": "Eliberat",
+   "serviciu": "Autorizație sanitară de funcționare",
+   "subdiviziune": "CSP Cahul",
+   "solicitant": "Lilia Popa",
+   "companie": "Cafenea Popa SRL",
+   "idnp": "2004001112223",
+   "depus": "2016-01-05T11:00:00",
+   "decizie": "2016-01-27",
+   "stare": "Arhivat",
+   "arhivat": {
+    "at": "2016-02-26T02:00",
+    "by": "Procedură automată",
+    "auto": true
+   },
+   "politica": "POL-0005"
+  },
+  {
+   "id": "D-2016-001455",
+   "statut": "Eliberat",
+   "serviciu": "Autorizație sanitară de funcționare",
+   "subdiviziune": "CSP Orhei",
+   "solicitant": "Sergiu Lungu",
+   "companie": "",
+   "idnp": "2004009990001",
+   "depus": "2016-02-02T08:30:00",
+   "decizie": "2016-02-24",
+   "stare": "Arhivat",
+   "arhivat": {
+    "at": "2016-04-24T02:00",
+    "by": "Procedură automată",
+    "auto": true
+   },
+   "politica": "POL-0007"
+  },
+  {
+   "id": "D-2016-000777",
+   "statut": "Eliberat",
+   "serviciu": "Autorizație de comerț cu produse alcoolice",
+   "subdiviziune": "CSP Chișinău",
+   "solicitant": "Marina Ursu",
+   "companie": "Market Ursu SRL",
+   "idnp": "2004003334445",
+   "depus": "2015-12-14T13:20:00",
+   "decizie": "2016-01-08",
+   "stare": "Arhivat",
+   "arhivat": {
+    "at": "2016-02-08T02:00",
+    "by": "Procedură automată",
+    "auto": true
+   },
+   "politica": "POL-0005"
+  },
+  {
+   "id": "D-2016-001502",
+   "statut": "Eliberat",
+   "serviciu": "Autorizație sanitară de funcționare",
+   "subdiviziune": "CSP Chișinău",
+   "solicitant": "Andrei Bîrcă",
+   "companie": "",
+   "idnp": "2004006667778",
+   "depus": "2016-02-05T10:10:00",
+   "decizie": "2016-02-26",
+   "stare": "Arhivat",
+   "arhivat": {
+    "at": "2016-03-27T02:00",
+    "by": "Procedură automată",
+    "auto": true
+   },
+   "politica": "POL-0005"
+  },
+  {
+   "id": "D-2017-000356",
+   "statut": "Respins",
+   "serviciu": "Autorizație sanitară de funcționare",
+   "subdiviziune": "CSP Comrat",
+   "solicitant": "Tudor Caraman",
+   "companie": "",
+   "idnp": "2004002223334",
+   "depus": "2016-12-12T09:00:00",
+   "decizie": "2017-01-03",
+   "stare": "Arhivat",
+   "arhivat": {
+    "at": "2017-02-02T02:00",
+    "by": "Procedură automată",
+    "auto": true
+   },
+   "politica": "POL-0005"
+  },
+  {
+   "id": "D-2016-000118",
+   "statut": "Eliberat",
+   "serviciu": "Autorizație sanitară de funcționare",
+   "subdiviziune": "CSP Chișinău",
+   "solicitant": "Elena Rotari",
+   "companie": "Salon Rotari SRL",
+   "idnp": "2004008889990",
+   "depus": "2015-11-02T15:45:00",
+   "decizie": "2015-11-24",
+   "stare": "Activ",
+   "arhivat": {
+    "at": "2015-12-24T02:00",
+    "by": "Procedură automată",
+    "auto": true
+   },
+   "politica": "POL-0005",
+   "restaurat": {
+    "at": "2026-11-18T09:12",
+    "by": "Anastasia Cojocaru",
+    "reason": "Contestație în instanță: dosarul este cerut de Judecătoria Chișinău.",
+    "mode": "procesare",
+    "rearhivare": null
+   }
+  },
+  {
+   "id": "D-2016-002201",
+   "statut": "Eliberat",
+   "serviciu": "Autorizație sanitară de funcționare",
+   "subdiviziune": "CSP Bălți",
+   "solicitant": "Nadejda Grecu",
+   "companie": "",
+   "idnp": "2004004445556",
+   "depus": "2016-03-01T12:00:00",
+   "decizie": "2016-03-22",
+   "stare": "Arhivat",
+   "arhivat": {
+    "at": "2016-04-21T02:00",
+    "by": "Procedură automată",
+    "auto": true
+   },
+   "politica": "POL-0007",
+   "anonimizat": {
+    "at": "2026-11-02T03:00"
+   }
+  }
+ ],
+ "candidates": [
+  {
+   "id": "CN-0101",
+   "dosar": "D-2016-001187",
+   "tipObiect": null,
+   "politica": "POL-0005",
+   "actiune": "Nimicire",
+   "anuntat": "2026-11-15",
+   "planificat": "2027-01-14",
+   "stare": "Anunțat"
+  },
+  {
+   "id": "CN-0102",
+   "dosar": "D-2016-001190",
+   "tipObiect": null,
+   "politica": "POL-0005",
+   "actiune": "Nimicire",
+   "anuntat": "2026-11-15",
+   "planificat": "2027-01-14",
+   "stare": "Anunțat"
+  },
+  {
+   "id": "CN-0103",
+   "dosar": "D-2016-001455",
+   "tipObiect": null,
+   "politica": "POL-0007",
+   "actiune": "Anonimizare",
+   "anuntat": "2026-11-20",
+   "planificat": "2026-12-20",
+   "stare": "Anunțat"
+  },
+  {
+   "id": "CN-0104",
+   "dosar": "D-2016-000777",
+   "tipObiect": "Cerere",
+   "politica": "POL-0002",
+   "actiune": "Anonimizare",
+   "anuntat": "2026-11-15",
+   "planificat": "2026-12-15",
+   "stare": "Anunțat"
+  },
+  {
+   "id": "CN-0105",
+   "dosar": "D-2016-000777",
+   "tipObiect": "Document justificativ",
+   "politica": "POL-0006",
+   "actiune": "Nimicire",
+   "anuntat": "2026-11-15",
+   "planificat": "2026-12-15",
+   "stare": "Anunțat"
+  },
+  {
+   "id": "CN-0106",
+   "dosar": "D-2016-001502",
+   "tipObiect": "Notă de plată",
+   "politica": "POL-0003",
+   "actiune": "Nimicire",
+   "anuntat": "2026-11-21",
+   "planificat": "2026-12-05",
+   "stare": "Anunțat"
+  },
+  {
+   "id": "CN-0107",
+   "dosar": "D-2016-000934",
+   "tipObiect": null,
+   "politica": "POL-0005",
+   "actiune": "Nimicire",
+   "anuntat": "2026-11-10",
+   "planificat": "2027-01-09",
+   "stare": "Confirmat",
+   "decisDe": "Anastasia Cojocaru",
+   "decisLa": "2026-11-17T11:05"
+  },
+  {
+   "id": "CN-0108",
+   "dosar": "D-2017-000356",
+   "tipObiect": null,
+   "politica": "POL-0005",
+   "actiune": "Nimicire",
+   "anuntat": "2026-11-10",
+   "planificat": "2027-01-09",
+   "stare": "Respins",
+   "decisDe": "Anastasia Cojocaru",
+   "decisLa": "2026-11-17T11:07",
+   "motiv": "Dosar invocat într-o contestație în curs."
+  },
+  {
+   "id": "CN-0109",
+   "dosar": "D-2016-000118",
+   "tipObiect": null,
+   "politica": "POL-0005",
+   "actiune": "Nimicire",
+   "anuntat": "2026-11-05",
+   "planificat": "2027-01-04",
+   "stare": "Restaurat"
+  },
+  {
+   "id": "CN-0110",
+   "dosar": "D-2015-000412",
+   "tipObiect": null,
+   "politica": "POL-0001",
+   "actiune": "Nimicire",
+   "anuntat": "2026-05-31",
+   "planificat": "2026-06-30",
+   "stare": "Executat",
+   "decisDe": "Ion Ceban",
+   "decisLa": "2026-06-04T09:30"
+  },
+  {
+   "id": "CN-0111",
+   "dosar": "D-2016-002201",
+   "tipObiect": null,
+   "politica": "POL-0007",
+   "actiune": "Anonimizare",
+   "anuntat": "2026-10-03",
+   "planificat": "2026-11-02",
+   "stare": "Executat",
+   "decisDe": "Anastasia Cojocaru",
+   "decisLa": "2026-10-06T15:20"
+  }
+ ],
+ "savedSearches": [
+  {
+   "id": "SS-1",
+   "name": "Arhivate ANSP · CSP Chișinău",
+   "criteria": {
+    "query": "",
+    "filters": {
+     "arh-stare": [
+      "Arhivat"
+     ],
+     "subdiviziune": [
+      "CSP Chișinău (ANSP)"
+     ]
+    }
+   },
+   "at": "2026-11-12T09:40"
+  },
+  {
+   "id": "SS-2",
+   "name": "Nimicite",
+   "criteria": {
+    "query": "",
+    "filters": {
+     "arh-stare": [
+      "Nimicit"
+     ]
+    }
+   },
+   "at": "2026-11-14T15:05"
+  }
+ ]
+}

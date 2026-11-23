@@ -1,0 +1,186 @@
+/* =====================================================================================
+   Arhivarea, restaurarea și păstrarea dosarelor (arh-v1, 2026-11-23; Feature 97300) — page glue only, every part is an
+   existing component (components.md › „Arhivare”): the BO registry, the ONE drawer, the value group with a trailing unit,
+   the library dialog, the selection bar, the record card, the docked document viewer.
+   ===================================================================================== */
+
+/* ---- policy drawer: a duration (number + unit in one border) that does not apply yet = the disabled field look */
+.e-permits-doc-val.e-permits-arh-dur.is-disabled,
+.e-permits-doc-val.e-permits-arh-dur.is-disabled:hover {
+  background: var(--color-background-base-secondary, #f5f5f5);
+  border-color: var(--color-border-base-default, #d9d9d9);
+  box-shadow: none;
+  cursor: not-allowed;
+}
+
+.e-permits-arh-dur.is-disabled .e-permits-doc-val__input {
+  color: var(--color-text-base-tertiary, #757575);
+  cursor: not-allowed;
+}
+
+.e-permits-arh-notices {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-8, 8px);
+  padding-top: var(--spacing-16, 16px);
+}
+
+.e-permits-arh-section-note {
+  margin-bottom: var(--spacing-16, 16px);
+}
+
+.e-permits-arh-ro-meta,
+.e-permits-arh-muted {
+  color: var(--color-text-base-tertiary, #757575);
+}
+
+.e-permits-arh-ro-meta {
+  margin-left: var(--spacing-4, 4px);
+}
+
+/* the switch sits on the field's control line (40 high, as the inputs beside it) */
+.e-permits-arh-switch {
+  align-items: center;
+  display: flex;
+  min-height: var(--spacing-40, 40px);
+}
+
+/* ---- dialogs: the records a decision applies to (candidates, the criteria of a saved search) */
+.e-permits-arh-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-8, 8px);
+  list-style: none;
+  margin: 0 0 var(--spacing-16, 16px);
+  padding: 0;
+}
+
+.e-permits-arh-list__item {
+  background: var(--color-background-base-secondary, #f5f5f5);
+  border-radius: var(--border-radius-8, 8px);
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-4, 4px) var(--spacing-12, 12px);
+  justify-content: space-between;
+  padding: var(--spacing-8, 8px) var(--spacing-12, 12px);
+}
+
+.e-permits-arh-list__main {
+  color: var(--color-text-base-default, #121212);
+  font-size: var(--font-size-fs-14, 14px);
+  font-weight: var(--font-weight-fw-medium, 500);
+  line-height: var(--line-height-lh-20, 20px);
+}
+
+.e-permits-arh-list__meta {
+  color: var(--color-text-base-tertiary, #757575);
+  font-size: var(--font-size-fs-14, 14px);
+  line-height: var(--line-height-lh-20, 20px);
+}
+
+.e-permits-arh-mode,
+.e-permits-arh-reason {
+  margin-top: var(--spacing-16, 16px);
+}
+
+.e-permits-arh-mode .radio-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-12, 12px);
+  margin-top: var(--spacing-8, 8px);
+}
+
+/* ---- the Versiuni drawer table = the registre card table, own column widths */
+.e-permits-arh-table--versions {
+  min-width: calc(var(--spacing-40, 40px) * 26);
+}
+
+.e-permits-arh-table--versions th:nth-child(1),
+.e-permits-arh-table--versions th:last-child.e-permits-arh-table__check {
+  width: var(--spacing-48, 48px);
+}
+
+.e-permits-arh-table--versions th:nth-child(2) { width: calc(var(--spacing-40, 40px) * 4); }
+.e-permits-arh-table--versions th:nth-child(3) { width: calc(var(--spacing-40, 40px) * 2); }
+.e-permits-arh-table--versions th:nth-child(8) { width: calc(var(--spacing-40, 40px) * 7); }
+
+.e-permits-arh-table__check .checkbox {
+  display: inline-flex;
+}
+
+.e-permits-reg-table__table.e-permits-arh-table--versions :is(th, td):last-child {
+  width: calc(var(--spacing-40, 40px) * 7);
+}
+
+.e-permits-arh-file {
+  align-items: center;
+  display: inline-flex;
+  gap: var(--spacing-6, 6px);
+  max-width: 100%;
+  min-width: 0;
+}
+
+.e-permits-arh-file > span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.e-permits-arh-file .icon {
+  color: var(--color-icon-base-tertiary, #757575);
+  flex: 0 0 auto;
+}
+
+/* the version rows open the viewer = the shell's clickable registry row (`tr[data-workplace-row-open]`: pointer, band,
+   in-cell focus ring) — no own rules */
+
+/* ---- the version's A4 page (the document preview page vocabulary) */
+.e-permits-arh-doc__kicker {
+  color: var(--color-text-base-tertiary, #757575);
+  font-size: var(--font-size-fs-12, 12px);
+  line-height: var(--line-height-lh-16, 16px);
+  margin: 0 0 var(--spacing-8, 8px);
+}
+
+.e-permits-arh-doc__title {
+  font-size: var(--font-size-fs-20, 20px);
+  font-weight: var(--font-weight-fw-semibold, 600);
+  line-height: var(--line-height-lh-28, 28px);
+  margin: 0 0 var(--spacing-16, 16px);
+}
+
+/* ---- Registru Dosare toolbar: „Căutările mele” + „Salvează căutarea” before the export button (the BO table-tools
+   box is a fixed 130 and clips: it grows and shows the open button's ring while they are there) */
+.e-permits-arh-saved {
+  align-items: center;
+  display: flex;
+  gap: var(--spacing-8, 8px);
+}
+
+.e-permits-arh-saved[hidden],
+.e-permits-workplace:not([data-registry-kind^="reg-"]) .e-permits-arh-saved {
+  display: none;
+}
+
+.e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-workplace:has(.e-permits-arh-saved:not([hidden]))[data-registry-kind^="reg-"] .e-permits-workplace__table-tools {
+  flex: 0 0 auto;
+  min-width: 0;
+  overflow: visible;
+  width: auto;
+}
+
+/* the candidates' selection bar only on the candidates list */
+.e-permits-workplace:not([data-registry-kind="arhivare-candidati"]) [data-arh-selection] {
+  display: none;
+}
+
+/* lead → 16 → the versions table; the version date never truncates */
+[data-arh-odrawer] .e-permits-passport__lead + .e-permits-reg-table {
+  margin-top: var(--spacing-16, 16px);
+}
+
+.e-permits-arh-table--versions th:nth-child(5) { width: calc(var(--spacing-40, 40px) * 4); }
+
+[data-arh-odrawer] .e-permits-user-create__section-title + .e-permits-passport__lead {
+  margin-top: var(--spacing-16, 16px);
+}

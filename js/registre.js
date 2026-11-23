@@ -43,6 +43,10 @@
 
   const A = () => window.GEAPShellApi || {};
   const U = () => window.GEAPUi || {};
+  /* arh-v1 (Feature 97300, js/arhivare.js): Registru Dosare reads the archive state — Starea înregistrării, the archive
+     columns / facets / actions (Arhivează · Restaurează · Obiecte arhivate · Versiuni), the read-only card of an archived
+     or destroyed dossier and the automatic procedures' events. Every hook is optional (null = the register as before). */
+  const X = () => window.GEAPArhivare || null;
   const R = () => window.GEAPFormRender || {};
   const esc = (value) => String(value ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
   const icon = (name, size = 20, cls = "icon") => `<svg class="${cls}" width="${size}" height="${size}" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-${name}"></use></svg>`;
@@ -83,7 +87,7 @@
   function load() {
     if (S.data) return Promise.resolve(S.data);
     if (!S.loading) {
-      S.loading = fetch(DATA_URL, { cache: "no-store" }).then((r) => r.json()).then((data) => {
+      S.loading = Promise.all([fetch(DATA_URL, { cache: "no-store" }).then((r) => r.json()), Promise.resolve(X()?.load?.()).catch(() => null)]).then(([data]) => {
         if (params.get("registre") === "gol") { data.acts = []; data.notes = []; data.avize = []; }
         S.data = data;
         S.seedRegisters = data.registers;
@@ -393,12 +397,12 @@
   }
   const anonOf = (kind, id) => readStore().anon[`${kind}:${id}`] || null;
   const SOURCES = {
-    Case: () => applyPatches(A().dossierStore?.()?.runtimeRows || []).filter(() => params.get("registre") !== "gol").map((row) => {
+    Case: () => applyPatches([...(A().dossierStore?.()?.runtimeRows || []), ...(X()?.extraCaseRows?.() || [])]).filter(() => params.get("registre") !== "gol").map((row) => {
       const st = readStore();
       const struck = st.struck[`reg-dosare:${row.id}`];
       const status = struck ? "radiat" : row.status;
       const anon = anonOf("reg-dosare", row.id);
-      return {
+      const base = {
         id: row.id, src: row, authority: "ANSP", subdivision: row.subdiviziune,
         nr: row.nrDosar, tip: row.tipDosar || "Eliberare", serviciu: row.serviciu,
         solicitant: anon ? REDACTED : row.numeSolicitant || "—", companie: row.companie || "",
@@ -409,6 +413,7 @@
         depus: demoTime(row.dataDepunerii, row.id), termen: row.termenExaminare || "",
         anon: Boolean(anon), struck: Boolean(struck)
       };
+      return X()?.caseRow ? X().caseRow(base, row) : base;
     }),
     Permit: () => (S.data?.acts || []).map((a) => ({
       id: a.id, src: a, authority: a.authority, subdivision: a.subdivision, authorityOnly: true,
@@ -436,7 +441,7 @@
   const columnsOf = (def) => {
     const gone = (params.get("lipsa") || "").split(",").filter(Boolean);
     const own = def.object === "Case" && def.service ? (SERVICE_FIELDS[def.service] || []).map(([key]) => key) : [];
-    return def.columns.filter((c) => (SOURCE_FIELDS[def.object]?.includes(c.key) || own.includes(c.key)) && !gone.includes(c.key));
+    return [...def.columns.filter((c) => (SOURCE_FIELDS[def.object]?.includes(c.key) || own.includes(c.key)) && !gone.includes(c.key)), ...(X()?.columns?.(def) || [])];
   };
   /* the predefined filter (invisible to the BO user, Feature 94523): phase-1 rules {field, op ≠ | =, value} or the
      builder's {column, op: contains | is | isNot | empty | notEmpty, value} joined by „Și” (all) or „Sau” (any) */
@@ -569,14 +574,19 @@
     valabil: (r) => longDate(r.valabil), suma: (r) => mdl(r.suma), subdiviziune: (r) => `${r.subdivision} (${r.authority})`,
     autoritate: (r) => (r.autoritate && r.subdivision && !String(r.autoritate).includes("·") ? `${r.autoritate} · ${r.subdivision}` : r.autoritate)
   };
-  const textOf = (row, key) => String(/^svc:/.test(key) ? svcValue(row, key) : TEXT[key]?.(row) ?? row[key] ?? "");
+  const textOf = (row, key) => String(/^svc:/.test(key) ? svcValue(row, key) : X()?.text?.(row, key) ?? TEXT[key]?.(row) ?? row[key] ?? "");
 
   /* ---------------------------------------------------------------- row actions (definition × role × state) */
-  const actionsFor = (def, who = persona()) => (def.actions || []).filter((a) => !a.roles.length || a.roles.includes(who.roleId))
-    .filter((a) => !a.permission || who.can("push"));
+  const actionsFor = (def, who = persona()) => {
+    const base = (def.actions || []).filter((a) => !a.roles.length || a.roles.includes(who.roleId))
+      .filter((a) => !a.permission || who.can("push"));
+    return X()?.actions ? X().actions(def, base, who) : base;
+  };
   /* each control checks the record's real state (Epic 89620 AC: „respectă la execuție starea reală”) — the menu shows
      the reason, the confirm checks again */
   function actionState(action, row) {
+    const ext = X()?.actionState?.(action, row);
+    if (ext !== undefined) return ext;
     const st = row.src?.status;
     if (row.struck) return "Dosarul este radiat din registru.";
     switch (action.control) {
@@ -589,6 +599,7 @@
   }
   const menuItems = (def, row, { includeOpen = true } = {}) => actionsFor(def)
     .filter((a) => includeOpen || a.type !== "open")
+    .filter((a) => X()?.actionVisible?.(a, row) !== false)
     .map((a) => {
       const reason = a.type === "open" ? "" : actionState(a, row);
       return {
@@ -650,9 +661,9 @@
   function facetsOf(id) {
     const def = defOf(id);
     if (!def) return [];
-    return columnsOf(def).filter((c) => c.filter && c.filter !== "text").map((c) => (c.filter === "date"
+    return [...(X()?.facets?.(def) || []), ...columnsOf(def).filter((c) => c.filter && c.filter !== "text").map((c) => (c.filter === "date"
       ? { key: c.key, label: c.label, type: "date", get: (row) => (row[c.key] ? String(row[c.key]).slice(0, 10) : ""), today: () => dayIso() }
-      : { key: c.key, label: c.label, search: rowsOf(def).reduce((set, r) => set.add(textOf(r, c.key)), new Set()).size > FACET_SEARCH_MIN, get: (row) => textOf(row, c.key) }));
+      : { key: c.key, label: c.label, search: rowsOf(def).reduce((set, r) => set.add(textOf(r, c.key)), new Set()).size > FACET_SEARCH_MIN, get: (row) => textOf(row, c.key) }))];
   }
   function registerRegistry(id) {
     window.GEAPShellRegistries = window.GEAPShellRegistries || {};
@@ -662,26 +673,29 @@
       /* the columns marked „Text” in the definition (visible or not — e.g. Nr. dosar on the acts register) */
       searchText: (row) => {
         const def = defOf(id);
-        return columnsOf(def).filter((c) => c.filter === "text").map((c) => textOf(row, c.key)).concat(row.beneficiarId || "").join(" ");
+        return columnsOf(def).filter((c) => c.filter === "text").map((c) => textOf(row, c.key)).concat(row.beneficiarId || "", X()?.searchText?.(row) || "").join(" ");
       },
       /* always a value: the shell's own default branch reads dossier-only fields (statuses, numeSolicitant) */
-      sortValue: (row, key) => (key === "suma" ? Number(row.suma) || 0 : ["depus", "termen", "emis", "emisa", "valabil"].includes(key) ? String(row[key] || "") : textOf(row, key)),
+      sortValue: (row, key) => (X()?.sortValue?.(row, key) ?? (key === "suma" ? Number(row.suma) || 0 : ["depus", "termen", "emis", "emisa", "valabil"].includes(key) ? String(row[key] || "") : textOf(row, key))),
       filterToken: () => true,
       renderCell: (row, key) => {
         const def = defOf(id);
         if (key === "actiuni") return rowMenuHtml(def, row);
+        const ext = X()?.cell?.(def, row, key);
+        if (ext != null) return ext;
         const cell = CELLS[def.object]?.[key];
         return cell ? cell(row) : esc(textOf(row, key) || "—");
       },
       openRow: (rowId) => openCard(id, rowId),
       rowLabel: (row) => `${row.nr}${row.serviciu || row.denumire || row.tip ? `, ${row.serviciu || row.denumire || row.tip}` : ""} — deschide fișa înregistrării`,
-      rowClass: (row) => (row.struck ? "is-inactive" : ""),
+      rowClass: (row) => (row.struck || row.arhStare === "Nimicit" ? "is-inactive" : ""),
       emptyHtml: ({ query, filtered }) => {
         const E = window.GEAPEmptyState;
         const def = defOf(id);
         if (!S.data) return E?.render({ title: "Se încarcă registrul…", loading: true, bare: true });
         if (!granted(def)) return E?.render({ title: DENIED, text: "Rolul tău nu are acces la acest registru. Accesul se acordă de Administratorul central, per rol.", icon: "lock", bare: true });
-        if (query || filtered) return E?.noResults?.("Nicio înregistrare nu corespunde căutării sau filtrelor", { text: "Schimbă textul căutat sau șterge filtrele.", bare: true });
+        /* US-402 AC-13 (arh-v1): Registru Dosare words its no-match state as the story */
+        if (query || filtered) return E?.noResults?.(X()?.noMatch?.(def) || "Nicio înregistrare nu corespunde căutării sau filtrelor", { text: "Schimbă textul căutat sau șterge filtrele.", bare: true });
         const who = persona();
         return E?.render({ title: "Nu sunt înregistrări în perimetrul tău", text: `Registrul arată doar înregistrările pentru ${perimeterText(who, { authorityOnly: def.object === "Permit" })}.`, icon: "page-text", bare: true });
       },
@@ -1013,7 +1027,7 @@
       if (who.can("journal")) tabs.push({ id: "jurnal", label: "Jurnal evenimente", count: eventsOf(def, row).length });
       return tabs;
     }
-    const tabs = [{ id: "detalii", label: "Detalii", icon: "page-text" }];
+    const tabs = [{ id: "detalii", label: "Detalii", icon: "page-text" }, ...(def.object === "Case" ? X()?.cardTabs?.(def, row) || [] : [])];
     if (def.object === "Permit") tabs.push({ id: "versiuni", label: "Versiuni", count: row.src.versions.length });
     if (who.can("journal")) tabs.push({ id: "jurnal", label: "Jurnalul evenimentelor", count: eventsOf(def, row).length });
     return tabs;
@@ -1079,7 +1093,8 @@
     body.id = "reg-panel";
     body.setAttribute("role", "tabpanel");
     body.setAttribute("aria-labelledby", `reg-tab-${c.tab}`);
-    body.innerHTML = c.tab === "versiuni" ? versionsHtml(row) : c.tab === "jurnal" ? journalHtml(def, row)
+    const extTab = def.object === "Case" ? X()?.cardTabHtml?.(def, row, c.tab) : null;
+    body.innerHTML = extTab != null ? extTab : c.tab === "versiuni" ? versionsHtml(row) : c.tab === "jurnal" ? journalHtml(def, row)
       : def.object === "Permit" ? actTabHtml(def, row, c.tab) : detailsHtml(def, row);
     if (def.object === "Permit") bindActSort(body);
     if (c.tab === "jurnal") bindEvSort(body);
@@ -1089,7 +1104,7 @@
   function cardActions(def, row) {
     const items = menuItems(def, row, { includeOpen: false });
     const open = actionsFor(def).find((a) => a.type === "open");
-    const openBtn = open && def.object === "Case" ? `<button class="btn btn-neutral btn-sm" type="button" data-reg-action="open" data-reg-kind="${esc(def.id)}" data-reg-row="${esc(row.id)}">${esc(open.label)}</button>` : "";
+    const openBtn = open && def.object === "Case" && !X()?.readOnly?.(row) ? `<button class="btn btn-neutral btn-sm" type="button" data-reg-action="open" data-reg-kind="${esc(def.id)}" data-reg-row="${esc(row.id)}">${esc(open.label)}</button>` : "";
     const menu = (U().renderStackMenu?.(items, row.nr) || "").replace("hidden data-stack-menu>", "hidden data-stack-menu data-stack-menu-fixed>");
     /* US-317 AC-10/11: the act card is read-only, no header actions; the crumb back returns to the register with its
        search, filters, sort and page as they were (shell closeDosarProfil) */
@@ -1102,6 +1117,7 @@
       case "Case": return [
         ["Numărul dosarului", copy(row.nr)],
         ["Statut", `${tag(row.statut, caseTone(row))}${row.anon ? tag("Date anonimizate", "neutral") : ""}`],
+        ...(X()?.meta?.(row) || []),
         ["Subdiviziune", esc(`${row.subdivision} · ${row.authority}`)],
         ["Actor responsabil", esc(row.actor)],
         ["Termen", esc(longDate(row.termen) || "—")]
@@ -1132,13 +1148,15 @@
   const val = (v) => (v === null || v === undefined || v === "" ? "—" : esc(v));
   function detailsHtml(def, row) {
     const s = row.src;
+    const ext = def.object === "Case" ? X()?.details?.(def, row) : null;
+    if (ext?.replace != null) return ext.replace;
     if (def.object === "Case") {
       const anon = anonOf(def.id, row.id);
       const notices = [
         anon && U().renderNotice?.("info", `<strong>Date personale anonimizate</strong> · ${esc(stamp(anon.at))}, ${esc(anon.by)}. Cererea ${esc(anon.request)} (aprobată). Datele solicitantului apar ca „${REDACTED}” aici, în registru și în evenimentele anterioare din jurnal.`, { icon: "shield-keyhole" }),
         row.struck && U().renderNotice?.("warning", `<strong>Dosar radiat din registru</strong> · ${esc(stamp(readStore().struck[`${def.id}:${row.id}`].at))}. Motiv: ${esc(readStore().struck[`${def.id}:${row.id}`].reason)}. Înregistrarea rămâne în sistem, nu se mai procesează.`)
       ].filter(Boolean).join("");
-      return `${notices ? `<div class="e-permits-reg-notices">${notices}</div>` : ""}
+      return `${notices || ext?.notices ? `<div class="e-permits-reg-notices">${ext?.notices || ""}${notices}</div>` : ""}
         ${card("Date generale", [
           ["Numărul dosarului", copy(row.nr)],
           ["Tip solicitare", val(row.tip)],
@@ -1148,6 +1166,7 @@
           ["Data depunerii", val(stamp(row.depus))],
           ["Termen de examinare", val(longDate(row.termen))]
         ])}
+        ${ext?.after || ""}
         ${card("Solicitant", [
           ["Nume", row.anon ? esc(REDACTED) : val(row.solicitant)],
           ["Companie", val(row.companie || "—")],
@@ -1572,7 +1591,7 @@
     const key = `${def.id}:${row.id}`;
     const added = readStore().events[key] || [];
     const anon = anonOf(def.id, row.id);
-    const list = [...added, ...baseEvents(def, row)].sort((a, b) => String(b.at).localeCompare(String(a.at)));
+    const list = [...added, ...baseEvents(def, row), ...(def.object === "Case" ? X()?.events?.(row) || [] : [])].sort((a, b) => String(b.at).localeCompare(String(a.at)));
     if (!anon) return list;
     const redactedIds = new Set(anon.redacted || []);
     return list.map((e) => {
@@ -1782,11 +1801,13 @@
     const action = actionsFor(def).find((a) => a.key === key);
     if (!row || !action) return;
     if (action.type === "open") {
-      /* „Deschide înregistrarea” → the dossier profile (US-194 AC-10); other objects → their record card */
-      if (def.object === "Case") window.location.hash = `#dosar/${encodeURIComponent(row.id)}/general`;
+      /* „Deschide înregistrarea” → the dossier profile (US-194 AC-10); other objects → their record card; an archived /
+         destroyed dossier opens read-only = its record card (US-402 AC-14, arh-v1) */
+      if (def.object === "Case" && !X()?.readOnly?.(row)) window.location.hash = `#dosar/${encodeURIComponent(row.id)}/general`;
       else openCard(def.id, row.id);
       return;
     }
+    if (X()?.run?.(action, def, row)) return;
     const blocked = actionState(action, row);
     if (blocked) { U().showShellToast?.(blocked, "info"); return; }
     pending = { kind, rowId, key };
@@ -2151,6 +2172,7 @@
     setTimeout(() => URL.revokeObjectURL(a.href), 1000);
     closeModal();
     U().showShellToast?.(`Am exportat ${plural(lines.length, "înregistrare", "înregistrări")} în ${name}.`, "success");
+    X()?.onExport?.(def, exportCache.rows); /* US-402 AC-18: an export of archived dossiers → Jurnalul de audit */
     exportCache = null;
   }
 
@@ -2262,6 +2284,9 @@
     fieldsOf, fieldOf, columnFrom, objects: OBJECTS, scopes: SCOPES, fieldTypes: FIELD_TYPES, filterSupport: FILTER_SUPPORT, serviceOf, targetLabel,
     /* the distinct values of a source field (value lists of the predefined-filter rules) */
     valuesOf: (object, key) => [...new Set((SOURCES[object]?.() || []).map((row) => textOf(row, key)).filter((v) => v && v !== "—"))].sort((a, b) => a.localeCompare(b, "ro")),
-    openModal, closeModal, footerOf, detailRow, tag, icon, esc, longDate, stamp, nowIso, userName, plural, clone, showPage
+    openModal, closeModal, footerOf, detailRow, tag, icon, esc, longDate, stamp, nowIso, userName, plural, clone, showPage,
+    /* arh-v1 (js/arhivare.js): redraw a register / an open record card after an archive action, log on the record */
+    refresh, findRow: (id, rowId) => findRow(defOf(id), rowId), logEvent: (id, row, event) => logEvent(defOf(id), row, event),
+    renderCard: () => { if (S.card && !document.querySelector("[data-dosar-profil]")?.hidden) renderCard(); }, card: () => S.card, reasonField, requireText
   };
 })();

@@ -7574,13 +7574,16 @@ document.addEventListener("DOMContentLoaded", () => {
     const label = productRegistry(workplaceDb?.kind)?.rowLabel?.(row);
     return label ? ` tabindex="0" data-workplace-row-open aria-label="${escapeHtml(label)}"` : "";
   };
+  /* arh-v1 (Feature 97300 US-407 AC-10): a product registry may leave a row without its checkbox
+     (`rowSelectable(row) === false`): no box in the cell, skipped by the header box */
+  const rowSelectable = (row) => productRegistry(workplaceDb?.kind)?.rowSelectable?.(row) !== false;
   const renderDataRow = (row, columns, columnWidths, view = getView()) => `
     <tr data-workplace-row="${escapeHtml(row.id)}"${productRegistry(workplaceDb?.kind)?.rowClass?.(row) ? ` class="${escapeHtml(productRegistry(workplaceDb.kind).rowClass(row))}"` : ""}${workplaceRowOpenAttrs(row)}>
-      ${view?.selectable === false ? "" : `<td class="e-permits-workplace__select-cell">
+      ${view?.selectable === false ? "" : `<td class="e-permits-workplace__select-cell">${rowSelectable(row) ? `
         <label class="checkbox checkbox--medium">
           <input class="checkbox-input" type="checkbox" aria-label="Selectează rândul" data-workplace-select-row="${escapeHtml(row.id)}" ${workplaceState.selected.has(row.id) ? "checked" : ""}>
           <span class="checkbox-custom" aria-hidden="true"></span>
-        </label>
+        </label>` : ""}
       </td>`}
       ${columns.map((key) => {
         const column = workplaceDb.columns[key];
@@ -7777,7 +7780,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     /* US-295: a view whose header box takes every filtered row is checked only when all of them are */
-    const visibleIds = (getView()?.selectAllFiltered ? getVisibleRows() : rows).map((row) => row.id);
+    const visibleIds = (getView()?.selectAllFiltered ? getVisibleRows() : rows).filter(rowSelectable).map((row) => row.id);
     const selectedCount = visibleIds.filter((id) => workplaceState.selected.has(id)).length;
 
     selectAll.checked = selectedCount > 0 && selectedCount === visibleIds.length;
@@ -21475,7 +21478,7 @@ document.addEventListener("DOMContentLoaded", () => {
           workplaceState.page * workplaceState.pageSize
         );
 
-        visibleRows.forEach((row) => {
+        visibleRows.filter(rowSelectable).forEach((row) => {
           if (selectAll.checked) {
             workplaceState.selected.add(row.id);
           } else {
