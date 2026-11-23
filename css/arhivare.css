@@ -83,6 +83,7 @@
   margin-top: var(--spacing-16, 16px);
 }
 
+/* radios never inside `.e-permits-fo-field` (its label gap 4 overrides the library 12) */
 .e-permits-arh-mode .radio-group {
   display: flex;
   flex-direction: column;
@@ -183,4 +184,24 @@
 
 [data-arh-odrawer] .e-permits-user-create__section-title + .e-permits-passport__lead {
   margin-top: var(--spacing-16, 16px);
+}
+
+/* the policies list has no checkbox column: only „Nivel” is pinned and carries the divider (as the registers) — the
+   shell's second pinned column (left 43, made for the checkbox) slid over it when the wide table scrolled */
+.e-permits-workplace[data-registry-kind="arhivare"] .e-permits-workplace__table :is(th, td):nth-child(1) {
+  border-right: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
+  left: 0;
+  position: sticky;
+  z-index: 7;
+}
+
+.e-permits-workplace[data-registry-kind="arhivare"] .e-permits-workplace__table th:nth-child(1) {
+  z-index: 9;
+}
+
+.e-permits-workplace[data-registry-kind="arhivare"] .e-permits-workplace__table :is(th, td):nth-child(2) {
+  border-right: 0;
+  left: auto;
+  position: static;
+  z-index: auto;
 }

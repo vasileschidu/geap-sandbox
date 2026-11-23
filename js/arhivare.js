@@ -1033,7 +1033,7 @@
       body: `<p class="e-permits-passport__lead">Dosarul <strong>${esc(row.nr)}</strong> revine în starea «Activ», cu obiectele lui arhivate. Conținutul și documentele rămân neschimbate.</p>
         ${cand ? A().renderNotice?.("warning", `Dosarul este anunțat pentru nimicire la ${esc(longDate(cand.planificat))} (${esc(cand.stare)}). Restaurarea anulează nimicirea lui.`) || "" : ""}
         ${row.anon ? A().renderInfoNote?.("Dosarul este anonimizat și se restaurează anonimizat.") || "" : ""}
-        <div class="e-permits-fo-field e-permits-arh-mode">
+        <div class="e-permits-arh-mode">
           <span class="e-permits-cfg-ro__label" id="arh-restore-mode-label">Scopul restaurării</span>
           <div class="radio-group" role="radiogroup" aria-labelledby="arh-restore-mode-label">
             ${radio("vizualizare", "Pentru vizualizare", `Se arhivează din nou la ${longDate(rearh)} (Durata restaurării pentru vizualizare: ${durText(restDur)}).`, true)}
