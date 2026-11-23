@@ -180,8 +180,9 @@
 }
 
 /* the row's 12 columns, gap 24 (the main canvas keeps its own gap) */
+/* row-stretch-v1 (user 2026-11-24): cards on the same row = the same height (stretch), content top-aligned */
 .e-permits-builder__grid.e-permits-gridb__grid {
-  align-items: start;
+  align-items: stretch;
   gap: var(--spacing-24, 24px);
 }
 
