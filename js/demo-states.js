@@ -2759,7 +2759,6 @@
            with the 12-column guides; address parts (✱ · ✓ · ⌄) */
         "fb-v3-01": fb(async (h) => { await h.scroll(card("fld-raion")); }),
         "fb-v3-01a": fb(async (h) => { await h.click("[data-fb-lib-tab='variants']"); }),
-        "fb-v3-01b": fb(async (h) => { await h.click("[data-fb-lib-tab='logic']"); }),
         "fb-v3-01c": fb(async (h) => { await h.click("[data-fb-lib-tab='labels']"); }),
         "fb-v3-02": fb(async (h) => { await pick("fld-raion")(h); await h.scroll(".e-permits-builder__panel [data-fb-group='width']"); }),
         "fb-v3-03": fb(async (h) => {

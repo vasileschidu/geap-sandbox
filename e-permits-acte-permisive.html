@@ -117,7 +117,7 @@
   <script src="js/choice-cards.js?v=choice-cards-v7" defer></script>
   <script src="js/e-permits-acte-permisive.js?v=fb-win-v1" defer></script>
   <!-- Form Builder (after the FO renderer it shares) -->
-  <script src="js/form-builder.js?v=fb-polish-v1" defer></script>
+  <script src="js/form-builder.js?v=lib-tabs-v2" defer></script>
   <!-- Constructor grilă (gb-v1): registers before the builder's DOMContentLoaded attaches it -->
   <script src="js/grid-builder.js?v=fb-win-v1" defer></script>
   <script src="core/process-model.js?v=copy-tu-v2" defer></script>
@@ -2298,11 +2298,10 @@
           <aside class="e-permits-builder__library" aria-label="Bibliotecă de componente">
             <div class="e-permits-builder__panel-head">
               <h2>Bibliotecă de câmpuri</h2>
-              <!-- fb-v3 (October look): Câmpuri · Variante · Logică · Etichetă = library segmented control (js/form-builder.js renderLibrary) -->
+              <!-- fb-v3 (October look): Câmpuri · Variante · Etichetă (lib-tabs-v2: no Logică) = library segmented control (js/form-builder.js renderLibrary) -->
               <div class="segmented-control e-permits-builder__lib-tabs" role="tablist" aria-label="Bibliotecă" data-fb-lib-tabs>
                 <button class="segment-item is-selected" type="button" role="tab" aria-selected="true" aria-controls="fb-library-list" data-fb-lib-tab="fields">Câmpuri</button>
                 <button class="segment-item" type="button" role="tab" aria-selected="false" aria-controls="fb-library-list" tabindex="-1" data-fb-lib-tab="variants">Variante</button>
-                <button class="segment-item" type="button" role="tab" aria-selected="false" aria-controls="fb-library-list" tabindex="-1" data-fb-lib-tab="logic">Logică</button>
                 <button class="segment-item" type="button" role="tab" aria-selected="false" aria-controls="fb-library-list" tabindex="-1" data-fb-lib-tab="labels">Etichetă</button>
               </div>
               <div class="search-input medium rectangular e-permits-workplace__search e-permits-list-search e-permits-list-search--fill">

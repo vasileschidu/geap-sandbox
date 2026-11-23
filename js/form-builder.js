@@ -1001,7 +1001,8 @@ document.addEventListener("DOMContentLoaded", () => {
   }
   /* fb-v3 (October look): the library has four tabs — Câmpuri (the palette) · Variante (saved components) ·
      Logică (fields with rules) · Etichetă (labels + their translations); the search filters the open tab */
-  const LIB_TABS = [["fields", "Câmpuri"], ["variants", "Variante"], ["logic", "Logică"], ["labels", "Etichetă"]];
+  /* lib-tabs-v2 (user 2026-11-24): no „Logică” tab in the library (rules live in the field panel › Logică) */
+  const LIB_TABS = [["fields", "Câmpuri"], ["variants", "Variante"], ["labels", "Etichetă"]];
   const libRow = ({ iconId, name, desc, attrs, tag = "" }) => `
           <button class="e-permits-builder__library-item" type="button" ${attrs}>
             <span>${icon(iconId)}</span>
