@@ -83,10 +83,12 @@ document.addEventListener("DOMContentLoaded", () => {
   /* ------------------------------------------------- component registry (spec § C) */
   const SPANS = [3, 4, 6, 8, 12];
   const SPAN_TEXT = { 3: "un sfert", 4: "o treime", 6: "jumătate", 8: "două treimi", 12: "tot rândul" };
+  /* fb-v3 (October look): the panel caption under the width picker, „12/12 · tot rândul (1 pe rând)” */
+  const SPAN_CAPTION = { 3: "un sfert — 4 pe rând", 4: "o treime — 3 pe rând", 6: "jumătate — 2 pe rând", 8: "două treimi", 12: "tot rândul (1 pe rând)" };
   const CATEGORIES = [
     ["basic", "Câmpuri de bază"],
     ["choice", "Alegere"],
-    ["registry", "Date din registre"],
+    ["registry", "Registre"],
     ["repeat", "Repetitive"],
     ["files", "Fișiere"],
     ["structure", "Structură"],
@@ -135,10 +137,10 @@ document.addEventListener("DOMContentLoaded", () => {
     subdivision: { label: "Subdiviziune", icon: "icon-group", category: "registry", desc: "Subdiviziunea care examinează", span: 4, tabs: CHOICE_TABS, defaults: () => ({ subdivisionSource: "reg_subdiv_ansa", subdivisionMode: "derived", addressFieldId: "", subdivisionAuto: "" }) },
     /* batch 4 (1:N): a table of rows (US-33…39) and a card per element (the CAEM activities model) */
     grid: { label: "Grilă editabilă", icon: "icon-dot-grid", category: "repeat", desc: "Rânduri adăugate de solicitant, câte un card", span: 12, fixed: true, container: true, tabs: CHOICE_TABS, defaults: () => gridDefaults() },
-    repeat: { label: "Bloc repetabil", icon: "icon-page-add", category: "repeat", desc: "„Adaugă alt…” pentru obiecte repetate", span: 12, fixed: true, container: true, tabs: CHOICE_TABS, defaults: () => repeatDefaults() },
+    repeat: { label: "Bloc repetabil", icon: "icon-page-add", category: "repeat", desc: "„Adaugă alt…” pentru obiecte repetate", span: 12, fixed: true, container: true, noPalette: true, tabs: CHOICE_TABS, defaults: () => repeatDefaults() },
     /* fb-subform-v1 (2026-11-20): a grid column that holds fields — the „form inside a form”, opened in
        the row's detail row; only a column (no palette entry, no field of its own) */
-    subform: { label: "Sub-formular", icon: "icon-page-child", category: "column", desc: "Câmpuri într-o secțiune a rândului", span: 12, fixed: true, container: true, columnOnly: true, tabs: [T_GEN, T_DATA, T_VAL, T_ADV], defaults: () => subformDefaults() },
+    subform: { label: "Sub-formular", icon: "icon-page-child", category: "repeat", paletteReason: "Se adaugă ca o coloană a unei grile: Editează grila › + Coloană", desc: "Câmpuri într-o secțiune a rândului", span: 12, fixed: true, container: true, columnOnly: true, tabs: [T_GEN, T_DATA, T_VAL, T_ADV], defaults: () => subformDefaults() },
     file: { label: "Fișier", icon: "icon-attachment", category: "files", desc: "Încărcare PDF, imagini", span: 12, fixed: true, tabs: INPUT_TABS, defaults: () => ({ fileTypes: ["PDF", "JPG", "PNG"], maxSizeMb: 10, maxFiles: 1, validation: { message: i18n() } }) },
     mdocs: { label: "Document din MDocs", icon: "icon-cloud-upload", category: "files", desc: "Alege din MDocs sau încarcă", span: 12, fixed: true, tabs: CHOICE_TABS, defaults: () => ({ docType: "" }) },
     section: { label: "Secțiune", icon: "icon-templates", category: "structure", desc: "Grupează câmpurile, cu titlu", structural: true },
@@ -153,6 +155,8 @@ document.addEventListener("DOMContentLoaded", () => {
     tree: { label: "Arbore", icon: "icon-tree", category: "advanced", desc: "Clasificator ierarhic", soon: 2 },
   };
   const comp = (type) => COMPONENTS[type] || COMPONENTS.text;
+  /* fb-v3: the short type tag on a canvas card (the October „dropdown” / „text” tag); full name in its tooltip */
+  const SHORT_TAG = { text: "Text", textarea: "Text lung", number: "Număr", money: "Sumă", email: "Email", phone: "Telefon", date: "Dată", select: "Listă", multiselect: "Multi", radio: "Radio", segment: "Segment", checkbox: "Bifă", checklist: "Bife", idnp: "IDNP", idno: "IDNO", address: "Adresă", contact: "Contact", subdivision: "Subdiv.", grid: "Grilă", repeat: "Bloc", subform: "Sub-form.", file: "Fișier", mdocs: "MDocs", info: "Notă", callout: "Notă", separator: "Linie", hidden: "Ascuns", calc: "Calcul", consent: "Acord", datetime: "Dată-oră", period: "Perioadă", tree: "Arbore" };
   /* content-only components: no label, no key, no value (Text informativ, Notă cu titlu, Separator) */
   const NO_VALUE = ["info", "callout", "separator"];
   const fieldName = (field) => (field.type === "callout" ? tr(field.title) || "Notă cu titlu" : NO_VALUE.includes(field.type) ? comp(field.type).label : tr(field.label) || comp(field.type).label);
@@ -278,6 +282,7 @@ document.addEventListener("DOMContentLoaded", () => {
     device: "desktop",
     mode: "build",
     query: "",
+    libTab: "fields",
     tests: {},
     addressOpen: {},
     issues: [],
@@ -953,43 +958,83 @@ document.addEventListener("DOMContentLoaded", () => {
   /* --------------------------------------------------------------- palette (spec § C) */
   function libraryItemHtml(type) {
     const meta = COMPONENTS[type];
-    const soon = Boolean(meta.soon);
+    const reason = meta.soon ? `În lucru — etapa ${meta.soon} a constructorului` : meta.paletteReason || "";
     return `
-      <button class="e-permits-builder__library-item${soon ? " is-disabled" : ""}" type="button"${soon ? ` aria-disabled="true" data-tooltip-reason="În lucru — etapa ${meta.soon} a constructorului"` : ' draggable="true"'} data-builder-component="${type}">
+      <button class="e-permits-builder__library-item${reason ? " is-disabled" : ""}" type="button"${reason ? ` aria-disabled="true" data-tooltip-reason="${esc(reason)}"` : ' draggable="true"'} data-builder-component="${type}">
         <span>${icon(meta.icon)}</span>
-        <strong>${esc(meta.label)}${soon ? (ui().renderTag?.("În curând", "neutral") || "") : ""}</strong>
+        <strong>${esc(meta.label)}${meta.soon ? (ui().renderTag?.("În curând", "neutral") || "") : ""}</strong>
         <em>${esc(meta.desc)}</em>
       </button>`;
   }
-  function renderLibrary() {
-    const query = normalize(state.query);
-    const categoryName = (type) => (CATEGORIES.find(([key]) => key === COMPONENTS[type].category) || [])[1] || "";
-    const matches = (type) => !query || normalize(`${COMPONENTS[type].label} ${COMPONENTS[type].desc} ${categoryName(type)}`).includes(query);
-    const groups = CATEGORIES.map(([category, title]) => {
-      const types = Object.keys(COMPONENTS).filter((type) => COMPONENTS[type].category === category && matches(type))
-        .sort((a, b) => Number(Boolean(COMPONENTS[a].soon)) - Number(Boolean(COMPONENTS[b].soon)));
-      if (!types.length) return "";
-      return `
-        <section class="e-permits-builder__library-section" aria-labelledby="fb-lib-${category}">
-          <h3 id="fb-lib-${category}">${esc(title)}</h3>
-          ${types.map(libraryItemHtml).join("")}
+  /* fb-v3 (October look): the library has four tabs — Câmpuri (the palette) · Variante (saved components) ·
+     Logică (fields with rules) · Etichetă (labels + their translations); the search filters the open tab */
+  const LIB_TABS = [["fields", "Câmpuri"], ["variants", "Variante"], ["logic", "Logică"], ["labels", "Etichetă"]];
+  const libRow = ({ iconId, name, desc, attrs, tag = "" }) => `
+          <button class="e-permits-builder__library-item" type="button" ${attrs}>
+            <span>${icon(iconId)}</span>
+            <strong>${esc(name)}${tag}</strong>
+            <em>${esc(desc)}</em>
+          </button>`;
+  const libSection = (id, title, body) => `
+        <section class="e-permits-builder__library-section" aria-labelledby="fb-lib-${id}">
+          <h3 id="fb-lib-${id}">${esc(title)}</h3>
+          ${body}
         </section>`;
-    }).join("");
-    /* Componente salvate: system presets first, then the saved ones (newest last) */
-    const saved = presets().filter((preset) => !query || normalize(`${preset.name} ${preset.desc} componente salvate ${comp(preset.type).label}`).includes(query));
-    const configured = saved.length ? `
-        <section class="e-permits-builder__library-section" aria-labelledby="fb-lib-configured" data-fb-library-saved>
-          <h3 id="fb-lib-configured">Componente salvate</h3>
-          ${saved.map((preset) => `
-          <button class="e-permits-builder__library-item" type="button" draggable="true" data-builder-component="${preset.type}" data-fb-preset="${preset.id}">
-            <span>${icon(preset.icon || comp(preset.type).icon)}</span>
-            <strong>${esc(preset.name)}${preset.system ? "" : ui().renderTag?.(`v${preset.version}`, "neutral") || ""}</strong>
-            <em>${esc(preset.desc || comp(preset.type).label)}</em>
-          </button>`).join("")}
-        </section>` : "";
-    el.library.innerHTML = groups || configured
-      ? `${groups}${configured}`
-      : window.GEAPEmptyState?.noResults("Nicio componentă găsită", { compact: true, bare: true }) || "";
+  function renderLibraryTabs() {
+    const host = builder.querySelector("[data-fb-lib-tabs]");
+    if (!host) return;
+    host.querySelectorAll("[data-fb-lib-tab]").forEach((button) => {
+      const on = button.dataset.fbLibTab === state.libTab;
+      button.classList.toggle("is-selected", on);
+      button.setAttribute("aria-selected", String(on));
+      button.tabIndex = on ? 0 : -1;
+    });
+  }
+  function renderLibrary() {
+    renderLibraryTabs();
+    const query = normalize(state.query);
+    const hit = (text) => !query || normalize(text).includes(query);
+    const empty = (title, text, iconId) => (query
+      ? window.GEAPEmptyState?.noResults("Nimic găsit", { compact: true, bare: true })
+      : window.GEAPEmptyState?.render({ title, text, icon: iconId, compact: true, bare: true })) || "";
+    let html = "";
+    if (state.libTab === "variants") {
+      /* Variante = the saved components: system presets first, then the saved ones (newest last) */
+      const saved = presets().filter((preset) => hit(`${preset.name} ${preset.desc} ${comp(preset.type).label}`));
+      html = saved.length ? libSection("configured", "Componente salvate", saved.map((preset) => libRow({
+        iconId: preset.icon || comp(preset.type).icon, name: preset.name, desc: preset.desc || comp(preset.type).label,
+        tag: preset.system ? "" : ui().renderTag?.(`v${preset.version}`, "neutral") || "",
+        attrs: `draggable="true" data-builder-component="${preset.type}" data-fb-preset="${preset.id}"`,
+      })).join("")) : empty("Nicio componentă salvată", "Salvează un câmp configurat din meniul ⋮ al panoului Proprietăți (Salvează ca componentă).", "bookmark");
+    } else if (state.libTab === "logic") {
+      const withRules = allFields().filter(({ field }) => (field.rules || []).length && hit(`${fieldName(field)} ${field.key || ""}`));
+      html = withRules.length ? libSection("logic", "Câmpuri cu reguli", withRules.map(({ field, step }) => libRow({
+        iconId: comp(field.type).icon, name: fieldName(field),
+        desc: `${field.rules.length} ${field.rules.length === 1 ? "regulă" : "reguli"} · ${tr(step.title) || "Pas"}`,
+        attrs: `data-fb-lib-goto="${field.id}" data-fb-lib-goto-tab="${T_LOGIC}"`,
+      })).join("")) : empty("Nicio regulă", "Regulile se adaugă din tabul Logică al unui câmp (ex.: afișează câmpul când altul are o valoare).", "link");
+    } else if (state.libTab === "labels") {
+      const labelled = allFields().filter(({ field }) => !["separator", "hidden"].includes(field.type) && hit(`${fieldName(field)} ${field.key || ""}`));
+      const missing = (field) => {
+        const text = field.type === "info" ? field.text : field.type === "callout" ? field.title : field.label;
+        return ["ru", "en"].filter((lang) => !String(text?.[lang] || "").trim()).map((lang) => lang.toUpperCase());
+      };
+      html = labelled.length ? libSection("labels", "Etichetele formularului", labelled.map(({ field }) => {
+        const gaps = missing(field);
+        return libRow({
+          iconId: comp(field.type).icon, name: fieldName(field),
+          desc: `${field.key ? `${field.key} · ` : ""}${gaps.length ? `fără traducere ${gaps.join(", ")}` : "RO · RU · EN"}`,
+          attrs: `data-fb-lib-goto="${field.id}" data-fb-lib-goto-tab="${T_GEN}"`,
+        });
+      }).join("")) : empty("Nicio etichetă", "Etichetele apar aici după ce adaugi câmpuri în formular.", "text-bold");
+    } else {
+      const categoryName = (type) => (CATEGORIES.find(([key]) => key === COMPONENTS[type].category) || [])[1] || "";
+      html = CATEGORIES.map(([category, title]) => {
+        const types = Object.keys(COMPONENTS).filter((type) => COMPONENTS[type].category === category && !COMPONENTS[type].noPalette && hit(`${COMPONENTS[type].label} ${COMPONENTS[type].desc} ${categoryName(type)}`));
+        return types.length ? libSection(category, title, types.map(libraryItemHtml).join("")) : "";
+      }).join("") || window.GEAPEmptyState?.noResults("Nicio componentă găsită", { compact: true, bare: true }) || "";
+    }
+    el.library.innerHTML = html;
   }
 
   /* ------------------------------------------------------------- service header */
@@ -1265,45 +1310,108 @@ document.addEventListener("DOMContentLoaded", () => {
     return window.GEAPEmptyState?.render({ title: inGrid ? "Grila nu are coloane" : "Blocul nu are câmpuri", text: inGrid ? "Apasă „Editează grila” și adaugă coloanele rândului." : "Trage un câmp din bibliotecă pe banda „Câmpuri” sau apasă „+ Câmp”.", icon: inGrid ? "dot-grid" : "page-add", compact: true, bare: true }) || "";
   }
 
+  /* ---- fb-v3 (October look, 80311315): the card body = label row (name + red star · key tag) + a compact
+     grey preview of the control + for lists the „Sursă” line; containers / content blocks keep their render */
+  const PREVIEW = {
+    text: ["Introdu textul", ""], textarea: ["Text pe mai multe rânduri", ""], number: ["0", ""], money: ["0,00", ""],
+    email: ["nume@exemplu.md", "icon-envelope"], phone: ["+373 __ ___ ___", "icon-phone"], date: ["ZZ/LL/AAAA", "icon-calendar"],
+    select: ["Selectează", "icon-chevron-bottom"], multiselect: ["Selectează una sau mai multe", "icon-chevron-bottom"],
+    idnp: ["13 cifre", "icon-id-card"], idno: ["13 cifre · denumirea din registru", "icon-business"],
+    subdivision: ["Subdiviziunea", "icon-chevron-bottom"], file: ["Încarcă fișierul", "icon-attachment"],
+    mdocs: ["Alege din MDocs sau încarcă", "icon-cloud-upload"], period: ["De la — Până la", "icon-calendar"],
+    datetime: ["ZZ/LL/AAAA, hh:mm", "icon-time"],
+  };
+  const tokensHtml = (items) => `
+          <div class="e-permits-builder__address-pattern-preview">
+            ${items.map(([label, required]) => `<span class="e-permits-builder__address-token">${esc(label)}${required ? requiredMark() : ""}</span>`).join("")}
+          </div>`;
+  function cardPreviewHtml(field) {
+    const t = field.type;
+    if (t === "address") return tokensHtml(addressConfig(field).filter((part) => part.visible).map((part) => [part.label, part.required]));
+    if (t === "contact") {
+      const parts = field.contactParts || CONTACT_PARTS_DEFAULT;
+      return tokensHtml(CONTACT_PARTS.filter(([key]) => parts[key]?.visible).map(([key, label]) => [label, parts[key]?.required]));
+    }
+    if (["radio", "segment", "checklist"].includes(t)) {
+      const options = (t === "segment" || t === "radio" || t === "checklist") ? (field.options || []) : [];
+      return options.length ? tokensHtml(options.map((option) => [option.label, false])) : `<div class="e-permits-builder__field-preview"><span>Nicio opțiune</span></div>`;
+    }
+    if (t === "checkbox" || t === "consent") {
+      return `<div class="e-permits-builder__field-preview e-permits-builder__field-preview--check">${icon("icon-checkmark-small")}<span data-cell-tooltip>${esc(t === "consent" ? tr(field.text) || "Declarație" : tr(field.label) || "Bifă")}</span></div>`;
+    }
+    const [fallback, iconId] = PREVIEW[t] || PREVIEW.text;
+    const suffix = t === "money" ? field.currency || "MDL" : t === "number" ? field.unit || "" : "";
+    return `
+          <div class="e-permits-builder__field-preview${t === "textarea" ? " e-permits-builder__field-preview--multiline" : ""}">
+            <span data-cell-tooltip>${esc(tr(field.placeholder) || fallback)}</span>
+            ${suffix ? `<em>${esc(suffix)}</em>` : iconId ? icon(iconId) : ""}
+          </div>`;
+  }
+  /* the „Sursă” line of a list (Listă derulantă / Selecție multiplă): Existent · Valori statice · Nou / Neconfigurată */
+  function sourceStateHtml(field) {
+    if (!usesSource(field.type)) return "";
+    const ds = field.dataSource;
+    const classifier = ds?.mode === "existing" ? getClassifier(ds.classifierId) : null;
+    const ok = ds && (ds.mode !== "existing" || ds.classifierId) && (ds.mode !== "new" || ds.saved);
+    const text = !ds ? "Neconfigurată" : ds.mode === "static" ? "Valori statice" : ds.mode === "new" ? (ds.saved ? "Clasificator nou" : "Clasificator necreat") : classifier ? "Existent" : "Clasificator nealeas";
+    return `
+          <div class="e-permits-builder__field-state">
+            <em class="e-permits-builder__tag e-permits-builder__tag--${ok ? "success" : "warning"}">${ok ? "" : icon("icon-warning-filled", 16)}Sursă</em>
+            <span${classifier ? ` data-tooltip-text="${esc(classifier.name || classifier.title || "")}"` : ""}>${esc(text)}</span>
+          </div>`;
+  }
+  function cardBodyHtml(field) {
+    const t = field.type;
+    if (t === "hidden") return `<div class="e-permits-builder__field-body">${cardLabelHtml(field)}${hiddenMarkerHtml(field)}</div>`;
+    if (isContainer(field)) {
+      const inner = !kidsOf(field).length ? emptyContainerHtml(field) : (t === "grid" && window.GEAPGridBuilder?.summaryHtml?.(field)) || foHtml(field, { prefix: "cv", inCard: true });
+      return `${t !== "grid" ? subsStripHtml(field) : ""}<div class="e-permits-builder__field-render"${t === "grid" && kidsOf(field).length ? "" : " inert"}>${inner}</div>`;
+    }
+    if (NO_VALUE.includes(t)) return `<div class="e-permits-builder__field-render" inert>${foHtml(field, { prefix: "cv", inCard: true })}</div>`;
+    return `
+        <div class="e-permits-builder__field-body">
+          ${cardLabelHtml(field)}
+          ${cardPreviewHtml(field)}
+          ${sourceStateHtml(field)}
+        </div>`;
+  }
+  const cardLabelHtml = (field) => `
+          <div class="e-permits-builder__field-label">
+            <strong data-cell-tooltip>${esc(fieldName(field))}${field.required ? requiredMark() : ""}</strong>
+            ${field.key ? `<em data-cell-tooltip>${esc(field.key)}</em>` : ""}
+          </div>`;
+
   function fieldCardHtml(field, section, index, total) {
     const meta = comp(field.type);
     const selected = (state.sel.kind === "field" && state.sel.id === field.id) || (state.sel.kind === "child" && findChild(state.sel.id)?.top === field);
-    const ownErrors = errorsOf("field", field.id);
+    /* the list's „Sursă neconfigurată” error is the card's Sursă line already — not repeated in the foot */
+    const ownErrors = errorsOf("field", field.id).filter((issue) => !(usesSource(field.type) && String(issue.prop || "").startsWith("ds.")));
     const kidErrors = isContainer(field) ? childErrorsOf(field) : [];
     const errors = ownErrors.length ? ownErrors : kidErrors.length ? [{ message: `${kidErrors.length} ${kidErrors.length === 1 ? "problemă" : "probleme"} în ${field.type === "grid" ? "coloane" : "câmpurile blocului"}: ${kidErrors[0].message}`, short: `${kidErrors.length} ${kidErrors.length === 1 ? "problemă" : "probleme"} în ${field.type === "grid" ? "coloane" : "câmpuri"}` }] : [];
+    const anyError = errors.length || errorsOf("field", field.id).length;
     const name = fieldName(field);
-    const sectionsInStep = activeStep().sections || [];
-    const moveItems = [
-      { label: "Duplică", icon: "copy", attrs: `data-fb-act="duplicate" data-id="${field.id}"` },
-      { label: "Salvează ca componentă", icon: "bookmark", attrs: `data-fb-act="save-preset" data-id="${field.id}"` },
-      ...(index > 0 ? [{ label: "Mută mai sus", icon: "arrow-up", attrs: `data-fb-act="up" data-id="${field.id}"` }] : []),
-      ...(index < total - 1 ? [{ label: "Mută mai jos", icon: "arrow-down", attrs: `data-fb-act="down" data-id="${field.id}"` }] : []),
-      ...sectionsInStep.filter((item) => item.id !== section.id).map((item) => ({ label: `Mută în „${tr(item.title) || "Secțiune"}”`, icon: "arrow-right", attrs: `data-fb-act="move-to" data-id="${field.id}" data-section="${item.id}"` })),
-      { label: "Șterge", icon: "delete", danger: true, attrs: `data-fb-act="delete" data-id="${field.id}"` },
-    ];
     return `
-      <article class="e-permits-builder__field${selected ? " is-selected" : ""}${errors.length ? " has-issue" : ""}" data-builder-field data-id="${field.id}" data-type="${field.type}" data-span="${spanOf(field)}" tabindex="0" aria-label="${esc(meta.label)}: ${esc(name)}, lățime ${spanOf(field)} din 12${field.required ? ", obligatoriu" : ""}${field.type === "hidden" ? ", ascuns pentru solicitant" : ""}" aria-describedby="${KBD_HINT_ID}">
+      <article class="e-permits-builder__field${selected ? " is-selected" : ""}${anyError ? " has-issue" : ""}" data-builder-field data-id="${field.id}" data-type="${field.type}" data-span="${spanOf(field)}" tabindex="0" aria-label="${esc(meta.label)}: ${esc(name)}, lățime ${spanOf(field)} din 12${field.required ? ", obligatoriu" : ""}${field.type === "hidden" ? ", ascuns pentru solicitant" : ""}" aria-describedby="${KBD_HINT_ID}">
         <div class="e-permits-builder__field-tools">
           <div class="e-permits-builder__field-meta">
             <span class="e-permits-builder__drag-grip" aria-hidden="true">${icon("icon-drag", 16)}</span>
-            <em class="e-permits-builder__tag e-permits-builder__tag--strong" data-cell-tooltip>${esc(meta.label)}</em>
+            <em class="e-permits-builder__tag e-permits-builder__tag--strong" data-tooltip-text="${esc(meta.label)}">${esc(SHORT_TAG[field.type] || meta.label)}</em>
             <em class="e-permits-builder__tag e-permits-builder__tag--outlined" data-fb-span-tag>${spanOf(field)}/12</em>
             ${field.type === "grid" ? `<em class="e-permits-builder__tag e-permits-builder__tag--outlined" data-fb-col-count>${kidsOf(field).length} ${kidsOf(field).length === 1 ? "coloană" : "coloane"}</em>` : ""}
           </div>
           <div class="e-permits-builder__field-actions">
             ${field.type === "grid" ? `<button class="btn btn-secondary btn-sm" type="button" data-gb-open="${field.id}">${icon("icon-edit", 16)}<span>Editează grila</span></button>` : ""}
-            ${ui().renderStackMenu?.(moveItems, name) || ""}
+            <button class="btn btn-text-neutral btn-sm btn-icon-only" type="button" aria-label="Duplică: ${esc(name)}" data-tooltip-label="Duplică" data-fb-act="duplicate" data-id="${field.id}">${icon("icon-copy", 16)}</button>
+            <button class="btn btn-text-destructive btn-sm btn-icon-only" type="button" aria-label="Șterge: ${esc(name)}" data-tooltip-label="Șterge" data-fb-act="delete" data-id="${field.id}">${icon("icon-delete", 16)}</button>
           </div>
         </div>
-        ${isContainer(field) && field.type !== "grid" ? subsStripHtml(field) : ""}
-        <div class="e-permits-builder__field-render"${field.type === "grid" && kidsOf(field).length ? "" : " inert"}>${field.type === "hidden" ? hiddenMarkerHtml(field) : isContainer(field) && !kidsOf(field).length ? emptyContainerHtml(field) : (field.type === "grid" && window.GEAPGridBuilder?.summaryHtml?.(field)) || foHtml(field, { prefix: "cv", inCard: true })}</div>
-        ${/* card-foot-v1 (user 2026-11-20): no technical key, no „Salvată” tag on the cards (key = panel › Avansat);
-             the foot only shows rules and errors */ !errors.length && !(field.rules || []).length ? "" : `
+        ${cardBodyHtml(field)}
+        ${!errors.length && !(field.rules || []).length ? "" : `
         <div class="e-permits-builder__field-foot">
           ${(field.rules || []).length ? `<em class="e-permits-builder__tag e-permits-builder__tag--outlined">${field.rules.length} ${field.rules.length === 1 ? "regulă" : "reguli"}</em>` : ""}
           ${errors.length ? `<em class="e-permits-builder__tag e-permits-builder__tag--warning" data-tooltip-text="${esc(errors[0].message)}">${icon("icon-warning-filled", 16)}${esc(errors[0].short || errors[0].message)}</em>` : ""}
         </div>`}
-        ${isFixedWidth(field) ? "" : '<button class="e-permits-builder__field-resize" type="button" tabindex="-1" aria-hidden="true" data-fb-resize></button>'}
+        ${isFixedWidth(field) ? "" : `<button class="e-permits-builder__field-resize" type="button" tabindex="-1" aria-hidden="true" data-fb-resize></button>`}
       </article>`;
   }
 
@@ -1338,7 +1446,7 @@ document.addEventListener("DOMContentLoaded", () => {
               ${icon("icon-plus-small", 16)}<span>Adaugă câmp</span>
             </button>
             <ul class="e-permits-fo-intent-menu e-permits-stack__menu e-permits-builder__add-menu" id="fb-add-${section.id}" role="menu" aria-label="Adaugă o componentă în secțiune" hidden data-stack-menu>
-              ${Object.keys(COMPONENTS).filter((type) => isUsable(type) && !COMPONENTS[type].structural).map((type) => `
+              ${Object.keys(COMPONENTS).filter((type) => isUsable(type) && !COMPONENTS[type].structural && !COMPONENTS[type].noPalette).map((type) => `
                 <li role="none"><button class="e-permits-fo-intent-menu__item" type="button" role="menuitem" data-fb-add-type="${type}" data-section="${section.id}">${icon(COMPONENTS[type].icon)}<span>${esc(COMPONENTS[type].label)}</span></button></li>`).join("")}
             </ul>
           </div>
@@ -1464,7 +1572,7 @@ document.addEventListener("DOMContentLoaded", () => {
       total: 12,
       options: SPANS.map((value, i) => [value, value - (SPANS[i - 1] || 0), `${value}/12`, `${value} din 12 coloane — ${SPAN_TEXT[value]}`]),
       label: `Lățime: ${span} din 12 coloane`,
-      caption: `<strong>${span}/12</strong> · ${SPAN_TEXT[span] || ""}`,
+      caption: `<strong>${span}/12</strong> · ${SPAN_CAPTION[span] || ""}`,
       disabled: fixed,
       reason,
     });
@@ -1486,9 +1594,10 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   /* a titled group of the panel = the drawer section (components.md drawers) */
-  const group = (title, body, { id = "" } = {}) => `
+  /* fb-v3: `info` = an ⓘ after the heading (library tooltip hint, like the October „Label ⓘ” / „Width ⓘ”) */
+  const group = (title, body, { id = "", info = "" } = {}) => `
     <section class="e-permits-user-create__section e-permits-builder__group"${id ? ` data-fb-group="${id}"` : ""}>
-      <h3 class="e-permits-user-create__section-title">${esc(title)}</h3>
+      <h3 class="e-permits-user-create__section-title">${esc(title)}${info ? `<button class="e-permits-fo-role-info e-permits-builder__group-info" type="button" aria-label="Despre „${esc(title)}”" data-tooltip-hint="${esc(info)}">${icon("icon-circle-info", 16)}</button>` : ""}</h3>
       <div class="e-permits-user-create__section-content">${body}</div>
     </section>`;
   const grid = (body) => `<div class="e-permits-user-create__grid e-permits-builder__panel-grid">${body}</div>`;
@@ -1885,6 +1994,7 @@ document.addEventListener("DOMContentLoaded", () => {
       { label: "Salvează ca componentă", icon: "bookmark", attrs: `data-fb-act="save-preset" data-id="${field.id}"` },
       ...(index > 0 ? [{ label: "Mută mai sus", icon: "arrow-up", attrs: `data-fb-act="up" data-id="${field.id}"` }] : []),
       ...(index < section.fields.length - 1 ? [{ label: "Mută mai jos", icon: "arrow-down", attrs: `data-fb-act="down" data-id="${field.id}"` }] : []),
+      ...(step.sections || []).filter((item) => item.id !== section.id).map((item) => ({ label: `Mută în „${tr(item.title) || "Secțiune"}”`, icon: "arrow-right", attrs: `data-fb-act="move-to" data-id="${field.id}" data-section="${item.id}"` })),
       { label: "Șterge", icon: "delete", danger: true, attrs: `data-fb-act="delete" data-id="${field.id}"` },
     ];
     let body = "";
@@ -2149,27 +2259,26 @@ document.addEventListener("DOMContentLoaded", () => {
       radio: `<div class="e-permits-fo-field"><label id="fb-orientation-label">Orientare</label>${segmented({ prop: "orientation", value: field.orientation || "vertical", options: [["vertical", "Verticală"], ["horizontal", "Orizontală"]], labelledBy: "fb-orientation-label" })}</div>`,
     }[t] || "";
     const counter = ["text", "textarea"].includes(t) ? `<div class="e-permits-check-options">${checkOption({ prop: "counter", label: "Contor de caractere", checked: field.counter })}</div>` : "";
-    const aspect = t === "hidden" ? "" : column ? group("Aspect", `
+    /* fb-v3 (October look): „Lățime ⓘ” is its own section — the joined picker + „12/12 · tot rândul (1 pe rând)” */
+    const WIDTH_INFO = "Formularul are 12 coloane. Lățimea spune câte coloane ocupă câmpul pe calculator; pe telefon, fiecare câmp ocupă tot rândul.";
+    const width = t === "hidden" ? "" : column ? group("Lățime", `
         <div class="e-permits-fo-field">
-          <span class="e-permits-builder__width-label" aria-hidden="true">Lățime coloană</span>
           ${columnPicker(field)}
           <p class="e-permits-fo-field__hint">Câmpurile rândului stau unul lângă altul, pe 12 coloane. Pe telefon, toate pe toată lățimea.</p>
-        </div>
-        ${format}
-        ${counter}`) : group("Aspect", `
+        </div>`, { id: "width", info: WIDTH_INFO }) : group("Lățime", `
         <div class="e-permits-fo-field">
-          <span class="e-permits-builder__width-label" aria-hidden="true">Lățime</span>
           ${isFixedWidth(field)
             ? spanPicker(field, { fixed: true, reason: t === "idnp" ? "Cu verificarea în RSP, IDNP-ul, numele și prenumele ocupă tot rândul." : "Componenta ocupă mereu tot rândul." })
-            : spanPicker(field, { reason: "Pe telefon, toată lățimea." })}
-        </div>
+            : spanPicker(field)}
+        </div>`, { id: "width", info: WIDTH_INFO });
+    const aspect = format || counter ? group("Aspect", `
         ${format}
-        ${counter}
-      `);
+        ${counter}`) : "";
     return `
       ${presetLinkHtml(field)}
       ${translatables.length ? langSwitch(translatables) : ""}
-      ${group(content ? "Conținut" : t === "consent" ? "Declarație" : t === "hidden" ? "Denumire" : "Etichetă și ajutor", grid(labelBlock))}
+      ${group(content ? "Conținut" : t === "consent" ? "Declarație" : t === "hidden" ? "Denumire" : "Etichetă", grid(labelBlock), { info: content || t === "hidden" ? "" : "Textul pe care îl vede solicitantul deasupra câmpului, cu ajutorul de sub el. Se traduce în RU și EN din comutatorul Limba textelor." })}
+      ${width}
       ${textsBlock}
       ${keyBlock}
       ${behaviour}
@@ -2581,18 +2690,31 @@ document.addEventListener("DOMContentLoaded", () => {
             ${part.parent ? `<p class="e-permits-builder__part-cascade">${icon("icon-arrow-right", 16)}<span>Se filtrează după <strong>${esc(part.parent)}</strong></span></p>` : ""}
             ${part.note ? `<p class="e-permits-fo-field__hint">${esc(part.note)}</p>` : ""}
             ${part.noDefault ? "" : grid(inputField({ prop: `address.${part.key}.defaultValue`, label: "Valoare implicită", value: part.defaultValue || "", placeholder: "Nicio valoare", attrs: `data-fb-address-default="${part.key}"` }))}`;
+          /* fb-v3 (October look): one compact row — name + type tag · ✱ obligatoriu (toggle) · ✓ vizibil · ⌄ details;
+             the open row keeps the labelled Vizibil / Obligatoriu checkboxes (product rule: Obligatoriu = checkbox ✱) */
           return `
-            <li class="e-permits-builder__part${part.visible ? "" : " is-muted"}${isOpen ? " is-open" : ""}" data-address-item="${part.key}">
+            <li class="e-permits-builder__part e-permits-builder__part--row${part.visible ? "" : " is-muted"}${isOpen ? " is-open" : ""}" data-address-item="${part.key}">
               <div class="e-permits-builder__part-head">
-                <strong>${esc(part.label)}</strong>
-                <em class="e-permits-builder__tag e-permits-builder__tag--outlined">${esc(part.kind)}</em>
-                <button class="btn btn-strict btn-sm btn-icon-only e-permits-builder__part-toggle" type="button" aria-expanded="${isOpen}" aria-controls="fb-part-${part.key}" aria-label="Detalii: ${esc(part.label)}" data-address-toggle-section="${part.key}">${icon("icon-chevron-bottom", 16)}</button>
+                <span class="e-permits-builder__part-name">
+                  <strong data-cell-tooltip>${esc(part.label)}</strong>
+                  <em class="e-permits-builder__tag e-permits-builder__tag--outlined">${esc(part.kind)}</em>
+                </span>
+                <span class="e-permits-builder__part-actions">
+                  <button class="btn btn-text-neutral btn-sm btn-icon-only e-permits-builder__part-required" type="button" aria-pressed="${Boolean(part.required)}" aria-label="Obligatoriu: ${esc(part.label)}" data-tooltip-label="${part.required ? "Obligatoriu" : "Opțional"}"${part.visible ? "" : ` aria-disabled="true" data-tooltip-reason="Partea este ascunsă."`} data-address-required-chip="${part.key}">${icon("icon-asterisk", 16)}</button>
+                  <label class="checkbox checkbox--medium e-permits-builder__part-visible" data-tooltip-label="${part.visible ? "Vizibil" : "Ascuns"}">
+                    <input class="checkbox-input" type="checkbox"${part.visible ? " checked" : ""} aria-label="Vizibil: ${esc(part.label)}" data-address-visible="${part.key}">
+                    <span class="checkbox-custom" aria-hidden="true"></span>
+                  </label>
+                  <button class="btn btn-text-neutral btn-sm btn-icon-only e-permits-builder__part-toggle" type="button" aria-expanded="${isOpen}" aria-controls="fb-part-${part.key}" aria-label="Detalii: ${esc(part.label)}" data-address-toggle-section="${part.key}">${icon("icon-chevron-bottom", 16)}</button>
+                </span>
               </div>
-              <div class="e-permits-check-options">
-                ${ui().renderCheckOption?.({ label: "Vizibil", checked: part.visible, attrs: `data-address-visible="${part.key}"` }) || ""}
-                ${ui().renderCheckOption?.({ label: "Obligatoriu", required: true, checked: part.required, disabled: !part.visible, reason: "Partea este ascunsă.", attrs: `data-address-required="${part.key}"` }) || ""}
+              <div class="e-permits-builder__part-body" id="fb-part-${part.key}"${isOpen ? "" : " hidden"}>
+                <div class="e-permits-check-options">
+                  ${ui().renderCheckOption?.({ label: "Vizibil", checked: part.visible, attrs: `data-address-visible="${part.key}"` }) || ""}
+                  ${ui().renderCheckOption?.({ label: "Obligatoriu", required: true, checked: part.required, disabled: !part.visible, reason: "Partea este ascunsă.", attrs: `data-address-required="${part.key}"` }) || ""}
+                </div>
+                ${details}
               </div>
-              <div class="e-permits-builder__part-body" id="fb-part-${part.key}"${isOpen ? "" : " hidden"}>${details}</div>
             </li>`;
         }).join("")}
       </ul>`);
@@ -3919,6 +4041,14 @@ document.addEventListener("DOMContentLoaded", () => {
     if (test) { runTest(); return; }
     if (event.target.closest("[data-fb-browse]")) { openRegistry(); return; }
     if (event.target.closest("[data-fb-create-classifier]")) { createClassifier(); return; }
+    const reqChip = event.target.closest("[data-address-required-chip]");
+    if (reqChip) {
+      if (reqChip.getAttribute("aria-disabled") === "true") return;
+      const key = reqChip.dataset.addressRequiredChip;
+      addressToggle(key, { required: reqChip.getAttribute("aria-pressed") !== "true" });
+      el.panel.querySelector(`[data-address-required-chip="${key}"]`)?.focus();
+      return;
+    }
     const partToggle = event.target.closest("[data-address-toggle-section]");
     if (partToggle) {
       const field = selectedTarget();
@@ -4322,6 +4452,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
   /* ---- palette: click = add at the end of the active section; drag = drop where shown */
   el.library.addEventListener("click", (event) => {
+    const goto = event.target.closest("[data-fb-lib-goto]");
+    if (goto) {
+      const id = goto.dataset.fbLibGoto;
+      if (state.mode !== "build") setMode("build");
+      const found = findField(id);
+      if (found && found.step !== activeStep()) state.stepId = found.step.id;
+      select("field", id, { tab: goto.dataset.fbLibGotoTab });
+      el.canvas.querySelector(`[data-builder-field][data-id="${id}"]`)?.scrollIntoView({ block: "center" });
+      return;
+    }
     const item = event.target.closest("[data-builder-component]");
     if (!item || item.getAttribute("aria-disabled") === "true") return;
     const type = item.dataset.builderComponent;
@@ -4331,6 +4471,25 @@ document.addEventListener("DOMContentLoaded", () => {
     el.library.querySelector(`[data-builder-component="${type}"]${item.dataset.fbPreset ? `[data-fb-preset="${item.dataset.fbPreset}"]` : ":not([data-fb-preset])"}`)?.focus();
   });
   el.search?.addEventListener("input", () => { state.query = el.search.value; renderLibrary(); });
+  /* library tabs (segmented, role tablist): click / ← → / Home / End */
+  const libTabs = builder.querySelector("[data-fb-lib-tabs]");
+  const setLibTab = (tab, focus = false) => {
+    state.libTab = tab;
+    renderLibrary();
+    if (focus) libTabs.querySelector(`[data-fb-lib-tab="${tab}"]`)?.focus();
+  };
+  libTabs?.addEventListener("click", (event) => {
+    const button = event.target.closest("[data-fb-lib-tab]");
+    if (button) setLibTab(button.dataset.fbLibTab);
+  });
+  libTabs?.addEventListener("keydown", (event) => {
+    const keys = LIB_TABS.map(([key]) => key);
+    const i = keys.indexOf(state.libTab);
+    const next = { ArrowRight: i + 1, ArrowLeft: i - 1, Home: 0, End: keys.length - 1 }[event.key];
+    if (next === undefined) return;
+    event.preventDefault();
+    setLibTab(keys[(next + keys.length) % keys.length], true);
+  });
   el.search?.closest(".search-input")?.querySelector(".btn-icon.clear")?.addEventListener("click", () => { state.query = ""; window.setTimeout(renderLibrary, 0); });
 
   /* ======================================================= drag and drop */
@@ -4555,7 +4714,40 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  /* ---- width by dragging the right edge: snaps to 3 · 4 · 6 · 8 · 12 */
+  /* ---- width by dragging the right edge: snaps to 3 · 4 · 6 · 8 · 12. fb-v3 (October look, ported from
+     80311315 `resizeGuideLayer`): while dragging, the section's 12 columns show BEHIND the cards, the target
+     span is highlighted, the card + its „n/12” tag follow live; Esc cancels (back to the start width) */
+  function resizeGuides(gridEl, card, span) {
+    let layer = gridEl.querySelector(":scope > .e-permits-builder__resize-guides");
+    if (!layer) {
+      layer = document.createElement("div");
+      layer.className = "e-permits-builder__resize-guides";
+      layer.setAttribute("aria-hidden", "true");
+      layer.innerHTML = `${Array.from({ length: 12 }, () => '<span class="e-permits-builder__resize-col"></span>').join("")}<span class="e-permits-builder__resize-guide is-active"><em class="e-permits-builder__tag e-permits-builder__tag--strong" data-fb-guide-span></em></span>`;
+      gridEl.prepend(layer);
+    }
+    const gap = parseFloat(getComputedStyle(gridEl).columnGap) || 0;
+    const gridRect = gridEl.getBoundingClientRect();
+    const cardRect = card.getBoundingClientRect();
+    const step = (gridEl.clientWidth - gap * 11) / 12 + gap;
+    const start = Math.max(0, Math.min(11, Math.round((cardRect.left - gridRect.left) / step)));
+    /* runtime geometry (rows move while dragging): the layer covers the card's row only */
+    layer.style.top = `${Math.round(cardRect.top - gridRect.top)}px`;
+    layer.style.height = `${Math.round(cardRect.height)}px`;
+    const guide = layer.querySelector(".e-permits-builder__resize-guide");
+    guide.style.gridColumn = `${start + 1} / span ${Math.min(span, 12 - start)}`;
+    layer.querySelectorAll(".e-permits-builder__resize-col").forEach((col, i) => {
+      col.classList.toggle("is-in", i >= start && i < start + span);
+      col.classList.toggle("is-snap", SPANS.includes(i - start + 1) && i >= start);
+    });
+    guide.querySelector("[data-fb-guide-span]").textContent = `${span}/12`;
+    gridEl.classList.add("is-guiding-resize");
+  }
+  let cancelResize = null;
+  function clearResizeGuides(gridEl) {
+    gridEl?.classList.remove("is-guiding-resize");
+    gridEl?.querySelector(":scope > .e-permits-builder__resize-guides")?.remove();
+  }
   el.canvas.addEventListener("pointerdown", (event) => {
     const handle = event.target.closest("[data-fb-resize]");
     if (!handle || event.button !== 0) return;
@@ -4572,38 +4764,46 @@ document.addEventListener("DOMContentLoaded", () => {
     card.draggable = false;
     card.classList.add("is-resizing-field");
     builder.classList.add("is-field-resizing");
+    resizeGuides(gridEl, card, span);
     const pointerId = event.pointerId;
     try { handle.setPointerCapture?.(pointerId); } catch { /* the pointer is already gone */ }
+    const apply = (next) => {
+      span = next;
+      card.dataset.span = String(span);
+      const tag = card.querySelector("[data-fb-span-tag]");
+      if (tag) tag.textContent = `${span}/12`;
+      resizeGuides(gridEl, card, span);
+    };
     const move = (e) => {
       const raw = startSpan + Math.round((e.clientX - startX) / step);
       const next = SPANS.reduce((best, value) => (Math.abs(value - raw) < Math.abs(best - raw) ? value : best), SPANS[0]);
-      if (next !== span) {
-        span = next;
-        card.dataset.span = String(span);
-        const tag = card.querySelector("[data-fb-span-tag]");
-        if (tag) tag.textContent = `${span}/12`;
-      }
+      if (next !== span) apply(next);
     };
-    /* ends on pointerup / pointercancel / a lost capture / window blur — once, capture released */
+    /* ends on pointerup / pointercancel / a lost capture / window blur — once, capture released; Esc = cancel */
     let stopped = false;
-    const stop = () => {
+    const stop = (cancel = false) => {
       if (stopped) return;
       stopped = true;
       window.removeEventListener("pointermove", move);
-      window.removeEventListener("pointerup", stop);
-      window.removeEventListener("pointercancel", stop);
-      window.removeEventListener("blur", stop);
-      handle.removeEventListener("lostpointercapture", stop);
+      window.removeEventListener("pointerup", onUp);
+      window.removeEventListener("pointercancel", onUp);
+      window.removeEventListener("blur", onUp);
+      cancelResize = null;
+      handle.removeEventListener("lostpointercapture", onUp);
       try { if (handle.hasPointerCapture?.(pointerId)) handle.releasePointerCapture(pointerId); } catch { /* released */ }
       builder.classList.remove("is-field-resizing");
       card.classList.remove("is-resizing-field");
+      clearResizeGuides(gridEl);
+      if (cancel) { apply(startSpan); clearResizeGuides(gridEl); announce(`Redimensionare anulată. Lățime ${startSpan} din 12.`); return; }
       if (span !== startSpan) { state.sel = { kind: "field", id }; setSpan(id, span); } else select("field", id);
     };
+    const onUp = () => stop(false);
+    cancelResize = () => stop(true);
     window.addEventListener("pointermove", move);
-    window.addEventListener("pointerup", stop);
-    window.addEventListener("pointercancel", stop);
-    window.addEventListener("blur", stop);
-    handle.addEventListener("lostpointercapture", stop);
+    window.addEventListener("pointerup", onUp);
+    window.addEventListener("pointercancel", onUp);
+    window.addEventListener("blur", onUp);
+    handle.addEventListener("lostpointercapture", onUp);
   });
 
   /* ---- topbar: issues list → select + open the tab; publish blocked with a reason */
@@ -4673,6 +4873,8 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!overlay?.classList.contains("is-active")) return;
     if (event.key === "Escape") {
       if (overlay.classList.contains("is-view-only")) return;
+      /* a width resize in progress: Esc cancels it (back to the start width), nothing else */
+      if (cancelResize) { event.preventDefault(); event.stopImmediatePropagation(); cancelResize(); return; }
       /* a grid row being edited in the Preview (or its delete dialog): Esc is the grid's (js/fo-grid.js) */
       if (window.GEAPFoRepeat?.escape?.(event.target)) { event.preventDefault(); event.stopImmediatePropagation(); return; }
       if (registryModal && !registryModal.hidden) { event.preventDefault(); event.stopImmediatePropagation(); closeRegistry(); return; }
@@ -4722,6 +4924,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const pointerId = event.pointerId;
       try { handle.setPointerCapture?.(pointerId); } catch { /* the pointer is already gone */ }
       builder.classList.add("is-resizing");
+      handle.classList.add("is-dragging");
       const resize = (e) => {
         const box = el.workspace.getBoundingClientRect();
         if (side === "left") el.workspace.style.setProperty("--builder-left-width", `${Math.round(Math.min(Math.max(e.clientX - box.left, 260), Math.max(260, box.width - startRight - 560)))}px`);
@@ -4733,6 +4936,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (stopped) return;
         stopped = true;
         builder.classList.remove("is-resizing");
+        handle.classList.remove("is-dragging");
         window.removeEventListener("pointermove", resize);
         window.removeEventListener("pointerup", stop);
         window.removeEventListener("pointercancel", stop);

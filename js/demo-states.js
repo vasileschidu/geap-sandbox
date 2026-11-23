@@ -2323,7 +2323,7 @@
       return {
         "adr-01": bld(expand),
         "adr-01a": bld(async (h) => { await h.click("[data-address-visible='cadastral']"); }),
-        "adr-01b": bld(async (h) => { await h.click("[data-address-required='cadastral']"); await expand(h); }),
+        "adr-01b": bld(async (h) => { await h.click("[data-address-required-chip='cadastral']"); await expand(h); }),
         "adr-02": adr(),
         "adr-02a": adr({}, openList),
         "adr-02b": adr({ solicitant: "pj-vita-plant" }, openList),
@@ -2731,7 +2731,8 @@
         target.dispatchEvent(new DragEvent("dragover", { bubbles: true, cancelable: true, dataTransfer: dt, clientX: r.left + 20, clientY: r.top + r.height / 2 }));
         await h.wait(200);
       };
-      const menu = (id) => async (h) => { await h.click(`${card(id)} [data-stack-menu-trigger]`); };
+      /* fb-v3: the card shows ⧉ / 🗑 only; the other field actions live in the panel ⋮ (select the card first) */
+      const menu = (id) => async (h) => { await h.click(card(id)); await h.click(".e-permits-builder__panel-title-row [data-stack-menu-trigger]"); };
       /* a hidden native select behind a fo-select: pick the option whose text contains `text` */
       const chooseText = async (h, selector, text) => {
         for (let i = 0; i < 100 && !document.querySelector(selector); i += 1) await h.wait(100);
@@ -2754,6 +2755,61 @@
         /* 01 empty service step (new step, one empty section), nothing selected → Date generale */
         "fb-01": fb(async (h) => { await h.click("[data-fb-add-step]"); await h.click("[data-fb-select-form]"); }),
         "fb-01a": fb(async (h) => { await h.fill("[data-builder-library-search]", "dat", { leave: false }); }),
+        /* fb-v3 (October look, 2026-11-23): canvas cards + library tabs; selected field › Lățime; resize frozen mid-drag
+           with the 12-column guides; address parts (✱ · ✓ · ⌄) */
+        "fb-v3-01": fb(async (h) => { await h.scroll(card("fld-raion")); }),
+        "fb-v3-01a": fb(async (h) => { await h.click("[data-fb-lib-tab='variants']"); }),
+        "fb-v3-01b": fb(async (h) => { await h.click("[data-fb-lib-tab='logic']"); }),
+        "fb-v3-01c": fb(async (h) => { await h.click("[data-fb-lib-tab='labels']"); }),
+        "fb-v3-02": fb(async (h) => { await pick("fld-raion")(h); await h.scroll(".e-permits-builder__panel [data-fb-group='width']"); }),
+        "fb-v3-03": fb(async (h) => {
+          const target = await h.scroll(card("fld-raion"));
+          target.dispatchEvent(new MouseEvent("mouseover", { bubbles: true }));
+          const handle = target.querySelector("[data-fb-resize]");
+          const r = handle.getBoundingClientRect();
+          const x = r.left + r.width / 2, y = r.top + r.height / 2;
+          handle.dispatchEvent(new PointerEvent("pointerdown", { bubbles: true, cancelable: true, button: 0, buttons: 1, pointerId: 7, clientX: x, clientY: y }));
+          const grid = target.closest("[data-builder-grid]");
+          const step = (grid.clientWidth + 10) / 12;
+          window.dispatchEvent(new PointerEvent("pointermove", { bubbles: true, buttons: 1, pointerId: 7, clientX: x + step * 2.2, clientY: y }));
+          await h.wait(300);
+        }),
+        /* resize self-check: Esc mid-drag restores 4/12 and removes the guides; then Alt + → on the card = 6/12 */
+        "fb-v3-03e": fb(async (h) => {
+          const target = await h.scroll(card("fld-raion"));
+          const handle = target.querySelector("[data-fb-resize]");
+          const r = handle.getBoundingClientRect();
+          handle.dispatchEvent(new PointerEvent("pointerdown", { bubbles: true, cancelable: true, button: 0, buttons: 1, pointerId: 7, clientX: r.left, clientY: r.top }));
+          window.dispatchEvent(new PointerEvent("pointermove", { bubbles: true, buttons: 1, pointerId: 7, clientX: r.left + 200, clientY: r.top }));
+          await h.wait(100);
+          const mid = document.querySelector(card("fld-raion")).dataset.span;
+          window.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true, cancelable: true }));
+          await h.wait(200);
+          const after = document.querySelector(card("fld-raion")).dataset.span;
+          const guides = document.querySelectorAll(".e-permits-builder__resize-guides").length;
+          if (mid === "4" || after !== "4" || guides) throw new Error(`esc test mid=${mid} after=${after} guides=${guides}`);
+          const c = document.querySelector(card("fld-raion")); c.focus();
+          c.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowRight", altKey: true, bubbles: true, cancelable: true }));
+          await h.wait(300);
+          const k = document.querySelector(card("fld-raion")).dataset.span;
+          if (k !== "6") throw new Error(`alt test span=${k}`);
+        }),
+        /* side panel resized by its edge, frozen mid-drag: the split handle widened with its 3-dot grip */
+        "fb-v3-05": fb(async (h) => {
+          if (window.innerWidth < 961) return; /* the panels stack on phones: no edge handle */
+          const handle = await h.find("[data-builder-resize-panel='left']");
+          const r = handle.getBoundingClientRect();
+          handle.dispatchEvent(new PointerEvent("pointerdown", { bubbles: true, cancelable: true, button: 0, buttons: 1, pointerId: 9, clientX: r.left, clientY: r.top }));
+          window.dispatchEvent(new PointerEvent("pointermove", { bubbles: true, buttons: 1, pointerId: 9, clientX: r.left + 60, clientY: r.top }));
+          await h.wait(300);
+          if (!(parseFloat(document.querySelector("[data-builder-workspace]").style.getPropertyValue("--builder-left-width")) > 340)) throw new Error("panel did not resize");
+        }),
+        "fb-v3-04": fb(async (h) => {
+          await h.click("[data-builder-component='address']");
+          await h.click("[data-builder-prop-tab='data']");
+          await h.click("[data-address-toggle-section='cadastral']");
+          await h.scroll("[data-address-item='street']");
+        }),
         "fb-01b": fb(async (h) => { await h.click("[data-fb-add-trigger='sec-object']"); }),
         "fb-02": fb(async (h) => { await h.click("[data-fb-select-form]"); await h.scroll("[data-fb-group-languages]"); }),
         "fb-03": fb(async (h) => { await h.click("[data-fb-step='st-details']"); }),
@@ -2797,8 +2853,8 @@
         "fb-11a": fb(async (h) => { await pick("fld-phone")(h); await menu("fld-phone")(h); }),
         "fb-11b": fb(async (h) => { await pick("fld-email")(h); const el = await h.find(card("fld-email")); el.focus(); key(el, "ArrowUp", { altKey: true }); await h.wait(400); }),
         /* delete without a modal → toast with „Anulează”; 12a = undone */
-        "fb-12": fb(async (h) => { await menu("fld-phone")(h); await h.click("[data-fb-act='delete'][data-id='fld-phone']"); }),
-        "fb-12a": fb(async (h) => { await menu("fld-phone")(h); await h.click("[data-fb-act='delete'][data-id='fld-phone']"); await h.click(".toast [data-toast-action]"); }),
+        "fb-12": fb(async (h) => { await h.click(`${card("fld-phone")} [data-fb-act='delete']`); }),
+        "fb-12a": fb(async (h) => { await h.click(`${card("fld-phone")} [data-fb-act='delete']`); await h.click(".toast [data-toast-action]"); }),
         /* validation summary: 3 errors + translation warnings; 13a = a row jumps to the field's tab */
         "fb-13": fb(async (h) => {
           await lib("select")(h);

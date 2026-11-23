@@ -1950,3 +1950,326 @@ body:has(.form-builder-modal-overlay.is-active) :is(#case-action-modal, #pending
 .e-permits-fo-activity-card__title .e-permits-fo-role-info {
   margin-left: calc(var(--spacing-4, 4px) * -1);
 }
+
+/* ===== fb-v3 — the October look on today's engine (2026-11-23, from 80311315 / Figma 3182:60427) =====
+   card = tools row (grip · type · n/12 · ⧉ 🗑) + label row (name ✱ · key tag) + grey compact preview + „Sursă”
+   line; the old `__field-body / __field-label / __field-preview / __field-state` rules in
+   e-permits-acte-permisive.css draw the parts, the rules below only add what the engine needs. */
+.e-permits-builder__field-label strong {
+  align-items: center;
+  display: flex;
+  gap: var(--spacing-4, 4px);
+}
+
+.e-permits-builder__field-label strong .e-permits-fo-required,
+.e-permits-builder__address-token .e-permits-fo-required {
+  flex: 0 0 auto;
+}
+
+.e-permits-builder__field-preview {
+  color: var(--color-text-base-tertiary, #757575);
+  font-size: var(--font-size-fs-14, 14px);
+  gap: var(--spacing-8, 8px);
+  line-height: var(--line-height-lh-20, 20px);
+}
+
+.e-permits-builder__field-preview .icon {
+  color: var(--color-icon-base-tertiary, #757575);
+  flex: 0 0 auto;
+}
+
+.e-permits-builder__field-preview em {
+  color: var(--color-text-base-tertiary, #757575);
+  flex: 0 0 auto;
+  font-style: normal;
+}
+
+.e-permits-builder__field-preview--multiline {
+  align-items: flex-start;
+  min-height: var(--spacing-64, 64px);
+  padding-bottom: var(--spacing-8, 8px);
+  padding-top: var(--spacing-8, 8px);
+}
+
+.e-permits-builder__field-preview--check {
+  justify-content: flex-start;
+}
+
+.e-permits-builder__field-state .e-permits-builder__tag .icon {
+  height: var(--spacing-16, 16px);
+  width: var(--spacing-16, 16px);
+}
+
+.e-permits-builder__field-actions {
+  align-items: center;
+  display: flex;
+  gap: var(--spacing-2, 2px);
+}
+
+/* field hover (user 2026-11-23): an outer grey ring around the whole card; only the innermost element under the
+   cursor shows it — the section keeps its plain look while one of its fields is hovered */
+.e-permits-builder__field {
+  transition: border-color 140ms var(--motion-easing-decelerate, ease-out), box-shadow 140ms var(--motion-easing-decelerate, ease-out);
+}
+
+.e-permits-builder__field:hover {
+  border-color: var(--color-border-base-secondary, #ccc);
+  box-shadow: 0 0 0 var(--spacing-4, 4px) var(--color-background-base-tertiary-hover, #d9d9d9);
+}
+
+.e-permits-builder__field:focus-visible:hover {
+  box-shadow: 0 0 0 2px var(--color-background-base-default, #fff), 0 0 0 5px var(--focus-ring, var(--blue-sky-500, #3379db));
+}
+
+.e-permits-builder__field.is-selected:hover {
+  border-color: var(--color-border-brand-default, #0058d2);
+  box-shadow: inset 0 0 0 var(--border-width-1, 1px) var(--color-border-brand-default, #0058d2), 0 0 0 var(--spacing-4, 4px) var(--color-background-brand-secondary-active, #99bced);
+}
+
+.e-permits-builder__step-section:not(.has-issue, .is-section-selected, .is-drop-active):hover:has(.e-permits-builder__field:hover) {
+  border-color: transparent;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .e-permits-builder__field {
+    transition: none;
+  }
+}
+
+/* ---- the split handle (user 2026-11-23, Claude.ai split pane): a slim white vertical pill with a 1.5 stroke;
+   hover / focus / dragging = it widens and shows a 3-dot grip; the same on the card's right edge and on the
+   side-panel edges (`__field-resize`, `__resize-handle`) */
+.e-permits-builder__resize-handle,
+.e-permits-builder__field-resize {
+  align-items: center;
+  appearance: none;
+  background: var(--color-background-base-default, #fff);
+  border: var(--border-width-1-5, 1.5px) solid var(--color-border-base-secondary, #ccc);
+  border-radius: var(--border-radius-full, 999px);
+  box-shadow: none;
+  box-sizing: border-box;
+  cursor: col-resize;
+  display: flex;
+  height: var(--spacing-32, 32px);
+  justify-content: center;
+  padding: 0;
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  transition: width 150ms var(--motion-easing-decelerate, ease-out), background-color 150ms var(--motion-easing-decelerate, ease-out), border-color 150ms var(--motion-easing-decelerate, ease-out);
+  width: var(--spacing-8, 8px);
+  z-index: 8;
+}
+
+.e-permits-builder__resize-handle--left {
+  left: 100%;
+  right: auto;
+}
+
+.e-permits-builder__resize-handle--right {
+  left: 0;
+}
+
+.e-permits-builder__field-resize {
+  left: 100%;
+  right: auto;
+}
+
+.e-permits-builder__resize-handle:hover,
+.e-permits-builder__resize-handle:focus-visible,
+.e-permits-builder.is-resizing .e-permits-builder__resize-handle.is-dragging,
+.e-permits-builder__field-resize:hover,
+.e-permits-builder__field-resize:focus-visible,
+.e-permits-builder__field.is-resizing-field .e-permits-builder__field-resize {
+  background-color: var(--color-background-base-default, #fff);
+  border-color: var(--color-border-base-tertiary, #444);
+  box-shadow: none;
+  color: var(--color-icon-base-tertiary, #757575);
+  outline: none;
+  width: var(--spacing-16, 16px);
+}
+
+.e-permits-builder__resize-handle:focus-visible,
+.e-permits-builder__field-resize:focus-visible {
+  box-shadow: 0 0 0 2px var(--color-background-base-default, #fff), 0 0 0 5px var(--focus-ring, var(--blue-sky-500, #3379db));
+}
+
+/* the grip: 3 dots (tertiary) in the middle, shown when the pill widens */
+.e-permits-builder__resize-handle::before,
+.e-permits-builder__field-resize::before {
+  background-image: radial-gradient(circle, var(--color-icon-base-tertiary, #757575) var(--border-width-1, 1px), transparent var(--border-width-2, 2px));
+  background-repeat: repeat-y;
+  background-size: var(--spacing-6, 6px) var(--spacing-6, 6px);
+  content: "";
+  height: calc(3 * var(--spacing-6, 6px));
+  opacity: 0;
+  transition: opacity 150ms var(--motion-easing-decelerate, ease-out);
+  width: var(--spacing-6, 6px);
+}
+
+.e-permits-builder__resize-handle:hover::before,
+.e-permits-builder__resize-handle:focus-visible::before,
+.e-permits-builder.is-resizing .e-permits-builder__resize-handle.is-dragging::before,
+.e-permits-builder__field-resize:hover::before,
+.e-permits-builder__field-resize:focus-visible::before,
+.e-permits-builder__field.is-resizing-field .e-permits-builder__field-resize::before {
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .e-permits-builder__resize-handle,
+  .e-permits-builder__field-resize {
+    transition: none;
+  }
+}
+
+/* ---- width resize guides (ported `resizeGuideLayer`): the section's 12 columns BEHIND the cards of the row,
+   the columns the card will cover tinted, the snap ends (3 · 4 · 6 · 8 · 12) marked, the span tag on the target */
+.e-permits-builder__resize-guides {
+  column-gap: inherit;
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  inset: auto 0;
+  pointer-events: none;
+  position: absolute;
+  z-index: 0;
+}
+
+.e-permits-builder__resize-col {
+  background: var(--color-background-base-secondary, #f5f5f5);
+  border-radius: var(--border-radius-8, 8px);
+  grid-row: 1;
+}
+
+.e-permits-builder__resize-col.is-in {
+  background: var(--color-background-brand-secondary, #e8f0fb);
+}
+
+.e-permits-builder__resize-col.is-snap {
+  box-shadow: inset calc(-1 * var(--border-width-2, 2px)) 0 0 var(--blue-sky-200, #ccdef6);
+}
+
+.e-permits-builder__resize-guides .e-permits-builder__resize-guide {
+  align-items: flex-end;
+  background: transparent;
+  border: var(--border-width-2, 2px) dashed var(--color-border-brand-default, #0058d2);
+  border-radius: var(--border-radius-12, 12px);
+  box-shadow: none;
+  display: flex;
+  grid-row: 1;
+  justify-content: flex-end;
+  opacity: 1;
+  padding: var(--spacing-8, 8px);
+  position: relative;
+}
+
+.e-permits-builder__grid.is-guiding-resize {
+  box-shadow: none;
+}
+
+.e-permits-builder__grid.is-guiding-resize > .e-permits-builder__field {
+  z-index: 1;
+}
+
+/* the resizing card goes see-through so the target columns read behind it */
+.e-permits-builder__field.is-resizing-field {
+  background: transparent;
+}
+
+/* ---- library tabs (Câmpuri · Variante · Logică · Etichetă) = library segmented control, full width */
+.e-permits-builder__lib-tabs {
+  display: flex;
+  width: 100%;
+}
+
+.e-permits-builder__lib-tabs .segment-item {
+  flex: 1 1 0;
+  min-width: 0;
+  padding-left: var(--spacing-4, 4px);
+  padding-right: var(--spacing-4, 4px);
+}
+
+/* ---- panel: „Lățime ⓘ” section, caption centred like the October panel */
+.e-permits-builder__group .e-permits-user-create__section-title {
+  align-items: center;
+  display: flex;
+  gap: var(--spacing-6, 6px);
+}
+
+.e-permits-builder__group-info {
+  flex: 0 0 auto;
+}
+
+.e-permits-builder__group[data-fb-group="width"] .e-permits-builder__width-caption {
+  text-align: center;
+}
+
+/* ---- address parts: one compact row (✱ obligatoriu toggle · ✓ vizibil · ⌄ details) */
+.e-permits-builder__part--row .e-permits-builder__part-head {
+  justify-content: space-between;
+}
+
+.e-permits-builder__part-name {
+  align-items: center;
+  display: flex;
+  gap: var(--spacing-8, 8px);
+  min-width: 0;
+}
+
+.e-permits-builder__part-name strong {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.e-permits-builder__part-actions {
+  align-items: center;
+  display: flex;
+  flex: 0 0 auto;
+  gap: var(--spacing-8, 8px);
+}
+
+.e-permits-builder__part--row .e-permits-builder__part-toggle {
+  margin-left: 0;
+}
+
+.e-permits-builder__part-required[aria-pressed="true"] {
+  background: var(--color-background-base-tertiary, #f1f1f1);
+  color: var(--color-text-danger-default, #d92d20);
+}
+
+.e-permits-builder__part-required[aria-pressed="true"]:hover {
+  background: var(--color-background-base-tertiary-hover, #d9d9d9);
+}
+
+.e-permits-builder__part-required[aria-disabled="true"] {
+  color: var(--color-icon-disabled-on-disabled, #ccc);
+  cursor: not-allowed;
+}
+
+.e-permits-builder__part-visible {
+  cursor: pointer;
+}
+
+/* the key tag yields first: the label keeps at least half of the row */
+.e-permits-builder__field-label em {
+  max-width: 40%;
+}
+
+/* a narrow card (3/12, 4/12 beside the panels): the type tag keeps its short name — the decorative grip goes
+   (the tools row still drags the card) */
+.e-permits-builder__grid > .e-permits-builder__field {
+  container-type: inline-size;
+}
+
+@container (max-width: 240px) {
+  .e-permits-builder__field-meta .e-permits-builder__drag-grip {
+    display: none;
+  }
+}
+
+.e-permits-builder.is-resizing .e-permits-builder__resize-handle:not(.is-dragging) {
+  border-color: var(--color-border-base-secondary, #ccc);
+  box-shadow: none;
+}

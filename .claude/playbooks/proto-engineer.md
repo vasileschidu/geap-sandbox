@@ -80,6 +80,8 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   the first visible match.
 - The fo-select `id` sits on its button — focus `#id`, not `#id + button`.
 - Python patching: assert each `old` string exists before replacing; re-run `node --check`.
+- Form Designer Esc: any in-builder Esc (inline edit, drag / resize cancel) goes FIRST in the builder's window-capture
+  Esc handler (js/form-builder.js „keyboard: undo / redo; Esc deselects”) — own keydown listeners never see it.
 
 ## Lessons
 Lessons live in `.claude/playbooks/proto-engineer-lessons.md` (archive, ~114k tokens). Never read it whole: grep it for the topic of your job (component, board, screen, API call) and read only the matching lessons. Append new lessons there, ≤ 3 lines each.

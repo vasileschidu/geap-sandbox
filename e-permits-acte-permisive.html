@@ -25,7 +25,7 @@
   <link rel="stylesheet" href="css/page-reveal.css?v=skeleton-v1">
   <link rel="stylesheet" href="msupport/msupport.css?v=20260925-anon">
   <link rel="stylesheet" href="css/empty-state.css?v=empty-top-v2">
-  <link rel="stylesheet" href="css/form-builder.css?v=row-stack-v2">
+  <link rel="stylesheet" href="css/form-builder.css?v=fb-v3-2">
   <!-- gb-v1: Constructor grilă — the full-screen editable-grid builder (js/grid-builder.js) -->
   <link rel="stylesheet" href="css/grid-builder.css?v=gb-nest-v1">
   <link rel="stylesheet" href="css/process-designer.css?v=fb-prod-v1">
@@ -87,7 +87,7 @@
   <script src="js/trajectory.js?v=trajectory-phone-even-v1"></script>
   <script src="js/event-timeline.js?v=aud-263-v2"></script>
   <script src="js/sticky-sections.js?v=sticky-sections-v1" defer></script>
-  <script src="js/demo-states.js?v=row-stack-v1"></script>
+  <script src="js/demo-states.js?v=fb-v3-2"></script>
   <script src="js/demo-links.js?v=links-v4"></script>
   <script src="js/bo-context.js?v=copy-tu-v2"></script>
   <!-- the working-days engine (Administrare › Calendar), before the shell seeds the dossier deadlines; after
@@ -115,7 +115,7 @@
   <script src="js/choice-cards.js?v=choice-cards-v7" defer></script>
   <script src="js/e-permits-acte-permisive.js?v=row-stack-v1" defer></script>
   <!-- Form Builder (after the FO renderer it shares) -->
-  <script src="js/form-builder.js?v=row-stack-v1" defer></script>
+  <script src="js/form-builder.js?v=fb-v3-2" defer></script>
   <!-- Constructor grilă (gb-v1): registers before the builder's DOMContentLoaded attaches it -->
   <script src="js/grid-builder.js?v=gb-nest-v1" defer></script>
   <script src="core/process-model.js?v=copy-tu-v2" defer></script>
@@ -2294,10 +2294,17 @@
         <div class="e-permits-builder__workspace" data-builder-workspace>
           <aside class="e-permits-builder__library" aria-label="Bibliotecă de componente">
             <div class="e-permits-builder__panel-head">
-              <h2>Bibliotecă</h2>
+              <h2>Bibliotecă de câmpuri</h2>
+              <!-- fb-v3 (October look): Câmpuri · Variante · Logică · Etichetă = library segmented control (js/form-builder.js renderLibrary) -->
+              <div class="segmented-control e-permits-builder__lib-tabs" role="tablist" aria-label="Bibliotecă" data-fb-lib-tabs>
+                <button class="segment-item is-selected" type="button" role="tab" aria-selected="true" aria-controls="fb-library-list" data-fb-lib-tab="fields">Câmpuri</button>
+                <button class="segment-item" type="button" role="tab" aria-selected="false" aria-controls="fb-library-list" tabindex="-1" data-fb-lib-tab="variants">Variante</button>
+                <button class="segment-item" type="button" role="tab" aria-selected="false" aria-controls="fb-library-list" tabindex="-1" data-fb-lib-tab="logic">Logică</button>
+                <button class="segment-item" type="button" role="tab" aria-selected="false" aria-controls="fb-library-list" tabindex="-1" data-fb-lib-tab="labels">Etichetă</button>
+              </div>
               <div class="search-input medium rectangular e-permits-workplace__search e-permits-list-search e-permits-list-search--fill">
                 <span class="icon-search" aria-hidden="true"><svg class="icon" width="20" height="20"><use href="assets/icons/sprite.svg#icon-search"></use></svg></span>
-                <input class="input" type="search" placeholder="Caută componente" aria-label="Caută în bibliotecă" autocomplete="off" data-builder-library-search>
+                <input class="input" type="search" placeholder="Caută…" aria-label="Caută în bibliotecă" autocomplete="off" data-builder-library-search>
                 <div class="btn-group">
                   <span class="spinner spinner--extra-small spinner--brand" aria-hidden="true"></span>
                   <button type="button" class="btn-icon clear" aria-label="Șterge căutarea">
@@ -2306,7 +2313,7 @@
                 </div>
               </div>
             </div>
-            <div class="e-permits-builder__library-list" data-fb-library></div>
+            <div class="e-permits-builder__library-list" id="fb-library-list" role="tabpanel" aria-label="Componente" data-fb-library></div>
             <button class="e-permits-builder__resize-handle e-permits-builder__resize-handle--left" type="button" aria-label="Redimensionează biblioteca" data-builder-resize-panel="left"></button>
           </aside>
 
