@@ -2046,7 +2046,7 @@ body:has(.form-builder-modal-overlay.is-active) :is(#case-action-modal, #pending
   background: var(--color-background-base-default, #fff);
   border: var(--border-width-1-5, 1.5px) solid var(--color-border-base-secondary, #ccc);
   border-radius: var(--border-radius-full, 999px);
-  box-shadow: none;
+  box-shadow: var(--drop-shadow-100);
   box-sizing: border-box;
   cursor: col-resize;
   display: flex;
@@ -2082,8 +2082,8 @@ body:has(.form-builder-modal-overlay.is-active) :is(#case-action-modal, #pending
 .e-permits-builder__field-resize:focus-visible,
 .e-permits-builder__field.is-resizing-field .e-permits-builder__field-resize {
   background-color: var(--color-background-base-default, #fff);
-  border-color: var(--color-border-base-tertiary, #444);
-  box-shadow: none;
+  border-color: var(--color-border-base-secondary, #ccc);
+  box-shadow: var(--drop-shadow-200);
   color: var(--color-icon-base-tertiary, #757575);
   outline: none;
   width: var(--spacing-16, 16px);
@@ -2091,13 +2091,14 @@ body:has(.form-builder-modal-overlay.is-active) :is(#case-action-modal, #pending
 
 .e-permits-builder__resize-handle:focus-visible,
 .e-permits-builder__field-resize:focus-visible {
-  box-shadow: 0 0 0 2px var(--color-background-base-default, #fff), 0 0 0 5px var(--focus-ring, var(--blue-sky-500, #3379db));
+  box-shadow: var(--drop-shadow-200), 0 0 0 2px var(--color-background-base-default, #fff), 0 0 0 5px var(--focus-ring, var(--blue-sky-500, #3379db));
 }
 
 /* the grip: 3 dots (tertiary) in the middle, shown when the pill widens */
 .e-permits-builder__resize-handle::before,
 .e-permits-builder__field-resize::before {
-  background-image: radial-gradient(circle, var(--color-icon-base-tertiary, #757575) var(--border-width-1, 1px), transparent var(--border-width-2, 2px));
+  /* crisp dots: a hard stop (no blur) — 3 dots of 3px, 6px apart (user 2026-11-23 „dots blurry”) */
+  background-image: radial-gradient(circle, var(--color-icon-base-secondary, #383838) 0 var(--border-width-1-5, 1.5px), transparent calc(var(--border-width-1-5, 1.5px) + 0.25px));
   background-repeat: repeat-y;
   background-size: var(--spacing-6, 6px) var(--spacing-6, 6px);
   content: "";
@@ -2152,7 +2153,8 @@ body:has(.form-builder-modal-overlay.is-active) :is(#case-action-modal, #pending
 .e-permits-builder__resize-guides .e-permits-builder__resize-guide {
   align-items: flex-end;
   background: transparent;
-  border: var(--border-width-2, 2px) dashed var(--color-border-brand-default, #0058d2);
+  /* no dashed outline (user 2026-11-23): the tinted columns already show the target */
+  border: 0;
   border-radius: var(--border-radius-12, 12px);
   box-shadow: none;
   display: flex;
@@ -2272,4 +2274,86 @@ body:has(.form-builder-modal-overlay.is-active) :is(#case-action-modal, #pending
 .e-permits-builder.is-resizing .e-permits-builder__resize-handle:not(.is-dragging) {
   border-color: var(--color-border-base-secondary, #ccc);
   box-shadow: none;
+}
+
+/* ---- fb-win-v1 (2026-11-23): the card's „Editează grila / sub-formularul / adresa” (opens the editing window) and the
+   quiet „Nicio coloană încă” line of an empty grid card */
+.e-permits-builder__field-open {
+  display: flex;
+  padding-top: var(--spacing-4, 4px);
+}
+
+.e-permits-builder__field-empty {
+  margin: 0;
+}
+
+/* handle-v4 (user 2026-11-23): the field width handle takes the pointer even before its card is hovered, so the
+   col-resize cursor shows as soon as it is reached (also from the gap side); it appears on its own hover. Border =
+   the field card's hover border (border/base/secondary) */
+.e-permits-builder__field-resize {
+  pointer-events: auto;
+}
+
+.e-permits-builder__field-resize:hover {
+  opacity: 1;
+}
+
+/* fb-gap-v1 (user 2026-11-23 „a bit bigger between fields”): canvas field grid gap 16 (was 10) — the hover ring (4)
+   and the width handle sit in it without touching the next card */
+.e-permits-builder__canvas .e-permits-builder__grid {
+  gap: var(--spacing-16, 16px);
+}
+
+/* resize-neutral-v1 (user 2026-11-23 „weird bluish bg”): the resize guides use the canvas greys, no brand tint —
+   free columns = base-secondary, the columns the card will cover = tertiary-hover (the field hover grey), the card
+   itself stays a normal white card with its hover border */
+.e-permits-builder__resize-col {
+  background: var(--color-background-base-secondary, #f5f5f5);
+}
+
+/* resize-stable-v1 (user 2026-11-23): the 12 columns are a STABLE layout grid — all the same light grey, never a
+   darker block; the card itself follows live (data-span) and its „n/12” tag shows the width */
+.e-permits-builder__resize-col.is-in {
+  background: var(--color-background-base-secondary, #f5f5f5);
+}
+
+.e-permits-builder__resize-col.is-snap {
+  box-shadow: none;
+}
+
+.e-permits-builder__field.is-resizing-field {
+  background: var(--color-background-base-default, #fff);
+  border-color: var(--color-border-base-secondary, #ccc);
+}
+
+/* width-hover-v1 (user 2026-11-23 „weird hover”): the width picker hover = only the segments preview the new width
+   (grey, one step darker than empty) — no extra grey pad around the hovered segment */
+.e-permits-builder__width-option:hover:not(:disabled) {
+  background: transparent;
+}
+
+/* resize-grid-v2 (user 2026-11-23, research: Figma layout grid / Webflow column overlay / dashboard builders): while
+   resizing, the 12 columns = a STABLE overlay of dotted vertical lines (each column's two edges) drawn OVER the cards
+   (pointer-events none) and reaching 16 above / below the row; no grey fills. The edge the card will snap to = a solid
+   brand line; the card follows live with its „n/12” tag. */
+/* resize-grid-v4 (user 2026-11-23): the lines sit UNDER the cards (they show in the gaps and 16 above / below) */
+.e-permits-builder__resize-guides {
+  z-index: 0;
+}
+
+.e-permits-builder__resize-col,
+.e-permits-builder__resize-col.is-in {
+  background: transparent;
+  border-left: var(--border-width-1, 1px) dashed var(--color-border-base-default, #d9d9d9);
+  border-radius: 0;
+  border-right: var(--border-width-1, 1px) dashed var(--color-border-base-default, #d9d9d9);
+  box-shadow: none;
+}
+
+.e-permits-builder__resize-col.is-end {
+  border-right: var(--border-width-2, 2px) solid var(--color-border-brand-default, #0058d2);
+}
+
+.e-permits-builder__resize-guides .e-permits-builder__resize-guide {
+  display: none;
 }

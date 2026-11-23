@@ -1195,6 +1195,8 @@
       const parts = field.parts || {};
       const PART_REQUIRED = { country: true, district: true };
       const hiddenAttr = (key) => (parts[key]?.visible === false ? " hidden data-fo-part-hidden" : "");
+      /* fb-win-v1 (2026-11-23): the widths set in the Form Designer's address window (3 · 4 · 6 · 8 · 12), else the default */
+      const spanOfPart = (key, fallback) => ([3, 4, 6, 8, 12].includes(Number(field.spans?.[key])) ? Number(field.spans[key]) : fallback);
       const star = (key) => ((parts[key]?.required ?? PART_REQUIRED[key]) ? ` ${requiredMarkerHtml()}` : "");
       /* US-54: „Cod cadastral” sub-field (Form Designer › Componentele: Vizibilitate + Obligatoriu) */
       const cadastral = cadastralConfig(field.cadastral);
@@ -1218,7 +1220,7 @@
          searching). Its own message slot stays empty (no hint — user 2026-10-13) until the lookup message. */
       const cadastralId = `${uid}-cadastral`;
       const cadastralFieldHtml = cadastralOn ? `
-            <div class="e-permits-fo-field e-permits-fo-field--span-6" id="${cadastralId}-field" data-fo-cadastral-field${addressMode === "b" ? " hidden data-fo-cadastral-collapsed" : ""}>
+            <div class="e-permits-fo-field e-permits-fo-field--span-${spanOfPart("cadastral", 6)}" id="${cadastralId}-field" data-fo-cadastral-field${addressMode === "b" ? " hidden data-fo-cadastral-collapsed" : ""}>
               <label for="${cadastralId}">Cod cadastral${cadastral.required ? ` ${requiredMarkerHtml()}` : ""}</label>
               <div class="search-input ${foSearchSize()} rectangular e-permits-workplace__search e-permits-list-search e-permits-list-search--fill e-permits-fo-cadastral-search" data-fo-search-size data-fo-cadastral-box>
                 <span class="icon-search" aria-hidden="true"><svg class="icon" width="20" height="20"><use href="assets/icons/sprite.svg#icon-search"></use></svg></span>
@@ -1246,7 +1248,7 @@
           </div>
           <div class="e-permits-fo-address-details--smart e-permits-fo-cascade-address__grid">
             ${addressMode === "b" ? cadastralFieldHtml : ""}
-            <div class="e-permits-fo-field e-permits-fo-field--span-6"${hiddenAttr("country")}${reqAttr("country")}>
+            <div class="e-permits-fo-field e-permits-fo-field--span-${spanOfPart("country", 6)}"${hiddenAttr("country")}${reqAttr("country")}>
               <label for="fo-casc-country-${uid}">Țara${star("country")}</label>
               <div class="e-permits-fo-select e-permits-fo-select--address" data-fo-select data-fo-country-select>
                 <button class="e-permits-fo-select__button" id="fo-casc-country-${uid}" type="button" aria-haspopup="listbox" aria-expanded="false" aria-controls="fo-casc-country-${uid}-list">
@@ -1259,7 +1261,7 @@
                 </ul>
               </div>
             </div>
-            <div class="e-permits-fo-field e-permits-fo-field--span-6"${hiddenAttr("district")}${reqAttr("district")}>
+            <div class="e-permits-fo-field e-permits-fo-field--span-${spanOfPart("district", 6)}"${hiddenAttr("district")}${reqAttr("district")}>
               <label>Raionul/Municipiul${star("district")}</label>
               <div class="e-permits-fo-select" data-fo-cascade-select data-fo-cascade-raion>
                 <button class="e-permits-fo-select__button" id="${raionId}" type="button" aria-haspopup="listbox" aria-expanded="false" aria-controls="${raionId}-list">
@@ -1271,7 +1273,7 @@
                 </ul>
               </div>
             </div>
-            <div class="e-permits-fo-field e-permits-fo-field--span-6"${hiddenAttr("locality")}${reqAttr("locality")}>
+            <div class="e-permits-fo-field e-permits-fo-field--span-${spanOfPart("locality", 6)}"${hiddenAttr("locality")}${reqAttr("locality")}>
               <label>Orașul/Comuna${star("locality")}</label>
               <div class="e-permits-fo-select is-disabled" data-fo-cascade-select data-fo-cascade-localitate>
                 <button class="e-permits-fo-select__button" id="${localitateId}" type="button" aria-haspopup="listbox" aria-expanded="false" aria-controls="${localitateId}-list" disabled>
@@ -1281,7 +1283,7 @@
                 <ul class="e-permits-fo-select__list" id="${localitateId}-list" role="listbox" aria-labelledby="${localitateId}" hidden></ul>
               </div>
             </div>
-            <div class="e-permits-fo-field e-permits-fo-field--span-6" data-fo-cascade-sector-field hidden>
+            <div class="e-permits-fo-field e-permits-fo-field--span-${spanOfPart("sector", 6)}" data-fo-cascade-sector-field hidden>
               <label>Sector</label>
               <div class="e-permits-fo-select is-disabled" data-fo-cascade-select data-fo-cascade-sector>
                 <button class="e-permits-fo-select__button" id="${sectorId}" type="button" aria-haspopup="listbox" aria-expanded="false" aria-controls="${sectorId}-list" disabled>
@@ -1291,7 +1293,7 @@
                 <ul class="e-permits-fo-select__list" id="${sectorId}-list" role="listbox" aria-labelledby="${sectorId}" hidden></ul>
               </div>
             </div>
-            <div class="e-permits-fo-field e-permits-fo-field--span-8"${hiddenAttr("street")}${reqAttr("street")}>
+            <div class="e-permits-fo-field e-permits-fo-field--span-${spanOfPart("street", 8)}"${hiddenAttr("street")}${reqAttr("street")}>
               <label>Strada${star("street")}</label>
               <div class="e-permits-fo-select is-disabled" data-fo-cascade-select data-fo-cascade-strada>
                 <button class="e-permits-fo-select__button" id="${stradaId}" type="button" aria-haspopup="listbox" aria-expanded="false" aria-controls="${stradaId}-list" disabled>
@@ -1307,23 +1309,23 @@
                 <input id="${uid}-postal" type="text" placeholder="MD-0000" disabled data-fo-address-part="postalCode">
               </div>
             </div>
-            <div class="e-permits-fo-field e-permits-fo-field--span-4"${hiddenAttr("house")}${reqAttr("house")}>
+            <div class="e-permits-fo-field e-permits-fo-field--span-${spanOfPart("house", 4)}"${hiddenAttr("house")}${reqAttr("house")}>
               <label for="${uid}-house">Casa${star("house")}</label>
               <div class="e-permits-fo-input"><input id="${uid}-house" type="text" placeholder="Nr." data-fo-address-part="house"></div>
             </div>
-            <div class="e-permits-fo-field e-permits-fo-field--span-4"${hiddenAttr("block")}${reqAttr("block")}>
+            <div class="e-permits-fo-field e-permits-fo-field--span-${spanOfPart("block", 4)}"${hiddenAttr("block")}${reqAttr("block")}>
               <label for="${uid}-block">Blocul${star("block")}</label>
               <div class="e-permits-fo-input"><input id="${uid}-block" type="text" placeholder="Nr." data-fo-address-part="block"></div>
             </div>
-            <div class="e-permits-fo-field e-permits-fo-field--span-4"${hiddenAttr("stair")}${reqAttr("stair")}>
+            <div class="e-permits-fo-field e-permits-fo-field--span-${spanOfPart("stair", 4)}"${hiddenAttr("stair")}${reqAttr("stair")}>
               <label for="${uid}-stair">Scara${star("stair")}</label>
               <div class="e-permits-fo-input"><input id="${uid}-stair" type="text" placeholder="Scara" data-fo-address-part="stair"></div>
             </div>
-            <div class="e-permits-fo-field e-permits-fo-field--span-4"${hiddenAttr("floor")}${reqAttr("floor")}>
+            <div class="e-permits-fo-field e-permits-fo-field--span-${spanOfPart("floor", 4)}"${hiddenAttr("floor")}${reqAttr("floor")}>
               <label for="${uid}-floor">Etajul${star("floor")}</label>
               <div class="e-permits-fo-input"><input id="${uid}-floor" type="text" placeholder="0" data-fo-address-part="floor"></div>
             </div>
-            <div class="e-permits-fo-field e-permits-fo-field--span-4"${hiddenAttr("apartment")}${reqAttr("apartment")}>
+            <div class="e-permits-fo-field e-permits-fo-field--span-${spanOfPart("apartment", 4)}"${hiddenAttr("apartment")}${reqAttr("apartment")}>
               <label for="${uid}-apt">Apartamentul${star("apartment")}</label>
               <div class="e-permits-fo-input"><input id="${uid}-apt" type="text" placeholder="Numărul ap." data-fo-address-part="apartment"></div>
             </div>

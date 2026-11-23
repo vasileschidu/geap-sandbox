@@ -458,7 +458,7 @@
       ".e-permits-pd__world *"
     ]
   },
-  "_desktopOnly": "v2: states that only exist on desktop are SKIPPED on phone viewports (recorded as skipped, not as a demo error): Ghișeu (memory „Ghișeu desktop-only”: counter staff work on desktop), and the BO click paths whose nav target is hidden ≤ 960 (srv-, svc-10…, trf-) and the Process Designer canvas (pd-), the Form Designer grid builder (fb-gb-, gb-v1: BO desktop only).",
+  "_desktopOnly": "v2: states that only exist on desktop are SKIPPED on phone viewports (recorded as skipped, not as a demo error): Ghișeu (memory „Ghișeu desktop-only”: counter staff work on desktop), and the BO click paths whose nav target is hidden ≤ 960 (srv-, svc-10…, trf-) and the Process Designer canvas (pd-), the Form Designer editing window (fb-gb-, fb-win-, gb-v1 / fb-win-v1: BO desktop only).",
   "desktopOnly": {
     "patterns": [
       "^gh-",
@@ -466,7 +466,8 @@
       "^svc-10",
       "^trf-",
       "^pd-",
-      "^fb-gb-"
+      "^fb-gb-",
+      "^fb-win-"
     ]
   },
   "_pages": "v2: pages without demo states, audited with no ?state= in --all / --pages (key `page:<file>`).",

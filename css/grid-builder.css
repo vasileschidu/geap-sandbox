@@ -1,9 +1,9 @@
 /* =====================================================================================
-   Constructor grilă — the full-screen editable-grid builder of the Form Designer (gb-v1, 2026-11-20)
-   js/grid-builder.js · components.md › „Constructor grilă”. The frame is the Form Designer's own
-   (.e-permits-builder__topbar / __workspace / __library / __inspector, library items, the builder's errors
-   button and mode switch); this file only adds the parts the builder does not have: the layer over the
-   designer, the heading, the row card of the FO grid (each field cell = a column), the sub-form canvas, the preview frame.
+   Fereastra de editare — the editing window of the Form Designer for a grid / sub-form / address (fb-win-v1,
+   2026-11-23; was the Constructor grilă gb-v1). js/grid-builder.js · components.md › „Fereastra de editare”.
+   The frame, the cards (`.e-permits-builder__field` October look), the width handle + guides, the library items,
+   the errors button and the mode switch are the Form Designer's own; this file only adds the layer over the
+   designer, the heading, the header strip, the 24 gap of the row, the saved line and the preview frame.
    Tokens only; the drop indicator is the one element placed by JS (drag geometry).
    ===================================================================================== */
 .e-permits-builder.has-grid-builder {
@@ -109,10 +109,9 @@
   padding: var(--spacing-24, 24px);
 }
 
-/* ---- the row card (row-cards-v1 + gb-inert-v1, 2026-11-20): one sample row in the FO row card; NOTHING in it works
-   (no Anulează / Salvează, no Editează / Elimină) — Editare = structure, Previzualizare = the working form. Each field
-   cell IS the Form Designer's field block (`.e-permits-builder__field`: hover border, selected ring, focus ring,
-   dragging 0.4 all from the shared class) with the FO control inert inside; the whole block is the click target. */
+/* ---- the row (fb-win-v1): a header strip „#1 <row name> · Rând de exemplu”, then the row's columns as the designer's
+   cards on the 12-column grid with gap 24 (the FO row card's rhythm); nothing in a card works — Editare = structure,
+   Previzualizare = the working form. Hover / selected / focus / error / resizing come from the shared card class. */
 .e-permits-gridb__sheet {
   display: flex;
   flex-direction: column;
@@ -148,68 +147,55 @@
   padding: 0;
 }
 
-.e-permits-gridb__sample-label {
-  color: var(--color-text-base-tertiary, #6b6b6b);
-  margin: 0 0 0 var(--spacing-8, 8px);
+.e-permits-gridb__strip {
+  align-items: center;
+  border-bottom: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
+  display: flex;
+  gap: var(--spacing-8, 8px);
+  margin-bottom: var(--spacing-24, 24px);
+  min-width: 0;
+  padding-bottom: var(--spacing-16, 16px);
 }
 
-.e-permits-gridb__card > .e-permits-fo-grid__fields {
-  position: relative;
+.e-permits-gridb__strip > .e-permits-fo-doc-card__index {
+  flex: 0 0 auto;
+}
+
+.e-permits-gridb__strip-name {
+  color: var(--color-text-base-default, #121212);
+  font-size: var(--font-size-fs-16, 16px);
+  font-weight: var(--font-weight-fw-medium, 500);
+  line-height: var(--line-height-lh-24, 24px);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.e-permits-gridb__sample-label {
+  color: var(--color-text-base-tertiary, #6b6b6b);
+  flex: 0 0 auto;
+  font-size: var(--font-size-fs-14, 14px);
+  line-height: var(--line-height-lh-20, 20px);
+}
+
+/* the row's 12 columns, gap 24 (the main canvas keeps its own gap) */
+.e-permits-builder__grid.e-permits-gridb__grid {
+  align-items: start;
+  gap: var(--spacing-24, 24px);
 }
 
 .e-permits-gridb__cell {
   cursor: pointer;
 }
 
-.e-permits-gridb__cell-render {
-  pointer-events: none;
-}
-
 .e-permits-gridb__cell.has-issue:not(.is-selected) {
   border-color: var(--color-border-danger-default, #d92d20);
 }
 
-.e-permits-gridb__cell .e-permits-builder__field-meta > .e-permits-builder__tag--outlined {
-  flex: 0 0 auto;
-}
-
-/* the meta's own controls take the pointer back (error tooltip, „Deschide”) */
-.e-permits-gridb__cell .e-permits-builder__field-tools > :is(.e-permits-gridb__col-issue, .e-permits-gridb__drill) {
-  pointer-events: auto;
-}
-
-.e-permits-gridb__cell-render .e-permits-gridb__summary :is(.e-permits-builder__sub, .btn) {
-  pointer-events: auto;
-}
-
-/* nested grid / sub-form column = label + hint + the chip band of its columns / fields (chip-band-v1, no inputs) */
-.e-permits-gridb__summary {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-4, 4px);
-}
-
-.e-permits-gridb__summary > .e-permits-builder__subs {
-  margin-top: var(--spacing-4, 4px);
-}
-
-.e-permits-gridb__summary > .e-permits-fo-field__hint {
-  margin: 0;
-}
-
-.e-permits-gridb__summary-label {
-  color: var(--color-text-base-default, #121212);
-  font-size: var(--font-size-fs-14, 14px);
-  font-weight: var(--font-weight-fw-medium, 500);
-  line-height: var(--line-height-lh-20, 20px);
-}
-
-.e-permits-gridb__summary .btn {
-  align-self: flex-start;
-}
-
-/* „+ Coloană”: the dashed add zone as a tile at the end of the card grid, the height of its row */
+/* „+ Coloană”: the dashed add zone as a tile at the end of the row */
 .e-permits-gridb__add-cell {
+  align-self: stretch;
   display: flex;
 }
 
@@ -222,7 +208,7 @@
   flex: 1 1 auto;
   height: auto;
   justify-content: center;
-  min-height: calc(var(--spacing-64, 64px) + var(--spacing-8, 8px));
+  min-height: calc(var(--spacing-64, 64px) * 2);
 }
 
 .e-permits-gridb__saved {
@@ -231,25 +217,7 @@
   padding: var(--spacing-8, 8px);
 }
 
-/* errors of a column: the red dot of the tabs, its message in a tooltip */
-.e-permits-gridb__col-issue {
-  align-items: center;
-  display: inline-flex;
-  flex: 0 0 var(--spacing-16, 16px);
-  height: var(--spacing-16, 16px);
-  justify-content: center;
-}
-
-.e-permits-gridb__col-issue > .e-permits-ntpl-dot {
-  margin: 0;
-}
-
-.e-permits-gridb__drill {
-  flex: 0 0 auto;
-  margin-left: auto;
-}
-
-/* the drop place while dragging a type or a column (left / top / height from the pointer) */
+/* the drop place while dragging a type or a column — in the 24 gap between two cards (left / top / height by JS) */
 .e-permits-gridb__drop {
   background: var(--color-border-brand-default, #0058d2);
   border-radius: var(--border-radius-full, 999px);
@@ -263,49 +231,29 @@
   display: none;
 }
 
-.e-permits-gridb__empty.is-drop-target .e-permits-empty,
-.e-permits-gridb__form-empty.is-drop-target {
+.e-permits-gridb__empty.is-drop-target .e-permits-empty {
   border-color: var(--color-border-brand-default, #0058d2);
-  box-shadow: 0 0 0 4px var(--blue-sky-200, #ccdef6);
+  box-shadow: 0 0 0 var(--spacing-4, 4px) var(--blue-sky-200, #ccdef6);
 }
 
 .e-permits-gridb__empty .e-permits-empty {
   background: var(--color-background-base-default, #fff);
 }
 
-/* ---- a sub-form level: the FO form layout (2 columns, gap 24; a wide field spans both) */
-.e-permits-gridb__form-head {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-4, 4px);
-  padding-bottom: var(--spacing-16, 16px);
+/* a 3/12 card in the window (content ~125 wide): the type tag + n/12 + 🗑 fit only without ⧉ (Ctrl + D and the panel ⋮
+   duplicate) */
+@container (max-width: 160px) {
+  .e-permits-gridb__cell .e-permits-builder__field-actions [data-gb-act="duplicate"] {
+    display: none;
+  }
 }
 
-.e-permits-gridb__form {
-  align-items: start;
-  display: grid;
-  gap: var(--spacing-24, 24px);
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  position: relative;
+/* address parts are fixed: no grab cursor, a click selects */
+.e-permits-gridb__part {
+  cursor: pointer;
 }
 
-.e-permits-gridb__form > :is([data-gb-span="2"], .e-permits-gridb__add, .e-permits-gridb__form-empty) {
-  grid-column: 1 / -1;
-}
-
-.e-permits-gridb__form-empty {
-  border-radius: var(--border-radius-16, 16px);
-}
-
-.e-permits-gridb__field.has-issue {
-  border-color: var(--color-border-danger-default, #d92d20);
-}
-
-.e-permits-gridb__field .e-permits-builder__field-tools {
-  align-items: center;
-}
-
-/* ---- the panel's „Deschide constructorul grilei” / „Deschide sub-grila” (under the panel title) */
+/* ---- the panel's „Editează grila / sub-formularul / adresa” (under the panel title) */
 .e-permits-gridb__entry {
   padding: 0 var(--spacing-20, 20px) var(--spacing-12, 12px);
 }
@@ -368,8 +316,17 @@
   transform: none;
 }
 
-/* gb-nest-pad-v1 (user 2026-11-20): in the builder a nested grid / sub-form block keeps the same 12 padding as every
-   other column block (the FO section top padding is for the applicant's card only) */
-.e-permits-gridb__cell.e-permits-fo-grid__section {
-  padding-top: var(--spacing-12, 12px);
+/* Previzualizare › Telefon of the address: the FO phone layout (6 columns; wide parts take the row, short ones a third) —
+   the FO uses viewport media queries, the preview card is 375 inside a desktop window */
+.e-permits-gridb__preview.is-phone .e-permits-fo-cascade-address__grid {
+  column-gap: var(--spacing-16, 16px);
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+}
+
+.e-permits-gridb__preview.is-phone .e-permits-fo-cascade-address__grid > .e-permits-fo-field {
+  grid-column: 1 / -1;
+}
+
+.e-permits-gridb__preview.is-phone .e-permits-fo-cascade-address__grid > :is(.e-permits-fo-field--span-3, .e-permits-fo-field--span-4):not(:has([data-fo-address-part="postalCode"])) {
+  grid-column: span 2;
 }

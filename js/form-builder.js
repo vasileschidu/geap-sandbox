@@ -212,25 +212,25 @@ document.addEventListener("DOMContentLoaded", () => {
 
   /* ----------------------------------------------------- address parts (US-32 + US-54) */
   const ADDRESS_PARTS = [
-    { key: "country", label: "Țară", kind: "listă", required: true, visible: true, source: "GEAP_d_tari · 117 țări", defaultValue: "Republica Moldova" },
-    { key: "district", label: "Raion/Municipiu", kind: "listă", required: true, visible: true, source: "GEAP_d_raioane · 43 raioane", parent: "Țară" },
-    { key: "locality", label: "Orașul/Comuna", kind: "listă", required: true, visible: true, source: "GEAP_d_localitati · 1843 localități", parent: "Raion/Municipiu" },
-    { key: "sector", label: "Sector", kind: "listă", required: false, visible: false, parent: "Orașul/Comuna", note: "Apare doar când Orașul/Comuna = Chișinău." },
-    { key: "street", label: "Stradă", kind: "listă", required: true, visible: true, source: "GEAP_d_strazi · 493 străzi", parent: "Orașul/Comuna" },
-    { key: "house", label: "Casă", kind: "text", required: false, visible: true },
-    { key: "floor", label: "Etaj", kind: "număr", required: false, visible: true },
-    { key: "block", label: "Bloc", kind: "text", required: false, visible: true },
-    { key: "stair", label: "Scară", kind: "text", required: false, visible: true },
-    { key: "apartment", label: "Apartament/Oficiu", kind: "text", required: false, visible: true },
-    { key: "cadastral", label: "Cod cadastral", kind: "text", required: false, visible: true, source: "MConnect · SRRE · verificat în timp real", noDefault: true },
+    { key: "country", span: 6, label: "Țară", kind: "listă", required: true, visible: true, source: "GEAP_d_tari · 117 țări", defaultValue: "Republica Moldova" },
+    { key: "district", span: 6, label: "Raion/Municipiu", kind: "listă", required: true, visible: true, source: "GEAP_d_raioane · 43 raioane", parent: "Țară" },
+    { key: "locality", span: 6, label: "Orașul/Comuna", kind: "listă", required: true, visible: true, source: "GEAP_d_localitati · 1843 localități", parent: "Raion/Municipiu" },
+    { key: "sector", span: 6, label: "Sector", kind: "listă", required: false, visible: false, parent: "Orașul/Comuna", note: "Apare doar când Orașul/Comuna = Chișinău." },
+    { key: "street", span: 8, label: "Stradă", kind: "listă", required: true, visible: true, source: "GEAP_d_strazi · 493 străzi", parent: "Orașul/Comuna" },
+    { key: "house", span: 4, label: "Casă", kind: "text", required: false, visible: true },
+    { key: "floor", span: 4, label: "Etaj", kind: "număr", required: false, visible: true },
+    { key: "block", span: 4, label: "Bloc", kind: "text", required: false, visible: true },
+    { key: "stair", span: 4, label: "Scară", kind: "text", required: false, visible: true },
+    { key: "apartment", span: 4, label: "Apartament/Oficiu", kind: "text", required: false, visible: true },
+    { key: "cadastral", span: 6, label: "Cod cadastral", kind: "text", required: false, visible: true, source: "MConnect · SRRE · verificat în timp real", noDefault: true },
   ];
   const addressConfig = (field) => ADDRESS_PARTS.map((part) => {
     const saved = (field.addressConfig || []).find((item) => item.key === part.key) || {};
-    return { ...part, visible: saved.visible ?? part.visible, required: saved.required ?? part.required, defaultValue: saved.defaultValue ?? part.defaultValue ?? "" };
+    return { ...part, visible: saved.visible ?? part.visible, required: saved.required ?? part.required, defaultValue: saved.defaultValue ?? part.defaultValue ?? "", span: SPANS.includes(Number(saved.span)) ? Number(saved.span) : part.span };
   });
   const setAddressPart = (field, key, updates) => {
     const config = addressConfig(field).map((part) => (part.key === key ? { ...part, ...updates } : part));
-    field.addressConfig = config.map(({ key: k, visible, required, defaultValue }) => ({ key: k, visible, required: visible ? required : false, defaultValue }));
+    field.addressConfig = config.map(({ key: k, visible, required, defaultValue, span }) => ({ key: k, visible, required: visible ? required : false, defaultValue, span }));
   };
 
   /* ------------------------------------------------------- text validation presets (US-30) */
@@ -285,6 +285,8 @@ document.addEventListener("DOMContentLoaded", () => {
     libTab: "fields",
     tests: {},
     addressOpen: {},
+    /* fb-win-v1: the address part selected in the address window (the panel shows that part) */
+    addrPart: "",
     issues: [],
     undo: [],
     redo: [],
@@ -410,7 +412,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (container.type === "subform") return BLOCK_TYPES.includes(type) ? "" : "Sub-formularul primește câmpuri simple și liste (fără grile, adrese sau blocuri).";
     if (COLUMN_SIMPLE.includes(type)) return "";
     if (!COLUMN_COMPLEX.includes(type)) return type === "datetime" ? "În lucru — etapa 5 a constructorului." : "Tipul nu poate fi coloană de grilă.";
-    if (!kidsOf(container).some((child) => COLUMN_SIMPLE.includes(child.type))) return "Adaugă mai întâi o coloană simplă: coloanele complexe vin după configurația de bază (US-34).";
+    if (!isCaemGrid(container) && !kidsOf(container).some((child) => COLUMN_SIMPLE.includes(child.type))) return "Adaugă mai întâi o coloană simplă: coloanele complexe vin după configurația de bază (US-34).";
     if (NESTS.includes(type) && levelOf(container) >= MAX_GRID_LEVEL) return "Se permit cel mult 3 niveluri de grile imbricate (US-38).";
     return "";
   }
@@ -485,12 +487,39 @@ document.addEventListener("DOMContentLoaded", () => {
           field.validation = field.validation || {};
           field.validation.message = field.validation.message || i18n();
           if (!SPANS.includes(Number(field.span))) field.span = comp(field.type).span || 4;
+          repeatToGrid(field);
           sanitizeChildren(field);
         });
       });
     });
     return record;
   }
+
+  /* fb-win-v1 (user 2026-11-23): „Bloc repetabil” becomes an editable grid — its fields = the columns (full row → Toată
+     lățimea, half → Lată …), „Titlul elementului” = the row name; the ⓘ note and the hidden label stay. A grid holding the
+     CAEM pair (search list + the multi-select filtered by it) keeps the activities look in the FO (repeatFo, js/fo-grid.js
+     blocks): ⓘ on the first title, the section line in the open list, duplicate / section checks. */
+  const WIDTH_OF_SPAN = { 3: "s", 4: "m", 6: "l", 8: "f", 12: "f" };
+  function repeatToGrid(field) {
+    if (field?.type !== "repeat") return;
+    const fields = Array.isArray(field.fields) ? field.fields : [];
+    field.type = "grid";
+    field.columns = fields.map((child) => ({ ...child, width: WIDTH_OF_SPAN[Number(child.span)] || "f", span: 12 }));
+    delete field.fields;
+    if (field.itemTitle && !field.rowTitle) field.rowTitle = field.itemTitle;
+    delete field.itemTitle;
+    field.rowRules = { allowAdd: true, pageSize: 10, ...(field.rowRules || {}) };
+    if (!field.emptyText) field.emptyText = i18n();
+  }
+  /* the CAEM pair of a grid (or an old block): [code list, its subgenres] — or null */
+  function caemPairOf(container) {
+    if (!container || !["grid", "repeat"].includes(container.type)) return null;
+    const kids = kidsOf(container);
+    const code = kids.find((child) => child.type === "select" && child.dataSource?.search && child.dataSource?.mode === "existing");
+    const sub = code && kids.find((child) => child.type === "multiselect" && child.dataSource?.cascade && child.dataSource.parentFieldId === code.id);
+    return code && sub ? [code, sub] : null;
+  }
+  const isCaemGrid = (field) => field?.type === "grid" && Boolean(caemPairOf(field));
 
   function sanitizeChildren(container) {
     if (!isContainer(container)) return;
@@ -623,7 +652,7 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
     if (!list.length) push(T_DATA, "children", inGrid ? "Grila nu are coloane." : "Blocul nu are câmpuri.", "error", inGrid ? "Fără coloane" : "Fără câmpuri");
-    if (inGrid && list.some((child) => COLUMN_COMPLEX.includes(child.type)) && !list.some((child) => COLUMN_SIMPLE.includes(child.type))) push(T_DATA, "children", "Coloanele complexe cer cel puțin o coloană simplă (configurația de bază, US-34).");
+    if (inGrid && !isCaemGrid(container) && list.some((child) => COLUMN_COMPLEX.includes(child.type)) && !list.some((child) => COLUMN_SIMPLE.includes(child.type))) push(T_DATA, "children", "Coloanele complexe cer cel puțin o coloană simplă (configurația de bază, US-34).");
     if (inGrid && level > MAX_GRID_LEVEL) push(T_DATA, "children", "Se permit cel mult 3 niveluri de grile imbricate (US-38).");
     const num = (value) => (value === "" || value == null ? null : Number(value));
     [["minRows", r.minRows], ["maxRows", r.maxRows], ["defaultRows", r.defaultRows]].forEach(([prop, value]) => { const n = num(value); if (n != null && (!Number.isInteger(n) || n < 0)) push(T_VAL, `rowRules.${prop}`, "Un număr întreg, 0 sau mai mare."); });
@@ -770,7 +799,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const meta = optionMeta(child);
         const ds = child.dataSource || {};
         /* „Listă cu căutare” in a block + the multi-select that depends on it = the CAEM pair */
-        if (child.type === "select" && ds.search && ds.mode === "existing" && container.type === "repeat") {
+        if (child.type === "select" && ds.search && ds.mode === "existing" && (container.type === "repeat" || isCaemGrid(container))) {
           const dep = kidsOf(container).find((other) => other.type === "multiselect" && other.dataSource?.cascade && other.dataSource.parentFieldId === child.id);
           const depMeta = dep ? optionMeta(dep) : [];
           return { ...base, type: "combobox", options: meta.map((m) => ({ code: m.code, label: m.name, group: m.group, subgenres: depMeta.filter((d) => d.parent === m.code).map((d) => d.label) })) };
@@ -812,7 +841,7 @@ document.addEventListener("DOMContentLoaded", () => {
       id: `${opts.prefix}-${field.id}`, type: "repeat", key: field.key, label: text(field.label), hint: text(field.help), required: Boolean(field.required), span: 12, labelHidden: Boolean(field.labelHidden),
       fields: kids.map((child) => childFo(child, field, opts, 1)),
       rules: containerRules(field),
-      texts: { add: text(field.addLabel) || "Adaugă alt element", title: text(field.itemTitle) || "Element", note: text(field.note), ...containerTexts(field, text) },
+      texts: { add: text(field.addLabel) || "Adaugă alt element", title: text(field.itemTitle) || text(field.rowTitle) || "Element", note: text(field.note), ...containerTexts(field, text) },
       groupNames: groupNamesOf(field),
       usesSource: kids.some((child) => child.dataSource?.mode === "existing"),
     };
@@ -855,6 +884,8 @@ document.addEventListener("DOMContentLoaded", () => {
       }
       /* row-cards-v1: on a canvas card the grid shows one sample row in its EDIT card (fields side by side) */
       case "grid": {
+        /* the CAEM grid keeps the FO activities block (fb-win-v1) */
+        if (isCaemGrid(field)) return repeatFo(field, { prefix, lang });
         const def = gridFo(field, { prefix, lang }, 1);
         if (inCard && def.columns.length) def.value = (window.GEAPFoRepeat?.sampleRows?.(def, 1) || []).map((row) => ({ ...row, empty: true }));
         return def;
@@ -898,7 +929,9 @@ document.addEventListener("DOMContentLoaded", () => {
         const parts = {};
         config.forEach((part) => { if (part.key !== "sector" && part.key !== "cadastral") parts[part.key] = { visible: part.visible !== false, required: Boolean(part.required) }; });
         const cadastral = config.find((part) => part.key === "cadastral");
-        return { id: base.id, type: "cascade-address", span: inCard ? 12 : 12, searchLabel: base.label || "Adresa", required: base.required, parts, cadastral: { visible: cadastral.visible !== false, required: Boolean(cadastral.required) }, districts: R.districts() };
+        /* fb-win-v1: the part widths set in the address window (12-column grid, „span” per part) */
+        const spans = Object.fromEntries(config.map((part) => [part.key, part.span]));
+        return { id: base.id, type: "cascade-address", span: inCard ? 12 : 12, searchLabel: base.label || "Adresa", required: base.required, parts, spans, cadastral: { visible: cadastral.visible !== false, required: Boolean(cadastral.required) }, districts: R.districts() };
       }
       default: return base;
     }
@@ -1325,9 +1358,15 @@ document.addEventListener("DOMContentLoaded", () => {
           <div class="e-permits-builder__address-pattern-preview">
             ${items.map(([label, required]) => `<span class="e-permits-builder__address-token">${esc(label)}${required ? requiredMark() : ""}</span>`).join("")}
           </div>`;
-  function cardPreviewHtml(field) {
+  /* fb-win-v1: the button that opens the editing window (grid / nested grid / sub-form / address) */
+  const WINDOW_LABEL = { grid: "Editează grila", subform: "Editează sub-formularul", address: "Editează adresa" };
+  const windowButtonHtml = (item, attr = "data-gb-open") => `
+          <div class="e-permits-builder__field-open">
+            <button class="btn btn-secondary btn-sm" type="button" ${attr}="${item.id}">${icon("icon-edit", 16)}<span>${WINDOW_LABEL[item.type] || "Editează"}</span></button>
+          </div>`;
+  function cardPreviewHtml(field, { window: inWindow = false } = {}) {
     const t = field.type;
-    if (t === "address") return tokensHtml(addressConfig(field).filter((part) => part.visible).map((part) => [part.label, part.required]));
+    if (t === "address") return `${tokensHtml(addressConfig(field).filter((part) => part.visible).map((part) => [part.label, part.required]))}${inWindow ? "" : windowButtonHtml(field)}`;
     if (t === "contact") {
       const parts = field.contactParts || CONTACT_PARTS_DEFAULT;
       return tokensHtml(CONTACT_PARTS.filter(([key]) => parts[key]?.visible).map(([key, label]) => [label, parts[key]?.required]));
@@ -1363,9 +1402,19 @@ document.addEventListener("DOMContentLoaded", () => {
   function cardBodyHtml(field) {
     const t = field.type;
     if (t === "hidden") return `<div class="e-permits-builder__field-body">${cardLabelHtml(field)}${hiddenMarkerHtml(field)}</div>`;
+    /* fb-win-v1 (user 2026-11-23): a grid on the form = a component card like the October address-pattern card — label row,
+       the read-only chips of its columns (name + type in tertiary), „Editează grila” opens the editing window */
+    if (t === "grid") {
+      return `
+        <div class="e-permits-builder__field-body">
+          ${cardLabelHtml(field)}
+          ${kidsOf(field).length ? chipBandHtml(field) : `<p class="e-permits-fo-field__hint e-permits-builder__field-empty">Nicio coloană încă</p>`}
+          ${windowButtonHtml(field)}
+        </div>`;
+    }
     if (isContainer(field)) {
-      const inner = !kidsOf(field).length ? emptyContainerHtml(field) : (t === "grid" && window.GEAPGridBuilder?.summaryHtml?.(field)) || foHtml(field, { prefix: "cv", inCard: true });
-      return `${t !== "grid" ? subsStripHtml(field) : ""}<div class="e-permits-builder__field-render"${t === "grid" && kidsOf(field).length ? "" : " inert"}>${inner}</div>`;
+      const inner = !kidsOf(field).length ? emptyContainerHtml(field) : foHtml(field, { prefix: "cv", inCard: true });
+      return `${subsStripHtml(field)}<div class="e-permits-builder__field-render" inert>${inner}</div>`;
     }
     if (NO_VALUE.includes(t)) return `<div class="e-permits-builder__field-render" inert>${foHtml(field, { prefix: "cv", inCard: true })}</div>`;
     return `
@@ -1397,10 +1446,8 @@ document.addEventListener("DOMContentLoaded", () => {
             <span class="e-permits-builder__drag-grip" aria-hidden="true">${icon("icon-drag", 16)}</span>
             <em class="e-permits-builder__tag e-permits-builder__tag--strong" data-tooltip-text="${esc(meta.label)}">${esc(SHORT_TAG[field.type] || meta.label)}</em>
             <em class="e-permits-builder__tag e-permits-builder__tag--outlined" data-fb-span-tag>${spanOf(field)}/12</em>
-            ${field.type === "grid" ? `<em class="e-permits-builder__tag e-permits-builder__tag--outlined" data-fb-col-count>${kidsOf(field).length} ${kidsOf(field).length === 1 ? "coloană" : "coloane"}</em>` : ""}
           </div>
           <div class="e-permits-builder__field-actions">
-            ${field.type === "grid" ? `<button class="btn btn-secondary btn-sm" type="button" data-gb-open="${field.id}">${icon("icon-edit", 16)}<span>Editează grila</span></button>` : ""}
             <button class="btn btn-text-neutral btn-sm btn-icon-only" type="button" aria-label="Duplică: ${esc(name)}" data-tooltip-label="Duplică" data-fb-act="duplicate" data-id="${field.id}">${icon("icon-copy", 16)}</button>
             <button class="btn btn-text-destructive btn-sm btn-icon-only" type="button" aria-label="Șterge: ${esc(name)}" data-tooltip-label="Șterge" data-fb-act="delete" data-id="${field.id}">${icon("icon-delete", 16)}</button>
           </div>
@@ -1412,6 +1459,81 @@ document.addEventListener("DOMContentLoaded", () => {
           ${errors.length ? `<em class="e-permits-builder__tag e-permits-builder__tag--warning" data-tooltip-text="${esc(errors[0].message)}">${icon("icon-warning-filled", 16)}${esc(errors[0].short || errors[0].message)}</em>` : ""}
         </div>`}
         ${isFixedWidth(field) ? "" : `<button class="e-permits-builder__field-resize" type="button" tabindex="-1" aria-hidden="true" data-fb-resize></button>`}
+      </article>`;
+  }
+
+  /* ---- fb-win-v1 (2026-11-23): a column / sub-form field in the editing window = the SAME card as on the form (tools:
+     grip · short type tag · n/12 · ⧉ · 🗑, label row with the key tag, grey preview, Sursă line, error foot, the width
+     handle on the right edge). Columns use the grid's widths (Îngustă 3 · Medie 4 · Lată 6 · Toată lățimea 12), sub-form
+     fields the form spans. A nested grid / sub-form column = label row + its chips + „Editează grila / sub-formularul”. */
+  const COLUMN_SPAN = { s: 3, m: 4, auto: 4, l: 6, f: 12 };
+  const fixedChild = (child) => isNest(child) || child.type === "textarea";
+  const childSpanOf = (child, container) => (fixedChild(child) && container.type === "grid" ? 12 : container.type === "grid" ? COLUMN_SPAN[child.width || "auto"] || 4 : Number(child.span) || 12);
+  function childCardHtml(child, container) {
+    const meta = comp(child.type);
+    const span = childSpanOf(child, container);
+    const selected = state.sel.kind === "child" && state.sel.id === child.id;
+    const own = errorsOf("child", child.id).filter((issue) => !(usesSource(child.type) && String(issue.prop || "").startsWith("ds.")));
+    const kid = isNest(child) ? childErrorsOf(child) : [];
+    const errors = own.length ? own : kid.length ? [{ message: `${kid.length} ${kid.length === 1 ? "problemă" : "probleme"} în ${child.type === "grid" ? "coloane" : "câmpuri"}: ${kid[0].message}`, short: `${kid.length} ${kid.length === 1 ? "problemă" : "probleme"} în ${child.type === "grid" ? "coloane" : "câmpuri"}` }] : [];
+    const name = fieldName(child);
+    const typeName = child.type === "grid" ? "Grilă imbricată" : meta.label;
+    const inGrid = container.type === "grid";
+    const body = isNest(child)
+      ? `
+        <div class="e-permits-builder__field-body">
+          ${cardLabelHtml(child)}
+          ${kidsOf(child).length ? chipBandHtml(child) : `<p class="e-permits-fo-field__hint e-permits-builder__field-empty">${child.type === "subform" ? "Niciun câmp încă" : "Nicio coloană încă"}</p>`}
+          ${windowButtonHtml(child, "data-gb-drill")}
+        </div>`
+      : cardBodyHtml(child);
+    return `
+      <article class="e-permits-builder__field e-permits-gridb__cell${selected ? " is-selected" : ""}${errors.length ? " has-issue" : ""}" data-gb-cell="${child.id}" data-gb-col="${child.id}" data-type="${child.type}" data-span="${span}" tabindex="0" draggable="true" aria-describedby="gb-col-hint" aria-label="${esc(`${typeName}: ${name}, ${span} din 12${child.required ? ", obligatoriu" : ""}${selected ? ", selectat" : ""}${errors.length ? `, eroare: ${errors[0].message}` : ""}`)}">
+        <div class="e-permits-builder__field-tools">
+          <div class="e-permits-builder__field-meta">
+            <span class="e-permits-builder__drag-grip" aria-hidden="true">${icon("icon-drag", 16)}</span>
+            <em class="e-permits-builder__tag e-permits-builder__tag--strong" data-tooltip-text="${esc(typeName)}">${esc(SHORT_TAG[child.type] || meta.label)}</em>
+            <em class="e-permits-builder__tag e-permits-builder__tag--outlined" data-fb-span-tag>${span}/12</em>
+          </div>
+          <div class="e-permits-builder__field-actions">
+            <button class="btn btn-text-neutral btn-sm btn-icon-only" type="button" aria-label="Duplică: ${esc(name)}" data-tooltip-label="Duplică" data-gb-act="duplicate" data-id="${child.id}">${icon("icon-copy", 16)}</button>
+            <button class="btn btn-text-destructive btn-sm btn-icon-only" type="button" aria-label="Șterge: ${esc(name)}" data-tooltip-label="Șterge" data-gb-act="delete" data-id="${child.id}">${icon("icon-delete", 16)}</button>
+          </div>
+        </div>
+        ${body}
+        ${errors.length ? `
+        <div class="e-permits-builder__field-foot">
+          <em class="e-permits-builder__tag e-permits-builder__tag--warning" data-tooltip-text="${esc(errors[0].message)}">${icon("icon-warning-filled", 16)}${esc(errors[0].short || errors[0].message)}</em>
+        </div>` : ""}
+        ${fixedChild(child) && inGrid ? "" : `<button class="e-permits-builder__field-resize" type="button" tabindex="-1" aria-hidden="true" data-gb-resize></button>`}
+      </article>`;
+  }
+  /* an address part in the address window: the same card — kind tag · n/12 · „Ascunde”, label + red star, grey preview */
+  const PART_PREVIEW = { country: "Republica Moldova", district: "Selectează raionul", locality: "Selectează localitatea", sector: "Selectează sectorul", street: "Selectează strada", house: "Nr.", floor: "0", block: "Nr.", stair: "Scara", apartment: "Numărul ap.", cadastral: "Ex.: 0100510.123" };
+  function addressPartCardHtml(part, selectedKey) {
+    const selected = selectedKey === part.key;
+    const list = part.kind === "listă";
+    return `
+      <article class="e-permits-builder__field e-permits-gridb__cell e-permits-gridb__part${selected ? " is-selected" : ""}" data-gb-part="${part.key}" data-span="${part.span}" tabindex="0" aria-describedby="gb-part-hint" aria-label="${esc(`${part.label}: ${part.kind}, ${part.span} din 12${part.required ? ", obligatoriu" : ""}${selected ? ", selectat" : ""}`)}">
+        <div class="e-permits-builder__field-tools">
+          <div class="e-permits-builder__field-meta">
+            <em class="e-permits-builder__tag e-permits-builder__tag--strong">${esc(list ? "Listă" : part.kind === "număr" ? "Număr" : "Text")}</em>
+            <em class="e-permits-builder__tag e-permits-builder__tag--outlined" data-fb-span-tag>${part.span}/12</em>
+          </div>
+          <div class="e-permits-builder__field-actions">
+            <button class="btn btn-text-neutral btn-sm btn-icon-only" type="button" aria-label="Ascunde: ${esc(part.label)}" data-tooltip-label="Ascunde" data-gb-hide-part="${part.key}">${icon("icon-eye-slash", 16)}</button>
+          </div>
+        </div>
+        <div class="e-permits-builder__field-body">
+          <div class="e-permits-builder__field-label">
+            <strong data-cell-tooltip>${esc(part.label)}${part.required ? requiredMark() : ""}</strong>
+          </div>
+          <div class="e-permits-builder__field-preview">
+            <span data-cell-tooltip>${esc(part.defaultValue || PART_PREVIEW[part.key] || "")}</span>
+            ${list ? icon("icon-chevron-bottom") : part.key === "cadastral" ? icon("icon-search") : ""}
+          </div>
+        </div>
+        <button class="e-permits-builder__field-resize" type="button" tabindex="-1" aria-hidden="true" data-gb-resize></button>
       </article>`;
   }
 
@@ -1868,7 +1990,7 @@ document.addEventListener("DOMContentLoaded", () => {
   /* a block field reads the fields of its own element; a grid column never takes part (US-42 AC-36) */
   const ruleSources = (target) => {
     const found = findChild(target.id);
-    if (found) return found.container.type === "repeat" ? kidsOf(found.container).filter((child) => child.id !== target.id && FAMILY[child.type]) : [];
+    if (found) return found.container.type === "repeat" || isCaemGrid(found.container) ? kidsOf(found.container).filter((child) => child.id !== target.id && FAMILY[child.type]) : [];
     return allFields().filter(({ field }) => field.id !== target.id && FAMILY[field.type]).map(({ field }) => field);
   };
   const sourceLabel = (field) => `${fieldName(field)} · ${field.type === "grid" ? "număr de rânduri" : field.type === "repeat" ? "număr de elemente" : comp(field.type).label}`;
@@ -1985,6 +2107,7 @@ document.addEventListener("DOMContentLoaded", () => {
   function fieldPanelHtml(found) {
     if (!found) return formPanelHtml();
     const { step, section, field, index } = found;
+    if (field.type === "address" && state.addrPart && window.GEAPGridBuilder?.isOpen?.()) return addressPartPanelHtml(found, state.addrPart);
     const meta = comp(field.type);
     const tabs = meta.tabs || INPUT_TABS;
     if (!tabs.includes(state.tab)) state.tab = T_GEN;
@@ -2009,6 +2132,39 @@ document.addEventListener("DOMContentLoaded", () => {
       ${tabsHtml(tabs, "field", field.id)}
       <div class="e-permits-builder__panel-scroll" id="fb-tabpanel" role="tabpanel" aria-labelledby="fb-tab-${state.tab}" data-fb-panel-scroll>
         ${body}
+      </div>`;
+  }
+
+  /* ---- fb-win-v1 (2026-11-23): an address part selected in the address window → its own short panel: Afișare (Vizibil /
+     Obligatoriu ✱ — the labelled checkboxes, product rule), „Lățime ⓘ” (the joined picker, 3 · 4 · 6 · 8 · 12), the source,
+     the cascade and the default value. The crumb goes back to the address (nothing selected = the address panel). */
+  function addressPartPanelHtml(found, key) {
+    const { step, section, field } = found;
+    const part = addressConfig(field).find((item) => item.key === key);
+    if (!part) return "";
+    const span = part.span;
+    const width = widthPicker({
+      prop: `addrspan.${part.key}`,
+      value: span,
+      total: 12,
+      options: SPANS.map((value, i) => [value, value - (SPANS[i - 1] || 0), `${value}/12`, `${value} din 12 coloane — ${SPAN_TEXT[value]}`]),
+      label: `Lățime: ${span} din 12 coloane`,
+      caption: `<strong>${span}/12</strong> · ${SPAN_CAPTION[span] || ""}`,
+    });
+    return `
+      ${panelHead({ crumbs: [tr(step.title), tr(section.title) || "Secțiune", fieldName(field)], title: part.label, chip: `<em class="e-permits-builder__tag e-permits-builder__tag--outlined">${esc(part.kind)}</em>`, back: { kind: "field", id: field.id, label: `Adresa „${fieldName(field)}”` } })}
+      <div class="e-permits-builder__panel-scroll" data-fb-panel-scroll>
+        ${group("Afișare", `
+          <div class="e-permits-check-options">
+            ${ui().renderCheckOption?.({ label: "Vizibil", checked: part.visible, attrs: `data-address-visible="${part.key}"` }) || ""}
+            ${ui().renderCheckOption?.({ label: "Obligatoriu", required: true, checked: part.required, disabled: !part.visible, reason: "Partea este ascunsă.", attrs: `data-address-required="${part.key}"` }) || ""}
+          </div>`)}
+        ${group("Lățime", width, { id: "width", info: "Câte din cele 12 coloane ale rândului ocupă partea. Pe telefon, toată lățimea." })}
+        ${group("Date", `
+          ${part.source ? ui().renderInfoNote?.(`Sursă: ${esc(part.source)}`) || "" : ""}
+          ${part.parent ? `<p class="e-permits-builder__part-cascade">${icon("icon-arrow-right", 16)}<span>Se filtrează după <strong>${esc(part.parent)}</strong></span></p>` : ""}
+          ${part.note ? `<p class="e-permits-fo-field__hint">${esc(part.note)}</p>` : ""}
+          ${part.noDefault ? "" : grid(inputField({ prop: `address.${part.key}.defaultValue`, label: "Valoare implicită", value: part.defaultValue || "", placeholder: "Nicio valoare", attrs: `data-fb-address-default="${part.key}"` }))}`)}
       </div>`;
   }
 
@@ -2055,7 +2211,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const err = propError("field", container.id, "children");
     return `
       ${group(inGrid ? "Coloane" : "Câmpurile blocului", `
-        <p class="e-permits-fo-field__hint">${inGrid ? `Ordinea de aici = ordinea câmpurilor în rând. Le aranjezi și în constructorul grilei.${level > 1 ? ` Grilă de nivelul ${level} din ${MAX_GRID_LEVEL}.` : ""}` : "Câmpurile fiecărui card, în ordine. Trage tipuri din bibliotecă pe banda „Câmpuri” sau adaugă-le de aici."}</p>
+        <p class="e-permits-fo-field__hint">${inGrid ? `Ordinea de aici = ordinea câmpurilor în rând. Le aranjezi și în fereastra „Editează grila”.${level > 1 ? ` Grilă de nivelul ${level} din ${MAX_GRID_LEVEL}.` : ""}` : "Câmpurile fiecărui card, în ordine. Trage tipuri din bibliotecă pe banda „Câmpuri” sau adaugă-le de aici."}</p>
         ${err ? errorHtml(err) : ""}
         ${list.length ? `<ol class="e-permits-builder__step-list" aria-label="${inGrid ? "Coloanele grilei" : "Câmpurile blocului"}">${list.map((child, i) => `
           <li><button class="e-permits-builder__step-row" type="button" data-fb-child-row="${child.id}" aria-describedby="fb-sub-kbd-hint">
@@ -2204,7 +2360,7 @@ document.addEventListener("DOMContentLoaded", () => {
         ${inputField({ prop: "label", label: langLabel("Etichetă"), value: tr(field.label, state.lang), required: state.lang === "ro", i18nProp: true, maxlength: 150, error: state.lang === "ro" ? err("label") : "" })}
         ${langNote()}
         ${textareaField({ prop: "help", label: langLabel("Text ajutător"), value: tr(field.help, state.lang), i18nProp: true, hint: t === "subform" ? "Apare deasupra câmpurilor sub-formularului." : "Apare sub etichetă. Spune ce se adaugă și câte." })}
-        ${t === "repeat" ? `<div class="e-permits-user-create__field"><div class="e-permits-check-options">${checkOption({ prop: "labelHidden", label: "Ascunde eticheta (titlul secțiunii o spune)", checked: field.labelHidden })}</div></div>` : ""}`;
+        ${t === "repeat" || isCaemGrid(field) ? `<div class="e-permits-user-create__field"><div class="e-permits-check-options">${checkOption({ prop: "labelHidden", label: "Ascunde eticheta (titlul secțiunii o spune)", checked: field.labelHidden })}</div></div>` : ""}`;
     } else if (t === "hidden") {
       labelBlock = `
         ${inputField({ prop: "label", label: "Denumire internă", value: tr(field.label), required: true, maxlength: 150, error: err("label"), hint: "Solicitantul nu vede acest câmp; denumirea apare în constructor, reguli și Back Office." })}`;
@@ -2228,7 +2384,7 @@ document.addEventListener("DOMContentLoaded", () => {
           ? inputField({ prop: "itemTitle", label: langLabel("Titlul elementului"), value: tr(field.itemTitle, state.lang), required: state.lang === "ro", i18nProp: true, maxlength: 60, error: state.lang === "ro" ? err("itemTitle") : "", hint: "Pe fiecare card, după număr: „#1 Activitate”." })
           : inputField({ prop: "rowTitle", label: langLabel("Numele rândului"), value: tr(field.rowTitle, state.lang), i18nProp: true, maxlength: 40, hint: "Pe telefon, fiecare rând e un card „#1 Rând”." })}
         ${inputField({ prop: "addLabel", label: langLabel("Butonul de adăugare"), value: tr(field.addLabel, state.lang), required: state.lang === "ro", i18nProp: true, maxlength: 60, error: state.lang === "ro" ? err("addLabel") : "", hint: t === "grid" ? "Ex.: „Adaugă rând”, „Adaugă echipament”." : "Ex.: „Adaugă altă activitate”." })}
-        ${t === "grid"
+        ${t === "grid" && !isCaemGrid(field)
           ? textareaField({ prop: "emptyText", label: langLabel("Text fără rânduri"), value: tr(field.emptyText, state.lang), i18nProp: true, hint: "În grilă, cât nu e niciun rând (US-35 AC-05)." })
           : textareaField({ prop: "note", label: langLabel("Informație (ⓘ lângă etichetă)"), value: tr(field.note, state.lang), i18nProp: true, hint: "Apare la trecerea cu mouse-ul / atingerea lui ⓘ, nu ca un card (ex.: sursa codurilor CAEM, US-40 AC-05). Gol = fără ⓘ." })}
       `)) : "";
@@ -2261,7 +2417,11 @@ document.addEventListener("DOMContentLoaded", () => {
     const counter = ["text", "textarea"].includes(t) ? `<div class="e-permits-check-options">${checkOption({ prop: "counter", label: "Contor de caractere", checked: field.counter })}</div>` : "";
     /* fb-v3 (October look): „Lățime ⓘ” is its own section — the joined picker + „12/12 · tot rândul (1 pe rând)” */
     const WIDTH_INFO = "Formularul are 12 coloane. Lățimea spune câte coloane ocupă câmpul pe calculator; pe telefon, fiecare câmp ocupă tot rândul.";
-    const width = t === "hidden" ? "" : column ? group("Lățime", `
+    /* fb-win-v1: a nested grid / sub-form / textarea column always takes the whole row (no width handle on its card) */
+    const width = t === "hidden" ? "" : column && fixedChild(field) ? group("Lățime", `
+        <div class="e-permits-fo-field">
+          ${spanPicker(field, { fixed: true, reason: "Coloana ocupă mereu tot rândul." })}
+        </div>`, { id: "width", info: WIDTH_INFO }) : column ? group("Lățime", `
         <div class="e-permits-fo-field">
           ${columnPicker(field)}
           <p class="e-permits-fo-field__hint">Câmpurile rândului stau unul lângă altul, pe 12 coloane. Pe telefon, toate pe toată lățimea.</p>
@@ -2898,7 +3058,7 @@ document.addEventListener("DOMContentLoaded", () => {
         return `
           <section class="e-permits-fo-form__section${showTitle ? "" : " e-permits-fo-form__section--plain"}" ${showTitle ? `aria-labelledby="pv-${section.id}-title"` : `aria-label="${esc(title || "Secțiune")}"`} data-fb-section="${section.id}">
             ${showTitle ? `
-              <div class="e-permits-fo-section-header${section.showSeparator === false || section.fields?.[0]?.type === "repeat" ? " e-permits-fo-section-header--no-border" : ""}">
+              <div class="e-permits-fo-section-header${section.showSeparator === false || (section.fields?.[0]?.type === "repeat" || isCaemGrid(section.fields?.[0])) ? " e-permits-fo-section-header--no-border" : ""}">
                 <h2 id="pv-${section.id}-title">${esc(title)}</h2>
                 ${text(section.description) ? `<p class="e-permits-fo-section-header__desc">${esc(text(section.description))}</p>` : ""}
               </div>` : ""}
@@ -3011,7 +3171,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
         section.fields.forEach((field) => {
           /* rules between the fields of one block element, card by card */
-          if (field.type === "repeat") {
+          if (field.type === "repeat" || isCaemGrid(field)) {
             previewCell(field.id)?.querySelectorAll("[data-fo-repeat-item]").forEach((item) => kidsOf(field).forEach((child) => {
               if (!child.rules?.length) return;
               const node = item.querySelector(`[data-fo-repeat-child="${child.id}"]`);
@@ -3254,15 +3414,34 @@ document.addEventListener("DOMContentLoaded", () => {
     { id: "preset-object-address", system: true, name: "Adresa obiectului", desc: "Adresă cu cod cadastral (SRRE)", type: "address", scope: "global", version: 1, field: { label: i18n("Adresa obiectului"), required: true, span: 12, addressConfig: [{ key: "cadastral", visible: true, required: false, defaultValue: "" }] } },
     /* US-40: the FO activities (#1 Activitate · Codul CAEM · Subgen · „Adaugă altă activitate”) as a
        configured repeatable block: key + group = the CAEM code (no duplicates, one section), min 1 */
-    { id: "preset-caem", system: true, name: "Activități CAEM", desc: "Cod CAEM + subgenuri, un card pe activitate", type: "repeat", icon: "icon-store", scope: "global", version: 1, field: {
+    { id: "preset-caem", system: true, name: "Activități CAEM", desc: "Cod CAEM + subgenuri, un card pe activitate", type: "grid", icon: "icon-store", scope: "global", version: 1, field: {
       label: i18n("Activitățile desfășurate"), labelHidden: true, required: true, span: 12,
-      itemTitle: i18n("Activitate"), addLabel: i18n("Adaugă altă activitate"), note: i18n("Codurile CAEM se prezintă în dependență de activitățile înregistrate în RSUD."),
-      rowRules: { minRows: 1, maxRows: "", defaultRows: 1, allowRemove: true, keyColumn: "bf-caem-code", groupColumn: "bf-caem-code" },
+      rowTitle: i18n("Activitate"), emptyText: i18n(), addLabel: i18n("Adaugă altă activitate"), note: i18n("Codurile CAEM se prezintă în dependență de activitățile înregistrate în RSUD."),
+      rowRules: { minRows: 1, maxRows: "", defaultRows: 1, allowAdd: true, allowRemove: true, keyColumn: "bf-caem-code", groupColumn: "bf-caem-code", pageSize: 10 },
       messages: { min: i18n("Adaugă cel puțin o activitate."), max: i18n(), duplicate: i18n("Ai înregistrat deja acest cod CAEM."), group: i18n("Într-o solicitare pot fi selectate doar coduri ale unei secțiuni: {grup}.") },
-      fields: [
-        { id: "bf-caem-code", type: "select", key: "CodCaem", label: i18n("Codul CAEM"), help: i18n(), placeholder: i18n("Selectează cod CAEM"), required: true, readOnly: false, span: 12, dataSource: { mode: "existing", classifierId: "reg_caem", template: "code-name", search: true } },
-        { id: "bf-caem-sub", type: "multiselect", key: "SubgenActivitate", label: i18n("Subgen de activitate"), help: i18n(), placeholder: i18n("Alege subgen de activitate"), required: true, readOnly: false, span: 12, noOptionsText: i18n("Niciun subgen disponibil pentru acest cod CAEM."), dataSource: { mode: "existing", classifierId: "reg_caem_subgen", template: "name", cascade: true, parentFieldId: "bf-caem-code", filterColumn: "caem_code" }, validation: { minSelected: 1, maxSelected: "", message: i18n() } },
+      columns: [
+        { id: "bf-caem-code", type: "select", key: "CodCaem", label: i18n("Codul CAEM"), help: i18n(), placeholder: i18n("Selectează cod CAEM"), required: true, readOnly: false, span: 12, width: "l", dataSource: { mode: "existing", classifierId: "reg_caem", template: "code-name", search: true } },
+        { id: "bf-caem-sub", type: "multiselect", key: "SubgenActivitate", label: i18n("Subgen de activitate"), help: i18n(), placeholder: i18n("Alege subgen de activitate"), required: true, readOnly: false, span: 12, width: "l", noOptionsText: i18n("Niciun subgen disponibil pentru acest cod CAEM."), dataSource: { mode: "existing", classifierId: "reg_caem_subgen", template: "name", cascade: true, parentFieldId: "bf-caem-code", filterColumn: "caem_code" }, validation: { minSelected: 1, maxSelected: "", message: i18n() } },
       ] } },
+    /* fb-win-v1 (user 2026-11-23): PRE-MADE components to try the editing window right away — an equipment grid with
+       mixed column types (Îngustă / Lată / Medie widths + a sub-form) and the complete address (every part visible) */
+    { id: "preset-grid-equipment", system: true, name: "Grilă editabilă · Echipamente", desc: "6 coloane: text, listă, bifă, dată, sub-formular", type: "grid", icon: "icon-dot-grid", scope: "global", version: 1, field: {
+      label: i18n("Echipamente"), help: i18n("Câte un rând pentru fiecare echipament."), required: false, span: 12,
+      rowTitle: i18n("Echipament"), addLabel: i18n("Adaugă echipament"), emptyText: i18n("Niciun echipament. Apasă «Adaugă echipament» pentru a începe."),
+      rowRules: { minRows: "", maxRows: "", defaultRows: 1, allowAdd: true, allowRemove: true, keyColumn: "col-pg-inv", groupColumn: "", pageSize: 10 },
+      columns: [
+        { id: "col-pg-inv", type: "text", key: "NrInventar", label: i18n("Nr. inventar"), help: i18n(), placeholder: i18n("Ex.: INV-0012"), required: true, readOnly: false, span: 12, width: "s", maxLength: 20, counter: false, validation: { preset: "none", pattern: "", minLength: "", message: i18n() } },
+        { id: "col-pg-name", type: "text", key: "Denumire", label: i18n("Denumire"), help: i18n(), placeholder: i18n("Ex.: Vitrină frigorifică Liebherr"), required: true, readOnly: false, span: 12, width: "l", maxLength: 100, counter: false, validation: { preset: "none", pattern: "", minLength: "", message: i18n() } },
+        { id: "col-pg-type", type: "select", key: "Tip", label: i18n("Tip"), help: i18n(), placeholder: i18n("Alege tipul"), required: true, readOnly: false, span: 12, width: "m", dataSource: { mode: "static", multilingual: false, values: [{ id: 1, label: "Frigider", isValid: true }, { id: 2, label: "Congelator", isValid: true }, { id: 3, label: "Vitrină frigorifică", isValid: true }] }, validation: { message: i18n() } },
+        { id: "col-pg-on", type: "checkbox", key: "InFunctiune", label: i18n("În funcțiune"), help: i18n(), placeholder: i18n(), required: false, readOnly: false, span: 12, width: "s", defaultChecked: true, validation: { message: i18n() } },
+        { id: "col-pg-date", type: "date", key: "DataVerificarii", label: i18n("Data verificării"), help: i18n(), placeholder: i18n(), required: false, readOnly: false, span: 12, width: "m", dateDefault: "none", dateMin: { mode: "none", value: "" }, dateMax: { mode: "today", value: "" }, validation: { message: i18n() } },
+        { id: "col-pg-tech", type: "subform", key: "DateTehnice", label: i18n("Date tehnice"), help: i18n("Datele tehnice ale echipamentului."), placeholder: i18n(), required: false, readOnly: false, span: 12, width: "f", rowRules: {}, messages: {}, fields: [
+          { id: "bf-pg-cap", type: "number", key: "Capacitate", label: i18n("Capacitate"), help: i18n(), placeholder: i18n(), required: true, readOnly: false, span: 6, numberKind: "integer", decimals: 0, unit: "l", validation: { min: "", max: "", message: i18n() } },
+          { id: "bf-pg-agent", type: "select", key: "AgentFrigorific", label: i18n("Agent frigorific"), help: i18n(), placeholder: i18n("Alege agentul"), required: false, readOnly: false, span: 6, dataSource: { mode: "static", multilingual: false, values: [{ id: 1, label: "R134a", isValid: true }, { id: 2, label: "R404A", isValid: true }, { id: 3, label: "R290", isValid: true }] }, validation: { message: i18n() } },
+          { id: "bf-pg-year", type: "number", key: "AnFabricatie", label: i18n("Anul fabricației"), help: i18n(), placeholder: i18n("Ex.: 2019"), required: false, readOnly: false, span: 4, numberKind: "integer", decimals: 0, unit: "", validation: { min: "", max: "", message: i18n() } },
+        ] },
+      ] } },
+    { id: "preset-address-full", system: true, name: "Adresă · completă", desc: "Toate părțile adresei, cu cod cadastral", type: "address", scope: "global", version: 1, field: { label: i18n("Adresa"), required: true, span: 12, addressConfig: [{ key: "sector", visible: true, required: false, defaultValue: "" }, { key: "cadastral", visible: true, required: false, defaultValue: "" }] } },
   ];
   const presets = () => [...SYSTEM_PRESETS, ...((db && db.presets) || [])];
   const presetById = (id) => presets().find((item) => item.id === id) || null;
@@ -3432,8 +3611,9 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   /* =============================================================== ACTIONS */
-  function select(kind, id = "", { tab, focusLabel = false } = {}) {
+  function select(kind, id = "", { tab, focusLabel = false, part = "" } = {}) {
     state.sel = { kind, id };
+    state.addrPart = part;
     if (kind === "field") {
       const found = findField(id);
       if (found) state.stepId = found.step.id;
@@ -3784,6 +3964,35 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+  /* fb-win-v1: widths set in the editing window — a column (Îngustă / Medie / Lată / Toată lățimea), a sub-form field
+     (span), an address part (span in addressConfig); one undo step each */
+  function setChildSpan(id, span) {
+    const found = findChild(id);
+    if (!found || fixedChild(found.child) && found.container.type === "grid") return;
+    const { child, container } = found;
+    if (container.type === "grid") {
+      const width = Object.entries({ s: 3, m: 4, l: 6, f: 12 }).find(([, n]) => n === span)?.[0];
+      if (!width || COLUMN_SPAN[child.width || "auto"] === span && child.width) return;
+      checkpoint(`width:${id}`);
+      child.width = width;
+    } else {
+      if (!SPANS.includes(span) || Number(child.span) === span) return;
+      checkpoint(`span:${id}`);
+      child.span = span;
+    }
+    commit();
+    announce(`Lățime ${span} din 12.`);
+  }
+  function setPartSpan(fieldId, key, span) {
+    const field = findField(fieldId)?.field;
+    if (!field || field.type !== "address" || !SPANS.includes(span)) return;
+    if (addressConfig(field).find((part) => part.key === key)?.span === span) return;
+    checkpoint(`addrspan:${fieldId}:${key}`);
+    setAddressPart(field, key, { span });
+    commit();
+    announce(`Lățime ${span} din 12.`);
+  }
+
   function setSpan(id, span, { announceIt = true } = {}) {
     const found = findField(id);
     if (found && isFixedWidth(found.field)) { announce("Componenta ocupă toată lățimea rândului."); return; }
@@ -4007,6 +4216,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const prop = seg.dataset.fbSeg;
       let value = seg.dataset.value;
       if (prop === "span") { setSpan(target.id, Number(value)); el.panel.querySelector(`[data-fb-seg="span"][data-value="${value}"]`)?.focus(); return; }
+      if (prop.startsWith("addrspan.")) { setPartSpan(target.id, prop.slice(9), Number(value)); el.panel.querySelector(`[data-fb-seg="${CSS.escape(prop)}"][data-value="${value}"]`)?.focus(); return; }
       checkpoint();
       setPath(target, prop, value);
       commit();
@@ -4717,7 +4927,7 @@ document.addEventListener("DOMContentLoaded", () => {
   /* ---- width by dragging the right edge: snaps to 3 · 4 · 6 · 8 · 12. fb-v3 (October look, ported from
      80311315 `resizeGuideLayer`): while dragging, the section's 12 columns show BEHIND the cards, the target
      span is highlighted, the card + its „n/12” tag follow live; Esc cancels (back to the start width) */
-  function resizeGuides(gridEl, card, span) {
+  function resizeGuides(gridEl, card, span, spans = SPANS) {
     let layer = gridEl.querySelector(":scope > .e-permits-builder__resize-guides");
     if (!layer) {
       layer = document.createElement("div");
@@ -4732,13 +4942,17 @@ document.addEventListener("DOMContentLoaded", () => {
     const step = (gridEl.clientWidth - gap * 11) / 12 + gap;
     const start = Math.max(0, Math.min(11, Math.round((cardRect.left - gridRect.left) / step)));
     /* runtime geometry (rows move while dragging): the layer covers the card's row only */
-    layer.style.top = `${Math.round(cardRect.top - gridRect.top)}px`;
-    layer.style.height = `${Math.round(cardRect.height)}px`;
+    /* resize-grid-v2 (user 2026-11-23): the guide lines reach 16 above and below the card's row, so the column
+       grid reads where the cards don't cover it */
+    const reach = 16;
+    layer.style.top = `${Math.round(cardRect.top - gridRect.top) - reach}px`;
+    layer.style.height = `${Math.round(cardRect.height) + reach * 2}px`;
     const guide = layer.querySelector(".e-permits-builder__resize-guide");
     guide.style.gridColumn = `${start + 1} / span ${Math.min(span, 12 - start)}`;
     layer.querySelectorAll(".e-permits-builder__resize-col").forEach((col, i) => {
       col.classList.toggle("is-in", i >= start && i < start + span);
-      col.classList.toggle("is-snap", SPANS.includes(i - start + 1) && i >= start);
+      col.classList.toggle("is-snap", spans.includes(i - start + 1) && i >= start);
+      col.classList.toggle("is-end", i === start + span - 1);
     });
     guide.querySelector("[data-fb-guide-span]").textContent = `${span}/12`;
     gridEl.classList.add("is-guiding-resize");
@@ -4748,14 +4962,11 @@ document.addEventListener("DOMContentLoaded", () => {
     gridEl?.classList.remove("is-guiding-resize");
     gridEl?.querySelector(":scope > .e-permits-builder__resize-guides")?.remove();
   }
-  el.canvas.addEventListener("pointerdown", (event) => {
-    const handle = event.target.closest("[data-fb-resize]");
-    if (!handle || event.button !== 0) return;
-    const card = handle.closest("[data-builder-field]");
-    const gridEl = card.closest("[data-builder-grid]");
+  /* one width drag for every card grid (form sections, the editing window's row / sub-form / address parts — fb-win-v1):
+     `spans` = the snap widths, `commit(span)` saves (called only when the width changed), `done()` after a plain click */
+  function startResize(event, { handle, card, gridEl, spans = SPANS, commit: save, done = () => {} }) {
     event.preventDefault();
     event.stopPropagation();
-    const id = card.dataset.id;
     const startX = event.clientX;
     const startSpan = Number(card.dataset.span);
     const gap = parseFloat(getComputedStyle(gridEl).columnGap) || 0;
@@ -4764,7 +4975,7 @@ document.addEventListener("DOMContentLoaded", () => {
     card.draggable = false;
     card.classList.add("is-resizing-field");
     builder.classList.add("is-field-resizing");
-    resizeGuides(gridEl, card, span);
+    resizeGuides(gridEl, card, span, spans);
     const pointerId = event.pointerId;
     try { handle.setPointerCapture?.(pointerId); } catch { /* the pointer is already gone */ }
     const apply = (next) => {
@@ -4772,11 +4983,11 @@ document.addEventListener("DOMContentLoaded", () => {
       card.dataset.span = String(span);
       const tag = card.querySelector("[data-fb-span-tag]");
       if (tag) tag.textContent = `${span}/12`;
-      resizeGuides(gridEl, card, span);
+      resizeGuides(gridEl, card, span, spans);
     };
     const move = (e) => {
       const raw = startSpan + Math.round((e.clientX - startX) / step);
-      const next = SPANS.reduce((best, value) => (Math.abs(value - raw) < Math.abs(best - raw) ? value : best), SPANS[0]);
+      const next = spans.reduce((best, value) => (Math.abs(value - raw) < Math.abs(best - raw) ? value : best), spans[0]);
       if (next !== span) apply(next);
     };
     /* ends on pointerup / pointercancel / a lost capture / window blur — once, capture released; Esc = cancel */
@@ -4793,9 +5004,10 @@ document.addEventListener("DOMContentLoaded", () => {
       try { if (handle.hasPointerCapture?.(pointerId)) handle.releasePointerCapture(pointerId); } catch { /* released */ }
       builder.classList.remove("is-field-resizing");
       card.classList.remove("is-resizing-field");
+      card.draggable = true;
       clearResizeGuides(gridEl);
       if (cancel) { apply(startSpan); clearResizeGuides(gridEl); announce(`Redimensionare anulată. Lățime ${startSpan} din 12.`); return; }
-      if (span !== startSpan) { state.sel = { kind: "field", id }; setSpan(id, span); } else select("field", id);
+      if (span !== startSpan) save(span); else done();
     };
     const onUp = () => stop(false);
     cancelResize = () => stop(true);
@@ -4804,6 +5016,17 @@ document.addEventListener("DOMContentLoaded", () => {
     window.addEventListener("pointercancel", onUp);
     window.addEventListener("blur", onUp);
     handle.addEventListener("lostpointercapture", onUp);
+  }
+  el.canvas.addEventListener("pointerdown", (event) => {
+    const handle = event.target.closest("[data-fb-resize]");
+    if (!handle || event.button !== 0) return;
+    const card = handle.closest("[data-builder-field]");
+    const id = card.dataset.id;
+    startResize(event, {
+      handle, card, gridEl: card.closest("[data-builder-grid]"),
+      commit: (span) => { state.sel = { kind: "field", id }; setSpan(id, span); },
+      done: () => select("field", id),
+    });
   });
 
   /* ---- topbar: issues list → select + open the tab; publish blocked with a reason */
@@ -5010,6 +5233,10 @@ document.addEventListener("DOMContentLoaded", () => {
     kidsOf, isNest, isContainer, findField, findChild, fieldOrChild, containerOf, levelOf, childAllowed, allFields,
     errorsOf, childErrorsOf, childHasIssue, chipBandHtml, gridFo, toFo, foHtml, addChildMenuHtml,
     select, addChild, moveChild, deleteChild, duplicateChild, runMenuAction, renderPanel, setMode,
+    /* fb-win-v1: the editing window draws the same cards, resizes with the same handle, edits address parts */
+    SPANS, SHORT_TAG, childCardHtml, addressPartCardHtml, childSpanOf, fixedChild, startResize, setChildSpan, setPartSpan,
+    addressConfig, isCaemGrid, libraryItemHtml, checkpoint, commit,
+    setAddressPart(field, key, updates) { checkpoint(); setAddressPart(field, key, updates); commit(); },
     /* „Gata” › Anulează: back to the form as it was when the builder opened (one undo step) */
     revertTo(snapshot) { state.undo.push(JSON.stringify(form)); state.redo = []; restore(snapshot); if (G) { G.dirty = true; syncGlobalBar(); } else saveDb(); },
   };

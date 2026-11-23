@@ -143,7 +143,7 @@
               "fields": [
                 {
                   "id": "fld-caem",
-                  "type": "repeat",
+                  "type": "grid",
                   "key": "ActivitatileDesfasurate",
                   "published": true,
                   "label": {
@@ -168,7 +168,7 @@
                     "id": "preset-caem",
                     "version": 1
                   },
-                  "itemTitle": {
+                  "rowTitle": {
                     "ro": "Activitate",
                     "ru": "",
                     "en": ""
@@ -188,6 +188,8 @@
                     "maxRows": "",
                     "defaultRows": 1,
                     "allowRemove": true,
+                    "allowAdd": true,
+                    "pageSize": 10,
                     "keyColumn": "bf-09-caem",
                     "groupColumn": "bf-09-caem"
                   },
@@ -213,7 +215,7 @@
                       "en": ""
                     }
                   },
-                  "fields": [
+                  "columns": [
                     {
                       "id": "bf-09-caem",
                       "type": "select",
@@ -234,6 +236,7 @@
                         "en": ""
                       },
                       "span": 12,
+                      "width": "l",
                       "required": true,
                       "readOnly": false,
                       "validation": {
@@ -270,6 +273,7 @@
                         "en": ""
                       },
                       "span": 12,
+                      "width": "l",
                       "required": true,
                       "readOnly": false,
                       "validation": {

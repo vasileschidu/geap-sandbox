@@ -3109,7 +3109,6 @@
           /* row-cards-v1: a grid card has no „Coloane” band any more — a column is picked from the grid's Date list */
           const gridCard = (id) => `[data-builder-field][data-id='${id}']`;
           const pickCol = (gridId, colId) => async (h) => { await h.scroll(gridCard(gridId)); await h.click(`${gridCard(gridId)} .e-permits-builder__field-meta`); await h.click("[data-builder-prop-tab='data']"); await h.click(`[data-fb-child-row='${colId}']`); await h.click("[data-builder-prop-tab='general']"); };
-          const band = (type) => `[data-builder-field][data-type='${type}'] .e-permits-builder__sub-add`;
           const equip = `${PV} [data-fb-field='fld-equipment']`;
           const caem = `${PV} [data-fb-field='fld-caem']`;
           /* a CAEM code picked the way the FO list acts (mousedown on the option) */
@@ -3126,19 +3125,6 @@
             }
           };
           const fillGrid = (scope) => async (h) => { const cell = await h.find(scope); window.GEAPFoRepeat.fill(cell); await h.wait(300); };
-          /* a generic block: „Vehicule” with Nr. de înmatriculare (max 2) — max reached in the Preview */
-          const vehicles = async (h) => {
-            await h.click("[data-builder-component='repeat']");
-            await h.fill("[data-fb-prop='label']", "Vehicule", { leave: false });
-            await h.fill("[data-fb-prop='itemTitle']", "Vehicul", { leave: false });
-            await h.fill("[data-fb-prop='addLabel']", "Adaugă alt vehicul", { leave: false });
-            await h.click(band("repeat"));
-            await h.click("[data-builder-field][data-type='repeat'] [data-fb-add-child='text']");
-            await h.fill("[data-fb-prop='label']", "Nr. de înmatriculare", { leave: false });
-            await h.click(".e-permits-builder__panel-head .breadcrumbs__link[data-fb-goto]");
-            await h.click("[data-builder-prop-tab='validation']");
-            await h.fill("[data-fb-prop='rowRules.maxRows']", "2", { leave: false });
-          };
           return {
             /* 50 palette: Grilă editabilă + Bloc repetabil usable (no „În curând”), Activități CAEM saved */
             "fb-50": fb(async (h) => { await h.scroll("#fb-lib-repeat"); }),
@@ -3203,8 +3189,9 @@
             }, F09),
             /* 58 Activități CAEM inserted from the palette (a saved component, linked) · 58a its band +
                fields · 58b the FO: the first code fixes the section, the other sections are off (US-40 AC-03) */
-            "fb-58": fb(async (h) => { await h.scroll("[data-fb-preset='preset-caem']"); await h.click("[data-fb-preset='preset-caem']"); await h.scroll("[data-builder-field][data-type='repeat']"); }),
-            "fb-58a": fb(async (h) => { await h.click("[data-fb-preset='preset-caem']"); await h.click("[data-builder-prop-tab='data']"); await h.scroll("[data-builder-field][data-type='repeat']"); }),
+            /* fb-win-v1: the preset is an editable grid now (columns Codul CAEM + Subgen de activitate) */
+            "fb-58": fb(async (h) => { await h.click("[data-fb-lib-tab='variants']"); await h.scroll("[data-fb-preset='preset-caem']"); await h.click("[data-fb-preset='preset-caem']"); await h.scroll(`[data-builder-field][data-id='${window.GEAPFormBuilder.state.sel.id}']`); }),
+            "fb-58a": fb(async (h) => { await h.click("[data-fb-lib-tab='variants']"); await h.click("[data-fb-preset='preset-caem']"); await h.click("[data-builder-prop-tab='data']"); await h.scroll(`[data-builder-field][data-id='${window.GEAPFormBuilder.state.sel.id}']`); }),
             "fb-58b": fb(async (h) => {
               await preview(h);
               await pickCode(caem, "I 56.10")(h);
@@ -3249,18 +3236,11 @@
               block.querySelector("[data-fo-info]").click();
               await h.wait(500);
             }, F09),
-            /* 59 Bloc repetabil config: fields (Date) · 59a rules (Validare: key + group = CAEM, min 1)
-               · 59b the FO with 2 elements · 59c max reached · 59d remove → toast with „Anulează” */
+            /* 59 CAEM grid config (fb-win-v1: was the Bloc repetabil): columns (Date) · 59a rules (Validare: key + group = CAEM,
+               min 1) · 59b the FO with 2 elements · 59d remove → toast with „Anulează” (59c generic block removed with the type) */
             "fb-59": fb(async (h) => { await h.click("[data-builder-field][data-id='fld-caem']"); await h.click("[data-builder-prop-tab='data']"); }, F09),
             "fb-59a": fb(async (h) => { await h.click("[data-builder-field][data-id='fld-caem']"); await h.click("[data-builder-prop-tab='validation']"); }, F09),
             "fb-59b": fb(async (h) => { await preview(h); await fillGrid(caem)(h); await h.scroll(caem); }, F09),
-            "fb-59c": fb(async (h) => {
-              await vehicles(h);
-              await preview(h);
-              const block = `${PV} [data-fb-field='${window.GEAPFormBuilder.state.sel.id}']`;
-              await fillGrid(block)(h);
-              await h.scroll(`${block} [data-fo-repeat-limit]`);
-            }),
             "fb-59d": fb(async (h) => { await preview(h); await fillGrid(caem)(h); await h.click(`${caem} [data-fo-repeat-item]:nth-child(2) [data-fo-repeat-remove]`); await h.scroll(caem); }, F09),
             /* fb-caem-06 (row-stack-v1, 2026-11-20): two saved activities in the stacked container + a third in edit */
             "fb-caem-06": fb(async (h) => {
@@ -3280,7 +3260,7 @@
             /* 62 Schema: grids / blocks with their rows table (US-33 AC-02/03) */
             "fb-62": fb(async (h) => { await h.click("[data-builder-mode='schema']"); await h.wait(300); const code = await h.find("[data-builder-schema-code]"); const at = code.textContent.indexOf('"storage"'); const pre = code.closest("pre") || code; pre.scrollTop = Math.max(0, (code.textContent.slice(0, at).split("\n").length - 6) * 20); }, F09),
             /* 63 validation summary: a grid without columns, a block without fields */
-            "fb-63": fb(async (h) => { await h.click("[data-builder-component='grid']"); await h.click("[data-builder-component='repeat']"); await h.click("[data-fb-errors]"); })
+            "fb-63": fb(async (h) => { await h.click("[data-builder-component='grid']"); await h.click("[data-fb-errors]"); })
           };
         })(),
 
@@ -3404,10 +3384,6 @@
           return {
             /* 01 a new grid opened: only column types (complex locked + note), empty table „Adaugă prima coloană”, grid settings */
             "fb-gb-01": fb(openEmpty, F09),
-            /* 02 the equipment grid: the row card — every field cell = a column (type, n/12), nested sections, the saved line */
-            "fb-gb-02": fb(openGb, F09),
-            /* 03 a column selected (Denumire): selected header, its panel (name + type + width on General) */
-            "fb-gb-03": fb(async (h) => { await openGb(h); await h.click(col("col-09-name")); }, F09),
             /* 03b a choice column (Tip): Date tab = its list next to the name */
             "fb-gb-03b": fb(async (h) => { await openGb(h); await h.click(col("col-09-type")); await h.click("[data-builder-prop-tab='data']"); }, F09),
             /* 04 adding via the menu: the dashed „+ Coloană” tile at the end of the row card, its typed menu open */
@@ -3441,8 +3417,6 @@
             }, F09),
             /* 06 locked complex columns: the reason note + the tooltip on „Listă derulantă” (empty grid, US-34 AC-06) */
             "fb-gb-06": fb(async (h) => { await openEmpty(h); await h.hover(`${GBV} [data-gb-type='select']`); await h.wait(600); }, F09),
-            /* 07 drill-in: „Componente” (nested grid) opened — breadcrumb Formular › Echipamente frigorifice ›, level 2 */
-            "fb-gb-07": fb(async (h) => { await openGb(h); await h.click(`${GBV} [data-gb-drill='col-09-parts']`); await h.find(`${GBV} [data-gb-cell='col-09-part']`); await h.wait(200); }, F09),
             /* 07b level 2 → a 3rd-level grid added: there nested grid / sub-form are locked (US-38) */
             "fb-gb-07b": fb(async (h) => {
               await openGb(h);
@@ -3454,8 +3428,6 @@
               await h.click(`${GBV} [data-gb-type='subform']`);
               await h.wait(200);
             }, F09),
-            /* 08 sub-form canvas: „Date tehnice” — fields on the form layout, field types left, a field selected */
-            "fb-gb-08": fb(async (h) => { await openGb(h); await h.click(`${GBV} [data-gb-drill='col-09-tech']`); await h.click(`${GBV} [data-gb-field='bf-09-agent']`); await h.wait(200); }, F09),
             /* 09 errors: a new sub-form column without fields → red dot on its header, the errors menu open */
             "fb-gb-09": fb(async (h) => {
               await openGb(h);
@@ -3463,19 +3435,120 @@
               await h.click(`${GBV} [data-gb-errors]`);
               await h.wait(200);
             }, F09),
-            /* 10 Previzualizare · Desktop: the FO grid with two demo rows */
-            "fb-gb-10": fb(async (h) => { await openGb(h); await h.click(`${GBV} [data-gb-mode='preview']`); await h.find(`${GBV} [data-gb-preview] [data-fo-grid-row]`); await h.wait(300); }, F09),
-            /* 11 Previzualizare · Telefon (375): rows as cards */
-            "fb-gb-11": fb(async (h) => { await openGb(h); await h.click(`${GBV} [data-gb-mode='preview']`); await h.click(`${GBV} [data-gb-device='phone']`); await h.find(`${GBV} [data-gb-preview] [data-fo-grid-row]`); await h.wait(300); }, F09),
-            /* 12 „Gata”: back on the form, the grid card selected, toast „Ai actualizat grila …” with Anulează */
-            "fb-gb-12": fb(async (h) => {
-              await openGb(h);
-              await h.click(`${GBV} [data-gb-type='date']`);
-              await h.click(`${GBV} [data-gb-done]`);
-              await h.wait(400);
-            }, F09),
             /* 13 entry from the panel: the grid selected on the form → „Deschide constructorul grilei” on top of its panel */
             "fb-gb-13": fb(async (h) => { await h.scroll(equipCard); await h.click(`${equipCard} .e-permits-builder__field-meta`); await h.wait(200); }, F09),
+          };
+        })(),
+
+        /* ---- Fereastra de editare (fb-win-v1, 2026-11-23, user: „inception” — the grid / sub-form / address open in a
+           full-screen window = the Form Designer in miniature): 01 the grid card on the form · 02 window, nothing selected ·
+           03 a column selected + Lățime · 04 resize mid-drag with the guides · 05 added from the library · 06 complex locked
+           reason · 07 nested level 2 · 08 sub-form level · 09 / 10 Previzualizare desktop / phone · 11 Gata → card selected ·
+           12 CAEM as a grid · 13 address window · 14 address part resized · 15 address Previzualizare · 16–18 the pre-made
+           grid (Variante › inserted › window). BO desktop only.
+           Scope for QA: .e-permits-gridb ---- */
+        ...(() => {
+          const F09 = { formular: "form-sanitary-09" };
+          const W = ".e-permits-gridb:not([hidden])";
+          const equipCard = "[data-builder-field][data-id='fld-equipment']";
+          const openGrid = (id) => async (h) => {
+            const cardSel = `[data-builder-field][data-id='${id}']`;
+            await h.scroll(cardSel);
+            await h.click(`${cardSel} [data-gb-open]`);
+            await h.find(`${W} [data-gb-cell]`);
+            await h.wait(250);
+          };
+          const openEquip = openGrid("fld-equipment");
+          const card = (id) => `${W} [data-gb-col='${id}']`;
+          /* an address added from the library (default form), its window opened from the card */
+          const openAddress = async (h) => {
+            await h.click("[data-builder-component='address']");
+            const id = window.GEAPFormBuilder.state.sel.id;
+            const cardSel = `[data-builder-field][data-id='${id}']`;
+            await h.scroll(cardSel);
+            await h.click(`${cardSel} [data-gb-open]`);
+            await h.find(`${W} [data-gb-part]`);
+            await h.wait(250);
+          };
+          /* a width drag frozen mid-way: pointerdown on the card's edge handle, a move of `cols` columns */
+          const dragWidth = async (h, target, cols) => {
+            target.dispatchEvent(new MouseEvent("mouseover", { bubbles: true }));
+            const handle = target.querySelector("[data-gb-resize]");
+            const r = handle.getBoundingClientRect();
+            const x = r.left + r.width / 2, y = r.top + r.height / 2;
+            handle.dispatchEvent(new PointerEvent("pointerdown", { bubbles: true, cancelable: true, button: 0, buttons: 1, pointerId: 11, clientX: x, clientY: y }));
+            const grid = target.closest("[data-gb-grid]");
+            const step = (grid.clientWidth + 24) / 12;
+            window.dispatchEvent(new PointerEvent("pointermove", { bubbles: true, buttons: 1, pointerId: 11, clientX: x + step * cols, clientY: y }));
+            await h.wait(300);
+            return { x: x + step * cols, y };
+          };
+          return {
+            "fb-win-01": fb(async (h) => { await h.scroll(equipCard); }, F09),
+            "fb-win-02": fb(openEquip, F09),
+            "fb-win-03": fb(async (h) => { await openEquip(h); await h.click(card("col-09-name")); await h.scroll(`${W} [data-fb-group='width']`); }, F09),
+            "fb-win-04": fb(async (h) => { await openEquip(h); const target = await h.find(card("col-09-name")); await dragWidth(h, target, 2.2); }, F09),
+            /* 04e self-check: release → Medie becomes Lată (6/12); Esc mid-drag restores; Shift + Alt + ← steps back */
+            "fb-win-04e": fb(async (h) => {
+              await openEquip(h);
+              let target = await h.find(card("col-09-name"));
+              const at = await dragWidth(h, target, 2.2);
+              window.dispatchEvent(new PointerEvent("pointerup", { bubbles: true, pointerId: 11, clientX: at.x, clientY: at.y }));
+              await h.wait(300);
+              const col = () => window.GEAPFormBuilder.internals.findChild("col-09-name").child;
+              if (col().width !== "l") throw new Error(`release width=${col().width}`);
+              target = await h.find(card("col-09-name"));
+              await dragWidth(h, target, 3);
+              window.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true, cancelable: true }));
+              await h.wait(250);
+              if (col().width !== "l" || document.querySelector(".e-permits-builder__resize-guides")) throw new Error(`esc width=${col().width}`);
+              target = await h.find(card("col-09-name"));
+              target.focus();
+              target.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowLeft", altKey: true, shiftKey: true, bubbles: true, cancelable: true }));
+              await h.wait(250);
+              if (col().width !== "m") throw new Error(`alt width=${col().width}`);
+            }, F09),
+            "fb-win-05": fb(async (h) => { await openEquip(h); await h.fill(`${W} [data-gb-search]`, "dat", { leave: false }); await h.click(`${W} [data-gb-type='date']`); await h.wait(300); }, F09),
+            "fb-win-06": fb(async (h) => {
+              await h.find(equipCard);
+              const field = window.GEAPFormBuilder.addField("grid", "", null, { focus: false });
+              const cardSel = `[data-builder-field][data-id='${field.id}']`;
+              await h.scroll(cardSel);
+              await h.click(`${cardSel} [data-gb-open]`);
+              await h.find(`${W} [data-gb-drop-empty]`);
+              await h.hover(`${W} [data-gb-type='select']`);
+              await h.wait(600);
+            }, F09),
+            "fb-win-07": fb(async (h) => { await openEquip(h); await h.click(`${W} [data-gb-drill='col-09-parts']`); await h.find(card("col-09-part")); await h.click(card("col-09-part")); await h.wait(200); }, F09),
+            "fb-win-08": fb(async (h) => { await openEquip(h); await h.click(`${W} [data-gb-drill='col-09-tech']`); await h.find(card("bf-09-agent")); await h.click(card("bf-09-agent")); await h.wait(200); }, F09),
+            "fb-win-09": fb(async (h) => { await openEquip(h); await h.click(`${W} [data-gb-mode='preview']`); await h.find(`${W} [data-gb-preview] [data-fo-grid-row]`); await h.wait(300); }, F09),
+            "fb-win-10": fb(async (h) => { await openEquip(h); await h.click(`${W} [data-gb-mode='preview']`); await h.click(`${W} [data-gb-device='phone']`); await h.find(`${W} [data-gb-preview] [data-fo-grid-row]`); await h.wait(300); }, F09),
+            "fb-win-11": fb(async (h) => { await openEquip(h); await h.click(`${W} [data-gb-type='date']`); await h.click(`${W} [data-gb-done]`); await h.wait(400); }, F09),
+            "fb-win-12": fb(async (h) => { await openGrid("fld-caem")(h); await h.click(card("bf-09-caem")); await h.wait(200); }, F09),
+            "fb-win-13": fb(openAddress),
+            "fb-win-14": fb(async (h) => {
+              await openAddress(h);
+              await h.click(`${W} [data-gb-part='district']`);
+              const target = await h.find(`${W} [data-gb-part='house']`);
+              const at = await dragWidth(h, target, -1);
+              window.dispatchEvent(new PointerEvent("pointerup", { bubbles: true, pointerId: 11, clientX: at.x, clientY: at.y }));
+              await h.wait(300);
+              await h.click(`${W} [data-gb-part='house']`);
+              await h.scroll(`${W} [data-fb-group='width']`);
+            }),
+            "fb-win-15": fb(async (h) => { await openAddress(h); await h.click(`${W} [data-gb-mode='preview']`); await h.find(`${W} [data-gb-preview] [data-fo-cascade-address]`); await h.wait(300); }),
+            /* 16–18 the PRE-MADE grid (user 2026-11-23): Variante › „Grilă editabilă · Echipamente” · inserted (card selected) · its window */
+            "fb-win-16": fb(async (h) => { await h.click("[data-fb-lib-tab='variants']"); await h.scroll("[data-fb-preset='preset-grid-equipment']"); }),
+            "fb-win-17": fb(async (h) => { await h.click("[data-fb-lib-tab='variants']"); await h.click("[data-fb-preset='preset-grid-equipment']"); await h.scroll(`[data-builder-field][data-id='${window.GEAPFormBuilder.state.sel.id}']`); }),
+            "fb-win-18": fb(async (h) => {
+              await h.click("[data-fb-lib-tab='variants']");
+              await h.click("[data-fb-preset='preset-grid-equipment']");
+              const id = window.GEAPFormBuilder.state.sel.id;
+              await h.scroll(`[data-builder-field][data-id='${id}']`);
+              await h.click(`[data-builder-field][data-id='${id}'] [data-gb-open]`);
+              await h.find(`${W} [data-gb-cell]`);
+              await h.wait(250);
+            }),
           };
         })(),
 
@@ -3524,12 +3597,8 @@
             "fb-row-09": fb(phone("fld-products", async (cell) => { cell.scrollIntoView({ block: "start" }); }), F09),
             /* 09b phone 375: saved lines (buttons under the values) */
             "fb-row-09b": fb(phone("fld-products", async (cell, win) => { win.GEAPFoRepeat.fill(cell); await new Promise((r) => setTimeout(r, 300)); cell.scrollIntoView({ block: "start" }); }), F09),
-            /* 10 grid builder canvas: the row card, „Cantitatea” selected, „+ Coloană” tile, the saved line under it */
-            "fb-row-10": fb(async (h) => { await h.scroll(prodCard); await h.click(`${prodCard} [data-gb-open]`); await h.find(`${GBV} [data-gb-cell]`); await h.click(`${GBV} [data-gb-col='col-09-qty']`); await h.wait(250); }, F09),
-            /* 11 the grid card on the form: header + label + hint + the read-only „Coloane” chip band (chip-band-v1) + key line; 12 = a chip opens the builder on that column; 13 = chip of a nested sub-form inside the builder drills in */
+            /* 11 the grid card on the form (fb-win-v1: type tag · 12/12 · label + key · read-only chips · „Editează grila”) */
             "fb-row-11": fb(async (h) => { await h.scroll(prodCard); }, F09),
-            "fb-row-12": fb(async (h) => { await h.scroll(prodCard); await h.click(`${prodCard} [data-gb-chip='col-09-qty']`); await h.find(`${GBV} [data-gb-cell]`); await h.wait(250); }, F09),
-            "fb-row-13": fb(async (h) => { const eq = "[data-builder-field][data-id='fld-equipment']"; await h.scroll(eq); await h.click(`${eq} [data-gb-open]`); await h.find(`${GBV} [data-gb-cell]`); await h.scroll(`${GBV} [data-gb-chip='bf-09-agent']`); await h.click(`${GBV} [data-gb-chip='bf-09-agent']`); await h.wait(250); }, F09),
           };
         })()
       };

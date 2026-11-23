@@ -1,36 +1,36 @@
-/* Constructor grilă — the full-screen editable-grid builder of the Form Designer (gb-v1, 2026-11-20).
-   User decision 2026-11-20: the editable grid gets its own builder, like a new tab — only the grid, no other
-   form inputs. Research: separate focused editor (Power Apps / Nutrient), the canvas = the real table, nested
-   levels = drill-in with a breadcrumb (never modal-on-modal), visible type icons, name + type + options together,
-   preview as the applicant sees it. Figma reference (layout only): GEAP 2.0 „BO → Editable Grid” 3182:63897.
-   components.md › „Constructor grilă”.
+/* Fereastra de editare — the composite editing WINDOW of the Form Designer („inception”, fb-win-v1, 2026-11-23; was the
+   Constructor grilă gb-v1, 2026-11-20). User decision 2026-11-23: an editable grid (+ its nested grids / sub-forms) and
+   the address pattern open in a full-screen window = the SAME Form Designer in miniature (isolation mode — Illustrator /
+   XD / Figma: the same tools inside, the outer form not visible, a breadcrumb to go back, Esc = up one level).
+   components.md › „Fereastra de editare (grilă / sub-formular / adresă)”.
 
    NOTHING here is a second copy of the Form Designer: the model, the actions (addChild / moveChild / deleteChild /
-   duplicateChild, the typed „+ Coloană” menu), the validation, the properties panel (the builder's own panel
-   element is MOVED into this view while it is open — its listeners travel with it) and the FO renderer
-   (window.GEAPFoRepeat.gridHtml + sampleRows, window.GEAPFormRender) all come from js/form-builder.js through
-   window.GEAPFormBuilder.internals. Edits apply to the form draft live; „Gata” returns to the form with a
-   toast whose „Anulează” restores the form as it was when the builder opened.
+   duplicateChild, the typed „+ Coloană” menu), the validation, the CARD (`childCardHtml` / `addressPartCardHtml` = the
+   October-look canvas card), the width drag with the 12-column guides (`startResize`), the properties panel (the builder's
+   own panel element is MOVED into this view while it is open — its listeners travel with it) and the FO renderer all come
+   from js/form-builder.js through window.GEAPFormBuilder.internals. Edits apply to the form draft live (undo / redo work);
+   „Gata” returns to the form with the card selected and a toast whose „Anulează” restores the form as it was at open.
 
    Layout = the Form Designer's own frame (.e-permits-builder__topbar / __workspace / __library / __inspector):
-     topbar   back chevron (one level up / to the form) · breadcrumb „Formular › Grilă ›” running into the grid
-              name + key tag · Editare / Previzualizare · errors of this grid (the builder's errors button) · Gata
-     left     column types with icons: Coloane simple · Coloane complexe (locked with the reason until one simple
-              column — US-34 AC-06; nested grid / sub-form locked at level 3 — US-38) · Copie a unui câmp din
-              formular; click = append, drag onto the header row = insert there. A sub-form level lists field types.
-     centre   row-cards-v1: one sample row in its FO EDIT card — each field cell = the column (type · width as
-              the span of 12 · error dot), click = select, drag / Alt + ← → = reorder, Delete = remove (toast
-              „Anulează”); „+ Coloană” = a dashed tile at the end of the card grid; under it the saved line. A
-              nested grid / sub-form column opens one level deeper („Deschide” on its cell, button in the panel).
-              A sub-form level = a form-layout canvas (2 columns, gap 24, wide fields span both).
-     right    the column's properties (the builder's panel); nothing selected = the grid's own settings.
-   Previzualizare: the FO grid bound, with demo rows, Desktop / Telefon (375 → cards). */
+     topbar   back chevron (one level up / to the form) · breadcrumb „Formular › …” running into the name + key tag ·
+              Editare / Previzualizare · errors of this grid / address · Gata
+     left     grid / sub-form: „Bibliotecă de câmpuri” (search) filtered to the column types — Coloane simple · Coloane
+              complexe (locked with the reason until one simple column — US-34 AC-06; nested grid / sub-form locked at
+              level 3 — US-38) · Copie a unui câmp din formular; a sub-form level lists the field types. Click = append,
+              drag = insert. Address: „Părți ascunse” (fixed parts — a hidden part is switched back on from here).
+     centre   header strip „#1 <row name> · Rând de exemplu”, then ONE row as real field cards on the 12-column grid
+              (gap 24): select, drag to reorder, the width handle with the guides (columns snap 3 · 4 · 6 · 12, sub-form
+              fields / address parts 3 · 4 · 6 · 8 · 12), ⧉ / 🗑 (address: „Ascunde”); a dashed „+ Coloană” tile;
+              under a grid „Așa arată un rând salvat” + the saved line. A nested grid / sub-form card = its chips +
+              „Editează grila / sub-formularul” → the same window one level deeper.
+     right    the selected column / field / part; nothing selected = the grid's (address's) own settings.
+   Previzualizare: the FO grid / sub-form / address working, Desktop / Telefon (375). */
 (function () {
   let I = null;
   let root = null;
   const refs = {};
-  const gb = { open: false, stack: [], mode: "edit", device: "desktop", snapshot: "", topId: "", drag: null, home: null, lastSel: "" };
-  const DRILL_ICON = "icon-chevron-right";
+  const gb = { open: false, kind: "grid", stack: [], mode: "edit", device: "desktop", snapshot: "", topId: "", drag: null, home: null, lastSel: "", query: "" };
+  const isAddress = () => gb.kind === "address";
 
   const isDemo = () => Boolean(document.documentElement.dataset.demoLink);
   const current = () => (gb.stack.length ? I.fieldOrChild(gb.stack[gb.stack.length - 1]) : null);
@@ -41,7 +41,7 @@
     if (type === "subform") return "Câmpuri într-o secțiune a rândului";
     return I.comp(type).desc;
   };
-  const containerNoun = (item) => (item.type === "subform" ? "sub-formularul" : I.findChild(item.id) ? "sub-grila" : "grila");
+  const containerNoun = (item) => (item.type === "address" ? "adresa" : item.type === "subform" ? "sub-formularul" : I.findChild(item.id) ? "sub-grila" : "grila");
   const issuesOfTop = () => {
     const top = I.fieldOrChild(gb.topId);
     if (!top) return [];
@@ -50,7 +50,6 @@
   };
   /* every descendant of a container (columns, nested columns, sub-form fields) */
   const collect = (container) => I.kidsOf(container).flatMap((child) => [child, ...(I.isNest(child) ? collect(child) : [])]);
-  const columnIssue = (child) => I.errorsOf("child", child.id)[0] || (I.isNest(child) ? I.childErrorsOf(child)[0] : null) || null;
 
   /* ------------------------------------------------------------------ frame */
   function shellHtml() {
@@ -74,7 +73,17 @@
       </header>
       <div class="e-permits-builder__workspace e-permits-gridb__workspace">
         <aside class="e-permits-builder__library e-permits-gridb__library" aria-labelledby="gb-library-title">
-          <div class="e-permits-builder__panel-head"><h2 id="gb-library-title" data-gb-library-title>Tipuri de coloane</h2></div>
+          <div class="e-permits-builder__panel-head">
+            <h2 id="gb-library-title" data-gb-library-title>Bibliotecă de câmpuri</h2>
+            <div class="search-input medium rectangular e-permits-workplace__search e-permits-list-search e-permits-list-search--fill" data-gb-search-box>
+              <span class="icon-search" aria-hidden="true">${I.icon("icon-search")}</span>
+              <input class="input" type="search" placeholder="Caută…" aria-label="Caută în bibliotecă" autocomplete="off" data-gb-search>
+              <div class="btn-group">
+                <span class="spinner spinner--extra-small spinner--brand" aria-hidden="true"></span>
+                <button type="button" class="btn-icon clear" aria-label="Șterge căutarea"><svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-cross-small"></use></svg></button>
+              </div>
+            </div>
+          </div>
           <div class="e-permits-builder__library-list" data-gb-library></div>
         </aside>
         <section class="e-permits-gridb__stage" aria-label="Spațiul grilei" data-gb-stage>
@@ -84,8 +93,8 @@
         </section>
         <aside class="e-permits-builder__inspector e-permits-gridb__inspector" aria-label="Proprietăți" data-gb-inspector></aside>
       </div>
-      <p class="u-visually-hidden" id="gb-col-hint">Enter selectează coloana, Alt + săgeată stânga sau dreapta o mută, Delete o șterge.</p>
-      <p class="u-visually-hidden" id="gb-field-hint">Enter selectează câmpul, Alt + săgeată sus sau jos îl mută, Delete îl șterge.</p>`;
+      <p class="u-visually-hidden" id="gb-col-hint">Enter selectează, Alt + săgeată stânga sau dreapta mută, Shift + Alt + săgeată stânga sau dreapta schimbă lățimea, Ctrl + D duplică, Delete șterge.</p>
+      <p class="u-visually-hidden" id="gb-part-hint">Enter selectează partea, Alt + săgeată stânga sau dreapta schimbă lățimea, Delete o ascunde.</p>`;
   }
 
   /* ------------------------------------------------------------------ topbar */
@@ -109,10 +118,11 @@
     const n = errors.length;
     refs.errors.classList.toggle("is-clean", n === 0);
     refs.errors.classList.toggle("btn-outline-destructive", n > 0);
+    const where = isAddress() ? "în adresă" : "în grilă";
     refs.errorsLabel.textContent = n ? `${n} ${n === 1 ? "eroare" : "erori"}` : "Fără erori";
-    refs.errors.setAttribute("aria-label", n ? `${n} ${n === 1 ? "eroare" : "erori"} în grilă — vezi lista` : "Fără erori în grilă");
+    refs.errors.setAttribute("aria-label", n ? `${n} ${n === 1 ? "eroare" : "erori"} ${where} — vezi lista` : `Fără erori ${where}`);
     refs.issuesMenu.innerHTML = n
-      ? `<li role="none" class="e-permits-builder__issues-head">${n} ${n === 1 ? "eroare în grilă" : "erori în grilă"}</li>${errors.map((issue) => `
+      ? `<li role="none" class="e-permits-builder__issues-head">${n} ${n === 1 ? "eroare" : "erori"} ${where}</li>${errors.map((issue) => `
         <li role="none">
           <button class="e-permits-fo-intent-menu__item e-permits-builder__issue" type="button" role="menuitem" data-gb-issue="${issue.kind}" data-id="${issue.id}" data-tab="${issue.tab}">
             ${I.icon("icon-circle-error-filled")}
@@ -123,7 +133,7 @@
             </span>
           </button>
         </li>`).join("")}`
-      : '<li role="none" class="e-permits-builder__issues-head">Fără erori în grilă</li>';
+      : `<li role="none" class="e-permits-builder__issues-head">Fără erori ${where}</li>`;
   }
 
   /* ------------------------------------------------------------------ left: types */
@@ -147,173 +157,135 @@
         ${body}
       </section>`;
   }
+  /* the search filters the open list (types, copies, hidden parts) — like the designer's library */
+  const hit = (text) => { const q = norm(gb.query); return !q || norm(text).includes(q); };
+  const norm = (value) => String(value || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
+  const noResults = () => window.GEAPEmptyState?.noResults("Nimic găsit", { compact: true, bare: true }) || "";
   function renderLibrary(cur) {
+    if (isAddress()) { renderPartsLibrary(cur); return; }
     const level = I.levelOf(cur);
     const sub = cur.type === "subform";
-    refs.libraryTitle.textContent = sub ? "Tipuri de câmpuri" : "Tipuri de coloane";
-    refs.library.closest("aside").setAttribute("aria-label", refs.libraryTitle.textContent);
+    refs.libraryTitle.textContent = "Bibliotecă de câmpuri";
+    refs.library.closest("aside").setAttribute("aria-label", sub ? "Bibliotecă de câmpuri — câmpurile sub-formularului" : "Bibliotecă de câmpuri — tipurile de coloane");
+    const typeHit = (type) => hit(`${typeLabel(type)} ${typeDesc(type, level)}`);
     const item = (type) => itemHtml({ type, reason: I.childAllowed(cur, type), level });
-    const copies = I.allFields().map(({ field }) => field).filter((field) => !I.isContainer(field) && !I.childAllowed(cur, field.type));
+    const copies = I.allFields().map(({ field }) => field).filter((field) => !I.isContainer(field) && !I.childAllowed(cur, field.type) && hit(`${I.fieldName(field)} ${field.key || ""}`));
     const copyBlock = copies.length ? section("copy", "Copie a unui câmp din formular", copies.map((field) => itemHtml({ type: field.type, from: field, level })).join("")) : "";
+    let html;
     if (sub) {
-      refs.library.innerHTML = `${section("fields", "Câmpuri", I.BLOCK_TYPES.map(item).join(""))}${copyBlock}`;
-      return;
+      const types = I.BLOCK_TYPES.filter(typeHit);
+      html = `${types.length ? section("fields", "Câmpuri", types.map(item).join("")) : ""}${copyBlock}`;
+    } else {
+      const simple = [...I.COLUMN_SIMPLE, "datetime"].filter(typeHit);
+      const complex = I.COLUMN_COMPLEX.filter(typeHit);
+      const lockedReason = I.COLUMN_COMPLEX.map((type) => I.childAllowed(cur, type)).find(Boolean) || "";
+      html = `
+        ${simple.length ? section("simple", "Coloane simple", simple.map(item).join("")) : ""}
+        ${complex.length ? section("complex", "Coloane complexe", complex.map(item).join(""), lockedReason) : ""}
+        ${copyBlock}`;
     }
-    const lockedReason = I.COLUMN_COMPLEX.map((type) => I.childAllowed(cur, type)).find(Boolean) || "";
-    refs.library.innerHTML = `
-      ${section("simple", "Coloane simple", [...I.COLUMN_SIMPLE, "datetime"].map(item).join(""))}
-      ${section("complex", "Coloane complexe", I.COLUMN_COMPLEX.map(item).join(""), lockedReason)}
-      ${copyBlock}`;
+    refs.library.innerHTML = html.trim() ? html : noResults();
+  }
+  /* the address window: the parts are fixed — the left column lists the HIDDEN ones; a click switches a part back on */
+  const PART_ICON = { "listă": "icon-chevron-bottom", text: "icon-text-bold", "număr": "icon-hashtag" };
+  function renderPartsLibrary(field) {
+    refs.libraryTitle.textContent = "Părțile adresei";
+    refs.library.closest("aside").setAttribute("aria-label", "Părțile adresei — părțile ascunse");
+    const hidden = I.addressConfig(field).filter((part) => !part.visible);
+    const shown = hidden.filter((part) => hit(`${part.label} ${part.kind}`));
+    const body = shown.map((part) => `
+      <button class="e-permits-builder__library-item" type="button" data-gb-show-part="${part.key}" aria-label="Afișează: ${I.esc(part.label)}">
+        <span>${I.icon(PART_ICON[part.kind] || "icon-text-bold")}</span>
+        <strong>${I.esc(part.label)}</strong>
+        <em data-cell-tooltip>${I.esc(part.note || "Ascunsă — apasă ca s-o afișezi")}</em>
+      </button>`).join("");
+    refs.library.innerHTML = hidden.length
+      ? (shown.length ? section("hidden", "Părți ascunse", body) : noResults())
+      : section("hidden", "Părți ascunse", window.GEAPEmptyState?.render({ title: "Toate părțile sunt afișate", text: "Ascunde o parte din cardul ei sau din panoul din dreapta; o găsești apoi aici.", icon: "eye", compact: true, bare: true }) || "");
   }
 
-  /* ------------------------------------------------------------------ centre: the live table */
-  /* „+ Coloană” / „Adaugă câmp”: the builder's typed menu (fixed, so no table / scroll box cuts it); `detached` =
-     the menu is written after the table (a pinned header cell is a stacking context that would cover it) */
+  /* ------------------------------------------------------------------ centre: the row of cards */
+  /* „+ Coloană” / „Adaugă câmp”: the builder's typed menu (fixed, so no scroll box cuts it), written after the grid */
   const addMenuId = (cur) => `fb-addchild-${cur.id}-gb`;
   const addMenuListHtml = (cur) => I.addChildMenuHtml(cur, "gb").replace(" hidden data-stack-menu>", ' hidden data-stack-menu data-stack-menu-fixed data-stack-menu-align="start">');
-  function addMenuHtml(cur, label, cls = "btn btn-secondary btn-sm", { detached = false } = {}) {
+  function addMenuHtml(cur, label, cls = "btn btn-secondary btn-sm") {
     return `
       <div class="e-permits-stack__menu-wrap e-permits-gridb__add">
         <button class="${cls}" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="${addMenuId(cur)}" data-stack-menu-trigger data-gb-add>${I.icon("icon-plus-small", 16)}<span>${I.esc(label)}</span></button>
-        ${detached ? "" : addMenuListHtml(cur)}
+        ${addMenuListHtml(cur)}
       </div>`;
   }
-  /* row-cards-v1 (2026-11-20) + gb-inert-v1 (2026-11-20, user: „none of the buttons work, it's so ambiguous”): Editare =
-     structure, Previzualizare = the working form. The centre = ONE sample row in the FO row card, but NOTHING in it is
-     live: no Anulează / Salvează, the saved line has no Editează / Elimină. Each field cell = the Form Designer's own
-     field block (`.e-permits-builder__field`: grip + type chip + „3/12”, the FO control inert inside, hover / selected /
-     focus from the shared class); the whole block is the click target (Enter selects, drag = reorder, Alt + ← / → =
-     move, Delete); „Deschide” for a nested grid / sub-form; „+ Coloană” = a dashed tile at the end of the card grid. */
-  const WIDTH_NAMES = { s: "Îngustă", m: "Medie", auto: "Medie", l: "Lată", f: "Toată lățimea" };
-  function cellMetaHtml(child, span) {
-    const issue = columnIssue(child);
-    const name = I.fieldName(child);
-    const width = I.isNest(child) || child.type === "textarea" ? "Toată lățimea" : WIDTH_NAMES[child.width || "auto"] || "Medie";
-    return `
-      <div class="e-permits-builder__field-tools">
-        <div class="e-permits-builder__field-meta">
-          <span class="e-permits-builder__drag-grip" aria-hidden="true">${I.icon("icon-drag", 16)}</span>
-          <em class="e-permits-builder__tag e-permits-builder__tag--strong" data-cell-tooltip>${I.esc(typeLabel(child.type))}</em>
-          <em class="e-permits-builder__tag e-permits-builder__tag--outlined" data-tooltip-text="${I.esc(`${width} · ${span} din 12 coloane`)}">${span}/12</em>
-        </div>
-        ${issue ? `<span class="e-permits-gridb__col-issue" data-tooltip-text="${I.esc(issue.message)}"><span class="e-permits-ntpl-dot e-permits-tariff__tab-error"></span></span>` : ""}
-        ${I.isNest(child) ? `<button class="btn btn-secondary btn-sm e-permits-gridb__drill" type="button" data-gb-drill="${child.id}">${I.icon("icon-edit", 16)}<span>${child.type === "subform" ? "Editează sub-formularul" : "Editează grila"}</span></button>` : ""}
-      </div>`;
-  }
-  /* a nested grid / sub-form column (and the form's grid card) = label + hint + the „Coloane” / „Câmpuri” chip band
-     (chip-band-v1): compact, no inputs, no add, no drag; a chip opens the builder on that column */
-  function summaryHtml(child) {
-    if (!I) return "";
-    const sub = child.type === "subform";
-    const kids = I.kidsOf(child);
-    const open = `<button class="btn btn-secondary btn-sm" type="button" data-gb-drill="${child.id}">${I.icon("icon-plus-small", 16)}<span>${sub ? "Adaugă câmp" : "Adaugă coloană"}</span></button>`;
-    return `
-      <div class="e-permits-gridb__summary">
-        <div class="e-permits-gridb__summary-label">${I.esc(I.fieldName(child))}</div>
-        ${I.tr(child.help) ? `<p class="e-permits-fo-field__hint">${I.esc(I.tr(child.help))}</p>` : ""}
-        ${kids.length ? I.chipBandHtml(child) : `<p class="e-permits-fo-field__hint">Niciun ${sub ? "câmp" : "coloană"} încă</p>${open}`}
-      </div>`;
-  }
-  /* the one-line hint above the sample (only while nothing is selected): where the structure is edited, where it works */
+  /* the one-line hint above the row (only while nothing is selected): where the structure is edited, where it works */
   const previewLink = '<button class="link link-primary link-sm e-permits-gridb__hint-link" type="button" data-gb-mode="preview">Previzualizare</button>';
-  const hintHtml = (what, show) => (show ? `<p class="e-permits-fo-field__hint e-permits-gridb__hint">Apasă pe ${what} ca ${what === "o coloană" ? "s-o" : "să-l"} configurezi. Încearcă formularul în ${previewLink}.</p>` : "");
-  function drawGrid(host, cur) {
+  const hintHtml = (what, show) => (show ? `<p class="e-permits-fo-field__hint e-permits-gridb__hint">Apasă pe ${what} ca să ${what === "o coloană" || what === "o parte" ? "o" : "îl"} configurezi; trage marginea din dreapta ca să-i schimbi lățimea. Încearcă formularul în ${previewLink}.</p>` : "");
+  /* header strip above the row: „#1 <row name> · Rând de exemplu” (a sub-form: „#1 <row name> › <sub-form>”) */
+  function stripHtml(index, name, label) {
+    return `
+      <div class="e-permits-gridb__strip">
+        ${index ? `<span class="e-permits-fo-doc-card__index">${I.esc(index)}</span>` : ""}
+        <span class="e-permits-gridb__strip-name" data-cell-tooltip>${I.esc(name)}</span>
+        <span class="e-permits-gridb__sample-label">· ${I.esc(label)}</span>
+      </div>`;
+  }
+  const rowNameOf = (grid) => I.tr(grid?.rowTitle) || "Rând";
+  function drawCards(host, cur) {
     const kids = I.kidsOf(cur);
+    const sub = cur.type === "subform";
     if (!kids.length) {
       host.innerHTML = `<div class="e-permits-gridb__empty" data-gb-drop-empty>${window.GEAPEmptyState?.render({
-        title: "Adaugă prima coloană",
-        text: "Alege un tip din stânga sau trage-l aici. Coloanele complexe vin după o coloană simplă.",
-        icon: "dot-grid",
-        actionHtml: addMenuHtml(cur, "Coloană"),
+        title: sub ? "Adaugă primul câmp" : "Adaugă prima coloană",
+        text: sub ? "Alege un tip din stânga sau trage-l aici. Câmpurile apar într-o secțiune a cardului rândului." : "Alege un tip din stânga sau trage-l aici. Coloanele complexe vin după o coloană simplă.",
+        icon: sub ? "page-child" : "dot-grid",
+        actionHtml: addMenuHtml(cur, sub ? "Câmp" : "Coloană"),
       }) || ""}</div>`;
       return;
     }
-    const R = window.GEAPFoRepeat;
-    const def = I.gridFo(cur, { prefix: "gbc", lang: "ro" }, I.levelOf(cur));
-    const sample = R?.sampleRows?.(def, 1)?.[0]?.values || {};
     const sel = I.state.sel;
     const none = !(sel.kind === "child" && kids.some((kid) => kid.id === sel.id));
-    host.innerHTML = `
-      <div class="e-permits-gridb__sheet" data-gb-sheet>
-        ${hintHtml("o coloană", none)}
-        ${R?.rowHtml?.(def, sample, { editing: true, n: 1 }) || ""}
+    const parentGrid = sub ? I.containerOf(cur.id) : cur;
+    let saved = "";
+    if (!sub) {
+      const R = window.GEAPFoRepeat;
+      const def = I.gridFo(cur, { prefix: "gbc", lang: "ro" }, I.levelOf(cur));
+      const sample = R?.sampleRows?.(def, 1)?.[0]?.values || {};
+      saved = `
         <div class="e-permits-gridb__sheet-head e-permits-gridb__sheet-head--saved">
           <h3 class="e-permits-gridb__sheet-title">Așa arată un rând salvat</h3>
         </div>
-        <div class="e-permits-gridb__saved" inert>${R?.rowHtml?.(def, sample, { editing: false, n: 1 }) || ""}</div>
+        <div class="e-permits-gridb__saved" inert>${R?.rowHtml?.(def, sample, { editing: false, n: 1 }) || ""}</div>`;
+    }
+    host.innerHTML = `
+      <div class="e-permits-gridb__sheet" data-gb-sheet>
+        ${hintHtml(sub ? "un câmp" : "o coloană", none)}
+        ${stripHtml("#1", sub ? `${rowNameOf(parentGrid)} › ${I.fieldName(cur)}` : rowNameOf(cur), "Rând de exemplu")}
+        <div class="e-permits-builder__grid e-permits-gridb__grid" data-gb-grid data-gb-fields>
+          ${kids.map((child) => I.childCardHtml(child, cur)).join("")}
+          <div class="e-permits-gridb__add-cell" data-span="3">
+            <div class="e-permits-stack__menu-wrap e-permits-gridb__add">
+              <button class="e-permits-builder__sub-add e-permits-gridb__add-tile" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="${addMenuId(cur)}" data-stack-menu-trigger data-gb-add>${I.icon("icon-plus-small", 16)}<span>${sub ? "Câmp" : "Coloană"}</span></button>
+            </div>
+          </div>
+          <span class="e-permits-gridb__drop" hidden data-gb-indicator></span>
+        </div>
+        ${saved}
         ${addMenuListHtml(cur)}
       </div>`;
-    const card = host.querySelector(".e-permits-fo-grid__row.is-editing");
-    const fields = card?.querySelector(":scope > [data-fo-grid-fields]");
-    if (!fields) return;
-    card.classList.add("e-permits-gridb__card");
-    /* nothing in the sample works: no Anulează / Salvează (Previzualizare is the working form), a quiet label instead */
-    card.querySelector(".e-permits-fo-doc-card__actions")?.remove();
-    card.querySelector(".e-permits-fo-doc-card__header")?.insertAdjacentHTML("beforeend", '<span class="e-permits-fo-field__hint e-permits-gridb__sample-label">Rând de exemplu</span>');
+    /* the saved line is a picture: no Editează / Elimină (Previzualizare is the working form) */
     host.querySelector(".e-permits-gridb__saved .e-permits-fo-grid__line-actions")?.remove();
-    [...fields.children].forEach((cell, i) => {
-      const child = kids[i];
-      if (!child) return;
-      const on = sel.kind === "child" && sel.id === child.id;
-      const issue = columnIssue(child);
-      const name = I.fieldName(child);
-      const span = Number(cell.dataset.span) || 12;
-      const render = cell.innerHTML;
-      cell.classList.add("e-permits-builder__field", "e-permits-gridb__cell");
-      cell.classList.toggle("is-selected", on);
-      cell.classList.toggle("has-issue", Boolean(issue));
-      cell.dataset.gbCell = child.id;
-      cell.dataset.gbCol = child.id;
-      cell.tabIndex = 0;
-      cell.draggable = true;
-      cell.setAttribute("aria-describedby", "gb-col-hint");
-      cell.setAttribute("aria-label", `${typeLabel(child.type)}: ${name}, ${span} din 12${child.required ? ", obligatoriu" : ""}${on ? ", selectată" : ""}${issue ? `, eroare: ${issue.message}` : ""}`);
-      const body = I.isNest(child) ? summaryHtml(child) : render;
-      cell.innerHTML = `${cellMetaHtml(child, span)}<div class="e-permits-builder__field-render e-permits-gridb__cell-render"${I.isNest(child) ? "" : " inert"}>${body}</div>`;
-    });
-    fields.dataset.gbFields = "";
-    fields.insertAdjacentHTML("beforeend", `
-      <div class="e-permits-fo-grid__cell e-permits-gridb__add-cell" data-span="3">
-        <div class="e-permits-stack__menu-wrap e-permits-gridb__add">
-          <button class="e-permits-builder__sub-add e-permits-gridb__add-tile" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="${addMenuId(cur)}" data-stack-menu-trigger data-gb-add>${I.icon("icon-plus-small", 16)}<span>Coloană</span></button>
-        </div>
-      </div>
-      <span class="e-permits-gridb__drop" hidden data-gb-indicator></span>`);
   }
 
-  /* a sub-form level: its fields on the FO form layout (2 columns, gap 24; ≤ 6/12 = one column, wider = both) */
-  function drawForm(host, cur) {
-    const kids = I.kidsOf(cur);
-    const sel = I.state.sel;
-    const cards = kids.map((child) => {
-      const on = sel.kind === "child" && sel.id === child.id;
-      const issue = I.errorsOf("child", child.id)[0];
-      const wide = Number(child.span) > 6;
-      return `
-        <article class="e-permits-builder__field e-permits-gridb__field${on ? " is-selected" : ""}${issue ? " has-issue" : ""}" tabindex="0" draggable="true" data-gb-field="${child.id}" data-gb-span="${wide ? 2 : 1}" aria-describedby="gb-field-hint" aria-label="${I.esc(`${I.comp(child.type).label}: ${I.fieldName(child)}${child.required ? ", obligatoriu" : ""}${issue ? `, eroare: ${issue.message}` : ""}`)}">
-          <div class="e-permits-builder__field-tools">
-            <div class="e-permits-builder__field-meta">
-              <span class="e-permits-builder__drag-grip" aria-hidden="true">${I.icon("icon-drag", 16)}</span>
-              <em class="e-permits-builder__tag e-permits-builder__tag--strong" data-cell-tooltip>${I.esc(I.comp(child.type).label)}</em>
-            </div>
-            ${issue ? `<span class="e-permits-gridb__col-issue" data-tooltip-text="${I.esc(issue.message)}"><span class="e-permits-ntpl-dot e-permits-tariff__tab-error"></span></span>` : ""}
-          </div>
-          <div class="e-permits-builder__field-render"${I.isNest(child) ? "" : " inert"}>${I.isNest(child) ? summaryHtml(child) : I.foHtml(child, { prefix: "gbf", inCard: true })}</div>
-        </article>`;
-    }).join("");
-    const empty = kids.length ? "" : `<div class="e-permits-gridb__form-empty" data-gb-drop-empty>${window.GEAPEmptyState?.render({ title: "Adaugă primul câmp", text: "Alege un tip din stânga sau trage-l aici. Câmpurile apar într-o secțiune a cardului rândului.", icon: "page-child", compact: true, bare: true }) || ""}</div>`;
+  /* the address window: the visible parts as cards on the 12-column grid (fixed order, no add, no drag) */
+  function drawAddress(host, field) {
+    const parts = I.addressConfig(field).filter((part) => part.visible);
+    const selKey = I.state.addrPart;
     host.innerHTML = `
-      <div class="e-permits-gridb__sheet e-permits-gridb__sheet--form" data-gb-sheet>
-        <div class="e-permits-gridb__form-head">
-          <div class="e-permits-fo-grid__label">${I.esc(I.fieldName(cur))} · Rând 1 <span class="e-permits-fo-field__hint e-permits-gridb__sample-label">Rând de exemplu</span></div>
-          ${I.tr(cur.help) ? `<p class="e-permits-fo-field__hint">${I.esc(I.tr(cur.help))}</p>` : ""}
-          ${hintHtml("un câmp", !(sel.kind === "child" && kids.some((kid) => kid.id === sel.id)))}
-        </div>
-        <div class="e-permits-gridb__form" data-gb-form>
-          ${cards}${empty}
-          ${addMenuHtml(cur, "Adaugă câmp", "btn btn-secondary btn-sm")}
-          <span class="e-permits-gridb__drop e-permits-gridb__drop--form" hidden data-gb-indicator></span>
-        </div>
+      <div class="e-permits-gridb__sheet" data-gb-sheet>
+        ${hintHtml("o parte", !selKey)}
+        ${stripHtml("", I.fieldName(field), "Adresă de exemplu")}
+        ${parts.length ? `
+        <div class="e-permits-builder__grid e-permits-gridb__grid" data-gb-grid>
+          ${parts.map((part) => I.addressPartCardHtml(part, selKey)).join("")}
+        </div>` : `<div class="e-permits-gridb__empty">${window.GEAPEmptyState?.render({ title: "Toate părțile sunt ascunse", text: "Afișează o parte din lista din stânga.", icon: "map-pin", compact: true }) || ""}</div>`}
       </div>`;
   }
 
@@ -321,7 +293,9 @@
   function drawPreview(host, cur) {
     const phone = gb.device === "phone";
     const level = I.levelOf(cur);
-    const body = cur.type === "subform"
+    const body = cur.type === "address"
+      ? `<div class="e-permits-fo-form__section-body e-permits-gridb__preview-form">${I.foHtml(cur, { prefix: "gbp", lang: "ro" })}</div>`
+      : cur.type === "subform"
       ? `<div class="e-permits-fo-form__section-body e-permits-gridb__preview-form">${I.kidsOf(cur).map((child) => I.foHtml(child, { prefix: "gbp", lang: "ro" })).join("")}</div>`
       : `<div class="e-permits-fo-form__section-body">${window.GEAPFoRepeat?.gridHtml(I.gridFo(cur, { prefix: "gbp", lang: "ro" }, level)) || ""}</div>`;
     host.innerHTML = `
@@ -332,7 +306,7 @@
             ${[["desktop", "Desktop"], ["phone", "Telefon"]].map(([value, label]) => `<button class="segment-item${gb.device === value ? " is-selected" : ""}" type="button" role="radio" aria-checked="${gb.device === value}" data-gb-device="${value}">${label}</button>`).join("")}
           </div>
         </div>
-        <p class="e-permits-fo-field__hint">${cur.type === "subform" ? "Câmpurile, așa cum le completează solicitantul în cardul rândului." : "Grila, așa cum o vede solicitantul — două rânduri de probă salvate."}</p>
+        <p class="e-permits-fo-field__hint">${cur.type === "address" ? "Adresa, așa cum o completează solicitantul." : cur.type === "subform" ? "Câmpurile, așa cum le completează solicitantul în cardul rândului." : I.isCaemGrid(cur) ? "Activitățile, așa cum le alege solicitantul." : "Grila, așa cum o vede solicitantul — două rânduri de probă salvate."}</p>
       </div>
       <div class="e-permits-gridb__preview${phone ? " is-phone" : ""}" role="region" aria-label="${phone ? "Previzualizare pe telefon, 375 px" : "Previzualizare pe desktop"}">
         <div class="e-permits-gridb__device e-permits-fo-form" data-gb-preview>${body}</div>
@@ -341,6 +315,7 @@
     I.R.bind?.(preview);
     const grid = preview.querySelector("[data-fo-grid]");
     if (grid) { window.GEAPFoRepeat?.fill(grid); window.GEAPFoRepeat?.layout(preview); }
+    window.GEAPDatePicker?.init?.(preview);
   }
 
   /* ------------------------------------------------------------------ render */
@@ -368,15 +343,16 @@
     renderIssues();
     renderLibrary(cur);
     if (gb.mode === "preview") drawPreview(refs.canvas, cur);
-    else if (cur.type === "subform") drawForm(refs.canvas, cur);
-    else drawGrid(refs.canvas, cur);
+    else if (isAddress()) drawAddress(refs.canvas, cur);
+    else drawCards(refs.canvas, cur);
     refs.scroll.scrollTop = scrollTop;
     /* a column that just became selected (added at the end, picked from the errors / panel) is brought into view;
        later redraws keep the reader's own scroll */
-    const selKey = `${I.state.sel.kind}:${I.state.sel.id}`;
+    const selKey = `${I.state.sel.kind}:${I.state.sel.id}:${I.state.addrPart}`;
     if (selKey !== gb.lastSel) {
       gb.lastSel = selKey;
-      refs.canvas.querySelector(`[data-gb-cell="${CSS.escape(I.state.sel.id)}"], [data-gb-field="${CSS.escape(I.state.sel.id)}"]`)?.scrollIntoView({ block: "nearest" });
+      const node = I.state.addrPart ? refs.canvas.querySelector(`[data-gb-part="${CSS.escape(I.state.addrPart)}"]`) : refs.canvas.querySelector(`[data-gb-cell="${CSS.escape(I.state.sel.id)}"]`);
+      node?.scrollIntoView({ block: "nearest" });
     }
     if (key) root.querySelector(key)?.focus({ preventScroll: true });
   }
@@ -385,15 +361,20 @@
   function open(id) {
     if (!I) return;
     const target = I.fieldOrChild(id);
-    if (!target || !(target.type === "grid" || I.isNest(target))) return;
+    if (!target) return;
+    const address = target.type === "address" && Boolean(I.findField(id));
+    if (!address && !(target.type === "grid" || I.isNest(target))) return;
     const found = I.findChild(id);
     if (found && found.top.type !== "grid") return;
+    gb.kind = address ? "address" : "grid";
     gb.stack = found ? [...found.chain.map((item) => item.id), id] : [id];
     gb.topId = gb.stack[0];
     gb.snapshot = JSON.stringify(I.form);
     gb.mode = "edit";
     gb.device = "desktop";
     gb.lastSel = "";
+    gb.query = "";
+    refs.search.value = "";
     if (I.state.mode !== "build") I.setMode("build");
     /* the builder's panel + live region come along (their listeners with them) */
     gb.home = { panel: I.el.panel.parentElement, live: I.el.live.parentElement };
@@ -402,12 +383,13 @@
     mainParts().forEach((node) => { node.inert = true; });
     I.builder.classList.add("has-grid-builder");
     root.hidden = false;
+    root.dataset.gbKind = gb.kind;
     gb.open = true;
     const sel = I.state.sel;
-    if (sel.kind === "child" && I.containerOf(sel.id) === target) I.select("child", sel.id);
+    if (!address && sel.kind === "child" && I.containerOf(sel.id) === target) I.select("child", sel.id);
     else I.select(kindOf(id), id, { tab: I.T_GEN });
     window.setTimeout(() => root.querySelector("#gb-title")?.focus({ preventScroll: true }), 0);
-    I.announce(`Constructorul grilei „${I.fieldName(target)}” este deschis. Gata te întoarce la formular.`);
+    I.announce(`Fereastra de editare a ${address ? "adresei" : "grilei"} „${I.fieldName(target)}” este deschisă. Gata te întoarce la formular.`);
   }
   const mainParts = () => [I.builder.querySelector(":scope > .e-permits-builder__topbar"), I.el.workspace].filter(Boolean);
 
@@ -416,6 +398,7 @@
     const top = I.fieldOrChild(gb.topId);
     const snapshot = gb.snapshot;
     const changed = JSON.stringify(I.form) !== snapshot;
+    const noun = isAddress() ? "adresa" : "grila";
     gb.open = false;
     root.hidden = true;
     I.builder.classList.remove("has-grid-builder");
@@ -432,13 +415,13 @@
     const topId = gb.topId;
     window.GEAPToast?.show({
       type: "success",
-      message: `Ai actualizat grila „${name}”.`,
+      message: `Ai actualizat ${noun} „${name}”.`,
       action: {
         label: "Anulează",
         onClick: () => {
           I.revertTo(snapshot);
           if (I.findField(topId)) I.select("field", topId);
-          I.announce(`Modificările grilei „${name}” au fost anulate.`);
+          I.announce(`Modificările ${noun === "adresa" ? "adresei" : "grilei"} „${name}” au fost anulate.`);
         },
       },
       duration: isDemo() ? 0 : 8000,
@@ -460,7 +443,7 @@
   }
   function drill(id) {
     const target = I.fieldOrChild(id);
-    if (!gb.open || !target || !I.isNest(target) || I.containerOf(id) !== current()) return;
+    if (!gb.open || isAddress() || !target || !I.isNest(target) || I.containerOf(id) !== current()) return;
     gb.stack.push(id);
     gb.mode = "edit";
     I.select("child", id, { tab: I.T_GEN });
@@ -473,6 +456,9 @@
     root.querySelector(`[data-gb-mode="${mode}"]`)?.focus();
   }
   const selectContainer = () => { const cur = current(); if (cur) I.select(kindOf(cur.id), cur.id); };
+  /* address: a part selected = the field stays selected, the panel shows that part */
+  const selectPart = (key) => { I.select("field", gb.topId, { part: key }); focusCard(`[data-gb-part="${CSS.escape(key)}"]`); };
+  const focusCard = (selector) => window.setTimeout(() => root.querySelector(selector)?.focus({ preventScroll: true }), 0);
 
   /* the builder redraws after every render / commit / selection (form-builder.js gridBuilderSync) */
   function sync() {
@@ -485,32 +471,38 @@
     if (at >= 0 && at < gb.stack.length - 1) gb.stack = gb.stack.slice(0, at + 1);
     render();
   }
-  /* Esc inside the builder (called from the Form Designer's own Esc handler, after menus / pickers / dialogs) */
+  /* Esc inside the window (called from the Form Designer's own Esc handler, after menus / pickers / dialogs / a resize) */
   function escape() {
     if (!gb.open) return false;
     if (gb.mode === "preview") { setMode("edit"); return true; }
+    if (isAddress()) {
+      const key = I.state.addrPart;
+      if (key) { selectContainer(); focusCard(`[data-gb-part="${CSS.escape(key)}"]`); I.announce("Nicio parte selectată — setările adresei."); }
+      return true;
+    }
     const sel = I.state.sel;
     if (sel.kind === "child" && I.containerOf(sel.id) === current()) {
       selectContainer();
-      root.querySelector(`[data-gb-col="${CSS.escape(sel.id)}"], [data-gb-field="${CSS.escape(sel.id)}"]`)?.focus();
-      I.announce("Nicio coloană selectată — setările grilei.");
+      focusCard(`[data-gb-col="${CSS.escape(sel.id)}"]`);
+      I.announce(current()?.type === "subform" ? "Niciun câmp selectat — setările sub-formularului." : "Nicio coloană selectată — setările grilei.");
       return true;
     }
     if (gb.stack.length > 1) { up(); return true; }
     return true;
   }
 
-  /* the „Deschide” button at the top of the properties panel (grid field / nested column) */
+  /* the „Editează …” button at the top of the properties panel (grid field / nested column / address) */
   function entryHtml(target) {
     if (!I || !target) return "";
     if (!gb.open) {
       const found = I.findChild(target.id);
-      const ok = target.type === "grid" || (found && I.isNest(target) && found.top.type === "grid");
+      const address = target.type === "address" && Boolean(I.findField(target.id));
+      const ok = address || target.type === "grid" || (found && I.isNest(target) && found.top.type === "grid");
       if (!ok) return "";
-      return `<div class="e-permits-gridb__entry"><button class="btn btn-secondary btn-md" type="button" data-gb-open="${target.id}">${I.icon("icon-edit")}<span>Editează grila</span></button></div>`;
+      return `<div class="e-permits-gridb__entry"><button class="btn btn-secondary btn-md" type="button" data-gb-open="${target.id}">${I.icon("icon-edit")}<span>${address ? "Editează adresa" : target.type === "subform" ? "Editează sub-formularul" : "Editează grila"}</span></button></div>`;
     }
-    if (target === current() || !I.isNest(target) || I.containerOf(target.id) !== current()) return "";
-    return `<div class="e-permits-gridb__entry"><button class="btn btn-secondary btn-md" type="button" data-gb-drill="${target.id}">${I.icon(DRILL_ICON)}<span>${target.type === "subform" ? "Deschide sub-formularul" : "Deschide sub-grila"}</span></button></div>`;
+    if (isAddress() || target === current() || !I.isNest(target) || I.containerOf(target.id) !== current()) return "";
+    return `<div class="e-permits-gridb__entry"><button class="btn btn-secondary btn-md" type="button" data-gb-drill="${target.id}">${I.icon("icon-edit")}<span>${target.type === "subform" ? "Editează sub-formularul" : "Editează grila"}</span></button></div>`;
   }
 
   /* ------------------------------------------------------------------ drag and drop */
@@ -520,21 +512,19 @@
     if (node) node.hidden = true;
     refs.canvas.querySelectorAll(".is-drop-target").forEach((node2) => node2.classList.remove("is-drop-target"));
   }
-  /* where a drop lands: the index in the current container + the indicator geometry */
+  /* where a drop lands: the index in the current container + the indicator geometry (in the gap between two cards) */
   function dropAt(x, y) {
-    const cur = current();
     const empty = refs.canvas.querySelector("[data-gb-drop-empty]");
     if (empty) return { index: 0, empty };
-    /* the row card's cells (grid) or the sub-form's cards: before the first one below / right of the pointer */
-    const sub = cur.type === "subform";
-    const cards = [...refs.canvas.querySelectorAll(sub ? "[data-gb-field]" : "[data-gb-cell]")];
+    const cards = [...refs.canvas.querySelectorAll("[data-gb-cell]")];
     let index = cards.findIndex((card) => { const r = card.getBoundingClientRect(); return y < r.top || (y <= r.bottom && x < r.left + r.width / 2); });
     if (index < 0) index = cards.length;
-    const holder = refs.canvas.querySelector(sub ? "[data-gb-form]" : "[data-gb-fields]");
+    const holder = refs.canvas.querySelector("[data-gb-fields]");
     const box = holder.getBoundingClientRect();
+    const half = (parseFloat(getComputedStyle(holder).columnGap) || 0) / 2;
     const ref = cards[index] || cards[cards.length - 1];
     const r = ref ? ref.getBoundingClientRect() : box;
-    const left = cards[index] ? r.left - box.left - 12 : r.right - box.left + 10;
+    const left = cards[index] ? r.left - box.left - half - 1 : r.right - box.left + half - 1;
     return { index, rect: { left, top: r.top - box.top, height: r.height } };
   }
   function showDrop(target) {
@@ -556,12 +546,20 @@
     const cur = current();
     const drag = gb.drag;
     endDrag();
-    if (!drag || !cur) return;
+    if (!drag || !cur || isAddress()) return;
     if (drag.kind === "type") I.addChild(cur.id, drag.type, index);
     else if (drag.kind === "from") { const source = I.findField(drag.id)?.field; if (source) I.addChild(cur.id, source.type, index, { from: source }); }
-    else if (drag.kind === "child") {
-      if (I.moveChild(drag.id, 0, index)) window.setTimeout(() => root.querySelector(`[data-gb-col="${CSS.escape(drag.id)}"], [data-gb-field="${CSS.escape(drag.id)}"]`)?.focus(), 0);
-    }
+    else if (drag.kind === "child" && I.moveChild(drag.id, 0, index)) focusCard(`[data-gb-col="${CSS.escape(drag.id)}"]`);
+  }
+
+  /* ------------------------------------------------------------------ width (the designer's handle + guides) */
+  const COLUMN_SPANS = [3, 4, 6, 12];
+  function stepWidth(card, delta) {
+    const spans = card.dataset.gbPart || current()?.type === "subform" ? I.SPANS : COLUMN_SPANS;
+    const at = spans.indexOf(Number(card.dataset.span));
+    const next = spans[Math.max(0, Math.min(spans.length - 1, (at < 0 ? 1 : at) + delta))];
+    if (card.dataset.gbPart) I.setPartSpan(gb.topId, card.dataset.gbPart, next);
+    else I.setChildSpan(card.dataset.gbCol, next);
   }
 
   /* ------------------------------------------------------------------ events */
@@ -589,6 +587,24 @@
         return;
       }
       if (event.target.closest("[data-gb-drill], [data-gb-chip]")) return; /* the document handler */
+      /* address: switch a hidden part on (left) / hide a part (its card) — a toggle: announced, no toast */
+      const show = event.target.closest("[data-gb-show-part]");
+      if (show) {
+        const key = show.dataset.gbShowPart;
+        I.setAddressPart(current(), key, { visible: true });
+        I.announce(`Partea „${I.addressConfig(current()).find((part) => part.key === key)?.label}” este afișată.`);
+        selectPart(key);
+        return;
+      }
+      const hide = event.target.closest("[data-gb-hide-part]");
+      if (hide) { hidePart(hide.dataset.gbHidePart); return; }
+      const act = event.target.closest("[data-gb-act]");
+      if (act) {
+        const id = act.dataset.id;
+        if (act.dataset.gbAct === "duplicate") { I.duplicateChild(id); const sel = I.state.sel; if (sel.kind === "child") focusCard(`[data-gb-col="${CSS.escape(sel.id)}"]`); }
+        else { I.deleteChild(id); const sel = I.state.sel; focusCard(sel.kind === "child" ? `[data-gb-col="${CSS.escape(sel.id)}"]` : "[data-gb-add]"); }
+        return;
+      }
       const type = event.target.closest("[data-gb-type]");
       if (type) {
         const reason = type.getAttribute("aria-disabled") === "true" ? type.dataset.tooltipReason : "";
@@ -600,54 +616,82 @@
       if (from) { const source = I.findField(from.dataset.gbFrom)?.field; if (source) I.addChild(current().id, source.type, null, { from: source }); return; }
       if (I.runMenuAction(event)) return;
       if (event.target.closest("[data-stack-menu-trigger], [data-stack-menu]")) return;
-      const col = event.target.closest("[data-gb-col], [data-gb-field]");
+      const part = event.target.closest("[data-gb-part]");
+      if (part) { if (I.state.addrPart !== part.dataset.gbPart) selectPart(part.dataset.gbPart); else part.focus({ preventScroll: true }); return; }
+      const col = event.target.closest("[data-gb-col]");
       if (col) {
-        const id = col.dataset.gbCol || col.dataset.gbField;
+        const id = col.dataset.gbCol;
         if (!(I.state.sel.kind === "child" && I.state.sel.id === id)) I.select("child", id);
-        root.querySelector(`[data-gb-col="${CSS.escape(id)}"], [data-gb-field="${CSS.escape(id)}"]`)?.focus({ preventScroll: true });
+        focusCard(`[data-gb-col="${CSS.escape(id)}"]`);
         return;
       }
-      /* an empty spot of the stage = the grid's own settings */
-      if (refs.stage.contains(event.target) && !event.target.closest("button, a, input, [data-gb-cell], [data-gb-field]")) {
+      /* an empty spot of the stage = the grid's (address's) own settings */
+      if (refs.stage.contains(event.target) && !event.target.closest("button, a, input, [data-gb-cell]")) {
         const cur = current();
-        if (gb.mode === "edit" && !(I.state.sel.id === cur.id)) selectContainer();
+        if (gb.mode === "edit" && (I.state.sel.id !== cur.id || I.state.addrPart)) selectContainer();
       }
     });
     root.addEventListener("dblclick", (event) => {
-      const col = event.target.closest("[data-gb-col], [data-gb-field]");
-      const target = col ? I.fieldOrChild(col.dataset.gbCol || col.dataset.gbField) : null;
+      const col = event.target.closest("[data-gb-col]");
+      const target = col ? I.fieldOrChild(col.dataset.gbCol) : null;
       if (target && I.isNest(target)) drill(target.id);
     });
+    refs.search.addEventListener("input", () => { gb.query = refs.search.value; renderLibrary(current()); });
+    /* the width handle: the designer's drag with the 12-column guides (columns snap 3 · 4 · 6 · 12) */
+    refs.stage.addEventListener("pointerdown", (event) => {
+      const handle = event.target.closest("[data-gb-resize]");
+      if (!handle || event.button !== 0 || gb.mode !== "edit") return;
+      const card = handle.closest("[data-gb-cell], [data-gb-part]");
+      const gridEl = card?.closest("[data-gb-grid]");
+      if (!card || !gridEl) return;
+      const key = card.dataset.gbPart;
+      const id = card.dataset.gbCol;
+      I.startResize(event, {
+        handle, card, gridEl,
+        spans: key || current()?.type === "subform" ? I.SPANS : COLUMN_SPANS,
+        commit: (span) => { if (key) { I.state.addrPart = key; I.setPartSpan(gb.topId, key, span); } else { I.state.sel = { kind: "child", id }; I.setChildSpan(id, span); } },
+        done: () => { if (key) selectPart(key); else I.select("child", id); },
+      });
+    });
     root.addEventListener("keydown", (event) => {
-      /* only the block itself (a „Deschide” button inside must not delete / move the column) */
-      const node = event.target.matches?.("[data-gb-col], [data-gb-field]") ? event.target : null;
+      /* only the card itself (a button inside must not delete / move it) */
+      const node = event.target.matches?.("[data-gb-cell], [data-gb-part]") ? event.target : null;
       if (!node) return;
-      const col = node.matches("[data-gb-col]") ? node : null;
-      const id = node.dataset.gbCol || node.dataset.gbField;
-      const back = col ? "ArrowLeft" : "ArrowUp";
-      const forward = col ? "ArrowRight" : "ArrowDown";
-      const refocus = (which) => window.setTimeout(() => root.querySelector(`[data-gb-col="${CSS.escape(which)}"], [data-gb-field="${CSS.escape(which)}"]`)?.focus(), 0);
-      if (event.altKey && (event.key === back || event.key === forward)) { event.preventDefault(); if (I.moveChild(id, event.key === back ? -1 : 1)) refocus(id); return; }
+      const horizontal = event.key === "ArrowLeft" || event.key === "ArrowRight";
+      const delta = event.key === "ArrowLeft" ? -1 : 1;
+      if (node.dataset.gbPart) {
+        const key = node.dataset.gbPart;
+        if (event.altKey && horizontal) { event.preventDefault(); stepWidth(node, delta); focusCard(`[data-gb-part="${CSS.escape(key)}"]`); return; }
+        if (event.key === "Delete" || event.key === "Backspace") { event.preventDefault(); hidePart(key); return; }
+        if (event.key === "Enter" || event.key === " ") { event.preventDefault(); selectPart(key); }
+        return;
+      }
+      const id = node.dataset.gbCol;
+      const refocus = (which) => focusCard(`[data-gb-col="${CSS.escape(which)}"]`);
+      if (event.altKey && event.shiftKey && horizontal) { event.preventDefault(); stepWidth(node, delta); refocus(id); return; }
+      if (event.altKey && horizontal) { event.preventDefault(); if (I.moveChild(id, delta)) refocus(id); return; }
+      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "d") { event.preventDefault(); I.duplicateChild(id); const sel = I.state.sel; if (sel.kind === "child") refocus(sel.id); return; }
       if (event.key === "Delete" || event.key === "Backspace") {
         event.preventDefault();
         I.deleteChild(id);
         const sel = I.state.sel;
-        if (sel.kind === "child") refocus(sel.id); else window.setTimeout(() => root.querySelector("[data-gb-add]")?.focus(), 0);
+        if (sel.kind === "child") refocus(sel.id); else focusCard("[data-gb-add]");
         return;
       }
       if (event.key === "Enter" || event.key === " ") { event.preventDefault(); I.select("child", id); refocus(id); }
     });
     root.addEventListener("dragstart", (event) => {
-      const source = event.target.closest?.("[data-gb-type], [data-gb-from], [data-gb-col], [data-gb-field]");
+      if (isAddress()) { event.preventDefault(); return; }
+      const source = event.target.closest?.("[data-gb-type], [data-gb-from], [data-gb-col]");
       if (!source || source.getAttribute("aria-disabled") === "true") return;
       if (source.dataset.gbType) gb.drag = { kind: "type", type: source.dataset.gbType };
       else if (source.dataset.gbFrom) gb.drag = { kind: "from", id: source.dataset.gbFrom };
-      else gb.drag = { kind: "child", id: source.dataset.gbCol || source.dataset.gbField };
+      else gb.drag = { kind: "child", id: source.dataset.gbCol };
       if (event.dataTransfer) {
         event.dataTransfer.effectAllowed = gb.drag.kind === "child" ? "move" : "copy";
         try { event.dataTransfer.setData("text/plain", gb.drag.type || gb.drag.id); } catch { /* synthetic event */ }
       }
-      (source.closest("[data-gb-cell]") || source).classList.add("is-dragging");
+      source.classList.add("is-dragging");
     });
     refs.stage.addEventListener("dragover", (event) => {
       if (!gb.drag || gb.mode !== "edit") return;
@@ -663,6 +707,17 @@
     });
     root.addEventListener("dragend", endDrag);
     window.addEventListener("blur", () => { if (gb.drag) endDrag(); });
+  }
+  function hidePart(key) {
+    const field = current();
+    const part = I.addressConfig(field).find((item) => item.key === key);
+    if (!part) return;
+    const parts = I.addressConfig(field).filter((item) => item.visible);
+    const next = parts[parts.indexOf(part) + 1] || parts[parts.indexOf(part) - 1];
+    I.setAddressPart(field, key, { visible: false });
+    selectContainer();
+    I.announce(`Partea „${part.label}” este ascunsă. O găsești în „Părți ascunse”.`);
+    focusCard(next ? `[data-gb-part="${CSS.escape(next.key)}"]` : `[data-gb-show-part="${CSS.escape(key)}"]`);
   }
 
   function attach() {
@@ -682,19 +737,20 @@
       issuesMenu: root.querySelector("[data-gb-issues-menu]"),
       library: root.querySelector("[data-gb-library]"),
       libraryTitle: root.querySelector("[data-gb-library-title]"),
+      search: root.querySelector("[data-gb-search]"),
       stage: root.querySelector("[data-gb-stage]"),
       scroll: root.querySelector("[data-gb-scroll]"),
       canvas: root.querySelector("[data-gb-canvas]"),
       inspector: root.querySelector("[data-gb-inspector]"),
     });
     bindEvents();
-    /* entry: „Deschide constructorul grilei” (card / panel), „Deschide sub-grila” (panel), double-click on a grid card */
+    /* entry: „Editează grila / adresa” (card / panel), „Editează sub-grila” (panel), double-click on a grid / address card */
     document.addEventListener("click", (event) => {
       const opener = event.target.closest?.("[data-gb-open]");
       if (opener) { open(opener.dataset.gbOpen); return; }
       const drillButton = event.target.closest?.("[data-gb-drill]");
       if (drillButton) drill(drillButton.dataset.gbDrill);
-      /* chip-band-v1: a chip of the column band = the builder on that column (from the form: open the grid; inside: drill) */
+      /* chip-band-v1: a chip of the column band = the window on that column (from the form: open the grid; inside: drill) */
       const chip = event.target.closest?.("[data-gb-chip]");
       if (chip) {
         const id = chip.dataset.gbChip;
@@ -705,16 +761,13 @@
       }
     });
     I.el.canvas.addEventListener("dblclick", (event) => {
-      const chip = event.target.closest("[data-fb-child]");
-      const chipTarget = chip ? I.fieldOrChild(chip.dataset.fbChild) : null;
-      if (chipTarget && I.isNest(chipTarget)) { open(chipTarget.id); return; }
-      const card = event.target.closest("[data-builder-field][data-type='grid']");
-      if (card) open(card.dataset.id);
+      const card = event.target.closest("[data-builder-field][data-type='grid'], [data-builder-field][data-type='address']");
+      if (card && !event.target.closest("button, a, input")) open(card.dataset.id);
     });
   }
 
   window.GEAPGridBuilder = {
-    attach, sync, escape, entryHtml, summaryHtml, open, close, drill, up,
+    attach, sync, escape, entryHtml, open, close, drill, up,
     isOpen: () => gb.open,
     /* for demo states and checks */
     get state() { return gb; },
