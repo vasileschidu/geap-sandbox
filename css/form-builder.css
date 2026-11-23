@@ -2397,7 +2397,7 @@ body:has(.form-builder-modal-overlay.is-active) :is(#case-action-modal, #pending
 }
 
 /* doc-val-inset-v3 (user 2026-11-24, padding 4): the value group's select (operator / unit) keeps its rest look (transparent, the
-   inset divider line stays); only on hover / open it shows as an INSET pill — 4 from the group's border, radius 6, grey fill */
+   inset divider line stays); only on hover / open it shows as an INSET pill — 4 from the group's border, radius 4 (concentric: group 8 − 4), grey fill */
 .e-permits-doc-val__mode {
   padding: var(--spacing-4, 4px);
 }
@@ -2406,7 +2406,7 @@ body:has(.form-builder-modal-overlay.is-active) :is(#case-action-modal, #pending
 .e-permits-doc-val .e-permits-doc-val__mode .e-permits-fo-select__button:hover,
 .e-permits-doc-val .e-permits-doc-val__mode .e-permits-fo-select__button:focus-visible,
 .e-permits-doc-val .e-permits-doc-val__mode .e-permits-fo-select.is-open .e-permits-fo-select__button {
-  border-radius: var(--border-radius-6, 6px);
+  border-radius: var(--border-radius-4, 4px);
   height: calc(38px - 2 * var(--spacing-4, 4px));
 }
 
