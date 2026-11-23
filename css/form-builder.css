@@ -2395,3 +2395,32 @@ body:has(.form-builder-modal-overlay.is-active) :is(#case-action-modal, #pending
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
+/* doc-val-inset-v1 (user 2026-11-24): the value group's select (operator before / unit after the number — Reguli de
+   dată, Arhivare durations, every `.e-permits-doc-val`) is an INSET pill: 2 from the group's border, its own radius
+   (group 8 − 2 = 6), grey hover / open fill stays inside it; the divider line goes (the pill already separates) */
+.e-permits-doc-val__mode {
+  padding: var(--spacing-2, 2px);
+}
+
+.e-permits-doc-val__mode::after,
+.e-permits-doc-val__mode--end::after {
+  display: none;
+}
+
+.e-permits-doc-val .e-permits-doc-val__mode .e-permits-fo-select__button,
+.e-permits-doc-val .e-permits-doc-val__mode .e-permits-fo-select__button:hover,
+.e-permits-doc-val .e-permits-doc-val__mode .e-permits-fo-select__button:focus-visible,
+.e-permits-doc-val .e-permits-doc-val__mode .e-permits-fo-select.is-open .e-permits-fo-select__button {
+  border-radius: var(--border-radius-6, 6px);
+  height: calc(38px - 2 * var(--spacing-2, 2px));
+}
+
+.e-permits-doc-val .e-permits-doc-val__mode .e-permits-fo-select__button {
+  background: var(--color-background-base-secondary, #f5f5f5);
+}
+
+.e-permits-doc-val .e-permits-doc-val__mode .e-permits-fo-select__button:hover,
+.e-permits-doc-val .e-permits-doc-val__mode .e-permits-fo-select.is-open .e-permits-fo-select__button {
+  background: var(--color-background-base-tertiary, #f1f1f1);
+}
