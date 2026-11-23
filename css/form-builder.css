@@ -2379,3 +2379,19 @@ body:has(.form-builder-modal-overlay.is-active) :is(#case-action-modal, #pending
 .e-permits-builder__resize-guides .e-permits-builder__resize-guide {
   display: none;
 }
+
+/* label-first-v2 (user 2026-11-23 „why truncated?”): the name always gets the room; the key tag is capped at 40% of
+   the row and ellipsises first (full key in its tooltip) */
+.e-permits-builder__field-label strong {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.e-permits-builder__field-label em {
+  flex: 0 1 auto;
+  max-width: 40%;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
