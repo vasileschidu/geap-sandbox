@@ -2414,3 +2414,9 @@ body:has(.form-builder-modal-overlay.is-active) :is(#case-action-modal, #pending
 .e-permits-doc-val .e-permits-doc-val__mode .e-permits-fo-select.is-open .e-permits-fo-select__button {
   background: var(--color-background-base-tertiary, #f1f1f1);
 }
+
+/* section-visible-v1 (user 2026-11-24 „it's cut”): a step section never clips its cards — a just-inserted / selected
+   card (with its 4px ring) and the width handle stay fully visible; the section grows with its content */
+.e-permits-builder__step-section {
+  overflow: visible;
+}
