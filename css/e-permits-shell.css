@@ -3476,3 +3476,11 @@ td .e-permits-workplace__date-stack > .e-permits-workplace__date-meta:not(:has(.
 .e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-workplace[data-workplace-layout="stack"] > .e-permits-workplace__header > .e-permits-workplace__toolbar {
   overflow: visible;
 }
+
+/* switch-medium-v1 (user 2026-11-24): every switch in the app = the library MEDIUM size (40 × 24, thumb 16) — the
+   48 × 28 default read too big in forms and panels; Small / Large stay opt-in modifiers (Components/switch.html) */
+.switch:not(.switch--small):not(.switch--large) {
+  --track-width: var(--spacing-40, 40px);
+  --track-height: var(--spacing-24, 24px);
+  --thumb-size: var(--spacing-16, 16px);
+}
