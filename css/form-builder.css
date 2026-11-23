@@ -539,7 +539,7 @@
 }
 
 .e-permits-builder__section-select:focus-visible {
-  box-shadow: 0 0 0 2px var(--color-background-base-default, #fff), 0 0 0 5px var(--focus-ring, var(--blue-sky-500, #3379db));
+  box-shadow: 0 0 0 2px var(--white, #fff), 0 0 0 5px var(--blue-sky-500, #3379db);
   outline: none;
 }
 
@@ -608,15 +608,15 @@
 }
 
 .e-permits-builder__field:focus-visible {
-  box-shadow: 0 0 0 2px var(--color-background-base-default, #fff), 0 0 0 5px var(--focus-ring, var(--blue-sky-500, #3379db));
+  box-shadow: 0 0 0 2px var(--white, #fff), 0 0 0 5px var(--blue-sky-500, #3379db);
   outline: none;
 }
 
 .e-permits-builder__field.is-selected:focus-visible {
   box-shadow:
     inset 0 0 0 var(--border-width-1, 1px) var(--color-border-brand-default, #0058d2),
-    0 0 0 2px var(--color-background-base-default, #fff),
-    0 0 0 5px var(--focus-ring, var(--blue-sky-500, #3379db));
+    0 0 0 2px var(--white, #fff),
+    0 0 0 5px var(--blue-sky-500, #3379db);
 }
 
 .e-permits-builder__field.is-dragging {
@@ -762,7 +762,7 @@
 
 .e-permits-builder__dropzone[aria-expanded="true"] {
   background: var(--color-background-base-tertiary-active, #e7e7e7);
-  box-shadow: 0 0 0 2px var(--color-background-base-default, #fff), 0 0 0 5px var(--focus-ring, var(--blue-sky-500, #3379db));
+  box-shadow: 0 0 0 2px var(--white, #fff), 0 0 0 5px var(--blue-sky-500, #3379db);
 }
 
 .e-permits-builder__add-menu {
@@ -821,13 +821,13 @@
 }
 
 .e-permits-builder__title-button:focus-visible {
-  box-shadow: 0 0 0 2px var(--color-background-base-default, #fff), 0 0 0 5px var(--focus-ring, var(--blue-sky-500, #3379db));
+  box-shadow: 0 0 0 2px var(--white, #fff), 0 0 0 5px var(--blue-sky-500, #3379db);
   outline: none;
 }
 
 /* step chips: the one selected for the panel gets the focus-ring look */
 .e-permits-builder__step-chip.is-selected {
-  box-shadow: 0 0 0 2px var(--color-background-base-default, #fff), 0 0 0 5px var(--focus-ring, var(--blue-sky-500, #3379db));
+  box-shadow: 0 0 0 2px var(--white, #fff), 0 0 0 5px var(--blue-sky-500, #3379db);
 }
 
 .e-permits-builder__step-chip .e-permits-tariff__tab-error {
@@ -1044,7 +1044,7 @@
 
 .e-permits-builder__mode button:focus-visible {
   background: var(--color-background-base-tertiary, #f1f1f1);
-  box-shadow: 0 0 0 2px var(--color-background-base-default, #fff), 0 0 0 5px var(--focus-ring, var(--blue-sky-500, #3379db));
+  box-shadow: 0 0 0 2px var(--white, #fff), 0 0 0 5px var(--blue-sky-500, #3379db);
 }
 
 .e-permits-builder__mode button.is-active:hover {
@@ -1064,7 +1064,7 @@
 }
 
 .e-permits-builder__step-chip:focus-visible {
-  box-shadow: 0 0 0 2px var(--color-background-base-default, #fff), 0 0 0 5px var(--focus-ring, var(--blue-sky-500, #3379db));
+  box-shadow: 0 0 0 2px var(--white, #fff), 0 0 0 5px var(--blue-sky-500, #3379db);
 }
 
 /* a field card: a darker border + the card elevation; the selected one keeps its brand ring and lifts too */
@@ -1084,16 +1084,16 @@
 
 .e-permits-builder__field:focus-visible:hover {
   box-shadow:
-    0 0 0 2px var(--color-background-base-default, #fff),
-    0 0 0 5px var(--focus-ring, var(--blue-sky-500, #3379db)),
+    0 0 0 2px var(--white, #fff),
+    0 0 0 5px var(--blue-sky-500, #3379db),
     var(--shadow-200, 0 1px 3px rgba(0, 0, 0, 0.08), 0 3px 8px rgba(0, 0, 0, 0.08), 0 0 0.5px rgba(0, 0, 0, 0.18));
 }
 
 .e-permits-builder__field.is-selected:focus-visible:hover {
   box-shadow:
     inset 0 0 0 var(--border-width-1, 1px) var(--color-border-brand-default, #0058d2),
-    0 0 0 2px var(--color-background-base-default, #fff),
-    0 0 0 5px var(--focus-ring, var(--blue-sky-500, #3379db)),
+    0 0 0 2px var(--white, #fff),
+    0 0 0 5px var(--blue-sky-500, #3379db),
     var(--shadow-200, 0 1px 3px rgba(0, 0, 0, 0.08), 0 3px 8px rgba(0, 0, 0, 0.08), 0 0 0.5px rgba(0, 0, 0, 0.18));
 }
 
@@ -1135,7 +1135,7 @@
 
 .e-permits-builder__errors[aria-expanded="true"],
 .e-permits-builder__errors:focus-visible {
-  box-shadow: 0 0 0 2px var(--color-background-base-default, #fff), 0 0 0 5px var(--focus-ring, var(--blue-sky-500, #3379db));
+  box-shadow: 0 0 0 2px var(--white, #fff), 0 0 0 5px var(--blue-sky-500, #3379db);
   outline: none;
 }
 
@@ -1390,7 +1390,7 @@
 }
 
 .e-permits-builder__step-row:focus-visible {
-  box-shadow: 0 0 0 2px var(--color-background-base-default, #fff), 0 0 0 5px var(--focus-ring, var(--blue-sky-500, #3379db));
+  box-shadow: 0 0 0 2px var(--white, #fff), 0 0 0 5px var(--blue-sky-500, #3379db);
   outline: none;
 }
 
@@ -1828,7 +1828,12 @@
   background: var(--color-background-base-tertiary-hover, #d9d9d9);
 }
 
-.e-permits-builder__width-picker:not([aria-disabled="true"]) > .e-permits-builder__width-option:is(:hover, :has(~ .e-permits-builder__width-option:hover)) .e-permits-builder__width-bar:not(.is-filled),
+/* empty segments up to the hovered one = one step darker than empty; filled ones beyond it = lighten (a hover on a segment
+   before the selected one shows the shrink, after it the growth) */
+.e-permits-builder__width-picker:not([aria-disabled="true"]) > .e-permits-builder__width-option:is(:hover, :has(~ .e-permits-builder__width-option:hover)) .e-permits-builder__width-bar:not(.is-filled) {
+  background: var(--color-background-base-tertiary-hover, #d9d9d9);
+}
+
 .e-permits-builder__width-picker:not([aria-disabled="true"]) > .e-permits-builder__width-option:hover ~ .e-permits-builder__width-option .e-permits-builder__width-bar.is-filled {
   background: var(--color-background-base-tertiary-active, #b2b2b2);
 }
@@ -1839,7 +1844,7 @@
 }
 
 .e-permits-builder__width-option:focus-visible {
-  box-shadow: 0 0 0 2px var(--color-background-base-default, #fff), 0 0 0 5px var(--focus-ring, var(--blue-sky-500, #3379db));
+  box-shadow: 0 0 0 2px var(--white, #fff), 0 0 0 5px var(--blue-sky-500, #3379db);
   outline: none;
 }
 
@@ -1961,6 +1966,23 @@ body:has(.form-builder-modal-overlay.is-active) :is(#case-action-modal, #pending
   gap: var(--spacing-4, 4px);
 }
 
+/* the label takes the space first: the name ellipsises (tooltip = data-cell-tooltip), the key tag shrinks before it */
+.e-permits-builder__field-name {
+  flex: 0 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.e-permits-builder__field-label strong {
+  flex: 0 1 auto;
+}
+
+.e-permits-builder__field-label em {
+  flex: 0 100 auto;
+}
+
 .e-permits-builder__field-label strong .e-permits-fo-required,
 .e-permits-builder__address-token .e-permits-fo-required {
   flex: 0 0 auto;
@@ -2018,7 +2040,7 @@ body:has(.form-builder-modal-overlay.is-active) :is(#case-action-modal, #pending
 }
 
 .e-permits-builder__field:focus-visible:hover {
-  box-shadow: 0 0 0 2px var(--color-background-base-default, #fff), 0 0 0 5px var(--focus-ring, var(--blue-sky-500, #3379db));
+  box-shadow: 0 0 0 2px var(--white, #fff), 0 0 0 5px var(--blue-sky-500, #3379db);
 }
 
 .e-permits-builder__field.is-selected:hover {
@@ -2091,14 +2113,14 @@ body:has(.form-builder-modal-overlay.is-active) :is(#case-action-modal, #pending
 
 .e-permits-builder__resize-handle:focus-visible,
 .e-permits-builder__field-resize:focus-visible {
-  box-shadow: var(--drop-shadow-200), 0 0 0 2px var(--color-background-base-default, #fff), 0 0 0 5px var(--focus-ring, var(--blue-sky-500, #3379db));
+  box-shadow: var(--drop-shadow-200), 0 0 0 2px var(--white, #fff), 0 0 0 5px var(--blue-sky-500, #3379db);
 }
 
 /* the grip: 3 dots (tertiary) in the middle, shown when the pill widens */
 .e-permits-builder__resize-handle::before,
 .e-permits-builder__field-resize::before {
-  /* crisp dots: a hard stop (no blur) — 3 dots of 3px, 6px apart (user 2026-11-23 „dots blurry”) */
-  background-image: radial-gradient(circle, var(--color-icon-base-secondary, #383838) 0 var(--border-width-1-5, 1.5px), transparent calc(var(--border-width-1-5, 1.5px) + 0.25px));
+  /* crisp dots: a hard 2-stop gradient (no blur), 3 dots of 3px, 6px apart; icon/base/secondary on purpose — the user wanted them darker (2026-11-23 „dots blurry”) */
+  background-image: radial-gradient(circle, var(--color-icon-base-secondary, #383838) 0 var(--border-width-1-5, 1.5px), transparent var(--border-width-1-5, 1.5px));
   background-repeat: repeat-y;
   background-size: var(--spacing-6, 6px) var(--spacing-6, 6px);
   content: "";

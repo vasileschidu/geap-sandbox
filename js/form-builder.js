@@ -1426,7 +1426,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
   const cardLabelHtml = (field) => `
           <div class="e-permits-builder__field-label">
-            <strong data-cell-tooltip>${esc(fieldName(field))}${field.required ? requiredMark() : ""}</strong>
+            <strong><span class="e-permits-builder__field-name" data-cell-tooltip>${esc(fieldName(field))}</span>${field.required ? requiredMark() : ""}</strong>
             ${field.key ? `<em data-cell-tooltip>${esc(field.key)}</em>` : ""}
           </div>`;
 
@@ -1526,7 +1526,7 @@ document.addEventListener("DOMContentLoaded", () => {
         </div>
         <div class="e-permits-builder__field-body">
           <div class="e-permits-builder__field-label">
-            <strong data-cell-tooltip>${esc(part.label)}${part.required ? requiredMark() : ""}</strong>
+            <strong><span class="e-permits-builder__field-name" data-cell-tooltip>${esc(part.label)}</span>${part.required ? requiredMark() : ""}</strong>
           </div>
           <div class="e-permits-builder__field-preview">
             <span data-cell-tooltip>${esc(part.defaultValue || PART_PREVIEW[part.key] || "")}</span>
