@@ -703,7 +703,7 @@
       selectField("eveniment", "Eveniment de pornire", Object.entries(EVENTS), v.eveniment, { placeholder: "Alege evenimentul", required: true, hint: "Momentul de la care curge «Arhivare după»." }),
       durationField("rest", "Durata restaurării pentru vizualizare", { placeholder: "Gol", hint: `Gol = ${durText(restIn.value)}, din ${fromText(restIn)}.` }),
       field(6, `<span class="e-permits-cfg-ro__label" id="arh-redare-label">Păstrarea redării istorice</span>
-        <div class="e-permits-arh-switch">${(A().renderToggle?.({ label: redare ? "Pornit" : "Oprit", description: v.redare === null ? `Preia ${redIn.value ? "Pornit" : "Oprit"} din ${fromText(redIn)}.` : "Setat pentru această politică.", checked: redare, attrs: 'data-arh-field="redare" aria-describedby="arh-redare-label"' })|| "").replace('class="switch', 'class="switch switch--medium')} || ""}</div>`)
+        <div class="e-permits-arh-switch">${A().renderToggle?.({ label: redare ? "Pornit" : "Oprit", description: v.redare === null ? `Preia ${redIn.value ? "Pornit" : "Oprit"} din ${fromText(redIn)}.` : "Setat pentru această politică.", checked: redare, attrs: 'data-arh-field="redare" aria-describedby="arh-redare-label"' }) || ""}</div>`)
     ].join("");
     const ap = actPermis(v);
     const ret = hasRetention(v);

@@ -206,8 +206,8 @@
   z-index: auto;
 }
 
-/* arh-switch-top-v2 (user 2026-11-24): the switch row starts on the SAME line as the input box beside it (no extra
-   margin); library Medium switch (40 × 24) centred on the 40 control line, text top-aligned with the track */
+/* arh-switch-top-v3 (user 2026-11-24): default library switch (48 × 28); the switch row starts on the SAME line as the
+   input box beside it and its track is TOP-aligned with the box (like the radio options next to inputs) */
 .e-permits-arh-switch {
   align-items: flex-start;
   margin-top: 0;
@@ -215,5 +215,4 @@
 
 .e-permits-arh-switch .switch-wrapper {
   align-items: flex-start;
-  padding-top: calc((var(--spacing-40, 40px) - var(--spacing-24, 24px)) / 2);
 }
