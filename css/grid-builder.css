@@ -331,3 +331,9 @@
 .e-permits-gridb__preview.is-phone .e-permits-fo-cascade-address__grid > :is(.e-permits-fo-field--span-3, .e-permits-fo-field--span-4):not(:has([data-fo-address-part="postalCode"])) {
   grid-column: span 2;
 }
+
+/* preview-switch-border-v1 (user 2026-11-24): the Desktop / Telefon switch sits on the grey canvas — a 1px default
+   border keeps its grey track from melting into the grey background */
+.e-permits-gridb__preview-bar .segmented-control {
+  box-shadow: inset 0 0 0 var(--border-width-1, 1px) var(--color-border-base-default, #d9d9d9);
+}
