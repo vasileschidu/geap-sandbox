@@ -7577,13 +7577,24 @@ document.addEventListener("DOMContentLoaded", () => {
   /* arh-v1 (Feature 97300 US-407 AC-10): a product registry may leave a row without its checkbox
      (`rowSelectable(row) === false`): no box in the cell, skipped by the header box */
   const rowSelectable = (row) => productRegistry(workplaceDb?.kind)?.rowSelectable?.(row) !== false;
+  /* arh-lockbox-v1: a row that cannot be selected keeps the library checkbox, disabled and unchecked (same size / place),
+     with the library Small tooltip = the registry's `rowSelectReason(row)` (data-tooltip-reason on the label; a disabled
+     input takes no mouse events). No reason hook = the old empty cell. components.md › Checkbox · disabled row. */
+  const rowLockedBox = (row) => {
+    const reason = productRegistry(workplaceDb?.kind)?.rowSelectReason?.(row);
+    return reason ? `
+        <label class="checkbox checkbox--medium" data-tooltip-reason="${escapeHtml(reason)}">
+          <input class="checkbox-input" type="checkbox" disabled aria-label="${escapeHtml(reason)}">
+          <span class="checkbox-custom" aria-hidden="true"></span>
+        </label>` : "";
+  };
   const renderDataRow = (row, columns, columnWidths, view = getView()) => `
     <tr data-workplace-row="${escapeHtml(row.id)}"${productRegistry(workplaceDb?.kind)?.rowClass?.(row) ? ` class="${escapeHtml(productRegistry(workplaceDb.kind).rowClass(row))}"` : ""}${workplaceRowOpenAttrs(row)}>
       ${view?.selectable === false ? "" : `<td class="e-permits-workplace__select-cell">${rowSelectable(row) ? `
         <label class="checkbox checkbox--medium">
           <input class="checkbox-input" type="checkbox" aria-label="Selectează rândul" data-workplace-select-row="${escapeHtml(row.id)}" ${workplaceState.selected.has(row.id) ? "checked" : ""}>
           <span class="checkbox-custom" aria-hidden="true"></span>
-        </label>` : ""}
+        </label>` : rowLockedBox(row)}
       </td>`}
       ${columns.map((key) => {
         const column = workplaceDb.columns[key];
