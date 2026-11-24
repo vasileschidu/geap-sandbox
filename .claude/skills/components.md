@@ -13716,9 +13716,9 @@ row, never a floating bottom bar. Values in the inventory row; first host: Sincr
 
 ### Arhivare (arh-v1, 2026-11-23; Feature 97300 „Arhivarea, restaurarea și păstrarea dosarelor”, US-395…408)
 
-Code only, BO desktop. Every piece is an existing component; `css/arhivare.css` is page glue. AC texts are kept word for
-word (the formal „Nu aveți acces la această secțiune.”, „Confirmați arhivarea dosarului …?”, „Continuați?”, „Introduceți un
-număr întreg mai mare ca zero.”) — the only exceptions to the „tu” tone; the dossier number never sits in a dialog title
+Code only, BO desktop. Every piece is an existing component; `css/arhivare.css` is page glue. All copy speaks „tu”
+(„Nu ai acces la această secțiune.”, „Confirmi arhivarea dosarului …?”, „Continui?”, „Introdu un număr întreg mai mare
+ca zero.”; arh-tu-v1 2026-11-24); the boxed empty state of the two registries uses `left: 0` (arh-empty-gutter-v1); the dossier number never sits in a dialog title
 (rule) → it leads the dialog body.
 
 | Part | Built from | Notes |

@@ -216,3 +216,9 @@
 .e-permits-arh-switch .switch-wrapper {
   align-items: flex-start;
 }
+
+/* ---- arh-empty-gutter-v1: the boxed empty state of the Arhivare registries sits 16 from both page edges (the shared
+   sticky offset adds a second 16 on the left, so the box ran past the right gutter) */
+[data-registry-kind^="arhivare"] .e-permits-empty-cell > .e-permits-empty:not(.e-permits-empty--bare) {
+  left: 0;
+}

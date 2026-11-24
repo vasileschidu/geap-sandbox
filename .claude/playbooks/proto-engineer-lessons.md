@@ -4545,3 +4545,4 @@ For any „research how other products do it” step, search Mobbin (mcp__mobbin
 - 2026-11-24 · Address part model (`ADDRESS_PARTS`) lacked Cod poștal / Telefon / Email of the US data model → parts added;
   Telefon / Email map to the FO `field.phone` / `field.email` in `toFo`, a part's `facts` = the builder `sourceFacts` list.
   User: the Adresă card on the canvas = the grid card chip band (`addressChipBandHtml`, visible parts only) + „Editează adresa”.
+- 2026-11-24 · Arhivare tu + empty gutter (arh-tu-v1): AC „word for word” formal copy was wrong — „tu” beats it; sweep with `grep -E "ați|eți|aveți|Continuați"` (+ header comments, components.md section). A BOXED (non-bare) empty state in a table cell ran past the right gutter (shared sticky `left:16` + cell padding 16 = 32 left, width view−32); fixed scoped in the module css (`left:0`), not in the shared rule. Never `cat > file` without a heredoc in a bash call — it blocks on stdin.

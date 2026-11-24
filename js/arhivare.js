@@ -7,7 +7,7 @@
      · Setări › „Politici de arhivare și păstrare” = the BO registry (`GEAPShellRegistries.arhivare`, nav `arhivare`) and the
        tab „Candidați la nimicire” = a second registry (`arhivare-candidati`, hidden nav item) — the status-tab bar switches
        between them (view tabs, no counts); access as Permisiuni: Administrator central, Administrator local only when
-       granted (`?arhivare=acordat`), everyone else = the boxed lock empty state „Nu aveți acces la această secțiune.”;
+       granted (`?arhivare=acordat`), everyone else = the boxed lock empty state „Nu ai acces la această secțiune.”;
      · policy create / edit = the ONE drawer (sections „Domeniu de aplicare” · „Arhivare” · „Păstrare”; durations = the
        value group with a trailing unit `.e-permits-doc-val` + `__mode--end`); activate / deactivate = askConfirm;
      · candidates: row checkboxes (only Anunțat + „Necesită aprobare” = Da, shell `rowSelectable`), the selection bar
@@ -16,7 +16,7 @@
        Nimicit / Toate), „Data arhivării”, facets Perioada deciziei / Perioada arhivării / Tip obiect, ⋮ Arhivează ·
        Restaurează · Obiecte arhivate · Versiuni, the read-only record card of an archived / destroyed dossier (minimal
        data), the automatic procedures' results as journal events; „Căutările mele” + „Salvează căutarea” on its toolbar.
-   AC texts are kept word for word (incl. the formal „Nu aveți…”, „Confirmați…”, „Continuați?”, „Introduceți…”).
+   UI copy speaks „tu” (Nu ai acces, Confirmi, Continui?, Introdu…).
    Demo switch ?arhivare= acordat · fara-arhiveaza · fara-restaureaza · gol · fara-candidati · eroare.
    ===================================================================================== */
 (function () {
@@ -47,15 +47,15 @@
   const STORE_KEY = "e-permits-arhivare-v1";
   /* AC texts, word for word */
   const T = {
-    denied: "Nu aveți acces la această secțiune.",
+    denied: "Nu ai acces la această secțiune.",
     forbidden: "Acces interzis",
     noMatch: "Nicio înregistrare nu corespunde criteriului de căutare.",
     required: "Câmp obligatoriu.",
-    intGt0: "Introduceți un număr întreg mai mare ca zero.",
+    intGt0: "Introdu un număr întreg mai mare ca zero.",
     duplicate: "Există deja o politică pentru acest domeniu de aplicare.",
     saved: "Politica a fost salvată.",
-    deactivate: "Politica inactivă nu se mai aplică la evaluările următoare, iar dosarele ei urmează politica de nivel superior. Continuați?",
-    activate: "Politica se aplică din nou la evaluările următoare. Continuați?",
+    deactivate: "Politica inactivă nu se mai aplică la evaluările următoare, iar dosarele ei urmează politica de nivel superior. Continui?",
+    activate: "Politica se aplică din nou la evaluările următoare. Continui?",
     failed: "Operația nu a putut fi efectuată",
     archived: "Dosarul a fost arhivat.",
     restored: "Dosarul a fost restaurat.",
@@ -507,7 +507,7 @@
     if (kind === "confirm") {
       openModal({
         kind: "confirm",
-        title: `Confirmați nimicirea a ${n} ${n === 1 ? "înregistrare" : n >= 20 ? "de înregistrări" : "înregistrări"}? Acțiunea nu se poate anula.`,
+        title: `Confirmi nimicirea a ${n} ${n === 1 ? "înregistrare" : n >= 20 ? "de înregistrări" : "înregistrări"}? Acțiunea nu se poate anula.`,
         body: `${candSummary(rows)}
           ${A().renderInfoNote?.("La data planificată procedura automată nimicește sau anonimizează înregistrările, după „Acțiune la expirarea păstrării”. Actul permisiv nu se nimicește.") || ""}`,
         footer: `<div class="modal-buttons"><button class="btn btn-neutral btn-rounded" type="button" data-case-close>Anulează</button><button class="btn btn-destructive btn-rounded" type="button" data-arh-confirm="cand-confirm">Confirmă</button></div>`
@@ -988,7 +988,7 @@
       kind: "confirm",
       title: "Arhivezi dosarul?",
       subtitle: row.serviciu,
-      body: `<p class="e-permits-passport__lead">Confirmați arhivarea dosarului <strong>${esc(row.nr)}</strong>?</p>
+      body: `<p class="e-permits-passport__lead">Confirmi arhivarea dosarului <strong>${esc(row.nr)}</strong>?</p>
         <p class="e-permits-passport__lead">Dosarul iese din spațiul de lucru și rămâne în registrul «Dosare», doar pentru citire, cu documentele și versiunile lui. Obiectele dosarului se arhivează împreună cu el.</p>
         ${A().renderInfoNote?.(pol?.pastrare ? `Politica aplicată: ${esc(policyRef(pol))}. Termenul «Păstrare în arhivă» (${esc(durText(pol.pastrare))}) se numără de la data arhivării.` : `Politica aplicată: ${esc(policyRef(pol))}. Fără păstrare în lanțul de politici, dosarul arhivat se păstrează nelimitat.`) || ""}`,
       footer: `<div class="modal-buttons"><button class="btn btn-neutral btn-rounded" type="button" data-case-close>Anulează</button><button class="btn btn-primary btn-rounded" type="button" data-arh-confirm="archive">${icon("page-text-lock", 20)}<span>Arhivează</span></button></div>`
