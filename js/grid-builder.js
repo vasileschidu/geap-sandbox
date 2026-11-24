@@ -18,10 +18,11 @@
      left     grid / sub-form: „Bibliotecă de câmpuri” (search) filtered to the column types — Coloane simple · Coloane
               complexe (locked with the reason until one simple column — US-34 AC-06; nested grid / sub-form locked at
               level 3 — US-38) · Copie a unui câmp din formular; a sub-form level lists the field types. Click = append,
-              drag = insert. Address: „Părți ascunse” (fixed parts — a hidden part is switched back on from here).
+              drag = insert. Address: NO left column (adr-hide-v1, 2026-11-24) — the parts are fixed and a hidden part
+              stays on the canvas in its place (dimmed, „Ascunsă”, eye = „Afișează”), so the canvas takes the space.
      centre   header strip „#1 <row name> · Rând de exemplu”, then ONE row as real field cards on the 12-column grid
               (gap 24): select, drag to reorder, the width handle with the guides (columns snap 3 · 4 · 6 · 12, sub-form
-              fields / address parts 3 · 4 · 6 · 8 · 12), ⧉ / 🗑 (address: „Ascunde”); a dashed „+ Coloană” tile;
+              fields / address parts 3 · 4 · 6 · 8 · 12), ⧉ / 🗑 (address: „Ascunde” ⇄ „Afișează”); a dashed „+ Coloană” tile;
               under a grid „Așa arată un rând salvat” + the saved line. A nested grid / sub-form card = its chips +
               „Editează grila / sub-formularul” → the same window one level deeper.
      right    the selected column / field / part; nothing selected = the grid's (address's) own settings.
@@ -96,7 +97,7 @@
         <aside class="e-permits-builder__inspector e-permits-gridb__inspector" aria-label="Proprietăți" data-gb-inspector></aside>
       </div>
       <p class="u-visually-hidden" id="gb-col-hint">Enter selectează, Alt + săgeată stânga sau dreapta mută, Shift + Alt + săgeată stânga sau dreapta schimbă lățimea, Ctrl + D duplică, Delete șterge.</p>
-      <p class="u-visually-hidden" id="gb-part-hint">Enter selectează partea, Alt + săgeată stânga sau dreapta schimbă lățimea, Delete o ascunde.</p>`;
+      <p class="u-visually-hidden" id="gb-part-hint">Enter selectează partea, Alt + săgeată stânga sau dreapta schimbă lățimea, Delete o ascunde sau o afișează din nou.</p>`;
   }
 
   /* ------------------------------------------------------------------ topbar */
@@ -169,12 +170,12 @@
         ${body}
       </section>`;
   }
-  /* the search filters the open list (types, copies, hidden parts) — like the designer's library */
+  /* the search filters the open list (types, copies) — like the designer's library */
   const hit = (text) => { const q = norm(gb.query); return !q || norm(text).includes(q); };
   const norm = (value) => String(value || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
   const noResults = () => window.GEAPEmptyState?.noResults("Nimic găsit", { compact: true, bare: true }) || "";
   function renderLibrary(cur) {
-    if (isAddress()) { renderPartsLibrary(cur); return; }
+    if (isAddress()) { refs.library.innerHTML = ""; return; } /* the address has no left column (CSS hides it) */
     const level = I.levelOf(cur);
     const sub = cur.type === "subform";
     refs.libraryTitle.textContent = "Bibliotecă de câmpuri";
@@ -198,24 +199,6 @@
     }
     refs.library.innerHTML = html.trim() ? html : noResults();
   }
-  /* the address window: the parts are fixed — the left column lists the HIDDEN ones; a click switches a part back on */
-  const PART_ICON = { "listă": "icon-chevron-bottom", text: "icon-text-bold", "număr": "icon-hashtag" };
-  function renderPartsLibrary(field) {
-    refs.libraryTitle.textContent = "Părțile adresei";
-    refs.library.closest("aside").setAttribute("aria-label", "Părțile adresei — părțile ascunse");
-    const hidden = I.addressConfig(field).filter((part) => !part.visible);
-    const shown = hidden.filter((part) => hit(`${part.label} ${part.kind}`));
-    const body = shown.map((part) => `
-      <button class="e-permits-builder__library-item" type="button" data-gb-show-part="${part.key}" aria-label="Afișează: ${I.esc(part.label)}">
-        <span>${I.icon(PART_ICON[part.kind] || "icon-text-bold")}</span>
-        <strong>${I.esc(part.label)}</strong>
-        <em data-cell-tooltip>${I.esc(part.note || "Ascunsă — apasă ca s-o afișezi")}</em>
-      </button>`).join("");
-    refs.library.innerHTML = hidden.length
-      ? (shown.length ? section("hidden", "Părți ascunse", body) : noResults())
-      : section("hidden", "Părți ascunse", window.GEAPEmptyState?.render({ title: "Toate părțile sunt afișate", text: "Ascunde o parte din cardul ei sau din panoul din dreapta; o găsești apoi aici.", icon: "eye", compact: true, bare: true }) || "");
-  }
-
   /* ------------------------------------------------------------------ centre: the row of cards */
   /* „+ Coloană” / „Adaugă câmp”: the builder's typed menu (fixed, so no scroll box cuts it), written after the grid */
   const addMenuId = (cur) => `fb-addchild-${cur.id}-gb`;
@@ -286,18 +269,18 @@
     host.querySelector(".e-permits-gridb__saved .e-permits-fo-grid__line-actions")?.remove();
   }
 
-  /* the address window: the visible parts as cards on the 12-column grid (fixed order, no add, no drag) */
+  /* the address window: EVERY part as a card on the 12-column grid (fixed order, no add, no drag); a hidden part keeps
+     its place + width, dimmed (adr-hide-v1) — the FO preview and the card on the form leave it out */
   function drawAddress(host, field) {
-    const parts = I.addressConfig(field).filter((part) => part.visible);
+    const parts = I.addressConfig(field);
     const selKey = I.state.addrPart;
     host.innerHTML = `
       <div class="e-permits-gridb__sheet" data-gb-sheet>
         ${hintHtml("o parte", !selKey)}
         ${stripHtml("", I.fieldName(field), "Adresă de exemplu")}
-        ${parts.length ? `
         <div class="e-permits-builder__grid e-permits-gridb__grid" data-gb-grid>
           ${parts.map((part) => I.addressPartCardHtml(part, selKey)).join("")}
-        </div>` : `<div class="e-permits-gridb__empty">${window.GEAPEmptyState?.render({ title: "Toate părțile sunt ascunse", text: "Afișează o parte din lista din stânga.", icon: "map-pin", compact: true }) || ""}</div>`}
+        </div>
       </div>`;
   }
 
@@ -609,17 +592,11 @@
         return;
       }
       if (event.target.closest("[data-gb-drill], [data-gb-chip]")) return; /* the document handler */
-      /* address: switch a hidden part on (left) / hide a part (its card) — a toggle: announced, no toast */
+      /* address: the eye on a part card hides / shows it in place — a toggle: announced, no toast; focus stays on the eye */
       const show = event.target.closest("[data-gb-show-part]");
-      if (show) {
-        const key = show.dataset.gbShowPart;
-        I.setAddressPart(current(), key, { visible: true });
-        I.announce(`Partea „${I.addressConfig(current()).find((part) => part.key === key)?.label}” este afișată.`);
-        selectPart(key);
-        return;
-      }
+      if (show) { togglePart(show.dataset.gbShowPart, true, "button"); return; }
       const hide = event.target.closest("[data-gb-hide-part]");
-      if (hide) { hidePart(hide.dataset.gbHidePart); return; }
+      if (hide) { togglePart(hide.dataset.gbHidePart, false, "button"); return; }
       const act = event.target.closest("[data-gb-act]");
       if (act) {
         const id = act.dataset.id;
@@ -684,7 +661,7 @@
       if (node.dataset.gbPart) {
         const key = node.dataset.gbPart;
         if (event.altKey && horizontal) { event.preventDefault(); stepWidth(node, delta); focusCard(`[data-gb-part="${CSS.escape(key)}"]`); return; }
-        if (event.key === "Delete" || event.key === "Backspace") { event.preventDefault(); hidePart(key); return; }
+        if (event.key === "Delete" || event.key === "Backspace") { event.preventDefault(); togglePart(key, node.classList.contains("is-part-hidden"), "card"); return; }
         if (event.key === "Enter" || event.key === " ") { event.preventDefault(); selectPart(key); }
         return;
       }
@@ -730,16 +707,16 @@
     root.addEventListener("dragend", endDrag);
     window.addEventListener("blur", () => { if (gb.drag) endDrag(); });
   }
-  function hidePart(key) {
+  /* hide / show a part IN PLACE (adr-hide-v1): the card stays at its spot + width, the selection does not move;
+     focus goes back to what was used — the card (Delete) or its eye button (now the opposite action) */
+  function togglePart(key, visible, from) {
     const field = current();
     const part = I.addressConfig(field).find((item) => item.key === key);
-    if (!part) return;
-    const parts = I.addressConfig(field).filter((item) => item.visible);
-    const next = parts[parts.indexOf(part) + 1] || parts[parts.indexOf(part) - 1];
-    I.setAddressPart(field, key, { visible: false });
-    selectContainer();
-    I.announce(`Partea „${part.label}” este ascunsă. O găsești în „Părți ascunse”.`);
-    focusCard(next ? `[data-gb-part="${CSS.escape(next.key)}"]` : `[data-gb-show-part="${CSS.escape(key)}"]`);
+    if (!part || part.visible === visible) return;
+    I.setAddressPart(field, key, { visible });
+    I.announce(visible ? `Partea „${part.label}” este afișată din nou.` : `Partea „${part.label}” este ascunsă. Rămâne pe loc; apasă ochiul ca s-o afișezi din nou.`);
+    const card = `[data-gb-part="${CSS.escape(key)}"]`;
+    focusCard(from === "button" ? `${card} ${visible ? "[data-gb-hide-part]" : "[data-gb-show-part]"}` : card);
   }
 
   function attach() {

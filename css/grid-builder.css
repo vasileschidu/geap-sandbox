@@ -67,6 +67,16 @@
   flex: 0 0 auto;
 }
 
+/* ---- workspace: the designer's 3 columns; Previzualizare = the centre alone; the address window has no left column
+   (adr-hide-v1: its parts are fixed and a hidden part stays on the canvas — the canvas takes the space) */
+.e-permits-gridb[data-gb-kind="address"]:not([data-gb-view="preview"]) .e-permits-gridb__workspace {
+  grid-template-columns: minmax(0, 1fr) var(--builder-right-width, 382px);
+}
+
+.e-permits-gridb[data-gb-kind="address"] .e-permits-gridb__library {
+  display: none;
+}
+
 /* ---- workspace: the designer's 3 columns; Previzualizare = the centre alone */
 .e-permits-gridb[data-gb-view="preview"] .e-permits-gridb__workspace {
   grid-template-columns: minmax(0, 1fr);
@@ -252,6 +262,21 @@
 /* address parts are fixed: no grab cursor, a click selects */
 .e-permits-gridb__part {
   cursor: pointer;
+}
+
+/* a hidden part (adr-hide-v1): same place + width, dimmed — tertiary label, the preview without fill (a dashed outline
+   keeps its shape); tags, the eye button, hover / focus / selected rings and the width handle stay as they are */
+.e-permits-gridb__part.is-part-hidden .e-permits-builder__field-label strong {
+  color: var(--color-text-base-tertiary, #757575);
+}
+
+.e-permits-gridb__part.is-part-hidden .e-permits-builder__field-preview {
+  background: transparent;
+  box-shadow: inset 0 0 0 var(--border-width-1, 1px) var(--color-border-base-default, #d9d9d9);
+}
+
+.e-permits-gridb__part.is-part-hidden .e-permits-builder__field-meta .status-tag {
+  flex: 0 0 auto;
 }
 
 /* ---- the panel's „Editează grila / sub-formularul / adresa” (under the panel title) */

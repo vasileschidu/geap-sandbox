@@ -1536,20 +1536,27 @@ document.addEventListener("DOMContentLoaded", () => {
         ${fixedChild(child) && inGrid ? "" : `<button class="e-permits-builder__field-resize" type="button" tabindex="-1" aria-hidden="true" data-gb-resize></button>`}
       </article>`;
   }
-  /* an address part in the address window: the same card — kind tag · n/12 · „Ascunde”, label + red star, grey preview */
+  /* an address part in the address window: the same card — kind tag · n/12 · „Ascunde”, label + red star, grey preview.
+     adr-hide-v1 (user 2026-11-24): a HIDDEN part keeps its place + width — dimmed label, preview without fill, a neutral
+     Small tag „Ascunsă”, and the eye button turns into „Afișează” (same spot, same key) */
   const PART_PREVIEW = { country: "Republica Moldova", district: "Selectează raionul", locality: "Selectează localitatea", sector: "Selectează sectorul", street: "Selectează strada", postalCode: "MD-0000", phone: "60 000 000", email: "adresa@exemplu.md", house: "Nr.", floor: "0", block: "Nr.", stair: "Scara", apartment: "Numărul ap.", cadastral: "Ex.: 0100510.123" };
   function addressPartCardHtml(part, selectedKey) {
     const selected = selectedKey === part.key;
     const list = part.kind === "listă";
+    const off = !part.visible;
+    const toggle = off
+      ? `<button class="btn btn-text-neutral btn-sm btn-icon-only" type="button" aria-label="Afișează: ${esc(part.label)}" data-tooltip-label="Afișează" data-gb-show-part="${part.key}">${icon("icon-eye-open", 16)}</button>`
+      : `<button class="btn btn-text-neutral btn-sm btn-icon-only" type="button" aria-label="Ascunde: ${esc(part.label)}" data-tooltip-label="Ascunde" data-gb-hide-part="${part.key}">${icon("icon-eye-slash", 16)}</button>`;
     return `
-      <article class="e-permits-builder__field e-permits-gridb__cell e-permits-gridb__part${selected ? " is-selected" : ""}" data-gb-part="${part.key}" data-span="${part.span}" tabindex="0" aria-describedby="gb-part-hint" aria-label="${esc(`${part.label}: ${part.kind}, ${part.span} din 12${part.required ? ", obligatoriu" : ""}${selected ? ", selectat" : ""}`)}">
+      <article class="e-permits-builder__field e-permits-gridb__cell e-permits-gridb__part${off ? " is-part-hidden" : ""}${selected ? " is-selected" : ""}" data-gb-part="${part.key}" data-span="${part.span}" tabindex="0" aria-describedby="gb-part-hint" aria-label="${esc(`${part.label}: ${part.kind}, ${part.span} din 12${off ? ", ascunsă" : part.required ? ", obligatoriu" : ""}${selected ? ", selectat" : ""}`)}">
         <div class="e-permits-builder__field-tools">
           <div class="e-permits-builder__field-meta">
             <em class="e-permits-builder__tag e-permits-builder__tag--strong">${esc(list ? "Listă" : part.kind === "număr" ? "Număr" : "Text")}</em>
             <em class="e-permits-builder__tag e-permits-builder__tag--outlined" data-fb-span-tag>${part.span}/12</em>
+            ${off ? window.GEAPTag?.html("Ascunsă", "neutral", { attrs: "data-gb-part-hidden-tag" }) || "" : ""}
           </div>
           <div class="e-permits-builder__field-actions">
-            <button class="btn btn-text-neutral btn-sm btn-icon-only" type="button" aria-label="Ascunde: ${esc(part.label)}" data-tooltip-label="Ascunde" data-gb-hide-part="${part.key}">${icon("icon-eye-slash", 16)}</button>
+            ${toggle}
           </div>
         </div>
         <div class="e-permits-builder__field-body">

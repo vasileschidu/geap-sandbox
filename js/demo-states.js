@@ -2357,7 +2357,8 @@
         /* US-54 in the CURRENT Form Designer (fb-win-v1 address window, 2026-11-24; the panel „Date” rows = adr-01…):
            w1 the window — „Cod cadastral” is a part card, shown by default (AC-02 / AC-03) · w2 selected → its panel:
            Vizibil ✓ + Obligatoriu ✱ (checkbox) + SRRE facts (Registru · Completează · Jurnal) · w3 Obligatoriu on → red star
-           on the card · w4 hidden from its card („Ascunde”) → listed in „Părți ascunse” (AC-04) · w5 Previzualizare with
+           on the card · w4 hidden from its card („Ascunde”) → stays IN PLACE dimmed + „Ascunsă”, eye = „Afișează” (AC-04;
+           adr-hide-v1, no left column) · w4a two parts of one row hidden (Telefon + Email) · w5 Previzualizare with
            it hidden → no code field, search „Caută adresa” (AC-04) · w6 Previzualizare by default (code on, Telefon + Email).
            BO desktop only. Scope for QA: .e-permits-gridb */
         ...(() => {
@@ -2383,7 +2384,11 @@
             "adr-w1": win(async (h) => { await h.scroll(part("cadastral")); }),
             "adr-w2": win(async (h) => { await h.click(part("cadastral")); await h.wait(250); }),
             "adr-w3": win(async (h) => { await h.click(part("cadastral")); await h.click(`${W} [data-address-required='cadastral']`); await h.wait(250); }),
-            "adr-w4": win(hide),
+            "adr-w4": win(async (h) => { await hide(h); await h.scroll(part("cadastral")); }),
+            "adr-w4a": win(async (h) => {
+              for (const key of ["phone", "email"]) { await h.click(`${part(key)} [data-gb-hide-part]`); await h.wait(200); }
+              await h.scroll(part("email"));
+            }),
             "adr-w5": win(async (h) => { await hide(h); await preview(h); }),
             "adr-w6": win(preview),
           };
