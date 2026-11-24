@@ -43,7 +43,7 @@
   const KIND_C = "arhivare-candidati";
   const NAV = "arhivare";
   const NAV_C = "arhivare-candidati";
-  const TITLE = "Politici de arhivare și păstrare";
+  const TITLE = "Arhivare și păstrare";
   const STORE_KEY = "e-permits-arhivare-v1";
   /* AC texts, word for word */
   const T = {
@@ -1610,8 +1610,8 @@
   /* ---------------------------------------------------------------- menu, routes, denied (US-395 AC-01/02) */
   function showDenied() {
     document.querySelectorAll("[data-nav-item].is-active").forEach((link) => { link.classList.remove("is-active"); link.removeAttribute("aria-current"); });
-    G().showPage?.(TITLE, E()?.render({ title: T.denied, text: "Ecranul «Politici de arhivare și păstrare» este disponibil Administratorului central și utilizatorilor cărora li s-a acordat permisiunea de gestionare a politicilor.", icon: "lock" }) || T.denied);
-    audit("Acces ecran Politici de arhivare și păstrare", "Acces refuzat: rolul nu are permisiunea de gestionare a politicilor de arhivare și păstrare.", "Ecran", NAV, "Refuzat");
+    G().showPage?.(TITLE, E()?.render({ title: T.denied, text: "Ecranul «Arhivare și păstrare» este disponibil Administratorului central și utilizatorilor cărora li s-a acordat permisiunea de gestionare a politicilor.", icon: "lock" }) || T.denied);
+    audit("Acces ecran Arhivare și păstrare", "Acces refuzat: rolul nu are permisiunea de gestionare a politicilor de arhivare și păstrare.", "Ecran", NAV, "Refuzat");
   }
   window.GEAPShellRoutes = window.GEAPShellRoutes || [];
   window.GEAPShellRoutes.push((h) => {
